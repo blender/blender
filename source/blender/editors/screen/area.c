@@ -88,15 +88,19 @@ static void region_draw_emboss(ARegion *ar)
 
 void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 {
-	if(ar->type->listener)
-		ar->type->listener(ar, note);
 	
-	/* generic notes */
-	if(note->type==WM_NOTE_REDRAW)
-		ar->do_draw= 1;
-	if(note->type==WM_NOTE_REFRESH)
-		ar->do_refresh= 1;
-	
+	/* generic notes first */
+	switch(note->type) {
+		case WM_NOTE_WINDOW_REDRAW:
+			ar->do_draw= 1;
+			break;
+		case WM_NOTE_SCREEN_CHANGED:
+			ar->do_draw= ar->do_refresh= 1;
+			break;
+		default:
+			if(ar->type->listener)
+				ar->type->listener(ar, note);
+	}
 }
 
 void ED_region_do_draw(bContext *C, ARegion *ar)

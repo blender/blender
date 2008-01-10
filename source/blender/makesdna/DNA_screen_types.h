@@ -108,7 +108,6 @@ typedef struct ScrArea {
 	bScreen *full;			/* if area==full, this is the parent */
 
 	rcti totrct;			/* rect bound by v1 v2 v3 v4 */
-	rcti headrct, winrct;	/* OLD! gets converted to region */
 
 	char spacetype, butspacetype;	/* SPACE_..., butspacetype is button arg  */
 	short winx, winy;				/* size */
@@ -156,7 +155,6 @@ typedef struct ARegion {
 
 /* If you change EDGEWIDTH, also do the global arrat edcol[]  */
 #define EDGEWIDTH	1
-#define EDGEWIDTH2	0
 #define AREAGRID	4
 #define AREAMINX	32
 #define HEADERY		26

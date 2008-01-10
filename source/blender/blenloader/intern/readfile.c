@@ -4576,7 +4576,6 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 		if(sa->headertype) {
 			ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
 			BLI_addtail(&sa->regionbase, ar);
-			ar->winrct= sa->headrct;
 			ar->regiontype= RGN_TYPE_HEADER;
 			ar->minsize= HEADERY;	// DNA_screen_types.h
 			if(sa->headertype==1)
@@ -4587,7 +4586,7 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 		
 		ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
 		BLI_addtail(&sa->regionbase, ar);
-		ar->winrct= sa->winrct;
+		ar->winrct= sa->totrct;
 		ar->regiontype= RGN_TYPE_WINDOW;
 	}
 }

@@ -87,7 +87,7 @@ static void WM_OT_window_duplicate(wmOperatorType *ot)
 	ot->name= "Duplicate Window";
 	ot->idname= "WM_OT_window_duplicate";
 	
-	ot->interactive= NULL; //WM_operator_confirm;
+	ot->invoke= NULL; //WM_operator_confirm;
 	ot->exec= wm_window_duplicate_op;
 	ot->poll= WM_operator_winactive;
 }
@@ -97,7 +97,7 @@ static void WM_OT_save_homefile(wmOperatorType *ot)
 	ot->name= "Save User Settings";
 	ot->idname= "WM_OT_save_homefile";
 	
-	ot->interactive= NULL; //WM_operator_confirm;
+	ot->invoke= NULL; //WM_operator_confirm;
 	ot->exec= WM_write_homefile;
 	ot->poll= WM_operator_winactive;
 	
@@ -109,7 +109,7 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
     ot->name= "Toggle Fullscreen";
     ot->idname= "WM_OT_window_fullscreen_toggle";
 
-    ot->interactive= NULL;
+    ot->invoke= NULL;
     ot->exec= wm_window_fullscreen_toggle_op;
     ot->poll= WM_operator_winactive;
 }

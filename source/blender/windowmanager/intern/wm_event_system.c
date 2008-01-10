@@ -205,14 +205,20 @@ void wm_draw_update(bContext *C)
 
 /* ********************* handlers *************** */
 
+/* not handler itself */
+static void wm_event_free_handler(wmEventHandler *handler)
+{
+	if(handler->op)
+		MEM_freeN(handler->op);
+}
+
 void wm_event_free_handlers(ListBase *lb)
 {
 	wmEventHandler *handler;
 	
-	for(handler= lb->first; handler; handler= handler->next) {
-		if(handler->op)
-			MEM_freeN(handler->op);
-	}
+	for(handler= lb->first; handler; handler= handler->next)
+		wm_event_free_handler(handler);
+	
 	BLI_freelistN(lb);
 }
 
@@ -227,7 +233,8 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *km)
 	if(winevent->ctrl!=km->ctrl) return 0;
 	if(winevent->alt!=km->alt) return 0;
 	if(winevent->oskey!=km->oskey) return 0;
-	if(winevent->keymodifier!=km->keymodifier) return 0;
+	if(km->keymodifier)
+		if(winevent->keymodifier!=km->keymodifier) return 0;
 	
 	/* optional boundbox */
 	
@@ -240,25 +247,23 @@ static int wm_handler_operator_call(bContext *C, wmEventHandler *handler, wmEven
 	
 	/* derived, modal or blocking operator */
 	if(handler->op) {
-		if( handler->op->type->poll(C)) {
-			if(handler->op->type->interactive)
-				retval= handler->op->type->interactive(C, handler->op, event);
-			else
-				printf("wm_handler_operator_call error\n");
-		}
+		if(handler->op->type->modal)
+			retval= handler->op->type->modal(C, handler->op, event);
+		else
+			printf("wm_handler_operator_call error\n");
 	}
 	else {
 		wmOperatorType *ot= WM_operatortype_find(event->keymap_idname);
 		if(ot) {
-			if(ot->poll(C)) {
+			if(ot->poll==NULL || ot->poll(C)) {
 				/* operator on stack, register or new modal handle malloc-copies */
 				wmOperator op;
 				
 				memset(&op, 0, sizeof(wmOperator));
 				op.type= ot;
 
-				if(op.type->interactive)
-					retval= op.type->interactive(C, &op, event);
+				if(op.type->invoke)
+					retval= (*op.type->invoke)(C, &op, event);
 				else if(&op.type->exec)
 					retval= op.type->exec(C, &op);
 				
@@ -298,6 +303,11 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			if(action==WM_HANDLER_BREAK)
 				break;
 		}
+		else {
+			/* modal, swallows all */
+			action= wm_handler_operator_call(C, handler, event);
+		}
+		
 		/* modal+blocking handler */
 		if(handler->flag & WM_HANDLER_BLOCKING)
 			action= WM_HANDLER_BREAK;
@@ -336,7 +346,7 @@ void wm_event_do_handlers(bContext *C)
 				ScrArea *sa= win->screen->areabase.first;
 				
 				for(; sa; sa= sa->next) {
-					if(wm_event_inside_i(event, &sa->winrct)) {
+					if(wm_event_inside_i(event, &sa->totrct)) {
 						
 						C->curarea= sa;
 						action= wm_handlers_do(C, event, &sa->handlers);
@@ -368,7 +378,7 @@ void WM_event_set_handler_flag(wmEventHandler *handler, int flag)
 	handler->flag= flag;
 }
 
-wmEventHandler *WM_event_add_modal_keymap_handler(ListBase *keymap, ListBase *handlers, wmOperator *op)
+wmEventHandler *WM_event_add_modal_handler(ListBase *handlers, wmOperator *op)
 {
 	/* debug test; operator not in registry */
 	if(op->type->flag & OPTYPE_REGISTER) {
@@ -378,14 +388,27 @@ wmEventHandler *WM_event_add_modal_keymap_handler(ListBase *keymap, ListBase *ha
 		wmEventHandler *handler= MEM_callocN(sizeof(wmEventHandler), "event handler");
 		wmOperator *opc= MEM_mallocN(sizeof(wmOperator), "operator modal");
 		
-		BLI_addtail(handlers, handler);
-		handler->keymap= keymap;
+		BLI_addhead(handlers, handler);
 		*opc= *op;
 		handler->op= opc;
 		
 		return handler;
 	}
 	return NULL;
+}
+
+void WM_event_remove_modal_handler(ListBase *handlers, wmOperator *op)
+{
+	wmEventHandler *handler;
+	
+	for(handler= handlers->first; handler; handler= handler->next) {
+		if(handler->op==op) {
+			BLI_remlink(handlers, handler);
+			wm_event_free_handler(handler);
+			MEM_freeN(handler);
+			break;
+		}
+	}
 }
 
 wmEventHandler *WM_event_add_keymap_handler(ListBase *keymap, ListBase *handlers)
@@ -397,6 +420,7 @@ wmEventHandler *WM_event_add_keymap_handler(ListBase *keymap, ListBase *handlers
 	
 	return handler;
 }
+
 
 /* ********************* ghost stuff *************** */
 
@@ -517,6 +541,8 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 				event.x= evt->x= cx;
 				event.y= evt->y= (win->sizey-1) - cy;
 				
+				ED_screen_set_subwinactive(win);	/* state variables in screen */
+				
 				update_tablet_data(win, &event);
 				wm_event_add(win, &event);
 			}
@@ -534,6 +560,11 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 				event.type= RIGHTMOUSE;
 			else
 				event.type= MIDDLEMOUSE;
+			
+			if(event.val)
+				event.keymodifier= evt->keymodifier= event.type;
+			else
+				event.keymodifier= evt->keymodifier= 0;
 			
 			update_tablet_data(win, &event);
 			wm_event_add(win, &event);

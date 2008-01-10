@@ -36,7 +36,9 @@ struct wmEvent;
 void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space);
 
 /* screen_edit.c */
-int screen_cursor_test(bContext *C, struct wmOperator *op, struct wmEvent *event);
+int screen_cursor_test(bContext *C, wmOperator *op, wmEvent *event);
+
+void ED_SCR_OT_move_areas(wmOperatorType *ot);
 
 
 #endif /* ED_SCREEN_INTERN_H */

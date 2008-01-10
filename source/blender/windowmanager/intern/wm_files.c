@@ -557,7 +557,9 @@ int WM_read_homefile(bContext *C, int from_memory)
 	if (!from_memory && BLI_exists(tstr)) {
 		success = BKE_read_file(C, tstr, NULL);
 	} else {
-		//XXX success = BKE_read_file_from_memory(C, datatoc_B_blend, datatoc_B_blend_size, NULL);
+		extern int datatoc_B_blend_size;
+		extern char datatoc_B_blend[];
+		success = BKE_read_file_from_memory(C, datatoc_B_blend, datatoc_B_blend_size, NULL);
 		/* outliner patch for 2.42 .b.blend */
 		outliner_242_patch();
 	}

@@ -108,12 +108,14 @@ typedef struct wmOperatorType {
 	char *name;		/* text for ui, undo */
 	char *idname;	/* unique identifier */
 	
-	/* this callback alters UI, adds handlers, uses cb's below */
-	int (*interactive)(struct bContext *, struct wmOperator *, struct wmEvent *event);
+	/* this callback alters UI, adds handlers, or uses cb's below */
+	int (*invoke)(struct bContext *, struct wmOperator *, struct wmEvent *event);
+	/* this callback is for modal temporary ops, initialize was called */
+	int (*modal)(struct bContext *, struct wmOperator *, struct wmEvent *event);
 	
-	void (*init)(struct bContext *, struct wmOperator *);
+	int (*init)(struct bContext *, struct wmOperator *);
 	int (*exec)(struct bContext *, struct wmOperator *);
-	void (*exit)(struct bContext *, struct wmOperator *);
+	int (*exit)(struct bContext *, struct wmOperator *);
 	
 	int (*poll)(struct bContext *);
 	
@@ -153,15 +155,18 @@ typedef struct wmOperator {
 	
 	/* default storage (lazy?) */
 	void *argv1, *argv2;
-	float argf1, argf2;
-	int arg1, arg2;
-	
+	vec3f	vecf;
+	vec3i	veci;
+	float fac, deltaf;
+	int value, delta;
+
 	/* custom storage, dna pointer */
-	void *customdata; /* XXX dynamic properties! */
+	void *customdata; 
+	/* or IDproperty list */
+	void *properties;
 
 	
 } wmOperator;
-
 
 
 #endif /* DNA_WINDOWMANAGER_TYPES_H */

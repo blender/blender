@@ -44,6 +44,8 @@
 
 static ListBase local_ops;
 
+/* ************** Poll tests ********************** */
+
 int ED_operator_screenactive(bContext *C)
 {
 	if(C->window==NULL) return 0;
@@ -51,24 +53,22 @@ int ED_operator_screenactive(bContext *C)
 	return 1;
 }
 
-
-
-static void ED_SCR_OT_move_areas(wmOperatorType *ot)
+int ED_operator_screen_mainwinactive(bContext *C)
 {
-    ot->name= "Move area edges";
-    ot->idname= "ED_SCR_OT_move_areas";
-	
-    ot->interactive= NULL;
-    ot->exec= NULL;
-    ot->poll= ED_operator_screenactive;
+	if(C->window==NULL) return 0;
+	if(C->screen==NULL) return 0;
+	if (C->screen->subwinactive!=C->screen->mainwin) return 0;
+	return 1;
 }
+
+/* ******************************* */
 
 static void ED_SCR_OT_cursor_type(wmOperatorType *ot)
 {
     ot->name= "Cursor type";
     ot->idname= "ED_SCR_OT_cursor_type";
 	
-    ot->interactive= screen_cursor_test;
+    ot->invoke= screen_cursor_test;
     ot->exec= NULL;
     ot->poll= ED_operator_screenactive;
 }
@@ -88,8 +88,6 @@ void ED_operatortypes_screen(void)
 	ADD_OPTYPE( ED_SCR_OT_move_areas );
 	ADD_OPTYPE( ED_SCR_OT_cursor_type );
 	
-	
-	
 	WM_operatortypelist_append(&local_ops);
 }
 
@@ -97,6 +95,7 @@ void ED_operatortypes_screen(void)
 void ed_screen_keymap(wmWindowManager *wm)
 {
 	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_cursor_type", MOUSEMOVE, 0, 0, 0);
+	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_move_areas", LEFTMOUSE, KM_PRESS, 0, 0);
 
 }
 

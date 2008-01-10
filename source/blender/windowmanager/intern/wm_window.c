@@ -381,6 +381,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				win->eventstate->x= cx;
 				win->eventstate->y= (win->sizey-1) - cy;
 				
+				ED_screen_set_subwinactive(win);	/* active subwindow in screen */
+				
 				wm_window_make_drawable(C, win);
 				break;
 			}
@@ -392,7 +394,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				printf("ghost redraw\n");
 				
 				wm_window_make_drawable(C, win);
-				WM_event_add_notifier(C->wm, win, 0, WM_NOTE_REDRAW, 0);
+				WM_event_add_notifier(C->wm, win, 0, WM_NOTE_WINDOW_REDRAW, 0);
 
 				break;
 			}
@@ -432,14 +434,13 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				}
 				
 				wm_window_make_drawable(C, win);
-				WM_event_add_notifier(C->wm, win, 0, WM_NOTE_REFRESH, 0);
-				WM_event_add_notifier(C->wm, win, 0, WM_NOTE_REDRAW, 0);
+				WM_event_add_notifier(C->wm, win, 0, WM_NOTE_SCREEN_CHANGED, 0);
 				
 				break;
 			}
 			default:
-				if(type==GHOST_kEventKeyDown)
-					WM_event_add_notifier(C->wm, win, 0, WM_NOTE_REDRAW, 0);
+				if(type==GHOST_kEventKeyDown) // XXX debug
+					WM_event_add_notifier(C->wm, win, 0, WM_NOTE_WINDOW_REDRAW, 0);
 				wm_event_add_ghostevent(win, type, data);
 				break;
 		}

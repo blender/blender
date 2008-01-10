@@ -108,5 +108,16 @@ void WM_keymap_set_item(ListBase *lb, char *idname, short type, short val, int m
 	keymap_set(km, type, val, modifier, keymodifier);
 }
 
+/* always add item */
+void WM_keymap_add_item(ListBase *lb, char *idname, short type, short val, int modifier, short keymodifier)
+{
+	wmKeymapItem *km= MEM_callocN(sizeof(wmKeymapItem), "keymap entry");
+	
+	BLI_addtail(lb, km);
+	BLI_strncpy(km->idname, idname, OP_MAX_TYPENAME);
+
+	keymap_set(km, type, val, modifier, keymodifier);
+}
+
 
 

@@ -237,7 +237,7 @@ static int scredge_is_horizontal(ScrEdge *se)
 	return (se->v1->vec.y == se->v2->vec.y);
 }
 
-static ScrEdge *screen_find_active_scredge(bScreen *sc, short *mval)
+static ScrEdge *screen_find_active_scredge(bScreen *sc, int mx, int my)
 {
 	ScrEdge *se;
 	
@@ -247,7 +247,7 @@ static ScrEdge *screen_find_active_scredge(bScreen *sc, short *mval)
 			min= MIN2(se->v1->vec.x, se->v2->vec.x);
 			max= MAX2(se->v1->vec.x, se->v2->vec.x);
 			
-			if (abs(mval[1]-se->v1->vec.y)<=2 && mval[0] >= min && mval[0]<=max)
+			if (abs(my-se->v1->vec.y)<=2 && mx>=min && mx<=max)
 				return se;
 		} 
 		else {
@@ -255,7 +255,7 @@ static ScrEdge *screen_find_active_scredge(bScreen *sc, short *mval)
 			min= MIN2(se->v1->vec.y, se->v2->vec.y);
 			max= MAX2(se->v1->vec.y, se->v2->vec.y);
 			
-			if (abs(mval[0]-se->v1->vec.x)<=2 && mval[1] >= min && mval[1]<=max)
+			if (abs(mx-se->v1->vec.x)<=2 && my>=min && my<=max)
 				return se;
 		}
 	}
@@ -263,6 +263,7 @@ static ScrEdge *screen_find_active_scredge(bScreen *sc, short *mval)
 	return NULL;
 }
 
+/* danger: is used while areamove! */
 static void select_connected_scredge(bScreen *sc, ScrEdge *edge)
 {
 	ScrEdge *se;
@@ -278,7 +279,7 @@ static void select_connected_scredge(bScreen *sc, ScrEdge *edge)
 	
 	sv= sc->vertbase.first;
 	while(sv) {
-		sv->flag= 0;
+		sv->flag = 0;
 		sv= sv->next;
 	}
 	
@@ -410,13 +411,11 @@ bScreen *ED_screen_duplicate(wmWindow *win, bScreen *sc)
 /* *************************************************************** */
 
 /* test if screen vertices should be scaled */
-/* also check offset */
 void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 {
 	ScrVert *sv=NULL;
-	ScrEdge *se;
 	ScrArea *sa, *san;
-	int sizex, sizey, yval;
+	int sizex, sizey;
 	float facx, facy, tempf, min[2], max[2];
 	
 	/* calculate size */
@@ -472,29 +471,6 @@ void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 			MEM_freeN(sa);
 		}
 	}
-	
-	/* make each window at least HEADERY high */
-	for(sa= sc->areabase.first; sa; sa= sa->next) {
-		
-		if(sa->v1->vec.y+HEADERY > sa->v2->vec.y) {
-			/* lower edge */
-			se= screen_findedge(sc, sa->v4, sa->v1);
-			if(se && sa->v1!=sa->v2 ) {
-				select_connected_scredge(sc, se);
-				
-				/* all selected vertices get the right offset */
-				yval= sa->v2->vec.y-HEADERY;
-				sv= sc->vertbase.first;
-				while(sv) {
-					/* if is a collapsed area */
-					if(sv!=sa->v2 && sv!=sa->v3) {
-						if(sv->flag) sv->vec.y= yval;
-					}
-					sv= sv->next;
-				}
-			}
-		}
-	}
 }
 
 
@@ -529,12 +505,14 @@ void ED_screen_do_listen(bScreen *screen, wmNotifier *note)
 {
 	
 	/* generic notes */
-	if(note->type==WM_NOTE_REDRAW)
-		screen->do_draw= 1;
-	if(note->type==WM_NOTE_REFRESH)
-		if(note->swinid==0)
-			screen->do_refresh= screen->do_draw= 1;
-	
+	switch(note->type) {
+		case WM_NOTE_WINDOW_REDRAW:
+			screen->do_draw= 1;
+			break;
+		case WM_NOTE_SCREEN_CHANGED:
+			screen->do_draw= screen->do_refresh= 1;
+			break;
+	}
 }
 
 
@@ -552,7 +530,7 @@ void ED_screen_draw(wmWindow *win)
 }
 
 /* make this screen usable */
-/* for file read and first use, for scaling window */
+/* for file read and first use, for scaling window, area moves */
 void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 {
 	ScrArea *sa;
@@ -592,28 +570,48 @@ void ED_screens_initialize(wmWindowManager *wm)
 
 void placeholder()
 {
-	removedouble_scrverts(NULL);
 	removenotused_scrverts(NULL);
-	removedouble_scredges(NULL);
 	removenotused_scredges(NULL);
 }
 
-/* *************************************************** */
+/* called in wm_event_system.c. sets state var in screen */
+void ED_screen_set_subwinactive(wmWindow *win)
+{
+	if(win->screen) {
+		wmEvent *event= win->eventstate;
+		ScrArea *sa;
+		
+		for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+			if(event->x > sa->totrct.xmin && event->x < sa->totrct.xmax)
+				if(event->y > sa->totrct.ymin && event->y < sa->totrct.ymax)
+					break;
+		}
+		if(sa) {
+			ARegion *ar;
+			for(ar= sa->regionbase.first; ar; ar= ar->next) {
+				if(BLI_in_rcti(&ar->winrct, event->x, event->y))
+					win->screen->subwinactive= ar->swinid;
+			}
+		}
+		else
+			win->screen->subwinactive= win->screen->mainwin;
+		
+	}
+}
+
+/* ****************** cursor near edge operator ********************************* */
 
 /* operator cb */
 int screen_cursor_test(bContext *C, wmOperator *op, wmEvent *event)
 {
-	short mval[2]= {event->x, event->y};
-	ScrEdge *actedge= screen_find_active_scredge(C->screen, mval);
-	
-	if (actedge) {
-		if (scredge_is_horizontal(actedge)) {
+	if (C->screen->subwinactive==C->screen->mainwin) {
+		ScrEdge *actedge= screen_find_active_scredge(C->screen, event->x, event->y);
+		
+		if (actedge && scredge_is_horizontal(actedge)) {
 			WM_set_cursor(C, CURSOR_Y_MOVE);
 		} else {
 			WM_set_cursor(C, CURSOR_X_MOVE);
 		}
-		// this does global hotkeys too
-//		screen_edge_edit_event(g_activearea, actedge, event, val);
 	} else {
 		WM_set_cursor(C, CURSOR_STD);
 	}
@@ -622,3 +620,190 @@ int screen_cursor_test(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 
+
+/* ************** move area edge operator ********************************************** */
+
+/* operator state vars used:  
+           op->veci   mouse coord near edge
+           op->delta  movement of edge
+
+   callbacks:
+
+   init()   find edge based on op->veci, test if the edge can be moved, select edges,
+            clear delta, calculate min and max movement
+
+   exec()	apply op->delta on selection
+   
+   invoke() handler gets called on a mouse click near edge
+            call init()
+            add handler
+
+   modal()	accept modal events while doing it
+			call exec() with delta motion
+            call exit() and remove handler
+
+   exit()	cleanup, send notifier
+
+*/
+
+/* "global" variables for all functions inside this operator */
+/*  we could do it with properties? */
+static int	bigger, smaller, dir, origval;
+	
+/* validate selection inside screen, set variables OK */
+/* return 0: init failed */
+static int move_areas_init (bContext *C, wmOperator *op)
+{
+	ScrEdge *actedge= screen_find_active_scredge(C->screen, op->veci.x, op->veci.y);
+	ScrArea *sa;
+	
+	if(actedge==NULL) return 0;
+	
+	dir= scredge_is_horizontal(actedge)?'h':'v';
+	if(dir=='h') origval= actedge->v1->vec.y;
+	else origval= actedge->v1->vec.x;
+	
+	select_connected_scredge(C->screen, actedge);
+
+	/* now all verices with 'flag==1' are the ones that can be moved. */
+	/* we check all areas and test for free space with MINSIZE */
+	bigger= smaller= 10000;
+	for(sa= C->screen->areabase.first; sa; sa= sa->next) {
+		if(dir=='h') {	/* if top or down edge selected, test height */
+		   
+		   if(sa->v1->flag && sa->v4->flag) {
+			   int y1= sa->v2->vec.y - sa->v1->vec.y-AREAMINY;
+			   bigger= MIN2(bigger, y1);
+		   }
+		   else if(sa->v2->flag && sa->v3->flag) {
+			   int y1= sa->v2->vec.y - sa->v1->vec.y-AREAMINY;
+			   smaller= MIN2(smaller, y1);
+		   }
+		}
+		else {	/* if left or right edge selected, test width */
+			if(sa->v1->flag && sa->v2->flag) {
+				int x1= sa->v4->vec.x - sa->v1->vec.x-AREAMINX;
+				bigger= MIN2(bigger, x1);
+			}
+			else if(sa->v3->flag && sa->v4->flag) {
+				int x1= sa->v4->vec.x - sa->v1->vec.x-AREAMINX;
+				smaller= MIN2(smaller, x1);
+			}
+		}
+	}
+	
+	return 1;
+}
+
+/* moves selected screen edge amount of delta */
+/* needs init call to work */
+static int move_areas_exec(bContext *C, wmOperator *op)
+{
+	ScrVert *v1;
+	
+	op->delta= CLAMPIS(op->delta, -smaller, bigger);
+	
+	for (v1= C->screen->vertbase.first; v1; v1= v1->next) {
+		if (v1->flag) {
+			/* that way a nice AREAGRID  */
+			if((dir=='v') && v1->vec.x>0 && v1->vec.x<C->window->sizex-1) {
+				v1->vec.x= origval + op->delta;
+				if(op->delta != bigger && op->delta != -smaller) v1->vec.x-= (v1->vec.x % AREAGRID);
+			}
+			if((dir=='h') && v1->vec.y>0 && v1->vec.y<C->window->sizey-1) {
+				v1->vec.y= origval + op->delta;
+
+				v1->vec.y+= AREAGRID-1;
+				v1->vec.y-= (v1->vec.y % AREAGRID);
+				
+				/* prevent too small top header */
+				if(v1->vec.y > C->window->sizey-HEADERY)
+					v1->vec.y= C->window->sizey-HEADERY;
+			}
+		}
+	}
+	return 1;
+}
+
+static int move_areas_exit(bContext *C, wmOperator *op)
+{
+	
+	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0);
+
+	/* this makes sure aligned edges will result in aligned grabbing */
+	removedouble_scrverts(C->screen);
+	removedouble_scredges(C->screen);
+	
+	return 1;
+}
+
+/* interaction callback */
+/* return 0 = stop evaluating for next handlers */
+static int move_areas_invoke (bContext *C, wmOperator *op, wmEvent *event)
+{
+	
+	/* operator arguments and storage */
+	op->delta= 0;
+	op->veci.x= event->x;
+	op->veci.y= event->y;
+	
+	if(0==move_areas_init(C, op)) 
+		return 1;
+	
+	/* add temp handler */
+	WM_event_add_modal_handler(&C->window->handlers, op);
+	
+	return 0;
+}
+
+/* modal callback for while moving edges */
+/* return 0 = stop evaluating for next handlers */
+static int move_areas_modal (bContext *C, wmOperator *op, wmEvent *event)
+{
+	/* execute the events */
+	switch(event->type) {
+		case MOUSEMOVE:
+			
+			if(dir=='v')
+				op->delta= event->x - op->veci.x;
+			else
+				op->delta= event->y - op->veci.y;
+			
+			move_areas_exec(C, op);
+			WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0);
+			break;
+			
+		case LEFTMOUSE:
+			if(event->val==0) {
+				WM_event_remove_modal_handler(&C->window->handlers, op);
+				move_areas_exit(C, op);
+			}
+			break;
+			
+		case ESCKEY:
+			op->delta= 0;
+			move_areas_exec(C, op);
+			
+			WM_event_remove_modal_handler(&C->window->handlers, op);
+			move_areas_exit(C, op);
+			break;
+	}
+	
+	return 1;
+}
+
+void ED_SCR_OT_move_areas(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Move area edges";
+	ot->idname= "ED_SCR_OT_move_areas";
+
+	ot->init= move_areas_init;
+	ot->invoke= move_areas_invoke;
+	ot->modal= move_areas_modal;
+	ot->exec= move_areas_exec;
+	ot->exit= move_areas_exit;
+
+	ot->poll= ED_operator_screen_mainwinactive;
+}

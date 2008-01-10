@@ -61,10 +61,14 @@ void		WM_keymap_set_item	(ListBase *lb, char *idname, short type,
 								 short val, int modifier, short keymodifier);
 void		WM_keymap_verify_item(ListBase *lb, char *idname, short type, 
 								 short val, int modifier, short keymodifier);
+void		WM_keymap_add_item	(ListBase *lb, char *idname, short type, 
+								 short val, int modifier, short keymodifier);
 struct wmEventHandler *WM_event_add_keymap_handler(ListBase *keymap, ListBase *handlers);
-struct wmEventHandler *WM_event_add_modal_keymap_handler(ListBase *keymap, ListBase *handlers, wmOperator *op);
+struct wmEventHandler *WM_event_add_modal_handler(ListBase *handlers, wmOperator *op);
+void		WM_event_remove_modal_handler(ListBase *handlers, wmOperator *op);
 
-void		WM_event_add_notifier(wmWindowManager *wm, wmWindow *window, int swinid, int type, int value);
+void		WM_event_add_notifier(wmWindowManager *wm, wmWindow *window, int swinid, int type, 
+								  int value);
 
 
 			/* operator api, default callbacks */

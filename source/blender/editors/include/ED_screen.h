@@ -54,8 +54,14 @@ void	ED_screen_draw(struct wmWindow *win);
 void	ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
 void	ED_screen_do_listen(bScreen *screen, struct wmNotifier *note);
 bScreen *ED_screen_duplicate(struct wmWindow *win, bScreen *sc);
+void	ED_screen_set_subwinactive(struct wmWindow *win);
 
 void	ed_screen_keymap(struct wmWindowManager *wm);
+
+/* operators; context poll callbacks */
+int		ED_operator_screenactive(bContext *C);
+int		ED_operator_screen_mainwinactive(bContext *C);
+
 
 #endif /* ED_SCREEN_H */
 
