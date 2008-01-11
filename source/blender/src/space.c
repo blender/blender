@@ -4520,7 +4520,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	short mval[2];
 	short nr;
 	short mousebut = L_MOUSE;
-	
+	printf("event %i\n", event);
 	if(curarea->win==0) return;
 
 	if(val) {
@@ -4595,16 +4595,6 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					v2d->cur.xmax-= dx;
 					test_view2d(G.v2d, sa->winx, sa->winy);
 					view2d_do_locks(sa, V2D_LOCK_COPY);
-				}
-				else if((G.qual==LR_SHIFTKEY)) {
-					insert_gap(25, CFRA);
-					BIF_undo_push("Insert gaps Sequencer");
-					allqueue(REDRAWSEQ, 0);
-				}
-				else if(G.qual==LR_ALTKEY) {
-					insert_gap(250, CFRA);
-					BIF_undo_push("Insert gaps Sequencer");
-					allqueue(REDRAWSEQ, 0);
 				}
 			}
 			doredraw= 1;
