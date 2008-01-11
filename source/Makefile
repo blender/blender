@@ -214,7 +214,7 @@ ifeq ($(WITH_OPENEXR), true)
     COMLIB += $(NAN_OPENEXR_LIBS)
 endif
 
-BLLIB = $(NAN_IKSOLVER)/lib/libiksolver.a
+BLLIB += $(NAN_IKSOLVER)/lib/libiksolver.a
 BLLIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
 BLLIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
 BLLIB += $(OCGDIR)/blender/ed_datafiles/libed_datafiles.a
