@@ -202,7 +202,7 @@ IF(UNIX)
     blender_render 
     blender_radiosity 
     blender_ONL 
-    blender_python 
+    bf_python 
     bf_blenkernel 
     bf_nodes
     bf_blenloader 
@@ -252,7 +252,7 @@ IF(UNIX)
     extern_solid 
     extern_qhull 
     bf_moto 
-    blender_python
+    bf_python
     bf_quicktime
   )
 
