@@ -53,7 +53,7 @@ ifdef NAN_BUILDINFO
     BUILDINFO_C = $(SRCHOME)/creator/buildinfo.c
     BUILD_DATE := $(shell date "+%Y-%m-%d")
     BUILD_TIME := $(shell date "+%H:%M:%S")
-    BUILD_REV := $(shell svnversion)
+	BUILD_REV := $(shell svnversion)
 endif
 
 ############# set pyplayerlib ##################
@@ -64,7 +64,8 @@ endif
 # BPLIB Browser Plugin LIBraries
 # SPLIB1 Standalone Player LIBraries (pre COMLIB)
 # SPLIB Standalone Player LIBraries (post COMLIB)
-# BLLIB BLender specific LIBraries
+# PULIB PUblisher LIBraries
+# GRPLIB Gui and Render LIBraries for Publisher
 # LLIBS dynamic system libraries
 # SADD Static OpenGL libraries
 # DADD Dynamic OpenGL libraries
@@ -72,17 +73,18 @@ endif
 # PLUGAPPLIB libs that form the application to be plugged in
 # Note: the order is important here
 
-BLLIB = $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)DNA.o
-BLLIB += $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
-BLLIB += $(OCGDIR)/blender/windowmanager/$(DEBUG_DIR)libwindowmanager.a
-BLLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
-BLLIB += $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
-BLLIB += $(NAN_SOUNDSYSTEM)/lib/$(DEBUG_DIR)libSoundSystem.a
-BLLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
-BLLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
-BLLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
-BLLIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
-BLLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a	
+GRPLIB = $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)DNA.o
+GRPLIB += $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
+GRPLIB += $(OCGDIR)/blender/windowmanager/$(DEBUG_DIR)libwindowmanager.a
+GRPLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
+GRPLIB += $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
+GRPLIB += $(NAN_SOUNDSYSTEM)/lib/$(DEBUG_DIR)libSoundSystem.a
+GRPLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
+GRPLIB += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
+GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
+GRPLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
+GRPLIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
+GRPLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a	
 
 # nlin: the reason that some libraries appear more than once below is
 # to handle circular dependencies in linking among libraries... some
@@ -90,7 +92,6 @@ BLLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a
 # to properly resolve circular dependencies. ugly, but it works...
 # the repeat entries could probably be trimmed down.
 COMLIB = $(OCGDIR)/blender/blenkernel/$(DEBUG_DIR)libblenkernel.a
-COMLIB += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
 COMLIB += $(NAN_DECIMATION)/lib/libdecimation.a
 COMLIB += $(OCGDIR)/blender/blenloader/$(DEBUG_DIR)libblenloader.a
 COMLIB += $(OCGDIR)/blender/blenpluginapi/$(DEBUG_DIR)libblenpluginapi.a
@@ -153,9 +154,14 @@ COMLIB += $(NAN_MEMUTIL)/lib/libmemutil.a
 COMLIB += $(NAN_BMFONT)/lib/$(DEBUG_DIR)libbmfont.a
 COMLIB += $(NAN_PNG)/lib/libpng.a
 COMLIB += $(OCGDIR)/blender/yafray/$(DEBUG_DIR)libyafrayexport.a
+COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
 
 ifeq ($(WITH_QUICKTIME), true)
     COMLIB += $(OCGDIR)/blender/blenderqt/$(DEBUG_DIR)libblenderqt.a
+endif
+
+ifeq ($(WITH_OPENEXR), true)
+    COMLIB += $(OCGDIR)/blender/imbuf/openexr/$(DEBUG_DIR)libopenexr.a
 endif
 
 COMLIB += $(OCGDIR)/blender/imbuf/cineon/$(DEBUG_DIR)libcineon.a
@@ -210,32 +216,39 @@ ifeq ($(OS), windows)
 endif
 
 ifeq ($(WITH_OPENEXR), true)
-    COMLIB += $(OCGDIR)/blender/imbuf/openexr/$(DEBUG_DIR)libopenexr.a
     COMLIB += $(NAN_OPENEXR_LIBS)
 endif
 
-BLLIB += $(NAN_IKSOLVER)/lib/libiksolver.a
-BLLIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
-BLLIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
-BLLIB += $(OCGDIR)/blender/ed_datafiles/libed_datafiles.a
-BLLIB += $(OCGDIR)/blender/ed_screen/libed_screen.a
-BLLIB += $(OCGDIR)/blender/ed_interface/libed_interface.a
-BLLIB += $(OCGDIR)/blender/ed_view3d/libed_view3d.a
-BLLIB += $(OCGDIR)/blender/windowmanager/libwindowmanager.a
-BLLIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
+PULIB = $(NAN_IKSOLVER)/lib/libiksolver.a
+PULIB += $(NAN_MOTO)/lib/libmoto.a
+PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
+PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
+PULIB += $(OCGDIR)/blender/ed_datafiles/libed_datafiles.a
+PULIB += $(OCGDIR)/blender/ed_screen/libed_screen.a
+PULIB += $(OCGDIR)/blender/ed_interface/libed_interface.a
+PULIB += $(OCGDIR)/blender/ed_view3d/libed_view3d.a
+PULIB += $(OCGDIR)/blender/windowmanager/libwindowmanager.a
+PULIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 
 
 ifeq ($(NAN_NO_KETSJI),true)
-    BLLIB += $(OCGDIR)/kernel/gen_system/$(DEBUG_DIR)libgen_system.a
-    BLLIB += $(OCGDIR)/kernel/gen_messaging/$(DEBUG_DIR)libgen_messaging.a
+    PULIB += $(NAN_MOTO)/lib/libmoto.a
+    PULIB += $(OCGDIR)/kernel/gen_system/$(DEBUG_DIR)libgen_system.a
+    PULIB += $(OCGDIR)/kernel/gen_messaging/$(DEBUG_DIR)libgen_messaging.a
     COMLIB += $(NAN_SND_LIBS)
 endif
 
 SPLIB1 = $(OCGDIR)/gameengine/GamePlayer/ghost/$(DEBUG_DIR)libghost.a
 SPLIB1 += $(OCGDIR)/gameengine/GamePlayer/common/$(DEBUG_DIR)libcommon.a
+SPLIB1 += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
+SPLIB1 += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 
 SPLIB = $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)DNA.o
 SPLIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
+# this is used for the plugin. It uses some things from libz.a, 
+# but somehow it consistently fails to resolve these symbols... or 
+# can I just not check them? nm claims they aren't...
+SPLIB += $(OCGDIR)/blender/blenkernel/blenkernel_blc/$(DEBUG_DIR)libblenkernel_blc.a
 
 # These three need to be explicitly mentioned on the cl, because 
 # if they are offered as a lib, they are optimized away. (nzc)
@@ -277,6 +290,9 @@ ifeq ($(OS),$(findstring $(OS), "linux"))
   endif
 endif
 
+# A bit silly... but needed to resolve symbols.
+PLUGREMLIB = $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
+
 ######################## OS dependencies (alphabetic!) ################
 
 include nan_link.mk
@@ -310,7 +326,7 @@ ifeq ($(WITH_BF_WEBPLUGIN), true)
 endif
 
 ifeq ($(OS),solaris)
-    BLLIB += $(NAN_ZLIB)/lib/libz.a
+    PULIB += $(NAN_ZLIB)/lib/libz.a
     SPLIB += $(NAN_ZLIB)/lib/libz.a
 endif
 
@@ -399,8 +415,8 @@ ifeq ($(OS),windows)
         BINTARGETS += plugin
     endif
 
-    BLLIB += $(OCGDIR)/blender/icons/$(DEBUG_DIR)winblender.res
-    BLLIB += $(NAN_ZLIB)/lib/libz.a
+    PULIB += $(OCGDIR)/blender/icons/$(DEBUG_DIR)winblender.res
+    PULIB += $(NAN_ZLIB)/lib/libz.a
     SPLIB += $(OCGDIR)/blender/icons/$(DEBUG_DIR)winblender.res
     SPLIB += $(NAN_ZLIB)/lib/libz.a
 endif
@@ -484,13 +500,13 @@ ifeq ($(OS),windows)
 	endif
 endif
 
-$(DIR)/$(DEBUG_DIR)bin/blenderstatic: $(OBJS) $(COMLIB) $(BLLIB)
+$(DIR)/$(DEBUG_DIR)bin/blenderstatic: $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)
 	@echo "****> Link $@"
 ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"static"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderstatic $(BUILDINFO_O) $(OBJS) $(COMLIB) $(BLLIB) $(LLIBS) $(SADD) $(LOPTS)
+	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderstatic $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB) $(LLIBS) $(SADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
@@ -498,13 +514,13 @@ ifeq ($(OS), darwin)
 	@$(MAKE) -C darwin/ APPLICATION=blenderstatic
 endif
 
-$(DIR)/$(DEBUG_DIR)bin/blender$(EXT): $(OBJS) $(COMLIB) $(BLLIB)
+$(DIR)/$(DEBUG_DIR)bin/blender$(EXT): $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)
 	@echo "****> Link $@"
 ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blender$(EXT) $(BUILDINFO_O) $(OBJS) $(COMLIB) $(BLLIB) $(LLIBS) $(DADD) $(LOPTS)
+	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blender$(EXT) $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB) $(LLIBS) $(DADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
