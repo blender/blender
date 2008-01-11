@@ -4520,7 +4520,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	short mval[2];
 	short nr;
 	short mousebut = L_MOUSE;
-	printf("event %i\n", event);
+	
 	if(curarea->win==0) return;
 
 	if(val) {

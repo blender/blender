@@ -1490,7 +1490,7 @@ void makeBevelList(Object *ob)
 				resolu= nu->resolu;
 			
 			if((nu->type & 7)==CU_POLY) {
-				
+				len= nu->pntsu;
 				bl= MEM_callocN(sizeof(BevList)+len*sizeof(BevPoint), "makeBevelList");
 				BLI_addtail(&(cu->bev), bl);
 	
