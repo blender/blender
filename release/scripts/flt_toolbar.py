@@ -231,7 +231,19 @@ def xref_create():
 
                 xrefscene.update(1)
                 state["activeScene"].update(1)
-                
+
+def xref_select():
+	state = update_state()
+	candidates = list()
+	scenelist = [scene.name for scene in Blender.Scene.Get()]
+	for object in state["activeScene"].objects:
+		if object.type == 'Empty' and object.enableDupGroup == True and object.DupGroup:
+			candidates.append(object)
+		
+	for object in candidates:
+		if object.DupGroup.name in scenelist:
+			object.sel = 1
+
 def xref_edit():
 	global xrefprefix
 	global xrefstack
@@ -429,7 +441,7 @@ def clight_make():
 def event(evt,val):
 	if evt == Draw.ESCKEY:
 		Draw.Exit()
-
+		
 def but_event(evt):
 	global xrefprefix
 	global xrefstack
@@ -447,7 +459,7 @@ def but_event(evt):
 	if evt == evcode["XREF_EDIT"]:
 		xref_edit()
 	if evt == evcode["XREF_SELECT"]:
-		select_by_typecode(63)
+		xref_select()
 	if evt == evcode["XREF_MAKE"]:
 		xref_create()
 	#do scene buttons				
