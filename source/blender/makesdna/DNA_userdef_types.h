@@ -262,9 +262,11 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_SHOW_FPS			(1 << 21)
 
 /* Auto-Keying mode */
-#define		AUTOKEY_MODE_OFF		0
-#define		AUTOKEY_MODE_NORMAL		1
-#define		AUTOKEY_MODE_EDITKEYS	2
+	/* AUTOKEY_ON is a bitflag */
+#define 	AUTOKEY_ON				1
+	/* AUTOKEY_ON + 2**n...  (i.e. AUTOKEY_MODE_NORMAL = AUTOKEY_ON + 2) to preserve setting, even when autokey turned off  */
+#define		AUTOKEY_MODE_NORMAL		3
+#define		AUTOKEY_MODE_EDITKEYS	5
 
 /* Auto-Keying flag */
 #define		AUTOKEY_FLAG_INSERTAVAIL	(1<<0)
@@ -272,6 +274,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define		AUTOKEY_FLAG_AUTOMATKEY		(1<<2)
 
 /* Auto-Keying macros */
+#define IS_AUTOKEY_ON			(U.autokey_mode & AUTOKEY_ON)
 #define IS_AUTOKEY_MODE(mode) 	(U.autokey_mode == AUTOKEY_MODE_##mode)
 #define IS_AUTOKEY_FLAG(flag)	(U.autokey_flag == AUTOKEY_FLAG_##flag)
 

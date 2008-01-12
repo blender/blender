@@ -2967,7 +2967,7 @@ short autokeyframe_cfra_can_key(Object *ob)
 	short found= 0;
 	
 	/* only filter if auto-key mode requires this */
-	if (IS_AUTOKEY_MODE(OFF))
+	if (IS_AUTOKEY_ON == 0)
 		return 0;
 	else if (IS_AUTOKEY_MODE(NORMAL)) 
 		return 1;

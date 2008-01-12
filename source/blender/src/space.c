@@ -3668,26 +3668,35 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 
 		uiDefBut(block, LABEL,0,"Auto Keyframe",
-			(xpos+(2*edgsp)+(2*mpref)+midsp),y5label,mpref,buth,
+			(xpos+(2*edgsp)+(2*mpref)+midsp),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
-		uiDefButS(block, MENU, REDRAWTIME, 
-				"Auto-Keying Mode %t|No Auto-Keying %x0|Add/Replace Keys%x1|Replace Keys %x2", 
-				(xpos+edgsp+(2*mpref)+(2*midsp)),y4,mpref, buth, 
-				&(U.autokey_mode), 0, 1, 0, 0, 
-				"Automatic keyframe insertion for Objects and Bones");
+			
+		uiBlockBeginAlign(block);
+			uiDefButBitS(block, TOG, AUTOKEY_ON, REDRAWTIME, "Auto-Keying Enabled", 
+				(xpos+edgsp+(2*mpref)+(2*midsp)),y5,mpref, buth,
+				&(U.autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
+			
+			if (IS_AUTOKEY_ON) {
+				uiDefButS(block, MENU, REDRAWTIME, 
+						"Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
+						(xpos+edgsp+(2*mpref)+(2*midsp)),y4,mpref, buth, 
+						&(U.autokey_mode), 0, 1, 0, 0, 
+						"Mode of automatic keyframe insertion for Objects and Bones");
+			}
+		uiBlockEndAlign(block);
 	
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, AUTOKEY_FLAG_INSERTAVAIL, REDRAWTIME, "Available", 
-			(xpos+edgsp+(2*mpref)+(2*midsp)),y3,mpref, buth,
-			&(U.autokey_flag), 0, 0, 0, 0, "Automatic keyframe insertion in available curves");
-			
-		uiDefButBitS(block, TOG, AUTOKEY_FLAG_INSERTNEEDED, REDRAWTIME, "Needed", 
-			(xpos+edgsp+(2*mpref)+(2*midsp)),y2,mpref, buth,
-			&(U.autokey_flag), 0, 0, 0, 0, "Automatic keyframe insertion only when keyframe needed");
-			
-		uiDefButBitS(block, TOG, AUTOKEY_FLAG_AUTOMATKEY, REDRAWTIME, "Use Visual Keying", 
-			(xpos+edgsp+(2*mpref)+(2*midsp)),y1,mpref, buth,
-			 &(U.autokey_flag), 0, 0, 0, 0, "Use Visual keying automatically for constrained objects");
+			uiDefButBitS(block, TOG, AUTOKEY_FLAG_INSERTAVAIL, REDRAWTIME, "Available", 
+				(xpos+edgsp+(2*mpref)+(2*midsp)),y3,mpref, buth,
+				&(U.autokey_flag), 0, 0, 0, 0, "Automatic keyframe insertion in available curves");
+				
+			uiDefButBitS(block, TOG, AUTOKEY_FLAG_INSERTNEEDED, REDRAWTIME, "Needed", 
+				(xpos+edgsp+(2*mpref)+(2*midsp)),y2,mpref, buth,
+				&(U.autokey_flag), 0, 0, 0, 0, "Automatic keyframe insertion only when keyframe needed");
+				
+			uiDefButBitS(block, TOG, AUTOKEY_FLAG_AUTOMATKEY, REDRAWTIME, "Use Visual Keying", 
+				(xpos+edgsp+(2*mpref)+(2*midsp)),y1,mpref, buth,
+				 &(U.autokey_flag), 0, 0, 0, 0, "Use Visual keying automatically for constrained objects");
 		uiBlockEndAlign(block);
 
 
