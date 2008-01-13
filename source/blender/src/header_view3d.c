@@ -4374,16 +4374,19 @@ void do_view3d_sculpt_inputmenu(void *arg, int event)
 	switch(event) {
 	case 0:
 		sd->flags ^= SCULPT_INPUT_SMOOTH;
+		BIF_undo_push("Smooth stroke");
 		break;
 	case 1:
 		val= sd->tablet_size;
 		if(button(&val,0,10,"Tablet Size:")==0) return;
 		sd->tablet_size= val;
+		BIF_undo_push("Tablet size");
 		break;
 	case 2:
 		val= sd->tablet_strength;
 		if(button(&val,0,10,"Tablet Strength:")==0) return;
 		sd->tablet_strength= val;
+		BIF_undo_push("Tablet strength");
 		break;
 	}
 	
@@ -4404,24 +4407,35 @@ void do_view3d_sculptmenu(void *arg, int event)
 	case 5:
 	case 6:
 		sd->brush_type= event+1;
+		BIF_undo_push("Brush type");
 		break;
 	case 7:
-		br->airbrush= !br->airbrush; break;
+		br->airbrush= !br->airbrush;
+		BIF_undo_push("Airbrush");
+		break;
 	case 8:
-		sd->symm ^= SYMM_X; break;
+		sd->symm ^= SYMM_X;
+		BIF_undo_push("X Symmetry");
+		break;
 	case 9:
-		sd->symm ^= SYMM_Y; break;
+		sd->symm ^= SYMM_Y;
+		BIF_undo_push("Y Symmetry");
+		break;
 	case 10:
-		sd->symm ^= SYMM_Z; break;
+		sd->symm ^= SYMM_Z;
+		BIF_undo_push("Z Symmetry");
+		break;
 	case 11:
-		if(G.vd)
+	        if(G.vd)
 			G.vd->pivot_last= !G.vd->pivot_last;
 		break;
 	case 12:
 		sd->flags ^= SCULPT_DRAW_FAST;
+		BIF_undo_push("Partial Redraw");
 		break;
 	case 13:
 		sd->flags ^= SCULPT_DRAW_BRUSH;
+		BIF_undo_push("Draw Brush");
 		break;
 	case 14:
 		add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
@@ -4436,7 +4450,9 @@ void do_view3d_sculptmenu(void *arg, int event)
 		sculptmode_propset_init(PropsetSize);
 		break;
 	case 18:
-		br->dir= br->dir==1 ? 2 : 1; break;
+		br->dir= br->dir==1 ? 2 : 1;
+		BIF_undo_push("Add/Sub");
+		break;
 	}
 
 	allqueue(REDRAWBUTSEDIT, 0);
