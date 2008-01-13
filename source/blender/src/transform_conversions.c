@@ -2861,6 +2861,8 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	VECCOPY(td->ext->dsize, ob->dsize);
 
 	VECCOPY(td->center, ob->obmat[3]);
+	
+	Mat4CpyMat4(td->ext->obmat, ob->obmat);
 
 	/* is there a need to set the global<->data space conversion matrices? */
 	if (ob->parent || constinv) {

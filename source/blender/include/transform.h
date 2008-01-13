@@ -122,7 +122,7 @@ typedef struct TransDataExtension {
     float  iquat[4];	 /* Initial rotation quaternion                                                    */
     float *size;         /* Size of the data to transform (Faculative)                                     */
     float  isize[3];	 /* Initial size                                                                   */
-	float  obmat[3][3];	 /* Object matrix */  
+	float  obmat[4][4];	 /* Object matrix */  
 } TransDataExtension;
 
 typedef struct TransData2D {

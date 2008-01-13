@@ -90,6 +90,8 @@ void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text);
 void BIF_setLocalAxisConstraint(char axis, char *text);
 void BIF_setLocalLockConstraint(char axis, char *text);
 
+int BIF_snappingSupported(void);
+
 struct TransformOrientation;
 
 void BIF_clearTransformOrientation(void);

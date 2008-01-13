@@ -1818,7 +1818,7 @@ static uiBlock *view3d_transformmenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center Cursor",          0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 	}
 	
-	if (G.obedit != NULL && G.obedit->type==OB_MESH)
+	if (BIF_snappingSupported())
 	{
 		uiDefBut(block, SEPR, 0, "",                    0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -5476,7 +5476,7 @@ void view3d_buttons(void)
 		}
 
 		/* Snap */
-		if(G.obedit && (G.obedit->type == OB_MESH)) { // Only Mesh for now
+		if (BIF_snappingSupported()) {
 			uiBlockBeginAlign(block);
 
 			if (G.scene->snap_flag & SCE_SNAP) {

@@ -1570,8 +1570,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				/* Shift-Tabe handling (other cases are in toets) */
 				if (G.qual == LR_SHIFTKEY)
 				{
-					/* Snap toggle (only edit mesh right now) */
-					if (G.obedit && G.obedit->type==OB_MESH)
+					/* Snap toggle only when supported */
+					if (BIF_snappingSupported())
 					{
 						G.scene->snap_flag ^= SCE_SNAP;
 						allqueue(REDRAWHEADERS, 0);
