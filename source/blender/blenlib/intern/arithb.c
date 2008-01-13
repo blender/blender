@@ -3415,6 +3415,8 @@ void tubemap(float x, float y, float z, float *u, float *v)
 	len= sqrt(x*x+y*y);
 	if(len>0) {
 		*u = (1.0 - (atan2(x/len,y/len) / M_PI)) / 2.0;
+	} else {
+		*v = *u = 0.0f; /* to avoid un-initialized variables */
 	}
 }
 
@@ -3432,6 +3434,8 @@ void spheremap(float x, float y, float z, float *u, float *v)
 		
 		z/=len;
 		*v = 1.0- saacos(z)/M_PI;
+	} else {
+		*v = *u = 0.0f; /* to avoid un-initialized variables */
 	}
 }
 
