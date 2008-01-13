@@ -3363,14 +3363,14 @@ static void object_softbodies__enable_psys(void *ob_v, void *psys_v)
 #ifdef _work_on_sb_solver
 static char sbsolvers[] = "Solver %t|RKP almost SOFT not usable but for some german teachers %x1|STU ip semi implicit euler%x3|SI1  (half step)adaptive semi implict euler %x2|SI2  (use dv)adaptive semi implict euler %x4|SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
 #else
-static char sbsolvers[] = "STU PID semi implicit euler%x3|SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
+static char sbsolvers[] = "SIF  semi implicit euler with fixed step size (worth a try with real stiff egdes)%x3|SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
 #endif
 static void object_softbodies_II(Object *ob)
 {
 	SoftBody *sb=ob->soft;
 	uiBlock *block;
 	static int val;
-	short *softflag=&ob->softflag, psys_cur=0;
+	short *softflag=&ob->softflag, psys_cur=0,adaptive_mode;
 	int ob_has_hair=psys_ob_has_hair(ob);
     if(!_can_softbodies_at_all(ob)) return;
 	/*bah that is ugly! creating missing data members in UI code*/
@@ -3455,15 +3455,38 @@ static void object_softbodies_II(Object *ob)
 			uiBlockEndAlign(block);
 			/*SOLVER SETTINGS*/
 			uiBlockBeginAlign(block);
-			uiDefButS(block, MENU, B_DIFF, sbsolvers,10,100,50,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver");
-			uiDefButF(block, NUM, B_DIFF, "Error Lim:",	60,100,130,20, &sb->rklimit , 0.001, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
-			uiDefButBitS(block, TOG, SBSO_OLDERR, B_DIFF,"O", 190,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Old Error Calculation");
-			uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 210,100,90,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
-			uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"M", 300,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");
-			uiBlockEndAlign(block);
-			uiDefButS(block, NUM, B_DIFF, "MinS:", 10,80,100,20, &sb->minloops,  0.00,  30000.0, 10, 0, "Minimal # solver steps/frame ");
-			uiDefButS(block, NUM, B_DIFF, "MaxS:", 110,80,100,20, &sb->maxloops,  0.00,  30000.0, 10, 0, "Maximal # solver steps/frame ");
-			uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
+			uiDefButS(block, MENU, B_SOFTBODY_CHANGE, sbsolvers,10,100,50,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver");
+			/*some have adapive step size - some not*/
+			switch (sb->solver_ID) {
+			case 0:
+			case 1:
+				{adaptive_mode = 1; break;}
+			case 3:
+				{adaptive_mode = 0; break;}
+			default: printf("SB_solver?\n"); // should never happen
+
+			}
+			if(adaptive_mode){
+				uiDefButF(block, NUM, B_DIFF, "Error Lim:",	60,100,120,20, &sb->rklimit , 0.001, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
+				uiDefButBitS(block, TOG, SBSO_OLDERR, B_DIFF,"O", 180,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Old Error Calculation");
+				uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 200,100,90,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
+				uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"M", 290,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");
+				uiBlockEndAlign(block);
+				uiDefButS(block, NUM, B_DIFF, "MinS:", 10,80,100,20, &sb->minloops,  0.00,  30000.0, 10, 0, "Minimal # solver steps/frame ");
+				uiDefButS(block, NUM, B_DIFF, "MaxS:", 110,80,100,20, &sb->maxloops,  0.00,  30000.0, 10, 0, "Maximal # solver steps/frame ");
+				uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
+			} 
+			else{
+				uiBlockEndAlign(block);
+				uiBlockBeginAlign(block);
+				uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 210,100,90,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
+				uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"M", 290,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");
+				uiBlockEndAlign(block);
+				uiDefButS(block, NUM, B_DIFF, "Steps:", 10,80,100,20, &sb->minloops,  1.00,  30000.0, 10, 0, "Solver steps/frame ");
+				uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
+			}
+
+
 		}
 		/* OTHER OBJECTS COLLISION STUFF */
 		if (ob->type==OB_MESH){
