@@ -555,14 +555,36 @@ void TargetSnapClosest(TransInfo *t)
 			for(td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++)
 			{
 				struct BoundBox *bb = object_get_boundbox(td->ob);
-				int j;
 				
-				for (j = 0; j < 8; j++) {
+				/* use boundbox if possible */
+				if (bb)
+				{
+					int j;
+					
+					for (j = 0; j < 8; j++) {
+						float loc[3];
+						float dist;
+						
+						VECCOPY(loc, bb->vec[j]);
+						Mat4MulVecfl(td->ext->obmat, loc);
+						
+						dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
+						
+						if (closest == NULL || fabs(dist) < fabs(t->tsnap.dist))
+						{
+							VECCOPY(t->tsnap.snapTarget, loc);
+							closest = td;
+							t->tsnap.dist = dist; 
+						}
+					}
+				}
+				/* use element center otherwise */
+				else
+				{
 					float loc[3];
 					float dist;
 					
-					VECCOPY(loc, bb->vec[j]);
-					Mat4MulVecfl(td->ext->obmat, loc);
+					VECCOPY(loc, td->center);
 					
 					dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
 					
