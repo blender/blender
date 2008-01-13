@@ -531,6 +531,9 @@ int calc_manipulator_stats(ScrArea *sa)
 				Mat4CpyMat3(v3d->twmat, mat);
 			}
 			break;
+		default: /* V3D_MANIP_CUSTOM */
+			applyTransformOrientation();
+			break;
 		}
 		
 	}

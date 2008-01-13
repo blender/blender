@@ -157,6 +157,305 @@ static void helpline(TransInfo *t, float *vec)
 		glDrawBuffer(GL_BACK);
 	}
 }
+
+/* *********************** TransSpace ************************** */
+ 
+void BIF_clearTransformOrientation(void)
+{
+	ListBase *transform_spaces = &G.scene->transform_spaces;
+	BLI_freelistN(transform_spaces);
+	
+	if (G.vd->twmode >= V3D_MANIP_CUSTOM)
+		G.vd->twmode = V3D_MANIP_GLOBAL;	/* fallback to global	*/
+}
+  
+void BIF_manageTransformOrientation(int confirm, int set) {
+	int index = -1; 
+	
+	if (G.obedit) {
+		if (G.obedit->type == OB_MESH)
+			index = manageMeshSpace(confirm, set);
+	}
+	else {
+		index = manageObjectSpace(confirm, set);
+	}
+	
+	if (set && index != -1)
+	{
+		BIF_selectTransformOrientationFromIndex(index);
+	}
+}
+
+int manageObjectSpace(int confirm, int set) {
+	Base *base = BASACT;
+
+	if (base == NULL)
+		return -1;
+
+	if (confirm == 0) {
+		if (set && pupmenu("Custome Space %t|Add and Use Active Object%x1") != 1) {
+			return -1;
+		}
+		else if (set == 0 && pupmenu("Custome Space %t|Add Active Object%x1") != 1) {
+			return -1;
+		}
+	}
+
+	return addObjectSpace(base->object);
+}
+
+int manageMeshSpace(int confirm, int set) {
+	EditMesh *em = G.editMesh;
+	float mat[3][3], vec[3] = {0.0f, 0.0f, 1.0f};
+	int index;
+	char name[36] = "";
+
+	if (G.scene->selectmode & SCE_SELECT_VERTEX && G.totvertsel == 1) {
+		EditVert *eve;
+
+		if (confirm == 0) {
+			if (set && pupmenu("Custome Space %t|Add and Use Vertex%x1") != 1) {
+				return -1;
+			}
+			else if (set == 0 && pupmenu("Custome Space %t|Add Vertex%x1") != 1) {
+				return -1;
+			}
+		}
+
+		for(eve = em->verts.first; eve; eve= eve->next) {
+			if(eve->h == 0 && (eve->f & SELECT)) 
+				break;
+		}
+		
+		if (eve == NULL)
+			return -1;
+
+		VECCOPY(mat[2], eve->no);
+		if (Normalize(mat[2]) == 0.0f) {
+			error("Cannot use vertex with zero-length normal");
+			return -1;
+		}
+
+		strcpy(name, "Vertex");
+	}
+	else if(G.scene->selectmode & SCE_SELECT_EDGE && G.totedgesel == 1) {
+		EditEdge *eed;
+
+		if (confirm == 0) {
+			if (set && pupmenu("Custome Space %t|Add and Use Edge%x1") != 1) {
+				return -1;
+			}
+			else if (set == 0 && pupmenu("Custome Space %t|Add Edge%x1") != 1) {
+				return -1;
+			}
+		}
+
+		for(eed = em->edges.first; eed; eed= eed->next) {
+			if(eed->h == 0 && (eed->f & SELECT))
+				break;
+		}
+
+		if (eed == NULL)
+			return -1;
+
+		VecSubf(mat[2], eed->v2->co, eed->v1->co);
+		if (Normalize(mat[2]) == 0.0f) {
+			error("Cannot use zero-length edges");
+			return -1;
+		}
+
+		strcpy(name, "Edge");
+	}
+	else if(G.scene->selectmode & SCE_SELECT_FACE && G.totfacesel == 1) {
+		EditFace *efa;
+
+		if (confirm == 0) {
+			if (set && pupmenu("Custome Space %t|Add and Use Face%x1") != 1) {
+				return -1;
+			}
+			else if (set == 0 && pupmenu("Custome Space %t|Add Face%x1") != 1) {
+				return -1;
+			}
+		}
+
+		for(efa = em->faces.first; efa; efa= efa->next) {
+			if(efa->h == 0 && (efa->f & SELECT))
+				break;
+		}
+
+		if (efa == NULL)
+			return -1;
+
+		VECCOPY(mat[2], efa->n);
+		if (Normalize(mat[2]) == 0.0f) {
+			error("Cannot use face with zero-length normal");
+			return -1;
+		}
+
+		VecSubf(vec, efa->v2->co, efa->v1->co);
+
+		strcpy(name, "Face");
+	}
+	else {
+		notice("You need to select only one vertex, edge or face");
+		return -1;
+	}
+
+	/* Applying matrix for global space */
+	Mat4Mul3Vecfl(G.obedit->obmat, mat[2]);
+	Mat4Mul3Vecfl(G.obedit->obmat, vec);
+
+	/* Calculating the other axis */
+	
+	Crossf(mat[0], mat[2], vec);
+	if (Normalize(mat[0]) == 0.0f) {
+		vec[0] = 1.0f;
+		vec[1] = vec[2] = 0.0f;
+		Crossf(mat[0], vec, mat[2]);
+	}
+
+	Crossf(mat[1], mat[2], mat[0]);
+
+	Mat3Ortho(mat);
+
+	/* Input name */
+	sbutton(name, 1, 35, "name: ");
+
+	index = addMatrixSpace(mat, name);
+	return index;
+}
+
+int addObjectSpace(Object *ob) {
+	float mat[3][3];
+	char name[36] = "";
+
+	Mat3CpyMat4(mat, ob->obmat);
+	Mat3Ortho(mat);
+
+	strncpy(name, ob->id.name+2, 35);
+
+	/* Input name */
+	sbutton(name, 1, 35, "name: ");
+
+	return addMatrixSpace(mat, name);
+}
+
+int addMatrixSpace(float mat[3][3], char name[]) {
+	ListBase *transform_spaces = &G.scene->transform_spaces;
+	TransformOrientation *ts;
+	int index = 0;
+
+	/* if name is found in list, reuse that transform space */	
+	for (index = 0, ts = transform_spaces->first; ts; ts = ts->next, index++) {
+		if (strncmp(ts->name, name, 35) == 0) {
+			break;
+		}
+	}
+
+	/* if not, create a new one */
+	if (ts == NULL)
+	{
+		ts = MEM_callocN(sizeof(TransformOrientation), "UserTransSpace from matrix");
+		BLI_addtail(transform_spaces, ts);
+		strncpy(ts->name, name, 35);
+	}
+
+	/* copy matrix into transform space */
+	Mat3CpyMat3(ts->mat, mat);
+
+	BIF_undo_push("Add/Update Transform Orientation");
+	
+	return BIF_countTransformOrientation() - 1;
+}
+
+void BIF_removeTransformOrientation(TransformOrientation *target) {
+	ListBase *transform_spaces = &G.scene->transform_spaces;
+	TransformOrientation *ts = transform_spaces->first;
+	int selected_index = (G.vd->twmode - V3D_MANIP_CUSTOM);
+	int i;
+	
+	for (i = 0, ts = transform_spaces->first; ts; ts = ts->next, i++) {
+		if (ts == target) {
+			if (selected_index == i) {
+				G.vd->twmode = V3D_MANIP_GLOBAL;	/* fallback to global	*/
+			}
+			else if (selected_index > i)
+				G.vd->twmode--;
+
+			BLI_freelinkN(transform_spaces, ts);
+			break;
+		}
+	}
+	BIF_undo_push("Remove Transform Orientation");
+}
+
+void BIF_selectTransformOrientation(TransformOrientation *target) {
+	ListBase *transform_spaces = &G.scene->transform_spaces;
+	TransformOrientation *ts = transform_spaces->first;
+	int i;
+	
+	for (i = 0, ts = transform_spaces->first; ts; ts = ts->next, i++) {
+		if (ts == target) {
+			G.vd->twmode = V3D_MANIP_CUSTOM + i;
+			break;
+		}
+	}
+}
+
+void BIF_selectTransformOrientationFromIndex(int index) {
+	G.vd->twmode = V3D_MANIP_CUSTOM + index;
+}
+
+char * BIF_menustringTransformOrientation() {
+	char menu[] = "Orientation%t|Global%x0|Local%x1|Normal%x2|View%x3";
+	ListBase *transform_spaces = &G.scene->transform_spaces;
+	TransformOrientation *ts;
+	int i = V3D_MANIP_CUSTOM;
+	char *str_menu, *p;
+	
+	
+	str_menu = MEM_callocN(strlen(menu) + 40 * BIF_countTransformOrientation(), "UserTransSpace from matrix");
+	p = str_menu;
+	
+	p += sprintf(str_menu, "%s", menu);
+	
+	for (ts = transform_spaces->first; ts; ts = ts->next) {
+		p += sprintf(p, "|%s%%x%d", ts->name, i++);
+	}
+	
+	return str_menu;
+}
+
+int BIF_countTransformOrientation() {
+	ListBase *transform_spaces = &G.scene->transform_spaces;
+	TransformOrientation *ts;
+	int count = 0;
+
+	for (ts = transform_spaces->first; ts; ts = ts->next) {
+		count++;
+	}
+	
+	return count;
+}
+
+void applyTransformOrientation() {
+	TransInfo *t = BIF_GetTransInfo();
+	TransformOrientation *ts;
+	int selected_index = (G.vd->twmode - V3D_MANIP_CUSTOM);
+	int i;
+	
+	if (selected_index >= 0) {
+		for (i = 0, ts = G.scene->transform_spaces.first; ts; ts = ts->next, i++) {
+			if (selected_index == i) {
+				strcpy(t->spacename, ts->name);
+				Mat3CpyMat3(t->spacemtx, ts->mat);
+				Mat4CpyMat3(G.vd->twmat, ts->mat);
+				break;
+			}
+		}
+  	}
+}
+  
 /* ************************** INPUT FROM MOUSE *************************** */
 
 float InputScaleRatio(TransInfo *t, short mval[2]) {
@@ -465,12 +764,12 @@ static void viewRedrawPost(TransInfo *t)
 
 void BIF_selectOrientation() {
 	short val;
-	val= pupmenu("Orientation%t|Global|Local|Normal|View");
-	if(val>0) {
-		if(val==1) G.vd->twmode= V3D_MANIP_GLOBAL;
-		else if(val==2) G.vd->twmode= V3D_MANIP_LOCAL;
-		else if(val==3) G.vd->twmode= V3D_MANIP_NORMAL;
-		else if(val==4) G.vd->twmode= V3D_MANIP_VIEW;
+	char *str_menu = BIF_menustringTransformOrientation();
+	val= pupmenu(str_menu);
+	MEM_freeN(str_menu);
+	
+	if(val >= 0) {
+		G.vd->twmode = val;
 	}
 }
 
@@ -2341,7 +2640,7 @@ int Rotation(TransInfo *t, short mval[2])
 
 		outputNumInput(&(t->num), c);
 
-		sprintf(str, "Rot: %s %s", &c[0], t->proptext);
+		sprintf(str, "Rot: %s %s %s", &c[0], t->con.text, t->proptext);
 
 		/* Clamp between -180 and 180 */
 		while (final >= 180.0)

@@ -304,6 +304,7 @@ Scene *copy_scene(Scene *sce, int level)
 	scen->toolsettings= MEM_dupallocN(sce->toolsettings);
 
 	duplicatelist(&(scen->markers), &(sce->markers));
+	duplicatelist(&(scen->transform_spaces), &(sce->transform_spaces));
 	duplicatelist(&(scen->r.layers), &(sce->r.layers));
 	
 	scen->nodetree= ntreeCopyTree(sce->nodetree, 0);

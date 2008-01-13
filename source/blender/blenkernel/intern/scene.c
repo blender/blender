@@ -153,6 +153,7 @@ void free_scene(Scene *sce)
 	}
 	
 	BLI_freelistN(&sce->markers);
+	BLI_freelistN(&sce->transform_spaces);
 	BLI_freelistN(&sce->r.layers);
 	
 	if(sce->toolsettings){

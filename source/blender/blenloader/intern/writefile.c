@@ -1401,6 +1401,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	MetaStack *ms;
 	Strip *strip;
 	TimeMarker *marker;
+	TransformOrientation *ts;
 	SceneRenderLayer *srl;
 	int a;
 	
@@ -1504,6 +1505,10 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		/* writing dynamic list of TimeMarkers to the blend file */
 		for(marker= sce->markers.first; marker; marker= marker->next)
 			writestruct(wd, DATA, "TimeMarker", 1, marker);
+		
+		/* writing dynamic list of TransformOrientations to the blend file */
+		for(ts = sce->transform_spaces.first; ts; ts = ts->next)
+			writestruct(wd, DATA, "TransformOrientation", 1, ts);
 		
 		for(srl= sce->r.layers.first; srl; srl= srl->next)
 			writestruct(wd, DATA, "SceneRenderLayer", 1, srl);

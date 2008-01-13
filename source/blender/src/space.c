@@ -1798,6 +1798,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if(G.qual==(LR_ALTKEY|LR_CTRLKEY)) 
 					add_constraint(0);	/* editconstraint.c, generic for objects and posemode */
+				else if(G.qual==(LR_CTRLKEY|LR_SHIFTKEY)) {
+					BIF_manageTransformOrientation(0, 1);
+					allqueue(REDRAWVIEW3D, 0);
+				}
 				else if((G.qual==LR_SHIFTKEY)) {
 					view3d_home(1);
 					curs= give_cursor();

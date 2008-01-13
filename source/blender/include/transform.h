@@ -463,6 +463,15 @@ short hasNumInput(NumInput *n);
 void applyNumInput(NumInput *n, float *vec);
 char handleNumInput(NumInput *n, unsigned short event);
 
+/*********************** TransSpace ******************************/
+
+int manageObjectSpace(int confirm, int set);
+int manageMeshSpace(int confirm, int set);
+
+int addMatrixSpace(float mat[3][3], char name[]);
+int addObjectSpace(struct Object *ob);
+void applyTransformOrientation(void);
+
 #endif
 
 

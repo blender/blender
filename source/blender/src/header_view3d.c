@@ -601,6 +601,9 @@ static void do_view3d_viewmenu(void *arg, int event)
 	case 19: /* zoom within border */
 		view3d_border_zoom();
 		break;
+	case 20: /* Transform  Space Panel */
+		add_blockhandler(curarea, VIEW3D_HANDLER_TRANSFORM, UI_PNL_UNSTOW);
+		break;		
 	}
 	allqueue(REDRAWVIEW3D, 1);
 }
@@ -614,6 +617,7 @@ static uiBlock *view3d_viewmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_view3d_viewmenu, NULL);
 	
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Orientations...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 20, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Render Preview...|Shift P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 18, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "View Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 16, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Background Image...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
@@ -5108,7 +5112,9 @@ void do_view3d_buttons(short event)
 			G.vd->twtype= V3D_MANIP_SCALE;
 		allqueue(REDRAWVIEW3D, 1);
 		break;
-		
+	case B_MAN_MODE:
+		allqueue(REDRAWVIEW3D, 1);
+		break;		
 	default:
 
 		if(event>=B_LAY && event<B_LAY+31) {
@@ -5395,6 +5401,7 @@ void view3d_buttons(void)
  			xco+= XIC+10;
  		} else {
  			/* Manipulators arnt used in weight paint mode */
+ 			char *str_menu;
 			uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.vd->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period, Ctrl Period, Alt Period)");
 
 			xco+= XIC+10;
@@ -5419,7 +5426,11 @@ void view3d_buttons(void)
 				uiDefIconButBitS(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Scale manipulator mode (Ctrl Alt S)");
 				xco+= XIC;
 			}
-			uiDefButS(block, MENU, B_NOP, "Orientation%t|Global%x0|Local%x1|Normal%x2|View%x3",xco,0,70,YIC, &G.vd->twmode, 0, 0, 0, 0, "Transform Orientation (Alt Space)");
+			
+			str_menu = BIF_menustringTransformOrientation();
+			uiDefButS(block, MENU, B_MAN_MODE, str_menu,xco,0,70,YIC, &G.vd->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
+			MEM_freeN(str_menu);
+			
 			xco+= 70;
 			uiBlockEndAlign(block);
 			xco+= 8;
