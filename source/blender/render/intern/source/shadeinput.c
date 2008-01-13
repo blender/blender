@@ -1187,7 +1187,9 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				}
 			}
 		}
-	}	
+	} /* else {
+	 Note! For raytracing winco is not set, important because thus means all shader input's need to have their variables set to zero else in-initialized values are used
+	*/
 }
 
 /* ****************** ShadeSample ************************************** */

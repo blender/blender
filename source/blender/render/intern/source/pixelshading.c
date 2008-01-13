@@ -25,6 +25,7 @@
  */
 
 #include <math.h>
+#include <string.h>
 #include "BLI_arithb.h"
 
 /* External modules: */
@@ -130,6 +131,12 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 		
 		if(lar->mode & LA_TEXTURE) {
 			ShadeInput shi;
+			
+			/* Warning, This is not that nice, and possibly a bit slow,
+			however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
+			memset(&shi, 0, sizeof(ShadeInput)); 
+			/* end warning! - Campbell */
+			
 			VECCOPY(shi.co, rco);
 			shi.osatex= 0;
 			do_lamp_tex(lar, lv, &shi, lacol);

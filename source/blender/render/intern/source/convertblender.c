@@ -2148,8 +2148,16 @@ static void displace_render_face(Render *re, VlakRen *vlr, float *scale)
 {
 	ShadeInput shi;
 
+	/* Warning, This is not that nice, and possibly a bit slow,
+	however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
+	memset(&shi, 0, sizeof(ShadeInput)); 
+	/* end warning! - Campbell */
+	
 	/* set up shadeinput struct for multitex() */
-	shi.osatex= 0;		/* signal not to use dx[] and dy[] texture AA vectors */
+	
+	/* memset above means we dont need this */
+	/*shi.osatex= 0;*/		/* signal not to use dx[] and dy[] texture AA vectors */
+
 	shi.vlr= vlr;		/* current render face */
 	shi.mat= vlr->mat;		/* current input material */
 	
