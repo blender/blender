@@ -73,7 +73,6 @@ static void ED_SCR_OT_cursor_type(wmOperatorType *ot)
     ot->poll= ED_operator_screenactive;
 }
 
-
 #define ADD_OPTYPE(opfunc)	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype"); \
 							opfunc(ot);  \
 							BLI_addtail(&local_ops, ot)
@@ -87,6 +86,7 @@ void ED_operatortypes_screen(void)
 	
 	ADD_OPTYPE( ED_SCR_OT_move_areas );
 	ADD_OPTYPE( ED_SCR_OT_cursor_type );
+	ADD_OPTYPE( ED_SCR_OT_split_area );
 	
 	WM_operatortypelist_append(&local_ops);
 }
@@ -96,8 +96,11 @@ void ed_screen_keymap(wmWindowManager *wm)
 {
 	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_cursor_type", MOUSEMOVE, 0, 0, 0);
 	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_move_areas", LEFTMOUSE, KM_PRESS, 0, 0);
-
+	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_split_area", RIGHTMOUSE, KM_PRESS, 0, 0);
 }
+
+
+
 
 
 

@@ -34,9 +34,11 @@
 /* calls for registering default spaces */
 void ED_spacetype_view3d(void);
 
-/* calls for registoering operator types */
+/* calls for registering operator types */
 void ED_operatortypes_screen(void);
 
 
 #endif /* ED_AREA_H */
+
+
 
