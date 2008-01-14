@@ -2275,9 +2275,7 @@ static void view3d_panel_transform_spaces(short cntrl)
 	uiDefBut(block, BUT, B_TRANSFORMSPACECLEAR, "Clear", xco + 80,120,80,20, 0, 0, 0, 0, 0, "Removal all Transform Orientations");
 	
 	uiBlockEndAlign(block);
-
-	uiPanelPush(block);
-
+	
 	uiBlockBeginAlign(block);
 	
 	uiDefButS(block, ROW, REDRAWHEADERS, "Global",	xco, 		90, 40,20, &G.vd->twmode, 5.0, (float)V3D_MANIP_GLOBAL,0, 0, "Global Transform Orientation");
@@ -2298,8 +2296,6 @@ static void view3d_panel_transform_spaces(short cntrl)
 		yco -= 25;
 	}
 	uiBlockEndAlign(block);
-
-	uiPanelPop(block);
 	
 	if(yco < 0) uiNewPanelHeight(block, height-yco);
 }
