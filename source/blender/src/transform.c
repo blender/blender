@@ -1644,9 +1644,83 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 		
 		/* Evaluate valid constraints */
 		for (con= td->con; con; con= con->next) {
-			/* we're only interested in Limit-Location constraints */
+			float tmat[4][4];
+				
+			/* only use it if it's tagged for this purpose (and the right type) */
 			if (con->type == CONSTRAINT_TYPE_LOCLIMIT) {
 				bLocLimitConstraint *data= con->data;
+				if ((data->flag2 & LIMIT_TRANSFORM)==0) 
+					continue;
+			}
+			else if (con->type == CONSTRAINT_TYPE_ROTLIMIT) {
+				bRotLimitConstraint *data= con->data;
+				if ((data->flag2 & LIMIT_TRANSFORM)==0) 
+					continue;
+			}
+			else if (con->type == CONSTRAINT_TYPE_SIZELIMIT) {
+				bSizeLimitConstraint *data= con->data;
+				if ((data->flag2 & LIMIT_TRANSFORM)==0) 
+					continue;
+			}
+			else {
+				/* not supported */
+				continue;
+			}
+				
+			/* do space conversions */
+			if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
+				/* just multiply by td->mtx (this should be ok) */
+				Mat4CpyMat4(tmat, cob.matrix);
+				Mat4MulMat34(cob.matrix, td->mtx, tmat);
+			}
+			else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
+				/* skip... incompatable spacetype */
+				continue;
+			}
+			
+			/* do constraint */
+			cti->evaluate_constraint(con, &cob, NULL);
+			
+			/* convert spaces again */
+			if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
+				/* just multiply by td->mtx (this should be ok) */
+				Mat4CpyMat4(tmat, cob.matrix);
+				Mat4MulMat34(cob.matrix, td->smtx, tmat);
+			}
+		}
+		
+		/* copy results from cob->matrix */
+		if (td->tdi) {
+			TransDataIpokey *tdi= td->tdi;
+			tdi->locx[0]= cob.matrix[3][0];
+			tdi->locy[0]= cob.matrix[3][1];
+			tdi->locz[0]= cob.matrix[3][2];
+		}
+		else {
+			VECCOPY(td->loc, cob.matrix[3]);
+		}
+	}
+}
+
+static void constraintRotLim(TransInfo *t, TransData *td)
+{
+	if (td->con && td->ext) {
+		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_SIZELIMIT);
+		bConstraintOb cob;
+		bConstraint *con;
+		
+		/* Make a temporary bConstraintOb for using these limit constraints 
+		 * 	- they only care that cob->matrix is correctly set ;-)
+		 *	- current space should be local
+		 */
+		memset(&cob, 0, sizeof(bConstraintOb));
+		// FIXME: todo
+			
+		/* Evaluate valid constraints */
+		for (con= td->con; con; con= con->next) {
+			/* we're only interested in Limit-Scale constraints */
+			if (con->type == CONSTRAINT_TYPE_SIZELIMIT) {
+				bSizeLimitConstraint *data= con->data;
 				float tmat[4][4];
 				
 				/* only use it if it's tagged for this purpose */
@@ -1657,7 +1731,7 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
 					Mat4CpyMat4(tmat, cob.matrix);
-					Mat4MulMat34(cob.matrix, td->mtx, tmat); // checkme
+					Mat4MulMat34(cob.matrix, td->mtx, tmat);
 				}
 				else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
 					/* skip... incompatable spacetype */
@@ -1671,7 +1745,79 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
 					Mat4CpyMat4(tmat, cob.matrix);
-					Mat4MulMat34(cob.matrix, td->smtx, tmat); // checkme
+					Mat4MulMat34(cob.matrix, td->smtx, tmat);
+				}
+			}
+		}
+		
+		/* copy results from cob->matrix */
+		// fixme: todo
+	}
+}
+
+static void constraintSizeLim(TransInfo *t, TransData *td)
+{
+	if (td->con && td->ext) {
+		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_SIZELIMIT);
+		bConstraintOb cob;
+		bConstraint *con;
+		
+		/* Make a temporary bConstraintOb for using these limit constraints 
+		 * 	- they only care that cob->matrix is correctly set ;-)
+		 *	- current space should be local
+		 */
+		memset(&cob, 0, sizeof(bConstraintOb));
+		if (td->tdi) {
+			TransDataIpokey *tdi= td->tdi;
+			float size[3];
+			
+			size[0]= tdi->sizex[0];
+			size[1]= tdi->sizey[0];
+			size[2]= tdi->sizez[0];
+			SizeToMat4(size, cob.matrix);
+		} 
+		else if ((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)) {
+			/* scale val and reset size */
+			return; // TODO: fix this case
+		}
+		else {
+			/* Reset val if SINGLESIZE but using a constraint */
+			if (td->flag & TD_SINGLESIZE)
+				return;
+			
+			SizeToMat4(td->ext->size, cob.matrix);
+		}
+			
+		/* Evaluate valid constraints */
+		for (con= td->con; con; con= con->next) {
+			/* we're only interested in Limit-Scale constraints */
+			if (con->type == CONSTRAINT_TYPE_SIZELIMIT) {
+				bSizeLimitConstraint *data= con->data;
+				float tmat[4][4];
+				
+				/* only use it if it's tagged for this purpose */
+				if ((data->flag2 & LIMIT_TRANSFORM)==0) 
+					continue;
+					
+				/* do space conversions */
+				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
+					/* just multiply by td->mtx (this should be ok) */
+					Mat4CpyMat4(tmat, cob.matrix);
+					Mat4MulMat34(cob.matrix, td->mtx, tmat);
+				}
+				else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
+					/* skip... incompatable spacetype */
+					continue;
+				}
+				
+				/* do constraint */
+				cti->evaluate_constraint(con, &cob, NULL);
+				
+				/* convert spaces again */
+				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
+					/* just multiply by td->mtx (this should be ok) */
+					Mat4CpyMat4(tmat, cob.matrix);
+					Mat4MulMat34(cob.matrix, td->smtx, tmat);
 				}
 			}
 		}
@@ -1679,12 +1825,24 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 		/* copy results from cob->matrix */
 		if (td->tdi) {
 			TransDataIpokey *tdi= td->tdi;
-			tdi->locx[0]= cob.matrix[3][0];
-			tdi->locy[0]= cob.matrix[3][1];
-			tdi->locz[0]= cob.matrix[3][2];
+			float size[3];
+			
+			Mat4ToSize(cob.matrix, size);
+			
+			tdi->sizex[0]= size[0];
+			tdi->sizey[0]= size[1];
+			tdi->sizez[0]= size[2];
+		} 
+		else if ((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)) {
+			/* scale val and reset size */
+			return; // TODO: fix this case
 		}
 		else {
-			VECCOPY(td->loc, cob.matrix[3]);
+			/* Reset val if SINGLESIZE but using a constraint */
+			if (td->flag & TD_SINGLESIZE)
+				return;
+				
+			Mat4ToSize(cob.matrix, td->ext->size);
 		}
 	}
 }
@@ -2098,7 +2256,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 
 	if (td->ext) {
 		float fsize[3];
-
+		
 		if (t->flag & (T_OBJECT|T_TEXTURE|T_POSE)) {
 			float obsizemat[3][3];
 			// Reorient the size mat to fit the oriented object.
@@ -2127,11 +2285,11 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 				add_tdi_poin(tdi->sizey, tdi->oldsize+1, vec[1]);
 				add_tdi_poin(tdi->sizez, tdi->oldsize+2, vec[2]);
 				
-			}
+			} 
 			else if((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)){
 				/* scale val and reset size */
  				*td->val = td->ival * fsize[0] * td->factor;
-
+				
 				td->ext->size[0] = td->ext->isize[0];
 				td->ext->size[1] = td->ext->isize[1];
 				td->ext->size[2] = td->ext->isize[2];
@@ -2140,13 +2298,16 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 				/* Reset val if SINGLESIZE but using a constraint */
 				if (td->flag & TD_SINGLESIZE)
 	 				*td->val = td->ival;
-
+				
 				td->ext->size[0] = td->ext->isize[0] * (fsize[0]) * td->factor;
 				td->ext->size[1] = td->ext->isize[1] * (fsize[1]) * td->factor;
 				td->ext->size[2] = td->ext->isize[2] * (fsize[2]) * td->factor;
 			}
 		}
+		
+		constraintSizeLim(t, td);
 	}
+	
 	/* For individual element center, Editmode need to use iloc */
 	if (t->flag & T_POINTS)
 		VecSubf(vec, td->iloc, center);
@@ -2176,6 +2337,8 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 		add_tdi_poin(tdi->locz, tdi->oldloc+2, vec[2]);
 	}
 	else VecAddf(td->loc, td->iloc, vec);
+	
+	constraintTransLim(t, td);
 }
 
 int Resize(TransInfo *t, short mval[2]) 
