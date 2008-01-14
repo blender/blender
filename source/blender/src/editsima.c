@@ -97,6 +97,7 @@
 #include "BSE_drawipo.h"
 #include "BSE_edit.h"
 #include "BSE_filesel.h"
+#include "BSE_node.h"
 #include "BSE_trans_types.h"
 
 #include "BDR_editobject.h"
@@ -1889,6 +1890,7 @@ void sima_sample_color(void)
 			
 			if(fx>=0.0 && fy>=0.0 && fx<1.0 && fy<1.0) {
 				float *fp= NULL, *zpf= NULL;
+				float vec[3];
 				int *zp= NULL;
 				char *cp= NULL;
 				
@@ -1907,14 +1909,14 @@ void sima_sample_color(void)
 				if(ibuf->rect_float)
 					fp= (ibuf->rect_float + (ibuf->channels)*(y*ibuf->x + x));
 					
+				if(fp==NULL) {
+					fp= vec;
+					vec[0]= (float)cp[0]/255.0f;
+					vec[1]= (float)cp[1]/255.0f;
+					vec[2]= (float)cp[2]/255.0f;
+				}
+				
 				if(G.sima->cumap) {
-					float vec[3];
-					if(fp==NULL) {
-						fp= vec;
-						vec[0]= (float)cp[0]/255.0f;
-						vec[1]= (float)cp[1]/255.0f;
-						vec[2]= (float)cp[2]/255.0f;
-					}
 					
 					if(ibuf->channels==4) {
 						if(G.qual & LR_CTRLKEY) {
@@ -1928,18 +1930,36 @@ void sima_sample_color(void)
 					}
 				}
 				
+				{
+					ScrArea *sa, *cur= curarea;
+					
+					node_curvemap_sample(fp);	/* sends global to node editor */
+					for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+						if(sa->spacetype==SPACE_NODE) {
+							areawinset(sa->win);
+							scrarea_do_windraw(sa);
+						}
+					}
+					node_curvemap_sample(NULL);		/* clears global in node editor */
+					curarea= cur;
+				}
+				
+				areawinset(curarea->win);
 				scrarea_do_windraw(curarea);
 				myortho2(-0.375, curarea->winx-0.375, -0.375, curarea->winy-0.375);
 				glLoadIdentity();
-				sima_show_info(ibuf->channels, x, y, cp, fp, zp, zpf);
+				
+				sima_show_info(ibuf->channels, x, y, cp, (ibuf->rect_float)?fp:NULL, zp, zpf);
+				
 				screen_swapbuffers();
+				
 			}
-			
 		}
 		BIF_wait_for_statechange();
 	}
 	
 	scrarea_queue_winredraw(curarea);
+	
 }
 
 /* Image functions */
