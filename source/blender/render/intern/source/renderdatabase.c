@@ -688,11 +688,6 @@ ObjectRen *RE_addRenderObject(Render *re, Object *ob, Object *par, int index, in
 	obr->index= index;
 	obr->psysindex= psysindex;
 
-	if(!re->objecthash)
-		re->objecthash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-	if(!BLI_ghash_lookup(re->objecthash, ob))
-		BLI_ghash_insert(re->objecthash, ob, obr);
-
 	return obr;
 }
 
@@ -822,11 +817,6 @@ void free_renderdata_tables(Render *re)
 		re->totinstance= 0;
 		re->instancetable.first= re->instancetable.last= NULL;
 	}
-
-	if(re->objecthash) {
-		BLI_ghash_free(re->objecthash, NULL, NULL);
-		re->objecthash= NULL;
- 	}
 
 	if(re->sortedhalos) {
 		MEM_freeN(re->sortedhalos);
@@ -1285,9 +1275,34 @@ ObjectInstanceRen *RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, 
 	return obi;
 }
 
+void find_dupli_objectren(Render *re, ObjectInstanceRen *obi, ObjectInstanceRen *lastobi)
+{
+	ObjectRen *obr;
+
+	/* see if last object did the same lookup, so we can just reuse result */
+	if(lastobi && obi->ob == lastobi->ob && obi->par == lastobi->par && obi->psysindex == lastobi->psysindex) {
+		obi->obr= lastobi->obr;
+		return;
+	}
+
+	/* dupli objects are created after object instances, so we look through
+	 * object list to find it */
+	obr= re->objecttable.first;
+	while(obr && (obr->ob != obi->ob || obr->par != obi->par || obr->psysindex != obi->psysindex))
+		obr= obr->next;
+
+	if(!obr) {
+		obr= re->objecttable.first;
+		while(obr && (obr->ob != obi->ob || obr->psysindex != obi->psysindex) && obr->par == NULL)
+			obr= obr->next;
+	}
+
+	obi->obr= obr;
+}
+
 void RE_makeRenderInstances(Render *re)
 {
-	ObjectInstanceRen *obi, *oldobi;
+	ObjectInstanceRen *obi, *oldobi, *lastobi= NULL;
 	ListBase newlist;
 	int tot;
 
@@ -1302,12 +1317,8 @@ void RE_makeRenderInstances(Render *re)
 		*obi= *oldobi;
 
 		if(!obi->obr) {
-			/* dupli objects are created after object instances, so they were
-			 * stored in a object -> objectren hash, we do lookup of the actual
-			 * pointer here */
-			if(re->objecthash && (obi->obr=BLI_ghash_lookup(re->objecthash, obi->ob)))
-				while(obi->obr && obi->obr->psysindex != obi->psysindex)
-					obi->obr= obi->obr->next;
+			find_dupli_objectren(re, obi, lastobi);
+			lastobi= obi;
 		}
 
 		if(obi->obr) {
@@ -1319,10 +1330,6 @@ void RE_makeRenderInstances(Render *re)
 			re->totinstance--;
 	}
 
-	if(re->objecthash) {
-		BLI_ghash_free(re->objecthash, NULL, NULL);
-		re->objecthash= NULL;
-	}
 	BLI_freelistN(&re->instancetable);
 	re->instancetable= newlist;
 }
