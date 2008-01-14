@@ -952,7 +952,7 @@ static void make_trans_verts(float *min, float *max, int mode)
 	/* I skip it for editmesh now (ton) */
 	if(G.obedit->type!=OB_MESH) {
 		countall();
-		if(mode) tottrans= G.totvert;
+ 		if(mode) tottrans= G.totvert;
 		else tottrans= G.totvertsel;
 
 		if(G.totvertsel==0) {
@@ -1915,7 +1915,7 @@ int minmax_verts(float *min, float *max)
 
 	tottrans=0;
 	if ELEM5(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) 
-		make_trans_verts(bmat[0], bmat[1], 0);
+		make_trans_verts(bmat[0], bmat[1], 2);
 	if(tottrans==0) return 0;
 
 	Mat3CpyMat4(bmat, G.obedit->obmat);
