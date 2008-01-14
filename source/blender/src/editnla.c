@@ -581,7 +581,7 @@ static void add_nla_block(short event)
 		/* simple prevention of zero strips */
 	if(strip->start>strip->end-2) 
 		strip->end= strip->start+100;
-	strip->repeat = 1.0;
+	strip->repeat = strip->scale= 1.0f;
 	
 	strip->flag = ACTSTRIP_SELECT|ACTSTRIP_LOCK_ACTION;
 	
@@ -620,6 +620,7 @@ static void add_nla_block_by_name(char name[32], Object *ob, short hold, short a
 	
 	/* Initialize the new action block */
 	strip = MEM_callocN(sizeof(bActionStrip), "bActionStrip");
+	strip->scale= 1.0f;
 	
 	deselect_nlachannel_keys(0);
 	
