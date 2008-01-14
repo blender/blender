@@ -58,7 +58,8 @@ def mdd_export(filepath, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
 	
 	Window.EditMode(0)
 	Blender.Window.WaitCursor(1)
-	mesh_orig = ob.getData(mesh=1)
+	mesh_orig = Mesh.New()
+	mesh_orig.getFromObject(ob.name)
 	
 	#Flip y and z
 	'''

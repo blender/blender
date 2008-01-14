@@ -1,11 +1,11 @@
 #!BPY
 
- #"""
+"""
  #Name: 'Load MDD to Mesh RVKs'
  #Blender: 242
  #Group: 'Import'
  #Tooltip: 'baked vertex animation to active mesh object.'
- #"""
+"""
 __author__ = "Bill L.Nieuwendorp"
 __bpydoc__ = """\
 This script Imports Lightwaves MotionDesigner format.
