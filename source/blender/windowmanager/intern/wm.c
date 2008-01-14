@@ -36,6 +36,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_idprop.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -124,6 +125,7 @@ void wm_add_default(bContext *C)
 /* context is allowed to be NULL, do net free wm itself (library.c) */
 void wm_close_and_free(bContext *C, wmWindowManager *wm)
 {
+	wmOperator *op;
 	wmWindow *win;
 	
 	while((win= wm->windows.first)) {
@@ -131,6 +133,19 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 		wm_window_free(C, win);
 	}
 	
+	op= wm->operators.first;
+	while(op) {
+		/*
+		 * Need this, because if the operator don't have
+		 * properties also don't have group.
+		 */
+		if(op->properties) {
+			IDP_FreeGroup(op->properties);
+			op->properties= NULL;
+		}
+		op= op->next;
+	}
+
 	BLI_freelistN(&wm->operators);
 	
 	BLI_freelistN(&wm->windowkeymap);

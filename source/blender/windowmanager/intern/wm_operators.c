@@ -28,6 +28,7 @@
 
 #include <string.h>
 
+#include "DNA_ID.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -38,6 +39,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_idprop.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -136,7 +138,47 @@ void wm_operatortype_init(void)
     ADD_OPTYPE(WM_OT_window_fullscreen_toggle);
 }
 
+/* wrapped to get property from a operator. */
+IDProperty *op_get_property(wmOperator *op, char *name)
+{
+	IDProperty *prop= IDP_GetPropertyFromGroup(op->properties, name);
+	return(prop);
+}
 
+/*
+ * We need create a "group" to store the operator properties.
+ * We don't have a WM_operator_new or some thing like that,
+ * so this function is called by all the OP_set_* function
+ * in case that op->properties is equal to NULL.
+ */
+void op_init_property(wmOperator *op)
+{
+	IDPropertyTemplate val;
+	op->properties= IDP_New(IDP_GROUP, val, "property");
+}
 
+/* ***** Property API, exported ***** */
+void OP_set_int(wmOperator *op, char *name, int value)
+{
+	IDPropertyTemplate val;
+	IDProperty *prop;
 
+	if(!op->properties)
+		op_init_property(op);
 
+	val.i= value;
+	prop= IDP_New(IDP_INT, val, name);
+	IDP_ReplaceInGroup(op->properties, prop);
+}
+
+int OP_get_int(wmOperator *op, char *name, int *value)
+{
+	IDProperty *prop= op_get_property(op, name);
+	int status= 1;
+
+	if ((prop) && (prop->type == IDP_INT)) {
+		(*value)= prop->data.val;
+		status= 0;
+	}
+	return (status);
+}

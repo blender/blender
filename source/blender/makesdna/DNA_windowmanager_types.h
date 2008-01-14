@@ -163,7 +163,7 @@ typedef struct wmOperator {
 	/* custom storage, dna pointer */
 	void *customdata; 
 	/* or IDproperty list */
-	void *properties;
+	IDProperty *properties;
 
 	
 } wmOperator;

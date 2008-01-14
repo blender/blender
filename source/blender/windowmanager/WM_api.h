@@ -81,6 +81,22 @@ int			WM_operator_winactive	(struct bContext *C);
 wmOperatorType *WM_operatortype_find(const char *idname);
 void		WM_operatortypelist_append(ListBase *lb);
 
+/* 
+ * Operator property api
+ *
+ * Some notes to take care:
+ *
+ * OP_set_int try to append a new property to the operator,
+ * if the property already exist, just replace it with the
+ * value in other case make a new property and append it.
+ *
+ * OP_get_int return 0 on success (found the property) or
+ * != 0 if can't found the property in the operator.
+ * The property value are store in the "value" pointer.
+ */
+void OP_set_int(wmOperator *op, char *name, int value);
+int OP_get_int(wmOperator *op, char *name, int *value);
+
 			/* OpenGL wrappers, mimicing opengl syntax */
 void		wmLoadMatrix		(wmWindow *win, float mat[][4]);
 void		wmGetMatrix			(wmWindow *win, float mat[][4]);

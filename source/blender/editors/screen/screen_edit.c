@@ -646,16 +646,13 @@ int screen_cursor_test(bContext *C, wmOperator *op, wmEvent *event)
 
 */
 
-/* "global" variables for all functions inside this operator */
-/*  we could do it with properties? */
-static int	bigger, smaller, dir, origval;
-	
 /* validate selection inside screen, set variables OK */
 /* return 0: init failed */
 static int move_areas_init (bContext *C, wmOperator *op)
 {
 	ScrEdge *actedge= screen_find_active_scredge(C->screen, op->veci.x, op->veci.y);
 	ScrArea *sa;
+	int bigger, smaller, dir, origval;
 	
 	if(actedge==NULL) return 0;
 	
@@ -691,7 +688,12 @@ static int move_areas_init (bContext *C, wmOperator *op)
 			}
 		}
 	}
-	
+
+	OP_set_int(op, "bigger", bigger);
+	OP_set_int(op, "smaller", smaller);
+	OP_set_int(op, "dir", dir);
+	OP_set_int(op, "origval", origval);
+
 	return 1;
 }
 
@@ -700,6 +702,12 @@ static int move_areas_init (bContext *C, wmOperator *op)
 static int move_areas_exec(bContext *C, wmOperator *op)
 {
 	ScrVert *v1;
+	int bigger, smaller, dir, origval;
+
+	OP_get_int(op, "bigger", &bigger);
+	OP_get_int(op, "smaller", &smaller);
+	OP_get_int(op, "dir", &dir);
+	OP_get_int(op, "origval", &origval);
 	
 	op->delta= CLAMPIS(op->delta, -smaller, bigger);
 	
@@ -760,6 +768,10 @@ static int move_areas_invoke (bContext *C, wmOperator *op, wmEvent *event)
 /* return 0 = stop evaluating for next handlers */
 static int move_areas_modal (bContext *C, wmOperator *op, wmEvent *event)
 {
+	int dir;
+
+	OP_get_int(op, "dir", &dir);
+
 	/* execute the events */
 	switch(event->type) {
 		case MOUSEMOVE:
