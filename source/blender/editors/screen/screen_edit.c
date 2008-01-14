@@ -1225,7 +1225,7 @@ static int split_area_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 			sa= screen_areahascursor(C->screen, event->x, event->y);
 
-			if(sa && sd->sarea!=sa) {
+			if(sa && sd->sarea!=sa && sd->narea!=sa) {
 				sold= sd->sarea;
 				printf("In other area now\n");
 				split_joincurrent(C, sd);
