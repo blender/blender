@@ -2354,7 +2354,7 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 					c4= zbuf_shadow_project(cache, sseg.v[3]-strand->vert, obwinmat, sseg.v[3]->co, ho4);
 
 					if(!(c1 & c2 & c3 & c4))
-						render_strand_segment(NULL, winmat, NULL, &zspan, &sseg);
+						render_strand_segment(re, winmat, NULL, &zspan, 1, &sseg);
 				}
 			}
 

@@ -758,7 +758,7 @@ static void do_scanconvert_strand(Render *re, StrandPart *spart, ZSpan *zspan, f
 	zspan_scanconvert_strand(zspan, spart, jco1, jco3, jco4, do_strand_blend);
 }
 
-static void strand_render(Render *re, float winmat[][4], StrandPart *spart, ZSpan *zspan, StrandPoint *p1, StrandPoint *p2)
+static void strand_render(Render *re, StrandSegment *sseg, float winmat[][4], StrandPart *spart, ZSpan *zspan, int totzspan, StrandPoint *p1, StrandPoint *p2)
 {
 	if(spart) {
 		float t= p2->t;
@@ -774,17 +774,27 @@ static void strand_render(Render *re, float winmat[][4], StrandPart *spart, ZSpa
 	}
 	else {
 		float hoco1[4], hoco2[3];
+		int a, obi, index;
+  
+		obi= sseg->obi - re->objectinstance;
+		index= sseg->strand->index;
 
-		projectvert(p1->co, winmat, hoco1);
-		projectvert(p2->co, winmat, hoco2);
-
-		/* render both strand and single pixel wire to counter aliasing */
-		zbufclip4(zspan, 0, 0, p1->hoco2, p1->hoco1, p2->hoco1, p2->hoco2, p1->clip2, p1->clip1, p2->clip1, p2->clip2);
-		zbufsinglewire(zspan, 0, 0, hoco1, hoco2);
+  		projectvert(p1->co, winmat, hoco1);
+  		projectvert(p2->co, winmat, hoco2);
+  
+		for(a=0; a<totzspan; a++) {
+#if 0
+			/* render both strand and single pixel wire to counter aliasing */
+			zbufclip4(re, &zspan[a], obi, index, p1->hoco2, p1->hoco1, p2->hoco1, p2->hoco2, p1->clip2, p1->clip1, p2->clip1, p2->clip2);
+#endif
+			/* only render a line for now, which makes the shadow map more
+			   similiar across frames, and so reduces flicker */
+			zbufsinglewire(&zspan[a], obi, index, hoco1, hoco2);
+		}
 	}
 }
-
-static int strand_segment_recursive(Render *re, float winmat[][4], StrandPart *spart, ZSpan *zspan, StrandSegment *sseg, StrandPoint *p1, StrandPoint *p2, int depth)
+  
+static int strand_segment_recursive(Render *re, float winmat[][4], StrandPart *spart, ZSpan *zspan, int totzspan, StrandSegment *sseg, StrandPoint *p1, StrandPoint *p2, int depth)
 {
 	StrandPoint p;
 	StrandBuffer *buffer= sseg->buffer;
@@ -817,21 +827,23 @@ static int strand_segment_recursive(Render *re, float winmat[][4], StrandPart *s
 		do_strand_point_project(winmat, zspan, p.co2, p.hoco2, p.zco2);
 	}
 	else {
+#if 0
 		projectvert(p.co1, winmat, p.hoco1);
 		projectvert(p.co2, winmat, p.hoco2);
 		p.clip1= testclip(p.hoco1);
 		p.clip2= testclip(p.hoco2);
+#endif
 	}
 
-	if(!strand_segment_recursive(re, winmat, spart, zspan, sseg, p1, &p, depth+1))
-		strand_render(re, winmat, spart, zspan, p1, &p);
-	if(!strand_segment_recursive(re, winmat, spart, zspan, sseg, &p, p2, depth+1))
-		strand_render(re, winmat, spart, zspan, &p, p2);
+	if(!strand_segment_recursive(re, winmat, spart, zspan, totzspan, sseg, p1, &p, depth+1))
+		strand_render(re, sseg, winmat, spart, zspan, totzspan, p1, &p);
+	if(!strand_segment_recursive(re, winmat, spart, zspan, totzspan, sseg, &p, p2, depth+1))
+		strand_render(re, sseg, winmat, spart, zspan, totzspan, &p, p2);
 	
 	return 1;
 }
 
-void render_strand_segment(Render *re, float winmat[][4], StrandPart *spart, ZSpan *zspan, StrandSegment *sseg)
+void render_strand_segment(Render *re, float winmat[][4], StrandPart *spart, ZSpan *zspan, int totzspan, StrandSegment *sseg)
 {
 	StrandBuffer *buffer= sseg->buffer;
 	StrandPoint *p1= &sseg->point1;
@@ -852,6 +864,7 @@ void render_strand_segment(Render *re, float winmat[][4], StrandPart *spart, ZSp
 		do_strand_point_project(winmat, zspan, p2->co2, p2->hoco2, p2->zco2);
 	}
 	else {
+#if 0
 		projectvert(p1->co1, winmat, p1->hoco1);
 		projectvert(p1->co2, winmat, p1->hoco2);
 		projectvert(p2->co1, winmat, p2->hoco1);
@@ -860,10 +873,11 @@ void render_strand_segment(Render *re, float winmat[][4], StrandPart *spart, ZSp
 		p1->clip2= testclip(p1->hoco2);
 		p2->clip1= testclip(p2->hoco1);
 		p2->clip2= testclip(p2->hoco2);
+#endif
 	}
 
-	if(!strand_segment_recursive(re, winmat, spart, zspan, sseg, p1, p2, 0))
-		strand_render(re, winmat, spart, zspan, p1, p2);
+	if(!strand_segment_recursive(re, winmat, spart, zspan, totzspan, sseg, p1, p2, 0))
+		strand_render(re, sseg, winmat, spart, zspan, totzspan, p1, p2);
 }
 
 static void zbuffer_strands_filter(Render *re, RenderPart *pa, RenderLayer *rl, StrandPart *spart, float *pass)
@@ -1128,7 +1142,7 @@ unsigned short *zbuffer_strands_shade(Render *re, RenderPart *pa, RenderLayer *r
 
 			spart.segment= &sseg;
 
-			render_strand_segment(re, winmat, &spart, &zspan, &sseg);
+			render_strand_segment(re, winmat, &spart, &zspan, 1, &sseg);
 		}
 	}
 
