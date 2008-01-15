@@ -1060,12 +1060,11 @@ typedef struct sAreaSplitData
 /* the moving of the new egde */
 static int split_area_exec(bContext *C, wmOperator *op)
 {
-	ScrVert *v1;
 	sAreaSplitData *sd= (sAreaSplitData *)op->customdata;
 	int newval= sd->origval + op->delta;
 	printf("split_area_exec %d %c, %d %d, %d", op->delta, sd->dir, -sd->min, sd->max, sd->origval);
 	
-	op->delta= CLAMPIS(op->delta, -sd->min, sd->max);
+	newval= CLAMPIS(newval, -sd->min, sd->max);
 	
 	
 	printf(".");
@@ -1073,20 +1072,10 @@ static int split_area_exec(bContext *C, wmOperator *op)
 	if((sd->dir=='v') && (newval > sd->min && newval < sd->max-1)) {
 		sd->nedge->v1->vec.x= newval;
 		sd->nedge->v2->vec.x= newval;
-		//if(op->delta != sd->max && op->delta != -sd->min) v1->vec.x-= (v1->vec.x % AREAGRID);
 	}
 	if((sd->dir=='h') && (newval > sd->min+HEADERY && newval < sd->max-HEADERY)) {
-		sd->nedge->v1->vec.y= sd->origval + op->delta;
-		sd->nedge->v1->vec.y+= AREAGRID-1;
-		sd->nedge->v1->vec.y-= (sd->nedge->v1->vec.y % AREAGRID);
-		if(sd->nedge->v1->vec.y > C->window->sizey-HEADERY)
-			sd->nedge->v1->vec.y= C->window->sizey-HEADERY;
-		
-		sd->nedge->v2->vec.y= sd->origval + op->delta;
-		sd->nedge->v2->vec.y+= AREAGRID-1;
-		sd->nedge->v2->vec.y-= (sd->nedge->v2->vec.y % AREAGRID);
-		if(sd->nedge->v2->vec.y > C->window->sizey-HEADERY)
-			sd->nedge->v2->vec.y= C->window->sizey-HEADERY;
+		sd->nedge->v1->vec.y= newval;		
+		sd->nedge->v2->vec.y= newval;
 	}
 	printf("\n");
 	return 1;
@@ -1109,7 +1098,7 @@ static int split_area_exit(bContext *C, wmOperator *op)
 	return 1;
 }
 
-static void split_initintern(bContext *C, wmOperator *op, sAreaSplitData *sd)
+static int split_initintern(bContext *C, wmOperator *op, sAreaSplitData *sd)
 {
 	float fac= 0.0;
 	if(sd->dir=='h') {
@@ -1126,12 +1115,18 @@ static void split_initintern(bContext *C, wmOperator *op, sAreaSplitData *sd)
 	}
 	
 	sd->narea= splitarea(C->window, C->screen, sd->sarea, sd->dir, fac);
+	
+	if(sd->narea==NULL) return 0;
+	
 	sd->nedge= area_findsharededge(C->screen, sd->sarea, sd->narea);
 	
 	printf("split_area_init\n");
 	/* get newly created edge and select it */
 	select_connected_scredge(C->screen, sd->nedge);
 	
+	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0);
+	
+	return 1;
 }
 
 static int split_area_init (bContext *C, wmOperator *op)
@@ -1149,12 +1144,7 @@ static int split_area_init (bContext *C, wmOperator *op)
 	sd->sarea= screen_test_edge_area(C->screen, C->curarea, actedge);
 	sd->aedge= actedge;
 
-	split_initintern(C, op, sd);
-	if(sd->narea == NULL) return 0;
-	
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0);
-
-	return 1;
+	return split_initintern(C, op, sd);
 }
 
 static int split_area_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -1230,10 +1220,15 @@ static int split_area_modal(bContext *C, wmOperator *op, wmEvent *event)
 				sold= sd->sarea;
 				printf("In other area now\n");
 				split_joincurrent(C, sd);
-				//sd->aedge= area_findsharededge(C->screen, sold, sa);
 				/* now find aedge with same orientation as sd->dir (inverted) */
-				if(sd->dir=='v') sd->aedge= screen_findedge(C->screen, sa->v1, sa->v4);
-				else sd->aedge= screen_findedge(C->screen, sa->v1, sa->v2);
+				if(sd->dir=='v') {
+					sd->aedge= screen_findedge(C->screen, sa->v1, sa->v4);
+					if(sd->aedge==NULL) sd->aedge= screen_findedge(C->screen, sa->v2, sa->v3);
+				}
+				else {
+					sd->aedge= screen_findedge(C->screen, sa->v1, sa->v2);
+					if(sd->aedge==NULL) sd->aedge= screen_findedge(C->screen, sa->v3, sa->v4);
+				}
 				sd->sarea= sa;
 				op->delta= 0;
 				op->veci.x= event->x;
