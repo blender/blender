@@ -52,4 +52,4 @@ infile.close()
 if minor and major:
 	print str(major)+"."+minor
 else:
-	print unkownversion
+	print "unkownversion"
