@@ -956,7 +956,8 @@ static int move_areas_exit(bContext *C, wmOperator *op)
 	/* this makes sure aligned edges will result in aligned grabbing */
 	removedouble_scrverts(C->screen);
 	removedouble_scredges(C->screen);
-	
+
+	OP_free_property(op);	
 	return 1;
 }
 

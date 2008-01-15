@@ -158,6 +158,17 @@ void op_init_property(wmOperator *op)
 }
 
 /* ***** Property API, exported ***** */
+void OP_free_property(wmOperator *op)
+{
+	IDP_FreeProperty(op->properties);
+	/*
+	 * This need change, when the idprop code only
+	 * need call IDP_FreeProperty. (check BKE_idprop.h)
+	 */
+	MEM_freeN(op->properties);
+	op->properties= NULL;
+}
+
 void OP_set_int(wmOperator *op, char *name, int value)
 {
 	IDPropertyTemplate val;
@@ -171,6 +182,72 @@ void OP_set_int(wmOperator *op, char *name, int value)
 	IDP_ReplaceInGroup(op->properties, prop);
 }
 
+void OP_set_float(wmOperator *op, char *name, float value)
+{
+	IDPropertyTemplate val;
+	IDProperty *prop;
+
+	if(!op->properties)
+		op_init_property(op);
+
+	val.f= value;
+	prop= IDP_New(IDP_FLOAT, val, name);
+	IDP_ReplaceInGroup(op->properties, prop);
+}
+
+void OP_set_int_array(wmOperator *op, char *name, int *array, short len)
+{
+	IDPropertyTemplate val;
+	IDProperty *prop;
+	short i;
+	int *pointer;
+
+	if(!op->properties)
+		op_init_property(op);
+
+	val.array.len= len;
+	val.array.type= IDP_INT;
+	prop= IDP_New(IDP_ARRAY, val, name);
+
+	pointer= (int *)prop->data.pointer;
+	for(i= 0; i < len; i++)
+		pointer[i]= array[i];
+	IDP_ReplaceInGroup(op->properties, prop);
+}
+
+void OP_set_float_array(wmOperator *op, char *name, float *array, short len)
+{
+	IDPropertyTemplate val;
+	IDProperty *prop;
+	short i;
+	float *pointer;
+
+	if(!op->properties)
+		op_init_property(op);
+
+	val.array.len= len;
+	val.array.type= IDP_FLOAT;
+	prop= IDP_New(IDP_ARRAY, val, name);
+
+	pointer= (float *) prop->data.pointer;
+	for(i= 0; i < len; i++)
+		pointer[i]= array[i];
+	IDP_ReplaceInGroup(op->properties, prop);
+}
+
+void OP_set_string(wmOperator *op, char *name, char *str)
+{
+	IDPropertyTemplate val;
+	IDProperty *prop;
+
+	if(!op->properties)
+		op_init_property(op);
+
+	val.str= str;
+	prop= IDP_New(IDP_STRING, val, name);
+	IDP_ReplaceInGroup(op->properties, prop);
+}
+
 int OP_get_int(wmOperator *op, char *name, int *value)
 {
 	IDProperty *prop= op_get_property(op, name);
@@ -181,4 +258,62 @@ int OP_get_int(wmOperator *op, char *name, int *value)
 		status= 0;
 	}
 	return (status);
+}
+
+int OP_get_float(wmOperator *op, char *name, float *value)
+{
+	IDProperty *prop= op_get_property(op, name);
+	int status= 1;
+
+	if ((prop) && (prop->type == IDP_FLOAT)) {
+		(*value)= *(float*)&prop->data.val;
+		status= 0;
+	}
+	return (status);
+}
+
+int OP_get_int_array(wmOperator *op, char *name, int *array, short *len)
+{
+	IDProperty *prop= op_get_property(op, name);
+	short i;
+	int status= 1;
+	int *pointer;
+
+	if ((prop) && (prop->type == IDP_ARRAY)) {
+		pointer= (int *) prop->data.pointer;
+
+		for(i= 0; (i < prop->len) && (i < *len); i++)
+			array[i]= pointer[i];
+
+		(*len)= i;
+		status= 0;
+	}
+	return (status);
+}
+
+int OP_get_float_array(wmOperator *op, char *name, float *array, short *len)
+{
+	IDProperty *prop= op_get_property(op, name);
+	short i;
+	float *pointer;
+	int status= 1;
+
+	if ((prop) && (prop->type == IDP_ARRAY)) {
+		pointer= (float *) prop->data.pointer;
+
+		for(i= 0; (i < prop->len) && (i < *len); i++)
+			array[i]= pointer[i];
+
+		(*len)= i;
+		status= 0;
+	}
+	return (status);
+}
+
+char *OP_get_string(wmOperator *op, char *name)
+{
+	IDProperty *prop= op_get_property(op, name);
+	if ((prop) && (prop->type == IDP_STRING))
+		return ((char *) prop->data.pointer);
+	return (NULL);
 }

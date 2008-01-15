@@ -86,16 +86,51 @@ void		WM_operatortypelist_append(ListBase *lb);
  *
  * Some notes to take care:
  *
- * OP_set_int try to append a new property to the operator,
- * if the property already exist, just replace it with the
+ * All the OP_set_* functions append a new property to the operator,
+ * if the property already exist, just replace it with the new
  * value in other case make a new property and append it.
  *
- * OP_get_int return 0 on success (found the property) or
- * != 0 if can't found the property in the operator.
+ * The OP_get_string function is a "special case", this function
+ * return a pointer to property data, so don't change/resize/free
+ * the string, because probably we get a segfault.
+ * I really think that is better duplicate the string, so we are
+ * really sure that the property data don't change.
+ *
+ * OP_get_int/float/array return 0 on success (found the property)
+ * or != 0 if can't found the property in the operator.
  * The property value are store in the "value" pointer.
+ *
+ * Both array function copy the property data into the "array"
+ * pointer, but you need init the len pointer to the "array" size.
+ *
+ * For example:
+ *	int vec[] = { 1, 2, 3, 4 };
+ *	OP_set_int_array (op, "vector", vec, 4);
+ *
+ *	...
+ *
+ *	short len;
+ *	int vec[4];
+ *	len= 4; <---- set the size!!
+ *	OP_get_int_array (op, "vector", vec, &len);
  */
 void OP_set_int(wmOperator *op, char *name, int value);
+void OP_set_float(wmOperator *op, char *name, float value);
+void OP_set_string(wmOperator *op, char *name, char *str);
+void OP_set_int_array(wmOperator *op, char *name, int *array, short len);
+void OP_set_float_array(wmOperator *op, char *name, float *array, short len);
+
 int OP_get_int(wmOperator *op, char *name, int *value);
+int OP_get_float(wmOperator *op, char *name, float *value);
+char *OP_get_string(wmOperator *op, char *name);
+int OP_get_int_array(wmOperator *op, char *name, int *array, short *len);
+int OP_get_float_array(wmOperator *op, char *name, float *array, short *len);
+
+/*
+ * Need call this function in the "exit callback"
+ * of the operator, but only if you use the property system.
+ **/
+void OP_free_property(wmOperator *op);
 
 			/* OpenGL wrappers, mimicing opengl syntax */
 void		wmLoadMatrix		(wmWindow *win, float mat[][4]);
