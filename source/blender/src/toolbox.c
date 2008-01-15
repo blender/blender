@@ -1755,6 +1755,8 @@ static void do_group_addmenu(void *arg, int event)
 	
 	ob->dup_group= BLI_findlink(&G.main->group, event);
 	if(ob->dup_group) {
+		rename_id(&ob->id, ob->dup_group->id.name+2);
+
 		id_us_plus((ID *)ob->dup_group);
 		ob->transflag |= OB_DUPLIGROUP;
 		DAG_scene_sort(G.scene);
