@@ -190,6 +190,18 @@ static void wm_window_close(bContext *C, wmWindow *win)
 		WM_exit(C);
 }
 	
+/* exit blender */
+int wm_exit_blender_op(bContext *C, wmOperator *op)
+{
+	wmWindow *win= C->wm->windows.first;
+	while(win) {
+		wm_window_close(C, win);
+		win= win->next;
+	}
+
+	return 1;
+}
+
 static void wm_window_open(wmWindowManager *wm, char *title, wmWindow *win)
 {
 	GHOST_WindowHandle ghostwin;

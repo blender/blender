@@ -116,6 +116,16 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
     ot->poll= WM_operator_winactive;
 }
 
+static void WM_OT_exit_blender(wmOperatorType *ot)
+{
+	ot->name= "Exit Blender";
+	ot->idname= "WM_OT_exit_blender";
+
+	ot->invoke= NULL; /* do confirm stuff */
+	ot->exec= wm_exit_blender_op;
+	ot->poll= WM_operator_winactive;
+}
+
 
 #define ADD_OPTYPE(opfunc)	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype"); \
 							opfunc(ot);  \
@@ -136,6 +146,7 @@ void wm_operatortype_init(void)
 	ADD_OPTYPE(WM_OT_window_duplicate);
 	ADD_OPTYPE(WM_OT_save_homefile);
     ADD_OPTYPE(WM_OT_window_fullscreen_toggle);
+	ADD_OPTYPE(WM_OT_exit_blender);
 }
 
 /* wrapped to get property from a operator. */
