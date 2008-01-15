@@ -165,6 +165,7 @@ IDProperty *op_get_property(wmOperator *op, char *name)
 void op_init_property(wmOperator *op)
 {
 	IDPropertyTemplate val;
+	val.i = 0; /* silence MSVC warning about uninitialized var when debugging */
 	op->properties= IDP_New(IDP_GROUP, val, "property");
 }
 

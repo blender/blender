@@ -306,6 +306,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		else {
 			/* modal, swallows all */
 			action= wm_handler_operator_call(C, handler, event);
+			if(action==WM_HANDLER_BREAK)
+				break;
 		}
 		
 		/* modal+blocking handler */

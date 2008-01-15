@@ -53,7 +53,7 @@
 /* called on event handling by event_system.c */
 void wm_operator_register(wmWindowManager *wm, wmOperator *op)
 {
-	wmOperator *opc= MEM_mallocN(sizeof(wmOperator), "operator registry");
+	wmOperator *opc= MEM_callocN(sizeof(wmOperator), "operator registry");
 	int tot;
 	
 	*opc= *op;

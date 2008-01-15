@@ -41,7 +41,7 @@ int area_cursor_test(bContext *C, wmOperator *op, wmEvent *event);
 
 void ED_SCR_OT_move_areas(wmOperatorType *ot);
 void ED_SCR_OT_split_area(wmOperatorType *ot);
-
+void ED_SCR_OT_join_areas(wmOperatorType *ot);
 
 #endif /* ED_SCREEN_INTERN_H */
 
