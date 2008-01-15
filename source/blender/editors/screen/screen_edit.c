@@ -44,6 +44,7 @@
 #include "ED_area.h"
 #include "ED_screen.h"
 
+
 #include "wm_subwindow.h"
 
 #include "screen_intern.h"	/* own module include */
@@ -491,14 +492,19 @@ static ScrEdge *area_findsharededge(bScreen *screen, ScrArea *sa, ScrArea *sb)
 /* used with split operator */
 static int area_getorientation(bScreen *screen, ScrArea *sa, ScrArea *sb)
 {
-	ScrVert *sav1= sa->v1;
-	ScrVert *sav2= sa->v2;
-	ScrVert *sav3= sa->v3;
-	ScrVert *sav4= sa->v4;
-	ScrVert *sbv1= sb->v1;
-	ScrVert *sbv2= sb->v2;
-	ScrVert *sbv3= sb->v3;
-	ScrVert *sbv4= sb->v4;
+	ScrVert *sav1, *sav2, *sav3, *sav4;
+	ScrVert *sbv1, *sbv2, *sbv3, *sbv4;
+
+	if(sa==NULL || sb==NULL) return -1;
+
+	sav1= sa->v1;
+	sav2= sa->v2;
+	sav3= sa->v3;
+	sav4= sa->v4;
+	sbv1= sb->v1;
+	sbv2= sb->v2;
+	sbv3= sb->v3;
+	sbv4= sb->v4;
 	
 	if(sav1==sbv4 && sav2==sbv3) { /* sa to right of sb = W */
 		return 0;
@@ -533,7 +539,6 @@ static short testsplitpoint(wmWindow *win, ScrArea *sa, char dir, float fac)
 	if(dir=='h') {
 		y= sa->v1->vec.y+ fac*(sa->v2->vec.y- sa->v1->vec.y);
 		
-		//XXX G.curscreen!
 		if(sa->v2->vec.y==win->sizey-1 && sa->v2->vec.y- y < HEADERY) 
 			y= sa->v2->vec.y- HEADERY;
 
@@ -1153,6 +1158,8 @@ static int split_area_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	op->delta= 0;
 	op->veci.x= event->x;
 	op->veci.y= event->y;
+
+	op->customdata= NULL;
 	
 	if(0==split_area_init(C, op)) 
 		return 1;
