@@ -1157,7 +1157,7 @@ static int split_area_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return 0;
 }
 
-/* join areas
+/* join areas */
 static void split_joincurrent(bContext *C, sAreaSplitData *sd)
 {
 	int orientation= area_getorientation(C->window->screen, sd->sarea, sd->narea);
