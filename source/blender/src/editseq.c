@@ -111,9 +111,6 @@ char last_sounddir[FILE_MAXDIR+FILE_MAXFILE]= "";
 
 #define SEQ_DESEL	~(SELECT+SEQ_LEFTSEL+SEQ_RIGHTSEL)
 
-static int test_overlap_seq(Sequence *);
-static void shuffle_seq(Sequence *);
-
 typedef struct TransSeq {
 	int start, machine;
 	int startstill, endstill;
@@ -537,7 +534,7 @@ void update_seq_icu_rects(Sequence * seq)
 	}
 }
 
-static int test_overlap_seq(Sequence *test)
+int test_overlap_seq(Sequence *test)
 {
 	Sequence *seq;
 	Editing *ed;
@@ -560,7 +557,7 @@ static int test_overlap_seq(Sequence *test)
 	return 0;
 }
 
-static void shuffle_seq(Sequence *test)
+void shuffle_seq(Sequence *test)
 {
 	Editing *ed;
 	Sequence *seq;

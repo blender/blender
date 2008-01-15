@@ -1052,8 +1052,10 @@ static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname
 					if(ob->action) {
 						if(ob->flag & OB_POSEMODE) {
 							bPoseChannel *pchan= get_active_posechannel(ob);
-							if(pchan)
+							if(pchan) {
 								BLI_strncpy(actname, pchan->name, 32);
+								BLI_strncpy(bonename, pchan->name, 32);
+							}
 						}
 						else if(ob->ipoflag & OB_ACTION_OB)
 							strcpy(actname, "Object");
