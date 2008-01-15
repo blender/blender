@@ -75,8 +75,6 @@
 #include <config.h>
 #endif
 
-#define MAX_DUPLI_RECUR 4
-
 static void object_duplilist_recursive(ID *id, Object *ob, ListBase *duplilist, float par_space_mat[][4], int level);
 
 void free_path(Path *path)
@@ -378,10 +376,12 @@ struct vertexDupliData {
 	float pmat[4][4];
 	float obmat[4][4]; /* Only used for dupliverts inside dupligroups, where the ob->obmat is modified */
 	Object *ob, *par;
+	float (*orco)[3];
 };
 
 static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
+	DupliObject *dob;
 	struct vertexDupliData *vdd= userData;
 	float vec[3], *q2, mat[3][3], tmat[4][4], obmat[4][4];
 	
@@ -407,7 +407,9 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 		Mat4CpyMat4(tmat, obmat);
 		Mat4MulMat43(obmat, tmat, mat);
 	}
-	new_dupli_object(vdd->lb, vdd->ob, obmat, vdd->par->lay, index, OB_DUPLIVERTS);
+	dob= new_dupli_object(vdd->lb, vdd->ob, obmat, vdd->par->lay, index, OB_DUPLIVERTS);
+	if(vdd->orco)
+		VECCOPY(dob->orco, vdd->orco[index]);
 	
 	if(vdd->ob->transflag & OB_DUPLI) {
 		float tmpmat[4][4];
@@ -429,16 +431,25 @@ static void vertex_duplilist(ListBase *lb, ID *id, Object *par, float par_space_
 	Scene *sce = NULL;
 	Group *group = NULL;
 	GroupObject * go = NULL;
+	CustomDataMask dataMask = CD_MASK_BAREMESH;
 	
 	Mat4CpyMat4(pmat, par->obmat);
 	
 	/* simple preventing of too deep nested groups */
 	if(level>MAX_DUPLI_RECUR) return;
+
+	if(G.rendering)
+		dataMask |= CD_MASK_ORCO;
 	
 	if(par==G.obedit)
-		dm= editmesh_get_derived_cage(CD_MASK_BAREMESH);
+		dm= editmesh_get_derived_cage(dataMask);
 	else
-		dm = mesh_get_derived_deform(par, CD_MASK_BAREMESH);
+		dm= mesh_get_derived_deform(par, dataMask);
+
+	if(G.rendering)
+		vdd.orco= dm->getVertDataArray(dm, CD_ORCO);
+	else
+		vdd.orco= NULL;
 	
 	totvert = dm->getNumVerts(dm);
 
@@ -517,25 +528,31 @@ static void face_duplilist(ListBase *lb, ID *id, Object *par, float par_space_ma
 {
 	Object *ob, *ob_iter;
 	Base *base = NULL;
+	DupliObject *dob;
 	DerivedMesh *dm;
+	Mesh *me;
+	MTFace *mtface;
 	MFace *mface;
 	MVert *mvert;
-	float pmat[4][4], imat[3][3];
+	float pmat[4][4], imat[3][3], (*orco)[3], w;
 	int lay, oblay, totface, a;
 	Scene *sce = NULL;
 	Group *group = NULL;
 	GroupObject *go = NULL;
-	
+	CustomDataMask dataMask = CD_MASK_BAREMESH;
 	float ob__obmat[4][4]; /* needed for groups where the object matrix needs to be modified */
 	
 	/* simple preventing of too deep nested groups */
 	if(level>MAX_DUPLI_RECUR) return;
 	
-	Mat4CpyMat4(pmat, par->obmat);
+	if(G.rendering)
+		dataMask |= CD_MASK_ORCO;
 	
+	Mat4CpyMat4(pmat, par->obmat);
+
 	if(par==G.obedit) {
 		int totvert;
-		dm= editmesh_get_derived_cage(CD_MASK_BAREMESH);
+		dm= editmesh_get_derived_cage(dataMask);
 		
 		totface= dm->getNumFaces(dm);
 		mface= MEM_mallocN(sizeof(MFace)*totface, "mface temp");
@@ -545,13 +562,22 @@ static void face_duplilist(ListBase *lb, ID *id, Object *par, float par_space_ma
 		dm->copyVertArray(dm, mvert);
 	}
 	else {
-		dm = mesh_get_derived_deform(par, CD_MASK_BAREMESH);
+		dm = mesh_get_derived_deform(par, dataMask);
 		
 		totface= dm->getNumFaces(dm);
 		mface= dm->getFaceArray(dm);
 		mvert= dm->getVertArray(dm);
 	}
-	
+
+	if(G.rendering) {
+		me= (Mesh*)par->data;
+		orco= dm->getVertDataArray(dm, CD_ORCO);
+		mtface= me->mtface;
+	}
+	else {
+		orco= NULL;
+		mtface= NULL;
+	}
 	
 	/* having to loop on scene OR group objects is NOT FUN */
 	if (GS(id->name) == ID_SCE) {
@@ -595,10 +621,14 @@ static void face_duplilist(ListBase *lb, ID *id, Object *par, float par_space_ma
 					if(ob->type!=OB_MBALL) ob->flag |= OB_DONE;	/* doesnt render */
 
 					for(a=0; a<totface; a++) {
-						float *v1= mvert[ mface[a].v1 ].co;
-						float *v2= mvert[ mface[a].v2 ].co;
-						float *v3= mvert[ mface[a].v3 ].co;
-						float *v4= mface[a].v4?mvert[ mface[a].v4 ].co:NULL;
+						int mv1 = mface[a].v1;
+						int mv2 = mface[a].v2;
+						int mv3 = mface[a].v3;
+						int mv4 = mface[a].v4;
+						float *v1= mvert[mv1].co;
+						float *v2= mvert[mv2].co;
+						float *v3= mvert[mv3].co;
+						float *v4= (mv4)? mvert[mv4].co: NULL;
 						float cent[3], quat[4], mat[3][3], mat3[3][3], tmat[4][4], obmat[4][4];
 
 						/* translation */
@@ -632,7 +662,32 @@ static void face_duplilist(ListBase *lb, ID *id, Object *par, float par_space_ma
 						Mat4CpyMat4(tmat, obmat);
 						Mat4MulMat43(obmat, tmat, mat);
 						
-						new_dupli_object(lb, ob, obmat, lay, a, OB_DUPLIFACES);
+						dob= new_dupli_object(lb, ob, obmat, lay, a, OB_DUPLIFACES);
+						if(G.rendering) {
+							w= (mv4)? 0.25f: 1.0f/3.0f;
+
+							if(orco) {
+								VECADDFAC(dob->orco, dob->orco, orco[mv1], w);
+								VECADDFAC(dob->orco, dob->orco, orco[mv2], w);
+								VECADDFAC(dob->orco, dob->orco, orco[mv3], w);
+								if(mv4)
+									VECADDFAC(dob->orco, dob->orco, orco[mv4], w);
+							}
+
+							if(mtface) {
+								dob->uv[0] += w*mtface[a].uv[0][0];
+								dob->uv[1] += w*mtface[a].uv[0][1];
+								dob->uv[0] += w*mtface[a].uv[1][0];
+								dob->uv[1] += w*mtface[a].uv[1][1];
+								dob->uv[0] += w*mtface[a].uv[2][0];
+								dob->uv[1] += w*mtface[a].uv[2][1];
+
+								if(mv4) {
+									dob->uv[0] += w*mtface[a].uv[3][0];
+									dob->uv[1] += w*mtface[a].uv[3][1];
+								}
+							}
+						}
 						
 						if(ob->transflag & OB_DUPLI) {
 							float tmpmat[4][4];
@@ -660,38 +715,14 @@ static void face_duplilist(ListBase *lb, ID *id, Object *par, float par_space_ma
 	dm->release(dm);
 }
 
-static void particle_dupli_path_rotation(Object *ob, ParticleSettings *part, ParticleSystemModifierData *psmd, ParticleData *pa, ChildParticle *cpa, ParticleCacheKey *cache, float mat[][4], float *scale)
-{
-	float loc[3], nor[3], vec[3], side[3], len;
-
-	VecSubf(vec, (cache+cache->steps-1)->co, cache->co);
-	len= Normalize(vec);
-
-	if(pa)
-		psys_particle_on_emitter(ob,psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,nor,0,0,0,0);
-	else
-		psys_particle_on_emitter(ob, psmd,
-			(part->childtype == PART_CHILD_FACES)? PART_FROM_FACE: PART_FROM_PARTICLE,
-			cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,loc,nor,0,0,0,0);
-	
-	Crossf(side, nor, vec);
-	Normalize(side);
-	Crossf(nor, vec, side);
-
-	Mat4One(mat);
-	VECCOPY(mat[0], vec);
-	VECCOPY(mat[1], side);
-	VECCOPY(mat[2], nor);
-
-	*scale= len;
-}
-
 static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_space_mat[][4], ParticleSystem *psys, int level)
 {
 	GroupObject *go;
 	Object *ob=0, **oblist=0;
+	DupliObject *dob;
 	ParticleSettings *part;
 	ParticleData *pa;
+	ChildParticle *cpa=0;
 	ParticleKey state;
 	ParticleCacheKey *cache;
 	ParticleSystemModifierData *psmd;
@@ -773,10 +804,11 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 			}
 			else {
 				/* TODO: figure these two out */
+				cpa= &psys->child[a - totpart];
 				pa_num = a;
-				pa_time = psys->particles[psys->child[a - totpart].parent].time;
+				pa_time = psys->particles[cpa->parent].time;
 
-				size=psys_get_child_size(psys, &psys->child[a - totpart], ctime, 0);
+				size=psys_get_child_size(psys, cpa, ctime, 0);
 			}
 
 			if(part->draw_as==PART_DRAW_GR) {
@@ -795,12 +827,11 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 				if(hair) {
 					if(a < totpart) {
 						cache = psys->pathcache[a];
-						particle_dupli_path_rotation(par, part, psmd, pa, 0, cache, pamat, &scale);
+						psys_get_dupli_path_transform(par, part, psmd, pa, 0, cache, pamat, &scale);
 					}
 					else {
-						ChildParticle *cpa= psys->child+(a-totpart);
 						cache = psys->childcache[a-totpart];
-						particle_dupli_path_rotation(par, part, psmd, 0, cpa, cache, pamat, &scale);
+						psys_get_dupli_path_transform(par, part, psmd, 0, cpa, cache, pamat, &scale);
 					}
 
 					VECCOPY(pamat[3], cache->co);
@@ -833,7 +864,9 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 						else
 							Mat4CpyMat4(mat, tmat);
 
-						new_dupli_object(lb, go->ob, mat, par->lay, counter, OB_DUPLIPARTS);
+						dob= new_dupli_object(lb, go->ob, mat, par->lay, counter, OB_DUPLIPARTS);
+						if(G.rendering)
+							psys_get_dupli_texture(par, part, psmd, pa, cpa, dob->uv, dob->orco);
 					}
 				}
 				else {
@@ -857,7 +890,9 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 					else
 						Mat4CpyMat4(mat, tmat);
 
-					new_dupli_object(lb, ob, mat, par->lay, counter, OB_DUPLIPARTS);
+					dob= new_dupli_object(lb, ob, mat, par->lay, counter, OB_DUPLIPARTS);
+					if(G.rendering)
+						psys_get_dupli_texture(par, part, psmd, pa, cpa, dob->uv, dob->orco);
 				}
 			}
 		}

@@ -2234,9 +2234,34 @@ static void ui_draw_but_CURVE(uiBut *but)
 	if(cumap->flag & CUMA_DRAW_CFRA) {
 		glColor3ub(0x60, 0xc0, 0x40);
 		glBegin(GL_LINES);
-		glVertex2f(but->x1 + zoomx*(cumap->black[0]-offsx), but->y1);
-		glVertex2f(but->x1 + zoomx*(cumap->black[0]-offsx), but->y2);
+		glVertex2f(but->x1 + zoomx*(cumap->sample[0]-offsx), but->y1);
+		glVertex2f(but->x1 + zoomx*(cumap->sample[0]-offsx), but->y2);
 		glEnd();
+	}
+	/* sample option */
+	if(cumap->flag & CUMA_DRAW_SAMPLE) {
+		if(cumap->cur==3) {
+			float lum= cumap->sample[0]*0.35f + cumap->sample[1]*0.45f + cumap->sample[2]*0.2f;
+			glColor3ub(240, 240, 240);
+			
+			glBegin(GL_LINES);
+			glVertex2f(but->x1 + zoomx*(lum-offsx), but->y1);
+			glVertex2f(but->x1 + zoomx*(lum-offsx), but->y2);
+			glEnd();
+		}
+		else {
+			if(cumap->cur==0)
+				glColor3ub(240, 100, 100);
+			else if(cumap->cur==1)
+				glColor3ub(100, 240, 100);
+			else
+				glColor3ub(100, 100, 240);
+			
+			glBegin(GL_LINES);
+			glVertex2f(but->x1 + zoomx*(cumap->sample[cumap->cur]-offsx), but->y1);
+			glVertex2f(but->x1 + zoomx*(cumap->sample[cumap->cur]-offsx), but->y2);
+			glEnd();
+		}
 	}
 	
 	/* the curve */

@@ -1570,8 +1570,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				/* Shift-Tabe handling (other cases are in toets) */
 				if (G.qual == LR_SHIFTKEY)
 				{
-					/* Snap toggle (only edit mesh right now) */
-					if (G.obedit && G.obedit->type==OB_MESH)
+					/* Snap toggle only when supported */
+					if (BIF_snappingSupported())
 					{
 						G.scene->snap_flag ^= SCE_SNAP;
 						allqueue(REDRAWHEADERS, 0);
@@ -1798,6 +1798,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if(G.qual==(LR_ALTKEY|LR_CTRLKEY)) 
 					add_constraint(0);	/* editconstraint.c, generic for objects and posemode */
+				else if(G.qual==(LR_CTRLKEY|LR_SHIFTKEY)) {
+					BIF_manageTransformOrientation(0, 1);
+					allqueue(REDRAWVIEW3D, 0);
+				}
 				else if((G.qual==LR_SHIFTKEY)) {
 					view3d_home(1);
 					curs= give_cursor();
@@ -3667,34 +3671,37 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiBlockEndAlign(block);
 
 
-		uiDefBut(block, LABEL,0,"Auto keyframe",
-			(xpos+(2*edgsp)+(2*mpref)+midsp),y5label,mpref,buth,
+		uiDefBut(block, LABEL,0,"Auto Keyframe",
+			(xpos+(2*edgsp)+(2*mpref)+midsp),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
-
-		uiDefButBitI(block, TOG, G_RECORDKEYS, REDRAWTIME, "Action and Object", 
-					(xpos+edgsp+(2*mpref)+(2*midsp)),y4,mpref, buth,
-					 &(G.flags), 0, 0, 0, 0, "Automatic keyframe insertion in Object and Action Ipo curves");
+			
+		uiBlockBeginAlign(block);
+			uiDefButBitS(block, TOG, AUTOKEY_ON, REDRAWTIME, "Auto-Keying Enabled", 
+				(xpos+edgsp+(2*mpref)+(2*midsp)),y5,mpref, buth,
+				&(U.autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
+			
+			if (IS_AUTOKEY_ON) {
+				uiDefButS(block, MENU, REDRAWTIME, 
+						"Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
+						(xpos+edgsp+(2*mpref)+(2*midsp)),y4,mpref, buth, 
+						&(U.autokey_mode), 0, 1, 0, 0, 
+						"Mode of automatic keyframe insertion for Objects and Bones");
+			}
+		uiBlockEndAlign(block);
 	
 		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, USER_KEYINSERTAVAI, REDRAWTIME, "Available", 
-			(xpos+edgsp+(2*mpref)+(2*midsp)),y3,mpref, buth,
-			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in available curves");
-			
-		uiDefButBitI(block, TOG, USER_KEYINSERTNEED, REDRAWTIME, "Needed", 
-			(xpos+edgsp+(2*mpref)+(2*midsp)),y2,mpref, buth,
-			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion only when keyframe needed");
-			
-		uiDefButBitI(block, TOG, G_AUTOMATKEYS, REDRAWTIME, "Use Visual Keying", 
-			(xpos+edgsp+(2*mpref)+(2*midsp)),y1,mpref, buth,
-			 &(G.flags), 0, 0, 0, 0, "Use Visual keying automatically for constrained objects");
+			uiDefButBitS(block, TOG, AUTOKEY_FLAG_INSERTAVAIL, REDRAWTIME, "Available", 
+				(xpos+edgsp+(2*mpref)+(2*midsp)),y3,mpref, buth,
+				&(U.autokey_flag), 0, 0, 0, 0, "Automatic keyframe insertion in available curves");
+				
+			uiDefButBitS(block, TOG, AUTOKEY_FLAG_INSERTNEEDED, REDRAWTIME, "Needed", 
+				(xpos+edgsp+(2*mpref)+(2*midsp)),y2,mpref, buth,
+				&(U.autokey_flag), 0, 0, 0, 0, "Automatic keyframe insertion only when keyframe needed");
+				
+			uiDefButBitS(block, TOG, AUTOKEY_FLAG_AUTOMATKEY, REDRAWTIME, "Use Visual Keying", 
+				(xpos+edgsp+(2*mpref)+(2*midsp)),y1,mpref, buth,
+				 &(U.autokey_flag), 0, 0, 0, 0, "Use Visual keying automatically for constrained objects");
 		uiBlockEndAlign(block);
-			
-/*		uiDefButBitS(block, TOG, USER_KEYINSERTACT, 0, "Action",
-			(xpos+edgsp+(2*mpref)+(2*midsp)),y2,(spref+edgsp),buth,
-			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in Action Ipo curve");
-		uiDefButBitS(block, TOG, USER_KEYINSERTOBJ, 0, "Object",
-			(xpos+edgsp+(2*mpref)+(3*midsp)+spref-edgsp),y2,(spref+edgsp),buth,
-			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in Object Ipo curve"); */
 
 
 		uiDefBut(block, LABEL,0,"Duplicate with object:",
@@ -4601,16 +4608,6 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					v2d->cur.xmax-= dx;
 					test_view2d(G.v2d, sa->winx, sa->winy);
 					view2d_do_locks(sa, V2D_LOCK_COPY);
-				}
-				else if((G.qual==LR_SHIFTKEY)) {
-					insert_gap(25, CFRA);
-					BIF_undo_push("Insert gaps Sequencer");
-					allqueue(REDRAWSEQ, 0);
-				}
-				else if(G.qual==LR_ALTKEY) {
-					insert_gap(250, CFRA);
-					BIF_undo_push("Insert gaps Sequencer");
-					allqueue(REDRAWSEQ, 0);
 				}
 			}
 			doredraw= 1;

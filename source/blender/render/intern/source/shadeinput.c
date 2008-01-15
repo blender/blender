@@ -919,6 +919,8 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 					shi->dylo[2]= dl*o3[2]-shi->dy_u*o1[2]-shi->dy_v*o2[2];
 				}
 			}
+
+			VECCOPY(shi->duplilo, obi->dupliorco);
 		}
 		
 		if(texco & TEXCO_GLOB) {
@@ -1032,6 +1034,10 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 						render_realtime_texture(shi, tface->tpage);
 				}
 			}
+
+			shi->dupliuv[0]= -1.0f + 2.0f*obi->dupliuv[0];
+			shi->dupliuv[1]= -1.0f + 2.0f*obi->dupliuv[1];
+			shi->dupliuv[2]= 0.0f;
 
 			if(shi->totuv == 0) {
 				ShadeInputUV *suv= &shi->uv[0];
@@ -1181,7 +1187,9 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				}
 			}
 		}
-	}	
+	} /* else {
+	 Note! For raytracing winco is not set, important because thus means all shader input's need to have their variables set to zero else in-initialized values are used
+	*/
 }
 
 /* ****************** ShadeSample ************************************** */

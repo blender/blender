@@ -409,6 +409,11 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 	float ref[3], maxsize=RE_ray_tree_max_size(R.raytree);
 	float dist_mir = origshi->mat->dist_mir;
 
+	/* Warning, This is not that nice, and possibly a bit slow for every ray,
+	however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
+	memset(&shi, 0, sizeof(ShadeInput)); 
+	/* end warning! - Campbell */
+	
 	VECCOPY(isec.start, start);
 	if (dist_mir > 0.0) {
 		isec.end[0]= start[0]+dist_mir*vec[0];
@@ -430,13 +435,13 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 		shi.osatex= origshi->osatex;
 		shi.depth= 1;					/* only used to indicate tracing */
 		shi.thread= origshi->thread;
-		shi.sample= 0;
+		//shi.sample= 0; // memset above, so dont need this
 		shi.xs= origshi->xs;
 		shi.ys= origshi->ys;
 		shi.lay= origshi->lay;
 		shi.passflag= SCE_PASS_COMBINED; /* result of tracing needs no pass info */
 		shi.combinedflag= 0xFFFFFF;		 /* ray trace does all options */
-		shi.do_preview= 0;
+		//shi.do_preview= 0; // memset above, so dont need this
 		shi.light_override= origshi->light_override;
 		shi.mat_override= origshi->mat_override;
 		
@@ -1231,16 +1236,22 @@ static void ray_trace_shadow_tra(Isect *is, int depth, int traflag)
 		float d= 1.0f;
 		/* we got a face */
 		
+		/* Warning, This is not that nice, and possibly a bit slow for every ray,
+		however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
+		memset(&shi, 0, sizeof(ShadeInput)); 
+		/* end warning! - Campbell */
+		
 		shi.depth= 1;					/* only used to indicate tracing */
 		shi.mask= 1;
-		shi.osatex= 0;
+		
+		/*shi.osatex= 0;
 		shi.thread= shi.sample= 0;
 		shi.lay= 0;
 		shi.passflag= 0;
 		shi.combinedflag= 0;
 		shi.do_preview= 0;
 		shi.light_override= NULL;
-		shi.mat_override= NULL;
+		shi.mat_override= NULL;*/
 		
 		shade_ray(is, &shi, &shr);
 		if (traflag & RAY_TRA)
@@ -1300,6 +1311,12 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 		
 		if(RE_ray_tree_intersect(R.raytree, &isec)) {
 			float fac;
+			
+			/* Warning, This is not that nice, and possibly a bit slow for every ray,
+			however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
+			memset(&shi, 0, sizeof(ShadeInput)); 
+			/* end warning! - Campbell */
+			
 			shade_ray(&isec, &shi, &shr_t);
 			fac= isec.labda*isec.labda;
 			fac= 1.0f;

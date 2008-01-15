@@ -200,6 +200,7 @@ typedef struct View3D {
 #define V3D_MANIP_LOCAL			1
 #define V3D_MANIP_NORMAL		2
 #define V3D_MANIP_VIEW			3
+#define V3D_MANIP_CUSTOM		4 /* anything of value 4 or higher is custom */
 
 /* View3d->twflag */
    /* USE = user setting, DRAW = based on selection */

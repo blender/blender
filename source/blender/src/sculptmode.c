@@ -1311,6 +1311,8 @@ void sculptmode_propset_end(SculptSession *ss, int cancel)
 				sculptmode_brush()->strength= pd->origstrength;
 			if(pd->mode != PropsetTexRot)
 				set_tex_angle(pd->origtexrot);
+
+			BIF_undo_push("Brush property set");
 		}
 		glDeleteTextures(1, &pd->tex);
 		MEM_freeN(pd->num);
@@ -1480,6 +1482,8 @@ void sculptmode_selectbrush_menu(void)
 
 	if(val>0) {
 		sd->brush_type= val;
+
+		BIF_undo_push("Brush type");
 		
 		allqueue(REDRAWVIEW3D, 1);
 		allqueue(REDRAWBUTSEDIT, 1);

@@ -436,7 +436,7 @@ typedef struct StrandPart {
 	GHash *hash;
 	StrandPoint point1, point2;
 	ShadeSample ssamp1, ssamp2, ssamp;
-	float t[3];
+	float t[3], s[3];
 } StrandPart;
 
 typedef struct StrandSortSegment {
@@ -520,6 +520,23 @@ static void add_strand_obindex(RenderLayer *rl, int offset, ObjectRen *obr)
 	}
 }
 
+static void strand_apply_shaderesult_alpha(ShadeResult *shr, float alpha)
+{
+	if(alpha < 1.0f) {
+		shr->combined[0] *= alpha;
+		shr->combined[1] *= alpha;
+		shr->combined[2] *= alpha;
+		shr->combined[3] *= alpha;
+
+		shr->col[0] *= alpha;
+		shr->col[1] *= alpha;
+		shr->col[2] *= alpha;
+		shr->col[3] *= alpha;
+
+		shr->alpha *= alpha;
+	}
+}
+
 static void do_strand_point_project(float winmat[][4], ZSpan *zspan, float *co, float *hoco, float *zco)
 {
 	projectvert(co, winmat, hoco);
@@ -537,7 +554,6 @@ static void strand_project_point(float winmat[][4], float winx, float winy, Stra
 	spoint->y= spoint->hoco[1]*div*winy*0.5f;
 }
 
-#include "BLI_rand.h"
 static void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *sseg, StrandPoint *spoint);
 
 static void strand_shade_get(StrandPart *spart, int lookup, ShadeSample *ssamp, StrandPoint *spoint, StrandVert *svert, StrandSegment *sseg)
@@ -576,22 +592,6 @@ static void strand_shade_segment(StrandPart *spart)
 		strand_shade_get(spart, !last, &spart->ssamp2, &sseg->point2, sseg->v[2], sseg);
 		sseg->shaded= 1;
 	}
-
-#if 0
-	float c[3];
-	
-	c[0]= BLI_frand();
-	c[1]= BLI_frand();
-	c[2]= BLI_frand();
-
-	spart->ssamp1.shr[0].combined[0] *= c[0];
-	spart->ssamp1.shr[0].combined[1] *= c[1];
-	spart->ssamp1.shr[0].combined[2] *= c[2];
-
-	spart->ssamp2.shr[0].combined[0] *= c[0];
-	spart->ssamp2.shr[0].combined[1] *= c[1];
-	spart->ssamp2.shr[0].combined[2] *= c[2];
-#endif
 }
 
 static void do_strand_blend(void *handle, int x, int y, float u, float v, float z)
@@ -599,7 +599,7 @@ static void do_strand_blend(void *handle, int x, int y, float u, float v, float 
 	StrandPart *spart= (StrandPart*)handle;
 	StrandBuffer *buffer= spart->segment->buffer;
 	ShadeResult *shr;
-	float /**pass,*/ t;
+	float /**pass,*/ t, s;
 	int offset, zverg;
 
 	/* check again solid z-buffer */
@@ -624,6 +624,14 @@ static void do_strand_blend(void *handle, int x, int y, float u, float v, float 
 		t = u*spart->t[0] + v*spart->t[1] + (1.0f-u-v)*spart->t[2];
 		interpolate_shade_result(spart->ssamp1.shr, spart->ssamp2.shr, t,
 			spart->ssamp.shr, spart->addpassflag);
+
+		/* alpha along width */
+		if(buffer->widthfade != 0.0f) {
+			s = fabs(u*spart->s[0] + v*spart->s[1] + (1.0f-u-v)*spart->s[2]);
+			s = 1.0f - pow(s, buffer->widthfade);
+
+			strand_apply_shaderesult_alpha(spart->ssamp.shr, s);
+		}
 
 		/* add in shaderesult array for part */
 		spart->ssamp.shi[0].mask= (1<<spart->sample);
@@ -696,19 +704,7 @@ static void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *ss
 	shade_input_do_shade(shi, shr);
 
 	/* apply simplification */
-	if(spoint->alpha < 1.0f) {
-		shr->combined[0] *= spoint->alpha;
-		shr->combined[1] *= spoint->alpha;
-		shr->combined[2] *= spoint->alpha;
-		shr->combined[3] *= spoint->alpha;
-
-		shr->col[0] *= spoint->alpha;
-		shr->col[1] *= spoint->alpha;
-		shr->col[2] *= spoint->alpha;
-		shr->col[3] *= spoint->alpha;
-
-		shr->alpha *= spoint->alpha;
-	}
+	strand_apply_shaderesult_alpha(shr, spoint->alpha);
 
 	/* include lamphalos for strand, since halo layer was added already */
 	if(re->flag & R_LAMPHALO)
@@ -747,16 +743,22 @@ static void do_scanconvert_strand(Render *re, StrandPart *spart, ZSpan *zspan, f
 	spart->sample= sample;
 
 	spart->t[0]= t-dt;
+	spart->s[0]= -1.0f;
 	spart->t[1]= t-dt;
+	spart->s[1]= 1.0f;
 	spart->t[2]= t;
+	spart->s[2]= 1.0f;
 	zspan_scanconvert_strand(zspan, spart, jco1, jco2, jco3, do_strand_blend);
 	spart->t[0]= t-dt;
+	spart->s[0]= -1.0f;
 	spart->t[1]= t;
+	spart->s[1]= 1.0f;
 	spart->t[2]= t;
+	spart->s[2]= -1.0f;
 	zspan_scanconvert_strand(zspan, spart, jco1, jco3, jco4, do_strand_blend);
 }
 
-static void strand_render(Render *re, float winmat[][4], StrandPart *spart, ZSpan *zspan, StrandPoint *p1, StrandPoint *p2)
+static void strand_render(Render *re, StrandSegment *sseg, float winmat[][4], StrandPart *spart, ZSpan *zspan, int totzspan, StrandPoint *p1, StrandPoint *p2)
 {
 	if(spart) {
 		float t= p2->t;
@@ -772,17 +774,27 @@ static void strand_render(Render *re, float winmat[][4], StrandPart *spart, ZSpa
 	}
 	else {
 		float hoco1[4], hoco2[3];
+		int a, obi, index;
+  
+		obi= sseg->obi - re->objectinstance;
+		index= sseg->strand->index;
 
-		projectvert(p1->co, winmat, hoco1);
-		projectvert(p2->co, winmat, hoco2);
-
-		/* render both strand and single pixel wire to counter aliasing */
-		zbufclip4(zspan, 0, 0, p1->hoco2, p1->hoco1, p2->hoco1, p2->hoco2, p1->clip2, p1->clip1, p2->clip1, p2->clip2);
-		zbufsinglewire(zspan, 0, 0, hoco1, hoco2);
+  		projectvert(p1->co, winmat, hoco1);
+  		projectvert(p2->co, winmat, hoco2);
+  
+		for(a=0; a<totzspan; a++) {
+#if 0
+			/* render both strand and single pixel wire to counter aliasing */
+			zbufclip4(re, &zspan[a], obi, index, p1->hoco2, p1->hoco1, p2->hoco1, p2->hoco2, p1->clip2, p1->clip1, p2->clip1, p2->clip2);
+#endif
+			/* only render a line for now, which makes the shadow map more
+			   similiar across frames, and so reduces flicker */
+			zbufsinglewire(&zspan[a], obi, index, hoco1, hoco2);
+		}
 	}
 }
-
-static int strand_segment_recursive(Render *re, float winmat[][4], StrandPart *spart, ZSpan *zspan, StrandSegment *sseg, StrandPoint *p1, StrandPoint *p2, int depth)
+  
+static int strand_segment_recursive(Render *re, float winmat[][4], StrandPart *spart, ZSpan *zspan, int totzspan, StrandSegment *sseg, StrandPoint *p1, StrandPoint *p2, int depth)
 {
 	StrandPoint p;
 	StrandBuffer *buffer= sseg->buffer;
@@ -815,21 +827,23 @@ static int strand_segment_recursive(Render *re, float winmat[][4], StrandPart *s
 		do_strand_point_project(winmat, zspan, p.co2, p.hoco2, p.zco2);
 	}
 	else {
+#if 0
 		projectvert(p.co1, winmat, p.hoco1);
 		projectvert(p.co2, winmat, p.hoco2);
 		p.clip1= testclip(p.hoco1);
 		p.clip2= testclip(p.hoco2);
+#endif
 	}
 
-	if(!strand_segment_recursive(re, winmat, spart, zspan, sseg, p1, &p, depth+1))
-		strand_render(re, winmat, spart, zspan, p1, &p);
-	if(!strand_segment_recursive(re, winmat, spart, zspan, sseg, &p, p2, depth+1))
-		strand_render(re, winmat, spart, zspan, &p, p2);
+	if(!strand_segment_recursive(re, winmat, spart, zspan, totzspan, sseg, p1, &p, depth+1))
+		strand_render(re, sseg, winmat, spart, zspan, totzspan, p1, &p);
+	if(!strand_segment_recursive(re, winmat, spart, zspan, totzspan, sseg, &p, p2, depth+1))
+		strand_render(re, sseg, winmat, spart, zspan, totzspan, &p, p2);
 	
 	return 1;
 }
 
-void render_strand_segment(Render *re, float winmat[][4], StrandPart *spart, ZSpan *zspan, StrandSegment *sseg)
+void render_strand_segment(Render *re, float winmat[][4], StrandPart *spart, ZSpan *zspan, int totzspan, StrandSegment *sseg)
 {
 	StrandBuffer *buffer= sseg->buffer;
 	StrandPoint *p1= &sseg->point1;
@@ -850,6 +864,7 @@ void render_strand_segment(Render *re, float winmat[][4], StrandPart *spart, ZSp
 		do_strand_point_project(winmat, zspan, p2->co2, p2->hoco2, p2->zco2);
 	}
 	else {
+#if 0
 		projectvert(p1->co1, winmat, p1->hoco1);
 		projectvert(p1->co2, winmat, p1->hoco2);
 		projectvert(p2->co1, winmat, p2->hoco1);
@@ -858,10 +873,11 @@ void render_strand_segment(Render *re, float winmat[][4], StrandPart *spart, ZSp
 		p1->clip2= testclip(p1->hoco2);
 		p2->clip1= testclip(p2->hoco1);
 		p2->clip2= testclip(p2->hoco2);
+#endif
 	}
 
-	if(!strand_segment_recursive(re, winmat, spart, zspan, sseg, p1, p2, 0))
-		strand_render(re, winmat, spart, zspan, p1, p2);
+	if(!strand_segment_recursive(re, winmat, spart, zspan, totzspan, sseg, p1, p2, 0))
+		strand_render(re, sseg, winmat, spart, zspan, totzspan, p1, p2);
 }
 
 static void zbuffer_strands_filter(Render *re, RenderPart *pa, RenderLayer *rl, StrandPart *spart, float *pass)
@@ -1126,7 +1142,7 @@ unsigned short *zbuffer_strands_shade(Render *re, RenderPart *pa, RenderLayer *r
 
 			spart.segment= &sseg;
 
-			render_strand_segment(re, winmat, &spart, &zspan, &sseg);
+			render_strand_segment(re, winmat, &spart, &zspan, 1, &sseg);
 		}
 	}
 

@@ -3563,3 +3563,78 @@ int psys_get_particle_state(Object *ob, ParticleSystem *psys, int p, ParticleKey
 	//}
 }
 
+void psys_get_dupli_texture(Object *ob, ParticleSettings *part, ParticleSystemModifierData *psmd, ParticleData *pa, ChildParticle *cpa, float *uv, float *orco)
+{
+	MFace *mface;
+	MTFace *mtface;
+	float loc[3];
+	int num;
+
+	if(cpa) {
+		if(part->childtype == PART_CHILD_FACES) {
+			mtface= CustomData_get_layer(&psmd->dm->faceData, CD_MTFACE);
+			if(mtface) {
+				mface= psmd->dm->getFaceData(psmd->dm, cpa->num, CD_MFACE);
+				mtface += cpa->num;
+				psys_interpolate_uvs(mtface, mface->v4, cpa->fuv, uv);
+			}
+			else
+				uv[0]= uv[1]= 0.0f;
+		}
+		else
+			uv[0]= uv[1]= 0.0f;
+
+		psys_particle_on_emitter(ob, psmd,
+			(part->childtype == PART_CHILD_FACES)? PART_FROM_FACE: PART_FROM_PARTICLE,
+			cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,loc,0,0,0,orco,0);
+	}
+	else {
+		if(part->from == PART_FROM_FACE) {
+			mtface= CustomData_get_layer(&psmd->dm->faceData, CD_MTFACE);
+			num= pa->num_dmcache;
+
+			if(num == DMCACHE_NOTFOUND)
+				if(pa->num < psmd->dm->getNumFaces(psmd->dm))
+					num= pa->num;
+
+			if(mtface && num != DMCACHE_NOTFOUND) {
+				mface= psmd->dm->getFaceData(psmd->dm, num, CD_MFACE);
+				mtface += num;
+				psys_interpolate_uvs(mtface, mface->v4, pa->fuv, uv);
+			}
+			else
+				uv[0]= uv[1]= 0.0f;
+		}
+		else
+			uv[0]= uv[1]= 0.0f;
+
+		psys_particle_on_emitter(ob,psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,0,0,0,orco,0);
+	}
+}
+
+void psys_get_dupli_path_transform(Object *ob, ParticleSettings *part, ParticleSystemModifierData *psmd, ParticleData *pa, ChildParticle *cpa, ParticleCacheKey *cache, float mat[][4], float *scale)
+{
+	float loc[3], nor[3], vec[3], side[3], len;
+
+	VecSubf(vec, (cache+cache->steps-1)->co, cache->co);
+	len= Normalize(vec);
+
+	if(pa)
+		psys_particle_on_emitter(ob,psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,nor,0,0,0,0);
+	else
+		psys_particle_on_emitter(ob, psmd,
+			(part->childtype == PART_CHILD_FACES)? PART_FROM_FACE: PART_FROM_PARTICLE,
+			cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,loc,nor,0,0,0,0);
+	
+	Crossf(side, nor, vec);
+	Normalize(side);
+	Crossf(nor, vec, side);
+
+	Mat4One(mat);
+	VECCOPY(mat[0], vec);
+	VECCOPY(mat[1], side);
+	VECCOPY(mat[2], nor);
+
+	*scale= len;
+}
+

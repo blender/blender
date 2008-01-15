@@ -1510,14 +1510,20 @@ void scan_for_ext_spring_forces(Object *ob,float timenow)
 					}
 					f = Normalize(vel);
 					f = -0.0001f*f*f*sb->aeroedge;
-					/* todo add a nice angle dependant function */
-					/* look up one at bergman scheafer */
+					/* (todo) add a nice angle dependant function done for now BUT */
+					/* still there could be some nice drag/lift function, but who needs it */ 
 
 					VECSUB(sp, sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos);
 					Projf(pr,vel,sp);
 					VECSUB(vel,vel,pr);
 					Normalize(vel);
-					Vec3PlusStVec(bs->ext_force,f,vel);
+					if (ob->softflag & OB_SB_AERO_ANGLE){
+						Normalize(sp);
+						Vec3PlusStVec(bs->ext_force,f*(1.0f-ABS(Inpf(vel,sp))),vel);
+					}
+					else{ 
+						Vec3PlusStVec(bs->ext_force,f,vel); // to keep compatible with 2.45 release files
+					}
 				}
 				/* --- springs seeing wind */
 			}
@@ -2252,15 +2258,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 		float defforce[3];
 		do_deflector = sb_detect_aabb_collisionCached(defforce,ob->lay,ob,timenow);
 	}
-/*
-	if (do_selfcollision ){ 
-		float ce[3]; 
-		VecMidf(ce,sb->scratch->aabbmax,sb->scratch->aabbmin);
-		for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-			bp->octantflag = set_octant_flags(ce,bp->pos,bp->colball);
-		}
-	}
-*/
+
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 		/* clear forces  accumulator */
 		bp->force[0]= bp->force[1]= bp->force[2]= 0.0;
@@ -3622,7 +3620,7 @@ SoftBody *sbNew(void)
 	
 	sb->inspring= 0.5f;
 	sb->infrict= 0.5f; 
-	/*todo backward file compat should copy infrict to inpush while reading old files*/
+	/*todo backward file compat should copy inspring to inpush while reading old files*/
 	sb->inpush = 0.5f; 
 	
 	sb->interval= 10;

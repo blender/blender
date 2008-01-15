@@ -539,6 +539,10 @@ void setUserConstraint(TransInfo *t, int mode, const char ftext[]) {
 		sprintf(text, ftext, "view");
 		setConstraint(t, t->spacemtx, mode, text);
 		break;
+	default: /* V3D_MANIP_CUSTOM */
+		sprintf(text, ftext, t->spacename);
+		setConstraint(t, t->spacemtx, mode, text);
+		break;
 	}
 
 	t->con.mode |= CON_USER;

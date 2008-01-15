@@ -92,8 +92,13 @@ enum {
 	ACTMENU_VIEW_SLIDERS,
 	ACTMENU_VIEW_NEXTMARKER,
 	ACTMENU_VIEW_PREVMARKER,
+	ACTMENU_VIEW_NEXTKEYFRAME,
+	ACTMENU_VIEW_PREVKEYFRAME,
 	ACTMENU_VIEW_TIME,
-	ACTMENU_VIEW_NOHIDE
+	ACTMENU_VIEW_NOHIDE,
+	ACTMENU_VIEW_OPENLEVELS,
+	ACTMENU_VIEW_CLOSELEVELS,
+	ACTMENU_VIEW_EXPANDALL
 };
 
 enum {
@@ -286,7 +291,7 @@ static void do_action_viewmenu(void *arg, int event)
 			break;
 		case ACTMENU_VIEW_LOCK:
 			G.v2d->flag ^= V2D_VIEWLOCK;
-			if(G.v2d->flag & V2D_VIEWLOCK)
+			if (G.v2d->flag & V2D_VIEWLOCK)
 				view2d_do_locks(curarea, 0);
 			break;
 		case ACTMENU_VIEW_SLIDERS:	 /* Show sliders (when applicable) */
@@ -295,10 +300,10 @@ static void do_action_viewmenu(void *arg, int event)
 		case ACTMENU_VIEW_MAXIMIZE: /* Maximize Window */
 			/* using event B_FULL */
 			break;
-		case ACTMENU_VIEW_NEXTMARKER: /* jump to next marker */
+		case ACTMENU_VIEW_NEXTMARKER: /* Jump to next marker */
 			nextprev_marker(1);
 			break;
-		case ACTMENU_VIEW_PREVMARKER: /* jump to previous marker */
+		case ACTMENU_VIEW_PREVMARKER: /* Jump to previous marker */
 			nextprev_marker(-1);
 			break;
 		case ACTMENU_VIEW_TIME: /* switch between frames and seconds display */
@@ -306,6 +311,21 @@ static void do_action_viewmenu(void *arg, int event)
 			break;
 		case ACTMENU_VIEW_NOHIDE: /* Show hidden channels */
 			G.saction->flag ^= SACTION_NOHIDE;
+			break;
+		case ACTMENU_VIEW_NEXTKEYFRAME: /* Jump to next keyframe */
+			nextprev_action_keyframe(1);
+			break;
+		case ACTMENU_VIEW_PREVKEYFRAME: /* Jump to previous keyframe */
+			nextprev_action_keyframe(-1);
+			break;
+		case ACTMENU_VIEW_OPENLEVELS: /* Unfold channels one step */
+			openclose_level_action(1);
+			break;
+		case ACTMENU_VIEW_CLOSELEVELS: /* Fold channels one step */
+			openclose_level_action(-1);
+			break;
+		case ACTMENU_VIEW_EXPANDALL: /* Expands all channels */
+			expand_all_action();
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -365,6 +385,26 @@ static uiBlock *action_viewmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+					
+	/* only if editing action... */
+	// TODO: improve this code!
+	
+	if (G.saction->action) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+				"Toggle Show Hierachy|~", 0, yco-=20,
+				menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_VIEW_EXPANDALL, "");
+				
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+				"Expand One Level|Ctrl NumPad+", 0, yco-=20,
+				menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_VIEW_OPENLEVELS, "");
+				
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+				"Collapse One Level|Ctrl NumPad-", 0, yco-=20,
+				menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_VIEW_CLOSELEVELS, "");
+	}
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 					 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 				"Jump To Next Marker|PageUp", 0, yco-=20,
@@ -372,6 +412,13 @@ static uiBlock *action_viewmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 				"Jump To Prev Marker|PageDown", 0, yco-=20, 
 				menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_VIEW_PREVMARKER, "");
+				
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+				"Jump To Next Keyframe|Ctrl PageUp", 0, yco-=20,
+				menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_VIEW_NEXTKEYFRAME, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+				"Jump To Prev Keyframe|Ctrl PageDown", 0, yco-=20, 
+				menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_VIEW_PREVKEYFRAME, "");
 					 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -850,11 +897,11 @@ static uiBlock *action_keymenu_chanposmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_action_keymenu_chanposmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Move Up|Ctrl Page Up", 0, yco-=20, 
+					 "Move Up|Shift Page Up", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_UP, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Move Down|Ctrl Page Down", 0, yco-=20, 
+					 "Move Down|Shift Page Down", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_DOWN, "");
 	
@@ -862,11 +909,11 @@ static uiBlock *action_keymenu_chanposmenu(void *arg_unused)
 					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 					
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Move to Top|Shift Page Up", 0, yco-=20, 
+					 "Move to Top|Ctrl Shift Page Up", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_TOP, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Move to Bottom|Shift Page Down", 0, yco-=20, 
+					 "Move to Bottom|Ctrl Shift Page Down", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_BOTTOM, "");
 

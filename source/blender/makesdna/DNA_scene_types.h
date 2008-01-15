@@ -333,6 +333,12 @@ typedef struct ParticleEditSettings {
 	int draw_timed;
 } ParticleEditSettings;
 
+typedef struct TransformOrientation {
+	struct TransformOrientation *next, *prev;
+	char name[36];
+	float mat[3][3];
+} TransformOrientation;
+
 typedef struct ToolSettings {
 	/* Subdivide Settings */
 	short cornertype;
@@ -366,7 +372,7 @@ typedef struct ToolSettings {
 	/* Auto-IK */
 	short autoik_chainlen;
 
-	/* Image Paint (8 byte aligned please!) */
+	/* Image Paint (8 byttse aligned please!) */
 	struct ImagePaintSettings imapaint;
 
 	/* Particle Editing */
@@ -494,6 +500,7 @@ typedef struct Scene {
 	ScriptLink scriptlink;
 	
 	ListBase markers;
+	ListBase transform_spaces;
 	
 	short jumpframe, pad1;
 	short snap_flag, snap_target;

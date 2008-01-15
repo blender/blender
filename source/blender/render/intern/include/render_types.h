@@ -266,6 +266,8 @@ typedef struct ObjectInstanceRen {
 	float mat[4][4], imat[3][3];
 	short flag;
 
+	float dupliorco[3], dupliuv[2];
+
 	float *vectors;
 	int totvector;
 } ObjectInstanceRen;
@@ -343,7 +345,7 @@ typedef struct StrandBuffer {
 	unsigned int lay;
 	int overrideuv;
 	int flag, maxdepth;
-	float adaptcos, minwidth;
+	float adaptcos, minwidth, widthfade;
 
 	float winmat[4][4];
 	int winx, winy;

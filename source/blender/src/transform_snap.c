@@ -90,9 +90,21 @@ float RotationBetween(TransInfo *t, float p1[3], float p2[3]);
 float TranslationBetween(TransInfo *t, float p1[3], float p2[3]);
 
 // Trickery
-int findNearestVertFromObjects(int *dist, float *loc);
+int findNearestVertFromObjects(int *dist, float *loc, int selected);
 
 /****************** IMPLEMENTATIONS *********************/
+
+int BIF_snappingSupported(void)
+{
+	int status = 0;
+	
+	if (G.obedit == NULL || G.obedit->type==OB_MESH) /* only support object or mesh */
+	{
+		status = 1;
+	}
+	
+	return status;
+}
 
 void drawSnapping(TransInfo *t)
 {
@@ -168,7 +180,13 @@ int  handleSnapping(TransInfo *t, int event)
 {
 	int status = 0;
 	
-	// Put keyhandling code here
+	if (BIF_snappingSupported() && event == TABKEY && (G.qual & LR_SHIFTKEY) == LR_SHIFTKEY)
+	{
+		/* toggle snap and reinit */
+		G.scene->snap_flag ^= SCE_SNAP;
+		initSnapping(t);
+		status = 1;
+	}
 	
 	return status;
 }
@@ -211,10 +229,19 @@ void initSnapping(TransInfo *t)
 	if (t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) { // Only 3D view or UV
 		setSnappingCallback(t);
 
+		/* Edit mode */
 		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
-			(G.obedit != NULL && G.obedit->type==OB_MESH) && // Temporary limited to edit mode meshes
 			(G.scene->snap_flag & SCE_SNAP) && // Only if the snap flag is on
-			(t->flag & T_PROP_EDIT) == 0) // No PET, obviously
+			(G.obedit != NULL && G.obedit->type==OB_MESH) && // Temporary limited to edit mode meshes
+			((t->flag & T_PROP_EDIT) == 0) ) // No PET, obviously
+		{
+			t->tsnap.status |= SNAP_ON;
+			t->tsnap.modePoint = SNAP_GEO;
+		}
+		/* Object mode */
+		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
+			(G.scene->snap_flag & SCE_SNAP) && // Only if the snap flag is on
+			(G.obedit == NULL) ) // Object Mode
 		{
 			t->tsnap.status |= SNAP_ON;
 			t->tsnap.modePoint = SNAP_GEO;
@@ -364,7 +391,28 @@ void CalcSnapGrid(TransInfo *t, float *vec)
 
 void CalcSnapGeometry(TransInfo *t, float *vec)
 {
-	if (G.obedit != NULL && G.obedit->type==OB_MESH)
+	if (G.obedit == NULL)
+	{
+		if (t->spacetype == SPACE_VIEW3D)
+		{
+			float vec[3];
+			int found = 0;
+			int dist = 40; // Use a user defined value here
+			
+			found = findNearestVertFromObjects(&dist, vec, 0);
+			if (found == 1)
+			{
+				VECCOPY(t->tsnap.snapPoint, vec);
+				
+				t->tsnap.status |=  POINT_INIT;
+			}
+			else
+			{
+				t->tsnap.status &= ~POINT_INIT;
+			}
+		}
+	}
+	else if (G.obedit != NULL && G.obedit->type==OB_MESH)
 	{
 		/*if (G.scene->selectmode & B_SEL_VERT)*/
 		
@@ -378,7 +426,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 			// use findnearestverts in vert mode, others in other modes
 			nearest = findnearestvert(&dist, SELECT, 1);
 			
-			found = findNearestVertFromObjects(&dist, vec);
+			found = findNearestVertFromObjects(&dist, vec, SELECT);
 			if (found == 1)
 			{
 				VECCOPY(t->tsnap.snapPoint, vec);
@@ -479,7 +527,7 @@ void TargetSnapMedian(TransInfo *t)
 		
 		for(td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++)
 		{
-			VecAddf(t->tsnap.snapTarget, t->tsnap.snapTarget, td->iloc);
+			VecAddf(t->tsnap.snapTarget, t->tsnap.snapTarget, td->center);
 		}
 		
 		VecMulf(t->tsnap.snapTarget, 1.0 / t->total);
@@ -500,28 +548,64 @@ void TargetSnapClosest(TransInfo *t)
 	{
 		TransData *closest = NULL, *td = NULL;
 		
-		// Base case, only one selected item
-		if (t->total == 1)
+		/* Object mode */
+		if (t->flag & T_OBJECT)
 		{
-			VECCOPY(t->tsnap.snapTarget, t->data[0].iloc);
-
-			if(t->flag & (T_EDIT|T_POSE)) {
-				Object *ob= G.obedit?G.obedit:t->poseobj;
-				Mat4MulVecfl(ob->obmat, t->tsnap.snapTarget);
-			}
-
-			t->tsnap.dist = t->tsnap.distance(t, t->tsnap.snapTarget, t->tsnap.snapPoint);
-		}
-		// More than one selected item
-		else
+			int i;
+			for(td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++)
 			{
+				struct BoundBox *bb = object_get_boundbox(td->ob);
+				
+				/* use boundbox if possible */
+				if (bb)
+				{
+					int j;
+					
+					for (j = 0; j < 8; j++) {
+						float loc[3];
+						float dist;
+						
+						VECCOPY(loc, bb->vec[j]);
+						Mat4MulVecfl(td->ext->obmat, loc);
+						
+						dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
+						
+						if (closest == NULL || fabs(dist) < fabs(t->tsnap.dist))
+						{
+							VECCOPY(t->tsnap.snapTarget, loc);
+							closest = td;
+							t->tsnap.dist = dist; 
+						}
+					}
+				}
+				/* use element center otherwise */
+				else
+				{
+					float loc[3];
+					float dist;
+					
+					VECCOPY(loc, td->center);
+					
+					dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
+					
+					if (closest == NULL || fabs(dist) < fabs(t->tsnap.dist))
+					{
+						VECCOPY(t->tsnap.snapTarget, loc);
+						closest = td;
+						t->tsnap.dist = dist; 
+					}
+				}
+			}
+		}
+		else
+		{
 			int i;
 			for(td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++)
 			{
 				float loc[3];
 				float dist;
 				
-				VECCOPY(loc, td->iloc);
+				VECCOPY(loc, td->center);
 				
 				if(t->flag & (T_EDIT|T_POSE)) {
 					Object *ob= G.obedit?G.obedit:t->poseobj;
@@ -544,7 +628,7 @@ void TargetSnapClosest(TransInfo *t)
 }
 /*================================================================*/
 
-int findNearestVertFromObjects(int *dist, float *loc) {
+int findNearestVertFromObjects(int *dist, float *loc, int selected) {
 	Base *base;
 	int retval = 0;
 	short mval[2];
@@ -553,7 +637,7 @@ int findNearestVertFromObjects(int *dist, float *loc) {
 	
 	base= FIRSTBASE;
 	for ( base = FIRSTBASE; base != NULL; base = base->next ) {
-		if ( TESTBASE(base) && base != BASACT ) {
+		if ( base != BASACT && BASE_SELECTABLE(base) && (base->flag & SELECT) == selected ) {
 			Object *ob = base->object;
 			
 			if (ob->type == OB_MESH) {

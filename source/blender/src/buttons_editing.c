@@ -3935,9 +3935,10 @@ static void build_bonestring (char *string, EditBone *bone)
 	int		skip=0;
 	int		index, numbones, i;
 	char (*qsort_ptr)[32] = NULL;
+	char *s = string;
 
 	/* That space is there for a reason - for no parent */
-	sprintf (string, "Parent%%t| %%x%d", -1);	
+	s += sprintf (string, "Parent%%t| %%x%d", -1);	
 
 	numbones = BLI_countlist(&G.edbo);
 
@@ -3978,7 +3979,7 @@ static void build_bonestring (char *string, EditBone *bone)
 		   ( int (*)(const void *, const void *) ) strcmp);
 
 	for (i=0; i < numbones; ++i) {
-		sprintf (string, "%s%s", string, qsort_ptr[i]);
+		strcat(s, qsort_ptr[i]);
 	}
 
 	if (qsort_ptr)

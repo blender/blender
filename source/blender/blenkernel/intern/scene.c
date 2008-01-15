@@ -153,6 +153,7 @@ void free_scene(Scene *sce)
 	}
 	
 	BLI_freelistN(&sce->markers);
+	BLI_freelistN(&sce->transform_spaces);
 	BLI_freelistN(&sce->r.layers);
 	
 	if(sce->toolsettings){
@@ -703,4 +704,6 @@ void sculpt_reset_curve(SculptData *sd)
 	cm->curve[4].y= 0.20611;
 	cm->curve[5].x= 1;
 	cm->curve[5].y= 0;
+
+	curvemapping_changed(sd->cumap, 0);
 }

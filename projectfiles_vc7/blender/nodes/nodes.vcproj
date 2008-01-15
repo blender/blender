@@ -222,6 +222,9 @@
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_alphaOver.c">
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_bilateralblur.c">
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_blur.c">
 				</File>
 				<File
@@ -253,6 +256,9 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_dilate.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_directionalblur.c">
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_displace.c">

@@ -1300,8 +1300,7 @@ void initlocalview()
 
 	if(G.vd->localvd) return;
 
-	min[0]= min[1]= min[2]= 1.0e10;
-	max[0]= max[1]= max[2]= -1.0e10;
+	INIT_MINMAX(min, max);
 
 	locallay= free_localbit();
 
@@ -1396,9 +1395,7 @@ void centerview()	/* like a localview without local! */
 	float new_ofs[3];
 	float new_dist;
 	
-	
-	min[0]= min[1]= min[2]= 1.0e10;
-	max[0]= max[1]= max[2]= -1.0e10;
+	INIT_MINMAX(min, max);
 
 	if (G.f & G_WEIGHTPAINT) {
 		/* hardcoded exception, we look for the one selected armature */
@@ -1577,8 +1574,7 @@ void view3d_home(int center)
 		max[0]= max[1]= max[2]= 0.0;
 	}
 	else {
-		min[0]= min[1]= min[2]= 1.0e10;
-		max[0]= max[1]= max[2]= -1.0e10;
+		INIT_MINMAX(min, max);
 	}
 	
 	for(base= FIRSTBASE; base; base= base->next) {

@@ -524,10 +524,18 @@ void time_buttons(ScrArea *sa)
 			xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Skip to End frame (Shift UpArrow)");
 	xco+= XIC+8;
 	
-	uiDefIconButBitI(block, TOG, G_RECORDKEYS, REDRAWINFO, ICON_REC,
-			xco, 0, XIC, YIC, &(G.flags), 0, 0, 0, 0, "Automatically insert keyframes in Object and Action Ipo curves");
+	uiDefIconButBitS(block, TOG, AUTOKEY_ON, REDRAWINFO, ICON_REC,
+			xco, 0, XIC, YIC, &(U.autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
+	xco+= XIC;
+	if (IS_AUTOKEY_ON) {
+		uiDefButS(block, MENU, REDRAWINFO, 
+					"Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
+					xco, 0, 3*XIC, YIC, &(U.autokey_mode), 0, 1, 0, 0, 
+					"Mode of automatic keyframe insertion for Objects and Bones");
+		xco+= (4*XIC);
+	}
 	
-	xco+= XIC+16;
+	xco+= 16;
 
 	uiDefIconButBitI(block, TOG, TIME_WITH_SEQ_AUDIO, B_DIFF, ICON_SPEAKER,
 					 xco, 0, XIC, YIC, &(stime->redraws), 0, 0, 0, 0, "Play back and sync with audio from Sequence Editor");

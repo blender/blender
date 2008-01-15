@@ -744,11 +744,9 @@ void subdivideshootElements(int it)
 					}
 				}
 				if(rn) {
-					min[0]= min[1]= min[2]= 1.0e10;
-					max[0]= max[1]= max[2]= -1.0e10;
+					INIT_MINMAX(min, max);
 					/* errmin and max are the filtered colors */
-					errmin[0]= errmin[1]= errmin[2]= 1.0e10;
-					errmax[0]= errmax[1]= errmax[2]= -1.0e10;
+					INIT_MINMAX(errmin, errmax);
 					minmaxradelemfilt(rp->first, min, max, errmin, errmax);
 					
 					/* if small difference between colors: no subdiv */

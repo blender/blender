@@ -93,10 +93,10 @@ static void ibuf_get_color(float *col, struct ImBuf *ibuf, int x, int y)
 	else {
 		char *rect = (char *)( ibuf->rect+ ofs);
 
-		col[0] = ((float)rect[0])/255.0f;
-		col[1] = ((float)rect[1])/255.0f;
-		col[2] = ((float)rect[2])/255.0f;
-		col[3] = ((float)rect[3])/255.0f;
+		col[0] = ((float)rect[0])*(1.0f/255.0f);
+		col[1] = ((float)rect[1])*(1.0f/255.0f);
+		col[2] = ((float)rect[2])*(1.0f/255.0f);
+		col[3] = ((float)rect[3])*(1.0f/255.0f);
 	}	
 }
 

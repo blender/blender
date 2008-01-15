@@ -546,13 +546,13 @@ static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec
 					
 					apn= ap;
 					while(apn) {	/* loop unrolled */
-						if(apn->p[0]==0) {apn->p[0]= zvlnr; apn->z[0]= vergz; apn->mask[0]= mask; break; }
+						if(apn->p[0]==0) {apn->obi[0]= obi; apn->p[0]= zvlnr; apn->z[0]= vergz; apn->mask[0]= mask; break; }
 						if(apn->p[0]==zvlnr) {apn->mask[0]|= mask; break; }
-						if(apn->p[1]==0) {apn->p[1]= zvlnr; apn->z[1]= vergz; apn->mask[1]= mask; break; }
+						if(apn->p[1]==0) {apn->obi[1]= obi; apn->p[1]= zvlnr; apn->z[1]= vergz; apn->mask[1]= mask; break; }
 						if(apn->p[1]==zvlnr) {apn->mask[1]|= mask; break; }
-						if(apn->p[2]==0) {apn->p[2]= zvlnr; apn->z[2]= vergz; apn->mask[2]= mask; break; }
+						if(apn->p[2]==0) {apn->obi[2]= obi; apn->p[2]= zvlnr; apn->z[2]= vergz; apn->mask[2]= mask; break; }
 						if(apn->p[2]==zvlnr) {apn->mask[2]|= mask; break; }
-						if(apn->p[3]==0) {apn->p[3]= zvlnr; apn->z[3]= vergz; apn->mask[3]= mask; break; }
+						if(apn->p[3]==0) {apn->obi[3]= obi; apn->p[3]= zvlnr; apn->z[3]= vergz; apn->mask[3]= mask; break; }
 						if(apn->p[3]==zvlnr) {apn->mask[3]|= mask; break; }
 						if(apn->next==0) apn->next= addpsA(zspan);
 						apn= apn->next;
@@ -2354,7 +2354,7 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 					c4= zbuf_shadow_project(cache, sseg.v[3]-strand->vert, obwinmat, sseg.v[3]->co, ho4);
 
 					if(!(c1 & c2 & c3 & c4))
-						render_strand_segment(NULL, winmat, NULL, &zspan, &sseg);
+						render_strand_segment(re, winmat, NULL, &zspan, 1, &sseg);
 				}
 			}
 

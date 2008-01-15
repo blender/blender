@@ -1490,7 +1490,7 @@ void makeBevelList(Object *ob)
 				resolu= nu->resolu;
 			
 			if((nu->type & 7)==CU_POLY) {
-				
+				len= nu->pntsu;
 				bl= MEM_callocN(sizeof(BevList)+len*sizeof(BevPoint), "makeBevelList");
 				BLI_addtail(&(cu->bev), bl);
 	
@@ -1974,7 +1974,7 @@ float calc_curve_subdiv_radius(Curve *cu, Nurb *nu, int cursubdiv)
 		}
 		
 		if ( ((nu->type & 7)==CU_NURBS) && (nu->flagu & CU_CYCLIC)) {
-			if (bp == bplast) bp = bpfirst;
+			if (bp >= bplast) bp = bpfirst;
 			else bp++;
 		}
 		

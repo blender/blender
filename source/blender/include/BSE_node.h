@@ -103,6 +103,9 @@ void node_rename_but(char *s);
 
 void init_node_butfuncs(void);
 
+void node_curvemap_sample(float *col);
+
+
 /* exported to CMP and SHD nodes */
 //void node_ID_title_cb(void *node_v, void *unused_v);
 //void node_but_title_cb(void *node_v, void *but_v);

@@ -2228,8 +2228,78 @@ void do_viewbuts(unsigned short event)
 			allqueue(REDRAWVIEW3D, 1);
 		}
 		break;
+	case B_TRANSFORMSPACEADD:
+		BIF_manageTransformOrientation(1, 0);
+		allqueue(REDRAWVIEW3D, 1);
+		break;
+	case B_TRANSFORMSPACECLEAR:
+		BIF_clearTransformOrientation();
+		allqueue(REDRAWVIEW3D, 1);
 	}
 }
+
+void removeTransformOrientation_func(void *target, void *unused)
+{
+	BIF_removeTransformOrientation((TransformOrientation *) target);
+}
+
+void selectTransformOrientation_func(void *target, void *unused)
+{
+	BIF_selectTransformOrientation((TransformOrientation *) target);
+}
+
+static void view3d_panel_transform_spaces(short cntrl)
+{
+	ListBase *transform_spaces = &G.scene->transform_spaces;
+	TransformOrientation *ts = transform_spaces->first;
+	uiBlock *block;
+	uiBut *but;
+	int xco = 20, yco = 70, height = 140;
+	int index;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_transform", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
+	uiSetPanelHandler(VIEW3D_HANDLER_TRANSFORM);  // for close and esc
+
+	if(uiNewPanel(curarea, block, "Transform Orientations", "View3d", 10, 230, 318, height)==0) return;
+
+	uiNewPanelHeight(block, height);
+
+	uiBlockBeginAlign(block);
+	
+	if (G.obedit)
+		uiDefBut(block, BUT, B_TRANSFORMSPACEADD, "Add", xco,120,80,20, 0, 0, 0, 0, 0, "Add the selected element as a Transform Orientation");
+	else
+		uiDefBut(block, BUT, B_TRANSFORMSPACEADD, "Add", xco,120,80,20, 0, 0, 0, 0, 0, "Add the active object as a Transform Orientation");
+
+	uiDefBut(block, BUT, B_TRANSFORMSPACECLEAR, "Clear", xco + 80,120,80,20, 0, 0, 0, 0, 0, "Removal all Transform Orientations");
+	
+	uiBlockEndAlign(block);
+	
+	uiBlockBeginAlign(block);
+	
+	uiDefButS(block, ROW, REDRAWHEADERS, "Global",	xco, 		90, 40,20, &G.vd->twmode, 5.0, (float)V3D_MANIP_GLOBAL,0, 0, "Global Transform Orientation");
+	uiDefButS(block, ROW, REDRAWHEADERS, "Local",	xco + 40,	90, 40,20, &G.vd->twmode, 5.0, (float)V3D_MANIP_LOCAL, 0, 0, "Local Transform Orientation");
+	uiDefButS(block, ROW, REDRAWHEADERS, "Normal",	xco + 80,	90, 40,20, &G.vd->twmode, 5.0, (float)V3D_MANIP_NORMAL,0, 0, "Normal Transform Orientation");
+	uiDefButS(block, ROW, REDRAWHEADERS, "View",		xco + 120,	90, 40,20, &G.vd->twmode, 5.0, (float)V3D_MANIP_VIEW,	0, 0, "View Transform Orientation");
+	
+	for (index = V3D_MANIP_CUSTOM, ts = transform_spaces->first ; ts ; ts = ts->next, index++) {
+
+		BIF_ThemeColor(TH_BUT_ACTION);
+		but = uiDefIconButS(block,ROW, REDRAWHEADERS, ICON_RIGHTARROW_THIN, xco,yco,XIC,YIC, &G.vd->twmode, 5.0, (float)index, 0, 0, "Use this Custom Transform Orientation");
+		uiButSetFunc(but, selectTransformOrientation_func, ts, NULL);
+		uiDefBut(block, TEX, 0, "", xco+=XIC, yco,100+XIC,20, &ts->name, 0, 30, 0, 0, "Edits the name of this Transform Orientation");
+		but = uiDefIconBut(block, BUT, REDRAWVIEW3D, ICON_X, xco+=100+XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, "Deletes this Transform Orientation");
+		uiButSetFunc(but, removeTransformOrientation_func, ts, NULL);
+
+		xco = 20;
+		yco -= 25;
+	}
+	uiBlockEndAlign(block);
+	
+	if(yco < 0) uiNewPanelHeight(block, height-yco);
+}
+
 
 static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 {
@@ -2565,6 +2635,9 @@ static void view3d_blockhandlers(ScrArea *sa)
 		case VIEW3D_HANDLER_PREVIEW:
 			view3d_panel_preview(sa, v3d->blockhandler[a+1]);
 			break;			
+		case VIEW3D_HANDLER_TRANSFORM:
+			view3d_panel_transform_spaces(v3d->blockhandler[a+1]);
+ 			break;			
 		}
 		/* clear action value for event */
 		v3d->blockhandler[a+1]= 0;

@@ -1380,7 +1380,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				int togButWidth = 50;
 				int textButWidth = ((width/2)-togButWidth);
 				
-				height = 106; 
+				height = 136; 
 					
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
@@ -1417,8 +1417,11 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-72, (textButWidth-5), 18, &(data->zmax), 0.0001, 1000, 0.1,0.5,"Highest z value to allow"); 
 				uiBlockEndAlign(block);
 				
+				/* special option(s) */
+				uiDefButBitS(block, TOG, LIMIT_TRANSFORM, B_CONSTRAINT_TEST, "For Transform", *xco+(width/4), *yco-100, (width/2), 18, &data->flag2, 0, 24, 0, 0, "Transforms are affected by this constraint as well"); 
+				
 				/* constraint space settings */
-				draw_constraint_spaceselect(block, con, *xco, *yco-100, is_armature_owner(ob), -1);
+				draw_constraint_spaceselect(block, con, *xco, *yco-130, is_armature_owner(ob), -1);
 			}
 			break;
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
@@ -3449,14 +3452,14 @@ static void object_softbodies__enable_psys(void *ob_v, void *psys_v)
 #ifdef _work_on_sb_solver
 static char sbsolvers[] = "Solver %t|RKP almost SOFT not usable but for some german teachers %x1|STU ip semi implicit euler%x3|SI1  (half step)adaptive semi implict euler %x2|SI2  (use dv)adaptive semi implict euler %x4|SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
 #else
-static char sbsolvers[] = "STU PID semi implicit euler%x3|SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
+static char sbsolvers[] = "SIF  semi implicit euler with fixed step size (worth a try with real stiff egdes)%x3|SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
 #endif
 static void object_softbodies_II(Object *ob)
 {
 	SoftBody *sb=ob->soft;
 	uiBlock *block;
 	static int val;
-	short *softflag=&ob->softflag, psys_cur=0;
+	short *softflag=&ob->softflag, psys_cur=0,adaptive_mode;
 	int ob_has_hair=psys_ob_has_hair(ob);
     if(!_can_softbodies_at_all(ob)) return;
 	/*bah that is ugly! creating missing data members in UI code*/
@@ -3541,15 +3544,38 @@ static void object_softbodies_II(Object *ob)
 			uiBlockEndAlign(block);
 			/*SOLVER SETTINGS*/
 			uiBlockBeginAlign(block);
-			uiDefButS(block, MENU, B_DIFF, sbsolvers,10,100,50,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver");
-			uiDefButF(block, NUM, B_DIFF, "Error Lim:",	60,100,130,20, &sb->rklimit , 0.001, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
-			uiDefButBitS(block, TOG, SBSO_OLDERR, B_DIFF,"O", 190,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Old Error Calculation");
-			uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 210,100,90,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
-			uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"M", 300,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");
-			uiBlockEndAlign(block);
-			uiDefButS(block, NUM, B_DIFF, "MinS:", 10,80,100,20, &sb->minloops,  0.00,  30000.0, 10, 0, "Minimal # solver steps/frame ");
-			uiDefButS(block, NUM, B_DIFF, "MaxS:", 110,80,100,20, &sb->maxloops,  0.00,  30000.0, 10, 0, "Maximal # solver steps/frame ");
-			uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
+			uiDefButS(block, MENU, B_SOFTBODY_CHANGE, sbsolvers,10,100,50,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver");
+			/*some have adapive step size - some not*/
+			switch (sb->solver_ID) {
+			case 0:
+			case 1:
+				{adaptive_mode = 1; break;}
+			case 3:
+				{adaptive_mode = 0; break;}
+			default: printf("SB_solver?\n"); // should never happen
+
+			}
+			if(adaptive_mode){
+				uiDefButF(block, NUM, B_DIFF, "Error Lim:",	60,100,120,20, &sb->rklimit , 0.001, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
+				uiDefButBitS(block, TOG, SBSO_OLDERR, B_DIFF,"O", 180,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Old Error Calculation");
+				uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 200,100,90,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
+				uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"M", 290,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");
+				uiBlockEndAlign(block);
+				uiDefButS(block, NUM, B_DIFF, "MinS:", 10,80,100,20, &sb->minloops,  0.00,  30000.0, 10, 0, "Minimal # solver steps/frame ");
+				uiDefButS(block, NUM, B_DIFF, "MaxS:", 110,80,100,20, &sb->maxloops,  0.00,  30000.0, 10, 0, "Maximal # solver steps/frame ");
+				uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
+			} 
+			else{
+				uiBlockEndAlign(block);
+				uiBlockBeginAlign(block);
+				uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 210,100,90,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
+				uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"M", 290,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");
+				uiBlockEndAlign(block);
+				uiDefButS(block, NUM, B_DIFF, "Steps:", 10,80,100,20, &sb->minloops,  1.00,  30000.0, 10, 0, "Solver steps/frame ");
+				uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
+			}
+
+
 		}
 		/* OTHER OBJECTS COLLISION STUFF */
 		if (ob->type==OB_MESH){
@@ -3734,7 +3760,8 @@ static void object_softbodies(Object *ob)
 				uiDefButF(block, NUM, B_DIFF, "E Pull:",	10,30,100,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness");
 				uiDefButF(block, NUM, B_DIFF, "E Push:",	110,30,100,20, &sb->inpush, 0.0,  0.999, 10, 0, "Edge spring stiffness");
 				uiDefButF(block, NUM, B_DIFF, "E Damp:",	210,30,100,20, &sb->infrict, 0.0,  50.0, 10, 0, "Edge spring friction");
-				uiDefButS(block, NUM, B_DIFF, "Aero:",     10,10,100,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");
+				uiDefButBitS(block, TOG,OB_SB_AERO_ANGLE,B_SOFTBODY_CHANGE, "N",10,10,20,20, softflag, 0, 0, 0, 0, "New aero(uses angle and lenght)");
+				uiDefButS(block, NUM, B_DIFF, "Aero:",     30,10,80,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");
 				if(ob->type==OB_MESH) {
 					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Bend:", 110,10,100,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Strenght of Springs over 2 Edges");
 					if (*softflag & OB_SB_QUADS){ 
@@ -4366,7 +4393,7 @@ static void object_panel_particle_system(Object *ob)
 	short butx=0, buty=160, butw=150, buth=20;
 	char str[30];
 	static short partact;
-	short totpart;
+	short totpart, lock;
 
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_system", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Particle System", "Particle", 0, 0, 318, 204)==0) return;
@@ -4426,9 +4453,9 @@ static void object_panel_particle_system(Object *ob)
 		uiBlockEndAlign(block);
 	}
 
-	if(psys->flag & PSYS_EDITED || psys->flag & PSYS_PROTECT_CACHE) {
+	lock= (psys->flag & PSYS_EDITED || psys->flag & PSYS_PROTECT_CACHE);
+	if(lock)
 		uiSetButLock(1, "Hair is edited or cache is protected!");
-	}
 
 	uiDefButS(block, MENU, B_PARTTYPE, "Type%t|Hair%x2|Reactor%x1|Emitter%x0", 210,buty,100,buth, &part->type, 14.0, 0.0, 0, 0, "Type of particle system");
 
@@ -4474,15 +4501,20 @@ static void object_panel_particle_system(Object *ob)
 
 	uiDefBut(block, LABEL, 0, "Emit From:",							butx,buty,butw,buth, NULL, 0.0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
+
+	if(lock) uiClearButLock();
 	uiDefButBitI(block, TOG, PART_TRAND, B_PART_DISTR, "Random",	butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Emit in random order of elements");
-	
+	if(lock) uiSetButLock(1, "Hair is edited or cache is protected!");
+
 	if(part->type==PART_REACTOR)
 		uiDefButS(block, MENU, B_PART_DISTR, "Particle %x3|Volume %x2|Faces %x1|Verts %x0", butx+butw/2,buty,butw/2,buth, &part->from, 14.0, 0.0, 0, 0, "Where to emit particles from");
 	else
 		uiDefButS(block, MENU, B_PART_DISTR, "Volume %x2|Faces %x1|Verts%x0", butx+butw/2,buty,butw/2,buth, &part->from, 14.0, 0.0, 0, 0, "Where to emit particles from");
 
 	if(ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)) {
+		if(lock) uiClearButLock();
 		uiDefButBitI(block, TOG, PART_EDISTR, B_PART_DISTR, "Even",butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Use even distribution from faces based on face areas or edge lengths");
+		if(lock) uiSetButLock(1, "Hair is edited or cache is protected!");
 		uiDefButS(block, MENU, B_PART_DISTR, "Distribution %t|Grid%x2|Random%x1|Jittered%x0", butx+butw/2,buty,butw/2,buth, &part->distr, 14.0, 0.0, 0, 0, "How to distribute particles on selected element");
 		if(part->distr==PART_DISTR_JIT) {
 			uiDefButF(block, NUM, B_PART_DISTR, "Amount:",		butx,(buty-=buth),butw,buth, &part->jitfac, 0, 2.0, 1, 1, "Amount of jitter applied to the sampling");

@@ -86,7 +86,7 @@ typedef struct StrandSegment {
 } StrandSegment;
 
 void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint);
-void render_strand_segment(struct Render *re, float winmat[][4], struct StrandPart *spart, struct ZSpan *zspan, StrandSegment *sseg);
+void render_strand_segment(struct Render *re, float winmat[][4], struct StrandPart *spart, struct ZSpan *zspan, int totzspan, StrandSegment *sseg);
 void project_strands(Render *re, void (*projectfunc)(float *, float mat[][4], float *),  int do_pano, int do_buckets);
 
 struct RenderBuckets *init_buckets(struct Render *re);

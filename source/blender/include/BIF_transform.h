@@ -81,12 +81,28 @@ int calculateTransformCenter(int centerMode, float *vec);
 
 struct TransInfo;
 struct ScrArea;
+struct Base;
+struct Scene;
 
 struct TransInfo * BIF_GetTransInfo(void);
 void BIF_setSingleAxisConstraint(float vec[3], char *text);
 void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text);
 void BIF_setLocalAxisConstraint(char axis, char *text);
 void BIF_setLocalLockConstraint(char axis, char *text);
+
+int BIF_snappingSupported(void);
+
+struct TransformOrientation;
+
+void BIF_clearTransformOrientation(void);
+void BIF_removeTransformOrientation(struct TransformOrientation *ts);
+void BIF_manageTransformOrientation(int confirm, int set);
+int BIF_menuselectTransformOrientation(void);
+void BIF_selectTransformOrientation(struct TransformOrientation *ts);
+void BIF_selectTransformOrientationFromIndex(int index);
+
+char * BIF_menustringTransformOrientation(); /* the returned value was allocated and needs to be freed after use */
+int BIF_countTransformOrientation();
 
 /* Drawing callbacks */
 void BIF_drawConstraint(void);

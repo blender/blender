@@ -296,7 +296,7 @@ static void lamphalo_tile(RenderPart *pa, RenderLayer *rl)
 	long *rd= pa->rectdaps;
 	int x, y, *rz= pa->rectz;
 	
-	shade_input_initialize(&shi, pa, rl, 0);
+	shade_input_initialize(&shi, pa, rl, 0); /* this zero's ShadeInput for us */
 	
 	for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
 		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, rz++, pass+=4) {

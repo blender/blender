@@ -198,6 +198,16 @@ static void init_userdef_file(void)
 	if(U.flag & USER_CUSTOM_RANGE) 
 		vDM_ColorBand_store(&U.coba_weight); /* signal for derivedmesh to use colorband */
 	
+	/* Auto-keyframing settings */
+	if(U.autokey_mode == 0) {
+		/* AUTOKEY_MODE_NORMAL - AUTOKEY_ON = x  <==> 3 - 1 = 2 */
+		U.autokey_mode |= 2;
+		
+		if(U.flag & (1<<15)) U.autokey_flag |= AUTOKEY_FLAG_INSERTAVAIL;
+		if(U.flag & (1<<19)) U.autokey_flag |= AUTOKEY_FLAG_INSERTNEEDED;
+		if(G.flags & (1<<30)) U.autokey_flag |= AUTOKEY_FLAG_AUTOMATKEY;
+	}
+	
 	if (G.main->versionfile <= 191) {
 		strcpy(U.plugtexdir, U.textudir);
 		strcpy(U.sounddir, "/");

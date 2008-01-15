@@ -1287,7 +1287,7 @@ void multires_edge_level_update(Object *ob, Mesh *me)
 	if(!G.obedit) {
 		MultiresLevel *cr_lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
 		MultiresLevel *edge_lvl= BLI_findlink(&me->mr->levels,me->mr->edgelvl-1);
-		const int threshold= edge_lvl->totedge * powf(2, me->mr->current - me->mr->edgelvl);
+		const int threshold= edge_lvl->totedge * pow(2, me->mr->current - me->mr->edgelvl);
 		unsigned i;
 
 		for(i=0; i<cr_lvl->totedge; ++i) {

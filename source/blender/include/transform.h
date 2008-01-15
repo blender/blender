@@ -122,7 +122,7 @@ typedef struct TransDataExtension {
     float  iquat[4];	 /* Initial rotation quaternion                                                    */
     float *size;         /* Size of the data to transform (Faculative)                                     */
     float  isize[3];	 /* Initial size                                                                   */
-	float  obmat[3][3];	 /* Object matrix */  
+	float  obmat[4][4];	 /* Object matrix */  
 } TransDataExtension;
 
 typedef struct TransData2D {
@@ -382,6 +382,7 @@ void special_aftertrans_update(TransInfo *t);
 void transform_autoik_update(TransInfo *t, short mode);
 
 /* auto-keying stuff used by special_aftertrans_update */
+short autokeyframe_cfra_can_key(struct Object *ob);
 void autokeyframe_ob_cb_func(struct Object *ob, int tmode);
 void autokeyframe_pose_cb_func(struct Object *ob, int tmode, short targetless_ik);
 
@@ -461,6 +462,15 @@ void outputNumInput(NumInput *n, char *str);
 short hasNumInput(NumInput *n);
 void applyNumInput(NumInput *n, float *vec);
 char handleNumInput(NumInput *n, unsigned short event);
+
+/*********************** TransSpace ******************************/
+
+int manageObjectSpace(int confirm, int set);
+int manageMeshSpace(int confirm, int set);
+
+int addMatrixSpace(float mat[3][3], char name[]);
+int addObjectSpace(struct Object *ob);
+void applyTransformOrientation(void);
 
 #endif
 

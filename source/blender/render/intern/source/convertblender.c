@@ -1496,11 +1496,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	float loc[3],loc1[3],loc0[3],vel[3],mat[4][4],nmat[3][3],co[3],nor[3],time;
 	float *orco=0,*surfnor=0,*uvco=0, strandlen=0.0f, curlen=0.0f;
 	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(ob,(float)CFRA,0.0);
-	float adapt_angle=0.0, adapt_pix=0.0, random;
-	float simplify[2];
+	float adapt_angle=0.0, adapt_pix=0.0, random, simplify[2];
 	int i, a, k, max_k=0, totpart, totuv=0, override_uv=-1, dosimplify = 0;
 	int path_possible=0, keys_possible=0, baked_keys=0, totchild=psys->totchild;
-	int seed, path_nbr=0, path=0, orco1=0, adapt=0, uv[3]={0,0,0};
+	int seed, path_nbr=0, path=0, orco1=0, adapt=0, uv[3]={0,0,0}, num;
 	char **uv_name=0;
 
 /* 1. check that everything is ok & updated */
@@ -1644,6 +1643,13 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				strandbuf->overrideuv= override_uv;
 				strandbuf->minwidth= ma->strand_min;
 
+				if(ma->strand_widthfade == 0.0f)
+					strandbuf->widthfade= 0.0f;
+				else if(ma->strand_widthfade >= 1.0f)
+					strandbuf->widthfade= 2.0f - ma->strand_widthfade;
+				else
+					strandbuf->widthfade= 1.0f/MAX2(ma->strand_widthfade, 1e-5f);
+
 				if(part->flag & PART_HAIR_BSPLINE)
 					strandbuf->flag |= R_STRAND_BSPLINE;
 				if(ma->mode & MA_STR_B_UNITS)
@@ -1700,13 +1706,25 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			if(uvco && ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)){
 				layer=psmd->dm->faceData.layers + CustomData_get_layer_index(&psmd->dm->faceData,CD_MFACE);
-				for(i=0; i<totuv; i++){
-					MFace *mface=psmd->dm->getFaceData(psmd->dm,pa->num,CD_MFACE);
 
-					mtface=(MTFace*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MTFACE,i);
-					mtface+=pa->num;
-					
-					psys_interpolate_uvs(mtface,mface->v4,pa->fuv,uvco+2*i);
+	            num= pa->num_dmcache;
+
+				if(num == DMCACHE_NOTFOUND)
+					if(pa->num < psmd->dm->getNumFaces(psmd->dm))
+						num= pa->num;
+
+				for(i=0; i<totuv; i++){
+					if(num != DMCACHE_NOTFOUND) {
+						MFace *mface=psmd->dm->getFaceData(psmd->dm,num,CD_MFACE);
+						mtface=(MTFace*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MTFACE,i);
+						mtface+=num;
+						
+						psys_interpolate_uvs(mtface,mface->v4,pa->fuv,uvco+2*i);
+					}
+					else {
+						uvco[2*i]= 0.0f;
+						uvco[2*i + 1]= 0.0f;
+					}
 				}
 			}
 
@@ -2130,8 +2148,16 @@ static void displace_render_face(Render *re, VlakRen *vlr, float *scale)
 {
 	ShadeInput shi;
 
+	/* Warning, This is not that nice, and possibly a bit slow,
+	however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
+	memset(&shi, 0, sizeof(ShadeInput)); 
+	/* end warning! - Campbell */
+	
 	/* set up shadeinput struct for multitex() */
-	shi.osatex= 0;		/* signal not to use dx[] and dy[] texture AA vectors */
+	
+	/* memset above means we dont need this */
+	/*shi.osatex= 0;*/		/* signal not to use dx[] and dy[] texture AA vectors */
+
 	shi.vlr= vlr;		/* current render face */
 	shi.mat= vlr->mat;		/* current input material */
 	
@@ -4072,10 +4098,44 @@ static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd
 	        !(re->r.mode & R_RADIO));
 }
 
+static void dupli_render_particle_set(Render *re, Object *ob, int level, int enable)
+{
+	/* ugly function, but we need to set particle systems to their render
+	 * settings before calling object_duplilist, to get render level duplis */
+	Group *group;
+	GroupObject *go;
+	ParticleSystem *psys;
+
+	if(level >= MAX_DUPLI_RECUR)
+		return;
+	
+	if(ob->transflag & OB_DUPLIPARTS) {
+		DerivedMesh *dm;
+
+		for(psys=ob->particlesystem.first; psys; psys=psys->next)
+			if(enable)
+				psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy);
+			else
+				psys_render_restore(ob, psys);
+
+		if(enable) {
+			dm = mesh_create_derived_render(ob,	CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+			dm->release(dm);
+		}
+	}
+
+	if(ob->dup_group==NULL) return;
+	group= ob->dup_group;
+
+	for(go= group->gobject.first; go; go= go->next)
+		dupli_render_particle_set(re, go->ob, level+1, enable);
+}
+
 static void database_init_objects(Render *re, unsigned int lay, int nolamps, int onlyselected, Object *actob, int only_verts)
 {
 	Base *base;
 	Object *ob;
+	ObjectInstanceRen *obi;
 	Scene *sce;
 	float mat[4][4], obmat[4][4];
 
@@ -4106,7 +4166,10 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 				DupliObject *dob;
 				ListBase *lb;
 
+				dupli_render_particle_set(re, ob, 0, 1);
 				lb= object_duplilist(sce, ob);
+				dupli_render_particle_set(re, ob, 0, 0);
+
 				for(dob= lb->first; dob; dob= dob->next) {
 					Object *obd= dob->ob;
 					
@@ -4136,11 +4199,18 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 						Mat4Invert(imat, obmat);
 						MTC_Mat4MulSerie(mat, re->viewmat, dob->mat, imat, re->viewinv, 0, 0, 0, 0);
 
-						RE_addRenderInstance(re, NULL, obd, ob, dob->index, 0, mat);
+						obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, 0, mat);
+						VECCOPY(obi->dupliorco, dob->orco);
+						obi->dupliuv[0]= dob->uv[0];
+						obi->dupliuv[1]= dob->uv[1];
 
 						psysindex= 1;
-						for(psys=obd->particlesystem.first; psys; psys=psys->next)
+						for(psys=obd->particlesystem.first; psys; psys=psys->next) {
 							RE_addRenderInstance(re, NULL, obd, ob, dob->index, psysindex++, mat);
+							VECCOPY(obi->dupliorco, dob->orco);
+							obi->dupliuv[0]= dob->uv[0];
+							obi->dupliuv[1]= dob->uv[1];
+						}
 						
 						obd->flag |= OB_DONE;
 						obd->transflag |= OB_RENDER_DUPLI;

@@ -45,6 +45,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -826,7 +827,7 @@ void paste_posebuf (int flip)
 					EulToQuat(eul, pchan->quat);
 				}
 				
-				if (G.flags & G_RECORDKEYS) {
+				if (autokeyframe_cfra_can_key(ob)) {
 					ID *id= &ob->id;
 					
 					/* Set keys on pose */
@@ -863,7 +864,7 @@ void paste_posebuf (int flip)
 	/* Update event for pose and deformation children */
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	
-	if (G.flags & G_RECORDKEYS) {
+	if ((IS_AUTOKEY_MODE(NORMAL))) {
 		remake_action_ipos(ob->action);
 		allqueue (REDRAWIPO, 0);
 		allqueue (REDRAWVIEW3D, 0);
@@ -1153,10 +1154,10 @@ void pose_relax()
 	float frame_prev, frame_next;
 	float quat_prev[4], quat_next[4], quat_interp[4], quat_orig[4];
 	
-	/*int do_scale = 0;
+	int do_scale = 0;
 	int do_loc = 0;
 	int do_quat = 0;
-	int flag = 0;*/
+	int flag = 0;
 	int do_x, do_y, do_z;
 	
 	if (!ob) return;
@@ -1167,36 +1168,25 @@ void pose_relax()
 	
 	if (!pose || !act || !arm) return;
 	
-	for (pchan=pose->chanbase.first; pchan; pchan= pchan->next){
-		if(pchan->bone->layer & arm->layer) {
-			if(pchan->bone->flag & BONE_SELECTED) {
+	for (pchan=pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->bone->layer & arm->layer) {
+			if (pchan->bone->flag & BONE_SELECTED) {
 				/* do we have an ipo curve? */
 				achan= get_action_channel(act, pchan->name);
-				if(achan && achan->ipo) {
+				
+				if (achan && achan->ipo) {
 					/*calc_ipo(achan->ipo, ctime);*/
 					
 					do_x = pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_X), framef, &pchan->loc[0], NULL, NULL);
 					do_y = pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_Y), framef, &pchan->loc[1], NULL, NULL);
 					do_z = pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_Z), framef, &pchan->loc[2], NULL, NULL);
-					/* do_loc = do_x + do_y + do_z */
-					
-					if (G.flags & G_RECORDKEYS) {
-						if (do_x) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
-						if (do_y) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
-						if (do_z) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
-					}
+					do_loc += do_x + do_y + do_z;
 					
 					do_x = pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_X), framef, &pchan->size[0], NULL, NULL);
 					do_y = pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_Y), framef, &pchan->size[1], NULL, NULL);
 					do_z = pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_Z), framef, &pchan->size[2], NULL, NULL);
-					/* do_scale = do_x + do_y + do_z */
-					
-					if (G.flags & G_RECORDKEYS) {
-						if (do_x) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
-						if (do_y) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
-						if (do_z) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
-					}
-					
+					do_scale += do_x + do_y + do_z;
+						
 					if(	((icu_w = find_ipocurve(achan->ipo, AC_QUAT_W))) &&
 						((icu_x = find_ipocurve(achan->ipo, AC_QUAT_X))) &&
 						((icu_y = find_ipocurve(achan->ipo, AC_QUAT_Y))) &&
@@ -1225,20 +1215,12 @@ void pose_relax()
 							QuatInterpol(pchan->quat, quat_orig, quat_interp, 1.0f/6.0f);
 							/* done */
 #endif
-							/*do_quat++;*/
-							
-							if (G.flags & G_RECORDKEYS) {
-								insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
-								insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
-								insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
-								insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
-							}
+							do_quat++;
 						}
 					}
 					
-					if (G.flags & G_RECORDKEYS) {
-						pchan->bone->flag &= ~BONE_UNKEYED;
-					}
+					/* apply BONE_TRANSFORM tag so that autokeying will pick it up */
+					pchan->bone->flag |= BONE_TRANSFORM;
 				}
 			}
 		}
@@ -1246,16 +1228,17 @@ void pose_relax()
 	
 	ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 	
-#if 0
-// 	/* auto-keyframing - dosnt work, no idea why, do manually above */
+	/* do auto-keying */
 	if (do_loc)		flag |= TFM_TRANSLATION;
 	if (do_scale)	flag |= TFM_RESIZE;
 	if (do_quat)	flag |= TFM_ROTATION;
 	autokeyframe_pose_cb_func(ob, flag, 0);
-#endif	
+	 
+	/* clear BONE_TRANSFORM flags */
+	for (pchan=pose->chanbase.first; pchan; pchan= pchan->next)
+		pchan->bone->flag &= ~ BONE_TRANSFORM;
 	
-	
+	/* do depsgraph flush */
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	BIF_undo_push("Relax Pose");
-	
 }

@@ -190,6 +190,7 @@ typedef struct SoftBody {
 #define OB_SB_EDGECOLL  2048
 #define OB_SB_COLLFINAL 4096
 #define OB_SB_PROTECT_CACHE	8192
+#define OB_SB_AERO_ANGLE	16384
 
 /* sb->solverflags */
 #define SBSO_MONITOR    1 

@@ -2149,6 +2149,7 @@ void selectall_action_keys (short mval[], short mode, short select_mode)
 	allqueue(REDRAWIPO, 0);
 }
 
+/* Selects all visible keyframes between the specified markers */
 void markers_selectkeys_between (void)
 {
 	ListBase act_data = {NULL, NULL};
@@ -2188,6 +2189,7 @@ void markers_selectkeys_between (void)
 	BLI_freelistN(&act_data);
 }
 
+/* Selects all the keyframes on either side of the current frame (depends on which side the mouse is on) */
 void selectkeys_leftright (short leftright, short select_mode)
 {
 	ListBase act_data = {NULL, NULL};
@@ -2206,12 +2208,12 @@ void selectkeys_leftright (short leftright, short select_mode)
 	data = get_action_context(&datatype);
 	if (data == NULL) return;
 	
-	if (leftright==1) {
+	if (leftright == 1) {
 		min = -MAXFRAMEF;
-		max = (float)CFRA+0.1f;
+		max = (float)(CFRA + 0.1f);
 	} 
 	else {
-		min = (float)CFRA-0.1f;
+		min = (float)(CFRA - 0.1f);
 		max = MAXFRAMEF;
 	}
 	
@@ -2219,7 +2221,7 @@ void selectkeys_leftright (short leftright, short select_mode)
 	filter= (ACTFILTER_VISIBLE | ACTFILTER_IPOKEYS);
 	actdata_filter(&act_data, filter, data, datatype);
 		
-	/* select keys to the right */
+	/* select keys on the side where most data occurs */
 	for (ale= act_data.first; ale; ale= ale->next) {
 		if(NLA_ACTION_SCALED && datatype==ACTCONT_ACTION) {
 			actstrip_map_ipo_keys(OBACT, ale->key_data, 0, 1);
@@ -2237,22 +2239,95 @@ void selectkeys_leftright (short leftright, short select_mode)
 	allqueue(REDRAWNLA, 0);
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
-
 }
 
+/* ----------------------------------------- */
+
+/* Jumps to the frame where the next/previous keyframe (that is visible) occurs 
+ *	dir: indicates direction
+ */
+void nextprev_action_keyframe (short dir)
+{
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+	
+	ListBase elems= {NULL, NULL};
+	CfraElem *ce, *nearest=NULL;
+	float dist, min_dist= 1000000;
+	
+	
+	/* determine what type of data we are operating on */
+	data = get_action_context(&datatype);
+	if (data == NULL) return;
+	
+	/* abort if no direction */
+	if (dir == 0)
+		return;
+	
+	/* get list of keyframes that can be used (in global-time) */
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_IPOKEYS);
+	actdata_filter(&act_data, filter, data, datatype);
+	
+	for (ale= act_data.first; ale; ale= ale->next) {
+		if (NLA_ACTION_SCALED && datatype==ACTCONT_ACTION) {
+			actstrip_map_ipo_keys(OBACT, ale->key_data, 0, 1); 
+			make_cfra_list(ale->key_data, &elems);
+			actstrip_map_ipo_keys(OBACT, ale->key_data, 1, 1);
+		}
+		else 
+			make_cfra_list(ale->key_data, &elems);
+	}
+	
+	BLI_freelistN(&act_data);
+	
+	/* find nearest keyframe to current frame */
+	for (ce= elems.first; ce; ce= ce->next) {
+		dist= ABS(ce->cfra - CFRA);
+		
+		if (dist < min_dist) {
+			min_dist= dist;
+			nearest= ce;
+		}
+	}
+	
+	/* if a nearest keyframe was found, use the one either side */
+	if (nearest) {
+		short changed= 0;
+		
+		if ((dir > 0) && (nearest->next)) {
+			CFRA= nearest->next->cfra;
+			changed= 1;
+		}
+		else if ((dir < 0) && (nearest->prev)) {
+			CFRA= nearest->prev->cfra;
+			changed= 1;
+		}
+			
+		if (changed) {	
+			update_for_newframe();	
+			allqueue(REDRAWALL, 0);
+		}
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&elems);
+}
 
 /* ----------------------------------------- */
 
 /* This function makes a list of the selected keyframes
  * in the ipo curves it has been passed
  */
-static void make_sel_cfra_list(Ipo *ipo, ListBase *elems)
+static void make_sel_cfra_list (Ipo *ipo, ListBase *elems)
 {
 	IpoCurve *icu;
 	
 	if (ipo == NULL) return;
 	
-	for(icu= ipo->curve.first; icu; icu= icu->next) {
+	for (icu= ipo->curve.first; icu; icu= icu->next) {
 		BezTriple *bezt;
 		int a= 0;
 		
@@ -2266,7 +2341,7 @@ static void make_sel_cfra_list(Ipo *ipo, ListBase *elems)
 /* This function selects all key frames in the same column(s) as a already selected key(s)
  * or marker(s), or all the keyframes on a particular frame (triggered by a RMB on x-scrollbar)
  */
-void column_select_action_keys(int mode)
+void column_select_action_keys (int mode)
 {
 	ListBase elems= {NULL, NULL};
 	CfraElem *ce;
@@ -2328,6 +2403,7 @@ void column_select_action_keys(int mode)
 	BLI_freelistN(&act_data);
 	BLI_freelistN(&elems);
 }
+
 
 /* some quick defines for borderselect modes */
 enum {
@@ -2713,9 +2789,9 @@ void top_sel_action ()
 	act = G.saction->action;
 	if (!act) return;
 	
-	for (achan= act->chanbase.first; achan; achan= achan->next){
+	for (achan= act->chanbase.first; achan; achan= achan->next) {
 		if (VISIBLE_ACHAN(achan)) {
-			if (SEL_ACHAN(achan) && !(achan->flag & ACHAN_MOVED)){
+			if (SEL_ACHAN(achan) && !(achan->flag & ACHAN_MOVED)) {
 				/* take it out off the chain keep data */
 				BLI_remlink (&act->chanbase, achan);
 				/* make it first element */
@@ -2727,12 +2803,12 @@ void top_sel_action ()
 		}
 	}
     /* clear temp flags */
-	for (achan= act->chanbase.first; achan; achan= achan->next){
+	for (achan= act->chanbase.first; achan; achan= achan->next) {
 		achan->flag = achan->flag & ~ACHAN_MOVED;
 	}
 	
 	/* Clean up and redraw stuff */
-	remake_action_ipos (act);
+	remake_action_ipos(act);
 	BIF_undo_push("Top Action channel");
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWACTION, 0);
@@ -2751,7 +2827,7 @@ void up_sel_action ()
 	
 	for (achan=act->chanbase.first; achan; achan= achan->next) {
 		if (VISIBLE_ACHAN(achan)) {
-			if (SEL_ACHAN(achan) && !(achan->flag & ACHAN_MOVED)){
+			if (SEL_ACHAN(achan) && !(achan->flag & ACHAN_MOVED)) {
 				prev = achan->prev;
 				if (prev) {
 					/* take it out off the chain keep data */
@@ -2766,12 +2842,12 @@ void up_sel_action ()
 		}
 	}
 	/* clear temp flags */
-	for (achan=act->chanbase.first; achan; achan= achan->next){
+	for (achan=act->chanbase.first; achan; achan= achan->next) {
 		achan->flag = achan->flag & ~ACHAN_MOVED;
 	}
 	
 	/* Clean up and redraw stuff */
-	remake_action_ipos (act);
+	remake_action_ipos(act);
 	BIF_undo_push("Up Action channel");
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWACTION, 0);
@@ -2790,7 +2866,7 @@ void down_sel_action ()
 	
 	for (achan= act->chanbase.last; achan; achan= achan->prev) {
 		if (VISIBLE_ACHAN(achan)) {
-			if (SEL_ACHAN(achan) && !(achan->flag & ACHAN_MOVED)){
+			if (SEL_ACHAN(achan) && !(achan->flag & ACHAN_MOVED)) {
 				next = achan->next;
 				if (next) next = next->next;
 				if (next) {
@@ -2811,12 +2887,12 @@ void down_sel_action ()
 		}
 	}
 	/* clear temp flags */
-	for (achan= act->chanbase.first; achan; achan= achan->next){
+	for (achan= act->chanbase.first; achan; achan= achan->next) {
 		achan->flag = achan->flag & ~ACHAN_MOVED;
 	}
 	
 	/* Clean up and redraw stuff */
-	remake_action_ipos (act);
+	remake_action_ipos(act);
 	BIF_undo_push("Down Action channel");
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWACTION, 0);
@@ -2850,12 +2926,90 @@ void bottom_sel_action ()
 	}
 	
 	/* Clean up and redraw stuff */
-	remake_action_ipos (act);
+	remake_action_ipos(act);
 	BIF_undo_push("Bottom Action channel");
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWNLA, 0);
+}
+
+
+/* Expand all channels to show full hierachy */
+void expand_all_action (void)
+{
+	bAction *act;
+	bActionChannel *achan;
+	short mode= 0;
+	
+	/* Get the selected action, exit if none are selected */
+	// TODO: really this should be done with the "action editor api" stuff, but this will suffice for now 
+	act = G.saction->action;
+	if (act == NULL) return;
+	
+	/* check if expand all, or close all */
+	for (achan=act->chanbase.first; achan; achan= achan->next) {
+		if (VISIBLE_ACHAN(achan)) {
+			if (EXPANDED_ACHAN(achan))
+				mode= 1;
+				break;
+		}
+	}
+	
+	/* expand/collapse depending on mode */
+	for (achan=act->chanbase.first; achan; achan= achan->next) {
+		if (VISIBLE_ACHAN(achan)) {
+			if (mode == 1)
+				achan->flag |= (ACHAN_EXPANDED|ACHAN_SHOWIPO|ACHAN_SHOWCONS);
+			else
+				achan->flag &= ~(ACHAN_EXPANDED|ACHAN_SHOWIPO|ACHAN_SHOWCONS);
+		}
+	}
+	
+	/* Cleanup and do redraws */
+	BIF_undo_push("Expand Action Hierachy");
+	allqueue(REDRAWACTION, 0);
+}
+
+/* For visible channels, expand/collapse one level */
+void openclose_level_action (short mode)
+{
+	bAction *act;
+	bActionChannel *achan;
+	
+	/* Get the selected action, exit if none are selected */
+	// TODO: really this should be done with the "action editor api" stuff, but this will suffice for now 
+	act = G.saction->action;
+	if (act == NULL) return;
+	
+	/* Abort if no operation required */
+	if (mode == 0) return;
+	
+	/* Only affect selected channels */
+	for (achan=act->chanbase.first; achan; achan= achan->next) {
+		if (VISIBLE_ACHAN(achan) && SEL_ACHAN(achan)) {
+			if (EXPANDED_ACHAN(achan)) {
+				if (FILTER_IPO_ACHAN(achan) || FILTER_CON_ACHAN(achan)) {
+					if (mode < 0)
+						achan->flag &= ~(ACHAN_SHOWIPO|ACHAN_SHOWCONS);
+				}
+				else {
+					if (mode > 0)
+						achan->flag |= (ACHAN_SHOWIPO|ACHAN_SHOWCONS);
+					else
+						achan->flag &= ~ACHAN_EXPANDED;
+				}					
+			}
+			else {
+				if (mode > 0)
+					achan->flag |= ACHAN_EXPANDED;
+			}
+		}
+	}
+	
+	/* Cleanup and do redraws */
+	BIF_undo_push("Expand/Collapse Action Level");
+	allqueue(REDRAWACTION, 0);
 }
 
 /* **************************************************** */
@@ -3243,30 +3397,40 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		case PAGEUPKEY:
 			if (datatype == ACTCONT_ACTION) {
-				if(G.qual & LR_SHIFTKEY)
+				if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
 					top_sel_action();
-				else if (G.qual & LR_CTRLKEY)
+				else if (G.qual == LR_SHIFTKEY) 
 					up_sel_action();
+				else if (G.qual == LR_CTRLKEY) 
+					nextprev_action_keyframe(1);
 				else
 					nextprev_marker(1);
 			}
 			else if (datatype == ACTCONT_SHAPEKEY) {
 				/* only jump to markers possible (key channels can't be moved yet) */
-				nextprev_marker(1);
+				if (G.qual == LR_CTRLKEY) 
+					nextprev_action_keyframe(1);
+				else
+					nextprev_marker(1);
 			}
 			break;
 		case PAGEDOWNKEY:
 			if (datatype == ACTCONT_ACTION) {
-				if(G.qual & LR_SHIFTKEY)
+				if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
 					bottom_sel_action();
-				else if (G.qual & LR_CTRLKEY) 
+				else if (G.qual == LR_SHIFTKEY) 
 					down_sel_action();
+				else if (G.qual == LR_CTRLKEY) 
+					nextprev_action_keyframe(-1);
 				else
 					nextprev_marker(-1);
 			}
 			else if (datatype == ACTCONT_SHAPEKEY) {
 				/* only jump to markers possible (key channels can't be moved yet) */
-				nextprev_marker(-1);
+				if (G.qual == LR_CTRLKEY) 
+					nextprev_action_keyframe(-1);
+				else
+					nextprev_marker(-1);
 			}
 			break;
 			
@@ -3356,20 +3520,39 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					mouse_action(select_mode);
 			}
 			break;
+		
+		case ACCENTGRAVEKEY:
+			if (datatype == ACTCONT_ACTION)
+				expand_all_action();
+			break;
+		
 		case PADPLUSKEY:
-			view2d_zoom(G.v2d, 0.1154, sa->winx, sa->winy);
-			test_view2d(G.v2d, sa->winx, sa->winy);
-			view2d_do_locks(curarea, V2D_LOCK_COPY);
-			
-			doredraw= 1;
+			if (G.qual == LR_CTRLKEY) {
+				if (datatype == ACTCONT_ACTION)
+					openclose_level_action(1);
+			}
+			else {
+				view2d_zoom(G.v2d, 0.1154, sa->winx, sa->winy);
+				test_view2d(G.v2d, sa->winx, sa->winy);
+				view2d_do_locks(curarea, V2D_LOCK_COPY);
+				
+				doredraw= 1;
+			}
 			break;
 		case PADMINUS:
-			view2d_zoom(G.v2d, -0.15, sa->winx, sa->winy);
-			test_view2d(G.v2d, sa->winx, sa->winy);
-			view2d_do_locks(curarea, V2D_LOCK_COPY);
+			if (G.qual == LR_CTRLKEY) {
+				if (datatype == ACTCONT_ACTION)
+					openclose_level_action(-1);
+			}
+			else {
+				view2d_zoom(G.v2d, -0.15, sa->winx, sa->winy);
+				test_view2d(G.v2d, sa->winx, sa->winy);
+				view2d_do_locks(curarea, V2D_LOCK_COPY);
+				
+				doredraw= 1;
+			}
+			break;	
 			
-			doredraw= 1;
-			break;
 		case MIDDLEMOUSE:
 		case WHEELUPMOUSE:
 		case WHEELDOWNMOUSE:

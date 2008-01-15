@@ -48,6 +48,7 @@
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -692,7 +693,8 @@ static void poselib_keytag_pose (tPoseLib_PreviewData *pld)
 			pchan= get_pose_channel(pose, achan->name);
 			
 			if (pchan) {
-				if (G.flags & G_RECORDKEYS) {
+				// TODO: use a standard autokeying function in future (to allow autokeying-editkeys to work)
+				if (IS_AUTOKEY_MODE(NORMAL)) {
 					ID *id= &pld->ob->id;
 					
 					/* Set keys on pose */
@@ -1120,7 +1122,7 @@ static void poselib_preview_cleanup (tPoseLib_PreviewData *pld)
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		
 		/* updates */
-		if (G.flags & G_RECORDKEYS) {
+		if (IS_AUTOKEY_MODE(NORMAL)) {
 			remake_action_ipos(ob->action);
 			
 			allqueue(REDRAWIPO, 0);

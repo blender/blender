@@ -123,6 +123,7 @@
 #include "BSE_editipo_types.h"
 #include "BSE_editaction_types.h"
 
+#include "BDR_drawaction.h"		// list of keyframes in action
 #include "BDR_editobject.h"		// reset_slowparents()
 #include "BDR_unwrapper.h"
 
@@ -2861,6 +2862,8 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	VECCOPY(td->ext->dsize, ob->dsize);
 
 	VECCOPY(td->center, ob->obmat[3]);
+	
+	Mat4CpyMat4(td->ext->obmat, ob->obmat);
 
 	/* is there a need to set the global<->data space conversion matrices? */
 	if (ob->parent || constinv) {
@@ -2958,6 +2961,51 @@ static void clear_trans_object_base_flags(void)
 	}
 }
 
+/* auto-keyframing feature - checks for whether anything should be done for the current frame */
+short autokeyframe_cfra_can_key(Object *ob)
+{
+	ListBase keys = {NULL, NULL};
+	ActKeyColumn *ak;
+	float cfra;
+	short found= 0;
+	
+	/* only filter if auto-key mode requires this */
+	if (IS_AUTOKEY_ON == 0)
+		return 0;
+	else if (IS_AUTOKEY_MODE(NORMAL)) 
+		return 1;
+	
+	/* sanity check */
+	if (ob == NULL) 
+		return 0;
+	
+	/* get keyframes that object has (bone anim is stored on ob too) */
+	if (ob->action)
+		action_to_keylist(ob->action, &keys, NULL);
+	else if (ob->ipo)
+		ipo_to_keylist(ob->ipo, &keys, NULL);
+	else
+		return 0;
+		
+	/* get current frame (will apply nla-scaling as necessary) */
+	// ack... this is messy...
+	cfra= frame_to_float(CFRA);
+	cfra= get_action_frame(ob, cfra);
+	
+	/* check if a keyframe occurs on current frame */
+	for (ak= keys.first; ak; ak= ak->next) {
+		if (IS_EQ(cfra, ak->cfra)) {
+			found= 1;
+			break;
+		}
+	}
+	
+	/* free temp list */
+	BLI_freelistN(&keys);
+	
+	return found;
+}
+
 /* auto-keyframing feature - for objects 
  * 	tmode: should be a transform mode 
  */
@@ -2966,11 +3014,11 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 	IpoCurve *icu;
 	char *actname="";
 	
-	if (G.flags & G_RECORDKEYS) {
+	if (autokeyframe_cfra_can_key(ob)) {		
 		if (ob->ipoflag & OB_ACTION_OB)
 			actname= "Object";
 		
-		if (U.uiflag & USER_KEYINSERTAVAI) {
+		if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 			if (ob->ipo || ob->action) {
 				ID *id= (ID *)(ob);
 				
@@ -2989,7 +3037,7 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 				
 				while (icu) {
 					icu->flag &= ~IPO_SELECT;
-					if (U.uiflag & USER_KEYINSERTNEED)
+					if (IS_AUTOKEY_FLAG(INSERTNEEDED))
 						insertkey_smarter(id, ID_OB, actname, NULL, icu->adrcode);
 					else
 						insertkey(id, ID_OB, actname, NULL, icu->adrcode, 0);
@@ -2997,7 +3045,7 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 				}
 			}
 		}
-		else if (U.uiflag & USER_KEYINSERTNEED) {
+		else if (IS_AUTOKEY_FLAG(INSERTNEEDED)) {
 			short doLoc=0, doRot=0, doScale=0;
 			
 			/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
@@ -3077,8 +3125,8 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 	pose= ob->pose;
 	act= ob->action;
 	
-	if (G.flags & G_RECORDKEYS) {
-		if (!act)
+	if (autokeyframe_cfra_can_key(ob)) {
+		if (act == NULL)
 			act= ob->action= add_empty_action("Action");
 		
 		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
@@ -3087,14 +3135,14 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 				pchan->bone->flag &= ~BONE_UNKEYED;
 				
 				/* only insert into available channels? */
-				if (U.uiflag & USER_KEYINSERTAVAI) {
+				if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 					bActionChannel *achan; 
 					
-					for (achan = act->chanbase.first; achan; achan=achan->next){
-						if (achan->ipo && !strcmp (achan->name, pchan->name)){
-							for (icu = achan->ipo->curve.first; icu; icu=icu->next){
+					for (achan = act->chanbase.first; achan; achan=achan->next) {
+						if (achan->ipo && !strcmp (achan->name, pchan->name)) {
+							for (icu = achan->ipo->curve.first; icu; icu=icu->next) {
 								/* only insert keyframe if needed? */
-								if (U.uiflag & USER_KEYINSERTNEED)
+								if (IS_AUTOKEY_FLAG(INSERTNEEDED))
 									insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode);
 								else
 									insertkey(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode, 0);
@@ -3104,7 +3152,7 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 					}
 				}
 				/* only insert keyframe if needed? */
-				else if (U.uiflag & USER_KEYINSERTNEED) {
+				else if (IS_AUTOKEY_FLAG(INSERTNEEDED)) {
 					short doLoc=0, doRot=0, doScale=0;
 					
 					/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
@@ -3174,8 +3222,7 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 		if (arm->pathflag & ARM_PATH_ACFRA) {
 			//pose_clear_paths(ob);
 			pose_recalculate_paths(ob);
-		}		
-		
+		}	
 	}
 	else {
 		/* tag channels that should have unkeyed data */

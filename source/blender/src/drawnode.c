@@ -348,7 +348,7 @@ static int node_buts_time(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *b
 		
 		if(cumap) cumap->flag |= CUMA_DRAW_CFRA;
 		if(node->custom1<node->custom2)
-			cumap->black[0]= (float)(CFRA - node->custom1)/(float)(node->custom2-node->custom1);
+			cumap->sample[0]= (float)(CFRA - node->custom1)/(float)(node->custom2-node->custom1);
 
 		uiBlockBeginAlign(block);
 		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Sta:",
@@ -380,9 +380,23 @@ static int node_buts_curvevec(uiBlock *block, bNodeTree *ntree, bNode *node, rct
 	return (int)(node->width-NODE_DY);
 }
 
+static float *_sample_col= NULL;	// bad bad, 2.5 will do better?
+void node_curvemap_sample(float *col)
+{
+	_sample_col= col;
+}
+
 static int node_buts_curvecol(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
+		CurveMapping *cumap= node->storage;
+		if(_sample_col) {
+			cumap->flag |= CUMA_DRAW_SAMPLE;
+			VECCOPY(cumap->sample, _sample_col);
+		}
+		else 
+			cumap->flag &= ~CUMA_DRAW_SAMPLE;
+
 		curvemap_buttons(block, node->storage, 'c', B_NODE_EXEC+node->nr, B_REDR, butr);
 	}	
 	return (int)(node->width-NODE_DY);
@@ -2112,7 +2126,40 @@ static void draw_nodespace_grid(SpaceNode *snode)
 	glEnd();
 }
 
-static void draw_nodespace_back(ScrArea *sa, SpaceNode *snode)
+static void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode)
+{
+	
+	draw_nodespace_grid(snode);
+	
+	if(snode->flag & SNODE_BACKDRAW) {
+		Image *ima= BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+		if(ibuf) {
+			int x, y; 
+			/* somehow the offset has to be calculated inverse */
+			
+			glaDefine2DArea(&sa->winrct);
+			/* ortho at pixel level curarea */
+			myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
+			
+			x = (sa->winx-ibuf->x)/2 + snode->xof;
+			y = (sa->winx-ibuf->y)/2 + snode->yof;
+			
+			if(ibuf->rect)
+				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+			else if(ibuf->channels==4)
+				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
+			
+			/* sort this out, this should not be needed */
+			myortho2(snode->v2d.cur.xmin, snode->v2d.cur.xmax, snode->v2d.cur.ymin, snode->v2d.cur.ymax);
+			bwin_clear_viewmat(sa->win);	/* clear buttons view */
+			glLoadIdentity();
+		}
+	}
+}
+
+/* note: needs to be userpref or opengl profile option */
+static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
 {
 
 	draw_nodespace_grid(snode);
@@ -3062,7 +3109,7 @@ void drawnodespace(ScrArea *sa, void *spacedata)
 	snode->curfont= uiSetCurFont_ext(snode->aspect);
 
 	/* backdrop */
-	draw_nodespace_back(sa, snode);
+	draw_nodespace_back_pix(sa, snode);
 	
 	/* nodes */
 	snode_set_context(snode);

@@ -155,6 +155,11 @@ void imasel_buttons(void)
 	xco+=20;
 	
 	type = simasel->type;
+	
+	if(!simasel->files) {
+		simasel->files = BIF_filelist_new();
+	}
+
 	if (type == FILE_LOADLIB) {
 		do_filter = !BIF_filelist_islibrary(simasel->files, dir, group);
 	} else {
