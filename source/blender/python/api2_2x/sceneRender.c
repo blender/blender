@@ -1,5 +1,5 @@
 /* 
- * $Id: sceneRender.c 12813 2007-12-07 09:51:02Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -2357,6 +2357,32 @@ static int RenderData_setThreads( BPy_RenderData *self, PyObject *value )
 	return 0;
 }
 
+PyObject *RenderData_getActiveLayer( BPy_RenderData * self )
+{
+	return PyInt_FromLong( (long) self->renderContext->actlay );
+}
+
+static int RenderData_setActiveLayer( BPy_RenderData *self, PyObject *value )
+{
+	int layer;
+	short nr;
+    SceneRenderLayer *srl;
+
+	if( !PyInt_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "active layer must be an int" );
+
+	layer = PyInt_AsLong( value );
+    for(nr=0, srl= self->renderContext->layers.first; srl; srl= srl->next, nr++) {
+	}
+	if(layer >= nr)
+		return EXPP_ReturnIntError( PyExc_ValueError, "value larger than number of render layers" );
+
+	self->renderContext->actlay = layer;
+	EXPP_allqueue(REDRAWBUTSSCENE, 0);
+	EXPP_allqueue(REDRAWNODE, 0);
+	return 0;
+}
+
 /***************************************************************************/
 /* BPy_RenderData attribute def                                            */
 /***************************************************************************/
@@ -2598,6 +2624,11 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	{"set",
 	 (getter)RenderData_getSet, (setter)RenderData_setSet,
 	 "Scene link 'set' value",
+	 NULL},
+
+	{"activeLayer",
+	 (getter)RenderData_getActiveLayer, (setter)RenderData_setActiveLayer,
+	 "Active rendering layer",
 	 NULL},
 
 	{"yafrayGIMethod",

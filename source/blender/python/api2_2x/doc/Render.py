@@ -246,10 +246,12 @@ class RenderData:
   @type extensions: boolean
   @ivar compositor: 'Do Compositor' enabled.
   @type compositor: boolean
-  @ivar freeImages: 'Do Compositor' enabled.
+  @ivar freeImages: Texture images are freed after render.
   @type freeImages: boolean
   @ivar singleLayer: Only render the active layer.
   @type singleLayer: boolean
+  @ivar activeLayer: The active render layer.  Must be in range[0,num render layers-1]
+  @type activeLayer: int
   @ivar saveBuffers: Save render buffers to disk while rendering, saves memory.
   @type saveBuffers: boolean
   @ivar compositeFree: Free nodes that are not used while composite.
