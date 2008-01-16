@@ -700,9 +700,13 @@ void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 static void drawscredge_area(ScrArea *sa)
 {
 	short x1= sa->v1->vec.x;
+	short xa1= x1+HEADERY;
 	short y1= sa->v1->vec.y;
+	short ya1= y1+HEADERY;
 	short x2= sa->v3->vec.x;
+	short xb2= x2-HEADERY;
 	short y2= sa->v3->vec.y;
+	short yb2= y2-HEADERY;
 	
 	cpack(0x0);
 	
@@ -710,14 +714,19 @@ static void drawscredge_area(ScrArea *sa)
 	sdrawline(x2, y1, x2, y2);
 	
 	/* left border area */
-	if(x1>0) { // otherwise it draws the emboss of window over
+	if(x1>0) { /* otherwise it draws the emboss of window over */
 		sdrawline(x1, y1, x1, y2);
-	}	
+	}
+	
 	/* top border area */
 	sdrawline(x1, y2, x2, y2);
 	
 	/* bottom border area */
 	sdrawline(x1, y1, x2, y1);
+	
+	/* temporary viz for 'action corner' */
+	sdrawtrifill(x1, y1, xa1, ya1, .2, .2, .2);
+	
 }
 
 void ED_screen_do_listen(bScreen *screen, wmNotifier *note)

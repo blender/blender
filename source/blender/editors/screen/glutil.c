@@ -93,6 +93,42 @@ void sdrawline(short x1, short y1, short x2, short y2)
 	glEnd();
 }
 
+/*
+
+	x1,y2
+	|  \
+	|   \
+	|    \
+	x1,y1-- x2,y1
+
+*/
+
+void sdrawtripoints(short x1, short y1, short x2, short y2){
+	short v[2];
+	v[0]= x1; v[1]= y1;
+	glVertex2sv(v);
+	v[0]= x1; v[1]= y2;
+	glVertex2sv(v);
+	v[0]= x2; v[1]= y1;
+	glVertex2sv(v);
+	glEnd();
+}
+
+void sdrawtri(short x1, short y1, short x2, short y2)
+{
+	glBegin(GL_LINE_STRIP);
+	sdrawtripoints(x1, y1, x2, y2);
+	glEnd();
+}
+
+void sdrawtrifill(short x1, short y1, short x2, short y2, float r, float g, float b)
+{
+	glBegin(GL_TRIANGLES);
+	glColor3f(r, g, b);
+	sdrawtripoints(x1, y1, x2, y2);
+	glEnd();
+}
+
 void sdrawbox(short x1, short y1, short x2, short y2)
 {
 	short v[2];

@@ -180,8 +180,6 @@ void wm_draw_update(bContext *C)
 			/* notifiers for screen redraw */
 			if(win->screen->do_refresh)
 				ED_screen_refresh(C->wm, win);
-			if(win->screen->do_draw)
-				ED_screen_draw(win);
 			
 			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 				ARegion *ar= sa->regionbase.first;
@@ -198,6 +196,11 @@ void wm_draw_update(bContext *C)
 						ED_region_do_draw(C, ar);
 				}
 			}
+			
+			/* move this here so we can do area 'overlay' drawing */
+			if(win->screen->do_draw)
+				ED_screen_draw(win);
+			
 			wm_window_swap_buffers(win);
 		}
 	}
