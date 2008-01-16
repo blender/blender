@@ -42,6 +42,7 @@
 #include "BIF_radialcontrol.h"
 
 #include "BKE_global.h"
+#include "BLI_arithb.h"
 
 #include "mydevice.h"
 #include "transform.h"
