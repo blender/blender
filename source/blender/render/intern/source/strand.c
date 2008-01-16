@@ -59,7 +59,7 @@ void merge_transp_passes(RenderLayer *rl, ShadeResult *shr);
 void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alpha);
 void hoco_to_zco(ZSpan *zspan, float *zco, float *hoco);
 void zspan_scanconvert_strand(ZSpan *zspan, void *handle, float *v1, float *v2, float *v3, void (*func)(void *, int, int, float, float, float) );
-void zbufsinglewire(ZSpan *zspan, ObjectRen *obr, int zvlnr, float *ho1, float *ho2);
+void zbufsinglewire(ZSpan *zspan, int obi, int zvlnr, float *ho1, float *ho2);
 int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassflag);
 void add_transp_speed(RenderLayer *rl, int offset, float *speed, float alpha, long *rdrect);
 void reset_sky_speedvectors(RenderPart *pa, RenderLayer *rl, float *rectf);
@@ -1056,6 +1056,9 @@ unsigned short *zbuffer_strands_shade(Render *re, RenderPart *pa, RenderLayer *r
 
 			if(re->test_break())
 				break;
+
+			if(!(strand->buffer->lay & rl->lay))
+				continue;
 
 #if 0
 			if(strand->clip)
