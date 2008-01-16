@@ -4096,6 +4096,10 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			0, 0, 0, 0, 0, "Select the default texture plugin location");
 		uiBlockEndAlign(block);
 		
+		uiDefButBitI(block, TOG, USER_RELPATHS, B_DRAWINFO, "Relative Paths Default",
+			(xpos+edgsp+(5*mpref)+(5*midsp)),y3,mpref,buth,
+			&(U.flag), 0, 0, 0, 0, "Default relative path option for the file selector");
+		
 		uiBlockBeginAlign(block);
 		uiDefBut(block, TEX, 0, "Seq Plugins: ",
 			(xpos+edgsp+(3*lpref)+(3*midsp)),y2,(lpref-smfileselbut),buth,
