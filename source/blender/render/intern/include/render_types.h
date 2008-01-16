@@ -174,7 +174,6 @@ struct Render
 
 	struct ObjectInstanceRen *objectinstance;
 	ListBase instancetable;
-	struct GHash *objecthash;
 	int totinstance;
 
 	struct Image *backbuf, *bakebuf;

@@ -3870,6 +3870,29 @@ static int render_object_type(int type)
 	return ELEM5(type, OB_FONT, OB_CURVE, OB_SURF, OB_MESH, OB_MBALL);
 }
 
+static void find_dupli_instances(Render *re, ObjectRen *obr)
+{
+	ObjectInstanceRen *obi;
+	float imat[4][4], obmat[4][4], obimat[4][4], nmat[3][3];
+
+	Mat4MulMat4(obmat, obr->ob->obmat, re->viewmat);
+	Mat4Invert(imat, obmat);
+
+	for(obi=re->instancetable.last; obi; obi=obi->prev) {
+		if(!obi->obr && obi->ob == obr->ob && obi->psysindex == obr->psysindex) {
+			obi->obr= obr;
+
+			/* compute difference between object matrix and
+			 * object matrix with dupli transform, in viewspace */
+			Mat4CpyMat4(obimat, obi->mat);
+			Mat4MulMat4(obi->mat, imat, obimat);
+
+			Mat3CpyMat4(nmat, obi->mat);
+			Mat3Inv(obi->imat, nmat);
+		}
+	}
+}
+
 static void init_render_object_data(Render *re, ObjectRen *obr, int only_verts)
 {
 	Object *ob= obr->ob;
@@ -3937,6 +3960,8 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 		/* only add instance for objects that have not been used for dupli */
 		if(!(ob->transflag & OB_RENDER_DUPLI))
 			RE_addRenderInstance(re, obr, ob, par, index, 0, NULL);
+		else
+			find_dupli_instances(re, obr);
 	}
 
 	/* and one render object per particle system */
@@ -3950,6 +3975,8 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 			/* only add instance for objects that have not been used for dupli */
 			if(!(ob->transflag & OB_RENDER_DUPLI))
 				RE_addRenderInstance(re, obr, ob, par, index, psysindex, NULL);
+			else
+				find_dupli_instances(re, obr);
 		}
 	}
 }
@@ -4137,7 +4164,7 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 	Object *ob;
 	ObjectInstanceRen *obi;
 	Scene *sce;
-	float mat[4][4], obmat[4][4];
+	float mat[4][4];
 
 	for(SETLOOPER(re->scene, base)) {
 		ob= base->object;
@@ -4173,11 +4200,10 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 				for(dob= lb->first; dob; dob= dob->next) {
 					Object *obd= dob->ob;
 					
-					Mat4CpyMat4(obmat, obd->obmat);
 					Mat4CpyMat4(obd->obmat, dob->mat);
 
 					/* group duplis need to set ob matrices correct, for deform. so no_draw is part handled */
-					if(dob->no_draw)
+					if(!(obd->transflag & OB_RENDER_DUPLI) && dob->no_draw)
 						continue;
 
 					if(obd->restrictflag & OB_RESTRICT_RENDER)
@@ -4192,13 +4218,9 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 					if(allow_render_dupli_instance(re, dob, obd)) {
 						ParticleSystem *psys;
 						int psysindex;
-						float imat[4][4], mat[4][4];
+						float mat[4][4];
 
-						/* compute difference between object matrix and
-						 * object matrix with dupli transform, in viewspace */
-						Mat4Invert(imat, obmat);
-						MTC_Mat4MulSerie(mat, re->viewmat, dob->mat, imat, re->viewinv, 0, 0, 0, 0);
-
+						Mat4MulMat4(mat, dob->mat, re->viewmat);
 						obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, 0, mat);
 						VECCOPY(obi->dupliorco, dob->orco);
 						obi->dupliuv[0]= dob->uv[0];
@@ -4214,8 +4236,6 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 						
 						obd->flag |= OB_DONE;
 						obd->transflag |= OB_RENDER_DUPLI;
-
-						Mat4CpyMat4(obd->obmat, obmat);
 					}
 					else
 						init_render_object(re, obd, ob, dob->index, only_verts);
