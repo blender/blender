@@ -76,6 +76,7 @@
 #include "BIF_gl.h"
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
+#include "BIF_radialcontrol.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -672,7 +673,7 @@ void flip_coord(float co[3], const char symm)
 }
 
 /* Use the warpfac field in MTex to store a rotation value for sculpt textures. Value is in degrees */
-float tex_angle(void)
+float sculpt_tex_angle(void)
 {
 	SculptData *sd= sculpt_data();
 	if(sd->texact!=-1 && sd->mtex[sd->texact])
@@ -737,7 +738,7 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 	else if(ss->texcache) {
 		const short bsize= sculptmode_brush()->size * 2;
 		const short half= sculptmode_brush()->size;
-		const float rot= to_rad(tex_angle());
+		const float rot= to_rad(sculpt_tex_angle());
 		const unsigned tcw = ss->texcache_w, tch = ss->texcache_h;
 		int px, py;
 		unsigned i, *p;
@@ -1224,147 +1225,85 @@ void sculptmode_set_strength(const int delta)
 	sculptmode_brush()->strength= val;
 }
 
-void sculptmode_propset_calctex()
+static void sculpt_radialcontrol_callback(const int mode, const int val)
+{
+	SculptSession *ss = sculpt_session();
+	BrushData *br = sculptmode_brush();
+
+	if(mode == RADIALCONTROL_SIZE)
+		br->size = val;
+	else if(mode == RADIALCONTROL_STRENGTH)
+		br->strength = val;
+	else if(mode == RADIALCONTROL_ROTATION)
+		set_tex_angle(val);
+
+	ss->radialcontrol = NULL;
+}
+
+/* Returns GL handle to brush texture */
+static GLuint sculpt_radialcontrol_calctex()
 {
 	SculptData *sd= sculpt_data();
 	SculptSession *ss= sculpt_session();
-	PropsetData *pd= sculpt_session()->propset;
-	if(pd) {
-		int i, j;
-		const int tsz = 128;
-		float *d;
-		if(!pd->texdata) {
-			pd->texdata= MEM_mallocN(sizeof(float)*tsz*tsz, "Brush preview");
-			if(sd->texrept!=SCULPTREPT_3D)
-				sculptmode_update_tex();
-			for(i=0; i<tsz; ++i)
-				for(j=0; j<tsz; ++j) {
-					float magn= sqrt(pow(i-tsz/2,2)+pow(j-tsz/2,2));
-					if(sd->texfade)
-						pd->texdata[i*tsz+j]= curve_strength(magn,tsz/2);
-					else
-						pd->texdata[i*tsz+j]= magn < tsz/2 ? 1 : 0;
-				}
-			if(sd->texact != -1 && ss->texcache) {
-				for(i=0; i<tsz; ++i)
-					for(j=0; j<tsz; ++j) {
-						const int col= ss->texcache[i*tsz+j];
-						pd->texdata[i*tsz+j]*= (((char*)&col)[0]+((char*)&col)[1]+((char*)&col)[2])/3.0f/255.0f;
-					}
-			}
+	int i, j;
+	const int tsz = 128;
+	float *texdata= MEM_mallocN(sizeof(float)*tsz*tsz, "Brush preview");
+	GLuint tex;
+
+	if(sd->texrept!=SCULPTREPT_3D)
+		sculptmode_update_tex();
+	for(i=0; i<tsz; ++i)
+		for(j=0; j<tsz; ++j) {
+			float magn= sqrt(pow(i-tsz/2,2)+pow(j-tsz/2,2));
+			if(sd->texfade)
+				texdata[i*tsz+j]= curve_strength(magn,tsz/2);
+			else
+				texdata[i*tsz+j]= magn < tsz/2 ? 1 : 0;
 		}
-		
-		/* Adjust alpha with brush strength */
-		d= MEM_dupallocN(pd->texdata);
+	if(sd->texact != -1 && ss->texcache) {
 		for(i=0; i<tsz; ++i)
-			for(j=0; j<tsz; ++j)
-				d[i*tsz+j]*= sculptmode_brush()->strength/200.0f+0.5f;
-		
-			
-		if(!pd->tex)
-			glGenTextures(1, (GLuint *)&pd->tex);
-		glBindTexture(GL_TEXTURE_2D, pd->tex);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, tsz, tsz, 0, GL_ALPHA, GL_FLOAT, d);
-		MEM_freeN(d);
+			for(j=0; j<tsz; ++j) {
+				const int col= ss->texcache[i*tsz+j];
+				texdata[i*tsz+j]*= (((char*)&col)[0]+((char*)&col)[1]+((char*)&col)[2])/3.0f/255.0f;
+			}
 	}
+		
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, tsz, tsz, 0, GL_ALPHA, GL_FLOAT, texdata);
+	MEM_freeN(texdata);
+
+	return tex;
 }
 
-void sculptmode_propset_header()
+void sculpt_radialcontrol_start(int mode)
 {
-	SculptSession *ss= sculpt_session();
-	PropsetData *pd= ss ? ss->propset : NULL;
-	if(pd) {
-		char str[512];
-		const char *name= "";
-		int val= 0;
-		if(pd->mode == PropsetSize) {
-			name= "Size";
-			val= sculptmode_brush()->size;
-		}
-		else if(pd->mode == PropsetStrength) {
-			name= "Strength";
-			val= sculptmode_brush()->strength;
-		}
-		else if(pd->mode == PropsetTexRot) {
-			name= "Texture Angle";
-			val= tex_angle();
-		}
-		sprintf(str, "Brush %s: %d", name, val);
-		headerprint(str);
+	SculptData *sd = sculpt_data();
+	SculptSession *ss = sculpt_session();
+	BrushData *br = sculptmode_brush();
+	int orig, max;
+
+	if(mode == RADIALCONTROL_SIZE) {
+		orig = br->size;
+		max = 200;
 	}
-}
-
-void sculptmode_propset_end(SculptSession *ss, int cancel)
-{
-	if(ss && ss->propset) {
-		PropsetData *pd= ss->propset;
-		
-		if(cancel) {
-			sculptmode_brush()->size= pd->origsize;
-			sculptmode_brush()->strength= pd->origstrength;
-			set_tex_angle(pd->origtexrot);
-		} else {	
-			if(pd->mode != PropsetSize)
-				sculptmode_brush()->size= pd->origsize;
-			if(pd->mode != PropsetStrength)
-				sculptmode_brush()->strength= pd->origstrength;
-			if(pd->mode != PropsetTexRot)
-				set_tex_angle(pd->origtexrot);
-
-			BIF_undo_push("Brush property set");
-		}
-		glDeleteTextures(1, &pd->tex);
-		MEM_freeN(pd->num);
-		MEM_freeN(pd->texdata);
-		MEM_freeN(pd);
-		ss->propset= NULL;
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWBUTSEDIT, 0);
-		allqueue(REDRAWHEADERS, 0);
+	else if(mode == RADIALCONTROL_STRENGTH) {
+		orig = br->strength;
+		max = 100;
 	}
-}
-
-void sculptmode_propset_init(PropsetMode mode)
-{
-	SculptSession *ss= sculpt_session();
-	PropsetData *pd= ss->propset;
-	const float ang= tex_angle();
-	
-	if(!pd) {
-		short mouse[2];
-		
-		pd= MEM_callocN(sizeof(PropsetData),"PropsetSize");
-		ss->propset= pd;
-		
-		getmouseco_areawin(mouse);
-		pd->origloc[0]= mouse[0];
-		pd->origloc[1]= mouse[1];
-		
-		if(mode == PropsetSize)
-			pd->origloc[0]-= sculptmode_brush()->size;
-		else if(mode == PropsetStrength)
-			pd->origloc[0]-= 200 - 2*sculptmode_brush()->strength;
-		else if(mode == PropsetTexRot) {
-			pd->origloc[0]-= 200 * cos(to_rad(ang));
-			pd->origloc[1]-= 200 * sin(to_rad(ang));
+	else if(mode == RADIALCONTROL_ROTATION) {
+		if(sd->texact!=-1 && sd->mtex[sd->texact]) {
+			orig = sculpt_tex_angle();
+			max = 360;
 		}
-		
-		pd->origsize= sculptmode_brush()->size;
-		pd->origstrength= sculptmode_brush()->strength;
-		pd->origtexrot= ang;
-		
-		sculptmode_propset_calctex();
-		
-		if(!pd->num)
-			pd->num = MEM_callocN(sizeof(NumInput), "propset numinput");
-		pd->num->idx_max= 0;
+		else
+			mode = RADIALCONTROL_NONE;
 	}
 
-	pd->mode= mode;
-	sculptmode_propset_header();
-	
-	allqueue(REDRAWVIEW3D, 0);
+	if(mode != RADIALCONTROL_NONE) {
+		ss->radialcontrol= radialcontrol_start(mode, sculpt_radialcontrol_callback, orig, max,
+						       sculpt_radialcontrol_calctex());
+	}
 }
 
 void sculpt_paint_brush(char clear)
@@ -1385,90 +1324,6 @@ void sculpt_paint_brush(char clear)
 		mvalo[0]= mval[0];
 		mvalo[1]= mval[1];
 	}
-}
-
-void sculptmode_propset(unsigned short event)
-{
-	PropsetData *pd= sculpt_session()->propset;
-	short mouse[2];
-	short tmp[2];
-	float dist;
-	BrushData *brush= sculptmode_brush();
-	char valset= 0;
-	
-	handleNumInput(pd->num, event);
-	
-	if(hasNumInput(pd->num)) {
-		float val;
-		applyNumInput(pd->num, &val);
-		if(pd->mode==PropsetSize)
-			brush->size= val;
-		else if(pd->mode==PropsetStrength)
-			brush->strength= val;
-		else if(pd->mode==PropsetTexRot)
-			set_tex_angle(val);
-		valset= 1;
-		allqueue(REDRAWVIEW3D, 0);
-	}
-	
-	switch(event) {
-	case MOUSEX:
-	case MOUSEY:
-		if(!hasNumInput(pd->num)) {
-			char ctrl= G.qual & LR_CTRLKEY;
-			getmouseco_areawin(mouse);
-			tmp[0]= pd->origloc[0]-mouse[0];
-			tmp[1]= pd->origloc[1]-mouse[1];
-			dist= sqrt(tmp[0]*tmp[0]+tmp[1]*tmp[1]);
-			if(pd->mode == PropsetSize) {
-				brush->size= dist;
-				if(ctrl) brush->size= (brush->size+5)/10*10;
-			} else if(pd->mode == PropsetStrength) {
-				float fin= (200.0f - dist) * 0.5f;
-				brush->strength= fin>=0 ? fin : 0;
-				if(ctrl) brush->strength= (brush->strength+5)/10*10;
-			} else if(pd->mode == PropsetTexRot) {
-				set_tex_angle((int)to_deg(atan2(tmp[1], tmp[0])) + 180);
-				if(ctrl)
-					set_tex_angle(((int)(tex_angle())+5)/10*10);
-			}
-			valset= 1;
-			allqueue(REDRAWVIEW3D, 0);
-		}
-		break;
-	case ESCKEY:
-	case RIGHTMOUSE:
-		brush->size= pd->origsize;
-		brush->strength= pd->origstrength;
-		set_tex_angle(pd->origtexrot);
-	case LEFTMOUSE:
-		while(get_mbut()==L_MOUSE);
-	case RETKEY:
-	case PADENTER:
-		sculptmode_propset_end(sculpt_session(), 0);
-		break;
-	default:
-		break;
-	};
-	
-	if(valset) {
-		if(pd->mode == PropsetSize) {
-			if(brush->size<1) brush->size= 1;
-			if(brush->size>200) brush->size= 200;
-		}
-		else if(pd->mode == PropsetStrength) {
-			if(brush->strength > 100) brush->strength= 100;
-			sculptmode_propset_calctex();
-		}
-		else if(pd->mode == PropsetTexRot) {
-			if(tex_angle() < 0)
-				set_tex_angle(0);
-			else if(tex_angle() > 360)
-				set_tex_angle(360);
-		}
-	}
-	
-	sculptmode_propset_header();
 }
 
 void sculptmode_selectbrush_menu(void)
@@ -1699,7 +1554,7 @@ void sculpt(void)
 	glGetIntegerv(GL_SCISSOR_BOX, scissor_box);
 	
 	/* For raking, get the original angle*/
-	offsetRot=tex_angle();
+	offsetRot=sculpt_tex_angle();
 	
 	while (get_mbut() & mousebut) {
 		getmouseco_areawin(mouse);

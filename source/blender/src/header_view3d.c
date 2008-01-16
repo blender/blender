@@ -113,6 +113,7 @@
 #include "BIF_meshtools.h"
 #include "BIF_poselib.h"
 #include "BIF_poseobject.h"
+#include "BIF_radialcontrol.h"
 #include "BIF_renderwin.h"
 #include "BIF_resources.h"
 #include "BIF_retopo.h"
@@ -4402,6 +4403,7 @@ void do_view3d_sculptmenu(void *arg, int event)
 {
 	SculptData *sd= &G.scene->sculptdata;
 	BrushData *br= sculptmode_brush();
+
 	switch(event) {
 	case 0:
 	case 1:
@@ -4445,13 +4447,13 @@ void do_view3d_sculptmenu(void *arg, int event)
 		add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
 		break;
 	case 15:
-		sculptmode_propset_init(PropsetTexRot);
+		sculpt_radialcontrol_start(RADIALCONTROL_ROTATION);
 		break;
 	case 16:
-		sculptmode_propset_init(PropsetStrength);
+		sculpt_radialcontrol_start(RADIALCONTROL_STRENGTH);
 		break;
 	case 17:
-		sculptmode_propset_init(PropsetSize);
+		sculpt_radialcontrol_start(RADIALCONTROL_SIZE);
 		break;
 	case 18:
 		br->dir= br->dir==1 ? 2 : 1;

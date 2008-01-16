@@ -31,29 +31,10 @@
 #define BKE_SCULPT_H
 
 struct NumInput;
+struct RadialControl;
 struct Scene;
 struct SculptData;
 struct SculptSession;
-
-typedef enum PropsetMode {
-	PropsetNone = 0,
-	PropsetSize,
-	PropsetStrength,
-	PropsetTexRot
-} PropsetMode;
-
-typedef struct PropsetData {
-	PropsetMode mode;
-	unsigned int tex;
-	short origloc[2];
-	float *texdata;
-	
-	short origsize;
-	char origstrength;
-	float origtexrot;
-	
-	struct NumInput *num;
-} PropsetData;
 
 typedef struct SculptSession {
 	struct ProjVert *projverts;
@@ -76,7 +57,7 @@ typedef struct SculptSession {
 	/* Used to cache the render of the active texture */
 	unsigned int texcache_w, texcache_h, *texcache;
 	
-	struct PropsetData *propset;
+	struct RadialControl *radialcontrol;
 	
 	/* For rotating around a pivot point */
 	vec3f pivot;

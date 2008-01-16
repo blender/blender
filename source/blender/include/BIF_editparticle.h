@@ -38,6 +38,7 @@
 struct Object;
 struct ParticleSystem;
 struct ParticleEditSettings;
+struct RadialControl;
 
 /* particle edit mode */
 void PE_set_particle_edit(void);
@@ -53,6 +54,7 @@ short PE_get_current_num(struct Object *ob);
 int PE_minmax(float *min, float *max);
 void PE_get_colors(char sel[4], char nosel[4]);
 struct ParticleEditSettings *PE_settings(void);
+struct RadialControl **PE_radialcontrol();
 
 /* update calls */
 void PE_hide_keys_time(struct ParticleSystem *psys, float cfra);
@@ -83,6 +85,7 @@ void PE_remove_doubles(void);
 void PE_mirror_x(int tagged);
 void PE_selectbrush_menu(void);
 void PE_remove_doubles(void);
+void PE_radialcontrol_start(const int mode);
 
 /* undo */
 void PE_undo_push(char *str);

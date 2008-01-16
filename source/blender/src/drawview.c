@@ -125,6 +125,7 @@
 #include "BIF_mywindow.h"
 #include "BIF_poseobject.h"
 #include "BIF_previewrender.h"
+#include "BIF_radialcontrol.h"
 #include "BIF_resources.h"
 #include "BIF_retopo.h"
 #include "BIF_screen.h"
@@ -3061,68 +3062,13 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 	/* Draw Sculpt Mode brush */
 	if(!G.obedit && (G.f & G_SCULPTMODE) && area_is_active_area(v3d->area) && sculpt_session()) {
-		PropsetData *pd= sculpt_session()->propset;
-		short r1=100, r2=100, r3=100;
-		short mouse[2];
+		RadialControl *rc= sculpt_session()->radialcontrol;
 
 		if(sculpt_data()->flags & SCULPT_INPUT_SMOOTH)
 			sculpt_stroke_draw();
 
-		if(pd) {
-			if(pd->mode == PropsetSize) {
-				r1= sculptmode_brush()->size;
-				r2= pd->origsize;
-				r3= r1;
-			} else if(pd->mode == PropsetStrength) {
-				r1= 200 - sculptmode_brush()->strength * 2;
-				r2= 200;
-				r3= 200;
-			} else if(pd->mode == PropsetTexRot) {
-				r1= r2= 200;
-				r3= 200;
-			}
-		
-			/* Draw brush with texture */
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-			glBindTexture(GL_TEXTURE_2D, pd->tex);
-
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			
-			glPushMatrix();
-			glTranslatef(pd->origloc[0], pd->origloc[1], 0);
-			glRotatef(tex_angle(), 0, 0, 1);
-
-			glEnable(GL_TEXTURE_2D);
-			glBegin(GL_QUADS);
-			glColor4f(0,0,0,1);
-			glTexCoord2f(0,0);
-			glVertex2f(-r3, -r3);
-			glTexCoord2f(1,0);
-			glVertex2f(r3, -r3);
-			glTexCoord2f(1,1);
-			glVertex2f(r3, r3);
-			glTexCoord2f(0,1);
-			glVertex2f(-r3, r3);
-			glEnd();
-			glDisable(GL_TEXTURE_2D);
-			
-			glPopMatrix();
-
-			if(r1 != r2)
-				fdrawXORcirc(pd->origloc[0], pd->origloc[1], r1);
-			fdrawXORcirc(pd->origloc[0], pd->origloc[1], r2);
-			
-			if(pd->mode == PropsetTexRot) {
-				const float ang= pd->origtexrot * (M_PI/180.0f);
-				getmouseco_areawin(mouse);
-				sdrawXORline(pd->origloc[0], pd->origloc[1],
-				             pd->origloc[0]+200*cos(ang), pd->origloc[1]+200*sin(ang));
-				sdrawXORline(pd->origloc[0], pd->origloc[1], mouse[0], mouse[1]);
-			}
-		}
+		if(rc)
+			radialcontrol_draw(rc);
 		else if(sculpt_data()->flags & SCULPT_DRAW_BRUSH) {
 			short csc[2], car[2];
 			getmouseco_sc(csc);
@@ -3143,7 +3089,9 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		ParticleEditSettings *pset = PE_settings();
 
 		short c[2];
-		if(psys && psys->edit && pset->brushtype>=0){
+		if(*PE_radialcontrol())
+			radialcontrol_draw(*PE_radialcontrol());
+		else if(psys && psys->edit && pset->brushtype>=0) {
 			getmouseco_areawin(c);
 			fdrawXORcirc((float)c[0], (float)c[1], (float)pset->brush[pset->brushtype].size);
 		}

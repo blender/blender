@@ -661,13 +661,8 @@ void sculptsession_free(Scene *sce)
 		if(ss->mats)
 			MEM_freeN(ss->mats);
 
-		if(ss->propset) {
-			if(ss->propset->texdata)
-				MEM_freeN(ss->propset->texdata);
-			if(ss->propset->num)
-				MEM_freeN(ss->propset->num);
-			MEM_freeN(ss->propset);
-		}
+		if(ss->radialcontrol)
+			MEM_freeN(ss->radialcontrol);
 
 		sculpt_vertexusers_free(ss);
 		if(ss->texcache)
