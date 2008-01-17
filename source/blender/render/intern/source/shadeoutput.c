@@ -1054,7 +1054,7 @@ void lamp_get_shadow(LampRen *lar, ShadeInput *shi, float inp, float *shadfac, i
 			if(lar->buftype==LA_SHADBUF_IRREGULAR)
 				shadfac[3]= ISB_getshadow(shi, lar->shb);
 			else
-				shadfac[3] = testshadowbuf(lar->shb, shi->co, shi->dxco, shi->dyco, inp);
+				shadfac[3] = testshadowbuf(lar->shb, shi->co, shi->dxco, shi->dyco, inp, shi->mat->lbias);
 		}
 		else if(lar->mode & LA_SHAD_RAY) {
 			ray_shadow(shi, lar, shadfac);

@@ -3714,7 +3714,7 @@ static void material_panel_shading(Material *ma)
 	uiBlock *block;
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_shading", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Shaders", "Material", 640, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Shaders", "Material", 640, 0, 318, 224)==0) return;
 	
 	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 	
@@ -3792,6 +3792,7 @@ static void material_panel_shading(Material *ma)
 		uiDefButF(block, NUMSLI, B_MATPRV, "SBias ",	159,30,151,19, &(ma->sbias), 0.0, 0.25, 10, 2, "Shadow bias, to prevent terminator problems on shadow boundary");
 		uiDefButF(block, NUMSLI, B_MATPRV, "Amb ",		9,10,150,19, &(ma->amb), 0.0, 1.0, 0, 0, "Sets the amount of global ambient color the material receives");
 		uiDefButF(block, NUMSLI, B_MATPRV, "Emit ",		159,10,151,19, &(ma->emit), 0.0, 2.0, 0, 0, "Sets the amount of light the material emits");
+		uiDefButF(block, NUMSLI, B_MATPRV, "LBias ",	9,-10,300,19, &(ma->lbias), 0.0, 10.0, 100, 2, "Factor to multiply shadowbuffer bias with (0 is ignore)");
 		uiBlockEndAlign(block);
 
 		uiBlockSetCol(block, TH_BUT_SETTING1);
@@ -3807,6 +3808,8 @@ static void material_panel_shading(Material *ma)
 		uiBlockBeginAlign(block);
 		uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_MATPRV, "GR:",	9, 55, 150, 19, &ma->group, "Limit Lighting to Lamps in this Group"); 
 		uiDefButBitI(block, TOG, MA_GROUP_NOLAY, B_MATPRV,	"Exclusive",	159,55, 85,20, &(ma->mode), 0, 0, 0, 0, "The material exclusively uses Lamps in this Group");
+		
+		
 	}
 }
 
