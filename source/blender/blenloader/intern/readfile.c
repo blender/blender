@@ -3948,6 +3948,8 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			ar->swinid= 0;
 			ar->type= NULL;
 		}
+		
+		sa->actionzones.first= sa->actionzones.last= NULL;
 
 		sa->v1= newdataadr(fd, sa->v1);
 		sa->v2= newdataadr(fd, sa->v2);
