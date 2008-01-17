@@ -3373,7 +3373,7 @@ static void object_softbodies_II(Object *ob)
 	SoftBody *sb=ob->soft;
 	uiBlock *block;
 	static int val;
-	short *softflag=&ob->softflag, psys_cur=0,adaptive_mode;
+	short *softflag=&ob->softflag, psys_cur=0, adaptive_mode=0;
 	int ob_has_hair=psys_ob_has_hair(ob);
     if(!_can_softbodies_at_all(ob)) return;
 	/*bah that is ugly! creating missing data members in UI code*/

@@ -2240,7 +2240,7 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 	Material *ma;
 	
 	float birthtime = 0.0, dietime = 0.0;
-	float t, time, keytime, dfra = 1.0, frs_sec = G.scene->r.frs_sec;
+	float t, time = 0.0, keytime = 0.0, dfra = 1.0, frs_sec = G.scene->r.frs_sec;
 	float col[3] = {0.5f, 0.5f, 0.5f};
 	float prev_tangent[3], hairmat[4][4];
 	int k,i;
@@ -3235,13 +3235,13 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 	ParticleData *pa;
 	ChildParticle *cpa;
 	ParticleTexture ptex;
-	ParticleKey tstate, *kkey[2] = {NULL, NULL};
+	ParticleKey *kkey[2] = {NULL, NULL};
 	HairKey *hkey[2];
 	ParticleKey *par=0, keys[4];
 
 	float t, real_t, dfra, keytime, frs_sec = G.scene->r.frs_sec;
 	float co[3], orco[3];
-	float imat[4][4], hairmat[4][4], cpa_1st[3];
+	float hairmat[4][4];
 	float pa_clump = 0.0, pa_kink = 0.0;
 	int totparent = 0;
 	int totpart = psys->totpart;

@@ -2724,9 +2724,9 @@ static void displaceModifier_foreachIDLink(ModifierData *md, Object *ob,
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData*) md;
 
-	walk(userData, ob, &dmd->texture);
+	walk(userData, ob, (ID **)&dmd->texture);
 
-	displaceModifier_foreachObjectLink(md, ob, (ObjectWalkFunc) walk, userData);
+	displaceModifier_foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
 static int displaceModifier_isDisabled(ModifierData *md)

@@ -2015,7 +2015,7 @@ RadialControl **PE_radialcontrol()
 void PE_radialcontrol_start(const int mode)
 {
 	ParticleEditSettings *pset = PE_settings();
-	int orig;
+	int orig= 1;
 
 	if(pset->brushtype>=0) {
 		ParticleBrushData *brush= &pset->brush[pset->brushtype];

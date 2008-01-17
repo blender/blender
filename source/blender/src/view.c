@@ -88,6 +88,7 @@
 
 #include "mydevice.h"
 #include "blendef.h"
+#include "transform.h"
 
 #include "PIL_time.h" /* smoothview */
 

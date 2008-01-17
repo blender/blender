@@ -1281,7 +1281,7 @@ void sculpt_radialcontrol_start(int mode)
 	SculptData *sd = sculpt_data();
 	SculptSession *ss = sculpt_session();
 	BrushData *br = sculptmode_brush();
-	int orig, max;
+	int orig=1, max=100;
 
 	if(mode == RADIALCONTROL_SIZE) {
 		orig = br->size;
