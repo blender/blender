@@ -748,8 +748,7 @@ static char *layer_menu(RenderResult *rr, short *curlay)
 		a+= sprintf(str+a, "|%s %%x%d", rl->name, nr);
 	}
 	
-	if(*curlay >= nr)
-		*curlay= 0;
+	/* no curlay clip here, on render (redraws) the amount of layers can be 1 fir single-layer render */
 	
 	return str;
 }
