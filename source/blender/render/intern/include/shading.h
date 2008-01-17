@@ -69,6 +69,7 @@ void shade_input_initialize(struct ShadeInput *shi, struct RenderPart *pa, struc
 
 void shade_sample_initialize(struct ShadeSample *ssamp, struct RenderPart *pa, struct RenderLayer *rl);
 void shade_samples_do_AO(struct ShadeSample *ssamp);
+void shade_samples_fill_with_ps(struct ShadeSample *ssamp, struct PixStr *ps, int x, int y);
 int shade_samples(struct ShadeSample *ssamp, struct PixStr *ps, int x, int y);
 
 void vlr_set_uv_indices(struct VlakRen *vlr, int *i1, int *i2, int *i3);

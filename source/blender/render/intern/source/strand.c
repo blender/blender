@@ -685,6 +685,7 @@ static void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *ss
 		vlr.flag |= R_TANGENT;
 
 	shi->vlr= &vlr;
+	shi->strand= sseg->strand;
 	shi->obi= sseg->obi;
 	shi->obr= sseg->obi->obr;
 

@@ -105,6 +105,7 @@
 #define RE_UV_ELEMS			2
 #define RE_SURFNOR_ELEMS	3
 #define RE_SIMPLIFY_ELEMS	2
+#define RE_FACE_ELEMS	1
 
 float *RE_vertren_get_sticky(ObjectRen *obr, VertRen *ver, int verify)
 {
@@ -607,6 +608,21 @@ float *RE_strandren_get_simplify(struct ObjectRen *obr, struct StrandRen *strand
 	return simplify + (strand->index & 255)*RE_SIMPLIFY_ELEMS;
 }
 
+int *RE_strandren_get_face(ObjectRen *obr, StrandRen *strand, int verify)
+{
+	int *face;
+	int nr= strand->index>>8;
+	
+	face= obr->strandnodes[nr].face;
+	if(face==NULL) {
+		if(verify) 
+			face= obr->strandnodes[nr].face= MEM_callocN(256*RE_FACE_ELEMS*sizeof(int), "face table");
+		else
+			return NULL;
+	}
+	return face + (strand->index & 255)*RE_FACE_ELEMS;
+}
+
 /* winspeed is exception, it is stored per instance */
 float *RE_strandren_get_winspeed(ObjectInstanceRen *obi, StrandRen *strand, int verify)
 {
@@ -757,6 +773,8 @@ void free_renderdata_strandnodes(StrandTableNode *strandnodes)
 			MEM_freeN(strandnodes[a].surfnor);
 		if(strandnodes[a].simplify)
 			MEM_freeN(strandnodes[a].simplify);
+		if(strandnodes[a].face)
+			MEM_freeN(strandnodes[a].face);
 	}
 	
 	MEM_freeN(strandnodes);

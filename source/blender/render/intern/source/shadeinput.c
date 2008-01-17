@@ -422,7 +422,7 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 		}
 
 		if(texco & TEXCO_STRAND) {
-			shi->strand= spoint->strandco;
+			shi->strandco= spoint->strandco;
 
 			if(shi->osatex) {
 				shi->dxstrand= spoint->dtstrandco;
@@ -935,7 +935,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 		}
 		
 		if(texco & TEXCO_STRAND) {
-			shi->strand= (l*v3->accum - u*v1->accum - v*v2->accum);
+			shi->strandco= (l*v3->accum - u*v1->accum - v*v2->accum);
 			if(shi->osatex) {
 				dl= shi->dx_u+shi->dx_v;
 				shi->dxstrand= dl*v3->accum-shi->dx_u*v1->accum-shi->dx_v*v2->accum;
@@ -1236,7 +1236,7 @@ void shade_samples_do_AO(ShadeSample *ssamp)
 	
 	if(!(R.r.mode & R_SHADOW))
 		return;
-	if(!(R.r.mode & R_RAYTRACE))
+	if(!(R.r.mode & R_RAYTRACE) && !(R.wrld.ao_gather_method == WO_AOGATHER_APPROX))
 		return;
 	
 	if(R.wrld.mode & WO_AMB_OCC)
@@ -1248,7 +1248,7 @@ void shade_samples_do_AO(ShadeSample *ssamp)
 }
 
 
-static void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, int y)
+void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, int y)
 {
 	ShadeInput *shi;
 	float xs, ys;

@@ -2152,18 +2152,27 @@ static void world_panel_amb_occ(World *wrld)
 	uiBlockSetCol(block, TH_AUTO);
 	
 	if(!(wrld->mode & WO_AMB_OCC)) return;
-	
-	yco -= YSPACE;
-
-	uiDefButS(block, NUM, B_REDR, "Samples:",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->aosamp, 1.0, 32.0, 100, 0, "Sets the number of samples used for AO  (actual number: squared)");
-	
-	yco -= YSPACE;
-	
-	uiDefButF(block, NUM, B_REDR, "Max Dist:",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->aodist, 0.001, 5000.0, 100, 0, "Sets length of AO rays, defines how far away other faces give occlusion effect");
 
 	yco -= YSPACE;
+
+	if(wrld->ao_gather_method == WO_AOGATHER_RAYTRACE) {
+		uiDefButS(block, NUM, B_REDR, "Samples:",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->aosamp, 1.0, 32.0, 100, 0, "Sets the number of samples used for AO  (actual number: squared)");
+
+		yco -= YSPACE;
+		
+		uiDefButF(block, NUM, B_REDR, "Max Dist:",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->aodist, 0.001, 5000.0, 100, 0, "Sets length of AO rays, defines how far away other faces give occlusion effect");
+	}
+	else {
+		uiDefButS(block, NUM, B_REDR, "Passes:",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->ao_approx_passes, 0.0, 10.0, 0, 0, "Sets the number of preprocessing passes to reduce overocclusion");
+
+		yco -= YSPACE;
+	
+		uiDefButF(block, NUM, B_REDR, "Correction:",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->ao_approx_correction, 0.0, 1.0, 0, 0, "Ad-hoc correction for over-occlusion due to the approximation.");
+	}
 	
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, WO_AODIST, B_AO_FALLOFF, "Use Falloff",
@@ -2176,23 +2185,38 @@ static void world_panel_amb_occ(World *wrld)
 	/* column 2 */
 	yco = PANEL_YMAX - BUTH - YSPACE;
 	
-	uiDefButS(block, MENU, B_REDR, "Constant QMC %x2|Adaptive QMC %x1|Constant Jittered %x0",
-		X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->ao_samp_method, 0, 0, 0, 0, "Method for generating shadow samples: Constant QMC: best quality, Adaptive QMC: fast in high contrast areas");
-	
-	yco -= YSPACE;
-	
-	if (wrld->ao_samp_method == WO_AOSAMP_HALTON) {	
-		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_REDR, "Threshold:",
-			X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->ao_adapt_thresh, 0.0, 1.0, 100, 0, "Samples below this threshold will be considered fully shadowed/unshadowed and skipped");
-		uiDefButF(block, NUMSLI, B_REDR, "Adapt Vec:",
-			X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->ao_adapt_speed_fac, 0.0, 1.0, 100, 0, "Use the speed vector pass to reduce AO samples in fast moving pixels. The higher the value, the more aggressive the sample reduction. Requires Vec pass enabled.");
-		uiBlockEndAlign(block);
-	} else if (wrld->ao_samp_method == WO_AOSAMP_CONSTANT) {
-		uiDefButF(block, NUMSLI, B_REDR, "Bias:",
-			X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->aobias, 0.0, 0.5, 10, 0, "Sets bias to prevent smoothed faces to show banding (in radians)");
-	}
+	uiDefButS(block, MENU, B_REDR, "Gather Method%t|Raytrace %x0|Approximate %x1",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->ao_gather_method, 0, 0, 0, 0, "Method for occlusion gathering: Raytrace: slow when noise free results are required, but accurate, Approximate: faster and without noise, but inaccurate");
 
+	yco -= YSPACE;
+
+	if(wrld->ao_gather_method == WO_AOGATHER_RAYTRACE) {
+		uiDefButS(block, MENU, B_REDR, "Constant QMC %x2|Adaptive QMC %x1|Constant Jittered %x0",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->ao_samp_method, 0, 0, 0, 0, "Method for generating shadow samples: Constant QMC: best quality, Adaptive QMC: fast in high contrast areas");
+		
+		yco -= YSPACE;
+
+		if (wrld->ao_samp_method == WO_AOSAMP_HALTON) {	
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_REDR, "Threshold:",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->ao_adapt_thresh, 0.0, 1.0, 100, 0, "Samples below this threshold will be considered fully shadowed/unshadowed and skipped");
+			uiDefButF(block, NUMSLI, B_REDR, "Adapt Vec:",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->ao_adapt_speed_fac, 0.0, 1.0, 100, 0, "Use the speed vector pass to reduce AO samples in fast moving pixels. The higher the value, the more aggressive the sample reduction. Requires Vec pass enabled.");
+			uiBlockEndAlign(block);
+		} else if (wrld->ao_samp_method == WO_AOSAMP_CONSTANT) {
+			uiDefButF(block, NUMSLI, B_REDR, "Bias:",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->aobias, 0.0, 0.5, 10, 0, "Sets bias to prevent smoothed faces to show banding (in radians)");
+		}
+	}
+	else {
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_REDR, "Error:",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->ao_approx_error, 0.0001, 10.0, 0, 0, "Error tolerance (low values are slower and higher quality)");
+
+		uiDefButBitS(block, TOG, WO_AOCACHE, B_REDR, "Pixel Cache",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->aomode, 0, 0, 0, 0, "Cache AO results in pixels and interpolate over neighbouring pixels for speedup.");
+		uiBlockEndAlign(block);
+	}
 
 	yco = PANEL_YMAX - (5*BUTH+4*YSPACE);
 
@@ -2204,6 +2228,7 @@ static void world_panel_amb_occ(World *wrld)
 		X3CLM2, yco, BUTW3, BUTH, &wrld->aomix, 1.0, (float)WO_AOSUB, 0, 0, "subtracts light/shadows (needs at least one normal light to make anything visible)");
 	uiDefButS(block, ROW, B_REDR, "Both",
 		X3CLM3, yco, BUTW3, BUTH, &wrld->aomix, 1.0, (float)WO_AOADDSUB, 0, 0, "both lightens & darkens");
+	uiBlockEndAlign(block);
 
 	yco -= YSPACE;
 
@@ -2216,12 +2241,11 @@ static void world_panel_amb_occ(World *wrld)
 	uiDefButS(block, ROW, B_REDR, "Sky Texture", 
 		X3CLM3, yco, BUTW3, BUTH, &wrld->aocolor, 2.0, (float)WO_AOSKYTEX, 0, 0, "Does full Sky texture render for diffuse energy");
 	uiBlockEndAlign(block);
-	
+
 	yco -= YSPACE;
-	
+		
 	uiDefButF(block, NUMSLI, B_REDR, "Energy:",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->aoenergy, 0.01, 3.0, 100, 0, "Sets global energy scale for AO");
-	
 }
 
 static void world_panel_world(World *wrld)

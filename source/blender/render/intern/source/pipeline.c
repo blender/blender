@@ -538,6 +538,9 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 			if(srl->passflag  & SCE_PASS_REFRACT)
 				render_layer_add_pass(rr, rl, 3, SCE_PASS_REFRACT);
 		}
+		else if(re->wrld.mode & WO_AMB_OCC)
+			if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
+				render_layer_add_pass(rr, rl, 3, SCE_PASS_AO);
 		if(re->r.mode & R_RADIO)
 			if(srl->passflag  & SCE_PASS_RADIO)
 				render_layer_add_pass(rr, rl, 3, SCE_PASS_RADIO);

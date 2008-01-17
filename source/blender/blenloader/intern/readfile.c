@@ -6698,6 +6698,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Lamp *la;
 		Material *ma;
 		ParticleSettings *part;
+		World *wrld;
 		Mesh *me;
 		
 		/* unless the file was created 2.44.3 but not 2.45, update the constraints */
@@ -6876,6 +6877,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				part->simplify_transition= 0.1f;
 				part->simplify_viewport= 0.8f;
 			}
+		}
+
+		for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
+			if(wrld->ao_approx_error == 0.0f)
+				wrld->ao_approx_error= 0.25f;
 		}
 
 		if (main->versionfile < 245 || main->subversionfile < 12)

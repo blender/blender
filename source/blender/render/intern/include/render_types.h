@@ -158,6 +158,10 @@ struct Render
 	
 	/* octree tables and variables for raytrace */
 	void *raytree;
+
+	/* occlusion tree */
+	void *occlusiontree;
+	ListBase occlusionmesh;
 	
 	/* use this instead of R.r.cfra */
 	float cfra;	
@@ -341,6 +345,7 @@ typedef struct StrandBuffer {
 
 	struct ObjectRen *obr;
 	struct Material *ma;
+	void *occlusionmesh;
 	unsigned int lay;
 	int overrideuv;
 	int flag, maxdepth;

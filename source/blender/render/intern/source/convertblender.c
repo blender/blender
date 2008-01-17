@@ -100,6 +100,7 @@
 
 #include "envmap.h"
 #include "multires.h"
+#include "occlusion.h"
 #include "render_types.h"
 #include "rendercore.h"
 #include "renderdatabase.h"
@@ -1497,7 +1498,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	float *orco=0,*surfnor=0,*uvco=0, strandlen=0.0f, curlen=0.0f;
 	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(ob,(float)CFRA,0.0);
 	float adapt_angle=0.0, adapt_pix=0.0, random, simplify[2];
-	int i, a, k, max_k=0, totpart, totuv=0, override_uv=-1, dosimplify = 0;
+	int i, a, k, max_k=0, totpart, totuv=0, override_uv=-1, dosimplify = 0, doapproxao = 0;
 	int path_possible=0, keys_possible=0, baked_keys=0, totchild=psys->totchild;
 	int seed, path_nbr=0, path=0, orco1=0, adapt=0, uv[3]={0,0,0}, num;
 	char **uv_name=0;
@@ -1656,6 +1657,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					strandbuf->flag |= R_STRAND_B_UNITS;
 
 				svert= strandbuf->vert;
+
+				if((re->wrld.mode & WO_AMB_OCC) && (re->wrld.ao_gather_method == WO_AOGATHER_APPROX))
+					if(ma->amb != 0.0f)
+						doapproxao= 1;
 			}
 		}
 	}
@@ -1704,14 +1709,14 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			else
 				psys_particle_on_emitter(ob, psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,0);
 
+			num= pa->num_dmcache;
+
+			if(num == DMCACHE_NOTFOUND)
+				if(pa->num < psmd->dm->getNumFaces(psmd->dm))
+					num= pa->num;
+
 			if(uvco && ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)){
 				layer=psmd->dm->faceData.layers + CustomData_get_layer_index(&psmd->dm->faceData,CD_MFACE);
-
-	            num= pa->num_dmcache;
-
-				if(num == DMCACHE_NOTFOUND)
-					if(pa->num < psmd->dm->getNumFaces(psmd->dm))
-						num= pa->num;
 
 				for(i=0; i<totuv; i++){
 					if(num != DMCACHE_NOTFOUND) {
@@ -1760,6 +1765,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			pa_size=psys_get_child_size(psys, cpa, cfra, &pa_time);
 
 			r_tilt=2.0f*cpa->rand[2];
+
+			num= cpa->num;
 
 			/* get orco */
 			psys_particle_on_emitter(ob, psmd,
@@ -1829,6 +1836,11 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			if(surfnor) {
 				float *snor= RE_strandren_get_surfnor(obr, strand, 1);
 				VECCOPY(snor, surfnor);
+			}
+
+			if(doapproxao && num >= 0) {
+				int *facenum= RE_strandren_get_face(obr, strand, 1);
+				*facenum= num;
 			}
 
 			if(uvco){
@@ -1929,6 +1941,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		if(re->test_break())
 			break;
 	}
+
+	if(doapproxao)
+		strandbuf->occlusionmesh= cache_occ_mesh(re, obr, psmd->dm, mat);
 
 /* 4. clean up */
 	if(ma) do_mat_ipo(ma);
@@ -3636,7 +3651,7 @@ void init_render_world(Render *re)
 		if(re->osa)
 			while(re->wrld.aosamp*re->wrld.aosamp < re->osa) 
 				re->wrld.aosamp++;
-		if(!(re->r.mode & R_RAYTRACE))
+		if(!(re->r.mode & R_RAYTRACE) && (re->wrld.ao_gather_method == WO_AOGATHER_RAYTRACE))
 			re->wrld.mode &= ~WO_AMB_OCC;
 	}
 	else {
@@ -4069,6 +4084,7 @@ void RE_Database_Free(Render *re)
 	if(re->r.mode & R_RAYTRACE) freeraytree(re);
 
 	free_sss(re);
+	free_occ(re);
 	
 	re->totvlak=re->totvert=re->totstrand=re->totlamp=re->tothalo= 0;
 	re->i.convertdone= 0;
@@ -4289,7 +4305,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	}
 	
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
-	if(re->wrld.mode & WO_AMB_OCC) {
+	if((re->r.mode & R_RAYTRACE) && (re->wrld.mode & WO_AMB_OCC)) {
 		if (re->wrld.ao_samp_method == WO_AOSAMP_HAMMERSLEY)
 			init_render_hammersley(re);
 		else if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
@@ -4354,10 +4370,16 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		
 		if(!re->test_break())
 			project_renderdata(re, projectverto, re->r.mode & R_PANORAMA, 0, 1);
+		
+		/* Occlusion */
+		if((re->wrld.mode & WO_AMB_OCC) && !re->test_break())
+			if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
+				if(re->r.renderer==R_INTERN)
+					make_occ_tree(re);
 
 		/* SSS */
 		if((re->r.mode & R_SSS) && !re->test_break())
-			if (re->r.renderer==R_INTERN)
+			if(re->r.renderer==R_INTERN)
 				make_sss_tree(re);
 	}
 	
@@ -4837,7 +4859,7 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 	}
 	
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
-	if(re->wrld.mode & WO_AMB_OCC) {
+	if((re->r.mode & R_RAYTRACE) && (re->wrld.mode & WO_AMB_OCC)) {
 		if (re->wrld.ao_samp_method == WO_AOSAMP_HAMMERSLEY)
 			init_render_hammersley(re);
 		else if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
