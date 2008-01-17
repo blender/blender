@@ -4097,9 +4097,8 @@ static int allow_render_object(Object *ob, int nolamps, int onlyselected, Object
 			for(psys=ob->particlesystem.first; psys; psys=psys->next){
 				part=psys->part;
 
-				if((part->draw_as==PART_DRAW_OB && part->dup_ob) || (part->draw_as==PART_DRAW_GR && part->dup_group))
-					if(part->draw & PART_DRAW_EMITTER)
-						allow= 1;
+				if(part->draw & PART_DRAW_EMITTER)
+					allow= 1;
 			}
 		}
 
