@@ -748,6 +748,7 @@ static void drawscredge_area(ScrArea *sa)
 	/* temporary viz for 'action corner' */
 	for(az= sa->actionzones.first; az; az= az->next) {
 		if(az->type==AZONE_TRI) sdrawtrifill(az->x1, az->y1, az->x2, az->y2, .2, .2, .2);
+		//if(az->type==AZONE_TRI) sdrawtri(az->x1, az->y1, az->x2, az->y2);
 	}
 }
 

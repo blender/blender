@@ -260,6 +260,7 @@ static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 	sa->winy= sa->totrct.ymax-sa->totrct.ymin+1;
 }
 
+#define AZONESPOT		6
 void area_azone_initialize(ScrArea *sa) {
 	AZone *az;
 	if(sa->actionzones.first==NULL) {
@@ -270,8 +271,8 @@ void area_azone_initialize(ScrArea *sa) {
 		az->type= AZONE_TRI;
 		az->x1= sa->v1->vec.x+1;
 		az->y1= sa->v1->vec.y+1;
-		az->x2= sa->v1->vec.x+HEADERY;
-		az->y2= sa->v1->vec.y+HEADERY;
+		az->x2= sa->v1->vec.x+AZONESPOT;
+		az->y2= sa->v1->vec.y+AZONESPOT;
 		az->pos= AZONE_SW;
 		az->action= AZONE_SPLIT;
 		
@@ -280,8 +281,8 @@ void area_azone_initialize(ScrArea *sa) {
 		az->type= AZONE_TRI;
 		az->x1= sa->v3->vec.x-1;
 		az->y1= sa->v3->vec.y-1;
-		az->x2= sa->v3->vec.x-HEADERY;
-		az->y2= sa->v3->vec.y-HEADERY;
+		az->x2= sa->v3->vec.x-AZONESPOT;
+		az->y2= sa->v3->vec.y-AZONESPOT;
 		az->pos= AZONE_NE;
 		az->action= AZONE_DRAG;
 		
@@ -290,61 +291,61 @@ void area_azone_initialize(ScrArea *sa) {
 		az->type= AZONE_TRI;
 		az->x1= as->v1->vec.x;
 		az->y1= as->v1->vec.y;
-		az->x2= as->v1->vec.x+HEADERY;
-		az->y2= as->v1->vec.y+HEADERY;
+		az->x2= as->v1->vec.x+AZONESPOT;
+		az->y2= as->v1->vec.y+AZONESPOT;
 		
 		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 		BLI_addtail(&sa->azones, az);
 		az->type= AZONE_TRI;
 		az->x1= as->v1->vec.x;
 		az->y1= as->v1->vec.y;
-		az->x2= as->v1->vec.x+HEADERY;
-		az->y2= as->v1->vec.y+HEADERY;
+		az->x2= as->v1->vec.x+AZONESPOT;
+		az->y2= as->v1->vec.y+AZONESPOT;
 		
 		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 		BLI_addtail(&sa->azones, az);
 		az->type= AZONE_QUAD;
 		az->x1= as->v1->vec.x;
 		az->y1= as->v1->vec.y;
-		az->x2= as->v1->vec.x+HEADERY;
-		az->y2= as->v1->vec.y+HEADERY;
+		az->x2= as->v1->vec.x+AZONESPOT;
+		az->y2= as->v1->vec.y+AZONESPOT;
 		
 		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 		BLI_addtail(&sa->azones, az);
 		az->type= AZONE_QUAD;
 		az->x1= as->v1->vec.x;
 		az->y1= as->v1->vec.y;
-		az->x2= as->v1->vec.x+HEADERY;
-		az->y2= as->v1->vec.y+HEADERY;
+		az->x2= as->v1->vec.x+AZONESPOT;
+		az->y2= as->v1->vec.y+AZONESPOT;
 		
 		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 		BLI_addtail(&sa->azones, az);
 		az->type= AZONE_QUAD;
 		az->x1= as->v1->vec.x;
 		az->y1= as->v1->vec.y;
-		az->x2= as->v1->vec.x+HEADERY;
-		az->y2= as->v1->vec.y+HEADERY;
+		az->x2= as->v1->vec.x+AZONESPOT;
+		az->y2= as->v1->vec.y+AZONESPOT;
 		
 		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 		BLI_addtail(&sa->azones, az);
 		az->type= AZONE_QUAD;
 		az->x1= as->v1->vec.x;
 		az->y1= as->v1->vec.y;
-		az->x2= as->v1->vec.x+HEADERY;
-		az->y2= as->v1->vec.y+HEADERY;*/
+		az->x2= as->v1->vec.x+AZONESPOT;
+		az->y2= as->v1->vec.y+AZONESPOT;*/
 	}
 	
 	for(az= sa->actionzones.first; az; az= az->next) {
 		if(az->pos==AZONE_SW) {
 			az->x1= sa->v1->vec.x+1;
 			az->y1= sa->v1->vec.y+1;
-			az->x2= sa->v1->vec.x+HEADERY;
-			az->y2= sa->v1->vec.y+HEADERY;
+			az->x2= sa->v1->vec.x+AZONESPOT;
+			az->y2= sa->v1->vec.y+AZONESPOT;
 		} else if (az->pos==AZONE_NE) {
 			az->x1= sa->v3->vec.x-1;
 			az->y1= sa->v3->vec.y-1;
-			az->x2= sa->v3->vec.x-HEADERY;
-			az->y2= sa->v3->vec.y-HEADERY;
+			az->x2= sa->v3->vec.x-AZONESPOT;
+			az->y2= sa->v3->vec.y-AZONESPOT;
 		}
 	}
 }
