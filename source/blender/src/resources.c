@@ -453,6 +453,8 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tact.hilite,  17, 27, 60, 100);	// bar
 	SETCOL(btheme->tact.strip_select, 	0xff, 0xff, 0xaa, 255);
 	SETCOL(btheme->tact.strip, 0xe4, 0x9c, 0xc6, 255);
+	SETCOL(btheme->tact.group, 0x39, 0x7d, 0x1b, 255);
+	SETCOL(btheme->tact.group_active, 0x7d, 0xe9, 0x60, 255);
 
 	/* space nla */
 	btheme->tnla= btheme->tv3d;
@@ -643,6 +645,8 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "View Sliders %%x%d|", TH_SHADE1);
 			str += sprintf(str, "Channels %%x%d|", TH_SHADE2);
 			str += sprintf(str, "Channels Selected %%x%d|", TH_HILITE);
+			str += sprintf(str, "Channel Group %%x%d|", TH_GROUP);
+			str += sprintf(str, "Active Channel Group %%x%d|", TH_GROUP_ACTIVE);
 			str += sprintf(str, "Long Key %%x%d|", TH_STRIP);
 			str += sprintf(str, "Long Key selected %%x%d|", TH_STRIP_SELECT);
 			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);

@@ -396,6 +396,14 @@ static void init_userdef_file(void)
 			SETCOL(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
 		}
 	}
+	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 13)) {
+		bTheme *btheme;
+		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* action channel groups (recolour anyway) */
+			SETCOL(btheme->tact.group, 0x39, 0x7d, 0x1b, 255);
+			SETCOL(btheme->tact.group_active, 0x7d, 0xe9, 0x60, 255);
+		}
+	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {

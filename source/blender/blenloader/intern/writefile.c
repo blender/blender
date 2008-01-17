@@ -1750,6 +1750,7 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 {
 	bAction			*act;
 	bActionChannel	*chan;
+	bActionGroup 	*grp;
 	TimeMarker *marker;
 	
 	for(act=idbase->first; act; act= act->id.next) {
@@ -1760,6 +1761,10 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 			for (chan=act->chanbase.first; chan; chan=chan->next) {
 				writestruct(wd, DATA, "bActionChannel", 1, chan);
 				write_constraint_channels(wd, &chan->constraintChannels);
+			}
+			
+			for (grp=act->groups.first; grp; grp=grp->next) {
+				writestruct(wd, DATA, "bActionGroup", 1, grp);
 			}
 			
 			for (marker=act->markers.first; marker; marker=marker->next) {

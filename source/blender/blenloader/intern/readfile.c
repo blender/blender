@@ -1859,12 +1859,24 @@ static void direct_link_bones(FileData *fd, Bone* bone)
 static void direct_link_action(FileData *fd, bAction *act)
 {
 	bActionChannel *achan;
+	bActionGroup *agrp;
 
 	link_list(fd, &act->chanbase);
+	link_list(fd, &act->groups);
 	link_list(fd, &act->markers);
 
-	for (achan = act->chanbase.first; achan; achan=achan->next)
+	for (achan = act->chanbase.first; achan; achan=achan->next) {
+		achan->grp= newdataadr(fd, achan->grp);
+		
 		link_list(fd, &achan->constraintChannels);
+	}
+		
+	for (agrp = act->groups.first; agrp; agrp= agrp->next) {
+		if (agrp->channels.first) {
+			agrp->channels.first= newdataadr(fd, agrp->channels.first);
+			agrp->channels.last= newdataadr(fd, agrp->channels.last);
+		}
+	}
 }
 
 static void direct_link_armature(FileData *fd, bArmature *arm)

@@ -43,6 +43,7 @@
 /* Some types for easier type-testing */
 enum {
 	ACTTYPE_NONE= 0,
+	ACTTYPE_GROUP,
 	ACTTYPE_ACHAN,
 	ACTTYPE_CONCHAN,
 	ACTTYPE_ICU,
@@ -53,6 +54,10 @@ enum {
 };
 
 /* Macros for easier/more consistant state testing */
+#define EDITABLE_AGRP(agrp) ((agrp->flag & AGRP_PROTECTED)==0)
+#define EXPANDED_AGRP(agrp) (agrp->flag & AGRP_EXPANDED)
+#define SEL_AGRP(agrp) ((agrp->flag & AGRP_SELECTED) || (agrp->flag & AGRP_ACTIVE))
+
 #define VISIBLE_ACHAN(achan) ((achan->flag & ACHAN_HIDDEN)==0)
 #define EDITABLE_ACHAN(achan) ((VISIBLE_ACHAN(achan)) && ((achan->flag & ACHAN_PROTECTED)==0))
 #define EXPANDED_ACHAN(achan) ((VISIBLE_ACHAN(achan)) && (achan->flag & ACHAN_EXPANDED))
@@ -81,7 +86,6 @@ enum {
 
 /* constants for setting ipo-extrapolation type */
 enum {
-	
 	SET_EXTEND_MENU = 9,
 	SET_EXTEND_POPUP = 10,
 	
@@ -91,9 +95,19 @@ enum {
 	SET_EXTEND_CYCLICEXTRAPOLATION
 };
 
+/* constants for channel rearranging */
+/* WARNING: don't change exising ones without modifying rearrange func accordingly */
+enum {
+	REARRANGE_ACTCHAN_TOP= -2,
+	REARRANGE_ACTCHAN_UP= -1,
+	REARRANGE_ACTCHAN_DOWN= 1,
+	REARRANGE_ACTCHAN_BOTTOM= 2
+};
+
 
 struct bAction;
 struct bActionChannel;
+struct bActionGroup;
 struct bPoseChannel;
 struct Object;
 struct Ipo;
@@ -125,11 +139,14 @@ void free_actcopybuf(void);
 void copy_actdata(void);
 void paste_actdata(void);
 
-/* Channel/strip operations */
-void up_sel_action(void);
-void down_sel_action(void);
-void top_sel_action(void);
-void bottom_sel_action(void);
+/* Group/Channel Operations */
+struct bActionGroup *get_active_actiongroup(struct bAction *act);
+void set_active_actiongroup(struct bAction *act, struct bActionGroup *agrp, short select);
+void action_groups_group(short add_group);
+void action_groups_ungroup(void);
+
+/* Channel/Strip Operations */
+void rearrange_action_channels(short mode);
 
 void expand_all_action(void);
 void openclose_level_action(short mode);

@@ -94,6 +94,7 @@
 /* 'old' stuff": defines and types, and own include -------------------- */
 
 #include "blendef.h"
+#include "interface.h"
 #include "mydevice.h"
 
 /********************************** Slider Stuff **************************** */
@@ -406,7 +407,7 @@ static void draw_channel_names(void)
 	if (data == NULL) return;
 	
 	/* Clip to the scrollable area */
-	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
+	if (curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
 		if(G.v2d->scroll) {	
 			ofsx= curarea->winrct.xmin;	
 			ofsy= curarea->winrct.ymin;
@@ -434,16 +435,39 @@ static void draw_channel_names(void)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	for (ale= act_data.first; ale; ale= ale->next) {
-		short indent= 0, offset= 0, sel= 0;
+		short indent= 0, offset= 0, sel= 0, group=0;
 		int expand= -1, protect = -1, special= -1, mute = -1;
 		char name[32];
 		
 		/* determine what needs to be drawn */
 		switch (ale->type) {
+			case ACTTYPE_GROUP: /* action group */
+			{
+				bActionGroup *agrp= (bActionGroup *)ale->data;
+				
+				group= 2;
+				indent= 0;
+				special= -1;
+				
+				if (EXPANDED_AGRP(agrp))
+					expand = ICON_TRIA_DOWN;
+				else
+					expand = ICON_TRIA_RIGHT;
+					
+				if (EDITABLE_AGRP(agrp))
+					protect = ICON_UNLOCKED;
+				else
+					protect = ICON_LOCKED;
+					
+				sel = SEL_AGRP(agrp);
+				sprintf(name, agrp->name);
+			}
+				break;
 			case ACTTYPE_ACHAN: /* action channel */
 			{
 				bActionChannel *achan= (bActionChannel *)ale->data;
 				
+				group= (ale->grp) ? 1 : 0;
 				indent = 0;
 				special = -1;
 				
@@ -473,6 +497,7 @@ static void draw_channel_names(void)
 				bConstraintChannel *conchan = (bConstraintChannel *)ale->data;
 				
 				indent = 2;
+				group= (ale->grp) ? 1 : 0;
 				
 				if (EDITABLE_CONCHAN(conchan))
 					protect = ICON_UNLOCKED;
@@ -496,6 +521,7 @@ static void draw_channel_names(void)
 				
 				indent = 2;
 				protect = -1; // for now, until this can be supported by others
+				group= (ale->grp) ? 1 : 0;
 				
 				if (icu->flag & IPO_MUTE)
 					mute = ICON_MUTE_IPO_ON;
@@ -528,6 +554,7 @@ static void draw_channel_names(void)
 				
 				indent = 1;
 				special = geticon_ipo_blocktype(achan->ipo->blocktype);
+				group= (ale->grp) ? 1 : 0;
 				
 				if (FILTER_IPO_ACHAN(achan))	
 					expand = ICON_TRIA_DOWN;
@@ -544,6 +571,7 @@ static void draw_channel_names(void)
 				
 				indent = 1;
 				special = ICON_CONSTRAINT;
+				group= (ale->grp) ? 1 : 0;
 				
 				if (FILTER_CON_ACHAN(achan))	
 					expand = ICON_TRIA_DOWN;
@@ -558,9 +586,24 @@ static void draw_channel_names(void)
 
 		/* now, start drawing based on this information */
 		/* draw backing strip behind channel name */
-		BIF_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));
-		offset = 7 * indent;
-		glRectf(x+offset,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
+		if (group == 2) {
+			/* only for group-channels */
+			if (ale->flag & AGRP_ACTIVE)
+				BIF_ThemeColorShade(TH_GROUP_ACTIVE, 10);
+			else
+				BIF_ThemeColorShade(TH_GROUP, 20);
+			uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
+			gl_round_box(GL_POLYGON, x,  y-CHANNELHEIGHT/2, (float)NAMEWIDTH, y+CHANNELHEIGHT/2, 8);
+			
+			offset = 0;
+		}
+		else {
+			/* for normal channels */
+			BIF_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));
+			indent += group;
+			offset = 7 * indent;
+			glRectf(x+offset,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
+		}
 		
 		/* draw expand/collapse triangle */
 		if (expand > 0) {
@@ -572,7 +615,7 @@ static void draw_channel_names(void)
 		 * 	only for expand widgets for Ipo and Constraint Channels 
 		 */
 		if (special > 0) {
-			offset = 24;
+			offset = (group) ? 29 : 24;
 			BIF_icon_draw(x+offset, y-CHANNELHEIGHT/2, special);
 			offset += 17;
 		}
@@ -694,6 +737,12 @@ static void draw_channel_strips(void)
 		if (ale->datatype != ALE_NONE) {
 			/* determine if channel is selected */
 			switch (ale->type) {
+				case ACTTYPE_GROUP:
+				{
+					bActionGroup *agrp = (bActionGroup *)ale->data;
+					sel = SEL_AGRP(agrp);
+				}
+					break;
 				case ACTTYPE_ACHAN:
 				{
 					bActionChannel *achan = (bActionChannel *)ale->data;
@@ -752,6 +801,9 @@ static void draw_channel_strips(void)
 	y = 0.0;
 	for (ale= act_data.first; ale; ale= ale->next) {
 		switch (ale->datatype) {
+			case ALE_GROUP:
+				draw_agroup_channel(di, ale->data, y);
+				break;
 			case ALE_IPO:
 				draw_ipo_channel(di, ale->key_data, y);
 				break;
@@ -1196,6 +1248,17 @@ void draw_icu_channel(gla2DDrawInfo *di, IpoCurve *icu, float ypos)
 	BLI_freelistN(&blocks);
 }
 
+void draw_agroup_channel(gla2DDrawInfo *di, bActionGroup *agrp, float ypos)
+{
+	ListBase keys = {0, 0};
+	ListBase blocks = {0, 0};
+
+	agroup_to_keylist(agrp, &keys, &blocks);
+	draw_keylist(di, &keys, &blocks, ypos);
+	BLI_freelistN(&keys);
+	BLI_freelistN(&blocks);
+}
+
 void draw_action_channel(gla2DDrawInfo *di, bAction *act, float ypos)
 {
 	ListBase keys = {0, 0};
@@ -1273,6 +1336,27 @@ void ipo_to_keylist(Ipo *ipo, ListBase *keys, ListBase *blocks)
 	}
 }
 
+void agroup_to_keylist(bActionGroup *agrp, ListBase *keys, ListBase *blocks)
+{
+	bActionChannel *achan;
+	bConstraintChannel *conchan;
+
+	if (agrp) {
+		/* loop through action channels */
+		for (achan= agrp->channels.first; achan && achan!=agrp->channels.last; achan= achan->next) {
+			/* firstly, add keys from action channel's ipo block */
+			if (achan->ipo)
+				ipo_to_keylist(achan->ipo, keys, blocks);
+			
+			/* then, add keys from constraint channels */
+			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
+				if (conchan->ipo)
+					ipo_to_keylist(conchan->ipo, keys, blocks);
+			}
+		}
+	}
+}
+
 void action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks)
 {
 	bActionChannel *achan;
@@ -1288,7 +1372,7 @@ void action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks)
 			/* then, add keys from constraint channels */
 			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
 				if (conchan->ipo)
-					ipo_to_keylist(achan->ipo, keys, blocks);
+					ipo_to_keylist(conchan->ipo, keys, blocks);
 			}
 		}
 	}

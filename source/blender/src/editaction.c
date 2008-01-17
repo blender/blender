@@ -198,8 +198,25 @@ bActListElem *make_new_actlistelem (void *data, short datatype, void *owner, sho
 		ale->owner= owner;
 		ale->ownertype= ownertype;
 		
+		if ((owner) && (ownertype == ACTTYPE_ACHAN)) {
+			bActionChannel *ochan= (bActionChannel *)owner;
+			ale->grp= ochan->grp;
+		}
+		else 
+			ale->grp= NULL;
+		
 		/* do specifics */
 		switch (datatype) {
+			case ACTTYPE_GROUP:
+			{
+				bActionGroup *agrp= (bActionGroup *)data;
+				
+				ale->flag= agrp->flag;
+				
+				ale->key_data= NULL;
+				ale->datatype= ALE_GROUP;
+			}
+				break;
 			case ACTTYPE_ACHAN:
 			{
 				bActionChannel *achan= (bActionChannel *)data;
@@ -276,81 +293,116 @@ bActListElem *make_new_actlistelem (void *data, short datatype, void *owner, sho
  
 /* ----------------------------------------- */
  
-static void actdata_filter_action (ListBase *act_data, bAction *act, int filter_mode)
+static void actdata_filter_actionchannel (ListBase *act_data, bActionChannel *achan, int filter_mode)
 {
 	bActListElem *ale;
-	bActionChannel *achan;
 	bConstraintChannel *conchan;
 	IpoCurve *icu;
 	
-	/* loop over action channels, performing the necessary checks */
-	for (achan= act->chanbase.first; achan; achan= achan->next) {
-		/* only work with this channel and its subchannels if it is visible */
-		if (!(filter_mode & ACTFILTER_VISIBLE) || VISIBLE_ACHAN(achan)) {
-			/* only work with this channel and its subchannels if it is editable */
-			if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_ACHAN(achan)) {
-				/* check if this achan should only be included if it is selected */
-				if (!(filter_mode & ACTFILTER_SEL) || SEL_ACHAN(achan)) {
-					/* are we only interested in the ipo-curves? */
-					if ((filter_mode & ACTFILTER_ONLYICU)==0) {
-						ale= make_new_actlistelem(achan, ACTTYPE_ACHAN, achan, ACTTYPE_ACHAN);
-						if (ale) BLI_addtail(act_data, ale);
-					}
+	/* only work with this channel and its subchannels if it is visible */
+	if (!(filter_mode & ACTFILTER_VISIBLE) || VISIBLE_ACHAN(achan)) {
+		/* only work with this channel and its subchannels if it is editable */
+		if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_ACHAN(achan)) {
+			/* check if this achan should only be included if it is selected */
+			if (!(filter_mode & ACTFILTER_SEL) || SEL_ACHAN(achan)) {
+				/* are we only interested in the ipo-curves? */
+				if ((filter_mode & ACTFILTER_ONLYICU)==0) {
+					ale= make_new_actlistelem(achan, ACTTYPE_ACHAN, achan, ACTTYPE_ACHAN);
+					if (ale) BLI_addtail(act_data, ale);
 				}
-				else {
-					/* only consider selected channels - achan not selected */
-					continue;
-				}	
+			}
+			else {
+				/* only consider selected channels - achan not selected */
+				return;
+			}	
+			
+			/* check if expanded - if not, continue on to next action channel */
+			if (EXPANDED_ACHAN(achan) == 0 && (filter_mode & ACTFILTER_ONLYICU)==0) 
+				return;
 				
-				/* check if expanded - if not, continue on to next action channel */
-				if (EXPANDED_ACHAN(achan) == 0 && (filter_mode & ACTFILTER_ONLYICU)==0) 
-					continue;
-					
-				/* ipo channels */
-				if (achan->ipo) {
-					/* include ipo-expand widget? */
-					if ((filter_mode & ACTFILTER_CHANNELS) && (filter_mode & ACTFILTER_ONLYICU)==0) {
-						ale= make_new_actlistelem(achan, ACTTYPE_FILLIPO, achan, ACTTYPE_ACHAN);
-						if (ale) BLI_addtail(act_data, ale);
-					}
-					
-					/* add ipo-curve channels? */
-					if (FILTER_IPO_ACHAN(achan) || (filter_mode & ACTFILTER_ONLYICU)) {
-						/* loop through ipo-curve channels, adding them */
-						for (icu= achan->ipo->curve.first; icu; icu=icu->next) {
-							ale= make_new_actlistelem(icu, ACTTYPE_ICU, achan, ACTTYPE_ACHAN);
-							if (ale) BLI_addtail(act_data, ale); 
-						}
-					}
+			/* ipo channels */
+			if (achan->ipo) {
+				/* include ipo-expand widget? */
+				if ((filter_mode & ACTFILTER_CHANNELS) && (filter_mode & ACTFILTER_ONLYICU)==0) {
+					ale= make_new_actlistelem(achan, ACTTYPE_FILLIPO, achan, ACTTYPE_ACHAN);
+					if (ale) BLI_addtail(act_data, ale);
 				}
 				
-				/* constraint channels */
-				if (achan->constraintChannels.first) {
-					/* include constraint-expand widget? */
-					if ((filter_mode & ACTFILTER_CHANNELS) && (filter_mode & ACTFILTER_ONLYICU)==0) {
-						ale= make_new_actlistelem(achan, ACTTYPE_FILLCON, achan, ACTTYPE_ACHAN);
-						if (ale) BLI_addtail(act_data, ale);
+				/* add ipo-curve channels? */
+				if (FILTER_IPO_ACHAN(achan) || (filter_mode & ACTFILTER_ONLYICU)) {
+					/* loop through ipo-curve channels, adding them */
+					for (icu= achan->ipo->curve.first; icu; icu=icu->next) {
+						ale= make_new_actlistelem(icu, ACTTYPE_ICU, achan, ACTTYPE_ACHAN);
+						if (ale) BLI_addtail(act_data, ale); 
 					}
-					
-					/* add constaint channels? */
-					if (FILTER_CON_ACHAN(achan)) {
-						/* loop through constraint channels, checking and adding them */
-						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
-							/* only work with this channel and its subchannels if it is editable */
-							if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_CONCHAN(conchan)) {
-								/* check if this conchan should only be included if it is selected */
-								if (!(filter_mode & ACTFILTER_SEL) || SEL_CONCHAN(conchan)) {
-									if ((filter_mode & ACTFILTER_ONLYICU)==0) {
-										ale= make_new_actlistelem(conchan, ACTTYPE_CONCHAN, achan, ACTTYPE_ACHAN);
-										if (ale) BLI_addtail(act_data, ale); 
-									}
+				}
+			}
+			
+			/* constraint channels */
+			if (achan->constraintChannels.first) {
+				/* include constraint-expand widget? */
+				if ((filter_mode & ACTFILTER_CHANNELS) && (filter_mode & ACTFILTER_ONLYICU)==0) {
+					ale= make_new_actlistelem(achan, ACTTYPE_FILLCON, achan, ACTTYPE_ACHAN);
+					if (ale) BLI_addtail(act_data, ale);
+				}
+				
+				/* add constaint channels? */
+				if (FILTER_CON_ACHAN(achan)) {
+					/* loop through constraint channels, checking and adding them */
+					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+						/* only work with this channel and its subchannels if it is editable */
+						if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_CONCHAN(conchan)) {
+							/* check if this conchan should only be included if it is selected */
+							if (!(filter_mode & ACTFILTER_SEL) || SEL_CONCHAN(conchan)) {
+								if ((filter_mode & ACTFILTER_ONLYICU)==0) {
+									ale= make_new_actlistelem(conchan, ACTTYPE_CONCHAN, achan, ACTTYPE_ACHAN);
+									if (ale) BLI_addtail(act_data, ale); 
 								}
 							}
 						}
 					}
 				}
-			}		
+			}
+		}		
+	}
+}
+
+static void actdata_filter_action (ListBase *act_data, bAction *act, int filter_mode)
+{
+	bActListElem *ale;
+	bActionGroup *agrp;
+	bActionChannel *achan, *lastchan=NULL;
+	
+	/* loop over groups */
+	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
+		/* add this group as a channel first */
+		if (!(filter_mode & ACTFILTER_ONLYICU) && !(filter_mode & ACTFILTER_IPOKEYS)) {
+			ale= make_new_actlistelem(agrp, ACTTYPE_GROUP, NULL, ACTTYPE_NONE);
+			if (ale) BLI_addtail(act_data, ale);
 		}
+		
+		/* store reference to last channel of group */
+		if (agrp->channels.last) 
+			lastchan= agrp->channels.last;
+		
+		/* filters here are a bit convulted...
+		 *	- groups show a "summary" of keyframes beside their name which must accessable for tools which handle keyframes
+		 *	- groups can be collapsed (and those tools which are only interested in channels rely on knowing that group is closed)
+		 */
+		if (!(filter_mode & ACTFILTER_VISIBLE) || EXPANDED_AGRP(agrp) || 
+			(filter_mode & (ACTFILTER_IPOKEYS|ACTFILTER_ONLYICU))) 
+		{
+			if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {					
+				for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
+					actdata_filter_actionchannel(act_data, achan, filter_mode);
+				}
+			}
+		}
+	}
+	
+	/* loop over action channels */
+	for (achan=(lastchan)?lastchan->next:act->chanbase.first; achan; achan=achan->next) {
+		actdata_filter_actionchannel(act_data, achan, filter_mode);
 	}
 }
 
@@ -449,7 +501,6 @@ void actdata_filter (ListBase *act_data, int filter_mode, void *data, short data
 
 /* **************************************************** */
 /* GENERAL ACTION TOOLS */
-
 
 /* gets the key data from the currently selected
  * mesh/lattice. If a mesh is not selected, or does not have
@@ -641,6 +692,10 @@ static void *get_nearest_action_key (float *selx, short *sel, short *ret_type, b
 						break;
 				}
 			}
+			else if (ale->type == ACTTYPE_GROUP) {
+				bActionGroup *agrp= (bActionGroup *)ale->data;
+				agroup_to_keylist(agrp, &act_keys, NULL);
+			}
 			
 			/* loop through keyframes, finding one that was clicked on */
 			for (ak= act_keys.first; ak; ak= ak->next) {
@@ -705,6 +760,267 @@ void *get_action_context (short *datatype)
 		*datatype= ACTCONT_NONE;
 		return NULL;
 	}
+}
+
+/* **************************************************** */
+/* ACTION CHANNEL GROUPS */
+
+/* Get the active action-group for an Action */
+bActionGroup *get_active_actiongroup (bAction *act)
+{
+	bActionGroup *agrp= NULL;
+	
+	if (act && act->groups.first) {	
+		for (agrp= act->groups.first; agrp; agrp= agrp->next) {
+			if (agrp->flag & AGRP_ACTIVE)
+				break;
+		}
+	}
+	
+	return agrp;
+}
+
+/* Make the given Action-Group the active one */
+void set_active_actiongroup (bAction *act, bActionGroup *agrp, short select)
+{
+	bActionGroup *grp;
+	
+	/* sanity checks */
+	if (act == NULL)
+		return;
+	
+	/* Deactive all others */
+	for (grp= act->groups.first; grp; grp= grp->next) {
+		if ((grp==agrp) && (select))
+			grp->flag |= AGRP_ACTIVE;
+		else	
+			grp->flag &= ~AGRP_ACTIVE;
+	}
+}
+
+/* Add given channel into (active) group 
+ *	- assumes that channel is not linked to anything anymore
+ *	- always adds at the end of the group 
+ */
+static void action_groups_addachan (bAction *act, bActionGroup *agrp, bActionChannel *achan)
+{
+	bActionChannel *chan;
+	short done=0;
+	
+	/* sanity checks */
+	if (ELEM3(NULL, act, agrp, achan))
+		return;
+	
+	/* try to find a channel to slot this in before/after */
+	for (chan= act->chanbase.first; chan; chan= chan->next) {
+		/* if channel has no group, then we have ungrouped channels, which should always occur after groups */
+		if (chan->grp == NULL) {
+			BLI_insertlinkbefore(&act->chanbase, chan, achan);
+			
+			if (agrp->channels.first == NULL)
+				agrp->channels.first= achan;
+			agrp->channels.last= achan;
+			
+			done= 1;
+			break;
+		}
+		
+		/* if channel has group after current, we can now insert (otherwise we have gone too far) */
+		else if (chan->grp == agrp->next) {
+			BLI_insertlinkbefore(&act->chanbase, chan, achan);
+			
+			if (agrp->channels.first == NULL)
+				agrp->channels.first= achan;
+			agrp->channels.last= achan;
+			
+			done= 1;
+			break;
+		}
+		
+		/* if channel has group we're targeting, check whether it is the last one of these */
+		else if (chan->grp == agrp) {
+			if ((chan->next) && (chan->next->grp != agrp)) {
+				BLI_insertlinkafter(&act->chanbase, chan, achan);
+				agrp->channels.last= achan;
+				done= 1;
+				break;
+			}
+			else if (chan->next == NULL) {
+				BLI_addtail(&act->chanbase, achan);
+				agrp->channels.last= achan;
+				done= 1;
+				break;
+			}
+		}
+		
+		/* if channel has group before target, check whether the next one is something after target */
+		else if (chan->grp == agrp->prev) {
+			if (chan->next) {
+				if ((chan->next->grp != chan->grp) && (chan->next->grp != agrp)) {
+					BLI_insertlinkafter(&act->chanbase, chan, achan);
+					
+					agrp->channels.first= achan;
+					agrp->channels.last= achan;
+					
+					done= 1;
+					break;
+				}
+			}
+			else {
+				BLI_insertlinkafter(&act->chanbase, chan, achan);
+					
+				agrp->channels.first= achan;
+				agrp->channels.last= achan;
+				
+				done= 1;
+				break;
+			}
+		}
+	}
+	
+	/* only if added, set channel as belonging to this group */
+	if (done) {
+		achan->grp= agrp;
+	}
+	else 
+		printf("Error: ActionChannel: '%s' couldn't be added to Group: '%s' \n", achan->name, agrp->name);
+}	
+
+/* Remove the given channel from all groups */
+static void action_groups_removeachan (bAction *act, bActionChannel *achan)
+{
+	/* sanity checks */
+	if (ELEM(NULL, act, achan))	
+		return;
+	
+	/* check if any group used this directly */
+	if (achan->grp) {
+		bActionGroup *agrp= achan->grp;
+		
+		if (agrp->channels.first == agrp->channels.last) {
+			if (agrp->channels.first == achan) {
+				agrp->channels.first= NULL;
+				agrp->channels.last= NULL;
+			}
+		}
+		else if (agrp->channels.first == achan) {
+			if ((achan->next) && (achan->next->grp==agrp))
+				agrp->channels.first= achan->next;
+			else
+				agrp->channels.first= NULL;
+		}
+		else if (agrp->channels.last == achan) {
+			if ((achan->prev) && (achan->prev->grp==agrp))
+				agrp->channels.last= achan->prev;
+			else
+				agrp->channels.last= NULL;
+		}
+		
+		achan->grp= NULL;
+	}
+	
+	/* now just remove from list */
+	BLI_remlink(&act->chanbase, achan);
+}
+
+/* Add a new Action-Group or add channels to active one */
+void action_groups_group (short add_group)
+{
+	bAction *act;
+	bActionChannel *achan, *anext;
+	bActionGroup *agrp;
+	void *data;
+	short datatype;
+	
+	/* validate type of data we are working on */
+	data = get_action_context(&datatype);
+	if (data == NULL) return;
+	if (datatype != ACTCONT_ACTION) return;
+	act= (bAction *)data;
+	
+	/* get active group */
+	if ((act->groups.first==NULL) || (add_group)) {		
+		/* Add a new group, and make it active */
+		agrp= MEM_callocN(sizeof(bActionGroup), "bActionGroup");
+		
+		agrp->flag |= (AGRP_ACTIVE|AGRP_SELECTED|AGRP_EXPANDED);
+		sprintf(agrp->name, "Group");
+		
+		BLI_addtail(&act->groups, agrp);
+		
+		set_active_actiongroup(act, agrp, 1);
+		
+		add_group= 1;
+	}
+	else {
+		agrp= get_active_actiongroup(act);
+		
+		if (agrp == NULL) {
+			error("No Active Action Group");
+			return;
+		}
+	}
+	
+	/* loop through action-channels, finding those that are selected + visible to move */
+	// FIXME: this should be done with action api instead 
+	for (achan= act->chanbase.first; achan; achan= anext) {
+		anext= achan->next;
+		
+		/* make sure not already in new-group */
+		if (achan->grp != agrp) {
+			if (VISIBLE_ACHAN(achan) && SEL_ACHAN(achan)) {
+				/* unlink from everything else */
+				action_groups_removeachan(act, achan);
+				
+				/* add to end of group's channels */
+				action_groups_addachan(act, agrp, achan);
+			}
+		}
+	}
+	
+	/* updates and undo */
+	if (add_group)
+		BIF_undo_push("Add Action Group");
+	else
+		BIF_undo_push("Add to Action Group");
+	
+	allqueue(REDRAWACTION, 0);
+}
+
+/* Remove selected channels from their groups */
+void action_groups_ungroup (void)
+{
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	bAction *act;
+	void *data;
+	short datatype;
+	short filter;
+	
+	/* validate type of data we are working on */
+	data = get_action_context(&datatype);
+	if (data == NULL) return;
+	if (datatype != ACTCONT_ACTION) return;
+	act= (bAction *)data;
+	
+	/* filter data */
+	filter= (ACTFILTER_VISIBLE|ACTFILTER_SEL);
+	actdata_filter(&act_data, filter, act, ACTCONT_ACTION);
+	
+	/* Only ungroup selected action-channels */
+	for (ale= act_data.first; ale; ale= ale->next) {
+		if (ale->type == ACTTYPE_ACHAN) {
+			action_groups_removeachan(act, ale->data);
+			BLI_addtail(&act->chanbase, ale->data);
+		}
+	}
+	
+	BLI_freelistN(&act_data);
+		
+	/* updates and undo */
+	BIF_undo_push("Remove From Action Groups");
+	
+	allqueue(REDRAWACTION, 0);
 }
 
 /* **************************************************** */
@@ -1062,6 +1378,32 @@ void delete_action_channels (void)
 	if (data == NULL) return;
 	if (datatype != ACTCONT_ACTION) return;
 	act= (bAction *)data;
+	
+	/* deal with groups first */
+	if (act->groups.first) {
+		bActionGroup *agrp, *grp;
+		bActionChannel *chan, *nchan;
+		
+		/* unlink achan's that belonged to this group (and make sure they're not selected if they weren't visible) */
+		for (agrp= act->groups.first; agrp; agrp= grp) {
+			grp= agrp->next;
+			
+			/* remove if group is selected */
+			if (SEL_AGRP(agrp)) {
+				for (chan= agrp->channels.first; chan && chan!=agrp->channels.last; chan= nchan) {
+					nchan= chan->next;
+					
+					action_groups_removeachan(act, chan);
+					BLI_addtail(&act->chanbase, chan);
+					
+					if (EXPANDED_AGRP(agrp) == 0)
+						chan->flag &= ~(ACHAN_SELECTED|ACHAN_HILIGHTED);
+				}
+				
+				BLI_freelinkN(&act->groups, agrp);
+			}
+		}
+	}
 	
 	/* filter data */
 	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_CHANNELS | ACTFILTER_SEL);
@@ -1634,6 +1976,7 @@ static void numbuts_action ()
 	void *act_channel;
 	short chantype;
 	
+	bActionGroup *agrp= NULL;
 	bActionChannel *achan= NULL;
 	bConstraintChannel *conchan= NULL;
 	IpoCurve *icu= NULL;
@@ -1739,6 +2082,18 @@ static void numbuts_action ()
 		add_numbut(but++, NUM|FLO, "Slider Max:", 
 				   kb->slidermin, 10000, &kb->slidermax, 0);
 	}
+	else if (chantype == ACTTYPE_GROUP) {
+		/* Action Group */
+		agrp= (bActionGroup *)act_channel;
+		
+		strcpy(str, agrp->name);
+		protect= (agrp->flag & AGRP_PROTECTED);
+		expand = (agrp->flag & AGRP_EXPANDED);
+		
+		add_numbut(but++, TEX, "ActGroup: ", 0, 31, str, "Name of Action Group");
+		add_numbut(but++, TOG|SHO, "Expanded", 0, 24, &expand, "Action Group is Expanded");
+		add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Group is Protected");
+	}
 	else {
 		/* nothing under-cursor */
 		return;
@@ -1777,6 +2132,15 @@ static void numbuts_action ()
 			if (achan->ipo)
 				achan->ipo->muteipo = mute;
 		}
+		else if (agrp) {
+			strcpy(agrp->name, str);
+			
+			if (expand) agrp->flag |= AGRP_EXPANDED;
+			else agrp->flag &= ~AGRP_EXPANDED;
+			
+			if (protect) agrp->flag |= AGRP_PROTECTED;
+			else agrp->flag &= ~AGRP_PROTECTED;
+		}
 		
         allqueue(REDRAWACTION, 0);
 		allspace(REMAKEIPO, 0);
@@ -1789,6 +2153,32 @@ static void numbuts_action ()
 
 /* **************************************************** */
 /* CHANNEL SELECTION */
+
+/* select_mode = SELECT_REPLACE
+ *             = SELECT_ADD
+ *             = SELECT_SUBTRACT
+ *             = SELECT_INVERT
+ */
+static void select_action_group (bAction *act, bActionGroup *agrp, int selectmode) 
+{
+	/* Select the channel based on the selection mode */
+	short select;
+
+	switch (selectmode) {
+	case SELECT_ADD:
+		agrp->flag |= AGRP_SELECTED;
+		break;
+	case SELECT_SUBTRACT:
+		agrp->flag &= ~AGRP_SELECTED;
+		break;
+	case SELECT_INVERT:
+		agrp->flag ^= AGRP_SELECTED;
+		break;
+	}
+	select = (agrp->flag & AGRP_SELECTED) ? 1 : 0;
+
+	set_active_actiongroup(act, agrp, select);
+}
 
 static void hilight_channel(bAction *act, bActionChannel *achan, short select)
 {
@@ -1950,6 +2340,10 @@ void deselect_actionchannels (bAction *act, short test)
 				break;
 			
 			switch (ale->type) {
+				case ACTTYPE_GROUP:
+					if (ale->flag & AGRP_SELECTED)
+						sel= 0;
+					break;
 				case ACTTYPE_ACHAN:
 					if (ale->flag & ACHAN_SELECTED) 
 						sel= 0;
@@ -1971,6 +2365,16 @@ void deselect_actionchannels (bAction *act, short test)
 	/* Now set the flags */
 	for (ale= act_data.first; ale; ale= ale->next) {
 		switch (ale->type) {
+			case ACTTYPE_GROUP:
+			{
+				bActionGroup *agrp= (bActionGroup *)ale->data;
+				
+				if (sel)
+					agrp->flag |= AGRP_SELECTED;
+				else
+					agrp->flag &= ~AGRP_SELECTED;
+			}
+				break;
 			case ACTTYPE_ACHAN:
 			{
 				bActionChannel *achan= (bActionChannel *)ale->data;
@@ -2484,6 +2888,18 @@ void borderselect_action (void)
 					else if (ale->datatype == ALE_ICU)
 						borderselect_icu_key(ale->key_data, rectf.xmin, rectf.xmax, select_function);
 				}
+				else if (ale->type == ACTTYPE_GROUP) {
+					bActionGroup *agrp= ale->data;
+					bActionChannel *achan;
+					bConstraintChannel *conchan;
+					
+					for (achan= agrp->channels.first; achan && achan!=agrp->channels.last; achan= achan->next) {
+						borderselect_ipo_key(achan->ipo, rectf.xmin, rectf.xmax, selectmode);
+						
+						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
+							borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax, selectmode);
+					}
+				}
 				break;
 			case ACTEDIT_BORDERSEL_CHA: /* all in channel(s) */
 				if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
@@ -2492,6 +2908,18 @@ void borderselect_action (void)
 							select_ipo_bezier_keys(ale->key_data, selectmode);
 						else if (ale->datatype == ALE_ICU)
 							select_icu_bezier_keys(ale->key_data, selectmode);
+					}
+					else if (ale->type == ACTTYPE_GROUP) {
+						bActionGroup *agrp= ale->data;
+						bActionChannel *achan;
+						bConstraintChannel *conchan;
+						
+						for (achan= agrp->channels.first; achan && achan!=agrp->channels.last; achan= achan->next) {
+							select_ipo_bezier_keys(achan->ipo, selectmode);
+							
+							for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
+								select_ipo_bezier_keys(conchan->ipo, selectmode);
+						}
 					}
 				}
 				break;
@@ -2502,6 +2930,18 @@ void borderselect_action (void)
 							borderselect_ipo_key(ale->key_data, rectf.xmin, rectf.xmax, selectmode);
 						else if (ale->datatype == ALE_ICU)
 							borderselect_icu_key(ale->key_data, rectf.xmin, rectf.xmax, select_function);
+					}
+					else if (ale->type == ACTTYPE_GROUP) {
+						bActionGroup *agrp= ale->data;
+						bActionChannel *achan;
+						bConstraintChannel *conchan;
+						
+						for (achan= agrp->channels.first; achan && achan!=agrp->channels.last; achan= achan->next) {
+							select_ipo_bezier_keys(achan->ipo, selectmode);
+							
+							for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
+								select_ipo_bezier_keys(conchan->ipo, selectmode);
+						}
 					}
 				}
 			}
@@ -2529,6 +2969,7 @@ static void mouse_action (int selectmode)
 	short datatype;
 	
 	bAction	*act= NULL;
+	bActionGroup *agrp= NULL;
 	bActionChannel *achan= NULL;
 	bConstraintChannel *conchan= NULL;
 	IpoCurve *icu= NULL;
@@ -2611,6 +3052,9 @@ static void mouse_action (int selectmode)
 			case ACTTYPE_ACHAN:
 				achan= (bActionChannel *)act_channel;
 				break;
+			case ACTTYPE_GROUP:
+				agrp= (bActionGroup *)act_channel;
+				break;
 			default:
 				return;
 		}
@@ -2623,9 +3067,16 @@ static void mouse_action (int selectmode)
 			if (datatype == ACTCONT_ACTION) {
 				deselect_action_channels(0);
 				
-				achan->flag |= ACHAN_SELECTED;
-				hilight_channel(act, achan, 1);
-				select_poseelement_by_name(achan->name, 2);	/* 2 is activate */
+				/* Highlight either an Action-Channel or Action-Group */
+				if (achan) {
+					achan->flag |= ACHAN_SELECTED;
+					hilight_channel(act, achan, 1);
+					select_poseelement_by_name(achan->name, 2);	/* 2 is activate */
+				}
+				else if (agrp) {
+					agrp->flag |= AGRP_SELECTED;
+					set_active_actiongroup(act, agrp, 1);
+				}
 			}
 		}
 		
@@ -2633,8 +3084,16 @@ static void mouse_action (int selectmode)
 			select_icu_key(icu, selx, selectmode);
 		else if (conchan)
 			select_ipo_key(conchan->ipo, selx, selectmode);
-		else
+		else if (achan)
 			select_ipo_key(achan->ipo, selx, selectmode);
+		else if (agrp) {
+			for (achan= agrp->channels.first; achan && achan!=agrp->channels.last; achan= achan->next) {
+				select_ipo_key(achan->ipo, selx, selectmode);
+				
+				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
+					select_ipo_key(conchan->ipo, selx, selectmode);
+			}
+		}
 		
 		std_rmouse_transform(transform_action_keys);
 		
@@ -2663,6 +3122,30 @@ static void mouse_actionchannels (short mval[])
 	
 	/* action to take depends on what channel we've got */
 	switch (chantype) {
+		case ACTTYPE_GROUP: 
+			{
+				bActionGroup *agrp= (bActionGroup *)act_channel;
+				
+				if (mval[0] < 16) {
+					/* toggle expand */
+					agrp->flag ^= AGRP_EXPANDED;
+				}
+				else if (mval[0] >= (NAMEWIDTH-16)) {
+					/* toggle protection/locking */
+					agrp->flag ^= AGRP_PROTECTED;
+ 				}
+ 				else {
+					/* select/deselect group */
+					if (G.qual & LR_SHIFTKEY) {
+						select_action_group(act, agrp, SELECT_INVERT);
+					}
+					else {
+						deselect_actionchannels(act, 0);
+						select_action_group(act, agrp, SELECT_ADD);
+					}
+ 				}
+			}
+			break;
 		case ACTTYPE_ACHAN:
 			{
 				bActionChannel *achan= (bActionChannel *)act_channel;
@@ -2780,167 +3263,292 @@ static void mouse_actionchannels (short mval[])
 /* **************************************************** */
 /* ACTION CHANNEL RE-ORDERING */
 
-void top_sel_action ()
+/* make sure all action-channels belong to a group (and clear action's list) */
+static void split_groups_action_temp (bAction *act, bActionGroup *tgrp)
 {
-	bAction *act;
+	bActionChannel *achan;
+	bActionGroup *agrp;
+	
+	/* Separate action-channels into lists per group */
+	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
+		if (agrp->channels.first) {
+			achan= agrp->channels.last;
+			act->chanbase.first= achan->next;
+			
+			achan= agrp->channels.first;
+			achan->prev= NULL;
+			
+			achan= agrp->channels.last;
+			achan->next= NULL;
+		}
+	}
+	
+	/* Initialise memory for temp-group */
+	memset(tgrp, 0, sizeof(bActionGroup));
+	tgrp->flag |= (AGRP_EXPANDED|AGRP_TEMP);
+	strcpy(tgrp->name, "#TempGroup");
+		
+	/* Move any action-channels not already moved, to the temp group */
+	if (act->chanbase.first) {
+		/* start of list */
+		achan= act->chanbase.first;
+		achan->prev= NULL;
+		tgrp->channels.first= achan;
+		act->chanbase.first= NULL;
+		
+		/* end of list */
+		achan= act->chanbase.last;
+		achan->next= NULL;
+		tgrp->channels.last= achan;
+		act->chanbase.last= NULL;
+	}
+	
+	/* Add temp-group to list */
+	BLI_addtail(&act->groups, tgrp);
+}
+
+/* link lists of channels that groups have */
+static void join_groups_action_temp (bAction *act)
+{
+	bActionGroup *agrp;
 	bActionChannel *achan;
 	
-	/* Get the selected action, exit if none are selected */
-	act = G.saction->action;
-	if (!act) return;
+	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
+		ListBase tempGroup;
+		
+		/* add list of channels to action's channels */
+		tempGroup= agrp->channels;
+		addlisttolist(&act->chanbase, &agrp->channels);
+		agrp->channels= tempGroup;
+		
+		/* clear moved flag */
+		agrp->flag &= ~AGRP_MOVED;
+		
+		/* if temp-group... remove from list (but don't free as it's on the stack!) */
+		if (agrp->flag & AGRP_TEMP) {
+			BLI_remlink(&act->groups, agrp);
+			break;
+		}
+	}
 	
-	for (achan= act->chanbase.first; achan; achan= achan->next) {
-		if (VISIBLE_ACHAN(achan)) {
-			if (SEL_ACHAN(achan) && !(achan->flag & ACHAN_MOVED)) {
-				/* take it out off the chain keep data */
-				BLI_remlink (&act->chanbase, achan);
-				/* make it first element */
-				BLI_insertlinkbefore(&act->chanbase, act->chanbase.first, achan);
-				achan->flag |= ACHAN_MOVED;
-				/* restart with rest of list */
-				achan= achan->next;
+	/* clear "moved" flag from all achans */
+	for (achan= act->chanbase.first; achan; achan= achan->next) 
+		achan->flag &= ~ACHAN_MOVED;
+}
+
+
+static short rearrange_actchannel_is_ok (Link *channel, short type)
+{
+	if (type == ACTTYPE_GROUP) {
+		bActionGroup *agrp= (bActionGroup *)channel;
+		
+		if (SEL_AGRP(agrp) && !(agrp->flag & AGRP_MOVED))
+			return 1;
+	}
+	else if (type == ACTTYPE_ACHAN) {
+		bActionChannel *achan= (bActionChannel *)channel;
+		
+		if (VISIBLE_ACHAN(achan) && SEL_ACHAN(achan) && !(achan->flag & ACHAN_MOVED))
+			return 1;
+	}
+	
+	return 0;
+}
+
+static short rearrange_actchannel_after_ok (Link *channel, short type)
+{
+	if (type == ACTTYPE_GROUP) {
+		bActionGroup *agrp= (bActionGroup *)channel;
+		
+		if (agrp->flag & AGRP_TEMP)
+			return 0;
+	}
+	
+	return 1;
+}
+
+
+static short rearrange_actchannel_top (ListBase *list, Link *channel, short type)
+{
+	if (rearrange_actchannel_is_ok(channel, type)) {
+		/* take it out off the chain keep data */
+		BLI_remlink(list, channel);
+		
+		/* make it first element */
+		BLI_insertlinkbefore(list, list->first, channel);
+		
+		return 1;
+	}
+	
+	return 0;
+}
+
+static short rearrange_actchannel_up (ListBase *list, Link *channel, short type)
+{
+	if (rearrange_actchannel_is_ok(channel, type)) {
+		Link *prev= channel->prev;
+		
+		if (prev) {
+			/* take it out off the chain keep data */
+			BLI_remlink(list, channel);
+			
+			/* push it up */
+			BLI_insertlinkbefore(list, prev, channel);
+			
+			return 1;
+		}
+	}
+	
+	return 0;
+}
+
+static short rearrange_actchannel_down (ListBase *list, Link *channel, short type)
+{
+	if (rearrange_actchannel_is_ok(channel, type)) {
+		Link *next = (channel->next) ? channel->next->next : NULL;
+		
+		if (next) {
+			/* take it out off the chain keep data */
+			BLI_remlink(list, channel);
+			
+			/* move it down */
+			BLI_insertlinkbefore(list, next, channel);
+			
+			return 1;
+		}
+		else if (rearrange_actchannel_after_ok(list->last, type)) {
+			/* take it out off the chain keep data */
+			BLI_remlink(list, channel);
+			
+			/* add at end */
+			BLI_addtail(list, channel);
+			
+			return 1;
+		}
+		else {
+			/* take it out off the chain keep data */
+			BLI_remlink(list, channel);
+			
+			/* add just before end */
+			BLI_insertlinkbefore(list, list->last, channel);
+			
+			return 1;
+		}
+	}
+	
+	return 0;
+}
+
+static short rearrange_actchannel_bottom (ListBase *list, Link *channel, short type)
+{
+	if (rearrange_actchannel_is_ok(channel, type)) {
+		if (rearrange_actchannel_after_ok(list->last, type)) {
+			/* take it out off the chain keep data */
+			BLI_remlink(list, channel);
+			
+			/* add at end */
+			BLI_addtail(list, channel);
+			
+			return 1;
+		}
+	}
+	
+	return 0;
+}
+
+
+/* Change the order of action-channels 
+ *	mode: REARRANGE_ACTCHAN_*  
+ */
+void rearrange_action_channels (short mode)
+{
+	bAction *act;
+	bActionChannel *achan, *chan;
+	bActionGroup *agrp, *grp;
+	bActionGroup tgrp;
+	
+	void *data;
+	short datatype;
+	
+	short (*rearrange_func)(ListBase *, Link *, short);
+	char undostr[60];
+	
+	/* Get the active action, exit if none are selected */
+	data = get_action_context(&datatype);
+	if (data == NULL) return;
+	if (datatype != ACTCONT_ACTION) return;
+	act= (bAction *)data;
+	
+	/* exit if invalid mode */
+	switch (mode) {
+		case REARRANGE_ACTCHAN_TOP:
+			strcpy(undostr, "Channel(s) to Top");
+			rearrange_func= rearrange_actchannel_top;
+			break;
+		case REARRANGE_ACTCHAN_UP:
+			strcpy(undostr, "Channel(s) Move Up");
+			rearrange_func= rearrange_actchannel_up;
+			break;
+		case REARRANGE_ACTCHAN_DOWN:
+			strcpy(undostr, "Channel(s) Move Down");
+			rearrange_func= rearrange_actchannel_down;
+			break;
+		case REARRANGE_ACTCHAN_BOTTOM:
+			strcpy(undostr, "Channel(s) to Bottom");
+			rearrange_func= rearrange_actchannel_bottom;
+			break;
+		default:
+			return;
+	}
+	
+	/* make sure we're only operating with groups */
+	split_groups_action_temp(act, &tgrp);
+	
+	/* rearrange groups, and channels */
+	#define GET_FIRST(list) ((mode > 0) ? (list.first) : (list.last))
+	#define GET_NEXT(item) ((mode > 0) ? (item->next) : (item->prev))
+	
+	for (agrp= GET_FIRST(act->groups); agrp; agrp= grp) {
+		/* Get next group to consider */
+		grp= GET_NEXT(agrp);
+		
+		/* try to do group first */
+		if (rearrange_func(&act->groups, (Link *)agrp, ACTTYPE_GROUP))
+			agrp->flag |= AGRP_MOVED;
+			
+		/* only consider action-channels if they're visible (group expanded) */
+		if (EXPANDED_AGRP(agrp)) {
+			for (achan= GET_FIRST(agrp->channels); achan; achan= chan) {
+				/* Get next channel to consider */
+				chan= GET_NEXT(achan);
+				
+				/* Try to do channel */
+				if (rearrange_func(&agrp->channels, (Link *)achan, ACTTYPE_ACHAN))
+					achan->flag |= ACHAN_MOVED;
 			}
 		}
 	}
-    /* clear temp flags */
-	for (achan= act->chanbase.first; achan; achan= achan->next) {
-		achan->flag = achan->flag & ~ACHAN_MOVED;
-	}
+	#undef GET_FIRST
+	#undef GET_NEXT
 	
-	/* Clean up and redraw stuff */
-	remake_action_ipos(act);
-	BIF_undo_push("Top Action channel");
-	allspace(REMAKEIPO, 0);
+	/* assemble lists into one list (and clear moved tags) */
+	join_groups_action_temp(act);
+	
+	/* Undo + redraw */
+	BIF_undo_push(undostr);
 	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWNLA, 0);
 }
 
-void up_sel_action ()
-{
-	bAction *act;
-	bActionChannel *achan, *prev;
-	
-	/* Get the selected action, exit if none are selected */
-	act = G.saction->action;
-	if (!act) return;
-	
-	for (achan=act->chanbase.first; achan; achan= achan->next) {
-		if (VISIBLE_ACHAN(achan)) {
-			if (SEL_ACHAN(achan) && !(achan->flag & ACHAN_MOVED)) {
-				prev = achan->prev;
-				if (prev) {
-					/* take it out off the chain keep data */
-					BLI_remlink (&act->chanbase, achan);
-					/* push it up */
-					BLI_insertlinkbefore(&act->chanbase, prev, achan);
-					achan->flag |= ACHAN_MOVED;
-					/* restart with rest of list */
-					achan= achan->next;
-				}
-			}
-		}
-	}
-	/* clear temp flags */
-	for (achan=act->chanbase.first; achan; achan= achan->next) {
-		achan->flag = achan->flag & ~ACHAN_MOVED;
-	}
-	
-	/* Clean up and redraw stuff */
-	remake_action_ipos(act);
-	BIF_undo_push("Up Action channel");
-	allspace(REMAKEIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWNLA, 0);
-}
-
-void down_sel_action ()
-{
-	bAction *act;
-	bActionChannel *achan, *next;
-	
-	/* Get the selected action, exit if none are selected */
-	act = G.saction->action;
-	if (!act) return;
-	
-	for (achan= act->chanbase.last; achan; achan= achan->prev) {
-		if (VISIBLE_ACHAN(achan)) {
-			if (SEL_ACHAN(achan) && !(achan->flag & ACHAN_MOVED)) {
-				next = achan->next;
-				if (next) next = next->next;
-				if (next) {
-					/* take it out off the chain keep data */
-					BLI_remlink (&act->chanbase, achan);
-					/* move it down */
-					BLI_insertlinkbefore(&act->chanbase, next, achan);
-					achan->flag |= ACHAN_MOVED;
-				}
-				else {
-					/* take it out off the chain keep data */
-					BLI_remlink (&act->chanbase, achan);
-					/* add at end */
-					BLI_addtail(&act->chanbase, achan);
-					achan->flag |= ACHAN_MOVED;
-				}
-			}
-		}
-	}
-	/* clear temp flags */
-	for (achan= act->chanbase.first; achan; achan= achan->next) {
-		achan->flag = achan->flag & ~ACHAN_MOVED;
-	}
-	
-	/* Clean up and redraw stuff */
-	remake_action_ipos(act);
-	BIF_undo_push("Down Action channel");
-	allspace(REMAKEIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWNLA, 0);
-}
-
-void bottom_sel_action ()
-{
-	bAction *act;
-	bActionChannel *achan;
-	
-	/* Get the selected action, exit if none are selected */
-	act = G.saction->action;
-	if (!act) return;
-	
-	for (achan=act->chanbase.last; achan; achan= achan->prev) {
-		if (VISIBLE_ACHAN(achan)) {
-			if (SEL_ACHAN(achan) && !(achan->flag & ACHAN_MOVED)) {
-				/* take it out off the chain keep data */
-				BLI_remlink(&act->chanbase, achan);
-				/* add at end */
-				BLI_addtail(&act->chanbase, achan);
-				achan->flag |= ACHAN_MOVED;
-			}
-		}		
-	}
-	/* clear temp flags */
-	for (achan=act->chanbase.first; achan; achan= achan->next) {
-		achan->flag = achan->flag & ~ACHAN_MOVED;
-	}
-	
-	/* Clean up and redraw stuff */
-	remake_action_ipos(act);
-	BIF_undo_push("Bottom Action channel");
-	allspace(REMAKEIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWNLA, 0);
-}
-
+/* ******************************************************************* */
+/* CHANNEL VISIBILITY/FOLDING */
 
 /* Expand all channels to show full hierachy */
 void expand_all_action (void)
 {
 	bAction *act;
 	bActionChannel *achan;
-	short mode= 0;
+	bActionGroup *agrp;
+	short mode= 1;
 	
 	/* Get the selected action, exit if none are selected */
 	// TODO: really this should be done with the "action editor api" stuff, but this will suffice for now 
@@ -2948,15 +3556,32 @@ void expand_all_action (void)
 	if (act == NULL) return;
 	
 	/* check if expand all, or close all */
-	for (achan=act->chanbase.first; achan; achan= achan->next) {
-		if (VISIBLE_ACHAN(achan)) {
-			if (EXPANDED_ACHAN(achan))
-				mode= 1;
-				break;
+	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
+		if (EXPANDED_AGRP(agrp)) {
+			mode= 0;
+			break;
+		}
+	}
+	
+	if (mode == 0) {
+		for (achan= act->chanbase.first; achan; achan= achan->next) {
+			if (VISIBLE_ACHAN(achan)) {
+				if (EXPANDED_ACHAN(achan)) {
+					mode= 0;
+					break;
+				}
+			}
 		}
 	}
 	
 	/* expand/collapse depending on mode */
+	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
+		if (mode == 1)
+			agrp->flag |= AGRP_EXPANDED;
+		else
+			agrp->flag &= ~AGRP_EXPANDED;
+	}
+	
 	for (achan=act->chanbase.first; achan; achan= achan->next) {
 		if (VISIBLE_ACHAN(achan)) {
 			if (mode == 1)
@@ -2986,7 +3611,8 @@ void openclose_level_action (short mode)
 	if (mode == 0) return;
 	
 	/* Only affect selected channels */
-	for (achan=act->chanbase.first; achan; achan= achan->next) {
+	// FIXME: check for action-groups
+	for (achan= act->chanbase.first; achan; achan= achan->next) {
 		if (VISIBLE_ACHAN(achan) && SEL_ACHAN(achan)) {
 			if (EXPANDED_ACHAN(achan)) {
 				if (FILTER_IPO_ACHAN(achan) || FILTER_CON_ACHAN(achan)) {
@@ -3255,12 +3881,41 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		
 		case GKEY:
-			if (G.qual & LR_CTRLKEY) {
-				transform_markers('g', 0);
+			/* Action Channel Groups */
+			if (G.qual == LR_SHIFTKEY)
+				action_groups_group(0);
+			else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+				action_groups_group(1);
+			else if (G.qual == LR_ALTKEY)
+				action_groups_ungroup();
+				
+			else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY|LR_ALTKEY)) {
+				/* WARNING: this is a debug tool which should be removed once everything is stable... */
+				bAction *act= G.saction->action;
+				bActionGroup *agrp;
+				bActionChannel *achan;
+				
+				printf("Debug Action Grouping: \n");
+				
+				printf("\tGroups: \n");
+				for (agrp= act->groups.first; agrp; agrp= agrp->next) {
+					printf("\t\tGroup \"%s\" : %p... start={%p} end={%p} \n", agrp->name, agrp, agrp->channels.first, agrp->channels.last);
+				}
+				
+				printf("\tAction Channels: \n");
+				for (achan= act->chanbase.first; achan; achan= achan->next) {
+					printf("\t\tAchan \"%s\" : %p... group={%p} \n", achan->name, achan, achan->grp);
+				}	
 			}
+				
+			/* Transforms */
 			else {
-				if (mval[0]>=ACTWIDTH)
-					transform_action_keys('g', 0);
+				if (mval[0] >= ACTWIDTH) {
+					if (G.qual == LR_CTRLKEY)
+						transform_markers('g', 0);
+					else
+						transform_action_keys('g', 0);
+				}
 			}
 			break;
 		
@@ -3398,9 +4053,9 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case PAGEUPKEY:
 			if (datatype == ACTCONT_ACTION) {
 				if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
-					top_sel_action();
+					rearrange_action_channels(REARRANGE_ACTCHAN_TOP);
 				else if (G.qual == LR_SHIFTKEY) 
-					up_sel_action();
+					rearrange_action_channels(REARRANGE_ACTCHAN_UP);
 				else if (G.qual == LR_CTRLKEY) 
 					nextprev_action_keyframe(1);
 				else
@@ -3417,9 +4072,9 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case PAGEDOWNKEY:
 			if (datatype == ACTCONT_ACTION) {
 				if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
-					bottom_sel_action();
+					rearrange_action_channels(REARRANGE_ACTCHAN_BOTTOM);
 				else if (G.qual == LR_SHIFTKEY) 
-					down_sel_action();
+					rearrange_action_channels(REARRANGE_ACTCHAN_DOWN);
 				else if (G.qual == LR_CTRLKEY) 
 					nextprev_action_keyframe(-1);
 				else
@@ -3445,11 +4100,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if (mval[0] >= NAMEWIDTH)
 					remove_marker();
 				
-				allqueue(REDRAWTIME, 0);
-				allqueue(REDRAWIPO, 0);
-				allqueue(REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue(REDRAWSOUND, 0);
+				allqueue(REDRAWMARKER, 0);
 			}
 			break;
 		

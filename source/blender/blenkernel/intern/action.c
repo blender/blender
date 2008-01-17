@@ -178,7 +178,11 @@ void free_action (bAction *act)
 	if (act->chanbase.first)
 		BLI_freelistN(&act->chanbase);
 		
-	/* Free pose-references */
+	/* Free groups */
+	if (act->groups.first)
+		BLI_freelistN(&act->groups);
+		
+	/* Free pose-references (aka local markers) */
 	if (act->markers.first)
 		BLI_freelistN(&act->markers);
 }
@@ -187,19 +191,37 @@ bAction *copy_action (bAction *src)
 {
 	bAction *dst = NULL;
 	bActionChannel *dchan, *schan;
+	bActionGroup *dgrp, *sgrp;
 	
 	if (!src) return NULL;
 	
 	dst= copy_libblock(src);
+	
 	duplicatelist(&(dst->chanbase), &(src->chanbase));
+	duplicatelist(&(dst->groups), &(src->groups));
 	duplicatelist(&(dst->markers), &(src->markers));
 	
-	for (dchan=dst->chanbase.first, schan=src->chanbase.first; dchan; dchan=dchan->next, schan=schan->next){
+	for (dchan=dst->chanbase.first, schan=src->chanbase.first; dchan; dchan=dchan->next, schan=schan->next) {
+		for (dgrp=dst->groups.first, sgrp=src->groups.first; dgrp && sgrp; dgrp=dgrp->next, sgrp=sgrp->next) {
+			if (dchan->grp == sgrp) {
+				dchan->grp= dgrp;
+				
+				if (dgrp->channels.first == schan)
+					dgrp->channels.first= dchan;
+				if (dgrp->channels.last == schan)
+					dgrp->channels.last= dchan;
+					
+				break;
+			}
+		}
+		
 		dchan->ipo = copy_ipo(dchan->ipo);
 		copy_constraint_channels(&dchan->constraintChannels, &schan->constraintChannels);
 	}
+	
 	dst->id.flag |= LIB_FAKEUSER;
 	dst->id.us++;
+	
 	return dst;
 }
 
