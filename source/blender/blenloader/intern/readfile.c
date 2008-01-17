@@ -2526,6 +2526,11 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 			for(a=0; a<psys->totpart; a++, pa++)
 				pa->hair=newdataadr(fd,pa->hair);
 		}
+		if(psys->particles && psys->particles->keys){
+			ParticleData *pa = psys->particles;
+			for(a=0; a<psys->totpart; a++, pa++)
+				pa->keys=newdataadr(fd,pa->keys);
+		}
 		psys->child=newdataadr(fd,psys->child);
 		psys->effectors.first=psys->effectors.last=0;
 

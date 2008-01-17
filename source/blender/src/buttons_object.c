@@ -3912,9 +3912,13 @@ static void object_panel_particle_extra(Object *ob)
 	buty=butx=160;
 
 	uiDefButI(block, NUM, B_PART_DISTR, "Seed:",				butx,(buty-=buth),butw,buth, &psys->seed, 0.0, 255.0, 1, 0, "Set an offset in the random table");
+	if(part->type == PART_HAIR && psys->flag & PSYS_EDITED)
+		uiDefButF(block, NUM, B_PART_RECALC, "Stiff:",	butx,(buty-=buth),butw,buth, &part->eff_hair, 0.0, 1.0, 0, 0, "Hair stiffness for effectors");
+	else
+		buty-=buth;
 
 	/* size changes must create a recalc event always so that sizes are updated properly */
-	uiDefButF(block, NUM, B_PART_RECALC, "Size:",	butx,(buty-=2*buth),butw,buth, &part->size, 0.01, 100, 10, 1, "The size of the particles");
+	uiDefButF(block, NUM, B_PART_RECALC, "Size:",	butx,(buty-=buth),butw,buth, &part->size, 0.01, 100, 10, 1, "The size of the particles");
 	uiDefButF(block, NUM, B_PART_RECALC, "Rand:",	butx,(buty-=buth),butw,buth, &part->randsize, 0.0, 2.0, 10, 1, "Give the particle size a random variation");
 
 	uiDefButBitI(block, TOG, PART_SIZEMASS, B_PART_RECALC, "Mass from size",	 butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Multiply mass with particle size");

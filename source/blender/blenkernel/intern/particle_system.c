@@ -2607,7 +2607,7 @@ static void precalc_effectors(Object *ob, ParticleSystem *psys, ParticleSystemMo
 
 
 /* calculate forces that all effectors apply to a particle*/
-static void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, ParticleSystem *psys, float *force_field, float *vel,float framestep, float cfra)
+void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, ParticleSystem *psys, float *force_field, float *vel,float framestep, float cfra)
 {
 	Object *eob;
 	ParticleSystem *epsys;
@@ -4050,12 +4050,16 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 				pa->alive=PARS_UNBORN;
 			}
 			else{
-				pa->loop=0;
-				if(cfra<=pa->time)
-					pa->alive=PARS_UNBORN;
+				pa->loop = 0;
+				if(cfra <= pa->time)
+					pa->alive = PARS_UNBORN;
 						/* without dynamics the state is allways known so no need to kill */
-				else if(ELEM(part->phystype,PART_PHYS_NO,PART_PHYS_KEYED)==0)
-					pa->alive=PARS_KILLED;
+				else if(ELEM(part->phystype, PART_PHYS_NO, PART_PHYS_KEYED)){
+					if(cfra < pa->dietime)
+						pa->alive = PARS_ALIVE;
+				}
+				else
+					pa->alive = PARS_KILLED;
 			}
 		}
 
@@ -4398,7 +4402,9 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 			return;
 		}
 	}
-	else if(part->phystype != PART_PHYS_NO) {	/* cache shouldn't be used for none physics */
+	else if(ELEM(part->phystype, PART_PHYS_NO, PART_PHYS_KEYED))
+		; /* cache shouldn't be used for "none" or "keyed" physics */
+	else {
 		if(psys->recalc && (psys->flag & PSYS_PROTECT_CACHE) == 0)
 			clear_particles_from_cache(ob,psys,(int)cfra);
 		else if(get_particles_from_cache(ob, psys, (int)cfra)) {
@@ -4500,9 +4506,12 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 		dynamics_step(ob,psys,psmd,cfra,vg_vel,vg_tan,vg_rot,vg_size);
 
 	psys->recalc = 0;
-	psys->cfra=cfra;
+	psys->cfra = cfra;
 
-	if(part->type!=PART_HAIR)
+	if(part->type == PART_HAIR || part->phystype == PART_PHYS_NO
+		|| (part->phystype == PART_PHYS_KEYED && psys->flag & PSYS_FIRST_KEYED))
+		; /* cache shouldn't be used for hair or "none" or "first keyed" physics */
+	else
 		write_particles_to_cache(ob, psys, cfra);
 
 	/* for keyed particles the path is allways known so it can be drawn */

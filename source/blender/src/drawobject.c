@@ -3037,7 +3037,7 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 
 	psys->flag|=PSYS_DRAWING;
 
-	if(!psys->childcache)
+	if(part->type==PART_HAIR && !psys->childcache)
 		totchild=0;
 	else
 		totchild=psys->totchild*part->disp/100;

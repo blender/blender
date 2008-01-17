@@ -128,7 +128,7 @@ typedef struct ParticleSettings {
 
 	/* general values */
 	float sta, end, lifetime, randlife;
-	float timetweak, jitfac, keyed_time;
+	float timetweak, jitfac, keyed_time, eff_hair, rt;
 	int totpart, userjit, grid_res;
 
 	/* initial velocity factors */
