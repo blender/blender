@@ -148,7 +148,7 @@ static AZone *is_in_area_actionzone(ScrArea *sa, int x, int y)
 	int i= 0;
 	
 	for(az= sa->actionzones.first, i= 0; az; az= az->next, i++) {
-		if(az->type == AZONE_TRI) {
+		if(az && az->type == AZONE_TRI) {
 			if(IsPointInTri2DInts(az->x1, az->y1, az->x2, az->y2, x, y)) break;
 		}
 		if(az->type == AZONE_QUAD) {
@@ -1087,9 +1087,15 @@ void ED_SCR_OT_move_areas(wmOperatorType *ot)
 	if operation gets confirmed -> yay
 */
 
+#define SPLIT_STARTED	1
+#define SPLIT_PROGRESS	2
+#define SPLIT_DONE		3
+
 typedef struct sAreaSplitData
 {
+	int state; /* state of operation */
 	int dir; /* direction of new edge */
+	int deltax, deltay;
 	int origval; /* for move areas */
 	int min,max; /* constraints for moving new edge */
 	int pos; /* with sa as center, ne is located at: 0=W, 1=N, 2=E, 3=S */
@@ -1166,19 +1172,25 @@ static int split_initintern(bContext *C, wmOperator *op, sAreaSplitData *sd)
 
 static int split_area_init (bContext *C, wmOperator *op)
 {
+	AZone *az= NULL;
+	ScrArea *sa= NULL;
 	sAreaSplitData *sd= NULL;
-	ScrEdge *actedge= screen_find_active_scredge(C->screen, op->veci.x, op->veci.y);
 	
-	if(actedge==NULL) return 0;
+	for(sa= C->screen->areabase.first; sa; sa= sa->next) {
+		az= is_in_area_actionzone(sa, op->veci.x, op->veci.y);
+		if(az!=NULL) break;
+	}
+	
+	if(az==NULL) return 0;
 	
 	sd= (sAreaSplitData*)MEM_callocN(sizeof (sAreaSplitData), "op_split_area");
 	op->customdata= sd;
-	/* for split dir is in which new edge comes */
-	sd->dir= scredge_is_horizontal(actedge) ? 'v':'h';
-	sd->sarea= screen_test_edge_area(C->screen, C->curarea, actedge);
-	sd->aedge= actedge;
-
-	return split_initintern(C, op, sd);
+	
+	sd->state= SPLIT_STARTED;
+	sd->deltax= 0;
+	sd->deltay= 0;
+	
+	return 1;
 }
 
 static int split_area_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -1248,48 +1260,74 @@ static int split_area_modal(bContext *C, wmOperator *op, wmEvent *event)
 	/* execute the events */
 	switch(event->type) {
 		case MOUSEMOVE:
-			sa= screen_areahascursor(C->screen, event->x, event->y);
+			if(sd->state==SPLIT_STARTED) {
+				/*
+					We first want to determine direction for split.
+					Get at least one(x or y) delta of minimum 10 pixels.
+					If one dir is delta threshold, and other dir is within "grey area" -> vert/hor split.
+					If we get both over threshold -> subdiv.
+				*/
+				sd->deltax= event->x - op->veci.x;
+				sd->deltay= event->y - op->veci.y;
+				
+				if(sd->deltax>10 && sd->deltay<4) {
+					printf("split on v\n");
+					sd->dir='v';
+					sd->state= SPLIT_PROGRESS;
+					op->delta= sd->deltax;
+				} else if(sd->deltay>10 && sd->deltax<4) {
+					printf("split on h\n");
+					sd->dir='h';
+					sd->state= SPLIT_PROGRESS;
+					op->delta= sd->deltay;
+				}
+				
+			} else if(sd->state==SPLIT_PROGRESS) {
+				sa= screen_areahascursor(C->screen, event->x, event->y);
 
-			/* area containing cursor has changed */
-			if(sa && sd->sarea!=sa && sd->narea!=sa) {
-				sold= sd->sarea;
-				split_joincurrent(C, sd);
+				/* area containing cursor has changed */
+				if(sa && sd->sarea!=sa && sd->narea!=sa) {
+					sold= sd->sarea;
+					split_joincurrent(C, sd);
 
-				/* now find aedge with same orientation as sd->dir (inverted) */
-				if(sd->dir=='v') {
-					sd->aedge= screen_findedge(C->screen, sa->v1, sa->v4);
-					if(sd->aedge==NULL) sd->aedge= screen_findedge(C->screen, sa->v2, sa->v3);
+					/* now find aedge with same orientation as sd->dir (inverted) */
+					if(sd->dir=='v') {
+						sd->aedge= screen_findedge(C->screen, sa->v1, sa->v4);
+						if(sd->aedge==NULL) sd->aedge= screen_findedge(C->screen, sa->v2, sa->v3);
+					}
+					else {
+						sd->aedge= screen_findedge(C->screen, sa->v1, sa->v2);
+						if(sd->aedge==NULL) sd->aedge= screen_findedge(C->screen, sa->v3, sa->v4);
+					}
+
+					/* set sd and op to new init state */
+					sd->sarea= sa;
+					op->delta= 0;
+					op->veci.x= event->x;
+					op->veci.y= event->y;
+					split_initintern(C, op, sd);
 				}
 				else {
-					sd->aedge= screen_findedge(C->screen, sa->v1, sa->v2);
-					if(sd->aedge==NULL) sd->aedge= screen_findedge(C->screen, sa->v3, sa->v4);
+					/* all is cool, update delta according complicated formula */
+					if(sd->dir=='v')
+						op->delta= event->x - op->veci.x;
+					else
+						op->delta= event->y - op->veci.y;
+					
+					split_area_exec(C, op);
 				}
-
-				/* set sd and op to new init state */
-				sd->sarea= sa;
-				op->delta= 0;
-				op->veci.x= event->x;
-				op->veci.y= event->y;
-				split_initintern(C, op, sd);
-			}
-			else {
-				/* all is cool, update delta according complicated formula */
-				if(sd->dir=='v')
-					op->delta= event->x - op->veci.x;
-				else
-					op->delta= event->y - op->veci.y;
-				
-				split_area_exec(C, op);
+			} else if (sd->state==SPLIT_DONE) {
+				/* shouldn't get here anymore */
 			}
 			WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0);
 			break;
-		case RIGHTMOUSE:
-			if(event->val==0) { /* mouse up => confirm */
+		case LEFTMOUSE:
+			if(event->val==0) { /* mouse up => confirm if not near/on starting edge */
 				split_area_exit(C, op);
 				WM_event_remove_modal_handler(&C->window->handlers, op);
 			}
 			break;
-		case LEFTMOUSE: /* cancel operation */
+		case RIGHTMOUSE: /* cancel operation */
 		case ESCKEY:
 			op->delta= 0;
 			split_joincurrent(C, sd);
