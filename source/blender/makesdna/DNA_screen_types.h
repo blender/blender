@@ -125,6 +125,8 @@ typedef struct ScrArea {
 	ListBase panels;
 	ListBase regionbase;	/* ARegion */
 	ListBase handlers;		/* wmEventHandler */
+	
+	ListBase actionzones;	/* AZone */
 } ScrArea;
 
 typedef struct ARegion {
@@ -148,7 +150,6 @@ typedef struct ARegion {
 	ListBase handlers;
 	
 } ARegion;
-
 
 /* area->flag */
 #define HEADER_NO_PULLDOWN	1
@@ -213,7 +214,6 @@ typedef struct ARegion {
 /* region flag */
 #define RGN_FLAG_HIDDEN		1
 #define RGN_FLAG_TOO_SMALL	2
-
 
 #endif
 

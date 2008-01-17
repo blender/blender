@@ -94,6 +94,7 @@ typedef struct wmNotifier {
 	int swinid;
 	int type;
 	int value;
+	void *data;
 	
 } wmNotifier;
 
@@ -102,7 +103,8 @@ enum {
 	WM_NOTE_WINDOW_REDRAW,
 	WM_NOTE_SCREEN_CHANGED,
 	WM_NOTE_OBJECT_CHANGED,
-	
+	WM_NOTE_AREA_SPLIT,
+	WM_NOTE_AREA_DRAG,
 	WM_NOTE_LAST
 };
 

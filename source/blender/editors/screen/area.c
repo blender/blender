@@ -41,6 +41,7 @@
 
 #include "ED_area.h"
 #include "ED_screen.h"
+#include "ED_screen_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -259,6 +260,95 @@ static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 	sa->winy= sa->totrct.ymax-sa->totrct.ymin+1;
 }
 
+void area_azone_initialize(ScrArea *sa) {
+	AZone *az;
+	if(sa->actionzones.first==NULL) {
+		printf("area_azone_initialize\n");
+		/* set action zones - should these actually be ARegions? With these we can easier check area hotzones */
+		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
+		BLI_addtail(&(sa->actionzones), az);
+		az->type= AZONE_TRI;
+		az->x1= sa->v1->vec.x+1;
+		az->y1= sa->v1->vec.y+1;
+		az->x2= sa->v1->vec.x+HEADERY;
+		az->y2= sa->v1->vec.y+HEADERY;
+		az->pos= AZONE_SW;
+		az->action= AZONE_SPLIT;
+		
+		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
+		BLI_addtail(&(sa->actionzones), az);
+		az->type= AZONE_TRI;
+		az->x1= sa->v3->vec.x-1;
+		az->y1= sa->v3->vec.y-1;
+		az->x2= sa->v3->vec.x-HEADERY;
+		az->y2= sa->v3->vec.y-HEADERY;
+		az->pos= AZONE_NE;
+		az->action= AZONE_DRAG;
+		
+		/*az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
+		BLI_addtail(&sa->azones, az);
+		az->type= AZONE_TRI;
+		az->x1= as->v1->vec.x;
+		az->y1= as->v1->vec.y;
+		az->x2= as->v1->vec.x+HEADERY;
+		az->y2= as->v1->vec.y+HEADERY;
+		
+		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
+		BLI_addtail(&sa->azones, az);
+		az->type= AZONE_TRI;
+		az->x1= as->v1->vec.x;
+		az->y1= as->v1->vec.y;
+		az->x2= as->v1->vec.x+HEADERY;
+		az->y2= as->v1->vec.y+HEADERY;
+		
+		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
+		BLI_addtail(&sa->azones, az);
+		az->type= AZONE_QUAD;
+		az->x1= as->v1->vec.x;
+		az->y1= as->v1->vec.y;
+		az->x2= as->v1->vec.x+HEADERY;
+		az->y2= as->v1->vec.y+HEADERY;
+		
+		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
+		BLI_addtail(&sa->azones, az);
+		az->type= AZONE_QUAD;
+		az->x1= as->v1->vec.x;
+		az->y1= as->v1->vec.y;
+		az->x2= as->v1->vec.x+HEADERY;
+		az->y2= as->v1->vec.y+HEADERY;
+		
+		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
+		BLI_addtail(&sa->azones, az);
+		az->type= AZONE_QUAD;
+		az->x1= as->v1->vec.x;
+		az->y1= as->v1->vec.y;
+		az->x2= as->v1->vec.x+HEADERY;
+		az->y2= as->v1->vec.y+HEADERY;
+		
+		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
+		BLI_addtail(&sa->azones, az);
+		az->type= AZONE_QUAD;
+		az->x1= as->v1->vec.x;
+		az->y1= as->v1->vec.y;
+		az->x2= as->v1->vec.x+HEADERY;
+		az->y2= as->v1->vec.y+HEADERY;*/
+	}
+	
+	for(az= sa->actionzones.first; az; az= az->next) {
+		if(az->pos==AZONE_SW) {
+			az->x1= sa->v1->vec.x+1;
+			az->y1= sa->v1->vec.y+1;
+			az->x2= sa->v1->vec.x+HEADERY;
+			az->y2= sa->v1->vec.y+HEADERY;
+		} else if (az->pos==AZONE_NE) {
+			az->x1= sa->v3->vec.x-1;
+			az->y1= sa->v3->vec.y-1;
+			az->x2= sa->v3->vec.x-HEADERY;
+			az->y2= sa->v3->vec.y-HEADERY;
+		}
+	}
+}
+
 /* called in screen_refresh, or screens_init */
 void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 {
@@ -294,6 +384,8 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 		else 
 			wm_subwindow_position(win, ar->swinid, &ar->winrct);
 	}
+	
+	area_azone_initialize(sa);
 }
 
 /* sa2 to sa1, we swap spaces for fullscreen to keep all allocated data */
@@ -303,6 +395,7 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 {
 	Panel *pa1, *pa2, *patab;
 	ARegion *ar;
+	AZone *az;
 	
 	sa1->headertype= sa2->headertype;
 	sa1->spacetype= sa2->spacetype;
@@ -341,6 +434,12 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	BLI_duplicatelist(&sa1->regionbase, &sa2->regionbase);
 	for(ar= sa1->regionbase.first; ar; ar= ar->next)
 		ar->swinid= 0;
+	
+	/* azones */
+	BLI_freelistN(&sa1->actionzones);
+	BLI_duplicatelist(&sa1->actionzones, &sa2->actionzones);
+	for(az= sa1->actionzones.first; az; az= az->next)
+		az->flag= 0;
 	
 	/* scripts */
 	BPY_free_scriptlink(&sa1->scriptlink);

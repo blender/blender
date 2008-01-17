@@ -27,6 +27,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_arithb.h"
 
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -43,7 +44,7 @@
 
 #include "ED_area.h"
 #include "ED_screen.h"
-
+#include "ED_screen_types.h"
 
 #include "wm_subwindow.h"
 
@@ -139,6 +140,23 @@ static ScrArea *screen_areahascursor(bScreen *scr, int x, int y)
 	}
 
 	return sa;
+}
+
+static AZone *is_in_area_actionzone(ScrArea *sa, int x, int y)
+{
+	AZone *az= NULL;
+	int i= 0;
+	
+	for(az= sa->actionzones.first, i= 0; az; az= az->next, i++) {
+		if(az->type == AZONE_TRI) {
+			if(IsPointInTri2DInts(az->x1, az->y1, az->x2, az->y2, x, y)) break;
+		}
+		if(az->type == AZONE_QUAD) {
+			if(az->x1 < x && x < az->x2 && az->y1 < y && y < az->y2) break;
+		}
+	}
+	
+	return az;
 }
 
 static void removedouble_scrverts(bScreen *sc)
@@ -353,6 +371,7 @@ static void select_connected_scredge(bScreen *sc, ScrEdge *edge)
 
 static ScrArea *screen_addarea(bScreen *sc, ScrVert *v1, ScrVert *v2, ScrVert *v3, ScrVert *v4, short headertype, short spacetype)
 {
+	AZone *az= NULL;
 	ScrArea *sa= MEM_callocN(sizeof(ScrArea), "addscrarea");
 	sa->v1= v1;
 	sa->v2= v2;
@@ -699,6 +718,7 @@ void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 
 static void drawscredge_area(ScrArea *sa)
 {
+	AZone *az;
 	short x1= sa->v1->vec.x;
 	short xa1= x1+HEADERY;
 	short y1= sa->v1->vec.y;
@@ -725,8 +745,9 @@ static void drawscredge_area(ScrArea *sa)
 	sdrawline(x1, y1, x2, y1);
 	
 	/* temporary viz for 'action corner' */
-	sdrawtrifill(x1, y1, xa1, ya1, .2, .2, .2);
-	
+	for(az= sa->actionzones.first; az; az= az->next) {
+		if(az->type==AZONE_TRI) sdrawtrifill(az->x1, az->y1, az->x2, az->y2, .2, .2, .2);
+	}
 }
 
 void ED_screen_do_listen(bScreen *screen, wmNotifier *note)
@@ -739,6 +760,12 @@ void ED_screen_do_listen(bScreen *screen, wmNotifier *note)
 			break;
 		case WM_NOTE_SCREEN_CHANGED:
 			screen->do_draw= screen->do_refresh= 1;
+			break;
+		case WM_NOTE_AREA_SPLIT:
+			printf("WM_NOTE_AREA_SPLIT\n");
+			break;
+		case WM_NOTE_AREA_DRAG:
+			printf("WM_NOTE_AREA_DRAG\n");
 			break;
 	}
 }
@@ -841,7 +868,14 @@ int screen_cursor_test(bContext *C, wmOperator *op, wmEvent *event)
 			WM_set_cursor(C, CURSOR_X_MOVE);
 		}
 	} else {
-		WM_set_cursor(C, CURSOR_STD);
+		ScrArea *sa= NULL;
+		AZone *az= NULL;
+		for(sa= C->screen->areabase.first; sa; sa= sa->next) {
+			az= is_in_area_actionzone(sa, event->x, event->y);
+			if(az!=NULL) break;
+		}
+		if(az!=NULL) WM_set_cursor(C, CURSOR_EDIT);
+		else WM_set_cursor(C, CURSOR_STD);
 	}
 	
 	return 1;

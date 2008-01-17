@@ -374,6 +374,8 @@ int AabbIntersectAabb(float min1[3], float max1[3], float min2[3], float max2[3]
 void VecfCubicInterpol(float *x1, float *v1, float *x2, float *v2, float t, float *x, float *v);
 void PointInQuad2DUV(float v0[2], float v1[2], float v2[2], float v3[2], float pt[2], float *uv);
 void PointInFace2DUV(int isquad, float v0[2], float v1[2], float v2[2], float v3[2], float pt[2], float *uv);
+int IsPointInTri2D(float v0[2], float v1[2], float v2[2], float pt[2]);
+int IsPointInTri2DInts(int x1, int y1, int x2, int y2, int a, int b);
 int point_in_tri_prism(float p[3], float v1[3], float v2[3], float v3[3]);
 
 float lambda_cp_line_ex(float p[3], float l1[3], float l2[3], float cp[3]);

@@ -93,6 +93,7 @@ void BKE_screen_area_free(ScrArea *sa)
 	BKE_spacedata_freelist(&sa->spacedata);
 	
 	BLI_freelistN(&sa->regionbase);
+	BLI_freelistN(&sa->actionzones);
 	
 	BLI_freelistN(&sa->panels);
 	//	uiFreeBlocks(&sa->uiblocks);

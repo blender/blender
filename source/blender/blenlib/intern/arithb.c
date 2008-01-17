@@ -4084,6 +4084,63 @@ void PointInFace2DUV(int isquad, float v0[2], float v1[2], float v2[2], float v3
 	}
 }
 
+int IsPointInTri2D(float v0[2], float v1[2], float v2[2], float pt[2])
+{
+		/* not for quads, use for our abuse of LineIntersectsTriangleUV */
+		float p1_3d[3], p2_3d[3], v0_3d[3], v1_3d[3], v2_3d[3];
+		/* not used */
+		float lambda, uv[3];
+			
+		p1_3d[0] = p2_3d[0] = uv[0]= pt[0];
+		p1_3d[1] = p2_3d[1] = uv[1]= uv[2]= pt[1];
+		p1_3d[2] = 1.0f;
+		p2_3d[2] = -1.0f;
+		v0_3d[2] = v1_3d[2] = v2_3d[2] = 0.0;
+		
+		/* generate a new fuv, (this is possibly a non optimal solution,
+		 * since we only need 2d calculation but use 3d func's)
+		 * 
+		 * this method makes an imaginary triangle in 2d space using the UV's from the derived mesh face
+		 * Then find new uv coords using the fuv and this face with LineIntersectsTriangleUV.
+		 * This means the new values will be correct in relation to the derived meshes face. 
+		 */
+		Vec2Copyf(v0_3d, v0);
+		Vec2Copyf(v1_3d, v1);
+		Vec2Copyf(v2_3d, v2);
+		
+		/* Doing this in 3D is not nice */
+		return LineIntersectsTriangle(p1_3d, p2_3d, v0_3d, v1_3d, v2_3d, &lambda, &uv);
+}
+
+/*
+
+	x1,y2
+	|  \
+	|   \     .(a,b)
+	|    \
+	x1,y1-- x2,y1
+
+*/
+int IsPointInTri2DInts(int x1, int y1, int x2, int y2, int a, int b)
+{
+	float v1[2], v2[2], v3[2], p[2];
+	
+	v1[0]= (float)x1;
+	v1[1]= (float)y1;
+	
+	v2[0]= (float)x1;
+	v2[1]= (float)y2;
+	
+	v3[0]= (float)x2;
+	v3[1]= (float)y1;
+	
+	p[0]= (float)a;
+	p[1]= (float)b;
+	
+	return IsPointInTri2D(v1, v2, v3, p);
+	
+}
+
 /* (x1,v1)(t1=0)------(x2,v2)(t2=1), 0<t<1 --> (x,v)(t) */
 void VecfCubicInterpol(float *x1, float *v1, float *x2, float *v2, float t, float *x, float *v)
 {
