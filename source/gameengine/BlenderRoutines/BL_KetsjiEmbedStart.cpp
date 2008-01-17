@@ -225,7 +225,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		}
 		for (i = 0; i < 16; i++)
 		{
-			float *projmat_linear = (float*) area->winmat;
+			float *projmat_linear; 			//XXX = (float*) area->winmat;
 			projmat.setElem(i, projmat_linear[i]);
 		}
 		
