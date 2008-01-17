@@ -4136,18 +4136,11 @@ static void dupli_render_particle_set(Render *re, Object *ob, int level, int ena
 		return;
 	
 	if(ob->transflag & OB_DUPLIPARTS) {
-		DerivedMesh *dm;
-
 		for(psys=ob->particlesystem.first; psys; psys=psys->next)
 			if(enable)
 				psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy);
 			else
 				psys_render_restore(ob, psys);
-
-		if(enable) {
-			dm = mesh_create_derived_render(ob,	CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
-			dm->release(dm);
-		}
 	}
 
 	if(ob->dup_group==NULL) return;
