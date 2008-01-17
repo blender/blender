@@ -2446,7 +2446,7 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 
 				do_effectors(i, pa, &eff_key, ob, psys, force, vel, dfra, cfra);
 
-				VecMulf(force, pow((float)k / (float)steps, 100.0f * psys->part->eff_hair) * steps);
+				VecMulf(force, pow((float)k / (float)steps, 100.0f * psys->part->eff_hair) / (float)steps);
 
 				VecAddf(force, force, vec);
 
