@@ -452,6 +452,7 @@ static void screen_copy(bScreen *to, bScreen *from)
 		sa->uiblocks.first= sa->uiblocks.last= NULL;
 		sa->panels.first= sa->panels.last= NULL;
 		sa->regionbase.first= sa->regionbase.last= NULL;
+		sa->actionzones.first= sa->actionzones.last= NULL;
 		sa->scriptlink.totscript= 0;
 		
 		area_copy_data(sa, saf, 0);
