@@ -434,13 +434,7 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	BLI_duplicatelist(&sa1->regionbase, &sa2->regionbase);
 	for(ar= sa1->regionbase.first; ar; ar= ar->next)
 		ar->swinid= 0;
-	
-	/* azones */
-	BLI_freelistN(&sa1->actionzones);
-	BLI_duplicatelist(&sa1->actionzones, &sa2->actionzones);
-	for(az= sa1->actionzones.first; az; az= az->next)
-		az->flag= 0;
-	
+		
 	/* scripts */
 	BPY_free_scriptlink(&sa1->scriptlink);
 	sa1->scriptlink= sa2->scriptlink;
