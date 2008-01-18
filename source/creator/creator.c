@@ -97,7 +97,7 @@
 # include <sys/rtprio.h>
 #endif
 
-#ifdef __linux__
+#ifdef WITH_BINRELOC
 #include "binreloc.h"
 #endif
 
@@ -258,8 +258,7 @@ int main(int argc, char **argv)
 #endif
 
 	
-#ifdef __linux__
-	/* linux uses binrealoc to know its binary path */
+#ifdef WITH_BINRELOC
 	br_init( NULL );
 #endif
 

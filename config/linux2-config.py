@@ -114,6 +114,8 @@ BF_ICONV_INC = '${BF_ICONV}/include'
 BF_ICONV_LIB = 'iconv'
 BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 
+WITH_BF_BINRELOC = 'true'
+
 # enable ffmpeg  support
 WITH_BF_FFMPEG = 'true'  # -DWITH_FFMPEG
 BF_FFMPEG = '#extern/ffmpeg'

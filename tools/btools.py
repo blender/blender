@@ -47,6 +47,7 @@ def validate_arguments(args, bc):
             'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC', 'BF_OPENGL_LINKFLAGS',
             'WITH_BF_FTGL', 'BF_FTGL', 'BF_FTGL_INC', 'BF_FTGL_LIB',
             'WITH_BF_PLAYER',
+            'WITH_BF_BINRELOC',	
             'CFLAGS', 'CCFLAGS', 'CPPFLAGS', 
             'REL_CFLAGS', 'REL_CCFLAGS',
             'C_WARN', 'CC_WARN', 'LLIBS', 'PLATFORM_LINKFLAGS',
@@ -300,6 +301,7 @@ def read_opts(cfg, args):
         (BoolOption('BF_SPLIT_SRC', 'Split src lib into several chunks if true', 'false')),
         (BoolOption('WITHOUT_BF_INSTALL', 'dont install if true', 'false')),
         (BoolOption('BF_FANCY', 'Enable fancy output if true', 'true')),
+	(BoolOption('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', 'true')),
 
     ) # end of opts.AddOptions()
 
