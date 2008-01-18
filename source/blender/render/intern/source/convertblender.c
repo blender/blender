@@ -4147,16 +4147,31 @@ static void dupli_render_particle_set(Render *re, Object *ob, int level, int ena
 	Group *group;
 	GroupObject *go;
 	ParticleSystem *psys;
+	DerivedMesh *dm;
 
 	if(level >= MAX_DUPLI_RECUR)
 		return;
 	
 	if(ob->transflag & OB_DUPLIPARTS) {
-		for(psys=ob->particlesystem.first; psys; psys=psys->next)
-			if(enable)
-				psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy);
-			else
-				psys_render_restore(ob, psys);
+		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+			if(ELEM(psys->part->draw_as, PART_DRAW_OB, PART_DRAW_GR)) {
+				if(enable)
+					psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy);
+				else
+					psys_render_restore(ob, psys);
+			}
+		}
+
+		if(level == 0 && enable) {
+			/* this is to make sure we get render level duplis in groups:
+			* the derivedmesh must be created before init_render_mesh,
+			* since object_duplilist does dupliparticles before that */
+			dm = mesh_create_derived_render(ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+			dm->release(dm);
+
+			for(psys=ob->particlesystem.first; psys; psys=psys->next)
+				psys_get_modifier(ob, psys)->flag &= ~eParticleSystemFlag_psys_updated;
+		}
 	}
 
 	if(ob->dup_group==NULL) return;
@@ -4186,7 +4201,7 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 
 	for(SETLOOPER(re->scene, base)) {
 		ob= base->object;
-		
+
 		/* if the object has been restricted from rendering in the outliner, ignore it */
 		if(ob->restrictflag & OB_RESTRICT_RENDER) continue;
 
@@ -4216,7 +4231,7 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 
 					if(obd->restrictflag & OB_RESTRICT_RENDER)
 						continue;
-					
+
 					if(obd->type==OB_MBALL)
 						continue;
 

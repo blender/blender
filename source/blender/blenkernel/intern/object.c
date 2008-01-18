@@ -2223,6 +2223,9 @@ void object_handle_update(Object *ob)
 					 * since object_duplilist does dupliparticles before that */
 					dm = mesh_create_derived_render(ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
 					dm->release(dm);
+
+					for(psys=ob->particlesystem.first; psys; psys=psys->next)
+						psys_get_modifier(ob, psys)->flag &= ~eParticleSystemFlag_psys_updated;
 				}
 			}
 		}

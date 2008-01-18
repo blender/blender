@@ -7529,6 +7529,14 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 	}
 }
 
+static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSettings *part)
+{
+	expand_doit(fd, mainvar, part->dup_ob);
+	expand_doit(fd, mainvar, part->dup_group);
+	expand_doit(fd, mainvar, part->eff_group);
+	expand_doit(fd, mainvar, part->bb_ob);
+}
+
 static void expand_ipo(FileData *fd, Main *mainvar, Ipo *ipo)
 {
 	IpoCurve *icu;
@@ -8121,6 +8129,8 @@ static void expand_main(FileData *fd, Main *mainvar)
 					case ID_IP:
 						expand_ipo(fd, mainvar, (Ipo *)id);
 						break;
+					case ID_PA:
+						expand_particlesettings(fd, mainvar, (ParticleSettings *)id);
 					}
 
 					doit= 1;
