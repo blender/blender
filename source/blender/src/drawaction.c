@@ -695,9 +695,12 @@ static void draw_channel_strips(void)
 	float y, sta, end;
 	int act_start, act_end, dummy;
 	char col1[3], col2[3];
+	char col1a[3], col2a[3];
 	
 	BIF_GetThemeColor3ubv(TH_SHADE2, col2);
 	BIF_GetThemeColor3ubv(TH_HILITE, col1);
+	BIF_GetThemeColor3ubv(TH_GROUP, col2a);
+	BIF_GetThemeColor3ubv(TH_GROUP_ACTIVE, col1a);
 
 	/* get editor data */
 	data= get_action_context(&datatype);
@@ -766,12 +769,24 @@ static void draw_channel_strips(void)
 			if (datatype == ACTCONT_ACTION) {
 				gla2DDrawTranslatePt(di, G.v2d->cur.xmin, y, &frame1_x, &channel_y);
 				
-				if (sel) glColor4ub(col1[0], col1[1], col1[2], 0x22);
-				else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+				if (ale->datatype == ALE_GROUP) {
+					if (sel) glColor4ub(col1a[0], col1a[1], col1a[2], 0x22);
+					else glColor4ub(col2a[0], col2a[1], col2a[2], 0x22);
+				}
+				else {
+					if (sel) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+					else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+				}
 				glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
 				
-				if (sel) glColor4ub(col1[0], col1[1], col1[2], 0x22);
-				else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+				if (ale->datatype == ALE_GROUP) {
+					if (sel) glColor4ub(col1a[0], col1a[1], col1a[2], 0x22);
+					else glColor4ub(col2a[0], col2a[1], col2a[2], 0x22);
+				}
+				else {
+					if (sel) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+					else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+				}
 				glRectf(act_start,  channel_y-CHANNELHEIGHT/2,  act_end,  channel_y+CHANNELHEIGHT/2);
 			}
 			else if (datatype == ACTCONT_SHAPEKEY) {
