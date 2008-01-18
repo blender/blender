@@ -8144,34 +8144,42 @@ static int object_in_any_scene(Object *ob)
 }
 
 /* when *lib set, it also does objects that were in the appended group */
-static void give_base_to_objects(Scene *sce, ListBase *lb, Library *lib)
+static void give_base_to_objects(Scene *sce, ListBase *lb, Library *lib, int is_group_append)
 {
 	Object *ob;
 	Base *base;
 
 	/* give all objects which are LIB_INDIRECT a base, or for a group when *lib has been set */
 	for(ob= lb->first; ob; ob= ob->id.next) {
-
+		
 		if( ob->id.flag & LIB_INDIRECT ) {
-			int do_it= 0;
 			
-			if(ob->id.us==0)
-				do_it= 1;
-			else if(ob->id.us==1 && lib)
-				if(ob->id.lib==lib && (ob->flag & OB_FROMGROUP) && object_in_any_scene(ob)==0)
-					do_it= 1;
-					
-			if(do_it) {
-				base= MEM_callocN( sizeof(Base), "add_ext_base");
-				BLI_addtail(&(sce->base), base);
-				base->lay= ob->lay;
-				base->object= ob;
-				base->flag= ob->flag;
-				ob->id.us= 1;
+				/* IF below is quite confusing!
+				if we are appending, but this object wasnt just added allong with a group,
+				then this is alredy used indirectly in the scene somewhere else and we didnt just append it.
 				
-				ob->id.flag -= LIB_INDIRECT;
-				ob->id.flag |= LIB_EXTERN;
-
+				(ob->id.flag & LIB_APPEND_TAG)==0 means that this is a newly appended object - Campbell */
+			if (is_group_append==0 || (ob->id.flag & LIB_APPEND_TAG)==0) {
+				
+				int do_it= 0;
+				
+				if(ob->id.us==0)
+					do_it= 1;
+				else if(ob->id.us==1 && lib)
+					if(ob->id.lib==lib && (ob->flag & OB_FROMGROUP) && object_in_any_scene(ob)==0)
+						do_it= 1;
+						
+				if(do_it) {
+					base= MEM_callocN( sizeof(Base), "add_ext_base");
+					BLI_addtail(&(sce->base), base);
+					base->lay= ob->lay;
+					base->object= ob;
+					base->flag= ob->flag;
+					ob->id.us= 1;
+					
+					ob->id.flag -= LIB_INDIRECT;
+					ob->id.flag |= LIB_EXTERN;
+				}
 			}
 		}
 	}
@@ -8310,11 +8318,15 @@ static Library* library_append( Scene *scene, char* file, char *dir, int idcode,
 	lib_verify_nodetree(G.main);
 
 	/* give a base to loose objects. If group append, do it for objects too */
-	if(idcode==ID_GR)
-		give_base_to_objects(scene, &(G.main->object), (flag & FILE_LINK)?NULL:curlib);
-	else
-		give_base_to_objects(scene, &(G.main->object), NULL);
-	
+	if(idcode==ID_GR) {
+		if (flag & FILE_LINK) {
+			give_base_to_objects(scene, &(G.main->object), NULL, 0);
+		} else {
+			give_base_to_objects(scene, &(G.main->object), curlib, 1);
+		}	
+	} else {
+		give_base_to_objects(scene, &(G.main->object), NULL, 0);
+	}
 	/* has been removed... erm, why? s..ton) */
 	/* 20040907: looks like they are give base already in append_named_part(); -Nathan L */
 	/* 20041208: put back. It only linked direct, not indirect objects (ton) */
