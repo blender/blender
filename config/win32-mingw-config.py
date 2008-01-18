@@ -97,6 +97,8 @@ BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
 
 WITH_BF_YAFRAY = 'true'
 
+WITH_BF_BINRELOC = 'false'
+
 #WITH_BF_NSPR = 'true'
 #BF_NSPR = $(LIBDIR)/nspr
 #BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr
