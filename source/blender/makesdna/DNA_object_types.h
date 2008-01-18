@@ -119,7 +119,7 @@ typedef struct Object {
 	
 	int dupon, dupoff, dupsta, dupend;
 
-	float sf, ctime;
+	float sf, ctime; /* sf is time-offset, ctime is the objects current time */
 	
 	/* during realtime */
 

@@ -2500,9 +2500,11 @@ static void object_panel_anim(Object *ob)
 	uiDefButBitS(block, TOG, OB_OFFS_PARTICLE, REDRAWALL, "Offs Particle",		140,35,103,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the particle effect");
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,10,115,20, &ob->sf, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify an offset in frames");
-	uiDefBut(block, BUT, B_AUTOTIMEOFS, "Automatic Time",	139,10,104,20, 0, 0, 0, 0, 0, "Generate automatic timeoffset values for all selected frames");
-	uiDefBut(block, BUT, B_PRINTSPEED,	"PrSpeed",			248,10,67,20, 0, 0, 0, 0, 0, "Print objectspeed");
+	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,10,115,20, &ob->sf, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Animation offset in frames for ipo's and dupligroup instances");
+	uiDefBut(block, BUT, B_AUTOTIMEOFS, "Auto",	139,10,34,20, 0, 0, 0, 0, 0, "Assign selected objects a timeoffset within a range, starting from the active object");
+	uiDefBut(block, BUT, B_OFSTIMEOFS, "Ofs",	173,10,34,20, 0, 0, 0, 0, 0, "Offset selected objects timeoffset");
+	uiDefBut(block, BUT, B_RANDTIMEOFS, "Rand",	207,10,34,20, 0, 0, 0, 0, 0, "Randomize selected objects timeoffset");
+	uiDefBut(block, BUT, B_PRINTSPEED,	"PrSpeed",			250,10,65,20, 0, 0, 0, 0, 0, "Print objectspeed");
 	uiBlockEndAlign(block);
 	
 	sprintf(str, "%.4f", prspeed);
@@ -2646,6 +2648,12 @@ void do_effects_panels(unsigned short event)
 
     case B_AUTOTIMEOFS:
 		auto_timeoffs();
+		break;
+    case B_OFSTIMEOFS:
+		ofs_timeoffs();
+		break;
+    case B_RANDTIMEOFS:
+		rand_timeoffs();
 		break;
 	case B_FRAMEMAP:
 		G.scene->r.framelen= G.scene->r.framapto;

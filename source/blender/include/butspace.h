@@ -725,7 +725,7 @@ enum {
 
 #define B_EFFECTSBUTS		3500
 
-#define B_AUTOTIMEOFS		3403
+#define B_AUTOTIMEOFS		3403 /* see B_OFSTIMEOFS, B_RANDTIMEOFS also */
 #define B_FRAMEMAP		3404
 #define B_NEWEFFECT		3405
 #define B_PREVEFFECT		3406
@@ -760,6 +760,8 @@ enum {
 #define B_PART_EDITABLE		3435
 #define B_PART_REKEY		3436
 #define B_PART_ENABLE		3437
+#define B_OFSTIMEOFS		3438 /* see B_AUTOTIMEOFS too */
+#define B_RANDTIMEOFS		3439
 
 #define B_MODIFIER_BUTS		3600
 
