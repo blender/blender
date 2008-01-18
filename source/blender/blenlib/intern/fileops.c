@@ -79,7 +79,7 @@ char *first_slash(char *string) {
 	else return fbslash;
 }
 
-char *BLI_last_slash(char *string) {
+char *BLI_last_slash(const char *string) {
 	char *lfslash, *lbslash;
 	
 	lfslash= strrchr(string, '/');	

@@ -688,6 +688,9 @@ static void readBlog(void)
 
 		fsmenu_append_separator();
 	}
+#else
+	/* add home dir on linux systems */
+	fsmenu_insert_entry(BLI_gethome(), 0, 0);
 #endif
 
 	BLI_make_file_string(G.sce, name, BLI_gethome(), ".Bfs");

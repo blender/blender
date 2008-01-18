@@ -84,6 +84,10 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
+#ifdef __linux__
+#include "binreloc.h"
+#endif
+
 /* local */
 
 static int add_win32_extension(char *name);
@@ -1444,10 +1448,10 @@ static int add_win32_extension(char *name)
 	return (retval);
 }
 
-void BLI_where_am_i(char *fullname, char *name)
+void BLI_where_am_i(char *fullname, const char *name)
 {
 	char filename[FILE_MAXDIR+FILE_MAXFILE];
-	char *path, *temp;
+	char *path = NULL, *temp;
 	int len;
 #ifdef _WIN32
 	char *seperator = ";";
@@ -1457,6 +1461,17 @@ void BLI_where_am_i(char *fullname, char *name)
 	char *slash = "/";
 #endif
 
+	
+#ifdef __linux__
+	/* linux uses binreloc since argv[0] is not relyable, call br_init( NULL ) first */
+	path = br_find_exe( NULL );
+	if (path) {
+		strcpy(fullname, path);
+		return;
+	}
+#endif
+	
+	/* unix and non linux */
 	if (name && fullname && strlen(name)) {
 		strcpy(fullname, name);
 		if (name[0] == '.') {

@@ -15,4 +15,7 @@ if env['WITH_BF_QUICKTIME']==1:
     incs += ' ' + env['BF_QUICKTIME_INC']
     defs.append('WITH_QUICKTIME')
 
+if env['OURPLATFORM'] == 'linux2':
+	incs += ' ../../extern/binreloc/include'
+
 env.BlenderLib ( libname = 'blender_creator', sources = Split(sources), includes = Split(incs), defines = defs, libtype='core', priority = 1 )

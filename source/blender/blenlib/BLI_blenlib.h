@@ -254,7 +254,7 @@ void BLI_free_file_lines(struct LinkNode *lines);
 	 * @param fullname The full path and full name of the executable
 	 * @param name The name of the executable (usually argv[0]) to be checked
 	 */
-void BLI_where_am_i(char *fullname, char *name);
+void BLI_where_am_i(char *fullname, const char *name);
 
 	/**
 	 * determines the full path to the application bundle on OS X
@@ -297,7 +297,7 @@ int   BLI_gzip(char *from, char *to);
 int   BLI_delete(char *file, int dir, int recursive);
 int   BLI_move(char *file, char *to);
 int   BLI_touch(char *file);
-char *BLI_last_slash(char *string);
+char *BLI_last_slash(const char *string);
 
 /* BLI_rct.c */
 /**

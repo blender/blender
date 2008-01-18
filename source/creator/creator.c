@@ -97,6 +97,10 @@
 # include <sys/rtprio.h>
 #endif
 
+#ifdef __linux__
+#include "binreloc.h"
+#endif
+
 // from buildinfo.c
 #ifdef BUILD_DATE
 extern char * build_date;
@@ -251,6 +255,12 @@ int main(int argc, char **argv)
 	int audio = 1;
 #else
 	int audio = 0;
+#endif
+
+	
+#ifdef __linux__
+	/* linux uses binrealoc to know its binary path */
+	br_init( NULL );
 #endif
 
 	setCallbacks();
