@@ -1641,7 +1641,7 @@ void cache_occ_samples(Render *re, RenderPart *pa, ShadeSample *ssamp)
 
 	/* compute a sample at every step pixels */
 	for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
-		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, ro++, rp++, rz++) {
+		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, ro++, rp++, rz++, sample++) {
 			if((((x - pa->disprect.xmin + step) % step) == 0 || x == pa->disprect.xmax-1) && (((y - pa->disprect.ymin + step) % step) == 0 || y == pa->disprect.ymax-1)) {
 				if(*rp) {
 					ps.obi= *ro;
@@ -1650,6 +1650,8 @@ void cache_occ_samples(Render *re, RenderPart *pa, ShadeSample *ssamp)
 
 					shade_samples_fill_with_ps(ssamp, &ps, x, y);
 					shi= ssamp->shi;
+					if(!shi->vlr)
+						continue;
 
 					onlyshadow= (shi->mat->mode & MA_ONLYSHADOW);
 					exclude.obi= shi->obi - re->objectinstance;
@@ -1669,8 +1671,6 @@ void cache_occ_samples(Render *re, RenderPart *pa, ShadeSample *ssamp)
 				if(re->test_break())
 					break;
 			}
-
-			sample++;
 		}
 	}
 }
