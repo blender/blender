@@ -164,9 +164,12 @@ int object_in_group(Object *ob, Group *group)
 	return 0;
 }
 
-Group *find_group(Object *ob)
+Group *find_group(Object *ob, Group *group)
 {
-	Group *group= G.main->group.first;
+	if (group)
+		group= group->id.next;
+	else
+		group= G.main->group.first;
 	
 	while(group) {
 		if(object_in_group(ob, group))

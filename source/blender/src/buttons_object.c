@@ -2350,7 +2350,7 @@ static void group_ob_rem(void *gr_v, void *ob_v)
 	Object *ob= OBACT;
 	
 	rem_from_group(gr_v, ob);
-	if(find_group(ob)==NULL) {
+	if(find_group(ob, NULL)==NULL) {
 		ob->flag &= ~OB_FROMGROUP;
 		BASACT->flag &= ~OB_FROMGROUP;
 	}

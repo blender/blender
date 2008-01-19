@@ -697,7 +697,7 @@ static PyObject *GroupObSeq_unlink( BPy_GroupObSeq * self, BPy_Object *value )
 	
 	rem_from_group(self->bpygroup->group, blen_ob);
 	
-	if(find_group(blen_ob)==NULL) {
+	if(find_group(blen_ob, NULL)==NULL) {
 		blen_ob->flag &= ~OB_FROMGROUP;
 		
 		base= object_in_scene(blen_ob, G.scene);

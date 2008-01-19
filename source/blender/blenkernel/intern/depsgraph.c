@@ -2064,8 +2064,8 @@ void DAG_object_update_flags(Scene *sce, Object *ob, unsigned int lay)
 	
 	/* object not in scene? then handle group exception. needs to be dagged once too */
 	if(node==NULL) {
-		Group *group= find_group(ob);
-		if(group) {
+		Group *group= NULL;
+		while( (group = find_group(ob, group)) ) {
 			GroupObject *go;
 			/* primitive; tag all... this call helps building groups for particles */
 			for(go= group->gobject.first; go; go= go->next)

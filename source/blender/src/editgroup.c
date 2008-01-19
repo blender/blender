@@ -119,8 +119,8 @@ void rem_selected_from_group(void)
 	
 	for(base=FIRSTBASE; base; base= base->next) {
 		if TESTBASE(base) {
-
-			while( (group = find_group(base->object)) ) {
+			group = NULL;
+			while( (group = find_group(base->object, group)) ) {
 				rem_from_group(group, base->object);
 			}
 			base->object->flag &= ~OB_FROMGROUP;

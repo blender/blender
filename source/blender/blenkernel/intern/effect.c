@@ -1552,7 +1552,7 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 	
 	/* object can be linked in group... stupid exception */
 	if(NULL==object_in_scene(ob, G.scene))
-		group= find_group(ob);
+		group= find_group(ob, NULL); /* TODO - dont just use the first group! - Campbell */
 	
 	mcache= mc= MEM_mallocN( (end-start+1)*sizeof(pMatrixCache), "ob matrix cache");
 	
