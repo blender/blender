@@ -301,7 +301,7 @@ def read_opts(cfg, args):
         (BoolOption('BF_SPLIT_SRC', 'Split src lib into several chunks if true', 'false')),
         (BoolOption('WITHOUT_BF_INSTALL', 'dont install if true', 'false')),
         (BoolOption('BF_FANCY', 'Enable fancy output if true', 'true')),
-	(BoolOption('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', 'true')),
+		(BoolOption('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', 'false')),
 
     ) # end of opts.AddOptions()
 

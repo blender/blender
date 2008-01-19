@@ -134,6 +134,8 @@ BF_OPENGL_LIB = 'GL GLU X11 Xi'
 BF_OPENGL_LIBPATH = '/usr/X11R6/lib'
 BF_OPENGL_LIB_STATIC = '${BF_OPENGL}/libGL.a ${BF_OPENGL}/libGLU.a ${BF_OPENGL}/libXxf86vm.a ${BF_OPENGL}/libX11.a ${BF_OPENGL}/libXi.a ${BF_OPENGL}/libXext.a ${BF_OPENGL}/libXxf86vm.a'
 
+WITH_BF_BINRELOC = 'true'
+
 ##
 CC = 'gcc'
 CXX = 'g++'
