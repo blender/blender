@@ -126,7 +126,110 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
 	ot->poll= WM_operator_winactive;
 }
 
+/* ************ window / screen border operator definitions ************** */
+/*
+ * This is and example of global operator working with
+ * the gesture system.
+ */
+static int border_select_init(bContext *C, wmOperator *op)
+{
+	OP_set_int(op, "start_x", op->veci.x);
+	OP_set_int(op, "start_y", op->veci.y);
+	return 1;
+}
 
+static int border_select_exec(bContext *C, wmOperator *op)
+{
+	wmGestureRect *rect;
+	int x, y;
+
+	OP_get_int(op, "start_x", &x);
+	OP_get_int(op, "start_y", &y);
+
+	rect= (wmGestureRect *) WM_gesture_new(GESTURE_RECT);
+	rect->x1= x;
+	rect->y1= y;
+	rect->x2= op->veci.x;
+	rect->y2= op->veci.y;
+
+	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_GESTURE_CHANGED, 0, rect);
+	return 1;
+}
+
+static int border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	/* operator arguments and storage. */
+	op->properties= NULL;
+	op->veci.x= event->x;
+	op->veci.y= event->y;
+
+	if(0==border_select_init(C, op))
+		return 1;
+
+	/* add temp handler */
+	WM_event_add_modal_handler(&C->window->handlers, op);
+	return 0;
+}
+
+static int border_select_exit(bContext *C, wmOperator *op)
+{
+	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	OP_free_property(op);
+	return 1;
+}
+
+static int border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	switch(event->type) {
+		case MOUSEMOVE:
+			op->veci.x= event->x;
+			op->veci.y= event->y;
+			border_select_exec(C, op);
+			WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+			break;
+		case LEFTMOUSE:
+			if(event->val==0) {
+				wmGestureRect *rect;
+				int x, y;
+
+				OP_get_int(op, "start_x", &x);
+				OP_get_int(op, "start_y", &y);
+
+				rect= (wmGestureRect *) WM_gesture_new(GESTURE_RECT);
+				rect->x1= x;
+				rect->y1= y;
+				rect->x2= op->veci.x;
+				rect->y2= op->veci.y;
+				WM_gesture_send(C->window, (wmGesture *) rect);
+				MEM_freeN(rect);
+
+				border_select_exit(C, op);
+				WM_event_remove_modal_handler(&C->window->handlers, op);
+			}
+			break;
+		case ESCKEY:
+			WM_event_remove_modal_handler(&C->window->handlers, op);
+			border_select_exit(C, op);
+			break;
+	}
+	return 1;
+}
+
+void WM_OT_border_select(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Border select";
+	ot->idname= "WM_OT_border_select";
+
+	ot->init= border_select_init;
+	ot->invoke= border_select_invoke;
+	ot->modal= border_select_modal;
+	ot->exec= border_select_exec;
+	ot->exit= border_select_exit;
+
+	ot->poll= WM_operator_winactive;
+}
+ 
 #define ADD_OPTYPE(opfunc)	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype"); \
 							opfunc(ot);  \
 							BLI_addtail(&global_ops, ot)
@@ -145,8 +248,9 @@ void wm_operatortype_init(void)
 	
 	ADD_OPTYPE(WM_OT_window_duplicate);
 	ADD_OPTYPE(WM_OT_save_homefile);
-    ADD_OPTYPE(WM_OT_window_fullscreen_toggle);
+	ADD_OPTYPE(WM_OT_window_fullscreen_toggle);
 	ADD_OPTYPE(WM_OT_exit_blender);
+	ADD_OPTYPE(WM_OT_border_select);
 }
 
 /* wrapped to get property from a operator. */

@@ -34,6 +34,7 @@
 struct bContext;
 struct wmEvent;
 struct wmEventHandler;
+struct wmGesture;
 
 			/* general API */
 void		WM_setprefsize		(int stax, int stay, int sizx, int sizy);
@@ -67,8 +68,9 @@ struct wmEventHandler *WM_event_add_keymap_handler(ListBase *keymap, ListBase *h
 struct wmEventHandler *WM_event_add_modal_handler(ListBase *handlers, wmOperator *op);
 void		WM_event_remove_modal_handler(ListBase *handlers, wmOperator *op);
 
-void		WM_event_add_notifier(wmWindowManager *wm, wmWindow *window, int swinid, int type, 
-								  int value);
+void		WM_event_add_notifier(wmWindowManager *wm, wmWindow *window,
+					int swinid, int type,
+					int value, void *data);
 
 
 			/* operator api, default callbacks */
@@ -131,6 +133,11 @@ int OP_get_float_array(wmOperator *op, char *name, float *array, short *len);
  * of the operator, but only if you use the property system.
  **/
 void OP_free_property(wmOperator *op);
+
+			/* Gesture manager API */
+struct wmGesture *WM_gesture_new(int type);
+struct wmGesture *WM_gesture_dup(struct wmGesture *from);
+void WM_gesture_send(wmWindow *win, struct wmGesture *gesture);
 
 			/* OpenGL wrappers, mimicing opengl syntax */
 void		wmLoadMatrix		(wmWindow *win, float mat[][4]);

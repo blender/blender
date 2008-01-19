@@ -55,7 +55,7 @@
 
 /* ************ event management ************** */
 
-static void wm_event_add(wmWindow *win, wmEvent *event_to_add)
+void wm_event_add(wmWindow *win, wmEvent *event_to_add)
 {
 	wmEvent *event= MEM_callocN(sizeof(wmEvent), "event");
 	
@@ -90,7 +90,7 @@ void wm_event_free_all(wmWindow *win)
 /* ********************* notifiers, listeners *************** */
 
 /* win and swinid are optional context limitors */
-void WM_event_add_notifier(wmWindowManager *wm, wmWindow *window, int swinid, int type, int value)
+void WM_event_add_notifier(wmWindowManager *wm, wmWindow *window, int swinid, int type, int value, void *data)
 {
 	wmNotifier *note= MEM_callocN(sizeof(wmNotifier), "notifier");
 	
@@ -100,6 +100,7 @@ void WM_event_add_notifier(wmWindowManager *wm, wmWindow *window, int swinid, in
 	note->swinid= swinid;
 	note->type= type;
 	note->value= value;
+	note->data= data;
 }
 
 static wmNotifier *wm_notifier_next(wmWindowManager *wm)
@@ -126,7 +127,7 @@ void wm_event_do_notifiers(bContext *C)
 			if(win->screen==NULL)
 				continue;
 			printf("notifier win %d screen %s\n", win->winid, win->screen->id.name+2);
-			ED_screen_do_listen(win->screen, note);
+			ED_screen_do_listen(win, note);
 			
 			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 				ARegion *ar= sa->regionbase.first;
@@ -138,6 +139,8 @@ void wm_event_do_notifiers(bContext *C)
 				}
 			}
 		}
+		if(note->data)
+			MEM_freeN(note->data);
 		MEM_freeN(note);
 	}	
 }
@@ -151,7 +154,9 @@ static int wm_draw_update_test_window(wmWindow *win)
 		return 1;
 	if(win->screen->do_draw)
 		return 1;
-	
+	if(win->screen->do_gesture)
+		return 1;
+
 	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 		ARegion *ar= sa->regionbase.first;
 		
@@ -201,6 +206,9 @@ void wm_draw_update(bContext *C)
 			if(win->screen->do_draw)
 				ED_screen_draw(win);
 			
+			if(win->screen->do_gesture)
+				ED_screen_gesture(win);
+
 			wm_window_swap_buffers(win);
 		}
 	}
@@ -301,21 +309,23 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 					event->keymap_idname= km->idname;	/* weak, but allows interactive callback to not use rawkey */
 					
 					action= wm_handler_operator_call(C, handler, event);
+					if(action==WM_HANDLER_BREAK)
+						break;
 				}
 			}
-			if(action==WM_HANDLER_BREAK)
-				break;
 		}
 		else {
 			/* modal, swallows all */
 			action= wm_handler_operator_call(C, handler, event);
-			if(action==WM_HANDLER_BREAK)
-				break;
 		}
-		
+
 		/* modal+blocking handler */
 		if(handler->flag & WM_HANDLER_BLOCKING)
 			action= WM_HANDLER_BREAK;
+
+		if(action==WM_HANDLER_BREAK)
+			break;
+		
 	}
 	return action;
 }
@@ -341,6 +351,9 @@ void wm_event_do_handlers(bContext *C)
 		while( (event=wm_event_next(win)) ) {
 			int action;
 			
+			if(event->type==BORDERSELECT)
+				printf("BORDERSELECT Event!!\n");
+
 			/* MVC demands to not draw in event handlers... for now we leave it */
 			/* it also updates context (win, screen) */
 			wm_window_make_drawable(C, win);

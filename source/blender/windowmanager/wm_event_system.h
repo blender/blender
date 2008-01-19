@@ -62,6 +62,7 @@ enum {
 };
 
 
+void		wm_event_add(wmWindow *win, wmEvent *event_to_add);
 void		wm_event_free_all		(wmWindow *win);
 wmEvent		*wm_event_next			(wmWindow *win);
 void		wm_event_free_handlers	(ListBase *lb);

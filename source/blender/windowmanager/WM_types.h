@@ -32,6 +32,7 @@
 
 #include "wm_cursors.h"
 #include "wm_event_types.h"
+#include "wm_gesture_types.h"
 
 /* ************** wmOperatorType ************************ */
 
@@ -105,8 +106,20 @@ enum {
 	WM_NOTE_OBJECT_CHANGED,
 	WM_NOTE_AREA_SPLIT,
 	WM_NOTE_AREA_DRAG,
+	WM_NOTE_GESTURE_CHANGED,
 	WM_NOTE_LAST
 };
+
+/* ************** Gesture Manager data ************** */
+typedef struct wmGestureRect {
+	/* always this first!! */
+	wmGesture gesture;
+
+	short x1, x2;
+	short y1, y2;
+} wmGestureRect;
+
+#define GESTURE_RECT 0
 
 /* ************** custom wmEvent data ************** */
 
@@ -120,6 +133,10 @@ typedef struct wmTabletData {
 	float Ytilt;		/* as above */
 } wmTabletData;
 
+typedef struct wmBorderSelect {
+	short x1, y1;
+	short x2, y2;
+} wmBorderSelect;
 
 /* *************** migrated stuff, clean later? ******************************** */
 

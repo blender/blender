@@ -54,6 +54,8 @@ typedef struct bScreen {
 	short full, winid;					/* winid from WM, starts with 1 */
 	short do_draw;						/* notifier for drawing edges */
 	short do_refresh;					/* notifier for scale screen, changed screen, etc */
+	short do_gesture;					/* notifier for gesture draw. */
+	short pad[3];
 	
 	short mainwin;						/* screensize subwindow, for screenedges and global menus */
 	short subwinactive;					/* active subwindow */

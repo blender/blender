@@ -51,8 +51,9 @@ void	ED_area_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct
 /* screens */
 void	ED_screens_initialize(struct wmWindowManager *wm);
 void	ED_screen_draw(struct wmWindow *win);
+void	ED_screen_gesture(struct wmWindow *win);
 void	ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
-void	ED_screen_do_listen(bScreen *screen, struct wmNotifier *note);
+void	ED_screen_do_listen(struct wmWindow *win, struct wmNotifier *note);
 bScreen *ED_screen_duplicate(struct wmWindow *win, bScreen *sc);
 void	ED_screen_set_subwinactive(struct wmWindow *win);
 

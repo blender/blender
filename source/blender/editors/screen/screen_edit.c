@@ -50,6 +50,20 @@
 
 #include "screen_intern.h"	/* own module include */
 
+/* ******************* gesture manager ******************* */
+void ed_gesture_draw_rect(wmWindow *win)
+{
+	wmGestureRect *rect= (wmGestureRect *)win->gesture;
+	sdrawbox(rect->x1, rect->y1, rect->x2, rect->y2);
+}
+
+void ed_gesture_update(wmWindow *win)
+{
+	wmGesture *gesture= (wmGesture *)win->gesture;
+	if(gesture->type==GESTURE_RECT)
+		ed_gesture_draw_rect(win);
+}
+
 /* ******************* screen vert, edge, area managing *********************** */
 
 static ScrVert *screen_addvert(bScreen *sc, short x, short y)
@@ -752,22 +766,27 @@ static void drawscredge_area(ScrArea *sa)
 	}
 }
 
-void ED_screen_do_listen(bScreen *screen, wmNotifier *note)
+void ED_screen_do_listen(wmWindow *win, wmNotifier *note)
 {
 	
 	/* generic notes */
 	switch(note->type) {
 		case WM_NOTE_WINDOW_REDRAW:
-			screen->do_draw= 1;
+			win->screen->do_draw= 1;
 			break;
 		case WM_NOTE_SCREEN_CHANGED:
-			screen->do_draw= screen->do_refresh= 1;
+			win->screen->do_draw= win->screen->do_refresh= 1;
 			break;
 		case WM_NOTE_AREA_SPLIT:
 			printf("WM_NOTE_AREA_SPLIT\n");
 			break;
 		case WM_NOTE_AREA_DRAG:
 			printf("WM_NOTE_AREA_DRAG\n");
+			break;
+		case WM_NOTE_GESTURE_CHANGED:
+			printf("WM_NOTE_GESTURE_CHANGED\n");
+			win->screen->do_gesture= 1;
+			win->gesture= WM_gesture_dup((wmGesture *) note->data);
 			break;
 	}
 }
@@ -784,6 +803,18 @@ void ED_screen_draw(wmWindow *win)
 
 	printf("draw screen\n");
 	win->screen->do_draw= 0;
+}
+
+void ED_screen_gesture(wmWindow *win)
+{
+	printf("gesture draw screen\n");
+
+	if(win->gesture) {
+		ed_gesture_update(win);
+		MEM_freeN(win->gesture);
+		win->gesture= NULL;
+	}
+	win->screen->do_gesture= 0;
 }
 
 /* make this screen usable */
@@ -997,7 +1028,7 @@ static int move_areas_exec(bContext *C, wmOperator *op)
 
 static int move_areas_exit(bContext *C, wmOperator *op)
 {
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0);
+	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 
 	/* this makes sure aligned edges will result in aligned grabbing */
 	removedouble_scrverts(C->screen);
@@ -1045,7 +1076,7 @@ static int move_areas_modal (bContext *C, wmOperator *op, wmEvent *event)
 				op->delta= event->y - op->veci.y;
 			
 			move_areas_exec(C, op);
-			WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0);
+			WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 			break;
 			
 		case LEFTMOUSE:
@@ -1133,7 +1164,7 @@ static int split_area_exit(bContext *C, wmOperator *op)
 		op->customdata = NULL;
 	}
 	
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0);
+	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 
 	/* this makes sure aligned edges will result in aligned grabbing */
 	removedouble_scrverts(C->screen);
@@ -1167,7 +1198,7 @@ static int split_initintern(bContext *C, wmOperator *op, sAreaSplitData *sd)
 	/* select newly created edge */
 	select_connected_scredge(C->screen, sd->nedge);
 	
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0);
+	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 	
 	return 1;
 }
@@ -1321,7 +1352,7 @@ static int split_area_modal(bContext *C, wmOperator *op, wmEvent *event)
 			} else if (sd->state==SPLIT_DONE) {
 				/* shouldn't get here anymore */
 			}
-			WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0);
+			WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 			break;
 		case LEFTMOUSE:
 			if(event->val==0) { /* mouse up => confirm if not near/on starting edge */
@@ -1585,7 +1616,7 @@ static int join_areas_modal (bContext *C, wmOperator *op, wmEvent *event)
 		case LEFTMOUSE:
 			if(event->val==0) {
 				join_areas_exec(C, op);
-				WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0);				
+				WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 				join_areas_exit(C, op);
 				WM_event_remove_modal_handler(&C->window->handlers, op);
 			}
@@ -1616,4 +1647,3 @@ void ED_SCR_OT_join_areas(wmOperatorType *ot)
 
 	ot->poll= ED_operator_screen_mainwinactive;
 }
-

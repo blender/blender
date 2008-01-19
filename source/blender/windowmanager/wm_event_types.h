@@ -37,6 +37,7 @@
 
 /* custom data type */
 #define EVT_TABLET	1
+#define EVT_GESTURE	2
 
 #define MOUSEX		0x004	
 #define MOUSEY		0x005	
@@ -251,6 +252,9 @@
 #define RECALC_COMPOSITE	0x4039
 #define REDRAWMARKER		0x4040 /* all views that display markers */
 #define REDRAWVIEW3D_IMAGE	0x4041
+
+/* **************** BLENDER GESTURE EVENTS ********************* */
+#define BORDERSELECT	0x5000
 
 #endif	/* WM_EVENT_TYPES_H */
 
