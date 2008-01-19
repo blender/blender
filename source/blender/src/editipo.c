@@ -86,6 +86,7 @@
 #include "BKE_particle.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_object.h"
 
 #include "BIF_butspace.h"
 #include "BIF_editaction.h"

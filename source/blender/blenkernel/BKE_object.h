@@ -117,4 +117,3 @@ float give_timeoffset(struct Object *ob);
 #endif
 
 #endif
-
