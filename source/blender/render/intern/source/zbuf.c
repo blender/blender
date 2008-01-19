@@ -3346,6 +3346,10 @@ void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
 				break;
+			case SCE_PASS_MIST:
+				col= &shr->mist;
+				pixsize= 1;
+				break;
 			case SCE_PASS_VECTOR:
 				
 				{
@@ -3397,6 +3401,7 @@ void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alph
 	
 	for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
 		float *fp, *col= NULL;
+		int pixsize= 3;
 		
 		switch(rpass->passtype) {
 			case SCE_PASS_RGBA:
@@ -3427,13 +3432,19 @@ void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alph
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
 				break;
+			case SCE_PASS_MIST:
+				col= &shr->mist;
+				pixsize= 1;
+				break;
 		}
 		if(col) {
 
-			fp= rpass->rect + 3*offset;
+			fp= rpass->rect + pixsize*offset;
 			fp[0]= alpha*col[0] + (1.0f-alpha)*fp[0];
-			fp[1]= alpha*col[1] + (1.0f-alpha)*fp[1];
-			fp[2]= alpha*col[2] + (1.0f-alpha)*fp[2];
+			if(pixsize==3) {
+				fp[1]= alpha*col[1] + (1.0f-alpha)*fp[1];
+				fp[2]= alpha*col[2] + (1.0f-alpha)*fp[2];
+			}
 		}
 	}
 }
@@ -3595,6 +3606,10 @@ int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassflag)
 					
 					if(addpassflag & SCE_PASS_RADIO)
 						addvecmul(samp_shr->rad, shr->rad, fac);
+					
+					if(addpassflag & SCE_PASS_MIST)
+						samp_shr->mist= samp_shr->mist+fac*shr->mist;
+
 				}
 			}
 		}

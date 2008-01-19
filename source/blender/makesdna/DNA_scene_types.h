@@ -153,6 +153,8 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_INDEXOB	2048
 #define SCE_PASS_UV			4096
 #define SCE_PASS_RADIO		8192
+#define SCE_PASS_MIST		16384
+
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 
 

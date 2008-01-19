@@ -2659,7 +2659,8 @@ static void render_panel_layers(void)
 	uiDefButBitI(block, TOG, SCE_PASS_VECTOR, B_SET_PASS,"Vec",		120, 30, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Speed Vector pass");	
 	uiDefButBitI(block, TOG, SCE_PASS_NORMAL, B_SET_PASS,"Nor",		160, 30, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Normal pass");	
 	uiDefButBitI(block, TOG, SCE_PASS_UV, B_SET_PASS,"UV",			200, 30, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Texture UV pass");	
-	uiDefButBitI(block, TOG, SCE_PASS_INDEXOB, B_SET_PASS,"IndexOb",240, 30, 70, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Object Index pass");	
+	uiDefButBitI(block, TOG, SCE_PASS_MIST, B_SET_PASS,"Mist",		240, 30, 35, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Mist factor pass (0-1)");	
+	uiDefButBitI(block, TOG, SCE_PASS_INDEXOB, B_SET_PASS,"Index",	275, 30, 35, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Object Index pass");	
 	
 	uiDefButBitI(block, TOG, SCE_PASS_RGBA, B_SET_PASS,"Col",				10, 10, 35, 20, &srl->passflag, 0, 0, 0, 0, "Deliver shade-less Color pass");	
 	uiDefButBitI(block, TOG, SCE_PASS_DIFFUSE, B_SET_PASS,"Diff",			45, 10, 35, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	

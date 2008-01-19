@@ -3831,7 +3831,7 @@ static void material_panel_shading(Material *ma)
 
 		uiBlockBeginAlign(block);
 		uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_MATPRV, "GR:",	9, 55, 150, 19, &ma->group, "Limit Lighting to Lamps in this Group"); 
-		uiDefButBitI(block, TOG, MA_GROUP_NOLAY, B_MATPRV,	"Exclusive",	159,55, 85,20, &(ma->mode), 0, 0, 0, 0, "The material exclusively uses Lamps in this Group");
+		uiDefButBitI(block, TOG, MA_GROUP_NOLAY, B_MATPRV,	"Exclusive",	159,55, 85,20, &(ma->mode), 0, 0, 0, 0, "Material uses Lights in this group exclusively, they get excluded from the Scene lighting");
 		
 		
 	}

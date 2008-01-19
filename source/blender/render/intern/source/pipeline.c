@@ -331,6 +331,10 @@ static char *get_pass_name(int passtype, int channel)
 		if(channel==-1) return "IndexOB";
 		return "IndexOB.X";
 	}
+	if(passtype == SCE_PASS_MIST) {
+		if(channel==-1) return "Mist";
+		return "Mist.Z";
+	}
 	return "Unknown";
 }
 
@@ -379,6 +383,9 @@ static int passtype_from_name(char *str)
 	if(strcmp(str, "IndexOB")==0)
 		return SCE_PASS_INDEXOB;
 
+	if(strcmp(str, "Mist")==0)
+		return SCE_PASS_MIST;
+	
 	return 0;
 }
 
@@ -546,6 +553,8 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 				render_layer_add_pass(rr, rl, 3, SCE_PASS_RADIO);
 		if(srl->passflag  & SCE_PASS_INDEXOB)
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXOB);
+		if(srl->passflag  & SCE_PASS_MIST)
+			render_layer_add_pass(rr, rl, 1, SCE_PASS_MIST);
 		
 	}
 	/* sss, previewrender and envmap don't do layers, so we make a default one */

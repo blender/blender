@@ -3656,8 +3656,13 @@ void init_render_world(Render *re)
 	}
 	else {
 		memset(&re->wrld, 0, sizeof(World));
-		re->wrld.exp= 0.0;
-		re->wrld.range= 1.0;
+		re->wrld.exp= 0.0f;
+		re->wrld.range= 1.0f;
+		
+		/* for mist pass */
+		re->wrld.miststa= re->clipsta;
+		re->wrld.mistdist= re->clipend-re->clipsta;
+		re->wrld.misi= 1.0f;
 	}
 	
 	re->wrld.linfac= 1.0 + pow((2.0*re->wrld.exp + 0.5), -10);

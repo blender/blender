@@ -161,11 +161,16 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	}
 	
 	/* MIST */
-	if((R.wrld.mode & WO_MIST) && (shi->mat->mode & MA_NOMIST)==0 ) {
+	if((shi->passflag & SCE_PASS_MIST) || ((R.wrld.mode & WO_MIST) && (shi->mat->mode & MA_NOMIST)==0))  {
 		if(R.r.mode & R_ORTHO)
-			alpha= mistfactor(-shi->co[2], shi->co);
+			shr->mist= mistfactor(-shi->co[2], shi->co);
 		else
-			alpha= mistfactor(VecLength(shi->co), shi->co);
+			shr->mist= mistfactor(VecLength(shi->co), shi->co);
+	}
+	else shr->mist= 0.0f;
+	
+	if((R.wrld.mode & WO_MIST) && (shi->mat->mode & MA_NOMIST)==0 ) {
+		alpha= shr->mist;
 	}
 	else alpha= 1.0f;
 	

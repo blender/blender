@@ -458,6 +458,11 @@ static int compare_strand_segment(const void *poin1, const void *poin2)
 		return 1;
 }
 
+static void interpolate_vec1(float *v1, float *v2, float t, float negt, float *v)
+{
+	v[0]= negt*v1[0] + t*v2[0];
+}
+
 static void interpolate_vec3(float *v1, float *v2, float t, float negt, float *v)
 {
 	v[0]= negt*v1[0] + t*v2[0];
@@ -504,6 +509,8 @@ static void interpolate_shade_result(ShadeResult *shr1, ShadeResult *shr2, float
 			interpolate_vec3(shr1->refr, shr2->refr, t, negt, shr->refr);
 		if(addpassflag & SCE_PASS_RADIO)
 			interpolate_vec3(shr1->rad, shr2->rad, t, negt, shr->rad);
+		if(addpassflag & SCE_PASS_MIST)
+			interpolate_vec1(&shr1->mist, &shr2->mist, t, negt, &shr->mist);
 	}
 }
 

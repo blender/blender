@@ -236,21 +236,22 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 /* ************** COMPOSITE NODES *************** */
 
 /* output socket defines */
-#define RRES_OUT_IMAGE	0
-#define RRES_OUT_ALPHA	1
-#define RRES_OUT_Z	2
-#define RRES_OUT_NORMAL	3
-#define RRES_OUT_UV	4
-#define RRES_OUT_VEC	5
-#define RRES_OUT_RGBA	6
-#define RRES_OUT_DIFF	7
-#define RRES_OUT_SPEC	8
-#define RRES_OUT_SHADOW	9
-#define RRES_OUT_AO	10
-#define RRES_OUT_REFLECT 11
-#define RRES_OUT_REFRACT 12
-#define RRES_OUT_RADIO	 13
-#define RRES_OUT_INDEXOB 14
+#define RRES_OUT_IMAGE		0
+#define RRES_OUT_ALPHA		1
+#define RRES_OUT_Z			2
+#define RRES_OUT_NORMAL		3
+#define RRES_OUT_UV			4
+#define RRES_OUT_VEC		5
+#define RRES_OUT_RGBA		6
+#define RRES_OUT_DIFF		7
+#define RRES_OUT_SPEC		8
+#define RRES_OUT_SHADOW		9
+#define RRES_OUT_AO			10
+#define RRES_OUT_REFLECT	11
+#define RRES_OUT_REFRACT	12
+#define RRES_OUT_RADIO		13
+#define RRES_OUT_INDEXOB	14
+#define RRES_OUT_MIST		15
 
 /* note: types are needed to restore callbacks, don't change values */
 #define CMP_NODE_VIEWER		201

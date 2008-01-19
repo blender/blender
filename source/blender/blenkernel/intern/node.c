@@ -2211,6 +2211,8 @@ static void force_hidden_passes(bNode *node, int passflag)
 	if(!(passflag & SCE_PASS_RADIO)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_INDEXOB);
 	if(!(passflag & SCE_PASS_INDEXOB)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_MIST);
+	if(!(passflag & SCE_PASS_MIST)) sock->flag |= SOCK_UNAVAIL;
 	
 }
 

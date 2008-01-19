@@ -400,6 +400,12 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 						*fp= (float)shi->obr->ob->index;
 				}
 				break;
+			case SCE_PASS_MIST:
+				/*  */
+				col= &shr->mist;
+				pixsize= 1;
+				break;
+			
 			case SCE_PASS_VECTOR:
 			{
 				/* add minimum speed in pixel, no filter */
