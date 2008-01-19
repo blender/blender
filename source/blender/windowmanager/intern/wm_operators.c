@@ -135,24 +135,26 @@ static int border_select_init(bContext *C, wmOperator *op)
 {
 	OP_set_int(op, "start_x", op->veci.x);
 	OP_set_int(op, "start_y", op->veci.y);
+	WM_gesture_init(C, GESTURE_RECT);
 	return 1;
 }
 
 static int border_select_exec(bContext *C, wmOperator *op)
 {
-	wmGestureRect *rect;
+	wmGestureRect rect;
 	int x, y;
 
 	OP_get_int(op, "start_x", &x);
 	OP_get_int(op, "start_y", &y);
 
-	rect= (wmGestureRect *) WM_gesture_new(GESTURE_RECT);
-	rect->x1= x;
-	rect->y1= y;
-	rect->x2= op->veci.x;
-	rect->y2= op->veci.y;
-
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_GESTURE_CHANGED, 0, rect);
+	rect.gesture.next= rect.gesture.prev= NULL;
+	rect.gesture.type= GESTURE_RECT;
+	rect.x1= x;
+	rect.y1= y;
+	rect.x2= op->veci.x;
+	rect.y2= op->veci.y;
+	WM_gesture_update(C, (wmGesture *) &rect);
+	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_GESTURE_CHANGED, GESTURE_RECT, NULL);
 	return 1;
 }
 
@@ -189,19 +191,20 @@ static int border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 		case LEFTMOUSE:
 			if(event->val==0) {
-				wmGestureRect *rect;
+				wmGestureRect rect;
 				int x, y;
 
 				OP_get_int(op, "start_x", &x);
 				OP_get_int(op, "start_y", &y);
 
-				rect= (wmGestureRect *) WM_gesture_new(GESTURE_RECT);
-				rect->x1= x;
-				rect->y1= y;
-				rect->x2= op->veci.x;
-				rect->y2= op->veci.y;
-				WM_gesture_send(C->window, (wmGesture *) rect);
-				MEM_freeN(rect);
+				rect.gesture.next= rect.gesture.prev= NULL;
+				rect.gesture.type= GESTURE_RECT;
+				rect.x1= x;
+				rect.y1= y;
+				rect.x2= op->veci.x;
+				rect.y2= op->veci.y;
+				WM_gesture_update(C, (wmGesture*)&rect);
+				WM_gesture_end(C, GESTURE_RECT);
 
 				border_select_exit(C, op);
 				WM_event_remove_modal_handler(&C->window->handlers, op);

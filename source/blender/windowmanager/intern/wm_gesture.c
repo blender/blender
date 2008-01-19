@@ -32,20 +32,36 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_global.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "wm_event_system.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 
-wmGesture *WM_gesture_new(int type)
+wmGesture *wm_gesture_find(ListBase *list, int type)
+{
+	wmGesture *gt= list->first;
+	while(gt) {
+		if(gt->type==type)
+			return(gt);
+		gt= gt->next;
+	}
+	return(NULL);
+}
+
+wmGesture *wm_gesture_new(int type)
 {
 	wmGesture *gesture= NULL;
 	wmGestureRect *rect;
 
 	if(type==GESTURE_RECT) {
-		gesture= rect= MEM_mallocN(sizeof(wmGestureRect), "gesture rect new");
+		rect= MEM_mallocN(sizeof(wmGestureRect), "gesture rect new");
+		gesture= (wmGesture*) rect;
 		gesture->type= type;
 		rect->x1= 0;
 		rect->y1= 0;
@@ -53,6 +69,19 @@ wmGesture *WM_gesture_new(int type)
 		rect->y2= 1;
 	}
 	return(gesture);
+}
+
+void WM_gesture_init(bContext *C, int type)
+{
+	wmGesture *gt= NULL;
+
+	if(C->window) {
+		gt= wm_gesture_find(&C->window->gesture, type);
+		if(!gt) {
+			gt= wm_gesture_new(type);
+			BLI_addtail(&C->window->gesture, gt);
+		}
+	}
 }
 
 void wm_gesture_rect_copy(wmGestureRect *to, wmGestureRect *from)
@@ -63,23 +92,46 @@ void wm_gesture_rect_copy(wmGestureRect *to, wmGestureRect *from)
 	to->y2= from->y2;
 }
 
-wmGesture *WM_gesture_dup(wmGesture *from)
+void WM_gesture_update(bContext *C, wmGesture *from)
 {
-	wmGesture *to= WM_gesture_new(from->type);
+	wmGesture *to;
 
-	if(from->type==GESTURE_RECT)
-		wm_gesture_rect_copy((wmGestureRect *) to, (wmGestureRect *) from);
-	return (to);
+	if(!C->window)
+		return;
+
+	to= wm_gesture_find(&C->window->gesture, from->type);
+	if(!to)
+		return;
+
+	printf("found gesture!!\n");
+	if(to->type==GESTURE_RECT)
+		wm_gesture_rect_copy((wmGestureRect*)to, (wmGestureRect*)from);
 }
 
-void WM_gesture_send(wmWindow *win, wmGesture *gesture)
+void WM_gesture_free(wmWindow *win)
 {
+	/* Now don't have multiple struct so
+	 * a simple BLI_freelistN is what we need.
+	 */
+	BLI_freelistN(&win->gesture);
+}
+
+void WM_gesture_end(bContext *C, int type)
+{
+	wmGesture *gt;
 	wmGestureRect *rect;
 	wmBorderSelect *wmbor;
 	wmEvent event;
 
-	if(gesture->type==GESTURE_RECT) {
-		rect= (wmGestureRect*)gesture;
+	if(!C->window)
+		return;
+
+	gt= wm_gesture_find(&C->window->gesture, type);
+	if(!gt)
+		return;
+
+	if(gt->type==GESTURE_RECT) {
+		rect= (wmGestureRect*)gt;
 
 		wmbor= MEM_mallocN(sizeof(wmBorderSelect), "border select");
 		wmbor->x1= rect->x1;
@@ -90,6 +142,6 @@ void WM_gesture_send(wmWindow *win, wmGesture *gesture)
 		event.type= BORDERSELECT;
 		event.custom= EVT_GESTURE;
 		event.customdata= wmbor;
-		wm_event_add(win, &event);
+		wm_event_add(C->window, &event);
 	}
 }

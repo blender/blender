@@ -51,17 +51,21 @@
 #include "screen_intern.h"	/* own module include */
 
 /* ******************* gesture manager ******************* */
-void ed_gesture_draw_rect(wmWindow *win)
+void ed_gesture_draw_rect(wmWindow *win, wmGesture *gt)
 {
-	wmGestureRect *rect= (wmGestureRect *)win->gesture;
+	wmGestureRect *rect= (wmGestureRect *)gt;
 	sdrawbox(rect->x1, rect->y1, rect->x2, rect->y2);
 }
 
 void ed_gesture_update(wmWindow *win)
 {
-	wmGesture *gesture= (wmGesture *)win->gesture;
-	if(gesture->type==GESTURE_RECT)
-		ed_gesture_draw_rect(win);
+	wmGesture *gt= (wmGesture *)win->gesture.first;
+
+	while(gt) {
+		if(gt->type==GESTURE_RECT)
+			ed_gesture_draw_rect(win, gt);
+		gt= gt->next;
+	}
 }
 
 /* ******************* screen vert, edge, area managing *********************** */
@@ -786,7 +790,6 @@ void ED_screen_do_listen(wmWindow *win, wmNotifier *note)
 		case WM_NOTE_GESTURE_CHANGED:
 			printf("WM_NOTE_GESTURE_CHANGED\n");
 			win->screen->do_gesture= 1;
-			win->gesture= WM_gesture_dup((wmGesture *) note->data);
 			break;
 	}
 }
@@ -809,10 +812,8 @@ void ED_screen_gesture(wmWindow *win)
 {
 	printf("gesture draw screen\n");
 
-	if(win->gesture) {
+	if(win->gesture.first) {
 		ed_gesture_update(win);
-		MEM_freeN(win->gesture);
-		win->gesture= NULL;
 	}
 	win->screen->do_gesture= 0;
 }

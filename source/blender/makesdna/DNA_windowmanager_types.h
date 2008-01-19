@@ -97,7 +97,7 @@ typedef struct wmWindow {
 	ListBase handlers;		/* window+screen handlers, overriding all queues */
 	
 	ListBase subwindows;	/* opengl stuff for sub windows, see notes in wm_subwindow.c */
-	void *gesture;	/* gesture stuff. */
+	ListBase gesture;	/* gesture stuff */
 } wmWindow;
 
 #

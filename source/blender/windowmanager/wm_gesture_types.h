@@ -30,8 +30,10 @@
 #define WM_GESTURE_TYPES_H
 
 typedef struct wmGesture {
+	struct wmGesture *next, *prev;
+
 	/* gesture type. */
-	short type;
+	int type;
 } wmGesture;
 
 #endif	/* WM_GESTURE_TYPES_H */

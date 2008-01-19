@@ -135,9 +135,10 @@ int OP_get_float_array(wmOperator *op, char *name, float *array, short *len);
 void OP_free_property(wmOperator *op);
 
 			/* Gesture manager API */
-struct wmGesture *WM_gesture_new(int type);
-struct wmGesture *WM_gesture_dup(struct wmGesture *from);
-void WM_gesture_send(wmWindow *win, struct wmGesture *gesture);
+void WM_gesture_init(bContext *C, int type);
+void WM_gesture_update(bContext *C, struct wmGesture *from);
+void WM_gesture_end(bContext *C, int type);
+void WM_gesture_free(wmWindow *win);
 
 			/* OpenGL wrappers, mimicing opengl syntax */
 void		wmLoadMatrix		(wmWindow *win, float mat[][4]);
