@@ -297,6 +297,9 @@ extern Object workob;
 	/* for stride edit */
 #define OB_DISABLE_PATH		1024
 
+#define OB_OFFS_PARENTADD	2048
+
+
 /* (short) trackflag / upflag */
 #define OB_POSX			0
 #define OB_POSY			1

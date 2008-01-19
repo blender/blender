@@ -2335,9 +2335,9 @@ static void insertkey_nonrecurs(ID *id, int blocktype, char *actname, char *cons
 				
 				if( GS(id->name)==ID_OB ) {
 					ob= (Object *)id;
-					if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
+					if((ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0) ) {
 						/* actually frametofloat calc again! */
-						cfra-= ob->sf*G.scene->r.framelen;
+						cfra-= give_timeoffset(ob)*G.scene->r.framelen;
 					}
 				}
 				
@@ -2556,9 +2556,9 @@ void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcod
 				
 				if( GS(id->name)==ID_OB ) {
 					ob= (Object *)id;
-					if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
+					if((ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0) ) {
 						/* actually frametofloat calc again! */
-						cfra-= ob->sf*G.scene->r.framelen;
+						cfra-= give_timeoffset(ob)*G.scene->r.framelen;
 					}
 				}
 				
@@ -2598,9 +2598,9 @@ void insertkey_smarter(ID *id, int blocktype, char *actname, char *constname, in
 			
 			if( GS(id->name)==ID_OB ) {
 				ob= (Object *)id;
-				if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
+				if((ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0) ) {
 					/* actually frametofloat calc again! */
-					cfra-= ob->sf*G.scene->r.framelen;
+					cfra-= give_timeoffset(ob)*G.scene->r.framelen;
 				}
 			}
 			
@@ -2649,9 +2649,9 @@ void insertfloatkey(ID *id, int blocktype, char *actname, char *constname, int a
  			
  			if( GS(id->name)==ID_OB ) {
  				ob= (Object *)id;
- 				if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
+ 				if((ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0) ) {
  					/* actually frametofloat calc again! */
- 					cfra-= ob->sf*G.scene->r.framelen;
+ 					cfra-= give_timeoffset(ob)*G.scene->r.framelen;
  				}
  			}
 			
@@ -2731,8 +2731,8 @@ void insertkey_editipo(void)
 						id= G.sipo->from;	
 						if(id && GS(id->name)==ID_OB ) {
 							Object *ob= (Object *)id;
-							if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
-								cfra-= ob->sf*G.scene->r.framelen;
+							if((ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0) ) {
+								cfra-= give_timeoffset(ob)*G.scene->r.framelen;
 							}
 						}
 						else if(id && GS(id->name)==ID_SEQ) {
@@ -5769,8 +5769,8 @@ void move_to_frame(void)
 							id= G.sipo->from;
 							if(id && GS(id->name)==ID_OB ) {
 								Object *ob= (Object *)id;
-								if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
-									cfra+= ob->sf/G.scene->r.framelen;
+								if((ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0) ) {
+									cfra+= give_timeoffset(ob)/G.scene->r.framelen;
 								}
 							}
 							CFRA= (int)floor(cfra+0.5);

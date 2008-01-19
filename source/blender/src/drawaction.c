@@ -374,8 +374,8 @@ void draw_cfra_action (void)
 	
 	/* Draw dark green line if slow-parenting/time-offset is enabled */
 	ob= (G.scene->basact) ? (G.scene->basact->object) : 0;
-	if ((ob) && (ob->sf!=0.0) && (ob->ipoflag & OB_OFFS_OB)) {
-		vec[0]-= ob->sf;
+	if ((ob) && (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0)) {
+		vec[0]-= give_timeoffset(ob); /* could avoid calling twice */
 		
 		BIF_ThemeColorShade(TH_CFRAME, -30);
 		

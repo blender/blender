@@ -1559,7 +1559,7 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 	framelenold= G.scene->r.framelen;
 	G.scene->r.framelen= 1.0f;
 	cfrao= G.scene->r.cfra;
-	sfo= ob->sf;
+	sfo= ob->sf; /* warning, dont use sfo, value should be from give_timeoffset if used for anything */
 	ob->sf= 0.0f;
 
 	/* clear storage, copy recalc tag (bad loop) */

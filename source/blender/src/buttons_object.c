@@ -2494,21 +2494,25 @@ static void object_panel_anim(Object *ob)
 	uiDefButI(block, NUM, REDRAWVIEW3D, "DupOn:",		170,85,146,19, &ob->dupon, 1.0, 1500.0, 0, 0, "Specify the number of frames to use between DupOff frames");
 	uiDefButI(block, NUM, REDRAWVIEW3D, "DupEnd",		24,65,140,19, &ob->dupend, 1.0, 32767, 0, 0, "Specify endframe for Dupliframes");
 	uiDefButI(block, NUM, REDRAWVIEW3D, "DupOff",		171,65,145,19, &ob->dupoff, 0.0, 1500.0, 0, 0, "Specify recurring frames to exclude from the Dupliframes");
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, OB_OFFS_OB, REDRAWALL, "Offs Ob",			24,35,56,20, &ob->ipoflag, 0, 0, 0, 0, "Not functional at the moment!");
-	uiDefButBitS(block, TOG, OB_OFFS_PARENT, REDRAWALL, "Offs Par",			82,35,56,20 , &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the parent");
-	uiDefButBitS(block, TOG, OB_OFFS_PARTICLE, REDRAWALL, "Offs Particle",		140,35,103,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the particle effect");
+	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,10,115,20, &ob->sf, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Animation offset in frames for ipo's and dupligroup instances");
-	uiDefBut(block, BUT, B_AUTOTIMEOFS, "Auto",	139,10,34,20, 0, 0, 0, 0, 0, "Assign selected objects a timeoffset within a range, starting from the active object");
-	uiDefBut(block, BUT, B_OFSTIMEOFS, "Ofs",	173,10,34,20, 0, 0, 0, 0, 0, "Offset selected objects timeoffset");
-	uiDefBut(block, BUT, B_RANDTIMEOFS, "Rand",	207,10,34,20, 0, 0, 0, 0, 0, "Randomize selected objects timeoffset");
-	uiDefBut(block, BUT, B_PRINTSPEED,	"PrSpeed",			250,10,65,20, 0, 0, 0, 0, 0, "Print objectspeed");
+	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,35,115,20, &ob->sf, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Animation offset in frames for ipo's and dupligroup instances");
+	uiDefBut(block, BUT, B_AUTOTIMEOFS, "Auto",	139,35,34,20, 0, 0, 0, 0, 0, "Assign selected objects a timeoffset within a range, starting from the active object");
+	uiDefBut(block, BUT, B_OFSTIMEOFS, "Ofs",	173,35,34,20, 0, 0, 0, 0, 0, "Offset selected objects timeoffset");
+	uiDefBut(block, BUT, B_RANDTIMEOFS, "Rand",	207,35,34,20, 0, 0, 0, 0, 0, "Randomize selected objects timeoffset");
+	uiDefBut(block, BUT, B_PRINTSPEED,	"PrSpeed",			250,35,65,20, 0, 0, 0, 0, 0, "Print objectspeed");
+	uiBlockEndAlign(block);
+	
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, OB_OFFS_OB, REDRAWALL, "OfsEdit",			24,10,56,20, &ob->ipoflag, 0, 0, 0, 0, "Use timeoffset when inserting keys and display timeoffset for ipo and action views");
+	uiDefButBitS(block, TOG, OB_OFFS_PARENT, REDRAWALL, "OfsParent",			82,10,56,20 , &ob->ipoflag, 0, 0, 0, 0, "Apply the timeoffset to this objects parent relationship");
+	uiDefButBitS(block, TOG, OB_OFFS_PARTICLE, REDRAWALL, "OfsParticle",		140,10,56,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the particle effect");
+	uiDefButBitS(block, TOG, OB_OFFS_PARENTADD, REDRAWALL, "AddParent",		196,10,56,20, &ob->ipoflag, 0, 0, 0, 0, "Add the parents timeoffset value");
 	uiBlockEndAlign(block);
 	
 	sprintf(str, "%.4f", prspeed);
-	uiDefBut(block, LABEL, 0, str,							247,35,63,31, NULL, 1.0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, str,							260,10,63,31, NULL, 1.0, 0, 0, 0, "");
 	
 }
 

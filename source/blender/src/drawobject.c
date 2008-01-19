@@ -2857,7 +2857,7 @@ static void draw_particle_system(Base *base, PartEff *paf)
 		mymultmatrix(mat);
 	}
 	
-	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= ob->sf;
+	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= give_timeoffset(ob);
 	else ptime= 0.0;
 	ctime= bsystem_time(ob, (float)(G.scene->r.cfra), ptime);
 
@@ -5248,7 +5248,7 @@ void draw_object(Base *base, int flag)
 					for (ct= targets.first; ct; ct= ct->next) {
 						/* calculate target's matrix */
 						if (cti->get_target_matrix) 
-							cti->get_target_matrix(curcon, cob, ct, bsystem_time(ob, (float)(G.scene->r.cfra), ob->sf));
+							cti->get_target_matrix(curcon, cob, ct, bsystem_time(ob, (float)(G.scene->r.cfra), give_timeoffset(ob)));
 						else
 							Mat4One(ct->matrix);
 						
