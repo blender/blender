@@ -1390,7 +1390,7 @@ void delete_action_channels (void)
 			
 			/* remove if group is selected */
 			if (SEL_AGRP(agrp)) {
-				for (chan= agrp->channels.first; chan && chan!=agrp->channels.last; chan= nchan) {
+				for (chan= agrp->channels.first; chan && chan->grp==agrp; chan= nchan) {
 					nchan= chan->next;
 					
 					action_groups_removeachan(act, chan);
@@ -2893,7 +2893,7 @@ void borderselect_action (void)
 					bActionChannel *achan;
 					bConstraintChannel *conchan;
 					
-					for (achan= agrp->channels.first; achan && achan!=agrp->channels.last; achan= achan->next) {
+					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
 						borderselect_ipo_key(achan->ipo, rectf.xmin, rectf.xmax, selectmode);
 						
 						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
@@ -2914,7 +2914,7 @@ void borderselect_action (void)
 						bActionChannel *achan;
 						bConstraintChannel *conchan;
 						
-						for (achan= agrp->channels.first; achan && achan!=agrp->channels.last; achan= achan->next) {
+						for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
 							select_ipo_bezier_keys(achan->ipo, selectmode);
 							
 							for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
@@ -2936,7 +2936,7 @@ void borderselect_action (void)
 						bActionChannel *achan;
 						bConstraintChannel *conchan;
 						
-						for (achan= agrp->channels.first; achan && achan!=agrp->channels.last; achan= achan->next) {
+						for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
 							select_ipo_bezier_keys(achan->ipo, selectmode);
 							
 							for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
@@ -3087,7 +3087,7 @@ static void mouse_action (int selectmode)
 		else if (achan)
 			select_ipo_key(achan->ipo, selx, selectmode);
 		else if (agrp) {
-			for (achan= agrp->channels.first; achan && achan!=agrp->channels.last; achan= achan->next) {
+			for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
 				select_ipo_key(achan->ipo, selx, selectmode);
 				
 				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
