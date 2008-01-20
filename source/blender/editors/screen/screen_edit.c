@@ -1420,10 +1420,6 @@ void ED_SCR_OT_split_area(wmOperatorType *ot)
 typedef struct sAreaJoinData
 {
 	int dir;
-	ScrArea *up;
-	ScrArea *down;
-	ScrArea *left;
-	ScrArea *right;
 	ScrArea *sa1; /* first area to be considered */
 	ScrArea *sa2; /* second area to be considered */
 	ScrArea *scr; /* designed for removal */
@@ -1435,71 +1431,21 @@ typedef struct sAreaJoinData
 /* return 0: init failed */
 static int join_areas_init (bContext *C, wmOperator *op)
 {
-	ScrEdge *actedge= screen_find_active_scredge(C->screen, op->veci.x, op->veci.y);
-	ScrArea *sa = C->curarea;
-	ScrEdge *se;
+	ScrArea *actarea = C->curarea;
 	sAreaJoinData* jd= NULL;
-	short val = 0;
-
-	if(actedge==NULL) return 0;
+	
+	if (actarea==NULL)
+	{
+		return 0;
+	}
 	
 	jd = (sAreaJoinData*)MEM_callocN(sizeof (sAreaJoinData), "op_join_areas");
-	jd->dir= scredge_is_horizontal(actedge) ? 'h':'v';
-	op->customdata = jd;
-	
-	select_connected_scredge(C->screen, actedge);
-
-	jd->sa1 = screen_test_edge_area(C->screen, sa, actedge);
-	if(jd->sa1==0) return 0;
-
-	/* find directions with same edge */
-	jd->sa2= C->screen->areabase.first;
-	while(jd->sa2) {
-		if(jd->sa2 != jd->sa1) {
-			se= screen_findedge(C->screen, jd->sa2->v1, jd->sa2->v2);
-			if(actedge==se) jd->right= jd->sa2;
-			se= screen_findedge(C->screen, jd->sa2->v2, jd->sa2->v3);
-			if(actedge==se) jd->down= jd->sa2;
-			se= screen_findedge(C->screen, jd->sa2->v3, jd->sa2->v4);
-			if(actedge==se) jd->left= jd->sa2;
-			se= screen_findedge(C->screen, jd->sa2->v4, jd->sa2->v1);
-			if(actedge==se) jd->up= jd->sa2;
-		}
-		jd->sa2= jd->sa2->next;
-	}
-
-	if(jd->left) val++;
-	if(jd->up) val++;
-	if(jd->right) val++;
-	if(jd->down) val++;
-	
-	if(val==0) return 0;
-	else if(val==1) {
-		if(jd->left) {
-			jd->right = jd->sa1;
-			jd->sa2 = jd->left;
-			jd->dir = 'h';
-		}
-		else if(jd->right) {
-			jd->left = jd->sa1;
-			jd->sa2 = jd->right;
-			jd->dir = 'h';
-		}
-		else if(jd->up) {
-			jd->down = jd->sa1;
-			jd->sa2= jd->up;
-			jd->dir = 'v';
-		}
-		else if(jd->down) {
-			jd->up = jd->sa1;
-			jd->sa2 = jd->down;
-			jd->dir = 'v';
-		}
-	}
-
+		
+	jd->sa1 = actarea;
 	/* initial set up screen area asigned for destroying */
-	jd->scr = jd->sa2;
-
+	jd->scr = jd->sa2;	
+	op->customdata= jd;
+	
 	return 1;
 }
 
@@ -1508,31 +1454,34 @@ static int join_areas_exec(bContext *C, wmOperator *op)
 {
 	sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
 	if (!jd) return 0;
-
-	if(jd->sa2!=jd->scr) {
-		jd->sa1 = jd->sa2;
-		jd->sa2 = jd->scr;
+	
+	jd->dir = area_getorientation(C->screen, jd->sa1, jd->sa2);
+	
+	printf("dir is : %i \n", jd->dir);
+	if (jd->dir < 0)
+	{
+		return 0;
 	}
-
-	if(jd->sa2==jd->left) {
+	
+	if(jd->dir == 0) {
 		jd->sa1->v1= jd->sa2->v1;
 		jd->sa1->v2= jd->sa2->v2;
 		screen_addedge(C->screen, jd->sa1->v2, jd->sa1->v3);
 		screen_addedge(C->screen, jd->sa1->v1, jd->sa1->v4);
 	}
-	else if(jd->sa2==jd->up) {
+	else if(jd->dir == 1) {
 		jd->sa1->v2= jd->sa2->v2;
 		jd->sa1->v3= jd->sa2->v3;
 		screen_addedge(C->screen, jd->sa1->v1, jd->sa1->v2);
 		screen_addedge(C->screen, jd->sa1->v3, jd->sa1->v4);
 	}
-	else if(jd->sa2==jd->right) {
+	else if(jd->dir == 2) {
 		jd->sa1->v3= jd->sa2->v3;
 		jd->sa1->v4= jd->sa2->v4;
 		screen_addedge(C->screen, jd->sa1->v2,jd-> sa1->v3);
 		screen_addedge(C->screen, jd->sa1->v1, jd->sa1->v4);
 	}
-	else if(jd->sa2==jd->down) {
+	else if(jd->dir == 3) {
 		jd->sa1->v1= jd->sa2->v1;
 		jd->sa1->v4= jd->sa2->v4;
 		screen_addedge(C->screen, jd->sa1->v1, jd->sa1->v2);
@@ -1546,7 +1495,6 @@ static int join_areas_exec(bContext *C, wmOperator *op)
 	jd->sa2 = NULL;
 	return 1;
 }
-
 /* interaction callback */
 /* return 0 = stop evaluating for next handlers */
 static int join_areas_invoke (bContext *C, wmOperator *op, wmEvent *event)
@@ -1556,7 +1504,7 @@ static int join_areas_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	op->veci.x= event->x;
 	op->veci.y= event->y;
 	op->customdata = NULL;
-
+	printf("invoke \n");
 	if(0==join_areas_init(C, op)) 
 		return 1;
 	
@@ -1590,7 +1538,7 @@ static int join_areas_exit(bContext *C, wmOperator *op)
 	removedouble_scredges(C->screen);
 	removenotused_scredges(C->screen);
 	removenotused_scrverts(C->screen);
-
+	printf("exit \n");
 	return 1;
 }
 
@@ -1605,16 +1553,14 @@ static int join_areas_modal (bContext *C, wmOperator *op, wmEvent *event)
 			{
 				sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
 				ScrArea *sa = screen_areahascursor(C->screen, event->x, event->y);
-				if (sa && sa != jd->sa2) {
-					if (sa == jd->sa1) {
-						jd->scr = jd->sa1;
-						jd->sa1 = jd->sa2;
-						jd->sa2 = jd->scr;
-					} 
+				if((jd->sa1 != sa) && (jd->sa2 != sa))
+				{
+					printf("New Area \n");
+					jd->sa2 = sa;
 				}
 				break;
 			}
-		case LEFTMOUSE:
+		case RIGHTMOUSE:
 			if(event->val==0) {
 				join_areas_exec(C, op);
 				WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
@@ -1635,10 +1581,11 @@ static int join_areas_modal (bContext *C, wmOperator *op, wmEvent *event)
 /* Operator for joining two areas (space types) */
 void ED_SCR_OT_join_areas(wmOperatorType *ot)
 {
+	
 	/* identifiers */
 	ot->name= "Join area";
 	ot->idname= "ED_SCR_OT_join_areas";
-
+	
 	/* api callbacks */
 	ot->init= join_areas_init;
 	ot->invoke= join_areas_invoke;
@@ -1646,5 +1593,5 @@ void ED_SCR_OT_join_areas(wmOperatorType *ot)
 	ot->exec= join_areas_exec;
 	ot->exit= join_areas_exit;
 
-	ot->poll= ED_operator_screen_mainwinactive;
+	ot->poll= ED_operator_screenactive;
 }
