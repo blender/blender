@@ -103,7 +103,7 @@ void sdrawline(short x1, short y1, short x2, short y2)
 
 */
 
-void sdrawtripoints(short x1, short y1, short x2, short y2){
+static void sdrawtripoints(short x1, short y1, short x2, short y2){
 	short v[2];
 	v[0]= x1; v[1]= y1;
 	glVertex2sv(v);
@@ -111,7 +111,6 @@ void sdrawtripoints(short x1, short y1, short x2, short y2){
 	glVertex2sv(v);
 	v[0]= x2; v[1]= y1;
 	glVertex2sv(v);
-	glEnd();
 }
 
 void sdrawtri(short x1, short y1, short x2, short y2)
