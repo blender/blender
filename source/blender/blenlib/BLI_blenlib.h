@@ -296,7 +296,7 @@ int   BLI_rename(char *from, char *to);
 int   BLI_gzip(char *from, char *to);
 int   BLI_delete(char *file, int dir, int recursive);
 int   BLI_move(char *file, char *to);
-int   BLI_touch(char *file);
+int   BLI_touch(const char *file);
 char *BLI_last_slash(const char *string);
 
 /* BLI_rct.c */
