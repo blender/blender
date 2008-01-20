@@ -3790,6 +3790,7 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 						add_transp_speed(rl, od, ssamp.shr[0].winspeed, pass[3], rdrect);
 				}
 				else {
+					float alpha= 0.0f;
 					short filled, *sp= (short *)(ztramask+od);
 					
 					/* for each mask-sample we alpha-under colors. then in end it's added using filter */
@@ -3812,17 +3813,21 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 						}
 					}
 					
+					/* note; cannot use pass[3] for alpha due to filtermask */
 					for(a=0; a<R.osa; a++) {
 						add_filt_fmask(1<<a, samp_shr[a].combined, pass, rr->rectx);
+						alpha+= samp_shr[a].combined[3];
 					}
 					
 					if(addpassflag) {
+						alpha*= sampalpha;
+						
 						/* merge all in one, and then add */
 						merge_transp_passes(rl, samp_shr);
-						add_transp_passes(rl, od, samp_shr, pass[3]);
+						add_transp_passes(rl, od, samp_shr, alpha);
 
 						if(addpassflag & SCE_PASS_VECTOR)
-							add_transp_speed(rl, od, samp_shr[0].winspeed, pass[3], rdrect);
+							add_transp_speed(rl, od, samp_shr[0].winspeed, alpha, rdrect);
 					}
 				}
 			}

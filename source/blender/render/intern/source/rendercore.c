@@ -484,6 +484,10 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 					*fp= (float)shi->obr->ob->index;
 				}
 				break;
+			case SCE_PASS_MIST:
+				fp= rpass->rect + offset;
+				*fp= shr->mist;
+				break;
 		}
 		if(col) {
 			fp= rpass->rect + pixsize*offset;
