@@ -1582,10 +1582,15 @@ void sample_action_keys (void)
 /* - The copy/paste buffer currently stores a set of Action Channels, with temporary
  *	IPO-blocks, and also temporary IpoCurves which only contain the selected keyframes.
  * - Only pastes between compatable data is possible (i.e. same achan->name, ipo-curve type, etc.)
+ *	Unless there is only one element in the buffer, names are also tested to check for compatability.
+ * - All pasted frames are offset by the same amount. This is calculated as the difference in the times of
+ *	the current frame and the 'first keyframe' (i.e. the earliest one in all channels).
+ * - The earliest frame is calculated per copy operation.
  */
 
 /* globals for copy/paste data (like for other copy/paste buffers) */
 ListBase actcopybuf = {NULL, NULL};
+static float actcopy_firstframe= 999999999.0f;
 
 /* This function frees any MEM_calloc'ed copy/paste buffer data */
 void free_actcopybuf ()
@@ -1616,6 +1621,7 @@ void free_actcopybuf ()
 	}
 	
 	actcopybuf.first= actcopybuf.last= NULL;
+	actcopy_firstframe= 999999999.0f;
 }
 
 /* This function adds data to the copy/paste buffer, freeing existing data first
@@ -1687,10 +1693,16 @@ void copy_actdata ()
 			icn->adrcode = icu->adrcode;
 			BLI_addtail(&ipn->curve, icn);
 			
-			/* find selected BezTriples to add to the buffer */
+			/* find selected BezTriples to add to the buffer (and set first frame) */
 			for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
-				if (BEZSELECTED(bezt))
+				if (BEZSELECTED(bezt)) {
+					/* add to buffer ipo-curve */
 					insert_bezt_icu(icn, bezt);
+					
+					/* check if this is the earliest frame encountered so far */
+					if (bezt->vec[1][0] < actcopy_firstframe)
+						actcopy_firstframe= bezt->vec[1][0];
+				}
 			}
 		}
 	}
@@ -1710,7 +1722,9 @@ void paste_actdata ()
 	int filter;
 	void *data;
 	short datatype;
+	
 	short no_name= 0;
+	float offset = CFRA - actcopy_firstframe;
 	
 	/* check if buffer is empty */
 	if (ELEM(NULL, actcopybuf.first, actcopybuf.last)) {
@@ -1736,8 +1750,6 @@ void paste_actdata ()
 		IpoCurve *ico, *icu;
 		BezTriple *bezt;
 		int i;
-		float offset= 0.0f;
-		short offsetInit= 1;
 		
 		/* find matching ipo-block */
 		for (achan= actcopybuf.first; achan; achan= achan->next) {
@@ -1785,13 +1797,7 @@ void paste_actdata ()
 				/* only paste if compatable blocktype + adrcode */
 				if ((ico->blocktype==icu->blocktype) && (ico->adrcode==icu->adrcode)) {
 					/* just start pasting, with the the first keyframe on the current frame, and so on */
-					for (i=0, bezt=ico->bezt; i < ico->totvert; i++, bezt++) {
-						/* initialise offset (if not already done) */
-						if (offsetInit) {
-							offset= CFRA - bezt->vec[1][0];
-							offsetInit= 0;
-						}
-						
+					for (i=0, bezt=ico->bezt; i < ico->totvert; i++, bezt++) {						
 						/* temporarily apply offset to src beztriple while copying */
 						bezt->vec[0][0] += offset;
 						bezt->vec[1][0] += offset;
