@@ -4798,6 +4798,13 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
                                doredraw= 1;
                        }
                        break;
+		case HKEY: /* hide==mute? - not that nice but MKey us used for meta :/ */
+			if((G.qual==0)) {
+				seq_mute_sel(1);
+			} else if((G.qual==LR_ALTKEY)) {
+				seq_mute_sel(0);
+			}
+			break;
 		case XKEY:
 		case DELKEY:
 			if(G.qual==0) {

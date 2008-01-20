@@ -62,6 +62,7 @@ void				mouse_select_seq(void);
 void				no_gaps(void);
 void				seq_snap(short event);
 void				seq_snap_menu(void);
+void				seq_mute_sel( int mute );
 void				set_filter_seq(void);
 void				swap_select_seq(void);
 void				touch_seq_files(void);

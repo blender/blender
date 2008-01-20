@@ -3685,6 +3685,23 @@ void seq_snap(short event)
 	allqueue(REDRAWSEQ, 0);
 }
 
+void seq_mute_sel(int mute) {
+	Editing *ed;
+	Sequence *seq;
+	
+	ed= G.scene->ed;
+	if(!ed) return NULL;
+	
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+		if ((seq->flag & SELECT) && (seq->flag & SEQ_LOCK)==0) {
+			if (mute) seq->flag |= SEQ_MUTE;
+			else seq->flag &= ~SEQ_MUTE;
+		}
+	}
+	BIF_undo_push(mute?"Mute Strips, Sequencer":"UnMute Strips, Sequencer");
+	allqueue(REDRAWSEQ, 0);
+}
+
 void borderselect_seq(void)
 {
 	Sequence *seq;

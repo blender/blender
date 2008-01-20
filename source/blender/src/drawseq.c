@@ -92,6 +92,24 @@
 #define SEQ_STRIP_OFSBOTTOM		0.2
 #define SEQ_STRIP_OFSTOP		0.8
 
+static GLubyte halftone[] = {
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55};
+
 /* Note, Dont use WHILE_SEQ while drawing! - it messes up transform, - Campbell */
 
 int no_rightbox=0, no_leftbox= 0;
@@ -220,6 +238,14 @@ static void drawmeta_contents(Sequence *seqm, float x1, float y1, float x2, floa
 
 	dx= (x2-x1)/nr;
 
+	if (seqm->flag & SEQ_MUTE) {
+		glEnable(GL_POLYGON_STIPPLE);
+		glPolygonStipple(halftone);
+		
+		glEnable(GL_LINE_STIPPLE);
+		glLineStipple(1, 0x8888);
+	}
+	
 	for (seq= seqm->seqbase.first; seq; seq= seq->next) {
 		get_seq_color3ubv(seq, col);
 		
@@ -233,6 +259,11 @@ static void drawmeta_contents(Sequence *seqm, float x1, float y1, float x2, floa
 		fdrawbox(x1,  y1,  x1+0.9*dx,  y2);
 		
 		x1+= dx;
+	}
+	
+	if (seqm->flag & SEQ_MUTE) {
+		glDisable(GL_POLYGON_STIPPLE);
+		glDisable(GL_LINE_STIPPLE);
 	}
 }
 
@@ -603,6 +634,11 @@ static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float
 {
 	float ymid1, ymid2;
 	
+	if (seq->flag & SEQ_MUTE) {
+		glEnable(GL_POLYGON_STIPPLE);
+		glPolygonStipple(halftone);
+	}
+	
 	ymid1 = (y2-y1)*0.25 + y1;
 	ymid2 = (y2-y1)*0.65 + y1;
 	
@@ -644,6 +680,9 @@ static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float
 	
 	glEnd();
 	
+	if (seq->flag & SEQ_MUTE) {
+		glDisable(GL_POLYGON_STIPPLE);
+	}
 }
 
 /*
@@ -701,8 +740,17 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq, int outli
 	BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, outline_tint);
 	
 	glColor3ubv((GLubyte *)col);
+	
+	if (seq->flag & SEQ_MUTE) {
+		glEnable(GL_LINE_STIPPLE);
+		glLineStipple(1, 0x8888);
+	}
+	
 	gl_round_box_shade(GL_LINE_LOOP, x1, y1, x2, y2, 0.0, 0.1, 0.0);
-
+	
+	if (seq->flag & SEQ_MUTE) {
+		glDisable(GL_LINE_STIPPLE);
+	}
 	
 	/* calculate if seq is long enough to print a name */
 	x1= seq->startdisp+seq->handsize;
