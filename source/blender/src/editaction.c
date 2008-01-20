@@ -2492,6 +2492,20 @@ void selectall_action_keys (short mval[], short mode, short select_mode)
 			/* get channel, and act according to type */
 			act_channel= get_nearest_act_channel(mval, &chantype);
 			switch (chantype) {
+				case ACTTYPE_GROUP:	
+				{
+					bActionGroup *agrp= (bActionGroup *)act_channel;
+					bActionChannel *achan;
+					bConstraintChannel *conchan;
+					
+					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
+						select_ipo_bezier_keys(achan->ipo, select_mode);
+						
+						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) 
+							select_ipo_bezier_keys(conchan->ipo, select_mode);
+					}
+				}
+					break;
 				case ACTTYPE_ACHAN:
 				{
 					bActionChannel *achan= (bActionChannel *)act_channel;
@@ -2937,10 +2951,10 @@ void borderselect_action (void)
 						bConstraintChannel *conchan;
 						
 						for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
-							select_ipo_bezier_keys(achan->ipo, selectmode);
+							borderselect_ipo_key(achan->ipo, rectf.xmin, rectf.xmax, selectmode);
 							
 							for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-								select_ipo_bezier_keys(conchan->ipo, selectmode);
+								borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax, selectmode);
 						}
 					}
 				}
