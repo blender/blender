@@ -260,7 +260,7 @@ static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 	sa->winy= sa->totrct.ymax-sa->totrct.ymin+1;
 }
 
-#define AZONESPOT		6
+#define AZONESPOT		12
 void area_azone_initialize(ScrArea *sa) {
 	AZone *az;
 	if(sa->actionzones.first==NULL) {
