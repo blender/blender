@@ -180,7 +180,7 @@ void BMF_DrawStringTexture(BMF_Font* font, char *string, float x, float y, float
 	((BMF_BitmapFont*)font)->DrawStringTexture(string, x, y, z);
 }
 
-void BMF_DrawStringBuf(BMF_Font* font, char *str, int posx, int posy, float *col, unsigned char *buf, float *fbuf, int w, int h) {
+void BMF_DrawStringBuf(BMF_Font* font, char *str, int posx, int posy, float *col, unsigned char *buf, float *fbuf, int w, int h, int channels) {
 	if (!font) return;
-	((BMF_BitmapFont*)font)->DrawStringBuf(str, posx, posy, col, buf, fbuf, w, h);
+	((BMF_BitmapFont*)font)->DrawStringBuf(str, posx, posy, col, buf, fbuf, w, h, channels);
 }

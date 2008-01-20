@@ -152,8 +152,9 @@ void BMF_DrawStringTexture(BMF_Font* font, char* string, float x, float y, float
  * @param fbuf float image buffer, when NULL to not operate on it.
  * @param w image buffer width.
  * @param h image buffer height.
+ * @param channels number of channels in the image (3 or 4 - currently)
 	 */
-void BMF_DrawStringBuf(BMF_Font* font, char *str, int posx, int posy, float *col, unsigned char *buf, float *fbuf, int w, int h);
+void BMF_DrawStringBuf(BMF_Font* font, char *str, int posx, int posy, float *col, unsigned char *buf, float *fbuf, int w, int h, int channels);
 
 
 #ifdef __cplusplus

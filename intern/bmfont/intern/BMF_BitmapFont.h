@@ -130,8 +130,9 @@ public:
 	 * @param fbuf float image buffer, when NULL to not operate on it.
 	 * @param w image buffer width.
 	 * @param h image buffer height.
+	 * @param channels number of channels in the image (3 or 4 - currently)
 	 */
-	void DrawStringBuf(char *str, int posx, int posy, float *col, unsigned char *buf, float *fbuf, int w, int h);
+	void DrawStringBuf(char *str, int posx, int posy, float *col, unsigned char *buf, float *fbuf, int w, int h, int channels);
 	
 protected:
 	/** Pointer to the font data. */

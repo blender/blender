@@ -1301,7 +1301,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 			do_ogl_view3d_render(re, v3d, winx, winy);
 			glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
 			if((G.scene->r.scemode & R_STAMP_INFO) && (G.scene->r.stamp & R_STAMP_DRAW)) {
-				BKE_stamp_buf((unsigned char *)rr->rect32, rr->rectf, rr->rectx, rr->recty);
+				BKE_stamp_buf((unsigned char *)rr->rect32, rr->rectf, rr->rectx, rr->recty, 3);
 			}
 			window_swap_buffers(render_win->win);
 			
@@ -1343,7 +1343,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 		do_ogl_view3d_render(re, v3d, winx, winy);
 		glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
 		if((G.scene->r.scemode & R_STAMP_INFO) && (G.scene->r.stamp & R_STAMP_DRAW)) {
-			BKE_stamp_buf((unsigned char *)rr->rect32, rr->rectf, rr->rectx, rr->recty);
+			BKE_stamp_buf((unsigned char *)rr->rect32, rr->rectf, rr->rectx, rr->recty, 3);
 		}
 		window_swap_buffers(render_win->win);
 	}

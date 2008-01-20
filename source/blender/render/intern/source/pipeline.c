@@ -2022,7 +2022,7 @@ static void renderresult_stampinfo()
 	RenderResult rres;
 	/* this is the basic trick to get the displayed float or char rect from render result */
 	RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
-	BKE_stamp_buf((unsigned char *)rres.rect32, rres.rectf, rres.rectx, rres.recty);
+	BKE_stamp_buf((unsigned char *)rres.rect32, rres.rectf, rres.rectx, rres.recty, 4);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
