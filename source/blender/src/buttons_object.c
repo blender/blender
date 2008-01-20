@@ -3377,9 +3377,12 @@ static void object_softbodies__enable_psys(void *ob_v, void *psys_v)
 
 #ifdef _work_on_sb_solver
 static char sbsolvers[] = "Solver %t|RKP almost SOFT not usable but for some german teachers %x1|STU ip semi implicit euler%x3|SI1  (half step)adaptive semi implict euler %x2|SI2  (use dv)adaptive semi implict euler %x4|SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
-#else
+/* SIF would have been candidate  .. well lack of time .. brecht is busy .. better make a stable version for peach now :) */
 static char sbsolvers[] = "SIF  semi implicit euler with fixed step size (worth a try with real stiff egdes)%x3|SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
+#else
+static char sbsolvers[] = "SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
 #endif
+
 static void object_softbodies_II(Object *ob)
 {
 	SoftBody *sb=ob->soft;
@@ -3472,6 +3475,7 @@ static void object_softbodies_II(Object *ob)
 			uiBlockBeginAlign(block);
 			uiDefButS(block, MENU, B_SOFTBODY_CHANGE, sbsolvers,10,100,50,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver");
 			/*some have adapive step size - some not*/
+			sb->solver_ID = 0; /* ugly hack to prepare peach freeze */
 			switch (sb->solver_ID) {
 			case 0:
 			case 1:
