@@ -1108,7 +1108,9 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra)
 				IMB_freeImBuf(se->ibuf);
 			}
 			se->ibuf = se->se1->ibuf_comp;
-			IMB_refImBuf(se->ibuf);
+			if(se->ibuf) {
+				IMB_refImBuf(se->ibuf);
+			}
 		}
 	} else if(seq->type & SEQ_EFFECT) {
 		/* should the effect be recalculated? */
