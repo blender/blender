@@ -51,22 +51,28 @@ I stole it from util.h in the plugins api */
 /* Only this one is used liberally here, and in imbuf */
 void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
 {
-	int size, do_float=0;
+	int size;
 	unsigned char rt, *cp = (unsigned char *)ibuf->rect;
 	float rtf, *cpf = ibuf->rect_float;
-	
-	if (ibuf->rect_float)  do_float = 1;
-	size = ibuf->x * ibuf->y;
 
-	while(size-- > 0) {
-		rt= cp[0];
-		cp[0]= cp[3];
-		cp[3]= rt;
-		rt= cp[1];
-		cp[1]= cp[2];
-		cp[2]= rt;
-		cp+= 4;
-		if (do_float) {
+	if (ibuf->rect) {
+		size = ibuf->x * ibuf->y;
+
+		while(size-- > 0) {
+			rt= cp[0];
+			cp[0]= cp[3];
+			cp[3]= rt;
+			rt= cp[1];
+			cp[1]= cp[2];
+			cp[2]= rt;
+			cp+= 4;
+		}
+	}
+
+	if (ibuf->rect_float) {
+		size = ibuf->x * ibuf->y;
+
+		while(size-- > 0) {
 			rtf= cpf[0];
 			cpf[0]= cpf[3];
 			cpf[3]= rtf;
