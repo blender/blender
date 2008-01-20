@@ -1952,6 +1952,7 @@ static void createTransEditVerts(TransInfo *t)
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	EditVert **nears = NULL;
+	EditVert *eve_act = NULL;
 	float *vectors = NULL, *mappedcos = NULL, *quats= NULL;
 	float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
 	int count=0, countsel=0, a, totleft;
@@ -2001,6 +2002,15 @@ static void createTransEditVerts(TransInfo *t)
 	
  	/* note: in prop mode we need at least 1 selected */
 	if (countsel==0) return;
+	
+	/* check active */
+	if (G.editMesh->selected.last) {
+		EditSelection *ese = G.editMesh->selected.last;
+		if ( ese->type == EDITVERT ) {
+			eve_act = (EditVert *)ese->data;
+		}
+	}
+
 	
 	if(propmode) {
 		t->total = count; 
@@ -2057,8 +2067,13 @@ static void createTransEditVerts(TransInfo *t)
 		if(eve->h==0) {
 			if(propmode || eve->f1) {
 				VertsToTransData(tob, eve);
-
+				
+				/* selected */
 				if(eve->f1) tob->flag |= TD_SELECTED;
+				
+				/* active */
+				if(eve == eve_act) tob->flag |= TD_ACTIVE;
+				
 				if(propmode) {
 					if (eve->f2) {
 						float vec[3];
@@ -2883,6 +2898,13 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 		Mat3One(td->smtx);
 		Mat3One(td->mtx);
 	}
+	
+	/* set active flag */
+	if (BASACT && BASACT->object == ob)
+	{
+		td->flag |= TD_ACTIVE;
+	}
+	
 #ifdef WITH_VERSE
 	if(ob->vnode) {
 		td->verse = (void*)ob;

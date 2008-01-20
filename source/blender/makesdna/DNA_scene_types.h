@@ -663,6 +663,7 @@ typedef struct Scene {
 #define SCE_SNAP_TARGET_CLOSEST	0
 #define SCE_SNAP_TARGET_CENTER	1
 #define SCE_SNAP_TARGET_MEDIAN	2
+#define SCE_SNAP_TARGET_ACTIVE	3
 
 /* sce->selectmode */
 #define SCE_SELECT_VERTEX	1 /* for mesh */
