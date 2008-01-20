@@ -308,7 +308,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_FS_PIC		1601
 #define B_FS_BACKBUF	1602
 
-#define B_FS_FTYPE		1604
+#define B_FS_FTYPE		1604 /* FTYPE is no more */
 #define B_DORENDER		1605
 #define B_DOANIM		1606
 #define B_PLAYANIM		1607
@@ -325,7 +325,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_PR_PANO		1619
 #define B_PR_NTSC		1620
 
-#define B_IS_FTYPE		1622
+#define B_IS_FTYPE		1622 /* FTYPE is nomore */
 #define B_IS_BACKBUF		1623
 #define B_PR_PC			1624
 

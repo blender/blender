@@ -1165,12 +1165,6 @@ static void backbuf_pic(char *name)
 	BIF_undo_push("Change background picture");
 }
 
-static void ftype_pic(char *name)
-{
-	strcpy(G.scene->r.ftype, name);
-	allqueue(REDRAWBUTSSCENE, 0);
-}
-
 static void run_playanim(char *file) 
 {
 	extern char bprogname[];	/* usiblender.c */
@@ -1268,15 +1262,6 @@ void do_render_panels(unsigned short event)
 			activate_imageselect(FILE_SPECIAL, "SELECT BACKBUF PICTURE", G.scene->r.backbuf, backbuf_pic);
 		else
 			activate_fileselect(FILE_SPECIAL, "SELECT BACKBUF PICTURE", G.scene->r.backbuf, backbuf_pic);
-		break;
-
-	case B_FS_FTYPE:
-		sa= closest_bigger_area();
-		areawinset(sa->win);
-		if(G.qual == LR_CTRLKEY)
-			activate_imageselect(FILE_SPECIAL, "SELECT FTYPE", G.scene->r.ftype, ftype_pic);
-		else
-			activate_fileselect(FILE_SPECIAL, "SELECT FTYPE", G.scene->r.ftype, ftype_pic);
 		break;
 	
 	case B_PR_PAL:
@@ -1841,7 +1826,6 @@ static void render_panel_output(void)
 	uiBlock *block;
 	char *strp;
 
-
 	block= uiNewBlock(&curarea->uiblocks, "render_panel_output", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Output", "Render", 0, 0, 318, 204)==0) return;
 	
@@ -1850,17 +1834,19 @@ static void render_panel_output(void)
 	uiDefBut(block, TEX,0,"",							31, 190, 279, 20,G.scene->r.pic, 0.0,79.0, 0, 0, "Directory/name to save rendered Pics to");
 	uiDefIconBut(block, BUT,B_FS_BACKBUF, ICON_FILESEL, 10, 168, 20, 20, 0, 0, 0, 0, 0, "Open Fileselect to get Backbuf image");
 	uiDefBut(block, TEX,0,"",							31, 168, 279, 20,G.scene->r.backbuf, 0.0,79.0, 0, 0, "Image to use as background for rendering");
-	uiDefIconBut(block, BUT,B_FS_FTYPE, ICON_FILESEL,	10, 146, 20, 20, 0, 0, 0, 0, 0, "Open Fileselect to get Ftype image");
-	uiDefBut(block, TEX,0,"",							31, 146, 279, 20,G.scene->r.ftype,0.0,79.0, 0, 0, "Image to use with FTYPE Image type");
 	uiBlockEndAlign(block);
 	
+	uiBlockBeginAlign(block);
+	uiDefButBitI(block, TOG, R_NO_OVERWRITE, B_NOP, "No Overwrite", 10, 142, 90, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Skip rendering frames when the file exists (image output only)");
+	uiDefButBitI(block, TOG, R_TOUCH, B_NOP, "Touch", 100, 142, 50, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Create an empty file before rendering each frame");
+	uiBlockEndAlign(block);
 	
 	/* SET BUTTON */
 	uiBlockBeginAlign(block);
 	id= (ID *)G.scene->set;
 	IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->scene), id, &(G.buts->menunr));
 	if(strp[0])
-		uiDefButS(block, MENU, B_SETBROWSE, strp, 10, 120, 20, 20, &(G.buts->menunr), 0, 0, 0, 0, "Scene to link as a Set");
+		uiDefButS(block, MENU, B_SETBROWSE, strp, 10, 114, 20, 20, &(G.buts->menunr), 0, 0, 0, 0, "Scene to link as a Set");
 	MEM_freeN(strp);
 
 	if(G.scene->set) {
@@ -1872,8 +1858,8 @@ static void render_panel_output(void)
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButBitS(block, TOG, R_BACKBUF, B_NOP,"Backbuf",	10, 94, 80, 20, &G.scene->r.bufflag, 0, 0, 0, 0, "Enable/Disable use of Backbuf image");	
-	uiDefButS(block, NUM, B_NOP, "Threads:",				10, 68, 100, 20, &G.scene->r.threads, 1, BLENDER_MAX_THREADS, 0, 0, "Amount of threads for render (takes advantage of multi-core and multi-processor computers)");
+	uiDefButBitS(block, TOG, R_BACKBUF, B_NOP,"Backbuf",	10, 89, 80, 20, &G.scene->r.bufflag, 0, 0, 0, 0, "Enable/Disable use of Backbuf image");	
+	uiDefButS(block, NUM, B_NOP, "Threads:",				10, 63, 100, 20, &G.scene->r.threads, 1, BLENDER_MAX_THREADS, 0, 0, "Amount of threads for render (takes advantage of multi-core and multi-processor computers)");
 	uiBlockSetCol(block, TH_AUTO);
 		
 	uiBlockBeginAlign(block);
@@ -1887,20 +1873,18 @@ static void render_panel_output(void)
 	uiDefButS(block, MENU, B_REDR, "Render Display %t|Render Window %x1|Image Editor %x0|Full Screen %x2",	
 					72, 10, 120, 19, &G.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output display");
 
-	uiDefButBitS(block, TOG, R_EXTENSION, B_NOP, "Extensions", 205, 10, 105, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds filetype extensions to the filename when rendering animations");
-
 	/* Dither control */
 	uiDefButF(block, NUM,B_DIFF, "Dither:",         205,31,105,19, &G.scene->r.dither_intensity, 0.0, 2.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
 	
 	/* Toon shading buttons */
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_EDGE, B_NOP,"Edge",   100, 94, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon Edge-enhance");
-	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 170, 94, 140, 20, "Display Edge settings");
+	uiDefButBitI(block, TOG, R_EDGE, B_NOP,"Edge",   100, 89, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon Edge-enhance");
+	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 170, 89, 140, 20, "Display Edge settings");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, R_NO_TEX, B_NOP, "Disable Tex", 115, 68, 70, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Disables Textures for render");
-	uiDefButBitS(block, TOG, R_FREE_IMAGE, B_NOP, "Free Tex Images", 205, 68, 100, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Frees all Images used by Textures after each render");
+	uiDefButBitS(block, TOG, R_NO_TEX, B_NOP, "Disable Tex", 115, 63, 70, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Disables Textures for render");
+	uiDefButBitS(block, TOG, R_FREE_IMAGE, B_NOP, "Free Tex Images", 205, 63, 100, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Frees all Images used by Textures after each render");
 	uiBlockEndAlign(block);
 }
 

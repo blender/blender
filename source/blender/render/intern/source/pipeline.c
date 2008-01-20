@@ -2347,12 +2347,24 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 			}
 		}
 	} else {
-		for(scene->r.cfra= sfra; 
-		    scene->r.cfra<=efra; scene->r.cfra++) {
-			re->r.cfra= scene->r.cfra;	   /* weak.... */
-		
-			do_render_all_options(re);
+		for(scene->r.cfra= sfra; scene->r.cfra<=efra; scene->r.cfra++) {
+			char name[FILE_MAX];
+			if (scene->r.mode & (R_NO_OVERWRITE | R_TOUCH) ) {
+				BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype);
+			}
+			
+			if (scene->r.mode & R_NO_OVERWRITE && BLI_exist(name)) {
+				printf("skipping existing frame \"%s\"\n", name);
+				continue;
+			}
+			if (scene->r.mode & R_TOUCH && !BLI_exist(name)) {
+				BLI_touch(name);
+			}
 
+			re->r.cfra= scene->r.cfra;	   /* weak.... */
+			
+			do_render_all_options(re);
+			
 			if(re->test_break() == 0) {
 				do_write_image_or_movie(re, scene, mh);
 			}

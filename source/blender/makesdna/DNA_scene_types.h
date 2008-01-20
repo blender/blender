@@ -281,7 +281,7 @@ typedef struct RenderData {
 	float YF_gamma, YF_exposure, YF_raybias, YF_AApixelsize, YF_AAthreshold;
 
 	/* paths to backbufffer, output, ftype */
-	char backbuf[160], pic[160], ftype[160];
+	char backbuf[160], pic[160];
 
 	/* stamps flags. */
 	int stamp;
@@ -551,6 +551,9 @@ typedef struct Scene {
 #define R_THREADS		0x80000
 #define R_SPEED			0x100000
 #define R_SSS			0x200000
+#define R_NO_OVERWRITE	0x400000 /* skip existing files */
+#define R_TOUCH			0x800000 /* touch files before rendering */
+
 
 /* filtertype */
 #define R_FILTER_BOX	0
@@ -610,7 +613,7 @@ typedef struct Scene {
 #define R_TARGA		0
 #define R_IRIS		1
 #define R_HAMX		2
-#define R_FTYPE		3
+#define R_FTYPE		3 /* ftype is nomore */
 #define R_JPEG90	4
 #define R_MOVIE		5
 #define R_IRIZ		7

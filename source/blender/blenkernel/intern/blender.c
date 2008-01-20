@@ -307,7 +307,6 @@ static void clean_paths(Main *main)
 		}
 		BLI_clean(scene->r.backbuf);
 		BLI_clean(scene->r.pic);
-		BLI_clean(scene->r.ftype);
 		
 		scene= scene->id.next;
 	}

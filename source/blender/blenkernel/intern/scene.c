@@ -257,7 +257,6 @@ Scene *add_scene(char *name)
 
 	strcpy(sce->r.backbuf, "//backbuf");
 	strcpy(sce->r.pic, U.renderdir);
-	strcpy(sce->r.ftype, "//ftype");
 
 	BLI_init_rctf(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
 	sce->r.osa= 8;
