@@ -92,6 +92,8 @@
 #define SEQ_STRIP_OFSBOTTOM		0.2
 #define SEQ_STRIP_OFSTOP		0.8
 
+/* Note, Dont use WHILE_SEQ while drawing! - it messes up transform, - Campbell */
+
 int no_rightbox=0, no_leftbox= 0;
 static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, float pixelx, short direction);
 static void draw_seq_extensions(Sequence *seq, SpaceSeq *sseq);
@@ -207,20 +209,18 @@ static void get_seq_color3ubv(Sequence *seq, char *col)
 
 static void drawmeta_contents(Sequence *seqm, float x1, float y1, float x2, float y2)
 {
+	/* Note, this used to use WHILE_SEQ, but it messes up the seq->depth value, (needed by transform when doing overlap checks)
+	 * so for now, just use the meta's immediate children, could be fixed but its only drawing - Campbell */
 	Sequence *seq;
 	float dx;
 	int nr;
 	char col[3];
 	
-	nr= 0;
-	WHILE_SEQ(&seqm->seqbase) {
-		nr++;
-	}
-	END_SEQ
+	nr= BLI_countlist(&seqm->seqbase);
 
 	dx= (x2-x1)/nr;
 
-	WHILE_SEQ(&seqm->seqbase) {
+	for (seq= seqm->seqbase.first; seq; seq= seq->next) {
 		get_seq_color3ubv(seq, col);
 		
 		glColor3ubv((GLubyte *)col);
@@ -234,7 +234,6 @@ static void drawmeta_contents(Sequence *seqm, float x1, float y1, float x2, floa
 		
 		x1+= dx;
 	}
-	END_SEQ
 }
 
 static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, int winx)

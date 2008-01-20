@@ -3307,7 +3307,7 @@ void transform_seq(int mode, int context)
 
 			/* test for effect and overlap */
 			for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-				if(seq->flag & SELECT && !(seq->flag & SEQ_LOCK)) {
+				if((seq->depth==0) && (seq->flag & SELECT) && !(seq->flag & SEQ_LOCK)) {
 					seq->flag &= ~SEQ_OVERLAP;
 					if( test_overlap_seq(seq) ) {
 						seq->flag |= SEQ_OVERLAP;
@@ -3319,7 +3319,9 @@ void transform_seq(int mode, int context)
 					else if(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
 				}
 			}
-
+			/* warning, drawing should NEVER use WHILE_SEQ,
+			if it does the seq->depth value will be messed up and
+			overlap checks with metastrips will give incorrect results */
 			force_draw(0);
 			
 		}

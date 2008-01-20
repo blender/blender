@@ -103,8 +103,8 @@ void seq_tx_set_final_right(struct Sequence *seq, int i);
 int seq_tx_check_left(struct Sequence *seq);
 int seq_tx_check_right(struct Sequence *seq);
 
-#define SEQ_DEBUG_INFO(seq) printf("seq into '%s' -- len:%i  start:%i  startstill:%i  endstill:%i  startofs:%i  endofs:%i\n",\
-		    seq->name, seq->len, seq->start, seq->startstill, seq->endstill, seq->startofs, seq->endofs)
+#define SEQ_DEBUG_INFO(seq) printf("seq into '%s' -- len:%i  start:%i  startstill:%i  endstill:%i  startofs:%i  endofs:%i depth:%i\n",\
+		    seq->name, seq->len, seq->start, seq->startstill, seq->endstill, seq->startofs, seq->endofs, seq->depth)
 
 
 #endif
