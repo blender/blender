@@ -229,10 +229,8 @@ void free_object(Object *ob)
 	if(ob->dup_group) ob->dup_group->id.us--;
 	if(ob->defbase.first)
 		BLI_freelistN(&ob->defbase);
-	if(ob->pose) {
-		free_pose_channels(ob->pose);
-		MEM_freeN(ob->pose);
-	}
+	if(ob->pose)
+		free_pose(ob->pose);
 	free_effects(&ob->effect);
 	free_properties(&ob->prop);
 	object_free_modifiers(ob);
@@ -1438,7 +1436,7 @@ static void ob_parcurve(Object *ob, Object *par, float mat[][4])
 {
 	Curve *cu;
 	float q[4], vec[4], dir[3], *quat, x1, ctime;
-	float timeoffs, sf_orig = 0.0;
+	float timeoffs = 0.0, sf_orig = 0.0;
 	
 	Mat4One(mat);
 	

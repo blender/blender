@@ -64,6 +64,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
+#include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 

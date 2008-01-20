@@ -3852,6 +3852,42 @@ void do_armbuts(unsigned short event)
 			}
 		}
 		break;
+	case B_POSEGRP_RECALC:
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
+	case B_POSEGRP_ADD:
+		if (ob && ob->pose) {
+			bPose *pose= ob->pose;
+			bActionGroup *grp;
+			
+			grp= MEM_callocN(sizeof(bActionGroup), "PoseGroup");
+			strcpy(grp->name, "Group");
+			BLI_addtail(&pose->agroups, grp);
+			
+			pose->active_group= BLI_countlist(&pose->agroups);
+			
+			BIF_undo_push("Add Pose Group");
+			allqueue(REDRAWBUTSEDIT, 0);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		break;
+	case B_POSEGRP_REMOVE:
+		if (ob && ob->pose && ob->pose->active_group) {
+			bPose *pose= ob->pose;
+			bActionGroup *grp= NULL;
+			
+			grp= BLI_findlink(&pose->agroups, pose->active_group-1);
+			if (grp) {
+				BLI_freelinkN(&pose->agroups, grp);
+				pose->active_group= 0;
+			}
+			
+			BIF_undo_push("Remove Pose Group");
+			allqueue(REDRAWBUTSEDIT, 0);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		break;
 	}
 }
 
@@ -4282,6 +4318,37 @@ static int ob_arm_bone_pchan_lock(Object *ob, bArmature *arm, Bone *bone, bPoseC
 	return 0;
 }
 
+static char *build_posegroups_menustr(bPose *pose)
+{
+	DynStr *pupds= BLI_dynstr_new();
+	bActionGroup *agrp;
+	char *str;
+	char buf[16];
+	int i;
+	
+	/* add title first (and the "none" entry) */
+	BLI_dynstr_append(pupds, "Pose Group%t|");
+	BLI_dynstr_append(pupds, "BG: [None]%x0");
+	
+	/* loop through markers, adding them */
+	for (agrp= pose->agroups.first, i=1; agrp; agrp=agrp->next, i++) {
+		BLI_dynstr_append(pupds, "BG: ");
+		BLI_dynstr_append(pupds, agrp->name);
+		
+		sprintf(buf, "%%x%d", i);
+		BLI_dynstr_append(pupds, buf);
+		
+		if (agrp->next)
+			BLI_dynstr_append(pupds, "|");
+	}
+	
+	/* convert to normal MEM_malloc'd string */
+	str= BLI_dynstr_get_cstring(pupds);
+	BLI_dynstr_free(pupds);
+	
+	return str;
+}
+
 static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 {
 	uiBlock		*block;
@@ -4290,6 +4357,7 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 	Bone		*curBone;
 	int			by, a;
 	int			index, zerodof, zerolimit;
+	char 		*menustr;
 	
 	/* Draw the bone name block */
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_pose_bones", UI_EMBOSS, UI_HELV, curarea->win);
@@ -4305,19 +4373,23 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 	for (pchan=ob->pose->chanbase.first, index=0; pchan; pchan=pchan->next, index++){
 		curBone= pchan->bone;
 		if ((curBone->flag & BONE_SELECTED) && (curBone->layer & arm->layer)) {
-			
 			if(ob_arm_bone_pchan_lock(ob, arm, curBone, pchan))
 				uiDefBut(block, LABEL, 0, "Proxy Locked", 160, 180,150,18, NULL, 1, 0, 0, 0, "");
 			
-			/*	Bone naming button */
+			/* Bone naming button */
 			uiBlockBeginAlign(block);
 			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:",		-10,by,117,19, curBone->name, 0, 24, 0, 0, "Change the bone name");
 			uiButSetFunc(but, validate_posebonebutton_cb, curBone, NULL);
 			uiButSetCompleteFunc(but, autocomplete_bone, (void *)ob);
 			
-			/* Dist and weight buttons */
-			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Dist:",		107, by, 105, 19, &curBone->dist, 0.0, 1000.0, 10.0, 0.0, "Bone deformation distance");
-			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Weight:",	220, by,  110, 19, &curBone->weight, 0.0F, 1000.0F, 10.0F, 0.0F, "Bone deformation weight");
+			/* Bone custom drawing */
+			menustr= build_posegroups_menustr(ob->pose);
+			uiDefButS(block, MENU,REDRAWVIEW3D, menustr, 107,by,105,19, &pchan->agrp_index, 0.0, 0.0, 0.0, 0.0, "Change the Pose Group this Bone belongs to");
+			MEM_freeN(menustr);
+			
+			ob_arm_bone_pchan_lock(ob, arm, curBone, pchan);
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "OB:",		220,by,110,19, &pchan->custom, "Object that defines custom draw type for this Bone");
+			ob_arm_bone_pchan_lock(ob, arm, curBone, NULL);
 			
 			/* Segment, ease in/out buttons */
 			uiBlockBeginAlign(block);
@@ -4330,9 +4402,7 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",			70,by-38,20,19, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit scale from parent Bone");
 			uiDefButBitI(block, TOGN, BONE_NO_DEFORM, B_ARM_RECALCDATA, "Deform",	90, by-38, 80, 19, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
 			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult",	170,by-38,80,19, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
-			ob_arm_bone_pchan_lock(ob, arm, curBone, pchan);
-			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "OB:",		250,by-38,80,19, &pchan->custom, "Object that defines custom draw type for this Bone");
-			ob_arm_bone_pchan_lock(ob, arm, curBone, NULL);
+			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Hide",	250,by-38,80,19, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Toggles display of this bone in Edit Mode");
 			
 			/* layers */
 			uiBlockBeginAlign(block);
@@ -5066,10 +5136,14 @@ static void editing_panel_links(Object *ob)
 	if (ob->type==OB_ARMATURE) {
 		if ((ob->pose) && (ob->flag & OB_POSEMODE) && (G.obedit != ob)) {
 			bAction *act= ob->poselib;
+			bPose *pose= ob->pose;
+			int count;
+			char *menustr;
 			
+			/* PoseLib settings for armature reside on the left */
 			xco= 143;
 			
-			uiDefBut(block, LABEL,0, "Pose Library (Action):", xco, 154, 200, 20, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL,0, "Pose Library:", xco, 154, 200, 20, 0, 0, 0, 0, 0, "");
 			
 			/* PoseLib Action */
 			uiBlockSetCol(block, TH_BUT_SETTING2);
@@ -5078,26 +5152,59 @@ static void editing_panel_links(Object *ob)
 			
 			uiDefBut(block, BUT, B_POSELIB_VALIDATE,  "Auto-Sync PoseLib",	xco,110,160,20, 0, 0, 0, 0, 0, "Syncs the current PoseLib with the poses available");
 			
-			/* poselib pose editing controls */
-			if ((act) && (act->markers.first)) {
-				TimeMarker *marker= poselib_get_active_pose(act);
-				int count= BLI_countlist(&act->markers);
-				char *menustr= poselib_build_poses_menu(act, "PoseLib Poses");
-				
+			/* PoseLib -  Pose editing controls */
+			if (act) {
 				uiBlockBeginAlign(block);
 					/* currently 'active' pose */
-					uiDefButI(block, MENU, B_POSELIB_APPLYP, menustr, xco, 85,18,20, &act->active_marker, 1, count, 0, 0, "Browses Poses in Pose Library. Applies chosen pose.");
-					MEM_freeN(menustr);
-					
-					if (act->active_marker) {
-						uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		xco+18,85,160-18-20,20, marker->name, 0, 63, 0, 0, "Displays current Pose Library Pose name. Click to change.");
-						uiDefIconBut(block, BUT, B_POSELIB_REMOVEP, VICON_X, xco+160-20, 85, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this Pose Library Pose from Pose Library.");
+					if (act->markers.first) {
+						count= BLI_countlist(&act->markers);
+						menustr= poselib_build_poses_menu(act, "PoseLib Poses");
+						uiDefButI(block, MENU, B_POSELIB_APPLYP, menustr, xco, 85,18,20, &act->active_marker, 1, count, 0, 0, "Browses Poses in Pose Library. Applies chosen pose.");
+						MEM_freeN(menustr);
+						
+						if (act->active_marker) {
+							TimeMarker *marker= poselib_get_active_pose(act);
+							
+							uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		xco+18,85,160-18-20,20, marker->name, 0, 63, 0, 0, "Displays current Pose Library Pose name. Click to change.");
+							uiDefIconBut(block, BUT, B_POSELIB_REMOVEP, VICON_X, xco+160-20, 85, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this Pose Library Pose from Pose Library.");
+						}
 					}
 					
 					/* add new poses */
 					uiDefBut(block, BUT, B_POSELIB_ADDPOSE, "Add Pose",	xco,65,80,20, 0, 0, 0, 0, 0, "Add current pose to PoseLib");
 					uiDefBut(block, BUT, B_POSELIB_REPLACEP, "Replace Pose",	xco+80,65,80,20, 0, 0, 0, 0, 0, "Replace existing PoseLib Pose with current pose");
 				uiBlockEndAlign(block);	
+			}
+			
+			
+			/* Action Groups settings for armature reside on the right */
+			xco= 315;
+			
+			uiDefBut(block, LABEL,0, "Bone Groups:", xco, 154, 140, 20, 0, 0, 0, 0, 0, "");
+			
+			/* add new group */
+			uiDefBut(block, BUT, B_POSEGRP_ADD, "Add Group",	xco,130,140,20, 0, 0, 0, 0, 0, "Add a new Pose Group for the Pose");
+			
+			if (pose->agroups.first) {
+				uiBlockBeginAlign(block);
+					/* currently 'active' group - browse groups */
+					count= BLI_countlist(&pose->agroups);
+					menustr= build_posegroups_menustr(pose);
+					uiDefButI(block, MENU, B_POSEGRP_RECALC, menustr, xco, 85,18,20, &pose->active_group, 1, count, 0, 0, "Browses Pose Groups available for Armature. Click to change.");
+					MEM_freeN(menustr);
+					
+					
+					if (pose->active_group) {
+						bActionGroup *grp= (bActionGroup *)BLI_findlink(&pose->agroups, pose->active_group-1);
+						
+						/* active group */
+						uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		xco+18,85,140-18-20,20, grp->name, 0, 63, 0, 0, "Displays current Pose Group name. Click to change.");
+						uiDefIconBut(block, BUT, B_POSEGRP_REMOVE, VICON_X, xco+140-20, 85, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this Pose Group");
+						
+						/* set custom color set */
+						uiDefButI(block, MENU,B_POSEGRP_RECALC, "Custom Color Set%t|GrpCol: [None]%x0", xco,65,140,19, &grp->customCol, 0.0, 0.0, 0.0, 0.0, "Set of Custom Colors to shade Group's bones with. (NOT YET FUNCTIONAL)");
+					}
+				uiBlockEndAlign(block);
 			}
 		}	
 		return;

@@ -312,13 +312,28 @@ void free_pose_channels(bPose *pose)
 {
 	bPoseChannel *pchan;
 	
-	if (pose->chanbase.first){
+	if (pose->chanbase.first) {
 		for (pchan = pose->chanbase.first; pchan; pchan=pchan->next){
 			if(pchan->path)
 				MEM_freeN(pchan->path);
 			free_constraints(&pchan->constraints);
 		}
 		BLI_freelistN (&pose->chanbase);
+	}
+}
+
+void free_pose(bPose *pose)
+{
+	if (pose) {
+		/* free pose-channels */
+		free_pose_channels(pose);
+		
+		/* free pose-groups */
+		if (pose->agroups.first)
+			BLI_freelistN(&pose->agroups);
+		
+		/* free pose */
+		MEM_freeN(pose);
 	}
 }
 
@@ -415,7 +430,7 @@ bActionChannel *get_action_channel(bAction *act, const char *name)
 	if (!act || !name)
 		return NULL;
 	
-	for (chan = act->chanbase.first; chan; chan=chan->next){
+	for (chan = act->chanbase.first; chan; chan=chan->next) {
 		if (!strcmp (chan->name, name))
 			return chan;
 	}
@@ -423,18 +438,16 @@ bActionChannel *get_action_channel(bAction *act, const char *name)
 	return NULL;
 }
 
-/* returns existing channel, or adds new one. In latter case it doesnt activate it, context is required for that*/
+/* returns existing channel, or adds new one. In latter case it doesnt activate it, context is required for that */
 bActionChannel *verify_action_channel(bAction *act, const char *name)
 {
 	bActionChannel *chan;
 	
 	chan= get_action_channel(act, name);
-	if(chan==NULL) {
-		if (!chan) {
-			chan = MEM_callocN (sizeof(bActionChannel), "actionChannel");
-			strncpy (chan->name, name, 31);
-			BLI_addtail (&act->chanbase, chan);
-		}
+	if (chan == NULL) {
+		chan = MEM_callocN (sizeof(bActionChannel), "actionChannel");
+		strncpy(chan->name, name, 31);
+		BLI_addtail(&act->chanbase, chan);
 	}
 	return chan;
 }
@@ -1340,10 +1353,8 @@ static void do_nla(Object *ob, int blocktype)
 	}
 	
 	/* free */
-	if (tpose){
-		free_pose_channels(tpose);
-		MEM_freeN(tpose);
-	}
+	if (tpose)
+		free_pose(tpose);
 	if(chanbase.first)
 		BLI_freelistN(&chanbase);
 }

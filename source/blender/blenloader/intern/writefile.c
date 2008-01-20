@@ -777,6 +777,7 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 static void write_pose(WriteData *wd, bPose *pose)
 {
 	bPoseChannel *chan;
+	bActionGroup *grp;
 
 	/* Write each channel */
 	if (!pose)
@@ -792,6 +793,10 @@ static void write_pose(WriteData *wd, bPose *pose)
 		
 		writestruct(wd, DATA, "bPoseChannel", 1, chan);
 	}
+	
+	/* Write groups */
+	for (grp=pose->agroups.first; grp; grp=grp->next) 
+		writestruct(wd, DATA, "bActionGroup", 1, grp);
 
 	/* Write this pose */
 	writestruct(wd, DATA, "bPose", 1, pose);

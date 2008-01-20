@@ -51,7 +51,7 @@ typedef struct bPoseChannel {
 	short				ikflag;		/* settings for IK bones */
 	short               selectflag;	/* copy of bone flag, so you can work with library armatures */
 	short				protectflag; /* protect channels from being transformed */
-	short				customCol;	/* index of custom color set to use (0=default - used for all old files) */
+	short				agrp_index; /* index of action-group this bone belongs to (0 = default/no group) */
 	
 	int				    pathlen;	/* for drawing paths, the amount of frames */
 	int 				pathsf;		/* for drawing paths, the start frame number */
@@ -98,6 +98,12 @@ typedef struct bPose {
 	float ctime;				/* local action time of this pose */
 	float stride_offset[3];		/* applied to object */
 	float cyclic_offset[3];		/* result of match and cycles, applied in where_is_pose() */
+	
+	
+	ListBase agroups;			/* list of bActionGroups */
+	
+	int active_group;			/* index of active group (starts from 1) */
+	int pad;
 } bPose;
 
 
@@ -114,7 +120,7 @@ typedef struct bActionGroup {
 	struct bActionGroup *next, *prev;
 	
 	int flag;				/* settings for this action-group */
-	int pad;				
+	int customCol;			/* index of custom color set to use when used for bones (0=default - used for all old files) */				
 	char name[32];			/* name of the group */
 	
 	ListBase channels;		/* Note: this must not be touched by standard listbase functions */
@@ -197,6 +203,7 @@ typedef enum AGRP_FLAG {
 	AGRP_ACTIVE 	= (1<<1),
 	AGRP_PROTECTED 	= (1<<2),
 	AGRP_EXPANDED 	= (1<<3),
+	
 	AGRP_TEMP		= (1<<30),
 	AGRP_MOVED 		= (1<<31)
 } AGRP_FLAG;

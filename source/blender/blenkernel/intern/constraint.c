@@ -2036,8 +2036,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			Mat4CpyMat4(ct->matrix, tchan->chan_mat);
 			
 			/* Clean up */
-			free_pose_channels(pose);
-			MEM_freeN(pose);
+			free_pose(pose);
 		}
 		else if (cob->type == CONSTRAINT_OBTYPE_OBJECT) {
 			/* evaluate using workob */

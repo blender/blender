@@ -2830,8 +2830,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				else printf("Object %s lost data.", ob->id.name+2);
 				
 				if(ob->pose) {
-					free_pose_channels(ob->pose);
-					MEM_freeN(ob->pose);
+					free_pose(ob->pose);
 					ob->pose= NULL;
 					ob->flag &= ~OB_POSEMODE;
 				}
@@ -2968,6 +2967,7 @@ static void direct_link_pose(FileData *fd, bPose *pose) {
 		return;
 
 	link_list(fd, &pose->chanbase);
+	link_list(fd, &pose->agroups);
 
 	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
 		pchan->bone= NULL;
