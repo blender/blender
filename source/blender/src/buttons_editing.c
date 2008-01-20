@@ -3864,6 +3864,7 @@ void do_armbuts(unsigned short event)
 			grp= MEM_callocN(sizeof(bActionGroup), "PoseGroup");
 			strcpy(grp->name, "Group");
 			BLI_addtail(&pose->agroups, grp);
+			BLI_uniquename(&pose->agroups, grp, "Group", offsetof(bActionGroup, name), 32);
 			
 			pose->active_group= BLI_countlist(&pose->agroups);
 			
@@ -5050,6 +5051,22 @@ char *get_vertexgroup_menustr(Object *ob)
 	return menustr;
 }
 
+static void verify_poselib_posename(void *arg1, void *arg2)
+{
+	bAction *act= (bAction *)arg1;
+	TimeMarker *marker= (TimeMarker *)arg2;
+	
+	BLI_uniquename(&act->markers, marker, "Pose", offsetof(TimeMarker, name), 64);
+}
+
+static void verify_posegroup_groupname(void *arg1, void *arg2)
+{
+	bPose *pose= (bPose *)arg1;
+	bActionGroup *grp= (bActionGroup *)arg2;
+	
+	BLI_uniquename(&pose->agroups, grp, "Group", offsetof(bActionGroup, name), 32);
+}
+
 static void editing_panel_links(Object *ob)
 {
 	uiBlock *block;
@@ -5165,7 +5182,8 @@ static void editing_panel_links(Object *ob)
 						if (act->active_marker) {
 							TimeMarker *marker= poselib_get_active_pose(act);
 							
-							uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		xco+18,85,160-18-20,20, marker->name, 0, 63, 0, 0, "Displays current Pose Library Pose name. Click to change.");
+							but= uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		xco+18,85,160-18-20,20, marker->name, 0, 63, 0, 0, "Displays current Pose Library Pose name. Click to change.");
+							uiButSetFunc(but, verify_poselib_posename, act, marker);
 							uiDefIconBut(block, BUT, B_POSELIB_REMOVEP, VICON_X, xco+160-20, 85, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this Pose Library Pose from Pose Library.");
 						}
 					}
@@ -5198,7 +5216,8 @@ static void editing_panel_links(Object *ob)
 						bActionGroup *grp= (bActionGroup *)BLI_findlink(&pose->agroups, pose->active_group-1);
 						
 						/* active group */
-						uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		xco+18,85,140-18-20,20, grp->name, 0, 63, 0, 0, "Displays current Pose Group name. Click to change.");
+						but= uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		xco+18,85,140-18-20,20, grp->name, 0, 63, 0, 0, "Displays current Pose Group name. Click to change.");
+						uiButSetFunc(but, verify_posegroup_groupname, pose, grp); 
 						uiDefIconBut(block, BUT, B_POSEGRP_REMOVE, VICON_X, xco+140-20, 85, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this Pose Group");
 						
 						/* set custom color set */

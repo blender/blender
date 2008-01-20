@@ -27,6 +27,7 @@
  
 #include <stdlib.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <string.h>
 #include <math.h>
 
@@ -345,7 +346,7 @@ void poselib_add_current_pose (Object *ob, int val)
 		/* get/initialise poselib */
 		act= poselib_validate(ob);
 		
-		/* validate name and get frame */
+		/* get frame */
 		frame= poselib_get_free_index(act);
 		
 		/* add pose to poselib - replaces any existing pose there */
@@ -363,6 +364,9 @@ void poselib_add_current_pose (Object *ob, int val)
 			
 			BLI_addtail(&act->markers, marker);
 		}
+		
+		/* validate name */
+		BLI_uniquename(&act->markers, marker, "Pose", offsetof(TimeMarker, name), 64);
 	}	
 	
 	/* loop through selected posechannels, keying their pose to the action */
@@ -504,8 +508,9 @@ void poselib_rename_pose (Object *ob)
 	if (sbutton(name, 0, sizeof(name)-1, "Name: ") == 0)
 		return;
 	
-	/* copy name */
+	/* copy name and validate it */
 	BLI_strncpy(marker->name, name, sizeof(marker->name));
+	BLI_uniquename(&act->markers, marker, "Pose", offsetof(TimeMarker, name), 64);
 	
 	/* undo and update */
 	BIF_undo_push("PoseLib Rename Pose");

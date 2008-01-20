@@ -107,6 +107,7 @@ int BLI_findindex(struct ListBase *listbase, void *vlink);
 void BLI_freelistN(struct ListBase *listbase);
 void BLI_addtail(struct ListBase *listbase, void *vlink);
 void BLI_remlink(struct ListBase *listbase, void *vlink);
+void BLI_uniquename(struct ListBase *list, void *vlink, char defname[], short name_offs, short len);
 void BLI_newname(char * name, int add);
 int BLI_stringdec(char *string, char *kop, char *start, unsigned short *numlen);
 void BLI_stringenc(char *string, char *kop, char *start, unsigned short numlen, int pic);

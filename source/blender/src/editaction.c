@@ -31,6 +31,7 @@
  */
 
 #include <string.h>
+#include <stddef.h>
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
@@ -947,6 +948,7 @@ void action_groups_group (short add_group)
 		sprintf(agrp->name, "Group");
 		
 		BLI_addtail(&act->groups, agrp);
+		BLI_uniquename(&act->groups, agrp, "Group", offsetof(bActionGroup, name), 32);
 		
 		set_active_actiongroup(act, agrp, 1);
 		
@@ -2140,6 +2142,7 @@ static void numbuts_action ()
 		}
 		else if (agrp) {
 			strcpy(agrp->name, str);
+			BLI_uniquename(&( ((bAction *)data)->groups ), agrp, "Group", offsetof(bActionGroup, name), 32);
 			
 			if (expand) agrp->flag |= AGRP_EXPANDED;
 			else agrp->flag &= ~AGRP_EXPANDED;
@@ -3724,6 +3727,9 @@ void action_add_localmarker (bAction *act, int frame)
 		BLI_addtail(&act->markers, marker);
 	}
 	
+	/* validate the name */
+	BLI_uniquename(&act->markers, marker, "Pose", offsetof(TimeMarker, name), 64);
+	
 	/* sets the newly added marker as the active one */
 	action_set_activemarker(act, marker, 1);
 	
@@ -3758,8 +3764,9 @@ void action_rename_localmarker (bAction *act)
 	if (sbutton(name, 0, sizeof(name)-1, "Name: ") == 0)
 		return;
 	
-	/* copy name */
+	/* copy then validate name */
 	BLI_strncpy(marker->name, name, sizeof(marker->name));
+	BLI_uniquename(&act->markers, marker, "Pose", offsetof(TimeMarker, name), 64);
 	
 	/* undo and update */
 	BIF_undo_push("Action Rename Marker");
