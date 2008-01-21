@@ -132,8 +132,7 @@ static void draw_cfra_time(SpaceTime *stime)
 		glColor4ub(0, 0, 0, 0);
 		BIF_ThemeColor(TH_TEXT);
 		
-		xscale = (G.v2d->mask.xmax-G.v2d->mask.xmin)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
-		yscale = (G.v2d->mask.ymax-G.v2d->mask.ymin)/(G.v2d->cur.ymax-G.v2d->cur.ymin);
+		view2d_getscale(G.v2d, &xscale, &yscale);
 		
 		/* because the frame number text is subject to the same scaling as the contents of the view */
 		glScalef( 1.0/xscale, 1.0/yscale, 1.0);
@@ -157,9 +156,8 @@ static void draw_marker(TimeMarker *marker, int flag)
 	/* no time correction for framelen! space is drawn with old values */
 	
 	ypixels= G.v2d->mask.ymax-G.v2d->mask.ymin;
-	xscale = (G.v2d->mask.xmax-G.v2d->mask.xmin)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
-	yscale = (G.v2d->mask.ymax-G.v2d->mask.ymin)/(G.v2d->cur.ymax-G.v2d->cur.ymin);
-
+	view2d_getscale(G.v2d, &xscale, &yscale);
+	
 	glScalef( 1.0/xscale, 1.0/yscale, 1.0);
 	
 	glEnable(GL_BLEND);

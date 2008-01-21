@@ -2446,9 +2446,16 @@ static void object_panel_object(Object *ob)
 		uiNewPanelHeight(block, 204 - (120-yco));
 }
 
+static void object_panel_anim_timeoffset_callback( void *data, void *timeoffset_ui) {
+	Object *ob = (Object *)data;
+	ob->sf = (*(float *)timeoffset_ui) - (give_timeoffset(ob) - ob->sf);
+}
+
 static void object_panel_anim(Object *ob)
 {
 	uiBlock *block;
+	uiBut *but;
+	static float timeoffset_ui;
 	char str[32];
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_anim", UI_EMBOSS, UI_HELV, curarea->win);
@@ -2500,7 +2507,11 @@ static void object_panel_anim(Object *ob)
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,35,115,20, &ob->sf, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Animation offset in frames for ipo's and dupligroup instances");
+	
+	timeoffset_ui = give_timeoffset(ob);
+	but = uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,35,115,20, &timeoffset_ui, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Animation offset in frames for ipo's and dupligroup instances");
+	uiButSetFunc(but, object_panel_anim_timeoffset_callback, ob, &timeoffset_ui);
+	
 	uiDefBut(block, BUT, B_AUTOTIMEOFS, "Auto",	139,35,34,20, 0, 0, 0, 0, 0, "Assign selected objects a timeoffset within a range, starting from the active object");
 	uiDefBut(block, BUT, B_OFSTIMEOFS, "Ofs",	173,35,34,20, 0, 0, 0, 0, 0, "Offset selected objects timeoffset");
 	uiDefBut(block, BUT, B_RANDTIMEOFS, "Rand",	207,35,34,20, 0, 0, 0, 0, 0, "Randomize selected objects timeoffset");

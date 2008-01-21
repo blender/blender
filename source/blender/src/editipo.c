@@ -1477,10 +1477,10 @@ void mouse_select_ipo(void)
 	
 	if(G.sipo->showkey) {
 		float pixelwidth;
-		pixelwidth= (G.v2d->cur.xmax-G.v2d->cur.xmin)/(G.v2d->mask.xmax-G.v2d->mask.xmin); /* could make a generic function */
+		
+		view2d_getscale(G.v2d, &pixelwidth, NULL);
 		
 		getmouseco_areawin(mval);
-		
 		areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 		actik= 0;
 		mindist= 1000.0;

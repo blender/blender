@@ -1873,6 +1873,8 @@ static void render_panel_output(void)
 	uiDefButS(block, MENU, B_REDR, "Render Display %t|Render Window %x1|Image Editor %x0|Full Screen %x2",	
 					72, 10, 120, 19, &G.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output display");
 
+	uiDefButBitS(block, TOG, R_EXTENSION, B_NOP, "Extensions", 205, 10, 105, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds filetype extensions to the filename when rendering animations");
+	
 	/* Dither control */
 	uiDefButF(block, NUM,B_DIFF, "Dither:",         205,31,105,19, &G.scene->r.dither_intensity, 0.0, 2.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
 	
