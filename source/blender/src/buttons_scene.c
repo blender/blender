@@ -1837,8 +1837,8 @@ static void render_panel_output(void)
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_NO_OVERWRITE, B_NOP, "No Overwrite", 10, 142, 90, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Skip rendering frames when the file exists (image output only)");
-	uiDefButBitI(block, TOG, R_TOUCH, B_NOP, "Touch", 100, 142, 50, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Create an empty file before rendering each frame");
+	uiDefButBitI(block, TOG, R_TOUCH, B_NOP, "Touch", 10, 142, 50, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Create an empty file before rendering each frame, remove if cancelled (and empty)");
+	uiDefButBitI(block, TOG, R_NO_OVERWRITE, B_NOP, "No Overwrite", 60, 142, 90, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Skip rendering frames when the file exists (image output only)");
 	uiBlockEndAlign(block);
 	
 	/* SET BUTTON */
