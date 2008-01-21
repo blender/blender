@@ -297,6 +297,7 @@ static void occ_face(const OccFace *face, float *co, float *normal, float *area)
 {
 	ObjectInstanceRen *obi;
 	VlakRen *vlr;
+	float v1[3], v2[3], v3[3], v4[3];
 
 	obi= &R.objectinstance[face->obi];
 	vlr= RE_findOrAddVlak(obi->obr, face->facenr);
@@ -330,11 +331,23 @@ static void occ_face(const OccFace *face, float *co, float *normal, float *area)
 	}
 
 	if(area) {
+		VECCOPY(v1, vlr->v1->co);
+		VECCOPY(v3, vlr->v2->co);
+		VECCOPY(v3, vlr->v3->co);
+		if(vlr->v4) VECCOPY(v4, vlr->v4->co);
+
+		if(obi->flag & R_TRANSFORMED) {
+			Mat4MulVecfl(obi->mat, v1);
+			Mat4MulVecfl(obi->mat, v2);
+			Mat4MulVecfl(obi->mat, v3);
+			if(vlr->v4) Mat4MulVecfl(obi->mat, v4);
+		}
+
 		/* todo: correct area for instances */
 		if(vlr->v4)
-			*area= AreaQ3Dfl(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4->co);
+			*area= AreaQ3Dfl(v1, v2, v3, v4);
 		else
-			*area= AreaT3Dfl(vlr->v1->co, vlr->v2->co, vlr->v3->co);
+			*area= AreaT3Dfl(v1, v2, v3);
 	}
 }
 
@@ -576,7 +589,7 @@ static OcclusionTree *occ_tree_build(Render *re)
 	/* count */
 	totface= 0;
 	for(obi=re->instancetable.first; obi; obi=obi->next) {
-		if(obi->flag & R_TRANSFORMED)
+		if(obi->flag & R_DUPLI_ELEM)
 			continue;
 
 		obr= obi->obr;
@@ -612,7 +625,7 @@ static OcclusionTree *occ_tree_build(Render *re)
 
 	/* make array of face pointers */
 	for(b=0, c=0, obi=re->instancetable.first; obi; obi=obi->next, c++) {
-		if(obi->flag & R_TRANSFORMED)
+		if(obi->flag & R_DUPLI_ELEM)
 			continue; /* temporary to avoid slow renders with loads of duplis */
 
 		obr= obi->obr;

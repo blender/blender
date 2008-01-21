@@ -46,7 +46,7 @@ typedef struct DupliObject {
 	struct DupliObject *next, *prev;
 	struct Object *ob;
 	unsigned int origlay;
-	int index, no_draw, type;
+	int index, no_draw, type, animated;
 	float mat[4][4], omat[4][4];
 	float orco[3], uv[2];
 } DupliObject;

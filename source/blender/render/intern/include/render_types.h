@@ -244,7 +244,7 @@ typedef struct ObjectRen {
 	struct ObjectRen *next, *prev;
 	struct Object *ob, *par;
 	struct Scene *sce;
-	int index, psysindex;
+	int index, psysindex, flag;
 
 	int totvert, totvlak, totstrand, tothalo;
 	int vertnodeslen, vlaknodeslen, strandnodeslen, blohalen;
@@ -257,6 +257,8 @@ typedef struct ObjectRen {
 	char (*mtface)[32];
 	char (*mcol)[32];
 	int  actmtface, actmcol;
+
+	float obmat[4][4];	/* only used in convertblender.c, for instancing */
 } ObjectRen;
 
 typedef struct ObjectInstanceRen {
@@ -487,10 +489,14 @@ typedef struct LampRen {
 #define R_STRAND_BSPLINE	1
 #define R_STRAND_B_UNITS	2
 
+/* objectren->flag */
+#define R_INSTANCEABLE		1
+
 /* objectinstance->flag */
 #define R_DUPLI_TRANSFORMED	1
 #define R_ENV_TRANSFORMED	2
 #define R_TRANSFORMED		(1|2)
+#define R_DUPLI_ELEM		4
 
 #endif /* RENDER_TYPES_H */
 

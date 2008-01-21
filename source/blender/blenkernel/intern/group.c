@@ -191,6 +191,20 @@ void group_tag_recalc(Group *group)
 	}
 }
 
+int group_is_animated(Object *parent, Group *group)
+{
+	GroupObject *go;
+
+	if(give_timeoffset(parent) != 0.0f || parent->nlastrips.first)
+		return 1;
+
+	for(go= group->gobject.first; go; go= go->next)
+		if(go->ob && go->ob->proxy)
+			return 1;
+
+	return 0;
+}
+
 /* only replaces object strips or action when parent nla instructs it */
 /* keep checking nla.c though, in case internal structure of strip changes */
 static void group_replaces_nla(Object *parent, Object *target, char mode)
@@ -230,7 +244,6 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
 		}
 	}
 }
-
 
 /* puts all group members in local timing system, after this call
 you can draw everything, leaves tags in objects to signal it needs further updating */
