@@ -119,7 +119,7 @@ typedef struct Object {
 	
 	int dupon, dupoff, dupsta, dupend;
 
-	float sf, ctime;
+	float sf, ctime; /* sf is time-offset, ctime is the objects current time */
 	
 	/* during realtime */
 
@@ -296,6 +296,9 @@ extern Object workob;
 #define OB_ACTION_KEY		512
 	/* for stride edit */
 #define OB_DISABLE_PATH		1024
+
+#define OB_OFFS_PARENTADD	2048
+
 
 /* (short) trackflag / upflag */
 #define OB_POSX			0

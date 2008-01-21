@@ -80,6 +80,7 @@
 #include "BIF_interface.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
+#include "BIF_radialcontrol.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -1987,6 +1988,46 @@ void PE_remove_doubles(void)
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 1);
 	BIF_undo_push("Remove double particles");
+}
+
+static void PE_radialcontrol_callback(const int mode, const int val)
+{
+	ParticleEditSettings *pset = PE_settings();
+
+	if(pset->brushtype>=0) {
+		ParticleBrushData *brush= &pset->brush[pset->brushtype];
+
+		if(mode == RADIALCONTROL_SIZE)
+			brush->size = val;
+		else if(mode == RADIALCONTROL_STRENGTH)
+			brush->strength = val;
+	}
+
+	(*PE_radialcontrol()) = NULL;
+}
+
+RadialControl **PE_radialcontrol()
+{
+	static RadialControl *rc = NULL;
+	return &rc;
+}
+
+void PE_radialcontrol_start(const int mode)
+{
+	ParticleEditSettings *pset = PE_settings();
+	int orig= 1;
+
+	if(pset->brushtype>=0) {
+		ParticleBrushData *brush= &pset->brush[pset->brushtype];
+		
+		if(mode == RADIALCONTROL_SIZE)
+			orig = brush->size;
+		else if(mode == RADIALCONTROL_STRENGTH)
+			orig = brush->strength;
+		
+		if(mode != RADIALCONTROL_NONE)
+			(*PE_radialcontrol())= radialcontrol_start(mode, PE_radialcontrol_callback, orig, 100, 0);
+	}
 }
 
 /************************************************/

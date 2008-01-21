@@ -47,7 +47,7 @@ typedef struct ShadeResult
 {
 	float combined[4];
 	float col[4];
-	float alpha;
+	float alpha, mist;
 	float diff[3];		/* no ramps, shadow, etc */
 	float spec[3];
 	float shad[3];
@@ -64,6 +64,7 @@ struct ShadeInputCopy {
 	
 	struct Material *mat;
 	struct VlakRen *vlr;
+	struct StrandRen *strand;
 	struct ObjectInstanceRen *obi;
 	struct ObjectRen *obr;
 	int facenr;
@@ -96,6 +97,7 @@ typedef struct ShadeInput
 	
 	struct Material *mat;
 	struct VlakRen *vlr;
+	struct StrandRen *strand;
 	struct ObjectInstanceRen *obi;
 	struct ObjectRen *obr;
 	int facenr;
@@ -132,7 +134,7 @@ typedef struct ShadeInput
 	/* texture coordinates */
 	float lo[3], gl[3], ref[3], orn[3], winco[3], sticky[3], vcol[4], rad[3];
 	float refcol[4], displace[3];
-	float strand, tang[3], stress, winspeed[4];
+	float strandco, tang[3], stress, winspeed[4];
 	float duplilo[3], dupliuv[3];
 
 	ShadeInputUV uv[8];   /* 8 = MAX_MTFACE */

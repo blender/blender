@@ -113,6 +113,7 @@
 #include "BIF_meshtools.h"
 #include "BIF_poselib.h"
 #include "BIF_poseobject.h"
+#include "BIF_radialcontrol.h"
 #include "BIF_renderwin.h"
 #include "BIF_resources.h"
 #include "BIF_retopo.h"
@@ -1767,6 +1768,9 @@ static void do_view3d_transformmenu(void *arg, int event)
 	case 19:
 		G.scene->snap_target = SCE_SNAP_TARGET_MEDIAN;
 		break;
+	case 20:
+		G.scene->snap_target = SCE_SNAP_TARGET_ACTIVE;
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1838,19 +1842,28 @@ static uiBlock *view3d_transformmenu(void *arg_unused)
 		switch(G.scene->snap_target)
 		{
 			case SCE_SNAP_TARGET_CLOSEST:
-				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap Closest",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap Closest",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
 				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Center",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
 				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Median",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Active",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 20, "");
 				break;
 			case SCE_SNAP_TARGET_CENTER:
 				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Closest",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
-				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap Center",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap Center",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
 				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Median",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Active",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 20, "");
 				break;
 			case SCE_SNAP_TARGET_MEDIAN:
 				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Closest",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
 				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Center",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
-				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap Median",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap Median",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Active",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 20, "");
+				break;
+			case SCE_SNAP_TARGET_ACTIVE:
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Closest",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Center",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Median",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap Active",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 20, "");
 				break;
 		}
 	}
@@ -4402,6 +4415,7 @@ void do_view3d_sculptmenu(void *arg, int event)
 {
 	SculptData *sd= &G.scene->sculptdata;
 	BrushData *br= sculptmode_brush();
+
 	switch(event) {
 	case 0:
 	case 1:
@@ -4445,13 +4459,13 @@ void do_view3d_sculptmenu(void *arg, int event)
 		add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
 		break;
 	case 15:
-		sculptmode_propset_init(PropsetTexRot);
+		sculpt_radialcontrol_start(RADIALCONTROL_ROTATION);
 		break;
 	case 16:
-		sculptmode_propset_init(PropsetStrength);
+		sculpt_radialcontrol_start(RADIALCONTROL_STRENGTH);
 		break;
 	case 17:
-		sculptmode_propset_init(PropsetSize);
+		sculpt_radialcontrol_start(RADIALCONTROL_SIZE);
 		break;
 	case 18:
 		br->dir= br->dir==1 ? 2 : 1;
@@ -5482,7 +5496,7 @@ void view3d_buttons(void)
 			if (G.scene->snap_flag & SCE_SNAP) {
 				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEO,xco,0,XIC,YIC, &G.scene->snap_flag, 0, 0, 0, 0, "Use Snap or Grid (Shift Tab)");	
 				xco+= XIC;
-				uiDefButS(block, MENU, B_NOP, "Mode%t|Closest%x0|Center%x1|Median%x2",xco,0,70,YIC, &G.scene->snap_target, 0, 0, 0, 0, "Snap Target Mode");
+				uiDefButS(block, MENU, B_NOP, "Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,0,70,YIC, &G.scene->snap_target, 0, 0, 0, 0, "Snap Target Mode");
 				xco+= 70;
 			} else {
 				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEAR,xco,0,XIC,YIC, &G.scene->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");	

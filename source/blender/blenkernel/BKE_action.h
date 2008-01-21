@@ -60,6 +60,11 @@ extern "C" {
  */
 void free_pose_channels(struct bPose *pose);
 
+/** 
+ * Removes and deallocates all data from a pose, and also frees the pose.
+ */
+void free_pose(struct bPose *pose);
+
 /**
  * Allocate a new pose on the heap, and copy the src pose and it's channels
  * into the new pose. *dst is set to the newly allocated structure, and assumed to be NULL.

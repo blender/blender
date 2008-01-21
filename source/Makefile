@@ -175,6 +175,10 @@ ifeq ($(WITH_DDS), true)
     COMLIB += $(OCGDIR)/blender/imbuf/dds/$(DEBUG_DIR)libdds.a
 endif
 
+ifeq ($(WITH_BINRELOC), true)
+    COMLIB += $(OCGDIR)/extern/binreloc/$(DEBUG_DIR)libbinreloc.a
+endif
+
 ifeq ($(WITH_FREETYPE2), true)
     COMLIB += $(OCGDIR)/blender/ftfont/$(DEBUG_DIR)libftfont.a
     ifeq ($(OS), windows)

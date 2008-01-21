@@ -178,7 +178,11 @@ void free_action (bAction *act)
 	if (act->chanbase.first)
 		BLI_freelistN(&act->chanbase);
 		
-	/* Free pose-references */
+	/* Free groups */
+	if (act->groups.first)
+		BLI_freelistN(&act->groups);
+		
+	/* Free pose-references (aka local markers) */
 	if (act->markers.first)
 		BLI_freelistN(&act->markers);
 }
@@ -187,19 +191,37 @@ bAction *copy_action (bAction *src)
 {
 	bAction *dst = NULL;
 	bActionChannel *dchan, *schan;
+	bActionGroup *dgrp, *sgrp;
 	
 	if (!src) return NULL;
 	
 	dst= copy_libblock(src);
+	
 	duplicatelist(&(dst->chanbase), &(src->chanbase));
+	duplicatelist(&(dst->groups), &(src->groups));
 	duplicatelist(&(dst->markers), &(src->markers));
 	
-	for (dchan=dst->chanbase.first, schan=src->chanbase.first; dchan; dchan=dchan->next, schan=schan->next){
+	for (dchan=dst->chanbase.first, schan=src->chanbase.first; dchan; dchan=dchan->next, schan=schan->next) {
+		for (dgrp=dst->groups.first, sgrp=src->groups.first; dgrp && sgrp; dgrp=dgrp->next, sgrp=sgrp->next) {
+			if (dchan->grp == sgrp) {
+				dchan->grp= dgrp;
+				
+				if (dgrp->channels.first == schan)
+					dgrp->channels.first= dchan;
+				if (dgrp->channels.last == schan)
+					dgrp->channels.last= dchan;
+					
+				break;
+			}
+		}
+		
 		dchan->ipo = copy_ipo(dchan->ipo);
 		copy_constraint_channels(&dchan->constraintChannels, &schan->constraintChannels);
 	}
+	
 	dst->id.flag |= LIB_FAKEUSER;
 	dst->id.us++;
+	
 	return dst;
 }
 
@@ -290,13 +312,28 @@ void free_pose_channels(bPose *pose)
 {
 	bPoseChannel *pchan;
 	
-	if (pose->chanbase.first){
+	if (pose->chanbase.first) {
 		for (pchan = pose->chanbase.first; pchan; pchan=pchan->next){
 			if(pchan->path)
 				MEM_freeN(pchan->path);
 			free_constraints(&pchan->constraints);
 		}
 		BLI_freelistN (&pose->chanbase);
+	}
+}
+
+void free_pose(bPose *pose)
+{
+	if (pose) {
+		/* free pose-channels */
+		free_pose_channels(pose);
+		
+		/* free pose-groups */
+		if (pose->agroups.first)
+			BLI_freelistN(&pose->agroups);
+		
+		/* free pose */
+		MEM_freeN(pose);
 	}
 }
 
@@ -393,7 +430,7 @@ bActionChannel *get_action_channel(bAction *act, const char *name)
 	if (!act || !name)
 		return NULL;
 	
-	for (chan = act->chanbase.first; chan; chan=chan->next){
+	for (chan = act->chanbase.first; chan; chan=chan->next) {
 		if (!strcmp (chan->name, name))
 			return chan;
 	}
@@ -401,18 +438,16 @@ bActionChannel *get_action_channel(bAction *act, const char *name)
 	return NULL;
 }
 
-/* returns existing channel, or adds new one. In latter case it doesnt activate it, context is required for that*/
+/* returns existing channel, or adds new one. In latter case it doesnt activate it, context is required for that */
 bActionChannel *verify_action_channel(bAction *act, const char *name)
 {
 	bActionChannel *chan;
 	
 	chan= get_action_channel(act, name);
-	if(chan==NULL) {
-		if (!chan) {
-			chan = MEM_callocN (sizeof(bActionChannel), "actionChannel");
-			strncpy (chan->name, name, 31);
-			BLI_addtail (&act->chanbase, chan);
-		}
+	if (chan == NULL) {
+		chan = MEM_callocN (sizeof(bActionChannel), "actionChannel");
+		strncpy(chan->name, name, 31);
+		BLI_addtail(&act->chanbase, chan);
 	}
 	return chan;
 }
@@ -1318,10 +1353,8 @@ static void do_nla(Object *ob, int blocktype)
 	}
 	
 	/* free */
-	if (tpose){
-		free_pose_channels(tpose);
-		MEM_freeN(tpose);
-	}
+	if (tpose)
+		free_pose(tpose);
 	if(chanbase.first)
 		BLI_freelistN(&chanbase);
 }

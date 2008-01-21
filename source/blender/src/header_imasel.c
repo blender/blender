@@ -181,9 +181,13 @@ void imasel_buttons(void)
 			uiBlockEndAlign(block);
 		}
 	}
-
-	uiDefButBitS(block, TOG, FILE_STRINGCODE, 0, "Relative Paths", xco+=XIC+20,0,100,YIC, &simasel->flag, 0, 0, 0, 0, "Makes sure returned paths are relative to the current .blend file");
-	xco+=90;
+	
+	if(simasel->type==FILE_BLENDER) {
+		xco+=20;
+	} else {
+		uiDefButBitS(block, TOG, FILE_STRINGCODE, 0, "Relative Paths", xco+=XIC+20,0,100,YIC, &simasel->flag, 0, 0, 0, 0, "Makes sure returned paths are relative to the current .blend file");
+		xco+=90;
+	}
 
 	if(simasel->type==FILE_LOADLIB) {
 		uiBlockBeginAlign(block);

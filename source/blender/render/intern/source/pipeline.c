@@ -331,6 +331,10 @@ static char *get_pass_name(int passtype, int channel)
 		if(channel==-1) return "IndexOB";
 		return "IndexOB.X";
 	}
+	if(passtype == SCE_PASS_MIST) {
+		if(channel==-1) return "Mist";
+		return "Mist.Z";
+	}
 	return "Unknown";
 }
 
@@ -379,6 +383,9 @@ static int passtype_from_name(char *str)
 	if(strcmp(str, "IndexOB")==0)
 		return SCE_PASS_INDEXOB;
 
+	if(strcmp(str, "Mist")==0)
+		return SCE_PASS_MIST;
+	
 	return 0;
 }
 
@@ -538,11 +545,16 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 			if(srl->passflag  & SCE_PASS_REFRACT)
 				render_layer_add_pass(rr, rl, 3, SCE_PASS_REFRACT);
 		}
+		else if(re->wrld.mode & WO_AMB_OCC)
+			if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
+				render_layer_add_pass(rr, rl, 3, SCE_PASS_AO);
 		if(re->r.mode & R_RADIO)
 			if(srl->passflag  & SCE_PASS_RADIO)
 				render_layer_add_pass(rr, rl, 3, SCE_PASS_RADIO);
 		if(srl->passflag  & SCE_PASS_INDEXOB)
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXOB);
+		if(srl->passflag  & SCE_PASS_MIST)
+			render_layer_add_pass(rr, rl, 1, SCE_PASS_MIST);
 		
 	}
 	/* sss, previewrender and envmap don't do layers, so we make a default one */
@@ -2010,7 +2022,7 @@ static void renderresult_stampinfo()
 	RenderResult rres;
 	/* this is the basic trick to get the displayed float or char rect from render result */
 	RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
-	BKE_stamp_buf((unsigned char *)rres.rect32, rres.rectf, rres.rectx, rres.recty);
+	BKE_stamp_buf((unsigned char *)rres.rect32, rres.rectf, rres.rectx, rres.recty, 4);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -2335,12 +2347,24 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 			}
 		}
 	} else {
-		for(scene->r.cfra= sfra; 
-		    scene->r.cfra<=efra; scene->r.cfra++) {
-			re->r.cfra= scene->r.cfra;	   /* weak.... */
-		
-			do_render_all_options(re);
+		for(scene->r.cfra= sfra; scene->r.cfra<=efra; scene->r.cfra++) {
+			char name[FILE_MAX];
+			if (scene->r.mode & (R_NO_OVERWRITE | R_TOUCH) ) {
+				BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype);
+			}
+			
+			if (scene->r.mode & R_NO_OVERWRITE && BLI_exist(name)) {
+				printf("skipping existing frame \"%s\"\n", name);
+				continue;
+			}
+			if (scene->r.mode & R_TOUCH && !BLI_exist(name)) {
+				BLI_touch(name);
+			}
 
+			re->r.cfra= scene->r.cfra;	   /* weak.... */
+			
+			do_render_all_options(re);
+			
 			if(re->test_break() == 0) {
 				do_write_image_or_movie(re, scene, mh);
 			}

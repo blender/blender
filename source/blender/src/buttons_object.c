@@ -2352,7 +2352,7 @@ static void group_ob_rem(void *gr_v, void *ob_v)
 	Object *ob= OBACT;
 	
 	rem_from_group(gr_v, ob);
-	if(find_group(ob)==NULL) {
+	if(find_group(ob, NULL)==NULL) {
 		ob->flag &= ~OB_FROMGROUP;
 		BASACT->flag &= ~OB_FROMGROUP;
 	}
@@ -2496,19 +2496,25 @@ static void object_panel_anim(Object *ob)
 	uiDefButI(block, NUM, REDRAWVIEW3D, "DupOn:",		170,85,146,19, &ob->dupon, 1.0, 1500.0, 0, 0, "Specify the number of frames to use between DupOff frames");
 	uiDefButI(block, NUM, REDRAWVIEW3D, "DupEnd",		24,65,140,19, &ob->dupend, 1.0, 32767, 0, 0, "Specify endframe for Dupliframes");
 	uiDefButI(block, NUM, REDRAWVIEW3D, "DupOff",		171,65,145,19, &ob->dupoff, 0.0, 1500.0, 0, 0, "Specify recurring frames to exclude from the Dupliframes");
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, OB_OFFS_OB, REDRAWALL, "Offs Ob",			24,35,56,20, &ob->ipoflag, 0, 0, 0, 0, "Not functional at the moment!");
-	uiDefButBitS(block, TOG, OB_OFFS_PARENT, REDRAWALL, "Offs Par",			82,35,56,20 , &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the parent");
-	uiDefButBitS(block, TOG, OB_OFFS_PARTICLE, REDRAWALL, "Offs Particle",		140,35,103,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the particle effect");
+	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,10,115,20, &ob->sf, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify an offset in frames");
-	uiDefBut(block, BUT, B_AUTOTIMEOFS, "Automatic Time",	139,10,104,20, 0, 0, 0, 0, 0, "Generate automatic timeoffset values for all selected frames");
-	uiDefBut(block, BUT, B_PRINTSPEED,	"PrSpeed",			248,10,67,20, 0, 0, 0, 0, 0, "Print objectspeed");
+	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,35,115,20, &ob->sf, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Animation offset in frames for ipo's and dupligroup instances");
+	uiDefBut(block, BUT, B_AUTOTIMEOFS, "Auto",	139,35,34,20, 0, 0, 0, 0, 0, "Assign selected objects a timeoffset within a range, starting from the active object");
+	uiDefBut(block, BUT, B_OFSTIMEOFS, "Ofs",	173,35,34,20, 0, 0, 0, 0, 0, "Offset selected objects timeoffset");
+	uiDefBut(block, BUT, B_RANDTIMEOFS, "Rand",	207,35,34,20, 0, 0, 0, 0, 0, "Randomize selected objects timeoffset");
+	uiDefBut(block, BUT, B_PRINTSPEED,	"PrSpeed",			250,35,65,20, 0, 0, 0, 0, 0, "Print objectspeed");
+	uiBlockEndAlign(block);
+	
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, OB_OFFS_OB, REDRAWALL, "OfsEdit",			24,10,56,20, &ob->ipoflag, 0, 0, 0, 0, "Use timeoffset when inserting keys and display timeoffset for ipo and action views");
+	uiDefButBitS(block, TOG, OB_OFFS_PARENT, REDRAWALL, "OfsParent",			82,10,56,20 , &ob->ipoflag, 0, 0, 0, 0, "Apply the timeoffset to this objects parent relationship");
+	uiDefButBitS(block, TOG, OB_OFFS_PARTICLE, REDRAWALL, "OfsParticle",		140,10,56,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the particle effect");
+	uiDefButBitS(block, TOG, OB_OFFS_PARENTADD, REDRAWALL, "AddParent",		196,10,56,20, &ob->ipoflag, 0, 0, 0, 0, "Add the parents timeoffset value");
 	uiBlockEndAlign(block);
 	
 	sprintf(str, "%.4f", prspeed);
-	uiDefBut(block, LABEL, 0, str,							247,35,63,31, NULL, 1.0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, str,							260,10,63,31, NULL, 1.0, 0, 0, 0, "");
 	
 }
 
@@ -2648,6 +2654,12 @@ void do_effects_panels(unsigned short event)
 
     case B_AUTOTIMEOFS:
 		auto_timeoffs();
+		break;
+    case B_OFSTIMEOFS:
+		ofs_timeoffs();
+		break;
+    case B_RANDTIMEOFS:
+		rand_timeoffs();
 		break;
 	case B_FRAMEMAP:
 		G.scene->r.framelen= G.scene->r.framapto;
@@ -3451,15 +3463,18 @@ static void object_softbodies__enable_psys(void *ob_v, void *psys_v)
 
 #ifdef _work_on_sb_solver
 static char sbsolvers[] = "Solver %t|RKP almost SOFT not usable but for some german teachers %x1|STU ip semi implicit euler%x3|SI1  (half step)adaptive semi implict euler %x2|SI2  (use dv)adaptive semi implict euler %x4|SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
-#else
+/* SIF would have been candidate  .. well lack of time .. brecht is busy .. better make a stable version for peach now :) */
 static char sbsolvers[] = "SIF  semi implicit euler with fixed step size (worth a try with real stiff egdes)%x3|SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
+#else
+static char sbsolvers[] = "SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
 #endif
+
 static void object_softbodies_II(Object *ob)
 {
 	SoftBody *sb=ob->soft;
 	uiBlock *block;
 	static int val;
-	short *softflag=&ob->softflag, psys_cur=0,adaptive_mode;
+	short *softflag=&ob->softflag, psys_cur=0, adaptive_mode=0;
 	int ob_has_hair=psys_ob_has_hair(ob);
     if(!_can_softbodies_at_all(ob)) return;
 	/*bah that is ugly! creating missing data members in UI code*/
@@ -3546,6 +3561,7 @@ static void object_softbodies_II(Object *ob)
 			uiBlockBeginAlign(block);
 			uiDefButS(block, MENU, B_SOFTBODY_CHANGE, sbsolvers,10,100,50,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver");
 			/*some have adapive step size - some not*/
+			sb->solver_ID = 0; /* ugly hack to prepare peach freeze */
 			switch (sb->solver_ID) {
 			case 0:
 			case 1:
@@ -3998,9 +4014,13 @@ static void object_panel_particle_extra(Object *ob)
 	buty=butx=160;
 
 	uiDefButI(block, NUM, B_PART_DISTR, "Seed:",				butx,(buty-=buth),butw,buth, &psys->seed, 0.0, 255.0, 1, 0, "Set an offset in the random table");
+	if(part->type == PART_HAIR && psys->flag & PSYS_EDITED)
+		uiDefButF(block, NUM, B_PART_RECALC, "Stiff:",	butx,(buty-=buth),butw,buth, &part->eff_hair, 0.0, 1.0, 0, 0, "Hair stiffness for effectors");
+	else
+		buty-=buth;
 
 	/* size changes must create a recalc event always so that sizes are updated properly */
-	uiDefButF(block, NUM, B_PART_RECALC, "Size:",	butx,(buty-=2*buth),butw,buth, &part->size, 0.01, 100, 10, 1, "The size of the particles");
+	uiDefButF(block, NUM, B_PART_RECALC, "Size:",	butx,(buty-=buth),butw,buth, &part->size, 0.01, 100, 10, 1, "The size of the particles");
 	uiDefButF(block, NUM, B_PART_RECALC, "Rand:",	butx,(buty-=buth),butw,buth, &part->randsize, 0.0, 2.0, 10, 1, "Give the particle size a random variation");
 
 	uiDefButBitI(block, TOG, PART_SIZEMASS, B_PART_RECALC, "Mass from size",	 butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Multiply mass with particle size");

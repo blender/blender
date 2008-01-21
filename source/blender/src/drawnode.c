@@ -694,13 +694,13 @@ static int node_shader_buts_geometry(uiBlock *block, bNodeTree *ntree, bNode *no
 		NodeGeometry *ngeo= (NodeGeometry*)node->storage;
 
 		if(!verify_valid_uv_name(ngeo->uvname))
-            		uiBlockSetCol(block, TH_REDALERT);
+			uiBlockSetCol(block, TH_REDALERT);
 		but= uiDefBut(block, TEX, B_NODE_EXEC+node->nr, "UV:", butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20, ngeo->uvname, 0, 31, 0, 0, "Set name of UV layer to use, default is active UV layer");
 		uiButSetCompleteFunc(but, autocomplete_uv, NULL);
 		uiBlockSetCol(block, TH_AUTO);
 
 		if(!verify_valid_vcol_name(ngeo->colname))
-            		uiBlockSetCol(block, TH_REDALERT);
+			uiBlockSetCol(block, TH_REDALERT);
 		but= uiDefBut(block, TEX, B_NODE_EXEC+node->nr, "Col:", butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, ngeo->colname, 0, 31, 0, 0, "Set name of vertex color layer to use, default is active vertex color layer");
 		uiButSetCompleteFunc(but, autocomplete_vcol, NULL);
 		uiBlockSetCol(block, TH_AUTO);
@@ -1663,7 +1663,7 @@ static int node_composit_buts_color_spill(uiBlock *block, bNodeTree *ntree, bNod
 		uiBlockEndAlign(block);
 	}
 	return 60;
- }
+}
 
 static int node_composit_buts_chroma_matte(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
@@ -1945,7 +1945,7 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_CROP:
 			ntype->butfunc= node_composit_buts_crop;
- 			break;
+			break;
 		case CMP_NODE_BLUR:
 			ntype->butfunc= node_composit_buts_blur;
 			break;
@@ -2169,39 +2169,39 @@ static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 		if(ibuf) {
 			int x, y;
-            float zoom = 1.0;
-            
-            glMatrixMode(GL_PROJECTION);
-            glPushMatrix();
-            glMatrixMode(GL_MODELVIEW);
-            glPushMatrix();
+			float zoom = 1.0;
+
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
 			
 			glaDefine2DArea(&sa->winrct);
 
-            if(ibuf->x > sa->winx || ibuf->y > sa->winy) {
-                float zoomx, zoomy;
-                zoomx= (float)sa->winx/ibuf->x;
-                zoomy= (float)sa->winy/ibuf->y;
-                zoom = MIN2(zoomx, zoomy);
-            }
+			if(ibuf->x > sa->winx || ibuf->y > sa->winy) {
+				float zoomx, zoomy;
+				zoomx= (float)sa->winx/ibuf->x;
+				zoomy= (float)sa->winy/ibuf->y;
+				zoom = MIN2(zoomx, zoomy);
+			}
 			
-            x = (sa->winx-zoom*ibuf->x)/2 + snode->xof;
+			x = (sa->winx-zoom*ibuf->x)/2 + snode->xof;
 			y = (sa->winy-zoom*ibuf->y)/2 + snode->yof;
 
-            glPixelZoom(zoom, zoom);
+			glPixelZoom(zoom, zoom);
 
-            glColor4f(1.0, 1.0, 1.0, 1.0);
+			glColor4f(1.0, 1.0, 1.0, 1.0);
 			if(ibuf->rect)
-                glaDrawPixelsTex(x, y, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
+				glaDrawPixelsTex(x, y, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
 			else if(ibuf->channels==4)
-                glaDrawPixelsTex(x, y, ibuf->x, ibuf->y, GL_FLOAT, ibuf->rect_float);
-		
-            glPixelZoom(1.0, 1.0);
+				glaDrawPixelsTex(x, y, ibuf->x, ibuf->y, GL_FLOAT, ibuf->rect_float);
 
-            glMatrixMode(GL_PROJECTION);
-            glPopMatrix();
-            glMatrixMode(GL_MODELVIEW);
-            glPopMatrix();
+			glPixelZoom(1.0, 1.0);
+
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
 		}
 	}
 }

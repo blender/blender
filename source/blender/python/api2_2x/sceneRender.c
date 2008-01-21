@@ -116,8 +116,6 @@ static PyObject *RenderData_SetRenderPath( BPy_RenderData *self,
 		PyObject *args );
 static PyObject *RenderData_SetBackbufPath( BPy_RenderData *self,
 		PyObject *args );
-static PyObject *RenderData_SetFtypePath( BPy_RenderData *self,
-		PyObject *args );
 static PyObject *RenderData_SetOversamplingLevel( BPy_RenderData * self,
 		PyObject * args );
 static PyObject *RenderData_SetRenderWinSize( BPy_RenderData * self,
@@ -982,7 +980,6 @@ static int RenderData_setImageType( BPy_RenderData *self, PyObject *value )
 	case R_HAMX :
 	case R_IRIS :
 	case R_IRIZ :
-	case R_FTYPE :
 	case R_TIFF :
 	case R_CINEON :
 	case R_DPX :
@@ -2220,29 +2217,6 @@ static int RenderData_setBackbufPath( BPy_RenderData *self, PyObject *value )
 	return 0;
 }
 
-PyObject *RenderData_getFtypePath( BPy_RenderData * self )
-{
-	return PyString_FromString( self->renderContext->ftype );
-}
-
-static int RenderData_setFtypePath( BPy_RenderData *self, PyObject *value )
-{
-	char *name;
-
-	name = PyString_AsString( value );
-	if( !name )
-		return EXPP_ReturnIntError( PyExc_TypeError, "expected a string" );
-
-	if( strlen( name ) >= sizeof(self->renderContext->ftype) )
-		return EXPP_ReturnIntError( PyExc_ValueError,
-				"ftype path is too long" );
-
-	strcpy( self->renderContext->ftype, name );
-	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
-
-	return 0;
-}
-
 PyObject *RenderData_getRenderWinSize( BPy_RenderData * self )
 {
 	return PyInt_FromLong( (long) self->renderContext->size );
@@ -2354,6 +2328,32 @@ static int RenderData_setThreads( BPy_RenderData *self, PyObject *value )
 	
 	self->renderContext->threads = (short)threads;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
+	return 0;
+}
+
+PyObject *RenderData_getActiveLayer( BPy_RenderData * self )
+{
+	return PyInt_FromLong( (long) self->renderContext->actlay );
+}
+
+static int RenderData_setActiveLayer( BPy_RenderData *self, PyObject *value )
+{
+	int layer;
+	short nr;
+    SceneRenderLayer *srl;
+
+	if( !PyInt_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "active layer must be an int" );
+
+	layer = PyInt_AsLong( value );
+    for(nr=0, srl= self->renderContext->layers.first; srl; srl= srl->next, nr++) {
+	}
+	if(layer >= nr)
+		return EXPP_ReturnIntError( PyExc_ValueError, "value larger than number of render layers" );
+
+	self->renderContext->actlay = layer;
+	EXPP_allqueue(REDRAWBUTSSCENE, 0);
+	EXPP_allqueue(REDRAWNODE, 0);
 	return 0;
 }
 
@@ -2481,10 +2481,6 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getBackbufPath, (setter)RenderData_setBackbufPath,
 	 "Path to a background image (setting loads image)",
 	 NULL},
-	{"ftypePath",
-	 (getter)RenderData_getFtypePath, (setter)RenderData_setFtypePath,
-	 "The path to Ftype file",
-	 NULL},
 	{"edgeColor",
 	 (getter)RenderData_getEdgeColor, (setter)RenderData_setEdgeColor,
 	 "RGB color triplet for edges in Toon shading",
@@ -2600,6 +2596,11 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 "Scene link 'set' value",
 	 NULL},
 
+	{"activeLayer",
+	 (getter)RenderData_getActiveLayer, (setter)RenderData_setActiveLayer,
+	 "Active rendering layer",
+	 NULL},
+
 	{"yafrayGIMethod",
 	 (getter)RenderData_getYafrayGIMethod, (setter)RenderData_setYafrayGIMethod,
 	 "Global illumination method",
@@ -2699,10 +2700,6 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	{"enableBackbuf", ( PyCFunction ) RenderData_EnableBackbuf,
 	 METH_VARARGS,
 	 "(bool) - enable/disable the backbuf image"},
-	{"setFtypePath", ( PyCFunction ) RenderData_SetFtypePath, METH_VARARGS,
-	 "(string) - get/set the path to output the Ftype file"},
-	{"getFtypePath", ( PyCFunction ) RenderData_getFtypePath, METH_NOARGS,
-	 "() - get the path to Ftype file"},
 	{"enableExtensions", ( PyCFunction ) RenderData_EnableExtensions,
 	 METH_VARARGS,
 	 "(bool) - enable/disable windows extensions for output files"},
@@ -3109,7 +3106,6 @@ PyObject *Render_Init( void )
 	PyModule_AddIntConstant( submodule, "HAMX", R_HAMX );
 	PyModule_AddIntConstant( submodule, "IRIS", R_IRIS );
 	PyModule_AddIntConstant( submodule, "IRISZ", R_IRIZ );
-	PyModule_AddIntConstant( submodule, "FTYPE", R_FTYPE );
 	PyModule_AddIntConstant( submodule, "PAL", B_PR_PAL );
 	PyModule_AddIntConstant( submodule, "NTSC", B_PR_NTSC );
 	PyModule_AddIntConstant( submodule, "DEFAULT", B_PR_PRESET );
@@ -3171,13 +3167,6 @@ static PyObject *RenderData_SetBackbufPath( BPy_RenderData *self,
 {
 	return EXPP_setterWrapper( (void *)self, args,
 			(setter)RenderData_setBackbufPath );
-}
-
-static PyObject *RenderData_SetFtypePath( BPy_RenderData *self,
-		PyObject *args )
-{
-	return EXPP_setterWrapperTuple( (void *)self, args,
-			(setter)RenderData_setFtypePath );
 }
 
 static PyObject *RenderData_SetOversamplingLevel( BPy_RenderData * self,

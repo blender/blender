@@ -43,6 +43,7 @@
 #include "DNA_material_types.h"
 
 /* local include */
+#include "occlusion.h"
 #include "renderpipeline.h"
 #include "render_types.h"
 #include "pixelblending.h"
@@ -1006,8 +1007,9 @@ static void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec)
 /* pure AO, check for raytrace and world should have been done */
 void ambient_occlusion(ShadeInput *shi)
 {
-	
-	if((R.r.mode & R_RAYTRACE) && shi->mat->amb!=0.0f)
+	if((R.wrld.ao_gather_method == WO_AOGATHER_APPROX) && shi->mat->amb!=0.0f)
+		sample_occ(&R, shi);
+	else if((R.r.mode & R_RAYTRACE) && shi->mat->amb!=0.0f)
 		ray_ao(shi, shi->ao);
 	else
 		shi->ao[0]= shi->ao[1]= shi->ao[2]= 1.0f;
@@ -1017,25 +1019,28 @@ void ambient_occlusion(ShadeInput *shi)
 /* wrld mode was checked for */
 void ambient_occlusion_to_diffuse(ShadeInput *shi, float *diff)
 {
-	
-	if((R.r.mode & R_RAYTRACE) && shi->mat->amb!=0.0f) {
-		float f= R.wrld.aoenergy*shi->mat->amb;
+	if((R.r.mode & R_RAYTRACE) || R.wrld.ao_gather_method == WO_AOGATHER_APPROX) {
+		if(shi->mat->amb!=0.0f) {
+			float f= R.wrld.aoenergy*shi->mat->amb;
 
-		if (R.wrld.aomix==WO_AOADDSUB) {
-			diff[0] = 2.0f*shi->ao[0]-1.0f;
-			diff[1] = 2.0f*shi->ao[1]-1.0f;
-			diff[2] = 2.0f*shi->ao[2]-1.0f;
+			if (R.wrld.aomix==WO_AOADDSUB) {
+				diff[0] = 2.0f*shi->ao[0]-1.0f;
+				diff[1] = 2.0f*shi->ao[1]-1.0f;
+				diff[2] = 2.0f*shi->ao[2]-1.0f;
+			}
+			else if (R.wrld.aomix==WO_AOSUB) {
+				diff[0] = shi->ao[0]-1.0f;
+				diff[1] = shi->ao[1]-1.0f;
+				diff[2] = shi->ao[2]-1.0f;
+			}
+			else {
+				VECCOPY(diff, shi->ao);
+			}
+			
+			VECMUL(diff, f);
 		}
-		else if (R.wrld.aomix==WO_AOSUB) {
-			diff[0] = shi->ao[0]-1.0f;
-			diff[1] = shi->ao[1]-1.0f;
-			diff[2] = shi->ao[2]-1.0f;
-		}
-		else {
-			VECCOPY(diff, shi->ao);
-		}
-		
-		VECMUL(diff, f);
+		else
+			diff[0]= diff[1]= diff[2]= 0.0f;
 	}
 	else
 		diff[0]= diff[1]= diff[2]= 0.0f;
@@ -1054,7 +1059,7 @@ void lamp_get_shadow(LampRen *lar, ShadeInput *shi, float inp, float *shadfac, i
 			if(lar->buftype==LA_SHADBUF_IRREGULAR)
 				shadfac[3]= ISB_getshadow(shi, lar->shb);
 			else
-				shadfac[3] = testshadowbuf(lar->shb, shi->co, shi->dxco, shi->dyco, inp);
+				shadfac[3] = testshadowbuf(lar->shb, shi->co, shi->dxco, shi->dyco, inp, shi->mat->lbias);
 		}
 		else if(lar->mode & LA_SHAD_RAY) {
 			ray_shadow(shi, lar, shadfac);

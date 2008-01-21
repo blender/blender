@@ -111,9 +111,6 @@ char last_sounddir[FILE_MAXDIR+FILE_MAXFILE]= "";
 
 #define SEQ_DESEL	~(SELECT+SEQ_LEFTSEL+SEQ_RIGHTSEL)
 
-static int test_overlap_seq(Sequence *);
-static void shuffle_seq(Sequence *);
-
 typedef struct TransSeq {
 	int start, machine;
 	int startstill, endstill;
@@ -537,7 +534,7 @@ void update_seq_icu_rects(Sequence * seq)
 	}
 }
 
-static int test_overlap_seq(Sequence *test)
+int test_overlap_seq(Sequence *test)
 {
 	Sequence *seq;
 	Editing *ed;
@@ -560,7 +557,7 @@ static int test_overlap_seq(Sequence *test)
 	return 0;
 }
 
-static void shuffle_seq(Sequence *test)
+void shuffle_seq(Sequence *test)
 {
 	Editing *ed;
 	Sequence *seq;
@@ -2875,10 +2872,10 @@ static void transform_grab_xlimits(Sequence *seq, int leftflag, int rightflag)
 
 static int can_transform_seq_test_func(Sequence * seq)
 {
-	if((seq->flag & SELECT) && !(seq->flag & SEQ_LOCK)) {
+	if((seq->flag & SELECT) && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
 		return BUILD_SEQAR_COUNT_CURRENT | BUILD_SEQAR_COUNT_CHILDREN;
 	}
-	if ((seq->flag & SEQ_LOCK) && !(seq->type & SEQ_EFFECT)) {
+	if ((seq->depth==0 && seq->flag & SEQ_LOCK) && !(seq->type & SEQ_EFFECT)) {
 		if (seq->type != SEQ_META) {
 			return BUILD_SEQAR_COUNT_NOTHING;
 		} else {
@@ -2937,7 +2934,7 @@ void transform_seq(int mode, int context)
 	
 	if (seqar) {
 		for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-			if((seq->flag & SELECT) && !(seq->flag & SEQ_LOCK)) 
+			if((seq->flag & SELECT) && !(seq->depth==0 && seq->flag & SEQ_LOCK)) 
 				totstrip++;
 		}
 	}
@@ -2960,7 +2957,7 @@ void transform_seq(int mode, int context)
 	ts=transmain= MEM_callocN(totstrip*sizeof(TransSeq), "transseq");
 
 	for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-		if((seq->flag & SELECT) && !(seq->flag & SEQ_LOCK)) {
+		if((seq->flag & SELECT) && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
 			ts->start= seq->start;
 			ts->machine= seq->machine;
 			ts->startstill= seq->startstill;
@@ -3146,7 +3143,7 @@ void transform_seq(int mode, int context)
 			if (mode=='g' && !snapskip) {
 				/* Grab */
 				for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-					if(seq->flag & SELECT && !(seq->flag & SEQ_LOCK)) {
+					if(seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
 						int myofs;
 						// SEQ_DEBUG_INFO(seq);
 						
@@ -3198,7 +3195,7 @@ void transform_seq(int mode, int context)
 				
 				/* Extend, Similar to grab but operate on one side of the cursor */
 				for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-					if(seq->flag & SELECT && !(seq->flag & SEQ_LOCK)) {
+					if(seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
 						/* only move the contents of the metastrip otherwise the transformation is applied twice */
 						if (sequence_is_free_transformable(seq) && seq->type != SEQ_META) {
 							
@@ -3310,7 +3307,7 @@ void transform_seq(int mode, int context)
 
 			/* test for effect and overlap */
 			for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-				if(seq->flag & SELECT && !(seq->flag & SEQ_LOCK)) {
+				if((seq->depth==0) && (seq->flag & SELECT) && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
 					seq->flag &= ~SEQ_OVERLAP;
 					if( test_overlap_seq(seq) ) {
 						seq->flag |= SEQ_OVERLAP;
@@ -3322,7 +3319,9 @@ void transform_seq(int mode, int context)
 					else if(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
 				}
 			}
-
+			/* warning, drawing should NEVER use WHILE_SEQ,
+			if it does the seq->depth value will be messed up and
+			overlap checks with metastrips will give incorrect results */
 			force_draw(0);
 			
 		}
@@ -3359,7 +3358,7 @@ void transform_seq(int mode, int context)
 
 		ts= transmain;
 		for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-			if(seq->flag & SELECT && !(seq->flag & SEQ_LOCK)) {
+			if(seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
 				seq->start= ts->start;
 				seq->machine= ts->machine;
 				seq->startstill= ts->startstill;
@@ -3377,7 +3376,7 @@ void transform_seq(int mode, int context)
 				else if(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
 			}
 		}
-		
+	
 		/* Markers */
 		if (sseq->flag & SEQ_MARKER_TRANS) {
 			for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
@@ -3643,7 +3642,7 @@ void seq_snap(short event)
 
 	/* also check metas */
 	WHILE_SEQ(ed->seqbasep) {
-		if (seq->flag & SELECT && !(seq->flag & SEQ_LOCK) &&
+		if (seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK) &&
 		    sequence_is_free_transformable(seq)) {
 			if((seq->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0) {
 				seq->start= CFRA-seq->startofs+seq->startstill;
@@ -3662,7 +3661,7 @@ void seq_snap(short event)
 
 	/* test for effects and overlap */
 	WHILE_SEQ(ed->seqbasep) {
-		if(seq->flag & SELECT && !(seq->flag & SEQ_LOCK)) {
+		if(seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
 			seq->flag &= ~SEQ_OVERLAP;
 			if( test_overlap_seq(seq) ) {
 				shuffle_seq(seq);
@@ -3683,6 +3682,23 @@ void seq_snap(short event)
 	sort_seq();
 
 	BIF_undo_push("Snap Strips, Sequencer");
+	allqueue(REDRAWSEQ, 0);
+}
+
+void seq_mute_sel(int mute) {
+	Editing *ed;
+	Sequence *seq;
+	
+	ed= G.scene->ed;
+	if(!ed) return NULL;
+	
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+		if ((seq->flag & SELECT) && (seq->flag & SEQ_LOCK)==0) {
+			if (mute) seq->flag |= SEQ_MUTE;
+			else seq->flag &= ~SEQ_MUTE;
+		}
+	}
+	BIF_undo_push(mute?"Mute Strips, Sequencer":"UnMute Strips, Sequencer");
 	allqueue(REDRAWSEQ, 0);
 }
 

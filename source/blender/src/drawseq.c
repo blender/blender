@@ -92,6 +92,26 @@
 #define SEQ_STRIP_OFSBOTTOM		0.2
 #define SEQ_STRIP_OFSTOP		0.8
 
+static GLubyte halftone[] = {
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
+			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55};
+
+/* Note, Dont use WHILE_SEQ while drawing! - it messes up transform, - Campbell */
+
 int no_rightbox=0, no_leftbox= 0;
 static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, float pixelx, short direction);
 static void draw_seq_extensions(Sequence *seq, SpaceSeq *sseq);
@@ -207,20 +227,26 @@ static void get_seq_color3ubv(Sequence *seq, char *col)
 
 static void drawmeta_contents(Sequence *seqm, float x1, float y1, float x2, float y2)
 {
+	/* Note, this used to use WHILE_SEQ, but it messes up the seq->depth value, (needed by transform when doing overlap checks)
+	 * so for now, just use the meta's immediate children, could be fixed but its only drawing - Campbell */
 	Sequence *seq;
 	float dx;
 	int nr;
 	char col[3];
 	
-	nr= 0;
-	WHILE_SEQ(&seqm->seqbase) {
-		nr++;
-	}
-	END_SEQ
+	nr= BLI_countlist(&seqm->seqbase);
 
 	dx= (x2-x1)/nr;
 
-	WHILE_SEQ(&seqm->seqbase) {
+	if (seqm->flag & SEQ_MUTE) {
+		glEnable(GL_POLYGON_STIPPLE);
+		glPolygonStipple(halftone);
+		
+		glEnable(GL_LINE_STIPPLE);
+		glLineStipple(1, 0x8888);
+	}
+	
+	for (seq= seqm->seqbase.first; seq; seq= seq->next) {
 		get_seq_color3ubv(seq, col);
 		
 		glColor3ubv((GLubyte *)col);
@@ -234,7 +260,11 @@ static void drawmeta_contents(Sequence *seqm, float x1, float y1, float x2, floa
 		
 		x1+= dx;
 	}
-	END_SEQ
+	
+	if (seqm->flag & SEQ_MUTE) {
+		glDisable(GL_POLYGON_STIPPLE);
+		glDisable(GL_LINE_STIPPLE);
+	}
 }
 
 static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, int winx)
@@ -604,6 +634,11 @@ static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float
 {
 	float ymid1, ymid2;
 	
+	if (seq->flag & SEQ_MUTE) {
+		glEnable(GL_POLYGON_STIPPLE);
+		glPolygonStipple(halftone);
+	}
+	
 	ymid1 = (y2-y1)*0.25 + y1;
 	ymid2 = (y2-y1)*0.65 + y1;
 	
@@ -645,6 +680,9 @@ static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float
 	
 	glEnd();
 	
+	if (seq->flag & SEQ_MUTE) {
+		glDisable(GL_POLYGON_STIPPLE);
+	}
 }
 
 /*
@@ -702,8 +740,17 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq, int outli
 	BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, outline_tint);
 	
 	glColor3ubv((GLubyte *)col);
+	
+	if (seq->flag & SEQ_MUTE) {
+		glEnable(GL_LINE_STIPPLE);
+		glLineStipple(1, 0x8888);
+	}
+	
 	gl_round_box_shade(GL_LINE_LOOP, x1, y1, x2, y2, 0.0, 0.1, 0.0);
-
+	
+	if (seq->flag & SEQ_MUTE) {
+		glDisable(GL_LINE_STIPPLE);
+	}
 	
 	/* calculate if seq is long enough to print a name */
 	x1= seq->startdisp+seq->handsize;

@@ -1330,7 +1330,7 @@ static PyObject *Effect_getParticlesLoc( BPy_Effect * self )
 
 	/* if object is in motion */
 	if( ob->ipoflag & OB_OFFS_PARTICLE )
-		p_time= ob->sf;
+		p_time= give_timeoffset(ob);
 	else
 		p_time= 0.0;
 

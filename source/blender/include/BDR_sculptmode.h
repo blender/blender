@@ -33,7 +33,6 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 #include "BKE_sculpt.h"
-#include "transform.h"
 
 struct uiBlock;
 struct BrushData;
@@ -59,15 +58,13 @@ void sculptmode_draw_interface_tools(struct uiBlock *block,unsigned short cx, un
 void sculptmode_draw_interface_brush(struct uiBlock *block,unsigned short cx, unsigned short cy);
 void sculptmode_draw_interface_textures(struct uiBlock *block,unsigned short cx, unsigned short cy);
 void sculptmode_rem_tex(void*,void*);
-void sculptmode_propset_init(PropsetMode mode);
-void sculptmode_propset(const unsigned short event);
 void sculptmode_selectbrush_menu(void);
 void sculptmode_draw_mesh(int);
 void sculpt_paint_brush(char clear);
 void sculpt_stroke_draw();
+void sculpt_radialcontrol_start(int mode);
 
 struct BrushData *sculptmode_brush(void);
-float tex_angle(void);
 void do_symmetrical_brush_actions(struct EditData *e, short *, short *);
 
 void sculptmode_update_tex(void);

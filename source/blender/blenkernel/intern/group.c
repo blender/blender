@@ -164,9 +164,12 @@ int object_in_group(Object *ob, Group *group)
 	return 0;
 }
 
-Group *find_group(Object *ob)
+Group *find_group(Object *ob, Group *group)
 {
-	Group *group= G.main->group.first;
+	if (group)
+		group= group->id.next;
+	else
+		group= G.main->group.first;
 	
 	while(group) {
 		if(object_in_group(ob, group))
@@ -238,12 +241,12 @@ void group_handle_recalc_and_update(Object *parent, Group *group)
 	GroupObject *go;
 	
 	/* if animated group... */
-	if(parent->sf != 0.0f || parent->nlastrips.first) {
+	if(give_timeoffset(parent) != 0.0f || parent->nlastrips.first) {
 		int cfrao;
 		
 		/* switch to local time */
 		cfrao= G.scene->r.cfra;
-		G.scene->r.cfra -= (int)parent->sf;
+		G.scene->r.cfra -= (int)give_timeoffset(parent);
 		
 		/* we need a DAG per group... */
 		for(go= group->gobject.first; go; go= go->next) {

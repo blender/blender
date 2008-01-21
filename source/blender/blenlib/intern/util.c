@@ -84,6 +84,10 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
+#ifdef __linux__
+#include "binreloc.h"
+#endif
+
 /* local */
 
 static int add_win32_extension(char *name);
@@ -214,6 +218,79 @@ void BLI_newname(char *name, int add)
 	
 	if (digits==4 && pic<0) pic= 0;
 	BLI_stringenc(name, head, tail, digits, pic);
+}
+
+/* little helper macro for BLI_uniquename */
+#ifndef GIVE_STRADDR
+	#define GIVE_STRADDR(data, offset) ( ((char *)data) + offset )
+#endif
+
+/* Generic function to set a unique name. It is only designed to be used in situations
+ * where the name is part of the struct, and also that the name is at most 128 chars long.
+ * 
+ * For places where this is used, see constraint.c for example...
+ *
+ * 	name_offs: should be calculated using offsetof(structname, membername) macro from stddef.h
+ *	len: maximum length of string (to prevent overflows, etc.)
+ *	defname: the name that should be used by default if none is specified already
+ */
+void BLI_uniquename(ListBase *list, void *vlink, char defname[], short name_offs, short len)
+{
+	Link *link;
+	char tempname[128];
+	int	number = 1, exists = 0;
+	char *dot;
+	
+	/* Make sure length can be handled */
+	if ((len < 0) || (len > 128))
+		return;
+	
+	/* See if we are given an empty string */
+	if (ELEM(NULL, vlink, defname))
+		return;
+	
+	if (GIVE_STRADDR(vlink, name_offs) == '\0') {
+		/* give it default name first */
+		BLI_strncpy(GIVE_STRADDR(vlink, name_offs), defname, len);
+	}
+	
+	/* See if we even need to do this */
+	if (list == NULL)
+		return;
+	
+	for (link = list->first; link; link= link->next) {
+		if (link != vlink) {
+			if (!strcmp(GIVE_STRADDR(link, name_offs), GIVE_STRADDR(vlink, name_offs))) {
+				exists = 1;
+				break;
+			}
+		}
+	}
+	if (exists == 0)
+		return;
+
+	/* Strip off the suffix */
+	dot = strchr(GIVE_STRADDR(vlink, name_offs), '.');
+	if (dot)
+		*dot=0;
+	
+	for (number = 1; number <= 999; number++) {
+		BLI_snprintf(tempname, 128, "%s.%03d", GIVE_STRADDR(vlink, name_offs), number);
+		
+		exists = 0;
+		for (link= list->first; link; link= link->next) {
+			if (vlink != link) {
+				if (!strcmp(GIVE_STRADDR(link, name_offs), tempname)) {
+					exists = 1;
+					break;
+				}
+			}
+		}
+		if (exists == 0) {
+			BLI_strncpy(GIVE_STRADDR(vlink, name_offs), tempname, len);
+			return;
+		}
+	}
 }
 
 
@@ -1444,10 +1521,10 @@ static int add_win32_extension(char *name)
 	return (retval);
 }
 
-void BLI_where_am_i(char *fullname, char *name)
+void BLI_where_am_i(char *fullname, const char *name)
 {
 	char filename[FILE_MAXDIR+FILE_MAXFILE];
-	char *path, *temp;
+	char *path = NULL, *temp;
 	int len;
 #ifdef _WIN32
 	char *seperator = ";";
@@ -1457,6 +1534,17 @@ void BLI_where_am_i(char *fullname, char *name)
 	char *slash = "/";
 #endif
 
+	
+#ifdef __linux__
+	/* linux uses binreloc since argv[0] is not relyable, call br_init( NULL ) first */
+	path = br_find_exe( NULL );
+	if (path) {
+		strcpy(fullname, path);
+		return;
+	}
+#endif
+	
+	/* unix and non linux */
 	if (name && fullname && strlen(name)) {
 		strcpy(fullname, name);
 		if (name[0] == '.') {

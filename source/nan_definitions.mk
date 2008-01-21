@@ -416,6 +416,8 @@ endif
     # enable freetype2 support for text objects
     export WITH_FREETYPE2 ?= true
 
+    export WITH_BINRELOC ?= true
+
     # enable ffmpeg support
     ifndef NAN_NO_FFMPEG
 	  export WITH_FFMPEG ?= true

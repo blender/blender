@@ -1521,7 +1521,7 @@ void do_material_tex(ShadeInput *shi)
 			}
 			else if(mtex->texco==TEXCO_STRAND) {
 				co= tempvec; dx= dxt; dy= dyt;
-				co[0]= shi->strand;
+				co[0]= shi->strandco;
 				co[1]= co[2]= 0.0f;
 				dx[0]= shi->dxstrand;
 				dx[1]= dx[2]= 0.0f;

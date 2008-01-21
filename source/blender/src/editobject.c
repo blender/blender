@@ -92,6 +92,7 @@
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
+#include "BLI_rand.h"
 
 #include "BKE_action.h"
 #include "BKE_anim.h"
@@ -1430,7 +1431,7 @@ void make_parent(void)
 						
 						add_constraint_to_object(con, base->object);
 						
-						get_constraint_target_matrix(con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, G.scene->r.cfra - base->object->sf);
+						get_constraint_target_matrix(con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, G.scene->r.cfra - give_timeoffset(base->object));
 						VecSubf(vec, base->object->obmat[3], cmat[3]);
 						
 						base->object->loc[0] = vec[0];
@@ -5466,6 +5467,57 @@ void auto_timeoffs(void)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 }
+
+void ofs_timeoffs(void)
+{
+	Base *base;
+	float offset=0.0f;
+
+	if(BASACT==0 || G.vd==NULL) return;
+	
+	if(fbutton(&offset, -10000.0f, 10000.0f, 10, 10, "Offset")==0) return;
+
+	/* make array of all bases, xco yco (screen) */
+	base= FIRSTBASE;
+	while(base) {
+		if(TESTBASELIB(base)) {
+			base->object->sf += offset;
+			if (base->object->sf < -MAXFRAMEF)		base->object->sf = -MAXFRAMEF;
+			else if (base->object->sf > MAXFRAMEF)	base->object->sf = MAXFRAMEF;
+		}
+		base= base->next;
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+}
+
+
+void rand_timeoffs(void)
+{
+	Base *base;
+	float rand=0.0f;
+
+	if(BASACT==0 || G.vd==NULL) return;
+	
+	if(fbutton(&rand, 0.0f, 10000.0f, 10, 10, "Randomize")==0) return;
+	
+	rand *= 2;
+	
+	base= FIRSTBASE;
+	while(base) {
+		if(TESTBASELIB(base)) {
+			base->object->sf += (BLI_drand()-0.5) * rand;
+			if (base->object->sf < -MAXFRAMEF)		base->object->sf = -MAXFRAMEF;
+			else if (base->object->sf > MAXFRAMEF)	base->object->sf = MAXFRAMEF;
+		}
+		base= base->next;
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+}
+
 
 void texspace_edit(void)
 {

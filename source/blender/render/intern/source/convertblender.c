@@ -100,6 +100,7 @@
 
 #include "envmap.h"
 #include "multires.h"
+#include "occlusion.h"
 #include "render_types.h"
 #include "rendercore.h"
 #include "renderdatabase.h"
@@ -1497,7 +1498,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	float *orco=0,*surfnor=0,*uvco=0, strandlen=0.0f, curlen=0.0f;
 	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(ob,(float)CFRA,0.0);
 	float adapt_angle=0.0, adapt_pix=0.0, random, simplify[2];
-	int i, a, k, max_k=0, totpart, totuv=0, override_uv=-1, dosimplify = 0;
+	int i, a, k, max_k=0, totpart, totuv=0, override_uv=-1, dosimplify = 0, doapproxao = 0;
 	int path_possible=0, keys_possible=0, baked_keys=0, totchild=psys->totchild;
 	int seed, path_nbr=0, path=0, orco1=0, adapt=0, uv[3]={0,0,0}, num;
 	char **uv_name=0;
@@ -1656,6 +1657,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					strandbuf->flag |= R_STRAND_B_UNITS;
 
 				svert= strandbuf->vert;
+
+				if((re->wrld.mode & WO_AMB_OCC) && (re->wrld.ao_gather_method == WO_AOGATHER_APPROX))
+					if(ma->amb != 0.0f)
+						doapproxao= 1;
 			}
 		}
 	}
@@ -1704,14 +1709,14 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			else
 				psys_particle_on_emitter(ob, psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,0);
 
+			num= pa->num_dmcache;
+
+			if(num == DMCACHE_NOTFOUND)
+				if(pa->num < psmd->dm->getNumFaces(psmd->dm))
+					num= pa->num;
+
 			if(uvco && ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)){
 				layer=psmd->dm->faceData.layers + CustomData_get_layer_index(&psmd->dm->faceData,CD_MFACE);
-
-	            num= pa->num_dmcache;
-
-				if(num == DMCACHE_NOTFOUND)
-					if(pa->num < psmd->dm->getNumFaces(psmd->dm))
-						num= pa->num;
 
 				for(i=0; i<totuv; i++){
 					if(num != DMCACHE_NOTFOUND) {
@@ -1760,6 +1765,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			pa_size=psys_get_child_size(psys, cpa, cfra, &pa_time);
 
 			r_tilt=2.0f*cpa->rand[2];
+
+			num= cpa->num;
 
 			/* get orco */
 			psys_particle_on_emitter(ob, psmd,
@@ -1829,6 +1836,11 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			if(surfnor) {
 				float *snor= RE_strandren_get_surfnor(obr, strand, 1);
 				VECCOPY(snor, surfnor);
+			}
+
+			if(doapproxao && num >= 0) {
+				int *facenum= RE_strandren_get_face(obr, strand, 1);
+				*facenum= num;
 			}
 
 			if(uvco){
@@ -1929,6 +1941,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		if(re->test_break())
 			break;
 	}
+
+	if(doapproxao)
+		strandbuf->occlusionmesh= cache_occ_mesh(re, obr, psmd->dm, mat);
 
 /* 4. clean up */
 	if(ma) do_mat_ipo(ma);
@@ -3636,13 +3651,18 @@ void init_render_world(Render *re)
 		if(re->osa)
 			while(re->wrld.aosamp*re->wrld.aosamp < re->osa) 
 				re->wrld.aosamp++;
-		if(!(re->r.mode & R_RAYTRACE))
+		if(!(re->r.mode & R_RAYTRACE) && (re->wrld.ao_gather_method == WO_AOGATHER_RAYTRACE))
 			re->wrld.mode &= ~WO_AMB_OCC;
 	}
 	else {
 		memset(&re->wrld, 0, sizeof(World));
-		re->wrld.exp= 0.0;
-		re->wrld.range= 1.0;
+		re->wrld.exp= 0.0f;
+		re->wrld.range= 1.0f;
+		
+		/* for mist pass */
+		re->wrld.miststa= re->clipsta;
+		re->wrld.mistdist= re->clipend-re->clipsta;
+		re->wrld.misi= 1.0f;
 	}
 	
 	re->wrld.linfac= 1.0 + pow((2.0*re->wrld.exp + 0.5), -10);
@@ -3870,6 +3890,29 @@ static int render_object_type(int type)
 	return ELEM5(type, OB_FONT, OB_CURVE, OB_SURF, OB_MESH, OB_MBALL);
 }
 
+static void find_dupli_instances(Render *re, ObjectRen *obr)
+{
+	ObjectInstanceRen *obi;
+	float imat[4][4], obmat[4][4], obimat[4][4], nmat[3][3];
+
+	Mat4MulMat4(obmat, obr->ob->obmat, re->viewmat);
+	Mat4Invert(imat, obmat);
+
+	for(obi=re->instancetable.last; obi; obi=obi->prev) {
+		if(!obi->obr && obi->ob == obr->ob && obi->psysindex == obr->psysindex) {
+			obi->obr= obr;
+
+			/* compute difference between object matrix and
+			 * object matrix with dupli transform, in viewspace */
+			Mat4CpyMat4(obimat, obi->mat);
+			Mat4MulMat4(obi->mat, imat, obimat);
+
+			Mat3CpyMat4(nmat, obi->mat);
+			Mat3Inv(obi->imat, nmat);
+		}
+	}
+}
+
 static void init_render_object_data(Render *re, ObjectRen *obr, int only_verts)
 {
 	Object *ob= obr->ob;
@@ -3937,6 +3980,8 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 		/* only add instance for objects that have not been used for dupli */
 		if(!(ob->transflag & OB_RENDER_DUPLI))
 			RE_addRenderInstance(re, obr, ob, par, index, 0, NULL);
+		else
+			find_dupli_instances(re, obr);
 	}
 
 	/* and one render object per particle system */
@@ -3950,6 +3995,8 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 			/* only add instance for objects that have not been used for dupli */
 			if(!(ob->transflag & OB_RENDER_DUPLI))
 				RE_addRenderInstance(re, obr, ob, par, index, psysindex, NULL);
+			else
+				find_dupli_instances(re, obr);
 		}
 	}
 }
@@ -4042,6 +4089,7 @@ void RE_Database_Free(Render *re)
 	if(re->r.mode & R_RAYTRACE) freeraytree(re);
 
 	free_sss(re);
+	free_occ(re);
 	
 	re->totvlak=re->totvert=re->totstrand=re->totlamp=re->tothalo= 0;
 	re->i.convertdone= 0;
@@ -4070,9 +4118,8 @@ static int allow_render_object(Object *ob, int nolamps, int onlyselected, Object
 			for(psys=ob->particlesystem.first; psys; psys=psys->next){
 				part=psys->part;
 
-				if((part->draw_as==PART_DRAW_OB && part->dup_ob) || (part->draw_as==PART_DRAW_GR && part->dup_group))
-					if(part->draw & PART_DRAW_EMITTER)
-						allow= 1;
+				if(part->draw & PART_DRAW_EMITTER)
+					allow= 1;
 			}
 		}
 
@@ -4105,22 +4152,30 @@ static void dupli_render_particle_set(Render *re, Object *ob, int level, int ena
 	Group *group;
 	GroupObject *go;
 	ParticleSystem *psys;
+	DerivedMesh *dm;
 
 	if(level >= MAX_DUPLI_RECUR)
 		return;
 	
 	if(ob->transflag & OB_DUPLIPARTS) {
-		DerivedMesh *dm;
+		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+			if(ELEM(psys->part->draw_as, PART_DRAW_OB, PART_DRAW_GR)) {
+				if(enable)
+					psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy);
+				else
+					psys_render_restore(ob, psys);
+			}
+		}
 
-		for(psys=ob->particlesystem.first; psys; psys=psys->next)
-			if(enable)
-				psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy);
-			else
-				psys_render_restore(ob, psys);
-
-		if(enable) {
-			dm = mesh_create_derived_render(ob,	CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+		if(level == 0 && enable) {
+			/* this is to make sure we get render level duplis in groups:
+			* the derivedmesh must be created before init_render_mesh,
+			* since object_duplilist does dupliparticles before that */
+			dm = mesh_create_derived_render(ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
 			dm->release(dm);
+
+			for(psys=ob->particlesystem.first; psys; psys=psys->next)
+				psys_get_modifier(ob, psys)->flag &= ~eParticleSystemFlag_psys_updated;
 		}
 	}
 
@@ -4137,7 +4192,7 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 	Object *ob;
 	ObjectInstanceRen *obi;
 	Scene *sce;
-	float mat[4][4], obmat[4][4];
+	float mat[4][4];
 
 	for(SETLOOPER(re->scene, base)) {
 		ob= base->object;
@@ -4151,7 +4206,7 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 
 	for(SETLOOPER(re->scene, base)) {
 		ob= base->object;
-		
+
 		/* if the object has been restricted from rendering in the outliner, ignore it */
 		if(ob->restrictflag & OB_RESTRICT_RENDER) continue;
 
@@ -4173,16 +4228,15 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 				for(dob= lb->first; dob; dob= dob->next) {
 					Object *obd= dob->ob;
 					
-					Mat4CpyMat4(obmat, obd->obmat);
 					Mat4CpyMat4(obd->obmat, dob->mat);
 
 					/* group duplis need to set ob matrices correct, for deform. so no_draw is part handled */
-					if(dob->no_draw)
+					if(!(obd->transflag & OB_RENDER_DUPLI) && dob->no_draw)
 						continue;
 
 					if(obd->restrictflag & OB_RESTRICT_RENDER)
 						continue;
-					
+
 					if(obd->type==OB_MBALL)
 						continue;
 
@@ -4192,13 +4246,9 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 					if(allow_render_dupli_instance(re, dob, obd)) {
 						ParticleSystem *psys;
 						int psysindex;
-						float imat[4][4], mat[4][4];
+						float mat[4][4];
 
-						/* compute difference between object matrix and
-						 * object matrix with dupli transform, in viewspace */
-						Mat4Invert(imat, obmat);
-						MTC_Mat4MulSerie(mat, re->viewmat, dob->mat, imat, re->viewinv, 0, 0, 0, 0);
-
+						Mat4MulMat4(mat, dob->mat, re->viewmat);
 						obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, 0, mat);
 						VECCOPY(obi->dupliorco, dob->orco);
 						obi->dupliuv[0]= dob->uv[0];
@@ -4214,8 +4264,6 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 						
 						obd->flag |= OB_DONE;
 						obd->transflag |= OB_RENDER_DUPLI;
-
-						Mat4CpyMat4(obd->obmat, obmat);
 					}
 					else
 						init_render_object(re, obd, ob, dob->index, only_verts);
@@ -4277,7 +4325,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	}
 	
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
-	if(re->wrld.mode & WO_AMB_OCC) {
+	if((re->r.mode & R_RAYTRACE) && (re->wrld.mode & WO_AMB_OCC)) {
 		if (re->wrld.ao_samp_method == WO_AOSAMP_HAMMERSLEY)
 			init_render_hammersley(re);
 		else if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
@@ -4342,10 +4390,16 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		
 		if(!re->test_break())
 			project_renderdata(re, projectverto, re->r.mode & R_PANORAMA, 0, 1);
+		
+		/* Occlusion */
+		if((re->wrld.mode & WO_AMB_OCC) && !re->test_break())
+			if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
+				if(re->r.renderer==R_INTERN)
+					make_occ_tree(re);
 
 		/* SSS */
 		if((re->r.mode & R_SSS) && !re->test_break())
-			if (re->r.renderer==R_INTERN)
+			if(re->r.renderer==R_INTERN)
 				make_sss_tree(re);
 	}
 	
@@ -4825,7 +4879,7 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 	}
 	
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
-	if(re->wrld.mode & WO_AMB_OCC) {
+	if((re->r.mode & R_RAYTRACE) && (re->wrld.mode & WO_AMB_OCC)) {
 		if (re->wrld.ao_samp_method == WO_AOSAMP_HAMMERSLEY)
 			init_render_hammersley(re);
 		else if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)

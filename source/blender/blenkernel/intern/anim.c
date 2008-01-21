@@ -65,6 +65,7 @@
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_utildefines.h"
@@ -423,6 +424,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 static void vertex_duplilist(ListBase *lb, ID *id, Object *par, float par_space_mat[][4], int level)
 {
 	Object *ob, *ob_iter;
+	Mesh *me;
 	Base *base = NULL;
 	float vec[3], no[3], pmat[4][4];
 	int lay, totvert, a, oblay;
@@ -431,23 +433,22 @@ static void vertex_duplilist(ListBase *lb, ID *id, Object *par, float par_space_
 	Scene *sce = NULL;
 	Group *group = NULL;
 	GroupObject * go = NULL;
-	CustomDataMask dataMask = CD_MASK_BAREMESH;
 	
 	Mat4CpyMat4(pmat, par->obmat);
 	
 	/* simple preventing of too deep nested groups */
 	if(level>MAX_DUPLI_RECUR) return;
 
-	if(G.rendering)
-		dataMask |= CD_MASK_ORCO;
-	
 	if(par==G.obedit)
-		dm= editmesh_get_derived_cage(dataMask);
+		dm= editmesh_get_derived_cage(CD_MASK_BAREMESH);
 	else
-		dm= mesh_get_derived_deform(par, dataMask);
+		dm= mesh_get_derived_deform(par, CD_MASK_BAREMESH);
 
-	if(G.rendering)
-		vdd.orco= dm->getVertDataArray(dm, CD_ORCO);
+	if(G.rendering) {
+		me= par->data;
+		vdd.orco= (float(*)[3])get_mesh_orco_verts(par);
+		transform_mesh_orco_verts(me, vdd.orco, me->totvert, 0);
+	}
 	else
 		vdd.orco= NULL;
 	
@@ -521,6 +522,8 @@ static void vertex_duplilist(ListBase *lb, ID *id, Object *par, float par_space_
 		else		go= go->next;		/* group loop */
 	}
 
+	if(vdd.orco)
+		MEM_freeN(vdd.orco);
 	dm->release(dm);
 }
 
@@ -534,25 +537,21 @@ static void face_duplilist(ListBase *lb, ID *id, Object *par, float par_space_ma
 	MTFace *mtface;
 	MFace *mface;
 	MVert *mvert;
-	float pmat[4][4], imat[3][3], (*orco)[3], w;
+	float pmat[4][4], imat[3][3], (*orco)[3] = NULL, w;
 	int lay, oblay, totface, a;
 	Scene *sce = NULL;
 	Group *group = NULL;
 	GroupObject *go = NULL;
-	CustomDataMask dataMask = CD_MASK_BAREMESH;
 	float ob__obmat[4][4]; /* needed for groups where the object matrix needs to be modified */
 	
 	/* simple preventing of too deep nested groups */
 	if(level>MAX_DUPLI_RECUR) return;
 	
-	if(G.rendering)
-		dataMask |= CD_MASK_ORCO;
-	
 	Mat4CpyMat4(pmat, par->obmat);
 
 	if(par==G.obedit) {
 		int totvert;
-		dm= editmesh_get_derived_cage(dataMask);
+		dm= editmesh_get_derived_cage(CD_MASK_BAREMESH);
 		
 		totface= dm->getNumFaces(dm);
 		mface= MEM_mallocN(sizeof(MFace)*totface, "mface temp");
@@ -562,7 +561,7 @@ static void face_duplilist(ListBase *lb, ID *id, Object *par, float par_space_ma
 		dm->copyVertArray(dm, mvert);
 	}
 	else {
-		dm = mesh_get_derived_deform(par, dataMask);
+		dm = mesh_get_derived_deform(par, CD_MASK_BAREMESH);
 		
 		totface= dm->getNumFaces(dm);
 		mface= dm->getFaceArray(dm);
@@ -571,7 +570,9 @@ static void face_duplilist(ListBase *lb, ID *id, Object *par, float par_space_ma
 
 	if(G.rendering) {
 		me= (Mesh*)par->data;
-		orco= dm->getVertDataArray(dm, CD_ORCO);
+
+		orco= (float(*)[3])get_mesh_orco_verts(par);
+		transform_mesh_orco_verts(me, orco, me->totvert, 0);
 		mtface= me->mtface;
 	}
 	else {
@@ -711,6 +712,9 @@ static void face_duplilist(ListBase *lb, ID *id, Object *par, float par_space_ma
 		MEM_freeN(mface);
 		MEM_freeN(mvert);
 	}
+
+	if(orco)
+		MEM_freeN(orco);
 	
 	dm->release(dm);
 }

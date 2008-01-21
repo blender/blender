@@ -31,6 +31,7 @@
  */
 
 #include <stdio.h> 
+#include <stddef.h>
 #include <string.h>
 #include <math.h>
 
@@ -226,55 +227,7 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime,
 /* Find the first available, non-duplicate name for a given constraint */
 void unique_constraint_name (bConstraint *con, ListBase *list)
 {
-	bConstraint *curcon;
-	char tempname[64];
-	int	number = 1, exists = 0;
-	char *dot;
-	
-	/* See if we are given an empty string */
-	if (con->name[0] == '\0') {
-		/* give it default name first */
-		strcpy(con->name, "Const");
-	}
-	
-	/* See if we even need to do this */
-	if (list == NULL)
-		return;
-	
-	for (curcon = list->first; curcon; curcon=curcon->next) {
-		if (curcon != con) {
-			if (!strcmp(curcon->name, con->name)) {
-				exists = 1;
-				break;
-			}
-		}
-	}
-	
-	if (exists == 0)
-		return;
-
-	/*	Strip off the suffix */
-	dot = strchr(con->name, '.');
-	if (dot)
-		*dot=0;
-	
-	for (number = 1; number <= 999; number++) {
-		sprintf(tempname, "%s.%03d", con->name, number);
-		
-		exists = 0;
-		for (curcon=list->first; curcon; curcon=curcon->next) {
-			if (con != curcon) {
-				if (strcmp(curcon->name, tempname)==0) {
-					exists = 1;
-					break;
-				}
-			}
-		}
-		if (exists == 0) {
-			strcpy(con->name, tempname);
-			return;
-		}
-	}
+	BLI_uniquename(list, con, "Const", offsetof(bConstraint, name), 32);
 }
 
 /* ----------------- Evaluation Loop Preparation --------------- */
@@ -2036,8 +1989,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			Mat4CpyMat4(ct->matrix, tchan->chan_mat);
 			
 			/* Clean up */
-			free_pose_channels(pose);
-			MEM_freeN(pose);
+			free_pose(pose);
 		}
 		else if (cob->type == CONSTRAINT_OBTYPE_OBJECT) {
 			/* evaluate using workob */

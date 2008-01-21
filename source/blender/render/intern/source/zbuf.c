@@ -3346,6 +3346,10 @@ void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
 				break;
+			case SCE_PASS_MIST:
+				col= &shr->mist;
+				pixsize= 1;
+				break;
 			case SCE_PASS_VECTOR:
 				
 				{
@@ -3397,6 +3401,7 @@ void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alph
 	
 	for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
 		float *fp, *col= NULL;
+		int pixsize= 3;
 		
 		switch(rpass->passtype) {
 			case SCE_PASS_RGBA:
@@ -3427,13 +3432,19 @@ void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alph
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
 				break;
+			case SCE_PASS_MIST:
+				col= &shr->mist;
+				pixsize= 1;
+				break;
 		}
 		if(col) {
 
-			fp= rpass->rect + 3*offset;
+			fp= rpass->rect + pixsize*offset;
 			fp[0]= alpha*col[0] + (1.0f-alpha)*fp[0];
-			fp[1]= alpha*col[1] + (1.0f-alpha)*fp[1];
-			fp[2]= alpha*col[2] + (1.0f-alpha)*fp[2];
+			if(pixsize==3) {
+				fp[1]= alpha*col[1] + (1.0f-alpha)*fp[1];
+				fp[2]= alpha*col[2] + (1.0f-alpha)*fp[2];
+			}
 		}
 	}
 }
@@ -3595,6 +3606,10 @@ int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassflag)
 					
 					if(addpassflag & SCE_PASS_RADIO)
 						addvecmul(samp_shr->rad, shr->rad, fac);
+					
+					if(addpassflag & SCE_PASS_MIST)
+						samp_shr->mist= samp_shr->mist+fac*shr->mist;
+
 				}
 			}
 		}
@@ -3775,6 +3790,7 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 						add_transp_speed(rl, od, ssamp.shr[0].winspeed, pass[3], rdrect);
 				}
 				else {
+					float alpha= 0.0f;
 					short filled, *sp= (short *)(ztramask+od);
 					
 					/* for each mask-sample we alpha-under colors. then in end it's added using filter */
@@ -3797,17 +3813,21 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 						}
 					}
 					
+					/* note; cannot use pass[3] for alpha due to filtermask */
 					for(a=0; a<R.osa; a++) {
 						add_filt_fmask(1<<a, samp_shr[a].combined, pass, rr->rectx);
+						alpha+= samp_shr[a].combined[3];
 					}
 					
 					if(addpassflag) {
+						alpha*= sampalpha;
+						
 						/* merge all in one, and then add */
 						merge_transp_passes(rl, samp_shr);
-						add_transp_passes(rl, od, samp_shr, pass[3]);
+						add_transp_passes(rl, od, samp_shr, alpha);
 
 						if(addpassflag & SCE_PASS_VECTOR)
-							add_transp_speed(rl, od, samp_shr[0].winspeed, pass[3], rdrect);
+							add_transp_speed(rl, od, samp_shr[0].winspeed, alpha, rdrect);
 					}
 				}
 			}

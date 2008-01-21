@@ -110,9 +110,10 @@ void solve_tracking (struct Object *ob, float targetmat[][4]);
 
 void object_handle_update(struct Object *ob);
 
+float give_timeoffset(struct Object *ob);
+
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-

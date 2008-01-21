@@ -86,6 +86,7 @@
 #include "BKE_particle.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_object.h"
 
 #include "BIF_butspace.h"
 #include "BIF_editaction.h"
@@ -1052,8 +1053,10 @@ static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname
 					if(ob->action) {
 						if(ob->flag & OB_POSEMODE) {
 							bPoseChannel *pchan= get_active_posechannel(ob);
-							if(pchan)
+							if(pchan) {
 								BLI_strncpy(actname, pchan->name, 32);
+								BLI_strncpy(bonename, pchan->name, 32);
+							}
 						}
 						else if(ob->ipoflag & OB_ACTION_OB)
 							strcpy(actname, "Object");
@@ -1473,6 +1476,9 @@ void mouse_select_ipo(void)
 	}
 	
 	if(G.sipo->showkey) {
+		float pixelwidth;
+		pixelwidth= (G.v2d->cur.xmax-G.v2d->cur.xmin)/(G.v2d->mask.xmax-G.v2d->mask.xmin); /* could make a generic function */
+		
 		getmouseco_areawin(mval);
 		
 		areamouseco_to_ipoco(G.v2d, mval, &x, &y);
@@ -1481,7 +1487,7 @@ void mouse_select_ipo(void)
 		ik= G.sipo->ipokey.first;
 		while(ik) {
 			dist= (float)(fabs(ik->val-x));
-			if(ik->flag & 1) dist+= 1.0;
+			if(ik->flag & SELECT) dist+= pixelwidth;
 			if(dist < mindist) {
 				actik= ik;
 				mindist= dist;
@@ -2333,9 +2339,9 @@ static void insertkey_nonrecurs(ID *id, int blocktype, char *actname, char *cons
 				
 				if( GS(id->name)==ID_OB ) {
 					ob= (Object *)id;
-					if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
+					if((ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0) ) {
 						/* actually frametofloat calc again! */
-						cfra-= ob->sf*G.scene->r.framelen;
+						cfra-= give_timeoffset(ob)*G.scene->r.framelen;
 					}
 				}
 				
@@ -2554,9 +2560,9 @@ void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcod
 				
 				if( GS(id->name)==ID_OB ) {
 					ob= (Object *)id;
-					if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
+					if((ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0) ) {
 						/* actually frametofloat calc again! */
-						cfra-= ob->sf*G.scene->r.framelen;
+						cfra-= give_timeoffset(ob)*G.scene->r.framelen;
 					}
 				}
 				
@@ -2596,9 +2602,9 @@ void insertkey_smarter(ID *id, int blocktype, char *actname, char *constname, in
 			
 			if( GS(id->name)==ID_OB ) {
 				ob= (Object *)id;
-				if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
+				if((ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0) ) {
 					/* actually frametofloat calc again! */
-					cfra-= ob->sf*G.scene->r.framelen;
+					cfra-= give_timeoffset(ob)*G.scene->r.framelen;
 				}
 			}
 			
@@ -2647,9 +2653,9 @@ void insertfloatkey(ID *id, int blocktype, char *actname, char *constname, int a
  			
  			if( GS(id->name)==ID_OB ) {
  				ob= (Object *)id;
- 				if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
+ 				if((ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0) ) {
  					/* actually frametofloat calc again! */
- 					cfra-= ob->sf*G.scene->r.framelen;
+ 					cfra-= give_timeoffset(ob)*G.scene->r.framelen;
  				}
  			}
 			
@@ -2729,8 +2735,8 @@ void insertkey_editipo(void)
 						id= G.sipo->from;	
 						if(id && GS(id->name)==ID_OB ) {
 							Object *ob= (Object *)id;
-							if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
-								cfra-= ob->sf*G.scene->r.framelen;
+							if((ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0) ) {
+								cfra-= give_timeoffset(ob)*G.scene->r.framelen;
 							}
 						}
 						else if(id && GS(id->name)==ID_SEQ) {
@@ -5767,8 +5773,8 @@ void move_to_frame(void)
 							id= G.sipo->from;
 							if(id && GS(id->name)==ID_OB ) {
 								Object *ob= (Object *)id;
-								if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
-									cfra+= ob->sf/G.scene->r.framelen;
+								if((ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0) ) {
+									cfra+= give_timeoffset(ob)/G.scene->r.framelen;
 								}
 							}
 							CFRA= (int)floor(cfra+0.5);

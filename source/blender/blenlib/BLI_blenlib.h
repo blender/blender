@@ -107,6 +107,7 @@ int BLI_findindex(struct ListBase *listbase, void *vlink);
 void BLI_freelistN(struct ListBase *listbase);
 void BLI_addtail(struct ListBase *listbase, void *vlink);
 void BLI_remlink(struct ListBase *listbase, void *vlink);
+void BLI_uniquename(struct ListBase *list, void *vlink, char defname[], short name_offs, short len);
 void BLI_newname(char * name, int add);
 int BLI_stringdec(char *string, char *kop, char *start, unsigned short *numlen);
 void BLI_stringenc(char *string, char *kop, char *start, unsigned short numlen, int pic);
@@ -254,7 +255,7 @@ void BLI_free_file_lines(struct LinkNode *lines);
 	 * @param fullname The full path and full name of the executable
 	 * @param name The name of the executable (usually argv[0]) to be checked
 	 */
-void BLI_where_am_i(char *fullname, char *name);
+void BLI_where_am_i(char *fullname, const char *name);
 
 	/**
 	 * determines the full path to the application bundle on OS X
@@ -296,8 +297,8 @@ int   BLI_rename(char *from, char *to);
 int   BLI_gzip(char *from, char *to);
 int   BLI_delete(char *file, int dir, int recursive);
 int   BLI_move(char *file, char *to);
-int   BLI_touch(char *file);
-char *BLI_last_slash(char *string);
+int   BLI_touch(const char *file);
+char *BLI_last_slash(const char *string);
 
 /* BLI_rct.c */
 /**

@@ -560,6 +560,13 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 				for(a=0; a<psys->totpart; a++, pa++)
 					writestruct(wd, DATA, "HairKey", pa->totkey, pa->hair);
 			}
+			
+			if(psys->particles->keys) {
+				ParticleData *pa = psys->particles;
+
+				for(a=0; a<psys->totpart; a++, pa++)
+					writestruct(wd, DATA, "ParticleKey", pa->totkey, pa->keys);
+			}
 		}
 		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
 		writestruct(wd, DATA, "SoftBody", 1, psys->soft);
@@ -772,6 +779,7 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 static void write_pose(WriteData *wd, bPose *pose)
 {
 	bPoseChannel *chan;
+	bActionGroup *grp;
 
 	/* Write each channel */
 	if (!pose)
@@ -787,6 +795,10 @@ static void write_pose(WriteData *wd, bPose *pose)
 		
 		writestruct(wd, DATA, "bPoseChannel", 1, chan);
 	}
+	
+	/* Write groups */
+	for (grp=pose->agroups.first; grp; grp=grp->next) 
+		writestruct(wd, DATA, "bActionGroup", 1, grp);
 
 	/* Write this pose */
 	writestruct(wd, DATA, "bPose", 1, pose);
@@ -1752,6 +1764,7 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 {
 	bAction			*act;
 	bActionChannel	*chan;
+	bActionGroup 	*grp;
 	TimeMarker *marker;
 	
 	for(act=idbase->first; act; act= act->id.next) {
@@ -1762,6 +1775,10 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 			for (chan=act->chanbase.first; chan; chan=chan->next) {
 				writestruct(wd, DATA, "bActionChannel", 1, chan);
 				write_constraint_channels(wd, &chan->constraintChannels);
+			}
+			
+			for (grp=act->groups.first; grp; grp=grp->next) {
+				writestruct(wd, DATA, "bActionGroup", 1, grp);
 			}
 			
 			for (marker=act->markers.first; marker; marker=marker->next) {

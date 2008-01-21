@@ -421,7 +421,7 @@ typedef struct SpaceImaSel {
 
 /* filesel types */
 #define FILE_UNIX			8
-#define FILE_BLENDER		8
+#define FILE_BLENDER		8 /* dont display relative paths */
 #define FILE_SPECIAL		9
 
 #define FILE_LOADLIB		1

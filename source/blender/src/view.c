@@ -69,6 +69,7 @@
 #include "BKE_sculpt.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_transform.h"
 #include "BIF_editparticle.h"
 #include "BIF_gl.h"
 #include "BIF_previewrender.h"
@@ -88,6 +89,7 @@
 
 #include "mydevice.h"
 #include "blendef.h"
+#include "transform.h"
 
 #include "PIL_time.h" /* smoothview */
 

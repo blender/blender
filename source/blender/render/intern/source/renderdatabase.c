@@ -105,6 +105,7 @@
 #define RE_UV_ELEMS			2
 #define RE_SURFNOR_ELEMS	3
 #define RE_SIMPLIFY_ELEMS	2
+#define RE_FACE_ELEMS	1
 
 float *RE_vertren_get_sticky(ObjectRen *obr, VertRen *ver, int verify)
 {
@@ -408,6 +409,7 @@ int RE_vlakren_get_normal(Render *re, ObjectInstanceRen *obi, VlakRen *vlr, floa
 		nor[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
 		nor[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
 		nor[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
+		Normalize(nor);
 	}
 	else
 		VECCOPY(nor, vlr->n);
@@ -606,6 +608,21 @@ float *RE_strandren_get_simplify(struct ObjectRen *obr, struct StrandRen *strand
 	return simplify + (strand->index & 255)*RE_SIMPLIFY_ELEMS;
 }
 
+int *RE_strandren_get_face(ObjectRen *obr, StrandRen *strand, int verify)
+{
+	int *face;
+	int nr= strand->index>>8;
+	
+	face= obr->strandnodes[nr].face;
+	if(face==NULL) {
+		if(verify) 
+			face= obr->strandnodes[nr].face= MEM_callocN(256*RE_FACE_ELEMS*sizeof(int), "face table");
+		else
+			return NULL;
+	}
+	return face + (strand->index & 255)*RE_FACE_ELEMS;
+}
+
 /* winspeed is exception, it is stored per instance */
 float *RE_strandren_get_winspeed(ObjectInstanceRen *obi, StrandRen *strand, int verify)
 {
@@ -756,6 +773,8 @@ void free_renderdata_strandnodes(StrandTableNode *strandnodes)
 			MEM_freeN(strandnodes[a].surfnor);
 		if(strandnodes[a].simplify)
 			MEM_freeN(strandnodes[a].simplify);
+		if(strandnodes[a].face)
+			MEM_freeN(strandnodes[a].face);
 	}
 	
 	MEM_freeN(strandnodes);
@@ -1275,34 +1294,9 @@ ObjectInstanceRen *RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, 
 	return obi;
 }
 
-void find_dupli_objectren(Render *re, ObjectInstanceRen *obi, ObjectInstanceRen *lastobi)
-{
-	ObjectRen *obr;
-
-	/* see if last object did the same lookup, so we can just reuse result */
-	if(lastobi && obi->ob == lastobi->ob && obi->par == lastobi->par && obi->psysindex == lastobi->psysindex) {
-		obi->obr= lastobi->obr;
-		return;
-	}
-
-	/* dupli objects are created after object instances, so we look through
-	 * object list to find it */
-	obr= re->objecttable.first;
-	while(obr && (obr->ob != obi->ob || obr->par != obi->par || obr->psysindex != obi->psysindex))
-		obr= obr->next;
-
-	if(!obr) {
-		obr= re->objecttable.first;
-		while(obr && (obr->ob != obi->ob || obr->psysindex != obi->psysindex) && obr->par == NULL)
-			obr= obr->next;
-	}
-
-	obi->obr= obr;
-}
-
 void RE_makeRenderInstances(Render *re)
 {
-	ObjectInstanceRen *obi, *oldobi, *lastobi= NULL;
+	ObjectInstanceRen *obi, *oldobi;
 	ListBase newlist;
 	int tot;
 
@@ -1315,11 +1309,6 @@ void RE_makeRenderInstances(Render *re)
 	obi= re->objectinstance;
 	for(oldobi=re->instancetable.first; oldobi; oldobi=oldobi->next) {
 		*obi= *oldobi;
-
-		if(!obi->obr) {
-			find_dupli_objectren(re, obi, lastobi);
-			lastobi= obi;
-		}
 
 		if(obi->obr) {
 			obi->prev= obi->next= NULL;

@@ -79,7 +79,7 @@ char *first_slash(char *string) {
 	else return fbslash;
 }
 
-char *BLI_last_slash(char *string) {
+char *BLI_last_slash(const char *string) {
 	char *lfslash, *lbslash;
 	
 	lfslash= strrchr(string, '/');	
@@ -140,6 +140,23 @@ int BLI_is_writable(char *filename)
 	}
 }
 
+int BLI_touch(const char *file)
+{
+   FILE *f = fopen(file,"r+b");
+   if (f != NULL) {
+		char c = getc(f);
+		rewind(f);
+		putc(c,f);
+	} else {
+	   f = fopen(file,"wb");
+	}
+	if (f) {
+		fclose(f);
+		return 1;
+	}
+	return 0;
+}
+
 #ifdef WIN32
 
 static char str[MAXPATHLEN+12];
@@ -159,12 +176,6 @@ int BLI_delete(char *file, int dir, int recursive) {
 	}
 
 	return err;
-}
-
-int BLI_touch(char *file) {
-	callLocalErrorCallBack("Touching files is unsupported on Windows");
-	
-	return 1;
 }
 
 int BLI_move(char *file, char *to) {
@@ -294,17 +305,6 @@ int BLI_delete(char *file, int dir, int recursive)
 		return system(str);
 	}
 	return -1;
-}
-
-int BLI_touch(char *file) 
-{
-	
-	if( BLI_exists("/bin/touch") )
-		sprintf(str, "/bin/touch %s", file);
-	else
-		sprintf(str, "/usr/bin/touch %s", file);
-	
-	return system(str);
 }
 
 int BLI_move(char *file, char *to) {

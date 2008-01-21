@@ -195,7 +195,7 @@ static void activate_imageselect_(int type, char *title, char *file, short *menu
 		simasel->files = BIF_filelist_new();
 	}
 
-	if(G.relbase_valid && BLI_convertstringcode(name, G.sce, G.scene->r.cfra))
+	if(G.relbase_valid && U.flag & USER_RELPATHS && type != FILE_BLENDER)
 		simasel->flag |= FILE_STRINGCODE;
 	else
 		simasel->flag &= ~FILE_STRINGCODE;

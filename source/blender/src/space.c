@@ -129,6 +129,7 @@
 #include "BIF_poselib.h"
 #include "BIF_poseobject.h"
 #include "BIF_outliner.h"
+#include "BIF_radialcontrol.h"
 #include "BIF_resources.h"
 #include "BIF_retopo.h"
 #include "BIF_screen.h"
@@ -1199,8 +1200,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if(!mouse_in_header(sa)) {
 			if(!G.obedit && (G.f & G_SCULPTMODE)) {
 				SculptSession *ss= sculpt_session();
-				if(ss && ss->propset) {
-					sculptmode_propset(event);
+				if(ss && ss->radialcontrol) {
+					radialcontrol_do_events(ss->radialcontrol, event);
 					return;
 				}
 				else if(event!=LEFTMOUSE && event!=MIDDLEMOUSE && (event==MOUSEY || event==MOUSEX)) {
@@ -1211,6 +1212,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			else if(!G.obedit && OBACT && G.f&G_PARTICLEEDIT){
 				ParticleSystem *psys=PE_get_current(OBACT);
 				ParticleEditSettings *pset=PE_settings();
+				if(*PE_radialcontrol()) {
+					radialcontrol_do_events(*PE_radialcontrol(), event);
+					return;
+				}
 				if(psys && psys->edit){
 					if(pset->brushtype>=0 &&
 						event!=LEFTMOUSE && event!=RIGHTMOUSE && event!=MIDDLEMOUSE &&
@@ -1366,7 +1371,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case LEFTMOUSE:
 				if(G.qual==LR_SHIFTKEY+LR_CTRLKEY)
 					sculptmode_pmv(0);
-				else if(!(ss && ss->propset))
+				else if(!(ss && ss->radialcontrol))
 					sculpt();
 				break;
 			/* View */
@@ -1444,12 +1449,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				br->airbrush= !br->airbrush;
 				update_prop= 1; break;
 			case FKEY:
-				if(G.qual==0)
-					sculptmode_propset_init(PropsetSize);
-				if(G.qual==LR_SHIFTKEY)
-					sculptmode_propset_init(PropsetStrength);
-				if(G.qual==LR_CTRLKEY)
-					sculptmode_propset_init(PropsetTexRot);
+				if(ss) {
+					sculpt_radialcontrol_start(G.qual == 0 ? RADIALCONTROL_SIZE :
+								   G.qual == LR_SHIFTKEY ? RADIALCONTROL_STRENGTH :
+								   G.qual == LR_CTRLKEY ? RADIALCONTROL_ROTATION :
+								   RADIALCONTROL_NONE);
+				}
 				break;
 			case VKEY:
 				br->dir= br->dir==1 ? 2 : 1;
@@ -1914,6 +1919,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					   pose_activate_flipped_bone();
 					else if(G.f & G_WEIGHTPAINT)
 						pose_activate_flipped_bone();
+					else if(G.f & G_PARTICLEEDIT)
+						PE_radialcontrol_start(RADIALCONTROL_STRENGTH);
 					else
 						fly();
 				}
@@ -1922,6 +1929,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						G.f ^= G_FACESELECT;
 						allqueue(REDRAWVIEW3D, 1);
 					}
+					else if(G.f & G_PARTICLEEDIT)
+						PE_radialcontrol_start(RADIALCONTROL_SIZE);
 				}
 				
 				break;
@@ -4087,6 +4096,10 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			0, 0, 0, 0, 0, "Select the default texture plugin location");
 		uiBlockEndAlign(block);
 		
+		uiDefButBitI(block, TOG, USER_RELPATHS, B_DRAWINFO, "Relative Paths Default",
+			(xpos+edgsp+(5*mpref)+(5*midsp)),y3,mpref,buth,
+			&(U.flag), 0, 0, 0, 0, "Default relative path option for the file selector");
+		
 		uiBlockBeginAlign(block);
 		uiDefBut(block, TEX, 0, "Seq Plugins: ",
 			(xpos+edgsp+(3*lpref)+(3*midsp)),y2,(lpref-smfileselbut),buth,
@@ -4785,6 +4798,13 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
                                doredraw= 1;
                        }
                        break;
+		case HKEY: /* hide==mute? - not that nice but MKey us used for meta :/ */
+			if((G.qual==0)) {
+				seq_mute_sel(1);
+			} else if((G.qual==LR_ALTKEY)) {
+				seq_mute_sel(0);
+			}
+			break;
 		case XKEY:
 		case DELKEY:
 			if(G.qual==0) {

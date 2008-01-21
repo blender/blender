@@ -17,3 +17,6 @@ if env['WITH_BF_VERSE']:
 
 if env['WITH_BF_FFMPEG'] and env['BF_FFMPEG_LIB'] == '':
     SConscript(['ffmpeg/SConscript']);
+
+if env['OURPLATFORM'] == 'linux2':
+    SConscript(['binreloc/SConscript']);

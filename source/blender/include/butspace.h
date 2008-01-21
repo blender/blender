@@ -315,7 +315,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_FS_PIC		1601
 #define B_FS_BACKBUF	1602
 
-#define B_FS_FTYPE		1604
+#define B_FS_FTYPE		1604 /* FTYPE is no more */
 #define B_DORENDER		1605
 #define B_DOANIM		1606
 #define B_PLAYANIM		1607
@@ -332,7 +332,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_PR_PANO		1619
 #define B_PR_NTSC		1620
 
-#define B_IS_FTYPE		1622
+#define B_IS_FTYPE		1622 /* FTYPE is nomore */
 #define B_IS_BACKBUF		1623
 #define B_PR_PC			1624
 
@@ -530,6 +530,11 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_POSELIB_BROWSE		2320
 #define B_POSELIB_ALONE			2321
 #define B_POSELIB_DELETE		2322
+
+
+#define B_POSEGRP_RECALC	2330
+#define B_POSEGRP_ADD		2331
+#define B_POSEGRP_REMOVE	2332
 
 /* *********************** */
 #define B_CAMBUTS		2500
@@ -732,7 +737,7 @@ enum {
 
 #define B_EFFECTSBUTS		3500
 
-#define B_AUTOTIMEOFS		3403
+#define B_AUTOTIMEOFS		3403 /* see B_OFSTIMEOFS, B_RANDTIMEOFS also */
 #define B_FRAMEMAP		3404
 #define B_NEWEFFECT		3405
 #define B_PREVEFFECT		3406
@@ -767,6 +772,8 @@ enum {
 #define B_PART_EDITABLE		3435
 #define B_PART_REKEY		3436
 #define B_PART_ENABLE		3437
+#define B_OFSTIMEOFS		3438 /* see B_AUTOTIMEOFS too */
+#define B_RANDTIMEOFS		3439
 
 #define B_MODIFIER_BUTS		3600
 

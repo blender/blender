@@ -229,10 +229,8 @@ void free_object(Object *ob)
 	if(ob->dup_group) ob->dup_group->id.us--;
 	if(ob->defbase.first)
 		BLI_freelistN(&ob->defbase);
-	if(ob->pose) {
-		free_pose_channels(ob->pose);
-		MEM_freeN(ob->pose);
-	}
+	if(ob->pose)
+		free_pose(ob->pose);
 	free_effects(&ob->effect);
 	free_properties(&ob->prop);
 	object_free_modifiers(ob);
@@ -1367,7 +1365,7 @@ float bsystem_time(Object *ob, float cfra, float ofs)
 		
 		/* ofset frames */
 		if ((ob->ipoflag & OB_OFFS_PARENT) && (ob->partype & PARSLOW)==0) 
-			cfra-= ob->sf;
+			cfra-= give_timeoffset(ob);
 	}
 	
 	cfra-= ofs;
@@ -1438,7 +1436,7 @@ static void ob_parcurve(Object *ob, Object *par, float mat[][4])
 {
 	Curve *cu;
 	float q[4], vec[4], dir[3], *quat, x1, ctime;
-	float timeoffs= 0.0;
+	float timeoffs = 0.0, sf_orig = 0.0;
 	
 	Mat4One(mat);
 	
@@ -1449,7 +1447,8 @@ static void ob_parcurve(Object *ob, Object *par, float mat[][4])
 	
 	/* exception, timeoffset is regarded as distance offset */
 	if(cu->flag & CU_OFFS_PATHDIST) {
-		SWAP(float, timeoffs, ob->sf);
+		timeoffs = give_timeoffset(ob);
+		SWAP(float, sf_orig, ob->sf);
 	}
 	
 	/* catch exceptions: feature for nla stride editing */
@@ -1466,7 +1465,7 @@ static void ob_parcurve(Object *ob, Object *par, float mat[][4])
 		}
 	}
 	else {
-		ctime= G.scene->r.cfra - ob->sf;
+		ctime= G.scene->r.cfra - give_timeoffset(ob);
 		ctime /= cu->pathlen;
 		
 		CLAMP(ctime, 0.0, 1.0);
@@ -1477,7 +1476,7 @@ static void ob_parcurve(Object *ob, Object *par, float mat[][4])
 		ctime += timeoffs/cu->path->totdist;
 
 		/* restore */
-		SWAP(float, timeoffs, ob->sf);
+		SWAP(float, sf_orig, ob->sf);
 	}
 	
 	
@@ -1735,7 +1734,7 @@ void where_is_object_time(Object *ob, float ctime)
 	if(ob->parent) {
 		Object *par= ob->parent;
 		
-		if(ob->ipoflag & OB_OFFS_PARENT) ctime-= ob->sf;
+		if(ob->ipoflag & OB_OFFS_PARENT) ctime-= give_timeoffset(ob);
 		
 		/* hurms, code below conflicts with depgraph... (ton) */
 		/* and even worse, it gives bad effects for NLA stride too (try ctime != par->ctime, with MBlur) */
@@ -1759,7 +1758,7 @@ void where_is_object_time(Object *ob, float ctime)
 		if(ob->partype & PARSLOW) {
 			// include framerate
 
-			fac1= (1.0f/(1.0f+ fabs(ob->sf)));
+			fac1= (1.0f/(1.0f+ fabs(give_timeoffset(ob))));
 			if(fac1>=1.0) return;
 			fac2= 1.0f-fac1;
 			
@@ -1942,7 +1941,7 @@ for a lamp that is the child of another object */
 
 		if(ob->partype & PARSLOW) {
 
-			fac1= (float)(1.0/(1.0+ fabs(ob->sf)));
+			fac1= (float)(1.0/(1.0+ fabs(give_timeoffset(ob))));
 			fac2= 1.0f-fac1;
 			fp1= ob->obmat[0];
 			fp2= slowmat[0];
@@ -2199,6 +2198,7 @@ void object_handle_update(Object *ob)
 
 			if(ob->particlesystem.first) {
 				ParticleSystem *tpsys, *psys;
+				DerivedMesh *dm;
 				
 				psys= ob->particlesystem.first;
 				while(psys) {
@@ -2214,6 +2214,17 @@ void object_handle_update(Object *ob)
 					}
 					else
 						psys= psys->next;
+				}
+
+				if(G.rendering && ob->transflag & OB_DUPLIPARTS) {
+					/* this is to make sure we get render level duplis in groups:
+					 * the derivedmesh must be created before init_render_mesh,
+					 * since object_duplilist does dupliparticles before that */
+					dm = mesh_create_derived_render(ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+					dm->release(dm);
+
+					for(psys=ob->particlesystem.first; psys; psys=psys->next)
+						psys_get_modifier(ob, psys)->flag &= ~eParticleSystemFlag_psys_updated;
 				}
 			}
 		}
@@ -2233,5 +2244,13 @@ void object_handle_update(Object *ob)
 	if(ob->proxy) {
 		ob->proxy->proxy_from= ob;
 		// printf("set proxy pointer for later group stuff %s\n", ob->id.name);
+	}
+}
+
+float give_timeoffset(Object *ob) {
+	if ((ob->ipoflag & OB_OFFS_PARENTADD) && ob->parent) {
+		return ob->sf + give_timeoffset(ob->parent);
+	} else {
+		return ob->sf;
 	}
 }

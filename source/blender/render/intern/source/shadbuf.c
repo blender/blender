@@ -648,11 +648,11 @@ static float readshadowbuf(ShadBuf *shb, ShadSampleBuf *shsample, int bias, int 
 
 /* the externally called shadow testing (reading) function */
 /* return 1.0: no shadow at all */
-float testshadowbuf(ShadBuf *shb, float *rco, float *dxco, float *dyco, float inp)
+float testshadowbuf(ShadBuf *shb, float *rco, float *dxco, float *dyco, float inp, float mat_bias)
 {
 	ShadSampleBuf *shsample;
 	float fac, co[4], dx[3], dy[3], shadfac=0.0f;
-	float xs1,ys1, siz, *jit, *weight, xres, yres;
+	float xs1,ys1, siz, *jit, *weight, xres, yres, biasf;
 	int xs, ys, zs, bias, *rz;
 	short a, num;
 	
@@ -689,10 +689,12 @@ float testshadowbuf(ShadBuf *shb, float *rco, float *dxco, float *dyco, float in
 	num= shb->samp*shb->samp;
 	fac= shb->soft;
 	
+	if(mat_bias!=0.0f) biasf= shb->bias*mat_bias;
+	else biasf= shb->bias;
 	/* with inp==1.0, bias is half the size. correction value was 1.1, giving errors 
 	   on cube edges, with one side being almost frontal lighted (ton)  */
-	bias= (1.5f-inp*inp)*shb->bias;
-
+	bias= (1.5f-inp*inp)*biasf;
+	
 	if(num==1) {
 		for(shsample= shb->buffers.first; shsample; shsample= shsample->next)
 			shadfac += readshadowbuf(shb, shsample, bias, (int)xs1, (int)ys1, zs);

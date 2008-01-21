@@ -45,7 +45,7 @@ void		unlink_group(struct Group *group);
 struct Group *add_group(char *name);
 void		add_to_group(struct Group *group, struct Object *ob);
 void		rem_from_group(struct Group *group, struct Object *ob);
-struct Group *find_group(struct Object *ob);
+struct Group *find_group(struct Object *ob, struct Group *group);
 int			object_in_group(struct Object *ob, struct Group *group);
 
 void		group_tag_recalc(struct Group *group);

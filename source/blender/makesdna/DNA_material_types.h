@@ -88,8 +88,10 @@ typedef struct Material {
 	float strand_min, strand_widthfade;
 	char strand_uvname[32];
 	
-	float sbias;			/* shadow bias */
+	float sbias;			/* shadow bias to prevent terminator prob */
+	float lbias;			/* factor to multiply lampbias with (0.0 = no mult) */
 	float shad_alpha;		/* in use for irregular shadowbuffer */
+	float padf;				/* free padding, take me! */
 	
 	/* for buttons and render*/
 	char rgbsel, texact, pr_type, use_nodes;

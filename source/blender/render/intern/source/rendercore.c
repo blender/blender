@@ -60,6 +60,7 @@
 #include "renderpipeline.h"
 #include "render_types.h"
 #include "renderdatabase.h"
+#include "occlusion.h"
 #include "pixelblending.h"
 #include "pixelshading.h"
 #include "shadbuf.h"
@@ -399,6 +400,12 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 						*fp= (float)shi->obr->ob->index;
 				}
 				break;
+			case SCE_PASS_MIST:
+				/*  */
+				col= &shr->mist;
+				pixsize= 1;
+				break;
+			
 			case SCE_PASS_VECTOR:
 			{
 				/* add minimum speed in pixel, no filter */
@@ -477,6 +484,10 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 					*fp= (float)shi->obr->ob->index;
 				}
 				break;
+			case SCE_PASS_MIST:
+				fp= rpass->rect + offset;
+				*fp= shr->mist;
+				break;
 		}
 		if(col) {
 			fp= rpass->rect + pixsize*offset;
@@ -534,7 +545,11 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 	/* general shader info, passes */
 	shade_sample_initialize(&ssamp, pa, rl);
 	addpassflag= rl->passflag & ~(SCE_PASS_Z|SCE_PASS_COMBINED);
-				
+
+	/* occlusion caching */
+	if(R.occlusiontree)
+		cache_occ_samples(&R, pa, &ssamp);
+		
 	/* filtered render, for now we assume only 1 filter size */
 	if(pa->crop) {
 		crop= 1;
@@ -582,6 +597,9 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 	
 	if(R.r.mode & R_SHADOW)
 		ISB_free(pa);
+
+	if(R.occlusiontree)
+		free_occ_samples(&R, pa);
 }
 
 /* ************* pixel struct ******** */
@@ -1072,6 +1090,9 @@ void zbufshade_tile(RenderPart *pa)
 				/* irregular shadowb buffer creation */
 				if(R.r.mode & R_SHADOW)
 					ISB_create(pa, NULL);
+
+				if(R.occlusiontree)
+					cache_occ_samples(&R, pa, &ssamp);
 				
 				for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++, rr->renrect.ymax++) {
 					for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, ro++, rz++, rp++, fcol+=4, offs++) {
@@ -1085,9 +1106,6 @@ void zbufshade_tile(RenderPart *pa)
 							if(shade_samples(&ssamp, &ps, x, y)) {
 								QUATCOPY(fcol, ssamp.shr[0].combined);
 
-								if(!(fcol[0] == fcol[0]))
-									printvecf("fudgecol", fcol);
-								
 								/* passes */
 								if(addpassflag)
 									add_passes(rl, offs, ssamp.shi, ssamp.shr);
@@ -1097,6 +1115,9 @@ void zbufshade_tile(RenderPart *pa)
 					if(y&1)
 						if(R.test_break()) break; 
 				}
+				
+				if(R.occlusiontree)
+					free_occ_samples(&R, pa);
 				
 				if(R.r.mode & R_SHADOW)
 					ISB_free(pa);

@@ -42,11 +42,16 @@ INCLUDE_DIRECTORIES(../../intern/guardedalloc
   ../blender/makesdna
   ../kernel/gen_messaging
   ../kernel/gen_system
+  ../../extern/binreloc/include
 )
 
 IF(WITH_QUICKTIME)
   ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
+
+IF(WITH_BINRELOC)
+  ADD_DEFINITIONS(-DWITH_BINRELOC)
+endif(WITH_VINRELOC)
 
 IF(YESIAMSTUPID)
   ADD_DEFINITIONS(-DYESIAMSTUPID)

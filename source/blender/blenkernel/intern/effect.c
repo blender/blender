@@ -1552,14 +1552,14 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 	
 	/* object can be linked in group... stupid exception */
 	if(NULL==object_in_scene(ob, G.scene))
-		group= find_group(ob);
+		group= find_group(ob, NULL); /* TODO - dont just use the first group! - Campbell */
 	
 	mcache= mc= MEM_mallocN( (end-start+1)*sizeof(pMatrixCache), "ob matrix cache");
 	
 	framelenold= G.scene->r.framelen;
 	G.scene->r.framelen= 1.0f;
 	cfrao= G.scene->r.cfra;
-	sfo= ob->sf;
+	sfo= ob->sf; /* warning, dont use sfo, value should be from give_timeoffset if used for anything */
 	ob->sf= 0.0f;
 
 	/* clear storage, copy recalc tag (bad loop) */

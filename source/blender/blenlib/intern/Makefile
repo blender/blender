@@ -59,3 +59,6 @@ endif
 ifeq ($(WITH_FREETYPE2), true)
 	CPPFLAGS += -DWITH_FREETYPE2
 endif
+ifeq ($(OS),linux)
+	CPPFLAGS += -I$(OCGDIR)/extern/binreloc/include
+endif

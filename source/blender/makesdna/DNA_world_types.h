@@ -104,9 +104,8 @@ typedef struct World {
 	float aodist, aodistfac, aoenergy, aobias;
 	short aomode, aosamp, aomix, aocolor;
 	float ao_adapt_thresh, ao_adapt_speed_fac;
-	float pad2[2];
-	short ao_samp_method;
-	short pad1[3];
+	float ao_approx_error, ao_approx_correction;
+	short ao_samp_method, ao_gather_method, ao_approx_passes, pad1;
 	
 	float *aosphere, *aotables;
 	
@@ -151,11 +150,16 @@ typedef struct World {
 /* aomode (use distances & random sampling modes) */
 #define WO_AODIST		1
 #define WO_AORNDSMP		2
+#define WO_AOCACHE		4
 
 /* aocolor */
 #define WO_AOPLAIN	0
 #define WO_AOSKYCOL	1
 #define WO_AOSKYTEX	2
+
+/* ao_gather_method */
+#define WO_AOGATHER_RAYTRACE	0
+#define WO_AOGATHER_APPROX		1
 
 /* texco (also in DNA_material_types.h) */
 #define TEXCO_ANGMAP	64

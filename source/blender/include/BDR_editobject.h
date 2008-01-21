@@ -111,6 +111,8 @@ void set_ob_ipoflags(void);
 void select_select_keys(void);
 int vergbaseco(const void *a1, const void *a2);
 void auto_timeoffs(void);
+void ofs_timeoffs(void);
+void rand_timeoffs(void);
 void texspace_edit(void);
 void flip_subdivison(int);
 void mirrormenu(void);

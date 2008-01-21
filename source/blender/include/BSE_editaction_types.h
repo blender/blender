@@ -37,9 +37,12 @@
 /* FILTERED ACTION DATA - TYPES */
 
 /* types of keyframe data in ActListElem */
-#define ALE_NONE	0
-#define ALE_IPO		1
-#define ALE_ICU		2
+typedef enum ALE_KEYTYPE {
+	ALE_NONE = 0,
+	ALE_IPO,	
+	ALE_ICU,
+	ALE_GROUP	
+} ALE_KEYTYPE;
 
 /* This struct defines a structure used for quick access */
 typedef struct bActListElem {
@@ -53,6 +56,8 @@ typedef struct bActListElem {
 	void	*key_data;	/* motion data - ipo or ipo-curve */
 	short	datatype;	/* type of motion data to expect */
 	
+	struct bActionGroup *grp;	/* action group that owns the channel */
+	
 	void 	*owner;		/* will either be an action channel or fake ipo-channel (for keys) */
 	short	ownertype;	/* type of owner */
 } bActListElem;
@@ -61,17 +66,21 @@ typedef struct bActListElem {
 /* FILTER ACTION DATA - METHODS/TYPES */
 
 /* filtering flags  - under what circumstances should a channel be added */
-#define ACTFILTER_VISIBLE		0x001	/* should channels be visible */
-#define ACTFILTER_SEL			0x002	/* should channels be selected */
-#define ACTFILTER_FOREDIT		0x004	/* does editable status matter */
-#define ACTFILTER_CHANNELS		0x008	/* do we only care that it is a channel */
-#define ACTFILTER_IPOKEYS		0x010	/* only channels referencing ipo's */
-#define ACTFILTER_ONLYICU		0x020	/* only reference ipo-curves */
-#define ACTFILTER_FORDRAWING	0x040	/* make list for interface drawing */
+typedef enum ACTFILTER_FLAGS {
+	ACTFILTER_VISIBLE		= (1<<0),	/* should channels be visible */
+	ACTFILTER_SEL			= (1<<1),	/* should channels be selected */
+	ACTFILTER_FOREDIT		= (1<<2),	/* does editable status matter */
+	ACTFILTER_CHANNELS		= (1<<3),	/* do we only care that it is a channel */
+	ACTFILTER_IPOKEYS		= (1<<4),	/* only channels referencing ipo's */
+	ACTFILTER_ONLYICU		= (1<<5),	/* only reference ipo-curves */
+	ACTFILTER_FORDRAWING	= (1<<6)	/* make list for interface drawing */
+} ACTFILTER_FLAGS;
 
 /* Action Editor - Main Data types */
-#define ACTCONT_NONE		0
-#define ACTCONT_ACTION		1
-#define ACTCONT_SHAPEKEY	2
+typedef enum ACTCONT_TYPES {
+	ACTCONT_NONE = 0,
+	ACTCONT_ACTION,
+	ACTCONT_SHAPEKEY
+} ACTCONT_TYPES;
 
 #endif

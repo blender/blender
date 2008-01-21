@@ -37,6 +37,8 @@
 struct SpaceLink;
 struct Object;
 
+/* -------------- Poses ----------------- */
+
 /* PoseChannel stores the results of Actions (ipos) and transform information 
    with respect to the restposition of Armature bones */
 typedef struct bPoseChannel {
@@ -49,7 +51,7 @@ typedef struct bPoseChannel {
 	short				ikflag;		/* settings for IK bones */
 	short               selectflag;	/* copy of bone flag, so you can work with library armatures */
 	short				protectflag; /* protect channels from being transformed */
-	short				customCol;	/* index of custom color set to use (0=default - used for all old files) */
+	short				agrp_index; /* index of action-group this bone belongs to (0 = default/no group) */
 	
 	int				    pathlen;	/* for drawing paths, the amount of frames */
 	int 				pathsf;		/* for drawing paths, the start frame number */
@@ -96,13 +98,45 @@ typedef struct bPose {
 	float ctime;				/* local action time of this pose */
 	float stride_offset[3];		/* applied to object */
 	float cyclic_offset[3];		/* result of match and cycles, applied in where_is_pose() */
+	
+	
+	ListBase agroups;			/* list of bActionGroups */
+	
+	int active_group;			/* index of active group (starts from 1) */
+	int pad;
 } bPose;
+
+
+/* ------------- Action  ---------------- */
+
+/* Action-Channel Group. These are stored as a list per-Action, and are only used to 
+ * group that Action's Action-Channels when displayed in the Action Editor. 
+ *
+ * Even though all Action-Channels live in a big list per Action, each group they are in also
+ * holds references to the achans within that list which belong to it. Care must be taken to
+ * ensure that action-groups never end up being the sole 'owner' of a channel.
+ */
+typedef struct bActionGroup {
+	struct bActionGroup *next, *prev;
+	
+	int flag;				/* settings for this action-group */
+	int customCol;			/* index of custom color set to use when used for bones (0=default - used for all old files) */				
+	char name[32];			/* name of the group */
+	
+	ListBase channels;		/* Note: this must not be touched by standard listbase functions */
+} bActionGroup;
 
 /* Action Channels belong to Actions. They are linked with an IPO block, and can also own 
  * Constraint Channels in certain situations. 
+ *
+ * Action-Channels can only belong to one group at a time, but they still live the Action's
+ * list of achans (to preserve backwards compatability, and also minimise the code
+ * that would need to be recoded). Grouped achans are stored at the start of the list, according
+ * to the position of the group in the list, and their position within the group. 
  */
 typedef struct bActionChannel {
 	struct bActionChannel	*next, *prev;
+	bActionGroup 			*grp;					/* Action Group this Action Channel belongs to */
 	
 	struct Ipo				*ipo;					/* IPO block this action channel references */
 	ListBase				constraintChannels;		/* Constraint Channels (when Action Channel represents an Object or Bone) */
@@ -119,11 +153,15 @@ typedef struct bAction {
 	ID				id;
 	
 	ListBase		chanbase;	/* Action Channels in this Action */
+	ListBase 		groups;		/* Action Groups in the Action */
 	ListBase 		markers;	/* TimeMarkers local to this Action for labelling 'poses' */
 	
 	int active_marker;			/* Index of active-marker (first marker = 1) */
 	int pad;
 } bAction;
+
+
+/* ------------- Action Editor --------------------- */
 
 /* Action Editor Space. This is defined here instead of in DNA_space_types.h */
 typedef struct SpaceAction {
@@ -143,6 +181,9 @@ typedef struct SpaceAction {
 	float timeslide;			/* for Time-Slide transform mode drawing - current frame? */
 } SpaceAction;
 
+
+/* -------------- Action Flags -------------- */
+
 /* Action Channel flags */
 typedef enum ACHAN_FLAG {
 	ACHAN_SELECTED	= (1<<0),
@@ -154,6 +195,20 @@ typedef enum ACHAN_FLAG {
 	ACHAN_SHOWCONS 	= (1<<6),
 	ACHAN_MOVED     = (1<<31),
 } ACHAN_FLAG; 
+
+
+/* Action Group flags */
+typedef enum AGRP_FLAG {
+	AGRP_SELECTED 	= (1<<0),
+	AGRP_ACTIVE 	= (1<<1),
+	AGRP_PROTECTED 	= (1<<2),
+	AGRP_EXPANDED 	= (1<<3),
+	
+	AGRP_TEMP		= (1<<30),
+	AGRP_MOVED 		= (1<<31)
+} AGRP_FLAG;
+
+/* ------------ Action Editor Flags -------------- */
 
 /* SpaceAction flag */
 typedef enum SACTION_FLAG {
@@ -178,6 +233,9 @@ typedef enum SACTSNAP_MODES {
 		/* snap to nearest marker */
 	SACTSNAP_MARKER,
 } SACTSNAP_MODES;	
+ 
+ 
+/* --------- Pose Flags --------------- */
 
 /* Pose->flag */
 typedef enum POSE_FLAG {

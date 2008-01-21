@@ -444,6 +444,10 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 	te->name= "UV";
 	te->directdata= &srl->passflag;
 	
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_MIST);
+	te->name= "Mist";
+	te->directdata= &srl->passflag;
+	
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_INDEXOB);
 	te->name= "Index Object";
 	te->directdata= &srl->passflag;

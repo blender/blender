@@ -2015,8 +2015,7 @@ static void draw_ghost_poses_range(Base *base)
 	if (G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 
 	ghost_poses_tag_unselected(ob, 1);		/* unhide unselected bones if need be */
-	free_pose_channels(posen);
-	MEM_freeN(posen);
+	free_pose(posen);
 	
 	/* restore */
 	CFRA= cfrao;
@@ -2092,9 +2091,8 @@ static void draw_ghost_poses_keys(Base *base)
 	if (G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 
 	ghost_poses_tag_unselected(ob, 1);		/* unhide unselected bones if need be */
-	free_pose_channels(posen);
 	BLI_freelistN(&keys);
-	MEM_freeN(posen);
+	free_pose(posen);
 	
 	/* restore */
 	CFRA= cfrao;
@@ -2193,8 +2191,7 @@ static void draw_ghost_poses(Base *base)
 	if (G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 
 	ghost_poses_tag_unselected(ob, 1);		/* unhide unselected bones if need be */
-	free_pose_channels(posen);
-	MEM_freeN(posen);
+	free_pose(posen);
 	
 	/* restore */
 	CFRA= cfrao;

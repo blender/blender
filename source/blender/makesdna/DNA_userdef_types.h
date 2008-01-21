@@ -230,7 +230,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_CUSTOM_RANGE		(1 << 17)
 #define USER_ADD_EDITMODE		(1 << 18)
 #define USER_ADD_VIEWALIGNED	(1 << 19)
-#define USER_ADD_VIEWALIGNED	(1 << 19)
+#define USER_RELPATHS			(1 << 20)
 
 /* viewzom */
 #define USER_ZOOM_CONT			0

@@ -38,6 +38,7 @@ struct Ipo;
 struct IpoCurve;
 struct gla2DDrawInfo;
 struct bAction;
+struct bActionGroup;
 struct Object;
 struct ListBase;
 
@@ -75,14 +76,16 @@ void draw_cfra_action(void);
 /* Channel Drawing */
 void draw_icu_channel(struct gla2DDrawInfo *di, struct IpoCurve *icu, float ypos);
 void draw_ipo_channel(struct gla2DDrawInfo *di, struct Ipo *ipo, float ypos);
-void draw_action_channel(struct gla2DDrawInfo *di, bAction *act, float ypos);
-void draw_object_channel(struct gla2DDrawInfo *di, Object *ob, float ypos);
+void draw_agroup_channel(struct gla2DDrawInfo *di, struct bActionGroup *agrp, float ypos);
+void draw_action_channel(struct gla2DDrawInfo *di, struct bAction *act, float ypos);
+void draw_object_channel(struct gla2DDrawInfo *di, struct Object *ob, float ypos);
 
 /* Keydata Generation */
 void icu_to_keylist(struct IpoCurve *icu, ListBase *keys, ListBase *blocks);
 void ipo_to_keylist(struct Ipo *ipo, ListBase *keys, ListBase *blocks);
-void action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks);
-void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks);
+void agroup_to_keylist(struct bActionGroup *agrp, ListBase *keys, ListBase *blocks);
+void action_to_keylist(struct bAction *act, ListBase *keys, ListBase *blocks);
+void ob_to_keylist(struct Object *ob, ListBase *keys, ListBase *blocks);
 
 #endif  /*  BDR_DRAWACTION_H */
 

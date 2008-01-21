@@ -969,7 +969,7 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 	}
 }
 
-void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height)
+void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height, int channels)
 {
 	struct StampData stamp_data;
 	
@@ -1017,7 +1017,7 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height)
 		/* Top left corner */
 		text_width = BMF_GetStringWidth(font, stamp_data.file);
 		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.file, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
+		BMF_DrawStringBuf(font, stamp_data.file, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
 		y -= font_height+2; /* Top and bottom 1 pix padding each */
 	}
 
@@ -1025,7 +1025,7 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height)
 	if (stamp_data.note[0]) {
 		text_width = BMF_GetStringWidth(font, stamp_data.note);
 		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.note, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
+		BMF_DrawStringBuf(font, stamp_data.note, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
 		y -= font_height+2; /* Top and bottom 1 pix padding each */
 	}
 	
@@ -1033,7 +1033,7 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height)
 	if (stamp_data.date[0]) {
 		text_width = BMF_GetStringWidth(font, stamp_data.date);
 		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.date, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
+		BMF_DrawStringBuf(font, stamp_data.date, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
 	}
 
 	/* Bottom left corner, leaving space for timing */
@@ -1042,7 +1042,7 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height)
 		y = font_height+2+1; /* 2 for padding in TIME|FRAME fields below and 1 for padding in this one */
 		text_width = BMF_GetStringWidth(font, stamp_data.marker);
 		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.marker, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
+		BMF_DrawStringBuf(font, stamp_data.marker, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
 	}
 	
 	/* Left bottom corner */
@@ -1051,7 +1051,7 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height)
 		y = 1;
 		text_width = BMF_GetStringWidth(font, stamp_data.time);
 		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.time, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
+		BMF_DrawStringBuf(font, stamp_data.time, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
 		x += text_width+text_pad+2; /* Both sides have 1 pix additional padding each */
 	}
 	
@@ -1061,7 +1061,7 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height)
 		if (!stamp_data.time[0])	x = 1;
 		y = 1;
 		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.frame, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
+		BMF_DrawStringBuf(font, stamp_data.frame, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
 	}
 
 	if (stamp_data.camera[0]) {
@@ -1070,7 +1070,7 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height)
 		x = (width/2) - (BMF_GetStringWidth(font, stamp_data.camera)/2);
 		y = 1;
 		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.camera, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
+		BMF_DrawStringBuf(font, stamp_data.camera, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
 	}
 	
 	if (stamp_data.scene[0]) {
@@ -1079,7 +1079,7 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height)
 		x = width - (text_width+1+text_pad);
 		y = 1;
 		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.scene, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
+		BMF_DrawStringBuf(font, stamp_data.scene, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
 	}
 	
 	if (stamp_data.strip[0]) {
@@ -1088,7 +1088,7 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height)
 		x = width - (text_width+1+text_pad);
 		y = height - font_height - 1;
 		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.strip, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
+		BMF_DrawStringBuf(font, stamp_data.strip, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
 	}
 	
 }

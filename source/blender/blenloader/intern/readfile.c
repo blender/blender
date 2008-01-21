@@ -1861,12 +1861,24 @@ static void direct_link_bones(FileData *fd, Bone* bone)
 static void direct_link_action(FileData *fd, bAction *act)
 {
 	bActionChannel *achan;
+	bActionGroup *agrp;
 
 	link_list(fd, &act->chanbase);
+	link_list(fd, &act->groups);
 	link_list(fd, &act->markers);
 
-	for (achan = act->chanbase.first; achan; achan=achan->next)
+	for (achan = act->chanbase.first; achan; achan=achan->next) {
+		achan->grp= newdataadr(fd, achan->grp);
+		
 		link_list(fd, &achan->constraintChannels);
+	}
+		
+	for (agrp = act->groups.first; agrp; agrp= agrp->next) {
+		if (agrp->channels.first) {
+			agrp->channels.first= newdataadr(fd, agrp->channels.first);
+			agrp->channels.last= newdataadr(fd, agrp->channels.last);
+		}
+	}
 }
 
 static void direct_link_armature(FileData *fd, bArmature *arm)
@@ -2528,6 +2540,11 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 			for(a=0; a<psys->totpart; a++, pa++)
 				pa->hair=newdataadr(fd,pa->hair);
 		}
+		if(psys->particles && psys->particles->keys){
+			ParticleData *pa = psys->particles;
+			for(a=0; a<psys->totpart; a++, pa++)
+				pa->keys=newdataadr(fd,pa->keys);
+		}
 		psys->child=newdataadr(fd,psys->child);
 		psys->effectors.first=psys->effectors.last=0;
 
@@ -2815,8 +2832,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				else printf("Object %s lost data.", ob->id.name+2);
 				
 				if(ob->pose) {
-					free_pose_channels(ob->pose);
-					MEM_freeN(ob->pose);
+					free_pose(ob->pose);
 					ob->pose= NULL;
 					ob->flag &= ~OB_POSEMODE;
 				}
@@ -2953,6 +2969,7 @@ static void direct_link_pose(FileData *fd, bPose *pose) {
 		return;
 
 	link_list(fd, &pose->chanbase);
+	link_list(fd, &pose->agroups);
 
 	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
 		pchan->bone= NULL;
@@ -6718,6 +6735,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Lamp *la;
 		Material *ma;
 		ParticleSettings *part;
+		World *wrld;
 		Mesh *me;
 		
 		/* unless the file was created 2.44.3 but not 2.45, update the constraints */
@@ -6896,6 +6914,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				part->simplify_transition= 0.1f;
 				part->simplify_viewport= 0.8f;
 			}
+		}
+
+		for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
+			if(wrld->ao_approx_error == 0.0f)
+				wrld->ao_approx_error= 0.25f;
 		}
 
 		if (main->versionfile < 245 || main->subversionfile < 12)
@@ -7531,6 +7554,14 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 	}
 }
 
+static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSettings *part)
+{
+	expand_doit(fd, mainvar, part->dup_ob);
+	expand_doit(fd, mainvar, part->dup_group);
+	expand_doit(fd, mainvar, part->eff_group);
+	expand_doit(fd, mainvar, part->bb_ob);
+}
+
 static void expand_ipo(FileData *fd, Main *mainvar, Ipo *ipo)
 {
 	IpoCurve *icu;
@@ -8123,6 +8154,8 @@ static void expand_main(FileData *fd, Main *mainvar)
 					case ID_IP:
 						expand_ipo(fd, mainvar, (Ipo *)id);
 						break;
+					case ID_PA:
+						expand_particlesettings(fd, mainvar, (ParticleSettings *)id);
 					}
 
 					doit= 1;
@@ -8146,34 +8179,42 @@ static int object_in_any_scene(Object *ob)
 }
 
 /* when *lib set, it also does objects that were in the appended group */
-static void give_base_to_objects(Scene *sce, ListBase *lb, Library *lib)
+static void give_base_to_objects(Scene *sce, ListBase *lb, Library *lib, int is_group_append)
 {
 	Object *ob;
 	Base *base;
 
 	/* give all objects which are LIB_INDIRECT a base, or for a group when *lib has been set */
 	for(ob= lb->first; ob; ob= ob->id.next) {
-
+		
 		if( ob->id.flag & LIB_INDIRECT ) {
-			int do_it= 0;
 			
-			if(ob->id.us==0)
-				do_it= 1;
-			else if(ob->id.us==1 && lib)
-				if(ob->id.lib==lib && (ob->flag & OB_FROMGROUP) && object_in_any_scene(ob)==0)
-					do_it= 1;
-					
-			if(do_it) {
-				base= MEM_callocN( sizeof(Base), "add_ext_base");
-				BLI_addtail(&(sce->base), base);
-				base->lay= ob->lay;
-				base->object= ob;
-				base->flag= ob->flag;
-				ob->id.us= 1;
+				/* IF below is quite confusing!
+				if we are appending, but this object wasnt just added allong with a group,
+				then this is alredy used indirectly in the scene somewhere else and we didnt just append it.
 				
-				ob->id.flag -= LIB_INDIRECT;
-				ob->id.flag |= LIB_EXTERN;
-
+				(ob->id.flag & LIB_APPEND_TAG)==0 means that this is a newly appended object - Campbell */
+			if (is_group_append==0 || (ob->id.flag & LIB_APPEND_TAG)==0) {
+				
+				int do_it= 0;
+				
+				if(ob->id.us==0)
+					do_it= 1;
+				else if(ob->id.us==1 && lib)
+					if(ob->id.lib==lib && (ob->flag & OB_FROMGROUP) && object_in_any_scene(ob)==0)
+						do_it= 1;
+						
+				if(do_it) {
+					base= MEM_callocN( sizeof(Base), "add_ext_base");
+					BLI_addtail(&(sce->base), base);
+					base->lay= ob->lay;
+					base->object= ob;
+					base->flag= ob->flag;
+					ob->id.us= 1;
+					
+					ob->id.flag -= LIB_INDIRECT;
+					ob->id.flag |= LIB_EXTERN;
+				}
 			}
 		}
 	}
@@ -8312,11 +8353,15 @@ static Library* library_append( Scene *scene, char* file, char *dir, int idcode,
 	lib_verify_nodetree(G.main);
 
 	/* give a base to loose objects. If group append, do it for objects too */
-	if(idcode==ID_GR)
-		give_base_to_objects(scene, &(G.main->object), (flag & FILE_LINK)?NULL:curlib);
-	else
-		give_base_to_objects(scene, &(G.main->object), NULL);
-	
+	if(idcode==ID_GR) {
+		if (flag & FILE_LINK) {
+			give_base_to_objects(scene, &(G.main->object), NULL, 0);
+		} else {
+			give_base_to_objects(scene, &(G.main->object), curlib, 1);
+		}	
+	} else {
+		give_base_to_objects(scene, &(G.main->object), NULL, 0);
+	}
 	/* has been removed... erm, why? s..ton) */
 	/* 20040907: looks like they are give base already in append_named_part(); -Nathan L */
 	/* 20041208: put back. It only linked direct, not indirect objects (ton) */

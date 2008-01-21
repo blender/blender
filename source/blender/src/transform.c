@@ -365,7 +365,7 @@ int addMatrixSpace(float mat[3][3], char name[]) {
 
 	BIF_undo_push("Add/Update Transform Orientation");
 	
-	return BIF_countTransformOrientation() - 1;
+	return index;
 }
 
 void BIF_removeTransformOrientation(TransformOrientation *target) {

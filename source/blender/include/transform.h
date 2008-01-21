@@ -265,18 +265,19 @@ typedef struct TransInfo {
 
 /* transdata->flag */
 #define TD_SELECTED			1
-#define	TD_NOACTION			2
-#define	TD_USEQUAT			4
-#define TD_NOTCONNECTED		8
-#define TD_SINGLESIZE		16	/* used for scaling of MetaElem->rad */
+#define TD_ACTIVE			(1 << 1)
+#define	TD_NOACTION			(1 << 2)
+#define	TD_USEQUAT			(1 << 3)
+#define TD_NOTCONNECTED		(1 << 4)
+#define TD_SINGLESIZE		(1 << 5)	/* used for scaling of MetaElem->rad */
 #ifdef WITH_VERSE
-	#define TD_VERSE_OBJECT		32
-	#define TD_VERSE_VERT		64
+	#define TD_VERSE_OBJECT		(1 << 6)
+	#define TD_VERSE_VERT		(1 << 7)
 #endif
-#define TD_TIMEONLY			128
-#define TD_NOCENTER			256
-#define TD_NO_EXT			512	/* ext abused for particle key timing */
-#define TD_SKIP				1024 /* don't transform this data */
+#define TD_TIMEONLY			(1 << 8)
+#define TD_NOCENTER			(1 << 9)
+#define TD_NO_EXT			(1 << 10)	/* ext abused for particle key timing */
+#define TD_SKIP				(1 << 11)	/* don't transform this data */
 
 /* transsnap->status */
 #define SNAP_ON			1
@@ -291,6 +292,7 @@ typedef struct TransInfo {
 #define SNAP_CLOSEST		0
 #define SNAP_CENTER			1
 #define SNAP_MEDIAN			2
+#define SNAP_ACTIVE			3
 
 void checkFirstTime(void);
 

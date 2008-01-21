@@ -161,11 +161,16 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	}
 	
 	/* MIST */
-	if((R.wrld.mode & WO_MIST) && (shi->mat->mode & MA_NOMIST)==0 ) {
+	if((shi->passflag & SCE_PASS_MIST) || ((R.wrld.mode & WO_MIST) && (shi->mat->mode & MA_NOMIST)==0))  {
 		if(R.r.mode & R_ORTHO)
-			alpha= mistfactor(-shi->co[2], shi->co);
+			shr->mist= mistfactor(-shi->co[2], shi->co);
 		else
-			alpha= mistfactor(VecLength(shi->co), shi->co);
+			shr->mist= mistfactor(VecLength(shi->co), shi->co);
+	}
+	else shr->mist= 0.0f;
+	
+	if((R.wrld.mode & WO_MIST) && (shi->mat->mode & MA_NOMIST)==0 ) {
+		alpha= shr->mist;
 	}
 	else alpha= 1.0f;
 	
@@ -422,7 +427,7 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 		}
 
 		if(texco & TEXCO_STRAND) {
-			shi->strand= spoint->strandco;
+			shi->strandco= spoint->strandco;
 
 			if(shi->osatex) {
 				shi->dxstrand= spoint->dtstrandco;
@@ -935,7 +940,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 		}
 		
 		if(texco & TEXCO_STRAND) {
-			shi->strand= (l*v3->accum - u*v1->accum - v*v2->accum);
+			shi->strandco= (l*v3->accum - u*v1->accum - v*v2->accum);
 			if(shi->osatex) {
 				dl= shi->dx_u+shi->dx_v;
 				shi->dxstrand= dl*v3->accum-shi->dx_u*v1->accum-shi->dx_v*v2->accum;
@@ -1236,7 +1241,7 @@ void shade_samples_do_AO(ShadeSample *ssamp)
 	
 	if(!(R.r.mode & R_SHADOW))
 		return;
-	if(!(R.r.mode & R_RAYTRACE))
+	if(!(R.r.mode & R_RAYTRACE) && !(R.wrld.ao_gather_method == WO_AOGATHER_APPROX))
 		return;
 	
 	if(R.wrld.mode & WO_AMB_OCC)
@@ -1248,7 +1253,7 @@ void shade_samples_do_AO(ShadeSample *ssamp)
 }
 
 
-static void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, int y)
+void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, int y)
 {
 	ShadeInput *shi;
 	float xs, ys;
