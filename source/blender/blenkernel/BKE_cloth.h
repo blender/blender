@@ -129,38 +129,39 @@ void implicit_set_positions ( ClothModifierData *clmd );
 void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm, float ( *vertexCos ) [3], int numverts );
 
 // used in collision.c
-typedef struct Tree
+typedef struct CollisionTree
 {
-	struct Tree *nodes[4]; // 4 children --> quad-tree
-	struct Tree *parent;
-	struct Tree *nextLeaf;
-	struct Tree *prevLeaf;
+	struct CollisionTree *nodes[4]; // 4 children --> quad-tree
+	struct CollisionTree *parent;
+	struct CollisionTree *nextLeaf;
+	struct CollisionTree *prevLeaf;
 	float	bv[26]; // Bounding volume of all nodes / we have 7 axes on a 14-DOP
 	unsigned int tri_index; // this saves the index of the face
+	// int point_index[4]; // supports up to 4 points in a leaf
 	int	count_nodes; // how many nodes are used
 	int	traversed;  // how many nodes already traversed until this level?
 	int	isleaf;
 }
-Tree;
-
-typedef struct Tree TreeNode;
+CollisionTree;
 
 typedef struct BVH
 {
 	unsigned int 	numfaces;
 	unsigned int 	numverts;
-	ClothVertex 	*verts; // just a pointer to the original datastructure
+	// ClothVertex 	*verts; // just a pointer to the original datastructure
+	MVert 		*current_x; // e.g. txold in clothvertex
+	MVert 		*current_xold; // e.g. tx in clothvertex
 	MFace 		*mfaces; // just a pointer to the original datastructure
 	struct LinkNode *tree;
-	TreeNode 	*root; // TODO: saving the root --> is this really needed? YES!
-	TreeNode 	*leaf_tree; /* Tail of the leaf linked list.	*/
-	TreeNode 	*leaf_root;	/* Head of the leaf linked list.	*/
+	CollisionTree 	*root; // TODO: saving the root --> is this really needed? YES!
+	CollisionTree 	*leaf_tree; /* Tail of the leaf linked list.	*/
+	CollisionTree 	*leaf_root;	/* Head of the leaf linked list.	*/
 	float 		epsilon; /* epslion is used for inflation of the k-dop	   */
 	int 		flags; /* bvhFlags */
 }
 BVH;
 
-typedef void ( *CM_COLLISION_RESPONSE ) ( ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree * tree1, Tree * tree2 );
+typedef void ( *CM_COLLISION_RESPONSE ) ( ClothModifierData *clmd, ClothModifierData *coll_clmd, CollisionTree * tree1, CollisionTree * tree2 );
 
 
 /////////////////////////////////////////////////
@@ -168,8 +169,14 @@ typedef void ( *CM_COLLISION_RESPONSE ) ( ClothModifierData *clmd, ClothModifier
 ////////////////////////////////////////////////
 
 // needed for implicit.c
-void bvh_collision_response ( ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree * tree1, Tree * tree2 );
+void bvh_collision_response ( ClothModifierData *clmd, ClothModifierData *coll_clmd, CollisionTree * tree1, CollisionTree * tree2 );
 int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt );
+
+// needed for modifier.c
+BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int numverts, float epsilon);
+
+// needed for collision.c
+void bvh_update_from_mvert(BVH * bvh, MVert *x, unsigned int numverts, MVert *xnew, int moving);
 
 ////////////////////////////////////////////////
 
@@ -180,13 +187,12 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt );
 
 // needed for cloth.c
 void bvh_free ( BVH * bvh );
-BVH *bvh_build ( ClothModifierData *clmd, float epsilon );
+void bvh_build (BVH *bvh);
 LinkNode *BLI_linklist_append_fast ( LinkNode **listp, void *ptr );
 
 // needed for collision.c
-int bvh_traverse ( ClothModifierData * clmd, ClothModifierData * coll_clmd, Tree * tree1, Tree * tree2, float step, CM_COLLISION_RESPONSE collision_response );
-void bvh_update ( ClothModifierData * clmd, BVH * bvh, int moving );
-
+int bvh_traverse ( ClothModifierData * clmd, ClothModifierData * coll_clmd, CollisionTree * tree1, CollisionTree * tree2, float step, CM_COLLISION_RESPONSE collision_response );
+void bvh_update(BVH * bvh, int moving);
 ////////////////////////////////////////////////
 
 
@@ -198,6 +204,9 @@ void cloth_free_modifier ( ClothModifierData *clmd );
 void cloth_init ( ClothModifierData *clmd );
 void cloth_deform_verts ( struct Object *ob, float framenr, float ( *vertexCos ) [3], int numVerts, void *derivedData, ClothModifierData *clmd );
 void cloth_update_normals ( ClothVertex *verts, int nVerts, MFace *face, int totface );
+
+// needed for collision.c
+void bvh_update_from_cloth(ClothModifierData *clmd, int moving);
 
 ////////////////////////////////////////////////
 

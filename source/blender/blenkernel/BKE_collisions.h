@@ -79,6 +79,7 @@ typedef struct BVH
 }
 BVH;
 
+
 /* used for collisions in kdop.c and also collision.c*/
 typedef struct CollisionPair
 {

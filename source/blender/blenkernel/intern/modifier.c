@@ -75,6 +75,7 @@
 #include "BKE_main.h"
 #include "BKE_anim.h"
 #include "BKE_bad_level_calls.h"
+#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
@@ -5031,6 +5032,145 @@ static void clothModifier_freeData(ModifierData *md)
 	}
 }
 
+/* Collision */
+
+static void collisionModifier_initData(ModifierData *md) 
+{
+	CollisionModifierData *collmd = (CollisionModifierData*) md;
+	
+	collmd->x = NULL;
+	collmd->xnew = NULL;
+	collmd->current_x = NULL;
+	collmd->current_xnew = NULL;
+	collmd->current_v = NULL;
+	collmd->time = -1;
+	collmd->numverts = 0;
+	collmd->tree = NULL;
+}
+
+static void collisionModifier_freeData(ModifierData *md)
+{
+	CollisionModifierData *collmd = (CollisionModifierData*) md;
+	
+	if (collmd) 
+	{
+		if(collmd->tree)
+			bvh_free(collmd->tree);
+		if(collmd->x)
+			MEM_freeN(collmd->x);
+		if(collmd->xnew)
+			MEM_freeN(collmd->xnew);
+		if(collmd->current_x)
+			MEM_freeN(collmd->current_x);
+		if(collmd->current_xnew)
+			MEM_freeN(collmd->current_xnew);
+		if(collmd->current_v)
+			MEM_freeN(collmd->current_v);
+		
+		collmd->x = NULL;
+		collmd->xnew = NULL;
+		collmd->current_x = NULL;
+		collmd->current_xnew = NULL;
+		collmd->current_v = NULL;
+		collmd->time = -1;
+		collmd->numverts = 0;
+		collmd->tree = NULL;
+	}
+}
+
+static int collisionModifier_dependsOnTime(ModifierData *md)
+{
+	return 1;
+}
+
+static void collisionModifier_deformVerts(
+	ModifierData *md, Object *ob, DerivedMesh *derivedData,
+       float (*vertexCos)[3], int numVerts)
+{
+	CollisionModifierData *collmd = (CollisionModifierData*) md;
+	DerivedMesh *dm = NULL;
+	float current_time = 0;
+	unsigned int numverts = 0, i = 0;
+	MVert *tempVert = NULL;
+
+	// if possible use/create DerivedMesh
+	
+	if(derivedData) dm = CDDM_copy(derivedData);
+	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
+	
+	if(!ob->pd)
+	{
+		printf("collisionModifier_deformVerts: Should not happen!\n");
+		return;
+	}
+	
+	if(dm)
+	{
+		CDDM_apply_vert_coords(dm, vertexCos);
+		CDDM_calc_normals(dm);
+	
+	
+		current_time = bsystem_time ( ob, ( float ) G.scene->r.cfra, 0.0 );
+		
+		if(current_time > collmd->time)
+		{
+			numverts = dm->getNumVerts ( dm );
+			
+			// check if mesh has changed
+			if(collmd->x && (numverts != collmd->numverts))
+				collisionModifier_freeData((ModifierData *)collmd);
+			
+			if(collmd->time == -1) // first time
+			{
+				collmd->x = dm->dupVertArray(dm); // frame start position
+				
+				for ( i = 0; i < numverts; i++ )
+				{
+					// we save global positions
+					Mat4MulVecfl ( ob->obmat, collmd->x[i].co );
+				}
+				
+				collmd->xnew = MEM_dupallocN(collmd->x); // frame end position
+				collmd->current_x = MEM_dupallocN(collmd->x); // inter-frame
+				collmd->current_xnew = MEM_dupallocN(collmd->x); // inter-frame
+				collmd->current_v = MEM_dupallocN(collmd->x); // inter-frame
+
+				collmd->numverts = numverts;
+				
+				// TODO: epsilon
+				// create bounding box hierarchy
+				collmd->tree = bvh_build_from_mvert(dm->getFaceArray(dm), dm->getNumFaces(dm), collmd->current_x, numverts, ob->pd->pdef_sbift);
+			}
+			else if(numverts == collmd->numverts)
+			{
+				// put positions to old positions
+				tempVert = collmd->x;
+				collmd->x = collmd->xnew;
+				collmd->xnew = tempVert;
+				
+				memcpy(collmd->xnew, dm->getVertArray(dm), numverts*sizeof(MVert));
+				
+				for ( i = 0; i < numverts; i++ )
+				{
+					// we save global positions
+					Mat4MulVecfl ( ob->obmat, collmd->xnew[i].co );
+				}
+				
+				memcpy(collmd->current_xnew, dm->getVertArray(dm), numverts*sizeof(MVert));
+				memcpy(collmd->current_x, dm->getVertArray(dm), numverts*sizeof(MVert));
+				
+				// recalc static bounding boxes
+				bvh_update_from_mvert(collmd->tree, collmd->current_x, numverts, NULL, 0);
+			}
+			
+			collmd->time = current_time;
+		}
+	}
+	
+	if(dm)
+		dm->release(dm);
+}
+
 /* Boolean */
 
 static void booleanModifier_copyData(ModifierData *md, ModifierData *target)
@@ -6855,6 +6995,16 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		// mti->copyData = clothModifier_copyData;
 		mti->deformVerts = clothModifier_deformVerts;
 		mti->updateDepgraph = clothModifier_updateDepgraph;
+		
+		mti = INIT_TYPE(Collision);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->initData = collisionModifier_initData;
+		mti->flags = eModifierTypeFlag_AcceptsMesh 
+				| eModifierTypeFlag_RequiresOriginalData;
+		mti->dependsOnTime = collisionModifier_dependsOnTime;
+		mti->freeData = collisionModifier_freeData; 
+		mti->deformVerts = collisionModifier_deformVerts;
+		// mti->copyData = collisionModifier_copyData;
 
 		mti = INIT_TYPE(Boolean);
 		mti->type = eModifierTypeType_Nonconstructive;

@@ -160,6 +160,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms.maxspringlen = 10;
 	clmd->sim_parms.firstframe = 1;
 	clmd->sim_parms.lastframe = 250;
+	clmd->sim_parms.vgroup_mass = 0;
 	clmd->coll_parms.self_friction = 5.0;
 	clmd->coll_parms.friction = 10.0;
 	clmd->coll_parms.loop_count = 1;
@@ -175,11 +176,89 @@ void cloth_init ( ClothModifierData *clmd )
 	// also from softbodies
 	clmd->sim_parms.maxgoal = 1.0f;
 	clmd->sim_parms.mingoal = 0.0f;
-	clmd->sim_parms.defgoal = 0.7f;
+	clmd->sim_parms.defgoal = 0.0f;
 	clmd->sim_parms.goalspring = 100.0f;
 	clmd->sim_parms.goalfrict = 0.0f;
 
 	clmd->sim_parms.cache = NULL;
+}
+
+
+BVH *bvh_build_from_cloth (ClothModifierData *clmd, float epsilon)
+{
+	unsigned int i = 0;
+	BVH	*bvh=NULL;
+	Cloth *cloth = clmd->clothObject;
+	ClothVertex *verts = NULL;
+
+	if(!clmd)
+		return NULL;
+
+	cloth = clmd->clothObject;
+
+	if(!cloth)
+		return NULL;
+	
+	verts = cloth->verts;
+	
+	bvh = MEM_callocN(sizeof(BVH), "BVH");
+	if (bvh == NULL) 
+	{
+		printf("bvh: Out of memory.\n");
+		return NULL;
+	}
+	
+	// springs = cloth->springs;
+	// numsprings = cloth->numsprings;
+	
+	bvh->flags = 0;
+	bvh->leaf_tree = NULL;
+	bvh->leaf_root = NULL;
+	bvh->tree = NULL;
+
+	bvh->epsilon = epsilon;
+	bvh->numfaces = cloth->numfaces;
+	bvh->mfaces = cloth->mfaces;
+
+	bvh->numverts = cloth->numverts;
+	
+	bvh->current_x = MEM_callocN ( sizeof ( MVert ) * bvh->numverts, "bvh->current_x" );
+	bvh->current_xold = MEM_callocN ( sizeof ( MVert ) * bvh->numverts, "bvh->current_xold" );
+	
+	for(i = 0; i < bvh->numverts; i++)
+	{
+		VECCOPY(bvh->current_x[i].co, verts[i].tx);
+		VECCOPY(bvh->current_xold[i].co, verts[i].txold);
+	}
+	
+	bvh_build (bvh);
+	
+	return bvh;
+}
+
+void bvh_update_from_cloth(ClothModifierData *clmd, int moving)
+{
+	unsigned int i = 0;
+	Cloth *cloth = clmd->clothObject;
+	BVH *bvh = cloth->tree;
+	ClothVertex *verts = cloth->verts;
+	
+	if(!bvh)
+		return;
+	
+	if(cloth->numverts!=bvh->numverts)
+		return;
+	
+	if(cloth->verts)
+	{
+		for(i = 0; i < bvh->numverts; i++)
+		{
+			VECCOPY(bvh->current_x[i].co, verts[i].tx);
+			VECCOPY(bvh->current_xold[i].co, verts[i].txold);
+		}
+	}
+	
+	bvh_update(bvh, moving);
 }
 
 // unused in the moment, cloth needs quads from mesh
@@ -433,9 +512,9 @@ static void cloth_write_cache(Object *ob, ClothModifierData *clmd, float framenr
 	
 	for(a = 0; a < cloth->numverts; a++)
 	{
-		fwrite(&cloth->verts[a].x, sizeof(float),4,fp);
-		fwrite(&cloth->verts[a].xconst, sizeof(float),4,fp);
-		fwrite(&cloth->verts[a].v, sizeof(float),4,fp);
+		fwrite(&cloth->verts[a].x, sizeof(float),3,fp);
+		fwrite(&cloth->verts[a].xconst, sizeof(float),3,fp);
+		fwrite(&cloth->verts[a].v, sizeof(float),3,fp);
 	}
 	
 	fclose(fp);
@@ -458,17 +537,17 @@ static int cloth_read_cache(Object *ob, ClothModifierData *clmd, float framenr)
 	else {
 		for(a = 0; a < cloth->numverts; a++)
 		{
-			if(fread(&cloth->verts[a].x, sizeof(float), 4, fp) != 4) 
+			if(fread(&cloth->verts[a].x, sizeof(float), 3, fp) != 3) 
 			{
 				ret = 0;
 				break;
 			}
-			if(fread(&cloth->verts[a].xconst, sizeof(float), 4, fp) != 4) 
+			if(fread(&cloth->verts[a].xconst, sizeof(float), 3, fp) != 3) 
 			{
 				ret = 0;
 				break;
 			}
-			if(fread(&cloth->verts[a].v, sizeof(float), 4, fp) != 4) 
+			if(fread(&cloth->verts[a].v, sizeof(float), 3, fp) != 3) 
 			{
 				ret = 0;
 				break;
@@ -656,7 +735,7 @@ void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 					solvers [clmd->sim_parms.solver_type].solver ( ob, framenr, clmd, effectors );
 
 				tend();
-				printf ( "Cloth simulation time: %f\n", ( float ) tval() );
+				// printf ( "Cloth simulation time: %f\n", ( float ) tval() );
 
 				cloth_write_cache(ob, clmd, framenr);
 
@@ -830,7 +909,13 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm, short
 					{
 						verts->goal = dvert->dw [j].weight;
 
-						goalfac= ABS ( clmd->sim_parms.maxgoal - clmd->sim_parms.mingoal );
+						goalfac= 1.0f;
+						
+						/*
+						// Kicking goal factor to simplify things...who uses that anyway?
+						// ABS ( clmd->sim_parms.maxgoal - clmd->sim_parms.mingoal );
+						*/
+						
 						verts->goal  = ( float ) pow ( verts->goal , 4.0f );
 
 						if ( dvert->dw [j].weight >=SOFTGOALSNAP )
@@ -905,7 +990,7 @@ static int collobj_from_object ( Object *ob, ClothModifierData *clmd, DerivedMes
 					verts->impulse_count = 0;
 					VECCOPY ( verts->impulse, tnull );
 				}
-				clmd->clothObject->tree =  bvh_build ( clmd,clmd->coll_parms.epsilon );
+				clmd->clothObject->tree =  bvh_build_from_cloth ( clmd,clmd->coll_parms.epsilon );
 
 			}
 
@@ -1012,7 +1097,7 @@ static int cloth_from_object ( Object *ob, ClothModifierData *clmd, DerivedMesh 
 				if ( solvers [clmd->sim_parms.solver_type].init )
 					solvers [clmd->sim_parms.solver_type].init ( ob, clmd );
 
-				clmd->clothObject->tree = bvh_build ( clmd, clmd->coll_parms.epsilon );
+				clmd->clothObject->tree = bvh_build_from_cloth ( clmd, clmd->coll_parms.epsilon );
 
 				cloth_write_cache(ob, clmd, framenr-1);
 			}

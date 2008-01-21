@@ -70,7 +70,72 @@
 
 #include "Bullet-C-Api.h"
 
+// step is limited from 0 (frame start position) to 1 (frame end position)
+void collision_move_object(CollisionModifierData *collmd, float step, float prevstep)
+{
+	float tv[3] = {0,0,0};
+	unsigned int i = 0;
+	
+	for ( i = 0; i < collmd->numverts; i++ )
+	{
+		VECSUB(tv, collmd->xnew[i].co, collmd->x[i].co);
+		VECADDS(collmd->current_x[i].co, collmd->x[i].co, tv, prevstep);
+		VECADDS(collmd->current_xnew[i].co, collmd->x[i].co, tv, step);
+		VECSUB(collmd->current_v[i].co, collmd->current_xnew[i].co, collmd->current_x[i].co);
+	}
+}
 
+BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int numverts, float epsilon)
+{
+	BVH *bvh=NULL;
+	
+	bvh = MEM_callocN(sizeof(BVH), "BVH");
+	if (bvh == NULL) 
+	{
+		printf("bvh: Out of memory.\n");
+		return NULL;
+	}
+	
+	bvh->flags = 0;
+	bvh->leaf_tree = NULL;
+	bvh->leaf_root = NULL;
+	bvh->tree = NULL;
+
+	bvh->epsilon = epsilon;
+	bvh->numfaces = numfaces;
+	bvh->mfaces = mfaces;
+	
+	// we have no faces, we save seperate points
+	if(!mfaces)
+	{
+		bvh->numfaces = numverts;
+	}
+
+	bvh->numverts = numverts;
+	bvh->current_x = MEM_dupallocN(x);	
+	bvh->current_xold = MEM_dupallocN(x);	
+	
+	bvh_build(bvh);
+	
+	return bvh;
+}
+
+void bvh_update_from_mvert(BVH * bvh, MVert *x, unsigned int numverts, MVert *xnew, int moving)
+{
+	if(!bvh)
+		return;
+	
+	if(numverts!=bvh->numverts)
+		return;
+	
+	if(x)
+		memcpy(bvh->current_xold, x, sizeof(MVert) * numverts);
+	
+	if(xnew)
+		memcpy(bvh->current_x, xnew, sizeof(MVert) * numverts);
+	
+	bvh_update(bvh, moving);
+}
 
 /**
  * gsl_poly_solve_cubic -
@@ -519,7 +584,7 @@ int cloth_collision_response_moving_edges(ClothModifierData *clmd, ClothModifier
 	
 }
 
-void cloth_collision_static(ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree *tree1, Tree *tree2)
+void cloth_collision_static(ClothModifierData *clmd, ClothModifierData *coll_clmd, CollisionTree *tree1, CollisionTree *tree2)
 {
 	CollPair *collpair = NULL;
 	Cloth *cloth1=NULL, *cloth2=NULL;
@@ -667,7 +732,7 @@ int cloth_are_edges_adjacent(ClothModifierData *clmd, ClothModifierData *coll_cl
 	return 0;
 }
 
-void cloth_collision_moving_edges(ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree *tree1, Tree *tree2)
+void cloth_collision_moving_edges(ClothModifierData *clmd, ClothModifierData *coll_clmd, CollisionTree *tree1, CollisionTree *tree2)
 {
 	EdgeCollPair edgecollpair;
 	Cloth *cloth1=NULL, *cloth2=NULL;
@@ -802,7 +867,7 @@ void cloth_collision_moving_edges(ClothModifierData *clmd, ClothModifierData *co
 	}		
 }
 
-void cloth_collision_moving_tris(ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree *tree1, Tree *tree2)
+void cloth_collision_moving_tris(ClothModifierData *clmd, ClothModifierData *coll_clmd, CollisionTree *tree1, CollisionTree *tree2)
 {
 	CollPair collpair;
 	Cloth *cloth1=NULL, *cloth2=NULL;
@@ -896,7 +961,7 @@ void cloth_collision_moving_tris(ClothModifierData *clmd, ClothModifierData *col
 	}
 }
 
-void cloth_collision_moving(ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree *tree1, Tree *tree2)
+void cloth_collision_moving(ClothModifierData *clmd, ClothModifierData *coll_clmd, CollisionTree *tree1, CollisionTree *tree2)
 {
 	// TODO: check for adjacent
 	cloth_collision_moving_edges(clmd, coll_clmd, tree1, tree2);
@@ -943,7 +1008,7 @@ void cloth_update_collision_objects(float step)
 				}
 				
 				// update BVH of collision object
-				bvh_update(coll_clmd, coll_bvh, 0); // 0 means STATIC, 1 means MOVING 
+				bvh_update_from_cloth(coll_clmd, 0); // 0 means STATIC, 1 means MOVING 
 			}
 			else
 				printf ("cloth_bvh_objcollision: found a collision object with clothObject or collData NULL.\n");
@@ -972,6 +1037,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 	{
 		return 0;
 	}
+	
 	cloth = clmd->clothObject;
 	verts = cloth->verts;
 	cloth_bvh = (BVH *) cloth->tree;
@@ -983,7 +1049,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 	////////////////////////////////////////////////////////////
 
 	// update cloth bvh
-	bvh_update(clmd, cloth_bvh, 0); // 0 means STATIC, 1 means MOVING (see later in this function)
+	bvh_update_from_cloth(clmd, 0); // 0 means STATIC, 1 means MOVING (see later in this function)
 	
 	// update collision objects
 	cloth_update_collision_objects(step);
@@ -1075,12 +1141,12 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 			clmd->coll_parms.collision_list = NULL;
 		}
 		
-		printf("ic: %d\n", ic);
+		// printf("ic: %d\n", ic);
 		rounds++;
 	}
 	while(result && (CLOTH_MAX_THRESHOLD>rounds));
 	
-	printf("\n");
+	// printf("\n");
 			
 	////////////////////////////////////////////////////////////
 	// update positions
@@ -1100,7 +1166,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 
 	
 	// update cloth bvh
-	bvh_update(clmd, cloth_bvh, 1);  // 0 means STATIC, 1 means MOVING 
+	bvh_update_from_cloth(clmd, 1);  // 0 means STATIC, 1 means MOVING 
 	
 	// update moving bvh for collision object once
 	for (base = G.scene->base.first; base; base = base->next)
@@ -1119,7 +1185,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 		{
 			BVH *coll_bvh = coll_clmd->clothObject->tree;
 			
-			bvh_update(coll_clmd, coll_bvh, 1);  // 0 means STATIC, 1 means MOVING 	
+			bvh_update_from_cloth(coll_clmd, 1);  // 0 means STATIC, 1 means MOVING 	
 		}
 	}
 	
@@ -1204,7 +1270,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 		}
 		
 		// update cloth bvh
-		bvh_update(clmd, cloth_bvh, 1);  // 0 means STATIC, 1 means MOVING 
+		bvh_update_from_cloth(clmd, 1);  // 0 means STATIC, 1 means MOVING 
 		
 		
 		// free collision list
@@ -1223,7 +1289,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 			clmd->coll_parms.collision_list = NULL;
 		}
 		
-		printf("ic: %d\n", ic);
+		// printf("ic: %d\n", ic);
 		rounds++;
 	}
 	while(result && (CLOTH_MAX_THRESHOLD>rounds));

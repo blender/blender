@@ -106,7 +106,7 @@ typedef struct SimulationSettings
 	float	bending;	/* Flexion spring stiffness.			*/
 	float	sim_time;
 	int	flags;		/* flags, see CSIMSETT_FLAGS enum above.	*/
-	short	solver_type; 	/* which solver should be used?				*/
+	short	solver_type; 	/* which solver should be used?		txold		*/
 	short	pad2;
 	float	maxgoal; 	/* see SB */
 	float	eff_force_scale;/* Scaling of effector forces (see softbody_calc_forces).*/
