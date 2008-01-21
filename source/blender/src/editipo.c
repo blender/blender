@@ -1476,6 +1476,9 @@ void mouse_select_ipo(void)
 	}
 	
 	if(G.sipo->showkey) {
+		float pixelwidth;
+		pixelwidth= (G.v2d->cur.xmax-G.v2d->cur.xmin)/(G.v2d->mask.xmax-G.v2d->mask.xmin); /* could make a generic function */
+		
 		getmouseco_areawin(mval);
 		
 		areamouseco_to_ipoco(G.v2d, mval, &x, &y);
@@ -1484,7 +1487,7 @@ void mouse_select_ipo(void)
 		ik= G.sipo->ipokey.first;
 		while(ik) {
 			dist= (float)(fabs(ik->val-x));
-			if(ik->flag & 1) dist+= 1.0;
+			if(ik->flag & SELECT) dist+= pixelwidth;
 			if(dist < mindist) {
 				actik= ik;
 				mindist= dist;
