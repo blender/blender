@@ -735,6 +735,188 @@ void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 #define SCR_BACK 0.55
 #define SCR_ROUND 12
 
+/** join areas arrow drawing **/
+typedef struct point{
+	float x,y;
+}_point;
+
+/* draw vertical shape visualising future joining (left as well
+ * right direction of future joining) */
+static void draw_horizontal_join_shape(ScrArea *sa, char dir)
+{
+	_point points[10];
+	short i;
+	float w, h;
+	float width = sa->v3->vec.x - sa->v1->vec.x;
+	float height = sa->v3->vec.y - sa->v1->vec.y;
+
+	if(height<width) {
+		h = height/8;
+		w = height/4;
+	}
+	else {
+		h = width/8;
+		w = width/4;
+	}
+
+	points[0].x = sa->v1->vec.x;
+	points[0].y = sa->v1->vec.y + height/2;
+
+	points[1].x = sa->v1->vec.x;
+	points[1].y = sa->v1->vec.y;
+
+	points[2].x = sa->v4->vec.x - w;
+	points[2].y = sa->v4->vec.y;
+
+	points[3].x = sa->v4->vec.x - w;
+	points[3].y = sa->v4->vec.y + height/2 - 2*h;
+
+	points[4].x = sa->v4->vec.x - 2*w;
+	points[4].y = sa->v4->vec.y + height/2;
+
+	points[5].x = sa->v4->vec.x - w;
+	points[5].y = sa->v4->vec.y + height/2 + 2*h;
+
+	points[6].x = sa->v3->vec.x - w;
+	points[6].y = sa->v3->vec.y;
+
+	points[7].x = sa->v2->vec.x;
+	points[7].y = sa->v2->vec.y;
+
+	points[8].x = sa->v4->vec.x;
+	points[8].y = sa->v4->vec.y + height/2 - h;
+
+	points[9].x = sa->v4->vec.x;
+	points[9].y = sa->v4->vec.y + height/2 + h;
+
+	if(dir=='l') {
+		/* when direction is left, then we flip direction of arrow */
+		float cx = sa->v1->vec.x + width;
+		for(i=0;i<10;i++) {
+			points[i].x -= cx;
+			points[i].x = -points[i].x;
+			points[i].x += sa->v1->vec.x;
+		}
+	}
+
+	glBegin(GL_POLYGON);
+	for(i=0;i<5;i++)
+		glVertex2f(points[i].x, points[i].y);
+	glEnd();
+	glBegin(GL_POLYGON);
+	for(i=4;i<8;i++)
+		glVertex2f(points[i].x, points[i].y);
+	glVertex2f(points[0].x, points[0].y);
+	glEnd();
+
+	glRectf(points[2].x, points[2].y, points[8].x, points[8].y);
+	glRectf(points[6].x, points[6].y, points[9].x, points[9].y);
+}
+
+/* draw vertical shape visualising future joining (up/down direction) */
+static void draw_vertical_join_shape(ScrArea *sa, char dir)
+{
+	_point points[10];
+	short i;
+	float w, h;
+	float width = sa->v3->vec.x - sa->v1->vec.x;
+	float height = sa->v3->vec.y - sa->v1->vec.y;
+
+	if(height<width) {
+		h = height/4;
+		w = height/8;
+	}
+	else {
+		h = width/4;
+		w = width/8;
+	}
+
+	points[0].x = sa->v1->vec.x + width/2;
+	points[0].y = sa->v3->vec.y;
+
+	points[1].x = sa->v2->vec.x;
+	points[1].y = sa->v2->vec.y;
+
+	points[2].x = sa->v1->vec.x;
+	points[2].y = sa->v1->vec.y + h;
+
+	points[3].x = sa->v1->vec.x + width/2 - 2*w;
+	points[3].y = sa->v1->vec.y + h;
+
+	points[4].x = sa->v1->vec.x + width/2;
+	points[4].y = sa->v1->vec.y + 2*h;
+
+	points[5].x = sa->v1->vec.x + width/2 + 2*w;
+	points[5].y = sa->v1->vec.y + h;
+
+	points[6].x = sa->v4->vec.x;
+	points[6].y = sa->v4->vec.y + h;
+	
+	points[7].x = sa->v3->vec.x;
+	points[7].y = sa->v3->vec.y;
+
+	points[8].x = sa->v1->vec.x + width/2 - w;
+	points[8].y = sa->v1->vec.y;
+
+	points[9].x = sa->v1->vec.x + width/2 + w;
+	points[9].y = sa->v1->vec.y;
+
+	if(dir=='u') {
+		/* when direction is up, then we flip direction of arrow */
+		float cy = sa->v1->vec.y + height;
+		for(i=0;i<10;i++) {
+			points[i].y -= cy;
+			points[i].y = -points[i].y;
+			points[i].y += sa->v1->vec.y;
+		}
+	}
+
+	glBegin(GL_POLYGON);
+	for(i=0;i<5;i++)
+		glVertex2f(points[i].x, points[i].y);
+	glEnd();
+	glBegin(GL_POLYGON);
+	for(i=4;i<8;i++)
+		glVertex2f(points[i].x, points[i].y);
+	glVertex2f(points[0].x, points[0].y);
+	glEnd();
+
+	glRectf(points[2].x, points[2].y, points[8].x, points[8].y);
+	glRectf(points[6].x, points[6].y, points[9].x, points[9].y);
+}
+
+/* draw join shape due to direction of joining */
+static void draw_join_shape(ScrArea *sa, char dir)
+{
+	if(dir=='u' || dir=='d')
+		draw_vertical_join_shape(sa, dir);
+	else
+		draw_horizontal_join_shape(sa, dir);
+}
+
+/* draw screen area darker with arrow (visualisation of future joining) */
+static void scrarea_draw_shape_dark(ScrArea *sa, char dir)
+{
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glColor4ub(0, 0, 0, 50);
+	draw_join_shape(sa, dir);
+	glDisable(GL_BLEND);
+}
+
+/* draw screen area ligher with arrow shape ("eraser" of previous dark shape) */
+static void scrarea_draw_shape_light(ScrArea *sa, char dir)
+{
+	glBlendFunc(GL_DST_COLOR, GL_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	/* value 181 was hardly computed: 181~105 */
+	glColor4ub(255, 255, 255, 50);		
+	/* draw_join_shape(sa, dir); */
+	glRecti(sa->v1->vec.x, sa->v1->vec.y, sa->v3->vec.x, sa->v3->vec.y);
+	glDisable(GL_BLEND);
+}
+
+/** screen edges drawing **/
 static void drawscredge_area(ScrArea *sa)
 {
 	AZone *az;
@@ -798,12 +980,44 @@ void ED_screen_do_listen(wmWindow *win, wmNotifier *note)
 void ED_screen_draw(wmWindow *win)
 {
 	ScrArea *sa;
-	
+	ScrArea *sa1=NULL;
+	ScrArea *sa2=NULL;
+	int dir = -1;
+	int dira = -1;
+
 	wm_subwindow_set(win, win->screen->mainwin);
 	
-	for(sa= win->screen->areabase.first; sa; sa= sa->next)
+	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+		if (sa->flag & AREA_FLAG_DRAWJOINFROM) sa1 = sa;
+		if (sa->flag & AREA_FLAG_DRAWJOINTO) sa2 = sa;
 		drawscredge_area(sa);
+	}
 
+	if (sa1 && sa2) {
+		dir = area_getorientation(win->screen, sa1, sa2);
+		if (dir >= 0) {
+			switch(dir) {
+				case 0: /* W */
+					dir = 'r';
+					dira = 'l';
+					break;
+				case 1: /* N */
+					dir = 'd';
+					dira = 'u';
+					break;
+				case 2: /* E */
+					dir = 'l';
+					dira = 'r';
+					break;
+				case 3: /* S */
+					dir = 'u';
+					dira = 'd';
+					break;
+			}
+		}
+		scrarea_draw_shape_dark(sa2, dir);
+		scrarea_draw_shape_light(sa1, dira);
+	}
 	printf("draw screen\n");
 	win->screen->do_draw= 0;
 }
@@ -1431,9 +1645,10 @@ typedef struct sAreaJoinData
 /* return 0: init failed */
 static int join_areas_init (bContext *C, wmOperator *op)
 {
-	ScrArea *actarea = C->curarea;
+	ScrArea *actarea = NULL;
 	sAreaJoinData* jd= NULL;
 	
+	actarea = screen_areahascursor(C->screen, op->veci.x, op->veci.y);
 	if (actarea==NULL)
 	{
 		return 0;
@@ -1442,8 +1657,8 @@ static int join_areas_init (bContext *C, wmOperator *op)
 	jd = (sAreaJoinData*)MEM_callocN(sizeof (sAreaJoinData), "op_join_areas");
 		
 	jd->sa1 = actarea;
-	/* initial set up screen area asigned for destroying */
-	jd->scr = jd->sa2;	
+	jd->sa1->flag |= AREA_FLAG_DRAWJOINFROM;
+	
 	op->customdata= jd;
 	
 	return 1;
@@ -1454,12 +1669,13 @@ static int join_areas_exec(bContext *C, wmOperator *op)
 {
 	sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
 	if (!jd) return 0;
-	
+
 	jd->dir = area_getorientation(C->screen, jd->sa1, jd->sa2);
-	
 	printf("dir is : %i \n", jd->dir);
 	if (jd->dir < 0)
 	{
+		if (jd->sa1 ) jd->sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
+		if (jd->sa2 ) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 		return 0;
 	}
 	
@@ -1493,6 +1709,9 @@ static int join_areas_exec(bContext *C, wmOperator *op)
 	}
 	screen_delarea(C->screen, jd->sa2);
 	jd->sa2 = NULL;
+
+	jd->sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
+
 	return 1;
 }
 /* interaction callback */
@@ -1553,11 +1772,61 @@ static int join_areas_modal (bContext *C, wmOperator *op, wmEvent *event)
 			{
 				sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
 				ScrArea *sa = screen_areahascursor(C->screen, event->x, event->y);
-				if((jd->sa1 != sa) && (jd->sa2 != sa))
-				{
-					printf("New Area \n");
-					jd->sa2 = sa;
+				if (sa) {					
+					if (jd->sa1 != sa) {
+						jd->dir = area_getorientation(C->screen, jd->sa1, sa);
+						if (jd->dir >= 0)
+						{
+							if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
+							jd->sa2 = sa;
+							jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
+						} else {
+							/* we are not bordering on the previously selected area 
+							   we check if area has common border with the one marked for removal
+							   in this case we can swap areas.
+							*/
+							jd->dir = area_getorientation(C->screen, sa, jd->sa2);
+							if (jd->dir >= 0) {
+								if (jd->sa1) jd->sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
+								if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
+								jd->sa1 = jd->sa2;
+								jd->sa2 = sa;
+								if (jd->sa1) jd->sa1->flag |= AREA_FLAG_DRAWJOINFROM;
+								if (jd->sa2) jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
+							} else {
+								if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
+								jd->sa2 = NULL;
+							}
+						}
+						WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+					} else {
+						/* we are back in the area previously selected for keeping 
+						 * we swap the areas if possible to allow user to choose */
+						if (jd->sa2 != NULL) {
+							if (jd->sa1) jd->sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
+							if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
+							jd->sa1 = jd->sa2;
+							jd->sa2 = sa;
+							if (jd->sa1) jd->sa1->flag |= AREA_FLAG_DRAWJOINFROM;
+							if (jd->sa2) jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
+							jd->dir = area_getorientation(C->screen, jd->sa1, jd->sa2);
+							if (jd->dir < 0)
+							{
+								printf("oops, didn't expect that!\n");
+							}
+						} else {
+							jd->dir = area_getorientation(C->screen, jd->sa1, sa);
+							if (jd->dir >= 0)
+							{
+								if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
+								jd->sa2 = sa;
+								jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
+							}
+						}
+						WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+					}
 				}
+				
 				break;
 			}
 		case RIGHTMOUSE:
