@@ -1228,6 +1228,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 			Crossf(nstrand, vn, cross);
 
 			blend= INPR(nstrand, shi->surfnor);
+			blend= 1.0f - blend;
 			CLAMP(blend, 0.0f, 1.0f);
 
 			VecLerpf(vnor, nstrand, shi->surfnor, blend);

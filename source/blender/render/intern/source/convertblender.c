@@ -3894,6 +3894,7 @@ static void find_dupli_instances(Render *re, ObjectRen *obr)
 {
 	ObjectInstanceRen *obi;
 	float imat[4][4], obmat[4][4], obimat[4][4], nmat[3][3];
+	int first = 1;
 
 	Mat4MulMat4(obmat, obr->ob->obmat, re->viewmat);
 	Mat4Invert(imat, obmat);
@@ -3909,6 +3910,15 @@ static void find_dupli_instances(Render *re, ObjectRen *obr)
 
 			Mat3CpyMat4(nmat, obi->mat);
 			Mat3Inv(obi->imat, nmat);
+
+			if(!first) {
+				re->totvert += obr->totvert;
+				re->totvlak += obr->totvlak;
+				re->tothalo += obr->tothalo;
+				re->totstrand += obr->totstrand;
+			}
+			else
+				first= 0;
 		}
 	}
 }

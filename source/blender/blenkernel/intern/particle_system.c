@@ -4468,9 +4468,11 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 
 			distribute_particles(ob, psys, part->from);
 
-			if(!(psys->part->type == PART_HAIR) || (psys->flag & PSYS_HAIR_DONE))
-				if(get_alloc_child_particles_tot(psys))
-					distribute_particles(ob, psys, PART_FROM_CHILD);
+			if((psys->part->type == PART_HAIR) && !(psys->flag & PSYS_HAIR_DONE))
+				/* don't generate children while growing hair - waste of time */
+				psys_free_children(psys);
+			else if(get_alloc_child_particles_tot(psys))
+				distribute_particles(ob, psys, PART_FROM_CHILD);
 		}
 		initialize_all_particles(ob, psys, psmd);
 
