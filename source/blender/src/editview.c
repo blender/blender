@@ -64,6 +64,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
+#include "BLI_rand.h" /* random object selection */
 
 #include "BKE_armature.h"
 #include "BKE_depsgraph.h"
@@ -1046,6 +1047,31 @@ void selectswap(void)
 	BIF_undo_push("Select Inverse");
 }
 
+/* inverts object selection */
+void selectrandom(void)
+{
+	Base *base;
+	static short randfac = 50;
+	if(button(&randfac,0, 100,"Percentage:")==0) return;
+	
+	for(base= FIRSTBASE; base; base= base->next) {
+		if(base->lay & G.vd->lay &&
+		  (base->object->restrictflag & OB_RESTRICT_VIEW)==0
+		) {
+			if (!TESTBASE(base) && ( (BLI_frand() * 100) < randfac)) {
+				select_base_v3d(base, BA_SELECT);
+				base->object->flag= base->flag;
+			}
+		}
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWDATASELECT, 0);
+	allqueue(REDRAWNLA, 0);
+	
+	countall();
+	BIF_undo_push("Select Random");
+}
 
 /* selects all objects of a particular type, on currently visible layers */
 void selectall_type(short obtype) 

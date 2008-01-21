@@ -3690,7 +3690,7 @@ void seq_mute_sel(int mute) {
 	Sequence *seq;
 	
 	ed= G.scene->ed;
-	if(!ed) return NULL;
+	if(!ed) return;
 	
 	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if ((seq->flag & SELECT) && (seq->flag & SEQ_LOCK)==0) {

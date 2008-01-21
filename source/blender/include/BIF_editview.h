@@ -44,6 +44,7 @@ void	borderselect(void);
 void	circle_select(void);
 void	deselectall(void);
 void	selectswap(void);
+void	selectrandom(void);
 void	selectall_type(short obtype);
 void	selectall_layer(unsigned int layernum);
 void	draw_sel_circle(short *mval, short *mvalo, float rad, float rado, int selecting);

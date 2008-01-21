@@ -901,6 +901,7 @@ static TBitem tb_object_select[]= {
 {	0, "SEPR",				0, NULL},
 {	0, "Select/Deselect All|A", 	1, NULL},
 {	0, "Inverse",			2, NULL},
+{	0, "Random",			3, NULL},
 {	0, "Select All by Layer", 	0, 		tb_object_select_layer},
 {	0, "Select All by Type", 	0, 		tb_object_select_type},
 {	0, "SEPR",				0, NULL},
