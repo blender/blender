@@ -909,6 +909,15 @@ void pose_adds_vgroups(Object *meshobj, int heatweights)
 
 /* ********************************************** */
 
+/* adds a new pose-group */
+// TODO... 
+void pose_add_posegroup ()
+{
+
+}
+
+/* ********************************************** */
+
 /* context active object */
 void pose_flip_names(void)
 {

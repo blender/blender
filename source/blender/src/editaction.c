@@ -812,6 +812,17 @@ static void action_groups_addachan (bAction *act, bActionGroup *agrp, bActionCha
 	if (ELEM3(NULL, act, agrp, achan))
 		return;
 	
+	/* if no channels, just add to two lists at the same time */
+	if (act->chanbase.first == NULL) {
+		achan->next = achan->prev = NULL;
+		
+		agrp->channels.first = agrp->channels.last = achan;
+		act->chanbase.first = act->chanbase.last = achan;
+		
+		achan->grp= agrp;
+		return;
+	}
+	
 	/* try to find a channel to slot this in before/after */
 	for (chan= act->chanbase.first; chan; chan= chan->next) {
 		/* if channel has no group, then we have ungrouped channels, which should always occur after groups */
@@ -1023,6 +1034,59 @@ void action_groups_ungroup (void)
 	BIF_undo_push("Remove From Action Groups");
 	
 	allqueue(REDRAWACTION, 0);
+}
+
+/* This function is used when inserting keyframes for pose-channels. It assigns the
+ * action-channel with the nominated name to a group with the same name as that of 
+ * the pose-channel with the nominated name.
+ *
+ * Note: this function calls validate_action_channel if action channel doesn't exist 
+ */
+void verify_pchan2achan_grouping (bAction *act, bPose *pose, char name[])
+{
+	bActionChannel *achan;
+	bPoseChannel *pchan;
+	
+	/* sanity checks */
+	if (ELEM3(NULL, act, pose, name))
+		return;
+	if (name[0] == 0)
+		return;
+		
+	/* try to get the channels */
+	pchan= get_pose_channel(pose, name);
+	if (pchan == NULL) return;
+	achan= verify_action_channel(act, name);
+	
+	/* check if pchan has a group */
+	if ((pchan->agrp_index) && (achan->grp == NULL)) {
+		bActionGroup *agrp, *grp=NULL;
+		
+		/* get group to try to be like */
+		agrp= (bActionGroup *)BLI_findlink(&pose->agroups, (pchan->agrp_index - 1));
+		if (agrp == NULL) {
+			error("PoseChannel has invalid group!");
+			return;
+		}
+		
+		/* try to find a group which is similar to the one we want (or add one) */
+		for (grp= act->groups.first; grp; grp= grp->next) {
+			if (!strcmp(grp->name, agrp->name))
+				break;
+		}
+		if (grp == NULL) {
+			grp= MEM_callocN(sizeof(bActionGroup), "bActionGroup");
+			
+			grp->flag |= (AGRP_ACTIVE|AGRP_SELECTED|AGRP_EXPANDED);
+			sprintf(grp->name, agrp->name);
+			
+			BLI_addtail(&act->groups, grp);
+		}
+		
+		/* make sure this channel is definitely not connected to anything before adding to group */
+		action_groups_removeachan(act, achan);
+		action_groups_addachan(act, grp, achan);
+	}
 }
 
 /* **************************************************** */

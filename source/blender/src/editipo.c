@@ -1802,6 +1802,10 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname, char 
 		achan= verify_action_channel(ob->action, actname);
 		
 		if(achan) {
+			/* automatically assign achan to act-group based on pchan's grouping */
+			if (blocktype == ID_PO)
+			verify_pchan2achan_grouping(ob->action, ob->pose, actname);
+			
 			/* constraint exception */
 			if(blocktype==ID_CO) {
 				bConstraintChannel *conchan= verify_constraint_channel(&achan->constraintChannels, constname);

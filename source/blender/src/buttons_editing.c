@@ -3853,6 +3853,8 @@ void do_armbuts(unsigned short event)
 			}
 		}
 		break;
+		
+	// TODO: make these pose-group options proper tools in poseobject.c
 	case B_POSEGRP_RECALC:
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
@@ -3879,6 +3881,7 @@ void do_armbuts(unsigned short event)
 			bPose *pose= ob->pose;
 			bActionGroup *grp= NULL;
 			
+			// FIXME: make sure all that referenced it get reset 
 			grp= BLI_findlink(&pose->agroups, pose->active_group-1);
 			if (grp) {
 				BLI_freelinkN(&pose->agroups, grp);
@@ -4330,7 +4333,7 @@ static char *build_posegroups_menustr(bPose *pose)
 	
 	/* add title first (and the "none" entry) */
 	BLI_dynstr_append(pupds, "Pose Group%t|");
-	BLI_dynstr_append(pupds, "BG: [None]%x0");
+	BLI_dynstr_append(pupds, "BG: [None]%x0|");
 	
 	/* loop through markers, adding them */
 	for (agrp= pose->agroups.first, i=1; agrp; agrp=agrp->next, i++) {
@@ -4386,7 +4389,7 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			
 			/* Bone custom drawing */
 			menustr= build_posegroups_menustr(ob->pose);
-			uiDefButS(block, MENU,REDRAWVIEW3D, menustr, 107,by,105,19, &pchan->agrp_index, 0.0, 0.0, 0.0, 0.0, "Change the Pose Group this Bone belongs to");
+			uiDefButS(block, MENU,REDRAWVIEW3D, menustr, 107,by,105,19, &pchan->agrp_index, 0, 0.0, 0.0, 0.0, "Change the Pose Group this Bone belongs to");
 			MEM_freeN(menustr);
 			
 			ob_arm_bone_pchan_lock(ob, arm, curBone, pchan);
