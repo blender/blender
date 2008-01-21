@@ -1704,8 +1704,8 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 
 static void constraintRotLim(TransInfo *t, TransData *td)
 {
-	if (td->con && td->ext) {
-		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_SIZELIMIT);
+	if (td->con) {
+		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_ROTLIMIT);
 		bConstraintOb cob;
 		bConstraint *con;
 		
@@ -1714,13 +1714,37 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 		 *	- current space should be local
 		 */
 		memset(&cob, 0, sizeof(bConstraintOb));
-		// FIXME: todo
+		if (td->flag & TD_USEQUAT) {
+			/* quats */
+			if (td->ext)
+				QuatToMat4(td->ext->quat, cob.matrix);
+			else
+				return;
+		}
+		else if (td->tdi) {
+			/* ipo-keys eulers */
+			TransDataIpokey *tdi= td->tdi;
+			float eul[3];
+			
+			eul[0]= tdi->rotx[0];
+			eul[1]= tdi->roty[0];
+			eul[2]= tdi->rotz[0];
+			
+			EulToMat4(eul, cob.matrix);
+		}
+		else {
+			/* eulers */
+			if (td->ext)
+				EulToMat4(td->ext->rot, cob.matrix);
+			else
+				return;
+		}
 			
 		/* Evaluate valid constraints */
 		for (con= td->con; con; con= con->next) {
 			/* we're only interested in Limit-Scale constraints */
-			if (con->type == CONSTRAINT_TYPE_SIZELIMIT) {
-				bSizeLimitConstraint *data= con->data;
+			if (con->type == CONSTRAINT_TYPE_ROTLIMIT) {
+				bRotLimitConstraint *data= con->data;
 				float tmat[4][4];
 				
 				/* only use it if it's tagged for this purpose */
@@ -1751,7 +1775,25 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 		}
 		
 		/* copy results from cob->matrix */
-		// fixme: todo
+		if (td->flag & TD_USEQUAT) {
+			/* quats */
+			Mat4ToQuat(cob.matrix, td->ext->quat);
+		}
+		else if (td->tdi) {
+			/* ipo-keys eulers */
+			TransDataIpokey *tdi= td->tdi;
+			float eul[3];
+			
+			Mat4ToEul(cob.matrix, eul);
+			
+			tdi->rotx[0]= eul[0];
+			tdi->roty[0]= eul[1];
+			tdi->rotz[0]= eul[2];
+		}
+		else {
+			/* eulers */
+			Mat4ToEul(cob.matrix, td->ext->rot);
+		}
 	}
 }
 
@@ -2541,10 +2583,10 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 		if(td->flag & TD_USEQUAT) {
 			Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
 			Mat3ToQuat(fmat, quat);	// Actual transform
-
+			
 			if(td->ext->quat){
 				QuatMul(td->ext->quat, quat, td->ext->iquat);
-
+				
 				/* is there a reason not to have this here? -jahka */
 				protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
 			}
@@ -2587,29 +2629,32 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 
 		VecAddf(td->loc, td->iloc, vec);
 		
+		constraintTransLim(t, td);
+		
 		/* rotation */
 		if ((t->flag & T_V3D_ALIGN)==0) { // align mode doesn't rotate objects itself
 			Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
-
+			
 			Mat3ToQuat(fmat, quat);	// Actual transform
 			
 			QuatMul(td->ext->quat, quat, td->ext->iquat);
 			/* this function works on end result */
 			protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
+			
+			constraintRotLim(t, td);
 		}
 	}
 	else {
 		/* translation */
-		
 		VecSubf(vec, td->center, t->center);
 		Mat3MulVecfl(mat, vec);
 		VecAddf(vec, vec, t->center);
 		/* vec now is the location where the object has to be */
 		VecSubf(vec, vec, td->center);
 		Mat3MulVecfl(td->smtx, vec);
-
+		
 		protectedTransBits(td->protectflag, vec);
-
+		
 		if(td->tdi) {
 			TransDataIpokey *tdi= td->tdi;
 			add_tdi_poin(tdi->locx, tdi->oldloc, vec[0]);
@@ -2617,10 +2662,11 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 			add_tdi_poin(tdi->locz, tdi->oldloc+2, vec[2]);
 		}
 		else VecAddf(td->loc, td->iloc, vec);
+		
+		constraintTransLim(t, td);
 
 		/* rotation */
 		if ((t->flag & T_V3D_ALIGN)==0) { // align mode doesn't rotate objects itself
-		
 			if(td->flag & TD_USEQUAT) {
 				Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
 				Mat3ToQuat(fmat, quat);	// Actual transform
@@ -2682,6 +2728,8 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 					VECCOPY(td->ext->rot, eul);
 				}
 			}
+			
+			constraintRotLim(t, td);
 		}
 	}
 }

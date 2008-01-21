@@ -1344,7 +1344,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bRotLimitConstraint *data = con->data;
 				int normButWidth = (width/3);
 				
-				height = 106; 
+				height = 136; 
 				
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
@@ -1367,8 +1367,11 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max:", *xco+(normButWidth * 2), *yco-72, normButWidth, 18, &(data->zmax), -360, 360, 0.1,0.5,"Highest z value to allow"); 
 				uiBlockEndAlign(block); 
 				
+				/* special option(s) */
+				uiDefButBitS(block, TOG, LIMIT_TRANSFORM, B_CONSTRAINT_TEST, "For Transform", *xco+(width/4), *yco-100, (width/2), 18, &data->flag2, 0, 24, 0, 0, "Transforms are affected by this constraint as well"); 
+				
 				/* constraint space settings */
-				draw_constraint_spaceselect(block, con, *xco, *yco-100, is_armature_owner(ob), -1);
+				draw_constraint_spaceselect(block, con, *xco, *yco-130, is_armature_owner(ob), -1);
 			}
 			break;
 		case CONSTRAINT_TYPE_SIZELIMIT:
