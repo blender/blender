@@ -3558,6 +3558,7 @@ void rearrange_action_channels (short mode)
 	short datatype;
 	
 	short (*rearrange_func)(ListBase *, Link *, short);
+	short do_channels = 1;
 	char undostr[60];
 	
 	/* Get the active action, exit if none are selected */
@@ -3591,7 +3592,7 @@ void rearrange_action_channels (short mode)
 	/* make sure we're only operating with groups */
 	split_groups_action_temp(act, &tgrp);
 	
-	/* rearrange groups, and channels */
+	/* rearrange groups first (and then, only consider channels if the groups weren't moved) */
 	#define GET_FIRST(list) ((mode > 0) ? (list.first) : (list.last))
 	#define GET_NEXT(item) ((mode > 0) ? (item->next) : (item->prev))
 	
@@ -3600,18 +3601,27 @@ void rearrange_action_channels (short mode)
 		grp= GET_NEXT(agrp);
 		
 		/* try to do group first */
-		if (rearrange_func(&act->groups, (Link *)agrp, ACTTYPE_GROUP))
+		if (rearrange_func(&act->groups, (Link *)agrp, ACTTYPE_GROUP)) {
+			do_channels= 0;
 			agrp->flag |= AGRP_MOVED;
+		}
+	}
+	
+	if (do_channels) {
+		for (agrp= GET_FIRST(act->groups); agrp; agrp= grp) {
+			/* Get next group to consider */
+			grp= GET_NEXT(agrp);
 			
-		/* only consider action-channels if they're visible (group expanded) */
-		if (EXPANDED_AGRP(agrp)) {
-			for (achan= GET_FIRST(agrp->channels); achan; achan= chan) {
-				/* Get next channel to consider */
-				chan= GET_NEXT(achan);
-				
-				/* Try to do channel */
-				if (rearrange_func(&agrp->channels, (Link *)achan, ACTTYPE_ACHAN))
-					achan->flag |= ACHAN_MOVED;
+			/* only consider action-channels if they're visible (group expanded) */
+			if (EXPANDED_AGRP(agrp)) {
+				for (achan= GET_FIRST(agrp->channels); achan; achan= chan) {
+					/* Get next channel to consider */
+					chan= GET_NEXT(achan);
+					
+					/* Try to do channel */
+					if (rearrange_func(&agrp->channels, (Link *)achan, ACTTYPE_ACHAN))
+						achan->flag |= ACHAN_MOVED;
+				}
 			}
 		}
 	}
