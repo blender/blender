@@ -52,6 +52,12 @@ extern void error (char *fmt, ...);
 #include <vector>
 #include <set>
 
+class yafrayObjectRen {
+	public:
+		std::vector<VlakRen*> faces;
+		ObjectRen *obr;
+};
+
 class yafrayRender_t
 {
 	public:
@@ -72,7 +78,7 @@ class yafrayRender_t
 
 		bool hasworld;
 
-		std::map<Object*, std::vector<VlakRen*> > all_objects;
+		std::map<Object*, yafrayObjectRen> all_objects;
 		std::map<std::string, Material*> used_materials;
 		std::map<std::string, MTex*> used_textures;
 		std::map<std::string, std::vector<float> > dupliMtx_list;
@@ -86,7 +92,7 @@ class yafrayRender_t
 		virtual void writeTextures()=0;
 		virtual void writeShader(const std::string &shader_name, Material* matr, const std::string &facetexname)=0;
 		virtual void writeMaterialsAndModulators()=0;
-		virtual void writeObject(Object* obj, const std::vector<VlakRen*> &VLR_list, const float obmat[4][4])=0;
+		virtual void writeObject(Object* obj, ObjectRen *obr, const std::vector<VlakRen*> &VLR_list, const float obmat[4][4])=0;
 		virtual void writeAllObjects()=0;
 		virtual void writeLamps()=0;
 		virtual void writeCamera()=0;

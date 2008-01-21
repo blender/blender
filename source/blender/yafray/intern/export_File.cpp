@@ -1188,7 +1188,7 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 }
 
 
-void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_list, const float obmat[4][4])
+void yafrayFileRender_t::writeObject(Object* obj, ObjectRen *obr, const vector<VlakRen*> &VLR_list, const float obmat[4][4])
 {
 	ostr.str("");
 	// transform first (not necessarily actual obj->obmat, can be duplivert see below)
@@ -1230,7 +1230,6 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 	string matname(face0mat->id.name);
 	// use name in imgtex_shader list if 'TexFace' enabled for this material
 	if (face0mat->mode & MA_FACETEXTURE) {
-		ObjectRen *obr = face0->obr;
 		MTFace* tface = RE_vlakren_get_tface(obr, face0, obr->actmtface, NULL, 0);
 		if (tface) {
 			Image* fimg = (Image*)tface->tpage;
@@ -1408,7 +1407,6 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 				fci2!=VLR_list.end();++fci2)
 	{
 		VlakRen* vlr = *fci2;
-		ObjectRen *obr = vlr->obr;
 		Material* fmat = vlr->mat;
 		bool EXPORT_VCOL = ((fmat->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))!=0);
 		string fmatname(fmat->id.name);
@@ -1510,13 +1508,13 @@ void yafrayFileRender_t::writeAllObjects()
 {
 
 	// first all objects except dupliverts (and main instance object for dups)
-	for (map<Object*, vector<VlakRen*> >::const_iterator obi=all_objects.begin();
+	for (map<Object*, yafrayObjectRen >::const_iterator obi=all_objects.begin();
 			obi!=all_objects.end(); ++obi)
 	{
 		// skip main duplivert object if in dupliMtx_list, written later
 		Object* obj = obi->first;
 		if (dupliMtx_list.find(string(obj->id.name))!=dupliMtx_list.end()) continue;
-		writeObject(obj, obi->second, obj->obmat);
+		writeObject(obj, obi->second.obr, obi->second.faces, obj->obmat);
 	}
 
 	// Now all duplivert objects (if any) as instances of main object
@@ -1536,7 +1534,7 @@ void yafrayFileRender_t::writeAllObjects()
 
 		// first object written as normal (but with transform of first duplivert)
 		Object* obj = dup_srcob[dupMtx->first];
-		writeObject(obj, all_objects[obj], obmat);
+		writeObject(obj, all_objects[obj].obr, all_objects[obj].faces, obmat);
 
 		// all others instances of first
 		for (unsigned int curmtx=16;curmtx<dupMtx->second.size();curmtx+=16) {	// number of 4x4 matrices

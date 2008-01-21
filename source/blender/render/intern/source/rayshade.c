@@ -77,7 +77,7 @@ static void vlr_face_coords(RayFace *face, float **v1, float **v2, float **v3, f
 	*v4 = (vlr->v4)? vlr->v4->co: NULL;
 }
 
-static int vlr_check_intersect(Isect *is, RayFace *face)
+static int vlr_check_intersect(Isect *is, int ob, RayFace *face)
 {
 	VlakRen *vlr = (VlakRen*)face;
 

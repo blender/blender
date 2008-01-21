@@ -2058,6 +2058,47 @@ static int get_particles_from_cache(Object *ob, ParticleSystem *psys, int cfra)
 /************************************************/
 /*			Effectors							*/
 /************************************************/
+static float particle_falloff(PartDeflect *pd, float fac)
+{
+	float mindist= (pd->flag & PFIELD_USEMIN)? pd->mindist: 0.0f;
+
+#if 0
+	if(distance<=mindist) fallof= 1.0f;
+	else if(pd->flag & PFIELD_USEMAX) {
+		if(distance>pd->maxdist || mindist>=pd->maxdist) fallof= 0.0f;
+		else {
+			fallof= 1.0f - (distance-mindist)/(pd->maxdist - mindist);
+			if(ffall_val!=0.0f)
+				fallof = (float)pow(fallof, ffall_val+1.0);
+		}
+	}
+	else {
+		fallof= 1.0f/(1.0f + distance-mindist);
+		if(ffall_val!=0.0f)
+			fallof = (float)pow(fallof, ffall_val+1.0);
+	}
+
+	fac=VecLength(vec_to_part);
+#endif
+
+	if(fac < mindist) {
+		return 1.0f;
+	}
+	else if(pd->flag & PFIELD_USEMAX) {
+		if(fac>pd->maxdist || (pd->maxdist-mindist)<=0.0f)
+			return 0.0f;
+
+		fac= 1.0f - (fac-mindist)/(pd->maxdist-mindist);
+		printf("fac %f^%f\n", fac, pd->f_power);
+		return (float)pow((double)fac, (double)pd->f_power);
+	}
+	else {
+		fac+=1.0f-pd->mindist;
+
+		return (float)pow((double)fac,(double)-pd->f_power);
+	}
+}
+
 static float effector_falloff(PartDeflect *pd, float *eff_velocity, float *vec_to_part)
 {
 	float eff_dir[3], temp[3];
@@ -2071,6 +2112,8 @@ static float effector_falloff(PartDeflect *pd, float *eff_velocity, float *vec_t
 	else switch(pd->falloff){
 		case PFIELD_FALL_SPHERE:
 			fac=VecLength(vec_to_part);
+			falloff= particle_falloff(pd, fac);
+#if 0
 			if(pd->flag&PFIELD_USEMAX && fac>pd->maxdist){
 				falloff=0.0f;
 				break;
@@ -2086,6 +2129,7 @@ static float effector_falloff(PartDeflect *pd, float *eff_velocity, float *vec_t
 				fac=0.001f;
 
 			falloff=1.0f/(float)pow((double)fac,(double)pd->f_power);
+#endif
 			break;
 
 		case PFIELD_FALL_TUBE:

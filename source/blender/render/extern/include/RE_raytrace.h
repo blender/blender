@@ -89,7 +89,7 @@ typedef struct Isect {
 /* function callbacks for face type abstraction */
 typedef void (*RayCoordsFunc)(RayFace *face,
 	float **v1, float **v2, float **v3, float **v4);
-typedef int (*RayCheckFunc)(Isect *is, RayFace *face);
+typedef int (*RayCheckFunc)(Isect *is, int ob, RayFace *face);
 typedef float *(*RayObjectTransformFunc)(void *userdata, int ob);
 
 /* tree building and freeing */

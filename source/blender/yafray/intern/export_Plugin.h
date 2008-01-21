@@ -35,7 +35,7 @@ class yafrayPluginRender_t : public yafrayRender_t
 		virtual void writeTextures();
 		virtual void writeShader(const std::string &shader_name, Material* matr, const std::string &facetexname="");
 		virtual void writeMaterialsAndModulators();
-		virtual void writeObject(Object* obj,
+		virtual void writeObject(Object* obj, ObjectRen *obr,
 				const std::vector<VlakRen*> &VLR_list, const float obmat[4][4]);
 		virtual void writeAllObjects();
 		virtual void writeAreaLamp(LampRen* lamp, int num, float iview[4][4]);
@@ -48,18 +48,18 @@ class yafrayPluginRender_t : public yafrayRender_t
 		virtual bool initExport();
 		virtual bool finishExport();
 
-		void genUVcoords(std::vector<yafray::GFLOAT> &uvcoords,VlakRen *vlr,MTFace* uvc, bool comple=false);
-		void genVcol(std::vector<yafray::CFLOAT> &vcol, VlakRen *vlr, bool comple=false);
+		void genUVcoords(std::vector<yafray::GFLOAT> &uvcoords,ObjectRen *obr,VlakRen *vlr,MTFace* uvc, bool comple=false);
+		void genVcol(std::vector<yafray::CFLOAT> &vcol, ObjectRen *obr, VlakRen *vlr, bool comple=false);
 		void genFace(std::vector<int> &faces,std::vector<std::string> &shaders,std::vector<int> &faceshader,
 				std::vector<yafray::GFLOAT> &uvcoords,std::vector<yafray::CFLOAT> &vcol,
-				std::map<VertRen*, int> &vert_idx,VlakRen *vlr,
+				std::map<VertRen*, int> &vert_idx,ObjectRen *obr,VlakRen *vlr,
 				int has_orco,bool has_uv);
 		void genCompleFace(std::vector<int> &faces,/*std::vector<std::string> &shaders,*/std::vector<int> &faceshader,
 				std::vector<yafray::GFLOAT> &uvcoords,std::vector<yafray::CFLOAT> &vcol,
-				std::map<VertRen*, int> &vert_idx,VlakRen *vlr,
+				std::map<VertRen*, int> &vert_idx,ObjectRen *obr, VlakRen *vlr,
 				int has_orco,bool has_uv);
 		void genVertices(std::vector<yafray::point3d_t> &verts, int &vidx,
-										 std::map<VertRen*, int> &vert_idx, VlakRen* vlr, int has_orco, Object* obj);
+										 std::map<VertRen*, int> &vert_idx, ObjectRen *obr, VlakRen* vlr, int has_orco, Object* obj);
 };
 
 class blenderYafrayOutput_t : public yafray::colorOutput_t

@@ -332,7 +332,7 @@ static void occ_face(const OccFace *face, float *co, float *normal, float *area)
 
 	if(area) {
 		VECCOPY(v1, vlr->v1->co);
-		VECCOPY(v3, vlr->v2->co);
+		VECCOPY(v2, vlr->v2->co);
 		VECCOPY(v3, vlr->v3->co);
 		if(vlr->v4) VECCOPY(v4, vlr->v4->co);
 
@@ -589,9 +589,6 @@ static OcclusionTree *occ_tree_build(Render *re)
 	/* count */
 	totface= 0;
 	for(obi=re->instancetable.first; obi; obi=obi->next) {
-		if(obi->flag & R_DUPLI_ELEM)
-			continue;
-
 		obr= obi->obr;
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
@@ -625,9 +622,6 @@ static OcclusionTree *occ_tree_build(Render *re)
 
 	/* make array of face pointers */
 	for(b=0, c=0, obi=re->instancetable.first; obi; obi=obi->next, c++) {
-		if(obi->flag & R_DUPLI_ELEM)
-			continue; /* temporary to avoid slow renders with loads of duplis */
-
 		obr= obi->obr;
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;

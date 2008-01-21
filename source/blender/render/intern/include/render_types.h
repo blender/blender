@@ -315,7 +315,6 @@ typedef struct VlakRen {
 	char puno;
 	char flag, ec;
 	RadFace *radface;
-	ObjectRen *obr;
 	int index;
 } VlakRen;
 
@@ -496,7 +495,6 @@ typedef struct LampRen {
 #define R_DUPLI_TRANSFORMED	1
 #define R_ENV_TRANSFORMED	2
 #define R_TRANSFORMED		(1|2)
-#define R_DUPLI_ELEM		4
 
 #endif /* RENDER_TYPES_H */
 

@@ -1079,7 +1079,7 @@ void yafrayPluginRender_t::writeMaterialsAndModulators()
 
 }
 
-void yafrayPluginRender_t::genUVcoords(vector<yafray::GFLOAT> &uvcoords, VlakRen *vlr, MTFace* uvc, bool comple)
+void yafrayPluginRender_t::genUVcoords(vector<yafray::GFLOAT> &uvcoords, ObjectRen *obr, VlakRen *vlr, MTFace* uvc, bool comple)
 {
 	if (uvc) 
 	{
@@ -1107,9 +1107,8 @@ void yafrayPluginRender_t::genUVcoords(vector<yafray::GFLOAT> &uvcoords, VlakRen
 	}
 }
 
-void yafrayPluginRender_t::genVcol(vector<yafray::CFLOAT> &vcol, VlakRen *vlr, bool comple)
+void yafrayPluginRender_t::genVcol(vector<yafray::CFLOAT> &vcol, ObjectRen *obr, VlakRen *vlr, bool comple)
 {
-	ObjectRen *obr= vlr->obr;
 	MCol *mcol= RE_vlakren_get_mcol(obr, vlr, obr->actmcol, NULL, 0);
 
 	if (mcol)
@@ -1143,10 +1142,9 @@ void yafrayPluginRender_t::genVcol(vector<yafray::CFLOAT> &vcol, VlakRen *vlr, b
 
 void yafrayPluginRender_t::genFace(vector<int> &faces,vector<string> &shaders,vector<int> &faceshader,
 														vector<yafray::GFLOAT> &uvcoords,vector<yafray::CFLOAT> &vcol,
-														map<VertRen*, int> &vert_idx,VlakRen *vlr,
+														map<VertRen*, int> &vert_idx,ObjectRen *obr,VlakRen *vlr,
 														int has_orco,bool has_uv)
 {
-	ObjectRen *obr= vlr->obr;
 	Material* fmat = vlr->mat;
 	bool EXPORT_VCOL = ((fmat->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))!=0);
 	string fmatname(fmat->id.name);
@@ -1185,16 +1183,15 @@ void yafrayPluginRender_t::genFace(vector<int> &faces,vector<string> &shaders,ve
 
 	faces.push_back(idx1);  faces.push_back(idx2);  faces.push_back(idx3);
 
-	if(has_uv) genUVcoords(uvcoords, vlr, uvc);
-	if (EXPORT_VCOL) genVcol(vcol, vlr);
+	if(has_uv) genUVcoords(uvcoords, obr, vlr, uvc);
+	if (EXPORT_VCOL) genVcol(vcol, obr, vlr);
 }
 
 void yafrayPluginRender_t::genCompleFace(vector<int> &faces,/*vector<string> &shaders,*/vector<int> &faceshader,
 														vector<yafray::GFLOAT> &uvcoords,vector<yafray::CFLOAT> &vcol,
-														map<VertRen*, int> &vert_idx,VlakRen *vlr,
+														map<VertRen*, int> &vert_idx,ObjectRen *obr,VlakRen *vlr,
 														int has_orco,bool has_uv)
 {
-	ObjectRen *obr= vlr->obr;
 	Material* fmat = vlr->mat;
 	bool EXPORT_VCOL = ((fmat->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))!=0);
 
@@ -1210,12 +1207,12 @@ void yafrayPluginRender_t::genCompleFace(vector<int> &faces,/*vector<string> &sh
 
 	faces.push_back(idx1);  faces.push_back(idx2);  faces.push_back(idx3);
 
-	if (has_uv) genUVcoords(uvcoords, vlr, uvc, true);
-	if (EXPORT_VCOL) genVcol(vcol, vlr, true);
+	if (has_uv) genUVcoords(uvcoords, obr, vlr, uvc, true);
+	if (EXPORT_VCOL) genVcol(vcol, obr, vlr, true);
 }
 
 void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vidx,
-																			 map<VertRen*, int> &vert_idx, VlakRen* vlr, int has_orco, Object* obj)
+																			 map<VertRen*, int> &vert_idx, ObjectRen *obr, VlakRen* vlr, int has_orco, Object* obj)
 {
 	VertRen* ver;
 	float tvec[3];	// for back2world transform
@@ -1280,7 +1277,7 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 	}
 }
 
-void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_list, const float obmat[4][4])
+void yafrayPluginRender_t::writeObject(Object* obj, ObjectRen *obr, const vector<VlakRen*> &VLR_list, const float obmat[4][4])
 {
 	float mtr[4*4];
 	mtr[0*4+0]=obmat[0][0];  mtr[0*4+1]=obmat[1][0];  mtr[0*4+2]=obmat[2][0];  mtr[0*4+3]=obmat[3][0];
@@ -1341,8 +1338,7 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 				fci!=VLR_list.end();++fci)
 	{
 		VlakRen* vlr = *fci;
-		ObjectRen *obr = vlr->obr;
-		genVertices(verts, vidx, vert_idx, vlr, has_orco, obj);
+		genVertices(verts, vidx, vert_idx, obr, vlr, has_orco, obj);
 		if(RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0)) has_uv=true;
 	}
 	// all faces using the index list created above
@@ -1354,9 +1350,9 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 				fci2!=VLR_list.end();++fci2)
 	{
 		VlakRen* vlr = *fci2;
-		genFace(faces, shaders, faceshader, uvcoords, vcol, vert_idx, vlr, has_orco, has_uv);
+		genFace(faces, shaders, faceshader, uvcoords, vcol, vert_idx, obr, vlr, has_orco, has_uv);
 		if (vlr->v4) 
-			genCompleFace(faces, faceshader, uvcoords, vcol, vert_idx, vlr, has_orco, has_uv);
+			genCompleFace(faces, faceshader, uvcoords, vcol, vert_idx, obr, vlr, has_orco, has_uv);
 	}
 
 	// using the ObjectRen database, contruct a new name if object has a parent.
@@ -1387,13 +1383,13 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 void yafrayPluginRender_t::writeAllObjects()
 {
 	// first all objects except dupliverts (and main instance object for dups)
-	for (map<Object*, vector<VlakRen*> >::const_iterator obi=all_objects.begin();
+	for (map<Object*, yafrayObjectRen >::const_iterator obi=all_objects.begin();
 			obi!=all_objects.end(); ++obi)
 	{
 	  // skip main duplivert object if in dupliMtx_list, written later
 		Object* obj = obi->first;
 		if (dupliMtx_list.find(string(obj->id.name))!=dupliMtx_list.end()) continue;
-		writeObject(obj, obi->second, obj->obmat);
+		writeObject(obj, obi->second.obr, obi->second.faces, obj->obmat);
 	}
 
 	// Now all duplivert objects (if any) as instances of main object
@@ -1411,7 +1407,7 @@ void yafrayPluginRender_t::writeAllObjects()
 
 		// first object written as normal (but with transform of first duplivert)
 		Object* obj = dup_srcob[dupMtx->first];
-		writeObject(obj, all_objects[obj], obmat);
+		writeObject(obj, all_objects[obj].obr, all_objects[obj].faces, obmat);
 
 		// all others instances of first
 		for (unsigned int curmtx=16;curmtx<dupMtx->second.size();curmtx+=16) 

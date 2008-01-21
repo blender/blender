@@ -983,7 +983,7 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval, RayCheckFunc c
 		
 			if(!(is->faceorig == face && is->oborig == ob)) {
 
-				if(checkfunc(is, face)) {
+				if(checkfunc(is, ob, face)) {
 					
 					ov= no->ov+nr;
 					if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) { 
@@ -1023,7 +1023,7 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval, RayCheckFunc c
 		while(face) {
 
 			if(!(is->faceorig == face && is->oborig == ob)) {
-				if(checkfunc(is, face)) {
+				if(checkfunc(is, ob, face)) {
 					ov= no->ov+nr;
 					if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) { 
 						//accepted++;
@@ -1205,7 +1205,7 @@ int RE_ray_tree_intersect_check(RayTree *tree, Isect *is, RayCheckFunc checkfunc
 	
 		/* check with last intersected shadow face */
 		if(is->face_last!=NULL && !(is->face_last==is->faceorig && is->ob_last==is->oborig)) {
-			if(checkfunc(is, is->face_last)) {
+			if(checkfunc(is, is->ob_last, is->face_last)) {
 				is->ob= is->ob_last;
 				is->face= is->face_last;
 				VECSUB(is->vec, is->end, is->start);
