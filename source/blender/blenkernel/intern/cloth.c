@@ -1160,6 +1160,7 @@ static void cloth_from_mesh ( Object *ob, ClothModifierData *clmd, DerivedMesh *
 ***************************************************************************************/
 
 // be carefull: implicit solver has to be resettet when using this one!
+// --> only for implicit handling of this spring!
 int cloth_add_spring ( ClothModifierData *clmd, unsigned int indexA, unsigned int indexB, float restlength, int spring_type)
 {
 	Cloth *cloth = clmd->clothObject;
@@ -1190,7 +1191,7 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 {
 	ClothSpring *spring = NULL, *tspring = NULL, *tspring2 = NULL;
 	unsigned int struct_springs = 0, shear_springs=0, bend_springs = 0;
-	unsigned int i = 0;
+	unsigned int i = 0, j = 0, akku_count;
 	unsigned int numverts = dm->getNumVerts ( dm );
 	unsigned int numedges = dm->getNumEdges ( dm );
 	unsigned int numfaces = dm->getNumFaces ( dm );
@@ -1200,9 +1201,9 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 	LinkNode **edgelist = NULL;
 	EdgeHash *edgehash = NULL;
 	LinkNode *search = NULL, *search2 = NULL;
-	float temp[3];
-	ClothVertex *verts = NULL;
-
+	float temp[3], akku, min, max;
+	LinkNode *node = NULL, *node2 = NULL;
+	
 	// error handling
 	if ( numedges==0 )
 		return 0;
@@ -1217,8 +1218,6 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 
 	if ( cloth->springs )
 		MEM_freeN ( cloth->springs );
-	
-	verts = cloth->verts;
 
 	// create spring network hash
 	edgehash = BLI_edgehash_new();
@@ -1232,16 +1231,20 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 		{
 			spring->ij = medge[i].v1;
 			spring->kl = medge[i].v2;
-			VECSUB ( temp, verts[spring->kl].x, verts[spring->ij].x );
+			VECSUB ( temp, cloth->verts[spring->kl].x, cloth->verts[spring->ij].x );
 			spring->restlen =  sqrt ( INPR ( temp, temp ) );
 			spring->type = CLOTH_SPRING_TYPE_STRUCTURAL;
 			spring->flags = 0;
 			struct_springs++;
-
-			BLI_linklist_append ( &cloth->springs, spring );
+			
+			if(!i)
+				node2 = BLI_linklist_append_fast ( &cloth->springs, spring );
+			else
+				node2 = BLI_linklist_append_fast ( &node->next, spring );
+			node = node2;
 		}
 	}
-
+	
 	// shear springs
 	for ( i = 0; i < numfaces; i++ )
 	{
@@ -1249,7 +1252,7 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 
 		spring->ij = mface[i].v1;
 		spring->kl = mface[i].v3;
-		VECSUB ( temp, verts[spring->kl].x, verts[spring->ij].x );
+		VECSUB ( temp, cloth->verts[spring->kl].x, cloth->verts[spring->ij].x );
 		spring->restlen =  sqrt ( INPR ( temp, temp ) );
 		spring->type = CLOTH_SPRING_TYPE_SHEAR;
 
@@ -1257,7 +1260,8 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 		BLI_linklist_append ( &edgelist[spring->kl], spring );
 		shear_springs++;
 
-		BLI_linklist_append ( &cloth->springs, spring );
+		node2 = BLI_linklist_append_fast ( &node->next, spring );
+		node = node2;
 
 		if ( mface[i].v4 )
 		{
@@ -1265,18 +1269,19 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 
 			spring->ij = mface[i].v2;
 			spring->kl = mface[i].v4;
-			VECSUB ( temp, verts[spring->kl].x, verts[spring->ij].x );
-				spring->restlen =  sqrt ( INPR ( temp, temp ) );
-				spring->type = CLOTH_SPRING_TYPE_SHEAR;
+			VECSUB ( temp, cloth->verts[spring->kl].x, cloth->verts[spring->ij].x );
+			spring->restlen =  sqrt ( INPR ( temp, temp ) );
+			spring->type = CLOTH_SPRING_TYPE_SHEAR;
 
-				BLI_linklist_append ( &edgelist[spring->ij], spring );
-				BLI_linklist_append ( &edgelist[spring->kl], spring );
-				shear_springs++;
+			BLI_linklist_append ( &edgelist[spring->ij], spring );
+			BLI_linklist_append ( &edgelist[spring->kl], spring );
+			shear_springs++;
 
-				BLI_linklist_append ( &cloth->springs, spring );
+			node2 = BLI_linklist_append_fast ( &node->next, spring );
+			node = node2;
 		}
 	}
-
+	
 	// bending springs
 	search2 = cloth->springs;
 	for ( i = struct_springs; i < struct_springs+shear_springs; i++ )
@@ -1294,35 +1299,36 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 			// check for existing spring
 			// check also if startpoint is equal to endpoint
 			if ( !BLI_edgehash_haskey ( edgehash, index2, tspring2->ij )
-			        && !BLI_edgehash_haskey ( edgehash, tspring2->ij, index2 )
-			        && ( index2!=tspring2->ij ) )
+						   && !BLI_edgehash_haskey ( edgehash, tspring2->ij, index2 )
+						   && ( index2!=tspring2->ij ) )
 			{
 				spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 
 				spring->ij = tspring2->ij;
 				spring->kl = index2;
-				VECSUB ( temp, verts[index2].x, verts[tspring2->ij].x );
+				VECSUB ( temp, cloth->verts[index2].x, cloth->verts[tspring2->ij].x );
 				spring->restlen =  sqrt ( INPR ( temp, temp ) );
 				spring->type = CLOTH_SPRING_TYPE_BENDING;
 				BLI_edgehash_insert ( edgehash, spring->ij, index2, NULL );
 				bend_springs++;
 
-				BLI_linklist_append ( &cloth->springs, spring );
+				node2 = BLI_linklist_append_fast ( &node->next, spring );
+				node = node2;
 			}
 			search = search->next;
 		}
 		search2 = search2->next;
 	}
-
+	
 	cloth->numsprings = struct_springs + shear_springs + bend_springs;
-
+	
 	for ( i = 0; i < numverts; i++ )
 	{
 		BLI_linklist_free ( edgelist[i],NULL );
 	}
 	if ( edgelist )
 		MEM_freeN ( edgelist );
-
+	
 	BLI_edgehash_free ( edgehash, NULL );
 
 	return 1;
