@@ -137,6 +137,9 @@
 				RelativePath="..\..\..\source\blender\render\intern\source\initrender.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\render\intern\source\occlusion.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\render\intern\source\pipeline.c">
 			</File>
 			<File
@@ -193,6 +196,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\include\initrender.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\include\occlusion.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\include\old_zbuffer_types.h">
