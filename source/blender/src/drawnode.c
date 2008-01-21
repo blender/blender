@@ -1437,8 +1437,11 @@ static int node_composit_buts_vecblur(uiBlock *block, bNodeTree *ntree, bNode *n
 		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "MaxSpeed:",
 				  butr->xmin, dy+19, dx, 19, 
 				  &nbd->maxspeed, 0, 1024, 0, 0, "If not zero, maximum speed in pixels");
+		uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "C",
+				  butr->xmin, dy, 20, 19, 
+				  &nbd->curved, 0.0f, 2.0f, 10, 2, "Use Curved interpolation");
 		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "BlurFac:",
-				  butr->xmin, dy, dx, 19, 
+				  butr->xmin+20, dy, dx-20, 19, 
 				  &nbd->fac, 0.0f, 2.0f, 10, 2, "Scaling factor for motion vectors, actually 'shutter speed' in frames");
 	}
 	return 76;

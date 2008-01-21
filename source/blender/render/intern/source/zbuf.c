@@ -2762,6 +2762,37 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove)
 	}
 }
 
+/* in: two vectors, first vector points from origin back in time, 2nd vector points to future */
+/* we make this into 3 points, center point is (0,0) */
+/* and offset the center point just enough to make curve go through midpoint */
+
+static void quad_bezier_2d(float *result, float *v1, float *v2, float *ipodata)
+{
+	float p1[2], p2[2], p3[2];
+	
+	p3[0]= -v2[0];
+	p3[1]= -v2[1];
+	
+	p1[0]= v1[0];
+	p1[1]= v1[1];
+	
+	/* official formula 2*p2 - .5*p1 - .5*p3 */
+	p2[0]= -0.5*p1[0] - 0.5*p3[0];
+	p2[1]= -0.5*p1[1] - 0.5*p3[1];
+	
+	result[0]= ipodata[0]*p1[0] + ipodata[1]*p2[0] + ipodata[2]*p3[0];
+	result[1]= ipodata[0]*p1[1] + ipodata[1]*p2[1] + ipodata[2]*p3[1];
+}
+
+static void set_quad_bezier_ipo(float fac, float *data)
+{
+	float mfac= (1.0f-fac);
+	
+	data[0]= mfac*mfac;
+	data[1]= 2.0f*mfac*fac;
+	data[2]= fac*fac;
+}
+
 void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect)
 {
 	ZSpan zspan;
@@ -2960,7 +2991,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	samples/= 2;
 	for(step= 1; step<=samples; step++) {
 		float speedfac= 0.5f*nbd->fac*(float)step/(float)(samples+1);
-		float blendfac= 1.0f/(ABS(step)+1);
+		float blendfac= 1.0f/(ABS(step)+1), ipodata[4];
 		int side, z= 4;
 		
 		for(side=0; side<2; side++) {
@@ -2985,23 +3016,41 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 			dz2= rectvz + 5*(xsize + 1);
 			
 			if(side) {
-				dz1+= 2;
-				dz2+= 2;
-				z= 2;
+				if(nbd->curved==0) {
+					dz1+= 2;
+					dz2+= 2;
+					z= 2;
+				}
 				speedfac= -speedfac;
 			}
-
+			
+			set_quad_bezier_ipo(0.5f + 0.5f*speedfac, ipodata);
+			
 			for(fy= -0.5f+jit[step & 15][0], y=0; y<ysize; y++, fy+=1.0f) {
 				for(fx= -0.5f+jit[step & 15][1], x=0; x<xsize; x++, fx+=1.0f, dimg+=4, dz1+=5, dz2+=5, dm++) {
 					if(*dm>1) {
 						DrawBufPixel col;
 						
 						/* make vertices */
-						v1[0]= speedfac*dz1[0]+fx;			v1[1]= speedfac*dz1[1]+fy;			v1[2]= dz1[z];
-						v2[0]= speedfac*dz1[5]+fx+1.0f;		v2[1]= speedfac*dz1[6]+fy;			v2[2]= dz1[z+5];
-						v3[0]= speedfac*dz2[5]+fx+1.0f;		v3[1]= speedfac*dz2[6]+fy+1.0f;		v3[2]= dz2[z+5];
-						v4[0]= speedfac*dz2[0]+fx;			v4[1]= speedfac*dz2[1]+fy+1.0f;		v4[2]= dz2[z];
-						
+						if(nbd->curved) {	/* curved */
+							quad_bezier_2d(v1, dz1, dz1+2, ipodata);
+							v1[0]+= fx; v1[1]+= fy; v1[2]= dz1[4];
+
+							quad_bezier_2d(v2, dz1+5, dz1+5+2, ipodata);
+							v2[0]+= fx+1.0f; v2[1]+= fy; v2[2]= dz1[4+5];
+
+							quad_bezier_2d(v3, dz2+5, dz2+5+2, ipodata);
+							v3[0]+= fx+1.0f; v3[1]+= fy+1.0f; v3[2]= dz1[4+5];
+							
+							quad_bezier_2d(v4, dz2, dz2+2, ipodata);
+							v4[0]+= fx; v4[1]+= fy+1.0f; v4[2]= dz2[4];
+						}
+						else {
+							v1[0]= speedfac*dz1[0]+fx;			v1[1]= speedfac*dz1[1]+fy;			v1[2]= dz1[z];
+							v2[0]= speedfac*dz1[5]+fx+1.0f;		v2[1]= speedfac*dz1[6]+fy;			v2[2]= dz1[z+5];
+							v3[0]= speedfac*dz2[5]+fx+1.0f;		v3[1]= speedfac*dz2[6]+fy+1.0f;		v3[2]= dz2[z+5];
+							v4[0]= speedfac*dz2[0]+fx;			v4[1]= speedfac*dz2[1]+fy+1.0f;		v4[2]= dz2[z];
+						}
 						if(*dm==255) col.alpha= 1.0f;
 						else if(*dm<2) col.alpha= 0.0f;
 						else col.alpha= ((float)*dm)/255.0f;
