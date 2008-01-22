@@ -1761,7 +1761,8 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 	}
 	
 	if(modifiers_isClothEnabled(ob)) {
-		cloth_free_modifier(modifiers_isClothEnabled(ob));
+		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+		clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
 	}
 	
 	if(ob->type==OB_MESH && get_mesh(ob)->mr)

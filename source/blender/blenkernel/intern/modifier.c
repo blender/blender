@@ -4991,6 +4991,7 @@ static void clothModifier_updateDepgraph(
 	
 	Base *base;
 	
+	/* TODO: this belongs to collision modifier */
 	if(clmd)
 	{
 		for(base = G.scene->base.first; base; base= base->next) 
@@ -5034,11 +5035,13 @@ static int clothModifier_dependsOnTime(ModifierData *md)
 static void clothModifier_freeData(ModifierData *md)
 {
 	ClothModifierData *clmd = (ClothModifierData*) md;
+	Object *ob = NULL;
+	ClothModifierData *clmd2 = NULL;
 	
 	if (clmd) 
 	{
-		clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT;
-		cloth_free_modifier (clmd);
+		
+		cloth_free_modifier_extern (clmd);
 		
 		MEM_freeN(clmd->sim_parms);
 		MEM_freeN(clmd->coll_parms);
@@ -7290,11 +7293,11 @@ int modifiers_isSoftbodyEnabled(Object *ob)
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
-ClothModifierData * modifiers_isClothEnabled(Object *ob)
+int modifiers_isClothEnabled(Object *ob)
 {
 	ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
 
-	return (ClothModifierData *)md;
+	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
 int modifiers_isParticleEnabled(Object *ob)

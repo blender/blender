@@ -1351,7 +1351,8 @@ void weight_paint(void)
 	
 	// same goes for cloth
 	if(modifiers_isClothEnabled(ob)) {
-		cloth_free_modifier((ClothModifierData *)modifiers_isClothEnabled(ob));
+		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+		clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
 	}	
 	
 	BIF_undo_push("Weight Paint");

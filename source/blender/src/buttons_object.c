@@ -2287,6 +2287,56 @@ void do_object_panels(unsigned short event)
 		if(ob->ipo) ob->ipo->showkey= (ob->ipoflag & OB_DRAWKEY)?1:0;
 		allqueue(REDRAWVIEW3D, 0);
 		break;
+	case B_CLOTH_CLEARCACHEALL:
+	{
+		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+		if(clmd)
+		{
+			CFRA= 1;
+			update_for_newframe_muted();
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
+			cloth_clear_cache(ob, clmd, 2); 
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWVIEW3D, 0);
+		}	
+	}
+	break;	
+	case B_CLOTH_CLEARCACHEFRAME:
+	{
+		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+		if(clmd)
+		{
+			cloth_clear_cache(ob, clmd, MAX2(2.0,G.scene->r.cfra + 1.0));
+			allqueue(REDRAWBUTSOBJECT, 0);
+		}
+	}
+	break;	
+	case B_CLOTH_CHANGEPREROLL:
+	{
+		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+		if(clmd)
+		{
+			if(clmd->sim_parms->cache)
+			{
+				CFRA= 1;
+				update_for_newframe_muted();
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
+				allqueue(REDRAWBUTSOBJECT, 0);
+				allqueue(REDRAWVIEW3D, 0);
+			}
+		}
+	}
+	break;	
+	case B_CLOTH_RENEW:
+	{
+		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+	
+		if(clmd)
+		{
+			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+		}
+	}
+	break;
 		
 	default:
 		if(event>=B_SELEFFECT && event<B_SELEFFECT+MAX_EFFECT) {
@@ -3068,67 +3118,6 @@ void do_effects_panels(unsigned short event)
 		}
 		allqueue(REDRAWVIEW3D, 0);
 		break;
-	case B_CLOTH_CLEARCACHEALL:
-	{
-		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-		if(clmd)
-		{
-			CFRA= 1;
-			update_for_newframe_muted();
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
-			cloth_clear_cache(ob, clmd, 2); 
-			allqueue(REDRAWBUTSOBJECT, 0);
-			allqueue(REDRAWVIEW3D, 0);
-		}	
-	}
-	break;	
-	case B_CLOTH_CLEARCACHEFRAME:
-	{
-		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-		if(clmd)
-		{
-			cloth_clear_cache(ob, clmd, MAX2(2.0,G.scene->r.cfra + 1.0));
-			allqueue(REDRAWBUTSOBJECT, 0);
-		}
-	}
-	break;	
-	case B_CLOTH_CHANGEPREROLL:
-	{
-		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-		if(clmd)
-		{
-			if(clmd->sim_parms->cache)
-			{
-				CFRA= 1;
-				update_for_newframe_muted();
-				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
-				allqueue(REDRAWBUTSOBJECT, 0);
-				allqueue(REDRAWVIEW3D, 0);
-			}
-		}
-	}
-	break;	
-	case B_CLOTH_DEL_VG:
-	{
-		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-		if(clmd)
-		{
-			clmd->sim_parms->vgroup_mass = 0;
-			do_object_panels(B_CLOTH_RENEW);
-		}
-		allqueue(REDRAWBUTSOBJECT, 0);
-	}
-	break;	
-	case B_CLOTH_RENEW:
-	{
-		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-		if(clmd)
-		{
-			do_object_panels(B_CLOTH_CLEARCACHEALL);
-			cloth_free_modifier (clmd);
-		}
-	}
-	break;
 	default:
 		if(event>=B_SELEFFECT && event<B_SELEFFECT+MAX_EFFECT) {
 			ob= OBACT;
@@ -5011,8 +5000,12 @@ static void object_panel_cloth(Object *ob)
 					clmd->sim_parms->vgroup_mass = 0;
 				}
 				else
+				{
 					if(!clmd->sim_parms->vgroup_mass)
 						clmd->sim_parms->vgroup_mass = 1;
+					else if(clmd->sim_parms->vgroup_mass > defCount)
+						clmd->sim_parms->vgroup_mass = defCount;
+				}
 							
 				sprintf (clvg2, "%s%s", clmvg, clvg1);
 				

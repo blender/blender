@@ -1329,7 +1329,8 @@ void load_editMesh(void)
 		for(base= G.scene->base.first; base; base= base->next) {
 			if(base->object->data==me) {				
 				if(modifiers_isClothEnabled(base->object)) {
-					cloth_free_modifier(modifiers_isClothEnabled(base->object));
+					ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(base->object, eModifierType_Cloth);
+					clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
 				}
 				
 				base->object->softflag |= OB_SB_REDO;

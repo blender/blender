@@ -198,10 +198,14 @@ int implicit_solver ( Object *ob, float frame, ClothModifierData *clmd, ListBase
 /////////////////////////////////////////////////
 // cloth.c
 ////////////////////////////////////////////////
-void cloth_free_modifier ( ClothModifierData *clmd );
-void cloth_init ( ClothModifierData *clmd );
-void cloth_deform_verts ( struct Object *ob, float framenr, float ( *vertexCos ) [3], int numVerts, void *derivedData, ClothModifierData *clmd );
-void cloth_update_normals ( ClothVertex *verts, int nVerts, MFace *face, int totface );
+
+// needed for modifier.c
+void cloth_free_modifier_extern (ClothModifierData *clmd);
+void cloth_free_modifier (Object *ob, ClothModifierData *clmd);
+void cloth_init (ClothModifierData *clmd);
+void cloth_deform_verts (struct Object *ob, float framenr, float ( *vertexCos ) [3], int numVerts, void *derivedData, ClothModifierData *clmd);
+
+void cloth_update_normals (ClothVertex *verts, int nVerts, MFace *face, int totface);
 
 // needed for collision.c
 void bvh_update_from_cloth(ClothModifierData *clmd, int moving);

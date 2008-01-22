@@ -124,7 +124,6 @@ static CM_SOLVER_DEF	solvers [] =
 static void cloth_to_object ( Object *ob, ClothModifierData *clmd, float ( *vertexCos ) [3], unsigned int numverts );
 static void cloth_from_mesh ( Object *ob, ClothModifierData *clmd, DerivedMesh *dm );
 static int cloth_from_object ( Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float ( *vertexCos ) [3], unsigned int numverts, float framenr );
-static int collobj_from_object ( Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float ( *vertexCos ) [3], unsigned int numverts );
 int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm );
 static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm, short vgroup );
 
@@ -165,7 +164,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->coll_parms->friction = 10.0;
 	clmd->coll_parms->loop_count = 1;
 	clmd->coll_parms->epsilon = 0.01f;
-	clmd->coll_parms->flags = 0;
+	clmd->coll_parms->flags = CLOTH_COLLISIONSETTINGS_FLAG_ENABLED;
 
 	/* These defaults are copied from softbody.c's
 	* softbody_calc_forces() function.
@@ -572,24 +571,13 @@ void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
                         float ( *vertexCos ) [3], int numverts )
 {
 	unsigned int i;
-	unsigned int numedges = -1;
-	unsigned int numfaces = -1;
-	MVert *mvert = NULL;
-	MEdge *medge = NULL;
-	MFace *mface = NULL;
-	DerivedMesh *result = NULL, *result2 = NULL;
 	Cloth *cloth = clmd->clothObject;
 	unsigned int framenr = ( float ) G.scene->r.cfra;
 	float current_time = bsystem_time ( ob, ( float ) G.scene->r.cfra, 0.0 );
 	ListBase	*effectors = NULL;
-	ClothVertex *newframe= NULL, *verts;
-	Frame *frame = NULL;
-	LinkNode *search = NULL;
+	ClothVertex *verts = NULL;
 	float deltaTime = current_time - clmd->sim_parms->sim_time;
 	
-	clmd->sim_parms->ob = ob;
-
-
 	// only be active during a specific period:
 	// that's "first frame" and "last frame" on GUI
 	/*
@@ -640,56 +628,9 @@ void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 
 	clmd->sim_parms->sim_time = current_time;
 
-	// check if cloth object was some collision object before and needs freeing now
-	if ( ! ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ ) && ( clmd->clothObject != NULL ) && ( clmd->clothObject->old_solver_type == 255 ) )
-	{
-		// temporary set CSIMSETT_FLAG_COLLOBJ flag for proper freeing
-		clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_COLLOBJ;
-		cloth_free_modifier ( clmd );
-		clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_COLLOBJ;
-	}
-
-	// This is for collisions objects: check special case CSIMSETT_FLAG_COLLOBJ
-	if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ )
-	{
-		// save next position + time
-		if ( ( clmd->clothObject == NULL ) || ( numverts != clmd->clothObject->numverts ) )
-		{
-			if ( !collobj_from_object ( ob, clmd, dm, vertexCos, framenr ) )
-			{
-				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_COLLOBJ;
-				cloth_free_modifier ( clmd );
-				return;
-			}
-
-			if ( clmd->clothObject == NULL )
-				return;
-
-			cloth = clmd->clothObject;
-		}
-
-		// Save old position
-		clmd->sim_parms->sim_time_old = clmd->sim_parms->sim_time;
-		clmd->sim_parms->sim_time = current_time;
-
-		verts = cloth->verts;
-
-		for ( i = 0; i < clmd->clothObject->numverts; i++, verts++ )
-		{
-			// Save the previous position.
-			VECCOPY ( verts->xold, verts->x );
-			VECCOPY ( verts->txold, verts->x );
-
-			// Get the current position.
-			VECCOPY ( verts->x, vertexCos[i] );
-			Mat4MulVecfl ( ob->obmat, verts->x );
-
-			// Compute the vertices "velocity".
-			// (no dt correction here because of float error)
-			VECSUB ( verts->v, verts->x, verts->xold );
-		}
-
-		return;
+	if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_RESET)
+	{	
+		cloth_free_modifier (ob, clmd);
 	}
 
 	if ( deltaTime == 1.0f )
@@ -769,10 +710,9 @@ void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 }
 
 /* frees all */
-void cloth_free_modifier ( ClothModifierData *clmd )
+void cloth_free_modifier ( Object *ob, ClothModifierData *clmd )
 {
 	Cloth	*cloth = NULL;
-	Object *ob = clmd->sim_parms->ob;
 	
 	if ( !clmd )
 		return;
@@ -784,8 +724,7 @@ void cloth_free_modifier ( ClothModifierData *clmd )
 		if ( cloth )
 		{
 			// free our frame cache, TODO: but get to first position before
-			if(ob)
-				cloth_clear_cache ( ob, clmd, 0 );
+			cloth_clear_cache ( ob, clmd, 0 );
 			
 			// If our solver provides a free function, call it
 			if ( cloth->old_solver_type < 255 && solvers [cloth->old_solver_type].free )
@@ -834,8 +773,72 @@ void cloth_free_modifier ( ClothModifierData *clmd )
 			clmd->clothObject = NULL;
 		}
 	}
+	clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_RESET;
 }
 
+/* frees all */
+void cloth_free_modifier_extern ( ClothModifierData *clmd )
+{
+	Cloth	*cloth = NULL;
+	
+	if ( !clmd )
+		return;
+
+	cloth = clmd->clothObject;
+
+	if ( ! ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT ) )
+	{
+		if ( cloth )
+		{	
+			// If our solver provides a free function, call it
+			if ( cloth->old_solver_type < 255 && solvers [cloth->old_solver_type].free )
+			{
+				solvers [cloth->old_solver_type].free ( clmd );
+			}
+
+			// Free the verts.
+			if ( cloth->verts != NULL )
+				MEM_freeN ( cloth->verts );
+
+			cloth->verts = NULL;
+			cloth->numverts = 0;
+
+			// Free the springs.
+			if ( cloth->springs != NULL )
+			{
+				LinkNode *search = cloth->springs;
+				while(search)
+				{
+					ClothSpring *spring = search->link;
+							
+					MEM_freeN ( spring );
+					search = search->next;
+				}
+				BLI_linklist_free(cloth->springs, NULL);
+			
+				cloth->springs = NULL;
+			}
+
+			cloth->springs = NULL;
+			cloth->numsprings = 0;
+
+			// free BVH collision tree
+			if ( cloth->tree )
+				bvh_free ( ( BVH * ) cloth->tree );
+
+			// we save our faces for collision objects
+			if ( cloth->mfaces )
+				MEM_freeN ( cloth->mfaces );
+			/*
+			if(clmd->clothObject->facemarks)
+			MEM_freeN(clmd->clothObject->facemarks);
+			*/
+			MEM_freeN ( cloth );
+			clmd->clothObject = NULL;
+		}
+	}
+	clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_RESET;
+}
 
 /******************************************************************************
 *
@@ -933,72 +936,6 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm, short
 	}
 }
 
-// only meshes supported at the moment
-/* collision objects */
-static int collobj_from_object ( Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float ( *vertexCos ) [3], unsigned int numverts )
-{
-	unsigned int i;
-	MVert *mvert = NULL;
-	ClothVertex *verts = NULL;
-	float tnull[3] = {0,0,0};
-
-	/* If we have a clothObject, free it. */
-	if ( clmd->clothObject != NULL )
-		cloth_free_modifier ( clmd );
-
-	/* Allocate a new cloth object. */
-	clmd->clothObject = MEM_callocN ( sizeof ( Cloth ), "cloth" );
-	if ( clmd->clothObject )
-	{
-		clmd->clothObject->old_solver_type = 255;
-		// clmd->clothObject->old_collision_type = 255;
-	}
-	else if ( clmd->clothObject == NULL )
-	{
-		modifier_setError ( & ( clmd->modifier ), "Out of memory on allocating clmd->clothObject." );
-		return 0;
-	}
-
-	switch ( ob->type )
-	{
-		case OB_MESH:
-
-			// mesh input objects need DerivedMesh
-			if ( !dm )
-				return 0;
-
-			cloth_from_mesh ( ob, clmd, dm );
-
-			if ( clmd->clothObject != NULL )
-			{
-				if ( !dm ) return 0;
-				if ( !dm->getNumVerts ( dm ) || !dm->getNumFaces ( dm ) ) return 0;
-
-				mvert = dm->getVertArray ( dm );
-				verts = clmd->clothObject->verts;
-				numverts = clmd->clothObject->numverts = dm->getNumVerts ( dm );
-
-				for ( i = 0; i < numverts; i++, verts++ )
-				{
-					VECCOPY ( verts->x, mvert[i].co );
-					Mat4MulVecfl ( ob->obmat, verts->x );
-					verts->flags = 0;
-					VECCOPY ( verts->xold, verts->x );
-					VECCOPY ( verts->txold, verts->x );
-					VECCOPY ( verts->tx, verts->x );
-					VecMulf ( verts->v, 0.0f );
-					verts->impulse_count = 0;
-					VECCOPY ( verts->impulse, tnull );
-				}
-				clmd->clothObject->tree =  bvh_build_from_cloth ( clmd,clmd->coll_parms->epsilon );
-
-			}
-
-			return 1;
-		default: return 0; // TODO - we do not support changing meshes
-	}
-}
-
 /*
 helper function to get proper spring length
 when object is rescaled
@@ -1024,7 +961,7 @@ static int cloth_from_object ( Object *ob, ClothModifierData *clmd, DerivedMesh 
 
 	/* If we have a clothObject, free it. */
 	if ( clmd->clothObject != NULL )
-		cloth_free_modifier ( clmd );
+		cloth_free_modifier ( ob, clmd );
 
 	/* Allocate a new cloth object. */
 	clmd->clothObject = MEM_callocN ( sizeof ( Cloth ), "cloth" );
@@ -1038,8 +975,6 @@ static int cloth_from_object ( Object *ob, ClothModifierData *clmd, DerivedMesh 
 		modifier_setError ( & ( clmd->modifier ), "Out of memory on allocating clmd->clothObject." );
 		return 0;
 	}
-	
-	clmd->sim_parms->ob = ob;
 
 	switch ( ob->type )
 	{
@@ -1085,6 +1020,7 @@ static int cloth_from_object ( Object *ob, ClothModifierData *clmd, DerivedMesh 
 				
 				if ( !cloth_build_springs ( clmd->clothObject, dm ) )
 				{
+					cloth_free_modifier ( ob, clmd );
 					modifier_setError ( & ( clmd->modifier ), "Can't build springs." );
 					return 0;
 				}
@@ -1130,7 +1066,7 @@ static void cloth_from_mesh ( Object *ob, ClothModifierData *clmd, DerivedMesh *
 	clmd->clothObject->verts = MEM_callocN ( sizeof ( ClothVertex ) * clmd->clothObject->numverts, "clothVertex" );
 	if ( clmd->clothObject->verts == NULL )
 	{
-		cloth_free_modifier ( clmd );
+		cloth_free_modifier ( ob, clmd );
 		modifier_setError ( & ( clmd->modifier ), "Out of memory on allocating clmd->clothObject->verts." );
 		return;
 	}
@@ -1140,7 +1076,7 @@ static void cloth_from_mesh ( Object *ob, ClothModifierData *clmd, DerivedMesh *
 	clmd->clothObject->mfaces = MEM_callocN ( sizeof ( MFace ) * clmd->clothObject->numfaces, "clothMFaces" );
 	if ( clmd->clothObject->mfaces == NULL )
 	{
-		cloth_free_modifier ( clmd );
+		cloth_free_modifier ( ob, clmd );
 		modifier_setError ( & ( clmd->modifier ), "Out of memory on allocating clmd->clothObject->mfaces." );
 		return;
 	}
@@ -1191,7 +1127,7 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 {
 	ClothSpring *spring = NULL, *tspring = NULL, *tspring2 = NULL;
 	unsigned int struct_springs = 0, shear_springs=0, bend_springs = 0;
-	unsigned int i = 0, j = 0, akku_count;
+	unsigned int i = 0;
 	unsigned int numverts = dm->getNumVerts ( dm );
 	unsigned int numedges = dm->getNumEdges ( dm );
 	unsigned int numfaces = dm->getNumFaces ( dm );
@@ -1201,7 +1137,7 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 	LinkNode **edgelist = NULL;
 	EdgeHash *edgehash = NULL;
 	LinkNode *search = NULL, *search2 = NULL;
-	float temp[3], akku, min, max;
+	float temp[3];
 	LinkNode *node = NULL, *node2 = NULL;
 	
 	// error handling
