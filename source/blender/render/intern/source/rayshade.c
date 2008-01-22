@@ -878,11 +878,13 @@ void init_render_hammersley(Render *re)
 void free_lamp_qmcsampler(LampRen *lar)
 {
 	QMC_freeSampler(lar->qsa);
+	lar->qsa = NULL;
 }
 
 void free_render_qmcsampler(Render *re)
 {
 	QMC_freeSampler(re->qsa);
+	re->qsa = NULL;
 }
 
 static int adaptive_sample_variance(int samples, float *col, float *colsq, float thresh)
