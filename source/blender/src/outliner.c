@@ -1919,7 +1919,7 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 			/* activate a name button? */
 			if(event==LEFTMOUSE) {
 			
-				if (G.qual & LR_CTRLKEY) {
+				if (G.qual == LR_CTRLKEY) {
 					if(ELEM8(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE, TSE_POSE_BASE, TSE_R_LAYER_BASE, TSE_R_PASS)) 
 						error("Cannot edit builtin name");
 					else if(tselem->id->lib) {
@@ -1930,12 +1930,6 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 						tselem->flag |= TSE_TEXTBUT;
 					}
 				} else {
-					
-					if (G.qual & LR_SHIFTKEY) {
-						if(tselem->id->lib && tselem->type==0) {
-							notice(tselem->id->lib->name);
-						}
-					}
 					/* always makes active object */
 					tree_element_active_object(soops, te);
 					

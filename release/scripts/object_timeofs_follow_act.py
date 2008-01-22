@@ -13,7 +13,7 @@ __bpydoc__= """
 """
 
 # --------------------------------------------------------------------------
-# Drop Objects v1.0 by Campbell Barton (AKA Ideasman42)
+# TimeOffset follow Active v1.0 by Campbell Barton (AKA Ideasman42)
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
