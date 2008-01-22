@@ -5004,7 +5004,7 @@ static void clothModifier_updateDepgraph(
 
 CustomDataMask clothModifier_requiredDataMask(ModifierData *md)
 {
-	ClothModifierData *clmd = (HookModifierData *)md;
+	ClothModifierData *clmd = (ClothModifierData *)md;
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
@@ -5067,6 +5067,9 @@ static void collisionModifier_freeData(ModifierData *md)
 		if(collmd->current_v)
 			MEM_freeN(collmd->current_v);
 		
+		if(collmd->mfaces)
+			MEM_freeN(collmd->mfaces);
+		
 		collmd->x = NULL;
 		collmd->xnew = NULL;
 		collmd->current_x = NULL;
@@ -5075,6 +5078,7 @@ static void collisionModifier_freeData(ModifierData *md)
 		collmd->time = -1;
 		collmd->numverts = 0;
 		collmd->tree = NULL;
+		collmd->mfaces = NULL;
 	}
 }
 
@@ -5139,7 +5143,10 @@ static void collisionModifier_deformVerts(
 				
 				// TODO: epsilon
 				// create bounding box hierarchy
-				collmd->tree = bvh_build_from_mvert(dm->getFaceArray(dm), dm->getNumFaces(dm), collmd->current_x, numverts, ob->pd->pdef_sbift);
+				collmd->tree = bvh_build_from_mvert(dm->getFaceArray(dm), dm->getNumFaces(dm), collmd->x, numverts, ob->pd->pdef_sbift);
+				
+				collmd->mfaces = dm->dupFaceArray(dm);
+				collmd->numfaces = dm->getNumFaces(dm);
 			}
 			else if(numverts == collmd->numverts)
 			{
@@ -5156,8 +5163,8 @@ static void collisionModifier_deformVerts(
 					Mat4MulVecfl ( ob->obmat, collmd->xnew[i].co );
 				}
 				
-				memcpy(collmd->current_xnew, dm->getVertArray(dm), numverts*sizeof(MVert));
-				memcpy(collmd->current_x, dm->getVertArray(dm), numverts*sizeof(MVert));
+				memcpy(collmd->current_xnew, collmd->x, numverts*sizeof(MVert));
+				memcpy(collmd->current_x, collmd->x, numverts*sizeof(MVert));
 				
 				// recalc static bounding boxes
 				bvh_update_from_mvert(collmd->tree, collmd->current_x, numverts, NULL, 0);

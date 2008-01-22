@@ -354,15 +354,20 @@ typedef struct ClothModifierData {
 } ClothModifierData;
 
 typedef struct CollisionModifierData {
-	ModifierData		modifier;
+	ModifierData	modifier;
 	
 	struct MVert *x; /* position at the beginning of the frame */
 	struct MVert *xnew; /* position at the end of the frame */
+	struct MVert *xold; /* unsued atm, but was discussed during sprint */
 	struct MVert *current_xnew; /* new position at the actual inter-frame step */
 	struct MVert *current_x; /* position at the actual inter-frame step */
 	struct MVert *current_v; /* position at the actual inter-frame step */
 	
+	struct MFace *mfaces; /* object face data */
+	
 	unsigned int numverts;
+	unsigned int numfaces;
+	int pad;
 	float time;
 	struct BVH *tree;	/* collision tree for this cloth object */
 } CollisionModifierData;

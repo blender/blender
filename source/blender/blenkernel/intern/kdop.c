@@ -670,7 +670,7 @@ DO_INLINE int bvh_overlap(float *bv1, float *bv2)
  * every other triangle that doesn't require any realloc, but uses
  * much memory
  */
-int bvh_traverse(ClothModifierData * clmd, ClothModifierData * coll_clmd, CollisionTree * tree1, CollisionTree * tree2, float step, CM_COLLISION_RESPONSE collision_response)
+int bvh_traverse ( ClothModifierData * clmd, CollisionModifierData * collmd, CollisionTree * tree1, CollisionTree * tree2, float step, CM_COLLISION_RESPONSE collision_response)
 {
 	int i = 0, ret=0;
 	
@@ -693,7 +693,7 @@ int bvh_traverse(ClothModifierData * clmd, ClothModifierData * coll_clmd, Collis
 				// Provide the collision response.
 				
 				if(collision_response)
-					collision_response (clmd, coll_clmd, tree1, tree2);
+					collision_response (clmd, collmd, tree1, tree2);
 				return 1;
 			}
 			else 
@@ -702,7 +702,7 @@ int bvh_traverse(ClothModifierData * clmd, ClothModifierData * coll_clmd, Collis
 				for (i = 0; i < 4; i++)
 				{
 					// Only traverse nodes that exist.
-					if (tree2->nodes[i] && bvh_traverse (clmd, coll_clmd, tree1, tree2->nodes[i], step, collision_response))
+					if (tree2->nodes[i] && bvh_traverse (clmd, collmd, tree1, tree2->nodes[i], step, collision_response))
 						ret = 1;
 				}
 			}
@@ -713,7 +713,7 @@ int bvh_traverse(ClothModifierData * clmd, ClothModifierData * coll_clmd, Collis
 			for (i = 0; i < 4; i++)
 			{
 				// Only traverse nodes that exist.
-				if (tree1->nodes [i] && bvh_traverse (clmd, coll_clmd, tree1->nodes[i], tree2, step, collision_response))
+				if (tree1->nodes [i] && bvh_traverse (clmd, collmd, tree1->nodes[i], tree2, step, collision_response))
 					ret = 1;
 			}
 		}

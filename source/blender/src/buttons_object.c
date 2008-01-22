@@ -4941,101 +4941,94 @@ static void object_panel_cloth(Object *ob)
 	
 	if(clmd)
 	{
-		but = uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_COLLOBJ, B_EFFECT_DEP, "Collision Object",	170,200,130,20, &clmd->sim_parms.flags, 0, 0, 0, 0, "Sets object to become a cloth collision object");
+		Cloth *cloth = clmd->clothObject;
+		int defCount;
+		char *clvg1, *clvg2;
+		char clmvg [] = "Weight Paint Groups%t|";
 
-		if (!(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ))
+		val2=0;
+		
+		/* GENERAL STUFF */
+		uiClearButLock();
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff:",	   10,170,150,20, &clmd->sim_parms.structural, 1.0, 10000.0, 100, 0, "Overall stiffness of structure");
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff:",	   160,170,150,20, &clmd->sim_parms.bending, 0.0, 10000.0, 1000, 0, "Wrinkle coefficient (higher = less smaller but more big wrinkles)");
+		uiDefButI(block, NUM, B_CLOTH_RENEW, "Quality:",	   10,150,150,20, &clmd->sim_parms.stepsPerFrame, 1.0, 100.0, 5, 0, "Quality of the simulation (higher=better=slower)");
+		uiBlockEndAlign(block);
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "Spring Damp:",	   160,150,150,20, &clmd->sim_parms.Cdis, 0.0, 10.0, 10, 0, "Spring damping");
+		uiDefButF(block, NUM, B_DIFF, "Air Damp:",	   10,130,150,20, &clmd->sim_parms.Cvi, 0.0, 10.0, 10, 0, "Air has normaly some thickness which slows falling things down");
+		uiBlockEndAlign(block);			
+		
+		uiClearButLock();
+		
+		uiBlockBeginAlign(block);
+		uiDefBut(block, LABEL, 0, "Gravity:",  10,100,60,20, NULL, 0.0, 0, 0, 0, "");
+		// uiClearButLock();
+		
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "X:",	   70,100,80,20, &clmd->sim_parms.gravity[0], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "Y:",	   150,100,80,20, &clmd->sim_parms.gravity[1], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "Z:",	   230,100,80,20, &clmd->sim_parms.gravity[2], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+		uiBlockEndAlign(block);
+		
+		/* GOAL STUFF */
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_GOAL, REDRAWVIEW3D, "Pinning of cloth",	10,70,150,20, &clmd->sim_parms.flags, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+		if (clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
 		{
-			Cloth *cloth = clmd->clothObject;
-			int defCount;
-			char *clvg1, *clvg2;
-			char clmvg [] = "Weight Paint Groups%t|";
-	
-			val2=0;
-	
-	//		uiDefButBitI(block, TOG, CSIMSETT_FLAG_ADVANCED, REDRAWBUTSOBJECT, "Advanced",	180,200,130,20, &clmd->sim_parms.flags, 0, 0, 0, 0, "Enable advanced mode");
-			
-			/* GENERAL STUFF */
-			uiClearButLock();
-			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff:",	   10,170,150,20, &clmd->sim_parms.structural, 1.0, 10000.0, 100, 0, "Overall stiffness of structure");
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff:",	   160,170,150,20, &clmd->sim_parms.bending, 0.0, 10000.0, 1000, 0, "Wrinkle coefficient (higher = less smaller but more big wrinkles)");
-			uiDefButI(block, NUM, B_CLOTH_RENEW, "Quality:",	   10,150,150,20, &clmd->sim_parms.stepsPerFrame, 1.0, 100.0, 5, 0, "Quality of the simulation (higher=better=slower)");
-			uiBlockEndAlign(block);
-			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "Spring Damp:",	   160,150,150,20, &clmd->sim_parms.Cdis, 0.0, 10.0, 10, 0, "Spring damping");
-			uiDefButF(block, NUM, B_DIFF, "Air Damp:",	   10,130,150,20, &clmd->sim_parms.Cvi, 0.0, 10.0, 10, 0, "Air has normaly some thickness which slows falling things down");
-			uiBlockEndAlign(block);			
-			
-			uiClearButLock();
-			
-			uiBlockBeginAlign(block);
-			uiDefBut(block, LABEL, 0, "Gravity:",  10,100,60,20, NULL, 0.0, 0, 0, 0, "");
-			// uiClearButLock();
-			
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "X:",	   70,100,80,20, &clmd->sim_parms.gravity[0], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "Y:",	   150,100,80,20, &clmd->sim_parms.gravity[1], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "Z:",	   230,100,80,20, &clmd->sim_parms.gravity[2], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
-			uiBlockEndAlign(block);
-			
-			/* GOAL STUFF */
-			uiBlockBeginAlign(block);
-			uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_GOAL, REDRAWVIEW3D, "Pinning of cloth",	10,70,150,20, &clmd->sim_parms.flags, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
-			if (clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
+			if(ob->type==OB_MESH) 
 			{
-				if(ob->type==OB_MESH) 
-				{
-					
-					defCount = sizeof (clmvg);
-					clvg1 = get_vertexgroup_menustr (ob);
-					clvg2 = MEM_callocN (strlen (clvg1) + 1 + defCount, "clothVgMS");
-					if (! clvg2) {
-						printf ("draw_modifier: error allocating memory for cloth vertex group menu string.\n");
-						return;
-					}
-					defCount = BLI_countlist (&ob->defbase);
-					if (defCount == 0) 
-					{
-						clmd->sim_parms.vgroup_mass = 0;
-					}
-					else
-						if(!clmd->sim_parms.vgroup_mass)
-							clmd->sim_parms.vgroup_mass = 1;
-								
-					sprintf (clvg2, "%s%s", clmvg, clvg1);
-					
-					uiDefButS(block, MENU, B_CLOTH_RENEW, clvg2,	160,70,150,20, &clmd->sim_parms.vgroup_mass, 0, defCount, 0, 0, "Browses available vertex groups");
-					MEM_freeN (clvg1);
-					MEM_freeN (clvg2);
-				}
-				else 
-				{
-					uiDefButS(block, TOG, B_CLOTH_RENEW, "W",			140,70,20,20, &clmd->sim_parms.vgroup_mass, 0, 1, 0, 0, "Use control point weight values");
-					uiDefButF(block, NUM, B_CLOTH_RENEW, "Goal:",	160,70,150,20, &clmd->sim_parms.defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
-				}
 				
-				uiDefButF(block, NUM, B_CLOTH_RENEW, "Pin Stiff:",	10,50,150,20, &clmd->sim_parms.goalspring, 0.0, 500.0, 10, 0, "Pin (vertex target position) spring stiffness");
-				/*
-				// nobody is changing these ones anyway
-				uiDefButF(block, NUM, B_CLOTH_RENEW, "G Damp:",	160,50,150,20, &clmd->sim_parms.goalfrict  , 0.0, 50.0, 10, 0, "Goal (vertex target position) friction");
-				uiDefButF(block, NUM, B_CLOTH_RENEW, "G Min:",		10,30,150,20, &clmd->sim_parms.mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
-				uiDefButF(block, NUM, B_CLOTH_RENEW, "G Max:",		160,30,150,20, &clmd->sim_parms.maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
-				*/
+				defCount = sizeof (clmvg);
+				clvg1 = get_vertexgroup_menustr (ob);
+				clvg2 = MEM_callocN (strlen (clvg1) + 1 + defCount, "clothVgMS");
+				if (! clvg2) {
+					printf ("draw_modifier: error allocating memory for cloth vertex group menu string.\n");
+					return;
+				}
+				defCount = BLI_countlist (&ob->defbase);
+				if (defCount == 0) 
+				{
+					clmd->sim_parms.vgroup_mass = 0;
+				}
+				else
+					if(!clmd->sim_parms.vgroup_mass)
+						clmd->sim_parms.vgroup_mass = 1;
+							
+				sprintf (clvg2, "%s%s", clmvg, clvg1);
+				
+				uiDefButS(block, MENU, B_CLOTH_RENEW, clvg2,	160,70,150,20, &clmd->sim_parms.vgroup_mass, 0, defCount, 0, 0, "Browses available vertex groups");
+				MEM_freeN (clvg1);
+				MEM_freeN (clvg2);
 			}
-			uiBlockEndAlign(block);	
-			
-			/*
-			// no tearing supported anymore since modifier stack restrictions 
-			uiBlockBeginAlign(block);
-			uiDefButBitI(block, TOG, CSIMSETT_FLAG_TEARING_ENABLED, B_EFFECT_DEP, "Tearing",	10,0,150,20, &clmd->sim_parms.flags, 0, 0, 0, 0, "Sets object to become a cloth collision object");
-			
-			if (clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED)
+			else 
 			{
-			uiDefButI(block, NUM, B_DIFF, "Max extent:",	   160,0,150,20, &clmd->sim_parms.maxspringlen, 1.0, 1000.0, 10, 0, "Maximum extension before spring gets cut");
-		}
+				uiDefButS(block, TOG, B_CLOTH_RENEW, "W",			140,70,20,20, &clmd->sim_parms.vgroup_mass, 0, 1, 0, 0, "Use control point weight values");
+				uiDefButF(block, NUM, B_CLOTH_RENEW, "Goal:",	160,70,150,20, &clmd->sim_parms.defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
+			}
 			
-			uiBlockEndAlign(block);	
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "Pin Stiff:",	10,50,150,20, &clmd->sim_parms.goalspring, 0.0, 500.0, 10, 0, "Pin (vertex target position) spring stiffness");
+			/*
+			// nobody is changing these ones anyway
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "G Damp:",	160,50,150,20, &clmd->sim_parms.goalfrict  , 0.0, 50.0, 10, 0, "Goal (vertex target position) friction");
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "G Min:",		10,30,150,20, &clmd->sim_parms.mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "G Max:",		160,30,150,20, &clmd->sim_parms.maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
 			*/
 		}
+		uiBlockEndAlign(block);	
+		
+		/*
+		// no tearing supported anymore since modifier stack restrictions 
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, CSIMSETT_FLAG_TEARING_ENABLED, B_EFFECT_DEP, "Tearing",	10,0,150,20, &clmd->sim_parms.flags, 0, 0, 0, 0, "Sets object to become a cloth collision object");
+		
+		if (clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED)
+		{
+		uiDefButI(block, NUM, B_DIFF, "Max extent:",	   160,0,150,20, &clmd->sim_parms.maxspringlen, 1.0, 1000.0, 10, 0, "Maximum extension before spring gets cut");
+		}
+		
+		uiBlockEndAlign(block);	
+		*/
 	}
 }
 

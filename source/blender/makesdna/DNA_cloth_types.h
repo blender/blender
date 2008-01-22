@@ -36,48 +36,6 @@
 
 
 /**
-* Pin and unpin frames are the frames on which the vertices stop moving.
-* They will assume the position they had prior to pinFrame until unpinFrame
-* is reached.
-*/
-typedef struct ClothVertex
-{
-	int	flags;		/* General flags per vertex.		*/
-	float	v [3];		/* The velocity of the point.		*/
-	float	xconst [3];	/* constrained position			*/
-	float	x [3];		/* The current position of this vertex.	*/
-	float 	xold [3];	/* The previous position of this vertex.*/
-	float	tx [3];		/* temporary position */
-	float 	txold [3];	/* temporary old position */
-	float 	tv[3];		/* temporary "velocity", mostly used as tv = tx-txold */
-	float 	mass;		/* mass / weight of the vertex		*/
-	float 	goal;		/* goal, from SB			*/
-	float	impulse[3];	/* used in collision.c */
-	unsigned int impulse_count; /* same as above */
-}
-ClothVertex;
-
-
-/**
-* The definition of a spring.
-*/
-typedef struct ClothSpring
-{
-	int	ij;		/* Pij from the paper, one end of the spring.	*/
-	int	kl;		/* Pkl from the paper, one end of the spring.	*/
-	float	restlen;	/* The original length of the spring.	*/
-	int	matrix_index; 	/* needed for implicit solver (fast lookup) */
-	int	type;		/* types defined in BKE_cloth.h ("springType") */
-	int	flags; 		/* defined in BKE_cloth.h, e.g. deactivated due to tearing */
-	float dfdx[3][3];
-	float dfdv[3][3];
-	float f[3];
-}
-ClothSpring;
-
-
-
-/**
 * This struct contains all the global data required to run a simulation.
 * At the time of this writing, this structure contains data appropriate
 * to run a simulation as described in Deformation Constraints in a

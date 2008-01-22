@@ -61,6 +61,47 @@ struct ClothModifierData;
 #define CLOTH_MAX_THREAD 2
 
 
+/**
+ * Pin and unpin frames are the frames on which the vertices stop moving.
+ * They will assume the position they had prior to pinFrame until unpinFrame
+ * is reached.
+ */
+typedef struct ClothVertex
+{
+	int	flags;		/* General flags per vertex.		*/
+	float	v [3];		/* The velocity of the point.		*/
+	float	xconst [3];	/* constrained position			*/
+	float	x [3];		/* The current position of this vertex.	*/
+	float 	xold [3];	/* The previous position of this vertex.*/
+	float	tx [3];		/* temporary position */
+	float 	txold [3];	/* temporary old position */
+	float 	tv[3];		/* temporary "velocity", mostly used as tv = tx-txold */
+	float 	mass;		/* mass / weight of the vertex		*/
+	float 	goal;		/* goal, from SB			*/
+	float	impulse[3];	/* used in collision.c */
+	unsigned int impulse_count; /* same as above */
+}
+ClothVertex;
+
+
+/**
+ * The definition of a spring.
+ */
+typedef struct ClothSpring
+{
+	int	ij;		/* Pij from the paper, one end of the spring.	*/
+	int	kl;		/* Pkl from the paper, one end of the spring.	*/
+	float	restlen;	/* The original length of the spring.	*/
+	int	matrix_index; 	/* needed for implicit solver (fast lookup) */
+	int	type;		/* types defined in BKE_cloth.h ("springType") */
+	int	flags; 		/* defined in BKE_cloth.h, e.g. deactivated due to tearing */
+	float dfdx[3][3];
+	float dfdv[3][3];
+	float f[3];
+}
+ClothSpring;
+
+
 /* goal defines */
 #define SOFTGOALSNAP  0.999f
 
@@ -161,7 +202,7 @@ typedef struct BVH
 }
 BVH;
 
-typedef void ( *CM_COLLISION_RESPONSE ) ( ClothModifierData *clmd, ClothModifierData *coll_clmd, CollisionTree * tree1, CollisionTree * tree2 );
+typedef void ( *CM_COLLISION_RESPONSE ) ( ClothModifierData *clmd, CollisionModifierData *collmd, CollisionTree * tree1, CollisionTree * tree2 );
 
 
 /////////////////////////////////////////////////
@@ -191,7 +232,7 @@ void bvh_build (BVH *bvh);
 LinkNode *BLI_linklist_append_fast ( LinkNode **listp, void *ptr );
 
 // needed for collision.c
-int bvh_traverse ( ClothModifierData * clmd, ClothModifierData * coll_clmd, CollisionTree * tree1, CollisionTree * tree2, float step, CM_COLLISION_RESPONSE collision_response );
+int bvh_traverse ( ClothModifierData * clmd, CollisionModifierData * collmd, CollisionTree * tree1, CollisionTree * tree2, float step, CM_COLLISION_RESPONSE collision_response );
 void bvh_update(BVH * bvh, int moving);
 ////////////////////////////////////////////////
 

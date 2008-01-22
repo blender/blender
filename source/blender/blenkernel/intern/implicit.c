@@ -850,6 +850,7 @@ DO_INLINE float fbstar(float length, float L, float kb, float cb)
 		return tempfb;		
 }
 
+// function to calculae bending spring force (taken from Choi & Co)
 DO_INLINE float fbstar_jacobi(float length, float L, float kb, float cb)
 {
 	float tempfb = kb * fb(length, L);
@@ -1331,7 +1332,7 @@ void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVecto
 	initdiag_bfmatrix(A, I);
 	zero_lfvector(dV, numverts);
 
-	subadd_bfmatrixS_bfmatrixS(A, dFdV, dt, dFdX, (dt*dt));   
+	subadd_bfmatrixS_bfmatrixS(A, dFdV, dt, dFdX, (dt*dt));
 
 	mul_bfmatrix_lfvector(dFdXmV, dFdX, lV);
 
