@@ -22,5 +22,5 @@ SET(INC ./include ${WINTAB_INC})
 ADD_DEFINITIONS(-DWITH_BINRELOC)
 FILE(GLOB SRC *.c)
 
-BLENDERLIB(binreloc "${SRC}" "${INC}")
+BLENDERLIB(extern_binreloc "${SRC}" "${INC}")
 #, libtype=['core','player'], priority = [25,15] ) 
