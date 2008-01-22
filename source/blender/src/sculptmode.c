@@ -1474,6 +1474,8 @@ void sculpt(void)
 	short spacing= 32000;
 	int scissor_box[4];
 	float offsetRot;
+	int smooth_stroke = 0;
+
 	if(!(G.f & G_SCULPTMODE) || G.obedit || !ob || ob->id.lib || !get_mesh(ob) || (get_mesh(ob)->totface == 0))
 		return;
 	if(!(ob->lay & G.vd->lay))
@@ -1490,7 +1492,9 @@ void sculpt(void)
 		ss= sd->session;
 	}
 
-	if(sd->flags & SCULPT_INPUT_SMOOTH)
+	smooth_stroke = (sd->flags & SCULPT_INPUT_SMOOTH) && (sd->brush_type != GRAB_BRUSH);
+
+	if(smooth_stroke)
 		sculpt_stroke_new(256);
 
 	ss->damaged_rects.first = ss->damaged_rects.last = NULL;
@@ -1569,7 +1573,7 @@ void sculpt(void)
 		if(firsttime || mouse[0]!=mvalo[0] || mouse[1]!=mvalo[1] || sculptmode_brush()->airbrush) {
 			firsttime= 0;
 
-			if(sd->flags & SCULPT_INPUT_SMOOTH)
+			if(smooth_stroke)
 				sculpt_stroke_add_point(mouse[0], mouse[1]);
 
 			spacing+= sqrt(pow(mvalo[0]-mouse[0],2)+pow(mvalo[1]-mouse[1],2));
@@ -1578,7 +1582,7 @@ void sculpt(void)
 				ss->vertexcosnos= mesh_get_mapped_verts_nors(ob);
 
 			if(G.scene->sculptdata.brush_type != GRAB_BRUSH) {
-				if(sd->flags & SCULPT_INPUT_SMOOTH) {
+				if(smooth_stroke) {
 					sculpt_stroke_apply(&e);
 				}
 				else if(sd->spacing==0 || spacing>sd->spacing) {
@@ -1619,7 +1623,7 @@ void sculpt(void)
 				/* Draw cursor */
 				if(sculpt_data()->flags & SCULPT_DRAW_BRUSH)
 					fdrawXORcirc((float)mouse[0],(float)mouse[1],sculptmode_brush()->size);
-				if(sculpt_data()->flags & SCULPT_INPUT_SMOOTH)
+				if(smooth_stroke)
 					sculpt_stroke_draw();
 				
 				myswapbuffers();
@@ -1643,7 +1647,7 @@ void sculpt(void)
 	/* Set the rotation of the brush back to what it was before any rake */
 	set_tex_angle(offsetRot);
 	
-	if(sd->flags & SCULPT_INPUT_SMOOTH) {
+	if(smooth_stroke) {
 		sculpt_stroke_apply_all(&e);
 		calc_damaged_verts(&ss->damaged_verts,e.grabdata);
 		BLI_freelistN(&ss->damaged_rects);

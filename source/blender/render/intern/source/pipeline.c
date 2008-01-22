@@ -2369,7 +2369,14 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 				do_write_image_or_movie(re, scene, mh);
 			}
 		
-			if(G.afbreek==1) break;
+			if(G.afbreek==1) {
+				/* remove touched file */
+				if (scene->r.mode & R_TOUCH && BLI_exist(name) && BLI_filepathsize(name) == 0) {
+					BLI_delete(name, 0, 0);
+				}
+				
+				break;
+			}
 		}
 	}
 	

@@ -687,7 +687,6 @@ static void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *ss
 	memset(&vlr, 0, sizeof(vlr));
 	vlr.flag= R_SMOOTH;
 	vlr.lay= sseg->strand->buffer->lay;
-	vlr.obr= sseg->strand->buffer->obr;
 	if(sseg->buffer->ma->mode & MA_TANGENT_STR)
 		vlr.flag |= R_TANGENT;
 

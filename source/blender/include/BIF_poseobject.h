@@ -35,6 +35,7 @@
 
 
 struct Object;
+struct bPose;
 struct bPoseChannel;
 
 void enter_posemode(void);
@@ -59,6 +60,13 @@ void copy_posebuf (void);
 void paste_posebuf (int flip);
 
 void pose_adds_vgroups(struct Object *meshobj, int heatweights);
+
+void pose_add_posegroup(void);
+void pose_remove_posegroup(void);
+char *build_posegroups_menustr(struct bPose *pose, short for_pupmenu);
+void pose_assign_to_posegroup(void);
+void pose_remove_from_posegroups(void);
+void pgroup_operation_with_menu(void);
 
 void pose_calculate_path(struct Object *ob);
 void pose_recalculate_paths(struct Object *ob);

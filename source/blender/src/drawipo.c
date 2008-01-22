@@ -521,6 +521,10 @@ void view2d_zoom(View2D *v2d, float factor, int winx, int winy)
 	view2d_do_locks(curarea, V2D_LOCK_COPY);
 }
 
+void view2d_getscale(View2D *v2d, float *x, float *y) {
+	if (x) *x = (G.v2d->mask.xmax-G.v2d->mask.xmin)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
+	if (y) *y = (G.v2d->mask.ymax-G.v2d->mask.ymin)/(G.v2d->cur.ymax-G.v2d->cur.ymin);
+}
 
 void test_view2d(View2D *v2d, int winx, int winy)
 {

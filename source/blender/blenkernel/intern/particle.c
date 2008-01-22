@@ -318,6 +318,16 @@ void psys_free_path_cache(ParticleSystem *psys)
 	}
 	free_child_path_cache(psys);
 }
+void psys_free_children(ParticleSystem *psys)
+{
+	if(psys->child) {
+		MEM_freeN(psys->child);
+		psys->child=0;
+		psys->totchild=0;
+	}
+
+	free_child_path_cache(psys);
+}
 /* free everything */
 void psys_free(Object *ob, ParticleSystem * psys)
 {

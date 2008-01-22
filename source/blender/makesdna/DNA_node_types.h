@@ -202,7 +202,8 @@ typedef struct NodeBlurData {
 	float fac, percentx, percenty;
 	short filtertype;
 	char bokeh, gamma;
-	int pad;
+	short curved;
+	short pad;
 	int image_in_width, image_in_height; /* needed for absolute/relative conversions */
 } NodeBlurData;
 

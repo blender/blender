@@ -1477,10 +1477,10 @@ void mouse_select_ipo(void)
 	
 	if(G.sipo->showkey) {
 		float pixelwidth;
-		pixelwidth= (G.v2d->cur.xmax-G.v2d->cur.xmin)/(G.v2d->mask.xmax-G.v2d->mask.xmin); /* could make a generic function */
+		
+		view2d_getscale(G.v2d, &pixelwidth, NULL);
 		
 		getmouseco_areawin(mval);
-		
 		areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 		actik= 0;
 		mindist= 1000.0;
@@ -1802,6 +1802,10 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname, char 
 		achan= verify_action_channel(ob->action, actname);
 		
 		if(achan) {
+			/* automatically assign achan to act-group based on pchan's grouping */
+			if (blocktype == ID_PO)
+			verify_pchan2achan_grouping(ob->action, ob->pose, actname);
+			
 			/* constraint exception */
 			if(blocktype==ID_CO) {
 				bConstraintChannel *conchan= verify_constraint_channel(&achan->constraintChannels, constname);

@@ -68,7 +68,6 @@ OPTION(WITH_FFMPEG		"Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)"	OFF)
 OPTION(WITH_OPENAL		"Enable OpenAL Support (http://www.openal.org)"		ON)
 OPTION(YESIAMSTUPID		"Enable execution on 64-bit platforms"			OFF)
 OPTION(WITH_OPENMP		"Enable OpenMP (has to be supported by the compiler)"	OFF)
-OPTION(WITH_BINRELOC		"Enable binreloc filepath support"				OFF)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
   MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
@@ -265,9 +264,6 @@ IF(WIN32)
   SET(FFMPEG_LIB avcodec-51 avformat-51 avutil-49)
   SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
 
-  SET(BINRELC ${LIBDIR}/binreloc)
-  SET(BINRELC_INC ${BINRELOC}/include)
-
   SET(LLIBS kernel32 user32 gdi32 comdlg32 advapi32 shell32 ole32 oleaut32 uuid ws2_32 vfw32 winmm)
   IF(WITH_OPENAL)
     SET(LLIBS ${LLIBS} dxguid)
@@ -388,6 +384,11 @@ IF(APPLE)
 
   SET(EXETYPE MACOSX_BUNDLE)
 ENDIF(APPLE)
+
+IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+  SET(BINRELOC ${CMAKE_SOURCE_DIR}/extern/binreloc)
+  SET(BINRELOC_INC ${BINRELOC}/include)
+ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 #-----------------------------------------------------------------------------
 # Common.

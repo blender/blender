@@ -1042,7 +1042,6 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 	if(line) {
 		vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 		vlr->flag= flag;
-		vlr->obr= obr;
 		vlr->v1= RE_findOrAddVert(obr, obr->totvert++);
 		vlr->v2= RE_findOrAddVert(obr, obr->totvert++);
 		vlr->v3= RE_findOrAddVert(obr, obr->totvert++);
@@ -1132,7 +1131,6 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 		if(adapt==0 || second){
 			vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 			vlr->flag= flag;
-			vlr->obr= obr;
 			vlr->v1= v1;
 			vlr->v2= v2;
 			vlr->v3= RE_findOrAddVert(obr, obr->totvert++);
@@ -1162,7 +1160,6 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 			if(Inpf(anor,nor)<adapt_angle && w>adapt_pix){
 				vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 				vlr->flag= flag;
-				vlr->obr= obr;
 				vlr->v1= v1;
 				vlr->v2= v2;
 				vlr->v3= RE_findOrAddVert(obr, obr->totvert++);
@@ -1232,7 +1229,6 @@ static void static_particle_wire(ObjectRen *obr, Material *ma, float *vec, float
 
 	if(line) {
 		vlr= RE_findOrAddVlak(obr, obr->totvlak++);
-		vlr->obr= obr;
 		vlr->v1= RE_findOrAddVert(obr, obr->totvert++);
 		vlr->v2= RE_findOrAddVert(obr, obr->totvert++);
 		vlr->v3= vlr->v2;
@@ -1257,7 +1253,6 @@ static void static_particle_wire(ObjectRen *obr, Material *ma, float *vec, float
 	}
 	else {
 		vlr= RE_findOrAddVlak(obr, obr->totvlak++);
-		vlr->obr= obr;
 		vlr->v1= v1;
 		vlr->v2= RE_findOrAddVert(obr, obr->totvert++);
 		vlr->v3= vlr->v2;
@@ -1289,7 +1284,6 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Object 
 		onevec[align]=1.0f;
 
 	vlr= RE_findOrAddVlak(obr, obr->totvlak++);
-	vlr->obr= obr;
 	vlr->v1= RE_findOrAddVert(obr, obr->totvert++);
 	vlr->v2= RE_findOrAddVert(obr, obr->totvert++);
 	vlr->v3= RE_findOrAddVert(obr, obr->totvert++);
@@ -2159,7 +2153,7 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	return;
 }
 
-static void displace_render_face(Render *re, VlakRen *vlr, float *scale)
+static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float *scale)
 {
 	ShadeInput shi;
 
@@ -2178,17 +2172,17 @@ static void displace_render_face(Render *re, VlakRen *vlr, float *scale)
 	
 	/* Displace the verts, flag is set when done */
 	if (!vlr->v1->flag)
-		displace_render_vert(re, vlr->obr, &shi, vlr->v1,0,  scale);
+		displace_render_vert(re, obr, &shi, vlr->v1,0,  scale);
 	
 	if (!vlr->v2->flag)
-		displace_render_vert(re, vlr->obr, &shi, vlr->v2, 1, scale);
+		displace_render_vert(re, obr, &shi, vlr->v2, 1, scale);
 
 	if (!vlr->v3->flag)
-		displace_render_vert(re, vlr->obr, &shi, vlr->v3, 2, scale);
+		displace_render_vert(re, obr, &shi, vlr->v3, 2, scale);
 
 	if (vlr->v4) {
 		if (!vlr->v4->flag)
-			displace_render_vert(re, vlr->obr, &shi, vlr->v4, 3, scale);
+			displace_render_vert(re, obr, &shi, vlr->v4, 3, scale);
 
 		/*	closest in displace value.  This will help smooth edges.   */ 
 		if ( fabs(vlr->v1->accum - vlr->v3->accum) > fabs(vlr->v2->accum - vlr->v4->accum)) 
@@ -2230,7 +2224,7 @@ static void do_displacement(Render *re, ObjectRen *obr)
 
 	for(i=0; i<obr->totvlak; i++){
 		vlr=RE_findOrAddVlak(obr, i);
-		displace_render_face(re, vlr, scale);
+		displace_render_face(re, obr, vlr, scale);
 	}
 	
 	/* Recalc vertex normals */
@@ -2297,7 +2291,6 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	for(a=0; a<dl->parts; a++, index+=4) {
 
 		vlr= RE_findOrAddVlak(obr, obr->totvlak++);
-		vlr->obr= obr;
 		vlr->v1= RE_findOrAddVert(obr, index[0]);
 		vlr->v2= RE_findOrAddVert(obr, index[1]);
 		vlr->v3= RE_findOrAddVert(obr, index[2]);
@@ -2420,7 +2413,6 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			v4= RE_findOrAddVert(obr, p4);
 			
 			vlr= RE_findOrAddVlak(obr, obr->totvlak++);
-			vlr->obr= obr;
 			vlr->v1= v1; vlr->v2= v2; vlr->v3= v3; vlr->v4= v4;
 			
 			flen= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, n1);
@@ -2642,7 +2634,6 @@ static void init_render_curve(Render *re, ObjectRen *obr, int only_verts)
 				for(a=0; a<dl->parts; a++, index+=3) {
 
 					vlr= RE_findOrAddVlak(obr, obr->totvlak++);
-					vlr->obr = obr;
 					vlr->v1= RE_findOrAddVert(obr, startvert+index[0]);
 					vlr->v2= RE_findOrAddVert(obr, startvert+index[1]);
 					vlr->v3= RE_findOrAddVert(obr, startvert+index[2]);
@@ -2706,7 +2697,6 @@ static void init_render_curve(Render *re, ObjectRen *obr, int only_verts)
 
 						for(; b<dl->nr; b++) {
 							vlr= RE_findOrAddVlak(obr, obr->totvlak++);
-							vlr->obr= obr;
 							vlr->v1= RE_findOrAddVert(obr, p2);
 							vlr->v2= RE_findOrAddVert(obr, p1);
 							vlr->v3= RE_findOrAddVert(obr, p3);
@@ -3086,7 +3076,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int only_verts)
 							flag= mface->flag & ME_SMOOTH;
 
 							vlr= RE_findOrAddVlak(obr, obr->totvlak++);
-							vlr->obr= obr;
 							vlr->v1= RE_findOrAddVert(obr, vertofs+v1);
 							vlr->v2= RE_findOrAddVert(obr, vertofs+v2);
 							vlr->v3= RE_findOrAddVert(obr, vertofs+v3);
@@ -3167,7 +3156,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int only_verts)
 						MVert *v1 = &mvert[medge->v2];
 
 						vlr= RE_findOrAddVlak(obr, obr->totvlak++);
-						vlr->obr= obr;
 						vlr->v1= RE_findOrAddVert(obr, vertofs+medge->v1);
 						vlr->v2= RE_findOrAddVert(obr, vertofs+medge->v2);
 						vlr->v3= vlr->v2;
@@ -3894,8 +3882,9 @@ static void find_dupli_instances(Render *re, ObjectRen *obr)
 {
 	ObjectInstanceRen *obi;
 	float imat[4][4], obmat[4][4], obimat[4][4], nmat[3][3];
+	int first = 1;
 
-	Mat4MulMat4(obmat, obr->ob->obmat, re->viewmat);
+	Mat4MulMat4(obmat, obr->obmat, re->viewmat);
 	Mat4Invert(imat, obmat);
 
 	for(obi=re->instancetable.last; obi; obi=obi->prev) {
@@ -3909,8 +3898,51 @@ static void find_dupli_instances(Render *re, ObjectRen *obr)
 
 			Mat3CpyMat4(nmat, obi->mat);
 			Mat3Inv(obi->imat, nmat);
+
+			if(!first) {
+				re->totvert += obr->totvert;
+				re->totvlak += obr->totvlak;
+				re->tothalo += obr->tothalo;
+				re->totstrand += obr->totstrand;
+			}
+			else
+				first= 0;
 		}
 	}
+}
+
+static void assign_dupligroup_dupli(Render *re, ObjectInstanceRen *obi, ObjectRen *obr)
+{
+	float imat[4][4], obmat[4][4], obimat[4][4], nmat[3][3];
+
+	Mat4MulMat4(obmat, obr->obmat, re->viewmat);
+	Mat4Invert(imat, obmat);
+
+	obi->obr= obr;
+
+	/* compute difference between object matrix and
+	 * object matrix with dupli transform, in viewspace */
+	Mat4CpyMat4(obimat, obi->mat);
+	Mat4MulMat4(obi->mat, imat, obimat);
+
+	Mat3CpyMat4(nmat, obi->mat);
+	Mat3Inv(obi->imat, nmat);
+
+	re->totvert += obr->totvert;
+	re->totvlak += obr->totvlak;
+	re->tothalo += obr->tothalo;
+	re->totstrand += obr->totstrand;
+}
+
+static ObjectRen *find_dupligroup_dupli(Render *re, Object *ob, int psysindex)
+{
+	ObjectRen *obr;
+
+	for(obr=re->objecttable.first; obr; obr=obr->next)
+		if(obr->ob == ob && obr->psysindex == psysindex && (obr->flag & R_INSTANCEABLE))
+			return obr;
+	
+	return NULL;
 }
 
 static void init_render_object_data(Render *re, ObjectRen *obr, int only_verts)
@@ -3952,7 +3984,7 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int only_verts)
 	re->totstrand += obr->totstrand;
 }
 
-static void add_render_object(Render *re, Object *ob, Object *par, int index, int only_verts)
+static void add_render_object(Render *re, Object *ob, Object *par, int index, int only_verts, int instanceable)
 {
 	ObjectRen *obr;
 	ParticleSystem *psys;
@@ -3975,6 +4007,10 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 	/* one render object for the data itself */
 	if(allow_render) {
 		obr= RE_addRenderObject(re, ob, par, index, 0);
+		if(instanceable) {
+			obr->flag |= R_INSTANCEABLE;
+			Mat4CpyMat4(obr->obmat, ob->obmat);
+		}
 		init_render_object_data(re, obr, only_verts);
 
 		/* only add instance for objects that have not been used for dupli */
@@ -3989,6 +4025,10 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 		psysindex= 1;
 		for(psys=ob->particlesystem.first; psys; psys=psys->next, psysindex++) {
 			obr= RE_addRenderObject(re, ob, par, index, psysindex);
+			if(instanceable) {
+				obr->flag |= R_INSTANCEABLE;
+				Mat4CpyMat4(obr->obmat, ob->obmat);
+			}
 			init_render_object_data(re, obr, only_verts);
 			psys_render_restore(ob, psys);
 
@@ -4003,7 +4043,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 
 /* par = pointer to duplicator parent, needed for object lookup table */
 /* index = when duplicater copies same object (particle), the counter */
-static void init_render_object(Render *re, Object *ob, Object *par, int index, int only_verts)
+static void init_render_object(Render *re, Object *ob, Object *par, int index, int only_verts, int instanceable)
 {
 	static double lasttime= 0.0;
 	double time;
@@ -4012,7 +4052,7 @@ static void init_render_object(Render *re, Object *ob, Object *par, int index, i
 	if(ob->type==OB_LAMP)
 		add_render_lamp(re, ob);
 	else if(render_object_type(ob->type))
-		add_render_object(re, ob, par, index, only_verts);
+		add_render_object(re, ob, par, index, only_verts, instanceable);
 	else {
 		MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
 		MTC_Mat4Invert(ob->imat, mat);
@@ -4141,7 +4181,7 @@ static int allow_render_object(Object *ob, int nolamps, int onlyselected, Object
 static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd)
 {
 	return (render_object_type(obd->type) &&
-	        (!(dob->type == OB_DUPLIGROUP)) &&
+	        (!(dob->type == OB_DUPLIGROUP) || !dob->animated) &&
 	        !(re->r.mode & R_RADIO));
 }
 
@@ -4214,7 +4254,7 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 		if(ob->flag & OB_DONE) {
 			if(ob->transflag & OB_RENDER_DUPLI)
 				if(allow_render_object(ob, nolamps, onlyselected, actob))
-					init_render_object(re, ob, NULL, 0, only_verts);
+					init_render_object(re, ob, NULL, 0, only_verts, 1);
 		}
 		else if((base->lay & lay) || (ob->type==OB_LAMP && (base->lay & re->scene->lay)) ) {
 			if((ob->transflag & OB_DUPLI) && (ob->type!=OB_MBALL)) {
@@ -4245,38 +4285,56 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 
 					if(allow_render_dupli_instance(re, dob, obd)) {
 						ParticleSystem *psys;
+						ObjectRen *obr = NULL;
 						int psysindex;
 						float mat[4][4];
 
-						Mat4MulMat4(mat, dob->mat, re->viewmat);
-						obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, 0, mat);
-						VECCOPY(obi->dupliorco, dob->orco);
-						obi->dupliuv[0]= dob->uv[0];
-						obi->dupliuv[1]= dob->uv[1];
+						if(dob->type != OB_DUPLIGROUP || (obr=find_dupligroup_dupli(re, obd, 0))) {
+							Mat4MulMat4(mat, dob->mat, re->viewmat);
+							obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, 0, mat);
+
+							if(dob->type != OB_DUPLIGROUP) {
+								VECCOPY(obi->dupliorco, dob->orco);
+								obi->dupliuv[0]= dob->uv[0];
+								obi->dupliuv[1]= dob->uv[1];
+							}
+							else
+								assign_dupligroup_dupli(re, obi, obr);
+						}
+						else
+							init_render_object(re, obd, ob, dob->index, only_verts, !dob->animated);
 
 						psysindex= 1;
 						for(psys=obd->particlesystem.first; psys; psys=psys->next) {
-							RE_addRenderInstance(re, NULL, obd, ob, dob->index, psysindex++, mat);
-							VECCOPY(obi->dupliorco, dob->orco);
-							obi->dupliuv[0]= dob->uv[0];
-							obi->dupliuv[1]= dob->uv[1];
+							if(dob->type != OB_DUPLIGROUP || (obr=find_dupligroup_dupli(re, ob, psysindex))) {
+								obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, psysindex++, mat);
+								if(dob->type != OB_DUPLIGROUP) {
+									VECCOPY(obi->dupliorco, dob->orco);
+									obi->dupliuv[0]= dob->uv[0];
+									obi->dupliuv[1]= dob->uv[1];
+								}
+								else
+									assign_dupligroup_dupli(re, obi, obr);
+							}
 						}
 						
-						obd->flag |= OB_DONE;
-						obd->transflag |= OB_RENDER_DUPLI;
+						if(dob->type != OB_DUPLIGROUP) {
+							obd->flag |= OB_DONE;
+							obd->transflag |= OB_RENDER_DUPLI;
+						}
 					}
 					else
-						init_render_object(re, obd, ob, dob->index, only_verts);
+						init_render_object(re, obd, ob, dob->index, only_verts, !dob->animated);
 					
 					if(re->test_break()) break;
 				}
 				free_object_duplilist(lb);
 
 				if(allow_render_object(ob, nolamps, onlyselected, actob))
-					init_render_object(re, ob, NULL, 0, only_verts);
+					init_render_object(re, ob, NULL, 0, only_verts, 0);
 			}
 			else if(allow_render_object(ob, nolamps, onlyselected, actob))
-				init_render_object(re, ob, NULL, 0, only_verts);
+				init_render_object(re, ob, NULL, 0, only_verts, 0);
 		}
 
 		if(re->test_break()) break;

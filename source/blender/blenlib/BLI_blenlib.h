@@ -272,6 +272,7 @@ int BLI_getInstallationDir(char *str);
 		
 /* BLI_storage.h */
 int    BLI_filesize(int file);
+int    BLI_filepathsize(const char *path);
 double BLI_diskfree(char *dir);
 char *BLI_getwdN(char *dir);
 void BLI_hide_dot_files(int set);

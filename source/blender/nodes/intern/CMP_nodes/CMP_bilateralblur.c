@@ -107,9 +107,8 @@ static void node_composit_exec_bilateralblur(void *data, bNode *node, bNodeStack
 	step= pix * imgx;
 
 	if(refimg) {
-		refimg= img;
 		if(refimg->x == imgx && refimg->y == imgy) {
-			if(refimg->type == CB_VEC2 || refimg->type == CB_VEC3) {
+			if(ELEM3(refimg->type, CB_VAL, CB_VEC2, CB_VEC3)) {
 				refimg= typecheck_compbuf(in[1]->data, CB_RGBA);
 				found_determinator= 1;
 			}

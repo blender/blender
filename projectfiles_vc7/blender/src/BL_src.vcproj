@@ -476,6 +476,9 @@
 				RelativePath="..\..\..\source\blender\src\prvicons.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\radialcontrol.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\reeb.c">
 			</File>
 			<File
@@ -751,6 +754,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_previewrender.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\include\BIF_radialcontrol.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_renderwin.h">

@@ -458,7 +458,6 @@ static int findFileRecursive(char *filename_new, const char *dirname, const char
 {
 	/* file searching stuff */
 	DIR *dir;
-	int file = 0;
 	struct dirent *de;
 	struct stat status;
 	char path[FILE_MAX];
@@ -485,14 +484,10 @@ static int findFileRecursive(char *filename_new, const char *dirname, const char
 		if (S_ISREG(status.st_mode)) { /* is file */
 			if (strncmp(filename, de->d_name, FILE_MAX)==0) { /* name matches */
 				/* open the file to read its size */
-				file = open(path, O_BINARY|O_RDONLY);
-				if (file >=0 ) {
-					size = BLI_filesize(file);
-					if (size > *filesize) { /* find the biggest file */
-						*filesize = size;
-						BLI_strncpy(filename_new, path, FILE_MAX);
-					}
-					close(file);
+				size = BLI_filepathsize(path);
+				if ((size > 0) && (size > *filesize)) { /* find the biggest file */
+					*filesize = size;
+					BLI_strncpy(filename_new, path, FILE_MAX);
 				}
 			}
 		} else if (S_ISDIR(status.st_mode)) { /* is subdir */

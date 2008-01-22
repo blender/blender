@@ -3868,42 +3868,18 @@ void do_armbuts(unsigned short event)
 			}
 		}
 		break;
+		
 	case B_POSEGRP_RECALC:
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 		break;
 	case B_POSEGRP_ADD:
-		if (ob && ob->pose) {
-			bPose *pose= ob->pose;
-			bActionGroup *grp;
-			
-			grp= MEM_callocN(sizeof(bActionGroup), "PoseGroup");
-			strcpy(grp->name, "Group");
-			BLI_addtail(&pose->agroups, grp);
-			BLI_uniquename(&pose->agroups, grp, "Group", offsetof(bActionGroup, name), 32);
-			
-			pose->active_group= BLI_countlist(&pose->agroups);
-			
-			BIF_undo_push("Add Pose Group");
-			allqueue(REDRAWBUTSEDIT, 0);
-			allqueue(REDRAWVIEW3D, 0);
-		}
+		if (ob && ob->pose)
+			pose_add_posegroup();
 		break;
 	case B_POSEGRP_REMOVE:
-		if (ob && ob->pose && ob->pose->active_group) {
-			bPose *pose= ob->pose;
-			bActionGroup *grp= NULL;
-			
-			grp= BLI_findlink(&pose->agroups, pose->active_group-1);
-			if (grp) {
-				BLI_freelinkN(&pose->agroups, grp);
-				pose->active_group= 0;
-			}
-			
-			BIF_undo_push("Remove Pose Group");
-			allqueue(REDRAWBUTSEDIT, 0);
-			allqueue(REDRAWVIEW3D, 0);
-		}
+		if (ob && ob->pose)
+			pose_remove_posegroup();
 		break;
 	}
 }
@@ -4335,37 +4311,6 @@ static int ob_arm_bone_pchan_lock(Object *ob, bArmature *arm, Bone *bone, bPoseC
 	return 0;
 }
 
-static char *build_posegroups_menustr(bPose *pose)
-{
-	DynStr *pupds= BLI_dynstr_new();
-	bActionGroup *agrp;
-	char *str;
-	char buf[16];
-	int i;
-	
-	/* add title first (and the "none" entry) */
-	BLI_dynstr_append(pupds, "Pose Group%t|");
-	BLI_dynstr_append(pupds, "BG: [None]%x0");
-	
-	/* loop through markers, adding them */
-	for (agrp= pose->agroups.first, i=1; agrp; agrp=agrp->next, i++) {
-		BLI_dynstr_append(pupds, "BG: ");
-		BLI_dynstr_append(pupds, agrp->name);
-		
-		sprintf(buf, "%%x%d", i);
-		BLI_dynstr_append(pupds, buf);
-		
-		if (agrp->next)
-			BLI_dynstr_append(pupds, "|");
-	}
-	
-	/* convert to normal MEM_malloc'd string */
-	str= BLI_dynstr_get_cstring(pupds);
-	BLI_dynstr_free(pupds);
-	
-	return str;
-}
-
 static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 {
 	uiBlock		*block;
@@ -4400,8 +4345,8 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiButSetCompleteFunc(but, autocomplete_bone, (void *)ob);
 			
 			/* Bone custom drawing */
-			menustr= build_posegroups_menustr(ob->pose);
-			uiDefButS(block, MENU,REDRAWVIEW3D, menustr, 107,by,105,19, &pchan->agrp_index, 0.0, 0.0, 0.0, 0.0, "Change the Pose Group this Bone belongs to");
+			menustr= build_posegroups_menustr(ob->pose, 0);
+			uiDefButS(block, MENU,REDRAWVIEW3D, menustr, 107,by,105,19, &pchan->agrp_index, 0, 0.0, 0.0, 0.0, "Change the Pose Group this Bone belongs to");
 			MEM_freeN(menustr);
 			
 			ob_arm_bone_pchan_lock(ob, arm, curBone, pchan);
@@ -5223,7 +5168,7 @@ static void editing_panel_links(Object *ob)
 				uiBlockBeginAlign(block);
 					/* currently 'active' group - browse groups */
 					count= BLI_countlist(&pose->agroups);
-					menustr= build_posegroups_menustr(pose);
+					menustr= build_posegroups_menustr(pose, 0);
 					uiDefButI(block, MENU, B_POSEGRP_RECALC, menustr, xco, 85,18,20, &pose->active_group, 1, count, 0, 0, "Browses Pose Groups available for Armature. Click to change.");
 					MEM_freeN(menustr);
 					
@@ -5232,7 +5177,7 @@ static void editing_panel_links(Object *ob)
 						bActionGroup *grp= (bActionGroup *)BLI_findlink(&pose->agroups, pose->active_group-1);
 						
 						/* active group */
-						but= uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		xco+18,85,140-18-20,20, grp->name, 0, 63, 0, 0, "Displays current Pose Group name. Click to change.");
+						but= uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		xco+18,85,140-18-20,20, grp->name, 0, 31, 0, 0, "Displays current Pose Group name. Click to change.");
 						uiButSetFunc(but, verify_posegroup_groupname, pose, grp); 
 						uiDefIconBut(block, BUT, B_POSEGRP_REMOVE, VICON_X, xco+140-20, 85, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this Pose Group");
 						

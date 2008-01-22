@@ -398,7 +398,7 @@ static void heat_ray_coords_func(RayFace *face, float **v1, float **v2, float **
 	*v4= (mface->v4)? verts[mface->v4]: NULL;
 }
 
-static int heat_ray_check_func(Isect *is, RayFace *face)
+static int heat_ray_check_func(Isect *is, int ob, RayFace *face)
 {
 	float *v1, *v2, *v3, *v4, nor[3];
 

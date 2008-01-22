@@ -472,6 +472,17 @@ int BLI_filesize(int file)
 	return (buf.st_size);
 }
 
+int BLI_filepathsize(const char *path)
+{
+	int size, file = open(path, O_BINARY|O_RDONLY);
+	
+	if (file <= 0)
+		return -1;
+	
+	size = BLI_filesize(file);
+	close(file);
+	return size;
+}
 
 
 int BLI_exist(char *name)

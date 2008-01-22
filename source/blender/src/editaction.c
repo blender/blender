@@ -812,6 +812,17 @@ static void action_groups_addachan (bAction *act, bActionGroup *agrp, bActionCha
 	if (ELEM3(NULL, act, agrp, achan))
 		return;
 	
+	/* if no channels, just add to two lists at the same time */
+	if (act->chanbase.first == NULL) {
+		achan->next = achan->prev = NULL;
+		
+		agrp->channels.first = agrp->channels.last = achan;
+		act->chanbase.first = act->chanbase.last = achan;
+		
+		achan->grp= agrp;
+		return;
+	}
+	
 	/* try to find a channel to slot this in before/after */
 	for (chan= act->chanbase.first; chan; chan= chan->next) {
 		/* if channel has no group, then we have ungrouped channels, which should always occur after groups */
@@ -970,12 +981,14 @@ void action_groups_group (short add_group)
 		
 		/* make sure not already in new-group */
 		if (achan->grp != agrp) {
-			if (VISIBLE_ACHAN(achan) && SEL_ACHAN(achan)) {
-				/* unlink from everything else */
-				action_groups_removeachan(act, achan);
-				
-				/* add to end of group's channels */
-				action_groups_addachan(act, agrp, achan);
+			if ((achan->grp) && (EXPANDED_AGRP(achan->grp))) { 
+				if (VISIBLE_ACHAN(achan) && SEL_ACHAN(achan)) {
+					/* unlink from everything else */
+					action_groups_removeachan(act, achan);
+					
+					/* add to end of group's channels */
+					action_groups_addachan(act, agrp, achan);
+				}
 			}
 		}
 	}
@@ -1023,6 +1036,59 @@ void action_groups_ungroup (void)
 	BIF_undo_push("Remove From Action Groups");
 	
 	allqueue(REDRAWACTION, 0);
+}
+
+/* This function is used when inserting keyframes for pose-channels. It assigns the
+ * action-channel with the nominated name to a group with the same name as that of 
+ * the pose-channel with the nominated name.
+ *
+ * Note: this function calls validate_action_channel if action channel doesn't exist 
+ */
+void verify_pchan2achan_grouping (bAction *act, bPose *pose, char name[])
+{
+	bActionChannel *achan;
+	bPoseChannel *pchan;
+	
+	/* sanity checks */
+	if (ELEM3(NULL, act, pose, name))
+		return;
+	if (name[0] == 0)
+		return;
+		
+	/* try to get the channels */
+	pchan= get_pose_channel(pose, name);
+	if (pchan == NULL) return;
+	achan= verify_action_channel(act, name);
+	
+	/* check if pchan has a group */
+	if ((pchan->agrp_index) && (achan->grp == NULL)) {
+		bActionGroup *agrp, *grp=NULL;
+		
+		/* get group to try to be like */
+		agrp= (bActionGroup *)BLI_findlink(&pose->agroups, (pchan->agrp_index - 1));
+		if (agrp == NULL) {
+			error("PoseChannel has invalid group!");
+			return;
+		}
+		
+		/* try to find a group which is similar to the one we want (or add one) */
+		for (grp= act->groups.first; grp; grp= grp->next) {
+			if (!strcmp(grp->name, agrp->name))
+				break;
+		}
+		if (grp == NULL) {
+			grp= MEM_callocN(sizeof(bActionGroup), "bActionGroup");
+			
+			grp->flag |= (AGRP_ACTIVE|AGRP_SELECTED|AGRP_EXPANDED);
+			sprintf(grp->name, agrp->name);
+			
+			BLI_addtail(&act->groups, grp);
+		}
+		
+		/* make sure this channel is definitely not connected to anything before adding to group */
+		action_groups_removeachan(act, achan);
+		action_groups_addachan(act, grp, achan);
+	}
 }
 
 /* **************************************************** */
@@ -3494,6 +3560,7 @@ void rearrange_action_channels (short mode)
 	short datatype;
 	
 	short (*rearrange_func)(ListBase *, Link *, short);
+	short do_channels = 1;
 	char undostr[60];
 	
 	/* Get the active action, exit if none are selected */
@@ -3527,7 +3594,7 @@ void rearrange_action_channels (short mode)
 	/* make sure we're only operating with groups */
 	split_groups_action_temp(act, &tgrp);
 	
-	/* rearrange groups, and channels */
+	/* rearrange groups first (and then, only consider channels if the groups weren't moved) */
 	#define GET_FIRST(list) ((mode > 0) ? (list.first) : (list.last))
 	#define GET_NEXT(item) ((mode > 0) ? (item->next) : (item->prev))
 	
@@ -3536,18 +3603,27 @@ void rearrange_action_channels (short mode)
 		grp= GET_NEXT(agrp);
 		
 		/* try to do group first */
-		if (rearrange_func(&act->groups, (Link *)agrp, ACTTYPE_GROUP))
+		if (rearrange_func(&act->groups, (Link *)agrp, ACTTYPE_GROUP)) {
+			do_channels= 0;
 			agrp->flag |= AGRP_MOVED;
+		}
+	}
+	
+	if (do_channels) {
+		for (agrp= GET_FIRST(act->groups); agrp; agrp= grp) {
+			/* Get next group to consider */
+			grp= GET_NEXT(agrp);
 			
-		/* only consider action-channels if they're visible (group expanded) */
-		if (EXPANDED_AGRP(agrp)) {
-			for (achan= GET_FIRST(agrp->channels); achan; achan= chan) {
-				/* Get next channel to consider */
-				chan= GET_NEXT(achan);
-				
-				/* Try to do channel */
-				if (rearrange_func(&agrp->channels, (Link *)achan, ACTTYPE_ACHAN))
-					achan->flag |= ACHAN_MOVED;
+			/* only consider action-channels if they're visible (group expanded) */
+			if (EXPANDED_AGRP(agrp)) {
+				for (achan= GET_FIRST(agrp->channels); achan; achan= chan) {
+					/* Get next channel to consider */
+					chan= GET_NEXT(achan);
+					
+					/* Try to do channel */
+					if (rearrange_func(&agrp->channels, (Link *)achan, ACTTYPE_ACHAN))
+						achan->flag |= ACHAN_MOVED;
+				}
 			}
 		}
 	}

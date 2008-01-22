@@ -288,7 +288,7 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 	Material *ma= NULL;
 	float minz, maxz, vec[3], viewmat[4][4], obviewmat[4][4];
 	unsigned int lay = -1;
-	int i, a, ok= 1;
+	int i, a, maxtotvert, ok= 1;
 	char *clipflag;
 	
 	minz= 1.0e30f; maxz= -1.0e30f;
@@ -296,7 +296,11 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 	
 	if(lar->mode & LA_LAYER) lay= lar->lay;
 
-	clipflag= MEM_callocN(sizeof(char)*re->totvert, "autoclipflag");
+	maxtotvert= 0;
+	for(obr=re->objecttable.first; obr; obr=obr->next)
+		maxtotvert= MAX2(obr->totvert, maxtotvert);
+
+	clipflag= MEM_callocN(sizeof(char)*maxtotvert, "autoclipflag");
 
 	/* set clip in vertices when face visible */
 	for(i=0, obi=re->instancetable.first; obi; i++, obi=obi->next) {

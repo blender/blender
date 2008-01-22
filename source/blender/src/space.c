@@ -1940,6 +1940,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						if(ELEM(G.obedit->type, OB_MESH, OB_LATTICE))
 							vgroup_assign_with_menu();
 					}
+					else if(ob && (ob->flag & OB_POSEMODE))
+						pgroup_operation_with_menu();
 					else
 						group_operation_with_menu();
 				}
@@ -1953,7 +1955,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if(G.obedit) {
 						if(G.obedit->type==OB_MESH)
 							select_mesh_group_menu();
-					} else
+					} 
+					else if(ob && (ob->flag & OB_POSEMODE))
+						puts("Shift-G menu for PoseMode - Not Implemented!");
+					else
 						select_object_grouped_menu();
 				else if((G.obedit==0) && G.qual==LR_ALTKEY) {
 					if(okee("Clear location")) {

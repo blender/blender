@@ -141,15 +141,15 @@ bool yafrayRender_t::getAllMatTexObs()
 			// Make list of faces per object, ignore <3 vert faces, duplicate vertex sorting done later.
 			// ignore null object pointers.
 			// Also make list of facetexture images (material 'TexFace').
-			if (vlr->obr->ob) {
+			if (obr->ob) {
 				int nv = 0;	// number of vertices
 				MTFace *tface;
 
 				if (vlr->v4) nv=4; else if (vlr->v3) nv=3;
 				if (nv) {
-					ObjectRen *obr= vlr->obr;
 					renderobs[obr->ob->id.name] = obr->ob;
-					all_objects[obr->ob].push_back(vlr);
+					all_objects[obr->ob].obr= obr;
+					all_objects[obr->ob].faces.push_back(vlr);
 
 					tface= RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0);
 					if (tface && tface->tpage) {
@@ -184,7 +184,7 @@ bool yafrayRender_t::getAllMatTexObs()
 	// in all_objects with the name given in dupliMtx_list
 	if (!dupliMtx_list.empty()) {
 
-		for (map<Object*, vector<VlakRen*> >::const_iterator obn=all_objects.begin();
+		for (map<Object*, yafrayObjectRen>::const_iterator obn=all_objects.begin();
 			obn!=all_objects.end();++obn)
 		{
 			Object* obj = obn->first;

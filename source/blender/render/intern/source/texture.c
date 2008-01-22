@@ -1796,8 +1796,8 @@ void do_material_tex(ShadeInput *shi)
 								Mat4Mul3Vecfl(R.viewmat, nor);
 							}
 							else if(mtex->normapspace == MTEX_NSPACE_OBJECT) {
-								if(shi->vlr && shi->vlr->obr->ob)
-									Mat4Mul3Vecfl(shi->vlr->obr->ob->obmat, nor);
+								if(shi->obr && shi->obr->ob)
+									Mat4Mul3Vecfl(shi->obr->ob->obmat, nor);
 								Mat4Mul3Vecfl(R.viewmat, nor);
 							}
 

@@ -1911,15 +1911,14 @@ static void bake_displacement(void *handle, ShadeInput *shi, Isect *isec, int di
 	}
 }
 
-static int bake_check_intersect(Isect *is, RayFace *face)
+static int bake_check_intersect(Isect *is, int ob, RayFace *face)
 {
-	VlakRen *vlr = (VlakRen*)face;
 	BakeShade *bs = (BakeShade*)is->userdata;
 	
 	/* no direction checking for now, doesn't always improve the result
 	 * (INPR(shi->facenor, bs->dir) > 0.0f); */
 
-	return (vlr->obr->ob != bs->actob);
+	return (R.objectinstance[ob].obr->ob != bs->actob);
 }
 
 static int bake_intersect_tree(RayTree* raytree, Isect* isect, float *dir, float sign, float *hitco)

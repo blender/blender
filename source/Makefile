@@ -103,6 +103,8 @@ COMLIB += $(OCGDIR)/blender/nodes_cmp/$(DEBUG_DIR)libnodes_cmp.a
 COMLIB += $(OCGDIR)/blender/nodes/$(DEBUG_DIR)libnodes.a
 COMLIB += $(OCGDIR)/blender/imbuf/$(DEBUG_DIR)libimbuf.a
 COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
+COMLIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
+COMLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a	
 COMLIB += $(OCGDIR)/blender/avi/$(DEBUG_DIR)libavi.a
 COMLIB += $(NAN_JPEG)/lib/libjpeg.a
 
