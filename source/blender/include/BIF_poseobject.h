@@ -65,7 +65,7 @@ void pose_add_posegroup(void);
 void pose_remove_posegroup(void);
 char *build_posegroups_menustr(struct bPose *pose, short for_pupmenu);
 void pose_assign_to_posegroup(void);
-void pose_remove_from_posegroup(void);
+void pose_remove_from_posegroups(void);
 void pgroup_operation_with_menu(void);
 
 void pose_calculate_path(struct Object *ob);
