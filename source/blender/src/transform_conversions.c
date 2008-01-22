@@ -560,7 +560,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		if (constraints_list_needinv(t, &pchan->constraints)) {
 			Mat3CpyMat4(tmat, pchan->constinv);
 			Mat3Inv(cmat, tmat);
-			Mat3MulSerie(td->mtx, pchan->bone->bone_mat, pmat, cmat, omat, 0,0,0,0);    // dang mulserie swaps args
+			Mat3MulSerie(td->mtx, pchan->bone->bone_mat, pmat, omat, cmat, 0,0,0,0);    // dang mulserie swaps args
 		}
 		else
 			Mat3MulSerie(td->mtx, pchan->bone->bone_mat, pmat, omat, 0,0,0,0,0);    // dang mulserie swaps args
@@ -569,7 +569,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		if (constraints_list_needinv(t, &pchan->constraints)) {
 			Mat3CpyMat4(tmat, pchan->constinv);
 			Mat3Inv(cmat, tmat);
-			Mat3MulSerie(td->mtx, pchan->bone->bone_mat, cmat, omat, 0, 0,0,0,0);    // dang mulserie swaps args
+			Mat3MulSerie(td->mtx, pchan->bone->bone_mat, omat, cmat, 0,0,0,0,0);    // dang mulserie swaps args
 		}
 		else 
 			Mat3MulMat3(td->mtx, omat, pchan->bone->bone_mat);  // Mat3MulMat3 has swapped args! 
