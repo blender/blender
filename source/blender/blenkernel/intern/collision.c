@@ -459,7 +459,7 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 	
 	cloth1 = clmd->clothObject;
 
-	search = clmd->coll_parms.collision_list;
+	search = clmd->coll_parms->collision_list;
 	
 	while(search)
 	{
@@ -503,10 +503,10 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 			float vrel_t_pre[3];
 			float vrel_t[3];
 			double impulse;
-			float epsilon = clmd->coll_parms.epsilon;
+			float epsilon = clmd->coll_parms->epsilon;
 			float overlap = (epsilon + ALMOST_ZERO-collpair->distance);
 			
-			// calculateFrictionImpulse(tangential, relativeVelocity, collpair->normal, magrelVel, clmd->coll_parms.friction*0.01, magrelVel);
+			// calculateFrictionImpulse(tangential, relativeVelocity, collpair->normal, magrelVel, clmd->coll_parms->friction*0.01, magrelVel);
 			
 			// magtangent = INPR(tangential, tangential);
 			
@@ -562,11 +562,11 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 			// Apply the impulse and increase impulse counters.
 
 			/*			
-			// calculateFrictionImpulse(tangential, collvel, collpair->normal, magtangent, clmd->coll_parms.friction*0.01, magtangent);
+			// calculateFrictionImpulse(tangential, collvel, collpair->normal, magtangent, clmd->coll_parms->friction*0.01, magtangent);
 			VECSUBS(vrel_t_pre, collvel, collpair->normal, magnormal);
-			// VecMulf(vrel_t_pre, clmd->coll_parms.friction*0.01f/INPR(vrel_t_pre,vrel_t_pre));
+			// VecMulf(vrel_t_pre, clmd->coll_parms->friction*0.01f/INPR(vrel_t_pre,vrel_t_pre));
 			magtangent = Normalize(vrel_t_pre);
-			VecMulf(vrel_t_pre, MIN2(clmd->coll_parms.friction*0.01f*magnormal,magtangent));
+			VecMulf(vrel_t_pre, MIN2(clmd->coll_parms->friction*0.01f*magnormal,magtangent));
 			
 			VECSUB(cloth1->verts[face1->v1].tv, cloth1->verts[face1->v1].tv,vrel_t_pre);
 			*/
@@ -600,7 +600,7 @@ void cloth_collision_static(ClothModifierData *clmd, CollisionModifierData *coll
 	MFace *face1=NULL, *face2=NULL;
 	ClothVertex *verts1=NULL;
 	double distance = 0;
-	float epsilon = clmd->coll_parms.epsilon;
+	float epsilon = clmd->coll_parms->epsilon;
 	unsigned int i = 0;
 
 	for(i = 0; i < 4; i++)
@@ -694,7 +694,7 @@ void cloth_collision_static(ClothModifierData *clmd, CollisionModifierData *coll
 				Normalize(collpair->normal);
 				
 				collpair->distance = distance;
-				BLI_linklist_append(&clmd->coll_parms.collision_list, collpair);
+				BLI_linklist_append(&clmd->coll_parms->collision_list, collpair);
 				
 			}
 			else
@@ -747,7 +747,7 @@ void cloth_collision_moving_edges(ClothModifierData *clmd, ClothModifierData *co
 	MFace *face1=NULL, *face2=NULL;
 	ClothVertex *verts1=NULL, *verts2=NULL;
 	double distance = 0;
-	float epsilon = clmd->coll_parms.epsilon;
+	float epsilon = clmd->coll_parms->epsilon;
 	unsigned int i = 0, j = 0, k = 0;
 	int numsolutions = 0;
 	float a[3], b[3], c[3], d[3], e[3], f[3], solution[3];
@@ -882,7 +882,7 @@ void cloth_collision_moving_tris(ClothModifierData *clmd, ClothModifierData *col
 	MFace *face1=NULL, *face2=NULL;
 	ClothVertex *verts1=NULL, *verts2=NULL;
 	double distance = 0;
-	float epsilon = clmd->coll_parms.epsilon;
+	float epsilon = clmd->coll_parms->epsilon;
 	unsigned int i = 0, j = 0, k = 0;
 	int numsolutions = 0;
 	float a[3], b[3], c[3], d[3], e[3], f[3], solution[3];
@@ -978,52 +978,6 @@ void cloth_collision_moving(ClothModifierData *clmd, ClothModifierData *coll_clm
 	cloth_collision_moving_tris(coll_clmd, clmd, tree2, tree1);
 }
 
-// move collision objects forward in time and update static bounding boxes
-void cloth_update_collision_objects(float step)
-{
-	Base *base=NULL;
-	ClothModifierData *coll_clmd=NULL;
-	Object *coll_ob=NULL;
-	unsigned int i=0;
-	
-	// search all objects for collision object
-	for (base = G.scene->base.first; base; base = base->next)
-	{
-
-		coll_ob = base->object;
-		coll_clmd = (ClothModifierData *) modifiers_findByType (coll_ob, eModifierType_Cloth);
-		if (!coll_clmd)
-			continue;
-
-		// if collision object go on
-		if (coll_clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ)
-		{
-			if (coll_clmd->clothObject && coll_clmd->clothObject->tree) 
-			{
-				Cloth *coll_cloth = coll_clmd->clothObject;
-				BVH *coll_bvh = coll_clmd->clothObject->tree;
-				unsigned int coll_numverts = coll_cloth->numverts;
-
-				// update position of collision object
-				for(i = 0; i < coll_numverts; i++)
-				{
-					VECCOPY(coll_cloth->verts[i].txold, coll_cloth->verts[i].tx);
-
-					VECADDS(coll_cloth->verts[i].tx, coll_cloth->verts[i].xold, coll_cloth->verts[i].v, step);
-					
-					// no dt here because of float rounding errors
-					VECSUB(coll_cloth->verts[i].tv, coll_cloth->verts[i].tx, coll_cloth->verts[i].txold);
-				}
-				
-				// update BVH of collision object
-				bvh_update_from_cloth(coll_clmd, 0); // 0 means STATIC, 1 means MOVING 
-			}
-			else
-				printf ("cloth_bvh_objcollision: found a collision object with clothObject or collData NULL.\n");
-		}
-	}
-}
-
 // CLOTH_MAX_THRESHOLD defines how much collision rounds/loops should be taken
 #define CLOTH_MAX_THRESHOLD 10
 
@@ -1041,7 +995,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 	float tnull[3] = {0,0,0};
 	int ret = 0;
 
-	if ((clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ) || !(((Cloth *)clmd->clothObject)->tree))
+	if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ) || !(((Cloth *)clmd->clothObject)->tree))
 	{
 		return 0;
 	}
@@ -1059,14 +1013,11 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 	// update cloth bvh
 	bvh_update_from_cloth(clmd, 0); // 0 means STATIC, 1 means MOVING (see later in this function)
 	
-	// update collision objects
-	cloth_update_collision_objects(step);
-	
 	do
 	{
 		result = 0;
 		ic = 0;
-		clmd->coll_parms.collision_list = NULL; 
+		clmd->coll_parms->collision_list = NULL; 
 		
 		// check all collision objects
 		for (base = G.scene->base.first; base; base = base->next)
@@ -1125,9 +1076,9 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 		}
 		
 		// free collision list
-		if(clmd->coll_parms.collision_list)
+		if(clmd->coll_parms->collision_list)
 		{
-			LinkNode *search = clmd->coll_parms.collision_list;
+			LinkNode *search = clmd->coll_parms->collision_list;
 			while(search)
 			{
 				CollPair *coll_pair = search->link;
@@ -1135,9 +1086,9 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 				MEM_freeN(coll_pair);
 				search = search->next;
 			}
-			BLI_linklist_free(clmd->coll_parms.collision_list,NULL);
+			BLI_linklist_free(clmd->coll_parms->collision_list,NULL);
 			
-			clmd->coll_parms.collision_list = NULL;
+			clmd->coll_parms->collision_list = NULL;
 		}
 		rounds++;
 	}
@@ -1191,7 +1142,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 	{
 		result = 0;
 		ic = 0;
-		clmd->coll_parms.collision_list = NULL; 
+		clmd->coll_parms->collision_list = NULL; 
 		
 		// check all collision objects
 		for (base = G.scene->base.first; base; base = base->next)
@@ -1203,7 +1154,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 				continue;
 			
 			// if collision object go on
-			if (coll_clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ)
+			if (coll_clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ)
 			{
 				if (coll_clmd->clothObject && coll_clmd->clothObject->tree) 
 				{
@@ -1233,7 +1184,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 				continue;
 				
 				// if collision object go on
-				if (coll_clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ)
+				if (coll_clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ)
 				{
 					if (coll_clmd->clothObject) 
 					result += cloth_collision_response_moving_tris(clmd, coll_clmd);
@@ -1271,9 +1222,9 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 		
 		
 		// free collision list
-		if(clmd->coll_parms.collision_list)
+		if(clmd->coll_parms->collision_list)
 		{
-			LinkNode *search = clmd->coll_parms.collision_list;
+			LinkNode *search = clmd->coll_parms->collision_list;
 			while(search)
 			{
 				CollPair *coll_pair = search->link;
@@ -1281,9 +1232,9 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 				MEM_freeN(coll_pair);
 				search = search->next;
 			}
-			BLI_linklist_free(clmd->coll_parms.collision_list,NULL);
+			BLI_linklist_free(clmd->coll_parms->collision_list,NULL);
 			
-			clmd->coll_parms.collision_list = NULL;
+			clmd->coll_parms->collision_list = NULL;
 		}
 		
 		// printf("ic: %d\n", ic);

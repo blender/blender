@@ -4947,6 +4947,14 @@ static void softbodyModifier_deformVerts(
 static void clothModifier_initData(ModifierData *md) 
 {
 	ClothModifierData *clmd = (ClothModifierData*) md;
+	
+	clmd->sim_parms = MEM_callocN(sizeof(SimulationSettings), "cloth sim parms");
+	clmd->coll_parms = MEM_callocN(sizeof(CollisionSettings), "cloth coll parms");
+	
+	/* check for alloc failing */
+	if(!clmd->sim_parms || !clmd->coll_parms)
+		return;
+	
 	cloth_init (clmd);
 }
 
@@ -4956,7 +4964,7 @@ static void clothModifier_deformVerts(
 {
 	DerivedMesh *dm = NULL;
 
-	// if possible use/create DerivedMesh
+	/* if possible use/create DerivedMesh */
 	
 	if(derivedData) dm = CDDM_copy(derivedData);
 	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
@@ -4966,6 +4974,8 @@ static void clothModifier_deformVerts(
 		CDDM_apply_vert_coords(dm, vertexCos);
 		CDDM_calc_normals(dm);
 	}
+	
+	/* TODO: check for sim_parms / coll_parms NOT NULL */
 	
 	clothModifier_do((ClothModifierData *)md, ob, dm, vertexCos, numVerts);
 	
@@ -4991,7 +5001,7 @@ static void clothModifier_updateDepgraph(
 				ClothModifierData *coll_clmd = (ClothModifierData *)modifiers_findByType(ob1, eModifierType_Cloth);
 				if(coll_clmd)
 				{					
-					if (coll_clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ) 
+					if (coll_clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ) 
 					{
 						DagNode *curNode = dag_get_node(forest, ob1);					
 						dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
@@ -5008,8 +5018,8 @@ CustomDataMask clothModifier_requiredDataMask(ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
-		if (clmd->sim_parms.vgroup_mass > 0)
+	if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
+		if (clmd->sim_parms->vgroup_mass > 0)
 	 		dataMask |= (1 << CD_MDEFORMVERT);
 
 	return dataMask;
@@ -5027,8 +5037,11 @@ static void clothModifier_freeData(ModifierData *md)
 	
 	if (clmd) 
 	{
-		clmd->sim_parms.flags &= ~CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT;
+		clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT;
 		cloth_free_modifier (clmd);
+		
+		MEM_freeN(clmd->sim_parms);
+		MEM_freeN(clmd->coll_parms);
 	}
 }
 
@@ -5096,9 +5109,8 @@ static void collisionModifier_deformVerts(
 	float current_time = 0;
 	unsigned int numverts = 0, i = 0;
 	MVert *tempVert = NULL;
-
-	// if possible use/create DerivedMesh
 	
+	/* if possible use/create DerivedMesh */
 	if(derivedData) dm = CDDM_copy(derivedData);
 	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
 	
@@ -5112,12 +5124,11 @@ static void collisionModifier_deformVerts(
 	{
 		CDDM_apply_vert_coords(dm, vertexCos);
 		CDDM_calc_normals(dm);
-	
-	
+		
 		current_time = bsystem_time ( ob, ( float ) G.scene->r.cfra, 0.0 );
 		
 		if(current_time > collmd->time)
-		{
+		{	
 			numverts = dm->getNumVerts ( dm );
 			
 			// check if mesh has changed
@@ -5141,12 +5152,12 @@ static void collisionModifier_deformVerts(
 
 				collmd->numverts = numverts;
 				
-				// TODO: epsilon
-				// create bounding box hierarchy
-				collmd->tree = bvh_build_from_mvert(dm->getFaceArray(dm), dm->getNumFaces(dm), collmd->x, numverts, ob->pd->pdef_sbift);
-				
 				collmd->mfaces = dm->dupFaceArray(dm);
 				collmd->numfaces = dm->getNumFaces(dm);
+				
+				// TODO: epsilon
+				// create bounding box hierarchy
+				collmd->tree = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sbift);
 			}
 			else if(numverts == collmd->numverts)
 			{
@@ -5166,8 +5177,16 @@ static void collisionModifier_deformVerts(
 				memcpy(collmd->current_xnew, collmd->x, numverts*sizeof(MVert));
 				memcpy(collmd->current_x, collmd->x, numverts*sizeof(MVert));
 				
-				// recalc static bounding boxes
-				bvh_update_from_mvert(collmd->tree, collmd->current_x, numverts, NULL, 0);
+				/* happens on file load (ONLY when i decomment changes in readfile.c */
+				if(!collmd->tree)
+				{
+					collmd->tree = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sbift);
+				}
+				else
+				{
+					// recalc static bounding boxes
+					bvh_update_from_mvert(collmd->tree, collmd->current_x, numverts, NULL, 0);
+				}
 			}
 			
 			collmd->time = current_time;
@@ -7271,11 +7290,11 @@ int modifiers_isSoftbodyEnabled(Object *ob)
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
-ModifierData * modifiers_isClothEnabled(Object *ob)
+ClothModifierData * modifiers_isClothEnabled(Object *ob)
 {
 	ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
 
-	return md;
+	return (ClothModifierData *)md;
 }
 
 int modifiers_isParticleEnabled(Object *ob)

@@ -7,8 +7,6 @@
 
 #define MODSTACK_DEBUG 1
 
-#include "DNA_cloth_types.h"
-
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE! */
 
 typedef enum ModifierType {
@@ -349,8 +347,8 @@ typedef struct ClothModifierData {
    ModifierData		modifier;
 
    struct Cloth *clothObject; /* The internal data structure for cloth. */
-   struct SimulationSettings sim_parms; /* definition is in DNA_cloth_types.h */
-   struct CollisionSettings coll_parms; /* definition is in DNA_cloth_types.h */
+   struct SimulationSettings *sim_parms; /* definition is in DNA_cloth_types.h */
+   struct CollisionSettings *coll_parms; /* definition is in DNA_cloth_types.h */
 } ClothModifierData;
 
 typedef struct CollisionModifierData {

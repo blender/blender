@@ -839,11 +839,22 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 		}
 		else if(md->type==eModifierType_Cloth) {
 			ClothModifierData *clmd = (ClothModifierData*) md;
-			/*
+			
 			writestruct(wd, DATA, "SimulationSettings", 1, clmd->sim_parms);
 			writestruct(wd, DATA, "CollisionSettings", 1, clmd->coll_parms);
-			*/
+			
 		} 
+		else if (md->type==eModifierType_Collision) {
+			
+			CollisionModifierData *collmd = (CollisionModifierData*) md;
+			/*
+			// TODO: CollisionModifier should use pointcache 
+			// + have proper reset events before enabling this
+			writestruct(wd, DATA, "MVert", collmd->numverts, collmd->x);
+			writestruct(wd, DATA, "MVert", collmd->numverts, collmd->xnew);
+			writestruct(wd, DATA, "MFace", collmd->numfaces, collmd->mfaces);
+			*/
+		}
 		else if (md->type==eModifierType_MeshDeform) {
 			MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
 			int size = mmd->dyngridsize;

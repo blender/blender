@@ -34,7 +34,6 @@
 
 #include "DNA_listBase.h"
 
-
 /**
 * This struct contains all the global data required to run a simulation.
 * At the time of this writing, this structure contains data appropriate
@@ -116,9 +115,9 @@ typedef struct Cloth
 	unsigned char 		old_solver_type;
 	unsigned char 		pad2;
 	short 			pad3;
-	void			*tree;			/* collision tree for this cloth object */
+	struct BVH		*tree;			/* collision tree for this cloth object */
 	struct MFace 		*mfaces;
-	void			*implicit; 		/* our implicit solver connects to this pointer */
+	struct Implicit_Data	*implicit; 		/* our implicit solver connects to this pointer */
 }
 Cloth;
 

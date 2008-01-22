@@ -35,6 +35,7 @@
 #define BKE_CLOTH_H
 
 #include "BLI_linklist.h"
+#include "BKE_collision.h"
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
 #include "DNA_cloth_types.h"
@@ -48,7 +49,7 @@ struct Cloth;
 struct MFace;
 struct DerivedMesh;
 struct ClothModifierData;
-
+struct CollisionTree;
 
 // this is needed for inlining behaviour
 #ifndef _WIN32
@@ -59,7 +60,6 @@ struct ClothModifierData;
 #endif
 
 #define CLOTH_MAX_THREAD 2
-
 
 /**
  * Pin and unpin frames are the frames on which the vertices stop moving.
@@ -169,40 +169,7 @@ void implicit_set_positions ( ClothModifierData *clmd );
 // from cloth.c, needed for modifier.c
 void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm, float ( *vertexCos ) [3], int numverts );
 
-// used in collision.c
-typedef struct CollisionTree
-{
-	struct CollisionTree *nodes[4]; // 4 children --> quad-tree
-	struct CollisionTree *parent;
-	struct CollisionTree *nextLeaf;
-	struct CollisionTree *prevLeaf;
-	float	bv[26]; // Bounding volume of all nodes / we have 7 axes on a 14-DOP
-	unsigned int tri_index; // this saves the index of the face
-	// int point_index[4]; // supports up to 4 points in a leaf
-	int	count_nodes; // how many nodes are used
-	int	traversed;  // how many nodes already traversed until this level?
-	int	isleaf;
-}
-CollisionTree;
-
-typedef struct BVH
-{
-	unsigned int 	numfaces;
-	unsigned int 	numverts;
-	// ClothVertex 	*verts; // just a pointer to the original datastructure
-	MVert 		*current_x; // e.g. txold in clothvertex
-	MVert 		*current_xold; // e.g. tx in clothvertex
-	MFace 		*mfaces; // just a pointer to the original datastructure
-	struct LinkNode *tree;
-	CollisionTree 	*root; // TODO: saving the root --> is this really needed? YES!
-	CollisionTree 	*leaf_tree; /* Tail of the leaf linked list.	*/
-	CollisionTree 	*leaf_root;	/* Head of the leaf linked list.	*/
-	float 		epsilon; /* epslion is used for inflation of the k-dop	   */
-	int 		flags; /* bvhFlags */
-}
-BVH;
-
-typedef void ( *CM_COLLISION_RESPONSE ) ( ClothModifierData *clmd, CollisionModifierData *collmd, CollisionTree * tree1, CollisionTree * tree2 );
+typedef void ( *CM_COLLISION_RESPONSE ) ( ClothModifierData *clmd, CollisionModifierData *collmd, CollisionTree *tree1, CollisionTree *tree2 );
 
 
 /////////////////////////////////////////////////
@@ -213,29 +180,19 @@ typedef void ( *CM_COLLISION_RESPONSE ) ( ClothModifierData *clmd, CollisionModi
 void bvh_collision_response ( ClothModifierData *clmd, ClothModifierData *coll_clmd, CollisionTree * tree1, CollisionTree * tree2 );
 int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt );
 
-// needed for modifier.c
-BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int numverts, float epsilon);
-
-// needed for collision.c
-void bvh_update_from_mvert(BVH * bvh, MVert *x, unsigned int numverts, MVert *xnew, int moving);
-
-////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////
-// kdop.c
-////////////////////////////////////////////////
-
-// needed for cloth.c
-void bvh_free ( BVH * bvh );
-void bvh_build (BVH *bvh);
-LinkNode *BLI_linklist_append_fast ( LinkNode **listp, void *ptr );
-
-// needed for collision.c
 int bvh_traverse ( ClothModifierData * clmd, CollisionModifierData * collmd, CollisionTree * tree1, CollisionTree * tree2, float step, CM_COLLISION_RESPONSE collision_response );
-void bvh_update(BVH * bvh, int moving);
 ////////////////////////////////////////////////
 
+
+////////////////////////////////////////////////
+// implicit.c
+////////////////////////////////////////////////
+		
+// needed for cloth.c
+int implicit_init ( Object *ob, ClothModifierData *clmd );
+int implicit_free ( ClothModifierData *clmd );
+int implicit_solver ( Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors );
+////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////
@@ -276,12 +233,6 @@ typedef struct
 }
 CM_SOLVER_DEF;
 
-
-/* new C implicit simulator */
-int implicit_init ( Object *ob, ClothModifierData *clmd );
-int implicit_free ( ClothModifierData *clmd );
-int implicit_solver ( Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors );
-
 /* used for caching in implicit.c */
 typedef struct Frame
 {
@@ -291,46 +242,6 @@ typedef struct Frame
 	float time; /* we need float since we want to support sub-frames */
 }
 Frame;
-
-/* used for collisions in collision.c */
-typedef struct CollPair
-{
-	unsigned int face1; // cloth face
-	unsigned int face2; // object face
-	double distance; // magnitude of vector
-	float normal[3];
-	float vector[3]; // unnormalized collision vector: p2-p1
-	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2
-	int lastsign; // indicates if the distance sign has changed, unused itm
-	float time; // collision time, from 0 up to 1
-	unsigned int ap1, ap2, ap3, bp1, bp2, bp3, bp4;
-	unsigned int pointsb[4];
-}
-CollPair;
-
-/* used for collisions in collision.c */
-typedef struct EdgeCollPair
-{
-	unsigned int p11, p12, p21, p22;
-	float normal[3];
-	float vector[3];
-	float time;
-	int lastsign;
-	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2
-}
-EdgeCollPair;
-
-/* used for collisions in collision.c */
-typedef struct FaceCollPair
-{
-	unsigned int p11, p12, p13, p21;
-	float normal[3];
-	float vector[3];
-	float time;
-	int lastsign;
-	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2
-}
-FaceCollPair;
 
 #endif
 
