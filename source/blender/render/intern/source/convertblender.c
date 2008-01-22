@@ -4316,8 +4316,6 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 								else
 									assign_dupligroup_dupli(re, obi, obr);
 							}
-							else
-								init_render_object(re, obd, ob, dob->index, only_verts, !dob->animated);
 						}
 						
 						if(dob->type != OB_DUPLIGROUP) {
