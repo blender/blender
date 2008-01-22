@@ -471,6 +471,10 @@ static void occ_build_8_split(OcclusionTree *tree, int begin, int end, int *offs
 
 	occ_build_split(tree, begin, end, &splitx);
 
+	/* force split if none found, to deal with degenerate geometry */
+	if(splitx == begin || splitx == end)
+		splitx= (begin+end)/2;
+
 	occ_build_split(tree, begin, splitx, &splity[0]);
 	occ_build_split(tree, splitx, end, &splity[1]);
 
