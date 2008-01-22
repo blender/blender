@@ -33,6 +33,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_dynstr.h"
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
@@ -910,10 +911,213 @@ void pose_adds_vgroups(Object *meshobj, int heatweights)
 /* ********************************************** */
 
 /* adds a new pose-group */
-// TODO... 
 void pose_add_posegroup ()
 {
+	Object *ob= OBACT;
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bActionGroup *grp;
+	
+	if (ELEM(NULL, ob, ob->pose))
+		return;
+	
+	grp= MEM_callocN(sizeof(bActionGroup), "PoseGroup");
+	strcpy(grp->name, "Group");
+	BLI_addtail(&pose->agroups, grp);
+	BLI_uniquename(&pose->agroups, grp, "Group", offsetof(bActionGroup, name), 32);
+	
+	pose->active_group= BLI_countlist(&pose->agroups);
+	
+	BIF_undo_push("Add Bone Group");
+	
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+}
 
+/* Remove the active bone-group */
+void pose_remove_posegroup ()
+{
+	Object *ob= OBACT;
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bActionGroup *grp = NULL;
+	bPoseChannel *pchan;
+	
+	/* sanity checks */
+	if (ELEM(NULL, ob, pose))
+		return;
+	if (pose->active_group <= 0)
+		return;
+	
+	/* get group to remove */
+	grp= BLI_findlink(&pose->agroups, pose->active_group-1);
+	if (grp) {
+		/* firstly, make sure nothing references it */
+		for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+			if (pchan->agrp_index == pose->active_group)
+				pchan->agrp_index= 0;
+		}
+		
+		/* now, remove it from the pose */
+		BLI_freelinkN(&pose->agroups, grp);
+		pose->active_group= 0;
+		
+		BIF_undo_push("Remove Bone Group");
+	}
+	
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+char *build_posegroups_menustr (bPose *pose, short for_pupmenu)
+{
+	DynStr *pupds= BLI_dynstr_new();
+	bActionGroup *grp;
+	char *str;
+	char buf[16];
+	int i;
+	
+	/* add title first (and the "none" entry) */
+	BLI_dynstr_append(pupds, "Bone Group%t|");
+	if (for_pupmenu)
+		BLI_dynstr_append(pupds, "Add New%x0|");
+	else
+		BLI_dynstr_append(pupds, "BG: [None]%x0|");
+	
+	/* loop through markers, adding them */
+	for (grp= pose->agroups.first, i=1; grp; grp=grp->next, i++) {
+		if (for_pupmenu == 0)
+			BLI_dynstr_append(pupds, "BG: ");
+		BLI_dynstr_append(pupds, grp->name);
+		
+		sprintf(buf, "%%x%d", i);
+		BLI_dynstr_append(pupds, buf);
+		
+		if (grp->next)
+			BLI_dynstr_append(pupds, "|");
+	}
+	
+	/* convert to normal MEM_malloc'd string */
+	str= BLI_dynstr_get_cstring(pupds);
+	BLI_dynstr_free(pupds);
+	
+	return str;
+}
+
+/* Assign selected pchans to the bone group that the user selects */
+void pose_assign_to_posegroup ()
+{
+	Object *ob= OBACT;
+	bArmature *arm= (ob) ? ob->data : NULL;
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bPoseChannel *pchan;
+	char *menustr;
+	int nr;
+	short done= 0;
+	
+	/* sanity checks */
+	if (ELEM3(NULL, ob, pose, arm))
+		return;
+
+	/* get group to affect */
+	menustr= build_posegroups_menustr(pose, 1);
+	nr= pupmenu(menustr);
+	MEM_freeN(menustr);
+	
+	if (nr < 0) 
+		return;
+	else if (nr == 0) {
+		/* add new - note: this does an undo push and sets active group */
+		pose_add_posegroup();
+	}
+	else
+		pose->active_group= nr;
+	
+	/* add selected bones to group then */
+	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) {
+			pchan->agrp_index= pose->active_group;
+			done= 1;
+		}
+	}
+	
+	if (done)
+		BIF_undo_push("Add Bones To Group");
+		
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+/* Remove selected pchans from their bone groups */
+void pose_remove_from_posegroups ()
+{
+	Object *ob= OBACT;
+	bArmature *arm= (ob) ? ob->data : NULL;
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bPoseChannel *pchan;
+	short done= 0;
+	
+	/* sanity checks */
+	if (ELEM3(NULL, ob, pose, arm))
+		return;
+	
+	/* remove selected bones from their groups */
+	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) {
+			if (pchan->agrp_index) {
+				pchan->agrp_index= 0;
+				done= 1;
+			}
+		}
+	}
+	
+	if (done)
+		BIF_undo_push("Remove Bones From Groups");
+		
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+/* Ctrl-G in 3D-View while in PoseMode */
+void pgroup_operation_with_menu (void)
+{
+	Object *ob= OBACT;
+	bArmature *arm= (ob) ? ob->data : NULL;
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bPoseChannel *pchan= NULL;
+	int mode;
+	
+	/* sanity checks */
+	if (ELEM3(NULL, ob, pose, arm))
+		return;
+	
+	/* check that something is selected */
+	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) 
+			break;
+	}
+	if (pchan == NULL)
+		return;
+	
+	/* get mode of action */
+	if (pchan)
+		mode= pupmenu("Bone Groups%t|Add Selected to Group%x1|Add New Group%x2|Remove Selected From Groups%x3|Remove Active Group%x4");
+	else
+		mode= pupmenu("Bone Groups%t|Add New Group%x2|Remove Active Group%x4");
+		
+	/* handle mode */
+	switch (mode) {
+		case 1:
+			pose_assign_to_posegroup();
+			break;
+		case 2:
+			pose_add_posegroup();
+			break;
+		case 3:
+			pose_remove_from_posegroups();
+			break;
+		case 4:
+			pose_remove_posegroup();
+			break;
+	}
 }
 
 /* ********************************************** */

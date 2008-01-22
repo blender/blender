@@ -1940,6 +1940,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						if(ELEM(G.obedit->type, OB_MESH, OB_LATTICE))
 							vgroup_assign_with_menu();
 					}
+					else if(ob && (ob->flag & OB_POSEMODE))
+						pgroup_operation_with_menu();
 					else
 						group_operation_with_menu();
 				}
