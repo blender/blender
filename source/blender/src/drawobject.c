@@ -5406,7 +5406,7 @@ void draw_object(Base *base, int flag)
 		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 		Cloth *cloth = clmd->clothObject;
 		ClothVertex *verts;
-		float col[3], point[3];
+		float col[3];
 		col[0] = 0.53;
 		col[1] = 0.04;
 		col[2] = 0.0;
@@ -5417,35 +5417,52 @@ void draw_object(Base *base, int flag)
 		
 		if(cloth)
 		{
-			verts = cloth->verts;
-			
-			for(i = 0; i < cloth->numverts; i++)
-			{
-				if(verts[i].flags & CLOTH_VERT_FLAG_PINNED)
+			/* don't paint anything if cloth has RESET status */
+			if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_RESET))
+			{	
+				verts = cloth->verts;
+				
+				for(i = 0; i < cloth->numverts; i++)
 				{
-					float size[3], cent[3];
-					GLUquadricObj *qobj = gluNewQuadric(); 
-					
-					gluQuadricDrawStyle(qobj, GLU_FILL); 
-	
-					size[0]= clmd->coll_parms->avg_spring_len / 3.0;
-					size[1]= clmd->coll_parms->avg_spring_len / 3.0;
-					size[2]= clmd->coll_parms->avg_spring_len / 3.0;
-					
-					VECCOPY ( point, verts[i].x );
-					Mat4MulVecfl ( ob->imat, point );
-	
-					cent[0]= point[0];
-					cent[1]= point[1];
-					cent[2]= point[2];
-	
-					glPushMatrix();
-					glTranslatef(cent[0], cent[1], cent[2]);
-					glScalef(size[0], size[1], size[2]);
-					gluSphere(qobj, 1.0, 8, 5);
-					glPopMatrix();
-	
-					gluDeleteQuadric(qobj); 
+					if(verts[i].flags & CLOTH_VERT_FLAG_PINNED)
+					{
+						float size[3], cent[3];
+						GLUquadricObj *qobj = gluNewQuadric(); 
+						
+						gluQuadricDrawStyle(qobj, GLU_FILL); 
+		
+						size[0]= clmd->coll_parms->avg_spring_len / 3.0;
+						size[1]= clmd->coll_parms->avg_spring_len / 3.0;
+						size[2]= clmd->coll_parms->avg_spring_len / 3.0;
+						
+						VECCOPY ( cent, verts[i].x );
+						Mat4MulVecfl ( ob->imat, cent );
+						
+						glPushMatrix();
+						glTranslatef(cent[0], cent[1], cent[2]);
+						glScalef(size[0], size[1], size[2]);
+						
+						// gluSphere(qobj, 1.0, 8, 5);
+						glTranslatef(0, 0, 1.0);
+						gluDisk(qobj, 0, 0.4, 8,  5);
+						gluCylinder(qobj, 0.4, 0.4,  1.0, 8, 5);
+						
+						glTranslatef(0, 0, 1.0);
+						gluDisk(qobj, 0, 0.4, 8,  5);
+						
+						glTranslatef(0, 0, -2.0);
+						/*
+						col[0] = 0.53;
+						col[1] = 0.54;
+						col[2] = 0.0;
+						glColor3fv(col);
+						*/
+						gluCylinder(qobj, 0.0, 0.2,  1.0, 8, 5);
+						
+						glPopMatrix();
+		
+						gluDeleteQuadric(qobj); 
+					}
 				}
 			}
 		}

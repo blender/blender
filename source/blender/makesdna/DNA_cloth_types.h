@@ -76,6 +76,8 @@ typedef struct SimulationSettings
 	int	maxspringlen; 	/* in percent!; if tearing enabled, a spring will get cut */
 	int 	lastframe; 	/* frame on which simulation stops */
 	int	firstframe;	/* frame on which simulation starts */
+	int 	lastcachedframe;
+	int pad3;
 }
 SimulationSettings;
 

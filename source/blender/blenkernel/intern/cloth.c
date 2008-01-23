@@ -160,6 +160,8 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->firstframe = 1;
 	clmd->sim_parms->lastframe = 250;
 	clmd->sim_parms->vgroup_mass = 0;
+	clmd->sim_parms->lastcachedframe = 0;
+	
 	clmd->coll_parms->self_friction = 5.0;
 	clmd->coll_parms->friction = 10.0;
 	clmd->coll_parms->loop_count = 1;
@@ -483,46 +485,6 @@ DerivedMesh *CDDM_create_tearing ( ClothModifierData *clmd, DerivedMesh *dm )
 
 int modifiers_indexInObject(Object *ob, ModifierData *md_seek);
 
-void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr)
-{
-	int stack_index = -1;
-	
-	if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
-	{
-		stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
-		
-		BKE_ptcache_id_clear((ID *)ob, PTCACHE_CLEAR_AFTER, framenr, stack_index);
-	}
-}
-static void cloth_write_cache(Object *ob, ClothModifierData *clmd, float framenr)
-{
-	FILE *fp = NULL;
-	int stack_index = -1;
-	unsigned int a;
-	Cloth *cloth = clmd->clothObject;
-	
-	if(!cloth)
-	{
-		return;
-	}
-	
-	stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
-	
-	fp = BKE_ptcache_id_fopen((ID *)ob, 'w', framenr, stack_index);
-	if(!fp)
-	{
-		return;
-	}
-	
-	for(a = 0; a < cloth->numverts; a++)
-	{
-		fwrite(&cloth->verts[a].x, sizeof(float),3,fp);
-		fwrite(&cloth->verts[a].xconst, sizeof(float),3,fp);
-		fwrite(&cloth->verts[a].v, sizeof(float),3,fp);
-	}
-	
-	fclose(fp);
-}
 static int cloth_read_cache(Object *ob, ClothModifierData *clmd, float framenr)
 {
 	FILE *fp = NULL;
@@ -567,6 +529,55 @@ static int cloth_read_cache(Object *ob, ClothModifierData *clmd, float framenr)
 	return ret;
 }
 
+void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr)
+{
+	int stack_index = -1;
+	
+	if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
+	{
+		stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
+		
+		BKE_ptcache_id_clear((ID *)ob, PTCACHE_CLEAR_AFTER, framenr, stack_index);
+	}
+	
+	if(framenr>0)
+	{
+		cloth_read_cache(ob, clmd, framenr);
+	}
+}
+static void cloth_write_cache(Object *ob, ClothModifierData *clmd, float framenr)
+{
+	FILE *fp = NULL;
+	int stack_index = -1;
+	unsigned int a;
+	Cloth *cloth = clmd->clothObject;
+	
+	if(!cloth)
+	{
+		return;
+	}
+	
+	stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
+	
+	fp = BKE_ptcache_id_fopen((ID *)ob, 'w', framenr, stack_index);
+	if(!fp)
+	{
+		return;
+	}
+	
+	for(a = 0; a < cloth->numverts; a++)
+	{
+		fwrite(&cloth->verts[a].x, sizeof(float),3,fp);
+		fwrite(&cloth->verts[a].xconst, sizeof(float),3,fp);
+		fwrite(&cloth->verts[a].v, sizeof(float),3,fp);
+	}
+	
+	clmd->sim_parms->lastcachedframe = MAX2(clmd->sim_parms->lastcachedframe, framenr);
+	
+	fclose(fp);
+}
+
+
 
 /**
 * cloth_deform_verts - simulates one step, framenr is in frames.
@@ -585,48 +596,24 @@ void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 	
 	// only be active during a specific period:
 	// that's "first frame" and "last frame" on GUI
-	/*
-	if ( ! ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ ) )
+	if ( current_time < clmd->sim_parms->firstframe )
 	{
-		if ( clmd->clothObject )
-		{
-			if ( clmd->sim_parms->cache )
-			{
-				if ( current_time < clmd->sim_parms->firstframe )
-				{
-					int frametime = cloth_cache_first_frame ( clmd );
-					if ( cloth_cache_search_frame ( clmd, frametime ) )
-					{
-						cloth_cache_get_frame ( clmd, frametime );
-						cloth_to_object ( ob, clmd, vertexCos, numverts );
-					}
-					return;
-				}
-				else if ( current_time > clmd->sim_parms->lastframe )
-				{
-					int frametime = cloth_cache_last_frame ( clmd );
-					if ( cloth_cache_search_frame ( clmd, frametime ) )
-					{
-						cloth_cache_get_frame ( clmd, frametime );
-						cloth_to_object ( ob, clmd, vertexCos, numverts );
-					}
-					return;
-				}
-				else if ( ABS ( deltaTime ) >= 2.0f ) // no timewarps allowed
-				{
-					if ( cloth_cache_search_frame ( clmd, framenr ) )
-					{
-						cloth_cache_get_frame ( clmd, framenr );
-						cloth_to_object ( ob, clmd, vertexCos, numverts );
-					}
-					clmd->sim_parms->sim_time = current_time;
-					return;
-				}
-			}
-
-		}
+		return;
 	}
-	*/
+	else if ( current_time > clmd->sim_parms->lastframe )
+	{
+		int stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
+		
+		if(BKE_ptcache_id_exist((ID *)ob, clmd->sim_parms->lastcachedframe, stack_index))
+		{
+			if(cloth_read_cache(ob, clmd, framenr))
+			{
+				// Copy the result back to the object.
+				cloth_to_object ( ob, clmd, vertexCos, numverts );
+			}
+		}
+		return;
+	}
 	
 	// printf("ct: %f, st: %f, r.cfra: %f, dt: %f\n", current_time, clmd->sim_parms->sim_time, ( float ) G.scene->r.cfra, deltaTime);
 
