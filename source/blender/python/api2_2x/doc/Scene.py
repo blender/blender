@@ -117,6 +117,16 @@ class Scene:
 	@ivar render: The scenes L{render<Render.RenderData>} settings. (read only)
 	@type radiosity: RenderData
 	@ivar radiosity: The scenes L{radiosity<Radio>} settings. (read only)
+	@type halfFloat: OpenEXR's half float option
+	@ivar halfFloat: boolean
+	@type zbuf: OpenEXR's save zbuf option
+	@ivar zbuf: boolean
+	@type preview: OpenEXR's save preview option
+	@ivar preview: boolean
+	@type touch: enable creating empty image files while they are rendered.
+	@ivar touch: boolean
+	@type noOverwrite: Skip rendering existing image files
+	@ivar noOverwrite: boolean
 	"""
 
 	def getName():

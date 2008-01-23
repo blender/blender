@@ -1948,6 +1948,18 @@ static int RenderData_setIValueAttrClamp( BPy_RenderData *self, PyObject *value,
 /* handlers for other getting/setting attributes                           */
 /***************************************************************************/
 
+static PyObject *RenderData_getSubImTypeBits( BPy_RenderData *self, void* type )
+{
+	return EXPP_getBitfield( &self->renderContext->subimtype, (int)type, 'h' );
+}
+
+static int RenderData_setSubImTypeBits( BPy_RenderData* self, PyObject *value,
+		void* type )
+{
+	return EXPP_setBitfield( value, &self->renderContext->subimtype,
+			(int)type, 'h' );
+}
+
 static PyObject *RenderData_getModeBit( BPy_RenderData *self, void* type )
 {
 	return EXPP_getBitfield( &self->renderContext->mode,
@@ -2419,6 +2431,16 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getModeBit, (setter)RenderData_setModeBit,
 	 "Ray tracing enabled",
 	 (void *)R_RAYTRACE},
+	  
+	{"touch",
+	 (getter)RenderData_getModeBit, (setter)RenderData_setModeBit,
+	 "Create an empry file with the frame name before rendering",
+	 (void *)R_TOUCH},
+	{"noOverwrite",
+	 (getter)RenderData_getModeBit, (setter)RenderData_setModeBit,
+	 "Skip rendering existing image files",
+	 (void *)R_NO_OVERWRITE},
+	  
 /* R_GAUSS unused */
 /* R_FBUF unused */
 /* R_THREADS unused */
@@ -2600,6 +2622,19 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getActiveLayer, (setter)RenderData_setActiveLayer,
 	 "Active rendering layer",
 	 NULL},
+
+	{"halfFloat",
+     (getter)RenderData_getSubImTypeBits, (setter)RenderData_setSubImTypeBits,
+     "'Half' openexr option enabled",
+     (void *)R_OPENEXR_HALF},
+	{"zbuf",
+     (getter)RenderData_getSubImTypeBits, (setter)RenderData_setSubImTypeBits,
+     "'ZBuf' openexr option enabled",
+     (void *)R_OPENEXR_ZBUF},
+	{"preview",
+     (getter)RenderData_getSubImTypeBits, (setter)RenderData_setSubImTypeBits,
+     "'preview' openexr option enabled",
+     (void *)R_PREVIEW_JPG},
 
 	{"yafrayGIMethod",
 	 (getter)RenderData_getYafrayGIMethod, (setter)RenderData_setYafrayGIMethod,
