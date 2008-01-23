@@ -4298,8 +4298,11 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 								obi->dupliuv[0]= dob->uv[0];
 								obi->dupliuv[1]= dob->uv[1];
 							}
-							else
+							else {
 								assign_dupligroup_dupli(re, obi, obr);
+								if(obd->transflag & OB_RENDER_DUPLI)
+									find_dupli_instances(re, obr);
+							}
 						}
 						else
 							init_render_object(re, obd, ob, dob->index, only_verts, !dob->animated);
@@ -4313,8 +4316,11 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 									obi->dupliuv[0]= dob->uv[0];
 									obi->dupliuv[1]= dob->uv[1];
 								}
-								else
+								else {
 									assign_dupligroup_dupli(re, obi, obr);
+									if(obd->transflag & OB_RENDER_DUPLI)
+										find_dupli_instances(re, obr);
+								}
 							}
 						}
 						
