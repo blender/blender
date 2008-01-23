@@ -602,13 +602,27 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		uiBlockBeginAlign(block);
 			uiBlockSetEmboss(block, UI_EMBOSS);
 			
-			if (prev_proxylock == 0) {
+			if ((prev_proxylock) || (con->prev==NULL)) {
+				/* don't draw 'button' behind arrow if disabled (and button doesn't do anything anyways) */
+				uiBlockSetEmboss(block, UI_EMBOSSN);
+				uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_UP, *xco+width-50, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint up in constraint stack");
+				uiBlockSetEmboss(block, UI_EMBOSS);
+			}
+			else {
 				but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_UP, *xco+width-50, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint up in constraint stack");
 				uiButSetFunc(but, constraint_moveUp, ob, con);
 			}
 			
-			but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, *xco+width-50+18, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint down in constraint stack");
-			uiButSetFunc(but, constraint_moveDown, ob, con);
+			if (con->next) {
+				but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, *xco+width-50+18, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint down in constraint stack");
+				uiButSetFunc(but, constraint_moveDown, ob, con);
+			}
+			else {
+				/* don't draw 'button' behind arrow if no next constraint (it doesn't do anything anyways) */
+				uiBlockSetEmboss(block, UI_EMBOSSN);
+				uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, *xco+width-50+18, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint down in constraint stack");
+				uiBlockSetEmboss(block, UI_EMBOSS);
+			}
 		uiBlockEndAlign(block);
 		
 		
