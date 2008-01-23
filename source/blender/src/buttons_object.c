@@ -3397,7 +3397,7 @@ static char sbsolvers[] = "SIF  semi implicit euler with fixed step size (worth 
 static char sbsolvers[] = "SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
 #endif
 
-static void object_softbodies_II(Object *ob)
+static void object_softbodies_collision(Object *ob)
 {
 	SoftBody *sb=ob->soft;
 	uiBlock *block;
@@ -3412,9 +3412,9 @@ static void object_softbodies_II(Object *ob)
 		ob->pd->pdef_sbift  = 0.2f;
 		ob->pd->pdef_sboft  = 0.02f;
 	}
-	block= uiNewBlock(&curarea->uiblocks, "object_softbodies_II", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Soft Body", "Physics");
-	if(uiNewPanel(curarea, block, "Soft Body Col&Solv", "Physics", 651, 0, 318, 204)==0) return;
+	block= uiNewBlock(&curarea->uiblocks, "object_softbodies_collision", UI_EMBOSS, UI_HELV, curarea->win);
+	// uiNewPanelTabbed("Soft Body", "Physics"); /*don't really want it tabbed first */
+	if(uiNewPanel(curarea, block, "Soft Body Collision", "Physics", 651, 0, 318, 204)==0) return;
 
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
@@ -3487,9 +3487,10 @@ static void object_softbodies_II(Object *ob)
 			uiBlockEndAlign(block);
 			/*SOLVER SETTINGS*/
 			uiBlockBeginAlign(block);
+			/* done in another panel now*/
+			/*
 			uiDefButS(block, MENU, B_SOFTBODY_CHANGE, sbsolvers,10,100,50,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver");
-			/*some have adapive step size - some not*/
-			sb->solver_ID = 0; /* ugly hack to prepare peach freeze */
+			sb->solver_ID = 0; 
 			switch (sb->solver_ID) {
 			case 0:
 			case 1:
@@ -3518,6 +3519,7 @@ static void object_softbodies_II(Object *ob)
 				uiDefButS(block, NUM, B_DIFF, "Steps:", 10,80,100,20, &sb->minloops,  1.00,  30000.0, 10, 0, "Solver steps/frame ");
 				uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
 			}
+			*/
 
 
 		}
@@ -3532,6 +3534,93 @@ static void object_softbodies_II(Object *ob)
 			}
 		}
 		uiDefBut(block, LABEL, 0, "",10,10,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
+	}
+	uiBlockEndAlign(block);
+}
+static void object_softbodies_solver(Object *ob)
+{
+	SoftBody *sb=ob->soft;
+	uiBlock *block;
+	static int val;
+	short *softflag=&ob->softflag, psys_cur=0, adaptive_mode=0;
+	int ob_has_hair=psys_ob_has_hair(ob);
+    if(!_can_softbodies_at_all(ob)) return;
+	block= uiNewBlock(&curarea->uiblocks, "object_softbodies_solver", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Soft Body Solver", "Physics", 651, 0, 318, 204)==0) return;
+
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+    /* doubt that is really needed here but for now */ 
+	if(ob_has_hair) {
+		if(PE_get_current_num(ob) >= 0) {
+			ParticleSystem *psys = PE_get_current(ob);
+			if(psys) {
+				sb = psys->soft;
+				softflag = &psys->softflag;
+				psys_cur = 1;
+			}
+		}
+	}
+
+	if(psys_cur) {
+		if(*softflag & OB_SB_ENABLE)
+			val = 1;
+		else
+			val = 0;
+	}
+	else
+		val = modifiers_isSoftbodyEnabled(ob);
+
+	if(!val) { 
+		uiDefBut(block, LABEL, 0, "",10,10,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
+		if(psys_cur){
+			uiDefBut(block, LABEL, 0, "Hair is not a softbody",10,190,300,20, NULL, 0.0, 0, 0, 0, ""); 
+		}
+		else {
+			uiDefBut(block, LABEL, 0, "Object is not a softbody",10,190,300,20, NULL, 0.0, 0, 0, 0, ""); 
+		}
+	}
+	else{ 
+		if ((ob->type==OB_MESH)||(ob->type==OB_CURVE) ) {
+			/*SOLVER SETTINGS*/
+			uiDefBut(block, LABEL, 0, "Solver:",10,120,80,20, NULL, 0.0, 0, 0, 0, ""); 
+			uiBlockBeginAlign(block);
+			uiDefButS(block, MENU, B_SOFTBODY_CHANGE, sbsolvers,90,120,220,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver (choose 1 of 1 i was working on some other but failed *sigh* BM) ");
+			/*some have adapive step size - some not*/
+			sb->solver_ID = 0; /* ugly hack to prepare peach freeze */
+			switch (sb->solver_ID) {
+			case 0:
+			case 1:
+				{adaptive_mode = 1; break;}
+			case 3:
+				{adaptive_mode = 0; break;}
+			default: printf("SB_solver?\n"); // should never happen
+			}
+			if(adaptive_mode){
+				uiBlockBeginAlign(block);
+				uiDefButF(block, NUM, B_DIFF, "Error Lim:",	10,100,170,20, &sb->rklimit , 0.001, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
+				uiDefButBitS(block, TOG, SBSO_OLDERR, B_DIFF,"O", 180,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Old Error Calculation");
+				uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 200,100,90,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
+				uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"M", 290,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");
+				uiBlockEndAlign(block);
+				uiDefButS(block, NUM, B_DIFF, "MinS:", 10,80,100,20, &sb->minloops,  0.00,  30000.0, 10, 0, "Minimal # solver steps/frame ");
+				uiDefButS(block, NUM, B_DIFF, "MaxS:", 110,80,100,20, &sb->maxloops,  0.00,  30000.0, 10, 0, "Maximal # solver steps/frame ");
+				uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
+				uiBlockEndAlign(block);
+			} 
+			else{
+				uiBlockEndAlign(block);
+				uiBlockBeginAlign(block);
+				uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 210,100,90,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
+				uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"M", 290,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");
+				uiBlockEndAlign(block);
+				uiDefButS(block, NUM, B_DIFF, "Steps:", 10,80,100,20, &sb->minloops,  1.00,  30000.0, 10, 0, "Solver steps/frame ");
+				uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
+			}
+
+	uiBlockEndAlign(block);
+
+		}
+		//uiDefBut(block, LABEL, 0, "",10,10,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
 	}
 	uiBlockEndAlign(block);
 }
@@ -4860,7 +4949,8 @@ void physics_panels()
 			object_panel_deflection(ob);
 		object_panel_fields(ob);
 		object_softbodies(ob);
-		object_softbodies_II(ob);
+		object_softbodies_collision(ob);
+		object_softbodies_solver(ob);
 		object_panel_fluidsim(ob);
 	}
 }
