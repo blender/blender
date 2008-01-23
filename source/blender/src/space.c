@@ -3128,10 +3128,36 @@ static void set_userdef_iconfile_cb(void *menuindex, void *unused2)
 
 /* needed for event; choose new 'curmain' resets it... */
 static short th_curcol= TH_BACK;
+static short th_curcolset = 1;
 static char *th_curcol_ptr= NULL;
 static char th_curcol_arr[4]={0, 0, 0, 255};
 
-static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
+static void info_user_theme_colsets_buts(uiBlock *block, short y1, short y2, short y3, short y4) 
+{
+	bTheme *btheme= U.themes.first;
+	ThemeWireColor *col_set= &btheme->tarm[(th_curcolset - 1)];
+	short y4label= y4-2; // sync this with info_user_themebuts
+	
+	/* Selector for set (currently only 20 sets) */
+	uiDefButS(block, NUM, B_REDR, "Color Set: ", 	255,y1,200,20, &th_curcolset, 1, 20, 0, 0, "Current color set");
+	
+	/* "Solid" Color (unselected wire-color is derived from this) */
+	uiDefBut(block, LABEL,0,"Normal: ", 475,y4label,60,20,0, 0, 0, 0, 0, "");
+	uiDefButC(block, COL, B_UPDATE_THEME, "",		475,y1,50,y3-y1+20, col_set->solid, 0, 0, 0, 0, "Color to use for surface of bones");
+	
+	/* Selected Color */
+	uiDefBut(block, LABEL,0,"Selected: ", 575,y4label,60,20,0, 0, 0, 0, 0, "");
+	uiDefButC(block, COL, B_UPDATE_THEME, "",		575,y1,50,y3-y1+20, col_set->select, 0, 0, 0, 0, "Color to use for 'selected' bones");
+	
+	/* Active Color */
+	uiDefBut(block, LABEL,0,"Active: ", 675,y4label,60,20,0, 0, 0, 0, 0, "");
+	uiDefButC(block, COL, B_UPDATE_THEME, "",		675,y1,50,y3-y1+20, col_set->active, 0, 0, 0, 0, "Color to use for 'active' bones");
+	
+	/* Extra 'Options' */
+	uiDefButBitS(block, TOG, TH_WIRECOLOR_CONSTCOLS, B_UPDATE_THEME, "Use 'Constraint' Colouring",  885,y2,200,20, &col_set->flag, 0, 0, 0, 0, "Allow the use of colors indicating constraints/keyed status");
+}
+
+static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3, short y4)
 {
 	bTheme *btheme, *bt;
 	int spacetype= 0;
@@ -3186,7 +3212,7 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	uiDefBut(block, TEX, B_NAME_THEME, "", 			255,y3,200,20, btheme->name, 1.0, 30.0, 0, 0, "Rename theme");
 
 	/* main choices pup: note, it uses collums, and the seperators (%l) then have to fill both halves equally for the menu to work */
-	uiDefButS(block, MENU, B_CHANGE_THEME, "UI and Buttons %x1|%l|3D View %x2|%l|Ipo Curve Editor %x3|Action Editor %x4|"
+	uiDefButS(block, MENU, B_CHANGE_THEME, "UI and Buttons %x1|%l|Bone Color Sets %x17|%l|3D View %x2|%l|Ipo Curve Editor %x3|Action Editor %x4|"
 		"NLA Editor %x5|%l|UV/Image Editor %x6|Video Sequence Editor %x7|Node Editor %x16|Timeline %x15|%l|Audio Window %x8|Text Editor %x9|%l|User Preferences %x10|"
 		"Outliner %x11|Buttons Window %x12|%l|File Browser %x13|Image Browser %x14",
 													255,y2,200,20, &curmain, 0, 0, 0, 0, "Specify theme for...");
@@ -3206,8 +3232,12 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	else if(curmain==14) spacetype= SPACE_IMASEL;
 	else if(curmain==15) spacetype= SPACE_TIME;
 	else if(curmain==16) spacetype= SPACE_NODE;
+	else if(curmain==17) { 
+		info_user_theme_colsets_buts(block, y1, y2, y3, y4); 
+		return; 
+	}
 	else return; /* only needed while coding... when adding themes for more windows */
-	
+		
 	/* color choices pup */
 	if(curmain==1) {
 		strp= BIF_ThemeColorsPup(0);
@@ -3379,7 +3409,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
         /* line 2: left x co-ord, top y co-ord, width, height */
 
 	if(U.userpref == 6) {
-		info_user_themebuts(block, y1, y2, y3);
+		info_user_themebuts(block, y1, y2, y3, y4);
 	}
 	else if (U.userpref == 0) { /* view & controls */
 

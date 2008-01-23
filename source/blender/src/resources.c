@@ -548,7 +548,7 @@ void BIF_InitTheme(void)
 
 char *BIF_ThemeColorsPup(int spacetype)
 {
-	char *cp= MEM_callocN(32*32, "theme pup");
+	char *cp= MEM_callocN(32*64, "theme pup");
 	char *str = cp;
 	
 	if(spacetype==0) {
@@ -609,7 +609,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Active Vert/Edge/Face %%x%d|", TH_EDITMESH_ACTIVE);
 			str += sprintf(str, "Normal %%x%d|", TH_NORMAL);
 			str += sprintf(str, "Bone Solid %%x%d|", TH_BONE_SOLID);
-			str += sprintf(str, "Bone Pose %%x%d", TH_BONE_POSE);
+			str += sprintf(str, "Bone Pose %%x%d|", TH_BONE_POSE);
 			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
 			break;
 		case SPACE_IPO:
