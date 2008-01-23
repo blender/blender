@@ -428,6 +428,7 @@ typedef struct StrandPart {
 	ShadeResult *result;
 	float *pass;
 	int *rectz, *outrectz;
+	long *rectdaps;
 	unsigned short *mask;
 	int rectx, recty;
 	int addpassflag, addzbuf, sample;
@@ -607,13 +608,33 @@ static void do_strand_blend(void *handle, int x, int y, float u, float v, float 
 	StrandBuffer *buffer= spart->segment->buffer;
 	ShadeResult *shr;
 	float /**pass,*/ t, s;
-	int offset, zverg;
+	int offset, zverg, bufferz;
 
 	/* check again solid z-buffer */
 	offset = y*spart->rectx + x;
 	zverg= (int)z;
 
-	if(zverg < spart->rectz[offset]) {
+	if(spart->rectdaps) {
+		/* find the z of the sample */
+		PixStr *ps;
+		long *rd= spart->rectdaps + offset;
+		int sample= (1<<spart->sample);
+		
+		bufferz= 0x7FFFFFFF;
+		
+		if(*rd) {	
+			for(ps= (PixStr *)(*rd); ps; ps= ps->next) {
+				if(sample & ps->mask) {
+					bufferz= ps->z;
+					break;
+				}
+			}
+		}
+	}
+	else
+		bufferz= spart->rectz[offset];
+
+	if(zverg < bufferz) {
 		/* fill in output z-buffer if needed */
 		if(spart->addzbuf)
 			if(zverg < spart->outrectz[offset])
@@ -994,6 +1015,7 @@ unsigned short *zbuffer_strands_shade(Render *re, RenderPart *pa, RenderLayer *r
 	spart.rectx= pa->rectx;
 	spart.recty= pa->recty;
 	spart.rectz= pa->rectz;
+	spart.rectdaps= pa->rectdaps;
 	spart.addpassflag= rl->passflag & ~(SCE_PASS_Z|SCE_PASS_COMBINED);
 	spart.addzbuf= rl->passflag & SCE_PASS_Z;
 

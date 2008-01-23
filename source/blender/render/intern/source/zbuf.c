@@ -3693,7 +3693,7 @@ void reset_sky_speedvectors(RenderPart *pa, RenderLayer *rl, float *rectf)
 
 /* main render call to fill in pass the full transparent layer */
 /* returns a mask, only if a) transp rendered and b) solid was rendered */
-unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
+unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass, ListBase *psmlist)
 {
 	RenderResult *rr= pa->result;
 	ShadeSample ssamp;
@@ -3859,6 +3859,9 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 								*sp |= zrow[totface].mask;
 							if(filled==0)
 								break;
+
+							if(R.totstrand)
+								addps(psmlist, pa->rectdaps+od, zrow[totface].obi, zrow[totface].p, zrow[totface].z, zrow[totface].mask);
 						}
 					}
 					

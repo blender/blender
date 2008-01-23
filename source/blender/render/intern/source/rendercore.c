@@ -631,7 +631,7 @@ static void freeps(ListBase *lb)
 	lb->first= lb->last= NULL;
 }
 
-static void addps(ListBase *lb, long *rd, int obi, int facenr, int z, unsigned short mask)
+void addps(ListBase *lb, long *rd, int obi, int facenr, int z, unsigned short mask)
 {
 	PixStrMain *psm;
 	PixStr *ps, *last= NULL;
@@ -925,7 +925,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 				
 				/* swap for live updates, and it is used in zbuf.c!!! */
 				SWAP(float *, rl->acolrect, rl->rectf);
-				ztramask= zbuffer_transp_shade(pa, rl, rl->rectf);
+				ztramask= zbuffer_transp_shade(pa, rl, rl->rectf, &psmlist);
 				SWAP(float *, rl->acolrect, rl->rectf);
 				
 				/* zbuffer transp only returns ztramask if there's solid rendered */
@@ -1147,7 +1147,7 @@ void zbufshade_tile(RenderPart *pa)
 				
 				/* swap for live updates */
 				SWAP(float *, rl->acolrect, rl->rectf);
-				zbuffer_transp_shade(pa, rl, rl->rectf);
+				zbuffer_transp_shade(pa, rl, rl->rectf, NULL);
 				SWAP(float *, rl->acolrect, rl->rectf);
 				
 				fcol= rl->rectf; acol= rl->acolrect;
