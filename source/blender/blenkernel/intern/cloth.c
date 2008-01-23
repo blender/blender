@@ -621,6 +621,12 @@ void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 	clmd->sim_parms->dt = 1.0f / clmd->sim_parms->stepsPerFrame;
 
 	clmd->sim_parms->sim_time = current_time;
+	
+	/* check if cache is active / if file is already saved */
+	if ((!G.relbase_valid) && ( deltaTime != 1.0f ))
+	{
+		clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+	}
 
 	if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_RESET)
 	{	

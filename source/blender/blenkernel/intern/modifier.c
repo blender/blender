@@ -5130,6 +5130,8 @@ static void collisionModifier_deformVerts(
 		
 		current_time = bsystem_time ( ob, ( float ) G.scene->r.cfra, 0.0 );
 		
+		// printf("current_time %f, collmd->time %f\n", current_time, collmd->time);
+		
 		if(current_time > collmd->time)
 		{	
 			numverts = dm->getNumVerts ( dm );
@@ -5192,6 +5194,10 @@ static void collisionModifier_deformVerts(
 				}
 			}
 			
+			collmd->time = current_time;
+		}
+		else
+		{
 			collmd->time = current_time;
 		}
 	}

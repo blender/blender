@@ -5421,7 +5421,13 @@ void draw_object(Base *base, int flag)
 			if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_RESET))
 			{	
 				verts = cloth->verts;
-				
+				/*
+				// this makes the screen pink
+				glEnable(GL_LIGHTING);
+				glEnable(GL_COLOR_MATERIAL);
+				glShadeModel(GL_SMOOTH);
+				*/
+					
 				for(i = 0; i < cloth->numverts; i++)
 				{
 					if(verts[i].flags & CLOTH_VERT_FLAG_PINNED)
@@ -5443,27 +5449,49 @@ void draw_object(Base *base, int flag)
 						glScalef(size[0], size[1], size[2]);
 						
 						// gluSphere(qobj, 1.0, 8, 5);
-						glTranslatef(0, 0, 1.0);
-						gluDisk(qobj, 0, 0.4, 8,  5);
-						gluCylinder(qobj, 0.4, 0.4,  1.0, 8, 5);
 						
 						glTranslatef(0, 0, 1.0);
-						gluDisk(qobj, 0, 0.4, 8,  5);
+						gluDisk(qobj, 0, 0.25, 8,  5);
 						
-						glTranslatef(0, 0, -2.0);
+						glTranslatef(0, 0, -1.0);
+						
+						glTranslatef(0, 0, 0.875);
+						gluCylinder(qobj, 0.15, 0.25,  0.125, 8, 5);
+						
+						glTranslatef(0, 0, -0.25);
+						gluCylinder(qobj, 0.15, 0.15,  0.25, 8, 5);
+						
+						glTranslatef(0, 0, -0.125);
+						gluCylinder(qobj, 0.25, 0.15,  0.125, 8, 5);
+						
+						// gluDisk(qobj, 0, 0.5, 8,  5);
+						
+						/*
+						glTranslatef(0, 0, 1.0);
+						gluDisk(qobj, 0, 0.4, 8,  5);
+						*/
 						/*
 						col[0] = 0.53;
 						col[1] = 0.54;
 						col[2] = 0.0;
 						glColor3fv(col);
 						*/
-						gluCylinder(qobj, 0.0, 0.2,  1.0, 8, 5);
+						glTranslatef(0, 0, -0.5);
+						gluCylinder(qobj, 0.0, 0.05,  0.5, 8, 5);
+						
+						glTranslatef(0, 0, 0.5);
+						gluDisk(qobj, 0, 0.25, 8,  5);
 						
 						glPopMatrix();
 		
 						gluDeleteQuadric(qobj); 
 					}
 				}
+				/*
+				glShadeModel(GL_FLAT);
+				glDisable(GL_COLOR_MATERIAL);
+				glDisable(GL_LIGHTING);
+				*/
 			}
 		}
 	}
