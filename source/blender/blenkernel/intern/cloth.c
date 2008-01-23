@@ -124,7 +124,7 @@ static CM_SOLVER_DEF	solvers [] =
 static void cloth_to_object ( Object *ob, ClothModifierData *clmd, float ( *vertexCos ) [3], unsigned int numverts );
 static void cloth_from_mesh ( Object *ob, ClothModifierData *clmd, DerivedMesh *dm );
 static int cloth_from_object ( Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float ( *vertexCos ) [3], unsigned int numverts, float framenr );
-int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm );
+int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm );
 static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm, short vgroup );
 
 
@@ -502,12 +502,17 @@ static void cloth_write_cache(Object *ob, ClothModifierData *clmd, float framenr
 	Cloth *cloth = clmd->clothObject;
 	
 	if(!cloth)
+	{
 		return;
+	}
 	
 	stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
 	
 	fp = BKE_ptcache_id_fopen((ID *)ob, 'w', framenr, stack_index);
-	if(!fp) return;
+	if(!fp)
+	{
+		return;
+	}
 	
 	for(a = 0; a < cloth->numverts; a++)
 	{
@@ -554,10 +559,10 @@ static int cloth_read_cache(Object *ob, ClothModifierData *clmd, float framenr)
 		}
 		
 		fclose(fp);
+		
+		if(clmd->sim_parms->solver_type == 0)
+			implicit_set_positions(clmd);
 	}
-	
-	if(clmd->sim_parms->solver_type == 0)
-		implicit_set_positions(clmd);
 		
 	return ret;
 }
@@ -622,6 +627,8 @@ void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 		}
 	}
 	*/
+	
+	// printf("ct: %f, st: %f, r.cfra: %f, dt: %f\n", current_time, clmd->sim_parms->sim_time, ( float ) G.scene->r.cfra, deltaTime);
 
 	// unused in the moment, calculated seperately in implicit.c
 	clmd->sim_parms->dt = 1.0f / clmd->sim_parms->stepsPerFrame;
@@ -681,11 +688,7 @@ void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 				cloth_write_cache(ob, clmd, framenr);
 
 			}
-			else // just retrieve the cached frame
-			{
-				cloth_read_cache(ob, clmd, framenr);
-			}
-
+			
 			// Copy the result back to the object.
 			cloth_to_object ( ob, clmd, vertexCos, numverts );
 
@@ -694,12 +697,14 @@ void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 		}
 
 	}
-	else if ( ( deltaTime <= 0.0f ) || ( deltaTime > 1.0f ) )
+	else
 	{
 		if ( clmd->clothObject != NULL )
 		{
 			if(cloth_read_cache(ob, clmd, framenr))
+			{
 				cloth_to_object ( ob, clmd, vertexCos, numverts );
+			}
 		}
 		else
 		{
@@ -866,7 +871,7 @@ static void cloth_to_object ( Object *ob, ClothModifierData *clmd, float ( *vert
 		for ( i = 0; i < numverts; i++, verts++ )
 		{
 			VECCOPY ( vertexCos[i], verts->x );
-			Mat4MulVecfl ( ob->imat, vertexCos[i] );	/* softbody is in global coords */
+			Mat4MulVecfl ( ob->imat, vertexCos[i] );	/* cloth is in global coords */
 		}
 	}
 }
@@ -921,9 +926,9 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm, short
 						
 						verts->goal  = ( float ) pow ( verts->goal , 4.0f );
 
-						if ( dvert->dw [j].weight >=SOFTGOALSNAP )
+						if ( verts->goal >=SOFTGOALSNAP )
 						{
-							verts->flags |= CVERT_FLAG_PINNED;
+							verts->flags |= CLOTH_VERT_FLAG_PINNED;
 						}
 
 						// TODO enable mass painting here, for the moment i let "goals" go first
@@ -1018,7 +1023,7 @@ static int cloth_from_object ( Object *ob, ClothModifierData *clmd, DerivedMesh 
 					VECCOPY ( verts->impulse, tnull );
 				}
 				
-				if ( !cloth_build_springs ( clmd->clothObject, dm ) )
+				if ( !cloth_build_springs ( clmd, dm ) )
 				{
 					cloth_free_modifier ( ob, clmd );
 					modifier_setError ( & ( clmd->modifier ), "Can't build springs." );
@@ -1042,11 +1047,11 @@ static int cloth_from_object ( Object *ob, ClothModifierData *clmd, DerivedMesh 
 		case OB_LATTICE:
 			printf ( "Not supported: OB_LATTICE\n" );
 			// lattice_to_softbody(ob);
-			return 1;
+			return 0;
 		case OB_CURVE:
 		case OB_SURF:
 			printf ( "Not supported: OB_SURF| OB_CURVE\n" );
-			return 1;
+			return 0;
 		default: return 0; // TODO - we do not support changing meshes
 	}
 
@@ -1123,8 +1128,9 @@ int cloth_add_spring ( ClothModifierData *clmd, unsigned int indexA, unsigned in
 	return 0;
 }
 
-int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
+int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 {
+	Cloth *cloth = clmd->clothObject;
 	ClothSpring *spring = NULL, *tspring = NULL, *tspring2 = NULL;
 	unsigned int struct_springs = 0, shear_springs=0, bend_springs = 0;
 	unsigned int i = 0;
@@ -1169,6 +1175,7 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 			spring->kl = medge[i].v2;
 			VECSUB ( temp, cloth->verts[spring->kl].x, cloth->verts[spring->ij].x );
 			spring->restlen =  sqrt ( INPR ( temp, temp ) );
+			clmd->coll_parms->avg_spring_len += spring->restlen;
 			spring->type = CLOTH_SPRING_TYPE_STRUCTURAL;
 			spring->flags = 0;
 			struct_springs++;
@@ -1180,6 +1187,8 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 			node = node2;
 		}
 	}
+	
+	clmd->coll_parms->avg_spring_len /= struct_springs;
 	
 	// shear springs
 	for ( i = 0; i < numfaces; i++ )

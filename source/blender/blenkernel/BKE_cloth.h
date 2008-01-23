@@ -80,6 +80,7 @@ typedef struct ClothVertex
 	float 	goal;		/* goal, from SB			*/
 	float	impulse[3];	/* used in collision.c */
 	unsigned int impulse_count; /* same as above */
+	float avg_spring_len; /* average length of connected springs, UNUSED ATM */
 }
 ClothVertex;
 
@@ -156,8 +157,8 @@ typedef enum
 } CLOTH_SPRINGS_FLAGS;
 
 /* Bits to or into the ClothVertex.flags. */
-#define CVERT_FLAG_PINNED	1
-#define CVERT_FLAG_COLLISION	2
+#define CLOTH_VERT_FLAG_PINNED 1
+#define CLOTH_VERT_FLAG_COLLISION 2
 
 
 // needed for buttons_object.c

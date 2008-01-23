@@ -89,7 +89,7 @@ typedef struct CollisionSettings
 	short	loop_count;		/* How many iterations for the collision loop.		*/
 	struct	LinkNode *collision_list; 	/* e.g. pointer to temp memory for collisions */
 	int	flags;			/* collision flags defined in BKE_cloth.h */
-	int 	pad;
+	float 	avg_spring_len; 	/* for selfcollision */
 }
 CollisionSettings;
 

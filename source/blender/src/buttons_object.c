@@ -4937,6 +4937,8 @@ static void object_panel_cloth(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_cloth", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Cloth ", "Physics", 640, 0, 318, 204)==0) return;
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	
+	val = (clmd ? 1:0);
 
 	but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Cloth",	10,200,130,20, &val, 0, 0, 0, 0, "Sets object to become cloth");
 
@@ -4977,12 +4979,10 @@ static void object_panel_cloth(Object *ob)
 		/* GOAL STUFF */
 		uiBlockBeginAlign(block);
 		
-		if(BLI_countlist (&ob->defbase) > 0)
-		{
-			uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_GOAL, REDRAWVIEW3D, "Pinning of cloth",	10,70,150,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
-		}
 		
-		if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
+		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_GOAL, REDRAWVIEW3D, "Pinning of cloth",	10,70,150,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+		
+		if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (BLI_countlist (&ob->defbase) > 0))
 		{
 			if(ob->type==OB_MESH) 
 			{
@@ -5013,13 +5013,9 @@ static void object_panel_cloth(Object *ob)
 				MEM_freeN (clvg1);
 				MEM_freeN (clvg2);
 			}
-			else 
-			{
-				uiDefButS(block, TOG, B_CLOTH_RENEW, "W",			140,70,20,20, &clmd->sim_parms->vgroup_mass, 0, 1, 0, 0, "Use control point weight values");
-				uiDefButF(block, NUM, B_CLOTH_RENEW, "Goal:",	160,70,150,20, &clmd->sim_parms->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
-			}
 			
 			uiDefButF(block, NUM, B_CLOTH_RENEW, "Pin Stiff:",	10,50,150,20, &clmd->sim_parms->goalspring, 0.0, 500.0, 10, 0, "Pin (vertex target position) spring stiffness");
+			uiDefBut(block, LABEL, 0, " ",  160,50,150,20, NULL, 0.0, 0, 0, 0, "");
 			/*
 			// nobody is changing these ones anyway
 			uiDefButF(block, NUM, B_CLOTH_RENEW, "G Damp:",	160,50,150,20, &clmd->sim_parms->goalfrict  , 0.0, 50.0, 10, 0, "Goal (vertex target position) friction");
@@ -5027,6 +5023,12 @@ static void object_panel_cloth(Object *ob)
 			uiDefButF(block, NUM, B_CLOTH_RENEW, "G Max:",		160,30,150,20, &clmd->sim_parms->maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
 			*/
 		}
+		else if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
+		{
+			uiDefBut(block, LABEL, 0, " ",  160,70,150,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "No vertex group for pinning available.",  10,50,300,20, NULL, 0.0, 0, 0, 0, "");
+		}
+		
 		uiBlockEndAlign(block);	
 		
 		/*
@@ -5078,18 +5080,26 @@ static void object_panel_cloth_II(Object *ob)
 		sprintf (str, "Frame %d cached. [%d in preroll, %d in total]", length-clmd->sim_parms->preroll, clmd->sim_parms->preroll, length);
 		*/
 		
-		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT, REDRAWVIEW3D, "Protect Cache",	10,120,300,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Protect cache from automatic freeing when scene changed");
-		
-		if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
+		if (!G.relbase_valid)
 		{
-			uiDefBut(block, LABEL, 0, "Clear cache:",  10,100,90,20, NULL, 0.0, 0, 0, 0, "");
-			uiDefBut(block, BUT, B_CLOTH_CLEARCACHEALL, "All", 100, 100,100,20, NULL, 0.0, 0.0, 0, 0, "Free ALL cloth cache without preroll");
-			uiDefBut(block, BUT, B_CLOTH_CLEARCACHEFRAME, "From next frame", 200, 100,110,20, NULL, 0.0, 0.0, 0, 0, "Free cloth cache starting from next frame");	
-			uiDefBut(block, LABEL, 0, " ",  10,80,300,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Cache deactivated until file is saved.",  10,120,300,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, " ",  10,100,300,40, NULL, 0.0, 0, 0, 0, "");
 		}
 		else
 		{
-			uiDefBut(block, LABEL, 0, " ",  10,100,300,40, NULL, 0.0, 0, 0, 0, "");
+			uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT, REDRAWVIEW3D, "Protect Cache",	10,120,300,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Protect cache from automatic freeing when scene changed");
+			
+			if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
+			{
+				uiDefBut(block, LABEL, 0, "Clear cache:",  10,100,90,20, NULL, 0.0, 0, 0, 0, "");
+				uiDefBut(block, BUT, B_CLOTH_CLEARCACHEALL, "All", 100, 100,100,20, NULL, 0.0, 0.0, 10, 0, "Free ALL cloth cache without preroll");
+				uiDefBut(block, BUT, B_CLOTH_CLEARCACHEFRAME, "From next frame", 200, 100,110,20, NULL, 0.0, 0.0, 10, 0, "Free cloth cache starting from next frame");	
+				uiDefBut(block, LABEL, 0, " ",  10,80,300,20, NULL, 0.0, 0, 0, 0, "");
+			}
+			else
+			{
+				uiDefBut(block, LABEL, 0, " ",  10,100,300,40, NULL, 0.0, 0, 0, 0, "");
+			}
 		}
 
 		/*

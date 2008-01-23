@@ -5399,6 +5399,57 @@ void draw_object(Base *base, int flag)
 		if(col) cpack(col);
 		glDepthMask(GL_TRUE); 
 	}
+	
+	/* code for drawing pinned cloth verts */
+	if(modifiers_isClothEnabled(ob))
+	{
+		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+		Cloth *cloth = clmd->clothObject;
+		ClothVertex *verts;
+		float col[3], point[3];
+		col[0] = 0.53;
+		col[1] = 0.04;
+		col[2] = 0.0;
+		glColor3fv(col);
+		
+		/* inverse matrix is not uptodate... */
+		Mat4Invert ( ob->imat, ob->obmat );
+		
+		if(cloth)
+		{
+			verts = cloth->verts;
+			
+			for(i = 0; i < cloth->numverts; i++)
+			{
+				if(verts[i].flags & CLOTH_VERT_FLAG_PINNED)
+				{
+					float size[3], cent[3];
+					GLUquadricObj *qobj = gluNewQuadric(); 
+					
+					gluQuadricDrawStyle(qobj, GLU_FILL); 
+	
+					size[0]= clmd->coll_parms->avg_spring_len / 3.0;
+					size[1]= clmd->coll_parms->avg_spring_len / 3.0;
+					size[2]= clmd->coll_parms->avg_spring_len / 3.0;
+					
+					VECCOPY ( point, verts[i].x );
+					Mat4MulVecfl ( ob->imat, point );
+	
+					cent[0]= point[0];
+					cent[1]= point[1];
+					cent[2]= point[2];
+	
+					glPushMatrix();
+					glTranslatef(cent[0], cent[1], cent[2]);
+					glScalef(size[0], size[1], size[2]);
+					gluSphere(qobj, 1.0, 8, 5);
+					glPopMatrix();
+	
+					gluDeleteQuadric(qobj); 
+				}
+			}
+		}
+	}
 
 	{
 		bConstraint *con;
