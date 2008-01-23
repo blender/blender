@@ -1204,7 +1204,9 @@ void test_editipo(int doit)
 		
 		if(G.sipo->ipo != ipo) {
 			G.sipo->ipo= ipo;
-			if(ipo) G.v2d->cur= ipo->cur;
+			/* if lock we don't copy from ipo, this makes the UI jump around confusingly */
+			if(G.v2d->flag & V2D_VIEWLOCK);
+			else if(ipo) G.v2d->cur= ipo->cur;
 			doit= 1;
 		}
 		if(G.sipo->from != from) {
