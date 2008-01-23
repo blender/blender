@@ -890,11 +890,12 @@ static void zbuffer_strands_filter(Render *re, RenderPart *pa, RenderLayer *rl, 
 {
 	RenderResult *rr= pa->result;
 	ShadeResult *shr, *shrrect= spart->result;
-	float *passrect= pass;
+	float *passrect= pass, alpha, sampalpha;
 	long *rdrect;
 	int osa, x, y, a, crop= 0, offs=0, od;
 
 	osa= (re->osa? re->osa: 1);
+	sampalpha= 1.0f/osa;
 
 	/* filtered render, for now we assume only 1 filter size */
 	if(pa->crop) {
@@ -928,21 +929,28 @@ static void zbuffer_strands_filter(Render *re, RenderPart *pa, RenderLayer *rl, 
 					add_transp_speed(rl, od, NULL, 0.0f, rdrect);
 			}
 			else {
+				alpha= 0.0f;
+
 				if(re->osa == 0) {
 					addAlphaUnderFloat(pass, shr->combined);
 				}
 				else {
-					for(a=0; a<re->osa; a++)
+					/* note; cannot use pass[3] for alpha due to filtermask */
+					for(a=0; a<re->osa; a++) {
 						add_filt_fmask(1<<a, shr[a].combined, pass, rr->rectx);
+						alpha += shr[a].combined[3];
+					}
 				}
 
 				if(spart->addpassflag) {
+					alpha *= sampalpha;
+
 					/* merge all in one, and then add */
 					merge_transp_passes(rl, shr);
-					add_transp_passes(rl, od, shr, pass[3]);
+					add_transp_passes(rl, od, shr, alpha);
 
 					if(spart->addpassflag & SCE_PASS_VECTOR)
-						add_transp_speed(rl, od, shr->winspeed, pass[3], rdrect);
+						add_transp_speed(rl, od, shr->winspeed, alpha, rdrect);
 				}
 			}
 		}
