@@ -244,7 +244,7 @@ typedef struct ObjectRen {
 	struct ObjectRen *next, *prev;
 	struct Object *ob, *par;
 	struct Scene *sce;
-	int index, psysindex, flag;
+	int index, psysindex, flag, lay;
 
 	int totvert, totvlak, totstrand, tothalo;
 	int vertnodeslen, vlaknodeslen, strandnodeslen, blohalen;
@@ -309,12 +309,10 @@ typedef struct RadFace {
 
 typedef struct VlakRen {
 	struct VertRen *v1, *v2, *v3, *v4;	/* keep in order for ** addressing */
-	unsigned int lay;
 	float n[3];
 	struct Material *mat;
 	char puno;
 	char flag, ec;
-	RadFace *radface;
 	int index;
 } VlakRen;
 

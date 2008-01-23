@@ -2003,7 +2003,7 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag, void(*fillfu
 			else vlr++;
 
 			/* three cases, visible for render, only z values and nothing */
-			if(vlr->lay & lay) {
+			if(obr->lay & lay) {
 				if(vlr->mat!=ma) {
 					ma= vlr->mat;
 					nofill= ma->mode & (MA_ZTRA|MA_ONLYCAST);
@@ -2191,7 +2191,7 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem, Re
 	else {	/* radio render */
 		ObjectRen *obr;
 		VlakRen *vlr=NULL;
-		RadFace *rf;
+		RadFace **radface, *rf;
 		int totface=0;
 		
 		/* note: radio render doesn't support duplis */
@@ -2201,8 +2201,8 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem, Re
 			for(a=0; a<obr->totvlak; a++) {
 				if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
 			
-				if(vlr->radface) {
-					rf= vlr->radface;
+				if((radface=RE_vlakren_get_radface(obr, vlr, 0))) {
+					rf= *radface;
 					if( (rf->flag & RAD_SHOOT)==0 ) {    /* no shootelement */
 						
 						if( rf->flag & RAD_TWOSIDED) zvlnr= totface;
@@ -2293,7 +2293,7 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 				if((ma->mode & MA_SHADBUF)==0) ok= 0;
 			}
 
-			if(ok && (vlr->lay & lay) && !(vlr->flag & R_HIDDEN)) {
+			if(ok && (obr->lay & lay) && !(vlr->flag & R_HIDDEN)) {
 				c1= zbuf_shadow_project(cache, vlr->v1->index, obwinmat, vlr->v1->co, ho1);
 				c2= zbuf_shadow_project(cache, vlr->v2->index, obwinmat, vlr->v2->co, ho2);
 				c3= zbuf_shadow_project(cache, vlr->v3->index, obwinmat, vlr->v3->co, ho3);
@@ -2508,7 +2508,7 @@ void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(vo
 			
 			if(material_in_material(vlr->mat, sss_ma)) {
 				/* three cases, visible for render, only z values and nothing */
-				if(vlr->lay & lay) {
+				if(obr->lay & lay) {
 					if(vlr->mat!=ma) {
 						ma= vlr->mat;
 						nofill= ma->mode & MA_ONLYCAST;
@@ -3214,7 +3214,7 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, un
 			}
 			
 			if(dofill) {
-				if(!(vlr->flag & R_HIDDEN) && (vlr->lay & lay)) {
+				if(!(vlr->flag & R_HIDDEN) && (obr->lay & lay)) {
 					unsigned short partclip;
 					
 					v1= vlr->v1;

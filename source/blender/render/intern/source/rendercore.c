@@ -1722,6 +1722,8 @@ void add_halo_flare(Render *re)
 void RE_shade_external(Render *re, ShadeInput *shi, ShadeResult *shr)
 {
 	static VlakRen vlr;
+	static ObjectRen obr;
+	static ObjectInstanceRen obi;
 	
 	/* init */
 	if(re) {
@@ -1729,11 +1731,16 @@ void RE_shade_external(Render *re, ShadeInput *shi, ShadeResult *shr)
 		
 		/* fake render face */
 		memset(&vlr, 0, sizeof(VlakRen));
-		vlr.lay= -1;
+		memset(&obr, 0, sizeof(ObjectRen));
+		memset(&obi, 0, sizeof(ObjectInstanceRen));
+		obr.lay= -1;
+		obi.obr= &obr;
 		
 		return;
 	}
 	shi->vlr= &vlr;
+	shi->obr= &obr;
+	shi->obi= &obi;
 	
 	if(shi->mat->nodetree && shi->mat->use_nodes)
 		ntreeShaderExecTree(shi->mat->nodetree, shi, shr);

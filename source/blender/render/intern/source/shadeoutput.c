@@ -355,7 +355,7 @@ void renderspothalo(ShadeInput *shi, float *col, float alpha)
 		if(lar->type==LA_SPOT && (lar->mode & LA_HALO) && lar->haint>0) {
 			
 			if(lar->mode & LA_LAYER) 
-				if(shi->vlr && (lar->lay & shi->vlr->lay)==0) 
+				if(shi->vlr && (lar->lay & shi->obr->lay)==0) 
 					continue;
 			if((lar->lay & shi->lay)==0) 
 				continue;
@@ -1460,7 +1460,7 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 			/* yafray: ignore shading by photonlights, not used in Blender */
 			if (lar->type==LA_YF_PHOTON) continue;
 			
-			if(lar->mode & LA_LAYER) if((lar->lay & shi->vlr->lay)==0) continue;
+			if(lar->mode & LA_LAYER) if((lar->lay & shi->obr->lay)==0) continue;
 			if((lar->lay & shi->lay)==0) continue;
 			
 			if(lar->shb || (lar->mode & LA_SHAD_RAY)) {
@@ -1520,7 +1520,6 @@ static void wrld_exposure_correct(float *diff)
 void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 {
 	Material *ma= shi->mat;
-	VlakRen *vlr= shi->vlr;
 	int passflag= shi->passflag;
 	
 	memset(shr, 0, sizeof(ShadeResult));
@@ -1597,7 +1596,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			if (lar->type==LA_YF_PHOTON) continue;
 			
 			/* test for lamp layer */
-			if(lar->mode & LA_LAYER) if((lar->lay & vlr->lay)==0) continue;
+			if(lar->mode & LA_LAYER) if((lar->lay & shi->obr->lay)==0) continue;
 			if((lar->lay & shi->lay)==0) continue;
 			
 			/* accumulates in shr->diff and shr->spec and shr->shad (diffuse with shadow!) */
