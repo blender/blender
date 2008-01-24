@@ -104,6 +104,7 @@
 #define RE_MCOL_ELEMS		4
 #define RE_UV_ELEMS			2
 #define RE_SURFNOR_ELEMS	3
+#define RE_RADFACE_ELEMS	1
 #define RE_SIMPLIFY_ELEMS	2
 #define RE_FACE_ELEMS	1
 
@@ -363,12 +364,28 @@ float *RE_vlakren_get_surfnor(ObjectRen *obr, VlakRen *vlak, int verify)
 	return surfnor + (vlak->index & 255)*RE_SURFNOR_ELEMS;
 }
 
+RadFace **RE_vlakren_get_radface(ObjectRen *obr, VlakRen *vlak, int verify)
+{
+	RadFace **radface;
+	int nr= vlak->index>>8;
+	
+	radface= obr->vlaknodes[nr].radface;
+	if(radface==NULL) {
+		if(verify) 
+			radface= obr->vlaknodes[nr].radface= MEM_callocN(256*RE_RADFACE_ELEMS*sizeof(void*), "radface table");
+		else
+			return NULL;
+	}
+	return radface + (vlak->index & 255)*RE_RADFACE_ELEMS;
+}
+
 VlakRen *RE_vlakren_copy(ObjectRen *obr, VlakRen *vlr)
 {
 	VlakRen *vlr1 = RE_findOrAddVlak(obr, obr->totvlak++);
 	MTFace *mtface, *mtface1;
 	MCol *mcol, *mcol1;
 	float *surfnor, *surfnor1;
+	RadFace **radface, **radface1;
 	int i, index = vlr1->index;
 	char *name;
 
@@ -389,6 +406,12 @@ VlakRen *RE_vlakren_copy(ObjectRen *obr, VlakRen *vlr)
 	if(surfnor) {
 		surfnor1= RE_vlakren_get_surfnor(obr, vlr1, 1);
 		VECCOPY(surfnor1, surfnor);
+	}
+
+	radface= RE_vlakren_get_radface(obr, vlr, 0);
+	if(radface) {
+		radface1= RE_vlakren_get_radface(obr, vlr1, 1);
+		*radface1= *radface;
 	}
 
 	return vlr1;
@@ -695,7 +718,7 @@ StrandBuffer *RE_addStrandBuffer(ObjectRen *obr, int totvert)
 
 /* ------------------------------------------------------------------------ */
 
-ObjectRen *RE_addRenderObject(Render *re, Object *ob, Object *par, int index, int psysindex)
+ObjectRen *RE_addRenderObject(Render *re, Object *ob, Object *par, int index, int psysindex, int lay)
 {
 	ObjectRen *obr= MEM_callocN(sizeof(ObjectRen), "object render struct");
 	
@@ -704,6 +727,7 @@ ObjectRen *RE_addRenderObject(Render *re, Object *ob, Object *par, int index, in
 	obr->par= par;
 	obr->index= index;
 	obr->psysindex= psysindex;
+	obr->lay= lay;
 
 	return obr;
 }
@@ -749,6 +773,8 @@ void free_renderdata_vlaknodes(VlakTableNode *vlaknodes)
 			MEM_freeN(vlaknodes[a].mcol);
 		if(vlaknodes[a].surfnor)
 			MEM_freeN(vlaknodes[a].surfnor);
+		if(vlaknodes[a].radface)
+			MEM_freeN(vlaknodes[a].radface);
 	}
 	
 	MEM_freeN(vlaknodes);

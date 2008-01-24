@@ -5513,7 +5513,7 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 	MVert *mvert, *orig_mvert;
 	int i,totvert, totpart=0, totface, maxvert, maxface, first_particle=0;
 	short track=ob->trackflag%3, trackneg;
-	float max_co=0.0, min_co=0.0, temp_co[3];
+	float max_co=0.0, min_co=0.0, temp_co[3], cross[3];
 
 	trackneg=((ob->trackflag>2)?1:0);
 
@@ -5592,15 +5592,29 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 			if(trackneg)
 				state.time=1.0f-state.time;
 			psys_get_particle_on_path(pimd->ob,psys,first_particle + i/totvert,&state,1);
+
+			mv->co[0] = 0.0;
+
+			Normalize(state.vel);
+			
+			if(state.vel[0] < -0.9999 || state.vel[0] > 0.9999) {
+				state.rot[0] = 1.0;
+				state.rot[1] = state.rot[2] = state.rot[3] = 0.0f;
+			}
+			else {
+				/* a cross product of state.vel and a unit vector in x-direction */
+				cross[0] = 0.0f;
+				cross[1] = -state.vel[2];
+				cross[2] = state.vel[1];
+
+				/* state.vel[0] is the only component surviving from a dot product with a vector in x-direction*/
+				VecRotToQuat(cross,saacos(state.vel[0]),state.rot);
+			}
 		}
 		else{
 			state.time=-1.0;
 			psys_get_particle_state(pimd->ob,psys,i/totvert,&state,1);
-		}
-
-		/*displace vertice to path location*/
-		if(pimd->flag & eParticleInstanceFlag_Path)
-			mv->co[0]=0.0;
+		}	
 
 		QuatMulVecf(state.rot,mv->co);
 		VECADD(mv->co,mv->co,state.co);

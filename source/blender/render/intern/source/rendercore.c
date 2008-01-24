@@ -631,7 +631,7 @@ static void freeps(ListBase *lb)
 	lb->first= lb->last= NULL;
 }
 
-static void addps(ListBase *lb, long *rd, int obi, int facenr, int z, unsigned short mask)
+void addps(ListBase *lb, long *rd, int obi, int facenr, int z, unsigned short mask)
 {
 	PixStrMain *psm;
 	PixStr *ps, *last= NULL;
@@ -925,7 +925,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 				
 				/* swap for live updates, and it is used in zbuf.c!!! */
 				SWAP(float *, rl->acolrect, rl->rectf);
-				ztramask= zbuffer_transp_shade(pa, rl, rl->rectf);
+				ztramask= zbuffer_transp_shade(pa, rl, rl->rectf, &psmlist);
 				SWAP(float *, rl->acolrect, rl->rectf);
 				
 				/* zbuffer transp only returns ztramask if there's solid rendered */
@@ -1147,7 +1147,7 @@ void zbufshade_tile(RenderPart *pa)
 				
 				/* swap for live updates */
 				SWAP(float *, rl->acolrect, rl->rectf);
-				zbuffer_transp_shade(pa, rl, rl->rectf);
+				zbuffer_transp_shade(pa, rl, rl->rectf, NULL);
 				SWAP(float *, rl->acolrect, rl->rectf);
 				
 				fcol= rl->rectf; acol= rl->acolrect;
@@ -1722,6 +1722,8 @@ void add_halo_flare(Render *re)
 void RE_shade_external(Render *re, ShadeInput *shi, ShadeResult *shr)
 {
 	static VlakRen vlr;
+	static ObjectRen obr;
+	static ObjectInstanceRen obi;
 	
 	/* init */
 	if(re) {
@@ -1729,11 +1731,16 @@ void RE_shade_external(Render *re, ShadeInput *shi, ShadeResult *shr)
 		
 		/* fake render face */
 		memset(&vlr, 0, sizeof(VlakRen));
-		vlr.lay= -1;
+		memset(&obr, 0, sizeof(ObjectRen));
+		memset(&obi, 0, sizeof(ObjectInstanceRen));
+		obr.lay= -1;
+		obi.obr= &obr;
 		
 		return;
 	}
 	shi->vlr= &vlr;
+	shi->obr= &obr;
+	shi->obi= &obi;
 	
 	if(shi->mat->nodetree && shi->mat->use_nodes)
 		ntreeShaderExecTree(shi->mat->nodetree, shi, shr);

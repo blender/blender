@@ -2058,45 +2058,33 @@ static int get_particles_from_cache(Object *ob, ParticleSystem *psys, int cfra)
 /************************************************/
 /*			Effectors							*/
 /************************************************/
-static float particle_falloff(PartDeflect *pd, float fac)
+static float falloff_func(float fac, int usemin, float mindist, int usemax, float maxdist, float power)
 {
-	float mindist= (pd->flag & PFIELD_USEMIN)? pd->mindist: 0.0f;
-
-#if 0
-	if(distance<=mindist) fallof= 1.0f;
-	else if(pd->flag & PFIELD_USEMAX) {
-		if(distance>pd->maxdist || mindist>=pd->maxdist) fallof= 0.0f;
-		else {
-			fallof= 1.0f - (distance-mindist)/(pd->maxdist - mindist);
-			if(ffall_val!=0.0f)
-				fallof = (float)pow(fallof, ffall_val+1.0);
-		}
-	}
-	else {
-		fallof= 1.0f/(1.0f + distance-mindist);
-		if(ffall_val!=0.0f)
-			fallof = (float)pow(fallof, ffall_val+1.0);
-	}
-
-	fac=VecLength(vec_to_part);
-#endif
+	if(!usemin)
+		mindist= 0.0f;
 
 	if(fac < mindist) {
 		return 1.0f;
 	}
-	else if(pd->flag & PFIELD_USEMAX) {
-		if(fac>pd->maxdist || (pd->maxdist-mindist)<=0.0f)
+	else if(usemax) {
+		if(fac>maxdist || (maxdist-mindist)<=0.0f)
 			return 0.0f;
 
-		fac= 1.0f - (fac-mindist)/(pd->maxdist-mindist);
-		printf("fac %f^%f\n", fac, pd->f_power);
-		return (float)pow((double)fac, (double)pd->f_power);
+		fac= (fac-mindist)/(maxdist-mindist);
+		return 1.0f - (float)pow((double)fac, (double)power);
 	}
-	else {
-		fac+=1.0f-pd->mindist;
+	else
+		return pow((double)1.0f+fac-mindist, (double)-power);
+}
 
-		return (float)pow((double)fac,(double)-pd->f_power);
-	}
+static float falloff_func_dist(PartDeflect *pd, float fac)
+{
+	return falloff_func(fac, pd->flag&PFIELD_USEMIN, pd->mindist, pd->flag&PFIELD_USEMAX, pd->maxdist, pd->f_power);
+}
+
+static float falloff_func_rad(PartDeflect *pd, float fac)
+{
+	return falloff_func(fac, pd->flag&PFIELD_USEMINR, pd->minrad, pd->flag&PFIELD_USEMAXR, pd->maxrad, pd->f_power_r);
 }
 
 static float effector_falloff(PartDeflect *pd, float *eff_velocity, float *vec_to_part)
@@ -2112,95 +2100,27 @@ static float effector_falloff(PartDeflect *pd, float *eff_velocity, float *vec_t
 	else switch(pd->falloff){
 		case PFIELD_FALL_SPHERE:
 			fac=VecLength(vec_to_part);
-			falloff= particle_falloff(pd, fac);
-#if 0
-			if(pd->flag&PFIELD_USEMAX && fac>pd->maxdist){
-				falloff=0.0f;
-				break;
-			}
-
-			if(pd->flag & PFIELD_USEMIN){
-				if(fac>pd->mindist)
-					fac+=1.0f-pd->mindist;
-				else
-					fac=1.0f;
-			}
-			else if(fac<0.001)
-				fac=0.001f;
-
-			falloff=1.0f/(float)pow((double)fac,(double)pd->f_power);
-#endif
+			falloff= falloff_func_dist(pd, fac);
 			break;
 
 		case PFIELD_FALL_TUBE:
 			fac=Inpf(vec_to_part,eff_dir);
-			if(pd->flag&PFIELD_USEMAX && ABS(fac)>pd->maxdist){
-				falloff=0.0f;
+			falloff= falloff_func_dist(pd, ABS(fac));
+			if(falloff == 0.0f)
 				break;
-			}
 
 			VECADDFAC(temp,vec_to_part,eff_dir,-fac);
 			r_fac=VecLength(temp);
-			if(pd->flag&PFIELD_USEMAXR && r_fac>pd->maxrad){
-				falloff=0.0f;
-				break;
-			}
-
-			fac=ABS(fac);
-
-
-			if(pd->flag & PFIELD_USEMIN){
-				if(fac>pd->mindist)
-					fac+=1.0f-pd->mindist;
-				else
-					fac=1.0f;
-			}
-			else if(fac<0.001)
-				fac=0.001f;
-
-			if(pd->flag & PFIELD_USEMINR){
-				if(r_fac>pd->minrad)
-					r_fac+=1.0f-pd->minrad;
-				else
-					r_fac=1.0f;
-			}
-			else if(r_fac<0.001)
-				r_fac=0.001f;
-
-			falloff=1.0f/((float)pow((double)fac,(double)pd->f_power)*(float)pow((double)r_fac,(double)pd->f_power_r));
-
+			falloff*= falloff_func_rad(pd, r_fac);
 			break;
 		case PFIELD_FALL_CONE:
 			fac=Inpf(vec_to_part,eff_dir);
-			if(pd->flag&PFIELD_USEMAX && ABS(fac)>pd->maxdist){
-				falloff=0.0f;
+			falloff= falloff_func_dist(pd, ABS(fac));
+			if(falloff == 0.0f)
 				break;
-			}
+
 			r_fac=saacos(fac/VecLength(vec_to_part))*180.0f/(float)M_PI;
-			if(pd->flag&PFIELD_USEMAXR && r_fac>pd->maxrad){
-				falloff=0.0f;
-				break;
-			}
-
-			if(pd->flag & PFIELD_USEMIN){
-				if(fac>pd->mindist)
-					fac+=1.0f-pd->mindist;
-				else
-					fac=1.0f;
-			}
-			else if(fac<0.001)
-				fac=0.001f;
-
-			if(pd->flag & PFIELD_USEMINR){
-				if(r_fac>pd->minrad)
-					r_fac+=1.0f-pd->minrad;
-				else
-					r_fac=1.0f;
-			}
-			else if(r_fac<0.001)
-				r_fac=0.001f;
-
-			falloff=1.0f/((float)pow((double)fac,(double)pd->f_power)*(float)pow((double)r_fac,(double)pd->f_power_r));
+			falloff*= falloff_func_rad(pd, r_fac);
 
 			break;
 //		case PFIELD_FALL_INSIDE:

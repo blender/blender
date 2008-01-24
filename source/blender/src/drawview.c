@@ -1409,6 +1409,11 @@ static void draw_view_axis(void)
 	float dx, dy;
 	float h, s, v;
 	
+	/* thickness of lines is proportional to k */
+	/*	(log(k)-1) gives a more suitable thickness, but fps decreased by about 3 fps */
+	glLineWidth(k / 10);
+	//glLineWidth(log(k)-1); // a bit slow
+	
 	BIF_GetThemeColor3ubv(TH_GRID, (char *)gridcol);
 	
 	/* X */
@@ -1473,6 +1478,9 @@ static void draw_view_axis(void)
 		glRasterPos2i(start + dx + 2, start + dy + ydisp + 2);
 		BMF_DrawString(G.fonts, "z");
 	}
+	
+	/* restore line-width */
+	glLineWidth(1.0);
 }
 
  	

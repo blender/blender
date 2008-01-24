@@ -313,12 +313,13 @@ static void env_layerflags(Render *re, unsigned int notlay)
 	notlay= ~notlay;
 	
 	for(obr=re->objecttable.first; obr; obr=obr->next) {
-		for(a=0; a<obr->totvlak; a++) {
-			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
-			else vlr++;
+		if((obr->lay & notlay)==0) {
+			for(a=0; a<obr->totvlak; a++) {
+				if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
+				else vlr++;
 
-			if((vlr->lay & notlay)==0)
 				vlr->flag |= R_HIDDEN;
+			}
 		}
 	}
 }

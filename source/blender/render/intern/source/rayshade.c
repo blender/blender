@@ -79,13 +79,14 @@ static void vlr_face_coords(RayFace *face, float **v1, float **v2, float **v3, f
 
 static int vlr_check_intersect(Isect *is, int ob, RayFace *face)
 {
+	ObjectInstanceRen *obi= RAY_OBJECT_GET((Render*)is->userdata, ob);
 	VlakRen *vlr = (VlakRen*)face;
 
 	/* I know... cpu cycle waste, might do smarter once */
 	if(is->mode==RE_RAY_MIRROR)
 		return !(vlr->mat->mode & MA_ONLYCAST);
 	else
-		return (is->lay & vlr->lay);
+		return (is->lay & obi->obr->lay);
 }
 
 static float *vlr_get_transform(void *userdata, int i)
@@ -878,11 +879,13 @@ void init_render_hammersley(Render *re)
 void free_lamp_qmcsampler(LampRen *lar)
 {
 	QMC_freeSampler(lar->qsa);
+	lar->qsa = NULL;
 }
 
 void free_render_qmcsampler(Render *re)
 {
 	QMC_freeSampler(re->qsa);
+	re->qsa = NULL;
 }
 
 static int adaptive_sample_variance(int samples, float *col, float *colsq, float thresh)

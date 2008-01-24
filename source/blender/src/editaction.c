@@ -981,7 +981,7 @@ void action_groups_group (short add_group)
 		
 		/* make sure not already in new-group */
 		if (achan->grp != agrp) {
-			if ((achan->grp) && (EXPANDED_AGRP(achan->grp))) { 
+			if ((achan->grp==NULL) || (EXPANDED_AGRP(achan->grp))) { 
 				if (VISIBLE_ACHAN(achan) && SEL_ACHAN(achan)) {
 					/* unlink from everything else */
 					action_groups_removeachan(act, achan);

@@ -392,7 +392,7 @@ PyObject *BPy_IDGroup_Pop(BPy_IDProperty *self, PyObject *value)
 	
 	if (!name) {
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-		   "pop expected at least 1 arguments, got 0" );
+		   "pop expected at least 1 argument, got 0" );
 	}
 	
 	for (loop=self->prop->data.group.first; loop; loop=loop->next) {

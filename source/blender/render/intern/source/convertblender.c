@@ -230,7 +230,7 @@ void RE_make_stars(Render *re, void (*initfunc)(void),
 	}
 
 	if(re) /* add render object for stars */
-		obr= RE_addRenderObject(re, NULL, NULL, 0, 0);
+		obr= RE_addRenderObject(re, NULL, NULL, 0, 0, 0);
 	
 	for (x = sx, fx = sx * stargrid; x <= ex; x++, fx += stargrid) {
 		for (y = sy, fy = sy * stargrid; y <= ey ; y++, fy += stargrid) {
@@ -1075,7 +1075,6 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 		
 		vlr->mat= ma;
 		vlr->ec= ME_V2V3;
-		vlr->lay= obr->ob->lay;
 
 		if(surfnor) {
 			float *snor= RE_vlakren_get_surfnor(obr, vlr, 1);
@@ -1192,7 +1191,6 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 		
 		vlr->mat= ma;
 		vlr->ec= ME_V2V3;
-		vlr->lay= obr->ob->lay;
 
 		if(surfnor) {
 			float *snor= RE_vlakren_get_surfnor(obr, vlr, 1);
@@ -1244,7 +1242,6 @@ static void static_particle_wire(ObjectRen *obr, Material *ma, float *vec, float
 		
 		vlr->mat= ma;
 		vlr->ec= ME_V1V2;
-		vlr->lay= obr->ob->lay;
 
 	}
 	else if(first) {
@@ -1267,7 +1264,6 @@ static void static_particle_wire(ObjectRen *obr, Material *ma, float *vec, float
 		
 		vlr->mat= ma;
 		vlr->ec= ME_V1V2;
-		vlr->lay= obr->ob->lay;
 	}
 
 }
@@ -1366,7 +1362,6 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Object 
 	
 	vlr->mat= ma;
 	vlr->ec= ME_V2V3;
-	vlr->lay= obr->ob->lay;
 
 	if(uv_split>1){
 		uvdx=uvdy=1.0f/(float)uv_split;
@@ -2304,7 +2299,6 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		vlr->mat= ma;
 		vlr->flag= ME_SMOOTH+R_NOPUNOFLIP;
 		vlr->ec= 0;
-		vlr->lay= ob->lay;
 
 		/* mball -too bad- always has triangles, because quads can be non-planar */
 		if(index[3] && index[3]!=index[2]) {
@@ -2418,7 +2412,6 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			flen= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, n1);
 			VECCOPY(vlr->n, n1);
 			
-			vlr->lay= ob->lay;
 			vlr->mat= matar[ dl->col];
 			vlr->ec= ME_V1V2+ME_V2V3;
 			vlr->flag= dl->rt;
@@ -2652,7 +2645,6 @@ static void init_render_curve(Render *re, ObjectRen *obr, int only_verts)
 						vlr->flag |= R_NOPUNOFLIP;
 					}
 					vlr->ec= 0;
-					vlr->lay= ob->lay;
 				}
 			}
 		}
@@ -2705,7 +2697,6 @@ static void init_render_curve(Render *re, ObjectRen *obr, int only_verts)
 							if(a==0) vlr->ec+= ME_V1V2;
 
 							vlr->flag= dl->rt;
-							vlr->lay= ob->lay;
 
 							/* this is not really scientific: the vertices
 								* 2, 3 en 4 seem to give better vertexnormals than 1 2 3:
@@ -3105,7 +3096,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int only_verts)
 								vlr->flag |= R_NOPUNOFLIP;
 							}
 							vlr->ec= 0; /* mesh edges rendered separately */
-							vlr->lay= ob->lay;
 
 							if(len==0) obr->totvlak--;
 							else {
@@ -3176,7 +3166,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int only_verts)
 						vlr->mat= ma;
 						vlr->flag= 0;
 						vlr->ec= ME_V1V2;
-						vlr->lay= ob->lay;
 					}
 				}
 				if(edgetable)
@@ -4006,7 +3995,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 
 	/* one render object for the data itself */
 	if(allow_render) {
-		obr= RE_addRenderObject(re, ob, par, index, 0);
+		obr= RE_addRenderObject(re, ob, par, index, 0, ob->lay);
 		if(instanceable) {
 			obr->flag |= R_INSTANCEABLE;
 			Mat4CpyMat4(obr->obmat, ob->obmat);
@@ -4024,7 +4013,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 	if(ob->particlesystem.first) {
 		psysindex= 1;
 		for(psys=ob->particlesystem.first; psys; psys=psys->next, psysindex++) {
-			obr= RE_addRenderObject(re, ob, par, index, psysindex);
+			obr= RE_addRenderObject(re, ob, par, index, psysindex, ob->lay);
 			if(instanceable) {
 				obr->flag |= R_INSTANCEABLE;
 				Mat4CpyMat4(obr->obmat, ob->obmat);
@@ -4298,8 +4287,11 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 								obi->dupliuv[0]= dob->uv[0];
 								obi->dupliuv[1]= dob->uv[1];
 							}
-							else
+							else {
 								assign_dupligroup_dupli(re, obi, obr);
+								if(obd->transflag & OB_RENDER_DUPLI)
+									find_dupli_instances(re, obr);
+							}
 						}
 						else
 							init_render_object(re, obd, ob, dob->index, only_verts, !dob->animated);
@@ -4313,8 +4305,11 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 									obi->dupliuv[0]= dob->uv[0];
 									obi->dupliuv[1]= dob->uv[1];
 								}
-								else
+								else {
 									assign_dupligroup_dupli(re, obi, obr);
+									if(obd->transflag & OB_RENDER_DUPLI)
+										find_dupli_instances(re, obr);
+								}
 							}
 						}
 						

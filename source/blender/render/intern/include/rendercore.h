@@ -50,6 +50,7 @@ struct World;
 struct RenderPart;
 struct RenderLayer;
 struct ObjectRen;
+struct ListBase;
 
 /* ------------------------------------------------------------------------- */
 
@@ -89,6 +90,8 @@ void zbufshade_tile(struct RenderPart *pa);
 void zbufshadeDA_tile(struct RenderPart *pa);
 
 void zbufshade_sss_tile(struct RenderPart *pa);
+
+void addps(struct ListBase *lb, long *rd, int obi, int facenr, int z, unsigned short mask);
 
 /* -------- ray.c ------- */
 

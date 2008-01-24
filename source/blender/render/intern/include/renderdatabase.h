@@ -42,6 +42,7 @@ struct CustomData;
 struct StrandBuffer;
 struct StrandRen;
 struct ObjectInstanceRen;
+struct RadFace;
 
 #define RE_QUAD_MASK	0x7FFFFFF
 #define RE_QUAD_OFFS	0x8000000
@@ -63,6 +64,7 @@ typedef struct VlakTableNode {
 	struct MCol *mcol;
 	int totmtface, totmcol;
 	float *surfnor;
+	struct RadFace **radface;
 } VlakTableNode;
 
 typedef struct StrandTableNode {
@@ -94,7 +96,7 @@ struct HaloRen *RE_inithalo(struct Render *re, struct ObjectRen *obr, struct Mat
 struct HaloRen *RE_inithalo_particle(struct Render *re, struct ObjectRen *obr, struct DerivedMesh *dm, struct Material *ma,   float *vec,   float *vec1, float *orco, float *uvco, float hasize, float vectsize, int seed);
 struct StrandBuffer *RE_addStrandBuffer(struct ObjectRen *obr, int totvert);
 
-struct ObjectRen *RE_addRenderObject(struct Render *re, struct Object *ob, struct Object *par, int index, int psysindex);
+struct ObjectRen *RE_addRenderObject(struct Render *re, struct Object *ob, struct Object *par, int index, int psysindex, int lay);
 struct ObjectInstanceRen *RE_addRenderInstance(struct Render *re, struct ObjectRen *obr, struct Object *ob, struct Object *par, int index, int psysindex, float mat[][4]);
 void RE_makeRenderInstances(struct Render *re);
 void RE_instanceTransformNormal(struct ObjectInstanceRen *obi, float *nor, float *tnor);
@@ -109,6 +111,7 @@ float *RE_vertren_get_winspeed(struct ObjectInstanceRen *obi, struct VertRen *ve
 struct MTFace *RE_vlakren_get_tface(struct ObjectRen *obr, VlakRen *ren, int n, char **name, int verify);
 struct MCol *RE_vlakren_get_mcol(struct ObjectRen *obr, VlakRen *ren, int n, char **name, int verify);
 float *RE_vlakren_get_surfnor(struct ObjectRen *obr, VlakRen *ren, int verify);
+RadFace **RE_vlakren_get_radface(struct ObjectRen *obr, VlakRen *ren, int verify);
 int RE_vlakren_get_normal(struct Render *re, struct ObjectInstanceRen *obi, struct VlakRen *vlr, float *nor);
 
 float *RE_strandren_get_surfnor(struct ObjectRen *obr, struct StrandRen *strand, int verify);

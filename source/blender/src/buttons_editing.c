@@ -4086,9 +4086,10 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	uiDefButI(block, ROW, REDRAWVIEW3D, "B-Bone",	155, 87,70,20, &arm->drawtype, 0, ARM_B_BONE, 0, 0, "Draw bones as boxes, showing subdivision and b-splines");
 	uiDefButI(block, ROW, REDRAWVIEW3D, "Envelope",	225, 87,85,20, &arm->drawtype, 0, ARM_ENVELOPE, 0, 0, "Draw bones as extruded spheres, showing deformation influence volume");
 
-	uiDefButBitI(block, TOG, ARM_DRAWAXES, REDRAWVIEW3D, "Draw Axes", 10, 67,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
-	uiDefButBitI(block, TOG, ARM_DRAWNAMES, REDRAWVIEW3D, "Draw Names", 110,67,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
-	uiDefButBitI(block, TOGN, ARM_NO_CUSTOM, REDRAWVIEW3D, "Draw Shapes", 210,67,100,20, &arm->flag, 0, 0, 0, 0, "Draw custom bone shapes");
+	uiDefButBitI(block, TOG, ARM_DRAWAXES, REDRAWVIEW3D, "Axes", 10, 67,75,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
+	uiDefButBitI(block, TOG, ARM_DRAWNAMES, REDRAWVIEW3D, "Names", 85,67,75,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
+	uiDefButBitI(block, TOGN, ARM_NO_CUSTOM, REDRAWVIEW3D, "Shapes", 160,67,75,20, &arm->flag, 0, 0, 0, 0, "Draw custom bone shapes");
+	uiDefButBitI(block, TOG, ARM_COL_CUSTOM, REDRAWVIEW3D, "Colors", 235,67,75,20, &arm->flag, 0, 0, 0, 0, "Draw custom bone colors (colors are set per Bone Group)");
 	
 	uiBlockEndAlign(block);
 	
@@ -5182,7 +5183,19 @@ static void editing_panel_links(Object *ob)
 						uiDefIconBut(block, BUT, B_POSEGRP_REMOVE, VICON_X, xco+140-20, 85, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this Pose Group");
 						
 						/* set custom color set */
-						uiDefButI(block, MENU,B_POSEGRP_RECALC, "Custom Color Set%t|GrpCol: [None]%x0", xco,65,140,19, &grp->customCol, 0.0, 0.0, 0.0, 0.0, "Set of Custom Colors to shade Group's bones with. (NOT YET FUNCTIONAL)");
+						uiDefButI(block, NUM,B_POSEGRP_RECALC, "GroupColor: ", xco,65,110,19, &grp->customCol, 0, 20, 0.0, 0.0, "Index of set of Custom Colors to shade Group's bones with. 0 = Use Default Color Scheme");						
+						if (grp->customCol) {
+							bTheme *btheme= U.themes.first;
+							ThemeWireColor *col_set= &btheme->tarm[(grp->customCol - 1)];
+							
+							uiSetButLock(1, "To change these colors, see Themes -> Bone Color Sets");
+							
+							uiDefButC(block, COL, B_POSEGRP_RECALC, "",		xco+110, 65, 10, 19, col_set->solid, 0, 0, 0, 0, "Color to use for surface of bones. See current theme in Info Window.");
+							uiDefButC(block, COL, B_POSEGRP_RECALC, "",		xco+120, 65, 10, 19, col_set->select, 0, 0, 0, 0, "Color to use for 'selected' bones. See current theme in Info Window.");
+							uiDefButC(block, COL, B_POSEGRP_RECALC, "",		xco+130, 65, 10, 19, col_set->active, 0, 0, 0, 0, "Color to use for 'active' bones. See current theme in Info Window.");
+							
+							uiClearButLock();
+						}
 					}
 				uiBlockEndAlign(block);
 			}

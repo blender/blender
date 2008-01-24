@@ -64,7 +64,6 @@ typedef struct ThemeUI {
 	char but_drawtype;
 	char pad[3];
 	char iconfile[80];	// FILE_MAXFILE length
-
 } ThemeUI;
 
 /* try to put them all in one, if needed a special struct can be created as well
@@ -107,13 +106,19 @@ typedef struct ThemeSpace {
 	char editmesh_active[4]; 
 } ThemeSpace;
 
+
 /* set of colors for use as a custom color set for Objects/Bones wire drawing */
 typedef struct ThemeWireColor {
-	char 	unselected[3];
-	char	selected[3];
-	char 	active[3];
-	char	pad[7];
+	char 	solid[4];
+	char	select[4];
+	char 	active[4];
+	
+	short 	flag;
+	short 	pad;
 } ThemeWireColor; 
+
+/* flags for ThemeWireColor */
+#define TH_WIRECOLOR_CONSTCOLS	(1<<0)
 
 /* A theme */
 typedef struct bTheme {

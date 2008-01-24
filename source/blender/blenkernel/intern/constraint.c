@@ -295,7 +295,7 @@ void constraints_clear_evalob (bConstraintOb *cob)
 	
 	/* calculate delta of constraints evaluation */
 	Mat4Invert(imat, cob->startmat);
-	Mat4MulMat4(delta, cob->matrix, imat);
+	Mat4MulMat4(delta, imat, cob->matrix);
 	
 	/* copy matrices back to source */
 	switch (cob->type) {
