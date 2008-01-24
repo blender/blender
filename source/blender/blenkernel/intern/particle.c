@@ -2272,6 +2272,7 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 	float sel_col[3];
 	float nosel_col[3];
 	float length, vec[3];
+	float *vg_effector= NULL, effector=0.0f;
 
 	/* we don't have anything valid to create paths from so let's quit here */
 	if((psys->flag & PSYS_HAIR_DONE)==0 && (psys->flag & PSYS_KEYED)==0)
@@ -2320,6 +2321,9 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 	ma= give_current_material(ob, psys->part->omat);
 	if(ma && (psys->part->draw & PART_DRAW_MAT_COL))
 		VECCOPY(col, &ma->r)
+	
+	if(psys->part->from!=PART_FROM_PARTICLE)
+		vg_effector = psys_cache_vgroup(psmd->dm, psys, PSYS_VG_EFFECTOR);
 
 	/*---first main loop: create all actual particles' paths---*/
 	for(i=0,pa=psys->particles; i<totpart; i++, pa++){
@@ -2456,6 +2460,10 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 		VecSubf(vec,(cache[i]+1)->co,cache[i]->co);
 		length = VecLength(vec);
 
+		effector= 1.0f;
+		if(vg_effector)
+			effector*= psys_interpolate_value_from_verts(psmd->dm,psys->part->from,pa->num,pa->fuv,vg_effector);
+
 		for(k=0, ca=cache[i]; k<=steps; k++, ca++) {
 			/* apply effectors */
 			if(edit==0 && k) {
@@ -2468,7 +2476,7 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 
 				do_effectors(i, pa, &eff_key, ob, psys, force, vel, dfra, cfra);
 
-				VecMulf(force, pow((float)k / (float)steps, 100.0f * psys->part->eff_hair) / (float)steps);
+				VecMulf(force, effector*pow((float)k / (float)steps, 100.0f * psys->part->eff_hair) / (float)steps);
 
 				VecAddf(force, force, vec);
 
@@ -2581,6 +2589,9 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 		end_latt_deform();
 		psys->lattice=0;
 	}
+
+	if(vg_effector)
+		MEM_freeN(vg_effector);
 }
 /************************************************/
 /*			Particle Key handling				*/

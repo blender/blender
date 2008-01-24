@@ -4028,7 +4028,7 @@ static void object_panel_particle_extra(Object *ob)
 
 		uiBlockBeginAlign(block);
 		
-		uiDefButS(block, MENU, B_PART_REDRAW, "Attribute%t|TanRot%x10|TanVel%x9|Size%x8|RoughE%x7|Rough2%x6|Rough1%x5|Kink%x4|Clump%x3|Length%x2|Velocity%x1|Density%x0", butx,(buty-=buth),butw-40,buth, &vgnum, 14.0, 0.0, 0, 0, "Attribute effected by vertex group");
+		uiDefButS(block, MENU, B_PART_REDRAW, "Attribute%t|Effector%x11|TanRot%x10|TanVel%x9|Size%x8|RoughE%x7|Rough2%x6|Rough1%x5|Kink%x4|Clump%x3|Length%x2|Velocity%x1|Density%x0", butx,(buty-=buth),butw-40,buth, &vgnum, 14.0, 0.0, 0, 0, "Attribute effected by vertex group");
 		but=uiDefButBitS(block, TOG, (1<<vgnum), B_PART_REDRAW, "Neg",	butx+butw-40,buty,40,buth, &psys->vg_neg, 0, 0, 0, 0, "Negate the effect of the vertex group");
 		uiButSetFunc(but, particle_set_vg, (void *)ob, (void *)(&vgnum));
 		
