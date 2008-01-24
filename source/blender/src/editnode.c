@@ -300,8 +300,12 @@ static void composit_node_event(SpaceNode *snode, short event)
 				
 				/* not the best implementation of the world... but we need it to work now :) */
 				if(node->type==CMP_NODE_R_LAYERS && node->custom2) {
+					/* add event for this window (after render curarea can be changed) */
+					addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
+					
 					composite_node_render(snode, node);
-					/* new event, a render can go fullscreen and open new window */
+					
+					/* add another event, a render can go fullscreen and open new window */
 					addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
 				}
 				else {
