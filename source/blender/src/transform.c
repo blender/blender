@@ -888,6 +888,8 @@ static char *transform_to_undostr(TransInfo *t)
 			return "Time Slide";
 		case TFM_BAKE_TIME:
 			return "Key Time";
+		case TFM_MIRROR:
+			return "Mirror";
 	}
 	return "Transform";
 }
@@ -1323,6 +1325,9 @@ void initTransform(int mode, int context) {
 	case TFM_BAKE_TIME:
 		initBakeTime(&Trans);
 		break;
+	case TFM_MIRROR:
+		initMirror(&Trans);
+		break;
 	}
 }
 
@@ -1358,6 +1363,13 @@ void Transform()
 				Trans.transform(&Trans, mval);  // calls recalcData()
 			}
 			Trans.redraw = 0;
+		}
+
+		/* If auto confirm is on, break after one pass */		
+		if (Trans.context & CTX_AUTOCONFIRM)
+		{
+			Trans.state = TRANS_CONFIRM;
+			break;
 		}
 		
 		/* essential for idling subloop */
@@ -4033,105 +4045,84 @@ int BakeTime(TransInfo *t, short mval[2])
 	return 1;
 }
 
-
 /* ************************** MIRROR *************************** */
 
-void Mirror(short mode) 
+void initMirror(TransInfo *t) 
+{
+	t->flag |= T_NULL_ONE;
+	if (!G.obedit) {
+		t->flag |= T_NO_ZERO;
+	}
+	
+	t->transform = Mirror;
+	t->fac = 0.1f;
+}
+
+int Mirror(TransInfo *t, short mval[2]) 
 {
 	TransData *td;
-	float mati[3][3], matview[3][3], mat[3][3];
-	float size[3];
+	float size[3], mat[3][3];
 	int i;
+	char str[200];
 
-	Trans.context = CTX_NO_PET;
+	/*
+	 * OPTIMISATION:
+	 * This still recalcs transformation on mouse move
+	 * while it should only recalc on constraint change
+	 * */
 
-	initTrans(&Trans);		// internal data, mouse, vectors
-
-	Mat3One(mati);
-	Mat3CpyMat4(matview, Trans.viewinv); // t->viewinv was set in initTrans
-	Mat3Ortho(matview);
-
-	createTransData(&Trans);	// make TransData structs from selection
-
-	calculatePropRatio(&Trans);
-	calculateCenter(&Trans);
-
-	initResize(&Trans);
-
-	if (Trans.total == 0) {
-		postTrans(&Trans);
-		return;
-	}
-
-	size[0] = size[1] = size[2] = 1.0f;
-	td = Trans.data;
-
-	switch (mode) {
-	case 1:
-		size[0] = -1.0f;
-		setConstraint(&Trans, mati, (CON_AXIS0), "");
-		break;
-	case 2:
-		size[1] = -1.0f;
-		setConstraint(&Trans, mati, (CON_AXIS1), "");
-		break;
-	case 3:
-		size[2] = -1.0f;
-		setConstraint(&Trans, mati, (CON_AXIS2), "");
-		break;
-	case 4:
-		size[0] = -1.0f;
-		setLocalConstraint(&Trans, (CON_AXIS0), "");
-		break;
-	case 5:
-		size[1] = -1.0f;
-		setLocalConstraint(&Trans, (CON_AXIS1), "");
-		break;
-	case 6:
-		size[2] = -1.0f;
-		setLocalConstraint(&Trans, (CON_AXIS2), "");
-		break;
-	case 7:
-		size[0] = -1.0f;
-		setConstraint(&Trans, matview, (CON_AXIS0), "");
-		break;
-	case 8:
-		size[1] = -1.0f;
-		setConstraint(&Trans, matview, (CON_AXIS1), "");
-		break;
-	case 9:
-		size[2] = -1.0f;
-		setConstraint(&Trans, matview, (CON_AXIS2), "");
-		break;
-	default:
-		return;
-	}
-
-	SizeToMat3(size, mat);
-
-	if (Trans.con.applySize) {
-		Trans.con.applySize(&Trans, NULL, mat);
-	}
-
-	for(i = 0 ; i < Trans.total; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
-
-		if (td->flag & TD_SKIP)
-			continue;
+	/* if an axis has been selected */
+	if (t->con.mode & CON_APPLY) {
+		if (t->con.applySize) {
+			t->con.applySize(t, NULL, mat);
+		}
 		
-		ElementResize(&Trans, td, mat);
+		sprintf(str, "Mirror%s", t->con.text);
+	
+		size[0] = size[1] = size[2] = -1;
+	
+		SizeToMat3(size, mat);
+		
+		for(i = 0, td=t->data; i < t->total; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
+	
+			if (td->flag & TD_SKIP)
+				continue;
+			
+			ElementResize(t, td, mat);
+		}
+	
+		recalcData(t);
+	
+		headerprint(str);
+	
+		viewRedrawForce(t);
+	}
+	else
+	{
+		size[0] = size[1] = size[2] = 1;
+	
+		SizeToMat3(size, mat);
+		
+		for(i = 0, td=t->data; i < t->total; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
+	
+			if (td->flag & TD_SKIP)
+				continue;
+			
+			ElementResize(t, td, mat);
+		}
+	
+		recalcData(t);
+	
+		headerprint("Select a mirror axis (X, Y, Z)");
+	
+		viewRedrawForce(t);
 	}
 
-	recalcData(&Trans);
-	
-	BIF_undo_push("Mirror");
-
-	/* free data, reset vars */
-	postTrans(&Trans);
-
-	/* send events out for redraws */
-	viewRedrawPost(&Trans);
+	return 1;
 }
 
 /* ************************** ANIM EDITORS - TRANSFORM TOOLS *************************** */

@@ -5574,17 +5574,9 @@ void mirrormenu(void)
 	if(G.f & G_PARTICLEEDIT) {
 		PE_mirror_x(0);
 	}
-	else if (G.obedit==0) {
-		mode=pupmenu("Mirror Axis %t|X Local%x4|Y Local%x5|Z Local%x6|");
-
-		if (mode==-1) return; /* return */
-		Mirror(mode); /* separating functionality from interface | call*/
-	}
 	else {
-		mode=pupmenu("Mirror Axis %t|X Global%x1|Y Global%x2|Z Global%x3|%l|X Local%x4|Y Local%x5|Z Local%x6|%l|X View%x7|Y View%x8|Z View%x9|");
-
-		if (mode==-1) return; /* return */
-		Mirror(mode); /* separating functionality from interface | call*/
+		initTransform(TFM_MIRROR, CTX_NO_PET);
+		Transform();
 	}
 }
 
