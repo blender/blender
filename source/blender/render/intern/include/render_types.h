@@ -161,7 +161,7 @@ struct Render
 
 	/* occlusion tree */
 	void *occlusiontree;
-	ListBase occlusionmesh;
+	ListBase strandsurface;
 	
 	/* use this instead of R.r.cfra */
 	float cfra;	
@@ -337,6 +337,18 @@ typedef struct StrandVert {
 	float strandco;
 } StrandVert;
 
+typedef struct StrandSurface {
+	struct StrandSurface *next, *prev;
+	ObjectRen obr;
+	int (*face)[4];
+	float (*co)[3];
+	/* for occlusion caching */
+	float (*col)[3];					/* for occlusion */
+	/* for speedvectors */
+	float (*prevco)[3], (*nextco)[3];
+	int totvert, totface;
+} StrandSurface;
+
 typedef struct StrandBuffer {
 	struct StrandBuffer *next, *prev;
 	struct StrandVert *vert;
@@ -344,7 +356,7 @@ typedef struct StrandBuffer {
 
 	struct ObjectRen *obr;
 	struct Material *ma;
-	void *occlusionmesh;
+	struct StrandSurface *surface;
 	unsigned int lay;
 	int overrideuv;
 	int flag, maxdepth;

@@ -394,6 +394,7 @@ typedef struct ParticleRenderData {
 	int winx, winy;
 
 	int dosimplify;
+	int timeoffset;
 	ParticleRenderElem *elems;
 	int *origindex;
 } ParticleRenderData;
@@ -455,12 +456,14 @@ static float psys_render_projected_area(ParticleSystem *psys, float *center, flo
 	return area;
 }
 
-void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[][4], float winmat[][4], int winx, int winy)
+void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[][4], float winmat[][4], int winx, int winy, int timeoffset)
 {
 	ParticleRenderData*data;
 	ParticleSystemModifierData *psmd= psys_get_modifier(ob, psys);
 
 	if(!G.rendering)
+		return;
+	if(psys->renderdata)
 		return;
 
 	data= MEM_callocN(sizeof(ParticleRenderData), "ParticleRenderData");
@@ -488,6 +491,8 @@ void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[][4], float
 	Mat4MulMat4(data->mat, data->viewmat, winmat);
 	data->winx= winx;
 	data->winy= winy;
+
+	data->timeoffset= timeoffset;
 
 	psys->renderdata= data;
 }
@@ -554,7 +559,13 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 
 	if(part->draw_as!=PART_DRAW_PATH || !(part->draw & PART_DRAW_REN_STRAND))
 		return tot;
-	if(!ctx->psys->renderdata || !(part->simplify_flag & PART_SIMPLIFY_ENABLE))
+	if(!ctx->psys->renderdata)
+		return tot;
+
+	data= ctx->psys->renderdata;
+	if(data->timeoffset)
+		return 0;
+	if(!(part->simplify_flag & PART_SIMPLIFY_ENABLE))
 		return tot;
 
 	mvert= dm->getVertArray(dm);
@@ -571,7 +582,6 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 	facetotvert= MEM_callocN(sizeof(int)*totorigface, "SimplifyFaceArea");
 	elems= MEM_callocN(sizeof(ParticleRenderElem)*totorigface, "SimplifyFaceElem");
 
-	data= ctx->psys->renderdata;
 	if(data->elems)
 		MEM_freeN(data->elems);
 
@@ -2076,7 +2086,7 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 			rough_t = t;
 
 		if(part->rough1 != 0.0 && pa_rough1 != 0.0)
-				do_rough(orco, rough_t, pa_rough1*part->rough1, part->rough1_size, 0.0, (ParticleKey*)state);
+			do_rough(orco, rough_t, pa_rough1*part->rough1, part->rough1_size, 0.0, (ParticleKey*)state);
 
 		if(part->rough2 != 0.0 && pa_rough2 != 0.0)
 			do_rough(cpa->rand, rough_t, pa_rough2*part->rough2, part->rough2_size, part->rough2_thres, (ParticleKey*)state);
@@ -3517,7 +3527,7 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 			part->kink_amp, part->kink, part->kink_axis, ob->obmat);
 
 		if(part->rough1 != 0.0)
-				do_rough(orco, t, part->rough1, part->rough1_size, 0.0, state);
+			do_rough(orco, t, part->rough1, part->rough1_size, 0.0, state);
 
 		if(part->rough2 != 0.0)
 			do_rough(cpa->rand, t, part->rough2, part->rough2_size, part->rough2_thres, state);

@@ -108,6 +108,7 @@
 #include "radio.h"
 #include "shadbuf.h"
 #include "shading.h"
+#include "strand.h"
 #include "texture.h"
 #include "sss.h"
 #include "zbuf.h"
@@ -1465,7 +1466,7 @@ static void render_new_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mat
 		if(har) har->lay= obr->ob->lay;
 	}
 }
-static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem *psys)
+static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem *psys, int timeoffset)
 {
 	Object *ob= obr->ob;
 	Object *tob=0, *bb_ob=re->scene->camera;
@@ -1487,7 +1488,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	float *orco=0,*surfnor=0,*uvco=0, strandlen=0.0f, curlen=0.0f;
 	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(ob,(float)CFRA,0.0);
 	float adapt_angle=0.0, adapt_pix=0.0, random, simplify[2];
-	int i, a, k, max_k=0, totpart, totuv=0, override_uv=-1, dosimplify = 0, doapproxao = 0;
+	int i, a, k, max_k=0, totpart, totuv=0, override_uv=-1, dosimplify = 0, dosurfacecache = 0;
 	int path_possible=0, keys_possible=0, baked_keys=0, totchild=psys->totchild;
 	int seed, path_nbr=0, path=0, orco1=0, adapt=0, uv[3]={0,0,0}, num;
 	char **uv_name=0;
@@ -1647,9 +1648,11 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 				svert= strandbuf->vert;
 
-				if((re->wrld.mode & WO_AMB_OCC) && (re->wrld.ao_gather_method == WO_AOGATHER_APPROX))
+				if(re->r.mode & R_SPEED)
+					dosurfacecache= 1;
+				else if((re->wrld.mode & WO_AMB_OCC) && (re->wrld.ao_gather_method == WO_AOGATHER_APPROX))
 					if(ma->amb != 0.0f)
-						doapproxao= 1;
+						dosurfacecache= 1;
 			}
 		}
 	}
@@ -1827,7 +1830,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				VECCOPY(snor, surfnor);
 			}
 
-			if(doapproxao && num >= 0) {
+			if(dosurfacecache && num >= 0) {
 				int *facenum= RE_strandren_get_face(obr, strand, 1);
 				*facenum= num;
 			}
@@ -1931,8 +1934,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			break;
 	}
 
-	if(doapproxao)
-		strandbuf->occlusionmesh= cache_occ_mesh(re, obr, psmd->dm, mat);
+	if(dosurfacecache)
+		strandbuf->surface= cache_strand_surface(re, obr, psmd->dm, mat, timeoffset);
 
 /* 4. clean up */
 	if(ma) do_mat_ipo(ma);
@@ -2543,7 +2546,7 @@ static void init_render_surf(Render *re, ObjectRen *obr)
 	freedisplist(&displist);
 }
 
-static void init_render_curve(Render *re, ObjectRen *obr, int only_verts)
+static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 {
 	Object *ob= obr->ob;
 	Curve *cu;
@@ -2621,7 +2624,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int only_verts)
 				}
 			}
 			
-			if(only_verts==0) {
+			if(timeoffset==0) {
 				startvlak= obr->totvlak;
 				index= dl->index;
 				for(a=0; a<dl->parts; a++, index+=3) {
@@ -2674,7 +2677,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int only_verts)
 					}
 				}
 
-				if(dl->bevelSplitFlag || only_verts==0) {
+				if(dl->bevelSplitFlag || timeoffset==0) {
 					startvlak= obr->totvlak;
 
 					for(a=0; a<dl->parts; a++) {
@@ -2890,7 +2893,7 @@ static void use_mesh_edge_lookup(ObjectRen *obr, DerivedMesh *dm, MEdge *medge, 
 	}
 }
 
-static void init_render_mesh(Render *re, ObjectRen *obr, int only_verts)
+static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 {
 	Object *ob= obr->ob;
 	Mesh *me;
@@ -2949,12 +2952,12 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int only_verts)
 	/* check autosmooth and displacement, we then have to skip only-verts optimize */
 	do_autosmooth |= (me->flag & ME_AUTOSMOOTH);
 	if(do_autosmooth)
-		only_verts= 0;
+		timeoffset= 0;
 	if(test_for_displace(re, ob ) )
-		only_verts= 0;
+		timeoffset= 0;
 	
 	mask= CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL;
-	if(!only_verts)
+	if(!timeoffset)
 		if(need_orco)
 			mask |= CD_MASK_ORCO;
 
@@ -3020,7 +3023,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int only_verts)
 			}
 		}
 		
-		if(!only_verts) {
+		if(!timeoffset) {
 			/* store customdata names, because DerivedMesh is freed */
 			RE_set_customdata_names(obr, &dm->faceData);
 			
@@ -3174,7 +3177,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int only_verts)
 		}
 	}
 	
-	if(!only_verts) {
+	if(!timeoffset) {
 		if (test_for_displace(re, ob ) ) {
 			calc_vertexnormals(re, obr, 0);
 			do_displacement(re, obr);
@@ -3834,7 +3837,7 @@ static void check_non_flat_quads(ObjectRen *obr)
 	}
 }
 
-static void finalize_render_object(Render *re, ObjectRen *obr, int only_verts)
+static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 {
 	Object *ob= obr->ob;
 
@@ -3845,7 +3848,7 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int only_verts)
 		if(ob->type!=OB_MESH && test_for_displace(re, ob)) 
 			do_displacement(re, obr);
 	
-		if(!only_verts) {
+		if(!timeoffset) {
 			/* phong normal interpolation can cause error in tracing
 			 * (terminator problem) */
 			ob->smoothresh= 0.0;
@@ -3934,7 +3937,7 @@ static ObjectRen *find_dupligroup_dupli(Render *re, Object *ob, int psysindex)
 	return NULL;
 }
 
-static void init_render_object_data(Render *re, ObjectRen *obr, int only_verts)
+static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
 {
 	Object *ob= obr->ob;
 	ParticleSystem *psys;
@@ -3952,20 +3955,20 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int only_verts)
 		for(psys=ob->particlesystem.first, i=0; i<obr->psysindex-1; i++)
 			psys= psys->next;
 
-		render_new_particle_system(re, obr, psys);
+		render_new_particle_system(re, obr, psys, timeoffset);
 	}
 	else {
 		if ELEM(ob->type, OB_FONT, OB_CURVE)
-			init_render_curve(re, obr, only_verts);
+			init_render_curve(re, obr, timeoffset);
 		else if(ob->type==OB_SURF)
 			init_render_surf(re, obr);
 		else if(ob->type==OB_MESH)
-			init_render_mesh(re, obr, only_verts);
+			init_render_mesh(re, obr, timeoffset);
 		else if(ob->type==OB_MBALL)
 			init_render_mball(re, obr);
 	}
 
-	finalize_render_object(re, obr, only_verts);
+	finalize_render_object(re, obr, timeoffset);
 	
 	re->totvert += obr->totvert;
 	re->totvlak += obr->totvlak;
@@ -3973,7 +3976,7 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int only_verts)
 	re->totstrand += obr->totstrand;
 }
 
-static void add_render_object(Render *re, Object *ob, Object *par, int index, int only_verts, int instanceable)
+static void add_render_object(Render *re, Object *ob, Object *par, int index, int timeoffset, int instanceable)
 {
 	ObjectRen *obr;
 	ParticleSystem *psys;
@@ -3985,7 +3988,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 		show_emitter= 0;
 		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
 			show_emitter += psys->part->draw & PART_DRAW_EMITTER;
-			psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy);
+			psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy, timeoffset);
 		}
 
 		/* if no psys has "show emitter" selected don't render emitter */
@@ -4000,7 +4003,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 			obr->flag |= R_INSTANCEABLE;
 			Mat4CpyMat4(obr->obmat, ob->obmat);
 		}
-		init_render_object_data(re, obr, only_verts);
+		init_render_object_data(re, obr, timeoffset);
 
 		/* only add instance for objects that have not been used for dupli */
 		if(!(ob->transflag & OB_RENDER_DUPLI))
@@ -4018,7 +4021,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 				obr->flag |= R_INSTANCEABLE;
 				Mat4CpyMat4(obr->obmat, ob->obmat);
 			}
-			init_render_object_data(re, obr, only_verts);
+			init_render_object_data(re, obr, timeoffset);
 			psys_render_restore(ob, psys);
 
 			/* only add instance for objects that have not been used for dupli */
@@ -4032,7 +4035,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 
 /* par = pointer to duplicator parent, needed for object lookup table */
 /* index = when duplicater copies same object (particle), the counter */
-static void init_render_object(Render *re, Object *ob, Object *par, int index, int only_verts, int instanceable)
+static void init_render_object(Render *re, Object *ob, Object *par, int index, int timeoffset, int instanceable)
 {
 	static double lasttime= 0.0;
 	double time;
@@ -4041,7 +4044,7 @@ static void init_render_object(Render *re, Object *ob, Object *par, int index, i
 	if(ob->type==OB_LAMP)
 		add_render_lamp(re, ob);
 	else if(render_object_type(ob->type))
-		add_render_object(re, ob, par, index, only_verts, instanceable);
+		add_render_object(re, ob, par, index, timeoffset, instanceable);
 	else {
 		MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
 		MTC_Mat4Invert(ob->imat, mat);
@@ -4119,6 +4122,7 @@ void RE_Database_Free(Render *re)
 
 	free_sss(re);
 	free_occ(re);
+	free_strand_surface(re);
 	
 	re->totvlak=re->totvert=re->totstrand=re->totlamp=re->tothalo= 0;
 	re->i.convertdone= 0;
@@ -4174,7 +4178,7 @@ static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd
 	        !(re->r.mode & R_RADIO));
 }
 
-static void dupli_render_particle_set(Render *re, Object *ob, int level, int enable)
+static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, int level, int enable)
 {
 	/* ugly function, but we need to set particle systems to their render
 	 * settings before calling object_duplilist, to get render level duplis */
@@ -4190,7 +4194,7 @@ static void dupli_render_particle_set(Render *re, Object *ob, int level, int ena
 		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
 			if(ELEM(psys->part->draw_as, PART_DRAW_OB, PART_DRAW_GR)) {
 				if(enable)
-					psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy);
+					psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy, timeoffset);
 				else
 					psys_render_restore(ob, psys);
 			}
@@ -4212,10 +4216,10 @@ static void dupli_render_particle_set(Render *re, Object *ob, int level, int ena
 	group= ob->dup_group;
 
 	for(go= group->gobject.first; go; go= go->next)
-		dupli_render_particle_set(re, go->ob, level+1, enable);
+		dupli_render_particle_set(re, go->ob, timeoffset, level+1, enable);
 }
 
-static void database_init_objects(Render *re, unsigned int lay, int nolamps, int onlyselected, Object *actob, int only_verts)
+static void database_init_objects(Render *re, unsigned int lay, int nolamps, int onlyselected, Object *actob, int timeoffset)
 {
 	Base *base;
 	Object *ob;
@@ -4243,16 +4247,16 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 		if(ob->flag & OB_DONE) {
 			if(ob->transflag & OB_RENDER_DUPLI)
 				if(allow_render_object(ob, nolamps, onlyselected, actob))
-					init_render_object(re, ob, NULL, 0, only_verts, 1);
+					init_render_object(re, ob, NULL, 0, timeoffset, 1);
 		}
 		else if((base->lay & lay) || (ob->type==OB_LAMP && (base->lay & re->scene->lay)) ) {
 			if((ob->transflag & OB_DUPLI) && (ob->type!=OB_MBALL)) {
 				DupliObject *dob;
 				ListBase *lb;
 
-				dupli_render_particle_set(re, ob, 0, 1);
+				dupli_render_particle_set(re, ob, timeoffset, 0, 1);
 				lb= object_duplilist(sce, ob);
-				dupli_render_particle_set(re, ob, 0, 0);
+				dupli_render_particle_set(re, ob, timeoffset, 0, 0);
 
 				for(dob= lb->first; dob; dob= dob->next) {
 					Object *obd= dob->ob;
@@ -4294,7 +4298,7 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 							}
 						}
 						else
-							init_render_object(re, obd, ob, dob->index, only_verts, !dob->animated);
+							init_render_object(re, obd, ob, dob->index, timeoffset, !dob->animated);
 
 						psysindex= 1;
 						for(psys=obd->particlesystem.first; psys; psys=psys->next) {
@@ -4319,17 +4323,17 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 						}
 					}
 					else
-						init_render_object(re, obd, ob, dob->index, only_verts, !dob->animated);
+						init_render_object(re, obd, ob, dob->index, timeoffset, !dob->animated);
 					
 					if(re->test_break()) break;
 				}
 				free_object_duplilist(lb);
 
 				if(allow_render_object(ob, nolamps, onlyselected, actob))
-					init_render_object(re, ob, NULL, 0, only_verts, 0);
+					init_render_object(re, ob, NULL, 0, timeoffset, 0);
 			}
 			else if(allow_render_object(ob, nolamps, onlyselected, actob))
-				init_render_object(re, ob, NULL, 0, only_verts, 0);
+				init_render_object(re, ob, NULL, 0, timeoffset, 0);
 		}
 
 		if(re->test_break()) break;
@@ -4513,7 +4517,7 @@ static void database_fromscene_vectors(Render *re, Scene *scene, int timeoffset)
 	}
 	
 	/* MAKE RENDER DATA */
-	database_init_objects(re, lay, 0, 0, 0, 1);
+	database_init_objects(re, lay, 0, 0, 0, timeoffset);
 	
 	if(!re->test_break())
 		project_renderdata(re, projectverto, re->r.mode & R_PANORAMA, 0, 1);
@@ -4608,14 +4612,49 @@ static void calculate_speedvector(float *vectors, int step, float winsq, float w
 	}
 }
 
+static float *calculate_strandsurface_speedvectors(Render *re, ObjectInstanceRen *obi, StrandSurface *mesh)
+{
+	float winsq= re->winx*re->winy, winroot= sqrt(winsq), (*winspeed)[4];
+	float ho[4], prevho[4], nextho[4], winmat[4][4], vec[2];
+	int a;
+
+	if(mesh->co && mesh->prevco && mesh->nextco) {
+		if(obi->flag & R_TRANSFORMED)
+			Mat4MulMat4(winmat, obi->mat, re->winmat);
+		else
+			Mat4CpyMat4(winmat, re->winmat);
+
+		winspeed= MEM_callocN(sizeof(float)*4*mesh->totvert, "StrandSurfWin");
+
+		for(a=0; a<mesh->totvert; a++) {
+			projectvert(mesh->co[a], winmat, ho);
+
+			projectvert(mesh->prevco[a], winmat, prevho);
+			speedvector_project(NULL, vec, mesh->prevco[a], prevho);
+			calculate_speedvector(vec, 0, winsq, winroot, mesh->co[a], ho, winspeed[a]);
+
+			projectvert(mesh->nextco[a], winmat, nextho);
+			speedvector_project(NULL, vec, mesh->nextco[a], nextho);
+			calculate_speedvector(vec, 1, winsq, winroot, mesh->co[a], ho, winspeed[a]);
+		}
+
+		return (float*)winspeed;
+	}
+
+	return NULL;
+}
+
 static void calculate_speedvectors(Render *re, ObjectInstanceRen *obi, float *vectors, int step)
 {
 	ObjectRen *obr= obi->obr;
 	VertRen *ver= NULL;
 	StrandRen *strand= NULL;
-	float *speed, ho[4], winmat[4][4];
+	StrandBuffer *strandbuf;
+	StrandSurface *mesh= NULL;
+	float *speed, (*winspeed)[4]=NULL, ho[4], winmat[4][4];
+	float *co1, *co2, *co3, *co4, w[4];
 	float winsq= re->winx*re->winy, winroot= sqrt(winsq);
-	int a;
+	int a, *face, *index;
 
 	if(obi->flag & R_TRANSFORMED)
 		Mat4MulMat4(winmat, obi->mat, re->winmat);
@@ -4634,13 +4673,42 @@ static void calculate_speedvectors(Render *re, ObjectInstanceRen *obi, float *ve
 	}
 
 	if(obr->strandnodes) {
-		for(a=0; a<obr->totstrand; a++, vectors+=2) {
-			if((a & 255)==0) strand= obr->strandnodes[a>>8].strand;
-			else strand++;
+		strandbuf= obr->strandbufs.first;
+		mesh= (strandbuf)? strandbuf->surface: NULL;
 
-			speed= RE_strandren_get_winspeed(obi, strand, 1);
-			projectvert(strand->vert->co, winmat, ho);
-			calculate_speedvector(vectors, step, winsq, winroot, strand->vert->co, ho, speed);
+		/* compute speed vectors at surface vertices */
+		if(mesh)
+			winspeed= (float(*)[4])calculate_strandsurface_speedvectors(re, obi, mesh);
+
+		if(winspeed) {
+			for(a=0; a<obr->totstrand; a++, vectors+=2) {
+				if((a & 255)==0) strand= obr->strandnodes[a>>8].strand;
+				else strand++;
+
+				index= RE_strandren_get_face(obr, strand, 0);
+				if(index && *index) {
+					speed= RE_strandren_get_winspeed(obi, strand, 1);
+
+					/* interpolate speed vectors from strand surface */
+					face= mesh->face[*index];
+
+					co1= mesh->co[face[0]];
+					co2= mesh->co[face[1]];
+					co3= mesh->co[face[2]];
+					co4= (face[3])? mesh->co[face[3]]: NULL;
+
+					InterpWeightsQ3Dfl(co1, co2, co3, co4, strand->vert->co, w);
+
+					speed[0]= speed[1]= speed[2]= speed[3]= 0.0f;
+					QUATADDFAC(speed, speed, winspeed[face[0]], w[0]);
+					QUATADDFAC(speed, speed, winspeed[face[1]], w[1]);
+					QUATADDFAC(speed, speed, winspeed[face[2]], w[2]);
+					if(face[3])
+						QUATADDFAC(speed, speed, winspeed[face[3]], w[3]);
+				}
+			}
+
+			MEM_freeN(winspeed);
 		}
 	}
 }
@@ -4731,7 +4799,6 @@ static void copy_dbase_object_vectors(Render *re, ListBase *lb)
 	ObjectInstanceRen *obi, *obilb;
 	ObjectRen *obr;
 	VertRen *ver= NULL;
-	StrandRen *strand= NULL;
 	float *vec, ho[4], winmat[4][4];
 	int a, totvector;
 
@@ -4742,7 +4809,7 @@ static void copy_dbase_object_vectors(Render *re, ListBase *lb)
 		memcpy(obilb, obi, sizeof(ObjectInstanceRen));
 		BLI_addtail(lb, obilb);
 
-		obilb->totvector= totvector= obr->totvert + obr->totstrand;
+		obilb->totvector= totvector= obr->totvert;
 
 		if(totvector > 0) {
 			vec= obilb->vectors= MEM_mallocN(2*sizeof(float)*totvector, "vector array");
@@ -4758,14 +4825,6 @@ static void copy_dbase_object_vectors(Render *re, ListBase *lb)
 				
 				projectvert(ver->co, winmat, ho);
 				speedvector_project(NULL, vec, ver->co, ho);
-			}
-
-			for(a=0; a<obr->totstrand; a++, vec+=2) {
-				if((a & 255)==0) strand= obr->strandnodes[a>>8].strand;
-				else strand++;
-				
-				projectvert(strand->vert->co, winmat, ho);
-				speedvector_project(NULL, vec, strand->vert->co, ho);
 			}
 		}
 	}
@@ -4784,8 +4843,10 @@ static void free_dbase_object_vectors(ListBase *lb)
 void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 {
 	ObjectInstanceRen *obi, *oldobi;
+	StrandSurface *mesh;
 	ListBase *table;
 	ListBase oldtable= {NULL, NULL}, newtable= {NULL, NULL};
+	ListBase strandsurface;
 	int step;
 	
 	re->i.infostr= "Calculating previous vectors";
@@ -4800,7 +4861,10 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	copy_dbase_object_vectors(re, &oldtable);
 		
 	/* free dbase and make the future one */
+	strandsurface= re->strandsurface;
+	memset(&re->strandsurface, 0, sizeof(ListBase));
 	RE_Database_Free(re);
+	re->strandsurface= strandsurface;
 	
 	if(!re->test_break()) {
 		/* creates entire dbase */
@@ -4812,7 +4876,10 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	copy_dbase_object_vectors(re, &newtable);
 	
 	/* free dbase and make the real one */
+	strandsurface= re->strandsurface;
+	memset(&re->strandsurface, 0, sizeof(ListBase));
 	RE_Database_Free(re);
+	re->strandsurface= strandsurface;
 	
 	if(!re->test_break())
 		RE_Database_FromScene(re, sce, 1);
@@ -4829,7 +4896,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 			for(obi= re->instancetable.first; obi && oldobi; obi= obi->next, oldobi= oldobi->next) {
 				int ok= 1;
 
-				obi->totvector= obi->obr->totvert + obi->obr->totstrand;
+				obi->totvector= obi->obr->totvert;
 
 				/* find matching object in old table */
 				if(oldobi->ob!=obi->ob || oldobi->par!=obi->par || oldobi->index!=obi->index || oldobi->psysindex!=obi->psysindex) {
@@ -4867,6 +4934,17 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	
 	free_dbase_object_vectors(&oldtable);
 	free_dbase_object_vectors(&newtable);
+
+	for(mesh=re->strandsurface.first; mesh; mesh=mesh->next) {
+		if(mesh->prevco) {
+			MEM_freeN(mesh->prevco);
+			mesh->prevco= NULL;
+		}
+		if(mesh->nextco) {
+			MEM_freeN(mesh->nextco);
+			mesh->nextco= NULL;
+		}
+	}
 	
 	re->i.infostr= NULL;
 	re->stats_draw(&re->i);
