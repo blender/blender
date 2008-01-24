@@ -48,7 +48,7 @@ void projectverto(float *v1, float winmat[][4], float *adr);
 int testclip(float *v); 
 
 void zbuffer_shadow(struct Render *re, float winmat[][4], struct LampRen *lar, int *rectz, int size, float jitx, float jity);
-void zbuffer_solid(struct RenderPart *pa, unsigned int layer, short layflag, void (*fillfunc)(struct RenderPart*, struct ZSpan*, int, void*), void *data);
+void zbuffer_solid(struct RenderPart *pa, struct RenderLayer *rl, void (*fillfunc)(struct RenderPart*, struct ZSpan*, int, void*), void *data);
 
 unsigned short *zbuffer_transp_shade(struct RenderPart *pa, struct RenderLayer *rl, float *pass, struct ListBase *psmlist);
 unsigned short *zbuffer_strands_shade(struct Render *re, struct RenderPart *pa, struct RenderLayer *rl, float *pass);

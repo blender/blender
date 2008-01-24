@@ -1925,7 +1925,7 @@ void zbufclip4(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3
 
 /* ***************** ZBUFFER MAIN ROUTINES **************** */
 
-void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag, void(*fillfunc)(RenderPart*, ZSpan*, int, void*), void *data)
+void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*, ZSpan*, int, void*), void *data)
 {
 	ZbufProjectCache cache[ZBUF_PROJECT_CACHE_SIZE];
 	ZSpan zspans[16], *zspan; /* 16 = RE_MAX_OSA */
@@ -1935,7 +1935,9 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag, void(*fillfu
 	ObjectInstanceRen *obi;
 	ObjectRen *obr;
 	float winmat[4][4], bounds[4], ho1[4], ho2[4], ho3[4], ho4[4]={0};
+	unsigned int lay= rl->lay, lay_zmask= rl->lay_zmask;
 	int i, v, zvlnr, zsample, samples, c1, c2, c3, c4=0;
+	short layflag= rl->layflag;
 	short nofill=0, env=0, wire=0, all_z= layflag & SCE_LAY_ALL_Z;
 
 	samples= (R.osa? R.osa: 1);
@@ -2016,7 +2018,7 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag, void(*fillfu
 					}
 				}
 			}
-			else if(all_z) {
+			else if(all_z || (obr->lay & lay_zmask)) {
 				env= 1;
 				nofill= 0;
 				ma= NULL; 

@@ -2556,29 +2556,29 @@ static char *scene_layer_menu(void)
 	return str;
 }
 
-static void draw_3d_layer_buttons(uiBlock *block, unsigned int *poin, short xco, short yco, short dx, short dy)
+static void draw_3d_layer_buttons(uiBlock *block, int type, unsigned int *poin, short xco, short yco, short dx, short dy, char *tip)
 {
 	uiBut *bt;
 	long a;
 	
 	uiBlockBeginAlign(block);
 	for(a=0; a<5; a++) {
-		bt= uiDefButBitI(block, TOG, 1<<a, B_NOP, "",	(short)(xco+a*(dx/2)), yco+dy/2, (short)(dx/2), (short)(dy/2), (int *)poin, 0, 0, 0, 0, "");
+		bt= uiDefButBitI(block, type, 1<<a, B_NOP, "",	(short)(xco+a*(dx/2)), yco+dy/2, (short)(dx/2), (short)(dy/2), (int *)poin, 0, 0, 0, 0, tip);
 		uiButSetFunc(bt, layer_copy_func, (void *)a, poin);
 	}
 	for(a=0; a<5; a++) {
-		bt=uiDefButBitI(block, TOG, 1<<(a+10), B_NOP, "",	(short)(xco+a*(dx/2)), yco, (short)(dx/2), (short)(dy/2), (int *)poin, 0, 0, 0, 0, "");
+		bt=uiDefButBitI(block, type, 1<<(a+10), B_NOP, "",	(short)(xco+a*(dx/2)), yco, (short)(dx/2), (short)(dy/2), (int *)poin, 0, 0, 0, 0, tip);
 		uiButSetFunc(bt, layer_copy_func, (void *)(a+10), poin);
 	}
 	
 	xco+= 7;
 	uiBlockBeginAlign(block);
 	for(a=5; a<10; a++) {
-		bt=uiDefButBitI(block, TOG, 1<<a, B_NOP, "",	(short)(xco+a*(dx/2)), yco+dy/2, (short)(dx/2), (short)(dy/2), (int *)poin, 0, 0, 0, 0, "");
+		bt=uiDefButBitI(block, type, 1<<a, B_NOP, "",	(short)(xco+a*(dx/2)), yco+dy/2, (short)(dx/2), (short)(dy/2), (int *)poin, 0, 0, 0, 0, tip);
 		uiButSetFunc(bt, layer_copy_func, (void *)a, poin);
 	}
 	for(a=5; a<10; a++) {
-		bt=uiDefButBitI(block, TOG, 1<<(a+10), B_NOP, "",	(short)(xco+a*(dx/2)), yco, (short)(dx/2), (short)(dy/2), (int *)poin, 0, 0, 0, 0, "");
+		bt=uiDefButBitI(block, type, 1<<(a+10), B_NOP, "",	(short)(xco+a*(dx/2)), yco, (short)(dx/2), (short)(dy/2), (int *)poin, 0, 0, 0, 0, tip);
 		uiButSetFunc(bt, layer_copy_func, (void *)(a+10), poin);
 	}
 	
@@ -2603,7 +2603,7 @@ static void render_panel_layers(void)
 	
 	/* first, as reminder, the scene layers */
 	uiDefBut(block, LABEL, 0, "Scene:",				10,170,100,20, NULL, 0, 0, 0, 0, "");
-	draw_3d_layer_buttons(block, &G.scene->lay,		130, 170, 35, 30);
+	draw_3d_layer_buttons(block, TOG, &G.scene->lay,		130, 170, 35, 30, "Scene layers to render");
 	
 	/* layer disable, menu, name, delete button */
 	uiBlockBeginAlign(block);
@@ -2623,10 +2623,10 @@ static void render_panel_layers(void)
 
 	/* RenderLayer visible-layers */
 	uiDefBut(block, LABEL, 0, "Layer:",			10,110,100,20, NULL, 0, 0, 0, 0, "");
-	draw_3d_layer_buttons(block, &srl->lay,		130,110, 35, 30);
+	draw_3d_layer_buttons(block, BUT_TOGDUAL, &srl->lay,		130,110, 35, 30, "Scene-layers included in this render-layer (Hold CTRL for Z-mask)");
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, SCE_LAY_ALL_Z, B_NOP,"AllZ",	10, 85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Fill in Z values for all not-rendered faces, for masking");	
+	uiDefButBitI(block, TOG, SCE_LAY_ALL_Z, B_NOP,"AllZ",	10, 85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Fill in Z values for faces in invisible layers, for masking");	
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, SCE_LAY_SOLID, B_NOP,"Solid",	50,  85, 45, 20, &srl->layflag, 0, 0, 0, 0, "Render Solid faces in this Layer");	
 	uiDefButBitI(block, TOG, SCE_LAY_HALO, B_NOP,"Halo",	95,  85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Halos in this Layer (on top of Solid)");	

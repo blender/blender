@@ -897,7 +897,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 			sdata.rl= rl;
 			sdata.psmlist= &psmlist;
 			sdata.edgerect= edgerect;
-			zbuffer_solid(pa, rl->lay, rl->layflag, make_pixelstructs, &sdata);
+			zbuffer_solid(pa, rl, make_pixelstructs, &sdata);
 			if(R.test_break()) break; 
 		}
 		
@@ -1063,7 +1063,7 @@ void zbufshade_tile(RenderPart *pa)
 		shade_sample_initialize(&ssamp, pa, rl);
 		addpassflag= rl->passflag & ~(SCE_PASS_Z|SCE_PASS_COMBINED);
 		
-		zbuffer_solid(pa, rl->lay, rl->layflag, NULL, NULL);
+		zbuffer_solid(pa, rl, NULL, NULL);
 		
 		if(!R.test_break()) {	/* NOTE: this if() is not consistant */
 			

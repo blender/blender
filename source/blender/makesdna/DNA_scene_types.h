@@ -120,7 +120,11 @@ typedef struct SceneRenderLayer {
 	struct Group *light_override;
 	
 	unsigned int lay;		/* scene->lay itself has priority over this */
+	unsigned int lay_zmask;	/* has to be after lay, this is for Z-masking */
 	int layflag;
+	
+	int pad;
+	
 	int passflag;			/* pass_xor has to be after passflag */
 	int pass_xor;
 } SceneRenderLayer;
