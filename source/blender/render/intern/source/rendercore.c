@@ -1364,12 +1364,12 @@ void zbufshade_sss_tile(RenderPart *pa)
 	ShadeSample ssamp;
 	ZBufSSSHandle handle;
 	RenderResult *rr= pa->result;
-	RenderLayer *rl= rr->layers.first;
+	RenderLayer *rl;
 	VlakRen *vlr;
 	Material *mat= re->sss_mat;
-	float (*co)[3], (*color)[3], *area, *fcol= rl->rectf;
+	float (*co)[3], (*color)[3], *area, *fcol;
 	int x, y, seed, quad, totpoint, display = !(re->r.scemode & R_PREVIEWBUTS);
-	int *ro, *rz, *rp, *rbo, *rbz, *rbp;
+	int *ro, *rz, *rp, *rbo, *rbz, *rbp, lay;
 #if 0
 	PixStr *ps;
 	long *rs;
@@ -1394,13 +1394,32 @@ void zbufshade_sss_tile(RenderPart *pa)
 	pa->rectbackz= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectbackz");
 #endif
 
+	/* setup shade sample with correct passes */
+	memset(&ssamp, 0, sizeof(ssamp));
+	shade_sample_initialize(&ssamp, pa, rr->layers.first);
+	ssamp.tot= 1;
+	
+	for(rl=rr->layers.first; rl; rl=rl->next) {
+		ssamp.shi[0].lay |= rl->lay;
+		ssamp.shi[0].layflag |= rl->layflag;
+		ssamp.shi[0].passflag |= rl->passflag;
+		ssamp.shi[0].combinedflag |= ~rl->pass_xor;
+	}
+
+	rl= rr->layers.first;
+	ssamp.shi[0].passflag |= SCE_PASS_RGBA|SCE_PASS_COMBINED;
+	ssamp.shi[0].combinedflag &= ~(SCE_PASS_SPEC);
+	lay= ssamp.shi[0].lay;
+
 	/* create the pixelstrs to be used later */
-	zbuffer_sss(pa, rl->lay, &handle, addps_sss);
+	zbuffer_sss(pa, lay, &handle, addps_sss);
 
 	if(handle.totps==0) {
 		zbufshade_sss_free(pa);
 		return;
 	}
+	
+	fcol= rl->rectf;
 
 	co= MEM_mallocN(sizeof(float)*3*handle.totps, "SSSCo");
 	color= MEM_mallocN(sizeof(float)*3*handle.totps, "SSSColor");
@@ -1411,14 +1430,6 @@ void zbufshade_sss_tile(RenderPart *pa)
 	if(re->r.mode & R_SHADOW)
 		ISB_create(pa, NULL);
 #endif
-
-	/* setup shade sample with correct passes */
-	memset(&ssamp, 0, sizeof(ssamp));
-	shade_sample_initialize(&ssamp, pa, rl);
-	ssamp.shi[0].passflag= SCE_PASS_DIFFUSE|SCE_PASS_AO|SCE_PASS_RADIO;
-	ssamp.shi[0].passflag |= SCE_PASS_RGBA;
-	ssamp.shi[0].combinedflag= ~(SCE_PASS_SPEC);
-	ssamp.tot= 1;
 
 	if(display) {
 		/* initialize scanline updates for main thread */

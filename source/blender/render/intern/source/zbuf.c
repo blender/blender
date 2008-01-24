@@ -1993,6 +1993,9 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 	for(i=0, obi=R.instancetable.first; obi; i++, obi=obi->next) {
 		obr= obi->obr;
 
+		if(!all_z && !(obr->lay & lay))
+			continue;
+
 		if(obi->flag & R_TRANSFORMED)
 			zbuf_make_winmat(&R, obi->mat, winmat);
 		else
@@ -2274,6 +2277,8 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 
 		if(obr->ob==re->excludeob)
 			continue;
+		else if(!(obr->lay & lay))
+			continue;
 
 		if(obi->flag & R_TRANSFORMED)
 			Mat4MulMat4(obwinmat, obi->mat, winmat);
@@ -2496,6 +2501,9 @@ void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(vo
 
 	for(i=0, obi=R.instancetable.first; obi; i++, obi=obi->next) {
 		obr= obi->obr;
+
+		if(!(obr->lay & lay))
+			continue;
 
 		if(obi->flag & R_TRANSFORMED)
 			zbuf_make_winmat(&R, obi->mat, winmat);
@@ -3197,6 +3205,9 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, un
 		
 	for(i=0, obi=R.instancetable.first; obi; i++, obi=obi->next) {
 		obr= obi->obr;
+
+		if(!(obr->lay & lay))
+			continue;
 
 		if(obi->flag & R_TRANSFORMED)
 			zbuf_make_winmat(&R, obi->mat, winmat);
