@@ -3408,7 +3408,7 @@ static char sbsolvers[] = "Solver %t|RKP almost SOFT not usable but for some ger
 /* SIF would have been candidate  .. well lack of time .. brecht is busy .. better make a stable version for peach now :) */
 static char sbsolvers[] = "SIF  semi implicit euler with fixed step size (worth a try with real stiff egdes)%x3|SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
 #else
-static char sbsolvers[] = "SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
+static char sbsolvers[] = "RKCP correct physics (harder to get stable but usefull for education :)%x1|SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
 #endif
 
 static void object_softbodies_collision(Object *ob)
@@ -3598,11 +3598,11 @@ static void object_softbodies_solver(Object *ob)
 			/*SOLVER SETTINGS*/
 			uiBlockBeginAlign(block);
 			uiDefBut(block, LABEL, 0, "Solver select",10,200,300,20, NULL, 0.0, 0, 0, 0, ""); 
-			uiDefButS(block, MENU, B_SOFTBODY_CHANGE, sbsolvers,10,180,300,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver (choose 1 of 1 i was working on some other but failed *sigh* BM) ");
+			uiDefButS(block, MENU, B_SOFTBODY_CHANGE, sbsolvers,10,180,300,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver");
 			uiBlockEndAlign(block);
 			
 			/*some have adapive step size - some not*/
-			sb->solver_ID = 0; /* ugly hack to prepare peach freeze */
+			//sb->solver_ID = 0; /* ugly hack to prepare peach freeze */
 			switch (sb->solver_ID) {
 			case 0:
 			case 1:
