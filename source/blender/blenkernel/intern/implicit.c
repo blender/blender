@@ -569,33 +569,35 @@ DO_INLINE void mul_bfmatrix_S(fmatrix3x3 *matrix, float scalar)
 
 /* SPARSE SYMMETRIC multiply big matrix with long vector*/
 /* STATUS: verified */
-DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, float (*fLongVector)[3])
+DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, lfVector *fLongVector)
 {
 	unsigned int i = 0;
+	lfVector *temp = create_lfvector(from[0].vcount);
+	
 	zero_lfvector(to, from[0].vcount);
-	/* process diagonal elements */	
-	for(i = 0; i < from[0].vcount; i++)
-	{
-		muladd_fmatrix_fvector(to[from[i].r], from[i].m, fLongVector[from[i].c]);	
-	}
 
-	/* process off-diagonal entries (every off-diagonal entry needs to be symmetric) */
-	// TODO: pragma below is wrong, correct it!
-	// #pragma omp parallel for shared(to,from, fLongVector) private(i) 
-	for(i = from[0].vcount; i < from[0].vcount+from[0].scount; i++)
+#pragma omp parallel sections private(i)
 	{
-		// muladd_fmatrix_fvector(to[from[i].c], from[i].m, fLongVector[from[i].r]);
-		
-		to[from[i].c][0] += INPR(from[i].m[0],fLongVector[from[i].r]);
-		to[from[i].c][1] += INPR(from[i].m[1],fLongVector[from[i].r]);
-		to[from[i].c][2] += INPR(from[i].m[2],fLongVector[from[i].r]);	
-		
-		// muladd_fmatrix_fvector(to[from[i].r], from[i].m, fLongVector[from[i].c]);
-		
-		to[from[i].r][0] += INPR(from[i].m[0],fLongVector[from[i].c]);
-		to[from[i].r][1] += INPR(from[i].m[1],fLongVector[from[i].c]);
-		to[from[i].r][2] += INPR(from[i].m[2],fLongVector[from[i].c]);	
+#pragma omp section
+		{
+			for(i = from[0].vcount; i < from[0].vcount+from[0].scount; i++)
+			{
+				muladd_fmatrix_fvector(to[from[i].c], from[i].m, fLongVector[from[i].r]);
+			}
+		}	
+#pragma omp section
+		{
+			for(i = 0; i < from[0].vcount+from[0].scount; i++)
+			{
+				muladd_fmatrix_fvector(temp[from[i].r], from[i].m, fLongVector[from[i].c]);
+			}
+		}
 	}
+	add_lfvector_lfvector(to, to, temp, from[0].vcount);
+	
+	del_lfvector(temp);
+	
+	
 }
 
 /* SPARSE SYMMETRIC multiply big matrix with long vector (for diagonal preconditioner) */
@@ -1088,7 +1090,6 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	float bending_force[3] = {0,0,0};
 	float damping_force[3] = {0,0,0};
 	float nulldfdx[3][3]={ {0,0,0}, {0,0,0}, {0,0,0}};
-	Cloth *cloth = clmd->clothObject;
 	
 	VECCOPY(s->f, nullf);
 	cp_fmatrix(s->dfdx, nulldfdx);

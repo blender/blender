@@ -76,6 +76,7 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_object.h"
+#include "BKE_pointcache.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -804,7 +805,10 @@ void make_editMesh()
 	EditFace *efa;
 	EditEdge *eed;
 	EditSelection *ese;
-	int tot, a, eekadoodle= 0;
+	int tot, a, eekadoodle= 0, cloth_enabled = 0;
+	ClothModifierData *clmd = NULL;
+	Cloth *cloth = NULL;
+	float temp[3];
 
 #ifdef WITH_VERSE
 	if(me->vnode){
@@ -839,10 +843,43 @@ void make_editMesh()
 	/* make editverts */
 	CustomData_copy(&me->vdata, &em->vdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	mvert= me->mvert;
+	
+	/* lots of checks to be sure if we have nice cloth object */
+	if(modifiers_isClothEnabled(G.obedit))
+	{
+		clmd = (ClothModifierData *) modifiers_findByType(G.obedit, eModifierType_Cloth);
+		cloth = clmd->clothObject;
+		
+		/* just to be sure also check vertcount */
+		/* also check if we have a protected cache */
+		if(cloth && (tot == cloth->numverts) && (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
+		{
+			/* check if we have cache for this frame */
+			int stack_index = modifiers_indexInObject(G.obedit, (ModifierData *)clmd);
+		
+			if(BKE_ptcache_id_exist((ID *)G.obedit, (float) G.scene->r.cfra, stack_index))
+			{
+				cloth_enabled = 1;
+				
+				/* inverse matrix is not uptodate... */
+				Mat4Invert ( G.obedit->imat, G.obedit->obmat );
+			}
+		}
+	}
 
 	evlist= (EditVert **)MEM_mallocN(tot*sizeof(void *),"evlist");
 	for(a=0; a<tot; a++, mvert++) {
-		eve= addvertlist(mvert->co, NULL);
+		
+		if(cloth_enabled)
+		{
+			VECCOPY(temp, cloth->verts[a].x);
+			Mat4MulVecfl ( G.obedit->imat, temp );
+			eve= addvertlist(temp, NULL);
+			
+			/* TODO: what about normals? */
+		}
+		else	
+			eve= addvertlist(mvert->co, NULL);
 		evlist[a]= eve;
 		
 		// face select sets selection in next loop
@@ -971,7 +1008,10 @@ void load_editMesh(void)
 	EditEdge *eed;
 	EditSelection *ese;
 	float *fp, *newkey, *oldkey, nor[3];
-	int i, a, ototvert, totedge=0;
+	int i, a, ototvert, totedge=0, cloth_enabled = 0;
+	ClothModifierData *clmd = NULL;
+	Cloth *cloth = NULL;
+	float temp[3], dt = 0.0;
 
 #ifdef WITH_VERSE
 	if(em->vnode) {
@@ -1038,9 +1078,52 @@ void load_editMesh(void)
 	/* the vertices, use ->tmp.l as counter */
 	eve= em->verts.first;
 	a= 0;
-
+	
+	/* lots of checks to be sure if we have nice cloth object */
+	if(modifiers_isClothEnabled(G.obedit))
+	{
+		clmd = (ClothModifierData *) modifiers_findByType(G.obedit, eModifierType_Cloth);
+		cloth = clmd->clothObject;
+		
+		/* just to be sure also check vertcount */
+		/* also check if we have a protected cache */
+		if(cloth && (G.totvert == cloth->numverts) && (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
+		{
+			/* check if we have cache for this frame */
+			int stack_index = modifiers_indexInObject(G.obedit, (ModifierData *)clmd);
+		
+			if(BKE_ptcache_id_exist((ID *)G.obedit, (float) G.scene->r.cfra, stack_index))
+			{
+				cloth_enabled = 1;
+				
+				/* inverse matrix is not uptodate... */
+				Mat4Invert ( G.obedit->imat, G.obedit->obmat );
+				dt = 1.0f / clmd->sim_parms->stepsPerFrame;
+			}
+		}
+	}
+	
+	i=0;
 	while(eve) {
-		VECCOPY(mvert->co, eve->co);
+		
+		if(cloth_enabled)
+		{	
+			VECCOPY(temp, cloth->verts[i].x);
+			VECCOPY(cloth->verts[i].x, eve->co);
+			Mat4MulVecfl ( G.obedit->obmat, cloth->verts[i].x );
+			/*
+			// not physical correct but gives nicer results when commented
+			VECSUB(temp, cloth->verts[i].x, temp);
+			VecMulf(temp, 1.0f / dt);
+			VECADD(cloth->verts[i].v, cloth->verts[i].v, temp);
+			*/
+			if(oldverts) {
+				VECCOPY(mvert->co, oldverts[i].co);
+			}
+			i++;
+		}
+		else	
+			VECCOPY(mvert->co, eve->co);
 		mvert->mat_nr= 255;  /* what was this for, halos? */
 		
 		/* vertex normal */
@@ -1068,6 +1151,10 @@ void load_editMesh(void)
 		eve= eve->next;
 		mvert++;
 	}
+	
+	/* burn changes to cache */
+	if(cloth_enabled)
+		cloth_write_cache(G.obedit, clmd, (float) G.scene->r.cfra);
 
 	/* the edges */
 	a= 0;
@@ -1330,7 +1417,13 @@ void load_editMesh(void)
 			if(base->object->data==me) {				
 				if(modifiers_isClothEnabled(base->object)) {
 					ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(base->object, eModifierType_Cloth);
-					clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+					
+					/* only reset cloth when no cache was used */
+					if(!cloth_enabled)
+					{
+						clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+					}
+					
 				}
 				
 				base->object->softflag |= OB_SB_REDO;

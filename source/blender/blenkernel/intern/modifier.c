@@ -4958,29 +4958,23 @@ static void clothModifier_initData(ModifierData *md)
 	cloth_init (clmd);
 }
 
-static void clothModifier_deformVerts(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-		float (*vertexCos)[3], int numVerts)
+static DerivedMesh *clothModifier_applyModifier(ModifierData *md, Object *ob,
+		 DerivedMesh *derivedData, int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *dm = NULL;
+	ClothModifierData *clmd = (ClothModifierData*) md;
+	DerivedMesh *result=NULL;
+	
+	/* check for alloc failing */
+	if(!clmd->sim_parms || !clmd->coll_parms)
+		return derivedData;
 
-	/* if possible use/create DerivedMesh */
-	
-	if(derivedData) dm = CDDM_copy(derivedData);
-	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
-	
-	if(dm)
+	result = clothModifier_do(clmd, ob, derivedData, useRenderParams, isFinalCalc);
+
+	if(result)
 	{
-		CDDM_apply_vert_coords(dm, vertexCos);
-		CDDM_calc_normals(dm);
+		return result;
 	}
-	
-	/* TODO: check for sim_parms / coll_parms NOT NULL */
-	
-	clothModifier_do((ClothModifierData *)md, ob, dm, vertexCos, numVerts);
-	
-	if(dm)
-		dm->release(dm);
+	return derivedData;
 }
 
 static void clothModifier_updateDepgraph(
@@ -5035,8 +5029,6 @@ static int clothModifier_dependsOnTime(ModifierData *md)
 static void clothModifier_freeData(ModifierData *md)
 {
 	ClothModifierData *clmd = (ClothModifierData*) md;
-	Object *ob = NULL;
-	ClothModifierData *clmd2 = NULL;
 	
 	if (clmd) 
 	{
@@ -7017,10 +7009,10 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->deformVerts = softbodyModifier_deformVerts;
 	
 		mti = INIT_TYPE(Cloth);
-		mti->type = eModifierTypeType_OnlyDeform;
+		mti->type = eModifierTypeType_Nonconstructive;
 		mti->initData = clothModifier_initData;
-		mti->flags = eModifierTypeFlag_AcceptsCVs;
-					// | eModifierTypeFlag_RequiresOriginalData;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_RequiresOriginalData;
 		 			// | eModifierTypeFlag_SupportsMapping
 					// | eModifierTypeFlag_SupportsEditmode 
 					// | eModifierTypeFlag_EnableInEditmode;
@@ -7028,7 +7020,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->freeData = clothModifier_freeData; 
 		mti->requiredDataMask = clothModifier_requiredDataMask;
 		// mti->copyData = clothModifier_copyData;
-		mti->deformVerts = clothModifier_deformVerts;
+		// mti->deformVerts = clothModifier_deformVerts;
+		mti->applyModifier = clothModifier_applyModifier;
 		mti->updateDepgraph = clothModifier_updateDepgraph;
 		
 		mti = INIT_TYPE(Collision);

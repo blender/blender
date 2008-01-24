@@ -160,16 +160,6 @@ typedef enum
 #define CLOTH_VERT_FLAG_PINNED 1
 #define CLOTH_VERT_FLAG_COLLISION 2
 
-
-// needed for buttons_object.c
-void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr);
-
-// needed for cloth.c
-void implicit_set_positions ( ClothModifierData *clmd );
-
-// from cloth.c, needed for modifier.c
-void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm, float ( *vertexCos ) [3], int numverts );
-
 typedef void ( *CM_COLLISION_RESPONSE ) ( ClothModifierData *clmd, CollisionModifierData *collmd, CollisionTree *tree1, CollisionTree *tree2 );
 
 
@@ -193,6 +183,7 @@ int bvh_traverse ( ClothModifierData * clmd, CollisionModifierData * collmd, Col
 int implicit_init ( Object *ob, ClothModifierData *clmd );
 int implicit_free ( ClothModifierData *clmd );
 int implicit_solver ( Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors );
+void implicit_set_positions ( ClothModifierData *clmd );
 ////////////////////////////////////////////////
 
 
@@ -204,12 +195,15 @@ int implicit_solver ( Object *ob, float frame, ClothModifierData *clmd, ListBase
 void cloth_free_modifier_extern (ClothModifierData *clmd);
 void cloth_free_modifier (Object *ob, ClothModifierData *clmd);
 void cloth_init (ClothModifierData *clmd);
-void cloth_deform_verts (struct Object *ob, float framenr, float ( *vertexCos ) [3], int numVerts, void *derivedData, ClothModifierData *clmd);
+DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc);
 
 void cloth_update_normals (ClothVertex *verts, int nVerts, MFace *face, int totface);
 
 // needed for collision.c
 void bvh_update_from_cloth(ClothModifierData *clmd, int moving);
+
+// needed for editmesh.c
+void cloth_write_cache(Object *ob, ClothModifierData *clmd, float framenr);
 
 ////////////////////////////////////////////////
 
