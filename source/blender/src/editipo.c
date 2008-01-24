@@ -1660,7 +1660,7 @@ void mouse_select_ipo(void)
 	xo= mval[0]; 
 	yo= mval[1];
 	
-	while(get_mbut()&R_MOUSE) {		
+	while (get_mbut() & ((U.flag & USER_LMOUSESELECT)?L_MOUSE:R_MOUSE)) {		
 		getmouseco_areawin(mval);
 		if(abs(mval[0]-xo)+abs(mval[1]-yo) > 4) {
 			
