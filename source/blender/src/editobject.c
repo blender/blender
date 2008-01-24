@@ -5142,7 +5142,7 @@ void selectlinks_menu(void)
 	/* If you modify this menu, please remember to update view3d_select_linksmenu
 	 * in header_view3d.c and the menu in toolbox.c
 	 */
-	nr= pupmenu("Select Linked%t|Object Ipo%x1|ObData%x2|Material%x3|Texture%x4|DupliGroup%x5");
+	nr= pupmenu("Select Linked%t|Object Ipo%x1|ObData%x2|Material%x3|Texture%x4|DupliGroup%x5|ParticleSystem%x6");
 	
 	if (nr <= 0) return;
 	
@@ -5165,6 +5165,7 @@ void selectlinks(int nr)
 	 * Current Material: 3
 	 * Current Texture: 4
 	 * DupliGroup: 5
+	 * PSys: 6
 	 */
 	
 	
@@ -5189,6 +5190,9 @@ void selectlinks(int nr)
 	}
 	else if(nr==5) {
 		if(ob->dup_group==NULL) return;
+	}
+	else if(nr==6) {
+		if(ob->particlesystem.first==NULL) return;
 	}
 	else return;
 	
@@ -5218,6 +5222,7 @@ void selectlinks(int nr)
 								if(tex==mat1->mtex[b]->tex) {
 									base->flag |= SELECT;
 									changed = 1;
+									break;
 								}
 							}
 						}
@@ -5228,6 +5233,25 @@ void selectlinks(int nr)
 				if(base->object->dup_group==ob->dup_group) {
 					 base->flag |= SELECT;
 					 changed = 1;
+				}
+			}
+			else if(nr==6) {
+				/* loop through other, then actives particles*/
+				ParticleSystem *psys;
+				ParticleSystem *psys_act;
+				
+				for(psys=base->object->particlesystem.first; psys; psys=psys->next) {
+					for(psys_act=ob->particlesystem.first; psys_act; psys_act=psys_act->next) {
+						if (psys->part == psys_act->part) {
+							base->flag |= SELECT;
+							changed = 1;
+							break;
+						}
+					}
+					
+					if (base->flag & SELECT) {
+						break;
+					}
 				}
 			}
 			base->object->flag= base->flag;
