@@ -776,7 +776,7 @@ static void weighted_particle_vector(float *v1, float *v2, float *v3, float *v4,
 	vec[1]= weights[0]*v1[1] + weights[1]*v2[1] + weights[2]*v3[1] + weights[3]*v4[1];
 	vec[2]= weights[0]*v1[2] + weights[1]*v2[2] + weights[2]*v3[2] + weights[3]*v4[2];
 }
-static void interpolate_particle(short type, ParticleKey keys[4], float dt, ParticleKey *result)
+static void interpolate_particle(short type, ParticleKey keys[4], float dt, ParticleKey *result, int velocity)
 {
 	float t[4];
 
@@ -788,18 +788,20 @@ static void interpolate_particle(short type, ParticleKey keys[4], float dt, Part
 
 		weighted_particle_vector(keys[0].co, keys[1].co, keys[2].co, keys[3].co, t, result->co);
 
-		//if(ve){
-		//	if(dt>0.999f){
-		//		set_four_ipo(dt+0.001f,t,ipo_type);
-		//		weighted_particle_vector(key0->co,key1->co,key2->co,key3->co,t,temp);
-		//		VECSUB(ve,temp,co);
-		//	}
-		//	else{
-		//		set_four_ipo(dt-0.001f,t,ipo_type);
-		//		weighted_particle_vector(key0->co,key1->co,key2->co,key3->co,t,temp);
-		//		VECSUB(ve,co,temp);
-		//	}
-		//}
+		if(velocity){
+			float temp[3];
+
+			if(dt>0.999f){
+				set_four_ipo(dt-0.001f, t, type);
+				weighted_particle_vector(keys[0].co, keys[1].co, keys[2].co, keys[3].co, t, temp);
+				VECSUB(result->vel, result->co, temp);
+			}
+			else{
+				set_four_ipo(dt+0.001f, t, type);
+				weighted_particle_vector(keys[0].co, keys[1].co, keys[2].co, keys[3].co, t, temp);
+				VECSUB(result->vel, temp, result->co);
+			}
+		}
 	}
 }
 
@@ -2426,7 +2428,7 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 			/* now we should have in chronologiacl order k1<=k2<=t<=k3<=k4 with keytime between [0,1]->[k2,k3] (k1 & k4 used for cardinal & bspline interpolation)*/
 			interpolate_particle((psys->flag & PSYS_KEYED) ? -1 /* signal for cubic interpolation */
 				: ((psys->part->flag & PART_HAIR_BSPLINE) ? KEY_BSPLINE : KEY_CARDINAL)
-				,keys, keytime, &result);
+				,keys, keytime, &result, 0);
 
 			/* the velocity needs to be converted back from cubic interpolation */
 			if(psys->flag & PSYS_KEYED){
@@ -3371,7 +3373,7 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 
 		interpolate_particle((psys->flag & PSYS_KEYED) ? -1 /* signal for cubic interpolation */
 			: ((psys->part->flag & PART_HAIR_BSPLINE) ? KEY_BSPLINE : KEY_CARDINAL)
-			,keys, keytime, state);
+			,keys, keytime, state, 1);
 
 		/* the velocity needs to be converted back from cubic interpolation */
 		if(psys->flag & PSYS_KEYED){
@@ -3381,6 +3383,7 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 			if((pa->flag & PARS_REKEY)==0) {
 				psys_mat_hair_to_global(ob, psmd->dm, part->from, pa, hairmat);
 				Mat4MulVecfl(hairmat, state->co);
+				Mat4Mul3Vecfl(hairmat, state->vel);
 
 				if(psys->effectors.first && (part->flag & PART_CHILD_GUIDE)==0) {
 					do_guide(state, p, state->time, &psys->effectors);
