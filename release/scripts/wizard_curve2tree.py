@@ -1921,7 +1921,7 @@ class tree:
 								mat_pitch = RotationMatrix( angle, 3, 'r', cross1)
 								mat = mat * mat_pitch
 							if leaf_branch_roll_rand:
-								mat_roll =  RotationMatrix( leaf_branch_roll_rand * ((next_random_num(rnd_seed)-0.5)*360), 3, 'r', leaf_no * mat_pitch)
+								mat_roll =  RotationMatrix( leaf_branch_roll_rand * ((next_random_num(rnd_seed)-0.5)*360), 3, 'r', leaf_no)
 								mat = mat * mat_roll
 							
 							mat = mat.resize4x4() * TranslationMatrix(leaf_co)
