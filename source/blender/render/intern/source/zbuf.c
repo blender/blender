@@ -196,7 +196,6 @@ static void zbuf_add_to_span(ZSpan *zspan, float *v1, float *v2)
 /* Functions                                                 */
 /*-----------------------------------------------------------*/ 
 
-
 void fillrect(int *rect, int x, int y, int val)
 {
 	int len, *drect;
@@ -1922,6 +1921,74 @@ void zbufclip4(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3
 	zspan->zbuffunc(zspan, obi, zvlnr, vez, vez+4, vez+8, vez+12);
 }
 
+/* ************** ZMASK ******************************** */
+
+#define EXTEND_PIXEL(a)	if(temprectp[a]) {z+= rectz[a]; tot++;}
+
+/* changes the zbuffer to be ready for z-masking: applies an extend-filter, and then clears */
+static void zmask_rect(int *rectz, int *rectp, int xs, int ys)
+{
+	int len=0, x, y;
+	int *temprectp;
+	int row1, row2, row3, *curp, *curz;
+	
+	temprectp= MEM_dupallocN(rectp);
+	
+	/* extend: if pixel is not filled in, we check surrounding pixels and average z value  */
+	
+	for(y=1; y<=ys; y++) {
+		/* setup row indices */
+		row1= (y-2)*xs;
+		row2= row1 + xs;
+		row3= row2 + xs;
+		if(y==1)
+			row1= row2;
+		else if(y==ys)
+			row3= row2;
+		
+		curp= rectp + (y-1)*xs;
+		curz= rectz + (y-1)*xs;
+		
+		for(x=0; x<xs; x++, curp++, curz++) {
+			if(curp[0]==0) {
+				int tot= 0;
+				float z= 0.0f;
+				
+				EXTEND_PIXEL(row1);
+				EXTEND_PIXEL(row2);
+				EXTEND_PIXEL(row3);
+				EXTEND_PIXEL(row1 + 1);
+				EXTEND_PIXEL(row3 + 1);
+				if(x!=xs-1) {
+					EXTEND_PIXEL(row1 + 2);
+					EXTEND_PIXEL(row2 + 2);
+					EXTEND_PIXEL(row3 + 2);
+				}					
+				if(tot) {
+					len++;
+					curz[0]= (int)(z/(float)tot);
+					curp[0]= -1;	/* env */
+				}
+			}
+			
+			if(x!=0) {
+				row1++; row2++; row3++;
+			}
+		}
+	}
+	MEM_freeN(temprectp);
+	
+	/* clear not filled z values */
+	for(len= xs*ys -1; len>=0; len--) {
+		if(rectp[len]==0) {
+			rectz[len] = -0x7FFFFFFF;
+			rectp[len]= -1;	/* env code */
+		}	
+	}
+}
+
+
+
 
 /* ***************** ZBUFFER MAIN ROUTINES **************** */
 
@@ -1937,9 +2004,9 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 	float winmat[4][4], bounds[4], ho1[4], ho2[4], ho3[4], ho4[4]={0};
 	unsigned int lay= rl->lay, lay_zmask= rl->lay_zmask;
 	int i, v, zvlnr, zsample, samples, c1, c2, c3, c4=0;
-	short layflag= rl->layflag;
-	short nofill=0, env=0, wire=0, all_z= layflag & SCE_LAY_ALL_Z;
-
+	short nofill=0, env=0, wire=0;
+	short all_z= rl->layflag & SCE_LAY_ALL_Z;
+	
 	samples= (R.osa? R.osa: 1);
 	samples= MIN2(4, samples-pa->sample);
 
@@ -2007,7 +2074,7 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 			if((v & 255)==0) vlr= obr->vlaknodes[v>>8].vlak;
 			else vlr++;
 
-			/* three cases, visible for render, only z values and nothing */
+			/* the cases: visible for render, only z values, zmask, nothing */
 			if(obr->lay & lay) {
 				if(vlr->mat!=ma) {
 					ma= vlr->mat;
@@ -2090,6 +2157,10 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 	for(zsample=0; zsample<samples; zsample++) {
 		zspan= &zspans[zsample];
 
+		/* clear all z to close value, so it works as mask for next passes (ztra+strand) */
+		if(rl->layflag & SCE_LAY_ZMASK)
+			zmask_rect(zspan->rectz, zspan->rectp, pa->rectx, pa->recty);
+		
 		if(fillfunc)
 			fillfunc(pa, zspan, pa->sample+zsample, data);
 

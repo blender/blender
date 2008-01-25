@@ -141,6 +141,7 @@ typedef struct SceneRenderLayer {
 #define SCE_LAY_ALL_Z	0x8000
 #define SCE_LAY_XOR		0x10000
 #define SCE_LAY_DISABLE	0x20000
+#define SCE_LAY_ZMASK	0x40000
 
 /* srl->passflag */
 #define SCE_PASS_COMBINED	1
