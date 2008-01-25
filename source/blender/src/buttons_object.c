@@ -1439,6 +1439,54 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				draw_constraint_spaceselect(block, con, *xco, *yco-130, is_armature_owner(ob), -1);
 			}
 			break;
+		case CONSTRAINT_TYPE_DISTLIMIT:
+			{
+				bDistLimitConstraint *data = con->data;
+				
+				height = 105;
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				
+				/* Draw target parameters */
+				uiBlockBeginAlign(block);
+					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+					
+					if (is_armature_target(data->tar)) {
+						but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+					}
+					else if (is_geom_target(data->tar)) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+					}
+					else {
+						strcpy(data->subtarget, "");
+					}
+				uiBlockEndAlign(block);
+				
+				uiBlockBeginAlign(block);
+					if (is_armature_target(data->tar)) {
+						uiDefButF(block, BUT, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->dist, 0, 0, 0, 0, "Recalculate distance"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Distance:", *xco+18, *yco-60,139,18, &data->dist, 0.0, 100, 0.5, 0.5, "Radius of limiting sphere");
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Head/Tail:", *xco+155, *yco-60,100,18, &con->headtail, 0.0, 1, 0.1, 0.1, "Target along length of bone: Head=0, Tail=1");
+					}
+					else {
+						uiDefButF(block, BUT, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->dist, 0, 0, 0, 0, "Recalculate distance"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Distance:", *xco+18, *yco-60, 237, 18, &data->dist, 0.0, 100, 0.5, 0.5, "Radius of limiting sphere");
+					}
+					
+					/* disabled soft-distance controls... currently it doesn't work yet. It was intended to be used for soft-ik (see xsi-blog for details) */
+#if 0
+					uiDefButBitS(block, TOG, LIMITDIST_USESOFT, B_CONSTRAINT_TEST, "Soft", *xco, *yco-82, 50, 18, &data->flag, 0, 24, 0, 0, "Enables soft-distance");
+					if (data->flag & LIMITDIST_USESOFT)
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Soft-Distance:", *xco+50, *yco-82, 187, 18, &data->soft, 0.0, 100, 0.5, 0.5, "Distance surrounding radius when transforms should get 'delayed'");
+#endif
+				uiBlockEndAlign(block);
+				
+				uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Limit Mode%t|Inside %x0|Outside %x1|Surface %x2", *xco+((width/2)-50), *yco-104, 100, 18, &data->mode, 0, 24, 0, 0, "Distances in relation to sphere of influence to allow");
+			}
+			break;
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			{
 				bRigidBodyJointConstraint *data = con->data;
@@ -1748,6 +1796,7 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_LOCLIMIT, "Limit Location", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_ROTLIMIT, "Limit Rotation", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_SIZELIMIT, "Limit Scale", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_DISTLIMIT, "Limit Distance", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -1975,6 +2024,14 @@ void do_constraintbuts(unsigned short event)
 	case B_CONSTRAINT_ADD_TRANSFORM:
 		{
 			con = add_new_constraint(CONSTRAINT_TYPE_TRANSFORM);
+			add_constraint_to_active(ob, con);
+			
+			BIF_undo_push("Add constraint");
+		}
+		break;
+	case B_CONSTRAINT_ADD_DISTLIMIT:
+		{
+			con = add_new_constraint(CONSTRAINT_TYPE_DISTLIMIT);
 			add_constraint_to_active(ob, con);
 			
 			BIF_undo_push("Add constraint");

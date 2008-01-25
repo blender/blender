@@ -2382,6 +2382,118 @@ static bConstraintTypeInfo CTI_LOCKTRACK = {
 	locktrack_evaluate /* evaluate */
 };
 
+/* ---------- Limit Distance Constraint ----------- */
+
+static void distlimit_new_data (void *cdata)
+{
+	bDistLimitConstraint *data= (bDistLimitConstraint *)cdata;
+	
+	data->dist= 0.0;
+}
+
+static void distlimit_get_tars (bConstraint *con, ListBase *list)
+{
+	if (con && list) {
+		bDistLimitConstraint *data= con->data;
+		bConstraintTarget *ct;
+		
+		/* standard target-getting macro for single-target constraints */
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+	}
+}
+
+static void distlimit_flush_tars (bConstraint *con, ListBase *list, short nocopy)
+{
+	if (con && list) {
+		bDistLimitConstraint *data= con->data;
+		bConstraintTarget *ct= list->first;
+		
+		/* the following macro is used for all standard single-target constraints */
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+	}
+}
+
+static void distlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
+{
+	bDistLimitConstraint *data= con->data;
+	bConstraintTarget *ct= targets->first;
+	
+	/* only evaluate if there is a target */
+	if (VALID_CONS_TARGET(ct)) {
+		float dvec[3], dist=0.0f, sfac=1.0f;
+		short clamp_surf= 0;
+		
+		/* calculate our current distance from the target */
+		dist= VecLenf(cob->matrix[3], ct->matrix[3]);
+		
+		/* set distance (flag is only set when user demands it) */
+		if (data->dist == 0)
+			data->dist= dist;
+		
+		/* check if we're which way to clamp from, and calculate interpolation factor (if needed) */
+		if (data->mode == LIMITDIST_OUTSIDE) {
+			/* if inside, then move to surface */
+			if (dist <= data->dist) {
+				clamp_surf= 1;
+				sfac= data->dist / dist;
+			}
+			/* if soft-distance is enabled, start fading once owner is dist+softdist from the target */
+			else if (data->flag & LIMITDIST_USESOFT) {
+				if (dist <= (data->dist + data->soft)) {
+					
+				}
+			}
+		}
+		else if (data->mode == LIMITDIST_INSIDE) {
+			/* if outside, then move to surface */
+			if (dist >= data->dist) {
+				clamp_surf= 1;
+				sfac= data->dist / dist;
+			}
+			/* if soft-distance is enabled, start fading once owner is dist-soft from the target */
+			else if (data->flag & LIMITDIST_USESOFT) {
+				// FIXME: there's a problem with "jumping" when this kicks in
+				if (dist >= (data->dist - data->soft)) {
+					sfac = data->soft*(1.0 - exp(-(dist - data->dist)/data->soft)) + data->dist;
+					sfac /= dist;
+					
+					clamp_surf= 1;
+				}
+			}
+		}
+		else {
+			if (IS_EQ(dist, data->dist)==0) {
+				clamp_surf= 1;
+				sfac= data->dist / dist;
+			}
+		}
+		
+		/* clamp to 'surface' (i.e. move owner so that dist == data->dist) */
+		if (clamp_surf) {
+			/* simply interpolate along line formed by target -> owner */
+			VecLerpf(dvec, ct->matrix[3], cob->matrix[3], sfac);
+			
+			/* copy new vector onto owner */
+			VECCOPY(cob->matrix[3], dvec);
+		}
+	}
+}
+
+static bConstraintTypeInfo CTI_DISTLIMIT = {
+	CONSTRAINT_TYPE_DISTLIMIT, /* type */
+	sizeof(bDistLimitConstraint), /* size */
+	"Limit Distance", /* name */
+	"bDistLimitConstraint", /* struct name */
+	NULL, /* free data */
+	NULL, /* relink data */
+	NULL, /* copy data */
+	distlimit_new_data, /* new data */
+	distlimit_get_tars, /* get constraint targets */
+	distlimit_flush_tars, /* flush constraint targets */
+	default_get_tarmat, /* get a target matrix */
+	distlimit_evaluate /* evaluate */
+};
+
 /* ---------- Stretch To ------------ */
 
 static void stretchto_new_data (void *cdata)
@@ -3067,12 +3179,12 @@ static void constraints_init_typeinfo () {
 	constraintsTypeInfo[11]= &CTI_PYTHON;			/* Python/Script Constraint */
 	constraintsTypeInfo[12]= &CTI_ACTION;			/* Action Constraint */
 	constraintsTypeInfo[13]= &CTI_LOCKTRACK;		/* Locked-Track Constraint */
-	constraintsTypeInfo[14]= NULL;					/* 'Distance Limit' Constraint */
+	constraintsTypeInfo[14]= &CTI_DISTLIMIT;		/* Limit Distance Constraint */
 	constraintsTypeInfo[15]= &CTI_STRETCHTO; 		/* StretchTo Constaint */ 
 	constraintsTypeInfo[16]= &CTI_MINMAX;  			/* Floor Constraint */
 	constraintsTypeInfo[17]= &CTI_RIGIDBODYJOINT;	/* RigidBody Constraint */
 	constraintsTypeInfo[18]= &CTI_CLAMPTO; 			/* ClampTo Constraint */	
-	constraintsTypeInfo[19]= &CTI_TRANSFORM;		/* Transformation Constraint */	
+	constraintsTypeInfo[19]= &CTI_TRANSFORM;		/* Transformation Constraint */
 }
 
 /* This function should be used for getting the appropriate type-info when only
