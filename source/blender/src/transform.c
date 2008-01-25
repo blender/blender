@@ -4055,7 +4055,6 @@ void initMirror(TransInfo *t)
 	}
 	
 	t->transform = Mirror;
-	t->fac = 0.1f;
 }
 
 int Mirror(TransInfo *t, short mval[2]) 
@@ -4073,16 +4072,16 @@ int Mirror(TransInfo *t, short mval[2])
 
 	/* if an axis has been selected */
 	if (t->con.mode & CON_APPLY) {
+		size[0] = size[1] = size[2] = -1;
+	
+		SizeToMat3(size, mat);
+		
 		if (t->con.applySize) {
 			t->con.applySize(t, NULL, mat);
 		}
 		
 		sprintf(str, "Mirror%s", t->con.text);
 	
-		size[0] = size[1] = size[2] = -1;
-	
-		SizeToMat3(size, mat);
-		
 		for(i = 0, td=t->data; i < t->total; i++, td++) {
 			if (td->flag & TD_NOACTION)
 				break;
