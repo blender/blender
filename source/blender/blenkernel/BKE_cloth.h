@@ -128,17 +128,19 @@ ClothSpring;
 /* These are the bits used in SimSettings.flags. */
 typedef enum
 {
-    CLOTH_SIMSETTINGS_FLAG_RESET = ( 1 << 1 ),		// The CM object requires a reinitializaiton.
-    CLOTH_SIMSETTINGS_FLAG_COLLOBJ = ( 1 << 2 ), 	// object is only collision object, no cloth simulation is done
-    CLOTH_SIMSETTINGS_FLAG_GOAL = ( 1 << 3 ), 		// we have goals enabled
-    CLOTH_SIMSETTINGS_FLAG_TEARING = ( 1 << 4 ), // true if tearing is enabled
+    CLOTH_SIMSETTINGS_FLAG_RESET = ( 1 << 1 ),	// The CM object requires a reinitializaiton.
+    CLOTH_SIMSETTINGS_FLAG_COLLOBJ = ( 1 << 2 ),// object is only collision object, no cloth simulation is done
+    CLOTH_SIMSETTINGS_FLAG_GOAL = ( 1 << 3 ), 	// we have goals enabled
+    CLOTH_SIMSETTINGS_FLAG_TEARING = ( 1 << 4 ),// true if tearing is enabled
     CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT = ( 1 << 5 ), // true if tearing is enabled
+    CLOTH_SIMSETTINGS_FLAG_NEW = ( 1 << 6 ), 	// unsued, true if cloth was just enabled
 } CLOTH_SIMSETTINGS_FLAGS;
 
-/* SPRING FLAGS */
+/* COLLISION FLAGS */
 typedef enum
 {
-    CLOTH_COLLISIONSETTINGS_FLAG_ENABLED = ( 1 << 1 ),
+    CLOTH_COLLSETTINGS_FLAG_ENABLED = ( 1 << 1 ), /* enables cloth - object collisions */
+    CLOTH_COLLSETTINGS_FLAG_SELF = ( 1 << 2 ), /* unused */
 } CLOTH_COLLISIONSETTINGS_FLAGS;
 
 /* Spring types as defined in the paper.*/
@@ -204,6 +206,9 @@ void bvh_update_from_cloth(ClothModifierData *clmd, int moving);
 
 // needed for editmesh.c
 void cloth_write_cache(Object *ob, ClothModifierData *clmd, float framenr);
+
+// needed for button_object.c
+void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr);
 
 ////////////////////////////////////////////////
 

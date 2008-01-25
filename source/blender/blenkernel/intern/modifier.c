@@ -4972,6 +4972,7 @@ static DerivedMesh *clothModifier_applyModifier(ModifierData *md, Object *ob,
 
 	if(result)
 	{
+		CDDM_calc_normals(result);
 		return result;
 	}
 	return derivedData;
@@ -5020,6 +5021,22 @@ CustomDataMask clothModifier_requiredDataMask(ModifierData *md)
 	return dataMask;
 }
 
+static void clothModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	ClothModifierData *clmd = (ClothModifierData*) md;
+	ClothModifierData *tclmd = (ClothModifierData*) target;
+	
+	if(tclmd->sim_parms)
+		MEM_freeN(tclmd->sim_parms);
+	if(tclmd->coll_parms)
+		MEM_freeN(tclmd->coll_parms);	
+	
+	tclmd->sim_parms = MEM_dupallocN(clmd->sim_parms);
+	tclmd->coll_parms = MEM_dupallocN(clmd->coll_parms);
+	
+	tclmd->sim_parms->lastcachedframe = 0;
+}
+
 
 static int clothModifier_dependsOnTime(ModifierData *md)
 {
@@ -5035,8 +5052,10 @@ static void clothModifier_freeData(ModifierData *md)
 		
 		cloth_free_modifier_extern (clmd);
 		
-		MEM_freeN(clmd->sim_parms);
-		MEM_freeN(clmd->coll_parms);
+		if(clmd->sim_parms)
+			MEM_freeN(clmd->sim_parms);
+		if(clmd->coll_parms)
+			MEM_freeN(clmd->coll_parms);	
 	}
 }
 
@@ -7033,8 +7052,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->dependsOnTime = clothModifier_dependsOnTime;
 		mti->freeData = clothModifier_freeData; 
 		mti->requiredDataMask = clothModifier_requiredDataMask;
-		// mti->copyData = clothModifier_copyData;
-		// mti->deformVerts = clothModifier_deformVerts;
+		mti->copyData = clothModifier_copyData;
 		mti->applyModifier = clothModifier_applyModifier;
 		mti->updateDepgraph = clothModifier_updateDepgraph;
 		

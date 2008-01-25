@@ -153,7 +153,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->mass = 1.0f;
 	clmd->sim_parms->stepsPerFrame = 5;
 	clmd->sim_parms->sim_time = 1.0;
-	clmd->sim_parms->flags = CLOTH_SIMSETTINGS_FLAG_RESET;
+	clmd->sim_parms->flags = CLOTH_SIMSETTINGS_FLAG_NEW;
 	clmd->sim_parms->solver_type = 0;
 	clmd->sim_parms->preroll = 0;
 	clmd->sim_parms->maxspringlen = 10;
@@ -166,7 +166,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->coll_parms->friction = 10.0;
 	clmd->coll_parms->loop_count = 1;
 	clmd->coll_parms->epsilon = 0.01f;
-	clmd->coll_parms->flags = CLOTH_COLLISIONSETTINGS_FLAG_ENABLED;
+	clmd->coll_parms->flags = CLOTH_COLLSETTINGS_FLAG_ENABLED;
 
 	/* These defaults are copied from softbody.c's
 	* softbody_calc_forces() function.
@@ -533,7 +533,8 @@ void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr)
 {
 	int stack_index = -1;
 	
-	if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
+	/* clear cache if specific frame cleaning requested or cache is not protected */
+	if((!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT)) || (framenr > 1.0))
 	{
 		stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
 		
@@ -635,8 +636,6 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 		return result;
 	}
 	
-	// printf("ct: %f, st: %f, r.cfra: %f, dt: %f\n", current_time, clmd->sim_parms->sim_time, ( float ) G.scene->r.cfra, deltaTime);
-
 	// unused in the moment, calculated seperately in implicit.c
 	clmd->sim_parms->dt = 1.0f / clmd->sim_parms->stepsPerFrame;
 
@@ -658,6 +657,8 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 		if ( ( clmd->clothObject == NULL ) || ( numverts != clmd->clothObject->numverts ) )
 		{
 			cloth_clear_cache(ob, clmd, 0);
+			
+			// printf("v1: %d, v2: %d\n", numverts, clmd->clothObject->numverts);
 			
 			if ( !cloth_from_object ( ob, clmd, result, framenr ) )
 				return result;
@@ -718,6 +719,9 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 		else
 		{
 			cloth_clear_cache(ob, clmd, 0);
+			
+			if ( !cloth_from_object ( ob, clmd, result, framenr ) )
+				return result;
 		}
 	}
 	
@@ -743,9 +747,9 @@ void cloth_free_modifier ( Object *ob, ClothModifierData *clmd )
 			cloth_clear_cache ( ob, clmd, 0 );
 			
 			// If our solver provides a free function, call it
-			if ( cloth->old_solver_type < 255 && solvers [cloth->old_solver_type].free )
+			if ( solvers [clmd->sim_parms->solver_type].free )
 			{
-				solvers [cloth->old_solver_type].free ( clmd );
+				solvers [clmd->sim_parms->solver_type].free ( clmd );
 			}
 
 			// Free the verts.
@@ -805,9 +809,9 @@ void cloth_free_modifier_extern ( ClothModifierData *clmd )
 	if ( cloth )
 	{	
 		// If our solver provides a free function, call it
-		if ( cloth->old_solver_type < 255 && solvers [cloth->old_solver_type].free )
+		if ( solvers [clmd->sim_parms->solver_type].free )
 		{
-			solvers [cloth->old_solver_type].free ( clmd );
+			solvers [clmd->sim_parms->solver_type].free ( clmd );
 		}
 
 		// Free the verts.
@@ -972,7 +976,9 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 
 	// If we have a clothObject, free it. 
 	if ( clmd->clothObject != NULL )
+	{
 		cloth_free_modifier ( ob, clmd );
+	}
 
 	// Allocate a new cloth object.
 	clmd->clothObject = MEM_callocN ( sizeof ( Cloth ), "cloth" );
@@ -1041,8 +1047,9 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 			solvers [clmd->sim_parms->solver_type].init ( ob, clmd );
 
 		clmd->clothObject->tree = bvh_build_from_cloth ( clmd, clmd->coll_parms->epsilon );
-
-		cloth_write_cache(ob, clmd, framenr-1);
+		
+		if(!cloth_read_cache(ob, clmd, framenr))
+			cloth_write_cache(ob, clmd, framenr);
 		
 		return 1;
 	}

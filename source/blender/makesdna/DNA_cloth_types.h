@@ -69,7 +69,7 @@ typedef struct SimulationSettings
 	float	eff_force_scale;/* Scaling of effector forces (see softbody_calc_forces).*/
 	float	eff_wind_scale;	/* Scaling of effector wind (see softbody_calc_forces).	*/
 	float 	sim_time_old;
-	struct	LinkNode *cache;
+	struct	LinkNode *cache; /* UNUSED atm */
 	float	defgoal;
 	int	goalfrict;
 	float	goalspring;
@@ -113,7 +113,7 @@ typedef struct Cloth
 	unsigned int		numverts;		/* The number of verts == m * n. */
 	unsigned int		numsprings;		/* The count of springs. */
 	unsigned int		numfaces;
-	unsigned char 		old_solver_type;
+	unsigned char 		old_solver_type;	/* unused, only 1 solver here */
 	unsigned char 		pad2;
 	short 			pad3;
 	struct BVH		*tree;			/* collision tree for this cloth object */

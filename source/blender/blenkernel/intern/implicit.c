@@ -1389,7 +1389,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 		
 		add_lfvector_lfvectorS(id->Xnew, id->X, id->Vnew, dt, numverts);
 		
-		if(clmd->coll_parms->flags & CLOTH_COLLISIONSETTINGS_FLAG_ENABLED)
+		if(clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED)
 		{
 			// collisions 
 			// itstart();
