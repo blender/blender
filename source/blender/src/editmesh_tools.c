@@ -51,6 +51,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -1283,6 +1284,19 @@ static EditVert *subdivide_edge_addvert(EditEdge *edge, float rad, int beauty, f
 	/* offset for smooth or sphere or fractal */
 	alter_co(co, edge, rad, beauty, percent);
 	
+	/* clip if needed by mirror modifier */
+	if (edge->v1->f2) {
+		if ( edge->v1->f2 & edge->v2->f2 & 1) {
+			co[0]= 0.0f;
+		}
+		if ( edge->v1->f2 & edge->v2->f2 & 2) {
+			co[1]= 0.0f;
+		}
+		if ( edge->v1->f2 & edge->v2->f2 & 4) {
+			co[2]= 0.0f;
+		}
+	}
+	
 	ev = addvertlist(co, NULL);
 	
 	/* vert data (vgroups, ..) */
@@ -2403,12 +2417,39 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	EditMesh *em = G.editMesh;
 	EditFace *ef;
 	EditEdge *eed, *cedge, *sort[4];
-	EditVert **templist;
+	EditVert *eve, **templist;
 	struct GHash *gh;
 	float length[4], v1mat[3], v2mat[3], v3mat[3], v4mat[3];
 	int i, j, edgecount, touchcount, facetype,hold;
+	ModifierData *md= G.obedit->modifiers.first;
 	
 	if(multires_test()) return;
+
+	for (; md; md=md->next) {
+		if (md->type==eModifierType_Mirror) {
+			MirrorModifierData *mmd = (MirrorModifierData*) md;	
+		
+			if(mmd->flag & MOD_MIR_CLIPPING) {
+				for (eve= em->verts.first; eve; eve= eve->next) {
+					eve->f2= 0;
+					switch(mmd->axis){
+						case 0:
+							if (fabs(eve->co[0]) < mmd->tolerance)
+								eve->f2 |= 1;
+							break;
+						case 1:
+							if (fabs(eve->co[1]) < mmd->tolerance)
+								eve->f2 |= 2;
+							break;
+						case 2:
+							if (fabs(eve->co[2]) < mmd->tolerance)
+								eve->f2 |= 4;
+							break;
+					}
+				}
+			}
+		}
+	}
 	
 	//Set faces f1 to 0 cause we need it later
 	for(ef=em->faces.first;ef;ef = ef->next) {
