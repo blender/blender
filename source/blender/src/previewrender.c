@@ -270,6 +270,11 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 		sce->r.scemode |= R_PREVIEWBUTS;
 		/* set world always back, is used now */
 		sce->world= pr_main->world.first;
+		/* now: exposure copy */
+		if(G.scene->world) {
+			sce->world->exp= G.scene->world->exp;
+			sce->world->range= G.scene->world->range;
+		}
 		
 		sce->r.cfra= G.scene->r.cfra;
 		
