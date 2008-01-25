@@ -80,7 +80,10 @@ typedef struct ClothVertex
 	float 	goal;		/* goal, from SB			*/
 	float	impulse[3];	/* used in collision.c */
 	unsigned int impulse_count; /* same as above */
-	float avg_spring_len; /* average length of connected springs, UNUSED ATM */
+	float 	avg_spring_len; /* average length of connected springs, UNUSED ATM */
+	float 	struct_stiff;
+	float	bend_stiff;
+	float 	shear_stiff;
 }
 ClothVertex;
 
@@ -99,6 +102,7 @@ typedef struct ClothSpring
 	float dfdx[3][3];
 	float dfdv[3][3];
 	float f[3];
+	float 	stiffness;	/* stiffness factor from the vertex groups */
 }
 ClothSpring;
 
@@ -135,6 +139,7 @@ typedef enum
     CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT = ( 1 << 5 ), // true if tearing is enabled
     CLOTH_SIMSETTINGS_FLAG_NEW = ( 1 << 6 ), 	// unsued, true if cloth was just enabled
     CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE = (1 << 7), /* force cache freeing */
+    CLOTH_SIMSETTINGS_FLAG_SCALING = (1 << 8), /* is advanced scaling active? */
 } CLOTH_SIMSETTINGS_FLAGS;
 
 /* COLLISION FLAGS */

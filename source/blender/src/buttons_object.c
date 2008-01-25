@@ -2325,6 +2325,7 @@ void do_object_panels(unsigned short event)
 		{
 			/* force freeing because user wants */
 			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
+			
 			cloth_clear_cache(ob, clmd, MAX2(1.0,G.scene->r.cfra)); 
 			// MAX2(1.0,G.scene->r.cfra + 1.0)
 			allqueue(REDRAWBUTSOBJECT, 0);
@@ -5036,13 +5037,31 @@ static void object_cloth__enabletoggle(void *ob_v, void *arg2)
 	if (!md) {
 		md = modifier_new(eModifierType_Cloth);
 		BLI_addhead(&ob->modifiers, md);
+		
+		allqueue(REDRAWBUTSEDIT, 0);
 	}
 	else {
-		BLI_remlink(&ob->modifiers, md);
-		modifier_free(md);
-	}
+		Object *ob = ob_v;
+		ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
+	
+		if (!md)
+			return;
 
-	allqueue(REDRAWBUTSEDIT, 0);
+		BLI_remlink(&ob->modifiers, md);
+
+		modifier_free(md);
+
+		BIF_undo_push("Del modifier");
+		
+		ob->softflag |= OB_SB_RESET;
+		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWIMAGE, 0);
+		allqueue(REDRAWOOPS, 0);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		object_handle_update(ob);
+		countall();
+	}
 }
 
 
@@ -5068,7 +5087,7 @@ static void object_panel_cloth(Object *ob)
 	{
 		int defCount;
 		char *clvg1, *clvg2;
-		char clmvg [] = "Weight Paint Groups%t|";
+		char clmvg [] = "Vertex Groups%t|";
 
 		val2=0;
 		
@@ -5177,21 +5196,11 @@ static void object_panel_cloth_II(Object *ob)
 	clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 	
 	if(clmd)
-	{
-		// char str[128];
-		
+	{	
 		uiDefButI(block, NUM, B_DIFF, "First Frame:",		10,160,150,20, &clmd->sim_parms->firstframe, 0, MAXFRAME, 1, 0, "Frame on which the simulation starts");
 		uiDefButI(block, NUM, B_DIFF, "Last Frame:",		160,160,150,20, &clmd->sim_parms->lastframe, 0, MAXFRAME, 10, 0, "Frame on which the simulation stops");
 		
 		uiDefBut(block, LABEL, 0, "",10,140,300,20, NULL, 0.0, 0, 0, 0, "");
-		
-		/* correct spelling if only 1 frame cacheed --> only gimmick  */
-		/*
-		if(length-clmd->sim_parms->preroll>1)
-		sprintf (str, "Frame 1 - %d cached. [%d in preroll, %d in total]", length-clmd->sim_parms->preroll, clmd->sim_parms->preroll, length);
-		else
-		sprintf (str, "Frame %d cached. [%d in preroll, %d in total]", length-clmd->sim_parms->preroll, clmd->sim_parms->preroll, length);
-		*/
 		
 		if (!G.relbase_valid)
 		{
@@ -5209,6 +5218,7 @@ static void object_panel_cloth_II(Object *ob)
 		}
 
 		/*
+		TODO: implement this again in cloth!
 		if(length>1) // B_CLOTH_CHANGEPREROLL
 		uiDefButI(block, NUM, B_CLOTH_CHANGEPREROLL, "Preroll:", 10,80,145,20, &clmd->sim_parms->preroll, 0, length-1, 1, 0, "Simulation starts on this frame");	
 		else
@@ -5219,9 +5229,106 @@ static void object_panel_cloth_II(Object *ob)
 		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED)
 		{
 			uiDefButF(block, NUM, B_CLOTH_RENEW, "Min Distance:",	   160,60,150,20, &clmd->coll_parms->epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in");
+			uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Collision Quality:",	   10,40,300,20, &clmd->coll_parms->loop_count, 1.0, 100.0, 1.0, 0, "How many collision iterations should be done. (higher = better = slower), je be changed for each frame");
 		}
 		else
 			uiDefBut(block, LABEL, 0, "",160,60,150,20, NULL, 0.0, 0, 0, 0, "");	
+	}
+	
+	uiBlockEndAlign(block);
+	
+}
+
+static void object_panel_cloth_III(Object *ob)
+{
+	uiBlock *block;
+	ClothModifierData *clmd = NULL;
+
+	block= uiNewBlock(&curarea->uiblocks, "object_cloth_III", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Cloth ", "Physics");
+	if(uiNewPanel(curarea, block, "Cloth Advanced", "Physics", 651, 0, 318, 204)==0) return;
+
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	
+	clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+	
+	if(clmd)
+	{
+		int defCount;
+		char *clvg1, *clvg2;
+		char clmvg [] = "Vertex Groups%t|None%x0|";
+		char clmvg2 [] = "Vertex Groups%t|None%x0|";
+		
+		uiDefButI(block, NUM, B_DIFF, "Autoprotect Cache From:",10,160,300,20, &clmd->sim_parms->autoprotect, 0, MAXFRAME, 1, 0, "Frame on which the simulation gets cache protection enabled automatically (To prevent accidently cleaning it).");
+				
+		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_SCALING, REDRAWVIEW3D, "Enable stiffness scaling",10,130,300,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "If enabled, stiffness can be scaled along a weight painted vertex group.");
+		
+		if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING)&& (BLI_countlist (&ob->defbase) > 0))
+		{	
+			uiDefBut(block, LABEL, 0, "StructStiff VGroup:",10,110,150,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "BendStiff VGroup:",160,110,150,20, NULL, 0.0, 0, 0, 0, "");
+			
+			defCount = sizeof (clmvg);
+			clvg1 = get_vertexgroup_menustr (ob);
+			clvg2 = MEM_callocN (strlen (clvg1) + 1 + defCount, "clothVgST");
+			if (! clvg2) {
+				printf ("draw_modifier: error allocating memory for cloth vertex group menu string.\n");
+				return;
+			}
+			defCount = BLI_countlist (&ob->defbase);
+			if (defCount == 0) 
+			{
+				clmd->sim_parms->vgroup_struct = 0;
+			}
+			else
+			{
+				if(clmd->sim_parms->vgroup_struct > defCount)
+					clmd->sim_parms->vgroup_struct = 0;
+			}
+						
+			sprintf (clvg2, "%s%s", clmvg, clvg1);
+			
+			uiDefButS(block, MENU, B_CLOTH_RENEW, clvg2,	10,90,150,20, &clmd->sim_parms->vgroup_struct, 0, defCount, 0, 0, "Browses available vertex groups");
+			MEM_freeN (clvg1);
+			MEM_freeN (clvg2);
+			
+			defCount = sizeof (clmvg);
+			clvg1 = get_vertexgroup_menustr (ob);
+			clvg2 = MEM_callocN (strlen (clvg1) + 1 + defCount, "clothVgBD");
+			if (! clvg2) {
+				printf ("draw_modifier: error allocating memory for cloth vertex group menu string.\n");
+				return;
+			}
+			defCount = BLI_countlist (&ob->defbase);
+			if (defCount == 0) 
+			{
+				clmd->sim_parms->vgroup_bend = 0;
+			}
+			else
+			{
+				if(clmd->sim_parms->vgroup_bend > defCount)
+					clmd->sim_parms->vgroup_bend = 0;
+			}
+						
+			sprintf (clvg2, "%s%s", clmvg2, clvg1);
+			
+			uiDefButS(block, MENU, B_CLOTH_RENEW, clvg2, 160,90,150,20, &clmd->sim_parms->vgroup_bend, 0, defCount, 0, 0, "Browses available vertex groups");
+			MEM_freeN (clvg1);
+			MEM_freeN (clvg2);
+			
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff Max:",10,70,150,20, &clmd->sim_parms->max_struct, clmd->sim_parms->structural, 1000.0, 0.01f, 0, "Maximum structural stiffness value");
+			
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff Max:",160,70,150,20, &clmd->sim_parms->max_bend, clmd->sim_parms->bending, 1000.0, 0.01f, 0, "Maximum bending stiffness value");
+
+		}
+		else if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING)
+		{
+			uiDefBut(block, LABEL, 0, " ",  10,110,300,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "No vertex group for pinning available.",  10,90,300,20, NULL, 0.0, 0, 0, 0, "");
+		}
+	
+		
+		
 	}
 	
 	uiBlockEndAlign(block);
@@ -5259,6 +5366,7 @@ void physics_panels()
 		object_softbodies_solver(ob);
 		object_panel_cloth(ob);
 		object_panel_cloth_II(ob);
+		object_panel_cloth_III(ob);
 		object_panel_fluidsim(ob);
 	}
 }

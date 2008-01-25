@@ -47,24 +47,24 @@
 **/
 typedef struct SimulationSettings
 {
-	short	vgroup_mass;	/* optional vertexgroup name for assigning weight.	*/
-	short	pad;
+	short	vgroup_mass;	/* optional vertexgroup name for assigning weight.*/
+	short	vgroup_struct;  /* vertex group for scaling structural stiffness */
 	float 	mingoal; 	/* see SB */
 	int	preroll;	/* How many frames of simulation to do before we start.	*/
 	float	Cdis;		/* Mechanical damping of springs.		*/
 	float	Cvi;		/* Viscous/fluid damping.			*/
-	int 	stepsPerFrame;	/* Number of time steps per frame.			*/
-	float	gravity [3];	/* Gravity/external force vector.			*/
+	int 	stepsPerFrame;	/* Number of time steps per frame.		*/
+	float	gravity [3];	/* Gravity/external force vector.		*/
 	float	ufluid [3];	/* Velocity vector of the fluid.		*/
-	float	dt;		/* This is the duration of our time step, computed.		*/
+	float	dt;		/* This is the duration of our time step, computed.	*/
 	float	mass;		/* The mass of the entire cloth.		*/
 	float	structural;	/* Structural spring stiffness.			*/
 	float	shear;		/* Shear spring stiffness.			*/
 	float	bending;	/* Flexion spring stiffness.			*/
 	float	sim_time;
 	int	flags;		/* flags, see CSIMSETT_FLAGS enum above.	*/
-	short	solver_type; 	/* which solver should be used?		txold		*/
-	short	pad2;
+	short	solver_type; 	/* which solver should be used?		txold	*/
+	short	vgroup_bend;	/* vertex group for scaling bending stiffness */
 	float	maxgoal; 	/* see SB */
 	float	eff_force_scale;/* Scaling of effector forces (see softbody_calc_forces).*/
 	float	eff_wind_scale;	/* Scaling of effector wind (see softbody_calc_forces).	*/
@@ -77,7 +77,11 @@ typedef struct SimulationSettings
 	int 	lastframe; 	/* frame on which simulation stops */
 	int	firstframe;	/* frame on which simulation starts */
 	int 	lastcachedframe;
-	int 	editedframe; /* which frame is in buffer */
+	int 	editedframe; 	/* which frame is in buffer */
+	int 	autoprotect; 	/* starting from this frame, cache gets protected  */
+	float	max_bend; 	/* max bending scaling value, min is "bending" */
+	float	max_struct; 	/* max structural scaling value, min is "structural" */
+	float	max_shear; 	/* max shear scaling value, UNUSED */
 }
 SimulationSettings;
 

@@ -978,9 +978,6 @@ void cloth_collision_moving(ClothModifierData *clmd, ClothModifierData *coll_clm
 	cloth_collision_moving_tris(coll_clmd, clmd, tree2, tree1);
 }
 
-// CLOTH_MAX_THRESHOLD defines how much collision rounds/loops should be taken
-#define CLOTH_MAX_THRESHOLD 10
-
 // cloth - object collisions
 int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 {
@@ -1092,7 +1089,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 		}
 		rounds++;
 	}
-	while(result && (CLOTH_MAX_THRESHOLD>rounds));
+	while(result && (clmd->coll_parms->loop_count>rounds));
 	
 	////////////////////////////////////////////////////////////
 	// update positions

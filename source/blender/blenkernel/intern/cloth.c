@@ -125,7 +125,7 @@ static void cloth_to_object (Object *ob,  ClothModifierData *clmd, DerivedMesh *
 static void cloth_from_mesh ( Object *ob, ClothModifierData *clmd, DerivedMesh *dm );
 static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr);
 int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm );
-static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm, short vgroup );
+static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm, short vgroup, int mode );
 
 
 /******************************************************************************
@@ -162,10 +162,11 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->vgroup_mass = 0;
 	clmd->sim_parms->lastcachedframe = 0;
 	clmd->sim_parms->editedframe = 0;
+	clmd->sim_parms->autoprotect = 10;
 	
 	clmd->coll_parms->self_friction = 5.0;
 	clmd->coll_parms->friction = 10.0;
-	clmd->coll_parms->loop_count = 1;
+	clmd->coll_parms->loop_count = 5;
 	clmd->coll_parms->epsilon = 0.01f;
 	clmd->coll_parms->flags = CLOTH_COLLSETTINGS_FLAG_ENABLED;
 
@@ -482,8 +483,6 @@ DerivedMesh *CDDM_create_tearing ( ClothModifierData *clmd, DerivedMesh *dm )
 	return result;
 }
 
-
-
 int modifiers_indexInObject(Object *ob, ModifierData *md_seek);
 
 int cloth_read_cache(Object *ob, ClothModifierData *clmd, float framenr)
@@ -522,10 +521,10 @@ int cloth_read_cache(Object *ob, ClothModifierData *clmd, float framenr)
 		}
 		
 		fclose(fp);
-		
-		if(clmd->sim_parms->solver_type == 0)
-			implicit_set_positions(clmd);
 	}
+	
+	if(clmd->sim_parms->solver_type == 0)
+		implicit_set_positions(clmd);
 		
 	return ret;
 }
@@ -655,6 +654,14 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	{	
 		cloth_free_modifier (ob, clmd);
 	}
+	
+	// sanity check for correctness of GUI values
+	if(clmd->sim_parms->max_struct<clmd->sim_parms->structural)
+		clmd->sim_parms->max_struct=clmd->sim_parms->structural;
+	if(clmd->sim_parms->max_bend<clmd->sim_parms->bending)
+		clmd->sim_parms->max_struct=clmd->sim_parms->bending;
+	if(clmd->sim_parms->max_shear<clmd->sim_parms->shear)
+		clmd->sim_parms->max_shear=clmd->sim_parms->shear;
 
 	if ( deltaTime == 1.0f )
 	{
@@ -693,7 +700,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 					VECCOPY ( verts->xconst, mvert[i].co );
 					Mat4MulVecfl ( ob->obmat, verts->xconst );
 				}
-
+				
 				tstart();
 
 				// Call the solver.
@@ -704,6 +711,10 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 				// printf ( "Cloth simulation time: %f\n", ( float ) tval() );
 
 				cloth_write_cache(ob, clmd, framenr);
+				
+				// check for autoprotection
+				if(framenr >= clmd->sim_parms->autoprotect)
+					clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT;
 			}
 			
 			// Copy the result back to the object.
@@ -897,7 +908,8 @@ static void cloth_to_object (Object *ob,  ClothModifierData *clmd, DerivedMesh *
 * cloth_apply_vgroup - applies a vertex group as specified by type
 *
 **/
-static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm, short vgroup )
+/* can be optimized to do all groups in one loop */
+static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm, short vgroup, int mode )
 {
 	unsigned int i = 0;
 	unsigned int j = 0;
@@ -922,7 +934,7 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm, short
 	for ( i = 0; i < numverts; i++, verts++ )
 	{
 		// LATER ON, support also mass painting here
-		if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
+		if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )||(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING))
 		{
 			dvert = dm->getVertData ( dm, i, CD_MDEFORMVERT );
 			if ( dvert )
@@ -931,25 +943,37 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm, short
 				{
 					if ( dvert->dw[j].def_nr == vgroup )
 					{
-						verts->goal = dvert->dw [j].weight;
-
-						goalfac= 1.0f;
-						
-						/*
-						// Kicking goal factor to simplify things...who uses that anyway?
-						// ABS ( clmd->sim_parms->maxgoal - clmd->sim_parms->mingoal );
-						*/
-						
-						verts->goal  = ( float ) pow ( verts->goal , 4.0f );
-
-						if ( verts->goal >=SOFTGOALSNAP )
+						if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
 						{
-							verts->flags |= CLOTH_VERT_FLAG_PINNED;
+							verts->goal = dvert->dw [j].weight;
+							goalfac= 1.0f;
+							
+							/*
+							// Kicking goal factor to simplify things...who uses that anyway?
+							// ABS ( clmd->sim_parms->maxgoal - clmd->sim_parms->mingoal );
+							*/
+							
+							verts->goal  = ( float ) pow ( verts->goal , 4.0f );
+							if ( verts->goal >=SOFTGOALSNAP )
+								verts->flags |= CLOTH_VERT_FLAG_PINNED;
+							
+							break;
+						}
+						
+						if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING )
+						{
+							if(mode==2)
+							{
+								verts->struct_stiff = dvert->dw [j].weight;
+								verts->shear_stiff = dvert->dw [j].weight;
+							}
+							else if(mode==1)
+							{
+								verts->bend_stiff = dvert->dw [j].weight;
+							}
+							break;
 						}
 
-						// TODO enable mass painting here, for the moment i let "goals" go first
-
-						break;
 					}
 				}
 			}
@@ -1044,7 +1068,15 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 
 		// apply / set vertex groups
 		if ( clmd->sim_parms->vgroup_mass > 0 )
-			cloth_apply_vgroup ( clmd, dm, clmd->sim_parms->vgroup_mass );
+			cloth_apply_vgroup ( clmd, dm, clmd->sim_parms->vgroup_mass, 0 );
+		
+		// apply / set vertex groups
+		if ( clmd->sim_parms->vgroup_bend > 0 )
+			cloth_apply_vgroup ( clmd, dm, clmd->sim_parms->vgroup_bend, 1 );
+		
+		// apply / set vertex groups
+		if ( clmd->sim_parms->vgroup_struct > 0 )
+			cloth_apply_vgroup ( clmd, dm, clmd->sim_parms->vgroup_struct, 2 );
 
 		// init our solver
 		if ( solvers [clmd->sim_parms->solver_type].init )
@@ -1181,6 +1213,7 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 			clmd->coll_parms->avg_spring_len += spring->restlen;
 			spring->type = CLOTH_SPRING_TYPE_STRUCTURAL;
 			spring->flags = 0;
+			spring->stiffness = (cloth->verts[spring->kl].struct_stiff + cloth->verts[spring->ij].struct_stiff) / 2.0;
 			struct_springs++;
 			
 			if(!i)
@@ -1203,6 +1236,7 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		VECSUB ( temp, cloth->verts[spring->kl].x, cloth->verts[spring->ij].x );
 		spring->restlen =  sqrt ( INPR ( temp, temp ) );
 		spring->type = CLOTH_SPRING_TYPE_SHEAR;
+		spring->stiffness = (cloth->verts[spring->kl].shear_stiff + cloth->verts[spring->ij].shear_stiff) / 2.0;
 
 		BLI_linklist_append ( &edgelist[spring->ij], spring );
 		BLI_linklist_append ( &edgelist[spring->kl], spring );
@@ -1220,6 +1254,7 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 			VECSUB ( temp, cloth->verts[spring->kl].x, cloth->verts[spring->ij].x );
 			spring->restlen =  sqrt ( INPR ( temp, temp ) );
 			spring->type = CLOTH_SPRING_TYPE_SHEAR;
+			spring->stiffness = (cloth->verts[spring->kl].shear_stiff + cloth->verts[spring->ij].shear_stiff) / 2.0;
 
 			BLI_linklist_append ( &edgelist[spring->ij], spring );
 			BLI_linklist_append ( &edgelist[spring->kl], spring );
@@ -1257,6 +1292,7 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 				VECSUB ( temp, cloth->verts[index2].x, cloth->verts[tspring2->ij].x );
 				spring->restlen =  sqrt ( INPR ( temp, temp ) );
 				spring->type = CLOTH_SPRING_TYPE_BENDING;
+				spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0;
 				BLI_edgehash_insert ( edgehash, spring->ij, index2, NULL );
 				bend_springs++;
 

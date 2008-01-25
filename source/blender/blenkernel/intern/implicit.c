@@ -1091,6 +1091,8 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	float damping_force[3] = {0,0,0};
 	float nulldfdx[3][3]={ {0,0,0}, {0,0,0}, {0,0,0}};
 	
+	float scaling = 0.0;
+	
 	VECCOPY(s->f, nullf);
 	cp_fmatrix(s->dfdx, nulldfdx);
 	cp_fmatrix(s->dfdv, nulldfdx);
@@ -1122,15 +1124,17 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 		mul_fvector_S(dir, extent, 0.0f);
 	}
 	
-	
 	// calculate force of structural + shear springs
 	if(s->type != CLOTH_SPRING_TYPE_BENDING)
 	{
 		if(length > L) // only on elonglation
 		{
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
-
-			k = clmd->sim_parms->structural;	
+			
+			k = clmd->sim_parms->structural;
+				
+			scaling = k + s->stiffness * (clmd->sim_parms->max_struct-k);
+			k = scaling;
 
 			mul_fvector_S(stretch_force, dir, (k*(length-L))); 
 
@@ -1152,6 +1156,9 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
 			k = clmd->sim_parms->bending;	
+			
+			scaling = k + s->stiffness * (clmd->sim_parms->max_bend-k);
+			cb = k = scaling;
 
 			mul_fvector_S(bending_force, dir, fbstar(length, L, k, cb));
 			VECADD(s->f, s->f, bending_force);
