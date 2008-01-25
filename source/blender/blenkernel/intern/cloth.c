@@ -945,19 +945,22 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm, short
 					{
 						if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
 						{
-							verts->goal = dvert->dw [j].weight;
-							goalfac= 1.0f;
-							
-							/*
-							// Kicking goal factor to simplify things...who uses that anyway?
-							// ABS ( clmd->sim_parms->maxgoal - clmd->sim_parms->mingoal );
-							*/
-							
-							verts->goal  = ( float ) pow ( verts->goal , 4.0f );
-							if ( verts->goal >=SOFTGOALSNAP )
-								verts->flags |= CLOTH_VERT_FLAG_PINNED;
-							
-							break;
+							if(mode==0)
+							{
+								verts->goal = dvert->dw [j].weight;
+								goalfac= 1.0f;
+								
+								/*
+								// Kicking goal factor to simplify things...who uses that anyway?
+								// ABS ( clmd->sim_parms->maxgoal - clmd->sim_parms->mingoal );
+								*/
+								
+								verts->goal  = ( float ) pow ( verts->goal , 4.0f );
+								if ( verts->goal >=SOFTGOALSNAP )
+									verts->flags |= CLOTH_VERT_FLAG_PINNED;
+								
+								break;
+							}
 						}
 						
 						if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING )
@@ -966,12 +969,13 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm, short
 							{
 								verts->struct_stiff = dvert->dw [j].weight;
 								verts->shear_stiff = dvert->dw [j].weight;
+								break;
 							}
 							else if(mode==1)
 							{
 								verts->bend_stiff = dvert->dw [j].weight;
+								break;
 							}
-							break;
 						}
 
 					}
