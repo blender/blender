@@ -77,7 +77,7 @@ typedef struct SimulationSettings
 	int 	lastframe; 	/* frame on which simulation stops */
 	int	firstframe;	/* frame on which simulation starts */
 	int 	lastcachedframe;
-	int pad3;
+	int 	editedframe; /* which frame is in buffer */
 }
 SimulationSettings;
 

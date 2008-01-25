@@ -861,6 +861,8 @@ void make_editMesh()
 			{
 				cloth_enabled = 1;
 				
+				clmd->sim_parms->editedframe = (float) G.scene->r.cfra;
+				
 				/* inverse matrix is not uptodate... */
 				Mat4Invert ( G.obedit->imat, G.obedit->obmat );
 			}
@@ -1092,7 +1094,7 @@ void load_editMesh(void)
 			/* check if we have cache for this frame */
 			int stack_index = modifiers_indexInObject(G.obedit, (ModifierData *)clmd);
 		
-			if(BKE_ptcache_id_exist((ID *)G.obedit, (float) G.scene->r.cfra, stack_index))
+			if(BKE_ptcache_id_exist((ID *)G.obedit, clmd->sim_parms->editedframe, stack_index))
 			{
 				cloth_enabled = 1;
 				
@@ -1108,9 +1110,11 @@ void load_editMesh(void)
 		
 		if(cloth_enabled)
 		{	
+			
 			VECCOPY(temp, cloth->verts[i].x);
 			VECCOPY(cloth->verts[i].x, eve->co);
 			Mat4MulVecfl ( G.obedit->obmat, cloth->verts[i].x );
+			
 			/*
 			// not physical correct but gives nicer results when commented
 			VECSUB(temp, cloth->verts[i].x, temp);
@@ -1154,7 +1158,15 @@ void load_editMesh(void)
 	
 	/* burn changes to cache */
 	if(cloth_enabled)
-		cloth_write_cache(G.obedit, clmd, (float) G.scene->r.cfra);
+	{
+		cloth_write_cache(G.obedit, clmd, clmd->sim_parms->editedframe);
+		
+		/* in this case we have to get the data for the requested frame */
+		if(clmd->sim_parms->editedframe != (float) G.scene->r.cfra)
+		{
+			cloth_read_cache(G.obedit, clmd, (float) G.scene->r.cfra);
+		}
+	}
 
 	/* the edges */
 	a= 0;

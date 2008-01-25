@@ -2306,6 +2306,9 @@ void do_object_panels(unsigned short event)
 		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 		if(clmd)
 		{
+			/* force freeing because user wants */
+			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
+			
 			CFRA= 1;
 			update_for_newframe_muted();
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
@@ -2320,6 +2323,8 @@ void do_object_panels(unsigned short event)
 		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 		if(clmd)
 		{
+			/* force freeing because user wants */
+			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
 			cloth_clear_cache(ob, clmd, MAX2(1.0,G.scene->r.cfra)); 
 			// MAX2(1.0,G.scene->r.cfra + 1.0)
 			allqueue(REDRAWBUTSOBJECT, 0);

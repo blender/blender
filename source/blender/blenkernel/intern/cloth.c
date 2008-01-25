@@ -145,9 +145,9 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->gravity [0] = 0.0;
 	clmd->sim_parms->gravity [1] = 0.0;
 	clmd->sim_parms->gravity [2] = -9.81;
-	clmd->sim_parms->structural = 100.0;
-	clmd->sim_parms->shear = 100.0;
-	clmd->sim_parms->bending = 1.0;
+	clmd->sim_parms->structural = 200.0;
+	clmd->sim_parms->shear = 200.0;
+	clmd->sim_parms->bending = 0.1;
 	clmd->sim_parms->Cdis = 5.0;
 	clmd->sim_parms->Cvi = 1.0;
 	clmd->sim_parms->mass = 1.0f;
@@ -161,6 +161,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->lastframe = 250;
 	clmd->sim_parms->vgroup_mass = 0;
 	clmd->sim_parms->lastcachedframe = 0;
+	clmd->sim_parms->editedframe = 0;
 	
 	clmd->coll_parms->self_friction = 5.0;
 	clmd->coll_parms->friction = 10.0;
@@ -485,7 +486,7 @@ DerivedMesh *CDDM_create_tearing ( ClothModifierData *clmd, DerivedMesh *dm )
 
 int modifiers_indexInObject(Object *ob, ModifierData *md_seek);
 
-static int cloth_read_cache(Object *ob, ClothModifierData *clmd, float framenr)
+int cloth_read_cache(Object *ob, ClothModifierData *clmd, float framenr)
 {
 	FILE *fp = NULL;
 	int stack_index = -1;
@@ -534,7 +535,7 @@ void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr)
 	int stack_index = -1;
 	
 	/* clear cache if specific frame cleaning requested or cache is not protected */
-	if((!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT)) || (framenr > 1.0))
+	if((!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT)) || (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE))
 	{
 		stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
 		
@@ -545,6 +546,9 @@ void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr)
 	{
 		cloth_read_cache(ob, clmd, framenr);
 	}
+	
+	/* delete cache free request */
+	clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
 }
 void cloth_write_cache(Object *ob, ClothModifierData *clmd, float framenr)
 {

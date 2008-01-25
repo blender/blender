@@ -134,6 +134,7 @@ typedef enum
     CLOTH_SIMSETTINGS_FLAG_TEARING = ( 1 << 4 ),// true if tearing is enabled
     CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT = ( 1 << 5 ), // true if tearing is enabled
     CLOTH_SIMSETTINGS_FLAG_NEW = ( 1 << 6 ), 	// unsued, true if cloth was just enabled
+    CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE = (1 << 7), /* force cache freeing */
 } CLOTH_SIMSETTINGS_FLAGS;
 
 /* COLLISION FLAGS */
@@ -206,6 +207,7 @@ void bvh_update_from_cloth(ClothModifierData *clmd, int moving);
 
 // needed for editmesh.c
 void cloth_write_cache(Object *ob, ClothModifierData *clmd, float framenr);
+int cloth_read_cache(Object *ob, ClothModifierData *clmd, float framenr);
 
 // needed for button_object.c
 void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr);

@@ -694,7 +694,7 @@ void cloth_collision_static(ClothModifierData *clmd, CollisionModifierData *coll
 				Normalize(collpair->normal);
 				
 				collpair->distance = distance;
-				BLI_linklist_append(&clmd->coll_parms->collision_list, collpair);
+				BLI_linklist_prepend(&clmd->coll_parms->collision_list, collpair);
 				
 			}
 			else
