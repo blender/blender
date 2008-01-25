@@ -661,7 +661,7 @@ def read_clip(lwochunk, dir_part):
 		# Should not happen but lw can import so we should too
 		return 
 	
-	image_index, = struct.unpack(">L", )
+	image_index, = struct.unpack(">L", data_str)
 	clip_dict['ID'] = image_index
 	i = 4
 	while(i < lwochunk.chunksize):
