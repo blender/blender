@@ -2515,7 +2515,7 @@ static int match_adr_constraint(ID * id, int blocktype, char *actname, int adrco
 						case CONSTRAINT_TYPE_LOCKTRACK:
 							if (searchtype==2) foundmatch=1;
 							break;
-						case CONSTRAINT_TYPE_DISTANCELIMIT:
+						case CONSTRAINT_TYPE_DISTLIMIT:
 							if (searchtype==1) foundmatch=1;
 							break;
 						case CONSTRAINT_TYPE_MINMAX:

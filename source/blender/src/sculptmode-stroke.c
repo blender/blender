@@ -178,7 +178,7 @@ float sculpt_stroke_final_length(SculptStroke *stroke)
 }
 
 /* If partial is nonzero, cuts off apply after that length has been processed */
-static StrokePoint *sculpt_stroke_apply_generic(SculptStroke *stroke, struct EditData *e, const int partial)
+static StrokePoint *sculpt_stroke_apply_generic(SculptStroke *stroke, struct BrushAction *a, const int partial)
 {
 	const int sdspace = sculpt_data()->spacing;
 	const short spacing = sdspace > 0 ? sdspace : 2;
@@ -215,13 +215,13 @@ static StrokePoint *sculpt_stroke_apply_generic(SculptStroke *stroke, struct Edi
 		co[0] = p->x*v + p->next->x*u;
 		co[1] = p->y*v + p->next->y*u;
 
-		do_symmetrical_brush_actions(e, co, NULL);
+		do_symmetrical_brush_actions(a, co, NULL);
 	}
 
 	return p ? p->next : NULL;
 }
 
-void sculpt_stroke_apply(struct EditData *e)
+void sculpt_stroke_apply(struct BrushAction *a)
 {
 	SculptStroke *stroke = sculpt_session()->stroke;
 	/* TODO: make these values user-modifiable? */
@@ -232,7 +232,7 @@ void sculpt_stroke_apply(struct EditData *e)
 		sculpt_stroke_create_final();
 
 		if(sculpt_stroke_final_length(stroke) > min_len) {
-			StrokePoint *p = sculpt_stroke_apply_generic(stroke, e, partial_len);
+			StrokePoint *p = sculpt_stroke_apply_generic(stroke, a, partial_len);
 
 			/* Replace remaining values in stroke->loc with remaining stroke->final values */
 			stroke->index = -1;
@@ -249,14 +249,14 @@ void sculpt_stroke_apply(struct EditData *e)
 	}
 }
 
-void sculpt_stroke_apply_all(struct EditData *e)
+void sculpt_stroke_apply_all(struct BrushAction *a)
 {
 	SculptStroke *stroke = sculpt_session()->stroke;
 
 	sculpt_stroke_create_final();
 
 	if(stroke) {
-		sculpt_stroke_apply_generic(stroke, e, 0);
+		sculpt_stroke_apply_generic(stroke, a, 0);
 	}
 }
 

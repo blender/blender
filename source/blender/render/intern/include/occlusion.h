@@ -45,7 +45,5 @@ void sample_occ(struct Render *re, struct ShadeInput *shi);
 void cache_occ_samples(struct Render *re, struct RenderPart *pa, struct ShadeSample *ssamp);
 void free_occ_samples(struct Render *re, struct RenderPart *pa);
 
-void *cache_occ_mesh(struct Render *re, struct ObjectRen *obr, struct DerivedMesh *dm, float mat[][4]);
-
 #endif
 

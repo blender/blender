@@ -2724,7 +2724,8 @@ static void apply_particle_forces(int pa_no, ParticleData *pa, Object *ob, Parti
 		force[0]=force[1]=force[2]=0.0;
 		tvel[0]=tvel[1]=tvel[2]=0.0;
 		/* add effectors */
-		do_effectors(pa_no,pa,states+i,ob,psys,force,tvel,dfra,fra);
+		if(part->type != PART_HAIR)
+			do_effectors(pa_no,pa,states+i,ob,psys,force,tvel,dfra,fra);
 
 		/* calculate air-particle interaction */
 		if(part->dragfac!=0.0f){

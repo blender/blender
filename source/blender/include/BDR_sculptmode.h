@@ -35,8 +35,8 @@
 #include "BKE_sculpt.h"
 
 struct uiBlock;
+struct BrushAction;
 struct BrushData;
-struct EditData;
 struct IndexNode;
 struct KeyBlock;
 struct Mesh;
@@ -65,7 +65,7 @@ void sculpt_stroke_draw();
 void sculpt_radialcontrol_start(int mode);
 
 struct BrushData *sculptmode_brush(void);
-void do_symmetrical_brush_actions(struct EditData *e, short *, short *);
+void do_symmetrical_brush_actions(struct BrushAction *a, short *, short *);
 
 void sculptmode_update_tex(void);
 char sculpt_modifiers_active(struct Object *ob);
@@ -76,8 +76,8 @@ void set_sculptmode(void);
 void sculpt_stroke_new(const int max);
 void sculpt_stroke_free();
 void sculpt_stroke_add_point(const short x, const short y);
-void sculpt_stroke_apply(struct EditData *);
-void sculpt_stroke_apply_all(struct EditData *e);
+void sculpt_stroke_apply(struct BrushAction *);
+void sculpt_stroke_apply_all(struct BrushAction *);
 void sculpt_stroke_draw();
 
 

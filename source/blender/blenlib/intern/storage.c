@@ -50,7 +50,9 @@
 #include <time.h>
 #include <sys/stat.h>
 
-#if !defined(linux) && (defined(__sgi) || defined(__sun__) || defined(__sun) || defined(__sparc) || defined(__sparc__))
+#if defined (__sun__) || defined (__sun)
+#include <sys/statvfs.h> /* Other modern unix os's should probably use this also */
+#elif !defined(linux) && (defined(__sgi) || defined(__sparc) || defined(__sparc__))
 #include <sys/statfs.h>
 #endif
 
@@ -179,7 +181,12 @@ double BLI_diskfree(char *dir)
 
 	return (double) (freec*bytesps*sectorspc);
 #else
+
+#if defined (__sun__) || defined (__sun)
+	struct statvfs disk;
+#else
 	struct statfs disk;
+#endif
 	char name[FILE_MAXDIR],*slash;
 	int len = strlen(dir);
 	
@@ -199,12 +206,12 @@ double BLI_diskfree(char *dir)
 #ifdef __BeOS
 	return -1;
 #endif
-#if !defined(linux) && (defined (__sgi) || defined (__sun__) || defined (__sun) || defined(__sparc) || defined(__sparc__))
 
-	if (statfs(name, &disk, sizeof(struct statfs), 0)){
-		/* printf("diskfree: Couldn't get information about %s.\n",dir); */
-		return(-1);
-	}
+#if defined (__sun__) || defined (__sun)
+	if (statvfs(name, &disk)) return(-1);	
+#elif !defined(linux) && (defined (__sgi) || defined(__sparc) || defined(__sparc__))
+	/* WARNING - This may not be supported by geeneric unix os's - Campbell */
+	if (statfs(name, &disk, sizeof(struct statfs), 0)) return(-1);
 #endif
 
 	return ( ((double) disk.f_bsize) * ((double) disk.f_bfree));

@@ -73,7 +73,7 @@ typedef struct RenderLayer {
 	
 	/* copy of RenderData */
 	char name[RE_MAXNAME];		
-	unsigned int lay;			
+	unsigned int lay, lay_zmask;
 	int layflag, passflag, pass_xor;		
 	
 	struct Material *mat_override;

@@ -860,13 +860,13 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	   setting them back, maybe we need to create our own Render? */
 
 	/* do SSS preprocessing render */
-	layers= re->r.layers;
+	rr= re->result;
+	layers= rr->layers;
 	osa= re->osa;
 	osaflag= re->r.mode & R_OSA;
 	partsdone= re->i.partsdone;
-	rr= re->result;
 
-	re->r.layers.first= re->r.layers.last= NULL;
+	rr->layers.first= rr->layers.last= NULL;
 	re->osa= 0;
 	re->r.mode &= ~R_OSA;
 	re->sss_points= &points;
@@ -881,7 +881,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	re->i.partsdone= partsdone;
 	re->sss_mat= NULL;
 	re->sss_points= NULL;
-	re->r.layers= layers;
+	rr->layers= layers;
 	re->osa= osa;
 	if (osaflag) re->r.mode |= R_OSA;
 

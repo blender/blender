@@ -307,6 +307,19 @@ typedef struct bSizeLimitConstraint {
 	short		flag2;
 } bSizeLimitConstraint;
 
+/* Limit Distance Constraint */
+typedef struct bDistLimitConstraint {
+	Object 		*tar;
+	char 		subtarget[32];
+	
+	float 		dist;			/* distance (radius of clamping sphere) from target */
+	float		soft;			/* distance from clamping-sphere to start applying 'fade' */
+	
+	short		flag;			/* settings */
+	short 		mode;			/* how to limit in relation to clamping sphere */
+	int 		pad;
+} bDistLimitConstraint;
+
 /* ------------------------------------------ */
 
 /* bConstraint->type 
@@ -328,12 +341,13 @@ typedef enum B_CONSTAINT_TYPES {
 	CONSTRAINT_TYPE_PYTHON,				/* Unimplemented no longer :) - Aligorith. Scripts */
 	CONSTRAINT_TYPE_ACTION,
 	CONSTRAINT_TYPE_LOCKTRACK,			/* New Tracking constraint that locks an axis in place - theeth */
-	CONSTRAINT_TYPE_DISTANCELIMIT,		/* was never properly coded - removed! */
+	CONSTRAINT_TYPE_DISTLIMIT,			/* limit distance */
 	CONSTRAINT_TYPE_STRETCHTO, 			/* claiming this to be mine :) is in tuhopuu bjornmose */ 
 	CONSTRAINT_TYPE_MINMAX,  			/* floor constraint */
 	CONSTRAINT_TYPE_RIGIDBODYJOINT,		/* rigidbody constraint */
 	CONSTRAINT_TYPE_CLAMPTO, 			/* clampto constraint */	
 	CONSTRAINT_TYPE_TRANSFORM,			/* transformation (loc/rot/size -> loc/rot/size) constraint */	
+	
 	
 	/* NOTE: everytime a new constraint is added, update this */
 	NUM_CONSTRAINT_TYPES= CONSTRAINT_TYPE_TRANSFORM
@@ -478,6 +492,15 @@ typedef enum B_CONSTRAINTCHANNEL_FLAG {
 #define LIMIT_NOPARENT 0x01
 	/* for all Limit constraints - allow to be used during transform? */
 #define LIMIT_TRANSFORM 0x02
+
+/* distance limit constraint */
+	/* bDistLimitConstraint->flag */
+#define LIMITDIST_USESOFT		(1<<0)
+
+	/* bDistLimitConstraint->mode */
+#define LIMITDIST_INSIDE		0
+#define LIMITDIST_OUTSIDE		1
+#define LIMITDIST_ONSURFACE		2
 	
 /* python constraint -> flag */
 #define PYCON_USETARGETS	0x01

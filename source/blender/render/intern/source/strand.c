@@ -35,12 +35,14 @@
 
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
 
+#include "BKE_DerivedMesh.h"
 #include "BKE_key.h"
 #include "BKE_utildefines.h"
 
@@ -1311,5 +1313,72 @@ void project_strands(Render *re, void (*projectfunc)(float *, float mat[][4], fl
 		}
 	}
 #endif
+}
+
+StrandSurface *cache_strand_surface(Render *re, ObjectRen *obr, DerivedMesh *dm, float mat[][4], int timeoffset)
+{
+	StrandSurface *mesh;
+	MFace *mface;
+	MVert *mvert;
+	float (*co)[3];
+	int a, totvert, totface;
+
+	totvert= dm->getNumVerts(dm);
+	totface= dm->getNumFaces(dm);
+
+	for(mesh=re->strandsurface.first; mesh; mesh=mesh->next)
+		if(mesh->obr.ob == obr->ob && mesh->obr.par == obr->par
+			&& mesh->obr.index == obr->index && mesh->totvert==totvert && mesh->totface==totface)
+			break;
+
+	if(!mesh) {
+		mesh= MEM_callocN(sizeof(StrandSurface), "StrandSurface");
+		mesh->obr= *obr;
+		mesh->totvert= totvert;
+		mesh->totface= totface;
+		mesh->face= MEM_callocN(sizeof(int)*4*mesh->totface, "StrandSurfFaces");
+		mesh->col= MEM_callocN(sizeof(float)*3*mesh->totvert, "StrandSurfCol");
+		BLI_addtail(&re->strandsurface, mesh);
+	}
+
+	if(timeoffset == -1 && !mesh->prevco)
+		mesh->prevco= co= MEM_callocN(sizeof(float)*3*mesh->totvert, "StrandSurfCo");
+	else if(timeoffset == 0 && !mesh->co)
+		mesh->co= co= MEM_callocN(sizeof(float)*3*mesh->totvert, "StrandSurfCo");
+	else if(timeoffset == 1 && !mesh->nextco)
+		mesh->nextco= co= MEM_callocN(sizeof(float)*3*mesh->totvert, "StrandSurfCo");
+	else
+		return mesh;
+
+	mvert= dm->getVertArray(dm);
+	for(a=0; a<mesh->totvert; a++, mvert++) {
+		VECCOPY(co[a], mvert->co);
+		Mat4MulVecfl(mat, co[a]);
+	}
+
+	mface= dm->getFaceArray(dm);
+	for(a=0; a<mesh->totface; a++, mface++) {
+		mesh->face[a][0]= mface->v1;
+		mesh->face[a][1]= mface->v2;
+		mesh->face[a][2]= mface->v3;
+		mesh->face[a][3]= mface->v4;
+	}
+
+	return mesh;
+}
+
+void free_strand_surface(Render *re)
+{
+	StrandSurface *mesh;
+
+	for(mesh=re->strandsurface.first; mesh; mesh=mesh->next) {
+		if(mesh->co) MEM_freeN(mesh->co);
+		if(mesh->prevco) MEM_freeN(mesh->prevco);
+		if(mesh->nextco) MEM_freeN(mesh->nextco);
+		if(mesh->col) MEM_freeN(mesh->col);
+		if(mesh->face) MEM_freeN(mesh->face);
+	}
+
+	BLI_freelistN(&re->strandsurface);
 }
 

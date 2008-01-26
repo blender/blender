@@ -2362,9 +2362,11 @@ void outliner_select(struct ScrArea *sa )
 
 /* ************ SELECTION OPERATIONS ********* */
 
-static int scenelevel=0, objectlevel=0, idlevel=0, datalevel=0; // globals, euh... you can do better
-
-static void set_operation_types(SpaceOops *soops, ListBase *lb)
+static void set_operation_types(SpaceOops *soops, ListBase *lb,
+				int *scenelevel,
+				int *objectlevel,
+				int *idlevel,
+				int *datalevel)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -2374,22 +2376,22 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb)
 		if(tselem->flag & TSE_SELECTED) {
 			if(tselem->type) {
 #ifdef WITH_VERSE
-				if(te->idcode==ID_VS) datalevel= TSE_VERSE_SESSION;
-				else if(te->idcode==ID_VN) datalevel= TSE_VERSE_OBJ_NODE;
-				else if(datalevel==0) datalevel= tselem->type;
+				if(te->idcode==ID_VS) *datalevel= TSE_VERSE_SESSION;
+				else if(te->idcode==ID_VN) *datalevel= TSE_VERSE_OBJ_NODE;
+				else if(*datalevel==0) *datalevel= tselem->type;
 #else
-				if(datalevel==0) datalevel= tselem->type;
+				if(*datalevel==0) *datalevel= tselem->type;
 #endif
-				else if(datalevel!=tselem->type) datalevel= -1;
+				else if(*datalevel!=tselem->type) *datalevel= -1;
 			}
 			else {
 				int idcode= GS(tselem->id->name);
 				switch(idcode) {
 					case ID_SCE:
-						scenelevel= 1;
+						*scenelevel= 1;
 						break;
 					case ID_OB:
-						objectlevel= 1;
+						*objectlevel= 1;
 						break;
 						
 					case ID_ME: case ID_CU: case ID_MB: case ID_LT:
@@ -2397,13 +2399,16 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb)
 					case ID_MA: case ID_TE: case ID_IP: case ID_IM:
 					case ID_SO: case ID_KE: case ID_WO: case ID_AC:
 					case ID_NLA: case ID_TXT: case ID_GR:
-						if(idlevel==0) idlevel= idcode;
-						else if(idlevel!=idcode) idlevel= -1;
+						if(*idlevel==0) *idlevel= idcode;
+						else if(*idlevel!=idcode) *idlevel= -1;
 							break;
 				}
 			}
 		}
-		if((tselem->flag & TSE_CLOSED)==0) set_operation_types(soops, &te->subtree);
+		if((tselem->flag & TSE_CLOSED)==0) {
+			set_operation_types(soops, &te->subtree,
+								scenelevel, objectlevel, idlevel, datalevel);
+		}
 	}
 }
 
@@ -2559,6 +2564,30 @@ static void id_local_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tse
 	}
 }
 
+static void group_linkobs2scene_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
+{
+	Group *group= (Group *)tselem->id;
+	GroupObject *gob;
+	Base *base;
+	
+	for(gob=group->gobject.first; gob; gob=gob->next) {
+		base= object_in_scene(gob->ob, G.scene);
+		if (base) {
+			base->object->flag |= SELECT;
+			base->flag |= SELECT;
+		} else {
+				
+			/* link to scene */
+			base= MEM_callocN( sizeof(Base), "add_base");
+			BLI_addhead(&G.scene->base, base);
+			base->lay= (1<<20)-1; /*G.vd->lay;*/ /* would be nice to use the 3d layer but the include's not here */
+			gob->ob->flag |= SELECT;
+			base->flag = gob->ob->flag;
+			base->object= gob->ob;
+		}
+	}
+}
+
 static void outliner_do_object_operation(SpaceOops *soops, ListBase *lb, 
 										 void (*operation_cb)(TreeElement *, TreeStoreElem *, TreeStoreElem *))
 {
@@ -2674,11 +2703,9 @@ void outliner_del(ScrArea *sa)
 void outliner_operation_menu(ScrArea *sa)
 {
 	SpaceOops *soops= sa->spacedata.first;
+	int scenelevel=0, objectlevel=0, idlevel=0, datalevel=0;
 	
-	// bad globals
-	scenelevel= objectlevel= idlevel= datalevel=0;
-	
-	set_operation_types(soops, &soops->tree);
+	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
 	
 	if(scenelevel) {
 		if(objectlevel || datalevel || idlevel) error("Mixed selection");
@@ -2719,7 +2746,12 @@ void outliner_operation_menu(ScrArea *sa)
 	else if(idlevel) {
 		if(idlevel==-1 || datalevel) error("Mixed selection");
 		else {
-			short event= pupmenu("Unlink %x1|Make Local %x2");
+			short event;
+			if (idlevel==ID_GR)
+				event = pupmenu("Unlink %x1|Make Local %x2|Link Group Objects to Scene%x3");
+			else
+				event = pupmenu("Unlink %x1|Make Local %x2");
+			
 			
 			if(event==1) {
 				switch(idlevel) {
@@ -2746,6 +2778,10 @@ void outliner_operation_menu(ScrArea *sa)
 				outliner_do_libdata_operation(soops, &soops->tree, id_local_cb);
 				BIF_undo_push("Localized Data");
 				allqueue(REDRAWALL, 0); 
+			}
+			else if(event==3 && idlevel==ID_GR) {
+				outliner_do_libdata_operation(soops, &soops->tree, group_linkobs2scene_cb);
+				BIF_undo_push("Link Group Objects to Scene");
 			}
 		}
 	}

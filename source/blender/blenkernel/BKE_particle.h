@@ -215,7 +215,7 @@ void free_keyed_keys(struct ParticleSystem *psys);
 void psys_free(struct Object * ob, struct ParticleSystem * psys);
 void psys_free_children(struct ParticleSystem *psys);
 
-void psys_render_set(struct Object *ob, struct ParticleSystem *psys, float viewmat[][4], float winmat[][4], int winx, int winy);
+void psys_render_set(struct Object *ob, struct ParticleSystem *psys, float viewmat[][4], float winmat[][4], int winx, int winy, int timeoffset);
 void psys_render_restore(struct Object *ob, struct ParticleSystem *psys);
 int psys_render_simplify_distribution(struct ParticleThreadContext *ctx, int tot);
 int psys_render_simplify_params(struct ParticleSystem *psys, struct ChildParticle *cpa, float *params);

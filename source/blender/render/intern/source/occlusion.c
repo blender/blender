@@ -35,14 +35,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_material_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_memarena.h"
 #include "BLI_threads.h"
 
-#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
@@ -73,15 +71,6 @@ typedef struct OcclusionCache {
 	OcclusionCacheSample *sample;
 	int x, y, w, h, step;
 } OcclusionCache;
-
-typedef struct OcclusionCacheMesh {
-	struct OcclusionCacheMesh *next, *prev;
-	ObjectRen *obr;
-	int (*face)[4];
-	float (*co)[3];
-	float (*col)[3];
-	int totvert, totface;
-} OcclusionCacheMesh;
 
 typedef struct OccFace {
 	int obi;
@@ -1418,10 +1407,10 @@ static int sample_occ_cache(OcclusionTree *tree, float *co, float *n, int x, int
 	return 0;
 }
 
-static void sample_occ_cache_mesh(ShadeInput *shi)
+static void sample_occ_surface(ShadeInput *shi)
 {
 	StrandRen *strand= shi->strand;
-	OcclusionCacheMesh *mesh= strand->buffer->occlusionmesh;
+	StrandSurface *mesh= strand->buffer->surface;
 	int *face, *index = RE_strandren_get_face(shi->obr, strand, 0);
 	float w[4], *co1, *co2, *co3, *co4;
 
@@ -1449,53 +1438,11 @@ static void sample_occ_cache_mesh(ShadeInput *shi)
 	}
 }
 
-void *cache_occ_mesh(Render *re, ObjectRen *obr, DerivedMesh *dm, float mat[][4])
-{
-	OcclusionCacheMesh *mesh;
-	MFace *mface;
-	MVert *mvert;
-	int a, totvert, totface;
-
-	totvert= dm->getNumVerts(dm);
-	totface= dm->getNumFaces(dm);
-
-	mesh= re->occlusionmesh.last;
-	if(mesh && mesh->obr->ob == obr->ob && mesh->obr->par == obr->par
-		&& mesh->totvert==totvert && mesh->totface==totface)
-		return mesh;
-
-	mesh= MEM_callocN(sizeof(OcclusionCacheMesh), "OcclusionCacheMesh");
-	mesh->obr= obr;
-	mesh->totvert= totvert;
-	mesh->totface= totface;
-	mesh->co= MEM_callocN(sizeof(float)*3*mesh->totvert, "OcclusionMeshCo");
-	mesh->face= MEM_callocN(sizeof(int)*4*mesh->totface, "OcclusionMeshFaces");
-	mesh->col= MEM_callocN(sizeof(float)*3*mesh->totvert, "OcclusionMeshCol");
-
-	mvert= dm->getVertArray(dm);
-	for(a=0; a<mesh->totvert; a++, mvert++) {
-		VECCOPY(mesh->co[a], mvert->co);
-		Mat4MulVecfl(mat, mesh->co[a]);
-	}
-
-	mface= dm->getFaceArray(dm);
-	for(a=0; a<mesh->totface; a++, mface++) {
-		mesh->face[a][0]= mface->v1;
-		mesh->face[a][1]= mface->v2;
-		mesh->face[a][2]= mface->v3;
-		mesh->face[a][3]= mface->v4;
-	}
-
-	BLI_addtail(&re->occlusionmesh, mesh);
-
-	return mesh;
-}
-
 /* ------------------------- External Functions --------------------------- */
 
 void make_occ_tree(Render *re)
 {
-	OcclusionCacheMesh *mesh;
+	StrandSurface *mesh;
 	float col[3], co[3], n[3], *co1, *co2, *co3, *co4;
 	int a, *face, *count;
 
@@ -1511,7 +1458,7 @@ void make_occ_tree(Render *re)
 		if(re->wrld.ao_approx_passes)
 			occ_compute_passes(re, re->occlusiontree, re->wrld.ao_approx_passes);
 
-		for(mesh=re->occlusionmesh.first; mesh; mesh=mesh->next) {
+		for(mesh=re->strandsurface.first; mesh; mesh=mesh->next) {
 			count= MEM_callocN(sizeof(int)*mesh->totvert, "OcclusionCount");
 
 			for(a=0; a<mesh->totface; a++) {
@@ -1558,20 +1505,10 @@ void make_occ_tree(Render *re)
 
 void free_occ(Render *re)
 {
-	OcclusionCacheMesh *mesh;
-
 	if(re->occlusiontree) {
 		occ_free_tree(re->occlusiontree);
 		re->occlusiontree = NULL;
 	}
-
-	for(mesh=re->occlusionmesh.first; mesh; mesh=mesh->next) {
-		if(mesh->co) MEM_freeN(mesh->co);
-		if(mesh->col) MEM_freeN(mesh->col);
-		if(mesh->face) MEM_freeN(mesh->face);
-	}
-
-	BLI_freelistN(&re->occlusionmesh);
 }
 
 void sample_occ(Render *re, ShadeInput *shi)
@@ -1584,7 +1521,7 @@ void sample_occ(Render *re, ShadeInput *shi)
 
 	if(tree) {
 		if(shi->strand) {
-			sample_occ_cache_mesh(shi);
+			sample_occ_surface(shi);
 		}
 		/* try to get result from the cache if possible */
 		else if(!sample_occ_cache(tree, shi->co, shi->vno, shi->xs, shi->ys, shi->thread, shi->ao)) {

@@ -364,21 +364,21 @@ void add_constraint (short only_IK)
 	else {
 		if (pchanact) {
 			if (pchansel)
-				nr= pupmenu("Add Constraint to Active Bone%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|%l|Action%x16|Script%x18");
+				nr= pupmenu("Add Constraint to Active Bone%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Limit Distance%x21|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|%l|Action%x16|Script%x18");
 			else if ((obsel) && (obsel->type==OB_CURVE))
-				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Clamp To%x17|Stretch To%x7|%l|Action%x16|Script%x18");
+				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Limit Distance%x21|%l|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Clamp To%x17|Stretch To%x7|%l|Action%x16|Script%x18");
 			else if (obsel)
-				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|%l|Action%x16|Script%x18");
+				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Limit Distance%x21|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|%l|Action%x16|Script%x18");
 			else
-				nr= pupmenu("Add Constraint to New Empty Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|%l|Action%x16|Script%x18");
+				nr= pupmenu("Add Constraint to New Empty Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Limit Distance%x21|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|%l|Action%x16|Script%x18");
 		}
 		else {
 			if ((obsel) && (obsel->type==OB_CURVE))
-				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Clamp To%x17|%l|Action%x16|Script%x18");
+				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Limit Distance%x21|%l|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Clamp To%x17|%l|Action%x16|Script%x18");
 			else if (obsel)
-				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|%l|Action%x16|Script%x18");
+				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Limit Distance%x21|%l|Track To%x3|Floor%x4|Locked Track%x5|%l|Action%x16|Script%x18");
 			else
-				nr= pupmenu("Add Constraint to New Empty Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|%l|Action%x16|Script%x18");
+				nr= pupmenu("Add Constraint to New Empty Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Limit Distance%x21|%l|Track To%x3|Floor%x4|Locked Track%x5|%l|Action%x16|Script%x18");
 		}
 	}
 	
@@ -475,6 +475,7 @@ void add_constraint (short only_IK)
 			}
 		}
 		else if (nr==20) con = add_new_constraint(CONSTRAINT_TYPE_TRANSFORM);
+		else if (nr==21) con = add_new_constraint(CONSTRAINT_TYPE_DISTLIMIT);
 		
 		if (con==NULL) return;	/* paranoia */
 		

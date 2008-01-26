@@ -1160,6 +1160,7 @@ void duplicate_action_keys (void)
 	BLI_freelistN(&act_data);
 	
 	/* now, go into transform-grab mode, to move keys */
+	BIF_TransformSetUndo("Add Duplicate");
 	transform_action_keys('g', 0);
 }
 

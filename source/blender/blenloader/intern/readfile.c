@@ -1754,6 +1754,13 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data->tar = newlibadr(fd, id->lib, data->tar);
 			}
 			break;
+		case CONSTRAINT_TYPE_DISTLIMIT:
+			{
+				bDistLimitConstraint *data;
+				data= ((bDistLimitConstraint*)con->data);
+				data->tar = newlibadr(fd, id->lib, data->tar);
+			}
+			break;
 		case CONSTRAINT_TYPE_NULL:
 			break;
 		}
@@ -1767,6 +1774,7 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 	link_list(fd, lb);
 	for (cons=lb->first; cons; cons=cons->next) {
 		cons->data = newdataadr(fd, cons->data);
+		
 		if (cons->type == CONSTRAINT_TYPE_PYTHON) {
 			bPythonConstraint *data= cons->data;
 			link_list(fd, &data->targets);
@@ -7841,6 +7849,12 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 		case CONSTRAINT_TYPE_TRANSFORM:
 			{
 				bTransformConstraint *data = (bTransformConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
+			}
+			break;
+		case CONSTRAINT_TYPE_DISTLIMIT:	
+			{
+				bDistLimitConstraint *data = (bDistLimitConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
 			}
 			break;

@@ -2201,6 +2201,19 @@ static int RenderData_setRenderPath( BPy_RenderData * self, PyObject * value )
 	return 0;
 }
 
+static PyObject *RenderData_getFrameFilename( BPy_RenderData * self, PyObject *args )
+{
+	char name[FILE_MAX];
+	int frame = self->renderContext->cfra;
+	
+	if( !PyArg_ParseTuple( args, "|i", &( frame ) ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+										"expected int argument or nothing" ) );
+	
+	BKE_makepicstring(name, self->renderContext->pic, frame, self->renderContext->imtype);
+	return PyString_FromString( name );
+}
+
 PyObject *RenderData_getBackbufPath( BPy_RenderData * self )
 {
 	return PyString_FromString( self->renderContext->backbuf );
@@ -2726,6 +2739,9 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	{"getRenderPath", ( PyCFunction ) RenderData_getRenderPath,
 	 METH_NOARGS,
 	 "() - get the path to directory where rendered images will go"},
+	{"getFrameFilename", ( PyCFunction ) RenderData_getFrameFilename,
+	 METH_VARARGS,
+	 "() - get the filename of the frame this will be rendered, taking into account extension and frame range"},
 	{"setBackbufPath", ( PyCFunction ) RenderData_SetBackbufPath,
 	 METH_VARARGS,
 	 "(string) - get/set the path to a background image and load it"},

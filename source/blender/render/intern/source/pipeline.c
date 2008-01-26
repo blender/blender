@@ -505,6 +505,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 		
 		strcpy(rl->name, srl->name);
 		rl->lay= srl->lay;
+		rl->lay_zmask= srl->lay_zmask;
 		rl->layflag= srl->layflag;
 		rl->passflag= srl->passflag;
 		rl->pass_xor= srl->pass_xor;
@@ -2358,6 +2359,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 				continue;
 			}
 			if (scene->r.mode & R_TOUCH && !BLI_exist(name)) {
+				BLI_make_existing_file(name); /* makes the dir if its not there */
 				BLI_touch(name);
 			}
 

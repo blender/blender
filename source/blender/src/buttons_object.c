@@ -604,13 +604,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		uiBlockBeginAlign(block);
 			uiBlockSetEmboss(block, UI_EMBOSS);
 			
-			if ((prev_proxylock) || (con->prev==NULL)) {
-				/* don't draw 'button' behind arrow if disabled (and button doesn't do anything anyways) */
-				uiBlockSetEmboss(block, UI_EMBOSSN);
-				uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_UP, *xco+width-50, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint up in constraint stack");
-				uiBlockSetEmboss(block, UI_EMBOSS);
-			}
-			else {
+			/* only show buttons that will do anything valid */
+			if ((prev_proxylock==0) && (con->prev)) {
 				but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_UP, *xco+width-50, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint up in constraint stack");
 				uiButSetFunc(but, constraint_moveUp, ob, con);
 			}
@@ -618,12 +613,6 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			if (con->next) {
 				but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, *xco+width-50+18, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint down in constraint stack");
 				uiButSetFunc(but, constraint_moveDown, ob, con);
-			}
-			else {
-				/* don't draw 'button' behind arrow if no next constraint (it doesn't do anything anyways) */
-				uiBlockSetEmboss(block, UI_EMBOSSN);
-				uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, *xco+width-50+18, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint down in constraint stack");
-				uiBlockSetEmboss(block, UI_EMBOSS);
 			}
 		uiBlockEndAlign(block);
 		
@@ -1441,6 +1430,54 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				draw_constraint_spaceselect(block, con, *xco, *yco-130, is_armature_owner(ob), -1);
 			}
 			break;
+		case CONSTRAINT_TYPE_DISTLIMIT:
+			{
+				bDistLimitConstraint *data = con->data;
+				
+				height = 105;
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				
+				/* Draw target parameters */
+				uiBlockBeginAlign(block);
+					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+					
+					if (is_armature_target(data->tar)) {
+						but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+					}
+					else if (is_geom_target(data->tar)) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+					}
+					else {
+						strcpy(data->subtarget, "");
+					}
+				uiBlockEndAlign(block);
+				
+				uiBlockBeginAlign(block);
+					if (is_armature_target(data->tar)) {
+						uiDefButF(block, BUT, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->dist, 0, 0, 0, 0, "Recalculate distance"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Distance:", *xco+18, *yco-60,139,18, &data->dist, 0.0, 100, 0.5, 0.5, "Radius of limiting sphere");
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Head/Tail:", *xco+155, *yco-60,100,18, &con->headtail, 0.0, 1, 0.1, 0.1, "Target along length of bone: Head=0, Tail=1");
+					}
+					else {
+						uiDefButF(block, BUT, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->dist, 0, 0, 0, 0, "Recalculate distance"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Distance:", *xco+18, *yco-60, 237, 18, &data->dist, 0.0, 100, 0.5, 0.5, "Radius of limiting sphere");
+					}
+					
+					/* disabled soft-distance controls... currently it doesn't work yet. It was intended to be used for soft-ik (see xsi-blog for details) */
+#if 0
+					uiDefButBitS(block, TOG, LIMITDIST_USESOFT, B_CONSTRAINT_TEST, "Soft", *xco, *yco-82, 50, 18, &data->flag, 0, 24, 0, 0, "Enables soft-distance");
+					if (data->flag & LIMITDIST_USESOFT)
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Soft-Distance:", *xco+50, *yco-82, 187, 18, &data->soft, 0.0, 100, 0.5, 0.5, "Distance surrounding radius when transforms should get 'delayed'");
+#endif
+				uiBlockEndAlign(block);
+				
+				uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Limit Mode%t|Inside %x0|Outside %x1|Surface %x2", *xco+((width/2)-50), *yco-104, 100, 18, &data->mode, 0, 24, 0, 0, "Distances in relation to sphere of influence to allow");
+			}
+			break;
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			{
 				bRigidBodyJointConstraint *data = con->data;
@@ -1750,6 +1787,7 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_LOCLIMIT, "Limit Location", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_ROTLIMIT, "Limit Rotation", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_SIZELIMIT, "Limit Scale", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_DISTLIMIT, "Limit Distance", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -1977,6 +2015,14 @@ void do_constraintbuts(unsigned short event)
 	case B_CONSTRAINT_ADD_TRANSFORM:
 		{
 			con = add_new_constraint(CONSTRAINT_TYPE_TRANSFORM);
+			add_constraint_to_active(ob, con);
+			
+			BIF_undo_push("Add constraint");
+		}
+		break;
+	case B_CONSTRAINT_ADD_DISTLIMIT:
+		{
+			con = add_new_constraint(CONSTRAINT_TYPE_DISTLIMIT);
 			add_constraint_to_active(ob, con);
 			
 			BIF_undo_push("Add constraint");
@@ -3490,7 +3536,7 @@ static char sbsolvers[] = "Solver %t|RKP almost SOFT not usable but for some ger
 /* SIF would have been candidate  .. well lack of time .. brecht is busy .. better make a stable version for peach now :) */
 static char sbsolvers[] = "SIF  semi implicit euler with fixed step size (worth a try with real stiff egdes)%x3|SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
 #else
-static char sbsolvers[] = "SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
+static char sbsolvers[] = "RKCP correct physics (harder to get stable but usefull for education :)%x1|SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
 #endif
 
 static void object_softbodies_collision(Object *ob)
@@ -3582,42 +3628,7 @@ static void object_softbodies_collision(Object *ob)
 
 			uiBlockEndAlign(block);
 			/*SOLVER SETTINGS*/
-			uiBlockBeginAlign(block);
 			/* done in another panel now*/
-			/*
-			uiDefButS(block, MENU, B_SOFTBODY_CHANGE, sbsolvers,10,100,50,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver");
-			sb->solver_ID = 0; 
-			switch (sb->solver_ID) {
-			case 0:
-			case 1:
-				{adaptive_mode = 1; break;}
-			case 3:
-				{adaptive_mode = 0; break;}
-			default: printf("SB_solver?\n"); // should never happen
-
-			}
-			if(adaptive_mode){
-				uiDefButF(block, NUM, B_DIFF, "Error Lim:",	60,100,120,20, &sb->rklimit , 0.001, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
-				uiDefButBitS(block, TOG, SBSO_OLDERR, B_DIFF,"O", 180,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Old Error Calculation");
-				uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 200,100,90,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
-				uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"M", 290,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");
-				uiBlockEndAlign(block);
-				uiDefButS(block, NUM, B_DIFF, "MinS:", 10,80,100,20, &sb->minloops,  0.00,  30000.0, 10, 0, "Minimal # solver steps/frame ");
-				uiDefButS(block, NUM, B_DIFF, "MaxS:", 110,80,100,20, &sb->maxloops,  0.00,  30000.0, 10, 0, "Maximal # solver steps/frame ");
-				uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
-			} 
-			else{
-				uiBlockEndAlign(block);
-				uiBlockBeginAlign(block);
-				uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 210,100,90,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
-				uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"M", 290,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");
-				uiBlockEndAlign(block);
-				uiDefButS(block, NUM, B_DIFF, "Steps:", 10,80,100,20, &sb->minloops,  1.00,  30000.0, 10, 0, "Solver steps/frame ");
-				uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
-			}
-			*/
-
-
 		}
 		/* OTHER OBJECTS COLLISION STUFF */
 		if (ob->type==OB_MESH){
@@ -3640,12 +3651,12 @@ static void object_softbodies_solver(Object *ob)
 	static int val;
 	short *softflag=&ob->softflag, psys_cur=0, adaptive_mode=0;
 	int ob_has_hair=psys_ob_has_hair(ob);
-    if(!_can_softbodies_at_all(ob)) return;
+	if(!_can_softbodies_at_all(ob)) return;
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies_solver", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Soft Body Solver", "Physics", 651, 0, 318, 204)==0) return;
 
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
-    /* doubt that is really needed here but for now */ 
+	/* doubt that is really needed here but for now */ 
 	if(ob_has_hair) {
 		if(PE_get_current_num(ob) >= 0) {
 			ParticleSystem *psys = PE_get_current(ob);
@@ -3680,11 +3691,10 @@ static void object_softbodies_solver(Object *ob)
 			/*SOLVER SETTINGS*/
 			uiBlockBeginAlign(block);
 			uiDefBut(block, LABEL, 0, "Solver select",10,200,300,20, NULL, 0.0, 0, 0, 0, ""); 
-			uiDefButS(block, MENU, B_SOFTBODY_CHANGE, sbsolvers,10,180,300,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver (choose 1 of 1 i was working on some other but failed *sigh* BM) ");
+			uiDefButS(block, MENU, B_SOFTBODY_CHANGE, sbsolvers,10,180,300,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver");
 			uiBlockEndAlign(block);
-			
+
 			/*some have adapive step size - some not*/
-			sb->solver_ID = 0; /* ugly hack to prepare peach freeze */
 			switch (sb->solver_ID) {
 			case 0:
 			case 1:
@@ -3695,7 +3705,7 @@ static void object_softbodies_solver(Object *ob)
 			}
 			if(adaptive_mode){
 				uiBlockBeginAlign(block);
-			    uiDefBut(block, LABEL, 0, "Step size controls",10,160,300,20, NULL, 0.0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, "Step size controls",10,160,300,20, NULL, 0.0, 0, 0, 0, "");
 				uiDefButF(block, NUM, B_DIFF, "Error Lim:",	10,140,280,20, &sb->rklimit , 0.001, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
 				uiDefButBitS(block, TOG, SBSO_OLDERR, B_DIFF,"V", 290,140,20,20, &sb->solverflags,  0,  0, 0, 0, "Use velocities for automagic step sizes");
 				uiDefButS(block, NUM, B_DIFF, "MinS:", 10,120,150,20, &sb->minloops,  0.00,  30000.0, 10, 0, "Minimal # solver steps/frame ");
@@ -3703,11 +3713,11 @@ static void object_softbodies_solver(Object *ob)
 				uiBlockEndAlign(block);
 
 				uiBlockBeginAlign(block);
- 		        uiDefBut(block, LABEL, 0, "Collision helpers",10,100,300,20, NULL, 0.0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, "Collision helpers",10,100,300,20, NULL, 0.0, 0, 0, 0, "");
 				uiDefButS(block, NUM, B_DIFF, "Choke:", 10,80,150,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
 				uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 160,80,150,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
 				uiBlockEndAlign(block);
-				
+
 				uiBlockBeginAlign(block);
 				uiDefBut(block, LABEL, 0, "Diagnosis stuff",10,60,300,20, NULL, 0.0, 0, 0, 0, "");
 				uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"Print Performance to Console", 10,40,300,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");				
@@ -3723,10 +3733,9 @@ static void object_softbodies_solver(Object *ob)
 				uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
 			}
 
-	uiBlockEndAlign(block);
+			uiBlockEndAlign(block);
 
 		}
-		//uiDefBut(block, LABEL, 0, "",10,10,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
 	}
 	uiBlockEndAlign(block);
 }
@@ -3850,7 +3859,7 @@ static void object_softbodies(Object *ob)
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_DIFF, "Friction:", 10, 170,150,20, &sb->mediafrict, 0.0, 50.0, 10, 0, "General media friction for point movements");
 			uiDefButF(block, NUM, B_DIFF, "Mass:",	   160, 170,150,20, &sb->nodemass , 0.001, 50000.0, 10, 0, str);
-			uiDefButF(block, NUM, B_DIFF, "Grav:",	   10,150,150,20, &sb->grav , 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
+			uiDefButF(block, NUM, B_DIFF, "Grav:",	   10,150,150,20, &sb->grav , -10.0, 10.0, 10, 0, "Apply gravitation to point movement");
 			uiDefButF(block, NUM, B_DIFF, "Speed:",	   160,150,150,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
 			uiBlockEndAlign(block);
 
@@ -4110,7 +4119,7 @@ static void object_panel_particle_extra(Object *ob)
 
 		uiBlockBeginAlign(block);
 		
-		uiDefButS(block, MENU, B_PART_REDRAW, "Attribute%t|TanRot%x10|TanVel%x9|Size%x8|RoughE%x7|Rough2%x6|Rough1%x5|Kink%x4|Clump%x3|Length%x2|Velocity%x1|Density%x0", butx,(buty-=buth),butw-40,buth, &vgnum, 14.0, 0.0, 0, 0, "Attribute effected by vertex group");
+		uiDefButS(block, MENU, B_PART_REDRAW, "Attribute%t|Effector%x11|TanRot%x10|TanVel%x9|Size%x8|RoughE%x7|Rough2%x6|Rough1%x5|Kink%x4|Clump%x3|Length%x2|Velocity%x1|Density%x0", butx,(buty-=buth),butw-40,buth, &vgnum, 14.0, 0.0, 0, 0, "Attribute effected by vertex group");
 		but=uiDefButBitS(block, TOG, (1<<vgnum), B_PART_REDRAW, "Neg",	butx+butw-40,buty,40,buth, &psys->vg_neg, 0, 0, 0, 0, "Negate the effect of the vertex group");
 		uiButSetFunc(but, particle_set_vg, (void *)ob, (void *)(&vgnum));
 		

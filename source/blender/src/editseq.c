@@ -788,7 +788,7 @@ void mouse_select_seq(void)
 	int hand,seldir;
 	TimeMarker *marker;
 	
-	marker=find_nearest_marker(0, 1);
+	marker=find_nearest_marker(SCE_MARKERS, 1);
 	
 	if (marker) {
 		int oldflag;

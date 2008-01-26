@@ -415,7 +415,7 @@ typedef struct ParticleSystem{
 #define PARS_ALIVE			3
 
 /* psys->vg */
-#define PSYS_TOT_VG			11
+#define PSYS_TOT_VG			12
 
 #define PSYS_VG_DENSITY		0
 #define PSYS_VG_VEL			1
@@ -428,6 +428,7 @@ typedef struct ParticleSystem{
 #define PSYS_VG_SIZE		8
 #define PSYS_VG_TAN			9
 #define PSYS_VG_ROT			10
+#define PSYS_VG_EFFECTOR	11
 
 /* part->boidrules */
 #define BOID_TOT_RULES		8

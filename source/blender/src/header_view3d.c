@@ -1881,10 +1881,24 @@ static uiBlock *view3d_transformmenu(void *arg_unused)
 void do_view3d_object_mirrormenu(void *arg, int event)
 {
 	switch(event) {
+		case 0:
+			initTransform(TFM_MIRROR, CTX_NO_PET);
+			Transform();
+			break;
 		case 1:
+			initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
+			BIF_setLocalAxisConstraint('X', " on X axis");
+			Transform();
+			break;
 		case 2:
+			initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
+			BIF_setLocalAxisConstraint('Y', " on Y axis");
+			Transform();
+			break;
 		case 3:
-			Mirror(event + 3); /* + 3 because the first three modes are global*/
+			initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
+			BIF_setLocalAxisConstraint('Z', " on Z axis");
+			Transform();
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1898,9 +1912,11 @@ static uiBlock *view3d_object_mirrormenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_object_mirrormenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_object_mirrormenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Local|Ctrl M, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Local|Ctrl M, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z Local|Ctrl M, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Interactive Mirror|Ctrl M",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Local|Ctrl M, X",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Local|Ctrl M, Y",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z Local|Ctrl M, Z",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -2853,17 +2869,44 @@ static uiBlock *view3d_edit_mesh_normalsmenu(void *arg_unused)
 
 void do_view3d_edit_mirrormenu(void *arg, int event)
 {
+	float mat[3][3];
+	
+	Mat3One(mat);
+	
 	switch(event) {
+		case 0:
+			initTransform(TFM_MIRROR, CTX_NO_PET);
+			Transform();
+			break;
 		case 1:
+			initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
+			BIF_setSingleAxisConstraint(mat[0], " on global X axis");
+			Transform();
+			break;
 		case 2:
+			initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
+			BIF_setSingleAxisConstraint(mat[1], " on global Y axis");
+			Transform();
+			break;
 		case 3:
+			initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
+			BIF_setSingleAxisConstraint(mat[2], "on global Z axis");
+			Transform();
+			break;
 		case 4:
+			initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
+			BIF_setLocalAxisConstraint('X', " on local X axis");
+			Transform();
+			break;
 		case 5:
+			initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
+			BIF_setLocalAxisConstraint('Y', " on local Y axis");
+			Transform();
+			break;
 		case 6:
-		case 7:
-		case 8:
-		case 9:
-			Mirror(event);
+			initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
+			BIF_setLocalAxisConstraint('Z', " on local Z axis");
+			Transform();
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -2877,21 +2920,19 @@ static uiBlock *view3d_edit_mirrormenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_mirrormenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_mirrormenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Global|Ctrl M, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Global|Ctrl M, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z Global|Ctrl M, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Interactive Mirror|Ctrl M",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Global|Ctrl M, X",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Global|Ctrl M, Y",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z Global|Ctrl M, Z",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Local|Ctrl M, 4",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Local|Ctrl M, 5",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z Local|Ctrl M, 6",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X View|Ctrl M, 7",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y View|Ctrl M, 8",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z View|Ctrl M, 9",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "X Local|Ctrl M, X X",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Y Local|Ctrl M, Y Y",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Z Local|Ctrl M, Z Z",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
