@@ -2359,6 +2359,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 				continue;
 			}
 			if (scene->r.mode & R_TOUCH && !BLI_exist(name)) {
+				BLI_make_existing_file(name); /* makes the dir if its not there */
 				BLI_touch(name);
 			}
 
