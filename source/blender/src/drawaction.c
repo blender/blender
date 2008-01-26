@@ -813,19 +813,32 @@ static void draw_channel_strips(void)
 	if (NLA_ACTION_SCALED)
 		map_active_strip(di, OBACT, 0);
 	
-	/* draw keyframes */
+	/* Draw keyframes 
+	 *	1) Only channels that are visible in the Action Editor get drawn/evaluated.
+	 *	   This is to try to optimise this for heavier data sets
+	 *	2) Keyframes which are out of view horizontally could be disregarded (probably as
+	 *	   option - 'drop-frames' or so). Todo...
+	 */
 	y = 0.0;
 	for (ale= act_data.first; ale; ale= ale->next) {
-		switch (ale->datatype) {
-			case ALE_GROUP:
-				draw_agroup_channel(di, ale->data, y);
-				break;
-			case ALE_IPO:
-				draw_ipo_channel(di, ale->key_data, y);
-				break;
-			case ALE_ICU:
-				draw_icu_channel(di, ale->key_data, y);
-				break;
+		float yminc= y-CHANNELHEIGHT/2;
+		float ymaxc= y+CHANNELHEIGHT/2;
+		
+		/* check if visible */
+		if ( IN_RANGE(yminc, G.v2d->cur.ymin, G.v2d->cur.ymax) ||
+			 IN_RANGE(ymaxc, G.v2d->cur.ymin, G.v2d->cur.ymax) ) 
+		{
+			switch (ale->datatype) {
+				case ALE_GROUP:
+					draw_agroup_channel(di, ale->data, y);
+					break;
+				case ALE_IPO:
+					draw_ipo_channel(di, ale->key_data, y);
+					break;
+				case ALE_ICU:
+					draw_icu_channel(di, ale->key_data, y);
+					break;
+			}
 		}
 		
 		y-=CHANNELHEIGHT+CHANNELSKIP;
