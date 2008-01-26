@@ -2485,7 +2485,7 @@ static void layer_copy_func(void *lay_v, void *lay_p)
 	unsigned int *lay= lay_p;
 	int laybit= (int)lay_v;
 
-	if(G.qual & LR_SHIFTKEY) {
+	if(G.qual & (LR_SHIFTKEY|LR_CTRLKEY)) {
 		if(*lay==0) *lay= 1<<laybit;
 	}
 	else

@@ -2004,7 +2004,7 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 	float winmat[4][4], bounds[4], ho1[4], ho2[4], ho3[4], ho4[4]={0};
 	unsigned int lay= rl->lay, lay_zmask= rl->lay_zmask;
 	int i, v, zvlnr, zsample, samples, c1, c2, c3, c4=0;
-	short nofill=0, env=0, wire=0;
+	short nofill=0, env=0, wire=0, zmaskpass=0;
 	short all_z= rl->layflag & SCE_LAY_ALL_Z;
 	
 	samples= (R.osa? R.osa: 1);
@@ -2057,99 +2057,121 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 		zspan->zbuflinefunc= zbufline;
 	}
 
-	for(i=0, obi=R.instancetable.first; obi; i++, obi=obi->next) {
-		obr= obi->obr;
+	/* in case zmask we fill Z for objects in lay_zmask first, then clear Z, and then do normal zbuffering */
+	if(rl->layflag & SCE_LAY_ZMASK)
+		zmaskpass= 1;
+	
+	for(; zmaskpass >=0; zmaskpass--) {
+		/* regular zbuffering loop, does all sample buffers */
+		for(i=0, obi=R.instancetable.first; obi; i++, obi=obi->next) {
+			obr= obi->obr;
 
-		if(!all_z && !(obr->lay & lay))
-			continue;
-
-		if(obi->flag & R_TRANSFORMED)
-			zbuf_make_winmat(&R, obi->mat, winmat);
-		else
-			zbuf_make_winmat(&R, NULL, winmat);
-
-		zbuf_project_cache_clear(cache, obr->totvert);
-
-		for(v=0; v<obr->totvlak; v++) {
-			if((v & 255)==0) vlr= obr->vlaknodes[v>>8].vlak;
-			else vlr++;
-
-			/* the cases: visible for render, only z values, zmask, nothing */
-			if(obr->lay & lay) {
-				if(vlr->mat!=ma) {
-					ma= vlr->mat;
-					nofill= ma->mode & (MA_ZTRA|MA_ONLYCAST);
-					env= (ma->mode & MA_ENV);
-					wire= (ma->mode & MA_WIRE);
-					
-					for(zsample=0; zsample<samples; zsample++) {
-						if(ma->mode & MA_ZINV) zspans[zsample].zbuffunc= zbuffillGLinv4;
-						else zspans[zsample].zbuffunc= zbuffillGL4;
-					}
-				}
-			}
-			else if(all_z || (obr->lay & lay_zmask)) {
-				env= 1;
-				nofill= 0;
-				ma= NULL; 
+			/* continue happens in 2 different ways... zmaskpass only does lay_zmask stuff */
+			if(zmaskpass) {
+				if((obr->lay & lay_zmask)==0)
+					continue;
 			}
 			else {
-				nofill= 1;
-				ma= NULL;	/* otherwise nofill can hang */
+				if(!all_z && !(obr->lay & lay))
+					continue;
 			}
+			
+			if(obi->flag & R_TRANSFORMED)
+				zbuf_make_winmat(&R, obi->mat, winmat);
+			else
+				zbuf_make_winmat(&R, NULL, winmat);
 
-			if(!(vlr->flag & R_HIDDEN) && nofill==0) {
-				unsigned short partclip;
-				
-				v1= vlr->v1;
-				v2= vlr->v2;
-				v3= vlr->v3;
-				v4= vlr->v4;
+			zbuf_project_cache_clear(cache, obr->totvert);
 
-				c1= zbuf_part_project(cache, v1->index, winmat, bounds, v1->co, ho1);
-				c2= zbuf_part_project(cache, v2->index, winmat, bounds, v2->co, ho2);
-				c3= zbuf_part_project(cache, v3->index, winmat, bounds, v3->co, ho3);
+			for(v=0; v<obr->totvlak; v++) {
+				if((v & 255)==0) vlr= obr->vlaknodes[v>>8].vlak;
+				else vlr++;
 
-				/* partclipping doesn't need viewplane clipping */
-				partclip= c1 & c2 & c3;
-				if(v4) {
-					c4= zbuf_part_project(cache, v4->index, winmat, bounds, v4->co, ho4);
-					partclip &= c4;
+				/* the cases: visible for render, only z values, zmask, nothing */
+				if(obr->lay & lay) {
+					if(vlr->mat!=ma) {
+						ma= vlr->mat;
+						nofill= ma->mode & (MA_ZTRA|MA_ONLYCAST);
+						env= (ma->mode & MA_ENV);
+						wire= (ma->mode & MA_WIRE);
+						
+						for(zsample=0; zsample<samples; zsample++) {
+							if(ma->mode & MA_ZINV) zspans[zsample].zbuffunc= zbuffillGLinv4;
+							else zspans[zsample].zbuffunc= zbuffillGL4;
+						}
+					}
+				}
+				else if(all_z || (obr->lay & lay_zmask)) {
+					env= 1;
+					nofill= 0;
+					ma= NULL; 
+				}
+				else {
+					nofill= 1;
+					ma= NULL;	/* otherwise nofill can hang */
 				}
 
-				if(partclip==0) {
+				if(!(vlr->flag & R_HIDDEN) && nofill==0) {
+					unsigned short partclip;
 					
-					if(env) zvlnr= -1;
-					else zvlnr= v+1;
+					v1= vlr->v1;
+					v2= vlr->v2;
+					v3= vlr->v3;
+					v4= vlr->v4;
 
-					c1= testclip(ho1);
-					c2= testclip(ho2);
-					c3= testclip(ho3);
-					if(v4)
-						c4= testclip(ho4);
+					c1= zbuf_part_project(cache, v1->index, winmat, bounds, v1->co, ho1);
+					c2= zbuf_part_project(cache, v2->index, winmat, bounds, v2->co, ho2);
+					c3= zbuf_part_project(cache, v3->index, winmat, bounds, v3->co, ho3);
 
-					for(zsample=0; zsample<samples; zsample++) {
-						zspan= &zspans[zsample];
+					/* partclipping doesn't need viewplane clipping */
+					partclip= c1 & c2 & c3;
+					if(v4) {
+						c4= zbuf_part_project(cache, v4->index, winmat, bounds, v4->co, ho4);
+						partclip &= c4;
+					}
 
-						if(wire) {
-							if(v4)
-								zbufclipwire(zspan, i, zvlnr, vlr->ec, ho1, ho2, ho3, ho4, c1, c2, c3, c4);
-							else
-								zbufclipwire(zspan, i, zvlnr, vlr->ec, ho1, ho2, ho3, 0, c1, c2, c3, 0);
-						}
-						else {
-							/* strands allow to be filled in as quad */
-							if(v4 && (vlr->flag & R_STRAND)) {
-								zbufclip4(zspan, i, zvlnr, ho1, ho2, ho3, ho4, c1, c2, c3, c4);
+					if(partclip==0) {
+						
+						if(env) zvlnr= -1;
+						else zvlnr= v+1;
+
+						c1= testclip(ho1);
+						c2= testclip(ho2);
+						c3= testclip(ho3);
+						if(v4)
+							c4= testclip(ho4);
+
+						for(zsample=0; zsample<samples; zsample++) {
+							zspan= &zspans[zsample];
+
+							if(wire) {
+								if(v4)
+									zbufclipwire(zspan, i, zvlnr, vlr->ec, ho1, ho2, ho3, ho4, c1, c2, c3, c4);
+								else
+									zbufclipwire(zspan, i, zvlnr, vlr->ec, ho1, ho2, ho3, 0, c1, c2, c3, 0);
 							}
 							else {
-								zbufclip(zspan, i, zvlnr, ho1, ho2, ho3, c1, c2, c3);
-								if(v4)
-									zbufclip(zspan, i, zvlnr+RE_QUAD_OFFS, ho1, ho3, ho4, c1, c3, c4);
+								/* strands allow to be filled in as quad */
+								if(v4 && (vlr->flag & R_STRAND)) {
+									zbufclip4(zspan, i, zvlnr, ho1, ho2, ho3, ho4, c1, c2, c3, c4);
+								}
+								else {
+									zbufclip(zspan, i, zvlnr, ho1, ho2, ho3, c1, c2, c3);
+									if(v4)
+										zbufclip(zspan, i, zvlnr+RE_QUAD_OFFS, ho1, ho3, ho4, c1, c3, c4);
+								}
 							}
 						}
 					}
 				}
+			}
+		}
+		
+		/* clear all z to close value, so it works as mask for next passes (ztra+strand) */
+		if(zmaskpass) {
+			for(zsample=0; zsample<samples; zsample++) {
+				zspan= &zspans[zsample];
+				zmask_rect(zspan->rectz, zspan->rectp, pa->rectx, pa->recty);
 			}
 		}
 	}
@@ -2157,10 +2179,6 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 	for(zsample=0; zsample<samples; zsample++) {
 		zspan= &zspans[zsample];
 
-		/* clear all z to close value, so it works as mask for next passes (ztra+strand) */
-		if(rl->layflag & SCE_LAY_ZMASK)
-			zmask_rect(zspan->rectz, zspan->rectp, pa->rectx, pa->recty);
-		
 		if(fillfunc)
 			fillfunc(pa, zspan, pa->sample+zsample, data);
 
