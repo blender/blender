@@ -3546,42 +3546,7 @@ static void object_softbodies_collision(Object *ob)
 
 			uiBlockEndAlign(block);
 			/*SOLVER SETTINGS*/
-			uiBlockBeginAlign(block);
 			/* done in another panel now*/
-			/*
-			uiDefButS(block, MENU, B_SOFTBODY_CHANGE, sbsolvers,10,100,50,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver");
-			sb->solver_ID = 0; 
-			switch (sb->solver_ID) {
-			case 0:
-			case 1:
-				{adaptive_mode = 1; break;}
-			case 3:
-				{adaptive_mode = 0; break;}
-			default: printf("SB_solver?\n"); // should never happen
-
-			}
-			if(adaptive_mode){
-				uiDefButF(block, NUM, B_DIFF, "Error Lim:",	60,100,120,20, &sb->rklimit , 0.001, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
-				uiDefButBitS(block, TOG, SBSO_OLDERR, B_DIFF,"O", 180,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Old Error Calculation");
-				uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 200,100,90,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
-				uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"M", 290,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");
-				uiBlockEndAlign(block);
-				uiDefButS(block, NUM, B_DIFF, "MinS:", 10,80,100,20, &sb->minloops,  0.00,  30000.0, 10, 0, "Minimal # solver steps/frame ");
-				uiDefButS(block, NUM, B_DIFF, "MaxS:", 110,80,100,20, &sb->maxloops,  0.00,  30000.0, 10, 0, "Maximal # solver steps/frame ");
-				uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
-			} 
-			else{
-				uiBlockEndAlign(block);
-				uiBlockBeginAlign(block);
-				uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 210,100,90,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
-				uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"M", 290,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");
-				uiBlockEndAlign(block);
-				uiDefButS(block, NUM, B_DIFF, "Steps:", 10,80,100,20, &sb->minloops,  1.00,  30000.0, 10, 0, "Solver steps/frame ");
-				uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
-			}
-			*/
-
-
 		}
 		/* OTHER OBJECTS COLLISION STUFF */
 		if (ob->type==OB_MESH){
@@ -3604,12 +3569,12 @@ static void object_softbodies_solver(Object *ob)
 	static int val;
 	short *softflag=&ob->softflag, psys_cur=0, adaptive_mode=0;
 	int ob_has_hair=psys_ob_has_hair(ob);
-    if(!_can_softbodies_at_all(ob)) return;
+	if(!_can_softbodies_at_all(ob)) return;
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies_solver", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Soft Body Solver", "Physics", 651, 0, 318, 204)==0) return;
 
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
-    /* doubt that is really needed here but for now */ 
+	/* doubt that is really needed here but for now */ 
 	if(ob_has_hair) {
 		if(PE_get_current_num(ob) >= 0) {
 			ParticleSystem *psys = PE_get_current(ob);
@@ -3646,9 +3611,8 @@ static void object_softbodies_solver(Object *ob)
 			uiDefBut(block, LABEL, 0, "Solver select",10,200,300,20, NULL, 0.0, 0, 0, 0, ""); 
 			uiDefButS(block, MENU, B_SOFTBODY_CHANGE, sbsolvers,10,180,300,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver");
 			uiBlockEndAlign(block);
-			
+
 			/*some have adapive step size - some not*/
-			//sb->solver_ID = 0; /* ugly hack to prepare peach freeze */
 			switch (sb->solver_ID) {
 			case 0:
 			case 1:
@@ -3659,7 +3623,7 @@ static void object_softbodies_solver(Object *ob)
 			}
 			if(adaptive_mode){
 				uiBlockBeginAlign(block);
-			    uiDefBut(block, LABEL, 0, "Step size controls",10,160,300,20, NULL, 0.0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, "Step size controls",10,160,300,20, NULL, 0.0, 0, 0, 0, "");
 				uiDefButF(block, NUM, B_DIFF, "Error Lim:",	10,140,280,20, &sb->rklimit , 0.001, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
 				uiDefButBitS(block, TOG, SBSO_OLDERR, B_DIFF,"V", 290,140,20,20, &sb->solverflags,  0,  0, 0, 0, "Use velocities for automagic step sizes");
 				uiDefButS(block, NUM, B_DIFF, "MinS:", 10,120,150,20, &sb->minloops,  0.00,  30000.0, 10, 0, "Minimal # solver steps/frame ");
@@ -3667,11 +3631,11 @@ static void object_softbodies_solver(Object *ob)
 				uiBlockEndAlign(block);
 
 				uiBlockBeginAlign(block);
- 		        uiDefBut(block, LABEL, 0, "Collision helpers",10,100,300,20, NULL, 0.0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, "Collision helpers",10,100,300,20, NULL, 0.0, 0, 0, 0, "");
 				uiDefButS(block, NUM, B_DIFF, "Choke:", 10,80,150,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
 				uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 160,80,150,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
 				uiBlockEndAlign(block);
-				
+
 				uiBlockBeginAlign(block);
 				uiDefBut(block, LABEL, 0, "Diagnosis stuff",10,60,300,20, NULL, 0.0, 0, 0, 0, "");
 				uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"Print Performance to Console", 10,40,300,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");				
@@ -3687,10 +3651,9 @@ static void object_softbodies_solver(Object *ob)
 				uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
 			}
 
-	uiBlockEndAlign(block);
+			uiBlockEndAlign(block);
 
 		}
-		//uiDefBut(block, LABEL, 0, "",10,10,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
 	}
 	uiBlockEndAlign(block);
 }
@@ -3814,7 +3777,7 @@ static void object_softbodies(Object *ob)
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_DIFF, "Friction:", 10, 170,150,20, &sb->mediafrict, 0.0, 50.0, 10, 0, "General media friction for point movements");
 			uiDefButF(block, NUM, B_DIFF, "Mass:",	   160, 170,150,20, &sb->nodemass , 0.001, 50000.0, 10, 0, str);
-			uiDefButF(block, NUM, B_DIFF, "Grav:",	   10,150,150,20, &sb->grav , 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
+			uiDefButF(block, NUM, B_DIFF, "Grav:",	   10,150,150,20, &sb->grav , -10.0, 10.0, 10, 0, "Apply gravitation to point movement");
 			uiDefButF(block, NUM, B_DIFF, "Speed:",	   160,150,150,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
 			uiBlockEndAlign(block);
 
