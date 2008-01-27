@@ -1567,6 +1567,7 @@ void snap_curs_to_active()
 			VECCOPY(curs, BASACT->object->obmat[3]);
 		}
 	}
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 void snap_curs_to_firstsel()
