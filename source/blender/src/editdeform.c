@@ -779,7 +779,7 @@ void remove_verts_defgroup (int allverts)
 	case OB_MESH:
 		for (eve=G.editMesh->verts.first; eve; eve=eve->next){
 			dvert= CustomData_em_get(&G.editMesh->vdata, eve->data, CD_MDEFORMVERT);
-
+		
 			if (dvert && dvert->dw && ((eve->f & 1) || allverts)){
 				for (i=0; i<dvert->totweight; i++){
 					/* Find group */
@@ -825,6 +825,36 @@ void remove_verts_defgroup (int allverts)
 	}
 }
 
+/* Only available in editmode */
+/* removes from all defgroup, if allverts==0 only selected vertices */
+void remove_verts_defgroups(int allverts)
+{
+	Object *ob;
+	int actdef, defCount;
+	
+	if (multires_level1_test()) return;
+
+	ob= G.obedit;
+	if (ob == NULL) return;
+	
+	actdef= ob->actdef;
+	defCount= BLI_countlist(&ob->defbase);
+	
+	if (defCount == 0) {
+		error("Object has no vertex groups");
+		return;
+	}
+	
+	/* To prevent code redundancy, we just use remove_verts_defgroup, but that
+	 * only operates on the active vgroup. So we iterate through all groups, by changing
+	 * active group index
+	 */
+	for (ob->actdef= 1; ob->actdef <= defCount; ob->actdef++)
+		remove_verts_defgroup(allverts);
+		
+	ob->actdef= actdef;
+}
+
 void vertexgroup_select_by_name(Object *ob, char *name)
 {
 	bDeformGroup *curdef;
@@ -859,7 +889,7 @@ void vgroup_assign_with_menu(void)
 	
 	/* give user choices of adding to current/new or removing from current */
 	if (defCount && ob->actdef)
-		mode = pupmenu("Vertex Groups %t|Add Selected to New Group %x1|Add Selected to Active Group %x2|Remove Selected from Active Group %x3");
+		mode = pupmenu("Vertex Groups %t|Add Selected to New Group %x1|Add Selected to Active Group %x2|Remove Selected from Active Group %x3|Remove Selected from All Groups %x4");
 	else
 		mode= pupmenu("Vertex Groups %t|Add Selected to New Group %x1");
 	
@@ -880,6 +910,11 @@ void vgroup_assign_with_menu(void)
 			remove_verts_defgroup(0);
 			allqueue(REDRAWVIEW3D, 1);
 			BIF_undo_push("Remove from vertex group");
+			break;
+		case 4: /* remove from all groups */
+			remove_verts_defgroups(0);
+			allqueue(REDRAWVIEW3D, 1);
+			BIF_undo_push("Remove from all vertex groups");
 			break;
 	}
 }
