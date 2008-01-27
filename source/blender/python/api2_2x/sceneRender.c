@@ -33,12 +33,16 @@ struct View3D; /* keep me up here */
 
 #include "sceneRender.h" /*This must come first*/
 
+#include "MEM_guardedalloc.h"
+				 
 #include "DNA_image_types.h"
+#include "DNA_node_types.h"
 
 #include "BKE_image.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
 #include "BKE_scene.h"
+#include "BKE_node.h"
 
 #include "BIF_drawscene.h"
 #include "BIF_renderwin.h"
@@ -52,8 +56,10 @@ struct View3D; /* keep me up here */
 #include "butspace.h"
 #include "blendef.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 
 #include "Scene.h"
+#include "Group.h"
 
 /* local defines */
 #define PY_NONE		     0
@@ -1758,6 +1764,67 @@ static PyObject *RenderData_getTimeCode( BPy_RenderData * self) {
 	return PyString_FromString(tc);
 }            
 
+
+/***************************************************************************/
+/* Render layer functions                                                  */
+/***************************************************************************/
+PyObject *RenderData_getRenderLayers(BPy_RenderData * self)
+{
+	PyObject *list, *layer;
+	SceneRenderLayer *srl;
+	
+	list = PyList_New(0);
+	
+	for(srl= self->renderContext->layers.first; srl; srl= srl->next) {	
+		layer = RenderLayer_CreatePyObject( srl );
+		PyList_Append(list, layer);
+		Py_DECREF(layer);
+	}
+	return list;
+}
+
+PyObject *RenderData_removeRenderLayer(BPy_RenderData * self, BPy_RenderLayer *value)
+{
+	int index;
+	if (!BPy_RenderLayer_Check(value))
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"can only remove a render layer" );
+	
+	index = BLI_findindex(&self->renderContext->layers, value->renderLayer);
+	
+	if (index == -1)
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+			"render layer is not in this scene" );
+	
+	if (BLI_countlist(&self->renderContext->layers)<=1)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"cannot remove the last render layer" );
+	
+	BLI_remlink(&self->scene->r.layers, value->renderLayer);
+	MEM_freeN(value->renderLayer);
+	self->scene->r.actlay= 0;
+	
+	if(self->scene->nodetree) {
+		bNode *node;
+		for(node= self->scene->nodetree->nodes.first; node; node= node->next) {
+			if(node->type==CMP_NODE_R_LAYERS && node->id==NULL) {
+				if(node->custom1==index)
+					node->custom1= 0;
+				else if(node->custom1 > index)
+					node->custom1--;
+			}
+		}
+	}
+	
+	value->renderLayer = NULL;
+}
+
+PyObject *RenderData_addRenderLayer(BPy_RenderData * self ) {
+	scene_add_render_layer(self->scene);
+	return RenderLayer_CreatePyObject( self->renderContext->layers.last );
+	
+}
+
 /***************************************************************************/
 /* generic handlers for getting/setting attributes                         */
 /***************************************************************************/
@@ -2631,11 +2698,16 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 "Scene link 'set' value",
 	 NULL},
 
+	/* renderlayers */
 	{"activeLayer",
 	 (getter)RenderData_getActiveLayer, (setter)RenderData_setActiveLayer,
 	 "Active rendering layer",
 	 NULL},
-
+	{"renderLayers",
+	 (getter)RenderData_getRenderLayers, (setter)NULL,
+	 "Active rendering layer",
+	 NULL},
+  
 	{"halfFloat",
      (getter)RenderData_getSubImTypeBits, (setter)RenderData_setSubImTypeBits,
      "'Half' openexr option enabled",
@@ -2960,6 +3032,11 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	 "(int) - get/set specify old map value in frames"},
 	{"newMapValue", ( PyCFunction ) RenderData_NewMapValue, METH_VARARGS,
 	 "(int) - get/set specify new map value in frames"},
+  /* renderlayers */
+	{"addRenderLayer", ( PyCFunction ) RenderData_addRenderLayer, METH_VARARGS,
+	 "(string) - add a new render layer"},
+	{"removeRenderLayer", ( PyCFunction ) RenderData_removeRenderLayer, METH_O,
+	 "(renderLayer) - remove a render layer from this scene"},
 	{NULL, NULL, 0, NULL}
 };
  
@@ -3046,6 +3123,469 @@ PyTypeObject RenderData_Type = {
 	NULL
 };
 
+
+
+
+/* render layers */
+
+static PyObject *RenderLayer_repr( BPy_RenderLayer * self )
+{
+	if( self->renderLayer )
+		return PyString_FromFormat( "[RenderLayer \"%s\"]",
+					    self->renderLayer->name  );
+	else
+		return PyString_FromString( "NULL" );
+}
+
+static PyObject *RenderLayer_getName( BPy_RenderLayer * self )
+{
+	if( !self->renderLayer )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This render layer has been removed!" );
+	
+	return PyString_FromString( self->renderLayer->name );
+}
+
+static int RenderLayer_setName( BPy_RenderLayer * self, PyObject *value )
+{
+	char *name = NULL;
+	int index = BLI_findindex(&self->scene->r.layers, self->renderLayer);
+	
+	if( !self->renderLayer )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This render layer has been removed!" );
+	
+	name = PyString_AsString ( value );
+	if( !name )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					      "expected string argument" );
+	
+	/* No check for doubles? - blender dosnt so we dont have to! */
+	BLI_strncpy( self->renderLayer->name, name, sizeof( self->renderLayer->name ) );
+	
+	if(self->scene->nodetree) {
+		bNode *node;
+		for(node= self->scene->nodetree->nodes.first; node; node= node->next) {
+			if(node->type==CMP_NODE_R_LAYERS && node->id==NULL) {
+				if(node->custom1==index)
+					BLI_strncpy(node->name, self->renderLayer->name, NODE_MAXSTR);
+			}
+		}
+	}
+	
+	return 0;
+}
+
+static PyObject *RenderLayer_getLightGroup( BPy_RenderLayer * self )
+{
+	if( !self->renderLayer )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This render layer has been removed!" );
+	return Group_CreatePyObject( self->renderLayer->light_override );
+}
+static int RenderLayer_setLightGroup( BPy_RenderLayer * self, PyObject * value )
+{
+	if( !self->renderLayer )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This render layer has been removed!" );
+	return GenericLib_assignData(value, (void **) &self->renderLayer->light_override, NULL, 1, ID_GR, 0);
+}
+
+
+/*****************************************************************************/
+/* Python BPy_Render getsetattr funcs:                                       */
+/*****************************************************************************/
+static int RenderLayer_setLayers( BPy_RenderLayer * self, PyObject * value, void *zlay )
+{
+	unsigned int laymask = 0;
+	
+	if( !self->renderLayer )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This render layer has been removed!" );
+	
+	if( !PyInt_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+			"expected an integer (bitmask) as argument" );
+	
+	laymask = ( unsigned int )PyInt_AS_LONG( value );
+	
+	if( laymask <= 0 )
+		return EXPP_ReturnIntError( PyExc_ValueError,
+					      "layer value cannot be zero or below" );
+	
+	if (zlay) {
+		self->renderLayer->lay_zmask= laymask & ((1<<20) - 1);
+	} else {
+		self->renderLayer->lay= laymask & ((1<<20) - 1);
+	}
+	return 0;
+}
+
+static PyObject *RenderLayer_getLayers( BPy_RenderLayer * self, void *zlay )
+{
+	if (zlay) {
+		return PyInt_FromLong( self->renderLayer->lay_zmask );
+	} else {
+		return PyInt_FromLong( self->renderLayer->lay );
+	}
+}
+
+static PyObject *RenderLayer_getLayflagBits( BPy_RenderLayer *self, void *type )
+{
+	int itype = (int)type;
+	if( !self->renderLayer )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This render layer has been removed!" );
+	
+	/* use negative numbers to flip truth */
+	if (self->renderLayer->lay & itype)	Py_RETURN_TRUE;
+	else								Py_RETURN_FALSE;
+}
+
+static int RenderLayer_setLayflagBits( BPy_RenderLayer *self, PyObject *value,
+		void *type )
+{
+	/* use negative numbers to flip truth */
+	int param = PyObject_IsTrue( value );
+		
+	if( !self->renderLayer )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This render layer has been removed!" );
+	
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if (param) {
+		self->renderLayer->lay |= (int)type;
+	} else {
+		self->renderLayer->lay &= ~(int)type;
+	}
+	return 0;
+}
+
+static PyObject *RenderLayer_getPassBits( BPy_RenderLayer *self, void *type )
+{
+	int itype = (int)type;
+	if( !self->renderLayer )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This render layer has been removed!" );
+	
+	/* use negative numbers to flip truth */
+	if (self->renderLayer->passflag & itype)	Py_RETURN_TRUE;
+	else										Py_RETURN_FALSE;
+}
+
+static int RenderLayer_setPassBits( BPy_RenderLayer *self, PyObject *value,
+		void *type )
+{
+	/* use negative numbers to flip truth */
+	int param = PyObject_IsTrue( value );
+		
+	if( !self->renderLayer )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This render layer has been removed!" );
+	
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if (param) {
+		self->renderLayer->passflag |= ((int)type);
+	} else {
+		self->renderLayer->passflag &= ~((int)type);
+	}
+	return 0;
+}
+
+static PyObject *RenderLayer_getPassXorBits( BPy_RenderLayer *self, void *type )
+{
+	if( !self->renderLayer )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This render layer has been removed!" );
+	
+	/* use negative numbers to flip truth */
+	if (self->renderLayer->pass_xor & (int)type)	Py_RETURN_TRUE;
+	else										Py_RETURN_FALSE;
+}
+
+static int RenderLayer_setPassXorBits( BPy_RenderLayer *self, PyObject *value,
+		void *type )
+{
+	int param = PyObject_IsTrue( value );
+		
+	if( !self->renderLayer )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This render layer has been removed!" );
+	
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if (param) {
+		self->renderLayer->passflag |= (int)type;
+	} else {
+		self->renderLayer->passflag &= ~(int)type;
+	}
+	return 0;
+}
+
+/***************************************************************************/
+/* BPy_RenderData attribute def                                            */
+/***************************************************************************/
+static PyGetSetDef BPy_RenderLayer_getseters[] = {
+	{"name",
+	 (getter)RenderLayer_getName, (setter)RenderLayer_setName,
+	 "",
+	 (void *)NULL},
+	{"lightGroup",
+	 (getter)RenderLayer_getLightGroup, (setter)RenderLayer_setLightGroup,
+	 "",
+	 (void *)NULL},
+	/*{"material",
+	 (getter)RenderLayer_getMaterial, (setter)RenderLayer_setMaterial,
+	 "",
+	 (void *)NULL},*/
+	{"enable",
+	 (getter)RenderLayer_getLayflagBits, (setter)RenderLayer_setLayflagBits,
+	 "enable this render layer",
+	 (void *)SCE_LAY_DISABLE},
+	{"enableZMask",
+	 (getter)RenderLayer_getLayflagBits, (setter)RenderLayer_setLayflagBits,
+	 "Only render what's in front of the solid z values",
+	 (void *)SCE_LAY_ZMASK},
+	{"enableZMaskAll",
+	 (getter)RenderLayer_getLayflagBits, (setter)RenderLayer_setLayflagBits,
+	 "Fill in Z values for solid faces in invisible layers, for masking",
+	 (void *)SCE_LAY_ALL_Z},
+	  
+	{"enableSolid",
+	 (getter)RenderLayer_getLayflagBits, (setter)RenderLayer_setLayflagBits,
+	 "Render Solid faces in this Layer",
+	 (void *)SCE_LAY_SOLID},
+	{"enableZTra",
+	 (getter)RenderLayer_getLayflagBits, (setter)RenderLayer_setLayflagBits,
+	 "Render Z-Transparent faces in this Layer (On top of Solid and Halos)",
+	 (void *)SCE_LAY_ZTRA},
+	{"enableHalo",
+	 (getter)RenderLayer_getLayflagBits, (setter)RenderLayer_setLayflagBits,
+	 "Render Halos in this Layer (on top of Solid)",
+	 (void *)SCE_LAY_HALO},
+	{"enableEdge",
+	 (getter)RenderLayer_getLayflagBits, (setter)RenderLayer_setLayflagBits,
+	 "Render Edge-enhance in this Layer (only works for Solid faces)",
+	 (void *)SCE_LAY_EDGE},
+	{"enableSky",
+	 (getter)RenderLayer_getLayflagBits, (setter)RenderLayer_setLayflagBits,
+	 "Render Sky or backbuffer in this Layer",
+	 (void *)SCE_LAY_SKY},
+	{"enableStrand",
+	 (getter)RenderLayer_getLayflagBits, (setter)RenderLayer_setLayflagBits,
+	 "Render Strands in this Layer",
+	 (void *)SCE_LAY_STRAND},
+
+	{"layerMask",
+	 (getter)RenderLayer_getLayers, (setter)RenderLayer_setLayers,
+	 "",
+	 (void *)0},
+	{"zLayerMask",
+	 (getter)RenderLayer_getLayers, (setter)RenderLayer_setLayers,
+	 "",
+	 (void *)1},
+	  
+	/* passes */
+	{"passCombined",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver full combined RGBA buffer",
+	 (void *)SCE_PASS_COMBINED},
+	{"passZ",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver Z values pass",
+	 (void *)SCE_PASS_Z},
+	{"passSpeed",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver Speed Vector pass",
+	 (void *)SCE_PASS_VECTOR},
+	{"passNormal",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver Normal pass",
+	 (void *)SCE_PASS_NORMAL},
+	{"passUV",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver Texture UV pass",
+	 (void *)SCE_PASS_UV},
+	{"passMist",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver Mist factor pass (0-1)",
+	 (void *)SCE_PASS_MIST},
+	{"passIndex",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver Object Index pass",
+	 (void *)SCE_PASS_INDEXOB},
+	{"passColor",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver shade-less Color pass",
+	 (void *)SCE_PASS_RGBA},
+	{"passDiffuse",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver Diffuse pass",
+	 (void *)SCE_PASS_DIFFUSE},
+	{"passSpecular",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver Specular pass",
+	 (void *)SCE_PASS_SPEC},
+	{"passShadow",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver Shadow pass",
+	 (void *)SCE_PASS_SHADOW},
+	{"passAO",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver AO pass",
+	 (void *)SCE_PASS_AO},
+	{"passReflect",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver Raytraced Reflection pass",
+	 (void *)SCE_PASS_REFLECT},
+	{"passRefract",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver Raytraced Reflection pass",
+	 (void *)SCE_PASS_REFRACT},
+	{"passRadiosiy",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver Radiosity pass",
+	 (void *)SCE_PASS_RADIO},
+	
+	/* xor */
+	{"passSpecularXOR",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver Specular pass XOR",
+	 (void *)SCE_PASS_SPEC},
+	{"passShadowXOR",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver Shadow pass XOR",
+	 (void *)SCE_PASS_SHADOW},
+	{"passAOXOR",
+	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
+	 "Deliver AO pass XOR",
+	 (void *)SCE_PASS_AO},
+	{"passRefractXOR",
+	 (getter)RenderLayer_getPassXorBits, (setter)RenderLayer_setPassXorBits,
+	 "Deliver Raytraced Reflection pass XOR",
+	 (void *)SCE_PASS_REFRACT},
+	{"passRadiosiyXOR",
+	 (getter)RenderLayer_getPassXorBits, (setter)RenderLayer_setPassXorBits,
+	 "Deliver Radiosity pass XOR",
+	 (void *)SCE_PASS_RADIO},
+	
+	{NULL,NULL,NULL,NULL,NULL}
+};
+
+/* no methods */
+
+/*------------------------------------BPy_RenderData Type defintion------ */
+PyTypeObject RenderLayer_Type = {
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+	/*  For printing, in format "<module>.<name>" */
+	"Blender RenderLayer",       /* char *tp_name; */
+	sizeof( BPy_RenderLayer ),   /* int tp_basicsize; */
+	0,                          /* tp_itemsize;  For allocation */
+
+	/* Methods to implement standard operations */
+
+	NULL,						/* destructor tp_dealloc; */
+	NULL,                       /* printfunc tp_print; */
+	NULL,                       /* getattrfunc tp_getattr; */
+	NULL,                       /* setattrfunc tp_setattr; */
+	NULL,                       /* cmpfunc tp_compare; */
+	( reprfunc ) RenderLayer_repr,     /* reprfunc tp_repr; */
+
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	NULL,                       /* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                       /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	NULL,     					/* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	BPy_RenderLayer_getseters,   /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
+};
+
+/***************************************************************************/
+/* BPy_RenderData Callbacks                                                */
+/***************************************************************************/
+
+PyObject *RenderLayer_CreatePyObject( struct SceneRenderLayer * renderLayer )
+{
+	BPy_RenderLayer *py_renderlayer;
+
+	py_renderlayer =
+		( BPy_RenderLayer * ) PyObject_NEW( BPy_RenderLayer,
+						   &RenderLayer_Type );
+
+	if( py_renderlayer == NULL ) {
+		return ( NULL );
+	}
+	py_renderlayer->renderLayer = renderLayer;
+
+	return ( ( PyObject * ) py_renderlayer );
+}
+
+
 /***************************************************************************/
 /* Render method def                                                       */
 /***************************************************************************/
@@ -3130,6 +3670,9 @@ PyObject *Render_Init( void )
 	if( PyType_Ready( &RenderData_Type ) < 0 )
 		return NULL;
 
+	if( PyType_Ready( &RenderLayer_Type ) < 0 )
+		return NULL;
+	
 	submodule = Py_InitModule3( "Blender.Scene.Render",
 				    M_Render_methods, M_Render_doc );
 

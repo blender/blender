@@ -1,5 +1,5 @@
 /* 
- * $Id: sceneRender.h 10269 2007-03-15 01:09:14Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -36,17 +36,27 @@
 #include <Python.h>
 #include "DNA_scene_types.h"
 
+PyTypeObject RenderLayer_Type;
+
 #define BPy_RenderData_Check(v)       ((v)->ob_type == &RenderData_Type)
+#define BPy_RenderLayer_Check(v)       ((v)->ob_type == &RenderLayer_Type)
 
 //------------------------------------Struct definitions-------
 typedef struct {
 	PyObject_HEAD 
 	struct RenderData *renderContext;
-	Scene *scene;
+	struct Scene *scene;
 } BPy_RenderData;
+
+typedef struct {
+	PyObject_HEAD 
+	struct SceneRenderLayer *renderLayer; /* this is totally weak, pointer can become invalid */
+	struct Scene *scene;
+} BPy_RenderLayer;
+
 //------------------------------------Visible prototypes-------
 PyObject *Render_Init( void );
 
 PyObject *RenderData_CreatePyObject( struct Scene *scene );
-
+PyObject *RenderLayer_CreatePyObject( struct SceneRenderLayer * renderLayer );
 #endif				/* EXPP_SCENERENDER_H */
