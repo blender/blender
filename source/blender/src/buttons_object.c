@@ -582,12 +582,14 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	else {
-		short prev_proxylock;
+		short prev_proxylock, show_upbut, show_downbut;
 		
 		/* Up/Down buttons: 
 		 *	Proxy-constraints are not allowed to occur after local (non-proxy) constraints
 		 *	as that poses problems when restoring them, so disable the "up" button where
-		 *	it may cause this situation.
+		 *	it may cause this situation. 
+		 *
+		 * 	Up/Down buttons should only be shown (or not greyed - todo) if they serve some purpose. 
 		 */
 		if (proxylocked_constraints_owner(ob, pchan)) {
 			if (con->prev) {
@@ -598,21 +600,25 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		}
 		else
 			prev_proxylock= 0;
-		 
-		uiBlockBeginAlign(block);
-			uiBlockSetEmboss(block, UI_EMBOSS);
 			
-			/* only show buttons that will do anything valid */
-			if ((prev_proxylock==0) && (con->prev)) {
-				but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_UP, *xco+width-50, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint up in constraint stack");
-				uiButSetFunc(but, constraint_moveUp, ob, con);
-			}
-			
-			if (con->next) {
-				but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, *xco+width-50+18, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint down in constraint stack");
-				uiButSetFunc(but, constraint_moveDown, ob, con);
-			}
-		uiBlockEndAlign(block);
+		show_upbut= ((prev_proxylock == 0) && (con->prev));
+		show_downbut= (con->next) ? 1 : 0;
+		
+		if (show_upbut || show_downbut) {
+			uiBlockBeginAlign(block);
+				uiBlockSetEmboss(block, UI_EMBOSS);
+				
+				if (show_upbut) {
+					but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_UP, *xco+width-50, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint up in constraint stack");
+					uiButSetFunc(but, constraint_moveUp, ob, con);
+				}
+				
+				if (show_downbut) {
+					but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, *xco+width-50+18, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint down in constraint stack");
+					uiButSetFunc(but, constraint_moveDown, ob, con);
+				}
+			uiBlockEndAlign(block);
+		}
 		
 		
 		/* Close 'button' - emboss calls here disable drawing of 'button' behind X */
