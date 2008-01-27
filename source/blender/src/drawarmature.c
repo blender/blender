@@ -2111,7 +2111,7 @@ static void draw_pose_paths(Object *ob)
 					if (act) {
 						achan= get_action_channel(act, pchan->name);
 						if (achan) 
-							ipo_to_keylist(achan->ipo, &keys, NULL);
+							ipo_to_keylist(achan->ipo, &keys, NULL, NULL);
 					}
 					
 					/* Draw slightly-larger yellow dots at each keyframe */
@@ -2257,17 +2257,18 @@ static void draw_ghost_poses_keys(Base *base)
 	bArmature *arm= ob->data;
 	bPose *posen, *poseo;
 	ListBase keys= {NULL, NULL};
+	ActKeysInc aki = {0, 0, 0};
 	ActKeyColumn *ak, *akn;
 	float start, end, range, colfac, i;
 	int cfrao, flago, ipoflago;
 	
-	start = arm->ghostsf;
-	end = arm->ghostef;
+	aki.start= start = arm->ghostsf;
+	aki.end= end = arm->ghostef;
 	if (end <= start)
 		return;
 	
 	/* get keyframes - then clip to only within range */
-	action_to_keylist(act, &keys, NULL);
+	action_to_keylist(act, &keys, NULL, &aki);
 	range= 0;
 	for (ak= keys.first; ak; ak= akn) {
 		akn= ak->next;

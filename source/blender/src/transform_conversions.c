@@ -3002,9 +3002,9 @@ short autokeyframe_cfra_can_key(Object *ob)
 	
 	/* get keyframes that object has (bone anim is stored on ob too) */
 	if (ob->action)
-		action_to_keylist(ob->action, &keys, NULL);
+		action_to_keylist(ob->action, &keys, NULL, NULL);
 	else if (ob->ipo)
-		ipo_to_keylist(ob->ipo, &keys, NULL);
+		ipo_to_keylist(ob->ipo, &keys, NULL, NULL);
 	else
 		return 0;
 		

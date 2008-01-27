@@ -218,7 +218,7 @@ void poselib_validate_act (bAction *act)
 	}
 	
 	/* determine which frames have keys */
-	action_to_keylist(act, &keys, NULL);
+	action_to_keylist(act, &keys, NULL, NULL);
 	
 	/* for each key, make sure there is a correspnding pose */
 	for (ak= keys.first; ak; ak= ak->next) {

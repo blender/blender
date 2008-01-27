@@ -682,20 +682,20 @@ static void *get_nearest_action_key (float *selx, short *sel, short *ret_type, b
 					case ALE_IPO:
 					{
 						Ipo *ipo= (Ipo *)ale->key_data;
-						ipo_to_keylist(ipo, &act_keys, NULL);
+						ipo_to_keylist(ipo, &act_keys, NULL, NULL);
 					}
 						break;
 					case ALE_ICU:
 					{
 						IpoCurve *icu= (IpoCurve *)ale->key_data;
-						icu_to_keylist(icu, &act_keys, NULL);
+						icu_to_keylist(icu, &act_keys, NULL, NULL);
 					}
 						break;
 				}
 			}
 			else if (ale->type == ACTTYPE_GROUP) {
 				bActionGroup *agrp= (bActionGroup *)ale->data;
-				agroup_to_keylist(agrp, &act_keys, NULL);
+				agroup_to_keylist(agrp, &act_keys, NULL, NULL);
 			}
 			
 			/* loop through keyframes, finding one that was clicked on */
