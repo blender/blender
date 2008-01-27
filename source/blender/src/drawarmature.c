@@ -276,7 +276,7 @@ static short set_pchan_glColor (short colCode, int armflag, int boneflag, int co
 	case PCHAN_COLOR_LINEBONE:
 	{
 		/* inner part in background color or constraint */
-		if ((bcolor == NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS)) {
+		if ( (constflag) && ((bcolor==NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS)) ) {
 			if (constflag & PCHAN_HAS_STRIDE) glColor3ub(0, 0, 200);
 			else if (constflag & PCHAN_HAS_TARGET) glColor3ub(255, 150, 0);
 			else if (constflag & PCHAN_HAS_IK) glColor3ub(255, 255, 0);
