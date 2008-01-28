@@ -913,12 +913,16 @@ static void zbuffer_strands_filter(Render *re, RenderPart *pa, RenderLayer *rl, 
 {
 	RenderResult *rr= pa->result;
 	ShadeResult *shr, *shrrect= spart->result;
+	RenderLayer *rl_pp[RE_MAX_OSA];
 	float *passrect= pass, alpha, sampalpha;
 	long *rdrect;
 	int osa, x, y, a, crop= 0, offs=0, od;
 
 	osa= (re->osa? re->osa: 1);
 	sampalpha= 1.0f/osa;
+	
+	/* only used for multisample buffers */
+	get_sample_layers(pa, rl, rl_pp);
 
 	/* filtered render, for now we assume only 1 filter size */
 	if(pa->crop) {
@@ -933,7 +937,7 @@ static void zbuffer_strands_filter(Render *re, RenderPart *pa, RenderLayer *rl, 
 	/* zero alpha pixels get speed vector max again */
 	if(spart->addpassflag & SCE_PASS_VECTOR)
 		if(rl->layflag & SCE_LAY_SOLID)
-			reset_sky_speedvectors(pa, rl, rl->scolrect);
+			reset_sky_speedvectors(pa, rl, rl->scolrect?rl->scolrect:rl->rectf);	/* scolrect==NULL for multisample */
 
 	/* init scanline updates */
 	rr->renrect.ymin= 0;
@@ -954,26 +958,44 @@ static void zbuffer_strands_filter(Render *re, RenderPart *pa, RenderLayer *rl, 
 			else {
 				alpha= 0.0f;
 
-				if(re->osa == 0) {
-					addAlphaUnderFloat(pass, shr->combined);
+				if(pa->fullresult.first) {
+					for(a=0; a<re->osa; a++) {
+						alpha= shr[a].combined[3];
+						if(alpha!=0.0f) {
+							RenderLayer *rl= rl_pp[a];
+							
+							addAlphaOverFloat(rl->rectf + 4*od, shr[a].combined);
+							
+							add_transp_passes(rl, od, shr, alpha);
+							if(spart->addpassflag & SCE_PASS_VECTOR)
+								add_transp_speed(rl, od, shr[a].winspeed, alpha, rdrect);
+						}
+					}
+					
 				}
 				else {
-					/* note; cannot use pass[3] for alpha due to filtermask */
-					for(a=0; a<re->osa; a++) {
-						add_filt_fmask(1<<a, shr[a].combined, pass, rr->rectx);
-						alpha += shr[a].combined[3];
+					
+					if(re->osa == 0) {
+						addAlphaUnderFloat(pass, shr->combined);
 					}
-				}
+					else {
+						/* note; cannot use pass[3] for alpha due to filtermask */
+						for(a=0; a<re->osa; a++) {
+							add_filt_fmask(1<<a, shr[a].combined, pass, rr->rectx);
+							alpha += shr[a].combined[3];
+						}
+					}
 
-				if(spart->addpassflag) {
-					alpha *= sampalpha;
+					if(spart->addpassflag) {
+						alpha *= sampalpha;
 
-					/* merge all in one, and then add */
-					merge_transp_passes(rl, shr);
-					add_transp_passes(rl, od, shr, alpha);
+						/* merge all in one, and then add */
+						merge_transp_passes(rl, shr);
+						add_transp_passes(rl, od, shr, alpha);
 
-					if(spart->addpassflag & SCE_PASS_VECTOR)
-						add_transp_speed(rl, od, shr->winspeed, alpha, rdrect);
+						if(spart->addpassflag & SCE_PASS_VECTOR)
+							add_transp_speed(rl, od, shr->winspeed, alpha, rdrect);
+					}
 				}
 			}
 		}
@@ -1203,7 +1225,7 @@ unsigned short *zbuffer_strands_shade(Render *re, RenderPart *pa, RenderLayer *r
 	
 	zbuf_free_span(&zspan);
 
-	if(!(re->osa && (rl->layflag & SCE_LAY_SOLID))) {
+	if( !(re->osa && (rl->layflag & SCE_LAY_SOLID)) || (pa->fullresult.first)) {
 		MEM_freeN(spart.mask);
 		spart.mask= NULL;
 	}

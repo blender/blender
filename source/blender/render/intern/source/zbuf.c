@@ -3793,7 +3793,7 @@ void reset_sky_speedvectors(RenderPart *pa, RenderLayer *rl, float *rectf)
 
 #define MAX_ZROW	2000
 
-/* main render call to fill in pass the full transparent layer */
+/* main render call to do the z-transparent layer */
 /* returns a mask, only if a) transp rendered and b) solid was rendered */
 unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass, ListBase *psmlist)
 {
@@ -3851,13 +3851,13 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 		ISB_create(pa, APixbuf);
 
 	/* masks, to have correct alpha combine */
-	if(R.osa && (rl->layflag & SCE_LAY_SOLID))
+	if(R.osa && (rl->layflag & SCE_LAY_SOLID) && pa->fullresult.first==NULL)
 		ztramask= MEM_callocN(pa->rectx*pa->recty*sizeof(short), "ztramask");
 
 	/* zero alpha pixels get speed vector max again */
 	if(addpassflag & SCE_PASS_VECTOR)
 		if(rl->layflag & SCE_LAY_SOLID)
-			reset_sky_speedvectors(pa, rl, rl->acolrect);
+			reset_sky_speedvectors(pa, rl, rl->acolrect?rl->acolrect:rl->rectf);	/* if acolrect is set we use it */
 
 	/* filtered render, for now we assume only 1 filter size */
 	if(pa->crop) {
@@ -3967,21 +3967,39 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 						}
 					}
 					
-					/* note; cannot use pass[3] for alpha due to filtermask */
-					for(a=0; a<R.osa; a++) {
-						add_filt_fmask(1<<a, samp_shr[a].combined, pass, rr->rectx);
-						alpha+= samp_shr[a].combined[3];
+					/* multisample buffers or filtered mask filling? */
+					if(pa->fullresult.first) {
+						for(a=0; a<R.osa; a++) {
+							alpha= samp_shr[a].combined[3];
+							if(alpha!=0.0f) {
+								RenderLayer *rl= ssamp.rlpp[a];
+								
+								addAlphaOverFloat(rl->rectf + 4*od, samp_shr[a].combined);
+				
+								add_transp_passes(rl, od, samp_shr, alpha);
+								if(addpassflag & SCE_PASS_VECTOR)
+									add_transp_speed(rl, od, samp_shr[a].winspeed, alpha, rdrect);
+							}
+						}
 					}
-					
-					if(addpassflag) {
-						alpha*= sampalpha;
+					else {
+							
+						/* note; cannot use pass[3] for alpha due to filtermask */
+						for(a=0; a<R.osa; a++) {
+							add_filt_fmask(1<<a, samp_shr[a].combined, pass, rr->rectx);
+							alpha+= samp_shr[a].combined[3];
+						}
 						
-						/* merge all in one, and then add */
-						merge_transp_passes(rl, samp_shr);
-						add_transp_passes(rl, od, samp_shr, alpha);
+						if(addpassflag) {
+							alpha*= sampalpha;
+							
+							/* merge all in one, and then add */
+							merge_transp_passes(rl, samp_shr);
+							add_transp_passes(rl, od, samp_shr, alpha);
 
-						if(addpassflag & SCE_PASS_VECTOR)
-							add_transp_speed(rl, od, samp_shr[0].winspeed, alpha, rdrect);
+							if(addpassflag & SCE_PASS_VECTOR)
+								add_transp_speed(rl, od, samp_shr[0].winspeed, alpha, rdrect);
+						}
 					}
 				}
 			}

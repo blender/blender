@@ -40,7 +40,9 @@ struct ObjectInstanceRen obi;
 
 /* needed to calculate shadow and AO for an entire pixel */
 typedef struct ShadeSample {
-	int tot;				/* amount of shi in use, can be 1 for not FULL_OSA */
+	int tot;						/* amount of shi in use, can be 1 for not FULL_OSA */
+	
+	RenderLayer *rlpp[RE_MAX_OSA];	/* fast lookup from sample to renderlayer (fullsample buf) */
 	
 	/* could be malloced once */
 	ShadeInput shi[RE_MAX_OSA];

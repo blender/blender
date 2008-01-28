@@ -31,6 +31,7 @@
 
 #include "MTC_matrixops.h"
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
@@ -1214,8 +1215,9 @@ void shade_input_initialize(ShadeInput *shi, RenderPart *pa, RenderLayer *rl, in
 	shi->combinedflag= ~rl->pass_xor;
 	shi->mat_override= rl->mat_override;
 	shi->light_override= rl->light_override;
-	
+//	shi->rl= rl;
 	/* note shi.depth==0  means first hit, not raytracing */
+	
 }
 
 /* initialize per part, not per pixel! */
@@ -1230,6 +1232,8 @@ void shade_sample_initialize(ShadeSample *ssamp, RenderPart *pa, RenderLayer *rl
 		memset(&ssamp->shr[a], 0, sizeof(ShadeResult));
 	}
 	
+	get_sample_layers(pa, rl, ssamp->rlpp);
+
 	ssamp->samplenr= 0; /* counter, detect shadow-reuse for shaders */
 }
 
@@ -1279,7 +1283,8 @@ void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, int y)
 							shade_input_copy_triangle(shi, shi-1);
 						
 						shi->mask= (1<<samp);
-						shi->samplenr= ssamp->samplenr++;
+//						shi->rl= ssamp->rlpp[samp];
+						shi->samplenr= ssamp->samplenr++;	/* this counter is not being reset per pixel */
 						shade_input_set_viewco(shi, xs, ys, (float)ps->z);
 						shade_input_set_uv(shi);
 						shade_input_set_normals(shi);

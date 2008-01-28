@@ -79,8 +79,8 @@ typedef struct RenderPart
 {
 	struct RenderPart *next, *prev;
 	
-	/* result of part rendering */
-	RenderResult *result;
+	RenderResult *result;			/* result of part rendering */
+	ListBase fullresult;			/* optional full sample buffers */
 	
 	int *recto;						/* object table for objects */
 	int *rectp;						/* polygon index table */
@@ -113,6 +113,8 @@ struct Render
 	RenderResult *result;
 	/* if render with single-layer option, other rendered layers are stored here */
 	RenderResult *pushedresult;
+	/* a list of RenderResults, for fullsample */
+	ListBase fullresult;	
 	
 	/* window size, display rect, viewplane */
 	int winx, winy;

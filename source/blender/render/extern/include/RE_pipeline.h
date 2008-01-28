@@ -88,10 +88,11 @@ typedef struct RenderLayer {
 } RenderLayer;
 
 typedef struct RenderResult {
+	struct RenderResult *next, *prev;
 	
 	/* target image size */
 	int rectx, recty;
-	short crop, pad;
+	short crop, sample_nr;
 	
 	/* optional, 32 bits version of picture, used for ogl render and image curves */
 	int *rect32;
@@ -113,13 +114,13 @@ typedef struct RenderResult {
 	volatile RenderLayer *renlay;
 	
 	/* optional saved endresult on disk */
-	char exrfile[FILE_MAXDIR];
 	void *exrhandle;
 	
 	/* for render results in Image, verify validity for sequences */
 	int framenr;
 	
 } RenderResult;
+
 
 typedef struct RenderStats {
 	int totface, totvert, totstrand, tothalo, totlamp, totpart;

@@ -3704,7 +3704,7 @@ static void set_phong_threshold(ObjectRen *obr)
 }
 
 /* per face check if all samples should be taken.
-   if raytrace, do always for raytraced material, or when material full_osa set */
+   if raytrace or multisample, do always for raytraced material, or when material full_osa set */
 static void set_fullsample_flag(Render *re, ObjectRen *obr)
 {
 	VlakRen *vlr;
@@ -3718,7 +3718,8 @@ static void set_fullsample_flag(Render *re, ObjectRen *obr)
 	for(a=obr->totvlak-1; a>=0; a--) {
 		vlr= RE_findOrAddVlak(obr, a);
 		
-		if(vlr->mat->mode & MA_FULL_OSA) vlr->flag |= R_FULL_OSA;
+		if(vlr->mat->mode & MA_FULL_OSA) 
+			vlr->flag |= R_FULL_OSA;
 		else if(trace) {
 			if(vlr->mat->mode & MA_SHLESS);
 			else if(vlr->mat->mode & (MA_RAYTRANSP|MA_RAYMIRROR))

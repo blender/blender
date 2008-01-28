@@ -1837,28 +1837,27 @@ static void render_panel_output(void)
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_TOUCH, B_NOP, "Touch", 10, 142, 50, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Create an empty file before rendering each frame, remove if cancelled (and empty)");
+	uiDefButBitI(block, TOG, R_TOUCH, B_NOP, "Touch",	10, 142, 50, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Create an empty file before rendering each frame, remove if cancelled (and empty)");
 	uiDefButBitI(block, TOG, R_NO_OVERWRITE, B_NOP, "No Overwrite", 60, 142, 90, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Skip rendering frames when the file exists (image output only)");
 	uiBlockEndAlign(block);
+	uiDefButBitS(block, TOG, R_BACKBUF, B_NOP,"Backbuf",	160, 142, 80, 20, &G.scene->r.bufflag, 0, 0, 0, 0, "Enable/Disable use of Backbuf image");	
 	
 	/* SET BUTTON */
 	uiBlockBeginAlign(block);
 	id= (ID *)G.scene->set;
 	IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->scene), id, &(G.buts->menunr));
 	if(strp[0])
-		uiDefButS(block, MENU, B_SETBROWSE, strp, 10, 114, 20, 20, &(G.buts->menunr), 0, 0, 0, 0, "Scene to link as a Set");
+		uiDefButS(block, MENU, B_SETBROWSE, strp,			10, 114, 20, 20, &(G.buts->menunr), 0, 0, 0, 0, "Scene to link as a Set");
 	MEM_freeN(strp);
 
 	if(G.scene->set) {
 		uiSetButLock(1, NULL);
-		uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, B_NOP, "",	31, 120, 100, 20, &(G.scene->set), "Name of the Set");
+		uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, B_NOP, "",	31, 114, 100, 20, &(G.scene->set), "Name of the Set");
 		uiClearButLock();
-		uiDefIconBut(block, BUT, B_CLEARSET, ICON_X, 		132, 120, 20, 20, 0, 0, 0, 0, 0, "Remove Set link");
+		uiDefIconBut(block, BUT, B_CLEARSET, ICON_X, 		132, 114, 20, 20, 0, 0, 0, 0, 0, "Remove Set link");
 	}
 	uiBlockEndAlign(block);
 
-	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButBitS(block, TOG, R_BACKBUF, B_NOP,"Backbuf",	10, 89, 80, 20, &G.scene->r.bufflag, 0, 0, 0, 0, "Enable/Disable use of Backbuf image");	
 	uiDefButS(block, NUM, B_NOP, "Threads:",				10, 63, 100, 20, &G.scene->r.threads, 1, BLENDER_MAX_THREADS, 0, 0, "Amount of threads for render (takes advantage of multi-core and multi-processor computers)");
 	uiBlockSetCol(block, TH_AUTO);
 		
@@ -1866,9 +1865,12 @@ static void render_panel_output(void)
 	for(b=2; b>=0; b--)
 		for(a=0; a<3; a++)
 			uiDefButBitS(block, TOG, 1<<(3*b+a), 800,"",	(short)(10+18*a),(short)(10+14*b),16,12, &G.winpos, 0, 0, 0, 0, "Render window placement on screen");
-	uiBlockEndAlign(block);
 
-	uiDefButBitS(block, TOG, R_EXR_TILE_FILE, B_NOP, "Save Buffers", 72, 31, 120, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Save the tiles for all RenderLayers and used SceneNodes to files, to save memory");
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, R_EXR_TILE_FILE, B_REDR, "Save Buffers", 72, 31, 120, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Save the tiles for all RenderLayers and used SceneNodes to files, to save memory");
+	if(G.scene->r.scemode & R_EXR_TILE_FILE)
+		uiDefButBitS(block, TOG, R_FULL_SAMPLE, B_REDR, "FullSample",	 192, 31, 118, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Saves for every OSA sample the entire RenderLayer results");
+	uiBlockEndAlign(block);
 	
 	uiDefButS(block, MENU, B_REDR, "Render Display %t|Render Window %x1|Image Editor %x0|Full Screen %x2",	
 					72, 10, 120, 19, &G.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output display");
@@ -1876,12 +1878,12 @@ static void render_panel_output(void)
 	uiDefButBitS(block, TOG, R_EXTENSION, B_NOP, "Extensions", 205, 10, 105, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds filetype extensions to the filename when rendering animations");
 	
 	/* Dither control */
-	uiDefButF(block, NUM,B_DIFF, "Dither:",         205,31,105,19, &G.scene->r.dither_intensity, 0.0, 2.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
+	uiDefButF(block, NUM,B_DIFF, "Dither:",         10,89,100,19, &G.scene->r.dither_intensity, 0.0, 2.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
 	
 	/* Toon shading buttons */
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_EDGE, B_NOP,"Edge",   100, 89, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon Edge-enhance");
-	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 170, 89, 140, 20, "Display Edge settings");
+	uiDefButBitI(block, TOG, R_EDGE, B_NOP,"Edge",   115, 89, 60, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon Edge-enhance");
+	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 175, 89, 135, 20, "Display Edge settings");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
@@ -1957,7 +1959,10 @@ static void render_panel_render(void)
 #endif /* disable yafray */
 
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_OSA, B_DIFF, "OSA",	369,109,122,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
+	if((G.scene->r.scemode & R_FULL_SAMPLE) && (G.scene->r.scemode & R_EXR_TILE_FILE))
+		uiDefButBitI(block, TOG, R_OSA, B_DIFF, "FSA",	369,109,122,20,&G.scene->r.mode, 0, 0, 0, 0, "Saves all samples, then composites, and then merges (for best Anti-aliasing)");
+	else
+		uiDefButBitI(block, TOG, R_OSA, B_DIFF, "OSA",	369,109,122,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
 	uiDefButS(block, ROW,B_DIFF,"5",			369,88,29,20,&G.scene->r.osa,2.0,5.0, 0, 0, "Render 5 samples per pixel for smooth edges (Fast)");
 	uiDefButS(block, ROW,B_DIFF,"8",			400,88,29,20,&G.scene->r.osa,2.0,8.0, 0, 0, "Render 8 samples per pixel for smooth edges (Recommended)");
 	uiDefButS(block, ROW,B_DIFF,"11",			431,88,29,20,&G.scene->r.osa,2.0,11.0, 0, 0, "Render 11 samples per pixel for smooth edges (High Quality)");
