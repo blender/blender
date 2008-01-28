@@ -1581,7 +1581,7 @@ void cache_occ_samples(Render *re, RenderPart *pa, ShadeSample *ssamp)
 	sample= cache->sample;
 
 	ps.next= NULL;
-	ps.mask= 0xFFFF;
+	ps.mask= (1<<re->osa);
 
 	ro= pa->recto;
 	rp= pa->rectp;

@@ -3637,9 +3637,9 @@ static void shade_strand_samples(StrandShadeCache *cache, ShadeSample *ssamp, in
 	sseg.v[2]= svert+1;
 	sseg.v[3]= (row->segment < sseg.strand->totvert-2)? svert+2: svert+1;
 
+	ssamp->tot= 1;
 	strand_shade_segment(&R, cache, &sseg, ssamp, row->v, row->u, addpassflag);
 	ssamp->shi[0].mask= row->mask;
-	ssamp->tot= 1;
 }
 
 static void unref_strand_samples(StrandShadeCache *cache, ZTranspRow *row, int totface)
@@ -3765,7 +3765,7 @@ static void addvecmul(float *v1, float *v2, float fac)
 	v1[2]= v1[2]+fac*v2[2];
 }
 
-int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassflag)
+static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassflag)
 {
 	int a, sample, osa = (R.osa? R.osa: 1), retval = osa;
 	
@@ -3825,7 +3825,7 @@ int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassflag)
 	return retval;
 }
 
-void reset_sky_speedvectors(RenderPart *pa, RenderLayer *rl, float *rectf)
+static void reset_sky_speedvectors(RenderPart *pa, RenderLayer *rl, float *rectf)
 {
 	/* speed vector exception... if solid render was done, sky pixels are set to zero already */
 	/* for all pixels with alpha zero, we re-initialize speed again then */
@@ -4080,7 +4080,7 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 								
 								addAlphaOverFloat(rl->rectf + 4*od, samp_shr[a].combined);
 				
-								add_transp_passes(rl, od, samp_shr, alpha);
+								add_transp_passes(rl, od, &samp_shr[a], alpha);
 								if(addpassflag & SCE_PASS_VECTOR)
 									add_transp_speed(rl, od, samp_shr[a].winspeed, alpha, rdrect);
 							}
