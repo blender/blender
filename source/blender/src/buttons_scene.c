@@ -585,27 +585,24 @@ static void seq_panel_editing()
 				130, 60, 120, 19, &last_seq->endstill, 
 				0.0, MAXFRAMEF, 0.0, 0.0, "End still");
 		} else {
-			if (last_seq->type == SEQ_IMAGE) {
-				uiDefButI(block, NUM, 
-					B_SEQ_BUT_TRANSFORM, "Start-Still", 
-					10, 60, 120, 20, &last_seq->startstill, 
-					0.0, MAXFRAMEF, 0.0, 0.0, "Start still");
-				uiDefButI(block, NUM, 
-					B_SEQ_BUT_TRANSFORM, "End-Still", 
-					130, 60, 120, 19, &last_seq->endstill, 
-					0.0, MAXFRAMEF, 0.0, 0.0, "End still");
-			} else {
-				uiDefButI(block, NUM, 
-					B_SEQ_BUT_TRANSFORM, "Start-Ofs", 
-					10, 60, 120, 20, &last_seq->startofs, 
-					0.0, last_seq->len - last_seq->endofs, 
-					0.0, 0.0, "Start offset");
-				uiDefButI(block, NUM, 
-					B_SEQ_BUT_TRANSFORM, "End-Ofs", 
-					130, 60, 120, 19, &last_seq->endofs, 
-					0.0, last_seq->len - last_seq->startofs, 
-					0.0, 0.0, "End offset");
-			}
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_TRANSFORM, "Start-Still", 
+				  10, 60, 120, 20, &last_seq->startstill, 
+				  0.0, MAXFRAMEF, 0.0, 0.0, "Start still");
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_TRANSFORM, "End-Still", 
+				  130, 60, 120, 19, &last_seq->endstill, 
+				  0.0, MAXFRAMEF, 0.0, 0.0, "End still");
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_TRANSFORM, "Start-Ofs", 
+				  10, 40, 120, 20, &last_seq->startofs, 
+				  0.0, last_seq->len - last_seq->endofs, 
+				  0.0, 0.0, "Start offset");
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_TRANSFORM, "End-Ofs", 
+				  130, 40, 120, 19, &last_seq->endofs, 
+				  0.0, last_seq->len - last_seq->startofs, 
+				  0.0, 0.0, "End offset");
 		}
 	}
 
@@ -683,14 +680,14 @@ static void seq_panel_editing()
 	}
 
 	str = strdata;
-	yco = 40;
+	yco = 20;
 
 	while ((p = strchr(str, '\n'))) {
 		*p = 0;
-		uiDefBut(block, LABEL, 0, str, 10,yco,240,19, 0, 
+		uiDefBut(block, LABEL, 0, str, 10,yco,240,17, 0, 
 			 0, 0, 0, 0, "");
 		str = p+1;
-		yco -= 20;
+		yco -= 18;
 	}
 }
 
