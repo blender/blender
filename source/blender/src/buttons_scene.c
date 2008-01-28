@@ -2651,12 +2651,12 @@ static void render_panel_layers(void)
 	
 	uiDefButBitI(block, TOG, SCE_PASS_RGBA, B_SET_PASS,"Col",				10, 10, 35, 20, &srl->passflag, 0, 0, 0, 0, "Deliver shade-less Color pass");	
 	uiDefButBitI(block, TOG, SCE_PASS_DIFFUSE, B_SET_PASS,"Diff",			45, 10, 35, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
-	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_SPEC, B_SET_PASS,"Spec",		80, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Specular pass");	
-	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_SHADOW, B_SET_PASS,"Shad",	120, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Shadow pass");	
-	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_AO, B_SET_PASS,"AO",			160, 10, 30, 20, &srl->passflag, 0, 0, 0, 0, "Deliver AO pass");	
-	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_REFLECT, B_SET_PASS,"Refl",	190, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Reflection pass");	
-	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_REFRACT, B_SET_PASS,"Refr",	230, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Refraction pass");	
-	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_RADIO, B_SET_PASS,"Rad",		270, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Radiosity pass");	
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_SPEC, B_SET_PASS,"Spec",		80, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Specular pass (Hold Ctrl to exclude from combined)");	
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_SHADOW, B_SET_PASS,"Shad",	120, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Shadow pass (Hold Ctrl to exclude from combined)");	
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_AO, B_SET_PASS,"AO",			160, 10, 30, 20, &srl->passflag, 0, 0, 0, 0, "Deliver AO pass (Hold Ctrl to exclude from combined)");
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_REFLECT, B_SET_PASS,"Refl",	190, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Reflection pass (Hold Ctrl to exclude from combined)");	
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_REFRACT, B_SET_PASS,"Refr",	230, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Refraction pass (Hold Ctrl to exclude from combined)");	
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_RADIO, B_SET_PASS,"Rad",		270, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Radiosity pass (Hold Ctrl to exclude from combined)");	
 }	
 
 void render_panels()

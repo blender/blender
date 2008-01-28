@@ -4052,13 +4052,13 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	uiBlockBeginAlign(block);
 	for(a=0; a<8; a++) {
 		short dx= 18;
-		but= uiDefButBitS(block, BUT_TOGDUAL, 1<<a, REDRAWVIEW3D, "", 10+a*dx, 115, dx, 15, &arm->layer, 0, 0, 0, 0, "");
+		but= uiDefButBitS(block, BUT_TOGDUAL, 1<<a, REDRAWVIEW3D, "", 10+a*dx, 115, dx, 15, &arm->layer, 0, 0, 0, 0, "Armature layer (Hold Ctrl for locking in a proxy instance)");
 		uiButSetFunc(but, armature_layer_cb, &arm->layer, (void *)(1<<a));
 	}
 	uiBlockBeginAlign(block);
 	for(a=8; a<16; a++) {
 		short dx= 18;
-		but= uiDefButBitS(block, BUT_TOGDUAL, 1<<a, REDRAWVIEW3D, "", 18+a*dx, 115, dx, 15, &arm->layer, 0, 0, 0, 0, "");
+		but= uiDefButBitS(block, BUT_TOGDUAL, 1<<a, REDRAWVIEW3D, "", 18+a*dx, 115, dx, 15, &arm->layer, 0, 0, 0, 0, "Armature layer (Hold Ctrl for locking in a proxy instance)");
 		uiButSetFunc(but, armature_layer_cb, &arm->layer, (void *)(1<<a));
 	}
 	/* quite bad here, but I don't know a better place for copy... */
