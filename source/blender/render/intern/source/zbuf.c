@@ -3590,10 +3590,10 @@ void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alph
 		if(col) {
 
 			fp= rpass->rect + pixsize*offset;
-			fp[0]= alpha*col[0] + (1.0f-alpha)*fp[0];
+			fp[0]= col[0] + (1.0f-alpha)*fp[0];
 			if(pixsize==3) {
-				fp[1]= alpha*col[1] + (1.0f-alpha)*fp[1];
-				fp[2]= alpha*col[2] + (1.0f-alpha)*fp[2];
+				fp[1]= col[1] + (1.0f-alpha)*fp[1];
+				fp[2]= col[2] + (1.0f-alpha)*fp[2];
 			}
 		}
 	}
