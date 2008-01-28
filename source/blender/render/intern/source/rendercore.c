@@ -684,7 +684,7 @@ static void freeps(ListBase *lb)
 	lb->first= lb->last= NULL;
 }
 
-void addps(ListBase *lb, long *rd, int obi, int facenr, int z, unsigned short mask)
+static void addps(ListBase *lb, long *rd, int obi, int facenr, int z, unsigned short mask)
 {
 	PixStrMain *psm;
 	PixStr *ps, *last= NULL;
@@ -969,8 +969,8 @@ void zbufshadeDA_tile(RenderPart *pa)
 				halo_tile(pa, rl->rectf, rl->lay);
 
 		/* transp layer */
-		if(R.flag & R_ZTRA) {
-			if(rl->layflag & SCE_LAY_ZTRA) {
+		if(R.flag & R_ZTRA || R.totstrand) {
+			if(rl->layflag & (SCE_LAY_ZTRA|SCE_LAY_STRAND)) {
 				if(pa->fullresult.first) {
 					zbuffer_transp_shade(pa, rl, rl->rectf, &psmlist);
 				}
@@ -1012,51 +1012,6 @@ void zbufshadeDA_tile(RenderPart *pa)
 					if(solidmask) MEM_freeN(solidmask);
 					if(ztramask) MEM_freeN(ztramask);
 				}
-			}
-		}
-
-		/* strand rendering */
-		if((rl->layflag & SCE_LAY_STRAND) && R.totstrand) {
-			if(pa->fullresult.first) {
-				zbuffer_strands_shade(&R, pa, rl, rl->rectf);
-			}
-			else {
-				float *fcol, *scol;
-				unsigned short *strandmask, *solidmask= NULL; /* 16 bits, MAX_OSA */
-				int x;
-				
-				/* allocate, but not free here, for asynchronous display of this rect in main thread */
-				rl->scolrect= MEM_callocN(4*sizeof(float)*pa->rectx*pa->recty, "strand layer");
-
-				/* swap for live updates, and it is used in zbuf.c!!! */
-				SWAP(float*, rl->scolrect, rl->rectf);
-				strandmask= zbuffer_strands_shade(&R, pa, rl, rl->rectf);
-				SWAP(float*, rl->scolrect, rl->rectf);
-
-				/* zbuffer strands only returns strandmask if there's solid rendered */
-				if(strandmask)
-					solidmask= make_solid_mask(pa);
-				
-				if(strandmask && solidmask) {
-					unsigned short *sps= solidmask, *spz= strandmask;
-					unsigned short fullmask= (1<<R.osa)-1;
-
-					fcol= rl->rectf; scol= rl->scolrect;
-					for(x=pa->rectx*pa->recty; x>0; x--, scol+=4, fcol+=4, sps++, spz++) {
-						if(*sps == fullmask)
-							addAlphaOverFloat(fcol, scol);
-						else
-							addAlphaOverFloatMask(fcol, scol, *sps, *spz);
-					}
-				}
-				else {
-					fcol= rl->rectf; scol= rl->scolrect;
-					for(x=pa->rectx*pa->recty; x>0; x--, scol+=4, fcol+=4)
-						addAlphaOverFloat(fcol, scol);
-				}
-
-				if(solidmask) MEM_freeN(solidmask);
-				if(strandmask) MEM_freeN(strandmask);
 			}
 		}
 
@@ -1192,8 +1147,8 @@ void zbufshade_tile(RenderPart *pa)
 			if(rl->layflag & SCE_LAY_HALO)
 				halo_tile(pa, rl->rectf, rl->lay);
 		
-		if(R.flag & R_ZTRA) {
-			if(rl->layflag & SCE_LAY_ZTRA) {
+		if(R.flag & R_ZTRA || R.totstrand) {
+			if(rl->layflag & (SCE_LAY_ZTRA|SCE_LAY_STRAND)) {
 				float *fcol, *acol;
 				int x;
 				
@@ -1210,24 +1165,6 @@ void zbufshade_tile(RenderPart *pa)
 					addAlphaOverFloat(fcol, acol);
 				}
 			}
-		}
-
-		/* strand rendering */
-		if((rl->layflag & SCE_LAY_STRAND) && R.totstrand) {
-			float *fcol, *scol;
-			int x;
-			
-			/* allocate, but not free here, for asynchronous display of this rect in main thread */
-			rl->scolrect= MEM_callocN(4*sizeof(float)*pa->rectx*pa->recty, "strand layer");
-
-			/* swap for live updates */
-			SWAP(float*, rl->scolrect, rl->rectf);
-			zbuffer_strands_shade(&R, pa, rl, rl->rectf);
-			SWAP(float*, rl->scolrect, rl->rectf);
-
-			fcol= rl->rectf; scol= rl->scolrect;
-			for(x=pa->rectx*pa->recty; x>0; x--, scol+=4, fcol+=4)
-				addAlphaOverFloat(fcol, scol);
 		}
 		
 		/* sky before edge */

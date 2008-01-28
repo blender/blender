@@ -152,7 +152,6 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->totlamp= re->totlamp;
 	envre->lights= re->lights;
 	envre->objecttable= re->objecttable;
-	envre->strandbuckets= re->strandbuckets;
 	envre->customdata_names= re->customdata_names;
 	envre->raytree= re->raytree;
 	envre->totinstance= re->totinstance;
@@ -173,7 +172,6 @@ static void envmap_free_render_copy(Render *envre)
 	envre->totinstance= 0;
 	envre->lights.first= envre->lights.last= NULL;
 	envre->objecttable.first= envre->objecttable.last= NULL;
-	envre->strandbuckets= NULL;
 	envre->customdata_names.first= envre->customdata_names.last= NULL;
 	envre->raytree= NULL;
 	envre->instancetable.first= envre->instancetable.last= NULL;

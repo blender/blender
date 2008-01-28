@@ -868,11 +868,6 @@ void free_renderdata_tables(Render *re)
 		re->sortedhalos= NULL;
 	}
 
-	if(re->strandbuckets) {
-		free_buckets(re->strandbuckets);
-		re->strandbuckets= NULL;
-	}
-
 	BLI_freelistN(&re->customdata_names);
 	BLI_freelistN(&re->objecttable);
 	BLI_freelistN(&re->instancetable);
@@ -1290,8 +1285,6 @@ void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4],
 			
 		}
 	}
-
-	project_strands(re, projectfunc, do_pano, do_buckets);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1348,4 +1341,55 @@ void RE_makeRenderInstances(Render *re)
 	BLI_freelistN(&re->instancetable);
 	re->instancetable= newlist;
 }
+
+#if 0
+int clip_render_object(ObjectInstanceRen *obi, float *bounds, float winmat[][4])
+{
+	float mat[4][4], vec[4], max, min, (*boundbox)[3];
+	int a, fl, flag= -1;
+
+	boundbox= obi->obr->boundbox;
+	Mat4CpyMat4(mat, winmat);
+
+	for(a=0; a<8; a++) {
+		vec[0]= (a & 1)? boundbox[0][0]: boundbox[1][0];
+		vec[1]= (a & 2)? boundbox[0][1]: boundbox[1][1];
+		vec[2]= (a & 4)? boundbox[0][2]: boundbox[1][2];
+		vec[3]= 1.0;
+		Mat4MulVec4fl(mat, vec);
+
+		fl= 0;
+		if(bounds) {
+			if(vec[0] > bounds[1]*vec[3]) fl |= 1;
+			if(vec[0]< bounds[0]*vec[3]) fl |= 2;
+			if(vec[1] > bounds[3]*vec[3]) fl |= 4;
+			if(vec[1]< bounds[2]*vec[3]) fl |= 8;
+		}
+		else {
+			if(vec[0] < -vec[3]) fl |= 1;
+			if(vec[0] > vec[3]) fl |= 2;
+			if(vec[1] < -vec[3]) fl |= 4;
+			if(vec[1] > vec[3]) fl |= 8;
+		}
+		if(vec[2] < -vec[3]) fl |= 16;
+		if(vec[2] > vec[3]) fl |= 32;
+
+#if 0
+		max= vec[3];
+		min= -vec[3];
+
+		wco= ho[3];
+		if(vec[0] < min) fl |= 1;
+		if(vec[0] > max) fl |= 2;
+		if(vec[1] < min) fl |= 4;
+		if(vec[1] > max) fl |= 8;
+#endif
+		
+		flag &= fl;
+		if(flag==0) return 0;
+	}
+
+	return flag;
+}
+#endif
 

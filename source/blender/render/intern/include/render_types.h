@@ -176,7 +176,6 @@ struct Render
 	ListBase lampren;	/* storage, for free */
 	
 	ListBase objecttable;
-	struct RenderBuckets *strandbuckets;
 
 	struct ObjectInstanceRen *objectinstance;
 	ListBase instancetable;
@@ -334,6 +333,8 @@ typedef struct HaloRen
     struct Material *mat;
 } HaloRen;
 
+/* ------------------------------------------------------------------------- */
+
 typedef struct StrandVert {
 	float co[3];
 	float strandco;
@@ -350,6 +351,11 @@ typedef struct StrandSurface {
 	float (*prevco)[3], (*nextco)[3];
 	int totvert, totface;
 } StrandSurface;
+
+typedef struct StrandBound {
+	int start, end;
+	float bbox[2][3];
+} StrandBound;
 
 typedef struct StrandBuffer {
 	struct StrandBuffer *next, *prev;
