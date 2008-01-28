@@ -30,6 +30,8 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include <float.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "nla.h"
@@ -354,6 +356,88 @@ void bone_flip_name (char *name, int strip_number)
 	sprintf (name, "%s%s%s%s", prefix, replace, suffix, number);
 }
 
+/* Finds the best possible extension to the name on a particular axis. (For renaming, check for unique names afterwards)
+ * This assumes that bone names are at most 32 chars long!
+ * 	strip_number: removes number extensions  (TODO: not used)
+ *	axis: the axis to name on
+ *	head/tail: the head/tail co-ordinate of the bone on the specified axis
+ */
+void bone_autoside_name (char *name, int strip_number, short axis, float head, float tail)
+{
+	int		len;
+	char	basename[32]={""};
+	char 	extension[3]={""};
+
+	len= strlen(name);
+	if (len == 0) return;
+	strcpy(basename, name);
+	
+	/* Figure out extension to append: 
+	 *	- The extension to append is based upon the axis that we are working on.
+	 *	- If head happens to be on 0, then we must consider the tail position as well to decide
+	 *	  which side the bone is on
+	 *		-> If tail is 0, then it's bone is considered to be on axis, so no extension should be added
+	 *		-> Otherwise, extension is added from perspective of object based on which side tail goes to
+	 *	- If head is non-zero, extension is added from perspective of object based on side head is on
+	 */
+	if (axis == 2) {
+		/* z-axis - vertical (top/bottom) */
+		if (IS_EQ(head, 0)) {
+			if (tail < 0)
+				strcpy(extension, ".Bot");
+			else if (tail > 0)
+				strcpy(extension, ".Top");
+		}
+		else {
+			if (head < 0)
+				strcpy(extension, ".Bot");
+			else
+				strcpy(extension, ".Top");
+		}
+	}
+	else if (axis == 1) {
+		/* y-axis - depth (front/back) */
+		if (IS_EQ(head, 0)) {
+			if (tail < 0)
+				strcpy(extension, ".Fr");
+			else if (tail > 0)
+				strcpy(extension, ".Bk");
+		}
+		else {
+			if (head < 0)
+				strcpy(extension, ".Fr");
+			else
+				strcpy(extension, ".Bk");
+		}
+	}
+	else {
+		/* x-axis - horizontal (left/right) */
+		if (IS_EQ(head, 0)) {
+			if (tail < 0)
+				strcpy(extension, ".R");
+			else if (tail > 0)
+				strcpy(extension, ".L");
+		}
+		else {
+			if (head < 0)
+				strcpy(extension, ".R");
+			else if (head > 0)
+				strcpy(extension, ".L");
+		}
+	}
+
+	/* Simple name truncation 
+	 *	- truncate if there is an extension and it wouldn't be able to fit
+	 *	- otherwise, just append to end (TODO: this should really check if there was already a tag there, and remove it)
+	 */
+	if (extension[0]) {
+		if ((32 - len) < strlen(extension)) {
+			strncpy(name, basename, len-strlen(extension);
+		}
+	}
+
+	sprintf(name, "%s%s", basename, extension);
+}
 
 /* ************* B-Bone support ******************* */
 

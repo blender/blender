@@ -490,7 +490,7 @@ void pose_special_editmenu(void)
 	if(!ob && !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
-	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names%x2|Calculate Paths%x3|Clear Paths%x4|Clear User Transform %x5|Relax Pose %x6");
+	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names%x2|Calculate Paths%x3|Clear Paths%x4|Clear User Transform %x5|Relax Pose %x6|%l|AutoName Left-Right%x7|AutoName Front-Back%x8|AutoName Top-Bottom%x9");
 	if(nr==1) {
 		pose_select_constraint_target();
 	}
@@ -510,6 +510,9 @@ void pose_special_editmenu(void)
 	}
 	else if(nr==6) {
 		pose_relax();
+	}
+	else if(ELEM3(nr, 7, 8, 9)) {
+		pose_autoside_names(nr-7);
 	}
 }
 
@@ -1154,7 +1157,39 @@ void pose_flip_names(void)
 	allqueue (REDRAWACTION, 0);
 	allqueue(REDRAWOOPS, 0);
 	BIF_undo_push("Flip names");
+}
+
+/* context active object */
+void pose_autoside_names(short axis)
+{
+	Object *ob= OBACT;
+	bArmature *arm= ob->data;
+	bPoseChannel *pchan;
+	char newname[32];
 	
+	/* paranoia checks */
+	if (ELEM(NULL, ob, ob->pose)) return;
+	if (ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
+	
+	if (pose_has_protected_selected(ob, 0))
+		return;
+	
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(arm->layer & pchan->bone->layer) {
+			if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+				BLI_strncpy(newname, pchan->name, sizeof(newname));
+				bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis]);
+				armature_bone_rename(ob->data, pchan->name, newname);
+			}
+		}
+	}
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue (REDRAWACTION, 0);
+	allqueue(REDRAWOOPS, 0);
+	BIF_undo_push("Flip names");
 }
 
 /* context active object, or weightpainted object with armature in posemode */

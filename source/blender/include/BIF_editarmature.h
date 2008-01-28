@@ -128,6 +128,7 @@ int		bone_looper(struct Object *ob, struct Bone *bone, void *data,
 void	undo_push_armature(char *name);
 void	armature_bone_rename(struct bArmature *arm, char *oldname, char *newname);
 void	armature_flip_names(void);
+void 	armature_autoside_names(short axis);
 EditBone *armature_bone_get_mirrored(EditBone *ebo);
 void	transform_armature_mirror_update(void);
 

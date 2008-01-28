@@ -3603,13 +3603,37 @@ void armature_flip_names(void)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
-	allqueue (REDRAWACTION, 0);
+	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWOOPS, 0);
 	BIF_undo_push("Flip names");
-	
 }
 
-/* context; editmode armature */
+/* context: edtimode armature */
+void armature_autoside_names(short axis)
+{
+	bArmature *arm= G.obedit->data;
+	EditBone *ebone;
+	char newname[32];
+	
+	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
+		if (arm->layer & ebone->layer) {
+			if (ebone->flag & BONE_SELECTED) {
+				BLI_strncpy(newname, ebone->name, sizeof(newname));
+				bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis]);
+				armature_bone_rename(G.obedit->data, ebone->name, newname);
+			}
+		}
+	}
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWOOPS, 0);
+	BIF_undo_push("Auto-side name");
+}
+
+/* context: editmode armature */
 EditBone *armature_bone_get_mirrored(EditBone *ebo)
 {
 	EditBone *eboflip= NULL;
