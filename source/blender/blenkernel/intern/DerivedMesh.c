@@ -2479,7 +2479,7 @@ static void mesh_build_data(Object *ob, CustomDataMask dataMask)
 			CustomData_free_layer_active(&me->fdata, CD_MCOL, me->totface);
 		} else {
 			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform,
-			                    &ob->derivedFinal, 0, 1,
+			                    &ob->derivedFinal, G.rendering, 1,
 			                    needMapping, dataMask);
 		}
 
