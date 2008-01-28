@@ -1130,7 +1130,7 @@ void transform_action_keys (int mode, int dummy)
 		}
 		break;
 	}
-}
+}	
 
 /* ----------------------------------------- */
 

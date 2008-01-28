@@ -219,7 +219,9 @@ typedef enum SACTION_FLAG {
 		/* draw time in seconds instead of time in frames */
 	SACTION_DRAWTIME = (1<<2),
 		/* don't filter action channels according to visibility */
-	SACTION_NOHIDE = (1<<3)
+	SACTION_NOHIDE = (1<<3),
+		/* don't kill overlapping keyframes after transform */
+	SACTION_NOTRANSKEYCULL = (1<<4)
 } SACTION_FLAG;	
 
 /* SpaceAction AutoSnap Settings (also used by SpaceNLA) */

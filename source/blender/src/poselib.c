@@ -455,7 +455,7 @@ void poselib_remove_pose (Object *ob, TimeMarker *marker)
 			for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
 				/* check if remove... */
 				if (IS_EQ(bezt->vec[1][0], marker->frame)) {
-					delete_icu_key(icu, i);
+					delete_icu_key(icu, i, 1);
 					break;
 				}
 			}	
