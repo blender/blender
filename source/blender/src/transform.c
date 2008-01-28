@@ -193,10 +193,10 @@ int manageObjectSpace(int confirm, int set) {
 		return -1;
 
 	if (confirm == 0) {
-		if (set && pupmenu("Custome Space %t|Add and Use Active Object%x1") != 1) {
+		if (set && pupmenu("Custom Space %t|Add and Use Active Object%x1") != 1) {
 			return -1;
 		}
-		else if (set == 0 && pupmenu("Custome Space %t|Add Active Object%x1") != 1) {
+		else if (set == 0 && pupmenu("Custom Space %t|Add Active Object%x1") != 1) {
 			return -1;
 		}
 	}
@@ -210,10 +210,10 @@ int confirmSpace(int set, char text[])
 	char menu[64];
 	
 	if (set) {
-		sprintf(menu, "Custome Space %%t|Add and Use %s%%x1", text);
+		sprintf(menu, "Custom Space %%t|Add and Use %s%%x1", text);
 	}
 	else {
-		sprintf(menu, "Custome Space %%t|Add %s%%x1", text);
+		sprintf(menu, "Custom Space %%t|Add %s%%x1", text);
 	}
 	
 	if (pupmenu(menu) == 1) {
