@@ -58,5 +58,5 @@ typedef struct {
 PyObject *Render_Init( void );
 
 PyObject *RenderData_CreatePyObject( struct Scene *scene );
-PyObject *RenderLayer_CreatePyObject( struct SceneRenderLayer * renderLayer );
+PyObject *RenderLayer_CreatePyObject( struct Scene *scene, struct SceneRenderLayer * renderLayer );
 #endif				/* EXPP_SCENERENDER_H */

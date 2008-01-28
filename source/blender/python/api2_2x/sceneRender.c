@@ -1776,7 +1776,7 @@ PyObject *RenderData_getRenderLayers(BPy_RenderData * self)
 	list = PyList_New(0);
 	
 	for(srl= self->renderContext->layers.first; srl; srl= srl->next) {	
-		layer = RenderLayer_CreatePyObject( srl );
+		layer = RenderLayer_CreatePyObject( self->scene, srl );
 		PyList_Append(list, layer);
 		Py_DECREF(layer);
 	}
@@ -1821,7 +1821,7 @@ PyObject *RenderData_removeRenderLayer(BPy_RenderData * self, BPy_RenderLayer *v
 
 PyObject *RenderData_addRenderLayer(BPy_RenderData * self ) {
 	scene_add_render_layer(self->scene);
-	return RenderLayer_CreatePyObject( self->renderContext->layers.last );
+	return RenderLayer_CreatePyObject( self->scene, self->renderContext->layers.last );
 	
 }
 
@@ -3209,9 +3209,9 @@ static int RenderLayer_setLayers( BPy_RenderLayer * self, PyObject * value, void
 	
 	laymask = ( unsigned int )PyInt_AS_LONG( value );
 	
-	if( laymask <= 0 )
+	if((laymask < 0) ||  (!zlay && laymask == 0))
 		return EXPP_ReturnIntError( PyExc_ValueError,
-					      "layer value cannot be zero or below" );
+					      "layer value too low" );
 	
 	if (zlay) {
 		self->renderLayer->lay_zmask= laymask & ((1<<20) - 1);
@@ -3569,7 +3569,7 @@ PyTypeObject RenderLayer_Type = {
 /* BPy_RenderData Callbacks                                                */
 /***************************************************************************/
 
-PyObject *RenderLayer_CreatePyObject( struct SceneRenderLayer * renderLayer )
+PyObject *RenderLayer_CreatePyObject( struct Scene * scene, struct SceneRenderLayer * renderLayer )
 {
 	BPy_RenderLayer *py_renderlayer;
 
@@ -3581,6 +3581,7 @@ PyObject *RenderLayer_CreatePyObject( struct SceneRenderLayer * renderLayer )
 		return ( NULL );
 	}
 	py_renderlayer->renderLayer = renderLayer;
+	py_renderlayer->scene = scene;
 
 	return ( ( PyObject * ) py_renderlayer );
 }
