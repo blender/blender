@@ -432,7 +432,7 @@ void bone_autoside_name (char *name, int strip_number, short axis, float head, f
 	 */
 	if (extension[0]) {
 		if ((32 - len) < strlen(extension)) {
-			strncpy(name, basename, len-strlen(extension);
+			strncpy(name, basename, len-strlen(extension));
 		}
 	}
 
