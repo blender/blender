@@ -2295,7 +2295,12 @@ static void view3d_panel_transform_spaces(short cntrl)
 	for (index = V3D_MANIP_CUSTOM, ts = transform_spaces->first ; ts ; ts = ts->next, index++) {
 
 		BIF_ThemeColor(TH_BUT_ACTION);
-		but = uiDefIconButS(block,ROW, REDRAWHEADERS, ICON_RIGHTARROW_THIN, xco,yco,XIC,YIC, &G.vd->twmode, 5.0, (float)index, 0, 0, "Use this Custom Transform Orientation");
+		if (G.vd->twmode == index) {
+			but = uiDefIconButS(block,ROW, REDRAWHEADERS, ICON_CHECKBOX_HLT, xco,yco,XIC,YIC, &G.vd->twmode, 5.0, (float)index, 0, 0, "Use this Custom Transform Orientation");
+		}
+		else {
+			but = uiDefIconButS(block,ROW, REDRAWHEADERS, ICON_CHECKBOX_DEHLT, xco,yco,XIC,YIC, &G.vd->twmode, 5.0, (float)index, 0, 0, "Use this Custom Transform Orientation");
+		}
 		uiButSetFunc(but, selectTransformOrientation_func, ts, NULL);
 		uiDefBut(block, TEX, 0, "", xco+=XIC, yco,100+XIC,20, &ts->name, 0, 30, 0, 0, "Edits the name of this Transform Orientation");
 		but = uiDefIconBut(block, BUT, REDRAWVIEW3D, ICON_X, xco+=100+XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, "Deletes this Transform Orientation");
