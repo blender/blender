@@ -3091,7 +3091,6 @@ static void space_sound_button_function(int event)
 }
 #endif
 
-
 static char *iconfile_menu(void)
 {
  	static char string[512];
@@ -3133,10 +3132,36 @@ static short th_curcolset = 1;
 static char *th_curcol_ptr= NULL;
 static char th_curcol_arr[4]={0, 0, 0, 255};
 
+
+static void info_dump_customcolorset (void *arg1, void *arg2)
+{
+	bTheme *btheme= U.themes.first;
+	ThemeWireColor *tcs= &btheme->tarm[(th_curcolset - 1)];
+	
+	
+#if 0 // this version, if we keep the button
+	/* print (name, redval, greenval, blueval) */
+	printf("Theme '%s': Bone Color Set %d \n", btheme->name, th_curcolset);
+	printf("\t'Normal': 0x%02x, 0x%02x, 0x%02x \n", tcs->solid[0], tcs->solid[1], tcs->solid[2]);
+	printf("\t'Select': 0x%02x, 0x%02x, 0x%02x \n", tcs->select[0], tcs->select[1], tcs->select[2]);
+	printf("\t'Active': 0x%02x, 0x%02x, 0x%02x \n", tcs->active[0], tcs->active[1], tcs->active[2]);
+	printf("\n");
+#endif
+
+	// this version generates code that can be copy+paste-ed
+	printf("Bone Color Set - Code \n");
+	printf("\t/* set %d*/ \n", th_curcolset);
+	printf("\tSETCOL(btheme->tarm[%d].solid, 0x%02x, 0x%02x, 0x%02x, 255); \n", th_curcolset-1, tcs->solid[0], tcs->solid[1], tcs->solid[2]);
+	printf("\tSETCOL(btheme->tarm[%d].select, 0x%02x, 0x%02x, 0x%02x, 255); \n", th_curcolset-1, tcs->select[0], tcs->select[1], tcs->select[2]);
+	printf("\tSETCOL(btheme->tarm[%d].active, 0x%02x, 0x%02x, 0x%02x, 255); \n", th_curcolset-1, tcs->active[0], tcs->active[1], tcs->active[2]);
+	printf("\n");
+}
+
 static void info_user_theme_colsets_buts(uiBlock *block, short y1, short y2, short y3, short y4) 
 {
 	bTheme *btheme= U.themes.first;
 	ThemeWireColor *col_set= &btheme->tarm[(th_curcolset - 1)];
+	uiBut *but;
 	short y4label= y4-2; // sync this with info_user_themebuts
 	
 	/* Selector for set (currently only 20 sets) */
@@ -3158,7 +3183,9 @@ static void info_user_theme_colsets_buts(uiBlock *block, short y1, short y2, sho
 	uiDefButBitS(block, TOG, TH_WIRECOLOR_CONSTCOLS, B_UPDATE_THEME, "Use 'Constraint' Colouring",  885,y2,200,20, &col_set->flag, 0, 0, 0, 0, "Allow the use of colors indicating constraints/keyed status");
 	
 	/* 'Debug' Tools */
-	// TODO... dump current colours
+	// these should be disabled for release... but are needed for development 
+	but= uiDefBut(block, BUT, B_UPDATE_THEME, "Dump Colors Codes", 	885,y3,200,20, NULL, 0, 0, 0, 0, "Prints this set's colors to the console");
+	uiButSetFunc(but, info_dump_customcolorset, NULL, NULL);
 }
 
 static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3, short y4)

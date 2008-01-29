@@ -371,6 +371,56 @@ void BIF_InitTheme(void)
 	
 	BLI_strncpy(btheme->tui.iconfile, "", sizeof(btheme->tui.iconfile));
 	
+	/* bone color sets */
+		/* set 1 */
+	SETCOL(btheme->tarm[0].solid, 0x9a, 0x00, 0x00, 255);
+	SETCOL(btheme->tarm[0].select, 0xbd, 0x11, 0x11, 255);
+	SETCOL(btheme->tarm[0].active, 0xea, 0x01, 0x01, 255);
+		/* set 2 */
+	SETCOL(btheme->tarm[1].solid, 0xf7, 0x40, 0x18, 255);
+	SETCOL(btheme->tarm[1].select, 0xf6, 0x69, 0x13, 255);
+	SETCOL(btheme->tarm[1].active, 0xfa, 0x99, 0x00, 255);
+	    /* set 3 */
+	SETCOL(btheme->tarm[2].solid, 0x1e, 0x91, 0x09, 255);
+	SETCOL(btheme->tarm[2].select, 0x59, 0xb7, 0x0b, 255);
+	SETCOL(btheme->tarm[2].active, 0x83, 0xef, 0x1d, 255);
+		/* set 4 */
+	SETCOL(btheme->tarm[3].solid, 0x0a, 0x36, 0x94, 255);
+	SETCOL(btheme->tarm[3].select, 0x36, 0x67, 0xdf, 255);
+	SETCOL(btheme->tarm[3].active, 0x5e, 0xc1, 0xef, 255);
+		/* set 5 */
+	SETCOL(btheme->tarm[4].solid, 0xa9, 0x29, 0x4e, 255);
+	SETCOL(btheme->tarm[4].select, 0xc1, 0x41, 0x6a, 255);
+	SETCOL(btheme->tarm[4].active, 0xf0, 0x5d, 0x91, 255);
+		/* set 6 */
+	SETCOL(btheme->tarm[5].solid, 0x43, 0x0c, 0x78, 255);
+	SETCOL(btheme->tarm[5].select, 0x54, 0x3a, 0xa3, 255);
+	SETCOL(btheme->tarm[5].active, 0x87, 0x64, 0xd5, 255);
+		/* set 7 */
+	SETCOL(btheme->tarm[6].solid, 0x24, 0x78, 0x5a, 255);
+	SETCOL(btheme->tarm[6].select, 0x3c, 0x95, 0x79, 255);
+	SETCOL(btheme->tarm[6].active, 0x6f, 0xb6, 0xab, 255);
+		/* set 8 */
+	SETCOL(btheme->tarm[7].solid, 0x4b, 0x70, 0x7c, 255);
+	SETCOL(btheme->tarm[7].select, 0x6a, 0x86, 0x91, 255);
+	SETCOL(btheme->tarm[7].active, 0x9b, 0xc2, 0xcd, 255);
+		/* set 9 */
+	SETCOL(btheme->tarm[8].solid, 0xf4, 0xc9, 0x0c, 255);
+	SETCOL(btheme->tarm[8].select, 0xee, 0xc2, 0x36, 255);
+	SETCOL(btheme->tarm[8].active, 0xf3, 0xff, 0x00, 255);
+		/* set 10 */
+	SETCOL(btheme->tarm[9].solid, 0x1e, 0x20, 0x24, 255);
+	SETCOL(btheme->tarm[9].select, 0x48, 0x4c, 0x56, 255);
+	SETCOL(btheme->tarm[9].active, 0xff, 0xff, 0xff, 255);
+		/* set 11 */
+	SETCOL(btheme->tarm[10].solid, 0x6f, 0x2f, 0x6a, 255);
+	SETCOL(btheme->tarm[10].select, 0x98, 0x45, 0xbe, 255);
+	SETCOL(btheme->tarm[10].active, 0xd3, 0x30, 0xd6, 255);
+		/* set 12 */
+	SETCOL(btheme->tarm[11].solid, 0x6c, 0x8e, 0x22, 255);
+	SETCOL(btheme->tarm[11].select, 0x7f, 0xb0, 0x22, 255);
+	SETCOL(btheme->tarm[11].active, 0xbb, 0xef, 0x5b, 255);
+	
 	/* space view3d */
 	SETCOL(btheme->tv3d.back, 	115, 115, 115, 255);
 	SETCOL(btheme->tv3d.text, 	0, 0, 0, 255);
