@@ -1240,15 +1240,36 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 	glDisable(GL_BLEND);
 }
 
-#define INIT_AKI_DATA {((G.saction && NLA_ACTION_SCALED)? OBACT : NULL), G.v2d->cur.xmin - 10, G.v2d->cur.xmax + 10}
+
+static ActKeysInc *init_aki_data()
+{
+	static ActKeysInc aki;
+	
+	/* init data of static struct here */
+	if ((curarea->spacetype == SPACE_ACTION) && NLA_ACTION_SCALED)
+		aki.ob= OBACT;
+	else if (curarea->spacetype == SPACE_NLA)
+		aki.ob= NULL; // FIXME
+	else
+		aki.ob= NULL;
+		
+	aki.start= G.v2d->cur.xmin - 10;
+	aki.end= G.v2d->cur.xmax + 10;
+	
+	/* only pass pointer for Action Editor (for now) */
+	if (curarea->spacetype == SPACE_ACTION)
+		return &aki;
+	else	
+		return NULL;
+}
 
 void draw_object_channel(gla2DDrawInfo *di, Object *ob, float ypos)
 {
 	ListBase keys = {0, 0};
 	ListBase blocks = {0, 0};
-	ActKeysInc aki = INIT_AKI_DATA;
+	ActKeysInc *aki = init_aki_data();
 
-	ob_to_keylist(ob, &keys, &blocks, &aki);
+	ob_to_keylist(ob, &keys, &blocks, aki);
 	draw_keylist(di, &keys, &blocks, ypos);
 	
 	BLI_freelistN(&keys);
@@ -1259,9 +1280,9 @@ void draw_ipo_channel(gla2DDrawInfo *di, Ipo *ipo, float ypos)
 {
 	ListBase keys = {0, 0};
 	ListBase blocks = {0, 0};
-	ActKeysInc aki = INIT_AKI_DATA;
+	ActKeysInc *aki = init_aki_data();
 
-	ipo_to_keylist(ipo, &keys, &blocks, &aki);
+	ipo_to_keylist(ipo, &keys, &blocks, aki);
 	draw_keylist(di, &keys, &blocks, ypos);
 	
 	BLI_freelistN(&keys);
@@ -1272,9 +1293,9 @@ void draw_icu_channel(gla2DDrawInfo *di, IpoCurve *icu, float ypos)
 {
 	ListBase keys = {0, 0};
 	ListBase blocks = {0, 0};
-	ActKeysInc aki = INIT_AKI_DATA;
+	ActKeysInc *aki = init_aki_data();
 
-	icu_to_keylist(icu, &keys, &blocks, &aki);
+	icu_to_keylist(icu, &keys, &blocks, aki);
 	draw_keylist(di, &keys, &blocks, ypos);
 	
 	BLI_freelistN(&keys);
@@ -1285,9 +1306,9 @@ void draw_agroup_channel(gla2DDrawInfo *di, bActionGroup *agrp, float ypos)
 {
 	ListBase keys = {0, 0};
 	ListBase blocks = {0, 0};
-	ActKeysInc aki = INIT_AKI_DATA;
+	ActKeysInc *aki = init_aki_data();
 
-	agroup_to_keylist(agrp, &keys, &blocks, &aki);
+	agroup_to_keylist(agrp, &keys, &blocks, aki);
 	draw_keylist(di, &keys, &blocks, ypos);
 	BLI_freelistN(&keys);
 	BLI_freelistN(&blocks);
@@ -1296,9 +1317,9 @@ void draw_agroup_channel(gla2DDrawInfo *di, bActionGroup *agrp, float ypos)
 void draw_action_channel(gla2DDrawInfo *di, bAction *act, float ypos)
 {
 	ListBase keys = {0, 0};
-	ActKeysInc aki = INIT_AKI_DATA;
+	ActKeysInc *aki = init_aki_data();
 
-	action_to_keylist(act, &keys, NULL, &aki);
+	action_to_keylist(act, &keys, NULL, aki);
 	draw_keylist(di, &keys, NULL, ypos);
 	BLI_freelistN(&keys);
 }
