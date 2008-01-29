@@ -240,17 +240,12 @@ void transform_width_height_tface_uv(int *width, int *height)
 	}
 }
 
-void mirror_tface_uv(char mirroraxis)
-{
-	if (mirroraxis == 'x')
-		Mirror(1); /* global x */
-	else if (mirroraxis == 'y')
-		Mirror(2); /* global y */
-}
-
 void mirrormenu_tface_uv(void)
 {
+	float mat[3][3];
 	short mode= 0;
+	
+	Mat3One(mat);
 
 	if( is_uv_tface_editing_allowed()==0 ) return;
 
@@ -258,8 +253,16 @@ void mirrormenu_tface_uv(void)
 
 	if(mode==-1) return;
 
-	if(mode==1) mirror_tface_uv('x');
-	else if(mode==2) mirror_tface_uv('y');
+	if (mode == 1) {
+		initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
+		BIF_setSingleAxisConstraint(mat[0], " on X axis");
+		Transform();
+	}
+	else {
+		initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
+		BIF_setSingleAxisConstraint(mat[1], " on Y axis");
+		Transform();
+	}
 
 	BIF_undo_push("Mirror UV");
 }
