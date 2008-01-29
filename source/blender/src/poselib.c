@@ -534,7 +534,7 @@ typedef struct tPoseLib_PreviewData {
 	
 	short state;			/* state of main loop */
 	short redraw;			/* redraw/update settings during main loop */
-	short firsttime;		/* first loop... (no restore) */
+	short flag;				/* flags for various settings */
 	
 	int selcount;			/* number of selected elements to work on */
 	int totcount;			/* total number of elements to work on */
@@ -560,6 +560,12 @@ enum {
 	PL_PREVIEW_NOREDRAW = 0,
 	PL_PREVIEW_REDRAWALL,
 	PL_PREVIEW_REDRAWHEADER,
+};
+
+/* defines for tPoseLib_PreviewData->flag values */
+enum {
+	PL_PREVIEW_FIRSTTIME	= (1<<0),
+	PL_PREVIEW_SHOWORIGINAL	= (1<<1)
 };
 
 /* ---------------------------- */
@@ -890,6 +896,49 @@ static void poselib_preview_handle_event (tPoseLib_PreviewData *pld, unsigned sh
 	 */
 	strcpy(pld->searchold, pld->searchstr);
 	
+	/* if we're currently showing the original pose, only certain events are handled */
+	if (pld->flag & PL_PREVIEW_SHOWORIGINAL) {
+		switch (event) {
+			/* exit - cancel */
+			case ESCKEY:
+			case RIGHTMOUSE:
+				pld->state= PL_PREVIEW_CANCEL;
+				break;
+				
+			/* exit - confirm */
+			case LEFTMOUSE:
+			case RETKEY:
+			case PADENTER:
+			case SPACEKEY:
+				pld->state= PL_PREVIEW_CONFIRM;
+				break;
+			
+			/* view manipulation */
+			case MIDDLEMOUSE:
+				// there's a little bug here that causes the normal header to get drawn while view is manipulated 
+				handle_view_middlemouse();
+				pld->redraw= PL_PREVIEW_REDRAWHEADER;
+				break;
+				
+			/* view manipulation, or searching */
+			case PAD0: case PAD1: case PAD2: case PAD3: case PAD4:
+			case PAD5: case PAD6: case PAD7: case PAD8: case PAD9:
+			case PADPLUSKEY: case PADMINUS:
+				persptoetsen(event);
+				pld->redraw= PL_PREVIEW_REDRAWHEADER;
+				break;
+				
+			case TABKEY:
+				pld->flag &= ~PL_PREVIEW_SHOWORIGINAL;
+				pld->redraw= PL_PREVIEW_REDRAWALL;
+				break;
+		}
+		
+		/* EXITS HERE... */
+		return;
+	}
+	
+	/* NORMAL EVENT HANDLING... */
 	/* searching takes priority over normal activity */
 	switch (event) {
 		/* exit - cancel */
@@ -904,6 +953,12 @@ static void poselib_preview_handle_event (tPoseLib_PreviewData *pld, unsigned sh
 		case PADENTER:
 		case SPACEKEY:
 			pld->state= PL_PREVIEW_CONFIRM;
+			break;
+			
+		/* toggle between original pose and poselib pose*/
+		case TABKEY:
+			pld->flag |= PL_PREVIEW_SHOWORIGINAL;
+			pld->redraw= PL_PREVIEW_REDRAWALL;
 			break;
 		
 		/* change to previous pose (cyclic) */
@@ -1064,7 +1119,7 @@ static void poselib_preview_init_data (tPoseLib_PreviewData *pld, Object *ob, sh
 	/* set flags for running */
 	pld->state= (apply_active) ? PL_PREVIEW_RUNONCE : PL_PREVIEW_RUNNING;
 	pld->redraw= PL_PREVIEW_REDRAWALL;
-	pld->firsttime= 1;
+	pld->flag= PL_PREVIEW_FIRSTTIME;
 	
 	/* set depsgraph flags */
 		/* make sure the lock is set OK, unlock can be accidentally saved? */
@@ -1177,13 +1232,14 @@ void poselib_preview_poses (Object *ob, short apply_active)
 			/* only recalc pose (and its dependencies) if pose has changed */
 			if (pld.redraw == PL_PREVIEW_REDRAWALL) {
 				/* don't clear pose if firsttime */
-				if (pld.firsttime == 0)
+				if ((pld.flag & PL_PREVIEW_FIRSTTIME)==0)
 					poselib_backup_restore(&pld);
 				else
-					pld.firsttime = 0;
+					pld.flag &= ~PL_PREVIEW_FIRSTTIME;
 					
-				/* pose should be the right one to draw */
-				poselib_apply_pose(&pld);
+				/* pose should be the right one to draw (unless we're temporarily not showing it) */
+				if ((pld.flag & PL_PREVIEW_SHOWORIGINAL)==0)
+					poselib_apply_pose(&pld);
 				
 				/* old optimize trick... this enforces to bypass the depgraph 
 				 *	- note: code copied from transform_generics.c -> recalcData()
@@ -1205,7 +1261,11 @@ void poselib_preview_poses (Object *ob, short apply_active)
 			
 			/* do header print - if interactively previewing */
 			if (pld.state == PL_PREVIEW_RUNNING) {
-				if (pld.searchstr[0]) {
+				if (pld.flag & PL_PREVIEW_SHOWORIGINAL) {
+					sprintf(pld.headerstr, "PoseLib Previewing Pose: [Showing Original Pose] | Use Tab to start previewing poses again");
+					headerprint(pld.headerstr);
+				}
+				else if (pld.searchstr[0]) {
 					char tempstr[65];
 					char markern[64];
 					short index;
