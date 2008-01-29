@@ -64,7 +64,7 @@ void boundbox_mesh(struct Mesh *me, float *loc, float *size);
 void tex_space_mesh(struct Mesh *me);
 float *get_mesh_orco_verts(struct Object *ob);
 void transform_mesh_orco_verts(struct Mesh *me, float (*orco)[3], int totvert, int invert);
-void test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex, int nr);
+int test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex, int nr);
 struct Mesh *get_mesh(struct Object *ob);
 void set_mesh(struct Object *ob, struct Mesh *me);
 void mball_to_mesh(struct ListBase *lb, struct Mesh *me);

@@ -937,6 +937,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			                      count - 1);
 		}
 
+		if(med.v1 == med.v2) continue;
+
 		if (initFlags) {
 			med.flag |= ME_EDGEDRAW | ME_EDGERENDER;
 		}
@@ -998,7 +1000,9 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		if(inMF.v4 && indexMap[inMF.v4].merge_final)
 			mf->v4 = calc_mapping(indexMap, indexMap[inMF.v4].merge, count-1);
 
-		test_index_face(mf, &result->faceData, numFaces, inMF.v4?4:3);
+		if(test_index_face(mf, &result->faceData, numFaces, inMF.v4?4:3) < 3)
+			continue;
+
 		numFaces++;
 
 		/* if the face has fewer than 3 vertices, don't create it */

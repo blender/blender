@@ -530,7 +530,7 @@ void transform_mesh_orco_verts(Mesh *me, float (*orco)[3], int totvert, int inve
 
 /* rotates the vertices of a face in case v[2] or v[3] (vertex index) is = 0.
    this is necessary to make the if(mface->v4) check for quads work */
-void test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
+int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 {
 	/* first test if the face is legal */
 	if(mface->v3 && mface->v3==mface->v4) {
@@ -572,6 +572,8 @@ void test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 				CustomData_swap(fdata, mfindex, corner_indices);
 		}
 	}
+
+	return nr;
 }
 
 Mesh *get_mesh(Object *ob)
