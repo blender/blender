@@ -593,6 +593,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 	psys= ob->particlesystem.first;
 	if(psys) {
 		ParticleEffectorCache *nec;
+		GroupObject *go;
 
 		for(; psys; psys=psys->next) {
 			ParticleSettings *part= psys->part;
@@ -603,6 +604,18 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 			   BLI_findlink(&psys->keyed_ob->particlesystem,psys->keyed_psys-1)) {
 				node2 = dag_get_node(dag, psys->keyed_ob);
 				dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA);
+			}
+
+			if(part->draw_as == PART_DRAW_OB && part->dup_ob) {
+				node2 = dag_get_node(dag, part->dup_ob);
+				dag_add_relation(dag, node, node2, DAG_RL_OB_OB);
+			}
+
+			if(part->draw_as == PART_DRAW_GR && part->dup_group) {
+				for(go=part->dup_group->gobject.first; go; go=go->next) {
+					node2 = dag_get_node(dag, go->ob);
+					dag_add_relation(dag, node, node2, DAG_RL_OB_OB);
+				}
 			}
 
 			if(psys->effectors.first)
