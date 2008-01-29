@@ -73,6 +73,7 @@ void pose_recalculate_paths(struct Object *ob);
 void pose_clear_paths(struct Object *ob);
 
 void pose_flip_names(void);
+void pose_autoside_names(short axis);
 void pose_activate_flipped_bone(void);
 void pose_movetolayer(void);
 void pose_relax(void);

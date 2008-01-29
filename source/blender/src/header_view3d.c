@@ -3789,7 +3789,6 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 	static short numcuts= 2;
 
 	switch(event) {
-	
 	case 0: /* Undo Editing */
 		remake_editArmature();
 		break;
@@ -3835,6 +3834,11 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 		break;
 	case 18: /* merge bones */
 		merge_armature();
+		break;
+	case 19: /* auto-extensions */
+	case 20:
+	case 21:
+		armature_autoside_names(event-19);	
 		break;
 	}
 	
@@ -3915,6 +3919,9 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdivide|W, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdivide Multi|W, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Flip Left & Right Names|W, 3",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "AutoName Left-Right|W, 4",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "AutoName Front-Back|W, 5",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 20, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "AutoName Top-Bottom|W, 6",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 21, "");
 	
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -4201,7 +4208,6 @@ static void do_view3d_pose_armaturemenu(void *arg, int event)
 	ob=OBACT;
 	
 	switch(event) {
-	
 	case 0: /* transform properties */
 		mainqenter(NKEY, 1);
 		break;
@@ -4238,6 +4244,11 @@ static void do_view3d_pose_armaturemenu(void *arg, int event)
 		break;
 	case 15:
 		pose_relax();
+		break;
+	case 16: /* auto-extensions for bones */
+	case 17:
+	case 18:
+		pose_autoside_names(event-16);
 		break;
 	}
 		
@@ -4281,6 +4292,10 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, view3d_pose_armature_constraintsmenu, NULL, ICON_RIGHTARROW_THIN, "Constraints", 0, yco-=20, 120, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "AutoName Left-Right|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "AutoName Front-Back|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "AutoName Top-Bottom|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Flip L/R Names|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy Attributes...|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");

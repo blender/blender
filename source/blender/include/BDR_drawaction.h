@@ -68,6 +68,12 @@ typedef struct ActKeyBlock {
 } ActKeyBlock;
 
 
+/* Inclusion-Range Limiting Struct (optional) */
+typedef struct ActKeysInc {
+	struct Object *ob;				/* if present, used to find action-scaled time */
+	float start, end;				/* frames (global-time) to only consider keys between */
+} ActKeysInc;
+
 /* ******************************* Methods ****************************** */
 
 /* Action Generics */
@@ -81,11 +87,11 @@ void draw_action_channel(struct gla2DDrawInfo *di, struct bAction *act, float yp
 void draw_object_channel(struct gla2DDrawInfo *di, struct Object *ob, float ypos);
 
 /* Keydata Generation */
-void icu_to_keylist(struct IpoCurve *icu, ListBase *keys, ListBase *blocks);
-void ipo_to_keylist(struct Ipo *ipo, ListBase *keys, ListBase *blocks);
-void agroup_to_keylist(struct bActionGroup *agrp, ListBase *keys, ListBase *blocks);
-void action_to_keylist(struct bAction *act, ListBase *keys, ListBase *blocks);
-void ob_to_keylist(struct Object *ob, ListBase *keys, ListBase *blocks);
+void icu_to_keylist(struct IpoCurve *icu, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
+void ipo_to_keylist(struct Ipo *ipo, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
+void agroup_to_keylist(struct bActionGroup *agrp, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
+void action_to_keylist(struct bAction *act, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
+void ob_to_keylist(struct Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
 
 #endif  /*  BDR_DRAWACTION_H */
 

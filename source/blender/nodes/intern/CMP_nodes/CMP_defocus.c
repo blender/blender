@@ -376,8 +376,10 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 		// some sort of visual feedback would be nice, or at least this text in the renderwin header
 		// but for now just print some info in the console every 8 scanlines.
 		if (((y & 7)==0) || (y==(img->y-1))) {
-			printf("\rdefocus: Processing Line %d of %d ... ", y+1, img->y);
-			fflush(stdout);
+			if(G.background==0) {
+				printf("\rdefocus: Processing Line %d of %d ... ", y+1, img->y);
+				fflush(stdout);
+			}
 		}
 		// esc set by main calling process
 		if(node->exec & NODE_BREAK)

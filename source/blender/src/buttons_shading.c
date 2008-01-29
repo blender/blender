@@ -1175,13 +1175,13 @@ void uiblock_image_panel(uiBlock *block, Image **ima_pp, ImageUser *iuser,
 		 
 		 /* fields */
 		 uiBlockBeginAlign(block);
-		 but= uiDefButBitS(block, TOG, IMA_FIELDS, imagechanged, "Fields",	10, 90, 65, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
+		 but= uiDefButBitS(block, TOG, IMA_FIELDS, imagechanged, "Fields",	10, 70, 65, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
 		 uiButSetFunc(but, image_field_test, ima, iuser);
-		 uiDefButBitS(block, TOG, IMA_STD_FIELD, B_NOP, "Odd",			75, 90, 45, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
+		 uiDefButBitS(block, TOG, IMA_STD_FIELD, B_NOP, "Odd",			75, 70, 45, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
 		 
 		 uiBlockSetFunc(block, image_reload_cb, ima, iuser);
-		 uiDefButBitS(block, TOG, IMA_ANTIALI, B_NOP, "Anti",			10, 70, 45, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
-		 uiDefButBitS(block, TOG, IMA_DO_PREMUL, imagechanged, "Premul",		55, 70, 65, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
+		 uiDefButBitS(block, TOG, IMA_ANTIALI, B_NOP, "Anti",			10, 50, 45, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
+		 uiDefButBitS(block, TOG, IMA_DO_PREMUL, imagechanged, "Premul",		55, 50, 65, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
 		 uiBlockEndAlign(block);
 		 
 		 if( ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
@@ -1189,21 +1189,21 @@ void uiblock_image_panel(uiBlock *block, Image **ima_pp, ImageUser *iuser,
 			 
 			 uiBlockBeginAlign(block);
 			 uiBlockSetFunc(block, image_user_change, iuser, NULL);
-			 uiDefButBitS(block, TOG, IMA_ANIM_ALWAYS, B_NOP, "Auto Refresh",	120, 90, 190, 20, &iuser->flag, 0, 0, 0, 0, "Always refresh Image on frame changes");
+			 uiDefButBitS(block, TOG, IMA_ANIM_ALWAYS, B_NOP, "Auto Refresh",	120, 70, 190, 20, &iuser->flag, 0, 0, 0, 0, "Always refresh Image on frame changes");
 			 
 			 if(ima->anim) {
-				 uiDefButI(block, NUM, imagechanged, str,		120, 70,170, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of images of a movie to use");
-				 but= uiDefBut(block, BUT, redraw, "<",		290, 70, 20, 20, 0, 0, 0, 0, 0, "Copies number of frames in movie file to Frames: button");
+				 uiDefButI(block, NUM, imagechanged, str,		120, 50,170, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of images of a movie to use");
+				 but= uiDefBut(block, BUT, redraw, "<",		290, 50, 20, 20, 0, 0, 0, 0, 0, "Copies number of frames in movie file to Frames: button");
 				 uiButSetFunc(but, set_frames_cb, ima, iuser);
 			 }
 			 else 
-				 uiDefButI(block, NUM, imagechanged, str,		120, 70,190, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of images of a movie to use");
+				 uiDefButI(block, NUM, imagechanged, str,		120, 50,190, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of images of a movie to use");
 			 
-			 uiDefButI(block, NUM, imagechanged, "Offs:",	120,50,100,20, &iuser->offset, -MAXFRAMEF, MAXFRAMEF, 0, 0, "Offsets the number of the frame to use in the animation");
-			 uiDefButS(block, NUM, imagechanged, "Fie/Ima:",	220,50,90,20, &iuser->fie_ima, 1.0, 200.0, 0, 0, "The number of fields per rendered frame (2 fields is 1 image)");
+			 uiDefButI(block, NUM, imagechanged, "Offs:",	120,30,100,20, &iuser->offset, -MAXFRAMEF, MAXFRAMEF, 0, 0, "Offsets the number of the frame to use in the animation");
+			 uiDefButS(block, NUM, imagechanged, "Fie/Ima:",	220,30,90,20, &iuser->fie_ima, 1.0, 200.0, 0, 0, "The number of fields per rendered frame (2 fields is 1 image)");
 			 
-			 uiDefButI(block, NUM, imagechanged, "StartFr:",	120,30,100,20, &iuser->sfra, 1.0, MAXFRAMEF, 0, 0, "Sets the global starting frame of the movie");
-			 uiDefButS(block, TOG, imagechanged, "Cyclic",	220,30,90,20, &iuser->cycl, 0.0, 1.0, 0, 0, "Cycle the images in the movie");
+			 uiDefButI(block, NUM, imagechanged, "StartFr:",	120,10,100,20, &iuser->sfra, 1.0, MAXFRAMEF, 0, 0, "Sets the global starting frame of the movie");
+			 uiDefButS(block, TOG, imagechanged, "Cyclic",	220,10,90,20, &iuser->cycl, 0.0, 1.0, 0, 0, "Cycle the images in the movie");
 			 
 			 uiBlockSetFunc(block, NULL, iuser, NULL);
 		 }
@@ -1211,9 +1211,9 @@ void uiblock_image_panel(uiBlock *block, Image **ima_pp, ImageUser *iuser,
 			 
 			 uiBlockBeginAlign(block);
 			 uiBlockSetFunc(block, image_generated_change_cb, ima, iuser);
-			 uiDefButS(block, NUM, imagechanged, "SizeX:",	120,90,100,20, &ima->gen_x, 1.0, 5000.0, 0, 0, "Image size x");
-			 uiDefButS(block, NUM, imagechanged, "SizeY:",	220,90,90,20, &ima->gen_y, 1.0, 5000.0, 0, 0, "Image size y");
-			 uiDefButS(block, TOG, imagechanged, "UV Test grid",120,70,190,20, &ima->gen_type, 0.0, 1.0, 0, 0, "");
+			 uiDefButS(block, NUM, imagechanged, "SizeX:",	120,70,100,20, &ima->gen_x, 1.0, 5000.0, 0, 0, "Image size x");
+			 uiDefButS(block, NUM, imagechanged, "SizeY:",	220,70,90,20, &ima->gen_y, 1.0, 5000.0, 0, 0, "Image size y");
+			 uiDefButS(block, TOG, imagechanged, "UV Test grid",120,50,190,20, &ima->gen_type, 0.0, 1.0, 0, 0, "");
 			 uiBlockSetFunc(block, NULL, NULL, NULL);
 		 }
 	 }

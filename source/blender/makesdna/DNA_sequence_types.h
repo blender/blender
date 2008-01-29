@@ -79,6 +79,7 @@ typedef struct StripProxy {
 typedef struct Strip {
 	struct Strip *next, *prev;
 	int rt, len, us, done;
+	int startstill, endstill;
 	StripElem *stripdata;
 	char dir[160];
 	int orx, ory;
@@ -86,6 +87,8 @@ typedef struct Strip {
 	StripTransform *transform;
 	StripProxy *proxy;
 	TStripElem *tstripdata;
+	TStripElem *tstripdata_startstill;
+	TStripElem *tstripdata_endstill;
 } Strip;
 
 
@@ -157,6 +160,9 @@ typedef struct Sequence {
 
 	int blend_mode;
 	float blend_opacity;
+
+	int scenenr;          /* for scene selection */
+	int pad;
 } Sequence;
 
 typedef struct MetaStack {

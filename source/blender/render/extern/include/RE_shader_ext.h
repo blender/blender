@@ -157,6 +157,7 @@ typedef struct ShadeInput
 	
 	int xs, ys;				/* pixel to be rendered */
 	int mask;				/* subsample mask */
+	
 	int samplenr;			/* sample counter, to detect if we should do shadow again */
 	int depth;				/* 1 or larger on raytrace shading */
 	
@@ -169,6 +170,7 @@ typedef struct ShadeInput
 	/* from initialize, part or renderlayer */
 	short do_preview;		/* for nodes, in previewrender */
 	short thread, sample;	/* sample: ShadeSample array index */
+	
 	unsigned int lay;
 	int layflag, passflag, combinedflag;
 	struct Group *light_override;

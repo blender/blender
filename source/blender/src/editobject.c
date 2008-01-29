@@ -2554,7 +2554,7 @@ void special_editmenu(void)
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	}
 	else if(G.obedit->type==OB_ARMATURE) {
-		nr= pupmenu("Specials%t|Subdivide %x1|Subdivide Multi%x2|Flip Left-Right Names%x3");
+		nr= pupmenu("Specials%t|Subdivide %x1|Subdivide Multi%x2|Flip Left-Right Names%x3|%l|AutoName Left-Right%x4|AutoName Front-Back%x5|AutoName Top-Bottom%x6");
 		if(nr==1)
 			subdivide_armature(1);
 		if(nr==2) {
@@ -2564,6 +2564,9 @@ void special_editmenu(void)
 		}
 		else if(nr==3)
 			armature_flip_names();
+		else if(ELEM3(nr, 4, 5, 6)) {
+			armature_autoside_names(nr-4);
+		}
 	}
 	else if(G.obedit->type==OB_LATTICE) {
 		static float weight= 1.0f;

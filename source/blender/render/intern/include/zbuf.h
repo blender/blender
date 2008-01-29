@@ -36,6 +36,8 @@ struct LampRen;
 struct VlakRen;
 struct ListBase;
 struct ZSpan;
+struct APixstrand;
+struct StrandShadeCache;
 
 void fillrect(int *rect, int x, int y, int val);
 
@@ -51,9 +53,9 @@ void zbuffer_shadow(struct Render *re, float winmat[][4], struct LampRen *lar, i
 void zbuffer_solid(struct RenderPart *pa, struct RenderLayer *rl, void (*fillfunc)(struct RenderPart*, struct ZSpan*, int, void*), void *data);
 
 unsigned short *zbuffer_transp_shade(struct RenderPart *pa, struct RenderLayer *rl, float *pass, struct ListBase *psmlist);
-unsigned short *zbuffer_strands_shade(struct Render *re, struct RenderPart *pa, struct RenderLayer *rl, float *pass);
 void convert_zbuf_to_distbuf(struct RenderPart *pa, struct RenderLayer *rl);
 void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(void*, int, int, int, int, int));
+int zbuffer_strands_abuf(struct Render *re, struct RenderPart *pa, struct RenderLayer *rl, struct APixstrand *apixbuf, struct ListBase *apsmbase, struct StrandShadeCache *cache);
 
 typedef struct APixstr {
     unsigned short mask[4];		/* jitter mask */
@@ -64,10 +66,20 @@ typedef struct APixstr {
     struct APixstr *next;
 } APixstr;
 
+typedef struct APixstrand {
+    unsigned short mask[4];		/* jitter mask */
+    int z[4];					/* distance    */
+    int p[4];					/* index       */
+	int obi[4];					/* object instance */
+	int seg[4];					/* for strands, segment number */
+	float u[4], v[4];			/* for strands, u,v coordinate in segment */
+    struct APixstrand *next;
+} APixstrand;
+
 typedef struct APixstrMain
 {
 	struct APixstrMain *next, *prev;
-	struct APixstr *ps;
+	void *ps;
 } APixstrMain;
 
 /* span fill in method, is also used to localize data for zbuffering */
@@ -85,11 +97,13 @@ typedef struct ZSpan {
 	int *rectp;								/* polygon index buffer */
 	int *recto;								/* object buffer */
 	APixstr *apixbuf, *curpstr;				/* apixbuf for transparent */
+	APixstrand *curpstrand;					/* same for strands */
 	struct ListBase *apsmbase;
 	
 	int polygon_offset;						/* offset in Z */
 	float shad_alpha;						/* copy from material, used by irregular shadbuf */
 	int mask, apsmcounter;					/* in use by apixbuf */
+	int apstrandmcounter;
 
 	float clipcrop;							/* for shadow, was in R global before */
 

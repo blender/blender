@@ -111,6 +111,7 @@
 #include "strand.h"
 #include "texture.h"
 #include "sss.h"
+#include "strand.h"
 #include "zbuf.h"
 
 #ifndef DISABLE_YAFRAY /* disable yafray */
@@ -1482,6 +1483,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	ParticleCacheKey *cache=0;
 	StrandBuffer *strandbuf=0;
 	StrandVert *svert=0;
+	StrandBound *sbound= 0;
 	StrandRen *strand=0;
 	RNG *rng= 0;
 	float loc[3],loc1[3],loc0[3],vel[3],mat[4][4],nmat[3][3],co[3],nor[3],time;
@@ -1491,6 +1493,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	int i, a, k, max_k=0, totpart, totuv=0, override_uv=-1, dosimplify = 0, dosurfacecache = 0;
 	int path_possible=0, keys_possible=0, baked_keys=0, totchild=psys->totchild;
 	int seed, path_nbr=0, path=0, orco1=0, adapt=0, uv[3]={0,0,0}, num;
+	int totface, *origindex = 0;
 	char **uv_name=0;
 
 /* 1. check that everything is ok & updated */
@@ -1653,6 +1656,18 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				else if((re->wrld.mode & WO_AMB_OCC) && (re->wrld.ao_gather_method == WO_AOGATHER_APPROX))
 					if(ma->amb != 0.0f)
 						dosurfacecache= 1;
+
+				totface= psmd->dm->getNumFaces(psmd->dm);
+				origindex= psmd->dm->getFaceDataArray(psmd->dm, CD_ORIGINDEX);
+				if(origindex) {
+					for(a=0; a<totface; a++)
+						strandbuf->totbound= MAX2(strandbuf->totbound, origindex[a]);
+					strandbuf->totbound++;
+				}
+				strandbuf->totbound++;
+				strandbuf->bound= MEM_callocN(sizeof(StrandBound)*strandbuf->totbound, "StrandBound");
+				sbound= strandbuf->bound;
+				sbound->start= sbound->end= 0;
 			}
 		}
 	}
@@ -1802,6 +1817,13 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				cache = psys->childcache[a-totpart];
 				max_k = (int)cache->steps;
 			}
+
+			if(strandbuf) {
+				if(origindex[cpa->num]+1 > sbound - strandbuf->bound) {
+					sbound= strandbuf->bound + origindex[cpa->num]+1;
+					sbound->start= sbound->end= obr->totstrand;
+				}
+			}
 		}
 
 		/* surface normal shading setup */
@@ -1845,6 +1867,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					}
 				}
 			}
+
+			sbound->end++;
 		}
 
 		/* strandco computation setup */
@@ -3704,7 +3728,7 @@ static void set_phong_threshold(ObjectRen *obr)
 }
 
 /* per face check if all samples should be taken.
-   if raytrace, do always for raytraced material, or when material full_osa set */
+   if raytrace or multisample, do always for raytraced material, or when material full_osa set */
 static void set_fullsample_flag(Render *re, ObjectRen *obr)
 {
 	VlakRen *vlr;
@@ -3718,7 +3742,8 @@ static void set_fullsample_flag(Render *re, ObjectRen *obr)
 	for(a=obr->totvlak-1; a>=0; a--) {
 		vlr= RE_findOrAddVlak(obr, a);
 		
-		if(vlr->mat->mode & MA_FULL_OSA) vlr->flag |= R_FULL_OSA;
+		if(vlr->mat->mode & MA_FULL_OSA) 
+			vlr->flag |= R_FULL_OSA;
 		else if(trace) {
 			if(vlr->mat->mode & MA_SHLESS);
 			else if(vlr->mat->mode & (MA_RAYTRANSP|MA_RAYMIRROR))
@@ -3840,6 +3865,11 @@ static void check_non_flat_quads(ObjectRen *obr)
 static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 {
 	Object *ob= obr->ob;
+	VertRen *ver= NULL;
+	StrandRen *strand= NULL;
+	StrandBound *sbound= NULL;
+	float min[3], max[3], smin[3], smax[3];
+	int a, b;
 
 	if(obr->totvert || obr->totvlak || obr->tothalo || obr->totstrand) {
 		/* the exception below is because displace code now is in init_render_mesh call, 
@@ -3857,6 +3887,36 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 
 			check_non_flat_quads(obr);
 			set_fullsample_flag(re, obr);
+
+			/* compute bounding boxes for clipping */
+			INIT_MINMAX(min, max);
+			for(a=0; a<obr->totvert; a++) {
+				if((a & 255)==0) ver= obr->vertnodes[a>>8].vert;
+				else ver++;
+
+				DO_MINMAX(ver->co, min, max);
+			}
+
+			if(obr->strandbuf) {
+				sbound= obr->strandbuf->bound;
+				for(b=0; b<obr->strandbuf->totbound; b++, sbound++) {
+					INIT_MINMAX(smin, smax);
+
+					for(a=sbound->start; a<sbound->end; a++) {
+						strand= RE_findOrAddStrand(obr, a);
+						strand_minmax(strand, smin, smax);
+					}
+
+					VECCOPY(sbound->boundbox[0], smin);
+					VECCOPY(sbound->boundbox[1], smax);
+
+					DO_MINMAX(smin, min, max);
+					DO_MINMAX(smax, min, max);
+				}
+			}
+
+			VECCOPY(obr->boundbox[0], min);
+			VECCOPY(obr->boundbox[1], max);
 		}
 	}
 }
@@ -4673,7 +4733,7 @@ static void calculate_speedvectors(Render *re, ObjectInstanceRen *obi, float *ve
 	}
 
 	if(obr->strandnodes) {
-		strandbuf= obr->strandbufs.first;
+		strandbuf= obr->strandbuf;
 		mesh= (strandbuf)? strandbuf->surface: NULL;
 
 		/* compute speed vectors at surface vertices */

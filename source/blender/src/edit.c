@@ -1518,6 +1518,58 @@ void snap_curs_to_sel()
 	allqueue(REDRAWVIEW3D, 0);
 }
 
+void snap_curs_to_active()
+{
+	float *curs;
+	curs = give_cursor();
+
+	if (G.obedit)
+	{
+		if (G.obedit->type == OB_MESH)
+		{
+			/* check active */
+			if (G.editMesh->selected.last) {
+				EditSelection *ese = G.editMesh->selected.last;
+				if ( ese->type == EDITVERT ) {
+					EditVert *eve = (EditVert *)ese->data;
+					VECCOPY(curs, eve->co);
+				}
+				else if ( ese->type == EDITEDGE ) {
+					EditEdge *eed = (EditEdge *)ese->data;
+					VecAddf(curs, eed->v1->co, eed->v2->co);
+					VecMulf(curs, 0.5f);
+				}
+				else if ( ese->type == EDITFACE ) {
+					EditFace *efa = (EditFace *)ese->data;
+					
+					if (efa->v4)
+					{
+						VecAddf(curs, efa->v1->co, efa->v2->co);
+						VecAddf(curs, curs, efa->v3->co);
+						VecAddf(curs, curs, efa->v4->co);
+						VecMulf(curs, 0.25f);
+					}
+					else
+					{
+						VecAddf(curs, efa->v1->co, efa->v2->co);
+						VecAddf(curs, curs, efa->v3->co);
+						VecMulf(curs, 1/3.0f);
+					}
+				}
+			}
+			Mat4MulVecfl(G.obedit->obmat, curs);
+		}
+	}
+	else
+	{
+		if (BASACT)
+		{
+			VECCOPY(curs, BASACT->object->obmat[3]);
+		}
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
 void snap_curs_to_firstsel()
 {
 	TransVert *tv;
@@ -1776,7 +1828,7 @@ void snapmenu()
 {
 	short event;
 
-	event = pupmenu("Snap %t|Selection -> Grid%x1|Selection -> Cursor%x2|Cursor-> Grid%x3|Cursor-> Selection%x4|Selection-> Center%x5");
+	event = pupmenu("Snap %t|Selection -> Grid%x1|Selection -> Cursor%x2|Cursor-> Grid%x3|Cursor-> Selection%x4|Selection-> Center%x5|Cursor-> Active%x6");
 
 	switch (event) {
 		case 1: /*Selection to grid*/
@@ -1795,6 +1847,10 @@ void snapmenu()
 		    break;
 		case 5: /*Selection to center of selection*/
 		    snap_to_center();
+			BIF_undo_push("Snap selection to center");
+		    break;
+		case 6: /*Cursor to Active*/
+		    snap_curs_to_active();
 			BIF_undo_push("Snap selection to center");
 		    break;
 	}

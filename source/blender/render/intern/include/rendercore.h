@@ -91,7 +91,8 @@ void zbufshadeDA_tile(struct RenderPart *pa);
 
 void zbufshade_sss_tile(struct RenderPart *pa);
 
-void addps(struct ListBase *lb, long *rd, int obi, int facenr, int z, unsigned short mask);
+int get_sample_layers(struct RenderPart *pa, struct RenderLayer *rl, struct RenderLayer **rlpp);
+
 
 /* -------- ray.c ------- */
 

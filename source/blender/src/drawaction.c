@@ -816,8 +816,7 @@ static void draw_channel_strips(void)
 	/* Draw keyframes 
 	 *	1) Only channels that are visible in the Action Editor get drawn/evaluated.
 	 *	   This is to try to optimise this for heavier data sets
-	 *	2) Keyframes which are out of view horizontally could be disregarded (probably as
-	 *	   option - 'drop-frames' or so). Todo...
+	 *	2) Keyframes which are out of view horizontally are disregarded 
 	 */
 	y = 0.0;
 	for (ale= act_data.first; ale; ale= ale->next) {
@@ -1241,12 +1240,36 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 	glDisable(GL_BLEND);
 }
 
+
+static ActKeysInc *init_aki_data()
+{
+	static ActKeysInc aki;
+	
+	/* init data of static struct here */
+	if ((curarea->spacetype == SPACE_ACTION) && NLA_ACTION_SCALED)
+		aki.ob= OBACT;
+	else if (curarea->spacetype == SPACE_NLA)
+		aki.ob= NULL; // FIXME
+	else
+		aki.ob= NULL;
+		
+	aki.start= G.v2d->cur.xmin - 10;
+	aki.end= G.v2d->cur.xmax + 10;
+	
+	/* only pass pointer for Action Editor (for now) */
+	if (curarea->spacetype == SPACE_ACTION)
+		return &aki;
+	else	
+		return NULL;
+}
+
 void draw_object_channel(gla2DDrawInfo *di, Object *ob, float ypos)
 {
 	ListBase keys = {0, 0};
 	ListBase blocks = {0, 0};
+	ActKeysInc *aki = init_aki_data();
 
-	ob_to_keylist(ob, &keys, &blocks);
+	ob_to_keylist(ob, &keys, &blocks, aki);
 	draw_keylist(di, &keys, &blocks, ypos);
 	
 	BLI_freelistN(&keys);
@@ -1257,8 +1280,9 @@ void draw_ipo_channel(gla2DDrawInfo *di, Ipo *ipo, float ypos)
 {
 	ListBase keys = {0, 0};
 	ListBase blocks = {0, 0};
+	ActKeysInc *aki = init_aki_data();
 
-	ipo_to_keylist(ipo, &keys, &blocks);
+	ipo_to_keylist(ipo, &keys, &blocks, aki);
 	draw_keylist(di, &keys, &blocks, ypos);
 	
 	BLI_freelistN(&keys);
@@ -1269,8 +1293,9 @@ void draw_icu_channel(gla2DDrawInfo *di, IpoCurve *icu, float ypos)
 {
 	ListBase keys = {0, 0};
 	ListBase blocks = {0, 0};
+	ActKeysInc *aki = init_aki_data();
 
-	icu_to_keylist(icu, &keys, &blocks);
+	icu_to_keylist(icu, &keys, &blocks, aki);
 	draw_keylist(di, &keys, &blocks, ypos);
 	
 	BLI_freelistN(&keys);
@@ -1281,8 +1306,9 @@ void draw_agroup_channel(gla2DDrawInfo *di, bActionGroup *agrp, float ypos)
 {
 	ListBase keys = {0, 0};
 	ListBase blocks = {0, 0};
+	ActKeysInc *aki = init_aki_data();
 
-	agroup_to_keylist(agrp, &keys, &blocks);
+	agroup_to_keylist(agrp, &keys, &blocks, aki);
 	draw_keylist(di, &keys, &blocks, ypos);
 	BLI_freelistN(&keys);
 	BLI_freelistN(&blocks);
@@ -1291,27 +1317,28 @@ void draw_agroup_channel(gla2DDrawInfo *di, bActionGroup *agrp, float ypos)
 void draw_action_channel(gla2DDrawInfo *di, bAction *act, float ypos)
 {
 	ListBase keys = {0, 0};
+	ActKeysInc *aki = init_aki_data();
 
-	action_to_keylist(act, &keys, NULL);
+	action_to_keylist(act, &keys, NULL, aki);
 	draw_keylist(di, &keys, NULL, ypos);
 	BLI_freelistN(&keys);
 }
 
 /* --------------- Conversion: data -> keyframe list ------------------ */
 
-void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks)
+void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
 {
 	bConstraintChannel *conchan;
 
 	if (ob) {
 		/* Add object keyframes */
 		if (ob->ipo)
-			ipo_to_keylist(ob->ipo, keys, blocks);
+			ipo_to_keylist(ob->ipo, keys, blocks, aki);
 		
 		/* Add constraint keyframes */
-		for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next){
+		for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next) {
 			if(conchan->ipo)
-				ipo_to_keylist(conchan->ipo, keys, blocks);		
+				ipo_to_keylist(conchan->ipo, keys, blocks, aki);		
 		}
 			
 		/* Add object data keyframes */
@@ -1319,7 +1346,24 @@ void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks)
 	}
 }
 
-void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks)
+static short bezt_in_aki_range (ActKeysInc *aki, BezTriple *bezt)
+{
+	/* when aki == NULL, we don't care about range */
+	if (aki == NULL) 
+		return 1;
+		
+	/* if nla-scaling is in effect, apply appropriate scaling adjustments */
+	if (aki->ob) {
+		float frame= get_action_frame_inv(aki->ob, bezt->vec[1][0]);
+		return IN_RANGE(frame, aki->start, aki->end);
+	}
+	else {
+		/* check if in range */
+		return IN_RANGE(bezt->vec[1][0], aki->start, aki->end);
+	}
+}
+
+void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
 {
 	BezTriple *bezt;
 	ActKeyColumn *ak;
@@ -1331,8 +1375,11 @@ void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks)
 		bezt= icu->bezt;
 		
 		for (v=0; v<icu->totvert; v++, bezt++) {
-			add_bezt_to_keycolumnslist(keys, bezt);
-			if (blocks) add_bezt_to_keyblockslist(blocks, icu, v);
+			/* only if keyframe is in range (optimisation) */
+			if (bezt_in_aki_range(aki, bezt)) {
+				add_bezt_to_keycolumnslist(keys, bezt);
+				if (blocks) add_bezt_to_keyblockslist(blocks, icu, v);
+			}
 		}
 		
 		/* update the number of curves that elements have appeared in  */
@@ -1355,17 +1402,17 @@ void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks)
 	}
 }
 
-void ipo_to_keylist(Ipo *ipo, ListBase *keys, ListBase *blocks)
+void ipo_to_keylist(Ipo *ipo, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
 {
 	IpoCurve *icu;
 	
 	if (ipo) {
 		for (icu= ipo->curve.first; icu; icu= icu->next)
-			icu_to_keylist(icu, keys, blocks);
+			icu_to_keylist(icu, keys, blocks, aki);
 	}
 }
 
-void agroup_to_keylist(bActionGroup *agrp, ListBase *keys, ListBase *blocks)
+void agroup_to_keylist(bActionGroup *agrp, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
 {
 	bActionChannel *achan;
 	bConstraintChannel *conchan;
@@ -1375,18 +1422,18 @@ void agroup_to_keylist(bActionGroup *agrp, ListBase *keys, ListBase *blocks)
 		for (achan= agrp->channels.first; achan && achan!=agrp->channels.last; achan= achan->next) {
 			/* firstly, add keys from action channel's ipo block */
 			if (achan->ipo)
-				ipo_to_keylist(achan->ipo, keys, blocks);
+				ipo_to_keylist(achan->ipo, keys, blocks, aki);
 			
 			/* then, add keys from constraint channels */
 			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
 				if (conchan->ipo)
-					ipo_to_keylist(conchan->ipo, keys, blocks);
+					ipo_to_keylist(conchan->ipo, keys, blocks, aki);
 			}
 		}
 	}
 }
 
-void action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks)
+void action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
 {
 	bActionChannel *achan;
 	bConstraintChannel *conchan;
@@ -1396,12 +1443,12 @@ void action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks)
 		for (achan= act->chanbase.first; achan; achan= achan->next) {
 			/* firstly, add keys from action channel's ipo block */
 			if (achan->ipo)
-				ipo_to_keylist(achan->ipo, keys, blocks);
+				ipo_to_keylist(achan->ipo, keys, blocks, aki);
 			
 			/* then, add keys from constraint channels */
 			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
 				if (conchan->ipo)
-					ipo_to_keylist(conchan->ipo, keys, blocks);
+					ipo_to_keylist(conchan->ipo, keys, blocks, aki);
 			}
 		}
 	}

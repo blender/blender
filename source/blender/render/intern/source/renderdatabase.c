@@ -711,7 +711,7 @@ StrandBuffer *RE_addStrandBuffer(ObjectRen *obr, int totvert)
 	strandbuf->totvert= totvert;
 	strandbuf->obr= obr;
 
-	BLI_addtail(&obr->strandbufs, strandbuf);
+	obr->strandbuf= strandbuf;
 
 	return strandbuf;
 }
@@ -842,9 +842,12 @@ void free_renderdata_tables(Render *re)
 			obr->strandnodeslen= 0;
 		}
 
-		for(strandbuf=obr->strandbufs.first; strandbuf; strandbuf=strandbuf->next)
+		strandbuf= obr->strandbuf;
+		if(strandbuf) {
 			if(strandbuf->vert) MEM_freeN(strandbuf->vert);
-		BLI_freelistN(&obr->strandbufs);
+			if(strandbuf->bound) MEM_freeN(strandbuf->bound);
+			MEM_freeN(strandbuf);
+		}
 
 		if(obr->mtface)
 			MEM_freeN(obr->mtface);
@@ -866,11 +869,6 @@ void free_renderdata_tables(Render *re)
 	if(re->sortedhalos) {
 		MEM_freeN(re->sortedhalos);
 		re->sortedhalos= NULL;
-	}
-
-	if(re->strandbuckets) {
-		free_buckets(re->strandbuckets);
-		re->strandbuckets= NULL;
 	}
 
 	BLI_freelistN(&re->customdata_names);
@@ -1290,8 +1288,6 @@ void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4],
 			
 		}
 	}
-
-	project_strands(re, projectfunc, do_pano, do_buckets);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1347,5 +1343,42 @@ void RE_makeRenderInstances(Render *re)
 
 	BLI_freelistN(&re->instancetable);
 	re->instancetable= newlist;
+}
+
+int clip_render_object(float boundbox[][3], float *bounds, float winmat[][4])
+{
+	float mat[4][4], vec[4];
+	int a, fl, flag= -1;
+
+	Mat4CpyMat4(mat, winmat);
+
+	for(a=0; a<8; a++) {
+		vec[0]= (a & 1)? boundbox[0][0]: boundbox[1][0];
+		vec[1]= (a & 2)? boundbox[0][1]: boundbox[1][1];
+		vec[2]= (a & 4)? boundbox[0][2]: boundbox[1][2];
+		vec[3]= 1.0;
+		Mat4MulVec4fl(mat, vec);
+
+		fl= 0;
+		if(bounds) {
+			if(vec[0] > bounds[1]*vec[3]) fl |= 1;
+			if(vec[0]< bounds[0]*vec[3]) fl |= 2;
+			if(vec[1] > bounds[3]*vec[3]) fl |= 4;
+			if(vec[1]< bounds[2]*vec[3]) fl |= 8;
+		}
+		else {
+			if(vec[0] < -vec[3]) fl |= 1;
+			if(vec[0] > vec[3]) fl |= 2;
+			if(vec[1] < -vec[3]) fl |= 4;
+			if(vec[1] > vec[3]) fl |= 8;
+		}
+		if(vec[2] < -vec[3]) fl |= 16;
+		if(vec[2] > vec[3]) fl |= 32;
+
+		flag &= fl;
+		if(flag==0) return 0;
+	}
+
+	return flag;
 }
 

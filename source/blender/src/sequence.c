@@ -129,6 +129,8 @@ void free_strip(Strip *strip)
 	}
 
 	free_tstripdata(strip->len, strip->tstripdata);
+	free_tstripdata(strip->endstill, strip->tstripdata_endstill);
+	free_tstripdata(strip->startstill, strip->tstripdata_startstill);
 
 	MEM_freeN(strip);
 }
@@ -136,11 +138,16 @@ void free_strip(Strip *strip)
 void new_tstripdata(Sequence *seq)
 {
 	if(seq->strip) {
-		if (seq->strip->tstripdata) {
-			free_tstripdata(seq->strip->len, 
-					seq->strip->tstripdata);
-		}
+		free_tstripdata(seq->strip->len, seq->strip->tstripdata);
+		free_tstripdata(seq->strip->endstill, 
+				seq->strip->tstripdata_endstill);
+		free_tstripdata(seq->strip->startstill, 
+				seq->strip->tstripdata_startstill);
+
 		seq->strip->tstripdata= 0;
+		seq->strip->tstripdata_endstill= 0;
+		seq->strip->tstripdata_startstill= 0;
+
 		seq->strip->len= seq->len;
 	}
 }
@@ -394,8 +401,10 @@ void reload_sequence_new_file(Sequence * seq)
 		return;
 	}
 
-	strncpy(str, seq->strip->dir, FILE_MAXDIR-1);
-	strncat(str, seq->strip->stripdata->name, FILE_MAXFILE-1);
+	if (seq->type != SEQ_SCENE) {
+		strncpy(str, seq->strip->dir, FILE_MAXDIR-1);
+		strncat(str, seq->strip->stripdata->name, FILE_MAXFILE-1);
+	}
 
 	if (seq->type == SEQ_MOVIE) {
 		if(seq->anim) IMB_free_anim(seq->anim);
@@ -426,6 +435,23 @@ void reload_sequence_new_file(Sequence * seq)
 		seq->strip->len = seq->len 
 			= sound_hdaudio_get_duration(seq->hdaudio, FPS);
 	} else if (seq->type == SEQ_SCENE) {
+		Scene * sce = G.main->scene.first;
+                int nr = 1;
+                while(sce) {
+                        if(nr == seq->scenenr) {
+                                break;
+                        }
+                        nr++;
+                        sce= sce->id.next;
+                }
+
+		if (sce) {
+			seq->scene = sce;
+		}
+
+		strncpy(seq->name + 2, sce->id.name + 2, 
+			sizeof(seq->name) - 2);
+
 		seq->len= seq->scene->r.efra - seq->scene->r.sfra + 1;
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;
@@ -765,6 +791,16 @@ static int give_stripelem_index(Sequence *seq, int cfra)
 	return nr;
 }
 
+static TStripElem* alloc_tstripdata(int len, const char * name)
+{
+	int i;
+	TStripElem *se = MEM_callocN(len * sizeof(TStripElem), name);
+	for (i = 0; i < len; i++) {
+		se[i].ok = STRIPELEM_OK;
+	}
+	return se;
+}
+
 TStripElem *give_tstripelem(Sequence *seq, int cfra)
 {
 	TStripElem *se;
@@ -772,21 +808,67 @@ TStripElem *give_tstripelem(Sequence *seq, int cfra)
 
 	se = seq->strip->tstripdata;
 	if (se == 0 && seq->len > 0) {
-		int i;
-		se = seq->strip->tstripdata = MEM_callocN(
-			seq->len*sizeof(TStripElem), "tstripelems");
-		for (i = 0; i < seq->len; i++) {
-			se[i].ok = STRIPELEM_OK;
-		}
+		se = seq->strip->tstripdata = alloc_tstripdata(seq->len,
+							       "tstripelems");
 	}
 	nr = give_stripelem_index(seq, cfra);
 
 	if (nr == -1) return 0;
 	if (se == 0) return 0;
+
+	se += nr; 
+
+	/* if there are IPOs with blend modes active, one has to watch out
+	   for startstill + endstill area: we can't use the same tstripelem
+	   here for all ibufs, since then, blending with IPOs won't work!
+	   
+	   Rather common case, if you use a single image and try to fade
+	   it in and out...
+
+	   Performance TODO: seperate give_tstripelem for ibuf from
+	   give_tstripelem for ibuf_comp, so that caching works here again...
+	*/
+	if (seq->ipo && seq->ipo->curve.first && !(seq->type & SEQ_EFFECT)) {
+		Strip * s = seq->strip;
+		if (cfra < seq->start) {
+			se = s->tstripdata_startstill;
+			if (seq->startstill > s->startstill) {
+				free_tstripdata(s->startstill, 
+						s->tstripdata_startstill);
+				se = 0;
+			}
+
+			if (se == 0) {
+				s->startstill = seq->startstill;
+				se = seq->strip->tstripdata_startstill
+					= alloc_tstripdata(
+						s->startstill,
+						"tstripelems_startstill");
+			}
+			se += seq->start - cfra - 1;
+
+		} else if (cfra > seq->start + seq->len-1) {
+			se = s->tstripdata_endstill;
+			if (seq->endstill > s->endstill) {
+				free_tstripdata(s->endstill, 
+						s->tstripdata_endstill);
+				se = 0;
+			}
+
+			if (se == 0) {
+				s->endstill = seq->endstill;
+				se = seq->strip->tstripdata_endstill
+					= alloc_tstripdata(
+						s->endstill,
+						"tstripelems_endstill");
+			}
+			se += cfra - (seq->start + seq->len-1) - 1;
+		}
+	}
+
 	
-	se+= nr; 
 	se->nr= nr;
-	
+
 	return se;
 }
 
@@ -1022,11 +1104,14 @@ static void input_preprocess(Sequence * seq, TStripElem* se, int cfra)
 
 	mul = seq->mul;
 
-	if(seq->blend_mode == SEQ_BLEND_REPLACE 
-	   && seq->ipo && seq->ipo->curve.first) {
-		do_seq_ipo(seq, cfra);
-		mul *= seq->facf0;
+	if(seq->blend_mode == SEQ_BLEND_REPLACE) {
+		if (seq->ipo && seq->ipo->curve.first) {
+			do_seq_ipo(seq, cfra);
+			mul *= seq->facf0;
+		}
+		mul *= seq->blend_opacity / 100.0;
 	}
+
 	if(mul != 1.0) {
 		multibuf(se->ibuf, mul);
 	}
@@ -2066,9 +2151,24 @@ void free_imbuf_seq_except(int cfra)
 		if(seq->strip) {
 			TStripElem * curelem = give_tstripelem(seq, cfra);
 
-			for(a=0, se= seq->strip->tstripdata; a<seq->len; a++, se++)
-				if(se != curelem)
+			for(a = 0, se = seq->strip->tstripdata; 
+			    a < seq->strip->len && se; a++, se++) {
+				if(se != curelem) {
 					free_imbuf_strip_elem(se);
+				}
+			}
+			for(a = 0, se = seq->strip->tstripdata_startstill;
+			    a < seq->strip->startstill && se; a++, se++) {
+				if(se != curelem) {
+					free_imbuf_strip_elem(se);
+				}
+			}
+			for(a = 0, se = seq->strip->tstripdata_endstill;
+			    a < seq->strip->endstill && se; a++, se++) {
+				if(se != curelem) {
+					free_imbuf_strip_elem(se);
+				}
+			}
 
 			if(seq->type==SEQ_MOVIE)
 				if(seq->startdisp > cfra || seq->enddisp < cfra)
@@ -2089,9 +2189,17 @@ void free_imbuf_seq()
 
 	WHILE_SEQ(&ed->seqbase) {
 		if(seq->strip) {
-			if (seq->strip->tstripdata) {
-				for(a=0, se= seq->strip->tstripdata; a<seq->len; a++, se++)
-					free_imbuf_strip_elem(se);
+			for(a = 0, se = seq->strip->tstripdata; 
+			    a < seq->strip->len && se; a++, se++) {
+				free_imbuf_strip_elem(se);
+			}
+			for(a = 0, se = seq->strip->tstripdata_startstill; 
+			    a < seq->strip->startstill && se; a++, se++) {
+				free_imbuf_strip_elem(se);
+			}
+			for(a = 0, se = seq->strip->tstripdata_endstill; 
+			    a < seq->strip->endstill && se; a++, se++) {
+				free_imbuf_strip_elem(se);
 			}
 
 			if(seq->type==SEQ_MOVIE)

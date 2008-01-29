@@ -348,12 +348,19 @@ static void lamphalo_tile(RenderPart *pa, RenderLayer *rl)
 static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset, ShadeInput *shi, ShadeResult *shr)
 {
 	RenderPass *rpass;
+
+	/* combined rgb */
+	add_filt_fmask(curmask, shr->combined, rl->rectf + 4*offset, rectx);
 	
 	for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
 		float *fp, *col= NULL;
 		int pixsize= 3;
 		
 		switch(rpass->passtype) {
+			case SCE_PASS_Z:
+				fp= rpass->rect + offset;
+				*fp= -shi->co[2];
+				break;
 			case SCE_PASS_RGBA:
 				col= shr->col;
 				pixsize= 4;
@@ -432,12 +439,20 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult *shr)
 {
 	RenderPass *rpass;
+	float *fp;
+	
+	fp= rl->rectf + 4*offset;
+	QUATCOPY(fp, shr->combined);
 	
 	for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
-		float *fp, *col= NULL, uvcol[3];
+		float *col= NULL, uvcol[3];
 		int a, pixsize= 3;
 		
 		switch(rpass->passtype) {
+			case SCE_PASS_Z:
+				fp= rpass->rect + offset;
+				*fp= -shi->co[2];
+				break;
 			case SCE_PASS_RGBA:
 				col= shr->col;
 				pixsize= 4;
@@ -497,26 +512,60 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 	}
 }
 
-/* only do sky, is default in the solid layer (shade_tile) btw */
-static void sky_tile(RenderPart *pa, float *pass)
+int get_sample_layers(RenderPart *pa, RenderLayer *rl, RenderLayer **rlpp)
 {
-	float col[4];
-	int x, y;
+	
+	if(pa->fullresult.first) {
+		int sample, nr= BLI_findindex(&pa->result->layers, rl);
+		
+		for(sample=0; sample<R.osa; sample++) {
+			RenderResult *rr= BLI_findlink(&pa->fullresult, sample);
+		
+			rlpp[sample]= BLI_findlink(&rr->layers, nr);
+		}		
+		return R.osa;
+	}
+	else {
+		rlpp[0]= rl;
+		return 1;
+	}
+}
+
+
+/* only do sky, is default in the solid layer (shade_tile) btw */
+static void sky_tile(RenderPart *pa, RenderLayer *rl)
+{
+	RenderLayer *rlpp[RE_MAX_OSA];
+	int x, y, od=0, totsample;
 	
 	if(R.r.alphamode!=R_ADDSKY)
 		return;
 	
+	totsample= get_sample_layers(pa, rl, rlpp);
+	
 	for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
-		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, pass+=4) {
-			if(pass[3]<1.0f) {
-				if(pass[3]==0.0f)
-					shadeSkyPixel(pass, x, y);
-				else {
-					shadeSkyPixel(col, x, y);
-					addAlphaOverFloat(col, pass);
-					QUATCOPY(pass, col);
+		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, od+=4) {
+			float col[4];
+			int sample, done= 0;
+			
+			for(sample= 0; sample<totsample; sample++) {
+				float *pass= rlpp[sample]->rectf + od;
+				
+				if(pass[3]<1.0f) {
+					
+					if(done==0) {
+						shadeSkyPixel(col, x, y);
+						done= 1;
+					}
+					
+					if(pass[3]==0.0f) {
+						QUATCOPY(pass, col);
+					}
+					else {
+						addAlphaUnderFloat(pass, col);
+					}
 				}
-			}
+			}			
 		}
 		
 		if(y&1)
@@ -528,10 +577,9 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 {
 	RenderResult *rr= pa->result;
 	ShadeSample ssamp;
-	float *fcol, *rf, *rectf= rl->rectf;
 	long *rd, *rectdaps= pa->rectdaps;
 	int samp;
-	int x, y, seed, crop=0, offs=0, od, addpassflag;
+	int x, y, seed, crop=0, offs=0, od;
 	
 	if(R.test_break()) return; 
 	
@@ -544,7 +592,6 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 	
 	/* general shader info, passes */
 	shade_sample_initialize(&ssamp, pa, rl);
-	addpassflag= rl->passflag & ~(SCE_PASS_Z|SCE_PASS_COMBINED);
 
 	/* occlusion caching */
 	if(R.occlusiontree)
@@ -553,7 +600,6 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 	/* filtered render, for now we assume only 1 filter size */
 	if(pa->crop) {
 		crop= 1;
-		rectf+= 4*(pa->rectx + 1);
 		rectdaps+= pa->rectx + 1;
 		offs= pa->rectx + 1;
 	}
@@ -564,28 +610,35 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 	rr->renlay= rl;
 				
 	for(y=pa->disprect.ymin+crop; y<pa->disprect.ymax-crop; y++, rr->renrect.ymax++) {
-		rf= rectf;
 		rd= rectdaps;
 		od= offs;
 		
-		for(x=pa->disprect.xmin+crop; x<pa->disprect.xmax-crop; x++, rd++, rf+=4, od++) {
+		for(x=pa->disprect.xmin+crop; x<pa->disprect.xmax-crop; x++, rd++, od++) {
 			BLI_thread_srandom(pa->thread, seed++);
 			
 			if(*rd) {
 				if(shade_samples(&ssamp, (PixStr *)(*rd), x, y)) {
-					for(samp=0; samp<ssamp.tot; samp++) {
-						
-						fcol= ssamp.shr[samp].combined;
-						add_filt_fmask(ssamp.shi[samp].mask, fcol, rf, pa->rectx);
-						
-						if(addpassflag)
+					
+					/* multisample buffers or filtered mask filling? */
+					if(pa->fullresult.first) {
+						int a;
+						for(samp=0; samp<ssamp.tot; samp++) {
+							int smask= ssamp.shi[samp].mask;
+							for(a=0; a<R.osa; a++) {
+								int mask= 1<<a;
+								if(smask & mask)
+									add_passes(ssamp.rlpp[a], od, &ssamp.shi[samp], &ssamp.shr[samp]);
+							}
+						}
+					}
+					else {
+						for(samp=0; samp<ssamp.tot; samp++)
 							add_filt_passes(rl, ssamp.shi[samp].mask, pa->rectx, od, &ssamp.shi[samp], &ssamp.shr[samp]);
 					}
 				}
 			}
 		}
 		
-		rectf+= 4*pa->rectx;
 		rectdaps+= pa->rectx;
 		offs+= pa->rectx;
 		
@@ -631,7 +684,7 @@ static void freeps(ListBase *lb)
 	lb->first= lb->last= NULL;
 }
 
-void addps(ListBase *lb, long *rd, int obi, int facenr, int z, unsigned short mask)
+static void addps(ListBase *lb, long *rd, int obi, int facenr, int z, unsigned short mask)
 {
 	PixStrMain *psm;
 	PixStr *ps, *last= NULL;
@@ -916,98 +969,60 @@ void zbufshadeDA_tile(RenderPart *pa)
 				halo_tile(pa, rl->rectf, rl->lay);
 
 		/* transp layer */
-		if(R.flag & R_ZTRA) {
-			if(rl->layflag & SCE_LAY_ZTRA) {
-				unsigned short *ztramask, *solidmask= NULL; /* 16 bits, MAX_OSA */
-				
-				/* allocate, but not free here, for asynchronous display of this rect in main thread */
-				rl->acolrect= MEM_callocN(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
-				
-				/* swap for live updates, and it is used in zbuf.c!!! */
-				SWAP(float *, rl->acolrect, rl->rectf);
-				ztramask= zbuffer_transp_shade(pa, rl, rl->rectf, &psmlist);
-				SWAP(float *, rl->acolrect, rl->rectf);
-				
-				/* zbuffer transp only returns ztramask if there's solid rendered */
-				if(ztramask)
-					solidmask= make_solid_mask(pa);
-
-				if(ztramask && solidmask) {
-					unsigned short *sps= solidmask, *spz= ztramask;
-					unsigned short fullmask= (1<<R.osa)-1;
-					float *fcol= rl->rectf; float *acol= rl->acolrect;
-					int x;
-					
-					for(x=pa->rectx*pa->recty; x>0; x--, acol+=4, fcol+=4, sps++, spz++) {
-						if(*sps == fullmask)
-							addAlphaOverFloat(fcol, acol);
-						else
-							addAlphaOverFloatMask(fcol, acol, *sps, *spz);
-					}
- 				}
+		if(R.flag & R_ZTRA || R.totstrand) {
+			if(rl->layflag & (SCE_LAY_ZTRA|SCE_LAY_STRAND)) {
+				if(pa->fullresult.first) {
+					zbuffer_transp_shade(pa, rl, rl->rectf, &psmlist);
+				}
 				else {
-					float *fcol= rl->rectf; float *acol= rl->acolrect;
-					int x;
-					for(x=pa->rectx*pa->recty; x>0; x--, acol+=4, fcol+=4) {
-						addAlphaOverFloat(fcol, acol);
+					unsigned short *ztramask, *solidmask= NULL; /* 16 bits, MAX_OSA */
+					
+					/* allocate, but not free here, for asynchronous display of this rect in main thread */
+					rl->acolrect= MEM_callocN(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
+					
+					/* swap for live updates, and it is used in zbuf.c!!! */
+					SWAP(float *, rl->acolrect, rl->rectf);
+					ztramask= zbuffer_transp_shade(pa, rl, rl->rectf, &psmlist);
+					SWAP(float *, rl->acolrect, rl->rectf);
+					
+					/* zbuffer transp only returns ztramask if there's solid rendered */
+					if(ztramask)
+						solidmask= make_solid_mask(pa);
+
+					if(ztramask && solidmask) {
+						unsigned short *sps= solidmask, *spz= ztramask;
+						unsigned short fullmask= (1<<R.osa)-1;
+						float *fcol= rl->rectf; float *acol= rl->acolrect;
+						int x;
+						
+						for(x=pa->rectx*pa->recty; x>0; x--, acol+=4, fcol+=4, sps++, spz++) {
+							if(*sps == fullmask)
+								addAlphaOverFloat(fcol, acol);
+							else
+								addAlphaOverFloatMask(fcol, acol, *sps, *spz);
+						}
 					}
-				}
-				if(solidmask) MEM_freeN(solidmask);
-				if(ztramask) MEM_freeN(ztramask);
-			}
-		}
-
-		/* strand rendering */
-		if((rl->layflag & SCE_LAY_STRAND) && R.totstrand) {
-			float *fcol, *scol;
-			unsigned short *strandmask, *solidmask= NULL; /* 16 bits, MAX_OSA */
-			int x;
-			
-			/* allocate, but not free here, for asynchronous display of this rect in main thread */
-			rl->scolrect= MEM_callocN(4*sizeof(float)*pa->rectx*pa->recty, "strand layer");
-
-			/* swap for live updates, and it is used in zbuf.c!!! */
-			SWAP(float*, rl->scolrect, rl->rectf);
-			strandmask= zbuffer_strands_shade(&R, pa, rl, rl->rectf);
-			SWAP(float*, rl->scolrect, rl->rectf);
-
-			/* zbuffer strands only returns strandmask if there's solid rendered */
-			if(strandmask)
-				solidmask= make_solid_mask(pa);
-			
-			if(strandmask && solidmask) {
-				unsigned short *sps= solidmask, *spz= strandmask;
-				unsigned short fullmask= (1<<R.osa)-1;
-
-				fcol= rl->rectf; scol= rl->scolrect;
-				for(x=pa->rectx*pa->recty; x>0; x--, scol+=4, fcol+=4, sps++, spz++) {
-					if(*sps == fullmask)
-						addAlphaOverFloat(fcol, scol);
-					else
-						addAlphaOverFloatMask(fcol, scol, *sps, *spz);
+					else {
+						float *fcol= rl->rectf; float *acol= rl->acolrect;
+						int x;
+						for(x=pa->rectx*pa->recty; x>0; x--, acol+=4, fcol+=4) {
+							addAlphaOverFloat(fcol, acol);
+						}
+					}
+					if(solidmask) MEM_freeN(solidmask);
+					if(ztramask) MEM_freeN(ztramask);
 				}
 			}
-			else {
-				fcol= rl->rectf; scol= rl->scolrect;
-				for(x=pa->rectx*pa->recty; x>0; x--, scol+=4, fcol+=4)
-					addAlphaOverFloat(fcol, scol);
-			}
-
-			if(solidmask) MEM_freeN(solidmask);
-			if(strandmask) MEM_freeN(strandmask);
 		}
 
 		/* sky before edge */
 		if(rl->layflag & SCE_LAY_SKY)
-			sky_tile(pa, rl->rectf);
+			sky_tile(pa, rl);
 
 		/* extra layers */
 		if(rl->layflag & SCE_LAY_EDGE) 
 			if(R.r.mode & R_EDGE) 
 				edge_enhance_add(pa, rl->rectf, edgerect);
-		
-		if(rl->passflag & SCE_PASS_Z)
-			convert_zbuf_to_distbuf(pa, rl);
 		
 		if(rl->passflag & SCE_PASS_VECTOR)
 			reset_sky_speed(pa, rl);
@@ -1046,7 +1061,6 @@ void zbufshade_tile(RenderPart *pa)
 	RenderLayer *rl;
 	PixStr ps;
 	float *edgerect= NULL;
-	int addpassflag;
 	
 	/* fake pixel struct, to comply to osa render */
 	ps.next= NULL;
@@ -1061,7 +1075,6 @@ void zbufshade_tile(RenderPart *pa)
 		
 		/* general shader info, passes */
 		shade_sample_initialize(&ssamp, pa, rl);
-		addpassflag= rl->passflag & ~(SCE_PASS_Z|SCE_PASS_COMBINED);
 		
 		zbuffer_solid(pa, rl, NULL, NULL);
 		
@@ -1104,11 +1117,8 @@ void zbufshade_tile(RenderPart *pa)
 							ps.facenr= *rp;
 							ps.z= *rz;
 							if(shade_samples(&ssamp, &ps, x, y)) {
-								QUATCOPY(fcol, ssamp.shr[0].combined);
-
-								/* passes */
-								if(addpassflag)
-									add_passes(rl, offs, ssamp.shi, ssamp.shr);
+								/* combined and passes */
+								add_passes(rl, offs, ssamp.shi, ssamp.shr);
 							}
 						}
 					}
@@ -1137,8 +1147,8 @@ void zbufshade_tile(RenderPart *pa)
 			if(rl->layflag & SCE_LAY_HALO)
 				halo_tile(pa, rl->rectf, rl->lay);
 		
-		if(R.flag & R_ZTRA) {
-			if(rl->layflag & SCE_LAY_ZTRA) {
+		if(R.flag & R_ZTRA || R.totstrand) {
+			if(rl->layflag & (SCE_LAY_ZTRA|SCE_LAY_STRAND)) {
 				float *fcol, *acol;
 				int x;
 				
@@ -1156,37 +1166,16 @@ void zbufshade_tile(RenderPart *pa)
 				}
 			}
 		}
-
-		/* strand rendering */
-		if((rl->layflag & SCE_LAY_STRAND) && R.totstrand) {
-			float *fcol, *scol;
-			int x;
-			
-			/* allocate, but not free here, for asynchronous display of this rect in main thread */
-			rl->scolrect= MEM_callocN(4*sizeof(float)*pa->rectx*pa->recty, "strand layer");
-
-			/* swap for live updates */
-			SWAP(float*, rl->scolrect, rl->rectf);
-			zbuffer_strands_shade(&R, pa, rl, rl->rectf);
-			SWAP(float*, rl->scolrect, rl->rectf);
-
-			fcol= rl->rectf; scol= rl->scolrect;
-			for(x=pa->rectx*pa->recty; x>0; x--, scol+=4, fcol+=4)
-				addAlphaOverFloat(fcol, scol);
-		}
 		
 		/* sky before edge */
 		if(rl->layflag & SCE_LAY_SKY)
-			sky_tile(pa, rl->rectf);
+			sky_tile(pa, rl);
 		
 		if(!R.test_break()) {
 			if(rl->layflag & SCE_LAY_EDGE) 
 				if(R.r.mode & R_EDGE)
 					edge_enhance_add(pa, rl->rectf, edgerect);
 		}
-		
-		if(rl->passflag & SCE_PASS_Z)
-			convert_zbuf_to_distbuf(pa, rl);
 		
 		if(rl->passflag & SCE_PASS_VECTOR)
 			reset_sky_speed(pa, rl);

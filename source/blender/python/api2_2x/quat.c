@@ -184,13 +184,13 @@ static PyObject *Quaternion_getattr(QuaternionObject * self, char *name)
 	}
 	if(STREQ(name, "angle")) {
 		mag = self->quat[0];
-		mag = 2 * (acos(mag));
+		mag = 2 * (saacos(mag));
 		mag *= (180 / Py_PI);
 		return PyFloat_FromDouble(mag);
 	}
 	if(STREQ(name, "axis")) {
 		mag = self->quat[0] * (Py_PI / 180);
-		mag = 2 * (acos(mag));
+		mag = 2 * (saacos(mag));
 		mag = sin(mag / 2);
 		for(x = 0; x < 3; x++) {
 			vec[x] = (float)(self->quat[x + 1] / mag);

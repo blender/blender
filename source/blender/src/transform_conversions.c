@@ -2347,6 +2347,102 @@ void flushTransIpoData(TransInfo *t)
 
 /* ********************* ACTION/NLA EDITOR ****************** */
 
+/* Called by special_aftertrans_update to make sure selected keyframes replace
+ * any other keyframes which may reside on that frame (that is not selected).
+ */
+static void posttrans_ipo_clean (Ipo *ipo)
+{
+	IpoCurve *icu;
+	int i;
+	
+	/* delete any keyframes that occur on same frame as selected keyframe, but is not selected */
+	for (icu= ipo->curve.first; icu; icu= icu->next) {
+		float *selcache;	/* cache for frame numbers of selected frames (icu->totvert*sizeof(float)) */
+		int len, index;		/* number of frames in cache, item index */
+		
+		/* allocate memory for the cache */
+		// TODO: investigate using GHash for this instead?
+		if (icu->totvert == 0) 
+			continue;
+		selcache= MEM_callocN(sizeof(float)*icu->totvert, "IcuSelFrameNums");
+		len= 0;
+		index= 0;
+		
+		/* We do 2 loops, 1 for marking keyframes for deletion, one for deleting 
+		 * as there is no guarantee what order the keyframes are exactly, even though 
+		 * they have been sorted by time.
+		 */
+		 
+		/*	Loop 1: find selected keyframes   */
+		for (i = 0; i < icu->totvert; i++) {
+			BezTriple *bezt= &icu->bezt[i];
+			
+			if (BEZSELECTED(bezt)) {
+				selcache[index]= bezt->vec[1][0];
+				index++;
+				len++;
+			}
+		}
+		
+		/* Loop 2: delete unselected keyframes on the same frames (if any keyframes were found) */
+		if (len) {
+			for (i = 0; i < icu->totvert; i++) {
+				BezTriple *bezt= &icu->bezt[i];
+				
+				if (BEZSELECTED(bezt) == 0) {
+					/* check beztriple should be removed according to cache */
+					for (index= 0; index < len; index++) {
+						if (IS_EQ(bezt->vec[1][0], selcache[index])) {
+							delete_icu_key(icu, i, 0);
+							break;
+						}
+						else if (bezt->vec[1][0] > selcache[index])
+							break;
+					}
+				}
+			}
+			
+			testhandles_ipocurve(icu);
+		}
+		
+		/* free cache */
+		MEM_freeN(selcache);
+	}
+}
+
+/* Called by special_aftertrans_update to make sure selected keyframes replace
+ * any other keyframes which may reside on that frame (that is not selected).
+ * remake_action_ipos should have already been called 
+ */
+static void posttrans_action_clean (bAction *act)
+{
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	
+	/* filter data */
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
+	actdata_filter(&act_data, filter, act, ACTCONT_ACTION);
+	
+	/* loop through relevant data, removing keyframes from the ipo-blocks that were attached 
+	 *  	- all keyframes are converted in/out of global time 
+	 */
+	for (ale= act_data.first; ale; ale= ale->next) {
+		if (NLA_ACTION_SCALED) {
+			actstrip_map_ipo_keys(OBACT, ale->key_data, 0, 1); 
+			posttrans_ipo_clean(ale->key_data);
+			actstrip_map_ipo_keys(OBACT, ale->key_data, 1, 1);
+		}
+		else 
+			posttrans_ipo_clean(ale->key_data);
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&act_data);
+}
+
+/* ----------------------------- */
+
 /* This function tests if a point is on the "mouse" side of the cursor/frame-marking */
 static short FrameOnMouseSide(char side, float frame, float cframe)
 {
@@ -3003,9 +3099,9 @@ short autokeyframe_cfra_can_key(Object *ob)
 	
 	/* get keyframes that object has (bone anim is stored on ob too) */
 	if (ob->action)
-		action_to_keylist(ob->action, &keys, NULL);
+		action_to_keylist(ob->action, &keys, NULL, NULL);
 	else if (ob->ipo)
-		ipo_to_keylist(ob->ipo, &keys, NULL);
+		ipo_to_keylist(ob->ipo, &keys, NULL, NULL);
 	else
 		return 0;
 		
@@ -3294,7 +3390,6 @@ void special_aftertrans_update(TransInfo *t)
 		ob = OBACT;
 		
 		if (datatype == ACTCONT_ACTION) {
-			/* Update the curve */
 			/* Depending on the lock status, draw necessary views */
 			if (ob) {
 				ob->ctime= -1234567.0f;
@@ -3305,7 +3400,12 @@ void special_aftertrans_update(TransInfo *t)
 					DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 			}
 			
+			/* Do curve updates */
 			remake_action_ipos((bAction *)data);
+			
+			/* Do curve cleanups? */
+			if ((G.saction->flag & SACTION_NOTRANSKEYCULL)==0)
+				posttrans_action_clean((bAction *)data);
 			
 			G.saction->flag &= ~SACTION_MOVING;
 		}
@@ -3319,6 +3419,9 @@ void special_aftertrans_update(TransInfo *t)
 					sort_time_ipocurve(icu);
 					testhandles_ipocurve(icu);
 				}
+				
+				if ((G.saction->flag & SACTION_NOTRANSKEYCULL)==0)
+					posttrans_ipo_clean(key->ipo);
 			}
 			
 			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);

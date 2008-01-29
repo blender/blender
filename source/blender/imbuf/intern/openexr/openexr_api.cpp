@@ -547,9 +547,14 @@ void IMB_exrtile_write_channels(void *handle, int partx, int party)
 	}
 	
 	data->tofile->setFrameBuffer (frameBuffer);
-	// printf("write tile %d %d\n", partx/data->tilex, party/data->tiley);
-	data->tofile->writeTile (partx/data->tilex, party/data->tiley);	
-	
+
+	try {
+		// printf("write tile %d %d\n", partx/data->tilex, party/data->tiley);
+		data->tofile->writeTile (partx/data->tilex, party/data->tiley);	
+	}
+	catch (const std::exception &exc) {
+		std::cerr << "OpenEXR-writeTile: ERROR: " << exc.what() << std::endl;
+	}
 }
 
 void IMB_exr_write_channels(void *handle)

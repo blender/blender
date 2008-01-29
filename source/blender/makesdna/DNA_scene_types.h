@@ -589,8 +589,9 @@ typedef struct Scene {
 #define R_EXR_TILE_FILE		0x0400
 #define R_COMP_FREE			0x0800
 #define R_NO_IMAGE_LOAD		0x1000
-#define R_NO_TEX		0x2000
+#define R_NO_TEX			0x2000
 #define R_STAMP_INFO		0x4000
+#define R_FULL_SAMPLE		0x8000
 
 /* r->stamp */
 #define R_STAMP_TIME 	0x0001

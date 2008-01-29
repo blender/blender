@@ -79,8 +79,8 @@ typedef struct RenderPart
 {
 	struct RenderPart *next, *prev;
 	
-	/* result of part rendering */
-	RenderResult *result;
+	RenderResult *result;			/* result of part rendering */
+	ListBase fullresult;			/* optional full sample buffers */
 	
 	int *recto;						/* object table for objects */
 	int *rectp;						/* polygon index table */
@@ -113,6 +113,8 @@ struct Render
 	RenderResult *result;
 	/* if render with single-layer option, other rendered layers are stored here */
 	RenderResult *pushedresult;
+	/* a list of RenderResults, for fullsample */
+	ListBase fullresult;	
 	
 	/* window size, display rect, viewplane */
 	int winx, winy;
@@ -174,7 +176,6 @@ struct Render
 	ListBase lampren;	/* storage, for free */
 	
 	ListBase objecttable;
-	struct RenderBuckets *strandbuckets;
 
 	struct ObjectInstanceRen *objectinstance;
 	ListBase instancetable;
@@ -246,13 +247,15 @@ typedef struct ObjectRen {
 	struct Scene *sce;
 	int index, psysindex, flag, lay;
 
+	float boundbox[2][3];
+
 	int totvert, totvlak, totstrand, tothalo;
 	int vertnodeslen, vlaknodeslen, strandnodeslen, blohalen;
 	struct VertTableNode *vertnodes;
 	struct VlakTableNode *vlaknodes;
 	struct StrandTableNode *strandnodes;
 	struct HaloRen **bloha;
-	ListBase strandbufs;
+	struct StrandBuffer *strandbuf;
 
 	char (*mtface)[32];
 	char (*mcol)[32];
@@ -332,6 +335,8 @@ typedef struct HaloRen
     struct Material *mat;
 } HaloRen;
 
+/* ------------------------------------------------------------------------- */
+
 typedef struct StrandVert {
 	float co[3];
 	float strandco;
@@ -343,16 +348,22 @@ typedef struct StrandSurface {
 	int (*face)[4];
 	float (*co)[3];
 	/* for occlusion caching */
-	float (*col)[3];					/* for occlusion */
+	float (*col)[3];
 	/* for speedvectors */
 	float (*prevco)[3], (*nextco)[3];
 	int totvert, totface;
 } StrandSurface;
 
+typedef struct StrandBound {
+	int start, end;
+	float boundbox[2][3];
+} StrandBound;
+
 typedef struct StrandBuffer {
 	struct StrandBuffer *next, *prev;
 	struct StrandVert *vert;
-	int totvert;
+	struct StrandBound *bound;
+	int totvert, totbound;
 
 	struct ObjectRen *obr;
 	struct Material *ma;

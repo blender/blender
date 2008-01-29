@@ -78,7 +78,9 @@ void unlink_armature(struct bArmature *arm);
 void free_armature(struct bArmature *arm);
 void make_local_armature(struct bArmature *arm);
 struct bArmature *copy_armature(struct bArmature *arm);
+
 void bone_flip_name (char *name, int strip_number);
+void bone_autoside_name (char *name, int strip_number, short axis, float head, float tail);
 
 struct bArmature *get_armature (struct Object *ob);
 struct Bone *get_named_bone (struct bArmature *arm, const char *name);

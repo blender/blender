@@ -45,6 +45,16 @@ static bNodeSocketType cmp_node_zcombine_out[]= {
 	{	-1, 0, ""	}
 };
 
+static void do_zcombine(bNode *node, float *out, float *src1, float *z1, float *src2, float *z2)
+{
+	if(*z1 <= *z2) {
+		QUATCOPY(out, src1);
+	}
+	else {
+		QUATCOPY(out, src2);
+	}
+}
+
 static void do_zcombine_mask(bNode *node, float *out, float *z1, float *z2)
 {
 	if(*z1 > *z2) {
@@ -67,6 +77,8 @@ static void do_zcombine_add(bNode *node, float *out, float *col1, float *col2, f
 
 static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	RenderData *rd= data;
+	
 	/* stack order in: col z col z */
 	/* stack order out: col z */
 	if(out[0]->hasoutput==0) 
@@ -75,6 +87,16 @@ static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in
 	/* no input image; do nothing now */
 	if(in[0]->data==NULL) {
 		return;
+	}
+	else if(rd->scemode & R_FULL_SAMPLE) {
+		/* make output size of first input image */
+		CompBuf *cbuf= in[0]->data;
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		
+		composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, 
+								  in[3]->data, in[3]->vec, do_zcombine, CB_RGBA, CB_VAL, CB_RGBA, CB_VAL);
+		
+		out[0]->data= stackbuf;
 	}
 	else {
 		/* make output size of first input image */

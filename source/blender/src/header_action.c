@@ -98,7 +98,8 @@ enum {
 	ACTMENU_VIEW_NOHIDE,
 	ACTMENU_VIEW_OPENLEVELS,
 	ACTMENU_VIEW_CLOSELEVELS,
-	ACTMENU_VIEW_EXPANDALL
+	ACTMENU_VIEW_EXPANDALL,
+	ACTMENU_VIEW_TRANSDELDUPS
 };
 
 enum {
@@ -333,6 +334,9 @@ static void do_action_viewmenu(void *arg, int event)
 		case ACTMENU_VIEW_EXPANDALL: /* Expands all channels */
 			expand_all_action();
 			break;
+		case ACTMENU_VIEW_TRANSDELDUPS: /* Don't delete duplicate/overlapping keyframes after transform */
+			G.saction->flag ^= SACTION_NOTRANSKEYCULL;
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -378,7 +382,14 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 "Show Hidden Channels|", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_NOHIDE, "");
-					 
+			
+		// this option may get removed in future... 
+	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_NOTRANSKEYCULL)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
+					 "AfterTrans Delete Dupli-Frames|", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+					 ACTMENU_VIEW_TRANSDELDUPS, "");
+			
+		
 	uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
 					 "Lock Time to Other Windows|", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 

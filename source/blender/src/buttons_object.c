@@ -584,12 +584,14 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	else {
-		short prev_proxylock;
+		short prev_proxylock, show_upbut, show_downbut;
 		
 		/* Up/Down buttons: 
 		 *	Proxy-constraints are not allowed to occur after local (non-proxy) constraints
 		 *	as that poses problems when restoring them, so disable the "up" button where
-		 *	it may cause this situation.
+		 *	it may cause this situation. 
+		 *
+		 * 	Up/Down buttons should only be shown (or not greyed - todo) if they serve some purpose. 
 		 */
 		if (proxylocked_constraints_owner(ob, pchan)) {
 			if (con->prev) {
@@ -600,21 +602,25 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		}
 		else
 			prev_proxylock= 0;
-		 
-		uiBlockBeginAlign(block);
-			uiBlockSetEmboss(block, UI_EMBOSS);
 			
-			/* only show buttons that will do anything valid */
-			if ((prev_proxylock==0) && (con->prev)) {
-				but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_UP, *xco+width-50, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint up in constraint stack");
-				uiButSetFunc(but, constraint_moveUp, ob, con);
-			}
-			
-			if (con->next) {
-				but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, *xco+width-50+18, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint down in constraint stack");
-				uiButSetFunc(but, constraint_moveDown, ob, con);
-			}
-		uiBlockEndAlign(block);
+		show_upbut= ((prev_proxylock == 0) && (con->prev));
+		show_downbut= (con->next) ? 1 : 0;
+		
+		if (show_upbut || show_downbut) {
+			uiBlockBeginAlign(block);
+				uiBlockSetEmboss(block, UI_EMBOSS);
+				
+				if (show_upbut) {
+					but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_UP, *xco+width-50, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint up in constraint stack");
+					uiButSetFunc(but, constraint_moveUp, ob, con);
+				}
+				
+				if (show_downbut) {
+					but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, *xco+width-50+18, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint down in constraint stack");
+					uiButSetFunc(but, constraint_moveDown, ob, con);
+				}
+			uiBlockEndAlign(block);
+		}
 		
 		
 		/* Close 'button' - emboss calls here disable drawing of 'button' behind X */
@@ -3734,7 +3740,7 @@ static void object_softbodies_solver(Object *ob)
 				uiBlockEndAlign(block);
 
 				uiBlockBeginAlign(block);
-				uiDefBut(block, LABEL, 0, "Diagnosis stuff",10,60,300,20, NULL, 0.0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, "Diagnosis",10,60,300,20, NULL, 0.0, 0, 0, 0, "");
 				uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"Print Performance to Console", 10,40,300,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");				
 				uiBlockEndAlign(block);
 			} 
@@ -3920,15 +3926,15 @@ static void object_softbodies(Object *ob)
 				uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		110,50,90,20, softflag, 0, 0, 0, 0, "Adds diagonal springs on 4-gons");
 				uiDefButBitS(block, TOG, OB_SB_EDGECOLL, B_DIFF, "CEdge",		220,50,45,20, softflag, 0, 0, 0, 0, "Edge collide too"); 
 				uiDefButBitS(block, TOG, OB_SB_FACECOLL, B_DIFF, "CFace",		265,50,45,20, softflag, 0, 0, 0, 0, "Faces collide too SLOOOOOW warning "); 
-				uiDefButF(block, NUM, B_DIFF, "E Pull:",	10,30,100,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness");
-				uiDefButF(block, NUM, B_DIFF, "E Push:",	110,30,100,20, &sb->inpush, 0.0,  0.999, 10, 0, "Edge spring stiffness");
+				uiDefButF(block, NUM, B_DIFF, "E Pull:",	10,30,100,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness when longer than rest length");
+				uiDefButF(block, NUM, B_DIFF, "E Push:",	110,30,100,20, &sb->inpush, 0.0,  0.999, 10, 0, "Edge spring stiffness when shorter than rest length");
 				uiDefButF(block, NUM, B_DIFF, "E Damp:",	210,30,100,20, &sb->infrict, 0.0,  50.0, 10, 0, "Edge spring friction");
-				uiDefButBitS(block, TOG,OB_SB_AERO_ANGLE,B_SOFTBODY_CHANGE, "N",10,10,20,20, softflag, 0, 0, 0, 0, "New aero(uses angle and lenght)");
+				uiDefButBitS(block, TOG,OB_SB_AERO_ANGLE,B_SOFTBODY_CHANGE, "N",10,10,20,20, softflag, 0, 0, 0, 0, "New aero(uses angle and length)");
 				uiDefButS(block, NUM, B_DIFF, "Aero:",     30,10,80,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");
 				if(ob->type==OB_MESH) {
 					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Bend:", 110,10,100,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Strenght of Springs over 2 Edges");
 					if (*softflag & OB_SB_QUADS){ 
-					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Shear:", 210,10,100,20, &sb->shearstiff, 0.0,  1.0, 10, 0, "Strenght of Springs over 2 Edges");
+					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Shear:", 210,10,100,20, &sb->shearstiff, 0.0,  1.0, 10, 0, "Strenght of diagonal Springs");
 					}
 				}
 				else sb->secondspring = 0;

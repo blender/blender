@@ -193,10 +193,10 @@ int manageObjectSpace(int confirm, int set) {
 		return -1;
 
 	if (confirm == 0) {
-		if (set && pupmenu("Custome Space %t|Add and Use Active Object%x1") != 1) {
+		if (set && pupmenu("Custom Space %t|Add and Use Active Object%x1") != 1) {
 			return -1;
 		}
-		else if (set == 0 && pupmenu("Custome Space %t|Add Active Object%x1") != 1) {
+		else if (set == 0 && pupmenu("Custom Space %t|Add Active Object%x1") != 1) {
 			return -1;
 		}
 	}
@@ -204,119 +204,277 @@ int manageObjectSpace(int confirm, int set) {
 	return addObjectSpace(base->object);
 }
 
+/* return 1 on confirm */
+int confirmSpace(int set, char text[])
+{
+	char menu[64];
+	
+	if (set) {
+		sprintf(menu, "Custom Space %%t|Add and Use %s%%x1", text);
+	}
+	else {
+		sprintf(menu, "Custom Space %%t|Add %s%%x1", text);
+	}
+	
+	if (pupmenu(menu) == 1) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+
 int manageMeshSpace(int confirm, int set) {
 	EditMesh *em = G.editMesh;
-	float mat[3][3], vec[3] = {0.0f, 0.0f, 1.0f};
-	int index;
+	float mat[3][3];
 	char name[36] = "";
+	int index;
 
-	if (G.scene->selectmode & SCE_SELECT_VERTEX && G.totvertsel == 1) {
-		EditVert *eve;
-
-		if (confirm == 0) {
-			if (set && pupmenu("Custome Space %t|Add and Use Vertex%x1") != 1) {
+	/* Vertice Selected */
+	if (G.scene->selectmode & SCE_SELECT_VERTEX && (G.totvertsel == 1 || G.totvertsel == 2 || G.totvertsel == 3)) {
+		if (G.totvertsel == 1) {
+			EditSelection *ese;
+			EditVert *eve = NULL;
+			float normal[3];
+	
+			for (ese = em->selected.first; ese; ese = ese->next)
+			{
+				if ( ese->type == EDITVERT ) {
+					eve = (EditVert *)ese->data;
+					break;
+				}
+			}
+			
+			if (eve == NULL)
+				return -1;
+	
+			if (confirm == 0 && confirmSpace(set, "vertex") == 0) {
 				return -1;
 			}
-			else if (set == 0 && pupmenu("Custome Space %t|Add Vertex%x1") != 1) {
+	
+			VECCOPY(normal, eve->no);
+			Mat4Mul3Vecfl(G.obedit->obmat, normal);
+			
+			if (createSpaceNormal(mat, normal) == 0) {
+				error("Cannot use vertex with zero-length normal");
 				return -1;
 			}
+	
+			strcpy(name, "Vertex");
 		}
-
-		for(eve = em->verts.first; eve; eve= eve->next) {
-			if(eve->h == 0 && (eve->f & SELECT)) 
-				break;
+		else if (G.totvertsel == 2) {
+			EditSelection *ese;
+			EditVert *v1 = NULL, *v2 = NULL;
+			float normal[3];
+	
+			for (ese = em->selected.first; ese; ese = ese->next)
+			{
+				if ( ese->type == EDITVERT ) {
+					if (v1 == NULL) {
+						v1 = (EditVert *)ese->data; 
+					}
+					else {
+						v2 = (EditVert *)ese->data;
+						break; 
+					}
+				}
+			}
+			
+			if (v2 == NULL)
+				return -1;
+	
+			if (confirm == 0 && confirmSpace(set, "Edge") == 0) {
+				return -1;
+			}
+	
+			VecSubf(normal, v2->co, v1->co);
+			Mat4Mul3Vecfl(G.obedit->obmat, normal);
+			
+			if (createSpaceNormal(mat, normal) == 0) {
+				error("Cannot use zero-length edge");
+				return -1;
+			}
+	
+			strcpy(name, "Edge");
+		}
+		else if (G.totvertsel == 3) {
+			EditSelection *ese;
+			EditVert *v1 = NULL, *v2 = NULL, *v3 = NULL;
+			float normal[3], tangent[3], cotangent[3];
+	
+			for (ese = em->selected.first; ese; ese = ese->next)
+			{
+				if ( ese->type == EDITVERT ) {
+					if (v1 == NULL) {
+						v1 = (EditVert *)ese->data; 
+					}
+					else if (v2 == NULL) {
+						v2 = (EditVert *)ese->data;
+					}
+					else {
+						v3 = (EditVert *)ese->data;
+						break; 
+					}
+				}
+			}
+			
+			if (v3 == NULL)
+				return -1;
+	
+			if (confirm == 0 && confirmSpace(set, "Face") == 0) {
+				return -1;
+			}
+	
+			VecSubf(tangent, v2->co, v1->co);
+			VecSubf(cotangent, v3->co, v2->co);
+			Crossf(normal, cotangent, tangent);
+			
+			Mat4Mul3Vecfl(G.obedit->obmat, normal);
+			Mat4Mul3Vecfl(G.obedit->obmat, tangent);
+			
+			if (createSpaceNormal(mat, normal) == 0) {
+				error("Cannot use zero-area face");
+				return -1;
+			}
+	
+			strcpy(name, "Face");
 		}
 		
-		if (eve == NULL)
-			return -1;
-
-		VECCOPY(mat[2], eve->no);
-		if (Normalize(mat[2]) == 0.0f) {
-			error("Cannot use vertex with zero-length normal");
-			return -1;
-		}
-
-		strcpy(name, "Vertex");
 	}
-	else if(G.scene->selectmode & SCE_SELECT_EDGE && G.totedgesel == 1) {
-		EditEdge *eed;
-
-		if (confirm == 0) {
-			if (set && pupmenu("Custome Space %t|Add and Use Edge%x1") != 1) {
+	/* Edge Selected */
+	else if(G.scene->selectmode & SCE_SELECT_EDGE && (G.totedgesel == 1 || G.totedgesel == 2)) {
+		if (G.totedgesel == 1) {
+			EditSelection *ese;
+			EditEdge *eed = NULL;
+			float normal[3];
+	
+			for (ese = em->selected.first; ese; ese = ese->next)
+			{
+				if ( ese->type == EDITEDGE ) {
+					eed = (EditEdge *)ese->data; 
+					break; 
+				}
+			}
+			
+			if (eed == NULL)
+				return -1;
+	
+			if (confirm == 0 && confirmSpace(set, "Edge") == 0) {
 				return -1;
 			}
-			else if (set == 0 && pupmenu("Custome Space %t|Add Edge%x1") != 1) {
+	
+			VecSubf(normal, eed->v2->co, eed->v1->co);
+			Mat4Mul3Vecfl(G.obedit->obmat, normal);
+			
+			if (createSpaceNormal(mat, normal) == 0) {
+				error("Cannot use zero-length edge");
 				return -1;
 			}
+	
+			strcpy(name, "Edge");
 		}
+		/* If selected edges form a triangle */
+		else if (G.totedgesel == 2 && G.totvertsel == 3) {
+			EditSelection *ese;
+			EditEdge *e1 = NULL, *e2 = NULL;
+			EditVert *v1 = NULL, *v2 = NULL, *v3 = NULL;
+			float normal[3], tangent[3], cotangent[3];
 
-		for(eed = em->edges.first; eed; eed= eed->next) {
-			if(eed->h == 0 && (eed->f & SELECT))
-				break;
+			for (ese = em->selected.first; ese; ese = ese->next)
+			{
+				if ( ese->type == EDITEDGE ) {
+					if (e1 == NULL) {
+						e1 = (EditEdge *)ese->data; 
+					}
+					else {
+						e2 = (EditEdge *)ese->data;
+						break; 
+					}
+				}
+			}
+			
+			if (e1->v1 == e2->v1) {
+				v1 = e1->v2;
+				v2 = e1->v1;
+				v3 = e2->v2;
+			}
+			else if (e1->v1 == e2->v2) {
+				v1 = e1->v2;
+				v2 = e1->v1;
+				v3 = e2->v1;
+			}
+			else if (e1->v2 == e2->v1) {
+				v1 = e1->v1;
+				v2 = e1->v2;
+				v3 = e2->v2;
+			}
+			else if (e1->v2 == e2->v2) {
+				v1 = e1->v1;
+				v2 = e1->v2;
+				v3 = e2->v1;
+			}
+			
+			if (v1 == NULL)
+				return -1;
+	
+			if (confirm == 0 && confirmSpace(set, "Face") == 0) {
+				return -1;
+			}
+	
+			VecSubf(tangent, v2->co, v1->co);
+			VecSubf(cotangent, v3->co, v2->co);
+			Crossf(normal, cotangent, tangent);
+			
+			Mat4Mul3Vecfl(G.obedit->obmat, normal);
+			Mat4Mul3Vecfl(G.obedit->obmat, tangent);
+			
+			if (createSpaceNormal(mat, normal) == 0) {
+				error("Cannot use zero-area face");
+				return -1;
+			}
+	
+			strcpy(name, "Face");
 		}
-
-		if (eed == NULL)
-			return -1;
-
-		VecSubf(mat[2], eed->v2->co, eed->v1->co);
-		if (Normalize(mat[2]) == 0.0f) {
-			error("Cannot use zero-length edges");
-			return -1;
-		}
-
-		strcpy(name, "Edge");
+		
 	}
+	/* Face Selected */
 	else if(G.scene->selectmode & SCE_SELECT_FACE && G.totfacesel == 1) {
-		EditFace *efa;
+		EditSelection *ese;
+		EditFace *efa = NULL;
+		float normal[3], tangent[3];
 
-		if (confirm == 0) {
-			if (set && pupmenu("Custome Space %t|Add and Use Face%x1") != 1) {
-				return -1;
-			}
-			else if (set == 0 && pupmenu("Custome Space %t|Add Face%x1") != 1) {
-				return -1;
-			}
+		if (confirm == 0 && confirmSpace(set, "Face") == 0) {
+			return -1;
 		}
 
-		for(efa = em->faces.first; efa; efa= efa->next) {
-			if(efa->h == 0 && (efa->f & SELECT))
-				break;
+		for (ese = em->selected.first; ese; ese = ese->next)
+		{
+			if ( ese->type == EDITFACE ) {
+				efa = (EditFace *)ese->data;
+				break; 
+			}
 		}
 
 		if (efa == NULL)
 			return -1;
 
-		VECCOPY(mat[2], efa->n);
-		if (Normalize(mat[2]) == 0.0f) {
-			error("Cannot use face with zero-length normal");
+		VECCOPY(normal, efa->n);
+		VecSubf(tangent, efa->v2->co, efa->v1->co);
+
+		Mat4Mul3Vecfl(G.obedit->obmat, normal);
+		Mat4Mul3Vecfl(G.obedit->obmat, tangent);
+		
+		if (createSpaceNormalTangent(mat, normal, tangent) == 0) {
+			error("Cannot use zero-area face");
 			return -1;
 		}
-
-		VecSubf(vec, efa->v2->co, efa->v1->co);
 
 		strcpy(name, "Face");
 	}
 	else {
-		notice("You need to select only one vertex, edge or face");
 		return -1;
 	}
-
-	/* Applying matrix for global space */
-	Mat4Mul3Vecfl(G.obedit->obmat, mat[2]);
-	Mat4Mul3Vecfl(G.obedit->obmat, vec);
-
-	/* Calculating the other axis */
-	
-	Crossf(mat[0], mat[2], vec);
-	if (Normalize(mat[0]) == 0.0f) {
-		vec[0] = 1.0f;
-		vec[1] = vec[2] = 0.0f;
-		Crossf(mat[0], vec, mat[2]);
-	}
-
-	Crossf(mat[1], mat[2], mat[0]);
-
-	Mat3Ortho(mat);
 
 	/* Input name */
 	sbutton(name, 1, 35, "name: ");
@@ -324,6 +482,49 @@ int manageMeshSpace(int confirm, int set) {
 	index = addMatrixSpace(mat, name);
 	return index;
 }
+
+int createSpaceNormal(float mat[3][3], float normal[3])
+{
+	float tangent[3] = {0.0f, 0.0f, 1.0f};
+	
+	VECCOPY(mat[2], normal);
+	if (Normalize(mat[2]) == 0.0f) {
+		return 0; /* error return */
+	}
+
+	Crossf(mat[0], mat[2], tangent);
+	if (Inpf(mat[0], mat[0]) == 0.0f) {
+		tangent[0] = 1.0f;
+		tangent[1] = tangent[2] = 0.0f;
+		Crossf(mat[0], tangent, mat[2]);
+	}
+
+	Crossf(mat[1], mat[2], mat[0]);
+
+	Mat3Ortho(mat);
+	
+	return 1;
+}
+
+int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3])
+{
+	VECCOPY(mat[2], normal);
+	if (Normalize(mat[2]) == 0.0f) {
+		return 0; /* error return */
+	}
+
+	Crossf(mat[0], mat[2], tangent);
+	if (Normalize(mat[0]) == 0.0f) {
+		return 0; /* error return */
+	}
+	
+	Crossf(mat[1], mat[2], mat[0]);
+
+	Mat3Ortho(mat);
+	
+	return 1;
+}
+
 
 int addObjectSpace(Object *ob) {
 	float mat[3][3];

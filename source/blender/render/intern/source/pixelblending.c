@@ -91,15 +91,6 @@ void addAlphaOverFloat(float *dest, float *source)
 void addAlphaUnderFloat(float *dest, float *source)
 {
     float mul;
-    
-    if( (-RE_EMPTY_COLOR_FLOAT < dest[3])
-        && (dest[3] <  RE_EMPTY_COLOR_FLOAT) ) {	
-        dest[0] = source[0];
-        dest[1] = source[1];
-        dest[2] = source[2];
-        dest[3] = source[3];
-        return;
-    }
 
 	mul= 1.0 - dest[3];
 

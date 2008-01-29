@@ -65,7 +65,6 @@ void aspect_sima(struct SpaceImage *sima, float *x, float *y);
 void select_invert_tface_uv(void);
 void select_swap_tface_uv(void);
 void mirrormenu_tface_uv(void);
-void mirror_tface_uv(char mirroraxis);
 void hide_tface_uv(int swap);
 void reveal_tface_uv(void);
 void stitch_limit_uv_tface(void);

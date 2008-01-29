@@ -78,6 +78,7 @@
 #include "envmap.h"
 #include "initrender.h"
 #include "shadbuf.h"
+#include "pixelblending.h"
 #include "zbuf.h"
 
 
@@ -194,6 +195,22 @@ void RE_FreeRenderResult(RenderResult *res)
 	
 	MEM_freeN(res);
 }
+
+/* version that's compatible with fullsample buffers */
+static void free_render_result(ListBase *lb, RenderResult *rr)
+{
+	RenderResult *rrnext;
+	
+	for(; rr; rr= rrnext) {
+		rrnext= rr->next;
+		
+		if(lb && lb->first)
+			BLI_remlink(lb, rr);
+		
+		RE_FreeRenderResult(rr);
+	}
+}
+
 
 /* all layers except the active one get temporally pushed away */
 static void push_render_result(Render *re)
@@ -391,13 +408,18 @@ static int passtype_from_name(char *str)
 
 
 
-static void render_unique_exr_name(Render *re, char *str)
+static void render_unique_exr_name(Render *re, char *str, int sample)
 {
 	char di[FILE_MAX], name[FILE_MAXFILE], fi[FILE_MAXFILE];
 	
 	BLI_strncpy(di, G.sce, FILE_MAX);
 	BLI_splitdirstring(di, fi);
-	sprintf(name, "%s_%s.exr", fi, re->scene->id.name+2);
+	
+	if(sample==0)
+		sprintf(name, "%s_%s.exr", fi, re->scene->id.name+2);
+	else
+		sprintf(name, "%s_%s%d.exr", fi, re->scene->id.name+2, sample);
+
 	if(G.background)
 		BLI_make_file_string("/", str, "/tmp/", name);
 	else
@@ -421,17 +443,22 @@ static void render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int channel
 			IMB_exr_add_channel(rr->exrhandle, rl->name, get_pass_name(passtype, a), 0, 0, NULL);
 	}
 	else {
+		float *rect;
+		int x;
+		
+		rpass->rect= MEM_mapallocN(sizeof(float)*rectsize, typestr);
+		
 		if(passtype==SCE_PASS_VECTOR) {
-			float *rect;
-			int x;
-			
 			/* initialize to max speed */
-			rect= rpass->rect= MEM_mapallocN(sizeof(float)*rectsize, typestr);
+			rect= rpass->rect;
 			for(x= rectsize-1; x>=0; x--)
 				rect[x]= PASS_VECTOR_MAX;
 		}
-		else
-			rpass->rect= MEM_mapallocN(sizeof(float)*rectsize, typestr);
+		else if(passtype==SCE_PASS_Z) {
+			rect= rpass->rect;
+			for(x= rectsize-1; x>=0; x--)
+				rect[x]= 10e10;
+		}
 	}
 }
 
@@ -655,9 +682,8 @@ static void merge_render_result(RenderResult *rr, RenderResult *rrpart)
 }
 
 
-static void save_render_result_tile(Render *re, RenderPart *pa)
+static void save_render_result_tile(RenderResult *rr, RenderResult *rrpart)
 {
-	RenderResult *rrpart= pa->result;
 	RenderLayer *rlp;
 	RenderPass *rpassp;
 	int offs, partx, party;
@@ -677,23 +703,23 @@ static void save_render_result_tile(Render *re, RenderPart *pa)
 		if(rlp->rectf) {
 			int a, xstride= 4;
 			for(a=0; a<xstride; a++)
-				IMB_exr_set_channel(re->result->exrhandle, rlp->name, get_pass_name(SCE_PASS_COMBINED, a), 
-								xstride, xstride*pa->rectx, rlp->rectf+a + xstride*offs);
+				IMB_exr_set_channel(rr->exrhandle, rlp->name, get_pass_name(SCE_PASS_COMBINED, a), 
+								xstride, xstride*rrpart->rectx, rlp->rectf+a + xstride*offs);
 		}
 		
 		/* passes are allocated in sync */
 		for(rpassp= rlp->passes.first; rpassp; rpassp= rpassp->next) {
 			int a, xstride= rpassp->channels;
 			for(a=0; a<xstride; a++)
-				IMB_exr_set_channel(re->result->exrhandle, rlp->name, get_pass_name(rpassp->passtype, a), 
-									xstride, xstride*pa->rectx, rpassp->rect+a + xstride*offs);
+				IMB_exr_set_channel(rr->exrhandle, rlp->name, get_pass_name(rpassp->passtype, a), 
+									xstride, xstride*rrpart->rectx, rpassp->rect+a + xstride*offs);
 		}
 		
 	}
 
 	party= rrpart->tilerect.ymin + rrpart->crop;
 	partx= rrpart->tilerect.xmin + rrpart->crop;
-	IMB_exrtile_write_channels(re->result->exrhandle, partx, party);
+	IMB_exrtile_write_channels(rr->exrhandle, partx, party);
 
 	BLI_unlock_thread(LOCK_IMAGE);
 
@@ -702,14 +728,17 @@ static void save_render_result_tile(Render *re, RenderPart *pa)
 static void save_empty_result_tiles(Render *re)
 {
 	RenderPart *pa;
+	RenderResult *rr;
 	
-	IMB_exrtile_clear_channels(re->result->exrhandle);
+	for(rr= re->result; rr; rr= rr->next) {
+		IMB_exrtile_clear_channels(rr->exrhandle);
 		
-	for(pa= re->parts.first; pa; pa= pa->next) {
-		if(pa->ready==0) {
-			int party= pa->disprect.ymin - re->disprect.ymin + pa->crop;
-			int partx= pa->disprect.xmin - re->disprect.xmin + pa->crop;
-			IMB_exrtile_write_channels(re->result->exrhandle, partx, party);
+		for(pa= re->parts.first; pa; pa= pa->next) {
+			if(pa->ready==0) {
+				int party= pa->disprect.ymin - re->disprect.ymin + pa->crop;
+				int partx= pa->disprect.xmin - re->disprect.xmin + pa->crop;
+				IMB_exrtile_write_channels(rr->exrhandle, partx, party);
+			}
 		}
 	}
 }
@@ -836,7 +865,7 @@ static void renderresult_add_names(RenderResult *rr)
 
 
 /* only for temp buffer files, makes exact copy of render result */
-static void read_render_result(Render *re)
+static void read_render_result(Render *re, int sample)
 {
 	RenderLayer *rl;
 	RenderPass *rpass;
@@ -847,12 +876,14 @@ static void read_render_result(Render *re)
 	RE_FreeRenderResult(re->result);
 	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 
-	render_unique_exr_name(re, str);
+	render_unique_exr_name(re, str, sample);
 	if(IMB_exr_begin_read(exrhandle, str, &rectx, &recty)==0) {
 		IMB_exr_close(exrhandle);
 		printf("cannot read: %s\n", str);
 		return;
 	}
+	
+	printf("read exr tmp file: %s\n", str);
 	
 	if(rectx!=re->result->rectx || recty!=re->result->recty) {
 		printf("error in reading render result\n");
@@ -1060,7 +1091,7 @@ void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect
 	}
 	
 	if(re->rectx < 2 || re->recty < 2 || (BKE_imtype_is_movie(rd->imtype) &&
-(re->rectx < 16 || re->recty < 16) )) {
+										  (re->rectx < 16 || re->recty < 16) )) {
 		re->error("Image too small");
 		re->ok= 0;
 	}
@@ -1089,6 +1120,7 @@ void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect
 	}
 }
 
+/* part of external api, not called for regular render pipeline */
 void RE_SetDispRect (struct Render *re, rcti *disprect)
 {
 	re->disprect= *disprect;
@@ -1189,13 +1221,36 @@ static int render_display_draw_enabled(Render *re)
 		return 1;
 }
 
+/* allocate osa new results for samples */
+static RenderResult *new_full_sample_buffers(Render *re, ListBase *lb, rcti *partrct, int crop)
+{
+	int a;
+	
+	if(re->osa==0)
+		return new_render_result(re, partrct, crop, RR_USEMEM);
+	
+	for(a=0; a<re->osa; a++) {
+		RenderResult *rr= new_render_result(re, partrct, crop, RR_USEMEM);
+		BLI_addtail(lb, rr);
+		rr->sample_nr= a;
+	}
+	
+	return lb->first;
+}
+
+
+/* the main thread call, renders an entire part */
 static void *do_part_thread(void *pa_v)
 {
 	RenderPart *pa= pa_v;
 	
 	/* need to return nicely all parts on esc */
 	if(R.test_break()==0) {
-		pa->result= new_render_result(&R, &pa->disprect, pa->crop, RR_USEMEM);
+		
+		if(R.r.scemode & R_FULL_SAMPLE)
+			pa->result= new_full_sample_buffers(&R, &pa->fullresult, &pa->disprect, pa->crop);
+		else
+			pa->result= new_render_result(&R, &pa->disprect, pa->crop, RR_USEMEM);
 
 		if(R.sss_points)
 			zbufshade_sss_tile(pa);
@@ -1205,8 +1260,13 @@ static void *do_part_thread(void *pa_v)
 			zbufshade_tile(pa);
 		
 		/* merge too on break! */
-		if(R.result->exrhandle)
-			save_render_result_tile(&R, pa);
+		if(R.result->exrhandle) {
+			RenderResult *rr, *rrpart;
+			
+			for(rr= R.result, rrpart= pa->result; rr && rrpart; rr= rr->next, rrpart= rrpart->next)
+				save_render_result_tile(rr, rrpart);
+			
+		}
 		else if(render_display_draw_enabled(&R))
 			merge_render_result(R.result, pa->result);
 	}
@@ -1380,33 +1440,52 @@ static void print_part_stats(Render *re, RenderPart *pa)
 	re->i.infostr= NULL;
 }
 
+/* make osa new results for samples */
+static RenderResult *new_full_sample_buffers_exr(Render *re)
+{
+	int a;
+	
+	for(a=0; a<re->osa; a++) {
+		RenderResult *rr= new_render_result(re, &re->disprect, 0, 1);
+		BLI_addtail(&re->fullresult, rr);
+		rr->sample_nr= a;
+	}
+	
+	return re->fullresult.first;
+}
+
 static void threaded_tile_processor(Render *re)
 {
 	ListBase threads;
 	RenderPart *pa, *nextpa;
-	RenderResult *rr;
 	rctf viewplane= re->viewplane;
 	int rendering=1, counter= 1, drawtimer=0, hasdrawn, minx=0;
 	
-	/* first step; the entire render result, or prepare exr buffer saving */
+	/* first step; free the entire render result, make new, and/or prepare exr buffer saving */
 	RE_FreeRenderResult(re->result);
-	rr= re->result= new_render_result(re, &re->disprect, 0, re->r.scemode & R_EXR_TILE_FILE);
 	
-	if(rr==NULL)
+	if(re->r.scemode & R_FULL_SAMPLE)
+		re->result= new_full_sample_buffers_exr(re);
+	else
+		re->result= new_render_result(re, &re->disprect, 0, re->r.scemode & R_EXR_TILE_FILE);
+	
+	if(re->result==NULL)
 		return;
+	
 	/* warning; no return here without closing exr file */
-//	if(re->re->test_break())
-//		return;
 	
 	initparts(re);
 	
-	if(rr->exrhandle) {
+	if(re->result->exrhandle) {
+		RenderResult *rr;
 		char str[FILE_MAX];
 		
-		render_unique_exr_name(re, str);
+		for(rr= re->result; rr; rr= rr->next) {
+			render_unique_exr_name(re, str, rr->sample_nr);
 		
-		printf("write exr tmp file, %dx%d, %s\n", rr->rectx, rr->recty, str);
-		IMB_exrtile_begin_write(rr->exrhandle, str, rr->rectx, rr->recty, rr->rectx/re->xparts, rr->recty/re->yparts);
+			printf("write exr tmp file, %dx%d, %s\n", rr->rectx, rr->recty, str);
+			IMB_exrtile_begin_write(rr->exrhandle, str, rr->rectx, rr->recty, rr->rectx/re->xparts, rr->recty/re->yparts);
+		}
 	}
 	
 	BLI_init_threads(&threads, do_part_thread, re->r.threads);
@@ -1461,7 +1540,7 @@ static void threaded_tile_processor(Render *re)
 						re->display_draw(pa->result, NULL);
 					print_part_stats(re, pa);
 					
-					RE_FreeRenderResult(pa->result);
+					free_render_result(&pa->fullresult, pa->result);
 					pa->result= NULL;
 					re->i.partsdone++;
 					hasdrawn= 1;
@@ -1485,11 +1564,20 @@ static void threaded_tile_processor(Render *re)
 		
 	}
 	
-	if(rr->exrhandle) {
+	if(re->result->exrhandle) {
+		RenderResult *rr;
+
 		save_empty_result_tiles(re);
-		IMB_exr_close(rr->exrhandle);
-		rr->exrhandle= NULL;
-		read_render_result(re);
+		
+		for(rr= re->result; rr; rr= rr->next) {
+			IMB_exr_close(rr->exrhandle);
+			rr->exrhandle= NULL;
+		}
+		
+		free_render_result(&re->fullresult, re->result);
+		re->result= NULL;
+		
+		read_render_result(re, 0);
 	}
 	
 	/* unset threadsafety */
@@ -1822,11 +1910,18 @@ static void do_render_fields_blur_3d(Render *re)
 static void render_scene(Render *re, Scene *sce, int cfra)
 {
 	Render *resc= RE_NewRender(sce->id.name);
+	int winx= re->winx, winy= re->winy;
 	
 	sce->r.cfra= cfra;
 		
+	/* exception: scene uses own size (unfinished code) */
+	if(0) {
+		winx= (sce->r.size*sce->r.xsch)/100;
+		winy= (sce->r.size*sce->r.ysch)/100;
+	}
+	
 	/* initial setup */
-	RE_InitState(resc, &sce->r, re->winx, re->winy, &re->disprect);
+	RE_InitState(resc, &sce->r, winx, winy, &re->disprect);
 	
 	/* this to enable this scene to create speed vectors */
 	resc->r.scemode |= R_DOCOMP;
@@ -1837,6 +1932,10 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	/* ensure scene has depsgraph, base flags etc OK. Warning... also sets G.scene */
 	set_scene_bg(sce);
 
+	/* fullsample wants uniform osa levels */
+	if(resc->r.scemode & R_FULL_SAMPLE)
+		resc->r.osa= resc->osa= re->osa;
+	
 	/* copy callbacks */
 	resc->display_draw= re->display_draw;
 	resc->test_break= re->test_break;
@@ -1909,6 +2008,72 @@ static void render_composit_stats(char *str)
 	R.i.infostr= NULL;
 }
 
+/* reads all buffers, calls optional composite, merges in first result->rectf */
+static void do_merge_fullsample(Render *re, bNodeTree *ntree)
+{
+	float *rectf;
+	int sample;
+	
+	/* we accumulate in here */
+	rectf= MEM_mapallocN(re->rectx*re->recty*sizeof(float)*4, "fullsample rgba");
+	
+	for(sample=0; sample<re->osa; sample++) {
+		RenderResult rres;
+		int x, y, mask;
+		
+		/* set all involved renders on the samplebuffers (first was done by render itself) */
+		if(sample) {
+			Render *re1;
+			for(re1= RenderList.first; re1; re1= re1->next) {
+				if(re1->r.scemode & R_FULL_SAMPLE)
+					read_render_result(re1, sample);
+			}
+		}
+
+		/* composite */
+		if(ntree) {
+			ntreeCompositTagRender(re->scene);
+			ntreeCompositTagAnimated(ntree);
+			
+			ntreeCompositExecTree(ntree, &re->r, G.background==0);
+		}
+		
+		/* ensure we get either composited result or the active layer */
+		RE_GetResultImage(re, &rres);
+		
+		/* accumulate with filter, and clip */
+		mask= (1<<sample);
+		for(y=1; y<re->recty-1; y++) {
+			float *rf= rectf + 4*y*re->rectx + 4;
+			float *col= rres.rectf + 4*y*re->rectx + 4;
+				
+			for(x=1; x<re->rectx-1; x++, rf+=4, col+=4) {
+				if(col[0]<0.0f) col[0]=0.0f; else if(col[0] > 1.0f) col[0]= 1.0f;
+				if(col[1]<0.0f) col[1]=0.0f; else if(col[1] > 1.0f) col[1]= 1.0f;
+				if(col[2]<0.0f) col[2]=0.0f; else if(col[2] > 1.0f) col[2]= 1.0f;
+				
+				add_filt_fmask(mask, col, rf, re->rectx);
+			}
+		}
+		
+		/* show stuff */
+		if(sample!=re->osa-1) {
+			/* weak... the display callback wants an active renderlayer pointer... */
+			re->result->renlay= render_get_active_layer(re, re->result);
+			re->display_draw(re->result, NULL);
+		}
+		
+		if(re->test_break())
+			break;
+	}
+	
+	if(re->result->rectf) 
+		MEM_freeN(re->result->rectf);
+	re->result->rectf= rectf;
+}
+
+
+
 /* returns fully composited render-result on given time step (in RenderData) */
 static void do_render_composite_fields_blur_3d(Render *re)
 {
@@ -1928,9 +2093,12 @@ static void do_render_composite_fields_blur_3d(Render *re)
 	if(re->r.scemode & R_SINGLE_LAYER)
 		pop_render_result(re);
 	
-	if(!re->test_break() && ntree) {
-		ntreeCompositTagRender(re->scene);
-		ntreeCompositTagAnimated(ntree);
+	if(!re->test_break()) {
+		
+		if(ntree) {
+			ntreeCompositTagRender(re->scene);
+			ntreeCompositTagAnimated(ntree);
+		}
 		
 		if(re->r.scemode & R_DOCOMP) {
 			/* checks if there are render-result nodes that need scene */
@@ -1943,11 +2111,19 @@ static void do_render_composite_fields_blur_3d(Render *re)
 				/* in case it was never initialized */
 				R.stats_draw= re->stats_draw;
 				
-				ntreeCompositExecTree(ntree, &re->r, G.background==0);
+				if(re->r.scemode & R_FULL_SAMPLE) 
+					do_merge_fullsample(re, ntree);
+				else
+					ntreeCompositExecTree(ntree, &re->r, G.background==0);
+				
 				ntree->stats_draw= NULL;
 				ntree->test_break= NULL;
 			}
 		}
+		else 
+			if(re->r.scemode & R_FULL_SAMPLE) 
+				do_merge_fullsample(re, NULL);
+		
 	}
 
 	/* weak... the display callback wants an active renderlayer pointer... */
@@ -2101,14 +2277,20 @@ static int is_rendering_allowed(Render *re)
 	if(re->r.scemode & R_EXR_TILE_FILE) {
 		char str[FILE_MAX];
 		
-		render_unique_exr_name(re, str);
+		render_unique_exr_name(re, str, 0);
 		
 		if (BLI_is_writable(str)==0) {
 			re->error("Can not save render buffers, check the temp default path");
 			return 0;
 		}
 		
+		/* no osa + fullsample won't work... */
+		if(re->osa==0)
+			re->r.scemode &= ~R_FULL_SAMPLE;
+		
 	}
+	else
+		re->r.scemode &= ~R_FULL_SAMPLE;	/* clear to be sure */
 	
 	if(re->r.scemode & R_DOCOMP) {
 		if(re->scene->use_nodes) {
@@ -2394,7 +2576,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 
 /* note; repeated win/disprect calc... solve that nicer, also in compo */
 
-/* only temp file! */
+/* only the temp file! */
 void RE_ReadRenderResult(Scene *scene, Scene *scenode)
 {
 	Render *re;
@@ -2426,7 +2608,7 @@ void RE_ReadRenderResult(Scene *scene, Scene *scenode)
 	RE_InitState(re, &scene->r, winx, winy, &disprect);
 	re->scene= scene;
 	
-	read_render_result(re);
+	read_render_result(re, 0);
 }
 
 void RE_set_max_threads(int threads)

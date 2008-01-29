@@ -3814,7 +3814,9 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 	glDisable(GL_LIGHTING);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
+#if 0 /* If this is needed, it cant be enabled in wire mode, since it messes up the view - Campbell */
 	glEnable(GL_DEPTH_TEST);
+#endif
 
 	if(states)
 		MEM_freeN(states);

@@ -473,6 +473,10 @@ char handleNumInput(NumInput *n, unsigned short event);
 int manageObjectSpace(int confirm, int set);
 int manageMeshSpace(int confirm, int set);
 
+/* Those two fill in mat and return non-zero on success */
+int createSpaceNormal(float mat[3][3], float normal[3]);
+int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
+
 int addMatrixSpace(float mat[3][3], char name[]);
 int addObjectSpace(struct Object *ob);
 void applyTransformOrientation(void);

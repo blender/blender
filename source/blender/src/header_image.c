@@ -52,6 +52,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_customdata_types.h" /* for UV layer menu */
 
+#include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
 #include "BDR_drawmesh.h"
@@ -870,12 +871,20 @@ static uiBlock *image_uvs_transformmenu(void *arg_unused)
 
 static void do_image_uvs_mirrormenu(void *arg, int event)
 {
+	float mat[3][3];
+	
+	Mat3One(mat);
+	
 	switch(event) {
 	case 0: /* X axis */
-		mirror_tface_uv('x');
+		initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
+		BIF_setSingleAxisConstraint(mat[0], " on global X axis");
+		Transform();
 		break;
 	case 1: /* Y axis */
-		mirror_tface_uv('y');
+		initTransform(TFM_MIRROR, CTX_NO_PET|CTX_AUTOCONFIRM);
+		BIF_setSingleAxisConstraint(mat[1], " on global Y axis");
+		Transform();
 		break;
 	}
 	

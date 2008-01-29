@@ -2624,10 +2624,10 @@ void insertkey_smarter(ID *id, int blocktype, char *actname, char *constname, in
 			/* delete keyframe immediately before/after newly added */
 			switch (insert_mode) {
 				case KEYNEEDED_DELPREV:
-					delete_icu_key(icu, icu->totvert-2);
+					delete_icu_key(icu, icu->totvert-2, 1);
 					break;
 				case KEYNEEDED_DELNEXT:
-					delete_icu_key(icu, 1);
+					delete_icu_key(icu, 1, 1);
 					break;
 			}
 		}
@@ -5642,22 +5642,25 @@ void remake_object_ipos(Object *ob)
 
 /* Only delete the nominated keyframe from provided ipo-curve. 
  * Not recommended to be used many times successively. For that
- * there is delete_ipo_keys(). */
-void delete_icu_key(IpoCurve *icu, int index)
+ * there is delete_ipo_keys(). 
+ */
+void delete_icu_key(IpoCurve *icu, int index, short do_recalc)
 {
 	/* firstly check that index is valid */
 	if (index < 0) 
 		index *= -1;
+	if (icu == NULL) 
+		return;
 	if (index >= icu->totvert)
 		return;
-	if (!icu) return;
 	
 	/*	Delete this key */
-	memcpy (&icu->bezt[index], &icu->bezt[index+1], sizeof (BezTriple)*(icu->totvert-index-1));
+	memcpy(&icu->bezt[index], &icu->bezt[index+1], sizeof(BezTriple)*(icu->totvert-index-1));
 	icu->totvert--;
 	
-	/* recalc handles */
-	calchandles_ipocurve(icu);
+	/* recalc handles - only if it won't cause problems */
+	if (do_recalc)
+		calchandles_ipocurve(icu);
 }
 
 void delete_ipo_keys(Ipo *ipo)

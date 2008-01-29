@@ -3155,6 +3155,9 @@ static void info_user_theme_colsets_buts(uiBlock *block, short y1, short y2, sho
 	
 	/* Extra 'Options' */
 	uiDefButBitS(block, TOG, TH_WIRECOLOR_CONSTCOLS, B_UPDATE_THEME, "Use 'Constraint' Colouring",  885,y2,200,20, &col_set->flag, 0, 0, 0, 0, "Allow the use of colors indicating constraints/keyed status");
+	
+	/* 'Debug' Tools */
+	// TODO... dump current colours
 }
 
 static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3, short y4)

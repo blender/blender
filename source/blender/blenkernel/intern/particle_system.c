@@ -780,6 +780,21 @@ void *exec_distribution(void *data)
 	return 0;
 }
 
+/* not thread safe, but qsort doesn't take userdata argument */
+static int *COMPARE_ORIG_INDEX = NULL;
+static int compare_orig_index(const void *p1, const void *p2)
+{
+	int index1 = COMPARE_ORIG_INDEX[*(const int*)p1];
+	int index2 = COMPARE_ORIG_INDEX[*(const int*)p2];
+
+	if(index1 < index2)
+		return -1;
+	else if(index1 == index2)
+		return 0;
+	else
+		return 1;
+}
+
 /* creates a distribution of coordinates on a DerivedMesh	*/
 /*															*/
 /* 1. lets check from what we are emitting					*/
@@ -1156,6 +1171,13 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 	}
 
 	MEM_freeN(sum);
+
+	/* for hair, sort by origindex, allows optimizations in rendering */
+	if(part->type == PART_HAIR) {
+		COMPARE_ORIG_INDEX= dm->getFaceDataArray(dm, CD_ORIGINDEX);
+		if(COMPARE_ORIG_INDEX)
+			qsort(index, totpart, sizeof(int), compare_orig_index);
+	}
 
 	/* weights are no longer used except for FROM_PARTICLE, which needs them zeroed for indexing */
 	if(from==PART_FROM_PARTICLE){
