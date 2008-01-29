@@ -34,6 +34,7 @@ bulletdyn_src = ["BulletDynamics/ConstraintSolver/btContactConstraint.cpp",
                  "BulletDynamics/Dynamics/btSimpleDynamicsWorld.cpp",
                  "BulletDynamics/Dynamics/btRigidBody.cpp",
                  "BulletDynamics/Vehicle/btRaycastVehicle.cpp",
+		 "BulletDynamics/Dynamics/Bullet-C-API.cpp",
                  "BulletDynamics/Vehicle/btWheelInfo.cpp"]
 collision_src = ["BulletCollision/BroadphaseCollision/btAxisSweep3.cpp",
                  "BulletCollision/BroadphaseCollision/btBroadphaseProxy.cpp",

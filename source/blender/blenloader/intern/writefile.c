@@ -107,6 +107,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "DNA_actuator_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_color_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_controller_types.h"
@@ -155,6 +156,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "BKE_action.h"
 #include "BKE_bad_level_calls.h" // build_seqar (from WHILE_SEQ) free_oops error
 #include "BKE_blender.h"
+#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_constraint.h"
@@ -834,6 +836,24 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			HookModifierData *hmd = (HookModifierData*) md;
 			
 			writedata(wd, DATA, sizeof(int)*hmd->totindex, hmd->indexar);
+		}
+		else if(md->type==eModifierType_Cloth) {
+			ClothModifierData *clmd = (ClothModifierData*) md;
+			
+			writestruct(wd, DATA, "SimulationSettings", 1, clmd->sim_parms);
+			writestruct(wd, DATA, "CollisionSettings", 1, clmd->coll_parms);
+			
+		} 
+		else if (md->type==eModifierType_Collision) {
+			
+			CollisionModifierData *collmd = (CollisionModifierData*) md;
+			/*
+			// TODO: CollisionModifier should use pointcache 
+			// + have proper reset events before enabling this
+			writestruct(wd, DATA, "MVert", collmd->numverts, collmd->x);
+			writestruct(wd, DATA, "MVert", collmd->numverts, collmd->xnew);
+			writestruct(wd, DATA, "MFace", collmd->numfaces, collmd->mfaces);
+			*/
 		}
 		else if (md->type==eModifierType_MeshDeform) {
 			MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;

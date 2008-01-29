@@ -80,6 +80,9 @@ CPPFLAGS += -I../../nodes
 # path to our own external headerfiles
 CPPFLAGS += -I..
 
+# path to bullet2, for cloth
+CPPFLAGS += -I../../../../extern/bullet2/src
+
 ifeq ($(WITH_FREETYPE2), true)
     CPPFLAGS += -DWITH_FREETYPE2
     CPPFLAGS += -I$(NAN_FREETYPE)/include

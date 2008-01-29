@@ -5,8 +5,9 @@ Import('env')
 if env['WITH_BF_GAMEENGINE']:
     SConscript(['qhull/SConscript',
             'solid/SConscript'])
-    if env['WITH_BF_BULLET']:
-        SConscript(['bullet2/src/SConscript'])
+
+if env['WITH_BF_BULLET']:
+    SConscript(['bullet2/src/SConscript'])
 
 if env['WITH_BF_INTERNATIONAL']:
     SConscript(['bFTGL/SConscript'])

@@ -53,6 +53,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -74,6 +75,7 @@
 #include "BKE_main.h"
 #include "BKE_anim.h"
 #include "BKE_bad_level_calls.h"
+#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
@@ -88,6 +90,7 @@
 #include "BKE_object.h"
 #include "BKE_mesh.h"
 #include "BKE_softbody.h"
+#include "BKE_cloth.h"
 #include "BKE_material.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -4942,6 +4945,282 @@ static void softbodyModifier_deformVerts(
 	sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos, numVerts);
 }
 
+
+/* Cloth */
+
+static void clothModifier_initData(ModifierData *md) 
+{
+	ClothModifierData *clmd = (ClothModifierData*) md;
+	
+	clmd->sim_parms = MEM_callocN(sizeof(SimulationSettings), "cloth sim parms");
+	clmd->coll_parms = MEM_callocN(sizeof(CollisionSettings), "cloth coll parms");
+	
+	/* check for alloc failing */
+	if(!clmd->sim_parms || !clmd->coll_parms)
+		return;
+	
+	cloth_init (clmd);
+	printf("clothModifier_initData\n");
+}
+
+static DerivedMesh *clothModifier_applyModifier(ModifierData *md, Object *ob,
+		 DerivedMesh *derivedData, int useRenderParams, int isFinalCalc)
+{
+	ClothModifierData *clmd = (ClothModifierData*) md;
+	DerivedMesh *result=NULL;
+	
+	/* check for alloc failing */
+	if(!clmd->sim_parms || !clmd->coll_parms)
+		return derivedData;
+
+	result = clothModifier_do(clmd, ob, derivedData, useRenderParams, isFinalCalc);
+
+	if(result)
+	{
+		CDDM_calc_normals(result);
+		return result;
+	}
+	return derivedData;
+}
+
+static void clothModifier_updateDepgraph(
+                ModifierData *md, DagForest *forest, Object *ob,
+                DagNode *obNode)
+{
+	ClothModifierData *clmd = (ClothModifierData*) md;
+	
+	Base *base;
+	
+	if(clmd)
+	{
+		for(base = G.scene->base.first; base; base= base->next) 
+		{
+			Object *ob1= base->object;
+			if(ob1 != ob)
+			{
+				CollisionModifierData *coll_clmd = (CollisionModifierData *)modifiers_findByType(ob1, eModifierType_Collision);
+				if(coll_clmd)
+				{
+					DagNode *curNode = dag_get_node(forest, ob1);
+					dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+				}
+			}
+		}
+	}	
+}
+
+CustomDataMask clothModifier_requiredDataMask(ModifierData *md)
+{
+	ClothModifierData *clmd = (ClothModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
+		if (clmd->sim_parms->vgroup_mass > 0)
+	 		dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
+}
+
+static void clothModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	ClothModifierData *clmd = (ClothModifierData*) md;
+	ClothModifierData *tclmd = (ClothModifierData*) target;
+	
+	if(tclmd->sim_parms)
+		MEM_freeN(tclmd->sim_parms);
+	if(tclmd->coll_parms)
+		MEM_freeN(tclmd->coll_parms);	
+	
+	tclmd->sim_parms = MEM_dupallocN(clmd->sim_parms);
+	tclmd->coll_parms = MEM_dupallocN(clmd->coll_parms);
+	
+	tclmd->sim_parms->lastcachedframe = 0;
+}
+
+
+static int clothModifier_dependsOnTime(ModifierData *md)
+{
+	return 1;
+}
+
+static void clothModifier_freeData(ModifierData *md)
+{
+	ClothModifierData *clmd = (ClothModifierData*) md;
+	
+	if (clmd) 
+	{
+		if(G.rt > 0)
+		printf("clothModifier_freeData\n");
+		
+		cloth_free_modifier_extern (clmd);
+		
+		if(clmd->sim_parms)
+			MEM_freeN(clmd->sim_parms);
+		if(clmd->coll_parms)
+			MEM_freeN(clmd->coll_parms);	
+	}
+}
+
+/* Collision */
+
+static void collisionModifier_initData(ModifierData *md) 
+{
+	CollisionModifierData *collmd = (CollisionModifierData*) md;
+	
+	collmd->x = NULL;
+	collmd->xnew = NULL;
+	collmd->current_x = NULL;
+	collmd->current_xnew = NULL;
+	collmd->current_v = NULL;
+	collmd->time = -1;
+	collmd->numverts = 0;
+	collmd->tree = NULL;
+}
+
+static void collisionModifier_freeData(ModifierData *md)
+{
+	CollisionModifierData *collmd = (CollisionModifierData*) md;
+	
+	if (collmd) 
+	{
+		if(collmd->tree)
+			bvh_free(collmd->tree);
+		if(collmd->x)
+			MEM_freeN(collmd->x);
+		if(collmd->xnew)
+			MEM_freeN(collmd->xnew);
+		if(collmd->current_x)
+			MEM_freeN(collmd->current_x);
+		if(collmd->current_xnew)
+			MEM_freeN(collmd->current_xnew);
+		if(collmd->current_v)
+			MEM_freeN(collmd->current_v);
+		
+		if(collmd->mfaces)
+			MEM_freeN(collmd->mfaces);
+		
+		collmd->x = NULL;
+		collmd->xnew = NULL;
+		collmd->current_x = NULL;
+		collmd->current_xnew = NULL;
+		collmd->current_v = NULL;
+		collmd->time = -1;
+		collmd->numverts = 0;
+		collmd->tree = NULL;
+		collmd->mfaces = NULL;
+	}
+}
+
+static int collisionModifier_dependsOnTime(ModifierData *md)
+{
+	return 1;
+}
+
+static void collisionModifier_deformVerts(
+	ModifierData *md, Object *ob, DerivedMesh *derivedData,
+       float (*vertexCos)[3], int numVerts)
+{
+	CollisionModifierData *collmd = (CollisionModifierData*) md;
+	DerivedMesh *dm = NULL;
+	float current_time = 0;
+	unsigned int numverts = 0, i = 0;
+	MVert *tempVert = NULL;
+	
+	/* if possible use/create DerivedMesh */
+	if(derivedData) dm = CDDM_copy(derivedData);
+	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
+	
+	if(!ob->pd)
+	{
+		printf("collisionModifier_deformVerts: Should not happen!\n");
+		return;
+	}
+	
+	if(dm)
+	{
+		CDDM_apply_vert_coords(dm, vertexCos);
+		CDDM_calc_normals(dm);
+		
+		current_time = bsystem_time ( ob, ( float ) G.scene->r.cfra, 0.0 );
+		
+		// printf("current_time %f, collmd->time %f\n", current_time, collmd->time);
+		
+		if(current_time > collmd->time)
+		{	
+			numverts = dm->getNumVerts ( dm );
+			
+			// check if mesh has changed
+			if(collmd->x && (numverts != collmd->numverts))
+				collisionModifier_freeData((ModifierData *)collmd);
+			
+			if(collmd->time == -1) // first time
+			{
+				collmd->x = dm->dupVertArray(dm); // frame start position
+				
+				for ( i = 0; i < numverts; i++ )
+				{
+					// we save global positions
+					Mat4MulVecfl ( ob->obmat, collmd->x[i].co );
+				}
+				
+				collmd->xnew = MEM_dupallocN(collmd->x); // frame end position
+				collmd->current_x = MEM_dupallocN(collmd->x); // inter-frame
+				collmd->current_xnew = MEM_dupallocN(collmd->x); // inter-frame
+				collmd->current_v = MEM_dupallocN(collmd->x); // inter-frame
+
+				collmd->numverts = numverts;
+				
+				collmd->mfaces = dm->dupFaceArray(dm);
+				collmd->numfaces = dm->getNumFaces(dm);
+				
+				// TODO: epsilon
+				// create bounding box hierarchy
+				collmd->tree = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sbift);
+			}
+			else if(numverts == collmd->numverts)
+			{
+				// put positions to old positions
+				tempVert = collmd->x;
+				collmd->x = collmd->xnew;
+				collmd->xnew = tempVert;
+				
+				memcpy(collmd->xnew, dm->getVertArray(dm), numverts*sizeof(MVert));
+				
+				for ( i = 0; i < numverts; i++ )
+				{
+					// we save global positions
+					Mat4MulVecfl ( ob->obmat, collmd->xnew[i].co );
+				}
+				
+				memcpy(collmd->current_xnew, collmd->x, numverts*sizeof(MVert));
+				memcpy(collmd->current_x, collmd->x, numverts*sizeof(MVert));
+				
+				/* happens on file load (ONLY when i decomment changes in readfile.c */
+				if(!collmd->tree)
+				{
+					collmd->tree = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sbift);
+				}
+				else
+				{
+					// recalc static bounding boxes
+					bvh_update_from_mvert(collmd->tree, collmd->current_x, numverts, NULL, 0);
+				}
+			}
+			
+			collmd->time = current_time;
+		}
+		else
+		{
+			collmd->time = current_time;
+		}
+	}
+	
+	if(dm)
+		dm->release(dm);
+}
+
+
 /* Boolean */
 
 static void booleanModifier_copyData(ModifierData *md, ModifierData *target)
@@ -6765,6 +7044,31 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsCVs
 		             | eModifierTypeFlag_RequiresOriginalData;
 		mti->deformVerts = softbodyModifier_deformVerts;
+	
+		mti = INIT_TYPE(Cloth);
+		mti->type = eModifierTypeType_Nonconstructive;
+		mti->initData = clothModifier_initData;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_RequiresOriginalData;
+		 			// | eModifierTypeFlag_SupportsMapping
+					// | eModifierTypeFlag_SupportsEditmode 
+					// | eModifierTypeFlag_EnableInEditmode;
+		mti->dependsOnTime = clothModifier_dependsOnTime;
+		mti->freeData = clothModifier_freeData; 
+		mti->requiredDataMask = clothModifier_requiredDataMask;
+		mti->copyData = clothModifier_copyData;
+		mti->applyModifier = clothModifier_applyModifier;
+		mti->updateDepgraph = clothModifier_updateDepgraph;
+		
+		mti = INIT_TYPE(Collision);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->initData = collisionModifier_initData;
+		mti->flags = eModifierTypeFlag_AcceptsMesh 
+				| eModifierTypeFlag_RequiresOriginalData;
+		mti->dependsOnTime = collisionModifier_dependsOnTime;
+		mti->freeData = collisionModifier_freeData; 
+		mti->deformVerts = collisionModifier_deformVerts;
+		// mti->copyData = collisionModifier_copyData;
 
 		mti = INIT_TYPE(Boolean);
 		mti->type = eModifierTypeType_Nonconstructive;
@@ -7020,6 +7324,13 @@ int modifiers_getCageIndex(Object *ob, int *lastPossibleCageIndex_r)
 int modifiers_isSoftbodyEnabled(Object *ob)
 {
 	ModifierData *md = modifiers_findByType(ob, eModifierType_Softbody);
+
+	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
+}
+
+int modifiers_isClothEnabled(Object *ob)
+{
+	ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
 
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }

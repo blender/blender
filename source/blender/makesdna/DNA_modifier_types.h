@@ -32,6 +32,8 @@ typedef enum ModifierType {
 	eModifierType_ParticleSystem,
 	eModifierType_ParticleInstance,
 	eModifierType_Explode,
+	eModifierType_Cloth,
+       eModifierType_Collision,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -340,6 +342,33 @@ typedef struct HookModifierData {
 typedef struct SoftbodyModifierData {
 	ModifierData modifier;
 } SoftbodyModifierData;
+
+typedef struct ClothModifierData {
+   ModifierData		modifier;
+
+   struct Cloth *clothObject; /* The internal data structure for cloth. */
+   struct SimulationSettings *sim_parms; /* definition is in DNA_cloth_types.h */
+   struct CollisionSettings *coll_parms; /* definition is in DNA_cloth_types.h */
+} ClothModifierData;
+
+typedef struct CollisionModifierData {
+	ModifierData	modifier;
+	
+	struct MVert *x; /* position at the beginning of the frame */
+	struct MVert *xnew; /* position at the end of the frame */
+	struct MVert *xold; /* unsued atm, but was discussed during sprint */
+	struct MVert *current_xnew; /* new position at the actual inter-frame step */
+	struct MVert *current_x; /* position at the actual inter-frame step */
+	struct MVert *current_v; /* position at the actual inter-frame step */
+	
+	struct MFace *mfaces; /* object face data */
+	
+	unsigned int numverts;
+	unsigned int numfaces;
+	int pad;
+	float time;
+	struct BVH *tree;	/* collision tree for this cloth object */
+} CollisionModifierData;
 
 typedef enum {
 	eBooleanModifierOp_Intersect,

@@ -179,6 +179,18 @@ if env['BF_NO_ELBEEM'] == 1:
     env['CXXFLAGS'].append('-DDISABLE_ELBEEM')
     env['CCFLAGS'].append('-DDISABLE_ELBEEM')
 
+if env['WITH_BF_OPENMP'] == 1:
+	if env['OURPLATFORM']=='win32-vc':
+		env.Append(LINKFLAGS=['/openmp'])
+		env['CCFLAGS'].append('/openmp')
+		env['CPPFLAGS'].append('/openmp')
+		env['CXXFLAGS'].append('/openmp')
+	else:
+		env.Append(LINKFLAGS=['-lgomp'])
+		env['CCFLAGS'].append('-fopenmp')
+		env['CPPFLAGS'].append('-fopenmp')
+		env['CXXFLAGS'].append('-fopenmp')
+
 #check for additional debug libnames
 
 if env.has_key('BF_DEBUG_LIBS'):

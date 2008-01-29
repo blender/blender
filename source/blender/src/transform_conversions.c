@@ -77,6 +77,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_blender.h"
+#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
@@ -3498,13 +3499,19 @@ void special_aftertrans_update(TransInfo *t)
 	}
 	else {
 		base= FIRSTBASE;
-		while (base) {	
-			
+
+		while (base) {			
+
 			if(base->flag & BA_DO_IPO) redrawipo= 1;
 			
 			ob= base->object;
 			
 			if (modifiers_isSoftbodyEnabled(ob)) ob->softflag |= OB_SB_REDO;
+			else if((ob == OBACT) && modifiers_isClothEnabled(ob)) {
+				ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+				if(clmd)
+					clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+			}
 			
 			/* Set autokey if necessary */
 			if ((!cancelled) && (t->mode != TFM_DUMMY) && (base->flag & SELECT)) {

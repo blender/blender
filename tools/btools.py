@@ -1,3 +1,4 @@
+
 import os
 import os.path
 import SCons.Options
@@ -55,6 +56,8 @@ def validate_arguments(args, bc):
             'BF_VERSE_INCLUDE',
             'VERSE_BUILD_BINARY', 'VERSE_BUILD_DIR', 'VERSE_REGEN_PROTO',
             'BF_TWEAK_MODE', 'BF_SPLIT_SRC',
+            'WITHOUT_BF_INSTALL',
+            'WITH_BF_OPENMP',
             'WITHOUT_BF_INSTALL',
             'BF_FANCY',
             ]
@@ -247,6 +250,8 @@ def read_opts(cfg, args):
         ('BF_FREETYPE_INC', 'Freetype include path', ''),
         ('BF_FREETYPE_LIB', 'Freetype library', ''),
         ('BF_FREETYPE_LIBPATH', 'Freetype library path', ''),
+
+	(BoolOption('WITH_BF_OPENMP', 'Use OpenMP if true', 'false')),
 
         (BoolOption('WITH_BF_QUICKTIME', 'Use QuickTime if true', 'false')),
         ('BF_QUICKTIME', 'QuickTime base path', ''),

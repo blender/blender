@@ -151,8 +151,10 @@ ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/ketsji/KXNetwork/$(DEBUG_DIR)libKXNetwork.a
     COMLIB += $(OCGDIR)/gameengine/Network/$(DEBUG_DIR)libNetwork.a
     COMLIB += $(OCGDIR)/gameengine/Network/LoopBackNetwork/$(DEBUG_DIR)libLoopBackNetwork.a
-    COMLIB += $(NAN_BULLET2)/lib/libbullet2.a
 endif
+
+# Required by cloth, not gameengine only anymore
+COMLIB += $(NAN_BULLET2)/lib/$(DEBUG_DIR)libbullet2.a
 
 COMLIB += $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
 COMLIB += $(NAN_MEMUTIL)/lib/libmemutil.a

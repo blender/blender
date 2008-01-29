@@ -51,6 +51,7 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -64,6 +65,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_cloth.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_deform.h"
@@ -1346,6 +1348,13 @@ void weight_paint(void)
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	/* this flag is event for softbody to refresh weightpaint values */
 	if(ob->soft) ob->softflag |= OB_SB_REDO;
+	
+	// same goes for cloth
+	if(modifiers_isClothEnabled(ob)) {
+		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+		if(clmd)
+			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+	}	
 	
 	BIF_undo_push("Weight Paint");
 	allqueue(REDRAWVIEW3D, 0);

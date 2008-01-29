@@ -101,6 +101,7 @@
 #include "BKE_customdata.h"
 #include "BKE_blender.h"
 #include "BKE_booleanops.h"
+#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_depsgraph.h"
@@ -1757,6 +1758,11 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 		}
 
 		sbObjectToSoftbody(ob);
+	}
+	
+	if(modifiers_isClothEnabled(ob)) {
+		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+		clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
 	}
 	
 	if(ob->type==OB_MESH && get_mesh(ob)->mr)
