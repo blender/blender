@@ -4960,6 +4960,7 @@ static void clothModifier_initData(ModifierData *md)
 		return;
 	
 	cloth_init (clmd);
+	if(G.rt >0)
 	printf("clothModifier_initData\n");
 }
 

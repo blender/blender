@@ -110,6 +110,10 @@ double itval()
 	return t2-t1;
 }
 #endif
+
+/* callbacks for errors and interrupts and some goo */
+static int (*CT_localInterruptCallBack)(void) = NULL;
+
 /*
 #define C99
 #ifdef C99
@@ -1525,6 +1529,10 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 		step += dt;
 
 		if(effectors) pdEndEffectors(effectors);
+		
+		/* ask for user break */ 
+		if (CT_localInterruptCallBack && CT_localInterruptCallBack())
+			return 0;
 	}
 
 	for(i = 0; i < numverts; i++)
@@ -1568,4 +1576,10 @@ void implicit_set_positions (ClothModifierData *clmd)
 	}
 	if(G.rt > 0)
 		printf("implicit_set_positions\n");	
+}
+
+/* Cloth global visible functions */ 
+void clmdSetInterruptCallBack(int (*f)(void))
+{
+	CT_localInterruptCallBack = f;
 }

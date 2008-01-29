@@ -130,14 +130,14 @@ ClothSpring;
 typedef enum
 {
 	CLOTH_SIMSETTINGS_FLAG_RESET = ( 1 << 1 ),	// The CM object requires a reinitializaiton.
-					 CLOTH_SIMSETTINGS_FLAG_COLLOBJ = ( 1 << 2 ),// object is only collision object, no cloth simulation is done
-							 CLOTH_SIMSETTINGS_FLAG_GOAL = ( 1 << 3 ), 	// we have goals enabled
-									 CLOTH_SIMSETTINGS_FLAG_TEARING = ( 1 << 4 ),// true if tearing is enabled
-										CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT = ( 1 << 5 ), // true if tearing is enabled
-										CLOTH_SIMSETTINGS_FLAG_EDITMODE = ( 1 << 6 ), // are we in editmode? -several things disabled
-										CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE = (1 << 7), /* force cache freeing */
-										CLOTH_SIMSETTINGS_FLAG_SCALING = (1 << 8), /* is advanced scaling active? */
-										CLOTH_SIMSETTINGS_FLAG_LOADED = (1 << 9), /* did we just got load? */
+	CLOTH_SIMSETTINGS_FLAG_COLLOBJ = ( 1 << 2 ),// object is only collision object, no cloth simulation is done
+	CLOTH_SIMSETTINGS_FLAG_GOAL = ( 1 << 3 ), 	// we have goals enabled
+	CLOTH_SIMSETTINGS_FLAG_TEARING = ( 1 << 4 ),// true if tearing is enabled
+	CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT = ( 1 << 5 ), // true if tearing is enabled
+	CLOTH_SIMSETTINGS_FLAG_EDITMODE = ( 1 << 6 ), // are we in editmode? -several things disabled
+	CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE = (1 << 7), /* force cache freeing */
+	CLOTH_SIMSETTINGS_FLAG_SCALING = (1 << 8), /* is advanced scaling active? */
+	CLOTH_SIMSETTINGS_FLAG_LOADED = (1 << 9), /* did we just got load? */
 } CLOTH_SIMSETTINGS_FLAGS;
 
 /* COLLISION FLAGS */
@@ -159,7 +159,7 @@ typedef enum
 typedef enum
 {
 	CLOTH_SPRING_FLAG_DEACTIVATE = ( 1 << 1 ),
-					 CLOTH_SPRING_FLAG_NEEDED = ( 1 << 2 ), // springs has values to be applied
+	CLOTH_SPRING_FLAG_NEEDED = ( 1 << 2 ), // springs has values to be applied
 } CLOTH_SPRINGS_FLAGS;
 
 /* Bits to or into the ClothVertex.flags. */
@@ -190,6 +190,9 @@ int implicit_init ( Object *ob, ClothModifierData *clmd );
 int implicit_free ( ClothModifierData *clmd );
 int implicit_solver ( Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors );
 void implicit_set_positions ( ClothModifierData *clmd );
+
+// globally needed
+void clmdSetInterruptCallBack(int (*f)(void));
 ////////////////////////////////////////////////
 
 

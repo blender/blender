@@ -680,9 +680,13 @@ void cloth_collision_static(ClothModifierData *clmd, CollisionModifierData *coll
 		if(i < 4)
 		{
 			// calc distance + normal 	
+#if WITH_BULLET == 1
 			distance = plNearestPoints(
 					verts1[collpair->ap1].txold, verts1[collpair->ap2].txold, verts1[collpair->ap3].txold, collmd->current_x[collpair->bp1].co, collmd->current_x[collpair->bp2].co, collmd->current_x[collpair->bp3].co, collpair->pa,collpair->pb,collpair->vector);
-			
+#else
+			// just be sure that we don't add anything
+			distance = 2.0 * (epsilon + ALMOST_ZERO);
+#endif	
 			if (distance <= (epsilon + ALMOST_ZERO))
 			{
 				// printf("dist: %f\n", (float)distance);

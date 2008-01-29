@@ -639,6 +639,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	MEdge *medge = NULL;
 	MFace *mface = NULL;
 	DerivedMesh *result = NULL;
+	int ret = 0;
 	
 	if(G.rt > 0)
 		printf("clothModifier_do start\n");
@@ -782,12 +783,17 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 
 			// Call the solver.
 			if ( solvers [clmd->sim_parms->solver_type].solver )
-				solvers [clmd->sim_parms->solver_type].solver ( ob, framenr, clmd, effectors );
+			{
+				ret = solvers [clmd->sim_parms->solver_type].solver ( ob, framenr, clmd, effectors );
+			}
 
 			tend();
 			// printf ( "Cloth simulation time: %f\n", ( float ) tval() );
-
-			cloth_write_cache(ob, clmd, framenr);
+			
+			if(ret)
+				cloth_write_cache(ob, clmd, framenr);
+			else
+				clmd->sim_parms->sim_time--;
 			
 			// check for autoprotection
 			if(framenr >= clmd->sim_parms->autoprotect)

@@ -3304,7 +3304,7 @@ static void object_panel_deflection(Object *ob)
 			uiDefButF(block, NUM, B_DIFF, "Permeability: ",	160,80,150,20, &pd->pdef_perm, 0.0, 1.0, 10, 0, "Chance that the particle will pass through the mesh");
 			uiBlockEndAlign(block);
 			
-			uiDefBut(block, LABEL, 0, "Soft Body",			160,60,150,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Soft Body / Cloth",			160,60,150,20, NULL, 0.0, 0, 0, 0, "");
 
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_FIELD_CHANGE, "Damping:",	160,40,150,20, &pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
@@ -5123,6 +5123,9 @@ static void object_panel_cloth(Object *ob)
 		int defCount;
 		char *clvg1, *clvg2;
 		char clmvg [] = "Vertex Groups%t|";
+		
+		clmdSetInterruptCallBack(blender_test_break); // make softbody module ESC aware
+		G.afbreek=0; // init global break system
 
 		val2=0;
 		
@@ -5265,7 +5268,7 @@ static void object_panel_cloth_II(Object *ob)
 		{
 			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Min Distance:",	   160,60,150,20, &clmd->coll_parms->epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in, can be changed for each frame");
 			uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Collision Quality:",	   10,40,150,20, &clmd->coll_parms->loop_count, 1.0, 100.0, 1.0, 0, "How many collision iterations should be done. (higher = better = slower), can be changed for each frame");
-			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Friction:",	   160,40,150,20, &clmd->coll_parms->friction, 1.0, 100.0, 1.0, 0, "Friction force if a collision happened");
+			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Friction:",	   160,40,150,20, &clmd->coll_parms->friction, 1.0, 100.0, 1.0, 0, "Friction force if a collision happened (high=slower movement when collided)");
 		}
 		else
 			uiDefBut(block, LABEL, 0, "",160,60,150,20, NULL, 0.0, 0, 0, 0, "");	
