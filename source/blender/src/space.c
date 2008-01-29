@@ -2173,7 +2173,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							select_linked_tfaces(2);
 					}
 					else if(G.f & G_PARTICLEEDIT) {
-						PE_select_linked();
+						if(G.qual==0)
+							PE_select_linked();
 					}
 					else {
 						if((G.qual==0))
