@@ -4956,6 +4956,7 @@ static void clothModifier_initData(ModifierData *md)
 		return;
 	
 	cloth_init (clmd);
+	printf("clothModifier_initData\n");
 }
 
 static DerivedMesh *clothModifier_applyModifier(ModifierData *md, Object *ob,
@@ -5049,6 +5050,8 @@ static void clothModifier_freeData(ModifierData *md)
 	
 	if (clmd) 
 	{
+		
+		printf("clothModifier_freeData\n");
 		
 		cloth_free_modifier_extern (clmd);
 		

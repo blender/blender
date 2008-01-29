@@ -62,9 +62,7 @@ struct CollisionTree;
 #define CLOTH_MAX_THREAD 2
 
 /**
- * Pin and unpin frames are the frames on which the vertices stop moving.
- * They will assume the position they had prior to pinFrame until unpinFrame
- * is reached.
+ * The definition of a cloth vertex.
  */
 typedef struct ClothVertex
 {
@@ -87,7 +85,6 @@ typedef struct ClothVertex
 }
 ClothVertex;
 
-
 /**
  * The definition of a spring.
  */
@@ -105,7 +102,6 @@ typedef struct ClothSpring
 	float 	stiffness;	/* stiffness factor from the vertex groups */
 }
 ClothSpring;
-
 
 /* goal defines */
 #define SOFTGOALSNAP  0.999f

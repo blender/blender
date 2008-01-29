@@ -1788,7 +1788,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Softbody) {
 			height = 31;
 		} else if (md->type==eModifierType_Cloth) {
-			height = 26;
+			height = 31;
 		} else if (md->type==eModifierType_Collision) {
 			height = 19;
 		} else if (md->type==eModifierType_Boolean) {

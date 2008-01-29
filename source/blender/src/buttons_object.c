@@ -2355,10 +2355,13 @@ void do_object_panels(unsigned short event)
 			/* force freeing because user wants */
 			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
 			
+			/*user wants to free all, so free whole cloth, this helps to start sim at later frame */
+			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+			
 			CFRA= 1;
 			update_for_newframe_muted();
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
-			cloth_clear_cache(ob, clmd, 1); 
+			cloth_clear_cache(ob, clmd, 0); 
 			allqueue(REDRAWBUTSOBJECT, 0);
 			allqueue(REDRAWVIEW3D, 0);
 		}	
@@ -2372,7 +2375,7 @@ void do_object_panels(unsigned short event)
 			/* force freeing because user wants */
 			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
 			
-			cloth_clear_cache(ob, clmd, MAX2(1.0,G.scene->r.cfra)); 
+			cloth_clear_cache(ob, clmd, MAX2(0.0,G.scene->r.cfra)); 
 			// MAX2(1.0,G.scene->r.cfra + 1.0)
 			allqueue(REDRAWBUTSOBJECT, 0);
 		}
@@ -2383,14 +2386,11 @@ void do_object_panels(unsigned short event)
 		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 		if(clmd)
 		{
-			if(clmd->sim_parms->cache)
-			{
-				CFRA= 1;
-				update_for_newframe_muted();
-				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
-				allqueue(REDRAWBUTSOBJECT, 0);
-				allqueue(REDRAWVIEW3D, 0);
-			}
+			CFRA= 1;
+			update_for_newframe_muted();
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 	}
 	break;	
@@ -2401,6 +2401,9 @@ void do_object_panels(unsigned short event)
 		if(clmd)
 		{
 			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 	}
 	break;
@@ -5047,7 +5050,9 @@ static void object_cloth__enabletoggle(void *ob_v, void *arg2)
 		md = modifier_new(eModifierType_Cloth);
 		BLI_addhead(&ob->modifiers, md);
 		
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWVIEW3D, 0);
 	}
 	else {
 		Object *ob = ob_v;
@@ -5121,7 +5126,7 @@ static void object_panel_cloth(Object *ob)
 		uiBlockBeginAlign(block);
 		
 		
-		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_GOAL, REDRAWVIEW3D, "Pinning of cloth",	10,70,150,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_GOAL, B_CLOTH_RENEW, "Pinning of cloth",	10,70,150,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
 		
 		if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (BLI_countlist (&ob->defbase) > 0))
 		{
@@ -5207,7 +5212,7 @@ static void object_panel_cloth_II(Object *ob)
 	if(clmd)
 	{	
 		uiDefButI(block, NUM, B_DIFF, "First Frame:",		10,160,150,20, &clmd->sim_parms->firstframe, 0, MAXFRAME, 1, 0, "Frame on which the simulation starts");
-		uiDefButI(block, NUM, B_DIFF, "Last Frame:",		160,160,150,20, &clmd->sim_parms->lastframe, 0, MAXFRAME, 10, 0, "Frame on which the simulation stops");
+		uiDefButI(block, NUM, B_DIFF, "Last Frame:",		160,160,150,20, &clmd->sim_parms->lastframe, 0, MAXFRAME, 1, 0, "Frame on which the simulation stops");
 		
 		uiDefBut(block, LABEL, 0, "",10,140,300,20, NULL, 0.0, 0, 0, 0, "");
 		
@@ -5234,11 +5239,11 @@ static void object_panel_cloth_II(Object *ob)
 		uiDefBut(block, LABEL, 0, " ",  10,80,145,20, NULL, 0.0, 0, 0, 0, "");
 		*/
 
-		uiDefButBitI(block, TOG, CLOTH_COLLSETTINGS_FLAG_ENABLED, REDRAWVIEW3D, "Enable collisions",	10,60,150,20, &clmd->coll_parms->flags, 0, 0, 0, 0, "Enable collisions with this object");
+		uiDefButBitI(block, TOG, CLOTH_COLLSETTINGS_FLAG_ENABLED, B_CLOTH_RENEW, "Enable collisions",	10,60,150,20, &clmd->coll_parms->flags, 0, 0, 0, 0, "Enable collisions with this object");
 		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED)
 		{
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "Min Distance:",	   160,60,150,20, &clmd->coll_parms->epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in");
-			uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Collision Quality:",	   10,40,300,20, &clmd->coll_parms->loop_count, 1.0, 100.0, 1.0, 0, "How many collision iterations should be done. (higher = better = slower), je be changed for each frame");
+			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Min Distance:",	   160,60,150,20, &clmd->coll_parms->epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in, can be changed for each frame");
+			uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Collision Quality:",	   10,40,300,20, &clmd->coll_parms->loop_count, 1.0, 100.0, 1.0, 0, "How many collision iterations should be done. (higher = better = slower), can be changed for each frame");
 		}
 		else
 			uiDefBut(block, LABEL, 0, "",160,60,150,20, NULL, 0.0, 0, 0, 0, "");	
@@ -5268,9 +5273,9 @@ static void object_panel_cloth_III(Object *ob)
 		char clmvg [] = "Vertex Groups%t|None%x0|";
 		char clmvg2 [] = "Vertex Groups%t|None%x0|";
 		
-		uiDefButI(block, NUM, B_DIFF, "Autoprotect Cache From:",10,160,300,20, &clmd->sim_parms->autoprotect, 0, MAXFRAME, 1, 0, "Frame on which the simulation gets cache protection enabled automatically (To prevent accidently cleaning it).");
+		uiDefButI(block, NUM, B_DIFF, "Autoprotect Cache From:",10,160,300,20, &clmd->sim_parms->autoprotect, 0.0, MAXFRAME + 1, 1, 0, "Frame on which the simulation gets cache protection enabled automatically (To prevent accidently cleaning it).");
 				
-		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_SCALING, REDRAWVIEW3D, "Enable stiffness scaling",10,130,300,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "If enabled, stiffness can be scaled along a weight painted vertex group.");
+		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_SCALING, B_CLOTH_RENEW, "Enable stiffness scaling",10,130,300,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "If enabled, stiffness can be scaled along a weight painted vertex group.");
 		
 		if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING)&& (BLI_countlist (&ob->defbase) > 0))
 		{	

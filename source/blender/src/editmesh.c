@@ -857,14 +857,16 @@ void make_editMesh()
 			/* check if we have cache for this frame */
 			int stack_index = modifiers_indexInObject(G.obedit, (ModifierData *)clmd);
 		
-			if(BKE_ptcache_id_exist((ID *)G.obedit, (float) G.scene->r.cfra, stack_index))
+			if(BKE_ptcache_id_exist((ID *)G.obedit, G.scene->r.cfra, stack_index))
 			{
 				cloth_enabled = 1;
 				
-				clmd->sim_parms->editedframe = (float) G.scene->r.cfra;
+				clmd->sim_parms->editedframe = G.scene->r.cfra;
 				
 				/* inverse matrix is not uptodate... */
 				Mat4Invert ( G.obedit->imat, G.obedit->obmat );
+				
+				printf("make_editmesh --> cloth_enabled\n");
 			}
 		}
 	}
@@ -1014,6 +1016,8 @@ void load_editMesh(void)
 	ClothModifierData *clmd = NULL;
 	Cloth *cloth = NULL;
 	float temp[3], dt = 0.0;
+	
+	printf("loadmesh\n");
 
 #ifdef WITH_VERSE
 	if(em->vnode) {
@@ -1102,6 +1106,7 @@ void load_editMesh(void)
 				Mat4Invert ( G.obedit->imat, G.obedit->obmat );
 				dt = 1.0f / clmd->sim_parms->stepsPerFrame;
 			}
+			printf("loadmesh --> tot: %d, num: %d\n", G.totvert, cloth->numverts);
 		}
 	}
 	
@@ -1110,6 +1115,7 @@ void load_editMesh(void)
 		
 		if(cloth_enabled)
 		{	
+			printf("loadmesh --> cloth_enabled\n");
 			
 			VECCOPY(temp, cloth->verts[i].x);
 			VECCOPY(cloth->verts[i].x, eve->co);
@@ -1123,6 +1129,7 @@ void load_editMesh(void)
 			*/
 			if(oldverts) {
 				VECCOPY(mvert->co, oldverts[i].co);
+				printf("loadmesh --> cloth_enabled oldverts\n");
 			}
 			i++;
 		}
@@ -1159,12 +1166,22 @@ void load_editMesh(void)
 	/* burn changes to cache */
 	if(cloth_enabled)
 	{
+		printf("loadmesh --> cloth_enabled cloth_write_cache\n");
 		cloth_write_cache(G.obedit, clmd, clmd->sim_parms->editedframe);
 		
 		/* in this case we have to get the data for the requested frame */
-		if(clmd->sim_parms->editedframe != (float) G.scene->r.cfra)
+		if(clmd->sim_parms->editedframe != G.scene->r.cfra)
 		{
-			cloth_read_cache(G.obedit, clmd, (float) G.scene->r.cfra);
+			cloth_read_cache(G.obedit, clmd, G.scene->r.cfra);
+		}
+	}
+	else
+	{
+		if(modifiers_isClothEnabled(G.obedit)) {
+			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(G.obedit, eModifierType_Cloth);
+			printf("loadmesh --> CLOTH_SIMSETTINGS_FLAG_RESET\n");
+			/* only reset cloth when no cache was used */
+			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
 		}
 	}
 
@@ -1426,18 +1443,7 @@ void load_editMesh(void)
 	if(me->id.us>1) {
 		Base *base;
 		for(base= G.scene->base.first; base; base= base->next) {
-			if(base->object->data==me) {				
-				if(modifiers_isClothEnabled(base->object)) {
-					ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(base->object, eModifierType_Cloth);
-					
-					/* only reset cloth when no cache was used */
-					if(!cloth_enabled)
-					{
-						clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-					}
-					
-				}
-				
+			if(base->object->data==me) {
 				base->object->softflag |= OB_SB_REDO;
 				base->object->recalc |= OB_RECALC_DATA;
 			}
