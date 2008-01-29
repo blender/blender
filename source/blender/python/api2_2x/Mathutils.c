@@ -1,5 +1,5 @@
 /* 
- * $Id: Mathutils.c 11502 2007-08-06 14:27:08Z khughes $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -500,10 +500,7 @@ PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args)
 	}
 	dot /= (sqrt(test_v1) * sqrt(test_v2));
 
-	if (dot < -1.0f || dot > 1.0f) {
-		CLAMP(dot,-1.0f,1.0f);
-	}
-	angleRads = (double)acos(dot);
+	angleRads = (double)saacos(dot);
 
 	return PyFloat_FromDouble(angleRads * (180/ Py_PI));
 
