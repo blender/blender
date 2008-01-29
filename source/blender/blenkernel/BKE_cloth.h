@@ -133,9 +133,10 @@ typedef enum
     CLOTH_SIMSETTINGS_FLAG_GOAL = ( 1 << 3 ), 	// we have goals enabled
     CLOTH_SIMSETTINGS_FLAG_TEARING = ( 1 << 4 ),// true if tearing is enabled
     CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT = ( 1 << 5 ), // true if tearing is enabled
-    CLOTH_SIMSETTINGS_FLAG_NEW = ( 1 << 6 ), 	// unsued, true if cloth was just enabled
+    CLOTH_SIMSETTINGS_FLAG_EDITMODE = ( 1 << 6 ), // are we in editmode? -several things disabled
     CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE = (1 << 7), /* force cache freeing */
     CLOTH_SIMSETTINGS_FLAG_SCALING = (1 << 8), /* is advanced scaling active? */
+    CLOTH_SIMSETTINGS_FLAG_LOADED = (1 << 9), /* did we just got load? */
 } CLOTH_SIMSETTINGS_FLAGS;
 
 /* COLLISION FLAGS */

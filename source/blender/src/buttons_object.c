@@ -2352,6 +2352,10 @@ void do_object_panels(unsigned short event)
 		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 		if(clmd)
 		{
+			// do nothing in editmode
+			if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE)
+				break;
+			
 			/* force freeing because user wants */
 			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
 			
@@ -2372,6 +2376,10 @@ void do_object_panels(unsigned short event)
 		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 		if(clmd)
 		{
+			// do nothing in editmode
+			if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE)
+				break;
+			
 			/* force freeing because user wants */
 			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
 			
@@ -2386,6 +2394,10 @@ void do_object_panels(unsigned short event)
 		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 		if(clmd)
 		{
+			// do nothing in editmode
+			if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE)
+				break;
+			
 			CFRA= 1;
 			update_for_newframe_muted();
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
@@ -5211,8 +5223,8 @@ static void object_panel_cloth_II(Object *ob)
 	
 	if(clmd)
 	{	
-		uiDefButI(block, NUM, B_DIFF, "First Frame:",		10,160,150,20, &clmd->sim_parms->firstframe, 0, MAXFRAME, 1, 0, "Frame on which the simulation starts");
-		uiDefButI(block, NUM, B_DIFF, "Last Frame:",		160,160,150,20, &clmd->sim_parms->lastframe, 0, MAXFRAME, 1, 0, "Frame on which the simulation stops");
+		uiDefButI(block, NUM, B_CLOTH_RENEW, "First Frame:",10,160,150,20, &clmd->sim_parms->firstframe, 0, MAXFRAME, 1, 0, "Frame on which the simulation starts");
+		uiDefButI(block, NUM, B_CLOTH_RENEW, "Last Frame:",160,160,150,20, &clmd->sim_parms->lastframe, 0, MAXFRAME, 1, 0, "Frame on which the simulation stops");
 		
 		uiDefBut(block, LABEL, 0, "",10,140,300,20, NULL, 0.0, 0, 0, 0, "");
 		
@@ -5244,6 +5256,7 @@ static void object_panel_cloth_II(Object *ob)
 		{
 			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Min Distance:",	   160,60,150,20, &clmd->coll_parms->epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in, can be changed for each frame");
 			uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Collision Quality:",	   10,40,300,20, &clmd->coll_parms->loop_count, 1.0, 100.0, 1.0, 0, "How many collision iterations should be done. (higher = better = slower), can be changed for each frame");
+			uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Friction:",	   10,40,300,20, &clmd->coll_parms->friction, 1.0, 100.0, 1.0, 0, "Friction force if a collision happened");
 		}
 		else
 			uiDefBut(block, LABEL, 0, "",160,60,150,20, NULL, 0.0, 0, 0, 0, "");	
@@ -5330,9 +5343,9 @@ static void object_panel_cloth_III(Object *ob)
 			MEM_freeN (clvg1);
 			MEM_freeN (clvg2);
 			
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff Max:",10,70,150,20, &clmd->sim_parms->max_struct, clmd->sim_parms->structural, 1000.0, 0.01f, 0, "Maximum structural stiffness value");
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff Max:",10,70,150,20, &clmd->sim_parms->max_struct, clmd->sim_parms->structural, 10000.0, 0.01f, 0, "Maximum structural stiffness value");
 			
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff Max:",160,70,150,20, &clmd->sim_parms->max_bend, clmd->sim_parms->bending, 1000.0, 0.01f, 0, "Maximum bending stiffness value");
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff Max:",160,70,150,20, &clmd->sim_parms->max_bend, clmd->sim_parms->bending, 10000.0, 0.01f, 0, "Maximum bending stiffness value");
 
 		}
 		else if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING)

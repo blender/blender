@@ -862,10 +862,11 @@ void make_editMesh()
 				cloth_enabled = 1;
 				
 				clmd->sim_parms->editedframe = G.scene->r.cfra;
+				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_EDITMODE;
 				
 				/* inverse matrix is not uptodate... */
 				Mat4Invert ( G.obedit->imat, G.obedit->obmat );
-				
+				if(G.rt > 0)
 				printf("make_editmesh --> cloth_enabled\n");
 			}
 		}
@@ -1017,8 +1018,6 @@ void load_editMesh(void)
 	Cloth *cloth = NULL;
 	float temp[3], dt = 0.0;
 	
-	printf("loadmesh\n");
-
 #ifdef WITH_VERSE
 	if(em->vnode) {
 		struct VNode *vnode = (VNode*)em->vnode;
@@ -1106,6 +1105,7 @@ void load_editMesh(void)
 				Mat4Invert ( G.obedit->imat, G.obedit->obmat );
 				dt = 1.0f / clmd->sim_parms->stepsPerFrame;
 			}
+			if(G.rt > 0)
 			printf("loadmesh --> tot: %d, num: %d\n", G.totvert, cloth->numverts);
 		}
 	}
@@ -1115,6 +1115,7 @@ void load_editMesh(void)
 		
 		if(cloth_enabled)
 		{	
+			if(G.rt > 0)
 			printf("loadmesh --> cloth_enabled\n");
 			
 			VECCOPY(temp, cloth->verts[i].x);
@@ -1129,6 +1130,7 @@ void load_editMesh(void)
 			*/
 			if(oldverts) {
 				VECCOPY(mvert->co, oldverts[i].co);
+				if(G.rt > 0)
 				printf("loadmesh --> cloth_enabled oldverts\n");
 			}
 			i++;
@@ -1166,6 +1168,7 @@ void load_editMesh(void)
 	/* burn changes to cache */
 	if(cloth_enabled)
 	{
+		if(G.rt > 0)
 		printf("loadmesh --> cloth_enabled cloth_write_cache\n");
 		cloth_write_cache(G.obedit, clmd, clmd->sim_parms->editedframe);
 		
@@ -1174,14 +1177,17 @@ void load_editMesh(void)
 		{
 			cloth_read_cache(G.obedit, clmd, G.scene->r.cfra);
 		}
+		clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_EDITMODE;
 	}
 	else
 	{
 		if(modifiers_isClothEnabled(G.obedit)) {
 			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(G.obedit, eModifierType_Cloth);
+			if(G.rt > 0)
 			printf("loadmesh --> CLOTH_SIMSETTINGS_FLAG_RESET\n");
 			/* only reset cloth when no cache was used */
 			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+			clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_EDITMODE;
 		}
 	}
 

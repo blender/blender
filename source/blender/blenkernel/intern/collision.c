@@ -561,7 +561,7 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 			
 			// Apply the impulse and increase impulse counters.
 
-			/*			
+			/*		
 			// calculateFrictionImpulse(tangential, collvel, collpair->normal, magtangent, clmd->coll_parms->friction*0.01, magtangent);
 			VECSUBS(vrel_t_pre, collvel, collpair->normal, magnormal);
 			// VecMulf(vrel_t_pre, clmd->coll_parms->friction*0.01f/INPR(vrel_t_pre,vrel_t_pre));
@@ -1097,6 +1097,14 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 	// verts come from clmd
 	for(i = 0; i < numverts; i++)
 	{
+		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) 
+		{			
+			if(verts [i].goal >= SOFTGOALSNAP)
+			{
+				continue;
+			}
+		}
+		
 		VECADD(verts[i].tx, verts[i].txold, verts[i].tv);
 	}
 	////////////////////////////////////////////////////////////

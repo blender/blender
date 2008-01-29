@@ -82,6 +82,8 @@ typedef struct SimulationSettings
 	float	max_bend; 	/* max bending scaling value, min is "bending" */
 	float	max_struct; 	/* max structural scaling value, min is "structural" */
 	float	max_shear; 	/* max shear scaling value, UNUSED */
+	int 	firstcachedframe;
+	int pad;
 }
 SimulationSettings;
 

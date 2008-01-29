@@ -3015,6 +3015,9 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			clmd->sim_parms= newdataadr(fd, clmd->sim_parms);
 			clmd->coll_parms= newdataadr(fd, clmd->coll_parms);
 			
+			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_LOADED;
+			clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_EDITMODE;
+			
 		}
 		else if (md->type==eModifierType_Collision) {
 			

@@ -4987,7 +4987,6 @@ static void clothModifier_updateDepgraph(
 	
 	Base *base;
 	
-	/* TODO: this belongs to collision modifier */
 	if(clmd)
 	{
 		for(base = G.scene->base.first; base; base= base->next) 
@@ -4995,14 +4994,11 @@ static void clothModifier_updateDepgraph(
 			Object *ob1= base->object;
 			if(ob1 != ob)
 			{
-				ClothModifierData *coll_clmd = (ClothModifierData *)modifiers_findByType(ob1, eModifierType_Cloth);
+				CollisionModifierData *coll_clmd = (CollisionModifierData *)modifiers_findByType(ob1, eModifierType_Collision);
 				if(coll_clmd)
-				{					
-					if (coll_clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ) 
-					{
-						DagNode *curNode = dag_get_node(forest, ob1);					
-						dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
-					}
+				{
+					DagNode *curNode = dag_get_node(forest, ob1);
+					dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
 				}
 			}
 		}
@@ -5219,6 +5215,7 @@ static void collisionModifier_deformVerts(
 	if(dm)
 		dm->release(dm);
 }
+
 
 /* Boolean */
 
