@@ -711,7 +711,7 @@ StrandBuffer *RE_addStrandBuffer(ObjectRen *obr, int totvert)
 	strandbuf->totvert= totvert;
 	strandbuf->obr= obr;
 
-	BLI_addtail(&obr->strandbufs, strandbuf);
+	obr->strandbuf= strandbuf;
 
 	return strandbuf;
 }
@@ -842,9 +842,12 @@ void free_renderdata_tables(Render *re)
 			obr->strandnodeslen= 0;
 		}
 
-		for(strandbuf=obr->strandbufs.first; strandbuf; strandbuf=strandbuf->next)
+		strandbuf= obr->strandbuf;
+		if(strandbuf) {
 			if(strandbuf->vert) MEM_freeN(strandbuf->vert);
-		BLI_freelistN(&obr->strandbufs);
+			if(strandbuf->bound) MEM_freeN(strandbuf->bound);
+			MEM_freeN(strandbuf);
+		}
 
 		if(obr->mtface)
 			MEM_freeN(obr->mtface);
@@ -1342,13 +1345,11 @@ void RE_makeRenderInstances(Render *re)
 	re->instancetable= newlist;
 }
 
-#if 0
-int clip_render_object(ObjectInstanceRen *obi, float *bounds, float winmat[][4])
+int clip_render_object(float boundbox[][3], float *bounds, float winmat[][4])
 {
-	float mat[4][4], vec[4], max, min, (*boundbox)[3];
+	float mat[4][4], vec[4];
 	int a, fl, flag= -1;
 
-	boundbox= obi->obr->boundbox;
 	Mat4CpyMat4(mat, winmat);
 
 	for(a=0; a<8; a++) {
@@ -1374,22 +1375,10 @@ int clip_render_object(ObjectInstanceRen *obi, float *bounds, float winmat[][4])
 		if(vec[2] < -vec[3]) fl |= 16;
 		if(vec[2] > vec[3]) fl |= 32;
 
-#if 0
-		max= vec[3];
-		min= -vec[3];
-
-		wco= ho[3];
-		if(vec[0] < min) fl |= 1;
-		if(vec[0] > max) fl |= 2;
-		if(vec[1] < min) fl |= 4;
-		if(vec[1] > max) fl |= 8;
-#endif
-		
 		flag &= fl;
 		if(flag==0) return 0;
 	}
 
 	return flag;
 }
-#endif
 

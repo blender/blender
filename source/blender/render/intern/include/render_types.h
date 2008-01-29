@@ -247,13 +247,15 @@ typedef struct ObjectRen {
 	struct Scene *sce;
 	int index, psysindex, flag, lay;
 
+	float boundbox[2][3];
+
 	int totvert, totvlak, totstrand, tothalo;
 	int vertnodeslen, vlaknodeslen, strandnodeslen, blohalen;
 	struct VertTableNode *vertnodes;
 	struct VlakTableNode *vlaknodes;
 	struct StrandTableNode *strandnodes;
 	struct HaloRen **bloha;
-	ListBase strandbufs;
+	struct StrandBuffer *strandbuf;
 
 	char (*mtface)[32];
 	char (*mcol)[32];
@@ -346,7 +348,7 @@ typedef struct StrandSurface {
 	int (*face)[4];
 	float (*co)[3];
 	/* for occlusion caching */
-	float (*col)[3];					/* for occlusion */
+	float (*col)[3];
 	/* for speedvectors */
 	float (*prevco)[3], (*nextco)[3];
 	int totvert, totface;
@@ -354,13 +356,14 @@ typedef struct StrandSurface {
 
 typedef struct StrandBound {
 	int start, end;
-	float bbox[2][3];
+	float boundbox[2][3];
 } StrandBound;
 
 typedef struct StrandBuffer {
 	struct StrandBuffer *next, *prev;
 	struct StrandVert *vert;
-	int totvert;
+	struct StrandBound *bound;
+	int totvert, totbound;
 
 	struct ObjectRen *obr;
 	struct Material *ma;

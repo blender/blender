@@ -2081,6 +2081,9 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 			else
 				zbuf_make_winmat(&R, NULL, winmat);
 
+			if(clip_render_object(obi->obr->boundbox, bounds, winmat))
+				continue;
+
 			zbuf_project_cache_clear(cache, obr->totvert);
 
 			for(v=0; v<obr->totvlak; v++) {
@@ -2337,8 +2340,9 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 	StrandSegment sseg;
 	StrandRen *strand= NULL;
 	StrandVert *svert;
+	StrandBound *sbound;
 	float obwinmat[4][4], ho1[4], ho2[4], ho3[4], ho4[4];
-	int a, b, i, c1, c2, c3, c4, ok=1, lay= -1;
+	int a, b, c, i, c1, c2, c3, c4, ok=1, lay= -1;
 
 	if(lar->mode & LA_LAYER) lay= lar->lay;
 
@@ -2373,6 +2377,9 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 			Mat4MulMat4(obwinmat, obi->mat, winmat);
 		else
 			Mat4CpyMat4(obwinmat, winmat);
+
+		if(clip_render_object(obi->obr->boundbox, NULL, obwinmat))
+			continue;
 
 		zbuf_project_cache_clear(cache, obr->totvert);
 
@@ -2417,45 +2424,54 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 		}
 
 		/* strands */
-		for(a=0; a<obr->totstrand; a++) {
-			if((a & 255)==0) strand= obr->strandnodes[a>>8].strand;
-			else strand++;
+		if(obr->strandbuf) {
+			/* for each bounding box containing a number of strands */
+			sbound= obr->strandbuf->bound;
+			for(c=0; c<obr->strandbuf->totbound; c++, sbound++) {
+				if(clip_render_object(sbound->boundbox, NULL, obwinmat))
+					continue;
 
-			sseg.obi= obi;
-			sseg.buffer= strand->buffer;
-			sseg.sqadaptcos= sseg.buffer->adaptcos;
-			sseg.sqadaptcos *= sseg.sqadaptcos;
-			sseg.strand= strand;
-			svert= strand->vert;
+				/* for each strand in this bounding box */
+				for(a=sbound->start; a<sbound->end; a++) {
+					strand= RE_findOrAddStrand(obr, a);
 
-			/* note, these conditions are copied in shadowbuf_autoclip() */
-			if(sseg.buffer->ma!= ma) {
-				ma= sseg.buffer->ma;
-				ok= 1;
-				if((ma->mode & MA_SHADBUF)==0) ok= 0;
-			}
+					sseg.obi= obi;
+					sseg.buffer= strand->buffer;
+					sseg.sqadaptcos= sseg.buffer->adaptcos;
+					sseg.sqadaptcos *= sseg.sqadaptcos;
+					sseg.strand= strand;
+					svert= strand->vert;
 
-			if(ok && (sseg.buffer->lay & lay)) {
-				zbuf_project_cache_clear(cache, strand->totvert);
+					/* note, these conditions are copied in shadowbuf_autoclip() */
+					if(sseg.buffer->ma!= ma) {
+						ma= sseg.buffer->ma;
+						ok= 1;
+						if((ma->mode & MA_SHADBUF)==0) ok= 0;
+					}
 
-				for(b=0; b<strand->totvert-1; b++, svert++) {
-					sseg.v[0]= (b > 0)? (svert-1): svert;
-					sseg.v[1]= svert;
-					sseg.v[2]= svert+1;
-					sseg.v[3]= (b < strand->totvert-2)? svert+2: svert+1;
+					if(ok && (sseg.buffer->lay & lay)) {
+						zbuf_project_cache_clear(cache, strand->totvert);
 
-					c1= zbuf_shadow_project(cache, sseg.v[0]-strand->vert, obwinmat, sseg.v[0]->co, ho1);
-					c2= zbuf_shadow_project(cache, sseg.v[1]-strand->vert, obwinmat, sseg.v[1]->co, ho2);
-					c3= zbuf_shadow_project(cache, sseg.v[2]-strand->vert, obwinmat, sseg.v[2]->co, ho3);
-					c4= zbuf_shadow_project(cache, sseg.v[3]-strand->vert, obwinmat, sseg.v[3]->co, ho4);
+						for(b=0; b<strand->totvert-1; b++, svert++) {
+							sseg.v[0]= (b > 0)? (svert-1): svert;
+							sseg.v[1]= svert;
+							sseg.v[2]= svert+1;
+							sseg.v[3]= (b < strand->totvert-2)? svert+2: svert+1;
 
-					if(!(c1 & c2 & c3 & c4))
-						render_strand_segment(re, winmat, NULL, &zspan, 1, &sseg);
+							c1= zbuf_shadow_project(cache, sseg.v[0]-strand->vert, obwinmat, sseg.v[0]->co, ho1);
+							c2= zbuf_shadow_project(cache, sseg.v[1]-strand->vert, obwinmat, sseg.v[1]->co, ho2);
+							c3= zbuf_shadow_project(cache, sseg.v[2]-strand->vert, obwinmat, sseg.v[2]->co, ho3);
+							c4= zbuf_shadow_project(cache, sseg.v[3]-strand->vert, obwinmat, sseg.v[3]->co, ho4);
+
+							if(!(c1 & c2 & c3 & c4))
+								render_strand_segment(re, winmat, NULL, &zspan, 1, &sseg);
+						}
+					}
+
+					if((a & 255)==255 && re->test_break()) 
+						break;
 				}
 			}
-
-			if((a & 255)==255 && re->test_break()) 
-				break;
 		}
 
 		if(re->test_break()) 
@@ -2598,6 +2614,9 @@ void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(vo
 			zbuf_make_winmat(&R, obi->mat, winmat);
 		else
 			zbuf_make_winmat(&R, NULL, winmat);
+
+		if(clip_render_object(obi->obr->boundbox, bounds, winmat))
+			continue;
 
 		zbuf_project_cache_clear(cache, obr->totvert);
 
@@ -3286,7 +3305,6 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, un
 		/* to center the sample position */
 		zspan->zofsx -= 0.5f;
 		zspan->zofsy -= 0.5f;
-		
 	}
 	
 	/* we use this to test if nothing was filled in */
@@ -3302,6 +3320,9 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, un
 			zbuf_make_winmat(&R, obi->mat, winmat);
 		else
 			zbuf_make_winmat(&R, NULL, winmat);
+
+		if(clip_render_object(obi->obr->boundbox, bounds, winmat))
+			continue;
 
 		zbuf_project_cache_clear(cache, obr->totvert);
 

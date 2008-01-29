@@ -750,12 +750,13 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 	ZSpan zspan;
 	StrandRen *strand=0;
 	StrandVert *svert;
+	StrandBound *sbound;
 	StrandPart spart;
 	StrandSegment sseg;
 	StrandSortSegment *sortsegments = NULL, *sortseg, *firstseg;
 	MemArena *memarena;
 	float z[4], bounds[4], winmat[4][4];
-	int a, b, i, totsegment, clip[4];
+	int a, b, c, i, totsegment, clip[4];
 
 	if(re->test_break())
 		return 0;
@@ -800,58 +801,66 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 	sortseg= sortsegments;
 	totsegment= 0;
 
+	/* for all object instances */
 	for(obi=re->instancetable.first, i=0; obi; obi=obi->next, i++) {
 		obr= obi->obr;
 
+		if(!obr->strandbuf || !(obr->strandbuf->lay & rl->lay))
+			continue;
+
+		/* compute matrix and try clipping whole object */
 		if(obi->flag & R_TRANSFORMED)
 			zbuf_make_winmat(re, obi->mat, winmat);
 		else
 			zbuf_make_winmat(re, NULL, winmat);
 
-		for(a=0; a<obr->totstrand; a++) {
-			if((a & 255)==0) strand= obr->strandnodes[a>>8].strand;
-			else strand++;
+		if(clip_render_object(obi->obr->boundbox, bounds, winmat))
+			continue;
 
-			if(re->test_break())
-				break;
-
-			if(!(strand->buffer->lay & rl->lay))
+		/* for each bounding box containing a number of strands */
+		sbound= obr->strandbuf->bound;
+		for(c=0; c<obr->strandbuf->totbound; c++, sbound++) {
+			if(clip_render_object(sbound->boundbox, bounds, winmat))
 				continue;
 
-			svert= strand->vert;
+			/* for each strand in this bounding box */
+			for(a=sbound->start; a<sbound->end; a++) {
+				strand= RE_findOrAddStrand(obr, a);
+				svert= strand->vert;
 
-			/* keep clipping and z depth for 4 control points */
-			clip[1]= strand_test_clip(winmat, &zspan, bounds, svert->co, &z[1]);
-			clip[2]= strand_test_clip(winmat, &zspan, bounds, (svert+1)->co, &z[2]);
-			clip[0]= clip[1]; z[0]= z[1];
-
-			for(b=0; b<strand->totvert-1; b++, svert++) {
-				/* compute 4th point clipping and z depth */
-				if(b < strand->totvert-2) {
-					clip[3]= strand_test_clip(winmat, &zspan, bounds, (svert+2)->co, &z[3]);
-				}
-				else {
-					clip[3]= clip[2]; z[3]= z[2];
-				}
-
-				/* check clipping and add to sortsegments buffer */
-				if(!(clip[0] & clip[1] & clip[2] & clip[3])) {
-					sortseg= BLI_memarena_alloc(memarena, sizeof(StrandSortSegment));
-					sortseg->obi= i;
-					sortseg->strand= strand->index;
-					sortseg->segment= b;
-
-					sortseg->z= 0.5f*(z[1] + z[2]);
-
-					sortseg->next= firstseg;
-					firstseg= sortseg;
-					totsegment++;
-				}
-
-				/* shift clipping and z depth */
+				/* keep clipping and z depth for 4 control points */
+				clip[1]= strand_test_clip(winmat, &zspan, bounds, svert->co, &z[1]);
+				clip[2]= strand_test_clip(winmat, &zspan, bounds, (svert+1)->co, &z[2]);
 				clip[0]= clip[1]; z[0]= z[1];
-				clip[1]= clip[2]; z[1]= z[2];
-				clip[2]= clip[3]; z[2]= z[3];
+
+				for(b=0; b<strand->totvert-1; b++, svert++) {
+					/* compute 4th point clipping and z depth */
+					if(b < strand->totvert-2) {
+						clip[3]= strand_test_clip(winmat, &zspan, bounds, (svert+2)->co, &z[3]);
+					}
+					else {
+						clip[3]= clip[2]; z[3]= z[2];
+					}
+
+					/* check clipping and add to sortsegments buffer */
+					if(!(clip[0] & clip[1] & clip[2] & clip[3])) {
+						sortseg= BLI_memarena_alloc(memarena, sizeof(StrandSortSegment));
+						sortseg->obi= i;
+						sortseg->strand= strand->index;
+						sortseg->segment= b;
+
+						sortseg->z= 0.5f*(z[1] + z[2]);
+
+						sortseg->next= firstseg;
+						firstseg= sortseg;
+						totsegment++;
+					}
+
+					/* shift clipping and z depth */
+					clip[0]= clip[1]; z[0]= z[1];
+					clip[1]= clip[2]; z[1]= z[2];
+					clip[2]= clip[3]; z[2]= z[3];
+				}
 			}
 		}
 	}
@@ -971,5 +980,14 @@ void free_strand_surface(Render *re)
 	}
 
 	BLI_freelistN(&re->strandsurface);
+}
+
+void strand_minmax(StrandRen *strand, float *min, float *max)
+{
+	StrandVert *svert;
+	int a;
+
+	for(a=0, svert=strand->vert; a<strand->totvert; a++, svert++)
+		DO_MINMAX(svert->co, min, max)
 }
 
