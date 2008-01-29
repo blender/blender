@@ -32,7 +32,6 @@ BF_OPENEXR = '/usr'
 # when compiling with your own openexr lib you might need to set...
 # BF_OPENEXR_INC = '${BF_OPENEXR}/include/OpenEXR ${BF_OPENEXR}/include'
 
-BF_OPENEXR_INC="/shared/software/exr/include/OpenEXR /shared/software/exr/include"
 BF_OPENEXR_INC = '${BF_OPENEXR}/include/OpenEXR'
 BF_OPENEXR_LIB = 'Half IlmImf Iex Imath '
 # BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
