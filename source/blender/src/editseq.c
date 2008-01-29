@@ -1458,6 +1458,50 @@ static void add_sound_strip_hd(char *name)
 	transform_seq_nomarker('g', 0);
 }
 
+static void add_scene_strip(short event)
+{
+	Sequence *seq;
+	Strip *strip;
+	float x, y;
+	int cfra, machine;
+	short mval[2];
+
+	if(event> -1) {
+		int nr= 1;
+		Scene * sce= G.main->scene.first;
+		while(sce) {
+			if( event==nr) break;
+			nr++;
+			sce= sce->id.next;
+		}
+		if(sce) {
+
+			deselect_all_seq();
+
+			/* where ? */
+			getmouseco_areawin(mval);
+			areamouseco_to_ipoco(G.v2d, mval, &x, &y);
+			cfra= (int)(x+0.5);
+			machine= (int)(y+0.5);
+			
+			seq= alloc_sequence(((Editing *)G.scene->ed)->seqbasep, cfra, machine);
+			seq->type= SEQ_SCENE;
+			seq->scene= sce;
+			seq->sfra= sce->r.sfra;
+			seq->len= sce->r.efra - sce->r.sfra + 1;
+			
+			seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+			strncpy(seq->name + 2, sce->id.name + 2, 
+				sizeof(seq->name) - 2);
+			strip->len= seq->len;
+			strip->us= 1;
+			
+			BIF_undo_push("Add Scene Strip, Sequencer");
+			transform_seq_nomarker('g', 0);
+		}
+	}
+}
+
 #if 0
 static void reload_sound_strip(char *name)
 {
@@ -1713,12 +1757,7 @@ static void load_plugin_seq(char *str)		/* called from fileselect */
 void add_sequence(int type)
 {
 	Editing *ed;
-	Sequence *seq;
-	Strip *strip;
-	Scene *sce;
-	float x, y;
-	int cfra, machine;
-	short nr, event, mval[2];
+	short event;
 	char *str;
 
 	if (type >= 0){
@@ -1844,43 +1883,8 @@ void add_sequence(int type)
 		/* new menu: */
 		IDnames_to_pupstring(&str, NULL, NULL, &G.main->scene, (ID *)G.scene, NULL);
 
-		event= pupmenu_col(str, 20);
+		add_scene_strip(pupmenu_col(str, 20));
 
-		if(event> -1) {
-			nr= 1;
-			sce= G.main->scene.first;
-			while(sce) {
-				if( event==nr) break;
-				nr++;
-				sce= sce->id.next;
-			}
-			if(sce) {
-
-				deselect_all_seq();
-
-				/* where ? */
-				getmouseco_areawin(mval);
-				areamouseco_to_ipoco(G.v2d, mval, &x, &y);
-				cfra= (int)(x+0.5);
-				machine= (int)(y+0.5);
-
-				seq= alloc_sequence(((Editing *)G.scene->ed)->seqbasep, cfra, machine);
-				seq->type= SEQ_SCENE;
-				seq->scene= sce;
-				seq->sfra= sce->r.sfra;
-				seq->len= sce->r.efra - sce->r.sfra + 1;
-
-				seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
-				strncpy(seq->name + 2, sce->id.name + 2, 
-					sizeof(seq->name) - 2);
-				strip->len= seq->len;
-				strip->us= 1;
-				if(seq->len>0) strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
-
-				BIF_undo_push("Add Scene Strip, Sequencer");
-				transform_seq_nomarker('g', 0);
-			}
-		}
 		MEM_freeN(str);
 
 		break;
@@ -2161,97 +2165,19 @@ void del_seq(void)
 	allqueue(REDRAWSEQ, 0);
 }
 
-static Sequence *dupli_seq(Sequence *seq) {
-	Sequence *seqn = NULL;
-	
-	if(seq->type==SEQ_META) {
-		seqn= MEM_dupallocN(seq);
-		seq->tmp= seqn;
+static Sequence *dupli_seq(Sequence *seq) 
+{
+	Sequence *seqn = MEM_dupallocN(seq);
+
+	seq->tmp = seqn;
 		
-		seqn->strip= MEM_dupallocN(seq->strip);
-		seqn->strip->stripdata = 0;
-		seqn->strip->tstripdata = 0;
+	seqn->strip= MEM_dupallocN(seq->strip);
 
-		seqn->seqbase.first= seqn->seqbase.last= 0;
-		/* WATCH OUT!!! - This metastrip is not recursively duplicated here - do this after!!! */
-		/* - recurs_dupli_seq(&seq->seqbase,&seqn->seqbase);*/
-	}
-	else if(seq->type == SEQ_SCENE) {
-		seqn= MEM_dupallocN(seq);
-		seq->tmp= seqn;
+	if(seqn->ipo) seqn->ipo->id.us++;
 
-		seqn->strip= MEM_dupallocN(seq->strip);
-		seqn->strip->stripdata = 0;
-		seqn->strip->tstripdata = 0;
-	}
-	else if(seq->type == SEQ_MOVIE) {
-		seqn= MEM_dupallocN(seq);
-		seq->tmp= seqn;
-
-		seqn->strip= MEM_dupallocN(seq->strip);
-		seqn->strip->stripdata = 
-				MEM_dupallocN(seq->strip->stripdata);
-		seqn->strip->tstripdata = 0;
-		seqn->anim= 0;
-	}
-	else if(seq->type == SEQ_RAM_SOUND) {
-		seqn= MEM_dupallocN(seq);
-		seq->tmp= seqn;
-
-		seqn->strip= MEM_dupallocN(seq->strip);
-		seqn->strip->stripdata = 
-				MEM_dupallocN(seq->strip->stripdata);
-		seqn->strip->tstripdata = 0;
-
-		seqn->anim= 0;
-		seqn->sound->id.us++;
-		if(seqn->ipo) seqn->ipo->id.us++;
-	}
-	else if(seq->type == SEQ_HD_SOUND) {
-		seqn= MEM_dupallocN(seq);
-		seq->tmp= seqn;
-
-		seqn->strip= MEM_dupallocN(seq->strip);
-		seqn->strip->stripdata = 
-				MEM_dupallocN(seq->strip->stripdata);
-		seqn->strip->tstripdata = 0;
-		seqn->anim= 0;
-		seqn->hdaudio = 0;
-		if(seqn->ipo) seqn->ipo->id.us++;
-	} else if(seq->type == SEQ_IMAGE) {
-		seqn= MEM_dupallocN(seq);
-		seq->tmp= seqn;
-
-		seqn->strip= MEM_dupallocN(seq->strip);
-		seqn->strip->stripdata = 
-				MEM_dupallocN(seq->strip->stripdata);
-		seqn->strip->tstripdata = 0;
-	} else if(seq->type >= SEQ_EFFECT) {
-		seqn= MEM_dupallocN(seq);
-		seq->tmp= seqn;
-
-		if(seq->seq1 && seq->seq1->tmp) seqn->seq1= seq->seq1->tmp;
-		if(seq->seq2 && seq->seq2->tmp) seqn->seq2= seq->seq2->tmp;
-		if(seq->seq3 && seq->seq3->tmp) seqn->seq3= seq->seq3->tmp;
-
-		if(seqn->ipo) seqn->ipo->id.us++;
-
-		if (seq->type & SEQ_EFFECT) {
-			struct SeqEffectHandle sh;
-			sh = get_sequence_effect(seq);
-			if(sh.copy)
-				sh.copy(seq, seqn);
-		}
-
-		seqn->strip= MEM_dupallocN(seq->strip);
-		seqn->strip->stripdata = 0;
-		seqn->strip->tstripdata = 0;
-		
-	} else {
-		fprintf(stderr, "Aiiiiekkk! sequence type not "
-				"handled in duplicate!\nExpect a crash"
-						" now...\n");
-	}
+	seqn->strip->tstripdata = 0;
+	seqn->strip->tstripdata_startstill = 0;
+	seqn->strip->tstripdata_endstill = 0;
 
 	if (seq->strip->crop) {
 		seqn->strip->crop = MEM_dupallocN(seq->strip->crop);
@@ -2263,6 +2189,49 @@ static Sequence *dupli_seq(Sequence *seq) {
 
 	if (seq->strip->proxy) {
 		seqn->strip->proxy = MEM_dupallocN(seq->strip->proxy);
+	}
+	
+	if(seq->type==SEQ_META) {
+		seqn->strip->stripdata = 0;
+
+		seqn->seqbase.first= seqn->seqbase.last= 0;
+		/* WATCH OUT!!! - This metastrip is not recursively duplicated here - do this after!!! */
+		/* - recurs_dupli_seq(&seq->seqbase,&seqn->seqbase);*/
+	} else if(seq->type == SEQ_SCENE) {
+		seqn->strip->stripdata = 0;
+	} else if(seq->type == SEQ_MOVIE) {
+		seqn->strip->stripdata = 
+				MEM_dupallocN(seq->strip->stripdata);
+		seqn->anim= 0;
+	} else if(seq->type == SEQ_RAM_SOUND) {
+		seqn->strip->stripdata = 
+				MEM_dupallocN(seq->strip->stripdata);
+		seqn->sound->id.us++;
+	} else if(seq->type == SEQ_HD_SOUND) {
+		seqn->strip->stripdata = 
+				MEM_dupallocN(seq->strip->stripdata);
+		seqn->hdaudio = 0;
+	} else if(seq->type == SEQ_IMAGE) {
+		seqn->strip->stripdata = 
+				MEM_dupallocN(seq->strip->stripdata);
+	} else if(seq->type >= SEQ_EFFECT) {
+		if(seq->seq1 && seq->seq1->tmp) seqn->seq1= seq->seq1->tmp;
+		if(seq->seq2 && seq->seq2->tmp) seqn->seq2= seq->seq2->tmp;
+		if(seq->seq3 && seq->seq3->tmp) seqn->seq3= seq->seq3->tmp;
+
+		if (seq->type & SEQ_EFFECT) {
+			struct SeqEffectHandle sh;
+			sh = get_sequence_effect(seq);
+			if(sh.copy)
+				sh.copy(seq, seqn);
+		}
+
+		seqn->strip->stripdata = 0;
+		
+	} else {
+		fprintf(stderr, "Aiiiiekkk! sequence type not "
+				"handled in duplicate!\nExpect a crash"
+						" now...\n");
 	}
 	
 	return seqn;

@@ -514,6 +514,43 @@ static char* seq_panel_blend_modes()
 	return string;
 }
 
+static char* seq_panel_scenes()
+{
+	static char rstr[8192];
+	char * str;
+
+	IDnames_to_pupstring(&str, NULL, NULL, 
+			     &G.main->scene, (ID *)G.scene, NULL);
+
+	strncpy(rstr, str, 8192);
+	MEM_freeN(str);
+
+	return rstr;
+}
+
+static void seq_update_scenenr(Sequence * seq)
+{
+	Scene * sce;
+	int nr;
+	if (seq->type != SEQ_SCENE) {
+		return;
+	}
+
+	seq->scenenr = 0;
+
+	sce = G.main->scene.first;
+	nr = 1;
+	while(sce) {
+		if (sce == seq->scene) {
+			seq->scenenr = nr;
+			break;
+		}
+		nr++;
+		sce = sce->id.next;
+	}
+}
+
+
 static void seq_panel_editing()
 {
 	Sequence *last_seq = get_last_seq();
@@ -543,12 +580,10 @@ static void seq_panel_editing()
 		  10, 120, 120, 19, &last_seq->blend_mode, 
 		  0,0,0,0, "Strip Blend Mode");
 
-	if (last_seq->blend_mode > 0) {
-		uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Blend:",
-			  130, 120, 120, 19, &last_seq->blend_opacity, 
-			  0.0, 100.0, 100.0, 0, 
-			  "Blend opacity");
-	}
+	uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Blend:",
+		  130, 120, 120, 19, &last_seq->blend_opacity, 
+		  0.0, 100.0, 100.0, 0, 
+		  "Blend opacity");
 
 	uiDefButBitI(block, TOG, SEQ_MUTE,
 		     B_SEQ_BUT_RELOAD_ALL, "Mute",
@@ -716,7 +751,7 @@ static void seq_panel_input()
 		if (se) {
 			uiDefBut(block, TEX, 
 				 B_SEQ_BUT_RELOAD_FILE, "File: ", 
-				 10, 120, 240,19, se->name, 
+				 10, 120, 190,19, se->name, 
 				 0.0, 80.0, 100, 0, "");
 		}
 
@@ -725,9 +760,20 @@ static void seq_panel_input()
 		   last_seq->type == SEQ_RAM_SOUND) {
 		uiDefBut(block, TEX, 
 			 B_SEQ_BUT_RELOAD_FILE, "File: ", 
-			 10,120,240,19, last_seq->strip->stripdata->name, 
+			 10,120,190,19, last_seq->strip->stripdata->name, 
 			 0.0, 80.0, 100, 0, "");
+	} else if (last_seq->type == SEQ_SCENE) {
+		seq_update_scenenr(last_seq);
+		uiDefButI(block, MENU, B_SEQ_BUT_RELOAD_FILE, 
+			  seq_panel_scenes(), 
+			  10, 120, 190, 19, &last_seq->scenenr, 
+			  0,0,0,0, "Linked Scene");
 	}
+
+	uiDefBut(block, BUT, B_SEQ_BUT_RELOAD_FILE, 
+		 "Reload",
+		 200,120,50,19, 0, 0, 0, 0, 0, 
+		 "Reload files/scenes from disk and update strip length.");
 
 	if (last_seq->type == SEQ_MOVIE 
 	    || last_seq->type == SEQ_IMAGE 
@@ -2306,11 +2352,7 @@ static void render_panel_format(void)
 
 	if(G.scene->r.quality==0) G.scene->r.quality= 90;
 
-#ifdef WITH_QUICKTIME
 	if (G.scene->r.imtype == R_AVICODEC || G.scene->r.imtype == R_QUICKTIME) {
-#else /* WITH_QUICKTIME */
-	if (0) {
-#endif
 		if(G.scene->r.imtype == R_QUICKTIME) {
 #ifdef WITH_QUICKTIME
 #if defined (_WIN32) || defined (__APPLE__)

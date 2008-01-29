@@ -401,8 +401,10 @@ void reload_sequence_new_file(Sequence * seq)
 		return;
 	}
 
-	strncpy(str, seq->strip->dir, FILE_MAXDIR-1);
-	strncat(str, seq->strip->stripdata->name, FILE_MAXFILE-1);
+	if (seq->type != SEQ_SCENE) {
+		strncpy(str, seq->strip->dir, FILE_MAXDIR-1);
+		strncat(str, seq->strip->stripdata->name, FILE_MAXFILE-1);
+	}
 
 	if (seq->type == SEQ_MOVIE) {
 		if(seq->anim) IMB_free_anim(seq->anim);
@@ -433,6 +435,23 @@ void reload_sequence_new_file(Sequence * seq)
 		seq->strip->len = seq->len 
 			= sound_hdaudio_get_duration(seq->hdaudio, FPS);
 	} else if (seq->type == SEQ_SCENE) {
+		Scene * sce = G.main->scene.first;
+                int nr = 1;
+                while(sce) {
+                        if(nr == seq->scenenr) {
+                                break;
+                        }
+                        nr++;
+                        sce= sce->id.next;
+                }
+
+		if (sce) {
+			seq->scene = sce;
+		}
+
+		strncpy(seq->name + 2, sce->id.name + 2, 
+			sizeof(seq->name) - 2);
+
 		seq->len= seq->scene->r.efra - seq->scene->r.sfra + 1;
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;
@@ -849,7 +868,7 @@ TStripElem *give_tstripelem(Sequence *seq, int cfra)
 
 	
 	se->nr= nr;
-	
+
 	return se;
 }
 
@@ -1085,11 +1104,14 @@ static void input_preprocess(Sequence * seq, TStripElem* se, int cfra)
 
 	mul = seq->mul;
 
-	if(seq->blend_mode == SEQ_BLEND_REPLACE 
-	   && seq->ipo && seq->ipo->curve.first) {
-		do_seq_ipo(seq, cfra);
-		mul *= seq->facf0;
+	if(seq->blend_mode == SEQ_BLEND_REPLACE) {
+		if (seq->ipo && seq->ipo->curve.first) {
+			do_seq_ipo(seq, cfra);
+			mul *= seq->facf0;
+		}
+		mul *= seq->blend_opacity / 100.0;
 	}
+
 	if(mul != 1.0) {
 		multibuf(se->ibuf, mul);
 	}

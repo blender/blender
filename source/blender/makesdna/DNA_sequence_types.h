@@ -160,6 +160,9 @@ typedef struct Sequence {
 
 	int blend_mode;
 	float blend_opacity;
+
+	int scenenr;          /* for scene selection */
+	int pad;
 } Sequence;
 
 typedef struct MetaStack {

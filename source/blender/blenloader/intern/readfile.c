@@ -3396,6 +3396,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			if(seq->strip && seq->strip->done==0) {
 				seq->strip->done= 1;
 				seq->strip->tstripdata = 0;
+				seq->strip->tstripdata_startstill = 0;
+				seq->strip->tstripdata_endstill = 0;
 
 				if(seq->type == SEQ_IMAGE ||
 				   seq->type == SEQ_MOVIE ||
