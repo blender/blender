@@ -478,7 +478,7 @@ int IMB_exr_begin_read(void *handle, char *filename, int *width, int *height)
 {
 	ExrHandle *data= (ExrHandle *)handle;
 	
-	if(BLI_exists(filename)) {
+	if(BLI_exists(filename) && BLI_filepathsize(filename)>32) {	/* 32 is arbitrary, but zero length files crashes exr */
 		data->ifile = new InputFile(filename);
 		if(data->ifile) {
 			Box2i dw = data->ifile->header().dataWindow();

@@ -562,23 +562,16 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_DIFFUSE);
 		if(srl->passflag  & SCE_PASS_SPEC)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_SPEC);
-		if(re->r.mode & R_SHADOW)
-			if(srl->passflag  & SCE_PASS_SHADOW)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_SHADOW);
-		if(re->r.mode & R_RAYTRACE) {
-			if(srl->passflag  & SCE_PASS_AO)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_AO);
-			if(srl->passflag  & SCE_PASS_REFLECT)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_REFLECT);
-			if(srl->passflag  & SCE_PASS_REFRACT)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_REFRACT);
-		}
-		else if(re->wrld.mode & WO_AMB_OCC)
-			if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_AO);
-		if(re->r.mode & R_RADIO)
-			if(srl->passflag  & SCE_PASS_RADIO)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_RADIO);
+		if(srl->passflag  & SCE_PASS_AO)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_AO);
+		if(srl->passflag  & SCE_PASS_SHADOW)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_SHADOW);
+		if(srl->passflag  & SCE_PASS_REFLECT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_REFLECT);
+		if(srl->passflag  & SCE_PASS_REFRACT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_REFRACT);
+		if(srl->passflag  & SCE_PASS_RADIO)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_RADIO);
 		if(srl->passflag  & SCE_PASS_INDEXOB)
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXOB);
 		if(srl->passflag  & SCE_PASS_MIST)

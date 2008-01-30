@@ -2005,6 +2005,10 @@ void node_read_renderlayers(SpaceNode *snode)
 		}
 	}
 	
+	/* own render result should be read/allocated */
+	if(G.scene->id.flag & LIB_DOIT)
+		RE_ReadRenderResult(G.scene, G.scene);
+	
 	snode_handle_recalc(snode);
 }
 
