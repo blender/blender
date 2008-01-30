@@ -5212,8 +5212,8 @@ static void collisionModifier_deformVerts(
 			collmd->time = current_time;
 		}
 		else
-		{
-			collmd->time = current_time;
+		{	
+			collisionModifier_freeData((ModifierData *)collmd);
 		}
 	}
 	

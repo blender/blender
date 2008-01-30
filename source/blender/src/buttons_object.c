@@ -2419,7 +2419,7 @@ void do_object_panels(unsigned short event)
 		if(clmd)
 		{
 			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
 			allqueue(REDRAWBUTSOBJECT, 0);
 			allqueue(REDRAWVIEW3D, 0);
 		}
@@ -5123,9 +5123,6 @@ static void object_panel_cloth(Object *ob)
 		int defCount;
 		char *clvg1, *clvg2;
 		char clmvg [] = "Vertex Groups%t|";
-		
-		clmdSetInterruptCallBack(blender_test_break); // make softbody module ESC aware
-		G.afbreek=0; // init global break system
 
 		val2=0;
 		
@@ -5262,7 +5259,7 @@ static void object_panel_cloth_II(Object *ob)
 		else
 		uiDefBut(block, LABEL, 0, " ",  10,80,145,20, NULL, 0.0, 0, 0, 0, "");
 		*/
-
+#if WITH_BULLET == 1
 		uiDefButBitI(block, TOG, CLOTH_COLLSETTINGS_FLAG_ENABLED, B_CLOTH_RENEW, "Enable collisions",	10,60,150,20, &clmd->coll_parms->flags, 0, 0, 0, 0, "Enable collisions with this object");
 		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED)
 		{
@@ -5272,6 +5269,9 @@ static void object_panel_cloth_II(Object *ob)
 		}
 		else
 			uiDefBut(block, LABEL, 0, "",160,60,150,20, NULL, 0.0, 0, 0, 0, "");	
+#else
+		uiDefBut(block, LABEL, 0, "No collisions available (compile with bullet).",10,60,300,20, NULL, 0.0, 0, 0, 0, "");
+#endif
 	}
 	
 	uiBlockEndAlign(block);

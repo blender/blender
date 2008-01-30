@@ -526,6 +526,9 @@ int cloth_read_cache(Object *ob, ClothModifierData *clmd, float framenr)
 			if(G.rt > 0)
 				printf("cloth_read_cache problem: lnex - f#: %f, lastCF: %d\n", framenr, clmd->sim_parms->lastcachedframe);
 		}
+		
+		if(G.rt > 0)
+			printf("cloth_read_cache: %f successfully \n", framenr);
 	}
 	
 	if(G.rt > 0)
@@ -647,7 +650,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	/* we're getting called two times during file load,
 	resulting in a not valid G.relbase on the first time (cache makes problems)
 	--> just return back */
-	if((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_LOADED)&& (!G.relbase_valid))
+	if((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_LOADED) && (!G.relbase_valid)) 
 	{
 		clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_LOADED;
 		return dm;
@@ -732,8 +735,6 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	
 	// only be active during a specific period:
 	// that's "first frame" and "last frame" on GUI
-	
-	// TODO: enable later again after refactoring
 	if ( current_time < clmd->sim_parms->firstframe )
 	{
 		return result;

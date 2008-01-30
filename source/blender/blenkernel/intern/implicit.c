@@ -1416,7 +1416,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 			}
 		}	
 	}
-
+	
 	while(step < tf)
 	{ 		
 		effectors= pdInitEffectors(ob,NULL);
@@ -1531,8 +1531,11 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 		if(effectors) pdEndEffectors(effectors);
 		
 		/* ask for user break */ 
+		/*
+		don't work very well, gives problems with ctrl-a + esc
 		if (CT_localInterruptCallBack && CT_localInterruptCallBack())
 			return 0;
+		*/
 	}
 
 	for(i = 0; i < numverts; i++)
