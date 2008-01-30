@@ -1290,7 +1290,7 @@ static void draw_custom_bone(Object *ob, int dt, int armflag, int boneflag, unsi
 }
 
 
-static void pchan_draw_IK_root_lines(bPoseChannel *pchan)
+static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 {
 	bConstraint *con;
 	bPoseChannel *parchan;
@@ -1299,6 +1299,10 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan)
 		if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
 			bKinematicConstraint *data = (bKinematicConstraint*)con->data;
 			int segcount= 0;
+			
+			/* if only_temp, only draw if it is a temporary ik-chain */
+			if ((only_temp) && !(data->flag & CONSTRAINT_IK_TEMP))
+				continue;
 			
 			setlinestyle(3);
 			glBegin(GL_LINES);
@@ -1638,9 +1642,11 @@ static void draw_pose_channels(Base *base, int dt)
 			
 			if ((bone) && !(bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))) {
 				if (bone->layer & arm->layer) {
-					if (do_dashed && bone->parent) {
-						/*	Draw a line from our root to the parent's tip */
-						if ((bone->flag & BONE_CONNECTED)==0) {
+					if ((do_dashed & 1) && (bone->parent)) {
+						/* Draw a line from our root to the parent's tip 
+						 *	- only if V3D_HIDE_HELPLINES is enabled...
+						 */
+						if ( (do_dashed & 2) && ((bone->flag & BONE_CONNECTED)==0) ) {
 							if (arm->flag & ARM_POSEMODE) {
 								glLoadName(index & 0xFFFF);	// object tag, for bordersel optim
 								BIF_ThemeColor(TH_WIRE);
@@ -1653,8 +1659,9 @@ static void draw_pose_channels(Base *base, int dt)
 							setlinestyle(0);
 						}
 						
-						/*	Draw a line to IK root bone */ 
-						//		TODO: make this draw with do_dashed off (V3D_HIDE_HELPLINES)
+						/* Draw a line to IK root bone 
+						 * 	- only if temporary chain (i.e. "autoik")
+						 */
 						if (arm->flag & ARM_POSEMODE) {
 							if (pchan->constflag & PCHAN_HAS_IK) {
 								if (bone->flag & BONE_SELECTED) {
@@ -1662,7 +1669,7 @@ static void draw_pose_channels(Base *base, int dt)
 									else glColor3ub(200, 200, 50);	// add theme!
 									
 									glLoadName(index & 0xFFFF);
-									pchan_draw_IK_root_lines(pchan);
+									pchan_draw_IK_root_lines(pchan, !(do_dashed & 2));
 								}
 							}
 						}
