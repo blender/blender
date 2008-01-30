@@ -340,6 +340,9 @@ ECHO Done
 			<File
 				RelativePath="..\..\src\btBulletDynamicsCommon.h">
 			</File>
+			<File
+				RelativePath="..\..\src\Bullet-C-Api.h">
+			</File>
 			<Filter
 				Name="BulletDynamics"
 				Filter="">
@@ -427,6 +430,9 @@ ECHO Done
 					</File>
 					<File
 						RelativePath="..\..\src\BulletDynamics\Dynamics\btSimpleDynamicsWorld.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\Dynamics\Bullet-C-API.cpp">
 					</File>
 				</Filter>
 				<Filter
