@@ -105,6 +105,9 @@
 /* Number of vertices to average in order to determine the flatten distance */
 #define FLATTEN_SAMPLE_SIZE 10
 
+/* Texture cache size */
+#define TC_SIZE 256
+
 /* ===== STRUCTS =====
  *
  */
@@ -1085,7 +1088,7 @@ void sculptmode_update_tex()
 	SculptSession *ss= sculpt_session();
 	MTex *mtex = sd->mtex[sd->texact];
 	TexResult texres = {0};
-	float x, y, step=2.0/128.0, co[3];
+	float x, y, step=2.0/TC_SIZE, co[3];
 	int hasrgb, ix, iy;
 	
 	/* Skip Default brush shape and non-textures */
@@ -1096,15 +1099,15 @@ void sculptmode_update_tex()
 		ss->texcache= NULL;
 	}
 	
-	ss->texcache_w = ss->texcache_h = 128;
+	ss->texcache_w = ss->texcache_h = TC_SIZE;
 	ss->texcache = MEM_callocN(sizeof(int) * ss->texcache_w * ss->texcache_h, "Sculpt Texture cache");
 	
 	if(mtex && mtex->tex) {
 		BKE_image_get_ibuf(sd->mtex[sd->texact]->tex->ima, NULL);
 		
 		/*do normalized cannonical view coords for texture*/
-		for (y=-1.0, iy=0; iy<128; iy++, y += step) {
-			for (x=-1.0, ix=0; ix<128; ix++, x += step) {
+		for (y=-1.0, iy=0; iy<TC_SIZE; iy++, y += step) {
+			for (x=-1.0, ix=0; ix<TC_SIZE; ix++, x += step) {
 				co[0]= x;
 				co[1]= y;
 				co[2]= 0.0f;
@@ -1121,10 +1124,10 @@ void sculptmode_update_tex()
 					              texres.tg + 0.2 * texres.tb);
 
 				texres.tin = texres.tin * 255.0;
-				((char*)ss->texcache)[(iy*128+ix)*4] = (char)texres.tin;
-				((char*)ss->texcache)[(iy*128+ix)*4+1] = (char)texres.tin;
-				((char*)ss->texcache)[(iy*128+ix)*4+2] = (char)texres.tin;
-				((char*)ss->texcache)[(iy*128+ix)*4+3] = (char)texres.tin;
+				((char*)ss->texcache)[(iy*TC_SIZE+ix)*4] = (char)texres.tin;
+				((char*)ss->texcache)[(iy*TC_SIZE+ix)*4+1] = (char)texres.tin;
+				((char*)ss->texcache)[(iy*TC_SIZE+ix)*4+2] = (char)texres.tin;
+				((char*)ss->texcache)[(iy*TC_SIZE+ix)*4+3] = (char)texres.tin;
 			}
 		}
 	}
@@ -1237,7 +1240,7 @@ static GLuint sculpt_radialcontrol_calctex()
 	SculptData *sd= sculpt_data();
 	SculptSession *ss= sculpt_session();
 	int i, j;
-	const int tsz = 128;
+	const int tsz = TC_SIZE;
 	float *texdata= MEM_mallocN(sizeof(float)*tsz*tsz, "Brush preview");
 	GLuint tex;
 
