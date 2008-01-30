@@ -1247,7 +1247,7 @@ static void *do_part_thread(void *pa_v)
 	/* need to return nicely all parts on esc */
 	if(R.test_break()==0) {
 		
-		if(R.r.scemode & R_FULL_SAMPLE)
+		if(!R.sss_points && (R.r.scemode & R_FULL_SAMPLE))
 			pa->result= new_full_sample_buffers(&R, &pa->fullresult, &pa->disprect, pa->crop);
 		else
 			pa->result= new_render_result(&R, &pa->disprect, pa->crop, RR_USEMEM);
@@ -1464,7 +1464,7 @@ static void threaded_tile_processor(Render *re)
 	/* first step; free the entire render result, make new, and/or prepare exr buffer saving */
 	RE_FreeRenderResult(re->result);
 	
-	if(re->r.scemode & R_FULL_SAMPLE)
+	if(!re->sss_points && (re->r.scemode & R_FULL_SAMPLE))
 		re->result= new_full_sample_buffers_exr(re);
 	else
 		re->result= new_render_result(re, &re->disprect, 0, re->r.scemode & R_EXR_TILE_FILE);
