@@ -375,7 +375,7 @@ void BIF_InitTheme(void)
 		/* set 1 */
 	SETCOL(btheme->tarm[0].solid, 0x9a, 0x00, 0x00, 255);
 	SETCOL(btheme->tarm[0].select, 0xbd, 0x11, 0x11, 255);
-	SETCOL(btheme->tarm[0].active, 0xea, 0x01, 0x01, 255);
+	SETCOL(btheme->tarm[0].active, 0xf7, 0x0a, 0x0a, 255);
 		/* set 2 */
 	SETCOL(btheme->tarm[1].solid, 0xf7, 0x40, 0x18, 255);
 	SETCOL(btheme->tarm[1].select, 0xf6, 0x69, 0x13, 255);

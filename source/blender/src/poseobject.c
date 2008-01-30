@@ -1007,7 +1007,7 @@ char *build_posegroups_menustr (bPose *pose, short for_pupmenu)
 }
 
 /* Assign selected pchans to the bone group that the user selects */
-void pose_assign_to_posegroup ()
+void pose_assign_to_posegroup (short active)
 {
 	Object *ob= OBACT;
 	bArmature *arm= (ob) ? ob->data : NULL;
@@ -1022,18 +1022,20 @@ void pose_assign_to_posegroup ()
 		return;
 
 	/* get group to affect */
-	menustr= build_posegroups_menustr(pose, 1);
-	nr= pupmenu(menustr);
-	MEM_freeN(menustr);
-	
-	if (nr < 0) 
-		return;
-	else if (nr == 0) {
-		/* add new - note: this does an undo push and sets active group */
-		pose_add_posegroup();
+	if ((active==0) || (pose->active_group <= 0)) {
+		menustr= build_posegroups_menustr(pose, 1);
+		nr= pupmenu(menustr);
+		MEM_freeN(menustr);
+		
+		if (nr < 0) 
+			return;
+		else if (nr == 0) {
+			/* add new - note: this does an undo push and sets active group */
+			pose_add_posegroup();
+		}
+		else
+			pose->active_group= nr;
 	}
-	else
-		pose->active_group= nr;
 	
 	/* add selected bones to group then */
 	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
@@ -1103,16 +1105,19 @@ void pgroup_operation_with_menu (void)
 	
 	/* get mode of action */
 	if (pchan)
-		mode= pupmenu("Bone Groups%t|Add Selected to Group%x1|Add New Group%x2|Remove Selected From Groups%x3|Remove Active Group%x4");
+		mode= pupmenu("Bone Groups%t|Add Selected to Active Group%x1|Add Selected to Group%x2|%|Remove Selected From Groups%x3|Remove Active Group%x4");
 	else
-		mode= pupmenu("Bone Groups%t|Add New Group%x2|Remove Active Group%x4");
+		mode= pupmenu("Bone Groups%t|Add New Group%x5|Remove Active Group%x4");
 		
 	/* handle mode */
 	switch (mode) {
 		case 1:
-			pose_assign_to_posegroup();
+			pose_assign_to_posegroup(1);
 			break;
 		case 2:
+			pose_assign_to_posegroup(0);
+			break;
+		case 5:
 			pose_add_posegroup();
 			break;
 		case 3:
