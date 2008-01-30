@@ -5016,8 +5016,11 @@ CustomDataMask clothModifier_requiredDataMask(ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
-		if (clmd->sim_parms->vgroup_mass > 0)
+	if (((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING ) || 
+		     (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )) && 
+		     ((clmd->sim_parms->vgroup_mass>0) || 
+		     (clmd->sim_parms->vgroup_struct>0)||
+		     (clmd->sim_parms->vgroup_bend>0)))
 	 		dataMask |= (1 << CD_MDEFORMVERT);
 
 	return dataMask;
