@@ -685,11 +685,24 @@ static void seq_panel_editing()
 		sprintf(str, "First: %d at %d\nLast: %d at %d\nCur: %d\n",
 			sta, last_seq->startdisp, end, last_seq->enddisp-1,  
 			(G.scene->r.cfra)-last_seq->startdisp);
+
+		str += strlen(str);
+		/* orig size */
+		if(last_seq->strip) {
+			sprintf(str, "OrigSize: %d x %d\n", 
+				last_seq->strip->orx, last_seq->strip->ory);
+		}
 	}
 	else if(last_seq->type==SEQ_SCENE) {
 		TStripElem * se= give_tstripelem(last_seq,  (G.scene->r.cfra));
 		if(se && last_seq->scene) {
 			sprintf(str, "First: %d\nLast: %d\nCur: %d\n", last_seq->sfra+se->nr, last_seq->sfra, last_seq->sfra+last_seq->len-1); 
+		}
+		str += strlen(str);
+		/* orig size */
+		if(last_seq->strip) {
+			sprintf(str, "OrigSize: %d x %d\n", 
+				last_seq->strip->orx, last_seq->strip->ory);
 		}
 	}
 	else if(last_seq->type==SEQ_RAM_SOUND
