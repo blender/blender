@@ -3149,12 +3149,11 @@ static void info_dump_customcolorset (void *arg1, void *arg2)
 #endif
 
 	// this version generates code that can be copy+paste-ed
-	printf("Bone Color Set - Code \n");
-	printf("\t/* set %d*/ \n", th_curcolset);
+	printf("Theme '%s': Bone Color Set - Code for Copy+Paste \n", btheme->name);
+	printf("\t/* set %d */ \n", th_curcolset);
 	printf("\tSETCOL(btheme->tarm[%d].solid, 0x%02x, 0x%02x, 0x%02x, 255); \n", th_curcolset-1, tcs->solid[0], tcs->solid[1], tcs->solid[2]);
 	printf("\tSETCOL(btheme->tarm[%d].select, 0x%02x, 0x%02x, 0x%02x, 255); \n", th_curcolset-1, tcs->select[0], tcs->select[1], tcs->select[2]);
 	printf("\tSETCOL(btheme->tarm[%d].active, 0x%02x, 0x%02x, 0x%02x, 255); \n", th_curcolset-1, tcs->active[0], tcs->active[1], tcs->active[2]);
-	printf("\n");
 }
 
 static void info_user_theme_colsets_buts(uiBlock *block, short y1, short y2, short y3, short y4) 

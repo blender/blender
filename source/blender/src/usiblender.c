@@ -454,6 +454,18 @@ static void init_userdef_file(void)
 				SETCOL(btheme->tarm[11].solid, 0x6c, 0x8e, 0x22, 255);
 				SETCOL(btheme->tarm[11].select, 0x7f, 0xb0, 0x22, 255);
 				SETCOL(btheme->tarm[11].active, 0xbb, 0xef, 0x5b, 255);
+					/* set 13 */
+				SETCOL(btheme->tarm[12].solid, 0x8d, 0x8d, 0x8d, 255);
+				SETCOL(btheme->tarm[12].select, 0xb0, 0xb0, 0xb0, 255);
+				SETCOL(btheme->tarm[12].active, 0xde, 0xde, 0xde, 255);
+					/* set 14 */
+				SETCOL(btheme->tarm[13].solid, 0x83, 0x43, 0x26, 255);
+				SETCOL(btheme->tarm[13].select, 0x8b, 0x58, 0x11, 255);
+				SETCOL(btheme->tarm[13].active, 0xbd, 0x6a, 0x11, 255);
+					/* set 15 */
+				SETCOL(btheme->tarm[14].solid, 0x08, 0x31, 0x0e, 255);
+				SETCOL(btheme->tarm[14].select, 0x1c, 0x43, 0x0b, 255);
+				SETCOL(btheme->tarm[14].active, 0x34, 0x62, 0x2b, 255);
 			}
 		}
 	}
