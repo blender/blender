@@ -436,7 +436,7 @@ static int compare_strand_segment(const void *poin1, const void *poin2)
 	const StrandSortSegment *seg1= (const StrandSortSegment*)poin1;
 	const StrandSortSegment *seg2= (const StrandSortSegment*)poin2;
 
-	if(seg1->z > seg2->z)
+	if(seg1->z < seg2->z)
 		return -1;
 	else if(seg1->z == seg2->z)
 		return 0;
