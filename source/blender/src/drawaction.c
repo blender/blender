@@ -1256,8 +1256,8 @@ static ActKeysInc *init_aki_data()
 	aki.start= G.v2d->cur.xmin - 10;
 	aki.end= G.v2d->cur.xmax + 10;
 	
-	/* only pass pointer for Action Editor (for now) */
-	if (curarea->spacetype == SPACE_ACTION)
+	/* only pass pointer for Action Editor if enabled (for now) */
+	if ((curarea->spacetype == SPACE_ACTION) && (G.saction->flag & SACTION_HORIZOPTIMISEON))
 		return &aki;
 	else	
 		return NULL;

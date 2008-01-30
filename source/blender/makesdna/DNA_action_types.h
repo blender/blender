@@ -221,7 +221,9 @@ typedef enum SACTION_FLAG {
 		/* don't filter action channels according to visibility */
 	SACTION_NOHIDE = (1<<3),
 		/* don't kill overlapping keyframes after transform */
-	SACTION_NOTRANSKEYCULL = (1<<4)
+	SACTION_NOTRANSKEYCULL = (1<<4),
+		/* don't include keyframes that are out of view */
+	SACTION_HORIZOPTIMISEON = (1<<5)
 } SACTION_FLAG;	
 
 /* SpaceAction AutoSnap Settings (also used by SpaceNLA) */

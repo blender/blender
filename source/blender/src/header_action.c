@@ -99,7 +99,8 @@ enum {
 	ACTMENU_VIEW_OPENLEVELS,
 	ACTMENU_VIEW_CLOSELEVELS,
 	ACTMENU_VIEW_EXPANDALL,
-	ACTMENU_VIEW_TRANSDELDUPS
+	ACTMENU_VIEW_TRANSDELDUPS,
+	ACTMENU_VIEW_HORIZOPTIMISE
 };
 
 enum {
@@ -337,6 +338,9 @@ static void do_action_viewmenu(void *arg, int event)
 		case ACTMENU_VIEW_TRANSDELDUPS: /* Don't delete duplicate/overlapping keyframes after transform */
 			G.saction->flag ^= SACTION_NOTRANSKEYCULL;
 			break;
+		case ACTMENU_VIEW_HORIZOPTIMISE: /* Include keyframes not in view (horizontally) when preparing to draw */
+			G.saction->flag ^= SACTION_HORIZOPTIMISEON;
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -382,6 +386,12 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 "Show Hidden Channels|", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_NOHIDE, "");
+					 
+		// this option may get removed in future
+	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_HORIZOPTIMISEON)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Cull Out-of-View Keys (Time)|", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+					 ACTMENU_VIEW_HORIZOPTIMISE, "");
 			
 		// this option may get removed in future... 
 	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_NOTRANSKEYCULL)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
