@@ -138,6 +138,8 @@ extern ListBase server_list;
 
 /* ******************** PROTOTYPES ***************** */
 static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int startx, int *starty);
+static void outliner_do_object_operation(SpaceOops *soops, ListBase *lb, 
+										 void (*operation_cb)(TreeElement *, TreeStoreElem *, TreeStoreElem *));
 
 
 /* ******************** PERSISTANT DATA ***************** */
@@ -1150,6 +1152,75 @@ static void outliner_set_flag(SpaceOops *soops, ListBase *lb, short flag, short 
 		else tselem->flag |= flag;
 		outliner_set_flag(soops, &te->subtree, flag, set);
 	}
+}
+
+void object_toggle_visibility_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
+{
+	Base *base= (Base *)te->directdata;
+	
+	if(base==NULL) base= object_in_scene((Object *)tselem->id, G.scene);
+	if(base) {
+		base->object->restrictflag^=OB_RESTRICT_VIEW;
+	}
+}
+
+void outliner_toggle_visibility(struct ScrArea *sa)
+{
+	SpaceOops *soops= sa->spacedata.first;
+
+	outliner_do_object_operation(soops, &soops->tree, object_toggle_visibility_cb);
+	
+	BIF_undo_push("Outliner toggle selectability");
+
+	allqueue(REDRAWVIEW3D, 1);
+	allqueue(REDRAWOOPS, 0);
+	allqueue(REDRAWINFO, 1);
+}
+
+static void object_toggle_selectability_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
+{
+	Base *base= (Base *)te->directdata;
+	
+	if(base==NULL) base= object_in_scene((Object *)tselem->id, G.scene);
+	if(base) {
+		base->object->restrictflag^=OB_RESTRICT_SELECT;
+	}
+}
+
+void outliner_toggle_selectability(struct ScrArea *sa)
+{
+	SpaceOops *soops= sa->spacedata.first;
+	
+	outliner_do_object_operation(soops, &soops->tree, object_toggle_selectability_cb);
+	
+	BIF_undo_push("Outliner toggle selectability");
+
+	allqueue(REDRAWVIEW3D, 1);
+	allqueue(REDRAWOOPS, 0);
+	allqueue(REDRAWINFO, 1);
+}
+
+void object_toggle_renderability_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
+{
+	Base *base= (Base *)te->directdata;
+	
+	if(base==NULL) base= object_in_scene((Object *)tselem->id, G.scene);
+	if(base) {
+		base->object->restrictflag^=OB_RESTRICT_RENDER;
+	}
+}
+
+void outliner_toggle_renderability(struct ScrArea *sa)
+{
+	SpaceOops *soops= sa->spacedata.first;
+
+	outliner_do_object_operation(soops, &soops->tree, object_toggle_renderability_cb);
+	
+	BIF_undo_push("Outliner toggle renderability");
+
+	allqueue(REDRAWVIEW3D, 1);
+	allqueue(REDRAWOOPS, 0);
+	allqueue(REDRAWINFO, 1);
 }
 
 void outliner_toggle_visible(struct ScrArea *sa)
@@ -2712,7 +2783,7 @@ void outliner_operation_menu(ScrArea *sa)
 		//else pupmenu("Scene Operations%t|Delete");
 	}
 	else if(objectlevel) {
-		short event= pupmenu("Select%x1|Deselect%x2|Delete%x4");	/* make local: does not work... it doesn't set lib_extern flags... so data gets lost */
+		short event= pupmenu("Select%x1|Deselect%x2|Delete%x4|Toggle Visible%x6|Toggle Selectable%x7|Toggle Renderable%x8");	/* make local: does not work... it doesn't set lib_extern flags... so data gets lost */
 		if(event>0) {
 			char *str="";
 			
@@ -2736,7 +2807,18 @@ void outliner_operation_menu(ScrArea *sa)
 				outliner_do_object_operation(soops, &soops->tree, id_local_cb);
 				str= "Localized Objects";
 			}
-			
+			else if(event==6) {
+				outliner_do_object_operation(soops, &soops->tree, object_toggle_visibility_cb);
+				str= "Toggle Visibility";
+			}
+			else if(event==7) {
+				outliner_do_object_operation(soops, &soops->tree, object_toggle_selectability_cb);
+				str= "Toggle Selectability";
+			}
+			else if(event==8) {
+				outliner_do_object_operation(soops, &soops->tree, object_toggle_renderability_cb);
+				str= "Toggle Renderability";
+			}
 			countall();
 			
 			BIF_undo_push(str);

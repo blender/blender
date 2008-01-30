@@ -5490,6 +5490,15 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				outliner_find_panel(sa, again, search_flags);				
 			}
 			break;
+		case RKEY:
+			outliner_toggle_renderability(sa);
+			break;
+		case SKEY:
+			outliner_toggle_selectability(sa);
+			break;
+		case VKEY:
+			outliner_toggle_visibility(sa);
+			break;
 		case XKEY:
 		case DELKEY:
 			outliner_del(sa);
