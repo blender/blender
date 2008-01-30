@@ -4355,8 +4355,10 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			MEM_freeN(menustr);
 			
 			ob_arm_bone_pchan_lock(ob, arm, curBone, pchan);
-			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "OB:",		220,by,110,19, &pchan->custom, "Object that defines custom draw type for this Bone");
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "OB:",		220,by,90,19, &pchan->custom, "Object that defines custom draw type for this Bone");
 			ob_arm_bone_pchan_lock(ob, arm, curBone, NULL);
+			
+			uiDefButBitI(block, TOG, BONE_DRAWWIRE, B_ARM_RECALCDATA, "W",			309,by,21,19, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Custom shape of this Bone should always be drawn as a wireframe");
 			
 			/* Segment, ease in/out buttons */
 			uiBlockBeginAlign(block);

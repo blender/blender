@@ -1521,13 +1521,13 @@ static void draw_pose_channels(Base *base, int dt)
 	GLfloat tmp;
 	float smat[4][4], imat[4][4];
 	int index= -1;
-	int do_dashed= 1;
+	int do_dashed= 3;
 	short flag, constflag;
 	
 	/* hacky... prevent outline select from drawing dashed helplines */
 	glGetFloatv(GL_LINE_WIDTH, &tmp);
-	if (tmp > 1.1) do_dashed= 0;
-	if (G.vd->flag & V3D_HIDE_HELPLINES) do_dashed= 0;
+	if (tmp > 1.1) do_dashed &= ~1;
+	if (G.vd->flag & V3D_HIDE_HELPLINES) do_dashed &= ~2;
 	
 	/* precalc inverse matrix for drawing screen aligned */
 	if (arm->drawtype==ARM_ENVELOPE) {
@@ -1584,8 +1584,13 @@ static void draw_pose_channels(Base *base, int dt)
 					/* set color-set to use */
 					set_pchan_colorset(ob, pchan);
 					
-					if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM))
-						draw_custom_bone(pchan->custom, OB_SOLID, arm->flag, flag, index, bone->length);
+					if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
+						/* BONE_DRAWWIRE case is here too, as sometimes wire overlay won't be done */
+						if (pchan->bone->flag & BONE_DRAWWIRE) 
+							draw_custom_bone(pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
+						else
+							draw_custom_bone(pchan->custom, OB_SOLID, arm->flag, flag, index, bone->length);
+					}
 					else if (arm->drawtype==ARM_LINE)
 						;	/* nothing in solid */
 					else if (arm->drawtype==ARM_ENVELOPE)
@@ -1674,16 +1679,16 @@ static void draw_pose_channels(Base *base, int dt)
 					
 					/* extra draw service for pose mode */
 					constflag= pchan->constflag;
-					if(pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))
+					if (pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))
 						constflag |= PCHAN_HAS_ACTION;
-					if(pchan->flag & POSE_STRIDE)
+					if (pchan->flag & POSE_STRIDE)
 						constflag |= PCHAN_HAS_STRIDE;
 						
 					/* set color-set to use */
 					set_pchan_colorset(ob, pchan);
 
-					if (pchan->custom && !(arm->flag & ARM_NO_CUSTOM)) {
-						if (dt < OB_SOLID)
+					if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
+						if ((dt < OB_SOLID) || (pchan->bone->flag & BONE_DRAWWIRE))
 							draw_custom_bone(pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
 					}
 					else if (arm->drawtype==ARM_ENVELOPE) {

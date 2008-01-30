@@ -155,7 +155,8 @@ typedef enum eBone_Flag {
 	BONE_UNKEYED				= (1<<13), 	/* set to prevent destruction of its unkeyframed pose (after transform) */		
 	BONE_HINGE_CHILD_TRANSFORM 	= (1<<14), 	/* set to prevent hinge child bones from influencing the transform center */
 	BONE_NO_SCALE				= (1<<15), 	/* No parent scale */
-	BONE_HIDDEN_PG				= (1<<16)	/* hidden bone when drawing PoseChannels (for ghost drawing) */
+	BONE_HIDDEN_PG				= (1<<16),	/* hidden bone when drawing PoseChannels (for ghost drawing) */
+	BONE_DRAWWIRE				= (1<<17)	/* bone should be drawn as OB_WIRE, regardless of draw-types of view+armature */
 } eBone_Flag;
 
 #endif
