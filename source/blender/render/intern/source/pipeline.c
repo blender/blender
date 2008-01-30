@@ -1944,10 +1944,15 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	do_render_fields_blur_3d(resc);
 }
 
-static void ntree_render_scenes(Render *re)
+static void tag_scenes_for_render(Render *re)
 {
 	bNode *node;
-	int cfra= re->scene->r.cfra;
+	Scene *sce;
+	
+	for(sce= G.main->scene.first; sce; sce= sce->id.next)
+		sce->id.flag &= ~LIB_DOIT;
+	
+	re->scene->id.flag |= LIB_DOIT;
 	
 	if(re->scene->nodetree==NULL) return;
 	
@@ -1957,11 +1962,20 @@ static void ntree_render_scenes(Render *re)
 			if(node->id) {
 				if(node->id != (ID *)re->scene)
 					node->id->flag |= LIB_DOIT;
-				else
-					node->id->flag &= ~LIB_DOIT;
 			}
 		}
 	}
+	
+}
+
+static void ntree_render_scenes(Render *re)
+{
+	bNode *node;
+	int cfra= re->scene->r.cfra;
+	
+	if(re->scene->nodetree==NULL) return;
+	
+	tag_scenes_for_render(re);
 	
 	/* now foreach render-result node tagged we do a full render */
 	/* results are stored in a way compisitor will find it */
@@ -2008,6 +2022,7 @@ static void render_composit_stats(char *str)
 	R.i.infostr= NULL;
 }
 
+
 /* reads all buffers, calls optional composite, merges in first result->rectf */
 static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 {
@@ -2024,9 +2039,12 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 		/* set all involved renders on the samplebuffers (first was done by render itself) */
 		if(sample) {
 			Render *re1;
+			
+			tag_scenes_for_render(re);
 			for(re1= RenderList.first; re1; re1= re1->next) {
-				if(re1->r.scemode & R_FULL_SAMPLE)
-					read_render_result(re1, sample);
+				if(re1->scene->id.flag & LIB_DOIT)
+					if(re1->r.scemode & R_FULL_SAMPLE)
+						read_render_result(re1, sample);
 			}
 		}
 
@@ -2351,6 +2369,7 @@ static int is_rendering_allowed(Render *re)
 /* evaluating scene options for general Blender render */
 static int render_initialize_from_scene(Render *re, Scene *scene)
 {
+	Scene *sce;
 	int winx, winy;
 	rcti disprect;
 	
@@ -2375,17 +2394,23 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 		disprect.ymax= winy;
 	}
 	
-	if(scene->r.scemode & R_EXR_TILE_FILE) {
-		int partx= winx/scene->r.xparts, party= winy/scene->r.yparts;
-		
-		/* stupid exr tiles dont like different sizes */
-		if(winx != partx*scene->r.xparts || winy != party*scene->r.yparts) {
-			re->error("Sorry... exr tile saving only allowed with equally sized parts");
-			return 0;
-		}
-		if((scene->r.mode & R_FIELDS) && (party & 1)) {
-			re->error("Sorry... exr tile saving only allowed with equally sized parts");
-			return 0;
+	re->scene= scene;
+	
+	/* check all scenes involved */
+	tag_scenes_for_render(re);
+	for(sce= G.main->scene.first; sce; sce= sce->id.next) {
+		if(sce->r.scemode & R_EXR_TILE_FILE) {
+			int partx= winx/sce->r.xparts, party= winy/sce->r.yparts;
+			
+			/* stupid exr tiles dont like different sizes */
+			if(winx != partx*sce->r.xparts || winy != party*sce->r.yparts) {
+				re->error("Sorry... exr tile saving only allowed with equally sized parts");
+				return 0;
+			}
+			if((sce->r.mode & R_FIELDS) && (party & 1)) {
+				re->error("Sorry... exr tile saving only allowed with equally sized parts");
+				return 0;
+			}
 		}
 	}
 	
@@ -2399,7 +2424,6 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 	/* initstate makes new result, have to send changed tags around */
 	ntreeCompositTagRender(re->scene);
 	
-	re->scene= scene;
 	if(!is_rendering_allowed(re))
 		return 0;
 	
