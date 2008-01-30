@@ -7351,6 +7351,26 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 14)) {
+		Scene *sce= main->scene.first;
+		Sequence *seq;
+		Editing *ed;
+		
+		while(sce) {
+			ed= sce->ed;
+			if(ed) {
+				WHILE_SEQ(&ed->seqbase) {
+					if (seq->blend_mode == 0) {
+						seq->blend_opacity = 100.0;
+					}
+				}
+				END_SEQ
+			}
+			
+			sce= sce->id.next;
+		}
+	}
+
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
