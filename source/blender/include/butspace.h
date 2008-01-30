@@ -773,6 +773,7 @@ enum {
 #define B_PART_ENABLE		3437
 #define B_OFSTIMEOFS		3438 /* see B_AUTOTIMEOFS too */
 #define B_RANDTIMEOFS		3439
+#define B_PART_REDRAW_DEPS	3440
 
 #define B_MODIFIER_BUTS		3600
 

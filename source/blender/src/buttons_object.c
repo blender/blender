@@ -3092,6 +3092,10 @@ void do_effects_panels(unsigned short event)
 			allqueue(REDRAWOOPS, 0);
 		}
 		/* no break! */
+	case B_PART_REDRAW_DEPS:
+		if(event == B_PART_REDRAW_DEPS)
+			DAG_scene_sort(G.scene);
+		/* no break! */
 	case B_PART_REDRAW:
 		nr=0;
 		for(psys=ob->particlesystem.first; psys; psys=psys->next){
@@ -4253,10 +4257,10 @@ static void object_panel_particle_visual(Object *ob)
 
 	switch(part->draw_as) {
 		case PART_DRAW_OB:
-			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_PART_REDRAW, "OB:",	butx,(buty-=buth),butw,buth, &part->dup_ob, "Show this Object in place of particles"); 
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_PART_REDRAW_DEPS, "OB:",	butx,(buty-=buth),butw,buth, &part->dup_ob, "Show this Object in place of particles"); 
 			break;
 		case PART_DRAW_GR:
-			uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_PART_REDRAW, "GR:",	butx,(buty-=buth),butw,buth, &part->dup_group, "Show Objects in this Group in place of particles"); 
+			uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_PART_REDRAW_DEPS, "GR:",	butx,(buty-=buth),butw,buth, &part->dup_group, "Show Objects in this Group in place of particles"); 
 			uiDefButBitS(block, TOG, PART_DRAW_WHOLE_GR, B_PART_REDRAW, "Dupli Group",	butx,(buty-=buth),butw,buth, &part->draw, 0, 0, 0, 0, "Use whole group at once");
 			if((part->draw & PART_DRAW_WHOLE_GR)==0)
 				uiDefButBitS(block, TOG, PART_DRAW_RAND_GR, B_PART_REDRAW, "Pick Random",	butx,(buty-=buth),butw,buth, &part->draw, 0, 0, 0, 0, "Pick objects from group randomly");
