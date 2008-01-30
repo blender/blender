@@ -5178,6 +5178,8 @@ static void collisionModifier_deformVerts(
 				// TODO: epsilon
 				// create bounding box hierarchy
 				collmd->tree = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sbift);
+				
+				collmd->time = current_time;
 			}
 			else if(numverts == collmd->numverts)
 			{
@@ -5207,9 +5209,14 @@ static void collisionModifier_deformVerts(
 					// recalc static bounding boxes
 					bvh_update_from_mvert(collmd->tree, collmd->current_x, numverts, NULL, 0);
 				}
+				
+				collmd->time = current_time;
+			}
+			else if(numverts != collmd->numverts)
+			{
+				collisionModifier_freeData((ModifierData *)collmd);
 			}
 			
-			collmd->time = current_time;
 		}
 		else
 		{	
@@ -7050,10 +7057,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->type = eModifierTypeType_Nonconstructive;
 		mti->initData = clothModifier_initData;
 		mti->flags = eModifierTypeFlag_AcceptsMesh
-				| eModifierTypeFlag_RequiresOriginalData;
-		 			// | eModifierTypeFlag_SupportsMapping
-					// | eModifierTypeFlag_SupportsEditmode 
-					// | eModifierTypeFlag_EnableInEditmode;
+				| eModifierTypeFlag_UsesPointCache;
 		mti->dependsOnTime = clothModifier_dependsOnTime;
 		mti->freeData = clothModifier_freeData; 
 		mti->requiredDataMask = clothModifier_requiredDataMask;
@@ -7064,8 +7068,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(Collision);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->initData = collisionModifier_initData;
-		mti->flags = eModifierTypeFlag_AcceptsMesh 
-				| eModifierTypeFlag_RequiresOriginalData;
+		mti->flags = eModifierTypeFlag_AcceptsMesh;
 		mti->dependsOnTime = collisionModifier_dependsOnTime;
 		mti->freeData = collisionModifier_freeData; 
 		mti->deformVerts = collisionModifier_deformVerts;
