@@ -1318,14 +1318,10 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		PyList_SET_ITEM(tarmats, index, tarmat);
 	}
 	
-	
-/*  since I can't remember what the armature weakrefs do, I'll just leave this here
-    commented out.  This function was based on pydrivers, and it might still be relevent.
-	if( !setup_armature_weakrefs()){
-		fprintf( stderr, "Oops - weakref dict setup\n");
-		return result;
+	if (!setup_armature_weakrefs()) {
+		fprintf(stderr, "Oops - weakref dict setup\n");
+		return;
 	}
-*/
 	
 	retval = RunPython(con->text, globals);
 	
@@ -1471,13 +1467,11 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 	tarmat = newMatrixObject((float *)ct->matrix, 4, 4, Py_NEW);
 	idprop = BPy_Wrap_IDProperty( NULL, con->prop, NULL);
 	
-/*  since I can't remember what the armature weakrefs do, I'll just leave this here
-    commented out.  This function was based on pydrivers, and it might still be relevent.
-	if( !setup_armature_weakrefs()){
-		fprintf( stderr, "Oops - weakref dict setup\n");
-		return result;
+	if (!setup_armature_weakrefs()) {
+		fprintf(stderr, "Oops - weakref dict setup\n");
+		return;
 	}
-*/
+	
 	retval = RunPython(con->text, globals);
 
 	if (retval == NULL) {
