@@ -1095,6 +1095,7 @@ static void input_preprocess(Sequence * seq, TStripElem* se, int cfra)
 	if(seq->flag & SEQ_MAKE_FLOAT) {
 		if (!se->ibuf->rect_float) {
 			IMB_float_from_rect(se->ibuf);
+			imb_freerectImBuf(se->ibuf);
 		}
 	}
 
