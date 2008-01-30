@@ -186,6 +186,8 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	}
 	else shr->combined[3]= 1.0f;
 	
+	/* add z */
+	shr->z= -shi->co[2];
 }
 
 /* **************************************************************************** */

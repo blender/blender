@@ -3575,6 +3575,11 @@ void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alph
 		int pixsize= 3;
 		
 		switch(rpass->passtype) {
+			case SCE_PASS_Z:
+				fp= rpass->rect + offset;
+				if(shr->z < *fp)
+					*fp= shr->z;
+				break;
 			case SCE_PASS_RGBA:
 				fp= rpass->rect + 4*offset;
 				addAlphaOverFloat(fp, shr->col);
@@ -3801,6 +3806,8 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 				
 				addAlphaUnderFloat(samp_shr->combined, shr->combined);
 				
+				samp_shr->z= MIN2(samp_shr->z, shr->z);
+
 				if(addpassflag & SCE_PASS_VECTOR) {
 					QUATCOPY(samp_shr->winspeed, shr->winspeed);
 				}
@@ -4071,6 +4078,8 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 					
 					/* for each mask-sample we alpha-under colors. then in end it's added using filter */
 					memset(samp_shr, 0, sizeof(ShadeResult)*R.osa);
+					for(a=0; a<R.osa; a++)
+						samp_shr[a].z= 10e10f;
 					
 					/* nice this memset, but speed vectors are not initialized OK then. it is sufficient to only clear 1 (see merge_transp_passes) */
 					if(addpassflag & SCE_PASS_VECTOR)

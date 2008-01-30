@@ -214,6 +214,8 @@ void interpolate_shade_result(ShadeResult *shr1, ShadeResult *shr2, float t, Sha
 	}
 	/* optim... */
 	if(addpassflag & ~(SCE_PASS_VECTOR)) {
+		if(addpassflag & SCE_PASS_Z)
+			interpolate_vec1(&shr1->z, &shr2->z, t, negt, &shr->z);
 		if(addpassflag & SCE_PASS_RGBA)
 			interpolate_vec4(shr1->col, shr2->col, t, negt, shr->col);
 		if(addpassflag & SCE_PASS_NORMAL) {
@@ -411,6 +413,7 @@ typedef struct StrandPart {
 	ZSpan *zspan;
 
 	APixstrand *apixbuf;
+	int *totapixbuf;
 	int *rectz;
 	long *rectdaps;
 	int rectx, recty;
@@ -483,6 +486,8 @@ static APixstrand *addpsAstrand(ZSpan *zspan)
 	return zspan->curpstrand;
 }
 
+#define MAX_ZROW	2000
+
 static void do_strand_fillac(void *handle, int x, int y, float u, float v, float z)
 {
 	StrandPart *spart= (StrandPart*)handle;
@@ -528,7 +533,7 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 	{apn->obi[n]= obi; apn->p[n]= strnr; apn->z[n]= zverg; apn->mask[n]= mask; apn->v[n]= t; apn->u[n]= s; apn->seg[n]= seg; break; }
 
 	/* add to pixel list */
-	if(zverg < bufferz) {
+	if(zverg < bufferz && (spart->totapixbuf[offset] < MAX_ZROW)) {
 		t = u*spart->t[0] + v*spart->t[1] + (1.0f-u-v)*spart->t[2];
 		s = fabs(u*spart->s[0] + v*spart->s[1] + (1.0f-u-v)*spart->s[2]);
 
@@ -551,6 +556,7 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 
 		strand_shade_refcount(cache, sseg->v[1]);
 		strand_shade_refcount(cache, sseg->v[2]);
+		spart->totapixbuf[offset]++;
 	}
 }
 
@@ -875,6 +881,8 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 
 	BLI_memarena_free(memarena);
 
+	spart.totapixbuf= MEM_callocN(sizeof(int)*pa->rectx*pa->recty, "totapixbuf");
+
 	if(!re->test_break()) {
 		/* render segments in sorted order */
 		sortseg= sortsegments;
@@ -907,6 +915,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 
 	if(sortsegments)
 		MEM_freeN(sortsegments);
+	MEM_freeN(spart.totapixbuf);
 	
 	zbuf_free_span(&zspan);
 

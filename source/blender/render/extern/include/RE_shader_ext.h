@@ -47,7 +47,7 @@ typedef struct ShadeResult
 {
 	float combined[4];
 	float col[4];
-	float alpha, mist;
+	float alpha, mist, z;
 	float diff[3];		/* no ramps, shadow, etc */
 	float spec[3];
 	float shad[3];

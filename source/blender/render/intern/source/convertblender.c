@@ -4746,7 +4746,7 @@ static void calculate_speedvectors(Render *re, ObjectInstanceRen *obi, float *ve
 				else strand++;
 
 				index= RE_strandren_get_face(obr, strand, 0);
-				if(index && *index) {
+				if(index) {
 					speed= RE_strandren_get_winspeed(obi, strand, 1);
 
 					/* interpolate speed vectors from strand surface */

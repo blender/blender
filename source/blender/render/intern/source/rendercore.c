@@ -359,7 +359,7 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 		switch(rpass->passtype) {
 			case SCE_PASS_Z:
 				fp= rpass->rect + offset;
-				*fp= -shi->co[2];
+				*fp= shr->z;
 				break;
 			case SCE_PASS_RGBA:
 				col= shr->col;
@@ -451,7 +451,7 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 		switch(rpass->passtype) {
 			case SCE_PASS_Z:
 				fp= rpass->rect + offset;
-				*fp= -shi->co[2];
+				*fp= shr->z;
 				break;
 			case SCE_PASS_RGBA:
 				col= shr->col;
