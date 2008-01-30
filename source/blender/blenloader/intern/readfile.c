@@ -727,8 +727,8 @@ BHead *blo_prevbhead(FileData *fd, BHead *thisblock)
 
 BHead *blo_nextbhead(FileData *fd, BHead *thisblock)
 {
-	BHeadN *new_bhead = 0;
-	BHead *bhead = 0;
+	BHeadN *new_bhead = NULL;
+	BHead *bhead = NULL;
 
 	if (thisblock) {
 		// bhead is actually a sub part of BHeadN
@@ -1033,7 +1033,9 @@ void blo_freefiledata(FileData *fd)
 			oldnewmap_free(fd->imamap);
 		if (fd->libmap && !(fd->flags & FD_FLAGS_NOT_MY_LIBMAP))
 			oldnewmap_free(fd->libmap);
-
+		if (fd->bheadmap)
+			MEM_freeN(fd->bheadmap);
+		
 		MEM_freeN(fd);
 	}
 }
@@ -7485,7 +7487,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 	/* do before read_libraries, but skip undo case */
 //	if(fd->memfile==NULL) (the mesh shuffle hacks don't work yet? ton)
 		do_versions(fd, NULL, bfd->main);
-	
+
 	read_libraries(fd, &fd->mainlist);
 	
 	blo_join_main(&fd->mainlist);
@@ -7504,6 +7506,43 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 
 /* ************* APPEND LIBRARY ************** */
 
+struct bheadsort {
+	BHead *bhead;
+	void *old;
+};
+
+static int verg_bheadsort(const void *v1, const void *v2)
+{
+	const struct bheadsort *x1=v1, *x2=v2;
+	
+	if( x1->old > x2->old) return 1;
+	else if( x1->old < x2->old) return -1;
+	return 0;
+}
+
+static void sort_bhead_old_map(FileData *fd)
+{
+	BHead *bhead;
+	struct bheadsort *bhs;
+	int tot= 0;
+	
+	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead))
+		tot++;
+	
+	fd->tot_bheadmap= tot;
+	if(tot==0) return;
+	
+	bhs= fd->bheadmap= MEM_mallocN(tot*sizeof(struct bheadsort), "bheadsort");
+	
+	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead), bhs++) {
+		bhs->bhead= bhead;
+		bhs->old= bhead->old;
+	}
+	
+	qsort(fd->bheadmap, tot, sizeof(struct bheadsort), verg_bheadsort);
+		
+}
+
 static BHead *find_previous_lib(FileData *fd, BHead *bhead)
 {
 	for (; bhead; bhead= blo_prevbhead(fd, bhead))
@@ -7516,13 +7555,23 @@ static BHead *find_previous_lib(FileData *fd, BHead *bhead)
 static BHead *find_bhead(FileData *fd, void *old)
 {
 	BHead *bhead;
-
+	struct bheadsort *bhs, bhs_s;
+	
 	if (!old)
 		return NULL;
 
-	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead))
-		if (bhead->old==old)
-			return bhead;
+	if (fd->bheadmap==NULL)
+		sort_bhead_old_map(fd);
+	
+	bhs_s.old= old;
+	bhs= bsearch(&bhs_s, fd->bheadmap, fd->tot_bheadmap, sizeof(struct bheadsort), verg_bheadsort);
+
+	if(bhs)
+		return bhs->bhead;
+	
+//	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead))
+//		if (bhead->old==old)
+//			return bhead;
 
 	return NULL;
 }

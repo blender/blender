@@ -37,6 +37,7 @@
 
 struct OldNewMap;
 struct MemFile;
+struct bheadsort;
 
 typedef struct FileData {
 	// linked list of BHeadN's
@@ -75,6 +76,9 @@ typedef struct FileData {
 	struct OldNewMap *globmap;
 	struct OldNewMap *libmap;
 	struct OldNewMap *imamap;
+	
+	struct bheadsort *bheadmap;
+	int tot_bheadmap;
 	
 	ListBase mainlist;
 	
