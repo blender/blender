@@ -1419,7 +1419,7 @@ void agroup_to_keylist(bActionGroup *agrp, ListBase *keys, ListBase *blocks, Act
 
 	if (agrp) {
 		/* loop through action channels */
-		for (achan= agrp->channels.first; achan && achan!=agrp->channels.last; achan= achan->next) {
+		for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
 			/* firstly, add keys from action channel's ipo block */
 			if (achan->ipo)
 				ipo_to_keylist(achan->ipo, keys, blocks, aki);

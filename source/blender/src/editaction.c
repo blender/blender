@@ -326,9 +326,13 @@ static void actdata_filter_actionchannel (ListBase *act_data, bActionChannel *ac
 					if (ale) BLI_addtail(act_data, ale);
 				}
 			}
+			else {
+				/* for insert key... this check could be improved */
+				return;
+			}
 			
 			/* check if expanded - if not, continue on to next action channel */
-			if (EXPANDED_ACHAN(achan) == 0) 
+			if (EXPANDED_ACHAN(achan) == 0 && (filter_mode & ACTFILTER_ONLYICU)==0) 
 				return;
 				
 			/* ipo channels */
@@ -360,7 +364,7 @@ static void actdata_filter_actionchannel (ListBase *act_data, bActionChannel *ac
 				}
 				
 				/* add constraint channels? */
-				if (FILTER_CON_ACHAN(achan)) {
+				if (FILTER_CON_ACHAN(achan) || (filter_mode & ACTFILTER_ONLYICU)) {
 					/* loop through constraint channels, checking and adding them */
 					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 						/* only work with this channel and its subchannels if it is editable */
