@@ -519,6 +519,10 @@ static void do_node_nodemenu(void *arg, int event)
 		case 12: /* rename */
 			node_rename(snode);
 			break;
+		case 13: /* read saved full sample layers */
+			node_read_fullsamplelayers(snode);
+			break;
+			
 	}
 	
 	if(fromlib==-1) error_libdata();
@@ -562,6 +566,7 @@ static uiBlock *node_nodemenu(void *arg_unused)
 	if(snode->treetype==NTREE_COMPOSIT) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Execute Composite|E", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Read Saved Render Results|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Read Saved Full Sample Results|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 	}
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Cyclic Dependencies|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 	

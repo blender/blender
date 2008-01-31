@@ -2012,6 +2012,22 @@ void node_read_renderlayers(SpaceNode *snode)
 	snode_handle_recalc(snode);
 }
 
+void node_read_fullsamplelayers(SpaceNode *snode)
+{
+	Render *re= RE_NewRender(G.scene->id.name);
+
+	waitcursor(1);
+
+	BIF_init_render_callbacks(re, 1);
+	RE_MergeFullSample(re, G.scene, snode->nodetree);
+	BIF_end_render_callbacks();
+	
+	allqueue(REDRAWNODE, 1);
+	allqueue(REDRAWIMAGE, 1);
+	
+	waitcursor(0);
+}
+
 /* called from header_info, when deleting a scene
  * goes over all scenes other than the input, checks if they have
  * render layer nodes referencing the to-be-deleted scene, and
@@ -2337,7 +2353,12 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case RKEY:
 			if(G.qual==LR_CTRLKEY) {
 				node_rename(snode);
-			} else{
+			} 
+			else if(G.qual==LR_SHIFTKEY) {
+				if(okee("Read saved Full Sample Layers"))
+					node_read_fullsamplelayers(snode);
+			}
+			else {
 				if(okee("Read saved Render Layers"))
 					node_read_renderlayers(snode);
 			}

@@ -2022,14 +2022,18 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 	float *rectf;
 	int sample;
 	
+	/* filtmask needs it */
+	R= *re;
+	
 	/* we accumulate in here */
 	rectf= MEM_mapallocN(re->rectx*re->recty*sizeof(float)*4, "fullsample rgba");
 	
-	for(sample=0; sample<re->osa; sample++) {
+	for(sample=0; sample<re->r.osa; sample++) {
 		RenderResult rres;
 		int x, y, mask;
 		
 		/* set all involved renders on the samplebuffers (first was done by render itself) */
+		/* also function below assumes this */
 		if(sample) {
 			Render *re1;
 			
@@ -2083,7 +2087,40 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 	re->result->rectf= rectf;
 }
 
-
+void RE_MergeFullSample(Render *re, Scene *sce, bNodeTree *ntree)
+{
+	Scene *scene;
+	bNode *node;
+	
+	/* first call RE_ReadRenderResult on every renderlayer scene. this creates Render structs */
+	
+	/* tag scenes unread */
+	for(scene= G.main->scene.first; scene; scene= scene->id.next) 
+		scene->id.flag |= LIB_DOIT;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type==CMP_NODE_R_LAYERS) {
+			Scene *nodescene= (Scene *)node->id;
+			
+			if(nodescene==NULL) nodescene= sce;
+			if(nodescene->id.flag & LIB_DOIT) {
+				nodescene->r.mode |= R_OSA;	/* render struct needs tables */
+				RE_ReadRenderResult(sce, nodescene);
+				nodescene->id.flag &= ~LIB_DOIT;
+			}
+		}
+	}
+	
+	/* own render result should be read/allocated */
+	if(G.scene->id.flag & LIB_DOIT)
+		RE_ReadRenderResult(G.scene, G.scene);
+	
+	/* and now we can draw (result is there) */
+	re->display_init(re->result);
+	re->display_clear(re->result);
+	
+	do_merge_fullsample(re, ntree);
+}
 
 /* returns fully composited render-result on given time step (in RenderData) */
 static void do_render_composite_fields_blur_3d(Render *re)
@@ -2111,7 +2148,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 			ntreeCompositTagAnimated(ntree);
 		}
 		
-		if(re->r.scemode & R_DOCOMP) {
+		if(ntree && re->r.scemode & R_DOCOMP) {
 			/* checks if there are render-result nodes that need scene */
 			if((re->r.scemode & R_SINGLE_LAYER)==0)
 				ntree_render_scenes(re);
@@ -2621,7 +2658,10 @@ void RE_ReadRenderResult(Scene *scene, Scene *scenode)
 	if(scenode)
 		scene= scenode;
 	
-	re= RE_NewRender(scene->id.name);
+	/* get render: it can be called from UI with draw callbacks */
+	re= RE_GetRender(scene->id.name);
+	if(re==NULL)
+		re= RE_NewRender(scene->id.name);
 	RE_InitState(re, &scene->r, winx, winy, &disprect);
 	re->scene= scene;
 	
