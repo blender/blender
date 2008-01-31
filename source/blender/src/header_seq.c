@@ -658,22 +658,23 @@ void seq_buttons()
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block,seq_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
 		xco+=xmax;
+		if (sseq->mainb == 0) {
+			xmax= GetButStringLength("Select");
+			uiDefPulldownBut(block,seq_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
+			xco+=xmax;
 
-		xmax= GetButStringLength("Select");
-		uiDefPulldownBut(block,seq_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
-		xco+=xmax;
-
-		xmax= GetButStringLength("Marker");
-		uiDefPulldownBut(block,seq_markermenu, NULL, "Marker", xco, -2, xmax-3, 24, "");
-		xco+=xmax;
+			xmax= GetButStringLength("Marker");
+			uiDefPulldownBut(block,seq_markermenu, NULL, "Marker", xco, -2, xmax-3, 24, "");
+			xco+=xmax;
 		
-		xmax= GetButStringLength("Add");
-		uiDefPulldownBut(block, seq_addmenu, NULL, "Add", xco, -2, xmax-3, 24, "");
-		xco+= xmax;
+			xmax= GetButStringLength("Add");
+			uiDefPulldownBut(block, seq_addmenu, NULL, "Add", xco, -2, xmax-3, 24, "");
+			xco+= xmax;
 
-		xmax= GetButStringLength("Strip");
-		uiDefPulldownBut(block, seq_editmenu, NULL, "Strip", xco, -2, xmax-3, 24, "");
-		xco+= xmax;
+			xmax= GetButStringLength("Strip");
+			uiDefPulldownBut(block, seq_editmenu, NULL, "Strip", xco, -2, xmax-3, 24, "");
+			xco+= xmax;
+		}
 
 		/* end of pull down menus */
 		uiBlockSetEmboss(block, UI_EMBOSS);
@@ -685,16 +686,18 @@ void seq_buttons()
 			  "|Sequence %x0"
 			  "|Image Preview %x1"
 			  "|Luma Waveform %x2"
-			  "|Chroma Vectorscope %x3",
+			  "|Chroma Vectorscope %x3"
+			  "|Histogram %x4",
 			  xco,0,XIC+10,YIC, &sseq->mainb, 0.0, 3.0, 
 			  0, 0, 
 			  "Shows the sequence output image preview");
 	
 	xco+= 8 + XIC+10;
 	
-	/* CHANNEL shown in 3D preview */
 	if(sseq->mainb) {
 		int minchan = 0;
+
+		/* CHANNEL shown in image preview */
 
 		if (G.scene->ed && ((Editing*)G.scene->ed)->metastack.first)
 			minchan = -BLI_countlist(&((Editing*)G.scene->ed)->metastack);
@@ -705,22 +708,51 @@ void seq_buttons()
 		"The channel number shown in the image preview. 0 is the result of all strips combined.");
 		
 		xco+= 8 + XIC*3.5;
+
+		if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+			uiDefButS(block, MENU, B_REDR, 
+				  "Show zebra: %t"
+				  "|Z 110 %x110"
+				  "|Z 100 %x100"
+				  "|Z 95  %x95"
+				  "|Z 90  %x90"
+				  "|Z 70  %x70"
+				  "|Z Off %x0", 
+				  xco,0,3.0 * XIC, YIC, &sseq->zebra, 
+				  0,0,0,0, 
+				  "Show overexposed "
+				  "areas with zebra stripes");
+
+			xco+= 8 + XIC*3.0;
+
+			uiDefButBitI(block, TOG, SEQ_DRAW_SAFE_MARGINS, 
+				     B_REDR, "T",
+				     xco,0,XIC,YIC, &sseq->flag, 
+				     0, 0, 0, 0, 
+				     "Draw title safe margins in preview");
+			xco+= 8 + XIC;
+		}
+		
+		if (sseq->mainb == SEQ_DRAW_IMG_WAVEFORM) {
+			uiDefButBitI(block, TOG, SEQ_DRAW_COLOR_SEPERATED, 
+				     B_REDR, "CS",
+				     xco,0,XIC,YIC, &sseq->flag, 
+				     0, 0, 0, 0, 
+				     "Seperate color channels in preview");
+			xco+= 8 + XIC;
+		}
+	} else {
+		/* ZOOM and BORDER */
+		xco+= 8;
+		uiBlockBeginAlign(block);
+		uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view in and out (Ctrl MiddleMouse)");
+		uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to fit area");
+		uiBlockEndAlign(block);
+
+		xco+= 16;
 	}
 
-	
-	/* ZOOM and BORDER */
-	xco+= 8;
-	uiBlockBeginAlign(block);
-	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view in and out (Ctrl MiddleMouse)");
-	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to fit area");
-	uiBlockEndAlign(block);
-
-	/* CLEAR MEM */
-	xco+= 8;
-
-	/* CLEAR MEM */
-	xco+= 8;
-	uiDefBut(block, BUT, B_SEQCLEAR, "Refresh",	xco+=XIC,0,3*XIC,YIC, 0, 0, 0, 0, 0, "Clears all buffered images in memory");
+	uiDefBut(block, BUT, B_SEQCLEAR, "Refresh", xco,0,3*XIC,YIC, 0, 0, 0, 0, 0, "Clears all buffered images in memory");
 
 	uiDrawBlock(block);
 }

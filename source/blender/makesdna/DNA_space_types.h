@@ -150,7 +150,7 @@ typedef struct SpaceSeq {
 	float xof, yof;	/* offset for drawing the image preview */
 	short mainb, zoom;
 	short chanshown;
-	short pad2;
+	short zebra;
 	int flag;
 	int pad;
 } SpaceSeq;
@@ -618,10 +618,13 @@ typedef struct SpaceImaSel {
 #define SEQ_DRAW_IMG_IMBUF        1
 #define SEQ_DRAW_IMG_WAVEFORM     2
 #define SEQ_DRAW_IMG_VECTORSCOPE  3
+#define SEQ_DRAW_IMG_HISTOGRAM    4
 
 /* sseq->flag */
-#define SEQ_DRAWFRAMES  1
+#define SEQ_DRAWFRAMES   1
 #define SEQ_MARKER_TRANS 2
+#define SEQ_DRAW_COLOR_SEPERATED     4
+#define SEQ_DRAW_SAFE_MARGINS        8
 
 /* space types, moved from DNA_screen_types.h */
 enum {
