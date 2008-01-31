@@ -313,7 +313,7 @@ void unproject(float out[3], const short x, const short y, const float z)
 }
 
 /* Convert a point in model coordinates to 2D screen coordinates. */
-void project(const float v[3], short p[2])
+static void projectf(const float v[3], float p[2])
 {
 	SculptSession *ss= sculpt_session();
 	double ux, uy, uz;
@@ -322,6 +322,15 @@ void project(const float v[3], short p[2])
 		   (GLint *)ss->mats->viewport, &ux, &uy, &uz);
 	p[0]= ux;
 	p[1]= uy;
+}
+
+static void project(const float v[3], short p[2])
+{
+	float f[2];
+	projectf(v, f);
+
+	p[0]= f[0];
+	p[1]= f[1];
 }
 
 /* ===== Sculpting =====
@@ -748,19 +757,14 @@ float tex_strength(BrushAction *a, float *point, const float len,const unsigned 
 		const unsigned tcw = ss->texcache_w, tch = ss->texcache_h;
 		int px, py;
 		unsigned i, *p;
-		ProjVert pv;
-		
+		float flip[3], point_2d[2];
+
 		/* If the active area is being applied for symmetry, flip it
 		   across the symmetry axis in order to project it. This insures
 		   that the brush texture will be oriented correctly. */
-		if(!a->symm.index)
-			pv= ss->projverts[vindex];
-		else {
-			float co[3];
-			VecCopyf(co, point);
-			flip_coord(co, a->symm.index);
-			project(co, pv.co);
-		}
+		VecCopyf(flip, point);
+		flip_coord(flip, a->symm.index);
+		projectf(flip, point_2d);
 
 		/* For Tile and Drag modes, get the 2D screen coordinates of the
 		   and scale them up or down to the texture size. */
@@ -768,15 +772,15 @@ float tex_strength(BrushAction *a, float *point, const float len,const unsigned 
 			const int sx= (const int)sd->mtex[sd->texact]->size[0];
 			const int sy= (const int)sd->texsep ? sd->mtex[sd->texact]->size[1] : sx;
 			
-			float fx= pv.co[0];
-			float fy= pv.co[1];
+			float fx= point_2d[0];
+			float fy= point_2d[1];
 			
 			float angle= atan2(fy, fx) - rot;
 			float len= sqrtf(fx*fx + fy*fy);
 			
 			if(rot<0.001 && rot>-0.001) {
-				px= pv.co[0];
-				py= pv.co[1];
+				px= point_2d[0];
+				py= point_2d[1];
 			} else {
 				px= len * cos(angle) + 2000;
 				py= len * sin(angle) + 2000;
@@ -785,10 +789,10 @@ float tex_strength(BrushAction *a, float *point, const float len,const unsigned 
 				px %= sx-1;
 			if(sy != 1)
 				py %= sy-1;
-			p= get_texcache_pixel(ss, tcw*px/sx, tch*py/sy);
+				p= get_texcache_pixel(ss, tcw*px/sx, tch*py/sy);
 		} else {
-			float fx= (pv.co[0] - a->mouse[0] + half) * (tcw*1.0f/bsize) - tcw/2;
-			float fy= (pv.co[1] - a->mouse[1] + half) * (tch*1.0f/bsize) - tch/2;
+			float fx= (point_2d[0] - a->mouse[0] + half) * (tcw*1.0f/bsize) - tcw/2;
+			float fy= (point_2d[1] - a->mouse[1] + half) * (tch*1.0f/bsize) - tch/2;
 
 			float angle= atan2(fy, fx) - rot;
 			float len= sqrtf(fx*fx + fy*fy);
