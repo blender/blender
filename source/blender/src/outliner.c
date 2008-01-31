@@ -29,6 +29,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stddef.h>
 
 #include "MEM_guardedalloc.h"
 
