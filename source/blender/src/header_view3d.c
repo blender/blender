@@ -2396,15 +2396,17 @@ extern ListBase session_list;
 
 static void do_view3d_edit_objectmenu(void *arg, int event)
 {
+#ifdef WITH_VERSE
+	struct VerseSession *session=NULL;
+	
 	/* needed to check for valid selected objects */
 	Base *base=NULL;
 	Object *ob=NULL;
-#ifdef WITH_VERSE
-	struct VerseSession *session=NULL;
-#endif
-
+	
 	base= BASACT;
 	if (base) ob= base->object;
+#endif
+
 	
 	switch(event) {
 	 

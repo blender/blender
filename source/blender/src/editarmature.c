@@ -253,7 +253,7 @@ void editbones_to_armature (ListBase *list, Object *ob)
 	for (eBone=list->first; eBone; eBone= neBone) {
 		float len= VecLenf(eBone->head, eBone->tail);
 		neBone= eBone->next;
-		if(len <= FLT_EPSILON) {
+		if (len <= FLT_EPSILON) {
 			EditBone *fBone;
 			
 			/*	Find any bones that refer to this bone	*/
@@ -267,7 +267,7 @@ void editbones_to_armature (ListBase *list, Object *ob)
 	}
 	
 	/*	Copy the bones from the editData into the armature */
-	for (eBone=list->first; eBone; eBone=eBone->next){
+	for (eBone=list->first; eBone; eBone=eBone->next) {
 		newBone= MEM_callocN (sizeof(Bone), "bone");
 		eBone->temp= newBone;	/* Associate the real Bones with the EditBones */
 		
@@ -275,7 +275,8 @@ void editbones_to_armature (ListBase *list, Object *ob)
 		memcpy (newBone->head, eBone->head, sizeof(float)*3);
 		memcpy (newBone->tail, eBone->tail, sizeof(float)*3);
 		newBone->flag= eBone->flag;
-		if(eBone->flag & BONE_ACTIVE) newBone->flag |= BONE_SELECTED;	/* important, editbones can be active with only 1 point selected */
+		if (eBone->flag & BONE_ACTIVE) 
+			newBone->flag |= BONE_SELECTED;	/* important, editbones can be active with only 1 point selected */
 		newBone->roll = 0.0f;
 		
 		newBone->weight = eBone->weight;
@@ -289,16 +290,15 @@ void editbones_to_armature (ListBase *list, Object *ob)
 		newBone->rad_tail= eBone->rad_tail;
 		newBone->segments= eBone->segments;
 		newBone->layer = eBone->layer;
-		
 	}
 	
 	/*	Fix parenting in a separate pass to ensure ebone->bone connections
 		are valid at this point */
 	for (eBone=list->first;eBone;eBone=eBone->next) {
-		newBone= (Bone*) eBone->temp;
-		if (eBone->parent){
-			newBone->parent=(Bone*) eBone->parent->temp;
-			BLI_addtail (&newBone->parent->childbase,newBone);
+		newBone= (Bone *)eBone->temp;
+		if (eBone->parent) {
+			newBone->parent=(Bone *)eBone->parent->temp;
+			BLI_addtail(&newBone->parent->childbase,newBone);
 			
 			{
 				float M_boneRest[3][3];
@@ -320,14 +320,14 @@ void editbones_to_armature (ListBase *list, Object *ob)
 				/* Get the new head and tail */
 				VecSubf (newBone->head, eBone->head, eBone->parent->tail);
 				VecSubf (newBone->tail, eBone->tail, eBone->parent->tail);
-
+				
 				Mat3MulVecfl(iM_parentRest, newBone->head);
 				Mat3MulVecfl(iM_parentRest, newBone->tail);
 			}
 		}
 		/*	...otherwise add this bone to the armature's bonebase */
 		else
-			BLI_addtail (&arm->bonebase,newBone);
+			BLI_addtail(&arm->bonebase,newBone);
 	}
 	
 	/* Make a pass through the new armature to fix rolling */
