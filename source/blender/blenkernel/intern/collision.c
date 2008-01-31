@@ -151,6 +151,8 @@ Collision modifier code end
  *
  * copied from SOLVE_CUBIC.C --> GSL
  */
+
+/* DG: debug hint! don't forget that all functions were "fabs", "sinf", etc before */
 #define mySWAP(a,b) { float tmp = b ; b = a ; a = tmp ; }
 
 int gsl_poly_solve_cubic (float a, float b, float c, float *x0, float *x1, float *x2)
@@ -183,7 +185,7 @@ int gsl_poly_solve_cubic (float a, float b, float c, float *x0, float *x1, float
 		considered to be a pair of complex roots z = x +/- epsilon i
 		close to the real axis. */
 
-		float sqrtQ = sqrtf (Q);
+		float sqrtQ = sqrt (Q);
 
 		if (R > 0)
 		{
@@ -201,13 +203,13 @@ int gsl_poly_solve_cubic (float a, float b, float c, float *x0, float *x1, float
 	}
 	else if (CR2 < CQ3) /* equivalent to R2 < Q3 */
 	{
-		float sqrtQ = sqrtf (Q);
+		float sqrtQ = sqrt (Q);
 		float sqrtQ3 = sqrtQ * sqrtQ * sqrtQ;
-		float theta = acosf (R / sqrtQ3);
+		float theta = acos (R / sqrtQ3);
 		float norm = -2 * sqrtQ;
-		*x0 = norm * cosf (theta / 3) - a / 3;
-		*x1 = norm * cosf ((theta + 2.0 * M_PI) / 3) - a / 3;
-		*x2 = norm * cosf ((theta - 2.0 * M_PI) / 3) - a / 3;
+		*x0 = norm * cos (theta / 3) - a / 3;
+		*x1 = norm * cos ((theta + 2.0 * M_PI) / 3) - a / 3;
+		*x2 = norm * cos ((theta - 2.0 * M_PI) / 3) - a / 3;
       
 		/* Sort *x0, *x1, *x2 into increasing order */
 
@@ -227,7 +229,7 @@ int gsl_poly_solve_cubic (float a, float b, float c, float *x0, float *x1, float
 	else
 	{
 		float sgnR = (R >= 0 ? 1 : -1);
-		float A = -sgnR * powf (fabs (R) + sqrtf (R2 - Q3), 1.0/3.0);
+		float A = -sgnR * pow (ABS (R) + sqrt (R2 - Q3), 1.0/3.0);
 		float B = Q / A ;
 		*x0 = A + B - a / 3;
 		return 1;
@@ -248,14 +250,14 @@ int gsl_poly_solve_quadratic (float a, float b, float c,  float *x0, float *x1)
 	{
 		if (b == 0)
 		{
-			float r = fabs (0.5 * sqrtf (disc) / a);
+			float r = ABS (0.5 * sqrt (disc) / a);
 			*x0 = -r;
 			*x1 =  r;
 		}
 		else
 		{
 			float sgnb = (b > 0 ? 1 : -1);
-			float temp = -0.5 * (b + sgnb * sqrtf (disc));
+			float temp = -0.5 * (b + sgnb * sqrt (disc));
 			float r1 = temp / a ;
 			float r2 = c / temp ;
 
