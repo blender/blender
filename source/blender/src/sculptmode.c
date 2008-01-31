@@ -714,13 +714,40 @@ float to_deg(const float rad)
 }
 
 /* Get a pixel from the texcache at (px, py) */
-unsigned *get_texcache_pixel(const SculptSession *ss, int px, int py)
+static unsigned char get_texcache_pixel(const SculptSession *ss, int px, int py)
 {
-	if(px < 0) px= 0;
-	if(py < 0) py= 0;
-	if(px > ss->texcache_w - 1) px= ss->texcache_w - 1;
-	if(py > ss->texcache_h - 1) py= ss->texcache_h - 1;
-	return ss->texcache + py * ss->texcache_w + px;
+	unsigned *p;
+	p = ss->texcache + py * ss->texcache_w + px;
+	return ((unsigned char*)(p))[0];
+}
+
+static float get_texcache_pixel_bilinear(const SculptSession *ss, float u, float v)
+{
+	int x, y, x2, y2;
+	const int tc_max = TC_SIZE - 1;
+	float urat, vrat, uopp;
+
+	if(u < 0) u = 0;
+	else if(u >= TC_SIZE) u = tc_max;
+	if(v < 0) v = 0;
+	else if(v >= TC_SIZE) v = tc_max;
+
+	x = floor(u);
+	y = floor(v);
+	x2 = x + 1;
+	y2 = y + 1;
+
+	if(x2 > TC_SIZE) x2 = tc_max;
+	if(y2 > TC_SIZE) y2 = tc_max;
+	
+	urat = u - x;
+	vrat = v - y;
+	uopp = 1 - urat;
+		
+	return ((get_texcache_pixel(ss, x, y) * uopp +
+		 get_texcache_pixel(ss, x2, y) * urat) * (1 - vrat) + 
+		(get_texcache_pixel(ss, x, y2) * uopp +
+		 get_texcache_pixel(ss, x2, y2) * urat) * vrat) / 255.0;
 }
 
 /* Return a multiplier for brush strength on a particular vertex. */
@@ -751,12 +778,9 @@ float tex_strength(BrushAction *a, float *point, const float len,const unsigned 
 		externtex(&mtex,point,&avg,&jnk,&jnk,&jnk,&jnk);
 	}
 	else if(ss->texcache) {
-		const short bsize= sculptmode_brush()->size * 2;
-		const short half= sculptmode_brush()->size;
+		const float bsize= sculptmode_brush()->size * 2;
 		const float rot= to_rad(sculpt_tex_angle());
-		const unsigned tcw = ss->texcache_w, tch = ss->texcache_h;
 		int px, py;
-		unsigned i, *p;
 		float flip[3], point_2d[2];
 
 		/* If the active area is being applied for symmetry, flip it
@@ -789,25 +813,19 @@ float tex_strength(BrushAction *a, float *point, const float len,const unsigned 
 				px %= sx-1;
 			if(sy != 1)
 				py %= sy-1;
-				p= get_texcache_pixel(ss, tcw*px/sx, tch*py/sy);
+			avg= get_texcache_pixel_bilinear(ss, TC_SIZE*px/sx, TC_SIZE*py/sy);
 		} else {
-			float fx= (point_2d[0] - a->mouse[0] + half) * (tcw*1.0f/bsize) - tcw/2;
-			float fy= (point_2d[1] - a->mouse[1] + half) * (tch*1.0f/bsize) - tch/2;
+			float fx= (point_2d[0] - a->mouse[0]) / bsize;
+			float fy= (point_2d[1] - a->mouse[1]) / bsize;
 
 			float angle= atan2(fy, fx) - rot;
 			float len= sqrtf(fx*fx + fy*fy);
 			
-			px= tcw/2 + len * cos(angle);
-			py= tch/2 + len * sin(angle);
+			fx = len * cos(angle) + 0.5;
+			fy = len * sin(angle) + 0.5;
 
-			p= get_texcache_pixel(ss, px, py);
+			avg= get_texcache_pixel_bilinear(ss, fx * TC_SIZE, fy * TC_SIZE);
 		}
-		
-		avg= 0;
-		for(i=0; i<3; ++i)
-			avg+= ((unsigned char*)(p))[i] / 255.0f;
-
-		avg/= 3;
 	}
 
 	if(sd->texfade)
