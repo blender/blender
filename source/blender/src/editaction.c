@@ -235,22 +235,36 @@ bActListElem *make_new_actlistelem (void *data, short datatype, void *owner, sho
 			}	
 				break;
 			case ACTTYPE_CONCHAN:
+			case ACTTYPE_CONCHAN2:
 			{
 				bConstraintChannel *conchan= (bConstraintChannel *)data;
 				
 				ale->flag= conchan->flag;
 				
-				if (conchan->ipo && conchan->ipo->curve.first) {
-					/* we assume that constraint ipo blocks only have 1 curve:
-					 * INFLUENCE, so we pretend that a constraint channel is 
-					 * really just a Ipo-Curve channel instead.
-					 */
-					ale->key_data= conchan->ipo->curve.first;
-					ale->datatype= ALE_ICU;
+				if (datatype == ACTTYPE_CONCHAN2) {
+					/* CONCHAN2 is a hack so that constraint-channels keyframes can be edited */
+					if (conchan->ipo) {
+						ale->key_data= conchan->ipo;
+						ale->datatype= ALE_IPO;
+					}
+					else {
+						ale->key_data= NULL;
+						ale->datatype= ALE_NONE;
+					}
 				}
 				else {
-					ale->key_data= NULL;
-					ale->datatype= ALE_NONE;
+					if (conchan->ipo && conchan->ipo->curve.first) {
+						/* we assume that constraint ipo blocks only have 1 curve:
+						 * INFLUENCE, so we pretend that a constraint channel is 
+						 * really just a Ipo-Curve channel instead.
+						 */
+						ale->key_data= conchan->ipo->curve.first;
+						ale->datatype= ALE_ICU;
+					}
+					else {
+						ale->key_data= NULL;
+						ale->datatype= ALE_NONE;
+					}
 				}
 			}
 				break;
@@ -293,7 +307,7 @@ bActListElem *make_new_actlistelem (void *data, short datatype, void *owner, sho
 }
  
 /* ----------------------------------------- */
- 
+
 static void actdata_filter_actionchannel (ListBase *act_data, bActionChannel *achan, int filter_mode)
 {
 	bActListElem *ale;
@@ -312,17 +326,13 @@ static void actdata_filter_actionchannel (ListBase *act_data, bActionChannel *ac
 					if (ale) BLI_addtail(act_data, ale);
 				}
 			}
-			else {
-				/* only consider selected channels - achan not selected */
-				return;
-			}	
 			
 			/* check if expanded - if not, continue on to next action channel */
-			if (EXPANDED_ACHAN(achan) == 0 && (filter_mode & ACTFILTER_ONLYICU)==0) 
+			if (EXPANDED_ACHAN(achan) == 0) 
 				return;
 				
 			/* ipo channels */
-			if (achan->ipo) {
+			if ((achan->ipo) && (filter_mode & ACTFILTER_IPOKEYS)==0) {
 				/* include ipo-expand widget? */
 				if ((filter_mode & ACTFILTER_CHANNELS) && (filter_mode & ACTFILTER_ONLYICU)==0) {
 					ale= make_new_actlistelem(achan, ACTTYPE_FILLIPO, achan, ACTTYPE_ACHAN);
@@ -342,12 +352,14 @@ static void actdata_filter_actionchannel (ListBase *act_data, bActionChannel *ac
 			/* constraint channels */
 			if (achan->constraintChannels.first) {
 				/* include constraint-expand widget? */
-				if ((filter_mode & ACTFILTER_CHANNELS) && (filter_mode & ACTFILTER_ONLYICU)==0) {
+				if ( (filter_mode & ACTFILTER_CHANNELS) && !(filter_mode & ACTFILTER_ONLYICU)
+					 && !(filter_mode & ACTFILTER_IPOKEYS) ) 
+				{
 					ale= make_new_actlistelem(achan, ACTTYPE_FILLCON, achan, ACTTYPE_ACHAN);
 					if (ale) BLI_addtail(act_data, ale);
 				}
 				
-				/* add constaint channels? */
+				/* add constraint channels? */
 				if (FILTER_CON_ACHAN(achan)) {
 					/* loop through constraint channels, checking and adding them */
 					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
@@ -355,9 +367,13 @@ static void actdata_filter_actionchannel (ListBase *act_data, bActionChannel *ac
 						if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_CONCHAN(conchan)) {
 							/* check if this conchan should only be included if it is selected */
 							if (!(filter_mode & ACTFILTER_SEL) || SEL_CONCHAN(conchan)) {
-								if ((filter_mode & ACTFILTER_ONLYICU)==0) {
+								if (filter_mode & ACTFILTER_IPOKEYS) {
+									ale= make_new_actlistelem(conchan, ACTTYPE_CONCHAN2, achan, ACTTYPE_ACHAN);
+									if (ale) BLI_addtail(act_data, ale);
+								}
+								else {
 									ale= make_new_actlistelem(conchan, ACTTYPE_CONCHAN, achan, ACTTYPE_ACHAN);
-									if (ale) BLI_addtail(act_data, ale); 
+									if (ale) BLI_addtail(act_data, ale);
 								}
 							}
 						}
@@ -3929,15 +3945,15 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		case AKEY:
 			if (mval[0]<NAMEWIDTH) {
-				deselect_action_channels (1);
+				deselect_action_channels(1);
 				allqueue(REDRAWVIEW3D, 0);
 				allqueue(REDRAWACTION, 0);
 				allqueue(REDRAWNLA, 0);
 				allqueue(REDRAWIPO, 0);
 			}
-			else if (mval[0]>ACTWIDTH) {
+			else if (mval[0] > ACTWIDTH) {
 				if (G.qual == LR_CTRLKEY) {
-					deselect_markers (1, 0);
+					deselect_markers(1, 0);
 					allqueue(REDRAWTIME, 0);
 					allqueue(REDRAWIPO, 0);
 					allqueue(REDRAWACTION, 0);
@@ -3945,7 +3961,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					allqueue(REDRAWSOUND, 0);
 				}
 				else {
-					deselect_action_keys (1, 1);
+					deselect_action_keys(1, 1);
 					allqueue(REDRAWACTION, 0);
 					allqueue(REDRAWNLA, 0);
 					allqueue(REDRAWIPO, 0);
@@ -3971,7 +3987,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		
 		case DKEY:
-			if (mval[0]>ACTWIDTH) {
+			if (mval[0] > ACTWIDTH) {
 				if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
 					duplicate_marker();
 				else if (G.qual == LR_SHIFTKEY)
