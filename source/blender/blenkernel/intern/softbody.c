@@ -106,7 +106,7 @@ typedef struct BodySpring {
 
 typedef struct BodyFace {
 	int v1, v2, v3 ,v4;
-	float ext_force[3]; /* edges colliding and sailing */
+	float ext_force[3]; /* faces colliding */
 	short flag;
 } BodyFace;
 
@@ -135,7 +135,9 @@ typedef struct SBScratch {
 
 #define BSF_INTERSECT   1 /* edge intersects collider face */
 #define SBF_DOFUZZY     1 /* edge intersects collider face */
-#define BFF_INTERSECT   1 /* edge intersects collider face */
+
+#define BFF_INTERSECT   1 /* collider edge   intrudes face */
+#define BFF_CLOSEVERT   2 /* collider vertex repulses face */
 
 
 float SoftHeunTol = 1.0f; /* humm .. this should be calculated from sb parameters and sizes */
@@ -892,6 +894,8 @@ static void renew_softbody(Object *ob, int totpoint, int totspring)
 			bp->nofsprings= 0;
 			bp->springs= NULL;
 			bp->choke = 0.0f;
+			bp->choke2 = 0.0f;
+			bp->frozen = 1.0f;
 			bp->colball = 0.0f;
 			bp->flag = 0;
 
@@ -1110,6 +1114,103 @@ int sb_detect_aabb_collisionCached(	float force[3], unsigned int par_layer,struc
 
 
 /* +++ the face external section*/
+int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float face_v3[3],float *damp,						
+								   float force[3], unsigned int par_layer,struct Object *vertexowner,float time)
+								   {
+	Object *ob;
+	GHash *hash;
+	GHashIterator *ihash;
+	float nv1[3], edge1[3], edge2[3], d_nvect[3], aabbmin[3],aabbmax[3];
+	float facedist,outerfacethickness,tune = 10.f;
+	int a, deflected=0;
+
+	aabbmin[0] = MIN3(face_v1[0],face_v2[0],face_v3[0]);
+	aabbmin[1] = MIN3(face_v1[1],face_v2[1],face_v3[1]);
+	aabbmin[2] = MIN3(face_v1[2],face_v2[2],face_v3[2]);
+	aabbmax[0] = MAX3(face_v1[0],face_v2[0],face_v3[0]);
+	aabbmax[1] = MAX3(face_v1[1],face_v2[1],face_v3[1]);
+	aabbmax[2] = MAX3(face_v1[2],face_v2[2],face_v3[2]);
+
+	/* calculate face normal once again SIGH */
+	VECSUB(edge1, face_v1, face_v2);
+	VECSUB(edge2, face_v3, face_v2);
+	Crossf(d_nvect, edge2, edge1);
+	Normalize(d_nvect);
+
+
+	hash  = vertexowner->soft->scratch->colliderhash;
+	ihash =	BLI_ghashIterator_new(hash);
+    while (!BLI_ghashIterator_isDone(ihash) ) {
+
+		ccd_Mesh *ccdm = BLI_ghashIterator_getValue	(ihash);
+		ob             = BLI_ghashIterator_getKey	(ihash);
+			/* only with deflecting set */
+			if(ob->pd && ob->pd->deflect) {
+				MVert *mvert= NULL;
+				MVert *mprevvert= NULL;
+				if(ccdm){
+					mvert= ccdm->mvert;
+					a    = ccdm->totvert; 
+					mprevvert= ccdm->mprevvert;				
+					outerfacethickness =ob->pd->pdef_sboft;
+					if ((aabbmax[0] < ccdm->bbmin[0]) || 
+						(aabbmax[1] < ccdm->bbmin[1]) ||
+						(aabbmax[2] < ccdm->bbmin[2]) ||
+						(aabbmin[0] > ccdm->bbmax[0]) || 
+						(aabbmin[1] > ccdm->bbmax[1]) || 
+						(aabbmin[2] > ccdm->bbmax[2]) ) {
+						/* boxes dont intersect */ 
+						BLI_ghashIterator_step(ihash);
+						continue;				
+					}					
+
+				}
+				else{
+					/*aye that should be cached*/
+					printf("missing cache error \n");
+					BLI_ghashIterator_step(ihash);
+					continue;				
+				}
+
+
+				/* use mesh*/
+				if (mvert) {
+					while(a){
+						VECCOPY(nv1,mvert[a-1].co);						
+						if(mprevvert){
+							VecMulf(nv1,time);
+							Vec3PlusStVec(nv1,(1.0f-time),mprevvert[a-1].co);
+						}
+						/* origin to face_v2*/
+						VECSUB(nv1, nv1, face_v2);
+						facedist = Inpf(nv1,d_nvect);
+						if (ABS(facedist)<outerfacethickness){
+							if (point_in_tri_prism(nv1, face_v1,face_v2,face_v3) ){
+								float df;
+								if (facedist > 0){
+									df = (outerfacethickness-facedist)/outerfacethickness;
+								}
+								else {
+									df = (outerfacethickness+facedist)/outerfacethickness;
+								}
+
+								*damp=df*tune*ob->pd->pdef_sbdamp;
+
+								df = 0.01f*exp(- 100.0f*df);
+								Vec3PlusStVec(force,-df,d_nvect);
+								deflected = 3;
+							}
+						}
+						a--;
+					}/* while(a)*/
+				} /* if (mvert) */
+			} /* if(ob->pd && ob->pd->deflect) */
+			BLI_ghashIterator_step(ihash);
+	} /* while () */
+	BLI_ghashIterator_free(ihash);
+	return deflected;	
+}
+
 
 int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_v3[3],float *damp,						
 								   float force[3], unsigned int par_layer,struct Object *vertexowner,float time)
@@ -1118,7 +1219,7 @@ int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_
 	GHash *hash;
 	GHashIterator *ihash;
 	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3], d_nvect[3], aabbmin[3],aabbmax[3];
-	float t;
+	float t,tune = 10.0f;
 	int a, deflected=0;
 
 	aabbmin[0] = MIN3(face_v1[0],face_v2[0],face_v3[0]);
@@ -1217,8 +1318,8 @@ int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_
 						LineIntersectsTriangle(nv1, nv2, face_v1, face_v2, face_v3, &t, NULL) ||
 						LineIntersectsTriangle(nv2, nv3, face_v1, face_v2, face_v3, &t, NULL) ||
 						LineIntersectsTriangle(nv3, nv1, face_v1, face_v2, face_v3, &t, NULL) ){
-						Vec3PlusStVec(force,-1.0f,d_nvect);
-						*damp=ob->pd->pdef_sbdamp;
+						Vec3PlusStVec(force,-0.5f,d_nvect);
+						*damp=tune*ob->pd->pdef_sbdamp;
 						deflected = 2;
 					}
 					if (mface->v4){ /* quad */
@@ -1228,11 +1329,12 @@ int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_
 						Crossf(d_nvect, edge2, edge1);
 						Normalize(d_nvect);	
 						if ( 
-							LineIntersectsTriangle(nv1, nv3, face_v1, face_v2, face_v3, &t, NULL) ||
+							/* LineIntersectsTriangle(nv1, nv3, face_v1, face_v2, face_v3, &t, NULL) ||
+							 we did that edge allready */
 							LineIntersectsTriangle(nv3, nv4, face_v1, face_v2, face_v3, &t, NULL) ||
 							LineIntersectsTriangle(nv4, nv1, face_v1, face_v2, face_v3, &t, NULL) ){
-							Vec3PlusStVec(force,-1.0f,d_nvect);
-							*damp=ob->pd->pdef_sbdamp;
+							Vec3PlusStVec(force,-0.5f,d_nvect);
+							*damp=tune*ob->pd->pdef_sbdamp;
 							deflected = 2;
 						}
 					}
@@ -1253,7 +1355,7 @@ void scan_for_ext_face_forces(Object *ob,float timenow)
 	SoftBody *sb = ob->soft;
 	BodyFace *bf;
 	int a;
-	float damp; 
+	float damp=0.0f,choke=1.0f; 
 	float tune = -10.0f;
 	float feedback[3];
 	
@@ -1263,43 +1365,71 @@ void scan_for_ext_face_forces(Object *ob,float timenow)
 		bf = sb->scratch->bodyface;
 		for(a=0; a<sb->scratch->totface; a++, bf++) {
 			bf->ext_force[0]=bf->ext_force[1]=bf->ext_force[2]=0.0f; 
+/*+++edges intruding*/
+			bf->flag &= ~BFF_INTERSECT;		
 			feedback[0]=feedback[1]=feedback[2]=0.0f;
-			bf->flag &= ~BFF_INTERSECT;
-			
 			if (sb_detect_face_collisionCached(sb->bpoint[bf->v1].pos,sb->bpoint[bf->v2].pos, sb->bpoint[bf->v3].pos, 
 				&damp,	feedback, ob->lay ,ob , timenow)){
-				Vec3PlusStVec(bf->ext_force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v1].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v2].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v3].force,tune,feedback);
+//				Vec3PlusStVec(bf->ext_force,tune,feedback);
 				bf->flag |= BFF_INTERSECT;
+				choke = MIN2(MAX2(damp,choke),1.0f);
 			}
 
 			feedback[0]=feedback[1]=feedback[2]=0.0f;
 			if ((bf->v4) && (sb_detect_face_collisionCached(sb->bpoint[bf->v1].pos,sb->bpoint[bf->v3].pos, sb->bpoint[bf->v4].pos, 
 				&damp,	feedback, ob->lay ,ob , timenow))){
-				Vec3PlusStVec(bf->ext_force,tune,feedback);
-				bf->flag |= BFF_INTERSECT;	
+				Vec3PlusStVec(sb->bpoint[bf->v1].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v3].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v4].force,tune,feedback);
+//				Vec3PlusStVec(bf->ext_force,tune,feedback);
+				bf->flag |= BFF_INTERSECT;
+				choke = MIN2(MAX2(damp,choke),1.0f);
 			}
-		}
+/*---edges intruding*/
 
-		
-		
-		bf = sb->scratch->bodyface;
-		for(a=0; a<sb->scratch->totface; a++, bf++) {
-			if ( bf->flag & BFF_INTERSECT)
-			{
-				VECADD(sb->bpoint[bf->v1].force,sb->bpoint[bf->v1].force,bf->ext_force); 
-				VECADD(sb->bpoint[bf->v2].force,sb->bpoint[bf->v2].force,bf->ext_force);
-				VECADD(sb->bpoint[bf->v3].force,sb->bpoint[bf->v3].force,bf->ext_force); 
-				if (bf->v4){
-				VECADD(sb->bpoint[bf->v4].force,sb->bpoint[bf->v4].force,bf->ext_force);
+/*+++ close vertices*/
+			if  (( bf->flag & BFF_INTERSECT)==0){
+				bf->flag &= ~BFF_CLOSEVERT;
+				tune = -1.0f;
+				feedback[0]=feedback[1]=feedback[2]=0.0f;
+				if (sb_detect_face_pointCached(sb->bpoint[bf->v1].pos,sb->bpoint[bf->v2].pos, sb->bpoint[bf->v3].pos, 
+					&damp,	feedback, ob->lay ,ob , timenow)){
+				Vec3PlusStVec(sb->bpoint[bf->v1].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v2].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v3].force,tune,feedback);
+//						Vec3PlusStVec(bf->ext_force,tune,feedback);
+						bf->flag |= BFF_CLOSEVERT;
+						choke = MIN2(MAX2(damp,choke),1.0f);
 				}
 
+				feedback[0]=feedback[1]=feedback[2]=0.0f;
+				if ((bf->v4) && (sb_detect_face_pointCached(sb->bpoint[bf->v1].pos,sb->bpoint[bf->v3].pos, sb->bpoint[bf->v4].pos, 
+					&damp,	feedback, ob->lay ,ob , timenow))){
+				Vec3PlusStVec(sb->bpoint[bf->v1].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v3].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v4].force,tune,feedback);
+//						Vec3PlusStVec(bf->ext_force,tune,feedback);
+						bf->flag |= BFF_CLOSEVERT;
+						choke = MIN2(MAX2(damp,choke),1.0f);
+				}
 			}
-			
+/*--- close vertices*/
 		}
-
-
-
-
+		bf = sb->scratch->bodyface;
+		for(a=0; a<sb->scratch->totface; a++, bf++) {
+			if (( bf->flag & BFF_INTERSECT) || ( bf->flag & BFF_CLOSEVERT))
+			{
+                sb->bpoint[bf->v1].choke2=MAX2(sb->bpoint[bf->v1].choke2,choke);
+                sb->bpoint[bf->v2].choke2=MAX2(sb->bpoint[bf->v2].choke2,choke);
+                sb->bpoint[bf->v3].choke2=MAX2(sb->bpoint[bf->v3].choke2,choke);
+				if (bf->v4){
+                sb->bpoint[bf->v2].choke2=MAX2(sb->bpoint[bf->v2].choke2,choke);
+				}
+			}	
+		}
 	}
 }
 
@@ -2458,6 +2588,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 			}
 			/* +++cached collision targets */
 			bp->choke = 0.0f;
+			bp->choke2 = 0.0f;
 			bp->flag &= ~SBF_DOFUZZY;
 			if(do_deflector) {
 				float cfforce[3],defforce[3] ={0.0f,0.0f,0.0f}, vel[3] = {0.0f,0.0f,0.0f}, facenormal[3], cf = 1.0f,intrusion;
@@ -2671,6 +2802,11 @@ static void softbody_apply_fake_implicit_forces(Object *ob, float forcetime, flo
 					dx[1]*=(1.0f - bp->choke);
 					dx[2]*=(1.0f - bp->choke);
 				}
+				if (bp->choke2 > 0.0f){
+					dx[0]*=(1.0f - bp->choke2);
+					dx[1]*=(1.0f - bp->choke2);
+					dx[2]*=(1.0f - bp->choke2);
+				}
 
 			
 			/* should be possible to get more out of the matrix inversion
@@ -2725,7 +2861,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint *bp;
 	float dx[3],dv[3],aabbmin[3],aabbmax[3],cm[3]={0.0f,0.0f,0.0f};
-	float timeovermass;
+	float timeovermass,freezeloc=0.00001f,freezeforce=0.00000000001f;
 	float maxerrpos= 0.0f,maxerrvel = 0.0f;
 	int a,fuzzy=0;
 
@@ -2740,15 +2876,14 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 		if(bp->goal < SOFTGOALSNAP){
-            if(mid_flags & MID_PRESERVE) VECCOPY(dx,bp->vec);
+            /* this makes t~ = t */
+			if(mid_flags & MID_PRESERVE) VECCOPY(dx,bp->vec);
 			
 			/* so here is (v)' = a(cceleration) = sum(F_springs)/m + gravitation + some friction forces  + more forces*/
 			/* the ( ... )' operator denotes derivate respective time */
 			/* the euler step for velocity then becomes */
 			/* v(t + dt) = v(t) + a(t) * dt */ 
-			bp->force[0]*= timeovermass; /* individual mass of node here */ 
-			bp->force[1]*= timeovermass;
-			bp->force[2]*= timeovermass;
+			VecMulf(bp->force,timeovermass);/* individual mass of node here */
 			/* some nasty if's to have heun in here too */
 			VECCOPY(dv,bp->force); 
 
@@ -2769,13 +2904,25 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 			}
 			else {VECADD(bp->vec, bp->vec, bp->force);}
 
+            /* this makes t~ = t+dt */
+			if(!(mid_flags & MID_PRESERVE)) VECCOPY(dx,bp->vec);
+
 			/* so here is (x)'= v(elocity) */
 			/* the euler step for location then becomes */
-			/* x(t + dt) = x(t) + v(t) * dt */ 
-			if(!(mid_flags & MID_PRESERVE)) VECCOPY(dx,bp->vec);
-			dx[0]*=forcetime; 
-			dx[1]*=forcetime; 
-			dx[2]*=forcetime; 
+			/* x(t + dt) = x(t) + v(t~) * dt */ 
+			VecMulf(dx,forcetime);
+
+			/* the freezer */
+			/* disable slip stich for now
+			if  ((Inpf(dx,dx)<freezeloc )&&(Inpf(bp->force,bp->force)<freezeforce )){
+				bp->frozen /=2;
+			}
+			else{
+				bp->frozen =MIN2(bp->frozen*1.05f,1.0f);
+			}
+			VecMulf(dx,bp->frozen);
+            */
+
 			/* again some nasty if's to have heun in here too */
 			if (mode ==1){
 				VECCOPY(bp->prevpos,bp->pos);
@@ -2785,7 +2932,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 			if (mode ==2){
 				bp->pos[0] = bp->prevpos[0] + 0.5f * ( dx[0] + bp->prevdx[0]);
 				bp->pos[1] = bp->prevpos[1] + 0.5f * ( dx[1] + bp->prevdx[1]);
-				bp->pos[2] = bp->prevpos[2] + 0.5f* ( dx[2] + bp->prevdx[2]);
+				bp->pos[2] = bp->prevpos[2] + 0.5f * ( dx[2] + bp->prevdx[2]);
 				maxerrpos = MAX2(maxerrpos,ABS(dx[0] - bp->prevdx[0]));
 				maxerrpos = MAX2(maxerrpos,ABS(dx[1] - bp->prevdx[1]));
 				maxerrpos = MAX2(maxerrpos,ABS(dx[2] - bp->prevdx[2]));
@@ -2794,10 +2941,11 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
    the collider object signals to get out by pushing hard. on the other hand 
    we don't want to end up in deep space so we add some <viscosity> 
    to balance that out */
+				if (bp->choke2 > 0.0f){
+					VecMulf(bp->vec,(1.0f - bp->choke2));
+				}
 				if (bp->choke > 0.0f){
-					bp->vec[0] = bp->vec[0]*(1.0f - bp->choke);
-					bp->vec[1] = bp->vec[1]*(1.0f - bp->choke);
-					bp->vec[2] = bp->vec[2]*(1.0f - bp->choke);
+					VecMulf(bp->vec,(1.0f - bp->choke));
 				}
 
 			}
