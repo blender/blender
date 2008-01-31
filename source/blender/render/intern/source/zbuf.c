@@ -2072,7 +2072,7 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 					continue;
 			}
 			else {
-				if(!all_z && !(obr->lay & lay))
+				if(!all_z && !(obr->lay & (lay|lay_zmask)))
 					continue;
 			}
 			
