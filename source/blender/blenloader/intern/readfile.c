@@ -4067,13 +4067,14 @@ static void lib_link_library(FileData *fd, Main *main)
 	Library *lib;
 	for(lib= main->library.first; lib; lib= lib->id.next) {
 		lib->id.us= 1;
-		
+#if 0		
 		/* Libraries store both relative and abs paths, recreate relative paths,
 		 * relative to the blend file since indirectly linked libs will be relative to their direct linked library */
 		if (strncmp(lib->name, "//", 2)==0) { /* if this is relative to begin with? */
 			strncpy(lib->name, lib->filename, sizeof(lib->name));
 			BLI_makestringcode(fd->filename, lib->name);
 		}
+#endif
 	}
 }
 
