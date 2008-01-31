@@ -642,6 +642,21 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 							if(pchan->next) pchan->next->prev= pchan;
 						}
 					}
+					
+					/* Pose Groups */
+					if(ob->pose->agroups.first) {
+						bActionGroup *agrp;
+						TreeElement *ten;
+						TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_POSEGRP_BASE, 0);
+						int a= 0;
+						
+						tenla->name= "Bone Groups";
+						for (agrp=ob->pose->agroups.first; agrp; agrp=agrp->next, a++) {
+							ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_POSEGRP, a);
+							ten->name= agrp->name;
+							ten->directdata= agrp;
+						}
+					}
 				}
 				
 				outliner_add_element(soops, &te->subtree, ob->ipo, te, 0, 0);
@@ -961,7 +976,7 @@ static void outliner_build_tree(SpaceOops *soops)
 	   
 	outliner_free_tree(&soops->tree);
 	outliner_storage_cleanup(soops);
-						   
+	
 	/* clear ob id.new flags */
 	for(ob= G.main->object.first; ob; ob= ob->id.next) ob->id.newid= NULL;
 	
@@ -1691,6 +1706,24 @@ static int tree_element_active_nla_action(TreeElement *te, TreeStoreElem *tselem
 	return 0;
 }
 
+static int tree_element_active_posegroup(TreeElement *te, TreeStoreElem *tselem, int set)
+{
+	Object *ob= (Object *)tselem->id;
+	
+	if(set) {
+		if (ob->pose) {
+			ob->pose->active_group= te->index+1;
+			allqueue(REDRAWBUTSEDIT, 0);
+		}
+	}
+	else {
+		if(ob==OBACT && ob->pose) {
+			if (ob->pose->active_group== te->index+1) return 1;
+		}
+	}
+	return 0;
+}
+
 static int tree_element_active_posechannel(TreeElement *te, TreeStoreElem *tselem, int set)
 {
 	Object *ob= (Object *)tselem->id;
@@ -1872,6 +1905,8 @@ static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStore
 			return tree_element_active_constraint(te, tselem, set);
 		case TSE_R_LAYER:
 			return tree_element_active_renderlayer(te, tselem, set);
+		case TSE_POSEGRP:
+			return tree_element_active_posegroup(te, tselem, set);
 	}
 	return 0;
 }
@@ -1991,7 +2026,7 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 			if(event==LEFTMOUSE) {
 			
 				if (G.qual == LR_CTRLKEY) {
-					if(ELEM8(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE, TSE_POSE_BASE, TSE_R_LAYER_BASE, TSE_R_PASS)) 
+					if(ELEM9(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE, TSE_POSE_BASE, TSE_POSEGRP_BASE, TSE_R_LAYER_BASE, TSE_R_PASS)) 
 						error("Cannot edit builtin name");
 					else if(tselem->id->lib) {
 						error_libdata();
@@ -2977,6 +3012,8 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				BIF_icon_draw(x, y, ICON_LAMP_DEHLT); break;
 			case TSE_LINKED_MAT:
 				BIF_icon_draw(x, y, ICON_MATERIAL_DEHLT); break;
+			case TSE_POSEGRP_BASE:
+				BIF_icon_draw(x, y, ICON_VERTEXSEL); break;
 				
 #ifdef WITH_VERSE
 			case ID_VS:
@@ -3565,6 +3602,15 @@ static void namebutton_cb(void *tep, void *oldnamep)
 				allqueue(REDRAWOOPS, 0);
 				allqueue(REDRAWVIEW3D, 1);
 				allqueue(REDRAWBUTSEDIT, 0);
+				break;
+			case TSE_POSEGRP:
+				{
+					Object *ob= (Object *)tselem->id; // id = object
+					bActionGroup *grp= te->directdata;
+					
+					BLI_uniquename(&ob->pose->agroups, grp, "Group", offsetof(bActionGroup, name), 32);
+					allqueue(REDRAWBUTSEDIT, 0);
+				}
 				break;
 			case TSE_R_LAYER:
 				allqueue(REDRAWOOPS, 0);

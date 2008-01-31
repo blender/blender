@@ -78,6 +78,8 @@ typedef struct TreeElement {
 #define TSE_LINKED_MAT		22
 		/* NOTE, is used for light group */
 #define TSE_LINKED_LAMP		23
+#define TSE_POSEGRP_BASE	24
+#define TSE_POSEGRP			25
 
 /* outliner search flags */
 #define OL_FIND					0
