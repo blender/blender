@@ -142,26 +142,23 @@ static void stats_background(RenderStats *rs)
 	float megs_used_memory= mem_in_use/(1024.0*1024.0);
 	char str[400], *spos= str;
 	
-	if(rs->convertdone) {
-		
-		spos+= sprintf(spos, "Fra:%d Mem:%.2fM ", G.scene->r.cfra, megs_used_memory);
-		
-		if(rs->curfield)
-			spos+= sprintf(spos, "Field %d ", rs->curfield);
-		if(rs->curblur)
-			spos+= sprintf(spos, "Blur %d ", rs->curblur);
-		
-		if(rs->infostr) {
-			spos+= sprintf(spos, "| %s", rs->infostr);
-		}
-		else {
-			if(rs->tothalo)
-				spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d Ha:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
-			else 
-				spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->totlamp);
-		}
-		printf(str); printf("\n");
-	}	
+	spos+= sprintf(spos, "Fra:%d Mem:%.2fM ", G.scene->r.cfra, megs_used_memory);
+	
+	if(rs->curfield)
+		spos+= sprintf(spos, "Field %d ", rs->curfield);
+	if(rs->curblur)
+		spos+= sprintf(spos, "Blur %d ", rs->curblur);
+	
+	if(rs->infostr) {
+		spos+= sprintf(spos, "| %s", rs->infostr);
+	}
+	else {
+		if(rs->tothalo)
+			spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d Ha:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
+		else 
+			spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->totlamp);
+	}
+	printf(str); printf("\n");
 }
 
 void RE_FreeRenderResult(RenderResult *res)
