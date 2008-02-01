@@ -2913,7 +2913,6 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 			VecMulf(dx,forcetime);
 
 			/* the freezer */
-			/* disable slip stich for now
 			if  ((Inpf(dx,dx)<freezeloc )&&(Inpf(bp->force,bp->force)<freezeforce )){
 				bp->frozen /=2;
 			}
@@ -2921,7 +2920,6 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 				bp->frozen =MIN2(bp->frozen*1.05f,1.0f);
 			}
 			VecMulf(dx,bp->frozen);
-            */
 
 			/* again some nasty if's to have heun in here too */
 			if (mode ==1){
@@ -3082,6 +3080,30 @@ static void softbody_apply_goalsnap(Object *ob)
 			VECCOPY(bp->prevpos,bp->pos);
 			VECCOPY(bp->pos,bp->origT);
 		}		
+	}
+}
+
+
+void apply_spring_memory(Object *ob)
+{
+	SoftBody *sb = ob->soft;
+	BodySpring *bs;
+	BodyPoint *bp1, *bp2;
+	int a;
+	float b,l,r;
+
+    b = sb->plastic;
+	if (sb && sb->totspring){
+		for(a=0; a<sb->totspring; a++) {
+			bs  = &sb->bspring[a];
+			bp1 =&sb->bpoint[bs->v1];
+			bp2 =&sb->bpoint[bs->v2];
+			l = VecLenf(bp1->pos,bp2->pos);
+			r = bs->len/l;
+			if (( r > 1.05f) || (r < 0.95)){
+			bs->len = ((100.0f - b) * bs->len  + b*l)/100.0f;
+			}
+		}
 	}
 }
 
@@ -4372,6 +4394,7 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 			else{
 				printf("softbody no valid solver ID!");
 			}/*SOLVER SELECT*/
+			if(sb->plastic){ apply_spring_memory(ob);}
 
 			if(sb->solverflags & SBSO_MONITOR ){
 				sct=PIL_check_seconds_timer();

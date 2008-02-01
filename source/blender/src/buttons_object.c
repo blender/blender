@@ -3936,12 +3936,14 @@ static void object_softbodies(Object *ob)
 				uiDefButF(block, NUM, B_DIFF, "E Pull:",	10,30,100,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness when longer than rest length");
 				uiDefButF(block, NUM, B_DIFF, "E Push:",	110,30,100,20, &sb->inpush, 0.0,  0.999, 10, 0, "Edge spring stiffness when shorter than rest length");
 				uiDefButF(block, NUM, B_DIFF, "E Damp:",	210,30,100,20, &sb->infrict, 0.0,  50.0, 10, 0, "Edge spring friction");
+				
 				uiDefButBitS(block, TOG,OB_SB_AERO_ANGLE,B_SOFTBODY_CHANGE, "N",10,10,20,20, softflag, 0, 0, 0, 0, "New aero(uses angle and length)");
-				uiDefButS(block, NUM, B_DIFF, "Aero:",     30,10,80,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");
+				uiDefButS(block, NUM, B_DIFF, "Aero:",     30,10,60,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");
+			    uiDefButS(block, NUM, B_SOFTBODY_CHANGE, "Plas:", 90,10,60,20, &sb->plastic, 0.0,  100.0, 10, 0, "Permanent deform");
 				if(ob->type==OB_MESH) {
-					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Bend:", 110,10,100,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Strenght of Springs over 2 Edges");
+					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Be:", 150,10,80,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Bendig Stiffness");
 					if (*softflag & OB_SB_QUADS){ 
-					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Shear:", 210,10,100,20, &sb->shearstiff, 0.0,  1.0, 10, 0, "Strenght of diagonal Springs");
+					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Sh:", 230,10,80,20, &sb->shearstiff, 0.0,  1.0, 10, 0, "Shear Stiffness");
 					}
 				}
 				else sb->secondspring = 0;
