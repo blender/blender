@@ -604,9 +604,9 @@ void sculptdata_init(Scene *sce)
 		sd->grabbrush.strength = sd->layerbrush.strength =
 		sd->flattenbrush.strength = 25;
 	sd->drawbrush.dir = sd->pinchbrush.dir = sd->inflatebrush.dir = sd->layerbrush.dir= 1;
-	sd->drawbrush.airbrush = sd->smoothbrush.airbrush =
-		sd->pinchbrush.airbrush = sd->inflatebrush.airbrush =
-		sd->layerbrush.airbrush = sd->flattenbrush.airbrush = 0;
+	sd->drawbrush.flag = sd->smoothbrush.flag =
+		sd->pinchbrush.flag = sd->inflatebrush.flag =
+		sd->layerbrush.flag = sd->flattenbrush.flag = 0;
 	sd->drawbrush.view= 0;
 	sd->brush_type= DRAW_BRUSH;
 	sd->texact= -1;

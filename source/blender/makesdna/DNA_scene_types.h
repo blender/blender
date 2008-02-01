@@ -423,8 +423,8 @@ typedef struct BrushData
 {
 	short size;
 	char strength, dir; /* Not used for smooth brush */
-	char airbrush;
 	char view;
+	char flag;
 	char pad[2];
 } BrushData;
 
@@ -707,6 +707,9 @@ typedef struct Scene {
 #define FFMPEG_MULTIPLEX_AUDIO  1
 #define FFMPEG_AUTOSPLIT_OUTPUT 2
 
+/* Sculpt brush flags */
+#define SCULPT_BRUSH_AIRBRUSH 1
+#define SCULPT_BRUSH_ANCHORED 2
 /* SculptData.flags */
 #define SCULPT_INPUT_SMOOTH 1
 #define SCULPT_DRAW_FAST    2

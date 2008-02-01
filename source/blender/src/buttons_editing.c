@@ -5370,7 +5370,7 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 		uiDefButC(block,ROW,B_NOP,"Sub",cx+89,cy,89,19,&sculptmode_brush()->dir,15.0,2.0,0, 0,"Subtract depth from model [Shift]");
 	}
 	if(sd->brush_type!=GRAB_BRUSH)
-		uiDefButC(block,TOG,B_NOP,"Airbrush",cx+178,cy,89,19,&sculptmode_brush()->airbrush,0,0,0,0,"Brush makes changes without waiting for the mouse to move");
+		uiDefButBitC(block, TOG, SCULPT_BRUSH_AIRBRUSH, 0, "Airbrush", cx+178,cy,89,19, &sculptmode_brush()->flag,0,0,0,0, "Brush makes changes without waiting for the mouse to move");
 	cy-= 20;
 	uiDefButS(block,NUMSLI,B_NOP,"Size: ",cx,cy,268,19,&sculptmode_brush()->size,1.0,200.0,0,0,"Set brush radius in pixels");
 	cy-= 20;
@@ -5419,6 +5419,8 @@ void sculptmode_draw_interface_brush(uiBlock *block, unsigned short cx, unsigned
 	cy-= 20;
 	if(sd->brush_type == DRAW_BRUSH)
 		uiDefButC(block,NUM,B_NOP, "View", cx,cy,80,19, &sculptmode_brush()->view, 0,10,20,0,"Pulls brush direction towards view");
+	cy-= 20;
+	uiDefButBitC(block, TOG, SCULPT_BRUSH_ANCHORED, 0, "Anchored", cx,cy,80,19, &sculptmode_brush()->flag, 0,0,0,0, "Keep the brush center anchored to the initial location");
 	uiBlockEndAlign(block);
 
 	/* Draw curve */

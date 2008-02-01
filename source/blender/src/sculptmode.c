@@ -134,7 +134,7 @@ typedef struct BrushActionSymm {
 
 	float up[3], right[3], out[3];
 
-	// Grab brush
+	/* Grab brush */
 	float grab_delta[3];
 } BrushActionSymm;
 
@@ -143,17 +143,25 @@ typedef struct BrushAction {
 
 	char firsttime;
 
+	/* Some brushes need access to original mesh vertices */
+ 	vec3f *mesh_store;
+	short (*orig_norms)[3];
+
 	short mouse[2];
 	float size_3d;
 
+	float prev_radius;
+	float radius;
+
 	float *layer_disps;
-	vec3f *layer_store;
 	char flip;
 
 	char clip[3];
 	float cliptol[3];
 
-	// Grab brush
+	float anchored_rot;
+
+	/* Grab brush */
 	ListBase grab_active_verts[8];
 	float depth;
 
@@ -368,6 +376,7 @@ float brush_strength(BrushAction *a)
 	float pressure= 1;
 	short activedevice= get_activedevice();
 	float flip= a->flip ? -1:1;
+	float anchored = b->flag & SCULPT_BRUSH_ANCHORED ? 25 : 1;
 
 	const float strength_factor= G.scene->sculptdata.tablet_strength / 10.0f;
 	if(ELEM(activedevice, DEV_STYLUS, DEV_ERASER))
@@ -381,17 +390,17 @@ float brush_strength(BrushAction *a)
 	switch(G.scene->sculptdata.brush_type){
 	case DRAW_BRUSH:
 	case LAYER_BRUSH:
-		return b->strength / 5000.0f * dir * pressure * flip;
+		return b->strength / 5000.0f * dir * pressure * flip * anchored;
 	case SMOOTH_BRUSH:
-		return b->strength / 50.0f * pressure;
+		return b->strength / 50.0f * pressure * anchored;
 	case PINCH_BRUSH:
-		return b->strength / 1000.0f * dir * pressure * flip;
+		return b->strength / 1000.0f * dir * pressure * flip * anchored;
 	case GRAB_BRUSH:
 		return 1;
 	case INFLATE_BRUSH:
-		return b->strength / 5000.0f * dir * pressure * flip;
+		return b->strength / 5000.0f * dir * pressure * flip * anchored;
 	case FLATTEN_BRUSH:
-		return b->strength / 500.0f * pressure;
+		return b->strength / 500.0f * pressure * anchored;
 	default:
 		return 0;
 	}
@@ -411,42 +420,54 @@ void sculpt_clip(const BrushAction *a, float *co, const float val[3])
 
 /* Currently only for the draw brush; finds average normal for all active
    vertices */
-vec3f calc_area_normal(const float *outdir, const ListBase* active_verts)
+void calc_area_normal(float out[3], const BrushAction *a, const float *outdir, const ListBase* active_verts)
 {
-	Mesh *me= get_mesh(OBACT);
-	vec3f area_normal= {0,0,0};
-	ActiveData *node= active_verts->first;
-	const int view= sculpt_data()->brush_type==DRAW_BRUSH ? sculptmode_brush()->view : 0;
+	Mesh *me = get_mesh(OBACT);
+	ActiveData *node = active_verts->first;
+	const int view = sculpt_data()->brush_type==DRAW_BRUSH ? sculptmode_brush()->view : 0;
 
-	while(node){
-		area_normal.x+= me->mvert[node->Index].no[0];
-		area_normal.y+= me->mvert[node->Index].no[1];
-		area_normal.z+= me->mvert[node->Index].no[2];
-		node= node->next;
+	out[0] = out[1] = out[2] = 0;
+
+	if(sculptmode_brush()->flag & SCULPT_BRUSH_ANCHORED) {
+		for(; node; node = node->next) {
+			out[0] += a->orig_norms[node->Index][0];
+			out[1] += a->orig_norms[node->Index][1];
+			out[2] += a->orig_norms[node->Index][2];
+		}
 	}
-	Normalize(&area_normal.x);
+	else {
+		for(; node; node = node->next) {
+			out[0] += me->mvert[node->Index].no[0];
+			out[1] += me->mvert[node->Index].no[1];
+			out[2] += me->mvert[node->Index].no[2];
+		}
+	}
+
+	Normalize(out);
 
 	if(outdir) {
-		area_normal.x= outdir[0] * view + area_normal.x * (10-view);
-		area_normal.y= outdir[1] * view + area_normal.y * (10-view);
-		area_normal.z= outdir[2] * view + area_normal.z * (10-view);
+		out[0] = outdir[0] * view + out[0] * (10-view);
+		out[1] = outdir[1] * view + out[1] * (10-view);
+		out[2] = outdir[2] * view + out[2] * (10-view);
 	}
 
-	Normalize(&area_normal.x);
-	return area_normal;
+	Normalize(out);
 }
+
 void do_draw_brush(const BrushAction *a, const ListBase* active_verts)
 {
 	Mesh *me= get_mesh(OBACT);
-	const vec3f area_normal= calc_area_normal(a->symm.out, active_verts);
+	float area_normal[3];
 	ActiveData *node= active_verts->first;
+
+	calc_area_normal(area_normal, a, a->symm.out, active_verts);
 
 	while(node){
 		float *co= me->mvert[node->Index].co;
 		
-		const float val[3]= {co[0]+area_normal.x*node->Fade*a->scale[0],
-		                     co[1]+area_normal.y*node->Fade*a->scale[1],
-		                     co[2]+area_normal.z*node->Fade*a->scale[2]};
+		const float val[3]= {co[0]+area_normal[0]*node->Fade*a->scale[0],
+		                     co[1]+area_normal[1]*node->Fade*a->scale[1],
+		                     co[2]+area_normal[2]*node->Fade*a->scale[2]};
 		                     
 		sculpt_clip(a, co, val);
 		
@@ -556,9 +577,11 @@ void do_grab_brush(BrushAction *a)
 void do_layer_brush(BrushAction *a, const ListBase *active_verts)
 {
 	Mesh *me= get_mesh(OBACT);
-	vec3f area_normal= calc_area_normal(NULL, active_verts);
+	float area_normal[3];
 	ActiveData *node= active_verts->first;
 	const float bstr= brush_strength(a);
+
+	calc_area_normal(area_normal, a, NULL, active_verts);
 
 	while(node){
 		float *disp= &a->layer_disps[node->Index];
@@ -578,9 +601,9 @@ void do_layer_brush(BrushAction *a, const ListBase *active_verts)
 			}
 
 			{
-				const float val[3]= {a->layer_store[node->Index].x+area_normal.x * *disp*a->scale[0],
-				                     a->layer_store[node->Index].y+area_normal.y * *disp*a->scale[1],
-				                     a->layer_store[node->Index].z+area_normal.z * *disp*a->scale[2]};
+				const float val[3]= {a->mesh_store[node->Index].x+area_normal[0] * *disp*a->scale[0],
+				                     a->mesh_store[node->Index].y+area_normal[1] * *disp*a->scale[1],
+				                     a->mesh_store[node->Index].z+area_normal[2] * *disp*a->scale[2]};
 				sculpt_clip(a, co, val);
 			}
 		}
@@ -642,9 +665,10 @@ void do_flatten_brush(const BrushAction *a, const ListBase *active_verts)
 	Mesh *me= get_mesh(OBACT);
 	ActiveData *node= active_verts->first;
 	/* area_normal and cntr define the plane towards which vertices are squashed */
-	vec3f area_normal= calc_area_normal(a->symm.out, active_verts);
+	float area_normal[3];
 	float cntr[3];
-	
+
+	calc_area_normal(area_normal, a, a->symm.out, active_verts);
 	calc_flatten_center(me, node, cntr);
 
 	while(node){
@@ -652,11 +676,11 @@ void do_flatten_brush(const BrushAction *a, const ListBase *active_verts)
 		float p1[3], sub1[3], sub2[3], intr[3], val[3];
 		
 		/* Find the intersection between squash-plane and vertex (along the area normal) */
-		VecSubf(p1, co, &area_normal.x);
+		VecSubf(p1, co, area_normal);
 		VecSubf(sub1, cntr, p1);
 		VecSubf(sub2, co, p1);
 		VecSubf(intr, co, p1);
-		VecMulf(intr, Inpf(&area_normal.x, sub1) / Inpf(&area_normal.x, sub2));
+		VecMulf(intr, Inpf(area_normal, sub1) / Inpf(area_normal, sub2));
 		VecAddf(intr, intr, p1);
 		
 		VecSubf(val, intr, co);
@@ -778,8 +802,8 @@ float tex_strength(BrushAction *a, float *point, const float len,const unsigned 
 		externtex(&mtex,point,&avg,&jnk,&jnk,&jnk,&jnk);
 	}
 	else if(ss->texcache) {
-		const float bsize= sculptmode_brush()->size * 2;
-		const float rot= to_rad(sculpt_tex_angle());
+		const float bsize= a->radius * 2;
+		const float rot= to_rad(sculpt_tex_angle()) + a->anchored_rot;
 		int px, py;
 		float flip[3], point_2d[2];
 
@@ -840,18 +864,18 @@ float tex_strength(BrushAction *a, float *point, const float len,const unsigned 
 void sculpt_add_damaged_rect(BrushAction *a)
 {
 	short p[2];
-	const float radius= brush_size();
 	RectNode *rn= MEM_mallocN(sizeof(RectNode),"RectNode");
 	Mesh *me= get_mesh(OBACT);
 	SculptSession *ss = sculpt_session();
+	const float radius = a->radius > a->prev_radius ? a->radius : a->prev_radius;
 	unsigned i;
 
 	/* Find center */
 	project(a->symm.center_3d, p);
-	rn->r.xmin= p[0]-radius;
-	rn->r.ymin= p[1]-radius;
-	rn->r.xmax= p[0]+radius;
-	rn->r.ymax= p[1]+radius;
+	rn->r.xmin= p[0] - radius;
+	rn->r.ymin= p[1] - radius;
+	rn->r.xmax= p[0] + radius;
+	rn->r.ymax= p[1] + radius;
 
 	BLI_addtail(&sculpt_session()->damaged_rects, rn);
 
@@ -1011,7 +1035,7 @@ void do_symmetrical_brush_actions(BrushAction *a, short co[2], short pr_co[2])
 	init_brushaction(a, co, pr_co);
 	orig = a->symm;
 	do_brush_action(a);
-	
+
 	for(i = 1; i <= symm; ++i) {
 		if(symm & i && (symm != 5 || i != 3) && (symm != 6 || (i != 3 && i != 5))) {
 			// Restore the original symmetry data
@@ -1021,6 +1045,8 @@ void do_symmetrical_brush_actions(BrushAction *a, short co[2], short pr_co[2])
 			do_brush_action(a);
 		}
 	}
+
+	a->symm = orig;
 }
 
 void add_face_normal(vec3f *norm, const MFace* face)
@@ -1164,17 +1190,44 @@ void init_brushaction(BrushAction *a, short *mouse, short *pr_mouse)
 	ModifierData *md;
 	int i;
 	const char flip = (get_qual() == LR_SHIFTKEY);
+ 	const char anchored = sculptmode_brush()->flag & SCULPT_BRUSH_ANCHORED;
+ 	short orig_mouse[2], dx, dy;
 
 	a->flip = flip;
 	a->symm.index = 0;
-	a->mouse[0] = mouse[0];
-	a->mouse[1] = mouse[1];
+
+	if(a->firsttime) 
+		a->depth = mouse_depth;
 	
 	/* Convert the location and size of the brush to
 	   modelspace coords */
-	unproject(a->symm.center_3d, mouse[0], mouse[1], mouse_depth);
-	unproject(brush_edge_loc, mouse[0] + brush_size(), mouse[1], mouse_depth);
+	if(a->firsttime || !anchored) {
+ 		unproject(a->symm.center_3d, mouse[0], mouse[1], mouse_depth);
+ 		a->mouse[0] = mouse[0];
+ 		a->mouse[1] = mouse[1];
+ 	}
+ 
+ 	if(anchored) {
+ 		project(a->symm.center_3d, orig_mouse);
+ 		dx = mouse[0] - orig_mouse[0];
+ 		dy = mouse[1] - orig_mouse[1];
+ 	}
+ 
+ 	if(anchored) {
+ 		unproject(brush_edge_loc, mouse[0], mouse[1], a->depth);
+ 		a->anchored_rot = atan2(dy, dx);
+ 	}
+ 	else
+ 		unproject(brush_edge_loc, mouse[0] + brush_size(), mouse[1], mouse_depth);
+ 
 	a->size_3d = VecLenf(a->symm.center_3d, brush_edge_loc);
+
+	a->prev_radius = a->radius;
+
+	if(anchored)
+ 		a->radius = sqrt(dx*dx + dy*dy);
+ 	else
+ 		a->radius = brush_size();
 
 	/* Set the pivot to allow the model to rotate around the center of the brush */
 	if(get_depth(mouse[0],mouse[1]) < 1.0)
@@ -1212,9 +1265,6 @@ void init_brushaction(BrushAction *a, short *mouse, short *pr_mouse)
 	if(sd->brush_type == GRAB_BRUSH) {
 		float gcenter[3];
 
-		if(a->firsttime) 
-			a->depth = mouse_depth;
-
 		/* Find the delta */
 		unproject(gcenter, mouse[0], mouse[1], a->depth);
 		unproject(oldloc, pr_mouse[0], pr_mouse[1], a->depth);
@@ -1225,13 +1275,27 @@ void init_brushaction(BrushAction *a, short *mouse, short *pr_mouse)
 
 		if(!a->layer_disps)
 			a->layer_disps= MEM_callocN(sizeof(float)*me->totvert,"Layer disps");
-		if(!a->layer_store) {
-			unsigned i;
-			a->layer_store= MEM_mallocN(sizeof(vec3f)*me->totvert,"Layer store");
-			for(i=0; i<me->totvert; ++i)
-				VecCopyf(&a->layer_store[i].x, me->mvert[i].co);
-		}
 	}
+
+	if(sd->brush_type == LAYER_BRUSH || anchored) {
+ 		Mesh *me= get_mesh(OBACT);
+ 		unsigned i;
+ 
+ 		if(!a->mesh_store) {
+ 			a->mesh_store= MEM_mallocN(sizeof(vec3f) * me->totvert, "Sculpt mesh store");
+ 			for(i = 0; i < me->totvert; ++i)
+ 				VecCopyf(&a->mesh_store[i].x, me->mvert[i].co);
+  		}
+
+		if(anchored && !a->orig_norms) {
+			a->orig_norms= MEM_mallocN(sizeof(short) * 3 * me->totvert, "Sculpt orig norm");
+			for(i = 0; i < me->totvert; ++i) {
+				a->orig_norms[i][0] = me->mvert[i].no[0];
+				a->orig_norms[i][1] = me->mvert[i].no[1];
+				a->orig_norms[i][2] = me->mvert[i].no[2];
+			}
+		}
+  	}
 }
 void sculptmode_set_strength(const int delta)
 {
@@ -1491,6 +1555,7 @@ void sculpt(void)
 	int scissor_box[4];
 	float offsetRot;
 	int smooth_stroke = 0, i;
+	int anchored;
 
 	if(!(G.f & G_SCULPTMODE) || G.obedit || !ob || ob->id.lib || !get_mesh(ob) || (get_mesh(ob)->totface == 0))
 		return;
@@ -1508,7 +1573,8 @@ void sculpt(void)
 		ss= sd->session;
 	}
 
-	smooth_stroke = (sd->flags & SCULPT_INPUT_SMOOTH) && (sd->brush_type != GRAB_BRUSH);
+	anchored = sculptmode_brush()->flag & SCULPT_BRUSH_ANCHORED;
+	smooth_stroke = (sd->flags & SCULPT_INPUT_SMOOTH) && (sd->brush_type != GRAB_BRUSH) && !anchored;
 
 	if(smooth_stroke)
 		sculpt_stroke_new(256);
@@ -1557,9 +1623,6 @@ void sculpt(void)
 		ss->vertexcosnos= mesh_get_mapped_verts_nors(ob);
 	sculptmode_update_all_projverts(ss->vertexcosnos);
 
-	a->layer_disps= NULL;
-	a->layer_store= NULL;
-
 	/* Set scaling adjustment */
 	a->scale[0]= 1.0f / ob->size[0];
 	a->scale[1]= 1.0f / ob->size[1];
@@ -1585,7 +1648,8 @@ void sculpt(void)
 			lastSigMouse[1]=mouse[1];
 		}
 		
-		if(firsttime || mouse[0]!=mvalo[0] || mouse[1]!=mvalo[1] || sculptmode_brush()->airbrush) {
+		if(firsttime || mouse[0]!=mvalo[0] || mouse[1]!=mvalo[1] ||
+		   sculptmode_brush()->flag & SCULPT_BRUSH_AIRBRUSH) {
 			a->firsttime = firsttime;
 			firsttime= 0;
 
@@ -1598,12 +1662,29 @@ void sculpt(void)
 				ss->vertexcosnos= mesh_get_mapped_verts_nors(ob);
 
 			if(G.scene->sculptdata.brush_type != GRAB_BRUSH) {
-				if(smooth_stroke) {
-					sculpt_stroke_apply(a);
-				}
-				else if(sd->spacing==0 || spacing>sd->spacing) {
-					do_symmetrical_brush_actions(a, mouse, NULL);
-					spacing= 0;
+				if(anchored) {
+					Mesh *me = get_mesh(ob);
+					
+ 					/* Restore the mesh before continuing with anchored stroke */
+ 					if(a->mesh_store) {
+ 						for(i = 0; i < me->totvert; ++i) {
+ 							VecCopyf(me->mvert[i].co, &a->mesh_store[i].x);
+							me->mvert[i].no[0] = a->orig_norms[i][0];
+							me->mvert[i].no[1] = a->orig_norms[i][1];
+							me->mvert[i].no[2] = a->orig_norms[i][2];
+						}
+ 					}
+					
+  					do_symmetrical_brush_actions(a, mouse, NULL);
+  				}
+				else {
+					if(smooth_stroke) {
+						sculpt_stroke_apply(a);
+					}
+					else if(sd->spacing==0 || spacing>sd->spacing) {
+						do_symmetrical_brush_actions(a, mouse, NULL);
+						spacing= 0;
+					}
 				}
 			}
 			else {
@@ -1670,7 +1751,8 @@ void sculpt(void)
 	}
 
 	if(a->layer_disps) MEM_freeN(a->layer_disps);
-	if(a->layer_store) MEM_freeN(a->layer_store);
+	if(a->mesh_store) MEM_freeN(a->mesh_store);
+	if(a->orig_norms) MEM_freeN(a->orig_norms);
 	for(i=0; i<8; ++i)
 		BLI_freelistN(&a->grab_active_verts[i]);
 	MEM_freeN(a);

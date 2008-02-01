@@ -4533,7 +4533,7 @@ void do_view3d_sculptmenu(void *arg, int event)
 		BIF_undo_push("Brush type");
 		break;
 	case 7:
-		br->airbrush= !br->airbrush;
+		br->flag ^= SCULPT_BRUSH_AIRBRUSH;
 		BIF_undo_push("Airbrush");
 		break;
 	case 8:
@@ -4632,7 +4632,7 @@ uiBlock *view3d_sculptmenu(void *arg_unused)
 	
 	if(sd->brush_type!=GRAB_BRUSH) {
 		uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-		uiDefIconTextBut(block, BUTM, 1, (br->airbrush ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Airbrush|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+		uiDefIconTextBut(block, BUTM, 1, (br->flag & SCULPT_BRUSH_AIRBRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Airbrush|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 		
 		if(sd->brush_type!=SMOOTH_BRUSH && sd->brush_type!=FLATTEN_BRUSH) {
 			uiDefIconTextBut(block, BUTM, 1, (br->dir==1 ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Add|V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");

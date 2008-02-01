@@ -1446,7 +1446,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			/* Brush properties */
 			case AKEY:
-				br->airbrush= !br->airbrush;
+				br->flag ^= SCULPT_BRUSH_AIRBRUSH;
 				update_prop= 1; break;
 			case FKEY:
 				if(ss) {
