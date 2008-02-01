@@ -39,6 +39,7 @@
 #include "BLI_arithb.h"
 
 #include "DNA_action_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
@@ -141,7 +142,6 @@ static void draw_cfra_time(SpaceTime *stime)
 		BIF_DrawString(G.fonts, str, 0);
 		glScalef(xscale, yscale, 1.0);
 	}
-	
 }
 
 /* ---------- */
@@ -321,22 +321,73 @@ static void draw_mapoldnew()
 	glDisable(GL_POLYGON_STIPPLE);
 }
 
-/*draw all the keys in a list (elems) as lines */
-static void draw_key_list(ListBase elems, char col[3]) 
+
+static void draw_ipo_keys(Ipo *ipo, char col[3])
 {
-	CfraElem *ce;
-	float drawframe;
-
-	ce= elems.first;
-	while(ce) {
-		drawframe = ce->cfra; //not correct for G.scene->r.framelen;
-		glColor3ub(col[0], col[1], col[2]);
-
-		fdrawline(drawframe, G.v2d->cur.ymin, drawframe, G.v2d->cur.ymax);
-		
-		ce= ce->next;
+	IpoCurve *icu;
+	int nvert;
+	int i;
+	int lbound, ubound;
+	int idx;
+	int diff;
+	float t;
+	float drawnext; /* next time to begin drawing new keyframes */
+	
+	float space = G.v2d->cur.xmax - G.v2d->cur.xmin;
+	float pixels = G.v2d->mask.xmax-G.v2d->mask.xmin;
+	float spaceperpix = 1; /* amount of time occupied per pixel */
+	
+	if (pixels > 0) 
+		spaceperpix = space / pixels;
+	
+	glColor3ub(col[0], col[1], col[2]);
+	glBegin(GL_LINES);
+	
+	for (icu= ipo->curve.first; icu; icu= icu->next) {
+		if (icu->flag & IPO_VISIBLE) {
+			if (icu->bezt) {
+				nvert= icu->totvert;
+				
+				if (nvert > 0)
+					drawnext = icu->bezt[0].vec[1][0];
+				else
+					continue;
+				
+				/* binary search for beginning of the visible keys */
+				lbound = 0;
+				ubound = nvert;
+				while (ubound - lbound > 1) {
+					diff = (ubound - lbound) / 2;
+					idx = lbound + diff;
+					t= icu->bezt[idx].vec[1][0];
+					if (t < G.v2d->cur.xmin)
+						lbound += diff;
+					else
+						ubound = lbound + diff;
+				}
+				
+				for (i = lbound; i < nvert; i++) {
+					t= icu->bezt[i].vec[1][0];
+					
+					/* dont do anymore draw tests after we draw the last visible key */
+					if (t > G.v2d->cur.xmax)
+						break;
+					/* avoid repeatedly drawing lines on the same pixel */
+					if (t < drawnext)
+						continue;
+					
+					glVertex2f(t, G.v2d->cur.ymin);
+					glVertex2f(t, G.v2d->cur.ymax);
+					
+					drawnext = t + spaceperpix;
+				}
+			}
+		}
 	}
+	
+	glEnd();
 }
+
 
 /* This function draws keyframes that the active object has (as long as
  * it is not in EditMode). Some filters are available to optimise the
@@ -346,7 +397,6 @@ static void draw_ob_keys()
 {
 	/* mostly copied from drawobject.c, draw_object() */
 	SpaceTime *stime= curarea->spacedata.first;
-	ListBase elems= {0, 0};
 	
 	Object *ob= OBACT;
 	short filter, ok;
@@ -356,15 +406,9 @@ static void draw_ob_keys()
 	if (ob && ob!=G.obedit) {
 		/* Object's IPO block - show all keys */
 		if (ob->ipo) {
-			/* convert the ipo to a list of 'current frame elements' */
-			elems.first= elems.last= NULL;
-			make_cfra_list(ob->ipo, &elems);
-			
 			/* draw the list of current frame elements */
 			col[0] = 0xDD; col[1] = 0xD7; col[2] = 0x00;
-			draw_key_list(elems, col);
-			
-			BLI_freelistN(&elems);
+			draw_ipo_keys(ob->ipo, col);
 		}
 		
 		/* Object's Action block - may be filtered in some cases */
@@ -386,13 +430,8 @@ static void draw_ob_keys()
 				
 				/* convert the ipo to a list of 'current frame elements' */
 				if (achan->ipo && ok) {
-					elems.first= elems.last= NULL;
-					make_cfra_list(achan->ipo, &elems);
-					
 					col[0] = 0x00; col[1] = 0x82; col[2] = 0x8B;
-					draw_key_list(elems, col);
-					
-					BLI_freelistN(&elems);
+					draw_ipo_keys(achan->ipo, col);
 				}
 			}
 		}
@@ -409,13 +448,8 @@ static void draw_ob_keys()
 			else ok= 1;
 			
 			if (ma && ma->ipo && ok) {
-				elems.first= elems.last= NULL;
-				make_cfra_list(ma->ipo, &elems);
-				
 				col[0] = 0xDD; col[1] = 0xA7; col[2] = 0x00;
-				draw_key_list(elems, col);
-				
-				BLI_freelistN(&elems);
+				draw_ipo_keys(ma->ipo, col);
 			}
 		}
 	}
