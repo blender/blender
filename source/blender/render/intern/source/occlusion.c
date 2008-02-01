@@ -1134,7 +1134,7 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 	OccNode *node, **stack;
 	OccFace *face;
 	float resultocc, v[3], p[3], n[3], co[3];
-	float distfac, error, d2, weight, emitarea;
+	float distfac, fac, error, d2, weight, emitarea;
 	int b, totstack;
 
 	/* init variables */
@@ -1164,6 +1164,14 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 		emitarea= MAX2(node->area, node->dco);
 
 		if(d2*error > emitarea) {
+			if(distfac != 0.0f) {
+				fac= 1.0f/(1.0f + distfac*d2);
+				if(fac < 0.01f)
+					continue;
+			}
+			else
+				fac= 1.0f;
+
 			/* accumulate occlusion from spherical harmonics */
 			weight= occ_solid_angle(node, v, d2, n);
 			weight *= node->occlusion;
@@ -1175,10 +1183,7 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 				bentn[2] -= weight*v[2];
 			}
 
-			if(distfac != 0.0f)
-				weight /= (1.0 + distfac*d2);
-
-			resultocc += weight;
+			resultocc += weight*fac;
 		}
 		else {
 			/* traverse into children */
@@ -1188,28 +1193,29 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 
 					/* accumulate occlusion with face form factor */
 					if(!exclude || !(face->obi == exclude->obi && face->facenr == exclude->facenr)) {
-						weight= occ_form_factor(face, p, n);
-						weight *= tree->occlusion[node->child[b].face];
-
 						if(bentn || distfac != 0.0f) {
 							occ_face(face, co, NULL, NULL); 
 							VECSUB(v, co, p);
+							d2= INPR(v, v) + 1e-16f;
 
-							if(bentn) {
-								Normalize(v);
-								bentn[0] -= weight*v[0];
-								bentn[1] -= weight*v[1];
-								bentn[2] -= weight*v[2];
-							}
+							fac= (distfac == 0.0f)? 1.0f: 1.0f/(1.0f + distfac*d2);
+							if(fac < 0.01f)
+								continue;
+						}
+						else
+							fac= 1.0f;
 
-							if(distfac != 0.0f) {
-								d2= INPR(v, v) + 1e-16f;
-								weight /= (1.0 + distfac*d2);
-							}
+						weight= occ_form_factor(face, p, n);
+						weight *= tree->occlusion[node->child[b].face];
+
+						if(bentn) {
+							Normalize(v);
+							bentn[0] -= weight*v[0];
+							bentn[1] -= weight*v[1];
+							bentn[2] -= weight*v[2];
 						}
 
-						resultocc += weight;
-
+						resultocc += weight*fac;
 					}
 				}
 				else if(node->child[b].node) {
