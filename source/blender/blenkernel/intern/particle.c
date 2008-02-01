@@ -2869,10 +2869,10 @@ static void default_particle_settings(ParticleSettings *part)
 	
 	part->integrator= PART_INT_MIDPOINT;
 	part->phystype= PART_PHYS_NEWTON;
-	part->hair_step= 10;
+	part->hair_step= 5;
 	part->keys_step= 5;
-	part->draw_step= 4;
-	part->ren_step= 6;
+	part->draw_step= 2;
+	part->ren_step= 3;
 	part->adapt_angle= 5;
 	part->adapt_pix= 3;
 	part->kink_axis= 2;
