@@ -4129,6 +4129,14 @@ void RE_Database_Free(Render *re)
 {
 	Object *ob = NULL;
 	LampRen *lar;
+	
+	/* statistics for debugging render memory usage */
+	if(G.f & G_DEBUG) {
+		if((re->r.scemode & R_PREVIEWBUTS)==0) {
+			BKE_image_print_memlist();
+			MEM_printmemlist_stats();
+		}
+	}
 
 	/* FREE */
 	

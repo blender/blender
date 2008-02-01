@@ -332,6 +332,91 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 #endif
 }
 
+/* Memory statistics print */
+typedef struct MemPrintBlock {
+	const char *name;
+	unsigned long len;
+	int items;
+} MemPrintBlock;
+
+static int compare_name(const void *p1, const void *p2)
+{
+	const MemPrintBlock *pb1= (const MemPrintBlock*)p1;
+	const MemPrintBlock *pb2= (const MemPrintBlock*)p2;
+
+	return strcmp(pb1->name, pb2->name);
+}
+
+static int compare_len(const void *p1, const void *p2)
+{
+	const MemPrintBlock *pb1= (const MemPrintBlock*)p1;
+	const MemPrintBlock *pb2= (const MemPrintBlock*)p2;
+
+	if(pb1->len < pb2->len)
+		return 1;
+	else if(pb1->len == pb2->len)
+		return 0;
+	else
+		return -1;
+}
+
+void MEM_printmemlist_stats()
+{
+	MemHead *membl;
+	MemPrintBlock *pb, *printblock;
+	int totpb, a, b;
+
+	mem_lock_thread();
+
+	/* put memory blocks into array */
+	printblock= malloc(sizeof(MemPrintBlock)*totblock);
+
+	pb= printblock;
+	totpb= 0;
+
+	membl = membase->first;
+	if (membl) membl = MEMNEXT(membl);
+
+	while(membl) {
+		pb->name= membl->name;
+		pb->len= membl->len;
+		pb->items= 1;
+
+		totpb++;
+		pb++;
+
+		if(membl->next)
+			membl= MEMNEXT(membl->next);
+		else break;
+	}
+
+	/* sort by name and add together blocks with the same name */
+	qsort(printblock, totpb, sizeof(MemPrintBlock), compare_name);
+	for(a=0, b=0; a<totpb; a++) {
+		if(a == b) {
+			continue;
+		}
+		else if(strcmp(printblock[a].name, printblock[b].name) == 0) {
+			printblock[b].len += printblock[a].len;
+			printblock[b].items++;
+		}
+		else {
+			b++;
+			memcpy(&printblock[b], &printblock[a], sizeof(MemPrintBlock));
+		}
+	}
+	totpb= b+1;
+
+	/* sort by length and print */
+	qsort(printblock, totpb, sizeof(MemPrintBlock), compare_len);
+	printf("\ntotal memory len: %.3f MB\n", (double)mem_in_use/(double)(1024*1024));
+	for(a=0, pb=printblock; a<totpb; a++, pb++)
+		printf("%s items: %d, len: %.3f MB\n", pb->name, pb->items, (double)pb->len/(double)(1024*1024));
+
+	free(printblock);
+	
+	mem_unlock_thread();
+}
 
 /* Prints in python syntax for easy */
 static void MEM_printmemlist_internal( int pydict )

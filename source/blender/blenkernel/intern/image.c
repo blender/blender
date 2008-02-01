@@ -629,6 +629,47 @@ void free_old_images()
 	}
 }
 
+static unsigned long image_mem_size(Image *ima)
+{
+	ImBuf *ibuf, *ibufm;
+	int level;
+	unsigned long size = 0;
+
+	size= 0;
+	for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next) {
+		if(ibuf->rect) size += MEM_allocN_len(ibuf->rect);
+		else if(ibuf->rect_float) size += MEM_allocN_len(ibuf->rect_float);
+
+		for(level=0; level<IB_MIPMAP_LEVELS; level++) {
+			ibufm= ibuf->mipmap[level];
+			if(ibufm) {
+				if(ibufm->rect) size += MEM_allocN_len(ibufm->rect);
+				else if(ibufm->rect_float) size += MEM_allocN_len(ibufm->rect_float);
+			}
+		}
+	}
+
+	return size;
+}
+
+void BKE_image_print_memlist(void)
+{
+	Image *ima;
+	unsigned long size, totsize= 0;
+
+	for(ima= G.main->image.first; ima; ima= ima->id.next)
+		totsize += image_mem_size(ima);
+
+	printf("\ntotal image memory len: %.3lf MB\n", (double)totsize/(double)(1024*1024));
+
+	for(ima= G.main->image.first; ima; ima= ima->id.next) {
+		size= image_mem_size(ima);
+
+		if(size)
+			printf("%s len: %.3f MB\n", ima->id.name+2, (double)size/(double)(1024*1024));
+	}
+}
+
 void BKE_image_free_all_textures(void)
 {
 	Tex *tex;

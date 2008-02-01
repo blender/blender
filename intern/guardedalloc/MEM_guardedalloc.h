@@ -106,6 +106,9 @@ extern "C" {
 	/** Print a list of the names and sizes of all allocated memory
 	 * blocks. */ 
 	void MEM_printmemlist(void);
+
+	/** Print statistics about memory usage */
+	void MEM_printmemlist_stats(void);
 	
 	/** Set the callback function for error output. */
 	void MEM_set_error_callback(void (*func)(char *));

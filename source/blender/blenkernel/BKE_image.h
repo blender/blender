@@ -148,6 +148,9 @@ void BKE_image_all_free_anim_ibufs(int except_frame);
 
 void BKE_image_memorypack(struct Image *ima);
 
+/* prints memory statistics for images */
+void BKE_image_print_memlist(void);
+
 #ifdef __cplusplus
 }
 #endif
