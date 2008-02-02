@@ -323,7 +323,11 @@ static struct ImBuf *make_sep_waveform_view_from_ibuf_float(
 			float * rgb = src + 4 * (ibuf->x * y + x);
 			for (c = 0; c < 3; c++) {
 				unsigned char * p = tgt;
-				p += 4 * (w * ((int) (rgb[c] * (h - 3)) + 1)
+				float v = rgb[c];
+
+				CLAMP(v, 0.0, 1.0);
+
+				p += 4 * (w * ((int) (v * (h - 3)) + 1)
 					  + c * sw + x/3 + 1);
 
 				scope_put_pixel_single(wtable, p, c);

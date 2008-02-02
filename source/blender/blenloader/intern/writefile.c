@@ -1505,6 +1505,9 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 					if(seq->flag & SEQ_USE_PROXY && strip->proxy) {
 						writestruct(wd, DATA, "StripProxy", 1, strip->proxy);
 					}
+					if(seq->flag & SEQ_USE_COLOR_BALANCE && strip->color_balance) {
+						writestruct(wd, DATA, "StripColorBalance", 1, strip->color_balance);
+					}
 					if(seq->type==SEQ_IMAGE)
 						writestruct(wd, DATA, "StripElem", strip->len, strip->stripdata);
 					else if(seq->type==SEQ_MOVIE || seq->type==SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND)

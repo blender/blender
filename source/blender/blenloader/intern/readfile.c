@@ -3468,6 +3468,12 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 				} else {
 					seq->strip->proxy = 0;
 				}
+				if (seq->flag & SEQ_USE_COLOR_BALANCE) {
+					seq->strip->color_balance = newdataadr(
+						fd, seq->strip->color_balance);
+				} else {
+					seq->strip->color_balance = 0;
+				}
 			}
 		}
 		END_SEQ

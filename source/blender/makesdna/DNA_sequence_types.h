@@ -69,6 +69,15 @@ typedef struct StripTransform {
 	int yofs;
 } StripTransform;
 
+typedef struct StripColorBalance {
+	float lift[3];
+	float gamma[3];
+	float gain[3];
+	int flag;
+	float exposure;
+	float saturation;
+} StripColorBalance;
+
 typedef struct StripProxy {
 	char dir[160];
 	int format;
@@ -86,6 +95,7 @@ typedef struct Strip {
 	StripCrop *crop;
 	StripTransform *transform;
 	StripProxy *proxy;
+	StripColorBalance *color_balance;
 	TStripElem *tstripdata;
 	TStripElem *tstripdata_startstill;
 	TStripElem *tstripdata_endstill;
@@ -248,7 +258,11 @@ typedef struct SpeedControlVars {
 #define SEQ_USE_PROXY                           32768
 #define SEQ_USE_TRANSFORM                       65536
 #define SEQ_USE_CROP                           131072
+#define SEQ_USE_COLOR_BALANCE                  262144
 
+#define SEQ_COLOR_BALANCE_INVERSE_GAIN 1
+#define SEQ_COLOR_BALANCE_INVERSE_GAMMA 2
+#define SEQ_COLOR_BALANCE_INVERSE_LIFT 4
 
 /* seq->type WATCH IT: SEQ_EFFECT BIT is used to determine if this is an effect strip!!! */
 #define SEQ_IMAGE		0

@@ -2190,6 +2190,11 @@ static Sequence *dupli_seq(Sequence *seq)
 	if (seq->strip->proxy) {
 		seqn->strip->proxy = MEM_dupallocN(seq->strip->proxy);
 	}
+
+	if (seq->strip->color_balance) {
+		seqn->strip->color_balance 
+			= MEM_dupallocN(seq->strip->color_balance);
+	}
 	
 	if(seq->type==SEQ_META) {
 		seqn->strip->stripdata = 0;

@@ -889,49 +889,112 @@ static void seq_panel_filter_video()
 
 
 	uiDefButBitI(block, TOG, SEQ_MAKE_PREMUL, 
-		     B_SEQ_BUT_RELOAD, "Convert to Premul", 
-		     10,110,150,19, &last_seq->flag, 
+		     B_SEQ_BUT_RELOAD, "Premul", 
+		     10,110,80,19, &last_seq->flag, 
 		     0.0, 21.0, 100, 0, 
 		     "Converts RGB values to become premultiplied with Alpha");
 
+	uiDefButBitI(block, TOG, SEQ_MAKE_FLOAT, 
+		     B_SEQ_BUT_RELOAD, "Float",	
+		     90,110,80,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Convert input to float data");
+
 	uiDefButBitI(block, TOG, SEQ_FILTERY, 
 		     B_SEQ_BUT_RELOAD, "FilterY",	
-		     10,90,75,19, &last_seq->flag, 
+		     170,110,80,19, &last_seq->flag, 
 		     0.0, 21.0, 100, 0, 
 		     "For video movies to remove fields");
 
-	uiDefButBitI(block, TOG, SEQ_MAKE_FLOAT, 
-		     B_SEQ_BUT_RELOAD, "Make Float",	
-		     85,90,75,19, &last_seq->flag, 
-		     0.0, 21.0, 100, 0, 
-		     "Convert input to float data");
-		
 	uiDefButBitI(block, TOG, SEQ_FLIPX, 
 		     B_SEQ_BUT_RELOAD, "FlipX",	
-		     10,70,75,19, &last_seq->flag, 
+		     10,90,80,19, &last_seq->flag, 
 		     0.0, 21.0, 100, 0, 
 		     "Flip on the X axis");
 	uiDefButBitI(block, TOG, SEQ_FLIPY, 
 		     B_SEQ_BUT_RELOAD, "FlipY",	
-		     85,70,75,19, &last_seq->flag, 
+		     90,90,80,19, &last_seq->flag, 
 		     0.0, 21.0, 100, 0, 
 		     "Flip on the Y axis");
-		
-	uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Mul:",
-		  10,50,150,19, &last_seq->mul, 
-		  0.001, 5.0, 100, 0, 
-		  "Multiply colors");
 
 	uiDefButBitI(block, TOG, SEQ_REVERSE_FRAMES,
-		     B_SEQ_BUT_RELOAD, "Reverse Frames", 
-		     10,30,150,19, &last_seq->flag, 
+		     B_SEQ_BUT_RELOAD, "Flip Time", 
+		     170,90,80,19, &last_seq->flag, 
 		     0.0, 21.0, 100, 0, 
 		     "Reverse frame order");
+		
+	uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Mul:",
+		  10,70,120,19, &last_seq->mul, 
+		  0.001, 5.0, 0.1, 0, 
+		  "Multiply colors");
 
 	uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Strobe:",
-		  10,10,150,19, &last_seq->strobe, 
+		  130,70,120,19, &last_seq->strobe, 
 		  1.0, 30.0, 100, 0, 
 		  "Only display every nth frame");
+
+	uiDefButBitI(block, TOG, SEQ_USE_COLOR_BALANCE,
+		     B_SEQ_BUT_RELOAD, "Use Color Balance", 
+		     10,50,240,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Activate Color Balance "
+		     "(3-Way color correction) on input");
+
+
+	if (last_seq->flag & SEQ_USE_COLOR_BALANCE) {
+		if (!last_seq->strip->color_balance) {
+			int c;
+			StripColorBalance * cb 
+				= last_seq->strip->color_balance 
+				= MEM_callocN(
+					sizeof(struct StripColorBalance), 
+					"StripColorBalance");
+			for (c = 0; c < 3; c++) {
+				cb->lift[c] = 1.0;
+				cb->gamma[c] = 1.0;
+				cb->gain[c] = 1.0;
+			}
+		}
+
+		uiDefBut(block, LABEL, 0, "Lift",
+			 10,30,80,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Gamma",
+			 90,30,80,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Gain",
+			 170,30,80,19, 0, 0, 0, 0, 0, "");
+
+		uiDefButF(block, COL, B_SEQ_BUT_RELOAD, "Lift",
+			  10,10,80,19, last_seq->strip->color_balance->lift, 
+			  0, 0, 0, 0, "Lift (shadows)");
+
+		uiDefButF(block, COL, B_SEQ_BUT_RELOAD, "Gamma",
+			  90,10,80,19, last_seq->strip->color_balance->gamma, 
+			  0, 0, 0, 0, "Gamma (midtones)");
+
+		uiDefButF(block, COL, B_SEQ_BUT_RELOAD, "Gain",
+			  170,10,80,19, last_seq->strip->color_balance->gain, 
+			  0, 0, 0, 0, "Gain (highlights)");
+
+		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_INVERSE_LIFT,
+			     B_SEQ_BUT_RELOAD, "Inv Lift", 
+			     10,-10,80,19, 
+			     &last_seq->strip->color_balance->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Inverse Lift");
+		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_INVERSE_GAMMA,
+			     B_SEQ_BUT_RELOAD, "Inv Gamma", 
+			     90,-10,80,19, 
+			     &last_seq->strip->color_balance->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Inverse Gamma");
+		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_INVERSE_GAIN,
+			     B_SEQ_BUT_RELOAD, "Inv Gain", 
+			     170,-10,80,19, 
+			     &last_seq->strip->color_balance->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Inverse Gain");
+	}
+
 
 	uiBlockEndAlign(block);
 

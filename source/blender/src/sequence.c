@@ -127,6 +127,9 @@ void free_strip(Strip *strip)
 	if (strip->proxy) {
 		seq_proxy_free(strip->proxy);
 	}
+	if (strip->color_balance) {
+		MEM_freeN(strip->color_balance);
+	}
 
 	free_tstripdata(strip->len, strip->tstripdata);
 	free_tstripdata(strip->endstill, strip->tstripdata_endstill);
@@ -1010,6 +1013,164 @@ void set_meta_stripdata(Sequence *seqm)
 	}
 }
 
+static StripColorBalance calc_cb(StripColorBalance * cb_)
+{
+	StripColorBalance cb = *cb_;
+	int c;
+
+	if (cb.flag & SEQ_COLOR_BALANCE_INVERSE_LIFT) {
+		for (c = 0; c < 3; c++) {
+			cb.lift[c] = 1.0 - cb.lift[c];
+		}
+	} else {
+		for (c = 0; c < 3; c++) {
+			cb.lift[c] = -(1.0 - cb.lift[c]);
+		}
+	}
+	if (cb.flag & SEQ_COLOR_BALANCE_INVERSE_GAIN) {
+		for (c = 0; c < 3; c++) {
+			if (cb.gain[c] != 0.0) {
+				cb.gain[c] = 1.0/cb.gain[c];
+			} else {
+				cb.gain[c] = 1000000; /* should be enough :) */
+			}
+		}
+	}
+
+	if (!(cb.flag & SEQ_COLOR_BALANCE_INVERSE_GAMMA)) {
+		for (c = 0; c < 3; c++) {
+			if (cb.gain[c] != 0.0) {
+				cb.gamma[c] = 1.0/cb.gamma[c];
+			} else {
+				cb.gamma[c] = 1000000; /* should be enough :) */
+			}
+		}
+	}
+
+	return cb;
+}
+
+static void make_cb_table_byte(float lift, float gain, float gamma,
+			       unsigned char * table, float mul)
+{
+	int y;
+
+	for (y = 0; y < 256; y++) {
+	        float v = 1.0 * y / 255;
+		v += lift; 
+		v *= gain;
+		v = pow(v, gamma);
+		v *= mul;
+		if ( v > 1.0) {
+			v = 1.0;
+		} else if (v < 0.0) {
+			v = 0.0;
+		}
+		table[y] = v * 255;
+	}
+
+}
+
+static void make_cb_table_float(float lift, float gain, float gamma,
+				float * table, float mul)
+{
+	int y;
+
+	for (y = 0; y < 256; y++) {
+	        float v = (float) y * 1.0 / 255.0;
+		v += lift;
+		v *= gain;
+		v = pow(v, gamma);
+		v *= mul;
+		table[y] = v;
+	}
+}
+
+static void color_balance_byte_byte(Sequence * seq, TStripElem* se,
+				    float mul)
+{
+	unsigned char cb_tab[3][256];
+	int c;
+	unsigned char * p = (unsigned char*) se->ibuf->rect;
+	unsigned char * e = p + se->ibuf->x * 4 * se->ibuf->y;
+
+	StripColorBalance cb = calc_cb(seq->strip->color_balance);
+
+	for (c = 0; c < 3; c++) {
+		make_cb_table_byte(cb.lift[c], cb.gain[c], cb.gamma[c],
+				   cb_tab[c], mul);
+	}
+
+	while (p < e) {
+		p[0] = cb_tab[0][p[0]];
+		p[1] = cb_tab[1][p[1]];
+		p[2] = cb_tab[2][p[2]];
+		
+		p += 4;
+	}
+}
+
+static void color_balance_byte_float(Sequence * seq, TStripElem* se,
+				     float mul)
+{
+	float cb_tab[4][256];
+	int c,i;
+	unsigned char * p = (unsigned char*) se->ibuf->rect;
+	unsigned char * e = p + se->ibuf->x * 4 * se->ibuf->y;
+	float * o;
+
+	imb_addrectfloatImBuf(se->ibuf);
+
+	o = se->ibuf->rect_float;
+
+	StripColorBalance cb = calc_cb(seq->strip->color_balance);
+
+	for (c = 0; c < 3; c++) {
+		make_cb_table_float(cb.lift[c], cb.gain[c], cb.gamma[c],
+				    cb_tab[c], mul);
+	}
+
+	for (i = 0; i < 256; i++) {
+		cb_tab[3][i] = ((float)i)*(1.0f/255.0f);
+	}
+
+	while (p < e) {
+		o[0] = cb_tab[0][p[0]];
+		o[1] = cb_tab[1][p[1]];
+		o[2] = cb_tab[2][p[2]];
+		o[3] = cb_tab[3][p[3]];
+
+		p += 4; o += 4;
+	}
+}
+
+static void color_balance_float_float(Sequence * seq, TStripElem* se,
+				      float mul)
+{
+	float * p = se->ibuf->rect_float;
+	float * e = se->ibuf->rect_float + se->ibuf->x * 4* se->ibuf->y;
+	StripColorBalance cb = calc_cb(seq->strip->color_balance);
+
+	while (p < e) {
+		int c;
+		for (c = 0; c < 3; c++) {
+			p[c] = pow((p[c] + cb.lift[c]) * cb.gain[c], 
+				   cb.gamma[c]) * mul;
+		}
+	}
+}
+
+static void color_balance(Sequence * seq, TStripElem* se, float mul)
+{
+	if (se->ibuf->rect_float) {
+		color_balance_float_float(seq, se, mul);
+	} else if(seq->flag & SEQ_MAKE_FLOAT) {
+		color_balance_byte_float(seq, se, mul);
+	} else {
+		color_balance_byte_byte(seq, se, mul);
+	}
+}
+
 /*
   input preprocessing for SEQ_IMAGE, SEQ_MOVIE and SEQ_SCENE
 
@@ -1022,6 +1183,9 @@ void set_meta_stripdata(Sequence *seqm)
   - Crop and transform in image source coordinate space
   - Flip X + Flip Y (could be done afterwards, backward compatibility)
   - Promote image to float data (affects pipeline operations afterwards)
+  - Color balance (is most efficient in the byte -> float 
+    (future: half -> float should also work fine!)
+    case, if done on load, since we can use lookup tables)
   - Premultiply
 
 */
@@ -1092,13 +1256,6 @@ static void input_preprocess(Sequence * seq, TStripElem* se, int cfra)
 		IMB_flipy(se->ibuf);
 	}
 
-	if(seq->flag & SEQ_MAKE_FLOAT) {
-		if (!se->ibuf->rect_float) {
-			IMB_float_from_rect(se->ibuf);
-			imb_freerectImBuf(se->ibuf);
-		}
-	}
-
 	if(seq->mul == 0.0) {
 		seq->mul = 1.0;
 	}
@@ -1111,6 +1268,20 @@ static void input_preprocess(Sequence * seq, TStripElem* se, int cfra)
 			mul *= seq->facf0;
 		}
 		mul *= seq->blend_opacity / 100.0;
+	}
+
+	if(seq->flag & SEQ_USE_COLOR_BALANCE && seq->strip->color_balance) {
+		color_balance(seq, se, mul);
+		mul = 1.0;
+	}
+
+	if(seq->flag & SEQ_MAKE_FLOAT) {
+		if (!se->ibuf->rect_float) {
+			IMB_float_from_rect(se->ibuf);
+		}
+		if (se->ibuf->rect) {
+			imb_freerectImBuf(se->ibuf);
+		}
 	}
 
 	if(mul != 1.0) {
