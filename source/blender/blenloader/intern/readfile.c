@@ -4067,14 +4067,24 @@ static void lib_link_library(FileData *fd, Main *main)
 	Library *lib;
 	for(lib= main->library.first; lib; lib= lib->id.next) {
 		lib->id.us= 1;
-#if 0		
+	}
+}
+
+/* Always call this once you havbe loaded new library data to set the relative paths correctly in relation to the blend file */
+static void fix_relpaths_library(const char *basepath, Main *main)
+{
+	Library *lib;
+	/* BLO_read_from_memory uses a blank filename */
+	if (basepath==NULL || basepath[0] == '\0')
+		return;
+		
+	for(lib= main->library.first; lib; lib= lib->id.next) {
 		/* Libraries store both relative and abs paths, recreate relative paths,
 		 * relative to the blend file since indirectly linked libs will be relative to their direct linked library */
 		if (strncmp(lib->name, "//", 2)==0) { /* if this is relative to begin with? */
 			strncpy(lib->name, lib->filename, sizeof(lib->name));
-			BLI_makestringcode(fd->filename, lib->name);
+			BLI_makestringcode(basepath, lib->name);
 		}
-#endif
 	}
 }
 
@@ -7499,6 +7509,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 
 	lib_link_all(fd, bfd->main);
 	lib_verify_nodetree(bfd->main);
+	fix_relpaths_library(fd->filename, bfd->main); /* make all relative paths, relative to the open blend file */
 	
 	if(fg)
 		link_global(fd, bfd, fg);	/* as last */
@@ -8456,6 +8467,7 @@ static Library* library_append( Scene *scene, char* file, char *dir, int idcode,
 
 	lib_link_all(fd, G.main);
 	lib_verify_nodetree(G.main);
+	fix_relpaths_library(G.sce, G.main); /* make all relative paths, relative to the open blend file */
 
 	/* give a base to loose objects. If group append, do it for objects too */
 	if(idcode==ID_GR) {
@@ -8715,9 +8727,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 		
 		if(mainptr->curlib->filedata) blo_freefiledata(mainptr->curlib->filedata);
 		mainptr->curlib->filedata= NULL;
-
 	}
 }
+
 
 /* reading runtime */
 
