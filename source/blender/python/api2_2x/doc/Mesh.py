@@ -1102,6 +1102,15 @@ class Mesh:
 		@param name: The name of the new Color layer, 31 characters max.
 		"""
 
+	def addMultiresLevel(levels = 1, type = 'catmull-clark'):
+		"""
+		Adds multires levels to this mesh.
+		@type levels: int
+		@param levels: The number of levels to add
+		@type type: string
+		@param type: The type of multires level, 'catmull-clark' or 'simple'.
+		"""
+
 	def removeUVLayer(name):
 		"""
 		Removes the active UV/Image layer.

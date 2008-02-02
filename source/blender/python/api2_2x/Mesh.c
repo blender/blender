@@ -7178,6 +7178,36 @@ static int Mesh_setMultires( BPy_Mesh * self, PyObject *value, void *type )
 	return 0;
 }
 
+static PyObject *Mesh_addMultiresLevel( BPy_Mesh * self, PyObject * args )
+{
+	char typenum;
+	int i, levels = 1;
+	char *type = NULL;
+	if( G.obedit )
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+					"can't add multires level while in edit mode" );
+	if( !PyArg_ParseTuple( args, "|is", &levels, &type ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected nothing or an int and optionally a string as arguments" );
+	if( !type || !strcmp( type, "catmull-clark" ) )
+		typenum = 0;
+	else if( !strcmp( type, "simple" ) )
+		typenum = 1;
+	else
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "if given, type should be 'catmull-clark' or 'simple'" );
+	if (!self->mesh->mr)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"the mesh has no multires data" );
+	for( i = 0; i < levels; i++ ) {
+		multires_add_level(self->object, self->mesh, typenum);
+	};
+	multires_update_levels(self->mesh, 0);
+	multires_level_to_editmesh(self->object, self->mesh, 0);	
+	multires_finish_mesh_update(self->object);
+	Py_RETURN_NONE;
+}
+
 /* end multires */
 
 
@@ -7559,6 +7589,9 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Rename a UV Layer"},
 	{"renameColorLayer", (PyCFunction)Mesh_renameColorLayer, METH_VARARGS,
 		"Rename a Color Layer"},
+	/* mesh multires */
+	{"addMultiresLevel", (PyCFunction)Mesh_addMultiresLevel, METH_VARARGS,
+		"(levels=1, type='catmull-clark') - adds multires levels of given type"},
 		
 	/* python standard class functions */
 	{"__copy__", (PyCFunction)Mesh_copy, METH_NOARGS,
