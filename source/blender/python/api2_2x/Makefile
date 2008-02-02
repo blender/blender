@@ -1,5 +1,5 @@
 #
-# $Id: Makefile 11904 2007-08-31 16:16:33Z sirdude $
+# $Id$
 #
 # ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
 #
@@ -44,6 +44,10 @@ ifeq ($(WITH_FFMPEG), true)
    CPPFLAGS += -DWITH_FFMPEG
 endif
 
+ifeq ($(WITH_OPENEXR),true)
+	CPPFLAGS += -DWITH_OPENEXR
+endif
+
 CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../../makesdna
@@ -57,6 +61,7 @@ CPPFLAGS += -I$(NAN_BMFONT)/include
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
+$(warning do we have EXR???????????????????? $(WITH_OPENEXR)) 
 # We'll just add a little duct tape to fix things here ...
 .PHONY: clean
 clean::
