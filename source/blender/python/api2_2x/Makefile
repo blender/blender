@@ -61,7 +61,6 @@ CPPFLAGS += -I$(NAN_BMFONT)/include
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
-$(warning do we have EXR???????????????????? $(WITH_OPENEXR)) 
 # We'll just add a little duct tape to fix things here ...
 .PHONY: clean
 clean::
