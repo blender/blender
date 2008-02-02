@@ -1287,6 +1287,9 @@ void init_brushaction(BrushAction *a, short *mouse, short *pr_mouse)
  				VecCopyf(&a->mesh_store[i].x, me->mvert[i].co);
   		}
 
+		if(anchored)
+			memset(a->layer_disps, 0, sizeof(float) * me->totvert);
+
 		if(anchored && !a->orig_norms) {
 			a->orig_norms= MEM_mallocN(sizeof(short) * 3 * me->totvert, "Sculpt orig norm");
 			for(i = 0; i < me->totvert; ++i) {
