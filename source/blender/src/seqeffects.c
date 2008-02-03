@@ -3004,6 +3004,8 @@ struct SeqEffectHandle get_sequence_effect(Sequence * seq)
 {
 	struct SeqEffectHandle rval;
 
+	memset(&rval, 0, sizeof(struct SeqEffectHandle));
+
 	if (seq->type & SEQ_EFFECT) {
 		rval = get_sequence_effect_impl(seq->type);
 		if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
@@ -3018,6 +3020,8 @@ struct SeqEffectHandle get_sequence_effect(Sequence * seq)
 struct SeqEffectHandle get_sequence_blend(Sequence * seq)
 {
 	struct SeqEffectHandle rval;
+
+	memset(&rval, 0, sizeof(struct SeqEffectHandle));
 
 	if (seq->blend_mode != 0) {
 		rval = get_sequence_effect_impl(seq->blend_mode);
