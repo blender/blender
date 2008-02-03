@@ -425,10 +425,8 @@ float ResizeBetween(TransInfo *t, float p1[3], float p2[3])
 	VecSubf(d2, p2, center);
 	
 	if (t->con.applyRot != NULL && (t->con.mode & CON_APPLY)) {
-		float tmp[3];
-		
-		t->con.applyVec(t, NULL, d1, d1, tmp);
-		t->con.applyVec(t, NULL, d2, d2, tmp);
+		Mat3MulVecfl(t->con.pmtx, d1);
+		Mat3MulVecfl(t->con.pmtx, d2);
 	}
 	
 	return VecLength(d2) / VecLength(d1);
