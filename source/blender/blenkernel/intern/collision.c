@@ -437,17 +437,6 @@ DO_INLINE void interpolateOnTriangle(float to[3], float v1[3], float v2[3], floa
 	VECADDMUL(to, v3, w3);
 }
 
-// unused in the moment, has some bug in
-DO_INLINE void calculateFrictionImpulse(float to[3], float vrel[3], float normal[3], double normalVelocity,
-					double frictionConstant, double delta_V_n) 
-{
-	float vrel_t_pre[3];
-	float vrel_t[3];
-	VECSUBS(vrel_t_pre, vrel, normal, normalVelocity);
-	VECCOPY(to, vrel_t_pre);
-	VecMulf(to, MAX2(1.0f - frictionConstant * delta_V_n / INPR(vrel_t_pre,vrel_t_pre), 0.0f));
-}
-
 int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierData *collmd)
 {
 	unsigned int i = 0;
@@ -477,9 +466,9 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 		// was: txold
 		cloth_compute_barycentric(collpair->pb,
 					  collmd->current_x[collpair->bp1].co,
-       collmd->current_x[collpair->bp2].co,
-       collmd->current_x[collpair->bp3].co,
-       &u1, &u2, &u3);
+					collmd->current_x[collpair->bp2].co,
+					collmd->current_x[collpair->bp3].co,
+					&u1, &u2, &u3);
 	
 		// Calculate relative "velocity".
 		interpolateOnTriangle(v1, cloth1->verts[collpair->ap1].tv, cloth1->verts[collpair->ap2].tv, cloth1->verts[collpair->ap3].tv, w1, w2, w3);
@@ -494,42 +483,44 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 		// printf("magrelVel: %f\n", magrelVel);
 				
 		// Calculate masses of points.
+		// TODO
 		
 		// If v_n_mag < 0 the edges are approaching each other.
 		if(magrelVel < -ALMOST_ZERO) 
 		{
 			// Calculate Impulse magnitude to stop all motion in normal direction.
-			// const double I_mag = v_n_mag / (1/m1 + 1/m2);
-			float magnitude_i = magrelVel / 2.0f; // TODO implement masses
-			float tangential[3], magtangent, magnormal, collvel[3];
-			float vrel_t_pre[3];
-			float vrel_t[3];
-			double impulse;
+			float magnitude_i = magrelVel / 2.0; // TODO implement masses
+			float tangential[3], magtangent, magnormal;
+			double impulse = 0.0;
 			float epsilon = clmd->coll_parms->epsilon;
-			float overlap = (epsilon + ALMOST_ZERO-collpair->distance);
+			float vrel_t_pre[3];
+			float vrel_t[3], temp[3];
 			
-			// calculateFrictionImpulse(tangential, relativeVelocity, collpair->normal, magrelVel, clmd->coll_parms->friction*0.01, magrelVel);
+			VECCOPY(temp, collpair->normal);
+			VecMulf(temp, magrelVel);
+			VECSUB(vrel_t_pre, relativeVelocity, temp);
 			
-			// magtangent = INPR(tangential, tangential);
+			VECCOPY(vrel_t, vrel_t_pre);
+			
+			VecMulf(vrel_t, MAX2(1.0 - (clmd->coll_parms->friction * magrelVel / sqrt(INPR(vrel_t_pre,vrel_t_pre))), 0));
+			
+			VECSUB(tangential, vrel_t_pre, vrel_t);
+			VecMulf(tangential, 0.5);
+			
+			// i_tangential = tangential
+			magtangent = INPR(tangential, tangential);
 			
 			// Apply friction impulse.
-			if (magtangent < -ALMOST_ZERO) 
+			if (magtangent > ALMOST_ZERO) 
 			{
-				
-				// printf("friction applied: %f\n", magtangent);
-				// TODO check original code 
-				/*
-				VECSUB(cloth1->verts[face1->v1].tv, cloth1->verts[face1->v1].tv,tangential);
-				VECSUB(cloth1->verts[face1->v1].tv, cloth1->verts[face1->v2].tv,tangential);
-				VECSUB(cloth1->verts[face1->v1].tv, cloth1->verts[face1->v3].tv,tangential);
-				VECSUB(cloth1->verts[face1->v1].tv, cloth1->verts[face1->v4].tv,tangential);
-				*/
+				impulse = magtangent / ( 1.0 + w1*w1 + w2*w2 + w3*w3);
+				VECADDMUL(cloth1->verts[collpair->ap1].impulse, tangential, w1 * impulse/magtangent);
+				VECADDMUL(cloth1->verts[collpair->ap2].impulse, tangential, w2 * impulse/magtangent);
+				VECADDMUL(cloth1->verts[collpair->ap3].impulse, tangential, w3 * impulse/magtangent);
 			}
 			
 
 			impulse = -2.0f * magrelVel / ( 1.0 + w1*w1 + w2*w2 + w3*w3);
-			
-			// printf("impulse: %f\n", impulse);
 			
 			VECADDMUL(cloth1->verts[collpair->ap1].impulse, collpair->normal, w1 * impulse); 
 			cloth1->verts[collpair->ap1].impulse_count++;
@@ -541,40 +532,6 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 			cloth1->verts[collpair->ap3].impulse_count++;
 			
 			result = 1;
-			
-			/*
-			if (overlap > ALMOST_ZERO) {
-			double I_mag  = overlap * 0.1;
-				
-			impulse = -I_mag / ( 1.0 + w1*w1 + w2*w2 + w3*w3);
-				
-			VECADDMUL(cloth1->verts[collpair->ap1].impulse, collpair->normal, w1 * impulse); 
-			cloth1->verts[collpair->ap1].impulse_count++;
-							
-			VECADDMUL(cloth1->verts[collpair->ap2].impulse, collpair->normal, w2 * impulse); 
-			cloth1->verts[collpair->ap2].impulse_count++;
-			
-			VECADDMUL(cloth1->verts[collpair->ap3].impulse, collpair->normal, w3 * impulse); 
-			cloth1->verts[collpair->ap3].impulse_count++;
-		}
-			*/
-		
-			// printf("magnitude_i: %f\n", magnitude_i); // negative before collision in my case
-			
-			// Apply the impulse and increase impulse counters.
-
-			/*		
-			// calculateFrictionImpulse(tangential, collvel, collpair->normal, magtangent, clmd->coll_parms->friction*0.01, magtangent);
-			VECSUBS(vrel_t_pre, collvel, collpair->normal, magnormal);
-			// VecMulf(vrel_t_pre, clmd->coll_parms->friction*0.01f/INPR(vrel_t_pre,vrel_t_pre));
-			magtangent = Normalize(vrel_t_pre);
-			VecMulf(vrel_t_pre, MIN2(clmd->coll_parms->friction*0.01f*magnormal,magtangent));
-			
-			VECSUB(cloth1->verts[face1->v1].tv, cloth1->verts[face1->v1].tv,vrel_t_pre);
-			*/
-			
-			
-			
 		}
 		
 		search = search->next;

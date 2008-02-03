@@ -1187,6 +1187,7 @@ void load_editMesh(void)
 			printf("loadmesh --> CLOTH_SIMSETTINGS_FLAG_RESET\n");
 			/* only reset cloth when no cache was used */
 			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
 			clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_EDITMODE;
 		}
 	}

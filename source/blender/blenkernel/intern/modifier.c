@@ -5016,12 +5016,7 @@ CustomDataMask clothModifier_requiredDataMask(ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if (((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING ) || 
-		     (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )) && 
-		     ((clmd->sim_parms->vgroup_mass>0) || 
-		     (clmd->sim_parms->vgroup_struct>0)||
-		     (clmd->sim_parms->vgroup_bend>0)))
-	 		dataMask |= (1 << CD_MDEFORMVERT);
+	dataMask |= (1 << CD_MDEFORMVERT);
 
 	return dataMask;
 }
@@ -5148,12 +5143,13 @@ static void collisionModifier_deformVerts(
 		
 		current_time = bsystem_time ( ob, ( float ) G.scene->r.cfra, 0.0 );
 		
-		// printf("current_time %f, collmd->time %f\n", current_time, collmd->time);
+		if(G.rt > 0)
+			printf("current_time %f, collmd->time %f\n", current_time, collmd->time);
+		
+		numverts = dm->getNumVerts ( dm );
 		
 		if(current_time > collmd->time)
 		{	
-			numverts = dm->getNumVerts ( dm );
-			
 			// check if mesh has changed
 			if(collmd->x && (numverts != collmd->numverts))
 				collisionModifier_freeData((ModifierData *)collmd);
@@ -5221,9 +5217,16 @@ static void collisionModifier_deformVerts(
 			}
 			
 		}
-		else
+		else if(current_time < collmd->time)
 		{	
 			collisionModifier_freeData((ModifierData *)collmd);
+		}
+		else
+		{
+			if(numverts != collmd->numverts)
+			{
+				collisionModifier_freeData((ModifierData *)collmd);
+			}
 		}
 	}
 	

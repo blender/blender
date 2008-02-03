@@ -166,7 +166,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->firstcachedframe = -1.0;
 	
 	clmd->coll_parms->self_friction = 5.0;
-	clmd->coll_parms->friction = 10.0;
+	clmd->coll_parms->friction = 5.0;
 	clmd->coll_parms->loop_count = 3;
 	clmd->coll_parms->epsilon = 0.015f;
 	clmd->coll_parms->flags = CLOTH_COLLSETTINGS_FLAG_ENABLED;
@@ -689,7 +689,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	clmd->sim_parms->dt = 1.0f / clmd->sim_parms->stepsPerFrame;
 	
 	if ( ( clmd->clothObject == NULL ) || (clmd->clothObject && (numverts != clmd->clothObject->numverts )) )
-	{
+	{	
 		/* only force free the cache if we have a different number of verts */
 		if(clmd->clothObject && (numverts != clmd->clothObject->numverts ))
 		{
@@ -756,6 +756,16 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 		return result;
 	}
 	
+	// check for autoprotection
+	if(framenr >= clmd->sim_parms->autoprotect)
+	{
+		if(G.rt > 0)
+			printf("fr#: %f, auto: %d\n", framenr, clmd->sim_parms->autoprotect);
+		clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT;
+	}
+	if(G.rt > 0)
+		printf("clothModifier_do deltaTime=1 cachewrite\n");
+	
 	/* nice moving one frame forward */
 	if ( deltaTime == 1.0f )
 	{
@@ -795,16 +805,6 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 				cloth_write_cache(ob, clmd, framenr);
 			else
 				clmd->sim_parms->sim_time--;
-			
-			// check for autoprotection
-			if(framenr >= clmd->sim_parms->autoprotect)
-			{
-				if(G.rt > 0)
-					printf("fr#: %f, auto: %d\n", framenr, clmd->sim_parms->autoprotect);
-				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT;
-			}
-			if(G.rt > 0)
-				printf("clothModifier_do deltaTime=1 cachewrite\n");
 		}
 		else
 		{
@@ -1041,14 +1041,16 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 
 	verts = clothObj->verts;
 	
-	if (((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING ) || 
+	if ((((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING ) || 
 		     (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )) && 
 		     ((clmd->sim_parms->vgroup_mass>0) || 
 		     (clmd->sim_parms->vgroup_struct>0)||
-		     (clmd->sim_parms->vgroup_bend>0)))
+		     (clmd->sim_parms->vgroup_bend>0)))|| (clmd->sim_parms->vgroup_mass>0))
 	{
 		for ( i = 0; i < numverts; i++, verts++ )
 		{
+			verts->mass = 1.0; // standard mass
+			
 			dvert = dm->getVertData ( dm, i, CD_MDEFORMVERT );
 			if ( dvert )
 			{
@@ -1082,24 +1084,15 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 							verts->bend_stiff = dvert->dw [j].weight;
 						}
 					}
+					
+					if( dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_mass-1))
+					{
+						verts->mass = dvert->dw [j].weight;
+					}
 				}
 			}
 		}
 	}
-}
-
-/*
-helper function to get proper spring length
-when object is rescaled
-*/
-float cloth_globallen ( float *v1,float *v2,Object *ob )
-{
-	float p1[3],p2[3];
-	VECCOPY ( p1,v1 );
-	Mat4MulVecfl ( ob->obmat, p1 );
-	VECCOPY ( p2,v2 );
-	Mat4MulVecfl ( ob->obmat, p2 );
-	return VecLenf ( p1,p2 );
 }
 
 static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr)
@@ -1189,6 +1182,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	// has to be happen before springs are build!
 	cloth_apply_vgroup (clmd, dm);
 	
+	
 	if ( !cloth_build_springs ( clmd, dm ) )
 	{
 		cloth_free_modifier ( ob, clmd );
@@ -1197,12 +1191,13 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		return 0;
 	}
 	
+	
 	// init our solver
 	if ( solvers [clmd->sim_parms->solver_type].init )
 		solvers [clmd->sim_parms->solver_type].init ( ob, clmd );
 
 	clmd->clothObject->tree = bvh_build_from_cloth ( clmd, clmd->coll_parms->epsilon );
-	
+
 	return 1;
 }
 
@@ -1326,14 +1321,6 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 			spring->kl = medge[i].v2;
 			VECSUB ( temp, cloth->verts[spring->kl].x, cloth->verts[spring->ij].x );
 			spring->restlen =  sqrt ( INPR ( temp, temp ) );
-			/*
-			if(spring->restlen > 1.0)
-			{
-			printf("i: %d, L: %f\n", i, spring->restlen);
-			printf("%d, x: %f, y: %f, z: %f\n", cloth->verts[spring->ij].x[0], cloth->verts[spring->ij].x[1], spring->ij, cloth->verts[spring->ij].x[2]);
-			printf("%d, x: %f, y: %f, z: %f\n\n",spring->kl, cloth->verts[spring->kl].x[0], cloth->verts[spring->kl].x[1], cloth->verts[spring->kl].x[2]);
-		}
-			*/
 			clmd->coll_parms->avg_spring_len += spring->restlen;
 			spring->type = CLOTH_SPRING_TYPE_STRUCTURAL;
 			spring->flags = 0;
@@ -1438,6 +1425,9 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		MEM_freeN ( edgelist );
 	
 	BLI_edgehash_free ( edgehash, NULL );
+	
+	if(G.rt>0)
+		printf("avg_len: %f\n",clmd->coll_parms->avg_spring_len);
 
 	return 1;
 

@@ -5104,11 +5104,18 @@ static void object_cloth__enabletoggle(void *ob_v, void *arg2)
 	}
 }
 
+static int _can_cloth_at_all(Object *ob)
+{
+	// list of Yes
+	if ((ob->type==OB_MESH)) return 1;
+	// else deny
+	return 0;
+}
 
 static void object_panel_cloth(Object *ob)
 {
-	uiBlock *block;
-	uiBut *but;
+	uiBlock *block=NULL;
+	uiBut *but=NULL;
 	static int val, val2;
 	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 	
@@ -5117,8 +5124,15 @@ static void object_panel_cloth(Object *ob)
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	val = (clmd ? 1:0);
-
+	
+	if(!_can_cloth_at_all(ob))
+	{
+		uiDefBut(block, LABEL, 0, "Cloth can be activated on mesh only.",  10,200,300,20, NULL, 0.0, 0, 0, 0, "");
+	}
+	else	
+	{
 	but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Cloth",	10,200,130,20, &val, 0, 0, 0, 0, "Sets object to become cloth");
+	}
 
 	uiButSetFunc(but, object_cloth__enabletoggle, ob, NULL);
 	uiDefBut(block, LABEL, 0, "",10,10,300,0, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
@@ -5133,6 +5147,8 @@ static void object_panel_cloth(Object *ob)
 		
 		/* GENERAL STUFF */
 		uiClearButLock();
+		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT) uiSetButLock(1, "Cache is protected");
+		
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff:",	   10,170,150,20, &clmd->sim_parms->structural, 1.0, 10000.0, 100, 0, "Overall stiffness of structure");
 		uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff:",	   160,170,150,20, &clmd->sim_parms->bending, 0.0, 10000.0, 1000, 0, "Wrinkle coefficient (higher = less smaller but more big wrinkles)");
@@ -5237,11 +5253,14 @@ static void object_panel_cloth_II(Object *ob)
 	
 	if(clmd)
 	{	
+		uiClearButLock();
+		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT) uiSetButLock(1, "Cache is protected");
+		
 		uiDefButI(block, NUM, B_CLOTH_RENEW, "First Frame:",10,160,150,20, &clmd->sim_parms->firstframe, 0, MAXFRAME, 1, 0, "Frame on which the simulation starts");
 		uiDefButI(block, NUM, B_CLOTH_RENEW, "Last Frame:",160,160,150,20, &clmd->sim_parms->lastframe, 0, MAXFRAME, 1, 0, "Frame on which the simulation stops");
 		
 		uiDefBut(block, LABEL, 0, "",10,140,300,20, NULL, 0.0, 0, 0, 0, "");
-		
+		uiClearButLock();
 		if (!G.relbase_valid)
 		{
 			uiDefBut(block, LABEL, 0, "Cache deactivated until file is saved.",  10,120,300,20, NULL, 0.0, 0, 0, 0, "");
@@ -5256,7 +5275,10 @@ static void object_panel_cloth_II(Object *ob)
 			uiDefBut(block, BUT, B_CLOTH_CLEARCACHEFRAME, "From next frame", 200, 100,110,20, NULL, 0.0, 0.0, 10, 0, "Free cloth cache starting from next frame");	
 			uiDefBut(block, LABEL, 0, " ",  10,80,300,20, NULL, 0.0, 0, 0, 0, "");
 		}
-
+		
+		uiClearButLock();
+		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT) uiSetButLock(1, "Cache is protected");
+		
 		/*
 		TODO: implement this again in cloth!
 		if(length>1) // B_CLOTH_CHANGEPREROLL
@@ -5302,6 +5324,10 @@ static void object_panel_cloth_III(Object *ob)
 		char *clvg1, *clvg2;
 		char clmvg [] = "Vertex Groups%t|None%x0|";
 		char clmvg2 [] = "Vertex Groups%t|None%x0|";
+		
+		uiClearButLock();
+		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT) uiSetButLock(1, "Cache is protected");
+		
 		
 		uiDefButI(block, NUM, B_DIFF, "Autoprotect Cache From:",10,160,300,20, &clmd->sim_parms->autoprotect, 0.0, MAXFRAME + 1, 1, 0, "Frame on which the simulation gets cache protection enabled automatically (To prevent accidently cleaning it).");
 				
