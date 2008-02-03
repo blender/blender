@@ -78,6 +78,7 @@ void setSnappingCallback(TransInfo *t);
 
 void ApplySnapTranslation(TransInfo *t, float vec[3]);
 void ApplySnapRotation(TransInfo *t, float *vec);
+void ApplySnapResize(TransInfo *t, float *vec);
 
 void CalcSnapGrid(TransInfo *t, float *vec);
 void CalcSnapGeometry(TransInfo *t, float *vec);
@@ -89,6 +90,7 @@ void TargetSnapActive(TransInfo *t);
 
 float RotationBetween(TransInfo *t, float p1[3], float p2[3]);
 float TranslationBetween(TransInfo *t, float p1[3], float p2[3]);
+float ResizeBetween(TransInfo *t, float p1[3], float p2[3]);
 
 /* Modes */
 #define NOT_SELECTED 0
@@ -303,6 +305,16 @@ void setSnappingCallback(TransInfo *t)
 			t->tsnap.targetSnap = TargetSnapMedian;
 		}
 		break;
+	case TFM_RESIZE:
+		t->tsnap.applySnap = ApplySnapResize;
+		t->tsnap.distance = ResizeBetween;
+		
+		// Can't do TARGET_CENTER with resize, use TARGET_MEDIAN instead
+		if (G.scene->snap_target == SCE_SNAP_TARGET_CENTER) {
+			t->tsnap.modeTarget = SNAP_MEDIAN;
+			t->tsnap.targetSnap = TargetSnapMedian;
+		}
+		break;
 	default:
 		t->tsnap.applySnap = NULL;
 		break;
@@ -326,6 +338,15 @@ void ApplySnapRotation(TransInfo *t, float *vec)
 	}
 }
 
+void ApplySnapResize(TransInfo *t, float vec[3])
+{
+	if (t->tsnap.modeTarget == SNAP_CLOSEST) {
+		vec[0] = vec[1] = vec[2] = t->tsnap.dist;
+	}
+	else {
+		vec[0] = vec[1] = vec[2] = ResizeBetween(t, t->tsnap.snapTarget, t->tsnap.snapPoint);
+	}
+}
 
 /********************** DISTANCE **************************/
 
@@ -388,6 +409,29 @@ float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 	}
 	
 	return angle;
+}
+
+float ResizeBetween(TransInfo *t, float p1[3], float p2[3])
+{
+	float d1[3], d2[3], center[3];
+	
+	VECCOPY(center, t->center);	
+	if(t->flag & (T_EDIT|T_POSE)) {
+		Object *ob= G.obedit?G.obedit:t->poseobj;
+		Mat4MulVecfl(ob->obmat, center);
+	}
+
+	VecSubf(d1, p1, center);
+	VecSubf(d2, p2, center);
+	
+	if (t->con.applyRot != NULL && (t->con.mode & CON_APPLY)) {
+		float tmp[3];
+		
+		t->con.applyVec(t, NULL, d1, d1, tmp);
+		t->con.applyVec(t, NULL, d2, d2, tmp);
+	}
+	
+	return VecLength(d2) / VecLength(d1);
 }
 
 /********************** CALC **************************/

@@ -193,10 +193,10 @@ int manageObjectSpace(int confirm, int set) {
 		return -1;
 
 	if (confirm == 0) {
-		if (set && pupmenu("Custom Space %t|Add and Use Active Object%x1") != 1) {
+		if (set && pupmenu("Custom Orientation %t|Add and Use Active Object%x1") != 1) {
 			return -1;
 		}
-		else if (set == 0 && pupmenu("Custom Space %t|Add Active Object%x1") != 1) {
+		else if (set == 0 && pupmenu("Custom Orientation %t|Add Active Object%x1") != 1) {
 			return -1;
 		}
 	}
@@ -210,10 +210,10 @@ int confirmSpace(int set, char text[])
 	char menu[64];
 	
 	if (set) {
-		sprintf(menu, "Custom Space %%t|Add and Use %s%%x1", text);
+		sprintf(menu, "Custom Orientation %%t|Add and Use %s%%x1", text);
 	}
 	else {
-		sprintf(menu, "Custom Space %%t|Add %s%%x1", text);
+		sprintf(menu, "Custom Orientation %%t|Add %s%%x1", text);
 	}
 	
 	if (pupmenu(menu) == 1) {
@@ -2625,6 +2625,8 @@ int Resize(TransInfo *t, short mval[2])
 		applyNumInput(&t->num, size);
 		constraintNumInput(t, size);
 	}
+
+	applySnapping(t, size);
 
 	SizeToMat3(size, mat);
 
