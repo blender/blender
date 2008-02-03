@@ -2162,6 +2162,7 @@ static void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode)
 	}
 }
 
+#if 0
 /* note: needs to be userpref or opengl profile option */
 static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
 {
@@ -2209,6 +2210,7 @@ static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
 		}
 	}
 }
+#endif
 
 /* nice AA filled circle */
 /* this might have some more generic use */

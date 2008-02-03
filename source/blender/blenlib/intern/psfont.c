@@ -1949,7 +1949,7 @@ static VFontData *objfnt_to_vfontdata(objfnt *fnt)
 	chardesc *cd;
 	short *_data, *data;
 	int a, i, count, stop, ready, meet;
-	short first[2], last[2];
+	short first[2]={0,0}, last[2]={0,0};
 	struct Nurb *nu;
 	struct BezTriple *bezt, *bez2;
 	float scale, dx, dy;

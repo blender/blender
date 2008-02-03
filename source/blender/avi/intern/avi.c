@@ -632,7 +632,7 @@ AviError AVI_open_movie (char *name, AviMovie *movie) {
 }
 
 void *AVI_read_frame (AviMovie *movie, AviFormat format, int frame, int stream) {
-	int cur_frame, temp, i, rewind=1;
+	int cur_frame=-1, temp, i=0, rewind=1;
 	void *buffer;
 
 	/* Retrieve the record number of the desired frame in the index 

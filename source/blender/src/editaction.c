@@ -3086,8 +3086,8 @@ static void mouse_action (int selectmode)
 	TimeMarker *marker, *pmarker;
 	
 	void *act_channel;
-	short sel, act_type;
-	float selx;
+	short sel, act_type = 0;
+	float selx = 0.0;
 	
 	/* determine what type of data we are operating on */
 	data = get_action_context(&datatype);

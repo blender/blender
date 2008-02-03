@@ -50,6 +50,7 @@
 #define WORDS_BIGENDIAN
 #endif
 
+#ifdef WORDS_BIGENDIAN
 static void invert (int *num) {
 	int new=0,i,j;
 
@@ -79,6 +80,7 @@ static void Ichunk (AviChunk *chunk) {
 	invert (&chunk->fcc);
 	invert (&chunk->size);
 }
+#endif
 
 #ifdef WORDS_BIGENDIAN
 static void Ilist (AviList *list){

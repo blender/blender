@@ -7576,7 +7576,9 @@ static BHead *find_previous_lib(FileData *fd, BHead *bhead)
 
 static BHead *find_bhead(FileData *fd, void *old)
 {
+#if 0
 	BHead *bhead;
+#endif
 	struct bheadsort *bhs, bhs_s;
 	
 	if (!old)
@@ -7591,9 +7593,11 @@ static BHead *find_bhead(FileData *fd, void *old)
 	if(bhs)
 		return bhs->bhead;
 	
-//	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead))
-//		if (bhead->old==old)
-//			return bhead;
+#if 0
+	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead))
+		if (bhead->old==old)
+			return bhead;
+#endif
 
 	return NULL;
 }
