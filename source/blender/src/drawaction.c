@@ -430,219 +430,227 @@ static void draw_channel_names(void)
 	/* build list of channels to draw */
 	filter= (ACTFILTER_FORDRAWING|ACTFILTER_VISIBLE|ACTFILTER_CHANNELS);
 	actdata_filter(&act_data, filter, data, datatype);
-		
+	
 	/* loop through channels, and set up drawing depending on their type  */
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	for (ale= act_data.first; ale; ale= ale->next) {
-		short indent= 0, offset= 0, sel= 0, group=0;
-		int expand= -1, protect = -1, special= -1, mute = -1;
-		char name[32];
+		const float yminc= y-CHANNELHEIGHT/2;
+		const float ymaxc= y+CHANNELHEIGHT/2;
 		
-		/* determine what needs to be drawn */
-		switch (ale->type) {
-			case ACTTYPE_GROUP: /* action group */
-			{
-				bActionGroup *agrp= (bActionGroup *)ale->data;
-				
-				group= 2;
-				indent= 0;
-				special= -1;
-				
-				if (EXPANDED_AGRP(agrp))
-					expand = ICON_TRIA_DOWN;
-				else
-					expand = ICON_TRIA_RIGHT;
+		/* check if visible */
+		if ( IN_RANGE(yminc, G.v2d->cur.ymin, G.v2d->cur.ymax) ||
+			 IN_RANGE(ymaxc, G.v2d->cur.ymin, G.v2d->cur.ymax) ) 
+		{
+			short indent= 0, offset= 0, sel= 0, group=0;
+			int expand= -1, protect = -1, special= -1, mute = -1;
+			char name[32];
+			
+			/* determine what needs to be drawn */
+			switch (ale->type) {
+				case ACTTYPE_GROUP: /* action group */
+				{
+					bActionGroup *agrp= (bActionGroup *)ale->data;
 					
-				if (EDITABLE_AGRP(agrp))
-					protect = ICON_UNLOCKED;
-				else
-					protect = ICON_LOCKED;
+					group= 2;
+					indent= 0;
+					special= -1;
 					
-				sel = SEL_AGRP(agrp);
-				sprintf(name, agrp->name);
-			}
-				break;
-			case ACTTYPE_ACHAN: /* action channel */
-			{
-				bActionChannel *achan= (bActionChannel *)ale->data;
-				
-				group= (ale->grp) ? 1 : 0;
-				indent = 0;
-				special = -1;
-				
-				if (EXPANDED_ACHAN(achan))
-					expand = ICON_TRIA_DOWN;
-				else
-					expand = ICON_TRIA_RIGHT;
-					
-				if (EDITABLE_ACHAN(achan))
-					protect = ICON_UNLOCKED;
-				else
-					protect = ICON_LOCKED;
-					
-				if (achan->ipo) {
-					if (achan->ipo->muteipo)
-						mute = ICON_MUTE_IPO_ON;
+					if (EXPANDED_AGRP(agrp))
+						expand = ICON_TRIA_DOWN;
 					else
-						mute = ICON_MUTE_IPO_OFF;
-				}
-				
-				sel = SEL_ACHAN(achan);
-				sprintf(name, achan->name);
-			}
-				break;
-			case ACTTYPE_CONCHAN: /* constraint channel */
-			{
-				bConstraintChannel *conchan = (bConstraintChannel *)ale->data;
-				
-				indent = 2;
-				group= (ale->grp) ? 1 : 0;
-				
-				if (EDITABLE_CONCHAN(conchan))
-					protect = ICON_UNLOCKED;
-				else
-					protect = ICON_LOCKED;
-					
-				if (conchan->ipo) {
-					if (conchan->ipo->muteipo)
-						mute = ICON_MUTE_IPO_ON;
+						expand = ICON_TRIA_RIGHT;
+						
+					if (EDITABLE_AGRP(agrp))
+						protect = ICON_UNLOCKED;
 					else
-						mute = ICON_MUTE_IPO_OFF;
+						protect = ICON_LOCKED;
+						
+					sel = SEL_AGRP(agrp);
+					sprintf(name, agrp->name);
 				}
-				
-				sel = SEL_CONCHAN(conchan);
-				sprintf(name, conchan->name);
-			}
-				break;
-			case ACTTYPE_ICU: /* ipo-curve channel */
-			{
-				IpoCurve *icu = (IpoCurve *)ale->data;
-				
-				indent = 2;
-				protect = -1; // for now, until this can be supported by others
-				group= (ale->grp) ? 1 : 0;
-				
-				if (icu->flag & IPO_MUTE)
-					mute = ICON_MUTE_IPO_ON;
-				else	
-					mute = ICON_MUTE_IPO_OFF;
-				
-				sel = SEL_ICU(icu);
-				if (G.saction->pin)
-					sprintf(name, getname_ipocurve(icu, NULL));
-				else
-					sprintf(name, getname_ipocurve(icu, OBACT));
-			}
-				break;
-			case ACTTYPE_SHAPEKEY: /* shapekey channel */
-			{
-				KeyBlock *kb = (KeyBlock *)ale->data;
-				
-				indent = 0;
-				special = -1;
-				
-				if (kb->name[0] == '\0')
-					sprintf(name, "Key %d", ale->index);
-				else
-					sprintf(name, kb->name);
-			}
-				break;
-			case ACTTYPE_FILLIPO: /* ipo expand widget */
-			{
-				bActionChannel *achan = (bActionChannel *)ale->data;
-				
-				indent = 1;
-				special = geticon_ipo_blocktype(achan->ipo->blocktype);
-				group= (ale->grp) ? 1 : 0;
-				
-				if (FILTER_IPO_ACHAN(achan))	
-					expand = ICON_TRIA_DOWN;
-				else
-					expand = ICON_TRIA_RIGHT;
-				
-				sel = SEL_ACHAN(achan);
-				sprintf(name, "IPO Curves");
-			}
-				break;
-			case ACTTYPE_FILLCON: /* constraint expand widget */
-			{
-				bActionChannel *achan = (bActionChannel *)ale->data;
-				
-				indent = 1;
-				special = ICON_CONSTRAINT;
-				group= (ale->grp) ? 1 : 0;
-				
-				if (FILTER_CON_ACHAN(achan))	
-					expand = ICON_TRIA_DOWN;
-				else
-					expand = ICON_TRIA_RIGHT;
+					break;
+				case ACTTYPE_ACHAN: /* action channel */
+				{
+					bActionChannel *achan= (bActionChannel *)ale->data;
 					
-				sel = SEL_ACHAN(achan);
-				sprintf(name, "Constraint");
-			}
-				break;
-		}	
+					group= (ale->grp) ? 1 : 0;
+					indent = 0;
+					special = -1;
+					
+					if (EXPANDED_ACHAN(achan))
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+						
+					if (EDITABLE_ACHAN(achan))
+						protect = ICON_UNLOCKED;
+					else
+						protect = ICON_LOCKED;
+						
+					if (achan->ipo) {
+						if (achan->ipo->muteipo)
+							mute = ICON_MUTE_IPO_ON;
+						else
+							mute = ICON_MUTE_IPO_OFF;
+					}
+					
+					sel = SEL_ACHAN(achan);
+					sprintf(name, achan->name);
+				}
+					break;
+				case ACTTYPE_CONCHAN: /* constraint channel */
+				{
+					bConstraintChannel *conchan = (bConstraintChannel *)ale->data;
+					
+					indent = 2;
+					group= (ale->grp) ? 1 : 0;
+					
+					if (EDITABLE_CONCHAN(conchan))
+						protect = ICON_UNLOCKED;
+					else
+						protect = ICON_LOCKED;
+						
+					if (conchan->ipo) {
+						if (conchan->ipo->muteipo)
+							mute = ICON_MUTE_IPO_ON;
+						else
+							mute = ICON_MUTE_IPO_OFF;
+					}
+					
+					sel = SEL_CONCHAN(conchan);
+					sprintf(name, conchan->name);
+				}
+					break;
+				case ACTTYPE_ICU: /* ipo-curve channel */
+				{
+					IpoCurve *icu = (IpoCurve *)ale->data;
+					
+					indent = 2;
+					protect = -1; // for now, until this can be supported by others
+					group= (ale->grp) ? 1 : 0;
+					
+					if (icu->flag & IPO_MUTE)
+						mute = ICON_MUTE_IPO_ON;
+					else	
+						mute = ICON_MUTE_IPO_OFF;
+					
+					sel = SEL_ICU(icu);
+					if (G.saction->pin)
+						sprintf(name, getname_ipocurve(icu, NULL));
+					else
+						sprintf(name, getname_ipocurve(icu, OBACT));
+				}
+					break;
+				case ACTTYPE_SHAPEKEY: /* shapekey channel */
+				{
+					KeyBlock *kb = (KeyBlock *)ale->data;
+					
+					indent = 0;
+					special = -1;
+					
+					if (kb->name[0] == '\0')
+						sprintf(name, "Key %d", ale->index);
+					else
+						sprintf(name, kb->name);
+				}
+					break;
+				case ACTTYPE_FILLIPO: /* ipo expand widget */
+				{
+					bActionChannel *achan = (bActionChannel *)ale->data;
+					
+					indent = 1;
+					special = geticon_ipo_blocktype(achan->ipo->blocktype);
+					group= (ale->grp) ? 1 : 0;
+					
+					if (FILTER_IPO_ACHAN(achan))	
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+					
+					sel = SEL_ACHAN(achan);
+					sprintf(name, "IPO Curves");
+				}
+					break;
+				case ACTTYPE_FILLCON: /* constraint expand widget */
+				{
+					bActionChannel *achan = (bActionChannel *)ale->data;
+					
+					indent = 1;
+					special = ICON_CONSTRAINT;
+					group= (ale->grp) ? 1 : 0;
+					
+					if (FILTER_CON_ACHAN(achan))	
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+						
+					sel = SEL_ACHAN(achan);
+					sprintf(name, "Constraint");
+				}
+					break;
+			}	
 
-		/* now, start drawing based on this information */
-		/* draw backing strip behind channel name */
-		if (group == 2) {
-			/* only for group-channels */
-			if (ale->flag & AGRP_ACTIVE)
-				BIF_ThemeColorShade(TH_GROUP_ACTIVE, 10);
+			/* now, start drawing based on this information */
+			/* draw backing strip behind channel name */
+			if (group == 2) {
+				/* only for group-channels */
+				if (ale->flag & AGRP_ACTIVE)
+					BIF_ThemeColorShade(TH_GROUP_ACTIVE, 10);
+				else
+					BIF_ThemeColorShade(TH_GROUP, 20);
+				uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
+				gl_round_box(GL_POLYGON, x,  yminc, (float)NAMEWIDTH, ymaxc, 8);
+				
+				offset = 0;
+			}
+			else {
+				/* for normal channels */
+				BIF_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));
+				indent += group;
+				offset = 7 * indent;
+				glRectf(x+offset,  yminc, (float)NAMEWIDTH, ymaxc);
+			}
+			
+			/* draw expand/collapse triangle */
+			if (expand > 0) {
+				BIF_icon_draw(x+offset, yminc, expand);
+				offset += 17;
+			}
+			
+			/* draw special icon indicating type of ipo-blocktype? 
+			 * 	only for expand widgets for Ipo and Constraint Channels 
+			 */
+			if (special > 0) {
+				offset = (group) ? 29 : 24;
+				BIF_icon_draw(x+offset, yminc, special);
+				offset += 17;
+			}
+				
+			/* draw name */
+			if (sel)
+				BIF_ThemeColor(TH_TEXT_HI);
 			else
-				BIF_ThemeColorShade(TH_GROUP, 20);
-			uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
-			gl_round_box(GL_POLYGON, x,  y-CHANNELHEIGHT/2, (float)NAMEWIDTH, y+CHANNELHEIGHT/2, 8);
+				BIF_ThemeColor(TH_TEXT);
+			offset += 3;
+			glRasterPos2f(x+offset, y-4);
+			BMF_DrawString(G.font, name);
 			
+			/* reset offset - for RHS of panel */
 			offset = 0;
-		}
-		else {
-			/* for normal channels */
-			BIF_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));
-			indent += group;
-			offset = 7 * indent;
-			glRectf(x+offset,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
-		}
-		
-		/* draw expand/collapse triangle */
-		if (expand > 0) {
-			BIF_icon_draw(x+offset, y-CHANNELHEIGHT/2, expand);
-			offset += 17;
-		}
-		
-		/* draw special icon indicating type of ipo-blocktype? 
-		 * 	only for expand widgets for Ipo and Constraint Channels 
-		 */
-		if (special > 0) {
-			offset = (group) ? 29 : 24;
-			BIF_icon_draw(x+offset, y-CHANNELHEIGHT/2, special);
-			offset += 17;
-		}
 			
-		/* draw name */
-		if (sel)
-			BIF_ThemeColor(TH_TEXT_HI);
-		else
-			BIF_ThemeColor(TH_TEXT);
-		offset += 3;
-		glRasterPos2f(x+offset, y-4);
-		BMF_DrawString(G.font, name);
-		
-		/* reset offset - for RHS of panel */
-		offset = 0;
-		
-		/* draw protect 'lock' */
-		if (protect > 0) {
-			offset = 16;
-			BIF_icon_draw(NAMEWIDTH-offset, y-CHANNELHEIGHT/2, protect);
-		}
-		
-		/* draw mute 'eye' */
-		if (mute > 0) {
-			offset += 16;
-			BIF_icon_draw(NAMEWIDTH-offset, y-CHANNELHEIGHT/2, mute);
+			/* draw protect 'lock' */
+			if (protect > 0) {
+				offset = 16;
+				BIF_icon_draw(NAMEWIDTH-offset, yminc, protect);
+			}
+			
+			/* draw mute 'eye' */
+			if (mute > 0) {
+				offset += 16;
+				BIF_icon_draw(NAMEWIDTH-offset, yminc, mute);
+			}
 		}
 		
 		/* adjust y-position for next one */
@@ -820,8 +828,8 @@ static void draw_channel_strips(void)
 	 */
 	y = 0.0;
 	for (ale= act_data.first; ale; ale= ale->next) {
-		float yminc= y-CHANNELHEIGHT/2;
-		float ymaxc= y+CHANNELHEIGHT/2;
+		const float yminc= y-CHANNELHEIGHT/2;
+		const float ymaxc= y+CHANNELHEIGHT/2;
 		
 		/* check if visible */
 		if ( IN_RANGE(yminc, G.v2d->cur.ymin, G.v2d->cur.ymax) ||

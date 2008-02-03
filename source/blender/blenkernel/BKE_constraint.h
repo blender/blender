@@ -70,7 +70,7 @@ typedef struct bConstraintTypeInfo {
 	/* admin/ident */
 	short type;				/* CONSTRAINT_TYPE_### */
 	short size;				/* size in bytes of the struct */
-	char name[32]; 			/* name constraint in interface */
+	char name[32]; 			/* name of constraint in interface */
 	char structName[32];	/* name of struct for SDNA */
 	
 	/* data management function pointers - special handling */
