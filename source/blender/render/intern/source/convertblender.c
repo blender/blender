@@ -3391,6 +3391,13 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	lar->area_sizez= la->area_sizez;
 
 	lar->area_shape= la->area_shape;
+	
+	/* Annoying, lamp UI does this, but the UI might not have been used? - add here too.
+	 * make sure this matches buttons_shading.c's logic */
+	if(ELEM4(la->type, LA_AREA, LA_SPOT, LA_SUN, LA_LOCAL) && (la->mode & LA_SHAD_RAY))
+		if (ELEM3(la->type, LA_SPOT, LA_SUN, LA_LOCAL))
+			if (la->ray_samp_method == LA_SAMP_CONSTANT) la->ray_samp_method = LA_SAMP_HALTON;
+	
 	lar->ray_samp_method= la->ray_samp_method;
 	lar->ray_samp_type= la->ray_samp_type;
 	
