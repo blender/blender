@@ -275,7 +275,6 @@ static void node_make_addmenu(SpaceNode *snode, int nodeclass, uiBlock *block)
 			bNodeType *type;
 			for(a=0, type= ntree->alltypes.first; type; type=type->next) {
 				if( type->nclass == nodeclass ) {
-					printf("node %s\n", type->name);
 					uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, type->name, 0, 
 						yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, type->type, "");
 					a++;
