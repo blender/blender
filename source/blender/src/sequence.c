@@ -114,7 +114,9 @@ void free_strip(Strip *strip)
 		return;
 	}
 
-	MEM_freeN(strip->stripdata);
+	if (strip->stripdata) {
+		MEM_freeN(strip->stripdata);
+	}
 
 	if (strip->proxy) {
 		MEM_freeN(strip->proxy);
@@ -1021,6 +1023,10 @@ static int seq_proxy_get_fname(Sequence * seq, int cfra, char * name)
 	int frameno;
 	char dir[FILE_MAXDIR];
 
+	if (!seq->strip->proxy) {
+		return FALSE;
+	}
+
 	if (seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
 		strcpy(dir, seq->strip->proxy->dir);
 	} else {
@@ -1055,11 +1061,6 @@ static int seq_proxy_get_fname(Sequence * seq, int cfra, char * name)
 		snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/#", dir,
 			 G.scene->r.size);
 	}
-
-	if (seq->strip->proxy == 0) {
-		return FALSE;
-	}
-
 
 	BLI_convertstringcode(name, G.sce, frameno);
 
