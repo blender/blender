@@ -1817,6 +1817,7 @@ PyObject *RenderData_removeRenderLayer(BPy_RenderData * self, BPy_RenderLayer *v
 	}
 	
 	value->renderLayer = NULL;
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_addRenderLayer(BPy_RenderData * self ) {
