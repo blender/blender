@@ -1287,7 +1287,7 @@ void init_brushaction(BrushAction *a, short *mouse, short *pr_mouse)
  				VecCopyf(&a->mesh_store[i].x, me->mvert[i].co);
   		}
 
-		if(anchored)
+		if(anchored && a->layer_disps)
 			memset(a->layer_disps, 0, sizeof(float) * me->totvert);
 
 		if(anchored && !a->orig_norms) {
