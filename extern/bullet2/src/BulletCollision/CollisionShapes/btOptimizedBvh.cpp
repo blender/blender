@@ -702,7 +702,6 @@ void	btOptimizedBvh::walkStacklessQuantizedTree(btNodeOverlapCallback* nodeCallb
 	
 	int curIndex = startNodeIndex;
 	int walkIterations = 0;
-	int subTreeSize = endNodeIndex - startNodeIndex;
 
 	const btQuantizedBvhNode* rootNode = &m_quantizedContiguousNodes[startNodeIndex];
 	int escapeIndex;

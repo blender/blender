@@ -256,7 +256,6 @@ void IMB_filter_extend(struct ImBuf *ibuf)
 		float *temprect;
 		float *row1f, *row2f, *row3f;
 		float *fp;
-		int pixlen = 4;
 		temprect= MEM_dupallocN(ibuf->rect_float);
 		
 		for(y=1; y<=ibuf->y; y++) {

@@ -620,7 +620,6 @@ void IMB_exr_multilayer_convert(void *handle, void *base,
 void IMB_exr_close(void *handle)
 {
 	ExrHandle *data= (ExrHandle *)handle;
-	ExrChannel *echan;
 	ExrLayer *lay;
 	ExrPass *pass;
 	
@@ -783,28 +782,28 @@ static ExrHandle *imb_exr_begin_read_mem(InputFile *file, int width, int height)
 					/* we can have RGB(A), XYZ(W), UVA */
 					if(pass->totchan==3 || pass->totchan==4) {
 						if(pass->chan[0]->chan_id=='B' || pass->chan[1]->chan_id=='B' ||  pass->chan[2]->chan_id=='B') {
-							lookup['R']= 0;
-							lookup['G']= 1;
-							lookup['B']= 2;
-							lookup['A']= 3;
+							lookup[(unsigned int)'R']= 0;
+							lookup[(unsigned int)'G']= 1;
+							lookup[(unsigned int)'B']= 2;
+							lookup[(unsigned int)'A']= 3;
 						}
 						else if(pass->chan[0]->chan_id=='Y' || pass->chan[1]->chan_id=='Y' ||  pass->chan[2]->chan_id=='Y') {
-							lookup['X']= 0;
-							lookup['Y']= 1;
-							lookup['Z']= 2;
-							lookup['W']= 3;
+							lookup[(unsigned int)'X']= 0;
+							lookup[(unsigned int)'Y']= 1;
+							lookup[(unsigned int)'Z']= 2;
+							lookup[(unsigned int)'W']= 3;
 						}
 						else {
-							lookup['U']= 0;
-							lookup['V']= 1;
-							lookup['A']= 2;
+							lookup[(unsigned int)'U']= 0;
+							lookup[(unsigned int)'V']= 1;
+							lookup[(unsigned int)'A']= 2;
 						}
 						for(a=0; a<pass->totchan; a++) {
 							echan= pass->chan[a];
-							echan->rect= pass->rect + lookup[echan->chan_id];
+							echan->rect= pass->rect + lookup[(unsigned int)echan->chan_id];
 							echan->xstride= pass->totchan;
 							echan->ystride= width*pass->totchan;
-							pass->chan_id[ lookup[echan->chan_id] ]= echan->chan_id;
+							pass->chan_id[ (unsigned int)lookup[(unsigned int)echan->chan_id] ]= echan->chan_id;
 						}
 					}
 					else { /* unknown */
@@ -836,6 +835,7 @@ typedef struct RGBA
 } RGBA;
 
 
+#if 0
 static void exr_print_filecontents(InputFile *file)
 {
 	const ChannelList &channels = file->header().channels();
@@ -846,6 +846,7 @@ static void exr_print_filecontents(InputFile *file)
 		printf("OpenEXR-load: Found channel %s of type %d\n", i.name(), channel.type);
 	}
 }
+#endif
 
 static int exr_has_zbuffer(InputFile *file)
 {
@@ -853,7 +854,6 @@ static int exr_has_zbuffer(InputFile *file)
 	
 	for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
 	{
-		const Channel &channel = i.channel();
 		if(strcmp("Z", i.name())==0)
 			return 1;
 	}

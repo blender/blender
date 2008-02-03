@@ -5601,9 +5601,6 @@ void texspace_edit(void)
 
 void mirrormenu(void)
 {
-	short mode = 0;
-
-
 	if(G.f & G_PARTICLEEDIT) {
 		PE_mirror_x(0);
 	}

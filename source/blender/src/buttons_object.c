@@ -2222,7 +2222,7 @@ void do_object_panels(unsigned short event)
 	case B_DUPLI_VERTS:
 		ob->transflag &= ~(OB_DUPLIFRAMES|OB_DUPLIFACES|OB_DUPLIGROUP);
 		DAG_scene_sort(G.scene);
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA|OB_RECALC_OB);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSOBJECT, 0);
 		break;
@@ -3572,7 +3572,7 @@ static void object_softbodies_collision(Object *ob)
 	SoftBody *sb=ob->soft;
 	uiBlock *block;
 	static int val;
-	short *softflag=&ob->softflag, psys_cur=0, adaptive_mode=0;
+	short *softflag=&ob->softflag, psys_cur=0;
 	int ob_has_hair=psys_ob_has_hair(ob);
     if(!_can_softbodies_at_all(ob)) return;
 	/*bah that is ugly! creating missing data members in UI code*/

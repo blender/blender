@@ -846,8 +846,8 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 		} 
 		else if (md->type==eModifierType_Collision) {
 			
-			CollisionModifierData *collmd = (CollisionModifierData*) md;
 			/*
+			CollisionModifierData *collmd = (CollisionModifierData*) md;
 			// TODO: CollisionModifier should use pointcache 
 			// + have proper reset events before enabling this
 			writestruct(wd, DATA, "MVert", collmd->numverts, collmd->x);
