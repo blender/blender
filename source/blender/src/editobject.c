@@ -4337,6 +4337,29 @@ void single_obdata_users(int flag)
 	}
 }
 
+void single_ipo_users(int flag)
+{
+	Object *ob;
+	Base *base;
+	Ipo *ma, *man;
+	ID *id;
+	
+	base= FIRSTBASE;
+	while(base) {
+		ob= base->object;
+		if(ob->id.lib==NULL && (flag==0 || (base->flag & SELECT)) ) {
+			ob->recalc= OB_RECALC_DATA;
+			
+			id= (ID *)ob->ipo;
+			if(id && id->us>1 && id->lib==NULL) {
+				ob->ipo= copy_ipo(ob->ipo);
+				id->us--;
+				ipo_idnew(ob->ipo);	/* drivers */
+			}
+		}
+		base= base->next;
+	}
+}
 
 void single_mat_users(int flag)
 {
@@ -4517,7 +4540,7 @@ void single_user(void)
 
 	clear_id_newpoins();
 	
-	nr= pupmenu("Make Single User%t|Object|Object & ObData|Object & ObData & Materials+Tex|Materials+Tex");
+	nr= pupmenu("Make Single User%t|Object|Object & ObData|Object & ObData & Materials+Tex|Materials+Tex|Ipos");
 	if(nr>0) {
 	
 		if(nr==1) single_object_users(1);
@@ -4535,6 +4558,10 @@ void single_user(void)
 		else if(nr==4) {
 			single_mat_users(1);
 		}
+		else if(nr==5) {
+			single_ipo_users(1);
+		}
+		
 		
 		clear_id_newpoins();
 

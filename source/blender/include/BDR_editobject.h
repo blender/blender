@@ -97,6 +97,7 @@ void single_object_users(int flag);
 void new_id_matar(struct Material **matar, int totcol);
 void single_obdata_users(int flag);
 void single_mat_users(int flag);
+void single_ipo_users(int flag);
 void do_single_tex_user(struct Tex **from);
 void single_tex_users_expand(void);
 void single_mat_users_expand(void);
