@@ -234,14 +234,24 @@ int manageMeshSpace(int confirm, int set) {
 	/* Vertice Selected */
 	if (G.scene->selectmode & SCE_SELECT_VERTEX && (G.totvertsel == 1 || G.totvertsel == 2 || G.totvertsel == 3)) {
 		if (G.totvertsel == 1) {
-			EditSelection *ese;
+			/* EditSelection *ese; */
 			EditVert *eve = NULL;
 			float normal[3];
 	
+			/*
 			for (ese = em->selected.first; ese; ese = ese->next)
 			{
 				if ( ese->type == EDITVERT ) {
 					eve = (EditVert *)ese->data;
+					break;
+				}
+			}
+			*/
+			
+			for (eve = em->verts.first; eve; eve = eve->next)
+			{
+				if (eve->f & SELECT)
+				{
 					break;
 				}
 			}
@@ -264,10 +274,12 @@ int manageMeshSpace(int confirm, int set) {
 			strcpy(name, "Vertex");
 		}
 		else if (G.totvertsel == 2) {
-			EditSelection *ese;
+			/* EditSelection *ese; */
+			EditVert *eve;
 			EditVert *v1 = NULL, *v2 = NULL;
 			float normal[3];
-	
+
+			/*	
 			for (ese = em->selected.first; ese; ese = ese->next)
 			{
 				if ( ese->type == EDITVERT ) {
@@ -280,7 +292,21 @@ int manageMeshSpace(int confirm, int set) {
 					}
 				}
 			}
+			*/
 			
+			for (eve = em->verts.first; eve; eve = eve->next)
+			{
+				if ( eve->f & SELECT ) {
+					if (v1 == NULL) {
+						v1 = eve; 
+					}
+					else {
+						v2 = eve;
+						break; 
+					}
+				}
+			}
+
 			if (v2 == NULL)
 				return -1;
 	
@@ -299,10 +325,12 @@ int manageMeshSpace(int confirm, int set) {
 			strcpy(name, "Edge");
 		}
 		else if (G.totvertsel == 3) {
-			EditSelection *ese;
+			/* EditSelection *ese; */
+			EditVert *eve;
 			EditVert *v1 = NULL, *v2 = NULL, *v3 = NULL;
 			float normal[3], tangent[3], cotangent[3];
 	
+			/*
 			for (ese = em->selected.first; ese; ese = ese->next)
 			{
 				if ( ese->type == EDITVERT ) {
@@ -318,7 +346,24 @@ int manageMeshSpace(int confirm, int set) {
 					}
 				}
 			}
+			*/
 			
+			for (eve = em->verts.first; eve; eve = eve->next)
+			{
+				if ( eve->f & SELECT ) {
+					if (v1 == NULL) {
+						v1 = eve; 
+					}
+					else if (v2 == NULL) {
+						v2 = eve;
+					}
+					else {
+						v3 = eve;
+						break; 
+					}
+				}
+			}
+
 			if (v3 == NULL)
 				return -1;
 	
@@ -345,14 +390,23 @@ int manageMeshSpace(int confirm, int set) {
 	/* Edge Selected */
 	else if(G.scene->selectmode & SCE_SELECT_EDGE && (G.totedgesel == 1 || G.totedgesel == 2)) {
 		if (G.totedgesel == 1) {
-			EditSelection *ese;
+			/* EditSelection *ese; */
 			EditEdge *eed = NULL;
 			float normal[3];
 	
+			/*
 			for (ese = em->selected.first; ese; ese = ese->next)
 			{
 				if ( ese->type == EDITEDGE ) {
 					eed = (EditEdge *)ese->data; 
+					break; 
+				}
+			}
+			*/
+			
+			for (eed = em->edges.first; eed; eed = eed->next)
+			{
+				if ( eed->f & SELECT ) {
 					break; 
 				}
 			}
@@ -376,11 +430,13 @@ int manageMeshSpace(int confirm, int set) {
 		}
 		/* If selected edges form a triangle */
 		else if (G.totedgesel == 2 && G.totvertsel == 3) {
-			EditSelection *ese;
+			/* EditSelection *ese; */
+			EditEdge *eed;
 			EditEdge *e1 = NULL, *e2 = NULL;
 			EditVert *v1 = NULL, *v2 = NULL, *v3 = NULL;
 			float normal[3], tangent[3], cotangent[3];
 
+			/*
 			for (ese = em->selected.first; ese; ese = ese->next)
 			{
 				if ( ese->type == EDITEDGE ) {
@@ -393,7 +449,21 @@ int manageMeshSpace(int confirm, int set) {
 					}
 				}
 			}
+			*/
 			
+			for (eed = em->edges.first; eed; eed = eed->next)
+			{
+				if ( eed->f & SELECT ) {
+					if (e1 == NULL) {
+						e1 = eed; 
+					}
+					else {
+						e2 = eed;
+						break; 
+					}
+				}
+			}
+
 			if (e1->v1 == e2->v1) {
 				v1 = e1->v2;
 				v2 = e1->v1;
@@ -440,14 +510,11 @@ int manageMeshSpace(int confirm, int set) {
 	}
 	/* Face Selected */
 	else if(G.scene->selectmode & SCE_SELECT_FACE && G.totfacesel == 1) {
-		EditSelection *ese;
+		/* EditSelection *ese; */
 		EditFace *efa = NULL;
 		float normal[3], tangent[3];
 
-		if (confirm == 0 && confirmSpace(set, "Face") == 0) {
-			return -1;
-		}
-
+		/*
 		for (ese = em->selected.first; ese; ese = ese->next)
 		{
 			if ( ese->type == EDITFACE ) {
@@ -455,9 +522,22 @@ int manageMeshSpace(int confirm, int set) {
 				break; 
 			}
 		}
+		*/
+		
+		for (efa = em->faces.first; efa; efa = efa->next)
+		{
+			if (efa->f & SELECT)
+			{
+				break;
+			}
+		}
 
 		if (efa == NULL)
 			return -1;
+
+		if (confirm == 0 && confirmSpace(set, "Face") == 0) {
+			return -1;
+		}
 
 		VECCOPY(normal, efa->n);
 		VecSubf(tangent, efa->v2->co, efa->v1->co);
