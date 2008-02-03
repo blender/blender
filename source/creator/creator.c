@@ -182,7 +182,7 @@ static void print_help(void)
 	printf ("  ...may not render to /tmp because loading the blend file overwrites the output path that was set\n");
 	printf ("    \"blender -b test.blend -o /tmp -f 1\" works as expected.\n");
 	printf ("\nRender options:\n");
-	printf ("  -b <file>\tRender <file> in background\n");
+	printf ("  -b <file>\tRender <file> in background (doesn't load the user defaults .B.blend file)\n");
 	printf ("    -a render frames from start to end (inclusive), only works when used after -b\n");
 	printf ("    -S <name>\tSet scene <name>\n");
 	printf ("    -f <frame>\tRender frame <frame> and save it\n");				

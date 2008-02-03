@@ -134,11 +134,11 @@ void add_to_group(Group *group, Object *ob)
 }
 
 /* also used for ob==NULL */
-void rem_from_group(Group *group, Object *ob)
+int rem_from_group(Group *group, Object *ob)
 {
 	GroupObject *go, *gon;
-	
-	if(group==NULL) return;
+	int removed = 0;
+	if(group==NULL) return 0;
 	
 	go= group->gobject.first;
 	while(go) {
@@ -146,9 +146,12 @@ void rem_from_group(Group *group, Object *ob)
 		if(go->ob==ob) {
 			BLI_remlink(&group->gobject, go);
 			free_group_object(go);
+			removed = 1;
+			/* should break here since an object being in a group twice cant happen? */
 		}
 		go= gon;
 	}
+	return removed;
 }
 
 int object_in_group(Object *ob, Group *group)
