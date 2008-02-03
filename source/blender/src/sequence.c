@@ -1118,12 +1118,13 @@ static void color_balance_byte_float(Sequence * seq, TStripElem* se,
 	unsigned char * p = (unsigned char*) se->ibuf->rect;
 	unsigned char * e = p + se->ibuf->x * 4 * se->ibuf->y;
 	float * o;
+	StripColorBalance cb;
 
 	imb_addrectfloatImBuf(se->ibuf);
 
 	o = se->ibuf->rect_float;
 
-	StripColorBalance cb = calc_cb(seq->strip->color_balance);
+	cb = calc_cb(seq->strip->color_balance);
 
 	for (c = 0; c < 3; c++) {
 		make_cb_table_float(cb.lift[c], cb.gain[c], cb.gamma[c],
@@ -1704,7 +1705,7 @@ static TStripElem* do_build_seq_array_recursively(
 	int i;
 	TStripElem* se = 0;
 
-	count = get_shown_sequences(seqbasep, cfra, chanshown, &seq_arr);
+	count = get_shown_sequences(seqbasep, cfra, chanshown, (Sequence **)&seq_arr);
 
 	if (!count) {
 		return 0;
