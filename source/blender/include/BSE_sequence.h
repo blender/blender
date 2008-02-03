@@ -61,6 +61,7 @@ void free_editing(struct Editing *ed);
 void calc_sequence(struct Sequence *seq);
 void calc_sequence_disp(struct Sequence *seq);
 void reload_sequence_new_file(struct Sequence * seq);
+void seq_proxy_rebuild(struct Sequence * seq);
 void sort_seq(void);
 void clear_scene_in_allseqs(struct Scene *sce);
 

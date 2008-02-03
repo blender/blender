@@ -53,7 +53,7 @@ typedef struct TStripElem {
 	struct ImBuf *ibuf_comp;
 	struct TStripElem *se1, *se2, *se3;
 	short ok;
-	short pad;
+	short flag;
 	int nr;
 } TStripElem;
 
@@ -80,9 +80,6 @@ typedef struct StripColorBalance {
 
 typedef struct StripProxy {
 	char dir[160];
-	int format;
-	int width;
-	int height;
 } StripProxy;
 
 typedef struct Strip {
@@ -92,9 +89,9 @@ typedef struct Strip {
 	StripElem *stripdata;
 	char dir[160];
 	int orx, ory;
+	StripProxy *proxy;
 	StripCrop *crop;
 	StripTransform *transform;
-	StripProxy *proxy;
 	StripColorBalance *color_balance;
 	TStripElem *tstripdata;
 	TStripElem *tstripdata_startstill;
@@ -259,6 +256,7 @@ typedef struct SpeedControlVars {
 #define SEQ_USE_TRANSFORM                       65536
 #define SEQ_USE_CROP                           131072
 #define SEQ_USE_COLOR_BALANCE                  262144
+#define SEQ_USE_PROXY_CUSTOM_DIR               524288
 
 #define SEQ_COLOR_BALANCE_INVERSE_GAIN 1
 #define SEQ_COLOR_BALANCE_INVERSE_GAMMA 2
@@ -293,6 +291,8 @@ typedef struct SpeedControlVars {
 #define STRIPELEM_FAILED       0
 #define STRIPELEM_OK           1
 #define STRIPELEM_META         2
+
+#define STRIPELEM_PREVIEW_DONE  1
 
 #define SEQ_BLEND_REPLACE      0
 /* all other BLEND_MODEs are simple SEQ_EFFECT ids and therefore identical

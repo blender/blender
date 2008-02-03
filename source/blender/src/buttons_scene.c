@@ -1159,13 +1159,56 @@ static void seq_panel_proxy()
 
 	uiDefButBitI(block, TOG, SEQ_USE_PROXY, 
 		     B_SEQ_BUT_RELOAD, "Use Proxy", 
-		     10,140,150,19, &last_seq->flag, 
+		     10,140,120,19, &last_seq->flag, 
 		     0.0, 21.0, 100, 0, 
 		     "Use a preview proxy for this strip");
-	
+
 	if (last_seq->flag & SEQ_USE_PROXY) {
+		if (!last_seq->strip->proxy) {
+			last_seq->strip->proxy = 
+				MEM_callocN(sizeof(struct StripProxy),
+					    "StripProxy");
+		}
 
+		uiDefButBitI(block, TOG, SEQ_USE_PROXY_CUSTOM_DIR, 
+			     B_SEQ_BUT_RELOAD, "Custom Dir", 
+			     130,140,120,19, &last_seq->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Use a custom directory to store data");
+	}
 
+	if (last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
+		uiDefBut(block, TEX, 
+			 B_SEQ_BUT_RELOAD, "Dir: ", 
+			 10,120,240,19, last_seq->strip->proxy->dir, 
+			 0.0, 160.0, 100, 0, "");
+	}
+
+	if (last_seq->flag & SEQ_USE_PROXY) {
+		if (G.scene->r.size == 100) {
+			uiDefBut(block, LABEL, 0, 
+				 "Full render size selected, ",
+				 10,100,240,19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, 
+				 "so no proxy enabled!",
+				 10,80,240,19, 0, 0, 0, 0, 0, "");
+		} else if (last_seq->type != SEQ_MOVIE 
+			   && last_seq->type != SEQ_IMAGE
+			   && !(last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
+			uiDefBut(block, LABEL, 0, 
+				 "Cannot proxy this strip without ",
+				 10,100,240,19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, 
+				 "custom directory selection!",
+				 10,80,240,19, 0, 0, 0, 0, 0, "");
+
+		} else {
+			uiDefBut(block, BUT, B_SEQ_BUT_REBUILD_PROXY, 
+				 "Rebuild proxy",
+				 10,100,240,19, 0, 0, 0, 0, 0, 
+				 "Rebuild proxy for the "
+				 "currently selected strip.");
+		}
 	}
 
 	uiBlockEndAlign(block);
@@ -1186,8 +1229,7 @@ void sequencer_panels()
 
 	panels = SEQ_PANEL_EDITING;
 
-	if (type == SEQ_MOVIE || type == SEQ_IMAGE || type == SEQ_SCENE
-	    || type == SEQ_HD_SOUND) {
+	if (type == SEQ_MOVIE || type == SEQ_IMAGE || type == SEQ_SCENE) {
 		panels |= SEQ_PANEL_INPUT | SEQ_PANEL_FILTER | SEQ_PANEL_PROXY;
 	}
 
@@ -1236,6 +1278,9 @@ void do_sequencer_panels(unsigned short event)
 		break;
 	case B_SEQ_BUT_RELOAD_FILE:
 		reload_sequence_new_file(last_seq);
+		break;
+	case B_SEQ_BUT_REBUILD_PROXY:
+		seq_proxy_rebuild(last_seq);
 		break;
 	case B_SEQ_BUT_RELOAD:
 	case B_SEQ_BUT_RELOAD_ALL:
