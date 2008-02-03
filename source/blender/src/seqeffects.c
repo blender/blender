@@ -3006,11 +3006,10 @@ struct SeqEffectHandle get_sequence_effect(Sequence * seq)
 
 	if (seq->type & SEQ_EFFECT) {
 		rval = get_sequence_effect_impl(seq->type);
-	}
-
-	if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
-		rval.load(seq);
-		seq->flag &= ~SEQ_EFFECT_NOT_LOADED;
+		if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
+			rval.load(seq);
+			seq->flag &= ~SEQ_EFFECT_NOT_LOADED;
+		}
 	}
 
 	return rval;
@@ -3022,11 +3021,10 @@ struct SeqEffectHandle get_sequence_blend(Sequence * seq)
 
 	if (seq->blend_mode != 0) {
 		rval = get_sequence_effect_impl(seq->blend_mode);
-	}
-
-	if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
-		rval.load(seq);
-		seq->flag &= ~SEQ_EFFECT_NOT_LOADED;
+		if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
+			rval.load(seq);
+			seq->flag &= ~SEQ_EFFECT_NOT_LOADED;
+		}
 	}
 
 	return rval;
