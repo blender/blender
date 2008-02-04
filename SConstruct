@@ -422,10 +422,10 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
         dllsources += ['${LCGDIR}/pthreads/lib/pthreadVC2.dll']
     if env['WITH_BF_ICONV']:
         dllsources += ['${LCGDIR}/iconv/lib/iconv.dll']
-    if env['WITH_BF_FFMPEG']:
-        dllsources += ['${LCGDIR}/ffmpeg/lib/avcodec-51.dll',
-                        '${LCGDIR}/ffmpeg/lib/avformat-51.dll',
-                        '${LCGDIR}/ffmpeg/lib/avutil-49.dll']
+#    if env['WITH_BF_FFMPEG']:
+#        dllsources += ['${LCGDIR}/ffmpeg/lib/avcodec-51.dll',
+#                        '${LCGDIR}/ffmpeg/lib/avformat-51.dll',
+#                        '${LCGDIR}/ffmpeg/lib/avutil-49.dll']
     windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
     allinstall += windlls
 
