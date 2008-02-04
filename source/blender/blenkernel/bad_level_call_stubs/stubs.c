@@ -134,7 +134,7 @@ void BPY_pyconstraint_eval(struct bPythonConstraint *con, float ownermat[][4], f
 void BPY_pyconstraint_driver(struct bPythonConstraint *con, struct bConstraintOb *cob, struct Object *target, char subtarget[])
 {
 }
-int BPY_pyconstraint_targets(struct bPythonConstraint *con, float targetmat[][4])
+void BPY_pyconstraint_targets(struct bPythonConstraint *con, struct bConstraintTarget *ct)
 {
 	return 0;
 }
