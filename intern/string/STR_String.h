@@ -47,6 +47,10 @@
 
 #include <vector>
 #include <limits.h>
+
+#include <cstring>
+#include <cstdlib>
+
 using namespace std;
 
 

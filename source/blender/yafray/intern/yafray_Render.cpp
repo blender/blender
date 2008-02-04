@@ -8,6 +8,8 @@
 
 #include <math.h>
 
+#include <cstring>
+
 using namespace std;
 
 void yafrayRender_t::clearAll()

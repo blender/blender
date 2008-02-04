@@ -42,6 +42,8 @@
 #include <strings.h>
 #endif
 
+#include <cstring>
+#include <cstdio>
 
 // For obscure full screen mode stuuf
 // lifted verbatim from blut.

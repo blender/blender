@@ -2,6 +2,8 @@
 
 #include <math.h>
 
+#include <cstring>
+
 using namespace std;
 
 static string command_path = "";
