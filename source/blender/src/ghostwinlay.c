@@ -508,7 +508,7 @@ static void update_tablet_data(Window *win, Window *ghostwin) {
 		win->ytilt = td->Ytilt;
 	} else {
 		win->activedevice = DEV_MOUSE;
-		win->pressure = 0.0;
+		win->pressure = 1.0;
 		win->xtilt = win->ytilt = 0.0;
 	}
 }
