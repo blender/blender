@@ -47,16 +47,16 @@ static void do_alphaover_premul(bNode *node, float *out, float *src, float *over
 	if(over[3]<=0.0f) {
 		QUATCOPY(out, src);
 	}
-	else if(*fac==1.0f && over[3]>=1.0f) {
+	else if(fac[0]==1.0f && over[3]>=1.0f) {
 		QUATCOPY(out, over);
 	}
 	else {
-		float mul= 1.0f - *fac*over[3];
+		float mul= 1.0f - fac[0]*over[3];
 
-		out[0]= (mul*src[0]) + *fac*over[0];
-		out[1]= (mul*src[1]) + *fac*over[1];
-		out[2]= (mul*src[2]) + *fac*over[2];
-		out[3]= (mul*src[3]) + *fac*over[3];
+		out[0]= (mul*src[0]) + fac[0]*over[0];
+		out[1]= (mul*src[1]) + fac[0]*over[1];
+		out[2]= (mul*src[2]) + fac[0]*over[2];
+		out[3]= (mul*src[3]) + fac[0]*over[3];
 	}	
 }
 
@@ -67,7 +67,7 @@ static void do_alphaover_key(bNode *node, float *out, float *src, float *over, f
 	if(over[3]<=0.0f) {
 		QUATCOPY(out, src);
 	}
-	else if(*fac==1.0f && over[3]>=1.0f) {
+	else if(fac[0]==1.0f && over[3]>=1.0f) {
 		QUATCOPY(out, over);
 	}
 	else {
@@ -80,6 +80,31 @@ static void do_alphaover_key(bNode *node, float *out, float *src, float *over, f
 		out[3]= (mul*src[3]) + fac[0]*over[3];
 	}
 }
+
+/* result will be still premul, but the over part is premulled */
+static void do_alphaover_mixed(bNode *node, float *out, float *src, float *over, float *fac)
+{
+	
+	if(over[3]<=0.0f) {
+		QUATCOPY(out, src);
+	}
+	else if(fac[0]==1.0f && over[3]>=1.0f) {
+		QUATCOPY(out, over);
+	}
+	else {
+		NodeTwoFloats *ntf= node->storage;
+		float addfac= 1.0f - ntf->x + over[3]*ntf->x;
+		float premul= fac[0]*addfac;
+		float mul= 1.0f - fac[0]*over[3];
+		
+		out[0]= (mul*src[0]) + premul*over[0];
+		out[1]= (mul*src[1]) + premul*over[1];
+		out[2]= (mul*src[2]) + premul*over[2];
+		out[3]= (mul*src[3]) + fac[0]*over[3];
+	}
+}
+
+
 
 
 static void node_composit_exec_alphaover(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
@@ -97,8 +122,11 @@ static void node_composit_exec_alphaover(void *data, bNode *node, bNodeStack **i
 		/* make output size of input image */
 		CompBuf *cbuf= in[1]->data?in[1]->data:in[2]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
+		NodeTwoFloats *ntf= node->storage;
 		
-		if(node->custom1)
+		if(ntf->x != 0.0f)
+			composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, in[0]->vec, do_alphaover_mixed, CB_RGBA, CB_RGBA, CB_VAL);
+		else if(node->custom1)
 			composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, in[0]->vec, do_alphaover_key, CB_RGBA, CB_RGBA, CB_VAL);
 		else
 			composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, in[0]->vec, do_alphaover_premul, CB_RGBA, CB_RGBA, CB_VAL);
@@ -115,12 +143,12 @@ bNodeType cmp_node_alphaover= {
 	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
 	/* input sock  */	cmp_node_alphaover_in,
 	/* output sock */	cmp_node_alphaover_out,
-	/* storage     */	"",
+	/* storage     */	"NodeTwoFloats",
 	/* execfunc    */	node_composit_exec_alphaover,
 	/* butfunc     */	NULL,
 	/* initfunc    */	NULL,
-	/* freestoragefunc    */	NULL,
-	/* copystoragefunc    */	NULL,
+	/* freestoragefunc    */	node_free_standard_storage,
+	/* copystoragefunc    */	node_copy_standard_storage,
 	/* id          */	NULL
 	
 };

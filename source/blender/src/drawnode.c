@@ -1563,13 +1563,18 @@ static int node_composit_buts_map_value(uiBlock *block, bNodeTree *ntree, bNode 
 static int node_composit_buts_alphaover(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
+		NodeTwoFloats *ntf= node->storage;
 		
 		/* alpha type */
 		uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "ConvertPremul",
-				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 19, 
+				  butr->xmin, butr->ymin+19, butr->xmax-butr->xmin, 19, 
 				  &node->custom1, 0, 0, 0, 0, "");
+		/* mix factor */
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Premul: ",
+				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 19, 
+				  &ntf->x, 0.0f, 1.0f, 100, 0, "");
 	}
-	return 19;
+	return 38;
 }
 
 static int node_composit_buts_hue_sat(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)

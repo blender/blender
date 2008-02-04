@@ -238,6 +238,10 @@ typedef struct NodeTwoXYs {
 	short x1, x2, y1, y2;
 } NodeTwoXYs;
 
+typedef struct NodeTwoFloats {
+	float x, y;
+} NodeTwoFloats;
+
 typedef struct NodeGeometry {
 	char uvname[32];
 	char colname[32];
