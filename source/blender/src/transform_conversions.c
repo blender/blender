@@ -3404,8 +3404,11 @@ void special_aftertrans_update(TransInfo *t)
 			remake_action_ipos((bAction *)data);
 			
 			/* Do curve cleanups? */
-			if ((G.saction->flag & SACTION_NOTRANSKEYCULL)==0)
+			if ( (G.saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
+			     (cancelled == 0) )
+			{
 				posttrans_action_clean((bAction *)data);
+			}
 			
 			G.saction->flag &= ~SACTION_MOVING;
 		}
@@ -3420,8 +3423,11 @@ void special_aftertrans_update(TransInfo *t)
 					testhandles_ipocurve(icu);
 				}
 				
-				if ((G.saction->flag & SACTION_NOTRANSKEYCULL)==0)
+				if ( (G.saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
+				     (cancelled == 0) )
+				{
 					posttrans_ipo_clean(key->ipo);
+				}
 			}
 			
 			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
