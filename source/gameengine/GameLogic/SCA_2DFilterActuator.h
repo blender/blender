@@ -33,7 +33,7 @@ public:
         PyTypeObject* T=&Type
         );
 
-	void	SetShaderText(STR_String& text);
+	void	SetShaderText(STR_String text);
     virtual ~SCA_2DFilterActuator();
     virtual bool Update();
 

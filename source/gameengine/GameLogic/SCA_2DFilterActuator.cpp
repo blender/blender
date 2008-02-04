@@ -31,7 +31,7 @@ SCA_2DFilterActuator::SCA_2DFilterActuator(
 {
 }
 
-void SCA_2DFilterActuator::SetShaderText(STR_String& text)
+void SCA_2DFilterActuator::SetShaderText(STR_String text)
 {
 	m_shaderText = text;
 }
