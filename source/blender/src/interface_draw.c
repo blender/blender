@@ -1970,7 +1970,7 @@ static void ui_draw_but_COLORBAND(uiBut *but)
 	ColorBand *coba= (ColorBand *)but->poin;
 	CBData *cbd;
 	float x1, y1, sizex, sizey;
-	float dx, v3[2], v1[2], v2[2];
+	float dx, v3[2], v1[2], v2[2], v1a[2], v2a[2];
 	int a;
 		
 	if(coba==NULL) return;
@@ -2038,39 +2038,55 @@ static void ui_draw_but_COLORBAND(uiBut *but)
 	/* help lines */
 	v1[0]= v2[0]=v3[0]= x1;
 	v1[1]= y1;
+	v1a[1]= y1+0.25*sizey;
 	v2[1]= y1+0.5*sizey;
+	v2a[1]= y1+0.75*sizey;
 	v3[1]= y1+sizey;
+	
 	
 	cbd= coba->data;
 	glBegin(GL_LINES);
 	for(a=0; a<coba->tot; a++, cbd++) {
-		v1[0]=v2[0]=v3[0]= x1+ cbd->pos*sizex;
-		
-		glColor3ub(0, 0, 0);
-		glVertex2fv(v1);
-		glVertex2fv(v2);
+		v1[0]=v2[0]=v3[0]=v1a[0]=v2a[0]= x1+ cbd->pos*sizex;
 		
 		if(a==coba->cur) {
-			glVertex2f(v1[0]-1, v1[1]);
-			glVertex2f(v2[0]-1, v2[1]);
-			glVertex2f(v1[0]+1, v1[1]);
-			glVertex2f(v2[0]+1, v2[1]);
+			glColor3ub(0, 0, 0);
+			glVertex2fv(v1);
+			glVertex2fv(v3);
+			glEnd();
+			
+			setlinestyle(2);
+			glBegin(GL_LINES);
+			glColor3ub(255, 255, 255);
+			glVertex2fv(v1);
+			glVertex2fv(v3);
+			glEnd();
+			setlinestyle(0);
+			glBegin(GL_LINES);
+			
+			/* glColor3ub(0, 0, 0);
+			glVertex2fv(v1);
+			glVertex2fv(v1a);
+			glColor3ub(255, 255, 255);
+			glVertex2fv(v1a);
+			glVertex2fv(v2);
+			glColor3ub(0, 0, 0);
+			glVertex2fv(v2);
+			glVertex2fv(v2a);
+			glColor3ub(255, 255, 255);
+			glVertex2fv(v2a);
+			glVertex2fv(v3);
+			*/
 		}
-		
-		glColor3ub(255, 255, 255);
-		glVertex2fv(v2);
-		glVertex2fv(v3);
-		
-		if(a==coba->cur) {
-			if(cbd->pos>0.01) {
-				glVertex2f(v2[0]-1, v2[1]);
-				glVertex2f(v3[0]-1, v3[1]);
-			}
-			if(cbd->pos<0.99) {
-				glVertex2f(v2[0]+1, v2[1]);
-				glVertex2f(v3[0]+1, v3[1]);
-			}
-		}
+		else {
+			glColor3ub(0, 0, 0);
+			glVertex2fv(v1);
+			glVertex2fv(v2);
+			
+			glColor3ub(255, 255, 255);
+			glVertex2fv(v2);
+			glVertex2fv(v3);
+		}	
 	}
 	glEnd();
 }
