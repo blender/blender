@@ -74,6 +74,10 @@
 #include "BLI_threads.h"
 #include <pthread.h>
 
+#ifdef WIN32
+#define snprintf _snprintf
+#endif
+
 int seqrectx, seqrecty;
 
 /* **********************************************************************
