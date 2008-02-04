@@ -723,6 +723,7 @@ void BIF_filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				||	BLI_testextensie(file->relname, ".pntg") //macpaint
 				||	BLI_testextensie(file->relname, ".qtif")
 				||	BLI_testextensie(file->relname, ".sgi")
+				||	BLI_testextensie(file->relname, ".hdr")
 #ifdef WITH_DDS
 				||	BLI_testextensie(file->relname, ".dds")
 #endif
@@ -756,6 +757,7 @@ void BIF_filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				||	BLI_testextensie(file->relname, ".iff")
 				||	BLI_testextensie(file->relname, ".tif")
 				||	BLI_testextensie(file->relname, ".tiff")
+				||	BLI_testextensie(file->relname, ".hdr")
 #ifdef WITH_DDS
 				||	BLI_testextensie(file->relname, ".dds")
 #endif
