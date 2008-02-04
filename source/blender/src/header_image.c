@@ -83,6 +83,7 @@
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_trans_types.h"
+#include "BSE_edit.h"
 
 #include "BPY_extern.h"
 #include "BPY_menus.h"
@@ -356,6 +357,26 @@ static void do_image_buttons_set_uvlayer_callback(void *act, void *data)
 	CustomData_set_layer_active(&G.editMesh->fdata, CD_MTFACE, *((int *)act));
 	
 	BIF_undo_push("Set Active UV Texture");
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWIMAGE, 0);
+}
+
+static void do_image_buttons_set_selection_mode_callback(void *mode, void *dummy2)
+{
+	int selectmode = *((int *)mode);
+	if (selectmode==0) {
+		if (G.scene->selectmode == SCE_SELECT_VERTEX) return;
+		G.scene->selectmode = SCE_SELECT_VERTEX;
+	} else {
+		if (G.scene->selectmode == SCE_SELECT_FACE) return;
+		G.scene->selectmode = SCE_SELECT_FACE;
+	}
+	
+	EM_selectmode_set();
+	countall(); 
+	
+	BIF_undo_push("Set Selection Mode");
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWIMAGE, 0);
@@ -1205,21 +1226,28 @@ void image_buttons(void)
 		xco+= XIC + 18;
 		
 		uiBlockBeginAlign(block);
-		uiDefIconButBitI(block, TOGN, SI_SYNC_UVSEL, B_REDR, ICON_NO_GO_LEFT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Mesh independant selection");
+		uiDefIconButBitI(block, TOG, SI_SYNC_UVSEL, B_REDR, ICON_EDIT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Sync UV and Mesh Selection");
 		xco+= XIC;
-		if ((G.sima->flag & SI_SYNC_UVSEL)==0) {
+		if (G.sima->flag & SI_SYNC_UVSEL) {
+			static int selectmode;
+			/* would use these if const's could go in strings 
+			 * SCE_SELECT_VERTEX, SCE_SELECT_FACE */
+			ubut = uiDefIconTextButI(block, ICONTEXTROW, B_REDR, ICON_VERTEXSEL,
+					"Selection Mode: %t|Vertex%x0|Face%x2",
+					xco,0,XIC+10,YIC, &selectmode, 0, 3.0, 0, 0,
+					"Change mesh selection mode");
+			uiButSetFunc(ubut, do_image_buttons_set_selection_mode_callback, &selectmode, NULL);
 			
+		} else {
 			/* would use these if const's could go in strings 
 			 * SI_STICKY_LOC SI_STICKY_DISABLE SI_STICKY_VERTEX */
 			ubut = uiDefIconTextButC(block, ICONTEXTROW, B_REDR, ICON_STICKY_UVS_LOC,
 					"Sticky UV Selection: %t|Disable%x1|Shared Location%x0|Shared Vertex%x2",
 					xco,0,XIC+10,YIC, &(G.sima->sticky), 0, 3.0, 0, 0,
 					"Sticky UV Selection (Hotkeys: Shift C, Alt C, Ctrl C)");
-			xco+= XIC + 16;
 			
-		} else {
-			xco+= 6;
 		}
+		xco+= XIC + 16;
 		uiBlockEndAlign(block);
 		
 		/* Snap copied right out of view3d header */
