@@ -461,6 +461,9 @@ void init_actuator(bActuator *act)
 	case ACT_VISIBILITY:
 		act->data= MEM_callocN(sizeof(bVisibilityActuator), "visibility act");
 		break;
+    case ACT_2DFILTER:
+        act->data = MEM_callocN(sizeof( bTwoDFilterActuator ), "2d filter act");
+        break;
 	default:
 		; /* this is very severe... I cannot make any memory for this        */
 		/* logic brick...                                                    */

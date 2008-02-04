@@ -35,6 +35,7 @@ SET(INC
   ../../../intern/string
   ../../../source/gameengine/Expressions 
   ../../../intern/moto/include
+  ../../../source/gameengine/Rasterizer
   ${PYTHON_INC}
   ${SDL_INC}
 )

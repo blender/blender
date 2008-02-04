@@ -462,5 +462,6 @@
 /* Error messages */
 #define ERROR_LIBDATA_MESSAGE "Can't edit external libdata"
 
+#define MAX_RENDER_PASS	100
 
 #endif

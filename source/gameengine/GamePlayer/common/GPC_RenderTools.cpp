@@ -593,4 +593,14 @@ void GPC_RenderTools::MotionBlur(RAS_IRasterizer* rasterizer)
 	}
 }
 
+void GPC_RenderTools::Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)
+{
+	m_filtermanager.EnableFilter(filtermode, pass, text);
+}
+
+void GPC_RenderTools::Render2DFilters(RAS_ICanvas* canvas)
+{
+	m_filtermanager.RenderFilters( canvas);
+}
+
 unsigned int GPC_RenderTools::m_numgllights;

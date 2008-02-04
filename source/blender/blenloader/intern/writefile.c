@@ -719,6 +719,9 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 		case ACT_VISIBILITY:
 			writestruct(wd, DATA, "bVisibilityActuator", 1, act->data);
 			break;
+		case ACT_2DFILTER:
+			writestruct(wd, DATA, "bTwoDFilterActuator", 1, act->data);
+			break;
 		default:
 			; /* error: don't know how to write this file */
 		}

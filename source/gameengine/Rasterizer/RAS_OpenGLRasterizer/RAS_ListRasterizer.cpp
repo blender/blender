@@ -96,8 +96,9 @@ bool RAS_ListSlot::End()
 
 
 
-RAS_ListRasterizer::RAS_ListRasterizer(RAS_ICanvas* canvas)
-:	RAS_OpenGLRasterizer(canvas)
+RAS_ListRasterizer::RAS_ListRasterizer(RAS_ICanvas* canvas, bool useVertexArrays, bool lock)
+:	RAS_VAOpenGLRasterizer(canvas, lock),
+	mUseVertexArrays(useVertexArrays)
 {
 	// --
 }
@@ -159,13 +160,22 @@ void RAS_ListRasterizer::IndexPrimitives(
 		if(localSlot->End()) 
 			return;
 	}
-
-	RAS_OpenGLRasterizer::IndexPrimitives(
-			vertexarrays, indexarrays,
-			mode, polymat,
-			rendertools, useObjectColor,
-			rgbacolor,slot
-	);
+	
+	if (mUseVertexArrays) {
+		RAS_VAOpenGLRasterizer::IndexPrimitives(
+				vertexarrays, indexarrays,
+				mode, polymat,
+				rendertools, useObjectColor,
+				rgbacolor,slot
+		);
+	} else {
+		RAS_OpenGLRasterizer::IndexPrimitives(
+				vertexarrays, indexarrays,
+				mode, polymat,
+				rendertools, useObjectColor,
+				rgbacolor,slot
+		);
+	}
 
 	if(!useObjectColor) {
 		localSlot->EndList();
@@ -195,15 +205,52 @@ void RAS_ListRasterizer::IndexPrimitivesMulti(
 			return;
 	}
 
-	RAS_OpenGLRasterizer::IndexPrimitivesMulti(
-			vertexarrays, indexarrays,
-			mode, polymat,
-			rendertools, useObjectColor,
-			rgbacolor,slot
-	);
+	if (mUseVertexArrays) {
+		RAS_VAOpenGLRasterizer::IndexPrimitivesMulti(
+				vertexarrays, indexarrays,
+				mode, polymat,
+				rendertools, useObjectColor,
+				rgbacolor,slot
+		);
+	} else {
+		RAS_OpenGLRasterizer::IndexPrimitivesMulti(
+				vertexarrays, indexarrays,
+				mode, polymat,
+				rendertools, useObjectColor,
+				rgbacolor,slot
+		);
+	}
+
 	if(!useObjectColor) {
 		localSlot->EndList();
 		*slot = localSlot;
+	}
+}
+
+bool RAS_ListRasterizer::Init(void)
+{
+	if (mUseVertexArrays) {
+		return RAS_VAOpenGLRasterizer::Init();
+	} else {
+		return RAS_OpenGLRasterizer::Init();
+	}
+}
+
+void RAS_ListRasterizer::SetDrawingMode(int drawingmode)
+{
+	if (mUseVertexArrays) {
+		RAS_VAOpenGLRasterizer::SetDrawingMode(drawingmode);
+	} else {
+		RAS_OpenGLRasterizer::SetDrawingMode(drawingmode);
+	}
+}
+
+void RAS_ListRasterizer::Exit()
+{
+	if (mUseVertexArrays) {
+		RAS_VAOpenGLRasterizer::Exit();
+	} else {
+		RAS_OpenGLRasterizer::Exit();
 	}
 }
 
