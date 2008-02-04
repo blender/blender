@@ -42,6 +42,7 @@ include nan_compile.mk
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
 CPPFLAGS += -I../Expressions 
+CPPFLAGS += -I../Rasterizer
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
