@@ -135,6 +135,11 @@ static void node_composit_exec_alphaover(void *data, bNode *node, bNodeStack **i
 	}
 }
 
+static void node_alphaover_init(bNode* node)
+{
+   node->storage= MEM_callocN(sizeof(NodeTwoFloats), "NodeTwoFloats");
+}
+
 bNodeType cmp_node_alphaover= {
 	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_ALPHAOVER,
@@ -146,7 +151,7 @@ bNodeType cmp_node_alphaover= {
 	/* storage     */	"NodeTwoFloats",
 	/* execfunc    */	node_composit_exec_alphaover,
 	/* butfunc     */	NULL,
-	/* initfunc    */	NULL,
+	/* initfunc    */	node_alphaover_init,
 	/* freestoragefunc    */	node_free_standard_storage,
 	/* copystoragefunc    */	node_copy_standard_storage,
 	/* id          */	NULL

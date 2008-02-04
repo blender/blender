@@ -4633,6 +4633,26 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
 	}
 }
 
+static void ntree_version_245(bNodeTree *ntree)
+{
+	bNode *node;
+	NodeTwoFloats *ntf;
+
+	if(ntree->type==NTREE_COMPOSIT) {
+		for(node= ntree->nodes.first; node; node= node->next) {
+			if(node->type == CMP_NODE_ALPHAOVER) {
+				if(!node->storage) {
+					ntf= MEM_callocN(sizeof(NodeTwoFloats), "NodeTwoFloats");
+					node->storage= ntf;
+					if(node->custom1)
+						ntf->x= 1.0f;
+				}
+			}
+		}
+	}
+}
+
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -6789,6 +6809,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		ParticleSettings *part;
 		World *wrld;
 		Mesh *me;
+		bNodeTree *ntree;
 		
 		/* unless the file was created 2.44.3 but not 2.45, update the constraints */
 		if ( !(main->versionfile==244 && main->subversionfile==3) &&
@@ -6972,6 +6993,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(wrld->ao_approx_error == 0.0f)
 				wrld->ao_approx_error= 0.25f;
 		}
+
+		for(sce= main->scene.first; sce; sce= sce->id.next)
+			if(sce->nodetree)
+				ntree_version_245(sce->nodetree);
+
+		for(ntree=main->nodetree.first; ntree; ntree= ntree->id.next)
+			ntree_version_245(ntree);
 
 		if (main->versionfile < 245 || main->subversionfile < 12)
 		{
