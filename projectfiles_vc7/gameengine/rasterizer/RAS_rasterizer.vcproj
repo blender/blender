@@ -330,6 +330,9 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
+				RelativePath="..\..\..\source\gameengine\Rasterizer\RAS_2DFilterManager.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\Rasterizer\RAS_BucketManager.cpp">
 			</File>
 			<File
@@ -360,6 +363,9 @@
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
+			<File
+				RelativePath="..\..\..\source\gameengine\Rasterizer\RAS_2DFilterManager.h">
+			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Rasterizer\RAS_BucketManager.h">
 			</File>

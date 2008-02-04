@@ -367,6 +367,40 @@
 				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\RAS_VAOpenGLRasterizer.h">
 			</File>
 		</Filter>
+		<Filter
+			Name="Filters"
+			Filter="">
+			<File
+				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLFilters\RAS_Blur2DFilter.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLFilters\RAS_Dilation2DFilter.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLFilters\RAS_Erosion2DFilter.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLFilters\RAS_GrayScale2DFilter.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLFilters\RAS_Invert2DFilter.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLFilters\RAS_Laplacian2DFilter.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLFilters\RAS_Prewitt2DFilter.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLFilters\RAS_Sepia2DFilter.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLFilters\RAS_Sharpen2DFilter.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLFilters\RAS_Sobel2DFilter.h">
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>
