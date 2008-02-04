@@ -136,7 +136,6 @@ void BPY_pyconstraint_driver(struct bPythonConstraint *con, struct bConstraintOb
 }
 void BPY_pyconstraint_targets(struct bPythonConstraint *con, struct bConstraintTarget *ct)
 {
-	return 0;
 }
 
 
