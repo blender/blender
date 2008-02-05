@@ -869,11 +869,11 @@ void paste_posebuf (int flip)
 	/* Update event for pose and deformation children */
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	
-	if ((IS_AUTOKEY_MODE(NORMAL))) {
+	if (IS_AUTOKEY_ON) {
 		remake_action_ipos(ob->action);
-		allqueue (REDRAWIPO, 0);
-		allqueue (REDRAWVIEW3D, 0);
-		allqueue (REDRAWACTION, 0);		
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWACTION, 0);		
 		allqueue(REDRAWNLA, 0);
 	}
 	else {
