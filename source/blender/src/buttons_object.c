@@ -3570,6 +3570,7 @@ static void object_softbodies_collision(Object *ob)
 {
 	SoftBody *sb=ob->soft;
 	uiBlock *block;
+	uiBut *but = NULL;
 	static int val;
 	short *softflag=&ob->softflag, psys_cur=0;
 	int ob_has_hair=psys_ob_has_hair(ob);
@@ -3621,7 +3622,8 @@ static void object_softbodies_collision(Object *ob)
 		/* OTHER OBJECTS COLLISION STUFF */
 		if (ob->type==OB_MESH){
 			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to softbody objects");
+			but = uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to softbody objects");
+			uiButSetFunc(but, object_collision__enabletoggle, ob, NULL);
 			if(ob->pd->deflect) {
 				uiDefButF(block, NUM, B_FIELD_CHANGE, "Damping:",	160,50,150,20, &ob->pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
 				uiDefButBitS(block, TOG,OB_SB_COLLFINAL , B_DIFF, "Ev.M.Stack",10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Pick collision object from modifier stack");
@@ -3659,7 +3661,8 @@ static void object_softbodies_collision(Object *ob)
 		}
 		/* OTHER OBJECTS COLLISION STUFF */
 		if (ob->type==OB_MESH){
-			uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to other softbody objects");
+			but = uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to other softbody objects");
+			uiButSetFunc(but, object_collision__enabletoggle, ob, NULL);
 			if(ob->pd->deflect) {
 				uiDefButF(block, NUM, B_DIFF, "Damping:",	160,50,150,20, &ob->pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
 			    uiDefButBitS(block, TOG,OB_SB_COLLFINAL , B_DIFF, "Ev.M.Stack",10,30,150,20, softflag, 0, 0, 0, 0, "Pick collision object from modifier stack");
@@ -5152,7 +5155,7 @@ static void object_panel_cloth(Object *ob)
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff:",	   10,170,150,20, &clmd->sim_parms->structural, 1.0, 10000.0, 100, 0, "Overall stiffness of structure");
 		uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff:",	   160,170,150,20, &clmd->sim_parms->bending, 0.0, 10000.0, 1000, 0, "Wrinkle coefficient (higher = less smaller but more big wrinkles)");
-		uiDefButI(block, NUM, B_CLOTH_RENEW, "Quality:",	   10,150,150,20, &clmd->sim_parms->stepsPerFrame, 4.0, 100.0, 5, 0, "Quality of the simulation (higher=better=slower)");
+		uiDefButI(block, NUM, B_CLOTH_RENEW, "Quality:",	   10,150,150,20, &clmd->sim_parms->stepsPerFrame, 4.0, 80.0, 5, 0, "Quality of the simulation (higher=better=slower)");
 
 		uiDefButF(block, NUM, B_CLOTH_RENEW, "Spring Damp:",	   160,150,150,20, &clmd->sim_parms->Cdis, 0.0, 10.0, 10, 0, "Spring damping");
 		uiDefButF(block, NUM, B_DIFF, "Air Damp:",	   10,130,150,20, &clmd->sim_parms->Cvi, 0.0, 10.0, 10, 0, "Air has normaly some thickness which slows falling things down");
@@ -5238,9 +5241,32 @@ static void object_panel_cloth(Object *ob)
 	uiBlockEndAlign(block);
 }
 
+static void object_cloth__protecttoggle(void *ob_v, void *arg2)
+{
+	Object *ob = ob_v;
+	int cageIndex, stack_index;
+	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+	
+	// automatically enable modifier in editmode when we havee a protected cache
+	if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT)
+	{
+		cageIndex = modifiers_getCageIndex(ob_v, NULL );
+		stack_index = modifiers_indexInObject(ob_v, (ModifierData *)clmd);
+		if( stack_index >= cageIndex )
+			((ModifierData *)clmd)->mode ^= eModifierMode_OnCage;
+	}
+	else
+	{
+		((ModifierData *)clmd)->mode ^= eModifierMode_OnCage;
+	}
+	
+}
+
+
 static void object_panel_cloth_II(Object *ob)
 {
 	uiBlock *block;
+	uiBut *but = NULL;
 	ClothModifierData *clmd = NULL;
 
 	block= uiNewBlock(&curarea->uiblocks, "object_cloth_II", UI_EMBOSS, UI_HELV, curarea->win);
@@ -5261,6 +5287,7 @@ static void object_panel_cloth_II(Object *ob)
 		
 		uiDefBut(block, LABEL, 0, "",10,140,300,20, NULL, 0.0, 0, 0, 0, "");
 		uiClearButLock();
+		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE) uiSetButLock(1, "Please leave editmode.");
 		if (!G.relbase_valid)
 		{
 			uiDefBut(block, LABEL, 0, "Cache deactivated until file is saved.",  10,120,300,20, NULL, 0.0, 0, 0, 0, "");
@@ -5268,8 +5295,8 @@ static void object_panel_cloth_II(Object *ob)
 		}
 		else
 		{
-			uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT, REDRAWVIEW3D, "Protect Cache & Enable Cache Editing",	10,120,300,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Protect cache from automatic freeing when scene changed. This also enabled the cache beeing edited in editmode.");
-			
+			but = uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT, REDRAWVIEW3D, "Protect Cache & Enable Cache Editing",	10,120,300,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Protect cache from automatic freeing when scene changed. This also enabled the cache beeing edited in editmode.");
+			uiButSetFunc(but, object_cloth__protecttoggle, ob, NULL);
 			uiDefBut(block, LABEL, 0, "Clear cache:",  10,100,90,20, NULL, 0.0, 0, 0, 0, "");
 			uiDefBut(block, BUT, B_CLOTH_CLEARCACHEALL, "All", 100, 100,100,20, NULL, 0.0, 0.0, 10, 0, "Free ALL cloth cache without preroll");
 			uiDefBut(block, BUT, B_CLOTH_CLEARCACHEFRAME, "From next frame", 200, 100,110,20, NULL, 0.0, 0.0, 10, 0, "Free cloth cache starting from next frame");	

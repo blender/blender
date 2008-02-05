@@ -35,10 +35,13 @@
 #define BKE_CLOTH_H
 
 #include "float.h"
+#include "BLI_editVert.h"
 #include "BLI_linklist.h"
+
 #include "BKE_collision.h"
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
+
 #include "DNA_cloth_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_meshdata_types.h"
@@ -101,6 +104,7 @@ typedef struct ClothSpring
 	float dfdv[3][3];
 	float f[3];
 	float 	stiffness;	/* stiffness factor from the vertex groups */
+	float editrestlen;
 }
 ClothSpring;
 
@@ -165,6 +169,7 @@ typedef enum
 /* Bits to or into the ClothVertex.flags. */
 #define CLOTH_VERT_FLAG_PINNED 1
 #define CLOTH_VERT_FLAG_COLLISION 2
+#define CLOTH_VERT_FLAG_PINNED_EM 3
 
 typedef void ( *CM_COLLISION_RESPONSE ) ( ClothModifierData *clmd, CollisionModifierData *collmd, CollisionTree *tree1, CollisionTree *tree2 );
 
