@@ -396,7 +396,7 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 			shi->surfdist= 0.0f;
 			for(sv=strand->vert; sv!=svert; sv++)
 				shi->surfdist+=VecLenf(sv->co, (sv+1)->co);
-			shi->surfdist += 0.5f*(spoint->strandco+1.0f)*VecLenf(sv->co, (sv+1)->co);
+			shi->surfdist += spoint->t*VecLenf(sv->co, (sv+1)->co);
 		}
 	}
 
