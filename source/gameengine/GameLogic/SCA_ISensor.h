@@ -122,6 +122,7 @@ public:
 	KX_PYMETHOD_DOC(SCA_ISensor,SetUseNegPulseMode);
 	KX_PYMETHOD_DOC(SCA_ISensor,GetInvert);
 	KX_PYMETHOD_DOC(SCA_ISensor,SetInvert);
+	KX_PYMETHOD_DOC(SCA_ISensor,Evaluate);
 
 };
 
