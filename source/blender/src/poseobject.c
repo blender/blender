@@ -1496,3 +1496,27 @@ void pose_relax()
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	BIF_undo_push("Relax Pose");
 }
+
+/* for use in insertkey, ensure rotation goes other way around */
+void pose_flipquats(void)
+{
+	Object *ob = OBACT;
+	bArmature *arm= ob->data;
+	bPoseChannel *pchan;
+	
+	if(ob->pose==NULL)
+		return;
+	
+	/* find sel bones */
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->bone && (pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) {
+			/* quaternions have 720 degree range */
+			pchan->quat[0]= -pchan->quat[0];
+			pchan->quat[1]= -pchan->quat[1];
+			pchan->quat[2]= -pchan->quat[2];
+			pchan->quat[3]= -pchan->quat[3];
+		}
+	}
+			
+}
+

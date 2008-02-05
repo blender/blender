@@ -77,5 +77,7 @@ void pose_autoside_names(short axis);
 void pose_activate_flipped_bone(void);
 void pose_movetolayer(void);
 void pose_relax(void);
+void pose_flipquats(void);
+
 #endif
 

@@ -785,6 +785,8 @@ int blenderqread(unsigned short event, short val)
 		break;
 	case IKEY:
 		if(textediting==0 && textspace==0 && !ELEM3(curarea->spacetype, SPACE_FILE, SPACE_IMASEL, SPACE_NODE)) {
+			ob= OBACT;
+
 			if(G.f & G_SCULPTMODE) return 1;
 			else if(G.qual==0) {
 				common_insertkey();

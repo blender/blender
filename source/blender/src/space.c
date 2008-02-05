@@ -1924,6 +1924,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else
 						fly();
 				}
+				else if((G.qual==LR_ALTKEY)) {
+					if(ob && (ob->flag & OB_POSEMODE))
+						if(okee("Flip quaternion rotations"))
+							pose_flipquats();
+				}
 				else {
 					if (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT)){
 						G.f ^= G_FACESELECT;
