@@ -117,8 +117,9 @@ enum {
 
 enum {
 	ACTMENU_SEL_COLUMN_KEYS	= 1,
+	ACTMENU_SEL_COLUMN_CFRA,
 	ACTMENU_SEL_COLUMN_MARKERSCOLUMN,
-	ACTMENU_SEL_COLUMN_MARKERSBETWEEN
+	ACTMENU_SEL_COLUMN_MARKERSBETWEEN 
 };
 
 enum {
@@ -503,6 +504,9 @@ static void do_action_selectmenu_columnmenu(void *arg, int event)
 		case ACTMENU_SEL_COLUMN_MARKERSCOLUMN:
 			column_select_action_keys(2);
 			break;
+		case ACTMENU_SEL_COLUMN_CFRA:
+			column_select_action_keys(3);
+			break;
 	}
 		
 	allqueue(REDRAWMARKER, 0);
@@ -521,10 +525,13 @@ static uiBlock *action_selectmenu_columnmenu(void *arg_unused)
 					 "On Selected Keys|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,  
 					 ACTMENU_SEL_COLUMN_KEYS, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "On Current Frame|Ctrl K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,  
+					 ACTMENU_SEL_COLUMN_CFRA, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "On Selected Markers|Shift K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_COLUMN_MARKERSCOLUMN, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Between Selected Markers|Ctrl K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 "Between Selected Markers|Alt K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_COLUMN_MARKERSBETWEEN, "");
 	
 	

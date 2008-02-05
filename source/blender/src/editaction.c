@@ -2890,6 +2890,16 @@ void column_select_action_keys (int mode)
 					ce->cfra= get_action_frame(OBACT, ce->cfra);
 			}
 			break;
+		case 3: /* current frame */
+			/* make a single CfraElem */
+			ce= MEM_callocN(sizeof(CfraElem), "cfraElem");
+			BLI_addtail(&elems, ce);
+			
+			/* apply scaled action correction if needed */
+			if (NLA_ACTION_SCALED && datatype==ACTCONT_ACTION)
+				ce->cfra= get_action_frame(OBACT, CFRA);
+			else
+				ce->cfra= CFRA;
 	}
 	
 	/* loop through all of the keys and select additional keyframes
@@ -4031,7 +4041,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					printf("\t\tAchan \"%s\" : %p... group={%p} \n", achan->name, achan, achan->grp);
 				}	
 			}
-				
+			
 			/* Transforms */
 			else {
 				if (mval[0] >= ACTWIDTH) {
@@ -4055,13 +4065,14 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		
 		case KKEY:
-			if (G.qual & LR_CTRLKEY) {
+			if (G.qual == LR_ALTKEY)
 				markers_selectkeys_between();
-			}
-			else {
-				val= (G.qual & LR_SHIFTKEY) ? 2 : 1;
-				column_select_action_keys(val);
-			}
+			else if (G.qual == LR_SHIFTKEY)
+				column_select_action_keys(2);
+			else if (G.qual == LR_CTRLKEY)
+				column_select_action_keys(3);
+			else
+				column_select_action_keys(1);
 			
 			allqueue(REDRAWMARKER, 0);
 			break;
