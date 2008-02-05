@@ -101,6 +101,10 @@ BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsig
 		return NULL;
 	}
 	
+	// in the moment, return zero if no faces there
+	if(!numfaces)
+		return NULL;
+	
 	bvh->flags = 0;
 	bvh->leaf_tree = NULL;
 	bvh->leaf_root = NULL;

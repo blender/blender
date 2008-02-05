@@ -3251,7 +3251,7 @@ static void object_collision__enabletoggle ( void *ob_v, void *arg2 )
 {
 	Object *ob = ob_v;
 	ModifierData *md = modifiers_findByType ( ob, eModifierType_Collision );
-
+	
 	if ( !md )
 	{
 		md = modifier_new ( eModifierType_Collision );
@@ -5134,10 +5134,10 @@ static void object_panel_cloth(Object *ob)
 	}
 	else	
 	{
-	but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Cloth",	10,200,130,20, &val, 0, 0, 0, 0, "Sets object to become cloth");
+		but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Cloth",	10,200,130,20, &val, 0, 0, 0, 0, "Sets object to become cloth");
+		uiButSetFunc(but, object_cloth__enabletoggle, ob, NULL);
 	}
 
-	uiButSetFunc(but, object_cloth__enabletoggle, ob, NULL);
 	uiDefBut(block, LABEL, 0, "",10,10,300,0, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
 	
 	if(clmd)

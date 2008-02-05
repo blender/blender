@@ -51,6 +51,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_editVert.h"
 #include "BLI_edgehash.h"
 #include "BLI_linklist.h"
 
@@ -202,6 +203,10 @@ BVH *bvh_build_from_cloth (ClothModifierData *clmd, float epsilon)
 		return NULL;
 	
 	verts = cloth->verts;
+	
+	// in the moment, return zero if no faces there
+	if(!cloth->numfaces)
+		return NULL;
 	
 	bvh = MEM_callocN(sizeof(BVH), "BVH");
 	if (bvh == NULL) 
