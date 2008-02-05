@@ -171,12 +171,9 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 KX_Scene::~KX_Scene()
 {
 	
-//	int numobj = m_objectlist->GetCount();
-
-	//int numrootobjects = GetRootParentList()->GetCount();
-	for (int i = 0; i < GetRootParentList()->GetCount(); i++)
+	while (GetRootParentList()->GetCount() > 0) 
 	{
-		KX_GameObject* parentobj = (KX_GameObject*) GetRootParentList()->GetValue(i);
+		KX_GameObject* parentobj = (KX_GameObject*) GetRootParentList()->GetValue(0);
 		this->RemoveObject(parentobj);
 	}
 
