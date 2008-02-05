@@ -3250,15 +3250,19 @@ static void field_testTexture(char *name, ID **idpp)
 static void object_collision__enabletoggle ( void *ob_v, void *arg2 )
 {
 	Object *ob = ob_v;
+	PartDeflect *pd= ob->pd;
 	ModifierData *md = modifiers_findByType ( ob, eModifierType_Collision );
 	
 	if ( !md )
 	{
-		md = modifier_new ( eModifierType_Collision );
-		BLI_addhead ( &ob->modifiers, md );
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		allqueue(REDRAWBUTSEDIT, 0);
-		allqueue(REDRAWVIEW3D, 0);
+		if(pd && (pd->deflect))
+		{
+			md = modifier_new ( eModifierType_Collision );
+			BLI_addhead ( &ob->modifiers, md );
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWBUTSEDIT, 0);
+			allqueue(REDRAWVIEW3D, 0);
+		}
 	}
 	else
 	{
