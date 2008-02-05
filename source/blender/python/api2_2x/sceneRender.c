@@ -994,6 +994,7 @@ static int RenderData_setImageType( BPy_RenderData *self, PyObject *value )
 #endif
 #ifdef WITH_OPENEXR
 	case R_OPENEXR :
+	case R_MULTILAYER :
 #endif
 #ifdef WITH_FFMPEG
 	case R_FFMPEG :
@@ -3720,6 +3721,7 @@ PyObject *Render_Init( void )
 	PyModule_AddIntConstant( submodule, "SKYDOME", PY_SKYDOME );
 	PyModule_AddIntConstant( submodule, "GIFULL", PY_FULL );
 	PyModule_AddIntConstant( submodule, "OPENEXR", R_OPENEXR );
+	PyModule_AddIntConstant( submodule, "MULTILAYER", R_MULTILAYER );
 	PyModule_AddIntConstant( submodule, "TIFF", R_TIFF );
 	PyModule_AddIntConstant( submodule, "FFMPEG", R_FFMPEG );
 	PyModule_AddIntConstant( submodule, "CINEON", R_CINEON );

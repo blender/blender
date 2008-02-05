@@ -198,7 +198,7 @@ static void print_help(void)
 	printf ("    \tTGA IRIS HAMX JPEG MOVIE IRIZ RAWTGA\n");
 	printf ("    \tAVIRAW AVIJPEG PNG BMP FRAMESERVER\n");
 	printf ("    (formats that can be compiled into blender, not available on all systems)\n");
-	printf ("    \tHDR TIFF EXR MPEG AVICODEC QUICKTIME CINEON DPX DDS\n");
+	printf ("    \tHDR TIFF EXR MULTILAYER MPEG AVICODEC QUICKTIME CINEON DPX DDS\n");
 	printf ("    -x <bool>\tSet option to add the file extension to the end of the file.\n");
 	printf ("    -t <threads>\tUse amount of <threads> for rendering\n");
 	/*Add these later - Campbell*/
@@ -674,9 +674,10 @@ int main(int argc, char **argv)
 						else if (!strcmp(argv[a],"QUICKTIME")) G.scene->r.imtype = R_QUICKTIME;
 						else if (!strcmp(argv[a],"BMP")) G.scene->r.imtype = R_BMP;
 						else if (!strcmp(argv[a],"HDR")) G.scene->r.imtype = R_RADHDR;
-						else if (!strcmp(argv[a],"TIFF")) G.scene->r.imtype = R_IRIS;
+						else if (!strcmp(argv[a],"TIFF")) G.scene->r.imtype = R_TIFF;
 #ifdef WITH_OPENEXR
 						else if (!strcmp(argv[a],"EXR")) G.scene->r.imtype = R_OPENEXR;
+						else if (!strcmp(argv[a],"MULTILAYER")) G.scene->r.imtype = R_MULTILAYER;
 #endif
 						else if (!strcmp(argv[a],"MPEG")) G.scene->r.imtype = R_FFMPEG;
 						else if (!strcmp(argv[a],"FRAMESERVER")) G.scene->r.imtype = R_FRAMESERVER;
