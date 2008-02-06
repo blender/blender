@@ -2485,7 +2485,7 @@ static void do_glow_effect_byte(Sequence *seq, float facf0, float facf1,
 	GlowVars *glow = (GlowVars *)seq->effectdata;
 	struct RenderData *rd = &G.scene->r;
 
-	RVIsolateHighlights_byte(inbuf, outbuf , x, y, glow->fMini*765, glow->fBoost, glow->fClamp);
+	RVIsolateHighlights_byte(inbuf, outbuf , x, y, glow->fMini*765, glow->fBoost * facf0, glow->fClamp);
 	RVBlurBitmap2_byte (outbuf, x, y, glow->dDist * (rd->size / 100.0f),glow->dQuality);
 	if (!glow->bNoComp)
 		RVAddBitmaps_byte (inbuf , outbuf, outbuf, x, y);
@@ -2500,7 +2500,7 @@ static void do_glow_effect_float(Sequence *seq, float facf0, float facf1,
 	GlowVars *glow = (GlowVars *)seq->effectdata;
 	struct RenderData *rd = &G.scene->r;
 
-	RVIsolateHighlights_float(inbuf, outbuf , x, y, glow->fMini*3.0f, glow->fBoost, glow->fClamp);
+	RVIsolateHighlights_float(inbuf, outbuf , x, y, glow->fMini*3.0f, glow->fBoost * facf0, glow->fClamp);
 	RVBlurBitmap2_float (outbuf, x, y, glow->dDist * (rd->size / 100.0f),glow->dQuality);
 	if (!glow->bNoComp)
 		RVAddBitmaps_float (inbuf , outbuf, outbuf, x, y);
