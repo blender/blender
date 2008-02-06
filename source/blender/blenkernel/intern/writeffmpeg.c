@@ -41,6 +41,12 @@
 #define FFMPEG_CODEC_TIME_BASE  1
 #endif
 
+#if LIBAVFORMAT_VERSION_INT >= (52 << 16)
+#define OUTFILE_PB (outfile->pb)
+#else
+#define OUTFILE_PB (&outfile->pb)
+#endif
+
 #if defined(WIN32) && (!(defined snprintf))
 #define snprintf _snprintf
 #endif
@@ -751,7 +757,7 @@ void append_ffmpeg(int frame, int *pixels, int rectx, int recty)
 	write_video_frame(generate_video_frame((unsigned char*) pixels));
 
 	if (ffmpeg_autosplit) {
-		if (url_ftell(&outfile->pb) > FFMPEG_AUTOSPLIT_SIZE) {
+		if (url_ftell(OUTFILE_PB) > FFMPEG_AUTOSPLIT_SIZE) {
 			end_ffmpeg();
 			ffmpeg_autosplit_count++;
 			start_ffmpeg_impl(ffmpeg_renderdata,
@@ -798,7 +804,7 @@ void end_ffmpeg(void)
 	}
 	if (outfile && outfile->oformat) {
 		if (!(outfile->oformat->flags & AVFMT_NOFILE)) {
-			url_fclose(&outfile->pb);
+			url_fclose(OUTFILE_PB);
 		}
 	}
 	if (outfile) {
