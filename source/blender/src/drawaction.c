@@ -1189,6 +1189,36 @@ static ActKeyColumn *cfra_find_actkeycolumn (ListBase *keys, float cframe)
 	return NULL;
 }
 
+/* Draw a simple diamond shape with a filled in center (in screen space) */
+static void draw_key_but(int x, int y, short w, short h, int sel)
+{
+	int xmin= x, ymin= y;
+	int xmax= x+w-1, ymax= y+h-1;
+	int xc= (xmin+xmax)/2, yc= (ymin+ymax)/2;
+	
+	/* interior - hardcoded colours (for selected and unselected only) */
+	if (sel) glColor3ub(0xF1, 0xCA, 0x13);
+	else glColor3ub(0xE9, 0xE9, 0xE9);
+	
+	glBegin(GL_QUADS);
+	glVertex2i(xc, ymin);
+	glVertex2i(xmax, yc);
+	glVertex2i(xc, ymax);
+	glVertex2i(xmin, yc);
+	glEnd();
+	
+	
+	/* outline */
+	glColor3ub(0, 0, 0);
+	
+	glBegin(GL_LINE_LOOP);
+	glVertex2i(xc, ymin);
+	glVertex2i(xmax, yc);
+	glVertex2i(xc, ymax);
+	glVertex2i(xmin, yc);
+	glEnd();
+}
+
 static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, float ypos)
 {
 	ActKeyColumn *ak;
@@ -1240,8 +1270,12 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 			/* get co-ordinate to draw at */
 			gla2DDrawTranslatePt(di, ak->cfra, ypos, &sc_x, &sc_y);
 			
-			if(ak->sel & 1) BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE2, 1.0f);
-			else BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE3, 1.0f);
+			/* draw using icons - slower */
+			//if(ak->sel & 1) BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE2, 1.0f);
+			//else BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE3, 1.0f);
+			
+			/* draw using OpenGL - slightly uglier but faster */
+			draw_key_but(sc_x-5, sc_y-4, 11, 11, (ak->sel & SELECT));
 		}	
 	}
 	
@@ -1345,7 +1379,7 @@ void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki
 		
 		/* Add constraint keyframes */
 		for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next) {
-			if(conchan->ipo)
+			if (conchan->ipo)
 				ipo_to_keylist(conchan->ipo, keys, blocks, aki);		
 		}
 			
