@@ -2837,7 +2837,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					getmouseco_areawin(mval);
 					areamouseco_to_ipoco(v2d, mval, &dx, &dy);
 					
-					cfra = get_cfra_from_dx(sipo, (int)dx);
+					cfra = get_cfra_from_dx(sipo, (int)(dx+0.5f));
 					if(cfra< 1) cfra= 1;
 					
 					if( cfra!=CFRA ) {
@@ -4644,7 +4644,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					getmouseco_areawin(mval);
 					areamouseco_to_ipoco(v2d, mval, &dx, &dy);
 					
-					cfra= (int)dx;
+					cfra= (int)(dx+0.5f);
 					if(cfra< 1) cfra= 1;
 					/* else if(cfra> EFRA) cfra= EFRA; */
 					

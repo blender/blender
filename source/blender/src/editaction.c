@@ -4272,7 +4272,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					getmouseco_areawin(mval);
 					areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
 					
-					cfra= (int)dx;
+					cfra= (int)(dx+0.5f);
 					if (cfra < 1) cfra= 1;
 					
 					if (cfra != CFRA) {
