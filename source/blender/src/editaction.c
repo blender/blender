@@ -4248,7 +4248,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case DELKEY:
 		case XKEY:
 			if (okee("Erase selected")) {
-				if (mval[0]<NAMEWIDTH)
+				if (mval[0] < NAMEWIDTH)
 					delete_action_channels();
 				else
 					delete_action_keys();

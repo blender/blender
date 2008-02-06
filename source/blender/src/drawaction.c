@@ -275,10 +275,12 @@ static void make_icu_slider(uiBlock *block, IpoCurve *icu,
 /* sliders for ipo-curves of active action-channel */
 static void action_icu_buts(SpaceAction *saction)
 {
-	bAction *act= saction->action;
-	bActionChannel *achan;
-	bConstraintChannel *conchan;
-	IpoCurve *icu;
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+	
 	char          str[64];
 	float	        x, y;
 	uiBlock       *block;
@@ -303,51 +305,69 @@ static void action_icu_buts(SpaceAction *saction)
 	if (G.saction->flag & SACTION_SLIDERS) {
 		/* sliders are open so draw them */
 		
+		/* get editor data */
+		data= get_action_context(&datatype);
+		if (data == NULL) return;
+		
+		/* build list of channels to draw */
+		filter= (ACTFILTER_FORDRAWING|ACTFILTER_VISIBLE|ACTFILTER_CHANNELS);
+		actdata_filter(&act_data, filter, data, datatype);
+		
 		/* draw backdrop first */
 		BIF_ThemeColor(TH_FACE); // change this color... it's ugly
 		glRects(NAMEWIDTH,  G.v2d->cur.ymin,  NAMEWIDTH+SLIDERWIDTH,  G.v2d->cur.ymax);
 		
 		uiBlockSetEmboss(block, UI_EMBOSS);
-		for (achan=act->chanbase.first; achan; achan= achan->next) {
-			if(VISIBLE_ACHAN(achan)) {
-				y-=CHANNELHEIGHT+CHANNELSKIP;
-				
-				if (EXPANDED_ACHAN(achan)) {					
-					if (achan->ipo) {
-						y-=CHANNELHEIGHT+CHANNELSKIP;
+		for (ale= act_data.first; ale; ale= ale->next) {
+			const float yminc= y-CHANNELHEIGHT/2;
+			const float ymaxc= y+CHANNELHEIGHT/2;
+			
+			/* check if visible */
+			if ( IN_RANGE(yminc, G.v2d->cur.ymin, G.v2d->cur.ymax) ||
+				 IN_RANGE(ymaxc, G.v2d->cur.ymin, G.v2d->cur.ymax) ) 
+			{
+				/* determine what needs to be drawn */
+				switch (ale->type) {
+					case ACTTYPE_CONCHAN: /* constraint channel */
+					{
+						bActionChannel *achan = (bActionChannel *)ale->owner;
+						IpoCurve *icu = (IpoCurve *)ale->key_data;
 						
-						if (FILTER_IPO_ACHAN(achan)) {
-							for (icu= achan->ipo->curve.first; icu; icu=icu->next) {
-								if (achan->flag & ACHAN_HILIGHTED) {
-									make_icu_slider(block, icu,
-													x, y, SLIDERWIDTH-2, CHANNELHEIGHT-2, 
-													"Slider to control current value of IPO-Curve");
-								}
-								
-								y-=CHANNELHEIGHT+CHANNELSKIP;
-							}
+						/* only show if action channel is selected */
+						if (SEL_ACHAN(achan)) {
+							make_icu_slider(block, icu,
+											x, y, SLIDERWIDTH-2, CHANNELHEIGHT-2, 
+											"Slider to control current value of Constraint Influence");
 						}
 					}
-					
-					if (achan->constraintChannels.first) {
-						y-=CHANNELHEIGHT+CHANNELSKIP;
+						break;
+					case ACTTYPE_ICU: /* ipo-curve channel */
+					{
+						bActionChannel *achan = (bActionChannel *)ale->owner;
+						IpoCurve *icu = (IpoCurve *)ale->key_data;
 						
-						if (FILTER_CON_ACHAN(achan)) {
-							for (conchan= achan->constraintChannels.first; conchan; conchan=conchan->next) {
-								if ((achan->flag & ACHAN_HILIGHTED) && EDITABLE_CONCHAN(conchan)) {
-									icu= (IpoCurve *)conchan->ipo->curve.first;
-									make_icu_slider(block, icu,
-													x, y, SLIDERWIDTH-2, CHANNELHEIGHT-2, 
-													"Slider to control current value of Constraint Channel");
-								}
-								
-								y-=CHANNELHEIGHT+CHANNELSKIP;
-							}
+						/* only show if action channel is selected */
+						if (SEL_ACHAN(achan)) {
+							make_icu_slider(block, icu,
+											x, y, SLIDERWIDTH-2, CHANNELHEIGHT-2, 
+											"Slider to control current value of IPO-Curve");
 						}
 					}
-				}
+						break;
+					case ACTTYPE_SHAPEKEY: /* shapekey channel */
+					{
+						// TODO...
+					}
+						break;
+				}	
 			}
+			
+			/* adjust y-position for next one */
+			y-=CHANNELHEIGHT+CHANNELSKIP;
 		}
+		
+		/* free tempolary channels */
+		BLI_freelistN(&act_data);
 	}
 	uiDrawBlock(block);
 }
