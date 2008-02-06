@@ -1652,7 +1652,9 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 			
 		if (se->ibuf==NULL && seq->scene && !build_proxy_run) {
 			se->ibuf = seq_proxy_fetch(seq, cfra);
-			input_preprocess(seq, se, cfra);
+			if (se->ibuf) {
+				input_preprocess(seq, se, cfra);
+			}
 		}
 
 		if (se->ibuf==NULL && seq->scene) {
