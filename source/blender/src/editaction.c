@@ -3675,15 +3675,19 @@ void rearrange_action_channels (short mode)
 /* Expand all channels to show full hierachy */
 void expand_all_action (void)
 {
+	void *data;
+	short datatype;
+	
 	bAction *act;
 	bActionChannel *achan;
 	bActionGroup *agrp;
 	short mode= 1;
 	
 	/* Get the selected action, exit if none are selected */
-	// TODO: really this should be done with the "action editor api" stuff, but this will suffice for now 
-	act = G.saction->action;
-	if (act == NULL) return;
+	data = get_action_context(&datatype);
+	if (data == NULL) return;
+	if (datatype != ACTCONT_ACTION) return;
+	act= (bAction *)data;
 	
 	/* check if expand all, or close all */
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
@@ -3729,37 +3733,54 @@ void expand_all_action (void)
 /* For visible channels, expand/collapse one level */
 void openclose_level_action (short mode)
 {
+	void *data;
+	short datatype;
+	
 	bAction *act;
 	bActionChannel *achan;
+	bActionGroup *agrp;
 	
 	/* Get the selected action, exit if none are selected */
-	// TODO: really this should be done with the "action editor api" stuff, but this will suffice for now 
-	act = G.saction->action;
-	if (act == NULL) return;
+	data = get_action_context(&datatype);
+	if (data == NULL) return;
+	if (datatype != ACTCONT_ACTION) return;
+	act= (bAction *)data;
 	
 	/* Abort if no operation required */
 	if (mode == 0) return;
 	
 	/* Only affect selected channels */
-	// FIXME: check for action-groups
 	for (achan= act->chanbase.first; achan; achan= achan->next) {
-		if (VISIBLE_ACHAN(achan) && SEL_ACHAN(achan)) {
-			if (EXPANDED_ACHAN(achan)) {
-				if (FILTER_IPO_ACHAN(achan) || FILTER_CON_ACHAN(achan)) {
-					if (mode < 0)
-						achan->flag &= ~(ACHAN_SHOWIPO|ACHAN_SHOWCONS);
+		/* make sure if there is a group, it isn't about to be collapsed and is open */
+		if ( (achan->grp==NULL) || (EXPANDED_AGRP(achan->grp) && SEL_AGRP(achan->grp)==0) ) {
+			if (VISIBLE_ACHAN(achan) && SEL_ACHAN(achan)) {
+				if (EXPANDED_ACHAN(achan)) {
+					if (FILTER_IPO_ACHAN(achan) || FILTER_CON_ACHAN(achan)) {
+						if (mode < 0)
+							achan->flag &= ~(ACHAN_SHOWIPO|ACHAN_SHOWCONS);
+					}
+					else {
+						if (mode > 0)
+							achan->flag |= (ACHAN_SHOWIPO|ACHAN_SHOWCONS);
+						else
+							achan->flag &= ~ACHAN_EXPANDED;
+					}					
 				}
 				else {
 					if (mode > 0)
-						achan->flag |= (ACHAN_SHOWIPO|ACHAN_SHOWCONS);
-					else
-						achan->flag &= ~ACHAN_EXPANDED;
-				}					
+						achan->flag |= ACHAN_EXPANDED;
+				}
 			}
-			else {
-				if (mode > 0)
-					achan->flag |= ACHAN_EXPANDED;
-			}
+		}
+	}
+	
+	/* Expand/collapse selected groups */
+	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
+		if (SEL_AGRP(agrp)) {
+			if (mode < 0)
+				agrp->flag &= ~AGRP_EXPANDED;
+			else
+				agrp->flag |= AGRP_EXPANDED;
 		}
 	}
 	

@@ -1118,6 +1118,7 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 	/* get beztriples */
 	beztn= (icu->bezt + index);
 	
+	/* we need to go through all beztriples, as they may not be in order (i.e. during transform) */
 	for (v=0, bezt=icu->bezt; v<icu->totvert; v++, bezt++) {
 		/* skip if beztriple is current */
 		if (v != index) {
@@ -1270,7 +1271,7 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 			/* get co-ordinate to draw at */
 			gla2DDrawTranslatePt(di, ak->cfra, ypos, &sc_x, &sc_y);
 			
-			/* draw using icons - slower */
+			/* draw using icons - old way which is slower but more proven */
 			//if(ak->sel & 1) BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE2, 1.0f);
 			//else BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE3, 1.0f);
 			

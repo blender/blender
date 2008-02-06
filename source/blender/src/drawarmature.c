@@ -1589,9 +1589,15 @@ static void draw_pose_channels(Base *base, int dt)
 					set_pchan_colorset(ob, pchan);
 					
 					if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
-						/* BONE_DRAWWIRE case is here too, as sometimes wire overlay won't be done */
-						if (pchan->bone->flag & BONE_DRAWWIRE) 
-							draw_custom_bone(pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
+						/* BONE_DRAWWIRE case is here too, as wire overlay won't be done when in Object Mode
+						 * It's a bit of a hack, and we make sure TH_WIRE is used (just in case).
+						 */
+						if (pchan->bone->flag & BONE_DRAWWIRE) {
+							if ((arm->flag & ARM_POSEMODE) == 0) {
+								BIF_ThemeColor(TH_WIRE);
+								draw_custom_bone(pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
+							}
+						}
 						else
 							draw_custom_bone(pchan->custom, OB_SOLID, arm->flag, flag, index, bone->length);
 					}
@@ -1695,8 +1701,9 @@ static void draw_pose_channels(Base *base, int dt)
 					set_pchan_colorset(ob, pchan);
 
 					if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
-						if ((dt < OB_SOLID) || (pchan->bone->flag & BONE_DRAWWIRE))
+						if ((dt < OB_SOLID) || (pchan->bone->flag & BONE_DRAWWIRE)) {
 							draw_custom_bone(pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
+						}
 					}
 					else if (arm->drawtype==ARM_ENVELOPE) {
 						if (dt < OB_SOLID)
