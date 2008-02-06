@@ -92,6 +92,7 @@ attribute.  One of the following modes can be active:
 @var IRISZ: Output format. Use with renderdata.imageType / setImageType()
 @var FTYPE: Output format. Use with renderdata.imageType / setImageType()
 @var OPENEXR: Output format. Use with renderdata.imageType / setImageType()
+@var MULTILAYER: Output format. Use with renderdata.imageType / setImageType()
 @var TIFF: Output format. Use with renderdata.imageType / setImageType()
 @var FFMPEG: Output format. Use with renderdata.imageType / setImageType()
 @var CINEON: Output format. Use with renderdata.imageType / setImageType()
