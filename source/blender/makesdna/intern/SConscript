@@ -25,6 +25,8 @@ if sys.platform != 'cygwin':
     makesdna_tool.Append (CCFLAGS = cflags)
 makesdna_tool.Append (CPPDEFINES = defines)
 makesdna_tool.Append (LIBPATH = '#'+root_build_dir+'/lib')
+if env['BF_PROFILE']:
+	makesdna_tool.Append (LINKFLAGS = env['BF_PROFILE_FLAGS'])
 
 if env['OURPLATFORM'] == 'linux2' and root_build_dir[0]==os.sep:
     makesdna = makesdna_tool.Program (target = root_build_dir+'/makesdna', source = source_files, LIBS=['bf_guardedalloc'])

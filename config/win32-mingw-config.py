@@ -156,5 +156,8 @@ LLIBS = ['-lshell32', '-lshfolder', '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm'
 BF_DEBUG = 'false'
 BF_DEBUG_FLAGS= '-g'
 
+BF_PROFILE_FLAGS = ['-pg','-g']
+BF_PROFILE = 'false'
+
 BF_BUILDDIR = '..\\build\\win32-mingw'
 BF_INSTALLDIR='..\\install\\win32-mingw'
