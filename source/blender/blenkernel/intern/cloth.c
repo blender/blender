@@ -761,8 +761,8 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 		return result;
 	}
 	
-	// check for autoprotection
-	if(framenr >= clmd->sim_parms->autoprotect)
+	// check for autoprotection, but only if cache active
+	if((framenr >= clmd->sim_parms->autoprotect) && (G.relbase_valid))
 	{
 		if(G.rt > 0)
 			printf("fr#: %f, auto: %d\n", framenr, clmd->sim_parms->autoprotect);
@@ -1073,7 +1073,9 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 						
 						verts->goal  = ( float ) pow ( verts->goal , 4.0f );
 						if ( verts->goal >=SOFTGOALSNAP )
-							verts->flags |= CLOTH_VERT_FLAG_PINNED;
+						{
+ 							verts->flags |= CLOTH_VERT_FLAG_PINNED;
+						}
 					}
 					
 					if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING )
@@ -1089,11 +1091,13 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 							verts->bend_stiff = dvert->dw [j].weight;
 						}
 					}
-					
-					if( dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_mass-1))
+					/*
+					// for later
+					if( dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_weight-1))
 					{
 						verts->mass = dvert->dw [j].weight;
 					}
+					*/
 				}
 			}
 		}
