@@ -3088,16 +3088,16 @@ int Rotation(TransInfo *t, short mval[2])
 
 	float final;
 
-	int dx2 = t->center2d[0] - mval[0];
-	int dy2 = t->center2d[1] - mval[1];
+	double dx2 = t->center2d[0] - mval[0];
+	double dy2 = t->center2d[1] - mval[1];
 	double B = sqrt(dx2*dx2+dy2*dy2);
 
-	int dx1 = t->center2d[0] - t->imval[0];
-	int dy1 = t->center2d[1] - t->imval[1];
+	double dx1 = t->center2d[0] - t->imval[0];
+	double dy1 = t->center2d[1] - t->imval[1];
 	double A = sqrt(dx1*dx1+dy1*dy1);
 
-	int dx3 = mval[0] - t->imval[0];
-	int dy3 = mval[1] - t->imval[1];
+	double dx3 = mval[0] - t->imval[0];
+	double dy3 = mval[1] - t->imval[1];
 		/* use doubles here, to make sure a "1.0" (no rotation) doesnt become 9.999999e-01, which gives 0.02 for acos */
 	double deler= ((double)((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3) ))
 		/ (2.0 * (A*B?A*B:1.0));
@@ -3586,23 +3586,23 @@ int Tilt(TransInfo *t, short mval[2])
 
 	float final;
 
-	int dx2 = t->center2d[0] - mval[0];
-	int dy2 = t->center2d[1] - mval[1];
-	float B = (float)sqrt(dx2*dx2+dy2*dy2);
+	double dx2 = t->center2d[0] - mval[0];
+	double dy2 = t->center2d[1] - mval[1];
+	double B = (float)sqrt(dx2*dx2+dy2*dy2);
 
-	int dx1 = t->center2d[0] - t->imval[0];
-	int dy1 = t->center2d[1] - t->imval[1];
-	float A = (float)sqrt(dx1*dx1+dy1*dy1);
+	double dx1 = t->center2d[0] - t->imval[0];
+	double dy1 = t->center2d[1] - t->imval[1];
+	double A = (float)sqrt(dx1*dx1+dy1*dy1);
 
-	int dx3 = mval[0] - t->imval[0];
-	int dy3 = mval[1] - t->imval[1];
+	double dx3 = mval[0] - t->imval[0];
+	double dy3 = mval[1] - t->imval[1];
 
-	float deler= ((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3))
+	double deler= ((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3))
 		/ (2 * A * B);
 
 	float dphi;
 
-	dphi = saacos(deler);
+	dphi = saacos((float)deler);
 	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
 
 	if(G.qual & LR_SHIFTKEY) t->fac += dphi/30.0f;
@@ -4183,16 +4183,16 @@ int BoneRoll(TransInfo *t, short mval[2])
 
 	float final;
 
-	int dx2 = t->center2d[0] - mval[0];
-	int dy2 = t->center2d[1] - mval[1];
+	double dx2 = t->center2d[0] - mval[0];
+	double dy2 = t->center2d[1] - mval[1];
 	double B = sqrt(dx2*dx2+dy2*dy2);
 
-	int dx1 = t->center2d[0] - t->imval[0];
-	int dy1 = t->center2d[1] - t->imval[1];
+	double dx1 = t->center2d[0] - t->imval[0];
+	double dy1 = t->center2d[1] - t->imval[1];
 	double A = sqrt(dx1*dx1+dy1*dy1);
 
-	int dx3 = mval[0] - t->imval[0];
-	int dy3 = mval[1] - t->imval[1];
+	double dx3 = mval[0] - t->imval[0];
+	double dy3 = mval[1] - t->imval[1];
 		/* use doubles here, to make sure a "1.0" (no rotation) doesnt become 9.999999e-01, which gives 0.02 for acos */
 	double deler= ((double)((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3) ))
 		/ (2.0 * (A*B?A*B:1.0));
