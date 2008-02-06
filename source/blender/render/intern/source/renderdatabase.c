@@ -541,7 +541,7 @@ float *RE_strandren_get_surfnor(ObjectRen *obr, StrandRen *strand, int verify)
 	surfnor= obr->strandnodes[nr].surfnor;
 	if(surfnor==NULL) {
 		if(verify) 
-			surfnor= obr->strandnodes[nr].surfnor= MEM_callocN(256*RE_SURFNOR_ELEMS*sizeof(float), "surfnor table");
+			surfnor= obr->strandnodes[nr].surfnor= MEM_callocN(256*RE_SURFNOR_ELEMS*sizeof(float), "surfnor strand table");
 		else
 			return NULL;
 	}
@@ -561,7 +561,7 @@ float *RE_strandren_get_uv(ObjectRen *obr, StrandRen *strand, int n, char **name
 			float *uv= node->uv;
 			int size= (n+1)*256;
 
-			node->uv= MEM_callocN(size*sizeof(float)*RE_UV_ELEMS, "Strand uv");
+			node->uv= MEM_callocN(size*sizeof(float)*RE_UV_ELEMS, "strand uv table");
 
 			if(uv) {
 				size= node->totuv*256;
@@ -595,7 +595,7 @@ MCol *RE_strandren_get_mcol(ObjectRen *obr, StrandRen *strand, int n, char **nam
 			MCol *mcol= node->mcol;
 			int size= (n+1)*256;
 
-			node->mcol= MEM_callocN(size*sizeof(MCol)*RE_MCOL_ELEMS, "Strand mcol");
+			node->mcol= MEM_callocN(size*sizeof(MCol)*RE_MCOL_ELEMS, "strand mcol table");
 
 			if(mcol) {
 				size= node->totmcol*256;
@@ -624,7 +624,7 @@ float *RE_strandren_get_simplify(struct ObjectRen *obr, struct StrandRen *strand
 	simplify= obr->strandnodes[nr].simplify;
 	if(simplify==NULL) {
 		if(verify) 
-			simplify= obr->strandnodes[nr].simplify= MEM_callocN(256*RE_SIMPLIFY_ELEMS*sizeof(float), "simplify table");
+			simplify= obr->strandnodes[nr].simplify= MEM_callocN(256*RE_SIMPLIFY_ELEMS*sizeof(float), "simplify strand table");
 		else
 			return NULL;
 	}
@@ -639,7 +639,7 @@ int *RE_strandren_get_face(ObjectRen *obr, StrandRen *strand, int verify)
 	face= obr->strandnodes[nr].face;
 	if(face==NULL) {
 		if(verify) 
-			face= obr->strandnodes[nr].face= MEM_callocN(256*RE_FACE_ELEMS*sizeof(int), "face table");
+			face= obr->strandnodes[nr].face= MEM_callocN(256*RE_FACE_ELEMS*sizeof(int), "face strand table");
 		else
 			return NULL;
 	}
@@ -656,7 +656,7 @@ float *RE_strandren_get_winspeed(ObjectInstanceRen *obi, StrandRen *strand, int 
 	if(winspeed==NULL) {
 		if(verify) {
 			totvector= obi->obr->totvert + obi->obr->totstrand;
-			winspeed= obi->vectors= MEM_callocN(totvector*RE_WINSPEED_ELEMS*sizeof(float), "winspeed table");
+			winspeed= obi->vectors= MEM_callocN(totvector*RE_WINSPEED_ELEMS*sizeof(float), "winspeed strand table");
 		}
 		else
 			return NULL;

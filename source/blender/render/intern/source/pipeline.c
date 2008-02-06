@@ -709,7 +709,7 @@ static void save_render_result_tile(RenderResult *rr, RenderResult *rrpart)
 
 	party= rrpart->tilerect.ymin + rrpart->crop;
 	partx= rrpart->tilerect.xmin + rrpart->crop;
-	IMB_exrtile_write_channels(rr->exrhandle, partx, party);
+	IMB_exrtile_write_channels(rr->exrhandle, partx, party, 0);
 
 	BLI_unlock_thread(LOCK_IMAGE);
 
@@ -727,7 +727,7 @@ static void save_empty_result_tiles(Render *re)
 			if(pa->ready==0) {
 				int party= pa->disprect.ymin - re->disprect.ymin + pa->crop;
 				int partx= pa->disprect.xmin - re->disprect.xmin + pa->crop;
-				IMB_exrtile_write_channels(rr->exrhandle, partx, party);
+				IMB_exrtile_write_channels(rr->exrhandle, partx, party, 0);
 			}
 		}
 	}
@@ -1474,7 +1474,7 @@ static void threaded_tile_processor(Render *re)
 			render_unique_exr_name(re, str, rr->sample_nr);
 		
 			printf("write exr tmp file, %dx%d, %s\n", rr->rectx, rr->recty, str);
-			IMB_exrtile_begin_write(rr->exrhandle, str, rr->rectx, rr->recty, rr->rectx/re->xparts, rr->recty/re->yparts);
+			IMB_exrtile_begin_write(rr->exrhandle, str, 0, rr->rectx, rr->recty, re->partx, re->party);
 		}
 	}
 	
@@ -2425,21 +2425,6 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 	
 	/* check all scenes involved */
 	tag_scenes_for_render(re);
-	for(sce= G.main->scene.first; sce; sce= sce->id.next) {
-		if(sce->r.scemode & R_EXR_TILE_FILE) {
-			int partx= winx/sce->r.xparts, party= winy/sce->r.yparts;
-			
-			/* stupid exr tiles dont like different sizes */
-			if(winx != partx*sce->r.xparts || winy != party*sce->r.yparts) {
-				re->error("Sorry... exr tile saving only allowed with equally sized parts");
-				return 0;
-			}
-			if((sce->r.mode & R_FIELDS) && (party & 1)) {
-				re->error("Sorry... exr tile saving only allowed with equally sized parts");
-				return 0;
-			}
-		}
-	}
 	
 	if(scene->r.scemode & R_SINGLE_LAYER)
 		push_render_result(re);

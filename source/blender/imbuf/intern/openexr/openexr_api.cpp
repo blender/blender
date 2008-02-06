@@ -362,6 +362,7 @@ typedef struct ExrHandle {
 	OutputFile *ofile;
 	int tilex, tiley;
 	int width, height;
+	int mipmap;
 	
 	ListBase channels;	/* flattened out, ExrChannel */
 	ListBase layers;	/* hierarchical, pointing in end to ExrChannel */
@@ -450,7 +451,7 @@ void IMB_exr_begin_write(void *handle, char *filename, int width, int height, in
 	data->ofile = new OutputFile(filename, header);
 }
 
-void IMB_exrtile_begin_write(void *handle, char *filename, int width, int height, int tilex, int tiley)
+void IMB_exrtile_begin_write(void *handle, char *filename, int mipmap, int width, int height, int tilex, int tiley)
 {
 	ExrHandle *data= (ExrHandle *)handle;
 	Header header (width, height);
@@ -460,11 +461,12 @@ void IMB_exrtile_begin_write(void *handle, char *filename, int width, int height
 	data->tiley= tiley;
 	data->width= width;
 	data->height= height;
+	data->mipmap= mipmap;
 	
 	for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
 		header.channels().insert (echan->name, Channel (FLOAT));
 	
-	header.setTileDescription (TileDescription (tilex, tiley, ONE_LEVEL));
+	header.setTileDescription (TileDescription (tilex, tiley, (mipmap)? MIPMAP_LEVELS: ONE_LEVEL));
 	header.lineOrder() = RANDOM_Y;
 	header.compression() = RLE_COMPRESSION;
 	
@@ -533,7 +535,7 @@ void IMB_exrtile_clear_channels(void *handle)
 	BLI_freelistN(&data->channels);
 }
 
-void IMB_exrtile_write_channels(void *handle, int partx, int party)
+void IMB_exrtile_write_channels(void *handle, int partx, int party, int level)
 {
 	ExrHandle *data= (ExrHandle *)handle;
 	FrameBuffer frameBuffer;
@@ -550,7 +552,7 @@ void IMB_exrtile_write_channels(void *handle, int partx, int party)
 
 	try {
 		// printf("write tile %d %d\n", partx/data->tilex, party/data->tiley);
-		data->tofile->writeTile (partx/data->tilex, party/data->tiley);	
+		data->tofile->writeTile (partx/data->tilex, party/data->tiley, level);
 	}
 	catch (const std::exception &exc) {
 		std::cerr << "OpenEXR-writeTile: ERROR: " << exc.what() << std::endl;

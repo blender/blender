@@ -603,24 +603,20 @@ void initparts(Render *re)
 	/* mininum part size, but for exr tile saving it was checked already */
 	if(!(re->r.scemode & R_EXR_TILE_FILE)) {
 		if(re->r.mode & R_PANORAMA) {
-			if(re->rectx/xparts < 8) 
+			if(ceil(re->rectx/(float)xparts) < 8) 
 				xparts= 1 + re->rectx/8;
 		}
 		else
-			if(re->rectx/xparts < 64) 
+			if(ceil(re->rectx/(float)xparts) < 64) 
 				xparts= 1 + re->rectx/64;
 		
-		if(re->recty/yparts < 64) 
+		if(ceil(re->recty/(float)yparts) < 64) 
 			yparts= 1 + re->recty/64;
 	}
 	
 	/* part size */
-	partx= re->rectx/xparts;
-	party= re->recty/yparts;
-	
-	/* if remainder pixel, add one, then parts are more equal in size for large panoramas */
-	if(re->rectx % partx)
-		partx++;
+	partx= ceil(re->rectx/(float)xparts);
+	party= ceil(re->recty/(float)yparts);
 	
 	re->xparts= xparts;
 	re->yparts= yparts;
