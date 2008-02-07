@@ -2016,7 +2016,7 @@ static void render_composit_stats(char *str)
 /* reads all buffers, calls optional composite, merges in first result->rectf */
 static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 {
-	float *rectf;
+	float *rectf, filt[3][3];
 	int sample;
 	
 	/* filtmask needs it */
@@ -2055,16 +2055,18 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 		
 		/* accumulate with filter, and clip */
 		mask= (1<<sample);
-		for(y=1; y<re->recty-1; y++) {
-			float *rf= rectf + 4*y*re->rectx + 4;
-			float *col= rres.rectf + 4*y*re->rectx + 4;
+		mask_array(mask, filt);
+
+		for(y=0; y<re->recty; y++) {
+			float *rf= rectf + 4*y*re->rectx;
+			float *col= rres.rectf + 4*y*re->rectx;
 				
-			for(x=1; x<re->rectx-1; x++, rf+=4, col+=4) {
+			for(x=0; x<re->rectx; x++, rf+=4, col+=4) {
 				if(col[0]<0.0f) col[0]=0.0f; else if(col[0] > 1.0f) col[0]= 1.0f;
 				if(col[1]<0.0f) col[1]=0.0f; else if(col[1] > 1.0f) col[1]= 1.0f;
 				if(col[2]<0.0f) col[2]=0.0f; else if(col[2] > 1.0f) col[2]= 1.0f;
 				
-				add_filt_fmask(mask, col, rf, re->rectx);
+				add_filt_fmask_coord(filt, col, rf, re->rectx, re->recty, x, y);
 			}
 		}
 		
@@ -2396,7 +2398,6 @@ static int is_rendering_allowed(Render *re)
 /* evaluating scene options for general Blender render */
 static int render_initialize_from_scene(Render *re, Scene *scene)
 {
-	Scene *sce;
 	int winx, winy;
 	rcti disprect;
 	

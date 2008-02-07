@@ -31,6 +31,7 @@
  */
 
 #include <math.h>
+#include <string.h>
 
 /* global includes */
 #include "BLI_arithb.h"
@@ -201,6 +202,121 @@ void add_filt_fmask(unsigned int mask, float *col, float *rowbuf, int row_w)
 		rb2+= 4;
 		rb3+= 4;
 	}
+}
+
+
+void mask_array(unsigned int mask, float filt[][3])
+{
+	float **fmask1= R.samples->fmask1, **fmask2=R.samples->fmask2;
+	unsigned int maskand= (mask & 255);
+	unsigned int maskshift= (mask >>8);
+	int a, j;
+	
+	for(j=2; j>=0; j--) {
+		
+		a= j;
+		
+		filt[2][2-j]= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
+
+		a+=3;
+		
+		filt[1][2-j]= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
+		
+		a+=3;
+		
+		filt[0][2-j]= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
+	}
+}
+
+
+/* 
+
+index ordering, scanline based:
+
+ ---    ---   ---  
+| 2,0 | 2,1 | 2,2 |
+ ---    ---   ---  
+| 1,0 | 1,1 | 1,2 |
+ ---    ---   ---  
+| 0,0 | 0,1 | 0,2 |
+ ---    ---   ---  
+*/
+
+void add_filt_fmask_coord(float filt[][3], float *col, float *rowbuf, int row_w, int col_h, int x, int y)
+{
+	float *fpoin[3][3];
+	float val, r, g, b, al, lfilt[3][3];
+	
+	r= col[0];
+	g= col[1];
+	b= col[2];
+	al= col[3];
+	
+	memcpy(lfilt, filt, sizeof(lfilt));
+	
+	fpoin[0][1]= rowbuf-4*row_w;
+	fpoin[1][1]= rowbuf;
+	fpoin[2][1]= rowbuf+4*row_w;
+	
+	fpoin[0][0]= fpoin[0][1] - 4;
+	fpoin[1][0]= fpoin[1][1] - 4;
+	fpoin[2][0]= fpoin[2][1] - 4;
+	
+	fpoin[0][2]= fpoin[0][1] + 4;
+	fpoin[1][2]= fpoin[1][1] + 4;
+	fpoin[2][2]= fpoin[2][1] + 4;
+	
+	if(y==0) {
+		fpoin[0][0]= fpoin[1][0];
+		fpoin[0][1]= fpoin[1][1];
+		fpoin[0][2]= fpoin[1][2];
+		/* filter needs the opposite value yes! */
+		lfilt[0][0]= filt[2][0];
+		lfilt[0][1]= filt[2][1];
+		lfilt[0][2]= filt[2][2];
+	}
+	else if(y==col_h-1) {
+		fpoin[2][0]= fpoin[1][0];
+		fpoin[2][1]= fpoin[1][1];
+		fpoin[2][2]= fpoin[1][2];
+		
+		lfilt[2][0]= filt[0][0];
+		lfilt[2][1]= filt[0][1];
+		lfilt[2][2]= filt[0][2];
+	}
+	
+	if(x==0) {
+		fpoin[2][0]= fpoin[2][1];
+		fpoin[1][0]= fpoin[1][1];
+		fpoin[0][0]= fpoin[0][1];
+		
+		lfilt[2][0]= filt[2][2];
+		lfilt[1][0]= filt[1][2];
+		lfilt[0][0]= filt[0][2];
+	}
+	else if(x==row_w-1) {
+		fpoin[2][2]= fpoin[2][1];
+		fpoin[1][2]= fpoin[1][1];
+		fpoin[0][2]= fpoin[0][1];
+		
+		lfilt[2][2]= filt[2][0];
+		lfilt[1][2]= filt[1][0];
+		lfilt[0][2]= filt[0][0];
+	}
+	
+	
+	/* loop unroll */
+#define MASKFILT(i, j) 	val= lfilt[i][j]; if(val!=0.0f) {float *fp= fpoin[i][j]; fp[0]+= val*r; fp[1]+= val*g; fp[2]+= val*b; fp[3]+= val*al; }
+	
+	MASKFILT(0, 0)
+	MASKFILT(0, 1)
+	MASKFILT(0, 2)
+	MASKFILT(1, 0)
+	MASKFILT(1, 1)
+	MASKFILT(1, 2)
+	MASKFILT(2, 0)
+	MASKFILT(2, 1)
+	MASKFILT(2, 2)
 }
 
 void add_filt_fmask_pixsize(unsigned int mask, float *in, float *rowbuf, int row_w, int pixsize)
