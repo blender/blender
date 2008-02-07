@@ -4294,13 +4294,26 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 		dupli_render_particle_set(re, go->ob, timeoffset, level+1, enable);
 }
 
-static void database_init_objects(Render *re, unsigned int lay, int nolamps, int onlyselected, Object *actob, int timeoffset)
+static int get_vector_renderlayers(Scene *sce)
+{
+	SceneRenderLayer *srl;
+	int lay= 0;
+
+    for(srl= sce->r.layers.first; srl; srl= srl->next)
+		if(srl->passflag & SCE_PASS_VECTOR)
+			lay |= srl->lay;
+
+	return lay;
+}
+
+static void database_init_objects(Render *re, unsigned int renderlay, int nolamps, int onlyselected, Object *actob, int timeoffset)
 {
 	Base *base;
 	Object *ob;
 	ObjectInstanceRen *obi;
 	Scene *sce;
 	float mat[4][4];
+	int lay;
 
 	for(SETLOOPER(re->scene, base)) {
 		ob= base->object;
@@ -4314,6 +4327,11 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 
 	for(SETLOOPER(re->scene, base)) {
 		ob= base->object;
+
+		if(timeoffset)
+			lay= renderlay & get_vector_renderlayers(sce);
+		else
+			lay= renderlay;
 
 		/* if the object has been restricted from rendering in the outliner, ignore it */
 		if(ob->restrictflag & OB_RESTRICT_RENDER) continue;
