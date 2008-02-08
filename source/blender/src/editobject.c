@@ -4341,7 +4341,6 @@ void single_ipo_users(int flag)
 {
 	Object *ob;
 	Base *base;
-	Ipo *ma, *man;
 	ID *id;
 	
 	base= FIRSTBASE;

@@ -2498,7 +2498,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 		if(bp->goal < SOFTGOALSNAP){ /* ommit this bp when it snaps */
 			float auxvect[3];  
 			float velgoal[3];
-			float absvel =0, projvel= 0;
+
 			/* do goal stuff */
 			if(ob->softflag & OB_SB_GOAL) {
 				/* true elastic goal */
@@ -2577,7 +2577,6 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 				/* friction in media done */
 				if(nl_flags & NLF_BUILD){
 					int ia =3*(sb->totpoint-a);
-					int op =3*sb->totpoint;
 					/* da/dv =  */ 
 
 					nlMatrixAdd(ia,ia,forcetime*kd);
@@ -2615,8 +2614,8 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 					}
 					Vec3PlusStVec(bp->force,kd,defforce);
 					if (nl_flags & NLF_BUILD){
-						int ia =3*(sb->totpoint-a);
-						int op =3*sb->totpoint;
+						// int ia =3*(sb->totpoint-a);
+						// int op =3*sb->totpoint;
 						//dfdx_goal(ia,ia,op,mpos); // don't do unless you know
 						//dfdv_goal(ia,ia,-cf);
 
@@ -2736,10 +2735,10 @@ static void softbody_apply_fake_implicit_forces(Object *ob, float forcetime, flo
 	float maxerrpos= 0.0f,maxerrvel = 0.0f,maxerrvel2 = 0.0f;
 	int a,fuzzy=0;
 
-    forcetime *= sb_time_scale(ob);
+	forcetime *= sb_time_scale(ob);
     
-    aabbmin[0]=aabbmin[1]=aabbmin[2] = 1e20f;
-    aabbmax[0]=aabbmax[1]=aabbmax[2] = -1e20f;
+	aabbmin[0]=aabbmin[1]=aabbmin[2] = 1e20f;
+	aabbmax[0]=aabbmax[1]=aabbmax[2] = -1e20f;
 
 	/* claim a minimum mass for vertex */
 	if (sb->nodemass > 0.009999f) timeovermass = forcetime/sb->nodemass;

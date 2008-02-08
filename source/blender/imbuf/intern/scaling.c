@@ -923,7 +923,7 @@ static int q_scale_linear_interpolation(
 	if (ibuf->rect) {
 		unsigned char * newrect = 
 			MEM_mallocN(newx * newy * sizeof(int), "q_scale rect");
-		q_scale_byte(ibuf->rect, newrect, ibuf->x, ibuf->y,
+		q_scale_byte((unsigned char *)ibuf->rect, newrect, ibuf->x, ibuf->y,
 			     newx, newy);
 
 		imb_freerectImBuf(ibuf);
