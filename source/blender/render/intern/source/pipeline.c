@@ -1454,7 +1454,9 @@ static void threaded_tile_processor(Render *re)
 	/* first step; free the entire render result, make new, and/or prepare exr buffer saving */
 	RE_FreeRenderResult(re->result);
 	
-	if(!re->sss_points && (re->r.scemode & R_FULL_SAMPLE))
+	if(re->sss_points)
+		re->result= new_render_result(re, &re->disprect, 0, 0);
+	else if(re->r.scemode & R_FULL_SAMPLE)
 		re->result= new_full_sample_buffers_exr(re);
 	else
 		re->result= new_render_result(re, &re->disprect, 0, re->r.scemode & R_EXR_TILE_FILE);
