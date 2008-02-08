@@ -1525,7 +1525,7 @@ static void draw_pose_channels(Base *base, int dt)
 	GLfloat tmp;
 	float smat[4][4], imat[4][4];
 	int index= -1;
-	int do_dashed= 3;
+	short do_dashed= 3, draw_wire= 0;
 	short flag, constflag;
 	
 	/* hacky... prevent outline select from drawing dashed helplines */
@@ -1589,15 +1589,9 @@ static void draw_pose_channels(Base *base, int dt)
 					set_pchan_colorset(ob, pchan);
 					
 					if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
-						/* BONE_DRAWWIRE case is here too, as wire overlay won't be done when in Object Mode
-						 * It's a bit of a hack, and we make sure TH_WIRE is used (just in case).
-						 */
-						if (pchan->bone->flag & BONE_DRAWWIRE) {
-							if ((arm->flag & ARM_POSEMODE) == 0) {
-								BIF_ThemeColor(TH_WIRE);
-								draw_custom_bone(pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
-							}
-						}
+						/* if drawwire, don't try to draw in solid */
+						if (pchan->bone->flag & BONE_DRAWWIRE) 
+							draw_wire= 1;
 						else
 							draw_custom_bone(pchan->custom, OB_SOLID, arm->flag, flag, index, bone->length);
 					}
@@ -1618,8 +1612,66 @@ static void draw_pose_channels(Base *base, int dt)
 				index+= 0x10000;	// pose bones count in higher 2 bytes only
 		}
 		
-		/* very very confusing... but in object mode, solid draw, we cannot do glLoadName yet, stick bones are drawn in next loop */
-		if (arm->drawtype != ARM_LINE) {
+		/* very very confusing... but in object mode, solid draw, we cannot do glLoadName yet,
+		 * stick bones and/or wire custom-shpaes are drawn in next loop 
+		 */
+		if ((arm->drawtype != ARM_LINE) && (draw_wire == 0)) {
+			/* object tag, for bordersel optim */
+			glLoadName(index & 0xFFFF);	
+			index= -1;
+		}
+	}
+	
+	/* draw custom bone shapes as wireframes */
+	if ( !(arm->flag & ARM_NO_CUSTOM) &&
+		 ((draw_wire) || (dt <= OB_WIRE)) ) 
+	{
+		if (arm->flag & ARM_POSEMODE)
+			index= base->selcol;
+			
+		/* only draw custom bone shapes that need to be drawn as wires */
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			bone= pchan->bone;
+			
+			if ((bone) && !(bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))) {
+				if (bone->layer & arm->layer) {
+					if (pchan->custom) {
+						if ((dt < OB_SOLID) || (bone->flag & BONE_DRAWWIRE)) {
+							glPushMatrix();
+							glMultMatrixf(pchan->pose_mat);
+							
+							/* prepare colours */
+							if (arm->flag & ARM_POSEMODE)	
+								set_pchan_colorset(ob, pchan);
+							else {
+								if ((G.scene->basact)==base) {
+									if (base->flag & (SELECT+BA_WAS_SEL)) BIF_ThemeColor(TH_ACTIVE);
+									else BIF_ThemeColor(TH_WIRE);
+								}
+								else {
+									if (base->flag & (SELECT+BA_WAS_SEL)) BIF_ThemeColor(TH_SELECT);
+									else BIF_ThemeColor(TH_WIRE);
+								}
+							}
+								
+							/* catch exception for bone with hidden parent */
+							flag= bone->flag;
+							if ((bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)))
+								flag &= ~BONE_CONNECTED;
+							
+							draw_custom_bone(pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
+							
+							glPopMatrix();
+						}
+					}
+				}
+			}
+			
+			if (index != -1) 
+				index+= 0x10000;	// pose bones count in higher 2 bytes only
+		}
+		
+		if (draw_wire) {
 			/* object tag, for bordersel optim */
 			glLoadName(index & 0xFFFF);	
 			index= -1;
@@ -1699,12 +1751,9 @@ static void draw_pose_channels(Base *base, int dt)
 						
 					/* set color-set to use */
 					set_pchan_colorset(ob, pchan);
-
-					if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
-						if ((dt < OB_SOLID) || (pchan->bone->flag & BONE_DRAWWIRE)) {
-							draw_custom_bone(pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
-						}
-					}
+					
+					if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM))
+						; // custom bone shapes should not be drawn here!
 					else if (arm->drawtype==ARM_ENVELOPE) {
 						if (dt < OB_SOLID)
 							draw_sphere_bone_wire(smat, imat, arm->flag, flag, constflag, index, pchan, NULL);
@@ -1725,7 +1774,7 @@ static void draw_pose_channels(Base *base, int dt)
 				index+= 0x10000;	
 		}
 		/* restore things */
-		if ((arm->drawtype!=ARM_LINE) && (dt>OB_WIRE) && (arm->flag & ARM_POSEMODE))
+		if ((arm->drawtype!=ARM_LINE)&& (dt>OB_WIRE) && (arm->flag & ARM_POSEMODE))
 			bglPolygonOffset(0.0);
 	}	
 	
