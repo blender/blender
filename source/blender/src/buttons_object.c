@@ -5157,18 +5157,18 @@ static void object_panel_cloth(Object *ob)
 		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT) uiSetButLock(1, "Cache is protected");
 		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff:",	   10,170,150,20, &clmd->sim_parms->structural, 1.0, 10000.0, 100, 0, "Overall stiffness of structure");
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff:",	   160,170,150,20, &clmd->sim_parms->bending, 0.0, 10000.0, 1000, 0, "Wrinkle coefficient (higher = less smaller but more big wrinkles)");
-		uiDefButI(block, NUM, B_CLOTH_RENEW, "Quality:",	   10,150,150,20, &clmd->sim_parms->stepsPerFrame, 4.0, 80.0, 5, 0, "Quality of the simulation (higher=better=slower)");
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff:", 10,170,150,20, &clmd->sim_parms->structural, 1.0, 10000.0, 100, 0, "Overall stiffness of structure");
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff:", 160,170,150,20, &clmd->sim_parms->bending, 0.0, 10000.0, 1000, 0, "Wrinkle coefficient (higher = less smaller but more big wrinkles)");
+		uiDefButI(block, NUM, B_CLOTH_RENEW, "Quality:", 10,150,150,20, &clmd->sim_parms->stepsPerFrame, 4.0, 80.0, 5, 0, "Quality of the simulation (higher=better=slower)");
 
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "Spring Damp:",	   160,150,150,20, &clmd->sim_parms->Cdis, 0.0, 10.0, 10, 0, "Spring damping");
-		uiDefButF(block, NUM, B_DIFF, "Air Damp:",	   10,130,150,20, &clmd->sim_parms->Cvi, 0.0, 10.0, 10, 0, "Air has normaly some thickness which slows falling things down");
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "Spring Damp:", 160,150,150,20, &clmd->sim_parms->Cdis, 0.0, 1.0, 10, 0, "Spring damping");
+		uiDefButF(block, NUM, B_DIFF, "Air Damp:", 10,130,150,20, &clmd->sim_parms->Cvi, 0.0, 10.0, 10, 0, "Air has normaly some thickness which slows falling things down");
 		
 		uiDefBut(block, LABEL, 0, "Gravity:",  10,100,60,20, NULL, 0.0, 0, 0, 0, "");
 		
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "X:",	   70,100,80,20, &clmd->sim_parms->gravity[0], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "Y:",	   150,100,80,20, &clmd->sim_parms->gravity[1], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "Z:",	   230,100,80,20, &clmd->sim_parms->gravity[2], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "X:", 70,100,80,20, &clmd->sim_parms->gravity[0], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "Y:", 150,100,80,20, &clmd->sim_parms->gravity[1], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "Z:", 230,100,80,20, &clmd->sim_parms->gravity[2], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
 		uiBlockEndAlign(block);
 		
 		/* GOAL STUFF */
@@ -5204,16 +5204,16 @@ static void object_panel_cloth(Object *ob)
 							
 				sprintf (clvg2, "%s%s", clmvg, clvg1);
 				
-				uiDefButS(block, MENU, B_CLOTH_RENEW, clvg2,	160,70,150,20, &clmd->sim_parms->vgroup_mass, 0, defCount, 0, 0, "Browses available vertex groups");
+				uiDefButS(block, MENU, B_CLOTH_RENEW, clvg2, 160,70,150,20, &clmd->sim_parms->vgroup_mass, 0, defCount, 0, 0, "Browses available vertex groups");
 				MEM_freeN (clvg1);
 				MEM_freeN (clvg2);
 			}
 			
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "Pin Stiff:",	10,50,150,20, &clmd->sim_parms->goalspring, 0.0, 500.0, 10, 0, "Pin (vertex target position) spring stiffness");
-			uiDefBut(block, LABEL, 0, " ",  160,50,150,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "Pin Stiff:", 10,50,150,20, &clmd->sim_parms->goalspring, 0.0, 500.0, 10, 0, "Pin (vertex target position) spring stiffness");
+			uiDefBut(block, LABEL, 0, "",160,50,150,20, NULL, 0.0, 0, 0, 0, "");	
+			// uiDefButI(block, NUM, B_CLOTH_RENEW, "Pin Damp:", 160,50,150,20, &clmd->sim_parms->goalfrict, 1.0, 100.0, 10, 0, "Pined damping (higher = doesn't oszilate so much)");
 			/*
 			// nobody is changing these ones anyway
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "G Damp:",	160,50,150,20, &clmd->sim_parms->goalfrict  , 0.0, 50.0, 10, 0, "Goal (vertex target position) friction");
 			uiDefButF(block, NUM, B_CLOTH_RENEW, "G Min:",		10,30,150,20, &clmd->sim_parms->mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
 			uiDefButF(block, NUM, B_CLOTH_RENEW, "G Max:",		160,30,150,20, &clmd->sim_parms->maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
 			*/
@@ -5323,7 +5323,7 @@ static void object_panel_cloth_II(Object *ob)
 		{
 			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Min Distance:",	   160,60,150,20, &clmd->coll_parms->epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in, can be changed for each frame");
 			uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Collision Quality:",	   10,40,150,20, &clmd->coll_parms->loop_count, 1.0, 100.0, 1.0, 0, "How many collision iterations should be done. (higher = better = slower), can be changed for each frame");
-			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Friction:",	   160,40,150,20, &clmd->coll_parms->friction, 1.0, 100.0, 1.0, 0, "Friction force if a collision happened (high=slower movement when collided)");
+			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Friction:",	   160,40,150,20, &clmd->coll_parms->friction, 0.0, 10.0, 1.0, 0, "Friction force if a collision happened (high=slower movement when collided)");
 		}
 		else
 			uiDefBut(block, LABEL, 0, "",160,60,150,20, NULL, 0.0, 0, 0, 0, "");	

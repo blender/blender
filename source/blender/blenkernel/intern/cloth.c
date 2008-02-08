@@ -182,8 +182,8 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->maxgoal = 1.0f;
 	clmd->sim_parms->mingoal = 0.0f;
 	clmd->sim_parms->defgoal = 0.0f;
-	clmd->sim_parms->goalspring = 100.0f;
-	clmd->sim_parms->goalfrict = 0.0f;
+	clmd->sim_parms->goalspring = 10.0f;
+	clmd->sim_parms->goalfrict = 5.0f;
 }
 
 
@@ -1035,7 +1035,6 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 	unsigned int numverts = dm->getNumVerts ( dm );
 	float goalfac = 0;
 	ClothVertex *verts = NULL;
-	// clmd->sim_parms->vgroup_mass
 
 	clothObj = clmd->clothObject;
 
@@ -1111,6 +1110,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	ClothVertex *verts = NULL;
 	float tnull[3] = {0,0,0};
 	int cache_there = 0;
+	Cloth *cloth = NULL;
 
 	// If we have a clothObject, free it. 
 	if ( clmd->clothObject != NULL )
@@ -1126,6 +1126,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	{
 		clmd->clothObject->old_solver_type = 255;
 		// clmd->clothObject->old_collision_type = 255;
+		cloth = clmd->clothObject;
 	}
 	else if ( !clmd->clothObject )
 	{
@@ -1200,6 +1201,13 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		return 0;
 	}
 	
+	for ( i = 0; i < dm->getNumVerts(dm); i++)
+	{
+		if((!(cloth->verts[i].flags & CLOTH_VERT_FLAG_PINNED)) && (cloth->verts[i].goal > ALMOST_ZERO))
+		{
+			cloth_add_spring (clmd, i, i, 0.0, CLOTH_SPRING_TYPE_GOAL);
+		}
+	}
 	
 	// init our solver
 	if ( solvers [clmd->sim_parms->solver_type].init )
@@ -1273,10 +1281,11 @@ int cloth_add_spring ( ClothModifierData *clmd, unsigned int indexA, unsigned in
 		spring->restlen =  restlength;
 		spring->type = spring_type;
 		spring->flags = 0;
+		spring->stiffness = 0;
 		
 		cloth->numsprings++;
 	
-		BLI_linklist_append ( &cloth->springs, spring );
+		BLI_linklist_prepend ( &cloth->springs, spring );
 		
 		return 1;
 	}

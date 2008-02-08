@@ -65,6 +65,18 @@ struct CollisionTree;
 
 #define CLOTH_MAX_THREAD 2
 
+/* goal defines */
+#define SOFTGOALSNAP  0.999f
+
+/* This is approximately the smallest number that can be
+* represented by a float, given its precision. */
+#define ALMOST_ZERO		FLT_EPSILON
+
+/* Bits to or into the ClothVertex.flags. */
+#define CLOTH_VERT_FLAG_PINNED 1
+#define CLOTH_VERT_FLAG_COLLISION 2
+#define CLOTH_VERT_FLAG_PINNED_EM 3
+
 /**
  * The definition of a cloth vertex.
  */
@@ -108,13 +120,6 @@ typedef struct ClothSpring
 }
 ClothSpring;
 
-/* goal defines */
-#define SOFTGOALSNAP  0.999f
-
-/* This is approximately the smallest number that can be
-* represented by a float, given its precision. */
-#define ALMOST_ZERO		FLT_EPSILON
-
 // some macro enhancements for vector treatment
 #define VECADDADD(v1,v2,v3) 	{*(v1)+= *(v2) + *(v3); *(v1+1)+= *(v2+1) + *(v3+1); *(v1+2)+= *(v2+2) + *(v3+2);}
 #define VECSUBADD(v1,v2,v3) 	{*(v1)-= *(v2) + *(v3); *(v1+1)-= *(v2+1) + *(v3+1); *(v1+2)-= *(v2+2) + *(v3+2);}
@@ -139,24 +144,25 @@ typedef enum
 	CLOTH_SIMSETTINGS_FLAG_TEARING = ( 1 << 4 ),// true if tearing is enabled
 	CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT = ( 1 << 5 ), // true if tearing is enabled
 	CLOTH_SIMSETTINGS_FLAG_EDITMODE = ( 1 << 6 ), // are we in editmode? -several things disabled
-	CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE = (1 << 7), /* force cache freeing */
-	CLOTH_SIMSETTINGS_FLAG_SCALING = (1 << 8), /* is advanced scaling active? */
-	CLOTH_SIMSETTINGS_FLAG_LOADED = (1 << 9), /* did we just got load? */
+	CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE = ( 1 << 7 ), /* force cache freeing */
+	CLOTH_SIMSETTINGS_FLAG_SCALING = ( 1 << 8 ), /* is advanced scaling active? */
+	CLOTH_SIMSETTINGS_FLAG_LOADED = ( 1 << 9 ), /* did we just got load? */
 } CLOTH_SIMSETTINGS_FLAGS;
 
 /* COLLISION FLAGS */
 typedef enum
 {
 	CLOTH_COLLSETTINGS_FLAG_ENABLED = ( 1 << 1 ), /* enables cloth - object collisions */
-					    CLOTH_COLLSETTINGS_FLAG_SELF = ( 1 << 2 ), /* unused */
+	CLOTH_COLLSETTINGS_FLAG_SELF = ( 1 << 2 ), /* unused */
 } CLOTH_COLLISIONSETTINGS_FLAGS;
 
 /* Spring types as defined in the paper.*/
 typedef enum
 {
-	CLOTH_SPRING_TYPE_STRUCTURAL = 0,
- CLOTH_SPRING_TYPE_SHEAR,
- CLOTH_SPRING_TYPE_BENDING,
+	CLOTH_SPRING_TYPE_STRUCTURAL = 1,
+	CLOTH_SPRING_TYPE_SHEAR,
+	CLOTH_SPRING_TYPE_BENDING,
+	CLOTH_SPRING_TYPE_GOAL,
 } CLOTH_SPRING_TYPES;
 
 /* SPRING FLAGS */
@@ -165,11 +171,6 @@ typedef enum
 	CLOTH_SPRING_FLAG_DEACTIVATE = ( 1 << 1 ),
 	CLOTH_SPRING_FLAG_NEEDED = ( 1 << 2 ), // springs has values to be applied
 } CLOTH_SPRINGS_FLAGS;
-
-/* Bits to or into the ClothVertex.flags. */
-#define CLOTH_VERT_FLAG_PINNED 1
-#define CLOTH_VERT_FLAG_COLLISION 2
-#define CLOTH_VERT_FLAG_PINNED_EM 3
 
 typedef void ( *CM_COLLISION_RESPONSE ) ( ClothModifierData *clmd, CollisionModifierData *collmd, CollisionTree *tree1, CollisionTree *tree2 );
 
@@ -189,7 +190,7 @@ int bvh_traverse ( ClothModifierData * clmd, CollisionModifierData * collmd, Col
 ////////////////////////////////////////////////
 // implicit.c
 ////////////////////////////////////////////////
-		
+
 // needed for cloth.c
 int implicit_init ( Object *ob, ClothModifierData *clmd );
 int implicit_free ( ClothModifierData *clmd );
@@ -197,7 +198,7 @@ int implicit_solver ( Object *ob, float frame, ClothModifierData *clmd, ListBase
 void implicit_set_positions ( ClothModifierData *clmd );
 
 // globally needed
-void clmdSetInterruptCallBack(int (*f)(void));
+void clmdSetInterruptCallBack ( int ( *f ) ( void ) );
 ////////////////////////////////////////////////
 
 
@@ -206,22 +207,25 @@ void clmdSetInterruptCallBack(int (*f)(void));
 ////////////////////////////////////////////////
 
 // needed for modifier.c
-void cloth_free_modifier_extern (ClothModifierData *clmd);
-void cloth_free_modifier (Object *ob, ClothModifierData *clmd);
-void cloth_init (ClothModifierData *clmd);
-DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc);
+void cloth_free_modifier_extern ( ClothModifierData *clmd );
+void cloth_free_modifier ( Object *ob, ClothModifierData *clmd );
+void cloth_init ( ClothModifierData *clmd );
+DerivedMesh *clothModifier_do ( ClothModifierData *clmd,Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc );
 
-void cloth_update_normals (ClothVertex *verts, int nVerts, MFace *face, int totface);
+void cloth_update_normals ( ClothVertex *verts, int nVerts, MFace *face, int totface );
 
 // needed for collision.c
-void bvh_update_from_cloth(ClothModifierData *clmd, int moving);
+void bvh_update_from_cloth ( ClothModifierData *clmd, int moving );
 
 // needed for editmesh.c
-void cloth_write_cache(Object *ob, ClothModifierData *clmd, float framenr);
-int cloth_read_cache(Object *ob, ClothModifierData *clmd, float framenr);
+void cloth_write_cache ( Object *ob, ClothModifierData *clmd, float framenr );
+int cloth_read_cache ( Object *ob, ClothModifierData *clmd, float framenr );
 
 // needed for button_object.c
-void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr);
+void cloth_clear_cache ( Object *ob, ClothModifierData *clmd, float framenr );
+
+// needed for cloth.c
+int cloth_add_spring ( ClothModifierData *clmd, unsigned int indexA, unsigned int indexB, float restlength, int spring_type);
 
 ////////////////////////////////////////////////
 
@@ -233,7 +237,8 @@ typedef void ( *CM_COLLISION_OBJ ) ( ClothModifierData *clmd, int step, CM_COLLI
 
 /* This enum provides the IDs for our solvers. */
 // only one available in the moment
-typedef enum {
+typedef enum
+{
 	CM_IMPLICIT = 0,
 } CM_SOLVER_ID;
 
