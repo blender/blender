@@ -2648,16 +2648,21 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			
 			case PAGEUPKEY:
-				if(G.qual==LR_CTRLKEY)
+				if (G.qual==LR_CTRLKEY)
+					nextprev_timeline_key(1);
+				else if (G.qual==LR_SHIFTKEY)
 					movekey_obipo(1);
-				else if((G.qual==0))
+				else if (G.qual==0)
 					nextkey_obipo(1);	/* in editipo.c */
+					
 				break;
 
 			case PAGEDOWNKEY:
-				if(G.qual==LR_CTRLKEY)
+				if (G.qual==LR_CTRLKEY)
+					nextprev_timeline_key(-1);
+				else if (G.qual==LR_SHIFTKEY)
 					movekey_obipo(-1);
-				else if((G.qual==0))
+				else if (G.qual==0)
 					nextkey_obipo(-1);
 				break;
 

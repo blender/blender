@@ -111,6 +111,7 @@
 #include "BSE_node.h"
 #include "BSE_sequence.h"
 #include "BSE_edit.h"
+#include "BSE_time.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -1639,23 +1640,23 @@ static void do_info_timelinemenu(void *arg, int event)
 		if (!ob) error("Select an object before showing and selecting its keyframes");
 		else select_select_keys();
 			break;
-		case 3:
+	case 3:
 		/* select next keyframe */
 		if (!ob) error("Select an object before selecting its next keyframe");
 		else nextkey_obipo(1);
 			break;
-		case 4:
+	case 4:
 		/* select previous keyframe */
 		if (!ob) error("Select an object before selecting its previous keyframe");
 		else nextkey_obipo(-1);
 		break;
 		case 5:
-		/* next keyframe */
+	/* next keyframe */
 		if (!ob) error("Select an object before going to its next keyframe");
 		else movekey_obipo(1);
 			break;
 		case 6:
-		/* previous keyframe */
+	/* previous keyframe */
 		if (!ob) error("Select an object before going to its previous keyframe");
 		else movekey_obipo(-1);
 		break;
@@ -1691,6 +1692,14 @@ static void do_info_timelinemenu(void *arg, int event)
 		CFRA= SFRA;
 		update_for_newframe();
 		break;
+	case 13: 
+		/* previous keyframe */
+		nextprev_timeline_key(-1);
+		break;
+	case 14:
+		/* next keyframe */
+		nextprev_timeline_key(1);
+		break;
 	}
 	allqueue(REDRAWINFO, 0);
 }
@@ -1713,9 +1722,12 @@ static uiBlock *info_timelinemenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Next Keyframe|Ctrl PageUp",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Previous Keyframe|Ctrl PageDown",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Next Ob-Keyframe|Shift PageUp",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Previous Ob-Keyframe|Shift PageDown",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Next Keyframe|Ctrl PageUp",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Previous Keyframe|Ctrl PageDown",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
+	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Next Frame|RightArrow",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
