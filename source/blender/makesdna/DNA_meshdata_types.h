@@ -146,7 +146,7 @@ typedef struct Multires {
 	MVert *verts;
 
 	unsigned char level_count, current, newlvl, edgelvl, pinlvl, renderlvl;
-	unsigned char use_col, pad;
+	unsigned char use_col, flag;
 
 	/* Special level 1 data that cannot be modified from other levels */
 	CustomData vdata;
@@ -249,5 +249,8 @@ typedef struct PartialVisibility {
 #define TF_PIN2		    32
 #define TF_PIN3	   		64
 #define TF_PIN4	    	128
+
+/* multires->flag */
+#define MULTIRES_NO_RENDER 1
 
 #endif

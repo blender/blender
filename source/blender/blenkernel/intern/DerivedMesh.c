@@ -2578,7 +2578,7 @@ float *multires_render_pin(Object *ob, Mesh *me, int *orig_lvl)
 {
 	float *vert_copy= NULL;
 
-	if(me->mr) {
+	if(me->mr && !(me->mr->flag & MULTIRES_NO_RENDER)) {
 		MultiresLevel *lvl= NULL;
 		int i;
 		
@@ -2604,16 +2604,21 @@ float *multires_render_pin(Object *ob, Mesh *me, int *orig_lvl)
 void multires_render_final(Object *ob, Mesh *me, DerivedMesh **dm, float *vert_copy,
 			   const int orig_lvl, CustomDataMask dataMask)
 {
-	if(me->mr) {
+	if(me->mr && !(me->mr->flag & MULTIRES_NO_RENDER)) {
 		if((*dm)->getNumVerts(*dm) == me->totvert &&
 		   (*dm)->getNumFaces(*dm) == me->totface) {
 			MultiresLevel *lvl= multires_level_n(me->mr, BLI_countlist(&me->mr->levels));
 			DerivedMesh *old= NULL;
+			MVert *vertdup= NULL;
 			int i;
 
-			(*dm)->copyVertArray(*dm, me->mvert);
+			/* Copy the verts into the mesh */
+			vertdup= (*dm)->dupVertArray(*dm);
 			(*dm)->release(*dm);
+			for(i=0; i<me->totvert; ++i)
+				me->mvert[i]= vertdup[i];
 
+			/* Go to the render level */
 			me->mr->newlvl= me->mr->renderlvl;
 			multires_set_level(ob, me, 1);
 			(*dm)= getMeshDerivedMesh(me, ob, NULL);
