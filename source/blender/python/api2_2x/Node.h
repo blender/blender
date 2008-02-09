@@ -1,5 +1,5 @@
 /* 
- * $Id: Node.h 10449 2007-04-03 11:24:11Z jesterking $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -56,14 +56,16 @@ typedef struct BPy_ShadeInput {
 
 typedef struct {
 	PyObject_VAR_HEAD
-	bNodeType *typeinfo;
+	bNode* node;
 	bNodeStack **stack;
 } BPy_SockMap;
 
 typedef struct {
 	PyObject_HEAD
 	bNode *node;
-} BPy_DefinitionMap;
+	PyObject *input;
+	PyObject *output;
+} BPy_NodeSockets;
 
 typedef struct BPy_Node {
 	PyObject_HEAD
@@ -76,13 +78,9 @@ typedef struct BPy_Node {
 extern PyObject *Node_Init(void);
 extern void InitNode(BPy_Node *self, bNode *node);
 extern BPy_Node *Node_CreatePyObject(bNode *node);
-extern BPy_DefinitionMap *Node_CreateOutputDefMap(bNode *node);
-extern BPy_DefinitionMap *Node_CreateInputDefMap(bNode *node);
+extern BPy_NodeSockets *Node_CreateSockets(bNode *node);
 extern void Node_SetStack(BPy_Node *self, bNodeStack **stack, int type);
 extern void Node_SetShi(BPy_Node *self, ShadeInput *shi);
-extern BPy_ShadeInput *ShadeInput_CreatePyObject(ShadeInput *shi);
-extern void Node_dealloc(BPy_Node *self);
-extern void ShadeInput_dealloc(BPy_ShadeInput *self);
 
 #define NODE_INPUTSTACK		0
 #define NODE_OUTPUTSTACK	1

@@ -48,6 +48,7 @@
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_text_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_global.h"
@@ -58,6 +59,7 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_texture.h"
+#include "BKE_text.h"
 #include "BKE_utildefines.h"
 
 #include "CMP_node.h"
@@ -442,6 +444,36 @@ static void node_browse_tex_cb(void *ntree_v, void *node_v)
 	node->menunr= 0;
 }
 
+static void node_dynamic_update_cb(void *ntree_v, void *node_v)
+{
+	Material *ma;
+	bNode *node= (bNode *)node_v;
+	ID *id= node->id;
+	int error= 0;
+
+	if (BTST(node->custom1, NODE_DYNAMIC_ERROR)) error= 1;
+
+	/* Users only have to press the "update" button in one pynode
+	 * and we also update all others sharing the same script */
+	for (ma= G.main->mat.first; ma; ma= ma->id.next) {
+		if (ma->nodetree) {
+			bNode *nd;
+			for (nd= ma->nodetree->nodes.first; nd; nd= nd->next) {
+				if ((nd->type == NODE_DYNAMIC) && (nd->id == id)) {
+					nd->custom1= 0;
+					nd->custom1= BSET(nd->custom1, NODE_DYNAMIC_REPARSE);
+					nd->menunr= 0;
+					if (error)
+						nd->custom1= BSET(nd->custom1, NODE_DYNAMIC_ERROR);
+				}
+			}
+		}
+	}
+
+	allqueue(REDRAWBUTSSHADING, 0);
+	allqueue(REDRAWNODE, 0);
+}
+
 static int node_buts_texture(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
@@ -483,6 +515,31 @@ static int node_buts_math(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *b
 
 /* ****************** BUTTON CALLBACKS FOR SHADER NODES ***************** */
 
+static void node_browse_text_cb(void *ntree_v, void *node_v)
+{
+	bNodeTree *ntree= ntree_v;
+	bNode *node= node_v;
+	ID *oldid;
+	
+	if(node->menunr<1) return;
+	
+	if(node->id) {
+		node->id->us--;
+	}
+	oldid= node->id;
+	node->id= BLI_findlink(&G.main->text, node->menunr-1);
+	id_us_plus(node->id);
+	BLI_strncpy(node->name, node->id->name+2, 21); /* huh? why 21? */
+
+	node->custom1= BSET(node->custom1, NODE_DYNAMIC_NEW);
+	
+	nodeSetActive(ntree, node);
+
+	allqueue(REDRAWBUTSSHADING, 0);
+	allqueue(REDRAWNODE, 0);
+
+	node->menunr= 0;
+}
 
 static void node_mat_alone_cb(void *node_v, void *unused)
 {
@@ -709,6 +766,42 @@ static int node_shader_buts_geometry(uiBlock *block, bNodeTree *ntree, bNode *no
 	return 40;
 }
 
+static int node_shader_buts_dynamic(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr) 
+{ 
+	if (block) { 
+		uiBut *bt;
+		SpaceNode *snode= curarea->spacedata.first;
+		short dy= (short)butr->ymin;
+		int xoff=0;
+
+		/* B_NODE_EXEC is handled in butspace.c do_node_buts */
+		if(!node->id) {
+				char *strp;
+				IDnames_to_pupstring(&strp, NULL, "", &(G.main->text), NULL, NULL);
+				node->menunr= 0;
+				bt= uiDefButS(block, MENU, B_NODE_EXEC/*+node->nr*/, strp, 
+								butr->xmin, dy, 19, 19, 
+								&node->menunr, 0, 0, 0, 0, "Browses existing choices");
+				uiButSetFunc(bt, node_browse_text_cb, ntree, node);
+				xoff=19;
+				if(strp) MEM_freeN(strp);	
+		}
+		else {
+			bt = uiDefBut(block, BUT, B_NOP, "Update",
+					butr->xmin+xoff, butr->ymin+20, 50, 19,
+					&node->menunr, 0.0, 19.0, 0, 0, "Refresh this node (and all others that use the same script)");
+			uiButSetFunc(bt, node_dynamic_update_cb, ntree, node);
+
+			if (BTST(node->custom1, NODE_DYNAMIC_ERROR)) {
+				BIF_ThemeColor(TH_REDALERT);
+				ui_rasterpos_safe(butr->xmin + xoff, butr->ymin + 5, snode->aspect);
+				snode_drawstring(snode, "Error! Check console...", butr->xmax - butr->xmin);
+			}
+		}
+	}
+	return 20+19; 
+}
+
 /* only once called */
 static void node_shader_set_butfunc(bNodeType *ntype)
 {
@@ -754,6 +847,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break; 
 		case SH_NODE_GEOMETRY:
 			ntype->butfunc= node_shader_buts_geometry;
+			break;
+		case NODE_DYNAMIC:
+			ntype->butfunc= node_shader_buts_dynamic;
 			break;
 		default:
 			ntype->butfunc= NULL;
@@ -2680,7 +2776,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 	uiSetRoundBox(8);
 	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax-NODE_DY, BASIS_RAD);
 	glDisable(GL_BLEND);
-	
+
 	/* scaling indicator */
 	node_scaling_widget(TH_NODE, snode->aspect, rct->xmax-BASIS_RAD*snode->aspect, rct->ymin, rct->xmax, rct->ymin+BASIS_RAD*snode->aspect);
 

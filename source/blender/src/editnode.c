@@ -336,10 +336,10 @@ void node_shader_default(Material *ma)
 	
 	ma->nodetree= ntreeAddTree(NTREE_SHADER);
 	
-	out= nodeAddNodeType(ma->nodetree, SH_NODE_OUTPUT, NULL);
+	out= nodeAddNodeType(ma->nodetree, SH_NODE_OUTPUT, NULL, NULL);
 	out->locx= 300.0f; out->locy= 300.0f;
 	
-	in= nodeAddNodeType(ma->nodetree, SH_NODE_MATERIAL, NULL);
+	in= nodeAddNodeType(ma->nodetree, SH_NODE_MATERIAL, NULL, NULL);
 	in->locx= 10.0f; in->locy= 300.0f;
 	nodeSetActive(ma->nodetree, in);
 	
@@ -366,10 +366,10 @@ void node_composit_default(Scene *sce)
 	
 	sce->nodetree= ntreeAddTree(NTREE_COMPOSIT);
 	
-	out= nodeAddNodeType(sce->nodetree, CMP_NODE_COMPOSITE, NULL);
+	out= nodeAddNodeType(sce->nodetree, CMP_NODE_COMPOSITE, NULL, NULL);
 	out->locx= 300.0f; out->locy= 400.0f;
 	
-	in= nodeAddNodeType(sce->nodetree, CMP_NODE_R_LAYERS, NULL);
+	in= nodeAddNodeType(sce->nodetree, CMP_NODE_R_LAYERS, NULL, NULL);
 	in->locx= 10.0f; in->locy= 400.0f;
 	nodeSetActive(sce->nodetree, in);
 	
@@ -624,7 +624,7 @@ static void node_addgroup(SpaceNode *snode)
 	if(val>=0) {
 		ngroup= BLI_findlink(&G.main->nodetree, val);
 		if(ngroup) {
-			bNode *node= nodeAddNodeType(snode->edittree, NODE_GROUP, ngroup);
+			bNode *node= nodeAddNodeType(snode->edittree, NODE_GROUP, ngroup, NULL);
 			
 			/* generics */
 			if(node) {
@@ -1523,7 +1523,10 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 	
 	node_deselectall(snode, 0);
 	
-	if(type>=NODE_GROUP_MENU) {
+	if(type>=NODE_DYNAMIC_MENU) {
+		node= nodeAddNodeType(snode->edittree, type, NULL, NULL);
+	}
+	else if(type>=NODE_GROUP_MENU) {
 		if(snode->edittree!=snode->nodetree) {
 			error("Can not add a Group in a Group");
 			return NULL;
@@ -1531,11 +1534,11 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 		else {
 			bNodeTree *ngroup= BLI_findlink(&G.main->nodetree, type-NODE_GROUP_MENU);
 			if(ngroup)
-				node= nodeAddNodeType(snode->edittree, NODE_GROUP, ngroup);
+				node= nodeAddNodeType(snode->edittree, NODE_GROUP, ngroup, NULL);
 		}
 	}
 	else
-		node= nodeAddNodeType(snode->edittree, type, NULL);
+		node= nodeAddNodeType(snode->edittree, type, NULL, NULL);
 	
 	/* generics */
 	if(node) {

@@ -171,20 +171,22 @@
 
 /* This one rotates the bytes in an int */
 #define SWITCH_INT(a) { \
-    char s_i, *p_i; \
-    p_i= (char *)&(a); \
-    s_i=p_i[0]; p_i[0]=p_i[3]; p_i[3]=s_i; \
-    s_i=p_i[1]; p_i[1]=p_i[2]; p_i[2]=s_i; }
+	char s_i, *p_i; \
+	p_i= (char *)&(a); \
+	s_i=p_i[0]; p_i[0]=p_i[3]; p_i[3]=s_i; \
+	s_i=p_i[1]; p_i[1]=p_i[2]; p_i[2]=s_i; }
 
 #define SWITCH_SHORT(a)	{ \
-    char s_i, *p_i; \
-		p_i= (char *)&(a); \
-			s_i=p_i[0]; p_i[0]=p_i[1]; p_i[1]=s_i; }
+	char s_i, *p_i; \
+	p_i= (char *)&(a); \
+	s_i=p_i[0]; p_i[0]=p_i[1]; p_i[1]=s_i; }
 
 
 /* Bit operations */
-#define BTST(a,b)     ( ( (a) & 1<<(b) )!=0 )   
-#define BSET(a,b)     ( (a) | 1<<(b) )
+#define BTST(a,b)	( ( (a) & 1<<(b) )!=0 )   
+#define BNTST(a,b)	( ( (a) & 1<<(b) )==0 )
+#define BTST2(a,b,c)	( BTST( (a), (b) ) || BTST( (a), (c) ) )
+#define BSET(a,b)	( (a) | 1<<(b) )
 #define BCLR(a,b)	( (a) & ~(1<<(b)) )
 /* bit-row */
 #define BROW(min, max)	(((max)>=31? 0xFFFFFFFF: (1<<(max+1))-1) - ((min)? ((1<<(min))-1):0) )

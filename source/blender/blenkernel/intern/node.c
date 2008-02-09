@@ -27,6 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <Python.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -34,6 +35,7 @@
 #include "DNA_image_types.h"
 #include "DNA_node_types.h"
 #include "DNA_material_types.h"
+#include "DNA_text_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_blender.h"
@@ -44,6 +46,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_texture.h"
+#include "BKE_text.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
@@ -72,7 +75,7 @@ ListBase node_all_shaders = {NULL, NULL};
 
 /* ************** Type stuff **********  */
 
-static bNodeType *node_get_type(bNodeTree *ntree, int type, bNodeTree *ngroup)
+static bNodeType *node_get_type(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)
 {
 	if(type==NODE_GROUP) {
 		if(ngroup && GS(ngroup->id.name)==ID_NT) {
@@ -83,7 +86,7 @@ static bNodeType *node_get_type(bNodeTree *ntree, int type, bNodeTree *ngroup)
 	else {
 		bNodeType *ntype = ntree->alltypes.first;
 		for(; ntype; ntype= ntype->next)
-			if(ntype->type==type)
+			if(ntype->type==type && id==ntype->id )
 				return ntype;
 		
 		return NULL;
@@ -105,7 +108,27 @@ void ntreeInitTypes(bNodeTree *ntree)
 	
 	for(node= ntree->nodes.first; node; node= next) {
 		next= node->next;
-		node->typeinfo= node_get_type(ntree, node->type, (bNodeTree *)node->id);
+		if(node->type==NODE_DYNAMIC) {
+			bNodeType *stype= NULL;
+			if(node->id==NULL) { /* empty script node */
+				stype= node_get_type(ntree, node->type, NULL, NULL);
+			} else { /* not an empty script node */
+				stype= node_get_type(ntree, node->type, NULL, node->id);
+				if(!stype) {
+					stype= node_get_type(ntree, node->type, NULL, NULL);
+					/* needed info if the pynode script fails now: */
+					if (node->id) node->storage= ntree;
+				} else {
+					node->custom1= 0;
+					node->custom1= BSET(node->custom1,NODE_DYNAMIC_ADDEXIST);
+				}
+			}
+			node->typeinfo= stype;
+			node->typeinfo->initfunc(node);
+		} else {
+			node->typeinfo= node_get_type(ntree, node->type, (bNodeTree *)node->id, NULL);
+		}
+
 		if(node->typeinfo==NULL) {
 			printf("Error: Node type %s doesn't exist anymore, removed\n", node->name);
 			nodeFreeNode(ntree, node);
@@ -113,6 +136,18 @@ void ntreeInitTypes(bNodeTree *ntree)
 	}
 			
 	ntree->init |= NTREE_TYPE_INIT;
+}
+
+/* updates node with (modified) bNodeType.. this should be done for all trees */
+void ntreeUpdateType(bNodeTree *ntree, bNodeType *ntype)
+{
+	bNode *node;
+
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->typeinfo== ntype) {
+			nodeUpdateType(ntree, node, ntype);
+		}
+	}
 }
 
 /* only used internal... we depend on type definitions! */
@@ -137,7 +172,7 @@ static bNodeSocket *node_add_socket_type(ListBase *lb, bNodeSocketType *stype)
 	
 	if(lb)
 		BLI_addtail(lb, sock);
-	
+
 	return sock;
 }
 
@@ -513,7 +548,7 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 	ntreeMakeOwnType(ngroup);
 	
 	/* make group node */
-	gnode= nodeAddNodeType(ntree, NODE_GROUP, ngroup);
+	gnode= nodeAddNodeType(ntree, NODE_GROUP, ngroup, NULL);
 	gnode->locx= 0.5f*(min[0]+max[0]);
 	gnode->locy= 0.5f*(min[1]+max[1]);
 	
@@ -767,29 +802,10 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 }
 
 /* ************** Add stuff ********** */
-
-bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
+void nodeAddSockets(bNode *node, bNodeType *ntype)
 {
-	bNode *node;
-	bNodeType *ntype= node_get_type(ntree, type, ngroup);
 	bNodeSocketType *stype;
-	
-	node= MEM_callocN(sizeof(bNode), "new node");
-	BLI_addtail(&ntree->nodes, node);
-	node->typeinfo= ntype;
-	
-	if(ngroup)
-		BLI_strncpy(node->name, ngroup->id.name+2, NODE_MAXSTR);
-	else
-		BLI_strncpy(node->name, ntype->name, NODE_MAXSTR);
-	node->type= ntype->type;
-	node->flag= NODE_SELECT|ntype->flag;
-	node->width= ntype->width;
-	node->miniwidth= 42.0f;		/* small value only, allows print of first chars */
-	
-	if(type==NODE_GROUP)
-		node->id= (ID *)ngroup;
-	
+
 	if(ntype->inputs) {
 		stype= ntype->inputs;
 		while(stype->type != -1) {
@@ -804,13 +820,84 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 			stype++;
 		}
 	}
-	
-	/* need init handler later? */
-   /* got it-bob*/
-   if(ntype->initfunc!=NULL)
-      ntype->initfunc(node);
+}
 
-   return node;
+
+bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)
+{
+	bNode *node= NULL;
+	bNodeType *ntype= NULL;
+
+	if(type>=NODE_DYNAMIC_MENU) {
+		int a=0, idx= type-NODE_DYNAMIC_MENU;
+		ntype= ntree->alltypes.first;
+		while(ntype) {
+			if(ntype->type==NODE_DYNAMIC) {
+				if(a==idx)
+					break;
+				a++;
+			}
+			ntype= ntype->next;
+		}
+	} else
+		ntype= node_get_type(ntree, type, ngroup, id);
+
+	node= MEM_callocN(sizeof(bNode), "new node");
+	BLI_addtail(&ntree->nodes, node);
+	node->typeinfo= ntype;
+	if(type>=NODE_DYNAMIC_MENU)
+		node->custom2= type; /* for node_dynamic_init */
+
+	if(ngroup)
+		BLI_strncpy(node->name, ngroup->id.name+2, NODE_MAXSTR);
+	else if(type>NODE_DYNAMIC_MENU) {
+		BLI_strncpy(node->name, ntype->id->name+2, NODE_MAXSTR);
+	}
+	else
+		BLI_strncpy(node->name, ntype->name, NODE_MAXSTR);
+	node->type= ntype->type;
+	node->flag= NODE_SELECT|ntype->flag;
+	node->width= ntype->width;
+	node->miniwidth= 42.0f;		/* small value only, allows print of first chars */
+
+	if(type==NODE_GROUP)
+		node->id= (ID *)ngroup;
+
+	/* need init handler later? */
+	/* got it-bob*/
+	if(ntype->initfunc!=NULL)
+		ntype->initfunc(node);
+
+	nodeAddSockets(node, ntype);
+
+	return node;
+}
+
+void nodeMakeDynamicType(bNode *node)
+{
+	/* find SH_DYNAMIC_NODE ntype */
+	bNodeType *ntype= node_all_shaders.first;
+	while(ntype) {
+		if(ntype->type==NODE_DYNAMIC && ntype->id==NULL)
+			break;
+		ntype= ntype->next;
+	}
+
+	/* make own type struct to fill */
+	if(ntype) {
+		/*node->typeinfo= MEM_dupallocN(ntype);*/
+		bNodeType *newtype= MEM_callocN(sizeof(bNodeType), "dynamic bNodeType");
+		*newtype= *ntype;
+		newtype->name= BLI_strdup(ntype->name);
+		node->typeinfo= newtype;
+	}
+}
+
+
+void nodeUpdateType(bNodeTree *ntree, bNode* node, bNodeType *ntype)
+{
+	verify_socket_list(ntree, &node->inputs, ntype->inputs);
+	verify_socket_list(ntree, &node->outputs, ntype->outputs);
 }
 
 /* keep socket listorder identical, for copying links */
@@ -1042,6 +1129,7 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 	if(node->typeinfo && node->typeinfo->freestoragefunc) {
 		node->typeinfo->freestoragefunc(node);
 	}
+
 	MEM_freeN(node);
 }
 
@@ -2322,12 +2410,12 @@ void ntreeCompositTagGenerators(bNodeTree *ntree)
 
 /* ************* node definition init ********** */
 
-static bNodeType *is_nodetype_registered(ListBase *typelist, int type) 
+static bNodeType *is_nodetype_registered(ListBase *typelist, int type, ID *id) 
 {
 	bNodeType *ntype= typelist->first;
 	
 	for(;ntype; ntype= ntype->next )
-		if(ntype->type==type)
+		if(ntype->type==type && ntype->id==id)
 			return ntype;
 	
 	return NULL;
@@ -2336,10 +2424,10 @@ static bNodeType *is_nodetype_registered(ListBase *typelist, int type)
 /* type can be from a static array, we make copy for duplicate types (like group) */
 void nodeRegisterType(ListBase *typelist, const bNodeType *ntype) 
 {
-	bNodeType *found= is_nodetype_registered(typelist, ntype->type);
+	bNodeType *found= is_nodetype_registered(typelist, ntype->type, ntype->id);
 	
 	if(found==NULL) {
-		bNodeType *ntypen= MEM_mallocN(sizeof(bNodeType), "node type");
+		bNodeType *ntypen= MEM_callocN(sizeof(bNodeType), "node type");
 		*ntypen= *ntype;
 		BLI_addtail(typelist, ntypen);
  	}
@@ -2409,7 +2497,6 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_crop);
 	nodeRegisterType(ntypelist, &cmp_node_displace);
 	nodeRegisterType(ntypelist, &cmp_node_mapuv);
-
 	nodeRegisterType(ntypelist, &cmp_node_glare);
 	nodeRegisterType(ntypelist, &cmp_node_tonemap);
 	nodeRegisterType(ntypelist, &cmp_node_lensdist);
@@ -2436,10 +2523,44 @@ static void registerShaderNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &sh_node_value);
 	nodeRegisterType(ntypelist, &sh_node_rgb);
 	nodeRegisterType(ntypelist, &sh_node_texture);
+	nodeRegisterType(ntypelist, &node_dynamic_typeinfo);
 	nodeRegisterType(ntypelist, &sh_node_invert);
 	nodeRegisterType(ntypelist, &sh_node_seprgb);
 	nodeRegisterType(ntypelist, &sh_node_combrgb);
 	nodeRegisterType(ntypelist, &sh_node_hue_sat);
+}
+
+static void remove_dynamic_typeinfos(ListBase *list)
+{
+	bNodeType *ntype= list->first;
+	bNodeType *next= NULL;
+	while(ntype) {
+		next= ntype->next;
+		if(ntype->type==NODE_DYNAMIC && ntype->id!=NULL) {
+			BLI_remlink(list, ntype);
+			if(ntype->inputs) {
+				bNodeSocketType *sock= ntype->inputs;
+				while(sock->type!=-1) {
+					MEM_freeN(sock->name);
+					sock++;
+				}
+				MEM_freeN(ntype->inputs);
+			}
+			if(ntype->outputs) {
+				bNodeSocketType *sock= ntype->outputs;
+				while(sock->type!=-1) {
+					MEM_freeN(sock->name);
+					sock++;
+				}
+				MEM_freeN(ntype->outputs);
+			}
+			if(ntype->name) {
+				MEM_freeN(ntype->name);
+			}
+			MEM_freeN(ntype);
+		}
+		ntype= next;
+	}
 }
 
 void init_nodesystem(void) 
@@ -2450,8 +2571,15 @@ void init_nodesystem(void)
 
 void free_nodesystem(void) 
 {
+	/*remove_dynamic_typeinfos(&node_all_composit);*/ /* unused for now */
 	BLI_freelistN(&node_all_composit);
+	remove_dynamic_typeinfos(&node_all_shaders);
 	BLI_freelistN(&node_all_shaders);
 }
 
+void reinit_nodesystem(void)
+{
+	/*remove_dynamic_typeinfos(&node_all_composit);*/ /* unused for now */
+	/*remove_dynamic_typeinfos(&node_all_shaders);*//*crash on undo/redo*/
+}
 

@@ -1570,6 +1570,7 @@ static TBitem tb_node_addsh[]= {
 	{	0, "Vector",		4, NULL},
 	{	0, "Convertor",	5, NULL},
 	{	0, "Group",		6, NULL},
+	{	0, "Dynamic",	7, NULL},
 	{  -1, "", 			0, NULL}};
 
 static TBitem tb_node_addcomp[]= {
@@ -1582,6 +1583,7 @@ static TBitem tb_node_addcomp[]= {
 	{ 	0, "Matte",		7, NULL},
 	{	0, "Distort",	8, NULL},
 	{	0, "Group",		9, NULL},
+	{	0, "Dynamic",	10, NULL},
 	{  	-1, "", 		0, NULL}};
 
 /* do_node_addmenu() in header_node.c, prototype in BSE_headerbuttons.h */
@@ -1630,11 +1632,21 @@ static TBitem *node_add_sublevel(ListBase *storage, bNodeTree *ntree, int nodecl
 		}
 	}
 	else {
-		bNodeType *ntype= ntree->alltypes.first;
-		for(a=0; ntype; ntype= ntype->next) {
-			if( ntype->nclass == nodeclass ) {
-				addmenu[a].name= ntype->name;
-				addmenu[a].retval= ntype->type;
+		bNodeType *type= ntree->alltypes.first;
+		int script=0;
+		for(a=0; type; type= type->next) {
+			if( type->nclass == nodeclass ) {
+				if(type->type == NODE_DYNAMIC) {
+					if(type->id)
+						addmenu[a].name= type->id->name+2;
+					else
+						addmenu[a].name= type->name;
+					addmenu[a].retval= NODE_DYNAMIC_MENU+script;
+					script++;
+				} else {
+					addmenu[a].name= type->name;
+					addmenu[a].retval= type->type;
+				}
 				a++;
 			}
 		}
@@ -2130,6 +2142,7 @@ void toolbox_n(void)
 			menu1[3].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_VECTOR);
 			menu1[4].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_CONVERTOR);
 			menu1[5].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_GROUP);
+			menu1[6].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_DYNAMIC);
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
 			menu1[0].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_INPUT);
@@ -2141,6 +2154,7 @@ void toolbox_n(void)
 			menu1[6].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_MATTE);
 			menu1[7].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_DISTORT);
 			menu1[8].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_GROUP);
+			menu1[9].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_DYNAMIC);
 
 		}
 		

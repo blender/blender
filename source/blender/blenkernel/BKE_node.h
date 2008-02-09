@@ -87,8 +87,8 @@ typedef struct bNodeType {
 	
 	/* for use with dynamic typedefs */
 	ID *id;
-	void *script; /* holds pointer to python script */
-	void *dict; /* holds pointer to python script dictionary (scope)*/
+	void *pynode; /* holds pointer to python script */
+	void *pydict; /* holds pointer to python script dictionary (scope)*/
 
 } bNodeType;
 
@@ -103,13 +103,14 @@ typedef struct bNodeType {
 #define NODE_CLASS_INPUT		0
 #define NODE_CLASS_OUTPUT		1
 #define NODE_CLASS_OP_COLOR		3
-#define NODE_CLASS_OP_VECTOR		4
-#define NODE_CLASS_OP_FILTER		5
+#define NODE_CLASS_OP_VECTOR	4
+#define NODE_CLASS_OP_FILTER	5
 #define NODE_CLASS_GROUP		6
 #define NODE_CLASS_FILE			7
-#define NODE_CLASS_CONVERTOR		8
+#define NODE_CLASS_CONVERTOR	8
 #define NODE_CLASS_MATTE		9
 #define NODE_CLASS_DISTORT		10
+#define NODE_CLASS_OP_DYNAMIC	11
 
 /* ************** GENERIC API, TREES *************** */
 
@@ -119,6 +120,7 @@ struct bNodeTree *ntreeAddTree(int type);
 void			ntreeInitTypes(struct bNodeTree *ntree);
 
 void			ntreeMakeOwnType(struct bNodeTree *ntree);
+void			ntreeUpdateType(struct bNodeTree *ntree, struct bNodeType *ntype);
 void			ntreeFreeTree(struct bNodeTree *ntree);
 struct bNodeTree *ntreeCopyTree(struct bNodeTree *ntree, int internal_select);
 void			ntreeMakeLocal(struct bNodeTree *ntree);
@@ -144,7 +146,12 @@ void			nodeVerifyType(struct bNodeTree *ntree, struct bNode *node);
 void			nodeAddToPreview(struct bNode *, float *, int, int);
 
 void			nodeUnlinkNode(struct bNodeTree *ntree, struct bNode *node);
-struct bNode	*nodeAddNodeType(struct bNodeTree *ntree, int type, struct bNodeTree *ngroup);
+void			nodeAddSockets(struct bNode *node, struct bNodeType *ntype);
+struct bNode	*nodeAddNodeType(struct bNodeTree *ntree, int type, struct bNodeTree *ngroup, struct ID *id);
+void			nodeRegisterType(struct ListBase *typelist, const struct bNodeType *ntype) ;
+void			nodeUpdateType(struct bNodeTree *ntree, struct bNode* node, struct bNodeType *ntype);
+void			nodeMakeDynamicType(struct bNode *node);
+int				nodeDynamicUnlinkText(struct ID *txtid);
 void			nodeFreeNode(struct bNodeTree *ntree, struct bNode *node);
 struct bNode	*nodeCopyNode(struct bNodeTree *ntree, struct bNode *node);
 
@@ -176,6 +183,7 @@ void			nodeGroupSocketUseFlags(struct bNodeTree *ngroup);
 
 #define NODE_GROUP		2
 #define NODE_GROUP_MENU		1000
+#define NODE_DYNAMIC_MENU	4000
 
 extern bNodeType node_group_typeinfo;
 
@@ -192,7 +200,7 @@ struct ShadeResult;
 #define SH_NODE_OUTPUT		1
 
 #define SH_NODE_MATERIAL	100
-#define SH_NODE_RGB		101
+#define SH_NODE_RGB			101
 #define SH_NODE_VALUE		102
 #define SH_NODE_MIX_RGB		103
 #define SH_NODE_VALTORGB	104
@@ -212,12 +220,21 @@ struct ShadeResult;
 #define SH_NODE_SEPRGB		120
 #define SH_NODE_COMBRGB		121
 #define SH_NODE_HUE_SAT		122
-
+#define NODE_DYNAMIC		123
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1
 #define SH_NODE_MAT_SPEC   2
 #define SH_NODE_MAT_NEG    4
+/* custom defines: states for Script node. These are bit indices */
+#define NODE_DYNAMIC_READY	0 /* 1 */
+#define NODE_DYNAMIC_LOADED	1 /* 2 */
+#define NODE_DYNAMIC_NEW	2 /* 4 */
+#define NODE_DYNAMIC_UPDATED	3 /* 8 */
+#define NODE_DYNAMIC_ADDEXIST	4 /* 16 */
+#define NODE_DYNAMIC_ERROR	5 /* 32 */
+#define NODE_DYNAMIC_REPARSE	6 /* 64 */
+#define NODE_DYNAMIC_SET	15 /* sign */
 
 /* the type definitions array */
 extern struct ListBase node_all_shaders;
@@ -350,5 +367,6 @@ void free_compbuf(struct CompBuf *cbuf); /* internal...*/
 
 void init_nodesystem(void);
 void free_nodesystem(void);
+void reinit_nodesystem(void);
 
 #endif

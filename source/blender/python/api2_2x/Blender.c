@@ -85,6 +85,7 @@ struct ID; /*keep me up here */
 #include "Metaball.h"
 #include "Modifier.h"
 #include "NMesh.h"
+#include "Node.h"
 #include "Object.h"
 #include "Group.h"
 #include "Registry.h"
@@ -1047,6 +1048,7 @@ void M_Blender_Init(void)
 	PyDict_SetItemString(dict, "Geometry", Geometry_Init());
 	PyDict_SetItemString(dict, "Modifier", Modifier_Init());
 	PyDict_SetItemString(dict, "NMesh", NMesh_Init());
+	PyDict_SetItemString(dict, "Node", Node_Init());
 	PyDict_SetItemString(dict, "Noise", Noise_Init());
 	PyDict_SetItemString(dict, "Object", Object_Init());
 	PyDict_SetItemString(dict, "Group", Group_Init());

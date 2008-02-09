@@ -13,7 +13,7 @@ incs += ' ../blenloader ../quicktime'
 incs += ' ../blenkernel ../renderconverter '
 
 
-
+incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_OPENGL_INC']
 incs += ' ' + env['BF_ZLIB_INC']
 incs += ' ' + env['BF_SDL_INC']
@@ -41,6 +41,6 @@ if env['WITH_BF_QUICKTIME'] == 1:
     defs += ' WITH_QUICKTIME'
     incs += ' ' + env['BF_QUICKTIME_INC']
 
-defs += ' WITH_CCGSUBSURF'
+defs += ' WITH_CCGSUBSURF USE_PYNODES '
 
 env.BlenderLib ( libname = 'nodes', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core','player'], priority = [65, 20] )

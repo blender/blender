@@ -258,6 +258,10 @@ typedef struct NodeDefocus {
 	float fstop, maxblur, bthresh, scale;
 } NodeDefocus;
 
+typedef struct NodeScriptDict {
+	void *dict; /* for PyObject *dict */
+	void *node; /* for BPy_Node *node */
+} NodeScriptDict;
 
 /* qdn: glare node */
 typedef struct NodeGlare {

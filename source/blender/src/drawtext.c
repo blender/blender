@@ -62,6 +62,7 @@
 #include "BKE_text.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -1179,6 +1180,10 @@ void unlink_text(Text *text)
 	 * script links used this Text */
 	if (BPY_check_all_scriptlinks (text)) {
 		allqueue(REDRAWBUTSSCRIPT, 0);
+	}
+	/* equivalently for pynodes: */
+	if (nodeDynamicUnlinkText ((ID*)text)) {
+		allqueue(REDRAWNODE, 0);
 	}
 
 	for (scr= G.main->screen.first; scr; scr= scr->id.next) {

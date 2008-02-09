@@ -1453,11 +1453,18 @@ static void lib_link_nodetree(FileData *fd, Main *main)
 }
 
 /* verify types for nodes and groups, all data has to be read */
-static void lib_verify_nodetree(Main *main)
+/* open = 0: appending/linking, open = 1: open new file (need to clean out dynamic
+ * typedefs*/
+static void lib_verify_nodetree(Main *main, int open)
 {
 	Scene *sce;
 	Material *ma;
 	bNodeTree *ntree;
+
+	/* this crashes blender on undo/redo
+	if(open==1) {
+		reinit_nodesystem();
+	}*/
 	
 	/* now create the own typeinfo structs an verify nodes */
 	/* here we still assume no groups in groups */
@@ -1494,6 +1501,12 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 	
 	link_list(fd, &ntree->nodes);
 	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type == NODE_DYNAMIC) {
+			node->custom1= 0;
+			node->custom1= BSET(node->custom1, NODE_DYNAMIC_LOADED);
+			node->typeinfo= NULL;
+		}
+
 		node->storage= newdataadr(fd, node->storage);
 		if(node->storage) {
 			
@@ -7546,7 +7559,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 	blo_join_main(&fd->mainlist);
 
 	lib_link_all(fd, bfd->main);
-	lib_verify_nodetree(bfd->main);
+	lib_verify_nodetree(bfd->main, 1);
 	fix_relpaths_library(fd->filename, bfd->main); /* make all relative paths, relative to the open blend file */
 	
 	if(fg)
@@ -8508,7 +8521,7 @@ static Library* library_append( Scene *scene, char* file, char *dir, int idcode,
 	G.main= fd->mainlist.first;
 
 	lib_link_all(fd, G.main);
-	lib_verify_nodetree(G.main);
+	lib_verify_nodetree(G.main, 0);
 	fix_relpaths_library(G.sce, G.main); /* make all relative paths, relative to the open blend file */
 
 	/* give a base to loose objects. If group append, do it for objects too */
