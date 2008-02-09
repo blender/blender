@@ -985,7 +985,7 @@ void make_sss_tree(Render *re)
 	re->stats_draw(&re->i);
 	
 	for(mat= G.main->mat.first; mat; mat= mat->id.next)
-		if(mat->id.us && (mat->sss_flag & MA_DIFF_SSS))
+		if(mat->id.us && (mat->flag & MA_IS_USED) && (mat->sss_flag & MA_DIFF_SSS))
 			sss_create_tree_mat(re, mat);
 }
 

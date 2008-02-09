@@ -725,9 +725,9 @@ static void occ_free_tree(OcclusionTree *tree)
 
 /* ------------------------- Traversal --------------------------- */
 
-static float occ_solid_angle(OccNode *node, float *v, float d2, float *receivenormal)
+static float occ_solid_angle(OccNode *node, float *v, float d2, float invd2, float *receivenormal)
 {
-	float dotreceive, dotemit, invd2 = 1.0f/sqrtf(d2);
+	float dotreceive, dotemit;
 	float ev[3];
 
 	ev[0]= -v[0]*invd2;
@@ -1189,7 +1189,7 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 {
 	OccNode *node, **stack;
 	OccFace *face;
-	float resultocc, v[3], p[3], n[3], co[3];
+	float resultocc, v[3], p[3], n[3], co[3], invd2;
 	float distfac, fac, error, d2, weight, emitarea;
 	int b, totstack;
 
@@ -1229,14 +1229,14 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 				fac= 1.0f;
 
 			/* accumulate occlusion from spherical harmonics */
-			weight= occ_solid_angle(node, v, d2, n);
+			invd2 = 1.0f/sqrt(d2);
+			weight= occ_solid_angle(node, v, d2, invd2, n);
 			weight *= node->occlusion;
 
 			if(bentn) {
-				Normalize(v);
-				bentn[0] -= weight*v[0];
-				bentn[1] -= weight*v[1];
-				bentn[2] -= weight*v[2];
+				bentn[0] -= weight*invd2*v[0];
+				bentn[1] -= weight*invd2*v[1];
+				bentn[2] -= weight*invd2*v[2];
 			}
 
 			resultocc += weight*fac;
@@ -1265,10 +1265,10 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 						weight *= tree->occlusion[node->child[b].face];
 
 						if(bentn) {
-							Normalize(v);
-							bentn[0] -= weight*v[0];
-							bentn[1] -= weight*v[1];
-							bentn[2] -= weight*v[2];
+							invd2= 1.0f/sqrt(d2);
+							bentn[0] -= weight*invd2*v[0];
+							bentn[1] -= weight*invd2*v[1];
+							bentn[2] -= weight*invd2*v[2];
 						}
 
 						resultocc += weight*fac;
