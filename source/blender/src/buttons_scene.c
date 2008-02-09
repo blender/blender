@@ -925,7 +925,7 @@ static void seq_panel_filter_video()
 		
 	uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Mul:",
 		  10,70,120,19, &last_seq->mul, 
-		  0.001, 5.0, 0.1, 0, 
+		  0.001, 20.0, 0.1, 0, 
 		  "Multiply colors");
 
 	uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Strobe:",

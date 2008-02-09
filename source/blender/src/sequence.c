@@ -1365,6 +1365,7 @@ static void color_balance_float_float(Sequence * seq, TStripElem* se,
 			p[c] = pow((p[c] + cb.lift[c]) * cb.gain[c], 
 				   cb.gamma[c]) * mul;
 		}
+		p += 4;
 	}
 }
 
