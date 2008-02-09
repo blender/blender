@@ -1827,7 +1827,10 @@ void ManipulatorTransform()
 						Trans.redraw= 1;
 					}
 					break;
-				}			
+				}
+							
+				// Numerical input events
+				Trans.redraw |= handleNumInput(&(Trans.num), event);
 			}
 		}
 	}
