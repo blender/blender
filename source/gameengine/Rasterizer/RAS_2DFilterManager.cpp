@@ -196,7 +196,7 @@ void RAS_2DFilterManager::SetupTexture()
 	{
 		glDeleteTextures(1,(const GLuint *)&texname);
 	}
-	glGenTextures(1, (const GLuint *)&texname);
+	glGenTextures(1, (GLuint *)&texname);
 	glBindTexture(GL_TEXTURE_2D, texname);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texturewidth, textureheight, 0, GL_RGB,
 		GL_UNSIGNED_BYTE, 0);
