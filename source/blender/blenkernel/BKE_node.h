@@ -367,6 +367,5 @@ void free_compbuf(struct CompBuf *cbuf); /* internal...*/
 
 void init_nodesystem(void);
 void free_nodesystem(void);
-void reinit_nodesystem(void);
 
 #endif

@@ -119,6 +119,21 @@ float BPY_pydriver_eval(struct IpoDriver *driver)
 {
 	return 0;
 }
+int EXPP_dict_set_item_str(struct PyObject *dict, char *key, struct PyObject *value)
+{
+	return 0;
+}
+void Node_SetStack(struct BPy_Node *self, struct bNodeStack **stack, int type){}
+void InitNode(struct BPy_Node *self, struct bNode *node){}
+void Node_SetShi(struct BPy_Node *self, struct ShadeInput *shi){}
+struct BPy_NodeSockets *Node_CreateSockets(struct bNode *node)
+{
+	return 0;
+}
+int pytype_is_pynode(struct PyObject *pyob)
+{
+	return 0;
+}
 /* depsgraph.c: */
 struct Object **BPY_pydriver_get_objects(struct IpoDriver *driver)
 {
@@ -337,3 +352,10 @@ void PE_free_particle_edit(struct ParticleSystem *psys) {}
 void PE_get_colors(char sel[4], char nosel[4]) {}
 void PE_recalc_world_cos(struct Object *ob, struct ParticleSystem *psys) {}
 
+/* binreloc */
+#ifdef __linux__
+char *zLhm65070058860608_br_find_exe(const char *default_exe)
+{
+	return 0;
+}
+#endif

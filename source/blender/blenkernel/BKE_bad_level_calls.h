@@ -63,6 +63,12 @@ struct Script;
 struct Text;
 struct IpoDriver; /* DNA_curve_types.h */
 struct Object;
+struct PyObject;
+struct Node_Type;
+struct BPy_Node;
+struct bNode;
+struct bNodeStack;
+struct ShadeInput;
 struct bPythonConstraint;
 struct bConstraintOb;
 struct bConstraintTarget;
@@ -78,8 +84,14 @@ int BPY_button_eval(char *expr, double *value);
 /* pyconstraints */
 void BPY_pyconstraint_eval(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets);
 void BPY_pyconstraint_targets(struct bPythonConstraint *con, struct bConstraintTarget *ct);
-
-
+/* pynodes */
+int EXPP_dict_set_item_str(struct PyObject *dict, char *key, struct PyObject *value);
+void Node_SetStack(struct BPy_Node *self, struct bNodeStack **stack, int type);
+void InitNode(struct BPy_Node *self, struct bNode *node);
+void InitNode(struct BPy_Node *self, struct bNode *node);
+void Node_SetShi(struct BPy_Node *self, struct ShadeInput *shi);
+struct BPy_NodeSockets *Node_CreateSockets(struct bNode *node);
+int pytype_is_pynode(struct PyObject *pyob);
 /* writefile.c */
 struct Oops;
 void free_oops(struct Oops *oops);
@@ -225,6 +237,11 @@ struct ParticleSystem;
 void PE_free_particle_edit(struct ParticleSystem *psys);
 void PE_get_colors(char sel[4], char nosel[4]);
 void PE_recalc_world_cos(struct Object *ob, struct ParticleSystem *psys);
+
+/* only for linux binreloc */
+#ifdef __linux__
+char *zLhm65070058860608_br_find_exe(const char *default_exe);
+#endif
 
 #endif
 

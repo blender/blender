@@ -28,6 +28,7 @@
  */
 
 #include <Python.h>
+#include <compile.h>
 #include <eval.h>
 
 #include "DNA_text_types.h"
@@ -352,7 +353,7 @@ static int node_dynamic_parse(struct bNode *node)
 			Py_DECREF(sockets);
 			Py_DECREF(args);
 
-			if (!PyErr_Occurred() && pynode && PyObject_TypeCheck(pynode, &Node_Type)==1) {
+			if (!PyErr_Occurred() && pynode && pytype_is_pynode(pynode)) {
 				InitNode((BPy_Node *)(pynode), node);
 				nsd->node = pynode;
 				node->typeinfo->execfunc = node_dynamic_exec_cb;

@@ -893,7 +893,6 @@ void nodeMakeDynamicType(bNode *node)
 	}
 }
 
-
 void nodeUpdateType(bNodeTree *ntree, bNode* node, bNodeType *ntype)
 {
 	verify_socket_list(ntree, &node->inputs, ntype->inputs);
@@ -2576,10 +2575,3 @@ void free_nodesystem(void)
 	remove_dynamic_typeinfos(&node_all_shaders);
 	BLI_freelistN(&node_all_shaders);
 }
-
-void reinit_nodesystem(void)
-{
-	/*remove_dynamic_typeinfos(&node_all_composit);*/ /* unused for now */
-	/*remove_dynamic_typeinfos(&node_all_shaders);*//*crash on undo/redo*/
-}
-

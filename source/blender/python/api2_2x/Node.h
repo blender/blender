@@ -80,6 +80,7 @@ extern BPy_Node *Node_CreatePyObject(bNode *node);
 extern BPy_NodeSockets *Node_CreateSockets(bNode *node);
 extern void Node_SetStack(BPy_Node *self, bNodeStack **stack, int type);
 extern void Node_SetShi(BPy_Node *self, ShadeInput *shi);
+extern int pytype_is_pynode(PyObject *pyob);
 
 #define NODE_INPUTSTACK		0
 #define NODE_OUTPUTSTACK	1

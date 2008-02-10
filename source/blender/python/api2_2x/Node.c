@@ -535,7 +535,7 @@ static int sockoutmap_has_key( BPy_SockMap *self, PyObject *key) {
 static int sockoutmap_assign_subscript(BPy_SockMap *self, PyObject *pyidx, PyObject *value) {
 	int i, idx, len, wanted_len = 0, ret = -1;
 	PyObject *val;
-	PyObject **items;
+	PyObject *items[4];
 
 	if (!self->node)
 		return EXPP_ReturnIntError(PyExc_RuntimeError, "no access to Blender node data!");
@@ -567,9 +567,8 @@ static int sockoutmap_assign_subscript(BPy_SockMap *self, PyObject *pyidx, PyObj
 		return EXPP_ReturnIntError(PyExc_AttributeError, "expected a non-empty numeric tuple or list");
 	}
 
-	items = PySequence_Fast_ITEMS(val);
-
 	for (i = 0; i < len; i++) {
+		items[i] = PySequence_Fast_GET_ITEM(val, i); /* borrowed */
 		if (!PyNumber_Check(items[i])) {
 			Py_DECREF(val);
 			return EXPP_ReturnIntError(PyExc_AttributeError, "expected a *numeric* tuple or list");
@@ -1206,6 +1205,11 @@ BPy_Node *Node_CreatePyObject(bNode *node)
 	pynode->node = node;
 
 	return pynode;
+}
+
+int pytype_is_pynode(PyObject *pyob)
+{
+	return PyObject_TypeCheck(pyob, &Node_Type);
 }
 
 void InitNode(BPy_Node *self, bNode *node) {
