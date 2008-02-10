@@ -570,6 +570,9 @@ static void node_dynamic_exec_cb(void *data, bNode *node, bNodeStack **in, bNode
 	if (!node->id)
 		return;
 
+	if (G.scene->r.threads > 1)
+		return;
+
 	if (BTST2(node->custom1, NODE_DYNAMIC_NEW, NODE_DYNAMIC_REPARSE)) {
 		node_dynamic_setup(node);
 		return;

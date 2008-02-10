@@ -273,10 +273,17 @@ static void node_make_addmenu(SpaceNode *snode, int nodeclass, uiBlock *block)
 		}
 		else {
 			bNodeType *type;
+			int script=0;
 			for(a=0, type= ntree->alltypes.first; type; type=type->next) {
 				if( type->nclass == nodeclass ) {
+					if(type->type == NODE_DYNAMIC) {
+						uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, type->name, 0, 
+							yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, NODE_DYNAMIC_MENU+script, "");
+						script++;
+					} else {
 					uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, type->name, 0, 
 						yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, type->type, "");
+					}
 					a++;
 				}
 			}
@@ -423,6 +430,22 @@ static uiBlock *node_add_groupmenu(void *arg_unused)
 	return block;
 }
 
+static uiBlock *node_add_dynamicmenu(void *arg_unused)
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "node_add_dynamicmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
+	
+	node_make_addmenu(snode, NODE_CLASS_OP_DYNAMIC, block);
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+
 static uiBlock *node_addmenu(void *arg_unused)
 {
 	SpaceNode *snode= curarea->spacedata.first;
@@ -440,6 +463,7 @@ static uiBlock *node_addmenu(void *arg_unused)
 		uiDefIconTextBlockBut(block, node_add_vectormenu, NULL, ICON_RIGHTARROW_THIN, "Vector", 0, yco-=20, 120, 19, "");
 		uiDefIconTextBlockBut(block, node_add_convertermenu, NULL, ICON_RIGHTARROW_THIN, "Convertor", 0, yco-=20, 120, 19, "");
 		uiDefIconTextBlockBut(block, node_add_groupmenu, NULL, ICON_RIGHTARROW_THIN, "Group", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_dynamicmenu, NULL, ICON_RIGHTARROW_THIN, "Dynamic", 0, yco-=20, 120, 19, "");
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
 		uiDefIconTextBlockBut(block, node_add_inputmenu, NULL, ICON_RIGHTARROW_THIN, "Input", 0, yco-=20, 120, 19, "");
