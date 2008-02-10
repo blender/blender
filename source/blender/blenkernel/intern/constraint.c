@@ -3059,7 +3059,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		
 		/* obtain target effect */
 		switch (data->from) {
-			case 2:	/* scale */
+			case 2: /* scale */
 				Mat4ToSize(ct->matrix, dvec);
 				break;
 			case 1: /* rotation */
@@ -3073,7 +3073,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		/* extract components of owner's matrix */
 		VECCOPY(loc, cob->matrix[3]);
 		Mat4ToEul(cob->matrix, eul);
-		Mat4ToSize(cob->matrix, size);
+		Mat4ToSize(cob->matrix, size);	
 		
 		/* determine where in range current transforms lie */
 		if (data->expo) {

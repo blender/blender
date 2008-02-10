@@ -661,7 +661,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				menustr = buildmenu_pyconstraints(data->text, &pyconindex);
 				but2 = uiDefButI(block, MENU, B_CONSTRAINT_TEST, menustr,
 				      *xco+120, *yco-24, 150, 20, &pyconindex,
-				      0.0, 1.0, 0, 0, "Set the Script Constraint to use");
+				      0, 0, 0, 0, "Set the Script Constraint to use");
 				uiButSetFunc(but2, validate_pyconstraint_cb, data, &pyconindex);
 				MEM_freeN(menustr);	
 				

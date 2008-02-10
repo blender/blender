@@ -859,12 +859,15 @@ void object_test_constraints (Object *owner)
 void validate_pyconstraint_cb (void *arg1, void *arg2)
 {
 	bPythonConstraint *data = arg1;
-	Text *text;
+	Text *text= NULL;
 	int index = *((int *)arg2);
 	int i;
 	
-	/* innovative use of a for...loop to search */
-	for (text=G.main->text.first, i=1; text && index!=i; i++, text=text->id.next);
+	/* exception for no script */
+	if (index) {
+		/* innovative use of a for...loop to search */
+		for (text=G.main->text.first, i=1; text && index!=i; i++, text=text->id.next);
+	}
 	data->text = text;
 }
 
@@ -878,7 +881,7 @@ char *buildmenu_pyconstraints (Text *con_text, int *pyconindex)
 	int i;
 	
 	/* add title first */
-	sprintf(buf, "Scripts: %%t|");
+	sprintf(buf, "Scripts: %%t|[None]%%x0|");
 	BLI_dynstr_append(pupds, buf);
 	
 	/* loop through markers, adding them */
