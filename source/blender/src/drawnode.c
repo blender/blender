@@ -472,6 +472,7 @@ static void node_dynamic_update_cb(void *ntree_v, void *node_v)
 
 	allqueue(REDRAWBUTSSHADING, 0);
 	allqueue(REDRAWNODE, 0);
+	BIF_preview_changed(ID_MA);
 }
 
 static int node_buts_texture(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
