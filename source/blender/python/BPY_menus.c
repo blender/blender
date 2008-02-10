@@ -457,6 +457,7 @@ static int bpymenu_CreateFromFile( void )
 {
 	FILE *fp;
 	char line[255], w1[255], w2[255], tooltip[255], *tip;
+	char upythondir[FILE_MAXDIR];
 	char *homedir = NULL;
 	int parsing, version, is_userdir;
 	short group;
@@ -492,15 +493,14 @@ static int bpymenu_CreateFromFile( void )
 	 * current one.  If so, return to force updating from dirs */
 	w1[0] = '\0';
 	fscanf( fp, "# User defined scripts dir: %[^\n]\n", w1 );
-	if( w1 ) {
-		char upythondir[FILE_MAXDIR];
 
-		BLI_strncpy(upythondir, U.pythondir, FILE_MAXDIR);
-		BLI_convertstringcode(upythondir, G.sce, 0);
-		if( strcmp( w1, upythondir ) != 0 )
-			return -1;
-		w1[0] = '\0';
-	}
+	BLI_strncpy(upythondir, U.pythondir, FILE_MAXDIR);
+	BLI_convertstringcode(upythondir, G.sce, 0);
+
+	if( strcmp( w1, upythondir ) != 0 )
+		return -1;
+
+	w1[0] = '\0';
 
 	while( fgets( line, 255, fp ) ) {	/* parsing file lines */
 
