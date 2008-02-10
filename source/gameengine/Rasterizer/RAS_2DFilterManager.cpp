@@ -194,9 +194,9 @@ void RAS_2DFilterManager::SetupTexture()
 {
 	if(texname!=-1)
 	{
-		glDeleteTextures(1,&texname);
+		glDeleteTextures(1,(const GLuint *)&texname);
 	}
-	glGenTextures(1, &texname);
+	glGenTextures(1, (const GLuint *)&texname);
 	glBindTexture(GL_TEXTURE_2D, texname);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texturewidth, textureheight, 0, GL_RGB,
 		GL_UNSIGNED_BYTE, 0);
@@ -257,7 +257,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 		{
 			if(first)
 			{
-				glGetIntegerv(GL_VIEWPORT,(int*)viewport);
+				glGetIntegerv(GL_VIEWPORT,(GLint *)viewport);
 				glViewport(0, 0, texturewidth, textureheight);
 
 				glDisable(GL_DEPTH_TEST);
