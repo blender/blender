@@ -4588,8 +4588,9 @@ void extern_set_butspace(int fkey, int do_cycle)
 	else if(fkey==F10KEY) {
 		/* if it's already in scene context, cycle between tabs with the same key */
 		if (sbuts->oldkeypress == F10KEY) {
-
 			if (sbuts->tab[CONTEXT_SCENE]==TAB_SCENE_RENDER)
+				sbuts->tab[CONTEXT_SCENE]=TAB_SCENE_SEQUENCER;
+			else if (sbuts->tab[CONTEXT_SCENE]==TAB_SCENE_SEQUENCER)
 				sbuts->tab[CONTEXT_SCENE]=TAB_SCENE_ANIM;
 			else if (sbuts->tab[CONTEXT_SCENE]==TAB_SCENE_ANIM)
 				sbuts->tab[CONTEXT_SCENE]=TAB_SCENE_SOUND;
