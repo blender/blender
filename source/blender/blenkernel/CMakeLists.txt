@@ -38,6 +38,7 @@ SET(INC
   ../nodes
   ${SDL_INC}
   ${ZLIB_INC}
+  ${PYTHON_INC}
 )
 
 IF(WITH_VERSE)

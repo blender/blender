@@ -36,6 +36,7 @@ SET(INC
   ../blenkernel
   ${SDL_INC}
   ${ZLIB_INC}
+  ${PYTHON_INC}
 )
 
 IF(WITH_VERSE)
