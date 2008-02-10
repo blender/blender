@@ -27,8 +27,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef USE_PYNODES /* note: won't work without patch */
-
 #include <Python.h>
 #include <eval.h>
 
@@ -626,6 +624,4 @@ bNodeType node_dynamic_typeinfo = {
 	/* copyfunc    */	node_dynamic_copy_cb,
 	/* id          */	NULL
 };
-
-#endif /* USE_PYNODES */
 

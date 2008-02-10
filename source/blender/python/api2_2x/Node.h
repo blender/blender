@@ -30,7 +30,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifdef USE_PYNODES /* note: won't work without patch */
 #ifndef __NODE_H__
 #define __NODE_H__
 
@@ -86,4 +85,4 @@ extern void Node_SetShi(BPy_Node *self, ShadeInput *shi);
 #define NODE_OUTPUTSTACK	1
 
 #endif /* __NODE_H__*/
-#endif /* USE_PYNODES */
+

@@ -41,6 +41,6 @@ if env['WITH_BF_QUICKTIME'] == 1:
     defs += ' WITH_QUICKTIME'
     incs += ' ' + env['BF_QUICKTIME_INC']
 
-defs += ' WITH_CCGSUBSURF USE_PYNODES '
+defs += ' WITH_CCGSUBSURF '
 
 env.BlenderLib ( libname = 'nodes', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core','player'], priority = [65, 20] )

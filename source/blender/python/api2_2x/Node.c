@@ -30,7 +30,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifdef USE_PYNODES /* note: won't work without patch */
 #include "Node.h"
 
 #include "BKE_global.h"
@@ -1259,5 +1258,4 @@ BPy_ShadeInput *ShadeInput_CreatePyObject(ShadeInput *shi)
 
 	return pyshi;
 }
-#endif
 
