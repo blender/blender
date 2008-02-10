@@ -74,6 +74,7 @@ typedef struct StripColorBalance {
 	float gamma[3];
 	float gain[3];
 	int flag;
+	int pad;
 	float exposure;
 	float saturation;
 } StripColorBalance;
