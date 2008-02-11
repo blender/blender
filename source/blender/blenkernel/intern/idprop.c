@@ -212,7 +212,8 @@ void IDP_UnlinkID(IDProperty *prop)
 IDProperty *IDP_CopyGroup(IDProperty *prop)
 {
 	IDProperty *newp = idp_generic_copy(prop), *link;
-
+	newp->len = prop->len;
+	
 	for (link=prop->data.group.first; link; link=link->next) {
 		BLI_addtail(&newp->data.group, IDP_CopyProperty(link));
 	}
