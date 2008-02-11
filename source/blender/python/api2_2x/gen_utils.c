@@ -1,5 +1,5 @@
 /* 
- * $Id: gen_utils.c 11932 2007-09-03 17:28:50Z stiv $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -238,6 +238,10 @@ char *event_to_name( short event )
 	switch ( event ) {
 	case SCRIPT_FRAMECHANGED:
 		return "FrameChanged";
+	case SCRIPT_OBJECTUPDATE:
+		return "ObjectUpdate";
+	case SCRIPT_OBDATAUPDATE:
+		return "ObDataUpdate";
 	case SCRIPT_ONLOAD:
 		return "OnLoad";
 	case SCRIPT_ONSAVE:
@@ -406,6 +410,10 @@ PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * value,
 	
 	if( !strcmp( eventname, "FrameChanged" ) )
 		event = SCRIPT_FRAMECHANGED;
+	else if( !strcmp( eventname, "ObjectUpdate" ) )
+		event = SCRIPT_OBJECTUPDATE;
+	else if( !strcmp( eventname, "ObDataUpdate" ) )
+		event = SCRIPT_OBDATAUPDATE;
 	else if( !strcmp( eventname, "Redraw" ) )
 		event = SCRIPT_REDRAW;
 	else if( !strcmp( eventname, "Render" ) )
@@ -562,6 +570,10 @@ PyObject *EXPP_addScriptLink(ScriptLink *slink, PyObject *args, int is_scene)
 
 	if( !strcmp( eventname, "FrameChanged" ) )
 		event = SCRIPT_FRAMECHANGED;
+	else if( !strcmp( eventname, "ObjectUpdate" ) )
+		event = SCRIPT_OBJECTUPDATE;
+	else if( !strcmp( eventname, "ObDataUpdate" ) )
+		event = SCRIPT_OBDATAUPDATE;
 	else if( !strcmp( eventname, "Redraw" ) )
 		event = SCRIPT_REDRAW;
 	else if( !strcmp( eventname, "Render" ) )

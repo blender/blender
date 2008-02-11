@@ -2163,6 +2163,7 @@ void object_handle_update(Object *ob)
 			}
 			else
 				where_is_object(ob);
+			if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript((ID *)ob, SCRIPT_OBJECTUPDATE);
 		}
 		
 		if(ob->recalc & OB_RECALC_DATA) {
@@ -2228,6 +2229,7 @@ void object_handle_update(Object *ob)
 						psys_get_modifier(ob, psys)->flag &= ~eParticleSystemFlag_psys_updated;
 				}
 			}
+			if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript((ID *)ob, SCRIPT_OBDATAUPDATE);
 		}
 
 		/* the no-group proxy case, we call update */

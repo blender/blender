@@ -268,7 +268,7 @@ void do_scriptbuts(unsigned short event)
 	allqueue(REDRAWOOPS, 0);
 }
 
-void draw_scriptlink(uiBlock *block, ScriptLink *script, int sx, int sy, int scene) 
+void draw_scriptlink(uiBlock *block, ScriptLink *script, int sx, int sy, int idcode) 
 {
 	char str[256];
 
@@ -276,10 +276,13 @@ void draw_scriptlink(uiBlock *block, ScriptLink *script, int sx, int sy, int sce
 		strcpy(str, "FrameChanged%x 1|");
 		strcat(str, "Redraw%x 4|");
 		strcat(str, "Render%x 16|");
-		if (scene) {
+		if (idcode==ID_SCE) {
 			strcat(str, "OnLoad%x 2|");
 			strcat(str, "OnSave%x 8");
-		}
+		} else {
+			strcat(str, "ObjectUpdate%x 64|");
+			strcat(str, "ObDataUpdate%x 128");
+ 		}
 		uiBlockBeginAlign(block);
 		uiDefButS(block, MENU, 1, str, (short)sx, (short)sy, 140, 19, &script->flag[script->actscript-1], 0, 0, 0, 0, "Script links for this event");
 
@@ -291,7 +294,7 @@ void draw_scriptlink(uiBlock *block, ScriptLink *script, int sx, int sy, int sce
 	
 	uiDefButS(block, NUM, REDRAWBUTSSCRIPT, str, (short)(sx+140), (short)sy-20,60,19, &script->actscript, 1, script->totscript, 0, 0, "Total / Active Script link (LeftMouse + Drag to change)");
 
-	if (scene) {
+	if (idcode==ID_SCE) {
 		
 		if (script->totscript<32767) 
 			uiDefBut(block, BUT, B_SSCRIPT_ADD, "New", (short)(sx+240), (short)sy-20, 40, 19, 0, 0, 0, 0, 0, "Add a new Script link");
