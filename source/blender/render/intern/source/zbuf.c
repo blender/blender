@@ -2161,7 +2161,7 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 								else {
 									zbufclip(zspan, i, zvlnr, ho1, ho2, ho3, c1, c2, c3);
 									if(v4)
-										zbufclip(zspan, i, zvlnr+RE_QUAD_OFFS, ho1, ho3, ho4, c1, c3, c4);
+										zbufclip(zspan, i, (env)? zvlnr: zvlnr+RE_QUAD_OFFS, ho1, ho3, ho4, c1, c3, c4);
 								}
 							}
 						}
