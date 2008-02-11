@@ -3046,7 +3046,7 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 
 	if(select)
 		cpack(0xFFFFFF);
-	else if(part->draw&PART_DRAW_MAT_COL)
+	else if((ma) && (part->draw&PART_DRAW_MAT_COL))
 		glColor3f(ma->r,ma->g,ma->b);
 	else
 		cpack(0);
