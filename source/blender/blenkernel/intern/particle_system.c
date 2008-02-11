@@ -3057,6 +3057,7 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 	ParticleKey cstate;
 	float imat[4][4];
 	float co1[3],co2[3],def_loc[3],def_nor[3],unit_nor[3],def_tan[3],dvec[3],def_vel[3],dave[3],dvel[3];
+	float t_co1[3],t_co2[3];
 	float pa_minmax[6];
 	float min_w[4], zerovec[3]={0.0,0.0,0.0}, ipoint[3];
 	float min_d,dotprod,damp,frict,o_len,d_len,radius=-1.0f;
@@ -3096,6 +3097,8 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 					/* convert particle coordinates to object coordinates */
 					Mat4Invert(imat,ob->obmat);
 
+					VECCOPY(t_co1,co1);
+					VECCOPY(t_co2,co2);
 					Mat4MulVecfl(imat,co1);
 					Mat4MulVecfl(imat,co2);
 				}
@@ -3123,6 +3126,12 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 						else
 							global=0;
 					}
+
+				if(ec->vert_cos==0){
+					/* get global coordinates back */
+					VECCOPY(co1,t_co1);
+					VECCOPY(co2,t_co2);
+				}
 			}
 		}
 
