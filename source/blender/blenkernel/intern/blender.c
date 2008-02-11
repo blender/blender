@@ -63,6 +63,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_action.h"
 #include "BKE_blender.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
@@ -394,6 +395,9 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	
 	/* baseflags, groups, make depsgraph, etc */
 	set_scene_bg(G.scene);
+
+	/* clear BONE_UNKEYED flags, these are not valid anymore for proxies */
+	framechange_poses_clear_unkeyed();
 
 	/* last stage of do_versions actually, that sets recalc flags for recalc poses */
 	for(ob= G.main->object.first; ob; ob= ob->id.next) {
