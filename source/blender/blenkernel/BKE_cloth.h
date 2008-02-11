@@ -172,18 +172,13 @@ typedef enum
 	CLOTH_SPRING_FLAG_NEEDED = ( 1 << 2 ), // springs has values to be applied
 } CLOTH_SPRINGS_FLAGS;
 
-typedef void ( *CM_COLLISION_RESPONSE ) ( ClothModifierData *clmd, CollisionModifierData *collmd, CollisionTree *tree1, CollisionTree *tree2 );
-
-
 /////////////////////////////////////////////////
 // collision.c
 ////////////////////////////////////////////////
 
 // needed for implicit.c
-void bvh_collision_response ( ClothModifierData *clmd, ClothModifierData *coll_clmd, CollisionTree * tree1, CollisionTree * tree2 );
 int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt );
 
-int bvh_traverse ( ClothModifierData * clmd, CollisionModifierData * collmd, CollisionTree * tree1, CollisionTree * tree2, float step, CM_COLLISION_RESPONSE collision_response );
 ////////////////////////////////////////////////
 
 

@@ -557,8 +557,10 @@ int cloth_collision_response_moving_edges(ClothModifierData *clmd, ClothModifier
 	return 1;
 }
 
-void cloth_collision_static(ClothModifierData *clmd, CollisionModifierData *collmd, CollisionTree *tree1, CollisionTree *tree2)
+void cloth_collision_static(ModifierData *md1, ModifierData *md2, CollisionTree *tree1, CollisionTree *tree2)
 {
+	ClothModifierData *clmd = (ClothModifierData *)md1;
+	CollisionModifierData *collmd = (CollisionModifierData *)md2;
 	CollPair *collpair = NULL;
 	Cloth *cloth1=NULL;
 	MFace *face1=NULL, *face2=NULL;
@@ -1004,7 +1006,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 				
 				collision_move_object(collmd, step + dt, step);
 					
-				bvh_traverse(clmd, collmd, cloth_bvh->root, coll_bvh->root, step, cloth_collision_static);
+				bvh_traverse((ModifierData *)clmd, (ModifierData *)collmd, cloth_bvh->root, coll_bvh->root, step, cloth_collision_static);
 			}
 			else
 				printf ("cloth_bvh_objcollision: found a collision object with clothObject or collData NULL.\n");
@@ -1012,13 +1014,12 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 		
 			// process all collisions (calculate impulses, TODO: also repulses if distance too short)
 			result = 1;
-			for(j = 0; j < 10; j++) // 10 is just a value that ensures convergence
+			for(j = 0; j < 5; j++) // 5 is just a value that ensures convergence
 			{
 				result = 0;
 				
 				if (collmd->tree) 
 					result += cloth_collision_response_static(clmd, collmd);
-			
 				
 				// apply impulses in parallel
 				ic=0;

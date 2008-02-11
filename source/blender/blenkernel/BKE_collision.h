@@ -94,6 +94,20 @@ BVH;
 ////////////////////////////////////////
 
 
+
+////////////////////////////////////////
+// kdop.c
+////////////////////////////////////////
+
+// needed for collision.c
+typedef void ( *CM_COLLISION_RESPONSE ) ( ModifierData *md1, ModifierData *md2, CollisionTree *tree1, CollisionTree *tree2 );
+
+// needed for collision.c
+int bvh_traverse ( ModifierData * md1, ModifierData * md2, CollisionTree * tree1, CollisionTree * tree2, float step, CM_COLLISION_RESPONSE collision_response);
+int bvh_traverse_mt ( ModifierData * md1, ModifierData * md2, CollisionTree * tree1, CollisionTree * tree2, float step, CM_COLLISION_RESPONSE collision_response);
+////////////////////////////////////////////////
+////////////////////////////////////////
+
 ////////////////////////////////////////
 // used for collisions in kdop.c and also collision.c
 ////////////////////////////////////////
@@ -108,7 +122,7 @@ typedef struct CollPair
 	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2
 	int lastsign; // indicates if the distance sign has changed, unused itm
 	float time; // collision time, from 0 up to 1
-	unsigned int ap1, ap2, ap3, bp1, bp2, bp3, bp4;
+	unsigned int ap1, ap2, ap3, bp1, bp2, bp3;
 	unsigned int pointsb[4];
 }
 CollPair;

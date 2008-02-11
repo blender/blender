@@ -171,6 +171,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->coll_parms->loop_count = 3;
 	clmd->coll_parms->epsilon = 0.015f;
 	clmd->coll_parms->flags = CLOTH_COLLSETTINGS_FLAG_ENABLED;
+	clmd->coll_parms->collision_list = NULL;
 
 	/* These defaults are copied from softbody.c's
 	* softbody_calc_forces() function.
@@ -698,6 +699,9 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 		/* only force free the cache if we have a different number of verts */
 		if(clmd->clothObject && (numverts != clmd->clothObject->numverts ))
 		{
+			if(G.rt > 0)
+				printf("Force Freeing: numverts != clmd->clothObject->numverts\n");
+			
 			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
 			cloth_free_modifier ( ob, clmd );
 		}
@@ -742,12 +746,17 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	// that's "first frame" and "last frame" on GUI
 	if ( current_time < clmd->sim_parms->firstframe )
 	{
+		if(G.rt > 0)
+			printf("current_time < clmd->sim_parms->firstframe\n");
 		return result;
 	}
 	else if ( current_time > clmd->sim_parms->lastframe )
 	{
 		int stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
 			
+		if(G.rt > 0)
+			printf("current_time > clmd->sim_parms->lastframe\n");
+		
 		if(BKE_ptcache_id_exist((ID *)ob, clmd->sim_parms->lastcachedframe, stack_index))
 		{
 			if(cloth_read_cache(ob, clmd, clmd->sim_parms->lastcachedframe))
@@ -1171,7 +1180,8 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 			Mat4MulVecfl ( ob->obmat, verts->x );
 		}
 		
-		verts->mass = clmd->sim_parms->mass;
+		/* no GUI interface yet */
+		verts->mass = clmd->sim_parms->mass = 1.0f;
 
 		if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
 			verts->goal= clmd->sim_parms->defgoal;
