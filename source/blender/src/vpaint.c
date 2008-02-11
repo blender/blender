@@ -57,6 +57,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -1355,6 +1356,24 @@ void weight_paint(void)
 		if(clmd)
 			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
 	}	
+
+	/* and particles too */
+	if(ob->particlesystem.first) {
+		ParticleSystem *psys;
+		int i;
+
+		psys= ob->particlesystem.first;
+		while(psys) {
+			for(i=0; i<PSYS_TOT_VG; i++) {
+				if(psys->vgroup[i]==ob->actdef) {
+					psys->recalc |= PSYS_RECALC_HAIR;
+					break;
+				}
+			}
+
+			psys= psys->next;
+		}
+	}
 	
 	BIF_undo_push("Weight Paint");
 	allqueue(REDRAWVIEW3D, 0);

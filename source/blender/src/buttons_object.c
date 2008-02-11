@@ -4156,12 +4156,12 @@ static void object_panel_particle_extra(Object *ob)
 		uiBlockBeginAlign(block);
 		
 		uiDefButS(block, MENU, B_PART_REDRAW, "Attribute%t|Effector%x11|TanRot%x10|TanVel%x9|Size%x8|RoughE%x7|Rough2%x6|Rough1%x5|Kink%x4|Clump%x3|Length%x2|Velocity%x1|Density%x0", butx,(buty-=buth),butw-40,buth, &vgnum, 14.0, 0.0, 0, 0, "Attribute effected by vertex group");
-		but=uiDefButBitS(block, TOG, (1<<vgnum), B_PART_REDRAW, "Neg",	butx+butw-40,buty,40,buth, &psys->vg_neg, 0, 0, 0, 0, "Negate the effect of the vertex group");
+		but=uiDefButBitS(block, TOG, (1<<vgnum), B_PART_RECALC, "Neg",	butx+butw-40,buty,40,buth, &psys->vg_neg, 0, 0, 0, 0, "Negate the effect of the vertex group");
 		uiButSetFunc(but, particle_set_vg, (void *)ob, (void *)(&vgnum));
 		
 		butx+=butw;
 
-		but= uiDefButS(block, MENU, B_PART_REDRAW, menustr,	butx,buty,buth,buth, psys->vgroup+vgnum, 0, defCount, 0, 0, "Browses available vertex groups");
+		but= uiDefButS(block, MENU, B_PART_RECALC, menustr,	butx,buty,buth,buth, psys->vgroup+vgnum, 0, defCount, 0, 0, "Browses available vertex groups");
 		uiButSetFunc(but, particle_set_vg, (void *)ob, (void *)(&vgnum));
 		MEM_freeN (menustr);
 
@@ -4172,7 +4172,7 @@ static void object_panel_particle_extra(Object *ob)
 			else{
 				uiDefBut(block, BUT, B_PART_REDRAW, "(no group)",	butx+buth,buty,butw-2*buth,buth, NULL, 0.0, 0.0, 0, 0, "Vertex Group doesn't exist anymore");
 			}
-			but=uiDefIconBut(block, BUT, B_PART_REDRAW, ICON_X, butx+butw-buth,buty,buth,buth, 0, 0, 0, 0, 0, "Disable use of vertex group");
+			but=uiDefIconBut(block, BUT, B_PART_RECALC, ICON_X, butx+butw-buth,buty,buth,buth, 0, 0, 0, 0, 0, "Disable use of vertex group");
 			uiButSetFunc(but, particle_del_vg, (void *)ob, (void *)(&vgnum));
 		}
 
