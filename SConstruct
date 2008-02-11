@@ -181,7 +181,6 @@ if env['BF_NO_ELBEEM'] == 1:
 
 if env['WITH_BF_OPENMP'] == 1:
 	if env['OURPLATFORM']=='win32-vc':
-		env.Append(LINKFLAGS=['/openmp'])
 		env['CCFLAGS'].append('/openmp')
 		env['CPPFLAGS'].append('/openmp')
 		env['CXXFLAGS'].append('/openmp')

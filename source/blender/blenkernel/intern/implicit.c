@@ -254,11 +254,11 @@ DO_INLINE void submul_lfvectorS(float (*to)[3], float (*fLongVector)[3], float s
 /* dot product for big vector */
 DO_INLINE float dot_lfvector(float (*fLongVectorA)[3], float (*fLongVectorB)[3], unsigned int verts)
 {
-	unsigned int i = 0;
+	long i = 0;
 	float temp = 0.0;
 // schedule(guided, 2)
 #pragma omp parallel for reduction(+: temp)
-	for(i = 0; i < verts; i++)
+	for(i = 0; i < (long)verts; i++)
 	{
 		temp += INPR(fLongVectorA[i], fLongVectorB[i]);
 	}
@@ -1433,7 +1433,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 {
 	/* Collect forces and derivatives:  F,dFdX,dFdV */
 	Cloth 		*cloth 		= clmd->clothObject;
-	unsigned int 	i 		= 0;
+	long		i 		= 0;
 	float 		spring_air 	= clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
 	float 		gravity[3];
 	float 		tm2[3][3] 	= {{-spring_air,0,0}, {0,-spring_air,0},{0,0,-spring_air}};
@@ -1457,7 +1457,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	init_lfvector(lF, gravity, numverts);
 	
 	// multiply lF with mass matrix
-	for(i = 0; i < numverts; i++)
+	for(i = 0; i < (long)numverts; i++)
 	{
 		float temp[3];
 		VECCOPY(temp, lF[i]);
@@ -1473,7 +1473,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 		float force[3]= {0.0f, 0.0f, 0.0f};
 		
 #pragma omp parallel for private (i) shared(lF)
-		for(i = 0; i < cloth->numverts; i++)
+		for(i = 0; i < (long)(cloth->numverts); i++)
 		{
 			float vertexnormal[3]={0,0,0};
 			float fieldfactor = 1000.0f; // windfactor  = 250.0f; // from sb
