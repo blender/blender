@@ -1423,6 +1423,9 @@ void pose_relax()
 	if (!pose || !act || !arm) return;
 	
 	for (pchan=pose->chanbase.first; pchan; pchan= pchan->next) {
+		
+		pchan->bone->flag &= ~BONE_TRANSFORM;
+		
 		if (pchan->bone->layer & arm->layer) {
 			if (pchan->bone->flag & BONE_SELECTED) {
 				/* do we have an ipo curve? */
