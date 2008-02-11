@@ -2145,7 +2145,9 @@ static void world_panel_amb_occ(World *wrld)
 	block= uiNewBlock(&curarea->uiblocks, "world_panel_amb_oc", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Mist / Stars / Physics", "World");
 	if(uiNewPanel(curarea, block, "Amb Occ", "World", PANELX, PANELY, PANELW, PANELH)==0) return;
-
+	uiSetButLock(wrld->id.lib!=0, ERROR_LIBDATA_MESSAGE);
+	
+	
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButBitS(block, TOG, WO_AMB_OCC, B_REDR, "Ambient Occlusion",
 		X2CLM1, yco-=BUTH, BUTW1, BUTH, &wrld->mode, 0, 0, 0, 0, "Toggles ambient occlusion (soft shadows)");

@@ -4634,8 +4634,8 @@ void make_local(int mode)
 	
 	base= FIRSTBASE;
 	while(base) {
-		ob= base->object;
-		if( (base->flag & SELECT)) {
+		if( TESTBASE(base) ) {
+			ob= base->object;
 			if(ob->id.lib) {
 				make_local_object(ob);
 			}
@@ -4646,8 +4646,8 @@ void make_local(int mode)
 	/* maybe object pointers */
 	base= FIRSTBASE;
 	while(base) {
-		ob= base->object;
-		if( (base->flag & SELECT)) {
+		if( TESTBASE(base) ) {
+			ob= base->object;
 			if(ob->id.lib==NULL) {
 				ID_NEW(ob->parent);
 				ID_NEW(ob->track);
@@ -4658,9 +4658,8 @@ void make_local(int mode)
 
 	base= FIRSTBASE;
 	while(base) {
-		ob= base->object;
-		if( (base->flag & SELECT) ) {
-	
+		if( TESTBASE(base) ) {
+			ob= base->object;
 			id= ob->data;
 			
 			if(id && mode>1) {
@@ -4720,9 +4719,8 @@ void make_local(int mode)
 	if(mode>1) {
 		base= FIRSTBASE;
 		while(base) {
-			ob= base->object;
-			if(base->flag & SELECT ) {
-				
+			if( TESTBASE(base) ) {
+				ob= base->object;
 				if(ob->type==OB_LAMP) {
 					la= ob->data;
 					for(b=0; b<MAX_MTEX; b++) {

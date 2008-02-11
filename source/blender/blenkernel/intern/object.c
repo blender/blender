@@ -1178,6 +1178,7 @@ void expand_local_object(Object *ob)
 	id_lib_extern((ID *)ob->action);
 	id_lib_extern((ID *)ob->ipo);
 	id_lib_extern((ID *)ob->data);
+	id_lib_extern((ID *)ob->dup_group);
 	
 	for(a=0; a<ob->totcol; a++) {
 		id_lib_extern((ID *)ob->mat[a]);
