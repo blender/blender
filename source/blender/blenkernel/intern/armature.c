@@ -366,7 +366,7 @@ void bone_autoside_name (char *name, int strip_number, short axis, float head, f
 {
 	int		len;
 	char	basename[32]={""};
-	char 	extension[3]={""};
+	char 	extension[5]={""};
 
 	len= strlen(name);
 	if (len == 0) return;
