@@ -1054,11 +1054,11 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 
 	verts = clothObj->verts;
 	
-	if ((((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING ) || 
+	if (((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING ) || 
 		     (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )) && 
 		     ((clmd->sim_parms->vgroup_mass>0) || 
 		     (clmd->sim_parms->vgroup_struct>0)||
-		     (clmd->sim_parms->vgroup_bend>0)))|| (clmd->sim_parms->vgroup_mass>0))
+		     (clmd->sim_parms->vgroup_bend>0)))
 	{
 		for ( i = 0; i < numverts; i++, verts++ )
 		{

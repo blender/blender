@@ -120,15 +120,7 @@ static float KDOP_AXES[13][3] =
 
 ///////////// choose bounding volume here! /////////////
 
-// #define KDOP_26
-
-// #define KDOP_14
-
-// AABB:
-// #define KDOP_8
-
-// OBB: 
-#define KDOP_6
+#define KDOP_26
 
 
 
@@ -137,10 +129,9 @@ static float KDOP_AXES[13][3] =
 #define KDOP_START 0
 #endif
 
-// I didn't test this one!
 #ifdef KDOP_18
-#define KDOP_END 7
-#define KDOP_START 13
+#define KDOP_END 13
+#define KDOP_START 7
 #endif
 
 #ifdef KDOP_14
