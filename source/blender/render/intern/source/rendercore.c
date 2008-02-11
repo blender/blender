@@ -819,16 +819,20 @@ void edge_enhance_tile(RenderPart *pa, float *rectf)
 static void reset_sky_speed(RenderPart *pa, RenderLayer *rl)
 {
 	/* for all pixels with max speed, set to zero */
+    RenderLayer *rlpp[RE_MAX_OSA];
 	float *fp;
-	int a;
+	int a, sample, totsample;
 	
-	fp= RE_RenderLayerGetPass(rl, SCE_PASS_VECTOR);
-	if(fp==NULL) return;
-	
-	for(a= 4*pa->rectx*pa->recty - 1; a>=0; a--)
-		if(fp[a] == PASS_VECTOR_MAX) fp[a]= 0.0f;
-}
+	totsample= get_sample_layers(pa, rl, rlpp);
 
+	for(sample= 0; sample<totsample; sample++) {
+		fp= RE_RenderLayerGetPass(rlpp[sample], SCE_PASS_VECTOR);
+		if(fp==NULL) break;
+
+		for(a= 4*pa->rectx*pa->recty - 1; a>=0; a--)
+			if(fp[a] == PASS_VECTOR_MAX) fp[a]= 0.0f;
+	}
+}
 
 static unsigned short *make_solid_mask(RenderPart *pa)
 { 

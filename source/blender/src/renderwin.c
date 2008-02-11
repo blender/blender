@@ -1270,7 +1270,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 	winx= (G.scene->r.size*G.scene->r.xsch)/100;
 	winy= (G.scene->r.size*G.scene->r.ysch)/100;
 	
-	RE_InitState(re, &G.scene->r, winx, winy, NULL);
+	RE_InitState(re, NULL, &G.scene->r, winx, winy, NULL);
 
 	/* for now, result is defaulting to floats still... */
 	rr= RE_GetResult(re);

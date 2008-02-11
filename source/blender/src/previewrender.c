@@ -463,7 +463,7 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 		}
 		
 		/* allocates render result */
-		RE_InitState(re, &sce->r, ri->pr_rectx, ri->pr_recty, NULL);
+		RE_InitState(re, NULL, &sce->r, ri->pr_rectx, ri->pr_recty, NULL);
 		
 		/* enforce preview image clear */
 		if(GS(id->name)==ID_MA) {
@@ -780,7 +780,7 @@ void BIF_view3d_previewrender(ScrArea *sa)
 		rdata.layers.first= rdata.layers.last= NULL;
 		rdata.renderer= R_INTERN;
 		 
-		RE_InitState(re, &rdata, sa->winx, sa->winy, &ri->disprect);
+		RE_InitState(re, NULL, &rdata, sa->winx, sa->winy, &ri->disprect);
 	
 		if(orth)
 			RE_SetOrtho(re, &viewplane, clipsta, clipend);

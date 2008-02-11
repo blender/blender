@@ -5173,7 +5173,7 @@ void RE_make_sticky(void)
 	}
 	
 	re= RE_NewRender("_make sticky_");
-	RE_InitState(re, &G.scene->r, G.scene->r.xsch, G.scene->r.ysch, NULL);
+	RE_InitState(re, NULL, &G.scene->r, G.scene->r.xsch, G.scene->r.ysch, NULL);
 	
 	/* use renderdata and camera to set viewplane */
 	RE_SetCamera(re, G.scene->camera);

@@ -4055,12 +4055,15 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 				
 				/* for each mask-sample we alpha-under colors. then in end it's added using filter */
 				memset(samp_shr, 0, sizeof(ShadeResult)*osa);
-				for(a=0; a<osa; a++)
+				for(a=0; a<osa; a++) {
 					samp_shr[a].z= 10e10f;
-					
-				/* nice this memset, but speed vectors are not initialized OK then. it is sufficient to only clear 1 (see merge_transp_passes) */
-				if(addpassflag & SCE_PASS_VECTOR)
-					samp_shr->winspeed[0]= samp_shr->winspeed[1]= samp_shr->winspeed[2]= samp_shr->winspeed[3]= PASS_VECTOR_MAX;
+					if(addpassflag & SCE_PASS_VECTOR) {
+						samp_shr[a].winspeed[0]= PASS_VECTOR_MAX;
+						samp_shr[a].winspeed[1]= PASS_VECTOR_MAX;
+						samp_shr[a].winspeed[2]= PASS_VECTOR_MAX;
+						samp_shr[a].winspeed[3]= PASS_VECTOR_MAX;
+					}
+				}
 
 				if(R.osa==0) {
 					while(totface>0) {

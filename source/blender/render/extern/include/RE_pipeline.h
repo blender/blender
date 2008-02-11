@@ -153,7 +153,7 @@ struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name)
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype);
 
 /* obligatory initialize call, disprect is optional */
-void RE_InitState (struct Render *re, struct RenderData *rd, int winx, int winy, rcti *disprect);
+void RE_InitState (struct Render *re, struct Render *source, struct RenderData *rd, int winx, int winy, rcti *disprect);
 
 /* use this to change disprect of active render */
 void RE_SetDispRect (struct Render *re, rcti *disprect);

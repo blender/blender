@@ -1058,7 +1058,7 @@ void RE_FreeAllRender(void)
 
 /* what doesn't change during entire render sequence */
 /* disprect is optional, if NULL it assumes full window render */
-void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect)
+void RE_InitState(Render *re, Render *source, RenderData *rd, int winx, int winy, rcti *disprect)
 {
 	re->ok= TRUE;	/* maybe flag */
 	
@@ -1086,13 +1086,19 @@ void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect
 		re->ok= 0;
 	}
 	else {
-		/* check state variables, osa? */
-		if(re->r.mode & (R_OSA)) {
-			re->osa= re->r.osa;
-			if(re->osa>16) re->osa= 16;
+		/* fullsample wants uniform osa levels */
+		if(source && re->r.scemode & R_FULL_SAMPLE) {
+			re->r.osa= re->osa= source->osa;
 		}
-		else re->osa= 0;
-		
+		else {
+			/* check state variables, osa? */
+			if(re->r.mode & (R_OSA)) {
+				re->osa= re->r.osa;
+				if(re->osa>16) re->osa= 16;
+			}
+			else re->osa= 0;
+		}
+
 		/* always call, checks for gamma, gamma tables and jitter too */
 		make_sample_tables(re);	
 		
@@ -1913,7 +1919,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	}
 	
 	/* initial setup */
-	RE_InitState(resc, &sce->r, winx, winy, &re->disprect);
+	RE_InitState(resc, re, &sce->r, winx, winy, &re->disprect);
 	
 	/* this to enable this scene to create speed vectors */
 	resc->r.scemode |= R_DOCOMP;
@@ -1924,10 +1930,6 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	/* ensure scene has depsgraph, base flags etc OK. Warning... also sets G.scene */
 	set_scene_bg(sce);
 
-	/* fullsample wants uniform osa levels */
-	if(resc->r.scemode & R_FULL_SAMPLE)
-		resc->r.osa= resc->osa= re->osa;
-	
 	/* copy callbacks */
 	resc->display_draw= re->display_draw;
 	resc->test_break= re->test_break;
@@ -2432,7 +2434,7 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 	if(scene->r.scemode & R_SINGLE_LAYER)
 		push_render_result(re);
 	
-	RE_InitState(re, &scene->r, winx, winy, &disprect);
+	RE_InitState(re, NULL, &scene->r, winx, winy, &disprect);
 	if(!re->ok)  /* if an error was printed, abort */
 		return 0;
 	
@@ -2647,7 +2649,7 @@ void RE_ReadRenderResult(Scene *scene, Scene *scenode)
 	re= RE_GetRender(scene->id.name);
 	if(re==NULL)
 		re= RE_NewRender(scene->id.name);
-	RE_InitState(re, &scene->r, winx, winy, &disprect);
+	RE_InitState(re, NULL, &scene->r, winx, winy, &disprect);
 	re->scene= scene;
 	
 	read_render_result(re, 0);
