@@ -4026,7 +4026,7 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 			vg_size=psys_cache_vgroup(psmd->dm,psys,PSYS_VG_SIZE);
 
 		for(p=0, pa=psys->particles; p<totpart; p++,pa++){
-			if(pa->flag & (PARS_NO_DISP+PARS_UNEXIST)) continue;
+			if(pa->flag & PARS_UNEXIST) continue;
 
 			/* set correct ipo timing */
 			if((part->flag&PART_ABS_TIME)==0 && part->ipo){
@@ -4095,7 +4095,7 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 
 		/* main loop: calculate physics for all particles */
 		for(p=0, pa=psys->particles, key=outstate; p<totpart; p++,pa++,key++){
-			if(pa->flag & (PARS_NO_DISP|PARS_UNEXIST)) continue;
+			if(pa->flag & PARS_UNEXIST) continue;
 
 			copy_particle_key(key,&pa->state,1);
 			
@@ -4260,6 +4260,16 @@ static void psys_update_path_cache(Object *ob, ParticleSystemModifierData *psmd,
 static void hair_step(Object *ob, ParticleSystemModifierData *psmd, ParticleSystem *psys, float cfra)
 {
 	ParticleSettings *part = psys->part;
+	ParticleData *pa;
+	int p;
+	float disp = (float)get_current_display_percentage(psys)/50.0f-1.0f;
+
+	for(p=0, pa=psys->particles; p<psys->totpart; p++,pa++){
+		if(pa->r_rot[0] > disp)
+			pa->flag |= PARS_NO_DISP;
+		else
+			pa->flag &= ~PARS_NO_DISP;
+	}
 
 	if(psys->recalc & PSYS_DISTR)
 		/* need this for changing subsurf levels */

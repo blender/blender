@@ -4244,7 +4244,7 @@ static void object_panel_particle_visual(Object *ob)
 	uiDefButBitS(block, TOG, PART_DRAW_SIZE, B_PART_REDRAW, "Size",	butx+butw/3,buty,butw/3,buth, &part->draw, 0, 0, 0, 0, "Show particle size");
 	uiDefButBitS(block, TOG, PART_DRAW_NUM, B_PART_REDRAW, "Num",	butx+2*butw/3,buty,butw/3,buth, &part->draw, 0, 0, 0, 0, "Show particle number");
 	uiDefButS(block, NUM, B_PART_REDRAW, "Draw Size:", butx,(buty-=buth),butw,buth, &part->draw_size, 0.0, 10.0, 0, 0, "Size of particles on viewport in pixels (0=default)");
-	uiDefButS(block, NUM, B_PART_RECALC, "Disp:",		butx,(buty-=buth),butw,buth, &part->disp, 0.0, 100.0, 10, 0, "Percentage of particles to calculate for 3d view");
+	uiDefButS(block, NUM, B_PART_RECALC_CHILD, "Disp:",		butx,(buty-=buth),butw,buth, &part->disp, 0.0, 100.0, 10, 0, "Percentage of particles to display in 3d view");
 	uiBlockEndAlign(block);
 
 	uiDefBut(block, LABEL, 0, "Render:",	butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
