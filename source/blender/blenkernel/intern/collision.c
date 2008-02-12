@@ -979,7 +979,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 	Cloth *cloth=NULL;
 	Object *coll_ob=NULL;
 	BVH *cloth_bvh=NULL;
-	long i=0, j = 0, numfaces = 0, numverts = 0;
+	long i=0, j = 0, numfaces = 0, numverts = 0, k = 0;
 	unsigned int result = 0, ic = 0, rounds = 0; // result counts applied collisions; ic is for debug output; 
 	ClothVertex *verts = NULL;
 	float tnull[3] = {0,0,0};
@@ -1079,124 +1079,124 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 			}
 		}
 		rounds++;
-	}
-	while(result && (clmd->coll_parms->loop_count>rounds));
 	
-	////////////////////////////////////////////////////////////
-	// update positions
-	// this is needed for bvh_calc_DOP_hull_moving() [kdop.c]
-	////////////////////////////////////////////////////////////
-	
-	// verts come from clmd
-	for(i = 0; i < numverts; i++)
-	{
-		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) 
-		{			
-			if(verts [i].flags & CLOTH_VERT_FLAG_PINNED)
-			{
-				continue;
-			}
-		}
+		////////////////////////////////////////////////////////////
+		// update positions
+		// this is needed for bvh_calc_DOP_hull_moving() [kdop.c]
+		////////////////////////////////////////////////////////////
 		
-		VECADD(verts[i].tx, verts[i].txold, verts[i].tv);
-	}
-	////////////////////////////////////////////////////////////
-	
-	
-	////////////////////////////////////////////////////////////
-	// Test on *simple* selfcollisions
-	////////////////////////////////////////////////////////////
-	if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF)	
-	{
-		collisions = 1;
-		verts = cloth->verts; // needed for openMP
-		
-		for(count = 0; count < clmd->coll_parms->self_loop_count; count++)
-		{	
-			if(collisions)
-			{
-				collisions = 0;
-	#pragma omp parallel for private(i,j, collisions) shared(verts, ret)
-				for(i = 0; i < cloth->numverts; i++)
+		// verts come from clmd
+		for(i = 0; i < numverts; i++)
+		{
+			if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) 
+			{			
+				if(verts [i].flags & CLOTH_VERT_FLAG_PINNED)
 				{
-					for(j = i + 1; j < cloth->numverts; j++)
+					continue;
+				}
+			}
+			
+			VECADD(verts[i].tx, verts[i].txold, verts[i].tv);
+		}
+		////////////////////////////////////////////////////////////
+		
+		
+		////////////////////////////////////////////////////////////
+		// Test on *simple* selfcollisions
+		////////////////////////////////////////////////////////////
+		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF)	
+		{
+			collisions = 1;
+			verts = cloth->verts; // needed for openMP
+			
+			for(count = 0; count < clmd->coll_parms->self_loop_count; count++)
+			{	
+				if(collisions)
+				{
+					collisions = 0;
+		#pragma omp parallel for private(i,j, collisions) shared(verts, ret)
+					for(i = 0; i < cloth->numverts; i++)
 					{
-						float temp[3];
-						float length = 0;
-						float mindistance = clmd->coll_parms->selfepsilon*(cloth->verts[i].avg_spring_len + cloth->verts[j].avg_spring_len);
+						for(j = i + 1; j < cloth->numverts; j++)
+						{
+							float temp[3];
+							float length = 0;
+							float mindistance = clmd->coll_parms->selfepsilon*(cloth->verts[i].avg_spring_len + cloth->verts[j].avg_spring_len);
+								
+							if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
+							{			
+								if((cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED)
+								&& (cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED))
+								{
+									continue;
+								}
+							}
 							
-						if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
-						{			
-							if((cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED)
-							&& (cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED))
+							VECSUB(temp, verts[i].tx, verts[j].tx);
+							
+							if ((ABS(temp[0]) > mindistance) || (ABS(temp[1]) > mindistance) || (ABS(temp[2]) > mindistance)) continue;
+								
+							// check for adjacent points
+							if(BLI_edgehash_haskey (cloth->edgehash, i, j ))
 							{
 								continue;
 							}
-						}
-						
-						VECSUB(temp, verts[i].tx, verts[j].tx);
-						
-						if ((ABS(temp[0]) > mindistance) || (ABS(temp[1]) > mindistance) || (ABS(temp[2]) > mindistance)) continue;
-							
-						// check for adjacent points
-						if(BLI_edgehash_haskey (cloth->edgehash, i, j ))
-						{
-							continue;
-						}
-							
-						length = Normalize(temp);
-							
-						if(length < mindistance)
-						{
-							float correction = mindistance - length;
 								
-							if(cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED)
-							{
-								VecMulf(temp, -correction);
-								VECADD(verts[j].tx, verts[j].tx, temp);
-							}
-							else if(cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED)
-							{
-								VecMulf(temp, correction);
-								VECADD(verts[i].tx, verts[i].tx, temp);
-							}
-							else
-							{
-								VecMulf(temp, -correction*0.5);
-								VECADD(verts[j].tx, verts[j].tx, temp);
+							length = Normalize(temp);
 								
-								VECSUB(verts[i].tx, verts[i].tx, temp);	
-							}
-							
-							collisions = 1;
-							
-							if(!ret)
-							{	
-		#pragma omp critical
-		{
-								ret = 1;
-		}
+							if(length < mindistance)
+							{
+								float correction = mindistance - length;
+									
+								if(cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED)
+								{
+									VecMulf(temp, -correction);
+									VECADD(verts[j].tx, verts[j].tx, temp);
+								}
+								else if(cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED)
+								{
+									VecMulf(temp, correction);
+									VECADD(verts[i].tx, verts[i].tx, temp);
+								}
+								else
+								{
+									VecMulf(temp, -correction*0.5);
+									VECADD(verts[j].tx, verts[j].tx, temp);
+									
+									VECSUB(verts[i].tx, verts[i].tx, temp);	
+								}
+								
+								collisions = 1;
+								
+								if(!ret)
+								{	
+			#pragma omp critical
+			{
+									ret = 1;
+			}
+								}
 							}
 						}
 					}
 				}
 			}
-		}
-		////////////////////////////////////////////////////////////
-		
-		////////////////////////////////////////////////////////////
-		// SELFCOLLISIONS: update velocities
-		////////////////////////////////////////////////////////////
-		if(ret)
-		{
-			for(i = 0; i < cloth->numverts; i++)
+			////////////////////////////////////////////////////////////
+			
+			////////////////////////////////////////////////////////////
+			// SELFCOLLISIONS: update velocities
+			////////////////////////////////////////////////////////////
+			if(ret)
 			{
-				if(!(cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED))
-					VECSUB(verts[i].tv, verts[i].tx, verts[i].txold);
+				for(i = 0; i < cloth->numverts; i++)
+				{
+					if(!(cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED))
+						VECSUB(verts[i].tv, verts[i].tx, verts[i].txold);
+				}
 			}
+			////////////////////////////////////////////////////////////
 		}
-		////////////////////////////////////////////////////////////
 	}
+	while(result && (clmd->coll_parms->loop_count>rounds));
 	
 	////////////////////////////////////////////////////////////
 	// moving collisions
