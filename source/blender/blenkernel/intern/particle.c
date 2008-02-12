@@ -2417,7 +2417,7 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 
 				if(soft) {
 					if(hkey[1] != pa->hair + pa->totkey - 1)
-						bp_to_particle(keys + 3, bp[1], hkey[1] + 1);
+						bp_to_particle(keys + 3, bp[1] + 1, hkey[1] + 1);
 					else
 						bp_to_particle(keys + 3, bp[1], hkey[1]);
 				}
