@@ -3147,11 +3147,14 @@ void psys_get_texture(Object *ob, Material *ma, ParticleSystemModifierData *psmd
 			externtex(mtex, texco, &value, rgba, rgba+1, rgba+2, rgba+3);
 
 			if((event & mtex->pmapto) & MAP_PA_TIME){
+				/* the first time has to set the base value for time regardless of blend mode */
 				if((setvars&MAP_PA_TIME)==0){
-					ptex->time=0.0;
-					setvars|=MAP_PA_TIME;
+					ptex->time *= 1.0f - var;
+					ptex->time += var * ((neg & MAP_PA_TIME)? 1.0f - value : value);
+					setvars |= MAP_PA_TIME;
 				}
-				ptex->time= texture_value_blend(mtex->def_var,ptex->time,value,var,blend,neg & MAP_PA_TIME);
+				else
+					ptex->time= texture_value_blend(mtex->def_var,ptex->time,value,var,blend,neg & MAP_PA_TIME);
 			}
 			if((event & mtex->pmapto) & MAP_PA_LIFE)
 				ptex->life= texture_value_blend(mtex->def_var,ptex->life,value,var,blend,neg & MAP_PA_LIFE);

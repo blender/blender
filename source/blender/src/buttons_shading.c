@@ -3095,7 +3095,7 @@ void do_matbuts(unsigned short event)
 					ob=base->object;
 					for(psys=ob->particlesystem.first; psys; psys=psys->next) {
 						if(psys && ma==give_current_material(ob,psys->part->omat)) {
-							psys->flag |= PSYS_INIT;
+							psys->recalc |= PSYS_INIT;
 
 							DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 						}
