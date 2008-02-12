@@ -2058,7 +2058,7 @@ static void render_panel_output(void)
 
 static void do_bake_func(void *unused_v, void *unused_p)
 {
-	objects_bake_render(0);
+	objects_bake_render_ui(0);
 }
 
 static void render_panel_bake(void)

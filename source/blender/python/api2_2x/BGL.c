@@ -1,5 +1,5 @@
 /* 
- * $Id: BGL.c 12267 2007-10-17 09:51:13Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -1099,7 +1099,7 @@ PyObject *BGL_Init(void)
 	if( PyType_Ready( &buffer_Type) < 0)
 		Py_RETURN_NONE;
 
-#define EXPP_ADDCONST(x) EXPP_dict_set_item_str(dict, #x, PyInt_FromLong(x))
+#define EXPP_ADDCONST(x) EXPP_dict_set_item_str(dict, #x, PyInt_FromLong((int)x))
 
 /* So, for example:
  * EXPP_ADDCONST(GL_CURRENT_BIT) becomes
@@ -1126,7 +1126,8 @@ PyObject *BGL_Init(void)
 	EXPP_ADDCONST(GL_TEXTURE_BIT);
 	EXPP_ADDCONST(GL_SCISSOR_BIT);
 	EXPP_ADDCONST(GL_ALL_ATTRIB_BITS);
-
+	EXPP_ADDCONST(GL_CLIENT_ALL_ATTRIB_BITS);
+	
 	EXPP_ADDCONST(GL_FALSE);
 	EXPP_ADDCONST(GL_TRUE);
 

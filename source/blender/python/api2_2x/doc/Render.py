@@ -74,6 +74,24 @@ attribute.  One of the following modes can be active:
     horizontally or vertically
   - SCALE: Stretch or squeeze the viewport to fill the display window.
 
+@type BakeModes: readonly dictionary
+@var BakeModes: Constant dict used for with L{RenderData.bakeMode}
+attribute.  One of the following modes can be active:
+  - LIGHT: Bake lighting only.
+  - ALL: Bake all render lighting.
+  - AO: Bake ambient occlusion.
+  - NORMALS: Bake a normal map.
+  - TEXTURE: Bake textures.
+  - DISPLACEMENT: Bake displacement.
+
+@type BakeNormalSpaceModes: readonly dictionary
+@var BakeNormalSpaceModes: Constant dict used for with L{RenderData.bakeNormalSpace}
+attribute.  One of the following modes can be active:
+  - CAMERA: Bake normals relative to the camera.
+  - WORLD: Bake normals in worldspace.
+  - OBJECT: Bake normals relative to the object.
+  - TANGENT: Bake tangent space normals.
+
 @var INTERNAL: The internal rendering engine. Use with setRenderer()
 @var YAFRAY: Yafray rendering engine. Use with setRenderer()
 
@@ -367,6 +385,18 @@ class RenderData:
   @type yafrayGIPhotons: boolean
   @ivar yafrayGITunePhotons: If true the photonmap is shown directly in the render for tuning.
   @type yafrayGITunePhotons: boolean
+  @ivar bakeMode: The method used when baking, see L{BakeModes}.
+  @type bakeMode: int
+  @ivar bakeNormalSpace: The method used when baking, see L{BakeNormalSpaceModes}.
+  @type bakeNormalSpace: int
+  @ivar bakeClear: When enabled, baking clears the image first.
+  @type bakeClear: bool
+  @ivar bakeToActive: When enabled, selected objects are baked onto the active object.
+  @type bakeToActive: bool  
+  @ivar bakeMargin: The pixel distance to extend baked pixels past the boundry (reduces bleeding when mipmapping)
+  @type bakeMargin: int
+  @ivar bakeDist: The distance in blender units to use when bakeToActive is enabled and geomtry does not overlap.
+  @type bakeDist: float
   """
   
   def currentFrame(frame = None):
@@ -381,6 +411,11 @@ class RenderData:
   def render():
     """
     Render the scene.
+    """
+
+  def bake():
+    """
+    Bake selected objects in the scene.
     """
 
   def renderAnim():

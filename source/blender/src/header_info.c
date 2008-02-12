@@ -1763,7 +1763,7 @@ void do_info_render_bakemenu(void *arg, int event)
 		G.scene->r.bake_flag ^= event;
 		break;
 	default:
-		objects_bake_render(event);
+		objects_bake_render_ui(event);
 	}	
 	
 	allqueue(REDRAWINFO, 0);

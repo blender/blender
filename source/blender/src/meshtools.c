@@ -1011,11 +1011,10 @@ void objects_bake_render_menu(void)
 
 	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4|Displacement %x5");
 	
-	objects_bake_render(event);
+	objects_bake_render_ui(event);
 }
 
-/* all selected meshes with UV maps are rendered for current scene visibility */
-void objects_bake_render(short event)
+void objects_bake_render(short event, char **error_msg)
 {
 	Object *actob= OBACT;
 	int active= G.scene->r.bake_flag & R_BAKE_TO_ACTIVE;
@@ -1024,8 +1023,8 @@ void objects_bake_render(short event)
 	if(event==0) event= G.scene->r.bake_mode;
 	
 	if(G.scene->r.renderer!=R_INTERN) {	 
-		error("Bake only supported for Internal Renderer");	 
-		return;	 
+		*error_msg = "Bake only supported for Internal Renderer";
+		return;
 	}	 
 	
 	if(active && !actob)
@@ -1048,7 +1047,7 @@ void objects_bake_render(short event)
 
 		if(event==RE_BAKE_AO) {
 			if(G.scene->world==NULL) {
-				error("No world set up");
+				*error_msg = "No world set up";
 				return;
 			}
 
@@ -1099,7 +1098,7 @@ void objects_bake_render(short event)
 		RE_Database_Free(re);
 		waitcursor(0);
 		
-		if(tot==0) error("No Images found to bake to");
+		if(tot==0) *error_msg = "No Images found to bake to";
 		else {
 			Image *ima;
 			/* force OpenGL reload and mipmap recalc */
@@ -1131,3 +1130,11 @@ void objects_bake_render(short event)
 	}
 }
 
+/* all selected meshes with UV maps are rendered for current scene visibility */
+void objects_bake_render_ui(short event)
+{
+	char *error_msg = NULL;
+	objects_bake_render(event, &error_msg);
+	if (error_msg)
+		error(error_msg);
+}

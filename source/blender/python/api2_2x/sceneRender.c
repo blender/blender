@@ -47,6 +47,7 @@ struct View3D; /* keep me up here */
 #include "BIF_drawscene.h"
 #include "BIF_renderwin.h"
 #include "BIF_writeimage.h"
+#include "BIF_meshtools.h"
 
 #include "BLI_blenlib.h"
 
@@ -86,6 +87,10 @@ enum rend_constants {
 	EXPP_RENDER_ATTR_SIZEY,
 	EXPP_RENDER_ATTR_GAUSSFILTER,
 	EXPP_RENDER_ATTR_MBLURFACTOR,
+	EXPP_RENDER_ATTR_BAKEMARGIN,
+	EXPP_RENDER_ATTR_BAKEMODE,
+ 	EXPP_RENDER_ATTR_BAKEDIST,
+	EXPP_RENDER_ATTR_BAKENORMALSPACE
 };
 
 #define EXPP_RENDER_ATTR_CFRA                 2
@@ -133,6 +138,7 @@ static PyObject *RenderData_SetRenderer( BPy_RenderData * self,
 static PyObject *RenderData_SetImageType( BPy_RenderData * self,
 		PyObject * args );
 static PyObject *RenderData_Render( BPy_RenderData * self );
+static PyObject *RenderData_Bake( BPy_RenderData * self );
 
 /* BPy_RenderData Internal Protocols */
 
@@ -489,6 +495,28 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 		G.scene->r.efra = (short)end_frame;
 	}
 
+	Py_RETURN_NONE;
+}
+
+/***************************************************************************/
+/* BPy_Bake Function Definitions                                           */
+/***************************************************************************/
+
+PyObject *RenderData_Bake( BPy_RenderData * self )
+{
+	char *error_msg = NULL;
+	Scene *oldsce;
+
+	oldsce = G.scene;
+	set_scene( self->scene );
+	
+	objects_bake_render(0, &error_msg);
+	
+	set_scene( oldsce );
+	
+	if (error_msg)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError, error_msg );
+	
 	Py_RETURN_NONE;
 }
 
@@ -1849,6 +1877,9 @@ static PyObject *RenderData_getFloatAttr( BPy_RenderData *self, void *type )
 	case EXPP_RENDER_ATTR_FPS_BASE:
 		param = self->renderContext->frs_sec_base;
 		break;
+	case EXPP_RENDER_ATTR_BAKEDIST:
+		param = self->renderContext->bake_maxdist;
+		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"undefined type constant in RenderData_getFloatAttr" );
@@ -1882,6 +1913,13 @@ static int RenderData_setFloatAttrClamp( BPy_RenderData *self, PyObject *value,
 		max = 120.0f;
 		param = &self->renderContext->frs_sec_base;
 		break;
+		
+	case EXPP_RENDER_ATTR_BAKEDIST:
+		min = 0.0f;
+		max = 10.0f;
+		param = &self->renderContext->bake_maxdist;
+		break;
+		
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"undefined type constant in RenderData_setFloatAttrClamp" );
@@ -1927,6 +1965,15 @@ static PyObject *RenderData_getIValueAttr( BPy_RenderData *self, void *type )
 		break;
 	case EXPP_RENDER_ATTR_SIZEY:
 		param = self->renderContext->ysch;
+		break;
+	case EXPP_RENDER_ATTR_BAKEMARGIN:
+		param = self->renderContext->bake_filter;
+		break;
+	case EXPP_RENDER_ATTR_BAKEMODE:
+		param = self->renderContext->bake_mode;
+		break;
+	case EXPP_RENDER_ATTR_BAKENORMALSPACE:
+		param = self->renderContext->bake_normal_space;
 		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -2005,6 +2052,24 @@ static int RenderData_setIValueAttrClamp( BPy_RenderData *self, PyObject *value,
 		max = 10000;
 		size = 'h';
 		param = &self->renderContext->ysch;
+		break;
+	case EXPP_RENDER_ATTR_BAKEMARGIN:
+		min = 0;
+		max = 32;
+		size = 'h';
+		param = &self->renderContext->bake_filter;
+		break;
+	case EXPP_RENDER_ATTR_BAKEMODE:
+		min = RE_BAKE_LIGHT;
+		max = RE_BAKE_DISPLACEMENT;
+		size = 'h';
+		param = &self->renderContext->bake_mode;
+		break;
+	case EXPP_RENDER_ATTR_BAKENORMALSPACE:
+		min = R_BAKE_SPACE_CAMERA;
+		max = R_BAKE_SPACE_TANGENT;
+		size = 'h';
+		param = &self->renderContext->bake_normal_space;
 		break;
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
@@ -2451,6 +2516,32 @@ static int RenderData_setActiveLayer( BPy_RenderData *self, PyObject *value )
 	return 0;
 }
 
+static int RenderData_setBakeMode( BPy_RenderData *self, PyObject *value,
+		void *type )
+{
+	/* use negative numbers to flip truth */
+	int param = PyObject_IsTrue( value );
+	
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if (param) {
+		self->renderContext->bake_flag |= (int)type;
+	} else {
+		self->renderContext->bake_flag &= ~(int)type;
+	}
+	return 0;
+}
+
+static PyObject *RenderData_getBakeMode( BPy_RenderData *self, void *type )
+{
+	int itype = (int)type;
+	/* use negative numbers to flip truth */
+	if (self->renderContext->bake_flag & itype)	Py_RETURN_TRUE;
+	else										Py_RETURN_FALSE;
+}
+
 /***************************************************************************/
 /* BPy_RenderData attribute def                                            */
 /***************************************************************************/
@@ -2791,7 +2882,32 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getYafrayGITunePhotons, (setter)RenderData_setYafrayGITunePhotons,
 	 "If true the photonmap is shown directly in the render for tuning",
 	 NULL},
-
+  
+	/* Bake stuff */
+	{"bakeClear",
+	 (getter)RenderData_getBakeMode, (setter)RenderData_setBakeMode,
+	 "Clear the image before baking",
+	 (void *)R_BAKE_CLEAR},
+	{"bakeToActive",
+	 (getter)RenderData_getBakeMode, (setter)RenderData_setBakeMode,
+	 "Bake selection to active",
+	 (void *)R_BAKE_TO_ACTIVE},
+	{"bakeMargin",
+	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
+	 "number of pixels to use as a margin for the edges of the image",
+	 (void *)EXPP_RENDER_ATTR_BAKEMARGIN},
+	{"bakeMode",
+	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
+	 "The mode for baking, see Blender.Scene.Render.BakeModes",
+	 (void *)EXPP_RENDER_ATTR_BAKEMODE},
+	{"bakeNormalSpace",
+	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
+	 "The mode for baking, see Blender.Scene.Render.BakeNormalSpaceModes",
+	 (void *)EXPP_RENDER_ATTR_BAKENORMALSPACE},
+	{"bakeDist",
+	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
+	 "Distance in blender units",
+	 (void *)EXPP_RENDER_ATTR_BAKEDIST},
 	{NULL,NULL,NULL,NULL,NULL}
 };
 
@@ -2801,6 +2917,8 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 static PyMethodDef BPy_RenderData_methods[] = {
 	{"render", ( PyCFunction ) RenderData_Render, METH_NOARGS,
 	 "() - render the scene"},
+	{"bake", ( PyCFunction ) RenderData_Bake, METH_NOARGS,
+	 "() - bake current selection"},
 	{"saveRenderedImage", (PyCFunction)RenderData_SaveRenderedImage, METH_VARARGS,
 	 "(filename) - save an image generated by a call to render() (set output path first)"},
 	{"renderAnim", ( PyCFunction ) RenderData_RenderAnim, METH_NOARGS,
@@ -3660,6 +3778,39 @@ static PyObject *M_Render_GameFramingDict( void )
 	return M;
 }
 
+static PyObject *M_Render_BakeModesDict( void )
+{
+	PyObject *M = PyConstant_New(  );
+
+	if( M ) {
+		BPy_constant *d = ( BPy_constant * ) M;
+		
+		PyConstant_Insert( d, "LIGHT", PyInt_FromLong( RE_BAKE_LIGHT ) );
+		PyConstant_Insert( d, "ALL", PyInt_FromLong( RE_BAKE_ALL ) );
+		PyConstant_Insert( d, "AO", PyInt_FromLong( RE_BAKE_AO ) );
+		PyConstant_Insert( d, "NORMALS", PyInt_FromLong( RE_BAKE_NORMALS ) );
+		PyConstant_Insert( d, "TEXTURE", PyInt_FromLong( RE_BAKE_TEXTURE ) );
+		PyConstant_Insert( d, "DISPLACEMENT", PyInt_FromLong( RE_BAKE_DISPLACEMENT ) );
+	}
+	return M;
+}
+
+
+static PyObject *M_Render_BakeNormalSpaceDict( void )
+{
+	PyObject *M = PyConstant_New(  );
+
+	if( M ) {
+		BPy_constant *d = ( BPy_constant * ) M;
+		
+		PyConstant_Insert( d, "CAMERA", PyInt_FromLong( R_BAKE_SPACE_CAMERA ) );
+		PyConstant_Insert( d, "WORLS", PyInt_FromLong( R_BAKE_SPACE_WORLD ) );
+		PyConstant_Insert( d, "OBJECT", PyInt_FromLong( R_BAKE_SPACE_OBJECT ) );
+		PyConstant_Insert( d, "TANGENT", PyInt_FromLong( R_BAKE_SPACE_TANGENT ) );
+	}
+	return M;
+}
+
 /***************************************************************************/
 /* Render Module Init                                                      */
 /***************************************************************************/
@@ -3669,7 +3820,9 @@ PyObject *Render_Init( void )
 	PyObject *ModesDict = M_Render_ModesDict( );
 	PyObject *SceModesDict = M_Render_SceModesDict( );
 	PyObject *GFramingDict = M_Render_GameFramingDict( );
-
+	PyObject *BakeModesDict = M_Render_BakeModesDict( );
+	PyObject *BakeNormalSpaceDict = M_Render_BakeNormalSpaceDict( );
+	
 	if( PyType_Ready( &RenderData_Type ) < 0 )
 		return NULL;
 
@@ -3685,7 +3838,11 @@ PyObject *Render_Init( void )
 		PyModule_AddObject( submodule, "SceModes", SceModesDict );
 	if( GFramingDict )
 		PyModule_AddObject( submodule, "FramingModes", GFramingDict );
-
+	if( BakeModesDict )
+		PyModule_AddObject( submodule, "BakeModes", BakeModesDict );
+	if( BakeNormalSpaceDict )
+		PyModule_AddObject( submodule, "BakeNormalSpaceModes", BakeNormalSpaceDict );
+	
 	/* ugh: why aren't these in a constant dict? */
 
 	PyModule_AddIntConstant( submodule, "INTERNAL", R_INTERN );
