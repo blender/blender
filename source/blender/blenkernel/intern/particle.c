@@ -204,7 +204,7 @@ Object *psys_get_lattice(Object *ob, ParticleSystem *psys)
 {
 	Object *lattice=0;
 	
-	if(!psys_in_edit_mode(psys)==0){
+	if(psys_in_edit_mode(psys)==0){
 
 		ModifierData *md = (ModifierData*)psys_get_modifier(ob,psys);
 
