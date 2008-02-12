@@ -767,8 +767,13 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 		else
 			step_nbr = 0;
 
-		if(psys->flag & PSYS_HAIR_DONE)
-			hair= (totchild == 0 || psys->childcache) && psys->pathcache;
+		/* if we have a hair particle system, use the path cache */
+		if(part->type == PART_HAIR) {
+			if(psys->flag & PSYS_HAIR_DONE)
+				hair= (totchild == 0 || psys->childcache) && psys->pathcache;
+			if(!hair)
+				return;
+		}
 
 		psys->lattice = psys_get_lattice(par, psys);
 
