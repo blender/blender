@@ -779,9 +779,7 @@ static void node_composit_exec_defocus(void *data, bNode *node, bNodeStack **in,
 	
 	// if image not valid type or fstop==infinite (128), nothing to do, pass in to out
 	if (((img->type!=CB_RGBA) && (img->type!=CB_VAL)) || ((nqd->no_zbuf==0) && (nqd->fstop==128.f))) {
-		new = alloc_compbuf(img->x, img->y, img->type, 0);
-		new->rect = img->rect;
-		out[0]->data = new;
+		out[0]->data = pass_on_compbuf(img);
 		return;
 	}
 	
