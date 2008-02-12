@@ -51,6 +51,10 @@
   #include "BLI_winstuff.h"
 #endif
 
+/* for U.tempdir */
+#include "DNA_userdef_types.h"
+
+
 /*	Takes an Object ID and returns a unique name
 	- id: object id
 	- cfra: frame for the cache, can be negative
@@ -59,19 +63,27 @@
 
 static int ptcache_path(char *filename)
 {
-	char dir[FILE_MAX], file[FILE_MAX]; /* we dont want the dir, only the file */
 	int i;
-	
-	BLI_split_dirfile(G.sce, dir, file);
-	i = strlen(file);
-	
-	/* remove .blend */
-	if (i > 6)
-		file[i-6] = '\0';
-	
-	sprintf(filename, PTCACHE_PATH"%s/", file); /* add blend file name to pointcache dir */
-	BLI_convertstringcode(filename, G.sce, 0);
-	return strlen(filename);
+	if (G.relbase_valid) {
+		char dir[FILE_MAX], file[FILE_MAX]; /* we dont want the dir, only the file */
+		
+		BLI_split_dirfile(G.sce, dir, file);
+		i = strlen(file);
+		
+		/* remove .blend */
+		if (i > 6)
+			file[i-6] = '\0';
+		
+		sprintf(filename, PTCACHE_PATH"%s/", file); /* add blend file name to pointcache dir */
+		BLI_convertstringcode(filename, G.sce, 0);
+		return strlen(filename);
+	} else {
+		/* use the temp path. this is weak but better then not using point cache at all */
+		if (U.tempdir[0] != '\0' && BLI_exists(U.tempdir)) {
+			return sprintf(filename, "%s/"PTCACHE_PATH"untitled/", U.tempdir);
+		}
+	}
+	return -1;
 }
 
 int BKE_ptcache_id_filename(struct ID *id, char *filename, int cfra, int stack_index, short do_path, short do_ext)
@@ -82,11 +94,13 @@ int BKE_ptcache_id_filename(struct ID *id, char *filename, int cfra, int stack_i
 	filename[0] = '\0';
 	newname = filename;
 	
-	if (!G.relbase_valid) return 0; /* save blend fiel before using pointcache */
+	/*if (!G.relbase_valid) return 0; *//* save blend file before using pointcache */
 	
 	/* start with temp dir */
 	if (do_path) {
 		len = ptcache_path(filename);
+		if (len==-1)
+			return;
 		newname += len;
 	}
 	idname = (id->name+2);
@@ -112,7 +126,7 @@ FILE *BKE_ptcache_id_fopen(struct ID *id, char mode, int cfra, int stack_index)
 	FILE *fp = NULL;
 	char filename[(FILE_MAXDIR+FILE_MAXFILE)*2];
 
-	if (!G.relbase_valid) return NULL; /* save blend fiel before using pointcache */
+	/*if (!G.relbase_valid) return NULL; *//* save blend file before using pointcache */
 	
 	BKE_ptcache_id_filename(id, filename, cfra, stack_index, 1, 1);
 
@@ -149,14 +163,16 @@ void BKE_ptcache_id_clear(struct ID *id, char mode, int cfra, int stack_index)
 	char filename[(FILE_MAXDIR+FILE_MAXFILE)*2];
 	char path_full[(FILE_MAXDIR+FILE_MAXFILE)*2];
 	
-	if (!G.relbase_valid) return; /* save blend fiel before using pointcache */
+	/*if (!G.relbase_valid) return; *//* save blend file before using pointcache */
 	
 	/* clear all files in the temp dir with the prefix of the ID and the ".bphys" suffix */
 	switch (mode) {
 	case PTCACHE_CLEAR_ALL:
 	case PTCACHE_CLEAR_BEFORE:	
 	case PTCACHE_CLEAR_AFTER:
-		ptcache_path(path);
+		if (ptcache_path(path)==-1)
+			return;
+		
 		len = BKE_ptcache_id_filename(id, filename, cfra, stack_index, 0, 0); /* no path */
 		
 		dir = opendir(path);
