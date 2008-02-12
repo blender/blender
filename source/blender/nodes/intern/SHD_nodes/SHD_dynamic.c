@@ -314,7 +314,8 @@ static int node_dynamic_parse(struct bNode *node)
 	NodeScriptDict *nsd = NULL;
 	PyObject *pyresult = NULL;
 	char *buf = NULL;
-	int pos = 0, is_valid_script = 0;
+	Py_ssize_t pos = 0;
+	int is_valid_script = 0;
 
 	if (!node->id || !node->storage)
 		return 0;
