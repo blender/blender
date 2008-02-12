@@ -73,6 +73,8 @@ typedef struct CollisionTree
 	int	count_nodes; // how many nodes are used
 	int	traversed;  // how many nodes already traversed until this level?
 	int	isleaf;
+	float alpha; /* for selfcollision */
+	float normal[3]; /* for selfcollision */
 }
 CollisionTree;
 
@@ -103,10 +105,10 @@ BVH;
 typedef void ( *CM_COLLISION_RESPONSE ) ( ModifierData *md1, ModifierData *md2, CollisionTree *tree1, CollisionTree *tree2 );
 
 // needed for collision.c
-int bvh_traverse ( ModifierData * md1, ModifierData * md2, CollisionTree * tree1, CollisionTree * tree2, float step, CM_COLLISION_RESPONSE collision_response);
-int bvh_traverse_mt ( ModifierData * md1, ModifierData * md2, CollisionTree * tree1, CollisionTree * tree2, float step, CM_COLLISION_RESPONSE collision_response);
-////////////////////////////////////////////////
+int bvh_traverse ( ModifierData * md1, ModifierData * md2, CollisionTree * tree1, CollisionTree * tree2, float step, CM_COLLISION_RESPONSE collision_response, int selfcollision);
+
 ////////////////////////////////////////
+
 
 ////////////////////////////////////////
 // used for collisions in kdop.c and also collision.c

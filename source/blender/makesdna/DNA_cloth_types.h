@@ -82,21 +82,21 @@ typedef struct SimulationSettings
 	float	max_struct; 	/* max structural scaling value, min is "structural" */
 	float	max_shear; 	/* max shear scaling value, UNUSED */
 	int 	firstcachedframe;
-	int pad;
+	float 	avg_spring_len; /* used for normalized springs */
 }
 SimulationSettings;
 
 
 typedef struct CollisionSettings
 {
-	float	epsilon;		/* The radius of a particle in the cloth.		*/
+	float	epsilon;		/* min distance for collisions.		*/
 	float	self_friction;		/* Fiction/damping with self contact.		 	*/
 	float	friction;		/* Friction/damping applied on contact with other object.*/
-	short	collision_type;		/* which collision system is used.			*/
+	short	self_loop_count;	/* How many iterations for the selfcollision loop	*/
 	short	loop_count;		/* How many iterations for the collision loop.		*/
 	struct	LinkNode *collision_list; /* e.g. pointer to temp memory for collisions */
 	int	flags;			/* collision flags defined in BKE_cloth.h */
-	float 	avg_spring_len; 	/* for selfcollision */
+	float 	selfepsilon; 		/* for selfcollision */
 }
 CollisionSettings;
 
@@ -125,6 +125,7 @@ typedef struct Cloth
 	struct MFace 		*mfaces;
 	struct Implicit_Data	*implicit; 		/* our implicit solver connects to this pointer */
 	struct Implicit_Data	*implicitEM; 		/* our implicit solver connects to this pointer */
+	struct EdgeHash 	*edgehash; 		/* used for selfcollisions */
 }
 Cloth;
 

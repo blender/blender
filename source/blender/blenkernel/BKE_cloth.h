@@ -94,10 +94,11 @@ typedef struct ClothVertex
 	float 	goal;		/* goal, from SB			*/
 	float	impulse[3];	/* used in collision.c */
 	unsigned int impulse_count; /* same as above */
-	float 	avg_spring_len; /* average length of connected springs, UNUSED ATM */
+	float 	avg_spring_len; /* average length of connected springs */
 	float 	struct_stiff;
 	float	bend_stiff;
 	float 	shear_stiff;
+	int 	spring_count; /* how many springs attached? */
 }
 ClothVertex;
 
@@ -153,7 +154,7 @@ typedef enum
 typedef enum
 {
 	CLOTH_COLLSETTINGS_FLAG_ENABLED = ( 1 << 1 ), /* enables cloth - object collisions */
-	CLOTH_COLLSETTINGS_FLAG_SELF = ( 1 << 2 ), /* unused */
+	CLOTH_COLLSETTINGS_FLAG_SELF = ( 1 << 2 ), /* enables selfcollisions */
 } CLOTH_COLLISIONSETTINGS_FLAGS;
 
 /* Spring types as defined in the paper.*/

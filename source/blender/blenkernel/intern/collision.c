@@ -948,6 +948,29 @@ void cloth_collision_moving(ClothModifierData *clmd, ClothModifierData *coll_clm
 	cloth_collision_moving_tris(coll_clmd, clmd, tree2, tree1);
 }
 
+void cloth_collision_self_static(ModifierData *md1, ModifierData *md2, CollisionTree *tree1, CollisionTree *tree2)
+{
+	ClothModifierData *clmd = (ClothModifierData *)md1;
+	CollisionModifierData *collmd = (CollisionModifierData *)md2;
+	CollPair *collpair = NULL;
+	Cloth *cloth1=NULL;
+	MFace *face1=NULL, *face2=NULL;
+	ClothVertex *verts1=NULL;
+	double distance = 0;
+	float epsilon = clmd->coll_parms->epsilon;
+	unsigned int i = 0;
+
+	
+}
+
+/* aye this belongs to arith.c */
+static void Vec3PlusStVec(float *v, float s, float *v1)
+{
+	v[0] += s*v1[0];
+	v[1] += s*v1[1];
+	v[2] += s*v1[2];
+}
+
 // cloth - object collisions
 int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 {
@@ -956,12 +979,13 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 	Cloth *cloth=NULL;
 	Object *coll_ob=NULL;
 	BVH *cloth_bvh=NULL;
-	unsigned int i=0, j = 0, numfaces = 0, numverts = 0;
+	long i=0, j = 0, numfaces = 0, numverts = 0;
 	unsigned int result = 0, ic = 0, rounds = 0; // result counts applied collisions; ic is for debug output; 
 	ClothVertex *verts = NULL;
 	float tnull[3] = {0,0,0};
 	int ret = 0;
 	ClothModifierData *tclmd;
+	int collisions = 0, count = 0;
 
 	if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ) || !(((Cloth *)clmd->clothObject)->tree))
 	{
@@ -1006,7 +1030,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 				
 				collision_move_object(collmd, step + dt, step);
 					
-				bvh_traverse((ModifierData *)clmd, (ModifierData *)collmd, cloth_bvh->root, coll_bvh->root, step, cloth_collision_static);
+				bvh_traverse((ModifierData *)clmd, (ModifierData *)collmd, cloth_bvh->root, coll_bvh->root, step, cloth_collision_static, 0);
 			}
 			else
 				printf ("cloth_bvh_objcollision: found a collision object with clothObject or collData NULL.\n");
@@ -1068,7 +1092,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 	{
 		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) 
 		{			
-			if(verts [i].goal >= SOFTGOALSNAP)
+			if(verts [i].flags & CLOTH_VERT_FLAG_PINNED)
 			{
 				continue;
 			}
@@ -1077,7 +1101,103 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 		VECADD(verts[i].tx, verts[i].txold, verts[i].tv);
 	}
 	////////////////////////////////////////////////////////////
-
+	
+	
+	////////////////////////////////////////////////////////////
+	// Test on *simple* selfcollisions
+	////////////////////////////////////////////////////////////
+	if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF)	
+	{
+		collisions = 1;
+		verts = cloth->verts; // needed for openMP
+		
+		for(count = 0; count < clmd->coll_parms->self_loop_count; count++)
+		{	
+			if(collisions)
+			{
+				collisions = 0;
+	#pragma omp parallel for private(i,j, collisions) shared(verts, ret)
+				for(i = 0; i < cloth->numverts; i++)
+				{
+					for(j = i + 1; j < cloth->numverts; j++)
+					{
+						float temp[3];
+						float length = 0;
+						float mindistance = clmd->coll_parms->selfepsilon*(cloth->verts[i].avg_spring_len + cloth->verts[j].avg_spring_len);
+							
+						if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
+						{			
+							if((cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED)
+							&& (cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED))
+							{
+								continue;
+							}
+						}
+						
+						VECSUB(temp, verts[i].tx, verts[j].tx);
+						
+						if ((ABS(temp[0]) > mindistance) || (ABS(temp[1]) > mindistance) || (ABS(temp[2]) > mindistance)) continue;
+							
+						// check for adjacent points
+						if(BLI_edgehash_haskey (cloth->edgehash, i, j ))
+						{
+							continue;
+						}
+							
+						length = Normalize(temp);
+							
+						if(length < mindistance)
+						{
+							float correction = mindistance - length;
+								
+							if(cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED)
+							{
+								VecMulf(temp, -correction);
+								VECADD(verts[j].tx, verts[j].tx, temp);
+							}
+							else if(cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED)
+							{
+								VecMulf(temp, correction);
+								VECADD(verts[i].tx, verts[i].tx, temp);
+							}
+							else
+							{
+								VecMulf(temp, -correction*0.5);
+								VECADD(verts[j].tx, verts[j].tx, temp);
+								
+								VECSUB(verts[i].tx, verts[i].tx, temp);	
+							}
+							
+							collisions = 1;
+							
+							if(!ret)
+							{	
+		#pragma omp critical
+		{
+								ret = 1;
+		}
+							}
+						}
+					}
+				}
+			}
+		}
+		////////////////////////////////////////////////////////////
+		
+		////////////////////////////////////////////////////////////
+		// SELFCOLLISIONS: update velocities
+		////////////////////////////////////////////////////////////
+		if(ret)
+		{
+			for(i = 0; i < cloth->numverts; i++)
+			{
+				if(!(cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED))
+					VECSUB(verts[i].tv, verts[i].tx, verts[i].txold);
+			}
+		}
+		////////////////////////////////////////////////////////////
+	}
+	
 	////////////////////////////////////////////////////////////
 	// moving collisions
 	//
@@ -1132,7 +1252,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 	{
 	BVH *coll_bvh = coll_clmd->clothObject->tree;
 					
-	bvh_traverse(clmd, coll_clmd, cloth_bvh->root, coll_bvh->root, step, cloth_collision_moving);
+	bvh_traverse(clmd, coll_clmd, cloth_bvh->root, coll_bvh->root, step, cloth_collision_moving, 0);
 }
 	else
 	printf ("cloth_bvh_objcollision: found a collision object with clothObject or collData NULL.\n");

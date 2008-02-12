@@ -1289,9 +1289,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 				
 			scaling = k + s->stiffness * ABS(clmd->sim_parms->max_struct-k);
 			
-			k = scaling / (clmd->coll_parms->avg_spring_len + FLT_EPSILON);
-			if(G.rt>3)
-			printf("struct scaling: %f\n", k);
+			k = scaling / (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
 			
 			// TODO: verify, half verified (couldn't see error)
 			mul_fvector_S(stretch_force, dir, k*(length-L)); 
@@ -1333,7 +1331,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			mul_fvector_S(dir, extent, 0.0f);
 		
 		k = clmd->sim_parms->goalspring;
-		k /= (clmd->coll_parms->avg_spring_len + FLT_EPSILON);
+		k /= (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
 		k *= verts [s->ij].goal;
 		VECADDS(s->f, s->f, extent, k);
 		
@@ -1353,7 +1351,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			k = clmd->sim_parms->bending;	
 			
 			scaling = k + s->stiffness * ABS(clmd->sim_parms->max_bend-k);			
-			cb = k = scaling / (20.0*(clmd->coll_parms->avg_spring_len + FLT_EPSILON));
+			cb = k = scaling / (20.0*(clmd->sim_parms->avg_spring_len + FLT_EPSILON));
 			
 			if(G.rt>3)
 			printf("bend scaling: %f\n", k);

@@ -5322,8 +5322,18 @@ static void object_panel_cloth_II(Object *ob)
 		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED)
 		{
 			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Min Distance:",	   160,60,150,20, &clmd->coll_parms->epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in, can be changed for each frame");
-			uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Collision Quality:",	   10,40,150,20, &clmd->coll_parms->loop_count, 1.0, 100.0, 1.0, 0, "How many collision iterations should be done. (higher = better = slower), can be changed for each frame");
+			uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Collision Quality:",	   10,40,150,20, &clmd->coll_parms->loop_count, 1.0, 20.0, 1.0, 0, "How many collision iterations should be done. (higher = better = slower), can be changed for each frame");
 			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Friction:",	   160,40,150,20, &clmd->coll_parms->friction, 0.0, 10.0, 1.0, 0, "Friction force if a collision happened (high=slower movement when collided)");
+			
+			uiDefButBitI(block, TOG, CLOTH_COLLSETTINGS_FLAG_SELF, B_CLOTH_RENEW, "Enable selfcollisions",	10,20,150,20, &clmd->coll_parms->flags, 0, 0, 0, 0, "Enable selfcollisions with this object");
+			if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF)	
+			{
+				uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Min Distance:",	   160,20,150,20, &clmd->coll_parms->selfepsilon, 0.5f, 1.0, 0.01f, 0, "0.5 means no distance at all, 1.0 is maximum distance");
+				// self_loop_count
+				uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Selfcoll Quality:",	   10,0,150,20, &clmd->coll_parms->self_loop_count, 1.0, 10.0, 1.0, 0, "How many selfcollision iterations should be done. (higher = better = slower), can be changed for each frame");
+			}
+			else
+				uiDefBut(block, LABEL, 0, "",160,20,150,20, NULL, 0.0, 0, 0, 0, "");	
 		}
 		else
 			uiDefBut(block, LABEL, 0, "",160,60,150,20, NULL, 0.0, 0, 0, 0, "");	

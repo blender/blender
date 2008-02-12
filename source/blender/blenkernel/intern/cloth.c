@@ -165,6 +165,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->editedframe = 0;
 	clmd->sim_parms->autoprotect = 25;
 	clmd->sim_parms->firstcachedframe = -1.0;
+	clmd->sim_parms->avg_spring_len = 0.0;
 	
 	clmd->coll_parms->self_friction = 5.0;
 	clmd->coll_parms->friction = 5.0;
@@ -172,6 +173,8 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->coll_parms->epsilon = 0.015f;
 	clmd->coll_parms->flags = CLOTH_COLLSETTINGS_FLAG_ENABLED;
 	clmd->coll_parms->collision_list = NULL;
+	clmd->coll_parms->self_loop_count = 1.0;
+	clmd->coll_parms->selfepsilon = 0.75;
 
 	/* These defaults are copied from softbody.c's
 	* softbody_calc_forces() function.
@@ -268,130 +271,6 @@ void bvh_update_from_cloth(ClothModifierData *clmd, int moving)
 	
 	bvh_update(bvh, moving);
 }
-
-// unused in the moment, cloth needs quads from mesh
-DerivedMesh *CDDM_convert_to_triangle ( DerivedMesh *dm )
-{
-	DerivedMesh *result = NULL;
-	int i;
-	int numverts = dm->getNumVerts ( dm );
-	int numedges = dm->getNumEdges ( dm );
-	int numfaces = dm->getNumFaces ( dm );
-
-	MVert *mvert = CDDM_get_verts ( dm );
-	MEdge *medge = CDDM_get_edges ( dm );
-	MFace *mface = CDDM_get_faces ( dm );
-
-	MVert *mvert2;
-	MFace *mface2;
-	unsigned int numtris=0;
-	unsigned int numquads=0;
-	int a = 0;
-	int random = 0;
-	int firsttime = 0;
-	float vec1[3], vec2[3], vec3[3], vec4[3], vec5[3];
-	float mag1=0, mag2=0;
-
-	for ( i = 0; i < numfaces; i++ )
-	{
-		if ( mface[i].v4 )
-			numquads++;
-		else
-			numtris++;
-	}
-
-	result = CDDM_from_template ( dm, numverts, 0, numtris + 2*numquads );
-
-	if ( !result )
-		return NULL;
-
-	// do verts
-	mvert2 = CDDM_get_verts ( result );
-	for ( a=0; a<numverts; a++ )
-	{
-		MVert *inMV;
-		MVert *mv = &mvert2[a];
-
-		inMV = &mvert[a];
-
-		DM_copy_vert_data ( dm, result, a, a, 1 );
-		*mv = *inMV;
-	}
-
-
-	// do faces
-	mface2 = CDDM_get_faces ( result );
-	for ( a=0, i=0; a<numfaces; a++ )
-	{
-		MFace *mf = &mface2[i];
-		MFace *inMF;
-		inMF = &mface[a];
-
-		/*
-		DM_copy_face_data(dm, result, a, i, 1);
-
-		*mf = *inMF;
-		*/
-
-		if ( mface[a].v4 && random==1 )
-		{
-			mf->v1 = mface[a].v2;
-			mf->v2 = mface[a].v3;
-			mf->v3 = mface[a].v4;
-		}
-		else
-		{
-			mf->v1 = mface[a].v1;
-			mf->v2 = mface[a].v2;
-			mf->v3 = mface[a].v3;
-		}
-
-		mf->v4 = 0;
-		mf->flag |= ME_SMOOTH;
-
-		test_index_face ( mf, NULL, 0, 3 );
-
-		if ( mface[a].v4 )
-		{
-			MFace *mf2;
-
-			i++;
-
-			mf2 = &mface2[i];
-			/*
-			DM_copy_face_data(dm, result, a, i, 1);
-
-			*mf2 = *inMF;
-			*/
-
-			if ( random==1 )
-			{
-				mf2->v1 = mface[a].v1;
-				mf2->v2 = mface[a].v2;
-				mf2->v3 = mface[a].v4;
-			}
-			else
-			{
-				mf2->v1 = mface[a].v4;
-				mf2->v2 = mface[a].v1;
-				mf2->v3 = mface[a].v3;
-			}
-			mf2->v4 = 0;
-			mf2->flag |= ME_SMOOTH;
-
-			test_index_face ( mf2, NULL, 0, 3 );
-		}
-
-		i++;
-	}
-
-	CDDM_calc_edges ( result );
-	CDDM_calc_normals ( result );
-
-	return result;
-
-}
-
 
 DerivedMesh *CDDM_create_tearing ( ClothModifierData *clmd, DerivedMesh *dm )
 {
@@ -922,6 +801,11 @@ void cloth_free_modifier ( Object *ob, ClothModifierData *clmd )
 		// we save our faces for collision objects
 		if ( cloth->mfaces )
 			MEM_freeN ( cloth->mfaces );
+		
+		if(cloth->edgehash)
+			BLI_edgehash_free ( cloth->edgehash, NULL );
+		
+		
 		/*
 		if(clmd->clothObject->facemarks)
 		MEM_freeN(clmd->clothObject->facemarks);
@@ -988,6 +872,11 @@ void cloth_free_modifier_extern ( ClothModifierData *clmd )
 		// we save our faces for collision objects
 		if ( cloth->mfaces )
 			MEM_freeN ( cloth->mfaces );
+		
+		if(cloth->edgehash)
+			BLI_edgehash_free ( cloth->edgehash, NULL );
+		
+		
 		/*
 		if(clmd->clothObject->facemarks)
 		MEM_freeN(clmd->clothObject->facemarks);
@@ -1136,6 +1025,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		clmd->clothObject->old_solver_type = 255;
 		// clmd->clothObject->old_collision_type = 255;
 		cloth = clmd->clothObject;
+		clmd->clothObject->edgehash = NULL;
 	}
 	else if ( !clmd->clothObject )
 	{
@@ -1236,8 +1126,7 @@ static void cloth_from_mesh ( Object *ob, ClothModifierData *clmd, DerivedMesh *
 	MFace *mface = CDDM_get_faces(dm);
 	unsigned int i = 0;
 
-	/* Allocate our vertices.
-	*/
+	/* Allocate our vertices. */
 	clmd->clothObject->numverts = numverts;
 	clmd->clothObject->verts = MEM_callocN ( sizeof ( ClothVertex ) * clmd->clothObject->numverts, "clothVertex" );
 	if ( clmd->clothObject->verts == NULL )
@@ -1349,7 +1238,11 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 			spring->kl = medge[i].v2;
 			VECSUB ( temp, cloth->verts[spring->kl].x, cloth->verts[spring->ij].x );
 			spring->restlen =  sqrt ( INPR ( temp, temp ) );
-			clmd->coll_parms->avg_spring_len += spring->restlen;
+			clmd->sim_parms->avg_spring_len += spring->restlen;
+			cloth->verts[spring->ij].avg_spring_len += spring->restlen;
+			cloth->verts[spring->kl].avg_spring_len += spring->restlen;
+			cloth->verts[spring->ij].spring_count++;
+			cloth->verts[spring->kl].spring_count++;
 			spring->type = CLOTH_SPRING_TYPE_STRUCTURAL;
 			spring->flags = 0;
 			spring->stiffness = (cloth->verts[spring->kl].struct_stiff + cloth->verts[spring->ij].struct_stiff) / 2.0;
@@ -1363,7 +1256,12 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		}
 	}
 	
-	clmd->coll_parms->avg_spring_len /= struct_springs;
+	clmd->sim_parms->avg_spring_len /= struct_springs;
+	
+	for(i = 0; i < numverts; i++)
+	{
+		cloth->verts[i].avg_spring_len = cloth->verts[i].avg_spring_len * 0.49 / ((float)cloth->verts[i].spring_count);
+	}
 	
 	// shear springs
 	for ( i = 0; i < numfaces; i++ )
@@ -1452,10 +1350,10 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	if ( edgelist )
 		MEM_freeN ( edgelist );
 	
-	BLI_edgehash_free ( edgehash, NULL );
+	cloth->edgehash = edgehash;
 	
 	if(G.rt>0)
-		printf("avg_len: %f\n",clmd->coll_parms->avg_spring_len);
+		printf("avg_len: %f\n",clmd->sim_parms->avg_spring_len);
 
 	return 1;
 
