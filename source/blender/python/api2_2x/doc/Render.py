@@ -472,7 +472,7 @@ class RenderData:
     """
     Get the filename used for the remdered image.
     @type frame: int
-    @param path: the frame to use in the filename, if no argument given, use the current frame.
+    @param frame: the frame to use in the filename, if no argument given, use the current frame.
     @rtype: string
     @return: Returns the filename that blender would render to, taking into account output path, extension and frame number.
     """
