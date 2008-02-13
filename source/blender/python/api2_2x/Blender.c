@@ -795,7 +795,7 @@ static PyObject *Blender_ShowHelp(PyObject *self, PyObject *script)
 
 	EXPP_dict_set_item_str(bpy_registryDict, "__help_browser", rkeyd);
 
-	arglist = Py_BuildValue("(s)", hspath);
+	arglist = Py_BuildValue("s", hspath);
 	Blender_Run(self, arglist);
 	Py_DECREF(arglist);
 
