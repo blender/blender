@@ -4513,7 +4513,7 @@ static void object_panel_particle_physics(Object *ob)
 		uiDefButF(block, NUM, B_PART_RECALC, "Rand:",			butx+butw/2,buty,butw/2,buth*4/5, &part->randphasefac, 0.0, 1.0, 1, 3, "Randomize rotation phase");
 		uiBlockSetCol(block, TH_AUTO);
 
-		uiDefButS(block, MENU, B_PART_RECALC, "Angular v %t|Velocity%x3|Random%x2|Spin%x1|None%x0", butx,(buty-=buth*4/5),butw,buth*4/5, &part->avemode, 14.0, 0.0, 0, 0, "Select particle angular velocity mode");
+		uiDefButS(block, MENU, B_PART_RECALC, "Angular v %t|Random%x2|Spin%x1|None%x0", butx,(buty-=buth*4/5),butw,buth*4/5, &part->avemode, 14.0, 0.0, 0, 0, "Select particle angular velocity mode");
 		uiBlockSetCol(block, TH_BUT_SETTING2);
 		if(ELEM(part->avemode,PART_AVE_RAND,PART_AVE_SPIN))
 			uiDefButF(block, NUM, B_PART_RECALC, "Angular v:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->avefac, -200.0, 200.0, 1, 3, "Angular velocity amount");

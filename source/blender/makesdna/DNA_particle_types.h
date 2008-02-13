@@ -365,7 +365,6 @@ typedef struct ParticleSystem{
 /* part->avemode */
 #define PART_AVE_SPIN		1
 #define PART_AVE_RAND		2
-#define PART_AVE_VEL		3
 
 /* part->reactevent */
 #define PART_EVENT_DEATH	0

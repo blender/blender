@@ -2875,7 +2875,7 @@ static void rotate_particle(ParticleSettings *part, ParticleData *pa, float dfra
 	float rotfac, rot1[4], rot2[4]={1.0,0.0,0.0,0.0}, dtime=dfra*timestep;
 
 	if((part->flag & PART_ROT_DYN)==0){
-		if(ELEM(part->avemode,PART_AVE_SPIN,PART_AVE_VEL)){
+		if(part->avemode==PART_AVE_SPIN){
 			float angle;
 			float len1 = VecLength(pa->state.vel);
 			float len2 = VecLength(state->vel);
@@ -2888,10 +2888,9 @@ static void rotate_particle(ParticleSettings *part, ParticleData *pa, float dfra
 				angle=Inpf(pa->state.vel,state->vel)/(len1*len2);
 				VecMulf(state->ave,saacos(angle)/dtime);
 			}
-		}
 
-		if(part->avemode == PART_AVE_SPIN)
 			VecRotToQuat(state->vel,dtime*part->avefac,rot2);
+		}
 	}
 
 	rotfac=VecLength(state->ave);
