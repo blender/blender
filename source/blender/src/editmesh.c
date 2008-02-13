@@ -1122,12 +1122,12 @@ void load_editMesh(void)
 			VECCOPY(cloth->verts[i].x, eve->co);
 			Mat4MulVecfl ( G.obedit->obmat, cloth->verts[i].x );
 			
-			/*
+			
 			// not physical correct but gives nicer results when commented
 			VECSUB(temp, cloth->verts[i].x, temp);
-			VecMulf(temp, 1.0f / dt);
+			VecMulf(temp, 1.0f / (dt*10.0));
 			VECADD(cloth->verts[i].v, cloth->verts[i].v, temp);
-			*/
+			
 			if(oldverts) {
 				VECCOPY(mvert->co, oldverts[i].co);
 				if(G.rt > 0)
@@ -1171,12 +1171,9 @@ void load_editMesh(void)
 		if(G.rt > 0)
 		printf("loadmesh --> cloth_enabled cloth_write_cache\n");
 		cloth_write_cache(G.obedit, clmd, clmd->sim_parms->editedframe);
+		cloth_read_cache(G.obedit, clmd, G.scene->r.cfra);
+		implicit_set_positions(clmd);
 		
-		/* in this case we have to get the data for the requested frame */
-		if(clmd->sim_parms->editedframe != G.scene->r.cfra)
-		{
-			cloth_read_cache(G.obedit, clmd, G.scene->r.cfra);
-		}
 		clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_EDITMODE;
 	}
 	else

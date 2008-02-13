@@ -1112,6 +1112,9 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	// init our solver
 	if ( solvers [clmd->sim_parms->solver_type].init )
 		solvers [clmd->sim_parms->solver_type].init ( ob, clmd );
+	
+	if(cache_there)
+		implicit_set_positions(clmd);
 
 	clmd->clothObject->tree = bvh_build_from_cloth ( clmd, clmd->coll_parms->epsilon );
 

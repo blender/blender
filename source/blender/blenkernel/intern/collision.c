@@ -979,7 +979,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 	Cloth *cloth=NULL;
 	Object *coll_ob=NULL;
 	BVH *cloth_bvh=NULL;
-	long i=0, j = 0, numfaces = 0, numverts = 0, k = 0;
+	long i=0, j = 0, numfaces = 0, numverts = 0;
 	unsigned int result = 0, ic = 0, rounds = 0; // result counts applied collisions; ic is for debug output; 
 	ClothVertex *verts = NULL;
 	float tnull[3] = {0,0,0};
