@@ -1671,7 +1671,8 @@ void cache_occ_samples(Render *re, RenderPart *pa, ShadeSample *ssamp)
 	OcclusionCacheSample *sample;
 	OccFace exclude;
 	ShadeInput *shi;
-	int *ro, *rp, *rz, onlyshadow;
+	long *rd=NULL;
+	int *ro=NULL, *rp=NULL, *rz=NULL, onlyshadow;
 	int x, y, step = CACHE_STEP;
 
 	if(!tree->cache)
@@ -1686,45 +1687,60 @@ void cache_occ_samples(Render *re, RenderPart *pa, ShadeSample *ssamp)
 	cache->sample= MEM_callocN(sizeof(OcclusionCacheSample)*cache->w*cache->h, "OcclusionCacheSample");
 	sample= cache->sample;
 
-	ps.next= NULL;
-	ps.mask= (1<<re->osa);
+	if(re->osa) {
+		rd= pa->rectdaps;
+	}
+	else {
+		/* fake pixel struct for non-osa */
+		ps.next= NULL;
+		ps.mask= 0xFFFF;
 
-	ro= pa->recto;
-	rp= pa->rectp;
-	rz= pa->rectz;
+		ro= pa->recto;
+		rp= pa->rectp;
+		rz= pa->rectz;
+	}
 
 	/* compute a sample at every step pixels */
 	for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
-		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, ro++, rp++, rz++, sample++) {
-			if((((x - pa->disprect.xmin + step) % step) == 0 || x == pa->disprect.xmax-1) && (((y - pa->disprect.ymin + step) % step) == 0 || y == pa->disprect.ymax-1)) {
-				if(*rp) {
-					ps.obi= *ro;
-					ps.facenr= *rp;
-					ps.z= *rz;
+		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, sample++, rd++, ro++, rp++, rz++) {
+			if(!(((x - pa->disprect.xmin + step) % step) == 0 || x == pa->disprect.xmax-1))
+				continue;
+			if(!(((y - pa->disprect.ymin + step) % step) == 0 || y == pa->disprect.ymax-1))
+				continue;
 
-					shade_samples_fill_with_ps(ssamp, &ps, x, y);
-					shi= ssamp->shi;
-					if(!shi->vlr)
-						continue;
+			if(re->osa) {
+				if(!*rd) continue;
 
-					onlyshadow= (shi->mat->mode & MA_ONLYSHADOW);
-					exclude.obi= shi->obi - re->objectinstance;
-					exclude.facenr= shi->vlr->index;
-					sample_occ_tree(re, tree, &exclude, shi->co, shi->vno, shi->thread, onlyshadow, shi->ao);
-
-					VECCOPY(sample->co, shi->co);
-					VECCOPY(sample->n, shi->vno);
-					VECCOPY(sample->col, shi->ao);
-					sample->intensity= MAX3(sample->col[0], sample->col[1], sample->col[2]);
-					sample->dist2= INPR(shi->dxco, shi->dxco) + INPR(shi->dyco, shi->dyco);
-					sample->x= shi->xs;
-					sample->y= shi->ys;
-					sample->filled= 1;
-				}
-
-				if(re->test_break())
-					break;
+				shade_samples_fill_with_ps(ssamp, (PixStr *)(*rd), x, y);
 			}
+			else {
+				if(!*rp) continue;
+
+				ps.obi= *ro;
+				ps.facenr= *rp;
+				ps.z= *rz;
+				shade_samples_fill_with_ps(ssamp, &ps, x, y);
+			}
+
+			shi= ssamp->shi;
+			if(shi->vlr) {
+				onlyshadow= (shi->mat->mode & MA_ONLYSHADOW);
+				exclude.obi= shi->obi - re->objectinstance;
+				exclude.facenr= shi->vlr->index;
+				sample_occ_tree(re, tree, &exclude, shi->co, shi->vno, shi->thread, onlyshadow, shi->ao);
+
+				VECCOPY(sample->co, shi->co);
+				VECCOPY(sample->n, shi->vno);
+				VECCOPY(sample->col, shi->ao);
+				sample->intensity= MAX3(sample->col[0], sample->col[1], sample->col[2]);
+				sample->dist2= INPR(shi->dxco, shi->dxco) + INPR(shi->dyco, shi->dyco);
+				sample->x= shi->xs;
+				sample->y= shi->ys;
+				sample->filled= 1;
+			}
+
+			if(re->test_break())
+				break;
 		}
 	}
 }
