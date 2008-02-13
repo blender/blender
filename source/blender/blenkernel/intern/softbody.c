@@ -3600,9 +3600,11 @@ static void particles_to_softbody(Object *ob)
 	renew_softbody(ob, totpoint, totedge);
 
 	/* find first BodyPoint index for each particle */
-	psys->particles->bpi = 0;
-	for(a=1, pa=psys->particles+1; a<psys->totpart; a++, pa++)
-		pa->bpi = (pa-1)->bpi + (pa-1)->totkey;
+	if(psys->totpart > 0) {
+		psys->particles->bpi = 0;
+		for(a=1, pa=psys->particles+1; a<psys->totpart; a++, pa++)
+			pa->bpi = (pa-1)->bpi + (pa-1)->totkey;
+	}
 
 	/* we always make body points */
 	sb= ob->soft;	
