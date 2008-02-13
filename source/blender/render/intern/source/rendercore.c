@@ -1837,7 +1837,8 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 	else {
 		shade_input_set_shade_texco(shi);
 		
-		shade_samples_do_AO(ssamp);
+		if(!ELEM(bs->type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE))
+			shade_samples_do_AO(ssamp);
 		
 		if(shi->mat->nodetree && shi->mat->use_nodes) {
 			ntreeShaderExecTree(shi->mat->nodetree, shi, &shr);

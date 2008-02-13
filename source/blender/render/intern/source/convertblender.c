@@ -5141,6 +5141,11 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 	if(!re->test_break())
 		if(re->r.mode & R_RAYTRACE)
 			makeraytree(re);
+	
+	/* occlusion */
+	if((re->wrld.mode & WO_AMB_OCC) && !re->test_break())
+		if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
+			make_occ_tree(re);
 }
 
 /* ------------------------------------------------------------------------- */
