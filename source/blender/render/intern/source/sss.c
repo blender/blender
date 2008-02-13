@@ -59,6 +59,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 /* this module */
@@ -921,7 +922,8 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 		float *col= mat->sss_col, *radius= mat->sss_radius;
 		float fw= mat->sss_front, bw= mat->sss_back;
 		float error = mat->sss_error;
-		
+
+		error= get_render_aosss_error(&re->r, error);
 		if((re->r.scemode & R_PREVIEWBUTS) && error < 0.5f)
 			error= 0.5f;
 

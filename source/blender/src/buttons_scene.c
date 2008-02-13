@@ -2103,6 +2103,27 @@ static void render_panel_bake(void)
 	uiDefButS(block, NUM, B_DIFF,"Margin:",				210,30,120,20,&G.scene->r.bake_filter, 0.0, 32.0, 0, 0, "Amount of pixels to extend the baked result with, as post process filter");
 }
 
+static void render_panel_simplify(void)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "render_panel_simplify", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Render", "Render");
+	if(uiNewPanel(curarea, block, "Simplifcation", "Render", 320, 0, 318, 204)==0) return;
+
+	uiDefButBitI(block, TOG, R_SIMPLIFY, B_DIFF,"Render Simplification",	10,150,190,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable simplification of scene");
+
+	uiBlockBeginAlign(block);
+	uiDefButI(block, NUM,B_DIFF, "Subsurf:",	10,120,190,20, &G.scene->r.simplify_subsurf, 0.0, 6.0, 0, 0, "Global maximum subsurf level percentage");
+	uiDefButF(block, NUM,B_DIFF, "Child Particles:",	10,100,190,20, &G.scene->r.simplify_particles, 0.0, 1.0, 0, 0, "Global child particle percentage");
+	uiBlockEndAlign(block);
+
+	uiBlockBeginAlign(block);
+	uiDefButI(block, NUM,B_DIFF, "Shadow Samples:",	10,70,190,20, &G.scene->r.simplify_shadowsamples, 1.0, 16.0, 0, 0, "Global maximum shadow map samples");
+	uiDefButF(block, NUM,B_DIFF, "AO and SSS:",	10,50,190,20, &G.scene->r.simplify_aosss, 0.0, 1.0, 0, 0, "Global approximate AO and SSS quality factor");
+	uiBlockEndAlign(block);
+}
+
 static void render_panel_render(void)
 {
 	uiBlock *block;
@@ -2830,6 +2851,7 @@ void render_panels()
 	render_panel_output();
 	render_panel_layers();
 	render_panel_render();
+	if(G.rt == 1) render_panel_simplify();
 	render_panel_anim();
 	render_panel_bake();
 

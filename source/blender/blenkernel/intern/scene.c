@@ -220,6 +220,11 @@ Scene *add_scene(char *name)
 	
 	sce->r.stereomode = 1;  // no stereo
 
+	sce->r.simplify_subsurf= 6;
+	sce->r.simplify_particles= 1.0f;
+	sce->r.simplify_shadowsamples= 16;
+	sce->r.simplify_aosss= 1.0f;
+
 	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");
 	sce->toolsettings->cornertype=1;
 	sce->toolsettings->degr = 90; 
@@ -701,3 +706,38 @@ void sculpt_reset_curve(SculptData *sd)
 
 	curvemapping_changed(sd->cumap, 0);
 }
+
+/* render simplification */
+
+int get_render_subsurf_level(RenderData *r, int lvl)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+		return MIN2(r->simplify_subsurf, lvl);
+	else
+		return lvl;
+}
+
+int get_render_child_particle_number(RenderData *r, int num)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+		return (int)(r->simplify_particles*num);
+	else
+		return num;
+}
+
+int get_render_shadow_samples(RenderData *r, int samples)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY) && samples > 0)
+		return MIN2(r->simplify_shadowsamples, samples);
+	else
+		return samples;
+}
+
+float get_render_aosss_error(RenderData *r, float error)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+		return ((1.0f-r->simplify_aosss)*10.0f + 1.0f)*error;
+	else
+		return error;
+}
+

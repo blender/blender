@@ -182,7 +182,7 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 					inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
 					if(inp>0.0) {
 						/* testshadowbuf==0.0 : 100% shadow */
-						shadfac = testshadowbuf(lar->shb, rco, dco, dco, inp, 0.0f);
+						shadfac = testshadowbuf(&R, lar->shb, rco, dco, dco, inp, 0.0f);
 						if( shadfac>0.0 ) {
 							shadfac*= inp*soft*lar->energy;
 							ir -= shadfac;
@@ -219,7 +219,7 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 		if(i> -0.41) {			/* heuristic valua! */
 			shadfac= 1.0;
 			if(lar->shb) {
-				shadfac = testshadowbuf(lar->shb, rco, dco, dco, inp, 0.0f);
+				shadfac = testshadowbuf(&R, lar->shb, rco, dco, dco, inp, 0.0f);
 				if(shadfac==0.0) continue;
 				i*= shadfac;
 			}

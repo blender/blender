@@ -7007,9 +7007,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				wrld->ao_approx_error= 0.25f;
 		}
 
-		for(sce= main->scene.first; sce; sce= sce->id.next)
+		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if(sce->nodetree)
 				ntree_version_245(sce->nodetree);
+
+			if(sce->r.simplify_shadowsamples == 0) {
+				sce->r.simplify_subsurf= 6;
+				sce->r.simplify_particles= 1.0f;
+				sce->r.simplify_shadowsamples= 16;
+				sce->r.simplify_aosss= 1.0f;
+			}
+		}
 
 		for(ntree=main->nodetree.first; ntree; ntree= ntree->id.next)
 			ntree_version_245(ntree);

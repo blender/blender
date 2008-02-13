@@ -34,6 +34,7 @@
 #include "DNA_material_types.h"
 
 #include "BKE_global.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
@@ -140,10 +141,11 @@ static float *give_jitter_tab(int samp)
 	
 }
 
-static void make_jitter_weight_tab(ShadBuf *shb, short filtertype) 
+static void make_jitter_weight_tab(Render *re, ShadBuf *shb, short filtertype) 
 {
 	float *jit, totw= 0.0f;
-	int a, tot=shb->samp*shb->samp;
+	int samp= get_render_shadow_samples(&re->r, shb->samp);
+	int a, tot=samp*samp;
 	
 	shb->weight= MEM_mallocN(sizeof(float)*tot, "weight tab lamp");
 	
@@ -406,8 +408,8 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	if(ELEM(lar->buftype, LA_SHADBUF_REGULAR, LA_SHADBUF_HALFWAY)) {
 		/* jitter, weights - not threadsafe! */
 		BLI_lock_thread(LOCK_CUSTOM1);
-		shb->jit= give_jitter_tab(shb->samp);
-		make_jitter_weight_tab(shb, lar->filtertype);
+		shb->jit= give_jitter_tab(get_render_shadow_samples(&re->r, shb->samp));
+		make_jitter_weight_tab(re, shb, lar->filtertype);
 		BLI_unlock_thread(LOCK_CUSTOM1);
 		
 		shb->totbuf= lar->buffers;
@@ -652,7 +654,7 @@ static float readshadowbuf(ShadBuf *shb, ShadSampleBuf *shsample, int bias, int 
 
 /* the externally called shadow testing (reading) function */
 /* return 1.0: no shadow at all */
-float testshadowbuf(ShadBuf *shb, float *rco, float *dxco, float *dyco, float inp, float mat_bias)
+float testshadowbuf(Render *re, ShadBuf *shb, float *rco, float *dxco, float *dyco, float inp, float mat_bias)
 {
 	ShadSampleBuf *shsample;
 	float fac, co[4], dx[3], dy[3], shadfac=0.0f;
@@ -690,7 +692,8 @@ float testshadowbuf(ShadBuf *shb, float *rco, float *dxco, float *dyco, float in
 	zs= ((float)0x7FFFFFFF)*fac;
 
 	/* take num*num samples, increase area with fac */
-	num= shb->samp*shb->samp;
+	num= get_render_shadow_samples(&re->r, shb->samp);
+	num= num*num;
 	fac= shb->soft;
 	
 	if(mat_bias!=0.0f) biasf= shb->bias*mat_bias;

@@ -298,6 +298,12 @@ typedef struct RenderData {
 	/* foreground/background color. */
 	float fg_stamp[4];
 	float bg_stamp[4];
+
+	/* render simplify */
+	int simplify_subsurf;
+	int simplify_shadowsamples;
+	float simplify_particles;
+	float simplify_aosss;
 } RenderData;
 
 
@@ -558,6 +564,7 @@ typedef struct Scene {
 #define R_SSS			0x200000
 #define R_NO_OVERWRITE	0x400000 /* skip existing files */
 #define R_TOUCH			0x800000 /* touch files before rendering */
+#define R_SIMPLIFY		0x1000000
 
 
 /* filtertype */

@@ -42,6 +42,7 @@
 #include "BLI_threads.h"
 
 #include "BKE_global.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 #include "RE_shader_ext.h"
@@ -650,7 +651,7 @@ static OcclusionTree *occ_tree_build(Render *re)
 	tree->totface= totface;
 
 	/* parameters */
-	tree->error= re->wrld.ao_approx_error;
+	tree->error= get_render_aosss_error(&re->r, re->wrld.ao_approx_error);
 	tree->distfac= (re->wrld.aomode & WO_AODIST)? re->wrld.aodistfac: 0.0f;
 
 	/* allocation */

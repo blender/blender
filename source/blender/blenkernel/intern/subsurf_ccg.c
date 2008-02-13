@@ -42,16 +42,18 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_bad_level_calls.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
+#include "BKE_DerivedMesh.h"
+#include "BKE_displist.h"
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_scene.h"
 #include "BKE_subsurf.h"
-#include "BKE_displist.h"
-#include "BKE_DerivedMesh.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
@@ -2421,7 +2423,14 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	                                            useSubsurfUv, dm);
 	} else if(useRenderParams) {
 		/* Do not use cache in render mode. */
-		CCGSubSurf *ss = _getSubSurf(NULL, smd->renderLevels, 0, 1, useSimple);
+		CCGSubSurf *ss;
+		int levels;
+		
+		levels= get_render_subsurf_level(&G.scene->r, smd->renderLevels);
+		if(levels == 0)
+			return dm;
+		
+		ss = _getSubSurf(NULL, levels, 0, 1, useSimple);
 
 		ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple);
 

@@ -41,6 +41,7 @@ struct Base;
 struct AviCodecData;
 struct QuicktimeCodecData;
 struct SculptData;
+struct RenderData;
 
 /* sequence related defines */
 #define WHILE_SEQ(base)	{											\
@@ -81,6 +82,12 @@ int scene_check_setscene(struct Scene *sce);
 void scene_update_for_newframe(struct Scene *sce, unsigned int lay);
 
 void scene_add_render_layer(struct Scene *sce);
+
+/* render profile */
+int get_render_subsurf_level(struct RenderData *r, int level);
+int get_render_child_particle_number(struct RenderData *r, int num);
+int get_render_shadow_samples(struct RenderData *r, int samples);
+float get_render_aosss_error(struct RenderData *r, float error);
 
 #endif
 

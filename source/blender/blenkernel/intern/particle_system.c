@@ -63,7 +63,6 @@
 #include "BKE_bad_level_calls.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
-
 #include "BKE_particle.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -77,6 +76,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_scene.h"
 
 #include "BSE_headerbuttons.h"
 
@@ -145,15 +145,24 @@ static void alloc_particles(Object *ob, ParticleSystem *psys, int new_totpart)
 	psys->totpart=totpart;
 }
 
-static int get_alloc_child_particles_tot(ParticleSystem *psys)
+static int get_psys_child_number(ParticleSystem *psys)
 {
-	int child_nbr;
+	int nbr;
 
 	if(!psys->part->childtype)
 		return 0;
 
-	child_nbr= (psys->renderdata)? psys->part->ren_child_nbr: psys->part->child_nbr;
-	return psys->totpart*child_nbr;
+	if(psys->renderdata) {
+		nbr= psys->part->ren_child_nbr;
+		return get_render_child_particle_number(&G.scene->r, nbr);
+	}
+	else
+		return psys->part->child_nbr;
+}
+
+static int get_psys_tot_child(ParticleSystem *psys)
+{
+	return psys->totpart*get_psys_child_number(psys);
 }
 
 static void alloc_child_particles(ParticleSystem *psys, int tot)
@@ -863,7 +872,7 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 
 			BLI_kdtree_balance(tree);
 
-			totpart=get_alloc_child_particles_tot(psys);
+			totpart=get_psys_tot_child(psys);
 			cfrom=from=PART_FROM_FACE;
 
 			if(part->flag&PART_CHILD_SEAMS){
@@ -912,9 +921,9 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 		}
 		else{
 			/* no need to figure out distribution */
-			int child_nbr= (psys->renderdata)? part->ren_child_nbr: part->child_nbr;
+			int child_nbr= get_psys_child_number(psys);
 
-			totpart= get_alloc_child_particles_tot(psys);
+			totpart= get_psys_tot_child(psys);
 			alloc_child_particles(psys, totpart);
 			cpa=psys->child;
 			for(i=0; i<child_nbr; i++){
@@ -4219,9 +4228,8 @@ static void psys_update_path_cache(Object *ob, ParticleSystemModifierData *psmd,
 	ParticleSettings *part=psys->part;
 	ParticleEditSettings *pset=&G.scene->toolsettings->particle;
 	int distr=0,alloc=0;
-	int child_nbr= (psys->renderdata)? part->ren_child_nbr: part->child_nbr;
 
-	if((psys->part->childtype && psys->totchild != psys->totpart*child_nbr) || psys->recalc&PSYS_ALLOC)
+	if((psys->part->childtype && psys->totchild != get_psys_tot_child(psys)) || psys->recalc&PSYS_ALLOC)
 		alloc=1;
 
 	if(alloc || psys->recalc&PSYS_DISTR || (psys->vgroup[PSYS_VG_DENSITY] && (G.f & G_WEIGHTPAINT)))
@@ -4231,7 +4239,7 @@ static void psys_update_path_cache(Object *ob, ParticleSystemModifierData *psmd,
 		if(alloc)
 			alloc_particles(ob,psys,psys->totpart);
 
-		if(get_alloc_child_particles_tot(psys)) {
+		if(get_psys_tot_child(psys)) {
 			/* don't generate children while computing the hair keys */
 			if(!(psys->part->type == PART_HAIR) || (psys->flag & PSYS_HAIR_DONE)) {
 				distribute_particles(ob,psys,PART_FROM_CHILD);
@@ -4386,7 +4394,6 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 	int totpart,oldtotpart=0,p;
 	float disp, *vg_vel=0, *vg_tan=0, *vg_rot=0, *vg_size=0;
 	int init=0,distr=0,alloc=0;
-	int child_nbr;
 
 	/*----start validity checks----*/
 
@@ -4457,8 +4464,7 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 	else
 		totpart = psys->part->totpart;
 
-	child_nbr= (psys->renderdata)? part->ren_child_nbr: part->child_nbr;
-	if(oldtotpart != totpart || psys->recalc&PSYS_ALLOC || (psys->part->childtype && psys->totchild != psys->totpart*child_nbr))
+	if(oldtotpart != totpart || psys->recalc&PSYS_ALLOC || (psys->part->childtype && psys->totchild != get_psys_tot_child(psys)))
 		alloc = 1;
 
 	if(alloc || psys->recalc&PSYS_DISTR || (psys->vgroup[PSYS_VG_DENSITY] && (G.f & G_WEIGHTPAINT) && ob==OBACT))
@@ -4477,7 +4483,7 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 			if((psys->part->type == PART_HAIR) && !(psys->flag & PSYS_HAIR_DONE))
 				/* don't generate children while growing hair - waste of time */
 				psys_free_children(psys);
-			else if(get_alloc_child_particles_tot(psys))
+			else if(get_psys_tot_child(psys))
 				distribute_particles(ob, psys, PART_FROM_CHILD);
 		}
 		initialize_all_particles(ob, psys, psmd);
