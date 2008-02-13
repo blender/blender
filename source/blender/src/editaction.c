@@ -1125,6 +1125,7 @@ void transform_action_keys (int mode, int dummy)
 {
 	void *data;
 	short datatype;
+	short context = (U.flag & USER_DRAGIMMEDIATE)?CTX_TWEAK:CTX_NONE;
 	
 	/* determine what type of data we are operating on */
 	data = get_action_context(&datatype);
@@ -1133,25 +1134,25 @@ void transform_action_keys (int mode, int dummy)
 	switch (mode) {
 		case 'g':
 		{
-			initTransform(TFM_TIME_TRANSLATE, CTX_NONE);
+			initTransform(TFM_TIME_TRANSLATE, context);
 			Transform();
 		}
 			break;
 		case 's':
 		{
-			initTransform(TFM_TIME_SCALE, CTX_NONE);
+			initTransform(TFM_TIME_SCALE, context);
 			Transform();
 		}
 			break;
 		case 't':
 		{
-			initTransform(TFM_TIME_SLIDE, CTX_NONE);
+			initTransform(TFM_TIME_SLIDE, context);
 			Transform();
 		}
 			break;
 		case 'e':
 		{
-			initTransform(TFM_TIME_EXTEND, CTX_NONE);
+			initTransform(TFM_TIME_EXTEND, context);
 			Transform();
 		}
 		break;

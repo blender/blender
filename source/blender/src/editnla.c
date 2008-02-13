@@ -1010,22 +1010,24 @@ static void recalc_all_ipos(void)
 
 void transform_nlachannel_keys(int mode, int dummy)
 {
+	short context = (U.flag & USER_DRAGIMMEDIATE)?CTX_TWEAK:CTX_NONE;
+
 	switch (mode) {
 		case 'g':
 		{
-			initTransform(TFM_TIME_TRANSLATE, CTX_NONE);
+			initTransform(TFM_TIME_TRANSLATE, context);
 			Transform();
 		}
 			break;
 		case 's':
 		{
-			initTransform(TFM_TIME_SCALE, CTX_NONE);
+			initTransform(TFM_TIME_SCALE, context);
 			Transform();
 		}
 			break;
 		case 'e':
 		{
-			initTransform(TFM_TIME_EXTEND, CTX_NONE);
+			initTransform(TFM_TIME_EXTEND, context);
 			Transform();
 		}
 			break;

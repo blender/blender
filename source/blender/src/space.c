@@ -3454,33 +3454,37 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	else if (U.userpref == 0) { /* view & controls */
 
 		uiDefBut(block, LABEL,0,"Display:",
-			xpos,y6label,spref,buth,
+			xpos,y7label,spref,buth,
 			0, 0, 0, 0, 0, "");	
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, USER_TOOLTIPS, 0, "Tool Tips",
-			(xpos+edgsp),y5,spref,buth,
+			(xpos+edgsp),y6,spref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Display tooltips (help tags) over buttons");
 		uiDefButBitI(block, TOG, USER_DRAWVIEWINFO, B_DRAWINFO, "Object Info",
-			(xpos+edgsp),y4,spref,buth,
+			(xpos+edgsp),y5,spref,buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Display active object name and frame number in the 3D View");
 		uiDefButBitI(block, TOG, USER_SCENEGLOBAL, 0, "Global Scene",
-			(xpos+edgsp),y3,spref,buth,
+			(xpos+edgsp),y4,spref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Forces the current Scene to be displayed in all Screens");
 #ifndef __APPLE__	
 		uiDefButBitS(block, TOG, 1, 0, "Large Cursors",
-			(xpos+edgsp),y2,spref,buth,
+			(xpos+edgsp),y3,spref,buth,
 			&(U.curssize), 0, 0, 0, 0,
 			"Use large mouse cursors when available");
 #else 
 		U.curssize=0; /*Small Cursor always for OS X for now */
 #endif
 		uiDefButBitI(block, TOG, USER_SHOW_VIEWPORTNAME, B_DRAWINFO, "View Name",
-			(xpos+edgsp),y1,spref,buth,
+			(xpos+edgsp),y2,spref,buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Show the name of the view's direction in each 3D View");
+		uiDefButBitI(block, TOG, USER_SHOW_FPS, B_DRAWINFO, "Playback FPS",
+			(xpos+edgsp),y1,spref,buth,
+			&(U.uiflag), 0, 0, 0, 0,
+			"Show the frames per second screen refresh rate, while animation is played back");
 		uiBlockEndAlign(block);
 
 		uiDefBut(block, LABEL,0,"Menus:",
@@ -3622,15 +3626,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				0, 0, 0, 0, 0, "");
 		}
 		
-		uiDefButBitI(block, TOG, USER_SHOW_FPS, B_DRAWINFO, "Display FPS in View",
-			(xpos+edgsp+(3*mpref)+(4*midsp)),y2,mpref,buth,
-			&(U.uiflag), 0, 0, 0, 0,
-			"Display the number of frames per secons being drawn");
-		
 		/* illegal combo... */
 		if (U.flag & USER_LMOUSESELECT) 
 			U.flag &= ~USER_TWOBUTTONMOUSE;
 		
+		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, USER_TWOBUTTONMOUSE, B_DRAWINFO, "Emulate 3 Button Mouse",
 			(xpos+edgsp+(3*mpref)+(4*midsp)),y3,mpref,buth,
 			&(U.flag), 0, 0, 0, 0,
@@ -3740,6 +3740,14 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&(U.flag), 0, 0, 0, 0, "Align newly added objects facing the 3D View direction");
 		uiBlockEndAlign(block);
 
+
+		uiDefBut(block, LABEL,0,"Transform:",
+			(xpos+(2*edgsp)+mpref),y5label, mpref,buth,
+			0, 0, 0, 0, 0, "");
+		uiDefButBitI(block, TOG, USER_DRAGIMMEDIATE, B_DRAWINFO, "Drag Immediately",
+			(xpos+edgsp+mpref+midsp),y4,mpref,buth,
+			&(U.flag), 0, 0, 0, 0, "Moving things with a mouse drag doesn't require a click to confirm (Best for tablet users)");
+		uiBlockEndAlign(block);
 
 		uiDefBut(block, LABEL,0,"Undo:",
 			(xpos+(2*edgsp)+mpref),y3label, mpref,buth,

@@ -236,6 +236,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_ADD_EDITMODE		(1 << 18)
 #define USER_ADD_VIEWALIGNED	(1 << 19)
 #define USER_RELPATHS			(1 << 20)
+#define USER_DRAGIMMEDIATE			(1 << 21)
 
 /* viewzom */
 #define USER_ZOOM_CONT			0

@@ -4063,6 +4063,7 @@ void std_rmouse_transform(void (*xf_func)(int, int))
 	short xo, yo;
 	short timer=0;
 	short mousebut;
+	short context = (U.flag & USER_DRAGIMMEDIATE)?CTX_TWEAK:CTX_NONE;
 	
 	/* check for left mouse select/right mouse select */
 	
@@ -4076,20 +4077,16 @@ void std_rmouse_transform(void (*xf_func)(int, int))
 	getmouseco_areawin(mval);
 	xo= mval[0]; 
 	yo= mval[1];
-	
+	 
 	while(get_mbut() & mousebut) {
 		getmouseco_areawin(mval);
 		if(abs(mval[0]-xo)+abs(mval[1]-yo) > 10) {
 			if(curarea->spacetype==SPACE_VIEW3D) {
-#ifdef TWEAK_MODE
-				initTransform(TFM_TRANSLATION, CTX_TWEAK);
-#else
-				initTransform(TFM_TRANSLATION, CTX_NONE);
-#endif
+				initTransform(TFM_TRANSLATION, context);
 				Transform();
 			}
 			else if(curarea->spacetype==SPACE_IMAGE) {
-				initTransform(TFM_TRANSLATION, CTX_NONE);
+				initTransform(TFM_TRANSLATION, context);
 				Transform();
 			}
 			else if(xf_func)

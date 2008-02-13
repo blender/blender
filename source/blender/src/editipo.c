@@ -5316,6 +5316,7 @@ void remake_ipo_transdata (TransInfo *t)
 void transform_ipo (int mode)
 {
 	short tmode;
+	short context = (U.flag & USER_DRAGIMMEDIATE)?CTX_TWEAK:CTX_NONE;
 	
 	/* data-validation */
 	if (G.sipo->ipo && G.sipo->ipo->id.lib) return;
@@ -5341,12 +5342,12 @@ void transform_ipo (int mode)
 	get_status_editipo();
 	if (totipo_vertsel) {
 		/* we're probably in editmode, so only selected verts - transform system */
-		initTransform(tmode, CTX_NONE);
+		initTransform(tmode, context);
 		Transform();
 	}
 	else if (totipo_edit==0 && totipo_sel!=0) {
 		/* we're not in editmode, so entire curves get moved - transform system*/
-		initTransform(tmode, CTX_NONE);
+		initTransform(tmode, context);
 		Transform();
 	}
 	else {
