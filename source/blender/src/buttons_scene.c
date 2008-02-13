@@ -1574,7 +1574,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.xasp= 54;
 		G.scene->r.yasp= 51;
 		G.scene->r.size= 100;
-		G.scene->r.mode= R_OSA+R_SHADOW+R_FIELDS;
+		G.scene->r.mode= R_OSA+R_SHADOW+R_FIELDS+R_SSS;
 		G.scene->r.imtype= R_TARGA;
 		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
@@ -2174,11 +2174,12 @@ static void render_panel_render(void)
 		uiDefButS(block, MENU, B_DIFF,"Octree resolution %t|64 %x64|128 %x128|256 %x256|512 %x512",	496,13,64,20,&G.scene->r.ocres,0.0,0.0, 0, 0, "Octree resolution for ray tracing");
 
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_SHADOW, B_REDR,"Shadow",	565,172,60,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
-	uiDefButBitI(block, TOG, R_ENVMAP, B_REDR,"EnvMap",	627,172,60,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map rendering");
-	uiDefButBitI(block, TOG, R_PANORAMA, B_REDR,"Pano",	565,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
-	uiDefButBitI(block, TOG, R_RAYTRACE, B_REDR,"Ray",606,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable ray tracing");
-	uiDefButBitI(block, TOG, R_RADIO, B_REDR,"Radio",	647,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
+	uiDefButBitI(block, TOG, R_SHADOW, B_REDR,"Shadow",	565,172,52,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
+	uiDefButBitI(block, TOG, R_SSS, B_REDR,"SSS",	617,172,32,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable subsurface scattering map rendering");
+	uiDefButBitI(block, TOG, R_PANORAMA, B_REDR,"Pano",	649,172,38,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
+	uiDefButBitI(block, TOG, R_ENVMAP, B_REDR,"EnvMap",	565,142,52,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map rendering");
+	uiDefButBitI(block, TOG, R_RAYTRACE, B_REDR,"Ray",617,142,32,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable ray tracing");
+	uiDefButBitI(block, TOG, R_RADIO, B_REDR,"Radio",	649,142,38,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);

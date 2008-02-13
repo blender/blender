@@ -2047,7 +2047,8 @@ static void make_render_halos(Render *re, ObjectRen *obr, Mesh *me, int totvert,
 
 static int verghalo(const void *a1, const void *a2)
 {
-	const HaloRen *har1= a1, *har2= a2;
+	const HaloRen *har1= *(const HaloRen**)a1;
+	const HaloRen *har2= *(const HaloRen**)a2;
 	
 	if(har1->zs < har2->zs) return 1;
 	else if(har1->zs > har2->zs) return -1;

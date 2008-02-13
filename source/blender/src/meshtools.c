@@ -1138,3 +1138,4 @@ void objects_bake_render_ui(short event)
 	if (error_msg)
 		error(error_msg);
 }
+
