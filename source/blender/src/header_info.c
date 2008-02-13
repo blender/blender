@@ -867,7 +867,7 @@ static void do_info_filemenu(void *arg, int event)
 			
 			strcpy(scestr, G.sce);	/* temporal store */
 			save_over = G.save_over;
-			BLI_make_file_string("/", str, U.tempdir, "quit.blend");
+			BLI_make_file_string("/", str, btempdir, "quit.blend");
 			retval = BKE_read_file(str, NULL);
 			
 			/*we successfully loaded a blend file, get sure that

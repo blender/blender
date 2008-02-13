@@ -70,7 +70,6 @@
 #include "DNA_listBase.h" 
 
 #include <stdlib.h>
-
 extern ListBase fillfacebase;
 extern ListBase fillvertbase;
 /**
@@ -78,6 +77,8 @@ extern ListBase fillvertbase;
  */
 extern ListBase filledgebase;
 extern int totblock;
+
+extern char btempdir[]; /* creator.c temp dir used instead of U.tempdir, set with BLI_where_is_temp( btempdir, 1 ); */
 
 struct chardesc;
 struct direntry;
@@ -258,6 +259,17 @@ void BLI_free_file_lines(struct LinkNode *lines);
 void BLI_where_am_i(char *fullname, const char *name);
 
 	/**
+	 * Gets the temp directory when blender first runs.
+	 * If the default path is not found, use try $TEMP
+	 * 
+	 * Also make sure the temp dir has a trailing slash
+	 *
+	 * @param fullname The full path to the temp directory
+	 */
+void BLI_where_is_temp(char *fullname, int usertemp);
+
+
+	/**
 	 * determines the full path to the application bundle on OS X
 	 *
 	 * @return path to application bundle
@@ -300,6 +312,7 @@ int   BLI_delete(char *file, int dir, int recursive);
 int   BLI_move(char *file, char *to);
 int   BLI_touch(const char *file);
 char *BLI_last_slash(const char *string);
+void  BLI_add_slash(char *string);
 
 /* BLI_rct.c */
 /**

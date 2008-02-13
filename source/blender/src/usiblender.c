@@ -177,9 +177,7 @@ static void init_userdef_file(void)
 	}
 	if(U.mixbufsize==0) U.mixbufsize= 2048;
 	if (BLI_streq(U.tempdir, "/")) {
-		char *tmp= getenv("TEMP");
-		
-		strcpy(U.tempdir, tmp?tmp:"/tmp/");
+		BLI_where_is_temp(U.tempdir, 0);
 	}
 	if (U.savetime <= 0) {
 		U.savetime = 1;
@@ -646,7 +644,7 @@ static void get_autosave_location(char buf[FILE_MAXDIR+FILE_MAXFILE])
 	sprintf(pidstr, "%d.blend", abs(getpid()));
 	
 #ifdef WIN32
-	if (!BLI_exists(U.tempdir)) {
+	if (!BLI_exists(btempdir)) {
 		BLI_strncpy(subdir, "autosave", sizeof(subdir));
 		BLI_make_file_string("/", savedir, BLI_gethome(), subdir);
 		
@@ -659,7 +657,7 @@ static void get_autosave_location(char buf[FILE_MAXDIR+FILE_MAXFILE])
 	}
 #endif
 	
-	BLI_make_file_string("/", buf, U.tempdir, pidstr);
+	BLI_make_file_string("/", buf, btempdir, pidstr);
 }
 
 void BIF_read_autosavefile(void)
@@ -950,7 +948,7 @@ static void delete_autosave(void)
 
 	if (BLI_exists(tstr)) {
 		char str[FILE_MAXDIR+FILE_MAXFILE];
-		BLI_make_file_string("/", str, U.tempdir, "quit.blend");
+		BLI_make_file_string("/", str, btempdir, "quit.blend");
 
 		if(U.uiflag & USER_GLOBALUNDO) BLI_delete(tstr, 0, 0);
 		else BLI_rename(tstr, str);

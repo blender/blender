@@ -34,6 +34,7 @@
 #define BPY_EXTERN_H
 
 extern char bprogname[];	/* holds a copy of argv[0], from creator.c */
+extern char btempdir[];		/* use this to store a valid temp directory */
 
 struct Text; /* defined in DNA_text_types.h */
 struct ID; /* DNA_ID.h */

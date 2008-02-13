@@ -605,7 +605,7 @@ void BKE_write_undo(char *name)
 		counter= counter % U.undosteps;	
 	
 		sprintf(numstr, "%d.blend", counter);
-		BLI_make_file_string("/", tstr, U.tempdir, numstr);
+		BLI_make_file_string("/", tstr, btempdir, numstr);
 	
 		success= BLO_write_file(tstr, G.fileflags, &err);
 		
@@ -716,7 +716,7 @@ void BKE_undo_save_quit(void)
 	/* no undo state to save */
 	if(undobase.first==undobase.last) return;
 		
-	BLI_make_file_string("/", str, U.tempdir, "quit.blend");
+	BLI_make_file_string("/", str, btempdir, "quit.blend");
 
 	file = open(str,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if(file == -1) {

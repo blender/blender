@@ -51,9 +51,6 @@
   #include "BLI_winstuff.h"
 #endif
 
-/* for U.tempdir */
-#include "DNA_userdef_types.h"
-
 
 /*	Takes an Object ID and returns a unique name
 	- id: object id
@@ -79,9 +76,8 @@ static int ptcache_path(char *filename)
 		return strlen(filename);
 	} else {
 		/* use the temp path. this is weak but better then not using point cache at all */
-		if (U.tempdir[0] != '\0' && BLI_exists(U.tempdir)) {
-			return sprintf(filename, "%s/"PTCACHE_PATH"untitled/", U.tempdir);
-		}
+		/* btempdir is assumed to exist and ALWAYS has a trailing slash */
+		return sprintf(filename, "%s"PTCACHE_PATH"untitled/", btempdir);
 	}
 	return -1;
 }
@@ -100,7 +96,7 @@ int BKE_ptcache_id_filename(struct ID *id, char *filename, int cfra, int stack_i
 	if (do_path) {
 		len = ptcache_path(filename);
 		if (len==-1)
-			return;
+			return -1;
 		newname += len;
 	}
 	idname = (id->name+2);

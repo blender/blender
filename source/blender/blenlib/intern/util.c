@@ -44,8 +44,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "DNA_listBase.h"
+#include "DNA_userdef_types.h"
+
+#include "BLI_blenlib.h"
 #include "BLI_storage.h"
 #include "BLI_storage_types.h"
 #include "BLI_dynamiclist.h"
@@ -1602,6 +1604,29 @@ void BLI_where_am_i(char *fullname, const char *name)
 		printf("Shortname = '%s'\n", fullname);
 #endif
 #endif
+	}
+}
+
+void BLI_where_is_temp(char *fullname, int usertemp)
+{
+	fullname[0] = '\0';
+	
+	if (usertemp && BLI_exists(U.tempdir)) {
+		strcpy(fullname, U.tempdir);
+	}
+	
+	if (fullname[0] == '\0') {
+		char *tmp = getenv("TEMP");
+		if (tmp && BLI_exists(tmp)) {
+			strcpy(fullname, tmp);
+		}
+	}
+	
+	if (fullname[0] == '\0') {
+		strcpy(fullname, "/tmp/");
+	} else {
+		/* add a trailing slash if needed */
+		BLI_add_slash(fullname);
 	}
 }
 

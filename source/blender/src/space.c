@@ -3340,10 +3340,18 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3, sh
 	}
 }
 
+/* setting the temp dir needs to set */
+void eval_utemp_dir_callback(void *dummy1, void *dummy2)
+{
+	if (!BLI_exists(U.tempdir))
+		error("temp directory does not exist, assign a valid directory");
+	BLI_where_is_temp(btempdir, 1);
+}
 
 void drawinfospace(ScrArea *sa, void *spacedata)
 {
 	uiBlock *block;
+	uiBut *uibut;
 	static short cur_light=0;
 	float fac, col[3];
 	short xpos, ypos, ypostab,  buth, rspace, dx, y1, y2, y3, y4, y5, y6, y7;
@@ -4225,9 +4233,13 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiBlockEndAlign(block);
 
 		uiBlockBeginAlign(block);
-		uiDefBut(block, TEX, 0, "Temp: ",
+		uibut = uiDefBut(block, TEX, 0, "Temp: ",
 			 (xpos+edgsp+(3*lpref)+(3*midsp)),y1,(lpref-smfileselbut),buth,
 			 U.tempdir, 1.0, 63.0, 0, 0, "The directory for storing temporary save files");
+		
+		/* set the btempdir from U.temp */
+		uiButSetFunc(uibut, eval_utemp_dir_callback, NULL, NULL);
+		
 		uiDefIconBut(block, BUT, B_TEMPDIRFILESEL, ICON_FILESEL,
 			(xpos+edgsp+(4*lpref)+(3*midsp)-smfileselbut),y1,smfileselbut,buth,
 			0, 0, 0, 0, 0, "Select the default temporary save file location");

@@ -128,7 +128,7 @@ extern void	winlay_process_events(int wait_for_event);
 extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 
 char bprogname[FILE_MAXDIR+FILE_MAXFILE]; /* from blenpluginapi:pluginapi.c */
-
+char btempdir[FILE_MAXDIR+FILE_MAXFILE];
 
 /* Initialise callbacks for the modules that need them */
 void setCallbacks(void); 
@@ -317,7 +317,7 @@ int main(int argc, char **argv)
 	// need this.
 
 	BLI_where_am_i(bprogname, argv[0]);
-
+	
 		/* Hack - force inclusion of the plugin api functions,
 		 * see blenpluginapi:pluginapi.c
 		 */
@@ -490,11 +490,15 @@ int main(int argc, char **argv)
 		 * added note (ton): i removed it altogether
 		 */
 
-		BIF_init();
+		BIF_init(); /* loads .B.blend */
+		
+		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
 
 	}
 	else {
 		BPY_start_python(argc, argv);
+		
+		BLI_where_is_temp( btempdir, 0 ); /* call after loading the .B.blend so we can read U.tempdir */
 		
 		// (ton) Commented out. I have no idea whats thisfor... will mail around!
 		// SYS_WriteCommandLineInt(syshandle,"noaudio",1);

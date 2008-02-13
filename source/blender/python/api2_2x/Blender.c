@@ -286,6 +286,7 @@ static PyObject *Blender_Set( PyObject * self, PyObject * args )
 		if ( !PyArg_Parse( arg , "s" , &dir ))
 			return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a string" );
 		BLI_strncpy(U.tempdir, dir, FILE_MAXDIR);
+		BLI_where_is_temp( btempdir, 1 );
 	} else if (StringEqual( name , "compressfile" ) ) {
 		int value = PyObject_IsTrue( arg );
 		

@@ -403,8 +403,6 @@ static int passtype_from_name(char *str)
 	return 0;
 }
 
-
-
 static void render_unique_exr_name(Render *re, char *str, int sample)
 {
 	char di[FILE_MAX], name[FILE_MAXFILE], fi[FILE_MAXFILE];
@@ -417,11 +415,7 @@ static void render_unique_exr_name(Render *re, char *str, int sample)
 	else
 		sprintf(name, "%s_%s%d.exr", fi, re->scene->id.name+2, sample);
 
-	if(G.background)
-		BLI_make_file_string("/", str, "/tmp/", name);
-	else
-		BLI_make_file_string("/", str, U.tempdir, name);
-		
+	BLI_make_file_string("/", str, btempdir, name);
 }
 
 static void render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int channels, int passtype)

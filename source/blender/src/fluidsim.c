@@ -70,7 +70,6 @@
 #include "BKE_scene.h"
 #include "BKE_object.h"
 #include "BKE_softbody.h"
-#include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_ipo.h"
 #include "LBM_fluidsim.h"
@@ -151,6 +150,7 @@ typedef struct {
 /* ********************** fluid sim settings struct functions ********************** */
 
 /* allocates and initializes general main data */
+
 FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 {
 	//char blendDir[FILE_MAXDIR], blendFile[FILE_MAXFILE];
@@ -189,7 +189,7 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 
 	/*  elubie: changed this to default to the same dir as the render output
 		to prevent saving to C:\ on Windows */
-	BLI_strncpy(fss->surfdataPath, U.tempdir, FILE_MAX); 
+	BLI_strncpy(fss->surfdataPath, btempdir, FILE_MAX); 
 	fss->orgMesh = (Mesh *)srcob->data;
 	fss->meshSurface = NULL;
 	fss->meshBB = NULL;

@@ -49,6 +49,7 @@
 int winqueue_break= 0;
 
 char bprogname[1];
+char btempdir[1];
 
 struct IpoCurve;
 struct FluidsimSettings;

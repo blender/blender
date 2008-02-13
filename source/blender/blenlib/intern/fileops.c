@@ -92,6 +92,22 @@ char *BLI_last_slash(const char *string) {
 	else return lfslash;
 }
 
+/* adds a slash if there isnt one there alredy */
+void BLI_add_slash(char *string) {
+	int len = strlen(string);
+#ifdef WIN32
+	if (string[len-1]!='\\') {
+		string[len] = '\\';
+		string[len+1] = '\0';
+	}
+#else
+	if (string[len-1]!='/') {
+		string[len] = '/';
+		string[len+1] = '\0';
+	}
+#endif
+}
+
 /* gzip the file in from and write it to "to". 
  return -1 if zlib fails, -2 if the originating file does not exist
  note: will remove the "from" file

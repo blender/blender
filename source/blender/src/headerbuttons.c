@@ -569,6 +569,8 @@ static void filesel_u_tempdir(char *name)
 	BLI_split_dirfile(name, dir, file);
 
 	strcpy(U.tempdir, dir);
+	BLI_where_is_temp( btempdir, 1 );
+	
 	allqueue(REDRAWALL, 0);
 }
 

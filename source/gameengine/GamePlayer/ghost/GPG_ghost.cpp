@@ -304,7 +304,6 @@ int main(int argc, char** argv)
 #endif /* __alpha__ */
 #endif /* __linux__ */
 	BLI_where_am_i(bprogname, argv[0]);
-	
 #ifdef __APPLE__
     // Can't use Carbon right now because of double defined type ID (In Carbon.h and DNA_ID.h, sigh)
     /*
