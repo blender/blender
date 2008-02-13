@@ -406,24 +406,30 @@ static void actdata_filter_action (ListBase *act_data, bAction *act, int filter_
 		if (agrp->channels.last) 
 			lastchan= agrp->channels.last;
 		
-		/* filters here are a bit convulted...
-		 *	- groups show a "summary" of keyframes beside their name which must accessable for tools which handle keyframes
-		 *	- groups can be collapsed (and those tools which are only interested in channels rely on knowing that group is closed)
-		 */
-		if (!(filter_mode & ACTFILTER_VISIBLE) || EXPANDED_AGRP(agrp) || 
-			(filter_mode & (ACTFILTER_IPOKEYS|ACTFILTER_ONLYICU))) 
-		{
-			if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {					
-				for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
-					actdata_filter_actionchannel(act_data, achan, filter_mode);
+		
+		/* there are some situations, where only the channels of the active group should get considered */
+		if (!(filter_mode & ACTFILTER_ACTGROUPED) || (agrp->flag & AGRP_ACTIVE)) {
+			/* filters here are a bit convoulted...
+			 *	- groups show a "summary" of keyframes beside their name which must accessable for tools which handle keyframes
+			 *	- groups can be collapsed (and those tools which are only interested in channels rely on knowing that group is closed)
+			 */
+			if ( (!(filter_mode & ACTFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || 
+				 (filter_mode & (ACTFILTER_IPOKEYS|ACTFILTER_ONLYICU)) ) 
+			{
+				if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {					
+					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
+						actdata_filter_actionchannel(act_data, achan, filter_mode);
+					}
 				}
 			}
 		}
 	}
 	
-	/* loop over action channels */
-	for (achan=(lastchan)?lastchan->next:act->chanbase.first; achan; achan=achan->next) {
-		actdata_filter_actionchannel(act_data, achan, filter_mode);
+	/* loop over un-grouped action channels (only if we're not only considering those channels in the active group) */
+	if (!(filter_mode & ACTFILTER_ACTGROUPED))  {
+		for (achan=(lastchan)?lastchan->next:act->chanbase.first; achan; achan=achan->next) {
+			actdata_filter_actionchannel(act_data, achan, filter_mode);
+		}
 	}
 }
 
@@ -1369,12 +1375,13 @@ void insertkey_action(void)
 		int filter;
 		
 		/* ask user what to keyframe */
-		mode = pupmenu("Insert Key%t|All Channels%x1|Only Selected Channels%x2");
+		mode = pupmenu("Insert Key%t|All Channels%x1|Only Selected Channels%x2|In Active Group%x3");
 		if (mode <= 0) return;
 		
 		/* filter data */
 		filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_ONLYICU );
 		if (mode == 2) filter |= ACTFILTER_SEL;
+		if (mode == 3) filter |= ACTFILTER_ACTGROUPED;
 		
 		actdata_filter(&act_data, filter, data, datatype);
 		

@@ -73,7 +73,8 @@ typedef enum ACTFILTER_FLAGS {
 	ACTFILTER_CHANNELS		= (1<<3),	/* do we only care that it is a channel */
 	ACTFILTER_IPOKEYS		= (1<<4),	/* only channels referencing ipo's */
 	ACTFILTER_ONLYICU		= (1<<5),	/* only reference ipo-curves */
-	ACTFILTER_FORDRAWING	= (1<<6)	/* make list for interface drawing */
+	ACTFILTER_FORDRAWING	= (1<<6),	/* make list for interface drawing */
+	ACTFILTER_ACTGROUPED	= (1<<7)	/* belongs to the active group */
 } ACTFILTER_FLAGS;
 
 /* Action Editor - Main Data types */
