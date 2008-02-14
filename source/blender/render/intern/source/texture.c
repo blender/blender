@@ -1138,6 +1138,13 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 		if(osatex) retval= imagewraposa(tex, tex->ima, NULL, texvec, dxt, dyt, texres); 
 		else retval= imagewrap(tex, tex->ima, NULL, texvec, texres); 
 		tag_image_time(tex->ima); /* tag image as having being used */
+		
+		/*do premul if necassary*/
+		if (tex->ima && tex->ima->flag & IMA_DO_PREMUL) {
+			texres->tr *= texres->ta;
+			texres->tg *= texres->ta;
+			texres->tb *= texres->ta;
+		}
 		break;
 	case TEX_PLUGIN:
 		retval= plugintex(tex, texvec, dxt, dyt, osatex, texres);

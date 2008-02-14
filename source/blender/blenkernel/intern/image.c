@@ -276,6 +276,7 @@ static Image *image_alloc(const char *name, short source, short type)
 		
 		ima->source= source;
 		ima->type= type;
+		ima->flag = IMA_DO_PREMUL;
 	}
 	return ima;
 }
@@ -1663,8 +1664,11 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 				ima->packedfile = newPackedFile(str);
 		}
 		
-		if(ima->flag & IMA_DO_PREMUL)
-			converttopremul(ibuf);
+		/*ok, this is *not* what a user expects when he clicks the premul
+		  button, that his image is actually changed.  This should be a
+		  render-time option, not a modification to the image! - joeedh*/
+		/*if(ima->flag & IMA_DO_PREMUL)
+			converttopremul(ibuf);*/
 	}
 	else
 		ima->ok= 0;
