@@ -306,6 +306,19 @@ typedef struct RenderData {
 	float simplify_aosss;
 } RenderData;
 
+/* control render convert and shading engine */
+typedef struct RenderProfile {
+	struct RenderProfile *next, *prev;
+	char name[32];
+	
+	short particle_perc;
+	short subsurf_max;
+	short shadbufsample_max;
+	short pad1;
+	
+	float ao_error, pad2;
+	
+} RenderProfile;
 
 typedef struct GameFraming {
 	float col[3];
@@ -330,7 +343,7 @@ typedef struct ImagePaintSettings {
 } ImagePaintSettings;
 
 typedef struct ParticleBrushData {
-	short size, strength;	/* commong settings */
+	short size, strength;	/* common settings */
 	short step, invert;		/* for specific brushes only */
 } ParticleBrushData;
 
