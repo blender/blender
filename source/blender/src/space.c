@@ -1962,7 +1962,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							select_mesh_group_menu();
 					} 
 					else if(ob && (ob->flag & OB_POSEMODE))
-						puts("Shift-G menu for PoseMode - Not Implemented!");
+						pose_select_grouped_menu();
 					else
 						select_object_grouped_menu();
 				else if((G.obedit==0) && G.qual==LR_ALTKEY) {

@@ -1131,6 +1131,111 @@ void pgroup_operation_with_menu (void)
 
 /* ********************************************** */
 
+static short pose_select_same_group (Object *ob)
+{
+	bPose *pose= (ob)? ob->pose : NULL;
+	bArmature *arm= (ob)? ob->data : NULL;
+	bPoseChannel *pchan, *chan;
+	short changed= 0;
+	
+	if (ELEM3(NULL, ob, pose, arm))
+		return 0;
+	
+	/* loop in loop... bad and slow! */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (arm->layer & pchan->bone->layer) {
+			if (pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+				
+				/* only if group matches (and is not selected or current bone) */
+				for (chan= ob->pose->chanbase.first; chan; chan= chan->next) {
+					if (arm->layer & chan->bone->layer) {
+						if (pchan->agrp_index == chan->agrp_index) {
+							chan->bone->flag |= BONE_SELECTED;
+							changed= 1;
+						}
+					}
+				}
+				
+			}
+		}
+	}
+	
+	return changed;
+}
+
+static short pose_select_same_layer (Object *ob)
+{
+	bPose *pose= (ob)? ob->pose : NULL;
+	bArmature *arm= (ob)? ob->data : NULL;
+	bPoseChannel *pchan;
+	short layers= 0, changed= 0;
+	
+	if (ELEM3(NULL, ob, pose, arm))
+		return 0;
+	
+	/* figure out what bones are selected */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (arm->layer & pchan->bone->layer) {
+			if (pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+				layers |= pchan->bone->layer;
+			}
+		}
+	}
+	if (layers == 0) 
+		return 0;
+		
+	/* select bones that are on same layers as layers flag */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (arm->layer & pchan->bone->layer) {
+			if (layers & pchan->bone->layer) {
+				pchan->bone->flag |= BONE_SELECTED;
+				changed= 1;
+			}
+		}
+	}
+	
+	return changed;
+}
+
+
+void pose_select_grouped (short nr)
+{
+	short changed = 0;
+	
+	if (nr == 1) 		changed= pose_select_same_group(OBACT);
+	else if (nr == 2)	changed= pose_select_same_layer(OBACT);
+	
+	if (changed) {
+		countall();
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+		allspace(REMAKEIPO, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWACTION, 0);
+		BIF_undo_push("Select Grouped");
+	}
+}
+
+/* Shift-G in 3D-View while in PoseMode */
+void pose_select_grouped_menu (void)
+{
+	char *str;
+	short nr;
+
+	/* make menu string */
+	str= MEM_mallocN(512, "groupmenu");
+	strcpy(str, "Select Grouped%t|In Same Group%x1|In Same Layer%x2");
+
+	/* here we go */
+	nr= pupmenu(str);
+	MEM_freeN(str);
+	
+	pose_select_grouped(nr);
+}
+
+/* ********************************************** */
+
 /* context active object */
 void pose_flip_names(void)
 {

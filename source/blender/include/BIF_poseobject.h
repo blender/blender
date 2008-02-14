@@ -68,6 +68,9 @@ void pose_assign_to_posegroup(short active);
 void pose_remove_from_posegroups(void);
 void pgroup_operation_with_menu(void);
 
+void pose_select_grouped(short nr);
+void pose_select_grouped_menu(void);
+
 void pose_calculate_path(struct Object *ob);
 void pose_recalculate_paths(struct Object *ob);
 void pose_clear_paths(struct Object *ob);
