@@ -2196,7 +2196,10 @@ void DAG_pose_sort(Object *ob)
 			if(con->ipo) {
 				IpoCurve *icu;
 				for(icu= con->ipo->curve.first; icu; icu= icu->next) {
-					if(icu->driver && icu->driver->ob==ob) {
+					/* icu->driver->ob should actually point to ob->proxy if it
+					 * is a proxy, but since it wasn't set correct it older
+					 * files comparing with ob->proxy makes it work for those */
+					if(icu->driver && (icu->driver->ob==ob || icu->driver->ob==ob->proxy)) {
 						bPoseChannel *target= get_pose_channel(ob->pose, icu->driver->name);
 						if(target) {
 							node2 = dag_get_node(dag, target);
