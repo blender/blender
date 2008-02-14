@@ -2114,16 +2114,21 @@ void DAG_object_update_flags(Scene *sce, Object *ob, unsigned int lay)
 static int node_recurs_level(DagNode *node, int level)
 {
 	DagAdjList *itA;
-	
+	int newlevel;
+
 	node->color= DAG_BLACK;	/* done */
-	level++;
+	newlevel= ++level;
 	
 	for(itA= node->parent; itA; itA= itA->next) {
-		if(itA->node->color==DAG_WHITE)
+		if(itA->node->color==DAG_WHITE) {
 			itA->node->ancestor_count= node_recurs_level(itA->node, level);
+			newlevel= MAX2(newlevel, level+itA->node->ancestor_count);
+		}
+		else
+			newlevel= MAX2(newlevel, level+itA->node->ancestor_count);
 	}
 	
-	return level;
+	return newlevel;
 }
 
 static void pose_check_cycle(DagForest *dag)
