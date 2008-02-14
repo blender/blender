@@ -884,6 +884,10 @@ char *buildmenu_pyconstraints (Text *con_text, int *pyconindex)
 	sprintf(buf, "Scripts: %%t|[None]%%x0|");
 	BLI_dynstr_append(pupds, buf);
 	
+	/* init active-index first */
+	if (con_text == NULL)
+		*pyconindex= 0;
+	
 	/* loop through markers, adding them */
 	for (text=G.main->text.first, i=1; text; i++, text=text->id.next) {
 		/* this is important to ensure that right script is shown as active */

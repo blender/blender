@@ -673,8 +673,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 						short yoffset= ((tarnum-1) * 38);
 						
 						/* target label */
-						sprintf(tarstr, "Target %02d:", tarnum);
-						uiDefBut(block, LABEL, B_CONSTRAINT_TEST, tarstr, *xco+45, *yco-(48+yoffset), 80, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+						sprintf(tarstr, "Target %d:", tarnum);
+						uiDefBut(block, LABEL, B_CONSTRAINT_TEST, tarstr, *xco+45, *yco-(48+yoffset), 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 						
 						/* target space-selector - per target */
 						if (is_armature_target(ct->tar)) {
