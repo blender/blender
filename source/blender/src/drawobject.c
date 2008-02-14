@@ -5103,23 +5103,25 @@ void draw_object(Base *base, int flag)
 	if(ob->pd && ob->pd->forcefield) draw_forcefield(ob);
 
 	/* code for new particle system */
-	if(warning_recursive==0 && (flag & DRAW_PICKING)==0 && ob!=G.obedit){
-		glDepthMask(GL_FALSE);
+	if(		(warning_recursive==0) &&
+			(ob->particlesystem.first) &&
+			(flag & DRAW_PICKING)==0 &&
+			(ob!=G.obedit)	
+	  ) {
+		ParticleSystem *psys;
 		if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
-		if(ob->particlesystem.first) {
-			ParticleSystem *psys;
-
-			for(psys=ob->particlesystem.first; psys; psys=psys->next)
-				draw_new_particle_system(base, psys);
-			
-			if(G.f & G_PARTICLEEDIT && ob==OBACT) {
-				psys= PE_get_current(ob);
-				if(psys && !G.obedit && psys_in_edit_mode(psys))
-					draw_particle_edit(ob, psys);
-			}
+		glDepthMask(GL_FALSE);
+		
+		for(psys=ob->particlesystem.first; psys; psys=psys->next)
+			draw_new_particle_system(base, psys);
+		
+		if(G.f & G_PARTICLEEDIT && ob==OBACT) {
+			psys= PE_get_current(ob);
+			if(psys && !G.obedit && psys_in_edit_mode(psys))
+				draw_particle_edit(ob, psys);
 		}
-		if(col) cpack(col);
 		glDepthMask(GL_TRUE); 
+		if(col) cpack(col);
 	}
 
 	{

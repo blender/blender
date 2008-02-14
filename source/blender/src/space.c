@@ -1934,8 +1934,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						G.f ^= G_FACESELECT;
 						allqueue(REDRAWVIEW3D, 1);
 					}
-					else if(G.f & G_PARTICLEEDIT)
+					else if(G.f & G_PARTICLEEDIT) {
 						PE_radialcontrol_start(RADIALCONTROL_SIZE);
+					} else {
+						pupmenu("Note%t|UV/Face Select was removed. Editmode now allows UV editing, Add a UV layer or Unwrap (UKey)");
+					}
 				}
 				
 				break;
