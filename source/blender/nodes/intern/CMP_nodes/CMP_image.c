@@ -204,14 +204,14 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, b
 			
 			/*respect image premul option*/
 			if (stackbuf->type==CB_RGBA && ima->flag & IMA_DO_PREMUL) {
+				int i;
+				float *pixel = stackbuf->rect;
 			
 				/*first duplicate stackbuf->rect, since it's just a pointer
 				  to the source imbuf, and we don't want to change that.*/
 				stackbuf->rect = MEM_dupallocN(stackbuf->rect);
 				
 				/*premul the image*/
-				int i;
-				float *pixel = stackbuf->rect;
 				
 				for (i=0; i<stackbuf->x*stackbuf->y; i++, pixel += 4) {
 					pixel[0] *= pixel[3];
