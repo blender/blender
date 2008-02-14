@@ -1513,11 +1513,28 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 	}
 }
 
+/* let's map negative light as if it mirrors positive light, otherwise negative values disappear */
 static void wrld_exposure_correct(float *diff)
 {
-	diff[0]= R.wrld.linfac*(1.0f-exp( diff[0]*R.wrld.logfac) );
-	diff[1]= R.wrld.linfac*(1.0f-exp( diff[1]*R.wrld.logfac) );
-	diff[2]= R.wrld.linfac*(1.0f-exp( diff[2]*R.wrld.logfac) );
+	float f= diff[0];
+	
+	if(f>0.0f)
+		diff[0]= R.wrld.linfac*(1.0f-exp( f*R.wrld.logfac) );
+	else
+		diff[0]= - R.wrld.linfac*(1.0f-exp( - f*R.wrld.logfac) );
+	
+	f= diff[1];
+	if(f>0.0f)
+		diff[1]= R.wrld.linfac*(1.0f-exp( f*R.wrld.logfac) );
+	else
+		diff[1]= - R.wrld.linfac*(1.0f-exp( - f*R.wrld.logfac) );
+	
+	f= diff[2];
+	if(f>0.0f)
+		diff[2]= R.wrld.linfac*(1.0f-exp( f*R.wrld.logfac) );
+	else
+		diff[2]= - R.wrld.linfac*(1.0f-exp( - f*R.wrld.logfac) );
+	
 }
 
 void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
