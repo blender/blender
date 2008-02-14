@@ -986,7 +986,7 @@ char *build_posegroups_menustr (bPose *pose, short for_pupmenu)
 	else
 		BLI_dynstr_append(pupds, "BG: [None]%x0|");
 	
-	/* loop through markers, adding them */
+	/* loop through groups, adding them */
 	for (grp= pose->agroups.first, i=1; grp; grp=grp->next, i++) {
 		if (for_pupmenu == 0)
 			BLI_dynstr_append(pupds, "BG: ");

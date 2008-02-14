@@ -3889,6 +3889,17 @@ void do_armbuts(unsigned short event)
 		if (ob && ob->pose)
 			pose_remove_posegroup();
 		break;
+	case B_POSEGRP_MCUSTOM:
+		if (ob && ob->pose) {
+			if (ob->pose->active_group) {
+				bActionGroup *grp= (bActionGroup *)BLI_findlink(&ob->pose->agroups, ob->pose->active_group-1);
+				grp->customCol= -1;
+			}
+			
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+		}
+		break;
 	}
 }
 
@@ -5039,6 +5050,32 @@ static void verify_posegroup_groupname(void *arg1, void *arg2)
 	BLI_uniquename(&pose->agroups, grp, "Group", offsetof(bActionGroup, name), 32);
 }
 
+static char *build_colorsets_menustr ()
+{
+	DynStr *pupds= BLI_dynstr_new();
+	char *str;
+	char buf[48];
+	int i;
+	
+	/* add title first (and the "default" entry) */
+	BLI_dynstr_append(pupds, "Bone Color Set%t|Default Colors%x0|");
+	
+	/* loop through set indices, adding them */
+	for (i=1; i<21; i++) {
+		sprintf(buf, "%d - Theme Color Set%%x%d|", i, i);
+		BLI_dynstr_append(pupds, buf);
+	}
+	
+	/* add the 'custom' entry */
+	BLI_dynstr_append(pupds, "Custom Set %x-1");
+	
+	/* convert to normal MEM_malloc'd string */
+	str= BLI_dynstr_get_cstring(pupds);
+	BLI_dynstr_free(pupds);
+	
+	return str;
+}
+
 static void editing_panel_links(Object *ob)
 {
 	uiBlock *block;
@@ -5126,6 +5163,7 @@ static void editing_panel_links(Object *ob)
 		if ((ob->pose) && (ob->flag & OB_POSEMODE) && (G.obedit != ob)) {
 			bAction *act= ob->poselib;
 			bPose *pose= ob->pose;
+			bActionGroup *grp= NULL;
 			int count;
 			char *menustr;
 			
@@ -5167,45 +5205,69 @@ static void editing_panel_links(Object *ob)
 			}
 			
 			
-			/* Action Groups settings for armature reside on the right */
+			/* Bone Groups settings for armature reside on the right */
 			xco= 315;
 			
 			uiDefBut(block, LABEL,0, "Bone Groups:", xco, 154, 140, 20, 0, 0, 0, 0, 0, "");
 			
-			/* add new group */
-			uiDefBut(block, BUT, B_POSEGRP_ADD, "Add Group",	xco,130,140,20, 0, 0, 0, 0, 0, "Add a new Pose Group for the Pose");
-			
-			if (pose->agroups.first) {
-				uiBlockBeginAlign(block);
+			uiBlockBeginAlign(block);
+				if (pose->agroups.first) {
 					/* currently 'active' group - browse groups */
 					count= BLI_countlist(&pose->agroups);
 					menustr= build_posegroups_menustr(pose, 0);
-					uiDefButI(block, MENU, B_POSEGRP_RECALC, menustr, xco, 85,18,20, &pose->active_group, 1, count, 0, 0, "Browses Pose Groups available for Armature. Click to change.");
+					uiDefButI(block, MENU, B_POSEGRP_RECALC, menustr, xco, 130,18,20, &pose->active_group, 1, count, 0, 0, "Browses Bone Groups available for Armature. Click to change.");
 					MEM_freeN(menustr);
 					
-					
+					/* currently 'active' group - change name */
 					if (pose->active_group) {
-						bActionGroup *grp= (bActionGroup *)BLI_findlink(&pose->agroups, pose->active_group-1);
+						grp= (bActionGroup *)BLI_findlink(&pose->agroups, pose->active_group-1);
 						
 						/* active group */
-						but= uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		xco+18,85,140-18-20,20, grp->name, 0, 31, 0, 0, "Displays current Pose Group name. Click to change.");
+						but= uiDefBut(block, TEX, REDRAWBUTSEDIT,"", xco+18,130,140-18-20,20, grp->name, 0, 31, 0, 0, "Displays current Bone Group name. Click to change.");
 						uiButSetFunc(but, verify_posegroup_groupname, pose, grp); 
-						uiDefIconBut(block, BUT, B_POSEGRP_REMOVE, VICON_X, xco+140-20, 85, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this Pose Group");
-						
-						/* set custom color set */
-						uiDefButI(block, NUM,B_POSEGRP_RECALC, "GroupColor: ", xco,65,110,19, &grp->customCol, 0, 20, 0.0, 0.0, "Index of set of Custom Colors to shade Group's bones with. 0 = Use Default Color Scheme");						
-						if (grp->customCol) {
+						uiDefIconBut(block, BUT, B_POSEGRP_REMOVE, VICON_X, xco+140-20, 130, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this Bone Group");
+					}
+				}
+				
+				uiDefBut(block, BUT, B_POSEGRP_ADD, "Add Group",	xco,110,140,20, 0, 21, 0, 0, 0, "Add a new Bone Group for the Pose");
+			uiBlockEndAlign(block);
+			
+			/* colour set for 'active' group */
+			if (pose->active_group && grp) {
+				uiBlockBeginAlign(block);
+					menustr= build_colorsets_menustr();
+					uiDefButI(block, MENU,B_POSEGRP_RECALC, menustr, xco,85,140,19, &grp->customCol, -1, 20, 0.0, 0.0, "Index of set of Custom Colors to shade Group's bones with. 0 = Use Default Color Scheme, -1 = Use Custom Color Scheme");						
+					MEM_freeN(menustr);
+					
+					/* show color-selection/preview */
+					if (grp->customCol) {
+						if (grp->customCol > 0) {
+							/* copy theme colors on-to group's custom color in case user tries to edit color */
 							bTheme *btheme= U.themes.first;
 							ThemeWireColor *col_set= &btheme->tarm[(grp->customCol - 1)];
 							
-							uiSetButLock(1, "To change these colors, see Themes -> Bone Color Sets");
-							
-							uiDefButC(block, COL, B_POSEGRP_RECALC, "",		xco+110, 65, 10, 19, col_set->solid, 0, 0, 0, 0, "Color to use for surface of bones. See current theme in Info Window.");
-							uiDefButC(block, COL, B_POSEGRP_RECALC, "",		xco+120, 65, 10, 19, col_set->select, 0, 0, 0, 0, "Color to use for 'selected' bones. See current theme in Info Window.");
-							uiDefButC(block, COL, B_POSEGRP_RECALC, "",		xco+130, 65, 10, 19, col_set->active, 0, 0, 0, 0, "Color to use for 'active' bones. See current theme in Info Window.");
-							
-							uiClearButLock();
+							memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
 						}
+						else {
+							/* init custom colours with a generic multi-colour rgb set, if not initialised already */
+							if (grp->cs.solid[0] == 0) {
+								/* define for setting colors in theme below */
+								#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
+								
+								SETCOL(grp->cs.solid, 0xff, 0x00, 0x00, 255);
+								SETCOL(grp->cs.select, 0x81, 0xe6, 0x14, 255);
+								SETCOL(grp->cs.active, 0x18, 0xb6, 0xe0, 255);
+								
+								#undef SETCOL
+							}
+						}
+						
+						/* color changing */
+						uiDefButC(block, COL, B_POSEGRP_MCUSTOM, "",		xco, 65, 30, 19, grp->cs.solid, 0, 0, 0, 0, "Color to use for surface of bones");
+						uiDefButC(block, COL, B_POSEGRP_MCUSTOM, "",		xco+30, 65, 30, 19, grp->cs.select, 0, 0, 0, 0, "Color to use for 'selected' bones");
+						uiDefButC(block, COL, B_POSEGRP_MCUSTOM, "",		xco+60, 65, 30, 19, grp->cs.active, 0, 0, 0, 0, "Color to use for 'active' bones");
+						
+						uiDefButBitS(block, TOG, TH_WIRECOLOR_CONSTCOLS, B_POSEGRP_MCUSTOM, "ConstCols",  xco+90,65,50,20, &grp->cs.flag, 0, 0, 0, 0, "Allow the use of colors indicating constraints/keyed status");
 					}
 				uiBlockEndAlign(block);
 			}

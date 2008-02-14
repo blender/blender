@@ -109,6 +109,7 @@ static void set_pchan_colorset (Object *ob, bPoseChannel *pchan)
 {
 	bPose *pose= (ob) ? ob->pose : NULL;
 	bArmature *arm= (ob) ? ob->data : NULL;
+	bActionGroup *grp= NULL;
 	short color_index= 0;
 	
 	/* sanity check */
@@ -123,7 +124,7 @@ static void set_pchan_colorset (Object *ob, bPoseChannel *pchan)
 		 * has been set to use one
 		 */
 		if (pchan->agrp_index) {
-			bActionGroup *grp= (bActionGroup *)BLI_findlink(&pose->agroups, (pchan->agrp_index - 1));
+			grp= (bActionGroup *)BLI_findlink(&pose->agroups, (pchan->agrp_index - 1));
 			if (grp)
 				color_index= grp->customCol;
 		}
@@ -132,9 +133,13 @@ static void set_pchan_colorset (Object *ob, bPoseChannel *pchan)
 	/* bcolor is a pointer to the color set to use. If NULL, then the default
 	 * color set (based on the theme colors for 3d-view) is used. 
 	 */
-	if (color_index) {
+	if (color_index > 0) {
 		bTheme *btheme= U.themes.first;
 		bcolor= &btheme->tarm[(color_index - 1)];
+	}
+	else if (color_index == -1) {
+		/* use the group's own custom color set */
+		bcolor= (grp)? &grp->cs : NULL;
 	}
 	else 
 		bcolor= NULL;
