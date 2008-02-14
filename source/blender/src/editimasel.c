@@ -171,6 +171,8 @@ static void activate_imageselect_(int type, char *title, char *file, short *menu
 
 	name[2]= 0;
 	BLI_strncpy(name, file, sizeof(name));
+	BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
+	
 	
 	simasel= curarea->spacedata.first;
 

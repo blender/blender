@@ -1172,6 +1172,7 @@ static void activate_fileselect_(int type, char *title, char *file, short *menup
 
 	name[2]= 0;
 	BLI_strncpy(name, file, sizeof(name));
+	BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
 	
 	sfile= curarea->spacedata.first;
 
