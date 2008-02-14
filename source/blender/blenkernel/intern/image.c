@@ -276,7 +276,6 @@ static Image *image_alloc(const char *name, short source, short type)
 		
 		ima->source= source;
 		ima->type= type;
-		ima->flag = IMA_DO_PREMUL;
 	}
 	return ima;
 }
