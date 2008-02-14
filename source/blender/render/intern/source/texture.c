@@ -2521,7 +2521,13 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 	
 	if(shi->osatex) imagewraposa(tex, ima, NULL, texvec, dx, dy, &texr); 
 	else imagewrap(tex, ima, NULL, texvec, &texr); 
-	
+
+	if (tex->ima && tex->ima->flag & IMA_DO_PREMUL) {
+		texr.tr *= texr.ta;
+		texr.tg *= texr.ta;
+		texr.tb *= texr.ta;
+	}
+		
 	shi->vcol[0]*= texr.tr;
 	shi->vcol[1]*= texr.tg;
 	shi->vcol[2]*= texr.tb;
