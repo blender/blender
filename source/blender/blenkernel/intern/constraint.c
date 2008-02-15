@@ -3062,8 +3062,10 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 			case 2: /* scale */
 				Mat4ToSize(ct->matrix, dvec);
 				break;
-			case 1: /* rotation */
+			case 1: /* rotation (convert to degrees first) */
 				Mat4ToEul(ct->matrix, dvec);
+				for (i=0; i<3; i++)
+					dvec[i] = dvec[i] / M_PI * 180;
 				break;
 			default: /* location */
 				VecCopyf(dvec, ct->matrix[3]);
@@ -3095,14 +3097,9 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 			}
 		}
 		
-		/* convert radian<->degree */
-		if (data->from==1 && data->to==0) {
-			/* from radians to degrees */
-			for (i=0; i<3; i++) 
-				sval[i] = sval[i] / M_PI * 180;
-		}
-		else if (data->from==0 && data->to==1) {
-			/* from degrees to radians */
+		/* convert radians<->degrees */
+		if (data->to == 1) {
+			/* if output is rotation, convert to radians from degrees */
 			for (i=0; i<3; i++) 
 				sval[i] = sval[i] / 180 * M_PI;
 		}
