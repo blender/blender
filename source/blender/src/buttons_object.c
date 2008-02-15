@@ -1275,12 +1275,12 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				uiBlockBeginAlign(block);
 					if (is_armature_target(data->tar)) {
-						uiDefButF(block, BUTM, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->orglength, 0.0, 0, 0, 0, "Recalculate RLength");
+						uiDefButF(block, BUT, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->orglength, 0.0, 0, 0, 0, "Recalculate RLength");
 						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Rest Length:", *xco+18, *yco-60,139,18, &data->orglength, 0.0, 100, 0.5, 0.5, "Length at Rest Position");
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Head/Tail:", *xco+155, *yco-60,97,18, &con->headtail, 0.0, 1, 0.1, 0.1, "Target along length of bone: Head=0, Tail=1");
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Head/Tail:", *xco+155, *yco-60,98,18, &con->headtail, 0.0, 1, 0.1, 0.1, "Target along length of bone: Head=0, Tail=1");
 					}
 					else {
-						uiDefButF(block, BUTM, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->orglength, 0.0, 0, 0, 0, "Recalculate RLength");
+						uiDefButF(block, BUT, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->orglength, 0.0, 0, 0, 0, "Recalculate RLength");
 						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Rest Length:", *xco+18, *yco-60, 237, 18, &data->orglength, 0.0, 100, 0.5, 0.5, "Length at Rest Position");
 					}
 				uiBlockEndAlign(block);
@@ -1634,7 +1634,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 					}
 					else if (is_geom_target(data->tar)) {
-						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-66,150,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
 						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
 					}
 					else {
