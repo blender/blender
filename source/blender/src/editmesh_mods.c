@@ -134,14 +134,15 @@ void EM_select_mirrored(void)
 
 void EM_automerge(int update) {
 	int len;
-	if  (G.scene->automerge) {
-		if (G.obedit && G.obedit->type==OB_MESH) {
-			len = removedoublesflag(1, 1, G.scene->toolsettings->doublimit);
-			if (len) {
-				G.totvert -= len; /* saves doing a countall */
-				if (update) {
-					DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
-				}
+	if ((G.scene->automerge) &&
+		(G.obedit && G.obedit->type==OB_MESH) &&
+		(((Mesh*)G.obedit->data)->mr==NULL)
+	  ) {
+		len = removedoublesflag(1, 1, G.scene->toolsettings->doublimit);
+		if (len) {
+			G.totvert -= len; /* saves doing a countall */
+			if (update) {
+				DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			}
 		}
 	}

@@ -3136,11 +3136,11 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if(G.scene->automerge) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "AutoMerge Editing", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
-	} else {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "AutoMerge Editing", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
-	}
+	/* PITA but we should let users know that automerge cant work with multires :/ */
+	uiDefIconTextBut(block, BUTM, 1,
+			G.scene->automerge ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT,
+			((Mesh*)G.obedit->data)->mr ? "AutoMerge Editing (multires disables)" : "AutoMerge Editing",
+			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
