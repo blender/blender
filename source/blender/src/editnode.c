@@ -1316,6 +1316,47 @@ static int do_header_hidden_node(SpaceNode *snode, bNode *node, float mx, float 
 	return 0;
 }
 
+static void node_link_viewer(SpaceNode *snode, bNode *tonode)
+{
+	bNode *node;
+
+	/* context check */
+	if(tonode==NULL || tonode->outputs.first==NULL)
+		return;
+	if( ELEM(tonode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) 
+		return;
+	
+	/* get viewer */
+	for(node= snode->edittree->nodes.first; node; node= node->next)
+		if( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) 
+			if(node->flag & NODE_DO_OUTPUT)
+				break;
+		
+	if(node) {
+		bNodeLink *link;
+		
+		/* get link to viewer */
+		for(link= snode->edittree->links.first; link; link= link->next)
+			if(link->tonode==node)
+				break;
+
+		if(link) {
+			link->fromnode= tonode;
+			link->fromsock= tonode->outputs.first;
+			NodeTagChanged(snode->edittree, node);
+			
+			snode_handle_recalc(snode);
+		}
+	}
+}
+
+
+void node_active_link_viewer(SpaceNode *snode)
+{
+	bNode *node= editnode_get_active(snode->edittree);
+	if(node)
+		node_link_viewer(snode, node);
+}
 
 /* return 0: nothing done */
 static int node_mouse_select(SpaceNode *snode, unsigned short event)
@@ -1357,6 +1398,10 @@ static int node_mouse_select(SpaceNode *snode, unsigned short event)
 			node->flag |= SELECT;
 		
 		node_set_active(snode, node);
+		
+		/* viewer linking */
+		if(G.qual & LR_CTRLKEY)
+			node_link_viewer(snode, node);
 		
 		/* not so nice (no event), but function below delays redraw otherwise */
 		force_draw(0);

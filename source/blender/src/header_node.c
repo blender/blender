@@ -545,6 +545,9 @@ static void do_node_nodemenu(void *arg, int event)
 		case 13: /* read saved full sample layers */
 			node_read_fullsamplelayers(snode);
 			break;
+		case 14: /* connect viewer */
+			node_active_link_viewer(snode);
+			break;
 			
 	}
 	
@@ -590,6 +593,12 @@ static uiBlock *node_nodemenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Execute Composite|E", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Read Saved Render Results|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Read Saved Full Sample Results|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+		
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Connect Node to Viewer|Ctrl LMB", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
+		
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	}
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Cyclic Dependencies|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 	
