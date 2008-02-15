@@ -238,10 +238,5 @@ void PE_free_particle_edit(struct ParticleSystem *psys);
 void PE_get_colors(char sel[4], char nosel[4]);
 void PE_recalc_world_cos(struct Object *ob, struct ParticleSystem *psys);
 
-/* only for linux binreloc */
-#ifdef __linux__
-char *zLhm65070058860608_br_find_exe(const char *default_exe);
-#endif
-
 #endif
 
