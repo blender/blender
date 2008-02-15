@@ -3185,7 +3185,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 			for(dr= rectdraw, dz2=newrect, x= xsize*ysize-1; x>=0; x--, dr++, dz2+=4) {
 				if(dr->colpoin) {
 					float bfac= dr->alpha*blendfac;
-					float mf= 1.0f - bfac;
+					float mf= 1.0f - bfac*dr->colpoin[3];
 					
 					dz2[0]= mf*dz2[0] + bfac*dr->colpoin[0];
 					dz2[1]= mf*dz2[1] + bfac*dr->colpoin[1];
