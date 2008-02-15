@@ -637,7 +637,7 @@ void uiBoundsBlock(uiBlock *block, int addval)
 			if(bt->x1 < block->minx) block->minx= bt->x1;
 			if(bt->y1 < block->miny) block->miny= bt->y1;
 	
-			if(bt->x2 > block->maxx) block->maxx= bt->x2;
+  			if(bt->x2 > block->maxx) block->maxx= bt->x2;
 			if(bt->y2 > block->maxy) block->maxy= bt->y2;
 			
 			bt= bt->next;
@@ -2692,6 +2692,8 @@ static int ui_do_but_BUTM(uiBut *but)
 	UIafterfunc_butm= but->butm_func;
 	UIafterfunc_arg1= but->butm_func_arg;
 	UIafterval= but->a2;
+	
+	uibut_do_func(but);
 	
 	return but->retval;
 }
@@ -6277,7 +6279,7 @@ int uiButGetRetVal(uiBut *but)
 	return but->retval;
 }
 
-
+/* Call this function BEFORE adding buttons to the block */
 void uiBlockSetButmFunc(uiBlock *block, void (*menufunc)(void *arg, int event), void *arg)
 {
 	block->butm_func= menufunc;

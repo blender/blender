@@ -764,13 +764,6 @@ ListBase tb_listb= {NULL, NULL};
 #define TB_PAD	2048
 #define TB_SHIFT 4096
 
-typedef struct TBitem {
-	int icon;
-	char *name;
-	int retval;
-	void *poin;
-} TBitem;
-
 static void tb_do_hotkey(void *arg, int event)
 {
 	unsigned short i, key=0;
@@ -2266,4 +2259,51 @@ void reset_toolbox(void)
 		tb_mainx= 0;
 		tb_mainy= -5;
 	}
+}
+
+/* general toolbox for python access */
+void toolbox_generic( TBitem *generic_menu )
+{
+	uiBlock *block;
+	uiBut *but;
+	TBitem *menu;
+	int dx=96;
+	short event, mval[2], tot=0;
+	long ypos = -5;
+	
+	tb_mainx= -32;
+	tb_mainy= -5;
+	
+	mywinset(G.curscreen->mainwin); // we go to screenspace
+	
+	block= uiNewBlock(&tb_listb, "toolbox", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
+	uiBlockSetCol(block, TH_MENU_ITEM);
+	
+	getmouseco_sc(mval);
+	
+	menu= generic_menu;
+	while(menu->icon != -1) menu++;
+	uiBlockSetButmFunc(block, menu->poin, NULL);
+	
+	/* Add the menu */
+	for (menu = generic_menu; menu->icon != -1; menu++) {
+		if (menu->poin) {
+			but=uiDefIconTextBlockBut(block, tb_makemenu, menu->poin, ICON_RIGHTARROW_THIN, menu->name, mval[0]+tb_mainx,mval[1]+tb_mainy+ypos+5, dx, 19, "");
+			uiButSetFlag(but, UI_MAKE_RIGHT);
+			
+			uiButSetFunc(but, store_main, (void *)+32, (void *)ypos);
+		} else {
+			/* TODO - add icon support */
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, menu->name, mval[0]+tb_mainx,mval[1]+tb_mainy+ypos+5, dx, 19, NULL, 0.0, 0.0, 0, menu->retval, "");
+		}
+		ypos-=20;
+	}
+	
+	uiBlockSetButmFunc(block, menu->poin, NULL);
+	
+	uiBoundsBlock(block, 2);
+	event= uiDoBlocks(&tb_listb, 0, 1);
+	
+	mywinset(curarea->win);
 }

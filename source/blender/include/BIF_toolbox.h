@@ -65,4 +65,12 @@ void replace_names_but (void);
 void BIF_screendump(int fscreen);
 void write_screendump(char *name);
 
+typedef struct TBitem {
+	int icon;
+	char *name;
+	int retval;
+	void *poin;
+} TBitem;
+void toolbox_generic( struct TBitem *generic_menu ); /* for external toolbox - python only for now */
+
 #endif

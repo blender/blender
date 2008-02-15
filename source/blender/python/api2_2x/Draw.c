@@ -1,5 +1,5 @@
 /* 
- * $Id: Draw.c 12893 2007-12-15 18:24:16Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -124,6 +124,7 @@ static PyObject *Method_Text( PyObject * self, PyObject * args );
 static PyObject *Method_Label( PyObject * self, PyObject * args );
 /* by Campbell: */
 static PyObject *Method_PupMenu( PyObject * self, PyObject * args );
+static PyObject *Method_PupTreeMenu( PyObject * self, PyObject * args );
 static PyObject *Method_PupIntInput( PyObject * self, PyObject * args );
 static PyObject *Method_PupFloatInput( PyObject * self, PyObject * args );
 static PyObject *Method_PupStrInput( PyObject * self, PyObject * args );
@@ -308,6 +309,9 @@ Valid format codes are\n\
 	%xN - The option should set the integer N in the button value.\n\n\
 Ex: Draw.PupMenu('OK?%t|QUIT BLENDER') # should be familiar ...";
 
+static char Method_PupTreeMenu_doc[] =
+"each item in the menu list should be - (str, event), separator - None or submenu - (str, [...]).";
+
 static char Method_PupIntInput_doc[] =
 	"(text, default, min, max) - Display an int pop-up input.\n\
 (text) - text string to display on the button;\n\
@@ -378,6 +382,7 @@ static struct PyMethodDef Draw_methods[] = {
 	{"Text", (PyCFunction)Method_Text, METH_VARARGS, Method_Text_doc},
 	{"Label", (PyCFunction)Method_Label, METH_VARARGS, Method_Label_doc},
 	{"PupMenu", (PyCFunction)Method_PupMenu, METH_VARARGS, Method_PupMenu_doc},
+	{"PupTreeMenu", (PyCFunction)Method_PupTreeMenu, METH_VARARGS, Method_PupTreeMenu_doc},
 	{"PupIntInput", (PyCFunction)Method_PupIntInput, METH_VARARGS, Method_PupIntInput_doc},
 	{"PupFloatInput", (PyCFunction)Method_PupFloatInput, METH_VARARGS, Method_PupFloatInput_doc},
 	{"PupStrInput", (PyCFunction)Method_PupStrInput, METH_VARARGS, Method_PupStrInput_doc},
@@ -1721,6 +1726,99 @@ static PyObject *Method_PupMenu( PyObject * self, PyObject * args )
 
 	return EXPP_ReturnPyObjError( PyExc_MemoryError,
 				      "couldn't create a PyInt" );
+}
+
+static int current_menu_ret;
+static void toolbox_event(void *arg, int event)
+{
+	current_menu_ret = event;
+}
+
+static TBitem * menu_from_pylist( PyObject * current_menu, ListBase *storage )
+{
+	TBitem *tbarray, *tbitem;
+	Link *link;
+	PyObject *item, *submenu;
+	int size, i;
+	
+	char *menutext;
+	int event;
+	
+	size = PyList_Size( current_menu );
+	
+	link= MEM_callocN(sizeof(Link) + sizeof(TBitem)*(size+1), "python menu");
+	
+	if (link==NULL) {
+		PyErr_SetString( PyExc_MemoryError, "Could not allocate enough memory for the menu" );
+		BLI_freelistN(storage);
+		return NULL;
+	}
+	
+	BLI_addtail(storage, link);
+	
+	tbarray = tbitem = (TBitem *)(link+1);
+	
+	for (i=0; i<size; i++, tbitem++) {
+		/* need to get these in */
+		item = PyList_GET_ITEM( current_menu, i);
+		
+		if (item == Py_None) {
+			tbitem->name = "SEPR";
+		} else if( PyArg_ParseTuple( item, "si", &menutext, &event ) ) {
+			tbitem->name = menutext;
+			tbitem->retval = event;
+			//current_menu_index
+		} else if( PyArg_ParseTuple( item, "sO!", &menutext, &PyList_Type, &submenu ) ) {
+			PyErr_Clear(); /* from PyArg_ParseTuple above */
+			tbitem->name = menutext;
+			tbitem->poin = menu_from_pylist(submenu, storage);
+			if (tbitem->poin == NULL) {
+				BLI_freelistN(storage);
+				return NULL; /* error should be set */
+			}
+		} else {
+			PyErr_Clear(); /* from PyArg_ParseTuple above */
+			
+			PyErr_SetString( PyExc_TypeError, "Expected a list of name,event tuples, None, or lists for submenus" );
+			BLI_freelistN(storage);
+			return NULL;
+		}
+	}
+	tbitem->icon= -1;	/* end signal */
+	tbitem->name= "";
+	tbitem->retval= 0;
+	tbitem->poin= toolbox_event;
+	
+	return tbarray;
+}
+
+static PyObject *Method_PupTreeMenu( PyObject * self, PyObject * args )
+{
+	PyObject * current_menu;
+	ListBase storage = {NULL, NULL};
+	TBitem *tb;
+	
+	if( !PyArg_ParseTuple( args, "O!", &PyList_Type, &current_menu ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"Expected a list" );
+	
+	mywinset(G.curscreen->mainwin); // we go to screenspace
+	
+	tb = menu_from_pylist(current_menu, &storage);
+	
+	if (!tb) { 
+		/* Error is set */
+		return NULL; 
+	}
+	
+	current_menu_ret = -1;
+	toolbox_generic(tb);
+	
+	/* free all dynamic entries... */
+	BLI_freelistN(&storage);
+	
+	mywinset(curarea->win);
+	return PyInt_FromLong( current_menu_ret ); /* current_menu_ret is set by toolbox_event callback */
 }
 
 static PyObject *Method_PupIntInput( PyObject * self, PyObject * args )
