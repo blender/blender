@@ -111,6 +111,7 @@ enum {
 	ACTMENU_SEL_ALL_MARKERS,
 	ACTMENU_SEL_INVERSE_KEYS,
 	ACTMENU_SEL_INVERSE_MARKERS,
+	ACTMENU_SEL_INVERSE_CHANNELS,
 	ACTMENU_SEL_LEFTKEYS,
 	ACTMENU_SEL_RIGHTKEYS
 };
@@ -565,33 +566,47 @@ static void do_action_selectmenu(void *arg, int event)
 
 		case ACTMENU_SEL_ALL_KEYS: /* Select/Deselect All Keys */
 			deselect_action_keys(1, 1);
-			allqueue (REDRAWACTION, 0);
+			BIF_undo_push("(De)Select Keys");
+			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
-			allqueue (REDRAWIPO, 0);
+			allqueue(REDRAWIPO, 0);
 			break;
 
 		case ACTMENU_SEL_ALL_CHAN: /* Select/Deselect All Channels */
 			deselect_action_channels(1);
-			allqueue (REDRAWVIEW3D, 0);
-			allqueue (REDRAWACTION, 0);
+			BIF_undo_push("(De)Select Action Channels");
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
-			allqueue (REDRAWIPO, 0);
+			allqueue(REDRAWIPO, 0);
 			break;
 			
 		case ACTMENU_SEL_ALL_MARKERS: /* select/deselect all markers */
 			deselect_markers(1, 0);
+			BIF_undo_push("(De)Select Markers");
 			allqueue(REDRAWMARKER, 0);
 			break;
 			
 		case ACTMENU_SEL_INVERSE_KEYS: /* invert selection status of keys */
 			deselect_action_keys(0, 2);
-			allqueue (REDRAWACTION, 0);
+			BIF_undo_push("Inverse Keys");
+			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
-			allqueue (REDRAWIPO, 0);
+			allqueue(REDRAWIPO, 0);
+			break;
+			
+		case ACTMENU_SEL_INVERSE_CHANNELS: /* invert selection status of channels */
+			deselect_action_channels(2);
+			BIF_undo_push("Inverse Action Channels");
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWIPO, 0);
 			break;
 			
 		case ACTMENU_SEL_INVERSE_MARKERS: /* invert selection of markers */
 			deselect_markers(0, 2);
+			BIF_undo_push("Inverse Action Channels");
 			allqueue(REDRAWMARKER, 0);
 			break;
 			
@@ -635,7 +650,7 @@ static uiBlock *action_selectmenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_ALL_MARKERS, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Select/Deselect All Channels", 0, yco-=20, 
+					 "Select/Deselect All Channels|A", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_ALL_CHAN, "");
 					 
@@ -643,13 +658,17 @@ static uiBlock *action_selectmenu(void *arg_unused)
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Inverse Keys", 0, yco-=20, 
+					 "Inverse Keys|Ctrl I", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_INVERSE_KEYS, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Inverse Markers", 0, yco-=20, 
+					 "Inverse Markers|Ctrl Shift I", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_INVERSE_MARKERS, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Inverse All Channels|Ctrl I", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_SEL_INVERSE_CHANNELS, "");
 		
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

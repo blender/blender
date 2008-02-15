@@ -2427,8 +2427,10 @@ int select_icu_channel(bAction *act, IpoCurve *icu, int selectmode)
 
 /* ----------------------------------------- */
 
-/* deselects action channels in given action */
-void deselect_actionchannels (bAction *act, short test)
+/* De-selects or inverts the selection of Channels in a given Action 
+ *	mode: 0 = default behaviour (select all), 1 = test if (de)select all, 2 = invert all 
+ */
+void deselect_actionchannels (bAction *act, short mode)
 {
 	ListBase act_data = {NULL, NULL};
 	bActListElem *ale;
@@ -2439,7 +2441,7 @@ void deselect_actionchannels (bAction *act, short test)
 	actdata_filter(&act_data, filter, act, ACTCONT_ACTION);
 	
 	/* See if we should be selecting or deselecting */
-	if (test) {
+	if (mode == 1) {
 		for (ale= act_data.first; ale; ale= ale->next) {
 			if (sel == 0) 
 				break;
@@ -2474,28 +2476,38 @@ void deselect_actionchannels (bAction *act, short test)
 			{
 				bActionGroup *agrp= (bActionGroup *)ale->data;
 				
-				if (sel)
+				if (mode == 2)
+					agrp->flag ^= AGRP_SELECTED;
+				else if (sel)
 					agrp->flag |= AGRP_SELECTED;
 				else
 					agrp->flag &= ~AGRP_SELECTED;
+					
+				agrp->flag &= ~AGRP_ACTIVE;
 			}
 				break;
 			case ACTTYPE_ACHAN:
 			{
 				bActionChannel *achan= (bActionChannel *)ale->data;
 				
-				if (sel)
+				if (mode == 2)
+					achan->flag ^= AGRP_SELECTED;
+				else if (sel)
 					achan->flag |= ACHAN_SELECTED;
 				else
 					achan->flag &= ~ACHAN_SELECTED;
+					
 				select_poseelement_by_name(achan->name, sel);
+				achan->flag &= ~ACHAN_HILIGHTED;
 			}
 				break;
 			case ACTTYPE_CONCHAN:
 			{
 				bConstraintChannel *conchan= (bConstraintChannel *)ale->data;
 				
-				if (sel)
+				if (mode == 2)
+					conchan->flag ^= CONSTRAINT_CHANNEL_SELECT;
+				else if (sel)
 					conchan->flag |= CONSTRAINT_CHANNEL_SELECT;
 				else
 					conchan->flag &= ~CONSTRAINT_CHANNEL_SELECT;
@@ -2505,10 +2517,14 @@ void deselect_actionchannels (bAction *act, short test)
 			{
 				IpoCurve *icu= (IpoCurve *)ale->data;
 				
-				if (sel)
+				if (mode == 2)
+					icu->flag ^= IPO_SELECT;
+				else if (sel)
 					icu->flag |= IPO_SELECT;
 				else
 					icu->flag &= ~IPO_SELECT;
+					
+				icu->flag &= ~IPO_ACTIVE;
 			}
 				break;
 		}
@@ -2519,7 +2535,7 @@ void deselect_actionchannels (bAction *act, short test)
 }
 
 /* deselects channels in the action editor */
-void deselect_action_channels (short test)
+void deselect_action_channels (short mode)
 {
 	void *data;
 	short datatype;
@@ -2530,7 +2546,7 @@ void deselect_action_channels (short test)
 	
 	/* based on type */
 	if (datatype == ACTCONT_ACTION)
-		deselect_actionchannels(data, test);
+		deselect_actionchannels(data, mode);
 	// should shapekey channels be allowed to do this? 
 }
 
@@ -3980,16 +3996,17 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		switch(event) {
 		case UI_BUT_EVENT:
-			do_actionbuts(val); 	// window itself
+			do_actionbuts(val); 	/* window itself */
 			break;
 		
 		case HOMEKEY:
-			do_action_buttons(B_ACTHOME);	// header
+			do_action_buttons(B_ACTHOME);	/* header */
 			break;
 		
 		case AKEY:
-			if (mval[0]<NAMEWIDTH) {
+			if (mval[0] < NAMEWIDTH) {
 				deselect_action_channels(1);
+				BIF_undo_push("(De)Select Action Channels");
 				allqueue(REDRAWVIEW3D, 0);
 				allqueue(REDRAWACTION, 0);
 				allqueue(REDRAWNLA, 0);
@@ -3998,6 +4015,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			else if (mval[0] > ACTWIDTH) {
 				if (G.qual == LR_CTRLKEY) {
 					deselect_markers(1, 0);
+					BIF_undo_push("(De)Select Markers");
 					allqueue(REDRAWTIME, 0);
 					allqueue(REDRAWIPO, 0);
 					allqueue(REDRAWACTION, 0);
@@ -4006,6 +4024,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else {
 					deselect_action_keys(1, 1);
+					BIF_undo_push("(De)Select Keys");
 					allqueue(REDRAWACTION, 0);
 					allqueue(REDRAWNLA, 0);
 					allqueue(REDRAWIPO, 0);
@@ -4018,7 +4037,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				borderselect_markers();
 			}
 			else {
-				if (mval[0]>ACTWIDTH)
+				if (mval[0] >= ACTWIDTH)
 					borderselect_action();
 			}
 			break;
@@ -4091,6 +4110,31 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			else {
 				if (okee("Toggle Keys Aligned Handle"))
 					sethandles_action_keys(HD_ALIGN);
+			}
+			break;
+			
+		case IKEY: 	
+			if (G.qual & LR_CTRLKEY) {
+				if (mval[0] < ACTWIDTH) {
+					deselect_action_channels(2);
+					BIF_undo_push("Inverse Action Channels");
+					allqueue(REDRAWVIEW3D, 0);
+					allqueue(REDRAWACTION, 0);
+					allqueue(REDRAWNLA, 0);
+					allqueue(REDRAWIPO, 0);
+				}
+				else if (G.qual & LR_SHIFTKEY) {
+					deselect_markers(0, 2);
+					BIF_undo_push("Inverse Markers");
+					allqueue(REDRAWMARKER, 0);
+				}
+				else {
+					deselect_action_keys(0, 2);
+					BIF_undo_push("Inverse Keys");
+					allqueue(REDRAWACTION, 0);
+					allqueue(REDRAWNLA, 0);
+					allqueue(REDRAWIPO, 0);
+				}
 			}
 			break;
 		
