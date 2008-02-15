@@ -4051,7 +4051,7 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
 	re->totstrand += obr->totstrand;
 }
 
-static void add_render_object(Render *re, Object *ob, Object *par, int index, int timeoffset, int instanceable)
+static void add_render_object(Render *re, Object *ob, Object *par, int index, int timeoffset, int instanceable, int vectorlay)
 {
 	ObjectRen *obr;
 	ParticleSystem *psys;
@@ -4078,6 +4078,8 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 			obr->flag |= R_INSTANCEABLE;
 			Mat4CpyMat4(obr->obmat, ob->obmat);
 		}
+		if(obr->lay & vectorlay)
+			obr->flag |= R_NEED_VECTORS;
 		init_render_object_data(re, obr, timeoffset);
 
 		/* only add instance for objects that have not been used for dupli */
@@ -4096,6 +4098,8 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 				obr->flag |= R_INSTANCEABLE;
 				Mat4CpyMat4(obr->obmat, ob->obmat);
 			}
+			if(obr->lay & vectorlay)
+				obr->flag |= R_NEED_VECTORS;
 			init_render_object_data(re, obr, timeoffset);
 			psys_render_restore(ob, psys);
 
@@ -4110,7 +4114,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 
 /* par = pointer to duplicator parent, needed for object lookup table */
 /* index = when duplicater copies same object (particle), the counter */
-static void init_render_object(Render *re, Object *ob, Object *par, int index, int timeoffset, int instanceable)
+static void init_render_object(Render *re, Object *ob, Object *par, int index, int timeoffset, int instanceable, int vectorlay)
 {
 	static double lasttime= 0.0;
 	double time;
@@ -4119,7 +4123,7 @@ static void init_render_object(Render *re, Object *ob, Object *par, int index, i
 	if(ob->type==OB_LAMP)
 		add_render_lamp(re, ob);
 	else if(render_object_type(ob->type))
-		add_render_object(re, ob, par, index, timeoffset, instanceable);
+		add_render_object(re, ob, par, index, timeoffset, instanceable, vectorlay);
 	else {
 		MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
 		MTC_Mat4Invert(ob->imat, mat);
@@ -4321,7 +4325,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	ObjectInstanceRen *obi;
 	Scene *sce;
 	float mat[4][4];
-	int lay;
+	int lay, vectorlay;
 
 	for(SETLOOPER(re->scene, base)) {
 		ob= base->object;
@@ -4336,10 +4340,8 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	for(SETLOOPER(re->scene, base)) {
 		ob= base->object;
 
-		if(timeoffset)
-			lay= renderlay & get_vector_renderlayers(sce);
-		else
-			lay= renderlay;
+		vectorlay= get_vector_renderlayers(sce);
+		lay= (timeoffset)? renderlay & vectorlay: renderlay;
 
 		/* if the object has been restricted from rendering in the outliner, ignore it */
 		if(ob->restrictflag & OB_RESTRICT_RENDER) continue;
@@ -4348,7 +4350,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 		if(ob->flag & OB_DONE) {
 			if(ob->transflag & OB_RENDER_DUPLI)
 				if(allow_render_object(ob, nolamps, onlyselected, actob))
-					init_render_object(re, ob, NULL, 0, timeoffset, 1);
+					init_render_object(re, ob, NULL, 0, timeoffset, 1, vectorlay);
 		}
 		else if((base->lay & lay) || (ob->type==OB_LAMP && (base->lay & re->scene->lay)) ) {
 			if((ob->transflag & OB_DUPLI) && (ob->type!=OB_MBALL)) {
@@ -4399,7 +4401,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 							}
 						}
 						else
-							init_render_object(re, obd, ob, dob->index, timeoffset, !dob->animated);
+							init_render_object(re, obd, ob, dob->index, timeoffset, !dob->animated, vectorlay);
 
 						psysindex= 1;
 						for(psys=obd->particlesystem.first; psys; psys=psys->next) {
@@ -4424,17 +4426,17 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 						}
 					}
 					else
-						init_render_object(re, obd, ob, dob->index, timeoffset, !dob->animated);
+						init_render_object(re, obd, ob, dob->index, timeoffset, !dob->animated, vectorlay);
 					
 					if(re->test_break()) break;
 				}
 				free_object_duplilist(lb);
 
 				if(allow_render_object(ob, nolamps, onlyselected, actob))
-					init_render_object(re, ob, NULL, 0, timeoffset, 0);
+					init_render_object(re, ob, NULL, 0, timeoffset, 0, vectorlay);
 			}
 			else if(allow_render_object(ob, nolamps, onlyselected, actob))
-				init_render_object(re, ob, NULL, 0, timeoffset, 0);
+				init_render_object(re, ob, NULL, 0, timeoffset, 0, vectorlay);
 		}
 
 		if(re->test_break()) break;
@@ -4994,8 +4996,11 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 				table= &oldtable;
 			
 			oldobi= table->first;
-			for(obi= re->instancetable.first; obi && oldobi; obi= obi->next, oldobi= oldobi->next) {
+			for(obi= re->instancetable.first; obi && oldobi; obi= obi->next) {
 				int ok= 1;
+
+				if(!(obi->obr->flag & R_NEED_VECTORS))
+					continue;
 
 				obi->totvector= obi->obr->totvert;
 
@@ -5022,13 +5027,13 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 					load_fluidsimspeedvectors(re, obi, oldobi->vectors, step);
 				} else {
 					/* check if both have same amounts of vertices */
-					if(obi->totvector!=oldobi->totvector) {
+					if(obi->totvector==oldobi->totvector)
+						calculate_speedvectors(re, obi, oldobi->vectors, step);
+					else
 						printf("Warning: object %s has different amount of vertices or strands on other frame\n", obi->ob->id.name+2);
-						continue;
-					}
-					
-					calculate_speedvectors(re, obi, oldobi->vectors, step);
 				} // not fluidsim
+
+				oldobi= oldobi->next;
 			}
 		}
 	}

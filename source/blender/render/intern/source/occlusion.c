@@ -1638,9 +1638,6 @@ void sample_occ(Render *re, ShadeInput *shi)
 			onlyshadow= (shi->mat->mode & MA_ONLYSHADOW);
 			sample_occ_tree(re, tree, &exclude, shi->co, shi->vno, shi->thread, onlyshadow, shi->ao);
 
-			if(G.rt & 32)
-				shi->ao[2] *= 2.0f;
-
 			/* fill result into sample, each time */
 			if(tree->cache) {
 				cache= &tree->cache[shi->thread];
