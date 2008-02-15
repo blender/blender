@@ -343,6 +343,4 @@ PyObject* SCA_ISensor::PyEvaluate(PyObject* self, PyObject* args, PyObject* kwds
 {
 	return BoolToPyArg(Evaluate(NULL));
 }
-
-
 /* eof */

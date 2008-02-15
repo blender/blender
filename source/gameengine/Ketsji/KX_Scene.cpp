@@ -263,7 +263,7 @@ SCA_TimeEventManager* KX_Scene::GetTimeEventManager()
 
 
  
-set<class KX_Camera*>* KX_Scene::GetCameras()
+list<class KX_Camera*>* KX_Scene::GetCameras()
 {
 	return &m_cameras;
 }
@@ -847,7 +847,7 @@ MT_CmMatrix4x4& KX_Scene::GetProjectionMatrix()
 
 KX_Camera* KX_Scene::FindCamera(KX_Camera* cam)
 {
-	set<KX_Camera*>::iterator it = m_cameras.begin();
+	list<KX_Camera*>::iterator it = m_cameras.begin();
 
 	while ( (it != m_cameras.end()) 
 			&& ((*it) != cam) ) {
@@ -860,7 +860,7 @@ KX_Camera* KX_Scene::FindCamera(KX_Camera* cam)
 
 KX_Camera* KX_Scene::FindCamera(STR_String& name)
 {
-	set<KX_Camera*>::iterator it = m_cameras.begin();
+	list<KX_Camera*>::iterator it = m_cameras.begin();
 
 	while ( (it != m_cameras.end()) 
 			&& ((*it)->GetName() != name) ) {
@@ -872,7 +872,8 @@ KX_Camera* KX_Scene::FindCamera(STR_String& name)
 
 void KX_Scene::AddCamera(KX_Camera* cam)
 {
-	m_cameras.insert(cam);
+	if (!FindCamera(cam))
+		m_cameras.push_back(cam);
 }
 
 KX_Camera* KX_Scene::GetActiveCamera()
@@ -893,6 +894,17 @@ void KX_Scene::SetActiveCamera(KX_Camera* cam)
 	m_active_camera = cam;
 }
 
+void KX_Scene::SetCameraOnTop(KX_Camera* cam)
+{
+	if (!FindCamera(cam)){
+		// adding is always done at the back, so that's all that needs to be done
+		AddCamera(cam);
+		if (cam) std::cout << "Added cam " << cam->GetName() << std::endl;
+	} else {
+		m_cameras.remove(cam);
+		m_cameras.push_back(cam);
+	}
+}
 
 
 void KX_Scene::UpdateMeshTransformations()

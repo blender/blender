@@ -631,10 +631,10 @@ void KX_KetsjiEngine::Render()
 			RenderFrame(scene, cam);
 		}
 		
-		set<class KX_Camera*>* cameras = scene->GetCameras();
+		list<class KX_Camera*>* cameras = scene->GetCameras();
 		
 		// Draw the scene once for each camera with an enabled viewport
-		set<KX_Camera*>::iterator it = cameras->begin();
+		list<KX_Camera*>::iterator it = cameras->begin();
 		while(it != cameras->end())
 		{
 			if((*it)->GetViewport())

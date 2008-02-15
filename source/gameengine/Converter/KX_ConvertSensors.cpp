@@ -386,8 +386,9 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					bool bFindMaterial = false;
 					PHY_IPhysicsController* physCtrl = kxscene->GetPhysicsEnvironment()->CreateSphereController(radius,pos);
 
-					if (isInActiveLayer)
-						kxscene->GetPhysicsEnvironment()->addSensor(physCtrl);
+					//will be done in KX_TouchEventManager::RegisterSensor()  
+					//if (isInActiveLayer)
+					//	kxscene->GetPhysicsEnvironment()->addSensor(physCtrl);
 
 						
 

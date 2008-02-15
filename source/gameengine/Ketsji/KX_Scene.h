@@ -39,6 +39,7 @@
 
 #include <vector>
 #include <set>
+#include <list>
 
 #include "GEN_Map.h"
 #include "GEN_HashedPtr.h"
@@ -119,7 +120,7 @@ protected:
 	/**
 	 * The set of cameras for this scene
 	 */
-	set<class KX_Camera*>       m_cameras;
+	list<class KX_Camera*>       m_cameras;
 	
 	/**
 	 * Various SCA managers used by the scene
@@ -330,7 +331,7 @@ public:
 	GetTimeEventManager(
 	);
 
-		set<class KX_Camera*>*
+		list<class KX_Camera*>*
 	GetCameras(
 	);
  
@@ -365,6 +366,15 @@ public:
 
 		void					
 	SetActiveCamera(
+		class KX_Camera*
+	);
+
+	/**
+	 * Move this camera to the end of the list so that it is rendered last.
+	 * If the camera is not on the list, it will be added
+	 */
+		void
+	SetCameraOnTop(
 		class KX_Camera*
 	);
 

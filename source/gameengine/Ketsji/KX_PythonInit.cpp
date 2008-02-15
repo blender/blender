@@ -1159,3 +1159,8 @@ void PHY_SetActiveScene(class KX_Scene* scene)
 {
 	gp_KetsjiScene = scene;
 }
+
+class KX_Scene* PHY_GetActiveScene()
+{
+	return gp_KetsjiScene;
+}
