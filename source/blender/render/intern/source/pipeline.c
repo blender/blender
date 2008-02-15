@@ -1080,6 +1080,10 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, int winx, int winy
 		re->ok= 0;
 	}
 	else {
+		
+		if(!(re->r.scemode & R_EXR_TILE_FILE))
+			re->r.scemode &= ~R_FULL_SAMPLE;	/* clear, so we can use this flag for test both */
+		
 		/* fullsample wants uniform osa levels */
 		if(source && re->r.scemode & R_FULL_SAMPLE) {
 			re->r.osa= re->osa= source->osa;
