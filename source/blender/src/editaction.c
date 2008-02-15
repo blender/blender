@@ -1381,8 +1381,8 @@ void insertkey_action(void)
 		
 		/* filter data */
 		filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_ONLYICU );
-		if (mode == 2) filter |= ACTFILTER_SEL;
-		if (mode == 3) filter |= ACTFILTER_ACTGROUPED;
+		if (mode == 2) 			filter |= ACTFILTER_SEL;
+		else if (mode == 3) 	filter |= ACTFILTER_ACTGROUPED;
 		
 		actdata_filter(&act_data, filter, data, datatype);
 		
@@ -1391,10 +1391,11 @@ void insertkey_action(void)
 			/* verify that this is indeed an ipo curve */
 			if (ale->key_data && ale->owner) {
 				bActionChannel *achan= (bActionChannel *)ale->owner;
+				bConstraintChannel *conchan= (ale->type==ACTTYPE_CONCHAN) ? ale->data : NULL;
 				IpoCurve *icu= (IpoCurve *)ale->key_data;
 				
 				if (ob)
-					insertkey((ID *)ob, icu->blocktype, achan->name, NULL, icu->adrcode, 0);
+					insertkey((ID *)ob, icu->blocktype, achan->name, ((conchan)?(conchan->name):(NULL)), icu->adrcode, 0);
 				else
 					insert_vert_icu(icu, cfra, icu->curval, 0);
 			}
