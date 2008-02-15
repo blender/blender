@@ -244,6 +244,7 @@ static void composite_node_render(SpaceNode *snode, bNode *node)
 		G.scene->r.mode &= ~(R_BORDER|R_DOCOMP);
 		G.scene->r.mode |= scene->r.mode & R_BORDER;
 		G.scene->r.border= scene->r.border;
+		G.scene->r.cfra= scene->r.cfra;
 	}
 	
 	scemode= G.scene->r.scemode;
@@ -304,6 +305,7 @@ static void composit_node_event(SpaceNode *snode, short event)
 					addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
 					
 					composite_node_render(snode, node);
+					snode_handle_recalc(snode);
 					
 					/* add another event, a render can go fullscreen and open new window */
 					addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
