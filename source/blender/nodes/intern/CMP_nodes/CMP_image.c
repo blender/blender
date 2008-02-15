@@ -211,8 +211,10 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, b
 				  to the source imbuf, and we don't want to change that.*/
 				stackbuf->rect = MEM_dupallocN(stackbuf->rect);
 				
-				/*premul the image*/
+				/*flag that we can free the buffer.*/
+				stackbuf->malloc = 1;
 				
+				/*premul the image*/				
 				pixel = stackbuf->rect;
 				for (i=0; i<stackbuf->x*stackbuf->y; i++, pixel += 4) {
 					pixel[0] *= pixel[3];
