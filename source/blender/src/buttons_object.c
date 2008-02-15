@@ -4182,8 +4182,12 @@ static void object_panel_particle_extra(Object *ob)
 	buty=butx=160;
 
 	uiDefButI(block, NUM, B_PART_DISTR, "Seed:",				butx,(buty-=buth),butw,buth, &psys->seed, 0.0, 255.0, 1, 0, "Set an offset in the random table");
-	if(part->type == PART_HAIR && psys->flag & PSYS_EDITED)
-		uiDefButF(block, NUM, B_PART_RECALC, "Stiff:",	butx,(buty-=buth),butw,buth, &part->eff_hair, 0.0, 1.0, 0, 0, "Hair stiffness for effectors");
+	if(part->type == PART_HAIR && psys->flag & PSYS_EDITED) {
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_PART_RECALC, "Stiff:",	butx,(buty-=buth),(butw*3)/5,buth, &part->eff_hair, 0.0, 1.0, 0, 0, "Hair stiffness for effectors");
+		uiDefButBitI(block, TOG, PART_CHILD_EFFECT, B_PART_RECALC, "Children", butx+(butw*3)/5,buty,(butw*2)/5,buth, &part->flag, 0, 0, 0, 0, "Apply effectors to children");
+		uiBlockEndAlign(block);
+	}
 	else
 		buty-=buth;
 

@@ -1668,6 +1668,32 @@ static void do_rough_end(float *loc, float t, float fac, float shape, ParticleKe
 
 	VECADD(state->co,state->co,rough);
 }
+static void do_path_effectors(Object *ob, ParticleSystem *psys, int i, ParticleCacheKey *ca, int k, int steps, float effector, float dfra, float cfra, float *length, float *vec)
+{
+	float force[3] = {0.0f,0.0f,0.0f}, vel[3] = {0.0f,0.0f,0.0f};
+	ParticleKey eff_key;
+	ParticleData *pa;
+
+	VECCOPY(eff_key.co,(ca-1)->co);
+	VECCOPY(eff_key.vel,(ca-1)->vel);
+	QUATCOPY(eff_key.rot,(ca-1)->rot);
+
+	pa= psys->particles+i;
+	do_effectors(i, pa, &eff_key, ob, psys, force, vel, dfra, cfra);
+
+	VecMulf(force, effector*pow((float)k / (float)steps, 100.0f * psys->part->eff_hair) / (float)steps);
+
+	VecAddf(force, force, vec);
+
+	Normalize(force);
+
+	if(k < steps) {
+		VecSubf(vec, (ca+1)->co, ca->co);
+		*length = VecLength(vec);
+	}
+
+	VECADDFAC(ca->co, (ca-1)->co, force, *length);
+}
 static int check_path_length(int k, ParticleCacheKey *keys, ParticleCacheKey *state, float max_length, float *cur_length, float length, float *dvec)
 {
 	if(*cur_length + length > max_length){
@@ -1859,6 +1885,8 @@ int psys_threads_init_path(ParticleThread *threads, float cfra, int editupdate)
 		ctx->vg_rough1 = psys_cache_vgroup(ctx->dm,psys,PSYS_VG_ROUGH1);
 		ctx->vg_rough2 = psys_cache_vgroup(ctx->dm,psys,PSYS_VG_ROUGH2);
 		ctx->vg_roughe = psys_cache_vgroup(ctx->dm,psys,PSYS_VG_ROUGHE);
+		if(psys->part->flag & PART_CHILD_EFFECT)
+			ctx->vg_effector = psys_cache_vgroup(ctx->dm,psys,PSYS_VG_EFFECTOR);
 	}
 
 	/* set correct ipo timing */
@@ -1886,8 +1914,9 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 	float co[3], orco[3], ornor[3], t, rough_t, cpa_1st[3], dvec[3];
 	float branch_begin, branch_end, branch_prob, branchfac, rough_rand;
 	float pa_rough1, pa_rough2, pa_roughe;
-	float length, pa_length, pa_clump, pa_kink;
+	float length, pa_length, pa_clump, pa_kink, pa_effector;
 	float max_length = 1.0f, cur_length = 0.0f;
+	float eff_length, eff_vec[3];
 	int k, cpa_num, guided=0;
 	short cpa_from;
 
@@ -2000,6 +2029,7 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 	pa_rough1=ptex.rough;
 	pa_rough2=ptex.rough;
 	pa_roughe=ptex.rough;
+	pa_effector= 1.0f;
 
 	if(ctx->vg_length)
 		pa_length*=psys_interpolate_value_from_verts(ctx->dm,cpa_from,cpa_num,cpa_fuv,ctx->vg_length);
@@ -2013,16 +2043,17 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 		pa_rough2*=psys_interpolate_value_from_verts(ctx->dm,cpa_from,cpa_num,cpa_fuv,ctx->vg_rough2);
 	if(ctx->vg_roughe)
 		pa_roughe*=psys_interpolate_value_from_verts(ctx->dm,cpa_from,cpa_num,cpa_fuv,ctx->vg_roughe);
+	if(ctx->vg_effector)
+		pa_effector*=psys_interpolate_value_from_verts(ctx->dm,cpa_from,cpa_num,cpa_fuv,ctx->vg_effector);
 
 	/* create the child path */
 	for(k=0,state=keys; k<=ctx->steps; k++,state++){
-		t=(float)k/(float)ctx->steps;
-
 		if(ctx->between){
 			int w=0;
 
 			state->co[0] = state->co[1] = state->co[2] = 0.0f;
 			state->vel[0] = state->vel[1] = state->vel[2] = 0.0f;
+			state->rot[0] = state->rot[1] = state->rot[2] = state->rot[3] = 0.0f;
 
 			//QUATCOPY(state->rot,key[0]->rot);
 
@@ -2051,6 +2082,23 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 
 			key[0]++;
 		}
+	}
+
+	/* apply effectors */
+	if(part->flag & PART_CHILD_EFFECT) {
+		for(k=0,state=keys; k<=ctx->steps; k++,state++) {
+			if(k) {
+				do_path_effectors(ob, psys, cpa->pa[0], state, k, ctx->steps, pa_effector, 0.0f, ctx->cfra, &eff_length, eff_vec);
+			}
+			else {
+				VecSubf(eff_vec,(state+1)->co,state->co);
+				eff_length= VecLength(eff_vec);
+			}
+		}
+	}
+
+	for(k=0,state=keys; k<=ctx->steps; k++,state++){
+		t=(float)k/(float)ctx->steps;
 
 		if(ctx->totparent){
 			if(i>=ctx->totparent)
@@ -2322,8 +2370,10 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 	if(ma && (psys->part->draw & PART_DRAW_MAT_COL))
 		VECCOPY(col, &ma->r)
 	
-	if(psys->part->from!=PART_FROM_PARTICLE)
-		vg_effector = psys_cache_vgroup(psmd->dm, psys, PSYS_VG_EFFECTOR);
+	if(psys->part->from!=PART_FROM_PARTICLE) {
+		if(!(psys->part->flag & PART_CHILD_EFFECT))
+			vg_effector = psys_cache_vgroup(psmd->dm, psys, PSYS_VG_EFFECTOR);
+	}
 
 	/*---first main loop: create all actual particles' paths---*/
 	for(i=0,pa=psys->particles; i<totpart; i++, pa++){
@@ -2466,29 +2516,8 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 
 		for(k=0, ca=cache[i]; k<=steps; k++, ca++) {
 			/* apply effectors */
-			if(edit==0 && k) {
-				float force[3] = {0.0f,0.0f,0.0f}, vel[3] = {0.0f,0.0f,0.0f};
-				ParticleKey eff_key;
-
-				VECCOPY(eff_key.co,(ca-1)->co);
-				VECCOPY(eff_key.vel,(ca-1)->vel);
-				QUATCOPY(eff_key.rot,(ca-1)->rot);
-
-				do_effectors(i, pa, &eff_key, ob, psys, force, vel, dfra, cfra);
-
-				VecMulf(force, effector*pow((float)k / (float)steps, 100.0f * psys->part->eff_hair) / (float)steps);
-
-				VecAddf(force, force, vec);
-
-				Normalize(force);
-
-				if(k < steps) {
-					VecSubf(vec, (ca+1)->co, ca->co);
-					length = VecLength(vec);
-				}
-
-				VECADDFAC(ca->co, (ca-1)->co, force, length);
-			}
+			if(!(psys->part->flag & PART_CHILD_EFFECT) && edit==0 && k)
+				do_path_effectors(ob, psys, i, ca, k, steps, effector, dfra, cfra, &length, vec);
 
 			/* apply guide curves to path data */
 			if(edit==0 && psys->effectors.first && (psys->part->flag & PART_CHILD_GUIDE)==0)

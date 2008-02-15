@@ -179,6 +179,7 @@ typedef struct ParticleThreadContext {
 
 	float *vg_length, *vg_clump, *vg_kink;
 	float *vg_rough1, *vg_rough2, *vg_roughe;
+	float *vg_effector;
 } ParticleThreadContext;
 
 typedef struct ParticleThread {

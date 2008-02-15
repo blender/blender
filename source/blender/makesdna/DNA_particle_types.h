@@ -258,6 +258,7 @@ typedef struct ParticleSystem{
 
 #define PART_GRID_INVERT	(1<<26)
 
+#define PART_CHILD_EFFECT	(1<<27)
 #define PART_CHILD_SEAMS	(1<<28)
 #define PART_CHILD_RENDER	(1<<29)
 #define PART_CHILD_GUIDE	(1<<30)
