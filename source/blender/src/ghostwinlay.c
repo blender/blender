@@ -496,7 +496,7 @@ static int change_bit(int val, int bit, int to_on) {
 	return to_on?(val|bit):(val&~bit);
 }
 
-static void update_tablet_data(Window *win, Window *ghostwin) {
+static void update_tablet_data(Window *win, GHOST_WindowHandle ghostwin) {
 	const GHOST_TabletData *td= GHOST_GetTabletData(ghostwin);
 	
 	/* if there's tablet data from an active tablet device then use it,
