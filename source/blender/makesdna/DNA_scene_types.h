@@ -450,6 +450,8 @@ typedef struct BrushData
 struct SculptSession;
 typedef struct SculptData
 {
+	/* Note! all pointers in this struct must be duplicated header_info.c's copy_scene function */
+	
 	/* Data stored only from entering sculptmode until exiting sculptmode */
 	struct SculptSession *session;
 

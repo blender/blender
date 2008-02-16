@@ -337,7 +337,14 @@ Scene *copy_scene(Scene *sce, int level)
 		/* sculpt data */
 		sce->sculptdata.session = NULL;
 		if (sce->sculptdata.cumap) {
+			int a;
 			scen->sculptdata.cumap = curvemapping_copy(sce->sculptdata.cumap);
+			scen->sculptdata.session = NULL; /* this is only for temp data storage anyway */
+			for(a=0; a<MAX_MTEX; ++a) {
+				if (sce->sculptdata.mtex[a]) {
+					scen->sculptdata.mtex[a]= MEM_dupallocN(sce->sculptdata.mtex[a]);
+				}
+			}
 		}
 	}
 	
