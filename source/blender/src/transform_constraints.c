@@ -723,7 +723,8 @@ void BIF_drawPropCircle()
 		BIF_ThemeColor(TH_GRID);
 		
 		/* if editmode we need to go into object space */
-		if(G.obedit) mymultmatrix(G.obedit->obmat);
+		if(G.obedit && t->spacetype == SPACE_VIEW3D)
+			mymultmatrix(G.obedit->obmat);
 		
 		mygetmatrix(tmat);
 		Mat4Invert(imat, tmat);
@@ -733,7 +734,8 @@ void BIF_drawPropCircle()
 		set_inverted_drawing(0);
 		
 		/* if editmode we restore */
-		if(G.obedit) myloadmatrix(G.vd->viewmat);
+		if(G.obedit && t->spacetype == SPACE_VIEW3D)
+			myloadmatrix(G.vd->viewmat);
 	}
 }
 
