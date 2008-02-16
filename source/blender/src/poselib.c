@@ -987,7 +987,7 @@ static void poselib_preview_handle_event (tPoseLib_PreviewData *pld, unsigned sh
 			pld->redraw= PL_PREVIEW_REDRAWALL;
 			break;
 		
-		/* change to previous pose or searching cursor control */
+		/* change to next pose or searching cursor control */
 		case RIGHTARROWKEY:
 			if (pld->searchstr[0]) {
 				/* move text-cursor to the right */
@@ -996,8 +996,8 @@ static void poselib_preview_handle_event (tPoseLib_PreviewData *pld, unsigned sh
 				pld->redraw= PL_PREVIEW_REDRAWHEADER;
 			}
 			else {
-				/* change to previous pose (cyclic) */
-				poselib_preview_get_next(pld, -1);
+				/* change to next pose (cyclic) */
+				poselib_preview_get_next(pld, 1);
 				pld->redraw= PL_PREVIEW_REDRAWALL;
 			}
 			break;
@@ -1011,8 +1011,8 @@ static void poselib_preview_handle_event (tPoseLib_PreviewData *pld, unsigned sh
 				pld->redraw= PL_PREVIEW_REDRAWHEADER;
 			}
 			else {
-				/* change to next pose (cyclic) */
-				poselib_preview_get_next(pld, 1);
+				/* change to previous pose (cyclic) */
+				poselib_preview_get_next(pld, -1);
 				pld->redraw= PL_PREVIEW_REDRAWALL;
 			}
 			break;
