@@ -283,46 +283,82 @@ int buttons_do_unpack()
 
 Scene *copy_scene(Scene *sce, int level)
 {
-	/* level 0: al objects shared
-	 * level 1: al object-data shared
-	 * level 2: full copy
+	/* 
+	 * level 0: empty, only copy minimal stuff
+	 * level 1: all objects shared
+	 * level 2: all object-data shared
+	 * level 3: full copy
 	 */
+	
 	Scene *scen;
 	Base *base, *obase;
-
-	/* level 0 */
-	scen= copy_libblock(sce);
-	duplicatelist(&(scen->base), &(sce->base));
 	
-	clear_id_newpoins();
+	if (level==0) { /* Add Empty, minimal copy */
+		ListBase lb;
+		scen= add_scene(sce->id.name+2);
+		
+		lb= scen->r.layers;
+		scen->r= sce->r;
+		scen->r.layers= lb;
+		
+	} else {
+		/* level 1+, but not level 0 */
+		scen= copy_libblock(sce);
+		duplicatelist(&(scen->base), &(sce->base));
+		
+		clear_id_newpoins();
+		
+		id_us_plus((ID *)scen->world);
+		id_us_plus((ID *)scen->set);
 	
-	id_us_plus((ID *)scen->world);
-	id_us_plus((ID *)scen->set);
-
-	scen->ed= NULL;
-	scen->radio= NULL;
-	scen->theDag= NULL;
-	scen->toolsettings= MEM_dupallocN(sce->toolsettings);
-
-	duplicatelist(&(scen->markers), &(sce->markers));
-	duplicatelist(&(scen->transform_spaces), &(sce->transform_spaces));
-	duplicatelist(&(scen->r.layers), &(sce->r.layers));
+		scen->ed= NULL;
+		scen->radio= NULL;
+		scen->theDag= NULL;
+		scen->toolsettings= MEM_dupallocN(sce->toolsettings);
 	
-	scen->nodetree= ntreeCopyTree(sce->nodetree, 0);
+		duplicatelist(&(scen->markers), &(sce->markers));
+		duplicatelist(&(scen->transform_spaces), &(sce->transform_spaces));
+		duplicatelist(&(scen->r.layers), &(sce->r.layers));
+		
+		scen->nodetree= ntreeCopyTree(sce->nodetree, 0);
+		
+		obase= sce->base.first;
+		base= scen->base.first;
+		while(base) {
+			id_us_plus(&base->object->id);
+			if(obase==sce->basact) scen->basact= base;
 	
-	obase= sce->base.first;
-	base= scen->base.first;
-	while(base) {
-		id_us_plus(&base->object->id);
-		if(obase==sce->basact) scen->basact= base;
-
-		obase= obase->next;
-		base= base->next;
+			obase= obase->next;
+			base= base->next;
+		}
+		BPY_copy_scriptlink(&sce->scriptlink);
+		
+		/* sculpt data */
+		if (sce->sculptdata.cumap) {
+			scen->sculptdata.cumap = curvemapping_copy( sce->sculptdata.cumap );
+		}
 	}
+	
+	// make a private copy of the avicodecdata
+	
+	if (sce->r.avicodecdata) {
+	
+		scen->r.avicodecdata = MEM_dupallocN(sce->r.avicodecdata);
+		scen->r.avicodecdata->lpFormat = MEM_dupallocN(scen->r.avicodecdata->lpFormat);
+		scen->r.avicodecdata->lpParms = MEM_dupallocN(scen->r.avicodecdata->lpParms);
+	}
+	
+	// make a private copy of the qtcodecdata
+	
+	if (sce->r.qtcodecdata) {
+		scen->r.qtcodecdata = MEM_dupallocN(sce->r.qtcodecdata);
+		scen->r.qtcodecdata->cdParms = MEM_dupallocN(scen->r.qtcodecdata->cdParms);
+	}
+	
+	
+	if(level==0 || level==1) return scen;
 
-	if(level==0) return scen;
-
-	/* level 1 */
+	/* level 2 */
 	G.scene= scen;
 	
 	single_object_users(0);
@@ -330,8 +366,8 @@ Scene *copy_scene(Scene *sce, int level)
 	/*	camera */
 	ID_NEW(G.scene->camera);
 
-	/* level 2 */
-	if(level>=2) {
+	/* level 3 */
+	if(level>=3) {
 		if(scen->world) {
 			id_us_plus(&scen->world->id);
 			scen->world= copy_world(scen->world);
@@ -345,24 +381,6 @@ Scene *copy_scene(Scene *sce, int level)
 	}
 
 	clear_id_newpoins();
-
-	BPY_copy_scriptlink(&sce->scriptlink);
-	// make a private copy of the avicodecdata
-
-	if (sce->r.avicodecdata) {
-
-		scen->r.avicodecdata = MEM_dupallocN(sce->r.avicodecdata);
-		scen->r.avicodecdata->lpFormat = MEM_dupallocN(scen->r.avicodecdata->lpFormat);
-		scen->r.avicodecdata->lpParms = MEM_dupallocN(scen->r.avicodecdata->lpParms);
-	}
-
-	// make a private copy of the qtcodecdata
-
-	if (sce->r.qtcodecdata) {
-		scen->r.qtcodecdata = MEM_dupallocN(sce->r.qtcodecdata);
-		scen->r.qtcodecdata->cdParms = MEM_dupallocN(scen->r.qtcodecdata->cdParms);
-	}
-
 	return scen;
 }
 
@@ -448,32 +466,9 @@ void do_info_buttons(unsigned short event)
 		}
 		/* last item: NEW SCENE */
 		if(sce==0) {
-			nr= pupmenu("Add scene%t|Empty|Link Objects|Link ObData|Full Copy");
-			if(nr<= 0) return;
-			if(nr==1) {
-				ListBase lb;
-				
-				sce= add_scene(G.scene->id.name+2);
-				/* pretty bad ass copying here. we should use copy_scene to do all (ton) */
-				lb= sce->r.layers;
-				sce->r= G.scene->r;
-				sce->r.layers= lb;
-#ifdef _WIN32
-				if (sce->r.avicodecdata) {
-					sce->r.avicodecdata = MEM_dupallocN(G.scene->r.avicodecdata);
-					sce->r.avicodecdata->lpFormat = MEM_dupallocN(G.scene->r.avicodecdata->lpFormat);
-					sce->r.avicodecdata->lpParms = MEM_dupallocN(G.scene->r.avicodecdata->lpParms);
-				}
-#endif
-#ifdef WITH_QUICKTIME
-				if (sce->r.qtcodecdata) {
-					sce->r.qtcodecdata = MEM_dupallocN(G.scene->r.qtcodecdata);
-					sce->r.qtcodecdata->cdParms = MEM_dupallocN(G.scene->r.qtcodecdata->cdParms);
-				}
-#endif
-			}
-			else sce= copy_scene(G.scene, nr-2);
-
+			nr= pupmenu("Add scene%t|Empty%x0|Link Objects%x1|Link ObData%x2|Full Copy%x3");
+			if(nr<0) return;
+			sce= copy_scene(G.scene, nr);
 			set_scene(sce);
 		}
 		countall();

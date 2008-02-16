@@ -529,8 +529,10 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 	} else{
 		error = -1;
 		name = check_memlist(memh);
-		if (name == 0) MemorY_ErroR("free","pointer not in memlist");
-		else MemorY_ErroR(name,"error in header");
+		if (name == 0)
+			MemorY_ErroR("free","pointer not in memlist");
+		else
+			MemorY_ErroR(name,"error in header");
 	}
 
 	totblock--;

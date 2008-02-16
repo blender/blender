@@ -596,8 +596,10 @@ void sculptdata_init(Scene *sce)
 
 	sd= &sce->sculptdata;
 
-	if(sd->cumap)
+	if(sd->cumap) {
 		curvemapping_free(sd->cumap);
+		sd->cumap = NULL;
+	}
 
 	memset(sd, 0, sizeof(SculptData));
 

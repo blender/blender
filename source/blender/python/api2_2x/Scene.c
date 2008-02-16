@@ -774,16 +774,16 @@ static PyObject *Scene_oldsetLayers( BPy_Scene * self, PyObject * args )
 /*-----------------------Scene.copy()------------------------------------*/
 static PyObject *Scene_copy( BPy_Scene * self, PyObject * args )
 {
-	short dup_objs = 1;
+	short dup_objs = 2;
 	Scene *scene = self->scene;
 
 	SCENE_DEL_CHECK_PY(self);
 
-	if( !PyArg_ParseTuple( args, "|h", &dup_objs ) )
+	if( !PyArg_ParseTuple( args, "|h", &dup_objs ) || dup_objs < 0 || dup_objs > 2)
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected int in [0,2] or nothing as argument" );
-
-	return Scene_CreatePyObject( copy_scene( scene, dup_objs ) );
+	
+	return Scene_CreatePyObject( copy_scene( scene, dup_objs+1 ) );
 }
 
 /*-----------------------Scene.makeCurrent()-----------------------------*/
