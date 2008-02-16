@@ -4260,6 +4260,25 @@ static int allow_render_object(Object *ob, int nolamps, int onlyselected, Object
 
 static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd)
 {
+	ParticleSystem *psys;
+	Material ***material;
+	short a, *totmaterial;
+
+	/* don't allow objects with halos */
+	totmaterial= give_totcolp(obd);
+	material= give_matarar(obd);
+
+	if(totmaterial && material) {
+		for(a= 0; a<*totmaterial; a++)
+			if((*material)[a]->mode & MA_HALO)
+				return 0;
+	}
+
+	for(psys=obd->particlesystem.first; psys; psys=psys->next)
+		if(!ELEM5(psys->part->draw_as, PART_DRAW_BB, PART_DRAW_LINE, PART_DRAW_PATH, PART_DRAW_OB, PART_DRAW_GR))
+			return 0;
+
+	/* don't allow lamp, animated duplis, or radio render */
 	return (render_object_type(obd->type) &&
 	        (!(dob->type == OB_DUPLIGROUP) || !dob->animated) &&
 	        !(re->r.mode & R_RADIO));
