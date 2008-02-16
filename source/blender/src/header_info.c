@@ -84,6 +84,7 @@
 #endif
 
 #include "BKE_blender.h"
+#include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
 #include "BKE_exotic.h"
 #include "BKE_global.h"
@@ -334,8 +335,9 @@ Scene *copy_scene(Scene *sce, int level)
 		BPY_copy_scriptlink(&sce->scriptlink);
 		
 		/* sculpt data */
+		sce->sculptdata.session = NULL;
 		if (sce->sculptdata.cumap) {
-			scen->sculptdata.cumap = curvemapping_copy( sce->sculptdata.cumap );
+			scen->sculptdata.cumap = curvemapping_copy(sce->sculptdata.cumap);
 		}
 	}
 	
