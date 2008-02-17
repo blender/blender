@@ -2261,12 +2261,10 @@ static void do_texture_effector(Tex *tex, short mode, short is_2d, float nabla, 
 {
 	TexResult result[4];
 	float tex_co[3], strength, mag_vec[3];
-	int i;
+	int hasrgb;
+	if(tex==NULL) return;
 
-	if(tex==0) return;
-
-	for(i=0; i<4; i++)
-		result[i].nor=0;
+	result[0].nor = result[1].nor = result[2].nor = result[3].nor = 0;
 
 	strength= force_val*falloff;///(float)pow((double)distance,(double)power);
 
@@ -2282,9 +2280,9 @@ static void do_texture_effector(Tex *tex, short mode, short is_2d, float nabla, 
 		Mat4Mul3Vecfl(obmat,tex_co);
 	}
 
-	multitex_ext(tex, tex_co, NULL,NULL, 1, result);
+	hasrgb = multitex_ext(tex, tex_co, NULL,NULL, 1, result);
 
-	if(mode==PFIELD_TEX_RGB){
+	if(hasrgb && mode==PFIELD_TEX_RGB){
 		mag_vec[0]= (0.5f-result->tr)*strength;
 		mag_vec[1]= (0.5f-result->tg)*strength;
 		mag_vec[2]= (0.5f-result->tb)*strength;
@@ -2303,7 +2301,7 @@ static void do_texture_effector(Tex *tex, short mode, short is_2d, float nabla, 
 		tex_co[2]+= nabla;
 		multitex_ext(tex, tex_co, NULL,NULL, 1, result+3);
 
-		if(mode==PFIELD_TEX_GRAD){
+		if(mode==PFIELD_TEX_GRAD || !hasrgb){ /* if we dont have rgb fall back to grad */
 			mag_vec[0]= (result[0].tin-result[1].tin)*strength;
 			mag_vec[1]= (result[0].tin-result[2].tin)*strength;
 			mag_vec[2]= (result[0].tin-result[3].tin)*strength;

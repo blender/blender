@@ -1210,6 +1210,8 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	return retval;
 }
 
+/* Warning, if the texres's values are not declared zero, check the return value to be sure
+ * the color values are set before using the r/g/b values, otherwise you may use uninitialized values - Campbell */
 int multitex_ext(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
 {
 	

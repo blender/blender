@@ -3429,7 +3429,7 @@ static void object_panel_fields(Object *ob)
 				uiDefButBitS(block, TOG, PFIELD_GUIDE_PATH_ADD, B_FIELD_CHANGE, "Additive",	10,40,140,20, &pd->flag, 0.0, 0, 0, 0, "Based on distance/falloff it adds a portion of the entire path");
 			}
 			else if(pd->forcefield==PFIELD_TEXTURE){
-				uiDefButS(block, MENU, B_FIELD_CHANGE, "Texture mode%t|RGB%x0|Gradient%x1|Curl%x2",	10,40,140,20, &pd->tex_mode, 0.0, 0.0, 0, 0, "How the texture effect is calculated (RGB & Curl need a RGB texture)");
+				uiDefButS(block, MENU, B_FIELD_CHANGE, "Texture mode%t|RGB%x0|Gradient%x1|Curl%x2",	10,40,140,20, &pd->tex_mode, 0.0, 0.0, 0, 0, "How the texture effect is calculated (RGB & Curl need a RGB texture else Gradient will be used instead)");
 	
 				uiDefButF(block, NUM, B_FIELD_CHANGE, "Nabla:",	10,20,140,20, &pd->tex_nabla, 0.0001f, 1.0, 1, 0, "Specify the dimension of the area for gradient and curl calculation");
 			}
