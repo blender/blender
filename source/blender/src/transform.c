@@ -1941,47 +1941,34 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 		/* Evaluate valid constraints */
 		for (con= td->con; con; con= con->next) {
 			float tmat[4][4];
-				
+			
 			/* only use it if it's tagged for this purpose (and the right type) */
 			if (con->type == CONSTRAINT_TYPE_LOCLIMIT) {
 				bLocLimitConstraint *data= con->data;
-				if ((data->flag2 & LIMIT_TRANSFORM)==0) 
-					continue;
-			}
-			else if (con->type == CONSTRAINT_TYPE_ROTLIMIT) {
-				bRotLimitConstraint *data= con->data;
-				if ((data->flag2 & LIMIT_TRANSFORM)==0) 
-					continue;
-			}
-			else if (con->type == CONSTRAINT_TYPE_SIZELIMIT) {
-				bSizeLimitConstraint *data= con->data;
-				if ((data->flag2 & LIMIT_TRANSFORM)==0) 
-					continue;
-			}
-			else {
-				/* not supported */
-				continue;
-			}
 				
-			/* do space conversions */
-			if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
-				/* just multiply by td->mtx (this should be ok) */
-				Mat4CpyMat4(tmat, cob.matrix);
-				Mat4MulMat34(cob.matrix, td->mtx, tmat);
-			}
-			else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
-				/* skip... incompatable spacetype */
-				continue;
-			}
-			
-			/* do constraint */
-			cti->evaluate_constraint(con, &cob, NULL);
-			
-			/* convert spaces again */
-			if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
-				/* just multiply by td->mtx (this should be ok) */
-				Mat4CpyMat4(tmat, cob.matrix);
-				Mat4MulMat34(cob.matrix, td->smtx, tmat);
+				if ((data->flag2 & LIMIT_TRANSFORM)==0) 
+					continue;
+				
+				/* do space conversions */
+				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
+					/* just multiply by td->mtx (this should be ok) */
+					Mat4CpyMat4(tmat, cob.matrix);
+					Mat4MulMat34(cob.matrix, td->mtx, tmat);
+				}
+				else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
+					/* skip... incompatable spacetype */
+					continue;
+				}
+				
+				/* do constraint */
+				cti->evaluate_constraint(con, &cob, NULL);
+				
+				/* convert spaces again */
+				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
+					/* just multiply by td->mtx (this should be ok) */
+					Mat4CpyMat4(tmat, cob.matrix);
+					Mat4MulMat34(cob.matrix, td->smtx, tmat);
+				}
 			}
 		}
 		
