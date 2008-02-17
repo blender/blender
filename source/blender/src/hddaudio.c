@@ -283,57 +283,60 @@ static void sound_hdaudio_extract_small_block(
 		
 		decode_pos -= bl_size;
 
-		memset(hdaudio->decode_cache + decode_pos, 0,
-		       (hdaudio->decode_cache_size - decode_pos) 
-		       * sizeof(short));
-		       
+		if (decode_pos < hdaudio->decode_cache_size) {
+			memset(hdaudio->decode_cache + decode_pos, 0,
+			       (hdaudio->decode_cache_size - decode_pos) 
+			       * sizeof(short));
 
-		while(av_read_frame(hdaudio->pFormatCtx, &packet) >= 0) {
-			int data_size;
-			int len;
-			uint8_t *audio_pkt_data;
-			int audio_pkt_size;
-
-			if(packet.stream_index != hdaudio->audioStream) {
-				av_free_packet(&packet);
-				continue;
-			}
-
-			audio_pkt_data = packet.data;
-			audio_pkt_size = packet.size;
-
-			while (audio_pkt_size > 0) {
-				len = avcodec_decode_audio(
-					hdaudio->pCodecCtx, 
-					hdaudio->decode_cache 
-					+ decode_pos, 
-					&data_size, 
-					audio_pkt_data, 
-					audio_pkt_size);
-				if (len <= 0) {
-					audio_pkt_size = 0;
-					break;
-				}
+			while(av_read_frame(
+				      hdaudio->pFormatCtx, &packet) >= 0) {
+				int data_size;
+				int len;
+				uint8_t *audio_pkt_data;
+				int audio_pkt_size;
 				
-				audio_pkt_size -= len;
-				audio_pkt_data += len;
-
-				if (data_size <= 0) {
+				if(packet.stream_index 
+				   != hdaudio->audioStream) {
+					av_free_packet(&packet);
 					continue;
 				}
+
+				audio_pkt_data = packet.data;
+				audio_pkt_size = packet.size;
+
+				while (audio_pkt_size > 0) {
+					len = avcodec_decode_audio(
+						hdaudio->pCodecCtx, 
+						hdaudio->decode_cache 
+						+ decode_pos, 
+						&data_size, 
+						audio_pkt_data, 
+						audio_pkt_size);
+					if (len <= 0) {
+						audio_pkt_size = 0;
+						break;
+					}
+					
+					audio_pkt_size -= len;
+					audio_pkt_data += len;
+					
+					if (data_size <= 0) {
+						continue;
+					}
+					
+					decode_pos += data_size / sizeof(short);
+					if (decode_pos + data_size
+					    / sizeof(short)
+					    > hdaudio->decode_cache_size) {
+						break;
+					}
+				}
+				av_free_packet(&packet);
 				
-				decode_pos += data_size / sizeof(short);
-				if (decode_pos + data_size
-				    / sizeof(short)
+				if (decode_pos + data_size / sizeof(short)
 				    > hdaudio->decode_cache_size) {
 					break;
 				}
-			}
-			av_free_packet(&packet);
-
-			if (decode_pos + data_size / sizeof(short)
-			    > hdaudio->decode_cache_size) {
-				break;
 			}
 		}
 
