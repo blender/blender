@@ -464,6 +464,7 @@ void initTrans (TransInfo *t)
 		t->around = V3D_CENTER;
 
 	setTransformViewMatrices(t);
+	initNDofInput(&(t->ndof));
 }
 
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */
