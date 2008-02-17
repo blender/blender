@@ -227,7 +227,7 @@ typedef struct ParticleSystem{
 #define PART_REACT_MULTIPLE	2
 
 #define PART_LOOP			4
-#define PART_LOOP_INSTANT	8
+//#define PART_LOOP_INSTANT	8
 
 #define PART_HAIR_GEOMETRY	16
 

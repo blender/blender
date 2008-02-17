@@ -4136,11 +4136,11 @@ static void object_panel_particle_extra(Object *ob)
 	uiDefButBitI(block, TOG, PART_GLOB_TIME, B_PART_RECALC, "Global",	 butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Set all ipos that work on particles to be calculated in global/object time");
 	uiDefButBitI(block, TOG, PART_ABS_TIME, B_PART_RECALC, "Absolute",	 butx+butw/2,buty,butw/2,buth, &part->flag, 0, 0, 0, 0, "Set all ipos that work on particles to be calculated in absolute/relative time");
 
-	if(part->flag & PART_LOOP){
-		uiDefButBitI(block, TOG, PART_LOOP, B_PART_RECALC, "Loop",	 butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Loop particle lives");
-		uiDefButBitI(block, TOG, PART_LOOP_INSTANT, B_PART_RECALC, "Instantly",	 butx+butw/2,buty,butw/2,buth, &part->flag, 0, 0, 0, 0, "Loop particle life at time of death");
-	}
-	else
+	//if(part->flag & PART_LOOP){
+	//	uiDefButBitI(block, TOG, PART_LOOP, B_PART_RECALC, "Loop",	 butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Loop particle lives");
+	//	uiDefButBitI(block, TOG, PART_LOOP_INSTANT, B_PART_RECALC, "Instantly",	 butx+butw/2,buty,butw/2,buth, &part->flag, 0, 0, 0, 0, "Loop particle life at time of death");
+	//}
+	//else
 		uiDefButBitI(block, TOG, PART_LOOP, B_PART_RECALC, "Loop",	 butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Loop particle lives");
 
 	uiDefButF(block, NUM, B_PART_RECALC, "Tweak:",	butx,(buty-=buth),butw,buth, &part->timetweak, 0.0, 10.0, 1, 0, "A multiplier for physics timestep (1.0 means one frame = 1/25 seconds)");

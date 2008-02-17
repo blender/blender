@@ -4049,8 +4049,8 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 
 			reset_particle(pa,psys,psmd,ob,dtime,cfra,vg_vel,vg_tan,vg_rot);
 
-			if(cfra>pa->time && part->flag & PART_LOOP && (part->flag & PART_LOOP_INSTANT)==0){
-				pa->loop=(short)((cfra-pa->time)/pa->lifetime)+1;
+			if(cfra>pa->time && part->flag & PART_LOOP){
+				pa->loop=(short)((cfra-pa->time)/pa->lifetime);
 				pa->alive=PARS_UNBORN;
 			}
 			else{
@@ -4117,10 +4117,12 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 
 			pa_die=0;
 
+			birthtime = pa->time + pa->loop * pa->lifetime;
+
 			if(pa->alive==PARS_UNBORN
 				|| pa->alive==PARS_KILLED
 				|| ELEM(part->phystype,PART_PHYS_NO,PART_PHYS_KEYED)
-				|| pa->time >= cfra){
+				|| birthtime >= cfra){
 				/* allways reset particles to emitter before birth */
 				reset_particle(pa,psys,psmd,ob,dtime,cfra,vg_vel,vg_tan,vg_rot);
 				copy_particle_key(key,&pa->state,1);
@@ -4131,27 +4133,22 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 				if(psys->reactevents.first && ELEM(pa->alive,PARS_DEAD,PARS_KILLED)==0)
 					react_to_events(psys,p);
 
-				pa_dfra= dfra;
-				pa_dtime= dtime;
+				pa_dfra = dfra;
+				pa_dtime = dtime;
 
-				if(pa->flag & PART_LOOP && pa->flag & PART_LOOP_INSTANT)
-					birthtime=pa->dietime;
-				else
-					birthtime=pa->time+pa->loop*pa->lifetime;
-
-				dietime=birthtime+pa->lifetime;
+				dietime = birthtime + pa->lifetime;
 
 				if(birthtime < cfra && birthtime >= psys->cfra){
 					/* particle is born some time between this and last step*/
-					pa->alive=PARS_ALIVE;
-					pa_dfra= cfra - birthtime;
-					pa_dtime= pa_dfra*timestep;
+					pa->alive = PARS_ALIVE;
+					pa_dfra = cfra - birthtime;
+					pa_dtime = pa_dfra*timestep;
 				}
 				else if(dietime <= cfra && psys->cfra < dietime){
 					/* particle dies some time between this and last step */
-					pa_dfra= dietime - psys->cfra;
-					pa_dtime= pa_dfra*timestep;
-					pa_die=1;
+					pa_dfra = dietime - psys->cfra;
+					pa_dtime = pa_dfra * timestep;
+					pa_die = 1;
 				}
 				else if(dietime < cfra){
 					/* TODO: figure out if there's something to be done when particle is dead */
@@ -4189,14 +4186,9 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 
 						if(part->flag & PART_LOOP){
 							pa->loop++;
-
-							if(part->flag & PART_LOOP_INSTANT){
-								reset_particle(pa,psys,psmd,ob,0.0,cfra,vg_vel,vg_tan,vg_rot);
-								pa->alive=PARS_ALIVE;
-								copy_particle_key(key,&pa->state,1);
-							}
-							else
-								pa->alive=PARS_UNBORN;
+							reset_particle(pa,psys,psmd,ob,0.0,cfra,vg_vel,vg_tan,vg_rot);
+							copy_particle_key(key,&pa->state,1);
+							pa->alive=PARS_ALIVE;
 						}
 						else{
 							pa->alive=PARS_DEAD;
@@ -4307,34 +4299,7 @@ static void cached_step(Object *ob, ParticleSystemModifierData *psmd, ParticleSy
 	IpoCurve *icu_esize=find_ipocurve(part->ipo,PART_EMIT_SIZE);
 	Material *ma=give_current_material(ob,part->omat);
 	int p;
-	float ipotime=cfra, disp;
-
-	/* deprecated */
-	//if(psys->recalc&PSYS_DISTR){
-	//	/* The dm could have been changed so particle emitter element	 */
-	//	/* indices might be wrong. There's really no "nice" way to handle*/ 
-	//	/* this so we just try not to crash by correcting indices.		 */
-	//	int totnum=-1;
-	//	switch(part->from){
-	//		case PART_FROM_VERT:
-	//			totnum=psmd->dm->getNumVerts(psmd->dm);
-	//			break;
-	//		case PART_FROM_FACE:
-	//		case PART_FROM_VOLUME:
-	//			totnum=psmd->dm->getNumFaces(psmd->dm);
-	//			break;
-	//	}
-
-	//	if(totnum==0){
-	//		/* Now we're in real trouble, there's no emitter elements!! */
-	//		for(p=0, pa=psys->particles; p<psys->totpart; p++,pa++)
-	//			pa->num=-1;
-	//	}
-	//	else if(totnum>0){
-	//		for(p=0, pa=psys->particles; p<psys->totpart; p++,pa++)
-	//			pa->num=pa->num%totnum;
-	//	}
-	//}
+	float ipotime=cfra, disp, birthtime, dietime;
 
 	if(psys->effectors.first)
 		psys_end_effectors(psys);
@@ -4357,22 +4322,30 @@ static void cached_step(Object *ob, ParticleSystemModifierData *psmd, ParticleSy
 
 		psys->lattice=psys_get_lattice(ob,psys);
 
+		if(part->flag & PART_LOOP)
+			pa->loop = (short)((cfra - pa->time) / pa->lifetime);
+		else
+			pa->loop = 0;
+
+		birthtime = pa->time + pa->loop * pa->lifetime;
+		dietime = birthtime + pa->lifetime;
+
 		/* update alive status and push events */
-		if(pa->time>cfra)
-			pa->alive=PARS_UNBORN;
-		else if(pa->dietime<=cfra){
-			if(pa->dietime>psys->cfra){
-				state.time=pa->dietime;
+		if(pa->time > cfra)
+			pa->alive = PARS_UNBORN;
+		else if(dietime <= cfra){
+			if(dietime > psys->cfra){
+				state.time = pa->dietime;
 				psys_get_particle_state(ob,psys,p,&state,1);
 				push_reaction(ob,psys,p,PART_EVENT_DEATH,&state);
 			}
-			pa->alive=PARS_DEAD;
+			pa->alive = PARS_DEAD;
 		}
 		else{
-			pa->alive=PARS_ALIVE;
-			state.time=cfra;
+			pa->alive = PARS_ALIVE;
+			state.time = cfra;
 			psys_get_particle_state(ob,psys,p,&state,1);
-			state.time=cfra;
+			state.time = cfra;
 			push_reaction(ob,psys,p,PART_EVENT_NEAR,&state);
 		}
 
