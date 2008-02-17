@@ -1657,7 +1657,9 @@ static int seq_effect_find_selected(Editing *ed, Sequence *activeseq, int type, 
 		}
 		if(seq3==0) seq3= seq2;
 	}
-
+	
+	if (seq1==NULL && seq2==NULL && seq3==NULL) return 0;
+	
 	*selseq1= seq1;
 	*selseq2= seq2;
 	*selseq3= seq3;
