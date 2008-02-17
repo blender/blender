@@ -1436,59 +1436,6 @@ static void do_prekink(ParticleKey *state, ParticleKey *par, float *par_rot, flo
 				}
 			}
 			break;
-		//case PART_KINK_ROT:
-		//	vec[axis]=1.0;
-
-		//	QuatMulVecf(par->rot,vec);
-
-		//	VecMulf(vec,amplitude*(float)sin(t));
-
-		//	VECADD(state->co,state->co,vec);
-		//	break;
-	}
-}
-static void do_postkink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, float freq, float shape, float amplitude, short type, short axis, float obmat[][4])
-{
-	static ParticleKey first;
-	static float q[4];
-	float vec[3]={0.0,0.0,0.0};
-	float t;
-
-	CLAMP(time,0.0,1.0);
-
-	t=time;
-
-	t*=(float)M_PI*freq;
-
-	if(par==0) return;
-
-	switch(type){
-		case PART_KINK_ROLL:
-			if(time<(0.5+shape/2.0f)){
-				float *q2;
-				memcpy(&first,state,sizeof(ParticleKey));
-				Normalize(first.vel);
-				if(par_rot)
-					q2=par_rot;
-				else
-					q2=vectoquat(par->vel,axis,(axis+1)%3);
-				QUATCOPY(q,q2);
-			}
-			else{
-				float fac;
-				shape=0.5f+shape/2.0f;
-				t-=(float)M_PI*(shape*freq + 0.5f);
-
-				vec[axis]=1.0;
-				
-				QuatMulVecf(q,vec);
-
-				fac=amplitude*(1.0f+((1.0f-time)/(1.0f-shape)*(float)sin(t)));
-				VECADDFAC(state->co,first.co,vec,fac);
-				fac=amplitude*((1.0f-time)/(1.0f-shape)*(float)cos(t));
-				VECADDFAC(state->co,state->co,first.vel,fac);
-			}
-			break;
 	}
 }
 static void do_clump(ParticleKey *state, ParticleKey *par, float time, float clumpfac, float clumppow, float pa_clump)
@@ -1601,7 +1548,6 @@ int do_guide(ParticleKey *state, int pa_num, float time, ListBase *lb)
 					VECCOPY(key.co,pa_loc);
 					do_prekink(&key, &par, 0, guidetime, pd->kink_freq, pd->kink_shape, pd->kink_amp, pd->kink, pd->kink_axis, 0);
 					do_clump(&key, &par, guidetime, pd->clump_fac, pd->clump_pow, 1.0f);
-					do_postkink(&key, &par, 0, guidetime, pd->kink_freq, pd->kink_shape, pd->kink_amp, pd->kink, pd->kink_axis, 0);
 					VECCOPY(pa_loc,key.co);
 
 					VECADD(pa_loc,pa_loc,guidevec);
@@ -2122,10 +2068,6 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 				part->kink_freq * pa_kink, part->kink_shape, part->kink_amp, part->kink, part->kink_axis, ob->obmat);
 					
 			do_clump((ParticleKey*)state, (ParticleKey*)par, t, part->clumpfac, part->clumppow, pa_clump);
-
-			if(part->kink)
-				do_postkink((ParticleKey*)state, (ParticleKey*)par, par->rot, t,
-				part->kink_freq * pa_kink, part->kink_shape, part->kink_amp, part->kink, part->kink_axis, ob->obmat);
 		}
 
 		if(part->flag & PART_BRANCHING && ctx->between == 0 && part->flag & PART_ANIM_BRANCHING)
@@ -3565,10 +3507,6 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 		
 		do_clump(state, par, t, part->clumpfac, part->clumppow, 1.0f);
 
-		if(part->kink)
-			do_postkink(state, par, par->rot, t, part->kink_freq * pa_kink, part->kink_shape,
-			part->kink_amp, part->kink, part->kink_axis, ob->obmat);
-
 		if(part->rough1 != 0.0)
 			do_rough(orco, t, part->rough1, part->rough1_size, 0.0, state);
 
@@ -3666,10 +3604,6 @@ int psys_get_particle_state(Object *ob, ParticleSystem *psys, int p, ParticleKey
 		//	
 		//	/* TODO: pa_clump vgroup */
 		//	do_clump(state,key1,t,part->clumpfac,part->clumppow,0);
-
-		//	if(part->kink)			/* TODO: part->kink_freq*pa_kink */
-		//		do_postkink(state,key1,t,part->kink_freq,part->kink_shape,part->kink_amp,part->kink,part->kink_axis,ob->obmat);
-
 		//}
 		//else{
 			if (pa) { /* TODO PARTICLE - should this ever be NULL? - Campbell */

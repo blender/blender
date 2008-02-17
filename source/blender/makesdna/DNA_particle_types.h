@@ -292,8 +292,6 @@ typedef struct ParticleSystem{
 #define PART_KINK_RADIAL	2
 #define PART_KINK_WAVE		3
 #define PART_KINK_BRAID		4
-#define PART_KINK_ROT		5
-#define PART_KINK_ROLL		6
 
 /* part->draw */
 #define PART_DRAW_VEL		1

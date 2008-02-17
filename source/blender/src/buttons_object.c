@@ -4034,14 +4034,14 @@ static void object_panel_particle_children(Object *ob)
 		/* kink */
 		uiBlockBeginAlign(block);
 		if(part->kink) {
-			uiDefButS(block, MENU, B_PART_RECALC_CHILD, "Kink:%t|Roll%x6|Rotation%x5|Braid%x4|Wave%x3|Radial%x2|Curl%x1|Nothing%x0", butx,(buty-=buth),butw/2,buth, &part->kink, 14.0, 0.0, 0, 0, "Type of periodic offset on the path");
+			uiDefButS(block, MENU, B_PART_RECALC_CHILD, "Kink:%t|Braid%x4|Wave%x3|Radial%x2|Curl%x1|Nothing%x0", butx,(buty-=buth),butw/2,buth, &part->kink, 14.0, 0.0, 0, 0, "Type of periodic offset on the path");
 			uiDefButS(block, MENU, B_PART_RECALC_CHILD, "Axis %t|Z %x2|Y %x1|X %x0", butx+butw/2,buty,butw/2,buth, &part->kink_axis, 14.0, 0.0, 0, 0, "Which axis to use for offset");
 			uiDefButF(block, NUM, B_PART_RECALC_CHILD, "Freq:",			butx,(buty-=buth),butw,buth, &part->kink_freq, 0.0, 10.0, 1, 3, "The frequency of the offset (1/total length)");
 			uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Shape:",		butx,(buty-=buth),butw,buth, &part->kink_shape, -0.999, 0.999, 1, 3, "Adjust the offset to the beginning/end");
 			uiDefButF(block, NUM, B_PART_RECALC_CHILD, "Amplitude:",	butx,(buty-=buth),butw,buth, &part->kink_amp, 0.0, 10.0, 1, 3, "The amplitude of the offset");
 		}
 		else {
-			uiDefButS(block, MENU, B_PART_RECALC_CHILD, "Kink:%t|Roll%x6|Rotation%x5|Braid%x4|Wave%x3|Radial%x2|Curl%x1|Nothing%x0", butx,(buty-=buth),butw,buth, &part->kink, 14.0, 0.0, 0, 0, "Type of periodic offset on the path");
+			uiDefButS(block, MENU, B_PART_RECALC_CHILD, "Kink:%t|Braid%x4|Wave%x3|Radial%x2|Curl%x1|Nothing%x0", butx,(buty-=buth),butw,buth, &part->kink, 14.0, 0.0, 0, 0, "Type of periodic offset on the path");
 			buty-=3*buth;
 		}
 		uiBlockEndAlign(block);
