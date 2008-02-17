@@ -1092,10 +1092,10 @@ static void add_bezt_to_keycolumnslist(ListBase *keys, BezTriple *bezt)
 	 */
 	ActKeyColumn *ak, *akn;
 	
-	if (!(keys) || !(bezt)) return;
+	if (ELEM(NULL, keys, bezt)) return;
 	
-	/* try to find a keyblock that starts on the previous beztriple */
-	for (ak= keys->first; ak; ak= ak->next) {
+	/* try to any existing key to replace, or where to insert after */
+	for (ak= keys->last; ak; ak= ak->prev) {
 		/* do because of double keys */
 		if (ak->cfra == bezt->vec[1][0]) {			
 			/* set selection status and 'touched' status */
@@ -1104,12 +1104,12 @@ static void add_bezt_to_keycolumnslist(ListBase *keys, BezTriple *bezt)
 			
 			return;
 		}
-		else if (ak->cfra > bezt->vec[1][0]) break;
+		else if (ak->cfra < bezt->vec[1][0]) break;
 	}
 	
 	/* add new block */
 	akn= MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumn");
-	if (ak) BLI_insertlinkbefore(keys, ak, akn);
+	if (ak) BLI_insertlinkafter(keys, ak, akn);
 	else BLI_addtail(keys, akn);
 	
 	akn->cfra= bezt->vec[1][0];
@@ -1166,7 +1166,7 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 	if (IS_EQ(prev->vec[1][1], prev->vec[2][1])==0) return;
 	
 	/* try to find a keyblock that starts on the previous beztriple */
-	for (ab= blocks->first; ab; ab= ab->next) {
+	for (ab= blocks->last; ab; ab= ab->prev) {
 		/* check if alter existing block or add new block */
 		if (ab->start == prev->vec[1][0]) {			
 			/* set selection status and 'touched' status */
@@ -1175,12 +1175,12 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 			
 			return;
 		}
-		else if (ab->start > prev->vec[1][0]) break;
+		else if (ab->start < prev->vec[1][0]) break;
 	}
 	
 	/* add new block */
 	abn= MEM_callocN(sizeof(ActKeyBlock), "ActKeyBlock");
-	if (ab) BLI_insertlinkbefore(blocks, ab, abn);
+	if (ab) BLI_insertlinkafter(blocks, ab, abn);
 	else BLI_addtail(blocks, abn);
 	
 	abn->start= prev->vec[1][0];
@@ -1197,14 +1197,22 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 /* helper function - find actkeycolumn that occurs on cframe */
 static ActKeyColumn *cfra_find_actkeycolumn (ListBase *keys, float cframe)
 {
-	ActKeyColumn *ak;
+	ActKeyColumn *ak, *ak2;
 	
 	if (keys==NULL) 
 		return NULL;
 	 
-	for (ak= keys->first; ak; ak= ak->next) {
+	/* search from both ends at the same time, and stop if we find match or if both ends meet */ 
+	for (ak=keys->first, ak2=keys->last; ak && ak2; ak=ak->next, ak2=ak2->prev) {
+		/* return whichever end encounters the frame */
 		if (ak->cfra == cframe)
 			return ak;
+		if (ak2->cfra == cframe)
+			return ak2;
+		
+		/* no matches on either end, so return NULL */
+		if (ak == ak2)
+			return NULL;
 	}
 	
 	return NULL;
@@ -1429,8 +1437,8 @@ static short bezt_in_aki_range (ActKeysInc *aki, BezTriple *bezt)
 void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
 {
 	BezTriple *bezt;
-	ActKeyColumn *ak;
-	ActKeyBlock *ab;
+	ActKeyColumn *ak, *ak2;
+	ActKeyBlock *ab, *ab2;
 	int v;
 	
 	if (icu && icu->totvert) {
@@ -1447,19 +1455,33 @@ void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks, ActKeysInc 
 		
 		/* update the number of curves that elements have appeared in  */
 		if (keys) {
-			for (ak= keys->first; ak; ak= ak->next) {
+			for (ak=keys->first, ak2=keys->last; ak && ak2; ak=ak->next, ak2=ak2->prev) {
 				if (ak->modified) {
 					ak->modified = 0;
 					ak->totcurve += 1;
 				}
+				if (ak2->modified) {
+					ak2->modified = 0;
+					ak2->totcurve += 1;
+				}
+				
+				if (ak == ak2)
+					break;
 			}
 		}
 		if (blocks) {
-			for (ab= blocks->first; ab; ab= ab->next) {
+			for (ab=blocks->first, ab2=blocks->last; ab && ab2; ab=ab->next, ab2=ab2->prev) {
 				if (ab->modified) {
 					ab->modified = 0;
 					ab->totcurve += 1;
 				}
+				if (ab2->modified) {
+					ab2->modified = 0;
+					ab2->totcurve += 1;
+				}
+				
+				if (ab == ab2)
+					break;
 			}
 		}
 	}

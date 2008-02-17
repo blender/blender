@@ -220,7 +220,7 @@ typedef enum AGRP_FLAG {
 
 /* SpaceAction flag */
 typedef enum SACTION_FLAG {
-		/* during transform */
+		/* during transform (only set for TimeSlide) */
 	SACTION_MOVING	= (1<<0),	
 		/* show sliders (if relevant) */
 	SACTION_SLIDERS	= (1<<1),	

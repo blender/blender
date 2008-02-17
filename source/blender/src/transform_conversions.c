@@ -3409,8 +3409,6 @@ void special_aftertrans_update(TransInfo *t)
 			
 			/* Do curve updates */
 			remake_action_ipos((bAction *)data);
-			
-			G.saction->flag &= ~SACTION_MOVING;
 		}
 		else if (datatype == ACTCONT_SHAPEKEY) {
 			/* fix up the Ipocurves and redraw stuff */
@@ -3434,6 +3432,8 @@ void special_aftertrans_update(TransInfo *t)
 			
 			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 		}
+		
+		G.saction->flag &= ~SACTION_MOVING;
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		synchronize_action_strips();
