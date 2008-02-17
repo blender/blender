@@ -7297,6 +7297,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 				part->eff_group = paf->group;
 
+				/* old system didn't interpolate between keypoints at render time */
+				part->draw_step = part->ren_step = 0;
+
 				/* physics */
 				part->normfac = paf->normfac * 25.0f;
 				part->obfac = paf->obfac;
