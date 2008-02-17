@@ -956,7 +956,8 @@ void psys_interpolate_face(MVert *mvert, MFace *mface, MTFace *tface, float (*or
 		}
 	}
 }
-void psys_interpolate_uvs(MTFace *tface, int quad, float *w, float *uvco){
+void psys_interpolate_uvs(MTFace *tface, int quad, float *w, float *uvco)
+{
 	float v10= tface->uv[0][0];
 	float v11= tface->uv[0][1];
 	float v20= tface->uv[1][0];
@@ -977,6 +978,32 @@ void psys_interpolate_uvs(MTFace *tface, int quad, float *w, float *uvco){
 		uvco[1]= w[0]*v11 + w[1]*v21 + w[2]*v31;
 	}
 }
+
+void psys_interpolate_mcol(MCol *mcol, int quad, float *w, MCol *mc)
+{
+	char *cp, *cp1, *cp2, *cp3, *cp4;
+
+	cp= (char *)mc;
+	cp1= (char *)&mcol[0];
+	cp2= (char *)&mcol[1];
+	cp3= (char *)&mcol[2];
+	
+	if(quad) {
+		cp4= (char *)&mcol[3];
+
+		cp[0]= (int)(w[0]*cp1[0] + w[1]*cp2[0] + w[2]*cp3[0] + w[3]*cp4[0]);
+		cp[1]= (int)(w[0]*cp1[1] + w[1]*cp2[1] + w[2]*cp3[1] + w[3]*cp4[1]);
+		cp[2]= (int)(w[0]*cp1[2] + w[1]*cp2[2] + w[2]*cp3[2] + w[3]*cp4[2]);
+		cp[3]= (int)(w[0]*cp1[3] + w[1]*cp2[3] + w[2]*cp3[3] + w[3]*cp4[3]);
+	}
+	else {
+		cp[0]= (int)(w[0]*cp1[0] + w[1]*cp2[0] + w[2]*cp3[0]);
+		cp[1]= (int)(w[0]*cp1[1] + w[1]*cp2[1] + w[2]*cp3[1]);
+		cp[2]= (int)(w[0]*cp1[2] + w[1]*cp2[2] + w[2]*cp3[2]);
+		cp[3]= (int)(w[0]*cp1[3] + w[1]*cp2[3] + w[2]*cp3[3]);
+	}
+}
+
 float psys_interpolate_value_from_verts(DerivedMesh *dm, short from, int index, float *fw, float *values)
 {
 	if(values==0)
@@ -3589,7 +3616,7 @@ int psys_get_particle_state(Object *ob, ParticleSystem *psys, int p, ParticleKey
 		else if(psys->totchild && p>=psys->totpart){
 			ChildParticle *cpa=psys->child+p-psys->totpart;
 			ParticleKey *key1, skey;
-			float t = (cfra - pa->time + pa->loop * pa->lifetime) / pa->lifetime, clump;
+			float t = (cfra - pa->time + pa->loop * pa->lifetime) / pa->lifetime;
 
 			pa = psys->particles + cpa->parent;
 

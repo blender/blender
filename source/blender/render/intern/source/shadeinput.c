@@ -455,9 +455,9 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 					shi->totcol++;
 					scol->name= name;
 
-					scol->col[0]= cp[0]/255.0f;
-					scol->col[1]= cp[1]/255.0f;
-					scol->col[2]= cp[2]/255.0f;
+					scol->col[0]= cp[3]/255.0f;
+					scol->col[1]= cp[2]/255.0f;
+					scol->col[2]= cp[1]/255.0f;
 				}
 
 				if(shi->totcol) {

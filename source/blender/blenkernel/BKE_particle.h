@@ -49,6 +49,7 @@ struct Object;
 struct DerivedMesh;
 struct ModifierData;
 struct MTFace;
+struct MCol;
 struct MFace;
 struct MVert;
 struct IpoCurve;
@@ -225,6 +226,7 @@ void clear_particles_from_cache(struct Object *ob, struct ParticleSystem *psys, 
 //void psys_remove_from_particle_list(struct Object *ob, short nbr, struct ParticleSystem *psys);
 
 void psys_interpolate_uvs(struct MTFace *tface, int quad, float *uv, float *uvco);
+void psys_interpolate_mcol(struct MCol *mcol, int quad, float *uv, struct MCol *mc);
 
 void copy_particle_key(struct ParticleKey *to, struct ParticleKey *from, int time);
 

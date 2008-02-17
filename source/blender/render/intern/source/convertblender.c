@@ -981,7 +981,7 @@ static Material *give_render_material(Render *re, Object *ob, int nr)
 
 /* future thread problem... */
 static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, float *orco, float *surfnor,
-								   float *uvco, int totuv, float *vec, float *vec1, float ctime,
+								   float *uvco, int totuv, MCol *mcol, int totcol, float *vec, float *vec1, float ctime,
 								   int first, int line, int adapt, float adapt_angle, float adapt_pix, int override_uv)
 {
 	static VertRen *v1= NULL, *v2= NULL;
@@ -1103,6 +1103,14 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 				mtf->uv[2][1]=mtf->uv[3][1]=1.0f;
 			}
 		}
+		if(mcol){
+			for(i=0; i<totcol; i++){
+				MCol *mc;
+				mc=RE_vlakren_get_mcol(obr,vlr,i,NULL,1);
+				mc[0]=mc[1]=mc[2]=mc[3]=mcol[i];
+				mc[0]=mc[1]=mc[2]=mc[3]=mcol[i];
+			}
+		}
 	}
 	/* first two vertices of a strand */
 	else if(first) {
@@ -1217,6 +1225,14 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 
 				mtf->uv[0][1]=mtf->uv[1][1]=(vlr->v1->accum+1.0f)/2.0f;
 				mtf->uv[2][1]=mtf->uv[3][1]=(vlr->v3->accum+1.0f)/2.0f;
+			}
+		}
+		if(mcol){
+			for(i=0; i<totcol; i++){
+				MCol *mc;
+				mc=RE_vlakren_get_mcol(obr,vlr,i,NULL,1);
+				mc[0]=mc[1]=mc[2]=mc[3]=mcol[i];
+				mc[0]=mc[1]=mc[2]=mc[3]=mcol[i];
 			}
 		}
 	}
@@ -1449,7 +1465,8 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Object 
 }
 static void render_new_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma, int path, int first, int line,
 								float time, float *loc, float *loc1, float *orco, float *surfnor, int totuv, float *uvco,
-								float size, int seed, int override_uv, int adapt, float adapt_angle, float adapt_pix)
+								int totcol, MCol *mcol, float size, int seed, int override_uv,
+								int adapt, float adapt_angle, float adapt_pix)
 {
 	HaloRen *har=0;
 	if(path){
@@ -1460,7 +1477,7 @@ static void render_new_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mat
 			if(har) har->lay= obr->ob->lay;
 		}
 		else
-			static_particle_strand(re, obr, ma, orco, surfnor, uvco, totuv, loc, loc1, time, first, line, adapt, adapt_angle, adapt_pix, override_uv);
+			static_particle_strand(re, obr, ma, orco, surfnor, uvco, totuv, mcol, totcol, loc, loc1, time, first, line, adapt, adapt_angle, adapt_pix, override_uv);
 	}
 	else{
 		har= RE_inithalo_particle(re, obr, dm, ma, loc, NULL, orco, uvco, size, 0.0, seed);
@@ -1472,7 +1489,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	Object *ob= obr->ob;
 	Object *tob=0, *bb_ob=re->scene->camera;
 	Material *ma=0;
-	CustomDataLayer *layer;
 	MTFace *mtface;
 	ParticleSystemModifierData *psmd;
 	ParticleSystem *tpsys=0;
@@ -1486,11 +1502,12 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	StrandBound *sbound= 0;
 	StrandRen *strand=0;
 	RNG *rng= 0;
+	MCol *mcol= 0;
 	float loc[3],loc1[3],loc0[3],vel[3],mat[4][4],nmat[3][3],co[3],nor[3],time;
 	float *orco=0,*surfnor=0,*uvco=0, strandlen=0.0f, curlen=0.0f;
 	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(ob,(float)CFRA,0.0);
 	float adapt_angle=0.0, adapt_pix=0.0, random, simplify[2];
-	int i, a, k, max_k=0, totpart, totuv=0, override_uv=-1, dosimplify = 0, dosurfacecache = 0;
+	int i, a, k, max_k=0, totpart, totuv=0, totcol=0, override_uv=-1, dosimplify = 0, dosurfacecache = 0;
 	int path_possible=0, keys_possible=0, baked_keys=0, totchild=psys->totchild;
 	int seed, path_nbr=0, path=0, orco1=0, adapt=0, uv[3]={0,0,0}, num;
 	int totface, *origindex = 0;
@@ -1541,6 +1558,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 	RE_set_customdata_names(obr, &psmd->dm->faceData);
 	totuv=CustomData_number_of_layers(&psmd->dm->faceData,CD_MTFACE);
+	totcol=CustomData_number_of_layers(&psmd->dm->faceData,CD_MCOL);
 
 	if(ma->texco & TEXCO_UV && totuv) {
 		uvco = MEM_callocN(totuv*2*sizeof(float),"particle_uvs");
@@ -1550,6 +1568,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			override_uv-= CustomData_get_layer_index(&psmd->dm->faceData,CD_MTFACE);
 		}
 	}
+
+	if(totcol)
+		mcol = MEM_callocN(totcol*sizeof(MCol),"particle_mcols");
 
 	if(part->draw_as==PART_DRAW_BB){
 		int first_uv=CustomData_get_layer_index(&psmd->dm->faceData,CD_MTFACE);
@@ -1723,8 +1744,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					num= pa->num;
 
 			if(uvco && ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)){
-				layer=psmd->dm->faceData.layers + CustomData_get_layer_index(&psmd->dm->faceData,CD_MFACE);
-
 				for(i=0; i<totuv; i++){
 					if(num != DMCACHE_NOTFOUND) {
 						MFace *mface=psmd->dm->getFaceData(psmd->dm,num,CD_MFACE);
@@ -1737,6 +1756,19 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 						uvco[2*i]= 0.0f;
 						uvco[2*i + 1]= 0.0f;
 					}
+				}
+			}
+			if(mcol && ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)){
+				for(i=0; i<totcol; i++){
+					if(num != DMCACHE_NOTFOUND) {
+						MFace *mface=psmd->dm->getFaceData(psmd->dm,num,CD_MFACE);
+						MCol *mc=(MCol*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MCOL,i);
+						mc+=num*4;
+
+						psys_interpolate_mcol(mc,mface->v4,pa->fuv,mcol+i);
+					}
+					else
+						memset(&mcol[i], 0, sizeof(MCol));
 				}
 			}
 
@@ -1781,8 +1813,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co,nor,0,0,orco,0);
 
 			if(uvco){
-				layer=psmd->dm->faceData.layers + CustomData_get_layer_index(&psmd->dm->faceData,CD_MFACE);
-
 				if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){
 					for(i=0; i<totuv; i++){
 						if(part->childtype==PART_CHILD_FACES){
@@ -1807,6 +1837,32 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 						mtface+=parent->num;
 						
 						psys_interpolate_uvs(mtface,mface->v4,parent->fuv,uvco+2*i);
+					}
+				}
+			}
+
+			if(mcol){
+				if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){
+					for(i=0; i<totcol; i++){
+						if(part->childtype==PART_CHILD_FACES){
+							MFace *mface=psmd->dm->getFaceData(psmd->dm,cpa->num,CD_MFACE);
+							MCol *mc=(MCol*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MCOL,i);
+							mc+=cpa->num*4;
+							
+							psys_interpolate_mcol(mc,mface->v4,cpa->fuv,mcol+i);
+						}
+						else
+							memset(&mcol[i], 0, sizeof(MCol));
+					}
+				}
+				else if(ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)){
+					for(i=0; i<totcol; i++){
+						ParticleData *parent = psys->particles+cpa->parent;
+						MFace *mface=psmd->dm->getFaceData(psmd->dm,parent->num,CD_MFACE);
+						MCol *mc=(MCol*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MCOL,i);
+						mc+=parent->num*4;
+						
+						psys_interpolate_mcol(mc,mface->v4,parent->fuv,mcol+i);
 					}
 				}
 			}
@@ -1857,14 +1913,20 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				*facenum= num;
 			}
 
-			if(uvco){
-				for(i=0; i<totuv; i++){
+			if(uvco) {
+				for(i=0; i<totuv; i++) {
 					if(i != override_uv) {
 						float *uv= RE_strandren_get_uv(obr, strand, i, NULL, 1);
 
 						uv[0]= uvco[2*i];
 						uv[1]= uvco[2*i+1];
 					}
+				}
+			}
+			if(mcol) {
+				for(i=0; i<totcol; i++) {
+					MCol *mc= RE_strandren_get_mcol(obr, strand, i, NULL, 1);
+					*mc = mcol[i];
 				}
 			}
 
@@ -1918,7 +1980,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				VECADDFAC(loc1,loc,vel,part->draw_line[1]);
 
 				render_new_particle(re,obr,psmd->dm,ma,1,0,1,0.0f,loc0,loc1,
-									orco,surfnor,totuv,uvco,hasize,seed,override_uv,0,0,0);
+									orco,surfnor,totuv,uvco,totcol,mcol,hasize,seed,override_uv,0,0,0);
 			}
 			else if(part->draw_as==PART_DRAW_BB) {
 				VECCOPY(vel,state.vel);
@@ -1938,13 +2000,13 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					VECSUB(loc0,loc1,loc);
 					VECADD(loc0,loc1,loc0);
 					render_new_particle(re,obr,psmd->dm,ma,path,1,0,0.0f,loc1,loc0,
-										orco,surfnor,totuv,uvco,hasize,seed,override_uv,
+										orco,surfnor,totuv,uvco,totcol,mcol,hasize,seed,override_uv,
 										adapt,adapt_angle,adapt_pix);
 				}
 
 				if(path_nbr==0 || k)
 					render_new_particle(re,obr,psmd->dm,ma,path,0,0,time,loc,loc1,
-										orco,surfnor,totuv,uvco,hasize,seed,override_uv,
+										orco,surfnor,totuv,uvco,totcol,mcol,hasize,seed,override_uv,
 										adapt,adapt_angle,adapt_pix);
 
 				VECCOPY(loc1,loc);
@@ -1969,6 +2031,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 	if(uvco)
 		MEM_freeN(uvco);
+	
+	if(mcol)
+		MEM_freeN(mcol);
 
 	if(uv_name)
 		MEM_freeN(uv_name);

@@ -3426,11 +3426,11 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 				glEnableClientState(GL_VERTEX_ARRAY);
 				glEnableClientState(GL_NORMAL_ARRAY);
 				glEnable(GL_LIGHTING);
+				glEnable(GL_COLOR_MATERIAL);
 
 				if(part->draw&PART_DRAW_MAT_COL) {
 					glEnableClientState(GL_COLOR_ARRAY);
 					glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-					glEnable(GL_COLOR_MATERIAL);
 				}
 
 				if(totchild && (part->draw&PART_DRAW_PARENT)==0)
@@ -3456,10 +3456,9 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 					glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
 				}
 
-				if(part->draw&PART_DRAW_MAT_COL) {
+				if(part->draw&PART_DRAW_MAT_COL)
 					glDisable(GL_COLOR_ARRAY);
-					glDisable(GL_COLOR_MATERIAL);
-				}
+				glDisable(GL_COLOR_MATERIAL);
 
 				if(cdata2)
 					MEM_freeN(cdata2);
