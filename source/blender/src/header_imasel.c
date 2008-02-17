@@ -139,9 +139,13 @@ void imasel_buttons(void)
 
 	cpack(0x0);
 	xco+=XIC+10;
-	uiDefIconButBitS(block, TOG, FILE_BOOKMARKS, B_RELOADIMASELDIR, ICON_BOOKMARKS,xco+=XIC,0,XIC,YIC, &simasel->flag, 0, 0, 0, 0, "Toggles Bookmarks on/off");
-	xco+=XIC+10;
 
+	type = simasel->type;
+
+	if (type != FILE_MAIN) {
+		uiDefIconButBitS(block, TOG, FILE_BOOKMARKS, B_RELOADIMASELDIR, ICON_BOOKMARKS,xco+=XIC,0,XIC,YIC, &simasel->flag, 0, 0, 0, 0, "Toggles Bookmarks on/off");
+		xco+=XIC+10;
+	} 
 	xcotitle= xco;
 	xco+= BIF_GetStringWidth(G.font, simasel->title, (U.transopts & USER_TR_BUTTONS));
 	
@@ -153,8 +157,6 @@ void imasel_buttons(void)
 	uiDefIconButBitS(block, TOG, FILE_HIDE_DOT, B_RELOADIMASELDIR, ICON_GHOST,xco+=XIC,0,XIC,YIC, &simasel->flag, 0, 0, 0, 0, "Hides dot files");		
 	uiBlockEndAlign(block);
 	xco+=20;
-	
-	type = simasel->type;
 	
 	if(!simasel->files) {
 		simasel->files = BIF_filelist_new();

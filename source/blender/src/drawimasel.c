@@ -118,7 +118,7 @@ void calc_imasel_rcts(SpaceImaSel *simasel, int winx, int winy)
 	simasel->v2d.vert.ymin += TILE_BORDER_Y + 2;
 	// simasel->v2d.mask.xmax= simasel->v2d.vert.xmin;
 	
-	if (simasel->flag & FILE_BOOKMARKS) {
+	if ((simasel->flag & FILE_BOOKMARKS) && (simasel->type != FILE_MAIN)) {
 		int bmwidth = (simasel->v2d.vert.xmin - simasel->v2d.mask.xmin)/4.0f;
 		if (bmwidth > BOOKMARKWIDTH_MAX) bmwidth = BOOKMARKWIDTH_MAX;
 
@@ -238,7 +238,7 @@ static void draw_imasel_bookmarks(ScrArea *sa, SpaceImaSel *simasel)
 	char bookmark[FILE_MAX];
 	float sw;
 
-	if (simasel->flag & FILE_BOOKMARKS) {
+	if ((simasel->flag & FILE_BOOKMARKS) && (simasel->type != FILE_MAIN)) {
 		int nentries = fsmenu_get_nentries();
 		int i;
 		short sx, sy;
@@ -607,6 +607,8 @@ static void draw_imasel_buttons(ScrArea *sa, SpaceImaSel* simasel)
 	float slen;
 	float parentbut_width = 20;
 	float bookmarkbut_width = 0.0f;
+	float file_start_width = 0.0f;
+
 	int filebuty1, filebuty2;
 
 	float xmin = simasel->v2d.mask.xmin + 10;
@@ -635,11 +637,12 @@ static void draw_imasel_buttons(ScrArea *sa, SpaceImaSel* simasel)
 
 	menu= fsmenu_build_menu();
 
-	if (menu[0]) {
+	if (menu[0]&& (simasel->type != FILE_MAIN)) {
 		bookmarkbut_width = parentbut_width;
+		file_start_width = parentbut_width;
 	}
 
-	uiDefBut(block, TEX, B_FS_FILENAME,"",	xmin+parentbut_width+bookmarkbut_width+2, filebuty1, xmax-xmin-loadbutton-parentbut_width-bookmarkbut_width, 21, simasel->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+	uiDefBut(block, TEX, B_FS_FILENAME,"",	xmin+file_start_width+bookmarkbut_width+2, filebuty1, xmax-xmin-loadbutton-file_start_width-bookmarkbut_width, 21, simasel->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 	uiDefBut(block, TEX, B_FS_DIRNAME,"",	xmin+parentbut_width, filebuty2, xmax-xmin-loadbutton-parentbut_width, 21, simasel->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 
 	if(loadbutton) {
@@ -648,7 +651,9 @@ static void draw_imasel_buttons(ScrArea *sa, SpaceImaSel* simasel)
 		uiDefBut(block, BUT,B_FS_CANCEL, "Cancel",		xmax-loadbutton, filebuty1, loadbutton, 21, simasel->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 	}
 
-	if(menu[0])	{ // happens when no .Bfs is there, and first time browse
+	/* menu[0] = NULL happens when no .Bfs is there, and first time browse
+	   disallow external directory browsing for databrowse */
+	if(menu[0] && (simasel->type != FILE_MAIN))	{ 
 		uiDefButS(block, MENU,B_FS_DIR_MENU, menu, xmin, filebuty1, parentbut_width, 21, &simasel->menu, 0, 0, 0, 0, "");
 		uiDefBut(block, BUT, B_FS_BOOKMARK, "B", xmin+22, filebuty1, bookmarkbut_width, 21, 0, 0, 0, 0, 0, "Bookmark current directory");
 	}

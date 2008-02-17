@@ -635,7 +635,6 @@ static void do_imasel_buttons(short event, SpaceImaSel *simasel)
 		/* which string */
 		if (selected) {
 			BLI_strncpy(simasel->dir, selected, sizeof(simasel->dir));
-			BLI_make_exist(simasel->dir);
 			BLI_cleanup_dir(G.sce, simasel->dir);
 			BIF_filelist_free(simasel->files);	
 			BIF_filelist_setdir(simasel->files, simasel->dir);
@@ -988,7 +987,6 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							/* which string */
 							if (selected) {
 								BLI_strncpy(simasel->dir, selected, sizeof(simasel->dir));
-								BLI_make_exist(simasel->dir);
 								BLI_cleanup_dir(G.sce, simasel->dir);
 								BIF_filelist_free(simasel->files);	
 								BIF_filelist_setdir(simasel->files, simasel->dir);
