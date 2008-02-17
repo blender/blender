@@ -2462,6 +2462,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 			VecMulf(dx,forcetime);
 
 			/* the freezer */
+			/*
 			if  ((Inpf(dx,dx)<freezeloc )&&(Inpf(bp->force,bp->force)<freezeforce )){
 				bp->frozen /=2;
 			}
@@ -2469,7 +2470,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 				bp->frozen =MIN2(bp->frozen*1.05f,1.0f);
 			}
 			VecMulf(dx,bp->frozen);
-
+            */
 			/* again some nasty if's to have heun in here too */
 			if (mode ==1){
 				VECCOPY(bp->prevpos,bp->pos);

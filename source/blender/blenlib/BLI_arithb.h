@@ -57,6 +57,7 @@ extern "C" {
 #ifdef WIN32
 	#ifndef FREE_WINDOWS
 		#define isnan(n) _isnan(n)
+		#define finite _finite
 	#endif
 #endif
 
