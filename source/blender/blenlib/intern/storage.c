@@ -32,6 +32,11 @@
  * Some really low-level file thingies.
  */
 
+#ifndef WIN32
+#define _LARGEFILE_SOURCE 1
+#define _FILE_OFFSET_BITS 64
+#endif
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>	
@@ -336,11 +341,11 @@ void BLI_adddirstrings()
 	char size[250];
 	static char * types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
 	int num, mode;
-	int num1, num2, num3, num4;
+	off_t num1, num2, num3, num4, num5;
 #ifdef WIN32
 	__int64 st_size;
 #else
-	long long st_size;
+	off_t st_size;
 #endif
 	
 	struct direntry * file;
@@ -402,7 +407,7 @@ void BLI_adddirstrings()
 		 * will buy us some time until files get bigger than 4GB or until
 		 * everyone starts using __USE_FILE_OFFSET64 or equivalent.
 		 */
-		st_size= (unsigned int)files[num].s.st_size;
+		st_size= (off_t)files[num].s.st_size;
 		
 		num1= st_size % 1000;
 		num2= st_size/1000;
@@ -411,11 +416,15 @@ void BLI_adddirstrings()
 		num3= num3 % 1000;
 		num4= st_size/(1000*1000*1000);
 		num4= num4 % 1000;
+		num5= st_size/(1000000000000LL);
+		num5= num5 % 1000;
 
-		if(num4) sprintf(files[num].size, "%3d %03d %03d %03d", num4, num3, num2, num1);
-		else if(num3) sprintf(files[num].size, "%7d %03d %03d", num3, num2, num1);
-		else if(num2) sprintf(files[num].size, "%11d %03d", num2, num1);
-		else if(num1) sprintf(files[num].size, "%15d", num1);
+		if(num5)
+			sprintf(files[num].size, "%1d %03d %03d %03d K", (int)num5, (int)num4, (int)num3, (int)num2);
+		else if(num4) sprintf(files[num].size, "%3d %03d %03d %03d", (int)num4, (int)num3, (int)num2, (int)num1);
+		else if(num3) sprintf(files[num].size, "%7d %03d %03d", (int)num3, (int)num2, (int)num1);
+		else if(num2) sprintf(files[num].size, "%11d %03d", (int)num2, (int)num1);
+		else if(num1) sprintf(files[num].size, "%15d", (int)num1);
 		else sprintf(files[num].size, "0");
 
 		strftime(datum, 32, "%d-%b-%y %H:%M", tm);
