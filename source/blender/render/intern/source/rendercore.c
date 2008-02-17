@@ -2255,7 +2255,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob)
 	}
 	
 	/* calculate return value */
-	for(a=0; a<re->r.threads; a++) {
+ 	for(a=0; a<re->r.threads; a++) {
 		vdone+= handles[a].vdone;
 		
 		zbuf_free_span(handles[a].zspan);

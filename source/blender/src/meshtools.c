@@ -1041,9 +1041,11 @@ void objects_bake_render(short event, char **error_msg)
 		return;
 	}	 
 	
-	if(active && !actob)
+	if(active && !actob) {
+		*error_msg = "No active object";
 		return;
-		
+	}
+	
 	if(event>0) {
 		Render *re= RE_NewRender("_Bake View_");
 		ScrArea *area= biggest_image_area();
