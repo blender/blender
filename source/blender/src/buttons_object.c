@@ -3983,7 +3983,7 @@ static void object_panel_particle_children(Object *ob)
 
 	if(part->childtype==0) return;
 
-	if((psys->flag&(PSYS_HAIR_DONE|PSYS_KEYED))==0) {
+	if(part->childtype==PART_CHILD_FACES && (psys->flag&(PSYS_HAIR_DONE|PSYS_KEYED))==0) {
 		uiDefBut(block, LABEL, 0, "Hair or keyed",	butx,(buty-=2*buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
 		uiDefBut(block, LABEL, 0, "particles needed!",	butx,(buty-=2*buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
 		return;
@@ -3994,7 +3994,9 @@ static void object_panel_particle_children(Object *ob)
 	buty -= buth/2;
 	
 	uiDefButI(block, NUM, B_PART_ALLOC_CHILD, "Amount:", butx,(buty-=buth),butw,buth, &part->child_nbr, 0.0, MAX_PART_CHILDREN, 0, 0, "Amount of children/parent");
-	uiDefButI(block, NUM, B_DIFF, "Render Amount:", butx,(buty-=buth),butw,buth, &part->ren_child_nbr, 0.0, MAX_PART_CHILDREN, 0, 0, "Amount of children/parent for rendering");
+	if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED))
+		uiDefButI(block, NUM, B_DIFF, "Render Amount:", butx,(buty-=buth),butw,buth, &part->ren_child_nbr, 0.0, MAX_PART_CHILDREN, 0, 0, "Amount of children/parent for rendering");
+
 	if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES) {
 		uiDefButF(block, NUMSLI, B_PART_DISTR_CHILD, "VParents:",		butx,(buty-=buth),butw,buth, &part->parents, 0.0, 1.0, 1, 3, "Relative amount of virtual parents");
 		}
@@ -4015,9 +4017,11 @@ static void object_panel_particle_children(Object *ob)
 	buty -= buth/2;
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_PART_REDRAW, "Size:",		butx,(buty-=buth),butw/2,buth, &part->childsize, 0.01, 100, 10, 1, "A multiplier for the child particle size");
-	uiDefButF(block, NUM, B_PART_REDRAW, "Rand:",		butx+butw/2,buty,butw/2,buth, &part->childrandsize, 0.0, 1.0, 10, 1, "Random variation to the size of the child particles");
-	if(part->childtype==PART_CHILD_FACES) {
+	if(part->draw_as != PART_DRAW_PATH) {
+		uiDefButF(block, NUM, B_PART_REDRAW, "Size:",		butx,(buty-=buth),butw/2,buth, &part->childsize, 0.01, 100, 10, 1, "A multiplier for the child particle size");
+		uiDefButF(block, NUM, B_PART_REDRAW, "Rand:",		butx+butw/2,buty,butw/2,buth, &part->childrandsize, 0.0, 1.0, 10, 1, "Random variation to the size of the child particles");
+	}
+	if(part->childtype == PART_CHILD_FACES) {
 		uiDefButF(block, NUM, B_PART_REDRAW, "Spread:",butx,(buty-=buth),butw/2,buth, &part->childspread, -1.0, 1.0, 10, 1, "Spread children from the faces");
 		uiDefButBitI(block, TOG, PART_CHILD_SEAMS, B_PART_DISTR_CHILD, "Use Seams",	 butx+butw/2,buty,butw/2,buth, &part->flag, 0, 0, 0, 0, "Use seams to determine parents");
 	}
@@ -4026,9 +4030,12 @@ static void object_panel_particle_children(Object *ob)
 	butx=160;
 	buty=180;
 
-	uiDefButBitS(block, TOG, 1, B_PART_REDRAW, "Kink/Branch",	 butx,(buty-=buth),butw,buth, &kink_ui, 0, 0, 0, 0, "Show kink and branch options");
+	if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED))
+		uiDefButBitS(block, TOG, 1, B_PART_REDRAW, "Kink/Branch",	 butx,(buty-=buth),butw,buth, &kink_ui, 0, 0, 0, 0, "Show kink and branch options");
+	else
+		buty-=buth;
 
-	if(kink_ui) {
+	if(kink_ui || (psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED)) == 0) {
 		buty -= buth/2;
 
 		/* kink */
@@ -4046,7 +4053,7 @@ static void object_panel_particle_children(Object *ob)
 		}
 		uiBlockEndAlign(block);
 
-		if(part->childtype==PART_CHILD_PARTICLES) {
+		if(part->childtype==PART_CHILD_PARTICLES && psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED)) {
 			if(part->flag & PART_BRANCHING) {
 				uiDefButBitI(block, TOG, PART_BRANCHING, B_PART_RECALC_CHILD, "Branching",	butx,(buty-=2*buth),butw,buth, &part->flag, 0, 0, 0, 0, "Branch child paths from eachother");
 				uiDefButBitI(block, TOG, PART_ANIM_BRANCHING, B_PART_RECALC_CHILD, "Animated",	butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Animate branching");
@@ -4323,7 +4330,7 @@ static void object_panel_particle_visual(Object *ob)
 				}
 			}
 			else {
-				uiDefBut(block, LABEL, 0, "Baked or keyed",	butx,(buty-=2*buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, "Hair or keyed",	butx,(buty-=2*buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
 				uiDefBut(block, LABEL, 0, "particles needed!",	butx,(buty-=2*buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
 			}
 			break;

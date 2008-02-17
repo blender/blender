@@ -465,6 +465,8 @@ void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[][4], float
 		return;
 	if(psys->renderdata)
 		return;
+	if(psys->part->draw_as!=PART_DRAW_PATH)
+		return;
 
 	data= MEM_callocN(sizeof(ParticleRenderData), "ParticleRenderData");
 
@@ -504,6 +506,8 @@ void psys_render_restore(Object *ob, ParticleSystem *psys)
 
 	data= psys->renderdata;
 	if(!data)
+		return;
+	if(psys->part->draw_as!=PART_DRAW_PATH)
 		return;
 	
 	if(data->elems)
@@ -3580,32 +3584,34 @@ int psys_get_particle_state(Object *ob, ParticleSystem *psys, int p, ParticleKey
 		return 1;
 	}
 	else{
-		//if(psys->totchild && p>=psys->totpart){
-		//	ChildParticle *cpa=psys->child+p-psys->totpart;
-		//	ParticleKey *key1, skey;
-		//	float t=(cfra-pa->time)/pa->lifetime, clump;
+		if(between)
+			return 0; /* currently not supported */
+		else if(psys->totchild && p>=psys->totpart){
+			ChildParticle *cpa=psys->child+p-psys->totpart;
+			ParticleKey *key1, skey;
+			float t = (cfra - pa->time + pa->loop * pa->lifetime) / pa->lifetime, clump;
 
-		//	pa=psys->particles+cpa->parent;
+			pa = psys->particles + cpa->parent;
 
-		//	if(pa->alive==PARS_DEAD && part->flag&PART_STICKY && pa->flag&PARS_STICKY && pa->stick_ob){
-		//		key1=&skey;
-		//		copy_particle_key(key1,&pa->state,0);
-		//		key_from_object(pa->stick_ob,key1);
-		//	}
-		//	else{
-		//		key1=&pa->state;
-		//	}
-		//	
-		//	offset_child(cpa, key1, state, part->childflat, part->childrad);
-		//	
-		//	CLAMP(t,0.0,1.0);
-		//	if(part->kink)			/* TODO: part->kink_freq*pa_kink */
-		//		do_prekink(state,key1,t,part->kink_freq,part->kink_shape,part->kink_amp,part->kink,part->kink_axis,ob->obmat);
-		//	
-		//	/* TODO: pa_clump vgroup */
-		//	do_clump(state,key1,t,part->clumpfac,part->clumppow,0);
-		//}
-		//else{
+			if(pa->alive==PARS_DEAD && part->flag&PART_STICKY && pa->flag&PARS_STICKY && pa->stick_ob) {
+				key1 = &skey;
+				copy_particle_key(key1,&pa->state,0);
+				key_from_object(pa->stick_ob,key1);
+			}
+			else {
+				key1=&pa->state;
+			}
+			
+			offset_child(cpa, key1, state, part->childflat, part->childrad);
+			
+			CLAMP(t,0.0,1.0);
+			if(part->kink)			/* TODO: part->kink_freq*pa_kink */
+				do_prekink(state,key1,key1->rot,t,part->kink_freq,part->kink_shape,part->kink_amp,part->kink,part->kink_axis,ob->obmat);
+			
+			/* TODO: pa_clump vgroup */
+			do_clump(state,key1,t,part->clumpfac,part->clumppow,1.0);
+		}
+		else{
 			if (pa) { /* TODO PARTICLE - should this ever be NULL? - Campbell */
 				copy_particle_key(state,&pa->state,0);
 
@@ -3616,7 +3622,7 @@ int psys_get_particle_state(Object *ob, ParticleSystem *psys, int p, ParticleKey
 				if(psys->lattice)
 					calc_latt_deform(state->co,1.0f);
 			}
-		//}
+		}
 		
 		return 1;
 	}
