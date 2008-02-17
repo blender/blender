@@ -1019,8 +1019,10 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 			pa->keys= MEM_dupallocN(pa->keys);
 	}
 
-	if(psys->soft)
+	if(psys->soft) {
 		psysn->soft= copy_softbody(psys->soft);
+		psysn->soft->particles = psysn;
+	}
 	
 	psysn->pathcache= NULL;
 	psysn->childcache= NULL;
