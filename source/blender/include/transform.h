@@ -481,6 +481,17 @@ int addMatrixSpace(float mat[3][3], char name[]);
 int addObjectSpace(struct Object *ob);
 void applyTransformOrientation(void);
 
+
+#define ORIENTATION_NONE	0
+#define ORIENTATION_NORMAL	1
+#define ORIENTATION_VERT	2
+#define ORIENTATION_EDGE	3
+#define ORIENTATION_FACE	4
+
+int getTransformOrientation(float normal[3], float plane[3], int activeOnly);
+int createSpaceNormal(float mat[3][3], float normal[3]);
+int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
+
 #endif
 
 

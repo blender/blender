@@ -234,51 +234,18 @@ int calc_manipulator_stats(ScrArea *sa)
 			EditMesh *em = G.editMesh;
 			EditVert *eve;
 			float vec[3]= {0,0,0};
-			int no_faces= 1;
 			
 			/* USE LAST SELECTE WITH ACTIVE */
 			if (G.vd->around==V3D_ACTIVE && em->selected.last) {
 				EM_editselection_center(vec, em->selected.last);
 				calc_tw_center(vec);
 				totsel= 1;
-				if (v3d->twmode == V3D_MANIP_NORMAL) {
-					EM_editselection_normal(normal, em->selected.last);
-					EM_editselection_plane(plane, em->selected.last);
-				} /* NORMAL OPERATION */
 			} else {
-				if(v3d->twmode == V3D_MANIP_NORMAL) {
-					EditFace *efa;
-					
-					for(efa= em->faces.first; efa; efa= efa->next) {
-						if(efa->f & SELECT) {
-							no_faces= 0;
-							VECADD(normal, normal, efa->n);
-							VecSubf(vec, efa->v2->co, efa->v1->co);
-							VECADD(plane, plane, vec);
-						}
-					}
-				}
-				
 				/* do vertices for center, and if still no normal found, use vertex normals */
 				for(eve= em->verts.first; eve; eve= eve->next) {
 					if(eve->f & SELECT) {
-						if(no_faces) VECADD(normal, normal, eve->no);
-						
 						totsel++;
 						calc_tw_center(eve->co);
-					}
-				}
-				/* the edge case... */
-				if(no_faces && v3d->twmode == V3D_MANIP_NORMAL) {
-					EditEdge *eed;
-					
-					for(eed= em->edges.first; eed; eed= eed->next) {
-						if(eed->f & SELECT) {
-							/* ok we got an edge, only use one, and as normal */
-							VECCOPY(plane, normal);
-							VecSubf(normal, eed->v2->co, eed->v1->co);
-							break;
-						}
 					}
 				}
 			}
@@ -314,22 +281,18 @@ int calc_manipulator_stats(ScrArea *sa)
 						if( (bezt->f1 & SELECT) + (bezt->f2 & SELECT) + (bezt->f3 & SELECT) > SELECT ) {
 							calc_tw_center(bezt->vec[1]);
 							totsel++;
-							VecSubf(normal, bezt->vec[0], bezt->vec[2]);
 						}
 						else {
 							if(bezt->f1) {
 								calc_tw_center(bezt->vec[0]);
-								VecSubf(normal, bezt->vec[0], bezt->vec[1]);
 								totsel++;
 							}
 							if(bezt->f2) {
 								calc_tw_center(bezt->vec[1]);
-								VecSubf(normal, bezt->vec[0], bezt->vec[2]);
 								totsel++;
 							}
 							if(bezt->f3) {
 								calc_tw_center(bezt->vec[2]);
-								VecSubf(normal, bezt->vec[1], bezt->vec[2]);
 								totsel++;
 							}
 						}
@@ -363,23 +326,6 @@ int calc_manipulator_stats(ScrArea *sa)
 					totsel++;
 				}
 				ml= ml->next;
-			}
-			/* normal manipulator */
-			if(totsel==1){	
-				float mat1[4][4];
-
-				/* Rotation of MetaElem is stored in quat */
- 				QuatToMat4(ml_sel->quat, mat1);
-
-				/* Translation of MetaElem */
-				mat1[3][0]= ml_sel->x;
-				mat1[3][1]= ml_sel->y;
-				mat1[3][2]= ml_sel->z;
-
-				VECCOPY(normal, mat1[2]);
-				VECCOPY(plane, mat1[1]);
-
-				VecMulf(plane, -1.0);
 			}
 		}
 		else if(G.obedit->type==OB_LATTICE) {
@@ -490,6 +436,54 @@ int calc_manipulator_stats(ScrArea *sa)
 			
 		case V3D_MANIP_NORMAL:
 			if(G.obedit || (ob->flag & OB_POSEMODE)) {
+				float mat[3][3];
+				int type;
+
+				strcpy(t->spacename, "normal");
+			
+				type = getTransformOrientation(normal, plane, 0);
+				
+				switch (type)
+				{
+					case ORIENTATION_NORMAL:
+						if (createSpaceNormalTangent(mat, normal, plane) == 0)
+						{
+							type = ORIENTATION_NONE;
+						}
+						break;
+					case ORIENTATION_VERT:
+						if (createSpaceNormal(mat, normal) == 0)
+						{
+							type = ORIENTATION_NONE;
+						}
+						break;
+					case ORIENTATION_EDGE:
+						if (createSpaceNormalTangent(mat, normal, plane) == 0)
+						{
+							type = ORIENTATION_NONE;
+						}
+						break;
+					case ORIENTATION_FACE:
+						if (createSpaceNormalTangent(mat, normal, plane) == 0)
+						{
+							type = ORIENTATION_NONE;
+						}
+						break;
+				}
+				
+				if (type == ORIENTATION_NONE)
+				{
+					Mat4One(v3d->twmat);
+				}
+				else
+				{
+					Mat4CpyMat3(v3d->twmat, mat);
+				}
+				break;
+			}
+			/* pose mode is a bit weird, so keep it separated */
+			else if (ob->flag & OB_POSEMODE)
+			{
 				strcpy(t->spacename, "normal");
 				if(normal[0]!=0.0 || normal[1]!=0.0 || normal[2]!=0.0) {
 					float imat[3][3], mat[3][3];
