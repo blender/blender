@@ -1378,18 +1378,6 @@ static PyObject *RenderData_getYafrayAntiAliasingThreshold( BPy_RenderData * sel
 	return M_Render_getFloat( self, self->renderContext->YF_AAthreshold );
 }
 
-/** YafRay - Number of processors to use */
-
-static int RenderData_setYafrayNumberOfProcessors( BPy_RenderData * self, PyObject * value )
-{
-	return M_Render_setInt( self, value, &self->renderContext->YF_numprocs, 1, 8 );
-}
-
-static PyObject *RenderData_getYafrayNumberOfProcessors( BPy_RenderData * self )
-{
-	return M_Render_getInt( self, self->renderContext->YF_numprocs );
-}
-
 /* YafRay - Cache occlusion/irradiance samples (faster) */
 
 static int RenderData_setYafrayGICache( BPy_RenderData * self, PyObject * value )
@@ -1664,14 +1652,6 @@ PyObject *RenderData_YafrayExposure( BPy_RenderData * self, PyObject * args )
 	return M_Render_GetSetAttributeFloat( args,
 					      &self->renderContext->
 					      YF_exposure, 0.0f, 10.0f );
-}
-
-PyObject *RenderData_YafrayProcessorCount( BPy_RenderData * self,
-					   PyObject * args )
-{
-	return M_Render_GetSetAttributeInt( args,
-					    &self->renderContext->YF_numprocs,
-					    1, 8 );
 }
 
 PyObject *RenderData_EnableGameFrameStretch( BPy_RenderData * self )
@@ -2850,10 +2830,6 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getYafrayAntiAliasingThreshold, (setter)RenderData_setYafrayAntiAliasingThreshold,
 	 "Anti-aliasing threshold",
 	 NULL},
-	{"yafrayNumberOfProcessors",
-	 (getter)RenderData_getYafrayNumberOfProcessors, (setter)RenderData_setYafrayNumberOfProcessors,
-	 "Number of processors to use",
-	 NULL},
 	{"yafrayGICache",
 	 (getter)RenderData_getYafrayGICache, (setter)RenderData_setYafrayGICache,
 	 "Cache occlusion/irradiance samples (faster)",
@@ -3125,9 +3101,6 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	{"yafrayExposure", ( PyCFunction ) RenderData_YafrayExposure,
 	 METH_VARARGS,
 	 "(float) - get/set exposure adjustment, 0 is off"},
-	{"yafrayProcessorCount",
-	 ( PyCFunction ) RenderData_YafrayProcessorCount, METH_VARARGS,
-	 "(int) - get/set number of processors to use"},
 	{"enableGameFrameStretch",
 	 ( PyCFunction ) RenderData_EnableGameFrameStretch, METH_NOARGS,
 	 "(l) - enble stretch or squeeze the viewport to fill the display window"},

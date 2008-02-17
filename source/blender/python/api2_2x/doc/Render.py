@@ -369,8 +369,6 @@ class RenderData:
   @type yafrayAntiAliasingPixelSize: float [1.0, 2.0]
   @ivar yafrayAntiAliasingThreshold: Anti-aliasing threshold.
   @type yafrayAntiAliasingThreshold: float [0.05, 1.0]
-  @ivar yafrayNumberOfProcessors: Number of processors to use.
-  @type yafrayNumberOfProcessors: int [1, 8]
   @ivar yafrayGICache: Cache occlusion/irradiance samples (faster).
   @type yafrayGICache: boolean
   @ivar yafrayGICacheBumpNormals: Enable/disable bumpnormals for cache.
@@ -1116,15 +1114,6 @@ class RenderData:
     @param expose: must be between 0 - 10.0
     @rtype: float (if prototype is empty)
     @return: Current exposure adjustment for the scene.
-    """
-
-  def yafrayProcessorCount(count = None):
-    """
-    Get/set number of processors to use.
-    @type count: int (optional)
-    @param count: must be between 1 - 8
-    @rtype: int (if prototype is empty)
-    @return: Current number of processors for the scene.
     """
 
   def enableGameFrameStretch():

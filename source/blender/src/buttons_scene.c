@@ -2652,8 +2652,6 @@ static void render_panel_yafrayGlobal()
 	uiDefButF(block, NUMSLI, B_DIFF, "Gam ", 5,10,150,20, &G.scene->r.YF_gamma, 0.001, 5.0, 0, 0, "Gamma correction, 1 is off");
 	uiDefButF(block, NUMSLI, B_DIFF, "Exp ", 160,10,150,20,&G.scene->r.YF_exposure, 0.0, 10.0, 0, 0, "Exposure adjustment, 0 is off");
         
-	uiDefButI(block, NUM, B_DIFF, "Processors:", 160,60,150,20, &G.scene->r.YF_numprocs, 1.0, 8.0, 10, 10, "Number of processors to use");
-
 	/*AA Settings*/
 	uiDefButBitS(block, TOGN, 1, B_REDR, "Auto AA", 5,140,150,20, &G.scene->r.YF_AA, 
 					0, 0, 0, 0, "Set AA using OSA and GI quality, disable for manual control");

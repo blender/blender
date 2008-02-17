@@ -186,7 +186,7 @@ bool yafrayPluginRender_t::initExport()
 			cerr << "Error loading yafray plugin: " << PIL_dynlib_get_error_as_string(handle) << endl;
 			return false;
 		}
-		yafrayGate = constructor(re->r.YF_numprocs, YafrayPluginPath());
+		yafrayGate = constructor(re->r.threads, YafrayPluginPath());
 		
 		cout << "YafRay plugin loaded" << endl;
 		plugin_loaded = true;
@@ -246,7 +246,7 @@ bool yafrayPluginRender_t::writeRender()
 	params["bias"] = yafray::parameter_t(re->r.YF_raybias);
 	params["clamp_rgb"] = yafray::parameter_t((re->r.YF_clamprgb==0) ? "on" : "off");
 	// lynx request
-	params["threads"] = yafray::parameter_t((int)re->r.YF_numprocs);
+	params["threads"] = yafray::parameter_t((int)re->r.threads);
 	blenderYafrayOutput_t output(re);
 	yafrayGate->render(params, output);
 	cout << "render finished" << endl;
