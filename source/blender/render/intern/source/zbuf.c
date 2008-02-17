@@ -2917,7 +2917,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	DrawBufPixel *rectdraw, *dr;
 	static float jit[16][2];
 	float v1[3], v2[3], v3[3], v4[3], fx, fy;
-	float *rectvz, *dvz, *dimg, *dvec1, *dvec2, *dz1, *dz2, *rectz, *minvecbufrect= NULL;
+	float *rectvz, *dvz, *dimg, *dvec1, *dvec2, *dz, *dz1, *dz2, *rectz, *minvecbufrect= NULL;
 	float maxspeedsq= (float)nbd->maxspeed*nbd->maxspeed;
 	int y, x, step, maxspeed=nbd->maxspeed, samples= nbd->samples;
 	int tsktsk= 0;
@@ -2979,29 +2979,21 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	}
 	
 	/* make vertex buffer with averaged speed and zvalues */
-	rectvz= MEM_mapallocN(5*sizeof(float)*(xsize+1)*(ysize+1), "vertices");
+	rectvz= MEM_mapallocN(4*sizeof(float)*(xsize+1)*(ysize+1), "vertices");
 	dvz= rectvz;
 	for(y=0; y<=ysize; y++) {
 		
-		if(y==0) {
+		if(y==0)
 			dvec1= vecbufrect + 4*y*xsize;
-			dz1= zbufrect + y*xsize;
-		}
-		else {
+		else
 			dvec1= vecbufrect + 4*(y-1)*xsize;
-			dz1= zbufrect + (y-1)*xsize;
-		}
 		
-		if(y==ysize) {
+		if(y==ysize)
 			dvec2= vecbufrect + 4*(y-1)*xsize;
-			dz2= zbufrect + (y-1)*xsize;
-		}
-		else {
+		else
 			dvec2= vecbufrect + 4*y*xsize;
-			dz2= zbufrect + y*xsize;
-		}
 		
-		for(x=0; x<=xsize; x++, dz1++, dz2++) {
+		for(x=0; x<=xsize; x++) {
 			
 			/* two vectors, so a step loop */
 			for(step=0; step<2; step++, dvec1+=2, dvec2+=2, dvz+=2) {
@@ -3059,30 +3051,21 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 					}
 				}
 			}
-			/* the z coordinate */
-			if(x!=0) {
-				if(x!=xsize)
-					dvz[0]= 0.25f*(dz1[-1] + dz2[-1] + dz1[0] + dz2[0]);
-				else dvz[0]= 0.5f*(dz1[0] + dz2[0]);
-			}
-			else dvz[0]= 0.5f*(dz1[-1] + dz2[-1]);
-			
-			dvz++;
 		}
 	}
 	
 	/* set border speeds to keep border speeds on border */
 	dz1= rectvz;
-	dz2= rectvz+5*(ysize)*(xsize+1);
-	for(x=0; x<=xsize; x++, dz1+=5, dz2+=5) {
+	dz2= rectvz+4*(ysize)*(xsize+1);
+	for(x=0; x<=xsize; x++, dz1+=4, dz2+=4) {
 		dz1[1]= 0.0f;
 		dz2[1]= 0.0f;
 		dz1[3]= 0.0f;
 		dz2[3]= 0.0f;
 	}
 	dz1= rectvz;
-	dz2= rectvz+5*(xsize);
-	for(y=0; y<=ysize; y++, dz1+=5*(xsize+1), dz2+=5*(xsize+1)) {
+	dz2= rectvz+4*(xsize);
+	for(y=0; y<=ysize; y++, dz1+=4*(xsize+1), dz2+=4*(xsize+1)) {
 		dz1[0]= 0.0f;
 		dz2[0]= 0.0f;
 		dz1[2]= 0.0f;
@@ -3110,7 +3093,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	for(step= 1; step<=samples; step++) {
 		float speedfac= 0.5f*nbd->fac*(float)step/(float)(samples+1);
 		float blendfac= 1.0f/(ABS(step)+1), ipodata[4];
-		int side, z= 4;
+		int side;
 		
 		for(side=0; side<2; side++) {
 			
@@ -3130,14 +3113,14 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 			
 			dimg= imgrect;
 			dm= rectmove;
+			dz= zbufrect;
 			dz1= rectvz;
-			dz2= rectvz + 5*(xsize + 1);
+			dz2= rectvz + 4*(xsize + 1);
 			
 			if(side) {
 				if(nbd->curved==0) {
 					dz1+= 2;
 					dz2+= 2;
-					z= 2;
 				}
 				speedfac= -speedfac;
 			}
@@ -3145,40 +3128,40 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 			set_quad_bezier_ipo(0.5f + 0.5f*speedfac, ipodata);
 			
 			for(fy= -0.5f+jit[step & 15][0], y=0; y<ysize; y++, fy+=1.0f) {
-				for(fx= -0.5f+jit[step & 15][1], x=0; x<xsize; x++, fx+=1.0f, dimg+=4, dz1+=5, dz2+=5, dm++) {
+				for(fx= -0.5f+jit[step & 15][1], x=0; x<xsize; x++, fx+=1.0f, dimg+=4, dz1+=4, dz2+=4, dm++, dz++) {
 					if(*dm>1) {
 						DrawBufPixel col;
 						
 						/* make vertices */
 						if(nbd->curved) {	/* curved */
 							quad_bezier_2d(v1, dz1, dz1+2, ipodata);
-							v1[0]+= fx; v1[1]+= fy; v1[2]= dz1[4];
+							v1[0]+= fx; v1[1]+= fy; v1[2]= *dz;
 
-							quad_bezier_2d(v2, dz1+5, dz1+5+2, ipodata);
-							v2[0]+= fx+1.0f; v2[1]+= fy; v2[2]= dz1[4+5];
+							quad_bezier_2d(v2, dz1+4, dz1+4+2, ipodata);
+							v2[0]+= fx+1.0f; v2[1]+= fy; v2[2]= *dz;
 
-							quad_bezier_2d(v3, dz2+5, dz2+5+2, ipodata);
-							v3[0]+= fx+1.0f; v3[1]+= fy+1.0f; v3[2]= dz1[4+5];
+							quad_bezier_2d(v3, dz2+4, dz2+4+2, ipodata);
+							v3[0]+= fx+1.0f; v3[1]+= fy+1.0f; v3[2]= *dz;
 							
 							quad_bezier_2d(v4, dz2, dz2+2, ipodata);
-							v4[0]+= fx; v4[1]+= fy+1.0f; v4[2]= dz2[4];
+							v4[0]+= fx; v4[1]+= fy+1.0f; v4[2]= *dz;
 						}
 						else {
-							v1[0]= speedfac*dz1[0]+fx;			v1[1]= speedfac*dz1[1]+fy;			v1[2]= dz1[z];
-							v2[0]= speedfac*dz1[5]+fx+1.0f;		v2[1]= speedfac*dz1[6]+fy;			v2[2]= dz1[z+5];
-							v3[0]= speedfac*dz2[5]+fx+1.0f;		v3[1]= speedfac*dz2[6]+fy+1.0f;		v3[2]= dz2[z+5];
-							v4[0]= speedfac*dz2[0]+fx;			v4[1]= speedfac*dz2[1]+fy+1.0f;		v4[2]= dz2[z];
+							v1[0]= speedfac*dz1[0]+fx;			v1[1]= speedfac*dz1[1]+fy;			v1[2]= *dz;
+							v2[0]= speedfac*dz1[4]+fx+1.0f;		v2[1]= speedfac*dz1[5]+fy;			v2[2]= *dz;
+							v3[0]= speedfac*dz2[4]+fx+1.0f;		v3[1]= speedfac*dz2[5]+fy+1.0f;		v3[2]= *dz;
+							v4[0]= speedfac*dz2[0]+fx;			v4[1]= speedfac*dz2[1]+fy+1.0f;		v4[2]= *dz;
 						}
 						if(*dm==255) col.alpha= 1.0f;
 						else if(*dm<2) col.alpha= 0.0f;
 						else col.alpha= ((float)*dm)/255.0f;
 						col.colpoin= dimg;
-						
+
 						zbuf_fill_in_rgba(&zspan, &col, v1, v2, v3, v4);
 					}
 				}
-				dz1+=5;
-				dz2+=5;
+				dz1+=4;
+				dz2+=4;
 			}
 			
 			/* accum */
