@@ -551,6 +551,9 @@
 				RelativePath="..\..\..\source\blender\src\transform_numinput.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\transform_orientations.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\transform_snap.c">
 			</File>
 			<File
