@@ -1505,7 +1505,6 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	isec.ob_last= 0;
 	isec.mode= (R.wrld.aomode & WO_AODIST)?RE_RAY_SHADOW_TRA:RE_RAY_SHADOW;
 	isec.lay= -1;
-	VECCOPY(isec.start, shi->co);
 	
 	shadfac[0]= shadfac[1]= shadfac[2]= 0.0f;
 	
@@ -1558,6 +1557,7 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		
 		Normalize(dir);
 			
+		VECCOPY(isec.start, shi->co);
 		isec.end[0] = shi->co[0] - maxdist*dir[0];
 		isec.end[1] = shi->co[1] - maxdist*dir[1];
 		isec.end[2] = shi->co[2] - maxdist*dir[2];
