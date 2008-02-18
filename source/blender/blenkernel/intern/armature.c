@@ -1755,7 +1755,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 
 		if(tree->stretch && (pchan->ikstretch > 0.0)) {
 			float ikstretch = pchan->ikstretch*pchan->ikstretch;
-			IK_SetStiffness(seg, IK_TRANS_Y, MIN2(1.0-ikstretch, 0.999));
+			IK_SetStiffness(seg, IK_TRANS_Y, MIN2(1.0-ikstretch, 0.99));
 			IK_SetLimit(seg, IK_TRANS_Y, 0.001, 1e10);
 		}
 	}
