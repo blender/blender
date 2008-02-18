@@ -233,8 +233,9 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 					pa->num_dmcache= GET_INT_FROM_POINTER(nodearray[pa->num]->link);
 			}
 			else { /* FROM_FACE/FROM_VOLUME */
-				i= psys_particle_dm_face_lookup(ob, dm, pa->num, pa->fuv, nodearray[pa->num]);
-				pa->num_dmcache= i;
+				/* Note that somtimes the pa->num is over the nodearray size, this is bad, maybe there is a better place to fix this,
+				 * but for now passing NULL is OK. every face will be searched for the particle so its slower - Campbell */
+				pa->num_dmcache= psys_particle_dm_face_lookup(ob, dm, pa->num, pa->fuv, pa->num < totelem ? nodearray[pa->num] : NULL);
 			}
 		}
 
