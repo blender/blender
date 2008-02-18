@@ -32,11 +32,6 @@
  * Some really low-level file thingies.
  */
 
-#ifndef WIN32
-#define _LARGEFILE_SOURCE 1
-#define _FILE_OFFSET_BITS 64
-#endif
-
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>	

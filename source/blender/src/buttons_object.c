@@ -3412,7 +3412,7 @@ static void object_panel_fields(Object *ob)
 				uiDefButF(block, NUM, B_FIELD_CHANGE, "MaxDist: ",	50,80,100,20, &pd->maxdist, 0, 1000.0, 10, 0, "Maximum distance for the field to work");
 			}
 			else {
-				uiDefButF(block, NUM, B_FIELD_CHANGE, "Strength: ",	10,140,140,20, &pd->f_strength, -1000, 1000, 10, 0, "Strength of force field");
+				uiDefButF(block, NUM, B_FIELD_CHANGE, "Strength: ",	10,140,140,20, &pd->f_strength, -1000, 1000, 10, 3, "Strength of force field");
 				
 				if(pd->forcefield == PFIELD_TEXTURE){
 					uiDefIDPoinBut(block, field_testTexture, ID_TE, B_FIELD_CHANGE, "Texture: ", 10, 120, 140, 20, &pd->tex, "Texture to use as force");
