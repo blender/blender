@@ -3828,7 +3828,7 @@ static void material_panel_shading(Material *ma)
 		uiDefButBitI(block, TOG, MA_SHADOW, B_MATPRV,	"Shadow",			245,140,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows");
 		uiDefButBitI(block, TOG, MA_SHADOW_TRA, B_MATPRV, "TraShadow",		245,120,65,19, &(ma->mode), 0, 0, 0, 0, "Receives transparent shadows based at material color and alpha");
 		uiDefButBitI(block, TOG, MA_ONLYSHADOW, B_MATPRV,	"OnlyShad",		245,100,65,20, &(ma->mode), 0, 0, 0, 0, "Renders shadows on material as Alpha value");
-		uiDefButBitS(block, TOG, MA_CUBIC, B_MATPRV, "Cubic",				245,80,65,19, &(ma->shade_flag), 0, 0, 0, 0, "Use Cubic interpolation of diffuse values, for smoother transitions)");
+		uiDefButBitS(block, TOG, MA_CUBIC, B_MATPRV, "Cubic",				245,80,65,19, &(ma->shade_flag), 0, 0, 0, 0, "Use Cubic interpolation of diffuse values, for smoother transitions");
 		uiDefButBitI(block, TOG, MA_RAYBIAS, B_MATPRV, "Bias",				245,60,65,19, &(ma->mode), 0, 0, 0, 0, "Prevents ray traced shadow errors with phong interpolated normals (terminator problem)");
 
 		uiBlockBeginAlign(block);
