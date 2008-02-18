@@ -176,6 +176,7 @@ void do_hsva_to_rgba(bNode *node, float *out, float *in);
 void do_ycca_to_rgba(bNode *node, float *out, float *in);
 
 void gamma_correct_compbuf(CompBuf *img, int inversed);
+void premul_compbuf(CompBuf *img, int inversed);
 void convolve(CompBuf* dst, CompBuf* in1, CompBuf* in2);
 
 extern void node_ID_title_cb(void *node_v, void *unused_v);

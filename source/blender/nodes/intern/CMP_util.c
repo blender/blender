@@ -575,6 +575,36 @@ void gamma_correct_compbuf(CompBuf *img, int inversed)
    }
 }
 
+void premul_compbuf(CompBuf *img, int inversed)
+{
+   float *drect;
+   int x;
+
+   if(img->type!=CB_RGBA) return;
+
+   drect= img->rect;
+   if(inversed) {
+      for(x=img->x*img->y; x>0; x--, drect+=4) {
+		 if(fabs(drect[3]) < 1e-5f) {
+			 drect[0]= 0.0f;
+			 drect[1]= 0.0f;
+			 drect[2]= 0.0f;
+		 }
+		 else {
+			 drect[0] /= drect[3];
+			 drect[1] /= drect[3];
+			 drect[2] /= drect[3];
+		 }
+      }
+   }
+   else {
+      for(x=img->x*img->y; x>0; x--, drect+=4) {
+		 drect[0] *= drect[3];
+		 drect[1] *= drect[3];
+		 drect[2] *= drect[3];
+      }
+   }
+}
 
 
 

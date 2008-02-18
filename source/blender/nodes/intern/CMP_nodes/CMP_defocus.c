@@ -798,16 +798,22 @@ static void node_composit_exec_defocus(void *data, bNode *node, bNodeStack **in,
 	// ok, process
 	old = img;
 	if (nqd->gamco) {
-		// gamma correct, blender func is simplified, fixed value & RGBA only, should make user param
+		// gamma correct, blender func is simplified, fixed value & RGBA only,
+		// should make user param. also depremul and premul afterwards, gamma
+		// correction can't work with premul alpha
 		old = dupalloc_compbuf(img);
+		premul_compbuf(old, 1);
 		gamma_correct_compbuf(old, 0);
+		premul_compbuf(old, 0);
 	}
 	
 	new = alloc_compbuf(old->x, old->y, old->type, 1);
 	defocus_blur(node, new, old, zbuf_use, in[1]->vec[0]*nqd->scale);
 	
 	if (nqd->gamco) {
+		premul_compbuf(new, 1);
 		gamma_correct_compbuf(new, 1);
+		premul_compbuf(new, 0);
 		free_compbuf(old);
 	}
 	if(node->exec & NODE_BREAK) {
