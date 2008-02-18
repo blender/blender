@@ -299,6 +299,8 @@ void IMB_filter_extend(struct ImBuf *ibuf)
 				}
 			}
 		}
+
+		MEM_freeN(temprect);
 	}
 	else if(ibuf->rect) {
 		int *temprect;

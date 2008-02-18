@@ -273,7 +273,7 @@ typedef struct RenderData {
 	/* Bake Render options */
 	short bake_osa, bake_filter, bake_mode, bake_flag;
 	short bake_normal_space, bpad;
-	float bake_maxdist;
+	float bake_maxdist, bake_biasdist, bake_pad;
 	
 	/* yafray: global panel params. TODO: move elsewhere */
 	short GIquality, GIcache, GImethod, GIphotons, GIdirect;

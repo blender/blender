@@ -2075,12 +2075,13 @@ static void render_panel_bake(void)
 
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, R_BAKE_TO_ACTIVE, B_DIFF, "Selected to Active", 10,120,190,20,&G.scene->r.bake_flag, 0.0, 0, 0, 0, "Bake shading on the surface of selected objects to the active object");
-	uiDefButF(block, NUM, B_DIFF, "Dist:", 10,100,(G.scene->r.bake_mode == RE_BAKE_NORMALS)? 95: 190,20,&G.scene->r.bake_maxdist, 0.0, 10.0, 1, 0, "Maximum distance from active object to other object");
+	uiDefButF(block, NUM, B_DIFF, "Dist:", 10,100,95,20,&G.scene->r.bake_maxdist, 0.0, 10.0, 1, 0, "Maximum distance from active object to other object");
+	uiDefButF(block, NUM, B_DIFF, "Bias:", 105,100,95,20,&G.scene->r.bake_biasdist, 0.0, 10.0, 1, 0, "Bias towards faces further away from the object");
+	uiBlockEndAlign(block);
 
 	if(G.scene->r.bake_mode == RE_BAKE_NORMALS)
 		uiDefButS(block, MENU, B_DIFF, "Normal Space %t|Camera %x0|World %x1|Object %x2|Tangent %x3", 
-			105,100,95,20, &G.scene->r.bake_normal_space, 0, 0, 0, 0, "Choose normal space for baking");
-	uiBlockEndAlign(block);
+			10,70,190,20, &G.scene->r.bake_normal_space, 0, 0, 0, 0, "Choose normal space for baking");
 
 #if 0	
 	uiBlockBeginAlign(block);

@@ -1889,26 +1889,26 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 		}
 	}
 	
-	if(bs->rect) {
+	if(bs->rect_float) {
+		float *col= bs->rect_float + 4*(bs->rectx*y + x);
+		VECCOPY(col, shr.combined);
+		col[3]= 1.0f;
+	}
+	else {
 		char *col= (char *)(bs->rect + bs->rectx*y + x);
 		col[0]= FTOCHAR(shr.combined[0]);
 		col[1]= FTOCHAR(shr.combined[1]);
 		col[2]= FTOCHAR(shr.combined[2]);
 		col[3]= 255;
 	}
-	else {
-		float *col= bs->rect_float + 4*(bs->rectx*y + x);
-		VECCOPY(col, shr.combined);
-		col[3]= 1.0f;
-	}
 }
 
-static void bake_displacement(void *handle, ShadeInput *shi, Isect *isec, int dir, int x, int y)
+static void bake_displacement(void *handle, ShadeInput *shi, float dist, int x, int y)
 {
 	BakeShade *bs= handle;
 	float disp;
 	
-	disp = 0.5 + (isec->labda*VecLength(isec->vec) * -dir);
+	disp = 0.5 + dist;
 	
 	if(bs->rect_float) {
 		float *col= bs->rect_float + 4*(bs->rectx*y + x);
@@ -1933,7 +1933,7 @@ static int bake_check_intersect(Isect *is, int ob, RayFace *face)
 	return (R.objectinstance[ob].obr->ob != bs->actob);
 }
 
-static int bake_intersect_tree(RayTree* raytree, Isect* isect, float *dir, float sign, float *hitco)
+static int bake_intersect_tree(RayTree* raytree, Isect* isect, float *start, float *dir, float sign, float *hitco, float *dist)
 {
 	float maxdist;
 	int hit;
@@ -1942,7 +1942,9 @@ static int bake_intersect_tree(RayTree* raytree, Isect* isect, float *dir, float
 	if(R.r.bake_maxdist > 0.0f)
 		maxdist= R.r.bake_maxdist;
 	else
-		maxdist= RE_ray_tree_max_size(R.raytree);
+		maxdist= RE_ray_tree_max_size(R.raytree) + R.r.bake_biasdist;
+	
+	VECADDFAC(isect->start, start, dir, -R.r.bake_biasdist);
 
 	isect->end[0] = isect->start[0] + dir[0]*maxdist*sign;
 	isect->end[1] = isect->start[1] + dir[1]*maxdist*sign;
@@ -1953,6 +1955,8 @@ static int bake_intersect_tree(RayTree* raytree, Isect* isect, float *dir, float
 		hitco[0] = isect->start[0] + isect->labda*isect->vec[0];
 		hitco[1] = isect->start[1] + isect->labda*isect->vec[1];
 		hitco[2] = isect->start[2] + isect->labda*isect->vec[2];
+
+		*dist= VecLenf(start, hitco);
 	}
 
 	return hit;
@@ -2007,7 +2011,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	/* if we are doing selected to active baking, find point on other face */
 	if(bs->actob) {
 		Isect isec, minisec;
-		float co[3], minco[3];
+		float co[3], minco[3], dist, mindist=0.0f;
 		int hit, sign, dir=1;
 		
 		/* intersect with ray going forward and backward*/
@@ -2019,15 +2023,15 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 		
 		for(sign=-1; sign<=1; sign+=2) {
 			memset(&isec, 0, sizeof(isec));
-			VECCOPY(isec.start, shi->co);
 			isec.mode= RE_RAY_MIRROR;
 			isec.faceorig= (RayFace*)vlr;
 			isec.oborig= RAY_OBJECT_SET(&R, obi);
 			isec.userdata= bs;
 			
-			if(bake_intersect_tree(R.raytree, &isec, shi->vn, sign, co)) {
+			if(bake_intersect_tree(R.raytree, &isec, shi->co, shi->vn, sign, co, &dist)) {
 				if(!hit || VecLenf(shi->co, co) < VecLenf(shi->co, minco)) {
 					minisec= isec;
+					mindist= dist;
 					VECCOPY(minco, co);
 					hit= 1;
 					dir = sign;
@@ -2036,7 +2040,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 		}
 
 		if (hit && bs->type==RE_BAKE_DISPLACEMENT) {;
-			bake_displacement(handle, shi, &minisec, dir, x, y);
+			bake_displacement(handle, shi, mindist, x, y);
 			return;
 		}
 
@@ -2249,7 +2253,6 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob)
 			for(a=0; a<re->r.bake_filter; a++)
 				IMB_filter_extend(ibuf);
 			ibuf->userflags |= IB_BITMAPDIRTY;
-			
 			if (ibuf->rect_float) IMB_rect_from_float(ibuf);
 		}
 	}
