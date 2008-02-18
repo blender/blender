@@ -62,7 +62,7 @@ void initNDofInput(NDofInput *n)
 void resetNDofInput(NDofInput *n)
 {	
 	int i;
-	for(i = 0; i < 7; i++)
+	for(i = 0; i < 6; i++)
 	{
 		n->fval[i] = 0.0f;
 	}
@@ -113,7 +113,7 @@ void applyNDofInput(NDofInput *n, float *vec)
 	{
 		int i, j;
 		
-		for (i = 0, j = 0; i < 7; i++)
+		for (i = 0, j = 0; i < 6; i++)
 		{
 			if (n->axis & (1 << i))
 			{
@@ -136,7 +136,7 @@ int updateNDofMotion(NDofInput *n)
 	if (G.vd->ndoffilter)
 		filterNDOFvalues(fval);
 		
-	for(i = 0; i < 7; i++)
+	for(i = 0; i < 6; i++)
 	{
 		if (!retval && fval[i] != 0.0f)
 		{

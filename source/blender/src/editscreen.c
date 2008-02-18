@@ -2174,10 +2174,10 @@ void filterNDOFvalues(float *sbval)
 	int i=0;
 	float max  = 0.0;
 	
-	for (i =0; i<5;i++)
+	for (i =0; i<6;i++)
 		if (fabs(sbval[i]) > max)
 			max = fabs(sbval[i]);
-	for (i =0; i<5;i++)
+	for (i =0; i<6;i++)
 		if (fabs(sbval[i]) != max )
 			sbval[i]=0.0;
 }

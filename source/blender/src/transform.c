@@ -3273,7 +3273,7 @@ void NDofTransform()
 
 	getndof(fval);
 
-	for(i = 0; i < 7; i++)
+	for(i = 0; i < 6; i++)
 	{
 		float val = fabs(fval[i]);
 		if (val > maxval)
@@ -3301,7 +3301,7 @@ void NDofTransform()
 			mode = TFM_TRACKBALL;
 			break;
 		default:
-			printf("ndof transform mode not impremented yet");
+			printf("ndof: what we are doing here ?");
 	}
 	
 	if (mode != 0)
