@@ -180,12 +180,13 @@ static void alloc_child_particles(ParticleSystem *psys, int tot)
 	}
 }
 
-/* only run this if from == PART_FROM_FACE */
-void psys_calc_dmfaces(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
+void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 {
-	/* use for building derived mesh face-origin info,
-	node - the allocated links - total derived mesh face count 
-	node_array - is the array of nodes alligned with the base mesh's faces, so each original face can reference its derived faces
+	/* use for building derived mesh mapping info:
+
+	   node: the allocated links - total derived mesh element count 
+	   nodearray: the array of nodes aligned with the base mesh's elements, so
+	              each original elements can reference its derived elements
 	*/
 	Mesh *me= (Mesh*)ob->data;
 	ParticleData *pa= 0;
@@ -194,57 +195,59 @@ void psys_calc_dmfaces(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 	/* CACHE LOCATIONS */
 	if(!dm->deformedOnly) {
 		/* Will use later to speed up subsurf/derivedmesh */
+		LinkNode *node, *nodedmelem, **nodearray;
+		int totdmelem, totelem, i, *origindex;
+
+		if(psys->part->from == PART_FROM_VERT) {
+			totdmelem= dm->getNumVerts(dm);
+			totelem= me->totvert;
+			origindex= DM_get_vert_data_layer(dm, CD_ORIGINDEX);
+		}
+		else { /* FROM_FACE/FROM_VOLUME */
+			totdmelem= dm->getNumFaces(dm);
+			totelem= me->totface;
+			origindex= DM_get_face_data_layer(dm, CD_ORIGINDEX);
+		}
 	
-		int tot_dm_face = dm->getNumFaces(dm);
-		int totface = me->totface;
-		int *origindex = DM_get_face_data_layer(dm, CD_ORIGINDEX);
-		int i;
-		LinkNode *node, *node_dm_faces, **node_array;
+		nodedmelem= MEM_callocN(sizeof(LinkNode)*totdmelem, "psys node elems");
+		nodearray= MEM_callocN(sizeof(LinkNode *)*totelem, "psys node array");
 		
-		node_dm_faces = node = MEM_callocN(sizeof(LinkNode)*tot_dm_face, "faceindicies");
-		node_array = MEM_callocN(sizeof(LinkNode *)*totface, "faceindicies array");
-		
-		for(i=0; i < tot_dm_face; i++, origindex++, node++) {
-			node->link = (void *)i; // or use the index?
+		for(i=0, node=nodedmelem; i<totdmelem; i++, origindex++, node++) {
+			node->link= SET_INT_IN_POINTER(i);
+
 			if(*origindex != -1) {
-				if(node_array[*origindex]) {
+				if(nodearray[*origindex]) {
 					/* prepend */
-					node->next = node_array[*origindex];
-					node_array[*origindex] = node;
-				} else {
-					node_array[*origindex] = node;
+					node->next = nodearray[*origindex];
+					nodearray[*origindex]= node;
 				}
+				else
+					nodearray[*origindex]= node;
 			}
 		}
 		
-		/* cache the faces! */
-
-
+		/* cache the verts/faces! */
 		for(p=0,pa=psys->particles; p<psys->totpart; p++,pa++) {
-			//i = pa->num;
-			//if (i<totface) // should never happen
-			i = psys_particle_dm_face_lookup(ob, dm, pa->num, pa->fuv, node_array[pa->num]);
-			pa->num_dmcache = i;
+			if(psys->part->from == PART_FROM_VERT) {
+				if(nodearray[pa->num])
+					pa->num_dmcache= GET_INT_FROM_POINTER(nodearray[pa->num]->link);
+			}
+			else { /* FROM_FACE/FROM_VOLUME */
+				i= psys_particle_dm_face_lookup(ob, dm, pa->num, pa->fuv, nodearray[pa->num]);
+				pa->num_dmcache= i;
+			}
 		}
 
-		//for (i=0; i < totface; i++) {
-		//	i = psys_particle_dm_face_lookup(ob, dm, node_array[], fuv, (LinkNode*)NULL);
-		//}
-		MEM_freeN(node_array);
-		MEM_freeN(node_dm_faces);
+		MEM_freeN(nodearray);
+		MEM_freeN(nodedmelem);
+	}
+	else {
+		/* TODO PARTICLE, make the following line unnecessary, each function
+		 * should know to use the num or num_dmcache, set the num_dmcache to
+		 * an invalid value, just incase */
 		
-	} else {
-		/* set the num_dmcache to an invalid value, just incase */
-		/* TODO PARTICLE, make the following line unnecessary, each function should know to use the num or num_dmcache */
-		
-		/*
-		for(p=0,pa=psys->particles; p<psys->totpart; p++,pa++) {
-			pa->num_dmcache = pa->num;
-		}
-		*/
-		for(p=0,pa=psys->particles; p<psys->totpart; p++,pa++) {
+		for(p=0,pa=psys->particles; p<psys->totpart; p++,pa++)
 			pa->num_dmcache = -1;
-		}
 	}
 }
 
@@ -1271,8 +1274,7 @@ static void distribute_particles_on_dm(DerivedMesh *finaldm, Object *ob, Particl
 	else
 		exec_distribution(&pthreads[0]);
 
-	if (from == PART_FROM_FACE)
-		psys_calc_dmfaces(ob, finaldm, psys);
+	psys_calc_dmcache(ob, finaldm, psys);
 
 	ctx= pthreads[0].ctx;
 	if(ctx->dm != finaldm)
@@ -4273,7 +4275,7 @@ static void hair_step(Object *ob, ParticleSystemModifierData *psmd, ParticleSyst
 
 	if(psys->recalc & PSYS_DISTR)
 		/* need this for changing subsurf levels */
-		psys_calc_dmfaces(ob, psmd->dm, psys);
+		psys_calc_dmcache(ob, psmd->dm, psys);
 
 	if(psys->effectors.first)
 		psys_end_effectors(psys);

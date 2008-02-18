@@ -295,7 +295,7 @@ void reset_particle(struct ParticleData *pa, struct ParticleSystem *psys, struct
 
 void do_effectors(int pa_no, struct ParticleData *pa, struct ParticleKey *state, struct Object *ob, struct ParticleSystem *psys, float *force_field, float *vel,float framestep, float cfra);
 
-void psys_calc_dmfaces(struct Object *ob, struct DerivedMesh *dm, struct ParticleSystem *psys);
+void psys_calc_dmcache(struct Object *ob, struct DerivedMesh *dm, struct ParticleSystem *psys);
 int psys_particle_dm_face_lookup(struct Object *ob, struct DerivedMesh *dm, int index, float *fw, struct LinkNode *node);
 
 /* ParticleEffectorCache->type */
