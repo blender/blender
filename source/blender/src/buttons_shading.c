@@ -1181,7 +1181,7 @@ void uiblock_image_panel(uiBlock *block, Image **ima_pp, ImageUser *iuser,
 		 
 		 uiBlockSetFunc(block, image_reload_cb, ima, iuser);
 		 uiDefButBitS(block, TOG, IMA_ANTIALI, B_NOP, "Anti",			10, 50, 45, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
-		 uiDefButBitS(block, TOG, IMA_DO_PREMUL, imagechanged, "Premul",		55, 50, 65, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
+		 uiDefButBitS(block, TOG, IMA_DO_PREMUL, imagechanged, "Premul",		55, 50, 65, 20, &iuser->flag, 0, 0, 0, 0, "Toggles whether to premultiply the image at render/composite time.");
 		 uiBlockEndAlign(block);
 		 
 		 if( ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
@@ -2559,7 +2559,7 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 				tip= "Irregular buffer produces sharp shadow always, but it doesn't show up for raytracing";
 			else if(la->buftype==LA_SHADBUF_HALFWAY)
 				tip= "Regular buffer, averaging the closest and 2nd closest Z value for reducing biasing";
-			
+				
 			uiDefButC(block, MENU, B_REDR, "Classical %x0|Classic-Halfway %x2|Irregular %x1", 10,140,80,19,&la->buftype, 0, 0, 0, 0, tip);
 		}
 	}
@@ -2654,7 +2654,6 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 				uiDefButF(block, NUM,0,"Threshold:",	100,90,200,19,	&la->adapt_thresh, 0.0, 1.0, 100, 0, "Threshold for adaptive sampling, to control what level is considered already in shadow");
 			}
 		}
-		
 		
 	}
 	else uiDefBut(block, LABEL,0," ",	100,180,200,19,NULL, 0, 0, 0, 0, "");

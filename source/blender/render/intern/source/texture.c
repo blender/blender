@@ -1140,7 +1140,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 		tag_image_time(tex->ima); /* tag image as having being used */
 		
 		/*do premul if necassary*/
-		if (tex->ima && tex->ima->flag & IMA_DO_PREMUL) {
+		if (tex->iuser.flag & IMA_DO_PREMUL) {
 			texres->tr *= texres->ta;
 			texres->tg *= texres->ta;
 			texres->tb *= texres->ta;

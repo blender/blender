@@ -2060,7 +2060,11 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 							if(sima->flag & SI_USE_ALPHA) {
 								sima_draw_alpha_backdrop(sima, x1_rep, y1_rep, (float)ibuf->x, (float)ibuf->y);
 								glEnable(GL_BLEND);
-								glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+								/*use key alpha if the IMA_DO_PREMUL option is set.*/
+								if (sima->iuser.flag & IMA_DO_PREMUL)
+									glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+								else
+									glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 							}
 							
 							/* detect if we need to redo the curve map. 

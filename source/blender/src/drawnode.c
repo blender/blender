@@ -938,7 +938,7 @@ static void image_layer_cb(void *ima_v, void *iuser_v)
 {
 	
 	ntreeCompositForceHidden(G.scene->nodetree);
-	BKE_image_multilayer_index(ima_v, iuser_v);
+	BKE_image_multilayer_index(BKE_image_get_renderresult(ima_v), iuser_v);
 	allqueue(REDRAWNODE, 0);
 }
 
@@ -995,6 +995,11 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 			uiButSetFunc(bt, node_image_type_cb, node, ima);
 			MEM_freeN(strp);
 			
+			if (iuser) {
+				dy -= 19;
+				uiDefButBitS(block, TOG, IMA_DO_PREMUL, B_NODE_EXEC+node->nr, "Premul", xmin, dy, xmax-xmin, 20, &iuser->flag, 0, 0, 0, 0, "Toggles whether to premultiply the image at render/composite time.");
+			}
+
 			if( ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE) ) {
 				width= (xmax-xmin)/2;
 				
@@ -1034,7 +1039,7 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 	}	
 	if(node->id) {
 		Image *ima= (Image *)node->id;
-		int retval= 19;
+		int retval= 19*2;
 		
 		/* for each draw we test for anim refresh event */
 		if(iuser->flag & IMA_ANIM_REFRESHED) {
