@@ -4050,7 +4050,7 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 
 			reset_particle(pa,psys,psmd,ob,dtime,cfra,vg_vel,vg_tan,vg_rot);
 
-			if(cfra>pa->time && part->flag & PART_LOOP){
+			if(cfra>pa->time && part->flag & PART_LOOP && part->type!=PART_HAIR){
 				pa->loop=(short)((cfra-pa->time)/pa->lifetime);
 				pa->alive=PARS_UNBORN;
 			}
@@ -4185,7 +4185,7 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 					if(pa_die){
 						push_reaction(ob,psys,p,PART_EVENT_DEATH,key);
 
-						if(part->flag & PART_LOOP){
+						if(part->flag & PART_LOOP && part->type!=PART_HAIR){
 							pa->loop++;
 							reset_particle(pa,psys,psmd,ob,0.0,cfra,vg_vel,vg_tan,vg_rot);
 							copy_particle_key(key,&pa->state,1);
@@ -4323,7 +4323,7 @@ static void cached_step(Object *ob, ParticleSystemModifierData *psmd, ParticleSy
 
 		psys->lattice=psys_get_lattice(ob,psys);
 
-		if(part->flag & PART_LOOP)
+		if(part->flag & PART_LOOP && part->type!=PART_HAIR)
 			pa->loop = (short)((cfra - pa->time) / pa->lifetime);
 		else
 			pa->loop = 0;
