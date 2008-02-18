@@ -601,14 +601,13 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 
 static int render_scene_needs_vector(Render *re)
 {
-	if((re->r.scemode & R_DOCOMP) || re->r.imtype==R_MULTILAYER) {
-		SceneRenderLayer *srl;
+	SceneRenderLayer *srl;
 	
-		for(srl= re->scene->r.layers.first; srl; srl= srl->next)
-			if(!(srl->layflag & SCE_LAY_DISABLE))
-				if(srl->passflag & SCE_PASS_VECTOR)
-					return 1;
-	}
+	for(srl= re->scene->r.layers.first; srl; srl= srl->next)
+		if(!(srl->layflag & SCE_LAY_DISABLE))
+			if(srl->passflag & SCE_PASS_VECTOR)
+				return 1;
+
 	return 0;
 }
 
@@ -1918,9 +1917,6 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	
 	/* initial setup */
 	RE_InitState(resc, re, &sce->r, winx, winy, &re->disprect);
-	
-	/* this to enable this scene to create speed vectors */
-	resc->r.scemode |= R_DOCOMP;
 	
 	/* still unsure entity this... */
 	resc->scene= sce;
