@@ -4335,7 +4335,7 @@ static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd
 
 	if(totmaterial && material) {
 		for(a= 0; a<*totmaterial; a++)
-			if((*material)[a]->mode & MA_HALO)
+			if((*material)[a] && (*material)[a]->mode & MA_HALO)
 				return 0;
 	}
 
