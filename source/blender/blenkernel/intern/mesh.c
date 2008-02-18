@@ -770,8 +770,7 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 			mface->v4= index[3];
 			mface->flag= ME_SMOOTH;
 
-			if(mface->v3==mface->v4)
-				mface->v4= 0;
+			test_index_face(mface, NULL, 0, (mface->v3==mface->v4)? 3: 4);
 
 			mface++;
 			index+= 4;
