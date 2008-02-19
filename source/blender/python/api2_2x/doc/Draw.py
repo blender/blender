@@ -786,7 +786,7 @@ def GetStringWidth(string, fontsize = 'normal'):
 	@type string: string
 	@param string: A string.
 	@type fontsize: string
-	@param fontsize: The size of the font: 'large', 'normal', 'small' or 'tiny'.
+	@param fontsize: The size of the font: 'large', 'normal', 'normalfix', 'small' or 'tiny'.
 	@rtype: int
 	@return: The width of I{string} with the chosen I{fontsize}.
 	"""
@@ -803,7 +803,7 @@ def Text(string, fontsize = 'normal'):
 	@type string: string
 	@param string: The text string to draw.
 	@type fontsize: string
-	@param fontsize: The size of the font: 'large', 'normal', 'small' or 'tiny'.
+	@param fontsize: The size of the font: 'large', 'normal', 'normalfix', 'small' or 'tiny'.
 	@rtype: int
 	@return: The width of I{string} drawn with the chosen I{fontsize}.
 	@note: For drawing text in the 3d view see the workaround in L{BGL.glRasterPos}

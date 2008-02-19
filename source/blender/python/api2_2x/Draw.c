@@ -284,12 +284,12 @@ new String button\n\n\
 
 static char Method_GetStringWidth_doc[] =
 	"(text, font = 'normal') - Return the width in pixels of the given string\n\
-(font) The font size: 'normal' (default), 'small' or 'tiny'.";
+(font) The font size: 'large','normal' (default), 'normalfix', 'small' or 'tiny'.";
 
 static char Method_Text_doc[] =
 	"(text, font = 'normal') - Draw text onscreen\n\n\
 (text) The text to draw\n\
-(font) The font size: 'normal' (default), 'small' or 'tiny'.\n\n\
+(font) The font size: 'large','normal' (default), 'normalfix', 'small' or 'tiny'.\n\n\
 This function returns the width of the drawn string.";
 
 static char Method_Label_doc[] =
@@ -1641,6 +1641,8 @@ static PyObject *Method_GetStringWidth( PyObject * self, PyObject * args )
 
 	if( !strcmp( font_str, "normal" ) )
 		font = ( &G )->font;
+	else if( !strcmp( font_str, "normalfix" ) )
+		font = BMF_GetFont(BMF_kScreen12);
 	else if( !strcmp( font_str, "large" ) )
 		font = BMF_GetFont(BMF_kScreen15);
 	else if( !strcmp( font_str, "small" ) )
@@ -1649,7 +1651,7 @@ static PyObject *Method_GetStringWidth( PyObject * self, PyObject * args )
 		font = ( &G )->fontss;
 	else
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "\"font\" must be: 'large', 'normal' (default), 'small' or 'tiny'." );
+					      "\"font\" must be: 'large','normal' (default), 'normalfix', 'small' or 'tiny'." );
 
 	width = PyInt_FromLong( BMF_GetStringWidth( font, text ) );
 
@@ -1674,6 +1676,8 @@ static PyObject *Method_Text( PyObject * self, PyObject * args )
 		font = ( &G )->font;
 	else if( !strcmp( font_str, "large" ) )
 		font = BMF_GetFont(BMF_kScreen15);
+	else if( !strcmp( font_str, "normalfix" ) )
+		font = BMF_GetFont(BMF_kScreen12);
 	else if( !strcmp( font_str, "normal" ) )
 		font = ( &G )->font;
 	else if( !strcmp( font_str, "small" ) )
@@ -1682,7 +1686,7 @@ static PyObject *Method_Text( PyObject * self, PyObject * args )
 		font = ( &G )->fontss;
 	else
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "\"font\" must be: 'normal' (default), 'large', 'small' or 'tiny'." );
+					      "\"font\" must be: 'large','normal' (default), 'normalfix', 'small' or 'tiny'." );
 
 	BMF_DrawString( font, text );
 
