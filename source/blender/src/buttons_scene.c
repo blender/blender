@@ -2025,11 +2025,11 @@ static void render_panel_output(void)
 	uiBlockBeginAlign(block);
 	uiDefIconButBitI(block, TOG, R_THREADS, B_REDR, ICON_AUTO,	10, 63, 20, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Automatic threads from system");
 	if (G.scene->r.mode & R_THREADS) {
-		char thread_str[32];
-		sprintf(thread_str, "Threads: %d", BLI_system_thread_count());
+		char thread_str[16];
+		sprintf(thread_str, " Threads: %d", BLI_system_thread_count());
 		uiDefBut(block, LABEL, 0, thread_str, 30, 63,80,20, 0, 0, 0, 0, 0, "");
 	} else {
-		uiDefButS(block, NUM, B_NOP, "Threads:", 35, 63, 80, 20, &G.scene->r.threads, 1, BLENDER_MAX_THREADS, 0, 0, "Amount of threads for render (takes advantage of multi-core and multi-processor computers)");
+		uiDefButS(block, NUM, B_NOP, "Threads:", 30, 63, 80, 20, &G.scene->r.threads, 1, BLENDER_MAX_THREADS, 0, 0, "Amount of threads for render (takes advantage of multi-core and multi-processor computers)");
 	}
 	uiBlockEndAlign(block);
 	

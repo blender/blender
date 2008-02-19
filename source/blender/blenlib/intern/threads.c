@@ -228,7 +228,15 @@ void BLI_unlock_thread(int type)
 /* how many threads are native on this system? */
 int BLI_system_thread_count( void )
 {
-	int t = (int)sysconf(_SC_NPROCESSORS_ONLN);
+	int t;
+#ifdef WIN32
+	SYSTEM_INFO info;
+	GetSystemInfo(&info);
+	t = (int) info.dwNumberOfProcessors;
+#else
+	t = (int)sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+	
 	if (t>RE_MAX_THREAD)
 		return RE_MAX_THREAD;
 	if (t<1)
