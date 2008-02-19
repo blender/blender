@@ -435,7 +435,7 @@ int calc_manipulator_stats(ScrArea *sa)
 			break;
 			
 		case V3D_MANIP_NORMAL:
-			if(G.obedit || (ob->flag & OB_POSEMODE)) {
+			if(G.obedit) {
 				float mat[3][3];
 				int type;
 
