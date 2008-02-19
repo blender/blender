@@ -3375,9 +3375,9 @@ static void object_panel_fields(Object *ob)
 			sprintf(menustr, "Field Type%%t|None%%x0|Spherical%%x%d|Wind%%x%d|Vortex%%x%d|Magnetic%%x%d|Harmonic%%x%d", 
 					PFIELD_FORCE, PFIELD_WIND, PFIELD_VORTEX, PFIELD_MAGNET, PFIELD_HARMONIC);
 
-			if(pd->forcefield==PFIELD_FORCE) tipstr= "Particle attracts or repels particles";
-			else if(pd->forcefield==PFIELD_WIND) tipstr= "Constant force applied in direction of particle Z axis";
-			else if(pd->forcefield==PFIELD_VORTEX) tipstr= "Particles swirl around Z-axis of the particle";
+			if(pd->forcefield==PFIELD_FORCE) tipstr= "Particle attracts or repels particles (On shared object layers)";
+			else if(pd->forcefield==PFIELD_WIND) tipstr= "Constant force applied in direction of particle Z axis (On shared object layers)";
+			else if(pd->forcefield==PFIELD_VORTEX) tipstr= "Particles swirl around Z-axis of the particle (On shared object layers)";
 		}
 		else{
 			if(ob->type==OB_CURVE)
@@ -3387,10 +3387,10 @@ static void object_panel_fields(Object *ob)
 				sprintf(menustr, "Field Type%%t|None%%x0|Spherical%%x%d|Wind%%x%d|Vortex%%x%d|Magnetic%%x%d|Harmonic%%x%d|Texture%%x%d", 
 						PFIELD_FORCE, PFIELD_WIND, PFIELD_VORTEX, PFIELD_MAGNET, PFIELD_HARMONIC, PFIELD_TEXTURE);
 
-			if(pd->forcefield==PFIELD_FORCE) tipstr= "Object center attracts or repels particles";
-			else if(pd->forcefield==PFIELD_WIND) tipstr= "Constant force applied in direction of Object Z axis";
-			else if(pd->forcefield==PFIELD_VORTEX) tipstr= "Particles swirl around Z-axis of the Object";
-			else if(pd->forcefield==PFIELD_GUIDE) tipstr= "Use a Curve Path to guide particles";
+			if(pd->forcefield==PFIELD_FORCE) tipstr= "Object center attracts or repels particles (On shared object layers)";
+			else if(pd->forcefield==PFIELD_WIND) tipstr= "Constant force applied in direction of Object Z axis (On shared object layers)";
+			else if(pd->forcefield==PFIELD_VORTEX) tipstr= "Particles swirl around Z-axis of the Object (On shared object layers)";
+			else if(pd->forcefield==PFIELD_GUIDE) tipstr= "Use a Curve Path to guide particles (On shared object layers)";
 		}
 		
 		if(ob->particlesystem.first)
