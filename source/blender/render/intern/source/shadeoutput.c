@@ -1685,9 +1685,15 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	
 	/* from now stuff everything in shr->combined: ambient, AO, radio, ramps, exposure */
 	if(!(ma->sss_flag & MA_DIFF_SSS) || !has_sss_tree(&R, ma)) {
-		shr->combined[0]+= shi->ambr + shi->r*shi->amb*shi->rad[0];
-		shr->combined[1]+= shi->ambg + shi->g*shi->amb*shi->rad[1];
-		shr->combined[2]+= shi->ambb + shi->b*shi->amb*shi->rad[2];
+		shr->combined[0]+= shi->ambr;
+		shr->combined[1]+= shi->ambg;
+		shr->combined[2]+= shi->ambb;
+
+		if(shi->combinedflag & SCE_PASS_RADIO) {
+			shr->combined[0]+= shi->r*shi->amb*shi->rad[0];
+			shr->combined[1]+= shi->g*shi->amb*shi->rad[1];
+			shr->combined[2]+= shi->b*shi->amb*shi->rad[2];
+		}
 		
 		/* add AO in combined? */
 		if(R.wrld.mode & WO_AMB_OCC) {
