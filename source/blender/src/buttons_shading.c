@@ -2240,8 +2240,9 @@ static void world_panel_amb_occ(World *wrld)
 		X3CLM1, yco-=BUTH, BUTW3, BUTH, &wrld->aocolor, 2.0, (float)WO_AOPLAIN, 0, 0, "Plain diffuse energy (white)");
 	uiDefButS(block, ROW, B_REDR, "Sky Color", 
 		X3CLM2, yco, BUTW3, BUTH, &wrld->aocolor, 2.0, (float)WO_AOSKYCOL, 0, 0, "Use horizon and zenith color for diffuse energy");
-	uiDefButS(block, ROW, B_REDR, "Sky Texture", 
-		X3CLM3, yco, BUTW3, BUTH, &wrld->aocolor, 2.0, (float)WO_AOSKYTEX, 0, 0, "Does full Sky texture render for diffuse energy");
+	if(wrld->ao_gather_method == WO_AOGATHER_RAYTRACE)
+		uiDefButS(block, ROW, B_REDR, "Sky Texture", 
+			X3CLM3, yco, BUTW3, BUTH, &wrld->aocolor, 2.0, (float)WO_AOSKYTEX, 0, 0, "Does full Sky texture render for diffuse energy");
 	uiBlockEndAlign(block);
 
 	yco -= YSPACE;

@@ -1284,6 +1284,7 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 	}
 
 	if(occ) *occ= resultocc;
+	if(bentn) Normalize(bentn);
 }
 
 static void occ_compute_passes(Render *re, OcclusionTree *tree, int totpass)
@@ -1342,18 +1343,23 @@ static void sample_occ_tree(Render *re, OcclusionTree *tree, OccFace *exclude, f
 
 	if(aocolor) {
 		/* sky shading using bent normal */
-		if(aocolor==WO_AOSKYCOL) {
+		if(ELEM(aocolor, WO_AOSKYCOL, WO_AOSKYTEX)) {
 			fac= 0.5*(1.0f+bn[0]*re->grvec[0]+ bn[1]*re->grvec[1]+ bn[2]*re->grvec[2]);
 			skycol[0]= (1.0f-fac)*re->wrld.horr + fac*re->wrld.zenr;
 			skycol[1]= (1.0f-fac)*re->wrld.horg + fac*re->wrld.zeng;
 			skycol[2]= (1.0f-fac)*re->wrld.horb + fac*re->wrld.zenb;
 		}
+#if 0
 		else {	/* WO_AOSKYTEX */
+			bn[0]= -bn[0];
+			bn[1]= -bn[1];
+			bn[2]= -bn[2];
 			dxyview[0]= 1.0f;
 			dxyview[1]= 1.0f;
 			dxyview[2]= 0.0f;
 			shadeSkyView(skycol, co, bn, dxyview);
 		}
+#endif
 
 		VecMulf(skycol, occlusion);
 	}
