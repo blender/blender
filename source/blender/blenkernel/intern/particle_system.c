@@ -2603,7 +2603,7 @@ static void precalc_effectors(Object *ob, ParticleSystem *psys, ParticleSystemMo
 
 
 /* calculate forces that all effectors apply to a particle*/
-void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, ParticleSystem *psys, float *force_field, float *vel,float framestep, float cfra)
+void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, ParticleSystem *psys, float *rootco, float *force_field, float *vel,float framestep, float cfra)
 {
 	Object *eob;
 	ParticleSystem *epsys;
@@ -2650,14 +2650,15 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 
 				if(falloff<=0.0f)
 					;	/* don't do anything */
-				else if(pd->forcefield==PFIELD_TEXTURE)
+				else if(pd->forcefield==PFIELD_TEXTURE) {
 					do_texture_effector(pd->tex, pd->tex_mode, pd->flag&PFIELD_TEX_2D, pd->tex_nabla,
-										pd->flag & PFIELD_TEX_OBJECT, state->co, eob->obmat,
-										pd->f_strength, falloff, force_field);
-				else
+									pd->flag & PFIELD_TEX_OBJECT, (pd->flag & PFIELD_TEX_ROOTCO) ? rootco : state->co, eob->obmat,
+									pd->f_strength, falloff, force_field);
+				} else {
 					do_physical_effector(pd->forcefield,pd->f_strength,distance,
 										falloff,pd->f_dist,pd->f_damp,eob->obmat[2],vec_to_part,
 										pa->state.vel,force_field,pd->flag&PFIELD_PLANAR);
+				}
 			}
 			if(ec->type & PSYS_EC_PARTICLE){
 				int totepart;
@@ -2757,7 +2758,7 @@ static void apply_particle_forces(int pa_no, ParticleData *pa, Object *ob, Parti
 		tvel[0]=tvel[1]=tvel[2]=0.0;
 		/* add effectors */
 		if(part->type != PART_HAIR)
-			do_effectors(pa_no,pa,states+i,ob,psys,force,tvel,dfra,fra);
+			do_effectors(pa_no,pa,states+i,ob,psys,states->co,force,tvel,dfra,fra);
 
 		/* calculate air-particle interaction */
 		if(part->dragfac!=0.0f){

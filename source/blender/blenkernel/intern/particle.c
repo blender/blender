@@ -1682,7 +1682,7 @@ static void do_rough_end(float *loc, float t, float fac, float shape, ParticleKe
 
 	VECADD(state->co,state->co,rough);
 }
-static void do_path_effectors(Object *ob, ParticleSystem *psys, int i, ParticleCacheKey *ca, int k, int steps, float effector, float dfra, float cfra, float *length, float *vec)
+static void do_path_effectors(Object *ob, ParticleSystem *psys, int i, ParticleCacheKey *ca, int k, int steps, float *rootco, float effector, float dfra, float cfra, float *length, float *vec)
 {
 	float force[3] = {0.0f,0.0f,0.0f}, vel[3] = {0.0f,0.0f,0.0f};
 	ParticleKey eff_key;
@@ -1693,7 +1693,7 @@ static void do_path_effectors(Object *ob, ParticleSystem *psys, int i, ParticleC
 	QUATCOPY(eff_key.rot,(ca-1)->rot);
 
 	pa= psys->particles+i;
-	do_effectors(i, pa, &eff_key, ob, psys, force, vel, dfra, cfra);
+	do_effectors(i, pa, &eff_key, ob, psys, rootco, force, vel, dfra, cfra);
 
 	VecMulf(force, effector*pow((float)k / (float)steps, 100.0f * psys->part->eff_hair) / (float)steps);
 
@@ -2102,7 +2102,7 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 	if(part->flag & PART_CHILD_EFFECT) {
 		for(k=0,state=keys; k<=ctx->steps; k++,state++) {
 			if(k) {
-				do_path_effectors(ob, psys, cpa->pa[0], state, k, ctx->steps, pa_effector, 0.0f, ctx->cfra, &eff_length, eff_vec);
+				do_path_effectors(ob, psys, cpa->pa[0], state, k, ctx->steps, keys->co, pa_effector, 0.0f, ctx->cfra, &eff_length, eff_vec);
 			}
 			else {
 				VecSubf(eff_vec,(state+1)->co,state->co);
@@ -2527,7 +2527,7 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 		for(k=0, ca=cache[i]; k<=steps; k++, ca++) {
 			/* apply effectors */
 			if(!(psys->part->flag & PART_CHILD_EFFECT) && edit==0 && k)
-				do_path_effectors(ob, psys, i, ca, k, steps, effector, dfra, cfra, &length, vec);
+				do_path_effectors(ob, psys, i, ca, k, steps, cache[i]->co, effector, dfra, cfra, &length, vec);
 
 			/* apply guide curves to path data */
 			if(edit==0 && psys->effectors.first && (psys->part->flag & PART_CHILD_GUIDE)==0)

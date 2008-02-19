@@ -2268,7 +2268,7 @@ void toolbox_generic( TBitem *generic_menu )
 	uiBut *but;
 	TBitem *menu;
 	int dx=96;
-	short event, mval[2], tot=0;
+	short event, mval[2];
 	long ypos = -5;
 	
 	tb_mainx= -32;

@@ -3417,7 +3417,8 @@ static void object_panel_fields(Object *ob)
 				if(pd->forcefield == PFIELD_TEXTURE){
 					uiDefIDPoinBut(block, field_testTexture, ID_TE, B_FIELD_CHANGE, "Texture: ", 10, 120, 140, 20, &pd->tex, "Texture to use as force");
 					uiDefButBitS(block, TOG, PFIELD_TEX_OBJECT, B_FIELD_CHANGE, "Use Object Co",	10,100,140,20, &pd->flag, 0.0, 0, 0, 0, "Use object/global coordinates for texture");
-					uiDefButBitS(block, TOG, PFIELD_TEX_2D, B_FIELD_CHANGE, "2D",	10,80,140,20, &pd->flag, 0.0, 0, 0, 0, "Apply force only in 2d");
+					uiDefButBitS(block, TOG, PFIELD_TEX_ROOTCO, B_FIELD_CHANGE, "Root TexCo",	10,80,120,20, &pd->flag, 0.0, 0, 0, 0, "Texture coords from root particle locations");
+					uiDefButBitS(block, TOG, PFIELD_TEX_2D, B_FIELD_CHANGE, "2D",	130,80,20,20, &pd->flag, 0.0, 0, 0, 0, "Apply force only in 2d");
 				}
 				else if(pd->forcefield == PFIELD_HARMONIC) 
 					uiDefButF(block, NUM, B_FIELD_CHANGE, "Damp: ",	10,120,140,20, &pd->f_damp, 0, 10, 10, 0, "Damping of the harmonic force");	
