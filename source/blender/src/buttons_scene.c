@@ -2082,6 +2082,8 @@ static void render_panel_bake(void)
 	if(G.scene->r.bake_mode == RE_BAKE_NORMALS)
 		uiDefButS(block, MENU, B_DIFF, "Normal Space %t|Camera %x0|World %x1|Object %x2|Tangent %x3", 
 			10,70,190,20, &G.scene->r.bake_normal_space, 0, 0, 0, 0, "Choose normal space for baking");
+	else if(G.scene->r.bake_mode == RE_BAKE_AO)
+		uiDefButBitS(block, TOG, R_BAKE_NORMALIZE_AO, B_DIFF, "Normalized", 10,70,190,20, &G.scene->r.bake_flag, 0.0, 0, 0, 0, "Bake ambient occlusion normalized, without taking into acount material settings");
 
 #if 0	
 	uiBlockBeginAlign(block);

@@ -672,6 +672,7 @@ typedef struct Scene {
 #define R_BAKE_CLEAR		1
 #define R_BAKE_OSA			2
 #define R_BAKE_TO_ACTIVE	4
+#define R_BAKE_NORMALIZE_AO 8
 
 /* bake_normal_space */
 #define R_BAKE_SPACE_CAMERA	 0

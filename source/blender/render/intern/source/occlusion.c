@@ -1322,7 +1322,7 @@ static void occ_compute_passes(Render *re, OcclusionTree *tree, int totpass)
 
 static void sample_occ_tree(Render *re, OcclusionTree *tree, OccFace *exclude, float *co, float *n, int thread, int onlyshadow, float *skycol)
 {
-	float nn[3], bn[3], dxyview[3], fac, occ, occlusion, correction;
+	float nn[3], bn[3], fac, occ, occlusion, correction;
 	int aocolor;
 
 	aocolor= re->wrld.aocolor;
@@ -1351,6 +1351,7 @@ static void sample_occ_tree(Render *re, OcclusionTree *tree, OccFace *exclude, f
 		}
 #if 0
 		else {	/* WO_AOSKYTEX */
+			float dxyview[3];
 			bn[0]= -bn[0];
 			bn[1]= -bn[1];
 			bn[2]= -bn[2];

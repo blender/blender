@@ -1832,7 +1832,11 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 	
 	if(bs->type==RE_BAKE_AO) {
 		ambient_occlusion(shi);
-		ambient_occlusion_to_diffuse(shi, shr.combined);
+
+		if(R.r.bake_flag & R_BAKE_NORMALIZE_AO)
+			VECCOPY(shr.combined, shi->ao)
+		else
+			ambient_occlusion_to_diffuse(shi, shr.combined);
 	}
 	else {
 		shade_input_set_shade_texco(shi);
