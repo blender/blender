@@ -5101,15 +5101,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(val==0) return;
 
 	if(uiDoBlocks(&sa->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
-	
-	if (U.flag & USER_LMOUSESELECT) {
-		if (event == LEFTMOUSE) {
-			event = RIGHTMOUSE;
-		} else if (event == RIGHTMOUSE) {
-			event = LEFTMOUSE;
-		}
-	}
-	
+
 	if (sima->image && (sima->flag & SI_DRAWTOOL)) {
 		switch(event) {
 			case CKEY:
@@ -5125,6 +5117,14 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	}
 	else if (G.obedit) {
+		if (U.flag & USER_LMOUSESELECT) {
+			if (event == LEFTMOUSE) {
+				event = RIGHTMOUSE;
+			} else if (event == RIGHTMOUSE) {
+				event = LEFTMOUSE;
+			}
+		}
+	
 		/* Draw tool is inactive, editmode is enabled and the image is not a render or composite  */
 		if (EM_texFaceCheck() && (G.sima->image==0 || (G.sima->image->type != IMA_TYPE_R_RESULT && G.sima->image->type != IMA_TYPE_COMPOSITE))) {
 			switch(event) {
