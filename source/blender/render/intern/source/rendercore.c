@@ -1800,10 +1800,6 @@ static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInpu
 			shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 2);
 	}
 		
-	/* set up view vector */
-	VECCOPY(shi->view, shi->co);
-	Normalize(shi->view);
-	
 	/* cache for shadow */
 	shi->samplenr++;
 	
@@ -1817,6 +1813,12 @@ static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInpu
 	/* no normal flip */
 	if(shi->flippednor)
 		shade_input_flip_normals(shi);
+
+	/* set up view vector to look right at the surface (note that the normal
+	 * is negated in the renderer so it does not need to be done here) */
+	shi->view[0]= shi->vn[0];
+	shi->view[1]= shi->vn[1];
+	shi->view[2]= shi->vn[2];
 }
 
 static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int x, int y, float u, float v, float *tvn, float *ttang)
