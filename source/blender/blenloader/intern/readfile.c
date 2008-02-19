@@ -7464,7 +7464,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (tex=main->tex.first; tex; tex=tex->id.next) {
 			if (tex->ima) {
 				image = newlibadr(fd, lib, tex->ima);
-				if (image->flag & IMA_OLDFLAG) tex->iuser.flag |= IMA_DO_PREMUL;
+				if(image)
+					if (image->flag & IMA_OLDFLAG) 
+						tex->iuser.flag |= IMA_DO_PREMUL;
 			}
 		}
 
@@ -7473,7 +7475,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if (scene->nodetree) {
 				for (node=scene->nodetree->nodes.first; node; node=node->next) {
 					ID *nodeid = newlibadr(fd, lib, node->id);
-					if (node->storage && nodeid && *(short*)nodeid->name == ID_IM) {
+					if (node->storage && nodeid && GS(nodeid->name) == ID_IM) {
 						image = (Image*) nodeid;
 						iuser = node->storage;
 						if (image->flag & IMA_OLDFLAG) iuser->flag |= IMA_DO_PREMUL;
@@ -7487,7 +7489,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if (ntree->type == NTREE_COMPOSIT) {
 				for (node=ntree->nodes.first; node; node=node->next) {
 					ID *nodeid = newlibadr(fd, lib, node->id);
-					if (node->storage && nodeid && *(short*)nodeid->name == ID_IM) {
+					if (node->storage && nodeid && GS(nodeid->name) == ID_IM) {
 						image = (Image*) nodeid;
 						iuser = node->storage;
 						if (image->flag & IMA_OLDFLAG) iuser->flag |= IMA_DO_PREMUL;
