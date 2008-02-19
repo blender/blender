@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <unistd.h> /* for checking system threads */
 
 #include "MEM_guardedalloc.h"
 
@@ -222,6 +223,18 @@ void BLI_unlock_thread(int type)
 		pthread_mutex_unlock(&_image_lock);
 	else if(type==LOCK_CUSTOM1)
 		pthread_mutex_unlock(&_custom1_lock);
+}
+
+/* how many threads are native on this system? */
+int BLI_system_thread_count( void )
+{
+	int t = (int)sysconf(_SC_NPROCESSORS_ONLN);
+	if (t>RE_MAX_THREAD)
+		return RE_MAX_THREAD;
+	if (t<1)
+		return 1;
+	
+	return t;
 }
 
 /* eof */

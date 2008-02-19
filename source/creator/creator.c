@@ -200,15 +200,8 @@ static void print_help(void)
 	printf ("    (formats that can be compiled into blender, not available on all systems)\n");
 	printf ("    \tHDR TIFF EXR MULTILAYER MPEG AVICODEC QUICKTIME CINEON DPX DDS\n");
 	printf ("    -x <bool>\tSet option to add the file extension to the end of the file.\n");
-	printf ("    -t <threads>\tUse amount of <threads> for rendering\n");
-	/*Add these later - Campbell*/
-	/*
-	printf ("    -colorchannel <type>\tColors to save, valid types are: BW RGB RGBA \n");
-	printf ("    -compression <type>\t Use with EXR format, valid types are..\n");
-	printf ("    \tZIP Pxr24 PIZ RLE\n");
-	printf ("    -zbuf <bool>\tUse with EXR format, set the zbuf save option\n");
-	printf ("    -halffloat <bool>\tUse with EXR format, set the half float option\n");
-	printf ("    -preview <bool>\tUse with EXR format, save a jpeg for viewing as well as the EXR\n");*/
+	printf ("    -t <threads>\tUse amount of <threads> for rendering.\n");
+	printf ("      [1-8], 0 for systems processor count.\n");
 	printf ("\nAnimation playback options:\n");
 	printf ("  -a <file(s)>\tPlayback <file(s)>, only operates this way when -b is not used.\n");
 	printf ("    -p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>\n");
