@@ -101,6 +101,9 @@ static string YafrayPath()
 	static char *alternative[]=
 	{
 		"/usr/local/lib/",
+#ifdef __x86_64__
+		"/usr/lib64/",
+#endif
 		"/usr/lib/",
 		NULL
 	};
@@ -124,6 +127,9 @@ static string YafrayPluginPath()
 	static char *alternative[]=
 	{
 		"/usr/local/lib/yafray",
+#ifdef __x86_64__
+		"/usr/lib64/yafray",
+#endif
 		"/usr/lib/yafray",
 		NULL
 	};
