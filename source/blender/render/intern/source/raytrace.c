@@ -635,6 +635,8 @@ void RE_ray_tree_done(RayTree *tree)
 
 /* ************ raytracer **************** */
 
+#define ISECT_EPSILON ((float)FLT_EPSILON)
+
 /* only for self-intersecting test with current render face (where ray left) */
 static int intersection2(RayFace *face, int ob, RayObjectTransformFunc transformfunc, RayCoordsFunc coordsfunc, void *userdata, float r0, float r1, float r2, float rx1, float ry1, float rz1)
 {
@@ -692,13 +694,13 @@ static int intersection2(RayFace *face, int ob, RayObjectTransformFunc transform
 	if(divdet!=0.0f) {
 		u1= det1/divdet;
 
-		if(u1<=0.0f) {
+		if(u1<ISECT_EPSILON) {
 			det= t00*(m1*r2-m2*r1);
 			det+= t01*(m2*r0-m0*r2);
 			det+= t02*(m0*r1-m1*r0);
 			v= det/divdet;
 
-			if(v<=0.0f && (u1 + v) >= -1.0f) {
+			if(v<ISECT_EPSILON && (u1 + v) > -(1.0f+ISECT_EPSILON)) {
 				return 1;
 			}
 		}
@@ -714,13 +716,13 @@ static int intersection2(RayFace *face, int ob, RayObjectTransformFunc transform
 		if(divdet!=0.0f) {
 			u2= det1/divdet;
 		
-			if(u2<=0.0f) {
+			if(u2<ISECT_EPSILON) {
 				det= t20*(m1*r2-m2*r1);
 				det+= t21*(m2*r0-m0*r2);
 				det+= t22*(m0*r1-m1*r0);
 				v= det/divdet;
 	
-				if(v<=0.0f && (u2 + v) >= -1.0f) {
+				if(v<ISECT_EPSILON && (u2 + v) >= -(1.0f+ISECT_EPSILON)) {
 					return 2;
 				}
 			}
@@ -860,7 +862,7 @@ int RE_ray_face_intersection(Isect *is, RayObjectTransformFunc transformfunc, Ra
 
 		divdet= 1.0f/divdet;
 		u= det1*divdet;
-		if(u<0.0f && u>-1.0f) {
+		if(u<ISECT_EPSILON && u>-(1.0f+ISECT_EPSILON)) {
 			float v, cros0, cros1, cros2;
 			
 			cros0= m1*t02-m2*t01;
@@ -868,11 +870,11 @@ int RE_ray_face_intersection(Isect *is, RayObjectTransformFunc transformfunc, Ra
 			cros2= m0*t01-m1*t00;
 			v= divdet*(cros0*r0 + cros1*r1 + cros2*r2);
 
-			if(v<0.0f && (u + v) > -1.0f) {
+			if(v<ISECT_EPSILON && (u + v) > -(1.0f+ISECT_EPSILON)) {
 				float labda;
 				labda= divdet*(cros0*t10 + cros1*t11 + cros2*t12);
 
-				if(labda>0.0f && labda<1.0f) {
+				if(labda>-ISECT_EPSILON && labda<1.0f+ISECT_EPSILON) {
 					is->labda= labda;
 					is->u= u; is->v= v;
 					ok= 1;
@@ -893,18 +895,18 @@ int RE_ray_face_intersection(Isect *is, RayObjectTransformFunc transformfunc, Ra
 			divdet= 1.0f/divdet;
 			u = det1*divdet;
 			
-			if(u<0.0f && u>-1.0f) {
+			if(u<ISECT_EPSILON && u>-(1.0f+ISECT_EPSILON)) {
 				float v, cros0, cros1, cros2;
 				cros0= m1*t22-m2*t21;
 				cros1= m2*t20-m0*t22;
 				cros2= m0*t21-m1*t20;
 				v= divdet*(cros0*r0 + cros1*r1 + cros2*r2);
 	
-				if(v<0.0f && (u + v) > -1.0f) {
+				if(v<ISECT_EPSILON && (u + v) >-(1.0f+ISECT_EPSILON)) {
 					float labda;
 					labda= divdet*(cros0*t10 + cros1*t11 + cros2*t12);
 					
-					if(labda>0.0f && labda<1.0f) {
+					if(labda>-ISECT_EPSILON && labda<1.0f+ISECT_EPSILON) {
 						ok= 2;
 						is->labda= labda;
 						is->u= u; is->v= v;
