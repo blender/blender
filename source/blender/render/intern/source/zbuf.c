@@ -3092,10 +3092,10 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	samples/= 2;
 	for(step= 1; step<=samples; step++) {
 		float speedfac= 0.5f*nbd->fac*(float)step/(float)(samples+1);
-		float blendfac= 1.0f/(ABS(step)+1), ipodata[4];
 		int side;
 		
 		for(side=0; side<2; side++) {
+			float blendfac= 1.0f/((ABS(step)*2+side)+1), ipodata[4];
 			
 			/* clear zbuf, if we draw future we fill in not moving pixels */
 			if(0)
