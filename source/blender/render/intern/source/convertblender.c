@@ -4070,6 +4070,9 @@ static ObjectRen *find_dupligroup_dupli(Render *re, Object *ob, int psysindex)
 {
 	ObjectRen *obr;
 
+	if(ob->transflag & OB_RENDER_DUPLI)
+		return NULL;
+
 	for(obr=re->objecttable.first; obr; obr=obr->next)
 		if(obr->ob == ob && obr->psysindex == psysindex && (obr->flag & R_INSTANCEABLE))
 			return obr;
