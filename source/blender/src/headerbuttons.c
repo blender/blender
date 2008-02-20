@@ -1496,6 +1496,7 @@ void do_global_buttons(unsigned short event)
 	case B_PYMENUEVAL: /* is button from space.c *info* */
 		waitcursor( 1 ); /* can take some time */
 		BPyMenu_RemoveAllEntries(); /* free old data */
+		BPY_rebuild_syspath();
 		if (BPyMenu_Init(1) == -1) { /* re-eval scripts registration in menus */
 			waitcursor( 0 );
 			error("Invalid scripts dir: check console");

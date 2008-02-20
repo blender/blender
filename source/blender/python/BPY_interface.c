@@ -95,6 +95,7 @@
 
 /* for pydrivers (ipo drivers defined by one-line Python expressions) */
 PyObject *bpy_pydriver_Dict = NULL;
+PyObject *bpy_orig_syspath_List = NULL;
 
 /*
  * set up a weakref list for Armatures
@@ -255,6 +256,11 @@ void BPY_end_python( void )
 		Py_DECREF( bpy_pydriver_Dict );
 		bpy_pydriver_Dict = NULL;
 	}
+	
+	if( bpy_orig_syspath_List ) {
+		Py_DECREF( bpy_orig_syspath_List );
+		bpy_orig_syspath_List = NULL;
+	}
 
 	/* Freeing all scripts here prevents problems with the order in which
 	 * Python is finalized and G.main is freed in exit_usiblender() */
@@ -293,13 +299,14 @@ void syspath_append( char *dirname )
 		/* cant get the sys module */
 		ok = 0;
 	}
-
-	if (ok && PyList_Append( path, dir ) != 0)
-		ok = 0; /* append failed */
-
-	if( (ok==0) || PyErr_Occurred(  ) )
-		Py_FatalError( "could import or build sys.path, can't continue" );
-
+	
+	if (PySequence_Contains(path, dir)==0) { /* Only add if we need to */
+		if (ok && PyList_Append( path, dir ) != 0)
+			ok = 0; /* append failed */
+	
+		if( (ok==0) || PyErr_Occurred(  ) )
+			Py_FatalError( "could import or build sys.path, can't continue" );
+	}
 	Py_XDECREF( mod_sys );
 }
 
@@ -311,7 +318,8 @@ void init_syspath( int first_time )
 	char execdir[FILE_MAXDIR];	/*defines from DNA_space_types.h */
 
 	int n;
-
+	
+	
 	path = Py_BuildValue( "s", bprogname );
 
 	mod = PyImport_ImportModule( "Blender.sys" );
@@ -333,9 +341,10 @@ void init_syspath( int first_time )
 		execdir[n] = '\0';
 
 		syspath_append( execdir );	/* append to module search path */
-	} else
+	} else {
 		printf( "Warning: could not determine argv[0] path\n" );
-
+	}
+	
 	/* 
 	   attempt to import 'site' module as a check for valid
 	   python install found.
@@ -366,12 +375,75 @@ void init_syspath( int first_time )
 
 	if( mod ) {
 		d = PyModule_GetDict( mod );	/* borrowed ref */
-		EXPP_dict_set_item_str( d, "executable",
-				      Py_BuildValue( "s", bprogname ) );
+		EXPP_dict_set_item_str( d, "executable", Py_BuildValue( "s", bprogname ) );
+		
+		if (first_time) {
+			/* backup the original sys.path to rebuild later */	
+			PyObject *syspath = PyDict_GetItemString( d, "path" );	/* borrowed ref */
+			if (bpy_orig_syspath_List) { /* This should never happen but just incase, be nice */
+				Py_DECREF(bpy_orig_syspath_List);
+			}
+			bpy_orig_syspath_List = PyList_GetSlice(syspath, 0, PyList_Size(syspath));
+		}
+		
 		Py_DECREF( mod );
 	} else{
 		printf("import of sys module failed\n");
 	}
+}
+
+
+void BPY_rebuild_syspath( void )
+{
+	PyObject *mod, *dict, *syspath;
+	char dirpath[FILE_MAX];
+	char *sdir = NULL;
+	
+	mod = PyImport_ImportModule( "sys" );	
+	if (!mod) {
+		printf("error: could not import python sys module. some modules may not import.");
+		return;
+	}
+	
+	if (!bpy_orig_syspath_List) { /* should never happen */
+		printf("error refershing python path");
+		Py_DECREF(mod);
+		return;
+	}
+	
+	dict = PyModule_GetDict( mod );	/* borrowed ref */
+	
+	/* Reset sys.path */	
+	syspath = PyDict_GetItemString( dict, "path" );	/* borrowed ref */
+	PyList_SetSlice(syspath, 0, PyList_Size(syspath), bpy_orig_syspath_List);
+	
+	if(U.pythondir[0] != '\0' ) {
+		char modpath[FILE_MAX];
+		int upyslen = strlen(U.pythondir);
+
+		/* check if user pydir ends with a slash and, if so, remove the slash
+		 * (for eventual implementations of c library's stat function that might
+		 * not like it) */
+		if (upyslen > 2) { /* avoids doing anything if dir == '//' */
+			BLI_add_slash(U.pythondir);
+		}
+
+		BLI_strncpy(dirpath, U.pythondir, FILE_MAX);
+		BLI_convertstringcode(dirpath, G.sce, 0);
+		syspath_append(dirpath);	/* append to module search path */
+
+		BLI_make_file_string("/", modpath, dirpath, "bpymodules");
+		if (BLI_exists(modpath)) syspath_append(modpath);
+	}
+	
+	sdir = bpy_gethome(1);
+	if (sdir) {
+		syspath_append(sdir);
+		BLI_make_file_string("/", dirpath, sdir, "bpymodules");
+		if (BLI_exists(dirpath)) syspath_append(dirpath);
+	}
+	
+	Py_DECREF(mod);
 }
 
 /****************************************************************************
@@ -385,43 +457,8 @@ that dir info is available.
 ****************************************************************************/
 void BPY_post_start_python( void )
 {
-	char dirpath[FILE_MAX];
-	char *sdir = NULL;
-
-	if(U.pythondir[0] != '\0' ) {
-		char modpath[FILE_MAX];
-		int upyslen = strlen(U.pythondir);
-
-		/* check if user pydir ends with a slash and, if so, remove the slash
-		 * (for eventual implementations of c library's stat function that might
-		 * not like it) */
-		if (upyslen > 2) { /* avoids doing anything if dir == '//' */
-			char ending = U.pythondir[upyslen - 1];
-
-			if (ending == '/' || ending == '\\')
-				U.pythondir[upyslen - 1] = '\0';
-		}
-
-		BLI_strncpy(dirpath, U.pythondir, FILE_MAX);
-		BLI_convertstringcode(dirpath, G.sce, 0);
-		syspath_append(dirpath);	/* append to module search path */
-
-		BLI_make_file_string("/", modpath, dirpath, "bpymodules");
-		if (BLI_exists(modpath)) syspath_append(modpath);
-	}
-
-	sdir = bpy_gethome(1);
-	if (sdir) {
-
-		syspath_append(sdir);
-
-		BLI_make_file_string("/", dirpath, sdir, "bpymodules");
-		if (BLI_exists(dirpath)) syspath_append(dirpath);
-	}
-
+	BPY_rebuild_syspath();
 	BPyMenu_Init( 0 );	/* get dynamic menus (registered scripts) data */
-
-	return;
 }
 
 /****************************************************************************

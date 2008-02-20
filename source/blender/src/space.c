@@ -4214,12 +4214,12 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiBlockEndAlign(block);
 
 		uiBlockBeginAlign(block);
-		uiDefBut(block, TEX, 0, "Python: ",
+		uiDefBut(block, TEX, B_PYMENUEVAL, "Python Scripts: ",
 			(xpos+edgsp+lpref+midsp),y1,(lpref-2*smfileselbut),buth,
-			U.pythondir, 1.0, 63.0, 0, 0, "The default directory to search for Python scripts");
+			U.pythondir, 1.0, 63.0, 0, 0, "The default directory to search for Python scripts (resets python module search path: sys.path)");
 		uiDefIconBut(block, BUT, B_PYMENUEVAL, ICON_SCRIPT,
 			(xpos+edgsp+(2*lpref)+midsp-2*smfileselbut),y1,smfileselbut,buth,
-			0, 0, 0, 0, 0, "Re-evaluate scripts registration in menus");
+			0, 0, 0, 0, 0, "Re-evaluate scripts registration in menus (resets python module search path: sys.path)");
 		uiDefIconBut(block, BUT, B_PYTHONDIRFILESEL, ICON_FILESEL,
 			(xpos+edgsp+(2*lpref)+midsp-smfileselbut),y1,smfileselbut,buth,
 			0, 0, 0, 0, 0, "Select the default Python script location");
