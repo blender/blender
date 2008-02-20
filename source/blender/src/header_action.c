@@ -96,9 +96,6 @@ enum {
 	ACTMENU_VIEW_PREVKEYFRAME,
 	ACTMENU_VIEW_TIME,
 	ACTMENU_VIEW_NOHIDE,
-	ACTMENU_VIEW_OPENLEVELS,
-	ACTMENU_VIEW_CLOSELEVELS,
-	ACTMENU_VIEW_EXPANDALL,
 	ACTMENU_VIEW_TRANSDELDUPS,
 	ACTMENU_VIEW_HORIZOPTIMISE
 };
@@ -124,23 +121,36 @@ enum {
 };
 
 enum {
+	ACTMENU_CHANNELS_OPENLEVELS = 0,
+	ACTMENU_CHANNELS_CLOSELEVELS,
+	ACTMENU_CHANNELS_EXPANDALL,
+	ACTMENU_CHANNELS_DELETE
+};
+
+enum {
+	ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_UP	= 0,
+	ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_DOWN,
+	ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_TOP,
+	ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_BOTTOM
+};
+
+enum {
+	ACTMENU_CHANNELS_GROUP_ADD_TOACTIVE	= 0,
+	ACTMENU_CHANNELS_GROUP_ADD_TONEW,
+	ACTMENU_CHANNELS_GROUP_REMOVE
+};
+
+enum {
+	ACTMENU_CHANNELS_SETTINGS_TOGGLE = 0,
+	ACTMENU_CHANNELS_SETTINGS_ENABLE,
+	ACTMENU_CHANNELS_SETTINGS_DISABLE,
+};
+
+enum {
 	ACTMENU_KEY_DUPLICATE = 0,
 	ACTMENU_KEY_DELETE,
 	ACTMENU_KEY_CLEAN,
 	ACTMENU_KEY_SAMPLEKEYS
-};
-
-enum {
-	ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_UP	= 0,
-	ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_DOWN,
-	ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_TOP,
-	ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_BOTTOM
-};
-
-enum {
-	ACTMENU_KEY_CHANGROUP_ADD_TOACTIVE	= 0,
-	ACTMENU_KEY_CHANGROUP_ADD_TONEW,
-	ACTMENU_KEY_CHANGROUP_REMOVE
 };
 
 enum {
@@ -328,15 +338,6 @@ static void do_action_viewmenu(void *arg, int event)
 		case ACTMENU_VIEW_PREVKEYFRAME: /* Jump to previous keyframe */
 			nextprev_action_keyframe(-1);
 			break;
-		case ACTMENU_VIEW_OPENLEVELS: /* Unfold channels one step */
-			openclose_level_action(1);
-			break;
-		case ACTMENU_VIEW_CLOSELEVELS: /* Fold channels one step */
-			openclose_level_action(-1);
-			break;
-		case ACTMENU_VIEW_EXPANDALL: /* Expands all channels */
-			expand_all_action();
-			break;
 		case ACTMENU_VIEW_TRANSDELDUPS: /* Don't delete duplicate/overlapping keyframes after transform */
 			G.saction->flag ^= SACTION_NOTRANSKEYCULL;
 			break;
@@ -414,27 +415,7 @@ static uiBlock *action_viewmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-					
-	/* only if editing action... */
-	// TODO: improve this code!
-	
-	if (G.saction->action) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-				"Toggle Show Hierachy|~", 0, yco-=20,
-				menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_VIEW_EXPANDALL, "");
-				
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-				"Expand One Level|Ctrl NumPad+", 0, yco-=20,
-				menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_VIEW_OPENLEVELS, "");
-				
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-				"Collapse One Level|Ctrl NumPad-", 0, yco-=20,
-				menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_VIEW_CLOSELEVELS, "");
-	}
-	
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
-					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-					 
+		
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 				"Jump To Next Marker|PageUp", 0, yco-=20,
 				menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_VIEW_NEXTMARKER, "");
@@ -549,7 +530,7 @@ static void do_action_selectmenu(void *arg, int event)
 	Key *key;
 	
 	saction = curarea->spacedata.first;
-	if (!saction) return;
+	if (saction == NULL) return;
 
 	act = saction->action;
 	key = get_action_mesh_key();
@@ -689,7 +670,228 @@ static uiBlock *action_selectmenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, action_selectmenu_columnmenu, 
 						  NULL, ICON_RIGHTARROW_THIN, "Column Select Keys", 0, yco-=20, 120, 20, "");
 	
-	if(curarea->headertype==HEADERTOP) {
+	if (curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
+
+
+static void do_action_channelmenu_posmenu(void *arg, int event)
+{
+	switch(event)
+	{
+		case ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_DOWN:
+			rearrange_action_channels(REARRANGE_ACTCHAN_DOWN);
+			break;
+		case ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_UP:
+			rearrange_action_channels(REARRANGE_ACTCHAN_UP);
+			break;
+		case ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_TOP:
+			rearrange_action_channels(REARRANGE_ACTCHAN_TOP);
+			break;
+		case ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_BOTTOM:
+			rearrange_action_channels(REARRANGE_ACTCHAN_BOTTOM);
+			break;
+	}
+
+	scrarea_queue_winredraw(curarea);
+}
+
+static uiBlock *action_channelmenu_posmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "action_channelmenu_posmenu", 
+					  UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_action_channelmenu_posmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Move Up|Shift Page Up", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_UP, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Move Down|Shift Page Down", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_DOWN, "");
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+					
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Move to Top|Ctrl Shift Page Up", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_TOP, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Move to Bottom|Ctrl Shift Page Down", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_BOTTOM, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
+static void do_action_channelmenu_groupmenu(void *arg, int event)
+{
+	switch(event)
+	{
+		case ACTMENU_CHANNELS_GROUP_ADD_TOACTIVE:
+			action_groups_group(0);
+			break;
+		case ACTMENU_CHANNELS_GROUP_ADD_TONEW:
+			action_groups_group(1);
+			break;
+		case ACTMENU_CHANNELS_GROUP_REMOVE:
+			action_groups_ungroup();
+			break;
+	}
+}
+
+static uiBlock *action_channelmenu_groupmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "action_channelmenu_groupmenu", 
+					  UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_action_channelmenu_groupmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Add to Active Group|Shift G", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_GROUP_ADD_TOACTIVE, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Add to New Group|Ctrl Shift G", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_GROUP_ADD_TONEW, "");
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+					
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Remove From Group|Alt G", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_GROUP_REMOVE, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
+static void do_action_channelmenu_settingsmenu(void *arg, int event)
+{
+	setflag_action_channels(event);
+}
+
+static uiBlock *action_channelmenu_settingsmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "action_channelmenu_settingsmenu", 
+					  UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_action_channelmenu_settingsmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Toggle a Setting|Shift W", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_SETTINGS_TOGGLE, "");
+					 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Enable a Setting|Ctrl Shift W", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_SETTINGS_ENABLE, "");
+					
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Disable a Setting|Alt W", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_SETTINGS_DISABLE, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
+static void do_action_channelmenu(void *arg, int event)
+{	
+	SpaceAction *saction;
+	
+	saction = curarea->spacedata.first;
+	if (saction == NULL) return;
+	
+	switch(event)
+	{
+		case ACTMENU_CHANNELS_OPENLEVELS: /* Unfold selected channels one step */
+			openclose_level_action(1);
+			break;
+		case ACTMENU_CHANNELS_CLOSELEVELS: /* Fold selected channels one step */
+			openclose_level_action(-1);
+			break;
+		case ACTMENU_CHANNELS_EXPANDALL: /* Expands all channels */
+			expand_all_action();
+			break;
+		case ACTMENU_CHANNELS_DELETE: /* Deletes selected channels */
+			delete_action_channels();
+			break;
+	}
+}
+
+static uiBlock *action_channelmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "action_channelmenu", 
+					  UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_action_channelmenu, NULL);
+	
+	uiDefIconTextBlockBut(block, action_channelmenu_groupmenu, 
+						  NULL, ICON_RIGHTARROW_THIN, 
+						  "Grouping", 0, yco-=20, 120, 20, "");	 
+						  
+	uiDefIconTextBlockBut(block, action_channelmenu_posmenu, 
+						  NULL, ICON_RIGHTARROW_THIN, 
+						  "Ordering", 0, yco-=20, 120, 20, "");
+	
+	uiDefIconTextBlockBut(block, action_channelmenu_settingsmenu, 
+						  NULL, ICON_RIGHTARROW_THIN, 
+						  "Settings", 0, yco-=20, 120, 20, "");	
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+			"Delete|X", 0, yco-=20,
+			menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_CHANNELS_DELETE, "");
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+			"Toggle Show Hierachy|~", 0, yco-=20,
+			menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_CHANNELS_EXPANDALL, "");
+			
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+			"Expand One Level|Ctrl NumPad+", 0, yco-=20,
+			menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_CHANNELS_OPENLEVELS, "");
+			
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+			"Collapse One Level|Ctrl NumPad-", 0, yco-=20,
+			menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_CHANNELS_CLOSELEVELS, "");
+	
+	if (curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
 	else {
@@ -903,111 +1105,6 @@ static uiBlock *action_keymenu_extendmenu(void *arg_unused)
 	return block;
 }
 
-static void do_action_keymenu_chanposmenu(void *arg, int event)
-{
-	switch(event)
-	{
-		case ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_DOWN:
-			rearrange_action_channels(REARRANGE_ACTCHAN_DOWN);
-			break;
-		case ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_UP:
-			rearrange_action_channels(REARRANGE_ACTCHAN_UP);
-			break;
-		case ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_TOP:
-			rearrange_action_channels(REARRANGE_ACTCHAN_TOP);
-			break;
-		case ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_BOTTOM:
-			rearrange_action_channels(REARRANGE_ACTCHAN_BOTTOM);
-			break;
-	}
-
-	scrarea_queue_winredraw(curarea);
-}
-
-static uiBlock *action_keymenu_chanposmenu(void *arg_unused)
-{
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-
-	block= uiNewBlock(&curarea->uiblocks, "action_keymenu_chanposmenu", 
-					  UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetButmFunc(block, do_action_keymenu_chanposmenu, NULL);
-
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Move Up|Shift Page Up", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_UP, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Move Down|Shift Page Down", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_DOWN, "");
-	
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
-					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-					
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Move to Top|Ctrl Shift Page Up", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_TOP, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Move to Bottom|Ctrl Shift Page Down", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_BOTTOM, "");
-
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-
-	return block;
-}
-
-static void do_action_keymenu_changroupmenu(void *arg, int event)
-{
-	switch(event)
-	{
-		case ACTMENU_KEY_CHANGROUP_ADD_TOACTIVE:
-			action_groups_group(0);
-			break;
-		case ACTMENU_KEY_CHANGROUP_ADD_TONEW:
-			action_groups_group(1);
-			break;
-		case ACTMENU_KEY_CHANGROUP_REMOVE:
-			action_groups_ungroup();
-			break;
-	}
-}
-
-static uiBlock *action_keymenu_changroupmenu(void *arg_unused)
-{
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-
-	block= uiNewBlock(&curarea->uiblocks, "action_keymenu_changroupmenu", 
-					  UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetButmFunc(block, do_action_keymenu_changroupmenu, NULL);
-
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Add to Active Group|Shift G", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_CHANGROUP_ADD_TOACTIVE, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Add To New Group|Ctrl Shift G", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_CHANGROUP_ADD_TONEW, "");
-	
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
-					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-					
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Remove From Group|Alt G", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_CHANGROUP_REMOVE, "");
-
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-
-	return block;
-}
-
 static void do_action_keymenu_snapmenu(void *arg, int event)
 {
 	switch(event)
@@ -1210,17 +1307,6 @@ static uiBlock *action_keymenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, action_keymenu_intpolmenu, 
 						  NULL, ICON_RIGHTARROW_THIN, 
 						  "Interpolation Mode", 0, yco-=20, 120, 20, "");
-						 
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
-			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-			 
-	uiDefIconTextBlockBut(block, action_keymenu_changroupmenu, 
-						  NULL, ICON_RIGHTARROW_THIN, 
-						  "Channel Grouping", 0, yco-=20, 120, 20, "");	 
-						  
-	uiDefIconTextBlockBut(block, action_keymenu_chanposmenu, 
-						  NULL, ICON_RIGHTARROW_THIN, 
-						  "Channel Ordering", 0, yco-=20, 120, 20, "");
 
 	
 	if(curarea->headertype==HEADERTOP) {
@@ -1386,6 +1472,13 @@ void action_buttons(void)
 		uiDefPulldownBut(block, action_selectmenu, NULL, 
 					  "Select", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
+		
+		if (G.saction->action) {
+			xmax= GetButStringLength("Channel");
+			uiDefPulldownBut(block, action_channelmenu, NULL, 
+						  "Channel", xco, -2, xmax-3, 24, "");
+			xco+= xmax;
+		}
 		
 		xmax= GetButStringLength("Marker");
 		uiDefPulldownBut(block, action_markermenu, NULL, 

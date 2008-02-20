@@ -398,8 +398,11 @@ static void actdata_filter_action (ListBase *act_data, bAction *act, int filter_
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 		/* add this group as a channel first */
 		if (!(filter_mode & ACTFILTER_ONLYICU) && !(filter_mode & ACTFILTER_IPOKEYS)) {
-			ale= make_new_actlistelem(agrp, ACTTYPE_GROUP, NULL, ACTTYPE_NONE);
-			if (ale) BLI_addtail(act_data, ale);
+			/* check if filtering by selection */
+			if ( !(filter_mode & ACTFILTER_SEL) || SEL_AGRP(agrp) ) {
+				ale= make_new_actlistelem(agrp, ACTTYPE_GROUP, NULL, ACTTYPE_NONE);
+				if (ale) BLI_addtail(act_data, ale);
+			}
 		}
 		
 		/* store reference to last channel of group */
@@ -1239,7 +1242,7 @@ void snap_action_keys(short mode)
 	void *data;
 	short datatype;
 	char str[32];
-		
+	
 	/* get data */
 	data= get_action_context(&datatype);
 	if (data == NULL) return;
@@ -2254,7 +2257,139 @@ static void numbuts_action ()
 	}
 }
 
-
+/* Set/clear a particular flag (setting) for all selected + visible channels 
+ *	mode: 0 = toggle, 1 = turn on, 2 = turn off
+ */
+void setflag_action_channels (short mode)
+{
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+	char str[32];
+	short val;
+	
+	/* get data */
+	data= get_action_context(&datatype);
+	if (data == NULL) return;
+	
+	/* get setting to affect */
+	if (mode == 2) {
+		val= pupmenu("Disable Setting%t|Protect %x1|Mute%x2");
+		sprintf(str, "Disable Action Setting");
+	}
+	else if (mode == 1) {
+		val= pupmenu("Enable Setting%t|Protect %x1|Mute%x2");
+		sprintf(str, "Enable Action Setting");
+	}
+	else {
+		val= pupmenu("Toggle Setting%t|Protect %x1|Mute%x2");
+		sprintf(str, "Toggle Action Setting");
+	}
+	if (val <= 0) return;
+	
+	/* filter data */
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_CHANNELS | ACTFILTER_SEL);
+	actdata_filter(&act_data, filter, data, datatype);
+	
+	/* affect selected channels */
+	for (ale= act_data.first; ale; ale= ale->next) {
+		switch (ale->type) {
+			case ACTTYPE_GROUP:
+			{
+				bActionGroup *agrp= (bActionGroup *)ale->data;
+				
+				/* only 'protect' is available */
+				if (val == 1) {
+					if (mode == 2)
+						agrp->flag &= ~AGRP_PROTECTED;
+					else if (mode == 1)
+						agrp->flag |= AGRP_PROTECTED;
+					else
+						agrp->flag ^= AGRP_PROTECTED;
+				}
+			}
+				break;
+			case ACTTYPE_ACHAN:
+			{
+				bActionChannel *achan= (bActionChannel *)ale->data;
+				
+				/* 'protect' and 'mute' */
+				if ((val == 2) && (achan->ipo)) {
+					Ipo *ipo= achan->ipo;
+					
+					/* mute */
+					if (mode == 2)
+						ipo->muteipo= 0;
+					else if (mode == 1)
+						ipo->muteipo= 1;
+					else
+						ipo->muteipo= (ipo->muteipo) ? 0 : 1;
+				}
+				else if (val == 1) {
+					/* protected */
+					if (mode == 2)
+						achan->flag &= ~ACHAN_PROTECTED;
+					else if (mode == 1)
+						achan->flag |= ACHAN_PROTECTED;
+					else
+						achan->flag ^= ACHAN_PROTECTED;
+				}
+			}
+				break;
+			case ACTTYPE_CONCHAN:
+			{
+				bConstraintChannel *conchan= (bConstraintChannel *)ale->data;
+				
+				/* 'protect' and 'mute' */
+				if ((val == 2) && (conchan->ipo)) {
+					Ipo *ipo= conchan->ipo;
+					
+					/* mute */
+					if (mode == 2)
+						ipo->muteipo= 0;
+					else if (mode == 1)
+						ipo->muteipo= 1;
+					else
+						ipo->muteipo= (ipo->muteipo) ? 0 : 1;
+				}
+				else if (val == 1) {
+					/* protect */
+					if (mode == 2)
+						conchan->flag &= ~CONSTRAINT_CHANNEL_PROTECTED;
+					else if (mode == 1)
+						conchan->flag |= CONSTRAINT_CHANNEL_PROTECTED;
+					else
+						conchan->flag ^= CONSTRAINT_CHANNEL_PROTECTED;
+				}
+			}
+				break;
+			case ACTTYPE_ICU:
+			{
+				IpoCurve *icu= (IpoCurve *)ale->data;
+				
+				/* mute */
+				if (val == 2) {
+					if (mode == 2)
+						icu->flag &= ~IPO_MUTE;
+					else if (mode == 1)
+						icu->flag |= IPO_MUTE;
+					else
+						icu->flag ^= IPO_MUTE;
+				}
+			}
+				break;
+		}
+	}
+	BLI_freelistN(&act_data);
+	
+	BIF_undo_push(str);
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
+}
 
 /* **************************************************** */
 /* CHANNEL SELECTION */
@@ -3986,7 +4121,8 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (event == LEFTMOUSE) {
 				event = RIGHTMOUSE;
 				mousebut = L_MOUSE;
-			} else if (event == RIGHTMOUSE) {
+			} 
+			else if (event == RIGHTMOUSE) {
 				event = LEFTMOUSE;
 				mousebut = R_MOUSE;
 			}
@@ -4071,25 +4207,6 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				action_groups_group(1);
 			else if (G.qual == LR_ALTKEY)
 				action_groups_ungroup();
-				
-			else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY|LR_ALTKEY)) {
-				/* WARNING: this is a debug tool which should be removed once everything is stable... */
-				bAction *act= G.saction->action;
-				bActionGroup *agrp;
-				bActionChannel *achan;
-				
-				printf("Debug Action Grouping: \n");
-				
-				printf("\tGroups: \n");
-				for (agrp= act->groups.first; agrp; agrp= agrp->next) {
-					printf("\t\tGroup \"%s\" : %p... start={%p} end={%p} \n", agrp->name, agrp, agrp->channels.first, agrp->channels.last);
-				}
-				
-				printf("\tAction Channels: \n");
-				for (achan= act->chanbase.first; achan; achan= achan->next) {
-					printf("\t\tAchan \"%s\" : %p... group={%p} \n", achan->name, achan, achan->grp);
-				}	
-			}
 			
 			/* Transforms */
 			else {
@@ -4257,6 +4374,20 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case VKEY:
 			if (okee("Set Keys to Vector Handle"))
 				sethandles_action_keys(HD_VECT);
+			break;
+			
+		case WKEY:
+			/* toggle/turn-on\off-based-on-setting */
+			if (G.qual) {
+				if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+					val= 1;
+				else if (G.qual == LR_ALTKEY)
+					val= 2;
+				else
+					val= 0;	
+				
+				setflag_action_channels(val);
+			}
 			break;
 		
 		case PAGEUPKEY:
