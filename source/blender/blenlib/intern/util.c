@@ -1616,10 +1616,23 @@ void BLI_where_is_temp(char *fullname, int usertemp)
 	}
 	
 	if (fullname[0] == '\0') {
-		char *tmp = getenv("TEMP");
+#ifdef WIN32
+		char *tmp = getenv("TEMP"); /* Windows */
 		if (tmp && BLI_exists(tmp)) {
 			strcpy(fullname, tmp);
 		}
+#else
+		char *tmp = getenv("TMPDIR"); /* Other OS's - Try TMP and TMPDIR */
+		if (tmp && BLI_exists(tmp)) {
+			strcpy(fullname, tmp);
+		}
+		if (fullname[0] == '\0') {
+			tmp = getenv("TMP");
+			if (tmp && BLI_exists(tmp)) {
+				strcpy(fullname, tmp);
+			}
+		}
+#endif
 	}
 	
 	if (fullname[0] == '\0') {
