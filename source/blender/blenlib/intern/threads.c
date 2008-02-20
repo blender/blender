@@ -43,6 +43,10 @@
 #include "Windows.h"
 #endif
 
+#ifdef __APPLE__
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#endif
 
 /* ********** basic thread control API ************ 
 
@@ -237,8 +241,18 @@ int BLI_system_thread_count( void )
 	SYSTEM_INFO info;
 	GetSystemInfo(&info);
 	t = (int) info.dwNumberOfProcessors;
-#else
+#else 
+#	ifdef __APPLE__
+	int mib[2];
+	size_t len;
+	
+	mib[0] = CTL_HW;
+	mib[1] = HW_NCPU;
+	len = sizeof(t);
+	sysctl(mib, 2, &t, &len, NULL, 0);
+#	else
 	t = (int)sysconf(_SC_NPROCESSORS_ONLN);
+#	endif
 #endif
 	
 	if (t>RE_MAX_THREAD)
