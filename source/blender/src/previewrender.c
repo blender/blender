@@ -264,8 +264,6 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 	
 	sce= pr_main->scene.first;
 	if(sce) {
-		
-		// sce->r.mode |= G.scene->r.mode & R_THREADS;
 		/* this flag tells render to not execute depsgraph or ipos etc */
 		sce->r.scemode |= R_PREVIEWBUTS;
 		/* set world always back, is used now */

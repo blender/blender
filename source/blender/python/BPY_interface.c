@@ -377,7 +377,7 @@ void init_syspath( int first_time )
 		d = PyModule_GetDict( mod );	/* borrowed ref */
 		EXPP_dict_set_item_str( d, "executable", Py_BuildValue( "s", bprogname ) );
 		
-		if (first_time) {
+		if (bpy_orig_syspath_List == NULL) {
 			/* backup the original sys.path to rebuild later */	
 			PyObject *syspath = PyDict_GetItemString( d, "path" );	/* borrowed ref */
 			if (bpy_orig_syspath_List) { /* This should never happen but just incase, be nice */
@@ -401,12 +401,12 @@ void BPY_rebuild_syspath( void )
 	
 	mod = PyImport_ImportModule( "sys" );	
 	if (!mod) {
-		printf("error: could not import python sys module. some modules may not import.");
+		printf("error: could not import python sys module. some modules may not import.\n");
 		return;
 	}
 	
 	if (!bpy_orig_syspath_List) { /* should never happen */
-		printf("error refershing python path");
+		printf("error refershing python path\n");
 		Py_DECREF(mod);
 		return;
 	}

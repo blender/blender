@@ -575,7 +575,9 @@ typedef struct Scene {
 		/* fbuf obsolete... */
 #define R_FBUF			0x40000
 		/* threads obsolete... is there for old files, now use for autodetect threads */
-#define R_THREADS		0x80000 
+#define R_THREADS		0x80000
+		/* Use the same flag for autothreads */
+#define R_AUTO_THREADS		0x80000 
 
 #define R_SPEED			0x100000
 #define R_SSS			0x200000

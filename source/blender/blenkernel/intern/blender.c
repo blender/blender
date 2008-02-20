@@ -482,7 +482,7 @@ int BKE_read_file_from_memory(char* filebuf, int filelength, void *type_r)
 		if (type_r)
 			*((BlenFileType*)type_r)= bfd->type;
 		
-		setup_app_data(bfd, "<memory>");
+		setup_app_data(bfd, "<memory2>");
 	} else {
 		error("Loading failed: %s", BLO_bre_as_string(bre));
 	}
@@ -504,7 +504,7 @@ int BKE_read_file_from_memfile(MemFile *memfile)
 		
 	bfd= BLO_read_from_memfile(G.sce, memfile, &bre);
 	if (bfd) {
-		setup_app_data(bfd, "<memory>");
+		setup_app_data(bfd, "<memory1>");
 	} else {
 		error("Loading failed: %s", BLO_bre_as_string(bre));
 	}
