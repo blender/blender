@@ -39,6 +39,10 @@
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 
+#ifdef WIN32
+#include "Windows.h"
+#endif
+
 
 /* ********** basic thread control API ************ 
 
