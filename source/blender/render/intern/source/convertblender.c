@@ -2161,11 +2161,11 @@ static short test_for_displace(Render *re, Object *ob)
 	return 0;
 }
 
-static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, VertRen *vr, int vindex, float *scale)
+static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, VertRen *vr, int vindex, float *scale, float mat[][4], float imat[][3])
 {
 	MTFace *tface;
 	short texco= shi->mat->texco;
-	float sample=0;
+	float sample=0, displace[3];
 	char *name;
 	int i;
 
@@ -2173,6 +2173,15 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	VECCOPY(shi->co, vr->co);
 	/* vertex normal is used for textures type 'col' and 'var' */
 	VECCOPY(shi->vn, vr->n);
+
+	if(mat)
+		Mat4MulVecfl(mat, shi->co);
+
+	if(imat) {
+		shi->vn[0]= imat[0][0]*vr->n[0]+imat[0][1]*vr->n[1]+imat[0][2]*vr->n[2];
+		shi->vn[1]= imat[1][0]*vr->n[0]+imat[1][1]*vr->n[1]+imat[1][2]*vr->n[2];
+		shi->vn[2]= imat[2][0]*vr->n[0]+imat[2][1]*vr->n[1]+imat[2][2]*vr->n[2];
+	}
 
 	if (texco & TEXCO_UV) {
 		shi->totuv= 0;
@@ -2219,11 +2228,18 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	
 	//printf("no=%f, %f, %f\nbefore co=%f, %f, %f\n", vr->n[0], vr->n[1], vr->n[2], 
 	//vr->co[0], vr->co[1], vr->co[2]);
+
+	displace[0]= shi->displace[0] * scale[0];
+	displace[1]= shi->displace[1] * scale[1];
+	displace[2]= shi->displace[2] * scale[2];
 	
+	if(mat)
+		Mat3MulVecfl(imat, displace);
+
 	/* 0.5 could become button once?  */
-	vr->co[0] +=  shi->displace[0] * scale[0] ; 
-	vr->co[1] +=  shi->displace[1] * scale[1] ; 
-	vr->co[2] +=  shi->displace[2] * scale[2] ; 
+	vr->co[0] += displace[0]; 
+	vr->co[1] += displace[1];
+	vr->co[2] += displace[2];
 	
 	//printf("after co=%f, %f, %f\n", vr->co[0], vr->co[1], vr->co[2]); 
 	
@@ -2241,7 +2257,7 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	return;
 }
 
-static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float *scale)
+static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float *scale, float mat[][4], float imat[][3])
 {
 	ShadeInput shi;
 
@@ -2260,17 +2276,17 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 	
 	/* Displace the verts, flag is set when done */
 	if (!vlr->v1->flag)
-		displace_render_vert(re, obr, &shi, vlr->v1,0,  scale);
+		displace_render_vert(re, obr, &shi, vlr->v1,0,  scale, mat, imat);
 	
 	if (!vlr->v2->flag)
-		displace_render_vert(re, obr, &shi, vlr->v2, 1, scale);
+		displace_render_vert(re, obr, &shi, vlr->v2, 1, scale, mat, imat);
 
 	if (!vlr->v3->flag)
-		displace_render_vert(re, obr, &shi, vlr->v3, 2, scale);
+		displace_render_vert(re, obr, &shi, vlr->v3, 2, scale, mat, imat);
 
 	if (vlr->v4) {
 		if (!vlr->v4->flag)
-			displace_render_vert(re, obr, &shi, vlr->v4, 3, scale);
+			displace_render_vert(re, obr, &shi, vlr->v4, 3, scale, mat, imat);
 
 		/*	closest in displace value.  This will help smooth edges.   */ 
 		if ( fabs(vlr->v1->accum - vlr->v3->accum) > fabs(vlr->v2->accum - vlr->v4->accum)) 
@@ -2287,7 +2303,7 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 	}
 }
 
-static void do_displacement(Render *re, ObjectRen *obr)
+static void do_displacement(Render *re, ObjectRen *obr, float mat[][4], float imat[][3])
 {
 	VertRen *vr;
 	VlakRen *vlr;
@@ -2312,7 +2328,7 @@ static void do_displacement(Render *re, ObjectRen *obr)
 
 	for(i=0; i<obr->totvlak; i++){
 		vlr=RE_findOrAddVlak(obr, i);
-		displace_render_face(re, obr, vlr, scale);
+		displace_render_face(re, obr, vlr, scale, mat, imat);
 	}
 	
 	/* Recalc vertex normals */
@@ -3277,7 +3293,10 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	if(!timeoffset) {
 		if (test_for_displace(re, ob ) ) {
 			calc_vertexnormals(re, obr, 0);
-			do_displacement(re, obr);
+			if(do_autosmooth)
+				do_displacement(re, obr, mat, imat);
+			else
+				do_displacement(re, obr, NULL, NULL);
 		}
 
 		if(do_autosmooth) {
@@ -3956,7 +3975,7 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 		I will look at means to have autosmooth enabled for all object types 
 		and have it as general postprocess, like displace */
 		if(ob->type!=OB_MESH && test_for_displace(re, ob)) 
-			do_displacement(re, obr);
+			do_displacement(re, obr, NULL, NULL);
 	
 		if(!timeoffset) {
 			/* phong normal interpolation can cause error in tracing
