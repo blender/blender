@@ -350,6 +350,7 @@ static void fluidsimInitChannel(float **setchannel, int size, float *time,
 	char *cstr = NULL;
 	float *channel = NULL;
 	float aniFrlen = G.scene->r.framelen;
+	int current_frame = G.scene->r.cfra;
 	if((entries<1) || (entries>3)) {
 		printf("fluidsimInitChannel::Error - invalid no. of entries: %d\n",entries);
 		entries = 1;
@@ -368,6 +369,11 @@ static void fluidsimInitChannel(float **setchannel, int size, float *time,
 	for(j=0; j<entries; j++) {
 		if(icus[j]) { 
 			for(i=1; i<=size; i++) {
+				/* Bugfix to make python drivers working
+				// which uses Blender.get("curframe") 
+				*/
+				G.scene->r.cfra = floor(aniFrlen*((float)i));
+				
 				calc_icu(icus[j], aniFrlen*((float)i) );
 				channel[(i-1)*(entries+1) + j] = icus[j]->curval;
 			}
@@ -380,7 +386,7 @@ static void fluidsimInitChannel(float **setchannel, int size, float *time,
 	for(i=1; i<=size; i++) {
 		channel[(i-1)*(entries+1) + entries] = time[i];
 	}
-
+	G.scene->r.cfra = current_frame;
 	*setchannel = channel;
 }
 
