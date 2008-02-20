@@ -1491,7 +1491,7 @@ static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *
 			bglVertex3fv(co);
 			bglEnd();
 			
-			BIF_ThemeColor4(TH_VERTEX_SELECT);
+			BIF_ThemeColor4(data->sel?TH_VERTEX_SELECT:TH_VERTEX);
 			glPointSize(size);
 			bglBegin(GL_POINTS);
 		} else {
