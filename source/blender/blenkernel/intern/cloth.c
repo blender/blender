@@ -1210,7 +1210,6 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	EdgeHash *edgehash = NULL;
 	LinkNode *search = NULL, *search2 = NULL;
 	float temp[3];
-	LinkNode *node = NULL, *node2 = NULL;
 	
 	// error handling
 	if ( numedges==0 )
@@ -1251,11 +1250,7 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 			spring->stiffness = (cloth->verts[spring->kl].struct_stiff + cloth->verts[spring->ij].struct_stiff) / 2.0;
 			struct_springs++;
 			
-			if(!i)
-				node2 = BLI_linklist_append_fast ( &cloth->springs, spring );
-			else
-				node2 = BLI_linklist_append_fast ( &node->next, spring );
-			node = node2;
+			BLI_linklist_prepend ( &cloth->springs, spring );
 		}
 	}
 	
@@ -1282,8 +1277,7 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		BLI_linklist_append ( &edgelist[spring->kl], spring );
 		shear_springs++;
 
-		node2 = BLI_linklist_append_fast ( &node->next, spring );
-		node = node2;
+		BLI_linklist_prepend ( &cloth->springs, spring );
 
 		if ( mface[i].v4 )
 		{
@@ -1300,8 +1294,7 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 			BLI_linklist_append ( &edgelist[spring->kl], spring );
 			shear_springs++;
 
-			node2 = BLI_linklist_append_fast ( &node->next, spring );
-			node = node2;
+			BLI_linklist_prepend ( &cloth->springs, spring );
 		}
 	}
 	
@@ -1336,8 +1329,7 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 				BLI_edgehash_insert ( edgehash, spring->ij, index2, NULL );
 				bend_springs++;
 
-				node2 = BLI_linklist_append_fast ( &node->next, spring );
-				node = node2;
+				BLI_linklist_prepend ( &cloth->springs, spring );
 			}
 			search = search->next;
 		}
