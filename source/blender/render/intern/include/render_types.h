@@ -85,6 +85,7 @@ typedef struct RenderPart
 	int *recto;						/* object table for objects */
 	int *rectp;						/* polygon index table */
 	int *rectz;						/* zbuffer */
+	int *rectmask;					/* negative zmask */
 	long *rectdaps;					/* delta acum buffer for pixel structs */
 	int *rectbacko;					/* object table for backside sss */
 	int *rectbackp;					/* polygon index table for backside sss */

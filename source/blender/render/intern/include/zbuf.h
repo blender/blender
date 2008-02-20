@@ -96,6 +96,7 @@ typedef struct ZSpan {
 	int *rectz1;							/* seconday z buffer for shadowbuffer (2nd closest z) */
 	int *rectp;								/* polygon index buffer */
 	int *recto;								/* object buffer */
+	int *rectmask;							/* negative zmask buffer */
 	APixstr *apixbuf, *curpstr;				/* apixbuf for transparent */
 	APixstrand *curpstrand;					/* same for strands */
 	struct ListBase *apsmbase;

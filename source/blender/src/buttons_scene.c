@@ -2824,8 +2824,11 @@ static void render_panel_layers(void)
 	draw_3d_layer_buttons(block, BUT_TOGDUAL, &srl->lay,		130,110, 35, 30, "Scene-layers included in this render-layer (Hold CTRL for Z-mask)");
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, SCE_LAY_ALL_Z, B_NOP,"AllZ",	10, 85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Fill in Z values for solid faces in invisible layers, for masking");	
-	uiDefButBitI(block, TOG, SCE_LAY_ZMASK, B_NOP,"Zmask",	10, 65, 40, 20, &srl->layflag, 0, 0, 0, 0, "Only render what's in front of the solid z values");	
+	uiDefButBitI(block, TOG, SCE_LAY_ZMASK, B_REDR,"Zmask",	10, 85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Only render what's in front of the solid z values");	
+	if(srl->layflag & SCE_LAY_ZMASK)
+		uiDefButBitI(block, TOG, SCE_LAY_NEG_ZMASK, B_NOP,"Neg",	10, 65, 40, 20, &srl->layflag, 0, 0, 0, 0, "For Zmask, only render what is behind solid z values instead of in front");
+	else
+		uiDefButBitI(block, TOG, SCE_LAY_ALL_Z, B_NOP,"AllZ",	10, 65, 40, 20, &srl->layflag, 0, 0, 0, 0, "Fill in Z values for solid faces in invisible layers, for masking");	
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, SCE_LAY_SOLID, B_NOP,"Solid",	50,  85, 45, 20, &srl->layflag, 0, 0, 0, 0, "Render Solid faces in this Layer");	
 	uiDefButBitI(block, TOG, SCE_LAY_HALO, B_NOP,"Halo",	95,  85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Halos in this Layer (on top of Solid)");	

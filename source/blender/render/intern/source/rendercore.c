@@ -684,7 +684,7 @@ static void freeps(ListBase *lb)
 	lb->first= lb->last= NULL;
 }
 
-static void addps(ListBase *lb, long *rd, int obi, int facenr, int z, unsigned short mask)
+static void addps(ListBase *lb, long *rd, int obi, int facenr, int z, int maskz, unsigned short mask)
 {
 	PixStrMain *psm;
 	PixStr *ps, *last= NULL;
@@ -717,6 +717,7 @@ static void addps(ListBase *lb, long *rd, int obi, int facenr, int z, unsigned s
 	ps->obi= obi;
 	ps->facenr= facenr;
 	ps->z= z;
+	ps->maskz= maskz;
 	ps->mask = mask;
 	ps->shadfac= 0;
 }
@@ -905,16 +906,16 @@ void make_pixelstructs(RenderPart *pa, ZSpan *zspan, int sample, void *data)
 	int *ro= zspan->recto;
 	int *rp= zspan->rectp;
 	int *rz= zspan->rectz;
+	int *rm= zspan->rectmask;
 	int x, y;
 	int mask= 1<<sample;
 
 	for(y=0; y<pa->recty; y++) {
-		for(x=0; x<pa->rectx; x++, rd++, rp++, ro++) {
+		for(x=0; x<pa->rectx; x++, rd++, rp++, ro++, rz++, rm++) {
 			if(*rp) {
-				addps(lb, rd, *ro, *rp, *(rz+x), mask);
+				addps(lb, rd, *ro, *rp, *rz, (zspan->rectmask)? *rm: 0, mask);
 			}
 		}
-		rz+= pa->rectx;
 	}
 
 	if(sdata->rl->layflag & SCE_LAY_EDGE) 
@@ -936,9 +937,10 @@ void zbufshadeDA_tile(RenderPart *pa)
 	pa->recto= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "recto");
 	pa->rectp= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectp");
 	pa->rectz= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectz");
-	
 	for(rl= rr->layers.first; rl; rl= rl->next) {
-
+		if((rl->layflag & SCE_LAY_ZMASK) && (rl->layflag & SCE_LAY_NEG_ZMASK))
+			pa->rectmask= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectmask");
+	
 		/* initialize pixelstructs and edge buffer */
 		addpsmain(&psmlist);
 		pa->rectdaps= MEM_callocN(sizeof(long)*pa->rectx*pa->recty+4, "zbufDArectd");
@@ -1041,6 +1043,11 @@ void zbufshadeDA_tile(RenderPart *pa)
 		
 		if(edgerect) MEM_freeN(edgerect);
 		edgerect= NULL;
+
+		if(pa->rectmask) {
+			MEM_freeN(pa->rectmask);
+			pa->rectmask= NULL;
+		}
 	}
 	
 	/* free all */
@@ -1076,7 +1083,9 @@ void zbufshade_tile(RenderPart *pa)
 	pa->rectz= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectz");
 
 	for(rl= rr->layers.first; rl; rl= rl->next) {
-		
+		if((rl->layflag & SCE_LAY_ZMASK) && (rl->layflag & SCE_LAY_NEG_ZMASK))
+			pa->rectmask= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectmask");
+
 		/* general shader info, passes */
 		shade_sample_initialize(&ssamp, pa, rl);
 		
@@ -1190,6 +1199,11 @@ void zbufshade_tile(RenderPart *pa)
 		
 		if(edgerect) MEM_freeN(edgerect);
 		edgerect= NULL;
+
+		if(pa->rectmask) {
+			MEM_freeN(pa->rectmask);
+			pa->rectmask= NULL;
+		}
 	}
 
 	/* display active layer */
@@ -1223,7 +1237,7 @@ static void addps_sss(void *cb_handle, int obi, int facenr, int x, int y, int z)
 	if(pa->rectall) {
 		long *rs= pa->rectall + pa->rectx*y + x;
 
-		addps(&handle->psmlist, rs, obi, facenr, z, 0);
+		addps(&handle->psmlist, rs, obi, facenr, z, 0, 0);
 		handle->totps++;
 	}
 	if(pa->rectz) {

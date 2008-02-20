@@ -57,7 +57,7 @@ struct ListBase;
 typedef struct PixStr
 {
 	struct PixStr *next;
-	int obi, facenr, z;
+	int obi, facenr, z, maskz;
 	unsigned short mask;
 	short shadfac;
 } PixStr;

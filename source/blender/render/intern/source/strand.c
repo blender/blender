@@ -415,6 +415,7 @@ typedef struct StrandPart {
 	APixstrand *apixbuf;
 	int *totapixbuf;
 	int *rectz;
+	int *rectmask;
 	long *rectdaps;
 	int rectx, recty;
 	int sample;
@@ -495,7 +496,7 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 	StrandSegment *sseg= spart->segment;
 	APixstrand *apn, *apnew;
 	float t, s;
-	int offset, mask, obi, strnr, seg, zverg, bufferz;
+	int offset, mask, obi, strnr, seg, zverg, bufferz, maskz=0;
 
 	offset = y*spart->rectx + x;
 	obi= sseg->obi - spart->re->objectinstance;
@@ -512,18 +513,24 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 		long *rd= spart->rectdaps + offset;
 		
 		bufferz= 0x7FFFFFFF;
+		if(spart->rectmask) maskz= 0x7FFFFFFF;
 		
 		if(*rd) {	
 			for(ps= (PixStr *)(*rd); ps; ps= ps->next) {
 				if(mask & ps->mask) {
 					bufferz= ps->z;
+					if(spart->rectmask)
+						maskz= ps->maskz;
 					break;
 				}
 			}
 		}
 	}
-	else
+	else {
 		bufferz= spart->rectz[offset];
+		if(spart->rectmask)
+			maskz= spart->rectmask[offset];
+	}
 
 #define CHECK_ADD(n) \
 	if(apn->p[n]==strnr && apn->obi[n]==obi && apn->seg[n]==seg) \
@@ -534,29 +541,31 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 
 	/* add to pixel list */
 	if(zverg < bufferz && (spart->totapixbuf[offset] < MAX_ZROW)) {
-		t = u*spart->t[0] + v*spart->t[1] + (1.0f-u-v)*spart->t[2];
-		s = fabs(u*spart->s[0] + v*spart->s[1] + (1.0f-u-v)*spart->s[2]);
+		if(!spart->rectmask || zverg > maskz) {
+			t = u*spart->t[0] + v*spart->t[1] + (1.0f-u-v)*spart->t[2];
+			s = fabs(u*spart->s[0] + v*spart->s[1] + (1.0f-u-v)*spart->s[2]);
 
-		apn= spart->apixbuf + offset;
-		while(apn) {
-			CHECK_ADD(0);
-			CHECK_ADD(1);
-			CHECK_ADD(2);
-			CHECK_ADD(3);
-			CHECK_ASSIGN(0);
-			CHECK_ASSIGN(1);
-			CHECK_ASSIGN(2);
-			CHECK_ASSIGN(3);
+			apn= spart->apixbuf + offset;
+			while(apn) {
+				CHECK_ADD(0);
+				CHECK_ADD(1);
+				CHECK_ADD(2);
+				CHECK_ADD(3);
+				CHECK_ASSIGN(0);
+				CHECK_ASSIGN(1);
+				CHECK_ASSIGN(2);
+				CHECK_ASSIGN(3);
 
-			apnew= addpsAstrand(spart->zspan);
-			SWAP(APixstrand, *apnew, *apn);
-			apn->next= apnew;
-			CHECK_ASSIGN(0);
+				apnew= addpsAstrand(spart->zspan);
+				SWAP(APixstrand, *apnew, *apn);
+				apn->next= apnew;
+				CHECK_ASSIGN(0);
+			}
+
+			strand_shade_refcount(cache, sseg->v[1]);
+			strand_shade_refcount(cache, sseg->v[2]);
+			spart->totapixbuf[offset]++;
 		}
-
-		strand_shade_refcount(cache, sseg->v[1]);
-		strand_shade_refcount(cache, sseg->v[2]);
-		spart->totapixbuf[offset]++;
 	}
 }
 
@@ -779,6 +788,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 	spart.zspan= &zspan;
 	spart.rectdaps= pa->rectdaps;
 	spart.rectz= pa->rectz;
+	spart.rectmask= pa->rectmask;
 	spart.cache= cache;
 
 	zbuf_alloc_span(&zspan, pa->rectx, pa->recty, re->clipcrop);
