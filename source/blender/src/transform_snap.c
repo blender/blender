@@ -126,7 +126,7 @@ void drawSnapping(TransInfo *t)
 			
 			glDisable(GL_DEPTH_TEST);
 	
-			size = get_drawsize(G.vd);
+			size = get_drawsize(G.vd, t->tsnap.snapPoint);
 			
 			size *= 0.5f * BIF_GetThemeValuef(TH_VERTEX_SIZE);
 			

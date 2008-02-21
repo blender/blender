@@ -1359,13 +1359,13 @@ static void draw_manipulator_rotate_cyl(float mat[][4], int moving, int drawflag
 
 /* ********************************************* */
 
-float get_drawsize(View3D *v3d)
+float get_drawsize(View3D *v3d, float *co)
 {
 	ScrArea *sa = v3d->area;
 	float size, vec[3], len1, len2;
 	
 	/* size calculus, depending ortho/persp settings, like initgrabz() */
-	size= v3d->persmat[0][3]*v3d->twmat[3][0]+ v3d->persmat[1][3]*v3d->twmat[3][1]+ v3d->persmat[2][3]*v3d->twmat[3][2]+ v3d->persmat[3][3];
+	size= v3d->persmat[0][3]*co[0]+ v3d->persmat[1][3]*co[1]+ v3d->persmat[2][3]*co[2]+ v3d->persmat[3][3];
 	
 	VECCOPY(vec, v3d->persinv[0]);
 	len1= Normalize(vec);
@@ -1384,7 +1384,7 @@ float get_drawsize(View3D *v3d)
 static float get_manipulator_drawsize(ScrArea *sa)
 {
 	View3D *v3d= sa->spacedata.first;
-	float size = get_drawsize(v3d);
+	float size = get_drawsize(v3d, v3d->twmat[3]);
 	
 	size*= (float)U.tw_size;
 

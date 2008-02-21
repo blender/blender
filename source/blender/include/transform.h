@@ -376,7 +376,7 @@ int clipUVTransform(TransInfo *t, float *vec, int resize);
 /*********************** exported from transform_manipulator.c ********** */
 void draw_manipulator_ext(struct ScrArea *sa, int type, char axis, int col, float vec[3], float mat[][3]);
 int calc_manipulator_stats(struct ScrArea *sa);
-float get_drawsize(struct View3D *v3d);
+float get_drawsize(struct View3D *v3d, float *co);
 
 /*********************** TransData Creation and General Handling *********** */
 void createTransData(TransInfo *t);
