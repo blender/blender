@@ -52,6 +52,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_fluidsim.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -746,18 +747,24 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 {
 	CDDerivedMesh *cddm = cdDM_create("CDDM_from_mesh dm");
 	DerivedMesh *dm = &cddm->dm;
-	int i, *index;
+	int i, *index, alloctype;
 
-	/* this does a referenced copy, the only new layers being ORIGINDEX */
+	/* this does a referenced copy, the only new layers being ORIGINDEX,
+	 * with an exception for fluidsim */
 
 	DM_init(dm, mesh->totvert, mesh->totedge, mesh->totface);
 	dm->deformedOnly = 1;
 
-	CustomData_merge(&mesh->vdata, &dm->vertData, CD_MASK_MESH, CD_REFERENCE,
+	if(ob->fluidsimSettings && ob->fluidsimSettings->meshSurface)
+		alloctype= CD_DUPLICATE;
+	else
+		alloctype= CD_REFERENCE;
+
+	CustomData_merge(&mesh->vdata, &dm->vertData, CD_MASK_MESH, alloctype,
 	                 mesh->totvert);
-	CustomData_merge(&mesh->edata, &dm->edgeData, CD_MASK_MESH, CD_REFERENCE,
+	CustomData_merge(&mesh->edata, &dm->edgeData, CD_MASK_MESH, alloctype,
 	                 mesh->totedge);
-	CustomData_merge(&mesh->fdata, &dm->faceData, CD_MASK_MESH, CD_REFERENCE,
+	CustomData_merge(&mesh->fdata, &dm->faceData, CD_MASK_MESH, alloctype,
 	                 mesh->totface);
 
 	cddm->mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
