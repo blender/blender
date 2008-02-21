@@ -4874,34 +4874,35 @@ int EdgeSlide(short immediate, float imperc)
 	nearest = NULL;
 	vertdist = -1;  
 	while(look) {	
+		tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
+		
+		if(!tempsv->up || !tempsv->down) {
+			error("Missing rails");
+			BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
+			BLI_linklist_free(vertlist,NULL); 
+			BLI_linklist_free(edgelist,NULL); 
+			return 0;
+		}
+
+		if(G.f & G_DRAW_EDGELEN) {
+			if(!(tempsv->up->f & SELECT)) {
+				tempsv->up->f |= SELECT;
+				tempsv->up->f2 |= 16;
+			} else {
+				tempsv->up->f2 |= ~16;
+			}
+			if(!(tempsv->down->f & SELECT)) {
+				tempsv->down->f |= SELECT;
+				tempsv->down->f2 |= 16;
+			} else {
+				tempsv->down->f2 |= ~16;
+			}
+		}
+
 		if(look->next != NULL) {
 			SlideVert *sv;
 
-			tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
-			sv		= BLI_ghash_lookup(vertgh,(EditVert*)look->next->link);
-			
-			if(!tempsv->up || !tempsv->down) {
-				error("Missing rails");
-				BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
-				BLI_linklist_free(vertlist,NULL); 
-				BLI_linklist_free(edgelist,NULL); 
-				return 0;
-			}
-
-			if(G.f & G_DRAW_EDGELEN) {
-				if(!(tempsv->up->f & SELECT)) {
-					tempsv->up->f |= SELECT;
-					tempsv->up->f2 |= 16;
-				} else {
-					tempsv->up->f2 |= ~16;
-				}
-				if(!(tempsv->down->f & SELECT)) {
-					tempsv->down->f |= SELECT;
-					tempsv->down->f2 |= 16;
-				} else {
-					tempsv->down->f2 |= ~16;
-				}
-			}
+			sv = BLI_ghash_lookup(vertgh,(EditVert*)look->next->link);
 
 			if(sv) {
 				float tempdist, co[2];
