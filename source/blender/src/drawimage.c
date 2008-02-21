@@ -1737,13 +1737,11 @@ static void sima_draw_alpha_backdrop(SpaceImage *sima, float x1, float y1, float
 	glColor3ub(100, 100, 100);
 	glRectf(x1, y1, x1 + sima->zoom*xsize, y1 + sima->zoom*ysize);
 	glColor3ub(160, 160, 160);
-	
+
 	glEnable(GL_POLYGON_STIPPLE);
 	glPolygonStipple(checker_stipple);
 	glRectf(x1, y1, x1 + sima->zoom*xsize, y1 + sima->zoom*ysize);
-	glEnd();
 	glDisable(GL_POLYGON_STIPPLE);
-	return;
 }
 
 static void sima_draw_alpha_pixels(float x1, float y1, int rectx, int recty, unsigned int *recti)
@@ -2058,7 +2056,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 						}
 						else {
 							if(sima->flag & SI_USE_ALPHA) {
-								sima_draw_alpha_backdrop(sima, x1_rep, y1_rep, (float)ibuf->x, (float)ibuf->y);
+								sima_draw_alpha_backdrop(sima, x1_rep, y1_rep, ibuf->x*xuser_asp, ibuf->y*yuser_asp);
 								glEnable(GL_BLEND);
 								/*use key alpha if the IMA_DO_PREMUL option is set.*/
 								if (sima->iuser.flag & IMA_DO_PREMUL)
