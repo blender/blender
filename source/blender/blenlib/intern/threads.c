@@ -32,20 +32,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
-#include <unistd.h> /* for checking system threads */
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 
+/* for checking system threads - BLI_system_thread_count */
 #ifdef WIN32
 #include "Windows.h"
-#endif
-
-#ifdef __APPLE__
+#elif defined(__APPLE__)
 #include <sys/types.h>
 #include <sys/sysctl.h>
+#else
+#include <unistd.h> 
 #endif
 
 /* ********** basic thread control API ************ 

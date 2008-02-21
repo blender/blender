@@ -2089,7 +2089,7 @@ static int RenderData_setModeBit( BPy_RenderData* self, PyObject *value,
 
 #define MODE_MASK ( R_OSA | R_SHADOW | R_GAMMA | R_ENVMAP | R_EDGE | \
 	R_FIELDS | R_FIELDSTILL | R_RADIO | R_BORDER | R_PANORAMA | R_CROP | \
-	R_ODDFIELD | R_MBLUR | R_RAYTRACE | R_AUTO_THREADS )
+	R_ODDFIELD | R_MBLUR | R_RAYTRACE | R_FIXED_THREADS )
 
 static PyObject *RenderData_getMode( BPy_RenderData *self )
 {
@@ -2593,13 +2593,12 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getModeBit, (setter)RenderData_setModeBit,
 	 "Skip rendering existing image files",
 	 (void *)R_NO_OVERWRITE},
-	{"autoThreads",
+	{"fixedThreads",
 	 (getter)RenderData_getModeBit, (setter)RenderData_setModeBit,
-	 "Use system number of processors",
-	 (void *)R_AUTO_THREADS},
+	 "Use the number of threads defined by the blend file",
+	 (void *)R_FIXED_THREADS},
 /* R_GAUSS unused */
 /* R_FBUF unused */
-/* R_AUTO_THREADS unused */
 	{"threads",
 	 (getter)RenderData_getThreads, (setter)RenderData_setThreads,
 	 "Number of threads used to render",
@@ -3721,7 +3720,7 @@ static PyObject *M_Render_ModesDict( void )
 		PyConstant_Insert( d, "ODDFIELD", PyInt_FromLong( R_ODDFIELD ) );
 		PyConstant_Insert( d, "MBLUR", PyInt_FromLong( R_MBLUR ) );
 		PyConstant_Insert( d, "RAYTRACING", PyInt_FromLong( R_RAYTRACE ) );
-		PyConstant_Insert( d, "AUTOTHREADS", PyInt_FromLong( R_AUTO_THREADS ) );
+		PyConstant_Insert( d, "FIXEDTHREADS", PyInt_FromLong( R_FIXED_THREADS ) );
 	}
 	return M;
 }

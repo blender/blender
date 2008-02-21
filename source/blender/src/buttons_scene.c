@@ -2023,8 +2023,8 @@ static void render_panel_output(void)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefIconButBitI(block, TOG, R_AUTO_THREADS, B_REDR, ICON_AUTO,	10, 63, 20, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Automatically set the threads to the number of processors on the system");
-	if (G.scene->r.mode & R_AUTO_THREADS) {
+	uiDefIconButBitI(block, TOGN, R_FIXED_THREADS, B_REDR, ICON_AUTO,	10, 63, 20, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Automatically set the threads to the number of processors on the system");
+	if ((G.scene->r.mode & R_FIXED_THREADS)==0) {
 		char thread_str[16];
 		sprintf(thread_str, " Threads: %d", BLI_system_thread_count());
 		uiDefBut(block, LABEL, 0, thread_str, 30, 63,80,20, 0, 0, 0, 0, 0, "");
