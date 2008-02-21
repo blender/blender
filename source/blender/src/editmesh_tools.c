@@ -5158,7 +5158,8 @@ int EdgeSlide(short immediate, float imperc)
 	
 	force_draw(0);
 	
-	EM_automerge(0);
+	if(!immediate)
+		EM_automerge(0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	scrarea_queue_winredraw(curarea);		 
 	
