@@ -6197,7 +6197,7 @@ void editing_panel_mesh_multires()
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	if(!me->mr) {
-		but= uiDefBut(block,BUT,B_NOP,"Add Multires", cx,cy,268,19,0,0,0,0,0,"");
+		but= uiDefBut(block,BUT,B_NOP,"Add Multires", cx,cy,268,19,0,0,0,0,0,"Allow editing of the mesh at multiple subdivision levels (disables distructive mesh editing)");
 		uiButSetFunc(but,multires_make,ob,me);
 	} else {
 		char subsurfmenu[]= "Subsurf Type%t|Catmull-Clark%x0|Simple Subdiv.%x1";

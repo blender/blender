@@ -1108,7 +1108,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, int winx, int winy
 		/* we clip faces with a minimum of 2 pixel boundary outside of image border. see zbuf.c */
 		re->clipcrop= 1.0f + 2.0f/(float)(re->winx>re->winy?re->winy:re->winx);
 		
-		if (rd->mode & R_FIXED_THREADS || commandline_threads == 0) { /* Automatic threads */
+		if ((rd->mode & R_FIXED_THREADS)==0 || commandline_threads == 0) { /* Automatic threads */
 			re->r.threads = BLI_system_thread_count();
 		} else if(commandline_threads >= 1 && commandline_threads<=BLENDER_MAX_THREADS) {
 			re->r.threads= commandline_threads;

@@ -2041,9 +2041,9 @@ static void render_panel_output(void)
 			uiDefButBitS(block, TOG, 1<<(3*b+a), 800,"",	(short)(10+18*a),(short)(10+14*b),16,12, &G.winpos, 0, 0, 0, 0, "Render window placement on screen");
 
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, R_EXR_TILE_FILE, B_REDR, "Save Buffers", 72, 31, 120, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Save the tiles for all RenderLayers and used SceneNodes to files, to save memory");
+	uiDefButBitS(block, TOG, R_EXR_TILE_FILE, B_REDR, "Save Buffers", 72, 31, 120, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Save tiles for all RenderLayers and used SceneNodes to files in the temp directory (saves memory, allows Full Sampling)");
 	if(G.scene->r.scemode & R_EXR_TILE_FILE)
-		uiDefButBitS(block, TOG, R_FULL_SAMPLE, B_REDR, "FullSample",	 192, 31, 118, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Saves for every OSA sample the entire RenderLayer results");
+		uiDefButBitS(block, TOG, R_FULL_SAMPLE, B_REDR, "FullSample",	 192, 31, 118, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Saves for every OSA sample the entire RenderLayer results (Higher quality sampling but slower)");
 	uiBlockEndAlign(block);
 	
 	uiDefButS(block, MENU, B_REDR, "Render Display %t|Render Window %x1|Image Editor %x0|Full Screen %x2",	
@@ -2085,8 +2085,8 @@ static void render_panel_bake(void)
 
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, R_BAKE_TO_ACTIVE, B_DIFF, "Selected to Active", 10,120,190,20,&G.scene->r.bake_flag, 0.0, 0, 0, 0, "Bake shading on the surface of selected objects to the active object");
-	uiDefButF(block, NUM, B_DIFF, "Dist:", 10,100,95,20,&G.scene->r.bake_maxdist, 0.0, 10.0, 1, 0, "Maximum distance from active object to other object");
-	uiDefButF(block, NUM, B_DIFF, "Bias:", 105,100,95,20,&G.scene->r.bake_biasdist, 0.0, 10.0, 1, 0, "Bias towards faces further away from the object");
+	uiDefButF(block, NUM, B_DIFF, "Dist:", 10,100,95,20,&G.scene->r.bake_maxdist, 0.0, 10.0, 1, 0, "Maximum distance from active object to other object (in blender units)");
+	uiDefButF(block, NUM, B_DIFF, "Bias:", 105,100,95,20,&G.scene->r.bake_biasdist, 0.0, 10.0, 1, 0, "Bias towards faces further away from the object (in blender units)");
 	uiBlockEndAlign(block);
 
 	if(G.scene->r.bake_mode == RE_BAKE_NORMALS)
@@ -2225,7 +2225,7 @@ static void render_panel_anim(void)
 	if(uiNewPanel(curarea, block, "Anim", "Render", 640, 0, 318, 204)==0) return;
 
 
-	uiDefBut(block, BUT,B_DOANIM,"ANIM",		692,142,192,47, 0, 0, 0, 0, 0, "Render the animation to disk (start to end frame)");
+	uiDefBut(block, BUT,B_DOANIM,"ANIM",		692,142,192,47, 0, 0, 0, 0, 0, "Render the animation to disk from start to end frame, (Ctrl+F12)");
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
