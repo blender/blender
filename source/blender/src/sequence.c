@@ -1651,16 +1651,16 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 		int doseq, rendering= G.rendering;
 		char scenename[64];
 			
-		if (se->ibuf==NULL && seq->scene && seq->scene->camera && !build_proxy_run) {
+		if (se->ibuf==NULL && sce && (sce->camera || sce->r.scemode & R_DOSEQ) && !build_proxy_run) {
 			se->ibuf = seq_proxy_fetch(seq, cfra);
 			if (se->ibuf) {
 				input_preprocess(seq, se, cfra);
 			}
 		}
 		
-		if (seq->scene && seq->scene->camera==NULL) {
+		if (sce && sce->camera==NULL && (sce->r.scemode & R_DOSEQ) == 0) {
 			se->ok = STRIPELEM_FAILED;
-		} else if (se->ibuf==NULL && seq->scene && seq->scene->camera) {
+		} else if (se->ibuf==NULL && sce && (sce->camera || sce->r.scemode & R_DOSEQ) ) {
 			waitcursor(1);
 			
 			/* Hack! This function can be called from do_render_seq(), in that case
