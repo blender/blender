@@ -592,7 +592,7 @@ static void seq_panel_editing()
 		     "Mute the current strip.");
 
 	uiDefButBitI(block, TOG, SEQ_LOCK,
-		     B_NOP, "Lock",
+		     B_REDR, "Lock",
 		     70,100,60,19, &last_seq->flag,
 		     0.0, 1.0, 0, 0,
 		     "Lock strip, so that it can't be transformed.");
