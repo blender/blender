@@ -2547,7 +2547,23 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
 			case WKEY:
-				if((G.qual==LR_SHIFTKEY)) {
+				if ( ((ob) && (ob->flag & OB_POSEMODE)) ||
+					 ((G.obedit) && (G.obedit->type==OB_ARMATURE)) ) 
+				{
+					if (G.qual) {
+						if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+							val= 1;
+						else if (G.qual == LR_ALTKEY)
+							val= 2;
+						else
+							val= 0;
+						
+						setflag_armature(val);
+					}
+					else if (G.qual == 0)
+						special_editmenu();
+				}
+				else if((G.qual==LR_SHIFTKEY)) {
 					initTransform(TFM_WARP, CTX_NONE);
 					Transform();
 				}

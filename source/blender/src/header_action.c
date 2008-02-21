@@ -150,7 +150,8 @@ enum {
 	ACTMENU_KEY_DUPLICATE = 0,
 	ACTMENU_KEY_DELETE,
 	ACTMENU_KEY_CLEAN,
-	ACTMENU_KEY_SAMPLEKEYS
+	ACTMENU_KEY_SAMPLEKEYS,
+	ACTMENU_KEY_INSERTKEY
 };
 
 enum {
@@ -1244,6 +1245,9 @@ static void do_action_keymenu(void *arg, int event)
 		case ACTMENU_KEY_SAMPLEKEYS:
 			sample_action_keys();
 			break;
+		case ACTMENU_KEY_INSERTKEY:
+			insertkey_action();
+			break;
 	}
 }
 
@@ -1267,7 +1271,15 @@ static uiBlock *action_keymenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					"Insert Key|I", 0, yco-=20, 
+					menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					ACTMENU_KEY_INSERTKEY, "");
 
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+					
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					"Duplicate|Shift D", 0, yco-=20, 
 					menuwidth, 19, NULL, 0.0, 0.0, 0, 

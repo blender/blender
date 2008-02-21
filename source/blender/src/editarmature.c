@@ -836,6 +836,98 @@ void select_bone_parent (void)
 	BIF_undo_push("Select Parent");
 }
 
+/* helper for setflag_sel_bone() */
+static void bone_setflag (int *bone, int flag, short mode)
+{
+	if (bone && flag) {
+		/* exception for inverse flags */
+		if (flag == BONE_NO_DEFORM) {
+			if (mode == 2)
+				*bone |= flag;
+			else if (mode == 1)
+				*bone &= ~flag;
+			else
+				*bone ^= flag;
+
+		}
+		else {
+			if (mode == 2)
+				*bone &= ~flag;
+			else if (mode == 1)
+				*bone |= flag;
+			else
+				*bone ^= flag;
+		}
+	}
+}
+
+/* used by posemode and editmode */
+void setflag_armature (short mode)
+{
+	Object *ob;
+	bArmature *arm;	
+	int flag;
+	
+	/* get data */
+	if (G.obedit)
+		ob= G.obedit;
+	else if (OBACT)
+		ob= OBACT;
+	else
+		return;
+	arm= (bArmature *)ob->data;
+	
+	/* get flag to set (sync these with the ones used in eBone_Flag */
+	if (mode == 2)
+		flag= pupmenu("Disable Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5");
+	else if (mode == 1)
+		flag= pupmenu("Enable Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5");
+	else
+		flag= pupmenu("Toggle Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5");
+	switch (flag) {
+		case 1: 	flag = BONE_DRAWWIRE; 	break;
+		case 2:		flag = BONE_NO_DEFORM; break;
+		case 3: 	flag = BONE_MULT_VG_ENV; break;
+		case 4:		flag = BONE_HINGE; break;
+		case 5:		flag = BONE_NO_SCALE; break;
+		default:	return;
+	}
+	
+	/* determine which mode armature is in */
+	if ((!G.obedit) && (ob->flag & OB_POSEMODE)) {
+		/* deal with pose channels */
+		bPoseChannel *pchan;
+		
+		/* set setting */
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
+				if (pchan->bone->flag & BONE_SELECTED) {
+					bone_setflag(&pchan->bone->flag, flag, mode);
+				}
+			}
+		}
+	}
+	else if (G.obedit) {
+		/* deal with editbones */
+		EditBone *curbone;
+		
+		/* set setting */
+		for (curbone= G.edbo.first; curbone; curbone= curbone->next) {
+			if (arm->layer & curbone->layer) {
+				if (curbone->flag & BONE_SELECTED) {
+					bone_setflag(&curbone->flag, flag, mode);
+				}
+			}
+		}
+	}
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWOOPS, 0);
+	
+	BIF_undo_push("Change Bone Setting");
+}
 
 /* **************** END PoseMode & EditMode *************************** */
 /* **************** Posemode stuff ********************** */

@@ -111,6 +111,7 @@ void	remake_editArmature(void);
 void	selectconnected_armature(void);
 void	selectconnected_posearmature(void);
 void	select_bone_parent(void);
+void	setflag_armature(short mode);
 void    unique_editbone_name (struct ListBase *ebones, char *name);
 
 void	auto_align_armature(short mode);
