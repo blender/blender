@@ -2005,8 +2005,10 @@ static void save_image_doit(char *name)
 
 		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
 		
-		if(G.scene->r.scemode & R_EXTENSION) 
+		if(G.scene->r.scemode & R_EXTENSION)  {
 			BKE_add_image_extension(str, G.sima->imtypenr);
+			BKE_add_image_extension(name, G.sima->imtypenr);
+		}
 		
 		if (saveover(str)) {
 			
