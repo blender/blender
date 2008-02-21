@@ -465,8 +465,6 @@ void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[][4], float
 		return;
 	if(psys->renderdata)
 		return;
-	if(psys->part->draw_as!=PART_DRAW_PATH)
-		return;
 
 	data= MEM_callocN(sizeof(ParticleRenderData), "ParticleRenderData");
 
@@ -506,8 +504,6 @@ void psys_render_restore(Object *ob, ParticleSystem *psys)
 
 	data= psys->renderdata;
 	if(!data)
-		return;
-	if(psys->part->draw_as!=PART_DRAW_PATH)
 		return;
 	
 	if(data->elems)
