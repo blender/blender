@@ -2667,7 +2667,8 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	int frontside, need_orco=0;
 
 	cu= ob->data;
-	if(cu->nurb.first==NULL) return;
+	if(ob->type==OB_FONT && cu->str==NULL) return;
+	else if(ob->type==OB_CURVE && cu->nurb.first==NULL) return;
 
 	/* no modifier call here, is in makedisp */
 
