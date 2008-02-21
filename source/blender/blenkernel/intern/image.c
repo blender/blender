@@ -906,8 +906,13 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 #endif /* WIN32 */
 	
 	if (G.scene->r.stamp & R_STAMP_FILENAME) {
-		if (do_prefix)		sprintf(stamp_data->file, "File %s", G.sce);
-		else				sprintf(stamp_data->file, "%s", G.sce);
+		if (G.relbase_valid) {
+			if (do_prefix)		sprintf(stamp_data->file, "File %s", G.sce);
+			else				sprintf(stamp_data->file, "%s", G.sce);
+		} else {
+			if (do_prefix)		strcpy(stamp_data->file, "File <untitled>");
+			else				strcpy(stamp_data->file, "<untitled>");
+		}
 		stamp_data->note[0] = '\0';
 	} else {
 		stamp_data->file[0] = '\0';
