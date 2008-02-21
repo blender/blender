@@ -39,7 +39,8 @@
 extern void undo_editmode_push(char *name, 
 		void (*freedata)(void *), 			// pointer to function freeing data
 		void (*to_editmode)(void *),        // data to editmode conversion
-		void *(*from_editmode)(void));     // editmode to data conversion
+		void *(*from_editmode)(void),       // editmode to data conversion
+		int  (*validate_undo)(void *));     // check if undo data is still valid
 
 
 // Further exported for UI is:

@@ -494,7 +494,7 @@ static void free_undoMball(void *lbv)
 /* this is undo system for MetaBalls */
 void undo_push_mball(char *name)
 {
-	undo_editmode_push(name, free_undoMball, undoMball_to_editMball, editMball_to_undoMball);
+	undo_editmode_push(name, free_undoMball, undoMball_to_editMball, editMball_to_undoMball, NULL);
 }
 
 /* Hide selected/unselected MetaElems */

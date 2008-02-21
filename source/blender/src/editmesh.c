@@ -2235,7 +2235,7 @@ static void undoMesh_to_editMesh(void *umv)
 /* and this is all the undo system needs to know */
 void undo_push_mesh(char *name)
 {
-	undo_editmode_push(name, free_undoMesh, undoMesh_to_editMesh, editMesh_to_undoMesh);
+	undo_editmode_push(name, free_undoMesh, undoMesh_to_editMesh, editMesh_to_undoMesh, NULL);
 }
 
 

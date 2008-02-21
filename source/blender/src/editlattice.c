@@ -294,28 +294,51 @@ void mouse_lattice(void)
 
 /* **************** undo for lattice object ************** */
 
-static void undoLatt_to_editLatt(void *defv)
+typedef struct UndoLattice {
+	BPoint *def;
+	int pntsu, pntsv, pntsw;
+} UndoLattice;
+
+static void undoLatt_to_editLatt(void *data)
 {
+	UndoLattice *ult= (UndoLattice*)data;
 	int a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 
-	memcpy(editLatt->def, defv, a*sizeof(BPoint));
+	memcpy(editLatt->def, ult->def, a*sizeof(BPoint));
 }
 
 static void *editLatt_to_undoLatt(void)
 {
+	UndoLattice *ult= MEM_callocN(sizeof(UndoLattice), "UndoLattice");
+	ult->def= MEM_dupallocN(editLatt->def);
+	ult->pntsu= editLatt->pntsu;
+	ult->pntsv= editLatt->pntsv;
+	ult->pntsw= editLatt->pntsw;
 	
-	return MEM_dupallocN(editLatt->def);
+	return ult;
 }
 
-static void free_undoLatt(void *defv)
+static void free_undoLatt(void *data)
 {
-	MEM_freeN(defv);
+	UndoLattice *ult= (UndoLattice*)data;
+
+	if(ult->def) MEM_freeN(ult->def);
+	MEM_freeN(ult);
+}
+
+static int validate_undoLatt(void *data)
+{
+	UndoLattice *ult= (UndoLattice*)data;
+
+	return (ult->pntsu == editLatt->pntsu &&
+	        ult->pntsv == editLatt->pntsv &&
+	        ult->pntsw == editLatt->pntsw);
 }
 
 /* and this is all the undo system needs to know */
 void undo_push_lattice(char *name)
 {
-	undo_editmode_push(name, free_undoLatt, undoLatt_to_editLatt, editLatt_to_undoLatt);
+	undo_editmode_push(name, free_undoLatt, undoLatt_to_editLatt, editLatt_to_undoLatt, validate_undoLatt);
 }
 
 

@@ -1565,7 +1565,7 @@ static void free_undoBones(void *lbv)
 /* and this is all the undo system needs to know */
 void undo_push_armature(char *name)
 {
-	undo_editmode_push(name, free_undoBones, undoBones_to_editBones, editBones_to_undoBones);
+	undo_editmode_push(name, free_undoBones, undoBones_to_editBones, editBones_to_undoBones, NULL);
 }
 
 

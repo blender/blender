@@ -4624,7 +4624,7 @@ static void free_undoCurve(void *lbv)
 /* and this is all the undo system needs to know */
 void undo_push_curve(char *name)
 {
-	undo_editmode_push(name, free_undoCurve, undoCurve_to_editCurve, editCurve_to_undoCurve);
+	undo_editmode_push(name, free_undoCurve, undoCurve_to_editCurve, editCurve_to_undoCurve, NULL);
 }
 
 

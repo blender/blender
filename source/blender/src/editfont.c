@@ -1283,7 +1283,7 @@ static void free_undoFont(void *strv)
 /* and this is all the undo system needs to know */
 void undo_push_font(char *name)
 {
-	undo_editmode_push(name, free_undoFont, undoFont_to_editFont, editFont_to_undoFont);
+	undo_editmode_push(name, free_undoFont, undoFont_to_editFont, editFont_to_undoFont, NULL);
 }
 
 
