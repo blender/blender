@@ -647,6 +647,7 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 		/* apply this achan? */
 		if (achan->ipo) {
 			/* find a keyframe at this frame - users may not have defined the pose on every channel, so this is necessary */
+			// TODO: this may be bad for user-defined poses...
 			for (icu= achan->ipo->curve.first; icu; icu= icu->next) {
 				BezTriple *bezt;
 				int i;
@@ -666,10 +667,17 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 				pchan= get_pose_channel(pose, achan->name);
 				
 				if (pchan) {	
-					short ok;
+					short ok= 0;
 					
-					ok= (pchan->bone) ? (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) : 0;
-					ok= (ok || pld->selcount) ? 1 : 0; 
+					if (pchan->bone) {
+						if ( (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) &&
+							 (pchan->bone->flag & BONE_HIDDEN_P)==0 )
+							ok = 1;
+						else if (pld->selcount == 0)
+							ok= 1;
+					}
+					else if (pld->selcount == 0)
+						ok= 1;
 					
 					if (ok) {
 						/* Evaluates and sets the internal ipo values	*/
