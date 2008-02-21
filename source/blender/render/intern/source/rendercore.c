@@ -164,10 +164,10 @@ static int calchalo_z(HaloRen *har, int zz)
 	return zz;
 }
 
-static void halo_pixelstruct(HaloRen *har, float *rb, float dist, float xn, float yn, PixStr *ps)
+static void halo_pixelstruct(HaloRen *har, RenderLayer **rlpp, int totsample, int od, float dist, float xn, float yn, PixStr *ps)
 {
 	float col[4], accol[4];
-	int amount, amountm, zz, flarec;
+	int amount, amountm, zz, flarec, sample;
 	
 	amount= 0;
 	accol[0]=accol[1]=accol[2]=accol[3]= 0.0f;
@@ -209,19 +209,21 @@ static void halo_pixelstruct(HaloRen *har, float *rb, float dist, float xn, floa
 	col[2]= accol[2];
 	col[3]= accol[3];
 	
-	addalphaAddfacFloat(rb, col, har->add);
-	
+	for(sample=0; sample<totsample; sample++)
+		addalphaAddfacFloat(rlpp[sample]->rectf + od*4, col, har->add);
 }
 
-static void halo_tile(RenderPart *pa, float *pass, unsigned int lay)
+static void halo_tile(RenderPart *pa, RenderLayer *rl)
 {
+	RenderLayer *rlpp[RE_MAX_OSA];
 	HaloRen *har;
 	rcti disprect= pa->disprect, testrect= pa->disprect;
-	float dist, xsq, ysq, xn, yn, *rb;
+	float dist, xsq, ysq, xn, yn;
 	float col[4];
 	long *rd= NULL;
-	int a, *rz, zz, y;
+	int a, *rz, zz, y, sample, totsample, od;
 	short minx, maxx, miny, maxy, x;
+	unsigned int lay= rl->lay;
 
 	/* we don't render halos in the cropped area, gives errors in flare counter */
 	if(pa->crop) {
@@ -231,6 +233,8 @@ static void halo_tile(RenderPart *pa, float *pass, unsigned int lay)
 		testrect.ymax-= pa->crop;
 	}
 	
+	totsample= get_sample_layers(pa, rl, rlpp);
+
 	for(a=0; a<R.tothalo; a++) {
 		har= R.sortedhalos[a];
 
@@ -255,8 +259,8 @@ static void halo_tile(RenderPart *pa, float *pass, unsigned int lay)
 			
 				for(y=miny; y<maxy; y++) {
 					int rectofs= (y-disprect.ymin)*pa->rectx + (minx - disprect.xmin);
-					rb= pass + 4*rectofs;
 					rz= pa->rectz + rectofs;
+					od= rectofs;
 					
 					if(pa->rectdaps)
 						rd= pa->rectdaps + rectofs;
@@ -264,19 +268,21 @@ static void halo_tile(RenderPart *pa, float *pass, unsigned int lay)
 					yn= (y-har->ys)*R.ycor;
 					ysq= yn*yn;
 					
-					for(x=minx; x<maxx; x++, rb+=4, rz++) {
+					for(x=minx; x<maxx; x++, rz++, od++) {
 						xn= x- har->xs;
 						xsq= xn*xn;
 						dist= xsq+ysq;
 						if(dist<har->radsq) {
 							if(rd && *rd) {
-								halo_pixelstruct(har, rb, dist, xn, yn, (PixStr *)*rd);
+								halo_pixelstruct(har, rlpp, totsample, od, dist, xn, yn, (PixStr *)*rd);
 							}
 							else {
 								zz= calchalo_z(har, *rz);
 								if(zz> har->zs) {
 									shadeHaloFloat(har, col, zz, dist, xn, yn, har->flarec);
-									addalphaAddfacFloat(rb, col, har->add);
+
+									for(sample=0; sample<totsample; sample++)
+										addalphaAddfacFloat(rlpp[sample]->rectf + od*4, col, har->add);
 								}
 							}
 						}
@@ -972,7 +978,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 		/* halo before ztra, because ztra fills in zbuffer now */
 		if(R.flag & R_HALO)
 			if(rl->layflag & SCE_LAY_HALO)
-				halo_tile(pa, rl->rectf, rl->lay);
+				halo_tile(pa, rl);
 
 		/* transp layer */
 		if(R.flag & R_ZTRA || R.totstrand) {
@@ -1158,7 +1164,7 @@ void zbufshade_tile(RenderPart *pa)
 		/* halo before ztra, because ztra fills in zbuffer now */
 		if(R.flag & R_HALO)
 			if(rl->layflag & SCE_LAY_HALO)
-				halo_tile(pa, rl->rectf, rl->lay);
+				halo_tile(pa, rl);
 		
 		if(R.flag & R_ZTRA || R.totstrand) {
 			if(rl->layflag & (SCE_LAY_ZTRA|SCE_LAY_STRAND)) {
