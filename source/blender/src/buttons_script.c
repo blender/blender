@@ -371,9 +371,9 @@ static void  script_panel_scriptlink(void)
 				script= &(G.scene->world->scriptlink);
 		}
 
-		if (script) draw_scriptlink(block, script, 10, 140, 0);			
+		if (script) draw_scriptlink(block, script, 10, 140, 0);
 
-		draw_scriptlink(block, &G.scene->scriptlink, 10, 80, 1);
+		draw_scriptlink(block, &G.scene->scriptlink, 10, 80, ID_SCE);
 	}
 }
 
