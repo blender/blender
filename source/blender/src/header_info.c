@@ -1453,44 +1453,48 @@ static uiBlock *info_add_groupmenu(void *arg_unused)
 
 void do_info_addmenu(void *arg, int event)
 {
-	switch(event) {		
-		case 0:
-			/* Mesh */
-			break;
-		case 1:
-			/* Curve */
-			break;
-		case 2:
-			/* Surface */
-			break;
-		case 3:
-			/* Metaball */
-			break;
-		case 4:
-			/* Text (argument is discarded) */
-			add_primitiveFont(event);
-			break;
-		case 5:
-			/* Empty */
-			add_object_draw(OB_EMPTY);
-			break;
-		case 6:
-			/* Camera */
-			add_object_draw(OB_CAMERA);
-			break;
-		case 8:
-			/* Armature */
-			add_primitiveArmature(OB_ARMATURE);
-			break;
-		case 9:
-			/* Lattice */
-			add_object_draw(OB_LATTICE);
-			break;
-		case 10:
-			/* group instance not yet */
-			break;
-		default:
-			break;
+	if (event>=20) {
+		BPY_menu_do_python(PYMENU_ADD, event - 20);
+	} else {
+		switch(event) {		
+			case 0:
+				/* Mesh */
+				break;
+			case 1:
+				/* Curve */
+				break;
+			case 2:
+				/* Surface */
+				break;
+			case 3:
+				/* Metaball */
+				break;
+			case 4:
+				/* Text (argument is discarded) */
+				add_primitiveFont(event);
+				break;
+			case 5:
+				/* Empty */
+				add_object_draw(OB_EMPTY);
+				break;
+			case 6:
+				/* Camera */
+				add_object_draw(OB_CAMERA);
+				break;
+			case 8:
+				/* Armature */
+				add_primitiveArmature(OB_ARMATURE);
+				break;
+			case 9:
+				/* Lattice */
+				add_object_draw(OB_LATTICE);
+				break;
+			case 10:
+				/* group instance not yet */
+				break;
+			default:
+				break;
+		}
 	}
 	allqueue(REDRAWINFO, 0);
 }
@@ -1500,6 +1504,8 @@ static uiBlock *info_addmenu(void *arg_unused)
 {
 /*		static short tog=0; */
 	uiBlock *block;
+	BPyMenu *pym;
+	int i=0;
 	short yco= 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "addmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
@@ -1525,6 +1531,15 @@ static uiBlock *info_addmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Armature",			0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lattice",			0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 9, "");
+
+	pym = BPyMenuTable[PYMENU_ADD];
+	if (pym) {
+		uiDefIconTextBut(block, SEPR, 0, ICON_BLANK1, "",					0, yco-=6,	1620, 6,  NULL, 0.0, 0.0, 0, 0, "");
+		
+		for (; pym; pym = pym->next, i++) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, i+20, pym->tooltip?pym->tooltip:pym->filename);
+		}
+	}
 
 	uiBlockSetDirection(block, UI_DOWN);
 	uiTextBoundsBlock(block, 80);
