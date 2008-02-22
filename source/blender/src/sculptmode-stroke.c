@@ -63,7 +63,7 @@ void sculpt_stroke_new(const int max)
 	SculptSession *ss = sculpt_session();
 
 	ss->stroke = MEM_callocN(sizeof(SculptStroke), "SculptStroke");
-	ss->stroke->loc = MEM_callocN(sizeof(short) * 2 * max, "SculptStroke.loc");
+	ss->stroke->loc = MEM_callocN(sizeof(short) * 4 * max, "SculptStroke.loc");
 	ss->stroke->max = max;
 	ss->stroke->index = -1;
 }
