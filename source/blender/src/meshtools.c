@@ -1024,7 +1024,7 @@ void objects_bake_render_menu(void)
 	short event;
 
 	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4|Displacement %x5");
-	
+	if (event < 1) return;
 	objects_bake_render_ui(event);
 }
 
@@ -1150,7 +1150,15 @@ void objects_bake_render(short event, char **error_msg)
 void objects_bake_render_ui(short event)
 {
 	char *error_msg = NULL;
+	int is_editmode = (G.obedit!=NULL);
+	
+	/* Deal with editmode, this is a bit clunky but since UV's are in editmode, users are likely to bake from their */
+	if (is_editmode) exit_editmode(0);
+	
 	objects_bake_render(event, &error_msg);
+	
+	if (is_editmode) enter_editmode(0);
+	
 	if (error_msg)
 		error(error_msg);
 }
