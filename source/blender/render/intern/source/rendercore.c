@@ -1855,7 +1855,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 	if(bs->type==RE_BAKE_AO) {
 		ambient_occlusion(shi);
 
-		if(R.r.bake_flag & R_BAKE_NORMALIZE_AO)
+		if(R.r.bake_flag & R_BAKE_NORMALIZE)
 			VECCOPY(shr.combined, shi->ao)
 		else
 			ambient_occlusion_to_diffuse(shi, shr.combined);
@@ -1934,7 +1934,11 @@ static void bake_displacement(void *handle, ShadeInput *shi, float dist, int x, 
 	BakeShade *bs= handle;
 	float disp;
 	
-	disp = 0.5 + dist;
+	if(R.r.bake_flag & R_BAKE_NORMALIZE && R.r.bake_maxdist) {
+		disp = (dist+R.r.bake_maxdist) / (R.r.bake_maxdist*2); /* alter the range from [-bake_maxdist, bake_maxdist] to [0, 1]*/
+	} else {
+		disp = 0.5 + dist; /* alter the range from [-0.5,0.5] to [0,1]*/
+	}
 	
 	if(bs->rect_float) {
 		float *col= bs->rect_float + 4*(bs->rectx*y + x);
@@ -2066,7 +2070,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 		}
 
 		if (hit && bs->type==RE_BAKE_DISPLACEMENT) {;
-			bake_displacement(handle, shi, mindist, x, y);
+			bake_displacement(handle, shi, (dir==-1)? -mindist:mindist, x, y);
 			return;
 		}
 

@@ -2085,16 +2085,20 @@ static void render_panel_bake(void)
 
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, R_BAKE_TO_ACTIVE, B_DIFF, "Selected to Active", 10,120,190,20,&G.scene->r.bake_flag, 0.0, 0, 0, 0, "Bake shading on the surface of selected objects to the active object");
-	uiDefButF(block, NUM, B_DIFF, "Dist:", 10,100,95,20,&G.scene->r.bake_maxdist, 0.0, 10.0, 1, 0, "Maximum distance from active object to other object (in blender units)");
-	uiDefButF(block, NUM, B_DIFF, "Bias:", 105,100,95,20,&G.scene->r.bake_biasdist, 0.0, 10.0, 1, 0, "Bias towards faces further away from the object (in blender units)");
+	uiDefButF(block, NUM, B_DIFF, "Dist:", 10,100,95,20,&G.scene->r.bake_maxdist, 0.0, 1000.0, 1, 0, "Maximum distance from active object to other object (in blender units)");
+	uiDefButF(block, NUM, B_DIFF, "Bias:", 105,100,95,20,&G.scene->r.bake_biasdist, 0.0, 1000.0, 1, 0, "Bias towards faces further away from the object (in blender units)");
 	uiBlockEndAlign(block);
 
 	if(G.scene->r.bake_mode == RE_BAKE_NORMALS)
 		uiDefButS(block, MENU, B_DIFF, "Normal Space %t|Camera %x0|World %x1|Object %x2|Tangent %x3", 
 			10,70,190,20, &G.scene->r.bake_normal_space, 0, 0, 0, 0, "Choose normal space for baking");
-	else if(G.scene->r.bake_mode == RE_BAKE_AO)
-		uiDefButBitS(block, TOG, R_BAKE_NORMALIZE_AO, B_DIFF, "Normalized", 10,70,190,20, &G.scene->r.bake_flag, 0.0, 0, 0, 0, "Bake ambient occlusion normalized, without taking into acount material settings");
-
+	else if(G.scene->r.bake_mode == RE_BAKE_AO || G.scene->r.bake_mode == RE_BAKE_DISPLACEMENT) {
+		uiDefButBitS(block, TOG, R_BAKE_NORMALIZE, B_DIFF, "Normalized", 10,70,190,20, &G.scene->r.bake_flag, 0.0, 0, 0, 0,
+				G.scene->r.bake_mode == RE_BAKE_AO ?
+				 "Bake ambient occlusion normalized, without taking into acount material settings":
+				 "Normalized displacement value to fit the 'Dist' range"
+		);
+	}
 #if 0	
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, R_BAKE_OSA, B_DIFF, "OSA",		10,120,190,20, &G.scene->r.bake_flag, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");

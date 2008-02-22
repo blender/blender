@@ -1899,12 +1899,12 @@ static int RenderData_setFloatAttrClamp( BPy_RenderData *self, PyObject *value,
 		break;
 	case EXPP_RENDER_ATTR_BAKEDIST:
 		min = 0.0f;
-		max = 10.0f;
+		max = 1000.0f;
 		param = &self->renderContext->bake_maxdist;
 		break;
 	case EXPP_RENDER_ATTR_BAKEBIAS:
 		min = 0.0f;
-		max = 10.0f;
+		max = 1000.0f;
 		param = &self->renderContext->bake_biasdist;
 		break;
 	default:
@@ -2880,7 +2880,7 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	{"bakeNormalizeAO",
 	 (getter)RenderData_getBakeMode, (setter)RenderData_setBakeMode,
 	 "Bake selection to active",
-	 (void *)R_BAKE_NORMALIZE_AO},
+	 (void *)R_BAKE_NORMALIZE},
 	{"bakeMargin",
 	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
 	 "number of pixels to use as a margin for the edges of the image",
