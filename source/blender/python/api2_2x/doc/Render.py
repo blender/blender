@@ -390,11 +390,15 @@ class RenderData:
   @ivar bakeClear: When enabled, baking clears the image first.
   @type bakeClear: bool
   @ivar bakeToActive: When enabled, selected objects are baked onto the active object.
-  @type bakeToActive: bool  
+  @type bakeToActive: bool
+  @ivar bakeNormalizeAO: Normalize AO bake values.
+  @type bakeNormalizeAO: bool  
   @ivar bakeMargin: The pixel distance to extend baked pixels past the boundry (reduces bleeding when mipmapping)
   @type bakeMargin: int
   @ivar bakeDist: The distance in blender units to use when bakeToActive is enabled and geomtry does not overlap.
   @type bakeDist: float
+  @ivar bakeBias: The distance in blender units to bias faces further away from the object.
+  @type bakeBias: float
   """
   
   def currentFrame(frame = None):

@@ -90,7 +90,8 @@ enum rend_constants {
 	EXPP_RENDER_ATTR_BAKEMARGIN,
 	EXPP_RENDER_ATTR_BAKEMODE,
  	EXPP_RENDER_ATTR_BAKEDIST,
-	EXPP_RENDER_ATTR_BAKENORMALSPACE
+	EXPP_RENDER_ATTR_BAKENORMALSPACE,
+	EXPP_RENDER_ATTR_BAKEBIAS
 };
 
 #define EXPP_RENDER_ATTR_CFRA                 2
@@ -1860,6 +1861,9 @@ static PyObject *RenderData_getFloatAttr( BPy_RenderData *self, void *type )
 	case EXPP_RENDER_ATTR_BAKEDIST:
 		param = self->renderContext->bake_maxdist;
 		break;
+	case EXPP_RENDER_ATTR_BAKEBIAS:
+		param = self->renderContext->bake_biasdist;
+		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"undefined type constant in RenderData_getFloatAttr" );
@@ -1893,13 +1897,16 @@ static int RenderData_setFloatAttrClamp( BPy_RenderData *self, PyObject *value,
 		max = 120.0f;
 		param = &self->renderContext->frs_sec_base;
 		break;
-		
 	case EXPP_RENDER_ATTR_BAKEDIST:
 		min = 0.0f;
 		max = 10.0f;
 		param = &self->renderContext->bake_maxdist;
 		break;
-		
+	case EXPP_RENDER_ATTR_BAKEBIAS:
+		min = 0.0f;
+		max = 10.0f;
+		param = &self->renderContext->bake_biasdist;
+		break;
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"undefined type constant in RenderData_setFloatAttrClamp" );
@@ -2870,6 +2877,10 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getBakeMode, (setter)RenderData_setBakeMode,
 	 "Bake selection to active",
 	 (void *)R_BAKE_TO_ACTIVE},
+	{"bakeNormalizeAO",
+	 (getter)RenderData_getBakeMode, (setter)RenderData_setBakeMode,
+	 "Bake selection to active",
+	 (void *)R_BAKE_NORMALIZE_AO},
 	{"bakeMargin",
 	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
 	 "number of pixels to use as a margin for the edges of the image",
@@ -2884,7 +2895,11 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (void *)EXPP_RENDER_ATTR_BAKENORMALSPACE},
 	{"bakeDist",
 	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
-	 "Distance in blender units",
+	 "Distance (in blender units)",
+	 (void *)EXPP_RENDER_ATTR_BAKEDIST},
+	{"bakeBias",
+	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
+	 "Bias towards faces further away from the object (in blender units)",
 	 (void *)EXPP_RENDER_ATTR_BAKEDIST},
 	{NULL,NULL,NULL,NULL,NULL}
 };
