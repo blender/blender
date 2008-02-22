@@ -4207,7 +4207,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 	/* one render object for the data itself */
 	if(allow_render) {
 		obr= RE_addRenderObject(re, ob, par, index, 0, ob->lay);
-		if((dob && !dob->animated) || (ob->flag & OB_RENDER_DUPLI)) {
+		if((dob && !dob->animated) || (ob->transflag & OB_RENDER_DUPLI)) {
 			obr->flag |= R_INSTANCEABLE;
 			Mat4CpyMat4(obr->obmat, ob->obmat);
 		}
@@ -4229,7 +4229,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 		psysindex= 1;
 		for(psys=ob->particlesystem.first; psys; psys=psys->next, psysindex++) {
 			obr= RE_addRenderObject(re, ob, par, index, psysindex, ob->lay);
-			if((dob && !dob->animated) || (ob->flag & OB_RENDER_DUPLI)) {
+			if((dob && !dob->animated) || (ob->transflag & OB_RENDER_DUPLI)) {
 				obr->flag |= R_INSTANCEABLE;
 				Mat4CpyMat4(obr->obmat, ob->obmat);
 			}
