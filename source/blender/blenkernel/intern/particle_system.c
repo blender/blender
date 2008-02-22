@@ -2403,29 +2403,43 @@ static void add_to_effectors(ListBase *lb, Object *ob, Object *obsrc, ParticleSy
 				
 	}
 }
+
+static void psys_init_effectors_recurs(Object *ob, Object *obsrc, ParticleSystem *psys, ListBase *listb, int level)
+{
+	Group *group;
+	GroupObject *go;
+	unsigned int layer= obsrc->lay;
+
+	if(level>MAX_DUPLI_RECUR) return;
+
+	if(ob->lay & layer) {
+		if(ob->pd || ob->particlesystem.first)
+			add_to_effectors(listb, ob, obsrc, psys);
+
+		if(ob->dup_group) {
+			group= ob->dup_group;
+			for(go= group->gobject.first; go; go= go->next)
+				psys_init_effectors_recurs(go->ob, obsrc, psys, listb, level+1);
+		}
+	}
+}
+
 void psys_init_effectors(Object *obsrc, Group *group, ParticleSystem *psys)
 {
-	ListBase *listb=&psys->effectors;
+	ListBase *listb= &psys->effectors;
 	Base *base;
-	unsigned int layer= obsrc->lay;
 
 	listb->first=listb->last=0;
 	
 	if(group) {
 		GroupObject *go;
 		
-		for(go= group->gobject.first; go; go= go->next) {
-			if( (go->ob->lay & layer) && (go->ob->pd || go->ob->particlesystem.first)) {
-				add_to_effectors(listb, go->ob, obsrc, psys);
-			}
-		}
+		for(go= group->gobject.first; go; go= go->next)
+			psys_init_effectors_recurs(go->ob, obsrc, psys, listb, 0);
 	}
 	else {
-		for(base = G.scene->base.first; base; base= base->next) {
-			if( (base->lay & layer) && (base->object->pd || base->object->particlesystem.first)) {
-				add_to_effectors(listb, base->object, obsrc, psys);
-			}
-		}
+		for(base = G.scene->base.first; base; base= base->next)
+			psys_init_effectors_recurs(base->object, obsrc, psys, listb, 0);
 	}
 }
 
