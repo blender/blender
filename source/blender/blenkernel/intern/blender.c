@@ -720,7 +720,7 @@ void BKE_undo_save_quit(void)
 
 	file = open(str,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if(file == -1) {
-		printf("Unable to save %s\n", str);
+		error("Unable to save %s, check you have permissions", str);
 		return;
 	}
 
@@ -732,7 +732,7 @@ void BKE_undo_save_quit(void)
 	
 	close(file);
 	
-	if(chunk) printf("Unable to save %s\n", str);
+	if(chunk) error("Unable to save %s, internal error", str);
 	else printf("Saved session recovery to %s\n", str);
 }
 

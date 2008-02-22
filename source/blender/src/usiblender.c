@@ -1086,6 +1086,12 @@ void exit_usiblender(void)
 	quicktime_exit();
 #endif
 
+	/* undo free stuff */
+	undo_editmode_clear();
+	
+	BKE_undo_save_quit();	// saves quit.blend if global undo is on
+	BKE_reset_undo(); 
+	
 	if (!G.background) {
 		BIF_resources_free();
 		
@@ -1102,12 +1108,7 @@ void exit_usiblender(void)
 	if (copybuf) MEM_freeN(copybuf);
 	if (copybufinfo) MEM_freeN(copybufinfo);
 
-	/* undo free stuff */
-	undo_editmode_clear();
-	
-	BKE_undo_save_quit();	// saves quit.blend if global undo is on
-	BKE_reset_undo(); 
-	
+// 	
 	BLI_freelistN(&U.themes);
 	BIF_preview_free_dbase();
 	
