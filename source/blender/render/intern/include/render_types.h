@@ -276,6 +276,7 @@ typedef struct ObjectInstanceRen {
 	short flag;
 
 	float dupliorco[3], dupliuv[2];
+	float (*duplitexmat)[4];
 
 	float *vectors;
 	int totvector;
