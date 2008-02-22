@@ -4727,7 +4727,8 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		if((re->wrld.mode & WO_AMB_OCC) && !re->test_break())
 			if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
 				if(re->r.renderer==R_INTERN)
-					make_occ_tree(re);
+					if(re->r.mode & R_SHADOW)
+						make_occ_tree(re);
 
 		/* SSS */
 		if((re->r.mode & R_SSS) && !re->test_break())
@@ -5323,7 +5324,8 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 	/* occlusion */
 	if((re->wrld.mode & WO_AMB_OCC) && !re->test_break())
 		if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
-			make_occ_tree(re);
+			if(re->r.mode & R_SHADOW)
+				make_occ_tree(re);
 }
 
 /* ------------------------------------------------------------------------- */
