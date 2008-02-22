@@ -58,7 +58,6 @@ typedef struct ImageUser {
 /* iuser->flag */
 #define	IMA_ANIM_ALWAYS		1
 #define IMA_ANIM_REFRESHED	2
-#define IMA_DO_PREMUL		4
 
 typedef struct Image {
 	ID id;
@@ -109,12 +108,7 @@ typedef struct Image {
 #define	IMA_REFLECT		16
 #define IMA_NOCOLLECT   32
 #define IMA_ANTIALI		64
-
-/*used to be IMA_DO_PREMUL.  Note that
-  in theory, in should be possible
-  to use this flag position if necassary,
-  since this is only used in do_versions.*/
-#define IMA_OLDFLAG		128 
+#define IMA_DO_PREMUL	128
 
 /* tpageflag */
 #define IMA_TILES			1

@@ -58,7 +58,7 @@ static bNodeSocketType cmp_node_rlayers_out[]= {
 static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *iuser)
 {
 	ImBuf *ibuf;
-	CompBuf *stackbuf, *old;
+	CompBuf *stackbuf;
 	int type;
 	
 	ibuf= BKE_image_get_ibuf(ima, iuser);
@@ -79,11 +79,10 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 		stackbuf->rect= ibuf->rect_float;
 	}
 	
-	old = stackbuf;
-	stackbuf = dupalloc_compbuf(stackbuf);
-	free_compbuf(old);	
-
-	if (type==CB_RGBA && iuser && (iuser->flag & IMA_DO_PREMUL)) {
+	/*code to respect the premul flag of images; I'm
+	  not sure if this is a good idea for multilayer images,
+	  since it never worked before for them.
+	if (type==CB_RGBA && ima->flag & IMA_DO_PREMUL) {
 		//premul the image
 		int i;
 		float *pixel = stackbuf->rect;
@@ -94,7 +93,7 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 			pixel[2] *= pixel[3];
 		}
 	}
-	
+	*/
 	return stackbuf;
 };
 
@@ -202,6 +201,25 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, b
 		}
 		else {
 			stackbuf= node_composit_get_image(rd, ima, iuser);
+			
+			/*respect image premul option*/
+			if (stackbuf->type==CB_RGBA && ima->flag & IMA_DO_PREMUL) {
+				int i;
+				float *pixel;
+			
+				/*first duplicate stackbuf->rect, since it's just a pointer
+				  to the source imbuf, and we don't want to change that.*/
+				stackbuf->rect = MEM_dupallocN(stackbuf->rect);
+				
+				/*premul the image*/
+				
+				pixel = stackbuf->rect;
+				for (i=0; i<stackbuf->x*stackbuf->y; i++, pixel += 4) {
+					pixel[0] *= pixel[3];
+					pixel[1] *= pixel[3];
+					pixel[2] *= pixel[3];
+				}
+			}
 			
 			/* put image on stack */	
 			out[0]->data= stackbuf;

@@ -2419,7 +2419,6 @@ static void lib_link_texture(FileData *fd, Main *main)
 		if(tex->id.flag & LIB_NEEDLINK) {
 
 			tex->ima= newlibadr_us(fd, tex->id.lib, tex->ima);
-
 			tex->ipo= newlibadr_us(fd, tex->id.lib, tex->ipo);
 			if(tex->env) tex->env->object= newlibadr(fd, tex->id.lib, tex->env->object);
 
@@ -7451,58 +7450,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/*version patch to migrate premul flag from images to image users*/
-	if (main->versionfile < 245 || (main->versionfile == 245 && main->subversionfile < 15)) {
-		Tex *tex;
-		Image *image;
-		ImageUser *iuser;
-		Scene *scene;
-		bNode *node;
-		bNodeTree *ntree;
-		
-		/*handle image textures*/
-		for (tex=main->tex.first; tex; tex=tex->id.next) {
-			if (tex->ima) {
-				image = newlibadr(fd, lib, tex->ima);
-				if(image)
-					if (image->flag & IMA_OLDFLAG) 
-						tex->iuser.flag |= IMA_DO_PREMUL;
-			}
-		}
-
-		/*handle composite node trees*/
-		for (scene=main->scene.first; scene; scene=scene->id.next) {
-			if (scene->nodetree) {
-				for (node=scene->nodetree->nodes.first; node; node=node->next) {
-					ID *nodeid = newlibadr(fd, lib, node->id);
-					if (node->storage && nodeid && GS(nodeid->name) == ID_IM) {
-						image = (Image*) nodeid;
-						iuser = node->storage;
-						if (image->flag & IMA_OLDFLAG) iuser->flag |= IMA_DO_PREMUL;
-					}
-				}
-			}
-		}
-
-		/*handle node groups*/
-		for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next) {
-			if (ntree->type == NTREE_COMPOSIT) {
-				for (node=ntree->nodes.first; node; node=node->next) {
-					ID *nodeid = newlibadr(fd, lib, node->id);
-					if (node->storage && nodeid && GS(nodeid->name) == ID_IM) {
-						image = (Image*) nodeid;
-						iuser = node->storage;
-						if (image->flag & IMA_OLDFLAG) iuser->flag |= IMA_DO_PREMUL;
-					}
-				}
-			}
-		}
-
-		/*finally, remove the flag from all images*/
-		for (image=main->image.first; image; image=image->id.next) {
-			if (image->flag & IMA_OLDFLAG) image->flag &= ~IMA_OLDFLAG;
-		}
-	}
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 
