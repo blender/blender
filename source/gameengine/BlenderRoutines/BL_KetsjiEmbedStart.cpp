@@ -135,6 +135,10 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 	STR_String exitstring = "";
 	BlendFileData *bfd= NULL;
 
+	// Acquire Python's GIL (global interpreter lock)
+	// so we can safely run Python code and API calls
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+
 	bgl::InitExtensions(1);
 	
 	do
@@ -464,6 +468,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 
 	if (bfd) BLO_blendfiledata_free(bfd);
+
+	// Release Python's GIL
+	PyGILState_Release(gilstate);
 }
 
 extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
@@ -481,6 +488,10 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 	strcpy (pathname, maggie->name);
 	STR_String exitstring = "";
 	BlendFileData *bfd= NULL;
+
+	// Acquire Python's GIL (global interpreter lock)
+	// so we can safely run Python code and API calls
+	PyGILState_STATE gilstate = PyGILState_Ensure();
 
 	bgl::InitExtensions(1);
 
@@ -669,4 +680,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 	if (bfd) BLO_blendfiledata_free(bfd);
+
+	// Release Python's GIL
+	PyGILState_Release(gilstate);
 }

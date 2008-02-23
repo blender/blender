@@ -544,9 +544,14 @@ void start_game(void)
 	RestoreState();
 
 	/* Restart BPY - unload the game engine modules. */
+
+	/* Commented out: testing before Blender 2.46 if it's ok to keep
+	 * these modules around, they give access to relevant info for
+	 * exporters to other engines...
 	BPY_end_python();
-	BPY_start_python(0, NULL); /* argc, argv stored there already */
-	BPY_post_start_python(); /* userpref path and menus init */
+	BPY_start_python(0, NULL); 
+	BPY_post_start_python();
+	*/
 
 	restore_all_scene_cfra(scene_cfra_store);
 	set_scene_bg(startscene);
@@ -615,10 +620,16 @@ void start_RBSimulation(void)
 	SaveState();
 	StartKetsjiShellSimulation(curarea, startscene->id.name+2, G.main,G.sipo, 1);
 	RestoreState();
+
 	/* Restart BPY - unload the game engine modules. */
+
+	/* Commented out: testing before Blender 2.46 if it's ok to keep
+	 * these modules around, they give access to relevant info for
+	 * exporters to other engines...
 	BPY_end_python();
-	BPY_start_python(0, NULL); /* argc, argv stored there already */
-	BPY_post_start_python(); /* userpref path and menus init */
+	BPY_start_python(0, NULL); 
+	BPY_post_start_python();
+	*/
 
 	restore_all_scene_cfra(scene_cfra_store);
 	set_scene_bg(startscene);

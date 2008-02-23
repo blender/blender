@@ -182,6 +182,7 @@ PyObject *traceback_getFilename( PyObject * tb );
 ****************************************************************************/
 void BPY_start_python( int argc, char **argv )
 {
+	PyThreadState *py_tstate = NULL;
 	static int argc_copy = 0;
 	static char **argv_copy = NULL;
 	int first_time = argc;
@@ -227,6 +228,9 @@ void BPY_start_python( int argc, char **argv )
 	Py_Initialize(  );
 	PySys_SetArgv( argc_copy, argv_copy );
 
+	/* Initialize thread support (also acquires lock) */
+	PyEval_InitThreads();
+
 	//Overrides __import__
 	init_ourImport(  );
 	init_ourReload(  );
@@ -237,6 +241,10 @@ void BPY_start_python( int argc, char **argv )
 	//Look for a python installation
 	init_syspath( first_time ); /* not first_time: some msgs are suppressed */
 
+	//PyEval_ReleaseLock();
+	py_tstate = PyGILState_GetThisThreadState();
+	PyEval_ReleaseThread(py_tstate);
+
 	return;
 }
 
@@ -246,6 +254,8 @@ void BPY_start_python( int argc, char **argv )
 void BPY_end_python( void )
 {
 	Script *script = NULL;
+
+	PyGILState_Ensure(); /* finalizing, no need to grab the state */
 
 	if( bpy_registryDict ) {
 		Py_DECREF( bpy_registryDict );
@@ -392,7 +402,6 @@ void init_syspath( int first_time )
 	}
 }
 
-
 void BPY_rebuild_syspath( void )
 {
 	PyObject *mod, *dict, *syspath;
@@ -444,6 +453,7 @@ void BPY_rebuild_syspath( void )
 	}
 	
 	Py_DECREF(mod);
+
 }
 
 /****************************************************************************
@@ -457,8 +467,12 @@ that dir info is available.
 ****************************************************************************/
 void BPY_post_start_python( void )
 {
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+
 	BPY_rebuild_syspath();
 	BPyMenu_Init( 0 );	/* get dynamic menus (registered scripts) data */
+
+	PyGILState_Release(gilstate);
 }
 
 /****************************************************************************
@@ -599,6 +613,7 @@ int BPY_txt_do_python_Text( struct Text *text )
 	BPy_constant *info;
 	char textname[24];
 	Script *script = G.main->script.first;
+	PyGILState_STATE gilstate;
 
 	if( !text )
 		return 0;
@@ -639,10 +654,13 @@ int BPY_txt_do_python_Text( struct Text *text )
 	script->py_button = NULL;
 	script->py_browsercallback = NULL;
 
+	gilstate = PyGILState_Ensure();
+
 	py_dict = CreateGlobalDictionary(  );
 
 	if( !setup_armature_weakrefs()){
 		printf("Oops - weakref dict\n");
+		PyGILState_Release(gilstate);
 		return 0;
 	}
 
@@ -667,7 +685,7 @@ int BPY_txt_do_python_Text( struct Text *text )
 		script->py_globaldict = NULL;
 		if( G.main->script.first )
 			free_libblock( &G.main->script, script );
-
+		PyGILState_Release(gilstate);
 		return 0;
 	} else {
 		Py_DECREF( py_result );
@@ -678,6 +696,8 @@ int BPY_txt_do_python_Text( struct Text *text )
 			free_libblock( &G.main->script, script );
 		}
 	}
+
+	PyGILState_Release(gilstate);
 
 	return 1;		/* normal return */
 }
@@ -759,11 +779,14 @@ int BPY_menu_do_python( short menutype, int event )
 	char scriptname[21];
 	Script *script = NULL;
 	int len;
+	PyGILState_STATE gilstate;
 
 	pym = BPyMenu_GetEntry( menutype, ( short ) event );
 
 	if( !pym )
 		return 0;
+
+	gilstate = PyGILState_Ensure();
 
 	if( pym->version > G.version )
 		notice( "Version mismatch: script was written for Blender %d. "
@@ -787,8 +810,10 @@ int BPY_menu_do_python( short menutype, int event )
 				while( arg-- )
 					pysm = pysm->next;
 				pyarg = PyString_FromString( pysm->arg );
-			} else
+			} else {
+				PyGILState_Release(gilstate);
 				return 0;
+			}
 		}
 	}
 
@@ -810,6 +835,7 @@ int BPY_menu_do_python( short menutype, int event )
 
 		if (!scriptsdir) {
 			printf("Error loading script: can't find default scripts dir!");
+			PyGILState_Release(gilstate);
 			return 0;
 		}
 
@@ -820,6 +846,7 @@ int BPY_menu_do_python( short menutype, int event )
 	if( !fp ) {
 		printf( "Error loading script: couldn't open file %s\n",
 			filestr );
+		PyGILState_Release(gilstate);
 		return 0;
 	}
 
@@ -838,6 +865,7 @@ int BPY_menu_do_python( short menutype, int event )
 	if( !script ) {
 		printf( "couldn't allocate memory for Script struct!" );
 		fclose( fp );
+		PyGILState_Release(gilstate);
 		return 0;
 	}
 
@@ -944,6 +972,7 @@ int BPY_menu_do_python( short menutype, int event )
 	if( !setup_armature_weakrefs()){
 		printf("Oops - weakref dict\n");
 		MEM_freeN( buffer );
+		PyGILState_Release(gilstate);
 		return 0;
 	}
 
@@ -962,6 +991,7 @@ int BPY_menu_do_python( short menutype, int event )
 			free_libblock( &G.main->script, script );
 		error( "Python script error: check console" );
 
+		PyGILState_Release(gilstate);
 		return 0;
 	} else {
 		Py_DECREF( py_res );
@@ -982,6 +1012,8 @@ int BPY_menu_do_python( short menutype, int event )
 
 		}
 	}
+
+	PyGILState_Release(gilstate);
 
 	return 1;		/* normal return */
 }
@@ -1005,13 +1037,19 @@ void BPY_free_compiled_text( struct Text *text )
 *****************************************************************************/
 void BPY_free_finished_script( Script * script )
 {
+	PyGILState_STATE gilstate;
+
 	if( !script )
 		return;
+
+	gilstate = PyGILState_Ensure();
 
 	if( PyErr_Occurred(  ) ) {	/* if script ended after filesel */
 		PyErr_Print(  );	/* eventual errors are handled now */
 		error( "Python script error: check console" );
 	}
+
+	PyGILState_Release(gilstate);
 
 	free_libblock( &G.main->script, script );
 	return;
@@ -1047,13 +1085,17 @@ static void unlink_script( Script * script )
 void BPY_clear_script( Script * script )
 {
 	PyObject *dict;
+	PyGILState_STATE gilstate;
 
 	if( !script )
 		return;
 
+	gilstate = PyGILState_Ensure();
+
 	if (!Py_IsInitialized()) {
 		printf("\nError: trying to free script data after finalizing Python!");
 		printf("\nScript name: %s\n", script->id.name+2);
+		PyGILState_Release(gilstate);
 		return;
 	}
 
@@ -1073,6 +1115,8 @@ void BPY_clear_script( Script * script )
 		Py_DECREF( dict );	/* Release dictionary. */
 		script->py_globaldict = NULL;
 	}
+
+	PyGILState_Release(gilstate);
 
 	unlink_script( script );
 }
@@ -1229,11 +1273,14 @@ void BPY_pyconstraint_update(Object *owner, bConstraint *con)
 		/* script does exist. it is assumed that this is a valid pyconstraint script */
 		PyObject *globals;
 		PyObject *retval, *gval;
+		PyGILState_STATE gilstate;
 		int num, i;
 		
 		/* clear the relevant flags first */
 		data->flag = 0;
-				
+
+		gilstate = PyGILState_Ensure();
+
 		/* populate globals dictionary */
 		globals = CreateGlobalDictionary();
 		retval = RunPython(data->text, globals);
@@ -1242,6 +1289,7 @@ void BPY_pyconstraint_update(Object *owner, bConstraint *con)
 			BPY_Err_Handle(data->text->id.name);
 			ReleaseGlobalDictionary(globals);
 			data->flag |= PYCON_SCRIPTERROR;
+			PyGILState_Release(gilstate);
 			return;
 		}
 		
@@ -1297,6 +1345,10 @@ void BPY_pyconstraint_update(Object *owner, bConstraint *con)
 			
 			/* clear globals */
 			ReleaseGlobalDictionary(globals);
+
+			PyGILState_Release(gilstate);
+
+			return;
 		}
 		else {
 			/* NUM_TARGETS is not defined or equals 0 */
@@ -1307,6 +1359,8 @@ void BPY_pyconstraint_update(Object *owner, bConstraint *con)
 			data->tarnum = 0;
 			data->flag &= ~PYCON_USETARGETS;
 			
+			PyGILState_Release(gilstate);
+
 			return;
 		}
 	}
@@ -1335,10 +1389,13 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 	bConstraintTarget *ct;
 	MatrixObject *retmat;
 	int row, col, index;
-	
+	PyGILState_STATE gilstate;
+
 	if (!con->text) return;
 	if (con->flag & PYCON_SCRIPTERROR) return;
-	
+
+	gilstate = PyGILState_Ensure();
+
 	globals = CreateGlobalDictionary();
 	
 	/* wrap blender-data as PyObjects for evaluation 
@@ -1357,6 +1414,8 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 	
 	if (!setup_armature_weakrefs()) {
 		fprintf(stderr, "Oops - weakref dict setup\n");
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1372,7 +1431,9 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		Py_XDECREF(tarmats);
 		
 		ReleaseGlobalDictionary(globals);
-		
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 
@@ -1389,7 +1450,9 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		Py_XDECREF(tarmats);
 		
 		ReleaseGlobalDictionary(globals);
-		
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1408,7 +1471,9 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		Py_XDECREF(tarmats);
 		
 		ReleaseGlobalDictionary(globals);
-		
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1422,7 +1487,9 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		Py_XDECREF(tarmats);
 		
 		ReleaseGlobalDictionary(globals);
-		
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1437,7 +1504,9 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		Py_XDECREF(retval);
 		
 		ReleaseGlobalDictionary(globals);
-		
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1452,7 +1521,9 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		Py_XDECREF(retval);
 		
 		ReleaseGlobalDictionary(globals);
-		
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}	
 
@@ -1471,6 +1542,8 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 	
 	/* clear globals */
 	ReleaseGlobalDictionary(globals);
+
+	PyGILState_Release(gilstate);
 }
 
 /* This evaluates the target matrix for each target the PyConstraint uses.
@@ -1485,11 +1558,14 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 	PyObject *pyargs, *retval;
 	MatrixObject *retmat;
 	int row, col;
-	
+	PyGILState_STATE gilstate;
+
 	if (!con->text) return;
 	if (con->flag & PYCON_SCRIPTERROR) return;
 	if (!ct) return;
 	
+	gilstate = PyGILState_Ensure();
+
 	globals = CreateGlobalDictionary();
 	
 	tar = Object_CreatePyObject(ct->tar);
@@ -1506,6 +1582,7 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 	
 	if (!setup_armature_weakrefs()) {
 		fprintf(stderr, "Oops - weakref dict setup\n");
+		PyGILState_Release(gilstate);
 		return;
 	}
 	
@@ -1522,7 +1599,9 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 		Py_XDECREF(tarmat);
 		
 		ReleaseGlobalDictionary(globals);
-		
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 
@@ -1539,7 +1618,9 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 		Py_XDECREF(tarmat);
 		
 		ReleaseGlobalDictionary(globals);
-		
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1559,6 +1640,9 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 		Py_XDECREF(tarmat);
 		
 		ReleaseGlobalDictionary(globals);
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1574,6 +1658,9 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 		Py_XDECREF(tarmat);
 		
 		ReleaseGlobalDictionary(globals);
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1587,6 +1674,9 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 		Py_XDECREF(retval);
 		
 		ReleaseGlobalDictionary(globals);
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1602,6 +1692,9 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 		Py_XDECREF(retval);
 		
 		ReleaseGlobalDictionary(globals);
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}	
 
@@ -1621,6 +1714,8 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 	
 	/* clear globals */
 	ReleaseGlobalDictionary(globals);
+
+	PyGILState_Release(gilstate);
 }
 
 /* This draws+handles the user-defined interface for editing pyconstraints idprops */
@@ -1631,6 +1726,7 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 	PyObject *globals;
 	PyObject *gval;
 	PyObject *retval;
+	PyGILState_STATE gilstate;
 	
 	if (!con->text) return;
 	if (con->flag & PYCON_SCRIPTERROR) return;
@@ -1648,6 +1744,9 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 	
 		/* free temp objects */
 		Py_XDECREF(idprop);
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 
@@ -1661,6 +1760,9 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		/* free temp objects */
 		ReleaseGlobalDictionary( globals );
 		Py_XDECREF(idprop);
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1673,6 +1775,9 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		ReleaseGlobalDictionary( globals );
 		
 		Py_XDECREF(idprop);
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1683,6 +1788,9 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		/* free temp objects */
 		ReleaseGlobalDictionary(globals);
 		Py_XDECREF(idprop);
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	else {
@@ -1692,6 +1800,9 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		/* free temp objects */
 		Py_XDECREF(idprop);
 		Py_DECREF(retval);
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 }
@@ -1702,11 +1813,15 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
  * updates in it reach pydriver evaluation. */
 void BPY_pydriver_update(void)
 {
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+
 	if (bpy_pydriver_Dict) { /* free the global dict used by pydrivers */
 		PyDict_Clear(bpy_pydriver_Dict);
 		Py_DECREF(bpy_pydriver_Dict);
 		bpy_pydriver_Dict = NULL;
 	}
+
+	PyGILState_Release(gilstate);
 
 	return;
 }
@@ -1750,15 +1865,19 @@ float BPY_pydriver_eval(IpoDriver *driver)
 	PyObject *retval, *bpy_ob = NULL;
 	float result = 0.0f; /* default return */
 	int setitem_retval;
+	PyGILState_STATE gilstate;
 
 	if (!driver) return result;
 
 	expr = driver->name; /* the py expression to be evaluated */
 	if (!expr || expr[0]=='\0') return result;
 
+	gilstate = PyGILState_Ensure();
+
 	if (!bpy_pydriver_Dict) {
 		if (bpy_pydriver_create_dict() != 0) {
 			fprintf(stderr, "Pydriver error: couldn't create Python dictionary");
+			PyGILState_Release(gilstate);
 			return result;
 		}
 	}
@@ -1775,6 +1894,7 @@ float BPY_pydriver_eval(IpoDriver *driver)
 
 	if( !setup_armature_weakrefs()){
 		fprintf( stderr, "Oops - weakref dict setup\n");
+		PyGILState_Release(gilstate);
 		return result;
 	}
 
@@ -1782,19 +1902,26 @@ float BPY_pydriver_eval(IpoDriver *driver)
 		bpy_pydriver_Dict);
 
 	if (retval == NULL) {
-		return pydriver_error(driver);
+		result = pydriver_error(driver);
+		PyGILState_Release(gilstate);
+		return result;
 	}
 
 	result = ( float )PyFloat_AsDouble( retval );
 	
-	if (result == -1 && PyErr_Occurred()) 
-		return pydriver_error(driver);
+	if (result == -1 && PyErr_Occurred()) {
+		result = pydriver_error(driver);
+		PyGILState_Release(gilstate);
+		return result;
+	}
 
 	/* remove 'self', since this dict is also used by py buttons */
 	if (setitem_retval == 0) PyDict_DelItemString(bpy_pydriver_Dict, "self");
 
 	/* all fine, make sure the "invalid expression" flag is cleared */
 	driver->flag &= ~IPO_DRIVER_FLAG_INVALID;
+
+	PyGILState_Release(gilstate);
 
 	return result;
 }
@@ -1832,15 +1959,20 @@ static int bpy_button_eval_error(char *expr) {
 int BPY_button_eval(char *expr, double *value)
 {
 	PyObject *retval, *floatval;
+	PyGILState_STATE gilstate;
+	int ret;
 
 	if (!value || !expr || expr[0]=='\0') return -1;
 
 	*value = 0.0; /* default value */
 
+	gilstate = PyGILState_Ensure();
+
 	if (!bpy_pydriver_Dict) {
 		if (bpy_pydriver_create_dict() != 0) {
 			fprintf(stderr,
 				"Button Python Eval error: couldn't create Python dictionary");
+			PyGILState_Release(gilstate);
 			return -1;
 		}
 	}
@@ -1848,6 +1980,7 @@ int BPY_button_eval(char *expr, double *value)
 
 	if( !setup_armature_weakrefs()){
 		fprintf(stderr, "Oops - weakref dict\n");
+		PyGILState_Release(gilstate);
 		return -1;
 	}
 
@@ -1855,19 +1988,25 @@ int BPY_button_eval(char *expr, double *value)
 		bpy_pydriver_Dict);
 
 	if (retval == NULL) {
-		return bpy_button_eval_error(expr);
+		ret = bpy_button_eval_error(expr);
+		PyGILState_Release(gilstate);
+		return ret;
 	}
 	else {
 		floatval = PyNumber_Float(retval);
 		Py_DECREF(retval);
 	}
 
-	if (floatval == NULL) 
-		return bpy_button_eval_error(expr);
-	else {
+	if (floatval == NULL) {
+		ret = bpy_button_eval_error(expr);
+		PyGILState_Release(gilstate);
+		return ret;
+	} else {
 		*value = (float)PyFloat_AsDouble(floatval);
 		Py_DECREF(floatval);
 	}
+
+	PyGILState_Release(gilstate);
 
 	return 0; /* successful exit */
 }
@@ -1973,19 +2112,24 @@ void BPY_do_pyscript( ID * id, short event )
 		PyObject *dict;
 		PyObject *ret;
 		int index, during_slink = during_scriptlink(  );
+		PyGILState_STATE gilstate;
 
 		/* invalid scriptlinks (new .blend was just loaded), return */
 		if( during_slink < 0 )
 			return;
-		
+
+		gilstate = PyGILState_Ensure();
+
 		if( !setup_armature_weakrefs()){
 			printf("Oops - weakref dict, this is a bug\n");
+			PyGILState_Release(gilstate);
 			return;
 		}
 		
 		value = GetPyObjectFromID( id );
 		if( !value){
 			printf("Oops - could not get a valid python object for Blender.link, this is a bug\n");
+			PyGILState_Release(gilstate);
 			return;
 		}
 		
@@ -2039,6 +2183,8 @@ void BPY_do_pyscript( ID * id, short event )
 		PyDict_SetItemString(g_blenderdict, "bylink", Py_False);
 		PyDict_SetItemString( g_blenderdict, "link", Py_None );
 		EXPP_dict_set_item_str( g_blenderdict, "event", PyString_FromString( "" ) );
+
+		PyGILState_Release(gilstate);
 	}
 }
 
@@ -2190,6 +2336,7 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 {
 	ScriptLink *scriptlink;
 	int retval = 0;
+	PyGILState_STATE gilstate;
 	
 	if (!sa || !(G.f & G_DOSCRIPTLINKS)) return 0;
 	
@@ -2213,8 +2360,11 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 			disable_where_scriptlink( (short)during_slink );
 		}
 
+		gilstate = PyGILState_Ensure();
+
 		if( !setup_armature_weakrefs()){
 			printf("Oops - weakref dict, this is a bug\n");
+			PyGILState_Release(gilstate);
 			return 0;
 		}
 		
@@ -2289,6 +2439,8 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 	 * 1 - event was processed;
 	 * space_event is of type DRAW:
 	 * 0 always */
+
+	PyGILState_Release(gilstate);
 
 	return retval;
 }

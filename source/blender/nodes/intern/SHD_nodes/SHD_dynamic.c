@@ -43,11 +43,19 @@
 
 static void node_dynamic_setup(bNode *node);
 static void node_dynamic_exec_cb(void *data, bNode *node, bNodeStack **in, bNodeStack **out);
+static void node_dynamic_free_storage_cb(bNode *node);
 
 static PyObject *init_dynamicdict(void) {
-	PyObject *newscriptdict= PyDict_New();
+	PyObject *newscriptdict;
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+
+	newscriptdict= PyDict_New();
+
 	PyDict_SetItemString(newscriptdict, "__builtins__", PyEval_GetBuiltins());
 	EXPP_dict_set_item_str(newscriptdict, "__name__", PyString_FromString("__main__"));
+
+	PyGILState_Release(gilstate);
+
 	return newscriptdict;
 }
 
@@ -228,12 +236,8 @@ static void node_dynamic_rem_all_links(bNodeType *tinfo)
 }
 
 /* node_dynamic_reset: clean a pynode, getting rid of all
- * data dynamically created for it.
- * ntree is used only in a special case: for working pynodes
- * that were saved on a .blend but fail for some reason when
- * the file is opened. We need it because pynodes are initialized
- * before G.main. */
-static void node_dynamic_reset(bNode *node, bNodeTree *ntree)
+ * data dynamically created for it. */
+static void node_dynamic_reset(bNode *node, int unlink_text)
 {
 	bNodeType *tinfo, *tinfo_default;
 	Material *ma;
@@ -244,16 +248,6 @@ static void node_dynamic_reset(bNode *node, bNodeTree *ntree)
 	node_dynamic_rem_all_links(tinfo);
 	node_dynamic_free_typeinfo_sockets(tinfo);
 
-	if (!ntree) { node_dynamic_free_sockets(node); }
-
-	//wnode_dynamic_update_socket_links(node, ntree);
-	node_dynamic_free_storage_cb(node);
-
-	/* XXX hardcoded for shaders: */
-	if (node->typeinfo->id) { BLI_remlink(&node_all_shaders, tinfo); }
-
-	node->typeinfo = tinfo_default;
-
 	/* reset all other XXX shader nodes sharing this typeinfo */
 	for (ma= G.main->mat.first; ma; ma= ma->id.next) {
 		if (ma->nodetree) {
@@ -263,45 +257,129 @@ static void node_dynamic_reset(bNode *node, bNodeTree *ntree)
 					node_dynamic_free_storage_cb(nd);
 					node_dynamic_free_sockets(nd);
 					nd->typeinfo = tinfo_default;
+					if (unlink_text) {
+						nd->id = NULL;
+						nd->custom1 = 0;
+						nd->custom1 = BSET(nd->custom1, NODE_DYNAMIC_NEW);
+						BLI_strncpy(nd->name, "Dynamic", 8);
+					}
 				}
 			}
 		}
 	}
 
+	/* XXX hardcoded for shaders: */
+	if (tinfo->id) { BLI_remlink(&node_all_shaders, tinfo); }
 	node_dynamic_free_typeinfo(tinfo);
+}
+
+/* Special case of the above function: for working pynodes
+ * that were saved on a .blend but fail for some reason when
+ * the file is opened. We need this because pynodes are initialized
+ * before G.main. */
+static void node_dynamic_reset_loaded(bNode *node)
+{
+	bNodeType *tinfo = node->typeinfo;
+
+	node_dynamic_rem_all_links(tinfo);
+	node_dynamic_free_typeinfo_sockets(tinfo);
+	node_dynamic_free_storage_cb(node);
+	/* XXX hardcoded for shaders: */
+	if (tinfo->id) { BLI_remlink(&node_all_shaders, tinfo); }
+
+	node_dynamic_free_typeinfo(tinfo);
+	node->typeinfo = node_dynamic_find_typeinfo(&node_all_shaders, NULL);
 }
 
 int nodeDynamicUnlinkText(ID *txtid) {
 	Material *ma;
-	int unlinked= 0;
+	bNode *nd;
+
+	/* find one node that uses this text */
+	for (ma= G.main->mat.first; ma; ma= ma->id.next) {
+		if (ma->nodetree) {
+			for (nd= ma->nodetree->nodes.first; nd; nd = nd->next) {
+				if ((nd->type == NODE_DYNAMIC) && (nd->id == txtid)) {
+					node_dynamic_reset(nd, 1); /* found, reset all */
+					return 1;
+				}
+			}
+		}
+	}
+	return 0; /* no pynodes used this text */
+}
+
+/*
+static void node_dynamic_free_all_typeinfos(ListBase *list)
+{
+	bNodeType *ntype, *ntnext;
+
+	ntype = list->first;
+
+	while (ntype) {
+		ntnext = ntype->next;
+		if (ntype->type == NODE_DYNAMIC && ntype->id) {
+			BLI_remlink(list, ntype);
+			node_dynamic_free_typeinfo_sockets(ntype);
+			node_dynamic_free_typeinfo(ntype);
+		}
+		ntype = ntnext;
+	}
+}
+*/
+/* Unload all pynodes: since the Game Engine restarts Python, we need
+ * to recreate pynodes dicts and objects. First we get rid of them here: */
+/*
+void nodeDynamicUnloadAll(void)
+{
+	Material *ma;
+	bNode *nd;
+	PyGILState_STATE gilstate = PyGILState_Ensure();
 
 	for (ma= G.main->mat.first; ma; ma= ma->id.next) {
 		if (ma->nodetree) {
-			bNode *nd, *nd2 = NULL;
 			for (nd= ma->nodetree->nodes.first; nd; nd = nd->next) {
-				if ((nd->type == NODE_DYNAMIC) && (nd->id == txtid)) {
-					nd->id = NULL;
+				if ((nd->type == NODE_DYNAMIC) && nd->id) {
+					node_dynamic_free_storage_cb(nd);
+					nd->typeinfo = NULL;
 					nd->custom1 = 0;
-					nd->custom1 = BSET(nd->custom1, NODE_DYNAMIC_NEW);
-					BLI_strncpy(nd->name, "Dynamic", 8);
-					nd2 = nd; /* so we have a ptr to one of them */
-					unlinked++;
+					nd->custom1 = BSET(nd->custom1, NODE_DYNAMIC_LOADED);
 				}
 			}
-			/* clean uneeded dynamic data from all nodes that shared
-			 * this text: */
-			if (nd2) node_dynamic_reset(nd2, NULL);
 		}
 	}
 
-	return unlinked;
+	node_dynamic_free_all_typeinfos(&node_all_shaders);
+
+	PyGILState_Release(gilstate);
 }
+
+void nodeDynamicReloadAll(void)
+{
+	Material *ma;
+	bNode *nd;
+
+	for (ma= G.main->mat.first; ma; ma= ma->id.next) {
+		if (ma->nodetree) {
+			for (nd= ma->nodetree->nodes.first; nd; nd = nd->next) {
+				if ((nd->type == NODE_DYNAMIC) && nd->id) {
+					node_dynamic_setup(nd);
+				}
+			}
+		}
+	}
+}
+*/
 
 static void node_dynamic_pyerror_print(bNode *node)
 {
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+
 	fprintf(stderr, "\nError in dynamic node script \"%s\":\n", node->name);
 	if (PyErr_Occurred()) { PyErr_Print(); }
 	else { fprintf(stderr, "Not a valid dynamic node Python script.\n"); }
+
+	PyGILState_Release(gilstate);
 }
 
 static int node_dynamic_parse(struct bNode *node)
@@ -316,6 +394,7 @@ static int node_dynamic_parse(struct bNode *node)
 	char *buf = NULL;
 	Py_ssize_t pos = 0;
 	int is_valid_script = 0;
+	PyGILState_STATE gilstate;
 
 	if (!node->id || !node->storage)
 		return 0;
@@ -323,6 +402,9 @@ static int node_dynamic_parse(struct bNode *node)
 	/* READY, no need to be here */
 	if (BTST(node->custom1, NODE_DYNAMIC_READY))
 		return 0;
+
+	/* for threading */
+	gilstate = PyGILState_Ensure();
 
 	nsd = (NodeScriptDict *)node->storage;
 
@@ -336,6 +418,7 @@ static int node_dynamic_parse(struct bNode *node)
 	if (!pyresult) {
 		node_dynamic_disable(node);
 		node_dynamic_pyerror_print(node);
+		PyGILState_Release(gilstate);
 		return -1;
 	}
 
@@ -365,7 +448,8 @@ static int node_dynamic_parse(struct bNode *node)
 					node->typeinfo->pydict = dict;
 					node->typeinfo->pynode = pynode;
 					node->typeinfo->id = node->id;
-					nodeAddSockets(node, node->typeinfo);
+					if (BNTST(node->custom1, NODE_DYNAMIC_LOADED))
+						nodeAddSockets(node, node->typeinfo);
 					if (BNTST(node->custom1, NODE_DYNAMIC_REPARSE)) {
 						nodeRegisterType(&node_all_shaders, node->typeinfo);
 						/* nodeRegisterType copied it to a new one, so we
@@ -386,6 +470,8 @@ static int node_dynamic_parse(struct bNode *node)
 		}
 	}
 
+	PyGILState_Release(gilstate);
+
 	if (!is_valid_script) { /* not a valid pynode script */
 		node_dynamic_disable(node);
 		node_dynamic_pyerror_print(node);
@@ -402,6 +488,7 @@ static void node_dynamic_setup(bNode *node)
 	NodeScriptDict *nsd = NULL;
 	bNodeTree *nodetree = NULL;
 	bNodeType *ntype = NULL;
+	PyGILState_STATE gilstate;
 
 	/* Possible cases:
 	 * NEW
@@ -423,9 +510,12 @@ static void node_dynamic_setup(bNode *node)
 	if (BTST(node->custom1, NODE_DYNAMIC_READY))
 		return;
 
+	gilstate = PyGILState_Ensure();
+
 	/* ERROR, reset to (empty) defaults */
 	if (BCLR(node->custom1, NODE_DYNAMIC_ERROR) == 0) {
-		node_dynamic_reset(node, NULL);
+		node_dynamic_reset(node, 0);
+		PyGILState_Release(gilstate);
 		return;
 	}
 
@@ -459,6 +549,7 @@ static void node_dynamic_setup(bNode *node)
 			node->storage = nsd;
 			/* prepared, now reparse: */
 			node_dynamic_parse(node);
+			PyGILState_Release(gilstate);
 			return;
 		}
 	}
@@ -492,8 +583,9 @@ static void node_dynamic_setup(bNode *node)
 			nodeMakeDynamicType(node);
 			nsd->dict = init_dynamicdict();
 			if ((node_dynamic_parse(node) == -1) && nodetree) {
-				node_dynamic_reset(node, nodetree);
+				node_dynamic_reset_loaded(node);
 			}
+			PyGILState_Release(gilstate);
 			return;
 		}
 	}
@@ -502,6 +594,7 @@ static void node_dynamic_setup(bNode *node)
 	 * we just reuse existing py dict and pynode */
 	nsd->dict = node->typeinfo->pydict;
 	nsd->node = node->typeinfo->pynode;
+
 	Py_INCREF((PyObject *)(nsd->dict));
 	Py_INCREF((PyObject *)(nsd->node));
 
@@ -512,6 +605,8 @@ static void node_dynamic_setup(bNode *node)
 
 	node->custom1 = BCLR(node->custom1, NODE_DYNAMIC_ADDEXIST);
 	node->custom1 = BSET(node->custom1, NODE_DYNAMIC_READY);
+
+	PyGILState_Release(gilstate);
 
 	return;
 }
@@ -546,16 +641,21 @@ static void node_dynamic_init_cb(bNode *node) {
 static void node_dynamic_copy_cb(bNode *orig_node, bNode *new_node)
 {
 	NodeScriptDict *nsd;
+	PyGILState_STATE gilstate;
 
 	if (!orig_node->storage) return;
 
 	nsd = (NodeScriptDict *)(orig_node->storage);
 	new_node->storage = MEM_dupallocN(orig_node->storage);
 
+	gilstate = PyGILState_Ensure();
+
 	if (nsd->node)
 		Py_INCREF((PyObject *)(nsd->node));
 	if (nsd->dict)
 		Py_INCREF((PyObject *)(nsd->dict));
+
+	PyGILState_Release(gilstate);
 }
 
 /* node_dynamic_exec_cb: the execution callback called per pixel
@@ -566,12 +666,13 @@ static void node_dynamic_exec_cb(void *data, bNode *node, bNodeStack **in, bNode
 	PyObject *pyresult = NULL;
 	PyObject *args = NULL;
 	ShadeInput *shi;
+	PyGILState_STATE gilstate;
 
 	if (!node->id)
 		return;
 
-	if (G.scene->r.threads > 1)
-		return;
+	/*if (G.scene->r.threads > 1)
+		return;*/
 
 	if (BTST2(node->custom1, NODE_DYNAMIC_NEW, NODE_DYNAMIC_REPARSE)) {
 		node_dynamic_setup(node);
@@ -585,9 +686,13 @@ static void node_dynamic_exec_cb(void *data, bNode *node, bNodeStack **in, bNode
 
 	if (BTST(node->custom1, NODE_DYNAMIC_READY)) {
 		nsd = (NodeScriptDict *)node->storage;
-
 		mynode = (BPy_Node *)(nsd->node);
+
+
 		if (mynode && PyCallable_Check((PyObject *)mynode)) {
+
+			gilstate = PyGILState_Ensure();
+
 			mynode->node = node;
 			shi = ((ShaderCallData *)data)->shi;
 
@@ -600,12 +705,14 @@ static void node_dynamic_exec_cb(void *data, bNode *node, bNodeStack **in, bNode
 			Py_DECREF(args);
 
 			if (!pyresult) {
+				PyGILState_Release(gilstate);
 				node_dynamic_disable_all_by_id(node->id);
 				node_dynamic_pyerror_print(node);
 				node_dynamic_setup(node);
 				return;
 			}
 			Py_DECREF(pyresult);
+			PyGILState_Release(gilstate);
 		}
 	}
 }
@@ -626,4 +733,5 @@ bNodeType node_dynamic_typeinfo = {
 	/* copyfunc    */	node_dynamic_copy_cb,
 	/* id          */	NULL
 };
+
 

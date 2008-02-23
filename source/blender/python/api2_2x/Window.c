@@ -1,5 +1,5 @@
 /* 
- * $Id: Window.c 12813 2007-12-07 09:51:02Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -512,6 +512,8 @@ static void getSelectedFile( char *name )
 	pycallback = script->py_browsercallback;
 
 	if (pycallback) {
+		PyGILState_STATE gilstate = PyGILState_Ensure();
+
 		result = PyObject_CallFunction( pycallback, "s", name );
 
 		if (!result) {
@@ -525,6 +527,8 @@ static void getSelectedFile( char *name )
 		/* else another call to selector was made inside pycallback */
 
 		Py_DECREF(pycallback);
+
+		PyGILState_Release(gilstate);
 	}
 
 	return;

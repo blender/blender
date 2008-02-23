@@ -672,6 +672,7 @@ void BPY_spacescript_do_pywin_draw( SpaceScript * sc )
 	uiBlock *block;
 	char butblock[20];
 	Script *script = sc->script;
+	PyGILState_STATE gilstate = PyGILState_Ensure();
 
 	sprintf( butblock, "win %d", curarea->win );
 	block = uiNewBlock( &curarea->uiblocks, butblock, UI_EMBOSSX,
@@ -696,6 +697,8 @@ void BPY_spacescript_do_pywin_draw( SpaceScript * sc )
 	uiDrawBlock( block );
 
 	curarea->win_swap = WIN_BACK_OK;
+
+	PyGILState_Release(gilstate);
 }
 
 static void spacescript_do_pywin_buttons( SpaceScript * sc,
@@ -709,6 +712,8 @@ static void spacescript_do_pywin_buttons( SpaceScript * sc,
 void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 	short val, char ascii )
 {
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+
 	if( event == QKEY && G.qual & ( LR_ALTKEY | LR_CTRLKEY ) ) {
 		/* finish script: user pressed ALT+Q or CONTROL+Q */
 		Script *script = sc->script;
@@ -716,6 +721,8 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 		exit_pydraw( sc, 0 );
 
 		script->flags &= ~SCRIPT_GUI;	/* we're done with this script */
+
+		PyGILState_Release(gilstate);
 
 		return;
 	}
@@ -729,6 +736,9 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 			 * read the comment before check_button_event() below to understand */
 			if (val >= EXPP_BUTTON_EVENTS_OFFSET && val < 0x4000)
 				spacescript_do_pywin_buttons(sc, val - EXPP_BUTTON_EVENTS_OFFSET);
+
+			PyGILState_Release(gilstate);
+
 			return;
 		}
 	}
@@ -749,6 +759,8 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 			EXPP_dict_set_item_str(g_blenderdict, "event",
 					PyString_FromString(""));
 	}
+
+	PyGILState_Release(gilstate);
 }
 
 static void exec_but_callback(void *pyobj, void *data)
@@ -869,9 +881,13 @@ void BPy_Free_DrawButtonsList(void)
 {
 	/*Clear the list.*/
 	if (M_Button_List) {
+		PyGILState_STATE gilstate = PyGILState_Ensure();
+
 		PyList_SetSlice(M_Button_List, 0, PyList_Size(M_Button_List), NULL);
 		Py_DECREF(M_Button_List);
 		M_Button_List = NULL;
+
+		PyGILState_Release(gilstate);
 	}
 }
 

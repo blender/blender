@@ -798,11 +798,6 @@ static int node_shader_buts_dynamic(uiBlock *block, bNodeTree *ntree, bNode *nod
 				ui_rasterpos_safe(butr->xmin + xoff, butr->ymin + 5, snode->aspect);
 				snode_drawstring(snode, "Error! Check console...", butr->xmax - butr->xmin);
 			}
-			else if (G.scene->r.threads > 1) {
-				BIF_ThemeColor(TH_REDALERT);
-				ui_rasterpos_safe(butr->xmin + xoff, butr->ymin + 5, snode->aspect);
-				snode_drawstring(snode, "Set threads to 1", butr->xmax - butr->xmin);
-			}
 		}
 	}
 	return 20+19; 
