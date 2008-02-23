@@ -170,6 +170,7 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 	SpaceLink *slink= curarea->spacedata.first;
 	SpaceTime *stime= curarea->spacedata.first;
 	SpaceAction *saction = curarea->spacedata.first;
+	ListBase *markers;
 	TimeMarker *marker, *selmarker=NULL;
 	float dx, fac;
 	int a, ret_val= 0, totmark=0, *oldframe, offs, firsttime=1;
@@ -177,16 +178,26 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 	short val, pmval[2], mval[2], mvalo[2];
 	char str[32];
 	
-	for(marker= G.scene->markers.first; marker; marker= marker->next) {
-		if(marker->flag & SELECT) totmark++;
+	/* hack for pose-markers in action editor */
+	if ((slink->spacetype == SPACE_ACTION) && (saction->flag & SACTION_POSEMARKERS_MOVE)) {
+		if (saction->action)
+			markers= &saction->action->markers;
+		else
+			markers= NULL;
 	}
-	if(totmark==0) return;
+	else
+		markers= &G.scene->markers;
+	
+	for (marker= markers->first; marker; marker= marker->next) {
+		if (marker->flag & SELECT) totmark++;
+	}
+	if (totmark==0) return;
 	
 	oldframe= MEM_mallocN(totmark*sizeof(int), "marker array");
-	for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
-		if(marker->flag & SELECT) {
+	for (a=0, marker= markers->first; marker; marker= marker->next) {
+		if (marker->flag & SELECT) {
 			oldframe[a]= marker->frame;
-			selmarker= marker;	// used for hederprint
+			selmarker= marker;	// used for headerprint
 			a++;
 		}
 	}
@@ -197,8 +208,7 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 	getmouseco_areawin(pmval);
 	mvalo[0]= pmval[0];
 	
-	while(ret_val == 0) {
-		
+	while (ret_val == 0) {
 		getmouseco_areawin(mval);
 		
 		if (mval[0] != mvalo[0] || firsttime) {
@@ -213,14 +223,15 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 				apply_keyb_grid(&fac, 0.0, 1.0, 0.1, U.flag & USER_AUTOGRABGRID);
 			offs= (int)fac;
 			
-			for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
-				if(marker->flag & SELECT) {
+			for (a=0, marker= markers->first; marker; marker= marker->next) {
+				if (marker->flag & SELECT) {
 					marker->frame= oldframe[a] + offs;
 					a++;
 				}
 			}
 			
-			if(totmark==1) {	// we print current marker value
+			if (totmark==1) {	
+				/* we print current marker value */
 				if (ELEM(slink->spacetype, SPACE_TIME, SPACE_SOUND)) {
 					if (stime->flag & TIME_DRAWFRAMES) 
 						sprintf(str, "Marker %d offset %d", selmarker->frame, offs);
@@ -238,6 +249,7 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 				}
 			}
 			else {
+				/* we only print the offset */
 				if (ELEM(slink->spacetype, SPACE_TIME, SPACE_SOUND)) { 
 					if (stime->flag & TIME_DRAWFRAMES) 
 						sprintf(str, "Marker offset %d ", offs);
@@ -261,20 +273,20 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 		else PIL_sleep_ms(10);	// idle
 		
 		/* emptying queue and reading events */
-		while( qtest() ) {
+		while ( qtest() ) {
 			event= extern_qread(&val);
 			
-			if(val) {
-				if(event==ESCKEY || event==RIGHTMOUSE) ret_val= 2;
-				else if(event==LEFTMOUSE || event==RETKEY || event==SPACEKEY) ret_val= 1;
+			if (val) {
+				if (ELEM(event, ESCKEY, RIGHTMOUSE)) ret_val= 2;
+				else if (ELEM3(event, LEFTMOUSE, RETKEY, SPACEKEY)) ret_val= 1;
 			}
 		}
 	}
 	
 	/* restore? */
-	if(ret_val==2) {
-		for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
-			if(marker->flag & SELECT) {
+	if (ret_val==2) {
+		for (a=0, marker= markers->first; marker; marker= marker->next) {
+			if (marker->flag & SELECT) {
 				marker->frame= oldframe[a];
 				a++;
 			}

@@ -4277,6 +4277,11 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					action_rename_localmarker(data);
 				else if (G.qual == LR_ALTKEY)
 					action_remove_localmarkers(data);
+				else if (G.qual == LR_CTRLKEY) {
+					G.saction->flag |= SACTION_POSEMARKERS_MOVE;
+					transform_markers('g', 0);
+					G.saction->flag &= ~SACTION_POSEMARKERS_MOVE;
+				}
 			}
 			break;
 			

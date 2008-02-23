@@ -204,7 +204,8 @@ enum {
 	ACTMENU_MARKERS_MOVE,
 	ACTMENU_MARKERS_LOCALADD,
 	ACTMENU_MARKERS_LOCALRENAME,
-	ACTMENU_MARKERS_LOCALDELETE
+	ACTMENU_MARKERS_LOCALDELETE,
+	ACTMENU_MARKERS_LOCALMOVE
 };
 
 void do_action_buttons(unsigned short event)
@@ -1363,6 +1364,11 @@ static void do_action_markermenu(void *arg, int event)
 		case ACTMENU_MARKERS_LOCALRENAME:
 			action_rename_localmarker(G.saction->action);
 			break;
+		case ACTMENU_MARKERS_LOCALMOVE:
+			G.saction->flag |= SACTION_POSEMARKERS_MOVE;
+			transform_markers('g', 0);
+			G.saction->flag &= ~SACTION_POSEMARKERS_MOVE;
+			break;
 	}
 	
 	allqueue(REDRAWMARKER, 0);
@@ -1383,9 +1389,9 @@ static uiBlock *action_markermenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_DUPLICATE, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Marker|X", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_DELETE, "");
-					 
+					
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-
+					
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "(Re)Name Marker|Ctrl M", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_NAME, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|Ctrl G", 0, yco-=20,
@@ -1393,12 +1399,14 @@ static uiBlock *action_markermenu(void *arg_unused)
 					 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Local Marker|Shift L", 0, yco-=20, 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Pose Marker|Shift L", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALADD, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rename Local Marker|Ctrl Shift L", 0, yco-=20, 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rename Pose Marker|Ctrl Shift L", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALRENAME, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Local Marker|Alt L", 0, yco-=20,
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Pose Marker|Alt L", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALDELETE, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Pose Marker|Ctrl L", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALMOVE, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

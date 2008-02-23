@@ -231,7 +231,9 @@ typedef enum SACTION_FLAG {
 		/* don't kill overlapping keyframes after transform */
 	SACTION_NOTRANSKEYCULL = (1<<4),
 		/* don't include keyframes that are out of view */
-	SACTION_HORIZOPTIMISEON = (1<<5)
+	SACTION_HORIZOPTIMISEON = (1<<5),
+		/* hack for moving pose-markers (temp flag)  */
+	SACTION_POSEMARKERS_MOVE = (1<<6)
 } SACTION_FLAG;	
 
 /* SpaceAction AutoSnap Settings (also used by SpaceNLA) */
