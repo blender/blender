@@ -228,10 +228,11 @@ void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 		if (BSTR_EQ(loop->name, prop->name)) {
 			if (loop->next) BLI_insertlinkbefore(&group->data.group, loop->next, prop);
 			else BLI_addtail(&group->data.group, prop);
+			
 			BLI_remlink(&group->data.group, loop);
 			IDP_FreeProperty(loop);
 			MEM_freeN(loop);
-			group->len++;
+			
 			return;
 		}
 	}

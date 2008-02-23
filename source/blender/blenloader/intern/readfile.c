@@ -4665,6 +4665,31 @@ static void ntree_version_245(bNodeTree *ntree)
 	}
 }
 
+void idproperties_fix_groups_lengths_recurse(IDProperty *prop)
+{
+	IDProperty *loop;
+	int i;
+	
+	for (loop=prop->data.group.first, i=0; loop; loop=loop->next, i++) {
+		if (loop->type == IDP_GROUP) idproperties_fix_groups_lengths_recurse(loop);
+	}
+	
+	if (prop->len != i) {
+		printf("Found and fixed bad id property group length.\n");
+		prop->len = i;
+	}
+}
+
+void idproperties_fix_group_lengths(ListBase idlist)
+{
+	ID *id;
+	
+	for (id=idlist.first; id; id=id->next) {
+		if (id->properties) {
+			idproperties_fix_groups_lengths_recurse(id->properties);
+		}
+	}
+}
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
@@ -7448,6 +7473,37 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			
 			sce= sce->id.next;
 		}
+	}
+	
+	/*fix broken group lengths in id properties*/
+	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 15)) {
+		idproperties_fix_group_lengths(main->scene);
+		idproperties_fix_group_lengths(main->library);
+		idproperties_fix_group_lengths(main->object);
+		idproperties_fix_group_lengths(main->mesh);
+		idproperties_fix_group_lengths(main->curve);
+		idproperties_fix_group_lengths(main->mball);
+		idproperties_fix_group_lengths(main->mat);
+		idproperties_fix_group_lengths(main->tex);
+		idproperties_fix_group_lengths(main->image);
+		idproperties_fix_group_lengths(main->wave);
+		idproperties_fix_group_lengths(main->latt);
+		idproperties_fix_group_lengths(main->lamp);
+		idproperties_fix_group_lengths(main->camera);
+		idproperties_fix_group_lengths(main->ipo);
+		idproperties_fix_group_lengths(main->key);
+		idproperties_fix_group_lengths(main->world);
+		idproperties_fix_group_lengths(main->screen);
+		idproperties_fix_group_lengths(main->script);
+		idproperties_fix_group_lengths(main->vfont);
+		idproperties_fix_group_lengths(main->text);
+		idproperties_fix_group_lengths(main->sound);
+		idproperties_fix_group_lengths(main->group);
+		idproperties_fix_group_lengths(main->armature);
+		idproperties_fix_group_lengths(main->action);
+		idproperties_fix_group_lengths(main->nodetree);
+		idproperties_fix_group_lengths(main->brush);
+		idproperties_fix_group_lengths(main->particle);		
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

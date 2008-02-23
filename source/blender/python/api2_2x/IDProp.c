@@ -433,7 +433,7 @@ PyObject *BPy_IDGroup_GetKeys(BPy_IDProperty *self)
 {
 	PyObject *seq = PyList_New(self->prop->len);
 	IDProperty *loop;
-	int i;
+	int i, j;
 
 	if (!seq) 
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -442,6 +442,25 @@ PyObject *BPy_IDGroup_GetKeys(BPy_IDProperty *self)
 	for (i=0, loop=self->prop->data.group.first; loop; loop=loop->next, i++)
 		PyList_SetItem(seq, i, PyString_FromString(loop->name));
 	
+	if (i != self->prop->len) {
+		printf("ID Property Error found and corrected in BPy_IDGroup_GetKeys!\n");
+		
+		/*fill rest of list with valid references to None*/
+		for (j=i; j<self->prop->len; j++) {
+			Py_INCREF(Py_None);
+			PyList_SetItem(seq, j, Py_None);
+		}
+		
+		/*set correct group length*/
+		self->prop->len = i;
+		
+		/*free the old list*/
+		Py_DECREF(seq);
+		
+		/*call self again*/
+		return BPy_IDGroup_GetKeys(self);		
+	}
+	
 	return seq;
 }
 
@@ -449,7 +468,7 @@ PyObject *BPy_IDGroup_GetValues(BPy_IDProperty *self)
 {
 	PyObject *seq = PyList_New(self->prop->len);
 	IDProperty *loop;
-	int i;
+	int i, j;
 
 	if (!seq) 
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -458,7 +477,26 @@ PyObject *BPy_IDGroup_GetValues(BPy_IDProperty *self)
 	for (i=0, loop=self->prop->data.group.first; loop; loop=loop->next, i++) {
 		PyList_SetItem(seq, i, BPy_IDGroup_WrapData(self->id, loop));
 	}
-	
+
+	if (i != self->prop->len) {
+		printf("ID Property Error found and corrected in BPy_IDGroup_GetValues!\n");
+		
+		/*fill rest of list with valid references to None*/
+		for (j=i; j<self->prop->len; j++) {
+			Py_INCREF(Py_None);
+			PyList_SetItem(seq, j, Py_None);
+		}
+		
+		/*set correct group length*/
+		self->prop->len = i;
+		
+		/*free the old list*/
+		Py_DECREF(seq);
+		
+		/*call self again*/
+		return BPy_IDGroup_GetValues(self);		
+	}
+		
 	return seq;
 }
 
