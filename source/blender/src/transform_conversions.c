@@ -97,6 +97,7 @@
 #include "BKE_particle.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
+#include "BKE_bmesh.h"
 
 #include "BIF_editaction.h"
 #include "BIF_editview.h"
@@ -386,8 +387,14 @@ static void createTransEdge(TransInfo *t) {
 
 			td->ext = NULL;
 			td->tdi = NULL;
-			td->val = &(eed->crease);
-			td->ival = eed->crease;
+			if (t->mode == TFM_BWEIGHT) {
+				td->val = &(eed->bweight);
+				td->ival = eed->bweight;
+			}
+			else {
+				td->val = &(eed->crease);
+				td->ival = eed->crease;
+			}
 
 			td++;
 		}
@@ -1795,6 +1802,10 @@ static void VertsToTransData(TransData *td, EditVert *eve)
 	td->tdi = NULL;
 	td->val = NULL;
 	td->tdmir= NULL;
+	if (BIF_GetTransInfo()->mode == TFM_BWEIGHT) {
+		td->val = &(eve->bweight);
+		td->ival = eve->bweight;
+	}
 
 #ifdef WITH_VERSE
 	if(eve->vvert) {
@@ -1945,6 +1956,31 @@ static void set_crazyspace_quats(float *origcos, float *mappedcos, float *quats)
 	for(prev= NULL, eve= em->verts.first; eve; prev= eve, eve= eve->next)
 		eve->prev= prev;
 
+}
+
+void createTransBMeshVerts(TransInfo *t, BME_Mesh *bm, BME_TransData_Head *td) {
+	BME_Vert *v;
+	BME_TransData *vtd;
+	TransData *tob;
+	int i;
+
+	tob = t->data = MEM_callocN(td->len*sizeof(TransData), "TransObData(Bevel tool)");
+
+	for (i=0,v=bm->verts.first;v;v=v->next) {
+		if (vtd = BME_get_transdata(td,v)) {
+			tob->loc = vtd->loc;
+			tob->val = &vtd->factor;
+			VECCOPY(tob->iloc,vtd->co);
+			VECCOPY(tob->center,vtd->org);
+			VECCOPY(tob->axismtx[0],vtd->vec);
+			tob->axismtx[1][0] = vtd->max ? *vtd->max : 0;
+			tob++;
+			i++;
+		}
+	}
+	/* since td is a memarena, it can hold more transdata than actual elements
+	 * (i.e. we can't depend on td->len to determine the number of actual elements) */
+	t->total = i;
 }
 
 static void createTransEditVerts(TransInfo *t)
@@ -3692,6 +3728,9 @@ void createTransData(TransInfo *t)
 			set_prop_dist(t, 1);
 			sort_trans_data_dist(t);
 		}
+	}
+	else if (t->context == CTX_BMESH) {
+		createTransBMeshVerts(t, G.editBMesh->bm, G.editBMesh->td);
 	}
 	else if (t->spacetype == SPACE_IMAGE) {
 		t->flag |= T_POINTS|T_2D_EDIT;

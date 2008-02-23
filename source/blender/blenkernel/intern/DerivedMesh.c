@@ -942,6 +942,7 @@ void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 
 	/* TODO what to do with vert_r->flag and vert_r->mat_nr? */
 	vert_r->mat_nr = 0;
+	vert_r->bweight = (unsigned char) (ev->bweight*255.0f);
 }
 
 void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
@@ -954,6 +955,7 @@ void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 	for(i = 0; i < index; ++i) ee = ee->next;
 
 	edge_r->crease = (unsigned char) (ee->crease*255.0f);
+	edge_r->bweight = (unsigned char) (ee->bweight*255.0f);
 	/* TODO what to do with edge_r->flag? */
 	edge_r->flag = ME_EDGEDRAW|ME_EDGERENDER;
 	if (ee->seam) edge_r->flag |= ME_SEAM;
@@ -1034,6 +1036,7 @@ void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 		/* TODO what to do with vert_r->flag and vert_r->mat_nr? */
 		vert_r->mat_nr = 0;
 		vert_r->flag = 0;
+		vert_r->bweight = (unsigned char) (ev->bweight*255.0f);
 	}
 }
 
@@ -1050,6 +1053,7 @@ void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 
 	for( ; ee; ee = ee->next, ++edge_r) {
 		edge_r->crease = (unsigned char) (ee->crease*255.0f);
+		edge_r->bweight = (unsigned char) (ee->bweight*255.0f);
 		/* TODO what to do with edge_r->flag? */
 		edge_r->flag = ME_EDGEDRAW|ME_EDGERENDER;
 		if (ee->seam) edge_r->flag |= ME_SEAM;
@@ -1318,6 +1322,7 @@ void vDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 				/* not supported yet */
 				edge_r->flag = 0;
 				edge_r->crease = 0;
+				edge_r->bweight = 0;
 				break;
 			}
 		}
@@ -1424,6 +1429,7 @@ void vDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 			/* not supported yet */
 			edge_r->flag = 0;
 			edge_r->crease = 0;
+			edge_r->bweight = 0;
 		}
 	}
 }
