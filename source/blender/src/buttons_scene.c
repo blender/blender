@@ -608,7 +608,7 @@ static void seq_panel_editing()
 		uiDefButI(block, NUM, 
 			  B_SEQ_BUT_TRANSFORM, "Start", 
 			  10, 80, 120, 20, &last_seq->start, 
-			  0.0, MAXFRAMEF, 0.0, 0.0, "Start of strip");
+			  -MAXFRAMEF, MAXFRAMEF, 0.0, 0.0, "Start of strip");
 		uiDefButI(block, NUM, 
 			  B_SEQ_BUT_TRANSFORM, "Chan", 
 			  130, 80, 120, 20, &last_seq->machine, 
@@ -844,12 +844,12 @@ static void seq_panel_input()
 				  B_SEQ_BUT_RELOAD, "X-Ofs", 
 				  10, 20, 120, 20, 
 				  &last_seq->strip->transform->xofs, 
-				  0.0, 4096, 0.0, 0.0, "X Offset");
+				  -4096.0, 4096, 0.0, 0.0, "X Offset");
 			uiDefButI(block, NUM, 
 				  B_SEQ_BUT_RELOAD, "Y-Ofs", 
 				  130, 20, 120, 20, 
 				  &last_seq->strip->transform->yofs, 
-				  0.0, 4096, 0.0, 0.0, "Y Offset");
+				  -4096.0, 4096, 0.0, 0.0, "Y Offset");
 		}
 	}
 

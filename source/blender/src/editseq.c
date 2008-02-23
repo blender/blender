@@ -1641,8 +1641,8 @@ static int seq_effect_find_selected(Editing *ed, Sequence *activeseq, int type, 
 
 	switch(get_sequence_effect_num_inputs(type)) {
 	case 0:
-		seq1 = seq2 = seq3 = 0;
-		break;
+		*selseq1 = *selseq2 = *selseq3 = 0;
+		return 1;
 	case 1:
 		if(seq2==0)  {
 			error("Need at least one selected sequence strip");
