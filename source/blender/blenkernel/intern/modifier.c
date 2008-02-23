@@ -96,6 +96,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_utildefines.h"
 #include "depsgraph_private.h"
+#include "BKE_bmesh.h"
 
 #include "LOD_DependKludge.h"
 #include "LOD_decimation.h"
@@ -2675,6 +2676,92 @@ static DerivedMesh *edgesplitModifier_applyModifierEM(
                         DerivedMesh *derivedData)
 {
 	return edgesplitModifier_applyModifier(md, ob, derivedData, 0, 1);
+}
+
+/* Bevel */
+
+static void bevelModifier_initData(ModifierData *md)
+{
+	BevelModifierData *bmd = (BevelModifierData*) md;
+
+	bmd->value = 0.1f;
+	bmd->res = 1;
+	bmd->flags = 0;
+	bmd->val_flags = 0;
+	bmd->lim_flags = 0;
+	bmd->e_flags = 0;
+	bmd->bevel_angle = 30;
+	bmd->defgrp_name[0] = '\0';
+}
+
+static void bevelModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	BevelModifierData *bmd = (BevelModifierData*) md;
+	BevelModifierData *tbmd = (BevelModifierData*) target;
+
+	tbmd->value = bmd->value;
+	tbmd->res = bmd->res;
+	tbmd->flags = bmd->flags;
+	tbmd->val_flags = bmd->val_flags;
+	tbmd->lim_flags = bmd->lim_flags;
+	tbmd->e_flags = bmd->e_flags;
+	tbmd->bevel_angle = bmd->bevel_angle;
+	strncpy(tbmd->defgrp_name, bmd->defgrp_name, 32);
+}
+
+CustomDataMask bevelModifier_requiredDataMask(ModifierData *md)
+{
+	BevelModifierData *bmd = (BevelModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if(bmd->defgrp_name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
+}
+
+static DerivedMesh *bevelModifier_applyModifier(
+                ModifierData *md, Object *ob, DerivedMesh *derivedData,
+                int useRenderParams, int isFinalCalc)
+{
+	DerivedMesh *result;
+	BME_Mesh *bm;
+	bDeformGroup *def;
+	int i, options, defgrp_index = -1;
+	BevelModifierData *bmd = (BevelModifierData*) md;
+
+	options = bmd->flags|bmd->val_flags|bmd->lim_flags|bmd->e_flags;
+
+	//~ if ((options & BME_BEVEL_VWEIGHT) && bmd->defgrp_name[0]) {
+		//~ for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
+			//~ if (!strcmp(def->name, bmd->defgrp_name)) {
+				//~ defgrp_index = i;
+				//~ break;
+			//~ }
+		//~ }
+		//~ if (defgrp_index < 0) {
+			//~ options &= ~BME_BEVEL_VWEIGHT;
+		//~ }
+	//~ }
+
+	bm = BME_make_mesh();
+	bm = BME_derivedmesh_to_bmesh(derivedData, bm);
+	BME_model_begin(bm);
+	BME_bevel(bm,bmd->value,bmd->res,options,defgrp_index,bmd->bevel_angle,NULL);
+	BME_model_end(bm);
+	result = BME_bmesh_to_derivedmesh(bm,derivedData);
+	BME_free_mesh(bm);
+
+	CDDM_calc_normals(result);
+
+	return result;
+}
+
+static DerivedMesh *bevelModifier_applyModifierEM(
+                        ModifierData *md, Object *ob, EditMesh *editData,
+                        DerivedMesh *derivedData)
+{
+	return bevelModifier_applyModifier(md, ob, derivedData, 0, 1);
 }
 
 /* Displace */
@@ -6951,6 +7038,18 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->copyData = edgesplitModifier_copyData;
 		mti->applyModifier = edgesplitModifier_applyModifier;
 		mti->applyModifierEM = edgesplitModifier_applyModifierEM;
+
+		mti = INIT_TYPE(Bevel);
+		mti->type = eModifierTypeType_Constructive;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+		             | eModifierTypeFlag_SupportsMapping
+		             | eModifierTypeFlag_SupportsEditmode
+		             | eModifierTypeFlag_EnableInEditmode;
+		mti->initData = bevelModifier_initData;
+		mti->copyData = bevelModifier_copyData;
+		mti->requiredDataMask = bevelModifier_requiredDataMask;
+		mti->applyModifier = bevelModifier_applyModifier;
+		mti->applyModifierEM = bevelModifier_applyModifierEM;
 
 		mti = INIT_TYPE(Displace);
 		mti->type = eModifierTypeType_OnlyDeform;

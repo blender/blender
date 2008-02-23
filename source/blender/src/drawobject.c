@@ -1660,6 +1660,41 @@ static void draw_dm_creases(DerivedMesh *dm)
 	glLineWidth(1.0);
 }
 
+static int draw_dm_bweights__setDrawOptions(void *userData, int index)
+{
+	EditEdge *eed = EM_get_edge_for_index(index);
+
+	if (eed->h==0 && eed->bweight!=0.0) {
+		BIF_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, eed->bweight);
+		return 1;
+	} else {
+		return 0;
+	}
+}
+static void draw_dm_bweights__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
+{
+	EditVert *eve = EM_get_vert_for_index(index);
+
+	if (eve->h==0 && eve->bweight!=0.0) {
+		BIF_ThemeColorBlend(TH_VERTEX, TH_VERTEX_SELECT, eve->bweight);
+		bglVertex3fv(co);
+	}
+}
+static void draw_dm_bweights(DerivedMesh *dm)
+{
+	if (G.scene->selectmode & SCE_SELECT_VERTEX) {
+		glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE) + 2);
+		bglBegin(GL_POINTS);
+		dm->foreachMappedVert(dm, draw_dm_bweights__mapFunc, NULL);
+		bglEnd();
+	}
+	else {
+		glLineWidth(3.0);
+		dm->drawMappedEdges(dm, draw_dm_bweights__setDrawOptions, NULL);
+		glLineWidth(1.0);
+	}
+}
+
 /* Second section of routines: Combine first sets to form fancy
  * drawing routines (for example rendering twice to get overlays).
  *
@@ -2138,6 +2173,9 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 	
 		if(G.f & G_DRAWCREASES) {
 			draw_dm_creases(cageDM);
+		}
+		if(G.f & G_DRAWBWEIGHTS) {
+			draw_dm_bweights(cageDM);
 		}
 	
 		draw_em_fancy_edges(cageDM, 0, eed_act);

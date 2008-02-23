@@ -84,6 +84,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_bad_level_calls.h"/* popmenu and error	*/
 #include "BKE_particle.h"
+#include "BKE_bmesh.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_editnla_types.h"	/* for NLAWIDTH */
@@ -576,6 +577,10 @@ static char *transform_to_undostr(TransInfo *t)
 			return "Trackball";
 		case TFM_PUSHPULL:
 			return "Push/Pull";
+		case TFM_BEVEL:
+			return "Bevel";
+		case TFM_BWEIGHT:
+			return "Bevel Weight";
 		case TFM_CREASE:
 			return "Crease";
 		case TFM_BONESIZE:
@@ -1029,6 +1034,12 @@ void initTransform(int mode, int context) {
 		break;
 	case TFM_MIRROR:
 		initMirror(&Trans);
+		break;
+	case TFM_BEVEL:
+		initBevel(&Trans);
+		break;
+	case TFM_BWEIGHT:
+		initBevelWeight(&Trans);
 		break;
 	}
 }
@@ -3228,6 +3239,201 @@ int PushPull(TransInfo *t, short mval[2])
 	headerprint(str);
 
 	viewRedrawForce(t);
+
+	return 1;
+}
+
+/* ************************** BEVEL **************************** */
+
+void initBevel(TransInfo *t) 
+{
+	t->mode = TFM_BEVEL;
+	t->flag |= T_NO_CONSTRAINT;
+	t->transform = Bevel;
+	t->handleEvent = handleEventBevel;
+	if (G.editBMesh->imval[0] == 0 && G.editBMesh->imval[1] == 0) {
+		/* save the initial mouse co */
+		G.editBMesh->imval[0] = t->imval[0];
+		G.editBMesh->imval[1] = t->imval[1];
+	}
+	else {
+		/* restore the mouse co from a previous call to initTransform() */
+		t->imval[0] = G.editBMesh->imval[0];
+		t->imval[1] = G.editBMesh->imval[1];
+	}
+}
+
+int handleEventBevel(TransInfo *t, unsigned short event, short val)
+{
+	if (val) {
+		switch (event) {
+		case MIDDLEMOUSE:
+			G.editBMesh->options ^= BME_BEVEL_VERT;
+			t->state = TRANS_CANCEL;
+			return 1;
+		//case PADPLUSKEY:
+		//	G.editBMesh->options ^= BME_BEVEL_RES;
+		//	G.editBMesh->res += 1;
+		//	if (G.editBMesh->res > 4) {
+		//		G.editBMesh->res = 4;
+		//	}
+		//	t->state = TRANS_CANCEL;
+		//	return 1;
+		//case PADMINUS:
+		//	G.editBMesh->options ^= BME_BEVEL_RES;
+		//	G.editBMesh->res -= 1;
+		//	if (G.editBMesh->res < 0) {
+		//		G.editBMesh->res = 0;
+		//	}
+		//	t->state = TRANS_CANCEL;
+		//	return 1;
+		default:
+			return 0;
+		}
+	}
+	return 0;
+}
+
+int Bevel(TransInfo *t, short mval[2])
+{
+	float distance,d;
+	int i;
+	char str[128];
+	char *mode;
+	TransData *td = t->data;
+
+	mode = (G.editBMesh->options & BME_BEVEL_VERT) ? "verts only" : "normal";
+	distance = InputHorizontalAbsolute(t, mval)/4; /* 4 just seemed a nice value to me, nothing special */
+
+	applyNumInput(&t->num, &distance);
+
+	/* header print for NumInput */
+	if (hasNumInput(&t->num)) {
+		char c[20];
+
+		outputNumInput(&(t->num), c);
+
+		sprintf(str, "Bevel: %s", c);
+	}
+	else {
+		/* default header print */
+		sprintf(str, "Bevel - Dist: %.4f, Mode: %s (MMB to toggle))", distance, mode);
+	}
+	
+	if (distance < 0) distance = -distance;
+	for(i = 0 ; i < t->total; i++, td++) {
+		if (td->axismtx[1][0] > 0 && distance > td->axismtx[1][0]) {
+			d = td->axismtx[1][0];
+		}
+		else {
+			d = distance;
+		}
+		VECADDFAC(td->loc,td->center,td->axismtx[0],(*td->val)*d);
+	}
+
+	recalcData(t);
+
+	headerprint(str);
+
+	viewRedrawForce(t);
+
+	return 1;
+}
+
+/* ************************** BEVEL WEIGHT *************************** */
+
+void initBevelWeight(TransInfo *t) 
+{
+	t->mode = TFM_BWEIGHT;
+	t->transform = BevelWeight;
+	
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
+	
+	t->flag |= T_NO_CONSTRAINT;
+
+	t->fac = (float)sqrt(
+		(
+			((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
+		+
+			((float)(t->center2d[0] - t->imval[0]))*((float)(t->center2d[0] - t->imval[0]))
+		) );
+
+	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
+}
+
+int BevelWeight(TransInfo *t, short mval[2]) 
+{
+	TransData *td = t->data;
+	float weight;
+	int i;
+	char str[50];
+
+		
+	if(t->flag & T_SHIFT_MOD) {
+		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
+		float dx= (float)(t->center2d[0] - t->shiftmval[0]);
+		float dy= (float)(t->center2d[1] - t->shiftmval[1]);
+		weight = (float)sqrt( dx*dx + dy*dy)/t->fac;
+		
+		dx= (float)(t->center2d[0] - mval[0]);
+		dy= (float)(t->center2d[1] - mval[1]);
+		weight+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -weight);
+		
+	}
+	else {
+		float dx= (float)(t->center2d[0] - mval[0]);
+		float dy= (float)(t->center2d[1] - mval[1]);
+		weight = (float)sqrt( dx*dx + dy*dy)/t->fac;
+	}
+
+	weight -= 1.0f;
+	if (weight > 1.0f) weight = 1.0f;
+
+	snapGrid(t, &weight);
+
+	applyNumInput(&t->num, &weight);
+
+	/* header print for NumInput */
+	if (hasNumInput(&t->num)) {
+		char c[20];
+
+		outputNumInput(&(t->num), c);
+
+		if (weight >= 0.0f)
+			sprintf(str, "Bevel Weight: +%s %s", c, t->proptext);
+		else
+			sprintf(str, "Bevel Weight: %s %s", c, t->proptext);
+	}
+	else {
+		/* default header print */
+		if (weight >= 0.0f)
+			sprintf(str, "Bevel Weight: +%.3f %s", weight, t->proptext);
+		else
+			sprintf(str, "Bevel Weight: %.3f %s", weight, t->proptext);
+	}
+	
+	for(i = 0 ; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+
+		if (td->val) {
+			*td->val = td->ival + weight * td->factor;
+			if (*td->val < 0.0f) *td->val = 0.0f;
+			if (*td->val > 1.0f) *td->val = 1.0f;
+		}
+	}
+
+	recalcData(t);
+
+	headerprint(str);
+
+	viewRedrawForce(t);
+
+	helpline (t, t->center);
 
 	return 1;
 }

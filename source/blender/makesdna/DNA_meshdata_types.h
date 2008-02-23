@@ -45,7 +45,7 @@ typedef struct MFace {
 
 typedef struct MEdge {
 	unsigned int v1, v2;
-	char crease, pad;
+	char crease, bweight;
 	short flag;
 } MEdge;
 
@@ -63,7 +63,7 @@ typedef struct MDeformVert {
 typedef struct MVert {
 	float	co[3];
 	short	no[3];
-	char flag, mat_nr;
+	char flag, mat_nr, bweight, pad[3];
 } MVert;
 
 /* at the moment alpha is abused for vertex painting

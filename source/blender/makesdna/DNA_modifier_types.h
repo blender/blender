@@ -33,7 +33,8 @@ typedef enum ModifierType {
 	eModifierType_ParticleInstance,
 	eModifierType_Explode,
 	eModifierType_Cloth,
-       eModifierType_Collision,
+	eModifierType_Collision,
+	eModifierType_Bevel,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -186,6 +187,27 @@ typedef struct EdgeSplitModifierData {
 /* EdgeSplitModifierData->flags */
 #define MOD_EDGESPLIT_FROMANGLE   1<<1
 #define MOD_EDGESPLIT_FROMFLAG    1<<2
+
+typedef struct BevelModifierData {
+	ModifierData modifier;
+
+	float value;          /* the "raw" bevel value (distance/amount to bevel) */
+	int res;              /* the resolution (as originally coded, it is the number of recursive bevels) */
+	int pad;
+	short flags;          /* general option flags */
+	short val_flags;      /* flags used to interpret the bevel value */
+	short lim_flags;      /* flags to tell the tool how to limit the bevel */
+	short e_flags;        /* flags to direct how edge weights are applied to verts */
+	float bevel_angle;    /* if the BME_BEVEL_ANGLE is set, this will be how "sharp" an edge must be before it gets beveled */
+	char defgrp_name[32]; /* if the BME_BEVEL_VWEIGHT option is set, this will be the name of the vert group */
+} BevelModifierData;
+
+typedef struct BMeshModifierData {
+	ModifierData modifier;
+
+	float pad;
+	int type;
+} BMeshModifierData;
 
 typedef struct DisplaceModifierData {
 	ModifierData modifier;

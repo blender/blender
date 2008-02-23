@@ -1896,6 +1896,18 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						extrude_armature(1);
 					}
 				}
+				else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY)) {
+					if (G.obedit && G.obedit->type==OB_MESH &&
+					    !multires_level1_test()) {
+						if (G.scene->selectmode & SCE_SELECT_VERTEX) {
+							initTransform(TFM_BWEIGHT, CTX_NONE);
+						}
+						else {
+							initTransform(TFM_BWEIGHT, CTX_EDGE);
+						}
+						Transform();
+					}
+				}
 				break;
 			case FKEY:
 				if(G.obedit) {

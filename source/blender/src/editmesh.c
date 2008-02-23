@@ -163,10 +163,13 @@ EditVert *addvertlist(float *vec, EditVert *example)
 	createVerseVert(eve);
 #endif
 
-	if(example)
+	if(example) {
 		CustomData_em_copy_data(&em->vdata, &em->vdata, example->data, &eve->data);
-	else
+		eve->bweight = example->bweight;
+	}
+	else {
 		CustomData_em_set_default(&em->vdata, &eve->data);
+	}
 
 	return eve;
 }
@@ -299,6 +302,7 @@ EditEdge *addedgelist(EditVert *v1, EditVert *v2, EditEdge *example)
 		   rule is to do this with addedgelist call, before addfacelist */
 		if(example) {
 			eed->crease= example->crease;
+			eed->bweight= example->bweight;
 			eed->sharp = example->sharp;
 			eed->seam = example->seam;
 			eed->h |= (example->h & EM_FGON);
@@ -896,6 +900,8 @@ void make_editMesh()
 		eve->no[1]= mvert->no[1]/32767.0;
 		eve->no[2]= mvert->no[2]/32767.0;
 
+		eve->bweight= ((float)mvert->bweight)/255.0f;
+
 		/* lets overwrite the keyindex of the editvert
 		 * with the order it used to be in before
 		 * editmode
@@ -915,7 +921,8 @@ void make_editMesh()
 			eed= addedgelist(evlist[medge->v1], evlist[medge->v2], NULL);
 			/* eed can be zero when v1 and v2 are identical, dxf import does this... */
 			if(eed) {
-				eed->crease= ((float)medge->crease)/255.0;
+				eed->crease= ((float)medge->crease)/255.0f;
+				eed->bweight= ((float)medge->bweight)/255.0f;
 				
 				if(medge->flag & ME_SEAM) eed->seam= 1;
 				if(medge->flag & ME_SHARP) eed->sharp = 1;
@@ -1153,7 +1160,8 @@ void load_editMesh(void)
 		mvert->flag= 0;
 		if(eve->f1==1) mvert->flag |= ME_SPHERETEST;
 		mvert->flag |= (eve->f & SELECT);
-		if (eve->h) mvert->flag |= ME_HIDE;			
+		if (eve->h) mvert->flag |= ME_HIDE;
+		mvert->bweight= (char)(255.0*eve->bweight);
 
 #ifdef WITH_VERSE
 		if(eve->vvert) {
@@ -1205,6 +1213,7 @@ void load_editMesh(void)
 		if(eed->h & 1) medge->flag |= ME_HIDE;
 		
 		medge->crease= (char)(255.0*eed->crease);
+		medge->bweight= (char)(255.0*eed->bweight);
 		CustomData_from_em_block(&em->edata, &me->edata, eed->data, a);		
 
 		eed->tmp.l = a++;
@@ -1926,6 +1935,7 @@ typedef struct EditVertC
 	float no[3];
 	float co[3];
 	unsigned char f, h;
+	short bweight;
 	int keyindex;
 } EditVertC;
 
@@ -1933,7 +1943,7 @@ typedef struct EditEdgeC
 {
 	int v1, v2;
 	unsigned char f, h, seam, sharp, pad;
-	short crease, fgoni;
+	short crease, bweight, fgoni;
 } EditEdgeC;
 
 typedef struct EditFaceC
@@ -2034,6 +2044,7 @@ static void *editMesh_to_undoMesh(void)
 		evec->h= eve->h;
 		evec->keyindex= eve->keyindex;
 		eve->tmp.l = a; /*store index*/
+		evec->bweight= (short)(eve->bweight*255.0);
 
 		CustomData_from_em_block(&em->vdata, &um->vdata, eve->data, a);
 	}
@@ -2048,6 +2059,7 @@ static void *editMesh_to_undoMesh(void)
 		eedc->seam= eed->seam;
 		eedc->sharp= eed->sharp;
 		eedc->crease= (short)(eed->crease*255.0);
+		eedc->bweight= (short)(eed->bweight*255.0);
 		eedc->fgoni= eed->fgoni;
 		eed->tmp.l = a; /*store index*/
 		CustomData_from_em_block(&em->edata, &um->edata, eed->data, a);
@@ -2161,6 +2173,7 @@ static void undoMesh_to_editMesh(void *umv)
 		eve->f= evec->f;
 		eve->h= evec->h;
 		eve->keyindex= evec->keyindex;
+		eve->bweight= ((float)evec->bweight)/255.0f;
 
 		CustomData_to_em_block(&um->vdata, &em->vdata, a, &eve->data);
 	}
@@ -2174,7 +2187,8 @@ static void undoMesh_to_editMesh(void *umv)
 		eed->seam= eedc->seam;
 		eed->sharp= eedc->sharp;
 		eed->fgoni= eedc->fgoni;
-		eed->crease= ((float)eedc->crease)/255.0;
+		eed->crease= ((float)eedc->crease)/255.0f;
+		eed->bweight= ((float)eedc->bweight)/255.0f;
 		CustomData_to_em_block(&um->edata, &em->edata, a, &eed->data);
 	}
 	

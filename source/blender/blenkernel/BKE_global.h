@@ -62,6 +62,7 @@ struct Object;
 struct bSoundListener;
 struct BMF_Font;
 struct EditMesh;
+struct BME_Glob;
 
 typedef struct Global {
 
@@ -111,6 +112,9 @@ typedef struct Global {
 
 	/* Editmode lists */
 	struct EditMesh *editMesh;
+	
+	/* Used for BMesh transformations */
+	struct BME_Glob *editBMesh;
     
 	float textcurs[4][2];
     
@@ -191,6 +195,7 @@ typedef struct Global {
 
 /* #define G_AUTOMATKEYS	(1 << 30)   also removed */
 #define G_HIDDENHANDLES (1 << 31) /* used for curves only */
+#define G_DRAWBWEIGHTS	(1 << 31)
 
 /* macro for testing face select mode
  * Texture paint could be removed since selected faces are not used

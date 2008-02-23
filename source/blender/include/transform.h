@@ -339,6 +339,13 @@ int Trackball(TransInfo *t, short mval[2]);
 void initPushPull(TransInfo *t);
 int PushPull(TransInfo *t, short mval[2]);
 
+void initBevel(TransInfo *t);
+int handleEventBevel(TransInfo *t, unsigned short evenl, short val);
+int Bevel(TransInfo *t, short mval[2]);
+
+void initBevelWeight(TransInfo *t);
+int BevelWeight(TransInfo *t, short mval[2]);
+
 void initCrease(TransInfo *t);
 int Crease(TransInfo *t, short mval[2]);
 

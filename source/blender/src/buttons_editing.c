@@ -96,6 +96,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
+#include "BKE_bmesh.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -1752,6 +1753,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 86;
 		} else if (md->type==eModifierType_Mirror) {
 			height = 86;
+		} else if (md->type==eModifierType_Bevel) {
+			BevelModifierData *bmd = (BevelModifierData*) md;
+			height = 105; /* height = 124; */
+			if ((bmd->lim_flags & BME_BEVEL_ANGLE) || ((bmd->lim_flags & BME_BEVEL_WEIGHT) && !(bmd->flags & BME_BEVEL_VERT))) height += 19;
 		} else if (md->type==eModifierType_EdgeSplit) {
 			EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
 			height = 48;
@@ -1895,7 +1900,62 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			               "Ob: ", lx, (cy -= 19), buttonWidth, 19,
 			               &mmd->mirror_ob,
 			               "Object to use as mirror");
-
+		} else if (md->type==eModifierType_Bevel) {
+			BevelModifierData *bmd = (BevelModifierData*) md;
+			/*uiDefButS(block, ROW, B_MODIFIER_RECALC, "Distance",
+					  lx, (cy -= 19), (buttonWidth/2), 19, &bmd->val_flags,
+					  11.0, 0, 0, 0,
+					  "Interpret bevel value as a constant distance from each edge");
+			uiDefButS(block, ROW, B_MODIFIER_RECALC, "Radius",
+					  (lx+buttonWidth/2), cy, (buttonWidth - buttonWidth/2), 19, &bmd->val_flags,
+					  11.0, BME_BEVEL_RADIUS, 0, 0,
+					  "Interpret bevel value as a radius - smaller angles will be beveled more");*/
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Dis",
+					  lx, (cy -= 19), buttonWidth, 19, &bmd->value,
+					  0.0, 0.5, 5, 2,
+					  "Bevel value/amount");
+			/*uiDefButI(block, NUM, B_MODIFIER_RECALC, "Recurs",
+					  lx, (cy -= 19), buttonWidth, 19, &bmd->res,
+					  1, 4, 5, 2,
+					  "Number of times to bevel");*/
+			uiDefButBitS(block, TOG, BME_BEVEL_VERT,
+					  B_MODIFIER_RECALC, "Verts only",
+					  lx, (cy -= 19), buttonWidth, 19,
+					  &bmd->flags, 0, 0, 0, 0,
+					  "Bevel only verts/corners; not edges");
+			uiDefBut(block, LABEL, 1, "Limit using:",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
+			uiDefButS(block, ROW, B_MODIFIER_RECALC, "None",
+					  lx, (cy -= 19), (buttonWidth/3), 19, &bmd->lim_flags,
+					  12.0, 0, 0, 0,
+					  "Bevel the entire mesh by a constant amount");
+			uiDefButS(block, ROW, B_MODIFIER_RECALC, "Angle",
+					  (lx+buttonWidth/3), cy, (buttonWidth/3), 19, &bmd->lim_flags,
+					  12.0, BME_BEVEL_ANGLE, 0, 0,
+					  "Only bevel edges with sharp enough angles between faces");
+			uiDefButS(block, ROW, B_MODIFIER_RECALC, "BevWeight",
+					  lx+(2*buttonWidth/3), cy, buttonWidth-2*(buttonWidth/3), 19, &bmd->lim_flags,
+					  12.0, BME_BEVEL_WEIGHT, 0, 0,
+					  "Use bevel weights to determine how much bevel is applied; apply them separately in vert/edge select mode");
+			if ((bmd->lim_flags & BME_BEVEL_WEIGHT) && !(bmd->flags & BME_BEVEL_VERT)) {
+				uiDefButS(block, ROW, B_MODIFIER_RECALC, "Min",
+					  lx, (cy -= 19), (buttonWidth/3), 19, &bmd->e_flags,
+					  13.0, BME_BEVEL_EMIN, 0, 0,
+					  "The sharpest edge's weight is used when weighting a vert");
+				uiDefButS(block, ROW, B_MODIFIER_RECALC, "Average",
+					  (lx+buttonWidth/3), cy, (buttonWidth/3), 19, &bmd->e_flags,
+					  13.0, 0, 0, 0,
+					  "The edge weights are averaged when weighting a vert");
+				uiDefButS(block, ROW, B_MODIFIER_RECALC, "Max",
+					  (lx+2*(buttonWidth/3)), cy, buttonWidth-2*(buttonWidth/3), 19, &bmd->e_flags,
+					  13.0, BME_BEVEL_EMAX, 0, 0,
+					  "The largest edge's wieght is used when weighting a vert");
+			}
+			else if (bmd->lim_flags & BME_BEVEL_ANGLE) {
+				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Angle:",
+					  lx, (cy -= 19), buttonWidth, 19, &bmd->bevel_angle,
+					  0.0, 180.0, 100, 2,
+					  "Angle above which to bevel edges");
+			}
 		} else if (md->type==eModifierType_EdgeSplit) {
 			EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
 			uiDefButBitI(block, TOG, MOD_EDGESPLIT_FROMANGLE,
@@ -4788,6 +4848,10 @@ void do_meshbuts(unsigned short event)
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
+	//~ case B_DRAWBWEIGHTS:
+		//~ allqueue(REDRAWBUTSEDIT, 0);
+		//~ allqueue(REDRAWVIEW3D, 0);
+		//~ break;
 	case B_JOINTRIA:
 		join_triangles();
 		break;
@@ -4966,10 +5030,11 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, G_DRAWFACES, REDRAWVIEW3D_IMAGE, "Draw Faces",		955,88,150,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades in the 3d view and UV editor");
-	uiDefButBitI(block, TOG, G_DRAWEDGES, REDRAWVIEW3D, "Draw Edges", 	955,66,150,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
-	uiDefButBitI(block, TOG, G_DRAWCREASES, REDRAWVIEW3D, "Draw Creases",	955,44,150,19, &G.f, 0, 0, 0, 0, "Displays creases created for subsurf weighting");
-	uiDefButBitI(block, TOG, G_DRAWSEAMS, REDRAWVIEW3D, "Draw Seams",	955,22,150,19, &G.f, 0, 0, 0, 0, "Displays UV unwrapping seams");
-	uiDefButBitI(block, TOG, G_DRAWSHARP, REDRAWVIEW3D, "Draw Sharp",	955,0,150,19, &G.f, 0, 0, 0, 0, "Displays sharp edges, used with the EdgeSplit modifier");
+	uiDefButBitI(block, TOG, G_DRAWEDGES, REDRAWVIEW3D, "Draw Edges", 955, 66,150,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
+	uiDefButBitI(block, TOG, G_DRAWCREASES, REDRAWVIEW3D, "Draw Creases", 955, 42,150,19, &G.f, 0, 0, 0, 0, "Displays creases created for subsurf weighting");
+	uiDefButBitI(block, TOG, G_DRAWBWEIGHTS, REDRAWVIEW3D, "Draw Bevel Weights", 955, 20,150,19, &G.f, 0, 0, 0, 0, "Displays weights created for the Bevel modifier");
+	uiDefButBitI(block, TOG, G_DRAWSEAMS, REDRAWVIEW3D, "Draw Seams", 955, -2,150,19, &G.f, 0, 0, 0, 0, "Displays UV unwrapping seams");
+	uiDefButBitI(block, TOG, G_DRAWSHARP, REDRAWVIEW3D, "Draw Sharp", 955,  -24,150,19, &G.f, 0, 0, 0, 0, "Displays sharp edges, used with the EdgeSplit modifier");
 	uiBlockEndAlign(block);
 	
 	/* Measurement drawing options */

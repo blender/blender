@@ -67,6 +67,7 @@ typedef struct EditVert
 	h for hidden. if (!eve->h) {...
 	f1 and f2 can be used for temp data, clear them first*/
 	unsigned char f, h, f1, f2; 
+	float bweight;
 	short fast;	/* only 0 or 1, for editmesh_fastmalloc, do not store temp data here! */
 	int hash;
 	int keyindex; /* original index #, for restoring  key information */
@@ -103,6 +104,7 @@ typedef struct EditEdge
 	short f1, f2;	/* short, f1 is (ab)used in subdiv */
 	unsigned char f, h, dir, seam, sharp;
 	float crease;
+	float bweight;
 	short fast; 		/* only 0 or 1, for editmesh_fastmalloc */
 	short fgoni;		/* index for fgon, for search */
 	HashEdge hash;

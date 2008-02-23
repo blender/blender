@@ -840,6 +840,7 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 		mv->no[0] = eve->no[0] * 32767.0;
 		mv->no[1] = eve->no[1] * 32767.0;
 		mv->no[2] = eve->no[2] * 32767.0;
+		mv->bweight = (unsigned char) (eve->bweight * 255.0f);
 
 		mv->mat_nr = 0;
 		mv->flag = 0;
@@ -857,6 +858,7 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 		med->v1 = eed->v1->tmp.l;
 		med->v2 = eed->v2->tmp.l;
 		med->crease = (unsigned char) (eed->crease * 255.0f);
+		med->bweight = (unsigned char) (eed->bweight * 255.0f);
 		med->flag = ME_EDGEDRAW|ME_EDGERENDER;
 		
 		if(eed->seam) med->flag |= ME_SEAM;

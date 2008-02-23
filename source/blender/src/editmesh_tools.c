@@ -73,6 +73,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_bmesh.h"
 
 #ifdef WITH_VERSE
 #include "BKE_verse.h"
@@ -90,6 +91,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BIF_resources.h"
 #include "BIF_toolbox.h"
 #include "BIF_transform.h"
+#include "transform.h"
 
 #ifdef WITH_VERSE
 #include "BIF_verse.h"
@@ -3707,6 +3709,7 @@ static void edge_rotate(EditEdge *eed,int dir)
 			srchedge->dir = eed->dir;
 			srchedge->seam = eed->seam;
 			srchedge->crease = eed->crease;
+			srchedge->bweight = eed->bweight;
 		}
 	}
 	
@@ -4476,7 +4479,52 @@ static void bevel_mesh_recurs(float bsize, short recurs, int allfaces)
 	}
 }
 
-void bevel_menu()
+void bevel_menu() {
+	BME_Mesh *bm;
+	BME_TransData_Head *td;
+	TransInfo *t;
+	int options, res, gbm_free = 0;
+
+	t = BIF_GetTransInfo();
+	if (!G.editBMesh) {
+		G.editBMesh = MEM_callocN(sizeof(*(G.editBMesh)),"bevel_menu() G.editBMesh");
+		gbm_free = 1;
+	}
+
+	G.editBMesh->options = BME_BEVEL_RUNNING | BME_BEVEL_SELECT;
+	G.editBMesh->res = 1;
+
+	while(G.editBMesh->options & BME_BEVEL_RUNNING) {
+		options = G.editBMesh->options;
+		res = G.editBMesh->res;
+		bm = BME_make_mesh();
+		bm = BME_editmesh_to_bmesh(G.editMesh, bm);
+		BIF_undo_push("Pre-Bevel");
+		free_editMesh(G.editMesh);
+		BME_bevel(bm,0.1f,res,options,0,0,&td);
+		BME_bmesh_to_editmesh(bm, td);
+		G.editBMesh->bm = bm;
+		G.editBMesh->td = td;
+		initTransform(TFM_BEVEL,CTX_BMESH);
+		Transform();
+		BME_free_transdata(td);
+		BME_free_mesh(bm);
+		if (t->state != TRANS_CONFIRM) {
+			BIF_undo();
+		}
+		if (options == G.editBMesh->options) {
+			G.editBMesh->options &= ~BME_BEVEL_RUNNING;
+		}
+	}
+
+	if (gbm_free) {
+		MEM_freeN(G.editBMesh);
+		G.editBMesh = NULL;
+	}
+}
+
+
+void bevel_menu_old()
 {
 	char Finished = 0, Canceled = 0, str[100], Recalc = 0;
 	short mval[2], oval[2], curval[2], event = 0, recurs = 1, nr;

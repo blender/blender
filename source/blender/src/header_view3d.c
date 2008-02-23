@@ -2688,7 +2688,7 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 	case 8: /* Clear Seam */
 		editmesh_mark_seam(1);
 		break;
-	case 9: /* Cease SubSurf */
+	case 9: /* Crease SubSurf */
 		if(!multires_level1_test()) {
 			initTransform(TFM_CREASE, CTX_EDGE);
 			Transform();
@@ -2719,6 +2719,12 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 		editmesh_mark_sharp(0);
 		BIF_undo_push("Clear Sharp");
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+		break;
+	case 17: /* Adjust Bevel Weight */
+		if(!multires_level1_test()) {
+			initTransform(TFM_BWEIGHT, CTX_EDGE);
+			Transform();
+		}
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -2756,6 +2762,8 @@ static uiBlock *view3d_edit_mesh_edgesmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mark Sharp|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Sharp|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
 	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Adjust Bevel Weight|Ctrl Shift E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Crease SubSurf|Shift E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
