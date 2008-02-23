@@ -73,4 +73,6 @@ typedef struct TBitem {
 } TBitem;
 void toolbox_generic( struct TBitem *generic_menu ); /* for external toolbox - python only for now */
 
+void toolbox_mousepos( short *mpos, int save ); /* saves/restores mouse position when entering/exiting menus */
+
 #endif

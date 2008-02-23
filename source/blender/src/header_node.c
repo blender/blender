@@ -216,7 +216,7 @@ void do_node_addmenu(void *arg, int event)
 		else node->flag &= ~NODE_TEST;
 	}
 	
-	getmouseco_areawin(mval);
+	toolbox_mousepos(mval, 0 ); /* get initial mouse position */
 	areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
 	node= node_add_node(snode, event, locx, locy);
 	

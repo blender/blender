@@ -1977,6 +1977,9 @@ void toolbox_n(void)
 		}
 	}
 	
+	/* save present mouse position */
+	toolbox_mousepos(mval, 1);
+
 	mywinset(G.curscreen->mainwin); // we go to screenspace
 	
 	block= uiNewBlock(&tb_listb, "toolbox", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
@@ -2306,4 +2309,26 @@ void toolbox_generic( TBitem *generic_menu )
 	event= uiDoBlocks(&tb_listb, 0, 1);
 	
 	mywinset(curarea->win);
+}
+
+/* save or restore mouse position when entering/exiting menus */
+void toolbox_mousepos( short *mpos, int save )
+{
+	static short initpos[2];
+	static int tog;
+	
+	if (save) {
+		getmouseco_areawin(mpos);
+		initpos[0]= mpos[0];
+		initpos[1]= mpos[1];
+		tog=1;
+	} else {
+		if (tog) {
+			mpos[0]= initpos[0];
+			mpos[1]= initpos[1];
+		} else {
+			getmouseco_areawin(mpos);
+		}
+		tog= 0;
+	}
 }
