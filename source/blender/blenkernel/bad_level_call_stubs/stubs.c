@@ -206,6 +206,20 @@ short pupmenu(char *instr){ return 0;}  // will be general callback
 void free_editing(struct Editing *ed){}	// scenes and sequences problem...
 void BPY_do_all_scripts (short int event){}
 
+/*editmesh_lib.c*/
+void EM_select_face(struct EditFace *efa, int sel);
+void EM_select_edge(struct EditEdge *eed, int sel);
+
+/*editmesh.c*/
+struct EditVert *addvertlist(float *vec, struct EditVert *example);
+struct EditEdge *addedgelist(struct EditVert *v1, struct EditVert *v2, struct EditEdge *example);
+struct EditFace *addfacelist(struct EditVert *v1, struct EditVert *v2, struct EditVert *v3, struct EditVert *v4, struct EditFace *example, struct EditFace *exampleEdges);
+
+/*edit.c*/
+
+void countall(void);
+
+
 /* IKsolver stubs */
 #include "IK_solver.h"
 
