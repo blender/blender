@@ -496,7 +496,7 @@ void audiostream_play(Uint32 startframe, Uint32 duration, int mixdown)
 		sound_init_audio();
 	}
 
-   	if (U.mixbufsize && !audio_initialised && !(duration + mixdown)) {
+   	if (U.mixbufsize && !audio_initialised && !mixdown) {
    		desired.freq=G.scene->audio.mixrate;
 		desired.format=AUDIO_S16SYS;
    		desired.channels=2;
@@ -512,7 +512,11 @@ void audiostream_play(Uint32 startframe, Uint32 duration, int mixdown)
 			      *(G.scene->audio.mixrate)*4 )) & (~3) );
 	audio_starttime = PIL_check_seconds_timer();
 
-	audio_scrub = duration;
+	/* if audio already is playing, just reseek, otherwise
+	   remember scrub-duration */
+	if (!(audio_playing && !audio_scrub)) {
+		audio_scrub = duration;
+	}
 	if (!mixdown) {
 		SDL_PauseAudio(0);
 		audio_playing++;
