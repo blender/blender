@@ -140,10 +140,6 @@ void do_text_buttons(unsigned short event)
 		
 	case B_TEXTDELETE:
 		{
-			Object *obt;
-			bConstraint *con;
-			int update;
-			
 			text= st->text;
 			if (!text) return;
 			
@@ -156,36 +152,8 @@ void do_text_buttons(unsigned short event)
 				pop_space_text(st);
 			}
 			
-			/*check all pyconstraints*/
-			for (obt=G.main->object.first; obt; obt=obt->id.next) {
-				update = 0;
-				if(obt->type==OB_ARMATURE && obt->pose) {
-					bPoseChannel *pchan;
-					for(pchan= obt->pose->chanbase.first; pchan; pchan= pchan->next) {
-						for (con = pchan->constraints.first; con; con=con->next) {
-							if (con->type==CONSTRAINT_TYPE_PYTHON) {
-								bPythonConstraint *data = con->data;
-								if (data->text==text) data->text = NULL;
-								update = 1;
-								
-							}
-						}
-					}
-				}
-				for (con = obt->constraints.first; con; con=con->next) {
-					if (con->type==CONSTRAINT_TYPE_PYTHON) {
-						bPythonConstraint *data = con->data;
-						if (data->text==text) data->text = NULL;
-						update = 1;
-					}
-				}
-				
-				if (update) {
-					DAG_object_flush_update(G.scene, obt, OB_RECALC_DATA);
-				}
-			}
-			
 			BPY_clear_bad_scriptlinks(text);
+			BPY_free_pyconstraint_links(text);
 			free_text_controllers(text);
 			
 			unlink_text(text);

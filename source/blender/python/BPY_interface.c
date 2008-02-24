@@ -1261,6 +1261,45 @@ int BPY_is_pyconstraint(Text *text)
 	return 0;
 }
 
+/* This function frees links from pyconstraints to a given text-buffer.
+ * Used when a text-buffer is unlinked!
+ */
+void BPY_free_pyconstraint_links(Text *text)
+{
+	Object *ob;
+	bConstraint *con;
+	short update;
+	
+	/*check all pyconstraints*/
+	for (ob=G.main->object.first; ob; ob=ob->id.next) {
+		update = 0;
+		if(ob->type==OB_ARMATURE && ob->pose) {
+			bPoseChannel *pchan;
+			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+				for (con = pchan->constraints.first; con; con=con->next) {
+					if (con->type==CONSTRAINT_TYPE_PYTHON) {
+						bPythonConstraint *data = con->data;
+						if (data->text==text) data->text = NULL;
+						update = 1;
+						
+					}
+				}
+			}
+		}
+		for (con = ob->constraints.first; con; con=con->next) {
+			if (con->type==CONSTRAINT_TYPE_PYTHON) {
+				bPythonConstraint *data = con->data;
+				if (data->text==text) data->text = NULL;
+				update = 1;
+			}
+		}
+		
+		if (update) {
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		}
+	}
+}
+
 /* This function is called to update PyConstraint data so that it is compatible with the script. 
  * Some of the allocating/freeing of memory for constraint targets occurs here, espcially
  * if the number of targets changes.

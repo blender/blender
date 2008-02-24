@@ -79,6 +79,7 @@ extern "C" {
 	void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct);
 	void BPY_pyconstraint_update(struct Object *owner, struct bConstraint *con);
 	int BPY_is_pyconstraint(struct Text *text);
+	void BPY_free_pyconstraint_links(struct Text *text);
 	
 	void BPY_start_python( int argc, char **argv );
 	void BPY_end_python( void );

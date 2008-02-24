@@ -1,5 +1,5 @@
 /* 
- * $Id: Text.c 11123 2007-06-29 08:59:26Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -289,6 +289,7 @@ static PyObject *M_Text_unlink( PyObject * self, PyObject * args )
 					      "this text was already unlinked!" );
 
 	BPY_clear_bad_scriptlinks( text );
+	BPY_free_pyconstraint_links( text );
 	free_text_controllers( text );
 	unlink_text( text );
 

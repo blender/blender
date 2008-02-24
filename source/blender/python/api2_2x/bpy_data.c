@@ -621,7 +621,7 @@ PyObject *LibBlockSeq_unlink(BPy_LibBlockSeq *self, PyObject * value)
 			
 			if (!data)
 				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						"This Group has been removed alredy" );
+						"This Group has been removed already" );
 			
 			/* Run the removal code */
 			free_group(data);
@@ -642,10 +642,11 @@ PyObject *LibBlockSeq_unlink(BPy_LibBlockSeq *self, PyObject * value)
 			
 			if (!data)
 				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						"This Group has been removed alredy" );
+						"This Group has been removed already" );
 			
 			/* Run the removal code */
 			BPY_clear_bad_scriptlinks( data );
+			BPY_free_pyconstraint_links( data );
 			free_text_controllers( data );
 			unlink_text( data );
 			free_libblock( &G.main->text, data );
