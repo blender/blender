@@ -61,6 +61,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_armature.h"
+#include "BKE_depsgraph.h"
 #include "api2_2x/EXPP_interface.h"
 #include "api2_2x/constant.h"
 #include "api2_2x/gen_utils.h"
@@ -1774,18 +1775,20 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 	
 	idprop = BPy_Wrap_IDProperty( NULL, con->prop, NULL);
 	
+	gilstate = PyGILState_Ensure();
+	
 	retval = RunPython(con->text, globals);
 
 	if (retval == NULL) {
 		BPY_Err_Handle(con->text->id.name);
 		ReleaseGlobalDictionary(globals);
 		con->flag |= PYCON_SCRIPTERROR;
-	
+		
 		/* free temp objects */
 		Py_XDECREF(idprop);
-
+		
 		PyGILState_Release(gilstate);
-
+		
 		return;
 	}
 
@@ -1814,9 +1817,9 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		ReleaseGlobalDictionary( globals );
 		
 		Py_XDECREF(idprop);
-
+		
 		PyGILState_Release(gilstate);
-
+		
 		return;
 	}
 	
@@ -1827,9 +1830,9 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		/* free temp objects */
 		ReleaseGlobalDictionary(globals);
 		Py_XDECREF(idprop);
-
+		
 		PyGILState_Release(gilstate);
-
+		
 		return;
 	}
 	else {
@@ -1839,9 +1842,9 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		/* free temp objects */
 		Py_XDECREF(idprop);
 		Py_DECREF(retval);
-
+		
 		PyGILState_Release(gilstate);
-
+		
 		return;
 	}
 }
@@ -2398,9 +2401,9 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 			during_slink++;
 			disable_where_scriptlink( (short)during_slink );
 		}
-
+		
 		gilstate = PyGILState_Ensure();
-
+		
 		if( !setup_armature_weakrefs()){
 			printf("Oops - weakref dict, this is a bug\n");
 			PyGILState_Release(gilstate);
@@ -2415,7 +2418,7 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 		EXPP_dict_set_item_str(g_blenderdict, "event", PyInt_FromLong(event));
 		/* now run all assigned space handlers for this space and space_event */
 		for( index = 0; index < scriptlink->totscript; index++ ) {
-
+			
 			/* for DRAW handlers: */
 			if (event == 0) {
 				glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -2424,7 +2427,7 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 				glMatrixMode(GL_MODELVIEW);
 				glPushMatrix();
 			}
-
+			
 			if( ( scriptlink->flag[index] == space_event ) &&
 			    ( scriptlink->scripts[index] != NULL ) ) {
 				dict = CreateGlobalDictionary();
@@ -2444,7 +2447,7 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 					if (event && (PyDict_GetItemString(g_blenderdict,"event") == Py_None))
 						retval = 1; /* event was swallowed */
 				}
-
+				
 				/* If a scriptlink has just loaded a new .blend file, the
 				 * scriptlink pointer became invalid (see api2_2x/Blender.c),
 				 * so we stop here. */
@@ -2454,7 +2457,7 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 					break;
 				}
 			}
-
+			
 			/* for DRAW handlers: */
 			if (event == 0) {
 				glMatrixMode(GL_PROJECTION);
@@ -2464,12 +2467,14 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 				glPopAttrib();
 				disable_where_scriptlink( (short)(during_slink - 1) );
 			}
-
+		
 		}
-
+		
 		PyDict_SetItemString(g_blenderdict, "bylink", Py_False);
 		PyDict_SetItemString(g_blenderdict, "link", Py_None );
 		EXPP_dict_set_item_str(g_blenderdict, "event", PyString_FromString(""));
+		
+		PyGILState_Release(gilstate);
 	}
 	
 	/* retval:
@@ -2478,8 +2483,6 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 	 * 1 - event was processed;
 	 * space_event is of type DRAW:
 	 * 0 always */
-
-	PyGILState_Release(gilstate);
 
 	return retval;
 }
