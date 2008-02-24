@@ -720,9 +720,9 @@ void seq_buttons()
 			minchan = -BLI_countlist(&((Editing*)G.scene->ed)->metastack);
 
 		uiDefButS(block, NUM, B_REDR, "Chan:",
-		xco, 0, 3.5 * XIC,YIC,
-		&sseq->chanshown, minchan, MAXSEQ, 0, 0,
-		"The channel number shown in the image preview. 0 is the result of all strips combined.");
+			  xco, 0, 3.5 * XIC,YIC,
+			  &sseq->chanshown, minchan, MAXSEQ, 0, 0,
+			  "The channel number shown in the image preview. 0 is the result of all strips combined.");
 		
 		xco+= 8 + XIC*3.5;
 
@@ -760,13 +760,18 @@ void seq_buttons()
 		}
 	} else {
 		/* ZOOM and BORDER */
-		xco+= 8;
-		uiBlockBeginAlign(block);
-		uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view in and out (Ctrl MiddleMouse)");
-		uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to fit area");
-		uiBlockEndAlign(block);
-
-		xco+= 16;
+		uiDefIconButI(block, TOG, B_VIEW2DZOOM, 
+			      ICON_VIEWZOOM,	
+			      xco,0,XIC,YIC, &viewmovetemp, 
+			      0, 0, 0, 0, 
+			      "Zooms view in and out (Ctrl MiddleMouse)");
+		xco += XIC;
+		uiDefIconBut(block, BUT, B_IPOBORDER, 
+			     ICON_BORDERMOVE,	
+			     xco,0,XIC,YIC, 0, 
+			     0, 0, 0, 0, 
+			     "Zooms view to fit area");
+		xco += 8 + XIC;
 	}
 
 	uiDefBut(block, BUT, B_SEQCLEAR, "Refresh", xco,0,3*XIC,YIC, 0, 0, 0, 0, 0, "Clears all buffered images in memory");

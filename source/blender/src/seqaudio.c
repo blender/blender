@@ -362,7 +362,8 @@ static void audio_fill_seq(Sequence * seq, void * mixdown,
 			   Uint8 *sstream, int len)
 {
 	while(seq) {
-		if (seq->type == SEQ_META) {
+		if (seq->type == SEQ_META &&
+		    (!(seq->flag & SEQ_MUTE))) {
 			audio_fill_seq(seq->seqbase.first,
 				       mixdown, sstream, len);
 		}
