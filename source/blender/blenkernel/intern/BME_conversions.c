@@ -381,7 +381,7 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 	if(totface){
 		mface = CDDM_get_faces(result);
 		/*make faces*/
-		for(i=0,f=bm->polys.first;f;f=f->next,i++){
+		for(i=0,f=bm->polys.first;f;f=f->next){
 			mf = &mface[i];
 			len = BME_cycle_length(f->loopbase);
 			if(len==3 || len==4){
@@ -395,6 +395,7 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 				if(mf->v3 == 0 || (len == 4 && mf->v4 == 0)){
 					test_index_face(mf, NULL, i, len);
 				}
+				i++;
 			}
 			mf->mat_nr = (unsigned char)f->mat_nr;
 			mf->flag = (unsigned char)f->flag;
