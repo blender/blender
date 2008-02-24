@@ -3067,7 +3067,7 @@ void psys_flush_settings(ParticleSettings *part, int event, int hair_recalc)
 					tpsys=BLI_findlink(&tob->particlesystem,psys->target_psys-1);
 
 					if(tpsys && tpsys->part==part){
-						psys->flag |= event;
+						psys->recalc |= event;
 						flush++;
 					}
 				}
