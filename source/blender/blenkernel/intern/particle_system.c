@@ -505,7 +505,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 	ParticleData *tpa;
 	ParticleSettings *part= ctx->psys->part;
 	float *v1, *v2, *v3, *v4, nor[3], orco1[3], co1[3], co2[3], nor1[3], ornor1[3];
-	float cur_d, min_d;
+	float cur_d, min_d, randu, randv;
 	int from= ctx->from;
 	int cfrom= ctx->cfrom;
 	int distr= ctx->distr;
@@ -547,7 +547,9 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 			//ctx->jitoff[i]=(float)fmod(ctx->jitoff[i]+ctx->maxweight/ctx->weight[i],(float)ctx->jitlevel);
 			break;
 		case PART_DISTR_RAND:
-			psys_uv_to_w(rng_getFloat(thread->rng), rng_getFloat(thread->rng), mface->v4, pa->fuv);
+			randu= rng_getFloat(thread->rng);
+			randv= rng_getFloat(thread->rng);
+			psys_uv_to_w(randu, randv, mface->v4, pa->fuv);
 			break;
 		}
 		pa->foffset= 0.0f;
@@ -645,7 +647,9 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 		//		ctx->jitoff[i]=(float)fmod(ctx->jitoff[i]+ctx->maxweight/ctx->weight[i],(float)ctx->jitlevel);
 		//		break;
 		//	case PART_DISTR_RAND:
-				psys_uv_to_w(rng_getFloat(thread->rng), rng_getFloat(thread->rng), mf->v4, cpa->fuv);
+				randu= rng_getFloat(thread->rng);
+				randv= rng_getFloat(thread->rng);
+				psys_uv_to_w(randu, randv, mf->v4, cpa->fuv);
 		//		break;
 		//}
 
