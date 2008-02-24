@@ -2237,7 +2237,7 @@ static void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode)
 	
 	draw_nodespace_grid(snode);
 	
-	if(snode->flag & SNODE_BACKDRAW) {
+	if((snode->flag & SNODE_BACKDRAW) && snode->treetype==NTREE_COMPOSIT) {
 		Image *ima= BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 		if(ibuf) {
@@ -2249,7 +2249,7 @@ static void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode)
 			myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 			
 			x = (sa->winx-ibuf->x)/2 + snode->xof;
-			y = (sa->winx-ibuf->y)/2 + snode->yof;
+			y = (sa->winy-ibuf->y)/2 + snode->yof;
 			
 			if(ibuf->rect)
 				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
