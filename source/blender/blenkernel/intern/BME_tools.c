@@ -1151,11 +1151,11 @@ BME_Mesh *BME_bevel_reinitialize(BME_Mesh *bm) {
  *  A BME_Mesh pointer to the BMesh passed as a parameter.
 */
 BME_Mesh *BME_bevel_mesh(BME_Mesh *bm, float value, int res, int options, int defgrp_index, BME_TransData_Head *td) {
-	BME_Vert *v, *nv;
-	BME_Edge *e, *oe;
+	BME_Vert *v, *nv, *kv;
+	BME_Edge *e, *oe, *ne;
 	BME_Loop *l, *l2;
-	BME_Poly *f;
-	unsigned int i, len;
+	BME_Poly *f, *nf;
+	unsigned int i, len, done;
 
 	for (f=bm->polys.first; f; f=f->next) {
 		if(f->tflag1 & BME_BEVEL_ORIG) {
@@ -1212,42 +1212,51 @@ BME_Mesh *BME_bevel_mesh(BME_Mesh *bm, float value, int res, int options, int de
 				}
 			}
 
-			l = v->edge->loop;
-			if (len > 2) {
-				f = l->f;
-				while(f->len <= len) {
-					if (l->radial.next->data != l) {
-						e = l->e;
-						l = l->radial.next->data;
+			done = 0;
+			while(!done){
+				done = 1;
+				e = v->edge;
+				do{
+					f = NULL;
+					len = BME_cycle_length(&(e->loop->radial));
+					if(len == 2){
+						f = BME_JFKE_safe(bm,e->loop->f, ((BME_Loop*)(e->loop->radial.next->data))->f, e);
 					}
-					else {
-						e = NULL;
+					if(f){ 
+						done = 0;
+						break;
 					}
-					if (l->v == v) l = l->prev;
-					else l = l->next;
-					if (e) {
-						f = BME_JFKE_safe(bm,e->loop->f,((BME_Loop*)e->loop->radial.next->data)->f,e);
-					}
-				}
+					e = BME_disk_nextedge(e,v);
+				}while(e != v->edge);
 			}
-			if (l->v == v) l = l->prev;
-			l = l->prev;
-			if (l->next->radial.next->data == l->next) { /* was part of the open end of a mesh */
-				BME_JEKV(bm,l->next->e,v);
-				if (len == 2) {
-					f = BME_JFKE_safe(bm,l->f,((BME_Loop*)l->radial.next->data)->f,l->e);
-				}
-			}
-			else {
-				BME_JEKV(bm,l->next->e,v);
-				f = BME_JFKE_safe(bm,l->f,((BME_Loop*)l->next->radial.next->data)->f,l->next->e);
-				if (f->len == 2) {
-					f = BME_JFKE_safe(bm,f,((BME_Loop*)f->loopbase->radial.next->data)->f,f->loopbase->e);
-				}
-			}
+			BME_JEKV(bm,e,v);
 		}
 		v = nv;
 	}
+
+	/*clean up two edged faces here*/
+		for(f=bm->polys.first; f;){
+			nf = f->next;
+			if(f->len == 2){
+				e = NULL;
+				l = f->loopbase;
+				do{
+					if(BME_cycle_length(&l->radial) == 2){
+						e = l->e;
+						break;
+					}
+					l = l->next;
+				}while(l!=f->loopbase);
+
+				if(e) BME_JFKE_safe(bm,f, ((BME_Loop*)(e->loop->radial.next->data))->f, e);
+				else{
+					/*We are still leaving a stray edge? This shouldnt even be possible!*/
+					BME_KF(bm, f);
+				}
+			}
+			f = nf;
+		}
+
 	return bm;
 }
 
