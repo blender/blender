@@ -443,7 +443,6 @@ DO_INLINE void interpolateOnTriangle(float to[3], float v1[3], float v2[3], floa
 
 int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierData *collmd)
 {
-	unsigned int i = 0;
 	int result = 0;
 	LinkNode *search = NULL;
 	CollPair *collpair = NULL;
@@ -493,10 +492,8 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 		if(magrelVel < -ALMOST_ZERO) 
 		{
 			// Calculate Impulse magnitude to stop all motion in normal direction.
-			float magnitude_i = magrelVel / 2.0; // TODO implement masses
-			float tangential[3], magtangent, magnormal;
+			float tangential[3], magtangent;
 			double impulse = 0.0;
-			float epsilon = clmd->coll_parms->epsilon;
 			float vrel_t_pre[3];
 			float vrel_t[3], temp[3];
 			
@@ -716,8 +713,6 @@ void cloth_collision_moving_edges(ClothModifierData *clmd, ClothModifierData *co
 	Cloth *cloth1=NULL, *cloth2=NULL;
 	MFace *face1=NULL, *face2=NULL;
 	ClothVertex *verts1=NULL, *verts2=NULL;
-	double distance = 0;
-	float epsilon = clmd->coll_parms->epsilon;
 	unsigned int i = 0, j = 0, k = 0;
 	int numsolutions = 0;
 	float a[3], b[3], c[3], d[3], e[3], f[3], solution[3];
@@ -831,7 +826,7 @@ void cloth_collision_moving_edges(ClothModifierData *clmd, ClothModifierData *co
 				{								
 					if ((solution[k] >= 0.0) && (solution[k] <= 1.0)) 
 					{
-						float out_collisionTime = solution[k];
+						//float out_collisionTime = solution[k];
 						
 						// TODO: check for collisions 
 						
@@ -851,8 +846,6 @@ void cloth_collision_moving_tris(ClothModifierData *clmd, ClothModifierData *col
 	Cloth *cloth1=NULL, *cloth2=NULL;
 	MFace *face1=NULL, *face2=NULL;
 	ClothVertex *verts1=NULL, *verts2=NULL;
-	double distance = 0;
-	float epsilon = clmd->coll_parms->epsilon;
 	unsigned int i = 0, j = 0, k = 0;
 	int numsolutions = 0;
 	float a[3], b[3], c[3], d[3], e[3], f[3], solution[3];
@@ -921,7 +914,7 @@ void cloth_collision_moving_tris(ClothModifierData *clmd, ClothModifierData *col
 				{								
 					if ((solution[k] >= 0.0) && (solution[k] <= 1.0)) 
 					{
-						float out_collisionTime = solution[k];
+						//float out_collisionTime = solution[k];
 						
 						// TODO: check for collisions 
 						
@@ -950,6 +943,7 @@ void cloth_collision_moving(ClothModifierData *clmd, ClothModifierData *coll_clm
 
 void cloth_collision_self_static(ModifierData *md1, ModifierData *md2, CollisionTree *tree1, CollisionTree *tree2)
 {
+/*
 	ClothModifierData *clmd = (ClothModifierData *)md1;
 	CollisionModifierData *collmd = (CollisionModifierData *)md2;
 	CollPair *collpair = NULL;
@@ -959,10 +953,11 @@ void cloth_collision_self_static(ModifierData *md1, ModifierData *md2, Collision
 	double distance = 0;
 	float epsilon = clmd->coll_parms->epsilon;
 	unsigned int i = 0;
-
+*/
 	
 }
 
+#if 0
 /* aye this belongs to arith.c */
 static void Vec3PlusStVec(float *v, float s, float *v1)
 {
@@ -970,6 +965,7 @@ static void Vec3PlusStVec(float *v, float s, float *v1)
 	v[1] += s*v1[1];
 	v[2] += s*v1[2];
 }
+#endif
 
 // cloth - object collisions
 int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)

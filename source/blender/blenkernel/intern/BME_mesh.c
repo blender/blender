@@ -83,7 +83,6 @@ void BME_free_mesh(BME_Mesh *bm)
 	BME_Edge *be, *nexte;
 	BME_Vert *bv, *nextv;
 	BME_CycleNode *loopref;
-	int loopcount=0;
 	
 	/*destroy polygon data*/
 	bf = bm->polys.first;
@@ -145,16 +144,10 @@ void BME_free_mesh(BME_Mesh *bm)
  *  from scratch. 
 */
 
-BME_Mesh *BME_copy_mesh(BME_Mesh *bm){
-	
-	BME_Vert *v, *cv;
-	BME_Edge *e, *ce;
-	BME_Poly *f, *cf;
-	BME_Loop *l, *cl;
+BME_Mesh *BME_copy_mesh(BME_Mesh *bm)
+{
 	BME_Mesh *meshcopy;
 	meshcopy = BME_make_mesh();
-	
-
 	return meshcopy;
 }
 

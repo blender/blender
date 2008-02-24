@@ -2726,8 +2726,8 @@ static DerivedMesh *bevelModifier_applyModifier(
 {
 	DerivedMesh *result;
 	BME_Mesh *bm;
-	bDeformGroup *def;
-	int i, options, defgrp_index = -1;
+	/*bDeformGroup *def;*/
+	int /*i,*/ options, defgrp_index = -1;
 	BevelModifierData *bmd = (BevelModifierData*) md;
 
 	options = bmd->flags|bmd->val_flags|bmd->lim_flags|bmd->e_flags;
@@ -5097,7 +5097,6 @@ static void clothModifier_updateDepgraph(
 
 CustomDataMask clothModifier_requiredDataMask(ModifierData *md)
 {
-	ClothModifierData *clmd = (ClothModifierData *)md;
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */

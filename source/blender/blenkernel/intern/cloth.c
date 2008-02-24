@@ -277,20 +277,16 @@ DerivedMesh *CDDM_create_tearing ( ClothModifierData *clmd, DerivedMesh *dm )
 	DerivedMesh *result = NULL;
 	unsigned int i = 0, a = 0, j=0;
 	int numverts = dm->getNumVerts ( dm );
-	int numedges = dm->getNumEdges ( dm );
 	int numfaces = dm->getNumFaces ( dm );
 
 	MVert *mvert = CDDM_get_verts ( dm );
-	MEdge *medge = CDDM_get_edges ( dm );
 	MFace *mface = CDDM_get_faces ( dm );
 
 	MVert *mvert2;
 	MFace *mface2;
-	unsigned int numtris=0;
-	unsigned int numquads=0;
 	EdgeHash *edgehash = NULL;
 	Cloth *cloth = clmd->clothObject;
-	ClothSpring *springs = cloth->springs;
+	ClothSpring *springs = (ClothSpring *)cloth->springs;
 	unsigned int numsprings = cloth->numsprings;
 
 	// create spring tearing hash

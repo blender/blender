@@ -196,8 +196,8 @@ BME_Poly *BME_MF(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge **elist, int
 {
 	BME_Poly *f = NULL;
 	BME_Edge *curedge;
-	BME_Vert *curvert, *tv, *nextv,**vlist;
-	int i, j, done, cont, edok,vlen;
+	BME_Vert *curvert, *tv, **vlist;
+	int i, j, done, cont, edok;
 	
 	if(len < 2) return BME_exit("MF returned NULL");
 	
@@ -428,7 +428,7 @@ BME_Vert *BME_SEMV(BME_Mesh *bm, BME_Vert *tv, BME_Edge *e, BME_Edge **re){
 	BME_Vert *nv, *ov;
 	BME_CycleNode *diskbase;
 	BME_Edge *ne;
-	int i, radlen, edok, valance1=0, valance2=0;
+	int i, edok, valance1=0, valance2=0;
 	
 	if(BME_vert_in_edge(e,tv) == 0) return BME_exit("SEMV returned NULL");
 	ov = BME_edge_getothervert(e,tv);
@@ -879,7 +879,7 @@ BME_Poly *BME_JFKE(BME_Mesh *bm, BME_Poly *f1, BME_Poly *f2, BME_Edge *e)
 {
 	
 	BME_Loop *curloop, *f1loop=NULL, *f2loop=NULL;
-	int loopok = 0, newlen = 0,i, f1len=0, f2len=0, radlen=0, valance1,valance2,edok;
+	int loopok = 0, newlen = 0,i, f1len=0, f2len=0, radlen=0, edok;
 	
 	if(f1->holes.first || f2->holes.first) return BME_exit("JFKE returned NULL"); //dont operate on faces with holes. Not best solution but tolerable.
 	if(f1 == f2) return BME_exit("JFKE returned NULL"); //can't join a face to itself

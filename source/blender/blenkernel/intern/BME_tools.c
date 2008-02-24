@@ -656,7 +656,6 @@ BME_Loop *BME_bevel_edge(BME_Mesh *bm, BME_Loop *l, float value, int options, fl
 	BME_Loop *kl, *nl;
 	BME_Edge *e;
 	BME_Poly *f;
-	float factor=1;
 
 	f = l->f;
 	e = l->e;
@@ -869,7 +868,7 @@ void BME_bevel_add_vweight(BME_TransData_Head *td, BME_Mesh *bm, BME_Vert *v, fl
 
 	if (v->tflag1 & BME_BEVEL_NONMAN) return;
 	v->tflag1 |= BME_BEVEL_BEVEL;
-	if (vtd = BME_get_transdata(td, v)) {
+	if ( (vtd = BME_get_transdata(td, v)) ) {
 		if (options & BME_BEVEL_EMIN) {
 			vtd->factor = 1.0;
 			if (vtd->weight < 0 || weight < vtd->weight) {
@@ -952,7 +951,7 @@ BME_Mesh *BME_bevel_initialize(BME_Mesh *bm, int options, int defgrp_index, floa
 	BME_TransData *vtd;
 	MDeformVert *dvert;
 	MDeformWeight *dw;
-	int i, len;
+	int len;
 	float weight, threshold;
 
 	/* vert pass */
@@ -1151,8 +1150,8 @@ BME_Mesh *BME_bevel_reinitialize(BME_Mesh *bm) {
  *  A BME_Mesh pointer to the BMesh passed as a parameter.
 */
 BME_Mesh *BME_bevel_mesh(BME_Mesh *bm, float value, int res, int options, int defgrp_index, BME_TransData_Head *td) {
-	BME_Vert *v, *nv, *kv;
-	BME_Edge *e, *oe, *ne;
+	BME_Vert *v, *nv;
+	BME_Edge *e, *oe;
 	BME_Loop *l, *l2;
 	BME_Poly *f, *nf;
 	unsigned int i, len, done;
@@ -1183,7 +1182,7 @@ BME_Mesh *BME_bevel_mesh(BME_Mesh *bm, float value, int res, int options, int de
 			}
 			/* look for original edges, and remove them */
 			oe = e;
-			while (e = BME_disk_next_edgeflag(oe, v, 0, BME_BEVEL_ORIG | BME_BEVEL_BEVEL)) {
+			while ( (e = BME_disk_next_edgeflag(oe, v, 0, BME_BEVEL_ORIG | BME_BEVEL_BEVEL)) ) {
 				/* join the faces (we'll split them later) */
 				f = BME_JFKE_safe(bm,e->loop->f,((BME_Loop*)e->loop->radial.next->data)->f,e);
 				if (!f) printf("Non-manifold geometry not getting tagged right?\n");
@@ -1318,7 +1317,7 @@ BME_Mesh *BME_bevel(BME_Mesh *bm, float value, int res, int options, int defgrp_
 
 	/* transform pass */
 	for (v = bm->verts.first; v; v=v->next) {
-		if (vtd = BME_get_transdata(td, v)) {
+		if ( (vtd = BME_get_transdata(td, v)) ) {
 			if (vtd->max && (*vtd->max > 0 && value > *vtd->max)) {
 				d = *vtd->max;
 			}
