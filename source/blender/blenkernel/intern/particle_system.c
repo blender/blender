@@ -4444,6 +4444,7 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 		else
 			free_hair(psys);
 
+		psys->softflag= 0;
 		psys->recalc &= ~PSYS_TYPE;
 		alloc = 1;
 

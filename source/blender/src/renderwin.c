@@ -346,7 +346,7 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 		RenderResult rres;
 		RenderSpare *rspare= render_spare;
 		
-		if(rspare->showspare) {
+		if(rspare && rspare->showspare) {
 			if(rspare->ibuf) {
 				rres.rectx= rspare->ibuf->x;
 				rres.recty= rspare->ibuf->y;

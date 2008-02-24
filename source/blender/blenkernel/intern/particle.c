@@ -287,6 +287,11 @@ void free_hair(ParticleSystem *psys)
 	}
 
 	psys->flag &= ~PSYS_HAIR_DONE;
+
+	if(psys->soft) {
+		sbFree(psys->soft);
+		psys->soft = NULL;
+	}
 }
 void free_keyed_keys(ParticleSystem *psys)
 {
@@ -361,11 +366,6 @@ void psys_free(Object *ob, ParticleSystem * psys)
 		if(psys->part){
 			psys->part->id.us--;		
 			psys->part=0;
-		}
-
-		if(psys->soft){
-			sbFree(psys->soft);
-			psys->soft = 0;
 		}
 
 		MEM_freeN(psys);
