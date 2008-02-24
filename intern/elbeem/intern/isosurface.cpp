@@ -22,10 +22,6 @@
 #define round(x) (x)
 #endif
 
-#if PARALLEL==1	
-#include <omp.h>
-#endif
-
 /******************************************************************************
  * Constructor
  *****************************************************************************/
@@ -164,6 +160,13 @@ void IsoSurface::triangulate( void )
 		mpEdgeVerticesZ[i] = -1;
 	}
 
+	ntlVec3Gfx pos[8];
+	float value[8];
+	int cubeIndex;      // index entry of the cube 
+	int triIndices[12]; // vertex indices 
+	int *eVert[12];
+	IsoLevelVertex ilv;
+
 	// edges between which points?
 	const int mcEdges[24] = { 
 		0,1,  1,2,  2,3,  3,0,
@@ -190,12 +193,7 @@ void IsoSurface::triangulate( void )
 				px = mStart[0]-gsx*0.5;
 				for(int i=1;i<(mSizex-2);i++) {
 					px += gsx;
-					int cubeIndex;      // index entry of the cube 
-					float value[8];
-					int triIndices[12]; // vertex indices 
-					int *eVert[12];
-					IsoLevelVertex ilv;
-					
+
 					value[0] = *getData(i  ,j  ,k  );
 					value[1] = *getData(i+1,j  ,k  );
 					value[2] = *getData(i+1,j+1,k  );
@@ -241,7 +239,6 @@ void IsoSurface::triangulate( void )
 					eVert[11] = &mpEdgeVerticesZ[ ISOLEVEL_INDEX( i+0, j+1, edgek+0) ];
 
 					// grid positions
-					ntlVec3Gfx pos[8];
 					pos[0] = ntlVec3Gfx(px    ,py    ,pz);
 					pos[1] = ntlVec3Gfx(px+gsx,py    ,pz);
 					pos[2] = ntlVec3Gfx(px+gsx,py+gsy,pz);
@@ -347,7 +344,10 @@ void IsoSurface::triangulate( void )
 		if(mUseFullEdgeArrays) {
 			errMsg("IsoSurface::triangulate","Disabling mUseFullEdgeArrays!");
 		}
-		
+
+		// subdiv local arrays
+		gfxReal orgval[8];
+		gfxReal subdAr[2][11][11]; // max 10 subdivs!
 		ParticleObject* *arppnt = new ParticleObject*[mSizez*mSizey*mSizex];
 
 		// construct pointers
@@ -408,25 +408,13 @@ void IsoSurface::triangulate( void )
 
 		debMsgStd("IsoSurface::triangulate",DM_MSG,"Starting. Parts in use:"<<pInUse<<", Subdivs:"<<mSubdivs, 9);
 		pz = mStart[2]-(double)(0.*gsz)-0.5*orgGsz;
-	
 		for(int ok=1;ok<(mSizez-2)*mSubdivs;ok++) {
 			pz += gsz;
 			const int k = ok/mSubdivs;
 			if(k<=0) continue; // skip zero plane
-#if PARALLEL==1	
-#pragma omp parallel for
-#endif	
 			for(int j=1;j<(mSizey-2);j++) {
 				for(int i=1;i<(mSizex-2);i++) {
-					float value[8];
-					ntlVec3Gfx pos[8];
-					int cubeIndex;      // index entry of the cube 
-					int triIndices[12]; // vertex indices 
-					int *eVert[12];
-					IsoLevelVertex ilv;
-					gfxReal orgval[8];
-					gfxReal subdAr[2][11][11]; // max 10 subdivs!
-					
+
 					orgval[0] = *getData(i  ,j  ,k  );
 					orgval[1] = *getData(i+1,j  ,k  );
 					orgval[2] = *getData(i+1,j+1,k  ); // with subdivs
@@ -438,7 +426,6 @@ void IsoSurface::triangulate( void )
 
 					// prebuild subsampled array slice
 					const int sdkOffset = ok-k*mSubdivs; 
-
 					for(int sdk=0; sdk<2; sdk++) 
 						for(int sdj=0; sdj<mSubdivs+1; sdj++) 
 							for(int sdi=0; sdi<mSubdivs+1; sdi++) {
@@ -593,13 +580,8 @@ void IsoSurface::triangulate( void )
 
 										// init isolevel vertex
 										ilv.v = p1 + (p2-p1)*mu; // with subdivs
-#if PARALLEL==1	
-#pragma omp critical
-#endif
-										{
 										mPoints.push_back( ilv );
 										triIndices[e] = (mPoints.size()-1);
-										}
 										// store vertex 
 										*eVert[ e ] = triIndices[e]; 
 									}	else {
@@ -609,27 +591,23 @@ void IsoSurface::triangulate( void )
 								} // along all edges 
 							}
 							// removed cutoff treatment...
-							
+
 							// Create the triangles... 
-#if PARALLEL==1	
-#pragma omp critical
-#endif
-							{
 							for(int e=0; mcTriTable[cubeIndex][e]!=-1; e+=3) {
 								mIndices.push_back( triIndices[ mcTriTable[cubeIndex][e+0] ] );
 								mIndices.push_back( triIndices[ mcTriTable[cubeIndex][e+1] ] ); // with subdivs
 								mIndices.push_back( triIndices[ mcTriTable[cubeIndex][e+2] ] );
 								//errMsg("TTT"," i1"<<mIndices[mIndices.size()-3]<<" "<< " i2"<<mIndices[mIndices.size()-2]<<" "<< " i3"<<mIndices[mIndices.size()-1]<<" "<< mIndices.size() );
+							}
+
 							} // triangles in edge table?
-							}
-							}
 							
 						}//si
 					}// sj
 
 				}//i
 			}// j
-			
+
 			// copy edge arrays
 			for(int j=0;j<(mSizey-0)*mSubdivs;j++) 
 				for(int i=0;i<(mSizex-0)*mSubdivs;i++) {
