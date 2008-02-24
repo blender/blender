@@ -1771,11 +1771,11 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 	if (!con->text) return;
 	if (con->flag & PYCON_SCRIPTERROR) return;
 	
+	gilstate = PyGILState_Ensure();
+	
 	globals = CreateGlobalDictionary();
 	
 	idprop = BPy_Wrap_IDProperty( NULL, con->prop, NULL);
-	
-	gilstate = PyGILState_Ensure();
 	
 	retval = RunPython(con->text, globals);
 
