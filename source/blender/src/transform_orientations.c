@@ -445,6 +445,20 @@ int getTransformOrientation(float normal[3], float plane[3], int activeOnly)
 							}
 						}
 					}
+
+					/* if there's an edge available, use that for the tangent */
+					if (G.totedgesel >= 1)
+					{
+						EditEdge *eed = NULL;
+	
+						for(eed= em->edges.first; eed; eed= eed->next) {
+							if(eed->f & SELECT) {
+								VecSubf(plane, eed->v2->co, eed->v1->co);
+								break;
+							}
+						}
+					}
+
 					result = ORIENTATION_FACE;
 				}
 				else if (G.totedgesel == 1)
