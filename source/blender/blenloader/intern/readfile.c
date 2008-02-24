@@ -7202,61 +7202,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 7)) {
-		Object *ob;
-		bPoseChannel *pchan;
-		bConstraint *con;
-		bConstraintTarget *ct;
-		
-		for(ob = main->object.first; ob; ob= ob->id.next) {
-			if(ob->pose) {
-				for(pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
-					for(con=pchan->constraints.first; con; con=con->next) {
-						if(con->type==CONSTRAINT_TYPE_PYTHON) {
-							bPythonConstraint *data= (bPythonConstraint *)con->data;
-							if (data->tar) {
-								/* version patching needs to be done */
-								ct= MEM_callocN(sizeof(bConstraintTarget), "PyConTarget");
-								
-								ct->tar = data->tar;
-								strcpy(ct->subtarget, data->subtarget);
-								ct->space = con->tarspace;
-								
-								BLI_addtail(&data->targets, ct);
-								data->tarnum++;
-								
-								/* clear old targets to avoid problems */
-								data->tar = NULL;
-								strcpy(data->subtarget, "");
-							}
-						}
-					}
-				}
-			}
-			
-			for(con=ob->constraints.first; con; con=con->next) {
-				if(con->type==CONSTRAINT_TYPE_PYTHON) {
-					bPythonConstraint *data= (bPythonConstraint *)con->data;
-					if (data->tar) {
-						/* version patching needs to be done */
-						ct= MEM_callocN(sizeof(bConstraintTarget), "PyConTarget");
-						
-						ct->tar = data->tar;
-						strcpy(ct->subtarget, data->subtarget);
-						ct->space = con->tarspace;
-						
-						BLI_addtail(&data->targets, ct);
-						data->tarnum++;
-						
-						/* clear old targets to avoid problems */
-						data->tar = NULL;
-						strcpy(data->subtarget, "");
-					}
-				}
-			}
-		}
-	}
-
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 8)) {
 		Scene *sce;
 		Object *ob;
