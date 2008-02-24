@@ -58,7 +58,7 @@ typedef struct bNodeStack {
 #define NS_OSA_VALUES		2
 
 typedef struct bNodeSocket {
-	struct bNodeSocket *next, *prev;
+	struct bNodeSocket *next, *prev, *new_sock;
 	
 	char name[32];
 	bNodeStack ns;				/* custom data for inputs, only UI writes in this */

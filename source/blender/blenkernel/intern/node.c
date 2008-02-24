@@ -801,6 +801,23 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 	return 1;
 }
 
+void nodeCopyGroup(bNode *gnode)
+{
+	bNodeSocket *sock;
+
+	gnode->id->us--;
+	gnode->id= (ID *)ntreeCopyTree((bNodeTree *)gnode->id, 0);
+
+	/* new_sock was set in nodeCopyNode */
+	for(sock=gnode->inputs.first; sock; sock=sock->next)
+		if(sock->tosock)
+			sock->tosock= sock->tosock->new_sock;
+
+	for(sock=gnode->outputs.first; sock; sock=sock->next)
+		if(sock->tosock)
+			sock->tosock= sock->tosock->new_sock;
+}
+
 /* ************** Add stuff ********** */
 void nodeAddSockets(bNode *node, bNodeType *ntype)
 {
@@ -901,23 +918,30 @@ void nodeUpdateType(bNodeTree *ntree, bNode* node, bNodeType *ntype)
 
 /* keep socket listorder identical, for copying links */
 /* ntree is the target tree */
-bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
+bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int internal)
 {
 	bNode *nnode= MEM_callocN(sizeof(bNode), "dupli node");
-	bNodeSocket *sock;
+	bNodeSocket *sock, *oldsock;
 
 	*nnode= *node;
 	BLI_addtail(&ntree->nodes, nnode);
 	
 	duplicatelist(&nnode->inputs, &node->inputs);
-	for(sock= nnode->inputs.first; sock; sock= sock->next)
-		sock->own_index= 0;
+	oldsock= node->inputs.first;
+	for(sock= nnode->inputs.first; sock; sock= sock->next, oldsock= oldsock->next) {
+		oldsock->new_sock= sock;
+		if(internal)
+			sock->own_index= 0;
+	}
 	
 	duplicatelist(&nnode->outputs, &node->outputs);
-	for(sock= nnode->outputs.first; sock; sock= sock->next) {
-		sock->own_index= 0;
+	oldsock= node->outputs.first;
+	for(sock= nnode->outputs.first; sock; sock= sock->next, oldsock= oldsock->next) {
+		if(internal)
+			sock->own_index= 0;
 		sock->stack_index= 0;
 		sock->ns.data= NULL;
+		oldsock->new_sock= sock;
 	}
 	
 	if(nnode->id)
@@ -995,7 +1019,7 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 		
 		node->new_node= NULL;
 		if(internal_select==0 || (node->flag & NODE_SELECT)) {
-			nnode= nodeCopyNode(newtree, node);	/* sets node->new */
+			nnode= nodeCopyNode(newtree, node, internal_select);	/* sets node->new */
 			if(internal_select) {
 				node->flag &= ~NODE_SELECT;
 				nnode->flag |= NODE_SELECT;

@@ -247,6 +247,14 @@ static void node_but_title_cb(void *node_v, void *but_v)
 	allqueue(REDRAWNODE, 0);
 }
 
+static void node_group_alone_cb(void *node_v, void *unused_v)
+{
+	bNode *node= node_v;
+	
+	nodeCopyGroup(node);
+
+	allqueue(REDRAWNODE, 0);
+}
 
 /* ****************** BUTTON CALLBACKS FOR ALL TREES ***************** */
 
@@ -272,7 +280,7 @@ static int node_buts_group(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *
 			bt= uiDefBut(block, BUT, B_NOP, str1, 
 						 butr->xmax-19, butr->ymin, 19, 19, 
 						 NULL, 0, 0, 0, 0, "Displays number of users.");
-			//uiButSetFunc(bt, node_mat_alone_cb, node, NULL);
+			uiButSetFunc(bt, node_group_alone_cb, node, NULL);
 		}
 		
 		uiBlockEndAlign(block);
@@ -3104,7 +3112,7 @@ static void node_draw_group_links(SpaceNode *snode, bNode *gnode)
 	bNodeSocket *sock;
 	
 	glEnable(GL_BLEND);
-	glEnable( GL_LINE_SMOOTH );
+	glEnable(GL_LINE_SMOOTH);
 	
 	fakelink.tonode= fakelink.fromnode= gnode;
 	
@@ -3129,7 +3137,7 @@ static void node_draw_group_links(SpaceNode *snode, bNode *gnode)
 	}
 	
 	glDisable(GL_BLEND);
-	glDisable( GL_LINE_SMOOTH );
+	glDisable(GL_LINE_SMOOTH);
 }
 
 /* groups are, on creation, centered around 0,0 */

@@ -153,7 +153,7 @@ void			nodeUpdateType(struct bNodeTree *ntree, struct bNode* node, struct bNodeT
 void			nodeMakeDynamicType(struct bNode *node);
 int				nodeDynamicUnlinkText(struct ID *txtid);
 void			nodeFreeNode(struct bNodeTree *ntree, struct bNode *node);
-struct bNode	*nodeCopyNode(struct bNodeTree *ntree, struct bNode *node);
+struct bNode	*nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int internal);
 
 struct bNodeLink *nodeAddLink(struct bNodeTree *ntree, struct bNode *fromnode, struct bNodeSocket *fromsock, struct bNode *tonode, struct bNodeSocket *tosock);
 void			nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);
@@ -178,6 +178,8 @@ int				nodeGroupUnGroup(struct bNodeTree *ntree, struct bNode *gnode);
 
 void			nodeVerifyGroup(struct bNodeTree *ngroup);
 void			nodeGroupSocketUseFlags(struct bNodeTree *ngroup);
+
+void			nodeCopyGroup(struct bNode *gnode);
 
 /* ************** COMMON NODES *************** */
 
