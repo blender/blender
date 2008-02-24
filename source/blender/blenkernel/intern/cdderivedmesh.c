@@ -755,7 +755,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	DM_init(dm, mesh->totvert, mesh->totedge, mesh->totface);
 	dm->deformedOnly = 1;
 
-	if(ob->fluidsimSettings && ob->fluidsimSettings->meshSurface)
+	if(ob && ob->fluidsimSettings && ob->fluidsimSettings->meshSurface)
 		alloctype= CD_DUPLICATE;
 	else
 		alloctype= CD_REFERENCE;
