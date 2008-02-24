@@ -1495,8 +1495,8 @@ void create_meshdata_from_geom_node(Mesh *me, VNode *vnode)
 		MEdge *medge = me->medge = CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, me->totedge);
 
 		for(i = BLI_edgehashIterator_new(edges); !BLI_edgehashIterator_isDone(i); BLI_edgehashIterator_step(i), ++medge) {
+			memset(medge, 0, sizeof(struct MEdge));
 			BLI_edgehashIterator_getKey(i, (int*)&medge->v1, (int*)&medge->v2);
-			medge->crease = medge->pad = medge->flag = 0;
 		}
 		BLI_edgehashIterator_free(i);
 	}
