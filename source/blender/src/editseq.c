@@ -896,8 +896,7 @@ void mouse_select_seq(void)
 
 			recurs_sel_seq(seq);
 		}
-		allqueue(REDRAWBUTSSCENE, 0);
-		force_draw(0);
+		force_draw_plus(SPACE_BUTS, 0);
 
 		if(get_last_seq()) allqueue(REDRAWIPO, 0);
 		BIF_undo_push("Select Strips, Sequencer");
@@ -3298,7 +3297,7 @@ void transform_seq(int mode, int context)
 			/* warning, drawing should NEVER use WHILE_SEQ,
 			if it does the seq->depth value will be messed up and
 			overlap checks with metastrips will give incorrect results */
-			force_draw(0);
+			force_draw_plus(SPACE_BUTS, 0);
 			
 		}
 		else BIF_wait_for_statechange();
@@ -3675,6 +3674,23 @@ void seq_mute_sel(int mute) {
 		}
 	}
 	BIF_undo_push(mute?"Mute Strips, Sequencer":"UnMute Strips, Sequencer");
+	allqueue(REDRAWSEQ, 0);
+}
+
+void seq_lock_sel(int lock) {
+	Editing *ed;
+	Sequence *seq;
+	
+	ed= G.scene->ed;
+	if(!ed) return;
+	
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+		if ((seq->flag & SELECT)) {
+			if (lock) seq->flag |= SEQ_LOCK;
+			else seq->flag &= ~SEQ_LOCK;
+		}
+	}
+	BIF_undo_push(lock?"Lock Strips, Sequencer":"Unlock Strips, Sequencer");
 	allqueue(REDRAWSEQ, 0);
 }
 

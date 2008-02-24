@@ -373,10 +373,7 @@ static void draw_zebra_byte(struct ImBuf * src,struct ImBuf * ibuf, float perc)
 			unsigned char a = *p++;
 
 			if (r >= limit || g >= limit || b >= limit) {
-				if (r == limit 
-				    || g == limit 
-				    || b == limit 
-				    || (((x + y) & 0x08) != 0)) {
+				if (((x + y) & 0x08) != 0) {
 					r = 255 - r;
 					g = 255 - g;
 					b = 255 - b;
@@ -408,13 +405,10 @@ static void draw_zebra_float(struct ImBuf * src,struct ImBuf * ibuf,float perc)
 			float a = *p++;
 
 			if (r >= limit || g >= limit || b >= limit) {
-				if (r == limit 
-				    || g == limit 
-				    || b == limit 
-				    || (((x + y) & 0x08) != 0)) {
-					r = 1.0 - r;
-					g = 1.0 - g;
-					b = 1.0 - b;
+				if (((x + y) & 0x08) != 0) {
+					r = -r;
+					g = -g;
+					b = -b;
 				}
 			}
 

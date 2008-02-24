@@ -434,6 +434,18 @@ static void do_seq_editmenu(void *arg, int event)
 	case 17:
 		reload_sequence();
 		break;
+	case 18:
+		seq_lock_sel(1);
+		break;
+	case 19:
+		seq_lock_sel(0);
+		break;
+	case 20:
+		seq_mute_sel(1);
+		break;
+	case 21:
+		seq_mute_sel(0);
+		break;
 	}
 }
 
@@ -501,6 +513,11 @@ static uiBlock *seq_editmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reload Strip Data...|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 17, "");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lock Strips...|Shift L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 18, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unlock Strips...|Alt-Shift L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 19, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mute Strips...|H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 20, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unmute Strips...|Alt H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 21, "");
 	
 
 	if(curarea->headertype==HEADERTOP) {
@@ -745,7 +762,7 @@ void seq_buttons()
 		/* ZOOM and BORDER */
 		xco+= 8;
 		uiBlockBeginAlign(block);
-		uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view in and out (Ctrl MiddleMouse)");
+		uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view in and out (Ctrl MiddleMouse)");
 		uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to fit area");
 		uiBlockEndAlign(block);
 

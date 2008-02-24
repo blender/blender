@@ -4746,13 +4746,19 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				select_more_seq();
 				break;
 			}
+			/* fall through */
 		case WHEELUPMOUSE:
 			if(sseq->mainb) {
-				sseq->zoom++;
-				if(sseq->zoom==-1) sseq->zoom= 1;
+				if (G.qual == LR_SHIFTKEY) {
+					sseq->zoom += 0.10;
+				} else {
+					sseq->zoom++;
+				}
+				if(sseq->zoom >= -1 && sseq->zoom < 1) {
+					sseq->zoom += 2;
+				}
 				if(sseq->zoom>8) sseq->zoom= 8;
-			}
-			else {
+			} else {
 				if((G.qual==0)) {
 					dx= 0.1154f*(v2d->cur.xmax-v2d->cur.xmin);
 					v2d->cur.xmin+= dx;
@@ -4768,13 +4774,19 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				select_less_seq();
 				break;
 			}
+			/* fall through */
 		case WHEELDOWNMOUSE:
 			if(sseq->mainb) {
-				sseq->zoom--;
-				if(sseq->zoom==0) sseq->zoom= -2;
+				if (G.qual == LR_SHIFTKEY) {
+					sseq->zoom -= 0.10;
+				} else {
+					sseq->zoom--;
+				}
+				if(sseq->zoom >= -1 && sseq->zoom < 1) {
+					sseq->zoom -= 2;
+				}
 				if(sseq->zoom<-8) sseq->zoom= -8;
-			}
-			else {
+			} else {
 				if((G.qual==LR_SHIFTKEY))
 					no_gaps();
 				else if((G.qual==0)) {
@@ -4873,11 +4885,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				select_linked_seq( 0 );
 			} else if((G.qual==LR_CTRLKEY)) { /* Cut at current frame */
 				select_linked_seq( 2 );
-			} else if ((G.qual==LR_SHIFTKEY)) {
-				if (last_seq) {
-					last_seq->flag ^= SEQ_LOCK;
-					doredraw = 1;
-				}
+			} else if (G.qual==LR_SHIFTKEY) {
+				seq_lock_sel(1);
+			} else if (G.qual==(LR_SHIFTKEY|LR_ALTKEY)) {
+				seq_lock_sel(0);
 			}
 			break;
 		case YKEY:
@@ -4892,14 +4903,13 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			} else if(G.qual == 0){
 				make_meta();
 				break; /*dont redraw timeline etc */
-			} else if (G.qual==LR_SHIFTKEY) {
-				if (last_seq) {
-					last_seq->flag ^= SEQ_MUTE;
-					doredraw = 1;
-				}
-			} else if ((G.qual==(LR_CTRLKEY|LR_ALTKEY) )) {
+			} else if (G.qual == LR_SHIFTKEY) {
+				seq_mute_sel(1);
+			} else if (G.qual == (LR_SHIFTKEY|LR_ALTKEY)) {
+				seq_mute_sel(0);
+			} else if (G.qual == (LR_CTRLKEY|LR_ALTKEY)) {
 				add_marker(CFRA);
-			} else if ((G.qual==LR_CTRLKEY)) {
+			} else if (G.qual == LR_CTRLKEY) {
 				rename_marker();
 			} else {
 				break; /* do nothing */

@@ -148,11 +148,11 @@ typedef struct SpaceSeq {
 	View2D v2d;
 	
 	float xof, yof;	/* offset for drawing the image preview */
-	short mainb, zoom;
+	short mainb, pad;
 	short chanshown;
 	short zebra;
 	int flag;
-	int pad;
+	float zoom;
 } SpaceSeq;
 
 typedef struct SpaceFile {
