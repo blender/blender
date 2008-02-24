@@ -329,13 +329,29 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 	int totface,totedge,totvert,i,bmeshok,len;
 
 	BME_Vert *v1=NULL;
-	BME_Edge *e=NULL;
+	BME_Edge *e=NULL, *oe=NULL;
 	BME_Poly *f=NULL;
 	
 	DerivedMesh *result;
-	
+	EdgeHash *edge_hash = BLI_edgehash_new();
+
 	totvert = BLI_countlist(&(bm->verts));
-	totedge = BLI_countlist(&(bm->edges));
+	totedge = 0;
+	
+	/*we cannot have double edges in a derived mesh!*/
+	for(i=0, v1=bm->verts.first; v1; v1=v1->next, i++) v1->tflag1 = i;
+	for(e=bm->edges.first; e; e=e->next){
+		oe = BLI_edgehash_lookup(edge_hash,e->v1->tflag1, e->v2->tflag1);
+		if(!oe){
+			totedge++;
+			BLI_edgehash_insert(edge_hash,e->v1->tflag1,e->v2->tflag1,e);
+			e->tflag2 = 1;
+		}
+		else{
+			e->tflag2 = 0;
+		}
+	}
+	
 	/*count quads and tris*/
 	totface = 0;
 	bmeshok = 1;
@@ -357,26 +373,31 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 	/*Make Verts*/
 	mvert = CDDM_get_verts(result);
 	for(i=0,v1=bm->verts.first,mv=mvert;v1;v1=v1->next,i++,mv++){
-		v1->tflag1 = i;
 		VECCOPY(mv->co,v1->co);
 		mv->flag = (unsigned char)v1->flag;
 		mv->bweight = (char)(255.0*v1->bweight);
 		CustomData_from_em_block(&bm->vdata, &result->vertData, v1->data, i);
 	}
 	medge = CDDM_get_edges(result);
-	for(i=0,e=bm->edges.first,me=medge;e;e=e->next,me++,i++){
-		if(e->v1->tflag1 < e->v2->tflag1){
-			me->v1 = e->v1->tflag1;
-			me->v2 = e->v2->tflag1;
+	i=0;
+	for(e=bm->edges.first,me=medge;e;e=e->next){
+		if(e->tflag2){
+			if(e->v1->tflag1 < e->v2->tflag1){
+				me->v1 = e->v1->tflag1;
+				me->v2 = e->v2->tflag1;
+			}
+			else{
+				me->v1 = e->v2->tflag1;
+				me->v2 = e->v1->tflag1;
+			}
+		
+			me->crease = (char)(255.0*e->crease);
+			me->bweight = (char)(255.0*e->bweight);
+			me->flag = e->flag;
+			CustomData_from_em_block(&bm->edata, &result->edgeData, e->data, i);
+			me++;
+			i++;
 		}
-		else{
-			me->v1 = e->v2->tflag1;
-			me->v2 = e->v1->tflag1;
-		}
-		me->crease = (char)(255.0*e->crease);
-		me->bweight = (char)(255.0*e->bweight);
-		me->flag = e->flag;
-		CustomData_from_em_block(&bm->edata, &result->edgeData, e->data, i);
 	}
 	if(totface){
 		mface = CDDM_get_faces(result);
@@ -402,6 +423,6 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 			CustomData_from_em_block(&bm->pdata, &result->faceData, f->data, i);
 		}
 	}
-
+	BLI_edgehash_free(edge_hash, NULL);
 	return result;
 }
