@@ -236,7 +236,7 @@ typedef struct SpaceImage {
 	short curtile; /* the currently active tile of the image when tile is enabled, is kept in sync with the active faces tile */
 	int flag;
 	short imtypenr, lock;
-	short showspare, pin;
+	short pin, pad2;
 	float zoom;
 	char dt_uv; /* UV draw type */
 	char sticky; /* sticky selection type */ 
@@ -244,9 +244,6 @@ typedef struct SpaceImage {
 	
 	float xof, yof;					/* user defined offset, image is centered */
 	float centx, centy;				/* storage for offset while render drawing */
-	
-	char *info_str, *info_spare;	/* info string for render */
-	struct ImBuf *spare;
 	
 } SpaceImage;
 

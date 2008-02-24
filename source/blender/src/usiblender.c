@@ -1097,6 +1097,7 @@ void exit_usiblender(void)
 		
 		BIF_filelist_free_icons();
 
+		BIF_free_render_spare();
 		BIF_close_render_display();
 		mainwindow_close();
 	}

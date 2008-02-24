@@ -148,7 +148,7 @@ int is_uv_tface_editing_allowed(void)
 
 void get_connected_limit_tface_uv(float *limit)
 {
-	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+	ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 	if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
 		limit[0]= 0.05/(float)ibuf->x;
 		limit[1]= 0.05/(float)ibuf->y;
@@ -228,7 +228,7 @@ void transform_aspect_ratio_tface_uv(float *aspx, float *aspy)
 
 void transform_width_height_tface_uv(int *width, int *height)
 {
-	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+	ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 
 	if(ibuf) {
 		*width= ibuf->x;
@@ -1197,7 +1197,7 @@ void sel_uvco_inside_radius(short sel, EditFace *efa, MTFace *tface, int index, 
 /** gets image dimensions of the 2D view 'v' */
 static void getSpaceImageDimension(SpaceImage *sima, float *xy)
 {
-	ImBuf *ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+	ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 
 	if (ibuf) {
 		xy[0] = ibuf->x * sima->zoom;
@@ -1337,7 +1337,7 @@ void stitch_limit_uv_tface(void)
 
 	limit[0]= limit[1]= limit[0]/256.0;
 	if(G.sima->image) {
-		ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+		ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 
 		if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
 			limit[1]= limit[0]/(float)ibuf->y;
@@ -1874,7 +1874,7 @@ static void sima_show_info(int channels, int x, int y, char *cp, float *fp, int 
 
 void sima_sample_color(void)
 {
-	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+	ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 	float fx, fy;
 	short mval[2], mvalo[2], firsttime=1;
 	
@@ -1996,7 +1996,7 @@ static void replace_image_filesel(char *str)		/* called from fileselect */
 static void save_image_doit(char *name)
 {
 	Image *ima= G.sima->image;
-	ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
+	ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 	int len;
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
@@ -2126,7 +2126,7 @@ static char *filesel_imagetype_string(Image *ima)
 void save_as_image_sima(void)
 {
 	Image *ima = G.sima->image;
-	ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
+	ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 
 	if (ima) {
@@ -2153,7 +2153,7 @@ void save_as_image_sima(void)
 void save_image_sima(void)
 {
 	Image *ima = G.sima->image;
-	ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
+	ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 
 	if (ima) {
@@ -2286,7 +2286,7 @@ void pack_image_sima()
 				}
 			}
 			else {
-				ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
+				ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 				if (ibuf && (ibuf->userflags & IB_BITMAPDIRTY)) {
 					if(okee("Can't pack painted image. Use Repack as PNG?"))
 						BKE_image_memorypack(ima);

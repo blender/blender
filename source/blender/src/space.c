@@ -6182,12 +6182,6 @@ void freespacelist(ScrArea *sa)
 			SpaceImage *sima= (SpaceImage *)sl;
 			if(sima->cumap)
 				curvemapping_free(sima->cumap);
-			if(sima->info_str)
-				MEM_freeN(sima->info_str);
-			if(sima->info_spare)
-				MEM_freeN(sima->info_spare);
-			if(sima->spare)
-				IMB_freeImBuf(sima->spare);
 		}
 		else if(sl->spacetype==SPACE_NODE) {
 /*			SpaceNode *snode= (SpaceNode *)sl; */
@@ -6277,10 +6271,6 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 			SpaceImage *sima= (SpaceImage *)sl;
 			if(sima->cumap)
 				sima->cumap= curvemapping_copy(sima->cumap);
-			if(sima->info_str)
-				sima->info_str= MEM_dupallocN(sima->info_str);
-			if(sima->info_spare)
-				sima->info_spare= MEM_dupallocN(sima->info_spare);
 		}
 		sl= sl->next;
 	}

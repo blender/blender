@@ -191,7 +191,7 @@ void calc_image_view(SpaceImage *sima, char mode)
 	
 	if(image_preview_active(curarea, &xim, &yim));
 	else if(sima->image) {
-		ImBuf *ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+		ImBuf *ibuf= imagewindow_get_ibuf(sima);
 		float xuser_asp, yuser_asp;
 		
 		aspect_sima(sima, &xuser_asp, &yuser_asp);
@@ -278,11 +278,10 @@ void what_image(SpaceImage *sima)
 /* after a what_image(), this call will give ibufs, includes the spare image */
 ImBuf *imagewindow_get_ibuf(SpaceImage *sima)
 {
-	
 	if(G.sima->image) {
 		/* check for spare */
-		if(sima->image->type==IMA_TYPE_R_RESULT && sima->showspare)
-			return sima->spare;
+		if(sima->image->type==IMA_TYPE_R_RESULT && BIF_show_render_spare())
+			return BIF_render_spare_imbuf();
 		else
 			return BKE_image_get_ibuf(sima->image, &sima->iuser);
 	}
@@ -1834,10 +1833,10 @@ static void sima_draw_zbuffloat_pixels(float x1, float y1, int rectx, int recty,
 
 static void imagewindow_draw_renderinfo(ScrArea *sa)
 {
-	SpaceImage *sima= sa->spacedata.first;
 	rcti rect;
 	float colf[3];
-	char *str= sima->showspare?sima->info_spare:sima->info_str;
+	int showspare= BIF_show_render_spare();
+	char *str= BIF_render_text();
 	
 	if(str==NULL)
 		return;
@@ -1854,7 +1853,7 @@ static void imagewindow_draw_renderinfo(ScrArea *sa)
 	
 	BIF_ThemeColor(TH_TEXT_HI);
 	glRasterPos2i(12, 5);
-	if(sima->showspare) {
+	if(showspare) {
 		BMF_DrawString(G.fonts, "(Previous)");
 		glRasterPos2i(72, 5);
 	}		
@@ -2342,7 +2341,7 @@ void image_home(void)
 
 void image_viewcenter(void)
 {
-	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+	ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 	float size, min[2], max[2], d[2], xim=256.0f, yim=256.0f;
 
 	if( is_uv_tface_editing_allowed()==0 ) return;
@@ -2596,9 +2595,6 @@ static void imagewindow_init_display_cb(RenderResult *rr)
 		
 		areawinset(image_area->win);
 		
-		if(sima->info_str==NULL)
-			sima->info_str= MEM_callocN(RW_MAXTEXT, "info str imagewin");
-		
 		/* calc location using original size (tiles don't tell) */
 		sima->centx= (image_area->winx - sima->zoom*(float)rr->rectx)/2.0f;
 		sima->centy= (image_area->winy - sima->zoom*(float)rr->recty)/2.0f;
@@ -2646,10 +2642,7 @@ static void imagewindow_renderinfo_cb(RenderStats *rs)
 {
 	
 	if(image_area) {
-		SpaceImage *sima= image_area->spacedata.first;
-		
-		if(rs)
-			make_renderinfo_string(rs, sima->info_str);
+		BIF_make_render_text(rs);
 
 		imagewindow_draw_renderinfo(image_area);
 		
@@ -2664,56 +2657,5 @@ void imagewindow_render_callbacks(Render *re)
 	RE_display_draw_cb(re, imagewindow_progress_display_cb);
 	RE_display_clear_cb(re, imagewindow_clear_display_cb);
 	RE_stats_draw_cb(re, imagewindow_renderinfo_cb);	
-}
-
-void imagewin_store_spare(void)
-{
-	ScrArea *sa= find_area_showing_r_result();
-
-	if(sa) {
-		ImBuf *ibuf;
-		SpaceImage *sima= sa->spacedata.first;
-		
-		if(sima->spare==NULL)
-			return;
-		
-		/* only store when it does not show spare */
-		if(sima->showspare==0)
-			return;
-		sima->showspare= 0;
-		
-		/* free spare */
-		IMB_freeImBuf(sima->spare);
-		
-		/* make a copy of render result */
-		ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
-		sima->spare= IMB_dupImBuf(ibuf);
-		
-		if(sima->info_str)
-			BLI_strncpy(sima->info_spare, sima->info_str, RW_MAXTEXT);
-
-	}
-}
-
-/* context: in current image window? */
-void imagewindow_swap_render_rects(void)
-{
-	ScrArea *sa= find_area_showing_r_result();
-					
-	if(sa) {
-		SpaceImage *sima= sa->spacedata.first;
-		ImBuf *ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
-		if(ibuf) {
-			
-			sima->showspare ^= 1;
-			
-			if(sima->spare==NULL)
-				sima->spare= IMB_allocImBuf(ibuf->x, ibuf->y, 32, 0, 0);
-			if(sima->info_spare==NULL)
-				sima->info_spare= MEM_callocN(RW_MAXTEXT, "info str imagewin");
-			
-			allqueue(REDRAWIMAGE, 0);
-		}
-	}
 }
 

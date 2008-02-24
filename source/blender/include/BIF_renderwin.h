@@ -33,12 +33,22 @@
 struct Render;
 struct ScrArea;
 struct RenderStats;
+struct ImBuf;
 
 void calc_renderwin_rectangle(int rectx, int recty, int posmask, int renderpos_r[2], int rendersize_r[2]);
 
 void BIF_close_render_display(void);
 
 void BIF_do_render(int anim);
+
+/* render text */
+void BIF_make_render_text(struct RenderStats *rs);
+char *BIF_render_text(void);
+
+/* render spare buffer */
+int BIF_show_render_spare(void);
+struct ImBuf *BIF_render_spare_imbuf(void);
+void BIF_free_render_spare(void);
 
 /**
  * @param v3d The View3D space to render.
