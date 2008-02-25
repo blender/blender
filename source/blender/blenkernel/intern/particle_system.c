@@ -4532,8 +4532,9 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 	else if(psys->pathcache)
 		psys_free_path_cache(psys);
 
-	if(vg_vel)
-		MEM_freeN(vg_vel);
+	if(vg_vel) MEM_freeN(vg_vel);
+	if(vg_tan) MEM_freeN(vg_tan);
+	if(vg_rot) MEM_freeN(vg_rot);
 
 	if(psys->lattice){
 		end_latt_deform();
