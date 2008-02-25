@@ -1750,7 +1750,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 	QMCSampler *qsa=NULL;
 	QMCSampler *qsa_jit=NULL;
 	int samples=0;
-	float samp3d[3], jit[3];
+	float samp3d[3], jit[3], jitbias= 0.0f;
 
 	float fac=0.0f, vec[3];
 	float colsq[4];
@@ -1775,7 +1775,10 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		if (do_soft) max_samples = lar->ray_totsamp;
 		else max_samples = (R.osa > 4)?R.osa:5;
 	}
-	
+
+	if(shi->vlr && ((shi->vlr->flag & R_FULL_OSA) == 0))
+		jitbias= 0.5f*(VecLength(shi->dxco) + VecLength(shi->dyco));
+
 	/* sampling init */
 	if (lar->ray_samp_method==LA_SAMP_HALTON) {
 		qsa = QMC_initSampler(SAMP_TYPE_HALTON, max_samples);
@@ -1805,6 +1808,11 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 			pos[0] += shi->dxco[0]*jit[0] + shi->dyco[0]*jit[1];
 			pos[1] += shi->dxco[1]*jit[0] + shi->dyco[1]*jit[1];
 			pos[2] += shi->dxco[2]*jit[0] + shi->dyco[2]*jit[1];
+			
+			/* bias away somewhat to avoid self intersection */
+			pos[0] -= jitbias*shi->vn[0];
+			pos[1] -= jitbias*shi->vn[1];
+			pos[2] -= jitbias*shi->vn[2];
 		}
 
 		if (do_soft) {
