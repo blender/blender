@@ -130,7 +130,7 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 		}
 		/* disable adding of sky for raytransp */
 		if(shi->mat->mode & MA_RAYTRANSP) 
-			if(shi->layflag & SCE_LAY_SKY)
+			if((shi->layflag & SCE_LAY_SKY) && (R.r.alphamode==R_ADDSKY))
 				shr->alpha= 1.0f;
 	}	
 }
