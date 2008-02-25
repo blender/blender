@@ -881,13 +881,16 @@ void BPy_Free_DrawButtonsList(void)
 {
 	/*Clear the list.*/
 	if (M_Button_List) {
-		PyGILState_STATE gilstate = PyGILState_Ensure();
+		PyGILState_STATE gilstate;
+		int py_is_on = Py_IsInitialized();
+
+		if (py_is_on) gilstate = PyGILState_Ensure();
 
 		PyList_SetSlice(M_Button_List, 0, PyList_Size(M_Button_List), NULL);
 		Py_DECREF(M_Button_List);
 		M_Button_List = NULL;
 
-		PyGILState_Release(gilstate);
+		if (py_is_on) PyGILState_Release(gilstate);
 	}
 }
 
