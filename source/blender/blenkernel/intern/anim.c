@@ -749,7 +749,11 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 	part=psys->part;
 	psmd= psys_get_modifier(par, psys);
 
-	if(part==0) return;
+	if(part==0)
+		return;
+
+	if(!psys_check_enabled(par, psys))
+		return;
 
 	ctime = bsystem_time(par, (float)G.scene->r.cfra, 0.0);
 
