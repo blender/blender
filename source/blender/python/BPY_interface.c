@@ -408,7 +408,8 @@ void BPY_rebuild_syspath( void )
 	PyObject *mod, *dict, *syspath;
 	char dirpath[FILE_MAX];
 	char *sdir = NULL;
-	
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+
 	mod = PyImport_ImportModule( "sys" );	
 	if (!mod) {
 		printf("error: could not import python sys module. some modules may not import.\n");
@@ -454,7 +455,7 @@ void BPY_rebuild_syspath( void )
 	}
 	
 	Py_DECREF(mod);
-
+	PyGILState_Release(gilstate);
 }
 
 /****************************************************************************
