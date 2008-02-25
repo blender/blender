@@ -4503,6 +4503,7 @@ void bevel_menu() {
 		free_editMesh(G.editMesh);
 		BME_bevel(bm,0.1f,res,options,0,0,&td);
 		BME_bmesh_to_editmesh(bm, td);
+		EM_selectmode_flush();
 		G.editBMesh->bm = bm;
 		G.editBMesh->td = td;
 		initTransform(TFM_BEVEL,CTX_BMESH);

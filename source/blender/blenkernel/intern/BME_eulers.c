@@ -132,7 +132,7 @@ BME_Edge *BME_ME(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2){
 	int valance1=0, valance2=0, edok;
 	
 	/*edge must be between two distinct vertices...*/
-	if(v1 == v2) return BME_exit("ME returned NULL");
+	if(v1 == v2) return NULL;
 	
 	#ifndef BME_FASTEULER
 	/*count valance of v1*/
@@ -199,10 +199,10 @@ BME_Poly *BME_MF(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge **elist, int
 	BME_Vert *curvert, *tv, **vlist;
 	int i, j, done, cont, edok;
 	
-	if(len < 2) return BME_exit("MF returned NULL");
+	if(len < 2) return NULL;
 	
 	/*make sure that v1 and v2 are in elist[0]*/
-	if(BME_verts_in_edge(v1,v2,elist[0]) == 0) return BME_exit("MF returned NULL");
+	if(BME_verts_in_edge(v1,v2,elist[0]) == 0) return NULL;
 	
 	/*clear euler flags*/
 	for(i=0;i<len;i++) elist[i]->eflag1=elist[i]->eflag2 = 0;
@@ -220,9 +220,9 @@ BME_Poly *BME_MF(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge **elist, int
 	*/
 	for(i=0; i<len; i++){
 		edok = BME_disk_count_edgeflag(elist[i]->v1, MF_CANDIDATE, 0);
-		if(edok != 2) return BME_exit("MF returned NULL");
+		if(edok != 2) return NULL;
 		edok = BME_disk_count_edgeflag(elist[i]->v2, MF_CANDIDATE, 0);
-		if(edok != 2) return BME_exit("MF returned NULL");
+		if(edok != 2) return NULL;
 	}
 	
 	/*set start edge, start vert and target vert for our loop traversal*/
@@ -430,7 +430,7 @@ BME_Vert *BME_SEMV(BME_Mesh *bm, BME_Vert *tv, BME_Edge *e, BME_Edge **re){
 	BME_Edge *ne;
 	int i, edok, valance1=0, valance2=0;
 	
-	if(BME_vert_in_edge(e,tv) == 0) return BME_exit("SEMV returned NULL");
+	if(BME_vert_in_edge(e,tv) == 0) return NULL;
 	ov = BME_edge_getothervert(e,tv);
 	//v2 = tv;
 
@@ -601,7 +601,6 @@ BME_Poly *BME_SFME(BME_Mesh *bm, BME_Poly *f, BME_Vert *v1, BME_Vert *v2, BME_Lo
 	BME_Edge *e;
 	int i, len, f1len, f2len;
 	
-	if(f->holes.first) return BME_exit("SFME returned NULL"); //not good, fix me
 	
 	/*verify that v1 and v2 are in face.*/
 	len = BME_cycle_length(f->loopbase);
@@ -610,7 +609,7 @@ BME_Poly *BME_SFME(BME_Mesh *bm, BME_Poly *f, BME_Vert *v1, BME_Vert *v2, BME_Lo
 		else if(curloop->v == v2) v2loop = curloop;
 	}
 	
-	if(!v1loop || !v2loop) return BME_exit("SFME returned NULL");
+	if(!v1loop || !v2loop) return NULL;
 	
 	/*allocate new edge between v1 and v2*/
 	e = BME_addedgelist(bm, v1, v2,NULL);
@@ -799,12 +798,19 @@ int BME_loop_reverse(BME_Mesh *bm, BME_Poly *f){
 	int i, j, edok, len = 0;
 
 	len = BME_cycle_length(l);
-	elist = MEM_callocN(sizeof(BME_Edge *)*len, "BME Loop Reverse edge array");
+	if(bm->edarlen < len){
+		MEM_freeN(bm->edar);
+		bm->edar = MEM_callocN(sizeof(BME_Edge *)* len, "BMesh Edge pointer array");
+		bm->edarlen = bm->edarlen * len;
+	}
 	
 	for(i=0, curloop = l; i< len; i++, curloop=curloop->next){
-		BME_radial_remove_loop(curloop, curloop->e);
 		curloop->e->eflag1 = 0;
-		elist[i] = curloop->e;
+		curloop->e->eflag2 = BME_cycle_length(&curloop->radial);
+		BME_radial_remove_loop(curloop, curloop->e);
+		/*in case of border edges we HAVE to zero out curloop->radial Next/Prev*/
+		curloop->radial.next = curloop->radial.prev = NULL;
+		bm->edar[i] = curloop->e;
 	}
 	
 	/*actually reverse the loop. This belongs in BME_cycle_reverse!*/
@@ -818,16 +824,16 @@ int BME_loop_reverse(BME_Mesh *bm, BME_Poly *f){
 
 	if(len == 2){ //two edged face
 		//do some verification here!
-		l->e = elist[1];
-		l->next->e = elist[0];
+		l->e = bm->edar[1];
+		l->next->e = bm->edar[0];
 	}
 	else{
 		for(i=0, curloop = l; i < len; i++, curloop = curloop->next){
 			edok = 0;
 			for(j=0; j < len; j++){
-				edok = BME_verts_in_edge(curloop->v, curloop->next->v, elist[j]);
+				edok = BME_verts_in_edge(curloop->v, curloop->next->v, bm->edar[j]);
 				if(edok){
-					curloop->e = elist[j];
+					curloop->e = bm->edar[j];
 					break;
 				}
 			}
@@ -839,7 +845,13 @@ int BME_loop_reverse(BME_Mesh *bm, BME_Poly *f){
 		//radok = BME_cycle_validate(curloop->e->tmp.l, &(curloop->radial));
 		//if(!radok || curloop->e->loop == NULL) BME_error();
 	}
-	MEM_freeN(elist);
+	/*validate radial*/
+	for(i=0, curloop = l; i < len; i++, curloop = curloop->next){
+		edok = BME_cycle_validate(curloop->e->eflag2, &(curloop->radial));
+		if(!edok){
+			BME_error();
+		}
+	}
 	return 1;
 }
 
@@ -881,8 +893,8 @@ BME_Poly *BME_JFKE(BME_Mesh *bm, BME_Poly *f1, BME_Poly *f2, BME_Edge *e)
 	BME_Loop *curloop, *f1loop=NULL, *f2loop=NULL;
 	int loopok = 0, newlen = 0,i, f1len=0, f2len=0, radlen=0, edok;
 	
-	if(f1->holes.first || f2->holes.first) return BME_exit("JFKE returned NULL"); //dont operate on faces with holes. Not best solution but tolerable.
-	if(f1 == f2) return BME_exit("JFKE returned NULL"); //can't join a face to itself
+	if(f1->holes.first || f2->holes.first) return NULL; //dont operate on faces with holes. Not best solution but tolerable.
+	if(f1 == f2) return NULL; //can't join a face to itself
 	/*verify that e is in both f1 and f2*/
 	f1len = BME_cycle_length(f1->loopbase);
 	f2len = BME_cycle_length(f2->loopbase);
@@ -898,23 +910,23 @@ BME_Poly *BME_JFKE(BME_Mesh *bm, BME_Poly *f1, BME_Poly *f2, BME_Edge *e)
 			break;
 		}
 	}
-	if(!(f1loop && f2loop)) return BME_exit("JFKE returned NULL");
+	if(!(f1loop && f2loop)) return NULL;
 	
 	/*validate that edge is 2-manifold edge*/
 	radlen = BME_cycle_length(&(f1loop->radial));
-	if(radlen != 2) return BME_exit("JFKE returned NULL");
+	if(radlen != 2) return NULL;
 
 	/*validate direction of f2's loop cycle is compatible.*/
-	if(f1loop->v == f2loop->v) return BME_exit("JFKE returned NULL");
+	if(f1loop->v == f2loop->v) return NULL;
 	
 	/*
 		Finally validate that for each face, each vertex has another edge in its disk cycle that is 
 		not e, and not shared.
 	*/
-	if(BME_radial_find_face(f1loop->next->e,f2)) return BME_exit("JFKE returned NULL");
-	if(BME_radial_find_face(f1loop->prev->e,f2)) return BME_exit("JFKE returned NULL");
-	if(BME_radial_find_face(f2loop->next->e,f1)) return BME_exit("JFKE returned NULL");
-	if(BME_radial_find_face(f2loop->prev->e,f1)) return BME_exit("JFKE returned NULL");
+	if(BME_radial_find_face(f1loop->next->e,f2)) return NULL;
+	if(BME_radial_find_face(f1loop->prev->e,f2)) return NULL;
+	if(BME_radial_find_face(f2loop->next->e,f1)) return NULL;
+	if(BME_radial_find_face(f2loop->prev->e,f1)) return NULL;
 	
 	/*join the two loops*/
 	f1loop->prev->next = f2loop->next;
@@ -952,56 +964,3 @@ BME_Poly *BME_JFKE(BME_Mesh *bm, BME_Poly *f1, BME_Poly *f2, BME_Edge *e)
 	BME_free_poly(bm, f2);	
 	return f1;
 }
-
-/**
- *			BME_MEKL
- *
- *	MAKE EDGE KILL LOOP:
- *	
- *	Bridges a perphiary loop of a face with an internal loop
- *
- *	Examples:
- *
- *	----------------		----------------
- *	|      f1      |		|      f1      |
- *	|     -----    |		|     -----    |
- *	|     |   |    |		|     |   |    |
- *	X     X   |    |        X-----X   |    |
- *	|     |   |    |		|     |   |    |
- *	|     -----    |		|     -----    |
- *	|			   |		|			   |
- *	----------------		----------------
- *
- *
- *  Returns -
- *	A BME_Poly pointer
- */
-
-/**
- *			BME_KEML
- *
- *	KILL EDGE MAKE LOOP:
- *	
- *	Kills an edge and splits the loose loops off into an internal loop
- *
- *	Examples:
- *
- *	----------------		----------------
- *	|      f1      |		|      f1      |
- *	|     -----    |		|     -----    |
- *	|     |   |    |		|     |   |    |
- *	X ----X   |    |        X     X   |    |
- *	|     |   |    |		|     |   |    |
- *	|     -----    |		|     -----    |
- *	|			   |		|			   |
- *	----------------		----------------
- *
- *	The tool author should take care to realize that although a face may have 
- *	a hole in its topology, that hole may be filled with one or many other faces.
- *	Regardless, this does not imply a parent child relationship.
- *
- *
- *  Returns -
- *	A BME_Poly pointer
- */
-

@@ -191,17 +191,19 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 	/* make edges */
 	CustomData_copy(&bm->edata, &em->edata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	for (e=bm->edges.first;e;e=e->next) {
-		eed= addedgelist(evlist[e->v1->tflag1], evlist[e->v2->tflag1], NULL);
-		eed->crease = e->crease;
-		eed->bweight = e->bweight;
-		if(e->flag & ME_SEAM) eed->seam = 1;
-		if(e->flag & ME_SHARP) eed->sharp = 1;
-		if(e->flag & SELECT) eed->f |= SELECT;
-		if(e->flag & ME_FGON) eed->h= EM_FGON; // 2 different defines!
-		if(e->flag & ME_HIDE) eed->h |= 1;
-		if(G.scene->selectmode==SCE_SELECT_EDGE) 
-			EM_select_edge(eed, eed->f & SELECT);
-		CustomData_em_copy_data(&bm->edata, &em->edata, e->data, &eed->data);
+		if(!(findedgelist(evlist[e->v1->tflag1], evlist[e->v2->tflag1]))){
+			eed= addedgelist(evlist[e->v1->tflag1], evlist[e->v2->tflag1], NULL);
+			eed->crease = e->crease;
+			eed->bweight = e->bweight;
+			if(e->flag & ME_SEAM) eed->seam = 1;
+			if(e->flag & ME_SHARP) eed->sharp = 1;
+			if(e->flag & SELECT) eed->f |= SELECT;
+			if(e->flag & ME_FGON) eed->h= EM_FGON; // 2 different defines!
+			if(e->flag & ME_HIDE) eed->h |= 1;
+			if(G.scene->selectmode==SCE_SELECT_EDGE) 
+				EM_select_edge(eed, eed->f & SELECT);
+			CustomData_em_copy_data(&bm->edata, &em->edata, e->data, &eed->data);
+		}
 	}
 
 	/* make faces */
@@ -417,10 +419,10 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 					test_index_face(mf, NULL, i, len);
 				}
 				i++;
+				mf->mat_nr = (unsigned char)f->mat_nr;
+				mf->flag = (unsigned char)f->flag;
+				CustomData_from_em_block(&bm->pdata, &result->faceData, f->data, i);
 			}
-			mf->mat_nr = (unsigned char)f->mat_nr;
-			mf->flag = (unsigned char)f->flag;
-			CustomData_from_em_block(&bm->pdata, &result->faceData, f->data, i);
 		}
 	}
 	BLI_edgehash_free(edge_hash, NULL);

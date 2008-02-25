@@ -67,20 +67,18 @@ typedef struct BME_Mesh
 	struct CustomData vdata, edata, pdata, ldata;	/*Custom Data Layer information*/
 	struct DerivedMesh *derivedFinal, *derivedCage;
 	struct RetopoPaintData *retopo_paint_data; /*here for temporary code compatibility only*/
-	//BME_ElementList selection;
+	/*some temporary storage used by loop reverse and make face eulers*/
+	struct BME_Edge **edar;
+	int edarlen;
 	int lastDataMask;
 } BME_Mesh;
-
-//60, 52, 52, 12 704
-//60, 52, 84 
-
 
 typedef struct BME_Vert
 {
 	struct BME_Vert *next, *prev;
 	int	EID;
-	float co[3];									/*vertex location. Actually pointer to custom data block*/
-	float no[3];									/*vertex normal. Actually pointer to custom data block*/
+	float co[3];									
+	float no[3];									
 	struct BME_Edge *edge;							/*first edge in the disk cycle for this vertex*/
 	void *data;										/*custom vertex data*/
 	int eflag1, eflag2;								/*reserved for use by eulers*/
@@ -122,7 +120,6 @@ typedef struct BME_Poly
 {
 	struct BME_Poly *next, *prev;
 	int EID;
-	//~ float no[3];
 	struct BME_Loop *loopbase;						/*First editloop around Polygon.*/
 	struct ListBase holes;							/*list of inner loops in the face*/
 	unsigned int len;								/*total length of the face. Eulers should preserve this data*/
@@ -156,7 +153,6 @@ struct BME_Loop *BME_loop_find_loop(struct BME_Poly *f, struct BME_Vert *v);
 /*MESH CREATION/DESTRUCTION*/
 struct BME_Mesh *BME_make_mesh(void);
 void BME_free_mesh(struct BME_Mesh *bm);
-struct BME_Mesh *BME_copy_mesh(struct BME_Mesh *bm);
 /*FULL MESH VALIDATION*/
 int BME_validate_mesh(struct BME_Mesh *bm, int halt);
 /*ENTER/EXIT MODELLING LOOP*/
@@ -180,10 +176,6 @@ int BME_JEKV(struct BME_Mesh *bm, struct BME_Edge *ke, struct BME_Vert *kv);
 struct BME_Poly *BME_JFKE(struct BME_Mesh *bm, struct BME_Poly *f1, struct BME_Poly *f2,struct BME_Edge *e); /*no reason to return BME_Poly pointer?*/
 /*NORMAL FLIP(Is its own inverse)*/
 int BME_loop_reverse(struct BME_Mesh *bm, struct BME_Poly *f);
-
-/*TOOLS CODE*/
-struct BME_Loop *BME_inset_edge(struct BME_Mesh *bm, struct BME_Loop *l, struct BME_Poly *f);
-struct BME_Poly *BME_inset_poly(struct BME_Mesh *bm, struct BME_Poly *f);
 
 /* bevel tool defines */
 /* element flags */

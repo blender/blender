@@ -134,24 +134,6 @@ void BME_free_mesh(BME_Mesh *bm)
 }
 
 /*	
- *	BME COPY MESH
- *
- *	Copies a BME_Mesh structure.
- *
- *  This is probably more low level than any mesh manipulation routine should be
- *  and somewhat violates the rule about modifying/creating mesh structures outside
- *  of the euler API. Regardless, its much more effecient than rebuilding the mesh
- *  from scratch. 
-*/
-
-BME_Mesh *BME_copy_mesh(BME_Mesh *bm)
-{
-	BME_Mesh *meshcopy;
-	meshcopy = BME_make_mesh();
-	return meshcopy;
-}
-
-/*	
  *	BME MODEL BEGIN AND END
  *
  *	These two functions represent the 'point of entry' for tools. Every BMesh tool
@@ -173,9 +155,9 @@ BME_Mesh *BME_copy_mesh(BME_Mesh *bm)
 */
 
 int BME_model_begin(BME_Mesh *bm){
-	if(bm->lock) return 0;
-	bm->lock = 1;
-	bm->backup = BME_copy_mesh(bm);
+	/*scratch edge pointer array*/
+	bm->edar = MEM_callocN(sizeof(BME_Edge *) * 1024, "BMesh scratch edge array");
+	bm->edarlen = 1024;
 	return 1;
 }
 
@@ -188,22 +170,19 @@ void BME_model_end(BME_Mesh *bm){
 	totpoly = BLI_countlist(&(bm->polys));
 	totloop = BLI_countlist(&(bm->loops));
 	
+	if(bm->edar){ 
+		MEM_freeN(bm->edar);
+		bm->edar = NULL;
+		bm->edarlen = 0;
+	}
 	if(bm->totvert!=totvert || bm->totedge!=totedge || bm->totpoly!=totpoly || bm->totloop!=totloop)
 		BME_error();
 	
 	meshok = BME_validate_mesh(bm, 1);
 	if(!meshok){
-		printf("Warning, Mesh failed validation, restoring from backup");
-		badmesh = bm;
-		bm= badmesh->backup;
-		bm->backup = badmesh;
-		backupok = BME_validate_mesh(bm,1);
-		if(!backupok) printf("Backup corrupted too, Briggs did something stupid!");
+		BME_error();
 	}
-	BME_free_mesh(bm->backup);
-	bm->lock = 0;
 }
-
 
 /*	
  *	BME VALIDATE MESH
@@ -220,7 +199,6 @@ void BME_model_end(BME_Mesh *bm){
  *
  *	TODO 
  *	
- *	-Add validation for hole loops (which are experimental anyway)
  *	-Write a full mesh validation function for debugging purposes.
  */
 
