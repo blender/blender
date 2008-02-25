@@ -802,10 +802,10 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	   || amd->fit_type == MOD_ARR_FITCURVE) {
 		float dist = sqrt(MTC_dot3Float(offset[3], offset[3]));
 
-		if(dist > FLT_EPSILON)
+		if(dist > 1e-6f)
 			/* this gives length = first copy start to last copy end
 			   add a tiny offset for floating point rounding errors */
-			count = (length + FLT_EPSILON) / dist;
+			count = (length + 1e-6f) / dist;
 		else
 			/* if the offset has no translation, just make one copy */
 			count = 1;
