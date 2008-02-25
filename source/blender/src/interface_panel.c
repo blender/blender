@@ -1766,7 +1766,7 @@ static void panel_clicked_tabs(uiBlock *block,  int mousex)
 	pa= curarea->panels.first;
 	while(pa) {
 		if(pa!=panel) {
-			if(pa->paneltab==panel) nr++;
+			if(pa->active && pa->paneltab==panel) nr++;
 		}
 		pa= pa->next;
 	}
