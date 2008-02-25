@@ -1,5 +1,5 @@
 /* 
- * $Id: NMesh.c 12108 2007-09-22 17:54:13Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -2543,13 +2543,15 @@ static int assignFaceUV( MTFace * tf, BPy_NMFace * nmface )
 
 	/* fuv = [(u_1, v_1), ... (u_n, v_n)] */
 	for( i = 0; i < len; i++ ) {
-		tmp = PyList_GetItem( fuv, i );	/* stolen reference ! */
+		tmp = PySequence_GetItem( fuv, i );	/* stolen reference ! */
 		if( !PyArg_ParseTuple
 		    ( tmp, "ff", &( tf->uv[i][0] ), &( tf->uv[i][1] ) ) ) {
 				PyErr_SetString ( PyExc_TypeError,
 						      "expected tuple of two floats for uv" );
+				Py_DECREF( tmp );
 				return 0;
 		}
+		Py_DECREF( tmp );
 	}
 	if( nmface->image ) {	/* image assigned ? */
 		tf->tpage = ( void * ) nmface->image;
