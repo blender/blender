@@ -1066,7 +1066,6 @@ int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fma
 {
 	unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit=100;
 	float delta0 = 0, deltaNew = 0, deltaOld = 0, alpha = 0, tol = 0;
-	float conjgrad_epsilon=0.0001; // 0.2 is dt for steps=5
 	lfVector *r = create_lfvector(numverts);
 	lfVector *p = create_lfvector(numverts);
 	lfVector *s = create_lfvector(numverts);
@@ -1172,7 +1171,6 @@ DO_INLINE void dfdx_spring_type1(float to[3][3], float extent[3], float length, 
 	// return  (outerprod(dir,dir)*k + (I - outerprod(dir,dir))*(k - ((k*L)/length)));
 	float temp[3][3];
 	float temp1 = k*(1.0 - (L/length));	
-	float t[3][3];
 	
 	mul_fvectorT_fvectorS(temp, extent, extent, 1.0 / dot);
 	sub_fmatrix_fmatrix(to, I, temp);
@@ -1241,7 +1239,6 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	float stretch_force[3] = {0,0,0};
 	float bending_force[3] = {0,0,0};
 	float damping_force[3] = {0,0,0};
-	float goal_force[3] = {0,0,0};
 	float nulldfdx[3][3]={ {0,0,0}, {0,0,0}, {0,0,0}};
 	
 	float scaling = 0.0;
@@ -1435,12 +1432,9 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	float 		spring_air 	= clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
 	float 		gravity[3];
 	float 		tm2[3][3] 	= {{-spring_air,0,0}, {0,-spring_air,0},{0,0,-spring_air}};
-	ClothVertex *verts = cloth->verts;
 	MFace 		*mfaces 	= cloth->mfaces;
 	float wind_normalized[3];
 	unsigned int numverts = cloth->numverts;
-	float auxvect[3], velgoal[3], tvect[3];
-	float kd, ks;
 	LinkNode *search = cloth->springs;
 
 

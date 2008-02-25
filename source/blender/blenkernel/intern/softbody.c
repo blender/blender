@@ -2009,9 +2009,9 @@ static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float fo
 
 	/* do jacobian stuff if needed */
 	if(nl_flags & NLF_BUILD){
-		int op =3*sb->totpoint;
-		float mvel = -forcetime*kd;
-		float mpos = -forcetime*forcefactor;
+		//int op =3*sb->totpoint;
+		//float mvel = -forcetime*kd;
+		//float mpos = -forcetime*forcefactor;
 		/* depending on my pos */ 
 		// dfdx_spring(ia,ia,op,dir,bs->len,distance,-mpos);
 		/* depending on my vel */
@@ -2076,8 +2076,8 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 		/* clear forces  accumulator */
 		bp->force[0]= bp->force[1]= bp->force[2]= 0.0;
 		if(nl_flags & NLF_BUILD){
-			int ia =3*(sb->totpoint-a);
-			int op =3*sb->totpoint;
+			//int ia =3*(sb->totpoint-a);
+			//int op =3*sb->totpoint;
 			/* dF/dV = v */ 
 			/* jacobioan
 			nlMatrixAdd(op+ia,ia,-forcetime);
@@ -2138,11 +2138,11 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 							Vec3PlusStVec(bp->force,sb->balldamp,dvel);
 
 							if(nl_flags & NLF_BUILD){
-								int ia =3*(sb->totpoint-a);
-								int ic =3*(sb->totpoint-c);
-								int op =3*sb->totpoint;
-								float mvel = forcetime*sb->nodemass*sb->balldamp;
-								float mpos = forcetime*tune*(1.0f-sb->balldamp);
+								//int ia =3*(sb->totpoint-a);
+								//int ic =3*(sb->totpoint-c);
+								//int op =3*sb->totpoint;
+								//float mvel = forcetime*sb->nodemass*sb->balldamp;
+								//float mpos = forcetime*tune*(1.0f-sb->balldamp);
 								/*some quick and dirty entries to the jacobian*/
 								//dfdx_goal(ia,ia,op,mpos);
 								//dfdv_goal(ia,ia,mvel);
@@ -2189,8 +2189,8 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 				bp->force[2]+= -ks*(auxvect[2]);
 
 				if(nl_flags & NLF_BUILD){
-					int ia =3*(sb->totpoint-a);
-					int op =3*(sb->totpoint);
+					//int ia =3*(sb->totpoint-a);
+					//int op =3*(sb->totpoint);
 					/* depending on my pos */ 
 					//dfdx_goal(ia,ia,op,ks*forcetime);
 				}
@@ -2206,7 +2206,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 					bp->force[1]-= kd * (auxvect[1]);
 					bp->force[2]-= kd * (auxvect[2]);
 					if(nl_flags & NLF_BUILD){
-						int ia =3*(sb->totpoint-a);
+						//int ia =3*(sb->totpoint-a);
 						Normalize(auxvect);
 						/* depending on my vel */ 
 						//dfdv_goal(ia,ia,kd*forcetime);
@@ -2256,7 +2256,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 				bp->force[2]-= bp->vec[2]*kd;
 				/* friction in media done */
 				if(nl_flags & NLF_BUILD){
-					int ia =3*(sb->totpoint-a);
+					//int ia =3*(sb->totpoint-a);
 					/* da/dv =  */ 
 
 //					nlMatrixAdd(ia,ia,forcetime*kd);
@@ -2410,7 +2410,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint *bp;
 	float dx[3],dv[3],aabbmin[3],aabbmax[3],cm[3]={0.0f,0.0f,0.0f};
-	float timeovermass,freezeloc=0.00001f,freezeforce=0.00000000001f;
+	float timeovermass/*,freezeloc=0.00001f,freezeforce=0.00000000001f*/;
 	float maxerrpos= 0.0f,maxerrvel = 0.0f;
 	int a,fuzzy=0;
 
@@ -2540,6 +2540,7 @@ static void softbody_restore_prev_step(Object *ob)
 	}
 }
 
+#if 0
 static void softbody_store_step(Object *ob)
 {
 	SoftBody *sb= ob->soft;	/* is supposed to be there*/
@@ -2611,6 +2612,7 @@ static void softbody_swap_state(Object *ob,float *ppos,float *pvel)
 		pp+=3;
 	}
 }
+#endif
 
 
 /* care for bodypoints taken out of the 'ordinary' solver step

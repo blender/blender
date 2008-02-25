@@ -1967,7 +1967,7 @@ void createTransBMeshVerts(TransInfo *t, BME_Mesh *bm, BME_TransData_Head *td) {
 	tob = t->data = MEM_callocN(td->len*sizeof(TransData), "TransObData(Bevel tool)");
 
 	for (i=0,v=bm->verts.first;v;v=v->next) {
-		if (vtd = BME_get_transdata(td,v)) {
+		if ( (vtd = BME_get_transdata(td,v)) ) {
 			tob->loc = vtd->loc;
 			tob->val = &vtd->factor;
 			VECCOPY(tob->iloc,vtd->co);

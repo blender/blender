@@ -653,7 +653,7 @@ BME_Vert *BME_bevel_wire(BME_Mesh *bm, BME_Vert *v, float value, int res, int op
 
 BME_Loop *BME_bevel_edge(BME_Mesh *bm, BME_Loop *l, float value, int options, float *up_vec, BME_TransData_Head *td) {
 	BME_Vert *v1, *v2, *kv;
-	BME_Loop *kl, *nl;
+	BME_Loop *kl=NULL, *nl;
 	BME_Edge *e;
 	BME_Poly *f;
 

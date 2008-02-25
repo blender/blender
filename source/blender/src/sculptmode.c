@@ -1191,7 +1191,7 @@ void init_brushaction(BrushAction *a, short *mouse, short *pr_mouse)
 	int i;
 	const char flip = (get_qual() == LR_SHIFTKEY);
  	const char anchored = sculptmode_brush()->flag & SCULPT_BRUSH_ANCHORED;
- 	short orig_mouse[2], dx, dy;
+ 	short orig_mouse[2], dx=0, dy=0;
 
 	a->flip = flip;
 	a->symm.index = 0;

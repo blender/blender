@@ -881,7 +881,7 @@ void BPy_Free_DrawButtonsList(void)
 {
 	/*Clear the list.*/
 	if (M_Button_List) {
-		PyGILState_STATE gilstate;
+		PyGILState_STATE gilstate = {0};
 		int py_is_on = Py_IsInitialized();
 
 		if (py_is_on) gilstate = PyGILState_Ensure();
