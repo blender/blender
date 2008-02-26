@@ -342,6 +342,21 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\blender.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\BME_conversions.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\BME_eulers.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\BME_mesh.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\BME_structure.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\BME_tools.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\bmfont.c">
 			</File>
 			<File
@@ -541,6 +556,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_blender.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_bmesh.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_bmfont.h">
 			</File>
 			<File
@@ -713,6 +731,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_writeframeserver.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\bmesh_private.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\CCGSubSurf.h">
