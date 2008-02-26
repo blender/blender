@@ -4943,7 +4943,6 @@ void draw_object(Base *base, int flag)
 			else {
 				dt= OB_SHADED;
 
-				glClearDepth(1.0); glClear(GL_DEPTH_BUFFER_BIT);
 				glEnable(GL_DEPTH_TEST);
 				if(dt<OB_SOLID) zbufoff= 1;
 			}
@@ -4951,7 +4950,6 @@ void draw_object(Base *base, int flag)
 		else {
 			if(dt<OB_SOLID) {
 				dt= OB_SOLID;
-				glClearDepth(1.); glClear(GL_DEPTH_BUFFER_BIT);
 				glEnable(GL_DEPTH_TEST);
 				zbufoff= 1;
 			}
