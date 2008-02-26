@@ -1372,7 +1372,7 @@ static short mixed_bones_object_selectbuffer(unsigned int *buffer, short *mval)
 void mouse_select(void)
 {
 	Base *base, *startbase=NULL, *basact=NULL, *oldbasact=NULL;
-	unsigned int buffer[MAXPICKBUF];
+	unsigned int buffer[4*MAXPICKBUF];
 	int temp, a, dist=100;
 	short hits, mval[2];
 
@@ -1757,7 +1757,7 @@ void borderselect(void)
 	rcti rect;
 	Base *base;
 	MetaElem *ml;
-	unsigned int buffer[MAXPICKBUF];
+	unsigned int buffer[4*MAXPICKBUF];
 	int a, index;
 	short hits, val;
 
