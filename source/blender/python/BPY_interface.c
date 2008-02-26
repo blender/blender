@@ -232,6 +232,13 @@ void BPY_start_python( int argc, char **argv )
 	/* Initialize thread support (also acquires lock) */
 	PyEval_InitThreads();
 
+	/* Don't allow the Python Interpreter to release the GIL on
+	 * its own, to guarantee PyNodes work properly. For Blender this
+	 * is currently the best default behavior.
+	 * The following code in C is equivalent in Python to:
+	 * "import sys; sys.setcheckinterval(sys.maxint)" */
+	_Py_CheckInterval = PyInt_GetMax();
+
 	//Overrides __import__
 	init_ourImport(  );
 	init_ourReload(  );
@@ -242,7 +249,6 @@ void BPY_start_python( int argc, char **argv )
 	//Look for a python installation
 	init_syspath( first_time ); /* not first_time: some msgs are suppressed */
 
-	//PyEval_ReleaseLock();
 	py_tstate = PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(py_tstate);
 
