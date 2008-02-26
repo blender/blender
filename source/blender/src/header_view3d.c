@@ -4370,8 +4370,8 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 /* vertex paint menu */
 static void do_view3d_vpaintmenu(void *arg, int event)
 {
-	/* events >= 2 are registered bpython scripts */
-	if (event >= 2) BPY_menu_do_python(PYMENU_VERTEXPAINT, event - 2);
+	/* events >= 3 are registered bpython scripts */
+	if (event >= 3) BPY_menu_do_python(PYMENU_VERTEXPAINT, event - 3);
 	
 	switch(event) {
 	case 0: /* undo vertex painting */
@@ -4382,6 +4382,9 @@ static void do_view3d_vpaintmenu(void *arg, int event)
 			clear_vpaint_selectedfaces();
 		else /* we know were in vertex paint mode */
 			clear_vpaint();
+		break;
+	case 2:
+		make_vertexcol(1);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -4399,12 +4402,13 @@ static uiBlock *view3d_vpaintmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Vertex Painting|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Vertex Colors|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Shaded Vertex Colors",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	
-	/* note that we account for the 2 previous entries with i+2:
+	/* note that we account for the 3 previous entries with i+3:
 	even if the last item isnt displayed, it dosent matter */
 	for (pym = BPyMenuTable[PYMENU_VERTEXPAINT]; pym; pym = pym->next, i++) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20,
-			menuwidth, 19, NULL, 0.0, 0.0, 1, i+2,
+			menuwidth, 19, NULL, 0.0, 0.0, 1, i+3,
 			pym->tooltip?pym->tooltip:pym->filename);
 	}
 	

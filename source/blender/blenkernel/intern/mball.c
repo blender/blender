@@ -241,8 +241,6 @@ float *make_orco_mball(Object *ob)
 	float loc[3], size[3];
 	int a;
 
-	orcodata= MEM_mallocN(sizeof(float)*3*dl->nr, "MballOrco");
-	
 	/* restore size and loc */
 	bb= ob->bb;
 	loc[0]= (bb->vec[0][0]+bb->vec[4][0])/2.0f;
@@ -253,6 +251,8 @@ float *make_orco_mball(Object *ob)
 	size[2]= bb->vec[1][2]-loc[2];
 
 	dl= ob->disp.first;
+	orcodata= MEM_mallocN(sizeof(float)*3*dl->nr, "MballOrco");
+
 	data= dl->verts;
 	orco= orcodata;
 	a= dl->nr;

@@ -2942,7 +2942,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			BIF_GetThemeColor3fv(TH_BACK, col);
 			glClearColor(col[0], col[1], col[2], 0.0); 
 		}
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 		
 		glLoadIdentity();
 	}
@@ -2950,7 +2950,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		float col[3];
 		BIF_GetThemeColor3fv(TH_BACK, col);
 		glClearColor(col[0], col[1], col[2], 0.0);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	}
 	
 	myloadmatrix(v3d->viewmat);

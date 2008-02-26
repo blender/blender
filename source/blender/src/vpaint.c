@@ -1408,7 +1408,7 @@ void vertex_paint()
 	if(me==NULL || me->totface==0) return;
 	if(ob->lay & G.vd->lay); else error("Active object is not in this layer");
 	
-	if(me->mcol==NULL) make_vertexcol(1);
+	if(me->mcol==NULL) make_vertexcol(0);
 
 	if(me->mcol==NULL) return;
 	
@@ -1629,7 +1629,7 @@ void set_vpaint(void)		/* toggle */
 		return;
 	}
 	
-	if(me && me->mcol==NULL) make_vertexcol(1);
+	if(me && me->mcol==NULL) make_vertexcol(0);
 	
 	if(G.f & G_VERTEXPAINT){
 		G.f &= ~G_VERTEXPAINT;

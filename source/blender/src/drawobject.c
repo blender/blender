@@ -4941,10 +4941,11 @@ void draw_object(Base *base, int flag)
 
 			if(ob==G.obedit);
 			else {
-				dt= OB_SHADED;
+				if(dt<OB_SOLID)
+					zbufoff= 1;
 
+				dt= OB_SHADED;
 				glEnable(GL_DEPTH_TEST);
-				if(dt<OB_SOLID) zbufoff= 1;
 			}
 		}
 		else {
