@@ -1808,11 +1808,6 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 			pos[0] += shi->dxco[0]*jit[0] + shi->dyco[0]*jit[1];
 			pos[1] += shi->dxco[1]*jit[0] + shi->dyco[1]*jit[1];
 			pos[2] += shi->dxco[2]*jit[0] + shi->dyco[2]*jit[1];
-			
-			/* bias away somewhat to avoid self intersection */
-			pos[0] -= jitbias*shi->vn[0];
-			pos[1] -= jitbias*shi->vn[1];
-			pos[2] -= jitbias*shi->vn[2];
 		}
 
 		if (do_soft) {
@@ -1836,6 +1831,13 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 				s[2] = samp3d[0]*ru[2] + samp3d[1]*rv[2];
 				
 				VECCOPY(samp3d, s);
+
+				if(jitbias != 0.0f) {
+					/* bias away somewhat to avoid self intersection */
+					pos[0] -= jitbias*v[0];
+					pos[1] -= jitbias*v[1];
+					pos[2] -= jitbias*v[2];
+				}
 			}
 			else {
 				/* sampling, returns quasi-random vector in [sizex,sizey]^2 plane */
@@ -1850,6 +1852,19 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		} else {
 			VECCOPY(isec->end, vec);
 		}
+
+		if(jitbias != 0.0f && !(do_soft && lar->type==LA_LOCAL)) {
+			/* bias away somewhat to avoid self intersection */
+			float v[3];
+
+			VECSUB(v, pos, isec->end);
+			Normalize(v);
+
+			pos[0] -= jitbias*v[0];
+			pos[1] -= jitbias*v[1];
+			pos[2] -= jitbias*v[2];
+		}
+
 		VECCOPY(isec->start, pos);
 		
 		
