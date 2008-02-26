@@ -244,7 +244,7 @@ void group_operation(int mode)
 					strp1 += sprintf(strp1, "%s %%x%d|", group->id.name+2, tot);
 				}
 			}
-			tot= pupmenu(strp);
+			tot= pupmenu_col(strp, 20);
 			MEM_freeN(strp);
 			if(tot>0) group= BLI_findlink(&G.main->group, tot-1);
 			else return;

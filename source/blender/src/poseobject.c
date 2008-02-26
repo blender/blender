@@ -1024,7 +1024,7 @@ void pose_assign_to_posegroup (short active)
 	/* get group to affect */
 	if ((active==0) || (pose->active_group <= 0)) {
 		menustr= build_posegroups_menustr(pose, 1);
-		nr= pupmenu(menustr);
+		nr= pupmenu_col(menustr, 20);
 		MEM_freeN(menustr);
 		
 		if (nr < 0) 
@@ -1220,17 +1220,10 @@ void pose_select_grouped (short nr)
 /* Shift-G in 3D-View while in PoseMode */
 void pose_select_grouped_menu (void)
 {
-	char *str;
 	short nr;
-
-	/* make menu string */
-	str= MEM_mallocN(512, "groupmenu");
-	strcpy(str, "Select Grouped%t|In Same Group%x1|In Same Layer%x2");
-
-	/* here we go */
-	nr= pupmenu(str);
-	MEM_freeN(str);
 	
+	/* here we go */
+	nr= pupmenu("Select Grouped%t|In Same Group%x1|In Same Layer%x2");
 	pose_select_grouped(nr);
 }
 
@@ -1297,7 +1290,7 @@ void pose_autoside_names(short axis)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
-	allqueue (REDRAWACTION, 0);
+	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWOOPS, 0);
 	BIF_undo_push("Flip names");
 }
@@ -1448,7 +1441,8 @@ static int pose_relax_icu(struct IpoCurve *icu, float framef, float *val, float 
 {
 	if (!icu) {
 		return 0;
-	} else {
+	} 
+	else {
 		BezTriple *bezt = icu->bezt;
 		
 		BezTriple *bezt_prev=NULL, *bezt_next=NULL;

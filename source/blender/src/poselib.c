@@ -327,7 +327,7 @@ void poselib_add_current_pose (Object *ob, int val)
 		
 		/* get the pose to replace */
 		menustr= poselib_build_poses_menu(act, "Replace PoseLib Pose");
-		val= pupmenu(menustr);
+		val= pupmenu_col(menustr, 20);
 		if (menustr) MEM_freeN(menustr);
 		
 		if (val <= 0) return;
@@ -431,7 +431,7 @@ void poselib_remove_pose (Object *ob, TimeMarker *marker)
 	/* get index (and pointer) of pose to remove */
 	if (marker == NULL) {
 		menustr= poselib_build_poses_menu(act, "Remove PoseLib Pose");
-		val= pupmenu(menustr);
+		val= pupmenu_col(menustr, 20);
 		if (menustr) MEM_freeN(menustr);
 		
 		if (val <= 0) return;
@@ -496,7 +496,7 @@ void poselib_rename_pose (Object *ob)
 	
 	/* get index of pose to remove */
 	menustr= poselib_build_poses_menu(act, "Rename PoseLib Pose");
-	val= pupmenu(menustr);
+	val= pupmenu_col(menustr, 20);
 	if (menustr) MEM_freeN(menustr);
 	
 	if (val <= 0) return;
