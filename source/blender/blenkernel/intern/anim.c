@@ -844,11 +844,11 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 				if(hair) {
 					if(a < totpart) {
 						cache = psys->pathcache[a];
-						psys_get_dupli_path_transform(par, part, psmd, pa, 0, cache, pamat, &scale);
+						psys_get_dupli_path_transform(par, psys, psmd, pa, 0, cache, pamat, &scale);
 					}
 					else {
 						cache = psys->childcache[a-totpart];
-						psys_get_dupli_path_transform(par, part, psmd, 0, cpa, cache, pamat, &scale);
+						psys_get_dupli_path_transform(par, psys, psmd, 0, cpa, cache, pamat, &scale);
 					}
 
 					VECCOPY(pamat[3], cache->co);
@@ -894,7 +894,6 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 						q = vectoquat(xvec, ob->trackflag, ob->upflag);
 						QuatToMat4(q, obrotmat);
 						obrotmat[3][3]= 1.0f;
-
 						Mat4MulMat4(mat, obrotmat, pamat);
 					}
 					else

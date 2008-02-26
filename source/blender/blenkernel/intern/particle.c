@@ -3737,28 +3737,42 @@ void psys_get_dupli_texture(Object *ob, ParticleSettings *part, ParticleSystemMo
 	}
 }
 
-void psys_get_dupli_path_transform(Object *ob, ParticleSettings *part, ParticleSystemModifierData *psmd, ParticleData *pa, ChildParticle *cpa, ParticleCacheKey *cache, float mat[][4], float *scale)
+void psys_get_dupli_path_transform(Object *ob, ParticleSystem *psys, ParticleSystemModifierData *psmd, ParticleData *pa, ChildParticle *cpa, ParticleCacheKey *cache, float mat[][4], float *scale)
 {
-	float loc[3], nor[3], vec[3], side[3], len;
+	float loc[3], nor[3], vec[3], side[3], len, obrotmat[4][4], qmat[4][4];
+	float xvec[3] = {-1.0, 0.0, 0.0}, *q;
 
 	VecSubf(vec, (cache+cache->steps-1)->co, cache->co);
 	len= Normalize(vec);
 
 	if(pa)
-		psys_particle_on_emitter(ob,psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,nor,0,0,0,0);
+		psys_particle_on_emitter(ob,psmd,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,nor,0,0,0,0);
 	else
 		psys_particle_on_emitter(ob, psmd,
-			(part->childtype == PART_CHILD_FACES)? PART_FROM_FACE: PART_FROM_PARTICLE,
+			(psys->part->childtype == PART_CHILD_FACES)? PART_FROM_FACE: PART_FROM_PARTICLE,
 			cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,loc,nor,0,0,0,0);
 	
-	Crossf(side, nor, vec);
-	Normalize(side);
-	Crossf(nor, vec, side);
+	if(psys->part->rotmode) {
+		if(!pa)
+			pa= psys->particles+cpa->pa[0];
 
-	Mat4One(mat);
-	VECCOPY(mat[0], vec);
-	VECCOPY(mat[1], side);
-	VECCOPY(mat[2], nor);
+		q = vectoquat(xvec, ob->trackflag, ob->upflag);
+		QuatToMat4(q, obrotmat);
+		obrotmat[3][3]= 1.0f;
+
+		QuatToMat4(pa->state.rot, qmat);
+		Mat4MulMat4(mat, obrotmat, qmat);
+	}
+	else {
+		Crossf(side, nor, vec);
+		Normalize(side);
+		Crossf(nor, vec, side);
+
+		Mat4One(mat);
+		VECCOPY(mat[0], vec);
+		VECCOPY(mat[1], side);
+		VECCOPY(mat[2], nor);
+	}
 
 	*scale= len;
 }
