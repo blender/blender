@@ -4644,10 +4644,13 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
 	}
 }
 
-static void ntree_version_245(bNodeTree *ntree)
+static void ntree_version_245(FileData *fd, Library *lib, bNodeTree *ntree)
 {
 	bNode *node;
 	NodeTwoFloats *ntf;
+	ID *nodeid;
+	Image *image;
+	ImageUser *iuser;
 
 	if(ntree->type==NTREE_COMPOSIT) {
 		for(node= ntree->nodes.first; node; node= node->next) {
@@ -4657,6 +4660,21 @@ static void ntree_version_245(bNodeTree *ntree)
 					node->storage= ntf;
 					if(node->custom1)
 						ntf->x= 1.0f;
+				}
+			}
+			
+			/* fix for temporary flag changes during 245 cycle */
+			nodeid= newlibadr(fd, lib, node->id);
+			if(node->storage && nodeid && GS(nodeid->name) == ID_IM) {
+				image= (Image*)nodeid;
+				iuser= node->storage;
+				if(iuser->flag & IMA_OLD_PREMUL) {
+					iuser->flag &= ~IMA_OLD_PREMUL;
+					iuser->flag |= IMA_DO_PREMUL;
+				}
+				if(iuser->flag & IMA_DO_PREMUL) {
+					image->flag &= ~IMA_OLD_PREMUL;
+					image->flag |= IMA_DO_PREMUL;
 				}
 			}
 		}
@@ -6846,6 +6864,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		World *wrld;
 		Mesh *me;
 		bNodeTree *ntree;
+		Tex *tex;
 		
 		/* unless the file was created 2.44.3 but not 2.45, update the constraints */
 		if ( !(main->versionfile==244 && main->subversionfile==3) &&
@@ -7032,7 +7051,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if(sce->nodetree)
-				ntree_version_245(sce->nodetree);
+				ntree_version_245(fd, lib, sce->nodetree);
 
 			if(sce->r.simplify_shadowsamples == 0) {
 				sce->r.simplify_subsurf= 6;
@@ -7043,7 +7062,29 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		for(ntree=main->nodetree.first; ntree; ntree= ntree->id.next)
-			ntree_version_245(ntree);
+			ntree_version_245(fd, lib, ntree);
+
+		/* fix for temporary flag changes during 245 cycle */
+		for(ima= main->image.first; ima; ima= ima->id.next) {
+			if(ima->flag & IMA_OLD_PREMUL) {
+				ima->flag &= ~IMA_OLD_PREMUL;
+				ima->flag |= IMA_DO_PREMUL;
+			}
+		}
+
+		for(tex=main->tex.first; tex; tex=tex->id.next) {
+			if(tex->iuser.flag & IMA_OLD_PREMUL) {
+				tex->iuser.flag &= ~IMA_OLD_PREMUL;
+				tex->iuser.flag |= IMA_DO_PREMUL;
+
+			}
+
+			ima= newlibadr(fd, lib, tex->ima);
+			if(ima && (tex->iuser.flag & IMA_DO_PREMUL)) { 
+				ima->flag &= ~IMA_OLD_PREMUL;
+				ima->flag |= IMA_DO_PREMUL;
+			}
+		}
 
 		if (main->versionfile < 245 || main->subversionfile < 12)
 		{
