@@ -233,13 +233,15 @@ void tex_space_mball(Object *ob)
 	boundbox_set_from_min_max(bb, min, max);
 }
 
-void make_orco_mball(Object *ob)
+float *make_orco_mball(Object *ob)
 {
 	BoundBox *bb;
 	DispList *dl;
-	float *data;
+	float *data, *orco, *orcodata;
 	float loc[3], size[3];
 	int a;
+
+	orcodata= MEM_mallocN(sizeof(float)*3*dl->nr, "MballOrco");
 	
 	/* restore size and loc */
 	bb= ob->bb;
@@ -252,14 +254,18 @@ void make_orco_mball(Object *ob)
 
 	dl= ob->disp.first;
 	data= dl->verts;
+	orco= orcodata;
 	a= dl->nr;
 	while(a--) {
-		data[0]= (data[0]-loc[0])/size[0];
-		data[1]= (data[1]-loc[1])/size[1];
-		data[2]= (data[2]-loc[2])/size[2];
+		orco[0]= (data[0]-loc[0])/size[0];
+		orco[1]= (data[1]-loc[1])/size[1];
+		orco[2]= (data[2]-loc[2])/size[2];
 
 		data+= 3;
+		orco+= 3;
 	}
+
+	return orcodata;
 }
 /** \brief Test, if Object *ob is basic MetaBall.
  *

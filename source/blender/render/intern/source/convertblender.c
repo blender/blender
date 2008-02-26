@@ -930,6 +930,8 @@ static float *get_object_orco(Render *re, Object *ob)
 			orco = make_orco_curve(ob);
 		} else if (ob->type==OB_SURF) {
 			orco = make_orco_surf(ob);
+		} else if (ob->type==OB_MBALL) {
+			orco = make_orco_mball(ob);
 		}
 		
 		if (orco)
@@ -2346,7 +2348,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	VertRen *ver;
 	VlakRen *vlr, *vlr1;
 	Material *ma;
-	float *data, *nors, mat[4][4], imat[3][3], xn, yn, zn;
+	float *data, *nors, *orco, mat[4][4], imat[3][3], xn, yn, zn;
 	int a, need_orco, *index;
 
 	if (ob!=find_basis_mball(ob))
@@ -2369,8 +2371,9 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 
 	data= dl->verts;
 	nors= dl->nors;
+	orco= get_object_orco(re, ob);
 
-	for(a=0; a<dl->nr; a++, data+=3, nors+=3) {
+	for(a=0; a<dl->nr; a++, data+=3, nors+=3, orco+=3) {
 
 		ver= RE_findOrAddVert(obr, obr->totvert++);
 		VECCOPY(ver->co, data);
@@ -2388,7 +2391,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		Normalize(ver->n);
 		//if(ob->transflag & OB_NEG_SCALE) VecMulf(ver->n. -1.0);
 		
-		if(need_orco) ver->orco= data;
+		if(need_orco) ver->orco= orco;
 	}
 
 	index= dl->index;
@@ -2422,14 +2425,8 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		}
 	}
 
-	if(need_orco) {
-		/* store displist and scale */
-		make_orco_mball(ob);
-	}
-	else {
-		/* enforce display lists remade */
-		freedisplist(&ob->disp);
-	}
+	/* enforce display lists remade */
+	freedisplist(&ob->disp);
 	
 	/* this enforces remake for real, orco displist is small (in scale) */
 	ob->recalc |= OB_RECALC_DATA;
