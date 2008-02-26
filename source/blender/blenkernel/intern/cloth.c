@@ -23,9 +23,7 @@
 * The Original Code is Copyright (C) Blender Foundation
 * All rights reserved.
 *
-* The Original Code is: all of this file.
-*
-* Contributor(s): none yet.
+* Contributor(s): Daniel Genrich
 *
 * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -500,8 +498,6 @@ void cloth_write_cache(Object *ob, ClothModifierData *clmd, float framenr)
 
 	fclose(fp);
 }
-
-
 
 /************************************************
  * clothModifier_do - main simulation function
@@ -1232,8 +1228,8 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 
 		if ( spring )
 		{
-			spring->ij = medge[i].v1;
-			spring->kl = medge[i].v2;
+			spring->ij = MIN2(medge[i].v1, medge[i].v2);
+			spring->kl = MAX2(medge[i].v2, medge[i].v1);
 			VECSUB ( temp, cloth->verts[spring->kl].x, cloth->verts[spring->ij].x );
 			spring->restlen =  sqrt ( INPR ( temp, temp ) );
 			clmd->sim_parms->avg_spring_len += spring->restlen;
@@ -1262,8 +1258,8 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	{
 		spring = ( ClothSpring *) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 
-		spring->ij = mface[i].v1;
-		spring->kl = mface[i].v3;
+		spring->ij = MIN2(mface[i].v1, mface[i].v3);
+		spring->kl = MAX2(mface[i].v3, mface[i].v1);
 		VECSUB ( temp, cloth->verts[spring->kl].x, cloth->verts[spring->ij].x );
 		spring->restlen =  sqrt ( INPR ( temp, temp ) );
 		spring->type = CLOTH_SPRING_TYPE_SHEAR;
@@ -1279,8 +1275,8 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		{
 			spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 
-			spring->ij = mface[i].v2;
-			spring->kl = mface[i].v4;
+			spring->ij = MIN2(mface[i].v2, mface[i].v4);
+			spring->kl = MAX2(mface[i].v4, mface[i].v2);
 			VECSUB ( temp, cloth->verts[spring->kl].x, cloth->verts[spring->ij].x );
 			spring->restlen =  sqrt ( INPR ( temp, temp ) );
 			spring->type = CLOTH_SPRING_TYPE_SHEAR;
@@ -1316,8 +1312,8 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 			{
 				spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 
-				spring->ij = tspring2->ij;
-				spring->kl = index2;
+				spring->ij = MIN2(tspring2->ij, index2);
+				spring->kl = MAX2(tspring2->ij, index2);
 				VECSUB ( temp, cloth->verts[index2].x, cloth->verts[tspring2->ij].x );
 				spring->restlen =  sqrt ( INPR ( temp, temp ) );
 				spring->type = CLOTH_SPRING_TYPE_BENDING;
