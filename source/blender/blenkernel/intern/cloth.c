@@ -234,6 +234,20 @@ BVH *bvh_build_from_cloth (ClothModifierData *clmd, float epsilon)
 	bvh->current_x = MEM_callocN ( sizeof ( MVert ) * bvh->numverts, "bvh->current_x" );
 	bvh->current_xold = MEM_callocN ( sizeof ( MVert ) * bvh->numverts, "bvh->current_xold" );
 	
+	if (bvh->current_x == NULL) 
+	{
+		printf("bvh: Out of memory.\n");
+		MEM_freeN(bvh);
+		return NULL;
+	}
+	
+	if (bvh->current_xold == NULL) 
+	{
+		printf("bvh: Out of memory.\n");
+		MEM_freeN(bvh);
+		return NULL;
+	}
+	
 	for(i = 0; i < bvh->numverts; i++)
 	{
 		VECCOPY(bvh->current_x[i].co, verts[i].tx);
@@ -1170,6 +1184,9 @@ int cloth_add_spring ( ClothModifierData *clmd, unsigned int indexA, unsigned in
 		
 		spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 		
+		if(!spring)
+			return 0;
+		
 		spring->ij = indexA;
 		spring->kl = indexB;
 		spring->restlen =  restlength;
@@ -1184,6 +1201,39 @@ int cloth_add_spring ( ClothModifierData *clmd, unsigned int indexA, unsigned in
 		return 1;
 	}
 	return 0;
+}
+
+void cloth_free_errorsprings(Cloth *cloth, EdgeHash *edgehash, LinkNode **edgelist)
+{
+	unsigned int i = 0;
+	
+	if ( cloth->springs != NULL )
+	{
+		LinkNode *search = cloth->springs;
+		while(search)
+		{
+			ClothSpring *spring = search->link;
+						
+			MEM_freeN ( spring );
+			search = search->next;
+		}
+		BLI_linklist_free(cloth->springs, NULL);
+		
+		cloth->springs = NULL;
+	}
+	
+	if(edgelist)
+	{
+		for ( i = 0; i < cloth->numverts; i++ )
+		{
+			BLI_linklist_free ( edgelist[i],NULL );
+		}
+
+		MEM_freeN ( edgelist );
+	}
+	
+	if(cloth->edgehash)
+		BLI_edgehash_free ( cloth->edgehash, NULL );
 }
 
 int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
@@ -1210,6 +1260,10 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	cloth->springs = NULL;
 
 	edgelist = MEM_callocN ( sizeof ( LinkNode * ) * numverts, "cloth_edgelist_alloc" );
+	
+	if(!edgelist)
+		return 0;
+	
 	for ( i = 0; i < numverts; i++ )
 	{
 		edgelist[i] = NULL;
@@ -1244,9 +1298,15 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 			
 			BLI_linklist_prepend ( &cloth->springs, spring );
 		}
+		else
+		{
+			cloth_free_errorsprings(cloth, edgehash, edgelist);
+			return 0;
+		}
 	}
 	
-	clmd->sim_parms->avg_spring_len /= struct_springs;
+	if(struct_springs > 0)
+		clmd->sim_parms->avg_spring_len /= struct_springs;
 	
 	for(i = 0; i < numverts; i++)
 	{
@@ -1257,6 +1317,12 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	for ( i = 0; i < numfaces; i++ )
 	{
 		spring = ( ClothSpring *) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
+		
+		if(!spring)
+		{
+			cloth_free_errorsprings(cloth, edgehash, edgelist);
+			return 0;
+		}
 
 		spring->ij = MIN2(mface[i].v1, mface[i].v3);
 		spring->kl = MAX2(mface[i].v3, mface[i].v1);
@@ -1274,6 +1340,12 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		if ( mface[i].v4 )
 		{
 			spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
+			
+			if(!spring)
+			{
+				cloth_free_errorsprings(cloth, edgehash, edgelist);
+				return 0;
+			}
 
 			spring->ij = MIN2(mface[i].v2, mface[i].v4);
 			spring->kl = MAX2(mface[i].v4, mface[i].v2);
@@ -1311,6 +1383,12 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 						   && ( index2!=tspring2->ij ) )
 			{
 				spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
+				
+				if(!spring)
+				{
+					cloth_free_errorsprings(cloth, edgehash, edgelist);
+					return 0;
+				}
 
 				spring->ij = MIN2(tspring2->ij, index2);
 				spring->kl = MAX2(tspring2->ij, index2);
@@ -1330,12 +1408,15 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	
 	cloth->numsprings = struct_springs + shear_springs + bend_springs;
 	
-	for ( i = 0; i < numverts; i++ )
-	{
-		BLI_linklist_free ( edgelist[i],NULL );
-	}
 	if ( edgelist )
+	{
+		for ( i = 0; i < numverts; i++ )
+		{
+			BLI_linklist_free ( edgelist[i],NULL );
+		}
+	
 		MEM_freeN ( edgelist );
+	}
 	
 	cloth->edgehash = edgehash;
 	
