@@ -532,6 +532,13 @@ int NewBooleanMesh(Base *base, Base *base_select, int int_op_type)
 	maxmat= ob->totcol + ob_select->totcol;
 	mat= (Material**)MEM_mallocN(sizeof(Material*)*maxmat, "NewBooleanMeshMat");
 	
+	/* put some checks in for nice user feedback */
+	if((!(get_mesh(ob)->totface)) || (!(get_mesh(ob_select)->totface)))
+	{
+		MEM_freeN(mat);
+		return -1;
+	}
+	
 	dm= NewBooleanDerivedMesh_intern(ob, ob_select, int_op_type, mat, &totmat);
 
 	if (dm == NULL) {
