@@ -2309,6 +2309,8 @@ void toolbox_generic( TBitem *generic_menu )
 	event= uiDoBlocks(&tb_listb, 0, 1);
 	
 	mywinset(curarea->win);
+	
+	reset_toolbox();
 }
 
 /* save or restore mouse position when entering/exiting menus */
