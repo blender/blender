@@ -938,7 +938,7 @@ static int bpymenu_GetStatMTime( const char *name, int is_file, time_t * mtime )
 	struct stat st;
 	int result;
 
-#ifdef win32
+#ifdef WIN32
 	if (is_file) {
 		result = stat( name, &st );
 	} else {

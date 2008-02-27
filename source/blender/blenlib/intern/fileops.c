@@ -119,6 +119,8 @@ void BLI_del_slash(char *string) {
 #endif
 			string[len-1] = '\0';
 			len--;
+		} else {
+			break;
 		}
 	}
 }
