@@ -261,7 +261,7 @@ void Vec2Addf(float *v, float *v1, float *v2);
 void Vec2Subf(float *v, float *v1, float *v2);
 void Vec2Copyf(float *v1, float *v2);
 
-float *vectoquat(float *vec, short axis, short upflag);
+void vectoquat(float *vec, short axis, short upflag, float *q);
 
 float VecAngle2(float *v1, float *v2);
 float VecAngle3(float *v1, float *v2, float *v3);

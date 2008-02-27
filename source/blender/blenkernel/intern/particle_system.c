@@ -1573,7 +1573,7 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 	ParticleTexture ptex;
 	ParticleKey state;
 	IpoCurve *icu=0;
-	float fac, phasefac, nor[3]={0,0,0},loc[3],tloc[3],vel[3]={0.0,0.0,0.0},rot[4],*q2=0;
+	float fac, phasefac, nor[3]={0,0,0},loc[3],tloc[3],vel[3]={0.0,0.0,0.0},rot[4],q2[4];
 	float r_vel[3],r_ave[3],r_rot[4],p_vel[3]={0.0,0.0,0.0};
 	float x_vec[3]={1.0,0.0,0.0}, utan[3]={0.0,1.0,0.0}, vtan[3]={0.0,0.0,1.0}, rot_vec[3]={0.0,0.0,0.0};
 	float q_phase[4];
@@ -1749,7 +1749,7 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 		
 		/* create rotation quat */
 		VecMulf(rot_vec,-1.0);
-		q2= vectoquat(rot_vec, OB_POSX, OB_POSZ);
+		vectoquat(rot_vec, OB_POSX, OB_POSZ, q2);
 
 		/* randomize rotation quat */
 		if(part->randrotfac!=0.0f)
@@ -3085,7 +3085,7 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 	ParticleKey cstate;
 	float imat[4][4];
 	float co1[3],co2[3],def_loc[3],def_nor[3],unit_nor[3],def_tan[3],dvec[3],def_vel[3],dave[3],dvel[3];
-	float t_co1[3],t_co2[3];
+	float t_co1[3]={0.0,0.0,0.0},t_co2[3]={0.0,0.0,0.0};
 	float pa_minmax[6];
 	float min_w[4], zerovec[3]={0.0,0.0,0.0}, ipoint[3];
 	float min_d,dotprod,damp,frict,o_len,d_len,radius=-1.0f;
@@ -3811,7 +3811,7 @@ static void boid_brain(BoidVecFunc *bvf, ParticleData *pa, Object *ob, ParticleS
 static void boid_body(BoidVecFunc *bvf, ParticleData *pa, ParticleSystem *psys, ParticleSettings *part, float timestep, float *acc, ParticleKey *state)
 {
 	float dvec[3], bvec[3], length, max_vel=part->max_vel;
-	float *q2, q[4];
+	float q2[4], q[4];
 	float g=9.81f, pa_mass=part->mass;
 	float yvec[3]={0.0,1.0,0.0}, zvec[3]={0.0,0.0,-1.0}, bank;
 
@@ -3893,7 +3893,7 @@ static void boid_body(BoidVecFunc *bvf, ParticleData *pa, ParticleSystem *psys, 
 
 	VECCOPY(dvec,state->vel);
 	VecMulf(dvec,-1.0f);
-	q2= vectoquat(dvec, OB_POSX, OB_POSZ);
+	vectoquat(dvec, OB_POSX, OB_POSZ, q2);
 
 	QuatMul(state->rot,q,q2);
 

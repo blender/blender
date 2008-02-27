@@ -878,7 +878,7 @@ static void read_videoscape_lamp(char *str)
 	Object *ob;
 	Lamp *la;
 	FILE *fp;
-	float vec[3], *q1;
+	float vec[3], q1[4];
 	int tot, val;
 	char s[50];
 	
@@ -906,7 +906,7 @@ static void read_videoscape_lamp(char *str)
 		
 		fscanf(fp, "%f %f %f\n", ob->loc, ob->loc+1, ob->loc+2);
 		val= fscanf(fp, "%f %f %f\n", vec, vec+1, vec+2);
-		q1= vectoquat(vec, 5, 2);
+		vectoquat(vec, 5, 2, q1);
 		QuatToEul(q1, ob->rot);
 		
 		if(val<=0) break;

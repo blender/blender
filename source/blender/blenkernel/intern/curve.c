@@ -1788,13 +1788,13 @@ void makeBevelList(Object *ob)
 			bevp2->cosa= bevp1->cosa;
 
 			if(cu->flag & CU_3D) {	/* 3D */
-				float *quat, q[4];
+				float quat[4], q[4];
 			
 				vec[0]= bevp1->x - bevp2->x;
 				vec[1]= bevp1->y - bevp2->y;
 				vec[2]= bevp1->z - bevp2->z;
 				
-				quat= vectoquat(vec, 5, 1);
+				vectoquat(vec, 5, 1, quat);
 				
 				Normalize(vec);
 				q[0]= (float)cos(0.5*bevp1->alfa);
@@ -1820,7 +1820,7 @@ void makeBevelList(Object *ob)
 			while(nr--) {
 	
 				if(cu->flag & CU_3D) {	/* 3D */
-					float *quat, q[4];
+					float quat[4], q[4];
 				
 					vec[0]= bevp2->x - bevp0->x;
 					vec[1]= bevp2->y - bevp0->y;
@@ -1828,7 +1828,7 @@ void makeBevelList(Object *ob)
 					
 					Normalize(vec);
 
-					quat= vectoquat(vec, 5, 1);
+					vectoquat(vec, 5, 1, quat);
 					
 					q[0]= (float)cos(0.5*bevp1->alfa);
 					x1= (float)sin(0.5*bevp1->alfa);

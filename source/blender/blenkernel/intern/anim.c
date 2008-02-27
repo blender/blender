@@ -387,7 +387,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 {
 	DupliObject *dob;
 	struct vertexDupliData *vdd= userData;
-	float vec[3], *q2, mat[3][3], tmat[4][4], obmat[4][4];
+	float vec[3], q2[4], mat[3][3], tmat[4][4], obmat[4][4];
 	
 	VECCOPY(vec, co);
 	Mat4MulVecfl(vdd->pmat, vec);
@@ -405,7 +405,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 			vec[0]= -no_s[0]; vec[1]= -no_s[1]; vec[2]= -no_s[2];
 		}
 		
-		q2= vectoquat(vec, vdd->ob->trackflag, vdd->ob->upflag);
+		vectoquat(vec, vdd->ob->trackflag, vdd->ob->upflag, q2);
 		
 		QuatToMat3(q2, mat);
 		Mat4CpyMat4(tmat, obmat);
@@ -737,7 +737,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 	float ctime, pa_time, scale = 1.0f;
 	float tmat[4][4], mat[4][4], obrotmat[4][4], pamat[4][4], size=0.0;
 	float obmat[4][4], (*obmatlist)[4][4]=0;
-	float xvec[3] = {-1.0, 0.0, 0.0}, *q;
+	float xvec[3] = {-1.0, 0.0, 0.0}, q[4];
 	int lay, a, b, k, step_nbr = 0, counter, hair = 0;
 	int totpart, totchild, totgroup=0, pa_num;
 
@@ -891,7 +891,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 					where_is_object_time(ob, ctime-pa_time);
 					
 					if(!hair) {
-						q = vectoquat(xvec, ob->trackflag, ob->upflag);
+						vectoquat(xvec, ob->trackflag, ob->upflag, q);
 						QuatToMat4(q, obrotmat);
 						obrotmat[3][3]= 1.0f;
 						Mat4MulMat4(mat, obrotmat, pamat);

@@ -1259,7 +1259,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 	
 	if (VALID_CONS_TARGET(ct)) {
 		Curve *cu= ct->tar->data;
-		float q[4], vec[4], dir[3], *quat, x1;
+		float q[4], vec[4], dir[3], quat[4], x1;
 		float totmat[4][4];
 		float curvetime;
 		
@@ -1284,7 +1284,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 			
 			if ( where_on_path(ct->tar, curvetime, vec, dir) ) {
 				if (data->followflag) {
-					quat= vectoquat(dir, (short) data->trackflag, (short) data->upflag);
+					vectoquat(dir, (short) data->trackflag, (short) data->upflag, quat);
 					
 					Normalize(dir);
 					q[0]= (float)cos(0.5*vec[3]);

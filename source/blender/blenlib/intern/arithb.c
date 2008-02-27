@@ -1337,9 +1337,8 @@ void NormalQuat(float *q)
 	}
 }
 
-float *vectoquat( float *vec, short axis, short upflag)
+void vectoquat(float *vec, short axis, short upflag, float *q)
 {
-	static float q1[4];
 	float q2[4], nor[3], *fp, mat[3][3], angle, si, co, x2, y2, z2, len1;
 	
 	/* first rotate to axis */
@@ -1351,11 +1350,11 @@ float *vectoquat( float *vec, short axis, short upflag)
 		x2= -vec[0] ; y2= -vec[1] ; z2= -vec[2];
 	}
 	
-	q1[0]=1.0; 
-	q1[1]=q1[2]=q1[3]= 0.0;
+	q[0]=1.0; 
+	q[1]=q[2]=q[3]= 0.0;
 
 	len1= (float)sqrt(x2*x2+y2*y2+z2*z2);
-	if(len1 == 0.0) return(q1);
+	if(len1 == 0.0) return;
 
 	/* nasty! I need a good routine for this...
 	 * problem is a rotation of an Y axis to the negative Y-axis for example.
@@ -1366,9 +1365,8 @@ float *vectoquat( float *vec, short axis, short upflag)
 		nor[1]= -z2;
 		nor[2]= y2;
 
-		if( fabs(y2)+fabs(z2)<0.0001 ) {
+		if(fabs(y2)+fabs(z2)<0.0001)
 			nor[1]= 1.0;
-		}
 
 		co= x2;
 	}
@@ -1377,9 +1375,8 @@ float *vectoquat( float *vec, short axis, short upflag)
 		nor[1]= 0.0;
 		nor[2]= -x2;
 		
-		if( fabs(x2)+fabs(z2)<0.0001 ) {
+		if(fabs(x2)+fabs(z2)<0.0001)
 			nor[2]= 1.0;
-		}
 		
 		co= y2;
 	}
@@ -1388,9 +1385,8 @@ float *vectoquat( float *vec, short axis, short upflag)
 		nor[1]= x2;
 		nor[2]= 0.0;
 
-		if( fabs(x2)+fabs(y2)<0.0001 ) {
+		if(fabs(x2)+fabs(y2)<0.0001)
 			nor[0]= 1.0;
-		}
 
 		co= z2;
 	}
@@ -1400,13 +1396,13 @@ float *vectoquat( float *vec, short axis, short upflag)
 	
 	angle= 0.5f*saacos(co);
 	si= (float)sin(angle);
-	q1[0]= (float)cos(angle);
-	q1[1]= nor[0]*si;
-	q1[2]= nor[1]*si;
-	q1[3]= nor[2]*si;
+	q[0]= (float)cos(angle);
+	q[1]= nor[0]*si;
+	q[2]= nor[1]*si;
+	q[3]= nor[2]*si;
 	
 	if(axis!=upflag) {
-		QuatToMat3(q1, mat);
+		QuatToMat3(q, mat);
 
 		fp= mat[2];
 		if(axis==0) {
@@ -1429,10 +1425,8 @@ float *vectoquat( float *vec, short axis, short upflag)
 		q2[2]= y2*si;
 		q2[3]= z2*si;
 			
-		QuatMul(q1,q2,q1);
+		QuatMul(q,q2,q);
 	}
-
-	return(q1);
 }
 
 void VecUpMat3old( float *vec, float mat[][3], short axis)

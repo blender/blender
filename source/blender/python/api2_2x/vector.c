@@ -1,5 +1,5 @@
 /*
- * $Id: vector.c 12314 2007-10-20 20:24:09Z campbellbarton $
+ * $Id$
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -168,7 +168,7 @@ PyObject *Vector_Resize4D(VectorObject * self)
   extract a quaternion from the vector and the track and up axis */
 PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 {
-	float vec[3];
+	float vec[3], quat[4];
 	char *strack, *sup;
 	short track = 2, up = 1;
 
@@ -271,7 +271,9 @@ PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 	vec[1] = -self->vec[1];
 	vec[2] = -self->vec[2];
 
-	return newQuaternionObject(vectoquat(vec, track, up), Py_NEW);
+	vectoquat(vec, track, up, quat);
+
+	return newQuaternionObject(quat, Py_NEW);
 }
 
 

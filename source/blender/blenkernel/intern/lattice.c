@@ -575,14 +575,13 @@ static float *calc_curve_deform(Object *par, float *co, short axis, CurveDeform 
 	}
 	
 	if( where_on_path_deform(par, fac, loc, dir)) {	/* returns OK */
-		float q[4], mat[3][3];
-		float *quat;
+		float q[4], mat[3][3], quat[4];
 		
 		if(cd->no_rot_axis)	/* set by caller */
 			dir[cd->no_rot_axis-1]= 0.0f;
 		
 		/* -1 for compatibility with old track defines */
-		quat= vectoquat(dir, axis-1, upflag);	/* gives static quat */
+		vectoquat(dir, axis-1, upflag, quat);
 		
 		/* the tilt */
 		if(loc[3]!=0.0) {

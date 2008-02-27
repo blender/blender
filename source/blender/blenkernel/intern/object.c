@@ -1438,7 +1438,7 @@ int enable_cu_speed= 1;
 static void ob_parcurve(Object *ob, Object *par, float mat[][4])
 {
 	Curve *cu;
-	float q[4], vec[4], dir[3], *quat, x1, ctime;
+	float q[4], vec[4], dir[3], quat[4], x1, ctime;
 	float timeoffs = 0.0, sf_orig = 0.0;
 	
 	Mat4One(mat);
@@ -1487,7 +1487,7 @@ static void ob_parcurve(Object *ob, Object *par, float mat[][4])
  	if( where_on_path(par, ctime, vec, dir) ) {
 
 		if(cu->flag & CU_FOLLOW) {
-			quat= vectoquat(dir, ob->trackflag, ob->upflag);
+			vectoquat(dir, ob->trackflag, ob->upflag, quat);
 			
 			/* the tilt */
 			Normalize(dir);
@@ -1887,13 +1887,13 @@ static void solve_parenting (Object *ob, Object *par, float obmat[][4], float sl
 }
 void solve_tracking (Object *ob, float targetmat[][4])
 {
-	float *quat;
+	float quat[4];
 	float vec[3];
 	float totmat[3][3];
 	float tmat[4][4];
 	
 	VecSubf(vec, ob->obmat[3], targetmat[3]);
-	quat= vectoquat(vec, ob->trackflag, ob->upflag);
+	vectoquat(vec, ob->trackflag, ob->upflag, quat);
 	QuatToMat3(quat, totmat);
 	
 	if(ob->parent && (ob->transflag & OB_POWERTRACK)) {

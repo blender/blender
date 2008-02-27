@@ -1369,7 +1369,7 @@ static float vert_weight(MDeformVert *dvert, int group)
 }
 static void do_prekink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, float freq, float shape, float amplitude, short type, short axis, float obmat[][4])
 {
-	float vec[3]={0.0,0.0,0.0}, q1[4]={1,0,0,0},*q2;
+	float vec[3]={0.0,0.0,0.0}, q1[4]={1,0,0,0},q2[4];
 	float t;
 
 	CLAMP(time,0.0,1.0);
@@ -1391,10 +1391,9 @@ static void do_prekink(ParticleKey *state, ParticleKey *par, float *par_rot, flo
 		case PART_KINK_CURL:
 			vec[axis]=1.0;
 			if(par_rot)
-				q2=par_rot;
-			else{
-				q2=vectoquat(par->vel,axis,(axis+1)%3);
-			}
+				QUATCOPY(q2,par_rot)
+			else
+				vectoquat(par->vel,axis,(axis+1)%3, q2);
 			QuatMulVecf(q2,vec);
 			VecMulf(vec,amplitude);
 			VECADD(state->co,state->co,vec);
@@ -1441,9 +1440,9 @@ static void do_prekink(ParticleKey *state, ParticleKey *par, float *par_rot, flo
 				float inp_y,inp_z,length;
 				
 				if(par_rot)
-					q2=par_rot;
+					QUATCOPY(q2,par_rot)
 				else
-					q2=vectoquat(par->vel,axis,(axis+1)%3);
+					vectoquat(par->vel,axis,(axis+1)%3,q2);
 				QuatMulVecf(q2,y_vec);
 				QuatMulVecf(q2,z_vec);
 				
@@ -1592,7 +1591,7 @@ int do_guide(ParticleKey *state, int pa_num, float time, ListBase *lb)
 						VecRotToQuat(guidedir,guidevec[3]-ec->firstloc[3],rot2);
 						QuatMulVecf(rot2,pa_loc);
 
-						//q=vectoquat(guidedir, pd->kink_axis, (pd->kink_axis+1)%3);
+						//vectoquat(guidedir, pd->kink_axis, (pd->kink_axis+1)%3, q);
 						//QuatMul(par.rot,rot2,q);
 					}
 					//else{
@@ -2536,16 +2535,12 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 			/* figure out rotation */
 			
 			if(k) {
-				float angle, tangent[3], normal[3], q[4];
+				float cosangle, angle, tangent[3], normal[3], q[4];
 
 				if(k == 1) {
-					float *q2;
-
 					VECSUB(tangent, ca->co, (ca - 1)->co);
 
-					q2 = vectoquat(tangent, OB_POSX, OB_POSZ);
-
-					QUATCOPY((ca - 1)->rot, q2);
+					vectoquat(tangent, OB_POSX, OB_POSZ, (ca-1)->rot);
 
 					VECCOPY(prev_tangent, tangent);
 					Normalize(prev_tangent);
@@ -2553,12 +2548,17 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 				else {
 					VECSUB(tangent, ca->co, (ca - 1)->co);
 					Normalize(tangent);
-					angle = saacos(Inpf(tangent, prev_tangent));
 
-					if((angle > -0.000001) && (angle < 0.000001)){
+					cosangle= Inpf(tangent, prev_tangent);
+
+					/* note we do the comparison on cosangle instead of
+					 * angle, since floating point accuracy makes it give
+					 * different results across platforms */
+					if(cosangle > 0.999999f) {
 						QUATCOPY((ca - 1)->rot, (ca - 2)->rot);
 					}
-					else{
+					else {
+						angle= saacos(cosangle);
 						Crossf(normal, prev_tangent, tangent);
 						VecRotToQuat(normal, angle, q);
 						QuatMul((ca - 1)->rot, q, (ca - 2)->rot);
@@ -2567,9 +2567,8 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 					VECCOPY(prev_tangent, tangent);
 				}
 
-				if(k == steps) {
+				if(k == steps)
 					QUATCOPY(ca->rot, (ca - 1)->rot);
-				}
 			}
 
 			
@@ -3412,11 +3411,9 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 		//else{
 		//	/* TODO: different rotations */
 		//	float nvel[3];
-		//	float *q2;
 		//	VECCOPY(nvel,state->vel);
 		//	VecMulf(nvel,-1.0f);
-		//	q2=vectoquat(nvel, OB_POSX, OB_POSZ);
-		//	QUATCOPY(state->rot,q2);
+		//	vectoquat(nvel, OB_POSX, OB_POSZ, state->rot);
 		//}
 
 		dfra = keys[2].time - keys[1].time;
@@ -3740,7 +3737,7 @@ void psys_get_dupli_texture(Object *ob, ParticleSettings *part, ParticleSystemMo
 void psys_get_dupli_path_transform(Object *ob, ParticleSystem *psys, ParticleSystemModifierData *psmd, ParticleData *pa, ChildParticle *cpa, ParticleCacheKey *cache, float mat[][4], float *scale)
 {
 	float loc[3], nor[3], vec[3], side[3], len, obrotmat[4][4], qmat[4][4];
-	float xvec[3] = {-1.0, 0.0, 0.0}, *q;
+	float xvec[3] = {-1.0, 0.0, 0.0}, q[4];
 
 	VecSubf(vec, (cache+cache->steps-1)->co, cache->co);
 	len= Normalize(vec);
@@ -3756,7 +3753,7 @@ void psys_get_dupli_path_transform(Object *ob, ParticleSystem *psys, ParticleSys
 		if(!pa)
 			pa= psys->particles+cpa->pa[0];
 
-		q = vectoquat(xvec, ob->trackflag, ob->upflag);
+		vectoquat(xvec, ob->trackflag, ob->upflag, q);
 		QuatToMat4(q, obrotmat);
 		obrotmat[3][3]= 1.0f;
 
