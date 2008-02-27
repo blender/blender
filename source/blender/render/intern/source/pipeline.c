@@ -1593,14 +1593,16 @@ void RE_TileProcessor(Render *re, int firsttile, int threaded)
 	
 	re->i.partsdone= firsttile;
 
-	re->i.starttime= PIL_check_seconds_timer();
+	if(!re->sss_points)
+		re->i.starttime= PIL_check_seconds_timer();
 
 	if(threaded)
 		threaded_tile_processor(re);
 	else
 		render_tile_processor(re, firsttile);
 		
-	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
+	if(!re->sss_points)
+		re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
 	re->stats_draw(&re->i);
 }
 
