@@ -60,6 +60,7 @@ struct bPythonConstraint;
 struct bConstraintOb;
 struct bConstraintTarget;
 struct ListBase;
+struct EditFace;
 
 char *getIpoCurveName( struct IpoCurve * icu );
 void insert_vert_icu(struct IpoCurve *icu, float x, float y, short fast);
@@ -214,7 +215,7 @@ void EM_select_edge(struct EditEdge *eed, int sel) {}
 struct EditVert *addvertlist(float *vec, struct EditVert *example) { return 0;}
 struct EditEdge *addedgelist(struct EditVert *v1, struct EditVert *v2, struct EditEdge *example) { return 0;}
 struct EditFace *addfacelist(struct EditVert *v1, struct EditVert *v2, struct EditVert *v3, struct EditVert *v4, struct EditFace *example, struct EditFace *exampleEdges) { return 0;}
-
+struct EditEdge *findedgelist(struct EditVert *v1, struct EditVert *v2)  { return 0;}
 /*edit.c*/
 
 void countall(void) {}
