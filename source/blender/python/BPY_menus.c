@@ -933,13 +933,25 @@ static int bpymenu_ParseDir(char *dirname, char *parentdir, int is_userdir )
 	return 0;
 }
 
-static int bpymenu_GetStatMTime( char *name, int is_file, time_t * mtime )
+static int bpymenu_GetStatMTime( const char *name, int is_file, time_t * mtime )
 {
 	struct stat st;
 	int result;
 
+#ifdef win32
+	if (is_file) {
+		result = stat( name, &st );
+	} else {
+		/* needed for win32 only, remove trailing slash */
+		char name_stat[FILE_MAX];
+		BLI_strncpy(name_stat, name, FILE_MAX);
+		BLI_del_slash(name_stat);
+		result = stat( name_stat, &st );
+	}
+#else
 	result = stat( name, &st );
-
+#endif
+	
 	if( result == -1 )
 		return -1;
 

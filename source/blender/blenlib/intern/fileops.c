@@ -108,6 +108,21 @@ void BLI_add_slash(char *string) {
 #endif
 }
 
+/* removes a slash if there is one */
+void BLI_del_slash(char *string) {
+	int len = strlen(string);
+	while (len) {
+#ifdef WIN32
+		if (string[len-1]=='\\') {
+#else
+		if (string[len-1]=='/') {
+#endif
+			string[len-1] = '\0';
+			len--;
+		}
+	}
+}
+
 /* gzip the file in from and write it to "to". 
  return -1 if zlib fails, -2 if the originating file does not exist
  note: will remove the "from" file

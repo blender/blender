@@ -313,6 +313,7 @@ int   BLI_move(char *file, char *to);
 int   BLI_touch(const char *file);
 char *BLI_last_slash(const char *string);
 void  BLI_add_slash(char *string);
+void  BLI_del_slash(char *string);
 
 /* BLI_rct.c */
 /**
