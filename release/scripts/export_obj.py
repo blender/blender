@@ -469,14 +469,6 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 					
 					else: # No Normals
 						for vi, v in enumerate(f_v):
-						
-							#print _uv_face_mapping == tuple([tuple([0] * len(f)) for f in faces])
-							if len(uv_face_mapping) != len(faces):
-								raise "ass"
-							print f_index
-							print uv_face_mapping[f_index]
-							print vi
-							print uv_face_mapping[f_index][vi]
 							file.write( ' %d/%d' % (\
 							  v.index+totverts,\
 							  totuvco + uv_face_mapping[f_index][vi])) # vert, uv
