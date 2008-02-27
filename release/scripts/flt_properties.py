@@ -388,7 +388,7 @@ FLTImage = {
 	'5i!UpX' : 0, 
 	'6i!UpY' : 0, 
 	'7i!File Format' : 0, 
-	'8i!Min Filter' : 1, 
+	'8i!Min Filter' : 6, 
 	'9i!Mag Filter' : 1, 
 	'10i!Wrap' : 0, 
 	'11i!WrapU' : 0, 
