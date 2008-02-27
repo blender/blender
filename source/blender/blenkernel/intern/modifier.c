@@ -5412,6 +5412,7 @@ static void particleSystemModifier_copyData(ModifierData *md, ModifierData *targ
 	ParticleSystemModifierData *tpsmd= (ParticleSystemModifierData*) target;
 
 	tpsmd->dm = 0;
+	tpsmd->totdmvert = tpsmd->totdmedge = tpsmd->totdmface = 0;
 	//tpsmd->facepa = 0;
 	tpsmd->flag = psmd->flag;
 	/* need to keep this to recognise a bit later in copy_object */

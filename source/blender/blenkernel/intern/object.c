@@ -157,6 +157,25 @@ void update_base_layer(Object *ob)
 	}
 }
 
+void object_free_particlesystems(Object *ob)
+{
+	while(ob->particlesystem.first){
+		ParticleSystem *psys = ob->particlesystem.first;
+
+		BLI_remlink(&ob->particlesystem,psys);
+
+		psys_free(ob,psys);
+	}
+}
+
+void object_free_softbody(Object *ob)
+{
+	if(ob->soft) {
+		sbFree(ob->soft);
+		ob->soft= NULL;
+	}
+}
+
 void object_free_modifiers(Object *ob)
 {
 	while (ob->modifiers.first) {
@@ -168,13 +187,10 @@ void object_free_modifiers(Object *ob)
 	}
 
 	/* particle modifiers were freed, so free the particlesystems as well */
-	while(ob->particlesystem.first){
-		ParticleSystem *psys = ob->particlesystem.first;
+	object_free_particlesystems(ob);
 
-		BLI_remlink(&ob->particlesystem,psys);
-
-		psys_free(ob,psys);
-	}
+	/* same for softbody */
+	object_free_softbody(ob);
 }
 
 /* here we will collect all local displist stuff */
@@ -1034,6 +1050,35 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	return psysn;
 }
 
+void copy_object_particlesystems(Object *obn, Object *ob)
+{
+	ParticleSystemModifierData *psmd;
+	ParticleSystem *psys, *npsys;
+	ModifierData *md;
+
+	obn->particlesystem.first= obn->particlesystem.last= NULL;
+	for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+		npsys= copy_particlesystem(psys);
+
+		BLI_addtail(&obn->particlesystem, npsys);
+
+		/* need to update particle modifiers too */
+		for(md=obn->modifiers.first; md; md=md->next) {
+			if(md->type==eModifierType_ParticleSystem) {
+				psmd= (ParticleSystemModifierData*)md;
+				if(psmd->psys==psys)
+					psmd->psys= npsys;
+			}
+		}
+	}
+}
+
+void copy_object_softbody(Object *obn, Object *ob)
+{
+	if(ob->soft)
+		obn->soft= copy_softbody(ob->soft);
+}
+
 static void copy_object_pose(Object *obn, Object *ob)
 {
 	bPoseChannel *chan;
@@ -1077,7 +1122,6 @@ Object *copy_object(Object *ob)
 {
 	Object *obn;
 	ModifierData *md;
-	ParticleSystem *psys;
 	int a;
 
 	obn= copy_libblock(ob);
@@ -1144,22 +1188,7 @@ Object *copy_object(Object *ob)
 		}
 	}
 
-	obn->particlesystem.first= obn->particlesystem.last= NULL;
-	for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-		ParticleSystemModifierData *psmd;
-		ParticleSystem *npsys= copy_particlesystem(psys);
-
-		BLI_addtail(&obn->particlesystem, npsys);
-
-		/* need to update particle modifiers too */
-		for(md=obn->modifiers.first; md; md=md->next) {
-			if(md->type==eModifierType_ParticleSystem) {
-				psmd= (ParticleSystemModifierData*)md;
-				if(psmd->psys==psys)
-					psmd->psys= npsys;
-			}
-		}
-	}
+	copy_object_particlesystems(obn, ob);
 	
 	obn->derivedDeform = NULL;
 	obn->derivedFinal = NULL;

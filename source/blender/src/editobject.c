@@ -3079,7 +3079,7 @@ static void copymenu_modifiers(Object *ob)
 	for (i=eModifierType_None+1; i<NUM_MODIFIER_TYPES; i++) {
 		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
-		if (ELEM(i, eModifierType_Hook, eModifierType_Softbody)) continue;
+		if(ELEM3(i, eModifierType_Hook, eModifierType_Softbody, eModifierType_ParticleInstance)) continue;
 
 		if (	(mti->flags&eModifierTypeFlag_AcceptsCVs) || 
 				(ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
@@ -3109,6 +3109,9 @@ static void copymenu_modifiers(Object *ob)
 								BLI_addtail(&base->object->modifiers, nmd);
 							}
 						}
+
+						copy_object_particlesystems(base->object, ob);
+						copy_object_softbody(base->object, ob);
 					} else {
 						/* copy specific types */
 						ModifierData *md, *mdn;
@@ -3131,6 +3134,15 @@ static void copymenu_modifiers(Object *ob)
 
 								modifier_copyData(md, mdn);
 							}
+						}
+
+						if(event == eModifierType_ParticleSystem) {
+							object_free_particlesystems(base->object);
+							copy_object_particlesystems(base->object, ob);
+						}
+						else if(event == eModifierType_Softbody) {
+							object_free_softbody(base->object);
+							copy_object_softbody(base->object, ob);
 						}
 					}
 				}
