@@ -492,33 +492,27 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 		if(magrelVel < -ALMOST_ZERO) 
 		{
 			// Calculate Impulse magnitude to stop all motion in normal direction.
-			float tangential[3], magtangent;
+			float magtangent;
 			double impulse = 0.0;
 			float vrel_t_pre[3];
-			float vrel_t[3], temp[3];
+			float temp[3];
 			
 			// calculate tangential velocity
 			VECCOPY(temp, collpair->normal);
 			VecMulf(temp, magrelVel);
 			VECSUB(vrel_t_pre, relativeVelocity, temp);
 			
-			VECCOPY(vrel_t, vrel_t_pre);
-			
-			VecMulf(vrel_t, MAX2(1.0 - (clmd->coll_parms->friction * magrelVel / sqrt(INPR(vrel_t_pre,vrel_t_pre))), 0.0));
-			
-			VECSUB(tangential, vrel_t_pre, vrel_t);
-			VecMulf(tangential, 0.5);
-			
-			magtangent = INPR(tangential, tangential);
+			magtangent = INPR(vrel_t_pre,vrel_t_pre) - MIN2(clmd->coll_parms->friction * 0.01 * magrelVel,INPR(vrel_t_pre,vrel_t_pre));
 			
 			// Apply friction impulse.
 			if (magtangent > ALMOST_ZERO) 
-			{
-				impulse = magtangent / ( 1.0 + w1*w1 + w2*w2 + w3*w3);
-				magtangent = sqrt(magtangent);
-				VECADDMUL(cloth1->verts[collpair->ap1].impulse, tangential, w1 * impulse/magtangent);
-				VECADDMUL(cloth1->verts[collpair->ap2].impulse, tangential, w2 * impulse/magtangent);
-				VECADDMUL(cloth1->verts[collpair->ap3].impulse, tangential, w3 * impulse/magtangent);
+			{	
+				Normalize(vrel_t_pre);
+
+				impulse = -2.0 * magtangent / ( 1.0 + w1*w1 + w2*w2 + w3*w3);
+				VECADDMUL(cloth1->verts[collpair->ap1].impulse, vrel_t_pre, w1 * impulse);
+				VECADDMUL(cloth1->verts[collpair->ap2].impulse, vrel_t_pre, w2 * impulse);
+				VECADDMUL(cloth1->verts[collpair->ap3].impulse, vrel_t_pre, w3 * impulse);
 			}
 			
 

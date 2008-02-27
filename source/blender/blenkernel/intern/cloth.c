@@ -184,7 +184,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->maxgoal = 1.0f;
 	clmd->sim_parms->mingoal = 0.0f;
 	clmd->sim_parms->defgoal = 0.0f;
-	clmd->sim_parms->goalspring = 10.0f;
+	clmd->sim_parms->goalspring = 1.0f;
 	clmd->sim_parms->goalfrict = 5.0f;
 }
 

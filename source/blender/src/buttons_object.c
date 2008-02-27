@@ -5221,7 +5221,7 @@ static void object_panel_cloth(Object *ob)
 				MEM_freeN (clvg2);
 			}
 			
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "Pin Stiff:", 10,50,150,20, &clmd->sim_parms->goalspring, 0.0, 500.0, 10, 0, "Pin (vertex target position) spring stiffness");
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "Pin Stiff:", 10,50,150,20, &clmd->sim_parms->goalspring, 0.0, 50.0, 50, 0, "Pin (vertex target position) spring stiffness");
 			uiDefBut(block, LABEL, 0, "",160,50,150,20, NULL, 0.0, 0, 0, 0, "");	
 			// uiDefButI(block, NUM, B_CLOTH_RENEW, "Pin Damp:", 160,50,150,20, &clmd->sim_parms->goalfrict, 1.0, 100.0, 10, 0, "Pined damping (higher = doesn't oszilate so much)");
 			/*
@@ -5335,7 +5335,7 @@ static void object_panel_cloth_II(Object *ob)
 		{
 			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Min Distance:",	   160,60,150,20, &clmd->coll_parms->epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in, can be changed for each frame");
 			uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Collision Quality:",	   10,40,150,20, &clmd->coll_parms->loop_count, 1.0, 20.0, 1.0, 0, "How many collision iterations should be done. (higher = better = slower), can be changed for each frame");
-			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Friction:",	   160,40,150,20, &clmd->coll_parms->friction, 0.0, 10.0, 1.0, 0, "Friction force if a collision happened (high=slower movement when collided)");
+			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Friction:",	   160,40,150,20, &clmd->coll_parms->friction, 0.0, 80.0, 1.0, 0, "Friction force if a collision happened (0=movement not changed, 100=no movement left)");
 			
 			uiDefButBitI(block, TOG, CLOTH_COLLSETTINGS_FLAG_SELF, B_CLOTH_RENEW, "Enable selfcollisions",	10,20,150,20, &clmd->coll_parms->flags, 0, 0, 0, 0, "Enable selfcollisions with this object");
 			if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF)	
