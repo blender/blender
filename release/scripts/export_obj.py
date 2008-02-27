@@ -195,9 +195,9 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 	
 	def veckey3d(v):
 		return round(v.x, 6), round(v.y, 6), round(v.z, 6)
-
-	#def veckey2d(v):
-	#	return round(v.x, 6), round(v.y, 6)
+		
+	def veckey2d(v):
+		return round(v.x, 6), round(v.y, 6)
 	
 	print 'OBJ Export path: "%s"' % filename
 	temp_mesh_name = '~tmp-mesh'
@@ -235,7 +235,7 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 	# Initialize totals, these are updated each object
 	totverts = totuvco = totno = 1
 	
-	face_vert_index = 1 # used for uvs now
+	face_vert_index = 1
 	
 	globalNormals = {}
 	
@@ -247,7 +247,11 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 			me= BPyMesh.getMeshFromObject(ob, containerMesh, EXPORT_APPLY_MODIFIERS, False, scn)
 			if not me:
 				continue
-			faceuv= me.faceUV
+			
+			if EXPORT_UV:
+				faceuv= me.faceUV
+			else:
+				faceuv = False
 			
 			# We have a valid mesh
 			if EXPORT_TRI and me.faces:
@@ -320,7 +324,7 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 			# so we dont over context switch in the obj file.
 			if EXPORT_MORPH_TARGET:
 				pass
-			elif faceuv and EXPORT_UV:
+			elif faceuv:
 				try:	faces.sort(key = lambda a: (a.mat, a.image, a.smooth))
 				except:	faces.sort(lambda a,b: cmp((a.mat, a.image, a.smooth), (b.mat, b.image, b.smooth)))
 			elif len(materials) > 1:
@@ -354,10 +358,23 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 				file.write('v %.6f %.6f %.6f\n' % tuple(v.co))
 			
 			# UV
-			if faceuv and EXPORT_UV:
-				for f in faces:
-					for uv in f.uv:
-						file.write('vt %.6f %.6f 0.0\n' % tuple(uv))
+			if faceuv:
+				uv_face_mapping = [[0,0,0,0] for f in faces] # a bit of a waste for tri's :/
+				
+				uv_dict = {} # could use a set() here
+				for f_index, f in enumerate(faces):
+					
+					for uv_index, uv in enumerate(f.uv):
+						uvkey = veckey2d(uv)
+						try:
+							uv_face_mapping[f_index][uv_index] = uv_dict[uvkey]
+						except:
+							uv_face_mapping[f_index][uv_index] = uv_dict[uvkey] = len(uv_dict)
+							file.write('vt %.6f %.6f\n' % tuple(uv))
+				
+				uv_unique_count = len(uv_dict)
+				del uv, uvkey, uv_dict, f_index, uv_index
+				# Only need uv_unique_count and uv_face_mapping
 			
 			# NORMAL, Smooth/Non smoothed.
 			if EXPORT_NORMALS:
@@ -376,10 +393,11 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 							globalNormals[noKey] = totno
 							totno +=1
 							file.write('vn %.6f %.6f %.6f\n' % noKey)
+			
 			if not faceuv:
 				f_image = None
 			
-			for f in faces:
+			for f_index, f in enumerate(faces):
 				f_v= f.v
 				f_smooth= f.smooth
 				f_mat = min(f.mat, len(materialNames)-1)
@@ -388,7 +406,7 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 					f_uv= f.uv
 				
 				# MAKE KEY
-				if EXPORT_UV and faceuv and f_image: # Object is always true.
+				if faceuv and f_image: # Object is always true.
 					key = materialNames[f_mat],  f_image.name
 				else:
 					key = materialNames[f_mat],  None # No image, use None instead.
@@ -432,13 +450,13 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 						contextSmooth = f_smooth
 				
 				file.write('f')
-				if faceuv and EXPORT_UV:
+				if faceuv:
 					if EXPORT_NORMALS:
 						if f_smooth: # Smoothed, use vertex normals
 							for vi, v in enumerate(f_v):
 								file.write( ' %d/%d/%d' % (\
 								  v.index+totverts,\
-								  face_vert_index + vi,\
+								  totuvco + uv_face_mapping[f_index][vi],\
 								  globalNormals[ veckey3d(v.no) ])) # vert, uv, normal
 							
 						else: # No smoothing, face normals
@@ -446,14 +464,22 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 							for vi, v in enumerate(f_v):
 								file.write( ' %d/%d/%d' % (\
 								  v.index+totverts,\
-								  face_vert_index + vi,\
+								  totuvco + uv_face_mapping[f_index][vi],\
 								  no)) # vert, uv, normal
 					
 					else: # No Normals
 						for vi, v in enumerate(f_v):
+						
+							#print _uv_face_mapping == tuple([tuple([0] * len(f)) for f in faces])
+							if len(uv_face_mapping) != len(faces):
+								raise "ass"
+							print f_index
+							print uv_face_mapping[f_index]
+							print vi
+							print uv_face_mapping[f_index][vi]
 							file.write( ' %d/%d' % (\
 							  v.index+totverts,\
-							  face_vert_index + vi)) # vert, uv
+							  totuvco + uv_face_mapping[f_index][vi])) # vert, uv
 					
 					face_vert_index += len(f_v)
 				
@@ -486,6 +512,8 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 				
 			# Make the indicies global rather then per mesh
 			totverts += len(me.verts)
+			if faceuv:
+				totuvco += uv_unique_count
 			me.verts= None
 	file.close()
 	
