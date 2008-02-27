@@ -1314,7 +1314,7 @@ void stitch_limit_uv_tface(void)
 {
 	MTFace *tf;
 	int a, vtot;
-	float newuv[2], limit[2];
+	float newuv[2], limit[2], pixellimit;
 	UvMapVert *vlist, *iterv;
 	EditMesh *em = G.editMesh;
 	EditVert *ev;
@@ -1330,20 +1330,23 @@ void stitch_limit_uv_tface(void)
 		return;
 	}
 	
-	limit[0]= limit[1]= 20.0;
-	add_numbut(0, NUM|FLO, "Limit:", 0.1, 1000.0, &limit[0], NULL);
+	pixellimit= 20.0f;
+	add_numbut(0, NUM|FLO, "Limit:", 0.1, 1000.0, &pixellimit, NULL);
 	if (!do_clever_numbuts("Stitch UVs", 1, REDRAW))
 		return;
 
-	limit[0]= limit[1]= limit[0]/256.0;
 	if(G.sima->image) {
 		ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 
 		if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
-			limit[1]= limit[0]/(float)ibuf->y;
-			limit[0]= limit[0]/(float)ibuf->x;
+			limit[0]= pixellimit/(float)ibuf->x;
+			limit[1]= pixellimit/(float)ibuf->y;
 		}
+		else
+			limit[0]= limit[1]= pixellimit/256.0;
 	}
+	else
+		limit[0]= limit[1]= pixellimit/256.0;
 
 	/*vmap= make_uv_vert_map(me->mface, tf, me->totface, me->totvert, 1, limit);*/
 	EM_init_index_arrays(0, 0, 1);
@@ -1364,7 +1367,7 @@ void stitch_limit_uv_tface(void)
 				efa = EM_get_face_for_index(iterv->f);
 				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				
-				if (tf[iterv->f].flag & TF_SEL_MASK(iterv->tfindex)) {
+				if (tf->flag & TF_SEL_MASK(iterv->tfindex)) {
 					newuv[0] += tf->uv[iterv->tfindex][0];
 					newuv[1] += tf->uv[iterv->tfindex][1];
 					vtot++;

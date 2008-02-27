@@ -502,13 +502,19 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 		else if (t->spacetype == SPACE_IMAGE)
 		{	/* same as above but for UV's */
 			MTFace *nearesttf=NULL;
+			float aspx, aspy;
 			int face_corner;
 			
 			find_nearest_uv(&nearesttf, NULL, NULL, &face_corner);
-			
+
 			if (nearesttf != NULL)
 			{
 				VECCOPY2D(t->tsnap.snapPoint, nearesttf->uv[face_corner]);
+
+				transform_aspect_ratio_tface_uv(&aspx, &aspy);
+				t->tsnap.snapPoint[0] *= aspx;
+				t->tsnap.snapPoint[1] *= aspy;
+
 				//Mat4MulVecfl(G.obedit->obmat, t->tsnap.snapPoint);
 				
 				t->tsnap.status |=  POINT_INIT;
