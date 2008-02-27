@@ -2299,7 +2299,8 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 			break;
 		case MIDDLEMOUSE:
-			if (G.qual==LR_SHIFTKEY) {
+			if((snode->flag & SNODE_BACKDRAW) && (snode->treetype==NTREE_COMPOSIT)
+			   && (G.qual==LR_SHIFTKEY)) {
 				snode_bg_viewmove(snode);
 			} else {
 				view2dmove(event);
