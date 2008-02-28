@@ -121,7 +121,7 @@ static EditBone *editbone_name_exists (ListBase *ebones, char *name);	// proto f
 /* **************** tools on Editmode Armature **************** */
 
 /* converts Bones to EditBone list, used for tools as well */
-void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
+void make_boneList(ListBase *list, ListBase *bones, EditBone *parent)
 {
 	EditBone	*eBone;
 	Bone		*curBone;
@@ -131,7 +131,7 @@ void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 	float imat[3][3];
 	float difmat[3][3];
 		
-	for (curBone=bones->first; curBone; curBone=curBone->next){
+	for (curBone=bones->first; curBone; curBone=curBone->next) {
 		eBone= MEM_callocN(sizeof(EditBone), "make_editbone");
 		
 		/*	Copy relevant data from bone to eBone */
@@ -140,7 +140,7 @@ void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 		eBone->flag = curBone->flag;
 		
 		/* fix selection flags */
-		if(eBone->flag & BONE_SELECTED) {
+		if (eBone->flag & BONE_SELECTED) {
 			eBone->flag |= BONE_TIPSEL;
 			if(eBone->parent && (eBone->flag & BONE_CONNECTED))
 				eBone->parent->flag |= BONE_TIPSEL;
@@ -160,7 +160,7 @@ void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 		vec_roll_to_mat3(delta, 0.0, postmat);
 		
 		Mat3CpyMat4(premat, curBone->arm_mat);
-
+		
 		Mat3Inv(imat, postmat);
 		Mat3MulMat3(difmat, imat, premat);
 		
@@ -179,7 +179,7 @@ void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 		eBone->segments = curBone->segments;		
 		eBone->layer = curBone->layer;
 		
-		BLI_addtail (list, eBone);
+		BLI_addtail(list, eBone);
 		
 		/*	Add children if necessary */
 		if (curBone->childbase.first) 
@@ -210,7 +210,7 @@ static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
 		
 		if (ebone) {
 			/* Get the ebone premat */
-			VecSubf (delta, ebone->tail, ebone->head);
+			VecSubf(delta, ebone->tail, ebone->head);
 			vec_roll_to_mat3(delta, ebone->roll, premat);
 			
 			/* Get the bone postmat */
@@ -220,9 +220,9 @@ static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
 			Mat3MulMat3(difmat, imat, postmat);
 #if 0
 			printf ("Bone %s\n", curBone->name);
-			printmatrix4 ("premat", premat);
-			printmatrix4 ("postmat", postmat);
-			printmatrix4 ("difmat", difmat);
+			printmatrix4("premat", premat);
+			printmatrix4("postmat", postmat);
+			printmatrix4("difmat", difmat);
 			printf ("Roll = %f\n",  (-atan2(difmat[2][0], difmat[2][2]) * (180.0/M_PI)));
 #endif
 			curBone->roll = -atan2(difmat[2][0], difmat[2][2]);
@@ -230,7 +230,7 @@ static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
 			/* and set restposition again */
 			where_is_armature_bone(curBone, curBone->parent);
 		}
-		fix_bonelist_roll (&curBone->childbase, editbonelist);
+		fix_bonelist_roll(&curBone->childbase, editbonelist);
 	}
 }
 
@@ -257,7 +257,7 @@ void editbones_to_armature (ListBase *list, Object *ob)
 			EditBone *fBone;
 			
 			/*	Find any bones that refer to this bone	*/
-			for (fBone=list->first; fBone; fBone= fBone->next){
+			for (fBone=list->first; fBone; fBone= fBone->next) {
 				if (fBone->parent==eBone)
 					fBone->parent= eBone->parent;
 			}
@@ -272,8 +272,8 @@ void editbones_to_armature (ListBase *list, Object *ob)
 		eBone->temp= newBone;	/* Associate the real Bones with the EditBones */
 		
 		BLI_strncpy (newBone->name, eBone->name, 32);
-		memcpy (newBone->head, eBone->head, sizeof(float)*3);
-		memcpy (newBone->tail, eBone->tail, sizeof(float)*3);
+		memcpy(newBone->head, eBone->head, sizeof(float)*3);
+		memcpy(newBone->tail, eBone->tail, sizeof(float)*3);
 		newBone->flag= eBone->flag;
 		if (eBone->flag & BONE_ACTIVE) 
 			newBone->flag |= BONE_SELECTED;	/* important, editbones can be active with only 1 point selected */
@@ -318,8 +318,8 @@ void editbones_to_armature (ListBase *list, Object *ob)
 				Mat3Inv(iM_parentRest, M_parentRest);
 				
 				/* Get the new head and tail */
-				VecSubf (newBone->head, eBone->head, eBone->parent->tail);
-				VecSubf (newBone->tail, eBone->tail, eBone->parent->tail);
+				VecSubf(newBone->head, eBone->head, eBone->parent->tail);
+				VecSubf(newBone->tail, eBone->tail, eBone->parent->tail);
 				
 				Mat3MulVecfl(iM_parentRest, newBone->head);
 				Mat3MulVecfl(iM_parentRest, newBone->tail);
@@ -332,7 +332,7 @@ void editbones_to_armature (ListBase *list, Object *ob)
 	
 	/* Make a pass through the new armature to fix rolling */
 	/* also builds restposition again (like where_is_armature) */
-	fix_bonelist_roll (&arm->bonebase, list);
+	fix_bonelist_roll(&arm->bonebase, list);
 	
 	/* so all users of this armature should get rebuilt */
 	for (obt= G.main->object.first; obt; obt= obt->id.next) {
@@ -1190,7 +1190,7 @@ void delete_armature(void)
 		bPoseChannel *chan, *next;
 		for (chan=G.obedit->pose->chanbase.first; chan; chan=next) {
 			next= chan->next;
-			curBone = editbone_name_exists (&G.edbo, chan->name);
+			curBone = editbone_name_exists(&G.edbo, chan->name);
 			
 			if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
 				free_constraints(&chan->constraints);
@@ -1321,11 +1321,9 @@ void mouse_armature(void)
 
 void free_editArmature(void)
 {
-	
 	/*	Clear the editbones list */
-	if (G.edbo.first){
-		BLI_freelistN (&G.edbo);
-	}
+	if (G.edbo.first)
+		BLI_freelistN(&G.edbo);
 }
 
 void remake_editArmature(void)
@@ -1340,29 +1338,27 @@ void remake_editArmature(void)
 	allqueue(REDRAWBUTSOBJECT, 0);
 	
 //	BIF_undo_push("Delete bone");
-
 }
 
 /* Put object in EditMode */
 void make_editArmature(void)
 {
-	bArmature	*arm;
+	bArmature *arm;
 	
 	if (G.obedit==0) return;
 	
 	free_editArmature();
 	
 	arm= get_armature(G.obedit);
-	if (!arm)
-		return;
+	if (!arm) return;
 	
-	make_boneList (&G.edbo, &arm->bonebase,NULL);
+	make_boneList(&G.edbo, &arm->bonebase,NULL);
 }
 
 /* put EditMode back in Object */
 void load_editArmature(void)
 {
-	bArmature		*arm;
+	bArmature *arm;
 
 	arm= get_armature(G.obedit);
 	if (!arm) return;
@@ -1539,7 +1535,7 @@ static void *editBones_to_undoBones(void)
 	
 	lb= MEM_callocN(sizeof(ListBase), "listbase undo");
 	
-	/* copy  */
+	/* copy */
 	for(ebo= G.edbo.first; ebo; ebo= ebo->next) {
 		newebo= MEM_dupallocN(ebo);
 		ebo->temp= newebo;
@@ -2200,7 +2196,7 @@ void fill_bones_armature(void)
 /* this function merges between two bones, removes them and those in-between, 
  * and adjusts the parent relationships for those in-between
  */
-static void bones_merge(EditBone *start, EditBone *end, ListBase *chains)
+static void bones_merge(EditBone *start, EditBone *end, EditBone *endchild, ListBase *chains)
 {
 	EditBone *ebo, *ebone, *newbone;
 	LinkData *chain;
@@ -2230,11 +2226,11 @@ static void bones_merge(EditBone *start, EditBone *end, ListBase *chains)
 		VECCOPY(tail, end->tail);
 	}
 	newbone= add_points_bone(head, tail);
-	newbone->parent = start->parent; 
+	newbone->parent = start->parent;
 	
-	/* step 2: parent children of in-between bones to newbone */
+	/* step 2a: parent children of in-between bones to newbone */
 	for (chain= chains->first; chain; chain= chain->next) {
-		/* ick: we need to check if parent of each bone in chain is */
+		/* ick: we need to check if parent of each bone in chain is one of the bones in the */
 		for (ebo= chain->data; ebo; ebo= ebo->parent) {
 			short found= 0;
 			
@@ -2253,6 +2249,10 @@ static void bones_merge(EditBone *start, EditBone *end, ListBase *chains)
 			}
 		}
 	}
+	
+	/* step 2b: parent child of end to newbone (child from this chain) */
+	if (endchild)
+		endchild->parent= newbone;
 	
 	/* step 3: delete all bones between and including start and end */
 	for (ebo= end; ebo; ebo= ebone) {
@@ -2285,37 +2285,41 @@ void merge_armature(void)
 		/* each 'chain' is the last bone in the chain (with no children) */
 		for (chain= chains.first; chain; chain= nchain) {
 			EditBone *bstart= NULL, *bend= NULL;
+			EditBone *bchild= NULL, *child=NULL;
 			
 			/* temporarily remove chain from list of chains */
 			nchain= chain->next;
 			BLI_remlink(&chains, chain);
 			
 			/* only consider bones that are visible and selected */
-			for (ebo= chain->data; ebo; ebo= ebo->parent) {
+			for (ebo=chain->data; ebo; child=ebo, ebo=ebo->parent) {
 				/* check if visible + selected */
 				if ( (arm->layer & ebo->layer) && !(ebo->flag & BONE_HIDDEN_A) &&
 					 ((ebo->flag & BONE_CONNECTED) || (ebo->parent==NULL)) &&
 					 (ebo->flag & (BONE_SELECTED|BONE_ACTIVE)) )
 				{
 					/* set either end or start (end gets priority, unless it is already set) */
-					if (bend == NULL) 
+					if (bend == NULL)  {
 						bend= ebo;
+						bchild= child;
+					}
 					else 
 						bstart= ebo;
 				}
 				else {
 					/* chain is broken... merge any continous segments then clear */
 					if (bstart && bend)
-						bones_merge(bstart, bend, &chains);
+						bones_merge(bstart, bend, bchild, &chains);
 					
 					bstart = NULL;
 					bend = NULL;
+					bchild = NULL;
 				}
 			}
 			
 			/* merge from bstart to bend if something not merged */
 			if (bstart && bend)
-				bones_merge(bstart, bend, &chains);
+				bones_merge(bstart, bend, bchild, &chains);
 			
 			/* put back link */
 			BLI_insertlinkbefore(&chains, nchain, chain);
