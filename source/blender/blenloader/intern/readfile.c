@@ -3037,6 +3037,9 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_LOADED;
 			clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_EDITMODE;
 			
+			if(clmd->sim_parms->presets > 10)
+				clmd->sim_parms->presets = 0;
+			
 		}
 		else if (md->type==eModifierType_Collision) {
 			

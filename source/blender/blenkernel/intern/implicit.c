@@ -878,7 +878,7 @@ DO_INLINE float fbstar(float length, float L, float kb, float cb)
 	float tempfb = kb * fb(length, L);
 
 	float fbstar = cb * (length - L);
-
+	
 	if(tempfb < fbstar)
 		return fbstar;
 	else

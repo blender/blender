@@ -478,7 +478,7 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 		
 		interpolateOnTriangle(v2, collmd->current_v[collpair->bp1].co, collmd->current_v[collpair->bp2].co, collmd->current_v[collpair->bp3].co, u1, u2, u3);
 		
-		VECSUB(relativeVelocity, v1, v2);
+		VECSUB(relativeVelocity, v2, v1);
 			
 		// Calculate the normal component of the relative velocity (actually only the magnitude - the direction is stored in 'normal').
 		magrelVel = INPR(relativeVelocity, collpair->normal);
@@ -489,10 +489,10 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 		// TODO
 		
 		// If v_n_mag < 0 the edges are approaching each other.
-		if(magrelVel < -ALMOST_ZERO) 
+		if(magrelVel > ALMOST_ZERO) 
 		{
 			// Calculate Impulse magnitude to stop all motion in normal direction.
-			float magtangent;
+			float magtangent = 0, repulse = 0, d = 0;
 			double impulse = 0.0;
 			float vrel_t_pre[3];
 			float temp[3];
@@ -502,21 +502,25 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 			VecMulf(temp, magrelVel);
 			VECSUB(vrel_t_pre, relativeVelocity, temp);
 			
-			magtangent = INPR(vrel_t_pre,vrel_t_pre) - MIN2(clmd->coll_parms->friction * 0.01 * magrelVel,INPR(vrel_t_pre,vrel_t_pre));
+			// Decrease in magnitude of relative tangential velocity due to coulomb friction
+			// in original formula "magrelVel" should be the "change of relative velocity in normal direction" 
+			magtangent = MIN2(clmd->coll_parms->friction * 0.01 * magrelVel,sqrt(INPR(vrel_t_pre,vrel_t_pre)));
 			
 			// Apply friction impulse.
 			if (magtangent > ALMOST_ZERO) 
 			{	
 				Normalize(vrel_t_pre);
-
-				impulse = -2.0 * magtangent / ( 1.0 + w1*w1 + w2*w2 + w3*w3);
+				
+				impulse = 2.0 * magtangent / ( 1.0 + w1*w1 + w2*w2 + w3*w3);
 				VECADDMUL(cloth1->verts[collpair->ap1].impulse, vrel_t_pre, w1 * impulse);
 				VECADDMUL(cloth1->verts[collpair->ap2].impulse, vrel_t_pre, w2 * impulse);
 				VECADDMUL(cloth1->verts[collpair->ap3].impulse, vrel_t_pre, w3 * impulse);
 			}
 			
-
-			impulse = -2.0f * magrelVel / ( 1.0 + w1*w1 + w2*w2 + w3*w3);
+			// Apply velocity stopping impulse
+			// I_c = m * v_N / 2.0
+			// no 2.0 * magrelVel normally, but looks nicer DG
+			impulse =  2.0 * magrelVel / ( 1.0 + w1*w1 + w2*w2 + w3*w3); 
 			
 			VECADDMUL(cloth1->verts[collpair->ap1].impulse, collpair->normal, w1 * impulse); 
 			cloth1->verts[collpair->ap1].impulse_count++;
@@ -526,6 +530,22 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 			
 			VECADDMUL(cloth1->verts[collpair->ap3].impulse, collpair->normal, w3 * impulse); 
 			cloth1->verts[collpair->ap3].impulse_count++;
+			
+			/*
+			// doesn't perform nice, dunno why DG
+			// Apply repulse impulse if distance too short
+			// I_r = -min(dt*kd, m(0,1d/dt - v_n))
+			d = clmd->coll_parms->epsilon - collpair->distance;
+			if((magrelVel < 0.1*d*clmd->sim_parms->stepsPerFrame) && (d > ALMOST_ZERO))
+			{
+				repulse = MIN2(d*5.0/clmd->sim_parms->stepsPerFrame, 0.1*d*clmd->sim_parms->stepsPerFrame - magrelVel);
+				
+				impulse = 0.25 * repulse / ( 1.0 + w1*w1 + w2*w2 + w3*w3); // original 2.0 / 0.25
+				VECADDMUL(cloth1->verts[collpair->ap1].impulse, collpair->normal, w1 * impulse);
+				VECADDMUL(cloth1->verts[collpair->ap2].impulse, collpair->normal, w2 * impulse);
+				VECADDMUL(cloth1->verts[collpair->ap3].impulse, collpair->normal, w3 * impulse);
+			}
+			*/
 			
 			result = 1;
 		}
@@ -1023,7 +1043,10 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 				bvh_traverse((ModifierData *)clmd, (ModifierData *)collmd, cloth_bvh->root, coll_bvh->root, step, cloth_collision_static, 0);
 			}
 			else
+			{
+				if(G.rt > 0)
 				printf ("cloth_bvh_objcollision: found a collision object with clothObject or collData NULL.\n");
+			}
 		
 		
 			// process all collisions (calculate impulses, TODO: also repulses if distance too short)

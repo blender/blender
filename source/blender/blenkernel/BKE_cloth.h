@@ -148,6 +148,7 @@ typedef enum
 	CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE = ( 1 << 7 ), /* force cache freeing */
 	CLOTH_SIMSETTINGS_FLAG_SCALING = ( 1 << 8 ), /* is advanced scaling active? */
 	CLOTH_SIMSETTINGS_FLAG_LOADED = ( 1 << 9 ), /* did we just got load? */
+	CLOTH_SIMSETTINGS_FLAG_AUTOPROTECT = ( 1 << 10 ), /* is autoprotect enabled? */
 } CLOTH_SIMSETTINGS_FLAGS;
 
 /* COLLISION FLAGS */

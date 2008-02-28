@@ -854,6 +854,8 @@ void make_editMesh()
 		clmd = (ClothModifierData *) modifiers_findByType(G.obedit, eModifierType_Cloth);
 		cloth = clmd->clothObject;
 		
+		clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_EDITMODE;
+		
 		/* just to be sure also check vertcount */
 		/* also check if we have a protected cache */
 		if(cloth && (tot == cloth->numverts) && (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
@@ -866,7 +868,6 @@ void make_editMesh()
 				cloth_enabled = 1;
 				
 				clmd->sim_parms->editedframe = G.scene->r.cfra;
-				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_EDITMODE;
 				
 				/* inverse matrix is not uptodate... */
 				Mat4Invert ( G.obedit->imat, G.obedit->obmat );
@@ -1179,8 +1180,14 @@ void load_editMesh(void)
 		if(G.rt > 0)
 		printf("loadmesh --> cloth_enabled cloth_write_cache\n");
 		cloth_write_cache(G.obedit, clmd, clmd->sim_parms->editedframe);
-		cloth_read_cache(G.obedit, clmd, G.scene->r.cfra);
-		implicit_set_positions(clmd);
+		
+		if(G.scene->r.cfra != clmd->sim_parms->editedframe)
+		{
+			if(cloth_read_cache(G.obedit, clmd, G.scene->r.cfra))
+				implicit_set_positions(clmd);
+		}
+		else
+			implicit_set_positions(clmd);
 		
 		clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_EDITMODE;
 	}
@@ -1470,6 +1477,7 @@ void remake_editMesh(void)
 {
 	make_editMesh();
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0); /* needed to have nice cloth panels */
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	BIF_undo_push("Undo all changes");
 }

@@ -152,7 +152,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->mass = 1.0f;
 	clmd->sim_parms->stepsPerFrame = 5;
 	clmd->sim_parms->sim_time = 1.0;
-	clmd->sim_parms->flags = 0;
+	clmd->sim_parms->flags = CLOTH_SIMSETTINGS_FLAG_AUTOPROTECT;
 	clmd->sim_parms->solver_type = 0;
 	clmd->sim_parms->preroll = 0;
 	clmd->sim_parms->maxspringlen = 10;
@@ -164,6 +164,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->autoprotect = 25;
 	clmd->sim_parms->firstcachedframe = -1.0;
 	clmd->sim_parms->avg_spring_len = 0.0;
+	clmd->sim_parms->presets = 2; /* cotton as start setting */
 	
 	clmd->coll_parms->self_friction = 5.0;
 	clmd->coll_parms->friction = 5.0;
@@ -232,7 +233,6 @@ BVH *bvh_build_from_cloth (ClothModifierData *clmd, float epsilon)
 	bvh->numverts = cloth->numverts;
 	
 	bvh->current_x = MEM_callocN ( sizeof ( MVert ) * bvh->numverts, "bvh->current_x" );
-	bvh->current_xold = MEM_callocN ( sizeof ( MVert ) * bvh->numverts, "bvh->current_xold" );
 	
 	if (bvh->current_x == NULL) 
 	{
@@ -241,9 +241,12 @@ BVH *bvh_build_from_cloth (ClothModifierData *clmd, float epsilon)
 		return NULL;
 	}
 	
+	bvh->current_xold = MEM_callocN ( sizeof ( MVert ) * bvh->numverts, "bvh->current_xold" );
+	
 	if (bvh->current_xold == NULL) 
 	{
 		printf("bvh: Out of memory.\n");
+		MEM_freeN(bvh->current_x);
 		MEM_freeN(bvh);
 		return NULL;
 	}
@@ -574,6 +577,10 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 		cloth_free_modifier (ob, clmd);
 		if(G.rt > 0)
 			printf("clothModifier_do CLOTH_SIMSETTINGS_FLAG_RESET\n");
+		
+		// prevent rebuilding of cloth each time you move backward 
+		if(deltaTime < 0.0)
+			return result;
 	}
 	
 	// unused in the moment, calculated seperately in implicit.c
@@ -656,20 +663,22 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	}
 	
 	// check for autoprotection, but only if cache active
-	if((framenr >= clmd->sim_parms->autoprotect) && (G.relbase_valid))
+	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_AUTOPROTECT)
 	{
-		if(G.rt > 0)
-			printf("fr#: %f, auto: %d\n", framenr, clmd->sim_parms->autoprotect);
-		clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT;
+		if((framenr >= clmd->sim_parms->autoprotect) && (G.relbase_valid))
+		{
+			if(G.rt > 0)
+				printf("fr#: %f, auto: %d\n", framenr, clmd->sim_parms->autoprotect);
+			
+			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT;
+		}
 	}
-	if(G.rt > 0)
-		printf("clothModifier_do deltaTime=1 cachewrite\n");
 	
 	/* nice moving one frame forward */
 	if ( deltaTime == 1.0f )
 	{
 		clmd->sim_parms->sim_time = current_time;
-		
+			
 		if(G.rt > 0)
 			printf("clothModifier_do deltaTime=1\n");
 		
@@ -718,7 +727,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	else if(deltaTime == 0.0f) 
 	{	
 		if(G.rt > 0)
-			printf("clothModifier_do deltaTime!=1 clmd->clothObject != NULL\n");
+			printf("dt = 0, %f\n", framenr);
 		if(cloth_read_cache(ob, clmd, framenr))
 		{
 			cloth_to_object (ob, clmd, result);
@@ -726,30 +735,35 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 		}
 		else /* same cache parts are missing */
 		{
-			/*
-			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-			*/
-			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
-			cloth_clear_cache(ob, clmd, 0);
-			
-			cloth_write_cache(ob, clmd, framenr);
+			/* jump to a non-existing frame makes sim reset if cache is not protected */
+			if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
+			{	
+				/*
+				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+				*/
+				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
+				cloth_clear_cache(ob, clmd, 0);
+				
+				cloth_write_cache(ob, clmd, framenr);
+			}
 		}
 	}
 	else
 	{	
 		if(G.rt > 0)
-			printf("clothModifier_do deltaTime!=1 clmd->clothObject != NULL\n");
+			printf("dt > 1.0 || dt < 0.0, %f\n", framenr);
 		if(cloth_read_cache(ob, clmd, framenr))
 		{
 			cloth_to_object (ob, clmd, result);
 			implicit_set_positions(clmd);
-			clmd->sim_parms->sim_time = current_time;
 		}
 		else
 		{
-			/* jump to a non-existing frame makes sim reset */
-			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+			/* jump to a non-existing frame makes sim reset if cache is not protected */
+			if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
+				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
 		}
+		clmd->sim_parms->sim_time = current_time;
 	}
 	
 	return result;

@@ -5123,6 +5123,54 @@ static void object_cloth__enabletoggle(void *ob_v, void *arg2)
 	}
 }
 
+static void cloth_presets_material(void *ob_v, void *arg2)
+{
+	Object *ob = ob_v;
+	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+	
+	if(!clmd) return;
+	if(clmd->sim_parms->presets==0) return;
+	
+	if(clmd->sim_parms->presets==1) /* SILK */
+	{
+		clmd->sim_parms->structural = clmd->sim_parms->shear = 30.0;
+		clmd->sim_parms->bending = 0.1;
+	}
+	else if(clmd->sim_parms->presets==2) /* COTTON */
+	{
+		clmd->sim_parms->structural = clmd->sim_parms->shear = 30.0;
+		clmd->sim_parms->bending = 1.0;
+	}
+	else if(clmd->sim_parms->presets==3) /* RUBBER */
+	{
+		clmd->sim_parms->structural = clmd->sim_parms->shear = 5.0;
+		clmd->sim_parms->bending = 25.0;
+		clmd->sim_parms->stepsPerFrame = MAX2(clmd->sim_parms->stepsPerFrame, 7.0);
+	}
+	else if(clmd->sim_parms->presets==4) /* DENIM */
+	{
+		clmd->sim_parms->structural = clmd->sim_parms->shear = 70.0;
+		clmd->sim_parms->bending = 300.0;
+		clmd->sim_parms->stepsPerFrame = MAX2(clmd->sim_parms->stepsPerFrame, 15.0);
+	}
+	else if(clmd->sim_parms->presets==5) /* LEATHER */
+	{
+		clmd->sim_parms->structural = clmd->sim_parms->shear = 1000.0;
+		clmd->sim_parms->bending = 2500.0;
+		clmd->sim_parms->stepsPerFrame = MAX2(clmd->sim_parms->stepsPerFrame, 25.0);
+	}
+}
+
+static void cloth_presets_custom_material(void *ob_v, void *arg2)
+{
+	Object *ob = ob_v;
+	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+	
+	if(!clmd) return;
+	
+	clmd->sim_parms->presets = 0;
+}
+
 static int _can_cloth_at_all(Object *ob)
 {
 	// list of Yes
@@ -5166,28 +5214,37 @@ static void object_panel_cloth(Object *ob)
 		
 		/* GENERAL STUFF */
 		uiClearButLock();
-		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT) uiSetButLock(1, "Cache is protected");
+		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE) uiSetButLock(1, "Please leave editmode.");
+		else if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT) uiSetButLock(1, "Cache is protected");
+		
+		uiDefBut(block, LABEL, 0, "Material Preset:",  10,170,150,20, NULL, 0.0, 0, 0, 0, "");
+		but=uiDefButS(block, MENU, B_CLOTH_RENEW, "Silk %x1|Cotton %x2|Rubber %x3|Denim %x4|Leather %x5|Custom %x0",
+			     160,170,150,20, &clmd->sim_parms->presets, 0, 0, 0, 0, "");
+		uiButSetFunc(but, cloth_presets_material, ob, NULL);
 		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff:", 10,170,150,20, &clmd->sim_parms->structural, 1.0, 10000.0, 100, 0, "Overall stiffness of structure");
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff:", 160,170,150,20, &clmd->sim_parms->bending, 0.0, 10000.0, 1000, 0, "Wrinkle coefficient (higher = less smaller but more big wrinkles)");
-		uiDefButI(block, NUM, B_CLOTH_RENEW, "Quality:", 10,150,150,20, &clmd->sim_parms->stepsPerFrame, 4.0, 80.0, 5, 0, "Quality of the simulation (higher=better=slower)");
+		but = uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff:", 10,150,150,20, &clmd->sim_parms->structural, 1.0, 10000.0, 100, 0, "Overall stiffness of structure");
+		uiButSetFunc(but, cloth_presets_custom_material, ob, NULL);
+		
+		but = uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff:", 160,150,150,20, &clmd->sim_parms->bending, 0.0, 10000.0, 1000, 0, "Wrinkle coefficient (higher = less smaller but more big wrinkles)");
+		uiButSetFunc(but, cloth_presets_custom_material, ob, NULL);
+		
+		uiDefButI(block, NUM, B_CLOTH_RENEW, "Quality:", 10,130,150,20, &clmd->sim_parms->stepsPerFrame, 4.0, 80.0, 5, 0, "Quality of the simulation (higher=better=slower)");
 
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "Spring Damp:", 160,150,150,20, &clmd->sim_parms->Cdis, 0.0, 1.0, 10, 0, "Spring damping");
-		uiDefButF(block, NUM, B_DIFF, "Air Damp:", 10,130,150,20, &clmd->sim_parms->Cvi, 0.0, 10.0, 10, 0, "Air has normaly some thickness which slows falling things down");
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "Air Damp:", 160,130,150,20, &clmd->sim_parms->Cvi, 0.0, 10.0, 10, 0, "Air has normaly some thickness which slows falling things down");
 		
-		uiDefBut(block, LABEL, 0, "Gravity:",  10,100,60,20, NULL, 0.0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Gravity:",  10,110,60,20, NULL, 0.0, 0, 0, 0, "");
 		
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "X:", 70,100,80,20, &clmd->sim_parms->gravity[0], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "Y:", 150,100,80,20, &clmd->sim_parms->gravity[1], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "Z:", 230,100,80,20, &clmd->sim_parms->gravity[2], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "X:", 70,110,80,20, &clmd->sim_parms->gravity[0], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "Y:", 150,110,80,20, &clmd->sim_parms->gravity[1], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "Z:", 230,110,80,20, &clmd->sim_parms->gravity[2], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
 		uiBlockEndAlign(block);
 		
 		/* GOAL STUFF */
 		uiBlockBeginAlign(block);
 		
 		
-		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_GOAL, B_CLOTH_RENEW, "Pinning of cloth",	10,70,150,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_GOAL, B_CLOTH_RENEW, "Pinning of cloth",	10,80,150,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
 		
 		if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (BLI_countlist (&ob->defbase) > 0))
 		{
@@ -5216,13 +5273,13 @@ static void object_panel_cloth(Object *ob)
 							
 				sprintf (clvg2, "%s%s", clmvg, clvg1);
 				
-				uiDefButS(block, MENU, B_CLOTH_RENEW, clvg2, 160,70,150,20, &clmd->sim_parms->vgroup_mass, 0, defCount, 0, 0, "Browses available vertex groups");
+				uiDefButS(block, MENU, B_CLOTH_RENEW, clvg2, 160,80,150,20, &clmd->sim_parms->vgroup_mass, 0, defCount, 0, 0, "Browses available vertex groups");
 				MEM_freeN (clvg1);
 				MEM_freeN (clvg2);
 			}
 			
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "Pin Stiff:", 10,50,150,20, &clmd->sim_parms->goalspring, 0.0, 50.0, 50, 0, "Pin (vertex target position) spring stiffness");
-			uiDefBut(block, LABEL, 0, "",160,50,150,20, NULL, 0.0, 0, 0, 0, "");	
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "Pin Stiff:", 10,60,150,20, &clmd->sim_parms->goalspring, 0.0, 50.0, 50, 0, "Pin (vertex target position) spring stiffness");
+			uiDefBut(block, LABEL, 0, "",160,60,150,20, NULL, 0.0, 0, 0, 0, "");	
 			// uiDefButI(block, NUM, B_CLOTH_RENEW, "Pin Damp:", 160,50,150,20, &clmd->sim_parms->goalfrict, 1.0, 100.0, 10, 0, "Pined damping (higher = doesn't oszilate so much)");
 			/*
 			// nobody is changing these ones anyway
@@ -5232,7 +5289,7 @@ static void object_panel_cloth(Object *ob)
 		}
 		else if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
 		{
-			uiDefBut(block, LABEL, 0, " ",  160,70,150,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, " ",  160,80,150,20, NULL, 0.0, 0, 0, 0, "");
 			uiDefBut(block, LABEL, 0, "No vertex group for pinning available.",  10,50,300,20, NULL, 0.0, 0, 0, 0, "");
 		}
 		
@@ -5296,14 +5353,20 @@ static void object_panel_cloth_II(Object *ob)
 	if(clmd)
 	{	
 		uiClearButLock();
-		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT) uiSetButLock(1, "Cache is protected");
+		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE) uiSetButLock(1, "Please leave editmode.");
+		else if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT) uiSetButLock(1, "Cache is protected");
 		
 		uiDefButI(block, NUM, B_CLOTH_RENEW, "First Frame:",10,160,150,20, &clmd->sim_parms->firstframe, 0, MAXFRAME, 1, 0, "Frame on which the simulation starts");
 		uiDefButI(block, NUM, B_CLOTH_RENEW, "Last Frame:",160,160,150,20, &clmd->sim_parms->lastframe, 0, MAXFRAME, 1, 0, "Frame on which the simulation stops");
 		
 		uiDefBut(block, LABEL, 0, "",10,140,300,20, NULL, 0.0, 0, 0, 0, "");
-		uiClearButLock();
-		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE) uiSetButLock(1, "Please leave editmode.");
+		
+		if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE))
+		{
+			if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT)
+				uiClearButLock();
+		}
+		
 		if (!G.relbase_valid)
 		{
 			uiDefBut(block, LABEL, 0, "Cache deactivated until file is saved.",  10,120,300,20, NULL, 0.0, 0, 0, 0, "");
@@ -5319,8 +5382,11 @@ static void object_panel_cloth_II(Object *ob)
 			uiDefBut(block, LABEL, 0, " ",  10,80,300,20, NULL, 0.0, 0, 0, 0, "");
 		}
 		
-		uiClearButLock();
-		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT) uiSetButLock(1, "Cache is protected");
+		if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE))
+		{
+			if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT) 
+				uiSetButLock(1, "Cache is protected");
+		}
 		
 		/*
 		TODO: implement this again in cloth!
@@ -5333,16 +5399,16 @@ static void object_panel_cloth_II(Object *ob)
 		uiDefButBitI(block, TOG, CLOTH_COLLSETTINGS_FLAG_ENABLED, B_CLOTH_RENEW, "Enable collisions",	10,60,150,20, &clmd->coll_parms->flags, 0, 0, 0, 0, "Enable collisions with this object");
 		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED)
 		{
-			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Min Distance:",	   160,60,150,20, &clmd->coll_parms->epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in, can be changed for each frame");
-			uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Collision Quality:",	   10,40,150,20, &clmd->coll_parms->loop_count, 1.0, 20.0, 1.0, 0, "How many collision iterations should be done. (higher = better = slower), can be changed for each frame");
-			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Friction:",	   160,40,150,20, &clmd->coll_parms->friction, 0.0, 80.0, 1.0, 0, "Friction force if a collision happened (0=movement not changed, 100=no movement left)");
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "Min Distance:",	   160,60,150,20, &clmd->coll_parms->epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in, can be changed for each frame");
+			uiDefButS(block, NUM, B_CLOTH_RENEW, "Collision Quality:",	   10,40,150,20, &clmd->coll_parms->loop_count, 1.0, 20.0, 1.0, 0, "How many collision iterations should be done. (higher = better = slower), can be changed for each frame");
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "Friction:",	   160,40,150,20, &clmd->coll_parms->friction, 0.0, 80.0, 1.0, 0, "Friction force if a collision happened (0=movement not changed, 100=no movement left)");
 			
 			uiDefButBitI(block, TOG, CLOTH_COLLSETTINGS_FLAG_SELF, B_CLOTH_RENEW, "Enable selfcollisions",	10,20,150,20, &clmd->coll_parms->flags, 0, 0, 0, 0, "Enable selfcollisions with this object");
 			if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF)	
 			{
-				uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Min Distance:",	   160,20,150,20, &clmd->coll_parms->selfepsilon, 0.5f, 1.0, 0.01f, 0, "0.5 means no distance at all, 1.0 is maximum distance");
+				uiDefButF(block, NUM, B_CLOTH_RENEW, "Min Distance:",	   160,20,150,20, &clmd->coll_parms->selfepsilon, 0.5f, 1.0, 0.01f, 0, "0.5 means no distance at all, 1.0 is maximum distance");
 				// self_loop_count
-				uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Selfcoll Quality:",	   10,0,150,20, &clmd->coll_parms->self_loop_count, 1.0, 10.0, 1.0, 0, "How many selfcollision iterations should be done. (higher = better = slower), can be changed for each frame");
+				uiDefButS(block, NUM, B_CLOTH_RENEW, "Selfcoll Quality:",	   10,0,150,20, &clmd->coll_parms->self_loop_count, 1.0, 10.0, 1.0, 0, "How many selfcollision iterations should be done. (higher = better = slower), can be changed for each frame");
 			}
 			else
 				uiDefBut(block, LABEL, 0, "",160,20,150,20, NULL, 0.0, 0, 0, 0, "");	
@@ -5379,10 +5445,19 @@ static void object_panel_cloth_III(Object *ob)
 		char clmvg2 [] = "Vertex Groups%t|None%x0|";
 		
 		uiClearButLock();
-		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT) uiSetButLock(1, "Cache is protected");
+		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE) uiSetButLock(1, "Please leave editmode.");
+		else if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT) uiSetButLock(1, "Cache is protected");
 		
+		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_AUTOPROTECT, REDRAWBUTSOBJECT, "Autoprotect cache",10,160,150,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Enables automatic toggling of the 'Protect cache' button from the 2nd panel.");
 		
-		uiDefButI(block, NUM, B_DIFF, "Autoprotect Cache From:",10,160,300,20, &clmd->sim_parms->autoprotect, 0.0, MAXFRAME + 1, 1, 0, "Frame on which the simulation gets cache protection enabled automatically (To prevent accidently cleaning it).");
+		if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_AUTOPROTECT)
+		{
+			uiDefButI(block, NUM, B_DIFF, "From frame:",160,160,150,20, &clmd->sim_parms->autoprotect, 0.0, MAXFRAME + 1, 1, 0, "Frame on which the 'Protect Cache' button (2nd panel) is toggled automatically (To prevent accidently cleaning it).");
+		}
+		else
+		{
+			uiDefBut(block, LABEL, 0, " ",  160,160,150,20, NULL, 0.0, 0, 0, 0, "");
+		}
 				
 		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_SCALING, B_CLOTH_RENEW, "Enable stiffness scaling",10,130,300,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "If enabled, stiffness can be scaled along a weight painted vertex group.");
 		

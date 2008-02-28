@@ -83,6 +83,9 @@ typedef struct SimulationSettings
 	float	max_shear; 	/* max shear scaling value, UNUSED */
 	int 	firstcachedframe;
 	float 	avg_spring_len; /* used for normalized springs */
+	short	presets; /* used for presets on GUI */
+	short pad;
+	int pad2;
 }
 SimulationSettings;
 
