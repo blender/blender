@@ -8265,6 +8265,9 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		}
 		act= act->next;
 	}
+
+	if(ob->pd && ob->pd->tex)
+		expand_doit(fd, mainvar, ob->pd->tex);
 	
 	expand_scriptlink(fd, mainvar, &ob->scriptlink);
 }
