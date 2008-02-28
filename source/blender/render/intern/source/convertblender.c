@@ -2349,7 +2349,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	VlakRen *vlr, *vlr1;
 	Material *ma;
 	float *data, *nors, *orco, mat[4][4], imat[3][3], xn, yn, zn;
-	int a, need_orco, *index;
+	int a, need_orco, vlakindex, *index;
 
 	if (ob!=find_basis_mball(ob))
 		return;
@@ -2415,7 +2415,9 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		/* mball -too bad- always has triangles, because quads can be non-planar */
 		if(index[3] && index[3]!=index[2]) {
 			vlr1= RE_findOrAddVlak(obr, obr->totvlak++);
+			vlakindex= vlr1->index;
 			*vlr1= *vlr;
+			vlr1->index= vlakindex;
 			vlr1->v2= vlr1->v3;
 			vlr1->v3= RE_findOrAddVert(obr, index[3]);
 			if(ob->transflag & OB_NEG_SCALE) 
