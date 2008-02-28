@@ -289,8 +289,9 @@ static int isffmpeg (char *filename) {
         /* Find the first video stream */
 	videoStream=-1;
 	for(i=0; i<pFormatCtx->nb_streams; i++)
-		if(get_codec_from_stream(pFormatCtx->streams[i])
-		   ->codec_type==CODEC_TYPE_VIDEO)
+		if(pFormatCtx->streams[i] &&
+		   get_codec_from_stream(pFormatCtx->streams[i]) && 
+		  (get_codec_from_stream(pFormatCtx->streams[i])->codec_type==CODEC_TYPE_VIDEO))
 		{
 			videoStream=i;
 			break;
