@@ -1295,7 +1295,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 
 			// Ascher & Boxman, p.21: Damping only during elonglation
 			// something wrong with it...
-			mul_fvector_S(damping_force, dir, MIN2(1.0, clmd->sim_parms->Cdis) * INPR(vel,dir));
+			mul_fvector_S(damping_force, dir, clmd->sim_parms->Cdis * INPR(vel,dir));
 			VECADD(s->f, s->f, damping_force);
 			
 			/* VERIFIED */
@@ -1330,7 +1330,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 		
 		VECADDS(s->f, s->f, extent, -k);
 		
-		mul_fvector_S(damping_force, dir, MIN2(1.0, (clmd->sim_parms->goalfrict/100.0)) * INPR(vel,dir));
+		mul_fvector_S(damping_force, dir, clmd->sim_parms->goalfrict * 0.01 * INPR(vel,dir));
 		VECADD(s->f, s->f, damping_force);
 		
 		// HERE IS THE PROBLEM!!!!
@@ -1611,13 +1611,8 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 				if(result)
 				{
 					
-					if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) 
-					{			
-						if(verts [i].flags & CLOTH_VERT_FLAG_PINNED)
-						{
-							continue;
-						}
-					}
+					if((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (verts [i].flags & CLOTH_VERT_FLAG_PINNED))
+						continue;
 					
 					VECCOPY(id->Xnew[i], verts[i].tx);
 					VECCOPY(id->Vnew[i], verts[i].tv);

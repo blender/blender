@@ -520,7 +520,7 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 			// Apply velocity stopping impulse
 			// I_c = m * v_N / 2.0
 			// no 2.0 * magrelVel normally, but looks nicer DG
-			impulse =  2.0 * magrelVel / ( 1.0 + w1*w1 + w2*w2 + w3*w3); 
+			impulse =  magrelVel / ( 1.0 + w1*w1 + w2*w2 + w3*w3); 
 			
 			VECADDMUL(cloth1->verts[collpair->ap1].impulse, collpair->normal, w1 * impulse); 
 			cloth1->verts[collpair->ap1].impulse_count++;
@@ -531,21 +531,23 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 			VECADDMUL(cloth1->verts[collpair->ap3].impulse, collpair->normal, w3 * impulse); 
 			cloth1->verts[collpair->ap3].impulse_count++;
 			
-			/*
-			// doesn't perform nice, dunno why DG
 			// Apply repulse impulse if distance too short
 			// I_r = -min(dt*kd, m(0,1d/dt - v_n))
-			d = clmd->coll_parms->epsilon - collpair->distance;
+			d = clmd->coll_parms->epsilon*8.0/9.0 - collpair->distance;
 			if((magrelVel < 0.1*d*clmd->sim_parms->stepsPerFrame) && (d > ALMOST_ZERO))
 			{
-				repulse = MIN2(d*5.0/clmd->sim_parms->stepsPerFrame, 0.1*d*clmd->sim_parms->stepsPerFrame - magrelVel);
+				repulse = MIN2(d*1.0/clmd->sim_parms->stepsPerFrame, 0.1*d*clmd->sim_parms->stepsPerFrame - magrelVel);
 				
-				impulse = 0.25 * repulse / ( 1.0 + w1*w1 + w2*w2 + w3*w3); // original 2.0 / 0.25
-				VECADDMUL(cloth1->verts[collpair->ap1].impulse, collpair->normal, w1 * impulse);
-				VECADDMUL(cloth1->verts[collpair->ap2].impulse, collpair->normal, w2 * impulse);
-				VECADDMUL(cloth1->verts[collpair->ap3].impulse, collpair->normal, w3 * impulse);
+				// stay on the safe side and clamp repulse
+				if(impulse > ALMOST_ZERO)
+					repulse = MIN2(repulse, 5.0*impulse);
+				repulse = MAX2(impulse, repulse);
+				
+				impulse = repulse / ( 1.0 + w1*w1 + w2*w2 + w3*w3); // original 2.0 / 0.25
+				VECADDMUL(cloth1->verts[collpair->ap1].impulse, collpair->normal,  impulse);
+				VECADDMUL(cloth1->verts[collpair->ap2].impulse, collpair->normal,  impulse);
+				VECADDMUL(cloth1->verts[collpair->ap3].impulse, collpair->normal,  impulse);
 			}
-			*/
 			
 			result = 1;
 		}
@@ -971,16 +973,6 @@ void cloth_collision_self_static(ModifierData *md1, ModifierData *md2, Collision
 	
 }
 
-#if 0
-/* aye this belongs to arith.c */
-static void Vec3PlusStVec(float *v, float s, float *v1)
-{
-	v[0] += s*v1[0];
-	v[1] += s*v1[1];
-	v[2] += s*v1[2];
-}
-#endif
-
 // cloth - object collisions
 int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 {
@@ -1149,7 +1141,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 							
 							if ((ABS(temp[0]) > mindistance) || (ABS(temp[1]) > mindistance) || (ABS(temp[2]) > mindistance)) continue;
 								
-							// check for adjacent points
+							// check for adjacent points (i must be smaller j)
 							if(BLI_edgehash_haskey (cloth->edgehash, i, j ))
 							{
 								continue;

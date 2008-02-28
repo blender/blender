@@ -147,7 +147,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->structural = 30.0;
 	clmd->sim_parms->shear = 30.0;
 	clmd->sim_parms->bending = 1.0;
-	clmd->sim_parms->Cdis = 5.0;
+	clmd->sim_parms->Cdis = 1.0; // was 5
 	clmd->sim_parms->Cvi = 1.0;
 	clmd->sim_parms->mass = 1.0f;
 	clmd->sim_parms->stepsPerFrame = 5;
@@ -186,7 +186,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->mingoal = 0.0f;
 	clmd->sim_parms->defgoal = 0.0f;
 	clmd->sim_parms->goalspring = 1.0f;
-	clmd->sim_parms->goalfrict = 5.0f;
+	clmd->sim_parms->goalfrict = 0.0f;
 }
 
 
@@ -310,7 +310,7 @@ DerivedMesh *CDDM_create_tearing ( ClothModifierData *clmd, DerivedMesh *dm )
 	for ( i = 0; i < numsprings; i++ )
 	{
 		if ( ( springs[i].flags & CLOTH_SPRING_FLAG_DEACTIVATE )
-				     && ( !BLI_edgehash_haskey ( edgehash, springs[i].ij, springs[i].kl ) ) )
+		&& ( !BLI_edgehash_haskey ( edgehash, springs[i].ij, springs[i].kl ) ) )
 		{
 			BLI_edgehash_insert ( edgehash, springs[i].ij, springs[i].kl, NULL );
 			BLI_edgehash_insert ( edgehash, springs[i].kl, springs[i].ij, NULL );
@@ -1392,9 +1392,8 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 			
 			// check for existing spring
 			// check also if startpoint is equal to endpoint
-			if ( !BLI_edgehash_haskey ( edgehash, index2, tspring2->ij )
-						   && !BLI_edgehash_haskey ( edgehash, tspring2->ij, index2 )
-						   && ( index2!=tspring2->ij ) )
+			if ( !BLI_edgehash_haskey ( edgehash, MIN2(tspring2->ij, index2), MAX2(tspring2->ij, index2) )
+			&& ( index2!=tspring2->ij ) )
 			{
 				spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 				
@@ -1406,11 +1405,11 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 
 				spring->ij = MIN2(tspring2->ij, index2);
 				spring->kl = MAX2(tspring2->ij, index2);
-				VECSUB ( temp, cloth->verts[index2].x, cloth->verts[tspring2->ij].x );
+				VECSUB ( temp, cloth->verts[spring->kl].x, cloth->verts[spring->ij].x );
 				spring->restlen =  sqrt ( INPR ( temp, temp ) );
 				spring->type = CLOTH_SPRING_TYPE_BENDING;
 				spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0;
-				BLI_edgehash_insert ( edgehash, spring->ij, index2, NULL );
+				BLI_edgehash_insert ( edgehash, spring->ij, spring->kl, NULL );
 				bend_springs++;
 
 				BLI_linklist_prepend ( &cloth->springs, spring );
@@ -1419,6 +1418,21 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		}
 		search2 = search2->next;
 	}
+	
+	/* insert other near springs in edgehash AFTER bending springs are calculated (for selfcolls) */
+	for ( i = 0; i < numedges; i++ ) // struct springs
+		BLI_edgehash_insert ( edgehash, MIN2(medge[i].v1, medge[i].v2), MAX2(medge[i].v2, medge[i].v1), NULL );
+	
+	for ( i = 0; i < numfaces; i++ ) // edge springs
+	{
+		BLI_edgehash_insert ( edgehash, MIN2(mface[i].v1, mface[i].v3), MAX2(mface[i].v3, mface[i].v1), NULL );
+		
+		if(mface[i].v4)
+		{
+			BLI_edgehash_insert ( edgehash, MIN2(mface[i].v2, mface[i].v4), MAX2(mface[i].v2, mface[i].v4), NULL );
+		}
+	}
+	
 	
 	cloth->numsprings = struct_springs + shear_springs + bend_springs;
 	

@@ -5135,28 +5135,33 @@ static void cloth_presets_material(void *ob_v, void *arg2)
 	{
 		clmd->sim_parms->structural = clmd->sim_parms->shear = 30.0;
 		clmd->sim_parms->bending = 0.1;
+		clmd->sim_parms->Cdis = 0.0;
 	}
 	else if(clmd->sim_parms->presets==2) /* COTTON */
 	{
 		clmd->sim_parms->structural = clmd->sim_parms->shear = 30.0;
 		clmd->sim_parms->bending = 1.0;
+		clmd->sim_parms->Cdis = 5.0;
 	}
 	else if(clmd->sim_parms->presets==3) /* RUBBER */
 	{
 		clmd->sim_parms->structural = clmd->sim_parms->shear = 5.0;
 		clmd->sim_parms->bending = 25.0;
+		clmd->sim_parms->Cdis = 25.0;
 		clmd->sim_parms->stepsPerFrame = MAX2(clmd->sim_parms->stepsPerFrame, 7.0);
 	}
 	else if(clmd->sim_parms->presets==4) /* DENIM */
 	{
 		clmd->sim_parms->structural = clmd->sim_parms->shear = 70.0;
 		clmd->sim_parms->bending = 300.0;
+		clmd->sim_parms->Cdis = 25.0;
 		clmd->sim_parms->stepsPerFrame = MAX2(clmd->sim_parms->stepsPerFrame, 15.0);
 	}
 	else if(clmd->sim_parms->presets==5) /* LEATHER */
 	{
 		clmd->sim_parms->structural = clmd->sim_parms->shear = 1000.0;
 		clmd->sim_parms->bending = 2500.0;
+		clmd->sim_parms->Cdis = 25.0;
 		clmd->sim_parms->stepsPerFrame = MAX2(clmd->sim_parms->stepsPerFrame, 25.0);
 	}
 }
@@ -5229,22 +5234,25 @@ static void object_panel_cloth(Object *ob)
 		but = uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff:", 160,150,150,20, &clmd->sim_parms->bending, 0.0, 10000.0, 1000, 0, "Wrinkle coefficient (higher = less smaller but more big wrinkles)");
 		uiButSetFunc(but, cloth_presets_custom_material, ob, NULL);
 		
-		uiDefButI(block, NUM, B_CLOTH_RENEW, "Quality:", 10,130,150,20, &clmd->sim_parms->stepsPerFrame, 4.0, 80.0, 5, 0, "Quality of the simulation (higher=better=slower)");
+		but = uiDefButF(block, NUM, B_CLOTH_RENEW, "Spring Damp:", 10,130,150,20, &clmd->sim_parms->Cdis, 0.0, 50.0, 100, 0, "Damping of cloth velocity (higher = more smooth, less jiggling)");
+		uiButSetFunc(but, cloth_presets_custom_material, ob, NULL);
 
 		uiDefButF(block, NUM, B_CLOTH_RENEW, "Air Damp:", 160,130,150,20, &clmd->sim_parms->Cvi, 0.0, 10.0, 10, 0, "Air has normaly some thickness which slows falling things down");
 		
-		uiDefBut(block, LABEL, 0, "Gravity:",  10,110,60,20, NULL, 0.0, 0, 0, 0, "");
+		uiDefButI(block, NUM, B_CLOTH_RENEW, "Quality:", 10,110,150,20, &clmd->sim_parms->stepsPerFrame, 4.0, 80.0, 5, 0, "Quality of the simulation (higher=better=slower)");
 		
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "X:", 70,110,80,20, &clmd->sim_parms->gravity[0], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "Y:", 150,110,80,20, &clmd->sim_parms->gravity[1], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "Z:", 230,110,80,20, &clmd->sim_parms->gravity[2], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+		uiDefBut(block, LABEL, 0, "Gravity:",  10,90,60,20, NULL, 0.0, 0, 0, 0, "");
+		
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "X:", 70,90,80,20, &clmd->sim_parms->gravity[0], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "Y:", 150,90,80,20, &clmd->sim_parms->gravity[1], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "Z:", 230,90,80,20, &clmd->sim_parms->gravity[2], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
 		uiBlockEndAlign(block);
 		
 		/* GOAL STUFF */
 		uiBlockBeginAlign(block);
 		
 		
-		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_GOAL, B_CLOTH_RENEW, "Pinning of cloth",	10,80,150,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_GOAL, B_CLOTH_RENEW, "Pinning of cloth",	10,60,150,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
 		
 		if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (BLI_countlist (&ob->defbase) > 0))
 		{
@@ -5273,13 +5281,13 @@ static void object_panel_cloth(Object *ob)
 							
 				sprintf (clvg2, "%s%s", clmvg, clvg1);
 				
-				uiDefButS(block, MENU, B_CLOTH_RENEW, clvg2, 160,80,150,20, &clmd->sim_parms->vgroup_mass, 0, defCount, 0, 0, "Browses available vertex groups");
+				uiDefButS(block, MENU, B_CLOTH_RENEW, clvg2, 160,60,150,20, &clmd->sim_parms->vgroup_mass, 0, defCount, 0, 0, "Browses available vertex groups");
 				MEM_freeN (clvg1);
 				MEM_freeN (clvg2);
 			}
 			
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "Pin Stiff:", 10,60,150,20, &clmd->sim_parms->goalspring, 0.0, 50.0, 50, 0, "Pin (vertex target position) spring stiffness");
-			uiDefBut(block, LABEL, 0, "",160,60,150,20, NULL, 0.0, 0, 0, 0, "");	
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "Pin Stiff:", 10,40,150,20, &clmd->sim_parms->goalspring, 0.0, 50.0, 50, 0, "Pin (vertex target position) spring stiffness");
+			uiDefBut(block, LABEL, 0, "",160,40,150,20, NULL, 0.0, 0, 0, 0, "");	
 			// uiDefButI(block, NUM, B_CLOTH_RENEW, "Pin Damp:", 160,50,150,20, &clmd->sim_parms->goalfrict, 1.0, 100.0, 10, 0, "Pined damping (higher = doesn't oszilate so much)");
 			/*
 			// nobody is changing these ones anyway
@@ -5289,8 +5297,8 @@ static void object_panel_cloth(Object *ob)
 		}
 		else if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
 		{
-			uiDefBut(block, LABEL, 0, " ",  160,80,150,20, NULL, 0.0, 0, 0, 0, "");
-			uiDefBut(block, LABEL, 0, "No vertex group for pinning available.",  10,50,300,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, " ",  160,60,150,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "No vertex group for pinning available.",  10,30,300,20, NULL, 0.0, 0, 0, 0, "");
 		}
 		
 		uiBlockEndAlign(block);	
