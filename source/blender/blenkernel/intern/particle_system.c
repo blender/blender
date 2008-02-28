@@ -408,6 +408,29 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 	}
 }
 
+/* modified copy from rayshade.c */
+static void hammersley_create(float *out, int n, int seed, float amount)
+{
+	RNG *rng;
+    double p, t, offs[2];
+    int k, kk;
+
+	rng = rng_new(31415926 + n + seed);
+	offs[0]= rng_getDouble(rng) + amount;
+	offs[1]= rng_getDouble(rng) + amount;
+	rng_free(rng);
+
+    for (k = 0; k < n; k++) {
+        t = 0;
+        for (p = 0.5, kk = k; kk; p *= 0.5, kk >>= 1)
+            if (kk & 1) /* kk mod 2 = 1 */
+				t += p;
+    
+		out[2*k + 0]= fmod((double)k/(double)n + offs[0], 1.0);
+		out[2*k + 1]= fmod(t + offs[1], 1.0);
+	}
+}
+
 /* modified copy from effect.c */
 static void init_mv_jit(float *jit, int num, int seed2, float amount)
 {
@@ -1213,9 +1236,15 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 			//if(jitlevel>100) jitlevel= 100;
 		}
 		
-		jit= MEM_callocN(2+ jitlevel*2*sizeof(float), "jit");
+		jit= MEM_callocN((2+ jitlevel*2)*sizeof(float), "jit");
 
-		init_mv_jit(jit, jitlevel, psys->seed, part->jitfac);
+		/* for small amounts of particles we use regular jitter since it looks
+		 * a bit better, for larger amounts we switch to hammersley sequence 
+		 * because it is much faster */
+		if(jitlevel < 25)
+			init_mv_jit(jit, jitlevel, psys->seed, part->jitfac);
+		else
+			hammersley_create(jit, jitlevel+1, psys->seed, part->jitfac);
 		BLI_array_randomize(jit, 2*sizeof(float), jitlevel, psys->seed); /* for custom jit or even distribution */
 	}
 
