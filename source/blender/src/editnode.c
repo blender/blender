@@ -212,6 +212,13 @@ static void load_node_image(char *str)	/* called from fileselect */
 	}
 }
 
+static void set_node_imagepath(char *str)	/* called from fileselect */
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	bNode *node= nodeGetActive(snode->edittree);
+	BLI_strncpy(((NodeImageFile *)node->storage)->name, str, sizeof( ((NodeImageFile *)node->storage)->name ));
+}
+
 static bNode *snode_get_editgroup(SpaceNode *snode)
 {
 	bNode *gnode;
@@ -285,6 +292,19 @@ static void composit_node_event(SpaceNode *snode, short event)
 				activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
 			} else {
 				activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
+			}
+			break;
+		}
+		case B_NODE_SETIMAGE:
+		{
+			bNode *node= nodeGetActive(snode->edittree);
+			char name[FILE_MAXDIR+FILE_MAXFILE];
+			
+			strcpy(name, ((NodeImageFile *)node->storage)->name);
+			if (G.qual & LR_CTRLKEY) {
+				activate_imageselect(FILE_SPECIAL, "SELECT OUTPUT DIR", name, set_node_imagepath);
+			} else {
+				activate_fileselect(FILE_SPECIAL, "SELECT OUTPUT DIR", name, set_node_imagepath);
 			}
 			break;
 		}

@@ -2683,7 +2683,6 @@ static void group_linkobs2scene_cb(TreeElement *te, TreeStoreElem *tsep, TreeSto
 			base->object->flag |= SELECT;
 			base->flag |= SELECT;
 		} else {
-				
 			/* link to scene */
 			base= MEM_callocN( sizeof(Base), "add_base");
 			BLI_addhead(&G.scene->base, base);
@@ -2691,6 +2690,7 @@ static void group_linkobs2scene_cb(TreeElement *te, TreeStoreElem *tsep, TreeSto
 			gob->ob->flag |= SELECT;
 			base->flag = gob->ob->flag;
 			base->object= gob->ob;
+			id_lib_extern((ID *)gob->ob); /* incase these are from a linked group */
 		}
 	}
 }

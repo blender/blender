@@ -1939,8 +1939,12 @@ static int node_composit_buts_file_output(uiBlock *block, bNodeTree *ntree, bNod
 		
 		uiBlockBeginAlign(block);
 		
+		uiDefIconBut(block, BUT, B_NODE_SETIMAGE, ICON_FILESEL,
+				  x, y+60, 20, 20,
+				  0, 0, 0, 0, 0, "Open Fileselect to get Backbuf image");
+		
 		uiDefBut(block, TEX, B_NOP, "",
-				  x, y+60, w, 20, 
+				  20+x, y+60, w-20, 20, 
 				  nif->name, 0.0f, 240.0f, 0, 0, "");
 		
 		uiDefButS(block, MENU, B_NOP, str,

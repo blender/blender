@@ -787,7 +787,9 @@ enum {
 #define B_NODE_BUTS			4000
 		/* 400 slots reserved, we want an exec event for each node */
 #define B_NODE_LOADIMAGE	3601
-#define B_NODE_TREE_EXEC	3602
+#define B_NODE_SETIMAGE		3602
+#define B_NODE_TREE_EXEC	3603
+
 
 		/* exec should be last in this list */
 #define B_NODE_EXEC			3610
