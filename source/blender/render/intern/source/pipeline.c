@@ -749,6 +749,8 @@ void RE_WriteRenderResult(RenderResult *rr, char *filename, int compress)
 	RenderLayer *rl;
 	RenderPass *rpass;
 	void *exrhandle= IMB_exr_get_handle();
+
+	BLI_make_existing_file(filename);
 	
 	/* composite result */
 	if(rr->rectf) {
