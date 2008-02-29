@@ -503,27 +503,23 @@ void scene_select_base(Scene *sce, Base *selbase)
 int scene_check_setscene(Scene *sce)
 {
 	Scene *scene;
+	int a, totscene;
 	
 	if(sce->set==NULL) return 1;
 	
-	/* LIB_DOIT is the free flag to tag library data */
+	totscene= 0;
 	for(scene= G.main->scene.first; scene; scene= scene->id.next)
-		scene->id.flag &= ~LIB_DOIT;
+		totscene++;
 	
-	scene= sce;
-	while(scene->set) {
-		scene->id.flag |= LIB_DOIT;
-		/* when set has flag set, we got a cycle */
-		if(scene->set->id.flag & LIB_DOIT)
-			break;
-		scene= scene->set;
+	for(a=0, scene=sce; scene->set; scene=scene->set, a++) {
+		/* more iterations than scenes means we have a cycle */
+		if(a > totscene) {
+			/* the tested scene gets zero'ed, that's typically current scene */
+			sce->set= NULL;
+			return 0;
+		}
 	}
-	
-	if(scene->set) {
-		/* the tested scene gets zero'ed, that's typically current scene */
-		sce->set= NULL;
-		return 0;
-	}
+
 	return 1;
 }
 
