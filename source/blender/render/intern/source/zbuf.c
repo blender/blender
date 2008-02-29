@@ -2364,7 +2364,7 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem, Re
 			for(a=0; a<obr->totvlak; a++) {
 				if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
 			
-				if((radface=RE_vlakren_get_radface(obr, vlr, 0))) {
+				if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
 					rf= *radface;
 					if( (rf->flag & RAD_SHOOT)==0 ) {    /* no shootelement */
 						

@@ -99,7 +99,7 @@ static void findshoot_rr(Render *re, VlakRen **shoot_p, RadFace **shootrf_p)
 	for(obr=re->objecttable.first; obr; obr=obr->next) {
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
-			if((radface=RE_vlakren_get_radface(obr, vlr, 0))) {
+			if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
 				rf= *radface;
 				rf->flag &= ~RAD_SHOOT;
 				
@@ -141,7 +141,7 @@ static void backface_test_rr(Render *re, VlakRen *shoot, RadFace *shootrf)
 	for(obr=re->objecttable.first; obr; obr=obr->next) {
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
-			if(vlr != shoot && (radface=RE_vlakren_get_radface(obr, vlr, 0))) {
+			if(vlr != shoot && (radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
 				rf= *radface;
 				VecSubf(tvec, shootrf->cent, rf->cent);
 				
@@ -164,7 +164,7 @@ static void clear_backface_test_rr(Render *re)
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
 			
-			if((radface=RE_vlakren_get_radface(obr, vlr, 0))) {
+			if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
 				rf= *radface;
 				rf->flag &= ~RAD_BACKFACE;
 			}
@@ -224,7 +224,7 @@ static void makeformfactors_rr(Render *re, VlakRen *shoot, RadFace *shootrf)
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
 			
-			if((radface=RE_vlakren_get_radface(obr, vlr, 0))) {
+			if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
 				rf= *radface;
 				if(*fp!=0.0 && rf->area!=0.0) {
 					*fp *= shootrf->area/rf->area;
@@ -255,7 +255,7 @@ static void applyformfactors_rr(Render *re, VlakRen *shoot, RadFace *shootrf)
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
 			
-			if((radface=RE_vlakren_get_radface(obr, vlr, 0))) {
+			if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
 				rf= *radface;
 				if(*fp!= 0.0) {
 					
@@ -448,7 +448,7 @@ static void make_vertex_rad_values(Render *re)
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
 			
-			if((radface=RE_vlakren_get_radface(obr, vlr, 0))) {
+			if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
 				rf= *radface;
 				
 				/* apply correction */
