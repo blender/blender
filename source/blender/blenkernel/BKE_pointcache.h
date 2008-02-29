@@ -40,11 +40,10 @@
 
 /* Add the blendfile name after blendcache_ */
 #define PTCACHE_EXT ".bphys"
-#define PTCACHE_PATH "//blendcache_"
+#define PTCACHE_PATH "blendcache_"
 
 /* Global funcs */
-/* void BKE_ptcache_clean(void); - not implimented yet! */
-
+void BKE_ptcache_remove(void);
 
 /* Object spesific funcs */
 int		BKE_ptcache_id_filename(struct ID *id, char *filename, int cfra, int stack_index, short do_path, short do_ext);

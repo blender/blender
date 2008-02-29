@@ -1471,12 +1471,20 @@ void BLI_join_dirfile(char *string, const char *dir, const char *file)
 	int sl_dir = strlen(dir);
 	BLI_strncpy(string, dir, FILE_MAX);
 	if (sl_dir > FILE_MAX-1) sl_dir = FILE_MAX-1;
+	
+	/* only add seperator if needed */
 #ifdef WIN32
-	string[sl_dir] = '\\';
+	if (string[sl_dir-1] != '\\') {
+		string[sl_dir] = '\\';
+		sl_dir++;
+	}
 #else
-	string[sl_dir] = '/';
+	if (string[sl_dir-1] != '/') {
+		string[sl_dir] = '/';
+		sl_dir++;
+	}
 #endif
-	sl_dir++;
+	
 	if (sl_dir <FILE_MAX) {
 		BLI_strncpy(string + sl_dir, file, FILE_MAX-sl_dir);
 	}

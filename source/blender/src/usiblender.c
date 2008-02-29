@@ -84,6 +84,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_pointcache.h"
 
 #ifdef WITH_VERSE
 #include "BKE_verse.h"
@@ -541,6 +542,8 @@ void BIF_read_file(char *name)
 	retval= BKE_read_exotic(name);
 	
 	if (retval== 0) {
+		BIF_clear_tempfiles();
+		
 		/* we didn't succeed, now try to read Blender file */
 		retval= BKE_read_file(name, NULL);
 
@@ -590,6 +593,8 @@ int BIF_read_homefile(int from_memory)
 	char *home= BLI_gethome();
 	int success;
 	struct TmpFont *tf;
+	
+	BIF_clear_tempfiles();
 	
 	BLI_clean(home);
 
@@ -939,6 +944,16 @@ void BIF_write_autosave(void)
 	BLO_write_file(tstr, write_flags, &err);
 }
 
+/* remove temp files assosiated with this blend file when quitting, loading or saving in a new path */
+void BIF_clear_tempfiles( void )
+{
+	/* TODO - remove exr files from the temp dir */
+	
+	if (!G.relbase_valid) { /* We could have pointcache saved in tyhe temp dir, if its there */
+		BKE_ptcache_remove();
+	}
+}
+
 /* if global undo; remove tempsave, otherwise rename */
 static void delete_autosave(void)
 {
@@ -1019,6 +1034,9 @@ extern ListBase editelems;
 void exit_usiblender(void)
 {
 	struct TmpFont *tf;
+	
+	BIF_clear_tempfiles();
+	
 	tf= G.ttfdata.first;
 	while(tf)
 	{

@@ -51,6 +51,12 @@
   #include "BLI_winstuff.h"
 #endif
 
+/* untitled blend's need getpid for a unique name */
+#ifdef WIN32
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
 
 /*	Takes an Object ID and returns a unique name
 	- id: object id
@@ -71,15 +77,14 @@ static int ptcache_path(char *filename)
 		if (i > 6)
 			file[i-6] = '\0';
 		
-		sprintf(filename, PTCACHE_PATH"%s/", file); /* add blend file name to pointcache dir */
+		sprintf(filename, "//"PTCACHE_PATH"%s/", file); /* add blend file name to pointcache dir */
 		BLI_convertstringcode(filename, G.sce, 0);
 		return strlen(filename);
-	} else {
-		/* use the temp path. this is weak but better then not using point cache at all */
-		/* btempdir is assumed to exist and ALWAYS has a trailing slash */
-		return sprintf(filename, "%s"PTCACHE_PATH"untitled/", btempdir);
 	}
-	return -1;
+	
+	/* use the temp path. this is weak but better then not using point cache at all */
+	/* btempdir is assumed to exist and ALWAYS has a trailing slash */
+	return sprintf(filename, "%s"PTCACHE_PATH"%d/", btempdir, abs(getpid()));
 }
 
 int BKE_ptcache_id_filename(struct ID *id, char *filename, int cfra, int stack_index, short do_path, short do_ext)
@@ -95,8 +100,6 @@ int BKE_ptcache_id_filename(struct ID *id, char *filename, int cfra, int stack_i
 	/* start with temp dir */
 	if (do_path) {
 		len = ptcache_path(filename);
-		if (len==-1)
-			return -1;
 		newname += len;
 	}
 	idname = (id->name+2);
@@ -144,7 +147,7 @@ FILE *BKE_ptcache_id_fopen(struct ID *id, char mode, int cfra, int stack_index)
 }
 
 /* youll need to close yourself after!
- * mode, 
+ * mode - PTCACHE_CLEAR_ALL, 
 
 */
 
@@ -166,8 +169,7 @@ void BKE_ptcache_id_clear(struct ID *id, char mode, int cfra, int stack_index)
 	case PTCACHE_CLEAR_ALL:
 	case PTCACHE_CLEAR_BEFORE:	
 	case PTCACHE_CLEAR_AFTER:
-		if (ptcache_path(path)==-1)
-			return;
+		ptcache_path(path);
 		
 		len = BKE_ptcache_id_filename(id, filename, cfra, stack_index, 0, 0); /* no path */
 		
@@ -218,4 +220,43 @@ int BKE_ptcache_id_exist(struct ID *id, int cfra, int stack_index)
 	BKE_ptcache_id_filename(id, filename, cfra, stack_index, 1, 1);
 
 	return BLI_exists(filename);
+}
+
+/* Use this when quitting blender, with unsaved files */
+void BKE_ptcache_remove(void)
+{
+	char path[FILE_MAX];
+	char path_full[FILE_MAX];
+	int rmdir = 1;
+	
+	ptcache_path(path);
+
+	if (BLI_exists(path)) {
+	/* TODO, Check with win32, probably needs last slash removed */
+		/* The pointcache dir exists? - remove all pointcache */
+
+		DIR *dir; 
+		struct dirent *de;
+		
+		dir = opendir(path);
+		if (dir==NULL)
+			return;
+		
+		while ((de = readdir(dir)) != NULL) {
+			if( strcmp(de->d_name, ".")==0 || strcmp(de->d_name, "..")==0) {
+				/* do nothing */
+			} else if (strstr(de->d_name, PTCACHE_EXT)) { /* do we have the right extension?*/
+				BLI_join_dirfile(path_full, path, de->d_name);
+				BLI_delete(path_full, 0, 0);
+			} else {
+				rmdir = 0; /* unknown file, dont remove the dir */
+			}
+		}
+	} else { 
+		rmdir = 0; /* path dosnt exist  */
+	}
+	
+	if (rmdir) {
+		BLI_delete(path, 1, 0);
+	}
 }
