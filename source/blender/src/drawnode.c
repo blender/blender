@@ -1028,7 +1028,7 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 					bt= uiDefButS(block, MENU, B_NODE_EXEC+node->nr, strp,
 							  xmin, dy, width, 19, 
 							  &iuser->layer, 0.0, 10000.0, 0, 0, "Layer");
-					uiButSetFunc(bt, image_layer_cb, ima, node->storage);
+					uiButSetFunc(bt, image_layer_cb, ima->rr, node->storage);
 					MEM_freeN(strp);
 				}
 			}
