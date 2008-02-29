@@ -1939,9 +1939,9 @@ static char *imagetype_pup(void)
 			"Targa",          R_TARGA,
 			"Targa Raw",      R_RAWTGA,
 			"PNG",            R_PNG,
-#ifdef WITH_DDS
+/*#ifdef WITH_DDS
 			"DDS",            R_DDS,
-#endif
+#endif*/
 			"BMP",            R_BMP,
 			"Jpeg",           R_JPEG90,
 			"HamX",           R_HAMX,
