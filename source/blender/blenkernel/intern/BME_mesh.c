@@ -47,8 +47,6 @@
 #include "BKE_bmesh.h"
 #include "BKE_global.h"
 #include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BIF_editmesh.h"
@@ -89,8 +87,6 @@ void BME_free_mesh(BME_Mesh *bm)
 	while(bf){
 		nextf = bf->next;
 		BLI_remlink(&(bm->polys), bf);
-		if(bf->holes.first)
-			BLI_freelistN(&(bf->holes));
 		BME_free_poly(bm, bf);
 		
 		bf = nextf;
@@ -110,16 +106,6 @@ void BME_free_mesh(BME_Mesh *bm)
 		BLI_remlink(&(bm->verts), bv);
 		BME_free_vert(bm, bv);
 		bv = nextv; 
-	}
-	
-	if (bm->derivedFinal) {
-		bm->derivedFinal->needsFree = 1;
-		bm->derivedFinal->release(bm->derivedFinal);
-	}
-	
-	if (bm->derivedCage && bm->derivedCage != bm->derivedFinal) {
-		bm->derivedCage->needsFree = 1;
-		bm->derivedCage->release(bm->derivedCage);
 	}
 	
 	for(loopref=bm->loops.first;loopref;loopref=loopref->next) BME_delete_loop(bm,loopref->data);
@@ -155,9 +141,14 @@ void BME_free_mesh(BME_Mesh *bm)
 */
 
 int BME_model_begin(BME_Mesh *bm){
-	/*scratch edge pointer array*/
+	/*Initialize some scratch pointer arrays used by eulers*/
+	bm->vtar = MEM_callocN(sizeof(BME_Vert *) * 1024, "BMesh scratch vert array");
 	bm->edar = MEM_callocN(sizeof(BME_Edge *) * 1024, "BMesh scratch edge array");
-	bm->edarlen = 1024;
+	bm->lpar = MEM_callocN(sizeof(BME_Loop *) * 1024, "BMesh scratch loop array");
+	bm->plar = MEM_callocN(sizeof(BME_Poly *) * 1024, "BMesh scratch poly array");
+
+	bm->vtarlen = bm->edarlen = bm->lparlen = bm->plarlen = 1024;
+
 	return 1;
 }
 
@@ -170,11 +161,15 @@ void BME_model_end(BME_Mesh *bm){
 	totpoly = BLI_countlist(&(bm->polys));
 	totloop = BLI_countlist(&(bm->loops));
 	
-	if(bm->edar){ 
-		MEM_freeN(bm->edar);
-		bm->edar = NULL;
-		bm->edarlen = 0;
-	}
+	if(bm->vtar) MEM_freeN(bm->vtar);
+	if(bm->edar) MEM_freeN(bm->edar);
+	if(bm->lpar) MEM_freeN(bm->lpar);
+	if(bm->plar) MEM_freeN(bm->plar);
+	
+	bm->vtar = bm->edar = bm->lpar = bm->plar = NULL;
+	bm->vtarlen = bm->edarlen = bm->lparlen = bm->plarlen = 1024;
+	
+	
 	if(bm->totvert!=totvert || bm->totedge!=totedge || bm->totpoly!=totpoly || bm->totloop!=totloop)
 		BME_error();
 	
@@ -293,6 +288,8 @@ int BME_validate_mesh(struct BME_Mesh *bm, int halt)
 		}
 	}
 	
+	/*validate that EIDs are within range... if not indicates corrupted mem*/
+
 	/*if we get this far, pretty safe to return 1*/
 	return 1;
 }

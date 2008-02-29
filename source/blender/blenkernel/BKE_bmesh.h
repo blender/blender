@@ -49,8 +49,6 @@ struct BME_Vert;
 struct BME_Edge;
 struct BME_Poly;
 struct BME_Loop;
-struct RetopoPaintData;
-struct DerivedMesh;
 
 typedef struct BME_CycleNode{
 	struct BME_CycleNode *next, *prev;
@@ -60,17 +58,15 @@ typedef struct BME_CycleNode{
 typedef struct BME_Mesh
 {
 	ListBase verts, edges, polys, loops;
-	int lock;										/*if set, all calls to eulers will fail.*/
-	struct BME_Mesh *backup;						/*full copy of the mesh*/
 	int totvert, totedge, totpoly, totloop;			/*record keeping*/
 	int nextv, nexte, nextp, nextl;					/*Next element ID for verts/edges/faces/loops. Never reused*/
 	struct CustomData vdata, edata, pdata, ldata;	/*Custom Data Layer information*/
-	struct DerivedMesh *derivedFinal, *derivedCage;
-	struct RetopoPaintData *retopo_paint_data; /*here for temporary code compatibility only*/
-	/*some temporary storage used by loop reverse and make face eulers*/
+	/*some scratch arrays used by eulers*/
+	struct BME_Vert **vtar;
 	struct BME_Edge **edar;
-	int edarlen;
-	int lastDataMask;
+	struct BME_Loop **lpar;
+	struct BME_Poly **plar;
+	int vtarlen, edarlen, lparlen, plarlen;
 } BME_Mesh;
 
 typedef struct BME_Vert
@@ -121,7 +117,6 @@ typedef struct BME_Poly
 	struct BME_Poly *next, *prev;
 	int EID;
 	struct BME_Loop *loopbase;						/*First editloop around Polygon.*/
-	struct ListBase holes;							/*list of inner loops in the face*/
 	unsigned int len;								/*total length of the face. Eulers should preserve this data*/
 	void *data;										/*custom face data*/
 	int eflag1, eflag2;								/*reserved for use by eulers*/

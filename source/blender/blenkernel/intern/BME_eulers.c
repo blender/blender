@@ -230,9 +230,14 @@ BME_Poly *BME_MF(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge **elist, int
 	tv = v1;
 	curvert = v2;
 	
+	if(bm->vtarlen < len){
+		MEM_freeN(bm->vtar);
+		bm->vtar = MEM_callocN(sizeof(BME_Vert *)* len, "BMesh Vert pointer array");
+		bm->vtarlen = len;
+	}
 	/*insert tv into vlist since its the first vertex in face*/
 	i=0;
-	vlist=MEM_callocN(sizeof(BME_Vert*)*len,"BME_MF vlist array");
+	vlist=bm->vtar;
 	vlist[i] = tv;
 
 	/*	Basic procedure: Starting with curv we find the edge in it's disk cycle which hasn't 
@@ -311,8 +316,6 @@ BME_Poly *BME_MF(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge **elist, int
 			if(edok != (l->e->eflag2 + 1)) BME_error();
 		}
 	}
-	
-	MEM_freeN(vlist);
 	return f;
 }
 
@@ -739,13 +742,24 @@ int BME_JEKV(BME_Mesh *bm, BME_Edge *ke, BME_Vert *kv)
 				/*second step, remove all the hanging loops attached to ke*/
 				killoop = ke->loop;
 				radlen = BME_cycle_length(&(ke->loop->radial));
+				/*make sure we have enough room in bm->lpar*/
+				if(bm->lparlen < radlen){
+					MEM_freeN(bm->lpar);
+					bm->lpar = MEM_callocN(sizeof(BME_Loop *)* radlen, "BMesh Loop pointer array");
+					bm->lparlen = bm->lparlen * radlen;
+				}
+				/*this should be wrapped into a bme_free_radial function to be used by BME_KF as well...*/
 				i=0;
 				while(i<radlen){
-					nextl = killoop->radial.next->data;
-					BME_free_loop(bm, killoop);
-					killoop = nextl;
+					bm->lpar[i] = killoop;
+					killoop = killoop->radial.next->data;
 					i++;
-				}	
+				}
+				i=0;
+				while(i<radlen){
+					BME_free_loop(bm,bm->lpar[i]);
+					i++;
+				}
 				/*Validate radial cycle of oe*/
 				edok = BME_cycle_validate(radlen,&(oe->loop->radial));
 				
@@ -794,14 +808,13 @@ int BME_JEKV(BME_Mesh *bm, BME_Edge *ke, BME_Vert *kv)
 
 int BME_loop_reverse(BME_Mesh *bm, BME_Poly *f){
 	BME_Loop *l = f->loopbase, *curloop, *oldprev, *oldnext;
-	BME_Edge **elist;
 	int i, j, edok, len = 0;
 
 	len = BME_cycle_length(l);
 	if(bm->edarlen < len){
 		MEM_freeN(bm->edar);
 		bm->edar = MEM_callocN(sizeof(BME_Edge *)* len, "BMesh Edge pointer array");
-		bm->edarlen = bm->edarlen * len;
+		bm->edarlen = len;
 	}
 	
 	for(i=0, curloop = l; i< len; i++, curloop=curloop->next){
@@ -840,11 +853,8 @@ int BME_loop_reverse(BME_Mesh *bm, BME_Poly *f){
 		}
 	}
 	/*rebuild radial*/
-	for(i=0, curloop = l; i < len; i++, curloop = curloop->next){
-		BME_radial_append(curloop->e, curloop);
-		//radok = BME_cycle_validate(curloop->e->tmp.l, &(curloop->radial));
-		//if(!radok || curloop->e->loop == NULL) BME_error();
-	}
+	for(i=0, curloop = l; i < len; i++, curloop = curloop->next) BME_radial_append(curloop->e, curloop);
+	
 	/*validate radial*/
 	for(i=0, curloop = l; i < len; i++, curloop = curloop->next){
 		edok = BME_cycle_validate(curloop->e->eflag2, &(curloop->radial));
@@ -893,7 +903,6 @@ BME_Poly *BME_JFKE(BME_Mesh *bm, BME_Poly *f1, BME_Poly *f2, BME_Edge *e)
 	BME_Loop *curloop, *f1loop=NULL, *f2loop=NULL;
 	int loopok = 0, newlen = 0,i, f1len=0, f2len=0, radlen=0, edok;
 	
-	if(f1->holes.first || f2->holes.first) return NULL; //dont operate on faces with holes. Not best solution but tolerable.
 	if(f1 == f2) return NULL; //can't join a face to itself
 	/*verify that e is in both f1 and f2*/
 	f1len = BME_cycle_length(f1->loopbase);
