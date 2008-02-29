@@ -1926,10 +1926,19 @@ static void node_imagetype_string(char *str)
 	str += sprintf(str, "OpenEXR %%x%d", R_OPENEXR);
 }
 
+static void node_set_image_cb(void *ntree_v, void *node_v)
+{
+	bNodeTree *ntree= ntree_v;
+	bNode *node= node_v;
+	
+	nodeSetActive(ntree, node);
+}
+
 static int node_composit_buts_file_output(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
 		NodeImageFile *nif= node->storage;
+		uiBut *bt;
 		short x= (short)butr->xmin;
 		short y= (short)butr->ymin;
 		short w= (short)butr->xmax-butr->xmin;
@@ -1939,9 +1948,10 @@ static int node_composit_buts_file_output(uiBlock *block, bNodeTree *ntree, bNod
 		
 		uiBlockBeginAlign(block);
 		
-		uiDefIconBut(block, BUT, B_NODE_SETIMAGE, ICON_FILESEL,
+		bt = uiDefIconBut(block, BUT, B_NODE_SETIMAGE, ICON_FILESEL,
 				  x, y+60, 20, 20,
 				  0, 0, 0, 0, 0, "Open Fileselect to get Backbuf image");
+		uiButSetFunc(bt, node_set_image_cb, ntree, node);
 		
 		uiDefBut(block, TEX, B_NOP, "",
 				  20+x, y+60, w-20, 20, 
