@@ -2508,6 +2508,38 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 			}
 
 			VECCOPY(ca->co, result.co);
+
+			/* selection coloring in edit mode */
+			if(edit){
+				if(pset->brushtype==PE_BRUSH_WEIGHT){
+					if(k==steps)
+						VecLerpf(ca->col, nosel_col, sel_col, hkey[0]->weight);
+					else
+						VecLerpf(ca->col, nosel_col, sel_col,
+						(1.0f - keytime) * hkey[0]->weight + keytime * hkey[1]->weight);
+				}
+				else{
+					if((ekey + (hkey[0] - pa->hair))->flag & PEK_SELECT){
+						if((ekey + (hkey[1] - pa->hair))->flag & PEK_SELECT){
+							VECCOPY(ca->col, sel_col);
+						}
+						else{
+							VecLerpf(ca->col, sel_col, nosel_col, keytime);
+						}
+					}
+					else{
+						if((ekey + (hkey[1] - pa->hair))->flag & PEK_SELECT){
+							VecLerpf(ca->col, nosel_col, sel_col, keytime);
+						}
+						else{
+							VECCOPY(ca->col, nosel_col);
+						}
+					}
+				}
+			}
+			else{
+				VECCOPY(ca->col, col);
+			}
 		}
 		
 		/*--modify paths--*/
@@ -2583,37 +2615,6 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 
 			}
 
-			/* selection coloring in edit mode */
-			if(edit){
-				if(pset->brushtype==PE_BRUSH_WEIGHT){
-					if(k==steps)
-						VecLerpf(ca->col, nosel_col, sel_col, hkey[0]->weight);
-					else
-						VecLerpf(ca->col,nosel_col,sel_col,
-						(1.0f - keytime) * hkey[0]->weight + keytime * hkey[1]->weight);
-				}
-				else{
-					if((ekey + (hkey[0] - pa->hair))->flag & PEK_SELECT){
-						if((ekey + (hkey[1] - pa->hair))->flag & PEK_SELECT){
-							VECCOPY(ca->col, sel_col);
-						}
-						else{
-							VecLerpf(ca->col, sel_col, nosel_col, keytime);
-						}
-					}
-					else{
-						if((ekey + (hkey[1] - pa->hair))->flag & PEK_SELECT){
-							VecLerpf(ca->col, nosel_col, sel_col, keytime);
-						}
-						else{
-							VECCOPY(ca->col, nosel_col);
-						}
-					}
-				}
-			}
-			else{
-				VECCOPY(ca->col, col);
-			}
 		}
 	}
 

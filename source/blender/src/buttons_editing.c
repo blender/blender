@@ -6340,18 +6340,17 @@ void particle_edit_buttons(uiBlock *block)
 	if(psys->edit) {
 		edit= psys->edit;
 
-		/* brushes */
-		//uiDefBut(block, LABEL, 0, "Brush",	butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+		/* brushes (the update evend needs to be B_BAKE_RECACHE so that path colors are updated properly) */
 		uiBlockBeginAlign(block);	
-		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"None",butx,buty,75,19,&pset->brushtype,14.0,PE_BRUSH_NONE,0,0,"Disable brush");
-		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Comb",butx+75,buty,75,19,&pset->brushtype,14.0,PE_BRUSH_COMB,0,0,"Comb hairs");
-		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Smooth",butx+150,buty,75,19,&pset->brushtype,14.0,PE_BRUSH_SMOOTH,0,0,"Smooth hairs");
-		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Weight",butx+225,buty,75,19,&pset->brushtype,14,PE_BRUSH_WEIGHT,0,0,"Weight hairs");
+		uiDefButS(block,ROW,B_BAKE_RECACHE,"None",butx,buty,75,19,&pset->brushtype,14.0,PE_BRUSH_NONE,0,0,"Disable brush");
+		uiDefButS(block,ROW,B_BAKE_RECACHE,"Comb",butx+75,buty,75,19,&pset->brushtype,14.0,PE_BRUSH_COMB,0,0,"Comb hairs");
+		uiDefButS(block,ROW,B_BAKE_RECACHE,"Smooth",butx+150,buty,75,19,&pset->brushtype,14.0,PE_BRUSH_SMOOTH,0,0,"Smooth hairs");
+		uiDefButS(block,ROW,B_BAKE_RECACHE,"Weight",butx+225,buty,75,19,&pset->brushtype,14,PE_BRUSH_WEIGHT,0,0,"Weight hairs");
 		buty-= buth;
-		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Add", butx,buty,75,19,&pset->brushtype,14,PE_BRUSH_ADD,0,0,"Add hairs");
-		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Length", butx+75,buty,75,19,&pset->brushtype,14, PE_BRUSH_LENGTH,0,0,"Make hairs longer or shorter");
-		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Puff", butx+150,buty,75,19,&pset->brushtype,14, PE_BRUSH_PUFF,0,0,"Make hairs stand up");
-		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Cut", butx+225,buty,75,19,&pset->brushtype,14, PE_BRUSH_CUT,0,0,"Cut hairs");
+		uiDefButS(block,ROW,B_BAKE_RECACHE,"Add", butx,buty,75,19,&pset->brushtype,14,PE_BRUSH_ADD,0,0,"Add hairs");
+		uiDefButS(block,ROW,B_BAKE_RECACHE,"Length", butx+75,buty,75,19,&pset->brushtype,14, PE_BRUSH_LENGTH,0,0,"Make hairs longer or shorter");
+		uiDefButS(block,ROW,B_BAKE_RECACHE,"Puff", butx+150,buty,75,19,&pset->brushtype,14, PE_BRUSH_PUFF,0,0,"Make hairs stand up");
+		uiDefButS(block,ROW,B_BAKE_RECACHE,"Cut", butx+225,buty,75,19,&pset->brushtype,14, PE_BRUSH_CUT,0,0,"Cut hairs");
 		uiBlockEndAlign(block);
 
 		buty-= 10;
