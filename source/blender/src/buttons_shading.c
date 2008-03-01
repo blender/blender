@@ -1947,6 +1947,7 @@ void do_worldbuts(unsigned short event)
 			wrld->mtex[(int)wrld->texact] = wrld->mtex[((int)wrld->texact)-1];
 			wrld->mtex[((int)wrld->texact)-1] = mtexswap;
 			wrld->texact--;
+			allqueue(REDRAWBUTSSHADING, 0);
 		}
 		break;
 	case B_WMTEXMOVEDOWN:
@@ -1956,6 +1957,7 @@ void do_worldbuts(unsigned short event)
 			wrld->mtex[(int)wrld->texact] = wrld->mtex[((int)wrld->texact)+1];
 			wrld->mtex[((int)wrld->texact)+1] = mtexswap;
 			wrld->texact++;
+			allqueue(REDRAWBUTSSHADING, 0);
 		}
 		break;
 	case B_AO_FALLOFF:
@@ -2424,6 +2426,7 @@ void do_lampbuts(unsigned short event)
 			la->mtex[(int)la->texact] = la->mtex[((int)la->texact)-1];
 			la->mtex[((int)la->texact)-1] = mtexswap;
 			la->texact--;
+			allqueue(REDRAWBUTSSHADING, 0);
 		}
 		break;
 	case B_LMTEXMOVEDOWN:
@@ -2433,6 +2436,7 @@ void do_lampbuts(unsigned short event)
 			la->mtex[(int)la->texact] = la->mtex[((int)la->texact)+1];
 			la->mtex[((int)la->texact)+1] = mtexswap;
 			la->texact++;
+			allqueue(REDRAWBUTSSHADING, 0);
 		}
 		break;
 	case B_LFALLOFFCHANGED:
@@ -3077,6 +3081,7 @@ void do_matbuts(unsigned short event)
 			ma->mtex[(int)ma->texact] = ma->mtex[((int)ma->texact)-1];
 			ma->mtex[((int)ma->texact)-1] = mtexswap;
 			ma->texact--;
+			allqueue(REDRAWBUTSSHADING, 0);
 		}
 		break;
 	case B_MTEXMOVEDOWN:
@@ -3085,6 +3090,7 @@ void do_matbuts(unsigned short event)
 			ma->mtex[(int)ma->texact] = ma->mtex[((int)ma->texact)+1];
 			ma->mtex[((int)ma->texact)+1] = mtexswap;
 			ma->texact++;
+			allqueue(REDRAWBUTSSHADING, 0);
 		}
 		break;
 	case B_MATZTRANSP:
