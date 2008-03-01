@@ -13,7 +13,7 @@
 	<Configurations>
 		<Configuration
 			Name="Blender Release|Win32"
-			OutputDirectory="..\..\bin\debug"
+			OutputDirectory="..\..\bin"
 			IntermediateDirectory="..\..\..\build\msvc_7\source\blender"
 			ConfigurationType="1"
 			UseOfMFC="0"
