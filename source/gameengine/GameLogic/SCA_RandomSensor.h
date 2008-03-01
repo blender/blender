@@ -45,6 +45,7 @@ class SCA_RandomSensor : public SCA_ISensor
 
 	unsigned int m_currentDraw;
 	int m_iteration;
+	int m_interval;
 	SCA_RandomNumberGenerator *m_basegenerator;
 	bool m_lastdraw;
 public:

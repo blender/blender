@@ -54,11 +54,15 @@ SCA_RandomSensor::SCA_RandomSensor(SCA_EventManager* eventmgr,
     : SCA_ISensor(gameobj,eventmgr, T)
 {
     m_iteration  = 0;
+	m_interval = 0;
 	m_lastdraw   = false;
 	
+	// m_basegenerator is never deleted => memory leak
 	m_basegenerator = new SCA_RandomNumberGenerator(startseed);
     m_currentDraw = m_basegenerator->Draw();
-	RegisterToManager();
+	//registration is done globally, don't do it here
+	//Note: it was probably done to work around a bug in Evaluate(). It is now fixed
+	//RegisterToManager();
 }
 
 
@@ -73,6 +77,7 @@ SCA_RandomSensor::~SCA_RandomSensor()
 CValue* SCA_RandomSensor::GetReplica()
 {
 	CValue* replica = new SCA_RandomSensor(*this);
+	// replication copies m_basegenerator pointer => share same generator
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 
@@ -98,20 +103,25 @@ bool SCA_RandomSensor::Evaluate(CValue* event)
     /* this is a reasonable way of generating bools. Check Knuth.            */
     /* Furthermore, we only draw each <delay>-eth frame.                     */
 
-    bool drawResult = false;
+	bool evaluateResult = false;
 
-	if (m_iteration > 31) {
-		m_currentDraw = m_basegenerator->Draw();
-		drawResult = (m_currentDraw & 0x1) == 0;
-		m_iteration = 1;
-	} else {
-		drawResult = ((m_currentDraw >> m_iteration) & 0x1) == 0;
-		m_iteration++;
+	if (++m_interval > m_pulse_frequency) {
+	    bool drawResult = false;
+		m_interval = 0;
+		if (m_iteration > 31) {
+			m_currentDraw = m_basegenerator->Draw();
+			drawResult = (m_currentDraw & 0x1) == 0;
+			m_iteration = 1;
+		} else {
+			drawResult = ((m_currentDraw >> m_iteration) & 0x1) == 0;
+			m_iteration++;
+		}
+		evaluateResult = drawResult != m_lastdraw;
+		m_lastdraw = drawResult;
 	}
     
     /* now pass this result to some controller */
-	m_lastdraw = drawResult;
-	return drawResult;
+	return evaluateResult;
 }
 
 /* ------------------------------------------------------------------------- */
