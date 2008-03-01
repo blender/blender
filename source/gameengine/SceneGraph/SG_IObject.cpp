@@ -128,6 +128,11 @@ ActivateDestructionCallback(
 		// Call client provided destruction function on this!
 		m_callbacks.m_destructionfunc(this,m_SGclientObject,m_SGclientInfo);
 	}
+	else
+	{
+		// no callback but must still destroy the node to avoid memory leak
+		delete this;
+	}
 }
 
 	void
