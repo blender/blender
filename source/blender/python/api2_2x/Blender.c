@@ -53,6 +53,7 @@ struct ID; /*keep me up here */
 #include "BKE_ipo.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BIF_space.h"
 #include "BPI_script.h"
 #include "BSE_headerbuttons.h"
 #include "DNA_screen_types.h"	/* for SPACE_VIEW3D */
