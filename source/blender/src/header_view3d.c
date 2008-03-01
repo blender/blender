@@ -2609,7 +2609,7 @@ void do_view3d_edit_mesh_verticesmenu(void *arg, int event)
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		break;
 	case 6: /* add hook */
-		add_hook();
+		add_hook_menu();
 		break;
 	case 7: /* rip */
 		mesh_rip();
@@ -3195,7 +3195,7 @@ static void do_view3d_edit_curve_controlpointsmenu(void *arg, int event)
 		make_parent();
 		break;
 	case 6: /* add hook */
-		add_hook();
+		add_hook_menu();
 		break;
 	case 7:
 		separate_nurb();

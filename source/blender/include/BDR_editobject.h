@@ -120,7 +120,8 @@ void mirrormenu(void);
 void hookmenu(void); /* object mode hook menu */
 
 
-void add_hook(void);
+void add_hook_menu(void);
+void add_hook(int mode);
 void hook_select(struct HookModifierData *hmd);
 int hook_getIndexArray(int *tot, int **indexar, char *name, float *cent_r);
 

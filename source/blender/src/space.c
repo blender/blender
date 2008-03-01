@@ -2009,7 +2009,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(G.obedit) {
 					if(G.obedit->type==OB_MESH) {
 						if(G.qual==LR_CTRLKEY)
-							add_hook();
+							add_hook_menu();
 						else if(G.qual==LR_ALTKEY)
 							reveal_mesh();
 						else if((G.qual==LR_SHIFTKEY))
@@ -2019,7 +2019,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 					else if(G.obedit->type== OB_SURF) {
 						if(G.qual==LR_CTRLKEY)
-							add_hook();
+							add_hook_menu();
 						else if(G.qual==LR_ALTKEY)
 							revealNurb();
 						else if((G.qual==LR_SHIFTKEY))
@@ -2029,7 +2029,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 					else if(G.obedit->type==OB_CURVE) {
 						if(G.qual==LR_CTRLKEY)
-							add_hook();
+							add_hook_menu();
 						else if(G.qual==LR_ALTKEY)
 							revealNurb();
 						/* should be G.qual==LR_SHIFTKEY, but that is taken fro handles already */
@@ -2052,7 +2052,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						}
 					}
 					else if(G.obedit->type==OB_LATTICE) {
-						if(G.qual==LR_CTRLKEY) add_hook();
+						if(G.qual==LR_CTRLKEY) add_hook_menu();
 					}
 					else if(G.obedit->type==OB_MBALL) {
 						if(G.qual==LR_ALTKEY)

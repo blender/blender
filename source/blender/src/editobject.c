@@ -632,14 +632,12 @@ int hook_getIndexArray(int *tot, int **indexar, char *name, float *cent_r)
 	}
 }
 
-void add_hook(void)
+void add_hook_menu(void)
 {
 	ModifierData *md = NULL;
 	HookModifierData *hmd = NULL;
 	Object *ob=NULL;
 	int mode;
-
-	if(G.obedit==NULL) return;
 	
 	if(modifiers_findByType(G.obedit, eModifierType_Hook))
 		mode= pupmenu("Hooks %t|Add, To New Empty %x1|Add, To Selected Object %x2|Remove... %x3|Reassign... %x4|Select... %x5|Clear Offset...%x6");
@@ -649,7 +647,6 @@ void add_hook(void)
 	if(mode<1) return;
 	
 	/* preconditions */
-
 	if(mode==2) { /* selected object */
 		Base *base= FIRSTBASE;
 		while(base) {
@@ -706,11 +703,28 @@ void add_hook(void)
 				a++;
 			}
 		}
-
+		
 		hmd = (HookModifierData*) md;
 		ob= hmd->object;
 	}
+	
+	/* do operations */
+	add_hook(mode);
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	
+	BIF_undo_push("Add hook");
+}
 
+void add_hook(int mode)
+{
+	ModifierData *md = NULL;
+	HookModifierData *hmd = NULL;
+	Object *ob=NULL;
+
+	if(G.obedit==NULL) return;
+	
 	/* do it, new hooks or reassign */
 	if(mode==1 || mode==2 || mode==4) {
 		float cent[3];
@@ -718,7 +732,7 @@ void add_hook(void)
 		char name[32];
 		
 		ok = hook_getIndexArray(&tot, &indexar, name, cent);
-
+		
 		if(ok==0) {
 			error("Requires selected vertices or active Vertex Group");
 		}
@@ -726,7 +740,7 @@ void add_hook(void)
 			
 			if(mode==1) {
 				Base *base= BASACT, *newbase;
-
+				
 				ob= add_object(OB_EMPTY);
 				/* set layers OK */
 				newbase= BASACT;
@@ -740,15 +754,15 @@ void add_hook(void)
 				BASACT= base;
 			}
 			/* if mode is 2 or 4, ob has been set */
-									
+			
 			/* new hook */
 			if(mode==1 || mode==2) {
 				ModifierData *md = G.obedit->modifiers.first;
-
+				
 				while (md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform) {
 					md = md->next;
 				}
-
+				
 				hmd = (HookModifierData*) modifier_new(eModifierType_Hook);
 				BLI_insertlinkbefore(&G.obedit->modifiers, md, hmd);
 				sprintf(hmd->modifier.name, "Hook-%s", ob->id.name+2);
@@ -767,7 +781,7 @@ void add_hook(void)
 				/*        (parentinv         )                          */
 				
 				where_is_object(ob);
-		
+				
 				Mat4Invert(ob->imat, ob->obmat);
 				/* apparently this call goes from right to left... */
 				Mat4MulSerie(hmd->parentinv, ob->imat, G.obedit->obmat, NULL, 
@@ -784,18 +798,14 @@ void add_hook(void)
 	}
 	else if(mode==6) { /* clear offset */
 		where_is_object(ob);	/* ob is hook->parent */
-
+		
 		Mat4Invert(ob->imat, ob->obmat);
 		/* this call goes from right to left... */
 		Mat4MulSerie(hmd->parentinv, ob->imat, G.obedit->obmat, NULL, 
 					NULL, NULL, NULL, NULL, NULL);
 	}
 
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
 	DAG_scene_sort(G.scene);
-	
-	BIF_undo_push("Add hook");
 }
 
 void make_track(void)
