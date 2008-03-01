@@ -55,7 +55,9 @@ SCA_IObject::~SCA_IObject()
 	SCA_SensorList::iterator its;
 	for (its = m_sensors.begin(); !(its == m_sensors.end()); ++its)
 	{
-		((CValue*)(*its))->Release();
+		//Use Delete for sensor to ensure proper cleaning
+		(*its)->Delete();
+		//((CValue*)(*its))->Release();
 	}
 	SCA_ControllerList::iterator itc; 
 	for (itc = m_controllers.begin(); !(itc == m_controllers.end()); ++itc)

@@ -274,10 +274,10 @@ PyObject* KX_TouchSensor::PySetProperty(PyObject* self,
 
 	if (!prop->IsError()) {
 		m_touchedpropname = nameArg;
-		prop->Release();
 	} else {
 		; /* not found ... */
 	}
+	prop->Release();
 	
 	Py_Return;
 }
@@ -351,8 +351,8 @@ PyObject* KX_TouchSensor::PyGetHitObjectList(PyObject* self,
 				CValue* val = m_colliders->GetValue(i)->FindIdentifier(m_touchedpropname);
 				if (!val->IsError()) {
 					newList->Add(m_colliders->GetValue(i)->AddRef());
-					val->Release();
 				}
+				val->Release();
 			}
 			
 			i++;

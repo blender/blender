@@ -66,11 +66,11 @@ SCA_PropertySensor::SCA_PropertySensor(SCA_EventManager* eventmgr,
 	//CValue* resultval = m_rightexpr->Calculate();
 
 	CValue* orgprop = GetParent()->FindIdentifier(m_checkpropname);
-	if (orgprop)
+	if (!orgprop->IsError())
 	{
 		m_previoustext = orgprop->GetText();
-		orgprop->Release();
 	}
+	orgprop->Release();
 
 	if (m_checktype==KX_PROPSENSOR_INTERVAL)
 	{
@@ -82,16 +82,28 @@ SCA_PropertySensor::SCA_PropertySensor(SCA_EventManager* eventmgr,
 void SCA_PropertySensor::PrecalculateRangeExpression()
 {
 		CParser pars;
+		//The context is needed to retrieve the property at runtime but it creates
+		//loop of references
 		pars.SetContext(this->AddRef());
 		STR_String checkstr = "(" + m_checkpropval + " <= " 
 							+ m_checkpropname + ") && ( " 
 							+ m_checkpropname + " <= " 
-							+ m_checkpropmaxval;
+							+ m_checkpropmaxval + ")";
 
 		m_range_expr = pars.ProcessText(checkstr);
 }
 
-
+// Forced deletion of precalculated range expression to break reference loop
+// Use this function when you know that you won't use the sensor anymore
+void SCA_PropertySensor::Delete()
+{
+	if (m_range_expr)
+	{
+		m_range_expr->Release();
+		m_range_expr = NULL;
+	}
+	Release();
+}
 
 CValue* SCA_PropertySensor::GetReplica()
 {
@@ -164,7 +176,7 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 	case KX_PROPSENSOR_EQUAL:
 		{
 			CValue* orgprop = GetParent()->FindIdentifier(m_checkpropname);
-			if (orgprop)
+			if (!orgprop->IsError())
 			{
 				STR_String testprop = orgprop->GetText();
 				// Force strings to upper case, to avoid confusion in
@@ -177,9 +189,8 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 				} else {
 					result = (orgprop->GetText() == m_checkpropval);
 				}
-				orgprop->Release();
-
 			}
+			orgprop->Release();
 
 			if (reverse)
 				result = !result;
@@ -244,15 +255,15 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 		{
 			CValue* orgprop = GetParent()->FindIdentifier(m_checkpropname);
 				
-			if (orgprop)
+			if (!orgprop->IsError())
 			{
 				if (m_previoustext != orgprop->GetText())
 				{
 					m_previoustext = orgprop->GetText();
 					result = true;
 				}
-				orgprop->Release();
 			}
+			orgprop->Release();
 
 			//cout << " \nSens:Prop:changed!"; /* need implementation here!!! */
 			break;
@@ -388,12 +399,13 @@ PyObject* SCA_PropertySensor::PySetProperty(PyObject* self, PyObject* args, PyOb
 		return NULL;
 	}
 
-	if (FindIdentifier(STR_String(propNameArg))) {
+	CValue *prop = FindIdentifier(STR_String(propNameArg));
+	if (!prop->IsError()) {
 		m_checkpropname = propNameArg;
 	} else {
 		; /* error: bad property name */
 	}
-
+	prop->Release();
 	Py_Return;
 }
 

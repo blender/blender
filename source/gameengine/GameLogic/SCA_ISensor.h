@@ -97,6 +97,11 @@ public:
 					  bool negmode,
 					  int freq);
 	
+	/** Release sensor
+	 *  For property sensor, it is used to release the pre-calculated expression
+	 *  so that self references are removed before the sensor itself is released
+	 */
+	virtual void Delete() { Release(); }
 	/** Set inversion of pulses on or off. */
 	void SetInvert(bool inv);
 
