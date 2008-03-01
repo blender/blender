@@ -554,6 +554,8 @@ Key *get_action_mesh_key(void)
 		key = ((Mesh *)ob->data)->key;
 	else if (ob->type==OB_LATTICE) 
 		key = ((Lattice *)ob->data)->key;
+	else if (ELEM(ob->type, OB_CURVE, OB_SURF))
+		key= ((Curve *)ob->data)->key;
 	else 
 		return NULL;
 
