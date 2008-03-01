@@ -185,6 +185,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_LMTEXPASTE	1107
 #define B_LMTEXCOPY		1108
 #define B_LFALLOFFCHANGED	1109
+#define B_LMTEXMOVEUP		1110
+#define B_LMTEXMOVEDOWN		1111
 
 /* *********************** */
 #define B_MATBUTS		1300
@@ -218,6 +220,9 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_WORLDPRV2		1224
 
 #define B_MAT_PARTICLE		1225
+
+#define B_MTEXMOVEUP		1226
+#define B_MTEXMOVEDOWN		1227
 
 /* *********************** */
 #define B_TEXBUTS		1400
@@ -306,6 +311,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_WMTEXPASTE	1504
 #define B_WMTEXCOPY		1505
 #define B_AO_FALLOFF	1506
+#define B_WMTEXMOVEUP		1507
+#define B_WMTEXMOVEDOWN		1508
 
 /* *********************** */
 #define B_RENDERBUTS	1690

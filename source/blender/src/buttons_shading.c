@@ -1895,6 +1895,7 @@ void do_worldbuts(unsigned short event)
 	static MTex mtexcopybuf;
 	World *wrld;
 	MTex *mtex;
+	MTex *mtexswap;
 	
 	switch(event) {
 	case B_TEXCLEARWORLD:
@@ -1937,6 +1938,24 @@ void do_worldbuts(unsigned short event)
 			BIF_undo_push("Paste mapping settings");
 			BIF_preview_changed(ID_WO);
 			scrarea_queue_winredraw(curarea);
+		}
+		break;
+	case B_WMTEXMOVEUP:
+		wrld= G.buts->lockpoin;
+		if(wrld && (int)wrld->texact > 0) {
+			mtexswap = wrld->mtex[(int)wrld->texact];
+			wrld->mtex[(int)wrld->texact] = wrld->mtex[((int)wrld->texact)-1];
+			wrld->mtex[((int)wrld->texact)-1] = mtexswap;
+			wrld->texact--;
+		}
+		break;
+	case B_WMTEXMOVEDOWN:
+		wrld= G.buts->lockpoin;
+		if(wrld && (int)wrld->texact < MAX_MTEX-1) {
+			mtexswap = wrld->mtex[(int)wrld->texact];
+			wrld->mtex[(int)wrld->texact] = wrld->mtex[((int)wrld->texact)+1];
+			wrld->mtex[((int)wrld->texact)+1] = mtexswap;
+			wrld->texact++;
 		}
 		break;
 	case B_AO_FALLOFF:
@@ -2043,24 +2062,26 @@ static void world_panel_texture(World *wrld)
 	if(id) {
 		uiDefBut(block, TEX, B_IDNAME, "TE:",	100,160,200,19, id->name+2, 0.0, 21.0, 0, 0, "Displays name of the texture block: click to change");
 		sprintf(str, "%d", id->us);
-		uiDefBut(block, BUT, 0, str,			196,140,21,19, 0, 0, 0, 0, 0, "Displays number of users of texture: click to make single user");
-		uiDefIconBut(block, BUT, B_AUTOTEXNAME, ICON_AUTO, 220,140,21,19, 0, 0, 0, 0, 0, "Auto-assigns name to texture");
+		uiDefBut(block, BUT, 0, str,			177,140,21,19, 0, 0, 0, 0, 0, "Displays number of users of texture: click to make single user");
+		uiDefIconBut(block, BUT, B_AUTOTEXNAME, ICON_AUTO, 155,140,21,19, 0, 0, 0, 0, 0, "Auto-assigns name to texture");
 		if(id->lib) {
 			if(wrld->id.lib) uiDefIconBut(block, BUT, 0, ICON_DATALIB,	219,140,21,19, 0, 0, 0, 0, 0, "");
 			else uiDefIconBut(block, BUT, 0, ICON_PARLIB,	219,140,21,19, 0, 0, 0, 0, 0, "");	
 		}
 		uiBlockSetCol(block, TH_AUTO);
-		uiDefBut(block, BUT, B_TEXCLEARWORLD, "Clear", 122, 140, 72, 19, 0, 0, 0, 0, 0, "Erases link to texture");
+		uiDefBut(block, BUT, B_TEXCLEARWORLD, "Clear", 122, 140, 32, 19, 0, 0, 0, 0, 0, "Erases link to texture");
 	}
 	else 
 		uiDefButS(block, TOG, B_WTEXBROWSE, "Add New" ,100, 160, 200, 19, &(G.buts->texnr), -1.0, 32767.0, 0, 0, "Adds a new texture datablock");
 
 	uiBlockSetCol(block, TH_AUTO);
 	
-	/* copy/paste */
+	/* copy/paste/up/down */
 	uiBlockBeginAlign(block);
-	uiDefIconBut(block, BUT, B_WMTEXCOPY, ICON_COPYUP,	250,140,25,19, 0, 0, 0, 0, 0, "Copies the mapping settings to the buffer");
-	uiDefIconBut(block, BUT, B_WMTEXPASTE, ICON_PASTEUP,275,140,25,19, 0, 0, 0, 0, 0, "Pastes the mapping settings from the buffer");
+	uiDefIconBut(block, BUT, B_WMTEXCOPY, ICON_COPYUP, 	200,140,25,19, 0, 0, 0, 0, 0, "Copies the mapping settings to the buffer");
+	uiDefIconBut(block, BUT, B_WMTEXPASTE, ICON_PASTEUP, 	225,140,25,19, 0, 0, 0, 0, 0, "Pastes the mapping settings from the buffer");
+	uiDefIconBut(block, BUT, B_WMTEXMOVEUP, VICON_MOVE_UP, 	250,140,25,19, 0, 0, 0, 0, 0, "Move texture channel up");
+	uiDefIconBut(block, BUT, B_WMTEXMOVEDOWN, VICON_MOVE_DOWN, 275,140,25,19, 0, 0, 0, 0, 0, "Move texture channel down");
 		
 	/* TEXCO */
 	uiBlockBeginAlign(block);
@@ -2325,6 +2346,7 @@ void do_lampbuts(unsigned short event)
 	static MTex mtexcopybuf;
 	Lamp *la;
 	MTex *mtex;
+	MTex *mtexswap;
 
 	switch(event) {
 	case B_LAMPREDRAW:
@@ -2393,6 +2415,24 @@ void do_lampbuts(unsigned short event)
 			BIF_undo_push("Paste mapping settings");
 			BIF_preview_changed(ID_LA);
 			scrarea_queue_winredraw(curarea);
+		}
+		break;
+	case B_LMTEXMOVEUP:
+		la= G.buts->lockpoin;
+		if(la && (int)la->texact > 0) {
+			mtexswap = la->mtex[(int)la->texact];
+			la->mtex[(int)la->texact] = la->mtex[((int)la->texact)-1];
+			la->mtex[((int)la->texact)-1] = mtexswap;
+			la->texact--;
+		}
+		break;
+	case B_LMTEXMOVEDOWN:
+		la= G.buts->lockpoin;
+		if(la && (int)la->texact < MAX_MTEX-1) {
+			mtexswap = la->mtex[(int)la->texact];
+			la->mtex[(int)la->texact] = la->mtex[((int)la->texact)+1];
+			la->mtex[((int)la->texact)+1] = mtexswap;
+			la->texact++;
 		}
 		break;
 	case B_LFALLOFFCHANGED:
@@ -2496,22 +2536,25 @@ static void lamp_panel_texture(Object *ob, Lamp *la)
 	if(id) {
 		uiDefBut(block, TEX, B_IDNAME, "TE:",	100,160,200,19, id->name+2, 0.0, 21.0, 0, 0, "Displays name of the texture block: click to change");
 		sprintf(str, "%d", id->us);
-		uiDefBut(block, BUT, 0, str,			196,140,21,19, 0, 0, 0, 0, 0, "Displays number of users of texture: click to make single user");
-		uiDefIconBut(block, BUT, B_AUTOTEXNAME, ICON_AUTO, 221,140,21,19, 0, 0, 0, 0, 0, "Auto-assigns name to texture");
+		uiDefBut(block, BUT, 0, str,			155,140,21,19, 0, 0, 0, 0, 0, "Displays number of users of texture: click to make single user");
+		uiDefIconBut(block, BUT, B_AUTOTEXNAME, ICON_AUTO, 177,140,21,19, 0, 0, 0, 0, 0, "Auto-assigns name to texture");
 		if(id->lib) {
 			if(la->id.lib) uiDefIconBut(block, BUT, 0, ICON_DATALIB,	219,140,21,19, 0, 0, 0, 0, 0, "");
 			else uiDefIconBut(block, BUT, 0, ICON_PARLIB,	219,140,21,19, 0, 0, 0, 0, 0, "");	
 		}
 		uiBlockSetCol(block, TH_AUTO);
-		uiDefBut(block, BUT, B_TEXCLEARLAMP, "Clear", 122, 140, 72, 19, 0, 0, 0, 0, 0, "Erases link to texture");
+		uiDefBut(block, BUT, B_TEXCLEARLAMP, "Clear", 122, 140, 32, 19, 0, 0, 0, 0, 0, "Erases link to texture");
 	}
 	else 
 		uiDefButS(block, TOG, B_LTEXBROWSE, "Add New" ,100, 160, 200, 19, &(G.buts->texnr), -1.0, 32767.0, 0, 0, "Adds a new texture datablock");
 
-	/* copy/paste */
+	/* copy/paste/up/down */
 	uiBlockBeginAlign(block);
-	uiDefIconBut(block, BUT, B_LMTEXCOPY, ICON_COPYUP,	250,140,25,19, 0, 0, 0, 0, 0, "Copies the mapping settings to the buffer");
-	uiDefIconBut(block, BUT, B_LMTEXPASTE, ICON_PASTEUP,	275,140,25,19, 0, 0, 0, 0, 0, "Pastes the mapping settings from the buffer");
+	uiDefIconBut(block, BUT, B_LMTEXCOPY, ICON_COPYUP,	200,140,25,19, 0, 0, 0, 0, 0, "Copies the mapping settings to the buffer");
+	uiDefIconBut(block, BUT, B_LMTEXPASTE, ICON_PASTEUP,	225,140,25,19, 0, 0, 0, 0, 0, "Pastes the mapping settings from the buffer");
+	uiDefIconBut(block, BUT, B_LMTEXMOVEUP, VICON_MOVE_UP, 250,140,25,19, 0, 0, 0, 0, 0, "Move texture channel up");
+	uiDefIconBut(block, BUT, B_LMTEXMOVEDOWN, VICON_MOVE_DOWN, 275,140,25,19, 0, 0, 0, 0, 0, "Move texture channel down");
+
 	
 	/* TEXCO */
 	uiBlockSetCol(block, TH_AUTO);
@@ -2879,6 +2922,7 @@ void do_matbuts(unsigned short event)
 	static MTex mtexcopybuf;
 	Material *ma;
 	MTex *mtex;
+	MTex *mtexswap;
 
 	/* all operations default on active material layer here */
 	/* but this also gets called for lamp and world... */
@@ -3025,6 +3069,22 @@ void do_matbuts(unsigned short event)
 			BIF_undo_push("Paste mapping settings");
 			BIF_preview_changed(ID_MA);
 			scrarea_queue_winredraw(curarea);
+		}
+		break;
+	case B_MTEXMOVEUP:
+		if(ma && (int)ma->texact > 0) {
+			mtexswap = ma->mtex[(int)ma->texact];
+			ma->mtex[(int)ma->texact] = ma->mtex[((int)ma->texact)-1];
+			ma->mtex[((int)ma->texact)-1] = mtexswap;
+			ma->texact--;
+		}
+		break;
+	case B_MTEXMOVEDOWN:
+		if(ma && (int)ma->texact < MAX_MTEX-1) {
+			mtexswap = ma->mtex[(int)ma->texact];
+			ma->mtex[(int)ma->texact] = ma->mtex[((int)ma->texact)+1];
+			ma->mtex[((int)ma->texact)+1] = mtexswap;
+			ma->texact++;
 		}
 		break;
 	case B_MATZTRANSP:
@@ -3437,9 +3497,12 @@ static void material_panel_texture(Object *ob, Material *ma)
 				uiButSetFunc(but, particle_recalc_material, ma, NULL);
 		}
 	}
+	/* copy/paste/up/down */
 	uiBlockBeginAlign(block);
-	uiDefIconBut(block, BUT, B_MTEXCOPY, ICON_COPYUP,	100,180,23,21, 0, 0, 0, 0, 0, "Copies the mapping settings to the buffer");
-	uiDefIconBut(block, BUT, B_MTEXPASTE, ICON_PASTEUP,	125,180,23,21, 0, 0, 0, 0, 0, "Pastes the mapping settings from the buffer");
+	uiDefIconBut(block, BUT, B_MTEXCOPY, ICON_COPYUP,	100,180,25,19, 0, 0, 0, 0, 0, "Copies the mapping settings to the buffer");
+	uiDefIconBut(block, BUT, B_MTEXPASTE, ICON_PASTEUP,	125,180,25,19, 0, 0, 0, 0, 0, "Pastes the mapping settings from the buffer");
+	uiDefIconBut(block, BUT, B_MTEXMOVEUP, VICON_MOVE_UP, 	150,180,25,19, 0, 0, 0, 0, 0, "Move texture channel up");
+	uiDefIconBut(block, BUT, B_MTEXMOVEDOWN, VICON_MOVE_DOWN, 175,180,25,19, 0, 0, 0, 0, 0, "Move texture channel down");
 	uiBlockEndAlign(block);
 	uiBlockSetCol(block, TH_AUTO);
 	
