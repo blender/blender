@@ -1684,9 +1684,11 @@ static PyObject *Object_link( BPy_Object * self, PyObject * args )
 	self->object->data = data;
 
 	/* creates the curve for the text object */
-	if (self->object->type == OB_FONT) 
+	if (self->object->type == OB_FONT) {
 		text_to_curve(self->object, 0);
-
+	} else if (self->object->type == OB_ARMATURE) {
+		armature_rebuild_pose(self->object, (bArmature *)data);
+	}
 	id_us_plus( id );
 	if( oldid ) {
 		if( oldid->us > 0 ) {

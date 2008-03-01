@@ -1565,8 +1565,11 @@ typeError:
 	object->flag = SELECT;
 	
 	/* creates the curve for the text object */
-	if (type == OB_FONT) 
+	if (type == OB_FONT) {
 		text_to_curve(object, 0);
+	} else if (object->type == OB_ARMATURE) {
+		armature_rebuild_pose(object, (bArmature *)data);
+	}
 	
 	/* link to scene */
 	base = MEM_callocN( sizeof( Base ), "pynewbase" );
