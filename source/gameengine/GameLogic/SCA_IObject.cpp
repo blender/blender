@@ -101,6 +101,7 @@ SCA_ActuatorList& SCA_IObject::GetActuators()
 
 void SCA_IObject::AddSensor(SCA_ISensor* act)
 {
+	act->AddRef();
 	m_sensors.push_back(act);
 }
 
@@ -108,6 +109,7 @@ void SCA_IObject::AddSensor(SCA_ISensor* act)
 
 void SCA_IObject::AddController(SCA_IController* act)
 {
+	act->AddRef();
 	m_controllers.push_back(act);
 }
 
@@ -115,6 +117,7 @@ void SCA_IObject::AddController(SCA_IController* act)
 
 void SCA_IObject::AddActuator(SCA_IActuator* act)
 {
+	act->AddRef();
 	m_actuators.push_back(act);
 }
 

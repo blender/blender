@@ -35,6 +35,7 @@
 #pragma warning (disable : 4786)
 #endif //WIN32
 
+
 #include "KX_Scene.h"
 #include "MT_assert.h"
 
@@ -78,6 +79,13 @@
 #include "BL_SkinDeformer.h"
 #include "BL_DeformableGameObject.h"
 
+// to get USE_BULLET!
+#include "KX_ConvertPhysicsObject.h"
+
+#ifdef USE_BULLET
+#include "CcdPhysicsEnvironment.h"
+#include "CcdPhysicsController.h"
+#endif
 
 void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
 {
@@ -124,6 +132,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_objectlist = new CListValue();
 	m_parentlist = new CListValue();
 	m_lightlist= new CListValue();
+	m_inactivelist = new CListValue();
 	m_euthanasyobjects = new CListValue();
 	m_delayReleaseObjects = new CListValue();
 
@@ -183,6 +192,9 @@ KX_Scene::~KX_Scene()
 	if (m_parentlist)
 		m_parentlist->Release();
 	
+	if (m_inactivelist)
+		m_inactivelist->Release();
+
 	if (m_lightlist)
 		m_lightlist->Release();
 	
@@ -210,11 +222,38 @@ KX_Scene::~KX_Scene()
 	{
 		delete m_bucketmanager;
 	}
-
+#ifdef USE_BULLET
+	// This is a fix for memory leaks in bullet: the collision shapes is not destroyed 
+	// when the physical controllers are destroyed. The reason is that shapes are shared
+	// between replicas of an object. There is no reference count in Bullet so the
+	// only workaround that does not involve changes in Bullet is to save in this array
+	// the list of shapes that are created when the scene is created (see KX_ConvertPhysicsObjects.cpp)
+	class btCollisionShape* shape;
+	class btTriangleMeshShape* meshShape;
+	vector<class btCollisionShape*>::iterator it = m_shapes.begin();
+	while (it != m_shapes.end()) {
+		shape = *it;
+		if (shape->getShapeType() == TRIANGLE_MESH_SHAPE_PROXYTYPE)
+		{
+			meshShape = static_cast<btTriangleMeshShape*>(shape);
+			// shapes based on meshes use an interface that contains the vertices.
+			// Again the idea is to be able to share the interface between shapes but
+			// this is not used in Blender: each base object will have its own interface 
+			btStridingMeshInterface* meshInterface = meshShape->getMeshInterface();
+			if (meshInterface)
+				delete meshInterface;
+		}
+		delete shape;
+		it++;
+	}
+#endif
 	//Py_DECREF(m_attrlist);
 }
 
-
+void KX_Scene::AddShape(class btCollisionShape*shape)
+{
+	m_shapes.push_back(shape);
+}
 
 
 void KX_Scene::SetProjectionMatrix(MT_CmMatrix4x4& pmat)
@@ -241,6 +280,11 @@ CListValue* KX_Scene::GetObjectList()
 CListValue* KX_Scene::GetRootParentList()
 {
 	return m_parentlist;
+}
+
+CListValue* KX_Scene::GetInactiveList()
+{
+	return m_inactivelist;
 }
 
 
@@ -415,7 +459,7 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 	replicanode->SetSGClientObject(newobj);
 
 	// this is the list of object that are send to the graphics pipeline
-	m_objectlist->Add(newobj);
+	m_objectlist->Add(newobj->AddRef());
 	newobj->Bucketize();
 
 	// logic cannot be replicated, until the whole hierarchy is replicated.
@@ -571,7 +615,9 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 		// add a timebomb to this object
 		// for now, convert between so called frames and realtime
 		m_tempObjectList->Add(replica->AddRef());
-		replica->SetProperty("::timebomb",new CFloatValue(lifespan*0.02));
+		CValue *fval = new CFloatValue(lifespan*0.02);
+		replica->SetProperty("::timebomb",fval);
+		fval->Release();
 	}
 
 	// add to 'rootparent' list (this is the list of top hierarchy objects, updated each frame)
@@ -634,7 +680,7 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	replica->GetSGNode()->UpdateWorldData(0);
 	replica->GetSGNode()->SetBBox(originalobj->GetSGNode()->BBox());
 	replica->GetSGNode()->SetRadius(originalobj->GetSGNode()->Radius());
-	
+	//	don't release replica here because we are returning it, not done with it...
 	return replica;
 }
 
@@ -654,7 +700,8 @@ void KX_Scene::RemoveObject(class CValue* gameobj)
 		// recursively destruct
 		node->Destruct();
 	}
-	newobj->SetSGNode(0);
+	//no need to do that: the object is destroyed and memory released 
+	//newobj->SetSGNode(0);
 }
 
 void KX_Scene::DelayedReleaseObject(CValue* gameobj)
@@ -704,6 +751,7 @@ void KX_Scene::NewRemoveObject(class CValue* gameobj)
 	{
 		m_logicmgr->RemoveDestroyedActuator(*ita);
 	}
+	// the sensors/controllers/actuators must also be released, this is done in ~SCA_IObject
 
 	// now remove the timer properties from the time manager
 	int numprops = newobj->GetPropertyCount();
@@ -724,12 +772,15 @@ void KX_Scene::NewRemoveObject(class CValue* gameobj)
 		newobj->Release();
 	if (m_parentlist->RemoveValue(newobj))
 		newobj->Release();
+	if (m_inactivelist->RemoveValue(newobj))
+		newobj->Release();
 	if (m_euthanasyobjects->RemoveValue(newobj))
 		newobj->Release();
 		
 	if (newobj == m_active_camera)
 	{
-		m_active_camera->Release();
+		//no AddRef done on m_active_camera so no Release
+		//m_active_camera->Release();
 		m_active_camera = NULL;
 	}
 }
@@ -1108,6 +1159,8 @@ void KX_Scene::LogicEndFrame()
 	for (i = numobj - 1; i >= 0; i--)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*)m_euthanasyobjects->GetValue(i);
+		// KX_Scene::RemoveObject will also remove the object from this list
+		// that's why we start from the end
 		this->RemoveObject(gameobj);
 	}
 
@@ -1115,11 +1168,11 @@ void KX_Scene::LogicEndFrame()
 	for (i = numobj-1;i>=0;i--)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*)m_delayReleaseObjects->GetValue(i);
-		m_delayReleaseObjects->RemoveValue(gameobj);	
-		
+		// This list is not for object removal, but just object release
+		gameobj->Release();
 	}
-	
-
+	// empty the list as we have removed all references
+	m_delayReleaseObjects->Resize(0);	
 }
 
 

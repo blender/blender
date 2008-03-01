@@ -733,6 +733,8 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					logicmgr->RegisterToSensor(gamecont,gamesensor);
 				}
 			}
+			// done with gamesensor
+			gamesensor->Release();
 			
 		}
 		sens=sens->next;

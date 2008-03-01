@@ -169,7 +169,28 @@ PyObject* CValue::PyGetName(PyObject* self,PyObject* args,PyObject* kwds)
 	return pyname;
 }
 
+/*#define CVALUE_DEBUG*/
+#ifdef CVALUE_DEBUG
+int gRefCount;
+struct SmartCValueRef 
+{
+	CValue *m_ref;
+	int m_count;
+	SmartCValueRef(CValue *ref)
+	{
+		m_ref = ref;
+		m_count = gRefCount++;
+	}
+};
 
+#include <vector>
+
+std::vector<SmartCValueRef> gRefList;
+#endif
+
+#ifdef _DEBUG
+//int gRefCountValue;
+#endif
 
 CValue::CValue(PyTypeObject *T)
 		: PyObjectPlus(T),
@@ -186,6 +207,12 @@ effect: constucts a CValue
 */
 {
 	//debug(gRefCountValue++)	// debugging
+#ifdef _DEBUG
+	//gRefCountValue++;
+#ifdef CVALUE_DEBUG
+	gRefList.push_back(SmartCValueRef(this));
+#endif
+#endif
 }
 
 
@@ -199,6 +226,18 @@ effect: deletes the object
 	ClearProperties();
 
 	assertd (m_refcount==0);
+#ifdef CVALUE_DEBUG
+	std::vector<SmartCValueRef>::iterator it;
+	for (it=gRefList.begin(); it!=gRefList.end(); it++)
+	{
+		if (it->m_ref == this)
+		{
+			*it = gRefList.back();
+			gRefList.pop_back();
+			break;
+		}
+	}
+#endif
 }
 
 
@@ -293,7 +332,7 @@ void CValue::SetProperty(const STR_String & name,CValue* ioProperty)
 	}
 	
 	// Add property at end of array
-	(*m_pNamedPropertyArray)[name] = ioProperty;//->Add(ioProperty);
+	(*m_pNamedPropertyArray)[name] = ioProperty->AddRef();//->Add(ioProperty);
 }
 
 
@@ -356,10 +395,13 @@ bool CValue::RemoveProperty(const STR_String & inName)
 	if (m_pNamedPropertyArray == NULL)
 		return false;
 
-	// Scan all properties, as soon as we find one with <inName> -> Remove it
-//  	CValue* val = (*m_pNamedPropertyArray)[inName];
-	if (m_pNamedPropertyArray->erase(inName)) return true;
-	
+	CValue* val = GetProperty(inName);
+	if (NULL != val) 
+	{
+		val->Release();
+		m_pNamedPropertyArray->erase(inName);
+		return true;
+	}
 	return false;
 }
 
@@ -379,7 +421,7 @@ void CValue::ClearProperties()
 	!(it == m_pNamedPropertyArray->end());it++)
 	{
 		CValue* tmpval = (*it).second;
-		STR_String name = (*it).first;
+		//STR_String name = (*it).first;
 		tmpval->Release();
 	}
 
@@ -469,8 +511,9 @@ void CValue::CloneProperties(CValue *replica)
 		for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
 		!(it == m_pNamedPropertyArray->end());it++)
 		{
-			
-			replica->SetProperty((*it).first,(*it).second->GetReplica());
+			CValue *val = (*it).second->GetReplica();
+			replica->SetProperty((*it).first,val);
+			val->Release();
 		}
 	}
 
@@ -489,10 +532,6 @@ double*		CValue::GetVector3(bool bGetTransformedVec)
 }
 
 
-
-
-
-
 /*---------------------------------------------------------------------------------------------------------------------
 	Reference Counting
 ---------------------------------------------------------------------------------------------------------------------*/
@@ -504,6 +543,9 @@ CValue *CValue::AddRef()
 	// Increase global reference count, used to see at the end of the program
 	// if all CValue-derived classes have been dereferenced to 0
 	//debug(gRefCountValue++);
+#ifdef _DEBUG
+	//gRefCountValue++;
+#endif
 	m_refcount++; 
 	return this;
 }
@@ -518,7 +560,9 @@ int	CValue::Release()
 	// Decrease global reference count, used to see at the end of the program
 	// if all CValue-derived classes have been dereferenced to 0
 	//debug(gRefCountValue--);
-
+#ifdef _DEBUG
+	//gRefCountValue--;
+#endif
 	// Decrease local reference count, if it reaches 0 the object should be freed
 	if (--m_refcount > 0)
 	{
@@ -546,6 +590,9 @@ void CValue::DisableRefCount()
 	m_refcount--;
 
 	//debug(gRefCountValue--);
+#ifdef _DEBUG
+	//gRefCountValue--;
+#endif
 	m_ValFlags.RefCountDisabled=true;
 }
 
@@ -590,11 +637,14 @@ CValue*	CValue::FindIdentifier(const STR_String& identifiername)
 	} else
 	{
 		result = GetProperty(identifiername);
+		if (result)
+			return result->AddRef();
 	}
-	if (result)
-		return result->AddRef();
-	// warning here !!!
-	result = new CErrorValue(identifiername+" not found");
+	if (!result)
+	{
+		// warning here !!!
+		result = new CErrorValue(identifiername+" not found");
+	}
 	return result;
 }
 
@@ -717,7 +767,7 @@ int	CValue::_setattr(const STR_String& attr,PyObject* pyobj)
 			oldprop->SetValue(vallie);
 		} else
 		{
-			SetProperty(attr,vallie->AddRef());
+			SetProperty(attr,vallie);
 		}
 		vallie->Release();
 	}

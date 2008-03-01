@@ -934,6 +934,8 @@ void BL_ConvertActuators(char* maggiename,
 			gameobj->AddActuator(baseact);
 			
 			converter->RegisterGameActuator(baseact, bact);
+			// done with baseact, release it
+			baseact->Release();
 		}
 		
 		bact = bact->next;

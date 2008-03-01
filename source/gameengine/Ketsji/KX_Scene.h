@@ -85,6 +85,7 @@ class RAS_IPolyMaterial;
 class RAS_IRasterizer;
 class RAS_IRenderTools;
 class SCA_JoystickManager;
+class btCollisionShape;
 /**
  * The KX_Scene holds all data for an independent scene. It relates
  * KX_Objects to the specific objects in the modules.
@@ -111,6 +112,7 @@ protected:
 	CListValue*			m_objectlist;
 	CListValue*			m_parentlist; // all 'root' parents
 	CListValue*			m_lightlist;
+	CListValue*			m_inactivelist;	// all objects that are not in the active layer
 
 	/**
 	 *  The tree of objects in the scene.
@@ -121,7 +123,11 @@ protected:
 	 * The set of cameras for this scene
 	 */
 	list<class KX_Camera*>       m_cameras;
-	
+	/**
+	 * The set of bullet shapes that must be deleted at the end of the scene
+	 * to avoid memory leak (not deleted by bullet because shape are shared between replicas)
+	 */
+	vector<class btCollisionShape*> m_shapes;
 	/**
 	 * Various SCA managers used by the scene
 	 */
@@ -300,6 +306,7 @@ public:
 	void NewRemoveObject(CValue* gameobj);
 	void ReplaceMesh(CValue* gameobj,
 					 void* meshobj);
+	void AddShape(class btCollisionShape* shape);
 	/**
 	 * @section Logic stuff
 	 * Initiate an update of the logic system.
@@ -313,6 +320,10 @@ public:
 
 		CListValue*				
 	GetObjectList(
+	);
+
+		CListValue*				
+	GetInactiveList(
 	);
 
 		CListValue*				

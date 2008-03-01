@@ -858,6 +858,8 @@ static btCollisionShape* CreateBulletShapeFromMesh(RAS_MeshObject* meshobj, bool
 			//concaveShape = new btTriangleMeshShape( collisionMeshData );
 
 			concaveShape->recalcLocalAabb();
+			if (collisionMeshShape)
+				delete collisionMeshShape;
 			collisionMeshShape = concaveShape;
 
 		} 
@@ -866,8 +868,10 @@ static btCollisionShape* CreateBulletShapeFromMesh(RAS_MeshObject* meshobj, bool
 
 		return collisionMeshShape;
 	}
-
-	delete collisionMeshShape;
+	if (collisionMeshShape)
+		delete collisionMeshShape;
+	if (collisionMeshData)
+		delete collisionMeshData;
 	return NULL;
 
 }
@@ -1021,7 +1025,10 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 //	ci.m_localInertiaTensor.setValue(0.1f,0.1f,0.1f);
 
 	if (!bm)
+	{
+		delete motionstate;
 		return;
+	}
 
 	bm->setMargin(0.06);
 
@@ -1057,6 +1064,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 				
 
 			compoundShape->addChildShape(childTrans,bm);
+			kxscene->AddShape(bm);
 			//do some recalc?
 			//recalc inertia for rigidbody
 			if (!rigidbody->isStaticOrKinematicObject())
@@ -1076,6 +1084,9 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 			btTransform identTrans;
 			identTrans.setIdentity();
 			compoundShape->addChildShape(identTrans,bm);
+			//note abount compoundShape: Bullet does not delete the child shapes when 
+			//the compound shape is deleted, so insert also the child shapes 
+			kxscene->AddShape(bm);
 			bm = compoundShape;
 		}
 
@@ -1112,9 +1123,6 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 
 	ci.m_collisionShape = bm;
-	
-
-	
 	ci.m_friction = smmaterial->m_friction;//tweak the friction a bit, so the default 0.5 works nice
 	ci.m_restitution = smmaterial->m_restitution;
 	ci.m_physicsEnv = env;
@@ -1127,6 +1135,8 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	ci.m_collisionFilterMask = (isbulletdyna) ? short(CcdConstructionInfo::AllFilter) : short(CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::StaticFilter);
 
 	KX_BulletPhysicsController* physicscontroller = new KX_BulletPhysicsController(ci,isbulletdyna);
+	//remember that we created a shape so that we can delete it when the scene is removed (bullet will not delete it) 
+	kxscene->AddShape(bm);
 
 	if (objprop->m_in_active_layer)
 	{
