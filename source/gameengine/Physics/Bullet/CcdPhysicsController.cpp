@@ -36,6 +36,7 @@ float gAngularSleepingTreshold = 1.0f;
 
 
 btVector3 startVel(0,0,0);//-10000);
+
 CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 :m_cci(ci)
 {
@@ -119,17 +120,20 @@ void CcdPhysicsController::CreateRigidbody()
 		m_cci.m_linearDamping,m_cci.m_angularDamping,
 		m_cci.m_friction,m_cci.m_restitution);
 
-	
-
 	//
 	// init the rigidbody properly
 	//
 	
 	//setMassProps this also sets collisionFlags
 	//convert collision flags!
-
+	//special case: a near/radar sensor controller should not be defined static or it will
+	//generate loads of static-static collision messages on the console
+	if ((m_cci.m_collisionFilterGroup & CcdConstructionInfo::SensorFilter) != 0)
+	{
+		// reset the flags that have been set so far
+		m_body->setCollisionFlags(0);
+	}
 	m_body->setCollisionFlags(m_body->getCollisionFlags() | m_cci.m_collisionFlags);
-	
 	m_body->setGravity( m_cci.m_gravity);
 	m_body->setDamping(m_cci.m_linearDamping, m_cci.m_angularDamping);
 
@@ -141,11 +145,13 @@ CcdPhysicsController::~CcdPhysicsController()
 	if (m_cci.m_physicsEnv)
 		m_cci.m_physicsEnv->removeCcdPhysicsController(this);
 
-	delete m_MotionState;
+	if (m_MotionState)
+		delete m_MotionState;
 	if (m_bulletMotionState)
 		delete m_bulletMotionState;
 	delete m_body;
 }
+
 
 		/**
 			SynchronizeMotionStates ynchronizes dynas, kinematic and deformable entities (and do 'late binding')

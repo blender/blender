@@ -54,6 +54,7 @@ KX_TouchEventManager::KX_TouchEventManager(class SCA_LogicManager* logicmgr,
 
 	m_physEnv->addTouchCallback(PHY_OBJECT_RESPONSE, KX_TouchEventManager::newCollisionResponse, this);
 	m_physEnv->addTouchCallback(PHY_SENSOR_RESPONSE, KX_TouchEventManager::newCollisionResponse, this);
+	m_physEnv->addTouchCallback(PHY_BROADPH_RESPONSE, KX_TouchEventManager::newBroadphaseResponse, this);
 
 }
 
@@ -77,6 +78,26 @@ bool	 KX_TouchEventManager::newCollisionResponse(void *client_data,
 	KX_TouchEventManager *touchmgr = (KX_TouchEventManager *) client_data;
 	touchmgr->NewHandleCollision(object1, object2, coll_data);
 	return false;
+}
+
+bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data, 
+							void *object1,
+							void *object2,
+							const PHY_CollData *coll_data)
+{
+	PHY_IPhysicsController* ctrl = static_cast<PHY_IPhysicsController*>(object1);
+	KX_ClientObjectInfo* info = (ctrl) ? static_cast<KX_ClientObjectInfo*>(ctrl->getNewClientInfo()) : NULL;
+	// This call back should only be called for controllers of Near and Radar sensor
+	if (info &&
+        info->m_sensors.size() == 1 &&
+		(info->m_type == KX_ClientObjectInfo::NEAR ||
+		 info->m_type == KX_ClientObjectInfo::RADAR))
+	{
+		// only one sensor for this type of object
+		KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(*info->m_sensors.begin());
+		return touchsensor->BroadPhaseFilterCollision(object1,object2);
+	}
+	return true;
 }
 
 void KX_TouchEventManager::RegisterSensor(SCA_ISensor* sensor)

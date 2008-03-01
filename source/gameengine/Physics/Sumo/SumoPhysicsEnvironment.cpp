@@ -206,6 +206,8 @@ void SumoPhysicsEnvironment::addTouchCallback(int response_class, PHY_ResponseCa
 	case PHY_STATIC_RESPONSE:
 		sumoRespClass = PHY_STATIC_RESPONSE;
 		break;
+	case PHY_BROADPH_RESPONSE:
+		return;
 	default:
 		assert(0);
 		return;

@@ -85,7 +85,6 @@ class PHY_IPhysicsController
 
 		// dyna's that are rigidbody are free in orientation, dyna's with non-rigidbody are restricted 
 		virtual	void		setRigidBody(bool rigid)=0;
-
 		// clientinfo for raycasts for example
 		virtual	void*				getNewClientInfo()=0;
 		virtual	void				setNewClientInfo(void* clientinfo)=0;

@@ -56,7 +56,12 @@ class KX_TouchEventManager : public SCA_EventManager
 						void *object1,
 						void *object2,
 						const PHY_CollData *coll_data);
-	
+
+	static bool newBroadphaseResponse(void *client_data, 
+						void *object1,
+						void *object2,
+						const PHY_CollData *coll_data);
+
 	virtual bool	NewHandleCollision(void* obj1,void* obj2,
 						const PHY_CollData * coll_data); 
 

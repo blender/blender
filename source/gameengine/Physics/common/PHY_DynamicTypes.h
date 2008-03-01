@@ -19,7 +19,6 @@ subject to the following restrictions:
 
 
 
-class	PHY_ResponseTable;
 
 class PHY_Shape;
 
@@ -40,10 +39,11 @@ struct	PHY__Vector3
 typedef enum
 {
 	PHY_FH_RESPONSE,
-	PHY_SENSOR_RESPONSE,		/* Touch Sensors */
+	PHY_SENSOR_RESPONSE,	/* Touch Sensors */
 	PHY_CAMERA_RESPONSE,	/* Visibility Culling */
 	PHY_OBJECT_RESPONSE,	/* Object Dynamic Geometry Response */
 	PHY_STATIC_RESPONSE,	/* Static Geometry Response */
+	PHY_BROADPH_RESPONSE,	/* broadphase Response */
 	
 	PHY_NUM_RESPONSE
 };
