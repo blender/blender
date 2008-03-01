@@ -69,10 +69,8 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em, BME_Mesh *bm) {
 	int len;
 
 	BME_model_begin(bm);
-	/*custom data*/
 	
 	/*add verts*/
-	CustomData_copy(&em->vdata, &bm->vdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	eve= em->verts.first;
 	while(eve) {
 		v1 = BME_MV(bm,eve->co);
@@ -84,14 +82,10 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em, BME_Mesh *bm) {
 		/* link the verts for edge and face construction;
 		 * kind of a dangerous thing - remember to cast back to BME_Vert before using! */
 		eve->tmp.v = (EditVert*)v1;
-
-		CustomData_em_copy_data(&em->vdata, &bm->vdata, eve->data, &v1->data);
-		
 		eve = eve->next;
 	}
 	
 	/*add edges*/
-	CustomData_copy(&em->edata, &bm->edata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	eed= em->edges.first;
 	while(eed) {
 		v1 = (BME_Vert*)eed->v1->tmp.v;
@@ -104,7 +98,6 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em, BME_Mesh *bm) {
 		if(eed->seam) e->flag |= ME_SEAM;
 		if(eed->h & EM_FGON) e->flag |= ME_FGON;
 		if(eed->h & 1) e->flag |= ME_HIDE;
-		CustomData_em_copy_data(&em->edata, &bm->edata, eed->data, &e->data);
 
 		/* link the edges for face construction;
 		 * kind of a dangerous thing - remember to cast back to BME_Edge before using! */
@@ -113,7 +106,6 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em, BME_Mesh *bm) {
 	}
 
 	/*add faces.*/
-	CustomData_copy(&em->fdata, &bm->pdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	efa= em->faces.first;
 	while(efa) {
 		if(efa->v4) len = 4;
@@ -141,8 +133,6 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em, BME_Mesh *bm) {
 			if(efa->f & 1) f->flag |= ME_FACE_SEL;
 			else f->flag &= ~ME_FACE_SEL;
 		}
-		CustomData_em_copy_data(&em->fdata, &bm->pdata, efa->data, &f->data);
-		
 		efa = efa->next;
 	}
 	BME_model_end(bm);
@@ -171,7 +161,6 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 
 	/* convert to EditMesh */
 	/* make editverts */
-	CustomData_copy(&bm->vdata, &em->vdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	totvert = BLI_countlist(&(bm->verts));
 	evlist= (EditVert **)MEM_mallocN(totvert*sizeof(void *),"evlist");
 	for (i=0,v1=bm->verts.first;v1;v1=v1->next,i++) {
@@ -185,11 +174,9 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 		eve1->f = (unsigned char)v1->flag;
 		eve1->h = (unsigned char)v1->h;
 		eve1->bweight = v1->bweight;
-		CustomData_em_copy_data(&bm->vdata, &em->vdata, v1->data, &eve1->data);
 	}
 	
 	/* make edges */
-	CustomData_copy(&bm->edata, &em->edata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	for (e=bm->edges.first;e;e=e->next) {
 		if(!(findedgelist(evlist[e->v1->tflag1], evlist[e->v2->tflag1]))){
 			eed= addedgelist(evlist[e->v1->tflag1], evlist[e->v2->tflag1], NULL);
@@ -202,12 +189,10 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 			if(e->flag & ME_HIDE) eed->h |= 1;
 			if(G.scene->selectmode==SCE_SELECT_EDGE) 
 				EM_select_edge(eed, eed->f & SELECT);
-			CustomData_em_copy_data(&bm->edata, &em->edata, e->data, &eed->data);
 		}
 	}
 
 	/* make faces */
-	CustomData_copy(&bm->pdata, &em->fdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	for (f=bm->polys.first;f;f=f->next) {
 		len = BME_cycle_length(f->loopbase);
 		if (len==3 || len==4) {
@@ -222,7 +207,6 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 			}
 
 			efa = addfacelist(eve1, eve2, eve3, eve4, NULL, NULL);
-			CustomData_em_copy_data(&bm->pdata, &em->fdata, f->data, &efa->data);
 			efa->mat_nr = (unsigned char)f->mat_nr;
 			efa->flag= f->flag & ~ME_HIDE;
 			if(f->flag & ME_FACE_SEL) {
@@ -266,21 +250,13 @@ BME_Mesh *BME_derivedmesh_to_bmesh(DerivedMesh *dm, BME_Mesh *bm)
 
 	vert_array = MEM_mallocN(sizeof(*vert_array)*totvert,"BME_derivedmesh_to_bmesh BME_Vert* array");
 
-	/*custom data*/
-	/* NOTE: I haven't tested whether or not custom data is being copied correctly */
-	CustomData_copy(&dm->vertData, &bm->vdata, CD_MASK_DERIVEDMESH,
-	                CD_CALLOC, 0);
-	CustomData_copy(&dm->edgeData, &bm->edata, CD_MASK_DERIVEDMESH,
-	                CD_CALLOC, 0);
-	CustomData_copy(&dm->faceData, &bm->pdata, CD_MASK_DERIVEDMESH,
-	                CD_CALLOC, 0);
+	BME_model_begin(bm);
 	/*add verts*/
 	for(i=0,mv = mvert; i < totvert;i++,mv++){
 		v1 = BME_MV(bm,mv->co);
 		vert_array[i] = v1;
 		v1->flag = mv->flag;
 		v1->bweight = mv->bweight/255.0f;
-		CustomData_to_em_block(&dm->vertData, &bm->vdata, i, &v1->data);
 	}
 	/*add edges*/
 	for(i=0,me = medge; i < totedge;i++,me++){
@@ -291,7 +267,6 @@ BME_Mesh *BME_derivedmesh_to_bmesh(DerivedMesh *dm, BME_Mesh *bm)
 		e->bweight = me->bweight/255.0f;
 		e->flag = (unsigned char)me->flag;
 		BLI_edgehash_insert(edge_hash,me->v1,me->v2,e);
-		CustomData_to_em_block(&dm->edgeData, &bm->edata, i, &e->data);
 	}
 	/*add faces.*/
 	for(i=0,mf = mface; i < totface;i++,mf++){
@@ -315,9 +290,9 @@ BME_Mesh *BME_derivedmesh_to_bmesh(DerivedMesh *dm, BME_Mesh *bm)
 		f = BME_MF(bm,v1,v2,edar,len);
 		f->mat_nr = mf->mat_nr;
 		f->flag = mf->flag;
-		CustomData_to_em_block(&dm->faceData, &bm->pdata, i, &f->data);
 	}
 	
+	BME_model_end(bm);
 	BLI_edgehash_free(edge_hash, NULL);
 	MEM_freeN(vert_array);
 	return bm;
@@ -364,21 +339,12 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 	
 	/*convert back to mesh*/
 	result = CDDM_from_template(dm,totvert,totedge,totface);
-	/*custom data*/
-	/* NOTE: I haven't tested whether or not custom data is being copied correctly */
-	CustomData_merge(&bm->vdata, &result->vertData, CD_MASK_DERIVEDMESH,
-	                CD_CALLOC, totvert);
-	CustomData_merge(&bm->edata, &result->edgeData, CD_MASK_DERIVEDMESH,
-	                CD_CALLOC, totedge);
-	CustomData_merge(&bm->pdata, &result->faceData, CD_MASK_DERIVEDMESH,
-	                CD_CALLOC, totface);
 	/*Make Verts*/
 	mvert = CDDM_get_verts(result);
 	for(i=0,v1=bm->verts.first,mv=mvert;v1;v1=v1->next,i++,mv++){
 		VECCOPY(mv->co,v1->co);
 		mv->flag = (unsigned char)v1->flag;
 		mv->bweight = (char)(255.0*v1->bweight);
-		CustomData_from_em_block(&bm->vdata, &result->vertData, v1->data, i);
 	}
 	medge = CDDM_get_edges(result);
 	i=0;
@@ -396,7 +362,6 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 			me->crease = (char)(255.0*e->crease);
 			me->bweight = (char)(255.0*e->bweight);
 			me->flag = e->flag;
-			CustomData_from_em_block(&bm->edata, &result->edgeData, e->data, i);
 			me++;
 			i++;
 		}
@@ -421,7 +386,6 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 				i++;
 				mf->mat_nr = (unsigned char)f->mat_nr;
 				mf->flag = (unsigned char)f->flag;
-				CustomData_from_em_block(&bm->pdata, &result->faceData, f->data, i);
 			}
 		}
 	}

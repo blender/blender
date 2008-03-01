@@ -60,7 +60,7 @@ int BME_verts_in_edge(BME_Vert *v1, BME_Vert *v2, BME_Edge *e){
 	return 0;
 }
 
-BME_Vert *BME_edge_getothervert(BME_Edge *e, BME_Vert *v){
+BME_Vert *BME_edge_getothervert(BME_Edge *e, BME_Vert *v){	
 	if(e->v1 == v) return e->v2;
 	else if(e->v2 == v) return e->v1;
 	return NULL;
@@ -96,10 +96,10 @@ BME_Vert *BME_addvertlist(BME_Mesh *bm, BME_Vert *example){
 
 	if(example)
 		VECCOPY(v->co,example->co);
-	if(example)
-		CustomData_em_copy_data(&bm->vdata, &bm->vdata, example->data, &v->data);
-	else
-		CustomData_em_set_default(&bm->vdata, &v->data);
+	//if(example)
+	//	CustomData_em_copy_data(&bm->vdata, &bm->vdata, example->data, &v->data);
+	//else
+	//	CustomData_em_set_default(&bm->vdata, &v->data);
 
 	return v;
 }
@@ -115,10 +115,10 @@ BME_Edge *BME_addedgelist(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge *ex
 	bm->totedge++;
 	BLI_addtail(&(bm->edges), e);
 	
-	if(example)
-		CustomData_em_copy_data(&bm->edata, &bm->edata, example->data, &e->data);
-	else
-		CustomData_em_set_default(&bm->edata, &e->data);
+	//if(example)
+	//	CustomData_em_copy_data(&bm->edata, &bm->edata, example->data, &e->data);
+	//else
+	//	CustomData_em_set_default(&bm->edata, &e->data);
 
 
 	return e;
@@ -156,10 +156,10 @@ BME_Poly *BME_addpolylist(BME_Mesh *bm, BME_Poly *example){
 	bm->nextp++;
 	bm->totpoly++;
 
-	if(example)
-		CustomData_em_copy_data(&bm->pdata, &bm->pdata, example->data, &f->data);
-	else
-		CustomData_em_set_default(&bm->pdata, &f->data);
+	//if(example)
+	//	CustomData_em_copy_data(&bm->pdata, &bm->pdata, example->data, &f->data);
+	//else
+	//	CustomData_em_set_default(&bm->pdata, &f->data);
 
 
 	return f;
@@ -170,22 +170,22 @@ BME_Poly *BME_addpolylist(BME_Mesh *bm, BME_Poly *example){
 */
 void BME_free_vert(BME_Mesh *bm, BME_Vert *v){
 	bm->totvert--;
-	CustomData_em_free_block(&bm->vdata, &v->data);
+	//CustomData_em_free_block(&bm->vdata, &v->data);
 	MEM_freeN(v);
 }
 void BME_free_edge(BME_Mesh *bm, BME_Edge *e){
 	bm->totedge--;
-	CustomData_em_free_block(&bm->edata, &e->data);
+	//CustomData_em_free_block(&bm->edata, &e->data);
 	MEM_freeN(e);
 }
 void BME_free_poly(BME_Mesh *bm, BME_Poly *f){
 	bm->totpoly--;
-	CustomData_em_free_block(&bm->pdata, &f->data);
+	//CustomData_em_free_block(&bm->pdata, &f->data);
 	MEM_freeN(f);
 }
 void BME_delete_loop(BME_Mesh *bm, BME_Loop *l){
 	bm->totloop--;
-	CustomData_em_free_block(&bm->ldata, &l->data);
+	//CustomData_em_free_block(&bm->ldata, &l->data);
 	MEM_freeN(l);
 }
 void BME_free_loop(BME_Mesh *bm, BME_Loop *l){

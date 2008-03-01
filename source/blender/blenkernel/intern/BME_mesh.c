@@ -111,10 +111,10 @@ void BME_free_mesh(BME_Mesh *bm)
 	for(loopref=bm->loops.first;loopref;loopref=loopref->next) BME_delete_loop(bm,loopref->data);
 	BLI_freelistN(&(bm->loops));
 	
-	CustomData_free(&bm->vdata, 0);
-	CustomData_free(&bm->edata, 0);
-	CustomData_free(&bm->ldata, 0);
-	CustomData_free(&bm->pdata, 0);
+	//CustomData_free(&bm->vdata, 0);
+	//CustomData_free(&bm->edata, 0);
+	//CustomData_free(&bm->ldata, 0);
+	//CustomData_free(&bm->pdata, 0);
 	
 	MEM_freeN(bm);	
 }

@@ -2746,9 +2746,7 @@ static DerivedMesh *bevelModifier_applyModifier(
 
 	bm = BME_make_mesh();
 	bm = BME_derivedmesh_to_bmesh(derivedData, bm);
-	BME_model_begin(bm);
 	BME_bevel(bm,bmd->value,bmd->res,options,defgrp_index,bmd->bevel_angle,NULL);
-	BME_model_end(bm);
 	result = BME_bmesh_to_derivedmesh(bm,derivedData);
 	BME_free_mesh(bm);
 
@@ -7042,7 +7040,6 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(Bevel);
 		mti->type = eModifierTypeType_Constructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh
-		             | eModifierTypeFlag_SupportsMapping
 		             | eModifierTypeFlag_SupportsEditmode
 		             | eModifierTypeFlag_EnableInEditmode;
 		mti->initData = bevelModifier_initData;
