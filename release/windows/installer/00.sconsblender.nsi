@@ -3,6 +3,8 @@
 ;
 ; Blender Self-Installer for Windows (NSIS - http://nsis.sourceforge.net)
 ;
+; Requires the MoreInfo plugin - http://nsis.sourceforge.net/MoreInfo_plug-in
+;
 
 !include "MUI.nsh"
 !include "FileFunc.nsh"
@@ -209,13 +211,13 @@ Function .onInit
   Call GetWindowsVersion
   Pop $R0
   Strcpy $winversion $R0
-  !insertmacro MUI_INSTALLOPTIONS_EXTRACT "RELDIR\data.ini"
+  !insertmacro MUI_INSTALLOPTIONS_EXTRACT_AS "RELDIR\data.ini" "data.ini"
 FunctionEnd
 
 !define DLL_VER "8.00.50727.42"
+!define DLL_VER2 "7.10.3052.4"
 
-Function LocateCallback
-
+Function LocateCallback_80
 	MoreInfo::GetProductVersion "$R9"
 	Pop $0
 
@@ -236,12 +238,38 @@ Function LocateCallback
 
 FunctionEnd
 
+Function LocateCallback_71
+	MoreInfo::GetProductVersion "$R9"
+	Pop $0
+
+        ${VersionCompare} "$0" "${DLL_VER2}" $R1
+
+        StrCmp $R1 0 0 new
+      new:
+        StrCmp $R1 1 0 old
+      old:
+        StrCmp $R1 2 0 end
+	; Found DLL is older
+        Call PythonInstall
+
+     end:
+	StrCpy "$0" StopLocate
+	StrCpy $DLL_found "true"
+	Push "$0"
+
+FunctionEnd
+
 Function DownloadDLL
     MessageBox MB_OK "You will need to download the Microsoft Visual C++ 2005 Redistributable Package in order to run Blender. Pressing OK will take you to the download page, please follow the instructions on the page that appears."
     StrCpy $0 "http://www.microsoft.com/downloads/details.aspx?familyid=32BC1BEE-A3F9-4C13-9C99-220B62A191EE&displaylang=en"
     Call openLinkNewWindow
 FunctionEnd
 
+Function PythonInstall
+    MessageBox MB_OK "You will need to install python 2.5 in order to run blender. Pressing OK will take you to the python.org website."
+    StrCpy $0 "http://www.python.org"
+    Call openLinkNewWindow
+FunctionEnd
 
 Var HWND
 Var DLGITEM
@@ -344,9 +372,14 @@ Section "Blender-VERSION (required)" SecCopyUI
   MessageBox MB_OK "The installer will now check your system for the required system dlls."
   StrCpy $1 $WINDIR
   StrCpy $DLL_found "false"
-  ${Locate} "$1" "/L=F /M=MSVCR80.DLL /S=0B" "LocateCallback"
+  ${Locate} "$1" "/L=F /M=MSVCR80.DLL /S=0B" "LocateCallback_80"
   StrCmp $DLL_found "false" 0 +2
     Call DownloadDLL
+  StrCpy $1 $WINDIR
+  StrCpy $DLL_found "false"
+  ${Locate} "$1" "/L=F /M=MSVCR71.DLL /S=0B" "LocateCallback_71"
+  StrCmp $DLL_found "false" 0 +2
+    Call PythonInstall
   
 SectionEnd
 
