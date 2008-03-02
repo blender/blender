@@ -1,5 +1,5 @@
 /* 
- * $Id: gen_library.h 11877 2007-08-29 03:09:22Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -62,7 +62,7 @@
 	 NULL},\
 	{"tag",\
 	 (getter)GenericLib_getTag, (setter)GenericLib_setTag,\
-	 "temproary tag",\
+	 "temporary tag",\
 	 NULL}
 
 /* Dummy struct for getting the ID from a libdata BPyObject */
