@@ -2179,6 +2179,8 @@ static Sequence *dupli_seq(Sequence *seq)
 	seqn->strip->tstripdata = 0;
 	seqn->strip->tstripdata_startstill = 0;
 	seqn->strip->tstripdata_endstill = 0;
+	seqn->strip->ibuf_startstill = 0;
+	seqn->strip->ibuf_endstill = 0;
 
 	if (seq->strip->crop) {
 		seqn->strip->crop = MEM_dupallocN(seq->strip->crop);

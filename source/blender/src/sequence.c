@@ -139,6 +139,16 @@ void free_strip(Strip *strip)
 	free_tstripdata(strip->endstill, strip->tstripdata_endstill);
 	free_tstripdata(strip->startstill, strip->tstripdata_startstill);
 
+	if(strip->ibuf_startstill) {
+		IMB_freeImBuf(strip->ibuf_startstill);
+		strip->ibuf_startstill = 0;
+	}
+
+	if(strip->ibuf_endstill) {
+		IMB_freeImBuf(strip->ibuf_endstill);
+		strip->ibuf_endstill = 0;
+	}
+
 	MEM_freeN(strip);
 }
 
@@ -154,6 +164,16 @@ void new_tstripdata(Sequence *seq)
 		seq->strip->tstripdata= 0;
 		seq->strip->tstripdata_endstill= 0;
 		seq->strip->tstripdata_startstill= 0;
+
+		if(seq->strip->ibuf_startstill) {
+			IMB_freeImBuf(seq->strip->ibuf_startstill);
+			seq->strip->ibuf_startstill = 0;
+		}
+
+		if(seq->strip->ibuf_endstill) {
+			IMB_freeImBuf(seq->strip->ibuf_endstill);
+			seq->strip->ibuf_endstill = 0;
+		}
 
 		seq->strip->len= seq->len;
 	}
@@ -1538,6 +1558,61 @@ static void test_and_auto_discard_ibuf(TStripElem * se)
 	}
 }
 
+static void test_and_auto_discard_ibuf_stills(Strip * strip)
+{
+	if (strip->ibuf_startstill) {
+		if (!strip->ibuf_startstill->rect &&
+		    !strip->ibuf_startstill->rect_float) {
+			IMB_freeImBuf(strip->ibuf_startstill);
+			strip->ibuf_startstill = 0;
+		}
+	}
+	if (strip->ibuf_endstill) {
+		if (!strip->ibuf_endstill->rect &&
+		    !strip->ibuf_endstill->rect_float) {
+			IMB_freeImBuf(strip->ibuf_endstill);
+			strip->ibuf_endstill = 0;
+		}
+	}
+}
+
+static void copy_from_ibuf_still(Sequence * seq, TStripElem * se)
+{
+	if (!se->ibuf) {
+		if (se->nr == 0 && seq->strip->ibuf_startstill) {
+			IMB_cache_limiter_touch(seq->strip->ibuf_startstill);
+
+			se->ibuf = IMB_dupImBuf(seq->strip->ibuf_startstill);
+		}
+		if (se->nr == seq->len - 1 
+		    && (seq->len != 1)
+		    && seq->strip->ibuf_endstill) {
+			IMB_cache_limiter_touch(seq->strip->ibuf_endstill);
+
+			se->ibuf = IMB_dupImBuf(seq->strip->ibuf_endstill);
+		}
+	}
+}
+
+static void copy_to_ibuf_still(Sequence * seq, TStripElem * se)
+{
+	if (se->ibuf) {
+		if (se->nr == 0) {
+			seq->strip->ibuf_startstill = IMB_dupImBuf(se->ibuf);
+
+			IMB_cache_limiter_insert(seq->strip->ibuf_startstill);
+			IMB_cache_limiter_touch(seq->strip->ibuf_startstill);
+		}
+		if (se->nr == seq->len - 1 && seq->len != 1) {
+			seq->strip->ibuf_endstill = IMB_dupImBuf(se->ibuf);
+
+			IMB_cache_limiter_insert(seq->strip->ibuf_endstill);
+			IMB_cache_limiter_touch(seq->strip->ibuf_endstill);
+		}
+	}
+}
+
+
 static TStripElem* do_build_seq_array_recursively(
 	ListBase *seqbasep, int cfra, int chanshown);
 
@@ -1549,6 +1624,7 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 
 	if (seq->type != SEQ_META) {
 		test_and_auto_discard_ibuf(se);
+		test_and_auto_discard_ibuf_stills(seq->strip);
 	}
 
 	if(seq->type == SEQ_META) {
@@ -1606,9 +1682,12 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 			if (!build_proxy_run) {
 				se->ibuf = seq_proxy_fetch(seq, cfra);
 			}
+			copy_from_ibuf_still(seq, se);
+
 			if (!se->ibuf) {
 				se->ibuf= IMB_loadiffname(
 					name, IB_rect);
+				copy_to_ibuf_still(seq, se);
 			}
 			
 			if(se->ibuf == 0) {
@@ -1622,6 +1701,7 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 			if(!build_proxy_run) {
 				se->ibuf = seq_proxy_fetch(seq, cfra);
 			}
+			copy_from_ibuf_still(seq, se);
 
 			if (se->ibuf == 0) {
 				if(seq->anim==0) {
@@ -1635,6 +1715,7 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 					IMB_anim_set_preseek(seq->anim, seq->anim_preseek);
 					se->ibuf = IMB_anim_absolute(seq->anim, se->nr + seq->anim_startofs);
 				}
+				copy_to_ibuf_still(seq, se);
 			}
 			
 			if(se->ibuf == 0) {
@@ -1650,17 +1731,25 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 		RenderResult rres;
 		int doseq, rendering= G.rendering;
 		char scenename[64];
+		int sce_valid =sce&& (sce->camera || sce->r.scemode & R_DOSEQ);
 			
-		if (se->ibuf==NULL && sce && (sce->camera || sce->r.scemode & R_DOSEQ) && !build_proxy_run) {
+		if (se->ibuf == NULL && sce_valid && !build_proxy_run) {
 			se->ibuf = seq_proxy_fetch(seq, cfra);
 			if (se->ibuf) {
 				input_preprocess(seq, se, cfra);
 			}
 		}
+
+		if (se->ibuf == NULL && sce_valid) {
+			copy_from_ibuf_still(seq, se);
+			if (se->ibuf) {
+				input_preprocess(seq, se, cfra);
+			}
+		}
 		
-		if (sce && sce->camera==NULL && (sce->r.scemode & R_DOSEQ) == 0) {
+		if (!sce_valid) {
 			se->ok = STRIPELEM_FAILED;
-		} else if (se->ibuf==NULL && sce && (sce->camera || sce->r.scemode & R_DOSEQ) ) {
+		} else if (se->ibuf==NULL && sce_valid) {
 			waitcursor(1);
 			
 			/* Hack! This function can be called from do_render_seq(), in that case
@@ -1715,6 +1804,8 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 			if((G.f & G_PLAYANIM)==0) /* bad, is set on do_render_seq */
 				waitcursor(0);
 			CFRA = oldcfra;
+
+			copy_to_ibuf_still(seq, se);
 
 			if (!build_proxy_run) {
 				if(se->ibuf == NULL) {
@@ -2582,6 +2673,15 @@ void free_imbuf_seq_except(int cfra)
 					free_imbuf_strip_elem(se);
 				}
 			}
+			if(seq->strip->ibuf_startstill) {
+				IMB_freeImBuf(seq->strip->ibuf_startstill);
+				seq->strip->ibuf_startstill = 0;
+			}
+
+			if(seq->strip->ibuf_endstill) {
+				IMB_freeImBuf(seq->strip->ibuf_endstill);
+				seq->strip->ibuf_endstill = 0;
+			}
 
 			if(seq->type==SEQ_MOVIE)
 				if(seq->startdisp > cfra || seq->enddisp < cfra)
@@ -2613,6 +2713,15 @@ void free_imbuf_seq()
 			for(a = 0, se = seq->strip->tstripdata_endstill; 
 			    a < seq->strip->endstill && se; a++, se++) {
 				free_imbuf_strip_elem(se);
+			}
+			if(seq->strip->ibuf_startstill) {
+				IMB_freeImBuf(seq->strip->ibuf_startstill);
+				seq->strip->ibuf_startstill = 0;
+			}
+
+			if(seq->strip->ibuf_endstill) {
+				IMB_freeImBuf(seq->strip->ibuf_endstill);
+				seq->strip->ibuf_endstill = 0;
 			}
 
 			if(seq->type==SEQ_MOVIE)

@@ -97,6 +97,8 @@ typedef struct Strip {
 	TStripElem *tstripdata;
 	TStripElem *tstripdata_startstill;
 	TStripElem *tstripdata_endstill;
+	struct ImBuf *ibuf_startstill;
+	struct ImBuf *ibuf_endstill;
 } Strip;
 
 
