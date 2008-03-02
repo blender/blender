@@ -1330,6 +1330,10 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	// shear springs
 	for ( i = 0; i < numfaces; i++ )
 	{
+		// triangle faces already have shear springs due to structural geometry
+		if ( mface[i].v4 )
+			continue; 
+		
 		spring = ( ClothSpring *) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 		
 		if(!spring)
@@ -1351,29 +1355,28 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 
 		BLI_linklist_prepend ( &cloth->springs, spring );
 
-		if ( mface[i].v4 )
+		
+		// if ( mface[i].v4 ) --> Quad face
+		spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
+		
+		if(!spring)
 		{
-			spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
-			
-			if(!spring)
-			{
-				cloth_free_errorsprings(cloth, edgehash, edgelist);
-				return 0;
-			}
-
-			spring->ij = MIN2(mface[i].v2, mface[i].v4);
-			spring->kl = MAX2(mface[i].v4, mface[i].v2);
-			VECSUB ( temp, cloth->verts[spring->kl].x, cloth->verts[spring->ij].x );
-			spring->restlen =  sqrt ( INPR ( temp, temp ) );
-			spring->type = CLOTH_SPRING_TYPE_SHEAR;
-			spring->stiffness = (cloth->verts[spring->kl].shear_stiff + cloth->verts[spring->ij].shear_stiff) / 2.0;
-
-			BLI_linklist_append ( &edgelist[spring->ij], spring );
-			BLI_linklist_append ( &edgelist[spring->kl], spring );
-			shear_springs++;
-
-			BLI_linklist_prepend ( &cloth->springs, spring );
+			cloth_free_errorsprings(cloth, edgehash, edgelist);
+			return 0;
 		}
+
+		spring->ij = MIN2(mface[i].v2, mface[i].v4);
+		spring->kl = MAX2(mface[i].v4, mface[i].v2);
+		VECSUB ( temp, cloth->verts[spring->kl].x, cloth->verts[spring->ij].x );
+		spring->restlen =  sqrt ( INPR ( temp, temp ) );
+		spring->type = CLOTH_SPRING_TYPE_SHEAR;
+		spring->stiffness = (cloth->verts[spring->kl].shear_stiff + cloth->verts[spring->ij].shear_stiff) / 2.0;
+
+		BLI_linklist_append ( &edgelist[spring->ij], spring );
+		BLI_linklist_append ( &edgelist[spring->kl], spring );
+		shear_springs++;
+
+		BLI_linklist_prepend ( &cloth->springs, spring );
 	}
 	
 	// bending springs

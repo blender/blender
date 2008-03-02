@@ -58,9 +58,11 @@ struct CollisionTree;
 // this is needed for inlining behaviour
 #ifndef _WIN32
 #define LINUX
+#ifndef __sgi
 #define DO_INLINE inline
+#endif
 #else
-#define DO_INLINE
+#define DO_INLINE __inline
 #endif
 
 #define CLOTH_MAX_THREAD 2
