@@ -1529,12 +1529,19 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 	else if(event== B_FS_DIRNAME) {
 		/* reuse the butname variable */
 		
-#ifndef WIN32
-		/* convienence shortcut '~' -> $HOME */
-		if ( sfile->dir[0] == '~' && sfile->dir[1] == '\0' ) {
-			BLI_strncpy(sfile->dir, BLI_gethome(), sizeof(sfile->dir) );
+		/* convienence shortcut '~' -> $HOME
+		 * If the first char is ~ then this is invalid on all OS's so its safe to replace with home */
+		if ( sfile->dir[0] == '~' ) {
+			if (sfile->dir[1] == '\0') {
+				BLI_strncpy(sfile->dir, BLI_gethome(), sizeof(sfile->dir) );
+			} else {
+				/* replace ~ with home */
+				char tmpstr[FILE_MAX];
+				BLI_join_dirfile(tmpstr, BLI_gethome(), sfile->dir+1);
+				BLI_strncpy(sfile->dir, tmpstr, sizeof(sfile->dir));
+			}
 		}
-#endif
+		
 		BLI_cleanup_dir(G.sce, sfile->dir);
 
 		BLI_make_file_string(G.sce, butname, sfile->dir, "");

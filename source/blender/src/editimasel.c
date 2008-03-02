@@ -594,7 +594,21 @@ static void do_imasel_buttons(short event, SpaceImaSel *simasel)
 		}
 	}
 	else if(event== B_FS_DIRNAME) {
-		/* reuse the butname variable */
+		
+		/* convienence shortcut '~' -> $HOME
+		 * If the first char is ~ then this is invalid on all OS's so its safe to replace with home */
+		if ( simasel->dir[0] == '~' ) {
+			if (simasel->dir[1] == '\0') {
+				BLI_strncpy(simasel->dir, BLI_gethome(), sizeof(simasel->dir) );
+			} else {
+				/* replace ~ with home */
+				char tmpstr[FILE_MAX];
+				BLI_join_dirfile(tmpstr, BLI_gethome(), simasel->dir+1);
+				BLI_strncpy(simasel->dir, tmpstr, sizeof(simasel->dir));
+			}
+		}
+		
+		/* reuse the butname vsariable */
 		BLI_cleanup_dir(G.sce, simasel->dir);
 
 		BLI_make_file_string(G.sce, butname, simasel->dir, "");
