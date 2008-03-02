@@ -240,7 +240,7 @@ def Quit ():
      upon exiting) when this function is called, so the data in Blender isn't
      lost.
   """
-def UndoPush (message):
+def SaveUndoState (message):
   """
   Sets an undo at the current state.
   @param message: Message that appiers in the undo menu

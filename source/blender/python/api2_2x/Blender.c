@@ -116,7 +116,7 @@ static PyObject *Blender_PackAll( PyObject * self);
 static PyObject *Blender_UnpackAll( PyObject * self, PyObject * value);
 static PyObject *Blender_CountPackedFiles( PyObject * self );
 static PyObject *Blender_GetPaths( PyObject * self, PyObject *args, PyObject *keywds );
-static PyObject *Blender_UndoPush( PyObject * self, PyObject *args );
+static PyObject *Blender_SaveUndoState( PyObject * self, PyObject *args );
 extern PyObject *Text3d_Init( void ); /* missing in some include */
 
 /*****************************************************************************/
@@ -203,7 +203,7 @@ static char Blender_CountPackedFiles_doc[] =
 static char Blender_GetPaths_doc[] =
 "() - Returns a list of paths used in this blend file.";
 
-static char Blender_UndoPush_doc[] =
+static char Blender_SaveUndoState_doc[] =
 "(s) - Push an undo with blenders current state.";
 
 /*****************************************************************************/
@@ -223,7 +223,7 @@ static struct PyMethodDef Blender_methods[] = {
 	{"PackAll", ( PyCFunction ) Blender_PackAll, METH_NOARGS, Blender_PackAll_doc},
 	{"UnpackAll", Blender_UnpackAll, METH_O, Blender_UnpackAll_doc},
 	{"UpdateMenus", ( PyCFunction ) Blender_UpdateMenus, METH_NOARGS, Blender_UpdateMenus_doc},
-	{"UndoPush", Blender_UndoPush, METH_VARARGS, Blender_UndoPush_doc},
+	{"SaveUndoState", Blender_SaveUndoState, METH_VARARGS, Blender_SaveUndoState_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -955,7 +955,7 @@ static PyObject *Blender_GetPaths( PyObject * self, PyObject *args, PyObject *ke
 	return list;
 }
 
-static PyObject *Blender_UndoPush( PyObject * self, PyObject *args )
+static PyObject *Blender_SaveUndoState( PyObject * self, PyObject *args )
 {
 	char *str;
 	if ( !PyArg_ParseTuple( args , "s" , &str ))	
