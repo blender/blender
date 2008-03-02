@@ -50,7 +50,7 @@ class CcdOverlapFilterCallBack;
 /// A derived class may be able to 'construct' entities by loading and/or converting
 class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 {
-	friend CcdOverlapFilterCallBack;
+	friend class CcdOverlapFilterCallBack;
 	btVector3 m_gravity;
 
 protected:
