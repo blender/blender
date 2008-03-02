@@ -438,13 +438,6 @@ int main(int argc, char **argv)
 					break;
             
 				case 'w':
-					/* XXX, fixme zr, with borders */
-					/* there probably is a better way to do
-					 * this, right now do as if blender was
-					 * called with "-p 0 0 xres yres" -- sgefant
-					 */ 
-					winlay_get_screensize(&sizx, &sizy);
-					setprefsize(0, 0, sizx, sizy, 1);
 					G.windowstate = G_WINDOWSTATE_BORDER;
 					break;
 				case 'W':
@@ -475,6 +468,16 @@ int main(int argc, char **argv)
 			}
 		}
 
+		/* XXX, fixme zr, with borders */
+		/* there probably is a better way to do
+		* this, right now do as if blender was
+		* called with "-p 0 0 xres yres" -- sgefant
+		*/
+		if (G.windowstate == G_WINDOWSTATE_BORDER) {
+			winlay_get_screensize(&sizx, &sizy);
+			setprefsize(0, 0, sizx, sizy, 1);
+		}
+		
 		BPY_start_python(argc, argv);
 		
 		/**
