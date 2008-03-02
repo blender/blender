@@ -1331,7 +1331,7 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	for ( i = 0; i < numfaces; i++ )
 	{
 		// triangle faces already have shear springs due to structural geometry
-		if ( mface[i].v4 )
+		if ( !mface[i].v4 )
 			continue; 
 		
 		spring = ( ClothSpring *) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
@@ -1428,10 +1428,10 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	
 	for ( i = 0; i < numfaces; i++ ) // edge springs
 	{
-		BLI_edgehash_insert ( edgehash, MIN2(mface[i].v1, mface[i].v3), MAX2(mface[i].v3, mface[i].v1), NULL );
-		
 		if(mface[i].v4)
 		{
+			BLI_edgehash_insert ( edgehash, MIN2(mface[i].v1, mface[i].v3), MAX2(mface[i].v3, mface[i].v1), NULL );
+			
 			BLI_edgehash_insert ( edgehash, MIN2(mface[i].v2, mface[i].v4), MAX2(mface[i].v2, mface[i].v4), NULL );
 		}
 	}
