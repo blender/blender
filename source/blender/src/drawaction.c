@@ -1218,6 +1218,7 @@ static ActKeyColumn *cfra_find_actkeycolumn (ListBase *keys, float cframe)
 	return NULL;
 }
 
+#if 0  // disabled, as some intel cards have problems with this
 /* Draw a simple diamond shape with a filled in center (in screen space) */
 static void draw_key_but(int x, int y, short w, short h, int sel)
 {
@@ -1247,6 +1248,7 @@ static void draw_key_but(int x, int y, short w, short h, int sel)
 	glVertex2i(xmin, yc);
 	glEnd();
 }
+#endif
 
 static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, float ypos)
 {
@@ -1300,11 +1302,12 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 			gla2DDrawTranslatePt(di, ak->cfra, ypos, &sc_x, &sc_y);
 			
 			/* draw using icons - old way which is slower but more proven */
-			//if(ak->sel & 1) BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE2, 1.0f);
-			//else BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE3, 1.0f);
+			if(ak->sel & SELECT) BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE2, 1.0f);
+			else BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE3, 1.0f);
 			
 			/* draw using OpenGL - slightly uglier but faster */
-			draw_key_but(sc_x-5, sc_y-4, 11, 11, (ak->sel & SELECT));
+			// 	NOTE: disabled for now, as some intel cards seem to have problems with this
+			//draw_key_but(sc_x-5, sc_y-4, 11, 11, (ak->sel & SELECT));
 		}	
 	}
 	
