@@ -509,6 +509,19 @@ int getTransformOrientation(float normal[3], float plane[3], int activeOnly)
 					}
 					result = ORIENTATION_VERT;
 				}
+				else if (G.totvertsel > 3)
+				{
+					normal[0] = normal[1] = normal[2] = 0;
+					
+					for (eve = em->verts.first; eve; eve = eve->next)
+					{
+						if ( eve->f & SELECT ) {
+							VecAddf(normal, normal, eve->no);
+						}
+					}
+					Normalize(normal);
+					result = ORIENTATION_VERT;
+				}
 			}
 		} /* end editmesh */
 		else if ELEM3(G.obedit->type, OB_CURVE, OB_SURF, OB_FONT)
