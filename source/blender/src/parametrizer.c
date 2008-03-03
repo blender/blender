@@ -3946,7 +3946,7 @@ void param_construct_end(ParamHandle *handle, ParamBool fill, ParamBool impl)
 
 		p_chart_boundaries(chart, &nboundaries, &outer);
 
-		if (nboundaries == 0) {
+		if (!impl && nboundaries == 0) {
 			p_chart_delete(chart);
 			continue;
 		}
@@ -4115,7 +4115,6 @@ void param_pack(ParamHandle *handle)
 	
 	PHandle *phandle = (PHandle*)handle;
 	
-	
 	if (phandle->ncharts == 0)
 		return;
 	
@@ -4124,7 +4123,6 @@ void param_pack(ParamHandle *handle)
 	
 	for (i = 0; i < phandle->ncharts; i++) {
 		chart = phandle->charts[i];
-		
 		
 		if (chart->flag & PCHART_NOPACK) {
 			unpacked++;
