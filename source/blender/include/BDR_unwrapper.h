@@ -41,6 +41,7 @@ void select_linked_tfaces_with_seams(int mode, struct Mesh *me, unsigned int ind
 void unwrap_lscm(short seamcut); /* unwrap faces selected in 3d view */
 void minimize_stretch_tface_uv(void); /* optimize faces selected in uv editor */
 void pack_charts_tface_uv(void);
+void average_charts_tface_uv(void);
 
 /* for live mode: no undo pushes, caching for quicky re-unwrap */
 void unwrap_lscm_live_begin(void);

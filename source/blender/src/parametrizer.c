@@ -4164,6 +4164,64 @@ void param_pack(ParamHandle *handle)
 	MEM_freeN(boxarray);
 }
 
+
+void param_average(ParamHandle *handle)
+{
+	PChart *chart;
+	int i;
+	float tot_uvarea = 0.0f, tot_facearea = 0.0f;
+	float tot_fac, fac;
+	float minv[2], maxv[2], trans[2];
+	PHandle *phandle = (PHandle*)handle;
+	
+	if (phandle->ncharts == 0)
+		return;
+	
+	for (i = 0; i < phandle->ncharts; i++) {
+		PFace *f;
+		chart = phandle->charts[i];
+		
+		chart->u.pack.area = 0.0f; /* 3d area */
+		chart->u.pack.rescale = 0.0f; /* UV area, abusing rescale for tmp storage, oh well :/ */
+		
+		for (f=chart->faces; f; f=f->nextlink) {
+			chart->u.pack.area += p_face_area(f);
+			chart->u.pack.rescale += fabs(p_face_uv_area_signed(f));
+		}
+		
+		tot_facearea += chart->u.pack.area;
+		tot_uvarea += chart->u.pack.rescale;
+	}
+	
+	if (tot_facearea == tot_uvarea || tot_facearea==0.0f || tot_uvarea==0.0f) {
+		/* nothing to do */
+		return;
+	}
+	
+	tot_fac = tot_facearea/tot_uvarea;
+	
+	for (i = 0; i < phandle->ncharts; i++) {
+		chart = phandle->charts[i];
+		if (chart->u.pack.area != 0.0f && chart->u.pack.rescale != 0.0f) {
+			fac = chart->u.pack.area / chart->u.pack.rescale;
+			
+			/* Get the island center */
+			p_chart_uv_bbox(chart, minv, maxv);
+			trans[0] = (minv[0] + maxv[0]) /-2.0f;
+			trans[1] = (minv[1] + maxv[1]) /-2.0f;
+			
+			/* Move center to 0,0 */
+			p_chart_uv_translate(chart, trans);
+			p_chart_uv_scale(chart, sqrt(fac / tot_fac));
+			
+			/* Move to original center */
+			trans[0] = -trans[0];
+			trans[1] = -trans[1];
+			p_chart_uv_translate(chart, trans);
+		}
+	}
+}
+
 void param_flush(ParamHandle *handle)
 {
 	PHandle *phandle = (PHandle*)handle;

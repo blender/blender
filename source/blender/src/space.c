@@ -5190,7 +5190,11 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				mouse_select_sima();
 				break;
 			case AKEY:
-				select_swap_tface_uv();
+				if(G.qual==0) {
+					select_swap_tface_uv();
+				} else if(G.qual==LR_CTRLKEY) {
+					average_charts_tface_uv();
+				}
 				break;
 			case BKEY:
 				if(G.qual==LR_SHIFTKEY)

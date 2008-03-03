@@ -1043,6 +1043,9 @@ static void do_image_uvsmenu(void *arg, int event)
 	case 13:
 		pack_charts_tface_uv();
 		break;
+	case 14:
+		average_charts_tface_uv();
+		break;
 	}
 }
 
@@ -1075,7 +1078,8 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pack Charts|Ctrl P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pack Islands|Ctrl P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Average Islands Scale|Ctrl A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Minimize Stretch|Ctrl V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 12, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Limit Stitch...|Shift V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Stitch|V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");

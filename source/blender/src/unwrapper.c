@@ -434,7 +434,28 @@ void pack_charts_tface_uv(void)
 	param_flush(handle);
 	param_delete(handle);
 
-	BIF_undo_push("UV pack charts");
+	BIF_undo_push("UV pack islands");
+
+	object_uvs_changed(OBACT);
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIMAGE, 0);
+}
+
+
+void average_charts_tface_uv(void)
+{
+	EditMesh *em = G.editMesh;
+	ParamHandle *handle;
+	
+	if(!EM_texFaceCheck()) return;
+
+	handle = construct_param_handle(em, 1, 0, 1);
+	param_average(handle);
+	param_flush(handle);
+	param_delete(handle);
+
+	BIF_undo_push("UV average island scale");
 
 	object_uvs_changed(OBACT);
 
