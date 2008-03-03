@@ -332,8 +332,11 @@ static void actdata_filter_actionchannel (ListBase *act_data, bActionChannel *ac
 			}
 			
 			/* check if expanded - if not, continue on to next action channel */
-			if (EXPANDED_ACHAN(achan) == 0 && (filter_mode & ACTFILTER_ONLYICU)==0) 
-				return;
+			if (EXPANDED_ACHAN(achan) == 0 && (filter_mode & ACTFILTER_ONLYICU)==0) {
+				/* only exit if we don't need to include constraint channels for group-channel keyframes */
+				if ( !(filter_mode & ACTFILTER_IPOKEYS) || (achan->grp == NULL) || (EXPANDED_AGRP(achan->grp)==0) )
+					return;
+			}
 				
 			/* ipo channels */
 			if ((achan->ipo) && (filter_mode & ACTFILTER_IPOKEYS)==0) {
