@@ -1099,6 +1099,12 @@ PyObject *SceneSeq_CreatePyObject( struct Scene * scn, struct Sequence * iter)
 	if( !scn )
 		Py_RETURN_NONE;
 
+	if ( !scn->ed ) {
+		Editing *ed;
+		ed= scn->ed= MEM_callocN( sizeof(Editing), "addseq");
+		ed->seqbasep= &ed->seqbase;
+	}
+	
 	pysceseq =
 		( BPy_SceneSeq * ) PyObject_NEW( BPy_SceneSeq, &SceneSeq_Type );
 

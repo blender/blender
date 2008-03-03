@@ -1093,10 +1093,7 @@ static PyObject *Scene_getRadiosityContext( BPy_Scene * self )
 static PyObject *Scene_getSequence( BPy_Scene * self )
 {
 	SCENE_DEL_CHECK_PY(self);
-	if (self->scene->ed) /* we should create this if its not there :/ */
-		return SceneSeq_CreatePyObject( self->scene, NULL );
-	else
-		Py_RETURN_NONE;
+	return SceneSeq_CreatePyObject( self->scene, NULL );
 }
 
 /* scene.addScriptLink */
