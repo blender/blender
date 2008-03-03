@@ -107,6 +107,7 @@ void open_plugin_tex(PluginTex *pit)
 	pit->result= 0;
 	pit->cfra= 0;
 	pit->version= 0;
+	pit->instance_init= 0;
 	
 	/* clear the error list */
 	PIL_dynlib_get_error_as_string(NULL);
