@@ -634,10 +634,9 @@ int hook_getIndexArray(int *tot, int **indexar, char *name, float *cent_r)
 
 void add_hook_menu(void)
 {
-	ModifierData *md = NULL;
-	HookModifierData *hmd = NULL;
-	Object *ob=NULL;
 	int mode;
+	
+	if(G.obedit==NULL) return;
 	
 	if(modifiers_findByType(G.obedit, eModifierType_Hook))
 		mode= pupmenu("Hooks %t|Add, To New Empty %x1|Add, To Selected Object %x2|Remove... %x3|Reassign... %x4|Select... %x5|Clear Offset...%x6");
@@ -645,6 +644,23 @@ void add_hook_menu(void)
 		mode= pupmenu("Hooks %t|Add, New Empty %x1|Add, To Selected Object %x2");
 
 	if(mode<1) return;
+		
+	/* do operations */
+	add_hook(mode);
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	
+	BIF_undo_push("Add hook");
+}
+
+void add_hook(int mode)
+{
+	ModifierData *md = NULL;
+	HookModifierData *hmd = NULL;
+	Object *ob=NULL;
+	
+	if(G.obedit==NULL) return;
 	
 	/* preconditions */
 	if(mode==2) { /* selected object */
@@ -707,23 +723,6 @@ void add_hook_menu(void)
 		hmd = (HookModifierData*) md;
 		ob= hmd->object;
 	}
-	
-	/* do operations */
-	add_hook(mode);
-	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
-	
-	BIF_undo_push("Add hook");
-}
-
-void add_hook(int mode)
-{
-	ModifierData *md = NULL;
-	HookModifierData *hmd = NULL;
-	Object *ob=NULL;
-
-	if(G.obedit==NULL) return;
 	
 	/* do it, new hooks or reassign */
 	if(mode==1 || mode==2 || mode==4) {

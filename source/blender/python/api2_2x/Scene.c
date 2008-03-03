@@ -42,6 +42,7 @@ struct View3D;
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h" /* U.userdefs */
 #include "DNA_object_types.h" /* SceneObSeq_new */
+#include "BKE_armature.h"
 #include "BKE_depsgraph.h"
 #include "BKE_library.h"
 #include "BKE_object.h"

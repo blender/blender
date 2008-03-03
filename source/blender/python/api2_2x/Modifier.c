@@ -1,5 +1,5 @@
 /*
- * $Id: Modifier.c 12840 2007-12-11 01:58:22Z khughes $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -44,6 +44,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "MEM_guardedalloc.h"
+#include "BDR_editobject.h"
 #include "butspace.h"
 #include "blendef.h"
 #include "mydevice.h"
@@ -1352,6 +1353,18 @@ static PyObject *ModSeq_moveDown( BPy_ModSeq * self, BPy_Modifier *value )
 	Py_RETURN_NONE;
 }
 
+
+/* quick hack for ZanQdo: add new hook modifier for selected verts */
+static PyObject *ModSeq_ZanQdoHack(BPy_ModSeq *self)
+{
+	/* this should add the hook (assumes that modifier stack is on same ob!) */
+	if ((self) && (G.obedit) && (self->object==G.obedit)) {
+		add_hook(1);
+	}
+	
+	Py_RETURN_NONE;
+}
+
 /*****************************************************************************/
 /* Python BPy_ModSeq methods table:                                       */
 /*****************************************************************************/
@@ -1365,6 +1378,8 @@ static PyMethodDef BPy_ModSeq_methods[] = {
 	 "(modifier) - Move a modifier up in stack"},
 	{"moveDown", ( PyCFunction ) ModSeq_moveDown, METH_O,
 	 "(modifier) - Move a modifier down in stack"},
+	{"ZanQdoHack", (PyCFunction)ModSeq_ZanQdoHack, METH_NOARGS,
+	 "while in editmode, adds a hook for the selected verts (adds new modifier, and deselects object)"},
 	{NULL, NULL, 0, NULL}
 };
 
