@@ -226,7 +226,7 @@ static void print_help(void)
 	printf ("  -v\t\tPrint Blender version and exit\n");
 	printf ("  --\t\tEnds option processing.  Following arguments are \n");
 	printf ("    \t\t   passed unchanged.  Access via Python's sys.argv\n");
-	printf ("\nNote: Arguments must be seperated by white. eg:\n");
+	printf ("\nNote: Arguments must be separated by white space. eg:\n");
 	printf ("    \"blender -ba test.blend\"\n");
 	printf ("  ...will ignore the 'a'\n");
 	printf ("    \"blender -b test.blend -f8\"\n");
