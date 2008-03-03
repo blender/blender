@@ -174,20 +174,14 @@ static void print_version(void)
 static void print_help(void)
 {
 	printf ("Blender %d.%02d (sub %d) Build\n", G.version/100, G.version%100, BLENDER_SUBVERSION);
-	printf ("Usage: blender [options ...] [file]\n");
-	printf ("Note: Arguments are executed in the order they are given. eg.\n");
-	printf ("    blender -b test.blend -f 1 -o /tmp\n");
-	printf ("  ...may not render to /tmp because '-f 1' renders before the output path is set\n");
-	printf ("    blender -b -o /tmp test.blend -f 1\n");
-	printf ("  ...may not render to /tmp because loading the blend file overwrites the output path that was set\n");
-	printf ("    \"blender -b test.blend -o /tmp -f 1\" works as expected.\n");
+	printf ("Usage: blender [args ...] [file] [args ...]\n");
 	printf ("\nRender options:\n");
 	printf ("  -b <file>\tRender <file> in background (doesn't load the user defaults .B.blend file)\n");
 	printf ("    -a render frames from start to end (inclusive), only works when used after -b\n");
 	printf ("    -S <name>\tSet scene <name>\n");
 	printf ("    -f <frame>\tRender frame <frame> and save it\n");				
-	printf ("    -s <frame>\tSet start to frame <frame> (use with -a)\n");
-	printf ("    -e <frame>\tSet end to frame (use with -a)<frame>\n");
+	printf ("    -s <frame>\tSet start to frame <frame> (use before the -a argument)\n");
+	printf ("    -e <frame>\tSet end to frame <frame> (use before the -a argument)\n");
 	printf ("    -o <path>\tSet the render path and file name.\n");
 	printf ("      Use // at the start of the path to\n");
 	printf ("        render relative to the blend file.\n");
@@ -232,6 +226,17 @@ static void print_help(void)
 	printf ("  -v\t\tPrint Blender version and exit\n");
 	printf ("  --\t\tEnds option processing.  Following arguments are \n");
 	printf ("    \t\t   passed unchanged.  Access via Python's sys.argv\n");
+	printf ("\nNote: Arguments must be seperated by white. eg:\n");
+	printf ("    \"blender -ba test.blend\"\n");
+	printf ("  ...will ignore the 'a'\n");
+	printf ("    \"blender -b test.blend -f8\"\n");
+	printf ("  ...will ignore 8 because there is no space between the -f and the frame value\n");
+	printf ("Note: Arguments are executed in the order they are given. eg:\n");
+	printf ("    \"blender -b test.blend -f 1 -o /tmp\"\n");
+	printf ("  ...may not render to /tmp because '-f 1' renders before the output path is set\n");
+	printf ("    \"blender -b -o /tmp test.blend -f 1\"\n");
+	printf ("  ...may not render to /tmp because loading the blend file overwrites the output path that was set\n");
+	printf ("    \"blender -b test.blend -o /tmp -f 1\" works as expected.\n\n");
 }
 
 
