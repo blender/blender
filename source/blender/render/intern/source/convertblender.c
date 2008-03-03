@@ -4389,7 +4389,7 @@ static int allow_render_object(Object *ob, int nolamps, int onlyselected, Object
 		if(!allow)
 			return 0;
 	}
-	else if(ob->transflag & OB_DUPLI)
+	else if((ob->transflag & OB_DUPLI) && !(ob->transflag & OB_DUPLIFRAMES))
 		return 0;
 	
 	if(nolamps && (ob->type==OB_LAMP))
