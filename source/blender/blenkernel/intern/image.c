@@ -1770,6 +1770,8 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 			ibuf->rect_float= rectf;
 			ibuf->flags |= IB_rectfloat;
 			ibuf->channels= channels;
+			ibuf->zbuf_float= rres.rectz;
+			ibuf->flags |= IB_zbuffloat;
 			
 			ima->ok= IMA_OK_LOADED;
 			return ibuf;

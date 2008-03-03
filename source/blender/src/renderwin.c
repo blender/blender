@@ -352,6 +352,7 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 				rres.recty= rspare->ibuf->y;
 				rres.rect32= (int *)rspare->ibuf->rect;
 				rres.rectf= rspare->ibuf->rect_float;
+				rres.rectz= rspare->ibuf->zbuf_float;
 			}
 			else
 				memset(&rres, 0, sizeof(rres));
@@ -429,11 +430,26 @@ static void renderwin_zoom(RenderWin *rw, int ZoomIn) {
 	renderwin_queue_redraw(rw);
 }
 
+#define FTOCHAR(val) val<=0.0f? 0 : (val>=(1.0f-0.5f/255.0f)? 255 :(char)((255.0f*val)+0.5f))
+
 static void renderwin_mouse_moved(RenderWin *rw)
 {
 	RenderResult rres;
-	
-	RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
+	RenderSpare *rspare= render_spare;
+		
+	if(rspare && rspare->showspare) {
+		if(rspare->ibuf) {
+			rres.rectx= rspare->ibuf->x;
+			rres.recty= rspare->ibuf->y;
+			rres.rect32= (int *)rspare->ibuf->rect;
+			rres.rectf= rspare->ibuf->rect_float;
+			rres.rectz= rspare->ibuf->zbuf_float;
+		}
+		else
+			memset(&rres, 0, sizeof(rres));
+	}
+	else
+		RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
 
 	if (rw->flags & RW_FLAGS_PIXEL_EXAMINING) {
 		int imgco[2], ofs=0;
@@ -441,12 +457,16 @@ static void renderwin_mouse_moved(RenderWin *rw)
 		char *pxl;
 
 		if (renderwin_win_to_image_co(rw, rw->lmouse, imgco)) {
+			ofs= sprintf(buf, "X: %d Y: %d ", imgco[0], imgco[1]);
 			if (rres.rect32) {
 				pxl= (char*) &rres.rect32[rres.rectx*imgco[1] + imgco[0]];
-				ofs= sprintf(buf, "R: %d G: %d B: %d A: %d", pxl[0], pxl[1], pxl[2], pxl[3]);	
+				ofs+= sprintf(buf+ofs, " | R: %d G: %d B: %d A: %d", pxl[0], pxl[1], pxl[2], pxl[3]);	
 			}
 			if (rres.rectf) {
 				float *pxlf= rres.rectf + 4*(rres.rectx*imgco[1] + imgco[0]);
+				if(!rres.rect32){
+					ofs+= sprintf(buf+ofs, " | R: %d G: %d B: %d A: %d", FTOCHAR(pxlf[0]), FTOCHAR(pxlf[1]), FTOCHAR(pxlf[2]), FTOCHAR(pxlf[3]));
+				}
 				ofs+= sprintf(buf+ofs, " | R: %.3f G: %.3f B: %.3f A: %.3f ", pxlf[0], pxlf[1], pxlf[2], pxlf[3]);
 			}
 			if (rres.rectz) {
@@ -1159,10 +1179,15 @@ static int render_store_spare(void)
 		rspare->ibuf->flags |= IB_rect;
 		rspare->ibuf->mall |= IB_rect;
 	}
-	else if(rres.rectf) {
+	if(rres.rectf) {
 		rspare->ibuf->rect_float= MEM_dupallocN(rres.rectf);
 		rspare->ibuf->flags |= IB_rectfloat;
 		rspare->ibuf->mall |= IB_rectfloat;
+	}
+	if(rres.rectz) {
+		rspare->ibuf->zbuf_float= MEM_dupallocN(rres.rectz);
+		rspare->ibuf->flags |= IB_zbuffloat;
+		rspare->ibuf->mall |= IB_zbuffloat;
 	}
 
 	return 1;
