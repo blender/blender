@@ -1778,7 +1778,7 @@ static void panel_clicked_tabs(uiBlock *block,  int mousex)
 	width= (int)((float)(panel->sizex - ofsx-10)/nr);
 	pa= curarea->panels.first;
 	while(pa) {
-		if(pa==panel || pa->paneltab==panel) {
+		if(pa==panel || (pa->active && pa->paneltab==panel)) {
 			if( (mousex > ofsx+a*width) && (mousex < ofsx+(a+1)*width) ) {
 				tabsel= pa;
 				break;
