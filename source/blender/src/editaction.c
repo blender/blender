@@ -3421,10 +3421,26 @@ static void mouse_actionchannels (short mval[])
  				}
  				else {
 					/* select/deselect group */
-					if (G.qual & LR_SHIFTKEY) {
+					if (G.qual == LR_SHIFTKEY) {
+						/* inverse selection status of group */
 						select_action_group(act, agrp, SELECT_INVERT);
 					}
+					else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY)) {
+						bActionChannel *achan;
+						
+						/* select all in group (and deselect everthing else) */	
+						deselect_actionchannels(act, 0);
+						
+						for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
+							select_channel(act, achan, SELECT_ADD);
+							
+							/* messy... set active bone */
+							select_poseelement_by_name(achan->name, 1);
+						}
+						select_action_group(act, agrp, SELECT_ADD);
+					}
 					else {
+						/* select group by itself */
 						deselect_actionchannels(act, 0);
 						select_action_group(act, agrp, SELECT_ADD);
 					}
@@ -4139,9 +4155,81 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case UI_BUT_EVENT:
 			do_actionbuts(val); 	/* window itself */
 			break;
+			
+		/* LEFTMOUSE and RIGHTMOUSE event codes can be swapped above,
+		 * based on user preference USER_LMOUSESELECT
+		 */
+		case LEFTMOUSE:
+			if (view2dmove(LEFTMOUSE)) /* only checks for sliders */
+				break;
+			else if ((G.v2d->mask.xmin==0) || (mval[0] > ACTWIDTH)) {
+				/* moving time-marker / current frame */
+				do {
+					getmouseco_areawin(mval);
+					areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
+					
+					cfra= (int)(dx+0.5f);
+					if (cfra < 1) cfra= 1;
+					
+					if (cfra != CFRA) {
+						CFRA= cfra;
+						update_for_newframe();
+						force_draw_all(0);					
+					}
+					else 
+						PIL_sleep_ms(30);
+				} 
+				while(get_mbut() & mousebut);
+				break;
+			}
+			/* passed on as selection */
+		case RIGHTMOUSE:
+			/* Clicking in the channel area */
+			if ((G.v2d->mask.xmin) && (mval[0] < NAMEWIDTH)) {
+				if (datatype == ACTCONT_ACTION) {
+					/* mouse is over action channels */
+					if (G.qual == LR_CTRLKEY)
+						numbuts_action();
+					else 
+						mouse_actionchannels(mval);
+				}
+				else 
+					numbuts_action();
+			}
+			else {
+				short select_mode= (G.qual & LR_SHIFTKEY)? SELECT_INVERT: SELECT_REPLACE;
+				
+				/* Clicking in the vertical scrollbar selects
+				 * all of the keys for that channel at that height
+				 */
+				if (IN_2D_VERT_SCROLL(mval))
+					selectall_action_keys(mval, 0, select_mode);
 		
-		case HOMEKEY:
-			do_action_buttons(B_ACTHOME);	/* header */
+				/* Clicking in the horizontal scrollbar selects
+				 * all of the keys within 0.5 of the nearest integer
+				 * frame
+				 */
+				else if (IN_2D_HORIZ_SCROLL(mval))
+					selectall_action_keys(mval, 1, select_mode);
+				
+				/* Clicking in the main area of the action window
+				 * selects keys and markers
+				 */
+				else if (G.qual & LR_ALTKEY) {
+					areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
+					
+					/* sends a 1 for left and 0 for right */
+					selectkeys_leftright((dx < (float)CFRA), select_mode);
+				}
+				else
+					mouse_action(select_mode);
+			}
+			break;
+			
+		case MIDDLEMOUSE:
+		case WHEELUPMOUSE:
+		case WHEELDOWNMOUSE:
+			view2dmove(event);	/* in drawipo.c */
 			break;
 		
 		case AKEY:
@@ -4454,74 +4542,6 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		
-		/* LEFTMOUSE and RIGHTMOUSE event codes can be swapped above,
-		 * based on user preference USER_LMOUSESELECT
-		 */
-		case LEFTMOUSE:
-			if (view2dmove(LEFTMOUSE)) /* only checks for sliders */
-				break;
-			else if ((G.v2d->mask.xmin==0) || (mval[0]>ACTWIDTH)) {
-				/* moving time-marker / current frame */
-				do {
-					getmouseco_areawin(mval);
-					areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
-					
-					cfra= (int)(dx+0.5f);
-					if (cfra < 1) cfra= 1;
-					
-					if (cfra != CFRA) {
-						CFRA= cfra;
-						update_for_newframe();
-						force_draw_all(0);					
-					}
-					else PIL_sleep_ms(30);
-					
-				} while(get_mbut() & mousebut);
-				break;
-			}
-			/* passed on as selection */
-		case RIGHTMOUSE:
-			/* Clicking in the channel area */
-			if ((G.v2d->mask.xmin) && (mval[0]<NAMEWIDTH)) {
-				if (datatype == ACTCONT_ACTION) {
-					/* mouse is over action channels */
-					if (G.qual & LR_CTRLKEY)
-						numbuts_action();
-					else 
-						mouse_actionchannels(mval);
-				}
-				else numbuts_action();
-			}
-			else {
-				short select_mode= (G.qual & LR_SHIFTKEY)? SELECT_INVERT: SELECT_REPLACE;
-				
-				/* Clicking in the vertical scrollbar selects
-				 * all of the keys for that channel at that height
-				 */
-				if (IN_2D_VERT_SCROLL(mval))
-					selectall_action_keys(mval, 0, select_mode);
-		
-				/* Clicking in the horizontal scrollbar selects
-				 * all of the keys within 0.5 of the nearest integer
-				 * frame
-				 */
-				else if (IN_2D_HORIZ_SCROLL(mval))
-					selectall_action_keys(mval, 1, select_mode);
-				
-				/* Clicking in the main area of the action window
-				 * selects keys and markers
-				 */
-				else if (G.qual & LR_ALTKEY) {
-					areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
-					
-					/* sends a 1 for left and 0 for right */
-					selectkeys_leftright((dx < (float)CFRA), select_mode);
-				}
-				else
-					mouse_action(select_mode);
-			}
-			break;
-		
 		case ACCENTGRAVEKEY:
 			if (datatype == ACTCONT_ACTION)
 				expand_all_action();
@@ -4553,12 +4573,10 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				doredraw= 1;
 			}
 			break;	
-			
-		case MIDDLEMOUSE:
-		case WHEELUPMOUSE:
-		case WHEELDOWNMOUSE:
-			view2dmove(event);	/* in drawipo.c */
-			break;
+		
+		case HOMEKEY:
+			do_action_buttons(B_ACTHOME);	/* header */
+			break;	
 		}
 	}
 
