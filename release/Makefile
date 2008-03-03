@@ -31,7 +31,7 @@
 
 include nan_definitions.mk
 
-export VERSION := $(shell getversion.py)
+export VERSION := $(shell ./getversion.py)
 
 BLENDNAME=blender-$(VERSION)-$(CONFIG_GUESS)-py$(NAN_PYTHON_VERSION)$(TYPE)
 export DISTDIR=$(NAN_OBJDIR)/$(BLENDNAME)
