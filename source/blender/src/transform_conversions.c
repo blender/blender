@@ -488,6 +488,10 @@ static short apply_targetless_ik(Object *ob)
 						
 						Mat4MulMat4(tmat, offs_bone, rmat);
 					}
+					else if(parchan->bone->flag & BONE_NO_SCALE) {
+						Mat4MulMat4(tmat, offs_bone, parchan->parent->pose_mat);
+						Mat4Ortho(tmat);
+					}
 					else
 						Mat4MulMat4(tmat, offs_bone, parchan->parent->pose_mat);
 					
