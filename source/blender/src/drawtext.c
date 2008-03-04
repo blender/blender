@@ -1531,9 +1531,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				do_textscroll(st, 2);
 			} else {
 				do_selection(st, G.qual&LR_SHIFTKEY);
-				buffer = txt_sel_to_buf(text);
-				putClipboard((GHOST_TInt8*)buffer, 1);
-				MEM_freeN(buffer);
+				if (txt_has_sel(text)) {
+					buffer = txt_sel_to_buf(text);
+					putClipboard((GHOST_TInt8*)buffer, 1);
+					MEM_freeN(buffer);
+				}
 				do_draw= 1;
 			}
 		}
