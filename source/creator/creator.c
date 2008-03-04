@@ -427,7 +427,6 @@ int main(int argc, char **argv)
 					a++;
 					sizy= atoi(argv[a]);
 
-					setprefsize(stax, stay, sizx, sizy, 0);
 					break;
 				case 'd':
 					G.f |= G_DEBUG;		/* std output printf's */ 
@@ -448,6 +447,10 @@ int main(int argc, char **argv)
 				case 'W':
 					/* XXX, fixme zr, borderless on win32 */
 					/* now on all platforms as of 20070411 - DJC */
+					winlay_get_screensize(&sizx, &sizy);
+					stax=0;
+					stay=0;
+					
 					G.windowstate = G_WINDOWSTATE_FULLSCREEN;
 					break;
 				case 'R':
@@ -478,10 +481,7 @@ int main(int argc, char **argv)
 		* this, right now do as if blender was
 		* called with "-p 0 0 xres yres" -- sgefant
 		*/
-		if (G.windowstate == G_WINDOWSTATE_BORDER) {
-			winlay_get_screensize(&sizx, &sizy);
-			setprefsize(0, 0, sizx, sizy, 1);
-		}
+		setprefsize(stax, stay, sizx, sizy, 0);
 		
 		BPY_start_python(argc, argv);
 		
