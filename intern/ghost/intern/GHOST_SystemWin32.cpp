@@ -911,7 +911,7 @@ void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, int flag) const
 			EmptyClipboard();
 			
 			clipbuffer = LocalAlloc(LMEM_FIXED,((strlen(buffer)+1)));
-			data = (char*)GobalLock(clipbuffer);
+			data = (char*)GlobalLock(clipbuffer);
 
 			strcpy(data, (char*)buffer);
 			data[strlen(buffer)] = '\0';
