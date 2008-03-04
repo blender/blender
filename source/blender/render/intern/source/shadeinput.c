@@ -1235,8 +1235,6 @@ void shade_sample_initialize(ShadeSample *ssamp, RenderPart *pa, RenderLayer *rl
 	}
 	
 	get_sample_layers(pa, rl, ssamp->rlpp);
-
-	ssamp->samplenr= 0; /* counter, detect shadow-reuse for shaders */
 }
 
 /* Do AO or (future) GI */
@@ -1286,7 +1284,7 @@ void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, int y)
 						
 						shi->mask= (1<<samp);
 //						shi->rl= ssamp->rlpp[samp];
-						shi->samplenr= ssamp->samplenr++;	/* this counter is not being reset per pixel */
+						shi->samplenr= R.shadowsamplenr[shi->thread]++;	/* this counter is not being reset per pixel */
 						shade_input_set_viewco(shi, xs, ys, (float)ps->z);
 						shade_input_set_uv(shi);
 						shade_input_set_normals(shi);
@@ -1307,7 +1305,7 @@ void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, int y)
 					ys= (float)y + 0.5f;
 				}
 				shi->mask= curmask;
-				shi->samplenr= ssamp->samplenr++;
+				shi->samplenr= R.shadowsamplenr[shi->thread]++;
 				shade_input_set_viewco(shi, xs, ys, (float)ps->z);
 				shade_input_set_uv(shi);
 				shade_input_set_normals(shi);

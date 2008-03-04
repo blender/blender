@@ -1281,7 +1281,7 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 	float texfac, orthoarea, nor[3];
 
 	/* cache for shadow */
-	shi->samplenr++;
+	shi->samplenr= R.shadowsamplenr[shi->thread]++;
 	
 	if(quad) 
 		shade_input_set_triangle_i(shi, obi, vlr, 0, 2, 3);
@@ -1821,7 +1821,7 @@ static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInpu
 	}
 		
 	/* cache for shadow */
-	shi->samplenr++;
+	shi->samplenr= R.shadowsamplenr[shi->thread]++;
 	
 	shi->u= -u;
 	shi->v= -v;

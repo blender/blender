@@ -152,6 +152,9 @@ struct Render
 	float jit[32][2];
 	QMCSampler *qsa;
 	
+	/* shadow counter, detect shadow-reuse for shaders */
+	int shadowsamplenr[BLENDER_MAX_THREADS];
+	
 	/* scene, and its full copy of renderdata and world */
 	Scene *scene;
 	RenderData r;

@@ -275,7 +275,7 @@ void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *sseg, Str
 	shi->obr= sseg->obi->obr;
 
 	/* cache for shadow */
-	shi->samplenr= ssamp->samplenr++;
+	shi->samplenr= re->shadowsamplenr[shi->thread]++;
 
 	shade_input_set_strand(shi, sseg->strand, spoint);
 	shade_input_set_strand_texco(shi, sseg->strand, sseg->v[1], spoint);

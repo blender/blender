@@ -3641,6 +3641,8 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 				LampShadowSample *ls;
 				LampShadowSubSample *lss;
 				int a, b;
+
+				memset(re->shadowsamplenr, 0, sizeof(re->shadowsamplenr));
 				
 				lar->shadsamp= MEM_mallocN(re->r.threads*sizeof(LampShadowSample), "lamp shadow sample");
 				ls= lar->shadsamp;
