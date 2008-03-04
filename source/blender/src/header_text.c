@@ -348,14 +348,16 @@ static void do_text_editmenu(void *arg, int event)
 		txt_do_redo(text);
 		break;
 	case 3:
+		txt_copy_clipboard(text);
 		txt_cut_sel(text);
 		pop_space_text(st);
 		break;
 	case 4:
-		txt_copy_sel(text);
+		//txt_copy_sel(text);
+		txt_copy_clipboard(text);
 		break;
 	case 5:
-		txt_paste(text);
+		txt_paste_clipboard(text);
 		if (st->showsyntax) get_format_string(st);
 		break;
 	case 6:

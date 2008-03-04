@@ -204,7 +204,7 @@ GHOST_WindowX11(
 		KeyPressMask | KeyReleaseMask |
 		EnterWindowMask | LeaveWindowMask |
 		ButtonPressMask | ButtonReleaseMask |
-		PointerMotionMask | FocusChangeMask;
+		PointerMotionMask | FocusChangeMask | PropertyChangeMask;
 
 	// create the window!
 
@@ -766,6 +766,15 @@ validate(
 GHOST_WindowX11::
 ~GHOST_WindowX11(
 ){
+	static Atom Primary_atom, Clipboard_atom;
+	Window p_owner, c_owner;
+	/*Change the owner of the Atoms to None if we are the owner*/
+	Primary_atom = XInternAtom(m_display, "PRIMARY", False);
+	Clipboard_atom = XInternAtom(m_display, "CLIPBOARD", False);
+	
+	p_owner = XGetSelectionOwner(m_display, Primary_atom);
+	c_owner = XGetSelectionOwner(m_display, Clipboard_atom);
+	
 	std::map<unsigned int, Cursor>::iterator it = m_standard_cursors.begin();
 	for (; it != m_standard_cursors.end(); it++) {
 		XFreeCursor(m_display, it->second);
@@ -784,6 +793,14 @@ GHOST_WindowX11::
 		}
 		glXDestroyContext(m_display, m_context);
 	}
+	
+	if (p_owner == m_window) {
+		XSetSelectionOwner(m_display, Primary_atom, None, CurrentTime);
+	}
+	if (c_owner == m_window) {
+		XSetSelectionOwner(m_display, Clipboard_atom, None, CurrentTime);
+	}
+	
 	XDestroyWindow(m_display, m_window);
 	XFree(m_visual);
 }

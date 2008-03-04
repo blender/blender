@@ -85,6 +85,8 @@
 #include "mydevice.h"
 #include "blendef.h" 
 
+#include "GHOST_C-api.h"
+
 #define TEXTXLOC	38
 
 /* forward declarations */
@@ -92,10 +94,9 @@
 void drawtextspace(ScrArea *sa, void *spacedata);
 void winqreadtextspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 void txt_copy_selectbuffer (Text *text);
-void txt_paste_clipboard(Text *text); /* blank on non Win32 */
-void txt_copy_clipboard(Text *text); /* blank on non Win32 */
 void do_brackets();
 
+void get_selection_buffer(Text *text);
 int check_bracket(char *string);
 static int check_delim(char *string);
 static int check_numbers(char *string);
@@ -1306,8 +1307,6 @@ void txt_copy_selectbuffer (Text *text)
 	bufferlength = length;
 }
 
-
-#ifdef _WIN32
 static char *unixNewLine(char *buffer)
 {
 	char *p, *p2, *output;
@@ -1340,55 +1339,42 @@ static char *winNewLine(char *buffer)
 	
 	return(output);
 }
-#endif
-
 
 void txt_paste_clipboard(Text *text) {
-#ifdef _WIN32
-	char * buffer = NULL;
 
-	if ( OpenClipboard(NULL) ) {
-		HANDLE hData = GetClipboardData( CF_TEXT );
-		buffer = (char*)GlobalLock( hData );
-		if (buffer) {
-			buffer = unixNewLine(buffer);
-			if (buffer) txt_insert_buf(text, buffer);
-		}
-		GlobalUnlock( hData );
-		CloseClipboard();
-		MEM_freeN(buffer);
+	char * buff;
+	char *temp_buff;
+	
+	buff = (char*)getClipboard(0);
+	if(buff) {
+		temp_buff = unixNewLine(buff);
+		
+		txt_insert_buf(text, temp_buff);
+		if(buff){free((void*)buff);}
+		if(temp_buff){MEM_freeN(temp_buff);}
 	}
-#endif
+}
+
+void get_selection_buffer(Text *text)
+{
+	char *buff = (char*)getClipboard(1);
+	txt_insert_buf(text, buff);
 }
 
 void txt_copy_clipboard(Text *text) {
-#ifdef _WIN32
+	char *temp;
+
 	txt_copy_selectbuffer(text);
 
-	if (OpenClipboard(NULL)) {
-		HLOCAL clipbuffer;
-		char* buffer;
-		
-		if (copybuffer) {
-			copybuffer = winNewLine(copybuffer);
-
-			EmptyClipboard();
-			clipbuffer = LocalAlloc(LMEM_FIXED,((bufferlength+1)));
-			buffer = (char *) LocalLock(clipbuffer);
-
-			strncpy(buffer, copybuffer, bufferlength);
-			buffer[bufferlength] =  '\0';
-			LocalUnlock(clipbuffer);
-			SetClipboardData(CF_TEXT,clipbuffer);
-		}
-		CloseClipboard();
-	}
-
 	if (copybuffer) {
+		copybuffer[bufferlength] = '\0';
+		temp = winNewLine(copybuffer);
+		
+		putClipboard((GHOST_TInt8*)temp, 0);
+		MEM_freeN(temp);
 		MEM_freeN(copybuffer);
 		copybuffer= NULL;
 	}
-#endif
 }
 
 /*
@@ -1537,19 +1523,29 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if (event==LEFTMOUSE) {
 		if (val) {
 			short mval[2];
+			char *buffer;
 			set_tabs(text);
 			getmouseco_areawin(mval);
-
+			
 			if (mval[0]>2 && mval[0]<20 && mval[1]>2 && mval[1]<curarea->winy-2) {
 				do_textscroll(st, 2);
-			} else {			
+			} else {
 				do_selection(st, G.qual&LR_SHIFTKEY);
+				buffer = txt_sel_to_buf(text);
+				putClipboard((GHOST_TInt8*)buffer, 1);
+				MEM_freeN(buffer);
 				do_draw= 1;
 			}
 		}
 	} else if (event==MIDDLEMOUSE) {
 		if (val) {
-			do_textscroll(st, 1);
+			#ifdef _WIN32 || __APPLE__
+				do_textscroll(st, 1);
+			#else
+				do_selection(st, G.qual&LR_SHIFTKEY);
+				get_selection_buffer(text);
+				do_draw= 1;
+			#endif
 		}
 	} else if (event==RIGHTMOUSE) {
 		if (val) {
@@ -1606,7 +1602,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(G.qual & LR_SHIFTKEY)
 					txt_copy_clipboard(text);
 				else
-					txt_copy_sel(text);
+					txt_copy_clipboard(text);
 
 				do_draw= 1;	
 			}
@@ -1630,15 +1626,18 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (G.qual == (LR_ALTKEY|LR_SHIFTKEY)) {
 				switch(pupmenu("Edit %t|Cut %x0|Copy %x1|Paste %x2|Print Cut Buffer %x3")) {
 				case 0:
+					txt_copy_clipboard(text); //First copy to clipboard
 					txt_cut_sel(text);
 					do_draw= 1;
 					break;
 				case 1:
-					txt_copy_sel(text);
+					txt_copy_clipboard(text);
+					//txt_copy_sel(text);
 					do_draw= 1;
 					break;
 				case 2:
-					txt_paste(text);
+					//txt_paste(text);
+					txt_paste_clipboard(text);
 					if (st->showsyntax) get_format_string(st);
 					do_draw= 1;
 					break;
@@ -1804,7 +1803,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if (G.qual & LR_SHIFTKEY)
 					txt_paste_clipboard(text);
 				else
-					txt_paste(text);
+					txt_paste_clipboard(text);
 				if (st->showsyntax) get_format_string(st);
 				do_draw= 1;	
 				pop_space_text(st);

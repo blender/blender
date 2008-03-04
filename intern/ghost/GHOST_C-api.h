@@ -758,6 +758,18 @@ extern void GHOST_SetRectangleCenter(GHOST_RectangleHandle rectanglehandle,
  */
 extern GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
 										  GHOST_RectangleHandle anotherrectanglehandle);
+
+/**
+ * Return the data from the clipboad
+ * @return clipboard data
+ */
+extern GHOST_TUns8* getClipboard(int flag);
+
+/**
+ * Put data to the Clipboard
+ */
+extern void putClipboard(GHOST_TInt8 *buffer, int flag);
+
 #ifdef __cplusplus
 }
 #endif

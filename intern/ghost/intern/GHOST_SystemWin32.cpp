@@ -873,3 +873,54 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 	}
 	return lResult;
 }
+
+GHOST_TUns8* GHOST_SystemWin32::getClipboard(int flag) const 
+{
+	char *buffer;
+	char *temp_buff;
+	
+	if ( OpenClipboard(NULL) ) {
+		HANDLE hData = GetClipboardData( CF_TEXT );
+		buffer = (char*)GlobalLock( hData );
+		
+		temp_buff = (char*) malloc(strlen(buffer)+1);
+		strcpy(temp_buff, buffer);
+		
+		GlobalUnlock( hData );
+		CloseClipboard();
+		
+		temp_buff[strlen(buffer)] = '\0';
+		if (buffer) {
+			return (GHOST_TUns8*)temp_buff;
+		} else {
+			return NULL;
+		}
+	} else {
+		return NULL;
+	}
+}
+
+void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, int flag) const
+{
+	if(flag == 1) {return;} //If Flag is 1 means the selection and is used on X11
+	if (OpenClipboard(NULL)) {
+		HLOCAL clipbuffer;
+		char *data;
+		
+		if (buffer) {
+			EmptyClipboard();
+			
+			clipbuffer = LocalAlloc(LMEM_FIXED,((strlen(buffer)+1)));
+			data = (char*)GobalLock(clipbuffer);
+
+			strcpy(data, (char*)buffer);
+			data[strlen(buffer)] = '\0';
+			LocalUnlock(clipbuffer);
+			SetClipboardData(CF_TEXT,clipbuffer);
+		}
+		CloseClipboard();
+	} else {
+		return;
+	}
+}
+
