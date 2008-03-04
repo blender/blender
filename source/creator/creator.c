@@ -476,12 +476,8 @@ int main(int argc, char **argv)
 			}
 		}
 
-		/* XXX, fixme zr, with borders */
-		/* there probably is a better way to do
-		* this, right now do as if blender was
-		* called with "-p 0 0 xres yres" -- sgefant
-		*/
-		setprefsize(stax, stay, sizx, sizy, 0);
+		if ( (G.windowstate == G_WINDOWSTATE_BORDER) || (G.windowstate == G_WINDOWSTATE_FULLSCREEN)) 
+			setprefsize(stax, stay, sizx, sizy, 0);
 		
 		BPY_start_python(argc, argv);
 		
