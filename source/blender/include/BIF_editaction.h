@@ -152,6 +152,7 @@ void action_groups_ungroup(void);
 void rearrange_action_channels(short mode);
 
 void expand_all_action(void);
+void expand_obscuregroups_action(void);
 void openclose_level_action(short mode);
 void setflag_action_channels(short mode);
 

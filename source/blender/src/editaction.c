@@ -2440,28 +2440,28 @@ static void hilight_channel(bAction *act, bActionChannel *achan, short select)
 	}
 }
 
+/* Syncs selection of channels with selection of object elements in posemode */
 /* messy call... */
-static void select_poseelement_by_name(char *name, int select)
+static void select_poseelement_by_name (char *name, int select)
 {
-	/* Syncs selection of channels with selection of object elements in posemode */
 	Object *ob= OBACT;
 	bPoseChannel *pchan;
 	
-	if (!ob || ob->type!=OB_ARMATURE)
+	if ((ob==NULL) || (ob->type!=OB_ARMATURE))
 		return;
 	
-	if(select==2) {
-		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
+	if (select == 2) {
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
 			pchan->bone->flag &= ~(BONE_ACTIVE);
 	}
 	
 	pchan= get_pose_channel(ob->pose, name);
-	if(pchan) {
-		if(select)
+	if (pchan) {
+		if (select)
 			pchan->bone->flag |= (BONE_SELECTED);
 		else 
 			pchan->bone->flag &= ~(BONE_SELECTED);
-		if(select==2)
+		if (select == 2)
 			pchan->bone->flag |= (BONE_ACTIVE);
 	}
 }
@@ -2472,9 +2472,9 @@ void select_actionchannel_by_name (bAction *act, char *name, int select)
 {
 	bActionChannel *achan;
 
-	if (!act)
+	if (act == NULL)
 		return;
-
+	
 	for (achan = act->chanbase.first; achan; achan= achan->next) {
 		if (!strcmp(achan->name, name)) {
 			if (select) {
@@ -3911,6 +3911,35 @@ void expand_all_action (void)
 	allqueue(REDRAWACTION, 0);
 }
 
+/* Expands those groups which are hiding a selected actionchannel */
+void expand_obscuregroups_action (void)
+{
+	void *data;
+	short datatype;
+	
+	bAction *act;
+	bActionChannel *achan;
+	short mode= 1;
+	
+	/* Get the selected action, exit if none are selected */
+	data = get_action_context(&datatype);
+	if (data == NULL) return;
+	if (datatype != ACTCONT_ACTION) return;
+	act= (bAction *)data;
+	
+	/* check if expand all, or close all */
+	for (achan= act->chanbase.first; achan; achan= achan->next) {
+		if (VISIBLE_ACHAN(achan) && SEL_ACHAN(achan)) {
+			if (achan->grp)
+				achan->grp->flag |= AGRP_EXPANDED;
+		}
+	}
+	
+	/* Cleanup and do redraws */
+	BIF_undo_push("Show Group-Hidden Channels");
+	allqueue(REDRAWACTION, 0);
+}
+
 /* For visible channels, expand/collapse one level */
 void openclose_level_action (short mode)
 {
@@ -4543,8 +4572,12 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		
 		case ACCENTGRAVEKEY:
-			if (datatype == ACTCONT_ACTION)
-				expand_all_action();
+			if (datatype == ACTCONT_ACTION) {
+				if (G.qual == LR_SHIFTKEY)
+					expand_obscuregroups_action();
+				else
+					expand_all_action();
+			}
 			break;
 		
 		case PADPLUSKEY:

@@ -124,6 +124,7 @@ enum {
 	ACTMENU_CHANNELS_OPENLEVELS = 0,
 	ACTMENU_CHANNELS_CLOSELEVELS,
 	ACTMENU_CHANNELS_EXPANDALL,
+	ACTMENU_CHANNELS_SHOWACHANS,
 	ACTMENU_CHANNELS_DELETE
 };
 
@@ -844,6 +845,9 @@ static void do_action_channelmenu(void *arg, int event)
 		case ACTMENU_CHANNELS_EXPANDALL: /* Expands all channels */
 			expand_all_action();
 			break;
+		case ACTMENU_CHANNELS_SHOWACHANS: /* Unfold groups that are hiding selected achans */
+			expand_obscuregroups_action();
+			break;
 		case ACTMENU_CHANNELS_DELETE: /* Deletes selected channels */
 			delete_action_channels();
 			break;
@@ -884,6 +888,10 @@ static uiBlock *action_channelmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 			"Toggle Show Hierachy|~", 0, yco-=20,
 			menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_CHANNELS_EXPANDALL, "");
+			
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+			"Show Group-Hidden Channels|Shift ~", 0, yco-=20,
+			menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_CHANNELS_SHOWACHANS, "");
 			
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 			"Expand One Level|Ctrl NumPad+", 0, yco-=20,
