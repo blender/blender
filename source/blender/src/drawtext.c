@@ -1541,7 +1541,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	} else if (event==MIDDLEMOUSE) {
 		if (val) {
-			#ifdef _WIN32 || __APPLE__
+			#if defined(_WIN32) || defined(__APPLE__)
 				do_textscroll(st, 1);
 			#else
 				do_selection(st, G.qual&LR_SHIFTKEY);
