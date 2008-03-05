@@ -900,7 +900,7 @@ static int fd_read_from_memfile(FileData *filedata, void *buffer, int size)
 			if(chunkoffset+readsize > chunk->size)
 				readsize= chunk->size-chunkoffset;
 
-			memcpy(buffer + totread, chunk->buf+chunkoffset, readsize);
+			memcpy((char*)buffer+totread, chunk->buf+chunkoffset, readsize);
 			totread += readsize;
 			filedata->seek += readsize;
 			seek += readsize;
