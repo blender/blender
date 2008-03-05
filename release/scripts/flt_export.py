@@ -1016,6 +1016,8 @@ class FLTNode(Node):
 		self.header.fw.write_short(self.opcode)
 		self.header.fw.write_ushort(recordlen[self.opcode])
 		exportdict = FLT_Records[self.opcode].copy()
+		if self.object:
+			self.props['3t8!id'] = self.object.name[:7]
 		for key in exportdict.keys():
 			if self.props.has_key(key):
 				exportdict[key] = self.props[key]
