@@ -409,6 +409,10 @@ int main(int argc, char **argv)
 	
 	init_def_material();
 
+	winlay_get_screensize(&sizx, &sizy);
+	stax=0;
+	stay=0;
+
 	if(G.background==0) {
 		for(a=1; a<argc; a++) {
 			if(argv[a][0] == '-') {
@@ -442,19 +446,10 @@ int main(int argc, char **argv)
 					break;
             
 				case 'w':
-					winlay_get_screensize(&sizx, &sizy);
-					stax=0;
-					stay=0;
-
 					G.windowstate = G_WINDOWSTATE_BORDER;
 					break;
 				case 'W':
-					/* XXX, fixme zr, borderless on win32 */
-					/* now on all platforms as of 20070411 - DJC */
-					winlay_get_screensize(&sizx, &sizy);
-					stax=0;
-					stay=0;
-					
+					/* XXX, fixme mein, borderless on OSX */
 					G.windowstate = G_WINDOWSTATE_FULLSCREEN;
 					break;
 				case 'R':
