@@ -858,6 +858,7 @@ static int fd_read_from_memfile(FileData *filedata, void *buffer, int size)
 	static unsigned int seek= 1<<30;	/* the current position */
 	static unsigned int offset= 0;		/* size of previous chunks */
 	static MemFileChunk *chunk=NULL;
+	unsigned int chunkoffset, readsize, totread;
 	
 	if(size==0) return 0;
 	
@@ -875,29 +876,39 @@ static int fd_read_from_memfile(FileData *filedata, void *buffer, int size)
 	}
 	
 	if(chunk) {
-		/* first check if it's on the end if current chunk */
-		if( seek-offset == chunk->size) {
-			offset+= chunk->size;
-			chunk= chunk->next;
-		}
+		totread= 0;
+
+		do {
+			/* first check if it's on the end if current chunk */
+			if(seek-offset == chunk->size) {
+				offset+= chunk->size;
+				chunk= chunk->next;
+			}
+
+			/* debug, should never happen */
+			if(chunk==NULL) {
+				printf("illegal read, chunk zero\n");
+				return 0;
+			}
+
+			chunkoffset= seek-offset;
+			readsize= size-totread;
+
+			/* data can be spread over multiple chunks, so clamp size
+			 * to within this chunk, and then it will read further in
+			 * the next chunk */
+			if(chunkoffset+readsize > chunk->size)
+				readsize= chunk->size-chunkoffset;
+
+			memcpy(buffer + totread, chunk->buf+chunkoffset, readsize);
+			totread += readsize;
+			filedata->seek += readsize;
+			seek += readsize;
+		} while(totread < size);
 		
-		/* debug, should never happen */
-		if(chunk==NULL) {
-			printf("illegal read, chunk zero\n");
-			return 0;
-		}
-		else if( (seek-offset)+size > chunk->size) {
-			size= chunk->size - (seek-offset);
-			printf("chunk too large, clipped to %d\n", size);
-		}
-		
-		memcpy(buffer, chunk->buf + (seek-offset), size);
-		filedata->seek += size;
-		seek+= size;
-		
-		return (size);
-		
+		return totread;
 	}
+
 	return 0;
 }
 

@@ -187,7 +187,10 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 
 #include <errno.h>
 
-/* ********* my write, buffered writing with minimum 50k chunks ************ */
+/* ********* my write, buffered writing with minimum size chunks ************ */
+
+#define MYWRITE_BUFFER_SIZE	100000
+#define MYWRITE_MAX_CHUNK	32768
 
 typedef struct {
 	struct SDNA *sdna;
@@ -216,7 +219,7 @@ static WriteData *writedata_new(int file)
 
 	wd->file= file;
 
-	wd->buf= MEM_mallocN(100000, "wd->buf");
+	wd->buf= MEM_mallocN(MYWRITE_BUFFER_SIZE, "wd->buf");
 
 	return wd;
 }
@@ -256,12 +259,13 @@ int mywfile;
  * @warning Talks to other functions with global parameters
  */
  
-#define MYWRITE_FLUSH	NULL
+#define MYWRITE_FLUSH		NULL
 
 static void mywrite( WriteData *wd, void *adr, int len)
 {
 	if (wd->error) return;
 
+	/* flush helps compression for undo-save */
 	if(adr==MYWRITE_FLUSH) {
 		if(wd->count) {
 			writedata_do_write(wd, wd->buf, wd->count);
@@ -272,21 +276,33 @@ static void mywrite( WriteData *wd, void *adr, int len)
 
 	wd->tot+= len;
 	
-	if(len>50000) {
+	/* if we have a single big chunk, write existing data in
+	 * buffer and write out big chunk in smaller pieces */
+	if(len>MYWRITE_MAX_CHUNK) {
 		if(wd->count) {
 			writedata_do_write(wd, wd->buf, wd->count);
 			wd->count= 0;
 		}
-		writedata_do_write(wd, adr, len);
+
+		do {
+			int writelen= MIN2(len, MYWRITE_MAX_CHUNK);
+			writedata_do_write(wd, adr, writelen);
+			adr = (char*)adr + writelen;
+			len -= writelen;
+		} while(len > 0);
+
 		return;
 	}
-	if(len+wd->count>99999) {
+
+	/* if data would overflow buffer, write out the buffer */
+	if(len+wd->count>MYWRITE_BUFFER_SIZE-1) {
 		writedata_do_write(wd, wd->buf, wd->count);
 		wd->count= 0;
 	}
+
+	/* append data at end of buffer */
 	memcpy(&wd->buf[wd->count], adr, len);
 	wd->count+= len;
-
 }
 
 /**
