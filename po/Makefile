@@ -36,11 +36,7 @@ SOURCEDIR = blender/po
 
 include nan_definitions.mk
 
-ifeq ($(INTERNATIONAL),true)
-	LINGUAS = ar bg ca cs de el es fr hr it ja nl pl pt_BR ro ru sr sr@Latn sv uk zh_CN
-else
-	LINGUAS = 
-endif
+LINGUAS = ar bg ca cs de el es fr hr it ja nl pl pt_BR ro ru sr sr@Latn sv uk zh_CN
 
 ifeq ($(OS), darwin)
 DIR = $(OCGDIR)/bin/blender.app/Contents/Resources/locale/$@/LC_MESSAGES/

@@ -47,10 +47,15 @@ MAKEFLAGS=-I$(NANBLENDERHOME)/source --no-print-directory
 
 SOURCEDIR = 
 ifeq ($(FREE_WINDOWS),true)
-    DIRS ?= dlltool extern intern source po
+    DIRS ?= dlltool extern intern source
 endif
 
-DIRS ?= extern intern source po
+DIRS ?= extern intern source
+
+ifeq ($(INTERNATIONAL),true)
+    DIRS += po
+endif
+
 include source/nan_subdirs.mk
 
 .PHONY: release
