@@ -245,7 +245,7 @@ extern void winlay_get_screensize(int *width_r, int *height_r);
 
 int main(int argc, char **argv)
 {
-	int a, i, stax, stay, sizx, sizy;
+	int a, i, stax=0, stay=0, sizx, sizy;
 	SYS_SystemHandle syshandle;
 	Scene *sce;
 

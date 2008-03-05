@@ -3919,7 +3919,6 @@ void expand_obscuregroups_action (void)
 	
 	bAction *act;
 	bActionChannel *achan;
-	short mode= 1;
 	
 	/* Get the selected action, exit if none are selected */
 	data = get_action_context(&datatype);
