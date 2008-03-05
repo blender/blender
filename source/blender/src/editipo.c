@@ -2200,8 +2200,12 @@ static void *get_context_ipo_poin(ID *id, int blocktype, char *actname, IpoCurve
 			Object *ob= (Object *)id;
 			bPoseChannel *pchan= get_pose_channel(ob->pose, actname);
 			
-			*vartype= IPO_FLOAT;
-			return get_pchan_ipo_poin(pchan, icu->adrcode);
+			if(pchan) {
+				*vartype= IPO_FLOAT;
+				return get_pchan_ipo_poin(pchan, icu->adrcode);
+			}
+			else
+				return NULL;
 		}
 		return NULL;
 	}
@@ -4208,7 +4212,7 @@ void del_ipo(int need_check)
 					bezt= ei->icu->bezt;
 					for(a=0; a<ei->icu->totvert; a++) {
 						if( BEZSELECTED(bezt) ) {
-							memcpy(bezt, bezt+1, (ei->icu->totvert-a-1)*sizeof(BezTriple));
+							memmove(bezt, bezt+1, (ei->icu->totvert-a-1)*sizeof(BezTriple));
 							ei->icu->totvert--;
 							a--;
 							event= 1;
@@ -5665,7 +5669,7 @@ void delete_icu_key(IpoCurve *icu, int index, short do_recalc)
 		return;
 	
 	/*	Delete this key */
-	memcpy(&icu->bezt[index], &icu->bezt[index+1], sizeof(BezTriple)*(icu->totvert-index-1));
+	memmove(&icu->bezt[index], &icu->bezt[index+1], sizeof(BezTriple)*(icu->totvert-index-1));
 	icu->totvert--;
 	
 	/* recalc handles - only if it won't cause problems */
@@ -5687,7 +5691,7 @@ void delete_ipo_keys(Ipo *ipo)
 		/* Delete selected BezTriples */
 		for (i=0; i<icu->totvert; i++) {
 			if (icu->bezt[i].f2 & SELECT) {
-				memcpy(&icu->bezt[i], &icu->bezt[i+1], sizeof(BezTriple)*(icu->totvert-i-1));
+				memmove(&icu->bezt[i], &icu->bezt[i+1], sizeof(BezTriple)*(icu->totvert-i-1));
 				icu->totvert--;
 				i--;
 			}
