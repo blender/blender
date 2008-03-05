@@ -442,6 +442,10 @@ int main(int argc, char **argv)
 					break;
             
 				case 'w':
+					winlay_get_screensize(&sizx, &sizy);
+					stax=0;
+					stay=0;
+
 					G.windowstate = G_WINDOWSTATE_BORDER;
 					break;
 				case 'W':
