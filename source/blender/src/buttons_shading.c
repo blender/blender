@@ -2585,7 +2585,7 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 	float grid=0.0;
 	
 	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_spot", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Shadow and Spot", "Lamp", 640, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Shadow and Spot", "Lamp", 640, 0, 318, 224)==0) return;
 
 	/* hemis and ray shadow dont work at all... */
 	/* yafray: ignore photonlight as well */
@@ -2635,9 +2635,10 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 				uiDefButS(block, ROW,B_NOP,	"Tent",				165,90,65,19, &la->filtertype, 0.0, LA_SHADBUF_TENT, 0, 0, "Apply Tent filter for shadowbuffer samples");
 				uiDefButS(block, ROW,B_NOP,	"Gauss",			230,90,70,19, &la->filtertype, 0.0, LA_SHADBUF_GAUSS, 0, 0, "Apply Gauss filter for shadowbuffer samples");
 				
-	//			uiDefButS(block, ROW,B_NOP,"SubSamples: 1",		100,90,140,19, &la->buffers, 1.0, 1.0, 0, 0, "Amount of lampbuffer subsamples, a value of larger than 1 halves the shadowbuffer size");
-	//			uiDefButS(block, ROW,B_NOP,"4",					240,90,30,19, &la->buffers, 1.0, 4.0, 0, 0, "Amount of lampbuffer subsamples, this halves the actual shadowbuffer size");
-	//			uiDefButS(block, ROW,B_NOP,"9",					270,90,30,19, &la->buffers, 1.0, 9.0, 0, 0, "Amount of lampbuffer subsamples, this halves the shadowbuffer size");
+				uiBlockBeginAlign(block);
+				uiDefButS(block, ROW,B_NOP,"SampleBuffers: 1",	100,-15,140,19, &la->buffers, 1.0, 1.0, 0, 0, "Only one lampbuffer rendered");
+				uiDefButS(block, ROW,B_NOP,"4",					240,-15,30,19, &la->buffers, 1.0, 4.0, 0, 0, "Renders 4 lampbuffers for better AA, this quadruples memory usage");
+				uiDefButS(block, ROW,B_NOP,"9",					270,-15,30,19, &la->buffers, 1.0, 9.0, 0, 0, "Renders 9 lampbuffers for better AA, this uses nine times more memory");
 			
 				uiBlockBeginAlign(block);
 				uiDefButS(block, NUM,B_LAMPREDRAW,"Samples:",	100,60,100,19,	&la->samp,1.0,16.0, 0, 0, "Sets the number of shadow map samples");

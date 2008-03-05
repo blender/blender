@@ -3339,8 +3339,6 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 	/* percentage render: keep track of min and max */
 	shb->size= (lar->bufsize*re->r.size)/100;
 	
-	if(lar->buffers>1) shb->size/= 2;
-	
 	if(shb->size<512) shb->size= 512;
 	else if(shb->size > lar->bufsize) shb->size= lar->bufsize;
 	
