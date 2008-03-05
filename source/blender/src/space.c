@@ -5054,6 +5054,7 @@ static void init_actionspace(ScrArea *sa)
 	saction->v2d.keepzoom= V2D_LOCKZOOM_Y;
 	saction->v2d.keeptot= 0;
 	
+	saction->autosnap = SACTSNAP_FRAME;
 }
 
 static void free_actionspace(SpaceAction *saction)
