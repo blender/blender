@@ -14,7 +14,7 @@ BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 WITH_BF_OPENAL = 'true'
 BF_OPENAL = LIBDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include'
-BF_OPENAL_LIB = 'openal_static'
+BF_OPENAL_LIB = 'dxguid openal_static'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 
 WITH_BF_FFMPEG = 'false'
@@ -151,7 +151,7 @@ C_WARN = [ '-Wall' , '-Wno-char-subscripts', '-Wdeclaration-after-statement' ]
 
 CC_WARN = [ '-Wall' ]
 
-LLIBS = ['-lshell32', '-lshfolder', '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++']
+LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++']
 
 BF_DEBUG = 'false'
 BF_DEBUG_FLAGS= '-g'

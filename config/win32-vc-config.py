@@ -21,7 +21,7 @@ BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 WITH_BF_OPENAL = 'true'
 BF_OPENAL = LIBDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include ${BF_OPENAL}/include/AL '
-BF_OPENAL_LIB = 'openal_static'
+BF_OPENAL_LIB = 'dxguid openal_static'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 
 WITH_BF_ICONV = 'true'
@@ -151,13 +151,13 @@ CCFLAGS = ['/nologo', '/Og', '/Ot', '/Ob1', '/Op', '/G6','/EHsc', '/J', '/W3', '
 
 BF_DEBUG_FLAGS = ['/Zi', '/FR${TARGET}.sbr']
 
-CPPFLAGS = ['-DWIN32','-D_CONSOLE', '-D_LIB', '-DUSE_OPENAL', '-DFTGL_LIBRARY_STATIC', '-D_CRT_SECURE_NO_DEPRECATE']
+CPPFLAGS = ['-DWIN32','-D_CONSOLE', '-D_LIB', '-DFTGL_LIBRARY_STATIC', '-D_CRT_SECURE_NO_DEPRECATE']
 REL_CFLAGS = ['-O2', '-DNDEBUG']
 REL_CCFLAGS = ['-O2', '-DNDEBUG']
 C_WARN = []
 CC_WARN = []
 
-LLIBS = 'ws2_32 dxguid vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shell32 ole32 oleaut32 uuid'
+LLIBS = 'ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shell32 ole32 oleaut32 uuid'
 
 PLATFORM_LINKFLAGS = '''
                         /SUBSYSTEM:CONSOLE 
