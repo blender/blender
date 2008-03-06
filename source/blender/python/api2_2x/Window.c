@@ -106,6 +106,7 @@ static PyObject *M_Window_QTest( PyObject * self );
 static PyObject *M_Window_QRead( PyObject * self );
 static PyObject *M_Window_QAdd( PyObject * self, PyObject * args );
 static PyObject *M_Window_QHandle( PyObject * self, PyObject * args );
+static PyObject *M_Window_TestBreak( PyObject * self );
 static PyObject *M_Window_GetMouseCoords( PyObject * self );
 static PyObject *M_Window_SetMouseCoords( PyObject * self, PyObject * args );
 static PyObject *M_Window_GetMouseButtons( PyObject * self );
@@ -250,6 +251,9 @@ static char M_Window_QHandle_doc[] =
 (win) - int: the window id, see Blender.Window.GetScreenInfo().\n\n\
 See Blender.Window.QAdd() for how to send events to a particular window.";
 
+static char M_Window_TestBreak_doc[] =
+	"() - Returns true if the user has pressed escape.";
+
 static char M_Window_GetMouseCoords_doc[] =
 	"() - Get mouse pointer's current screen coordinates.";
 
@@ -373,6 +377,8 @@ struct PyMethodDef M_Window_methods[] = {
 	 M_Window_QAdd_doc},
 	{"QHandle", ( PyCFunction ) M_Window_QHandle, METH_VARARGS,
 	 M_Window_QHandle_doc},
+	{"TestBreak", ( PyCFunction ) M_Window_TestBreak, METH_VARARGS,
+	 M_Window_TestBreak_doc},
 	{"GetMouseCoords", ( PyCFunction ) M_Window_GetMouseCoords,
 	 METH_NOARGS,
 	 M_Window_GetMouseCoords_doc},
@@ -1262,6 +1268,15 @@ static PyObject *M_Window_QHandle( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
+static PyObject *M_Window_TestBreak( PyObject * self )
+{
+	if (blender_test_break()) {
+		Py_RETURN_TRUE;
+	} else {
+		Py_RETURN_FALSE;
+	}
+}
+		
 static PyObject *M_Window_GetMouseCoords( PyObject * self )
 {
 	short mval[2];
