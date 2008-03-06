@@ -1275,12 +1275,12 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				uiBlockBeginAlign(block);
 					if (is_armature_target(data->tar)) {
-						uiDefButF(block, BUT, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->orglength, 0.0, 0, 0, 0, "Recalculate RLength");
+						uiDefButF(block, BUTM, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->orglength, 0.0, 0, 0, 0, "Recalculate RLength");
 						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Rest Length:", *xco+18, *yco-60,139,18, &data->orglength, 0.0, 100, 0.5, 0.5, "Length at Rest Position");
 						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Head/Tail:", *xco+155, *yco-60,98,18, &con->headtail, 0.0, 1, 0.1, 0.1, "Target along length of bone: Head=0, Tail=1");
 					}
 					else {
-						uiDefButF(block, BUT, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->orglength, 0.0, 0, 0, 0, "Recalculate RLength");
+						uiDefButF(block, BUTM, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->orglength, 0.0, 0, 0, 0, "Recalculate RLength");
 						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Rest Length:", *xco+18, *yco-60, 237, 18, &data->orglength, 0.0, 100, 0.5, 0.5, "Length at Rest Position");
 					}
 				uiBlockEndAlign(block);
@@ -1464,12 +1464,12 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				uiBlockBeginAlign(block);
 					if (is_armature_target(data->tar)) {
-						uiDefButF(block, BUT, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->dist, 0, 0, 0, 0, "Recalculate distance"); 
+						uiDefButF(block, BUTM, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->dist, 0, 0, 0, 0, "Recalculate distance"); 
 						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Distance:", *xco+18, *yco-60,139,18, &data->dist, 0.0, 100, 0.5, 0.5, "Radius of limiting sphere");
 						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Head/Tail:", *xco+155, *yco-60,100,18, &con->headtail, 0.0, 1, 0.1, 0.1, "Target along length of bone: Head=0, Tail=1");
 					}
 					else {
-						uiDefButF(block, BUT, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->dist, 0, 0, 0, 0, "Recalculate distance"); 
+						uiDefButF(block, BUTM, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->dist, 0, 0, 0, 0, "Recalculate distance"); 
 						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Distance:", *xco+18, *yco-60, 237, 18, &data->dist, 0.0, 100, 0.5, 0.5, "Radius of limiting sphere");
 					}
 					
