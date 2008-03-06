@@ -391,6 +391,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 	}
 	else if(add_addbutton) {	/* "add new" button */
 		uiBlockSetCol(block, oldcol);
+		if(parid) uiSetButLock(parid->lib!=0, ERROR_LIBDATA_MESSAGE);
 		uiDefButS(block, TOG, browse, "Add New" ,xco, yco, 110, YIC, menupoin, (float)*menupoin, 32767.0, 0, 0, "Add new data block");
 		xco+= 110;
 	}

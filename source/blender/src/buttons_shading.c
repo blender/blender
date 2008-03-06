@@ -3921,13 +3921,13 @@ static void material_panel_ramps(Material *ma)
 	uiNewPanelTabbed("Material", "Material");
 	if(uiNewPanel(curarea, block, "Ramps", "Material", 640, 0, 318, 204)==0) return;
 	
-	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
-	
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButS(block, ROW, B_REDR, "Show Col Ramp",10,180,150,20, &ma->ramp_show, 0, 0, 0, 0, "Show ramp buttons for material diffuse color");
 	uiDefButS(block, ROW, B_REDR, "Show Spec Ramp",160,180,150,20, &ma->ramp_show, 0, 1, 0, 0, "Show ramp buttons for material specular color");
 	uiBlockSetCol(block, TH_AUTO);
+	
+	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 	
 	/* COLORBAND */
 	uiBlockBeginAlign(block);
@@ -4166,6 +4166,7 @@ static void material_panel_links(Object *ob, Material *ma)
 	}
 	
 	uiBlockSetCol(block, TH_BUT_ACTION);
+	uiClearButLock();
 	uiDefButBitS(block, TOG, 1<<(ob->actcol-1), B_MATFROM, "OB",	125,135,32,20, &ob->colbits, 0, 0, 0, 0, "Links material to object");
 	idn= ob->data;
 	strncpy(str, idn->name, 2);
