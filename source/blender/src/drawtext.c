@@ -1037,7 +1037,12 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	
 	for (i=0; i<st->viewlines && tmp; i++, tmp= tmp->next) {
 		if(st->showlinenrs) {
-			BIF_ThemeColor(TH_TEXT);
+			/*Change the color of the current line the cursor is on*/
+			if(tmp == text->curl) { 
+				BIF_ThemeColor(TH_HILITE);
+			} else {
+				BIF_ThemeColor(TH_TEXT);
+			}
 			if(((float)(i + linecount + 1)/10000.0) < 1.0) {
 				sprintf(linenr, "%4d", i + linecount + 1);
 				glRasterPos2i(TXT_OFFSET - 7, curarea->winy-st->lheight*(i+1));
@@ -1045,6 +1050,7 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 				sprintf(linenr, "%5d", i + linecount + 1);
 				glRasterPos2i(TXT_OFFSET - 11, curarea->winy-st->lheight*(i+1));
 			}
+			BIF_ThemeColor(TH_TEXT);
 			BMF_DrawString(spacetext_get_font(st), linenr);
 			text_draw(st, tmp->line, st->left, 0, 1, TXT_OFFSET + TEXTXLOC, curarea->winy-st->lheight*(i+1), tmp->format);
 		} else
