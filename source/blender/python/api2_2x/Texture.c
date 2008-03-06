@@ -1563,16 +1563,23 @@ static int Texture_setImage( BPy_Texture * self, PyObject * value )
 {
 	Image *blimg = NULL;
 
-	if( !BPy_Image_Check (value) )
+	if ( value != Py_None && !BPy_Image_Check (value) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-					      "expected an Image" );
-	blimg = Image_FromPyObject( value );
+					      "expected an Image or None" );
+
 
 	if( self->texture->ima ) {
 		self->texture->ima->id.us--;
+		self->texture->ima = NULL;
 	}
 
+	if ( value == Py_None )
+		return 0;
+
+	blimg = Image_FromPyObject( value );
+
 	self->texture->ima = blimg;
+	self->texture->type = TEX_IMAGE;
 	BKE_image_signal(blimg, &self->texture->iuser, IMA_SIGNAL_RELOAD );
 	id_us_plus( &blimg->id );
 

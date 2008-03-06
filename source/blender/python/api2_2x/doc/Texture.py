@@ -432,7 +432,7 @@ class Texture:
 		"""
 		Set the Image of this texture.
 		@param image: The new Image.
-		@type image: Blender Image
+		@type image: Blender Image or None.
 		@warning: This sets the texture's type to 'Image' if it is not already.
 		"""
 
