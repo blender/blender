@@ -1086,8 +1086,12 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, int winx, int winy
 			re->r.scemode &= ~R_FULL_SAMPLE;	/* clear, so we can use this flag for test both */
 		
 		/* fullsample wants uniform osa levels */
-		if(source && re->r.scemode & R_FULL_SAMPLE) {
-			re->r.osa= re->osa= source->osa;
+		if(source && (re->r.scemode & R_FULL_SAMPLE)) {
+			/* but, if source has no full sample we disable it */
+			if((source->r.scemode & R_FULL_SAMPLE)==0)
+				re->r.scemode &= ~R_FULL_SAMPLE;
+			else
+				re->r.osa= re->osa= source->osa;
 		}
 		else {
 			/* check state variables, osa? */
