@@ -1955,6 +1955,18 @@ static void write_brushes(WriteData *wd, ListBase *idbase)
 	}
 }
 
+static void write_scripts(WriteData *wd, ListBase *idbase)
+{
+	Script *script;
+	
+	for(script=idbase->first; script; script= script->id.next) {
+		if(script->id.us>0 || wd->current) {
+			writestruct(wd, ID_SCRIPT, "Script", 1, script);
+			if (script->id.properties) IDP_WriteProperty(script->id.properties, wd);
+		}
+	}
+}
+
 static void write_global(WriteData *wd)
 {
 	FileGlobal fg;
@@ -2020,6 +2032,7 @@ static int write_file_handle(int handle, MemFile *compare, MemFile *current, int
 	write_particlesettings(wd, &G.main->particle);
 	write_nodetrees(wd, &G.main->nodetree);
 	write_brushes  (wd, &G.main->brush);
+	write_scripts  (wd, &G.main->script);
 	if(current==NULL)	
 		write_libraries(wd,  G.main->next); /* no library save in undo */
 

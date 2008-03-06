@@ -52,7 +52,7 @@
 #include "BIF_space.h"
 #include "BIF_interface.h"
 #include "BIF_toolbox.h"
-#include "BPI_script.h"		/* script struct */
+#include "DNA_space_types.h"		/* script struct */
 #include "Image.h"              /* for accessing Blender.Image objects */
 #include "IMB_imbuf_types.h"    /* for the IB_rect define */
 #include "interface.h"
@@ -912,6 +912,8 @@ static PyObject *Method_Exit( PyObject * self )
 
 	/* remove our lock to the current namespace */
 	script->flags &= ~SCRIPT_GUI;
+	script->scriptname[0] = '\0';
+	script->scriptarg[0] = '\0';
 
 	Py_RETURN_NONE;
 }

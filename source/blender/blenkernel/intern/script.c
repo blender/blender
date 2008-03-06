@@ -35,7 +35,7 @@
  */
 
 #include "BKE_script.h"
-#include "BPI_script.h"
+#include "DNA_space_types.h"
 
 #include "MEM_guardedalloc.h"
 #include "BKE_bad_level_calls.h" /* for BPY_clear_script */

@@ -58,7 +58,6 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "BPI_script.h"
 #include "BPY_extern.h"
 
 #include "BIF_gl.h"
@@ -95,6 +94,20 @@ void drawscriptspace(ScrArea *sa, void *spacedata)
 
 	script = sc->script;
 
+	/* Is this script loaded from a file and it needs running??? */
+	if (	(G.f & G_DOSCRIPTLINKS) &&
+				script->scriptname[0] != '\0' &&
+				(script->flags == NULL &&
+				script->py_event == NULL &&
+				script->py_button == NULL &&
+				script->py_draw ==	NULL )
+		) {
+		if (!BPY_run_script(script)) {
+			/* if this fails, script will be free'd */
+			script = NULL;
+		}
+	}
+	
 	if (script->py_draw) {
 		BPY_spacescript_do_pywin_draw(sc);
 	}
@@ -113,6 +126,22 @@ void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *
 	SpaceScript *sc = curarea->spacedata.first;
 	Script *script = sc->script;
 
+	if (script) {
+		/* Is this script loaded from a file and it needs running??? */
+		if (	(G.f & G_DOSCRIPTLINKS) &&
+				 script->scriptname[0] != '\0' &&
+					(script->flags == NULL &&
+				 script->py_event == NULL &&
+				 script->py_button == NULL &&
+				 script->py_draw ==	NULL )
+		   ) {
+			if (!BPY_run_script(script)) {
+				/* if this fails, script will be free'd */
+				script = NULL;
+			}
+		}
+	}
+	
 	if (script) {
 		if (script->py_event || script->py_button)
 			BPY_spacescript_do_pywin_event(sc, event, val, ascii);

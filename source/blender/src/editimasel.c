@@ -89,8 +89,6 @@
 
 #include "BLO_readfile.h"
 
-#include "BPI_script.h"
-
 #include "BSE_drawipo.h"
 #include "BSE_drawimasel.h"
 #include "BSE_edit.h"

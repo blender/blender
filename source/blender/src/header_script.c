@@ -60,7 +60,6 @@
 #include "BKE_sca.h"
 #include "BSE_filesel.h"
 
-#include "BPI_script.h"
 #include "BPY_extern.h"
 #include "BPY_menus.h"
 

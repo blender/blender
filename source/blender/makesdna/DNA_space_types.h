@@ -291,6 +291,24 @@ typedef struct SpaceText {
 
 } SpaceText;
 
+typedef struct Script {
+	ID id;
+
+	void *py_draw;
+	void *py_event;
+	void *py_button;
+	void *py_browsercallback;
+	void *py_globaldict;
+
+	int flags, lastspace;
+	char scriptname[256]; /* store the script file here so we can re-run it on loading blender, if "Enable Scripts" is on */
+	char scriptarg[256];
+} Script;
+#define SCRIPT_SET_NULL(_script) _script->py_draw = _script->py_event = _script->py_button = _script->py_browsercallback = _script->py_globaldict = _script->flags = 0;
+#define SCRIPT_RUNNING	0x01
+#define SCRIPT_GUI		0x02
+#define SCRIPT_FILESEL	0x04
+
 typedef struct SpaceScript {
 	SpaceLink *next, *prev;
 	int spacetype;

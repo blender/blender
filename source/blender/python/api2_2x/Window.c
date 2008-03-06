@@ -38,7 +38,6 @@
 #include "BKE_main.h"
 #include "BKE_object.h"		/* for during_script() and during_scriptlink() */
 #include "BKE_scene.h"		/* scene_find_camera() */
-#include "BPI_script.h"
 #include "BIF_mywindow.h"
 #include "BIF_imasel.h"
 #include "BSE_headerbuttons.h"

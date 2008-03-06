@@ -36,7 +36,7 @@
 
 #include "BKE_bad_level_calls.h"
 #include "BLI_blenlib.h"
-#include "BPI_script.h"
+#include "DNA_space_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"

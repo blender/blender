@@ -114,7 +114,7 @@
 #include "BKE_brush.h"
 #include "BKE_idprop.h"
 
-#include "BPI_script.h"
+#include "DNA_space_types.h"
 
 #define MAX_IDPUP		60	/* was 24 */
 

@@ -1031,6 +1031,7 @@ void BIF_undo(void)
 		else {
 			/* now also in faceselect mode */
 			if(U.uiflag & USER_GLOBALUNDO) {
+				BPY_scripts_clear_pyobjects();
 				BKE_undo_step(1);
 				sound_initialize_sounds();
 			}

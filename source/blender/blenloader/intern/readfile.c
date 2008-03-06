@@ -1422,6 +1422,17 @@ static void direct_link_brush(FileData *fd, Brush *brush)
 		brush->mtex[a]= newdataadr(fd, brush->mtex[a]);
 }
 
+static void direct_link_script(FileData *fd, Script *script)
+{
+	script->id.us = 1;
+	script->py_draw =
+	script->py_event =
+	script->py_button =
+	script->py_browsercallback =
+	script->py_globaldict =
+	script->flags = NULL;
+}
+
 /* ************ READ CurveMapping *************** */
 
 /* cuma itself has been read! */
@@ -3726,9 +3737,13 @@ static void lib_link_screen(FileData *fd, Main *main)
 
 					}
 					else if(sl->spacetype==SPACE_SCRIPT) {
-						SpaceScript *sc= (SpaceScript *)sl;
 
-						sc->script = NULL;
+						SpaceScript *scpt= (SpaceScript *)sl;
+						/*sc->script = NULL; - 2.45 set to null, better re-run the script */
+						if (scpt->script) {
+							scpt->script = newlibadr(fd, sc->id.lib, scpt->script);
+							SCRIPT_SET_NULL(scpt->script);
+						}
 					}
 					else if(sl->spacetype==SPACE_OOPS) {
 						SpaceOops *so= (SpaceOops *)sl;
@@ -3899,9 +3914,14 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 					if(st->text==NULL) st->text= newmain->text.first;
 				}
 				else if(sl->spacetype==SPACE_SCRIPT) {
-					SpaceScript *sc= (SpaceScript *)sl;
-
-					sc->script = NULL;
+					SpaceScript *scpt= (SpaceScript *)sl;
+					
+					scpt->script= restore_pointer_by_name(newmain, (ID *)scpt->script, 1);
+					
+					/*sc->script = NULL; - 2.45 set to null, better re-run the script */
+					if (scpt->script) {
+						SCRIPT_SET_NULL(scpt->script);
+					}
 				}
 				else if(sl->spacetype==SPACE_OOPS) {
 					SpaceOops *so= (SpaceOops *)sl;
@@ -4358,6 +4378,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 			break;
 		case ID_PA:
 			direct_link_particlesettings(fd, (ParticleSettings*)id);
+			break;
+		case ID_SCRIPT:
+			direct_link_script(fd, (Script*)id);
 			break;
 	}
 	

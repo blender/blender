@@ -102,7 +102,6 @@
 #include "BDR_editcurve.h"
 #include "BDR_editobject.h"
 
-#include "BPI_script.h"
 #include "BSE_filesel.h"
 #include "BSE_view.h"
 

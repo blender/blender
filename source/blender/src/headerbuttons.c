@@ -148,8 +148,6 @@
 #include "BIF_writeimage.h"
 #include "BIF_butspace.h"
 
-#include "BPI_script.h"
-
 #include "BSE_edit.h"
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"

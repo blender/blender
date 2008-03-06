@@ -57,7 +57,7 @@
 #include "MEM_guardedalloc.h"
 #include "BPY_extern.h"
 #include "BPY_menus.h"
-#include "BPI_script.h"
+#include "DNA_space_types.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_armature.h"
@@ -661,7 +661,7 @@ int BPY_txt_do_python_Text( struct Text *text )
 	script->py_event = NULL;
 	script->py_button = NULL;
 	script->py_browsercallback = NULL;
-
+	strncpy(script->scriptname, text->id.name+2, sizeof(script->scriptname));
 	gilstate = PyGILState_Ensure();
 
 	py_dict = CreateGlobalDictionary(  );
@@ -768,6 +768,178 @@ void BPY_run_python_script( char *fn )
 	}
 }
 
+int BPY_run_script(Script *script)
+{
+	PyObject *py_dict, *py_res, *pyarg;
+	Text *text = NULL;
+	BPy_constant *info;
+	int len;
+	char *buffer, *s;
+	
+	FILE *fp = NULL;
+	
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+	
+	if (!BLI_exists(script->scriptname)) {
+		/* The file dosnt exist, maybe this blend file was made on some other persons computer? */
+		char fname[FILE_MAX];
+		char fpath[FILE_MAX];
+		char ftmp[FILE_MAX];
+		
+		strcpy(ftmp, script->scriptname);
+		BLI_split_dirfile(ftmp, fpath, fname);
+		BLI_make_file_string("/", fpath, bpy_gethome(1), fname);
+		
+		if (BLI_exists(fpath)) {
+			strncpy(script->scriptname, fpath, sizeof(script->scriptname));
+		} else if (U.pythondir[0]) {
+			BLI_make_file_string("/", fpath, U.pythondir, fname);
+			if (BLI_exists(fpath)) {
+				strncpy(script->scriptname, fpath, sizeof(script->scriptname));
+			}
+		}
+		
+		/* cant find the file?, fallback to text block */
+		if (!BLI_exists(script->scriptname)) {
+			for (text=G.main->text.first; text; text=text->id.next) {
+				if (strcmp(script->scriptname, text->id.name+2)==0) {
+					break;
+				}
+			}
+		}
+	}
+	if (text) {
+		Py_INCREF( Py_None );
+		pyarg = Py_None;
+	} else {
+		fp = fopen( script->scriptname, "rb" );
+		if( !fp ) {
+			printf( "Error loading script: couldn't open file %s\n", script->scriptname );
+			if( G.main->script.first )
+				free_libblock( &G.main->script, script );
+			PyGILState_Release(gilstate);
+			return 0;
+		}
+		
+		if( script->scriptarg[0] == '\0' ) { /* no submenus */
+			Py_INCREF( Py_None );
+			pyarg = Py_None;
+		} else {
+			pyarg = PyString_FromString( script->scriptarg );
+		}
+	}
+	
+	script->id.us = 1;
+	script->flags = SCRIPT_RUNNING;
+	script->py_draw = NULL;
+	script->py_event = NULL;
+	script->py_button = NULL;
+	script->py_browsercallback = NULL;
+	
+	py_dict = CreateGlobalDictionary(  );
+
+	script->py_globaldict = py_dict;
+
+	if( !setup_armature_weakrefs()){
+		printf("Oops - weakref dict\n");
+		if( G.main->script.first )
+			free_libblock( &G.main->script, script );
+		ReleaseGlobalDictionary( py_dict );
+		MEM_freeN( buffer );
+		PyGILState_Release(gilstate);
+		return 0;
+	}
+	
+	info = ( BPy_constant * ) PyConstant_New(  );
+	if( info ) {
+		PyConstant_Insert( info, "name",
+				 PyString_FromString( script->id.name + 2 ) );
+		PyConstant_Insert( info, "arg", pyarg );
+		EXPP_dict_set_item_str( py_dict, "__script__",
+				      ( PyObject * ) info );
+	}
+	
+	if (text) {
+		py_res = RunPython( text, py_dict );
+	} else {
+		/* Previously we used PyRun_File to run directly the code on a FILE 
+		* object, but as written in the Python/C API Ref Manual, chapter 2,
+		* 'FILE structs for different C libraries can be different and 
+		* incompatible'.
+		* So now we load the script file data to a buffer */
+	
+		fseek( fp, 0L, SEEK_END );
+		len = ftell( fp );
+		fseek( fp, 0L, SEEK_SET );
+	
+		buffer = MEM_mallocN( len + 2, "pyfilebuf" );	/* len+2 to add '\n\0' */
+		len = fread( buffer, 1, len, fp );
+	
+		buffer[len] = '\n';	/* fix syntax error in files w/o eol */
+		buffer[len + 1] = '\0';
+	
+		/* fast clean-up of dos cr/lf line endings: change '\r' to space */
+	
+		/* we also have to check for line splitters: '\\' */
+		/* to avoid possible syntax errors on dos files on win */
+		/**/
+			/* but first make sure we won't disturb memory below &buffer[0]: */
+			if( *buffer == '\r' )
+			*buffer = ' ';
+	
+		/* now handle the whole buffer */
+		for( s = buffer + 1; *s != '\0'; s++ ) {
+			if( *s == '\r' ) {
+				if( *( s - 1 ) == '\\' ) {	/* special case: long lines split with '\': */
+					*( s - 1 ) = ' ';	/* we write ' \', because '\ ' is a syntax error */
+					*s = '\\';
+				} else
+					*s = ' ';	/* not a split line, just replace '\r' with ' ' */
+			}
+		}
+	
+		fclose( fp );
+		
+		
+		py_res = PyRun_String( buffer, Py_file_input, py_dict, py_dict );
+		MEM_freeN( buffer );
+	}
+
+	if( !py_res ) {		/* Failed execution of the script */
+
+		BPY_Err_Handle( script->id.name + 2 );
+		ReleaseGlobalDictionary( py_dict );
+		script->py_globaldict = NULL;
+		if( G.main->script.first )
+			free_libblock( &G.main->script, script );
+		error( "Python script error: check console" );
+
+		PyGILState_Release(gilstate);
+		return 0;
+	} else {
+		Py_DECREF( py_res );
+		script->flags &= ~SCRIPT_RUNNING;
+
+		if( !script->flags ) {
+			ReleaseGlobalDictionary( py_dict );
+			script->py_globaldict = NULL;
+			free_libblock( &G.main->script, script );
+
+			/* special case: called from the menu in the Scripts window
+			 * we have to change sc->script pointer, since it'll be freed here.*/
+			if( curarea->spacetype == SPACE_SCRIPT ) {
+				SpaceScript *sc = curarea->spacedata.first;
+				sc->script = G.main->script.first;	/* can be null, which is ok ... */
+				/* ... meaning no other script is running right now. */
+			}
+
+		}
+	}
+	
+	PyGILState_Release(gilstate);
+	return 1;
+}
+	
 /****************************************************************************
 * Description: This function executes the script chosen from a menu.
 * Notes:	It is called by the ui code in src/header_???.c when a user  
@@ -777,17 +949,14 @@ void BPY_run_python_script( char *fn )
 *****************************************************************************/
 int BPY_menu_do_python( short menutype, int event )
 {
-	PyObject *py_dict, *py_res, *pyarg = NULL;
-	BPy_constant *info;
+	char *argstr = NULL;
 	BPyMenu *pym;
 	BPySubMenu *pysm;
-	FILE *fp = NULL;
-	char *buffer, *s;
-	char filestr[FILE_MAXDIR + FILE_MAXFILE];
 	char scriptname[21];
 	Script *script = NULL;
-	int len;
+	int ret, len;
 	PyGILState_STATE gilstate;
+	char filestr[FILE_MAX];
 
 	pym = BPyMenu_GetEntry( menutype, ( short ) event );
 
@@ -817,17 +986,12 @@ int BPY_menu_do_python( short menutype, int event )
 			if( arg >= 0 ) {
 				while( arg-- )
 					pysm = pysm->next;
-				pyarg = PyString_FromString( pysm->arg );
+				argstr = pysm->arg;
 			} else {
 				PyGILState_Release(gilstate);
 				return 0;
 			}
 		}
-	}
-
-	if( !pyarg ) { /* no submenus */
-		Py_INCREF( Py_None );
-		pyarg = Py_None;
 	}
 
 	if( pym->dir ) { /* script is in U.pythondir */
@@ -850,14 +1014,6 @@ int BPY_menu_do_python( short menutype, int event )
 		BLI_make_file_string( "/", filestr, scriptsdir, pym->filename );
 	}
 
-	fp = fopen( filestr, "rb" );
-	if( !fp ) {
-		printf( "Error loading script: couldn't open file %s\n",
-			filestr );
-		PyGILState_Release(gilstate);
-		return 0;
-	}
-
 	BLI_strncpy(scriptname, pym->name, 21);
 	len = strlen(scriptname) - 1;
 	/* by convention, scripts that open the file browser or have submenus
@@ -872,7 +1028,6 @@ int BPY_menu_do_python( short menutype, int event )
 
 	if( !script ) {
 		printf( "couldn't allocate memory for Script struct!" );
-		fclose( fp );
 		PyGILState_Release(gilstate);
 		return 0;
 	}
@@ -917,111 +1072,12 @@ int BPY_menu_do_python( short menutype, int event )
 		}
 		break;
 	}
-
-	script->id.us = 1;
-	script->flags = SCRIPT_RUNNING;
-	script->py_draw = NULL;
-	script->py_event = NULL;
-	script->py_button = NULL;
-	script->py_browsercallback = NULL;
-
-	py_dict = CreateGlobalDictionary(  );
-
-	script->py_globaldict = py_dict;
-
-	info = ( BPy_constant * ) PyConstant_New(  );
-	if( info ) {
-		PyConstant_Insert( info, "name",
-				 PyString_FromString( script->id.name + 2 ) );
-		PyConstant_Insert( info, "arg", pyarg );
-		EXPP_dict_set_item_str( py_dict, "__script__",
-				      ( PyObject * ) info );
-	}
-
-	/* Previously we used PyRun_File to run directly the code on a FILE 
-	 * object, but as written in the Python/C API Ref Manual, chapter 2,
-	 * 'FILE structs for different C libraries can be different and 
-	 * incompatible'.
-	 * So now we load the script file data to a buffer */
-
-	fseek( fp, 0L, SEEK_END );
-	len = ftell( fp );
-	fseek( fp, 0L, SEEK_SET );
-
-	buffer = MEM_mallocN( len + 2, "pyfilebuf" );	/* len+2 to add '\n\0' */
-	len = fread( buffer, 1, len, fp );
-
-	buffer[len] = '\n';	/* fix syntax error in files w/o eol */
-	buffer[len + 1] = '\0';
-
-	/* fast clean-up of dos cr/lf line endings: change '\r' to space */
-
-	/* we also have to check for line splitters: '\\' */
-	/* to avoid possible syntax errors on dos files on win */
-	 /**/
-		/* but first make sure we won't disturb memory below &buffer[0]: */
-		if( *buffer == '\r' )
-		*buffer = ' ';
-
-	/* now handle the whole buffer */
-	for( s = buffer + 1; *s != '\0'; s++ ) {
-		if( *s == '\r' ) {
-			if( *( s - 1 ) == '\\' ) {	/* special case: long lines split with '\': */
-				*( s - 1 ) = ' ';	/* we write ' \', because '\ ' is a syntax error */
-				*s = '\\';
-			} else
-				*s = ' ';	/* not a split line, just replace '\r' with ' ' */
-		}
-	}
-
-	fclose( fp );
-
-
-	if( !setup_armature_weakrefs()){
-		printf("Oops - weakref dict\n");
-		MEM_freeN( buffer );
-		PyGILState_Release(gilstate);
-		return 0;
-	}
-
-	/* run the string buffer */
-
-	py_res = PyRun_String( buffer, Py_file_input, py_dict, py_dict );
-
-	MEM_freeN( buffer );
-
-	if( !py_res ) {		/* Failed execution of the script */
-
-		BPY_Err_Handle( script->id.name + 2 );
-		ReleaseGlobalDictionary( py_dict );
-		script->py_globaldict = NULL;
-		if( G.main->script.first )
-			free_libblock( &G.main->script, script );
-		error( "Python script error: check console" );
-
-		PyGILState_Release(gilstate);
-		return 0;
-	} else {
-		Py_DECREF( py_res );
-		script->flags &= ~SCRIPT_RUNNING;
-
-		if( !script->flags ) {
-			ReleaseGlobalDictionary( py_dict );
-			script->py_globaldict = NULL;
-			free_libblock( &G.main->script, script );
-
-			/* special case: called from the menu in the Scripts window
-			 * we have to change sc->script pointer, since it'll be freed here.*/
-			if( curarea->spacetype == SPACE_SCRIPT ) {
-				SpaceScript *sc = curarea->spacedata.first;
-				sc->script = G.main->script.first;	/* can be null, which is ok ... */
-				/* ... meaning no other script is running right now. */
-			}
-
-		}
-	}
-
-	PyGILState_Release(gilstate);
+	
+	strncpy(script->scriptname, filestr, sizeof(script->scriptname));
+	if (argstr!=NULL && argstr[0] != '\0')
+		strncpy(script->scriptarg, argstr, sizeof(script->scriptarg));
+	
+	ret = BPY_run_script(script);
 
 	return 1;		/* normal return */
 }
@@ -1115,7 +1171,9 @@ void BPY_clear_script( Script * script )
 	script->py_event = NULL;
 	script->py_button = NULL;
 	script->py_browsercallback = NULL;
-
+	script->scriptname[0] = '\0';
+	script->scriptarg[0] = '\0';
+	
 	dict = script->py_globaldict;
 
 	if( dict ) {
@@ -2888,4 +2946,18 @@ void init_ourReload( void )
 	m = PyImport_AddModule( "__builtin__" );
 	d = PyModule_GetDict( m );
 	EXPP_dict_set_item_str( d, "reload", reload );
+}
+
+
+void BPY_scripts_clear_pyobjects( void )
+{
+	Script *script;
+	for (script=G.main->script.first; script; script=script->id.next) {
+		Py_XDECREF((PyObject *)script->py_draw);
+		Py_XDECREF((PyObject *)script->py_event);
+		Py_XDECREF((PyObject *)script->py_button);
+		Py_XDECREF((PyObject *)script->py_browsercallback);
+		Py_XDECREF((PyObject *)script->py_globaldict); 
+		SCRIPT_SET_NULL(script);
+	}
 }

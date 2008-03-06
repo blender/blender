@@ -1102,7 +1102,7 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 	return wasrelative;
 }
 
-/* copy di to fi without directory only */
+/* copy di to fi, filename only */
 void BLI_splitdirstring(char *di, char *fi)
 {
 	char *lslash= BLI_last_slash(di);
@@ -1348,8 +1348,8 @@ int BLI_testextensie(const char *str, const char *ext)
 }
 
 
-
-void BLI_split_dirfile(const char *string, char *dir, char *file)
+/* warning, can modify 'string' */
+void BLI_split_dirfile(char *string, char *dir, char *file)
 {
 	int a;
 #ifdef WIN32

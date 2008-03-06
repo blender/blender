@@ -44,13 +44,13 @@ struct ScriptLink; /* DNA_scriptlink_types.h */
 struct ListBase; /* DNA_listBase.h */
 struct SpaceText; /* DNA_space_types.h */
 struct SpaceScript; /* DNA_space_types.h */
-struct Script; /* BPI_script.h */
 struct ScrArea; /* DNA_screen_types.h */
 struct bScreen; /* DNA_screen_types.h */
 struct bConstraint; /* DNA_constraint_types.h */
 struct bPythonConstraint; /* DNA_constraint_types.h */
 struct bConstraintOb; /* DNA_constraint_types.h */
 struct bConstraintTarget; /* DNA_constraint_types.h*/
+struct Script;				/* DNA_screen_types.h */
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -94,6 +94,7 @@ extern "C" {
 	int BPY_txt_do_python_Text( struct Text *text );
 	int BPY_menu_do_python( short menutype, int event );
 	void BPY_run_python_script( char *filename );
+	int BPY_run_script(struct Script *script);
 	void BPY_free_compiled_text( struct Text *text );
 
 	void BPY_clear_bad_scriptlinks( struct Text *byebye );
@@ -126,6 +127,7 @@ extern "C" {
 					     unsigned short event, short val, char ascii );
 	void BPY_clear_script( struct Script *script );
 	void BPY_free_finished_script( struct Script *script );
+	void BPY_scripts_clear_pyobjects( void );
 
 /* void BPY_Err_Handle(struct Text *text); */
 /* void BPY_clear_bad_scriptlink(struct ID *id, struct Text *byebye); */
