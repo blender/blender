@@ -970,9 +970,7 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 		     (clmd->sim_parms->vgroup_bend>0)))
 	{
 		for ( i = 0; i < numverts; i++, verts++ )
-		{
-			verts->mass = 1.0; // standard mass
-			
+		{	
 			dvert = dm->getVertData ( dm, i, CD_MDEFORMVERT );
 			if ( dvert )
 			{
@@ -1029,6 +1027,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	float tnull[3] = {0,0,0};
 	int cache_there = 0;
 	Cloth *cloth = NULL;
+	MFace *mfaces = NULL;
 
 	// If we have a clothObject, free it. 
 	if ( clmd->clothObject != NULL )
@@ -1091,7 +1090,8 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		}
 		
 		/* no GUI interface yet */
-		verts->mass = clmd->sim_parms->mass = 1.0f;
+		verts->mass = clmd->sim_parms->mass; 
+		verts->impulse_count = 0;
 
 		if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
 			verts->goal= clmd->sim_parms->defgoal;

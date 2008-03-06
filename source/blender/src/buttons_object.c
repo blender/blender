@@ -5133,36 +5133,41 @@ static void cloth_presets_material(void *ob_v, void *arg2)
 	
 	if(clmd->sim_parms->presets==1) /* SILK */
 	{
-		clmd->sim_parms->structural = clmd->sim_parms->shear = 30.0;
-		clmd->sim_parms->bending = 0.1;
+		clmd->sim_parms->structural = clmd->sim_parms->shear = 5.0;
+		clmd->sim_parms->bending = 0.05;
 		clmd->sim_parms->Cdis = 0.0;
+		clmd->sim_parms->mass = 0.15;
 	}
 	else if(clmd->sim_parms->presets==2) /* COTTON */
 	{
-		clmd->sim_parms->structural = clmd->sim_parms->shear = 30.0;
-		clmd->sim_parms->bending = 1.0;
+		clmd->sim_parms->structural = clmd->sim_parms->shear = 15.0;
+		clmd->sim_parms->bending = 0.5;
 		clmd->sim_parms->Cdis = 5.0;
+		clmd->sim_parms->mass = 0.3;
 	}
 	else if(clmd->sim_parms->presets==3) /* RUBBER */
 	{
-		clmd->sim_parms->structural = clmd->sim_parms->shear = 5.0;
+		clmd->sim_parms->structural = clmd->sim_parms->shear = 15.0;
 		clmd->sim_parms->bending = 25.0;
 		clmd->sim_parms->Cdis = 25.0;
 		clmd->sim_parms->stepsPerFrame = MAX2(clmd->sim_parms->stepsPerFrame, 7.0);
+		clmd->sim_parms->mass = 3.0;
 	}
 	else if(clmd->sim_parms->presets==4) /* DENIM */
 	{
-		clmd->sim_parms->structural = clmd->sim_parms->shear = 70.0;
-		clmd->sim_parms->bending = 300.0;
+		clmd->sim_parms->structural = clmd->sim_parms->shear = 40.0;
+		clmd->sim_parms->bending = 10.0;
 		clmd->sim_parms->Cdis = 25.0;
-		clmd->sim_parms->stepsPerFrame = MAX2(clmd->sim_parms->stepsPerFrame, 15.0);
+		clmd->sim_parms->stepsPerFrame = MAX2(clmd->sim_parms->stepsPerFrame, 12.0);
+		clmd->sim_parms->mass = 1.0;
 	}
 	else if(clmd->sim_parms->presets==5) /* LEATHER */
 	{
-		clmd->sim_parms->structural = clmd->sim_parms->shear = 1000.0;
-		clmd->sim_parms->bending = 2500.0;
+		clmd->sim_parms->structural = clmd->sim_parms->shear = 80.0;
+		clmd->sim_parms->bending = 150.0;
 		clmd->sim_parms->Cdis = 25.0;
-		clmd->sim_parms->stepsPerFrame = MAX2(clmd->sim_parms->stepsPerFrame, 25.0);
+		clmd->sim_parms->stepsPerFrame = MAX2(clmd->sim_parms->stepsPerFrame, 15.0);
+		clmd->sim_parms->mass = 0.4;
 	}
 }
 
@@ -5240,6 +5245,8 @@ static void object_panel_cloth(Object *ob)
 		uiDefButF(block, NUM, B_CLOTH_RENEW, "Air Damp:", 160,130,150,20, &clmd->sim_parms->Cvi, 0.0, 10.0, 10, 0, "Air has normaly some thickness which slows falling things down");
 		
 		uiDefButI(block, NUM, B_CLOTH_RENEW, "Quality:", 10,110,150,20, &clmd->sim_parms->stepsPerFrame, 4.0, 80.0, 5, 0, "Quality of the simulation (higher=better=slower)");
+		
+		uiDefButF(block, NUM, B_CLOTH_RENEW, "Mass:", 160,110,150,20, &clmd->sim_parms->mass, 0.0, 10.0, 1000, 0, "Mass of cloth material.");
 		
 		uiDefBut(block, LABEL, 0, "Gravity:",  10,90,60,20, NULL, 0.0, 0, 0, 0, "");
 		
@@ -5408,7 +5415,7 @@ static void object_panel_cloth_II(Object *ob)
 		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED)
 		{
 			uiDefButF(block, NUM, B_CLOTH_RENEW, "Min Distance:",	   160,60,150,20, &clmd->coll_parms->epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in, can be changed for each frame");
-			uiDefButS(block, NUM, B_CLOTH_RENEW, "Collision Quality:",	   10,40,150,20, &clmd->coll_parms->loop_count, 1.0, 20.0, 1.0, 0, "How many collision iterations should be done. (higher = better = slower), can be changed for each frame");
+			uiDefButS(block, NUM, B_CLOTH_RENEW, "Collision Quality:",	   10,40,150,20, &clmd->coll_parms->loop_count, 1.0, 20.0, 1.0, 0, "How many collision iterations should be done. (higher = better = slower)");
 			uiDefButF(block, NUM, B_CLOTH_RENEW, "Friction:",	   160,40,150,20, &clmd->coll_parms->friction, 0.0, 80.0, 1.0, 0, "Friction force if a collision happened (0=movement not changed, 100=no movement left)");
 			
 			uiDefButBitI(block, TOG, CLOTH_COLLSETTINGS_FLAG_SELF, B_CLOTH_RENEW, "Enable selfcollisions",	10,20,150,20, &clmd->coll_parms->flags, 0, 0, 0, 0, "Enable selfcollisions with this object");

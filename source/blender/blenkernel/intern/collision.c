@@ -399,7 +399,7 @@ int cloth_get_collision_time(float a[3], float b[3], float c[3], float d[3], flo
 }
 
 // w3 is not perfect
-void cloth_compute_barycentric (float pv[3], float p1[3], float p2[3], float p3[3], float *w1, float *w2, float *w3)
+void collision_compute_barycentric (float pv[3], float p1[3], float p2[3], float p3[3], float *w1, float *w2, float *w3)
 {
 	double	tempV1[3], tempV2[3], tempV4[3];
 	double	a,b,c,d,e,f;
@@ -434,7 +434,7 @@ void cloth_compute_barycentric (float pv[3], float p1[3], float p2[3], float p3[
 	w3[0] = 1.0f - w1[0] - w2[0];
 }
 
-DO_INLINE void interpolateOnTriangle(float to[3], float v1[3], float v2[3], float v3[3], double w1, double w2, double w3) 
+DO_INLINE void collision_interpolateOnTriangle(float to[3], float v1[3], float v2[3], float v3[3], double w1, double w2, double w3) 
 {
 	to[0] = to[1] = to[2] = 0;
 	VECADDMUL(to, v1, w1);
@@ -461,23 +461,23 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 		collpair = search->link;
 		
 		// compute barycentric coordinates for both collision points
-		cloth_compute_barycentric(collpair->pa,
+		collision_compute_barycentric(collpair->pa,
 					  cloth1->verts[collpair->ap1].txold,
        cloth1->verts[collpair->ap2].txold,
        cloth1->verts[collpair->ap3].txold, 
        &w1, &w2, &w3);
 		
 		// was: txold
-		cloth_compute_barycentric(collpair->pb,
+		collision_compute_barycentric(collpair->pb,
 					  collmd->current_x[collpair->bp1].co,
 					collmd->current_x[collpair->bp2].co,
 					collmd->current_x[collpair->bp3].co,
 					&u1, &u2, &u3);
 	
 		// Calculate relative "velocity".
-		interpolateOnTriangle(v1, cloth1->verts[collpair->ap1].tv, cloth1->verts[collpair->ap2].tv, cloth1->verts[collpair->ap3].tv, w1, w2, w3);
+		collision_interpolateOnTriangle(v1, cloth1->verts[collpair->ap1].tv, cloth1->verts[collpair->ap2].tv, cloth1->verts[collpair->ap3].tv, w1, w2, w3);
 		
-		interpolateOnTriangle(v2, collmd->current_v[collpair->bp1].co, collmd->current_v[collpair->bp2].co, collmd->current_v[collpair->bp3].co, u1, u2, u3);
+		collision_interpolateOnTriangle(v2, collmd->current_v[collpair->bp1].co, collmd->current_v[collpair->bp2].co, collmd->current_v[collpair->bp3].co, u1, u2, u3);
 		
 		VECSUB(relativeVelocity, v2, v1);
 			

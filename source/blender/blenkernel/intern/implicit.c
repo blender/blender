@@ -1669,6 +1669,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 			VECCOPY(verts[i].v, id->V[i]);
 		}
 	}
+	
 	return 1;
 }
 
