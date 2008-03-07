@@ -3417,9 +3417,13 @@ void special_aftertrans_update(TransInfo *t)
 	short redrawipo=0, resetslowpar=1;
 	int cancelled= (t->state == TRANS_CANCEL);
 	
-	if (t->spacetype==SPACE_VIEW3D)
+	if (t->spacetype==SPACE_VIEW3D) {
 		EM_automerge(1);
-	
+		/* when snapping, delay retopo until after automerge */
+		if (G.qual & LR_CTRLKEY) {
+			retopo_do_all();
+		}
+	}
 	if (t->spacetype == SPACE_ACTION) {
 		void *data;
 		short datatype;

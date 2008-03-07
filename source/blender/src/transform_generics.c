@@ -378,8 +378,9 @@ void recalcData(TransInfo *t)
 				if (G.sima->flag & SI_LIVE_UNWRAP)
 					unwrap_lscm_live_re_solve();
 			} else {
-			
-				retopo_do_all();
+				/* Only retopo if not snapping, Note, this is the only case of G.qual being used, but we have no T_SHIFT_MOD - Campbell */
+				if ((G.qual & LR_CTRLKEY)==0)
+					retopo_do_all();
 	
 				/* mirror modifier clipping? */
 				if(t->state != TRANS_CANCEL)

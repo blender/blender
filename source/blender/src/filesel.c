@@ -1041,7 +1041,7 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	else loadbutton= 0;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, TEX, B_FS_DIRNAME,"",	textrct.xmin + (strp?20:0), filebuty2, textrct.xmax-textrct.xmin-loadbutton - (strp?20:0), 21, sfile->dir, 0.0, (float)FILE_MAXDIR-1, 0, 0, "Directory, enter a directory and press enter to create it"); /* Directory input */
+	uiDefBut(block, TEX, B_FS_DIRNAME,"",	textrct.xmin + (strp?20:0), filebuty2, textrct.xmax-textrct.xmin-loadbutton - (strp?20:0), 21, sfile->dir, 0.0, (float)FILE_MAXDIR-1, 0, 0, "Directory, enter a directory and press enter to create it, Substitute ~ for home"); /* Directory input */
 	if(loadbutton) {
 		uiSetCurFont(block, UI_HELV);
 		uiDefBut(block, BUT, B_FS_LOAD, sfile->title,	textrct.xmax-loadbutton, filebuty2, loadbutton, 21, sfile->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
