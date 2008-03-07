@@ -4407,6 +4407,12 @@ static void cached_step(Object *ob, ParticleSystemModifierData *psmd, ParticleSy
 		else
 			pa->flag &= ~PARS_NO_DISP;
 	}
+
+	/* make sure that children are up to date */
+	if(psys->part->childtype && psys->totchild != get_psys_tot_child(psys)) {
+		alloc_particles(ob, psys, psys->totpart);
+		distribute_particles(ob, psys, PART_FROM_CHILD);
+	}
 }
 /* Calculates the next state for all particles of the system */
 /* In particles code most fra-ending are frames, time-ending are fra*timestep (seconds)*/

@@ -3995,8 +3995,7 @@ static void object_panel_particle_children(Object *ob)
 	buty -= buth/2;
 	
 	uiDefButI(block, NUM, B_PART_ALLOC_CHILD, "Amount:", butx,(buty-=buth),butw,buth, &part->child_nbr, 0.0, MAX_PART_CHILDREN, 0, 0, "Amount of children/parent");
-	if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED))
-		uiDefButI(block, NUM, B_DIFF, "Render Amount:", butx,(buty-=buth),butw,buth, &part->ren_child_nbr, 0.0, MAX_PART_CHILDREN, 0, 0, "Amount of children/parent for rendering");
+	uiDefButI(block, NUM, B_DIFF, "Render Amount:", butx,(buty-=buth),butw,buth, &part->ren_child_nbr, 0.0, MAX_PART_CHILDREN, 0, 0, "Amount of children/parent for rendering");
 
 	if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES) {
 		uiDefButF(block, NUMSLI, B_PART_DISTR_CHILD, "VParents:",		butx,(buty-=buth),butw,buth, &part->parents, 0.0, 1.0, 1, 3, "Relative amount of virtual parents");
