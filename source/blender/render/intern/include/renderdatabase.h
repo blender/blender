@@ -64,6 +64,7 @@ typedef struct VlakTableNode {
 	struct MCol *mcol;
 	int totmtface, totmcol;
 	float *surfnor;
+	float *tangent;
 	struct RadFace **radface;
 } VlakTableNode;
 
@@ -112,6 +113,7 @@ float *RE_vertren_get_winspeed(struct ObjectInstanceRen *obi, struct VertRen *ve
 struct MTFace *RE_vlakren_get_tface(struct ObjectRen *obr, VlakRen *ren, int n, char **name, int verify);
 struct MCol *RE_vlakren_get_mcol(struct ObjectRen *obr, VlakRen *ren, int n, char **name, int verify);
 float *RE_vlakren_get_surfnor(struct ObjectRen *obr, VlakRen *ren, int verify);
+float *RE_vlakren_get_nmap_tangent(struct ObjectRen *obr, VlakRen *ren, int verify);
 RadFace **RE_vlakren_get_radface(struct ObjectRen *obr, VlakRen *ren, int verify);
 int RE_vlakren_get_normal(struct Render *re, struct ObjectInstanceRen *obi, struct VlakRen *vlr, float *nor);
 

@@ -1889,8 +1889,8 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 					VECCOPY(mat[2], tvn);
 				}
 				else {
-					VECCOPY(mat[0], shi->tang);
-					Crossf(mat[1], shi->vn, shi->tang);
+					VECCOPY(mat[0], shi->nmaptang);
+					Crossf(mat[1], shi->vn, shi->nmaptang);
 					VECCOPY(mat[2], shi->vn);
 				}
 
@@ -2035,7 +2035,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	if(bs->type==RE_BAKE_NORMALS && R.r.bake_normal_space==R_BAKE_SPACE_TANGENT) {
 		shade_input_set_shade_texco(shi);
 		VECCOPY(tvn, shi->vn);
-		VECCOPY(ttang, shi->tang);
+		VECCOPY(ttang, shi->nmaptang);
 	}
 
 	/* if we are doing selected to active baking, find point on other face */

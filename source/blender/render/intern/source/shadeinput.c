@@ -239,7 +239,7 @@ void shade_input_set_triangle_i(ShadeInput *shi, ObjectInstanceRen *obi, VlakRen
 	shi->vlr= vlr;
 	shi->obi= obi;
 	shi->obr= obi->obr;
-	
+
 	shi->v1= vpp[i1];
 	shi->v2= vpp[i2];
 	shi->v3= vpp[i3];
@@ -382,6 +382,7 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 
 	if(mode & (MA_TANGENT_V|MA_NORMAP_TANG)) {
 		VECCOPY(shi->tang, spoint->tan);
+		VECCOPY(shi->nmaptang, spoint->tan);
 	}
 
 	if(mode & MA_STR_SURFDIFF) {
@@ -545,6 +546,7 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 			if((mode & MA_TANGENT_V)==0) {
 				/* just prevent surprises */
 				shi->tang[0]= shi->tang[1]= shi->tang[2]= 0.0f;
+				shi->nmaptang[0]= shi->nmaptang[1]= shi->nmaptang[2]= 0.0f;
 			}
 		}
 	}
@@ -806,7 +808,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 	int mode= shi->mode;		/* or-ed result for all nodes */
 	short texco= shi->mat->texco;
 
-	/* calculate dxno and tangents */
+	/* calculate dxno */
 	if(shi->vlr->flag & R_SMOOTH) {
 		
 		if(shi->osatex && (texco & (TEXCO_NORM|TEXCO_REFL)) ) {
@@ -822,47 +824,64 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			shi->dyno[2]= dl*n3[2]-shi->dy_u*n1[2]-shi->dy_v*n2[2];
 			
 		}
-		
-		/* qdn: normalmap tangent space */
-		if (mode & (MA_TANGENT_V|MA_NORMAP_TANG) || R.flag & R_NEED_TANGENT) {
-			float *s1, *s2, *s3;
-
-			s1= RE_vertren_get_tangent(obr, v1, 0);
-			s2= RE_vertren_get_tangent(obr, v2, 0);
-			s3= RE_vertren_get_tangent(obr, v3, 0);
-			if(s1 && s2 && s3) {
-				shi->tang[0]= (l*s3[0] - u*s1[0] - v*s2[0]);
-				shi->tang[1]= (l*s3[1] - u*s1[1] - v*s2[1]);
-				shi->tang[2]= (l*s3[2] - u*s1[2] - v*s2[2]);
-
-				if(obi->flag & R_TRANSFORMED)
-					normal_transform(obi->imat, shi->tang);
-
-				/* qdn: normalize just in case */
-				Normalize(shi->tang);
-			}
-			else shi->tang[0]= shi->tang[1]= shi->tang[2]= 0.0f;
-		}
 	}
-	else {
-		/* qdn: normalmap tangent space */
-		if (mode & (MA_TANGENT_V|MA_NORMAP_TANG) || R.flag & R_NEED_TANGENT) {
+
+	/* calc tangents */
+	if (mode & (MA_TANGENT_V|MA_NORMAP_TANG) || R.flag & R_NEED_TANGENT) {
+		float *tangent, *s1, *s2, *s3;
+		float tl, tu, tv;
+
+		if(shi->vlr->flag & R_SMOOTH) {
+			tl= l;
+			tu= u;
+			tv= v;
+		}
+		else {
 			/* qdn: flat faces have tangents too,
 			   could pick either one, using average here */
-			float *s1 = RE_vertren_get_tangent(obr, v1, 0);
-			float *s2 = RE_vertren_get_tangent(obr, v2, 0);
-			float *s3 = RE_vertren_get_tangent(obr, v3, 0);
-			if (s1 && s2 && s3) {
-				shi->tang[0] = (s1[0] + s2[0] + s3[0]);
-				shi->tang[1] = (s1[1] + s2[1] + s3[1]);
-				shi->tang[2] = (s1[2] + s2[2] + s3[2]);
+			tl= 1.0f;
+			tu= 1.0f/3.0f;
+			tv= 1.0f/3.0f;
+		}
+
+		shi->tang[0]= shi->tang[1]= shi->tang[2]= 0.0f;
+		shi->nmaptang[0]= shi->nmaptang[1]= shi->nmaptang[2]= 0.0f;
+
+		if(mode & MA_TANGENT_V) {
+			s1 = RE_vertren_get_tangent(obr, v1, 0);
+			s2 = RE_vertren_get_tangent(obr, v2, 0);
+			s3 = RE_vertren_get_tangent(obr, v3, 0);
+
+			if(s1 && s2 && s3) {
+				shi->tang[0]= (tl*s3[0] - tu*s1[0] - tv*s2[0]);
+				shi->tang[1]= (tl*s3[1] - tu*s1[1] - tv*s2[1]);
+				shi->tang[2]= (tl*s3[2] - tu*s1[2] - tv*s2[2]);
 
 				if(obi->flag & R_TRANSFORMED)
 					normal_transform(obi->imat, shi->tang);
 
 				Normalize(shi->tang);
+				VECCOPY(shi->nmaptang, shi->tang);
 			}
-			else shi->tang[0]= shi->tang[1]= shi->tang[2]= 0.0f;
+		}
+
+		if(mode & MA_NORMAP_TANG || R.flag & R_NEED_TANGENT) {
+			tangent= RE_vlakren_get_nmap_tangent(obr, shi->vlr, 0);
+
+			if(tangent) {
+				s1= &tangent[shi->i1*3];
+				s2= &tangent[shi->i2*3];
+				s3= &tangent[shi->i3*3];
+
+				shi->nmaptang[0]= (tl*s3[0] - tu*s1[0] - tv*s2[0]);
+				shi->nmaptang[1]= (tl*s3[1] - tu*s1[1] - tv*s2[1]);
+				shi->nmaptang[2]= (tl*s3[2] - tu*s1[2] - tv*s2[2]);
+
+				if(obi->flag & R_TRANSFORMED)
+					normal_transform(obi->imat, shi->nmaptang);
+
+				Normalize(shi->nmaptang);
+			}
 		}
 	}
 
@@ -1111,6 +1130,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			if((mode & MA_TANGENT_V)==0) {
 				/* just prevent surprises */
 				shi->tang[0]= shi->tang[1]= shi->tang[2]= 0.0f;
+				shi->nmaptang[0]= shi->nmaptang[1]= shi->nmaptang[2]= 0.0f;
 			}
 		}
 	}

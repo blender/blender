@@ -96,6 +96,8 @@ float (*mesh_getRefKeyCos(struct Mesh *me, int *numVerts_r))[3];
 
 /* UvVertMap */
 
+#define STD_UV_CONNECT_LIMIT	0.0001f
+
 typedef struct UvVertMap {
 	struct UvMapVert **vert;
 	struct UvMapVert *buf;

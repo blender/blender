@@ -241,7 +241,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	EdgeHash *ehash;
 	float creaseFactor = (float)ccgSubSurf_getSubdivisionLevels(ss);
 
-	limit[0]= limit[1]= 0.0001f;
+	limit[0]= limit[1]= STD_UV_CONNECT_LIMIT;
 	vmap= make_uv_vert_map(mface, tface, totface, totvert, 0, limit);
 	if (!vmap)
 		return 0;

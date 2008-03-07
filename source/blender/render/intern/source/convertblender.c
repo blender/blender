@@ -477,8 +477,53 @@ void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2,
 		VecMulf(tang, -1.0f);
 }
 
+/* For normal map tangents we need to detect uv boundaries, and only average
+ * tangents in case the uvs are connected. Alternative would be to store 1 
+ * tangent per face rather than 4 per face vertex, but that's not compatible
+ * with games */
+
+typedef struct VertexTangent {
+	float tang[3], uv[2];
+	struct VertexTangent *next;
+} VertexTangent;
+
+static void sum_or_add_vertex_tangent(MemArena *arena, VertexTangent **vtang, float *tang, float *uv)
+{
+	VertexTangent *vt;
+
+	/* find a tangent with connected uvs */
+	for(vt= *vtang; vt; vt=vt->next) {
+		if(fabs(uv[0]-vt->uv[0]) < STD_UV_CONNECT_LIMIT && fabs(uv[1]-vt->uv[1]) < STD_UV_CONNECT_LIMIT) {
+			VECADD(vt->tang, vt->tang, tang);
+			return;
+		}
+	}
+
+	/* if not found, append a new one */
+	vt= BLI_memarena_alloc(arena, sizeof(VertexTangent));
+	VECCOPY(vt->tang, tang);
+	vt->uv[0]= uv[0];
+	vt->uv[1]= uv[1];
+
+	if(*vtang)
+		vt->next= *vtang;
+	*vtang= vt;
+}
+
+static float *find_vertex_tangent(VertexTangent *vtang, float *uv)
+{
+	VertexTangent *vt;
+	static float nulltang[3] = {0.0f, 0.0f, 0.0f};
+
+	for(vt= vtang; vt; vt=vt->next)
+		if(fabs(uv[0]-vt->uv[0]) < STD_UV_CONNECT_LIMIT && fabs(uv[1]-vt->uv[1]) < STD_UV_CONNECT_LIMIT)
+			return vt->tang;
+
+	return nulltang;	/* shouldn't happen, except for nan or so */
+}
+
 /* gets tangent from tface or orco */
-static void calc_tangent_vector(ObjectRen *obr, VlakRen *vlr)
+static void calc_tangent_vector(ObjectRen *obr, VertexTangent **vtangents, MemArena *arena, VlakRen *vlr, int do_nmap_tangent, int do_tangent)
 {
 	MTFace *tface= RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0);
 	VertRen *v1=vlr->v1, *v2=vlr->v2, *v3=vlr->v3, *v4=vlr->v4;
@@ -504,29 +549,54 @@ static void calc_tangent_vector(ObjectRen *obr, VlakRen *vlr)
 
 	tangent_from_uv(uv1, uv2, uv3, v1->co, v2->co, v3->co, vlr->n, tang);
 	
-	tav= RE_vertren_get_tangent(obr, v1, 1);
-	VECADD(tav, tav, tang);
-	tav= RE_vertren_get_tangent(obr, v2, 1);
-	VECADD(tav, tav, tang);
-	tav= RE_vertren_get_tangent(obr, v3, 1);
-	VECADD(tav, tav, tang);
-	
-	if(v4) {
-		tangent_from_uv(uv1, uv3, uv4, v1->co, v3->co, v4->co, vlr->n, tang);
-		
+	if(do_tangent) {
 		tav= RE_vertren_get_tangent(obr, v1, 1);
+		VECADD(tav, tav, tang);
+		tav= RE_vertren_get_tangent(obr, v2, 1);
 		VECADD(tav, tav, tang);
 		tav= RE_vertren_get_tangent(obr, v3, 1);
 		VECADD(tav, tav, tang);
-		tav= RE_vertren_get_tangent(obr, v4, 1);
-		VECADD(tav, tav, tang);
+	}
+	
+	if(do_nmap_tangent) {
+		sum_or_add_vertex_tangent(arena, &vtangents[v1->index], tang, uv1);
+		sum_or_add_vertex_tangent(arena, &vtangents[v2->index], tang, uv2);
+		sum_or_add_vertex_tangent(arena, &vtangents[v3->index], tang, uv3);
+	}
+
+	if(v4) {
+		tangent_from_uv(uv1, uv3, uv4, v1->co, v3->co, v4->co, vlr->n, tang);
+		
+		if(do_tangent) {
+			tav= RE_vertren_get_tangent(obr, v1, 1);
+			VECADD(tav, tav, tang);
+			tav= RE_vertren_get_tangent(obr, v3, 1);
+			VECADD(tav, tav, tang);
+			tav= RE_vertren_get_tangent(obr, v4, 1);
+			VECADD(tav, tav, tang);
+		}
+
+		if(do_nmap_tangent) {
+			sum_or_add_vertex_tangent(arena, &vtangents[v1->index], tang, uv1);
+			sum_or_add_vertex_tangent(arena, &vtangents[v3->index], tang, uv3);
+			sum_or_add_vertex_tangent(arena, &vtangents[v4->index], tang, uv4);
+		}
 	}
 }
 
 
-static void calc_vertexnormals(Render *re, ObjectRen *obr, int do_tangent)
+static void calc_vertexnormals(Render *re, ObjectRen *obr, int do_tangent, int do_nmap_tangent)
 {
+	MemArena *arena= NULL;
+	VertexTangent **vtangents= NULL;
 	int a;
+
+	if(do_nmap_tangent) {
+		arena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+		BLI_memarena_use_calloc(arena);
+
+		vtangents= MEM_callocN(sizeof(VertexTangent*)*obr->totvert, "VertexTangent");
+	}
 
 		/* clear all vertex normals */
 	for(a=0; a<obr->totvert; a++) {
@@ -600,10 +670,10 @@ static void calc_vertexnormals(Render *re, ObjectRen *obr, int do_tangent)
 			v3->n[2] +=fac3*vlr->n[2];
 			
 		}
-		if(do_tangent) {
+		if(do_nmap_tangent || do_tangent) {
 			/* tangents still need to be calculated for flat faces too */
 			/* weighting removed, they are not vertexnormals */
-			calc_tangent_vector(obr, vlr);
+			calc_tangent_vector(obr, vtangents, arena, vlr, do_nmap_tangent, do_tangent);
 		}
 	}
 
@@ -620,6 +690,30 @@ static void calc_vertexnormals(Render *re, ObjectRen *obr, int do_tangent)
 			if(vlr->v4) {
 				f1= vlr->v4->n;
 				if(f1[0]==0.0 && f1[1]==0.0 && f1[2]==0.0) VECCOPY(f1, vlr->n);
+			}
+		}
+
+		if(do_nmap_tangent) {
+			VertRen *v1=vlr->v1, *v2=vlr->v2, *v3=vlr->v3, *v4=vlr->v4;
+			MTFace *tface= RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0);
+
+			if(tface) {
+				float *vtang, *ftang= RE_vlakren_get_nmap_tangent(obr, vlr, 1);
+
+				vtang= find_vertex_tangent(vtangents[v1->index], tface->uv[0]);
+				VECCOPY(ftang, vtang);
+				Normalize(ftang);
+				vtang= find_vertex_tangent(vtangents[v2->index], tface->uv[1]);
+				VECCOPY(ftang+3, vtang);
+				Normalize(ftang+3);
+				vtang= find_vertex_tangent(vtangents[v3->index], tface->uv[2]);
+				VECCOPY(ftang+6, vtang);
+				Normalize(ftang+6);
+				if(v4) {
+					vtang= find_vertex_tangent(vtangents[v4->index], tface->uv[3]);
+					VECCOPY(ftang+9, vtang);
+					Normalize(ftang+9);
+				}
 			}
 		}
 	}
@@ -640,12 +734,18 @@ static void calc_vertexnormals(Render *re, ObjectRen *obr, int do_tangent)
 			}
 		}
 	}
+
+
+	if(arena)
+		BLI_memarena_free(arena);
+	if(vtangents)
+		MEM_freeN(vtangents);
 }
 
 // NT same as calc_vertexnormals, but dont modify the existing vertex normals
 // only recalculate other render data. If this is at some point used for other things than fluidsim,
 // this could be made on option for the normal calc_vertexnormals
-static void calc_fluidsimnormals(Render *re, ObjectRen *obr, int do_tangent)
+static void calc_fluidsimnormals(Render *re, ObjectRen *obr, int do_nmap_tangent)
 {
 	int a;
 
@@ -692,13 +792,13 @@ static void calc_fluidsimnormals(Render *re, ObjectRen *obr, int do_tangent)
 				}
 			}
 
-			//if(do_tangent)
+			//if(do_nmap_tangent)
 			//	calc_tangent_vector(obr, vlr, fac1, fac2, fac3, fac4);
 		}
-		if(do_tangent) {
+		if(do_nmap_tangent) {
 			/* tangents still need to be calculated for flat faces too */
 			/* weighting removed, they are not vertexnormals */
-			calc_tangent_vector(obr, vlr);
+			//calc_tangent_vector(obr, vlr);
 		}
 	}
 
@@ -723,7 +823,7 @@ static void calc_fluidsimnormals(Render *re, ObjectRen *obr, int do_tangent)
 	for(a=0; a<obr->totvert; a++) {
 		VertRen *ver= RE_findOrAddVert(obr, a);
 		Normalize(ver->n);
-		if(do_tangent) {
+		if(do_nmap_tangent) {
 			float *tav= RE_vertren_get_tangent(obr, ver, 0);
 			if(tav) Normalize(tav);
 		}
@@ -2053,7 +2153,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	}
 
 	if(path && (ma->mode_l & MA_TANGENT_STR)==0)
-		calc_vertexnormals(re, obr, 0);
+		calc_vertexnormals(re, obr, 0, 0);
 
 	return 1;
 }
@@ -2334,7 +2434,7 @@ static void do_displacement(Render *re, ObjectRen *obr, float mat[][4], float im
 	}
 	
 	/* Recalc vertex normals */
-	calc_vertexnormals(re, obr, 0);
+	calc_vertexnormals(re, obr, 0, 0);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -3013,7 +3113,8 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	CustomDataMask mask;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
 	float *orco=0;
-	int a, a1, ok, need_orco=0, need_stress=0, need_tangent=0, vertofs;
+	int need_orco=0, need_stress=0, need_nmap_tangent=0, need_tangent=0;
+	int a, a1, ok, vertofs;
 	int end, do_autosmooth=0, totvert = 0;
 	int useFluidmeshNormals= 0; // NT fluidsim, use smoothed normals?
 	int use_original_normals= 0;
@@ -3036,11 +3137,19 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			if(ma->texco & TEXCO_STRESS)
 				need_stress= 1;
 			/* normalmaps, test if tangents needed, separated from shading */
-			if ((ma->mode_l & MA_TANGENT_V) || (ma->mode_l & MA_NORMAP_TANG)) {
+			if(ma->mode_l & MA_TANGENT_V) {
 				need_tangent= 1;
 				if(me->mtface==NULL)
 					need_orco= 1;
 			}
+			if(ma->mode_l & MA_NORMAP_TANG) {
+				if(me->mtface==NULL) {
+					need_orco= 1;
+					need_tangent= 1;
+				}
+				need_nmap_tangent= 1;
+			}
+
 			/* radio faces need autosmooth, to separate shared vertices in corners */
 			if(re->r.mode & R_RADIO)
 				if(ma->mode & MA_RADIO) 
@@ -3050,9 +3159,11 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 
 	if(re->flag & R_NEED_TANGENT) {
 		/* exception for tangent space baking */
-		need_tangent= 1;
-		if(me->mtface==NULL)
+		if(me->mtface==NULL) {
 			need_orco= 1;
+			need_tangent= 1;
+		}
+		need_nmap_tangent= 1;
 	}
 	
 	/* check autosmooth and displacement, we then have to skip only-verts optimize */
@@ -3292,7 +3403,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	
 	if(!timeoffset) {
 		if (test_for_displace(re, ob ) ) {
-			calc_vertexnormals(re, obr, 0);
+			calc_vertexnormals(re, obr, 0, 0);
 			if(do_autosmooth)
 				do_displacement(re, obr, mat, imat);
 			else
@@ -3305,9 +3416,9 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 
 		if(useFluidmeshNormals) {
 			// do not recalculate, only init render data
-			calc_fluidsimnormals(re, obr, need_tangent);
+			calc_fluidsimnormals(re, obr, need_tangent||need_nmap_tangent);
 		} else {
-			calc_vertexnormals(re, obr, need_tangent);
+			calc_vertexnormals(re, obr, need_tangent, need_nmap_tangent);
 		}
 
 		if(need_stress)

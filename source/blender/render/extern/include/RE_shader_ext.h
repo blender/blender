@@ -134,7 +134,7 @@ typedef struct ShadeInput
 	/* texture coordinates */
 	float lo[3], gl[3], ref[3], orn[3], winco[3], sticky[3], vcol[4], rad[3];
 	float refcol[4], displace[3];
-	float strandco, tang[3], stress, winspeed[4];
+	float strandco, tang[3], nmaptang[3], stress, winspeed[4];
 	float duplilo[3], dupliuv[3];
 
 	ShadeInputUV uv[8];   /* 8 = MAX_MTFACE */

@@ -1781,11 +1781,11 @@ void do_material_tex(ShadeInput *shi)
 						if(mtex->normapspace == MTEX_NSPACE_TANGENT) {
 							/* qdn: tangent space */
 							float B[3], tv[3];
-							Crossf(B, shi->vn, shi->tang);	/* bitangent */
+							Crossf(B, shi->vn, shi->nmaptang);	/* bitangent */
 							/* transform norvec from tangent space to object surface in camera space */
-							tv[0] = texres.nor[0]*shi->tang[0] + texres.nor[1]*B[0] + texres.nor[2]*shi->vn[0];
-							tv[1] = texres.nor[0]*shi->tang[1] + texres.nor[1]*B[1] + texres.nor[2]*shi->vn[1];
-							tv[2] = texres.nor[0]*shi->tang[2] + texres.nor[1]*B[2] + texres.nor[2]*shi->vn[2];
+							tv[0] = texres.nor[0]*shi->nmaptang[0] + texres.nor[1]*B[0] + texres.nor[2]*shi->vn[0];
+							tv[1] = texres.nor[0]*shi->nmaptang[1] + texres.nor[1]*B[1] + texres.nor[2]*shi->vn[1];
+							tv[2] = texres.nor[0]*shi->nmaptang[2] + texres.nor[1]*B[2] + texres.nor[2]*shi->vn[2];
 							shi->vn[0]= facm*shi->vn[0] + fact*tv[0];
 							shi->vn[1]= facm*shi->vn[1] + fact*tv[1];
 							shi->vn[2]= facm*shi->vn[2] + fact*tv[2];

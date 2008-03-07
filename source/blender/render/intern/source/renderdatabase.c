@@ -106,7 +106,8 @@
 #define RE_SURFNOR_ELEMS	3
 #define RE_RADFACE_ELEMS	1
 #define RE_SIMPLIFY_ELEMS	2
-#define RE_FACE_ELEMS	1
+#define RE_FACE_ELEMS		1
+#define RE_NMAP_TANGENT_ELEMS	12
 
 float *RE_vertren_get_sticky(ObjectRen *obr, VertRen *ver, int verify)
 {
@@ -364,6 +365,21 @@ float *RE_vlakren_get_surfnor(ObjectRen *obr, VlakRen *vlak, int verify)
 	return surfnor + (vlak->index & 255)*RE_SURFNOR_ELEMS;
 }
 
+float *RE_vlakren_get_nmap_tangent(ObjectRen *obr, VlakRen *vlak, int verify)
+{
+	float *tangent;
+	int nr= vlak->index>>8;
+
+	tangent= obr->vlaknodes[nr].tangent;
+	if(tangent==NULL) {
+		if(verify) 
+			tangent= obr->vlaknodes[nr].tangent= MEM_callocN(256*RE_NMAP_TANGENT_ELEMS*sizeof(float), "tangent table");
+		else
+			return NULL;
+	}
+	return tangent + (vlak->index & 255)*RE_NMAP_TANGENT_ELEMS;
+}
+
 RadFace **RE_vlakren_get_radface(ObjectRen *obr, VlakRen *vlak, int verify)
 {
 	RadFace **radface;
@@ -384,7 +400,7 @@ VlakRen *RE_vlakren_copy(ObjectRen *obr, VlakRen *vlr)
 	VlakRen *vlr1 = RE_findOrAddVlak(obr, obr->totvlak++);
 	MTFace *mtface, *mtface1;
 	MCol *mcol, *mcol1;
-	float *surfnor, *surfnor1;
+	float *surfnor, *surfnor1, *tangent, *tangent1;
 	RadFace **radface, **radface1;
 	int i, index = vlr1->index;
 	char *name;
@@ -406,6 +422,12 @@ VlakRen *RE_vlakren_copy(ObjectRen *obr, VlakRen *vlr)
 	if(surfnor) {
 		surfnor1= RE_vlakren_get_surfnor(obr, vlr1, 1);
 		VECCOPY(surfnor1, surfnor);
+	}
+
+	tangent= RE_vlakren_get_nmap_tangent(obr, vlr, 0);
+	if(tangent) {
+		tangent1= RE_vlakren_get_nmap_tangent(obr, vlr1, 1);
+		memcpy(tangent1, tangent, sizeof(float)*RE_NMAP_TANGENT_ELEMS);
 	}
 
 	radface= RE_vlakren_get_radface(obr, vlr, 0);
@@ -773,6 +795,8 @@ void free_renderdata_vlaknodes(VlakTableNode *vlaknodes)
 			MEM_freeN(vlaknodes[a].mcol);
 		if(vlaknodes[a].surfnor)
 			MEM_freeN(vlaknodes[a].surfnor);
+		if(vlaknodes[a].tangent)
+			MEM_freeN(vlaknodes[a].tangent);
 		if(vlaknodes[a].radface)
 			MEM_freeN(vlaknodes[a].radface);
 	}
