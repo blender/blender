@@ -97,7 +97,7 @@ void drawscriptspace(ScrArea *sa, void *spacedata)
 	/* Is this script loaded from a file and it needs running??? */
 	if (	(G.f & G_DOSCRIPTLINKS) &&
 				script->scriptname[0] != '\0' &&
-				(script->flags == NULL &&
+				(script->flags == 0 &&
 				script->py_event == NULL &&
 				script->py_button == NULL &&
 				script->py_draw ==	NULL )
@@ -130,7 +130,7 @@ void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *
 		/* Is this script loaded from a file and it needs running??? */
 		if (	(G.f & G_DOSCRIPTLINKS) &&
 				 script->scriptname[0] != '\0' &&
-					(script->flags == NULL &&
+					(script->flags == 0 &&
 				 script->py_event == NULL &&
 				 script->py_button == NULL &&
 				 script->py_draw ==	NULL )

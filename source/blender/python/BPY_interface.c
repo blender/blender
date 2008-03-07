@@ -774,7 +774,7 @@ int BPY_run_script(Script *script)
 	Text *text = NULL;
 	BPy_constant *info;
 	int len;
-	char *buffer, *s;
+	char *buffer=NULL, *s;
 	
 	FILE *fp = NULL;
 	
@@ -2958,6 +2958,6 @@ void BPY_scripts_clear_pyobjects( void )
 		Py_XDECREF((PyObject *)script->py_button);
 		Py_XDECREF((PyObject *)script->py_browsercallback);
 		Py_XDECREF((PyObject *)script->py_globaldict); 
-		SCRIPT_SET_NULL(script);
+		SCRIPT_SET_NULL(script)
 	}
 }

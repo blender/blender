@@ -153,8 +153,7 @@ int BME_model_begin(BME_Mesh *bm){
 }
 
 void BME_model_end(BME_Mesh *bm){
-	BME_Mesh *badmesh;
-	int meshok,backupok, totvert, totedge, totpoly, totloop;
+	int meshok, totvert, totedge, totpoly, totloop;
 
 	totvert = BLI_countlist(&(bm->verts));
 	totedge = BLI_countlist(&(bm->edges));
@@ -166,7 +165,10 @@ void BME_model_end(BME_Mesh *bm){
 	if(bm->lpar) MEM_freeN(bm->lpar);
 	if(bm->plar) MEM_freeN(bm->plar);
 	
-	bm->vtar = bm->edar = bm->lpar = bm->plar = NULL;
+	bm->vtar = NULL;
+	bm->edar = NULL;
+	bm->lpar = NULL;
+	bm->plar = NULL;
 	bm->vtarlen = bm->edarlen = bm->lparlen = bm->plarlen = 1024;
 	
 	

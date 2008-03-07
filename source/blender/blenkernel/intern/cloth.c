@@ -1027,7 +1027,6 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	float tnull[3] = {0,0,0};
 	int cache_there = 0;
 	Cloth *cloth = NULL;
-	MFace *mfaces = NULL;
 
 	// If we have a clothObject, free it. 
 	if ( clmd->clothObject != NULL )

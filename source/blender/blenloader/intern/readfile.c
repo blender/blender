@@ -1425,12 +1425,7 @@ static void direct_link_brush(FileData *fd, Brush *brush)
 static void direct_link_script(FileData *fd, Script *script)
 {
 	script->id.us = 1;
-	script->py_draw =
-	script->py_event =
-	script->py_button =
-	script->py_browsercallback =
-	script->py_globaldict =
-	script->flags = NULL;
+	SCRIPT_SET_NULL(script)
 }
 
 /* ************ READ CurveMapping *************** */
@@ -3742,7 +3737,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						/*sc->script = NULL; - 2.45 set to null, better re-run the script */
 						if (scpt->script) {
 							scpt->script = newlibadr(fd, sc->id.lib, scpt->script);
-							SCRIPT_SET_NULL(scpt->script);
+							SCRIPT_SET_NULL(scpt->script)
 						}
 					}
 					else if(sl->spacetype==SPACE_OOPS) {
@@ -3920,7 +3915,7 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 					
 					/*sc->script = NULL; - 2.45 set to null, better re-run the script */
 					if (scpt->script) {
-						SCRIPT_SET_NULL(scpt->script);
+						SCRIPT_SET_NULL(scpt->script)
 					}
 				}
 				else if(sl->spacetype==SPACE_OOPS) {

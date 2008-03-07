@@ -34,6 +34,7 @@
 
 struct SpaceImaSel;
 struct ScrArea;
+struct ID;
 
 void free_imasel(struct SpaceImaSel *simasel);
 
