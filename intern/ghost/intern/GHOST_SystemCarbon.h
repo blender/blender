@@ -60,12 +60,12 @@ public:
     /**
      * Constructor.
      */
-    GHOST_SystemCarbon::GHOST_SystemCarbon();
+    GHOST_SystemCarbon();
     
     /** 
      * Destructor.
      */
-    GHOST_SystemCarbon::~GHOST_SystemCarbon();
+    ~GHOST_SystemCarbon();
     
 	/***************************************************************************************
 	 ** Time(r) functionality
@@ -173,7 +173,7 @@ public:
 	 * @param flag		Indicate which buffer to return
 	 * @return		Returns the selected buffer
 	 */
-	virtual GHOST_TUns8* GHOST_SystemCarbon::getClipboard(int flag) const;
+	virtual GHOST_TUns8* getClipboard(int flag) const;
 	
 	/**
 	 * Puts buffer to system clipboard
