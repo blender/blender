@@ -3734,10 +3734,12 @@ static void lib_link_screen(FileData *fd, Main *main)
 					else if(sl->spacetype==SPACE_SCRIPT) {
 
 						SpaceScript *scpt= (SpaceScript *)sl;
-						/*sc->script = NULL; - 2.45 set to null, better re-run the script */
+						/*scpt->script = NULL; - 2.45 set to null, better re-run the script */
 						if (scpt->script) {
-							scpt->script = newlibadr(fd, sc->id.lib, scpt->script);
-							SCRIPT_SET_NULL(scpt->script)
+							scpt->script= newlibadr(fd, sc->id.lib, scpt->script);
+							if (scpt->script) {
+								SCRIPT_SET_NULL(scpt->script)
+							}
 						}
 					}
 					else if(sl->spacetype==SPACE_OOPS) {
