@@ -75,7 +75,8 @@ evcode = {
 	"SCENE_UPDATE" : 303,
 	"IDPROP_COPY" : 501,
 	"IDPROP_KILL" : 502,
-	"CLIGHT_MAKE" : 700
+	"CLIGHT_MAKE" : 700,
+	"DFROMACT" : 701
 }
 
 XREF_PREFIX = None
@@ -90,6 +91,7 @@ IDPROP_KILL = None
 IDPROP_COPY = None
 SCENE_UPDATE = None
 CLIGHT_MAKE = None
+DFROMACT = None
 
 def update_state():
 	state = dict()
@@ -436,8 +438,49 @@ def clight_make():
 	
 		actmesh.verts.addPropertyLayer("FLT_VCOL", Blender.Mesh.PropertyTypes["INT"])
 		for v in actmesh.verts:
-			v.setProperty("FLT_VCOL", 67295)
+			v.setProperty("FLT_VCOL", 83815)
 			
+def dfromact():
+	state = update_state()
+	actobj = state["activeObject"]
+	actscene = state["activeScene"]
+	dof = None
+	
+	for object in actscene.objects.context:
+		if object.sel and (object != actobj):
+			if not dof:
+				dof = object
+			else:
+				return 
+	
+	if 'FLT' not in dof.properties:
+		dof.properties['FLT'] = dict()	
+	
+	#Warning! assumes 1 BU == 10 meters.
+	#do origin
+	dof.properties['FLT']['5d!ORIGX'] = actobj.getLocation('worldspace')[0]*10.0
+	dof.properties['FLT']['6d!ORIGY'] = actobj.getLocation('worldspace')[1]*10.0
+	dof.properties['FLT']['7d!ORIGZ'] = actobj.getLocation('worldspace')[2]*10.0
+	#do X axis
+	x = Blender.Mathutils.Vector(1.0,0.0,0.0)
+	x = x * actobj.getMatrix('worldspace')
+	x = x * 10.0
+	dof.properties['FLT']['8d!XAXIS-X'] = x[0]
+	dof.properties['FLT']['9d!XAXIS-Y'] = x[1]
+	dof.properties['FLT']['10d!XAXIS-Z'] = x[2]
+	#do X/Y plane
+	x = Blender.Mathutils.Vector(1.0,1.0,0.0)
+	x.normalize()
+	x = x * actobj.getMatrix('worldspace')
+	x = x * 10.0
+	dof.properties['FLT']['11d!XYPLANE-X'] = x[0]
+	dof.properties['FLT']['12d!XYPLANE-Y'] = x[1]
+	dof.properties['FLT']['13d!XZPLANE-Z'] = x[2]
+	
+	
+	
+	
+	
 def event(evt,val):
 	if evt == Draw.ESCKEY:
 		Draw.Exit()
@@ -483,6 +526,8 @@ def but_event(evt):
                 xref_finish()
 	if evt == evcode["CLIGHT_MAKE"]:
 		clight_make()
+	if evt == evcode["DFROMACT"]:
+		dfromact()
 	Draw.Redraw(1)
 	Blender.Window.RedrawAll()
 
@@ -595,11 +640,14 @@ def draw_propsheet(x,y):
         #General tools
         y = y-20
 	SCENE_UPDATE = Blender.Draw.PushButton("Update All",evcode["SCENE_UPDATE"],x,y,width,20,"Update all vertex colors")
+	
+	y=y-20
+	DFROMACT = Blender.Draw.PushButton("Dof from Active", evcode["DFROMACT"],x,y,width,20,"Get Dof origin from active object")
         draw_postcommon(origx, origy,y)
 		
 def gui():
 	#draw the propsheet/toolbox.
-	psheety = 256
+	psheety = 280
 	#psheetx = psheety + 10
 	draw_propsheet(0,psheety)
 Draw.Register(gui,event,but_event)
