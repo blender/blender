@@ -2825,13 +2825,10 @@ static void apply_particle_forces(int pa_no, ParticleData *pa, Object *ob, Parti
 
 		/* add global acceleration (gravitation) */
 		VECADD(force,force,part->acc);
-
-		//VecMulf(force,dtime);
 		
 		/* calculate next state */
 		VECADD(states[i].vel,states[i].vel,tvel);
 
-		//VecMulf(force,0.5f*dt);
 		switch(part->integrator){
 			case PART_INT_EULER:
 				VECADDFAC(state->co,states->co,states->vel,dtime);
@@ -2897,7 +2894,6 @@ static void apply_particle_forces(int pa_no, ParticleData *pa, Object *ob, Parti
 				}
 				break;
 		}
-		//VECADD(states[i+1].co,states[i+1].co,force);
 	}
 
 	/* damp affects final velocity */
@@ -2911,12 +2907,15 @@ static void apply_particle_forces(int pa_no, ParticleData *pa, Object *ob, Parti
 	VECCOPY(tkey.co,state->co);
 	VECCOPY(tkey.vel,state->vel);
 	tkey.time=state->time;
-	if(do_guide(&tkey,pa_no,time,&psys->effectors)){
-		VECCOPY(state->co,tkey.co);
-		/* guides don't produce valid velocity */
-		VECSUB(state->vel,tkey.co,pa->state.co);
-		VecMulf(state->vel,1.0f/dtime);
-		state->time=tkey.time;
+
+	if(part->type != PART_HAIR) {
+		if(do_guide(&tkey,pa_no,time,&psys->effectors)) {
+			VECCOPY(state->co,tkey.co);
+			/* guides don't produce valid velocity */
+			VECSUB(state->vel,tkey.co,pa->state.co);
+			VecMulf(state->vel,1.0f/dtime);
+			state->time=tkey.time;
+		}
 	}
 }
 static void rotate_particle(ParticleSettings *part, ParticleData *pa, float dfra, float timestep, ParticleKey *state)

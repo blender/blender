@@ -2122,8 +2122,9 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 		}
 
 		/* apply different deformations to the child path */
-		if(part->flag & PART_CHILD_GUIDE)
-			guided = do_guide((ParticleKey*)state, i, t, &(psys->effectors)); //safe to cast, since only co and vel are used
+		if(part->flag & PART_CHILD_EFFECT)
+			/* state is safe to cast, since only co and vel are used */
+			guided = do_guide((ParticleKey*)state, cpa->parent, t, &(psys->effectors));
 
 		if(guided==0){
 			if(part->kink)
@@ -2557,8 +2558,9 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 				do_path_effectors(ob, psys, i, ca, k, steps, cache[i]->co, effector, dfra, cfra, &length, vec);
 
 			/* apply guide curves to path data */
-			if(edit==0 && psys->effectors.first && (psys->part->flag & PART_CHILD_GUIDE)==0)
-				do_guide(&result, i, time, &psys->effectors);
+			if(edit==0 && psys->effectors.first && (psys->part->flag & PART_CHILD_EFFECT)==0)
+				/* ca is safe to cast, since only co and vel are used */
+				do_guide((ParticleKey*)ca, i, (float)k/(float)steps, &psys->effectors);
 
 			/* apply lattice */
 			if(psys->lattice && edit==0)
