@@ -100,7 +100,7 @@ FLOAT_TOLERANCE = options.tolerance
 
 #need to move all this stuff to flt_properties.py.
 identity_matrix = [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
-alltypes = [2,4,11,73,63,111]
+alltypes = [2,4,14,11,73,63,111]
 childtypes = { 
 	2 : [111,2,73,4,14,63],
 	4 : [111],
@@ -196,11 +196,14 @@ class GlobalResourceRepository:
 	def request_vertex_index(self, object, mesh, face, vfindex, uvok,cindex):
 
 		flatShadeNorm = None
+		vno = None
+
 		
 		if type(face) is list:
 			vertex = face[vfindex]
 		elif str(type(face)) == "<type " + "'Blender MVert'>": 
 			vertex = face
+			vno = Blender.Mathutils.Vector(0.0,0.0,1.0)
 		elif str(type(face)) == "<type " + "'Blender MEdge'>":
 			if vfindex == 1:
 				vertex = face.v1
@@ -222,8 +225,11 @@ class GlobalResourceRepository:
 			vertex = shadowVert(vertex,object,True,flatShadeNorm)
 		else:
                         vertex = shadowVert(vertex,object,False,flatShadeNorm)
+		
+		if vno:
+			vertex.no = vno        
         
-                
+     
 		#Check to see if this vertex has been visited before. If not, add
 		if not indexhash.has_key(vertex.index):
 			if uvok:
