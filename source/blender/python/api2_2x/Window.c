@@ -377,7 +377,7 @@ struct PyMethodDef M_Window_methods[] = {
 	 M_Window_QAdd_doc},
 	{"QHandle", ( PyCFunction ) M_Window_QHandle, METH_VARARGS,
 	 M_Window_QHandle_doc},
-	{"TestBreak", ( PyCFunction ) M_Window_TestBreak, METH_VARARGS,
+	{"TestBreak", ( PyCFunction ) M_Window_TestBreak, METH_NOARGS,
 	 M_Window_TestBreak_doc},
 	{"GetMouseCoords", ( PyCFunction ) M_Window_GetMouseCoords,
 	 METH_NOARGS,

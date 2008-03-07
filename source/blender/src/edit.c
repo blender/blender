@@ -1828,7 +1828,7 @@ void snapmenu()
 {
 	short event;
 
-	event = pupmenu("Snap %t|Selection -> Grid%x1|Selection -> Cursor%x2|Cursor -> Grid%x3|Cursor -> Selection%x4|Selection -> Center%x5|Cursor -> Active%x6");
+	event = pupmenu("Snap %t|Selection -> Grid%x1|Selection -> Cursor%x2|Selection -> Center%x5|%l|Cursor -> Selection%x4|Cursor -> Grid%x3|Cursor -> Active%x6");
 
 	switch (event) {
 		case 1: /*Selection to grid*/
