@@ -113,6 +113,7 @@
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
 #include "BIF_resources.h"
+#include "BIF_retopo.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
