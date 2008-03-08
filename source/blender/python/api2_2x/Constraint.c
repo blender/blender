@@ -1,5 +1,5 @@
 /*
- * $Id: Constraint.c 12705 2007-11-28 12:42:36Z ton $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -493,7 +493,35 @@ static PyObject *constspace_getter( BPy_Constraint * self, int type )
 			case CONSTRAINT_TYPE_SIZELIKE:
 			case CONSTRAINT_TYPE_TRACKTO:
 			case CONSTRAINT_TYPE_TRANSFORM:
-				return PyInt_FromLong( (long)con->tarspace );
+			{	
+				bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+				bConstraintTarget *ct;
+				PyObject *tlist=NULL, *val;
+				
+				if (cti) {
+					/* change space of targets */
+					if (cti->get_constraint_targets) {
+						ListBase targets = {NULL, NULL};
+						int num_tars=0, i=0;
+						
+						/* get targets, and create py-list for use temporarily */
+						num_tars= cti->get_constraint_targets(con, &targets);
+						if (num_tars) {
+							tlist= PyList_New(num_tars);
+							
+							for (ct=targets.first; ct; ct=ct->next, i++) {
+								val= PyInt_FromLong((long)ct->space);
+								PyList_SET_ITEM(tlist, i, val);
+							}
+						}
+						
+						if (cti->flush_constraint_targets)
+							cti->flush_constraint_targets(con, &targets, 1);
+					}
+				}
+				
+				return tlist;
+			}
 		}
 	}
 	
@@ -545,23 +573,51 @@ static int constspace_setter( BPy_Constraint *self, int type, PyObject *value )
 			case CONSTRAINT_TYPE_TRACKTO:
 			case CONSTRAINT_TYPE_TRANSFORM:
 			{
-				Object *tar;
-				char *subtarget;
+				bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+				bConstraintTarget *ct;
+				int ok= 0;
 				
-				// FIXME!!!
-				//tar= get_constraint_target(con, &subtarget);
-				tar = NULL;
-				subtarget = NULL;
+				if (cti) {
+					/* change space of targets */
+					if (cti->get_constraint_targets) {
+						ListBase targets = {NULL, NULL};
+						int num_tars=0, i=0;
+						
+						/* get targets, and extract values from the given list */
+						num_tars= cti->get_constraint_targets(con, &targets);
+						if (num_tars) {
+							if ((PySequence_Check(value) == 0) || (PySequence_Size(value) != num_tars)) {
+								char errorstr[64];
+								sprintf(errorstr, "expected sequence of %d integers", num_tars);
+								return EXPP_ReturnIntError(PyExc_TypeError, errorstr);
+							}
+							
+							for (ct=targets.first; ct; ct=ct->next, i++) {
+								if (ct->tar && ct->subtarget[0]) {
+									PyObject *val= PySequence_ITEM(value, i);
+									
+									ok += EXPP_setIValueClamped(val, &ct->space, 
+											CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_PARLOCAL, 'h' );
+										
+									Py_DECREF(val);
+								}
+								else if (ct->tar) {
+									PyObject *val= PySequence_ITEM(value, i);
+									
+									ok += EXPP_setIValueClamped(val, &ct->space, 
+											CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL, 'h' );
+									
+									Py_DECREF(val);
+								}
+							}
+						}
+						
+						if (cti->flush_constraint_targets)
+							cti->flush_constraint_targets(con, &targets, 0);
+					}
+				}
 				
-				/* only copy depending on target-type */
-				if (tar && subtarget[0]) {
-					return EXPP_setIValueClamped( value, &con->tarspace, 
-							CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_PARLOCAL, 'h' );
-				}
-				else if (tar) {
-					return EXPP_setIValueClamped( value, &con->tarspace, 
-							CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL, 'h' );
-				}
+				return ok;
 			}
 				break;
 		}

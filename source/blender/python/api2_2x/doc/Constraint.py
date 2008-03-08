@@ -46,9 +46,10 @@ Or to print all the constraints attached to each bone in a pose::
 		- OWNERSPACE (int): for TRACKTO, COPYLOC, COPYROT, COPYSIZE, LIMITLOC, LIMITROT, LIMITSIZE, PYTHON, TRANSFORM
 			If the owner is an object, values are SPACE_WORLD, SPACE_LOCAL
 			If the owner is a bone, values are SPACE_WORLD, SPACE_POSE, SPACE_PARLOCAL, SPACE_LOCAL
-		- TARGETSPACE (int): for TRACKTO, COPYLOC, COPYROT, COPYSIZE, PYTHON, TRANSFORM, ACTION
-			If the owner is an object, values are SPACE_WORLD, SPACE_LOCAL
-			If the owner is a bone, values are SPACE_WORLD, SPACE_POSE, SPACE_PARLOCAL, SPACE_LOCAL
+		- TARGETSPACE (list of ints): for TRACKTO, COPYLOC, COPYROT, COPYSIZE, PYTHON, TRANSFORM, ACTION
+			For every target that the Constraint can have, the target space can be set
+			If the target is an object, values are SPACE_WORLD, SPACE_LOCAL
+			If the target is a bone, values are SPACE_WORLD, SPACE_POSE, SPACE_PARLOCAL, SPACE_LOCAL
 	- Used by IK Solver (IKSOLVER) constraint:
 		- TOLERANCE (float): clamped to [0.0001:1.0]
 		- ITERATIONS (int): clamped to [1,10000]

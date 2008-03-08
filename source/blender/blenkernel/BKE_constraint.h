@@ -84,8 +84,8 @@ typedef struct bConstraintTypeInfo {
 	void (*new_data)(void *cdata);
 	
 	/* target handling function pointers */
-		/* for multi-target constraints: return that list; otherwise make a temporary list */
-	void (*get_constraint_targets)(struct bConstraint *con, struct ListBase *list);
+		/* for multi-target constraints: return that list; otherwise make a temporary list (returns number of targets) */
+	int (*get_constraint_targets)(struct bConstraint *con, struct ListBase *list);
 		/* for single-target constraints only: flush data back to source data, and the free memory used */
 	void (*flush_constraint_targets)(struct bConstraint *con, struct ListBase *list, short nocopy);
 	
