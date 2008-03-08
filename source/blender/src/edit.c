@@ -1828,7 +1828,7 @@ void snapmenu()
 {
 	short event;
 
-	event = pupmenu("Snap %t|Selection -> Grid%x1|Selection -> Cursor%x2|Selection -> Center%x5|%l|Cursor -> Selection%x4|Cursor -> Grid%x3|Cursor -> Active%x6");
+	event = pupmenu("Snap %t|Selection -> Grid%x1|Selection -> Cursor%x2|Selection -> Center%x3|%l|Cursor -> Selection%x4|Cursor -> Grid%x5|Cursor -> Active%x6");
 
 	switch (event) {
 		case 1: /*Selection to grid*/
@@ -1838,16 +1838,16 @@ void snapmenu()
 		case 2: /*Selection to cursor*/
 		    snap_sel_to_curs();
 			BIF_undo_push("Snap selection to cursor");
-		    break;	    
-		case 3: /*Cursor to grid*/
-		    snap_curs_to_grid();
+		    break;
+		case 3: /*Selection to center of selection*/
+		    snap_to_center();
+			BIF_undo_push("Snap selection to center");
 		    break;
 		case 4: /*Cursor to selection*/
 		    snap_curs_to_sel();
 		    break;
-		case 5: /*Selection to center of selection*/
-		    snap_to_center();
-			BIF_undo_push("Snap selection to center");
+		case 5: /*Cursor to grid*/
+		    snap_curs_to_grid();
 		    break;
 		case 6: /*Cursor to Active*/
 		    snap_curs_to_active();

@@ -1295,9 +1295,10 @@ static TBitem tb_transform_clearapply[]= {
 static TBitem tb_transform_snap[]= {
 {	0, "Selection -> Grid|Shift S, 1", 		1, NULL},
 {	0, "Selection -> Cursor|Shift S, 2", 	2, NULL},
-{	0, "Cursor -> Grid|Shift S, 3", 		3, NULL},
+{	0, "Selection -> Center|Shift S, 3", 3, NULL},
 {	0, "Cursor -> Selection|Shift S, 4", 4, NULL},
-{	0, "Selection -> Center|Shift S, 5", 5, NULL},
+{	0, "Cursor -> Grid|Shift S, 5", 		5, NULL},
+{	0, "Cursor -> Active|Shift S, 6", 		6, NULL},
 {  -1, "", 			0, do_view3d_edit_snapmenu}};
 
 static void tb_do_transform(void *arg, int event)

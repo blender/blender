@@ -1462,21 +1462,28 @@ static uiBlock *view3d_select_faceselmenu(void *arg_unused)
 
 void do_view3d_edit_snapmenu(void *arg, int event)
 {
-	switch(event) {
-	case 1: /* Selection to grid */
+	switch (event) {
+	case 1: /*Selection to grid*/
 	    snap_sel_to_grid();
+		BIF_undo_push("Snap selection to grid");
 	    break;
-	case 2: /* Selection to cursor */
+	case 2: /*Selection to cursor*/
 	    snap_sel_to_curs();
-	    break;	    
-	case 3: /* Cursor to grid */
-	    snap_curs_to_grid();
+		BIF_undo_push("Snap selection to cursor");
 	    break;
-	case 4: /* Cursor to selection */
+	case 3: /*Selection to center of selection*/
+	    snap_to_center();
+		BIF_undo_push("Snap selection to center");
+	    break;
+	case 4: /*Cursor to selection*/
 	    snap_curs_to_sel();
 	    break;
-	case 5: /* Selection to center of selection*/
-	    snap_to_center();
+	case 5: /*Cursor to grid*/
+	    snap_curs_to_grid();
+	    break;
+	case 6: /*Cursor to Active*/
+	    snap_curs_to_active();
+		BIF_undo_push("Snap selection to center");
 	    break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1492,9 +1499,12 @@ static uiBlock *view3d_edit_snapmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Selection -> Grid|Shift S, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Selection -> Cursor|Shift S, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cursor -> Grid|Shift S, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Selection -> Center|Shift S, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cursor -> Selection|Shift S, 4",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Selection -> Center|Shift S, 5",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cursor -> Grid|Shift S, 5",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cursor -> Active|Shift S, 6",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	
 	
 	
 	uiBlockSetDirection(block, UI_RIGHT);
