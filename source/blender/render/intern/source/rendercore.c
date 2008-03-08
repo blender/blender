@@ -1797,7 +1797,78 @@ typedef struct BakeShade {
 	
 	unsigned int *rect;
 	float *rect_float;
+	
+	int usemask;
+	char *rect_mask; /* bake pixel mask */
 } BakeShade;
+
+/* bake uses a char mask to know what has been baked */
+#define BAKE_MASK_NULL		0
+#define BAKE_MASK_MARGIN	1
+#define BAKE_MASK_BAKED		2
+static void bake_mask_filter_extend( char *mask, int width, int height )
+{
+	char *row1, *row2, *row3;
+	int rowlen, x, y;
+	char *temprect;
+	
+	rowlen= width;
+	
+	/* make a copy, to prevent flooding */
+	temprect= MEM_dupallocN(mask);
+	
+	for(y=1; y<=height; y++) {
+		/* setup rows */
+		row1= (char *)(temprect + (y-2)*rowlen);
+		row2= row1 + rowlen;
+		row3= row2 + rowlen;
+		if(y==1)
+			row1= row2;
+		else if(y==height)
+			row3= row2;
+		
+		for(x=0; x<rowlen; x++) {
+			if (mask[((y-1)*rowlen)+x]==0) {
+				if (*row1 || *row2 || *row3 || *(row1+1) || *(row3+1) ) {
+					mask[((y-1)*rowlen)+x] = BAKE_MASK_MARGIN;
+				} else if((x!=rowlen-1) && (*(row1+2) || *(row2+2) || *(row3+2)) ) {
+					mask[((y-1)*rowlen)+x] = BAKE_MASK_MARGIN;
+				}
+			}
+			
+			if(x!=0) {
+				row1++; row2++; row3++;
+			}
+		}
+	}
+	MEM_freeN(temprect);
+}
+
+static void bake_mask_clear( ImBuf *ibuf, char *mask, char val )
+{
+	int x,y;
+	if (ibuf->rect_float) {
+		for(x=0; x<ibuf->x; x++) {
+			for(y=0; y<ibuf->y; y++) {
+				if (mask[ibuf->x*y + x] == val) {
+					float *col= ibuf->rect_float + 4*(ibuf->x*y + x);
+					col[0] = col[1] = col[2] = col[3] = 0.0f;
+				}
+			}
+		}
+		
+	} else {
+		/* char buffer */
+		for(x=0; x<ibuf->x; x++) {
+			for(y=0; y<ibuf->y; y++) {
+				if (mask[ibuf->x*y + x] == val) {
+					char *col= (char *)(ibuf->rect + ibuf->x*y + x);
+					col[0] = col[1] = col[2] = col[3] = 0;
+				}
+			}
+		}
+	}
+}
 
 static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInput *shi, int quad, int isect, int x, int y, float u, float v)
 {
@@ -1918,14 +1989,28 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 	if(bs->rect_float) {
 		float *col= bs->rect_float + 4*(bs->rectx*y + x);
 		VECCOPY(col, shr.combined);
-		col[3]= 1.0f;
+		if (bs->type==RE_BAKE_ALL) {
+			col[3]= shr.alpha;
+		} else {
+			col[3]= 1.0;
+		}
 	}
 	else {
 		char *col= (char *)(bs->rect + bs->rectx*y + x);
 		col[0]= FTOCHAR(shr.combined[0]);
 		col[1]= FTOCHAR(shr.combined[1]);
 		col[2]= FTOCHAR(shr.combined[2]);
-		col[3]= 255;
+		
+		
+		if (bs->type==RE_BAKE_ALL) {
+			col[3]= FTOCHAR(shr.alpha);
+		} else {
+			col[3]= 255;
+		}
+	}
+	
+	if (bs->rect_mask) {
+		bs->rect_mask[bs->rectx*y + x] = BAKE_MASK_BAKED;
 	}
 }
 
@@ -1950,6 +2035,9 @@ static void bake_displacement(void *handle, ShadeInput *shi, float dist, int x, 
 		col[1]= FTOCHAR(disp);
 		col[2]= FTOCHAR(disp);
 		col[3]= 255;
+	}
+	if (bs->rect_mask) {
+		bs->rect_mask[bs->rectx*y + x] = BAKE_MASK_BAKED;
 	}
 }
 
@@ -2191,6 +2279,13 @@ static void shade_tface(BakeShade *bs)
 	bs->rect_float= bs->ibuf->rect_float;
 	bs->quad= 0;
 	
+	if (bs->usemask) {
+		if (bs->ibuf->userdata==NULL) {
+			bs->ibuf->userdata = (void *)MEM_callocN(sizeof(char)*bs->rectx*bs->recty, "BakeMask");
+			bs->rect_mask= (char *)bs->ibuf->userdata;
+		}
+	}
+	
 	/* get pixel level vertex coordinates */
 	for(a=0; a<4; a++) {
 		vec[a][0]= tface->uv[a][0]*(float)bs->rectx - 0.5f;
@@ -2232,8 +2327,8 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob)
 	BakeShade handles[BLENDER_MAX_THREADS];
 	ListBase threads;
 	Image *ima;
-	int a, vdone=0;
-
+	int a, vdone=0, usemask=0;
+	
 	/* initialize render global */
 	R= *re;
 	R.bakebuf= NULL;
@@ -2241,9 +2336,18 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob)
 	/* initialize static vars */
 	get_next_bake_face(NULL);
 	
+	/* do we need a mask? */
+	
+	/*if ((re->r.bake_mode==RE_BAKE_ALL) && (re->r.bake_filter) && (re->r.bake_flag & R_BAKE_CLEAR)==0)*/
+	if (re->r.bake_filter && (re->r.bake_flag & R_BAKE_CLEAR)==0)
+		usemask = 1;
+	
 	/* baker uses this flag to detect if image was initialized */
-	for(ima= G.main->image.first; ima; ima= ima->id.next)
+	for(ima= G.main->image.first; ima; ima= ima->id.next) {
+		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 		ima->id.flag |= LIB_DOIT;
+		ibuf->userdata = NULL; /* use for masking if needed */
+	}
 	
 	BLI_init_threads(&threads, do_bake_thread, re->r.threads);
 
@@ -2261,6 +2365,8 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob)
 		handles[a].type= type;
 		handles[a].actob= actob;
 		handles[a].zspan= MEM_callocN(sizeof(ZSpan), "zspan for bake");
+		
+		handles[a].usemask = usemask;
 		
 		BLI_insert_thread(&threads, &handles[a]);
 	}
@@ -2280,8 +2386,36 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob)
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		if((ima->id.flag & LIB_DOIT)==0) {
 			ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
-			for(a=0; a<re->r.bake_filter; a++)
-				IMB_filter_extend(ibuf);
+			if (re->r.bake_filter) {
+				if (usemask) {
+					/* extend the mask +2 pixels from the image,
+					 * this is so colors dont blend in from outside */
+					char *temprect;
+					
+					for(a=0; a<re->r.bake_filter; a++)
+						bake_mask_filter_extend((char *)ibuf->userdata, ibuf->x, ibuf->y);
+					
+					temprect = MEM_dupallocN(ibuf->userdata);
+					
+					/* expand twice to clear this many pixels, so they blend back in */
+					bake_mask_filter_extend(temprect, ibuf->x, ibuf->y);
+					bake_mask_filter_extend(temprect, ibuf->x, ibuf->y);
+					
+					/* clear all pixels in the margin*/
+					bake_mask_clear(ibuf, temprect, BAKE_MASK_MARGIN);
+					MEM_freeN(temprect);
+				}
+				
+				for(a=0; a<re->r.bake_filter; a++) {
+					/*the mask, ibuf->userdata - can be null, in this case only zero alpha is used */
+					IMB_filter_extend(ibuf, (char *)ibuf->userdata);
+				}
+				
+				if (ibuf->userdata) {
+					MEM_freeN(ibuf->userdata);
+					ibuf->userdata= NULL;
+				}
+			}
 			ibuf->userflags |= IB_BITMAPDIRTY;
 			if (ibuf->rect_float) IMB_rect_from_float(ibuf);
 		}
@@ -2293,7 +2427,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob)
 		
 		zbuf_free_span(handles[a].zspan);
 		MEM_freeN(handles[a].zspan);
-	}
+ 	}
 	
 	BLI_end_threads(&threads);
 	return vdone;

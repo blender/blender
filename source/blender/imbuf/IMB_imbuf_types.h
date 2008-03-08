@@ -95,7 +95,7 @@ typedef struct ImBuf {
 	int	userflags;			/**< Used to set imbuf to Dirty and other stuff */
 	int	*zbuf;				/**< z buffer data, original zbuffer */
 	float *zbuf_float;		/**< z buffer data, camera coordinates */
-	void *userdata;	
+	void *userdata;			/**< temporary storage, only used by baking at the moment */
 	unsigned char *encodedbuffer;     /**< Compressed image only used with png currently */
 	unsigned int   encodedsize;       /**< Size of data written to encodedbuffer */
 	unsigned int   encodedbuffersize; /**< Size of encodedbuffer */

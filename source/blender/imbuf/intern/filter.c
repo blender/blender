@@ -240,13 +240,16 @@ void IMB_filter(struct ImBuf *ibuf)
 	imb_filterx(ibuf);
 }
 
-#define EXTEND_PIXEL(a, w)	if((a)[3]) {r+= w*(a)[0]; g+= w*(a)[1]; b+= w*(a)[2]; tot+=w;}
+#define EXTEND_PIXEL(color, w) if((color)[3]) {r+= w*(color)[0]; g+= w*(color)[1]; b+= w*(color)[2]; a+= w*(color)[3]; tot+=w;}
 
-/* if alpha is zero, it checks surrounding pixels and averages color. sets new alphas to 1.0 */
-void IMB_filter_extend(struct ImBuf *ibuf)
+/* if alpha is zero, it checks surrounding pixels and averages color. sets new alphas to 1.0
+ * 
+ * When a mask is given, only effect pixels with a mask value of 1, defined as BAKE_MASK_MARGIN in rendercore.c
+ * */
+void IMB_filter_extend(struct ImBuf *ibuf, char *mask)
 {
 	register char *row1, *row2, *row3;
-	register char *cp;
+	register char *cp; 
 	int rowlen, x, y;
 	
 	rowlen= ibuf->x;
@@ -269,11 +272,11 @@ void IMB_filter_extend(struct ImBuf *ibuf)
 				row3f= row2f;
 			
 			fp= (float *)(ibuf->rect_float + (y-1)*rowlen*4);
-			
+				
 			for(x=0; x<rowlen; x++) {
-				if(fp[3]==0.0f) {
+				if((mask==NULL && fp[3]==0.0f) || (mask && mask[((y-1)*rowlen)+x]==1)) {
 					int tot= 0;
-					float r=0.0f, g=0.0f, b=0.0f;
+					float r=0.0f, g=0.0f, b=0.0f, a=0.0f;
 					
 					EXTEND_PIXEL(row1f, 1);
 					EXTEND_PIXEL(row2f, 2);
@@ -289,7 +292,7 @@ void IMB_filter_extend(struct ImBuf *ibuf)
 						fp[0]= r/tot;
 						fp[1]= g/tot;
 						fp[2]= b/tot;
-						fp[3]= 1.0;
+						fp[3]= a/tot;
 					}
 				}
 				fp+=4; 
@@ -321,8 +324,9 @@ void IMB_filter_extend(struct ImBuf *ibuf)
 			cp= (char *)(ibuf->rect + (y-1)*rowlen);
 			
 			for(x=0; x<rowlen; x++) {
-				if(cp[3]==0) {
-					int tot= 0, r=0, g=0, b=0;
+				/*if(cp[3]==0) {*/
+				if((mask==NULL && cp[3]==0) || (mask && mask[((y-1)*rowlen)+x]==1)) {
+					int tot= 0, r=0, g=0, b=0, a=0;
 					
 					EXTEND_PIXEL(row1, 1);
 					EXTEND_PIXEL(row2, 2);
@@ -338,10 +342,10 @@ void IMB_filter_extend(struct ImBuf *ibuf)
 						cp[0]= r/tot;
 						cp[1]= g/tot;
 						cp[2]= b/tot;
-						cp[3]= 255;
+						cp[3]= a/tot;
 					}
 				}
-				cp+=4; 
+				cp+=4;
 				
 				if(x!=0) {
 					row1+=4; row2+=4; row3+=4;
