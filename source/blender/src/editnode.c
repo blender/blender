@@ -1633,6 +1633,30 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 	return node;
 }
 
+void node_mute(SpaceNode *snode)
+{
+	bNode *node;
+
+	/* no disabling inside of groups */
+	if(snode_get_editgroup(snode))
+		return;
+	
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		if(node->flag & SELECT) {
+			if(node->inputs.first && node->outputs.first) {
+				if(node->flag & NODE_MUTED)
+					node->flag &= ~NODE_MUTED;
+				else
+					node->flag |= NODE_MUTED;
+			}
+		}
+	}
+	
+	allqueue(REDRAWNODE, 0);
+	BIF_undo_push("Enable/Disable nodes");
+
+}
+
 void node_adduplicate(SpaceNode *snode)
 {
 	
@@ -2420,6 +2444,9 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case LKEY:
 			node_select_linked(snode, G.qual==LR_SHIFTKEY);
+			break;
+		case MKEY:
+			node_mute(snode);
 			break;
 		case RKEY:
 			if(G.qual==LR_CTRLKEY) {

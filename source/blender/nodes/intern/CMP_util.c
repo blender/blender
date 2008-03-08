@@ -122,6 +122,48 @@ void print_compbuf(char *str, CompBuf *cbuf)
 	
 }
 
+/* used for disabling node  (similar code in drawnode.c for disable line) */
+void node_compo_pass_on(bNode *node, bNodeStack **nsin, bNodeStack **nsout)
+{
+	CompBuf *valbuf= NULL, *colbuf= NULL, *vecbuf= NULL;
+	bNodeSocket *sock;
+	int a;
+	
+	/* connect the first value buffer in with first value out */
+	/* connect the first RGBA buffer in with first RGBA out */
+	
+	/* test the inputs */
+	for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
+		if(nsin[a]->data) {
+			CompBuf *cbuf= nsin[a]->data;
+			if(cbuf->type==1 && valbuf==NULL) valbuf= cbuf;
+			if(cbuf->type==3 && vecbuf==NULL) vecbuf= cbuf;
+			if(cbuf->type==4 && colbuf==NULL) colbuf= cbuf;
+		}
+	}
+	
+	/* outputs */
+	if(valbuf || colbuf || vecbuf) {
+		for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
+			if(nsout[a]->hasoutput) {
+				if(sock->type==SOCK_VALUE && valbuf) {
+					nsout[a]->data= pass_on_compbuf(valbuf);
+					valbuf= NULL;
+				}
+				if(sock->type==SOCK_VECTOR && vecbuf) {
+					nsout[a]->data= pass_on_compbuf(vecbuf);
+					vecbuf= NULL;
+				}
+				if(sock->type==SOCK_RGBA && colbuf) {
+					nsout[a]->data= pass_on_compbuf(colbuf);
+					colbuf= NULL;
+				}
+			}
+		}
+	}
+}
+
+
 CompBuf *get_cropped_compbuf(rcti *drect, float *rectf, int rectx, int recty, int type)
 {
 	CompBuf *cbuf;

@@ -144,6 +144,8 @@ typedef struct bNode {
 #define NODE_GROUP_EDIT		128
 		/* free test flag, undefined */
 #define NODE_TEST			256
+		/* composite: don't do node but pass on buffer(s) */
+#define NODE_MUTED			512
 
 typedef struct bNodeLink {
 	struct bNodeLink *next, *prev;

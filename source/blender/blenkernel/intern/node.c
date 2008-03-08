@@ -64,6 +64,8 @@
 #include "RE_render_ext.h"		/* <- ibuf_sample() */
 
 #include "CMP_node.h"
+#include "intern/CMP_util.h"	/* stupid include path... */
+
 #include "SHD_node.h"
 
 /* not very important, but the stack solver likes to know a maximum */
@@ -1990,33 +1992,6 @@ void ntreeExecTree(bNodeTree *ntree, void *callerdata, int thread)
 
 
 /* ***************************** threaded version for execute composite nodes ************* */
-
-/* not changing info, for thread callback */
-typedef struct ThreadData {
-	bNodeStack *stack;
-	RenderData *rd;
-} ThreadData;
-
-static void *exec_composite_node(void *node_v)
-{
-	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
-	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
-	bNode *node= node_v;
-	ThreadData *thd= (ThreadData *)node->new_node; /* abuse */
-	
-	node_get_stack(node, thd->stack, nsin, nsout);
-	
-	if(node->typeinfo->execfunc) {
-		node->typeinfo->execfunc(thd->rd, node, nsin, nsout);
-	}
-	else if(node->type==NODE_GROUP && node->id) {
-		node_group_execute(thd->stack, thd->rd, node, nsin, nsout); 
-	}
-	
-	node->exec |= NODE_READY;
-	return 0;
-}
-
 /* these are nodes without input, only giving values */
 /* or nodes with only value inputs */
 static int node_only_value(bNode *node)
@@ -2035,6 +2010,40 @@ static int node_only_value(bNode *node)
 		}
 		return retval;
 	}
+	return 0;
+}
+
+
+/* not changing info, for thread callback */
+typedef struct ThreadData {
+	bNodeStack *stack;
+	RenderData *rd;
+} ThreadData;
+
+static void *exec_composite_node(void *node_v)
+{
+	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
+	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
+	bNode *node= node_v;
+	ThreadData *thd= (ThreadData *)node->new_node; /* abuse */
+	
+	node_get_stack(node, thd->stack, nsin, nsout);
+	
+	if((node->flag & NODE_MUTED) && (!node_only_value(node))) {
+		/* viewers we execute, for feedback to user */
+		if(ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) 
+			node->typeinfo->execfunc(thd->rd, node, nsin, nsout);
+		else
+			node_compo_pass_on(node, nsin, nsout);
+	}
+	else if(node->typeinfo->execfunc) {
+		node->typeinfo->execfunc(thd->rd, node, nsin, nsout);
+	}
+	else if(node->type==NODE_GROUP && node->id) {
+		node_group_execute(thd->stack, thd->rd, node, nsin, nsout); 
+	}
+	
+	node->exec |= NODE_READY;
 	return 0;
 }
 

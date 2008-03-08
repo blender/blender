@@ -2694,6 +2694,168 @@ static int node_get_colorid(bNode *node)
 	return TH_NODE;
 }
 
+static void node_draw_link_bezier(float vec[][3], int th_col1, int th_col2, int do_shaded)
+{
+	float dist;
+	
+	dist= 0.5f*ABS(vec[0][0] - vec[3][0]);
+	
+	/* check direction later, for top sockets */
+	vec[1][0]= vec[0][0]+dist;
+	vec[1][1]= vec[0][1];
+	
+	vec[2][0]= vec[3][0]-dist;
+	vec[2][1]= vec[3][1];
+	
+	if( MIN4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) > G.v2d->cur.xmax); /* clipped */	
+	else if ( MAX4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) < G.v2d->cur.xmin); /* clipped */
+	else {
+		float curve_res = 24, spline_step = 0.0f;
+		
+		/* we can reuse the dist variable here to increment the GL curve eval amount*/
+		dist = 1.0f/curve_res;
+		
+		glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, vec[0]);
+		glBegin(GL_LINE_STRIP);
+		while (spline_step < 1.000001f) {
+			if(do_shaded)
+				BIF_ThemeColorBlend(th_col1, th_col2, spline_step);
+			glEvalCoord1f(spline_step);
+			spline_step += dist;
+		}
+		glEnd();
+	}
+	
+}
+
+/* note; this is used for fake links in groups too */
+void node_draw_link(SpaceNode *snode, bNodeLink *link)
+{
+	float vec[4][3];
+	float mx=0.0f, my=0.0f;
+	int do_shaded= 1, th_col1= TH_WIRE, th_col2= TH_WIRE;
+	
+	if(link->fromnode==NULL && link->tonode==NULL)
+		return;
+	
+	/* this is dragging link */
+	if(link->fromnode==NULL || link->tonode==NULL) {
+		short mval[2];
+		getmouseco_areawin(mval);
+		areamouseco_to_ipoco(G.v2d, mval, &mx, &my);
+		BIF_ThemeColor(TH_WIRE);
+		do_shaded= 0;
+	}
+	else {
+		/* going to give issues once... */
+		if(link->tosock->flag & SOCK_UNAVAIL)
+			return;
+		if(link->fromsock->flag & SOCK_UNAVAIL)
+			return;
+		
+		/* a bit ugly... but thats how we detect the internal group links */
+		if(link->fromnode==link->tonode) {
+			BIF_ThemeColorBlend(TH_BACK, TH_WIRE, 0.25f);
+			do_shaded= 0;
+		}
+		else {
+			/* check cyclic */
+			if(link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF) {
+				if(link->fromnode->flag & SELECT)
+					th_col1= TH_EDGE_SELECT;
+				if(link->tonode->flag & SELECT)
+					th_col2= TH_EDGE_SELECT;
+			}				
+			else {
+				BIF_ThemeColor(TH_REDALERT);
+				do_shaded= 0;
+			}
+		}
+	}
+	
+	vec[0][2]= vec[1][2]= vec[2][2]= vec[3][2]= 0.0; /* only 2d spline, set the Z to 0*/
+	
+	/* in v0 and v3 we put begin/end points */
+	if(link->fromnode) {
+		vec[0][0]= link->fromsock->locx;
+		vec[0][1]= link->fromsock->locy;
+	}
+	else {
+		vec[0][0]= mx;
+		vec[0][1]= my;
+	}
+	if(link->tonode) {
+		vec[3][0]= link->tosock->locx;
+		vec[3][1]= link->tosock->locy;
+	}
+	else {
+		vec[3][0]= mx;
+		vec[3][1]= my;
+	}
+	
+	node_draw_link_bezier(vec, th_col1, th_col2, do_shaded);
+}
+
+
+/* note: in cmp_util.c is similar code, for node_compo_pass_on() */
+static void node_draw_mute_line(SpaceNode *snode, bNode *node)
+{
+	bNodeSocket *valsock= NULL, *colsock= NULL, *vecsock= NULL;
+	bNodeSocket *sock;
+	float vec[4][3];
+	int a;
+	
+	vec[0][2]= vec[1][2]= vec[2][2]= vec[3][2]= 0.0; /* only 2d spline, set the Z to 0*/
+	
+	/* connect the first value buffer in with first value out */
+	/* connect the first RGBA buffer in with first RGBA out */
+	
+	/* test the inputs */
+	for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
+		if(nodeCountSocketLinks(snode->edittree, sock)) {
+			if(sock->type==SOCK_VALUE && valsock==NULL) valsock= sock;
+			if(sock->type==SOCK_VECTOR && vecsock==NULL) vecsock= sock;
+			if(sock->type==SOCK_RGBA && colsock==NULL) colsock= sock;
+		}
+	}
+	
+	/* outputs, draw lines */
+	BIF_ThemeColor(TH_REDALERT);
+	glEnable(GL_BLEND);
+	glEnable( GL_LINE_SMOOTH );
+	
+	if(valsock || colsock || vecsock) {
+		for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
+			if(nodeCountSocketLinks(snode->edittree, sock)) {
+				vec[3][0]= sock->locx;
+				vec[3][1]= sock->locy;
+				
+				if(sock->type==SOCK_VALUE && valsock) {
+					vec[0][0]= valsock->locx;
+					vec[0][1]= valsock->locy;
+					node_draw_link_bezier(vec, TH_WIRE, TH_WIRE, 0);
+					valsock= NULL;
+				}
+				if(sock->type==SOCK_VECTOR && vecsock) {
+					vec[0][0]= vecsock->locx;
+					vec[0][1]= vecsock->locy;
+					node_draw_link_bezier(vec, TH_WIRE, TH_WIRE, 0);
+					vecsock= NULL;
+				}
+				if(sock->type==SOCK_RGBA && colsock) {
+					vec[0][0]= colsock->locx;
+					vec[0][1]= colsock->locy;
+					node_draw_link_bezier(vec, TH_WIRE, TH_WIRE, 0);
+					colsock= NULL;
+				}
+			}
+		}
+	}
+	glDisable(GL_BLEND);
+	glDisable( GL_LINE_SMOOTH );
+}
+
+
 static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 {
 	bNodeSocket *sock;
@@ -2702,7 +2864,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 	rctf *rct= &node->totr;
 	float slen, iconofs;
 	int ofs, color_id= node_get_colorid(node);
-	char showname[128];
+	char showname[128]; /* 128 used below */
 	
 	uiSetRoundBox(15-4);
 	ui_dropshadow(rct, BASIS_RAD, snode->aspect, node->flag & SELECT);
@@ -2782,14 +2944,12 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 	
 	ui_rasterpos_safe(rct->xmin+19.0f, rct->ymax-NODE_DY+5.0f, snode->aspect);
 	
-	if(node->username[0]) {
-		strcpy(showname,"(");
-		strcat(showname, node->username);
-		strcat(showname,") ");
-		strcat(showname, node->name);
-	}
+	if(node->flag & NODE_MUTED)
+		sprintf(showname, "[%s]", node->name);
+	else if(node->username[0])
+		sprintf(showname, "(%s)%s", node->username, node->name);
 	else
-		strcpy(showname, node->name);
+		BLI_strncpy(showname, node->name, 128);
 
 	snode_drawstring(snode, showname, (int)(iconofs - rct->xmin-18.0f));
 
@@ -2812,6 +2972,10 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 		glDisable(GL_BLEND);
 	}
 	
+	/* disable lines */
+	if(node->flag & NODE_MUTED)
+		node_draw_mute_line(snode, node);
+
 	/* we make buttons for input sockets, if... */
 	if(node->flag & NODE_OPTIONS) {
 		if(node->inputs.first || node->typeinfo->butfunc) {
@@ -2904,7 +3068,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 			uiDrawBlock(block);
 		}
 	}
-
+	
 }
 
 static void node_draw_hidden(SpaceNode *snode, bNode *node)
@@ -2914,7 +3078,7 @@ static void node_draw_hidden(SpaceNode *snode, bNode *node)
 	float dx, centy= 0.5f*(rct->ymax+rct->ymin);
 	float hiddenrad= 0.5f*(rct->ymax-rct->ymin);
 	int color_id= node_get_colorid(node);
-	char showname[128];
+	char showname[128];	/* 128 is used below */
 	
 	/* shadow */
 	uiSetRoundBox(15);
@@ -2941,6 +3105,10 @@ static void node_draw_hidden(SpaceNode *snode, bNode *node)
 	/* open entirely icon */
 	ui_draw_tria_icon(rct->xmin+9.0f, centy-6.0f, snode->aspect, 'h');	
 	
+	/* disable lines */
+	if(node->flag & NODE_MUTED)
+		node_draw_mute_line(snode, node);	
+	
 	if(node->flag & SELECT) 
 		BIF_ThemeColor(TH_TEXT_HI);
 	else
@@ -2949,14 +3117,12 @@ static void node_draw_hidden(SpaceNode *snode, bNode *node)
 	if(node->miniwidth>0.0f) {
 		ui_rasterpos_safe(rct->xmin+21.0f, centy-4.0f, snode->aspect);
 
-		if(node->username[0]) {
-			strcpy(showname,"(");
-			strcat(showname, node->username);
-			strcat(showname,") ");
-			strcat(showname, node->name);
-		}
+		if(node->flag & NODE_MUTED)
+			sprintf(showname, "[%s]", node->name);
+		else if(node->username[0])
+			sprintf(showname, "(%s)%s", node->username, node->name);
 		else
-			strcpy(showname, node->name);
+			BLI_strncpy(showname, node->name, 128);
 
 		snode_drawstring(snode, showname, (int)(rct->xmax - rct->xmin-18.0f -12.0f));
 	}	
@@ -2981,101 +3147,6 @@ static void node_draw_hidden(SpaceNode *snode, bNode *node)
 	for(sock= node->outputs.first; sock; sock= sock->next) {
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
 			socket_circle_draw(sock, NODE_SOCKSIZE);
-	}
-}
-
-/* note; this is used for fake links in groups too */
-void node_draw_link(SpaceNode *snode, bNodeLink *link)
-{
-	float vec[4][3];
-	float dist, spline_step, mx=0.0f, my=0.0f;
-	int curve_res, do_shaded= 1, th_col1= TH_WIRE, th_col2= TH_WIRE;
-	
-	if(link->fromnode==NULL && link->tonode==NULL)
-		return;
-	
-	/* this is dragging link */
-	if(link->fromnode==NULL || link->tonode==NULL) {
-		short mval[2];
-		getmouseco_areawin(mval);
-		areamouseco_to_ipoco(G.v2d, mval, &mx, &my);
-		BIF_ThemeColor(TH_WIRE);
-		do_shaded= 0;
-	}
-	else {
-		/* going to give issues once... */
-		if(link->tosock->flag & SOCK_UNAVAIL)
-			return;
-		if(link->fromsock->flag & SOCK_UNAVAIL)
-			return;
-		
-		/* a bit ugly... but thats how we detect the internal group links */
-		if(link->fromnode==link->tonode) {
-			BIF_ThemeColorBlend(TH_BACK, TH_WIRE, 0.25f);
-			do_shaded= 0;
-		}
-		else {
-			/* check cyclic */
-			if(link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF) {
-				if(link->fromnode->flag & SELECT)
-					th_col1= TH_EDGE_SELECT;
-				if(link->tonode->flag & SELECT)
-					th_col2= TH_EDGE_SELECT;
-			}				
-			else {
-				BIF_ThemeColor(TH_REDALERT);
-				do_shaded= 0;
-			}
-		}
-	}
-	
-	vec[0][2]= vec[1][2]= vec[2][2]= vec[3][2]= 0.0; /* only 2d spline, set the Z to 0*/
-	
-	/* in v0 and v3 we put begin/end points */
-	if(link->fromnode) {
-		vec[0][0]= link->fromsock->locx;
-		vec[0][1]= link->fromsock->locy;
-	}
-	else {
-		vec[0][0]= mx;
-		vec[0][1]= my;
-	}
-	if(link->tonode) {
-		vec[3][0]= link->tosock->locx;
-		vec[3][1]= link->tosock->locy;
-	}
-	else {
-		vec[3][0]= mx;
-		vec[3][1]= my;
-	}
-	
-	dist= 0.5f*ABS(vec[0][0] - vec[3][0]);
-	
-	/* check direction later, for top sockets */
-	vec[1][0]= vec[0][0]+dist;
-	vec[1][1]= vec[0][1];
-	
-	vec[2][0]= vec[3][0]-dist;
-	vec[2][1]= vec[3][1];
-	
-	if( MIN4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) > G.v2d->cur.xmax); /* clipped */	
-	else if ( MAX4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) < G.v2d->cur.xmin); /* clipped */
-	else {
-		curve_res = 24;
-		
-		/* we can reuse the dist variable here to increment the GL curve eval amount*/
-		dist = 1.0f/curve_res;
-		spline_step = 0.0f;
-		
-		glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, vec[0]);
-		glBegin(GL_LINE_STRIP);
-		while (spline_step < 1.000001f) {
-			if(do_shaded)
-				BIF_ThemeColorBlend(th_col1, th_col2, spline_step);
-			glEvalCoord1f(spline_step);
-			spline_step += dist;
-		}
-		glEnd();
 	}
 }
 
