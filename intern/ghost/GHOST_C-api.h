@@ -763,12 +763,12 @@ extern GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
  * Return the data from the clipboad
  * @return clipboard data
  */
-extern GHOST_TUns8* getClipboard(int flag);
+extern GHOST_TUns8* GHOST_getClipboard(int flag);
 
 /**
  * Put data to the Clipboard
  */
-extern void putClipboard(GHOST_TInt8 *buffer, int flag);
+extern void GHOST_putClipboard(GHOST_TInt8 *buffer, int flag);
 
 #ifdef __cplusplus
 }

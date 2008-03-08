@@ -84,8 +84,7 @@
 
 #include "mydevice.h"
 #include "blendef.h" 
-
-#include "GHOST_C-api.h"
+#include "winlay.h"
 
 #define TEXTXLOC	38
 
@@ -1363,7 +1362,7 @@ void txt_paste_clipboard(Text *text) {
 
 void get_selection_buffer(Text *text)
 {
-	char *buff = (char*)getClipboard(1);
+	char *buff = getClipboard(1);
 	txt_insert_buf(text, buff);
 }
 
@@ -1376,7 +1375,7 @@ void txt_copy_clipboard(Text *text) {
 		copybuffer[bufferlength] = '\0';
 		temp = winNewLine(copybuffer);
 		
-		putClipboard((GHOST_TInt8*)temp, 0);
+		putClipboard(temp, 0);
 		MEM_freeN(temp);
 		MEM_freeN(copybuffer);
 		copybuffer= NULL;
@@ -1539,7 +1538,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				do_selection(st, G.qual&LR_SHIFTKEY);
 				if (txt_has_sel(text)) {
 					buffer = txt_sel_to_buf(text);
-					putClipboard((GHOST_TInt8*)buffer, 1);
+					putClipboard(buffer, 1);
 					MEM_freeN(buffer);
 				}
 				do_draw= 1;

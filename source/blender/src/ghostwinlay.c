@@ -833,3 +833,11 @@ void winlay_get_screensize(int *width_r, int *height_r) {
 Window *winlay_get_active_window(void) {
 	return active_gl_window;
 }
+
+char *getClipboard(int flag) {
+	return (char*)GHOST_getClipboard(flag);
+}
+
+void putClipboard(char *buffer, int flag) {
+	GHOST_putClipboard((GHOST_TInt8*)buffer, flag);
+}
