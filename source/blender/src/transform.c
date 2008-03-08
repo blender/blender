@@ -4353,12 +4353,15 @@ static void applyTimeSlide(TransInfo *t, float sval)
 	float minx= *((float *)(t->customData));
 	float maxx= *((float *)(t->customData) + 1);
 	
+	
 	/* set value for drawing black line */
 	if (t->spacetype == SPACE_ACTION) {
-		G.saction->timeslide= t->fac;
+		float cvalf = t->fac;
 		
 		if (NLA_ACTION_SCALED)
-			sval= get_action_frame(OBACT, sval);
+			cvalf= get_action_frame(OBACT, cvalf);
+			
+		G.saction->timeslide= cvalf;
 	}
 	
 	/* it doesn't matter whether we apply to t->data or t->data2d, but t->data2d is more convenient */
@@ -4374,7 +4377,7 @@ static void applyTimeSlide(TransInfo *t, float sval)
 			cval= get_action_frame(ob, cval);
 		
 		/* only apply to data if in range */
-		if (sval > minx && sval < maxx) {
+		if ((sval > minx) && (sval < maxx)) {
 			float cvalc= CLAMPIS(cval, minx, maxx);
 			float timefac;
 			

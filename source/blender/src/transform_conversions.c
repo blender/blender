@@ -2653,7 +2653,7 @@ static void createTransActionData(TransInfo *t)
 	
 	/* check if we're supposed to be setting minx/maxx for TimeSlide */
 	if (t->mode == TFM_TIME_SLIDE) {
-		float min = 0, max = 0;
+		float min=999999999.0f, max=-999999999.0;
 		int i;
 		
 		td= (t->data + 1);
