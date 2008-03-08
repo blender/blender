@@ -2687,15 +2687,42 @@ static uiBlock *ui_do_but_BLOCK(uiBut *but, int event)
 
 static int ui_do_but_BUTM(uiBut *but)
 {
+	int activated;
+	
+	do {
+		int oflag= but->flag;
+		short mval[2];
+			
+		uiGetMouse(mywinget(), mval);
+		
+		if (uibut_contains_pt(but, mval))
+			but->flag |= UI_SELECT;
+		else
+			but->flag &= ~UI_SELECT;
+		
+		if (but->flag != oflag) {
+			ui_draw_but(but);
+			ui_block_flush_back(but->block);
+		}
+		
+		PIL_sleep_ms(10);
+	} while (get_mbut() & L_MOUSE);
 
-	ui_set_but_val(but, but->min);
-	UIafterfunc_butm= but->butm_func;
-	UIafterfunc_arg1= but->butm_func_arg;
-	UIafterval= but->a2;
+	activated= (but->flag & UI_SELECT);
+
+	if (activated) {
+		ui_set_but_val(but, but->min);
+		UIafterfunc_butm= but->butm_func;
+		UIafterfunc_arg1= but->butm_func_arg;
+		UIafterval= but->a2;
+		
+		uibut_do_func(but);
+	}
 	
-	uibut_do_func(but);
-	
-	return but->retval;
+	but->flag &= ~UI_SELECT;
+	ui_draw_but(but);
+
+	return activated?but->retval:0;
 }
 
 static int ui_do_but_LABEL(uiBut *but)
