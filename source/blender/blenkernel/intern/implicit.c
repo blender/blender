@@ -1378,45 +1378,9 @@ DO_INLINE void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s,
 	}	
 }
 
-DO_INLINE void calculateTriangleNormal(float to[3], lfVector *X, MFace mface)
-{
-	float v1[3], v2[3];
-
-	VECSUB(v1, X[mface.v2], X[mface.v1]);
-	VECSUB(v2, X[mface.v3], X[mface.v1]);
-	cross_fvector(to, v1, v2);
-}
-
-DO_INLINE void calculatQuadNormal(float to[3], lfVector *X, MFace mface)
-{
-	float temp = CalcNormFloat4(X[mface.v1],X[mface.v2],X[mface.v3],X[mface.v4],to);
-	mul_fvector_S(to, to, temp);
-}
-
-void calculateWeightedVertexNormal(ClothModifierData *clmd, MFace *mfaces, float to[3], int index, lfVector *X)
-{
-	float temp[3]; 
-	int i;
-	Cloth *cloth = clmd->clothObject;
-
-	for(i = 0; i < cloth->numfaces; i++)
-	{
-		// check if this triangle contains the selected vertex
-		if(mfaces[i].v1 == index || mfaces[i].v2 == index || mfaces[i].v3 == index || mfaces[i].v4 == index)
-		{
-			calculatQuadNormal(temp, X, mfaces[i]);
-			VECADD(to, to, temp);
-		}
-	}
-}
 float calculateVertexWindForce(float wind[3], float vertexnormal[3])  
 {
-	return fabs(INPR(wind, vertexnormal) * 0.5f);
-}
-
-DO_INLINE void calc_triangle_force(ClothModifierData *clmd, MFace mface, lfVector *F, lfVector *X, lfVector *V, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors)
-{	
-
+	return sqrt(fabs(INPR(wind, vertexnormal)))*2.0*0.1;
 }
 
 void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
@@ -1428,6 +1392,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	float 		gravity[3];
 	float 		tm2[3][3] 	= {{-spring_air,0,0}, {0,-spring_air,0},{0,0,-spring_air}};
 	MFace 		*mfaces 	= cloth->mfaces;
+	ClothVertex 	*verts		= cloth->verts;
 	float wind_normalized[3];
 	unsigned int numverts = cloth->numverts;
 	LinkNode *search = cloth->springs;
@@ -1455,26 +1420,67 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	
 	/* handle external forces like wind */
 	if(effectors)
-	{
-		float speed[3] = {0.0f, 0.0f,0.0f};
-		float force[3]= {0.0f, 0.0f, 0.0f};
-		
-#pragma omp parallel for private (i) shared(lF)
-		for(i = 0; i < (long)(cloth->numverts); i++)
+	{	
+		for(i = 0; i < cloth->numfaces; i++)
 		{
 			float vertexnormal[3]={0,0,0};
-			float fieldfactor = 1000.0f; // windfactor  = 250.0f; // from sb
+			float speed[3] = {0.0f, 0.0f,0.0f};
+			float force[3]= {0.0f, 0.0f, 0.0f};
 			
-			pdDoEffectors(effectors, lX[i], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);		
+			if(mfaces[i].v4)
+				CalcNormFloat4(lX[mfaces[i].v1],lX[mfaces[i].v2],lX[mfaces[i].v3],lX[mfaces[i].v4],vertexnormal);
+			else
+				CalcNormFloat(lX[mfaces[i].v1],lX[mfaces[i].v2],lX[mfaces[i].v3],vertexnormal);
 			
-			// TODO apply forcefields here
-			VECADDS(lF[i], lF[i], force, fieldfactor*0.01f);
-
+			pdDoEffectors(effectors, lX[mfaces[i].v1], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 			VECCOPY(wind_normalized, speed);
 			Normalize(wind_normalized);
+			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal) * verts[mfaces[i].v1].mass);
 			
-			calculateWeightedVertexNormal(clmd, mfaces, vertexnormal, i, lX);
-			VECADDS(lF[i], lF[i], wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
+			if(mfaces[i].v4)
+			{
+				VECADDS(lF[mfaces[i].v1], lF[mfaces[i].v1], wind_normalized, 0.25);
+			}
+			else
+			{
+				VECADDS(lF[mfaces[i].v1], lF[mfaces[i].v1], wind_normalized, 1.0 / 3.0);
+			}
+			
+			pdDoEffectors(effectors, lX[mfaces[i].v2], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+			VECCOPY(wind_normalized, speed);
+			Normalize(wind_normalized);
+			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal) * verts[mfaces[i].v2].mass);
+			if(mfaces[i].v4)
+			{
+				VECADDS(lF[mfaces[i].v2], lF[mfaces[i].v2], wind_normalized, 0.25);
+			}
+			else
+			{
+				VECADDS(lF[mfaces[i].v2], lF[mfaces[i].v2], wind_normalized, 1.0 / 3.0);
+			}
+				
+			pdDoEffectors(effectors, lX[mfaces[i].v3], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+			VECCOPY(wind_normalized, speed);
+			Normalize(wind_normalized);
+			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal) * verts[mfaces[i].v3].mass);
+			if(mfaces[i].v4)
+			{
+				VECADDS(lF[mfaces[i].v3], lF[mfaces[i].v3], wind_normalized, 0.25);
+			}
+			else
+			{
+				VECADDS(lF[mfaces[i].v3], lF[mfaces[i].v3], wind_normalized, 1.0 / 3.0);
+			}
+			
+			if(mfaces[i].v4)
+			{
+				pdDoEffectors(effectors, lX[i], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+				VECCOPY(wind_normalized, speed);
+				Normalize(wind_normalized);
+				VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal) * verts[mfaces[i].v4].mass);
+				VECADDS(lF[i], lF[i], wind_normalized, 0.25);
+			}
+			
 		}
 	}
 		
@@ -1559,10 +1565,10 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 	
 	while(step < tf)
 	{	
-		effectors= pdInitEffectors(ob,NULL);
-		
 		// calculate forces
+		effectors= pdInitEffectors(ob,NULL);
 		cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step, id->M);
+		if(effectors) pdEndEffectors(effectors);
 		
 		// calculate new velocity
 		simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv, id->M, id->bigI);
@@ -1631,7 +1637,10 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 				cp_lfvector(id->V, id->Vnew, numverts);
 				
 				// calculate 
+				effectors= pdInitEffectors(ob,NULL);
 				cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step+dt, id->M);	
+				if(effectors) pdEndEffectors(effectors);
+				
 				simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv, id->M, id->bigI);
 			}
 			
@@ -1649,8 +1658,6 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 		cp_lfvector(id->V, id->Vnew, numverts);
 		
 		step += dt;
-
-		if(effectors) pdEndEffectors(effectors);
 		
 	}
 
