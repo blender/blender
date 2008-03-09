@@ -5,14 +5,17 @@
 #include "RAS_VAOpenGLRasterizer.h"
 #include <vector>
 
+class RAS_ListRasterizer;
 class RAS_ListSlot : public KX_ListSlot
 {
 	unsigned int m_list;
 	unsigned int m_flag;
+	RAS_ListRasterizer* m_rasty;
 public:
-	RAS_ListSlot();
+	RAS_ListSlot(RAS_ListRasterizer* rasty);
 	virtual ~RAS_ListSlot();
 	virtual void SetModified(bool mod);
+	virtual int Release();
 
 	void RemoveList();
 	void DrawList();
@@ -42,6 +45,7 @@ class RAS_ListRasterizer : public RAS_VAOpenGLRasterizer
 	void ReleaseAlloc();
 
 public:
+	void RemoveListSlot(RAS_ListSlot* list);
 	RAS_ListRasterizer(RAS_ICanvas* canvas, bool useVertexArrays=false, bool lock=false);
 	virtual ~RAS_ListRasterizer();
 

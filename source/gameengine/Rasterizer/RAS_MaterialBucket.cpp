@@ -69,6 +69,11 @@ bool KX_MeshSlot::Less(const KX_MeshSlot& lhs) const
 	return result;
 }
 
+KX_MeshSlot::~KX_MeshSlot()
+{
+	if (m_DisplayList)
+		m_DisplayList->Release();
+}
 
 
 RAS_MaterialBucket::RAS_MaterialBucket(RAS_IPolyMaterial* mat)

@@ -25,11 +25,21 @@
 #define spit(x)
 //#endif
 
-RAS_ListSlot::RAS_ListSlot()
+RAS_ListSlot::RAS_ListSlot(RAS_ListRasterizer* rasty)
 :	KX_ListSlot(),
 	m_flag(LIST_MODIFY|LIST_CREATE),
-	m_list(0)
+	m_list(0),
+	m_rasty(rasty)
 {
+}
+
+int RAS_ListSlot::Release()
+{
+	if (--m_refcount > 0)
+		return m_refcount;
+	m_rasty->RemoveListSlot(this);
+	delete this;
+	return 0;
 }
 
 RAS_ListSlot::~RAS_ListSlot()
@@ -108,6 +118,18 @@ RAS_ListRasterizer::~RAS_ListRasterizer()
 	ReleaseAlloc();
 }
 
+void RAS_ListRasterizer::RemoveListSlot(RAS_ListSlot* list)
+{
+	RAS_Lists::iterator it = mLists.begin();
+	while(it != mLists.end()) {
+		if (it->second == list) {
+			mLists.erase(it);
+			break;
+		}
+		it++;
+	}
+}
+
 RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(const vecVertexArray& vertexarrays, KX_ListSlot** slot)
 {
 	/*
@@ -120,10 +142,10 @@ RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(const vecVertexArray& vertexarrays, 
 	if(!localSlot) {
 		RAS_Lists::iterator it = mLists.find(vertexarrays);
 		if(it == mLists.end()) {
-			localSlot = new RAS_ListSlot();
+			localSlot = new RAS_ListSlot(this);
 			mLists.insert(std::pair<vecVertexArray, RAS_ListSlot*>(vertexarrays, localSlot));
 		} else {
-			localSlot = it->second;
+			localSlot = static_cast<RAS_ListSlot*>(it->second->AddRef());
 		}
 	}
 	MT_assert(localSlot);
@@ -157,8 +179,12 @@ void RAS_ListRasterizer::IndexPrimitives(
 	if(!useObjectColor) {
 		localSlot = FindOrAdd(vertexarrays, slot);
 		localSlot->DrawList();
-		if(localSlot->End()) 
+		if(localSlot->End()) {
+			// save slot here too, needed for replicas and object using same mesh
+			// => they have the same vertexarray but different mesh slot
+			*slot = localSlot;
 			return;
+		}
 	}
 	
 	if (mUseVertexArrays) {
@@ -201,8 +227,12 @@ void RAS_ListRasterizer::IndexPrimitivesMulti(
 		localSlot = FindOrAdd(vertexarrays, slot);
 		localSlot->DrawList();
 
-		if(localSlot->End()) 
+		if(localSlot->End()) {
+			// save slot here too, needed for replicas and object using same mesh
+			// => they have the same vertexarray but different mesh slot
+			*slot = localSlot;
 			return;
+		}
 	}
 
 	if (mUseVertexArrays) {
