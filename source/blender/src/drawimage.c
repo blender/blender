@@ -646,7 +646,6 @@ void draw_uvs_sima(void)
 				float col[3];
 				
 				glShadeModel(GL_SMOOTH);
-				glEnable(GL_BLEND);
 				
 				for (efa= em->faces.first; efa; efa= efa->next) {
 					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -711,8 +710,7 @@ void draw_uvs_sima(void)
 						efa->tmp.p = NULL;
 					}
 				}
-				glDisable(GL_SMOOTH);
-				glDisable(GL_BLEND);
+				glShadeModel(GL_FLAT);
 				break;
 			}
 		}
