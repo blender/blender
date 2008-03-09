@@ -4397,21 +4397,23 @@ static void applyTimeSlide(TransInfo *t, float sval)
 int TimeSlide(TransInfo *t, short mval[2]) 
 {
 	float cval[2], sval[2];
+	float minx= *((float *)(t->customData));
+	float maxx= *((float *)(t->customData) + 1);
 	char str[200];
 	
 	/* calculate mouse co-ordinates */
 	areamouseco_to_ipoco(G.v2d, mval, &cval[0], &cval[1]);
 	areamouseco_to_ipoco(G.v2d, t->imval, &sval[0], &sval[1]);
 	
-	/* calculate fake value to work with */
+	/* t->fac stores cval[0], which is the current mouse-pointer location (in frames) */
 	t->fac= cval[0];
 	
 	/* handle numeric-input stuff */
-	t->vec[0] = t->fac;
+	t->vec[0] = 2.0*(cval[0]-sval[0]) / (maxx-minx);
 	applyNumInput(&t->num, &t->vec[0]);
-	t->fac = t->vec[0];
-	headerTimeSlide(t, sval[0], str);
+	t->fac = (maxx-minx) * t->vec[0] / 2.0 + sval[0];
 	
+	headerTimeSlide(t, sval[0], str);
 	applyTimeSlide(t, sval[0]);
 
 	recalcData(t);
