@@ -601,7 +601,7 @@ void draw_uvs_sima(void)
 					}
 				}
 				
-				if (totarea==0.0 || totarea==0.0) {
+				if (totarea < FLT_EPSILON || totuvarea < FLT_EPSILON) {
 					col[0] = 1.0;
 					col[1] = col[2] = 0.0;
 					glColor3fv(col);
@@ -621,7 +621,7 @@ void draw_uvs_sima(void)
 					if ((tface=(MTFace *)efa->tmp.p)) {
 						area = EM_face_area(efa) / totarea;
 						uvarea = tface_area(tface, efa->v4!=0) / totuvarea;
-						if (area==0.0 || uvarea==0.0) {
+						if (area < FLT_EPSILON || uvarea < FLT_EPSILON) {
 							areadiff = 1.0;
 						} else if (area>uvarea) {
 							areadiff = 1.0-(uvarea/area);
