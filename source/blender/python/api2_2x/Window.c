@@ -527,8 +527,9 @@ static void getSelectedFile( char *name )
 		}
 		else Py_DECREF(result);
 
-		if (script->py_browsercallback == pycallback)
-			script->py_browsercallback = NULL;
+		if (script->py_browsercallback == pycallback) {
+			SCRIPT_SET_NULL(script);
+		}
 		/* else another call to selector was made inside pycallback */
 
 		Py_DECREF(pycallback);
@@ -599,8 +600,12 @@ static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args )
 	}
 	script->py_browsercallback = pycallback;
 
+	/* if were not running a script GUI here alredy, then dont make this script persistant */
+	if ((script->flags & SCRIPT_GUI)==0) {
+		script->scriptname[0] = '\0';
+		script->scriptarg[0] = '\0';
+	}
 	activate_fileselect( FILE_BLENDER, title, filename, getSelectedFile );
-
 	Py_RETURN_NONE;
 }
 

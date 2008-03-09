@@ -583,8 +583,8 @@ void draw_uvs_sima(void)
 		switch (G.sima->dt_uvstretch) {
 			case SI_UVDT_STRETCH_AREA:
 			{
-				float totarea, totuvarea, areadiff, uvarea, area, col[3];
-				int uvarea_error = 0;
+				float totarea=0.0f, totuvarea=0.0f, areadiff, uvarea, area, col[3];
+
 				for (efa= em->faces.first; efa; efa= efa->next) {
 					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 					
@@ -601,16 +601,18 @@ void draw_uvs_sima(void)
 				}
 				
 				if (totarea==0.0 || totarea==0.0) {
-					col[0] - 1.0;
+					col[0] = 1.0;
 					col[1] = col[2] = 0.0;
 					glColor3fv(col);
 					for (efa= em->faces.first; efa; efa= efa->next) {
-						glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
-							glVertex2fv(tface->uv[0]);
-							glVertex2fv(tface->uv[1]);
-							glVertex2fv(tface->uv[2]);
-							if(efa->v4) glVertex2fv(tface->uv[3]);
-						glEnd();
+						if ((tface=(MTFace *)efa->tmp.p)) {
+							glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+								glVertex2fv(tface->uv[0]);
+								glVertex2fv(tface->uv[1]);
+								glVertex2fv(tface->uv[2]);
+								if(efa->v4) glVertex2fv(tface->uv[3]);
+							glEnd();
+						}
 					}
 				}
 				
@@ -652,7 +654,6 @@ void draw_uvs_sima(void)
 					
 					if (simaFaceDraw_Check(efa, tface)) {
 						efa->tmp.p = tface;
-					
 						if (efa->v4) {
 							uvang1 = VecAngle3_2D(tface->uv[3], tface->uv[0], tface->uv[1]);
 							ang1 = VecAngle3(efa->v4->co, efa->v1->co, efa->v2->co);

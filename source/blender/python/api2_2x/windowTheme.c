@@ -1,5 +1,5 @@
 /* 
- * $Id: windowTheme.c 12139 2007-09-25 03:31:12Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -252,6 +252,7 @@ static int ThemeSpace_setAttr( BPy_ThemeSpace * self, char *name,
 		ELSEIF_TSP_RGBA( edge_select )
 		ELSEIF_TSP_RGBA( edge_seam )
 		ELSEIF_TSP_RGBA( edge_sharp )
+		ELSEIF_TSP_RGBA( editmesh_active )
 		ELSEIF_TSP_RGBA( edge_facesel )
 		ELSEIF_TSP_RGBA( face )
 		ELSEIF_TSP_RGBA( face_select )

@@ -73,7 +73,11 @@ theme = Theme.Get()[0] # get current theme
 
 # default filename: theme's name + '_theme.py' in user's scripts dir:
 default_fname = Blender.Get("scriptsdir")
-default_fname = Blender.sys.join(default_fname, theme.name + '_theme.py')
+if (default_fname):
+	default_fname = Blender.sys.join(default_fname, theme.name + '_theme.py')
+else:
+	default_fname = theme.name + '_theme.py'
+	
 default_fname = default_fname.replace(' ','_')
 
 def write_theme(filename):
