@@ -105,7 +105,19 @@ KX_GameObject::~KX_GameObject()
 	delete m_pClient_info;
 	//if (m_pSGNode)
 	//	delete m_pSGNode;
-	
+	if (m_pSGNode)
+	{
+		// must go through controllers and make sure they will not use us anymore
+		// This is important for KX_BulletPhysicsControllers that unregister themselves
+		// from the object when they are deleted.
+		SGControllerList::iterator contit;
+		SGControllerList& controllers = m_pSGNode->GetSGControllerList();
+		for (contit = controllers.begin();contit!=controllers.end();++contit)
+		{
+			(*contit)->ClearObject();
+		}
+		m_pSGNode->SetSGClientObject(NULL);
+	}
 }
 
 

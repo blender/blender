@@ -306,7 +306,7 @@ public:
 	
 	void DelayedReleaseObject(CValue* gameobj);
 
-	void NewRemoveObject(CValue* gameobj);
+	int NewRemoveObject(CValue* gameobj);
 	void ReplaceMesh(CValue* gameobj,
 					 void* meshobj);
 	void AddShape(class btCollisionShape* shape);

@@ -410,8 +410,15 @@ void KX_Scene::EnableZBufferClearing(bool isclearingZbuffer)
 void KX_Scene::RemoveNodeDestructObject(class SG_IObject* node,class CValue* gameobj)
 {
 	KX_GameObject* orgobj = (KX_GameObject*)gameobj;	
-	NewRemoveObject(orgobj);
-
+	if (NewRemoveObject(orgobj) != 0)
+	{
+		// object is not yet deleted (this can happen when it hangs in an add object actuator
+		// last object created reference. It's a bad situation, don't know how to fix it exactly
+		// The least I can do, is remove the reference to the node in the object as the node
+		// will in any case be deleted. This ensures that the object will not try to use the node
+		// when it is finally deleted (see KX_GameObject destructor)
+		orgobj->SetSGNode(NULL);
+	}
 	if (node)
 		delete node;
 }
@@ -723,8 +730,9 @@ void KX_Scene::DelayedRemoveObject(class CValue* gameobj)
 
 
 
-void KX_Scene::NewRemoveObject(class CValue* gameobj)
+int KX_Scene::NewRemoveObject(class CValue* gameobj)
 {
+	int ret;
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
 
 	//todo: look at this
@@ -768,16 +776,17 @@ void KX_Scene::NewRemoveObject(class CValue* gameobj)
 	}
 	
 	newobj->RemoveMeshes();
+	ret = 1;
 	if (m_objectlist->RemoveValue(newobj))
-		newobj->Release();
+		ret = newobj->Release();
 	if (m_tempObjectList->RemoveValue(newobj))
-		newobj->Release();
+		ret = newobj->Release();
 	if (m_parentlist->RemoveValue(newobj))
-		newobj->Release();
+		ret = newobj->Release();
 	if (m_inactivelist->RemoveValue(newobj))
-		newobj->Release();
+		ret = newobj->Release();
 	if (m_euthanasyobjects->RemoveValue(newobj))
-		newobj->Release();
+		ret = newobj->Release();
 		
 	if (newobj == m_active_camera)
 	{
@@ -787,6 +796,8 @@ void KX_Scene::NewRemoveObject(class CValue* gameobj)
 	}
 	if (m_sceneConverter)
 		m_sceneConverter->UnregisterGameObject(newobj);
+	// return value will be 0 if the object is actually deleted (all reference gone)
+	return ret;
 }
 
 
