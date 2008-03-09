@@ -116,7 +116,7 @@ ECHO Done
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="libguardedalloc.lib libstring.lib libghost.lib odelib.lib fmodvc.lib libbmfont.lib ws2_32.lib vfw32.lib odbc32.lib odbccp32.lib opengl32.lib glu32.lib openal_static.lib libjpeg.lib dxguid.lib libblenkey.lib libeay32.lib libpng.lib libz.lib libmoto.lib libSoundSystem.lib qtmlClient.lib libDummySoundSystem.lib libOpenALSoundSystem.lib SDL.lib solid.lib freetype2ST.lib Bullet.lib libdecimation.lib python25.lib pthreadVSE2.lib pthreadVC2.lib verse.lib libopennl.lib"
+				AdditionalDependencies="libguardedalloc.lib libstring.lib libghost.lib odelib.lib fmodvc.lib libbmfont.lib ws2_32.lib vfw32.lib odbc32.lib odbccp32.lib opengl32.lib glu32.lib openal_static.lib libjpeg.lib dxguid.lib libeay32.lib libpng.lib libz.lib libmoto.lib libSoundSystem.lib qtmlClient.lib libDummySoundSystem.lib libOpenALSoundSystem.lib SDL.lib solid.lib freetype2ST.lib Bullet.lib libdecimation.lib python25.lib pthreadVSE2.lib pthreadVC2.lib verse.lib libopennl.lib"
 				OutputFile="..\..\..\..\bin\blenderplayer.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
