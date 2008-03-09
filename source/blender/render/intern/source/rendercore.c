@@ -1983,13 +1983,14 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 			shr.combined[0]= shi->r;
 			shr.combined[1]= shi->g;
 			shr.combined[2]= shi->b;
+			shr.alpha = shi->alpha;
 		}
 	}
 	
 	if(bs->rect_float) {
 		float *col= bs->rect_float + 4*(bs->rectx*y + x);
 		VECCOPY(col, shr.combined);
-		if (bs->type==RE_BAKE_ALL) {
+		if (bs->type==RE_BAKE_ALL || bs->type==RE_BAKE_TEXTURE) {
 			col[3]= shr.alpha;
 		} else {
 			col[3]= 1.0;
@@ -2002,7 +2003,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 		col[2]= FTOCHAR(shr.combined[2]);
 		
 		
-		if (bs->type==RE_BAKE_ALL) {
+		if (bs->type==RE_BAKE_ALL || bs->type==RE_BAKE_TEXTURE) {
 			col[3]= FTOCHAR(shr.alpha);
 		} else {
 			col[3]= 255;
@@ -2337,8 +2338,6 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob)
 	get_next_bake_face(NULL);
 	
 	/* do we need a mask? */
-	
-	/*if ((re->r.bake_mode==RE_BAKE_ALL) && (re->r.bake_filter) && (re->r.bake_flag & R_BAKE_CLEAR)==0)*/
 	if (re->r.bake_filter && (re->r.bake_flag & R_BAKE_CLEAR)==0)
 		usemask = 1;
 	
@@ -2346,7 +2345,8 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob)
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 		ima->id.flag |= LIB_DOIT;
-		ibuf->userdata = NULL; /* use for masking if needed */
+		if (ibuf)
+			ibuf->userdata = NULL; /* use for masking if needed */
 	}
 	
 	BLI_init_threads(&threads, do_bake_thread, re->r.threads);
