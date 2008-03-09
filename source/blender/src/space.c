@@ -4806,7 +4806,6 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case PADPERIOD:	
 			if(last_seq) {
-				CFRA= last_seq->startdisp;
 				v2d->cur.xmin= last_seq->startdisp- (last_seq->len/20);
 				v2d->cur.xmax= last_seq->enddisp+ (last_seq->len/20);
 				update_for_newframe();
