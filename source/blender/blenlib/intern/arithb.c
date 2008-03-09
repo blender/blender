@@ -2868,6 +2868,22 @@ float VecAngle3(float *v1, float *v2, float *v3)
 	return NormalizedVecAngle2(vec1, vec2) * 180.0/M_PI;
 }
 
+float VecAngle3_2D(float *v1, float *v2, float *v3)
+{
+	float vec1[2], vec2[2];
+
+	vec1[0] = v2[0]-v1[0];
+	vec1[1] = v2[1]-v1[1];
+	
+	vec2[0] = v2[0]-v3[0];
+	vec2[1] = v2[1]-v3[1];
+	
+	Normalize2(vec1);
+	Normalize2(vec2);
+
+	return NormalizedVecAngle2_2D(vec1, vec2) * 180.0/M_PI;
+}
+
 /* Return the shortest angle in degrees between the 2 vectors */
 float VecAngle2(float *v1, float *v2)
 {
@@ -2895,6 +2911,21 @@ float NormalizedVecAngle2(float *v1, float *v2)
 	}
 	else
 		return 2.0f*saasin(VecLenf(v2, v1)/2.0);
+}
+
+float NormalizedVecAngle2_2D(float *v1, float *v2)
+{
+	/* this is the same as acos(Inpf(v1, v2)), but more accurate */
+	if (Inp2f(v1, v2) < 0.0f) {
+		float vec[2];
+		
+		vec[0]= -v2[0];
+		vec[1]= -v2[1];
+
+		return (float)M_PI - 2.0f*saasin(Vec2Lenf(vec, v1)/2.0f);
+	}
+	else
+		return 2.0f*saasin(Vec2Lenf(v2, v1)/2.0);
 }
 
 void euler_rot(float *beul, float ang, char axis)

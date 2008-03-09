@@ -267,6 +267,9 @@ float VecAngle2(float *v1, float *v2);
 float VecAngle3(float *v1, float *v2, float *v3);
 float NormalizedVecAngle2(float *v1, float *v2);
 
+float VecAngle3_2D(float *v1, float *v2, float *v3);
+float NormalizedVecAngle2_2D(float *v1, float *v2);
+
 void euler_rot(float *beul, float ang, char axis);
 	
 

@@ -239,8 +239,9 @@ typedef struct SpaceImage {
 	short pin, pad2;
 	float zoom;
 	char dt_uv; /* UV draw type */
-	char sticky; /* sticky selection type */ 
-	char pad[6]; 
+	char sticky; /* sticky selection type */
+	char dt_uvstretch;
+	char pad[5];
 	
 	float xof, yof;					/* user defined offset, image is centered */
 	float centx, centy;				/* storage for offset while render drawing */
@@ -487,6 +488,10 @@ typedef struct SpaceImaSel {
 #define SI_UVDT_WHITE	2
 #define SI_UVDT_OUTLINE	3
 
+/* SpaceImage->dt_uvstretch */
+#define SI_UVDT_STRETCH_ANGLE	0
+#define SI_UVDT_STRETCH_AREA	1
+
 /* SpaceImage->sticky
  * Note DISABLE should be 0, however would also need to re-arrange icon order,
  * also, sticky loc is the default mode so this means we dont need to 'do_versons' */
@@ -518,7 +523,8 @@ typedef struct SpaceImaSel {
 		/* this means that the image is drawn until it reaches the view edge,
 		 * in the image view, its unrelated to the 'tile' mode for texface */
 #define SI_DRAW_TILE	1<<19 
-#define SI_SMOOTH_UV	1<<20 
+#define SI_SMOOTH_UV	1<<20
+#define SI_DRAW_STRETCH	1<<21
 
 /* SpaceText flags (moved from DNA_text_types.h) */
 

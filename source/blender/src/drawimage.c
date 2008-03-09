@@ -502,6 +502,14 @@ void tface_center(MTFace *tf, float cent[2], void * isquad)
 	}
 }
 
+float tface_area(MTFace *tf, int quad)
+{
+	if (quad) {
+		return AreaF2Dfl(tf->uv[0], tf->uv[1], tf->uv[2]) + AreaF2Dfl(tf->uv[0], tf->uv[2], tf->uv[3]); 
+	} else { 
+		return AreaF2Dfl(tf->uv[0], tf->uv[1], tf->uv[2]); 
+	}
+}
 /* draws uv's in the image space */
 void draw_uvs_sima(void)
 {
@@ -570,8 +578,146 @@ void draw_uvs_sima(void)
 	
 	activetface = get_active_mtface(&efa_act, NULL, 0); /* will be set to NULL if hidden */
 		
-	/* draw transparent faces */
-	if(G.f & G_DRAWFACES) {
+	
+	if (G.sima->flag & SI_DRAW_STRETCH) {
+		switch (G.sima->dt_uvstretch) {
+			case SI_UVDT_STRETCH_AREA:
+			{
+				float totarea, totuvarea, areadiff, uvarea, area, col[3];
+				int uvarea_error = 0;
+				for (efa= em->faces.first; efa; efa= efa->next) {
+					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					
+					totarea += EM_face_area(efa);
+					totuvarea += tface_area(tface, efa->v4!=0);
+					
+					if (simaFaceDraw_Check(efa, tface)) {
+						efa->tmp.p = tface;
+					} else {
+						if (tface == activetface)
+							activetface= NULL;
+						efa->tmp.p = NULL;
+					}
+				}
+				
+				if (totarea==0.0 || totarea==0.0) {
+					col[0] - 1.0;
+					col[1] = col[2] = 0.0;
+					glColor3fv(col);
+					for (efa= em->faces.first; efa; efa= efa->next) {
+						glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+							glVertex2fv(tface->uv[0]);
+							glVertex2fv(tface->uv[1]);
+							glVertex2fv(tface->uv[2]);
+							if(efa->v4) glVertex2fv(tface->uv[3]);
+						glEnd();
+					}
+				}
+				
+				for (efa= em->faces.first; efa; efa= efa->next) {
+					if ((tface=(MTFace *)efa->tmp.p)) {
+						area = EM_face_area(efa) / totarea;
+						uvarea = tface_area(tface, efa->v4!=0) / totuvarea;
+						if (area==0.0 || uvarea==0.0) {
+							areadiff = 1.0;
+						} else if (area>uvarea) {
+							areadiff = 1.0-(uvarea/area);
+						} else {
+							areadiff = 1.0-(area/uvarea);
+						}
+						
+						weight_to_rgb(areadiff, col, col+1, col+2);
+						glColor3fv(col);
+						
+						glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+							glVertex2fv(tface->uv[0]);
+							glVertex2fv(tface->uv[1]);
+							glVertex2fv(tface->uv[2]);
+							if(efa->v4) glVertex2fv(tface->uv[3]);
+						glEnd();
+					}
+				}
+				break;
+			}
+			case SI_UVDT_STRETCH_ANGLE:
+			{
+				float uvang1,uvang2,uvang3,uvang4;
+				float ang1,ang2,ang3,ang4;
+				float col[3];
+				
+				glShadeModel(GL_SMOOTH);
+				glEnable(GL_BLEND);
+				
+				for (efa= em->faces.first; efa; efa= efa->next) {
+					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					
+					if (simaFaceDraw_Check(efa, tface)) {
+						efa->tmp.p = tface;
+					
+						if (efa->v4) {
+							uvang1 = VecAngle3_2D(tface->uv[3], tface->uv[0], tface->uv[1]);
+							ang1 = VecAngle3(efa->v4->co, efa->v1->co, efa->v2->co);
+							
+							uvang2 = VecAngle3_2D(tface->uv[0], tface->uv[1], tface->uv[2]);
+							ang2 = VecAngle3(efa->v1->co, efa->v2->co, efa->v3->co);
+							
+							uvang3 = VecAngle3_2D(tface->uv[1], tface->uv[2], tface->uv[3]);
+							ang3 = VecAngle3(efa->v2->co, efa->v3->co, efa->v4->co);
+							
+							uvang4 = VecAngle3_2D(tface->uv[2], tface->uv[3], tface->uv[0]);
+							ang4 = VecAngle3(efa->v3->co, efa->v4->co, efa->v1->co);
+							
+							glBegin(GL_QUADS);
+							
+							weight_to_rgb(fabs(uvang1-ang1)/180.0, col, col+1, col+2);
+							glColor3fv(col);
+							glVertex2fv(tface->uv[0]);
+							weight_to_rgb(fabs(uvang2-ang2)/180.0, col, col+1, col+2);
+							glColor3fv(col);
+							glVertex2fv(tface->uv[1]);
+							weight_to_rgb(fabs(uvang3-ang3)/180.0, col, col+1, col+2);
+							glColor3fv(col);
+							glVertex2fv(tface->uv[2]);
+							weight_to_rgb(fabs(uvang4-ang4)/180.0, col, col+1, col+2);
+							glColor3fv(col);
+							glVertex2fv(tface->uv[3]);
+							
+							
+						} else {
+							uvang1 = VecAngle3_2D(tface->uv[2], tface->uv[0], tface->uv[1]);
+							ang1 = VecAngle3(efa->v3->co, efa->v1->co, efa->v2->co);
+							
+							uvang2 = VecAngle3_2D(tface->uv[0], tface->uv[1], tface->uv[2]);
+							ang2 = VecAngle3(efa->v1->co, efa->v2->co, efa->v3->co);
+							
+							uvang3 = 180-(uvang1+uvang2);
+							ang3 = 180-(ang1+ang2);
+							
+							glBegin(GL_TRIANGLES);
+							weight_to_rgb(fabs(uvang1-ang1)/180.0, col, col+1, col+2);
+							glColor3fv(col);
+							glVertex2fv(tface->uv[0]);
+							weight_to_rgb(fabs(uvang2-ang2)/180.0, col, col+1, col+2);
+							glColor3fv(col);
+							glVertex2fv(tface->uv[1]);
+							weight_to_rgb(fabs(uvang3-ang3)/180.0, col, col+1, col+2);
+							glColor3fv(col);
+							glVertex2fv(tface->uv[2]);
+						}
+						glEnd();
+					} else {
+						if (tface == activetface)
+							activetface= NULL;
+						efa->tmp.p = NULL;
+					}
+				}
+				glDisable(GL_SMOOTH);
+				glDisable(GL_BLEND);
+				break;
+			}
+		}
+	} else if(G.f & G_DRAWFACES) {
+		/* draw transparent faces */
 		BIF_GetThemeColor4ubv(TH_FACE, col1);
 		BIF_GetThemeColor4ubv(TH_FACE_SELECT, col2);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -583,10 +729,11 @@ void draw_uvs_sima(void)
 			if (simaFaceDraw_Check(efa, tface)) {
 				efa->tmp.p = tface;
 				if (tface==activetface) continue; /* important the temp pointer is set above */
-				if( simaFaceSel_Check(efa, tface) )
+				if( simaFaceSel_Check(efa, tface)) {
 					glColor4ubv((GLubyte *)col2);
-				else
+				} else {
 					glColor4ubv((GLubyte *)col1);
+				}
 					
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 					glVertex2fv(tface->uv[0]);
@@ -1266,14 +1413,22 @@ static void image_panel_view_properties(short cntrl)	// IMAGE_HANDLER_VIEW_PROPE
 	
 	
 	if (EM_texFaceCheck()) {
-		uiDefBut(block, LABEL, B_NOP, "Draw Type:",		10, 20,120,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, B_NOP, "Draw Type:",		10, 60,120,19, 0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
-		uiDefButC(block,  ROW, B_REDR, "Dash",			10, 0,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_DASH, 0, 0, "Dashed Wire UV drawtype");
-		uiDefButC(block,  ROW, B_REDR, "Black",			68, 0,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_BLACK, 0, 0, "Black Wire UV drawtype");
-		uiDefButC(block,  ROW, B_REDR, "White",			126,0,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_WHITE, 0, 0, "White Wire UV drawtype");
-		uiDefButC(block,  ROW, B_REDR, "Outline",		184,0,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_OUTLINE, 0, 0, "Outline Wire UV drawtype");
+		uiDefButC(block,  ROW, B_REDR, "Dash",			10, 40,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_DASH, 0, 0, "Dashed Wire UV drawtype");
+		uiDefButC(block,  ROW, B_REDR, "Black",			68, 40,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_BLACK, 0, 0, "Black Wire UV drawtype");
+		uiDefButC(block,  ROW, B_REDR, "White",			126,40,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_WHITE, 0, 0, "White Wire UV drawtype");
+		uiDefButC(block,  ROW, B_REDR, "Outline",		184,40,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_OUTLINE, 0, 0, "Outline Wire UV drawtype");
+		uiBlockEndAlign(block);
+		uiDefButBitI(block, TOG, SI_SMOOTH_UV, B_REDR, "Smooth",	250,40,60,19,  &G.sima->flag, 0, 0, 0, 0, "Display smooth lines in the UV view");
+		
+		uiDefButBitI(block, TOG, SI_DRAW_STRETCH, B_REDR, "UV Stretch",	10,0,100,19,  &G.sima->flag, 0, 0, 0, 0, "Display distortion between the UV's and the 3D coords");
+		
 		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, SI_SMOOTH_UV, B_REDR, "Smooth",	250,0,60,19,  &G.sima->flag, 0, 0, 0, 0, "Display smooth lines in the UV view");
+		uiDefButC(block,  ROW, B_REDR, "Area",			126,0,58,19, &G.sima->dt_uvstretch, 0.0, SI_UVDT_STRETCH_AREA, 0, 0, "Draw the area distortion");
+		uiDefButC(block,  ROW, B_REDR, "Angle",		184,0,58,19, &G.sima->dt_uvstretch, 0.0, SI_UVDT_STRETCH_ANGLE, 0, 0, "Draw the angle distortion");
+		uiBlockEndAlign(block);
+		
 	}
 	image_editcursor_buts(block);
 }
