@@ -75,6 +75,7 @@
 #include "NG_NetworkScene.h"
 #include "PHY_IPhysicsEnvironment.h"
 #include "KX_IPhysicsController.h"
+#include "KX_BlenderSceneConverter.h"
 
 #include "BL_SkinDeformer.h"
 #include "BL_DeformableGameObject.h"
@@ -120,7 +121,8 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_adi(adi),
 	m_networkDeviceInterface(ndi),
 	m_active_camera(NULL),
-	m_ueberExecutionPriority(0)
+	m_ueberExecutionPriority(0),
+	m_sceneConverter(NULL)
 {
 	m_suspendedtime = 0.0;
 	m_suspendeddelta = 0.0;
@@ -783,6 +785,8 @@ void KX_Scene::NewRemoveObject(class CValue* gameobj)
 		//m_active_camera->Release();
 		m_active_camera = NULL;
 	}
+	if (m_sceneConverter)
+		m_sceneConverter->UnregisterGameObject(newobj);
 }
 
 
@@ -1275,6 +1279,11 @@ void	KX_Scene::SetGravity(const MT_Vector3& gravity)
 void KX_Scene::SetNodeTree(SG_Tree* root)
 {
 	m_objecttree = root;
+}
+
+void KX_Scene::SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter)
+{
+	m_sceneConverter = sceneConverter;
 }
 
 void KX_Scene::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment* physEnv)

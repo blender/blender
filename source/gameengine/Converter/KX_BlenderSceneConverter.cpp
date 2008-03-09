@@ -123,29 +123,29 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 		delete (ipoList);
 	}
 
-	vector<KX_WorldInfo*>::iterator itw = m_worldinfos.begin();
+	vector<pair<KX_Scene*,KX_WorldInfo*> >::iterator itw = m_worldinfos.begin();
 	while (itw != m_worldinfos.end()) {
-		delete (*itw);
+		delete (*itw).second;
 		itw++;
 	}
 
-	vector<RAS_IPolyMaterial*>::iterator itp = m_polymaterials.begin();
+	vector<pair<KX_Scene*,RAS_IPolyMaterial*> >::iterator itp = m_polymaterials.begin();
 	while (itp != m_polymaterials.end()) {
-		delete (*itp);
+		delete (*itp).second;
 		itp++;
 	}
 
 	// delete after RAS_IPolyMaterial
-	vector<BL_Material *>::iterator itmat = m_materials.begin();
+	vector<pair<KX_Scene*,BL_Material *> >::iterator itmat = m_materials.begin();
 	while (itmat != m_materials.end()) {
-		delete (*itmat);
+		delete (*itmat).second;
 		itmat++;
 	}	
 
 
-	vector<RAS_MeshObject*>::iterator itm = m_meshobjects.begin();
+	vector<pair<KX_Scene*,RAS_MeshObject*> >::iterator itm = m_meshobjects.begin();
 	while (itm != m_meshobjects.end()) {
-		delete (*itm);
+		delete (*itm).second;
 		itm++;
 	}
 	
@@ -263,6 +263,9 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 	Scene *blenderscene = GetSceneForName2(m_maggie, scenename);
 
 	e_PhysicsEngine physics_engine = UseBullet;
+	// hook for registration function during conversion.
+	m_currentScene = destinationscene;
+	destinationscene->SetSceneConverter(this);
 
 	if (blenderscene)
 	{
@@ -360,16 +363,90 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 		m_alwaysUseExpandFraming
 		);
 
+	//These lookup are not needed during game
 	m_map_blender_to_gameactuator.clear();
 	m_map_blender_to_gamecontroller.clear();
-	
 	m_map_blender_to_gameobject.clear();
-	m_map_mesh_to_gamemesh.clear();
 
-	//don't clear it yet, it is needed for the baking physics into ipo animation
+	//Clearing this lookup table has the effect of disabling the cache of meshes
+	//between scenes, even if they are shared in the blend file.
+	//This cache mecanism is buggy so I leave it disable and the memory leak
+	//that would result from this is fixed in RemoveScene()
+	m_map_mesh_to_gamemesh.clear();
+	//Don't clear this lookup, it is needed for the baking physics into ipo animation
+	//To avoid it's infinite grows, object will be unregister when they are deleted 
+	//see KX_Scene::NewRemoveObject
 	//m_map_gameobject_to_blender.clear();
 }
 
+// This function removes all entities stored in the converter for that scene
+// It should be used instead of direct delete scene
+// Note that there was some provision for sharing entities (meshes...) between
+// scenes but that is now disabled so all scene will have their own copy
+// and we can delete them here. If the sharing is reactivated, change this code too..
+// (see KX_BlenderSceneConverter::ConvertScene)
+void KX_BlenderSceneConverter::RemoveScene(KX_Scene *scene)
+{
+	int i, size;
+	// delete the scene first as it will stop the use of entities
+	delete scene;
+	// delete the entities of this scene
+	vector<pair<KX_Scene*,KX_WorldInfo*> >::iterator worldit;
+	size = m_worldinfos.size();
+	for (i=0, worldit=m_worldinfos.begin(); i<size; ) {
+		if ((*worldit).first == scene) {
+			delete (*worldit).second;
+			*worldit = m_worldinfos.back();
+			m_worldinfos.pop_back();
+			size--;
+		} else {
+			i++;
+			worldit++;
+		}
+	}
+
+	vector<pair<KX_Scene*,RAS_IPolyMaterial*> >::iterator polymit;
+	size = m_polymaterials.size();
+	for (i=0, polymit=m_polymaterials.begin(); i<size; ) {
+		if ((*polymit).first == scene) {
+			delete (*polymit).second;
+			*polymit = m_polymaterials.back();
+			m_polymaterials.pop_back();
+			size--;
+		} else {
+			i++;
+			polymit++;
+		}
+	}
+
+	vector<pair<KX_Scene*,BL_Material*> >::iterator matit;
+	size = m_materials.size();
+	for (i=0, matit=m_materials.begin(); i<size; ) {
+		if ((*matit).first == scene) {
+			delete (*matit).second;
+			*matit = m_materials.back();
+			m_materials.pop_back();
+			size--;
+		} else {
+			i++;
+			matit++;
+		}
+	}
+
+	vector<pair<KX_Scene*,RAS_MeshObject*> >::iterator meshit;
+	size = m_meshobjects.size();
+	for (i=0, meshit=m_meshobjects.begin(); i<size; ) {
+		if ((*meshit).first == scene) {
+			delete (*meshit).second;
+			*meshit = m_meshobjects.back();
+			m_meshobjects.pop_back();
+			size--;
+		} else {
+			i++;
+			meshit++;
+		}
+	}
+}
 
 // use blender materials
 void KX_BlenderSceneConverter::SetMaterials(bool val)
@@ -385,7 +462,7 @@ bool KX_BlenderSceneConverter::GetMaterials()
 
 void KX_BlenderSceneConverter::RegisterBlenderMaterial(BL_Material *mat)
 {
-	m_materials.push_back(mat);
+	m_materials.push_back(pair<KX_Scene*,BL_Material *>(m_currentScene,mat));
 }
 
 
@@ -406,6 +483,11 @@ void KX_BlenderSceneConverter::RegisterGameObject(
 	m_map_blender_to_gameobject.insert(CHashedPtr(for_blenderobject),gameobject);
 }
 
+void KX_BlenderSceneConverter::UnregisterGameObject(
+									KX_GameObject *gameobject) 
+{
+	m_map_gameobject_to_blender.remove(CHashedPtr(gameobject));
+}
 
 
 KX_GameObject *KX_BlenderSceneConverter::FindGameObject(
@@ -433,7 +515,7 @@ void KX_BlenderSceneConverter::RegisterGameMesh(
 									struct Mesh *for_blendermesh)
 {
 	m_map_mesh_to_gamemesh.insert(CHashedPtr(for_blendermesh),gamemesh);
-	m_meshobjects.push_back(gamemesh);
+	m_meshobjects.push_back(pair<KX_Scene*,RAS_MeshObject*>(m_currentScene,gamemesh));
 }
 
 
@@ -458,7 +540,7 @@ RAS_MeshObject *KX_BlenderSceneConverter::FindGameMesh(
 
 void KX_BlenderSceneConverter::RegisterPolyMaterial(RAS_IPolyMaterial *polymat)
 {
-	m_polymaterials.push_back(polymat);
+	m_polymaterials.push_back(pair<KX_Scene*,RAS_IPolyMaterial*>(m_currentScene,polymat));
 }
 
 
@@ -523,7 +605,7 @@ SCA_IController *KX_BlenderSceneConverter::FindGameController(
 void KX_BlenderSceneConverter::RegisterWorldInfo(
 									KX_WorldInfo *worldinfo)
 {
-	m_worldinfos.push_back(worldinfo);
+	m_worldinfos.push_back(pair<KX_Scene*,KX_WorldInfo*>(m_currentScene,worldinfo));
 }
 
 /*

@@ -993,7 +993,7 @@ void KX_KetsjiEngine::StopEngine()
 		for (sceneit = m_scenes.begin();sceneit != m_scenes.end() ; sceneit++)
 		{
 			KX_Scene* scene = *sceneit;
-			delete scene;
+			m_sceneconverter->RemoveScene(scene);
 		}	
 		m_scenes.clear();
 
@@ -1217,7 +1217,7 @@ void KX_KetsjiEngine::RemoveScheduledScenes()
 				KX_Scene* scene = *sceneit;
 				if (scene->GetName()==scenename)
 				{
-					delete scene;
+					m_sceneconverter->RemoveScene(scene);
 					m_scenes.erase(sceneit);
 					break;
 				}
@@ -1315,7 +1315,7 @@ void KX_KetsjiEngine::ReplaceScheduledScenes()
 				KX_Scene* scene = *sceneit;
 				if (scene->GetName() == oldscenename)
 				{
-					delete scene;
+					m_sceneconverter->RemoveScene(scene);
 					KX_Scene* tmpscene = CreateScene(newscenename);
 					m_scenes[i]=tmpscene;
 					PostProcessScene(tmpscene);

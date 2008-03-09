@@ -86,6 +86,7 @@ class RAS_IRasterizer;
 class RAS_IRenderTools;
 class SCA_JoystickManager;
 class btCollisionShape;
+class KX_BlenderSceneConverter;
 /**
  * The KX_Scene holds all data for an independent scene. It relates
  * KX_Objects to the specific objects in the modules.
@@ -136,10 +137,12 @@ protected:
 	SCA_MouseManager*		m_mousemgr;
 	SCA_TimeEventManager*	m_timemgr;
 
+	// Scene converter where many scene entities are registered
+	// Used to deregister objects that are deleted
+	class KX_BlenderSceneConverter*		m_sceneConverter;
 	/**
 	* physics engine abstraction
 	*/
-
 	//e_PhysicsEngine m_physicsEngine; //who needs this ?
 	class PHY_IPhysicsEnvironment*		m_physicsEnvironment;
 
@@ -517,6 +520,8 @@ public:
 	bool IsClearingZBuffer();
 	void EnableZBufferClearing(bool isclearingZbuffer);
 	
+	void SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter);
+
 	class PHY_IPhysicsEnvironment*		GetPhysicsEnvironment()
 	{
 		return m_physicsEnvironment;

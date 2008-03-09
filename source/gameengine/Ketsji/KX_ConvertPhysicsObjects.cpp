@@ -682,8 +682,6 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 #endif //WIN32
 
 
-static GEN_Map<GEN_HashedPtr,btCollisionShape*>	map_gamemesh_to_bulletshape;
-
 // forward declarations
 static btCollisionShape* CreateBulletShapeFromMesh(RAS_MeshObject* meshobj, bool polytope)
 {
@@ -700,14 +698,6 @@ static btCollisionShape* CreateBulletShapeFromMesh(RAS_MeshObject* meshobj, bool
 
 	int numPoints = 0;
 	btVector3* points = 0;
-
-	btCollisionShape** shapeptr = map_gamemesh_to_bulletshape[GEN_HashedPtr(meshobj)];
-
-	// Mesh has already been converted: reuse
-	if (shapeptr)
-	{
-		//return *shapeptr;
-	}
 
 	// Mesh has no polygons!
 	int numpolys = meshobj->NumPolygons();
@@ -850,7 +840,6 @@ static btCollisionShape* CreateBulletShapeFromMesh(RAS_MeshObject* meshobj, bool
 	if (numvalidpolys > 0)
 	{
 		
-		//map_gamemesh_to_bulletshape.insert(GEN_HashedPtr(meshobj),collisionMeshShape);
 		if (!polytope)
 		{
 			bool useQuantization = true;
@@ -1200,17 +1189,6 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 void	KX_ClearBulletSharedShapes()
 {
-	int numshapes = map_gamemesh_to_bulletshape.size();
-	int i;
-	btCollisionShape*shape=0;
-	for (i=0;i<numshapes ;i++)
-	{
-		shape = *map_gamemesh_to_bulletshape.at(i);
-		//delete shape;
-	}
-	
-	map_gamemesh_to_bulletshape.clear();
-	
 }
 
 #endif

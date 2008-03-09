@@ -55,6 +55,8 @@ public:
 		class RAS_IRenderTools* rendertools, 
 		class RAS_ICanvas*  canvas)=0;
 	
+	virtual void RemoveScene(class KX_Scene *scene)=0;
+
 	virtual void	SetAlwaysUseExpandFraming(bool to_what) = 0;
 
 	virtual void	SetNewFileName(const STR_String& filename) = 0;
