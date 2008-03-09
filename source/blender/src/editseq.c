@@ -3315,6 +3315,24 @@ void transform_seq(int mode, int context)
 				case RETKEY:
 					afbreek= 1;
 					break;
+				case XKEY:
+					if(!(midtog && (proj == 0))) {
+						midtog= ~midtog;
+					}
+					if(midtog) {
+						proj= 1;
+						firsttime= 1;
+					}
+					break;
+				case YKEY:
+					if(!(midtog && (proj == 1))) {
+						midtog= ~midtog;
+					}
+					if(midtog) {
+						proj= 0;
+						firsttime= 1;
+					}
+					break;
 				case MIDDLEMOUSE:
 					midtog= ~midtog;
 					if(midtog) {
