@@ -678,20 +678,26 @@ void draw_uvs_sima(void)
 							VECSUB2D(av2, tface->uv[0], tface->uv[1]); Normalize2(av2);
 							VECSUB2D(av3, tface->uv[1], tface->uv[2]); Normalize2(av3);
 							VECSUB2D(av4, tface->uv[2], tface->uv[3]); Normalize2(av4);
-							uvang1 = 90-((NormalizedVecAngle2_2D(av1, av2) * 180.0/M_PI)-90);
-							uvang2 = 90-((NormalizedVecAngle2_2D(av2, av3) * 180.0/M_PI)-90);
-							uvang3 = 90-((NormalizedVecAngle2_2D(av3, av4) * 180.0/M_PI)-90);
-							uvang4 = 90-((NormalizedVecAngle2_2D(av4, av1) * 180.0/M_PI)-90);
+							
+							/* This is the correct angle however we are only comparing angles
+							 * uvang1 = 90-((NormalizedVecAngle2_2D(av1, av2) * 180.0/M_PI)-90);*/
+							uvang1 = NormalizedVecAngle2_2D(av1, av2)*180.0/M_PI;
+							uvang2 = NormalizedVecAngle2_2D(av2, av3)*180.0/M_PI;
+							uvang3 = NormalizedVecAngle2_2D(av3, av4)*180.0/M_PI;
+							uvang4 = NormalizedVecAngle2_2D(av4, av1)*180.0/M_PI;
 							
 							/* 3d angles */
 							VECSUB(av1, efa->v4->co, efa->v1->co); Normalize(av1);
 							VECSUB(av2, efa->v1->co, efa->v2->co); Normalize(av2);
 							VECSUB(av3, efa->v2->co, efa->v3->co); Normalize(av3);
 							VECSUB(av4, efa->v3->co, efa->v4->co); Normalize(av4);
-							ang1 = 90-((NormalizedVecAngle2(av1, av2) * 180.0/M_PI)-90);
-							ang2 = 90-((NormalizedVecAngle2(av2, av3) * 180.0/M_PI)-90);
-							ang3 = 90-((NormalizedVecAngle2(av3, av4) * 180.0/M_PI)-90);
-							ang4 = 90-((NormalizedVecAngle2(av4, av1) * 180.0/M_PI)-90);
+							
+							/* This is the correct angle however we are only comparing angles
+							 * ang1 = 90-((NormalizedVecAngle2(av1, av2) * 180.0/M_PI)-90);*/
+							ang1 = NormalizedVecAngle2(av1, av2)*180.0/M_PI;
+							ang2 = NormalizedVecAngle2(av2, av3)*180.0/M_PI;
+							ang3 = NormalizedVecAngle2(av3, av4)*180.0/M_PI;
+							ang4 = NormalizedVecAngle2(av4, av1)*180.0/M_PI;
 							
 							glBegin(GL_QUADS);
 							
@@ -707,7 +713,6 @@ void draw_uvs_sima(void)
 							weight_to_rgb(fabs(uvang4-ang4)/180.0, col, col+1, col+2);
 							glColor3fv(col);
 							glVertex2fv(tface->uv[3]);
-							printf("%f %f %f %f | %f %f %f %f\n", uvang1,uvang2,uvang3,uvang4,  ang1,ang2,ang3,ang4);
 							
 						} else {
 #if 0						/* Simple but slow, better reuse normalized vectors */
@@ -725,17 +730,22 @@ void draw_uvs_sima(void)
 							VECSUB2D(av1, tface->uv[2], tface->uv[0]); Normalize2(av1);
 							VECSUB2D(av2, tface->uv[0], tface->uv[1]); Normalize2(av2);
 							VECSUB2D(av3, tface->uv[1], tface->uv[2]); Normalize2(av3);
-							uvang1 = 90-((NormalizedVecAngle2_2D(av1, av2) * 180.0/M_PI)-90);
-							uvang2 = 90-((NormalizedVecAngle2_2D(av2, av3) * 180.0/M_PI)-90);
-							uvang3 = 90-((NormalizedVecAngle2_2D(av3, av1) * 180.0/M_PI)-90);
+							
+							/* This is the correct angle however we are only comparing angles
+							 * uvang1 = 90-((NormalizedVecAngle2_2D(av1, av2) * 180.0/M_PI)-90); */
+							uvang1 = NormalizedVecAngle2_2D(av1, av2)*180.0/M_PI;
+							uvang2 = NormalizedVecAngle2_2D(av2, av3)*180.0/M_PI;
+							uvang3 = NormalizedVecAngle2_2D(av3, av1)*180.0/M_PI;
 							
 							/* 3d angles */
 							VECSUB(av1, efa->v3->co, efa->v1->co); Normalize(av1);
 							VECSUB(av2, efa->v1->co, efa->v2->co); Normalize(av2);
 							VECSUB(av3, efa->v2->co, efa->v3->co); Normalize(av3);
-							ang1 = 90-((NormalizedVecAngle2(av1, av2) * 180.0/M_PI)-90);
-							ang2 = 90-((NormalizedVecAngle2(av2, av3) * 180.0/M_PI)-90);
-							ang3 = 90-((NormalizedVecAngle2(av3, av1) * 180.0/M_PI)-90);
+							/* This is the correct angle however we are only comparing angles
+							 * ang1 = 90-((NormalizedVecAngle2(av1, av2) * 180.0/M_PI)-90); */
+							ang1 = NormalizedVecAngle2(av1, av2)*180.0/M_PI;
+							ang2 = NormalizedVecAngle2(av2, av3)*180.0/M_PI;
+							ang3 = NormalizedVecAngle2(av3, av1)*180.0/M_PI;
 							
 							
 							glBegin(GL_TRIANGLES);
