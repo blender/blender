@@ -581,11 +581,13 @@ void draw_uvs_sima(void)
 		
 	
 	if (G.sima->flag & SI_DRAW_STRETCH) {
+		float col[3];
+		
 		switch (G.sima->dt_uvstretch) {
 			case SI_UVDT_STRETCH_AREA:
 			{
-				float totarea=0.0f, totuvarea=0.0f, areadiff, uvarea, area, col[3];
-
+				float totarea=0.0f, totuvarea=0.0f, areadiff, uvarea, area;
+				
 				for (efa= em->faces.first; efa; efa= efa->next) {
 					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 					
@@ -646,9 +648,10 @@ void draw_uvs_sima(void)
 			{
 				float uvang1,uvang2,uvang3,uvang4;
 				float ang1,ang2,ang3,ang4;
-				float col[3];
+				float av1[3], av2[3], av3[3], av4[3]; /* use for 2d and 3d  angle vectors */
+				float a;
 				
-				float av1[3], av2[3], av3[3], av4[3]; /* use for 2d and 3d  angle vectors */  
+				col[3] = 0.5; /* hard coded alpha, not that nice */
 				
 				glShadeModel(GL_SMOOTH);
 				
@@ -701,16 +704,23 @@ void draw_uvs_sima(void)
 							
 							glBegin(GL_QUADS);
 							
-							weight_to_rgb(fabs(uvang1-ang1)/180.0, col, col+1, col+2);
+							/* This simple makes the angles display worse then they really are ;)
+							 * 1.0-pow((1.0-a), 2) */
+							
+							a = fabs(uvang1-ang1)/180.0;
+							weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
 							glColor3fv(col);
 							glVertex2fv(tface->uv[0]);
-							weight_to_rgb(fabs(uvang2-ang2)/180.0, col, col+1, col+2);
+							a = fabs(uvang2-ang2)/180.0;
+							weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
 							glColor3fv(col);
 							glVertex2fv(tface->uv[1]);
-							weight_to_rgb(fabs(uvang3-ang3)/180.0, col, col+1, col+2);
+							a = fabs(uvang3-ang3)/180.0;
+							weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
 							glColor3fv(col);
 							glVertex2fv(tface->uv[2]);
-							weight_to_rgb(fabs(uvang4-ang4)/180.0, col, col+1, col+2);
+							a = fabs(uvang4-ang4)/180.0;
+							weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
 							glColor3fv(col);
 							glVertex2fv(tface->uv[3]);
 							
@@ -747,15 +757,20 @@ void draw_uvs_sima(void)
 							ang2 = NormalizedVecAngle2(av2, av3)*180.0/M_PI;
 							ang3 = NormalizedVecAngle2(av3, av1)*180.0/M_PI;
 							
+							/* This simple makes the angles display worse then they really are ;)
+							 * 1.0-pow((1.0-a), 2) */
 							
 							glBegin(GL_TRIANGLES);
-							weight_to_rgb(fabs(uvang1-ang1)/180.0, col, col+1, col+2);
+							a = fabs(uvang1-ang1)/180.0;
+							weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
 							glColor3fv(col);
 							glVertex2fv(tface->uv[0]);
-							weight_to_rgb(fabs(uvang2-ang2)/180.0, col, col+1, col+2);
+							a = fabs(uvang2-ang2)/180.0;
+							weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
 							glColor3fv(col);
 							glVertex2fv(tface->uv[1]);
-							weight_to_rgb(fabs(uvang3-ang3)/180.0, col, col+1, col+2);
+							a = fabs(uvang3-ang3)/180.0;
+							weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
 							glColor3fv(col);
 							glVertex2fv(tface->uv[2]);
 						}
@@ -802,6 +817,7 @@ void draw_uvs_sima(void)
 				efa->tmp.p = NULL;
 			}
 		}
+		glDisable(GL_BLEND);
 	} else {
 		/* would be nice to do this within a draw loop but most below are optional, so it would involve too many checks */
 		for (efa= em->faces.first; efa; efa= efa->next) {
@@ -814,7 +830,7 @@ void draw_uvs_sima(void)
 				efa->tmp.p = NULL;
 			}
 		}
-		glDisable(GL_BLEND);
+		
 	}
 	
 	if (activetface) {
