@@ -312,7 +312,7 @@ struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 	struct ImBuf *ibuf = NULL;
 	struct ImbTIFFMemFile memFile;
 	uint32 width, height;
-	int bytesperpixel;
+	int bytesperpixel, bitspersample;
 	int success;
 	unsigned int pixel_i, byte_i;
 	uint32 *raster = NULL;
@@ -324,7 +324,7 @@ struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 	memFile.size = size;
 
 	/* check whether or not we have a TIFF file */
-        if (size < IMB_TIFF_NCB) {
+	if (size < IMB_TIFF_NCB) {
 		fprintf(stderr, "imb_loadtiff: size < IMB_TIFF_NCB\n");
 		return NULL;
 	}
@@ -346,6 +346,7 @@ struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 	bytesperpixel = 4;  /* 1 byte per channel, 4 channels */
 	libtiff_TIFFGetField(image, TIFFTAG_IMAGEWIDTH,  &width);
 	libtiff_TIFFGetField(image, TIFFTAG_IMAGELENGTH, &height);
+	libtiff_TIFFGetField(image, TIFFTAG_BITSPERSAMPLE, &bitspersample);
 	ibuf = IMB_allocImBuf(width, height, 8*bytesperpixel, 0, 0);
 	if (ibuf) {
 		ibuf->ftype = TIF;
@@ -562,13 +563,15 @@ short imb_savetiff(struct ImBuf *ibuf, char *name, int flags)
 		fprintf(stderr,
 			"imb_savetiff: Could not write encoded TIFF.\n");
 		libtiff_TIFFClose(image);
-		libtiff__TIFFfree(pixels);
+		if(pixels) libtiff__TIFFfree(pixels);
+		if(pixels16) libtiff__TIFFfree(pixels16);
 		return (1);
 	}
 
 	/* close the TIFF file */
 	libtiff_TIFFClose(image);
-	libtiff__TIFFfree(pixels);
+	if(pixels) libtiff__TIFFfree(pixels);
+	if(pixels16) libtiff__TIFFfree(pixels16);
 	return (1);
 }
 
