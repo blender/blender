@@ -52,7 +52,7 @@ endif
 
 DIRS ?= extern intern source
 
-ifeq ($(INTERNATIONAL),true)
+ifneq ($(INTERNATIONAL),false)
     DIRS += po
 endif
 
