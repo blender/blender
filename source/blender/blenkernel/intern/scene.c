@@ -225,6 +225,10 @@ Scene *add_scene(char *name)
 	sce->r.simplify_shadowsamples= 16;
 	sce->r.simplify_aosss= 1.0f;
 
+	sce->r.cineonblack= 95;
+	sce->r.cineonwhite= 685;
+	sce->r.cineongamma= 1.7f;
+	
 	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");
 	sce->toolsettings->cornertype=1;
 	sce->toolsettings->degr = 90; 
@@ -267,7 +271,7 @@ Scene *add_scene(char *name)
 	sce->r.osa= 8;
 
 	sculptdata_init(sce);
-	
+
 	/* note; in header_info.c the scene copy happens..., if you add more to renderdata it has to be checked there */
 	scene_add_render_layer(sce);
 	

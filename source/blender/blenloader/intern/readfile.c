@@ -7095,6 +7095,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->r.simplify_shadowsamples= 16;
 				sce->r.simplify_aosss= 1.0f;
 			}
+
+			if(sce->r.cineongamma == 0) {
+				sce->r.cineonblack= 95;
+				sce->r.cineonwhite= 685;
+				sce->r.cineongamma= 1.7f;
+			}
 		}
 
 		for(ntree=main->nodetree.first; ntree; ntree= ntree->id.next)

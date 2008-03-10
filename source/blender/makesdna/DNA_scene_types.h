@@ -305,6 +305,10 @@ typedef struct RenderData {
 	int simplify_shadowsamples;
 	float simplify_particles;
 	float simplify_aosss;
+
+	/* cineon */
+	short cineonwhite, cineonblack;
+	float cineongamma;
 } RenderData;
 
 /* control render convert and shading engine */
@@ -670,6 +674,8 @@ typedef struct Scene {
 #define R_OPENEXR_HALF	1
 #define R_OPENEXR_ZBUF	2
 #define R_PREVIEW_JPG	4
+#define R_CINEON_LOG 	8
+#define R_TIFF_16BIT	16
 
 /* bake_mode: same as RE_BAKE_xxx defines */
 /* bake_flag: */

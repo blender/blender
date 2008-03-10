@@ -71,6 +71,9 @@ struct _Log_Image_File_t_
 	unsigned char lut10[1024];
 	unsigned short lut8[256];
 
+	unsigned short lut10_16[1024];
+	unsigned short lut16_16[65536];
+
 	/* pixel access functions */
 	GetRowFn* getRow;
 	SetRowFn* setRow;
@@ -82,6 +85,7 @@ struct _Log_Image_File_t_
 };
 
 void setupLut(LogImageFile*);
+void setupLut16(LogImageFile*);
 
 int pixelsToLongs(int numPixels);
 

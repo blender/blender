@@ -170,6 +170,7 @@ typedef enum {
 
 #define RADHDR			(1 << 24)
 #define TIF				(1 << 23)
+#define TIF_16BIT		(1 << 8 )
 
 #define OPENEXR			(1 << 22)
 #define OPENEXR_HALF	(1 << 8 )

@@ -1182,6 +1182,9 @@ int BKE_write_ibuf(ImBuf *ibuf, char *name, int imtype, int subimtype, int quali
 	}
 	else if ((G.have_libtiff) && (imtype==R_TIFF)) {
 		ibuf->ftype= TIF;
+
+		if(subimtype & R_TIFF_16BIT)
+			ibuf->ftype |= TIF_16BIT;
 	}
 #ifdef WITH_OPENEXR
 	else if (imtype==R_OPENEXR || imtype==R_MULTILAYER) {

@@ -2552,6 +2552,18 @@ static void render_panel_format(void)
 															892,yofs,74,20, &G.scene->r.quality, 0, 0, 0, 0, "Set codec settings for OpenEXR");
 		
 #endif
+	} else if (G.scene->r.imtype == R_DPX || G.scene->r.imtype == R_CINEON) {
+		uiDefButBitS(block, TOG, R_CINEON_LOG, B_REDR, "Log",           892,yofs,74,20, &G.scene->r.subimtype, 0, 0, 0, 0, "Convert to log color space");
+
+		if(G.scene->r.subimtype & R_CINEON_LOG) {
+			uiBlockBeginAlign(block);
+			uiDefButS(block, NUM, B_NOP, "B",	892,yofs+44,80,20, &G.scene->r.cineonblack, 0, 1024, 0, 0, "Log conversion reference black");
+			uiDefButS(block, NUM, B_NOP, "W",	972,yofs+44,80,20, &G.scene->r.cineonwhite, 0, 1024, 0, 0, "Log conversion reference white");
+			uiDefButF(block, NUM, B_NOP, "G",	1052,yofs+44,70,20, &G.scene->r.cineongamma, 0.0f, 10.0f, 1, 2, "Log conversion gamma");
+			uiBlockEndAlign(block);
+		}
+	} else if (G.scene->r.imtype == R_TIFF) {
+		uiDefButBitS(block, TOG, R_TIFF_16BIT, B_REDR, "16 Bit",           892,yofs,74,20, &G.scene->r.subimtype, 0, 0, 0, 0, "Save 16 bit per channel TIFF");
 	} else {
 		if(G.scene->r.quality < 5) G.scene->r.quality = 90;	/* restore from openexr */
 		

@@ -418,8 +418,6 @@ struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 	return (ibuf);
 }
 
-
-
 /**
  * Saves a TIFF file.
  *
@@ -435,14 +433,19 @@ struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
  *
  * @return: 1 if the function is successful, 0 on failure.
  */
+
+#define FTOUSHORT(f) ((f >= 1.0f-0.5f/65535)? 65535: (f <= 0.0f)? 0: (unsigned short)(f*65535.0f + 0.5f))
+
 short imb_savetiff(struct ImBuf *ibuf, char *name, int flags)
 {
 	TIFF *image = NULL;
-	uint16 samplesperpixel;
+	uint16 samplesperpixel, bitspersample;
 	size_t npixels;
 	unsigned char *pixels = NULL;
 	unsigned char *from = NULL, *to = NULL;
-	int x, y, from_i, to_i;
+	unsigned short *pixels16 = NULL, *to16 = NULL;
+	float *fromf = NULL;
+	int x, y, from_i, to_i, i;
 	int extraSampleTypes[1] = { EXTRASAMPLE_ASSOCALPHA };
 
 	/* check for a valid number of bytes per pixel.  Like the PNG writer,
@@ -455,6 +458,11 @@ short imb_savetiff(struct ImBuf *ibuf, char *name, int flags)
 			"pixel: %d\n", samplesperpixel);
 		return (0);
 	}
+
+	if((ibuf->ftype & TIF_16BIT) && ibuf->rect_float)
+		bitspersample = 16;
+	else
+		bitspersample = 8;
 
 	/* open TIFF file for writing */
 	if (flags & IB_mem) {
@@ -475,67 +483,67 @@ short imb_savetiff(struct ImBuf *ibuf, char *name, int flags)
 
 	/* allocate array for pixel data */
 	npixels = ibuf->x * ibuf->y;
-	pixels = (unsigned char*)libtiff__TIFFmalloc(npixels *
-		samplesperpixel * sizeof(unsigned char));
-	if (pixels == NULL) {
+	if(ibuf->ftype & TIF_16BIT)
+		pixels16 = (unsigned short*)libtiff__TIFFmalloc(npixels *
+			samplesperpixel * sizeof(unsigned short));
+	else
+		pixels = (unsigned char*)libtiff__TIFFmalloc(npixels *
+			samplesperpixel * sizeof(unsigned char));
+
+	if (pixels == NULL && pixels16 == NULL) {
 		fprintf(stderr,
 			"imb_savetiff: could not allocate pixels array.\n");
 		libtiff_TIFFClose(image);
 		return (0);
 	}
 
-	/* copy pixel data.  While copying, we flip the image
-	 * vertically. */
-	from = (unsigned char*)ibuf->rect;
-	to   = pixels;
+	/* setup pointers */
+	if(ibuf->ftype & TIF_16BIT) {
+		fromf = ibuf->rect_float;
+		to16   = pixels16;
+	}
+	else {
+		from = (unsigned char*)ibuf->rect;
+		to   = pixels;
+	}
+
+	/* setup samples per pixel */
+	libtiff_TIFFSetField(image, TIFFTAG_BITSPERSAMPLE, bitspersample);
 	libtiff_TIFFSetField(image, TIFFTAG_SAMPLESPERPIXEL, samplesperpixel);
-	switch (samplesperpixel) {
-		case 4:	/* RGBA images, 8 bits per channel */
-			libtiff_TIFFSetField(image, TIFFTAG_EXTRASAMPLES, 1,
-					extraSampleTypes);
-			libtiff_TIFFSetField(image, TIFFTAG_BITSPERSAMPLE, 8);
-			libtiff_TIFFSetField(image, TIFFTAG_PHOTOMETRIC, 
-					PHOTOMETRIC_RGB);
-			for (x = 0; x < ibuf->x; x++) {
-				for (y = 0; y < ibuf->y; y++) {
-					from_i = 4*(y*ibuf->x+x);
-					to_i   = 4*((ibuf->y-y-1)*ibuf->x+x);
 
-					to[to_i++] = from[from_i++];
-					to[to_i++] = from[from_i++];
-					to[to_i++] = from[from_i++];
-					to[to_i]   = from[from_i];
-				}
-			}
-			break;
-		case 3:	/* RGB images, 8 bits per channel */
-			libtiff_TIFFSetField(image, TIFFTAG_BITSPERSAMPLE, 8);
-			libtiff_TIFFSetField(image, TIFFTAG_PHOTOMETRIC,
-					PHOTOMETRIC_RGB);
-			for (x = 0; x < ibuf->x; x++) {
-				for (y = 0; y < ibuf->y; y++) {
-					from_i = 4*(y*ibuf->x+x);
-					to_i   = 3*((ibuf->y-y-1)*ibuf->x+x);
-					
-					to[to_i++] = from[from_i++];
-					to[to_i++] = from[from_i++];
-					to[to_i]   = from[from_i];
-				}
-			}
-			break;
-		case 1:	/* greyscale images, 1 channel with 8 bits */
-			libtiff_TIFFSetField(image, TIFFTAG_BITSPERSAMPLE, 8);
-			libtiff_TIFFSetField(image, TIFFTAG_PHOTOMETRIC,
-					PHOTOMETRIC_MINISBLACK);
-			for (x = 0; x < ibuf->x; x++) {
-				for (y = 0; y < ibuf->y; y++) {
-					from_i = 4*(y*ibuf->x+x);
-					to_i   = 1*((ibuf->y-y-1)*ibuf->x+x);
+	if(samplesperpixel == 4) {
+		/* RGBA images */
+		libtiff_TIFFSetField(image, TIFFTAG_EXTRASAMPLES, 1,
+				extraSampleTypes);
+		libtiff_TIFFSetField(image, TIFFTAG_PHOTOMETRIC, 
+				PHOTOMETRIC_RGB);
+	}
+	else if(samplesperpixel == 3) {
+		/* RGB images */
+		libtiff_TIFFSetField(image, TIFFTAG_PHOTOMETRIC,
+				PHOTOMETRIC_RGB);
+	}
+	else if(samplesperpixel == 1) {
+		/* greyscale images, 1 channel */
+		libtiff_TIFFSetField(image, TIFFTAG_PHOTOMETRIC,
+				PHOTOMETRIC_MINISBLACK);
+	}
 
+	/* copy pixel data.  While copying, we flip the image vertically. */
+	for (x = 0; x < ibuf->x; x++) {
+		for (y = 0; y < ibuf->y; y++) {
+			from_i = 4*(y*ibuf->x+x);
+			to_i   = samplesperpixel*((ibuf->y-y-1)*ibuf->x+x);
+
+			if(pixels16) {
+				for (i = 0; i < samplesperpixel; i++, to_i++, from_i++)
+					to16[to_i] = FTOUSHORT(fromf[from_i]);
+			}
+			else {
+				for (i = 0; i < samplesperpixel; i++, to_i++, from_i++)
 					to[to_i] = from[from_i];
-				}
 			}
-			break;
+		}
 	}
 
 	/* write the actual TIFF file */
@@ -548,8 +556,9 @@ short imb_savetiff(struct ImBuf *ibuf, char *name, int flags)
 	libtiff_TIFFSetField(image, TIFFTAG_XRESOLUTION,     150.0);
 	libtiff_TIFFSetField(image, TIFFTAG_YRESOLUTION,     150.0);
 	libtiff_TIFFSetField(image, TIFFTAG_RESOLUTIONUNIT,  RESUNIT_INCH);
-	if (libtiff_TIFFWriteEncodedStrip(image, 0, pixels, 
-			ibuf->x*ibuf->y*samplesperpixel) == -1) {
+	if (libtiff_TIFFWriteEncodedStrip(image, 0,
+			(bitspersample == 16)? (unsigned char*)pixels16: pixels,
+			ibuf->x*ibuf->y*samplesperpixel*bitspersample/8) == -1) {
 		fprintf(stderr,
 			"imb_savetiff: Could not write encoded TIFF.\n");
 		libtiff_TIFFClose(image);
