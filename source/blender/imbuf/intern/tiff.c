@@ -435,7 +435,7 @@ struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
  * @return: 1 if the function is successful, 0 on failure.
  */
 
-#define FTOUSHORT(f) ((f >= 1.0f-0.5f/65535)? 65535: (f <= 0.0f)? 0: (unsigned short)(f*65535.0f + 0.5f))
+#define FTOUSHORT(val) ((val >= 1.0f-0.5f/65535)? 65535: (val <= 0.0f)? 0: (unsigned short)(val*65535.0f + 0.5f))
 
 short imb_savetiff(struct ImBuf *ibuf, char *name, int flags)
 {
