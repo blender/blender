@@ -373,6 +373,9 @@ int BakeTime(TransInfo *t, short mval[2]);
 void initMirror(TransInfo *t);
 int Mirror(TransInfo *t, short mval[2]);
 
+void initAlign(TransInfo *t);
+int Align(TransInfo *t, short mval[2]);
+
 /*********************** transform_conversions.c ********** */
 struct ListBase;
 void flushTransIpoData(TransInfo *t);

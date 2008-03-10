@@ -62,6 +62,7 @@
 #define TFM_BAKE_TIME		23
 #define TFM_BEVEL			24
 #define TFM_BWEIGHT			25
+#define TFM_ALIGN			26
 
 /* TRANSFORM CONTEXTS */
 #define CTX_NONE			0

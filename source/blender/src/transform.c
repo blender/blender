@@ -943,6 +943,7 @@ void initTransform(int mode, int context) {
 	if(Trans.spacetype==SPACE_VIEW3D) {
 		calc_manipulator_stats(curarea);
 		Mat3CpyMat4(Trans.spacemtx, G.vd->twmat);
+		Mat3Ortho(Trans.spacemtx);
 	}
 	else
 		Mat3One(Trans.spacemtx);
@@ -1040,6 +1041,9 @@ void initTransform(int mode, int context) {
 		break;
 	case TFM_BWEIGHT:
 		initBevelWeight(&Trans);
+		break;
+	case TFM_ALIGN:
+		initAlign(&Trans);
 		break;
 	}
 }
@@ -4021,6 +4025,61 @@ int Mirror(TransInfo *t, short mval[2])
 		viewRedrawForce(t);
 	}
 
+	return 1;
+}
+
+/* ************************** ALIGN *************************** */
+
+void initAlign(TransInfo *t) 
+{
+	t->flag |= T_NO_CONSTRAINT;
+	
+	t->transform = Align;
+}
+
+int Align(TransInfo *t, short mval[2])
+{
+	TransData *td = t->data;
+	float center[3];
+	int i;
+
+	/* saving original center */
+	VECCOPY(center, t->center);
+
+	for(i = 0 ; i < t->total; i++, td++)
+	{
+		float mat[3][3], invmat[3][3];
+		
+		if (td->flag & TD_NOACTION)
+			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
+		
+		/* around local centers */
+		if (t->flag & (T_OBJECT|T_POSE)) {
+			VECCOPY(t->center, td->center);
+		}
+		else {
+			if(G.scene->selectmode & SCE_SELECT_FACE) {
+				VECCOPY(t->center, td->center);
+			}
+		}
+
+		Mat3Inv(invmat, td->axismtx);
+		
+		Mat3MulMat3(mat, t->spacemtx, invmat);	
+
+		ElementRotation(t, td, mat);
+	}
+
+	/* restoring original center */
+	VECCOPY(t->center, center);
+		
+	recalcData(t);
+
+	headerprint("Align");
+	
 	return 1;
 }
 

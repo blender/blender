@@ -1786,6 +1786,10 @@ static void do_view3d_transformmenu(void *arg, int event)
 	case 20:
 		G.scene->snap_target = SCE_SNAP_TARGET_ACTIVE;
 		break;
+	case 21:
+		initTransform(TFM_ALIGN, CTX_NO_PET|CTX_AUTOCONFIRM);
+		Transform();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1835,6 +1839,7 @@ static uiBlock *view3d_transformmenu(void *arg_unused)
 	if (!G.obedit) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center New",             0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center Cursor",          0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align to Transform Orientation", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 21, "");
 	}
 	
 	if (BIF_snappingSupported())
