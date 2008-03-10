@@ -394,7 +394,7 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 {
 	ID *id = NULL;
 	char *name=NULL, *filename=NULL, *data_type=NULL;
-	int img_width=256, img_height=256;
+	int img_width=256, img_height=256, img_depth=32;
 	float color[] = {0, 0, 0, 1};
 	short data_code = 0;
 	int user_count = 0;
@@ -456,8 +456,8 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 	
 	/* New Data */
 	if (self->type == ID_IM) {
-		/* Image, accepts width and height*/
-		if( !PyArg_ParseTuple( args, "|sii", &name, &img_width, &img_height ) )
+		/* Image, accepts width and height, depth */
+		if( !PyArg_ParseTuple( args, "|siii", &name, &img_width, &img_height, &img_depth ) )
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"one string and two ints expected as arguments" );
 		CLAMP(img_width,  4, 5000);
@@ -538,7 +538,7 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 		break;
 	case ID_IM: 
 	{
-		id = (ID *)BKE_add_image_size(img_width, img_height, name?name:"Image", 0, 0, color);
+		id = (ID *)BKE_add_image_size(img_width, img_height, name?name:"Image", img_depth==128 ? 1:0, 0, color);
 		if( !id )
 			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 				"couldn't create PyObject Image_Type" ) );
@@ -562,14 +562,14 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 		break;
 	case ID_VF:
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-			"Cannot create new fonts, use the load() function to load from a file" );
+			"Cannot create new fonts, use the new(name, filename) function to load from a file" );
 	case ID_TXT:
 		id = (ID *)add_empty_text( name?name:"Text" );
 		user_count = 1;
 		break;
 	case ID_SO:
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-			"Cannot create new sounds, use the load() function to load from a file" );
+			"Cannot create new sounds, use the new(name, filename) function to load from a file" );
 	case ID_GR:	
 		id = (ID *)add_group( name?name:"Group" );
 		user_count = 1;

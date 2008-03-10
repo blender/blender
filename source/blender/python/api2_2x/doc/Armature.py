@@ -192,6 +192,16 @@ class Armature:
 		@note: Must have called makeEditable() first.
 		@rtype: None
 		"""
+	def copy():
+		"""
+		Return a copy of this armature.
+		@rtype: Armature
+		"""
+	def __copy__():
+		"""
+		Return a copy of this armature.
+		@rtype: Armature
+		"""
 
 import id_generics
 Armature.__doc__ += id_generics.attributes 

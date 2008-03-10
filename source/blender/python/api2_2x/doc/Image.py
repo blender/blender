@@ -48,7 +48,7 @@ def New (name, width, height, depth):
 	@type height: int
 	@param height: The height of the new Image object, between 1 and 5000.
 	@type depth: int
-	@param depth: The colour depth of the new Image object. (8:Grey, 24:RGB, 32:RGBA). (Not implimented yet, all new images will be 24bit)
+	@param depth: The colour depth of the new Image object. (32:RGBA 8bit channels, 128:RGBA 32bit high dynamic range float channels).
 	@rtype: Blender Image
 	@return: A new Blender Image object.
 	"""
@@ -83,7 +83,7 @@ class Image:
 	@type filename: string
 	@ivar size: The [width, height] dimensions of the image (in pixels).
 	@type size: list
-	@ivar depth: The pixel depth of the image. [8, 16, 18, 24, 32]
+	@ivar depth: The pixel depth of the image, read only. [8, 16, 18, 24, 32, 128 (for 32bit float color channels)]
 	@type depth: int
 	@ivar xrep: Texture tiling: the number of repetitions in the x (horizontal)
 		 axis. [1, 16].
@@ -137,14 +137,14 @@ class Image:
 
 	def getDepth():
 		"""
-		Get the pixel depth of this image.
+		Get the pixel depth of this image. [8,16,24,32,128 for 32bit float images]
 		@rtype: int
 		"""
 
 	def getPixelF(x, y):
 		"""
 		Get the the colors of the current pixel in the form [r,g,b,a].
-		Returned values are floats normalized to 0.0 - 1.0.
+		For float image types, returned values can be greater then the useual [0.0, 1.0] range.
 		Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
 		@returns: [ r, g, b, a]
 		@rtype: list of 4 floats
@@ -229,6 +229,12 @@ class Image:
 		@returns: None
 		"""
 
+	def updateDisplay():
+		"""
+		Update the display image from the floating point buffer (if it exists)
+		@returns: None
+		"""
+
 	def glLoad():
 		"""
 		Load this image's data into OpenGL texture memory, if it is not already
@@ -306,7 +312,7 @@ class Image:
 	def setPixelF(x, y, (r, g, b,a )):
 		"""
 		Set the the colors of the current pixel in the form [r,g,b,a].
-		Color values must be floats in the range 0.0 - 1.0.
+		For float image types, returned values can be greater then the useual [0.0, 1.0] range.
 		Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
 		@type x: int
 		@type y: int
