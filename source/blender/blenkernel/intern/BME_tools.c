@@ -619,7 +619,9 @@ static BME_Loop *BME_bevel_edge(BME_Mesh *bm, BME_Loop *l, float value, int opti
 		l = l->radial.next->data;
 	}
 
-	if (l->f != f); //printf("Whoops! You got something out of order in BME_bevel_edge()!\n");
+	if (l->f != f){
+		//printf("Whoops! You got something out of order in BME_bevel_edge()!\n");
+	}
 
 	return l;
 }
@@ -1092,7 +1094,9 @@ static BME_Mesh *BME_bevel_mesh(BME_Mesh *bm, float value, int res, int options,
 			while ( (e = BME_disk_next_edgeflag(oe, v, 0, BME_BEVEL_ORIG | BME_BEVEL_BEVEL)) ) {
 				/* join the faces (we'll split them later) */
 				f = BME_JFKE_safe(bm,e->loop->f,((BME_Loop*)e->loop->radial.next->data)->f,e);
-				if (!f); //printf("Non-manifold geometry not getting tagged right?\n");
+				if (!f){
+					//printf("Non-manifold geometry not getting tagged right?\n");
+				}
 			}
 
 			/* all original edges marked to be beveled have been removed;
