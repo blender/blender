@@ -60,6 +60,8 @@ struct CollisionTree;
 #define LINUX
 #ifndef __sgi
 #define DO_INLINE inline
+#else
+#define DO_INLINE  
 #endif
 #else
 #define DO_INLINE __inline
