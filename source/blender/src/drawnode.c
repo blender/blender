@@ -2947,7 +2947,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 	if(node->flag & NODE_MUTED)
 		sprintf(showname, "[%s]", node->name);
 	else if(node->username[0])
-		sprintf(showname, "(%s)%s", node->username, node->name);
+		sprintf(showname, "(%s) %s", node->username, node->name);
 	else
 		BLI_strncpy(showname, node->name, 128);
 
