@@ -1910,7 +1910,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 					  (lx+buttonWidth/2), cy, (buttonWidth - buttonWidth/2), 19, &bmd->val_flags,
 					  11.0, BME_BEVEL_RADIUS, 0, 0,
 					  "Interpret bevel value as a radius - smaller angles will be beveled more");*/
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Dis",
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Width: ",
 					  lx, (cy -= 19), buttonWidth, 19, &bmd->value,
 					  0.0, 0.5, 5, 2,
 					  "Bevel value/amount");
@@ -1919,11 +1920,14 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 					  1, 4, 5, 2,
 					  "Number of times to bevel");*/
 			uiDefButBitS(block, TOG, BME_BEVEL_VERT,
-					  B_MODIFIER_RECALC, "Verts only",
+					  B_MODIFIER_RECALC, "Only Vertices",
 					  lx, (cy -= 19), buttonWidth, 19,
 					  &bmd->flags, 0, 0, 0, 0,
 					  "Bevel only verts/corners; not edges");
-			uiDefBut(block, LABEL, 1, "Limit using:",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
+			uiBlockEndAlign(block);
+					  
+			uiDefBut(block, LABEL, 1, "Limit using:",	lx, (cy-=25), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
+			uiBlockBeginAlign(block);
 			uiDefButS(block, ROW, B_MODIFIER_RECALC, "None",
 					  lx, (cy -= 19), (buttonWidth/3), 19, &bmd->lim_flags,
 					  12.0, 0, 0, 0,
