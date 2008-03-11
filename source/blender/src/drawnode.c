@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -1909,7 +1909,6 @@ static int node_composit_buts_id_mask(uiBlock *block, bNodeTree *ntree, bNode *n
 	return 20;
 }
 
-
 /* allocate sufficient! */
 static void node_imagetype_string(char *str)
 {
@@ -2030,6 +2029,19 @@ static int node_composit_buts_invert(uiBlock *block, bNodeTree *ntree, bNode *no
 		uiBlockEndAlign(block);
 	}
 	return 20;	
+}
+
+static int node_composit_buts_premulkey(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		uiBut *bt;
+		
+		/* blend type */
+		bt=uiDefButS(block, MENU, B_NODE_EXEC+node->nr, "Key to Premul %x0|Premul to Key %x1",
+					 butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
+					 &node->custom1, 0, 0, 0, 0, "Conversion between premultiplied alpha and key alpha");
+	}
+	return 20;
 }
 
 /* only once called */
@@ -2156,6 +2168,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_INVERT:
 			ntype->butfunc= node_composit_buts_invert;
+			break;
+		case CMP_NODE_PREMULKEY:
+			ntype->butfunc= node_composit_buts_premulkey;
 			break;
 		default:
 			ntype->butfunc= NULL;

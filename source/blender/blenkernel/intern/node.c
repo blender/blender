@@ -2515,6 +2515,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_combyuva);
 	nodeRegisterType(ntypelist, &cmp_node_sepycca);
 	nodeRegisterType(ntypelist, &cmp_node_combycca);
+	nodeRegisterType(ntypelist, &cmp_node_premulkey);
 	
 	nodeRegisterType(ntypelist, &cmp_node_diff_matte);
 	nodeRegisterType(ntypelist, &cmp_node_chroma);

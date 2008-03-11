@@ -85,6 +85,7 @@ extern bNodeType cmp_node_sepyuva;
 extern bNodeType cmp_node_combyuva;
 extern bNodeType cmp_node_sepycca;
 extern bNodeType cmp_node_combycca; 
+extern bNodeType cmp_node_premulkey;
 
 extern bNodeType cmp_node_diff_matte;
 extern bNodeType cmp_node_chroma;
