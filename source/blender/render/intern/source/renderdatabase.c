@@ -1316,7 +1316,7 @@ void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4],
 
 /* ------------------------------------------------------------------------- */
 
-ObjectInstanceRen *RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, Object *par, int index, int psysindex, float mat[][4])
+ObjectInstanceRen *RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, Object *par, int index, int psysindex, float mat[][4], int lay)
 {
 	ObjectInstanceRen *obi;
 	float mat3[3][3];
@@ -1327,6 +1327,7 @@ ObjectInstanceRen *RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, 
 	obi->par= par;
 	obi->index= index;
 	obi->psysindex= psysindex;
+	obi->lay= lay;
 
 	if(mat) {
 		Mat4CpyMat4(obi->mat, mat);

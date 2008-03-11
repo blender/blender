@@ -4334,7 +4334,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 
 		/* only add instance for objects that have not been used for dupli */
 		if(!(ob->transflag & OB_RENDER_DUPLI)) {
-			obi= RE_addRenderInstance(re, obr, ob, par, index, 0, NULL);
+			obi= RE_addRenderInstance(re, obr, ob, par, index, 0, NULL, ob->lay);
 			if(dob) set_dupli_tex_mat(re, obi, dob);
 		}
 		else
@@ -4357,7 +4357,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 
 			/* only add instance for objects that have not been used for dupli */
 			if(!(ob->transflag & OB_RENDER_DUPLI)) {
-				obi= RE_addRenderInstance(re, obr, ob, par, index, psysindex, NULL);
+				obi= RE_addRenderInstance(re, obr, ob, par, index, psysindex, NULL, ob->lay);
 				if(dob) set_dupli_tex_mat(re, obi, dob);
 			}
 			else
@@ -4708,7 +4708,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 						 * a dupligroup that has already been created before */
 						if(dob->type != OB_DUPLIGROUP || (obr=find_dupligroup_dupli(re, obd, 0))) {
 							Mat4MulMat4(mat, dob->mat, re->viewmat);
-							obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, 0, mat);
+							obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, 0, mat, obd->lay);
 
 							/* fill in instance variables for texturing */
 							set_dupli_tex_mat(re, obi, dob);
@@ -4736,7 +4736,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 						psysindex= 1;
 						for(psys=obd->particlesystem.first; psys; psys=psys->next) {
 							if(dob->type != OB_DUPLIGROUP || (obr=find_dupligroup_dupli(re, ob, psysindex))) {
-								obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, psysindex++, mat);
+								obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, psysindex++, mat, obd->lay);
 
 								set_dupli_tex_mat(re, obi, dob);
 								if(dob->type != OB_DUPLIGROUP) {
@@ -5136,7 +5136,7 @@ static void calculate_speedvectors(Render *re, ObjectInstanceRen *obi, float *ve
 				else strand++;
 
 				index= RE_strandren_get_face(obr, strand, 0);
-				if(index) {
+				if(index && *index < mesh->totface) {
 					speed= RE_strandren_get_winspeed(obi, strand, 1);
 
 					/* interpolate speed vectors from strand surface */

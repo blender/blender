@@ -2120,10 +2120,10 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 
 			/* continue happens in 2 different ways... zmaskpass only does lay_zmask stuff */
 			if(zmaskpass) {
-				if((obr->lay & lay_zmask)==0)
+				if((obi->lay & lay_zmask)==0)
 					continue;
 			}
-			else if(!all_z && !(obr->lay & (lay|lay_zmask)))
+			else if(!all_z && !(obi->lay & (lay|lay_zmask)))
 				continue;
 			
 			if(obi->flag & R_TRANSFORMED)
@@ -2141,7 +2141,7 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 				else vlr++;
 
 				/* the cases: visible for render, only z values, zmask, nothing */
-				if(obr->lay & lay) {
+				if(obi->lay & lay) {
 					if(vlr->mat!=ma) {
 						ma= vlr->mat;
 						nofill= ma->mode & (MA_ZTRA|MA_ONLYCAST);
@@ -2156,7 +2156,7 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 						}
 					}
 				}
-				else if(all_z || (obr->lay & lay_zmask)) {
+				else if(all_z || (obi->lay & lay_zmask)) {
 					env= 1;
 					nofill= 0;
 					ma= NULL; 
@@ -2436,7 +2436,7 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 
 		if(obr->ob==re->excludeob)
 			continue;
-		else if(!(obr->lay & lay))
+		else if(!(obi->lay & lay))
 			continue;
 
 		if(obi->flag & R_TRANSFORMED)
@@ -2462,7 +2462,7 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 				if((ma->mode & MA_SHADBUF)==0) ok= 0;
 			}
 
-			if(ok && (obr->lay & lay) && !(vlr->flag & R_HIDDEN)) {
+			if(ok && (obi->lay & lay) && !(vlr->flag & R_HIDDEN)) {
 				c1= zbuf_shadow_project(cache, vlr->v1->index, obwinmat, vlr->v1->co, ho1);
 				c2= zbuf_shadow_project(cache, vlr->v2->index, obwinmat, vlr->v2->co, ho2);
 				c3= zbuf_shadow_project(cache, vlr->v3->index, obwinmat, vlr->v3->co, ho3);
@@ -2673,7 +2673,7 @@ void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(vo
 	for(i=0, obi=R.instancetable.first; obi; i++, obi=obi->next) {
 		obr= obi->obr;
 
-		if(!(obr->lay & lay))
+		if(!(obi->lay & lay))
 			continue;
 
 		if(obi->flag & R_TRANSFORMED)
@@ -2692,7 +2692,7 @@ void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(vo
 			
 			if(material_in_material(vlr->mat, sss_ma)) {
 				/* three cases, visible for render, only z values and nothing */
-				if(obr->lay & lay) {
+				if(obi->lay & lay) {
 					if(vlr->mat!=ma) {
 						ma= vlr->mat;
 						nofill= ma->mode & MA_ONLYCAST;
@@ -3370,7 +3370,7 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, Re
 	for(i=0, obi=R.instancetable.first; obi; i++, obi=obi->next) {
 		obr= obi->obr;
 
-		if(!(obr->lay & lay))
+		if(!(obi->lay & lay))
 			continue;
 
 		if(obi->flag & R_TRANSFORMED)
@@ -3394,7 +3394,7 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, Re
 			}
 			
 			if(dofill) {
-				if(!(vlr->flag & R_HIDDEN) && (obr->lay & lay)) {
+				if(!(vlr->flag & R_HIDDEN) && (obi->lay & lay)) {
 					unsigned short partclip;
 					
 					v1= vlr->v1;

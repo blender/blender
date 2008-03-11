@@ -86,7 +86,7 @@ static int vlr_check_intersect(Isect *is, int ob, RayFace *face)
 	if(is->mode==RE_RAY_MIRROR)
 		return !(vlr->mat->mode & MA_ONLYCAST);
 	else
-		return (is->lay & obi->obr->lay);
+		return (is->lay & obi->lay);
 }
 
 static float *vlr_get_transform(void *userdata, int i)

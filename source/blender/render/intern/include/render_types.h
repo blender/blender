@@ -273,7 +273,7 @@ typedef struct ObjectInstanceRen {
 
 	ObjectRen *obr;
 	Object *ob, *par;
-	int index, psysindex;
+	int index, psysindex, lay;
 
 	float mat[4][4], imat[3][3];
 	short flag;
