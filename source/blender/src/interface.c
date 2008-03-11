@@ -2687,8 +2687,7 @@ static uiBlock *ui_do_but_BLOCK(uiBut *but, int event)
 
 static int ui_do_but_BUTM(uiBut *but)
 {
-	int activated;
-	
+	/* draw 'pushing-in' when clicked on for use as a normal button in a panel */
 	do {
 		int oflag= but->flag;
 		short mval[2];
@@ -2707,22 +2706,18 @@ static int ui_do_but_BUTM(uiBut *but)
 		
 		PIL_sleep_ms(10);
 	} while (get_mbut() & L_MOUSE);
-
-	activated= (but->flag & UI_SELECT);
-
-	if (activated) {
-		ui_set_but_val(but, but->min);
-		UIafterfunc_butm= but->butm_func;
-		UIafterfunc_arg1= but->butm_func_arg;
-		UIafterval= but->a2;
-		
-		uibut_do_func(but);
-	}
+	
+	ui_set_but_val(but, but->min);
+	UIafterfunc_butm= but->butm_func;
+	UIafterfunc_arg1= but->butm_func_arg;
+	UIafterval= but->a2;
+	
+	uibut_do_func(but);
 	
 	but->flag &= ~UI_SELECT;
 	ui_draw_but(but);
 
-	return activated?but->retval:0;
+	return but->retval;
 }
 
 static int ui_do_but_LABEL(uiBut *but)
@@ -4477,21 +4472,13 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent, int movemouse_quit)
 		}
 		break;
 	
-	case PAD8: case PAD2:
 	case UPARROWKEY:
 	case DOWNARROWKEY:
 		if(inside || (block->flag & UI_BLOCK_LOOP)) {
 			/* arrowkeys: only handle for block_loop blocks */
 			event= 0;
-			if(block->flag & UI_BLOCK_LOOP) {
+			if(block->flag & UI_BLOCK_LOOP)
 				event= uevent->event;
-				if(event==PAD8) event= UPARROWKEY;
-				if(event==PAD2) event= DOWNARROWKEY;
-			}
-			else {
-				if(uevent->event==PAD8) event= UPARROWKEY;
-				if(uevent->event==PAD2) event= DOWNARROWKEY;
-			}
 			if(event && uevent->val) {
 	
 				for(but= block->buttons.first; but; but= but->next) {
@@ -4520,7 +4507,6 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent, int movemouse_quit)
 	
 				/* nothing done */
 				if(but==NULL) {
-				
 					if(event==UPARROWKEY) {
 						if(block->direction & UI_TOP) but= ui_but_first(block);
 						else but= ui_but_last(block);
@@ -4539,16 +4525,26 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent, int movemouse_quit)
 		}
 		break;
 	
-	case ONEKEY: act= 1;
-	case TWOKEY: if(act==0) act= 2;
-	case THREEKEY: if(act==0) act= 3;
-	case FOURKEY: if(act==0) act= 4;
-	case FIVEKEY: if(act==0) act= 5;
-	case SIXKEY: if(act==0) act= 6;
-	case SEVENKEY: if(act==0) act= 7;
-	case EIGHTKEY: if(act==0) act= 8;
-	case NINEKEY: if(act==0) act= 9;
-	case ZEROKEY: if(act==0) act= 10;
+	case ONEKEY: 	case PAD1: 
+		act= 1;
+	case TWOKEY: 	case PAD2: 
+		if(act==0) act= 2;
+	case THREEKEY: 	case PAD3: 
+		if(act==0) act= 3;
+	case FOURKEY: 	case PAD4: 
+		if(act==0) act= 4;
+	case FIVEKEY: 	case PAD5: 
+		if(act==0) act= 5;
+	case SIXKEY: 	case PAD6: 
+		if(act==0) act= 6;
+	case SEVENKEY: 	case PAD7: 
+		if(act==0) act= 7;
+	case EIGHTKEY: 	case PAD8: 
+		if(act==0) act= 8;
+	case NINEKEY: 	case PAD9: 
+		if(act==0) act= 9;
+	case ZEROKEY: 	case PAD0: 
+		if(act==0) act= 10;
 	
 		if( block->flag & UI_BLOCK_NUMSELECT ) {
 			
@@ -4758,15 +4754,14 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent, int movemouse_quit)
 			if(uevent->val || (block->flag & UI_BLOCK_RET_1)==0) {
 				if ELEM6(uevent->event, LEFTMOUSE, PADENTER, RETKEY, BUT_ACTIVATE, BUT_NEXT, BUT_PREV) {
 					/* when mouse outside, don't do button */
-					if(inside || uevent->event!=LEFTMOUSE) {
-						
+					if(inside || uevent->event!=LEFTMOUSE) {						
 						if ELEM(uevent->event, BUT_NEXT, BUT_PREV) {
 							butevent= ui_act_as_text_but(but);
 							uibut_do_func(but);
 						}
 						else
 							butevent= ui_do_button(block, but, uevent);
-
+						
 						/* add undo pushes if... */
 						if( !(block->flag & UI_BLOCK_LOOP)) {
 							if(!G.obedit) {
@@ -4780,12 +4775,12 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent, int movemouse_quit)
 								}
 							}
 						}
-				
+						
 						if(butevent) addqueue(block->winq, UI_BUT_EVENT, (short)butevent);
-
+						
 						/* i doubt about the next line! */
 						/* if(but->func) mywinset(block->win); */
-			
+						
 						if( (block->flag & UI_BLOCK_LOOP) && but->type==BLOCK);
 						else	
 							if (butevent) retval= UI_RETURN_OK;

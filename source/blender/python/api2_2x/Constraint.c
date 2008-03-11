@@ -588,7 +588,7 @@ static int constspace_setter( BPy_Constraint *self, int type, PyObject *value )
 						if (num_tars) {
 							if ((PySequence_Check(value) == 0) || (PySequence_Size(value) != num_tars)) {
 								char errorstr[64];
-								sprintf(errorstr, "expected sequence of %d integers", num_tars);
+								sprintf(errorstr, "expected sequence of %d integer(s)", num_tars);
 								return EXPP_ReturnIntError(PyExc_TypeError, errorstr);
 							}
 							
