@@ -1,5 +1,5 @@
 /* 
- * $Id: Camera.c 12078 2007-09-18 06:41:29Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -478,7 +478,7 @@ static PyObject *Camera_oldsetLens( BPy_Camera * self, PyObject * value )
 {
 	float param = PyFloat_AsDouble(value);
 
-	if( !PyFloat_Check(value) )
+	if (PyErr_Occurred())
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected float argument" );
 
@@ -493,7 +493,7 @@ static PyObject *Camera_oldsetScale( BPy_Camera * self, PyObject * value )
 {
 	float param = PyFloat_AsDouble(value);
 
-	if( !PyFloat_Check(value) )
+	if (PyErr_Occurred())
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected float argument" );
 
@@ -508,7 +508,7 @@ static PyObject *Camera_oldsetClipStart( BPy_Camera * self, PyObject * value )
 {
 	float param = PyFloat_AsDouble(value);
 
-	if( !PyFloat_Check(value) )
+	if (PyErr_Occurred())
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected float argument" );
 
@@ -523,7 +523,7 @@ static PyObject *Camera_oldsetClipEnd( BPy_Camera * self, PyObject * value )
 {
 	float param = PyFloat_AsDouble(value);
 
-	if( !PyFloat_Check(value) )
+	if (PyErr_Occurred())
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected float argument" );
 
@@ -538,7 +538,7 @@ static PyObject *Camera_oldsetDrawSize( BPy_Camera * self, PyObject * value )
 {
 	float param = PyFloat_AsDouble(value);
 
-	if( !PyFloat_Check(value) )
+	if (PyErr_Occurred())
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected float argument" );
 

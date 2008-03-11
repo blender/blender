@@ -1492,11 +1492,11 @@ static void image_panel_view_properties(short cntrl)	// IMAGE_HANDLER_VIEW_PROPE
 		uiBlockEndAlign(block);
 		uiDefButBitI(block, TOG, SI_SMOOTH_UV, B_REDR, "Smooth",	250,40,60,19,  &G.sima->flag, 0, 0, 0, 0, "Display smooth lines in the UV view");
 		
-		uiDefButBitI(block, TOG, SI_DRAW_STRETCH, B_REDR, "UV Stretch",	10,0,100,19,  &G.sima->flag, 0, 0, 0, 0, "Display distortion between the UV's and the 3D coords");
+		uiDefButBitI(block, TOG, SI_DRAW_STRETCH, B_REDR, "UV Stretch",	10,0,100,19,  &G.sima->flag, 0, 0, 0, 0, "Difference between UV's and the 3D coords (blue for low distortion, red is high)");
 		
 		uiBlockBeginAlign(block);
-		uiDefButC(block,  ROW, B_REDR, "Area",			126,0,58,19, &G.sima->dt_uvstretch, 0.0, SI_UVDT_STRETCH_AREA, 0, 0, "Draw the area distortion");
-		uiDefButC(block,  ROW, B_REDR, "Angle",		184,0,58,19, &G.sima->dt_uvstretch, 0.0, SI_UVDT_STRETCH_ANGLE, 0, 0, "Draw the angle distortion");
+		uiDefButC(block,  ROW, B_REDR, "Area",			120,0,60,19, &G.sima->dt_uvstretch, 0.0, SI_UVDT_STRETCH_AREA, 0, 0, "Area distortion between UV's and 3D coords");
+		uiDefButC(block,  ROW, B_REDR, "Angle",		180,0,60,19, &G.sima->dt_uvstretch, 0.0, SI_UVDT_STRETCH_ANGLE, 0, 0, "Angle distortion between UV's and 3D coords");
 		uiBlockEndAlign(block);
 		
 	}
