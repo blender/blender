@@ -3596,7 +3596,7 @@ static void material_panel_tramir(Material *ma)
 	yco -= YSPACE;
  	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_MATPRV, "Max Dist:",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->dist_mir), 0.0, 100.0, 100, 0, "Maximum distance of reflected rays. Reflections further than this range fade to sky color");
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->dist_mir), 0.0, 10000.0, 100, 0, "Maximum distance of reflected rays. Reflections further than this range fade to sky color");
 	uiDefButS(block, MENU, B_MATPRV, "Ray end fade-out: %t|Fade to Sky Color %x0|Fade to Material Color %x1",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->fadeto_mir), 0, 0, 0, 0, "The color that rays with no intersection within the Max Distance take. Material color can be best for indoor scenes, sky color for outdoor.");
 	uiBlockEndAlign(block);
