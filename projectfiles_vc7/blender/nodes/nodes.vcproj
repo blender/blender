@@ -315,6 +315,9 @@
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_outputFile.c">
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_premulkey.c">
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_rgb.c">
 				</File>
 				<File
