@@ -77,6 +77,7 @@ void weld_align_menu_tface_uv(void);
 void weld_align_tface_uv(char tool);
 void be_square_tface_uv(struct EditMesh *em);
 void select_pinned_tface_uv(void);
+void select_edgeloop_tface_uv(struct EditFace *efa, int a, int shift, int *flush);
 
 void sima_sample_color(void);
 

@@ -934,16 +934,19 @@ static void do_image_uvs_weldalignmenu(void *arg, int event)
 	case 0: /* Weld */
 		weld_align_tface_uv('w');
 		break;
-	case 1: /* Align X */
+	case 1: /* Align Auto */
+		weld_align_tface_uv('a');
+		break;
+	case 2: /* Align X */
 		weld_align_tface_uv('x');
 		break;
-	case 2: /* Align Y */
+	case 3: /* Align Y */
 		weld_align_tface_uv('y');
 		break;
 	}
 	
 	if(event==0) BIF_undo_push("Weld UV");
-	else if(event==1 || event==2) BIF_undo_push("Align UV");
+	else if(ELEM3(event, 1, 2, 3)) BIF_undo_push("Align UV");
 }
 
 static uiBlock *image_uvs_weldalignmenu(void *arg_unused)
@@ -955,8 +958,9 @@ static uiBlock *image_uvs_weldalignmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_image_uvs_weldalignmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Weld|W, 1", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align X|W, 2", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align Y|W, 3", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align Auto|W, 2", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align X|W, 3", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align Y|W, 4", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);

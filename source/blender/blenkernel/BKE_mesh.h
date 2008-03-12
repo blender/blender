@@ -106,7 +106,7 @@ typedef struct UvVertMap {
 typedef struct UvMapVert {
 	struct UvMapVert *next;
 	unsigned int f;
-	unsigned char tfindex, separate;
+	unsigned char tfindex, separate, flag;
 } UvMapVert;
 
 UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned int totface, unsigned int totvert, int selected, float *limit);

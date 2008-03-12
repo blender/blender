@@ -2143,12 +2143,12 @@ UvVertMap *make_uv_vert_map_EM(int selected, int do_face_idx_array, float *limit
 	if(totuv==0)
 		return NULL;
 	
-	vmap= (UvVertMap*)MEM_mallocN(sizeof(*vmap), "UvVertMap");
+	vmap= (UvVertMap*)MEM_callocN(sizeof(*vmap), "UvVertMap");
 	if (!vmap)
 		return NULL;
 
 	vmap->vert= (UvMapVert**)MEM_callocN(sizeof(*vmap->vert)*totverts, "UvMapVert*");
-	buf= vmap->buf= (UvMapVert*)MEM_mallocN(sizeof(*vmap->buf)*totuv, "UvMapVert");
+	buf= vmap->buf= (UvMapVert*)MEM_callocN(sizeof(*vmap->buf)*totuv, "UvMapVert");
 
 	if (!vmap->vert || !vmap->buf) {
 		free_uv_vert_map(vmap);
