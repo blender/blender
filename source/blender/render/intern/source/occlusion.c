@@ -324,17 +324,8 @@ static void occ_face(const OccFace *face, float *co, float *normal, float *area)
 		normal[1]= -vlr->n[1];
 		normal[2]= -vlr->n[2];
 
-		if(obi->flag & R_TRANSFORMED) {
-			float xn, yn, zn, (*imat)[3]= obi->imat;
-
-			xn= normal[0];
-			yn= normal[1];
-			zn= normal[2];
-
-			normal[0]= imat[0][0]*xn + imat[0][1]*yn + imat[0][2]*zn;
-			normal[1]= imat[1][0]*xn + imat[1][1]*yn + imat[1][2]*zn;
-			normal[2]= imat[2][0]*xn + imat[2][1]*yn + imat[2][2]*zn;
-		}
+		if(obi->flag & R_TRANSFORMED)
+			Mat3MulVecfl(obi->nmat, normal);
 	}
 
 	if(area) {

@@ -245,7 +245,8 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 			Mat4One(obi->mat);
 
 		Mat3CpyMat4(cmat, obi->mat);
-		Mat3Inv(obi->imat, cmat);
+		Mat3Inv(obi->nmat, cmat);
+		Mat3Transp(obi->nmat);
 
 		/* indicate the renderer has to use transform matrices */
 		if(mode==0)

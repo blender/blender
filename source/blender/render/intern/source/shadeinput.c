@@ -217,19 +217,6 @@ void vlr_set_uv_indices(VlakRen *vlr, int *i1, int *i2, int *i3)
 	}
 }
 
-static void normal_transform(float imat[][3], float *nor)
-{
-	float xn, yn, zn;
-
-	xn= nor[0];
-	yn= nor[1];
-	zn= nor[2];
-
-	nor[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-	nor[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-	nor[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-}
-
 /* copy data from face to ShadeInput, general case */
 /* indices 0 1 2 3 only */
 void shade_input_set_triangle_i(ShadeInput *shi, ObjectInstanceRen *obi, VlakRen *vlr, short i1, short i2, short i3)
@@ -269,9 +256,9 @@ void shade_input_set_triangle_i(ShadeInput *shi, ObjectInstanceRen *obi, VlakRen
 		VECCOPY(shi->n3, shi->v3->n);
 
 		if(obi->flag & R_TRANSFORMED) {
-			normal_transform(obi->imat, shi->n1);
-			normal_transform(obi->imat, shi->n2);
-			normal_transform(obi->imat, shi->n3);
+			Mat3MulVecfl(obi->nmat, shi->n1);
+			Mat3MulVecfl(obi->nmat, shi->n2);
+			Mat3MulVecfl(obi->nmat, shi->n3);
 		}
 
 		if(!(vlr->flag & (R_NOPUNOFLIP|R_TANGENT))) {
@@ -858,7 +845,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				shi->tang[2]= (tl*s3[2] - tu*s1[2] - tv*s2[2]);
 
 				if(obi->flag & R_TRANSFORMED)
-					normal_transform(obi->imat, shi->tang);
+					Mat3MulVecfl(obi->nmat, shi->tang);
 
 				Normalize(shi->tang);
 				VECCOPY(shi->nmaptang, shi->tang);
@@ -878,7 +865,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				shi->nmaptang[2]= (tl*s3[2] - tu*s1[2] - tv*s2[2]);
 
 				if(obi->flag & R_TRANSFORMED)
-					normal_transform(obi->imat, shi->nmaptang);
+					Mat3MulVecfl(obi->nmat, shi->nmaptang);
 
 				Normalize(shi->nmaptang);
 			}
@@ -891,7 +878,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 		if(surfnor) {
 			VECCOPY(shi->surfnor, surfnor)
 			if(obi->flag & R_TRANSFORMED)
-				normal_transform(obi->imat, shi->surfnor);
+				Mat3MulVecfl(obi->nmat, shi->surfnor);
 		}
 		else
 			VECCOPY(shi->surfnor, shi->vn)

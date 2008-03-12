@@ -442,18 +442,13 @@ VlakRen *RE_vlakren_copy(ObjectRen *obr, VlakRen *vlr)
 int RE_vlakren_get_normal(Render *re, ObjectInstanceRen *obi, VlakRen *vlr, float *nor)
 {
 	float xn, yn, zn, v1[3];
-	float (*imat)[3]= obi->imat;
+	float (*nmat)[3]= obi->nmat;
 	int flipped= 0;
 
 	if(obi->flag & R_TRANSFORMED) {
-		xn= vlr->n[0];
-		yn= vlr->n[1];
-		zn= vlr->n[2];
+		VECCOPY(nor, vlr->n);
 		
-		/* transpose! */
-		nor[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-		nor[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-		nor[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
+		Mat3MulVecfl(nmat, nor);
 		Normalize(nor);
 	}
 	else
@@ -1332,7 +1327,8 @@ ObjectInstanceRen *RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, 
 	if(mat) {
 		Mat4CpyMat4(obi->mat, mat);
 		Mat3CpyMat4(mat3, mat);
-		Mat3Inv(obi->imat, mat3);
+		Mat3Inv(obi->nmat, mat3);
+		Mat3Transp(obi->nmat);
 		obi->flag |= R_DUPLI_TRANSFORMED;
 	}
 

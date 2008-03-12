@@ -4164,7 +4164,8 @@ static void find_dupli_instances(Render *re, ObjectRen *obr)
 			Mat4MulMat4(obi->mat, imat, obimat);
 
 			Mat3CpyMat4(nmat, obi->mat);
-			Mat3Inv(obi->imat, nmat);
+			Mat3Inv(obi->nmat, nmat);
+			Mat3Transp(obi->nmat);
 
 			if(!first) {
 				re->totvert += obr->totvert;
@@ -4193,7 +4194,8 @@ static void assign_dupligroup_dupli(Render *re, ObjectInstanceRen *obi, ObjectRe
 	Mat4MulMat4(obi->mat, imat, obimat);
 
 	Mat3CpyMat4(nmat, obi->mat);
-	Mat3Inv(obi->imat, nmat);
+	Mat3Inv(obi->nmat, nmat);
+	Mat3Transp(obi->nmat);
 
 	re->totvert += obr->totvert;
 	re->totvlak += obr->totvlak;
@@ -5511,7 +5513,6 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 
 	/* renderdata setup and exceptions */
 	re->r= scene->r;
-	re->r.mode &= ~R_OSA;
 	re->flag |= R_GLOB_NOPUNOFLIP;
 	re->excludeob= actob;
 	if(type == RE_BAKE_LIGHT)

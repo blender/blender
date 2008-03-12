@@ -29,6 +29,7 @@
 /* system includes */
 #include <stdio.h>
 #include <math.h>
+#include <float.h>
 #include <string.h>
 
 /* External modules: */
@@ -1800,6 +1801,8 @@ typedef struct BakeShade {
 	
 	int usemask;
 	char *rect_mask; /* bake pixel mask */
+
+	float dxco[3], dyco[3];
 } BakeShade;
 
 /* bake uses a char mask to know what has been baked */
@@ -1899,6 +1902,7 @@ static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInpu
 	shi->xs= x;
 	shi->ys= y;
 	
+	shade_input_set_uv(shi);
 	shade_input_set_normals(shi);
 
 	/* no normal flip */
@@ -2081,6 +2085,55 @@ static int bake_intersect_tree(RayTree* raytree, Isect* isect, float *start, flo
 	return hit;
 }
 
+static void bake_set_vlr_dxyco(BakeShade *bs, float *uv1, float *uv2, float *uv3)
+{
+	VlakRen *vlr= bs->vlr;
+	float A, d1, d2, d3, *v1, *v2, *v3;
+
+	if(bs->quad) {
+		v1= vlr->v1->co;
+		v2= vlr->v3->co;
+		v3= vlr->v4->co;
+	}
+	else {
+		v1= vlr->v1->co;
+		v2= vlr->v2->co;
+		v3= vlr->v3->co;
+	}
+
+	/* formula derived from barycentric coordinates:
+	 * (uvArea1*v1 + uvArea2*v2 + uvArea3*v3)/uvArea
+	 * then taking u and v partial derivatives to get dxco and dyco */
+	A= (uv2[0] - uv1[0])*(uv3[1] - uv1[1]) - (uv3[0] - uv1[0])*(uv2[1] - uv1[1]);
+
+	if(fabs(A) > FLT_EPSILON) {
+		A= 0.5f/A;
+
+		d1= uv2[1] - uv3[1];
+		d2= uv3[1] - uv1[1];
+		d3= uv1[1] - uv2[1];
+		bs->dxco[0]= (v1[0]*d1 + v2[0]*d2 + v3[0]*d3)*A;
+		bs->dxco[1]= (v1[1]*d1 + v2[1]*d2 + v3[1]*d3)*A;
+		bs->dxco[2]= (v1[2]*d1 + v2[2]*d2 + v3[2]*d3)*A;
+
+		d1= uv3[0] - uv2[0];
+		d2= uv1[0] - uv3[0];
+		d3= uv2[0] - uv1[0];
+		bs->dyco[0]= (v1[0]*d1 + v2[0]*d2 + v3[0]*d3)*A;
+		bs->dyco[1]= (v1[1]*d1 + v2[1]*d2 + v3[1]*d3)*A;
+		bs->dyco[2]= (v1[2]*d1 + v2[2]*d2 + v3[2]*d3)*A;
+	}
+	else {
+		bs->dxco[0]= bs->dxco[1]= bs->dxco[2]= 0.0f;
+		bs->dyco[0]= bs->dyco[1]= bs->dyco[2]= 0.0f;
+	}
+
+	if(bs->obi->flag & R_TRANSFORMED) {
+		Mat3MulVecfl(bs->obi->nmat, bs->dxco);
+		Mat3MulVecfl(bs->obi->nmat, bs->dyco);
+	}
+}
+
 static void do_bake_shade(void *handle, int x, int y, float u, float v)
 {
 	BakeShade *bs= handle;
@@ -2118,6 +2171,9 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	if(obi->flag & R_TRANSFORMED)
 		Mat4MulVecfl(obi->mat, shi->co);
 	
+	VECCOPY(shi->dxco, bs->dxco);
+	VECCOPY(shi->dyco, bs->dyco);
+
 	quad= bs->quad;
 	bake_set_shade_input(obi, vlr, shi, quad, 0, x, y, u, v);
 
@@ -2302,10 +2358,12 @@ static void shade_tface(BakeShade *bs)
 	/* UV indices have to be corrected for possible quad->tria splits */
 	i1= 0; i2= 1; i3= 2;
 	vlr_set_uv_indices(vlr, &i1, &i2, &i3);
+	bake_set_vlr_dxyco(bs, vec[i1], vec[i2], vec[i3]);
 	zspan_scanconvert(bs->zspan, bs, vec[i1], vec[i2], vec[i3], do_bake_shade);
 	
 	if(vlr->v4) {
 		bs->quad= 1;
+		bake_set_vlr_dxyco(bs, vec[0], vec[2], vec[3]);
 		zspan_scanconvert(bs->zspan, bs, vec[0], vec[2], vec[3], do_bake_shade);
 	}
 }
