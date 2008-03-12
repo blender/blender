@@ -144,12 +144,12 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->gravity [0] = 0.0;
 	clmd->sim_parms->gravity [1] = 0.0;
 	clmd->sim_parms->gravity [2] = -9.81;
-	clmd->sim_parms->structural = 30.0;
-	clmd->sim_parms->shear = 30.0;
-	clmd->sim_parms->bending = 1.0;
-	clmd->sim_parms->Cdis = 1.0; // was 5
+	clmd->sim_parms->structural = 15.0;
+	clmd->sim_parms->shear = 15.0;
+	clmd->sim_parms->bending = 0.5;
+	clmd->sim_parms->Cdis = 5.0; 
 	clmd->sim_parms->Cvi = 1.0;
-	clmd->sim_parms->mass = 1.0f;
+	clmd->sim_parms->mass = 0.3f;
 	clmd->sim_parms->stepsPerFrame = 5;
 	clmd->sim_parms->sim_time = 1.0;
 	clmd->sim_parms->flags = CLOTH_SIMSETTINGS_FLAG_AUTOPROTECT;
