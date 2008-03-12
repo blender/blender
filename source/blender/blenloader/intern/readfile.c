@@ -4384,7 +4384,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	/*link direct data of ID properties*/
 	if (id->properties) {
 		id->properties = newdataadr(fd, id->properties);
-		IDP_DirectLinkProperty(id->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		if (id->properties) { /* this case means the data was written incorrectly, it should not happen */
+			IDP_DirectLinkProperty(id->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		}
 	}
 
 	oldnewmap_free_unused(fd->datamap);
