@@ -44,6 +44,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_material_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
@@ -66,6 +67,7 @@
 #include "BKE_anim.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
+#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_colortools.h"
@@ -5208,7 +5210,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		fsvec[3] = 0.; 
 		//fsvec[0] = fsvec[1] = fsvec[2] = fsvec[3] = 0.; fsvec[2] = 2.; // NT fixed test
 		for(j=0;j<3;j++) fsvec[j] = vverts[a].co[j];
-
+		
 		// transform (=rotate) to cam space
 		camco[0]= imat[0][0]*fsvec[0] + imat[0][1]*fsvec[1] + imat[0][2]*fsvec[2];
 		camco[1]= imat[1][0]*fsvec[0] + imat[1][1]*fsvec[1] + imat[1][2]*fsvec[2];
@@ -5237,6 +5239,83 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		speed[0]= speed[2]= zco[0];
 		speed[1]= speed[3]= zco[1];
 		//if(a<20) fprintf(stderr,"speed %d %f,%f | camco %f,%f,%f | hoco %f,%f,%f,%f  \n", a, speed[0], speed[1], camco[0],camco[1], camco[2], hoco[0],hoco[1], hoco[2],hoco[3]); // NT DEBUG
+	}
+
+	return 1;
+}
+
+static int load_clothsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *vectors, int step)
+{
+	ObjectRen *obr= obi->obr;
+	VertRen *ver= NULL;
+	float *speed, div, zco[2];
+	float zmulx= re->winx/2, zmuly= re->winy/2, len;
+	float winsq= re->winx*re->winy, winroot= sqrt(winsq);
+	int a, j;
+	float hoco[4], ho[4], csvec[4], camco[4];
+	float mat[4][4], winmat[4][4];
+	float imat[4][4];
+	ClothModifierData *clmd = NULL;
+	Cloth *cloth = NULL;
+
+	/* only one step needed */
+	if(step) return 1;
+	
+	Mat4CpyMat4(mat, re->viewmat);
+	MTC_Mat4Invert(imat, mat);
+
+	/* set first vertex OK */
+	clmd = (ClothModifierData *)modifiers_findByType(obr->ob, eModifierType_Cloth);
+	if( !clmd || !(clmd->clothObject) ) return 0;
+	
+	cloth = clmd->clothObject;
+	
+	if( obr->totvert != cloth->numverts ) {
+		return 0;
+	}
+
+	if(obi->flag & R_TRANSFORMED)
+		Mat4MulMat4(winmat, obi->mat, re->winmat);
+	else
+		Mat4CpyMat4(winmat, re->winmat);
+	
+	for(a=0; a<obr->totvert; a++, vectors+=2) {
+		if((a & 255)==0)
+			ver= obr->vertnodes[a>>8].vert;
+		else
+			ver++;
+
+		// get cloth velocity
+		csvec[3] = 0.; 
+		for(j=0;j<3;j++) csvec[j] = cloth->verts[a].v[j];
+
+		// transform (=rotate) to cam space
+		camco[0]= imat[0][0]*csvec[0] + imat[0][1]*csvec[1] + imat[0][2]*csvec[2];
+		camco[1]= imat[1][0]*csvec[0] + imat[1][1]*csvec[1] + imat[1][2]*csvec[2];
+		camco[2]= imat[2][0]*csvec[0] + imat[2][1]*csvec[1] + imat[2][2]*csvec[2];
+
+		// get homogenous coordinates
+		projectvert(camco, winmat, hoco);
+		projectvert(ver->co, winmat, ho);
+		
+		/* now map hocos to screenspace, uses very primitive clip still */
+		// use ho[3] of original vertex, xy component of vel. direction
+		if(ho[3]<0.1f) div= 10.0f;
+		else div= 1.0f/ho[3];
+		zco[0]= zmulx*hoco[0]*div;
+		zco[1]= zmuly*hoco[1]*div;
+		
+		// maximize speed as usual
+		len= zco[0]*zco[0] + zco[1]*zco[1];
+		if(len > winsq) {
+			len= winroot/sqrt(len);
+			zco[0]*= len; zco[1]*= len;
+		}
+		
+		speed= RE_vertren_get_winspeed(obi, ver, 1);
+		// set both to the same value
+		speed[0]= speed[2]= zco[0];
+		speed[1]= speed[3]= zco[1];
 	}
 
 	return 1;
@@ -5298,6 +5377,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	ListBase oldtable= {NULL, NULL}, newtable= {NULL, NULL};
 	ListBase strandsurface;
 	int step;
+	ModifierData *md = NULL;
 	
 	re->i.infostr= "Calculating previous vectors";
 	re->r.mode |= R_SPEED;
@@ -5372,7 +5452,11 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 					// use preloaded per vertex simulation data , only does calculation for step=1
 					// NOTE/FIXME - velocities and meshes loaded unnecessarily often during the database_fromscene_vectors calls...
 					load_fluidsimspeedvectors(re, obi, oldobi->vectors, step);
-				} else {
+				}
+				else if((md = modifiers_findByType(obi->ob, eModifierType_Cloth)) && (md->mode & eModifierMode_Render) ) {
+					load_clothsimspeedvectors(re, obi, oldobi->vectors, step);
+				}
+				else {
 					/* check if both have same amounts of vertices */
 					if(obi->totvector==oldobi->totvector)
 						calculate_speedvectors(re, obi, oldobi->vectors, step);

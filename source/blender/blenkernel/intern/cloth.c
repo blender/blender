@@ -738,20 +738,21 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 			/* jump to a non-existing frame makes sim reset if cache is not protected */
 			if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
 			{	
-				/*
-				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-				*/
-				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
-				cloth_clear_cache(ob, clmd, 0);
-				
-				cloth_write_cache(ob, clmd, framenr);
+				/* prevent freeing when used with vectorblur */
+				if(!useRenderParams)
+				{
+					clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
+					cloth_clear_cache(ob, clmd, 0);
+					
+					cloth_write_cache(ob, clmd, framenr);
+				}
 			}
 		}
 	}
 	else
 	{	
 		if(G.rt > 0)
-			printf("dt > 1.0 || dt < 0.0, %f\n", framenr);
+			printf("dt > 1.0 || dt < 0.0, %f, st: %f, ct: %f\n", framenr, clmd->sim_parms->sim_time, current_time);
 		if(cloth_read_cache(ob, clmd, framenr))
 		{
 			cloth_to_object (ob, clmd, result);
@@ -761,7 +762,11 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 		{
 			/* jump to a non-existing frame makes sim reset if cache is not protected */
 			if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
-				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+			{
+				/* prevent freeing when used with vectorblur */
+				if(!useRenderParams)
+					clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+			}
 		}
 		clmd->sim_parms->sim_time = current_time;
 	}
