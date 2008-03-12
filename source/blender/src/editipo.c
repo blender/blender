@@ -2010,7 +2010,7 @@ IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constn
 		}
 		if(icu==NULL) {
 			icu= MEM_callocN(sizeof(IpoCurve), "ipocurve");
-
+			
 			icu->flag |= IPO_VISIBLE|IPO_AUTO_HORIZ;
 			if(ipo->curve.first==NULL) icu->flag |= IPO_ACTIVE;	/* first one added active */
 			
@@ -2018,21 +2018,94 @@ IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constn
 			icu->adrcode= adrcode;
 			
 			set_icu_vars(icu);
-
+			
 			BLI_addtail( &(ipo->curve), icu);
-
+			
 			switch (GS(from->name)) {
-			case ID_SEQ: {
-				Sequence *seq= (Sequence *)from;
-
-				update_seq_icu_rects(seq);
-				break;
-			}
+				case ID_SEQ: {
+					Sequence *seq= (Sequence *)from;
+					
+					update_seq_icu_rects(seq);
+					break;
+				}
 			}
 		}
 	}
 
 	return icu;
+}
+
+
+/* threshold for inserting keyframes - threshold here should be good enough for now, but should become userpref */
+#define BEZT_INSERT_THRESH 	0.00001
+
+/* Binary search algorithm for finding where to insert BezTriple. (for use by insert_bezt_icu)
+ * Returns the index to insert before, OR the -(index + 1) to replace. 
+ * Caller will need to decrement index if > 0 to add to right place (and avoid segfaults)
+ */
+static int binarysearch_bezt_index (BezTriple array[], BezTriple *item, int arraylen)
+{
+	int start=0, end=arraylen;
+	int loopbreaker= 0, maxloop= arraylen * 2;
+	const float frame= (item)? item->vec[1][0] : 0.0f;
+	
+	/* sneaky optimisations (don't go through searching process if...):
+	 *	- keyframe to be added is to be added out of current bounds
+	 *	- keyframe to be added would replace one of the existing ones on bounds
+	 */
+	if ((arraylen <= 0) || ELEM(NULL, array, item)) {
+		printf("Warning: binarysearch_bezt_index encountered invalid array \n");
+		return 0;
+	}
+	else {
+		/* check whether to add before/after/on */
+		float framenum;
+		
+		/* 'First' Keyframe	*/
+		framenum= array[0].vec[1][0];
+		if (IS_EQT(frame, framenum, BEZT_INSERT_THRESH))
+			return -1;
+		else if (frame < framenum)
+			return 0;
+			
+		/* 'Last' Keyframe */
+		framenum= array[(arraylen-1)].vec[1][0];
+		if (IS_EQT(frame, framenum, BEZT_INSERT_THRESH))
+			return -1;
+		else if (frame > framenum)
+			return arraylen;
+	}
+	
+	
+	/* most of the time, this loop is just to find where to put it
+	 * 'loopbreaker' is just here to prevent infinite loops 
+	 */
+	for (loopbreaker=0; (start <= end) && (loopbreaker < maxloop); loopbreaker++) {
+		/* compute and get midpoint */
+		int mid = (start + end) / 2;
+		float midfra= array[mid].vec[1][0];
+		
+		/* check if exactly equal to midpoint */
+		if (IS_EQT(frame, midfra, BEZT_INSERT_THRESH))
+			return -(mid + 1);
+		
+		/* repeat in upper/lower half */
+		if (frame > midfra)
+			start= mid + 1;
+		else if (frame < midfra)
+			end= mid - 1;
+	}
+	
+	/* print error if loop-limit exceeded */
+	if (loopbreaker == (maxloop-1)) {
+		printf("Error: binarysearch_bezt_index was taking too long \n");
+		
+		// include debug info 
+		printf("\tround = %d: start = %d, end = %d, arraylen = %d \n", loopbreaker, start, end, arraylen);
+	}
+	
+	/* not found, so return where to place it */
+	return start;
 }
 
 /* This function adds a given BezTriple to an IPO-Curve. It will allocate 
@@ -2044,7 +2117,7 @@ IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constn
  */
 int insert_bezt_icu (IpoCurve *icu, BezTriple *bezt)
 {
-	BezTriple *newb, *beztd;
+	BezTriple *newb;
 	int i= 0;
 	
 	if (icu->bezt == NULL) {
@@ -2053,34 +2126,39 @@ int insert_bezt_icu (IpoCurve *icu, BezTriple *bezt)
 		icu->totvert= 1;
 	}
 	else {
-		beztd= icu->bezt;
-		for (i = 0; i <= icu->totvert; i++, beztd++) {
-			/* no double points - threshold to determine this should be good enough */
-			if ((i < icu->totvert) && IS_EQT(beztd->vec[1][0], bezt->vec[1][0], 0.00001)) {
-				*(beztd)= *bezt;
-				break;
+		i = binarysearch_bezt_index(icu->bezt, bezt, icu->totvert);
+		
+		if (i < 0) {
+			/* replace existing item (need to 'invert' i first and decremement by 1) */
+			i = -i - 1;
+			
+			/* sanity check: 'i' may in rare cases exceed arraylen */
+			if (i < icu->totvert)
+				*(icu->bezt + i) = *bezt;
+		}
+		else {
+			/* add new */
+			newb= MEM_callocN( (icu->totvert+1)*sizeof(BezTriple), "beztriple");
+			
+			/* add the beztriples that should occur before the beztriple to be pasted (originally in ei->icu) */
+			if (i > 0) {
+				/* note: need to decrement i here first, so that we don't corrupt memory */
+				i--;
+				memcpy(newb, icu->bezt, i*sizeof(BezTriple));
 			}
-			/* if we've reached the end of the icu array, or bezt is to be pasted before current */
-			if (i==icu->totvert || beztd->vec[1][0] > bezt->vec[1][0]) {
-				newb= MEM_callocN( (icu->totvert+1)*sizeof(BezTriple), "beztriple");
-				
-				/* add the beztriples that should occur before the beztriple to be pasted (originally in ei->icu) */
-				if (i > 0) 
-					memcpy(newb, icu->bezt, i*sizeof(BezTriple));
-				
-				/* add beztriple to paste at index j */
-				*(newb+i)= *bezt;
-				
-				/* add the beztriples that occur after the beztriple to be pasted (originally in icu) */
-				if (i < icu->totvert) 
-					memcpy(newb+i+1, icu->bezt+i, (icu->totvert-i)*sizeof(BezTriple));
-				
-				MEM_freeN(icu->bezt);
-				icu->bezt= newb;
-				
-				icu->totvert++;
-				break;
-			}
+			
+			/* add beztriple to paste at index i */
+			*(newb + i)= *bezt;
+			
+			/* add the beztriples that occur after the beztriple to be pasted (originally in icu) */
+			if (i < icu->totvert) 
+				memcpy(newb+i+1, icu->bezt+i, (icu->totvert-i)*sizeof(BezTriple));
+			
+			/* replace (+ free) old with new */
+			MEM_freeN(icu->bezt);
+			icu->bezt= newb;
+			
+			icu->totvert++;
 		}
 	}
 	
