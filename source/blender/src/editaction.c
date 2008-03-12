@@ -1831,6 +1831,7 @@ void paste_actdata ()
 	
 	short no_name= 0;
 	float offset = CFRA - actcopy_firstframe;
+	char *actname = NULL, *conname = NULL;
 	
 	/* check if buffer is empty */
 	if (ELEM(NULL, actcopybuf.first, actcopybuf.last)) {
@@ -1865,6 +1866,8 @@ void paste_actdata ()
 				
 				/* check if we have a corresponding action channel */
 				if ((no_name) || (strcmp(achan->name, achant->name)==0)) {
+					actname= achan->name;
+
 					/* check if this is a constraint channel */
 					if (ale->type == ACTTYPE_CONCHAN) {
 						bConstraintChannel *conchant= ale->data;
@@ -1872,6 +1875,7 @@ void paste_actdata ()
 						
 						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 							if (strcmp(conchan->name, conchant->name)==0) {
+								conname= conchan->name;
 								ipo_src= conchan->ipo;
 								break;
 							}
@@ -1887,6 +1891,7 @@ void paste_actdata ()
 			else if (ale->ownertype == ACTTYPE_SHAPEKEY) {
 				/* check if this action channel is "#ACP_ShapeKey" */
 				if ((no_name) || (strcmp(achan->name, "#ACP_ShapeKey")==0)) {
+					actname= achan->name;
 					ipo_src= achan->ipo;
 					break;
 				}
@@ -1896,34 +1901,30 @@ void paste_actdata ()
 		/* this shouldn't happen, but it might */
 		if (ELEM(NULL, ipo_src, ipo_dst))
 			continue;
-		
+
 		/* loop over curves, pasting keyframes */
-		for (icu= ipo_dst->curve.first; icu; icu= icu->next) {
-			for (ico= ipo_src->curve.first; ico; ico= ico->next) {
-				/* only paste if compatable blocktype + adrcode */
-				if ((ico->blocktype==icu->blocktype) && (ico->adrcode==icu->adrcode)) {
-					/* just start pasting, with the the first keyframe on the current frame, and so on */
-					for (i=0, bezt=ico->bezt; i < ico->totvert; i++, bezt++) {						
-						/* temporarily apply offset to src beztriple while copying */
-						bezt->vec[0][0] += offset;
-						bezt->vec[1][0] += offset;
-						bezt->vec[2][0] += offset;
-						
-						/* insert the keyframe */
-						insert_bezt_icu(icu, bezt);
-						
-						/* un-apply offset from src beztriple after copying */
-						bezt->vec[0][0] -= offset;
-						bezt->vec[1][0] -= offset;
-						bezt->vec[2][0] -= offset;
-					}
+		for (ico= ipo_src->curve.first; ico; ico= ico->next) {
+			icu= verify_ipocurve((ID*)OBACT, ico->blocktype, actname, conname, "", ico->adrcode);
+
+			if(icu) {
+				/* just start pasting, with the the first keyframe on the current frame, and so on */
+				for (i=0, bezt=ico->bezt; i < ico->totvert; i++, bezt++) {						
+					/* temporarily apply offset to src beztriple while copying */
+					bezt->vec[0][0] += offset;
+					bezt->vec[1][0] += offset;
+					bezt->vec[2][0] += offset;
 					
-					/* recalculate channel's handles? */
-					calchandles_ipocurve(icu);
+					/* insert the keyframe */
+					insert_bezt_icu(icu, bezt);
 					
-					/* done for this channel */
-					break;
+					/* un-apply offset from src beztriple after copying */
+					bezt->vec[0][0] -= offset;
+					bezt->vec[1][0] -= offset;
+					bezt->vec[2][0] -= offset;
 				}
+				
+				/* recalculate channel's handles? */
+				calchandles_ipocurve(icu);
 			}
 		}
 	}
