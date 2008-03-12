@@ -147,6 +147,26 @@ public:
 	       			 -sj,      cj * si,      cj * ci);
 	}
 
+	void getEuler(MT_Scalar& yaw, MT_Scalar& pitch, MT_Scalar& roll) const
+		{			
+			if (m_el[2][0] != -1.0 && m_el[2][0] != 1.0) {
+				pitch = MT_Scalar(-asin(m_el[2][0]));
+				yaw = MT_Scalar(atan2(m_el[2][1] / cos(pitch), m_el[2][2] / cos(pitch)));
+				roll = MT_Scalar(atan2(m_el[1][0] / cos(pitch), m_el[0][0] / cos(pitch)));				
+			}
+			else {
+				roll = MT_Scalar(0);
+				if (m_el[2][0] == -1.0) {
+					pitch = MT_PI / 2.0;
+					yaw = MT_Scalar(atan2(m_el[0][1], m_el[0][2]));
+				}
+				else {
+					pitch = - MT_PI / 2.0;
+					yaw = MT_Scalar(atan2(m_el[0][1], m_el[0][2]));
+				}
+			}
+		}
+
     void scale(MT_Scalar x, MT_Scalar y, MT_Scalar z) {
         m_el[0][0] *= x; m_el[0][1] *= y; m_el[0][2] *= z;
         m_el[1][0] *= x; m_el[1][1] *= y; m_el[1][2] *= z;
