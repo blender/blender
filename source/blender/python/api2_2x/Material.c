@@ -1,5 +1,5 @@
 /* 
- * $Id: Material.c 12078 2007-09-18 06:41:29Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -367,6 +367,8 @@ static PyObject *Material_ModesDict( void )
 		PyConstant_Insert(c, "TANGENT_V", PyInt_FromLong(MA_TANGENT_V));
 		PyConstant_Insert(c, "NMAP_TS", PyInt_FromLong(MA_NORMAP_TANG));
 		PyConstant_Insert(c, "GROUP_EXCLUSIVE", PyInt_FromLong(MA_GROUP_NOLAY));
+		PyConstant_Insert(c, "TEXFACE_ALPHA", PyInt_FromLong(MA_FACETEXTURE_ALPHA));
+		
 	}
 
 	return Modes;

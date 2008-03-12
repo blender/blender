@@ -197,7 +197,7 @@ typedef struct Material {
 #define MA_STR_B_UNITS	0x40000000
 #define MA_STR_SURFDIFF 0x80000000
 
-#define	MA_MODE_MASK	0x4fffffff	/* all valid mode bits */
+#define	MA_MODE_MASK	0x6fffffff	/* all valid mode bits */
 
 /* ray mirror fadeout */
 #define MA_RAYMIR_FADETOSKY	0

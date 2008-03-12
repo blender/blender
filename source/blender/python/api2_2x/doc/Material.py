@@ -50,6 +50,7 @@ Example::
 		- ONLYSHADOW   - Let alpha be determined on the degree of shadow.
 		- + HALOXALPHA - Use extreme alpha.
 		- TEXFACE      - UV-Editor assigned texture gives color and texture info for faces.
+		- TEXFACE_ALPHA - When TEXFACE is enabled, use the alpha as well.
 		- + HALOSTAR   - Render halo as a star.
 		- NOMIST       - Set the Material insensitive to mist.
 		- + HALOSHADED - Let halo receive light.
