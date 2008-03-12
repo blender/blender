@@ -2071,7 +2071,7 @@ static int binarysearch_bezt_index (BezTriple array[], BezTriple *item, int arra
 		/* 'Last' Keyframe */
 		framenum= array[(arraylen-1)].vec[1][0];
 		if (IS_EQT(frame, framenum, BEZT_INSERT_THRESH))
-			return -1;
+			return -((arraylen-1) + 1);
 		else if (frame > framenum)
 			return arraylen;
 	}
