@@ -141,7 +141,7 @@ class Image:
 		@rtype: int
 		"""
 
-	def getPixelF(x, y):
+	def getPixelHDR(x, y):
 		"""
 		Get the the colors of the current pixel in the form [r,g,b,a].
 		For float image types, returned values can be greater then the useual [0.0, 1.0] range.
@@ -153,6 +153,20 @@ class Image:
 		@param x:  the x coordinate of pixel.
 		@param y:  the y coordinate of pixel.  
 		"""
+		
+	def getPixelF(x, y):
+		"""
+		Get the the colors of the current pixel in the form [r,g,b,a].
+		Returned values are floats normalized to 0.0 - 1.0.
+		Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
+		@returns: [ r, g, b, a]
+		@rtype: list of 4 floats
+		@type x: int
+		@type y: int
+		@param x:  the x coordinate of pixel.
+		@param y:  the y coordinate of pixel.  
+		"""
+		
 	def getPixelI(x, y):
 		"""
 		Get the the colors of the current pixel in the form [r,g,b,a].
@@ -309,10 +323,25 @@ class Image:
 		@param speed: The new value in [1, 100].
 		"""
 
-	def setPixelF(x, y, (r, g, b,a )):
+	def setPixelHDR(x, y, (r, g, b,a )):
 		"""
 		Set the the colors of the current pixel in the form [r,g,b,a].
 		For float image types, returned values can be greater then the useual [0.0, 1.0] range.
+		Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
+		@type x: int
+		@type y: int
+		@type r: float
+		@type g: float
+		@type b: float
+		@type a: float
+		@returns: nothing
+		@rtype: none
+		"""
+		
+	def setPixelF(x, y, (r, g, b,a )):
+		"""
+		Set the the colors of the current pixel in the form [r,g,b,a].
+		Color values must be floats in the range 0.0 - 1.0.
 		Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
 		@type x: int
 		@type y: int

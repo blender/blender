@@ -111,8 +111,10 @@ static PyObject *Image_updateDisplay( BPy_Image * self );
 static PyObject *Image_glLoad( BPy_Image * self );
 static PyObject *Image_glFree( BPy_Image * self );
 static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args );
+static PyObject *Image_getPixelHDR( BPy_Image * self, PyObject * args );
 static PyObject *Image_getPixelI( BPy_Image * self, PyObject * args );
 static PyObject *Image_setPixelF( BPy_Image * self, PyObject * args );
+static PyObject *Image_setPixelHDR( BPy_Image * self, PyObject * args );
 static PyObject *Image_setPixelI( BPy_Image * self, PyObject * args );
 static PyObject *Image_getMaxXY( BPy_Image * self );
 static PyObject *Image_getMinXY( BPy_Image * self );
@@ -129,9 +131,13 @@ static PyMethodDef BPy_Image_methods[] = {
 	/* name, method, flags, doc */
 	{"getPixelF", ( PyCFunction ) Image_getPixelF, METH_VARARGS,
 	 "(int, int) - Get pixel color as floats returns [r,g,b,a]"},
+	{"getPixelHDR", ( PyCFunction ) Image_getPixelHDR, METH_VARARGS,
+	 "(int, int) - Get pixel color as floats returns [r,g,b,a]"},
 	{"getPixelI", ( PyCFunction ) Image_getPixelI, METH_VARARGS,
 	 "(int, int) - Get pixel color as ints 0-255 returns [r,g,b,a]"},
 	{"setPixelF", ( PyCFunction ) Image_setPixelF, METH_VARARGS,
+	 "(int, int, [f r,f g,f b,f a]) - Set pixel color using floats"},
+	{"setPixelHDR", ( PyCFunction ) Image_setPixelHDR, METH_VARARGS,
 	 "(int, int, [f r,f g,f b,f a]) - Set pixel color using floats"},
 	{"setPixelI", ( PyCFunction ) Image_setPixelI, METH_VARARGS,
 	 "(int, int, [i r, i g, i b, i a]) - Set pixel color using ints 0-255"},
@@ -384,12 +390,12 @@ static PyObject *M_Image_Load( PyObject * self, PyObject * value )
 
 
 /**
- * getPixelF( x, y )
+ * getPixelHDR( x, y )
  *  returns float list of pixel colors in rgba order.
  *  returned values are floats , in the full range of the float image source.
   */
 
-static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
+static PyObject *Image_getPixelHDR( BPy_Image * self, PyObject * args )
 {
 
 	PyObject *attr;
@@ -505,9 +511,66 @@ static PyObject *Image_getPixelI( BPy_Image * self, PyObject * args )
 }
 
 
+/**
+ * getPixelF( x, y )
+ *  returns float list of pixel colors in rgba order.
+ *  returned values are floats normalized to 0.0 - 1.0.
+ *  blender images are all 4x8 bit at the moment apr-2005
+ */
+
+static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
+{
+
+	PyObject *attr;
+	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
+	char *pixel;		/* image data */
+	int index;		/* offset into image data */
+	int x = 0;
+	int y = 0;
+	int pixel_size = 4;	/* each pixel is 4 x 8-bits packed in unsigned int */
+	int i;
+	
+	if( !PyArg_ParseTuple( args, "ii", &x, &y ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected 2 integers" );
+
+	if( !ibuf || !ibuf->rect )	/* loading didn't work */
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "couldn't load image data in Blender" );
+
+	if( ibuf->type == 1 )	/* bitplane image */
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "unsupported bitplane image format" );
+
+	if( x > ( ibuf->x - 1 )
+	    || y > ( ibuf->y - 1 )
+	    || x < ibuf->xorig || y < ibuf->yorig )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "x or y is out of range" );
+
+	/* 
+	   assumption: from looking at source, skipx is often not set,
+	   so we calc ourselves
+	 */
+
+	attr = PyList_New(4);
+	
+	if (!attr)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't allocate memory for color list" );
+	
+	index = ( x + y * ibuf->x ) * pixel_size;
+
+	pixel = ( char * ) ibuf->rect;
+	for (i=0; i<4; i++) {
+		PyList_SetItem( attr, i, PyFloat_FromDouble( ( ( double ) pixel[index+i] ) / 255.0 ));
+	}
+	return attr;
+}
+
 /* set pixel as floats */
 
-static PyObject *Image_setPixelF( BPy_Image * self, PyObject * args )
+static PyObject *Image_setPixelHDR( BPy_Image * self, PyObject * args )
 {
 	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
 	float *pixel;		/* image data */
@@ -606,6 +669,62 @@ static PyObject *Image_setPixelI( BPy_Image * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
+/* set pixel as floats */
+
+static PyObject *Image_setPixelF( BPy_Image * self, PyObject * args )
+{
+	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
+	char *pixel;		/* image data */
+	int index;		/* offset into image data */
+	int x = 0;
+	int y = 0;
+	int a = 0;
+	int pixel_size = 4;	/* each pixel is 4 x 8-bits packed in unsigned int */
+	float p[4];
+
+	if( !PyArg_ParseTuple
+	    ( args, "ii(ffff)", &x, &y, &p[0], &p[1], &p[2], &p[3] ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected 2 integers and an array of 4 floats" );
+
+	if( !ibuf || !ibuf->rect )	/* didn't work */
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "couldn't load image data in Blender" );
+
+	if( ibuf->type == 1 )	/* bitplane image */
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "unsupported bitplane image format" );
+
+	if( x > ( ibuf->x - 1 )
+	    || y > ( ibuf->y - 1 )
+	    || x < ibuf->xorig || y < ibuf->yorig )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "x or y is out of ruange" );
+
+	for( a = 0; a < 4; a++ ) {
+		if( p[a] > 1.0 || p[a] < 0.0 )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						      "r, g, b, or a is out of range" );
+	}
+
+
+	/* 
+	   assumption: from looking at source, skipx is often not set,
+	   so we calc ourselves
+	 */
+
+	index = ( x + y * ibuf->x ) * pixel_size;
+
+	pixel = ( char * ) ibuf->rect;
+
+	pixel[index] = ( char ) ( p[0] * 255.0 );
+	pixel[index + 1] = ( char ) ( p[1] * 255.0 );
+	pixel[index + 2] = ( char ) ( p[2] * 255.0 );
+	pixel[index + 3] = ( char ) ( p[3] * 255.0 );
+
+	ibuf->userflags |= IB_BITMAPDIRTY;
+	Py_RETURN_NONE;
+}
 
 /* get max extent of image */
 
