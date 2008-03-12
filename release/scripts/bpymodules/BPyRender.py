@@ -181,7 +181,6 @@ def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True, cam
 	
 	Blender.Window.RedrawAll()
 	
-	render_context.threads= 2 # good for dual core cpu's
 	render_context.render()
 	render_context.saveRenderedImage(path)
 	Render.CloseRenderWindow()
