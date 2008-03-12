@@ -95,6 +95,9 @@
 #include <unistd.h>
 
 #include <vector>
+
+#include <stdio.h> // for fprintf only
+
 //these are for copy and select copy
 static char *txt_cut_buffer= NULL;
 static char *txt_select_buffer= NULL;
@@ -1033,7 +1036,7 @@ GHOST_TInt8 *buffer, int flag) const
 	XSetSelectionOwner(m_display, Primary_atom, m_window, CurrentTime);
 	owner = XGetSelectionOwner(m_display, Primary_atom);
 	if (owner != m_window)
-		printf("failed to own primary\n");
+		fprintf(stderr, "failed to own primary\n");
 	
 	return;
 }
