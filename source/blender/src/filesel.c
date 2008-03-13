@@ -637,7 +637,7 @@ void swapselect_file(SpaceFile *sfile)
 
 static int find_active_file(SpaceFile *sfile, short x, short y)
 {
-	int ofs;
+	int ofs, act;
 	
 	if(y > textrct.ymax) y= textrct.ymax;
 	if(y <= textrct.ymin) y= textrct.ymin+1;
@@ -646,8 +646,12 @@ static int find_active_file(SpaceFile *sfile, short x, short y)
 	if(ofs<0) ofs= 0;
 	ofs*= (textrct.ymax-textrct.ymin);
 
-	return sfile->ofs+ (ofs+textrct.ymax-y)/FILESEL_DY;
+	act= sfile->ofs+ (ofs+textrct.ymax-y)/FILESEL_DY;
 	
+	if(act<0 || act>=sfile->totfile)
+		act= -1;
+	
+	return act;
 }
 
 
@@ -1453,7 +1457,7 @@ static void filesel_execute(SpaceFile *sfile)
 
 				*sfile->menup= -1;
 
-				if(sfile->act>=0) {
+				if(sfile->act>=0 && sfile->act<sfile->totfile) {
 					if(sfile->filelist) {
 						files= sfile->filelist+sfile->act;
 						if ( strcmp(files->relname, sfile->file)==0) {
@@ -2402,7 +2406,7 @@ static void active_file_object(SpaceFile *sfile)
 	if(filesel_has_func(sfile)) return;
 	
 	if( strcmp(sfile->dir, "Object/")==0 ) {
-		if(sfile->act >= 0) {
+		if(sfile->act >= 0 && sfile->act < sfile->totfile) {
 			
 			ob= (Object *)sfile->filelist[sfile->act].poin;
 			
