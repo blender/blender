@@ -5172,7 +5172,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 	ObjectRen *obr= obi->obr;
 	Object *fsob= obr->ob;
 	VertRen *ver= NULL;
-	float *speed, div, zco[2];
+	float *speed, div, zco[2], avgvel[4] = {0.0, 0.0, 0.0, 0.0};
 	float zmulx= re->winx/2, zmuly= re->winy/2, len;
 	float winsq= re->winx*re->winy, winroot= sqrt(winsq);
 	int a, j;
@@ -5202,6 +5202,16 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 	else
 		Mat4CpyMat4(winmat, re->winmat);
 	
+	/* (bad) HACK calculate average velocity */
+	/* better solution would be fixing getVelocityAt() in intern/elbeem/intern/solver_util.cpp
+	so that also small drops/little water volumes return a velocity != 0. 
+	But I had no luck in fixing that function - DG */
+	for(a=0; a<obr->totvert; a++) {
+		for(j=0;j<3;j++) avgvel[j] += vverts[a].co[j];
+	}
+	for(j=0;j<3;j++) avgvel[j] /= (float)(obr->totvert);
+	
+	
 	for(a=0; a<obr->totvert; a++, vectors+=2) {
 		if((a & 255)==0)
 			ver= obr->vertnodes[a>>8].vert;
@@ -5212,6 +5222,14 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		fsvec[3] = 0.; 
 		//fsvec[0] = fsvec[1] = fsvec[2] = fsvec[3] = 0.; fsvec[2] = 2.; // NT fixed test
 		for(j=0;j<3;j++) fsvec[j] = vverts[a].co[j];
+		
+		/* (bad) HACK insert average velocity if none is there (see previous comment */
+		if(fsvec[0] == fsvec[1] == fsvec[2] == 0.0)
+		{
+			fsvec[0] = avgvel[0];
+			fsvec[1] = avgvel[1];
+			fsvec[2] = avgvel[2];
+		}
 		
 		// transform (=rotate) to cam space
 		camco[0]= imat[0][0]*fsvec[0] + imat[0][1]*fsvec[1] + imat[0][2]*fsvec[2];
