@@ -45,16 +45,15 @@ static bNodeSocketType cmp_node_texture_out[]= {
 static void texture_procedural(CompBuf *cbuf, float *col, float xco, float yco)
 {
 	bNode *node= cbuf->node;
-	bNodeSocket *sock= node->inputs.first;
 	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float vec[3], *size, nor[3]={0.0f, 0.0f, 0.0f};
 	int retval, type= cbuf->type;
 	
-	size= sock->next->ns.vec;
+	size= cbuf->procedural_size;
 	
-	vec[0]= size[0]*(xco + sock->ns.vec[0]);
-	vec[1]= size[1]*(yco + sock->ns.vec[1]);
-	vec[2]= size[2]*sock->ns.vec[2];
+	vec[0]= size[0]*(xco + cbuf->procedural_offset[0]);
+	vec[1]= size[1]*(yco + cbuf->procedural_offset[1]);
+	vec[2]= size[2]*cbuf->procedural_offset[2];
 	
 	retval= multitex_ext((Tex *)node->id, vec, NULL, NULL, 0, &texres);
 	
@@ -106,6 +105,8 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 		
 		prevbuf->rect_procedural= texture_procedural;
 		prevbuf->node= node;
+		VECCOPY(prevbuf->procedural_offset, in[0]->vec);
+		VECCOPY(prevbuf->procedural_size, in[1]->vec);
 		composit1_pixel_processor(node, prevbuf, prevbuf, out[0]->vec, do_copy_rgba, CB_RGBA);
 		generate_preview(node, prevbuf);
 		free_compbuf(prevbuf);
@@ -115,6 +116,8 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 			
 			stackbuf->rect_procedural= texture_procedural;
 			stackbuf->node= node;
+			VECCOPY(stackbuf->procedural_offset, in[0]->vec);
+			VECCOPY(stackbuf->procedural_size, in[1]->vec);
 			
 			out[0]->data= stackbuf; 
 		}
@@ -123,6 +126,8 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 			
 			stackbuf->rect_procedural= texture_procedural;
 			stackbuf->node= node;
+			VECCOPY(stackbuf->procedural_offset, in[0]->vec);
+			VECCOPY(stackbuf->procedural_size, in[1]->vec);
 			
 			out[1]->data= stackbuf;
 		}

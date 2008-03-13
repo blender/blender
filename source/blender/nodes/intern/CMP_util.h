@@ -107,6 +107,7 @@ typedef struct CompBuf {
 	int xof, yof;		/* relative to center of target image */
 	
 	void (*rect_procedural)(struct CompBuf *, float *, float, float);
+	float procedural_size[3], procedural_offset[3];
 	bNode *node;		/* only in use for procedural bufs */
 	
 	struct CompBuf *next, *prev;	/* for pass-on, works nicer than reference counting */
