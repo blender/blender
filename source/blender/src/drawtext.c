@@ -1546,13 +1546,16 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	} else if (event==MIDDLEMOUSE) {
 		if (val) {
-			#if defined(_WIN32) || defined(__APPLE__)
-				do_textscroll(st, 1);
-			#else
+			if (U.uiflag & USER_MMB_PASTE)
+			{
 				do_selection(st, G.qual&LR_SHIFTKEY);
 				get_selection_buffer(text);
 				do_draw= 1;
-			#endif
+			}
+			else
+			{
+				do_textscroll(st, 1);
+			}
 		}
 	} else if (event==RIGHTMOUSE) {
 		if (val) {

@@ -266,6 +266,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 // old flag for #define USER_KEYINSERTNEED		(1 << 19)
 #define USER_ZOOM_TO_MOUSEPOS	(1 << 20)
 #define USER_SHOW_FPS			(1 << 21)
+#define USER_MMB_PASTE			(1 << 22)
 
 /* Auto-Keying mode */
 	/* AUTOKEY_ON is a bitflag */

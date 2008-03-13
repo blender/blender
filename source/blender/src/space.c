@@ -3694,6 +3694,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(3*mpref)+(4*midsp)),y3,mpref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Emulates Middle Mouse with Alt+LeftMouse (doesnt work with Left Mouse Select option)");
+		uiDefButBitI(block, TOG, USER_MMB_PASTE, B_DRAWINFO, "Paste on MMB",
+			(xpos+edgsp+(3*mpref)+(4*midsp)),y2,mpref,buth,
+			&(U.uiflag), 0, 0, 0, 0,
+			"In text window, paste with MMB instead of panning");
+		uiBlockEndAlign(block);
 		
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, USER_SHOW_ROTVIEWICON, B_DRAWINFO, "Mini Axis",
