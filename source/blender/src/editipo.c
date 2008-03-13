@@ -2071,7 +2071,7 @@ static int binarysearch_bezt_index (BezTriple array[], BezTriple *item, int arra
 		/* 'Last' Keyframe */
 		framenum= array[(arraylen-1)].vec[1][0];
 		if (IS_EQT(frame, framenum, BEZT_INSERT_THRESH))
-			return -((arraylen-1) + 1);
+			return -(arraylen);
 		else if (frame > framenum)
 			return arraylen;
 	}
@@ -2141,11 +2141,8 @@ int insert_bezt_icu (IpoCurve *icu, BezTriple *bezt)
 			newb= MEM_callocN( (icu->totvert+1)*sizeof(BezTriple), "beztriple");
 			
 			/* add the beztriples that should occur before the beztriple to be pasted (originally in ei->icu) */
-			if (i > 0) {
-				/* note: need to decrement i here first, so that we don't corrupt memory */
-				i--;
+			if (i > 0)
 				memcpy(newb, icu->bezt, i*sizeof(BezTriple));
-			}
 			
 			/* add beztriple to paste at index i */
 			*(newb + i)= *bezt;
