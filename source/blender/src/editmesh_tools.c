@@ -327,8 +327,12 @@ int removedoublesflag(short flag, short automerge, float limit)		/* return amoun
 				if(eed->v1->f & 128) eed->v1 = eed->v1->tmp.v;
 				if(eed->v2->f & 128) eed->v2 = eed->v2->tmp.v;
 				e1= addedgelist(eed->v1, eed->v2, eed);
-				
-				if(e1) e1->f2= 1;
+
+				if(e1) {
+					e1->f2= 1;
+					if(eed->f & SELECT)
+						e1->f |= SELECT;
+				}
 				if(e1!=eed) free_editedge(eed);
 			}
 		}
@@ -6438,11 +6442,11 @@ void pathselect(void)
 			
 			pnindex = ((PathNode*)s->tmp.p)->u;
 			cost[pnindex] = 0;
-			BLI_heap_insert(heap,  0.0f, (void*)pnindex);
+			BLI_heap_insert(heap,  0.0f, SET_INT_IN_POINTER(pnindex));
 						
 			while( !BLI_heap_empty(heap) ){
 				
-				pnindex = (int)BLI_heap_popmin(heap);
+				pnindex = GET_INT_FROM_POINTER(BLI_heap_popmin(heap));
 				currpn = &(Q[pnindex]);
 				
 				if(currpn == (PathNode*)t->tmp.p) /*target has been reached....*/
@@ -6454,7 +6458,7 @@ void pathselect(void)
 							cost[currpe->v] = cost[currpn->u] + currpe->w;
 							previous[currpe->v] = currpn->u;
 							Q[currpe->v].visited = 1;
-							BLI_heap_insert(heap, cost[currpe->v], (void*)currpe->v);
+							BLI_heap_insert(heap, cost[currpe->v], SET_INT_IN_POINTER(currpe->v));
 						}
 					}
 				}
