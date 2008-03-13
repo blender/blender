@@ -545,26 +545,26 @@ static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 			case IPO_FLOAT:
 				
 				if(weights) {
-					memcpy(poin, kref, 4*cp[0]);
+					memcpy(poin, kref, sizeof(float)*cp[0]);
 					if(*weights!=0.0f)
 						rel_flerp(cp[0], (float *)poin, (float *)kref, (float *)k1, *weights);
 					weights++;
 				}
 				else 
-					memcpy(poin, k1, 4*cp[0]);
+					memcpy(poin, k1, sizeof(float)*cp[0]);
 
 				poin+= ofsp[0];
 
 				break;
 			case IPO_BPOINT:
-				memcpy(poin, k1, 3*4);
-				memcpy(poin+16, k1+12, 4);
+				memcpy(poin, k1, 3*sizeof(float));
+				memcpy(poin+4*sizeof(float), k1+3*sizeof(float), sizeof(float));
 				
 				poin+= ofsp[0];				
 
 				break;
 			case IPO_BEZTRIPLE:
-				memcpy(poin, k1, 4*12);
+				memcpy(poin, k1, sizeof(float)*10);
 				poin+= ofsp[0];	
 
 				break;
