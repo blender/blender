@@ -3014,6 +3014,7 @@ void do_matbuts(unsigned short event)
 	case B_LAMPPRV:
 		BIF_preview_changed(ID_LA);
 		allqueue(REDRAWBUTSSHADING, 0);
+		shade_buttons_change_3d();
 		break;
 	case B_WORLDPRV:
 		BIF_preview_changed(ID_WO);

@@ -147,6 +147,7 @@
 #include "BIF_interface.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
+#include "BIF_previewrender.h"
 #include "BIF_resources.h"
 #include "BIF_retopo.h"
 #include "BIF_screen.h"
@@ -2315,6 +2316,9 @@ static void spot_interactive(Object *ob, int mode)
 			mvalo[0]= mval[0];
 			mvalo[1]= mval[1];
 			
+			/* handle shaded mode */
+			shade_buttons_change_3d();
+
 			/* DRAW */	
 			headerprint(str);
 			force_draw_plus(SPACE_BUTS, 0);
@@ -2355,6 +2359,7 @@ static void spot_interactive(Object *ob, int mode)
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSSHADING, 0);
+	BIF_preview_changed(ID_LA);
 }
 
 
