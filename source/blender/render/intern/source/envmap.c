@@ -636,7 +636,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	/* texvec should be the already reflected normal */
 	EnvMap *env;
 	ImBuf *ibuf;
-	float fac, vec[3], sco[3], dxts[3], dyts[3];
+	float fac, vec[3], sco[3], dxts[3], dyts[3], w[3];
 	int face, face1;
 	
 	env= tex->env;
@@ -717,10 +717,16 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			fac= (texres->ta+texr1.ta+texr2.ta);
 			if(fac!=0.0) {
 				fac= 1.0/fac;
+
+				/* weight contributions based on alpha */
+				w[0]= texres->ta*fac;
+				w[1]= texr1.ta*fac;
+				w[2]= texr2.ta*fac;
 				
-				texres->tr= fac*(texres->ta*texres->tr + texr1.ta*texr1.tr + texr2.ta*texr2.tr );
-				texres->tg= fac*(texres->ta*texres->tg + texr1.ta*texr1.tg + texr2.ta*texr2.tg );
-				texres->tb= fac*(texres->ta*texres->tb + texr1.ta*texr1.tb + texr2.ta*texr2.tb );
+				/* interpolate premultiplied result (imagewraposa returns key) */
+				texres->tr= (w[0]*texres->ta*texres->tr + w[1]*texr1.ta*texr1.tr + w[2]*texr2.ta*texr2.tr);
+				texres->tg= (w[0]*texres->ta*texres->tg + w[1]*texr1.ta*texr1.tg + w[2]*texr2.ta*texr2.tg);
+				texres->tb= (w[0]*texres->ta*texres->tb + w[1]*texr1.ta*texr1.tb + w[2]*texr2.ta*texr2.tb);
 			}
 			texres->ta= 1.0;
 		}
