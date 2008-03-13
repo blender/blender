@@ -51,11 +51,13 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -64,6 +66,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_cloth.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_deform.h"
@@ -71,6 +74,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
@@ -103,14 +107,14 @@
 #define VP_ADD	1
 #define VP_SUB	2
 #define VP_MUL	3
-#define VP_FILT	4
+#define VP_BLUR	4
 #define VP_LIGHTEN	5
 #define VP_DARKEN	6
 
 #define MAXINDEX	512000
 
 VPaint Gvp= {1.0, 1.0, 1.0, 0.2, 25.0, 1.0, 1.0, 0, VP_AREA+VP_SOFT+VP_SPRAY, 0};
-VPaint Gwp= {1.0, 1.0, 1.0, 0.2, 25.0, 1.0, 1.0, 0, VP_AREA+VP_SOFT, 0};
+VPaint Gwp= {1.0, 1.0, 1.0, 1.0, 25.0, 1.0, 1.0, 0, VP_AREA+VP_SOFT, 0};
 
 static int *get_indexarray(void)
 {
@@ -177,7 +181,7 @@ void do_shared_vertexcol(Mesh *me)
 	mface= me->mface;
 	mcol= (char *)me->mcol;
 	for(a=me->totface; a>0; a--, mface++, mcol+=16) {
-		if(tface==0 || (tface->mode & TF_SHAREDCOL) || (G.f & G_FACESELECT)==0) {
+		if((tface && tface->mode & TF_SHAREDCOL) || (G.f & G_FACESELECT)==0) {
 			scol= scolmain+4*mface->v1;
 			scol[0]++; scol[1]+= mcol[1]; scol[2]+= mcol[2]; scol[3]+= mcol[3];
 			scol= scolmain+4*mface->v2;
@@ -207,7 +211,7 @@ void do_shared_vertexcol(Mesh *me)
 	mface= me->mface;
 	mcol= (char *)me->mcol;
 	for(a=me->totface; a>0; a--, mface++, mcol+=16) {
-		if(tface==0 || (tface->mode & TF_SHAREDCOL) || (G.f & G_FACESELECT)==0) {
+		if((tface && tface->mode & TF_SHAREDCOL) || (G.f & G_FACESELECT)==0) {
 			scol= scolmain+4*mface->v1;
 			mcol[1]= scol[1]; mcol[2]= scol[2]; mcol[3]= scol[3];
 			scol= scolmain+4*mface->v2;
@@ -250,7 +254,9 @@ void make_vertexcol(int shade)	/* single ob */
 		shadeMeshMCol(ob, me);
 	else
 		memset(me->mcol, 255, 4*sizeof(MCol)*me->totface);
-
+	
+	if (me->mr) multires_load_cols(me);
+	
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	
 	allqueue(REDRAWBUTSEDIT, 0);
@@ -327,7 +333,7 @@ void clear_vpaint_selectedfaces()
 
 	ob= OBACT;
 	me= get_mesh(ob);
-	if(me==0 || me->mtface==0 || me->totface==0) return;
+	if(me==0 || me->totface==0) return;
 
 	if(!me->mcol)
 		make_vertexcol(0);
@@ -698,7 +704,7 @@ static unsigned int mcol_darken(unsigned int col1, unsigned int col2, int fac)
 static void vpaint_blend( unsigned int *col, unsigned int *colorig, unsigned int paintcol, int alpha)
 {
 
-	if(Gvp.mode==VP_MIX || Gvp.mode==VP_FILT) *col= mcol_blend( *col, paintcol, alpha);
+	if(Gvp.mode==VP_MIX || Gvp.mode==VP_BLUR) *col= mcol_blend( *col, paintcol, alpha);
 	else if(Gvp.mode==VP_ADD) *col= mcol_add( *col, paintcol, alpha);
 	else if(Gvp.mode==VP_SUB) *col= mcol_sub( *col, paintcol, alpha);
 	else if(Gvp.mode==VP_MUL) *col= mcol_mul( *col, paintcol, alpha);
@@ -712,7 +718,7 @@ static void vpaint_blend( unsigned int *col, unsigned int *colorig, unsigned int
 		
 		alpha= (int)(255.0*Gvp.a);
 		
-		if(Gvp.mode==VP_MIX || Gvp.mode==VP_FILT) testcol= mcol_blend( *colorig, paintcol, alpha);
+		if(Gvp.mode==VP_MIX || Gvp.mode==VP_BLUR) testcol= mcol_blend( *colorig, paintcol, alpha);
 		else if(Gvp.mode==VP_ADD) testcol= mcol_add( *colorig, paintcol, alpha);
 		else if(Gvp.mode==VP_SUB) testcol= mcol_sub( *colorig, paintcol, alpha);
 		else if(Gvp.mode==VP_MUL) testcol= mcol_mul( *colorig, paintcol, alpha);
@@ -743,7 +749,7 @@ static int sample_backbuf_area(VPaint *vp, int *indexar, int totface, int x, int
 	struct ImBuf *ibuf;
 	int x1, y1, x2, y2, a, tot=0, index;
 	
-	if(totface>=MAXINDEX) return 0;
+	if(totface+4>=MAXINDEX) return 0;
 	
 	if(size>64.0) size= 64.0;
 	
@@ -773,7 +779,7 @@ static int sample_backbuf_area(VPaint *vp, int *indexar, int totface, int x, int
 	size= (y2-y1)*(x2-x1);
 	if(size<=0) return 0;
 
-	memset(indexar, 0, sizeof(int)*totface+2);	/* plus 2! first element is total */
+	memset(indexar, 0, sizeof(int)*totface+4);	/* plus 2! first element is total, +2 was giving valgrind errors, +4 seems ok */
 	
 	while(size--) {
 			
@@ -839,7 +845,7 @@ static void wpaint_blend(MDeformWeight *dw, MDeformWeight *uw, float alpha, floa
 	
 	if(dw==NULL || uw==NULL) return;
 	
-	if(Gwp.mode==VP_MIX || Gwp.mode==VP_FILT)
+	if(Gwp.mode==VP_MIX || Gwp.mode==VP_BLUR)
 		dw->weight = paintval*alpha + dw->weight*(1.0-alpha);
 	else if(Gwp.mode==VP_ADD)
 		dw->weight += paintval*alpha;
@@ -862,7 +868,7 @@ static void wpaint_blend(MDeformWeight *dw, MDeformWeight *uw, float alpha, floa
 		float testw=0.0f;
 		
 		alpha= Gwp.a;
-		if(Gwp.mode==VP_MIX || Gwp.mode==VP_FILT)
+		if(Gwp.mode==VP_MIX || Gwp.mode==VP_BLUR)
 			testw = paintval*alpha + uw->weight*(1.0-alpha);
 		else if(Gwp.mode==VP_ADD)
 			testw = uw->weight + paintval*alpha;
@@ -1087,7 +1093,7 @@ void weight_paint(void)
 	float vpimat[3][3];
 	int *indexar, index, totindex, alpha, totw;
 	int vgroup_mirror= -1;
-	short mval[2], mvalo[2], firsttime=1, mousebut;
+	short mval[2], mvalo[2], firsttime=1;
 
 	if((G.f & G_WEIGHTPAINT)==0) return;
 	if(G.obedit) return;
@@ -1160,9 +1166,6 @@ void weight_paint(void)
 	mvalo[0]= mval[0];
 	mvalo[1]= mval[1];
 	
-	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
-	else mousebut = L_MOUSE;
-	
 	/* if mirror painting, find the other group */
 	if(Gwp.flag & VP_MIRROR_X) {
 		bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef-1);
@@ -1188,7 +1191,7 @@ void weight_paint(void)
 		}
 	}
 	
-	while (get_mbut() & mousebut) {
+	while (get_mbut() & L_MOUSE) {
 		getmouseco_areawin(mval);
 		
 		if(firsttime || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
@@ -1235,7 +1238,7 @@ void weight_paint(void)
 			/* make sure each vertex gets treated only once */
 			/* and calculate filter weight */
 			totw= 0;
-			if(Gwp.mode==VP_FILT) 
+			if(Gwp.mode==VP_BLUR) 
 				paintweight= 0.0f;
 			else
 				paintweight= editbutvweight;
@@ -1249,7 +1252,7 @@ void weight_paint(void)
 					(me->dvert+mface->v3)->flag= 1;
 					if(mface->v4) (me->dvert+mface->v4)->flag= 1;
 					
-					if(Gwp.mode==VP_FILT) {
+					if(Gwp.mode==VP_BLUR) {
 						MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = verify_defweight;
 						
 						if(Gwp.flag & VP_ONLYVGROUP)
@@ -1269,7 +1272,7 @@ void weight_paint(void)
 				}
 			}
 			
-			if(Gwp.mode==VP_FILT) 
+			if(Gwp.mode==VP_BLUR) 
 				paintweight/= (float)totw;
 			
 			for(index=0; index<totindex; index++) {
@@ -1347,6 +1350,39 @@ void weight_paint(void)
 	/* this flag is event for softbody to refresh weightpaint values */
 	if(ob->soft) ob->softflag |= OB_SB_REDO;
 	
+	/* same goes for cloth */
+	if(modifiers_isClothEnabled(ob)) {
+		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+		if(clmd)
+		{
+			/* check if we use the edited vertex group at all */
+			if((clmd->sim_parms->vgroup_mass==ob->actdef) || 
+			(clmd->sim_parms->vgroup_struct==ob->actdef)||
+			(clmd->sim_parms->vgroup_bend==ob->actdef))
+			{	
+				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+			}
+		}
+	}	
+
+	/* and particles too */
+	if(ob->particlesystem.first) {
+		ParticleSystem *psys;
+		int i;
+
+		psys= ob->particlesystem.first;
+		while(psys) {
+			for(i=0; i<PSYS_TOT_VG; i++) {
+				if(psys->vgroup[i]==ob->actdef) {
+					psys->recalc |= PSYS_RECALC_HAIR;
+					break;
+				}
+			}
+
+			psys= psys->next;
+		}
+	}
+	
 	BIF_undo_push("Weight Paint");
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1360,7 +1396,7 @@ void vertex_paint()
 	float vpimat[3][3];
 	unsigned int paintcol=0, *mcol, *mcolorig, fcol1, fcol2;
 	int *indexar, index, alpha, totindex;
-	short mval[2], mvalo[2], firsttime=1, mousebut;
+	short mval[2], mvalo[2], firsttime=1;
 	
 	if((G.f & G_VERTEXPAINT)==0) return;
 	if(G.obedit) return;
@@ -1372,9 +1408,9 @@ void vertex_paint()
 	if(me==NULL || me->totface==0) return;
 	if(ob->lay & G.vd->lay); else error("Active object is not in this layer");
 	
-	if(me->mtface==NULL && me->mcol==NULL) make_vertexcol(1);
+	if(me->mcol==NULL) make_vertexcol(0);
 
-	if(me->mtface==NULL && me->mcol==NULL) return;
+	if(me->mcol==NULL) return;
 	
 	/* ALLOCATIONS! No return after his line */
 	
@@ -1403,10 +1439,7 @@ void vertex_paint()
 	mvalo[0]= mval[0];
 	mvalo[1]= mval[1];
 	
-	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
-	else mousebut = L_MOUSE;
-	
-	while (get_mbut() & mousebut) {
+	while (get_mbut() & L_MOUSE) {
 		getmouseco_areawin(mval);
 		
 		if(firsttime || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
@@ -1456,7 +1489,7 @@ void vertex_paint()
 					mcol=	  ( (unsigned int *)me->mcol) + 4*(indexar[index]-1);
 					mcolorig= ( (unsigned int *)Gvp.vpaint_prev) + 4*(indexar[index]-1);
 
-					if(Gvp.mode==VP_FILT) {
+					if(Gvp.mode==VP_BLUR) {
 						fcol1= mcol_blend( mcol[0], mcol[1], 128);
 						if(mface->v4) {
 							fcol2= mcol_blend( mcol[2], mcol[3], 128);
@@ -1596,7 +1629,7 @@ void set_vpaint(void)		/* toggle */
 		return;
 	}
 	
-	if(me && me->mcol==NULL) make_vertexcol(1);
+	if(me && me->mcol==NULL) make_vertexcol(0);
 	
 	if(G.f & G_VERTEXPAINT){
 		G.f &= ~G_VERTEXPAINT;

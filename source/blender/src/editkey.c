@@ -67,6 +67,7 @@
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
@@ -170,9 +171,9 @@ static void rvk_slider_func(void *voidob, void *voidkeynum)
 
 	/* ipo on action or ob? */
 	if(ob->ipoflag & OB_ACTION_KEY)
-		icu = verify_ipocurve(&ob->id, ID_KE, "Shape", NULL, keynum);
+		icu = verify_ipocurve(&ob->id, ID_KE, "Shape", NULL, NULL, keynum);
 	else 
-		icu = verify_ipocurve(&ob->id, ID_KE, NULL, NULL, keynum);
+		icu = verify_ipocurve(&ob->id, ID_KE, NULL, NULL, NULL, keynum);
 
 	if (icu) {
 		/* if the ipocurve exists, try to get a bezier
@@ -183,8 +184,8 @@ static void rvk_slider_func(void *voidob, void *voidkeynum)
 		/* create the bezier triple if one doesn't exist,
 		 * otherwise modify it's value
 		 */
-		if (!bezt) {
-			insert_vert_ipo(icu, cfra, meshslidervals[keynum]);
+		if (bezt == NULL) {
+			insert_vert_icu(icu, cfra, meshslidervals[keynum], 0);
 		}
 		else {
 			bezt->vec[1][1] = meshslidervals[keynum];
@@ -380,7 +381,7 @@ static KeyBlock *add_keyblock(Key *key)
 	if(key->type == KEY_RELATIVE) 
 		kb->pos= curpos+0.1;
 	else {
-		curpos= bsystem_time(0, 0, (float)CFRA, 0.0);
+		curpos= bsystem_time(0, (float)CFRA, 0.0);
 		if(calc_ipo_spec(key->ipo, KEY_SPEED, &curpos)==0) {
 			curpos /= 100.0;
 		}
@@ -599,26 +600,32 @@ void insert_curvekey(Curve *cu, short rel)
 
 void insert_shapekey(Object *ob)
 {
-	Key *key;
+	if(get_mesh(ob) && get_mesh(ob)->mr) {
+		error("Cannot create shape keys on a multires mesh.");
+	}
+	else {
+		Key *key;
 	
-	if(ob->type==OB_MESH) insert_meshkey(ob->data, 1);
-	else if ELEM(ob->type, OB_CURVE, OB_SURF) insert_curvekey(ob->data, 1);
-	else if(ob->type==OB_LATTICE) insert_lattkey(ob->data, 1);
+		if(ob->type==OB_MESH) insert_meshkey(ob->data, 1);
+		else if ELEM(ob->type, OB_CURVE, OB_SURF) insert_curvekey(ob->data, 1);
+		else if(ob->type==OB_LATTICE) insert_lattkey(ob->data, 1);
 	
-	key= ob_get_key(ob);
-	ob->shapenr= BLI_countlist(&key->block);
+		key= ob_get_key(ob);
+		ob->shapenr= BLI_countlist(&key->block);
 	
-	allspace(REMAKEIPO, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
+		BIF_undo_push("Add Shapekey");
+		allspace(REMAKEIPO, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+	}
 }
 
 void delete_key(Object *ob)
 {
-	KeyBlock *kb;
+	KeyBlock *kb, *rkb;
 	Key *key;
 	IpoCurve *icu;
 	
@@ -628,6 +635,10 @@ void delete_key(Object *ob)
 	kb= BLI_findlink(&key->block, ob->shapenr-1);
 
 	if(kb) {
+		for(rkb= key->block.first; rkb; rkb= rkb->next)
+			if(rkb->relative == ob->shapenr-1)
+				rkb->relative= 0;
+
 		BLI_remlink(&key->block, kb);
 		key->totkey--;
 		if(key->refkey== kb) key->refkey= key->block.first;
@@ -668,6 +679,7 @@ void delete_key(Object *ob)
 	
 	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 	
+	BIF_undo_push("Delete Shapekey");
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allspace(REMAKEIPO, 0);
@@ -756,6 +768,7 @@ void move_keys(Object *ob)
 	/* for boundbox */
 	editipo_changed(G.sipo, 0);
 
+	BIF_undo_push("Move Shapekey(s)");
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWVIEW3D, 0);

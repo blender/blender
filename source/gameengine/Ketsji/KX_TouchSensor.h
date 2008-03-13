@@ -57,8 +57,6 @@ protected:
 	class SCA_EventManager*	m_eventmgr;
 	
 	class PHY_IPhysicsController*	m_physCtrl;
-	class PHY_ResponseTable*		m_responstTable;
-	class PHY_PhysicsController*	m_responsObject;
 
 	bool					m_bCollision;
 	bool					m_bTriggered;
@@ -86,7 +84,11 @@ public:
 
 	virtual bool	NewHandleCollision(void*obj1,void*obj2,const PHY_CollData* colldata);
 
-	PHY_PhysicsController*	GetPhysicsController() { return m_responsObject;}
+	// Allows to do pre-filtering and save computation time
+	// obj1 = sensor physical controller, obj2 = physical controller of second object
+	// return value = true if collision should be checked on pair of object
+	virtual bool	BroadPhaseFilterCollision(void*obj1,void*obj2) { return true; }
+
   
 
 	virtual bool IsPositiveTrigger() {

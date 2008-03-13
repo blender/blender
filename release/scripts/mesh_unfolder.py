@@ -1,10 +1,10 @@
 #!BPY
 """
 Name: 'Unfold'
-Blender: 243
+Blender: 245
 Group: 'Mesh'
 Tip: 'Unfold meshes to create nets'
-Version:  v2.2.4
+Version:  v2.5
 Author: Matthew Chadwick
 """
 import Blender
@@ -18,16 +18,18 @@ try:
 	from math import *
 	import sys
 	import random
-	from decimal import *
 	import xml.sax, xml.sax.handler, xml.sax.saxutils
+	
+	# annoying but need so classes dont raise errors
+	xml_sax_handler_ContentHandler = xml.sax.handler.ContentHandler
 
 except:
-	print "One of the Python modules required can't be found."
-	print sys.exc_info()[1]
-	traceback.print_exc(file=sys.stdout)
-	
+	Draw.PupMenu('Error%t|A full python installation is required to run this script.')
+	xml = None
+	xml_sax_handler_ContentHandler = type(0)
+
 __author__ = 'Matthew Chadwick'
-__version__ = '2.2.4 24032007'
+__version__ = '2.5 06102007'
 __url__ = ["http://celeriac.net/unfolder/", "blender", "blenderartist"]
 __email__ = ["post at cele[remove this text]riac.net", "scripts"]
 __bpydoc__ = """\
@@ -79,7 +81,7 @@ class FacesAndEdges:
 					self.edgeFaces[key].append(face)
 	def findTakenAdjacentFace(self, bface, edge):
 		return self.findAdjacentFace(bface, edge)
-	# find the first untaken (non-selected) adjacent face in the list of adjacent faces for the given edge
+	# find the first untaken (non-selected) adjacent face in the list of adjacent faces for the given edge (allows for manifold meshes too)
 	def findAdjacentFace(self, bface, edge):
 		faces = self.edgeFaces[edge.key()]
 		for i in xrange(len(faces)):
@@ -107,84 +109,7 @@ class FacesAndEdges:
 		if(bface!=None):
 			bface.sel= True
 			self.nfaces+=1
-	
-	
-class IntersectionResult:
-	def __init__(self, rn, rd, v=None):
-		self.v = v
-		self.rd = rd
-		self.rn = rn
-	def intersected(self):
-		return not(not(self.v))
-	def isParallel(self):
-		return (self.rd==0)
-	def isColinear(self):
-		return (self.rn==0)
-	def intersection(self):
-		return self.v
-	
-# represents a line segment between two points [p1, p2]. the points are [x,y]
-class LineSegment:
-	def __init__(self, p):
-		self.p = p
-	def intersects(self, s):
-		rn = ((self.p[0].y-s.p[0].y)*(s.p[1].x-s.p[0].x)-(self.p[0].x-s.p[0].x)*(s.p[1].y-s.p[0].y)) 
-		rd = ((self.p[1].x-self.p[0].x)*(s.p[1].y-s.p[0].y)-(self.p[1].y-self.p[0].y)*(s.p[1].x-s.p[0].x))
-		# need an epsilon closeTo() here
-		if(rd<0.0000001 or rn==0.0):
-			return IntersectionResult(rn,rd)
-		r = rn/rd
-		s = ((self.p[0].y-s.p[0].y)*(self.p[1].x-self.p[0].x)-(self.p[0].x-s.p[0].x)*(self.p[1].y-self.p[0].y)) / rd
-		i = (0.0<=r and r<=1.0 and 0.0<=s and s<=1.0)
-		if not(i):
-			return None
-		ix = self.p[0].x + r*(self.p[1].x - self.p[0].x)
-		iy = self.p[0].y + r*(self.p[1].y - self.p[0].y)
-		t = 0.0001
-		if ( abs(ix-self.p[0].x)>t and abs(iy-self.p[0].x)>t and abs(ix-self.p[1].x)>t and abs(iy-self.p[1].y)>t ):
-			return IntersectionResult( rn, rd,Vector([ix,iy,0.0]))
-		else:
-			return None
-		
-class LineSegments:
-	def __init__(self, face):
-		self.face = face
-	def segmentAt(self, i):
-		if(i>self.face.nPoints()-1):
-			return None
-		if(i==self.face.nPoints()-1):
-			j = 0
-		else:
-			j = i+1
-		return LineSegment([ self.face.v[i], self.face.v[j] ])
-	def iterateSegments(self, something):
-		results = []
-		for i in xrange(self.face.nPoints()):
-			results.extend(something.haveSegment(self.segmentAt(i))) 
-		return results
-	def compareSegments(self, something, segment):
-		results = []
-		for i in xrange(self.face.nPoints()):
-			results.append(something.compareSegments([self.segmentAt(i), segment]))
-		return results
 
-class FaceOverlapTest:
-	def __init__(self, face1, face2):
-		self.faces = [face1, face2]
-		self.segments = [ LineSegments(self.faces[0]), LineSegments(self.faces[1]) ]
-	def suspectsOverlap(self):
-		tests = self.segments[0].iterateSegments(self)
-		gi = 0
-		for i in tests:
-			if( i!=None and i.intersected() ):
-				gi+=1
-		return gi>0
-	def haveSegment(self, segment):
-		return self.segments[1].compareSegments(self, segment)
-	def compareSegments(self, segments):
-		return segments[0].intersects(segments[1])
-
-		
 	
 # A fold between two faces with a common edge
 class Fold:
@@ -398,7 +323,7 @@ class Net:
 		if(len(ff.v)<3):
 			raise Exception("This mesh contains an isolated edge - it must consist only of faces")
 		testFace = Poly.fromVectors( [ Vector([0.0,0.0,0.0]), Vector([0.0,1.0,0.0]), Vector([1.0,1.0,0.0])  ] )
-		# hmmm
+		# hmmm. I honestly can't remember why this needs to be done, but it does.
 		u=0
 		v=1
 		w=2
@@ -412,6 +337,7 @@ class Net:
 		xyFold =  Fold(None,   xyFace, refFace, Edge(xyFace.v[0], xyFace.v[1] ))
 		self.refFold = Fold(xyFold, refFace, ff,         Edge(refFace.v[0], refFace.v[1] ))
 		self.refFold.srcFace = self.firstFace
+		# prepare to grow the trees
 		trunk = Tree(self, None, self.refFold)
 		trunk.generations = self.generations
 		self.firstPoly = ff
@@ -423,6 +349,7 @@ class Net:
 		self.folds.append(self.refFold)
 		trunk.grow()
 		i = 0
+		# keep the trees growing while they can
 		while(self.myFacesVisited<len(self.src.faces) and len(self.branches) > 0):
 			if self.edgeIteratorClass==RandomEdgeIterator:
 				i = random.randint(0,len(self.branches)-1)
@@ -459,11 +386,12 @@ class Net:
 		for afold in folds:
 			mdf = afold.unfoldedFace()
 			if(afold!=fold):
-				it1 = FaceOverlapTest(mf, mdf)
-				it2 = FaceOverlapTest(mdf, mf)
-				overlap = (it1.suspectsOverlap() or it2.suspectsOverlap())
+				# currently need to get agreement from both polys because
+				# a touch by a vertex of one the other's edge is acceptable &
+				# they disagree on that
+				intersects = mf.intersects2D(mdf) and mdf.intersects2D(mf)
 				inside = ( mdf.containsAnyOf(mf) or mf.containsAnyOf(mdf) )
-				if(  overlap or inside or mdf.overlays(mf)):
+				if(  intersects or inside or mdf.overlays(mf)):
 					c.append(afold)
 		return c
 	def getOverlapsBetweenGL(self, fold, folds):
@@ -644,9 +572,9 @@ class Net:
 			overlaps = self.report()
 			attempts+=1
 		return attempts
-	def unfoldSelected(feedback=None, netName=None):
+	def fromSelected(feedback=None, netName=None):
 		return Net.createNet(Blender.Object.GetSelected()[0], feedback, netName)
-	unfoldSelected = staticmethod(unfoldSelected)
+	fromSelected = staticmethod(fromSelected)
 	def clone(self, object=None):
 		if(object==None):
 			object = self.object
@@ -823,7 +751,7 @@ class Curvature(EdgeIterator):
 				g += f.dihedralAngle()
 		self.gooodness = g
 		
-	
+
 class Edge:
 	def __init__(self, v1=None, v2=None, mEdge=None, i=-1):
 		self.idx = i
@@ -891,6 +819,23 @@ class Edge:
 			return +1
 		else:
 			return -1
+	# Does the given segment intersect this, for overlap detection.
+	# endpoints are allowed to touch the line segment
+	def intersects2D(self, s):
+		if(self.matches(s)):
+			return False
+		else:
+			i = Geometry.LineIntersect2D(self.v1, self.v2, s.v1, s.v2)
+			if(i!=None):
+				i.resize4D()
+				i.z = self.v1.z # hack to put the point on the same plane as this edge for comparison
+			return(i!=None and not(self.endsWith(i)))
+	def matches(self, s):
+		return ( (self.v1==s.v1 and self.v2==s.v2) or (self.v2==s.v1 and self.v1==s.v2) )
+	# Is the given point on the end of this segment ? 10-5 seems to an acceptable limit for closeness in Blender
+	def endsWith(self, aPoint, e=0.0001):
+		return ( (self.v1-aPoint).length < e or (self.v2-aPoint).length < e )
+
 	
 class Poly:
 	ids = -1
@@ -899,6 +844,7 @@ class Poly:
 		self.v = []
 		self.id = Poly.ids
 		self.boundz = None
+		self.edges = None
 	def getID(self):
 		return self.id
 	def normal(self):
@@ -910,6 +856,21 @@ class Poly:
 		q = a-c
 		q.resize3D()
 		return CrossVecs(p,q)
+	def makeEdges(self):
+		self.edges = []
+		for i in xrange(self.nPoints()):
+			self.edges.append(Edge( self.v[i % self.nPoints()], self.v[ (i+1) % self.nPoints()] ))
+	def edgeAt(self, i):
+		if(self.edges==None):
+			self.makeEdges()
+		return self.edges[i]
+	def intersects2D(self, poly):
+		for i in xrange(self.nPoints()):
+			edge = self.edgeAt(i)
+			for j in xrange(poly.nPoints()):
+				if edge.intersects2D(poly.edgeAt(j)):
+					return True
+		return False
 	def isBad(self):
 		badness = 0
 		for vv in self.v:
@@ -1031,8 +992,7 @@ class Poly:
 	def toString(self):
 		return self.v
 	# This is the BEST algorithm for point-in-polygon detection.
-	# It's by W. Randolph Franklin. It's also very beautiful (looks even better in C).
-	# All the others are shite; they give false positives.
+	# It's by W. Randolph Franklin.
 	# returns 1 for inside, 1 or 0 for edges
 	def contains(self, tp):
 		c = 0
@@ -1114,6 +1074,7 @@ class SVGExporter:
 	def export(self):
 		self.net.unfoldTo(1)
 		bb = self.object.getBoundBox()
+		print bb
 		self.vxmin = bb[0][0]
 		self.vymin = bb[0][1]
 		self.vxmax = bb[7][0]
@@ -1141,14 +1102,14 @@ class SVGExporter:
 		self.addPolys()
 		self.e.endElement("clipPath")
 	def addUVImage(self):
-		image = Blender.Image.GetCurrent()
+		image = Blender.Image.GetCurrent() #hmm - how to determine the desired image ?
 		if image==None:
 			return
 		ifn = image.getFilename()
-		#ifn = self.filename.replace(".svg", ".jpg")
-		#image.setFilename(ifn)
-		#ifn = ifn[ifn.rfind("/")+1:]
-		#image.save()
+		ifn = self.filename.replace(".svg", ".jpg")
+		image.setFilename(ifn)
+		ifn = ifn[ifn.rfind("/")+1:]
+		image.save()
 		atts = {}
 		atts["clip-path"] = "url(#netClip)"
 		atts["xlink:href"] = ifn
@@ -1242,7 +1203,7 @@ class SVGExporter:
 			traceback.print_exc(file=sys.stdout)
 	fileSelected = staticmethod(fileSelected)	
 
-
+# for importing nets saved by the above exporter
 class NetHandler(xml.sax.handler.ContentHandler):
 	def __init__(self, net):
 		self.net = net
@@ -1413,7 +1374,7 @@ class GUI:
 			while(s):# and search < searchLimit):
 				if(net!=None):
 					name = net.des.name
-				net = Net.unfoldSelected(self, name)
+				net = Net.fromSelected(self, name)
 				net.setAvoidsOverlaps(not(self.overlaps.val))
 				print
 				print "Unfolding selected object"
@@ -1516,6 +1477,14 @@ class GUI:
 			else:
 				self.nOverlaps = 0
 			Draw.Redraw(1)
+		if(evt==233):
+			f1 = Poly.fromBlenderFace(Blender.Object.GetSelected()[0].getData().faces[0])
+			f2 = Poly.fromBlenderFace(Blender.Object.GetSelected()[1].getData().faces[0])
+			print
+			print Blender.Object.GetSelected()[0].getName()
+			print Blender.Object.GetSelected()[1].getName()
+			print f1.intersects2D(f2)
+			print f2.intersects2D(f1)
 		if(evt==714):
 			Net.unfoldAll(self)
 			Draw.Redraw(1)
@@ -1567,6 +1536,7 @@ class GUI:
 		Draw.Button("Unfold",           1, l.nx(), l.ny(), l.cw, l.ch, "Unfold selected mesh to net")
 		Draw.Button("save",             104,   l.nx(), l.ny(), l.cw, l.ch,  "Save net as SVG")
 		Draw.Button("load",             107,   l.nx(), l.ny(), l.cw, l.ch,  "Load net from SVG")
+		#Draw.Button("test",             233,   l.nx(), l.ny(), l.cw, l.ch,  "test")
 		# unfolding enthusiasts - try uncommenting this
 		self.ancestors = Draw.Number("depth", 654,        l.nx(), l.ny(), cw, ch, self.ancestors.val, 0, 9999,  "depth of branching 0=diffuse")
 		#self.noise = Draw.Number("noise", 631,        l.nx(), l.ny(), cw, ch, self.noise.val, 0.0, 1.0,  "noisyness of branching")
@@ -1574,7 +1544,7 @@ class GUI:
 		options = "order %t|random %x0|brightest %x1|curvature %x2|winding %x3| 1010 %x4|largest %x5"
 		self.shape = Draw.Menu(options, 713,  l.nx(), l.ny(), cw, ch, self.shape.val, "shape of net")
 		Draw.Button("exit",         6,   l.nx(), l.ny(), l.cw, l.ch, "exit")
-		BGL.glClearColor(0.5, 0.5, 0.5, 1)
+		BGL.glClearColor(0.3, 0.3, 0.3, 1)
 		BGL.glColor3f(0.3,0.3,0.3)
 		l.newLine()
 		BGL.glRasterPos2i(32, 100)
@@ -1601,10 +1571,12 @@ class FlowLayout:
 		self.y-=self.ch+self.margin
 		self.x = self.margin
 
-try:
-	sys.setrecursionlimit(10000)
-	gui = GUI()
-	gui.makeStandardGUI()
-	#gui.makePopupGUI()
-except:
-	traceback.print_exc(file=sys.stdout)
+# if xml is None, then dont bother running the script
+if xml:
+	try:
+		sys.setrecursionlimit(10000)
+		gui = GUI()
+		gui.makeStandardGUI()
+		#gui.makePopupGUI()
+	except:
+		traceback.print_exc(file=sys.stdout)

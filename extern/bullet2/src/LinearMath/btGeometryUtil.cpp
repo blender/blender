@@ -16,14 +16,23 @@ subject to the following restrictions:
 
 #include "btGeometryUtil.h"
 
-bool	btGeometryUtil::isPointInsidePlanes(const btAlignedObjectArray<btVector3>& planeEquations, const btVector3& point, float	margin)
+
+/*
+  Make sure this dummy function never changes so that it
+  can be used by probes that are checking whether the
+  library is actually installed.
+*/
+extern "C" void btBulletMathProbe () {}
+
+
+bool	btGeometryUtil::isPointInsidePlanes(const btAlignedObjectArray<btVector3>& planeEquations, const btVector3& point, btScalar	margin)
 {
 	int numbrushes = planeEquations.size();
 	for (int i=0;i<numbrushes;i++)
 	{
 		const btVector3& N1 = planeEquations[i];
-		float dist = float(N1.dot(point))+float(N1[3])-margin;
-		if (dist>0.f)
+		btScalar dist = btScalar(N1.dot(point))+btScalar(N1[3])-margin;
+		if (dist>btScalar(0.))
 		{
 			return false;
 		}
@@ -33,14 +42,14 @@ bool	btGeometryUtil::isPointInsidePlanes(const btAlignedObjectArray<btVector3>& 
 }
 
 
-bool	btGeometryUtil::areVerticesBehindPlane(const btVector3& planeNormal, const btAlignedObjectArray<btVector3>& vertices, float	margin)
+bool	btGeometryUtil::areVerticesBehindPlane(const btVector3& planeNormal, const btAlignedObjectArray<btVector3>& vertices, btScalar	margin)
 {
 	int numvertices = vertices.size();
 	for (int i=0;i<numvertices;i++)
 	{
 		const btVector3& N1 = vertices[i];
-		float dist = float(planeNormal.dot(N1))+float(planeNormal[3])-margin;
-		if (dist>0.f)
+		btScalar dist = btScalar(planeNormal.dot(N1))+btScalar(planeNormal[3])-margin;
+		if (dist>btScalar(0.))
 		{
 			return false;
 		}
@@ -54,7 +63,7 @@ bool notExist(const btVector3& planeEquation,const btAlignedObjectArray<btVector
 	for (int i=0;i<numbrushes;i++)
 	{
 		const btVector3& N1 = planeEquations[i];
-		if (planeEquation.dot(N1) > 0.999f)
+		if (planeEquation.dot(N1) > btScalar(0.999))
 		{
 			return false;
 		} 
@@ -83,11 +92,11 @@ void	btGeometryUtil::getPlaneEquationsFromVertices(btAlignedObjectArray<btVector
 				btVector3 planeEquation,edge0,edge1;
 				edge0 = N2-N1;
 				edge1 = N3-N1;
-				float normalSign = 1.f;
+				btScalar normalSign = btScalar(1.);
 				for (int ww=0;ww<2;ww++)
 				{
 					planeEquation = normalSign * edge0.cross(edge1);
-					if (planeEquation.length2() > 0.0001f)
+					if (planeEquation.length2() > btScalar(0.0001))
 					{
 						planeEquation.normalize();
 						if (notExist(planeEquation,planeEquationsOut))
@@ -95,13 +104,13 @@ void	btGeometryUtil::getPlaneEquationsFromVertices(btAlignedObjectArray<btVector
 							planeEquation[3] = -planeEquation.dot(N1);
 							
 								//check if inside, and replace supportingVertexOut if needed
-								if (areVerticesBehindPlane(planeEquation,vertices,0.01f))
+								if (areVerticesBehindPlane(planeEquation,vertices,btScalar(0.01)))
 								{
 									planeEquationsOut.push_back(planeEquation);
 								}
 						}
 					}
-					normalSign = -1.f;
+					normalSign = btScalar(-1.);
 				}
 			
 			}
@@ -132,9 +141,9 @@ void	btGeometryUtil::getVerticesFromPlaneEquations(const btAlignedObjectArray<bt
 				btVector3 n3n1; n3n1 = N3.cross(N1);
 				btVector3 n1n2; n1n2 = N1.cross(N2);
 				
-				if ( ( n2n3.length2() > 0.0001f ) &&
-					 ( n3n1.length2() > 0.0001f ) &&
-					 ( n1n2.length2() > 0.0001f ) )
+				if ( ( n2n3.length2() > btScalar(0.0001) ) &&
+					 ( n3n1.length2() > btScalar(0.0001) ) &&
+					 ( n1n2.length2() > btScalar(0.0001) ) )
 				{
 					//point P out of 3 plane equations:
 
@@ -143,10 +152,10 @@ void	btGeometryUtil::getVerticesFromPlaneEquations(const btAlignedObjectArray<bt
 					//   N1 . ( N2 * N3 )  
 
 
-					float quotient = (N1.dot(n2n3));
-					if (btFabs(quotient) > 0.000001f)
+					btScalar quotient = (N1.dot(n2n3));
+					if (btFabs(quotient) > btScalar(0.000001))
 					{
-						quotient = -1.f / quotient;
+						quotient = btScalar(-1.) / quotient;
 						n2n3 *= N1[3];
 						n3n1 *= N2[3];
 						n1n2 *= N3[3];
@@ -156,7 +165,7 @@ void	btGeometryUtil::getVerticesFromPlaneEquations(const btAlignedObjectArray<bt
 						potentialVertex *= quotient;
 
 						//check if inside, and replace supportingVertexOut if needed
-						if (isPointInsidePlanes(planeEquations,potentialVertex,0.01f))
+						if (isPointInsidePlanes(planeEquations,potentialVertex,btScalar(0.01)))
 						{
 							verticesOut.push_back(potentialVertex);
 						}

@@ -35,6 +35,7 @@
 
 struct Object;
 struct MDeformVert;
+struct ColorBand;
 
 typedef struct TransOb {
 	float *loc;

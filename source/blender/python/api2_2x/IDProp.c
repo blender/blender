@@ -384,16 +384,15 @@ PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 					   "eek!! a property exists with a bad type code!!!" );
 }
 
-PyObject *BPy_IDGroup_Pop(BPy_IDProperty *self, PyObject *vars)
+PyObject *BPy_IDGroup_Pop(BPy_IDProperty *self, PyObject *value)
 {
 	IDProperty *loop;
 	PyObject *pyform;
-	char *name;
-	int ok = PyArg_ParseTuple(vars, "s", &name);
+	char *name = PyString_AsString(value);
 	
-	if (!ok) {
+	if (!name) {
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-		   "pop expected at least 1 arguments, got 0" );
+		   "pop expected at least 1 argument, got 0" );
 	}
 	
 	for (loop=self->prop->data.group.first; loop; loop=loop->next) {
@@ -434,7 +433,7 @@ PyObject *BPy_IDGroup_GetKeys(BPy_IDProperty *self)
 {
 	PyObject *seq = PyList_New(self->prop->len);
 	IDProperty *loop;
-	int i;
+	int i, j;
 
 	if (!seq) 
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -443,6 +442,25 @@ PyObject *BPy_IDGroup_GetKeys(BPy_IDProperty *self)
 	for (i=0, loop=self->prop->data.group.first; loop; loop=loop->next, i++)
 		PyList_SetItem(seq, i, PyString_FromString(loop->name));
 	
+	if (i != self->prop->len) {
+		printf("ID Property Error found and corrected in BPy_IDGroup_GetKeys!\n");
+		
+		/*fill rest of list with valid references to None*/
+		for (j=i; j<self->prop->len; j++) {
+			Py_INCREF(Py_None);
+			PyList_SetItem(seq, j, Py_None);
+		}
+		
+		/*set correct group length*/
+		self->prop->len = i;
+		
+		/*free the old list*/
+		Py_DECREF(seq);
+		
+		/*call self again*/
+		return BPy_IDGroup_GetKeys(self);		
+	}
+	
 	return seq;
 }
 
@@ -450,7 +468,7 @@ PyObject *BPy_IDGroup_GetValues(BPy_IDProperty *self)
 {
 	PyObject *seq = PyList_New(self->prop->len);
 	IDProperty *loop;
-	int i;
+	int i, j;
 
 	if (!seq) 
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -459,16 +477,35 @@ PyObject *BPy_IDGroup_GetValues(BPy_IDProperty *self)
 	for (i=0, loop=self->prop->data.group.first; loop; loop=loop->next, i++) {
 		PyList_SetItem(seq, i, BPy_IDGroup_WrapData(self->id, loop));
 	}
-	
+
+	if (i != self->prop->len) {
+		printf("ID Property Error found and corrected in BPy_IDGroup_GetValues!\n");
+		
+		/*fill rest of list with valid references to None*/
+		for (j=i; j<self->prop->len; j++) {
+			Py_INCREF(Py_None);
+			PyList_SetItem(seq, j, Py_None);
+		}
+		
+		/*set correct group length*/
+		self->prop->len = i;
+		
+		/*free the old list*/
+		Py_DECREF(seq);
+		
+		/*call self again*/
+		return BPy_IDGroup_GetValues(self);		
+	}
+		
 	return seq;
 }
 
-PyObject *BPy_IDGroup_HasKey(BPy_IDProperty *self, PyObject *vars)
+PyObject *BPy_IDGroup_HasKey(BPy_IDProperty *self, PyObject *value)
 {
 	IDProperty *loop;
-	char *name;
+	char *name = PyString_AsString(value);
 	
-	if (!PyArg_ParseTuple(vars, "s", &name))
+	if (!name)
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 		   "expected a string");
 		   
@@ -507,7 +544,7 @@ PyObject *BPy_IDGroup_ConvertToPy(BPy_IDProperty *self)
 }
 
 static struct PyMethodDef BPy_IDGroup_methods[] = {
-	{"pop", (PyCFunction)BPy_IDGroup_Pop, METH_VARARGS,
+	{"pop", (PyCFunction)BPy_IDGroup_Pop, METH_O,
 		"pop an item from the group; raises KeyError if the item doesn't exist."},
 	{"iteritems", (PyCFunction)BPy_IDGroup_IterItems, METH_NOARGS,
 		"iterate through the items in the dict; behaves like dictionary method iteritems."},
@@ -515,7 +552,7 @@ static struct PyMethodDef BPy_IDGroup_methods[] = {
 		"get the keys associated with this group as a list of strings."},
 	{"values", (PyCFunction)BPy_IDGroup_GetValues, METH_NOARGS,
 		"get the values associated with this group."},
-	{"has_key", (PyCFunction)BPy_IDGroup_HasKey, METH_VARARGS,
+	{"has_key", (PyCFunction)BPy_IDGroup_HasKey, METH_O,
 		"returns true if the group contains a key, false if not."},
 	{"update", (PyCFunction)BPy_IDGroup_Update, METH_VARARGS,
 		"updates the values in the group with the values of another or a dict."},

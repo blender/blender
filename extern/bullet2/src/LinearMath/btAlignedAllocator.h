@@ -36,11 +36,13 @@ class btAlignedAllocator {
 	typedef btAlignedAllocator< T , Alignment > self_type;
 	
 public:
+
 	//just going down a list:
 	btAlignedAllocator() {}
-	
+	/*
 	btAlignedAllocator( const self_type & ) {}
-	
+	*/
+
 	template < typename Other >
 	btAlignedAllocator( const btAlignedAllocator< Other , Alignment > & ) {}
 
@@ -53,6 +55,7 @@ public:
 	pointer       address   ( reference        ref ) const                           { return &ref; }
 	const_pointer address   ( const_reference  ref ) const                           { return &ref; }
 	pointer       allocate  ( size_type        n   , const_pointer *      hint = 0 ) {
+		(void)hint;
 		return reinterpret_cast< pointer >(btAlignedAlloc( sizeof(value_type) * n , Alignment ));
 	}
 	void          construct ( pointer          ptr , const value_type &   value    ) { new (ptr) value_type( value ); }

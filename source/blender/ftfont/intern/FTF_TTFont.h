@@ -78,6 +78,17 @@ public:
 
 	float GetStringWidth(char* str, unsigned int flag);
 
+	/**
+	 * Get the bounding box for a string.
+	 *
+	 * @param str	The string
+	 * @param llx   Lower left near x coord
+	 * @param lly   Lower left near y coord
+	 * @param llz   Lower left near z coord
+	 * @param urx   Upper right far x coord
+	 * @param ury   Upper right far y coord
+	 * @param urz   Upper right far z coord
+	 */
 	void GetBoundingBox(char* str, float *llx, float *lly, float *llz, float *urx, float *ury, float *urz, unsigned int flag);
 
 	/**

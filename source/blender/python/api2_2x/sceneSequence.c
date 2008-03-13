@@ -57,7 +57,9 @@ enum seq_consts {
 	EXPP_SEQ_ATTR_LENGTH,
 	EXPP_SEQ_ATTR_START,
 	EXPP_SEQ_ATTR_STARTOFS,
-	EXPP_SEQ_ATTR_ENDOFS
+	EXPP_SEQ_ATTR_ENDOFS,
+	EXPP_SEQ_ATTR_STARTSTILL,
+	EXPP_SEQ_ATTR_ENDSTILL
 };
 
 
@@ -154,7 +156,6 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 		for(a=0; a<seq->len; a++) {
 			name = PyString_AsString(PyList_GetItem( list, a ));
 			strncpy(se->name, name, FILE_MAXFILE-1);
-			se->ok= 1;
 			se++;
 		}		
 		
@@ -167,7 +168,7 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 		seq->type= SEQ_RAM_SOUND;
 		seq->sound = sound;
 		
-		totframe= (int) ( ((float)(sound->streamlen-1)/( (float)sce->audio.mixrate*4.0 ))* (float)sce->r.frs_sec);
+		totframe= (int) ( ((float)(sound->streamlen-1)/( (float)sce->audio.mixrate*4.0 ))* (float)sce->r.frs_sec / sce->r.frs_sec_base);
 		
 		sound->flags |= SOUND_FLAGS_SEQUENCE;
 		
@@ -177,16 +178,10 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 		strip->len= totframe;
 		strip->us= 1;
 		strncpy(strip->dir, sound->name, FILE_MAXDIR-1);
-		strip->stripdata= se= MEM_callocN(totframe*sizeof(StripElem), "stripelem");
+		strip->stripdata= se= MEM_callocN(sizeof(StripElem), "stripelem");
 
 		/* name sound in first strip */
 		strncpy(se->name, sound->name, FILE_MAXFILE-1);
-
-		for(a=1; a<=totframe; a++, se++) {
-			se->ok= 2; /* why? */
-			se->ibuf= 0;
-			se->nr= a;
-		}
 		
 	} else if (BPy_Scene_Check(py_data)) {
 		/* scene */
@@ -203,8 +198,6 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 			sizeof(seq->name) - 2);
 		strip->len= seq->len;
 		strip->us= 1;
-		if(seq->len>0) strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
-		
 	} else {
 		/* movie, pydata is a path to a movie file */
 		char *name = PyString_AsString ( py_data );
@@ -538,7 +531,46 @@ static PyObject *Sequence_getImages( BPy_Sequence * self )
 	return ret;
 }
 
-
+static int Sequence_setImages( BPy_Sequence * self, PyObject *value )
+{
+	Strip *strip;
+	StripElem *se;
+	int i;
+	PyObject *list;
+	char *basepath, *name;
+	
+	if (self->seq->type != SEQ_IMAGE) {
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"Sequence is not an image type" );
+	}
+	
+	if( !PyArg_ParseTuple
+	    ( value, "sO!", &basepath, &PyList_Type, &list ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					      "expected string and optional list argument" );
+	
+	strip = self->seq->strip;
+	se = strip->stripdata;
+	
+	/* for now dont support different image list sizes */
+	if (PyList_Size(list) != strip->len) {
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"at the moment only image lista with the same number of images as the strip are supported" );
+	}
+	
+	strncpy(strip->dir, basepath, sizeof(strip->dir));
+	
+	for (i=0; i<strip->len; i++, se++) {
+		name = PyString_AsString(PyList_GetItem(list, i));
+		if (name) {
+			strncpy(se->name, name, sizeof(se->name));
+		} else {
+			PyErr_Clear();
+		}
+	}
+	
+	return 0;
+}
 
 /*
  * get floating point attributes
@@ -568,20 +600,24 @@ static PyObject *getIntAttr( BPy_Sequence *self, void *type )
 	case EXPP_SEQ_ATTR_ENDOFS:
 		param = seq->endofs;
 		break;
+	case EXPP_SEQ_ATTR_STARTSTILL:
+		param = seq->startstill;
+		break;
+	case EXPP_SEQ_ATTR_ENDSTILL:
+		param = seq->endstill;
+		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError, 
-				"undefined type in getFloatAttr" );
+				"undefined type in getIntAttr" );
 	}
 
 	return PyInt_FromLong( param );
 }
 
-
 /* internal functions for recursivly updating metastrip locatons */
 static void intern_pos_update(Sequence * seq) {
 	/* update startdisp and enddisp */
-	seq->startdisp = seq->start + seq->startofs - seq->startstill;
-	seq->enddisp = ((seq->start + seq->len) - seq->endofs )+ seq->endstill;
+	calc_sequence_disp(seq);
 }
 
 void intern_recursive_pos_update(Sequence * seq, int offset) {
@@ -601,7 +637,7 @@ static int setIntAttrClamp( BPy_Sequence *self, PyObject *value, void *type )
 	struct Sequence *seq= self->seq;
 	int number, origval=0;
 
-	if( !PyInt_CheckExact ( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, "expected an int value" );
 	
 	number = PyInt_AS_LONG( value );
@@ -621,9 +657,10 @@ static int setIntAttrClamp( BPy_Sequence *self, PyObject *value, void *type )
 		break;
 	
 	case EXPP_SEQ_ATTR_STARTOFS:
-		CLAMP(number, 0, seq->len - seq->endofs);
+		if (self->seq->type == SEQ_EFFECT)
 			return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"This property dosnt apply to an effect" );
+		CLAMP(number, 0, seq->len - seq->endofs);
 		seq->startofs = number;
 		break;
 	case EXPP_SEQ_ATTR_ENDOFS:
@@ -633,7 +670,28 @@ static int setIntAttrClamp( BPy_Sequence *self, PyObject *value, void *type )
 		CLAMP(number, 0, seq->len - seq->startofs);
 		seq->endofs = number;
 		break;
-	
+	case EXPP_SEQ_ATTR_STARTSTILL:
+		if (self->seq->type == SEQ_EFFECT)
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This property dosnt apply to an effect" );
+		CLAMP(number, 1, MAXFRAME);
+		seq->startstill = number;
+		break;
+	case EXPP_SEQ_ATTR_ENDSTILL:
+		if (self->seq->type == SEQ_EFFECT)
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This property dosnt apply to an effect" );
+		CLAMP(number, seq->startstill+1, MAXFRAME);
+		seq->endstill = number;
+		break;
+	case EXPP_SEQ_ATTR_LENGTH:
+		if (self->seq->type == SEQ_EFFECT)
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"cannot set the length of an effect directly" );
+		CLAMP(number, 1, MAXFRAME);
+		origval = seq->len;
+		seq->start = number;
+		break;
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"undefined type in setFloatAttrClamp" );
@@ -664,11 +722,15 @@ static PyObject *getFlagAttr( BPy_Sequence *self, void *type )
 static int setFlagAttr( BPy_Sequence *self, PyObject *value, void *type )
 {
 	int t = (int)type;
+	int param = PyObject_IsTrue( value );
 	
-	if (PyObject_IsTrue(value))
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if (param)
 		self->seq->flag |= t;
 	else {
-		
 		/* dont allow leftsel and rightsel when its not selected */
 		if (t == SELECT)
 			t = t + SEQ_LEFTSEL + SEQ_RIGHTSEL;
@@ -701,7 +763,7 @@ static PyGetSetDef BPy_Sequence_getseters[] = {
 	 "Sequence name",
 	  NULL},
 	{"images",
-	 (getter)Sequence_getImages, (setter)NULL,
+	 (getter)Sequence_getImages, (setter)Sequence_setImages,
 	 "Sequence scene",
 	  NULL},
 	  
@@ -730,7 +792,15 @@ static PyGetSetDef BPy_Sequence_getseters[] = {
 	 (getter)getIntAttr, (setter)setIntAttrClamp,
 	 "",
 	 (void *) EXPP_SEQ_ATTR_ENDOFS},
-
+	{"startStill",
+	 (getter)getIntAttr, (setter)setIntAttrClamp,
+	 "",
+	 (void *) EXPP_SEQ_ATTR_STARTSTILL},
+	{"endStill",
+	 (getter)getIntAttr, (setter)setIntAttrClamp,
+	 "",
+	 (void *) EXPP_SEQ_ATTR_ENDSTILL},
+	 
 	{"sel",
 	 (getter)getFlagAttr, (setter)setFlagAttr,
 	 "Sequence audio mute option",
@@ -1029,6 +1099,12 @@ PyObject *SceneSeq_CreatePyObject( struct Scene * scn, struct Sequence * iter)
 	if( !scn )
 		Py_RETURN_NONE;
 
+	if ( !scn->ed ) {
+		Editing *ed;
+		ed= scn->ed= MEM_callocN( sizeof(Editing), "addseq");
+		ed->seqbasep= &ed->seqbase;
+	}
+	
 	pysceseq =
 		( BPy_SceneSeq * ) PyObject_NEW( BPy_SceneSeq, &SceneSeq_Type );
 

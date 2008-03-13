@@ -1604,7 +1604,15 @@ static void ui_draw_text_icon(uiBut *but)
 			ui_rasterpos_safe(x, (but->y1+but->y2- 9.0)/2.0, but->aspect);
 			if(but->type==IDPOIN) transopts= 0;	// no translation, of course!
 			else transopts= (U.transopts & USER_TR_BUTTONS);
+			
+		#ifdef INTERNATIONAL
+			if (but->type == FTPREVIEW)
+				FTF_DrawNewFontString (but->drawstr+but->ofs, FTF_INPUT_UTF8);
+			else
+				BIF_DrawString(but->font, but->drawstr+but->ofs, transopts);
+		#else
 			BIF_DrawString(but->font, but->drawstr+but->ofs, transopts);
+		#endif
 
 			/* part text right aligned */
 			if(cpoin) {
@@ -1785,7 +1793,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	PackedFile *pf;
 	int result = 0;
 	int charmax = G.charmax;
-
+	
 	/* <builtin> font in use. There are TTF <builtin> and non-TTF <builtin> fonts */
 	if(!strcmp(G.selfont->name, "<builtin>"))
 	{
@@ -1947,6 +1955,12 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	{
 		result = FTF_SetFont((unsigned char *) datatoc_bfont_ttf, datatoc_bfont_ttf_size, 11);
 	}
+	
+	/* resets the font size */
+	if(G.ui_international == TRUE)
+	{
+		uiSetCurFont(but->block, UI_HELV);
+	}
 }
 
 #endif // INTERNATIONAL
@@ -1956,7 +1970,7 @@ static void ui_draw_but_COLORBAND(uiBut *but)
 	ColorBand *coba= (ColorBand *)but->poin;
 	CBData *cbd;
 	float x1, y1, sizex, sizey;
-	float dx, v3[2], v1[2], v2[2];
+	float dx, v3[2], v1[2], v2[2], v1a[2], v2a[2];
 	int a;
 		
 	if(coba==NULL) return;
@@ -2024,39 +2038,55 @@ static void ui_draw_but_COLORBAND(uiBut *but)
 	/* help lines */
 	v1[0]= v2[0]=v3[0]= x1;
 	v1[1]= y1;
+	v1a[1]= y1+0.25*sizey;
 	v2[1]= y1+0.5*sizey;
+	v2a[1]= y1+0.75*sizey;
 	v3[1]= y1+sizey;
+	
 	
 	cbd= coba->data;
 	glBegin(GL_LINES);
 	for(a=0; a<coba->tot; a++, cbd++) {
-		v1[0]=v2[0]=v3[0]= x1+ cbd->pos*sizex;
-		
-		glColor3ub(0, 0, 0);
-		glVertex2fv(v1);
-		glVertex2fv(v2);
+		v1[0]=v2[0]=v3[0]=v1a[0]=v2a[0]= x1+ cbd->pos*sizex;
 		
 		if(a==coba->cur) {
-			glVertex2f(v1[0]-1, v1[1]);
-			glVertex2f(v2[0]-1, v2[1]);
-			glVertex2f(v1[0]+1, v1[1]);
-			glVertex2f(v2[0]+1, v2[1]);
+			glColor3ub(0, 0, 0);
+			glVertex2fv(v1);
+			glVertex2fv(v3);
+			glEnd();
+			
+			setlinestyle(2);
+			glBegin(GL_LINES);
+			glColor3ub(255, 255, 255);
+			glVertex2fv(v1);
+			glVertex2fv(v3);
+			glEnd();
+			setlinestyle(0);
+			glBegin(GL_LINES);
+			
+			/* glColor3ub(0, 0, 0);
+			glVertex2fv(v1);
+			glVertex2fv(v1a);
+			glColor3ub(255, 255, 255);
+			glVertex2fv(v1a);
+			glVertex2fv(v2);
+			glColor3ub(0, 0, 0);
+			glVertex2fv(v2);
+			glVertex2fv(v2a);
+			glColor3ub(255, 255, 255);
+			glVertex2fv(v2a);
+			glVertex2fv(v3);
+			*/
 		}
-		
-		glColor3ub(255, 255, 255);
-		glVertex2fv(v2);
-		glVertex2fv(v3);
-		
-		if(a==coba->cur) {
-			if(cbd->pos>0.01) {
-				glVertex2f(v2[0]-1, v2[1]);
-				glVertex2f(v3[0]-1, v3[1]);
-			}
-			if(cbd->pos<0.99) {
-				glVertex2f(v2[0]+1, v2[1]);
-				glVertex2f(v3[0]+1, v3[1]);
-			}
-		}
+		else {
+			glColor3ub(0, 0, 0);
+			glVertex2fv(v1);
+			glVertex2fv(v2);
+			
+			glColor3ub(255, 255, 255);
+			glVertex2fv(v2);
+			glVertex2fv(v3);
+		}	
 	}
 	glEnd();
 }
@@ -2220,13 +2250,40 @@ static void ui_draw_but_CURVE(uiBut *but)
 	if(cumap->flag & CUMA_DRAW_CFRA) {
 		glColor3ub(0x60, 0xc0, 0x40);
 		glBegin(GL_LINES);
-		glVertex2f(but->x1 + zoomx*(cumap->black[0]-offsx), but->y1);
-		glVertex2f(but->x1 + zoomx*(cumap->black[0]-offsx), but->y2);
+		glVertex2f(but->x1 + zoomx*(cumap->sample[0]-offsx), but->y1);
+		glVertex2f(but->x1 + zoomx*(cumap->sample[0]-offsx), but->y2);
 		glEnd();
+	}
+	/* sample option */
+	if(cumap->flag & CUMA_DRAW_SAMPLE) {
+		if(cumap->cur==3) {
+			float lum= cumap->sample[0]*0.35f + cumap->sample[1]*0.45f + cumap->sample[2]*0.2f;
+			glColor3ub(240, 240, 240);
+			
+			glBegin(GL_LINES);
+			glVertex2f(but->x1 + zoomx*(lum-offsx), but->y1);
+			glVertex2f(but->x1 + zoomx*(lum-offsx), but->y2);
+			glEnd();
+		}
+		else {
+			if(cumap->cur==0)
+				glColor3ub(240, 100, 100);
+			else if(cumap->cur==1)
+				glColor3ub(100, 240, 100);
+			else
+				glColor3ub(100, 100, 240);
+			
+			glBegin(GL_LINES);
+			glVertex2f(but->x1 + zoomx*(cumap->sample[cumap->cur]-offsx), but->y1);
+			glVertex2f(but->x1 + zoomx*(cumap->sample[cumap->cur]-offsx), but->y2);
+			glEnd();
+		}
 	}
 	
 	/* the curve */
-	BIF_ThemeColor(TH_TEXT);
+	BIF_ThemeColorBlend(TH_TEXT, TH_BUT_NEUTRAL, 0.35);
+	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_BLEND);
 	glBegin(GL_LINE_STRIP);
 	
 	if(cuma->table==NULL)
@@ -2255,6 +2312,8 @@ static void ui_draw_but_CURVE(uiBut *but)
 		glVertex2f(fx, fy);
 	}
 	glEnd();
+	glDisable(GL_LINE_SMOOTH);
+	glDisable(GL_BLEND);
 
 	/* the points, use aspect to make them visible on edges */
 	cmp= cuma->curve;
@@ -2417,3 +2476,33 @@ void ui_draw_but(uiBut *but)
 	}
 }
 
+void ui_dropshadow(rctf *rct, float radius, float aspect, int select)
+{
+	float rad;
+	float a;
+	char alpha= 2;
+	
+	glEnable(GL_BLEND);
+	
+	if(radius > (rct->ymax-rct->ymin-10.0f)/2.0f)
+		rad= (rct->ymax-rct->ymin-10.0f)/2.0f;
+	else
+		rad= radius;
+	
+	if(select) a= 12.0f*aspect; else a= 12.0f*aspect;
+	for(; a>0.0f; a-=aspect) {
+		/* alpha ranges from 2 to 20 or so */
+		glColor4ub(0, 0, 0, alpha);
+		alpha+= 2;
+		
+		gl_round_box(GL_POLYGON, rct->xmin - a, rct->ymin - a, rct->xmax + a, rct->ymax-10.0f + a, rad+a);
+	}
+	
+	/* outline emphasis */
+	glEnable( GL_LINE_SMOOTH );
+	glColor4ub(0, 0, 0, 100);
+	gl_round_box(GL_LINE_LOOP, rct->xmin-0.5f, rct->ymin-0.5f, rct->xmax+0.5f, rct->ymax+0.5f, radius);
+	glDisable( GL_LINE_SMOOTH );
+	
+	glDisable(GL_BLEND);
+}

@@ -59,6 +59,7 @@ int do_ob_key(struct Object *ob);
 
 struct Key *ob_get_key(struct Object *ob);
 struct KeyBlock *ob_get_keyblock(struct Object *ob);
+struct KeyBlock *key_get_keyblock(struct Key *key, int index);
 
 #endif
 

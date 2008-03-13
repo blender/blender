@@ -170,6 +170,7 @@ void do_buts_buttons(short event)
 				}
 			}
 			matcopybuf.nodetree= ntreeCopyTree(ma->nodetree, 0);
+			matcopybuf.preview= NULL;
 			matcopied= 1;
 		}
 		break;
@@ -436,6 +437,14 @@ static uiBlock *buts_view_scenemenu(void *arg_unused)
 		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_DEHLT, "Render|F10",
 		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SCENE]), (float)TAB_SCENE_RENDER, 0.0, 0, 10, "");
 	}
+
+	if((G.buts->mainb == CONTEXT_SCENE) && (G.buts->tab[CONTEXT_SCENE]==TAB_SCENE_SEQUENCER)) {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_HLT, "Sequencer",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SCENE]), (float)TAB_SCENE_SEQUENCER, 0.0, 0, 10, "");
+	} else {
+		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_DEHLT, "Sequencer",
+		0, yco-=20, menuwidth, 19, &(G.buts->tab[CONTEXT_SCENE]), (float)TAB_SCENE_SEQUENCER, 0.0, 0, 10, "");
+	}
 	
 	if((G.buts->mainb == CONTEXT_SCENE) && (G.buts->tab[CONTEXT_SCENE]==TAB_SCENE_ANIM)) {
 		uiDefIconTextButC(block, BUTM, B_REDR, ICON_CHECKBOX_HLT, "Animation",
@@ -683,6 +692,7 @@ void buts_buttons(void)
 	case CONTEXT_SCENE:
 		uiBlockBeginAlign(block);
 		uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_SCENE,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_RENDER, 0, 0, "Render buttons ");
+		uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_SEQUENCE,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_SEQUENCER, 0, 0, "Sequencer buttons ");
 		uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_ANIM,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_ANIM, 0, 0, "Anim/playback buttons");
 		uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_SOUND,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_SOUND, 0, 0, "Sound block buttons");
 		
@@ -690,7 +700,8 @@ void buts_buttons(void)
 	case CONTEXT_OBJECT:
 		uiBlockBeginAlign(block);
 		uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_OBJECT,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_OBJECT, 0, 0, "Object buttons ");
-		uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_EFFECTS,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_PHYSICS, 0, 0, "Physics buttons");
+		uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_PHYSICS,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_PHYSICS, 0, 0, "Physics buttons");
+		uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_PARTICLES,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_PARTICLE, 0, 0, "Particle buttons");
 
 		break;
 	case CONTEXT_SHADING:

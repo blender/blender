@@ -62,12 +62,18 @@ CurveMapping *curvemapping_add(int tot, float minx, float miny, float maxx, floa
 {
 	CurveMapping *cumap;
 	int a;
+	float clipminx, clipminy, clipmaxx, clipmaxy;
 	
 	cumap= MEM_callocN(sizeof(CurveMapping), "new curvemap");
 	cumap->flag= CUMA_DO_CLIP;
 	if(tot==4) cumap->cur= 3;		/* rhms, hack for 'col' curve? */
 	
-	BLI_init_rctf(&cumap->curr, minx, maxx, miny, maxy);
+	clipminx = MIN2(minx, maxx);
+	clipminy = MIN2(miny, maxy);
+	clipmaxx = MAX2(minx, maxx);
+	clipmaxy = MAX2(miny, maxy);
+	
+	BLI_init_rctf(&cumap->curr, clipminx, clipmaxx, clipminy, clipmaxy);
 	cumap->clipr= cumap->curr;
 	
 	cumap->white[0]= cumap->white[1]= cumap->white[2]= 1.0f;
@@ -161,18 +167,30 @@ void curvemap_remove(CurveMap *cuma, int flag)
 void curvemap_insert(CurveMap *cuma, float x, float y)
 {
 	CurveMapPoint *cmp= MEM_callocN((cuma->totpoint+1)*sizeof(CurveMapPoint), "curve points");
-	int a;
-	
-	memcpy(cmp, cuma->curve, (cuma->totpoint)*sizeof(CurveMapPoint));
+	int a, b, foundloc= 0;
+		
+	/* insert fragments of the old one and the new point to the new curve */
+	cuma->totpoint++;
+	for(a=0, b=0; a<cuma->totpoint; a++) {
+		if((x < cuma->curve[a].x) && !foundloc) {
+			cmp[a].x= x;
+			cmp[a].y= y;
+			cmp[a].flag= CUMA_SELECT;
+			foundloc= 1;
+		}
+		else {
+			cmp[a].x= cuma->curve[b].x;
+			cmp[a].y= cuma->curve[b].y;
+			cmp[a].flag= cuma->curve[b].flag;
+			cmp[a].flag &= ~CUMA_SELECT; /* make sure old points don't remain selected */
+			cmp[a].shorty= cuma->curve[b].shorty;
+			b++;
+		}
+	}
+
+	/* free old curve and replace it with new one */
 	MEM_freeN(cuma->curve);
 	cuma->curve= cmp;
-	
-	cuma->curve[cuma->totpoint].x= x;
-	cuma->curve[cuma->totpoint].y= y;
-	cuma->curve[cuma->totpoint].flag = CUMA_SELECT;
-	for(a=0; a<cuma->totpoint; a++, cmp++)
-		cmp->flag= 0;
-	cuma->totpoint++;
 }
 
 void curvemap_reset(CurveMap *cuma, rctf *clipr)

@@ -42,14 +42,29 @@
 
 #include "MEM_guardedalloc.h"
 
+/* ugly bad level, should be fixed */
+#include "DNA_scene_types.h"
+#include "BKE_global.h"
+
+static void cineon_conversion_parameters(LogImageByteConversionParameters *params)
+{
+	params->blackPoint = G.scene->r.cineonblack;
+	params->whitePoint = G.scene->r.cineonwhite;
+	params->gamma = G.scene->r.cineongamma;
+	params->doLogarithm = G.scene->r.subimtype & R_CINEON_LOG;
+}
+
 static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int size, int flags)
 {
+	LogImageByteConversionParameters conversion;
 	ImBuf *ibuf;
 	LogImageFile *image;
 	int x, y;
 	unsigned short *row, *upix;
 	int width, height, depth;
 	float *frow;
+
+	cineon_conversion_parameters(&conversion);
 	
 	image = logImageOpenFromMem(mem, size, use_cineon);
 	
@@ -70,6 +85,8 @@ static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int
 		return NULL;
 	}
 	
+	logImageSetByteConversion(image, &conversion);
+
 	ibuf = IMB_allocImBuf(width, height, 32, IB_rectfloat | flags, 0);
 
 	row = MEM_mallocN(sizeof(unsigned short)*width*depth, "row in cineon_dpx.c");
@@ -107,10 +124,9 @@ static int imb_save_dpx_cineon(ImBuf *buf, char *filename, int use_cineon, int f
 	int i, j;
 	int index;
 	float *fline;
-	
-	conversion.blackPoint = 95;
-	conversion.whitePoint = 685;
-	conversion.gamma = 1;
+
+	cineon_conversion_parameters(&conversion);
+
 	/*
 	 * Get the drawable for the current image...
 	 */

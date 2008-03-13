@@ -53,9 +53,9 @@ subject to the following restrictions:
  * Bullet has been designed in a modular way keeping dependencies to a minimum. The ConvexHullDistance demo demonstrates direct use of btGjkPairDetector.
  *
  * @section copyright Copyright
- * Copyright (C) 2005-2006 Erwin Coumans, some contributions Copyright Gino van den Bergen, Christer Ericson, Simon Hobbs, Ricardo Padrela, F Richter(res), Stephane Redon
+ * Copyright (C) 2005-2007 Erwin Coumans, some contributions Copyright Gino van den Bergen, Christer Ericson, Simon Hobbs, Ricardo Padrela, F Richter(res), Stephane Redon
  * Special thanks to all visitors of the Bullet Physics forum, and in particular above contributors, Dave Eberle, Dirk Gregorius, Erin Catto, Dave Eberle, Adam Moravanszky,
- * Pierre Terdiman, Kenny Erleben, Russell Smith, Oliver Strunk, Jan Paul van Waveren.
+ * Pierre Terdiman, Kenny Erleben, Russell Smith, Oliver Strunk, Jan Paul van Waveren, Marten Svanfeldt.
  * 
  */
  
@@ -66,16 +66,14 @@ subject to the following restrictions:
 
 class btStackAlloc;
 class btCollisionShape;
+class btConvexShape;
 class btBroadphaseInterface;
-#include "LinearMath/btVector3.h"
-#include "LinearMath/btTransform.h"
+#include "../../LinearMath/btVector3.h"
+#include "../../LinearMath/btTransform.h"
 #include "btCollisionObject.h"
 #include "btCollisionDispatcher.h" //for definition of btCollisionObjectArray
-#include "BulletCollision/BroadphaseCollision/btOverlappingPairCache.h"
-
-#include <vector>
-
-
+#include "../BroadphaseCollision/btOverlappingPairCache.h"
+#include "../../LinearMath/btAlignedObjectArray.h"
 
 ///CollisionWorld is interface and container for the collision detection
 class btCollisionWorld
@@ -84,7 +82,7 @@ class btCollisionWorld
 	
 protected:
 
-	std::vector<btCollisionObject*>	m_collisionObjects;
+	btAlignedObjectArray<btCollisionObject*>	m_collisionObjects;
 	
 	btDispatcher*	m_dispatcher1;
 
@@ -137,18 +135,18 @@ public:
 		LocalRayResult(btCollisionObject*	collisionObject, 
 			LocalShapeInfo*	localShapeInfo,
 			const btVector3&		hitNormalLocal,
-			float hitFraction)
+			btScalar hitFraction)
 		:m_collisionObject(collisionObject),
-		m_localShapeInfo(m_localShapeInfo),
+		m_localShapeInfo(localShapeInfo),
 		m_hitNormalLocal(hitNormalLocal),
 		m_hitFraction(hitFraction)
 		{
 		}
 
-		btCollisionObject*	m_collisionObject;
+		btCollisionObject*		m_collisionObject;
 		LocalShapeInfo*			m_localShapeInfo;
-		const btVector3&		m_hitNormalLocal;
-		float					m_hitFraction;
+		btVector3				m_hitNormalLocal;
+		btScalar				m_hitFraction;
 
 	};
 
@@ -158,17 +156,17 @@ public:
 		virtual ~RayResultCallback()
 		{
 		}
-		float	m_closestHitFraction;
+		btScalar	m_closestHitFraction;
 		bool	HasHit()
 		{
-			return (m_closestHitFraction < 1.f);
+			return (m_closestHitFraction < btScalar(1.));
 		}
 
 		RayResultCallback()
-			:m_closestHitFraction(1.f)
+			:m_closestHitFraction(btScalar(1.))
 		{
 		}
-		virtual	float	AddSingleResult(LocalRayResult& rayResult) = 0;
+		virtual	btScalar	AddSingleResult(LocalRayResult& rayResult) = 0;
 	};
 
 	struct	ClosestRayResultCallback : public RayResultCallback
@@ -187,7 +185,7 @@ public:
 		btVector3	m_hitPointWorld;
 		btCollisionObject*	m_collisionObject;
 		
-		virtual	float	AddSingleResult(LocalRayResult& rayResult)
+		virtual	btScalar	AddSingleResult(LocalRayResult& rayResult)
 		{
 
 //caller already does the filter on the m_closestHitFraction
@@ -211,16 +209,23 @@ public:
 
 	/// rayTest performs a raycast on all objects in the btCollisionWorld, and calls the resultCallback
 	/// This allows for several queries: first hit, all hits, any hit, dependent on the value returned by the callback.
-	void	rayTest(const btVector3& rayFromWorld, const btVector3& rayToWorld, RayResultCallback& resultCallback);
+	void	rayTest(const btVector3& rayFromWorld, const btVector3& rayToWorld, RayResultCallback& resultCallback, short int collisionFilterMask=-1);
 
 	/// rayTestSingle performs a raycast call and calls the resultCallback. It is used internally by rayTest.
 	/// In a future implementation, we consider moving the ray test as a virtual method in btCollisionShape.
 	/// This allows more customization.
-	void	rayTestSingle(const btTransform& rayFromTrans,const btTransform& rayToTrans,
+	static void	rayTestSingle(const btTransform& rayFromTrans,const btTransform& rayToTrans,
 					  btCollisionObject* collisionObject,
 					  const btCollisionShape* collisionShape,
 					  const btTransform& colObjWorldTransform,
-					  RayResultCallback& resultCallback);
+					  RayResultCallback& resultCallback, short int collisionFilterMask=-1);
+
+	/// objectQuerySingle performs a collision detection query and calls the resultCallback. It is used internally by rayTest.
+	static void	objectQuerySingle(const btConvexShape* castShape, const btTransform& rayFromTrans,const btTransform& rayToTrans,
+					  btCollisionObject* collisionObject,
+					  const btCollisionShape* collisionShape,
+					  const btTransform& colObjWorldTransform,
+					  RayResultCallback& resultCallback, short int collisionFilterMask=-1);
 
 	void	addCollisionObject(btCollisionObject* collisionObject,short int collisionFilterGroup=1,short int collisionFilterMask=1);
 

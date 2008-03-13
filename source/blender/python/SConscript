@@ -3,7 +3,7 @@ Import ('env')
 
 sources = Split('BPY_interface.c BPY_menus.c') + env.Glob('api2_2x/*.c')
 
-incs = 'api2_2x ../blenkernel ../blenlib ../blenloader'
+incs = 'api2_2x ../blenkernel ../nodes ../blenlib ../blenloader'
 incs += ' ../render/extern/include ../radiosity/extern/include'
 incs += ' ../makesdna #intern/guardedalloc #intern/bmfont ../imbuf ../include'
 incs += ' ' + env['BF_PYTHON_INC']
@@ -19,5 +19,8 @@ if env['WITH_BF_QUICKTIME']==1:
 	
 if env['WITH_BF_OPENEXR'] == 1:
     defs.append('WITH_OPENEXR')
+
+if env['WITH_BF_FFMPEG'] == 1:
+    defs.append('WITH_FFMPEG')
 
 env.BlenderLib ( libname='blender_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype=['core','game2'], priority = [60,115] )

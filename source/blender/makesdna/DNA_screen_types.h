@@ -147,7 +147,9 @@ typedef struct ScrArea {
 #define VERT_SCROLL 3
 #define T_SCROLL 4
 #define B_SCROLL 8
-#define HOR_SCROLL 12
+#define HOR_SCROLL  12
+#define B_SCROLLO   16		/* special hack for outliner hscroll - prevent hanging */
+#define HOR_SCROLLO 20		/*        in older versions of blender 			     */
 
 /* Panel->snap - for snapping to screen edges */
 #define PNL_SNAP_NONE		0

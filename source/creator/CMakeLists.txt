@@ -44,9 +44,16 @@ INCLUDE_DIRECTORIES(../../intern/guardedalloc
   ../kernel/gen_system
 )
 
+
+
 IF(WITH_QUICKTIME)
   ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
+
+IF(LINUX)
+  ADD_DEFINITIONS(-DWITH_BINRELOC)
+  INCLUDE_DIRECTORIES(${BINRELOC_INC})
+endif(LINUX)
 
 IF(YESIAMSTUPID)
   ADD_DEFINITIONS(-DYESIAMSTUPID)
@@ -191,6 +198,10 @@ FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
 SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} src blender_python blender_render blender_radiosity blender_IK bf_elbeem)
 
+IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+  SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} extern_binreloc)
+ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+
 IF(UNIX)
   # Sort libraries
   SET(BLENDER_SORTED_LIBS
@@ -254,6 +265,7 @@ IF(UNIX)
     bf_moto 
     blender_python
     bf_quicktime
+    extern_binreloc
   )
 
   FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})

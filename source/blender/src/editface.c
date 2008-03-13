@@ -40,6 +40,7 @@
 #include "BLI_arithb.h"
 #include "BLI_heap.h"
 #include "BLI_edgehash.h"
+#include "BLI_editVert.h"
 
 #include "MTC_matrixops.h"
 
@@ -62,15 +63,18 @@
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_customdata.h"
 
 #include "BSE_view.h"
 #include "BSE_edit.h"
 #include "BSE_drawview.h"	/* for backdrawview3d */
 
 #include "BIF_editsima.h"
+#include "BIF_editmesh.h"
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
 #include "BIF_toolbox.h"
@@ -90,7 +94,6 @@
 #include "mydevice.h"
 #include "blendef.h"
 #include "butspace.h"
-#include "multires.h"
 
 #include "BSE_trans_types.h"
 
@@ -124,7 +127,7 @@
 /* returns 0 if not found, otherwise 1 */
 int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect)
 {
-	if (!me || !me->mtface || me->totface==0)
+	if (!me || me->totface==0)
 		return 0;
 
 	if (G.vd->flag & V3D_NEEDBACKBUFDRAW) {
@@ -175,27 +178,24 @@ static int facesel_edge_pick(Mesh *me, short *mval, unsigned int *index)
 	return 1;
 }
 
-static void uv_calc_center_vector(float *result, Object *ob, Mesh *me)
+/* only operates on the edit object - this is all thats needed at the moment */
+static void uv_calc_center_vector(float *result, Object *ob, EditMesh *em)
 {
 	float min[3], max[3], *cursx;
-	int a;
-	MTFace *tface;
-	MFace *mface;
-
+	
+	EditFace *efa;
 	switch (G.vd->around) 
 	{
 	case V3D_CENTER: /* bounding box center */
 		min[0]= min[1]= min[2]= 1e20f;
 		max[0]= max[1]= max[2]= -1e20f; 
 
-		tface= me->mtface;
-		mface= me->mface;
-		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(mface->flag & ME_FACE_SEL) {
-				DO_MINMAX((me->mvert+mface->v1)->co, min, max);
-				DO_MINMAX((me->mvert+mface->v2)->co, min, max);
-				DO_MINMAX((me->mvert+mface->v3)->co, min, max);
-				if(mface->v4) DO_MINMAX((me->mvert+mface->v4)->co, min, max);
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if (efa->f & SELECT) {
+				DO_MINMAX(efa->v1->co, min, max);
+				DO_MINMAX(efa->v2->co, min, max);
+				DO_MINMAX(efa->v3->co, min, max);
+				if(efa->v4) DO_MINMAX(efa->v4->co, min, max);
 			}
 		}
 		VecMidf(result, min, max);
@@ -340,27 +340,42 @@ static void uv_calc_shift_project(float *target, float *shift, float rotmat[][4]
 
 void calculate_uv_map(unsigned short mapmode)
 {
-	Mesh *me;
 	MTFace *tface;
-	MFace *mface;
 	Object *ob;
 	float dx, dy, rotatematrix[4][4], radius= 1.0, min[3], cent[3], max[3];
 	float fac= 1.0, upangledeg= 0.0, sideangledeg= 90.0;
-	int i, b, mi, a, n;
+	int i, b, mi, n;
 
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	
 	if(G.scene->toolsettings->uvcalc_mapdir==1)  {
 		upangledeg= 90.0;
 		sideangledeg= 0.0;
-	}
-	else {
+	} else {
 		upangledeg= 0.0;
 		if(G.scene->toolsettings->uvcalc_mapalign==1) sideangledeg= 0.0;
 		else sideangledeg= 90.0;
 	}
-
-	me= get_mesh(ob=OBACT);
-	if(me==0 || me->mtface==0) return;
-	if(me->totface==0) return;
+	
+	/* add uvs if there not here */
+	if (!EM_texFaceCheck()) {
+		if (em && em->faces.first)
+			EM_add_data_layer(&em->fdata, CD_MTFACE);
+		
+		if (!EM_texFaceCheck())
+			return;
+		
+		/* select new UV's */
+		if ((G.sima && G.sima->flag & SI_SYNC_UVSEL)==0) {
+			for(efa=em->faces.first; efa; efa=efa->next) {
+				MTFace *tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				simaFaceSel_Set(efa, tf);
+			}
+		}
+	}
+	
+	ob=OBACT;
 	
 	switch(mapmode) {
 	case B_UVAUTO_BOUNDS:
@@ -369,28 +384,26 @@ void calculate_uv_map(unsigned short mapmode)
 
 		cent[0] = cent[1] = cent[2] = 0.0; 
 		uv_calc_map_matrix(rotatematrix, ob, upangledeg, sideangledeg, 1.0f);
-			
-		tface= me->mtface;
-		mface= me->mface;
-		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(mface->flag & ME_FACE_SEL) {
-				uv_calc_shift_project(tface->uv[0],cent,rotatematrix,3,(me->mvert+mface->v1)->co,min,max);
-				uv_calc_shift_project(tface->uv[1],cent,rotatematrix,3,(me->mvert+mface->v2)->co,min,max);
-				uv_calc_shift_project(tface->uv[2],cent,rotatematrix,3,(me->mvert+mface->v3)->co,min,max);
-				if(mface->v4)
-					uv_calc_shift_project(tface->uv[3],cent,rotatematrix,3,(me->mvert+mface->v4)->co,min,max);
+		
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if (efa->f & SELECT) {
+				tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				uv_calc_shift_project(tface->uv[0],cent,rotatematrix,3, efa->v1->co, min,max);
+				uv_calc_shift_project(tface->uv[1],cent,rotatematrix,3, efa->v2->co, min,max);
+				uv_calc_shift_project(tface->uv[2],cent,rotatematrix,3, efa->v3->co,min,max);
+				if(efa->v4)
+					uv_calc_shift_project(tface->uv[3],cent,rotatematrix,3, efa->v4->co,min,max);
 			}
 		}
 		
-		/* rescale UV to be in 0..1,1/2,1/4,1/8 */
+		/* rescale UV to be in 1/1 */
 		dx= (max[0]-min[0]);
 		dy= (max[1]-min[1]);
 
-		tface= me->mtface;
-		mface= me->mface;
-		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(mface->flag & ME_FACE_SEL) {
-				if(mface->v4) b= 3; else b= 2;
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if (efa->f & SELECT) {
+				tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if(efa->v4) b= 3; else b= 2;
 				for(; b>=0; b--) {
 					tface->uv[b][0]= ((tface->uv[b][0]-min[0])*fac)/dx;
 					tface->uv[b][1]= 1.0-fac+((tface->uv[b][1]-min[1])/* *fac */)/dy;
@@ -402,31 +415,30 @@ void calculate_uv_map(unsigned short mapmode)
 	case B_UVAUTO_WINDOW:		
 		cent[0] = cent[1] = cent[2] = 0.0; 
 		Mat4CpyMat4(rotatematrix,ob->obmat);
-
-		tface= me->mtface;
-		mface= me->mface;
-		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(mface->flag & ME_FACE_SEL) {
-				uv_calc_shift_project(tface->uv[0],cent,rotatematrix,4,(me->mvert+mface->v1)->co,NULL,NULL);
-				uv_calc_shift_project(tface->uv[1],cent,rotatematrix,4,(me->mvert+mface->v2)->co,NULL,NULL);
-				uv_calc_shift_project(tface->uv[2],cent,rotatematrix,4,(me->mvert+mface->v3)->co,NULL,NULL);
-				if(mface->v4)
-					uv_calc_shift_project(tface->uv[3],cent,rotatematrix,4,(me->mvert+mface->v4)->co,NULL,NULL);
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if (efa->f & SELECT) {
+				tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				uv_calc_shift_project(tface->uv[0],cent,rotatematrix,4, efa->v1->co, NULL,NULL);
+				uv_calc_shift_project(tface->uv[1],cent,rotatematrix,4, efa->v2->co, NULL,NULL);
+				uv_calc_shift_project(tface->uv[2],cent,rotatematrix,4, efa->v3->co, NULL,NULL);
+				if(efa->v4)
+					uv_calc_shift_project(tface->uv[3],cent,rotatematrix,4, efa->v4->co, NULL,NULL);
 			}
 		}
 		break;
 
 	case B_UVAUTO_RESET:
-		tface= me->mtface;
-		mface= me->mface;
-		for(a=0; a<me->totface; a++, tface++, mface++)
-			if(mface->flag & ME_FACE_SEL) 
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if (efa->f & SELECT) {
+				tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				default_uv(tface->uv, 1.0);
+			}
+		}
 		break;
 
 	case B_UVAUTO_CYLINDER:
 	case B_UVAUTO_SPHERE:
-		uv_calc_center_vector(cent, ob, me);
+		uv_calc_center_vector(cent, ob, em);
 			
 		if(mapmode==B_UVAUTO_CYLINDER) radius = G.scene->toolsettings->uvcalc_radius;
 
@@ -435,17 +447,15 @@ void calculate_uv_map(unsigned short mapmode)
 			Mat4One(rotatematrix);
 		else 
 			uv_calc_map_matrix(rotatematrix,ob,upangledeg,sideangledeg,radius);
-
-		tface= me->mtface;
-		mface= me->mface;
-		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(mface->flag & ME_FACE_SEL) {
-				uv_calc_shift_project(tface->uv[0],cent,rotatematrix,mapmode,(me->mvert+mface->v1)->co,NULL,NULL);
-				uv_calc_shift_project(tface->uv[1],cent,rotatematrix,mapmode,(me->mvert+mface->v2)->co,NULL,NULL);
-				uv_calc_shift_project(tface->uv[2],cent,rotatematrix,mapmode,(me->mvert+mface->v3)->co,NULL,NULL);
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if (efa->f & SELECT) {
+				tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				uv_calc_shift_project(tface->uv[0],cent,rotatematrix,mapmode, efa->v1->co, NULL,NULL);
+				uv_calc_shift_project(tface->uv[1],cent,rotatematrix,mapmode, efa->v2->co, NULL,NULL);
+				uv_calc_shift_project(tface->uv[2],cent,rotatematrix,mapmode, efa->v3->co, NULL,NULL);
 				n = 3;       
-				if(mface->v4) {
-					uv_calc_shift_project(tface->uv[3],cent,rotatematrix,mapmode,(me->mvert+mface->v4)->co,NULL,NULL);
+				if(efa->v4) {
+					uv_calc_shift_project(tface->uv[3],cent,rotatematrix,mapmode, efa->v4->co, NULL,NULL);
 					n=4;
 				}
 
@@ -471,15 +481,14 @@ void calculate_uv_map(unsigned short mapmode)
 		float no[3];
 		short cox, coy;
 		float *loc= ob->obmat[3];
-		MVert *mv= me->mvert;
+		/*MVert *mv= me->mvert;*/
 		float cubesize = G.scene->toolsettings->uvcalc_cubesize;
 
-		tface= me->mtface;
-		mface= me->mface;
-		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(mface->flag & ME_FACE_SEL) {
-				CalcNormFloat((mv+mface->v1)->co, (mv+mface->v2)->co, (mv+mface->v3)->co, no);
-					
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if (efa->f & SELECT) {
+				tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				CalcNormFloat(efa->v1->co, efa->v2->co, efa->v3->co, no);
+				
 				no[0]= fabs(no[0]);
 				no[1]= fabs(no[1]);
 				no[2]= fabs(no[2]);
@@ -489,43 +498,42 @@ void calculate_uv_map(unsigned short mapmode)
 				else if(no[1]>=no[0] && no[1]>=no[2]) coy= 2;
 				else { cox= 1; coy= 2; }
 				
-				tface->uv[0][0]= 0.5+0.5*cubesize*(loc[cox] + (mv+mface->v1)->co[cox]);
-				tface->uv[0][1]= 0.5+0.5*cubesize*(loc[coy] + (mv+mface->v1)->co[coy]);
+				tface->uv[0][0]= 0.5+0.5*cubesize*(loc[cox] + efa->v1->co[cox]);
+				tface->uv[0][1]= 0.5+0.5*cubesize*(loc[coy] + efa->v1->co[coy]);
 				dx = floor(tface->uv[0][0]);
 				dy = floor(tface->uv[0][1]);
 				tface->uv[0][0] -= dx;
 				tface->uv[0][1] -= dy;
-				tface->uv[1][0]= 0.5+0.5*cubesize*(loc[cox] + (mv+mface->v2)->co[cox]);
-				tface->uv[1][1]= 0.5+0.5*cubesize*(loc[coy] + (mv+mface->v2)->co[coy]);
+				tface->uv[1][0]= 0.5+0.5*cubesize*(loc[cox] + efa->v2->co[cox]);
+				tface->uv[1][1]= 0.5+0.5*cubesize*(loc[coy] + efa->v2->co[coy]);
 				tface->uv[1][0] -= dx;
 				tface->uv[1][1] -= dy;
-				tface->uv[2][0]= 0.5+0.5*cubesize*(loc[cox] + (mv+mface->v3)->co[cox]);
-				tface->uv[2][1]= 0.5+0.5*cubesize*(loc[coy] + (mv+mface->v3)->co[coy]);
+				tface->uv[2][0]= 0.5+0.5*cubesize*(loc[cox] + efa->v3->co[cox]);
+				tface->uv[2][1]= 0.5+0.5*cubesize*(loc[coy] + efa->v3->co[coy]);
 				tface->uv[2][0] -= dx;
 				tface->uv[2][1] -= dy;
-				if(mface->v4) {
-					tface->uv[3][0]= 0.5+0.5*cubesize*(loc[cox] + (mv+mface->v4)->co[cox]);
-					tface->uv[3][1]= 0.5+0.5*cubesize*(loc[coy] + (mv+mface->v4)->co[coy]);
+				if(efa->v4) {
+					tface->uv[3][0]= 0.5+0.5*cubesize*(loc[cox] + efa->v4->co[cox]);
+					tface->uv[3][1]= 0.5+0.5*cubesize*(loc[coy] + efa->v4->co[coy]);
 					tface->uv[3][0] -= dx;
 					tface->uv[3][1] -= dy;
 				}
 			}
 		}
+		break;
 		}
-		break; 
 	default:
 		return;
 	} /* end switch mapmode */
 
 	/* clipping and wrapping */
 	if(G.sima && G.sima->flag & SI_CLIP_UV) {
-		tface= me->mtface;
-		mface= me->mface;
-		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(!(mface->flag & ME_FACE_SEL)) continue;
-				
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if (!(efa->f & SELECT)) continue;
+			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		
 			dx= dy= 0;
-			if(mface->v4) b= 3; else b= 2;
+			if(efa->v4) b= 3; else b= 2;
 			for(; b>=0; b--) {
 				while(tface->uv[b][0] + dx < 0.0) dx+= 0.5;
 				while(tface->uv[b][0] + dx > 1.0) dx-= 0.5;
@@ -533,7 +541,7 @@ void calculate_uv_map(unsigned short mapmode)
 				while(tface->uv[b][1] + dy > 1.0) dy-= 0.5;
 			}
 	
-			if(mface->v4) b= 3; else b= 2;
+			if(efa->v4) b= 3; else b= 2;
 			for(; b>=0; b--) {
 				tface->uv[b][0]+= dx;
 				CLAMP(tface->uv[b][0], 0.0, 1.0);
@@ -552,42 +560,50 @@ void calculate_uv_map(unsigned short mapmode)
 	allqueue(REDRAWIMAGE, 0);
 }
 
-MTFace *get_active_tface(MCol **mcol)
+/* last_sel, use em->act_face otherwise get the last selected face in the editselections
+ * at the moment, last_sel is mainly useful for gaking sure the space image dosnt flicker */
+MTFace *get_active_mtface(EditFace **act_efa, MCol **mcol, short sloppy)
 {
-	Mesh *me;
-	MTFace *tf;
-	MFace *mf;
-	int a;
+	EditMesh *em = G.editMesh;
+	EditFace *efa = NULL;
+	EditSelection *ese;
 	
-	if(OBACT==NULL || OBACT->type!=OB_MESH)
+	if(!EM_texFaceCheck())
 		return NULL;
 	
-	me= get_mesh(OBACT);
-	if(me==0 || me->mtface==0)
-		return NULL;
+	/* first check the active face */
+	if (sloppy && em->act_face) {
+		efa = em->act_face;
+	} else {
+		ese = em->selected.last;
+		for (; ese; ese=ese->prev){
+			if(ese->type == EDITFACE) {
+				efa = (EditFace *)ese->data;
+				
+				if (efa->h)	efa= NULL;
+				else		break;
+			}
+		}
+	}
 	
-	for(a=0, tf=me->mtface; a < me->totface; a++, tf++) {
-		if(tf->flag & TF_ACTIVE) {
-			if(mcol) *mcol = (me->mcol)? &me->mcol[a*4]: NULL;
-			return tf;
+	if (sloppy && !efa) {
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if (efa->f & SELECT)
+				break;
 		}
 	}
-
 	
-	for(a=0, tf=me->mtface, mf=me->mface; a < me->totface; a++, tf++, mf++) {
-		if(mf->flag & ME_FACE_SEL) {
-			if(mcol) *mcol = (me->mcol)? &me->mcol[a*4]: NULL;
-			return tf;
+	if (efa) {
+		if (mcol) {
+			if (CustomData_has_layer(&em->fdata, CD_MCOL))
+				*mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+			else
+				*mcol = NULL;
 		}
+		if (act_efa) *act_efa = efa; 
+		return CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 	}
-
-	for(a=0, tf=me->mtface, mf=me->mface; a < me->totface; a++, tf++, mf++) {
-		if((mf->flag & ME_HIDE)==0) {
-			if(mcol) *mcol = (me->mcol)? &me->mcol[a*4]: NULL;
-			return tf;
-		}
-	}
-
+	if (act_efa) *act_efa= NULL;
 	if(mcol) *mcol = NULL;
 	return NULL;
 }
@@ -634,7 +650,7 @@ void reveal_tface()
 	int a;
 	
 	me= get_mesh(OBACT);
-	if(me==0 || me->mtface==0 || me->totface==0) return;
+	if(me==0 || me->totface==0) return;
 	
 	mface= me->mface;
 	a= me->totface;
@@ -646,7 +662,7 @@ void reveal_tface()
 		mface++;
 	}
 
-	BIF_undo_push("Reveal UV face");
+	BIF_undo_push("Reveal face");
 
 	object_tface_flags_changed(OBACT, 0);
 }
@@ -658,7 +674,7 @@ void hide_tface()
 	int a;
 	
 	me= get_mesh(OBACT);
-	if(me==0 || me->mtface==0 || me->totface==0) return;
+	if(me==0 || me->totface==0) return;
 	
 	if(G.qual & LR_ALTKEY) {
 		reveal_tface();
@@ -682,7 +698,7 @@ void hide_tface()
 		mface++;
 	}
 
-	BIF_undo_push("Hide UV face");
+	BIF_undo_push("Hide face");
 
 	object_tface_flags_changed(OBACT, 0);
 }
@@ -696,7 +712,7 @@ void select_linked_tfaces(int mode)
 
 	ob = OBACT;
 	me = get_mesh(ob);
-	if(me==0 || me->mtface==0 || me->totface==0) return;
+	if(me==0 || me->totface==0) return;
 
 	if (mode==0 || mode==1) {
 		if (!(ob->lay & G.vd->lay))
@@ -716,7 +732,7 @@ void deselectall_tface()
 	int a, sel;
 		
 	me= get_mesh(OBACT);
-	if(me==0 || me->mtface==0) return;
+	if(me==0) return;
 	
 	mface= me->mface;
 	a= me->totface;
@@ -738,7 +754,7 @@ void deselectall_tface()
 		mface++;
 	}
 
-	BIF_undo_push("(De)select all UV face");
+	BIF_undo_push("(De)select all faces");
 
 	object_tface_flags_changed(OBACT, 0);
 }
@@ -750,7 +766,7 @@ void selectswap_tface(void)
 	int a;
 		
 	me= get_mesh(OBACT);
-	if(me==0 || me->mtface==0) return;
+	if(me==0) return;
 	
 	mface= me->mface;
 	a= me->totface;
@@ -763,156 +779,9 @@ void selectswap_tface(void)
 		mface++;
 	}
 
-	BIF_undo_push("Select inverse UV face");
+	BIF_undo_push("Select inverse face");
 
 	object_tface_flags_changed(OBACT, 0);
-}
-
-void rotate_uv_tface()
-{
-	Mesh *me;
-	MFace *mf;
-	MCol *mcol;
-	MTFace *tf;
-	short mode;
-	int a;
-	
-	me= get_mesh(OBACT);
-	if(me==0 || me->mtface==0) return;
-	
-	mode= pupmenu("Rotate %t|UV Co-ordinates %x1|Vertex Colors %x2");
-
-	if (mode == 1 && me->mtface) {
-		tf= me->mtface;
-		mf= me->mface;
-		for(a=0; a<me->totface; a++, tf++, mf++) {
-			if(mf->flag & ME_FACE_SEL) {
-				float u1= tf->uv[0][0];
-				float v1= tf->uv[0][1];
-				
-				tf->uv[0][0]= tf->uv[1][0];
-				tf->uv[0][1]= tf->uv[1][1];
-	
-				tf->uv[1][0]= tf->uv[2][0];
-				tf->uv[1][1]= tf->uv[2][1];
-	
-				if(mf->v4) {
-					tf->uv[2][0]= tf->uv[3][0];
-					tf->uv[2][1]= tf->uv[3][1];
-				
-					tf->uv[3][0]= u1;
-					tf->uv[3][1]= v1;
-				}
-				else {
-					tf->uv[2][0]= u1;
-					tf->uv[2][1]= v1;
-				}
-			}
-		}
-
-		BIF_undo_push("Rotate UV face");
-		object_uvs_changed(OBACT);
-	}
-	else if (mode == 2 && me->mcol) {
-		tf= me->mtface;
-		mcol= me->mcol;
-		mf= me->mface;
-		for(a=0; a<me->totface; a++, tf++, mf++, mcol+=4) {
-			if(mf->flag & ME_FACE_SEL) {
-				MCol tmpcol= mcol[0];
-				
-				mcol[0]= mcol[1];
-				mcol[1]= mcol[2];
-	
-				if(mf->v4) {
-					mcol[2]= mcol[3];
-					mcol[3]= tmpcol;
-				}
-				else
-					mcol[2]= tmpcol;
-			}
-		}
-
-		BIF_undo_push("Rotate color face");
-		object_uvs_changed(OBACT);
-	}
-}
-
-void mirror_uv_tface()
-{
-	Mesh *me;
-	MFace *mf;
-	MTFace *tf;
-	MCol *mcol;
-	short mode;
-	int a;
-	
-	me= get_mesh(OBACT);
-	if(me==0 || me->mtface==0) return;
-	
-	mode= pupmenu("Mirror %t|UV Co-ordinates %x1|Vertex Colors %x2");
-	
-	if (mode==1 && me->mtface) {
-		mf= me->mface;
-		tf= me->mtface;
-
-		for (a=0; a<me->totface; a++, tf++, mf++) {
-			if(mf->flag & ME_FACE_SEL) {
-				float u1= tf->uv[0][0];
-				float v1= tf->uv[0][1];
-				if(mf->v4) {
-					tf->uv[0][0]= tf->uv[3][0];
-					tf->uv[0][1]= tf->uv[3][1];
-				
-					tf->uv[3][0]= u1;
-					tf->uv[3][1]= v1;
-
-					u1= tf->uv[1][0];
-					v1= tf->uv[1][1];
-
-					tf->uv[1][0]= tf->uv[2][0];
-					tf->uv[1][1]= tf->uv[2][1];
-				
-					tf->uv[2][0]= u1;
-					tf->uv[2][1]= v1;
-				}
-				else {
-					tf->uv[0][0]= tf->uv[2][0];
-					tf->uv[0][1]= tf->uv[2][1];
-					tf->uv[2][0]= u1;
-					tf->uv[2][1]= v1;
-				}
-			}
-		}
-	}
-	else if(mode==2 && me->mcol) {
-		mf= me->mface;
-		tf= me->mtface;
-		mcol= me->mcol;
-
-		for (a=0; a<me->totface; a++, tf++, mf++, mcol+=4) {
-			if(mf->flag & ME_FACE_SEL) {
-				MCol tmpcol= mcol[0];
-
-				if(mf->v4) {
-					mcol[0]= mcol[3];
-					mcol[3]= tmpcol;
-
-					tmpcol = mcol[1];
-					mcol[1]= mcol[2];
-					mcol[2]= tmpcol;
-				}
-				else {
-					mcol[0]= mcol[2];
-					mcol[2]= tmpcol;
-				}
-			}
-		}
-	}
-	
-	BIF_undo_push("Mirror UV face");
-
-	object_uvs_changed(OBACT);
 }
 
 int minmax_tface(float *min, float *max)
@@ -1182,7 +1051,7 @@ void seam_mark_clear_tface(short mode)
 	int a;
 	
 	me= get_mesh(OBACT);
-	if(me==0 || me->mtface==0 || me->totface==0) return;
+	if(me==0 ||  me->totface==0) return;
 
 	if (mode == 0)
 		mode = pupmenu("Seams%t|Mark Border Seam %x1|Clear Seam %x2");
@@ -1237,7 +1106,6 @@ void face_select()
 {
 	Object *ob;
 	Mesh *me;
-	MTFace *tface, *tsel;
 	MFace *mface, *msel;
 	short mval[2];
 	unsigned int a, index;
@@ -1257,27 +1125,20 @@ void face_select()
 
 	if (!facesel_face_pick(me, mval, &index, 1)) return;
 	
-	tsel= (((MTFace*)me->mtface)+index);
 	msel= (((MFace*)me->mface)+index);
-
 	if (msel->flag & ME_HIDE) return;
 	
 	/* clear flags */
-	tface = me->mtface;
 	mface = me->mface;
 	a = me->totface;
-	while (a--) {
-		if (G.qual & LR_SHIFTKEY)
-			tface->flag &= ~TF_ACTIVE;
-		else {
-			tface->flag &= ~TF_ACTIVE;
+	if ((G.qual & LR_SHIFTKEY)==0) {
+		while (a--) {
 			mface->flag &= ~ME_FACE_SEL;
+			mface++;
 		}
-		tface++;
-		mface++;
 	}
 	
-	tsel->flag |= TF_ACTIVE;
+	me->act_face = (int)index;
 
 	if (G.qual & LR_SHIFTKEY) {
 		if (msel->flag & ME_FACE_SEL)
@@ -1297,7 +1158,6 @@ void face_select()
 void face_borderselect()
 {
 	Mesh *me;
-	MTFace *tface;
 	MFace *mface;
 	rcti rect;
 	struct ImBuf *ibuf;
@@ -1306,7 +1166,7 @@ void face_borderselect()
 	char *selar;
 	
 	me= get_mesh(OBACT);
-	if(me==0 || me->mtface==0) return;
+	if(me==0) return;
 	if(me->totface==0) return;
 	
 	val= get_border(&rect, 3);
@@ -1339,7 +1199,7 @@ void face_borderselect()
 		}
 		
 		mface= me->mface;
-		for(a=1; a<=me->totface; a++, tface++, mface++) {
+		for(a=1; a<=me->totface; a++, mface++) {
 			if(selar[a]) {
 				if(mface->flag & ME_HIDE);
 				else {
@@ -1420,50 +1280,6 @@ void uv_autocalc_tface()
 	}
 }
 
-void set_faceselect()	/* toggle */
-{
-	Object *ob = OBACT;
-	Mesh *me = 0;
-	
-	if(ob==NULL) return;
-	if(object_data_is_libdata(ob)) {
-		error_libdata();
-		return;
-	}
-	
-	me= get_mesh(ob);
-	
-	scrarea_queue_headredraw(curarea);
-	
-	if(me) /* make sure modifiers are updated for mapping requirements */
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-
-	if(G.f & G_FACESELECT) {
-		G.f &= ~G_FACESELECT;
-
-		if((G.f & (G_WEIGHTPAINT|G_VERTEXPAINT|G_TEXTUREPAINT))==0) {
-			if(me)
-				reveal_tface();
-			setcursor_space(SPACE_VIEW3D, CURSOR_STD);
-			BIF_undo_push("End UV Faceselect");
-		}
-	}
-	else if (me && (ob->lay & G.vd->lay)) {
-		G.f |= G_FACESELECT;
-		if(me->mtface==NULL)
-			make_tfaces(me);
-
-		setcursor_space(SPACE_VIEW3D, CURSOR_FACESEL);
-		BIF_undo_push("Set UV Faceselect");
-	}
-
-	countall();
-
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWIMAGE, 0);
-}
-
 /* Texture Paint */
 
 void set_texturepaint() /* toggle */
@@ -1502,80 +1318,73 @@ void set_texturepaint() /* toggle */
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
-/* Get the barycentric coordinates of 2d point p in 2d triangle (v1, v2, v3) */
-static void texpaint_barycentric_2d(float *v1, float *v2, float *v3, float *p, float *w)
+static void texpaint_project(Object *ob, float *model, float *proj, float *co, float *pco)
 {
-	float b[2], c[2], h[2], div;
+	VECCOPY(pco, co);
+	pco[3]= 1.0f;
 
-	Vec2Subf(b, v1, v3);
-	Vec2Subf(c, v2, v3);
-	Vec2Subf(h, p, v3);
-
-	div= b[0]*c[1] - b[1]*c[0];
-
-	if (div == 0.0) {
-		w[0]= w[1]= w[2]= 1.0f/3.0f;
-	}
-	else {
-		div = 1.0/div;
-		w[0] = (h[0]*c[1] - h[1]*c[0])*div;
-		w[1] = (b[0]*h[1] - b[1]*h[0])*div;
-		w[2] = 1.0 - w[0] - w[1];
-	}
+	Mat4MulVecfl(ob->obmat, pco);
+	Mat4MulVecfl((float(*)[4])model, pco);
+	Mat4MulVec4fl((float(*)[4])proj, pco);
 }
 
-/* Get 2d vertex coordinates of tface projected onto screen */
-static void texpaint_project(Object *ob, double *model, double *proj, GLint *view, float *co, float *pco)
+static void texpaint_tri_weights(Object *ob, float *v1, float *v2, float *v3, float *co, float *w)
 {
-	float obco[3];
-	double winx, winy, winz;
-
-	VecCopyf(obco, co);
-	Mat4MulVecfl(ob->obmat, obco);
-	gluProject(obco[0], obco[1], obco[2], model, proj, view, &winx, &winy, &winz);
-
-	pco[0]= (float)winx;
-	pco[1]= (float)winy;
-}
-
-static int texpaint_projected_verts(Object *ob, MFace *mf, MTFace *tf, MVert *mv, float *v1, float *v2, float *v3, float *v4)
-{
-	double model[16], proj[16];
+	float pv1[4], pv2[4], pv3[4], h[3], divw;
+	float model[16], proj[16], wmat[3][3], invwmat[3][3];
 	GLint view[4];
 
-	persp(PERSP_VIEW);
+	/* compute barycentric coordinates */
 
 	/* get the needed opengl matrices */
 	glGetIntegerv(GL_VIEWPORT, view);
-	glGetDoublev(GL_MODELVIEW_MATRIX, model);
-	glGetDoublev(GL_PROJECTION_MATRIX, proj);
+	glGetFloatv(GL_MODELVIEW_MATRIX, model);
+	glGetFloatv(GL_PROJECTION_MATRIX, proj);
 	view[0] = view[1] = 0;
 
 	/* project the verts */
-	texpaint_project(ob, model, proj, view, mv[0].co, v1);
-	texpaint_project(ob, model, proj, view, mv[1].co, v2);
-	texpaint_project(ob, model, proj, view, mv[2].co, v3);
-	if(mf->v4)
-		texpaint_project(ob, model, proj, view, mv[3].co, v4);
+	texpaint_project(ob, model, proj, v1, pv1);
+	texpaint_project(ob, model, proj, v2, pv2);
+	texpaint_project(ob, model, proj, v3, pv3);
 
-	return (mf->v4? 4: 3);
+	/* do inverse view mapping, see gluProject man page */
+	h[0]= (co[0] - view[0])*2.0f/view[2] - 1;
+	h[1]= (co[1] - view[1])*2.0f/view[3] - 1;
+	h[2]= 1.0f;
+
+	/* solve for (w1,w2,w3)/perspdiv in:
+	   h*perspdiv = Project*Model*(w1*v1 + w2*v2 + w3*v3) */
+
+	wmat[0][0]= pv1[0];  wmat[1][0]= pv2[0];  wmat[2][0]= pv3[0];
+	wmat[0][1]= pv1[1];  wmat[1][1]= pv2[1];  wmat[2][1]= pv3[1];
+	wmat[0][2]= pv1[3];  wmat[1][2]= pv2[3];  wmat[2][2]= pv3[3];
+
+	Mat3Inv(invwmat, wmat);
+	Mat3MulVecfl(invwmat, h);
+
+	VECCOPY(w, h);
+
+	/* w is still divided by perspdiv, make it sum to one */
+	divw= w[0] + w[1] + w[2];
+	if(divw != 0.0f)
+		VecMulf(w, 1.0f/divw);
 }
 
 /* compute uv coordinates of mouse in face */
 void texpaint_pick_uv(Object *ob, Mesh *mesh, unsigned int faceindex, short *xy, float *uv)
 {
-	float v1[2], v2[2], v3[2], v4[2], p[2], w[3];
-	float absw, minabsw;
-	int nvert;
 	DerivedMesh *dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
 	int *index = dm->getFaceDataArray(dm, CD_ORIGINDEX);
 	MTFace *tface = dm->getFaceDataArray(dm, CD_MTFACE), *tf;
 	int numfaces = dm->getNumFaces(dm), a;
+	float p[2], w[3], absw, minabsw;
 	MFace mf;
 	MVert mv[4];
 
 	minabsw = 1e10;
 	uv[0] = uv[1] = 0.0;
+
+	persp(PERSP_VIEW);
 
 	/* test all faces in the derivedmesh with the original index of the picked face */
 	for (a = 0; a < numfaces; a++) {
@@ -1590,18 +1399,13 @@ void texpaint_pick_uv(Object *ob, Mesh *mesh, unsigned int faceindex, short *xy,
 
 			tf= &tface[a];
 
-			/* compute barycentric coordinates of point in face and interpolate uv's.
-			   it's ok to compute the barycentric coords on the projected positions,
-			   because they are invariant under affine transform */
-			nvert= texpaint_projected_verts(ob, &mf, tf, mv, v1, v2, v3, v4);
-
 			p[0]= xy[0];
 			p[1]= xy[1];
 
-			if (nvert == 4) {
-				/* the triangle with the largest absolute values is the one with the
-				   most negative weights */
-				texpaint_barycentric_2d(v1, v2, v4, p, w);
+			if (mf.v4) {
+				/* the triangle with the largest absolute values is the one
+				   with the most negative weights */
+				texpaint_tri_weights(ob, mv[0].co, mv[1].co, mv[3].co, p, w);
 				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
 				if(absw < minabsw) {
 					uv[0]= tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[3][0]*w[2];
@@ -1609,7 +1413,7 @@ void texpaint_pick_uv(Object *ob, Mesh *mesh, unsigned int faceindex, short *xy,
 					minabsw = absw;
 				}
 
-				texpaint_barycentric_2d(v2, v3, v4, p, w);
+				texpaint_tri_weights(ob, mv[1].co, mv[2].co, mv[3].co, p, w);
 				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
 				if (absw < minabsw) {
 					uv[0]= tf->uv[1][0]*w[0] + tf->uv[2][0]*w[1] + tf->uv[3][0]*w[2];
@@ -1618,7 +1422,7 @@ void texpaint_pick_uv(Object *ob, Mesh *mesh, unsigned int faceindex, short *xy,
 				}
 			}
 			else {
-				texpaint_barycentric_2d(v1, v2, v3, p, w);
+				texpaint_tri_weights(ob, mv[0].co, mv[1].co, mv[2].co, p, w);
 				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
 				if (absw < minabsw) {
 					uv[0]= tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[2][0]*w[2];
@@ -1631,71 +1435,3 @@ void texpaint_pick_uv(Object *ob, Mesh *mesh, unsigned int faceindex, short *xy,
 
 	dm->release(dm);
 }
-
- /* Selects all faces which have the same uv-texture as the active face 
- * @author	Roel Spruit
- * @return	Void
- * Errors:	- Active object not in this layer
- *		- No active face or active face has no UV-texture			
- */
-void get_same_uv(void)
-{
-	Object *ob;
-	Mesh *me;
-	MTFace *tface;
-	MFace *mface;	
-	short a, foundtex=0;
-	Image *ima;
-	char uvname[160];
-	
-	ob = OBACT;
-	if (!(ob->lay & G.vd->lay)) {
-		error("The active object is not in this layer");
-		return;
-	}
-	me = get_mesh(ob);
-	
-		
-	/* Search for the active face with a UV-Texture */
-	tface = me->mtface;
-	a = me->totface;
-	while (a--) {		
-		if(tface->flag & TF_ACTIVE){			
-			ima=tface->tpage;
-			if(ima && ima->name){
-				strcpy(uvname,ima->name);			
-				a=0;
-				foundtex=1;
-			}
-		}
-		tface++;
-	}		
-	
-	if(!foundtex) {
-		error("No active face, or active face has no UV texture");
-		return;
-	}
-
-	/* select everything with the same texture */
-	tface = me->mtface;
-	mface = me->mface;
-	a = me->totface;
-	while (a--) {		
-		ima=tface->tpage;
-		if(!(mface->flag & ME_HIDE) && ima && ima->name){
-			if(!strcmp(ima->name, uvname)){
-				mface->flag |= ME_FACE_SEL;
-			}
-			else mface->flag &= ~ME_FACE_SEL;
-		}
-		else mface->flag &= ~ME_FACE_SEL;
-		tface++;
-		mface++;
-	}
-	
-	/* image window redraw */
-	BIF_undo_push("Get same UV");
-
-	object_tface_flags_changed(OBACT, 0);
-}
-

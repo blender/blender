@@ -60,6 +60,10 @@ static const char sArmatureBadArgs[] = "ArmatureType - Bad Arguments: ";
 static const char sModuleError[] = "Blender.Armature - Error: ";
 static const char sModuleBadArgs[] = "Blender.Armature - Bad Arguments: ";
 
+PyObject * arm_weakref_callback_weakref_dealloc(PyObject *self, PyObject *weakref);
+/* python callable */
+PyObject * arm_weakref_callback_weakref_dealloc__pyfunc;
+
 //################## BonesDict_Type (internal) ########################
 /*This is an internal psuedo-dictionary type that allows for manipulation
 * of bones inside of an armature. It is a subobject of armature.
@@ -118,18 +122,19 @@ static PyMethodDef BPy_BonesDict_methods[] = {
 //-----------------(internal)
 static int BoneMapping_Init(PyObject *dictionary, ListBase *bones){
 	Bone *bone = NULL;
-	PyObject *py_bone = NULL, *str;
+	PyObject *py_bone = NULL;
 
 	for (bone = bones->first; bone; bone = bone->next){
 		py_bone = PyBone_FromBone(bone);
 		if (!py_bone)
 			return -1;
 		
-		str = PyString_FromString(bone->name);
-		if(PyDict_SetItem(dictionary, str, py_bone) == -1)
+		if(PyDict_SetItemString(dictionary, bone->name, py_bone) == -1) {
+			/* unlikely but possible */
+			Py_DECREF(py_bone);
 			return -1;
+		}
 		
-		Py_DECREF(str);
 		Py_DECREF(py_bone);
 		if (bone->childbase.first) 
 			BoneMapping_Init(dictionary, &bone->childbase);
@@ -139,18 +144,17 @@ static int BoneMapping_Init(PyObject *dictionary, ListBase *bones){
 //-----------------(internal)
 static int EditBoneMapping_Init(PyObject *dictionary, ListBase *editbones){
 	EditBone *editbone = NULL;
-	PyObject *py_editbone = NULL, *str;
+	PyObject *py_editbone = NULL;
 
 	for (editbone = editbones->first; editbone; editbone = editbone->next){
 		py_editbone = PyEditBone_FromEditBone(editbone);
 		if (!py_editbone)
 			return -1;
 		
-		str = PyString_FromString(editbone->name);
-		if(PyDict_SetItem(dictionary, str, py_editbone) == -1)
+		if(PyDict_SetItemString(dictionary, editbone->name, py_editbone) == -1) {
+			Py_DECREF(py_editbone);
 			return -1;
-		
-		Py_DECREF(str);
+		}
 		Py_DECREF(py_editbone);
 	}
 	return 0;
@@ -242,17 +246,14 @@ static PyObject *BonesDict_GetItem(BPy_BonesDict *self, PyObject* key)
 		value = PyDict_GetItem(self->bonesMap, key);
 	}
 	if(value == NULL){  /* item not found in dict. throw exception */
-		char buffer[128];
-		char* key_str;
-		key_str = PyString_AsString( key );
-		if( !key_str ){  /* key not a py string */
-			key_str = "";  /* use empty string for printing */
+		char* key_str = PyString_AsString( key );
+		if (key_str) {
+			return EXPP_ReturnPyObjError(PyExc_KeyError, "bone key must be a string" );
+		} else {
+			char buffer[128];
+			PyOS_snprintf( buffer, sizeof(buffer), "bone %s not found", key_str);
+			return EXPP_ReturnPyObjError(PyExc_KeyError, buffer );
 		}
-  
-		PyOS_snprintf( buffer, sizeof(buffer),
-					   "bone %s not found", key_str);
-			
-        return EXPP_ReturnPyObjError(PyExc_KeyError, buffer );
 	}
 	return EXPP_incr_ret(value);
 }
@@ -262,107 +263,96 @@ static int BonesDict_SetItem(BPy_BonesDict *self, PyObject *key, PyObject *value
 {
 	BPy_EditBone *editbone_for_deletion;
 	struct EditBone *editbone = NULL;
-	char *key_str = "";
+	char *key_str = PyString_AsString(key);
 
-	if (self->editmode_flag){
-		//Get the key name
-		if(key && PyString_Check(key)){
-			key_str = PyString_AsString(key);
-		}else{
-			goto AttributeError;
-		}
-		//parse value for assignment
-		if (value && EditBoneObject_Check(value)){
-			//create a new editbone
-			editbone = MEM_callocN(sizeof(EditBone), "eBone");
-			BLI_strncpy(editbone->name, key_str, 32);
-			unique_editbone_name(NULL, editbone->name);
-			editbone->dist = ((BPy_EditBone*)value)->dist;
-			editbone->ease1 = ((BPy_EditBone*)value)->ease1;
-			editbone->ease2 = ((BPy_EditBone*)value)->ease2;
-			editbone->flag = ((BPy_EditBone*)value)->flag;
-			editbone->parent = ((BPy_EditBone*)value)->parent;
-			editbone->rad_head = ((BPy_EditBone*)value)->rad_head;
-			editbone->rad_tail = ((BPy_EditBone*)value)->rad_tail;
-			editbone->roll = ((BPy_EditBone*)value)->roll;
-			editbone->segments = ((BPy_EditBone*)value)->segments;
-			editbone->weight = ((BPy_EditBone*)value)->weight;
-			editbone->xwidth = ((BPy_EditBone*)value)->xwidth;
-			editbone->zwidth = ((BPy_EditBone*)value)->zwidth;
-			VECCOPY(editbone->head, ((BPy_EditBone*)value)->head);
-			VECCOPY(editbone->tail, ((BPy_EditBone*)value)->tail);
-			
-			// FIXME, should be exposed via python. this avoids creating bones with no layers.
-			editbone->layer= 1;
-			
-			//set object pointer
-			((BPy_EditBone*)value)->editbone = editbone;
+	if (!self->editmode_flag)
+		return EXPP_intError(PyExc_AttributeError, "%s%s", 
+				sBoneDictBadArgs,  "You must call makeEditable() first");
+	
+	if (!key_str)
+		return EXPP_intError(PyExc_AttributeError, "%s%s", 
+				sBoneDictBadArgs,  "The key must be the name of an editbone");
+	
+	if (value && !EditBoneObject_Check(value))
+		return EXPP_intError(PyExc_AttributeError, "%s%s",
+				sBoneDictBadArgs,  "Can only assign editbones as values");
+	
+	//parse value for assignment
+	if (value){ /* we know this must be an editbone from the above check */
+		//create a new editbone
+		editbone = MEM_callocN(sizeof(EditBone), "eBone");
+		BLI_strncpy(editbone->name, key_str, 32);
+		unique_editbone_name(NULL, editbone->name);
+		editbone->dist = ((BPy_EditBone*)value)->dist;
+		editbone->ease1 = ((BPy_EditBone*)value)->ease1;
+		editbone->ease2 = ((BPy_EditBone*)value)->ease2;
+		editbone->flag = ((BPy_EditBone*)value)->flag;
+		editbone->parent = ((BPy_EditBone*)value)->parent;
+		editbone->rad_head = ((BPy_EditBone*)value)->rad_head;
+		editbone->rad_tail = ((BPy_EditBone*)value)->rad_tail;
+		editbone->roll = ((BPy_EditBone*)value)->roll;
+		editbone->segments = ((BPy_EditBone*)value)->segments;
+		editbone->weight = ((BPy_EditBone*)value)->weight;
+		editbone->xwidth = ((BPy_EditBone*)value)->xwidth;
+		editbone->zwidth = ((BPy_EditBone*)value)->zwidth;
+		VECCOPY(editbone->head, ((BPy_EditBone*)value)->head);
+		VECCOPY(editbone->tail, ((BPy_EditBone*)value)->tail);
+		editbone->layer= ((BPy_EditBone*)value)->layer;
+		
+		//set object pointer
+		((BPy_EditBone*)value)->editbone = editbone;
 
-			//fix the bone's head position if flags indicate that it is 'connected'
-			if (editbone->flag & BONE_CONNECTED){
-				if(!editbone->parent){
-					((BPy_EditBone*)value)->editbone = NULL;
-					MEM_freeN(editbone);
-					goto AttributeError3;
-				}else{
-					VECCOPY(editbone->head, editbone->parent->tail);
-				}
-			}
-
-			//set in editbonelist
-			BLI_addtail(&self->editbones, editbone);
-
-			//set the new editbone in the mapping
-			if(PyDict_SetItemString(self->editbonesMap, key_str, value) == -1){
+		//fix the bone's head position if flags indicate that it is 'connected'
+		if (editbone->flag & BONE_CONNECTED){
+			if(!editbone->parent){
 				((BPy_EditBone*)value)->editbone = NULL;
-				BLI_freelinkN(&self->editbones, editbone);
-				goto RuntimeError;
-			}
-		}else if(!value){
-			//they are trying to delete the bone using 'del'
-			if(PyDict_GetItem(self->editbonesMap, key) != NULL){
-				/*first kill the datastruct then remove the item from the dict
-				and wait for GC to pick it up.
-				We have to delete the datastruct here because the tp_dealloc
-				doesn't handle it*/
-				editbone_for_deletion = (BPy_EditBone*)PyDict_GetItem(self->editbonesMap, key);
-				/*this is ugly but you have to set the parent to NULL for else 
-				editbones_to_armature will crash looking for this bone*/
-				for (editbone = self->editbones.first; editbone; editbone = editbone->next){
-					if (editbone->parent == editbone_for_deletion->editbone) {
-						editbone->parent = NULL;
-						 /* remove the connected flag or else the 'root' ball
-						  * doesn't get drawn */
-						editbone->flag &= ~BONE_CONNECTED;
-					}
-				}
-				BLI_freelinkN(&self->editbones, editbone_for_deletion->editbone);
-				if(PyDict_DelItem(self->editbonesMap, key) == -1)
-					goto RuntimeError;
+				MEM_freeN(editbone);
+					return EXPP_intError(PyExc_AttributeError, "%s%s", 
+							sBoneDictBadArgs,  "The 'connected' flag is set but the bone has no parent!");
 			}else{
-				goto KeyError;
+				VECCOPY(editbone->head, editbone->parent->tail);
 			}
 		}
-		return 0;
-	}else{
-		goto AttributeError2;
-	}
 
-KeyError:
-return EXPP_intError(PyExc_KeyError, "%s%s%s%s", 
-	    sBoneDictError,  "The key: ", key_str, " is not present in this dictionary!");
-RuntimeError:
-	return EXPP_intError(PyExc_RuntimeError, "%s%s", 
-		sBoneDictError,  "Unable to access dictionary!");
-AttributeError:
-	return EXPP_intError(PyExc_AttributeError, "%s%s", 
-		sBoneDictBadArgs,  "Expects EditboneType Object");
-AttributeError2:
-	return EXPP_intError(PyExc_AttributeError, "%s%s", 
-		sBoneDictBadArgs,  "You must call makeEditable() first");
-AttributeError3:
-	return EXPP_intError(PyExc_AttributeError, "%s%s", 
-		sBoneDictBadArgs,  "The 'connected' flag is set but the bone has no parent!");
+		//set in editbonelist
+		BLI_addtail(&self->editbones, editbone);
+
+		//set the new editbone in the mapping
+		if(PyDict_SetItemString(self->editbonesMap, key_str, value) == -1){
+			((BPy_EditBone*)value)->editbone = NULL;
+			BLI_freelinkN(&self->editbones, editbone);
+			return EXPP_intError(PyExc_RuntimeError, "%s%s", 
+					sBoneDictError,  "Unable to access dictionary!");
+		}
+	}else {
+		//they are trying to delete the bone using 'del'
+		editbone_for_deletion = (BPy_EditBone*)PyDict_GetItem(self->editbonesMap, key);
+
+		if (!editbone_for_deletion)
+			return EXPP_intError(PyExc_KeyError, "%s%s%s%s", 
+					sBoneDictError,  "The key: ", key_str, " is not present in this dictionary!");
+
+		/*first kill the datastruct then remove the item from the dict
+		and wait for GC to pick it up.
+		We have to delete the datastruct here because the tp_dealloc
+		doesn't handle it*/
+		
+		/*this is ugly but you have to set the parent to NULL for else 
+		editbones_to_armature will crash looking for this bone*/
+		for (editbone = self->editbones.first; editbone; editbone = editbone->next){
+			if (editbone->parent == editbone_for_deletion->editbone) {
+				editbone->parent = NULL;
+				 /* remove the connected flag or else the 'root' ball
+				  * doesn't get drawn */
+				editbone->flag &= ~BONE_CONNECTED;
+			}
+		}
+		BLI_freelinkN(&self->editbones, editbone_for_deletion->editbone);
+		if(PyDict_DelItem(self->editbonesMap, key) == -1)
+			return EXPP_intError(PyExc_RuntimeError, "%s%s", 
+					sBoneDictError,  "Unable to access dictionary!");
+	}
+	return 0;
 }
 //------------------TYPE_OBJECT DEFINITION--------------------------
 //Mapping Protocol
@@ -892,9 +882,9 @@ AttributeError:
 static PyObject *Armature_getVertexGroups(BPy_Armature *self, void *closure)
 {
 	if (self->armature->deformflag & ARM_DEF_VGROUP)
-		return EXPP_incr_ret(Py_True);
+		Py_RETURN_TRUE;
 	else
-		return EXPP_incr_ret(Py_False);
+		Py_RETURN_FALSE;
 }
 //------------------------Armature.vertexGroups (setter)
 static int Armature_setVertexGroups(BPy_Armature *self, PyObject *value, void *closure)
@@ -935,6 +925,36 @@ AttributeError:
 	return EXPP_intError(PyExc_AttributeError, "%s%s", 
 		sArmatureError, "You are not allowed to change the .Bones attribute");
 }
+
+//------------------------Bone.layerMask (get)
+static PyObject *Armature_getLayerMask(BPy_Armature *self)
+{
+	/* do this extra stuff because the short's bits can be negative values */
+	unsigned short laymask = 0;
+	laymask |= self->armature->layer;
+	return PyInt_FromLong((int)laymask);
+}
+//------------------------Bone.layerMask (set)
+static int Armature_setLayerMask(BPy_Armature *self, PyObject *value)
+{
+	int laymask;
+	if (!PyInt_Check(value)) {
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+									"expected an integer (bitmask) as argument" );
+	}
+	
+	laymask = PyInt_AsLong(value);
+
+	if (laymask <= 0 || laymask > (1<<16) - 1)
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+									"bitmask must have from 1 up to 16 bits set");
+
+	self->armature->layer = 0;
+	self->armature->layer |= laymask;
+
+	return 0;
+}
+
 //------------------TYPE_OBECT IMPLEMENTATION--------------------------
 //------------------------tp_doc
 //The __doc__ string for this object
@@ -982,6 +1002,8 @@ static PyGetSetDef BPy_Armature_getset[] = {
 		"Adds temporal IK chains while grabbing bones", NULL},
 	{"layers", (getter)Armature_getLayers, (setter)Armature_setLayers, 
 		"List of layers for the armature", NULL},
+	{"layerMask", (getter)Armature_getLayerMask, (setter)Armature_setLayerMask, 
+		"Layer bitmask", NULL },
 	{NULL, NULL, NULL, NULL, NULL}
 };
 //------------------------tp_new
@@ -1068,7 +1090,7 @@ static PyObject *Armature_repr(BPy_Armature *self)
 static void Armature_dealloc(BPy_Armature * self)
 {
 	if (self->weaklist != NULL)
-        PyObject_ClearWeakRefs((PyObject *) self);
+		PyObject_ClearWeakRefs((PyObject *) self); /* this causes the weakref dealloc func to be called */
 	
 	Py_DECREF(self->Bones);
 	PyObject_DEL( self );
@@ -1180,6 +1202,10 @@ static PyObject *M_Armature_Get(PyObject * self, PyObject * args)
 			data = G.main->armature.first; //get the first data ID from the armature library
 			while (data){
 				py_armature = Armature_CreatePyObject(data); //*new*
+				if (!py_armature) {
+					EXPP_decr2(seq, dict);
+					return NULL; /* error is set from Armature_CreatePyObject */
+				}
 				sprintf(buffer, "%s", ((bArmature*)data)->id.name +2);
 				if(PyDict_SetItemString(dict, buffer, py_armature) == -1){ //add to dictionary
 					EXPP_decr3(seq, dict, py_armature);
@@ -1197,6 +1223,11 @@ static PyObject *M_Armature_Get(PyObject * self, PyObject * args)
 				data = find_id("AR", name); //get data from library
 				if (data != NULL){
 					py_armature = Armature_CreatePyObject(data); //*new*
+					if (!py_armature) {
+						EXPP_decr2(seq, dict);
+						return NULL; /* error is set from Armature_CreatePyObject */
+					}
+					
 					if(PyDict_SetItemString(dict, name, py_armature) == -1){ //add to dictionary
 						EXPP_decr3(seq, dict, py_armature);
 						goto RuntimeError;
@@ -1293,11 +1324,32 @@ PyObject *Armature_RebuildBones(PyObject *pyarmature)
 {
 	return Armature_update((BPy_Armature*)pyarmature);
 }
+
+/* internal func to remove weakref from weakref list */
+PyObject * arm_weakref_callback_weakref_dealloc(PyObject *self, PyObject *weakref)
+{
+	char *list_name = ARM_WEAKREF_LIST_NAME;
+	PyObject *maindict = NULL, *armlist = NULL;
+	int i;
+	
+	maindict= PyModule_GetDict(PyImport_AddModule(	"__main__"));
+	armlist = PyDict_GetItemString(maindict, list_name);
+	if( !armlist){
+		printf("Oops - update_armature_weakrefs()\n");
+		Py_RETURN_NONE;
+	}
+	
+	i = PySequence_Index(armlist, weakref);
+	if (i==-1) {
+		printf("callback weakref internal error, weakref not in list\n\tthis should never happen.\n");
+		Py_RETURN_NONE;
+	}
+	PySequence_DelItem(armlist, i);
+	Py_RETURN_NONE;
+}
+
 /*-----------------(internal)
- * Converts a bArmature to a PyArmature
- * 
- * WARNING!!! - MEMORY LEAK HERE, Run in a loop and loose your ram.
- * cannot find out why but doesn't seem to be the weakref */
+ * Converts a bArmature to a PyArmature */
 
 PyObject *Armature_CreatePyObject(struct bArmature *armature)
 {
@@ -1305,7 +1357,28 @@ PyObject *Armature_CreatePyObject(struct bArmature *armature)
 	PyObject *maindict = NULL, *weakref = NULL;
 	PyObject *armlist = NULL;  /* list of armature weak refs */
 	char *list_name = ARM_WEAKREF_LIST_NAME;
+	int i;
 
+	//put a weakreference in __main__
+	maindict= PyModule_GetDict(PyImport_AddModule(	"__main__"));
+
+	armlist = PyDict_GetItemString(maindict, list_name);
+	if(!armlist) {
+		printf("Oops - can't get the armature weakref list\n");
+		goto RuntimeError;
+	}
+
+	/* see if we alredy have it */
+	for (i=0; i< PyList_Size(armlist); i++) { 
+		py_armature = (BPy_Armature *)PyWeakref_GetObject(PyList_GET_ITEM(armlist, i));
+		if (BPy_Armature_Check(py_armature) && py_armature->armature == armature) {
+			Py_INCREF(py_armature);
+			/*printf("reusing armature\n");*/
+			return (PyObject *)py_armature;
+		}
+	}
+
+	
 	/*create armature type*/
 	py_armature = PyObject_NEW( BPy_Armature, &Armature_Type );
 	
@@ -1323,18 +1396,14 @@ PyObject *Armature_CreatePyObject(struct bArmature *armature)
 		printf("Oops - creating armature.bones\n");
 		goto RuntimeError;
 	}
-
-	//put a weakreference in __main__
-	maindict= PyModule_GetDict(PyImport_AddModule(	"__main__"));
-
-	armlist = PyDict_GetItemString(maindict, list_name);
-	if( armlist){
-		weakref = PyWeakref_NewProxy((PyObject*)py_armature, Py_None);
-		if (PyList_Append(armlist, weakref) == -1){
-			printf("Oops - list-append failed\n");
-			goto RuntimeError;
-		}
+	
+	weakref = PyWeakref_NewRef((PyObject*)py_armature, arm_weakref_callback_weakref_dealloc__pyfunc);
+	if (PyList_Append(armlist, weakref) == -1){
+		printf("Oops - list-append failed\n");
+		goto RuntimeError;
 	}
+	Py_DECREF(weakref);
+
 	return (PyObject *) py_armature;
 
 RuntimeError:
@@ -1353,7 +1422,10 @@ struct bArmature *Armature_FromPyObject( PyObject * py_obj )
 	return PyArmature_AsArmature((BPy_Armature*)py_obj);
 }
 
-
+/* internal use only */
+static PyMethodDef bpy_arm_weakref_callback_weakref_dealloc[] = {
+	{"arm_weakref_callback_weakref_dealloc", arm_weakref_callback_weakref_dealloc, METH_O, ""}
+};
 
 //-------------------MODULE INITIALIZATION--------------------------------
 PyObject *Armature_Init(void)
@@ -1366,6 +1438,11 @@ PyObject *Armature_Init(void)
 		return EXPP_incr_ret(Py_None);
 	}
 
+	/* Weakref management - used for callbacks so we can
+	 * tell when a callback has been removed that a UI button referenced */
+	arm_weakref_callback_weakref_dealloc__pyfunc = PyCFunction_New(bpy_arm_weakref_callback_weakref_dealloc, NULL);
+	
+	
 	//Register the module
 	module = Py_InitModule3("Blender.Armature", M_Armature_methods, 
 		"The Blender Armature module"); 

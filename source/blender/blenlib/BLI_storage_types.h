@@ -52,6 +52,8 @@ struct header{
 typedef unsigned int mode_t;
 #endif
 
+struct ImBuf;
+
 struct direntry{
 	char	*string;
 	mode_t	type;
@@ -68,6 +70,7 @@ struct direntry{
 	char	extra[16];
 	void	*poin;
 	int		nr;
+	struct ImBuf *image;
 };
 
 struct dirlink

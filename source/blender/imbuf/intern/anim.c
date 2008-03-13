@@ -89,6 +89,7 @@
 #include <ffmpeg/avformat.h>
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/rational.h>
+#include <ffmpeg/swscale.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
@@ -338,12 +339,12 @@ void IMB_close_anim(struct anim * anim) {
 }
 
 
-struct anim * IMB_open_anim(char * name, int ib_flags) {
+struct anim * IMB_open_anim( const char * name, int ib_flags) {
 	struct anim * anim;
 
 	anim = (struct anim*)MEM_callocN(sizeof(struct anim), "anim struct");
 	if (anim != NULL) {
-		strcpy(anim->name, name);
+		strcpy(anim->name, name);  /* fixme: possible buffer overflow here? */
 		anim->ib_flags = ib_flags;
 	}
 	return(anim);
@@ -593,7 +594,7 @@ static int startffmpeg(struct anim * anim) {
 	anim->pFrame = avcodec_alloc_frame();
 	anim->pFrameRGB = avcodec_alloc_frame();
 
-	if (avpicture_get_size(PIX_FMT_RGBA32, anim->x, anim->y)
+	if (avpicture_get_size(PIX_FMT_BGR32, anim->x, anim->y)
 	    != anim->x * anim->y * 4) {
 		fprintf (stderr,
 			 "ffmpeg has changed alloc scheme ... ARGHHH!\n");
@@ -609,7 +610,17 @@ static int startffmpeg(struct anim * anim) {
 	} else {
 		anim->preseek = 0;
 	}
-
+	
+	anim->img_convert_ctx = sws_getContext(
+		anim->pCodecCtx->width,
+		anim->pCodecCtx->height,
+		anim->pCodecCtx->pix_fmt,
+		anim->pCodecCtx->width,
+		anim->pCodecCtx->height,
+		PIX_FMT_BGR32,
+		SWS_FAST_BILINEAR | SWS_PRINT_INFO,
+		NULL, NULL, NULL);
+				
 	return (0);
 }
 
@@ -626,7 +637,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 
 	avpicture_fill((AVPicture *)anim->pFrameRGB, 
 		       (unsigned char*) ibuf->rect, 
-		       PIX_FMT_RGBA32, anim->x, anim->y);
+		       PIX_FMT_BGR32, anim->x, anim->y);
 
 	if (position != anim->curposition + 1) { 
 		if (position > anim->curposition + 1 
@@ -703,36 +714,98 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 			} 
 
 			if(frameFinished && pos_found == 1) {
-				unsigned char * p =(unsigned char*) ibuf->rect;
-				unsigned char * e = p + anim->x * anim->y * 4;
+				if (G.order == B_ENDIAN) {
+					int * dstStride 
+						= anim->pFrameRGB->linesize;
+					uint8_t** dst = anim->pFrameRGB->data;
+					int dstStride2[4]
+						= { dstStride[0], 0, 0, 0 };
+					uint8_t* dst2[4]= {
+						dst[0],	0, 0, 0 };
+					int x,y,h,w;
+					unsigned char* bottom;
+					unsigned char* top;
 
-				img_convert((AVPicture *)anim->pFrameRGB, 
-					    PIX_FMT_RGBA32, 
-					    (AVPicture*)anim->pFrame, 
-					    anim->pCodecCtx->pix_fmt, 
-					    anim->pCodecCtx->width, 
-					    anim->pCodecCtx->height);
-				IMB_flipy(ibuf);
-				if (G.order == L_ENDIAN) {
-					/* BGRA -> RGBA */
-					while (p != e) {
-						unsigned char a = p[0];
-						p[0] = p[2];
-						p[2] = a;
-						p += 4;
+					sws_scale(anim->img_convert_ctx,
+						  anim->pFrame->data,
+						  anim->pFrame->linesize,
+						  0,
+						  anim->pCodecCtx->height,
+						  dst2,
+						  dstStride2);
+				
+					/* workaround: sws_scale 
+					   sets alpha = 0 and compensate
+					   for altivec-bugs and flipy... */
+				
+					bottom = (unsigned char*) ibuf->rect;
+					top = bottom 
+						+ ibuf->x * (ibuf->y-1) * 4;
+
+					h = (ibuf->y + 1) / 2;
+					w = ibuf->x;
+
+					for (y = 0; y < h; y++) {
+						unsigned char tmp[4];
+						unsigned long * tmp_l =
+							(unsigned long*) tmp;
+						tmp[3] = 0xff;
+
+						for (x = 0; x < w; x++) {
+							tmp[0] = bottom[3];
+							tmp[1] = bottom[2];
+							tmp[2] = bottom[1];
+
+							bottom[0] = top[3];
+							bottom[1] = top[2];
+							bottom[2] = top[1];
+							bottom[3] = 0xff;
+								
+							*(unsigned long*) top
+								= *tmp_l;
+
+							bottom +=4;
+							top += 4;
+						}
+						top -= 8 * w;
 					}
+
+					av_free_packet(&packet);
+					break;
 				} else {
-					/* ARGB -> RGBA */
-					while (p != e) {
-						unsigned long a =
-							*(unsigned long*) p;
-						a = (a << 8) | p[0];
-						*(unsigned long*) p = a;
-						p += 4;
+					int * dstStride 
+						= anim->pFrameRGB->linesize;
+					uint8_t** dst = anim->pFrameRGB->data;
+					int dstStride2[4]
+						= { -dstStride[0], 0, 0, 0 };
+					uint8_t* dst2[4]= {
+						dst[0] 
+						+ (anim->y - 1)*dstStride[0],
+						0, 0, 0 };
+					int i;
+					unsigned char* r;
+
+					sws_scale(anim->img_convert_ctx,
+						  anim->pFrame->data,
+						  anim->pFrame->linesize,
+						  0,
+						  anim->pCodecCtx->height,
+						  dst2,
+						  dstStride2);
+				
+					/* workaround: sws_scale 
+					   sets alpha = 0... */
+				
+					r = (unsigned char*) ibuf->rect;
+
+					for (i = 0; i < ibuf->x * ibuf->y;i++){
+						r[3] = 0xff;
+						r+=4;
 					}
+
+					av_free_packet(&packet);
+					break;
 				}
-				av_free_packet(&packet);
-				break;
 			}
 		}
 
@@ -750,6 +823,7 @@ static void free_anim_ffmpeg(struct anim * anim) {
 		av_close_input_file(anim->pFormatCtx);
 		av_free(anim->pFrameRGB);
 		av_free(anim->pFrame);
+		sws_freeContext(anim->img_convert_ctx);
 	}
 	anim->duration = 0;
 }
@@ -819,6 +893,18 @@ static struct ImBuf * anim_getnew(struct anim * anim) {
 	return(ibuf);
 }
 
+struct ImBuf * IMB_anim_previewframe(struct anim * anim) {
+	struct ImBuf * ibuf = 0;
+	int position = 0;
+	
+	ibuf = IMB_anim_absolute(anim, 0);
+	if (ibuf) {
+		IMB_freeImBuf(ibuf);
+		position = anim->duration / 2;
+		ibuf = IMB_anim_absolute(anim, position);
+	}
+	return ibuf;
+}
 
 struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 	struct ImBuf * ibuf = 0;

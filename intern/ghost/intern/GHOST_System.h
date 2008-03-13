@@ -285,6 +285,21 @@ public:
 	 */
 	virtual GHOST_TSuccess getButtons(GHOST_Buttons& buttons) const = 0;
 
+	/**
+	 * Returns the selection buffer
+	 * @param flag		Only used on X11
+	 * @return 		Returns the clipboard data
+	 *
+	 */
+	 virtual GHOST_TUns8* getClipboard(int flag) const = 0;
+	  
+	  /**
+	   * Put data to the Clipboard
+	   * @param buffer	The buffer to copy to the clipboard
+	   * @param flag	The clipboard to copy too only used on X11
+	   */
+	  virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const = 0;
+
 protected:
 	/**
 	 * Initialize the system.

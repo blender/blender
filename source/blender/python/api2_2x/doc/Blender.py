@@ -60,6 +60,7 @@ def Set (request, data):
   @type request: string
   @param request: The setting to change:
       - 'curframe': the current animation frame
+      - 'compressfile' : compress file writing a blend file (Use a boolean value True/False).
       - 'uscriptsdir': user scripts dir
       - 'yfexportdir': yafray temp xml storage dir
       - 'fontsdir': font dir
@@ -68,6 +69,7 @@ def Set (request, data):
       - 'renderdir': default render output dir
       - 'soundsdir': sound dir
       - 'tempdir': temp file storage dir
+	  - 'mipmap' : Use mipmapping in the 3d view (Use a boolean value True/False).
   @type data: int or string
   @param data: The new value.
   """
@@ -79,6 +81,7 @@ def Get (request):
   @param request: The setting data to be returned:
       - 'curframe': the current animation frame.
       - 'curtime' : the current animation time.
+      - 'compressfile' : compress setting from the file menu, return  0 for false or 1 for true.
       - 'staframe': the start frame of the animation.
       - 'endframe': the end frame of the animation.
       - 'rt': the value of the 'rt' button for general debugging
@@ -104,6 +107,7 @@ def Get (request):
       - 'soundsdir': the path to the user defined dir for sound files. (*)
       - 'tempdir': the path to the user defined dir for storage of Blender
             temporary files. (*)
+	  - 'mipmap' : Use mipmapping in the 3d view. (*)
       - 'version' : the Blender version number.
   @note: (*) these can be set in Blender at the User Preferences window -> File
       Paths tab.
@@ -222,7 +226,7 @@ def PackAll ():
   Pack all files.
   """
 
-def Blender_CountPackedFiles():
+def CountPackedFiles():
   """
   Returns the number of packed files.
   """
@@ -235,4 +239,10 @@ def Quit ():
      tests.  For safety, a "quit.blend" file is saved (normal Blender behavior
      upon exiting) when this function is called, so the data in Blender isn't
      lost.
+  """
+def SaveUndoState (message):
+  """
+  Sets an undo at the current state.
+  @param message: Message that appiers in the undo menu
+  @type message: string
   """

@@ -252,6 +252,8 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->edge_seam; break;
 			case TH_EDGE_SHARP:
 				cp= ts->edge_sharp; break;
+			case TH_EDITMESH_ACTIVE:
+				cp= ts->editmesh_active; break;
 			case TH_EDGE_FACESEL:
 				cp= ts->edge_facesel; break;
 			case TH_FACE:
@@ -272,6 +274,8 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->strip; break;
 			case TH_STRIP_SELECT:
 				cp= ts->strip_select; break;
+			case TH_CFRAME:
+				cp= ts->cframe; break;
 				
 			case TH_SYNTAX_B:
 				cp= ts->syntaxb; break;
@@ -367,6 +371,68 @@ void BIF_InitTheme(void)
 	
 	BLI_strncpy(btheme->tui.iconfile, "", sizeof(btheme->tui.iconfile));
 	
+	/* bone color sets */
+		/* set 1 */
+	SETCOL(btheme->tarm[0].solid, 0x9a, 0x00, 0x00, 255);
+	SETCOL(btheme->tarm[0].select, 0xbd, 0x11, 0x11, 255);
+	SETCOL(btheme->tarm[0].active, 0xf7, 0x0a, 0x0a, 255);
+		/* set 2 */
+	SETCOL(btheme->tarm[1].solid, 0xf7, 0x40, 0x18, 255);
+	SETCOL(btheme->tarm[1].select, 0xf6, 0x69, 0x13, 255);
+	SETCOL(btheme->tarm[1].active, 0xfa, 0x99, 0x00, 255);
+	    /* set 3 */
+	SETCOL(btheme->tarm[2].solid, 0x1e, 0x91, 0x09, 255);
+	SETCOL(btheme->tarm[2].select, 0x59, 0xb7, 0x0b, 255);
+	SETCOL(btheme->tarm[2].active, 0x83, 0xef, 0x1d, 255);
+		/* set 4 */
+	SETCOL(btheme->tarm[3].solid, 0x0a, 0x36, 0x94, 255);
+	SETCOL(btheme->tarm[3].select, 0x36, 0x67, 0xdf, 255);
+	SETCOL(btheme->tarm[3].active, 0x5e, 0xc1, 0xef, 255);
+		/* set 5 */
+	SETCOL(btheme->tarm[4].solid, 0xa9, 0x29, 0x4e, 255);
+	SETCOL(btheme->tarm[4].select, 0xc1, 0x41, 0x6a, 255);
+	SETCOL(btheme->tarm[4].active, 0xf0, 0x5d, 0x91, 255);
+		/* set 6 */
+	SETCOL(btheme->tarm[5].solid, 0x43, 0x0c, 0x78, 255);
+	SETCOL(btheme->tarm[5].select, 0x54, 0x3a, 0xa3, 255);
+	SETCOL(btheme->tarm[5].active, 0x87, 0x64, 0xd5, 255);
+		/* set 7 */
+	SETCOL(btheme->tarm[6].solid, 0x24, 0x78, 0x5a, 255);
+	SETCOL(btheme->tarm[6].select, 0x3c, 0x95, 0x79, 255);
+	SETCOL(btheme->tarm[6].active, 0x6f, 0xb6, 0xab, 255);
+		/* set 8 */
+	SETCOL(btheme->tarm[7].solid, 0x4b, 0x70, 0x7c, 255);
+	SETCOL(btheme->tarm[7].select, 0x6a, 0x86, 0x91, 255);
+	SETCOL(btheme->tarm[7].active, 0x9b, 0xc2, 0xcd, 255);
+		/* set 9 */
+	SETCOL(btheme->tarm[8].solid, 0xf4, 0xc9, 0x0c, 255);
+	SETCOL(btheme->tarm[8].select, 0xee, 0xc2, 0x36, 255);
+	SETCOL(btheme->tarm[8].active, 0xf3, 0xff, 0x00, 255);
+		/* set 10 */
+	SETCOL(btheme->tarm[9].solid, 0x1e, 0x20, 0x24, 255);
+	SETCOL(btheme->tarm[9].select, 0x48, 0x4c, 0x56, 255);
+	SETCOL(btheme->tarm[9].active, 0xff, 0xff, 0xff, 255);
+		/* set 11 */
+	SETCOL(btheme->tarm[10].solid, 0x6f, 0x2f, 0x6a, 255);
+	SETCOL(btheme->tarm[10].select, 0x98, 0x45, 0xbe, 255);
+	SETCOL(btheme->tarm[10].active, 0xd3, 0x30, 0xd6, 255);
+		/* set 12 */
+	SETCOL(btheme->tarm[11].solid, 0x6c, 0x8e, 0x22, 255);
+	SETCOL(btheme->tarm[11].select, 0x7f, 0xb0, 0x22, 255);
+	SETCOL(btheme->tarm[11].active, 0xbb, 0xef, 0x5b, 255);
+		/* set 13 */
+	SETCOL(btheme->tarm[12].solid, 0x8d, 0x8d, 0x8d, 255);
+	SETCOL(btheme->tarm[12].select, 0xb0, 0xb0, 0xb0, 255);
+	SETCOL(btheme->tarm[12].active, 0xde, 0xde, 0xde, 255);
+		/* set 14 */
+	SETCOL(btheme->tarm[13].solid, 0x83, 0x43, 0x26, 255);
+	SETCOL(btheme->tarm[13].select, 0x8b, 0x58, 0x11, 255);
+	SETCOL(btheme->tarm[13].active, 0xbd, 0x6a, 0x11, 255);
+		/* set 15 */
+	SETCOL(btheme->tarm[14].solid, 0x08, 0x31, 0x0e, 255);
+	SETCOL(btheme->tarm[14].select, 0x1c, 0x43, 0x0b, 255);
+	SETCOL(btheme->tarm[14].active, 0x34, 0x62, 0x2b, 255);
+	
 	/* space view3d */
 	SETCOL(btheme->tv3d.back, 	115, 115, 115, 255);
 	SETCOL(btheme->tv3d.text, 	0, 0, 0, 255);
@@ -397,6 +463,7 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
 	SETCOL(btheme->tv3d.face_dot, 255, 138, 48, 255);
 	btheme->tv3d.facedot_size= 4;
+	SETCOL(btheme->tv3d.cframe, 0x60, 0xc0, 0x40, 255);
 	
 	SETCOL(btheme->tv3d.bone_solid, 200, 200, 200, 255);
 	SETCOL(btheme->tv3d.bone_pose, 80, 200, 255, 80);		// alpha 80 is not meant editable, used for wire+action draw
@@ -448,6 +515,8 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tact.hilite,  17, 27, 60, 100);	// bar
 	SETCOL(btheme->tact.strip_select, 	0xff, 0xff, 0xaa, 255);
 	SETCOL(btheme->tact.strip, 0xe4, 0x9c, 0xc6, 255);
+	SETCOL(btheme->tact.group, 0x39, 0x7d, 0x1b, 255);
+	SETCOL(btheme->tact.group_active, 0x7d, 0xe9, 0x60, 255);
 
 	/* space nla */
 	btheme->tnla= btheme->tv3d;
@@ -486,8 +555,16 @@ void BIF_InitTheme(void)
 
 	/* space imageselect */
 	btheme->timasel= btheme->tv3d;
+	SETCOL(btheme->timasel.active, 	195, 195, 195, 255); /* active tile */
+	SETCOL(btheme->timasel.grid,  94, 94, 94, 255); /* active file text */
 	SETCOL(btheme->timasel.back, 	110, 110, 110, 255);
-	SETCOL(btheme->timasel.shade1, 	0xaa, 0xaa, 0xba, 255);
+	SETCOL(btheme->timasel.header,	195, 195, 195, 255);	
+	SETCOL(btheme->timasel.shade1,  94, 94, 94, 255);	/* bar */
+	SETCOL(btheme->timasel.shade2,  172, 172, 172, 255); /* sliders */
+	SETCOL(btheme->timasel.hilite,  17, 27, 60, 100);	/* selected tile */
+	SETCOL(btheme->timasel.text, 	0, 0, 0, 255);
+	SETCOL(btheme->timasel.text_hi, 255, 255, 255, 255);
+	SETCOL(btheme->timasel.panel, 	132, 132, 132, 255);
 
 	/* space text */
 	btheme->text= btheme->tv3d;
@@ -533,7 +610,7 @@ void BIF_InitTheme(void)
 
 char *BIF_ThemeColorsPup(int spacetype)
 {
-	char *cp= MEM_callocN(32*32, "theme pup");
+	char *cp= MEM_callocN(32*64, "theme pup");
 	char *str = cp;
 	
 	if(spacetype==0) {
@@ -591,9 +668,11 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Face Selected (transp) %%x%d|", TH_FACE_SELECT);
 			str += sprintf(str, "Face Dot Selected %%x%d|", TH_FACE_DOT);
 			str += sprintf(str, "Face Dot Size %%x%d|", TH_FACEDOT_SIZE);
+			str += sprintf(str, "Active Vert/Edge/Face %%x%d|", TH_EDITMESH_ACTIVE);
 			str += sprintf(str, "Normal %%x%d|", TH_NORMAL);
 			str += sprintf(str, "Bone Solid %%x%d|", TH_BONE_SOLID);
-			str += sprintf(str, "Bone Pose %%x%d", TH_BONE_POSE);
+			str += sprintf(str, "Bone Pose %%x%d|", TH_BONE_POSE);
+			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
 			break;
 		case SPACE_IPO:
 			str += sprintf(str, "Panel %%x%d|", TH_PANEL);
@@ -604,6 +683,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Vertex %%x%d|", TH_VERTEX);
 			str += sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT);
 			str += sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE);
+			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
 			break;
 		case SPACE_FILE:
 			str += sprintf(str, "Selected file %%x%d", TH_HILITE);
@@ -617,6 +697,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Bars selected %%x%d|", TH_HILITE);
 			str += sprintf(str, "Strips %%x%d|", TH_STRIP);
 			str += sprintf(str, "Strips selected %%x%d|", TH_STRIP_SELECT);
+			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
 			break;
 		case SPACE_ACTION:
 			//str += sprintf(str, "Panel %%x%d|", TH_PANEL);
@@ -626,8 +707,11 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "View Sliders %%x%d|", TH_SHADE1);
 			str += sprintf(str, "Channels %%x%d|", TH_SHADE2);
 			str += sprintf(str, "Channels Selected %%x%d|", TH_HILITE);
+			str += sprintf(str, "Channel Group %%x%d|", TH_GROUP);
+			str += sprintf(str, "Active Channel Group %%x%d|", TH_GROUP_ACTIVE);
 			str += sprintf(str, "Long Key %%x%d|", TH_STRIP);
 			str += sprintf(str, "Long Key selected %%x%d|", TH_STRIP_SELECT);
+			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
 			break;
 		case SPACE_IMAGE:
 			str += sprintf(str, "%%l|");
@@ -649,16 +733,23 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Plugin Strip %%x%d|", TH_SEQ_PLUGIN);
 			str += sprintf(str, "Transition Strip %%x%d|", TH_SEQ_TRANSITION);
 			str += sprintf(str, "Meta Strip %%x%d|", TH_SEQ_META);
+			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
 			break;
 		case SPACE_SOUND:
 			str += sprintf(str, "Grid %%x%d|", TH_GRID);
 			str += sprintf(str, "Window Slider %%x%d|", TH_SHADE1);
+			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
 			break;
 		case SPACE_BUTS:
 			str += sprintf(str, "Panel %%x%d|", TH_PANEL);
 			break;
 		case SPACE_IMASEL:
-			str += sprintf(str, "Main Shade %%x%d|", TH_SHADE1);
+			str += sprintf(str, "Tiles %%x%d|", TH_PANEL);
+			str += sprintf(str, "Scrollbar %%x%d|", TH_SHADE1);
+			str += sprintf(str, "Scroll Handle %%x%d|", TH_SHADE2);
+			str += sprintf(str, "Selected File %%x%d|", TH_HILITE);
+			str += sprintf(str, "Active File %%x%d|", TH_ACTIVE);
+			str += sprintf(str, "Active File Text%%x%d|", TH_GRID);			
 			break;
 		case SPACE_TEXT:
 			str += sprintf(str, "Scroll Bar %%x%d|", TH_SHADE1);
@@ -673,6 +764,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			break;
 		case SPACE_TIME:
 			str += sprintf(str, "Grid %%x%d|", TH_GRID);
+			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
 			break;
 		case SPACE_NODE:
 			str += sprintf(str, "Wires %%x%d|", TH_WIRE);

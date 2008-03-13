@@ -36,10 +36,6 @@ DIR = $(OCGDIR)/blender/$(LIBNAME)
 
 include nan_compile.mk
 
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd openbsd linux solaris windows"))
-    CFLAGS += -funsigned-char
-endif
-
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 # OpenGL and Python
@@ -64,6 +60,8 @@ CPPFLAGS += -I../../include
 # to include the render stuff:
 CPPFLAGS += -I../../render/extern/include
 
+# for image stamping
+CPPFLAGS += -I$(NAN_BMFONT)/include
 # for sound
 #CPPFLAGS += -I../../../kernel/gen_system
 CPPFLAGS +=  $(NAN_SDLCFLAGS)
@@ -71,6 +69,7 @@ CPPFLAGS +=  $(NAN_SDLCFLAGS)
 CPPFLAGS += -I$(NAN_IKSOLVER)/include
 CPPFLAGS += -I$(NAN_DECIMATION)/include
 CPPFLAGS += -I$(NAN_ELBEEM)/include
+CPPFLAGS += -I$(NAN_OPENNL)/include
 
 # path to zlib
 CPPFLAGS += -I$(NAN_ZLIB)/include
@@ -80,6 +79,9 @@ CPPFLAGS += -I../../nodes
 
 # path to our own external headerfiles
 CPPFLAGS += -I..
+
+# path to bullet2, for cloth
+CPPFLAGS += -I../../../../extern/bullet2/src
 
 ifeq ($(WITH_FREETYPE2), true)
     CPPFLAGS += -DWITH_FREETYPE2
@@ -99,6 +101,10 @@ endif
 
 ifeq ($(WITH_OPENEXR), true)
     CPPFLAGS += -DWITH_OPENEXR
+endif
+
+ifeq ($(WITH_DDS), true)
+    CPPFLAGS += -DWITH_DDS
 endif
 
 ifeq ($(WITH_QUICKTIME), true)

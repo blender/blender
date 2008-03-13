@@ -347,6 +347,9 @@
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_heap.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_kdtree.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_linklist.c">
 			</File>
 			<File
@@ -356,6 +359,9 @@
 				RelativePath="..\..\..\source\blender\blenlib\intern\boxpack2d.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\bpath.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\dynlib.c">
 			</File>
 			<File
@@ -363,6 +369,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\fileops.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\fnmatch.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\freetypefont.c">
@@ -423,6 +432,9 @@
 				RelativePath="..\..\..\source\blender\blenlib\BLI_boxpack2d.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_bpath.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_callbacks.h">
 			</File>
 			<File
@@ -435,6 +447,9 @@
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_fileops.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_fnmatch.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_ghash.h">
 			</File>
 			<File
@@ -442,6 +457,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_jitter.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_kdtree.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_linklist.h">

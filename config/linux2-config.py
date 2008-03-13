@@ -29,8 +29,14 @@ BF_FMOD = LIBDIR + '/fmod'
 
 WITH_BF_OPENEXR = 'true'
 BF_OPENEXR = '/usr'
+# when compiling with your own openexr lib you might need to set...
+# BF_OPENEXR_INC = '${BF_OPENEXR}/include/OpenEXR ${BF_OPENEXR}/include'
+
 BF_OPENEXR_INC = '${BF_OPENEXR}/include/OpenEXR'
 BF_OPENEXR_LIB = 'Half IlmImf Iex Imath '
+# BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
+
+WITH_BF_DDS = 'true'
 
 WITH_BF_JPEG = 'true'
 BF_JPEG = '/usr'
@@ -112,12 +118,17 @@ BF_ICONV_INC = '${BF_ICONV}/include'
 BF_ICONV_LIB = 'iconv'
 BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 
+WITH_BF_BINRELOC = 'true'
+
 # enable ffmpeg  support
-WITH_BF_FFMPEG = 'false'  # -DWITH_FFMPEG
-BF_FFMPEG = '/usr'
+WITH_BF_FFMPEG = 'true'  # -DWITH_FFMPEG
+BF_FFMPEG = '#extern/ffmpeg'
+BF_FFMPEG_LIB = ''
+# Uncomment the following two lines to use system's ffmpeg
+# BF_FFMPEG = '/usr'
+# BF_FFMPEG_LIB = 'avformat avcodec swscale avutil'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
-BF_FFMPEG_LIB = 'avformat avcodec avutil'
 
 # Mesa Libs should go here if your using them as well....
 WITH_BF_STATICOPENGL = 'false'

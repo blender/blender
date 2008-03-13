@@ -58,6 +58,8 @@
 #include "BSE_time.h"
 #include "BMF_Api.h"
 
+#include "blendef.h"
+
 /* local */
 void drawsoundspace(ScrArea *sa, void *spacedata);
 
@@ -99,7 +101,7 @@ static void draw_sample(bSample *sample)
 	short *sp, sampdx;
 	
 	/* one sample is where in v2d space? (v2d space in frames!) */
-	sampfac= ((float)G.scene->r.frs_sec)/(sample->rate);
+	sampfac= FPS/(sample->rate);
 
 	/* how many samples? */
 	samples= sample->len/(sample->channels*(sample->bits/8));
@@ -161,8 +163,8 @@ static void draw_cfra_sound(SpaceSound *ssound)
 		areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 		
 		if(ssound->flag & SND_DRAWFRAMES) 
-			sprintf(str, "   %d\n", (G.scene->r.cfra));
-		else sprintf(str, "   %.2f\n", (G.scene->r.cfra/(float)G.scene->r.frs_sec));
+			sprintf(str, "   %d\n", CFRA);
+		else sprintf(str, "   %.2f\n", FRA2TIME(CFRA));
 		
 		glRasterPos2f(x, y);
 		glColor3ub(0, 0, 0);
@@ -174,8 +176,8 @@ static void draw_cfra_sound(SpaceSound *ssound)
 	vec[0]*= G.scene->r.framelen;
 
 	vec[1]= G.v2d->cur.ymin;
-	glColor3ub(0x20, 0x90, 0x20);
-	glLineWidth(4.0);
+	BIF_ThemeColor(TH_CFRAME);
+	glLineWidth(2.0);
 
 	glBegin(GL_LINE_STRIP);
 		glVertex2fv(vec);
@@ -184,7 +186,6 @@ static void draw_cfra_sound(SpaceSound *ssound)
 	glEnd();
 	
 	glLineWidth(1.0);
-	
 }
 
 void drawsoundspace(ScrArea *sa, void *spacedata)
@@ -219,7 +220,7 @@ void drawsoundspace(ScrArea *sa, void *spacedata)
 	}
 	
 	draw_cfra_sound(spacedata);
-	draw_markers_timespace();
+	draw_markers_timespace(SCE_MARKERS, 0);
 
 	/* restore viewport */
 	mywinset(curarea->win);

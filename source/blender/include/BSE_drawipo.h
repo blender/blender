@@ -55,6 +55,7 @@ void ipoco_to_areaco_noclip	(struct View2D *v2d, float *vec, short *mval);
 
 void view2d_do_locks		(struct ScrArea *cursa, int flag);
 void view2d_zoom			(struct View2D *v2d, float factor, int winx, int winy);
+void view2d_getscale		(struct View2D *v2d, float *x, float *y);
 void test_view2d			(struct View2D *v2d, int winx, int winy);
 void calc_scrollrcts		(struct ScrArea *sa, struct View2D *v2d, int winx, int winy);
 

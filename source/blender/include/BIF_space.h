@@ -55,6 +55,7 @@ struct SpaceOops;
 #define VIEW3D_HANDLER_OBJECT		3
 #define VIEW3D_HANDLER_PREVIEW		4
 #define VIEW3D_HANDLER_MULTIRES         5
+#define VIEW3D_HANDLER_TRANSFORM	6
 
 /* ipo handler codes */
 #define IPO_HANDLER_PROPERTIES	20
@@ -65,6 +66,8 @@ struct SpaceOops;
 #define IMAGE_HANDLER_CURVES		32
 #define IMAGE_HANDLER_PREVIEW		33
 #define IMAGE_HANDLER_GAME_PROPERTIES	34
+#define IMAGE_HANDLER_VIEW_PROPERTIES	35
+/*#define IMAGE_HANDLER_TRANSFORM_PROPERTIES	36*/
 
 /* action handler codes */
 #define ACTION_HANDLER_PROPERTIES	40
@@ -74,6 +77,9 @@ struct SpaceOops;
 
 /* sequence handler codes */
 #define SEQ_HANDLER_PROPERTIES	60
+
+/* imasel handler codes */
+#define IMASEL_HANDLER_IMAGE	70
 
 /* theme codes */
 #define B_ADD_THEME 	3301
@@ -89,6 +95,7 @@ struct SpaceOops;
 #define B_RECALCLIGHT 	3310
 
 
+void	scrarea_do_winprefetchdraw	(struct ScrArea *sa);
 void	scrarea_do_windraw		(struct ScrArea *sa);
 void	scrarea_do_winchange	(struct ScrArea *sa);
 void	scrarea_do_winhandle	(struct ScrArea *sa, struct BWinEvent *evt);
@@ -114,6 +121,7 @@ extern		 void force_draw_plus(int type, int header);
 extern       void freespacelist(struct ScrArea *sa);
 extern       void handle_view3d_around(void);
 extern       void handle_view3d_lock(void);
+extern		 void handle_view_middlemouse(void);
 extern       void init_v2d_oops(struct ScrArea *, struct SpaceOops *);
 extern       void initipo(struct ScrArea *sa);
 extern       void newspace(struct ScrArea *sa, int type);

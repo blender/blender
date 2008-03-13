@@ -55,6 +55,7 @@ short curve_type( struct Curve *cu);
 void test_curve_type( struct Object *ob);
 void tex_space_curve( struct Curve *cu);
 int count_curveverts( struct ListBase *nurb);
+int count_curveverts_without_handles( struct ListBase *nurb);
 void freeNurb( struct Nurb *nu);
 void freeNurblist( struct ListBase *lb);
 struct Nurb *duplicateNurb( struct Nurb *nu);

@@ -55,7 +55,7 @@ struct	btSubSimplexClosestResult
 	//stores the simplex vertex-usage, using the MASK, 
 	// if m_usedVertices & MASK then the related vertex is used
 	btUsageBitfield	m_usedVertices;
-	float	m_barycentricCoords[4];
+	btScalar	m_barycentricCoords[4];
 	bool m_degenerate;
 
 	void	reset()
@@ -66,15 +66,15 @@ struct	btSubSimplexClosestResult
 	}
 	bool	isValid()
 	{
-		bool valid = (m_barycentricCoords[0] >= 0.f) &&
-			(m_barycentricCoords[1] >= 0.f) &&
-			(m_barycentricCoords[2] >= 0.f) &&
-			(m_barycentricCoords[3] >= 0.f);
+		bool valid = (m_barycentricCoords[0] >= btScalar(0.)) &&
+			(m_barycentricCoords[1] >= btScalar(0.)) &&
+			(m_barycentricCoords[2] >= btScalar(0.)) &&
+			(m_barycentricCoords[3] >= btScalar(0.));
 
 
 		return valid;
 	}
-	void	setBarycentricCoordinates(float a=0.f,float b=0.f,float c=0.f,float d=0.f)
+	void	setBarycentricCoordinates(btScalar a=btScalar(0.),btScalar b=btScalar(0.),btScalar c=btScalar(0.),btScalar d=btScalar(0.))
 	{
 		m_barycentricCoords[0] = a;
 		m_barycentricCoords[1] = b;

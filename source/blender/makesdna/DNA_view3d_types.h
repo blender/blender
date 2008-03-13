@@ -137,7 +137,7 @@ typedef struct View3D {
 	
 	short gridsubdiv;	/* Number of subdivisions in the grid between each highlighted grid line */
 	
-	short snap_target;
+	short pad3;
 	
 	char ndofmode;	/* mode of transform for 6DOF devices -1 not found, 0 normal, 1 fly, 2 ob transform */
 	char ndoffilter;		/*filter for 6DOF devices 0 normal, 1 dominant */
@@ -165,16 +165,12 @@ typedef struct View3D {
 #define V3D_CLIPPING		16384
 #define V3D_DRAW_CENTERS	32768
 
+
 /* View3d->flag2 (short) */
 #define V3D_OPP_DIRECTION_NAME	1
 #define V3D_FLYMODE				2
-#define V3D_TRANSFORM_SNAP		4
-
-/* View3d->snap_target */
-#define V3D_SNAP_TARGET_CLOSEST	0
-#define V3D_SNAP_TARGET_CENTER	1
-#define V3D_SNAP_TARGET_MEDIAN	2
-
+#define V3D_DEPRECATED			4 /* V3D_TRANSFORM_SNAP, moved to a scene setting */
+#define V3D_SOLID_TEX			8
 
 /* View3D->around */
 #define V3D_CENTER		 0
@@ -205,6 +201,7 @@ typedef struct View3D {
 #define V3D_MANIP_LOCAL			1
 #define V3D_MANIP_NORMAL		2
 #define V3D_MANIP_VIEW			3
+#define V3D_MANIP_CUSTOM		4 /* anything of value 4 or higher is custom */
 
 /* View3d->twflag */
    /* USE = user setting, DRAW = based on selection */

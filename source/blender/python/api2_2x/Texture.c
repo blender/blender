@@ -32,6 +32,7 @@
 #include "Texture.h" /*This must come first*/
 
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
@@ -203,11 +204,14 @@ static const EXPP_map_pair tex_type_map[] = {
 
 static const EXPP_map_pair tex_flag_map[] = {
 /* NOTE "CheckerOdd" and "CheckerEven" are new */
-    {"ColorBand",  TEX_COLORBAND },
+	{"ColorBand",  TEX_COLORBAND },
 	{"FlipBlend", TEX_FLIPBLEND},
 	{"NegAlpha", TEX_NEGALPHA},
 	{"CheckerOdd",TEX_CHECKER_ODD},
 	{"CheckerEven",TEX_CHECKER_EVEN},
+	{"PreviewAlpha",TEX_PRV_ALPHA},
+	{"RepeatXMirror",TEX_REPEAT_XMIR},
+	{"RepeatYMirror",TEX_REPEAT_YMIR}, 
 	{NULL, 0}
 };
 
@@ -438,7 +442,10 @@ GETFUNC( getWeight1 );
 GETFUNC( getWeight2 );
 GETFUNC( getWeight3 );
 GETFUNC( getWeight4 );
+#if 0
+/* not defined */
 GETFUNC( getUsers );
+#endif
 
 OLDSETFUNC( setDistMetric );
 OLDSETFUNC( setDistNoise );	/* special case used for ".noisebasis = ...  */
@@ -498,7 +505,7 @@ static int Texture_setNoiseBasis2( BPy_Texture *self, PyObject *args,
 								
 static PyObject *Texture_getColorband( BPy_Texture * self);
 int Texture_setColorband( BPy_Texture * self, PyObject * value);
-static PyObject *Texture_evaluate( BPy_Texture *self, PyObject *args );
+static PyObject *Texture_evaluate( BPy_Texture *self, PyObject *value );
 static PyObject *Texture_copy( BPy_Texture *self );
 
 /*****************************************************************************/
@@ -542,7 +549,7 @@ static PyMethodDef BPy_Texture_methods[] = {
 	 "(s) - Set Dist Noise"},
 	{"setDistMetric", ( PyCFunction ) Texture_oldsetDistMetric, METH_VARARGS,
 	 "(s) - Set Dist Metric"},
-	{"evaluate", ( PyCFunction ) Texture_evaluate, METH_VARARGS,
+	{"evaluate", ( PyCFunction ) Texture_evaluate, METH_O,
 	 "(vector) - evaluate the texture at this position"},
 	{"__copy__", ( PyCFunction ) Texture_copy, METH_NOARGS,
 	 "() - return a copy of the the texture"},
@@ -687,10 +694,6 @@ static PyGetSetDef BPy_Texture_getseters[] = {
 	 (getter)Texture_getType, (setter)Texture_setType,
 	 "Texture's 'Type' mode",
 	 NULL},
-	{"users",
-	 (getter)Texture_getUsers, (setter)NULL,
-	 "Number of texture users",
-	 NULL},
 	{"weight1",
 	 (getter)Texture_getWeight1, (setter)Texture_setWeight1,
 	 "Weight 1 (for Voronoi textures)",
@@ -772,8 +775,8 @@ static PyGetSetDef BPy_Texture_getseters[] = {
 	 (void *)TEX_NORMALMAP},
 	{"colorband",
 	 (getter)Texture_getColorband, (setter)Texture_setColorband,
-	 "Use of image RGB values for normal mapping enabled ('ImageFlags')",
-	 (void *)TEX_NORMALMAP},
+	 "The colorband for this texture",
+	 NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -1163,6 +1166,9 @@ static PyObject *M_Texture_FlagsDict( void )
 		PyConstant_Insert(d, "NEGALPHA", PyInt_FromLong(TEX_NEGALPHA));
 		PyConstant_Insert(d, "CHECKER_ODD", PyInt_FromLong(TEX_CHECKER_ODD)); 
 		PyConstant_Insert(d, "CHECKER_EVEN", PyInt_FromLong(TEX_CHECKER_EVEN));
+		PyConstant_Insert(d, "PREVIEW_ALPHA", PyInt_FromLong(TEX_PRV_ALPHA));
+		PyConstant_Insert(d, "REPEAT_XMIR", PyInt_FromLong(TEX_REPEAT_XMIR));
+		PyConstant_Insert(d, "REPEAT_YMIR", PyInt_FromLong(TEX_REPEAT_YMIR));
 	}
 	return Flags;
 }
@@ -1340,18 +1346,14 @@ Tex *Texture_FromPyObject( PyObject * pyobj )
 
 static PyObject *Texture_getExtend( BPy_Texture * self )
 {
-	PyObject *attr = NULL;
 	const char *extend = NULL;
 
 	if( EXPP_map_getStrVal
 	    ( tex_extend_map, self->texture->extend, &extend ) )
-		attr = PyString_FromString( extend );
+		return PyString_FromString( extend );
 
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "invalid internal extend mode" );
-
-	return attr;
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "invalid internal extend mode" );
 }
 
 static PyObject *Texture_getImage( BPy_Texture * self )
@@ -1367,7 +1369,6 @@ static PyObject *Texture_getImage( BPy_Texture * self )
 
 static PyObject *Texture_oldgetSType( BPy_Texture * self )
 {
-	PyObject *attr = NULL;
 	const char *stype = NULL;
 	int n_stype;
 
@@ -1384,28 +1385,22 @@ static PyObject *Texture_oldgetSType( BPy_Texture * self )
 
 	if( EXPP_map_getStrVal( tex_stype_map[self->texture->type],
 				n_stype, &stype ) )
-		attr = PyString_FromString( stype );
+		return PyString_FromString( stype );
 
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "invalid texture stype internally" );
-
-	return attr;
 }
 
 static PyObject *Texture_oldgetType( BPy_Texture * self )
 {
-	PyObject *attr = NULL;
 	const char *type = NULL;
 
 	if( EXPP_map_getStrVal( tex_type_map, self->texture->type, &type ) )
-		attr = PyString_FromString( type );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+		return PyString_FromString( type );
+	
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "invalid texture type internally" );
-
-	return attr;
 }
 
 static int Texture_setAnimFrames( BPy_Texture * self, PyObject * value )
@@ -1417,7 +1412,12 @@ static int Texture_setAnimFrames( BPy_Texture * self, PyObject * value )
 
 static int Texture_setIUserCyclic( BPy_Texture * self, PyObject * value )
 {
-	if( PyObject_IsTrue( value ) )
+	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if( param )
 		self->texture->iuser.cycl = 1;
 	else
 		self->texture->iuser.cycl = 0;
@@ -1535,20 +1535,15 @@ static int Texture_setFilterSize( BPy_Texture * self, PyObject * value )
 static int Texture_setFlags( BPy_Texture * self, PyObject * value )
 {
 	int param;
-	int bitmask = TEX_FLIPBLEND
-					| TEX_COLORBAND
-					| TEX_NEGALPHA
-					| TEX_CHECKER_ODD
-					| TEX_CHECKER_EVEN;
 
-	if( !PyInt_CheckExact ( value ) ) {
+	if( !PyInt_Check( value ) ) {
 		char errstr[128];
-		sprintf ( errstr , "expected int bitmask of 0x%08x", bitmask );
+		sprintf ( errstr , "expected int bitmask of 0x%08x", TEX_FLAG_MASK );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 	}
 	param = PyInt_AS_LONG ( value );
 
-	if ( ( param & bitmask ) != param )
+	if ( ( param & TEX_FLAG_MASK ) != param )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 						"invalid bit(s) set in mask" );
 
@@ -1568,16 +1563,24 @@ static int Texture_setImage( BPy_Texture * self, PyObject * value )
 {
 	Image *blimg = NULL;
 
-	if( !BPy_Image_Check (value) )
+	if ( value != Py_None && !BPy_Image_Check (value) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-					      "expected an Image" );
-	blimg = Image_FromPyObject( value );
+					      "expected an Image or None" );
+
 
 	if( self->texture->ima ) {
 		self->texture->ima->id.us--;
+		self->texture->ima = NULL;
 	}
 
+	if ( value == Py_None )
+		return 0;
+
+	blimg = Image_FromPyObject( value );
+
 	self->texture->ima = blimg;
+	self->texture->type = TEX_IMAGE;
+	BKE_image_signal(blimg, &self->texture->iuser, IMA_SIGNAL_RELOAD );
 	id_us_plus( &blimg->id );
 
 	return 0;
@@ -1613,7 +1616,7 @@ static int Texture_setImageFlags( BPy_Texture * self, PyObject * value,
 					| TEX_CALCALPHA
 					| TEX_NORMALMAP;
 
-		if( !PyInt_CheckExact ( value ) ) {
+		if( !PyInt_Check( value ) ) {
 			char errstr[128];
 			sprintf ( errstr , "expected int bitmask of 0x%08x", bitmask );
 			return EXPP_ReturnIntError( PyExc_TypeError, errstr );
@@ -1634,7 +1637,12 @@ static int Texture_setImageFlags( BPy_Texture * self, PyObject * value,
 static int Texture_setIUserFlags( BPy_Texture * self, PyObject * value,
 									void *flag )
 {
-	if( PyObject_IsTrue(value) )
+	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if( param )
 		self->texture->iuser.flag |= (int)flag;
 	else
 		self->texture->iuser.flag &= ~(int)flag;
@@ -1685,7 +1693,7 @@ static int Texture_setNoiseBasis( BPy_Texture * self, PyObject * value )
 {
     int param;
 
-	if( !PyInt_CheckExact ( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, 
 				"expected int (see 'Noise' constant dictionary)" );
 
@@ -1711,7 +1719,7 @@ static int Texture_setNoiseBasis2( BPy_Texture * self, PyObject * value,
 
 	if( (int)type == EXPP_TEX_NOISEBASIS2 ) {
     	int param;
-		if( !PyInt_CheckExact ( value ) )
+		if( !PyInt_Check( value ) )
 			return EXPP_ReturnIntError( PyExc_TypeError, 
 					"expected int (see 'Noise' constant dictionary)" );
 
@@ -1731,7 +1739,7 @@ static int Texture_setNoiseBasis2( BPy_Texture * self, PyObject * value,
 	 */
 
 	} else {
-		if( !PyInt_CheckExact ( value ) )
+		if( !PyInt_Check( value ) )
 			return EXPP_ReturnIntError( PyExc_TypeError, 
 					"expected int value of 1" );
 
@@ -1783,7 +1791,7 @@ static int Texture_setSType( BPy_Texture * self, PyObject * value )
 	short param;
 	const char *dummy = NULL;
 
-	if( !PyInt_CheckExact ( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					      "expected int argument" );
 
@@ -1992,13 +2000,7 @@ static int Texture_setIpo( BPy_Texture * self, PyObject * value )
 
 static PyObject *Texture_getAnimFrames( BPy_Texture *self )
 {
-	PyObject *attr = PyInt_FromLong( self->texture->iuser.frames );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyInt_FromLong( self->texture->iuser.frames );
 }
 
 static PyObject *Texture_getIUserCyclic( BPy_Texture *self )
@@ -2013,20 +2015,12 @@ static PyObject *Texture_getIUserCyclic( BPy_Texture *self )
 /* disabled. this option was too stupid! (ton) */
 static PyObject *Texture_getAnimLength( BPy_Texture *self )
 {
-	PyObject *attr = PyInt_FromLong( self->texture->len );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-		"couldn't get attribute" );
-
-	return attr;
+	return PyInt_FromLong( self->texture->len );
 }
 
 static PyObject *Texture_getAnimMontage( BPy_Texture *self )
-{
-	PyObject *attr;
-	
-	attr = Py_BuildValue( "((i,i),(i,i),(i,i),(i,i))",
+{	
+	return Py_BuildValue( "((i,i),(i,i),(i,i),(i,i))",
 						self->texture->fradur[0][0],
 						self->texture->fradur[0][1],
 						self->texture->fradur[1][0],
@@ -2035,182 +2029,88 @@ static PyObject *Texture_getAnimMontage( BPy_Texture *self )
 						self->texture->fradur[2][1],
 						self->texture->fradur[3][0],
 						self->texture->fradur[3][1] );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
 }
 #endif
 
 static PyObject *Texture_getAnimOffset( BPy_Texture *self )
 {
-	PyObject *attr = PyInt_FromLong( self->texture->iuser.offset );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyInt_FromLong( self->texture->iuser.offset );
 }
 
 static PyObject *Texture_getAnimStart( BPy_Texture *self )
 {
-	PyObject *attr = PyInt_FromLong( self->texture->iuser.sfra );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyInt_FromLong( self->texture->iuser.sfra );
 }
 
 static PyObject *Texture_getBrightness( BPy_Texture *self )
 {
-	PyObject *attr = PyFloat_FromDouble ( self->texture->bright );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyFloat_FromDouble ( self->texture->bright );
 }
 
 static PyObject *Texture_getContrast( BPy_Texture *self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->texture->contrast );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyFloat_FromDouble( self->texture->contrast );
 }
 
 static PyObject *Texture_getCrop( BPy_Texture *self )
 {
-	PyObject *attr;
-
-	attr = Py_BuildValue( "(f,f,f,f)",
+	return Py_BuildValue( "(f,f,f,f)",
 							self->texture->cropxmin,
 							self->texture->cropymin,
 							self->texture->cropxmax,
 							self->texture->cropymax );
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
 }
 
 static PyObject *Texture_getDistAmnt( BPy_Texture *self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->texture->dist_amount );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyFloat_FromDouble( self->texture->dist_amount );
 }
 
 static PyObject *Texture_getDistMetric( BPy_Texture *self )
 {
-	PyObject *attr = PyInt_FromLong( self->texture->vn_distm );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyInt_FromLong( self->texture->vn_distm );
 }
 
 static PyObject *Texture_getExp( BPy_Texture *self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->texture->vn_mexp );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyFloat_FromDouble( self->texture->vn_mexp );
 }
 
 static PyObject *Texture_getIntExtend( BPy_Texture * self )
 {
-	PyObject *attr = PyInt_FromLong( self->texture->extend );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyInt_FromLong( self->texture->extend );
 }
 
 static PyObject *Texture_getFieldsPerImage( BPy_Texture *self )
 {
-	PyObject *attr = PyInt_FromLong( self->texture->iuser.fie_ima );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyInt_FromLong( self->texture->iuser.fie_ima );
 }
 
 static PyObject *Texture_getFilterSize( BPy_Texture *self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->texture->filtersize );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyFloat_FromDouble( self->texture->filtersize );
 }
 
 static PyObject *Texture_getFlags( BPy_Texture *self )
 {
-	PyObject *attr = PyInt_FromLong( self->texture->flag );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyInt_FromLong( self->texture->flag );
 }
 
 static PyObject *Texture_getHFracDim( BPy_Texture *self )
 {
-	PyObject *attr = PyInt_FromLong( (long)self->texture->mg_H );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyInt_FromLong( (long)self->texture->mg_H );
 }
 
 static PyObject *Texture_getImageFlags( BPy_Texture *self, void *type )
 {
-	PyObject *attr;
-
-	/*
-	 * type == 0 means attribute "imageFlags"
+	/* type == 0 means attribute "imageFlags"
 	 * other types means attribute "mipmap", "calcAlpha", etc
 	 */
 
 	if( (int)type )
-		attr = EXPP_getBitfield( &self->texture->imaflag, (int)type, 'h' );
+		return EXPP_getBitfield( &self->texture->imaflag, (int)type, 'h' );
 	else
-		attr = PyInt_FromLong( self->texture->imaflag );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+		return PyInt_FromLong( self->texture->imaflag );
 }
 
 static PyObject *Texture_getIUserFlags( BPy_Texture *self, void *flag )
@@ -2223,231 +2123,108 @@ static PyObject *Texture_getIUserFlags( BPy_Texture *self, void *flag )
 
 static PyObject *Texture_getIScale( BPy_Texture *self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->texture->ns_outscale );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyFloat_FromDouble( self->texture->ns_outscale );
 }
 
 static PyObject *Texture_getLacunarity( BPy_Texture *self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->texture->mg_lacunarity );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyFloat_FromDouble( self->texture->mg_lacunarity );
 }
 
 static PyObject *Texture_getNoiseBasis( BPy_Texture *self )
 {
-	PyObject *attr = PyInt_FromLong( self->texture->noisebasis );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyInt_FromLong( self->texture->noisebasis );
 }
 
 static PyObject *Texture_getNoiseBasis2( BPy_Texture *self, void *type )
 {
-	PyObject *attr;
-
-	/*
-	 * type == EXPP_TEX_NOISEBASIS2 means attribute "noiseBasis2"
+	/* type == EXPP_TEX_NOISEBASIS2 means attribute "noiseBasis2"
 	 * other types means attribute "sine", "saw", or "tri" attribute
 	 */
 
 	if( (int)type == EXPP_TEX_NOISEBASIS2 )
-		attr = PyInt_FromLong( self->texture->noisebasis2 );
+		return PyInt_FromLong( self->texture->noisebasis2 );
 	else
-		attr = PyInt_FromLong( ( self->texture->noisebasis2 == (int)type ) ? 1 : 0 );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+		return PyInt_FromLong( ( self->texture->noisebasis2 == (int)type ) ? 1 : 0 );
 }
 
 static PyObject *Texture_getNoiseDepth( BPy_Texture *self )
 {
-	PyObject *attr = PyInt_FromLong( self->texture->noisedepth );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyInt_FromLong( self->texture->noisedepth );
 }
 
 static PyObject *Texture_getNoiseSize( BPy_Texture *self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->texture->noisesize );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyFloat_FromDouble( self->texture->noisesize );
 }
 
 static PyObject *Texture_getNoiseType( BPy_Texture *self )
 {
-	PyObject *attr;
-
 	if ( self->texture->noisetype == TEX_NOISESOFT )
-		attr = PyString_FromString( "soft" );
+		return PyString_FromString( "soft" );
 	else
-		attr = PyString_FromString( "hard" );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+		return PyString_FromString( "hard" );
 }
 
 static PyObject *Texture_getOcts( BPy_Texture *self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->texture->mg_octaves );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyFloat_FromDouble( self->texture->mg_octaves );
 }
 
 static PyObject *Texture_getRepeat( BPy_Texture *self )
 {
-	PyObject *attr;
-
-	attr = Py_BuildValue( "(i,i)", self->texture->xrepeat,
+	return Py_BuildValue( "(i,i)", self->texture->xrepeat,
 									self->texture->yrepeat );
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
 }
 
 static PyObject *Texture_getRGBCol( BPy_Texture *self )
 {
-	PyObject *attr;
-
-	attr = Py_BuildValue( "(f,f,f)", self->texture->rfac,
+	return Py_BuildValue( "(f,f,f)", self->texture->rfac,
 									self->texture->gfac, self->texture->bfac );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
 }
 
 static PyObject *Texture_getSType( BPy_Texture *self )
 {
-	PyObject *attr;
-
 	if( self->texture->type == TEX_VORONOI )
-		attr = PyInt_FromLong( self->texture->vn_coltype );
+		return PyInt_FromLong( self->texture->vn_coltype );
 #if 0
-	else if( self->texture->type == TEX_MUSGRAVE )
-		attr = PyInt_FromLong( self->texture->noisebasis );
+	if( self->texture->type == TEX_MUSGRAVE )
+		return PyInt_FromLong( self->texture->noisebasis );
 #endif
-	else if( self->texture->type == TEX_ENVMAP )
-		attr = PyInt_FromLong( self->texture->env->stype );
-	else 
-		attr = PyInt_FromLong( self->texture->stype );
+	if( self->texture->type == TEX_ENVMAP )
+		return PyInt_FromLong( self->texture->env->stype );
 
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyInt_FromLong( self->texture->stype );
 }
 
 static PyObject *Texture_getTurbulence( BPy_Texture *self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->texture->turbul );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyFloat_FromDouble( self->texture->turbul );
 }
 
 static PyObject *Texture_getType( BPy_Texture *self )
 {
-	PyObject *attr = PyInt_FromLong( self->texture->type );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
-}
-
-static PyObject *Texture_getUsers( BPy_Texture *self )
-{
-	PyObject *attr = PyInt_FromLong( self->texture->id.us );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyInt_FromLong( self->texture->type );
 }
 
 static PyObject *Texture_getWeight1( BPy_Texture *self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->texture->vn_w1 );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyFloat_FromDouble( self->texture->vn_w1 );
 }
 
 static PyObject *Texture_getWeight2( BPy_Texture *self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->texture->vn_w2 );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyFloat_FromDouble( self->texture->vn_w2 );
 }
 
 static PyObject *Texture_getWeight3( BPy_Texture *self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->texture->vn_w3 );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyFloat_FromDouble( self->texture->vn_w3 );
 }
 
 static PyObject *Texture_getWeight4( BPy_Texture *self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->texture->vn_w4 );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't get attribute" );
-
-	return attr;
+	return PyFloat_FromDouble( self->texture->vn_w4 );
 }
 
 /* #####DEPRECATED###### */
@@ -2704,20 +2481,34 @@ int Texture_setColorband( BPy_Texture * self, PyObject * value)
 	return EXPP_Colorband_fromPyList( &self->texture->coba, value );
 }
 
-static PyObject *Texture_evaluate( BPy_Texture * self, PyObject * args )
+static PyObject *Texture_evaluate( BPy_Texture * self, PyObject * value )
 {
-	VectorObject *vec_in = NULL;
 	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float vec[4];
 	/* int rgbnor; dont use now */
 	
-	if(!PyArg_ParseTuple(args, "O!", &vector_Type, &vec_in) || vec_in->size < 3)
-		return EXPP_ReturnPyObjError(PyExc_TypeError, 
-			"expects a 3D vector object");
-	
-	/* rgbnor = .. we don't need this now */
-	multitex_ext(self->texture, vec_in->vec, NULL, NULL, 1, &texres);
-	
+	if (VectorObject_Check(value)) {
+		if(((VectorObject *)value)->size < 3)
+			return EXPP_ReturnPyObjError(PyExc_TypeError, 
+					"expects a 3D vector object or a tuple of 3 numbers");
+		
+		/* rgbnor = .. we don't need this now */
+		multitex_ext(self->texture, ((VectorObject *)value)->vec, NULL, NULL, 1, &texres);
+	} else {
+		float vec_in[3];
+		if (!PyTuple_Check(value) || PyTuple_Size(value) < 3)
+			return EXPP_ReturnPyObjError(PyExc_TypeError, 
+					"expects a 3D vector object or a tuple of 3 numbers");
+		
+		vec_in[0] = PyFloat_AsDouble(PyTuple_GET_ITEM(value, 0));
+		vec_in[1] = PyFloat_AsDouble(PyTuple_GET_ITEM(value, 1));
+		vec_in[2] = PyFloat_AsDouble(PyTuple_GET_ITEM(value, 2));
+		if (PyErr_Occurred())
+			return EXPP_ReturnPyObjError(PyExc_TypeError, 
+					"expects a 3D vector object or a tuple of 3 numbers");
+		
+		multitex_ext(self->texture, vec_in, NULL, NULL, 1, &texres);
+	}
 	vec[0] = texres.tr;
 	vec[1] = texres.tg;
 	vec[2] = texres.tb;

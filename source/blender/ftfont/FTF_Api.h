@@ -106,12 +106,12 @@ FTF_EXPORT float FTF_GetStringWidth(char* str, unsigned int flag);
 
 /**
  * Get Bounding Box
- * @param llx
- * @param lly
- * @param llz
- * @param urx
- * @param ury
- * @param urz
+ * @param llx   Lower left near x coord
+ * @param lly   Lower left near y coord
+ * @param llz   Lower left near z coord
+ * @param urx   Upper right far x coord
+ * @param ury   Upper right far y coord
+ * @param urz   Upper right far z coord
  * @param mode flag to forward to FTF_TransConvString()
  * not test yet.
  */
@@ -153,6 +153,10 @@ FTF_EXPORT void FTF_SetMode(int mode);
 FTF_EXPORT void FTF_SetScale(float fsize);
 
 FTF_EXPORT void FTF_End(void);
+
+/* Font preview functions */
+FTF_EXPORT int FTF_GetNewFont (const unsigned char *str, int datasize, int fontsize);
+FTF_EXPORT float FTF_DrawNewFontString(char* str, unsigned int flag);
 
 #ifdef __cplusplus
 }

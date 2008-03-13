@@ -78,9 +78,11 @@ void unlink_armature(struct bArmature *arm);
 void free_armature(struct bArmature *arm);
 void make_local_armature(struct bArmature *arm);
 struct bArmature *copy_armature(struct bArmature *arm);
-void bone_flip_name (char *name, int strip_number);
 
-struct bArmature* get_armature (struct Object* ob);
+void bone_flip_name (char *name, int strip_number);
+void bone_autoside_name (char *name, int strip_number, short axis, float head, float tail);
+
+struct bArmature *get_armature (struct Object *ob);
 struct Bone *get_named_bone (struct bArmature *arm, const char *name);
 
 float distfactor_to_bone (float vec[3], float b1[3], float b2[3], float rad1, float rad2, float rdist);
@@ -112,7 +114,7 @@ typedef struct Mat4 {
 	float mat[4][4];
 } Mat4;
 
-Mat4 *b_bone_spline_setup(struct bPoseChannel *pchan);
+Mat4 *b_bone_spline_setup(struct bPoseChannel *pchan, int rest);
 
 #ifdef __cplusplus
 }

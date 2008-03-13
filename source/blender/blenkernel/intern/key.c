@@ -545,26 +545,26 @@ static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 			case IPO_FLOAT:
 				
 				if(weights) {
-					memcpy(poin, kref, 4*cp[0]);
+					memcpy(poin, kref, sizeof(float)*cp[0]);
 					if(*weights!=0.0f)
 						rel_flerp(cp[0], (float *)poin, (float *)kref, (float *)k1, *weights);
 					weights++;
 				}
 				else 
-					memcpy(poin, k1, 4*cp[0]);
+					memcpy(poin, k1, sizeof(float)*cp[0]);
 
 				poin+= ofsp[0];
 
 				break;
 			case IPO_BPOINT:
-				memcpy(poin, k1, 3*4);
-				memcpy(poin+16, k1+12, 4);
+				memcpy(poin, k1, 3*sizeof(float));
+				memcpy(poin+4*sizeof(float), k1+3*sizeof(float), sizeof(float));
 				
 				poin+= ofsp[0];				
 
 				break;
 			case IPO_BEZTRIPLE:
-				memcpy(poin, k1, 4*12);
+				memcpy(poin, k1, sizeof(float)*10);
 				poin+= ofsp[0];	
 
 				break;
@@ -672,19 +672,21 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, i
 	
 	/* step 2: do it */
 	
-	kb= key->block.first;
-	while(kb) {
-		
+	for(kb=key->block.first; kb; kb=kb->next) {
 		if(kb!=key->refkey) {
 			float icuval= kb->curval;
 			
 			/* only with value, and no difference allowed */
-			if(icuval!=0.0f && kb->totelem==tot) {
+			if(!(kb->flag & KEYBLOCK_MUTE) && icuval!=0.0f && kb->totelem==tot) {
+				KeyBlock *refb;
 				float weight, *weights= kb->weights;
 				
 				poin= basispoin;
-				reffrom= key->refkey->data;
 				from= kb->data;
+				/* reference now can be any block */
+				refb= BLI_findlink(&key->block, kb->relative);
+				if(refb==NULL) continue;
+				reffrom= refb->data;
 				
 				poin+= start*ofs[0];
 				reffrom+= key->elemsize*start;	// key elemsize yes!
@@ -734,7 +736,6 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, i
 				}
 			}
 		}
-		kb= kb->next;
 	}
 }
 
@@ -1025,7 +1026,7 @@ static int do_mesh_key(Object *ob, Mesh *me)
 		
 		for(a=0; a<me->totvert; a+=step, cfra+= delta) {
 			
-			ctime= bsystem_time(0, 0, cfra, 0.0);
+			ctime= bsystem_time(0, cfra, 0.0);
 			if(calc_ipo_spec(me->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
 				CLAMP(ctime, 0.0, 1.0);
@@ -1060,7 +1061,7 @@ static int do_mesh_key(Object *ob, Mesh *me)
 			}
 		}
 		else {
-			ctime= bsystem_time(ob, 0, G.scene->r.cfra, 0.0);
+			ctime= bsystem_time(ob, G.scene->r.cfra, 0.0);
 
 			if(calc_ipo_spec(me->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
@@ -1180,7 +1181,7 @@ static int do_curve_key(Curve *cu)
 		
 		for(a=0; a<tot; a+=step, cfra+= delta) {
 			
-			ctime= bsystem_time(0, 0, cfra, 0.0);
+			ctime= bsystem_time(0, cfra, 0.0);
 			if(calc_ipo_spec(cu->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
 				CLAMP(ctime, 0.0, 1.0);
@@ -1202,7 +1203,7 @@ static int do_curve_key(Curve *cu)
 	}
 	else {
 		
-		ctime= bsystem_time(NULL, 0, (float)G.scene->r.cfra, 0.0);
+		ctime= bsystem_time(NULL, (float)G.scene->r.cfra, 0.0);
 		
 		if(cu->key->type==KEY_RELATIVE) {
 			do_rel_cu_key(cu, ctime);
@@ -1244,7 +1245,7 @@ static int do_latt_key(Object *ob, Lattice *lt)
 		
 		for(a=0; a<tot; a++, cfra+= delta) {
 			
-			ctime= bsystem_time(0, 0, cfra, 0.0);
+			ctime= bsystem_time(0, cfra, 0.0);
 			if(calc_ipo_spec(lt->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
 				CLAMP(ctime, 0.0, 1.0);
@@ -1261,7 +1262,7 @@ static int do_latt_key(Object *ob, Lattice *lt)
 		}		
 	}
 	else {
-		ctime= bsystem_time(NULL, 0, (float)G.scene->r.cfra, 0.0);
+		ctime= bsystem_time(NULL, (float)G.scene->r.cfra, 0.0);
 	
 		if(lt->key->type==KEY_RELATIVE) {
 			KeyBlock *kb;
@@ -1308,6 +1309,9 @@ int do_ob_key(Object *ob)
 	if(ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)) {
 		KeyBlock *kb= BLI_findlink(&key->block, ob->shapenr-1);
 
+		if(kb && (kb->flag & KEYBLOCK_MUTE))
+			kb= key->refkey;
+
 		if(kb==NULL) {
 			kb= key->block.first;
 			ob->shapenr= 1;
@@ -1342,7 +1346,7 @@ int do_ob_key(Object *ob)
 		if(ob->ipoflag & OB_ACTION_KEY)
 			do_all_object_actions(ob);
 		else {
-			calc_ipo(key->ipo, bsystem_time(ob, 0, G.scene->r.cfra, 0.0));
+			calc_ipo(key->ipo, bsystem_time(ob, G.scene->r.cfra, 0.0));
 			execute_ipo((ID *)key, key->ipo);
 		}
 		
@@ -1384,5 +1388,25 @@ KeyBlock *ob_get_keyblock(Object *ob)
 		return kb;
 	}
 
+	return NULL;
+}
+
+/* get the appropriate KeyBlock given an index */
+KeyBlock *key_get_keyblock(Key *key, int index)
+{
+	KeyBlock *kb;
+	int i;
+	
+	if (key) {
+		kb= key->block.first;
+		
+		for (i= 1; i < key->totkey; i++) {
+			kb= kb->next;
+			
+			if (index==i)
+				return kb;
+		}
+	}
+	
 	return NULL;
 }

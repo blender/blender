@@ -103,6 +103,8 @@ void add_marker(int frame)
 	BIF_undo_push("Add Marker");
 }
 
+
+
 /* remove selected TimeMarkers */
 void remove_marker(void)
 {
@@ -167,6 +169,8 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 {
 	SpaceLink *slink= curarea->spacedata.first;
 	SpaceTime *stime= curarea->spacedata.first;
+	SpaceAction *saction = curarea->spacedata.first;
+	ListBase *markers;
 	TimeMarker *marker, *selmarker=NULL;
 	float dx, fac;
 	int a, ret_val= 0, totmark=0, *oldframe, offs, firsttime=1;
@@ -174,16 +178,26 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 	short val, pmval[2], mval[2], mvalo[2];
 	char str[32];
 	
-	for(marker= G.scene->markers.first; marker; marker= marker->next) {
-		if(marker->flag & SELECT) totmark++;
+	/* hack for pose-markers in action editor */
+	if ((slink->spacetype == SPACE_ACTION) && (saction->flag & SACTION_POSEMARKERS_MOVE)) {
+		if (saction->action)
+			markers= &saction->action->markers;
+		else
+			markers= NULL;
 	}
-	if(totmark==0) return;
+	else
+		markers= &G.scene->markers;
+	
+	for (marker= markers->first; marker; marker= marker->next) {
+		if (marker->flag & SELECT) totmark++;
+	}
+	if (totmark==0) return;
 	
 	oldframe= MEM_mallocN(totmark*sizeof(int), "marker array");
-	for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
-		if(marker->flag & SELECT) {
+	for (a=0, marker= markers->first; marker; marker= marker->next) {
+		if (marker->flag & SELECT) {
 			oldframe[a]= marker->frame;
-			selmarker= marker;	// used for hederprint
+			selmarker= marker;	// used for headerprint
 			a++;
 		}
 	}
@@ -194,8 +208,7 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 	getmouseco_areawin(pmval);
 	mvalo[0]= pmval[0];
 	
-	while(ret_val == 0) {
-		
+	while (ret_val == 0) {
 		getmouseco_areawin(mval);
 		
 		if (mval[0] != mvalo[0] || firsttime) {
@@ -205,35 +218,49 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 			fac= (((float)(mval[0] - pmval[0]))*dx);
 			
 			if (ELEM(slink->spacetype, SPACE_TIME, SPACE_SOUND)) 
-				apply_keyb_grid(&fac, 0.0, (float)G.scene->r.frs_sec, 0.1*(float)G.scene->r.frs_sec, 0);
+				apply_keyb_grid(&fac, 0.0, FPS, 0.1*FPS, 0);
 			else
 				apply_keyb_grid(&fac, 0.0, 1.0, 0.1, U.flag & USER_AUTOGRABGRID);
 			offs= (int)fac;
 			
-			for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
-				if(marker->flag & SELECT) {
+			for (a=0, marker= markers->first; marker; marker= marker->next) {
+				if (marker->flag & SELECT) {
 					marker->frame= oldframe[a] + offs;
 					a++;
 				}
 			}
 			
-			if(totmark==1) {	// we print current marker value
+			if (totmark==1) {	
+				/* we print current marker value */
 				if (ELEM(slink->spacetype, SPACE_TIME, SPACE_SOUND)) {
-					if(stime->flag & TIME_DRAWFRAMES) 
+					if (stime->flag & TIME_DRAWFRAMES) 
 						sprintf(str, "Marker %d offset %d", selmarker->frame, offs);
 					else 
-						sprintf(str, "Marker %.2f offset %.2f", (selmarker->frame/(float)G.scene->r.frs_sec), (offs/(float)G.scene->r.frs_sec));
+						sprintf(str, "Marker %.2f offset %.2f", FRA2TIME(selmarker->frame), FRA2TIME(offs));
+				}
+				else if (slink->spacetype == SPACE_ACTION) {
+					if (saction->flag & SACTION_DRAWTIME)
+						sprintf(str, "Marker %.2f offset %.2f", FRA2TIME(selmarker->frame), FRA2TIME(offs));
+					else
+						sprintf(str, "Marker %.2f offset %.2f", (double)(selmarker->frame), (double)(offs));
 				}
 				else {
 					sprintf(str, "Marker %.2f offset %.2f", (double)(selmarker->frame), (double)(offs));
 				}
 			}
 			else {
+				/* we only print the offset */
 				if (ELEM(slink->spacetype, SPACE_TIME, SPACE_SOUND)) { 
-					if(stime->flag & TIME_DRAWFRAMES) 
+					if (stime->flag & TIME_DRAWFRAMES) 
 						sprintf(str, "Marker offset %d ", offs);
 					else 
-						sprintf(str, "Marker offset %.2f ", (offs/(float)G.scene->r.frs_sec));
+						sprintf(str, "Marker offset %.2f ", FRA2TIME(offs));
+				}
+				else if (slink->spacetype == SPACE_ACTION) {
+					if (saction->flag & SACTION_DRAWTIME)
+						sprintf(str, "Marker offset %.2f ", FRA2TIME(offs));
+					else
+						sprintf(str, "Marker offset %.2f ", (double)(offs));
 				}
 				else {
 					sprintf(str, "Marker offset %.2f ", (double)(offs));
@@ -246,20 +273,20 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 		else PIL_sleep_ms(10);	// idle
 		
 		/* emptying queue and reading events */
-		while( qtest() ) {
+		while ( qtest() ) {
 			event= extern_qread(&val);
 			
-			if(val) {
-				if(event==ESCKEY || event==RIGHTMOUSE) ret_val= 2;
-				else if(event==LEFTMOUSE || event==RETKEY || event==SPACEKEY) ret_val= 1;
+			if (val) {
+				if (ELEM(event, ESCKEY, RIGHTMOUSE)) ret_val= 2;
+				else if (ELEM3(event, LEFTMOUSE, RETKEY, SPACEKEY)) ret_val= 1;
 			}
 		}
 	}
 	
 	/* restore? */
-	if(ret_val==2) {
-		for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
-			if(marker->flag & SELECT) {
+	if (ret_val==2) {
+		for (a=0, marker= markers->first; marker; marker= marker->next) {
+			if (marker->flag & SELECT) {
 				marker->frame= oldframe[a];
 				a++;
 			}
@@ -269,11 +296,7 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 		BIF_undo_push("Move Markers");
 	}
 	MEM_freeN(oldframe);
-	allqueue(REDRAWTIME, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWSOUND, 0);
+	allqueue(REDRAWMARKER, 0);
 }
 
 /* select/deselect all TimeMarkers
@@ -374,11 +397,7 @@ void borderselect_markers(void)
 		borderselect_markers_func(rectf.xmin, rectf.xmax, selectmode);
 		
 		BIF_undo_push("Border Select Markers");
-		allqueue(REDRAWTIME, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWSOUND, 0);
+		allqueue(REDRAWMARKER, 0);
 	}
 }
 
@@ -466,7 +485,7 @@ void get_minmax_markers(short sel, float *first, float *last)
 	*last= max;
 }
 
-TimeMarker *find_nearest_marker(int clip_y)
+TimeMarker *find_nearest_marker(ListBase *markers, int clip_y)
 {
 	TimeMarker *marker;
 	float xmin, xmax;
@@ -476,7 +495,7 @@ TimeMarker *find_nearest_marker(int clip_y)
 	getmouseco_areawin (mval);
 	
 	/* first clip selection in Y */
-	if((clip_y) && (mval[1] > 30))
+	if ((clip_y) && (mval[1] > 30))
 		return NULL;
 	
 	mval[0]-=7;
@@ -487,7 +506,7 @@ TimeMarker *find_nearest_marker(int clip_y)
 	xmin= rectf.xmin;
 	xmax= rectf.xmax;
 	
-	for(marker= G.scene->markers.first; marker; marker= marker->next) {
+	for (marker= markers->first; marker; marker= marker->next) {
 		if ((marker->frame > xmin) && (marker->frame <= xmax)) {
 			return marker;
 		}
@@ -599,6 +618,8 @@ void anim_previewrange_set()
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
 			
 		/* set preview-range */
+		if (rectf.xmin < 1) rectf.xmin = 1.0f;
+		if (rectf.xmax < 1) rectf.xmax = 1.0f;
 		G.scene->r.psfra= rectf.xmin;
 		G.scene->r.pefra= rectf.xmax;
 		
@@ -726,6 +747,27 @@ void nextprev_timeline_key(short dir)
 	}
 }
 
+/* return the current marker for this frame,
+we can have more then 1 marker per frame, this just returns the first :/ */
+TimeMarker *get_frame_marker(int frame)
+{
+	TimeMarker *marker, *best_marker = NULL;
+	int best_frame = -MAXFRAME*2; 
+	for (marker= G.scene->markers.first; marker; marker= marker->next) {
+		if (marker->frame==frame) {
+			return marker;
+		}
+		
+		if ( marker->frame > best_frame && marker->frame < frame) {
+			best_marker = marker;
+			best_frame = marker->frame;
+		}
+	}
+	
+	return best_marker;
+}
+
+
 void timeline_frame_to_center(void)
 {
 	float dtime;
@@ -806,7 +848,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 	if(val) {
 		
-		if( uiDoBlocks(&sa->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if( uiDoBlocks(&sa->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 
 		/* swap mouse buttons based on user preference */
 		if (U.flag & USER_LMOUSESELECT) {
@@ -826,7 +868,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				getmouseco_areawin(mval);
 				areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
 				
-				cfra = (int)dx;
+				cfra = (int)(dx+0.5f);
 				if(cfra< MINFRAME) cfra= MINFRAME;
 				
 				if( cfra!=CFRA || first )
@@ -847,9 +889,9 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case RIGHTMOUSE: /* select/deselect marker */
 			getmouseco_areawin(mval);
 			areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
-
+			
 			cfra= find_nearest_marker_time(dx);
-
+			
 			if (G.qual && LR_SHIFTKEY)
 				select_timeline_marker_frame(cfra, 1);
 			else
@@ -904,11 +946,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case AKEY:
 			/* deselect all TimeMarkers */
 			deselect_markers(1, 0);
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			allqueue(REDRAWMARKER, 0);
 			break;
 		case BKEY:
 			/* borderselect markers */
@@ -939,11 +977,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				rename_marker();
 			else
 				add_marker(CFRA);
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			allqueue(REDRAWMARKER, 0);
 			break;
 		case PKEY:	/* preview-range stuff */
 			if (G.qual & LR_CTRLKEY) /* set preview range */
@@ -974,11 +1008,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if( okee("Erase selected")==0 ) break;
 
 			remove_marker();
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			allqueue(REDRAWMARKER, 0);
 			break;
 		}
 	}

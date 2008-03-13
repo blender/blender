@@ -43,6 +43,7 @@
 
 struct MTex;
 struct Ipo;
+struct CurveMapping;
 
 typedef struct Lamp {
 	ID id;
@@ -54,16 +55,26 @@ typedef struct Lamp {
 	
 	float energy, dist, spotsize, spotblend;
 	float haint;
-	float att1, att2;
+	
+	
+	float att1, att2;	/* Quad1 and Quad2 attenuation */
+	int pad2;
+	struct CurveMapping *curfalloff;
+	short falloff_type;
+	short pad3;
 	
 	float clipsta, clipend, shadspotsize;
 	float bias, soft;
 	short bufsize, samp, buffers, filtertype;
 	char bufflag, buftype;
 	
-	short ray_samp, ray_sampy, ray_sampz, ray_samp_type;
+	short ray_samp, ray_sampy, ray_sampz;
+	short ray_samp_type;
 	short area_shape;
 	float area_size, area_sizey, area_sizez;
+	float adapt_thresh;
+	short ray_samp_method;
+	short pad1;
 	
 	/* texact is for buttons */
 	short texact, shadhalostep;
@@ -79,6 +90,9 @@ typedef struct Lamp {
 	struct MTex *mtex[10];
 	struct Ipo *ipo;
 	
+	/* preview */
+	struct PreviewImage *preview;
+
 	ScriptLink scriptlink;
 } Lamp;
 
@@ -97,7 +111,7 @@ typedef struct Lamp {
 #define LA_SHAD_BUF		1
 #define LA_HALO			2
 #define LA_LAYER		4
-#define LA_QUAD			8
+#define LA_QUAD			8	/* no longer used */
 #define LA_NEG			16
 #define LA_ONLYSHADOW	32
 #define LA_SPHERE		64
@@ -111,6 +125,14 @@ typedef struct Lamp {
 /* yafray: lamp shadowbuffer flag, softlight */
 /* Since it is used with LOCAL lamp, can't use LA_SHAD */
 #define LA_YF_SOFT		16384
+
+/* falloff_type */
+#define LA_FALLOFF_CONSTANT		0
+#define LA_FALLOFF_INVLINEAR		1
+#define LA_FALLOFF_INVSQUARE	2
+#define LA_FALLOFF_CURVE		3
+#define LA_FALLOFF_SLIDERS		4
+
 
 /* buftype, no flag */
 #define LA_SHADBUF_REGULAR		0
@@ -131,6 +153,12 @@ typedef struct Lamp {
 #define LA_AREA_RECT	1
 #define LA_AREA_CUBE	2
 #define LA_AREA_BOX		3
+
+/* ray_samp_method */
+#define LA_SAMP_CONSTANT			0
+#define LA_SAMP_HALTON				1
+#define LA_SAMP_HAMMERSLEY			2
+
 
 /* ray_samp_type */
 #define LA_SAMP_ROUND	1

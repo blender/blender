@@ -175,12 +175,14 @@ class PoseBone:
 	@type localMatrix: Matrix object
 	@ivar poseMatrix: The total transformation of this PoseBone including constraints.
 
-	(not settable).
-
 	This matrix is in armature space, for the current worldspace location of this pose bone, multiply
-	it with its objects worldspace matrix
+	it with its objects worldspace matrix.
 
 	eg. pose_bone.poseMatrix * object.matrixWorld
+	
+	Setting the poseMatrix only sets the loc/size/rot, before constraints are applied (similar to actions).
+	After setting pose matrix, run pose.update() to re-evaluate the pose and see the changes in the 3d view.
+	
 	@type poseMatrix: Matrix object
 	@type constraints: BPy_ConstraintSeq
 	@ivar constraints: a sequence of constraints for the object
@@ -215,7 +217,11 @@ class PoseBone:
 	@ivar lockYRot: Disable Y DoF when part of an IK.
 	@type lockZRot: bool
 	@ivar lockZRot: Disable Z DoF when part of an IK.
-	
+	@ivar layerMask: Layer bitmask
+		Example::
+			# set bone to layers 14 and 16
+			bone.layerMask = (1<<13) + (1<<15)
+	@type layerMask: Int
 	"""
 
 	def insertKey(parentObject, frameNumber, type = "[Pose.LOC, Pose.ROT, Pose.SIZE]", fast = False):

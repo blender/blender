@@ -61,6 +61,9 @@
 #ifdef WITH_OPENEXR
 #include "openexr/openexr_api.h"
 #endif
+#ifdef WITH_DDS
+#include "dds/dds_api.h"
+#endif
 
 #include "IMB_iff.h"
 #include "IMB_bitplanes.h"
@@ -115,6 +118,13 @@ short IMB_saveiff(struct ImBuf *ibuf, char *name, int flags)
 		return imb_save_openexr(ibuf, name, flags);
 	}
 #endif
+/* not supported yet
+#ifdef WITH_DDS
+	if (IS_dds(ibuf)) {
+		return imb_save_dds(ibuf, name, flags);
+	}
+#endif
+*/
 	if (IS_cineon(ibuf)) {
 		return imb_savecineon(ibuf, name, flags);
 		

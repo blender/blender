@@ -744,11 +744,9 @@ void subdivideshootElements(int it)
 					}
 				}
 				if(rn) {
-					min[0]= min[1]= min[2]= 1.0e10;
-					max[0]= max[1]= max[2]= -1.0e10;
+					INIT_MINMAX(min, max);
 					/* errmin and max are the filtered colors */
-					errmin[0]= errmin[1]= errmin[2]= 1.0e10;
-					errmax[0]= errmax[1]= errmax[2]= -1.0e10;
+					INIT_MINMAX(errmin, errmax);
 					minmaxradelemfilt(rp->first, min, max, errmin, errmax);
 					
 					/* if small difference between colors: no subdiv */
@@ -912,8 +910,8 @@ void inithemiwindows()
 	memset(vw, 0, sizeof(RadView));
 	vw->rectx= RG.hemires;
 	vw->recty= RG.hemires;
-	vw->rectz= MEM_mallocN(4*vw->rectx*vw->recty, "initwindows");
-	vw->rect= MEM_mallocN(4*vw->rectx*vw->recty, "initwindows");
+	vw->rectz= MEM_mallocN(sizeof(int)*vw->rectx*vw->recty, "initwindows");
+	vw->rect= MEM_mallocN(sizeof(int)*vw->rectx*vw->recty, "initwindows");
 	vw->mynear= RG.maxsize/2000.0;
 	vw->myfar= 2.0*RG.maxsize;
 	vw->wx1= -vw->mynear;

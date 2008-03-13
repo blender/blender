@@ -42,7 +42,6 @@ This is usefull for game models where 1 image is faster then many, and saves the
 
 # Function to find all the images we use
 import Blender as B
-import boxpack2d
 from Blender.Mathutils import Vector, RotationMatrix
 from Blender.Scene import Render
 import BPyMathutils
@@ -162,9 +161,10 @@ class faceGroup(object):
 		self.ymin= ymin - (PREF_IMAGE_MARGIN/size[1])
 		
 		self.box_pack=[\
-		image.name,\
+		0.0, 0.0,\
 		size[0]*(self.xmax - self.xmin),\
-		size[1]*(self.ymax - self.ymin)] 
+		size[1]*(self.ymax - self.ymin),\
+		image.name] 
 		
 	'''
 		# default.
@@ -194,8 +194,8 @@ class faceGroup(object):
 		
 		# X Is flipped :/
 		#offset_x= (1-(self.box_pack[1]/d)) - (((self.xmax-self.xmin) * self.image.size[0])/d)
-		offset_x= self.box_pack[1]/width
-		offset_y= self.box_pack[2]/height
+		offset_x= self.box_pack[0]/width
+		offset_y= self.box_pack[1]/height
 		
 		for f in self.faces:
 			for uv in f.uv:
@@ -204,7 +204,11 @@ class faceGroup(object):
 				uv.y= offset_y+ (((uv_rot.y-self.ymin) * self.size[1])/height)
 
 def consolidate_mesh_images(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_ASPECT, PREF_IMAGE_MARGIN): #, PREF_SIZE_FROM_UV=True):
-	'''Main packing function'''
+	'''
+	Main packing function
+	
+	All meshes from mesh_list must have faceUV else this function will fail.
+	'''
 	face_groups= {}
 	
 	for me in mesh_list:
@@ -224,11 +228,11 @@ def consolidate_mesh_images(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PR
 						face_groups[image.name]= faceGroup(mesh_list, image, size, PREF_IMAGE_MARGIN)
 	
 	if not face_groups:
-		B.Draw.PupMenu('No Images found in mesh. aborting.')
+		B.Draw.PupMenu('No Images found in mesh(es). Aborting!')
 		return
 	
 	if len(face_groups)<2:
-		B.Draw.PupMenu('Only 1 image found|Select a mesh using 2 or more images.')
+		B.Draw.PupMenu('Only 1 image found|Select a mesh(es) using 2 or more images.')
 		return
 		
 	'''
@@ -286,7 +290,7 @@ def consolidate_mesh_images(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PR
 	render_cam_ob= B.Object.New('Camera')
 	render_cam_ob.link(render_cam_data)
 	render_scn.link(render_cam_ob)
-	render_scn.setCurrentCamera(render_cam_ob)
+	render_scn.objects.camera = render_cam_ob
 	
 	render_cam_data.type= 'ortho'
 	render_cam_data.scale= 1.0
@@ -299,8 +303,7 @@ def consolidate_mesh_images(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PR
 	
 	# List to send to to boxpack function.
 	boxes2Pack= [ fg.box_pack for fg in face_groups.itervalues()]
-	
-	packWidth, packHeight, packedLs = boxpack2d.boxPackIter(boxes2Pack)
+	packWidth, packHeight = B.Geometry.BoxPack2D(boxes2Pack)
 	
 	if PREF_KEEP_ASPECT:
 		packWidth= packHeight= max(packWidth, packHeight)
@@ -308,17 +311,17 @@ def consolidate_mesh_images(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PR
 	
 	# packedLs is a list of [(anyUniqueID, left, bottom, width, height)...]
 	# Re assign the face groups boxes to the face_group.
-	for box in packedLs:
-		face_groups[ box[0] ].box_pack= box # box[0] is the ID (image name)
+	for box in boxes2Pack:
+		face_groups[ box[4] ].box_pack= box # box[4] is the ID (image name)
 	
 	
 	# Add geometry to the mesh
 	for fg in face_groups.itervalues():
 		# Add verts clockwise from the bottom left.
-		_x= fg.box_pack[1] / packWidth
-		_y= fg.box_pack[2] / packHeight
-		_w= fg.box_pack[3] / packWidth
-		_h= fg.box_pack[4] / packHeight
+		_x= fg.box_pack[0] / packWidth
+		_y= fg.box_pack[1] / packHeight
+		_w= fg.box_pack[2] / packWidth
+		_h= fg.box_pack[3] / packHeight
 		
 		render_me.verts.extend([\
 		Vector(_x, _y, 0),\
@@ -374,10 +377,11 @@ def consolidate_mesh_images(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PR
 	
 	for fg in face_groups.itervalues():
 		fg.move2packed(packWidth, packHeight)
-		
+	
 	scn.makeCurrent()
-	B.Scene.Unlink(render_scn)
 	render_me.verts= None # free a tiny amount of memory.
+	B.Scene.Unlink(render_scn)
+	target_image.makeCurrent()
 
 
 def main():
@@ -422,10 +426,23 @@ def main():
 	if PREF_ALL_SEL_OBS:
 		mesh_list= [ob.getData(mesh=1) for ob in scn_objects.context if ob.type=='Mesh']
 		# Make sure we have no doubles- dict by name, then get the values back.
-		mesh_list= dict([(me.name, me) for me in mesh_list]).values()
+		
+		for me in mesh_list: me.tag = False
+		
+		mesh_list_new = []
+		for me in mesh_list:
+			if me.faceUV and me.tag==False:
+				me.tag = True
+				mesh_list_new.append(me)
+		
+		# replace list with possible doubles
+		mesh_list = mesh_list_new
 		
 	else:
 		mesh_list= [ob.getData(mesh=1)]
+		if not mesh_list[0].faceUV:
+			B.Draw.PupMenu('Error, active mesh has no images, Aborting!')
+			return
 	
 	consolidate_mesh_images(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_ASPECT, PREF_IMAGE_MARGIN)
 	B.Window.RedrawAll()

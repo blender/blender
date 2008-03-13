@@ -30,6 +30,8 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include <float.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "nla.h"
@@ -354,6 +356,88 @@ void bone_flip_name (char *name, int strip_number)
 	sprintf (name, "%s%s%s%s", prefix, replace, suffix, number);
 }
 
+/* Finds the best possible extension to the name on a particular axis. (For renaming, check for unique names afterwards)
+ * This assumes that bone names are at most 32 chars long!
+ * 	strip_number: removes number extensions  (TODO: not used)
+ *	axis: the axis to name on
+ *	head/tail: the head/tail co-ordinate of the bone on the specified axis
+ */
+void bone_autoside_name (char *name, int strip_number, short axis, float head, float tail)
+{
+	int		len;
+	char	basename[32]={""};
+	char 	extension[5]={""};
+
+	len= strlen(name);
+	if (len == 0) return;
+	strcpy(basename, name);
+	
+	/* Figure out extension to append: 
+	 *	- The extension to append is based upon the axis that we are working on.
+	 *	- If head happens to be on 0, then we must consider the tail position as well to decide
+	 *	  which side the bone is on
+	 *		-> If tail is 0, then it's bone is considered to be on axis, so no extension should be added
+	 *		-> Otherwise, extension is added from perspective of object based on which side tail goes to
+	 *	- If head is non-zero, extension is added from perspective of object based on side head is on
+	 */
+	if (axis == 2) {
+		/* z-axis - vertical (top/bottom) */
+		if (IS_EQ(head, 0)) {
+			if (tail < 0)
+				strcpy(extension, ".Bot");
+			else if (tail > 0)
+				strcpy(extension, ".Top");
+		}
+		else {
+			if (head < 0)
+				strcpy(extension, ".Bot");
+			else
+				strcpy(extension, ".Top");
+		}
+	}
+	else if (axis == 1) {
+		/* y-axis - depth (front/back) */
+		if (IS_EQ(head, 0)) {
+			if (tail < 0)
+				strcpy(extension, ".Fr");
+			else if (tail > 0)
+				strcpy(extension, ".Bk");
+		}
+		else {
+			if (head < 0)
+				strcpy(extension, ".Fr");
+			else
+				strcpy(extension, ".Bk");
+		}
+	}
+	else {
+		/* x-axis - horizontal (left/right) */
+		if (IS_EQ(head, 0)) {
+			if (tail < 0)
+				strcpy(extension, ".R");
+			else if (tail > 0)
+				strcpy(extension, ".L");
+		}
+		else {
+			if (head < 0)
+				strcpy(extension, ".R");
+			else if (head > 0)
+				strcpy(extension, ".L");
+		}
+	}
+
+	/* Simple name truncation 
+	 *	- truncate if there is an extension and it wouldn't be able to fit
+	 *	- otherwise, just append to end (TODO: this should really check if there was already a tag there, and remove it)
+	 */
+	if (extension[0]) {
+		if ((32 - len) < strlen(extension)) {
+			strncpy(name, basename, len-strlen(extension));
+		}
+	}
+
+	sprintf(name, "%s%s", basename, extension);
+}
 
 /* ************* B-Bone support ******************* */
 
@@ -404,17 +488,38 @@ static void equalize_bezier(float *data, int desired)
 
 /* returns pointer to static array, filled with desired amount of bone->segments elements */
 /* this calculation is done  within unit bone space */
-Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
+Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 {
 	static Mat4 bbone_array[MAX_BBONE_SUBDIV];
+	static Mat4 bbone_rest_array[MAX_BBONE_SUBDIV];
+	Mat4 *result_array= (rest)? bbone_rest_array: bbone_array;
 	bPoseChannel *next, *prev;
 	Bone *bone= pchan->bone;
-	float h1[3], h2[3], length, hlength1, hlength2, roll;
-	float mat3[3][3], imat[4][4];
+	float h1[3], h2[3], scale[3], length, hlength1, hlength2, roll1=0.0f, roll2;
+	float mat3[3][3], imat[4][4], posemat[4][4], scalemat[4][4], iscalemat[4][4];
 	float data[MAX_BBONE_SUBDIV+1][4], *fp;
-	int a;
-	
+	int a, doscale= 0;
+
 	length= bone->length;
+
+	if(!rest) {
+		/* check if we need to take non-uniform bone scaling into account */
+		scale[0]= VecLength(pchan->pose_mat[0]);
+		scale[1]= VecLength(pchan->pose_mat[1]);
+		scale[2]= VecLength(pchan->pose_mat[2]);
+
+		if(fabs(scale[0] - scale[1]) > 1e-6f || fabs(scale[1] - scale[2]) > 1e-6f) {
+			Mat4One(scalemat);
+			scalemat[0][0]= scale[0];
+			scalemat[1][1]= scale[1];
+			scalemat[2][2]= scale[2];
+			Mat4Invert(iscalemat, scalemat);
+
+			length *= scale[1];
+			doscale = 1;
+		}
+	}
+	
 	hlength1= bone->ease1*length*0.390464f;		// 0.5*sqrt(2)*kappa, the handle length for near-perfect circles
 	hlength2= bone->ease2*length*0.390464f;
 	
@@ -430,32 +535,75 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
 		first point = (0,0,0)
 		last point =  (0, length, 0) */
 	
-	Mat4Invert(imat, pchan->pose_mat);
+	if(rest) {
+		Mat4Invert(imat, pchan->bone->arm_mat);
+	}
+	else if(doscale) {
+		Mat4CpyMat4(posemat, pchan->pose_mat);
+		Mat4Ortho(posemat);
+		Mat4Invert(imat, posemat);
+	}
+	else
+		Mat4Invert(imat, pchan->pose_mat);
 	
 	if(prev) {
+		float difmat[4][4], result[3][3], imat3[3][3];
+
 		/* transform previous point inside this bone space */
-		VECCOPY(h1, prev->pose_head);
+		if(rest)
+			VECCOPY(h1, prev->bone->arm_head)
+		else
+			VECCOPY(h1, prev->pose_head)
 		Mat4MulVecfl(imat, h1);
-		/* if previous bone is B-bone too, use average handle direction */
-		if(prev->bone->segments>1) h1[1]-= length;
+
+		if(prev->bone->segments>1) {
+			/* if previous bone is B-bone too, use average handle direction */
+			h1[1]-= length;
+			roll1= 0.0f;
+		}
+
 		Normalize(h1);
 		VecMulf(h1, -hlength1);
+
+		if(prev->bone->segments==1) {
+			/* find the previous roll to interpolate */
+			if(rest)
+				Mat4MulMat4(difmat, prev->bone->arm_mat, imat);
+			else
+				Mat4MulMat4(difmat, prev->pose_mat, imat);
+			Mat3CpyMat4(result, difmat);				// the desired rotation at beginning of next bone
+			
+			vec_roll_to_mat3(h1, 0.0f, mat3);			// the result of vec_roll without roll
+			
+			Mat3Inv(imat3, mat3);
+			Mat3MulMat3(mat3, result, imat3);			// the matrix transforming vec_roll to desired roll
+			
+			roll1= atan2(mat3[2][0], mat3[2][2]);
+		}
 	}
 	else {
 		h1[0]= 0.0f; h1[1]= hlength1; h1[2]= 0.0f;
+		roll1= 0.0f;
 	}
 	if(next) {
 		float difmat[4][4], result[3][3], imat3[3][3];
 		
 		/* transform next point inside this bone space */
-		VECCOPY(h2, next->pose_tail);
+		if(rest)
+			VECCOPY(h2, next->bone->arm_tail)
+		else
+			VECCOPY(h2, next->pose_tail)
 		Mat4MulVecfl(imat, h2);
 		/* if next bone is B-bone too, use average handle direction */
 		if(next->bone->segments>1);
 		else h2[1]-= length;
+		Normalize(h2);
 		
 		/* find the next roll to interpolate as well */
-		Mat4MulMat4(difmat, next->pose_mat, imat);
+		if(rest)
+			Mat4MulMat4(difmat, next->bone->arm_mat, imat);
+		else
+			Mat4MulMat4(difmat, next->pose_mat, imat);
 		Mat3CpyMat4(result, difmat);				// the desired rotation at beginning of next bone
 		
 		vec_roll_to_mat3(h2, 0.0f, mat3);			// the result of vec_roll without roll
@@ -463,18 +611,16 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
 		Mat3Inv(imat3, mat3);
 		Mat3MulMat3(mat3, imat3, result);			// the matrix transforming vec_roll to desired roll
 		
-		roll= atan2(mat3[2][0], mat3[2][2]);
+		roll2= atan2(mat3[2][0], mat3[2][2]);
 		
 		/* and only now negate handle */
-		Normalize(h2);
 		VecMulf(h2, -hlength2);
-		
 	}
 	else {
 		h2[0]= 0.0f; h2[1]= -hlength2; h2[2]= 0.0f;
-		roll= 0.0;
+		roll2= 0.0;
 	}
-	
+
 	/* make curve */
 	if(bone->segments > MAX_BBONE_SUBDIV)
 		bone->segments= MAX_BBONE_SUBDIV;
@@ -482,7 +628,7 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
 	forward_diff_bezier(0.0, h1[0],		h2[0],			0.0,		data[0],	MAX_BBONE_SUBDIV, 4);
 	forward_diff_bezier(0.0, h1[1],		length + h2[1],	length,		data[0]+1,	MAX_BBONE_SUBDIV, 4);
 	forward_diff_bezier(0.0, h1[2],		h2[2],			0.0,		data[0]+2,	MAX_BBONE_SUBDIV, 4);
-	forward_diff_bezier(0.0, 0.390464f*roll, (1.0f-0.390464f)*roll,	roll,	data[0]+3,	MAX_BBONE_SUBDIV, 4);
+	forward_diff_bezier(roll1, roll1 + 0.390464f*(roll2-roll1), roll2 - 0.390464f*(roll2-roll1),	roll2,	data[0]+3,	MAX_BBONE_SUBDIV, 4);
 	
 	equalize_bezier(data[0], bone->segments);	// note: does stride 4!
 	
@@ -490,53 +636,93 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
 	for(a=0, fp= data[0]; a<bone->segments; a++, fp+=4) {
 		VecSubf(h1, fp+4, fp);
 		vec_roll_to_mat3(h1, fp[3], mat3);		// fp[3] is roll
-		Mat4CpyMat3(bbone_array[a].mat, mat3);
-		VECCOPY(bbone_array[a].mat[3], fp);
+
+		Mat4CpyMat3(result_array[a].mat, mat3);
+		VECCOPY(result_array[a].mat[3], fp);
+
+		if(doscale) {
+			/* correct for scaling when this matrix is used in scaled space */
+			Mat4MulSerie(result_array[a].mat, iscalemat, result_array[a].mat,
+				scalemat, NULL, NULL, NULL, NULL, NULL);
+		}
 	}
 	
-	return bbone_array;
+	return result_array;
 }
 
 /* ************ Armature Deform ******************* */
 
-static void pchan_b_bone_defmats(bPoseChannel *pchan)
+static void pchan_b_bone_defmats(bPoseChannel *pchan, int use_quaternion, int rest_def)
 {
 	Bone *bone= pchan->bone;
-	Mat4 *b_bone= b_bone_spline_setup(pchan);
+	Mat4 *b_bone= b_bone_spline_setup(pchan, 0);
+	Mat4 *b_bone_rest= (rest_def)? NULL: b_bone_spline_setup(pchan, 1);
 	Mat4 *b_bone_mats;
+	DualQuat *b_bone_dual_quats= NULL;
+	float tmat[4][4];
 	int a;
 	
-	pchan->b_bone_mats=b_bone_mats= MEM_mallocN((1+bone->segments)*sizeof(Mat4), "BBone defmats");
+	/* allocate b_bone matrices and dual quats */
+	b_bone_mats= MEM_mallocN((1+bone->segments)*sizeof(Mat4), "BBone defmats");
+	pchan->b_bone_mats= b_bone_mats;
+
+	if(use_quaternion) {
+		b_bone_dual_quats= MEM_mallocN((bone->segments)*sizeof(DualQuat), "BBone dqs");
+		pchan->b_bone_dual_quats= b_bone_dual_quats;
+	}
 	
-	/* first matrix is the inverse arm_mat, to bring points in local bone space */
+	/* first matrix is the inverse arm_mat, to bring points in local bone space
+	   for finding out which segment it belongs to */
 	Mat4Invert(b_bone_mats[0].mat, bone->arm_mat);
-	
-	/* then we multiply the bbone_mats with arm_mat */
+
+	/* then we make the b_bone_mats:
+	    - first transform to local bone space
+		- translate over the curve to the bbone mat space
+		- transform with b_bone matrix
+		- transform back into global space */
+	Mat4One(tmat);
+
 	for(a=0; a<bone->segments; a++) {
-		Mat4MulMat4(b_bone_mats[a+1].mat, b_bone[a].mat, bone->arm_mat);
+		if(b_bone_rest)
+			Mat4Invert(tmat, b_bone_rest[a].mat);
+		else
+			tmat[3][1] = -a*(bone->length/(float)bone->segments);
+
+		Mat4MulSerie(b_bone_mats[a+1].mat, pchan->chan_mat, bone->arm_mat,
+			b_bone[a].mat, tmat, b_bone_mats[0].mat, NULL, NULL, NULL);
+
+		if(use_quaternion)
+			Mat4ToDQuat(bone->arm_mat, b_bone_mats[a+1].mat, &b_bone_dual_quats[a]);
 	}
 }
 
-static void b_bone_deform(bPoseChannel *pchan, Bone *bone, float *defpos)
+static void b_bone_deform(bPoseChannel *pchan, Bone *bone, float *co, DualQuat *dq, float defmat[][3])
 {
 	Mat4 *b_bone= pchan->b_bone_mats;
-	float segment;
+	float (*mat)[4]= b_bone[0].mat;
+	float segment, y;
 	int a;
 	
-	/* need to transform defpos back to bonespace */
-	Mat4MulVecfl(b_bone[0].mat, defpos);
+	/* need to transform co back to bonespace, only need y */
+	y= mat[0][1]*co[0] + mat[1][1]*co[1] + mat[2][1]*co[2] + mat[3][1];
 	
 	/* now calculate which of the b_bones are deforming this */
 	segment= bone->length/((float)bone->segments);
-	a= (int) (defpos[1]/segment);
+	a= (int)(y/segment);
 	
-	/* note; by clamping it extends deform at endpoints, goes best with straight joints in restpos. */
+	/* note; by clamping it extends deform at endpoints, goes best with
+	   straight joints in restpos. */
 	CLAMP(a, 0, bone->segments-1);
 
-	/* since the bbone mats translate from (0.0.0) on the curve, we subtract */
-	defpos[1] -= ((float)a)*segment;
-	
-	Mat4MulVecfl(b_bone[a+1].mat, defpos);
+	if(dq) {
+		DQuatCpyDQuat(dq, &((DualQuat*)pchan->b_bone_dual_quats)[a]);
+	}
+	else {
+		Mat4MulVecfl(b_bone[a+1].mat, co);
+
+		if(defmat)
+			Mat3CpyMat4(defmat, b_bone[a+1].mat);
+	}
 }
 
 /* using vec with dist to bone b1 - b2 */
@@ -590,12 +776,25 @@ float distfactor_to_bone (float vec[3], float b1[3], float b2[3], float rad1, fl
 	}
 }
 
-static float dist_bone_deform(bPoseChannel *pchan, float *vec, float *co)
+static void pchan_deform_mat_add(bPoseChannel *pchan, float weight, float bbonemat[][3], float mat[][3])
+{
+	float wmat[3][3];
+
+	if(pchan->bone->segments>1)
+		Mat3CpyMat3(wmat, bbonemat);
+	else
+		Mat3CpyMat4(wmat, pchan->chan_mat);
+
+	Mat3MulFloat((float*)wmat, weight);
+	Mat3AddMat3(mat, mat, wmat);
+}
+
+static float dist_bone_deform(bPoseChannel *pchan, float *vec, DualQuat *dq, float mat[][3], float *co)
 {
 	Bone *bone= pchan->bone;
-	float	fac;
-	float	cop[3];
-	float	contrib=0.0;
+	float fac, contrib=0.0;
+	float cop[3], bbonemat[3][3];
+	DualQuat bbonedq;
 
 	if(bone==NULL) return 0.0f;
 	
@@ -603,62 +802,95 @@ static float dist_bone_deform(bPoseChannel *pchan, float *vec, float *co)
 
 	fac= distfactor_to_bone(cop, bone->arm_head, bone->arm_tail, bone->rad_head, bone->rad_tail, bone->dist);
 	
-	if (fac>0.0){
+	if (fac>0.0) {
 		
 		fac*=bone->weight;
 		contrib= fac;
 		if(contrib>0.0) {
+			if(vec) {
+				if(bone->segments>1)
+					// applies on cop and bbonemat
+					b_bone_deform(pchan, bone, cop, NULL, (mat)?bbonemat:NULL);
+				else
+					Mat4MulVecfl(pchan->chan_mat, cop);
 
-			VECCOPY (cop, co);
-			
-			if(bone->segments>1)
-				b_bone_deform(pchan, bone, cop);	// applies on cop
-			
-			Mat4MulVecfl(pchan->chan_mat, cop);
-			
-			VecSubf (cop, cop, co);	//	Make this a delta from the base position
-			cop[0]*=fac; cop[1]*=fac; cop[2]*=fac;
-			VecAddf (vec, vec, cop);
+				//	Make this a delta from the base position
+				VecSubf (cop, cop, co);
+				cop[0]*=fac; cop[1]*=fac; cop[2]*=fac;
+				VecAddf (vec, vec, cop);
+
+				if(mat)
+					pchan_deform_mat_add(pchan, fac, bbonemat, mat);
+			}
+			else {
+				if(bone->segments>1) {
+					b_bone_deform(pchan, bone, cop, &bbonedq, NULL);
+					DQuatAddWeighted(dq, &bbonedq, fac);
+				}
+				else
+					DQuatAddWeighted(dq, pchan->dual_quat, fac);
+			}
 		}
 	}
 	
 	return contrib;
 }
 
-static void pchan_bone_deform(bPoseChannel *pchan, float weight, float *vec, float *co, float *contrib)
+static void pchan_bone_deform(bPoseChannel *pchan, float weight, float *vec, DualQuat *dq, float mat[][3], float *co, float *contrib)
 {
-	float	cop[3];
+	float cop[3], bbonemat[3][3];
+	DualQuat bbonedq;
 
 	if (!weight)
 		return;
 
-	VECCOPY (cop, co);
-	
-	if(pchan->bone->segments>1)
-		b_bone_deform(pchan, pchan->bone, cop);	// applies on cop
-	
-	Mat4MulVecfl(pchan->chan_mat, cop);
-	
-	vec[0]+=(cop[0]-co[0])*weight;
-	vec[1]+=(cop[1]-co[1])*weight;
-	vec[2]+=(cop[2]-co[2])*weight;
+	VECCOPY(cop, co);
+
+	if(vec) {
+		if(pchan->bone->segments>1)
+			// applies on cop and bbonemat
+			b_bone_deform(pchan, pchan->bone, cop, NULL, (mat)?bbonemat:NULL);
+		else
+			Mat4MulVecfl(pchan->chan_mat, cop);
+		
+		vec[0]+=(cop[0]-co[0])*weight;
+		vec[1]+=(cop[1]-co[1])*weight;
+		vec[2]+=(cop[2]-co[2])*weight;
+
+		if(mat)
+			pchan_deform_mat_add(pchan, weight, bbonemat, mat);
+	}
+	else {
+		if(pchan->bone->segments>1) {
+			b_bone_deform(pchan, pchan->bone, cop, &bbonedq, NULL);
+			DQuatAddWeighted(dq, &bbonedq, weight);
+		}
+		else
+			DQuatAddWeighted(dq, pchan->dual_quat, weight);
+	}
 
 	(*contrib)+=weight;
 }
 
 void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
-                           float (*vertexCos)[3], int numVerts, int deformflag,
-                           const char *defgrp_name)
+                           float (*vertexCos)[3], float (*defMats)[3][3],
+						   int numVerts, int deformflag, 
+						   float (*prevCos)[3], const char *defgrp_name)
 {
 	bPoseChannel *pchan, **defnrToPC = NULL;
 	MDeformVert *dverts = NULL;
 	bDeformGroup *dg;
+	DualQuat *dualquats= NULL;
 	float obinv[4][4], premat[4][4], postmat[4][4];
 	int use_envelope = deformflag & ARM_DEF_ENVELOPE;
+	int use_quaternion = deformflag & ARM_DEF_QUATERNION;
+	int bbone_rest_def = deformflag & ARM_DEF_B_BONE_REST;
+	int invert_vgroup= deformflag & ARM_DEF_INVERT_VGROUP;
 	int numGroups = 0;		/* safety for vertexgroup index overflow */
 	int i, target_totvert = 0;	/* safety for vertexgroup overflow */
 	int use_dverts = 0;
 	int armature_def_nr = -1;
+	int totchan;
 
 	if(armOb == G.obedit) return;
 	
@@ -669,11 +901,23 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 
 	/* bone defmats are already in the channels, chan_mat */
 	
-	/* initialize B_bone matrices */
+	/* initialize B_bone matrices and dual quaternions */
+	if(use_quaternion) {
+		totchan= BLI_countlist(&armOb->pose->chanbase);
+		dualquats= MEM_callocN(sizeof(DualQuat)*totchan, "dualquats");
+	}
+
+	totchan= 0;
 	for(pchan = armOb->pose->chanbase.first; pchan; pchan = pchan->next) {
-		if(!(pchan->bone->flag & BONE_NO_DEFORM))
+		if(!(pchan->bone->flag & BONE_NO_DEFORM)) {
 			if(pchan->bone->segments > 1)
-				pchan_b_bone_defmats(pchan);
+				pchan_b_bone_defmats(pchan, use_quaternion, bbone_rest_def);
+
+			if(use_quaternion) {
+				pchan->dual_quat= &dualquats[totchan++];
+				Mat4ToDQuat(pchan->bone->arm_mat, pchan->chan_mat, pchan->dual_quat);
+			}
+		}
 	}
 
 	/* get the def_nr for the overall armature vertex group if present */
@@ -722,13 +966,28 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 
 	for(i = 0; i < numVerts; i++) {
 		MDeformVert *dvert;
-		float *co = vertexCos[i];
-		float vec[3];
+		DualQuat sumdq, *dq = NULL;
+		float *co, dco[3];
+		float sumvec[3], summat[3][3];
+		float *vec = NULL, (*smat)[3] = NULL;
 		float contrib = 0.0f;
-		float armature_weight = 1.0f; /* default to 1 if no overall def group */
+		float armature_weight = 1.0f;	/* default to 1 if no overall def group */
+		float prevco_weight = 1.0f;		/* weight for optional cached vertexcos */
 		int	  j;
 
-		vec[0] = vec[1] = vec[2] = 0.0f;
+		if(use_quaternion) {
+			memset(&sumdq, 0, sizeof(DualQuat));
+			dq= &sumdq;
+		}
+		else {
+			sumvec[0] = sumvec[1] = sumvec[2] = 0.0f;
+			vec= sumvec;
+
+			if(defMats) {
+				Mat3Clr((float*)summat);
+				smat = summat;
+			}
+		}
 
 		if(use_dverts || armature_def_nr >= 0) {
 			if(dm) dvert = dm->getVertData(dm, i, CD_MDEFORMVERT);
@@ -745,10 +1004,21 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 					break;
 				}
 			}
+			/* hackish: the blending factor can be used for blending with prevCos too */
+			if(prevCos) {
+				if(invert_vgroup)
+					prevco_weight= 1.0f-armature_weight;
+				else
+					prevco_weight= armature_weight;
+				armature_weight= 1.0f;
+			}
 		}
 
 		/* check if there's any  point in calculating for this vert */
 		if(armature_weight == 0.0f) continue;
+		
+		/* get the coord we work on */
+		co= prevCos?prevCos[i]:vertexCos[i];
 		
 		/* Apply the object's matrix */
 		Mat4MulVecfl(premat, co);
@@ -772,7 +1042,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 						                             bone->rad_tail,
 						                             bone->dist);
 					}
-					pchan_bone_deform(pchan, weight, vec, co, &contrib);
+					pchan_bone_deform(pchan, weight, vec, dq, smat, co, &contrib);
 				}
 			}
 			/* if there are vertexgroups but not groups with bones
@@ -782,7 +1052,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 				for(pchan = armOb->pose->chanbase.first; pchan;
 				    pchan = pchan->next) {
 					if(!(pchan->bone->flag & BONE_NO_DEFORM))
-						contrib += dist_bone_deform(pchan, vec, co);
+						contrib += dist_bone_deform(pchan, vec, dq, smat, co);
 				}
 			}
 		}
@@ -790,19 +1060,61 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 			for(pchan = armOb->pose->chanbase.first; pchan;
 			    pchan = pchan->next) {
 				if(!(pchan->bone->flag & BONE_NO_DEFORM))
-					contrib += dist_bone_deform(pchan, vec, co);
+					contrib += dist_bone_deform(pchan, vec, dq, smat, co);
 			}
 		}
 
 		/* actually should be EPSILON? weight values and contrib can be like 10e-39 small */
 		if(contrib > 0.0001f) {
-			VecMulf(vec, armature_weight / contrib);
-			VecAddf(co, vec, co);
+			if(use_quaternion) {
+				DQuatNormalize(dq, contrib);
+
+				if(armature_weight != 1.0f) {
+					VECCOPY(dco, co);
+					DQuatMulVecfl(dq, dco, (defMats)? summat: NULL);
+					VecSubf(dco, dco, co);
+					VecMulf(dco, armature_weight);
+					VecAddf(co, co, dco);
+				}
+				else
+					DQuatMulVecfl(dq, co, (defMats)? summat: NULL);
+
+				smat = summat;
+			}
+			else {
+				VecMulf(vec, armature_weight/contrib);
+				VecAddf(co, vec, co);
+			}
+
+			if(defMats) {
+				float pre[3][3], post[3][3], tmpmat[3][3];
+
+				Mat3CpyMat4(pre, premat);
+				Mat3CpyMat4(post, postmat);
+				Mat3CpyMat3(tmpmat, defMats[i]);
+
+				if(!use_quaternion) /* quaternion already is scale corrected */
+					Mat3MulFloat((float*)smat, armature_weight/contrib);
+
+				Mat3MulSerie(defMats[i], tmpmat, pre, smat, post,
+					NULL, NULL, NULL, NULL);
+			}
 		}
+		
 		/* always, check above code */
 		Mat4MulVecfl(postmat, co);
+		
+		
+		/* interpolate with previous modifier position using weight group */
+		if(prevCos) {
+			float mw= 1.0f - prevco_weight;
+			vertexCos[i][0]= prevco_weight*vertexCos[i][0] + mw*co[0];
+			vertexCos[i][1]= prevco_weight*vertexCos[i][1] + mw*co[1];
+			vertexCos[i][2]= prevco_weight*vertexCos[i][2] + mw*co[2];
+		}
 	}
 
+	if(dualquats) MEM_freeN(dualquats);
 	if(defnrToPC) MEM_freeN(defnrToPC);
 	
 	/* free B_bone matrices */
@@ -811,6 +1123,12 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 			MEM_freeN(pchan->b_bone_mats);
 			pchan->b_bone_mats = NULL;
 		}
+		if(pchan->b_bone_dual_quats) {
+			MEM_freeN(pchan->b_bone_dual_quats);
+			pchan->b_bone_dual_quats = NULL;
+		}
+
+		pchan->dual_quat = NULL;
 	}
 }
 
@@ -1070,7 +1388,6 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 	bPose *pose= ob->pose, *frompose= from->pose;
 	bPoseChannel *pchan, *pchanp, pchanw;
 	bConstraint *con;
-	char *str;
 	
 	if(frompose==NULL) return;
 	
@@ -1084,6 +1401,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 	pchan= pose->chanbase.first;
 	for(; pchan; pchan= pchan->next) {
 		if(pchan->bone->layer & layer_protected) {
+			ListBase proxylocal_constraints = {NULL, NULL};
 			pchanp= get_pose_channel(frompose, pchan->name);
 			
 			/* copy posechannel to temp, but restore important pointers */
@@ -1094,16 +1412,36 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			pchanw.child= pchan->child;
 			pchanw.path= NULL;
 			
-			/* constraints, set target ob pointer to own object */
+			/* constraints - proxy constraints are flushed... local ones are added after 
+			 *	1. extract constraints not from proxy (CONSTRAINT_PROXY_LOCAL) from pchan's constraints
+			 *	2. copy proxy-pchan's constraints on-to new
+			 *	3. add extracted local constraints back on top 
+			 */
+			extract_proxylocal_constraints(&proxylocal_constraints, &pchan->constraints);
 			copy_constraints(&pchanw.constraints, &pchanp->constraints);
-
-			for(con= pchanw.constraints.first; con; con= con->next) {
-				if(from==get_constraint_target(con, &str))
-					set_constraint_target(con, ob, NULL);
+			addlisttolist(&pchanw.constraints, &proxylocal_constraints);
+			
+			/* constraints - set target ob pointer to own object */
+			for (con= pchanw.constraints.first; con; con= con->next) {
+				bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+				ListBase targets = {NULL, NULL};
+				bConstraintTarget *ct;
+				
+				if (cti && cti->get_constraint_targets) {
+					cti->get_constraint_targets(con, &targets);
+					
+					for (ct= targets.first; ct; ct= ct->next) {
+						if (ct->tar == from)
+							ct->tar = ob;
+					}
+					
+					if (cti->flush_constraint_targets)
+						cti->flush_constraint_targets(con, &targets, 0);
+				}
 			}
 			
 			/* free stuff from current channel */
-			if(pchan->path) MEM_freeN(pchan->path);
+			if (pchan->path) MEM_freeN(pchan->path);
 			free_constraints(&pchan->constraints);
 			
 			/* the final copy */
@@ -1321,7 +1659,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	float goalrot[3][3], goalpos[3];
 	float rootmat[4][4], imat[4][4];
 	float goal[4][4], goalinv[4][4];
-	float size[3], irest_basis[3][3], full_basis[3][3];
+	float irest_basis[3][3], full_basis[3][3];
 	float end_pose[4][4], world_pose[4][4];
 	float length, basis[3][3], rest_basis[3][3], start[3], *ikstretch=NULL;
 	int a, flag, hasstretch=0;
@@ -1329,7 +1667,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	IK_Segment *seg, *parent, **iktree, *iktarget;
 	IK_Solver *solver;
 	PoseTarget *target;
-	bKinematicConstraint *data;
+	bKinematicConstraint *data, *poleangledata=NULL;
 	Bone *bone;
 
 	if (tree->totchannel == 0)
@@ -1343,11 +1681,11 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 
 		/* set DoF flag */
 		flag= 0;
-		if((pchan->ikflag & BONE_IK_NO_XDOF) == 0)
+		if(!(pchan->ikflag & BONE_IK_NO_XDOF) && !(pchan->ikflag & BONE_IK_NO_XDOF_TEMP))
 			flag |= IK_XDOF;
-		if((pchan->ikflag & BONE_IK_NO_YDOF) == 0)
+		if(!(pchan->ikflag & BONE_IK_NO_YDOF) && !(pchan->ikflag & BONE_IK_NO_YDOF_TEMP))
 			flag |= IK_YDOF;
-		if((pchan->ikflag & BONE_IK_NO_ZDOF) == 0)
+		if(!(pchan->ikflag & BONE_IK_NO_ZDOF) && !(pchan->ikflag & BONE_IK_NO_ZDOF_TEMP))
 			flag |= IK_ZDOF;
 
 		if(tree->stretch && (pchan->ikstretch > 0.0)) {
@@ -1440,53 +1778,88 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	Mat4MulMat4 (imat, rootmat, ob->obmat);
 	Mat4Invert (goalinv, imat);
 	
-	for(target=tree->targets.first; target; target=target->next) {
+	for (target=tree->targets.first; target; target=target->next) {
+		float polepos[3];
+		int poleconstrain= 0;
+
 		data= (bKinematicConstraint*)target->con->data;
-
-		/* 1.0=ctime, we pass on object for auto-ik */
-		get_constraint_target_matrix(target->con, TARGET_BONE, ob, rootmat, size, 1.0);
-
+		
+		/* 1.0=ctime, we pass on object for auto-ik (owner-type here is object, even though
+		 * strictly speaking, it is a posechannel)
+		 */
+		get_constraint_target_matrix(target->con, 0, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
+		
 		/* and set and transform goal */
 		Mat4MulMat4(goal, rootmat, goalinv);
-
+		
 		VECCOPY(goalpos, goal[3]);
 		Mat3CpyMat4(goalrot, goal);
+		
+		/* same for pole vector target */
+		if(data->poletar) {
+			get_constraint_target_matrix(target->con, 1, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
+
+			if(data->flag & CONSTRAINT_IK_SETANGLE) {
+				/* don't solve IK when we are setting the pole angle */
+				break;
+			}
+			else {
+				Mat4MulMat4(goal, rootmat, goalinv);
+				VECCOPY(polepos, goal[3]);
+				poleconstrain= 1;
+
+				if(data->flag & CONSTRAINT_IK_GETANGLE) {
+					poleangledata= data;
+					data->flag &= ~CONSTRAINT_IK_GETANGLE;
+				}
+			}
+		}
 
 		/* do we need blending? */
-		if(target->con->enforce!=1.0) {
+		if (target->con->enforce!=1.0) {
 			float q1[4], q2[4], q[4];
 			float fac= target->con->enforce;
 			float mfac= 1.0-fac;
 			
 			pchan= tree->pchan[target->tip];
-
+			
 			/* end effector in world space */
 			Mat4CpyMat4(end_pose, pchan->pose_mat);
 			VECCOPY(end_pose[3], pchan->pose_tail);
 			Mat4MulSerie(world_pose, goalinv, ob->obmat, end_pose, 0, 0, 0, 0, 0);
-
+			
 			/* blend position */
 			goalpos[0]= fac*goalpos[0] + mfac*world_pose[3][0];
 			goalpos[1]= fac*goalpos[1] + mfac*world_pose[3][1];
 			goalpos[2]= fac*goalpos[2] + mfac*world_pose[3][2];
-
+			
 			/* blend rotation */
 			Mat3ToQuat(goalrot, q1);
 			Mat4ToQuat(world_pose, q2);
 			QuatInterpol(q, q1, q2, mfac);
 			QuatToMat3(q, goalrot);
 		}
-
+		
 		iktarget= iktree[target->tip];
-
-		if(data->weight != 0.0)
+		
+		if(data->weight != 0.0) {
+			if(poleconstrain)
+				IK_SolverSetPoleVectorConstraint(solver, iktarget, goalpos,
+					polepos, data->poleangle*M_PI/180, (poleangledata == data));
 			IK_SolverAddGoal(solver, iktarget, goalpos, data->weight);
-		if((data->flag & CONSTRAINT_IK_ROT) && (data->orientweight != 0.0) && (data->flag & CONSTRAINT_IK_AUTO)==0)
-			IK_SolverAddGoalOrientation(solver, iktarget, goalrot, data->orientweight);
+		}
+		if((data->flag & CONSTRAINT_IK_ROT) && (data->orientweight != 0.0))
+			if((data->flag & CONSTRAINT_IK_AUTO)==0)
+				IK_SolverAddGoalOrientation(solver, iktarget, goalrot,
+					data->orientweight);
 	}
 
 	/* solve */
 	IK_Solve(solver, 0.0f, tree->iterations);
+
+	if(poleangledata)
+		poleangledata->poleangle= IK_SolverGetPoleAngle(solver)*180/M_PI;
+
 	IK_FreeSolver(solver);
 
 	/* gather basis changes */
@@ -1603,220 +1976,46 @@ static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[][3])   // nr = t
 	pchan->flag |= POSE_DONE;
 }
 
-static void do_local_constraint(bPoseChannel *pchan, bConstraint *con)
-{
-	switch(con->type) {
-		case CONSTRAINT_TYPE_LOCLIKE:
-		{
-			bLocateLikeConstraint *data= con->data;
-			float fac= con->enforce;
-			
-			if(data->tar && data->subtarget[0]) {
-				bPoseChannel *pchant= get_pose_channel(data->tar->pose, data->subtarget);
-				if(pchant) {
-					float loc[3];
-					
-					/* copy location of tip of bone? */
-					if (data->flag & LOCLIKE_TIP) {
-						float mat[4][4], tmat[4][4];
-						
-						Mat4One(tmat);
-						VECCOPY(tmat[3], pchant->pose_tail);
-						
-						armature_mat_pose_to_delta(mat, tmat, pchant->bone->arm_mat);
-						VECCOPY(loc, mat[3]);
-					}
-					else
-						VECCOPY(loc, pchant->loc);
-					
-					/* do offsets? */
-					if (data->flag & LOCLIKE_OFFSET)
-						VecAddf(loc, loc, pchan->loc);
-					
-					if (data->flag & LOCLIKE_X)
-						pchan->loc[0]= FloatLerpf(loc[0], pchan->loc[0], fac);
-					if (data->flag & LOCLIKE_Y)
-						pchan->loc[1]= FloatLerpf(loc[1], pchan->loc[1], fac);
-					if (data->flag & LOCLIKE_Z)
-						pchan->loc[2]= FloatLerpf(loc[2], pchan->loc[2], fac);
-					if (data->flag & LOCLIKE_X_INVERT)
-						pchan->loc[0]= FloatLerpf(pchant->loc[0], pchan->loc[0], -fac);
-					if (data->flag & LOCLIKE_Y_INVERT)
-						pchan->loc[1]= FloatLerpf(pchant->loc[1], pchan->loc[1], -fac);
-					if (data->flag & LOCLIKE_Z_INVERT)
-						pchan->loc[2]= FloatLerpf(pchant->loc[2], pchan->loc[2], -fac);
-				}
-			}
-		}
-			break;
-		case CONSTRAINT_TYPE_ROTLIKE:
-		{
-			bRotateLikeConstraint *data= con->data;
-			if(data->tar && data->subtarget[0]) {
-				bPoseChannel *pchant= get_pose_channel(data->tar->pose, data->subtarget);
-				if(pchant) {
-					if(data->flag != (ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z)) {
-						float eul[3], eult[3], euln[3];
-						float fac= con->enforce;
-						
-						QuatToEul(pchan->quat, eul);
-						QuatToEul(pchant->quat, eult);
-						VECCOPY(euln, eul);
-						
-						if(data->flag & ROTLIKE_X) euln[0]= FloatLerpf(eult[0], eul[0], fac); 
-						if(data->flag & ROTLIKE_Y) euln[1]= FloatLerpf(eult[1], eul[1], fac);
-						if(data->flag & ROTLIKE_Z) euln[2]= FloatLerpf(eult[2], eul[2], fac);
-						if(data->flag & ROTLIKE_X_INVERT) euln[0]= FloatLerpf(eult[0], eul[0], -fac); 
-						if(data->flag & ROTLIKE_Y_INVERT) euln[1]= FloatLerpf(eult[1], eul[1], -fac);
-						if(data->flag & ROTLIKE_Z_INVERT) euln[2]= FloatLerpf(eult[2], eul[2], -fac);
-						
-						compatible_eul(eul, euln);
-						EulToQuat(euln, pchan->quat);
-					}
-					else {
-						QuatInterpol(pchan->quat, pchan->quat, pchant->quat, con->enforce);
-					}
-				}
-			}
-		}
-			break;
-		case CONSTRAINT_TYPE_SIZELIKE:
-		{
-			bSizeLikeConstraint *data= con->data;
-			float fac= con->enforce;
-			
-			if(data->tar && data->subtarget[0]) {
-				bPoseChannel *pchant= get_pose_channel(data->tar->pose, data->subtarget);
-				if(pchant) {
-					if (data->flag & SIZELIKE_X)
-						pchan->size[0]= FloatLerpf(pchant->size[0], pchan->size[0], fac);
-					if (data->flag & SIZELIKE_Y)
-						pchan->size[1]= FloatLerpf(pchant->size[1], pchan->size[1], fac);
-					if (data->flag & SIZELIKE_Z)
-						pchan->size[2]= FloatLerpf(pchant->size[2], pchan->size[2], fac);
-				}
-			}
-		}
-			break;
-		case CONSTRAINT_TYPE_LOCLIMIT:
-		{
-			bLocLimitConstraint *data= con->data;
-			float fac= con->enforce;
-			
-			if (data->flag & LIMIT_XMIN) {
-				if(pchan->loc[0] < data->xmin)
-					pchan->loc[0] = FloatLerpf(data->xmin, pchan->loc[0], fac);
-			}
-			if (data->flag & LIMIT_XMAX) {
-				if (pchan->loc[0] > data->xmax)
-					pchan->loc[0] = FloatLerpf(data->xmax, pchan->loc[0], fac);
-			}
-			if (data->flag & LIMIT_YMIN) {
-				if(pchan->loc[1] < data->ymin)
-					pchan->loc[1] = FloatLerpf(data->ymin, pchan->loc[1], fac);
-			}
-			if (data->flag & LIMIT_YMAX) {
-				if (pchan->loc[1] > data->ymax)
-					pchan->loc[1] = FloatLerpf(data->ymax, pchan->loc[1], fac);
-			}
-			if (data->flag & LIMIT_ZMIN) {
-				if(pchan->loc[2] < data->zmin)
-					pchan->loc[2] = FloatLerpf(data->zmin, pchan->loc[2], fac);
-			}
-			if (data->flag & LIMIT_ZMAX) {
-				if (pchan->loc[2] > data->zmax)
-					pchan->loc[2] = FloatLerpf(data->zmax, pchan->loc[2], fac);
-			}
-		}	
-			break;
-		case CONSTRAINT_TYPE_ROTLIMIT:
-		{
-			bRotLimitConstraint *data = con->data;
-			float eul[3];
-			float fac= con->enforce;
-			
-			QuatToEul(pchan->quat, eul);
-			
-			/* eulers: radians to degrees! */
-			eul[0] = (eul[0] / (2*M_PI) * 360);
-			eul[1] = (eul[1] / (2*M_PI) * 360);
-			eul[2] = (eul[2] / (2*M_PI) * 360);
-			
-			/* limiting of euler values... */
-			if (data->flag & LIMIT_XROT) {
-				if (eul[0] < data->xmin) 
-					eul[0] = FloatLerpf(data->xmin, eul[0], fac);
-					
-				if (eul[0] > data->xmax)
-					eul[0] = FloatLerpf(data->xmax, eul[0], fac);
-			}
-			if (data->flag & LIMIT_YROT) {
-				if (eul[1] < data->ymin)
-					eul[1] = FloatLerpf(data->ymin, eul[1], fac);
-					
-				if (eul[1] > data->ymax)
-					eul[1] = FloatLerpf(data->ymax, eul[1], fac);
-			}
-			if (data->flag & LIMIT_ZROT) {
-				if (eul[2] < data->zmin)
-					eul[2] = FloatLerpf(data->zmin, eul[2], fac);
-					
-				if (eul[2] > data->zmax)
-					eul[2] = FloatLerpf(data->zmax, eul[2], fac);
-			}
-				
-			/* eulers: degrees to radians ! */
-			eul[0] = (eul[0] / 360 * (2*M_PI)); 
-			eul[1] = (eul[1] / 360 * (2*M_PI));
-			eul[2] = (eul[2] / 360 * (2*M_PI));
-			
-			/* convert back */
-			EulToQuat(eul, pchan->quat);
-		}
-			break;
-		case CONSTRAINT_TYPE_SIZELIMIT:
-		{
-			bSizeLimitConstraint *data= con->data;
-			float fac= con->enforce;
-			
-			if (data->flag & LIMIT_XMIN) {
-				if(pchan->size[0] < data->xmin)
-					pchan->size[0] = FloatLerpf(data->xmin, pchan->size[0], fac);
-			}
-			if (data->flag & LIMIT_XMAX) {
-				if (pchan->size[0] > data->xmax)
-					pchan->size[0] = FloatLerpf(data->xmax, pchan->size[0], fac);
-			}
-			if (data->flag & LIMIT_YMIN) {
-				if(pchan->size[1] < data->ymin)
-					pchan->size[1] = FloatLerpf(data->ymin, pchan->size[1], fac);
-			}
-			if (data->flag & LIMIT_YMAX) {
-				if (pchan->size[1] > data->ymax)
-					pchan->size[1] = FloatLerpf(data->ymax, pchan->size[1], fac);
-			}
-			if (data->flag & LIMIT_ZMIN) {
-				if(pchan->size[2] < data->zmin)
-					pchan->size[2] = FloatLerpf(data->zmin, pchan->size[2], fac);
-			}
-			if (data->flag & LIMIT_ZMAX) {
-				if (pchan->size[2] > data->zmax)
-					pchan->size[2] = FloatLerpf(data->zmax, pchan->size[2], fac);
-			}
-		}
-			break;
-	}
-}
-
+/* NLA strip modifiers */
 static void do_strip_modifiers(Object *armob, Bone *bone, bPoseChannel *pchan)
 {
 	bActionModifier *amod;
-	bActionStrip *strip;
+	bActionStrip *strip, *strip2;
 	float scene_cfra= G.scene->r.cfra;
+	int do_modif;
 
 	for (strip=armob->nlastrips.first; strip; strip=strip->next) {
-		if(scene_cfra>=strip->start && scene_cfra<=strip->end) {
+		do_modif=0;
+		
+		if (scene_cfra>=strip->start && scene_cfra<=strip->end)
+			do_modif=1;
+		
+		if ((scene_cfra > strip->end) && (strip->flag & ACTSTRIP_HOLDLASTFRAME)) {
+			do_modif=1;
 			
+			/* if there are any other strips active, ignore modifiers for this strip - 
+			 * 'hold' option should only hold action modifiers if there are 
+			 * no other active strips */
+			for (strip2=strip->next; strip2; strip2=strip2->next) {
+				if (strip2 == strip) continue;
+				
+				if (scene_cfra>=strip2->start && scene_cfra<=strip2->end) {
+					if (!(strip2->flag & ACTSTRIP_MUTE))
+						do_modif=0;
+				}
+			}
+			
+			/* if there are any later, activated, strips with 'hold' set, they take precedence, 
+			 * so ignore modifiers for this strip */
+			for (strip2=strip->next; strip2; strip2=strip2->next) {
+				if (scene_cfra < strip2->start) continue;
+				if ((strip2->flag & ACTSTRIP_HOLDLASTFRAME) && !(strip2->flag & ACTSTRIP_MUTE)) {
+					do_modif=0;
+				}
+			}
+		}
+		
+		if (do_modif) {
 			/* temporal solution to prevent 2 strips accumulating */
 			if(scene_cfra==strip->end && strip->next && strip->next->start==scene_cfra)
 				continue;
@@ -1906,31 +2105,15 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 {
 	Bone *bone, *parbone;
 	bPoseChannel *parchan;
-	float vec[3], quat[4];
-	int did_local= 0;	/* copying quaternion should be limited, chan_calc_mat() normalizes quat */
+	float vec[3];
 	
 	/* set up variables for quicker access below */
 	bone= pchan->bone;
 	parbone= bone->parent;
 	parchan= pchan->parent;
-		
-	/* Do local constraints, these only work on the channel data (loc rot size) */
-	QUATCOPY(quat, pchan->quat);
-	if(pchan->constraints.first) {
-		bConstraint *con;
-		for(con=pchan->constraints.first; con; con= con->next) {
-			if(con->flag & CONSTRAINT_LOCAL) {
-				do_local_constraint(pchan, con);
-				did_local= 1;
-			}
-		}
-	}
 	
 	/* this gives a chan_mat with actions (ipos) results */
 	chan_calc_mat(pchan);
-	
-	if(did_local) 
-		QUATCOPY(pchan->quat, quat);	/* local constraint hack. bad! */
 	
 	/* construct the posemat based on PoseChannels, that we do before applying constraints */
 	/* pose_mat(b)= pose_mat(b-1) * yoffs(b-1) * d_root(b) * bone_mat(b) * chan_mat(b) */
@@ -1961,6 +2144,21 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 			
 			Mat4MulSerie(pchan->pose_mat, tmat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
 		}
+		else if(bone->flag & BONE_NO_SCALE) {
+			float orthmat[4][4], vec[3];
+			
+			/* get the official transform, but we only use the vector from it (optimize...) */
+			Mat4MulSerie(pchan->pose_mat, parchan->pose_mat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
+			VECCOPY(vec, pchan->pose_mat[3]);
+			
+			/* do this again, but with an ortho-parent matrix */
+			Mat4CpyMat4(orthmat, parchan->pose_mat);
+			Mat4Ortho(orthmat);
+			Mat4MulSerie(pchan->pose_mat, orthmat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
+			
+			/* copy correct transform */
+			VECCOPY(pchan->pose_mat[3], vec);
+		}
 		else 
 			Mat4MulSerie(pchan->pose_mat, parchan->pose_mat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
 	}
@@ -1970,44 +2168,36 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 		VecAddf(pchan->pose_mat[3], pchan->pose_mat[3], ob->pose->cyclic_offset);
 	}
 	
+	/* do NLA strip modifiers - i.e. curve follow */
 	do_strip_modifiers(ob, bone, pchan);
 	
 	/* Do constraints */
-	if(pchan->constraints.first) {
-		static Object conOb;
-		static int initialized= 0;
+	if (pchan->constraints.first) {
+		bConstraintOb *cob;
 		
+		/* local constraints */
+		do_constraint_channels(&pchan->constraints, NULL, ctime, 0);
+		
+		/* make a copy of location of PoseChannel for later */
 		VECCOPY(vec, pchan->pose_mat[3]);
 		
-		/* Build a workob to pass the bone to the constraint solver */
-		if(initialized==0) {
-			memset(&conOb, 0, sizeof(Object));
-			initialized= 1;
-		}
-		conOb.size[0]= conOb.size[1]= conOb.size[2]= 1.0;
-		conOb.data = ob->data;
-		conOb.type = ob->type;
-		conOb.parent = ob;	// ik solver retrieves the armature that way !?!?!?!
-		conOb.pose= ob->pose;				// needed for retrieving pchan
-		conOb.trackflag = ob->trackflag;
-		conOb.upflag = ob->upflag;
+		/* prepare PoseChannel for Constraint solving 
+		 * - makes a copy of matrix, and creates temporary struct to use 
+		 */
+		cob= constraints_make_evalob(ob, pchan, CONSTRAINT_OBTYPE_BONE);
 		
-		/* Collect the constraints from the pose (listbase copy) */
-		conOb.constraints = pchan->constraints;
+		/* Solve PoseChannel's Constraints */
+		solve_constraints(&pchan->constraints, cob, ctime);	// ctime doesnt alter objects
 		
-		/* conOb.obmat takes bone to worldspace */
-		Mat4MulMat4 (conOb.obmat, pchan->pose_mat, ob->obmat);
-		
-		/* Solve */
-		solve_constraints (&conOb, TARGET_BONE, (void*)pchan, ctime);	// ctime doesnt alter objects
-		
-		/* Take out of worldspace */
-		Mat4MulMat4 (pchan->pose_mat, conOb.obmat, ob->imat);
+		/* cleanup after Constraint Solving 
+		 * - applies matrix back to pchan, and frees temporary struct used
+		 */
+		constraints_clear_evalob(cob);
 		
 		/* prevent constraints breaking a chain */
-		if(pchan->bone->flag & BONE_CONNECTED)
+		if(pchan->bone->flag & BONE_CONNECTED) {
 			VECCOPY(pchan->pose_mat[3], vec);
-
+		}
 	}
 	
 	/* calculate head */
@@ -2016,7 +2206,6 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 	VECCOPY(vec, pchan->pose_mat[1]);
 	VecMulf(vec, bone->length);
 	VecAddf(pchan->pose_tail, pchan->pose_head, vec);
-	
 }
 
 /* This only reads anim data from channels, and writes to channels */
@@ -2027,7 +2216,7 @@ void where_is_pose (Object *ob)
 	Bone *bone;
 	bPoseChannel *pchan;
 	float imat[4][4];
-	float ctime= bsystem_time(ob, NULL, (float)G.scene->r.cfra, 0.0);	/* not accurate... */
+	float ctime= bsystem_time(ob, (float)G.scene->r.cfra, 0.0);	/* not accurate... */
 	
 	arm = get_armature(ob);
 	

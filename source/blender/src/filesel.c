@@ -34,6 +34,12 @@
 #include <string.h>
 #include <math.h>
 
+#include <sys/stat.h>
+#include <sys/types.h>
+#include "MEM_guardedalloc.h"
+
+#include "BMF_Api.h"
+
 #ifdef WIN32
 #include <io.h>
 #include <direct.h>
@@ -42,12 +48,6 @@
 #include <unistd.h>
 #include <sys/times.h>
 #endif   
-
-#include <sys/stat.h>
-#include <sys/types.h>
-#include "MEM_guardedalloc.h"
-
-#include "BMF_Api.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -86,6 +86,7 @@
 #include "BKE_utildefines.h"
 
 #include "BIF_editview.h"
+#include "BIF_filelist.h"
 #include "BIF_gl.h"
 #include "BIF_interface.h"
 #include "BIF_language.h"
@@ -101,7 +102,6 @@
 #include "BDR_editcurve.h"
 #include "BDR_editobject.h"
 
-#include "BPI_script.h"
 #include "BSE_filesel.h"
 #include "BSE_view.h"
 
@@ -111,15 +111,18 @@
 
 #include "BIF_fsmenu.h"  /* include ourselves */
 
-#if defined WITH_ICONV
-	#include "iconv.h"
+#ifdef INTERNATIONAL
+#include "FTF_Api.h"
 #endif
 
-#if defined WIN32 || defined __BeOS
-int fnmatch(const char *pattern, const char *string, int flags)
+#if defined __BeOS
+static int fnmatch(const char *pattern, const char *string, int flags)
 {
 	return 0;
 }
+#elif defined WIN32 && !defined _LIBC
+	/* use fnmatch included in blenlib */
+	#include "BLI_fnmatch.h"
 #else
 	#include <fnmatch.h>
 #endif
@@ -169,155 +172,6 @@ static int filetoname= 0;
 static float pixels_to_ofs;
 static char otherdir[FILE_MAX];
 static ScrArea *otherarea;
-
-/* FSMENU HANDLING */
-
-	/* FSMenuEntry's without paths indicate seperators */
-typedef struct _FSMenuEntry FSMenuEntry;
-struct _FSMenuEntry {
-	FSMenuEntry *next;
-
-	char *path;
-};
-
-static FSMenuEntry *fsmenu= 0;
-
-int fsmenu_get_nentries(void)
-{
-	FSMenuEntry *fsme;
-	int count= 0;
-
-	for (fsme= fsmenu; fsme; fsme= fsme->next) 
-		count++;
-
-	return count;
-}
-int fsmenu_is_entry_a_seperator(int idx)
-{
-	FSMenuEntry *fsme;
-
-	for (fsme= fsmenu; fsme && idx; fsme= fsme->next)
-		idx--;
-
-	return (fsme && !fsme->path)?1:0;
-}
-char *fsmenu_get_entry(int idx)
-{
-	FSMenuEntry *fsme;
-
-	for (fsme= fsmenu; fsme && idx; fsme= fsme->next)
-		idx--;
-
-	return fsme?fsme->path:NULL;
-}
-char *fsmenu_build_menu(void)
-{
-	DynStr *ds= BLI_dynstr_new();
-	FSMenuEntry *fsme;
-	char *menustr;
-
-	for (fsme= fsmenu; fsme; fsme= fsme->next) {
-		if (!fsme->path) {
-				/* clean consecutive seperators and ignore trailing ones */
-			if (fsme->next) {
-				if (fsme->next->path) {
-					BLI_dynstr_append(ds, "%l|");
-				} else {
-					FSMenuEntry *next= fsme->next;
-					fsme->next= next->next;
-					MEM_freeN(next);
-				}
-			}
-		} else {
-			BLI_dynstr_append(ds, fsme->path);
-			if (fsme->next) BLI_dynstr_append(ds, "|");
-		}
-	}
-
-	menustr= BLI_dynstr_get_cstring(ds);
-	BLI_dynstr_free(ds);
-	return menustr;
-}
-static FSMenuEntry *fsmenu_get_last_separator(void) 
-{
-	FSMenuEntry *fsme, *lsep=NULL;
-
-	for (fsme= fsmenu; fsme; fsme= fsme->next)
-		if (!fsme->path)
-			lsep= fsme;
-
-	return lsep;
-}
-void fsmenu_insert_entry(char *path, int sorted)
-{
-	FSMenuEntry *prev= fsmenu_get_last_separator();
-	FSMenuEntry *fsme= prev?prev->next:fsmenu;
-
-	for (; fsme; prev= fsme, fsme= fsme->next) {
-		if (fsme->path) {
-			if (BLI_streq(path, fsme->path)) {
-				return;
-			} else if (sorted && strcmp(path, fsme->path)<0) {
-				break;
-			}
-		}
-	}
-	
-	fsme= MEM_mallocN(sizeof(*fsme), "fsme");
-	fsme->path= BLI_strdup(path);
-
-	if (prev) {
-		fsme->next= prev->next;
-		prev->next= fsme;
-	} else {
-		fsme->next= fsmenu;
-		fsmenu= fsme;
-	}
-}
-void fsmenu_append_seperator(void)
-{
-	if (fsmenu) {
-		FSMenuEntry *fsme= fsmenu;
-
-		while (fsme->next) fsme= fsme->next;
-
-		fsme->next= MEM_mallocN(sizeof(*fsme), "fsme");
-		fsme->next->next= NULL;
-		fsme->next->path= NULL;
-	}
-}
-void fsmenu_remove_entry(int idx)
-{
-	FSMenuEntry *prev= NULL, *fsme= fsmenu;
-
-	for (fsme= fsmenu; fsme && idx; prev= fsme, fsme= fsme->next)
-		if (fsme->path)
-			idx--;
-
-	if (fsme) {
-		if (prev) {
-			prev->next= fsme->next;
-		} else {
-			fsmenu= fsme->next;
-		}
-
-		MEM_freeN(fsme->path);
-		MEM_freeN(fsme);
-	}
-}
-void fsmenu_free(void)
-{
-	FSMenuEntry *fsme= fsmenu;
-
-	while (fsme) {
-		FSMenuEntry *n= fsme->next;
-
-		if (fsme->path) MEM_freeN(fsme->path);
-		MEM_freeN(fsme);
-
-		fsme= n;
-	}
-}
 
 /* ******************* SORT ******************* */
 
@@ -511,7 +365,7 @@ void test_flags_file(SpaceFile *sfile)
 					}
 				}
 			}
-		} else if (sfile->type==FILE_SPECIAL){
+		} else if (sfile->type==FILE_SPECIAL || sfile->type==FILE_LOADFONT){
 			if(BLI_testextensie(file->relname, ".py")) {
 				file->flags |= PYSCRIPTFILE;			
 			} else if( BLI_testextensie(file->relname, ".ttf")
@@ -535,6 +389,9 @@ void test_flags_file(SpaceFile *sfile)
 					||	BLI_testextensie(file->relname, ".rgb")
 					||	BLI_testextensie(file->relname, ".bmp")
 					||	BLI_testextensie(file->relname, ".png")
+#ifdef WITH_DDS
+					||	BLI_testextensie(file->relname, ".dds")
+#endif
 					||	BLI_testextensie(file->relname, ".iff")
 					||	BLI_testextensie(file->relname, ".lbm")
 					||	BLI_testextensie(file->relname, ".gif")
@@ -566,6 +423,9 @@ void test_flags_file(SpaceFile *sfile)
 					||	BLI_testextensie(file->relname, ".rgb")
 					||	BLI_testextensie(file->relname, ".bmp")
 					||	BLI_testextensie(file->relname, ".png")
+#ifdef WITH_DDS
+					||	BLI_testextensie(file->relname, ".dds")
+#endif
 					||	BLI_testextensie(file->relname, ".iff")
 					||	BLI_testextensie(file->relname, ".lbm")
 					||  BLI_testextensie(file->relname, ".cin")
@@ -777,7 +637,7 @@ void swapselect_file(SpaceFile *sfile)
 
 static int find_active_file(SpaceFile *sfile, short x, short y)
 {
-	int ofs;
+	int ofs, act;
 	
 	if(y > textrct.ymax) y= textrct.ymax;
 	if(y <= textrct.ymin) y= textrct.ymin+1;
@@ -786,8 +646,12 @@ static int find_active_file(SpaceFile *sfile, short x, short y)
 	if(ofs<0) ofs= 0;
 	ofs*= (textrct.ymax-textrct.ymin);
 
-	return sfile->ofs+ (ofs+textrct.ymax-y)/FILESEL_DY;
+	act= sfile->ofs+ (ofs+textrct.ymax-y)/FILESEL_DY;
 	
+	if(act<0 || act>=sfile->totfile)
+		act= -1;
+	
+	return act;
 }
 
 
@@ -896,32 +760,6 @@ static void linerect(int id, int x, int y)
 
 }
 
-#ifdef WITH_ICONV
-static void string_to_utf8(char *original, char *utf_8, char *code) 
-{
-	size_t inbytesleft=strlen(original);
-	size_t outbytesleft=512;
-	size_t rv=0;
-	iconv_t cd;
-	
-	cd=iconv_open("UTF-8", code);
-
-	if (cd == (iconv_t)(-1)) {
-		printf("iconv_open Error");
-		*utf_8='\0';
-		return ;
-	}
-	rv=iconv(cd, &original, &inbytesleft, &utf_8, &outbytesleft);
-	if (rv == (size_t) -1) {
-		printf("iconv Error\n");
-		return ;
-	}
-	*utf_8 = '\0';
-	iconv_close(cd);
-}
-#endif
-
-
 static void print_line(SpaceFile *sfile, struct direntry *files, int x, int y)
 {
 	int boxcol=0;
@@ -972,25 +810,24 @@ static void print_line(SpaceFile *sfile, struct direntry *files, int x, int y)
 #ifdef WITH_ICONV
 		{
 			struct LANGMenuEntry *lme;
-			char utf_8[512];
+       		lme = find_language(U.language);
 
-       		 	lme = find_language(U.language);
-
-       		 	if (!strcmp(lme->code, "ja_JP")) { /* japanese */
-				string_to_utf8(files->relname, utf_8, "Shift_JIS");
-				BIF_RasterPos((float)x, (float)y);	/* texture fonts */
-				BIF_DrawString(G.font, utf_8, (U.transopts & USER_TR_MENUS));
-			} else if (!strcmp(lme->code, "zh_CN")) { /* chinese */
-				string_to_utf8(files->relname, utf_8, "gb2312");
-				BIF_RasterPos((float)x, (float)y);	/* texture fonts */
-				BIF_DrawString(G.font, utf_8, (U.transopts & USER_TR_MENUS));
+			if ((lme !=NULL) && (!strcmp(lme->code, "ja_JP") || 
+				!strcmp(lme->code, "zh_CN")))
+			{
+				BIF_RasterPos((float)x, (float)y);
+#ifdef WIN32
+				BIF_DrawString(G.font, files->relname, ((U.transopts & USER_TR_MENUS) | CONVERT_TO_UTF8));
+#else
+				BIF_DrawString(G.font, files->relname, (U.transopts & USER_TR_MENUS));
+#endif
 			} else {
 				BMF_DrawString(G.font, files->relname);
 			}
 		}
 #else
 			BMF_DrawString(G.font, files->relname);
-#endif
+#endif /* WITH_ICONV */
 
 		x += sfile->maxnamelen + 100;
 
@@ -1208,7 +1045,7 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	else loadbutton= 0;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, TEX, B_FS_DIRNAME,"",	textrct.xmin + (strp?20:0), filebuty2, textrct.xmax-textrct.xmin-loadbutton - (strp?20:0), 21, sfile->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "Directory, enter a directory and press enter to create it"); /* Directory input */
+	uiDefBut(block, TEX, B_FS_DIRNAME,"",	textrct.xmin + (strp?20:0), filebuty2, textrct.xmax-textrct.xmin-loadbutton - (strp?20:0), 21, sfile->dir, 0.0, (float)FILE_MAXDIR-1, 0, 0, "Directory, enter a directory and press enter to create it, Substitute ~ for home"); /* Directory input */
 	if(loadbutton) {
 		uiSetCurFont(block, UI_HELV);
 		uiDefBut(block, BUT, B_FS_LOAD, sfile->title,	textrct.xmax-loadbutton, filebuty2, loadbutton, 21, sfile->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
@@ -1338,6 +1175,7 @@ static void activate_fileselect_(int type, char *title, char *file, short *menup
 
 	name[2]= 0;
 	BLI_strncpy(name, file, sizeof(name));
+	BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
 	
 	sfile= curarea->spacedata.first;
 
@@ -1358,8 +1196,10 @@ static void activate_fileselect_(int type, char *title, char *file, short *menup
 	/* sfile->act is used for databrowse: double names of library objects */
 	sfile->act= -1;
 
-	if(BLI_convertstringcode(name, G.sce, G.scene->r.cfra)) sfile->flag |= FILE_STRINGCODE;
-	else sfile->flag &= ~FILE_STRINGCODE;
+	if(G.relbase_valid && U.flag & USER_RELPATHS && type != FILE_BLENDER)
+		sfile->flag |= FILE_STRINGCODE;
+	else
+		sfile->flag &= ~FILE_STRINGCODE;
 
 	if (U.uiflag & USER_HIDE_DOT)
 		sfile->flag |= FILE_HIDE_DOT;
@@ -1393,7 +1233,7 @@ static void activate_fileselect_(int type, char *title, char *file, short *menup
 			sfile->libfiledata= NULL;
 		}
 	}
-	else {	/* FILE_BLENDER */
+	else {	/* FILE_BLENDER or FILE_LOADFONT */
 		split_sfile(sfile, name);	/* test filelist too */
 		BLI_cleanup_dir(G.sce, sfile->dir);
 
@@ -1419,41 +1259,6 @@ void activate_fileselect_args(int type, char *title, char *file, void (*func)(ch
 {
 	activate_fileselect_(type, title, file, NULL, NULL, NULL, NULL, func, arg1, arg2);
 }
-
-
-void activate_imageselect(int type, char *title, char *file, void (*func)(char *))
-{
-	SpaceImaSel *simasel;
-	char dir[FILE_MAX], name[FILE_MAX];
-	
-	if(curarea==NULL) return;
-	if(curarea->win==0) return;
-	
-	newspace(curarea, SPACE_IMASEL);
-	
-	/* sometimes double, when area is already SPACE_FILE with a different file name */
-	addqueue(curarea->headwin, CHANGED, 1);
-	addqueue(curarea->win, CHANGED, 1);
-
-	name[2]= 0;
-	BLI_strncpy(name, file, sizeof(name));
-
-	simasel= curarea->spacedata.first;
-	simasel->returnfunc= func;
-
-	if(BLI_convertstringcode(name, G.sce, G.scene->r.cfra)) simasel->mode |= IMS_STRINGCODE;
-	else simasel->mode &= ~IMS_STRINGCODE;
-	
-	BLI_split_dirfile(name, dir, simasel->file);
-	BLI_cleanup_dir(G.sce, simasel->dir);
-	if(strcmp(dir, simasel->dir)!=0) simasel->fase= 0;
-
-	BLI_strncpy(simasel->dir, dir, sizeof(simasel->dir));
-	BLI_strncpy(simasel->title, title, sizeof(simasel->title));
-	
-	/* filetoname= 1; */
-}
-
 
 void activate_databrowse(ID *id, int idcode, int fromcode, int retval, short *menup, void (*func)(unsigned short))
 {
@@ -1620,11 +1425,13 @@ static void filesel_execute(SpaceFile *sfile)
 		}
 
 		do_library_append(sfile);
-		BIF_undo_push("Append from file");
+		
+		BIF_undo_push( ((sfile->flag & FILE_LINK)==0) ? "Append from file" : "Link from file");
+		
 		allqueue(REDRAWALL, 1);
 	}
 	else if(filesel_has_func(sfile)) {
-		fsmenu_insert_entry(sfile->dir, 1);
+		fsmenu_insert_entry(sfile->dir, 1, 0);
 	
 		if(sfile->type==FILE_MAIN) { /* DATABROWSE */
 			if (sfile->menup) {	/* with value pointing to ID block index */
@@ -1650,7 +1457,7 @@ static void filesel_execute(SpaceFile *sfile)
 
 				*sfile->menup= -1;
 
-				if(sfile->act>=0) {
+				if(sfile->act>=0 && sfile->act<sfile->totfile) {
 					if(sfile->filelist) {
 						files= sfile->filelist+sfile->act;
 						if ( strcmp(files->relname, sfile->file)==0) {
@@ -1682,8 +1489,18 @@ static void filesel_execute(SpaceFile *sfile)
 			
 			if(sfile->flag & FILE_STRINGCODE) {
 				/* still weak, but we don't want saving files to make relative paths */
-				if(strncmp(sfile->title, "Save", 4))
+				if(G.relbase_valid && strncmp(sfile->title, "Save", 4)) {
 					BLI_makestringcode(G.sce, name);
+				} else {
+					/* if we don't have a valid relative base (.blend file hasn't been saved yet)
+					   then we don't save the path as relative (for texture images, background image).
+					   Warning message not shown when saving files (doesn't make sense there)
+					*/
+					if (strncmp(sfile->title, "Save", 4)) {
+						printf("Relative path setting has been ignored because .blend file hasn't been saved yet.\n");
+					}
+					sfile->flag &= ~FILE_STRINGCODE;
+				}
 			}
 			if(sfile->returnfunc)
 				sfile->returnfunc(name);
@@ -1714,6 +1531,20 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 	}
 	else if(event== B_FS_DIRNAME) {
 		/* reuse the butname variable */
+		
+		/* convienence shortcut '~' -> $HOME
+		 * If the first char is ~ then this is invalid on all OS's so its safe to replace with home */
+		if ( sfile->dir[0] == '~' ) {
+			if (sfile->dir[1] == '\0') {
+				BLI_strncpy(sfile->dir, BLI_gethome(), sizeof(sfile->dir) );
+			} else {
+				/* replace ~ with home */
+				char tmpstr[FILE_MAX];
+				BLI_join_dirfile(tmpstr, BLI_gethome(), sfile->dir+1);
+				BLI_strncpy(sfile->dir, tmpstr, sizeof(sfile->dir));
+			}
+		}
+		
 		BLI_cleanup_dir(G.sce, sfile->dir);
 
 		BLI_make_file_string(G.sce, butname, sfile->dir, "");
@@ -2001,7 +1832,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(val) {
 
 		if( event!=RETKEY && event!=PADENTER)
-			if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+			if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 
 		switch(event) {
 		
@@ -2035,17 +1866,34 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 				if(act>=0 && act<sfile->totfile) {
 					if(S_ISDIR(sfile->filelist[act].type)) {
-						strcat(sfile->dir, sfile->filelist[act].relname);
-						strcat(sfile->dir,"/");
-						BLI_cleanup_dir(G.sce, sfile->dir);
-						freefilelist(sfile);
-						sfile->ofs= 0;
-						do_draw= 1;
+						/* the path is too long and we are not going up! */
+						if (strcmp(sfile->filelist[act].relname, ".") &&
+							strcmp(sfile->filelist[act].relname, "..") &&
+							strlen(sfile->dir) + strlen(sfile->filelist[act].relname) >= FILE_MAXDIR ) 
+						{
+							error("Path too long, cannot enter this directory");
+						} else {
+							strcat(sfile->dir, sfile->filelist[act].relname);
+							strcat(sfile->dir,"/");
+							BLI_cleanup_dir(G.sce, sfile->dir);
+							freefilelist(sfile);						
+							sfile->ofs= 0;
+							do_draw= 1;
+						}
 					}
 					else {
 						if( strcmp(sfile->file, sfile->filelist[act].relname)) {
+							char tmpstr[240];
 							do_draw= 1;
 							BLI_strncpy(sfile->file, sfile->filelist[act].relname, sizeof(sfile->file));
+							if (sfile->f_fp) {
+								sprintf (tmpstr, "%s%s", sfile->dir, sfile->file);
+								/* printf ("%s\n", tmpstr); */
+								#ifdef INTERNATIONAL
+								if (!FTF_GetNewFont ((const unsigned char *)tmpstr, 0, U.fontsize))
+									error ("No font file");
+								#endif
+							}
 						}
 						if(event==MIDDLEMOUSE && sfile->type) filesel_execute(sfile);
 					}
@@ -2373,7 +2221,8 @@ static int is_a_library(SpaceFile *sfile, char *dir, char *group)
 
 		/* now we know that we are in a blend file and it is safe to 
 		   assume that gp actually points to a group */
-		BLI_strncpy(group, gp, GROUP_MAX);
+		if (BLI_streq("Screen", gp)==0)
+			BLI_strncpy(group, gp, GROUP_MAX);
 	}
 	return 1;
 }
@@ -2557,7 +2406,7 @@ static void active_file_object(SpaceFile *sfile)
 	if(filesel_has_func(sfile)) return;
 	
 	if( strcmp(sfile->dir, "Object/")==0 ) {
-		if(sfile->act >= 0) {
+		if(sfile->act >= 0 && sfile->act < sfile->totfile) {
 			
 			ob= (Object *)sfile->filelist[sfile->act].poin;
 			

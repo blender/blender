@@ -137,25 +137,33 @@ static void do_math(bNode *node, float *out, float *in, float *in2)
 
 static void node_composit_exec_math(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	/* stack order out: bw */
-	/* stack order in: col */
-	
-	if(out[0]->hasoutput==0)
-		return;
-	
-	/* input no image? then only color operation */
-	if(in[0]->data==NULL) {
+	CompBuf *cbuf=in[0]->data;
+	CompBuf *cbuf2=in[1]->data;
+	CompBuf *stackbuf; 
+
+	/* check for inputs and outputs for early out*/
+	if(in[0]->hasinput==0 && in[1]->hasinput==0) return;
+	if(out[0]->hasoutput==0) return;
+
+	/* no image-color operation */
+	if(in[0]->data==NULL && in[1]->data==NULL) {
 		do_math(node, out[0]->vec, in[0]->vec, in[1]->vec);
+		return;
 	}
-	else {
-		/* make output size of input image */
-		CompBuf *cbuf= in[0]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); /* allocs */
-		
-		composit2_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_math, CB_VAL, CB_VAL);
-		
-		out[0]->data= stackbuf;
+
+	/*create output based on first input */
+	if(cbuf) {
+		stackbuf=alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1);
 	}
+	/* and if it doesn't exist use the second input since we 
+ 	know that one of them must exist at this point*/
+	else  {
+		stackbuf=alloc_compbuf(cbuf2->x, cbuf2->y, CB_VAL, 1);
+	}
+
+	/* operate in case there's valid size */
+	composit2_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_math, CB_VAL, CB_VAL);
+	out[0]->data= stackbuf;
 }
 
 bNodeType cmp_node_math= {

@@ -38,10 +38,6 @@ ALLTARGETS = $(OBJS) $(DIR)/$(DEBUG_DIR)makesdna $(DIR)/$(SHARED_DIR)$(DEBUG_DIR
 
 include nan_compile.mk
 
-ifneq ($(OS),irix)
-    CFLAGS += -funsigned-char
-endif
-
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 CPPFLAGS += -I$(OPENGL_HEADERS)

@@ -70,7 +70,6 @@
 #include "BKE_scene.h"
 #include "BKE_object.h"
 #include "BKE_softbody.h"
-#include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_ipo.h"
 #include "LBM_fluidsim.h"
@@ -151,6 +150,7 @@ typedef struct {
 /* ********************** fluid sim settings struct functions ********************** */
 
 /* allocates and initializes general main data */
+
 FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 {
 	//char blendDir[FILE_MAXDIR], blendFile[FILE_MAXFILE];
@@ -189,7 +189,7 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 
 	/*  elubie: changed this to default to the same dir as the render output
 		to prevent saving to C:\ on Windows */
-	BLI_strncpy(fss->surfdataPath, U.tempdir, FILE_MAX); 
+	BLI_strncpy(fss->surfdataPath, btempdir, FILE_MAX); 
 	fss->orgMesh = (Mesh *)srcob->data;
 	fss->meshSurface = NULL;
 	fss->meshBB = NULL;
@@ -226,8 +226,8 @@ static Mesh *fluidsimCopyMesh(Mesh *me)
 	Mesh *dup = MEM_dupallocN(me);
 
 	CustomData_copy(&me->vdata, &dup->vdata, CD_MASK_MESH, CD_DUPLICATE, me->totvert);
-	CustomData_copy(&me->vdata, &dup->vdata, CD_MASK_MESH, CD_DUPLICATE, me->totvert);
-	CustomData_copy(&me->vdata, &dup->vdata, CD_MASK_MESH, CD_DUPLICATE, me->totvert);
+	CustomData_copy(&me->edata, &dup->edata, CD_MASK_MESH, CD_DUPLICATE, me->totedge);
+	CustomData_copy(&me->fdata, &dup->fdata, CD_MASK_MESH, CD_DUPLICATE, me->totface);
 
 	return dup;
 }
@@ -350,6 +350,7 @@ static void fluidsimInitChannel(float **setchannel, int size, float *time,
 	char *cstr = NULL;
 	float *channel = NULL;
 	float aniFrlen = G.scene->r.framelen;
+	int current_frame = G.scene->r.cfra;
 	if((entries<1) || (entries>3)) {
 		printf("fluidsimInitChannel::Error - invalid no. of entries: %d\n",entries);
 		entries = 1;
@@ -368,6 +369,11 @@ static void fluidsimInitChannel(float **setchannel, int size, float *time,
 	for(j=0; j<entries; j++) {
 		if(icus[j]) { 
 			for(i=1; i<=size; i++) {
+				/* Bugfix to make python drivers working
+				// which uses Blender.get("curframe") 
+				*/
+				G.scene->r.cfra = floor(aniFrlen*((float)i));
+				
 				calc_icu(icus[j], aniFrlen*((float)i) );
 				channel[(i-1)*(entries+1) + j] = icus[j]->curval;
 			}
@@ -380,7 +386,7 @@ static void fluidsimInitChannel(float **setchannel, int size, float *time,
 	for(i=1; i<=size; i++) {
 		channel[(i-1)*(entries+1) + entries] = time[i];
 	}
-
+	G.scene->r.cfra = current_frame;
 	*setchannel = channel;
 }
 

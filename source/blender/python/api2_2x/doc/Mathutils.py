@@ -28,15 +28,15 @@ Example::
   print angle  
 """
 
-def Rand (high = 1, low = 0):
+def Rand (low=0.0, high = 1.0):
   """
   Return a random number within a range.
-  High and low represent the range from which the random
-  number must return its result.
-  @type high: float
-  @param high: The upper range.
+  low and high represent are optional parameters which represent the range
+  from which the random number must return its result.
   @type low: float
   @param low: The lower range.
+  @type high: float
+  @param high: The upper range.
   """
 
 def Intersect(vec1, vec2, vec3, ray, orig, clip=1):

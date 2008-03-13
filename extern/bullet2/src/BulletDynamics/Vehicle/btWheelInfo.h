@@ -11,8 +11,8 @@
 #ifndef WHEEL_INFO_H
 #define WHEEL_INFO_H
 
-#include "LinearMath/btVector3.h"
-#include "LinearMath/btTransform.h"
+#include "../../LinearMath/btVector3.h"
+#include "../../LinearMath/btTransform.h"
 
 class btRigidBody;
 
@@ -25,10 +25,10 @@ struct btWheelInfoConstructionInfo
 	btScalar	m_maxSuspensionTravelCm;
 	btScalar	m_wheelRadius;
 	
-	float		m_suspensionStiffness;
-	float		m_wheelsDampingCompression;
-	float		m_wheelsDampingRelaxation;
-	float		m_frictionSlip;
+	btScalar		m_suspensionStiffness;
+	btScalar		m_wheelsDampingCompression;
+	btScalar		m_wheelsDampingRelaxation;
+	btScalar		m_frictionSlip;
 	bool m_bIsFrontWheel;
 	
 };
@@ -92,12 +92,12 @@ struct btWheelInfo
 		m_wheelDirectionCS = ci.m_wheelDirectionCS;
 		m_wheelAxleCS = ci.m_wheelAxleCS;
 		m_frictionSlip = ci.m_frictionSlip;
-		m_steering = 0.f;
-		m_engineForce = 0.f;
-		m_rotation = 0.f;
-		m_deltaRotation = 0.f;
-		m_brake = 0.f;
-		m_rollInfluence = 0.1f;
+		m_steering = btScalar(0.);
+		m_engineForce = btScalar(0.);
+		m_rotation = btScalar(0.);
+		m_deltaRotation = btScalar(0.);
+		m_brake = btScalar(0.);
+		m_rollInfluence = btScalar(0.1);
 		m_bIsFrontWheel = ci.m_bIsFrontWheel;
 
 	}

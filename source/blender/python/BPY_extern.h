@@ -34,6 +34,7 @@
 #define BPY_EXTERN_H
 
 extern char bprogname[];	/* holds a copy of argv[0], from creator.c */
+extern char btempdir[];		/* use this to store a valid temp directory */
 
 struct Text; /* defined in DNA_text_types.h */
 struct ID; /* DNA_ID.h */
@@ -43,19 +44,49 @@ struct ScriptLink; /* DNA_scriptlink_types.h */
 struct ListBase; /* DNA_listBase.h */
 struct SpaceText; /* DNA_space_types.h */
 struct SpaceScript; /* DNA_space_types.h */
-struct Script; /* BPI_script.h */
 struct ScrArea; /* DNA_screen_types.h */
 struct bScreen; /* DNA_screen_types.h */
-
+struct bConstraint; /* DNA_constraint_types.h */
+struct bPythonConstraint; /* DNA_constraint_types.h */
+struct bConstraintOb; /* DNA_constraint_types.h */
+struct bConstraintTarget; /* DNA_constraint_types.h*/
+struct Script;				/* DNA_screen_types.h */
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+	/*These two next functions are important for making sure the Draw module
+	  works correctly.  Before calling any gui callback using the Draw module,
+	  the following code must be executed:
+	  
+		if (some_drawspace_pylist) {
+			BPy_Set_DrawButtonsList(some_drawspace_pylist->but_refs);
+			BPy_Free_DrawButtonsList();
+		}
+		some_drawspace_pylist = PyList_New(0);
+		BPy_Set_DrawButtonsList(some_drawspace_pylist);
+
+      Also, BPy_Free_DrawButtonsList() must be called as necassary when a drawspace
+      with python callbacks is destroyed.
+      
+      This is necassary to avoid blender buttons storing invalid pointers to freed
+      python data.*/
+	void BPy_Set_DrawButtonsList(void *list);
+	void BPy_Free_DrawButtonsList(void);
+	
+	void BPY_pyconstraint_eval(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets);
+	void BPY_pyconstraint_settings(void *arg1, void *arg2);
+	void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct);
+	void BPY_pyconstraint_update(struct Object *owner, struct bConstraint *con);
+	int BPY_is_pyconstraint(struct Text *text);
+	void BPY_free_pyconstraint_links(struct Text *text);
+	
 	void BPY_start_python( int argc, char **argv );
 	void BPY_end_python( void );
 	void BPY_post_start_python( void );
 	void init_syspath( int first_time );
 	void syspath_append( char *dir );
+	void BPY_rebuild_syspath( void );
 
 	int BPY_Err_getLinenumber( void );
 	const char *BPY_Err_getFilename( void );
@@ -63,6 +94,7 @@ extern "C" {
 	int BPY_txt_do_python_Text( struct Text *text );
 	int BPY_menu_do_python( short menutype, int event );
 	void BPY_run_python_script( char *filename );
+	int BPY_run_script(struct Script *script);
 	void BPY_free_compiled_text( struct Text *text );
 
 	void BPY_clear_bad_scriptlinks( struct Text *byebye );
@@ -95,6 +127,7 @@ extern "C" {
 					     unsigned short event, short val, char ascii );
 	void BPY_clear_script( struct Script *script );
 	void BPY_free_finished_script( struct Script *script );
+	void BPY_scripts_clear_pyobjects( void );
 
 /* void BPY_Err_Handle(struct Text *text); */
 /* void BPY_clear_bad_scriptlink(struct ID *id, struct Text *byebye); */

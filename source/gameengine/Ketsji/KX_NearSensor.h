@@ -77,6 +77,7 @@ public:
 	virtual void ReParent(SCA_IObject* parent);
 	virtual bool	NewHandleCollision(void* obj1,void* obj2,
 						 const PHY_CollData * coll_data); 
+	virtual bool	BroadPhaseFilterCollision(void*obj1,void*obj2);
 	virtual void RegisterSumo(KX_TouchEventManager *touchman);
 	
 	virtual PyObject* _getattr(const STR_String& attr);

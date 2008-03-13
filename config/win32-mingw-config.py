@@ -14,11 +14,11 @@ BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 WITH_BF_OPENAL = 'true'
 BF_OPENAL = LIBDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include'
-BF_OPENAL_LIB = 'openal_static'
+BF_OPENAL_LIB = 'dxguid openal_static'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 
 WITH_BF_FFMPEG = 'false'
-BF_FFMPEG_LIB = 'avformat avutil avcodec'
+BF_FFMPEG_LIB = 'avformat swscale avcodec avutil xvidcore x264'
 BF_FFMPEG_LIBPATH = LIBDIR + '/gcc/ffmpeg/lib'
 BF_FFMPEG_INC =  LIBDIR + '/gcc/ffmpeg/include'
 
@@ -42,6 +42,8 @@ BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/OpenEXR'
 BF_OPENEXR_LIB = ' Half IlmImf Iex '
 BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
 
+WITH_BF_DDS = 'true'
+
 WITH_BF_JPEG = 'true'
 BF_JPEG = LIBDIR + '/jpeg'
 BF_JPEG_INC = '${BF_JPEG}/include'
@@ -60,7 +62,6 @@ BF_TIFF_INC = '${BF_TIFF}/include'
 WITH_BF_ZLIB = 'true'
 BF_ZLIB = LIBDIR + '/zlib'
 BF_ZLIB_INC = '${BF_ZLIB}/include'
-#BF_ZLIB_LIB = 'z'
 BF_ZLIB_LIBPATH = '${BF_ZLIB}/lib'
 
 WITH_BF_INTERNATIONAL = 'true'
@@ -109,9 +110,6 @@ WITH_BF_YAFRAY = 'true'
 #BF_MOZILLA_LIB =
 # Will fall back to look in BF_MOZILLA_INC/nspr and BF_MOZILLA_LIB
 # if this is not set.
-#
-# Be paranoid regarding library creation (do not update archives)
-#BF_PARANOID = 'true'
 
 # enable freetype2 support for text objects
 BF_FREETYPE = LIBDIR + '/gcc/freetype'
@@ -141,8 +139,6 @@ BF_OPENGL_LIB_STATIC = [ '${BF_OPENGL}/lib/libGL.a', '${BF_OPENGL}/lib/libGLU.a'
 ##
 CC = 'gcc'
 CXX = 'g++'
-##ifeq ($CPU),alpha)
-##   CFLAGS += -pipe -fPIC -funsigned-char -fno-strict-aliasing -mieee
 
 CCFLAGS = [ '-pipe', '-funsigned-char', '-fno-strict-aliasing' ]
 
@@ -150,24 +146,18 @@ CPPFLAGS = [ '-DXP_UNIX', '-DWIN32', '-DFREE_WINDOWS' ]
 CXXFLAGS = ['-pipe', '-mwindows', '-funsigned-char', '-fno-strict-aliasing' ]
 REL_CFLAGS = [ '-O2' ]
 REL_CCFLAGS = [ '-O2' ]
-##BF_DEPEND = 'true'
-##
-##AR = ar
-##ARFLAGS = ruv
-##ARFLAGSQUIET = ru
-##
+
 C_WARN = [ '-Wall' , '-Wno-char-subscripts', '-Wdeclaration-after-statement' ]
 
 CC_WARN = [ '-Wall' ]
 
-##FIX_STUBS_WARNINGS = -Wno-unused
-
-LLIBS = ['-lshell32', '-lshfolder', '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz'] #'-lutil', '-lc', '-lm', '-ldl', '-lpthread']
-##LOPTS = --dynamic
-##DYNLDFLAGS = -shared $(LDFLAGS)
+LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++']
 
 BF_DEBUG = 'false'
 BF_DEBUG_FLAGS= '-g'
+
+BF_PROFILE_FLAGS = ['-pg','-g']
+BF_PROFILE = 'false'
 
 BF_BUILDDIR = '..\\build\\win32-mingw'
 BF_INSTALLDIR='..\\install\\win32-mingw'

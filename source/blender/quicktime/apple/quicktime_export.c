@@ -566,20 +566,21 @@ static void check_renderbutton_framerate(void) {
 		(qtdata->gTemporalSettings.frameRate == 1571553 ||
 		 qtdata->gTemporalSettings.frameRate == 1964113 ||
 		 qtdata->gTemporalSettings.frameRate == 3928227)) {;} else
-	qtdata->gTemporalSettings.frameRate = G.scene->r.frs_sec << 16;
+	qtdata->gTemporalSettings.frameRate = 
+		(G.scene->r.frs_sec << 16) / G.scene->r.frs_sec_base ;
 
 	err = SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
 	CheckError( err, "SCSetInfo error" );
 
 	if(qtdata->gTemporalSettings.frameRate == 1571553) {			// 23.98 fps
-		qtdata->kVideoTimeScale = 2398;
-		qtdata->duration = 100;
+		qtdata->kVideoTimeScale = 24000;
+		qtdata->duration = 1001;
 	} else if (qtdata->gTemporalSettings.frameRate == 1964113) {	// 29.97 fps
-		qtdata->kVideoTimeScale = 2997;
-		qtdata->duration = 100;
+		qtdata->kVideoTimeScale = 30000;
+		qtdata->duration = 1001;
 	} else if (qtdata->gTemporalSettings.frameRate == 3928227) {	// 59.94 fps
-		qtdata->kVideoTimeScale = 5994;
-		qtdata->duration = 100;
+		qtdata->kVideoTimeScale = 60000;
+		qtdata->duration = 1001;
 	} else {
 		qtdata->kVideoTimeScale = (qtdata->gTemporalSettings.frameRate >> 16) * 100;
 		qtdata->duration = 100;
@@ -641,25 +642,37 @@ int get_qtcodec_settings(void)
 
 	// framerate jugglin'
 	if(qtdata->gTemporalSettings.frameRate == 1571553) {			// 23.98 fps
-		qtdata->kVideoTimeScale = 2398;
-		qtdata->duration = 100;
+		qtdata->kVideoTimeScale = 24000;
+		qtdata->duration = 1001;
 
 		G.scene->r.frs_sec = 24;
+		G.scene->r.frs_sec_base = 1.001;
 	} else if (qtdata->gTemporalSettings.frameRate == 1964113) {	// 29.97 fps
-		qtdata->kVideoTimeScale = 2997;
-		qtdata->duration = 100;
+		qtdata->kVideoTimeScale = 30000;
+		qtdata->duration = 1001;
 
 		G.scene->r.frs_sec = 30;
+		G.scene->r.frs_sec_base = 1.001;
 	} else if (qtdata->gTemporalSettings.frameRate == 3928227) {	// 59.94 fps
-		qtdata->kVideoTimeScale = 5994;
-		qtdata->duration = 100;
+		qtdata->kVideoTimeScale = 60000;
+		qtdata->duration = 1001;
 
 		G.scene->r.frs_sec = 60;
+		G.scene->r.frs_sec_base = 1.001;
 	} else {
-		qtdata->kVideoTimeScale = 600;
+		double fps = qtdata->gTemporalSettings.frameRate;
+
+		qtdata->kVideoTimeScale = 60000;
 		qtdata->duration = qtdata->kVideoTimeScale / (qtdata->gTemporalSettings.frameRate / 65536);
 
-		G.scene->r.frs_sec = (qtdata->gTemporalSettings.frameRate / 65536);
+		if ((qtdata->gTemporalSettings.frameRate & 0xffff) == 0) {
+			G.scene->r.frs_sec = fps / 65536;
+			G.scene->r.frs_sec_base = 1;
+		} else {
+			/* we do our very best... */
+			G.scene->r.frs_sec = (fps * 10000 / 65536);
+			G.scene->r.frs_sec_base = 10000;
+		}
 	}
 
 	return 1;

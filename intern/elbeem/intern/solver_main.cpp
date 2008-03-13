@@ -11,6 +11,12 @@
 #include "solver_relax.h"
 #include "particletracer.h"
 #include "loop_tools.h"
+#include <stdlib.h>
+
+#if (defined (__sun__) || defined (__sun)) || (!defined(linux) && (defined (__sparc) || defined (__sparc__)))
+#include <ieeefp.h>
+#endif
+
 
 /*****************************************************************************/
 /*! perform a single LBM step */
@@ -374,7 +380,11 @@ LbmFsgrSolver::mainLoop(int lev)
 	const int gridLoopBound=1;
 	GRID_REGION_INIT();
 #if PARALLEL==1
-#include "paraloopstart.h"
+#pragma omp parallel default(shared) \
+  reduction(+: \
+	  calcCurrentMass,calcCurrentVolume, \
+		calcCellsFilled,calcCellsEmptied, \
+		calcNumUsedCells )
 	GRID_REGION_START();
 #else // PARALLEL==1
 	GRID_REGION_START();
@@ -1111,7 +1121,11 @@ LbmFsgrSolver::preinitGrids()
 	
 		GRID_REGION_INIT();
 #if PARALLEL==1
-#include "paraloopstart.h"
+#pragma omp parallel default(shared) \
+  reduction(+: \
+	  calcCurrentMass,calcCurrentVolume, \
+		calcCellsFilled,calcCellsEmptied, \
+		calcNumUsedCells )
 #endif // PARALLEL==1
 		GRID_REGION_START();
 		GRID_LOOP_START();
@@ -1144,7 +1158,11 @@ LbmFsgrSolver::standingFluidPreinit()
 
 	GRID_REGION_INIT();
 #if PARALLEL==1
-#include "paraloopstart.h"
+#pragma omp parallel default(shared) \
+  reduction(+: \
+	  calcCurrentMass,calcCurrentVolume, \
+		calcCellsFilled,calcCellsEmptied, \
+		calcNumUsedCells )
 #endif // PARALLEL==1
 	GRID_REGION_START();
 

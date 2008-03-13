@@ -16,13 +16,13 @@ subject to the following restrictions:
 #ifndef COLLISION__DISPATCHER_H
 #define COLLISION__DISPATCHER_H
 
-#include "BulletCollision/BroadphaseCollision/btDispatcher.h"
-#include "BulletCollision/NarrowPhaseCollision/btPersistentManifold.h"
+#include "../BroadphaseCollision/btDispatcher.h"
+#include "../NarrowPhaseCollision/btPersistentManifold.h"
 
-#include "BulletCollision/CollisionDispatch/btManifoldResult.h"
+#include "../CollisionDispatch/btManifoldResult.h"
 
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
-
+#include "../BroadphaseCollision/btBroadphaseProxy.h"
+#include "../../LinearMath/btAlignedObjectArray.h"
 
 class btIDebugDraw;
 class btOverlappingPairCache;
@@ -41,8 +41,9 @@ typedef void (*btNearCallback)(btBroadphasePair& collisionPair, btCollisionDispa
 ///Time of Impact, Closest Points and Penetration Depth.
 class btCollisionDispatcher : public btDispatcher
 {
+	int m_count;
 	
-	std::vector<btPersistentManifold*>	m_manifoldsPtr;
+	btAlignedObjectArray<btPersistentManifold*>	m_manifoldsPtr;
 
 	bool m_useIslands;
 	
@@ -68,7 +69,6 @@ class btCollisionDispatcher : public btDispatcher
 
 public:
 
-	
 	///registerCollisionCreateFunc allows registration of custom/alternative collision create functions
 	void	registerCollisionCreateFunc(int proxyType0,int proxyType1, btCollisionAlgorithmCreateFunc* createFunc);
 
@@ -92,8 +92,6 @@ public:
 		return m_manifoldsPtr[index];
 	}
 
-	int m_count;
-	
 	///the default constructor creates/register default collision algorithms, for convex, compound and concave shape support
 	btCollisionDispatcher ();
 

@@ -30,6 +30,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include <math.h>
 #include <string.h>
 
 #ifdef HAVE_CONFIG_H
@@ -40,6 +41,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_rand.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -47,6 +49,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_depsgraph.h"
@@ -130,6 +133,7 @@ void add_primitiveMball(int dummy_argument)
 {
 	MetaElem *ml;
 	float *curs, mat[3][3], cent[3], imat[3][3], cmat[3][3];
+	short newob= 0;
 
 	if(G.scene->id.lib) return;
 
@@ -148,6 +152,7 @@ void add_primitiveMball(int dummy_argument)
 		
 		make_editMball();
 		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
+		newob= 1;
 	}
 	
 	/* deselect */
@@ -220,7 +225,15 @@ void add_primitiveMball(int dummy_argument)
 	
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  // added ball can influence others
 
-	countall();	
+	countall();
+	
+	/* if a new object was created, it stores it in Mball, for reload original data and undo */
+	if ( !(newob) || (U.flag & USER_ADD_EDITMODE)) {
+		if(newob) load_editMball();
+	} else {
+		exit_editmode(2);
+	}
+		
 	allqueue(REDRAWALL, 0);
 	BIF_undo_push("Add MetaElem");
 }
@@ -249,6 +262,43 @@ void deselectall_mball()
 	allqueue(REDRAWVIEW3D, 0);
 	countall();
 	BIF_undo_push("Deselect MetaElem");
+}
+
+/* inverts metaball selection */
+void selectinverse_mball()
+{
+	MetaElem *ml;
+	
+	ml= editelems.first;
+	while(ml) {
+		if(ml->flag & SELECT) ml->flag &= ~SELECT;
+		else ml->flag |= SELECT;
+		ml= ml->next;
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	countall();
+	BIF_undo_push("Invert MetaElem");
+}
+
+/* select random metaball selection */
+void selectrandom_mball()
+{
+	MetaElem *ml;
+	static short randfac= 50;
+
+	if(!button(&randfac,0, 100,"Percentage:")) return;
+
+	ml= editelems.first;
+	BLI_srand( BLI_rand() ); /* random seed */
+	while(ml) {
+		if((BLI_frand() * 100) < randfac) ml->flag |= SELECT;
+		ml= ml->next;
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	countall();
+	BIF_undo_push("Random MetaElem");
 }
 
 /* select MetaElement with mouse click (user can select radius circle or
@@ -444,7 +494,7 @@ static void free_undoMball(void *lbv)
 /* this is undo system for MetaBalls */
 void undo_push_mball(char *name)
 {
-	undo_editmode_push(name, free_undoMball, undoMball_to_editMball, editMball_to_undoMball);
+	undo_editmode_push(name, free_undoMball, undoMball_to_editMball, editMball_to_undoMball, NULL);
 }
 
 /* Hide selected/unselected MetaElems */

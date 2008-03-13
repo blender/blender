@@ -17,10 +17,10 @@ subject to the following restrictions:
 #define SPHERE_MINKOWSKI_H
 
 #include "btConvexShape.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
 ///btSphereShape implements an implicit (getSupportingVertex) Sphere
-class btSphereShape : public btConvexShape
+ATTRIBUTE_ALIGNED16(class) btSphereShape : public btConvexShape
 
 {
 	
@@ -45,11 +45,11 @@ public:
 	//debugging
 	virtual char*	getName()const {return "SPHERE";}
 
-	virtual void	setMargin(float margin)
+	virtual void	setMargin(btScalar margin)
 	{
 		btConvexShape::setMargin(margin);
 	}
-	virtual float	getMargin() const
+	virtual btScalar	getMargin() const
 	{
 		//to improve gjk behaviour, use radius+margin as the full margin, so never get into the penetration case
 		//this means, non-uniform scaling is not supported anymore

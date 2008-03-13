@@ -340,12 +340,21 @@ ECHO Done
 			<File
 				RelativePath="..\..\src\btBulletDynamicsCommon.h">
 			</File>
+			<File
+				RelativePath="..\..\src\Bullet-C-Api.h">
+			</File>
 			<Filter
 				Name="BulletDynamics"
 				Filter="">
 				<Filter
 					Name="ConstraintSolver"
 					Filter="">
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btConeTwistConstraint.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btConeTwistConstraint.h">
+					</File>
 					<File
 						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btConstraintSolver.h">
 					</File>
@@ -421,6 +430,9 @@ ECHO Done
 					</File>
 					<File
 						RelativePath="..\..\src\BulletDynamics\Dynamics\btSimpleDynamicsWorld.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\Dynamics\Bullet-C-API.cpp">
 					</File>
 				</Filter>
 				<Filter
@@ -679,6 +691,12 @@ ECHO Done
 					</File>
 					<File
 						RelativePath="..\..\src\BulletCollision\CollisionShapes\btBvhTriangleMeshShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btCapsuleShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btCapsuleShape.h">
 					</File>
 					<File
 						RelativePath="..\..\src\BulletCollision\CollisionShapes\btCollisionMargin.h">

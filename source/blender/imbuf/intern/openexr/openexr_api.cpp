@@ -362,6 +362,7 @@ typedef struct ExrHandle {
 	OutputFile *ofile;
 	int tilex, tiley;
 	int width, height;
+	int mipmap;
 	
 	ListBase channels;	/* flattened out, ExrChannel */
 	ListBase layers;	/* hierarchical, pointing in end to ExrChannel */
@@ -450,7 +451,7 @@ void IMB_exr_begin_write(void *handle, char *filename, int width, int height, in
 	data->ofile = new OutputFile(filename, header);
 }
 
-void IMB_exrtile_begin_write(void *handle, char *filename, int width, int height, int tilex, int tiley)
+void IMB_exrtile_begin_write(void *handle, char *filename, int mipmap, int width, int height, int tilex, int tiley)
 {
 	ExrHandle *data= (ExrHandle *)handle;
 	Header header (width, height);
@@ -460,11 +461,12 @@ void IMB_exrtile_begin_write(void *handle, char *filename, int width, int height
 	data->tiley= tiley;
 	data->width= width;
 	data->height= height;
+	data->mipmap= mipmap;
 	
 	for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
 		header.channels().insert (echan->name, Channel (FLOAT));
 	
-	header.setTileDescription (TileDescription (tilex, tiley, ONE_LEVEL));
+	header.setTileDescription (TileDescription (tilex, tiley, (mipmap)? MIPMAP_LEVELS: ONE_LEVEL));
 	header.lineOrder() = RANDOM_Y;
 	header.compression() = RLE_COMPRESSION;
 	
@@ -478,7 +480,7 @@ int IMB_exr_begin_read(void *handle, char *filename, int *width, int *height)
 {
 	ExrHandle *data= (ExrHandle *)handle;
 	
-	if(BLI_exists(filename)) {
+	if(BLI_exists(filename) && BLI_filepathsize(filename)>32) {	/* 32 is arbitrary, but zero length files crashes exr */
 		data->ifile = new InputFile(filename);
 		if(data->ifile) {
 			Box2i dw = data->ifile->header().dataWindow();
@@ -533,7 +535,7 @@ void IMB_exrtile_clear_channels(void *handle)
 	BLI_freelistN(&data->channels);
 }
 
-void IMB_exrtile_write_channels(void *handle, int partx, int party)
+void IMB_exrtile_write_channels(void *handle, int partx, int party, int level)
 {
 	ExrHandle *data= (ExrHandle *)handle;
 	FrameBuffer frameBuffer;
@@ -547,9 +549,14 @@ void IMB_exrtile_write_channels(void *handle, int partx, int party)
 	}
 	
 	data->tofile->setFrameBuffer (frameBuffer);
-	// printf("write tile %d %d\n", partx/data->tilex, party/data->tiley);
-	data->tofile->writeTile (partx/data->tilex, party/data->tiley);	
-	
+
+	try {
+		// printf("write tile %d %d\n", partx/data->tilex, party/data->tiley);
+		data->tofile->writeTile (partx/data->tilex, party/data->tiley, level);
+	}
+	catch (const std::exception &exc) {
+		std::cerr << "OpenEXR-writeTile: ERROR: " << exc.what() << std::endl;
+	}
 }
 
 void IMB_exr_write_channels(void *handle)
@@ -615,7 +622,6 @@ void IMB_exr_multilayer_convert(void *handle, void *base,
 void IMB_exr_close(void *handle)
 {
 	ExrHandle *data= (ExrHandle *)handle;
-	ExrChannel *echan;
 	ExrLayer *lay;
 	ExrPass *pass;
 	
@@ -778,28 +784,28 @@ static ExrHandle *imb_exr_begin_read_mem(InputFile *file, int width, int height)
 					/* we can have RGB(A), XYZ(W), UVA */
 					if(pass->totchan==3 || pass->totchan==4) {
 						if(pass->chan[0]->chan_id=='B' || pass->chan[1]->chan_id=='B' ||  pass->chan[2]->chan_id=='B') {
-							lookup['R']= 0;
-							lookup['G']= 1;
-							lookup['B']= 2;
-							lookup['A']= 3;
+							lookup[(unsigned int)'R']= 0;
+							lookup[(unsigned int)'G']= 1;
+							lookup[(unsigned int)'B']= 2;
+							lookup[(unsigned int)'A']= 3;
 						}
 						else if(pass->chan[0]->chan_id=='Y' || pass->chan[1]->chan_id=='Y' ||  pass->chan[2]->chan_id=='Y') {
-							lookup['X']= 0;
-							lookup['Y']= 1;
-							lookup['Z']= 2;
-							lookup['W']= 3;
+							lookup[(unsigned int)'X']= 0;
+							lookup[(unsigned int)'Y']= 1;
+							lookup[(unsigned int)'Z']= 2;
+							lookup[(unsigned int)'W']= 3;
 						}
 						else {
-							lookup['U']= 0;
-							lookup['V']= 1;
-							lookup['A']= 2;
+							lookup[(unsigned int)'U']= 0;
+							lookup[(unsigned int)'V']= 1;
+							lookup[(unsigned int)'A']= 2;
 						}
 						for(a=0; a<pass->totchan; a++) {
 							echan= pass->chan[a];
-							echan->rect= pass->rect + lookup[echan->chan_id];
+							echan->rect= pass->rect + lookup[(unsigned int)echan->chan_id];
 							echan->xstride= pass->totchan;
 							echan->ystride= width*pass->totchan;
-							pass->chan_id[ lookup[echan->chan_id] ]= echan->chan_id;
+							pass->chan_id[ (unsigned int)lookup[(unsigned int)echan->chan_id] ]= echan->chan_id;
 						}
 					}
 					else { /* unknown */
@@ -831,6 +837,7 @@ typedef struct RGBA
 } RGBA;
 
 
+#if 0
 static void exr_print_filecontents(InputFile *file)
 {
 	const ChannelList &channels = file->header().channels();
@@ -841,6 +848,7 @@ static void exr_print_filecontents(InputFile *file)
 		printf("OpenEXR-load: Found channel %s of type %d\n", i.name(), channel.type);
 	}
 }
+#endif
 
 static int exr_has_zbuffer(InputFile *file)
 {
@@ -848,7 +856,6 @@ static int exr_has_zbuffer(InputFile *file)
 	
 	for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
 	{
-		const Channel &channel = i.channel();
 		if(strcmp("Z", i.name())==0)
 			return 1;
 	}

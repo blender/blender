@@ -16,9 +16,8 @@ subject to the following restrictions:
 #ifndef CONCAVE_SHAPE_H
 #define CONCAVE_SHAPE_H
 
-#include "BulletCollision/CollisionShapes/btCollisionShape.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
-
+#include "btCollisionShape.h"
+#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
 #include "btTriangleCallback.h"
 
 
@@ -27,7 +26,7 @@ subject to the following restrictions:
 class btConcaveShape : public btCollisionShape
 {
 protected:
-	float m_collisionMargin;
+	btScalar m_collisionMargin;
 
 public:
 	btConcaveShape();
@@ -36,10 +35,10 @@ public:
 
 	virtual void	processAllTriangles(btTriangleCallback* callback,const btVector3& aabbMin,const btVector3& aabbMax) const = 0;
 
-	virtual float getMargin() const {
+	virtual btScalar getMargin() const {
 		return m_collisionMargin;
 	}
-	virtual void setMargin(float collisionMargin)
+	virtual void setMargin(btScalar collisionMargin)
 	{
 		m_collisionMargin = collisionMargin;
 	}

@@ -332,8 +332,94 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 #endif
 }
 
+/* Memory statistics print */
+typedef struct MemPrintBlock {
+	const char *name;
+	unsigned long len;
+	int items;
+} MemPrintBlock;
 
-void MEM_printmemlist()
+static int compare_name(const void *p1, const void *p2)
+{
+	const MemPrintBlock *pb1= (const MemPrintBlock*)p1;
+	const MemPrintBlock *pb2= (const MemPrintBlock*)p2;
+
+	return strcmp(pb1->name, pb2->name);
+}
+
+static int compare_len(const void *p1, const void *p2)
+{
+	const MemPrintBlock *pb1= (const MemPrintBlock*)p1;
+	const MemPrintBlock *pb2= (const MemPrintBlock*)p2;
+
+	if(pb1->len < pb2->len)
+		return 1;
+	else if(pb1->len == pb2->len)
+		return 0;
+	else
+		return -1;
+}
+
+void MEM_printmemlist_stats()
+{
+	MemHead *membl;
+	MemPrintBlock *pb, *printblock;
+	int totpb, a, b;
+
+	mem_lock_thread();
+
+	/* put memory blocks into array */
+	printblock= malloc(sizeof(MemPrintBlock)*totblock);
+
+	pb= printblock;
+	totpb= 0;
+
+	membl = membase->first;
+	if (membl) membl = MEMNEXT(membl);
+
+	while(membl) {
+		pb->name= membl->name;
+		pb->len= membl->len;
+		pb->items= 1;
+
+		totpb++;
+		pb++;
+
+		if(membl->next)
+			membl= MEMNEXT(membl->next);
+		else break;
+	}
+
+	/* sort by name and add together blocks with the same name */
+	qsort(printblock, totpb, sizeof(MemPrintBlock), compare_name);
+	for(a=0, b=0; a<totpb; a++) {
+		if(a == b) {
+			continue;
+		}
+		else if(strcmp(printblock[a].name, printblock[b].name) == 0) {
+			printblock[b].len += printblock[a].len;
+			printblock[b].items++;
+		}
+		else {
+			b++;
+			memcpy(&printblock[b], &printblock[a], sizeof(MemPrintBlock));
+		}
+	}
+	totpb= b+1;
+
+	/* sort by length and print */
+	qsort(printblock, totpb, sizeof(MemPrintBlock), compare_len);
+	printf("\ntotal memory len: %.3f MB\n", (double)mem_in_use/(double)(1024*1024));
+	for(a=0, pb=printblock; a<totpb; a++, pb++)
+		printf("%s items: %d, len: %.3f MB\n", pb->name, pb->items, (double)pb->len/(double)(1024*1024));
+
+	free(printblock);
+	
+	mem_unlock_thread();
+}
+
+/* Prints in python syntax for easy */
+static void MEM_printmemlist_internal( int pydict )
 {
 	MemHead *membl;
 
@@ -341,14 +427,49 @@ void MEM_printmemlist()
 
 	membl = membase->first;
 	if (membl) membl = MEMNEXT(membl);
+	
+	if (pydict) {
+		print_error("# membase_debug.py\n");
+		print_error("membase = [\\\n");
+	}
 	while(membl) {
-		print_error("%s len: %d %p\n",membl->name,membl->len, membl+1);
+		if (pydict) {
+			fprintf(stderr, "{'len':%i, 'name':'''%s''', 'pointer':'%p'},\\\n", membl->len, membl->name, membl+1);
+		} else {
+			print_error("%s len: %d %p\n",membl->name,membl->len, membl+1);
+		}
 		if(membl->next)
 			membl= MEMNEXT(membl->next);
 		else break;
 	}
-
+	if (pydict) {
+		fprintf(stderr, "]\n\n");
+		fprintf(stderr,
+"mb_userinfo = {}\n"
+"totmem = 0\n"
+"for mb_item in membase:\n"
+"\tmb_item_user_size = mb_userinfo.setdefault(mb_item['name'], [0,0])\n"
+"\tmb_item_user_size[0] += 1 # Add a user\n"
+"\tmb_item_user_size[1] += mb_item['len'] # Increment the size\n"
+"\ttotmem += mb_item['len']\n"
+"print '(membase) items:', len(membase), '| unique-names:', len(mb_userinfo), '| total-mem:', totmem\n"
+"mb_userinfo_sort = mb_userinfo.items()\n"
+"for sort_name, sort_func in (('size', lambda a: -a[1][1]), ('users', lambda a: -a[1][0]), ('name', lambda a: a[0])):\n"
+"\tprint '\\nSorting by:', sort_name\n"
+"\tmb_userinfo_sort.sort(key = sort_func)\n"
+"\tfor item in mb_userinfo_sort:\n"
+"\t\tprint 'name:%%s, users:%%i, len:%%i' %% (item[0], item[1][0], item[1][1])\n"
+		);
+	}
+	
 	mem_unlock_thread();
+}
+
+void MEM_printmemlist( void ) {
+	MEM_printmemlist_internal(0);
+}
+void MEM_printmemlist_pydict( void ) {
+	MEM_printmemlist_internal(1);
 }
 
 short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
@@ -408,8 +529,10 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 	} else{
 		error = -1;
 		name = check_memlist(memh);
-		if (name == 0) MemorY_ErroR("free","pointer not in memlist");
-		else MemorY_ErroR(name,"error in header");
+		if (name == 0)
+			MemorY_ErroR("free","pointer not in memlist");
+		else
+			MemorY_ErroR(name,"error in header");
 	}
 
 	totblock--;

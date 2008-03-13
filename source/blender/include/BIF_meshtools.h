@@ -40,11 +40,13 @@ extern int join_mesh(void);
 
 extern void sort_faces(void);
 extern void objects_bake_render_menu(void);
-extern void objects_bake_render(short event);
+extern void objects_bake_render_ui(short event);
+extern void objects_bake_render(short event, char **error_msg);
 
 extern long mesh_octree_table(struct Object *ob, float *co, char mode);
 extern int mesh_get_x_mirror_vert(struct Object *ob, int index);
 extern struct EditVert *editmesh_get_x_mirror_vert(struct Object *ob, float *co);
+extern int *mesh_get_x_mirror_faces(struct Object *ob);
 
 #endif
 

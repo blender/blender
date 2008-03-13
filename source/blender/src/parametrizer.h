@@ -71,6 +71,10 @@ void param_smooth_area(ParamHandle *handle);
 
 void param_pack(ParamHandle *handle);
 
+/* Average area for all charts */
+
+void param_average(ParamHandle *handle);
+
 /* Flushing */
 
 void param_flush(ParamHandle *handle);

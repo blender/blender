@@ -17,8 +17,8 @@ subject to the following restrictions:
 #define BU_SIMPLEX_1TO4_SHAPE
 
 
-#include <BulletCollision/CollisionShapes/btPolyhedralConvexShape.h>
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+#include "btPolyhedralConvexShape.h"
+#include "../BroadphaseCollision/btBroadphaseProxy.h"
 
 
 ///BU_Simplex1to4 implements feature based and implicit simplex of up to 4 vertices (tetrahedron, triangle, line, vertex).

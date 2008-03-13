@@ -38,6 +38,13 @@
 #include <X11/cursorfont.h>
 #include <X11/Xatom.h>
 
+#if defined(__sun__) || defined( __sun ) || defined (__sparc) || defined (__sparc__)
+#include <strings.h>
+#endif
+
+#include <cstring>
+#include <cstdio>
+
 // For obscure full screen mode stuuf
 // lifted verbatim from blut.
 
@@ -168,6 +175,7 @@ GHOST_WindowX11(
 
 	if (m_visual == NULL) {
 		// barf : no visual meeting these requirements could be found.
+		printf("%s:%d: X11 glxChooseVisual() failed for OpenGL, verify working openGL system!\n", __FILE__, __LINE__);
 		return;
 	}
 
@@ -196,7 +204,7 @@ GHOST_WindowX11(
 		KeyPressMask | KeyReleaseMask |
 		EnterWindowMask | LeaveWindowMask |
 		ButtonPressMask | ButtonReleaseMask |
-		PointerMotionMask | FocusChangeMask;
+		PointerMotionMask | FocusChangeMask | PropertyChangeMask;
 
 	// create the window!
 
@@ -758,6 +766,15 @@ validate(
 GHOST_WindowX11::
 ~GHOST_WindowX11(
 ){
+	static Atom Primary_atom, Clipboard_atom;
+	Window p_owner, c_owner;
+	/*Change the owner of the Atoms to None if we are the owner*/
+	Primary_atom = XInternAtom(m_display, "PRIMARY", False);
+	Clipboard_atom = XInternAtom(m_display, "CLIPBOARD", False);
+	
+	p_owner = XGetSelectionOwner(m_display, Primary_atom);
+	c_owner = XGetSelectionOwner(m_display, Clipboard_atom);
+	
 	std::map<unsigned int, Cursor>::iterator it = m_standard_cursors.begin();
 	for (; it != m_standard_cursors.end(); it++) {
 		XFreeCursor(m_display, it->second);
@@ -776,6 +793,14 @@ GHOST_WindowX11::
 		}
 		glXDestroyContext(m_display, m_context);
 	}
+	
+	if (p_owner == m_window) {
+		XSetSelectionOwner(m_display, Primary_atom, None, CurrentTime);
+	}
+	if (c_owner == m_window) {
+		XSetSelectionOwner(m_display, Clipboard_atom, None, CurrentTime);
+	}
+	
 	XDestroyWindow(m_display, m_window);
 	XFree(m_visual);
 }

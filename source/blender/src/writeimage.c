@@ -148,9 +148,15 @@ void save_image_filesel_str(char *str)
 		case R_RADHDR:
 			strcpy(str, "Save Radiance HDR");
 			break;
+		case R_FFMPEG:
 		case R_PNG:
 			strcpy(str, "Save PNG");
 			break;
+#ifdef WITH_DDS
+		case R_DDS:
+			strcpy(str, "Save DDS");
+			break;
+#endif
 		case R_BMP:
 			strcpy(str, "Save BMP");
 			break;

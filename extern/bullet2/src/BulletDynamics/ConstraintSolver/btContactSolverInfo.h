@@ -22,25 +22,25 @@ struct btContactSolverInfo
 
 	inline btContactSolverInfo()
 	{
-		m_tau = 0.6f;
-		m_damping = 1.0f;
-		m_friction = 0.3f;
-		m_restitution = 0.f;
-		m_maxErrorReduction = 20.f;
+		m_tau = btScalar(0.6);
+		m_damping = btScalar(1.0);
+		m_friction = btScalar(0.3);
+		m_restitution = btScalar(0.);
+		m_maxErrorReduction = btScalar(20.);
 		m_numIterations = 10;
-		m_erp = 0.4f;
-		m_sor = 1.3f;
+		m_erp = btScalar(0.4);
+		m_sor = btScalar(1.3);
 	}
 
-	float	m_tau;
-	float	m_damping;
-	float	m_friction;
-	float	m_timeStep;
-	float	m_restitution;
+	btScalar	m_tau;
+	btScalar	m_damping;
+	btScalar	m_friction;
+	btScalar	m_timeStep;
+	btScalar	m_restitution;
 	int		m_numIterations;
-	float	m_maxErrorReduction;
-	float	m_sor;
-	float	m_erp;
+	btScalar	m_maxErrorReduction;
+	btScalar	m_sor;
+	btScalar	m_erp;
 
 };
 

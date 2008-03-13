@@ -50,10 +50,6 @@ include nan_compile.mk
 CFLAGS += $(LEVEL_1_C_WARNINGS) 
 #CFLAGS += $(LEVEL_1_C_WARNINGS) -diag_error 1196
 
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
-    CFLAGS += -funsigned-char
-endif
-
 # PreProcessor stuff ------------------------------------------
 
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
@@ -121,8 +117,16 @@ ifeq ($(WITH_FFMPEG),true)
         CPPFLAGS += $(NAN_FFMPEGCFLAGS)
 endif
 
+ifdef NAN_PTHREADS
+	CPPFLAGS += -I$(NAN_PTHREADS)/include
+endif
+
 ifeq ($(WITH_OPENEXR),true)
 	CPPFLAGS += -DWITH_OPENEXR
+endif
+
+ifeq ($(WITH_DDS),true)
+	CPPFLAGS += -DWITH_DDS
 endif
 
 ifeq ($(INTERNATIONAL), true)

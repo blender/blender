@@ -539,6 +539,10 @@ void setUserConstraint(TransInfo *t, int mode, const char ftext[]) {
 		sprintf(text, ftext, "view");
 		setConstraint(t, t->spacemtx, mode, text);
 		break;
+	default: /* V3D_MANIP_CUSTOM */
+		sprintf(text, ftext, t->spacename);
+		setConstraint(t, t->spacemtx, mode, text);
+		break;
 	}
 
 	t->con.mode |= CON_USER;
@@ -594,12 +598,21 @@ void BIF_setSingleAxisConstraint(float vec[3], char *text) {
 	Mat3Ortho(space);
 
 	Mat3CpyMat3(t->con.mtx, space);
-	t->con.mode = (CON_AXIS0|CON_APPLY);
+	t->con.mode = CON_AXIS0;
+	
 	getConstraintMatrix(t);
 
+	startConstraint(t);
+	
 	/* start copying with an offset of 1, to reserve a spot for the SPACE char */
-	if(text) strncpy(t->con.text+1, text, 48);	// 50 in struct
-
+	if(text)
+	{
+		strncpy(t->con.text+1, text, 48);	/* 50 in struct */
+	}
+	else
+	{
+		t->con.text[1] = '\0'; /* No text */
+	}
 	
 	t->con.drawExtra = NULL;
 	t->con.applyVec = applyAxisConstraintVec;
@@ -618,11 +631,21 @@ void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text) {
 	Mat3Ortho(space);
 	
 	Mat3CpyMat3(t->con.mtx, space);
-	t->con.mode = (CON_AXIS0|CON_AXIS1|CON_APPLY);
+	t->con.mode = CON_AXIS0|CON_AXIS1;
+
 	getConstraintMatrix(t);
+
+	startConstraint(t);
 	
 	/* start copying with an offset of 1, to reserve a spot for the SPACE char */
-	if(text) strncpy(t->con.text+1, text, 48);	// 50 in struct
+	if(text)
+	{
+		strncpy(t->con.text+1, text, 48);	/* 50 in struct */
+	}
+	else
+	{
+		t->con.text[1] = '\0'; /* No text */
+	}
 
 	t->con.drawExtra = NULL;
 	t->con.applyVec = applyAxisConstraintVec;
@@ -700,7 +723,8 @@ void BIF_drawPropCircle()
 		BIF_ThemeColor(TH_GRID);
 		
 		/* if editmode we need to go into object space */
-		if(G.obedit) mymultmatrix(G.obedit->obmat);
+		if(G.obedit && t->spacetype == SPACE_VIEW3D)
+			mymultmatrix(G.obedit->obmat);
 		
 		mygetmatrix(tmat);
 		Mat4Invert(imat, tmat);
@@ -710,7 +734,8 @@ void BIF_drawPropCircle()
 		set_inverted_drawing(0);
 		
 		/* if editmode we restore */
-		if(G.obedit) myloadmatrix(G.vd->viewmat);
+		if(G.obedit && t->spacetype == SPACE_VIEW3D)
+			myloadmatrix(G.vd->viewmat);
 	}
 }
 
@@ -840,24 +865,40 @@ void postSelectConstraint(TransInfo *t)
 	t->redraw = 1;
 }
 
-void setNearestAxis(TransInfo *t)
+static void setNearestAxis2d(TransInfo *t)
+{
+	short mval[2];
+	short ival[2];
+	
+	getmouseco_areawin(mval);
+	ival[0]= t->imval[0];
+	ival[1]= t->imval[1];
+	
+	/* no correction needed... just use whichever one is lower */
+	if ( abs(mval[0]-ival[0]) < abs(mval[1]-ival[1]) ) {
+		t->con.mode |= CON_AXIS1;
+		sprintf(t->con.text, " along Y axis");
+	}
+	else {
+		t->con.mode |= CON_AXIS0;
+		sprintf(t->con.text, " along X axis");
+	}
+}
+
+static void setNearestAxis3d(TransInfo *t)
 {
 	float zfac;
 	float mvec[3], axis[3], proj[3];
 	float len[3];
 	int i, icoord[2];
 	short coord[2];
-
-	t->con.mode &= ~CON_AXIS0;
-	t->con.mode &= ~CON_AXIS1;
-	t->con.mode &= ~CON_AXIS2;
-
+	
+	/* calculate mouse movement */
 	getmouseco_areawin(coord);
 	mvec[0] = (float)(coord[0] - t->con.imval[0]);
 	mvec[1] = (float)(coord[1] - t->con.imval[1]);
 	mvec[2] = 0.0f;
-
-		
+	
 	/* we need to correct axis length for the current zoomlevel of view,
 	   this to prevent projected values to be clipped behind the camera
 	   and to overflow the short integers.
@@ -920,6 +961,25 @@ void setNearestAxis(TransInfo *t)
 			sprintf(t->con.text, " along %s Z axis", t->spacename);
 		}
 	}
+}
+
+void setNearestAxis(TransInfo *t)
+{
+	/* clear any prior constraint flags */
+	t->con.mode &= ~CON_AXIS0;
+	t->con.mode &= ~CON_AXIS1;
+	t->con.mode &= ~CON_AXIS2;
+
+	/* constraint setting - depends on spacetype */
+	if (t->spacetype == SPACE_VIEW3D) {
+		/* 3d-view */
+		setNearestAxis3d(t);	
+	}
+	else {
+		/* assume that this means a 2D-Editor */
+		setNearestAxis2d(t);
+	}
+	
 	getConstraintMatrix(t);
 }
 

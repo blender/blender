@@ -51,6 +51,11 @@ def extend():
 		Draw.PupMenu('ERROR: No mesh object.')
 		return
 	
+	# Toggle Edit mode
+	is_editmode = Window.EditMode()
+	if is_editmode:
+		Window.EditMode(0)
+	
 	me = ob.getData(mesh=1)
 	me_verts = me.verts
 	
@@ -233,7 +238,12 @@ def extend():
 				
 				face_modes[i] = 2 # dont search again
 	print  sys.time() - t
-	me.update()
+	
+	if is_editmode:
+		Window.EditMode(1)
+	else:
+		me.update()
+	
 	Window.RedrawAll()
 	Window.WaitCursor(0)
 

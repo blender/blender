@@ -32,11 +32,13 @@ FILE(GLOB SRC intern/*.c)
 SET(INC 
   . ../../../intern/guardedalloc ../include ../blenlib ../makesdna
   ../python ../render/extern/include ../../../intern/decimation/extern
-  ../imbuf ../avi ../../../intern/elbeem/extern
+  ../imbuf ../avi ../../../intern/elbeem/extern ../../../intern/opennl/extern
   ../../../intern/iksolver/extern ../blenloader ../quicktime
+  ../../../intern/bmfont ../../../extern/bullet2/src
   ../nodes
   ${SDL_INC}
   ${ZLIB_INC}
+  ${PYTHON_INC}
 )
 
 IF(WITH_VERSE)

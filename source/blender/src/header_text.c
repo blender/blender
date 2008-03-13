@@ -52,6 +52,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_action_types.h"
 
 #include "BIF_drawtext.h"
 #include "BIF_interface.h"
@@ -59,11 +61,14 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
+
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_sca.h"
 #include "BKE_text.h"
+#include "BKE_depsgraph.h"
+
 #include "BSE_filesel.h"
 
 #include "BPY_extern.h"
@@ -74,13 +79,12 @@
 
 void do_text_buttons(unsigned short event)
 {
-	SpaceText *st= curarea->spacedata.first;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
 	ID *id, *idtest;
 	int nr= 1;
 	Text *text;
-		
-	if (!st) return;
-	if (st->spacetype != SPACE_TEXT) return;
+	
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 	
 	switch (event) {
 	case B_TEXTBROWSE:
@@ -127,7 +131,7 @@ void do_text_buttons(unsigned short event)
 				st->top= 0;
 				
 				pop_space_text(st);
-				if (st->showsyntax) get_format_string();
+				if (st->showsyntax) get_format_string(st);
 				allqueue(REDRAWTEXT, 0);
 				allqueue(REDRAWHEADERS, 0);
 			}
@@ -135,27 +139,36 @@ void do_text_buttons(unsigned short event)
 		break;
 		
 	case B_TEXTDELETE:
-		
-		text= st->text;
-		if (!text) return;
-		
-		/* make the previous text active, if its not there make the next text active */
-		if (st->text->id.prev) {
-			st->text = st->text->id.prev;
-			pop_space_text(st);
-		} else if (st->text->id.next) {
-			st->text = st->text->id.next;
-			pop_space_text(st);
-		}
+		{
+			text= st->text;
+			if (!text) return;
 			
-		BPY_clear_bad_scriptlinks(text);
-		free_text_controllers(text);
-		
-		unlink_text(text);
-		free_libblock(&G.main->text, text);
-		
-		allqueue(REDRAWTEXT, 0);
-		allqueue(REDRAWHEADERS, 0);
+			/* make the previous text active, if its not there make the next text active */
+			if (st->text->id.prev) {
+				st->text = st->text->id.prev;
+				pop_space_text(st);
+			} else if (st->text->id.next) {
+				st->text = st->text->id.next;
+				pop_space_text(st);
+			}
+			
+			BPY_clear_bad_scriptlinks(text);
+			BPY_free_pyconstraint_links(text);
+			free_text_controllers(text);
+			
+			unlink_text(text);
+			free_libblock(&G.main->text, text);
+			
+			allqueue(REDRAWTEXT, 0);
+			allqueue(REDRAWHEADERS, 0);
+			
+			/*for if any object constraints were changed.*/
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+			
+			BIF_undo_push("Delete Text");
+		}
 		break;
 		
 /*
@@ -184,13 +197,13 @@ void do_text_buttons(unsigned short event)
 
 		break;
 	case B_TAB_NUMBERS:
-		if (st->showsyntax) get_format_string();
+		if (st->showsyntax) get_format_string(st);
 		allqueue(REDRAWTEXT, 0);
 		allqueue(REDRAWHEADERS, 0);
 		break;
 	case B_SYNTAX:
 		if (st->showsyntax) {
-			get_format_string();
+			get_format_string(st);
 		}
 		allqueue(REDRAWTEXT, 0);
 		allqueue(REDRAWHEADERS, 0);
@@ -232,15 +245,19 @@ static uiBlock *text_template_scriptsmenu (void *args_unused)
 /* action executed after clicking in File menu */
 static void do_text_filemenu(void *arg, int event)
 {
-	SpaceText *st= curarea->spacedata.first;
-	Text *text= st->text;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
+	Text *text;
 	ScrArea *sa;
-
+	
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
+	text= st->text;
+	
 	switch(event) {
 	case 1:
 		st->text= add_empty_text( "Text" );
 		st->top=0;
-
+		
 		allqueue(REDRAWTEXT, 0);
 		allqueue(REDRAWHEADERS, 0);
 		break;
@@ -254,7 +271,7 @@ static void do_text_filemenu(void *arg, int event)
 				if (!reopen_text(text)) {
 					error("Could not reopen file");
 				}
-			if (st->showsyntax) get_format_string();
+			if (st->showsyntax) get_format_string(st);
 			}
 		break;
 	case 5:
@@ -264,6 +281,42 @@ static void do_text_filemenu(void *arg, int event)
 		break;
 	case 6:
 		run_python_script(st);
+		break;
+	case 7:
+	{
+		Object *ob;
+		bConstraint *con;
+		short update;
+		
+		/* check all pyconstraints */
+		for (ob= G.main->object.first; ob; ob= ob->id.next) {
+			update = 0;
+			if (ob->type==OB_ARMATURE && ob->pose) {
+				bPoseChannel *pchan;
+				for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+					for (con = pchan->constraints.first; con; con= con->next) {
+						if (con->type==CONSTRAINT_TYPE_PYTHON) {
+							bPythonConstraint *data = con->data;
+							if (data->text==text) BPY_pyconstraint_update(ob, con);
+							update = 1;
+							
+						}
+					}
+				}
+			}
+			for (con = ob->constraints.first; con; con= con->next) {
+				if (con->type==CONSTRAINT_TYPE_PYTHON) {
+					bPythonConstraint *data = con->data;
+					if (data->text==text) BPY_pyconstraint_update(ob, con);
+					update = 1;
+				}
+			}
+			
+			if (update) {
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			}
+		}
+	}
 		break;
 	default:
 		break;
@@ -279,9 +332,13 @@ static void do_text_filemenu(void *arg, int event)
 /* action executed after clicking in Edit menu */
 static void do_text_editmenu(void *arg, int event)
 {
-	SpaceText *st= curarea->spacedata.first;
-	Text *text= st->text;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
+	Text *text;
 	ScrArea *sa;
+	
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
+	text= st->text;
 	
 	switch(event) {
 	case 1:
@@ -291,15 +348,17 @@ static void do_text_editmenu(void *arg, int event)
 		txt_do_redo(text);
 		break;
 	case 3:
+		txt_copy_clipboard(text);
 		txt_cut_sel(text);
 		pop_space_text(st);
 		break;
 	case 4:
-		txt_copy_sel(text);
+		//txt_copy_sel(text);
+		txt_copy_clipboard(text);
 		break;
 	case 5:
-		txt_paste(text);
-		if (st->showsyntax) get_format_string();
+		txt_paste_clipboard(text);
+		if (st->showsyntax) get_format_string(st);
 		break;
 	case 6:
 		txt_print_cutbuffer();
@@ -328,9 +387,13 @@ static void do_text_editmenu(void *arg, int event)
 /* action executed after clicking in View menu */
 static void do_text_editmenu_viewmenu(void *arg, int event)
 {
-	SpaceText *st= curarea->spacedata.first;
-	Text *text= st->text;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
+	Text *text;
 	ScrArea *sa;
+	
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
+	text = st->text;
 	
 	switch(event) {
 		case 1:
@@ -356,9 +419,13 @@ static void do_text_editmenu_viewmenu(void *arg, int event)
 /* action executed after clicking in Select menu */
 static void do_text_editmenu_selectmenu(void *arg, int event)
 {
-	SpaceText *st= curarea->spacedata.first;
-	Text *text= st->text;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
+	Text *text;
 	ScrArea *sa;
+	
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
+	text = st->text;
 	
 	switch(event) {
 	case 1:
@@ -382,9 +449,13 @@ static void do_text_editmenu_selectmenu(void *arg, int event)
 /* action executed after clicking in Format menu */
 static void do_text_formatmenu(void *arg, int event)
 {
-	SpaceText *st= curarea->spacedata.first;
-	Text *text= st->text;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
+	Text *text;
 	ScrArea *sa;
+	
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
+	text = st->text;
 	
 	switch(event) {
 	case 3:
@@ -408,7 +479,7 @@ static void do_text_formatmenu(void *arg, int event)
 		if ( txt_has_sel(text)) {
 			txt_order_cursors(text);
 			comment(text);
-			if (st->showsyntax) get_format_string();
+			if (st->showsyntax) get_format_string(st);
 			break;
 		}
 		break;
@@ -416,7 +487,7 @@ static void do_text_formatmenu(void *arg, int event)
 		if ( txt_has_sel(text)) {
 			txt_order_cursors(text);
 			uncomment(text);
-			if (st->showsyntax) get_format_string();
+			if (st->showsyntax) get_format_string(st);
 			break;
 		}
 		break;
@@ -470,7 +541,9 @@ static uiBlock *text_editmenu_selectmenu(void *arg_unused)
 
 void do_text_formatmenu_convert(void *arg, int event)
 {
-	SpaceText *st= curarea->spacedata.first;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
+	
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 	
 	switch(event) {
 	case 1: convert_tabs(st, 0); break;
@@ -529,8 +602,11 @@ static uiBlock *text_formatmenu(void *arg_unused)
 /* action executed after clicking in Object to 3d Sub Menu */
 void do_text_editmenu_to3dmenu(void *arg, int event)
 {
-	SpaceText *st= curarea->spacedata.first;
-	Text *text= st->text;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
+	Text *text;
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
+	text = st->text;
 	
 	switch(event) {
 	case 1: txt_export_to_object(text); break;
@@ -598,7 +674,7 @@ static uiBlock *text_editmenu(void *arg_unused)
 /* File menu */
 static uiBlock *text_filemenu(void *arg_unused)
 {
-	SpaceText *st= curarea->spacedata.first;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
 	Text *text= st->text;
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
@@ -608,13 +684,23 @@ static uiBlock *text_filemenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "New|Alt N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...|Alt O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	
 	if(text) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reopen|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+		
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save As...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+		
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Run Python Script|Alt P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+		
+		if (BPY_is_pyconstraint(text))
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Refresh All PyConstraints", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+			
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	}
 	
 	uiDefIconTextBlockBut(block, text_template_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Script Templates", 0, yco-=20, 120, 19, "");
@@ -636,11 +722,13 @@ void text_buttons(void)
 {
 	uiBlock *block;
 	SpaceText *st= curarea->spacedata.first;
-	Text *text= st->text;
+	Text *text;
 	short xco, xmax;
 	char naam[256];
 	
-	if (!st || st->spacetype != SPACE_TEXT) return;
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
+	text = st->text;
 
 	sprintf(naam, "header %d", curarea->headwin);
 	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->headwin);

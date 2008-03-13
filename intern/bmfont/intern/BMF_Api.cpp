@@ -150,11 +150,24 @@ int BMF_GetStringWidth(BMF_Font* font, char* str)
 	return ((BMF_BitmapFont*)font)->GetStringWidth(str);
 }
 
+void BMF_GetStringBoundingBox(BMF_Font* font, char* str, float*llx, float *lly, float *urx, float *ury){
+	if (!font){
+		*llx = *lly = *urx = *ury = 0;
+	}else{
+		((BMF_BitmapFont*)font)->GetStringBoundingBox(str, llx, lly, urx, ury);
+	}
+}
 
-void BMF_GetBoundingBox(BMF_Font* font, int *xmin_r, int *ymin_r, int *xmax_r, int *ymax_r)
+void BMF_GetFontBoundingBox(BMF_Font* font, int *xmin_r, int *ymin_r, int *xmax_r, int *ymax_r)
 {
 	if (!font) return;
-	((BMF_BitmapFont*)font)->GetBoundingBox(*xmin_r, *ymin_r, *xmax_r, *ymax_r);
+	((BMF_BitmapFont*)font)->GetFontBoundingBox(*xmin_r, *ymin_r, *xmax_r, *ymax_r);
+}
+
+int BMF_GetFontHeight(BMF_Font* font)
+{
+	if (!font) return -1;
+	return ((BMF_BitmapFont*)font)->GetFontHeight();
 }
 
 int BMF_GetFontTexture(BMF_Font* font) {
@@ -165,4 +178,9 @@ int BMF_GetFontTexture(BMF_Font* font) {
 void BMF_DrawStringTexture(BMF_Font* font, char *string, float x, float y, float z) {
 	if (!font) return;
 	((BMF_BitmapFont*)font)->DrawStringTexture(string, x, y, z);
+}
+
+void BMF_DrawStringBuf(BMF_Font* font, char *str, int posx, int posy, float *col, unsigned char *buf, float *fbuf, int w, int h, int channels) {
+	if (!font) return;
+	((BMF_BitmapFont*)font)->DrawStringBuf(str, posx, posy, col, buf, fbuf, w, h, channels);
 }

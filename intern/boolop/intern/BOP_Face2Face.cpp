@@ -1,4 +1,7 @@
 /**
+ *
+ * $Id$
+ *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +26,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Marc Freixas, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -144,9 +147,18 @@ void BOP_mergeVertexs(BOP_Mesh *mesh, unsigned int firstFace);
  * @param mesh mesh that contains the faces, edges and vertices
  * @param facesA set of faces from object A
  * @param facesB set of faces from object B
+ *
+ * Two optimizations were added here:
+ *   1) keep the bounding box for a face once it's created; this is
+ *      especially important for B faces, since they were being created and
+ *      recreated over and over
+ *   2) associate a "split" index in the faceB vector with each A face; when
+ *      an A face is split, we will not need to recheck any B faces have
+ *      already been checked against that original A face
  */
+
 void BOP_Face2Face(BOP_Mesh *mesh, BOP_Faces *facesA, BOP_Faces *facesB)
-{		
+{
 	for(unsigned int idxFaceA=0;idxFaceA<facesA->size();idxFaceA++) {
 		BOP_Face *faceA = (*facesA)[idxFaceA];
 		MT_Plane3 planeA = faceA->getPlane();
@@ -154,23 +166,33 @@ void BOP_Face2Face(BOP_Mesh *mesh, BOP_Faces *facesA, BOP_Faces *facesB)
 		MT_Point3 p2 = mesh->getVertex(faceA->getVertex(1))->getPoint();
 		MT_Point3 p3 = mesh->getVertex(faceA->getVertex(2))->getPoint();
 
-		BOP_BBox boxA(p1,p2,p3);
-	
-		for(unsigned int idxFaceB=0;
+	/* get (or create) bounding box for face A */
+		if( faceA->getBBox() == NULL )
+        	faceA->setBBox(p1,p2,p3);
+		BOP_BBox *boxA = faceA->getBBox();
+
+	/* start checking B faces with the previously stored split index */
+
+		for(unsigned int idxFaceB=faceA->getSplit();
 			idxFaceB<facesB->size() && (faceA->getTAG() != BROKEN) && (faceA->getTAG() != PHANTOM);) {
 			BOP_Face *faceB = (*facesB)[idxFaceB];
+			faceA->setSplit(idxFaceB);
 			if ((faceB->getTAG() != BROKEN) && (faceB->getTAG() != PHANTOM)) {
-			  BOP_BBox boxB(mesh->getVertex(faceB->getVertex(0))->getPoint(),
-					mesh->getVertex(faceB->getVertex(1))->getPoint(),
-					mesh->getVertex(faceB->getVertex(2))->getPoint());
-			  if (boxA.intersect(boxB)) {
 
+	/* get (or create) bounding box for face B */
+				if( faceB->getBBox() == NULL )
+        			faceB->setBBox(mesh->getVertex(faceB->getVertex(0))->getPoint(),
+                    mesh->getVertex(faceB->getVertex(1))->getPoint(),
+                    mesh->getVertex(faceB->getVertex(2))->getPoint());
+			  BOP_BBox *boxB = faceB->getBBox();
+
+			  if (boxA->intersect(*boxB)) {
 			    MT_Plane3 planeB = faceB->getPlane();
 			    if (BOP_containsPoint(planeB,p1) && 
 				BOP_containsPoint(planeB,p2) && 
 				BOP_containsPoint(planeB,p3)) {
 			      if (BOP_orientation(planeB,planeA)>0) {
-				BOP_intersectCoplanarFaces(mesh,facesB,faceA,faceB,false);
+				    BOP_intersectCoplanarFaces(mesh,facesB,faceA,faceB,false);
 			      }
 			    }
 			    else {
@@ -178,10 +200,7 @@ void BOP_Face2Face(BOP_Mesh *mesh, BOP_Faces *facesA, BOP_Faces *facesB)
 			    }
 			  }			  
 			}
-			if (faceB->getTAG()==BROKEN){
-			  facesB->erase(facesB->begin()+idxFaceB);
-			}else
-			  idxFaceB++;
+			idxFaceB++;
 		}
 	}
 	
@@ -385,56 +404,11 @@ void BOP_mergeVertexs(BOP_Mesh *mesh, unsigned int firstFace)
 	for(unsigned int idxFace = firstFace; idxFace < numFaces; idxFace++) {
 		BOP_Face *face = mesh->getFace(idxFace);
 		if ((face->getTAG() != BROKEN) && (face->getTAG() != PHANTOM)) {
-			BOP_Index v1 = face->getVertex(0);
-			BOP_Index v2 = face->getVertex(1);
-			BOP_Index v3 = face->getVertex(2);
-			MT_Point3 vertex1 = mesh->getVertex(v1)->getPoint();
-			MT_Point3 vertex2 = mesh->getVertex(v2)->getPoint();
-			MT_Point3 vertex3 = mesh->getVertex(v3)->getPoint();
-			int dist12 = BOP_comp(vertex1,vertex2);
-			int dist13 = BOP_comp(vertex1,vertex3);
-			int dist23 = BOP_comp(vertex2,vertex3);
-
-			if (dist12 == 0) {
-				if (dist13 == 0) {
-					// v1 ~= v2 , v1 ~= v3 , v2 ~= v3
-					mesh->replaceVertexIndex(v2,v1);
-					mesh->replaceVertexIndex(v3,v1);		
-				}
-				else {
-					if (dist23 == 0) {
-						mesh->replaceVertexIndex(v1,v2);
-						mesh->replaceVertexIndex(v3,v2);
-					}
-					else {
-						mesh->replaceVertexIndex(v1,v2);
-					}
-				}
-			}
-			else {
-				if (dist13 == 0) {
-					// v1 ~= v3
-					if (dist23 == 0) {
-						mesh->replaceVertexIndex(v1,v3);
-						mesh->replaceVertexIndex(v2,v3);
-					}
-					else {
-						mesh->replaceVertexIndex(v1,v3);
-					}
-				}
-				else {
-					if (dist23 == 0) {
-						// v2 ~= v3
-						mesh->replaceVertexIndex(v2,v3);
-					} else {
-						// all differents
-						if (BOP_collinear(vertex1,vertex2,vertex3)) {
-							// collinear triangle 
-							face->setTAG(PHANTOM);
-						}
-					}
-				}
-			}
+			MT_Point3 vertex1 = mesh->getVertex(face->getVertex(0))->getPoint();
+			MT_Point3 vertex2 = mesh->getVertex(face->getVertex(1))->getPoint();
+			MT_Point3 vertex3 = mesh->getVertex(face->getVertex(2))->getPoint();
+			if (BOP_collinear(vertex1,vertex2,vertex3)) // collinear triangle 
+				face->setTAG(PHANTOM);
 		}
 	}
 }
@@ -507,7 +481,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
 	if (size == 2) {
 
 		// Trivial case, only test the merge ...
-		if (BOP_comp(0,points[0].distance(points[1]))==0) {
+		if (BOP_fuzzyZero(points[0].distance(points[1]))) {
 			face[0] = 3;
 			size--;
 		}
@@ -592,8 +566,8 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
 		// Merge data
 		MT_Scalar d1 = sortedPoints[1].distance(sortedPoints[0]);
 		MT_Scalar d2 = sortedPoints[1].distance(sortedPoints[2]);
-		if (BOP_comp(0,d1)==0 && sortedFaces[1] != sortedFaces[0]) {
-			if (BOP_comp(0,d2)==0 && sortedFaces[1] != sortedFaces[2])  {
+		if (BOP_fuzzyZero(d1) && sortedFaces[1] != sortedFaces[0]) {
+			if (BOP_fuzzyZero(d2) && sortedFaces[1] != sortedFaces[2])  {
 				if (d1 < d2) {
 					// merge 0 and 1
 					sortedFaces[0] = 3;
@@ -605,7 +579,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
 					if (size == 3) {
 						// merge 1 and 2 ???
 						d1 = sortedPoints[1].distance(sortedPoints[2]);
-						if (BOP_comp(0,d1)==0 && sortedFaces[1] != sortedFaces[2])  {
+						if (BOP_fuzzyZero(d1) && sortedFaces[1] != sortedFaces[2])  {
 							// merge!
 							sortedFaces[1] = 3;
 							size--;
@@ -633,7 +607,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
 				if (size == 3) {
 					// merge 1 i 2 ???
 					d1 = sortedPoints[1].distance(sortedPoints[2]);
-					if (BOP_comp(0,d1)==0 && sortedFaces[1] != sortedFaces[2])  {
+					if (BOP_fuzzyZero(d1) && sortedFaces[1] != sortedFaces[2])  {
 						// merge!
 						sortedFaces[1] = 3;
 						size--;
@@ -642,7 +616,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
 			}     
 		}
 		else {
-			if (BOP_comp(0,d2)==0 && sortedFaces[1] != sortedFaces[2])  {
+			if (BOP_fuzzyZero(d2) && sortedFaces[1] != sortedFaces[2])  {
 				// merge 1 and 2
 				sortedFaces[1] = 3;
 				for(i = 2; i<size-1;i++) {
@@ -653,7 +627,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
 			}
 			else if (size == 4) {
 				d1 = sortedPoints[2].distance(sortedPoints[3]);
-				if (BOP_comp(0,d1)==0 && sortedFaces[2] != sortedFaces[3])  {
+				if (BOP_fuzzyZero(d1) && sortedFaces[2] != sortedFaces[3])  {
 					// merge 2 and 3
 					sortedFaces[2] = 3;
 					size--;

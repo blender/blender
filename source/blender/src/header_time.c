@@ -136,7 +136,7 @@ static void do_time_redrawmenu(void *arg, int event)
 	}
 	else {
 		if(event==1001) {
-			button(&G.scene->r.frs_sec,1,120,"Frames/Second:");
+			button(&G.scene->r.frs_sec,1,120,"FPS:");
 		}
 	}
 }
@@ -180,7 +180,7 @@ static uiBlock *time_redrawmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	sprintf(str, "Set Frames/Sec (%d)", G.scene->r.frs_sec);
+	sprintf(str, "Set Frames/Sec (%d/%f)", G.scene->r.frs_sec, G.scene->r.frs_sec_base);
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, str,	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1001, "");
 	
 	
@@ -241,6 +241,9 @@ static void do_time_viewmenu(void *arg, int event)
 			if(G.v2d->flag & V2D_VIEWLOCK)
 				view2d_do_locks(curarea, 0);
 			break;
+		case 12: /* only show keyframes from selected data */
+			stime->flag ^= TIME_ONLYACTSEL;
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -264,6 +267,9 @@ static uiBlock *time_viewmenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Seconds|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	else 
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Frames|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, (stime->flag & TIME_ONLYACTSEL)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Only Selected Data Keys|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -463,27 +469,27 @@ void time_buttons(ScrArea *sa)
 		uiDefButI(block, NUM, REDRAWALL,"Start:",	
 			xco,0, 4.5*XIC, YIC,
 			&G.scene->r.psfra,MINFRAMEF, MAXFRAMEF, 0, 0,
-			"The start frame of the animation preview");
+			"The start frame of the animation preview (inclusive)");
 
 		xco += 4.5*XIC;
 
 		uiDefButI(block, NUM, REDRAWALL,"End:",	
 			xco,0,4.5*XIC,YIC,
 			&G.scene->r.pefra,PSFRA,MAXFRAMEF, 0, 0,
-			"The end frame of the animation preview");
+			"The end frame of the animation preview (inclusive)");
 	}
 	else {
 		uiDefButI(block, NUM, REDRAWALL,"Start:",	
  		xco,0, 4.5*XIC, YIC,
  		&G.scene->r.sfra,MINFRAMEF, MAXFRAMEF, 0, 0,
- 		"The start frame of the animation");
+ 		"The start frame of the animation (inclusive)");
 
 		xco += 4.5*XIC;
 
 		uiDefButI(block, NUM, REDRAWALL,"End:",	
 			xco,0,4.5*XIC,YIC,
 			&G.scene->r.efra,SFRA,MAXFRAMEF, 0, 0,
-			"The end frame of the animation");
+			"The end frame of the animation (inclusive)");
 	}
 	uiBlockEndAlign(block);
 
@@ -492,7 +498,7 @@ void time_buttons(ScrArea *sa)
 	uiDefButI(block, NUM, B_NEWFRAME, "",
 		xco,0,3.5*XIC,YIC,
 		&(G.scene->r.cfra), MINFRAMEF, MAXFRAMEF, 0, 0,
-		"Displays Current Frame of animation. Click to change.");
+		"Displays Current Frame of animation");
 	
 	xco += 3.5*XIC+16;
 	
@@ -518,10 +524,18 @@ void time_buttons(ScrArea *sa)
 			xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Skip to End frame (Shift UpArrow)");
 	xco+= XIC+8;
 	
-	uiDefIconButBitI(block, TOG, G_RECORDKEYS, REDRAWINFO, ICON_REC,
-			xco, 0, XIC, YIC, &(G.flags), 0, 0, 0, 0, "Automatically insert keyframes in Object and Action Ipo curves");
+	uiDefIconButBitS(block, TOG, AUTOKEY_ON, REDRAWINFO, ICON_REC,
+			xco, 0, XIC, YIC, &(U.autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
+	xco+= XIC;
+	if (IS_AUTOKEY_ON) {
+		uiDefButS(block, MENU, REDRAWINFO, 
+					"Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
+					xco, 0, 3*XIC, YIC, &(U.autokey_mode), 0, 1, 0, 0, 
+					"Mode of automatic keyframe insertion for Objects and Bones");
+		xco+= (4*XIC);
+	}
 	
-	xco+= XIC+16;
+	xco+= 16;
 
 	uiDefIconButBitI(block, TOG, TIME_WITH_SEQ_AUDIO, B_DIFF, ICON_SPEAKER,
 					 xco, 0, XIC, YIC, &(stime->redraws), 0, 0, 0, 0, "Play back and sync with audio from Sequence Editor");

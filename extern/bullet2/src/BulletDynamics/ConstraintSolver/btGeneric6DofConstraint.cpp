@@ -17,8 +17,9 @@ subject to the following restrictions:
 #include "btGeneric6DofConstraint.h"
 #include "BulletDynamics/Dynamics/btRigidBody.h"
 #include "LinearMath/btTransformUtil.h"
+#include <new>
 
-static const btScalar kSign[] = { 1.0f, -1.0f, 1.0f };
+static const btScalar kSign[] = { btScalar(1.0), btScalar(-1.0), btScalar(1.0) };
 static const int kAxisA[] = { 1, 0, 0 };
 static const int kAxisB[] = { 2, 2, 1 };
 #define GENERIC_D6_DISABLE_WARMSTARTING 1
@@ -38,9 +39,9 @@ btGeneric6DofConstraint::btGeneric6DofConstraint(btRigidBody& rbA, btRigidBody& 
 	//so start all locked
 	for (int i=0; i<6;++i)
 	{
-		m_lowerLimit[i] = 0.0f;
-		m_upperLimit[i] = 0.0f;
-		m_accumulatedImpulse[i] = 0.0f;
+		m_lowerLimit[i] = btScalar(0.0);
+		m_upperLimit[i] = btScalar(0.0);
+		m_accumulatedImpulse[i] = btScalar(0.0);
 	}
 
 }
@@ -83,7 +84,7 @@ void btGeneric6DofConstraint::buildJacobian()
 
 			//optionally disable warmstarting
 #ifdef GENERIC_D6_DISABLE_WARMSTARTING
-			m_accumulatedImpulse[i] = 0.f;
+			m_accumulatedImpulse[i] = btScalar(0.);
 #endif //GENERIC_D6_DISABLE_WARMSTARTING
 
 			// Apply accumulated impulse
@@ -115,7 +116,7 @@ void btGeneric6DofConstraint::buildJacobian()
 				m_rbB.getInvInertiaDiagLocal());
 
 #ifdef GENERIC_D6_DISABLE_WARMSTARTING
-			m_accumulatedImpulse[i + 3] = 0.f;
+			m_accumulatedImpulse[i + 3] = btScalar(0.);
 #endif //GENERIC_D6_DISABLE_WARMSTARTING
 
 			// Apply accumulated impulse
@@ -127,7 +128,7 @@ void btGeneric6DofConstraint::buildJacobian()
 	}
 }
 
-float getMatrixElem(const btMatrix3x3& mat,int index)
+btScalar getMatrixElem(const btMatrix3x3& mat,int index)
 {
 	int row = index%3;
 	int col = index / 3;
@@ -143,9 +144,9 @@ bool	MatrixToEulerXYZ(const btMatrix3x3& mat,btVector3& xyz)
 
 ///	0..8
 
-	 if (getMatrixElem(mat,2) < 1.0f)
+	 if (getMatrixElem(mat,2) < btScalar(1.0))
     {
-        if (getMatrixElem(mat,2) > -1.0f)
+        if (getMatrixElem(mat,2) > btScalar(-1.0))
         {
             xyz[0] = btAtan2(-getMatrixElem(mat,5),getMatrixElem(mat,8));
             xyz[1] = btAsin(getMatrixElem(mat,2));
@@ -157,7 +158,7 @@ bool	MatrixToEulerXYZ(const btMatrix3x3& mat,btVector3& xyz)
             // WARNING.  Not unique.  XA - ZA = -atan2(r10,r11)
             xyz[0] = -btAtan2(getMatrixElem(mat,3),getMatrixElem(mat,4));
             xyz[1] = -SIMD_HALF_PI;
-            xyz[2] = 0.0f;
+            xyz[2] = btScalar(0.0);
             return false;
         }
     }
@@ -167,16 +168,17 @@ bool	MatrixToEulerXYZ(const btMatrix3x3& mat,btVector3& xyz)
         xyz[0] = btAtan2(getMatrixElem(mat,3),getMatrixElem(mat,4));
         xyz[1] = SIMD_HALF_PI;
         xyz[2] = 0.0;
-        return false;
+     
     }
-	 return false;
+	 
+	return false;
 }
 
 
 void	btGeneric6DofConstraint::solveConstraint(btScalar	timeStep)
 {
-	btScalar tau = 0.1f;
-	btScalar damping = 1.0f;
+	btScalar tau = btScalar(0.1);
+	btScalar damping = btScalar(1.0);
 
 	btVector3 pivotAInW = m_rbA.getCenterOfMassTransform() * m_frameInA.getOrigin();
 	btVector3 pivotBInW = m_rbB.getCenterOfMassTransform() * m_frameInB.getOrigin();
@@ -199,7 +201,7 @@ void	btGeneric6DofConstraint::solveConstraint(btScalar	timeStep)
 			localNormalInA[i] = 1;
 			btVector3 normalWorld = m_rbA.getCenterOfMassTransform().getBasis() * localNormalInA;
 
-			btScalar jacDiagABInv = 1.f / m_jacLinear[i].getDiagonal();
+			btScalar jacDiagABInv = btScalar(1.) / m_jacLinear[i].getDiagonal();
 
 			//velocity error (first order error)
 			btScalar rel_vel = m_jacLinear[i].getRelativeVelocity(m_rbA.getLinearVelocity(),angvelA, 
@@ -207,8 +209,8 @@ void	btGeneric6DofConstraint::solveConstraint(btScalar	timeStep)
 		
 			//positional error (zeroth order error)
 			btScalar depth = -(pivotAInW - pivotBInW).dot(normalWorld); 
-			btScalar	lo = -1e30f;
-			btScalar	hi = 1e30f;
+			btScalar	lo = btScalar(-1e30);
+			btScalar	hi = btScalar(1e30);
 		
 			//handle the limits
 			if (m_lowerLimit[i] < m_upperLimit[i])
@@ -217,14 +219,14 @@ void	btGeneric6DofConstraint::solveConstraint(btScalar	timeStep)
 					if (depth > m_upperLimit[i])
 					{
 						depth -= m_upperLimit[i];
-						lo = 0.f;
+						lo = btScalar(0.);
 					
 					} else
 					{
 						if (depth < m_lowerLimit[i])
 						{
 							depth -= m_lowerLimit[i];
-							hi = 0.f;
+							hi = btScalar(0.);
 						} else
 						{
 							continue;
@@ -234,9 +236,9 @@ void	btGeneric6DofConstraint::solveConstraint(btScalar	timeStep)
 			}
 
 			btScalar normalImpulse= (tau*depth/timeStep - damping*rel_vel) * jacDiagABInv;
-			float oldNormalImpulse = m_accumulatedImpulse[i];
-			float sum = oldNormalImpulse + normalImpulse;
-			m_accumulatedImpulse[i] = sum > hi ? 0.f : sum < lo ? 0.f : sum;
+			btScalar oldNormalImpulse = m_accumulatedImpulse[i];
+			btScalar sum = oldNormalImpulse + normalImpulse;
+			m_accumulatedImpulse[i] = sum > hi ? btScalar(0.) : sum < lo ? btScalar(0.) : sum;
 			normalImpulse = m_accumulatedImpulse[i] - oldNormalImpulse;
 
 			btVector3 impulse_vector = normalWorld * normalImpulse;
@@ -267,7 +269,7 @@ void	btGeneric6DofConstraint::solveConstraint(btScalar	timeStep)
 			btVector3 angvelA = m_rbA.getCenterOfMassTransform().getBasis().transpose() * m_rbA.getAngularVelocity();
 			btVector3 angvelB = m_rbB.getCenterOfMassTransform().getBasis().transpose() * m_rbB.getAngularVelocity();
 		
-			btScalar jacDiagABInv = 1.f / m_jacAng[i].getDiagonal();
+			btScalar jacDiagABInv = btScalar(1.) / m_jacAng[i].getDiagonal();
 			
 			//velocity error (first order error)
 			btScalar rel_vel = m_jacAng[i].getRelativeVelocity(m_rbA.getLinearVelocity(),angvelA, 
@@ -279,27 +281,27 @@ void	btGeneric6DofConstraint::solveConstraint(btScalar	timeStep)
 
 			btScalar rel_pos = kSign[i] * axisA.dot(axisB);
 
-			btScalar	lo = -1e30f;
-			btScalar	hi = 1e30f;
+			btScalar	lo = btScalar(-1e30);
+			btScalar	hi = btScalar(1e30);
 		
 			//handle the twist limit
 			if (m_lowerLimit[i+3] < m_upperLimit[i+3])
 			{
 				//clamp the values
-				btScalar loLimit =  m_upperLimit[i+3] > -3.1415 ? m_lowerLimit[i+3] : -1e30f;
-				btScalar hiLimit = m_upperLimit[i+3] < 3.1415 ? m_upperLimit[i+3] : 1e30f;
+				btScalar loLimit =  m_lowerLimit[i+3] > -3.1415 ? m_lowerLimit[i+3] : btScalar(-1e30);
+				btScalar hiLimit = m_upperLimit[i+3] < 3.1415 ? m_upperLimit[i+3] : btScalar(1e30);
 
-				float projAngle  = -2.f*xyz[i];
+				btScalar projAngle  = btScalar(-1.)*xyz[i];
 				
 				if (projAngle < loLimit)
 				{
-					hi = 0.f;
+					hi = btScalar(0.);
 					rel_pos = (loLimit - projAngle);
 				} else
 				{
 					if (projAngle > hiLimit)
 					{
-						lo = 0.f;
+						lo = btScalar(0.);
 						rel_pos = (hiLimit - projAngle);
 					} else
 					{
@@ -311,9 +313,9 @@ void	btGeneric6DofConstraint::solveConstraint(btScalar	timeStep)
 			//impulse
 			
 			btScalar normalImpulse= -(tau*rel_pos/timeStep + damping*rel_vel) * jacDiagABInv;
-			float oldNormalImpulse = m_accumulatedImpulse[i+3];
-			float sum = oldNormalImpulse + normalImpulse;
-			m_accumulatedImpulse[i+3] = sum > hi ? 0.f : sum < lo ? 0.f : sum;
+			btScalar oldNormalImpulse = m_accumulatedImpulse[i+3];
+			btScalar sum = oldNormalImpulse + normalImpulse;
+			m_accumulatedImpulse[i+3] = sum > hi ? btScalar(0.) : sum < lo ? btScalar(0.) : sum;
 			normalImpulse = m_accumulatedImpulse[i+3] - oldNormalImpulse;
 			
 			// Dirk: Not needed - we could actually project onto Jacobian entry here (same as above)
@@ -328,12 +330,13 @@ void	btGeneric6DofConstraint::solveConstraint(btScalar	timeStep)
 
 void	btGeneric6DofConstraint::updateRHS(btScalar	timeStep)
 {
+	(void)timeStep;
 
 }
 
 btScalar btGeneric6DofConstraint::computeAngle(int axis) const
 	{
-	btScalar angle;
+	btScalar angle = btScalar(0.f);
 
 	switch (axis)
 		{
@@ -375,9 +378,12 @@ btScalar btGeneric6DofConstraint::computeAngle(int axis) const
 			angle = btAtan2( s, c );
 			}
 			break;
-                  default: assert ( 0 ) ; break ;
+                  default: 
+					  btAssert ( 0 ) ; 
+					  
+					  break ;
 		}
 
-	return angle;
+		return angle;
 	}
 

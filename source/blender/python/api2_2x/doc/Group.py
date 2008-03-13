@@ -121,6 +121,12 @@ class Group:
 		@rtype: Group
 		@return:  a copy of this group
 		"""
+	def copy ():
+		"""
+		Make a copy of this group
+		@rtype: Group
+		@return:  a copy of this group
+		"""
 
 import id_generics
 Group.__doc__ += id_generics.attributes 

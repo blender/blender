@@ -18,7 +18,6 @@ subject to the following restrictions:
 
 #include "btConstraintSolver.h"
 class btIDebugDraw;
-
 #include "btContactConstraint.h"
 	
 
@@ -31,8 +30,8 @@ class btSequentialImpulseConstraintSolver : public btConstraintSolver
 {
 
 protected:
-	float solve(btRigidBody* body0,btRigidBody* body1, btManifoldPoint& cp, const btContactSolverInfo& info,int iter,btIDebugDraw* debugDrawer);
-	float solveFriction(btRigidBody* body0,btRigidBody* body1, btManifoldPoint& cp, const btContactSolverInfo& info,int iter,btIDebugDraw* debugDrawer);
+	btScalar solve(btRigidBody* body0,btRigidBody* body1, btManifoldPoint& cp, const btContactSolverInfo& info,int iter,btIDebugDraw* debugDrawer);
+	btScalar solveFriction(btRigidBody* body0,btRigidBody* body1, btManifoldPoint& cp, const btContactSolverInfo& info,int iter,btIDebugDraw* debugDrawer);
 	void  prepareConstraints(btPersistentManifold* manifoldPtr, const btContactSolverInfo& info,btIDebugDraw* debugDrawer);
 
 	ContactSolverFunc m_contactDispatch[MAX_CONTACT_SOLVER_TYPES][MAX_CONTACT_SOLVER_TYPES];
@@ -40,6 +39,8 @@ protected:
 
 	//choose between several modes, different friction model etc.
 	int	m_solverMode;
+	///m_btSeed2 is used for re-arranging the constraint rows. improves convergence/quality of friction
+	unsigned long	m_btSeed2;
 
 public:
 
@@ -47,7 +48,8 @@ public:
 	{
 		SOLVER_RANDMIZE_ORDER = 1,
 		SOLVER_FRICTION_SEPARATE = 2,
-		SOLVER_USE_WARMSTARTING = 4
+		SOLVER_USE_WARMSTARTING = 4,
+		SOLVER_CACHE_FRIENDLY = 8
 	};
 
 	btSequentialImpulseConstraintSolver();
@@ -68,7 +70,12 @@ public:
 
 	virtual ~btSequentialImpulseConstraintSolver() {}
 	
-	virtual float solveGroup(btPersistentManifold** manifold,int numManifolds,btTypedConstraint** constraints,int numConstraints,const btContactSolverInfo& info, btIDebugDraw* debugDrawer=0);
+	virtual btScalar solveGroup(btCollisionObject** bodies,int numBodies,btPersistentManifold** manifold,int numManifolds,btTypedConstraint** constraints,int numConstraints,const btContactSolverInfo& info, btIDebugDraw* debugDrawer, btStackAlloc* stackAlloc);
+
+	virtual btScalar solveGroupCacheFriendly(btCollisionObject** bodies,int numBodies,btPersistentManifold** manifoldPtr, int numManifolds,btTypedConstraint** constraints,int numConstraints,const btContactSolverInfo& infoGlobal,btIDebugDraw* debugDrawer,btStackAlloc* stackAlloc);
+
+	btScalar solveCombinedContactFriction(btRigidBody* body0,btRigidBody* body1, btManifoldPoint& cp, const btContactSolverInfo& info,int iter,btIDebugDraw* debugDrawer);
+
 
 	void	setSolverMode(int mode)
 	{
@@ -79,19 +86,23 @@ public:
 	{
 		return m_solverMode;
 	}
+
+	unsigned long btRand2();
+
+	int btRandInt2 (int n);
+
+	void	setRandSeed(unsigned long seed)
+	{
+		m_btSeed2 = seed;
+	}
+	unsigned long	getRandSeed() const
+	{
+		return m_btSeed2;
+	}
+
 };
 
-/// Small variation on btSequentialImpulseConstraintSolver: warmstarting, separate friction, non-randomized ordering
-class btSequentialImpulseConstraintSolver3 : public btSequentialImpulseConstraintSolver
-{
-public:
 
-	btSequentialImpulseConstraintSolver3();
-
-	virtual float solveGroup(btPersistentManifold** manifold,int numManifolds,btTypedConstraint** constraints,int numConstraints,const btContactSolverInfo& info, btIDebugDraw* debugDrawer=0);
-
-
-};
 
 
 #endif //SEQUENTIAL_IMPULSE_CONSTRAINT_SOLVER_H

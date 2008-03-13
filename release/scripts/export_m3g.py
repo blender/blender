@@ -234,6 +234,19 @@ Tooltip: 'Export to M3G'
 #
 # * Modul shutil is not needed any longer. Exporter has its own copy_file.
 #   (realized and inspired by ideasman_42 and Martin Neumann)
+#
+# History 0.8
+#
+# * Blender works with SpotAngles 1..180 but M3G works only with 0..90
+#   M3G use the 'half angle' (cut off angle) (Thanks to Martin Storsjö)
+#
+# * Error fixed: Texture coordinates was not calculated correct.
+#   (Thanks to Milan Piskla, Vlad, Max Gilead, Regis Cosnier ...)
+#
+# * New options in GUI:
+#      M3G Version 2.0 : Will export M3G files Vers. 2.0 in future
+#      Game Physics: Adds Game Physics infos for NOPE API
+#   
 # --------------------------------------------------------------------------#
 # TODO: Export only selected mesh
 # TODO: Optimize Bones <--> Vertex Group mapping
@@ -1213,7 +1226,7 @@ class M3GVertexArray(M3GObject3D):
         # Reverse t coordinate because M3G uses a different 2D coordinate system than Blender.
         if self.uvmapping:
             for i in range(0,len(self.components),2):
-                self.components[i]= int(self.components[i]*(-1))
+                self.components[i+1]= int(self.components[i+1]*(-1)) #Error in Version 0.7
         for i in range(len(self.components)):
             if abs(self.components[i])>maxValue:raise Exception( i+". element too great/small!")
                 
@@ -1284,7 +1297,7 @@ class M3GVertexArray(M3GObject3D):
                 self.blenderIndexes[key]=index
                 #print"blenderIndexes",self.blenderIndexes
         else:
-            # print "VertexArray.append: element=",element
+            print "VertexArray.append: element=",element
             self.components.append(element)
             
 class M3GVertexBuffer(M3GObject3D):
@@ -2001,7 +2014,7 @@ class M3GTranslator:
         self.scene = Blender.Scene.GetCurrent()
         self.world = self.translateWorld(self.scene)
         
-        for obj in self.scene.objects:
+        for obj in self.scene.objects :
             if obj.getType()=='Camera': #  older Version: isinstance(obj.getData(),Types.CameraType)
                 self.translateCamera(obj)
             elif obj.getType()=='Mesh':
@@ -2176,7 +2189,7 @@ class M3GTranslator:
             if mOptions.createAmbientLight & mOptions.lightingEnabled:
                 lLight = M3GLight()
                 lLight.mode = lLight.modes['AMBIENT']
-                lLight.color = self.translateRGB(AllWorlds[0].getAmb())
+                lLight.color = self.translateRGB(blWorld.getAmb())
                 self.nodes.append(lLight)
 
         #TODO: Set background picture from world
@@ -2550,7 +2563,7 @@ class M3GTranslator:
         mLight.intensity = lamp.energy
         #SpotAngle, SpotExponent (SPOT)
         if lampType == Lamp.Types.Spot:
-            mLight.spotAngle = lamp.spotSize 
+            mLight.spotAngle = lamp.spotSize/2 
             mLight.spotExponent = lamp.spotBlend 
         self.translateToNode(obj,mLight)
 
@@ -2945,6 +2958,8 @@ class OptionMgr:
                 self.perspectiveCorrection = rdict['perspectiveCorrection']
                 self.smoothShading         = rdict['smoothShading']
                 self.exportAsJava          = rdict['exportAsJava']
+                self.exportVersion2        = rdict['exportVersion2']
+                self.exportGamePhysics     = rdict['exportGamePhysics']
                 
             except: self.save()     # if data isn't valid, rewrite it
 
@@ -2958,6 +2973,8 @@ class OptionMgr:
         self.perspectiveCorrection  = False
         self.smoothShading          = True
         self.exportAsJava           = False
+        self.exportVersion2         = False
+        self.exportGamePhysics      = False
     
     def save(self):
         d = {}
@@ -2970,7 +2987,9 @@ class OptionMgr:
         d['perspectiveCorrection'] = self.perspectiveCorrection
         d['smoothShading']         = self.smoothShading
         d['exportAsJava']          = self.exportAsJava
-
+        d['exportVersion2']        = self.exportVersion2
+        d['exportGamePhysics']     = self.exportGamePhysics
+        
         Blender.Registry.SetKey('M3GExport', d, True)
 
 
@@ -2993,6 +3012,8 @@ def gui():
     perspectiveCorrection  = Draw.Create(mOptions.perspectiveCorrection)
     smoothShading          = Draw.Create(mOptions.smoothShading)
     exportAsJava           = Draw.Create(mOptions.exportAsJava)
+    exportVersion2         = Draw.Create(mOptions.exportVersion2)
+    exportGamePhysics      = Draw.Create(mOptions.exportGamePhysics)
     
     pupBlock = [\
         ('Texturing'),\
@@ -3008,7 +3029,9 @@ def gui():
         ('Posing'),\
         ('All Armature Actions', exportAllActions,       'Exports all actions for armatures'),\
         ('Export'),\
-        ('As Java Source',       exportAsJava,           'Exports scene as Java source code')
+        ('As Java Source',       exportAsJava,           'Exports scene as Java source code'),\
+        ('M3G Version 2.0',      exportVersion2,         'Exports M3G Version 2.0 File'),\
+        ('Game Physics',         exportGamePhysics,      'Includes Game Physics infos for NOPE in export')
     ]
     
     # Only execute if use didn't quit (ESC).
@@ -3022,6 +3045,8 @@ def gui():
         mOptions.perspectiveCorrection  = perspectiveCorrection.val
         mOptions.smoothShading          = smoothShading.val
         mOptions.exportAsJava           = exportAsJava.val
+        mOptions.exportVersion2         = exportVersion2.val
+        mOptions.exportGamePhysics      = exportGamePhysics.val
         mOptions.save()
 
         if mOptions.exportAsJava:

@@ -240,18 +240,72 @@ void IMB_filter(struct ImBuf *ibuf)
 	imb_filterx(ibuf);
 }
 
-#define EXTEND_PIXEL(a, w)	if((a)[3]) {r+= w*(a)[0]; g+= w*(a)[1]; b+= w*(a)[2]; tot+=w;}
+#define EXTEND_PIXEL(color, w) if((color)[3]) {r+= w*(color)[0]; g+= w*(color)[1]; b+= w*(color)[2]; a+= w*(color)[3]; tot+=w;}
 
-/* if alpha is zero, it checks surrounding pixels and averages color. sets new alphas to 255 */
-void IMB_filter_extend(struct ImBuf *ibuf)
+/* if alpha is zero, it checks surrounding pixels and averages color. sets new alphas to 1.0
+ * 
+ * When a mask is given, only effect pixels with a mask value of 1, defined as BAKE_MASK_MARGIN in rendercore.c
+ * */
+void IMB_filter_extend(struct ImBuf *ibuf, char *mask)
 {
 	register char *row1, *row2, *row3;
-	register char *cp;
+	register char *cp; 
 	int rowlen, x, y;
 	
 	rowlen= ibuf->x;
 	
-	if(ibuf->rect) {
+	
+	if (ibuf->rect_float) {
+		float *temprect;
+		float *row1f, *row2f, *row3f;
+		float *fp;
+		temprect= MEM_dupallocN(ibuf->rect_float);
+		
+		for(y=1; y<=ibuf->y; y++) {
+			/* setup rows */
+			row1f= (float *)(temprect + (y-2)*rowlen*4);
+			row2f= row1f + 4*rowlen;
+			row3f= row2f + 4*rowlen;
+			if(y==1)
+				row1f= row2f;
+			else if(y==ibuf->y)
+				row3f= row2f;
+			
+			fp= (float *)(ibuf->rect_float + (y-1)*rowlen*4);
+				
+			for(x=0; x<rowlen; x++) {
+				if((mask==NULL && fp[3]==0.0f) || (mask && mask[((y-1)*rowlen)+x]==1)) {
+					int tot= 0;
+					float r=0.0f, g=0.0f, b=0.0f, a=0.0f;
+					
+					EXTEND_PIXEL(row1f, 1);
+					EXTEND_PIXEL(row2f, 2);
+					EXTEND_PIXEL(row3f, 1);
+					EXTEND_PIXEL(row1f+4, 2);
+					EXTEND_PIXEL(row3f+4, 2);
+					if(x!=rowlen-1) {
+						EXTEND_PIXEL(row1f+8, 1);
+						EXTEND_PIXEL(row2f+8, 2);
+						EXTEND_PIXEL(row3f+8, 1);
+					}					
+					if(tot) {
+						fp[0]= r/tot;
+						fp[1]= g/tot;
+						fp[2]= b/tot;
+						fp[3]= a/tot;
+					}
+				}
+				fp+=4; 
+				
+				if(x!=0) {
+					row1f+=4; row2f+=4; row3f+=4;
+				}
+			}
+		}
+
+		MEM_freeN(temprect);
+	}
+	else if(ibuf->rect) {
 		int *temprect;
 		
 		/* make a copy, to prevent flooding */
@@ -270,8 +324,9 @@ void IMB_filter_extend(struct ImBuf *ibuf)
 			cp= (char *)(ibuf->rect + (y-1)*rowlen);
 			
 			for(x=0; x<rowlen; x++) {
-				if(cp[3]==0) {
-					int tot= 0, r=0, g=0, b=0;
+				/*if(cp[3]==0) {*/
+				if((mask==NULL && cp[3]==0) || (mask && mask[((y-1)*rowlen)+x]==1)) {
+					int tot= 0, r=0, g=0, b=0, a=0;
 					
 					EXTEND_PIXEL(row1, 1);
 					EXTEND_PIXEL(row2, 2);
@@ -287,10 +342,10 @@ void IMB_filter_extend(struct ImBuf *ibuf)
 						cp[0]= r/tot;
 						cp[1]= g/tot;
 						cp[2]= b/tot;
-						cp[3]= 255;
+						cp[3]= a/tot;
 					}
 				}
-				cp+=4; 
+				cp+=4;
 				
 				if(x!=0) {
 					row1+=4; row2+=4; row3+=4;

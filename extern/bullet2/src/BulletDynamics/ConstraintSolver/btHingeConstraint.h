@@ -16,9 +16,8 @@ subject to the following restrictions:
 #ifndef HINGECONSTRAINT_H
 #define HINGECONSTRAINT_H
 
-#include "LinearMath/btVector3.h"
-
-#include "BulletDynamics/ConstraintSolver/btJacobianEntry.h"
+#include "../../LinearMath/btVector3.h"
+#include "btJacobianEntry.h"
 #include "btTypedConstraint.h"
 
 class btRigidBody;
@@ -38,8 +37,8 @@ class btHingeConstraint : public btTypedConstraint
 
 	bool		m_angularOnly;
 
-	float		m_motorTargetVelocity;
-	float		m_maxMotorImpulse;
+	btScalar		m_motorTargetVelocity;
+	btScalar		m_maxMotorImpulse;
 	bool		m_enableAngularMotor;
 	
 public:
@@ -70,7 +69,7 @@ public:
 		m_angularOnly = angularOnly;
 	}
 
-	void	enableAngularMotor(bool enableMotor,float targetVelocity,float maxMotorImpulse)
+	void	enableAngularMotor(bool enableMotor,btScalar targetVelocity,btScalar maxMotorImpulse)
 	{
 		m_enableAngularMotor  = enableMotor;
 		m_motorTargetVelocity = targetVelocity;

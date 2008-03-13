@@ -1,8 +1,12 @@
+
 import os
 import os.path
 import SCons.Options
 import SCons.Options.BoolOption
-import subprocess
+try:
+    import subprocess
+except ImportError:
+	pass
 import string
 import glob
 import shutil
@@ -26,6 +30,7 @@ def validate_arguments(args, bc):
             'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
             'WITH_BF_FMOD',
             'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH',
+            'WITH_BF_DDS',
             'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB', 'BF_FFMPEG',  'BF_FFMPEG_INC',
             'WITH_BF_JPEG', 'BF_JPEG', 'BF_JPEG_INC', 'BF_JPEG_LIB', 'BF_JPEG_LIBPATH',
             'WITH_BF_PNG', 'BF_PNG', 'BF_PNG_INC', 'BF_PNG_LIB', 'BF_PNG_LIBPATH',
@@ -42,15 +47,19 @@ def validate_arguments(args, bc):
             'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
             'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC', 'BF_OPENGL_LINKFLAGS',
             'WITH_BF_FTGL', 'BF_FTGL', 'BF_FTGL_INC', 'BF_FTGL_LIB',
-            'WITH_BF_FFMPEG',
             'WITH_BF_PLAYER',
+            'WITH_BF_BINRELOC',	
             'CFLAGS', 'CCFLAGS', 'CPPFLAGS', 
             'REL_CFLAGS', 'REL_CCFLAGS',
             'C_WARN', 'CC_WARN', 'LLIBS', 'PLATFORM_LINKFLAGS',
             'BF_PROFILE_FLAGS', 'LCGDIR', 'WITH_BF_VERSE', 
             'BF_VERSE_INCLUDE',
             'VERSE_BUILD_BINARY', 'VERSE_BUILD_DIR', 'VERSE_REGEN_PROTO',
-            'BF_TWEAK_MODE'
+            'BF_TWEAK_MODE', 'BF_SPLIT_SRC',
+            'WITHOUT_BF_INSTALL',
+            'WITH_BF_OPENMP',
+            'WITHOUT_BF_INSTALL',
+            'BF_FANCY',
             ]
 
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
@@ -159,6 +168,8 @@ def read_opts(cfg, args):
         ('BF_OPENEXR_LIB', 'OPENEXR library', ''),
         ('BF_OPENEXR_LIBPATH', 'OPENEXR library path', ''),
 
+        (BoolOption('WITH_BF_DDS', 'Use DDS if true', 'true')),
+
         (BoolOption('WITH_BF_FFMPEG', 'Use FFMPEG if true', 'false')),
         ('BF_FFMPEG', 'FFMPEG base path', ''),
         ('BF_FFMPEG_LIB', 'FFMPEG library', ''),
@@ -240,6 +251,8 @@ def read_opts(cfg, args):
         ('BF_FREETYPE_LIB', 'Freetype library', ''),
         ('BF_FREETYPE_LIBPATH', 'Freetype library path', ''),
 
+	(BoolOption('WITH_BF_OPENMP', 'Use OpenMP if true', 'false')),
+
         (BoolOption('WITH_BF_QUICKTIME', 'Use QuickTime if true', 'false')),
         ('BF_QUICKTIME', 'QuickTime base path', ''),
         ('BF_QUICKTIME_INC', 'QuickTime include path', ''),
@@ -290,6 +303,10 @@ def read_opts(cfg, args):
         (BoolOption('BF_BUILDINFO', 'Buildtime in splash if true', 'true')),
 
         (BoolOption('BF_TWEAK_MODE', 'Enable tweak mode if true', 'false')),
+        (BoolOption('BF_SPLIT_SRC', 'Split src lib into several chunks if true', 'false')),
+        (BoolOption('WITHOUT_BF_INSTALL', 'dont install if true', 'false')),
+        (BoolOption('BF_FANCY', 'Enable fancy output if true', 'true')),
+		(BoolOption('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', 'false')),
 
     ) # end of opts.AddOptions()
 

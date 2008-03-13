@@ -48,6 +48,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BLI_blenlib.h"
@@ -960,7 +961,7 @@ void make_prim(int type, float imat[3][3], int tot, int seg,
 			rotateflag(2, v1->co, cmat);
 		}
 
-		removedoublesflag(4, 0.0001);
+		removedoublesflag(4, 0, 0.0001);
 
 		/* and now do imat */
 		eve= em->verts.first;
@@ -1178,7 +1179,7 @@ void add_primitiveMesh(int type)
 	char *name=NULL;
 	
 	if(G.scene->id.lib) return;
-
+	
 	/* this function also comes from an info window */
 	if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_INFO); else return;
 	if(G.vd==0) return;
@@ -1188,8 +1189,8 @@ void add_primitiveMesh(int type)
 	/* if editmode exists for other type, it exits */
 	check_editmode(OB_MESH);
 	
-	if(G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT)) {
-		G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT);
+	if(G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) {
+		G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT);
 		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
 	}
 
@@ -1278,7 +1279,7 @@ void add_primitiveMesh(int type)
 		undostr="Add UV Sphere";
 		break;
 	case 12:	/* Icosphere */
-		add_numbut(0, NUM|INT, "Subdivision:", 1, 500, &subdiv, NULL);
+		add_numbut(0, NUM|INT, "Subdivision:", 1, 8, &subdiv, NULL);
 		add_numbut(1, NUM|FLO, "Radius:", 0.001*G.vd->grid, 100*G.vd->grid, &dia, NULL);
 		if (!(do_clever_numbuts("Add Ico Sphere", 2, REDRAW))) return;
 		
@@ -1308,7 +1309,8 @@ void add_primitiveMesh(int type)
 	cent[1]-= G.obedit->obmat[3][1];
 	cent[2]-= G.obedit->obmat[3][2];
 
-	Mat3CpyMat4(imat, G.vd->viewmat);
+	if ( !(newob) || U.flag & USER_ADD_VIEWALIGNED) Mat3CpyMat4(imat, G.vd->viewmat);
+	else Mat3One(imat);
 	Mat3MulVecfl(imat, cent);
 	Mat3MulMat3(cmat, imat, mat);
 	Mat3Inv(imat,cmat);
@@ -1320,8 +1322,7 @@ void add_primitiveMesh(int type)
 	phid= 2*M_PI/tot;
 	phi= .25*M_PI;
 
-	make_prim(type, imat, tot, seg, subdiv, dia, d,
-        ext, fill, cent);
+	make_prim(type, imat, tot, seg, subdiv, dia, d, ext, fill, cent);
 
 	if(type<2) tot = totoud;
 
@@ -1331,12 +1332,18 @@ void add_primitiveMesh(int type)
 	if(type!=0 && type!=13) righthandfaces(1);	/* otherwise monkey has eyes in wrong direction... */
 	countall();
 
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	
+	/* if a new object was created, it stores it in Mesh, for reload original data and undo */
+	if ( !(newob) || U.flag & USER_ADD_EDITMODE) {
+		if(newob) load_editMesh();
+	} else {
+		exit_editmode(2);
+	}
+	
 	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */	
 	allqueue(REDRAWALL, 0);
-	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
-
-	/* if a new object was created, it stores it in Mesh, for reload original data and undo */
-	if(newob) load_editMesh();	
+	
 	BIF_undo_push(undostr);
 }
 

@@ -44,6 +44,7 @@ from BPyMathutils import angleToLength
 import mesh_solidify
 
 import BPyMessages
+reload(BPyMessages)
 import bpy
 
 
@@ -219,9 +220,7 @@ def solid_wire(ob_orig, me_orig, sce, PREF_THICKNESS, PREF_SOLID, PREF_SHARP, PR
 				for ii in vusers:
 					co += me.verts[ii].co
 				co /= len(vusers)
-		
-		
-		
+	
 	me.faces.delete(1, range(len(me.faces)))
 	
 	me.faces.extend(new_faces)
@@ -245,6 +244,18 @@ def main():
 		BPyMessages.Error_NoMeshActive()
 		return 
 	
+	# Saves the editmode state and go's out of 
+	# editmode if its enabled, we cant make
+	# changes to the mesh data while in editmode.
+	is_editmode = Window.EditMode()
+	Window.EditMode(0)
+	
+	me = ob_act.getData(mesh=1) # old NMesh api is default
+	if len(me.faces)==0:
+		BPyMessages.Error_NoMeshFaces()
+		if is_editmode: Window.EditMode(1)
+		return
+	
 	# Create the variables.
 	PREF_THICK = Blender.Draw.Create(0.005)
 	PREF_SOLID = Blender.Draw.Create(1)
@@ -259,16 +270,10 @@ def main():
 	]
 	
 	if not Blender.Draw.PupBlock('Solid Wireframe', pup_block):
+		if is_editmode: Window.EditMode(1)
 		return
 	
-	# Saves the editmode state and go's out of 
-	# editmode if its enabled, we cant make
-	# changes to the mesh data while in editmode.
-	is_editmode = Window.EditMode()
-	Window.EditMode(0)
-	
 	Window.WaitCursor(1)
-	me = ob_act.getData(mesh=1) # old NMesh api is default
 	t = sys.time()
 	
 	# Run the mesh editing function

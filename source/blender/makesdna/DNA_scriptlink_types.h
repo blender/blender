@@ -61,6 +61,9 @@ typedef struct ScriptLink {
  * RENDER script links for clean-up actions */
 #define SCRIPT_POSTRENDER 32
 
+#define SCRIPT_OBJECTUPDATE 64
+#define SCRIPT_OBDATAUPDATE 128
+
 /* **************** SPACE HANDLERS ********************* */
 /* these are special scriptlinks that can be assigned to
  * a given space in a given ScrArea to:

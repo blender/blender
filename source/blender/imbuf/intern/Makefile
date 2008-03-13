@@ -46,9 +46,9 @@ ifeq ($(WITH_OPENEXR), true)
     CFLAGS += -DWITH_OPENEXR
 endif
 
-
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
-    CFLAGS += -funsigned-char
+ifeq ($(WITH_DDS), true)
+    DIRS += dds
+    CPPFLAGS += -DWITH_DDS
 endif
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
@@ -80,4 +80,3 @@ ifeq ($(WITH_FFMPEG), true)
    CPPFLAGS += -DWITH_FFMPEG
    CPPFLAGS += $(NAN_FFMPEGCFLAGS)
 endif
-

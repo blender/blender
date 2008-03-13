@@ -95,7 +95,8 @@ void 	indent			(struct Text *text);
 void	uncomment		(struct Text *text);
 int	setcurr_tab		(struct Text *text);
 void	convert_tabs		(struct SpaceText *st, int tab);
-
+void	txt_copy_clipboard	(struct Text *text);
+void	txt_paste_clipboard	(struct Text *text);
 /* Undo opcodes */
 
 /* Simple main cursor movement */

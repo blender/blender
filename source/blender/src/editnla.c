@@ -73,11 +73,13 @@
 #include "BIF_toolbox.h"
 #include "BIF_editnla.h"
 #include "BIF_editaction.h"
+#include "BIF_transform.h"
 
 #include "BSE_editipo.h"
 #include "BSE_editnla_types.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_drawipo.h"
+#include "BSE_editaction_types.h"
 #include "BSE_trans_types.h"
 #include "BSE_edit.h"
 #include "BSE_filesel.h"
@@ -196,11 +198,12 @@ void synchronize_action_strips(void)
 				
 				calc_action_range(strip->act, &actstart, &actend, 1);
 				
-				if(strip->actstart!=actstart || strip->actend!=actend) {
-					float mapping= (strip->end - strip->start)/(strip->actend - strip->actstart);
+				if ((strip->actstart!=actstart) || (strip->actend!=actend)) {		
+					float offset = strip->scale * (actstart - strip->actstart);
+					float actlen = actend - actstart;
 					
-					strip->start+= mapping*(actstart - strip->actstart);
-					strip->end+= mapping*(actend - strip->actend);
+					strip->start += offset;
+					strip->end = (strip->scale * strip->repeat * actlen) + strip->start;
 					
 					strip->actstart= actstart;
 					strip->actend= actend;
@@ -369,15 +372,41 @@ void reset_action_strips(int val)
 		
 		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
 			if (strip->flag & ACTSTRIP_SELECT) {
-				if(val==2) {
-					calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
+				switch (val) {
+					case 1:
+					{
+						/* clear scaling - reset to 1.0 without touching keys */
+						float actlen= (strip->actend - strip->actstart);
+						
+						strip->scale= 1.0f;
+						strip->end= (strip->repeat * actlen) + strip->start;
+					}
+						break;
+					case 2:
+					{
+						/* reset action-range */
+						calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
+					}
+						break;
+					case 3:
+					{
+						/* apply scale to keys - scale is reset to 1.0f, but keys stay at the same times */
+						bActionChannel *achan;
+						
+						if (strip->act) {
+							for (achan= strip->act->chanbase.first; achan; achan= achan->next) {
+								actstrip_map_ipo_keys(base->object, achan->ipo, 0, 0);
+							}
+							
+							/* now we can reset scale */
+							calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
+							strip->scale= 1.0f;
+							strip->end = (strip->repeat * (strip->actend - strip->actstart)) + strip->start;
+						}
+					}
+						break;
 				}
-				else if(val==1) {
-					float mapping= (strip->actend - strip->actstart)/(strip->end - strip->start);
-					
-					strip->end= strip->start + mapping*(strip->end - strip->start);
-				}
-				base->object->ctime= -1234567.0f;	// eveil! 
+				base->object->ctime= -1234567.0f;	// evil! 
 				DAG_object_flush_update(G.scene, base->object, OB_RECALC_OB|OB_RECALC_DATA);
 			}
 		}
@@ -394,9 +423,16 @@ void snap_action_strips(int snap_mode)
 	bActionStrip *strip;
 	
 	for (base=G.scene->base.first; base; base=base->next) {
+		/* object has ipo - these keyframes should be able to be snapped, even if strips are collapsed */
+		if (base->object->ipo) {
+			snap_ipo_keys(base->object->ipo, snap_mode);
+		}
+		
+		/* object is collapsed - action and nla strips not shown/editable */
 		if (base->object->nlaflag & OB_NLA_COLLAPSED)
 			continue;
 		
+		/* snap action strips */
 		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
 			if (strip->flag & ACTSTRIP_SELECT) {
 				if (snap_mode==1) {
@@ -418,11 +454,40 @@ void snap_action_strips(int snap_mode)
 						strip->end += diff;
 					}
 				}
+				else if (snap_mode==3) {
+					/* nearest second */
+					float secf = FPS;
+					strip->start= (float)(floor(strip->start/secf + 0.5f) * secf);
+					strip->end= (float)(floor(strip->end/secf + 0.5f) * secf);
+				}
 			}
+		}
+		
+		/* object has action */
+		if (base->object->action) {
+			ListBase act_data = {NULL, NULL};
+			bActListElem *ale;
+			int filter;
+			
+			/* filter action data */
+			filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
+			actdata_filter(&act_data, filter, base->object->action, ACTCONT_ACTION);
+			
+			/* snap to frame */
+			for (ale= act_data.first; ale; ale= ale->next) {
+				actstrip_map_ipo_keys(base->object, ale->key_data, 0, 1); 
+				snap_ipo_keys(ale->key_data, snap_mode);
+				actstrip_map_ipo_keys(base->object, ale->key_data, 1, 1);
+			}
+			BLI_freelistN(&act_data);
+			
+			remake_action_ipos(base->object->action);
 		}
 	}
 	BIF_undo_push("Snap NLA strips");
 	allqueue (REDRAWVIEW3D, 0);
+	allqueue (REMAKEIPO, 0);
+	allqueue (REDRAWIPO, 0);
 	allqueue (REDRAWACTION, 0);
 	allqueue (REDRAWNLA, 0);
 }
@@ -516,7 +581,7 @@ static void add_nla_block(short event)
 		/* simple prevention of zero strips */
 	if(strip->start>strip->end-2) 
 		strip->end= strip->start+100;
-	strip->repeat = 1.0;
+	strip->repeat = strip->scale= 1.0f;
 	
 	strip->flag = ACTSTRIP_SELECT|ACTSTRIP_LOCK_ACTION;
 	
@@ -555,6 +620,7 @@ static void add_nla_block_by_name(char name[32], Object *ob, short hold, short a
 	
 	/* Initialize the new action block */
 	strip = MEM_callocN(sizeof(bActionStrip), "bActionStrip");
+	strip->scale= 1.0f;
 	
 	deselect_nlachannel_keys(0);
 	
@@ -794,8 +860,12 @@ static void mouse_nlachannels(short mval[2])
 	
 	if(actclick) /* de-activate all strips */
 		set_active_strip(ob, NULL);
-	else if(strip) /* set action */
-		set_active_strip(ob, strip);
+	else if(strip) {
+		if(mval[0] >= (NLAWIDTH-16)) /* toggle strip muting */
+			strip->flag ^= ACTSTRIP_MUTE;
+		else /* set action */
+			set_active_strip(ob, strip);
+	}
 
 	/* icon toggles beside strip */
 	if (obclick && mval[0]<20) {
@@ -805,6 +875,10 @@ static void mouse_nlachannels(short mval[2])
 	else if(obclick && mval[0]<36) {
 		/* override option for NLA */
 		ob->nlaflag ^= OB_NLA_OVERRIDE;
+	}
+	else if((obclick) && (ob->ipo) && (mval[0] >= (NLAWIDTH-16))) {
+		/* mute Object IPO-block */
+		ob->ipo->muteipo = (ob->ipo->muteipo)? 0: 1;
 	}
 	
 	ob->ctime= -1234567.0f;	// eveil! 
@@ -936,291 +1010,28 @@ static void recalc_all_ipos(void)
 
 void transform_nlachannel_keys(int mode, int dummy)
 {
-	Base *base;
-	TransVert *tv;
-	bActionChannel *chan;
-	bActionStrip *strip;
-	bConstraintChannel *conchan;
-	float	sval[2], cval[2], lastcval[2];
-	float	fac=0.0F;
-	float	deltax, startx;
-	int i;
-	int		loop=1;
-	int		tvtot=0;
-	int		invert=0, firsttime=1;
-	short	mvals[2], mvalc[2];
-	short	cancel=0;
-	char	str[256];
+	short context = (U.flag & USER_DRAGIMMEDIATE)?CTX_TWEAK:CTX_NONE;
 
-	/* Ensure that partial selections result in beztriple selections */
-	for (base=G.scene->base.first; base; base=base->next){
-		/* Check object ipos */
-		i= fullselect_ipo_keys(base->object->ipo);
-		if(i) base->flag |= BA_HAS_RECALC_OB;
-		tvtot+=i;
-		
-		/* Check object constraint ipos */
-		for(conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next)
-			tvtot+=fullselect_ipo_keys(conchan->ipo);			
-		
-		/* skip actions and nlastrips if object is collapsed */
-		if (base->object->nlaflag & OB_NLA_COLLAPSED)
-			continue;
-		
-		/* Check action ipos */
-		if (base->object->action){
-			/* exclude if strip is selected too */
-			for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
-				if (strip->flag & ACTSTRIP_SELECT)
-					if(strip->act==base->object->action)
-						break;
-			}
-			if(strip==NULL) {
-				
-				for (chan=base->object->action->chanbase.first; chan; chan=chan->next) {
-					if (EDITABLE_ACHAN(chan)) {
-						i= fullselect_ipo_keys(chan->ipo);
-						if(i) base->flag |= BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA;
-						tvtot+=i;
-						
-						/* Check action constraint ipos */
-						if (EXPANDED_ACHAN(chan) && FILTER_CON_ACHAN(chan)) {
-							for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
-								if (EDITABLE_CONCHAN(conchan))
-									tvtot+=fullselect_ipo_keys(conchan->ipo);
-							}
-						}
-					}
-				}
-			}		
+	switch (mode) {
+		case 'g':
+		{
+			initTransform(TFM_TIME_TRANSLATE, context);
+			Transform();
 		}
-
-		/* Check nlastrips */
-		for (strip=base->object->nlastrips.first; strip; strip=strip->next){
-			if (strip->flag & ACTSTRIP_SELECT) {
-				base->flag |= BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA;
-				tvtot+=2;
-			}
+			break;
+		case 's':
+		{
+			initTransform(TFM_TIME_SCALE, context);
+			Transform();
 		}
+			break;
+		case 'e':
+		{
+			initTransform(TFM_TIME_EXTEND, context);
+			Transform();
+		}
+			break;
 	}
-	
-	/* If nothing is selected, bail out */
-	if (!tvtot)
-		return;
-	
-	
-	/* Build the transvert structure */
-	tv = MEM_callocN (sizeof(TransVert) * tvtot, "transVert");
-	tvtot=0;
-	for (base=G.scene->base.first; base; base=base->next){
-		/* Manipulate object ipos */
-		tvtot=add_trans_ipo_keys(base->object->ipo, tv, tvtot);
-
-		/* Manipulate object constraint ipos */
-		for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next)
-			tvtot=add_trans_ipo_keys(conchan->ipo, tv, tvtot);
-
-		/* skip actions and nlastrips if object collapsed */
-		if (base->object->nlaflag & OB_NLA_COLLAPSED)
-			continue;
-			
-		/* Manipulate action ipos */
-		if (base->object->action){
-			/* exclude if strip is selected too */
-			for (strip=base->object->nlastrips.first; strip; strip=strip->next){
-				if (strip->flag & ACTSTRIP_SELECT)
-					if(strip->act==base->object->action)
-						break;
-			}
-			
-			/* can include - no selected strip is action */
-			if(strip==NULL) {
-				for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
-					if (EDITABLE_ACHAN(chan)) {
-						tvtot=add_trans_ipo_keys(chan->ipo, tv, tvtot);
-
-						/* Manipulate action constraint ipos */
-						if (EXPANDED_ACHAN(chan) && FILTER_CON_ACHAN(chan)) {
-							for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
-								if (EDITABLE_CONCHAN(conchan))
-									tvtot=add_trans_ipo_keys(conchan->ipo, tv, tvtot);
-							}
-						}
-					}
-				}
-			}
-		}
-
-		/* Manipulate nlastrips */
-		for (strip=base->object->nlastrips.first; strip; strip=strip->next){
-			if (strip->flag & ACTSTRIP_SELECT){
-				tv[tvtot+0].val=&strip->start;
-				tv[tvtot+1].val=&strip->end;
-				
-				tv[tvtot+0].oldval = strip->start;
-				tv[tvtot+1].oldval = strip->end;
-				
-				tvtot+=2;
-			}
-		}
-	}
-	
-	/* Do the event loop */
-	//	cent[0] = curarea->winx + (G.snla->v2d.hor.xmax)/2;
-	//	cent[1] = curarea->winy + (G.snla->v2d.hor.ymax)/2;
-	
-	//	areamouseco_to_ipoco(cent, &cenf[0], &cenf[1]);
-	
-	getmouseco_areawin (mvals);
-	areamouseco_to_ipoco(G.v2d, mvals, &sval[0], &sval[1]);
-	
-	startx=sval[0];
-	while (loop) {
-		/*		Get the input */
-		/*		If we're cancelling, reset transformations */
-		/*			Else calc new transformation */
-		/*		Perform the transformations */
-		while (qtest()) {
-			short val;
-			unsigned short event= extern_qread(&val);
-			
-			if (val) {
-				switch (event) {
-				case LEFTMOUSE:
-				case SPACEKEY:
-				case RETKEY:
-					loop=0;
-					break;
-				case XKEY:
-					break;
-				case ESCKEY:
-				case RIGHTMOUSE:
-					cancel=1;
-					loop=0;
-					break;
-				default:
-					arrows_move_cursor(event);
-					break;
-				};
-			}
-		}
-		
-		if (cancel) {
-			for (i=0; i<tvtot; i++) {
-				if (tv[i].loc){
-					tv[i].loc[0]=tv[i].oldloc[0];
-					tv[i].loc[1]=tv[i].oldloc[1];
-				}
-				if (tv[i].val)
-					tv[i].val[0]=tv[i].oldval;
-			}
-		}
-		else {
-			getmouseco_areawin (mvalc);
-			areamouseco_to_ipoco(G.v2d, mvalc, &cval[0], &cval[1]);
-			
-			if (!firsttime && lastcval[0]==cval[0] && lastcval[1]==cval[1]) {
-				PIL_sleep_ms(10);
-			}
-			else {
-				for (i=0; i<tvtot; i++){
-					if (tv[i].loc)
-						tv[i].loc[0]=tv[i].oldloc[0];
-					if (tv[i].val)
-						tv[i].val[0]=tv[i].oldval;
-					
-					switch (mode){
-					case 'g':
-						deltax = cval[0]-sval[0];
-						fac= deltax;
-						
-						apply_keyb_grid(&fac, 0.0F, 1.0F, 0.1F, U.flag & USER_AUTOGRABGRID);
-						
-						if (tv[i].loc)
-							tv[i].loc[0]+=fac;
-						if (tv[i].val)
-							tv[i].val[0]+=fac;
-						break;
-					case 's': 
-						startx=mvals[0]-(NLAWIDTH/2+(curarea->winrct.xmax-curarea->winrct.xmin)/2);
-						deltax=mvalc[0]-(NLAWIDTH/2+(curarea->winrct.xmax-curarea->winrct.xmin)/2);
-						fac= (float)fabs(deltax/startx);
-						
-						apply_keyb_grid(&fac, 0.0F, 0.2F, 0.1F, U.flag & USER_AUTOSIZEGRID);
-						
-						if (invert){
-							if (i % 03 == 0){
-								memcpy (tv[i].loc, tv[i].oldloc, sizeof(tv[i+2].oldloc));
-							}
-							if (i % 03 == 2){
-								memcpy (tv[i].loc, tv[i].oldloc, sizeof(tv[i-2].oldloc));
-							}
-							
-							fac*=-1;
-						}
-						startx= (G.scene->r.cfra);
-						
-						if (tv[i].loc){
-							tv[i].loc[0]-= startx;
-							tv[i].loc[0]*=fac;
-							tv[i].loc[0]+= startx;
-						}
-						if (tv[i].val){
-							tv[i].val[0]-= startx;
-							tv[i].val[0]*=fac;
-							tv[i].val[0]+= startx;
-						}
-						
-						break;
-					}
-				}
-			
-				if (mode=='s'){
-					sprintf(str, "scaleX: %.3f", fac);
-					headerprint(str);
-				}
-				else if (mode=='g'){
-					sprintf(str, "deltaX: %.3f", fac);
-					headerprint(str);
-				}
-				
-				if (G.snla->lock) {
-					for (base=G.scene->base.first; base; base=base->next){
-						if(base->flag & BA_HAS_RECALC_OB)
-							base->object->recalc |= OB_RECALC_OB;
-						if(base->flag & BA_HAS_RECALC_DATA)
-							base->object->recalc |= OB_RECALC_DATA;
-						
-						if(base->object->recalc) base->object->ctime= -1234567.0f;	// eveil! 
-					}
-					
-					DAG_scene_flush_update(G.scene, screen_view3d_layers());
-					
-					force_draw_all(0);
-				}
-				else {
-					force_draw(0);
-				}
-			}
-		}
-		
-		lastcval[0]= cval[0];
-		lastcval[1]= cval[1];
-		firsttime= 0;
-	}
-	
-	synchronize_action_strips();
-	
-	/* cleanup */
-	for (base=G.scene->base.first; base; base=base->next)
-		base->flag &= ~(BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA);
-	
-	if(cancel==0) BIF_undo_push("Select all NLA");
-	recalc_all_ipos();	// bad
-	allqueue (REDRAWVIEW3D, 0);
-	allqueue (REDRAWNLA, 0);
-	allqueue (REDRAWIPO, 0);
-	MEM_freeN (tv);
 }
 
 void delete_nlachannel_keys(void)
@@ -1267,10 +1078,10 @@ void delete_nlachannel_keys(void)
 		}
 	}
 	
+	recalc_all_ipos();	// bad
 	synchronize_action_strips();
 	
 	BIF_undo_push("Delete NLA keys");
-	recalc_all_ipos();	// bad
 	allspace(REMAKEIPO,0);
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue(REDRAWNLA, 0);
@@ -1428,11 +1239,7 @@ void borderselect_nla(void)
 			}
 		}	
 		BIF_undo_push("Border select NLA");
-		allqueue(REDRAWTIME, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWSOUND, 0);
+		allqueue(REDRAWMARKER, 0);
 	}
 }
 
@@ -1453,7 +1260,7 @@ static void mouse_nla(int selectmode)
 	
 	/* Try object ipo or ob-constraint ipo selection */
 	base= get_nearest_nlachannel_ob_key(&selx, &sel);
-	marker=find_nearest_marker(1);
+	marker=find_nearest_marker(SCE_MARKERS, 1);
 	if (base) {
 		isdone= 1;
 		
@@ -1487,11 +1294,7 @@ static void mouse_nla(int selectmode)
 		
 		std_rmouse_transform(transform_markers);
 		
-		allqueue(REDRAWTIME, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWSOUND, 0);
+		allqueue(REDRAWMARKER, 0);
 	}
 	else {
 		/* Try action ipo selection */
@@ -1917,7 +1720,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if (!snla) return;
 	
 	if(val) {
-		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 		
 		/* swap mouse buttons based on user preference */
 		if (U.flag & USER_LMOUSESELECT) {
@@ -1950,11 +1753,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					shift_nlastrips_up();
 				else {
 					nextprev_marker(1);
-					allqueue(REDRAWTIME, 0);
-					allqueue(REDRAWIPO, 0);
-					allqueue(REDRAWACTION, 0);
-					allqueue(REDRAWNLA, 0);
-					allqueue(REDRAWSOUND, 0);
+					allqueue(REDRAWMARKER, 0);
 				}				
 				break;
 				
@@ -1967,11 +1766,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					shift_nlastrips_down();
 				else {
 					nextprev_marker(-1);
-					allqueue(REDRAWTIME, 0);
-					allqueue(REDRAWIPO, 0);
-					allqueue(REDRAWACTION, 0);
-					allqueue(REDRAWNLA, 0);
-					allqueue(REDRAWSOUND, 0);
+					allqueue(REDRAWMARKER, 0);
 				}
 				break;
 				
@@ -1983,11 +1778,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if (G.qual & LR_CTRLKEY) {
 					deselect_markers(1, 0);
-					allqueue(REDRAWTIME, 0);
-					allqueue(REDRAWIPO, 0);
-					allqueue(REDRAWACTION, 0);
-					allqueue(REDRAWNLA, 0);
-					allqueue(REDRAWSOUND, 0);
+					allqueue(REDRAWMARKER, 0);
 				}
 				else{
 					if (mval[0]>=NLAWIDTH)
@@ -2036,6 +1827,13 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 				break;
 				
+			case EKEY:
+				if (mval[0] >= NLAWIDTH) {
+					transform_nlachannel_keys ('e', 0);
+					update_for_newframe_muted();
+				}
+				break;
+				
 			case GKEY:
 				if (mval[0]>=NLAWIDTH) {
 					if (G.qual & LR_CTRLKEY) {
@@ -2056,11 +1854,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					rename_marker();
 				else 
 					break;
-				allqueue(REDRAWTIME, 0);
-				allqueue(REDRAWIPO, 0);
-				allqueue(REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue(REDRAWSOUND, 0);
+				allqueue(REDRAWMARKER, 0);
 				break;				
 			
 			case NKEY:
@@ -2081,24 +1875,21 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					anim_previewrange_set();
 				else if (G.qual & LR_ALTKEY) /* clear preview range */
 					anim_previewrange_clear();
-				allqueue(REDRAWTIME, 0);
-				allqueue(REDRAWBUTSALL, 0);
-				allqueue(REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue(REDRAWIPO, 0);
+				allqueue(REDRAWMARKER, 0);
 				break;
 				
 			case SKEY:
-				if(G.qual==LR_ALTKEY) {
-					val= pupmenu("Action Strip Scale%t|Clear Strip Scale%x1|Remap Start/End%x2");
-					if(val==1)
-						reset_action_strips(1);
-					else if(val==2)
-						reset_action_strips(2);
+				if (G.qual==LR_ALTKEY) {
+					val= pupmenu("Action Strip Scale%t|Reset Strip Scale%x1|Remap Action Start/End%x2|Apply Scale%x3");
+					if (val > 0)
+						reset_action_strips(val);
 				}
-				else if(G.qual & LR_SHIFTKEY) {
-					val= pupmenu("Snap To%t|Nearest Frame%x1|Current Frame%x2");
-					if (val==1 || val==2)
+				else if (G.qual & LR_SHIFTKEY) {
+					if (snla->flag & SNLA_DRAWTIME)
+						val= pupmenu("Snap To%t|Nearest Second%x3|Current Time%x2");
+					else
+						val= pupmenu("Snap To%t|Nearest Frame%x1|Current Frame%x2");
+					if (ELEM3(val, 1, 2, 3))
 						snap_action_strips(val);
 				}
 				else {
@@ -2108,20 +1899,29 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
 				
+			case TKEY:
+				if (G.qual & LR_CTRLKEY) {
+					val= pupmenu("Time value%t|Frames %x1|Seconds%x2");
+					
+					if (val > 0) {
+						if (val == 2) snla->flag |= SNLA_DRAWTIME;
+						else snla->flag &= ~SNLA_DRAWTIME;
+						
+						doredraw= 1;
+					}
+				}				
+				break;
+				
 			case DELKEY:
 			case XKEY:
 				if (mval[0]>=NLAWIDTH) {
 					if (okee("Erase selected?")) {
-						remove_marker();
-						
 						delete_nlachannel_keys();
 						update_for_newframe_muted();
 						
-						allqueue(REDRAWTIME, 0);
-						allqueue(REDRAWIPO, 0);
-						allqueue(REDRAWACTION, 0);
-						allqueue(REDRAWNLA, 0);
-						allqueue(REDRAWSOUND, 0);
+						remove_marker();
+						
+						allqueue(REDRAWMARKER, 0);
 					}
 				}
 				break;
@@ -2138,7 +1938,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						
 						areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
 						
-						cfra= (int)dx;
+						cfra= (int)(dx+0.5f);
 						if(cfra< 1) cfra= 1;
 						
 						if( cfra!=CFRA ) {
@@ -2199,7 +1999,8 @@ void bake_all_to_action(void)
 	ob = get_object_from_active_strip();
 	if (ob) {
 		if (ob->flag&OB_ARMATURE) {
-			newAction = bake_obIPO_to_action(ob);
+			//newAction = bake_obIPO_to_action(ob);
+			newAction = NULL;
 			if (newAction) {
 				/* unlink the object's IPO */
 				ipo=ob->ipo;

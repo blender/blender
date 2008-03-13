@@ -326,6 +326,8 @@ void	KX_SCA_AddObjectActuator::InstantAddObject()
 		
 		m_lastCreatedObject = replica;
 		m_lastCreatedObject->AddRef();
+		// finished using replica? then release it
+		replica->Release();
 	}
 }
 

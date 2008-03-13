@@ -105,6 +105,7 @@ Example::
 		- SIZE
 		- LOCROT
 		- LOCROTSIZE
+		- LAYER
 		- PI_STRENGTH
 		- PI_FALLOFF
 		- PI_SURFACEDAMP
@@ -428,6 +429,8 @@ class Object:
 	@type enableDupFaces: boolean
 	@ivar enableDupFacesScale: The DupliFacesScale status of the object.
 	@type enableDupFacesScale: boolean
+	@ivar dupFacesScaleFac: Scale factor for dupliface instance, 1.0 by default.
+	@type dupFacesScaleFac: float	
 	@ivar enableDupFrames: The DupliFrames status of the object.
 		Does not indicate that this object has any dupliFrames,
 		(as returned by L{DupObjects}) just that dupliFrames are enabled.

@@ -68,6 +68,8 @@
 #ifdef __APPLE__
 #include <OpenGL/OpenGL.h>
 #define __CARBONSOUND__
+  /* XXX BIG WARNING: carbon.h should not be included in blender/src code, it conflicts with struct ID */
+#define ID ID_
 #include <Carbon/Carbon.h>
 
 /*declarations*/
@@ -509,7 +511,7 @@ static int change_bit(int val, int bit, int to_on) {
 	return to_on?(val|bit):(val&~bit);
 }
 
-static void update_tablet_data(Window *win, Window *ghostwin) {
+static void update_tablet_data(Window *win, GHOST_WindowHandle ghostwin) {
 	const GHOST_TabletData *td= GHOST_GetTabletData(ghostwin);
 	
 	/* if there's tablet data from an active tablet device then use it,
@@ -521,7 +523,7 @@ static void update_tablet_data(Window *win, Window *ghostwin) {
 		win->ytilt = td->Ytilt;
 	} else {
 		win->activedevice = DEV_MOUSE;
-		win->pressure = 0.0;
+		win->pressure = 1.0;
 		win->xtilt = win->ytilt = 0.0;
 	}
 }
@@ -946,3 +948,11 @@ void window_open_ndof(Window* win)
         G.ndofdevice = -1;
     }
  }
+
+char *getClipboard(int flag) {
+	return (char*)GHOST_getClipboard(flag);
+}
+
+void putClipboard(char *buffer, int flag) {
+	GHOST_putClipboard((GHOST_TInt8*)buffer, flag);
+}

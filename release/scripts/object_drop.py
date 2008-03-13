@@ -1,7 +1,7 @@
 #!BPY
 """
 Name: 'Drop Onto Ground'
-Blender: 243
+Blender: 245
 Group: 'Object'
 Tooltip: 'Drop the selected objects onto "ground" objects'
 """
@@ -222,3 +222,4 @@ if __name__ == '__main__':
 	main()
 
 GLOBALS.clear()
+

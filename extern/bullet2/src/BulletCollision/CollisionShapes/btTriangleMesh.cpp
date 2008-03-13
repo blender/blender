@@ -16,7 +16,6 @@ subject to the following restrictions:
 #include "btTriangleMesh.h"
 #include <assert.h>
 
-static int	myindices[3] = {0,1,2};
 
 btTriangleMesh::btTriangleMesh ()
 {
@@ -25,31 +24,31 @@ btTriangleMesh::btTriangleMesh ()
 
 void	btTriangleMesh::getLockedVertexIndexBase(unsigned char **vertexbase, int& numverts,PHY_ScalarType& type, int& stride,unsigned char **indexbase,int & indexstride,int& numfaces,PHY_ScalarType& indicestype,int subpart)
 {
-	numverts = 3;
-	*vertexbase = (unsigned char*)&m_triangles[subpart];
+	(void)subpart;
+	numverts = m_vertices.size();
+	*vertexbase = (unsigned char*)&m_vertices[0];
 	type = PHY_FLOAT;
 	stride = sizeof(btVector3);
 
-
-	numfaces = 1;
-	*indexbase = (unsigned char*) &myindices[0];
+	numfaces = m_indices.size()/3;
+	*indexbase = (unsigned char*) &m_indices[0];
 	indicestype = PHY_INTEGER;
-	indexstride = sizeof(int);
+	indexstride = 3*sizeof(int);
 
 }
 
 void	btTriangleMesh::getLockedReadOnlyVertexIndexBase(const unsigned char **vertexbase, int& numverts,PHY_ScalarType& type, int& stride,const unsigned char **indexbase,int & indexstride,int& numfaces,PHY_ScalarType& indicestype,int subpart) const
 {
-	numverts = 3;
-	*vertexbase = (unsigned char*)&m_triangles[subpart];
+	(void)subpart;
+	numverts = m_vertices.size();
+	*vertexbase = (unsigned char*)&m_vertices[0];
 	type = PHY_FLOAT;
 	stride = sizeof(btVector3);
 
-
-	numfaces = 1;
-	*indexbase = (unsigned char*) &myindices[0];
+	numfaces = m_indices.size()/3;
+	*indexbase = (unsigned char*) &m_indices[0];
 	indicestype = PHY_INTEGER;
-	indexstride = sizeof(int);
+	indexstride = 3*sizeof(int);
 
 }
 
@@ -57,5 +56,5 @@ void	btTriangleMesh::getLockedReadOnlyVertexIndexBase(const unsigned char **vert
 
 int		btTriangleMesh::getNumSubParts() const
 {
-	return m_triangles.size();
+	return 1;
 }

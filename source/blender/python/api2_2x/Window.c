@@ -38,14 +38,15 @@
 #include "BKE_main.h"
 #include "BKE_object.h"		/* for during_script() and during_scriptlink() */
 #include "BKE_scene.h"		/* scene_find_camera() */
-#include "BPI_script.h"
 #include "BIF_mywindow.h"
+#include "BIF_imasel.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_filesel.h"
 #include "BIF_editmesh.h"	/* for undo_push_mesh() */
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_drawtext.h"
+#include "BIF_poseobject.h"
 #include "DNA_view3d_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -58,6 +59,19 @@
 #include "constant.h"
 #include "gen_utils.h"
 #include "Armature.h"
+
+/* Pivot Types 
+-0 for Bounding Box Center; \n\
+-1 for 3D Cursor\n\
+-2 for Individual Centers\n\
+-3 for Median Point\n\
+-4 for Active Object"; */
+
+#define		PIVOT_BOUNDBOX		0
+#define		PIVOT_CURSOR		1
+#define		PIVOT_INDIVIDUAL	2
+#define		PIVOT_MEDIAN		3
+#define		PIVOT_ACTIVE		4
 
 /* See Draw.c */
 extern int EXPP_disable_force_draw;
@@ -85,12 +99,14 @@ static PyObject *M_Window_GetPerspMatrix( PyObject * self );
 static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args );
 static PyObject *M_Window_ImageSelector( PyObject * self, PyObject * args );
 static PyObject *M_Window_EditMode( PyObject * self, PyObject * args );
+static PyObject *M_Window_PoseMode( PyObject * self, PyObject * args );
 static PyObject *M_Window_ViewLayers( PyObject * self, PyObject * args );
 static PyObject *M_Window_CameraView( PyObject * self, PyObject * args );
 static PyObject *M_Window_QTest( PyObject * self );
 static PyObject *M_Window_QRead( PyObject * self );
 static PyObject *M_Window_QAdd( PyObject * self, PyObject * args );
 static PyObject *M_Window_QHandle( PyObject * self, PyObject * args );
+static PyObject *M_Window_TestBreak( PyObject * self );
 static PyObject *M_Window_GetMouseCoords( PyObject * self );
 static PyObject *M_Window_SetMouseCoords( PyObject * self, PyObject * args );
 static PyObject *M_Window_GetMouseButtons( PyObject * self );
@@ -100,9 +116,12 @@ static PyObject *M_Window_GetAreaSize( PyObject * self );
 static PyObject *M_Window_GetAreaID( PyObject * self );
 static PyObject *M_Window_GetScreenSize( PyObject * self );
 static PyObject *M_Window_GetScreens( PyObject * self );
-static PyObject *M_Window_SetScreen( PyObject * self, PyObject * args );
+static PyObject *M_Window_SetScreen( PyObject * self, PyObject * value );
 static PyObject *M_Window_GetScreenInfo( PyObject * self, PyObject * args,
 					 PyObject * kwords );
+static PyObject *M_Window_GetPivot( PyObject * self );
+static PyObject *M_Window_SetPivot( PyObject * self, PyObject * value );
+
 PyObject *Window_Init( void );
 
 
@@ -178,11 +197,15 @@ static char M_Window_EditMode_doc[] =
 Returns the current status.  This function is mostly useful to leave\n\
 edit mode before applying changes to a mesh (otherwise the changes will\n\
 be lost) and then returning to it upon leaving.";
+static char M_Window_PoseMode_doc[] =
+		"() - Get the current status -- 0: not in pose mode; 1: in edit mode";
 
 static char M_Window_ViewLayers_doc[] =
-	"(layers = []) - Get/set active layers in all 3d View windows.\n\
+	"(layers = [], winid = None) - Get/set active layers in all 3d View windows.\n\
 () - Make no changes, only return currently visible layers.\n\
 (layers = []) - a list of integers, each in the range [1, 20].\n\
+(layers = [], winid = int) - layers as above, winid is an optional.\n\
+arg that makes the function only set layers for that view.\n\
 This function returns the currently visible layers as a list of ints.";
 
 static char M_Window_GetViewQuat_doc[] =
@@ -227,6 +250,9 @@ static char M_Window_QHandle_doc[] =
 	"(win) - Process all events for the given window (area) now.\n\
 (win) - int: the window id, see Blender.Window.GetScreenInfo().\n\n\
 See Blender.Window.QAdd() for how to send events to a particular window.";
+
+static char M_Window_TestBreak_doc[] =
+	"() - Returns true if the user has pressed escape.";
 
 static char M_Window_GetMouseCoords_doc[] =
 	"() - Get mouse pointer's current screen coordinates.";
@@ -279,6 +305,18 @@ Each dictionary has keys:\n\
 'win': window type, see Blender.Window.Types dict;\n\
 'id': area's id.";
 
+static char M_Window_SetPivot_doc[] = 
+	"(Pivot) - Set Pivot Mode for 3D Viewport:\n\
+Options are: \n\
+-PivotTypes.BOUNDBOX for Bounding Box Center; \n\
+-PivotTypes.CURSOR for 3D Cursor\n\
+-PivotTypes.INDIVIDUAL for Individual Centers\n\
+-PivotTypes.MEDIAN for Median Point\n\
+-PivotTypes.ACTIVE for Active Object";
+
+static char M_Window_GetPivot_doc[] = 
+	"Return the pivot for the active 3d window";
+
 /*****************************************************************************/
 /* Python method structure definition for Blender.Window module:	*/
 /*****************************************************************************/
@@ -322,6 +360,8 @@ struct PyMethodDef M_Window_methods[] = {
 	 M_Window_GetPerspMatrix_doc},
 	{"EditMode", ( PyCFunction ) M_Window_EditMode, METH_VARARGS,
 	 M_Window_EditMode_doc},
+	{"PoseMode", ( PyCFunction ) M_Window_PoseMode, METH_VARARGS,
+	 M_Window_PoseMode_doc},
 	{"ViewLayers", ( PyCFunction ) M_Window_ViewLayers, METH_VARARGS,
 	 M_Window_ViewLayers_doc},
 	 /* typo, deprecate someday: */
@@ -337,6 +377,8 @@ struct PyMethodDef M_Window_methods[] = {
 	 M_Window_QAdd_doc},
 	{"QHandle", ( PyCFunction ) M_Window_QHandle, METH_VARARGS,
 	 M_Window_QHandle_doc},
+	{"TestBreak", ( PyCFunction ) M_Window_TestBreak, METH_NOARGS,
+	 M_Window_TestBreak_doc},
 	{"GetMouseCoords", ( PyCFunction ) M_Window_GetMouseCoords,
 	 METH_NOARGS,
 	 M_Window_GetMouseCoords_doc},
@@ -360,10 +402,14 @@ struct PyMethodDef M_Window_methods[] = {
 	 M_Window_GetScreenSize_doc},
 	{"GetScreens", ( PyCFunction ) M_Window_GetScreens, METH_NOARGS,
 	 M_Window_GetScreens_doc},
-	{"SetScreen", ( PyCFunction ) M_Window_SetScreen, METH_VARARGS,
+	{"SetScreen", ( PyCFunction ) M_Window_SetScreen, METH_O,
 	 M_Window_SetScreen_doc},
 	{"GetScreenInfo", ( PyCFunction ) M_Window_GetScreenInfo,
 	 METH_VARARGS | METH_KEYWORDS, M_Window_GetScreenInfo_doc},
+	{"GetPivot", ( PyCFunction ) M_Window_GetPivot, METH_NOARGS, 
+	 M_Window_GetPivot_doc},
+	{"SetPivot", ( PyCFunction ) M_Window_SetPivot, METH_O, 
+	 M_Window_SetPivot_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -423,7 +469,10 @@ PyObject *M_Window_Redraw( PyObject * self, PyObject * args )
 /*****************************************************************************/
 static PyObject *M_Window_RedrawAll( PyObject * self, PyObject * args )
 {
-	return M_Window_Redraw( self, Py_BuildValue( "(i)", -1 ) );
+	PyObject *arg = Py_BuildValue( "(i)", -1 );
+	PyObject *ret = M_Window_Redraw( self, arg );
+	Py_DECREF(arg);
+	return ret;
 }
 
 /*****************************************************************************/
@@ -468,6 +517,8 @@ static void getSelectedFile( char *name )
 	pycallback = script->py_browsercallback;
 
 	if (pycallback) {
+		PyGILState_STATE gilstate = PyGILState_Ensure();
+
 		result = PyObject_CallFunction( pycallback, "s", name );
 
 		if (!result) {
@@ -476,11 +527,14 @@ static void getSelectedFile( char *name )
 		}
 		else Py_DECREF(result);
 
-		if (script->py_browsercallback == pycallback)
-			script->py_browsercallback = NULL;
+		if (script->py_browsercallback == pycallback) {
+			SCRIPT_SET_NULL(script);
+		}
 		/* else another call to selector was made inside pycallback */
 
 		Py_DECREF(pycallback);
+
+		PyGILState_Release(gilstate);
 	}
 
 	return;
@@ -546,8 +600,12 @@ static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args )
 	}
 	script->py_browsercallback = pycallback;
 
+	/* if were not running a script GUI here alredy, then dont make this script persistant */
+	if ((script->flags & SCRIPT_GUI)==0) {
+		script->scriptname[0] = '\0';
+		script->scriptarg[0] = '\0';
+	}
 	activate_fileselect( FILE_BLENDER, title, filename, getSelectedFile );
-
 	Py_RETURN_NONE;
 }
 
@@ -717,20 +775,13 @@ static PyObject *M_Window_WaitCursor( PyObject * self, PyObject * args )
 static PyObject *M_Window_GetViewVector( PyObject * self )
 {
 	float *vec = NULL;
-	PyObject *pylist;
 
 	if( !G.vd )
 		Py_RETURN_NONE;
 
 	vec = G.vd->viewinv[2];
 
-	pylist = Py_BuildValue( "[fff]", vec[0], vec[1], vec[2] );
-
-	if( !pylist )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"GetViewVector: couldn't create pylist" ) );
-
-	return pylist;
+	return Py_BuildValue( "[fff]", vec[0], vec[1], vec[2] );
 }
 
 /*****************************************************************************/
@@ -781,20 +832,13 @@ static PyObject *M_Window_SetActiveLayer( PyObject * self, PyObject * args )
 static PyObject *M_Window_GetViewQuat( PyObject * self )
 {
 	float *vec = NULL;
-	PyObject *pylist;
 
 	if( !G.vd )
 		Py_RETURN_NONE;
 
 	vec = G.vd->viewquat;
 
-	pylist = Py_BuildValue( "[ffff]", vec[0], vec[1], vec[2], vec[3] );
-
-	if( !pylist )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"GetViewQuat: couldn't create pylist" ) );
-
-	return pylist;
+	return Py_BuildValue( "[ffff]", vec[0], vec[1], vec[2], vec[3] );
 }
 
 static PyObject *M_Window_SetViewQuat( PyObject * self, PyObject * args )
@@ -826,21 +870,9 @@ static PyObject *M_Window_SetViewQuat( PyObject * self, PyObject * args )
 
 static PyObject *M_Window_GetViewOffset( PyObject * self )
 {
-	float *vec = NULL;
-	PyObject *pylist;
-
 	if( !G.vd )
 		Py_RETURN_NONE;
-
-	vec = G.vd->ofs;
-
-	pylist = Py_BuildValue( "[fff]", vec[0], vec[1], vec[2] );
-
-	if( !pylist )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"GetViewQuat: couldn't create pylist" ) );
-
-	return pylist;
+	return Py_BuildValue( "[fff]", G.vd->ofs[0], G.vd->ofs[1], G.vd->ofs[2] );
 }
 
 static PyObject *M_Window_SetViewOffset( PyObject * self, PyObject * args )
@@ -876,20 +908,10 @@ static PyObject *M_Window_SetViewOffset( PyObject * self, PyObject * args )
 /*****************************************************************************/
 static PyObject *M_Window_GetViewMatrix( PyObject * self )
 {
-	PyObject *viewmat;
-
 	if( !G.vd )
 		Py_RETURN_NONE;
 
-	viewmat =
-		( PyObject * ) newMatrixObject( ( float * ) G.vd->viewmat, 4,
-						4, Py_WRAP );
-
-	if( !viewmat )
-		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "GetViewMatrix: couldn't create matrix pyobject" );
-
-	return viewmat;
+	return newMatrixObject( ( float * ) G.vd->viewmat, 4, 4, Py_WRAP );
 }
 
 /*****************************************************************************/
@@ -898,20 +920,10 @@ static PyObject *M_Window_GetViewMatrix( PyObject * self )
 /*****************************************************************************/
 static PyObject *M_Window_GetPerspMatrix( PyObject * self )
 {
-	PyObject *perspmat;
-
 	if( !G.vd )
 		Py_RETURN_NONE;
 
-	perspmat =
-		( PyObject * ) newMatrixObject( ( float * ) G.vd->persmat, 4,
-						4, Py_WRAP );
-
-	if( !perspmat )
-		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "GetPerspMatrix: couldn't create matrix pyobject" );
-
-	return perspmat;
+	return newMatrixObject( ( float * ) G.vd->persmat, 4, 4, Py_WRAP );
 }
 
 
@@ -989,23 +1001,54 @@ static PyObject *M_Window_EditMode( PyObject * self, PyObject * args )
 	return Py_BuildValue( "h", G.obedit ? 1 : 0 );
 }
 
+static PyObject *M_Window_PoseMode( PyObject * self, PyObject * args )
+{
+	short status = -1;
+	short is_posemode = 0;
+	Base *base;
+	
+	if( !PyArg_ParseTuple( args, "|h", &status ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+									  "expected optional int (bool) as argument" );
+
+	if( status >= 0 ) {
+		if( status ) {
+			enter_posemode();
+		} else if( G.obedit ) {
+			exit_posemode();
+		}
+	}
+
+	base= BASACT;
+	if (base && base->object->flag & OB_POSEMODE) {
+		is_posemode = 1;
+	}
+	
+	return Py_BuildValue( "h", is_posemode );
+}
+
 static PyObject *M_Window_ViewLayers( PyObject * self, PyObject * args )
 {
 	PyObject *item = NULL;
 	PyObject *list = NULL, *resl = NULL;
-	int val, i, bit = 0, layer = 0;
+	int val, i, bit = 0, layer = 0, len_list;
+	short winid = -1;
 
 	if( !G.scene ) {
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 			"can't get pointer to global scene" );
 	}
 
-	if( !PyArg_ParseTuple( args, "|O!", &PyList_Type, &list ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-		  "expected nothing or a list of ints as argument" );
-
+	/* Pase Args, Nothing, One list, Or a list and an int */
+	if (PyTuple_GET_SIZE(args)!=0) {
+		if( !PyArg_ParseTuple ( args, "O!|h", &PyList_Type, &list, &winid) ) {
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"nothing or a list and optionaly a window ID argument" );	
+		}
+	}
+	
 	if( list ) {
-		int len_list = PyList_Size(list);
+		len_list = PyList_Size(list);
 
 		if (len_list == 0)
 			return EXPP_ReturnPyObjError( PyExc_AttributeError,
@@ -1026,17 +1069,58 @@ static PyObject *M_Window_ViewLayers( PyObject * self, PyObject * args )
 
 			layer |= 1 << ( val - 1 );
 		}
-		G.scene->lay = layer;
-		if (G.vd) {
-			G.vd->lay = layer;
-
-			while( bit < 20 ) {
-				val = 1 << bit;
-				if( layer & val ) {
-					G.vd->layact = val;
-					break;
+		
+		if (winid==-1) {
+			/* set scene and viewport */
+			G.scene->lay = layer;
+			if (G.vd) {
+				G.vd->lay = layer;
+	
+				while( bit < 20 ) {
+					val = 1 << bit;
+					if( layer & val ) {
+						G.vd->layact = val;
+						break;
+					}
+					bit++;
 				}
-				bit++;
+			}
+		} else {
+			/* only set the windows layer */
+			ScrArea *sa;
+			SpaceLink *sl;
+			View3D *vd;
+			 
+			if (G.curscreen) { /* can never be too careful */
+	            for (sa=G.curscreen->areabase.first; sa; sa= sa->next) {
+	            	if (winid == sa->win) {
+	            		
+	            		for (sl= sa->spacedata.first; sl; sl= sl->next)
+	            			if(sl->spacetype==SPACE_VIEW3D)
+	            				break;
+	            		
+	            		if (!sl)
+	            			return EXPP_ReturnPyObjError( PyExc_ValueError,
+	            				"The window matching the winid has no 3d viewport" );
+	            		
+	            		vd= (View3D *) sl;
+	            		vd->lay = layer;
+	            		
+	            		for(bit= 0; bit < 20; bit++) {
+	            			val = 1 << bit;
+	            			if( layer & val ) {
+	            				vd->layact = val;
+	            				 break;
+	            			}
+	            		}
+	            		
+	            		winid = -1; /* so we know its done */
+	            		break;
+	            	}
+	            }
+				if (winid!=-1)
+					return EXPP_ReturnPyObjError( PyExc_TypeError,
+							"The winid argument did not match any window" );
 			}
 		}
 	}
@@ -1140,22 +1224,24 @@ static PyObject *M_Window_QAdd( PyObject * self, PyObject * args )
 static PyObject *M_Window_QHandle( PyObject * self, PyObject * args )
 {
 	short win;
-	ScrArea *sa = G.curscreen->areabase.first;
+	ScrArea *sa;
 	ScrArea *oldsa = NULL;
 
 	if (G.background)
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 			"QHandle is not available in background mode");
 
+	if (!G.curscreen)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+			"No screens available");
+	
 	if( !PyArg_ParseTuple( args, "h", &win ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected an int as argument" );
-
-	while( sa ) {
+	
+	for (sa= G.curscreen->areabase.first; sa; sa= sa->next)
 		if( sa->win == win )
 			break;
-		sa = sa->next;
-	}
 
 	if( sa ) {
 		BWinEvent evt;
@@ -1187,6 +1273,15 @@ static PyObject *M_Window_QHandle( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
+static PyObject *M_Window_TestBreak( PyObject * self )
+{
+	if (blender_test_break()) {
+		Py_RETURN_TRUE;
+	} else {
+		Py_RETURN_FALSE;
+	}
+}
+		
 static PyObject *M_Window_GetMouseCoords( PyObject * self )
 {
 	short mval[2];
@@ -1283,12 +1378,12 @@ static PyObject *M_Window_GetScreenSize( PyObject * self )
 }
 
 
-static PyObject *M_Window_SetScreen( PyObject * self, PyObject * args )
+static PyObject *M_Window_SetScreen( PyObject * self, PyObject * value )
 {
 	bScreen *scr = G.main->screen.first;
-	char *name = NULL;
+	char *name = PyString_AsString(value);
 
-	if( !PyArg_ParseTuple( args, "s", &name ) )
+	if( !name )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string as argument" );
 
@@ -1413,12 +1508,37 @@ static PyObject *M_Window_GetScreenInfo( PyObject * self, PyObject * args,
 	return list;
 }
 
+static PyObject *M_Window_GetPivot( PyObject * self )
+{
+	if (G.vd) {
+		return PyInt_FromLong( G.vd->around );
+	}
+	Py_RETURN_NONE;
+}
+
+static PyObject *M_Window_SetPivot( PyObject * self, PyObject * value)
+
+{
+	short pivot;
+	if (G.vd) {
+		pivot = (short)PyInt_AsLong( value );
+
+		if ( pivot > 4 || pivot < 0 )
+			return EXPP_ReturnPyObjError( PyExc_AttributeError,
+							  "Expected a constant from Window.PivotTypes" );
+		
+		G.vd->around = pivot;
+	}
+	Py_RETURN_NONE;
+}	
+
+
 /*****************************************************************************/
 /* Function:	Window_Init						*/
 /*****************************************************************************/
 PyObject *Window_Init( void )
 {
-	PyObject *submodule, *Types, *Qual, *MButs, *dict;
+	PyObject *submodule, *Types, *Qual, *MButs, *PivotTypes, *dict;
 
 	submodule =
 		Py_InitModule3( "Blender.Window", M_Window_methods,
@@ -1431,6 +1551,7 @@ PyObject *Window_Init( void )
 	Types = PyConstant_New(  );
 	Qual = PyConstant_New(  );
 	MButs = PyConstant_New(  );
+	PivotTypes = PyConstant_New(  );
 
 	if( Types ) {
 		BPy_constant *d = ( BPy_constant * ) Types;
@@ -1481,5 +1602,16 @@ PyObject *Window_Init( void )
 		PyModule_AddObject( submodule, "MButs", MButs );
 	}
 
+	if( PivotTypes ) {
+		BPy_constant *d = ( BPy_constant * ) PivotTypes;
+
+		PyConstant_Insert(d, "BOUNDBOX", PyInt_FromLong( PIVOT_BOUNDBOX ) );
+		PyConstant_Insert(d, "CURSOR", PyInt_FromLong( PIVOT_CURSOR ) );
+		PyConstant_Insert(d, "MEDIAN", PyInt_FromLong( PIVOT_MEDIAN ) );
+		PyConstant_Insert(d, "ACTIVE", PyInt_FromLong( PIVOT_ACTIVE ) );
+		PyConstant_Insert(d, "INDIVIDUAL", PyInt_FromLong( PIVOT_INDIVIDUAL ) );
+
+		PyModule_AddObject( submodule, "PivotTypes", PivotTypes );
+	}
 	return submodule;
 }

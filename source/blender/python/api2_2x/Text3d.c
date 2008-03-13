@@ -83,7 +83,7 @@ static PyObject *generate_ModuleIntConstant(char *name, int value);
 struct PyMethodDef M_Text3d_methods[] = {
 	{"New", ( PyCFunction ) M_Text3d_New, METH_VARARGS, NULL},
 	{"Get", ( PyCFunction ) M_Text3d_Get, METH_VARARGS, NULL},
-	{"LoadFont", ( PyCFunction ) M_Text3d_LoadFont, METH_VARARGS, NULL},
+	{"LoadFont", ( PyCFunction ) M_Text3d_LoadFont, METH_O, NULL},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -102,7 +102,7 @@ static int Text3d_compare( BPy_Text3d * a, BPy_Text3d * b );
 /*PyObject *Text3d_getType(BPy_Text3d *self);*/
 static PyObject *Text3d_getName( BPy_Text3d * self );
 static PyObject *Text3d_setName( BPy_Text3d * self, PyObject * args );
-static PyObject *Text3d_setText( BPy_Text3d * self, PyObject * args );
+static PyObject *Text3d_setText( BPy_Text3d * self, PyObject * value );
 static PyObject *Text3d_getText( BPy_Text3d * self );
 static PyObject *Text3d_getDrawMode( BPy_Text3d * self );
 static PyObject *Text3d_setDrawMode( BPy_Text3d * self, PyObject * args );
@@ -149,7 +149,7 @@ static PyMethodDef BPy_Text3d_methods[] = {
 	{"setName", ( PyCFunction ) Text3d_setName,
 	 METH_VARARGS, "() - Sets Text3d Data name"},
 	{"setText", ( PyCFunction ) Text3d_setText,
-	 METH_VARARGS, "() - Sets Text3d Data"},
+	 METH_O, "() - Sets Text3d Data"},
 	{"getText", ( PyCFunction ) Text3d_getText,
 	 METH_NOARGS, "() - Gets Text3d Data"},		 
 	{"getDrawMode", ( PyCFunction ) Text3d_getDrawMode,
@@ -664,11 +664,11 @@ static PyObject *Text3d_setName( BPy_Text3d * self, PyObject * args )
 	return Curve_setName( (BPy_Curve*)self,args );
 }
 
-static PyObject *Text3d_setText( BPy_Text3d * self, PyObject * args )
+static PyObject *Text3d_setText( BPy_Text3d * self, PyObject * value )
 {
-	char *text;
+	char *text = PyString_AsString(value);
 
-	if( !PyArg_ParseTuple( args, "s", &text ) )
+	if( !text )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 				"expected string argument" );
 
@@ -1173,13 +1173,13 @@ static PyObject *Text3d_removeFrame( BPy_Text3d * self, PyObject * args )
 }
 
 
-PyObject *M_Text3d_LoadFont( PyObject * self, PyObject * args )
+PyObject *M_Text3d_LoadFont( PyObject * self, PyObject * value )
 {
-	char *fontfile= NULL;
+	char *fontfile= PyString_AsString(value);
 	FILE *file= NULL;
 	VFont *vf= NULL;
 
-	if( !PyArg_ParseTuple( args, "s", &fontfile ) )
+	if( !fontfile )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a string" );
 	vf= exist_vfont(fontfile);

@@ -97,6 +97,10 @@
 # include <sys/rtprio.h>
 #endif
 
+#ifdef WITH_BINRELOC
+#include "binreloc.h"
+#endif
+
 // from buildinfo.c
 #ifdef BUILD_DATE
 extern char * build_date;
@@ -124,7 +128,7 @@ extern void	winlay_process_events(int wait_for_event);
 extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 
 char bprogname[FILE_MAXDIR+FILE_MAXFILE]; /* from blenpluginapi:pluginapi.c */
-
+char btempdir[FILE_MAXDIR+FILE_MAXFILE];
 
 /* Initialise callbacks for the modules that need them */
 void setCallbacks(void); 
@@ -159,6 +163,7 @@ static void print_version(void)
 	printf ("Blender %d.%02d (sub %d) Build\n", G.version/100, G.version%100, BLENDER_SUBVERSION);
 	printf ("\tbuild date: %s\n", build_date);
 	printf ("\tbuild time: %s\n", build_time);
+	printf ("\tbuild revision: %s\n", build_rev);
 	printf ("\tbuild platform: %s\n", build_platform);
 	printf ("\tbuild type: %s\n", build_type);
 #else
@@ -169,30 +174,33 @@ static void print_version(void)
 static void print_help(void)
 {
 	printf ("Blender %d.%02d (sub %d) Build\n", G.version/100, G.version%100, BLENDER_SUBVERSION);
-	printf ("Usage: blender [options ...] [file]\n");
-	
+	printf ("Usage: blender [args ...] [file] [args ...]\n");
 	printf ("\nRender options:\n");
-	printf ("  -b <file>\tRender <file> in background\n");
+	printf ("  -b <file>\tRender <file> in background (doesn't load the user defaults .B.blend file)\n");
+	printf ("    -a render frames from start to end (inclusive), only works when used after -b\n");
 	printf ("    -S <name>\tSet scene <name>\n");
 	printf ("    -f <frame>\tRender frame <frame> and save it\n");				
-	printf ("    -s <frame>\tSet start to frame <frame> (use with -a)\n");
-	printf ("    -e <frame>\tSet end to frame (use with -a)<frame>\n");
+	printf ("    -s <frame>\tSet start to frame <frame> (use before the -a argument)\n");
+	printf ("    -e <frame>\tSet end to frame <frame> (use before the -a argument)\n");
 	printf ("    -o <path>\tSet the render path and file name.\n");
 	printf ("      Use // at the start of the path to\n");
 	printf ("        render relative to the blend file.\n");
 	printf ("      The frame number will be added at the end of the filename.\n");
-	printf ("      eg: blender -b foobar.blend -o //render_ -F PNG -x 1\n");
-	printf ("    -F <format>\tSet the render format, Valid options are..\n");
-	printf ("    \tTGA IRIS HAMX FTYPE JPEG MOVIE IRIZ RAWTGA\n");
+	printf ("      eg: blender -b foobar.blend -o //render_ -F PNG -x 1 -a\n");
+	printf ("\nFormat options:\n");
+	printf ("    -F <format>\tSet the render format, Valid options are...\n");
+	printf ("    \tTGA IRIS HAMX JPEG MOVIE IRIZ RAWTGA\n");
 	printf ("    \tAVIRAW AVIJPEG PNG BMP FRAMESERVER\n");
 	printf ("    (formats that can be compiled into blender, not available on all systems)\n");
-	printf ("    \tHDR TIFF EXR MPEG AVICODEC QUICKTIME CINEON DPX\n");
+	printf ("    \tHDR TIFF EXR MULTILAYER MPEG AVICODEC QUICKTIME CINEON DPX DDS\n");
 	printf ("    -x <bool>\tSet option to add the file extension to the end of the file.\n");
-	printf ("    -t <threads>\tUse amount of <threads> for rendering\n");
-	printf ("\nAnimation options:\n");
-	printf ("  -a <file(s)>\tPlayback <file(s)>\n");
+	printf ("    -t <threads>\tUse amount of <threads> for rendering.\n");
+	printf ("      [1-8], 0 for systems processor count.\n");
+	printf ("\nAnimation playback options:\n");
+	printf ("  -a <file(s)>\tPlayback <file(s)>, only operates this way when -b is not used.\n");
 	printf ("    -p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>\n");
 	printf ("    -m\t\tRead from disk (Don't buffer)\n");
+	printf ("    -f <fps> <fps-base>\t\tSpecify FPS to start with\n");
 				
 	printf ("\nWindow options:\n");
 	printf ("  -w\t\tForce opening with borders (default)\n");
@@ -216,6 +224,19 @@ static void print_help(void)
 	printf ("  -R\t\tRegister .blend extension\n");
 #endif
 	printf ("  -v\t\tPrint Blender version and exit\n");
+	printf ("  --\t\tEnds option processing.  Following arguments are \n");
+	printf ("    \t\t   passed unchanged.  Access via Python's sys.argv\n");
+	printf ("\nNote: Arguments must be separated by white space. eg:\n");
+	printf ("    \"blender -ba test.blend\"\n");
+	printf ("  ...will ignore the 'a'\n");
+	printf ("    \"blender -b test.blend -f8\"\n");
+	printf ("  ...will ignore 8 because there is no space between the -f and the frame value\n");
+	printf ("Note: Arguments are executed in the order they are given. eg:\n");
+	printf ("    \"blender -b test.blend -f 1 -o /tmp\"\n");
+	printf ("  ...may not render to /tmp because '-f 1' renders before the output path is set\n");
+	printf ("    \"blender -b -o /tmp test.blend -f 1\"\n");
+	printf ("  ...may not render to /tmp because loading the blend file overwrites the output path that was set\n");
+	printf ("    \"blender -b test.blend -o /tmp -f 1\" works as expected.\n\n");
 }
 
 
@@ -224,7 +245,7 @@ extern void winlay_get_screensize(int *width_r, int *height_r);
 
 int main(int argc, char **argv)
 {
-	int a, i, stax, stay, sizx, sizy;
+	int a, i, stax=0, stay=0, sizx, sizy;
 	SYS_SystemHandle syshandle;
 	Scene *sce;
 
@@ -232,6 +253,11 @@ int main(int argc, char **argv)
 	int audio = 1;
 #else
 	int audio = 0;
+#endif
+
+	
+#ifdef WITH_BINRELOC
+	br_init( NULL );
 #endif
 
 	setCallbacks();
@@ -277,7 +303,7 @@ int main(int argc, char **argv)
 	signal (SIGFPE, fpe_handler);
     #else
 	if ( getenv("SDL_AUDIODRIVER") == NULL) {
-		setenv("SDL_AUDIODRIVER", "dma", 1);
+		setenv("SDL_AUDIODRIVER", "alsa", 1);
 	}
     #endif
 #endif
@@ -289,7 +315,7 @@ int main(int argc, char **argv)
 	// need this.
 
 	BLI_where_am_i(bprogname, argv[0]);
-
+	
 		/* Hack - force inclusion of the plugin api functions,
 		 * see blenpluginapi:pluginapi.c
 		 */
@@ -314,6 +340,12 @@ int main(int argc, char **argv)
 			exit(0);
 		}
 
+		/* end argument processing after -- */
+		if (!strcmp( argv[a], "--")){
+			a = argc;
+			break;
+		}
+
 		/* Handle long version request */
 		if (!strcmp(argv[a], "--version")){
 			print_version();
@@ -323,7 +355,7 @@ int main(int argc, char **argv)
 		/* Handle -* switches */
 		else if(argv[a][0] == '-') {
 			switch(argv[a][1]) {
-			case 'a':
+			case 'a': /* -b was not given, play an animation */
 				playanim(argc-1, argv+1);
 				exit(0);
 				break;
@@ -377,6 +409,10 @@ int main(int argc, char **argv)
 	
 	init_def_material();
 
+	winlay_get_screensize(&sizx, &sizy);
+	stax=0;
+	stay=0;
+
 	if(G.background==0) {
 		for(a=1; a<argc; a++) {
 			if(argv[a][0] == '-') {
@@ -395,7 +431,6 @@ int main(int argc, char **argv)
 					a++;
 					sizy= atoi(argv[a]);
 
-					setprefsize(stax, stay, sizx, sizy, 0);
 					break;
 				case 'd':
 					G.f |= G_DEBUG;		/* std output printf's */ 
@@ -411,18 +446,10 @@ int main(int argc, char **argv)
 					break;
             
 				case 'w':
-					/* XXX, fixme zr, with borders */
-					/* there probably is a better way to do
-					 * this, right now do as if blender was
-					 * called with "-p 0 0 xres yres" -- sgefant
-					 */ 
-					winlay_get_screensize(&sizx, &sizy);
-					setprefsize(0, 0, sizx, sizy, 1);
 					G.windowstate = G_WINDOWSTATE_BORDER;
 					break;
 				case 'W':
-					/* XXX, fixme zr, borderless on win32 */
-					/* now on all platforms as of 20070411 - DJC */
+					/* XXX, fixme mein, borderless on OSX */
 					G.windowstate = G_WINDOWSTATE_FULLSCREEN;
 					break;
 				case 'R':
@@ -448,6 +475,9 @@ int main(int argc, char **argv)
 			}
 		}
 
+		if ( (G.windowstate == G_WINDOWSTATE_BORDER) || (G.windowstate == G_WINDOWSTATE_FULLSCREEN)) 
+			setprefsize(stax, stay, sizx, sizy, 0);
+		
 		BPY_start_python(argc, argv);
 		
 		/**
@@ -456,11 +486,15 @@ int main(int argc, char **argv)
 		 * added note (ton): i removed it altogether
 		 */
 
-		BIF_init();
+		BIF_init(); /* loads .B.blend */
+		
+		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
 
 	}
 	else {
 		BPY_start_python(argc, argv);
+		
+		BLI_where_is_temp( btempdir, 0 ); /* call after loading the .B.blend so we can read U.tempdir */
 		
 		// (ton) Commented out. I have no idea whats thisfor... will mail around!
 		// SYS_WriteCommandLineInt(syshandle,"noaudio",1);
@@ -500,6 +534,10 @@ int main(int argc, char **argv)
 
 		if(argv[a][0] == '-') {
 			switch(argv[a][1]) {
+			case '-':  /* -- ends argument processing */
+				a = argc;
+				break;
+				
 			case 'p':	/* prefsize */
 				a+= 4;
 				break;
@@ -622,7 +660,9 @@ int main(int argc, char **argv)
 						if      (!strcmp(argv[a],"TGA")) G.scene->r.imtype = R_TARGA;
 						else if (!strcmp(argv[a],"IRIS")) G.scene->r.imtype = R_IRIS;
 						else if (!strcmp(argv[a],"HAMX")) G.scene->r.imtype = R_HAMX;
-						else if (!strcmp(argv[a],"FTYPE")) G.scene->r.imtype = R_FTYPE;
+#ifdef WITH_DDS
+						else if (!strcmp(argv[a],"DDS")) G.scene->r.imtype = R_DDS;
+#endif
 						else if (!strcmp(argv[a],"JPEG")) G.scene->r.imtype = R_JPEG90;
 						else if (!strcmp(argv[a],"MOVIE")) G.scene->r.imtype = R_MOVIE;
 						else if (!strcmp(argv[a],"IRIZ")) G.scene->r.imtype = R_IRIZ;
@@ -634,13 +674,16 @@ int main(int argc, char **argv)
 						else if (!strcmp(argv[a],"QUICKTIME")) G.scene->r.imtype = R_QUICKTIME;
 						else if (!strcmp(argv[a],"BMP")) G.scene->r.imtype = R_BMP;
 						else if (!strcmp(argv[a],"HDR")) G.scene->r.imtype = R_RADHDR;
-						else if (!strcmp(argv[a],"TIFF")) G.scene->r.imtype = R_IRIS;
+						else if (!strcmp(argv[a],"TIFF")) G.scene->r.imtype = R_TIFF;
+#ifdef WITH_OPENEXR
 						else if (!strcmp(argv[a],"EXR")) G.scene->r.imtype = R_OPENEXR;
+						else if (!strcmp(argv[a],"MULTILAYER")) G.scene->r.imtype = R_MULTILAYER;
+#endif
 						else if (!strcmp(argv[a],"MPEG")) G.scene->r.imtype = R_FFMPEG;
 						else if (!strcmp(argv[a],"FRAMESERVER")) G.scene->r.imtype = R_FRAMESERVER;
 						else if (!strcmp(argv[a],"CINEON")) G.scene->r.imtype = R_CINEON;
 						else if (!strcmp(argv[a],"DPX")) G.scene->r.imtype = R_DPX;
-						else printf("\nError: Format from '-F ' not known.\n");
+						else printf("\nError: Format from '-F' not known or not compiled in this release.\n");
 					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-x'.\n");
@@ -674,8 +717,63 @@ int main(int argc, char **argv)
 			}
 		}
 		else {
-			BKE_read_file(argv[a], NULL);
-			sound_initialize_sounds();
+			
+			/* Make the path absolute because its needed for relative linked blends to be found */
+			int abs = 0;
+			int filelen;
+			char cwd[FILE_MAXDIR + FILE_MAXFILE];
+			char filename[FILE_MAXDIR + FILE_MAXFILE];
+			cwd[0] = filename[0] = '\0';
+			
+			BLI_strncpy(filename, argv[a], sizeof(filename));
+			filelen = strlen(filename);
+			
+			/* relative path checks, could do more tests here... */
+#ifdef WIN32
+			/* Account for X:/ and X:\ - should be enough */
+			if (filelen >= 3 && filename[1] == ':' && (filename[2] == '\\' || filename[2] == '/'))
+				abs = 1;
+#else
+			if (filelen >= 2 && filename[0] == '/')
+				abs = 1	;
+#endif
+			if (!abs) {
+				BLI_getwdN(cwd); /* incase the full path to the blend isnt used */
+				
+				if (cwd[0] == '\0') {
+					printf(
+					"Could not get the current working directory - $PWD for an unknown reason.\n\t"
+					"Relative linked files will not load if the entire blend path is not used.\n\t"
+					"The 'Play' button may also fail.\n"
+					);
+				} else {
+					/* uses the blend path relative to cwd important for loading relative linked files.
+					*
+					* cwd should contain c:\ etc on win32 so the relbase can be NULL
+					* relbase being NULL also prevents // being misunderstood as relative to the current
+					* blend file which isnt a feature we want to use in this case since were dealing
+					* with a path from the command line, rather then from inside Blender */
+					
+					BLI_make_file_string(NULL, filename, cwd, argv[a]); 
+				}
+			}
+			
+			if (G.background) {
+				int retval = BKE_read_file(filename, NULL);
+				sound_initialize_sounds();
+				
+				/*we successfully loaded a blend file, get sure that
+				pointcache works */
+				if (retval!=0) G.relbase_valid = 1;
+
+				/* happens for the UI on file reading too */
+				BKE_reset_undo();
+				BKE_write_undo("original");	/* save current state */
+			} else {
+				/* we are not running in background mode here, but start blender in UI mode with 
+				   a file - this should do everything a 'load file' does */
+				BIF_read_file(filename);
+			}
 		}
 	}
 
@@ -704,6 +802,7 @@ static void error_cb(char *err)
 static void mem_error_cb(char *errorStr)
 {
 	fprintf(stderr, errorStr);
+	fflush(stderr);
 }
 
 void setCallbacks(void)

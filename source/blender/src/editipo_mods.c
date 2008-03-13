@@ -58,6 +58,7 @@
 #include "BKE_key.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_editaction.h"
 #include "BIF_interface.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -79,15 +80,13 @@ extern int totipo_edit, totipo_sel, totipo_vertsel, totipo_vis;
 
 void ipo_toggle_showkey(void) 
 {
-	if(G.sipo->showkey) {
-		G.sipo->showkey= 0;
-		swap_selectall_editipo();	/* sel all */
-	}
+	if(G.sipo->showkey) G.sipo->showkey= 0;
 	else G.sipo->showkey= 1;
+
 	free_ipokey(&G.sipo->ipokey);
 	if(G.sipo->ipo) G.sipo->ipo->showkey= G.sipo->showkey;
 	
-	BIF_undo_push("Toggle show key Ipo");
+	BIF_undo_push("Toggle Show Key Ipo");
 }
 
 void swap_selectall_editipo(void)
@@ -140,7 +139,7 @@ void swap_selectall_editipo(void)
 							bezt->f1= bezt->f2= bezt->f3= 0;
 						}
 						else {
-							bezt->f1= bezt->f2= bezt->f3= 1;
+							bezt->f1= bezt->f2= bezt->f3= SELECT;
 						}
 						bezt++;
 					}
@@ -376,32 +375,32 @@ static int selected_bezier_loop(int (*looptest)(EditIpo *),
 int select_bezier_add(BezTriple *bezt) 
 {
 	/* Select the bezier triple */
-	bezt->f1 |= 1;
-	bezt->f2 |= 1;
-	bezt->f3 |= 1;
+	bezt->f1 |= SELECT;
+	bezt->f2 |= SELECT;
+	bezt->f3 |= SELECT;
 	return 0;
 }
 
 int select_bezier_subtract(BezTriple *bezt) 
 {
 	/* Deselect the bezier triple */
-	bezt->f1 &= ~1;
-	bezt->f2 &= ~1;
-	bezt->f3 &= ~1;
+	bezt->f1 &= ~SELECT;
+	bezt->f2 &= ~SELECT;
+	bezt->f3 &= ~SELECT;
 	return 0;
 }
 
 int select_bezier_invert(BezTriple *bezt) 
 {
 	/* Invert the selection for the bezier triple */
-	bezt->f2 ^= 1;
-	if ( bezt->f2 & 1 ) {
-		bezt->f1 |= 1;
-		bezt->f3 |= 1;
+	bezt->f2 ^= SELECT;
+	if ( bezt->f2 & SELECT ) {
+		bezt->f1 |= SELECT;
+		bezt->f3 |= SELECT;
 	}
 	else {
-		bezt->f1 &= ~1;
-		bezt->f3 &= ~1;
+		bezt->f1 &= ~SELECT;
+		bezt->f3 &= ~SELECT;
 	}
 	return 0;
 }
@@ -496,21 +495,40 @@ static int vis_edit_icu_bez(EditIpo *ei)
 
 void select_ipo_bezier_keys(Ipo *ipo, int selectmode)
 {
-  /* Select all of the beziers in all
-   * of the Ipo curves belonging to the
-   * Ipo, using the selection mode.
-   */
-  switch (selectmode) {
-  case SELECT_ADD:
-    ipo_keys_bezier_loop(ipo, select_bezier_add, NULL);
-    break;
-  case SELECT_SUBTRACT:
-    ipo_keys_bezier_loop(ipo, select_bezier_subtract, NULL);
-    break;
-  case SELECT_INVERT:
-    ipo_keys_bezier_loop(ipo, select_bezier_invert, NULL);
-    break;
-  }
+	/* Select all of the beziers in all
+	* of the Ipo curves belonging to the
+	* Ipo, using the selection mode.
+	*/
+	switch (selectmode) {
+		case SELECT_ADD:
+			ipo_keys_bezier_loop(ipo, select_bezier_add, NULL);
+			break;
+		case SELECT_SUBTRACT:
+			ipo_keys_bezier_loop(ipo, select_bezier_subtract, NULL);
+			break;
+		case SELECT_INVERT:
+			ipo_keys_bezier_loop(ipo, select_bezier_invert, NULL);
+			break;
+	}
+}
+
+void select_icu_bezier_keys(IpoCurve *icu, int selectmode)
+{
+	/* Select all of the beziers in all
+	* of the Ipo curves belonging to the
+	* Ipo, using the selection mode.
+	*/
+	switch (selectmode) {
+		case SELECT_ADD:
+			icu_keys_bezier_loop(icu, select_bezier_add, NULL);
+			break;
+		case SELECT_SUBTRACT:
+			icu_keys_bezier_loop(icu, select_bezier_subtract, NULL);
+			break;
+		case SELECT_INVERT:
+			icu_keys_bezier_loop(icu, select_bezier_invert, NULL);
+			break;
+	}
 }
 
 void sethandles_ipo_keys(Ipo *ipo, int code)
@@ -557,6 +575,14 @@ static int snap_bezier_nearest(BezTriple *bezt)
 	return 0;
 }
 
+static int snap_bezier_nearestsec(BezTriple *bezt)
+{
+	float secf = FPS;
+	if(bezt->f2 & SELECT)
+		bezt->vec[1][0]= (float)(floor(bezt->vec[1][0]/secf + 0.5f) * secf);
+	return 0;
+}
+
 static int snap_bezier_cframe(BezTriple *bezt)
 {
 	if(bezt->f2 & SELECT)
@@ -575,7 +601,7 @@ static int snap_bezier_nearmarker(BezTriple *bezt)
 void snap_ipo_keys(Ipo *ipo, short snaptype)
 {
 	switch (snaptype) {
-		case 1: /* snap to nearest */
+		case 1: /* snap to nearest frame */
 			ipo_keys_bezier_loop(ipo, snap_bezier_nearest, calchandles_ipocurve);
 			break;
 		case 2: /* snap to current frame */
@@ -583,6 +609,9 @@ void snap_ipo_keys(Ipo *ipo, short snaptype)
 			break;
 		case 3: /* snap to nearest marker */
 			ipo_keys_bezier_loop(ipo, snap_bezier_nearmarker, calchandles_ipocurve);
+			break;
+		case 4: /* snap to nearest second */
+			ipo_keys_bezier_loop(ipo, snap_bezier_nearestsec, calchandles_ipocurve);
 			break;
 		default: /* just in case */
 			ipo_keys_bezier_loop(ipo, snap_bezier_nearest, calchandles_ipocurve);
@@ -693,6 +722,53 @@ void mirror_ipo_keys(Ipo *ipo, short mirror_type)
 			break;
 	}
 }
+
+/* This function is called to calculate the average location of the
+ * selected keyframes, and place the current frame at that location.
+ *
+ * It must be called like so:
+ *	snap_cfra_ipo_keys(NULL, -1); // initialise the static vars first
+ *	for (ipo...) snap_cfra_ipo_keys(ipo, 0); // sum up keyframe times
+ *	snap_cfra_ipo_keys(NULL, 1); // set current frame after taking average
+ */
+void snap_cfra_ipo_keys(Ipo *ipo, short mode)
+{
+	static int cfra;
+	static int tot;
+	
+	IpoCurve *icu;
+	BezTriple *bezt;
+	int a;
+	
+	
+	if (mode == -1) {
+		/* initialise a new snap-operation */
+		cfra= 0;
+		tot= 0;
+	}
+	else if (mode == 1) {
+		/* set current frame - using average frame */
+		if (tot != 0)
+			CFRA = cfra / tot;
+	}
+	else {
+		/* loop through keys in ipo, summing the frame
+		 * numbers of those that are selected 
+		 */
+		if (ipo == NULL) 
+			return;
+		
+		for (icu= ipo->curve.first; icu; icu= icu->next) {
+			for (a=0, bezt=icu->bezt; a < icu->totvert; a++, bezt++) {
+				if (BEZSELECTED(bezt)) {
+					cfra += bezt->vec[1][0];
+					tot++;
+				}
+			}
+		}
+	}	
+}
+
 
 /* currently only used by some action editor tools, but may soon get used by ipo editor */
 /* restore = whether to map points back to ipo-time 
@@ -843,9 +919,8 @@ void setipotype_ipo(Ipo *ipo, int code)
 void setexprap_ipoloop(Ipo *ipo, int code)
 {
 	IpoCurve *icu;
-
-    	/* Loop through each curve in the Ipo
-     	*/
+	
+    	/* Loop through each curve in the Ipo */
     	for (icu=ipo->curve.first; icu; icu=icu->next)
         	icu->extrap= code;
 }
@@ -910,7 +985,7 @@ void borderselect_ipo(void)
 
 	if(val) {
 		/* map ipo-points for editing if scaled ipo */
-		if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+		if (NLA_IPO_SCALED) {
 			actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 0);
 		}
 		
@@ -948,11 +1023,11 @@ void borderselect_ipo(void)
 							int bit= (val==LEFTMOUSE);
 							
 							if(BLI_in_rctf(&rectf, bezt->vec[0][0], bezt->vec[0][1]))
-								bezt->f1 = (bezt->f1&~1) | bit;
+								bezt->f1 = (bezt->f1&~SELECT) | bit;
 							if(BLI_in_rctf(&rectf, bezt->vec[1][0], bezt->vec[1][1]))
-								bezt->f2 = (bezt->f2&~1) | bit;
+								bezt->f2 = (bezt->f2&~SELECT) | bit;
 							if(BLI_in_rctf(&rectf, bezt->vec[2][0], bezt->vec[2][1]))
-								bezt->f3 = (bezt->f3&~1) | bit;
+								bezt->f3 = (bezt->f3&~SELECT) | bit;
 
 							bezt++;
 						}
@@ -962,7 +1037,7 @@ void borderselect_ipo(void)
 		}
 		
 		/* undo mapping of ipo-points for drawing if scaled ipo */
-		if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+		if (NLA_IPO_SCALED) {
 			actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 0);
 		}
 		

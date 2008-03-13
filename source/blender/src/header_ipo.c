@@ -54,6 +54,7 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_fluidsim.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
@@ -64,11 +65,13 @@
 
 #include "BKE_action.h"
 #include "BKE_constraint.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_particle.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -82,6 +85,7 @@
 #include "BSE_time.h"
 
 #include "BIF_editaction.h"
+#include "BIF_editconstraint.h"
 #include "BIF_interface.h"
 #include "BIF_mainqueue.h"
 #include "BIF_resources.h"
@@ -94,7 +98,6 @@
 #include "blendef.h"
 #include "mydevice.h"
 
-static int viewmovetemp = 0;
 extern int totipo_edit, totipo_sel;
 
 /* headerbutton call, assuming full context is set */
@@ -138,11 +141,27 @@ void spaceipo_assign_ipo(SpaceIpo *si, Ipo *ipo)
 				Object *ob= (Object *)si->from;
 				/* constraint exception */
 				if(si->blocktype==ID_CO) {
-					bConstraintChannel *conchan= get_constraint_channel(&ob->constraintChannels, si->constname);
-					if(conchan) {
-						if(conchan->ipo)
-							conchan->ipo->id.us--;
-						conchan->ipo= ipo;
+					/* check the local constraint ipo */
+					if(si->bonename && si->bonename[0] && ob->pose) {
+						bPoseChannel *pchan= get_pose_channel(ob->pose, si->bonename);
+						bConstraint *con;
+
+						for(con= pchan->constraints.first; con; con= con->next)
+							if(strcmp(con->name, si->constname)==0)
+								break;
+						if(con) {
+							if(con->ipo)
+								con->ipo->id.us--;
+							con->ipo= ipo;
+						}
+					}
+					else {
+						bConstraintChannel *conchan= get_constraint_channel(&ob->constraintChannels, si->constname);
+						if(conchan) {
+							if(conchan->ipo)
+								conchan->ipo->id.us--;
+							conchan->ipo= ipo;
+						}
 					}
 				}
 				else if(si->blocktype==ID_FLUIDSIM) { // NT
@@ -153,6 +172,15 @@ void spaceipo_assign_ipo(SpaceIpo *si, Ipo *ipo)
 					}
 					ob->fluidsimSettings->ipo = ipo;
 				} 
+				else if(si->blocktype==ID_PA) {
+					ParticleSystem *psys=psys_get_current(ob);
+					if(psys){
+						if(psys->part->ipo){
+							psys->part->ipo->id.us--;
+						}
+						psys->part->ipo = ipo;
+					}
+				}
 				else if(si->blocktype==ID_OB) {
 					if(ob->ipo)
 						ob->ipo->id.us--;
@@ -263,7 +291,10 @@ static void do_ipo_editmenu_transformmenu(void *arg, int event)
 	case 0: /* grab/move */
 		transform_ipo('g');
 		break;
-	case 1: /* scale */
+	case 1: /* rotate */
+		transform_ipo('r');
+		break;
+	case 2: /* scale */
 		transform_ipo('s');
 		break;
 	}
@@ -278,7 +309,8 @@ static uiBlock *ipo_editmenu_transformmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_ipo_editmenu_transformmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale|S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale|S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -640,7 +672,7 @@ static uiBlock *ipo_editmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Record Mouse Movement|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Record Mouse Movement|Ctrl R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clean IPO Curves|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Smooth IPO Curves|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
@@ -714,6 +746,9 @@ static void do_ipo_viewmenu(void *arg, int event)
 		center_currframe();
 		scrarea_queue_winredraw(curarea);
 		break;
+	case 11:
+		do_ipo_buttons(B_IPOVIEWCENTER);
+		break;
 	}
 }
 
@@ -749,7 +784,7 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center on Current Frame|Shift C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
 					 "Lock Time to Other Windows|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
@@ -758,6 +793,10 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Current Frame to Selected|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	}
 
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View Selected|NumPad .",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	if(!curarea->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,20, "");
 	else uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 20, "");
 
@@ -786,14 +825,11 @@ static void do_ipo_selectmenu(void *arg, int event)
 		break;
 	case 2:
 		borderselect_markers();
+		allqueue(REDRAWMARKER, 0);
 		break;
 	case 3:
 		deselect_markers(1, 0);
-		allqueue(REDRAWTIME, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWSOUND, 0);
+		allqueue(REDRAWMARKER, 0);
 		break;
 	}
 }
@@ -848,11 +884,7 @@ static void do_ipo_markermenu(void *arg, int event)
 			break;
 	}
 	
-	allqueue(REDRAWTIME, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWSOUND, 0);
+	allqueue(REDRAWMARKER, 0);
 }
 
 static uiBlock *ipo_markermenu(void *arg_unused)
@@ -932,6 +964,10 @@ static char *ipo_modeselect_pup(void)
 		if(ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) {
 			str += sprintf(str,formatstring,"Fluidsim",ID_FLUIDSIM, ICON_WORLD);
 		}
+
+		if(ob->particlesystem.first) {
+			str += sprintf(str,formatstring,"Particles",ID_PA, ICON_PARTICLES);
+		}
 	}
 
 	str += sprintf(str,formatstring, "Sequence",ID_SEQ, ICON_SEQUENCE);
@@ -952,6 +988,7 @@ void do_ipo_buttons(short event)
 	if(curarea->win==0) return;
 
 	switch(event) {
+	case B_IPOVIEWCENTER:
 	case B_IPOHOME:
 
 		/* boundbox */
@@ -970,7 +1007,7 @@ void do_ipo_buttons(short event)
 		for(a=0; a<G.sipo->totipo; a++, ei++) {
 			if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
 			
-				boundbox_ipocurve(ei->icu);
+				boundbox_ipocurve(ei->icu, (event==B_IPOVIEWCENTER));
 				
 				if(first) {
 					v2d->tot= ei->icu->totrct;
@@ -1065,7 +1102,6 @@ void do_ipo_buttons(short event)
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_VIEW2DZOOM:
-		viewmovetemp= 0;
 		view2dzoom(event);
 		scrarea_queue_headredraw(curarea);
 		break;
@@ -1149,7 +1185,19 @@ void do_ipo_buttons(short event)
 			}
 		}
 		break;
-	} 
+	case B_IPOVIEWALL:
+		/* set visible active */
+		for(a=0, ei=G.sipo->editipo; a<G.sipo->totipo; a++, ei++) {
+			if (ei->icu)	ei->flag |= IPO_VISIBLE;
+			else			ei->flag &= ~IPO_VISIBLE;
+		}
+		break;
+	case B_IPOREDRAW:
+		DAG_object_flush_update(G.scene, ob, OB_RECALC);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWIPO, 0);
+		break;
+	}
 }
 
 void ipo_buttons(void)
@@ -1245,11 +1293,14 @@ void ipo_buttons(void)
 		}
 		else if(G.sipo->blocktype==ID_CO) {
 			
-			if(G.sipo->from && G.sipo->actname[0]==0)
+			if(ob->pose==NULL)
 				uiDefIconButBitS(block, TOG, OB_ACTION_OB, B_IPO_ACTION_OB, ICON_ACTION,	xco,0,XIC,YIC, &(ob->ipoflag), 0, 0, 0, 0, "Sets Ipo to be included in an Action or not");
 			else {
-				uiSetButLock(1, "Pose Constraint Ipo cannot be switched");
-				uiDefIconButS(block, TOG, 1, ICON_ACTION,	xco,0,XIC,YIC, &fake1, 0, 0, 0, 0, "Ipo is connected to Pose Action");
+				bConstraint *con= get_active_constraint(ob);
+				if(con)
+					uiDefIconButBitS(block, TOGN, CONSTRAINT_OWN_IPO, B_IPOREDRAW, ICON_ACTION,	xco,0,XIC,YIC, &con->flag, 0, 0, 0, 0, 
+									 (con->flag & CONSTRAINT_OWN_IPO)?"Ipo is connected to Constraint itself":"Ipo is connected to Pose Action"
+									 );
 			}
 			xco+= XIC;
 		}
@@ -1259,6 +1310,12 @@ void ipo_buttons(void)
 			xco+= XIC;
 		}
 		uiClearButLock();
+	}
+	
+	/* ipo muting */
+	if (G.sipo->ipo) {
+		uiDefIconButS(block, ICONTOG, 1, ICON_MUTE_IPO_OFF, xco,0,XIC,YIC, &(G.sipo->ipo->muteipo), 0, 0, 0, 0, "Mute IPO-block");
+		xco += XIC;
 	}
 	
 	/* mainmenu, only when data is there and no pin */
@@ -1288,6 +1345,8 @@ void ipo_buttons(void)
 		icon = ICON_TEXTURE;
 	else if(G.sipo->blocktype == ID_FLUIDSIM)
 		icon = ICON_WORLD;
+	else if(G.sipo->blocktype == ID_PA)
+		icon = ICON_PARTICLES;
 
 	uiDefIconTextButS(block, MENU, B_IPOMAIN, icon, ipo_modeselect_pup(), xco,0,100,20, &(G.sipo->blocktype), 0, 0, 0, 0, "Show IPO type");
 

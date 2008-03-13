@@ -62,9 +62,12 @@ extern bNodeType cmp_node_zcombine;
 extern bNodeType cmp_node_normal;
 extern bNodeType cmp_node_curve_vec;
 extern bNodeType cmp_node_map_value;
+extern bNodeType cmp_node_normalize;
 
 extern bNodeType cmp_node_filter;
 extern bNodeType cmp_node_blur;
+extern bNodeType cmp_node_dblur;
+extern bNodeType cmp_node_bilateralblur;
 extern bNodeType cmp_node_vecblur;
 extern bNodeType cmp_node_dilateerode;
 extern bNodeType cmp_node_defocus;
@@ -82,6 +85,7 @@ extern bNodeType cmp_node_sepyuva;
 extern bNodeType cmp_node_combyuva;
 extern bNodeType cmp_node_sepycca;
 extern bNodeType cmp_node_combycca; 
+extern bNodeType cmp_node_premulkey;
 
 extern bNodeType cmp_node_diff_matte;
 extern bNodeType cmp_node_chroma;
@@ -93,9 +97,12 @@ extern bNodeType cmp_node_translate;
 extern bNodeType cmp_node_rotate;
 extern bNodeType cmp_node_scale;
 extern bNodeType cmp_node_flip;
+extern bNodeType cmp_node_crop;
 extern bNodeType cmp_node_displace;
 extern bNodeType cmp_node_mapuv;
 
+extern bNodeType cmp_node_glare;
+extern bNodeType cmp_node_tonemap;
+extern bNodeType cmp_node_lensdist;
+
 #endif
-
-

@@ -47,7 +47,7 @@ typedef struct ShadeResult
 {
 	float combined[4];
 	float col[4];
-	float alpha;
+	float alpha, mist, z;
 	float diff[3];		/* no ramps, shadow, etc */
 	float spec[3];
 	float shad[3];
@@ -64,8 +64,12 @@ struct ShadeInputCopy {
 	
 	struct Material *mat;
 	struct VlakRen *vlr;
+	struct StrandRen *strand;
+	struct ObjectInstanceRen *obi;
+	struct ObjectRen *obr;
 	int facenr;
 	float facenor[3];				/* copy from face */
+	short flippednor;				/* is facenor flipped? */
 	struct VertRen *v1, *v2, *v3;	/* vertices can be in any order for quads... */
 	short i1, i2, i3;				/* original vertex indices */
 	short puno;
@@ -93,8 +97,12 @@ typedef struct ShadeInput
 	
 	struct Material *mat;
 	struct VlakRen *vlr;
+	struct StrandRen *strand;
+	struct ObjectInstanceRen *obi;
+	struct ObjectRen *obr;
 	int facenr;
 	float facenor[3];				/* copy from face */
+	short flippednor;				/* is facenor flipped? */
 	struct VertRen *v1, *v2, *v3;	/* vertices can be in any order for quads... */
 	short i1, i2, i3;				/* original vertex indices */
 	short puno;
@@ -120,17 +128,18 @@ typedef struct ShadeInput
 	/* end direct copy from material */
 	
 	/* individual copies: */
-	int har;
+	int har; /* hardness */
 	float layerfac;
 	
 	/* texture coordinates */
-	float lo[3], gl[3], ref[3], orn[3], winco[3], sticky[3], vcol[3], rad[3];
+	float lo[3], gl[3], ref[3], orn[3], winco[3], sticky[3], vcol[4], rad[3];
 	float refcol[4], displace[3];
-	float strand, tang[3], stress, winspeed[4];
+	float strandco, tang[3], nmaptang[3], stress, winspeed[4];
+	float duplilo[3], dupliuv[3];
 
 	ShadeInputUV uv[8];   /* 8 = MAX_MTFACE */
 	ShadeInputCol col[8]; /* 8 = MAX_MCOL */
-	int totuv, totcol;
+	int totuv, totcol, actuv, actcol;
 	
 	/* dx/dy OSA coordinates */
 	float dxco[3], dyco[3];
@@ -148,16 +157,20 @@ typedef struct ShadeInput
 	
 	int xs, ys;				/* pixel to be rendered */
 	int mask;				/* subsample mask */
+	
 	int samplenr;			/* sample counter, to detect if we should do shadow again */
 	int depth;				/* 1 or larger on raytrace shading */
 	
 	/* stored copy of original face normal (facenor) 
 	 * before flipping. Used in Front/back output on geometry node */
 	float orignor[3];
+	/* for strand shading, normal at the surface */
+	float surfnor[3], surfdist;
 
 	/* from initialize, part or renderlayer */
 	short do_preview;		/* for nodes, in previewrender */
 	short thread, sample;	/* sample: ShadeSample array index */
+	
 	unsigned int lay;
 	int layflag, passflag, combinedflag;
 	struct Group *light_override;
@@ -173,9 +186,10 @@ int	multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osa
 /* shaded view and bake */
 struct Render;
 struct Image;
+struct Object;
 
 void RE_shade_external(struct Render *re, struct ShadeInput *shi, struct ShadeResult *shr);
-int RE_bake_shade_all_selected(struct Render *re, int type);
+int RE_bake_shade_all_selected(struct Render *re, int type, struct Object *actob);
 struct Image *RE_bake_shade_get_image(void);
 
 #endif /* RE_SHADER_EXT_H */

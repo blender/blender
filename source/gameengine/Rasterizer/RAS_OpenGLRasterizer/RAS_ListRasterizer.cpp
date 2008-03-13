@@ -25,11 +25,21 @@
 #define spit(x)
 //#endif
 
-RAS_ListSlot::RAS_ListSlot()
+RAS_ListSlot::RAS_ListSlot(RAS_ListRasterizer* rasty)
 :	KX_ListSlot(),
 	m_flag(LIST_MODIFY|LIST_CREATE),
-	m_list(0)
+	m_list(0),
+	m_rasty(rasty)
 {
+}
+
+int RAS_ListSlot::Release()
+{
+	if (--m_refcount > 0)
+		return m_refcount;
+	m_rasty->RemoveListSlot(this);
+	delete this;
+	return 0;
 }
 
 RAS_ListSlot::~RAS_ListSlot()
@@ -62,7 +72,7 @@ void RAS_ListSlot::DrawList()
 			}
 		}
 		if(m_list != 0)
-			glNewList((GLuint)m_list, GL_COMPILE_AND_EXECUTE);
+			glNewList((GLuint)m_list, GL_COMPILE);
 	
 		m_flag |= LIST_BEGIN;
 		return;
@@ -76,6 +86,7 @@ void RAS_ListSlot::EndList()
 		glEndList();
 		m_flag = m_flag &~(LIST_BEGIN|LIST_MODIFY);
 		m_flag |= LIST_END;
+		glCallList(m_list);
 	}
 }
 
@@ -95,8 +106,9 @@ bool RAS_ListSlot::End()
 
 
 
-RAS_ListRasterizer::RAS_ListRasterizer(RAS_ICanvas* canvas)
-:	RAS_OpenGLRasterizer(canvas)
+RAS_ListRasterizer::RAS_ListRasterizer(RAS_ICanvas* canvas, bool useVertexArrays, bool lock)
+:	RAS_VAOpenGLRasterizer(canvas, lock),
+	mUseVertexArrays(useVertexArrays)
 {
 	// --
 }
@@ -104,6 +116,18 @@ RAS_ListRasterizer::RAS_ListRasterizer(RAS_ICanvas* canvas)
 RAS_ListRasterizer::~RAS_ListRasterizer() 
 {
 	ReleaseAlloc();
+}
+
+void RAS_ListRasterizer::RemoveListSlot(RAS_ListSlot* list)
+{
+	RAS_Lists::iterator it = mLists.begin();
+	while(it != mLists.end()) {
+		if (it->second == list) {
+			mLists.erase(it);
+			break;
+		}
+		it++;
+	}
 }
 
 RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(const vecVertexArray& vertexarrays, KX_ListSlot** slot)
@@ -118,10 +142,10 @@ RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(const vecVertexArray& vertexarrays, 
 	if(!localSlot) {
 		RAS_Lists::iterator it = mLists.find(vertexarrays);
 		if(it == mLists.end()) {
-			localSlot = new RAS_ListSlot();
+			localSlot = new RAS_ListSlot(this);
 			mLists.insert(std::pair<vecVertexArray, RAS_ListSlot*>(vertexarrays, localSlot));
 		} else {
-			localSlot = it->second;
+			localSlot = static_cast<RAS_ListSlot*>(it->second->AddRef());
 		}
 	}
 	MT_assert(localSlot);
@@ -155,16 +179,29 @@ void RAS_ListRasterizer::IndexPrimitives(
 	if(!useObjectColor) {
 		localSlot = FindOrAdd(vertexarrays, slot);
 		localSlot->DrawList();
-		if(localSlot->End()) 
+		if(localSlot->End()) {
+			// save slot here too, needed for replicas and object using same mesh
+			// => they have the same vertexarray but different mesh slot
+			*slot = localSlot;
 			return;
+		}
 	}
-
-	RAS_OpenGLRasterizer::IndexPrimitives(
-			vertexarrays, indexarrays,
-			mode, polymat,
-			rendertools, useObjectColor,
-			rgbacolor,slot
-	);
+	
+	if (mUseVertexArrays) {
+		RAS_VAOpenGLRasterizer::IndexPrimitives(
+				vertexarrays, indexarrays,
+				mode, polymat,
+				rendertools, useObjectColor,
+				rgbacolor,slot
+		);
+	} else {
+		RAS_OpenGLRasterizer::IndexPrimitives(
+				vertexarrays, indexarrays,
+				mode, polymat,
+				rendertools, useObjectColor,
+				rgbacolor,slot
+		);
+	}
 
 	if(!useObjectColor) {
 		localSlot->EndList();
@@ -190,19 +227,60 @@ void RAS_ListRasterizer::IndexPrimitivesMulti(
 		localSlot = FindOrAdd(vertexarrays, slot);
 		localSlot->DrawList();
 
-		if(localSlot->End()) 
+		if(localSlot->End()) {
+			// save slot here too, needed for replicas and object using same mesh
+			// => they have the same vertexarray but different mesh slot
+			*slot = localSlot;
 			return;
+		}
 	}
 
-	RAS_OpenGLRasterizer::IndexPrimitivesMulti(
-			vertexarrays, indexarrays,
-			mode, polymat,
-			rendertools, useObjectColor,
-			rgbacolor,slot
-	);
+	if (mUseVertexArrays) {
+		RAS_VAOpenGLRasterizer::IndexPrimitivesMulti(
+				vertexarrays, indexarrays,
+				mode, polymat,
+				rendertools, useObjectColor,
+				rgbacolor,slot
+		);
+	} else {
+		RAS_OpenGLRasterizer::IndexPrimitivesMulti(
+				vertexarrays, indexarrays,
+				mode, polymat,
+				rendertools, useObjectColor,
+				rgbacolor,slot
+		);
+	}
+
 	if(!useObjectColor) {
 		localSlot->EndList();
 		*slot = localSlot;
+	}
+}
+
+bool RAS_ListRasterizer::Init(void)
+{
+	if (mUseVertexArrays) {
+		return RAS_VAOpenGLRasterizer::Init();
+	} else {
+		return RAS_OpenGLRasterizer::Init();
+	}
+}
+
+void RAS_ListRasterizer::SetDrawingMode(int drawingmode)
+{
+	if (mUseVertexArrays) {
+		RAS_VAOpenGLRasterizer::SetDrawingMode(drawingmode);
+	} else {
+		RAS_OpenGLRasterizer::SetDrawingMode(drawingmode);
+	}
+}
+
+void RAS_ListRasterizer::Exit()
+{
+	if (mUseVertexArrays) {
+		RAS_VAOpenGLRasterizer::Exit();
+	} else {
+		RAS_OpenGLRasterizer::Exit();
 	}
 }
 

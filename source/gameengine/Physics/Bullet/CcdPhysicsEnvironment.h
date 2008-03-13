@@ -42,6 +42,7 @@ class btBroadphaseInterface;
 class btOverlappingPairCache;
 class btIDebugDraw;
 class PHY_IVehicle;
+class CcdOverlapFilterCallBack;
 
 /// CcdPhysicsEnvironment is an experimental mainloop for physics simulation using optional continuous collision detection.
 /// Physics Environment takes care of stepping the simulation and is a container for physics entities.
@@ -49,9 +50,8 @@ class PHY_IVehicle;
 /// A derived class may be able to 'construct' entities by loading and/or converting
 class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 {
+	friend class CcdOverlapFilterCallBack;
 	btVector3 m_gravity;
-	
-	
 
 protected:
 	btIDebugDraw*	m_debugDrawer;
@@ -166,7 +166,7 @@ protected:
 		virtual void addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user);
 		virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl);
 		virtual void removeCollisionCallback(PHY_IPhysicsController* ctrl);
-
+		//These two methods are used *solely* to create controllers for Near/Radar sensor! Don't use for anything else
 		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position);
 		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight);
 	
@@ -229,9 +229,21 @@ protected:
 		
 		std::vector<WrapperVehicle*>	m_wrapperVehicles;
 
-		class	btDynamicsWorld*	m_dynamicsWorld;
+		//use explicit btDiscreteDynamicsWorld* so that we have access to 
+		//btDiscreteDynamicsWorld::addRigidBody(body,filter,group) 
+		//so that we can set the body collision filter/group at the time of creation 
+		//and not afterwards (breaks the collision system for radar/near sensor)
+		//Ideally we would like to have access to this function from the btDynamicsWorld interface
+		//class	btDynamicsWorld*	m_dynamicsWorld;
+		class	btDiscreteDynamicsWorld*	m_dynamicsWorld;
 		
 		class btConstraintSolver*	m_solver;
+
+		class btOverlappingPairCache* m_ownPairCache;
+
+		class CcdOverlapFilterCallBack* m_filterCallback;
+
+		class btDispatcher* m_ownDispatcher;
 
 		bool	m_scalingPropagated;
 

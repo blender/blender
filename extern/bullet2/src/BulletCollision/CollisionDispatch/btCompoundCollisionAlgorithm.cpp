@@ -77,9 +77,9 @@ void btCompoundCollisionAlgorithm::processCollision (btCollisionObject* body0,bt
 		btTransform	orgTrans = colObj->getWorldTransform();
 		btCollisionShape* orgShape = colObj->getCollisionShape();
 
-		btTransform childTrans = compoundShape->getChildTransform(i);
-		btTransform	newChildWorldTrans = orgTrans*childTrans ;
-		colObj->setWorldTransform( newChildWorldTrans );
+		const btTransform& childTrans = compoundShape->getChildTransform(i);
+		//btTransform	newChildWorldTrans = orgTrans*childTrans ;
+		colObj->setWorldTransform( orgTrans*childTrans );
 		//the contactpoint is still projected back using the original inverted worldtrans
 		colObj->setCollisionShape( childShape );
 		m_childCollisionAlgorithms[i]->processCollision(colObj,otherObj,dispatchInfo,resultOut);
@@ -89,7 +89,7 @@ void btCompoundCollisionAlgorithm::processCollision (btCollisionObject* body0,bt
 	}
 }
 
-float	btCompoundCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
+btScalar	btCompoundCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
 {
 
 	btCollisionObject* colObj = m_isSwapped? body1 : body0;
@@ -106,7 +106,7 @@ float	btCompoundCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* bod
 	//then use each overlapping node AABB against Tree0
 	//and vise versa.
 
-	float hitFraction = 1.f;
+	btScalar hitFraction = btScalar(1.);
 
 	int numChildren = m_childCollisionAlgorithms.size();
 	int i;
@@ -119,12 +119,12 @@ float	btCompoundCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* bod
 		btTransform	orgTrans = colObj->getWorldTransform();
 		btCollisionShape* orgShape = colObj->getCollisionShape();
 
-		btTransform childTrans = compoundShape->getChildTransform(i);
-		btTransform	newChildWorldTrans = orgTrans*childTrans ;
-		colObj->setWorldTransform( newChildWorldTrans );
+		const btTransform& childTrans = compoundShape->getChildTransform(i);
+		//btTransform	newChildWorldTrans = orgTrans*childTrans ;
+		colObj->setWorldTransform( orgTrans*childTrans );
 
 		colObj->setCollisionShape( childShape );
-		float frac = m_childCollisionAlgorithms[i]->calculateTimeOfImpact(colObj,otherObj,dispatchInfo,resultOut);
+		btScalar frac = m_childCollisionAlgorithms[i]->calculateTimeOfImpact(colObj,otherObj,dispatchInfo,resultOut);
 		if (frac<hitFraction)
 		{
 			hitFraction = frac;

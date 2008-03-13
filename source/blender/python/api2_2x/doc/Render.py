@@ -74,6 +74,24 @@ attribute.  One of the following modes can be active:
     horizontally or vertically
   - SCALE: Stretch or squeeze the viewport to fill the display window.
 
+@type BakeModes: readonly dictionary
+@var BakeModes: Constant dict used for with L{RenderData.bakeMode}
+attribute.  One of the following modes can be active:
+  - LIGHT: Bake lighting only.
+  - ALL: Bake all render lighting.
+  - AO: Bake ambient occlusion.
+  - NORMALS: Bake a normal map.
+  - TEXTURE: Bake textures.
+  - DISPLACEMENT: Bake displacement.
+
+@type BakeNormalSpaceModes: readonly dictionary
+@var BakeNormalSpaceModes: Constant dict used for with L{RenderData.bakeNormalSpace}
+attribute.  One of the following modes can be active:
+  - CAMERA: Bake normals relative to the camera.
+  - WORLD: Bake normals in worldspace.
+  - OBJECT: Bake normals relative to the object.
+  - TANGENT: Bake tangent space normals.
+
 @var INTERNAL: The internal rendering engine. Use with setRenderer()
 @var YAFRAY: Yafray rendering engine. Use with setRenderer()
 
@@ -92,6 +110,7 @@ attribute.  One of the following modes can be active:
 @var IRISZ: Output format. Use with renderdata.imageType / setImageType()
 @var FTYPE: Output format. Use with renderdata.imageType / setImageType()
 @var OPENEXR: Output format. Use with renderdata.imageType / setImageType()
+@var MULTILAYER: Output format. Use with renderdata.imageType / setImageType()
 @var TIFF: Output format. Use with renderdata.imageType / setImageType()
 @var FFMPEG: Output format. Use with renderdata.imageType / setImageType()
 @var CINEON: Output format. Use with renderdata.imageType / setImageType()
@@ -105,14 +124,15 @@ attribute.  One of the following modes can be active:
 @var PAL169: Output format. Use with renderdata.sizePreset()
 @var B_PR_FULL: Output format. Use with renderdata.sizePreset()
 
-@var NONE: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
+@var NONE: Yafray GI Quality / Method. Use with renderdata.setYafrayGIQuality()
 @var LOW: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
 @var MEDIUM: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
 @var HIGH: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
 @var HIGHER: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
 @var BEST: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
-@var SKYDOME: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
-@var GIFULL: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
+@var USEAOSETTINGS: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
+@var SKYDOME: Yafray GI Method. Use with renderdata.setYafrayGIMethod()
+@var GIFULL: Yafray GI Method. Use with renderdata.setYafrayGIMethod()
 """
 
 def CloseRenderWindow():
@@ -245,10 +265,12 @@ class RenderData:
   @type extensions: boolean
   @ivar compositor: 'Do Compositor' enabled.
   @type compositor: boolean
-  @ivar freeImages: 'Do Compositor' enabled.
+  @ivar freeImages: Texture images are freed after render.
   @type freeImages: boolean
   @ivar singleLayer: Only render the active layer.
   @type singleLayer: boolean
+  @ivar activeLayer: The active render layer.  Must be in range[0,num render layers-1]
+  @type activeLayer: int
   @ivar saveBuffers: Save render buffers to disk while rendering, saves memory.
   @type saveBuffers: boolean
   @ivar compositeFree: Free nodes that are not used while composite.
@@ -292,7 +314,11 @@ class RenderData:
   @type oversampling: boolean
   @ivar fps: Frames per second.
   Values are clamped to the range [1,120].
-  @type fps: int
+  @ivar fpsBase: Frames per second base: used to generate fractional frames
+  per second values.  For example, setting fps to 30 and fps_base to 1.001
+  will approximate the NTSC frame rate of 29.97 fps.
+  Values are clamped to the range [1,120].
+  @type fpsBase: float
   @ivar timeCode: Get the current frame in HH:MM:SS:FF format.  Read-only.
   @type timeCode: string
   @ivar environmentMap: Environment map rendering enabled. 
@@ -324,8 +350,57 @@ class RenderData:
   scene or None (setting to None clears the set).  The scene argument cannot
   cause a circular link.
   @type set: BPy_Scene or None
+  @ivar yafrayGIMethod: Global Illumination method.
+  Valid values are NONE (0), SKYDOME (1) or FULL (2).
+  @type yafrayGIMethod: int {NONE (0), SKYDOME (1), GIFULL (2)}
+  @ivar yafrayGIQuality: Global Illumination quality.
+  @type yafrayGIQuality: int {NONE (0), LOW (1), MEDIUM (2), HIGH (3), HIGHER (4), BEST (5), USEAOSETTINGS (6)}
+  @ivar yafrayExportToXML: If true export to an xml file and call yafray instead of plugin.
+  @type yafrayExportToXML: boolean
+  @ivar yafrayAutoAntiAliasing: Automatic anti-aliasing enabled/disabled.
+  @type yafrayAutoAntiAliasing: boolean
+  @ivar yafrayClampRGB: Clamp RGB enabled/disabled.
+  @type yafrayClampRGB: boolean
+  @ivar yafrayAntiAliasingPasses: Number of anti-aliasing passes (0 is no Anti-Aliasing).
+  @type yafrayAntiAliasingPasses: int [0, 64]
+  @ivar yafrayAntiAliasingSamples: Number of samples per pass.
+  @type yafrayAntiAliasingSamples: int [0, 2048]
+  @ivar yafrayAntiAliasingPixelSize: Anti-aliasing pixel filter size.
+  @type yafrayAntiAliasingPixelSize: float [1.0, 2.0]
+  @ivar yafrayAntiAliasingThreshold: Anti-aliasing threshold.
+  @type yafrayAntiAliasingThreshold: float [0.05, 1.0]
+  @ivar yafrayGICache: Cache occlusion/irradiance samples (faster).
+  @type yafrayGICache: boolean
+  @ivar yafrayGICacheBumpNormals: Enable/disable bumpnormals for cache.
+  @type yafrayGICacheBumpNormals: boolean
+  @ivar yafrayGICacheShadowQuality: Shadow quality, keep it under 0.95 :-).
+  @type yafrayGICacheShadowQuality: float [0.01, 1.0]
+  @ivar yafrayGICachePixelsPerSample: Maximum number of pixels without samples, the lower the better and slower.
+  @type yafrayGICachePixelsPerSample: int [1, 50]
+  @ivar yafrayGICacheRefinement: Threshold to refine shadows EXPERIMENTAL. 1 = no refinement.
+  @type yafrayGICacheRefinement: float [0.001, 1.0]
+  @ivar yafrayGIPhotons: Enable/disable use of global photons to help in GI.
+  @type yafrayGIPhotons: boolean
+  @ivar yafrayGITunePhotons: If true the photonmap is shown directly in the render for tuning.
+  @type yafrayGITunePhotons: boolean
+  @ivar bakeMode: The method used when baking, see L{BakeModes}.
+  @type bakeMode: int
+  @ivar bakeNormalSpace: The method used when baking, see L{BakeNormalSpaceModes}.
+  @type bakeNormalSpace: int
+  @ivar bakeClear: When enabled, baking clears the image first.
+  @type bakeClear: bool
+  @ivar bakeToActive: When enabled, selected objects are baked onto the active object.
+  @type bakeToActive: bool
+  @ivar bakeNormalizeAO: Normalize AO bake values.
+  @type bakeNormalizeAO: bool  
+  @ivar bakeMargin: The pixel distance to extend baked pixels past the boundry (reduces bleeding when mipmapping)
+  @type bakeMargin: int
+  @ivar bakeDist: The distance in blender units to use when bakeToActive is enabled and geomtry does not overlap.
+  @type bakeDist: float
+  @ivar bakeBias: The distance in blender units to bias faces further away from the object.
+  @type bakeBias: float
   """
-
+  
   def currentFrame(frame = None):
     """
     Get/set the current frame.
@@ -338,6 +413,11 @@ class RenderData:
   def render():
     """
     Render the scene.
+    """
+
+  def bake():
+    """
+    Bake selected objects in the scene.
     """
 
   def renderAnim():
@@ -388,6 +468,15 @@ class RenderData:
     @rtype: string
     @return: Returns the directory that is used to playback and store rendered
     sequences.
+    """
+
+  def getFrameFilename( frame ):
+    """
+    Get the filename used for the remdered image.
+    @type frame: int
+    @param frame: the frame to use in the filename, if no argument given, use the current frame.
+    @rtype: string
+    @return: Returns the filename that blender would render to, taking into account output path, extension and frame number.
     """
 
   def setBackbufPath(path):
@@ -824,6 +913,21 @@ class RenderData:
         - HIGH
         - HIGHER
         - BEST
+        - USEAOSETTINGS
+    """
+
+  def getYafrayGIQuality():
+    """
+    Get yafray global Illumination quality.
+    @rtype: enum constant
+    @return: one of 6 constants:
+        - NONE
+        - LOW
+        - MEDIUM
+        - HIGH
+        - HIGHER
+        - BEST
+        - USEAOSETTINGS
     """
 
   def setYafrayGIMethod(type):
@@ -831,6 +935,17 @@ class RenderData:
     Set yafray global Illumination method.
     @type type: enum constant
     @param type: must be one of 3 constants:
+        - NONE: Do not use GI illumination
+        - SKYDOME: Use Skydome method
+        - GIFULL: Use Full method
+    """
+
+  def getYafrayGIMethod():
+    # (dietrich) 2007/06/01
+    """
+    Get yafray global Illumination method.
+    @rtype: enum constant - 
+    @return: Current yafray global illumination method:
         - NONE: Do not use GI illumination
         - SKYDOME: Use Skydome method
         - GIFULL: Use Full method
@@ -1003,15 +1118,6 @@ class RenderData:
     @param expose: must be between 0 - 10.0
     @rtype: float (if prototype is empty)
     @return: Current exposure adjustment for the scene.
-    """
-
-  def yafrayProcessorCount(count = None):
-    """
-    Get/set number of processors to use.
-    @type count: int (optional)
-    @param count: must be between 1 - 8
-    @rtype: int (if prototype is empty)
-    @return: Current number of processors for the scene.
     """
 
   def enableGameFrameStretch():

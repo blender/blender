@@ -98,7 +98,7 @@ static int       World_setStar( BPy_World * self, PyObject * args );
 static PyObject *World_getMist( BPy_World * self );
 static PyObject *World_oldsetMist( BPy_World * self, PyObject * args );
 static int       World_setMist( BPy_World * self, PyObject * args );
-static PyObject *World_getScriptLinks( BPy_World * self, PyObject * args );
+static PyObject *World_getScriptLinks( BPy_World * self, PyObject * value );
 static PyObject *World_addScriptLink( BPy_World * self, PyObject * args );
 static PyObject *World_clearScriptLinks( BPy_World * self, PyObject * args );
 static PyObject *World_setCurrent( BPy_World * self );
@@ -209,7 +209,7 @@ static PyMethodDef BPy_World_methods[] = {
 	 "() - Return World Data mist"},
 	{"setMist", ( PyCFunction ) World_oldsetMist, METH_VARARGS,
 	 "() - Return World Data mist"},
-	{"getScriptLinks", ( PyCFunction ) World_getScriptLinks, METH_VARARGS,
+	{"getScriptLinks", ( PyCFunction ) World_getScriptLinks, METH_O,
 	 "(eventname) - Get a list of this world's scriptlinks (Text names) "
 	 "of the given type\n"
 	 "(eventname) - string: FrameChanged, Redraw or Render."},
@@ -561,13 +561,7 @@ static PyObject *World_clearIpo( BPy_World * self )
 
 static PyObject *World_getSkytype( BPy_World * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->world->skytype );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get World.skytype attribute" ) );
+	return PyInt_FromLong( ( long ) self->world->skytype );
 }
 
 
@@ -579,7 +573,7 @@ static PyObject *World_getSkytype( BPy_World * self )
 
 static int World_setSkytype( BPy_World * self, PyObject * value )
 {
-	if( !PyInt_CheckExact(value) )
+	if( !PyInt_Check(value) )
 		return ( EXPP_ReturnIntError( PyExc_TypeError,
 						"expected int argument" ) );
 	self->world->skytype = (short)PyInt_AsLong(value);
@@ -600,13 +594,7 @@ static PyObject *World_oldsetSkytype( BPy_World * self, PyObject * args )
 
 static PyObject *World_getMode( BPy_World * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->world->mode );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get World.mode attribute" ) );
+	return PyInt_FromLong( ( long ) self->world->mode );
 }
 
 
@@ -618,7 +606,7 @@ static PyObject *World_getMode( BPy_World * self )
 
 static int World_setMode( BPy_World * self, PyObject * value )
 {
-	if( !PyInt_CheckExact(value) )
+	if( !PyInt_Check(value) )
 		return ( EXPP_ReturnIntError( PyExc_TypeError,
 						"expected int argument" ) );
 	self->world->mode = (short)PyInt_AsLong(value);
@@ -640,13 +628,7 @@ static PyObject *World_oldsetMode( BPy_World * self, PyObject * args )
 
 static PyObject *World_getMistype( BPy_World * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->world->mistype );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get World.mistype attribute" ) );
+	return PyInt_FromLong( ( long ) self->world->mistype );
 }
 
 
@@ -658,7 +640,7 @@ static PyObject *World_getMistype( BPy_World * self )
 
 static int World_setMistype( BPy_World * self, PyObject * value )
 {
-	if( !PyInt_CheckExact(value) )
+	if( !PyInt_Check(value) )
 		return ( EXPP_ReturnIntError( PyExc_TypeError,
 						"expected int argument" ) );
 	self->world->mistype = (short)PyInt_AsLong(value);
@@ -874,7 +856,7 @@ static PyObject *World_clearScriptLinks( BPy_World * self, PyObject * args )
 }
 
 /* world.getScriptLinks */
-static PyObject *World_getScriptLinks( BPy_World * self, PyObject * args )
+static PyObject *World_getScriptLinks( BPy_World * self, PyObject * value )
 {
 	World *world = self->world;
 	ScriptLink *slink = NULL;
@@ -882,7 +864,7 @@ static PyObject *World_getScriptLinks( BPy_World * self, PyObject * args )
 
 	slink = &( world )->scriptlink;
 
-	ret = EXPP_getScriptLinks( slink, args, 0 );
+	ret = EXPP_getScriptLinks( slink, value, 0 );
 
 	if( ret )
 		return ret;
@@ -1009,37 +991,37 @@ static PyObject *World_insertIpoKey( BPy_World * self, PyObject * args )
 	map = texchannel_to_adrcode(self->world->texact);
 
 	if(key == IPOKEY_ZENITH) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_R);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_G);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_B);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_R, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_G, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_B, 0);
 	}
 	if(key == IPOKEY_HORIZON) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_R);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_G);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_B);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_R, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_G, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_B, 0);
 	}
 	if(key == IPOKEY_MIST) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISI);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTDI);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTSTA);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTHI);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISI, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTDI, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTSTA, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTHI, 0);
 	}
 	if(key == IPOKEY_STARS) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_R);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_G);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_B);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STARDIST);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STARSIZE);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_R, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_G, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_B, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STARDIST, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STARSIZE, 0);
 	}
 	if(key == IPOKEY_OFFSET) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_X);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_Y);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_Z);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_X, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_Y, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_Z, 0);
 	}
 	if(key == IPOKEY_SIZE) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_X);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_Y);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_Z);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_X, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_Y, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_Z, 0);
 	}
 
 	allspace(REMAKEIPO, 0);

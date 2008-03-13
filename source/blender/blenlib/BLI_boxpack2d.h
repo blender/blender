@@ -28,10 +28,7 @@
  * Contributor(s): Campbell Barton
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
- *
- * The old math stuff from Ton. These will slowly phase out in favour
- * of MTC calls. (or even MoTO :) )
- * */
+ */
 
 /* Box Packer */
 

@@ -34,12 +34,15 @@
 
 #include "DNA_curve_types.h"
 #include "DNA_ipo_types.h"
+#include "DNA_key_types.h"
+#include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_global.h"
 #include "BKE_ipo.h"
+#include "BKE_key.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_resources.h"
@@ -56,9 +59,9 @@ char *ob_ic_names[OB_TOTNAM] = { "LocX", "LocY", "LocZ", "dLocX", "dLocY", "dLoc
 	"RotX", "RotY", "RotZ", "dRotX", "dRotY", "dRotZ",
 	"ScaleX", "ScaleY", "ScaleZ", "dScaleX", "dScaleY", "dScaleZ",
 	"Layer", "Time", "ColR", "ColG", "ColB", "ColA",
-	"FStreng", "FFall", "RDamp", "Damping", "Perm" };
+	"FStreng", "FFall", "RDamp", "Damping", "Perm", "FMaxD" };
 
-char *co_ic_names[CO_TOTNAM] = { "Inf" };
+char *co_ic_names[CO_TOTNAM] = { "Inf", "HeadTail" };
 char *mtex_ic_names[TEX_TOTNAM] = { "OfsX", "OfsY", "OfsZ", "SizeX", "SizeY", "SizeZ",
 	"texR", "texG", "texB", "DefVar", "Col", "Nor", "Var",
 	"Disp" };
@@ -98,6 +101,9 @@ char *ac_ic_names[AC_TOTNAM] = {"LocX", "LocY", "LocZ", "ScaleX", "ScaleY",
 	"ScaleZ", "QuatW", "QuatX", "QuatY", "QuatZ"};
 char *ic_name_empty[1] ={ "" };
 char *fluidsim_ic_names[FLUIDSIM_TOTNAM] = { "Fac-Visc", "Fac-Time",  "GravX","GravY","GravZ",  "VelX","VelY","VelZ", "Active"  };
+char *part_ic_names[PART_TOTNAM] = { "E_Freq", "E_Life", "E_Speed", "E_Angular", "E_Size",
+"Angular", "Size", "Drag", "Brown", "Damp", "Length", "Clump",
+"GravX", "GravY", "GravZ", "KinkAmp", "KinkFreq", "KinkShape", "BBTilt"};
 
 /* gets the appropriate icon for the given blocktype */
 int geticon_ipo_blocktype(short blocktype)
@@ -130,8 +136,11 @@ int geticon_ipo_blocktype(short blocktype)
 	}
 }
 
-/* get name of ipo-curve (icu should be valid pointer) */
-char *getname_ipocurve(IpoCurve *icu)
+/* get name of ipo-curve
+ * 	- icu should be valid pointer
+ *	- ob is only needed for a shapekey-related hack
+ */
+char *getname_ipocurve(IpoCurve *icu, Object *ob)
 {
 	switch (icu->blocktype) {
 		case ID_OB: 
@@ -140,11 +149,17 @@ char *getname_ipocurve(IpoCurve *icu)
 			return getname_ac_ei(icu->adrcode);
 		case ID_KE:
 			{
-				/* quick 'hack' - must find a better solution to this
-				 * although shapekey ipo-curves can have names,
-				 * we don't have access to that info yet.
-				 */
 				static char name[32];
+				Key *key= ob_get_key(ob);
+				KeyBlock *kb= key_get_keyblock(key, icu->adrcode);
+				
+				/* only return name if it has been set, otherwise use 
+				 * default method using static string (Key #)
+				 */
+				if ((kb) && (kb->name[0] != '\0'))
+					return kb->name; /* return keyblock's name  */
+				
+				/* in case keyblock is not named or no key/keyblock was found */
 				sprintf(name, "Key %d", icu->adrcode);
 				return name;
 			}
@@ -179,6 +194,7 @@ char *getname_co_ei(int nr)
 {
 	switch(nr){
 		case CO_ENFORCE:
+		case CO_HEADTAIL:
 			return co_ic_names[nr-1];
 	}
 	return ic_name_empty[0];
@@ -186,7 +202,7 @@ char *getname_co_ei(int nr)
 
 char *getname_ob_ei(int nr, int colipo)
 {
-	if(nr>=OB_LOC_X && nr <= OB_PD_PERM) return ob_ic_names[nr-1];
+	if(nr>=OB_LOC_X && nr <= OB_PD_FMAXD) return ob_ic_names[nr-1];
 	
 	return ic_name_empty[0];
 }
@@ -261,9 +277,14 @@ char *getname_fluidsim_ei(int nr)
 	if(nr <= FLUIDSIM_TOTIPO) return fluidsim_ic_names[nr-1];
 	return ic_name_empty[0];
 }
+char *getname_part_ei(int nr)
+{
+	if(nr <= PART_TOTIPO) return part_ic_names[nr-1];
+	return ic_name_empty[0];
+}
 
 
-void boundbox_ipocurve(IpoCurve *icu)
+void boundbox_ipocurve(IpoCurve *icu, int selectedonly)
 {
 	BezTriple *bezt;
 	float vec[3]={0.0,0.0,0.0};
@@ -278,20 +299,25 @@ void boundbox_ipocurve(IpoCurve *icu)
 			bezt= icu->bezt;
 			while(a--) {
 				if(icu->vartype & IPO_BITS) {
-					vec[0]= bezt->vec[1][0];
-					vec[1]= 0.0;
-					DO_MINMAX(vec, min, max);
-					
-					vec[1]= 16.0;
-					DO_MINMAX(vec, min, max);
+					if((bezt->f2 & SELECT) || !selectedonly) {
+						vec[0]= bezt->vec[1][0];
+						vec[1]= 0.0;
+						DO_MINMAX(vec, min, max);
+						
+						vec[1]= 16.0;
+						DO_MINMAX(vec, min, max);
+					}
 				}
 				else {
-					if(icu->ipo==IPO_BEZ && a!=icu->totvert-1) {
-						DO_MINMAX(bezt->vec[0], min, max);
+					if((bezt->f1 & SELECT) || !selectedonly) {
+						if(icu->ipo==IPO_BEZ && a!=icu->totvert-1)
+							DO_MINMAX(bezt->vec[0], min, max);
 					}
-					DO_MINMAX(bezt->vec[1], min, max);
-					if(icu->ipo==IPO_BEZ && a!=0) {
-						DO_MINMAX(bezt->vec[2], min, max);
+					if((bezt->f2 & SELECT) || !selectedonly)
+						DO_MINMAX(bezt->vec[1], min, max);
+					if((bezt->f3 & SELECT) || !selectedonly) {
+						if(icu->ipo==IPO_BEZ && a!=0)
+							DO_MINMAX(bezt->vec[2], min, max);
 					}
 				}
 				
@@ -313,7 +339,7 @@ void boundbox_ipocurve(IpoCurve *icu)
 	}
 }
 
-void boundbox_ipo(Ipo *ipo, rctf *bb)
+void boundbox_ipo(Ipo *ipo, rctf *bb, int selectedonly)
 {
 	IpoCurve *icu;
 	int first= 1;
@@ -321,7 +347,7 @@ void boundbox_ipo(Ipo *ipo, rctf *bb)
 	icu= ipo->curve.first;
 	while(icu) {
 		
-		boundbox_ipocurve(icu);
+		boundbox_ipocurve(icu, selectedonly);
 		
 		if(first) {
 			*bb= icu->totrct;
@@ -369,5 +395,7 @@ int texchannel_to_adrcode(int channel)
 		default: return 0;
 	}
 }
+
+
 
 

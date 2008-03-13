@@ -5,11 +5,18 @@ Import('env')
 if env['WITH_BF_GAMEENGINE']:
     SConscript(['qhull/SConscript',
             'solid/SConscript'])
-    if env['WITH_BF_BULLET']:
-        SConscript(['bullet2/src/SConscript'])
+
+if env['WITH_BF_BULLET']:
+    SConscript(['bullet2/src/SConscript'])
 
 if env['WITH_BF_INTERNATIONAL']:
     SConscript(['bFTGL/SConscript'])
 
 if env['WITH_BF_VERSE']:
     SConscript(['verse/dist/SConstruct'])
+
+if env['WITH_BF_FFMPEG'] and env['BF_FFMPEG_LIB'] == '':
+    SConscript(['ffmpeg/SConscript']);
+
+if env['OURPLATFORM'] == 'linux2':
+    SConscript(['binreloc/SConscript']);

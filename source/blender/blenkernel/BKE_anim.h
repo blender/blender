@@ -34,6 +34,8 @@
 #ifndef BKE_ANIM_H
 #define BKE_ANIM_H
 
+#define MAX_DUPLI_RECUR 8
+
 struct Path;
 struct Object;
 struct PartEff;
@@ -44,8 +46,9 @@ typedef struct DupliObject {
 	struct DupliObject *next, *prev;
 	struct Object *ob;
 	unsigned int origlay;
-	int index, no_draw;
+	int index, no_draw, type, animated;
 	float mat[4][4], omat[4][4];
+	float orco[3], uv[2];
 } DupliObject;
 
 void free_path(struct Path *path);

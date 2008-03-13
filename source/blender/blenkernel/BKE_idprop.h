@@ -137,6 +137,7 @@ void IDP_FreeIterBeforeEnd(void *vself);
   to create the Group property and attach it to id if it doesn't exist; otherwise
   the function will return NULL if there's no Group property attached to the ID.*/
 struct IDProperty *IDP_GetProperties(struct ID *id, int create_if_needed);
+struct IDProperty *IDP_CopyProperty(struct IDProperty *prop);
 
 /*
 Allocate a new ID.

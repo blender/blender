@@ -12,7 +12,7 @@ __version__ = "1.0 2006/02/08"
 __bpydoc__ = """\
 Edges to Curves
 
-This script converts open and closed edge loops into polylines
+This script converts open and closed edge loops into curve polylines
 
 Supported:<br>
 	 Polylines where each vert has no more then 2 edges attached to it.
@@ -39,16 +39,7 @@ Supported:<br>
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-
 from Blender import *
-
-def edkey(ed):
-	i1 = ed.v1.index
-	i2 = ed.v2.index
-	if i1>i2:
-		return (i2,i1), ed
-	else:
-		return (i1,i2), ed
 
 def polysFromMesh(me):
 	# a polyline is 2 
@@ -138,6 +129,7 @@ def mesh2polys():
 		
 		v= poly[vIdx]
 		cu.appendNurb([v.co.x, v.co.y, v.co.z, w, t])
+		vIdx += 1
 		cu[i].type= 0 # Poly Line
 		
 		# Close the polyline if its closed.

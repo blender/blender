@@ -103,6 +103,7 @@ void AttributeList::readMat4Gfx(string name, ntlMat4Gfx defaultValue, string sou
 
 // set that a parameter can be given, and will be ignored...
 bool AttributeList::ignoreParameter(string name, string source) {
+	name = source = ("");
 	return false;
 }
 		

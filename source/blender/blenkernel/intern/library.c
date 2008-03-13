@@ -78,6 +78,8 @@
 #include "DNA_nla_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_particle_types.h"
+#include "BKE_particle.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -112,7 +114,7 @@
 #include "BKE_brush.h"
 #include "BKE_idprop.h"
 
-#include "BPI_script.h"
+#include "DNA_space_types.h"
 
 #define MAX_IDPUP		60	/* was 24 */
 
@@ -194,6 +196,8 @@ ListBase *wich_libbase(Main *mainlib, short type)
 			return &(mainlib->nodetree);
 		case ID_BR:
 			return &(mainlib->brush);
+		case ID_PA:
+			return &(mainlib->particle);
 	}
 	return 0;
 }
@@ -254,16 +258,17 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[18]= &(main->nodetree);
 	lb[19]= &(main->brush);
 	lb[20]= &(main->script);
+	lb[21]= &(main->particle);
 	
-	lb[21]= &(main->world);
-	lb[22]= &(main->screen);
-	lb[23]= &(main->object);
-	lb[24]= &(main->scene);
-	lb[25]= &(main->library);
+	lb[22]= &(main->world);
+	lb[23]= &(main->screen);
+	lb[24]= &(main->object);
+	lb[25]= &(main->scene);
+	lb[26]= &(main->library);
 	
-	lb[26]= NULL;
+	lb[27]= NULL;
 
-	return 26;
+	return 27;
 }
 
 /* *********** ALLOC AND FREE *****************
@@ -359,6 +364,9 @@ static ID *alloc_libblock_notest(short type)
 		case ID_BR:
 			id = MEM_callocN(sizeof(Brush), "brush");
 			break;
+		case ID_PA:
+			id = MEM_callocN(sizeof(ParticleSettings), "ParticleSettings");
+  			break;
 	}
 	return id;
 }
@@ -409,7 +417,8 @@ void *copy_libblock(void *rt)
 	
 	id->newid= idn;
 	idn->flag |= LIB_NEW;
-	
+	if (id->properties) idn->properties = IDP_CopyProperty(id->properties);
+
 	return idn;
 }
 
@@ -501,6 +510,9 @@ void free_libblock(ListBase *lb, void *idv)
 			break;
 		case ID_BR:
 			free_brush((Brush *)id);
+			break;
+		case ID_PA:
+			psys_free_settings((ParticleSettings *)id);
 			break;
 	}
 
@@ -915,12 +927,17 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 	/* if no libdata given, look up based on ID */
 	if(lb==NULL) lb= wich_libbase(G.main, GS(id->name));
 
-	if(tname==0) 	/* if no name given, use name of current ID */
+	if(tname==0) {	/* if no name given, use name of current ID */
 		strncpy(name, id->name+2, 21);
-	else /* else make a copy (tname args can be const) */
+		result= strlen(id->name+2);
+	}
+	else { /* else make a copy (tname args can be const) */
 		strncpy(name, tname, 21);
+		result= strlen(tname);
+	}
 
-	if( strlen(name) > 21 ) name[21]= 0;
+	/* if result > 21, strncpy don't put the final '\0' to name. */
+	if( result > 21 ) name[21]= 0;
 
 	result = check_for_dupid( lb, id, name );
 	strcpy( id->name+2, name );

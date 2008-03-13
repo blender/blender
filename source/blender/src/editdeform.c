@@ -334,11 +334,13 @@ void del_defgroup (Object *ob)
 		MDeformVert *dvert= editLatt->dvert;
 		int a, tot;
 		
-		tot= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-		for(a=0, bp= editLatt->def; a<tot; a++, bp++, dvert++) {
-			for (i=0; i<dvert->totweight; i++){
-				if (dvert->dw[i].def_nr > (ob->actdef-1))
-					dvert->dw[i].def_nr--;
+		if (dvert) {
+			tot= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+			for(a=0, bp= editLatt->def; a<tot; a++, bp++, dvert++) {
+				for (i=0; i<dvert->totweight; i++){
+					if (dvert->dw[i].def_nr > (ob->actdef-1))
+						dvert->dw[i].def_nr--;
+				}
 			}
 		}
 	}
@@ -702,6 +704,53 @@ void remove_vert_defgroup (Object *ob, bDeformGroup	*dg, int vertnum)
 	remove_vert_def_nr (ob, def_nr, vertnum);
 }
 
+/* for mesh in object mode lattice can be in editmode */
+static float get_vert_def_nr (Object *ob, int def_nr, int vertnum)
+{
+	MDeformVert *dvert= NULL;
+	int i;
+
+	/* get the deform vertices corresponding to the
+	 * vertnum
+	 */
+	if(ob->type==OB_MESH) {
+		if( ((Mesh*)ob->data)->dvert )
+			dvert = ((Mesh*)ob->data)->dvert + vertnum;
+	}
+	else if(ob->type==OB_LATTICE) {
+		Lattice *lt= ob->data;
+		
+		if(ob==G.obedit)
+			lt= editLatt;
+		
+		if(lt->dvert)
+			dvert = lt->dvert + vertnum;
+	}
+	
+	if(dvert==NULL)
+		return 0.0f;
+	
+	for(i=dvert->totweight-1 ; i>=0 ; i--)
+		if(dvert->dw[i].def_nr == def_nr)
+			return dvert->dw[i].weight;
+
+	return 0.0f;
+}
+
+/* mesh object mode, lattice can be in editmode */
+float get_vert_defgroup (Object *ob, bDeformGroup *dg, int vertnum)
+{
+	int def_nr;
+
+	if(!ob)
+		return 0.0f;
+
+	def_nr = get_defgroup_num(ob, dg);
+	if(def_nr < 0) return 0.0f;
+
+	return get_vert_def_nr (ob, def_nr, vertnum);
+}
+
 /* Only available in editmode */
 /* removes from active defgroup, if allverts==0 only selected vertices */
 void remove_verts_defgroup (int allverts)
@@ -730,7 +779,7 @@ void remove_verts_defgroup (int allverts)
 	case OB_MESH:
 		for (eve=G.editMesh->verts.first; eve; eve=eve->next){
 			dvert= CustomData_em_get(&G.editMesh->vdata, eve->data, CD_MDEFORMVERT);
-
+		
 			if (dvert && dvert->dw && ((eve->f & 1) || allverts)){
 				for (i=0; i<dvert->totweight; i++){
 					/* Find group */
@@ -776,6 +825,36 @@ void remove_verts_defgroup (int allverts)
 	}
 }
 
+/* Only available in editmode */
+/* removes from all defgroup, if allverts==0 only selected vertices */
+void remove_verts_defgroups(int allverts)
+{
+	Object *ob;
+	int actdef, defCount;
+	
+	if (multires_level1_test()) return;
+
+	ob= G.obedit;
+	if (ob == NULL) return;
+	
+	actdef= ob->actdef;
+	defCount= BLI_countlist(&ob->defbase);
+	
+	if (defCount == 0) {
+		error("Object has no vertex groups");
+		return;
+	}
+	
+	/* To prevent code redundancy, we just use remove_verts_defgroup, but that
+	 * only operates on the active vgroup. So we iterate through all groups, by changing
+	 * active group index
+	 */
+	for (ob->actdef= 1; ob->actdef <= defCount; ob->actdef++)
+		remove_verts_defgroup(allverts);
+		
+	ob->actdef= actdef;
+}
+
 void vertexgroup_select_by_name(Object *ob, char *name)
 {
 	bDeformGroup *curdef;
@@ -810,7 +889,7 @@ void vgroup_assign_with_menu(void)
 	
 	/* give user choices of adding to current/new or removing from current */
 	if (defCount && ob->actdef)
-		mode = pupmenu("Vertex Groups %t|Add Selected to New Group %x1|Add Selected to Active Group %x2|Remove Selected from Active Group %x3");
+		mode = pupmenu("Vertex Groups %t|Add Selected to New Group %x1|Add Selected to Active Group %x2|Remove Selected from Active Group %x3|Remove Selected from All Groups %x4");
 	else
 		mode= pupmenu("Vertex Groups %t|Add Selected to New Group %x1");
 	
@@ -831,6 +910,11 @@ void vgroup_assign_with_menu(void)
 			remove_verts_defgroup(0);
 			allqueue(REDRAWVIEW3D, 1);
 			BIF_undo_push("Remove from vertex group");
+			break;
+		case 4: /* remove from all groups */
+			remove_verts_defgroups(0);
+			allqueue(REDRAWVIEW3D, 1);
+			BIF_undo_push("Remove from all vertex groups");
 			break;
 	}
 }

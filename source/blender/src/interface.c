@@ -135,6 +135,7 @@ uiBut *UIbuttip;
 static char but_copypaste_str[256]="";
 static double but_copypaste_val=0.0;
 static float but_copypaste_rgb[3];
+static ColorBand but_copypaste_coba;
 
 /* ************* PROTOTYPES ***************** */
 
@@ -482,6 +483,7 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 		}
 		else {
 			ui_set_but_val(but, but_copypaste_val);
+			uibut_do_func(but);
 			ui_check_but(but);
 			return 1;
 		}
@@ -524,7 +526,6 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 		}
 	}
 	else if(but->type==TEX) {
-		
 		if(poin==NULL);
 		else if(mode=='c') {
 			strncpy(but_copypaste_str, but->poin, but->max);
@@ -544,7 +545,6 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 		}
 	}
 	else if(but->type==IDPOIN) {
-		
 		if(mode=='c') {
 			ID *id= *but->idpoin_idpp;
 			if(id) strncpy(but_copypaste_str, id->name+2, 22);
@@ -555,8 +555,24 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 			return 1;
 		}
 	}
-		
-			
+	else if(but->type==BUT_COLORBAND) {
+		if(mode=='c') {
+			if (!but->poin) {
+				return 0;
+			}
+			memcpy( &but_copypaste_coba, but->poin, sizeof(ColorBand) );
+		} else {
+			if (but_copypaste_coba.tot==0) {
+				return 0;
+			}
+			if (!but->poin) {
+				but->poin= MEM_callocN( sizeof(ColorBand), "colorband");
+			}
+			memcpy( but->poin, &but_copypaste_coba, sizeof(ColorBand) );
+			return 1;
+		}
+	}
+	
 	return 0;
 }
 
@@ -621,7 +637,7 @@ void uiBoundsBlock(uiBlock *block, int addval)
 			if(bt->x1 < block->minx) block->minx= bt->x1;
 			if(bt->y1 < block->miny) block->miny= bt->y1;
 	
-			if(bt->x2 > block->maxx) block->maxx= bt->x2;
+  			if(bt->x2 > block->maxx) block->maxx= bt->x2;
 			if(bt->y2 > block->maxy) block->maxy= bt->y2;
 			
 			bt= bt->next;
@@ -1288,7 +1304,7 @@ static int ui_do_but_MENU(uiBut *but)
 	for(bt= block->buttons.first; bt; bt= bt->next) bt->win= block->win;
 	bwin_getsinglematrix(block->win, block->winmat);
 
-	event= uiDoBlocks(&listb, 0);
+	event= uiDoBlocks(&listb, 0, 1);
 	
 	menudata_free(md);
 	
@@ -2335,7 +2351,7 @@ static int ui_do_but_ICONROW(uiBut *but)
 	   this is needs better implementation */
 	block->win= G.curscreen->mainwin;
 	
-	uiDoBlocks(&listb, 0);
+	uiDoBlocks(&listb, 0, 1);
 
 	but->flag &= ~UI_SELECT;
 	ui_check_but(but);
@@ -2408,7 +2424,7 @@ static int ui_do_but_ICONTEXTROW(uiBut *but)
 
 	uiBoundsBlock(block, 3);
 
-	uiDoBlocks(&listb, 0);
+	uiDoBlocks(&listb, 0, 1);
 	
 	menudata_free(md);
 
@@ -2671,12 +2687,36 @@ static uiBlock *ui_do_but_BLOCK(uiBut *but, int event)
 
 static int ui_do_but_BUTM(uiBut *but)
 {
-
+	/* draw 'pushing-in' when clicked on for use as a normal button in a panel */
+	do {
+		int oflag= but->flag;
+		short mval[2];
+			
+		uiGetMouse(mywinget(), mval);
+		
+		if (uibut_contains_pt(but, mval))
+			but->flag |= UI_SELECT;
+		else
+			but->flag &= ~UI_SELECT;
+		
+		if (but->flag != oflag) {
+			ui_draw_but(but);
+			ui_block_flush_back(but->block);
+		}
+		
+		PIL_sleep_ms(10);
+	} while (get_mbut() & L_MOUSE);
+	
 	ui_set_but_val(but, but->min);
 	UIafterfunc_butm= but->butm_func;
 	UIafterfunc_arg1= but->butm_func_arg;
 	UIafterval= but->a2;
 	
+	uibut_do_func(but);
+	
+	but->flag &= ~UI_SELECT;
+	ui_draw_but(but);
+
 	return but->retval;
 }
 
@@ -3286,7 +3326,7 @@ static int ui_do_but_COL(uiBut *but)
 	for(bt= block->buttons.first; bt; bt= bt->next) bt->win= block->win;
 	bwin_getsinglematrix(block->win, block->winmat);
 
-	event= uiDoBlocks(&listb, 0);
+	event= uiDoBlocks(&listb, 0, 1);
 	
 	if(but->pointype==CHA) ui_set_but_vectorf(but, colstore);
 	
@@ -4290,7 +4330,7 @@ int uiIsMenu(int *x, int *y, int *sizex, int *sizey)
  * UI_CONT		don't pass event to other ui's
  * UI_RETURN	something happened, return, swallow event
  */
-static int ui_do_block(uiBlock *block, uiEvent *uevent)
+static int ui_do_block(uiBlock *block, uiEvent *uevent, int movemouse_quit)
 {
 	uiBut *but, *bt;
 	int butevent, event, retval=UI_NOTHING, count, act=0;
@@ -4432,21 +4472,13 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		}
 		break;
 	
-	case PAD8: case PAD2:
 	case UPARROWKEY:
 	case DOWNARROWKEY:
 		if(inside || (block->flag & UI_BLOCK_LOOP)) {
 			/* arrowkeys: only handle for block_loop blocks */
 			event= 0;
-			if(block->flag & UI_BLOCK_LOOP) {
+			if(block->flag & UI_BLOCK_LOOP)
 				event= uevent->event;
-				if(event==PAD8) event= UPARROWKEY;
-				if(event==PAD2) event= DOWNARROWKEY;
-			}
-			else {
-				if(uevent->event==PAD8) event= UPARROWKEY;
-				if(uevent->event==PAD2) event= DOWNARROWKEY;
-			}
 			if(event && uevent->val) {
 	
 				for(but= block->buttons.first; but; but= but->next) {
@@ -4475,7 +4507,6 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	
 				/* nothing done */
 				if(but==NULL) {
-				
 					if(event==UPARROWKEY) {
 						if(block->direction & UI_TOP) but= ui_but_first(block);
 						else but= ui_but_last(block);
@@ -4494,16 +4525,26 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		}
 		break;
 	
-	case ONEKEY: act= 1;
-	case TWOKEY: if(act==0) act= 2;
-	case THREEKEY: if(act==0) act= 3;
-	case FOURKEY: if(act==0) act= 4;
-	case FIVEKEY: if(act==0) act= 5;
-	case SIXKEY: if(act==0) act= 6;
-	case SEVENKEY: if(act==0) act= 7;
-	case EIGHTKEY: if(act==0) act= 8;
-	case NINEKEY: if(act==0) act= 9;
-	case ZEROKEY: if(act==0) act= 10;
+	case ONEKEY: 	case PAD1: 
+		act= 1;
+	case TWOKEY: 	case PAD2: 
+		if(act==0) act= 2;
+	case THREEKEY: 	case PAD3: 
+		if(act==0) act= 3;
+	case FOURKEY: 	case PAD4: 
+		if(act==0) act= 4;
+	case FIVEKEY: 	case PAD5: 
+		if(act==0) act= 5;
+	case SIXKEY: 	case PAD6: 
+		if(act==0) act= 6;
+	case SEVENKEY: 	case PAD7: 
+		if(act==0) act= 7;
+	case EIGHTKEY: 	case PAD8: 
+		if(act==0) act= 8;
+	case NINEKEY: 	case PAD9: 
+		if(act==0) act= 9;
+	case ZEROKEY: 	case PAD0: 
+		if(act==0) act= 10;
 	
 		if( block->flag & UI_BLOCK_NUMSELECT ) {
 			
@@ -4713,19 +4754,18 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			if(uevent->val || (block->flag & UI_BLOCK_RET_1)==0) {
 				if ELEM6(uevent->event, LEFTMOUSE, PADENTER, RETKEY, BUT_ACTIVATE, BUT_NEXT, BUT_PREV) {
 					/* when mouse outside, don't do button */
-					if(inside || uevent->event!=LEFTMOUSE) {
-						
+					if(inside || uevent->event!=LEFTMOUSE) {						
 						if ELEM(uevent->event, BUT_NEXT, BUT_PREV) {
 							butevent= ui_act_as_text_but(but);
 							uibut_do_func(but);
 						}
 						else
 							butevent= ui_do_button(block, but, uevent);
-
+						
 						/* add undo pushes if... */
 						if( !(block->flag & UI_BLOCK_LOOP)) {
 							if(!G.obedit) {
-								if ELEM4(but->type, BLOCK, BUT, LABEL, PULLDOWN); 
+								if ELEM5(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX); 
 								else {
 									/* define which string to use for undo */
 									if ELEM(but->type, LINK, INLINK) screen_delayed_undo_push("Add button link");
@@ -4735,12 +4775,12 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 								}
 							}
 						}
-				
+						
 						if(butevent) addqueue(block->winq, UI_BUT_EVENT, (short)butevent);
-
+						
 						/* i doubt about the next line! */
 						/* if(but->func) mywinset(block->win); */
-			
+						
 						if( (block->flag & UI_BLOCK_LOOP) && but->type==BLOCK);
 						else	
 							if (butevent) retval= UI_RETURN_OK;
@@ -4777,7 +4817,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		if((uevent->event==RETKEY || uevent->event==PADENTER) && uevent->val==1) return UI_RETURN_OK;
 		
 		/* check outside */
-		if(inside==0) {
+		if(inside==0 && movemouse_quit) {
 			uiBlock *tblock= NULL;
 			
 			/* check for all parent rects, enables arrowkeys to be used */
@@ -4805,30 +4845,15 @@ static uiOverDraw *ui_draw_but_tip(uiBut *but)
 {
 	uiOverDraw *od;
 	float x1, x2, y1, y2;
+	rctf tip_bbox;
 
-#ifdef INTERNATIONAL
-	if(G.ui_international == TRUE) {
-		float llx,lly,llz,urx,ury,urz;  //for FTF_GetBoundingBox()
+	BIF_GetBoundingBox(but->font, but->tip, (U.transopts & USER_TR_TOOLTIPS), &tip_bbox);
+	
+	x1= (but->x1+but->x2)/2;
+	x2= x1+but->aspect*((tip_bbox.xmax-tip_bbox.xmin) + 8);
+	y2= but->y1-10;
+	y1= y2-but->aspect*((tip_bbox.ymax+(tip_bbox.ymax-tip_bbox.ymin)));
 
-		if(U.transopts & USER_TR_TOOLTIPS) {
-			FTF_GetBoundingBox(but->tip, &llx,&lly,&llz,&urx,&ury,&urz, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
-
-			x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*FTF_GetStringWidth(but->tip, FTF_USE_GETTEXT | FTF_INPUT_UTF8);  //BMF_GetStringWidth(but->font, but->tip);
-			y1= but->y1-(ury+FTF_GetSize())-12; y2= but->y1-12;
-		} else {
-			FTF_GetBoundingBox(but->tip, &llx,&lly,&llz,&urx,&ury,&urz, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
-
-			x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*FTF_GetStringWidth(but->tip, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);  //BMF_GetStringWidth(but->font, but->tip);
-			y1= but->y1-(ury+FTF_GetSize())-12; y2= but->y1-12;
-		}
-	} else {
-		x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
-		y1= but->y1-30; y2= but->y1-12;
-	}
-#else
-	x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
-	y1= but->y1-30; y2= but->y1-12;
-#endif
 
 	/* for pulldown menus it doesnt work */
 	if(mywinget()==G.curscreen->mainwin);
@@ -4845,13 +4870,6 @@ static uiOverDraw *ui_draw_but_tip(uiBut *but)
 		y1 += 36;
 		y2 += 36;
 	}
-
-	// adjust tooltip heights
-	if(mywinget()==G.curscreen->mainwin)
-		y2 -= G.ui_international ? 4:1;		//tip is from pulldownmenu
-	else if(curarea->win != mywinget())
-		y2 -= G.ui_international ? 5:1;		//tip is from a windowheader
-//	else y2 += 1;							//tip is from button area
 
 	od= ui_begin_overdraw((int)(x1-1), (int)(y1-2), (int)(x2+4), (int)(y2+4));
 
@@ -4874,7 +4892,10 @@ static uiOverDraw *ui_draw_but_tip(uiBut *but)
 	glRectf(x1, y1, x2, y2);
 	
 	glColor3ub(0,0,0);
-	ui_rasterpos_safe( x1+3, y1+5.0/but->aspect, but->aspect);
+	/* set the position for drawing text +4 in from the left edge, and leaving an equal gap between the top of the background box
+	 * and the top of the string's tip_bbox, and the bottom of the background box, and the bottom of the string's tip_bbox
+	 */
+	ui_rasterpos_safe(x1+4, ((y2-tip_bbox.ymax)+(y1+tip_bbox.ymin))/2 - tip_bbox.ymin, but->aspect);
 	BIF_SetScale(1.0);
 
 	BIF_DrawString(but->font, but->tip, (U.transopts & USER_TR_TOOLTIPS));
@@ -4938,7 +4959,7 @@ static void ui_do_but_tip(uiBut *buttip)
 }
 
 /* returns UI_NOTHING, if nothing happened */
-int uiDoBlocks(ListBase *lb, int event)
+int uiDoBlocks(ListBase *lb, int event, int movemouse_quit)
 {
 	/* return when:  firstblock != BLOCK_LOOP
 	 * 
@@ -4993,7 +5014,7 @@ int uiDoBlocks(ListBase *lb, int event)
 			}
 			
 			block->in_use= 1; // bit awkward, but now we can detect if frontbuf flush should be set
-			retval |= ui_do_block(block, &uevent); /* we 'or' because 2nd loop can return to here, and we we want 'out' to return */
+			retval |= ui_do_block(block, &uevent, movemouse_quit); /* we 'or' because 2nd loop can return to here, and we we want 'out' to return */
 			block->in_use= 0;
 			if(retval & UI_EXIT_LOOP) break;
 			
@@ -5037,7 +5058,7 @@ int uiDoBlocks(ListBase *lb, int event)
 
 			if(uevent.event) {
 				block->in_use= 1; // bit awkward, but now we can detect if frontbuf flush should be set
-				retval= ui_do_block(block, &uevent);
+				retval= ui_do_block(block, &uevent, movemouse_quit);
 				block->in_use= 0;
 			
 				if(block->needflush) { // flush (old menu) now, maybe new menu was opened
@@ -6280,7 +6301,7 @@ int uiButGetRetVal(uiBut *but)
 	return but->retval;
 }
 
-
+/* Call this function BEFORE adding buttons to the block */
 void uiBlockSetButmFunc(uiBlock *block, void (*menufunc)(void *arg, int event), void *arg)
 {
 	block->butm_func= menufunc;
@@ -6533,7 +6554,7 @@ short pupmenu(char *instr)
 	
 	uiBoundsBlock(block, 1);
 
-	event= uiDoBlocks(&listb, 0);
+	event= uiDoBlocks(&listb, 0, 1);
 
 	/* calculate last selected */
 	if(event & UI_RETURN_OK) {
@@ -6691,7 +6712,7 @@ short pupmenu_col(char *instr, int maxrow)
 	
 	uiBoundsBlock(block, 1);
 
-	event= uiDoBlocks(&listb, 0);
+	event= uiDoBlocks(&listb, 0, 1);
 	
 	menudata_free(md);
 	

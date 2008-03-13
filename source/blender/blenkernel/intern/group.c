@@ -134,11 +134,11 @@ void add_to_group(Group *group, Object *ob)
 }
 
 /* also used for ob==NULL */
-void rem_from_group(Group *group, Object *ob)
+int rem_from_group(Group *group, Object *ob)
 {
 	GroupObject *go, *gon;
-	
-	if(group==NULL) return;
+	int removed = 0;
+	if(group==NULL) return 0;
 	
 	go= group->gobject.first;
 	while(go) {
@@ -146,9 +146,12 @@ void rem_from_group(Group *group, Object *ob)
 		if(go->ob==ob) {
 			BLI_remlink(&group->gobject, go);
 			free_group_object(go);
+			removed = 1;
+			/* should break here since an object being in a group twice cant happen? */
 		}
 		go= gon;
 	}
+	return removed;
 }
 
 int object_in_group(Object *ob, Group *group)
@@ -164,9 +167,12 @@ int object_in_group(Object *ob, Group *group)
 	return 0;
 }
 
-Group *find_group(Object *ob)
+Group *find_group(Object *ob, Group *group)
 {
-	Group *group= G.main->group.first;
+	if (group)
+		group= group->id.next;
+	else
+		group= G.main->group.first;
 	
 	while(group) {
 		if(object_in_group(ob, group))
@@ -186,6 +192,20 @@ void group_tag_recalc(Group *group)
 		if(go->ob) 
 			go->ob->recalc= go->recalc;
 	}
+}
+
+int group_is_animated(Object *parent, Group *group)
+{
+	GroupObject *go;
+
+	if(give_timeoffset(parent) != 0.0f || parent->nlastrips.first)
+		return 1;
+
+	for(go= group->gobject.first; go; go= go->next)
+		if(go->ob && go->ob->proxy)
+			return 1;
+
+	return 0;
 }
 
 /* only replaces object strips or action when parent nla instructs it */
@@ -228,7 +248,6 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
 	}
 }
 
-
 /* puts all group members in local timing system, after this call
 you can draw everything, leaves tags in objects to signal it needs further updating */
 
@@ -238,12 +257,12 @@ void group_handle_recalc_and_update(Object *parent, Group *group)
 	GroupObject *go;
 	
 	/* if animated group... */
-	if(parent->sf != 0.0f || parent->nlastrips.first) {
+	if(give_timeoffset(parent) != 0.0f || parent->nlastrips.first) {
 		int cfrao;
 		
 		/* switch to local time */
 		cfrao= G.scene->r.cfra;
-		G.scene->r.cfra -= (int)parent->sf;
+		G.scene->r.cfra -= (int)give_timeoffset(parent);
 		
 		/* we need a DAG per group... */
 		for(go= group->gobject.first; go; go= go->next) {

@@ -32,12 +32,19 @@
 #include <ffmpeg/avformat.h>
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/rational.h>
+#include <ffmpeg/swscale.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
 #else
 #define FFMPEG_CODEC_IS_POINTER 1
 #define FFMPEG_CODEC_TIME_BASE  1
+#endif
+
+#if LIBAVFORMAT_VERSION_INT >= (52 << 16)
+#define OUTFILE_PB (outfile->pb)
+#else
+#define OUTFILE_PB (&outfile->pb)
 #endif
 
 #if defined(WIN32) && (!(defined snprintf))
@@ -81,6 +88,7 @@ static AVFormatContext* outfile = 0;
 static AVStream* video_stream = 0;
 static AVStream* audio_stream = 0;
 static AVFrame* current_frame = 0;
+static struct SwsContext *img_convert_ctx = 0;
 
 static uint8_t* video_buffer = 0;
 static int video_buffersize = 0;
@@ -317,8 +325,9 @@ static AVFrame* generate_video_frame(uint8_t* pixels)
 	}
 
 	if (c->pix_fmt != PIX_FMT_RGBA32) {
-		img_convert((AVPicture*)current_frame, c->pix_fmt, 
-			(AVPicture*)rgb_frame, PIX_FMT_RGBA32, width, height);
+		sws_scale(img_convert_ctx, rgb_frame->data,
+			  rgb_frame->linesize, 0, c->height, 
+			  current_frame->data, current_frame->linesize);
 		delete_picture(rgb_frame);
 	}
 	return current_frame;
@@ -352,18 +361,26 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 	if (ffmpeg_type == FFMPEG_DV && G.scene->r.frs_sec != 25) {
 		c->time_base.den = 2997;
 		c->time_base.num = 100;
-	} else {
+	} else if ((double) ((int) G.scene->r.frs_sec_base) == 
+		   G.scene->r.frs_sec_base) {
 		c->time_base.den = G.scene->r.frs_sec;
-		c->time_base.num = 1;
+		c->time_base.num = (int) G.scene->r.frs_sec_base;
+	} else {
+		c->time_base.den = G.scene->r.frs_sec * 100000;
+		c->time_base.num = ((double) G.scene->r.frs_sec_base) * 100000;
 	}
 #else
 	/* FIXME: Really bad hack (tm) for NTSC support */
 	if (ffmpeg_type == FFMPEG_DV && G.scene->r.frs_sec != 25) {
 		c->frame_rate = 2997;
 		c->frame_rate_base = 100;
-	} else {
+	} else if ((double) ((int) G.scene->r.frs_sec_base) == 
+		   G.scene->r.frs_sec_base) {
 		c->frame_rate = G.scene->r.frs_sec;
-		c->frame_rate_base = 1;
+		c->frame_rate_base = G.scene->r.frs_sec_base;
+	} else {
+		c->frame_rate = G.scene->r.frs_sec * 100000;
+		c->frame_rate_base = ((double) G.scene->r.frs_sec_base)*100000;
 	}
 #endif
 	
@@ -420,6 +437,13 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 					     "FFMPEG video buffer");
 	
 	current_frame = alloc_picture(c->pix_fmt, c->width, c->height);
+
+	img_convert_ctx = sws_getContext(c->width, c->height,
+					 PIX_FMT_RGBA32,
+					 c->width, c->height,
+					 c->pix_fmt,
+					 SWS_BICUBIC,
+					 NULL, NULL, NULL);
 	return st;
 }
 
@@ -733,7 +757,7 @@ void append_ffmpeg(int frame, int *pixels, int rectx, int recty)
 	write_video_frame(generate_video_frame((unsigned char*) pixels));
 
 	if (ffmpeg_autosplit) {
-		if (url_ftell(&outfile->pb) > FFMPEG_AUTOSPLIT_SIZE) {
+		if (url_ftell(OUTFILE_PB) > FFMPEG_AUTOSPLIT_SIZE) {
 			end_ffmpeg();
 			ffmpeg_autosplit_count++;
 			start_ffmpeg_impl(ffmpeg_renderdata,
@@ -749,8 +773,10 @@ void end_ffmpeg(void)
 	
 	fprintf(stderr, "Closing ffmpeg...\n");
 
-	write_audio_frames();
-
+	if (audio_stream) {
+		write_audio_frames();
+	}
+	
 	if (outfile) {
 		av_write_trailer(outfile);
 	}
@@ -778,7 +804,7 @@ void end_ffmpeg(void)
 	}
 	if (outfile && outfile->oformat) {
 		if (!(outfile->oformat->flags & AVFMT_NOFILE)) {
-			url_fclose(&outfile->pb);
+			url_fclose(OUTFILE_PB);
 		}
 	}
 	if (outfile) {
@@ -796,6 +822,11 @@ void end_ffmpeg(void)
 	if (audio_input_buffer) {
 		MEM_freeN(audio_input_buffer);
 		audio_input_buffer = 0;
+	}
+
+	if (img_convert_ctx) {
+		sws_freeContext(img_convert_ctx);
+		img_convert_ctx = 0;
 	}
 }
 #endif

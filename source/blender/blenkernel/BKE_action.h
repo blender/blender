@@ -60,6 +60,11 @@ extern "C" {
  */
 void free_pose_channels(struct bPose *pose);
 
+/** 
+ * Removes and deallocates all data from a pose, and also frees the pose.
+ */
+void free_pose(struct bPose *pose);
+
 /**
  * Allocate a new pose on the heap, and copy the src pose and it's channels
  * into the new pose. *dst is set to the newly allocated structure, and assumed to be NULL.
@@ -101,6 +106,9 @@ struct bPoseChannel *verify_pose_channel(struct bPose* pose,
 /* sets constraint flags */
 void update_pose_constraint_flags(struct bPose *pose);
 
+/* clears BONE_UNKEYED flags for frame changing */
+void framechange_poses_clear_unkeyed(void);
+
 /**
  * Allocate a new bAction on the heap and copy 
  * the contents of src into it. If src is NULL NULL is returned.
@@ -116,8 +124,12 @@ void calc_action_range(const struct bAction *act, float *start, float *end, int 
 /**
  * Set the pose channels from the given action.
  */
-void extract_pose_from_action(struct bPose *pose, struct bAction *act,
-                                                  float ctime);
+void extract_pose_from_action(struct bPose *pose, struct bAction *act, float ctime);
+
+/**
+ * Get the effects of the given action using a workob 
+ */
+void what_does_obaction(struct Object *ob, struct bAction *act, float cframe);
 
 /**
  * Iterate through the action channels of the action
@@ -152,12 +164,6 @@ float get_action_frame_inv(struct Object *ob, float cframe);
 #ifdef __cplusplus
 };
 #endif
-
-/* nla strip->mode, for action blending */
-enum	{
-			POSE_BLEND		= 0,
-			POSE_ADD
-};
 
 #endif
 

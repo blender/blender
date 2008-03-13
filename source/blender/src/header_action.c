@@ -30,7 +30,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): 2007, Joshua Leung (Action Editor recode) 
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -79,85 +79,146 @@
 #include "blendef.h"
 #include "mydevice.h"
 
-#define ACTMENU_VIEW_CENTERVIEW 0
-#define ACTMENU_VIEW_AUTOUPDATE 1
-#define ACTMENU_VIEW_PLAY3D     2
-#define ACTMENU_VIEW_PLAYALL    3
-#define ACTMENU_VIEW_ALL        4
-#define ACTMENU_VIEW_MAXIMIZE   5
-#define ACTMENU_VIEW_LOCK		6
-#define ACTMENU_VIEW_SLIDERS	7
-#define ACTMENU_VIEW_NEXTMARKER	8
-#define ACTMENU_VIEW_PREVMARKER	9
+/* enums declaring constants that are used as menu event codes  */
 
-#define ACTMENU_SEL_BORDER      		0
-#define ACTMENU_SEL_BORDERM      		1
-#define ACTMENU_SEL_ALL_KEYS    		2
-#define ACTMENU_SEL_ALL_CHAN    		3
-#define ACTMENU_SEL_ALL_MARKERS			4
-#define ACTMENU_SEL_INVERSE_KEYS		5
-#define ACTMENU_SEL_INVERSE_MARKERS		6
+enum {
+	ACTMENU_VIEW_CENTERVIEW= 0,
+	ACTMENU_VIEW_AUTOUPDATE,
+	ACTMENU_VIEW_PLAY3D,
+	ACTMENU_VIEW_PLAYALL,
+	ACTMENU_VIEW_ALL,
+	ACTMENU_VIEW_MAXIMIZE,
+	ACTMENU_VIEW_LOCK,
+	ACTMENU_VIEW_SLIDERS,
+	ACTMENU_VIEW_NEXTMARKER,
+	ACTMENU_VIEW_PREVMARKER,
+	ACTMENU_VIEW_NEXTKEYFRAME,
+	ACTMENU_VIEW_PREVKEYFRAME,
+	ACTMENU_VIEW_TIME,
+	ACTMENU_VIEW_NOHIDE,
+	ACTMENU_VIEW_TRANSDELDUPS,
+	ACTMENU_VIEW_HORIZOPTIMISE
+};
 
-#define ACTMENU_SEL_COLUMN_KEYS				1
-#define ACTMENU_SEL_COLUMN_MARKERSCOLUMN 	2
-#define ACTMENU_SEL_COLUMN_MARKERSBETWEEN	3
+enum {
+	ACTMENU_SEL_BORDER = 0,
+	ACTMENU_SEL_BORDERM,
+	ACTMENU_SEL_ALL_KEYS,
+	ACTMENU_SEL_ALL_CHAN,
+	ACTMENU_SEL_ALL_MARKERS,
+	ACTMENU_SEL_INVERSE_KEYS,
+	ACTMENU_SEL_INVERSE_MARKERS,
+	ACTMENU_SEL_INVERSE_CHANNELS,
+	ACTMENU_SEL_LEFTKEYS,
+	ACTMENU_SEL_RIGHTKEYS
+};
 
-#define ACTMENU_KEY_DUPLICATE     0
-#define ACTMENU_KEY_DELETE        1
-#define ACTMENU_KEY_BAKE          2
-#define ACTMENU_KEY_CLEAN		  3
+enum {
+	ACTMENU_SEL_COLUMN_KEYS	= 1,
+	ACTMENU_SEL_COLUMN_CFRA,
+	ACTMENU_SEL_COLUMN_MARKERSCOLUMN,
+	ACTMENU_SEL_COLUMN_MARKERSBETWEEN 
+};
 
-#define ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_UP		0
-#define ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_DOWN	1
-#define ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_TOP	2
-#define ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_BOTTOM	3
+enum {
+	ACTMENU_CHANNELS_OPENLEVELS = 0,
+	ACTMENU_CHANNELS_CLOSELEVELS,
+	ACTMENU_CHANNELS_EXPANDALL,
+	ACTMENU_CHANNELS_SHOWACHANS,
+	ACTMENU_CHANNELS_DELETE
+};
 
-#define ACTMENU_KEY_TRANSFORM_MOVE	0
-#define ACTMENU_KEY_TRANSFORM_SCALE	1
-#define ACTMENU_KEY_TRANSFORM_SLIDE	2
+enum {
+	ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_UP	= 0,
+	ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_DOWN,
+	ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_TOP,
+	ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_BOTTOM
+};
 
-#define ACTMENU_KEY_HANDLE_AUTO   0
-#define ACTMENU_KEY_HANDLE_ALIGN  1
-#define ACTMENU_KEY_HANDLE_FREE   2
-#define ACTMENU_KEY_HANDLE_VECTOR 3
+enum {
+	ACTMENU_CHANNELS_GROUP_ADD_TOACTIVE	= 0,
+	ACTMENU_CHANNELS_GROUP_ADD_TONEW,
+	ACTMENU_CHANNELS_GROUP_REMOVE
+};
 
-#define ACTMENU_KEY_INTERP_CONST  0
-#define ACTMENU_KEY_INTERP_LINEAR 1
-#define ACTMENU_KEY_INTERP_BEZIER 2
+enum {
+	ACTMENU_CHANNELS_SETTINGS_TOGGLE = 0,
+	ACTMENU_CHANNELS_SETTINGS_ENABLE,
+	ACTMENU_CHANNELS_SETTINGS_DISABLE,
+};
 
-#define ACTMENU_KEY_EXTEND_CONST 0
-#define ACTMENU_KEY_EXTEND_EXTRAPOLATION 1
-#define ACTMENU_KEY_EXTEND_CYCLIC 2
-#define ACTMENU_KEY_EXTEND_CYCLICEXTRAPOLATION 3
+enum {
+	ACTMENU_KEY_DUPLICATE = 0,
+	ACTMENU_KEY_DELETE,
+	ACTMENU_KEY_CLEAN,
+	ACTMENU_KEY_SAMPLEKEYS,
+	ACTMENU_KEY_INSERTKEY
+};
 
-#define ACTMENU_KEY_SNAP_NEARFRAME  1
-#define ACTMENU_KEY_SNAP_CURFRAME 2
-#define ACTMENU_KEY_SNAP_NEARMARK 3
+enum {
+	ACTMENU_KEY_TRANSFORM_MOVE  = 0,
+	ACTMENU_KEY_TRANSFORM_SCALE,
+	ACTMENU_KEY_TRANSFORM_SLIDE,
+	ACTMENU_KEY_TRANSFORM_EXTEND
+};
 
-#define ACTMENU_KEY_MIRROR_CURFRAME 1
-#define ACTMENU_KEY_MIRROR_YAXIS 2
-#define ACTMENU_KEY_MIRROR_XAXIS 3
-#define ACTMENU_KEY_MIRROR_MARKER 4
+enum {
+	ACTMENU_KEY_HANDLE_AUTO = 0,
+	ACTMENU_KEY_HANDLE_ALIGN,
+	ACTMENU_KEY_HANDLE_FREE,
+	ACTMENU_KEY_HANDLE_VECTOR
+};
 
-#define ACTMENU_MARKERS_ADD 0
-#define ACTMENU_MARKERS_DUPLICATE 1
-#define ACTMENU_MARKERS_DELETE 2
-#define ACTMENU_MARKERS_NAME 3
-#define ACTMENU_MARKERS_MOVE 4
+enum {
+	ACTMENU_KEY_INTERP_CONST = 0,
+	ACTMENU_KEY_INTERP_LINEAR,
+	ACTMENU_KEY_INTERP_BEZIER
+};
+
+enum {
+	ACTMENU_KEY_EXTEND_CONST = 0,
+	ACTMENU_KEY_EXTEND_EXTRAPOLATION,
+	ACTMENU_KEY_EXTEND_CYCLIC,
+	ACTMENU_KEY_EXTEND_CYCLICEXTRAPOLATION
+};
+
+enum {
+	ACTMENU_KEY_SNAP_NEARFRAME = 1,
+	ACTMENU_KEY_SNAP_CURFRAME,
+	ACTMENU_KEY_SNAP_NEARMARK,
+	ACTMENU_KEY_SNAP_NEARTIME,
+	ACTMENU_KEY_SNAP_CFRA2KEY,
+};
+
+enum {
+	ACTMENU_KEY_MIRROR_CURFRAME = 1,
+	ACTMENU_KEY_MIRROR_YAXIS,
+	ACTMENU_KEY_MIRROR_XAXIS,
+	ACTMENU_KEY_MIRROR_MARKER
+};
+
+enum {
+	ACTMENU_MARKERS_ADD = 0,
+	ACTMENU_MARKERS_DUPLICATE,
+	ACTMENU_MARKERS_DELETE,
+	ACTMENU_MARKERS_NAME,
+	ACTMENU_MARKERS_MOVE,
+	ACTMENU_MARKERS_LOCALADD,
+	ACTMENU_MARKERS_LOCALRENAME,
+	ACTMENU_MARKERS_LOCALDELETE,
+	ACTMENU_MARKERS_LOCALMOVE
+};
 
 void do_action_buttons(unsigned short event)
 {
 	Object *ob= OBACT;
 
-	switch(event){
-		case B_ACTBAKE:
-			bake_action_with_client(G.saction->action, ob, 0.01);
-			break;
-		case B_ACTHOME:
+	switch(event) {
+		case B_ACTHOME: /* HOMEKEY in Action Editor */
 			/*	Find X extents */
 			G.v2d->cur.xmin = 0;
 			G.v2d->cur.ymin=-SCROLLB;
-
+			
 			if (G.saction->action) {
 				float extra;
 				
@@ -174,24 +235,24 @@ void do_action_buttons(unsigned short event)
 					G.v2d->cur.xmax= -5;
 					G.v2d->cur.xmax= 100;
 				}
-				
-				G.v2d->cur.ymin= -(count_action_levels(G.saction->action)*(CHANNELHEIGHT+CHANNELSKIP));
-				G.v2d->cur.ymax= 0;
 			}
 			else { /* shapekeys and/or no action */
-				G.v2d->cur.xmax= -5;
-				G.v2d->cur.xmax= 100;
-				G.v2d->cur.ymax= 1000;
-				G.v2d->cur.ymin= 0;
+				G.v2d->cur.xmin= -5.0;
+				G.v2d->cur.xmax= 65.0;
 			}
+			
+			G.v2d->cur.ymin= -75.0;
+			G.v2d->cur.ymax= 5.0;
 			
 			G.v2d->tot= G.v2d->cur;
 			test_view2d(G.v2d, curarea->winx, curarea->winy);
 			view2d_do_locks(curarea, V2D_LOCK_COPY);
-
+			
 			addqueue (curarea->win, REDRAW, 1);
-
+			
 			break;
+			
+		/* copy/paste/paste-flip buttons in 3d-view header in PoseMode */
 		case B_ACTCOPY:
 			copy_posebuf();
 			allqueue(REDRAWVIEW3D, 1);
@@ -203,6 +264,14 @@ void do_action_buttons(unsigned short event)
 		case B_ACTPASTEFLIP:
 			paste_posebuf(1);
 			allqueue(REDRAWVIEW3D, 1);
+			break;
+			
+		/* copy/paste buttons in Action Editor header */
+		case B_ACTCOPYKEYS:
+			copy_actdata();
+			break;
+		case B_ACTPASTEKEYS:
+			paste_actdata();
 			break;
 
 		case B_ACTPIN:	/* __PINFAKE */
@@ -245,7 +314,7 @@ static void do_action_viewmenu(void *arg, int event)
 			break;
 		case ACTMENU_VIEW_LOCK:
 			G.v2d->flag ^= V2D_VIEWLOCK;
-			if(G.v2d->flag & V2D_VIEWLOCK)
+			if (G.v2d->flag & V2D_VIEWLOCK)
 				view2d_do_locks(curarea, 0);
 			break;
 		case ACTMENU_VIEW_SLIDERS:	 /* Show sliders (when applicable) */
@@ -254,11 +323,29 @@ static void do_action_viewmenu(void *arg, int event)
 		case ACTMENU_VIEW_MAXIMIZE: /* Maximize Window */
 			/* using event B_FULL */
 			break;
-		case ACTMENU_VIEW_NEXTMARKER: /* jump to next marker */
+		case ACTMENU_VIEW_NEXTMARKER: /* Jump to next marker */
 			nextprev_marker(1);
 			break;
-		case ACTMENU_VIEW_PREVMARKER: /* jump to previous marker */
+		case ACTMENU_VIEW_PREVMARKER: /* Jump to previous marker */
 			nextprev_marker(-1);
+			break;
+		case ACTMENU_VIEW_TIME: /* switch between frames and seconds display */
+			G.saction->flag ^= SACTION_DRAWTIME;
+			break;
+		case ACTMENU_VIEW_NOHIDE: /* Show hidden channels */
+			G.saction->flag ^= SACTION_NOHIDE;
+			break;
+		case ACTMENU_VIEW_NEXTKEYFRAME: /* Jump to next keyframe */
+			nextprev_action_keyframe(1);
+			break;
+		case ACTMENU_VIEW_PREVKEYFRAME: /* Jump to previous keyframe */
+			nextprev_action_keyframe(-1);
+			break;
+		case ACTMENU_VIEW_TRANSDELDUPS: /* Don't delete duplicate/overlapping keyframes after transform */
+			G.saction->flag ^= SACTION_NOTRANSKEYCULL;
+			break;
+		case ACTMENU_VIEW_HORIZOPTIMISE: /* Include keyframes not in view (horizontally) when preparing to draw */
+			G.saction->flag ^= SACTION_HORIZOPTIMISEON;
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -280,12 +367,45 @@ static uiBlock *action_viewmenu(void *arg_unused)
 		
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+			 
+	if (G.saction->flag & SACTION_DRAWTIME) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						"Show Frames|Ctrl T", 0, yco-=20, 
+						menuwidth, 19, NULL, 0.0, 0.0, 1, 
+						ACTMENU_VIEW_TIME, "");
+	}
+	else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						"Show Seconds|Ctrl T", 0, yco-=20, 
+						menuwidth, 19, NULL, 0.0, 0.0, 1, 
+						ACTMENU_VIEW_TIME, "");
+	}
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_SLIDERS)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
 					 "Show Sliders|", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_SLIDERS, "");
 					 
+	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_NOHIDE)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Show Hidden Channels|", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+					 ACTMENU_VIEW_NOHIDE, "");
+					 
+		// this option may get removed in future
+	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_HORIZOPTIMISEON)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Cull Out-of-View Keys (Time)|", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+					 ACTMENU_VIEW_HORIZOPTIMISE, "");
+			
+		// this option may get removed in future... 
+	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_NOTRANSKEYCULL)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
+					 "AfterTrans Delete Dupli-Frames|", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+					 ACTMENU_VIEW_TRANSDELDUPS, "");
+			
+		
 	uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
 					 "Lock Time to Other Windows|", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
@@ -298,13 +418,20 @@ static uiBlock *action_viewmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-					 
+		
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 				"Jump To Next Marker|PageUp", 0, yco-=20,
 				menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_VIEW_NEXTMARKER, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 				"Jump To Prev Marker|PageDown", 0, yco-=20, 
 				menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_VIEW_PREVMARKER, "");
+				
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+				"Jump To Next Keyframe|Ctrl PageUp", 0, yco-=20,
+				menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_VIEW_NEXTKEYFRAME, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+				"Jump To Prev Keyframe|Ctrl PageDown", 0, yco-=20, 
+				menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_VIEW_PREVKEYFRAME, "");
 					 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -352,33 +479,22 @@ static uiBlock *action_viewmenu(void *arg_unused)
 
 static void do_action_selectmenu_columnmenu(void *arg, int event)
 {
-	SpaceAction *saction;
-	bAction	*act;
-	Key *key;
-	
-	saction = curarea->spacedata.first;
-	if (!saction) return;
-
-	act = saction->action;
-	key = get_action_mesh_key();
-	
-	if (event == ACTMENU_SEL_COLUMN_MARKERSBETWEEN) {
-		markers_selectkeys_between();
+	switch (event) {
+		case ACTMENU_SEL_COLUMN_MARKERSBETWEEN:
+			markers_selectkeys_between();
+			break;
+		case ACTMENU_SEL_COLUMN_KEYS:
+			column_select_action_keys(1);
+			break;
+		case ACTMENU_SEL_COLUMN_MARKERSCOLUMN:
+			column_select_action_keys(2);
+			break;
+		case ACTMENU_SEL_COLUMN_CFRA:
+			column_select_action_keys(3);
+			break;
 	}
-	else if (ELEM(event, ACTMENU_SEL_COLUMN_KEYS, ACTMENU_SEL_COLUMN_MARKERSCOLUMN)) {
-		if (act)
-			column_select_actionkeys(act, event);
-		else if (key)
-			column_select_shapekeys(key, event);
-	}
-	else
-		return;
 		
-	allqueue(REDRAWTIME, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWSOUND, 0);
+	allqueue(REDRAWMARKER, 0);
 }
 
 static uiBlock *action_selectmenu_columnmenu(void *arg_unused)
@@ -394,10 +510,13 @@ static uiBlock *action_selectmenu_columnmenu(void *arg_unused)
 					 "On Selected Keys|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,  
 					 ACTMENU_SEL_COLUMN_KEYS, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "On Current Frame|Ctrl K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,  
+					 ACTMENU_SEL_COLUMN_CFRA, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "On Selected Markers|Shift K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_COLUMN_MARKERSCOLUMN, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Between Selected Markers|Ctrl K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 "Between Selected Markers|Alt K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_COLUMN_MARKERSBETWEEN, "");
 	
 	
@@ -414,7 +533,7 @@ static void do_action_selectmenu(void *arg, int event)
 	Key *key;
 	
 	saction = curarea->spacedata.first;
-	if (!saction) return;
+	if (saction == NULL) return;
 
 	act = saction->action;
 	key = get_action_mesh_key();
@@ -422,12 +541,7 @@ static void do_action_selectmenu(void *arg, int event)
 	switch(event)
 	{
 		case ACTMENU_SEL_BORDER: /* Border Select */
-			if (act) {
-				borderselect_action();
-			}
-			else if (key) {
-				borderselect_mesh(key);
-			}
+			borderselect_action();
 			break;
 			
 		case ACTMENU_SEL_BORDERM: /* Border Select */
@@ -435,59 +549,57 @@ static void do_action_selectmenu(void *arg, int event)
 			break;
 
 		case ACTMENU_SEL_ALL_KEYS: /* Select/Deselect All Keys */
-			if (act) {
-				deselect_actionchannel_keys (act, 1, 1);
-				allqueue (REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue (REDRAWIPO, 0);
-			}
-			else if (key) {
-				deselect_meshchannel_keys(key, 1, 1);
-				allqueue (REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue (REDRAWIPO, 0);
-			}
+			deselect_action_keys(1, 1);
+			BIF_undo_push("(De)Select Keys");
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWIPO, 0);
 			break;
 
 		case ACTMENU_SEL_ALL_CHAN: /* Select/Deselect All Channels */
-			deselect_actionchannels(act, 1);
-			allqueue (REDRAWVIEW3D, 0);
-			allqueue (REDRAWACTION, 0);
+			deselect_action_channels(1);
+			BIF_undo_push("(De)Select Action Channels");
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
-			allqueue (REDRAWIPO, 0);
+			allqueue(REDRAWIPO, 0);
 			break;
 			
 		case ACTMENU_SEL_ALL_MARKERS: /* select/deselect all markers */
 			deselect_markers(1, 0);
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			BIF_undo_push("(De)Select Markers");
+			allqueue(REDRAWMARKER, 0);
 			break;
 			
 		case ACTMENU_SEL_INVERSE_KEYS: /* invert selection status of keys */
-			if (act) {
-				deselect_actionchannel_keys(act, 0, 2);
-				allqueue (REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue (REDRAWIPO, 0);
-			}
-			else if (key) {
-				deselect_meshchannel_keys(key, 0, 2);
-				allqueue (REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue (REDRAWIPO, 0);
-			}
+			deselect_action_keys(0, 2);
+			BIF_undo_push("Inverse Keys");
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWIPO, 0);
+			break;
+			
+		case ACTMENU_SEL_INVERSE_CHANNELS: /* invert selection status of channels */
+			deselect_action_channels(2);
+			BIF_undo_push("Inverse Action Channels");
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWIPO, 0);
 			break;
 			
 		case ACTMENU_SEL_INVERSE_MARKERS: /* invert selection of markers */
 			deselect_markers(0, 2);
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			BIF_undo_push("Inverse Action Channels");
+			allqueue(REDRAWMARKER, 0);
+			break;
+			
+		case ACTMENU_SEL_LEFTKEYS:
+			selectkeys_leftright(1, SELECT_REPLACE);
+			break;
+			
+		case ACTMENU_SEL_RIGHTKEYS:
+			selectkeys_leftright(0, SELECT_REPLACE);
 			break;
 	}
 }
@@ -522,7 +634,7 @@ static uiBlock *action_selectmenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_ALL_MARKERS, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Select/Deselect All Channels", 0, yco-=20, 
+					 "Select/Deselect All Channels|A", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_ALL_CHAN, "");
 					 
@@ -530,21 +642,266 @@ static uiBlock *action_selectmenu(void *arg_unused)
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Inverse Keys", 0, yco-=20, 
+					 "Inverse Keys|Ctrl I", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_INVERSE_KEYS, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Inverse Markers", 0, yco-=20, 
+					 "Inverse Markers|Ctrl Shift I", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_INVERSE_MARKERS, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Inverse All Channels|Ctrl I", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_SEL_INVERSE_CHANNELS, "");
 		
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+			 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Back In Time|Alt RMB", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_SEL_LEFTKEYS, "");
+								 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Ahead In Time|Alt RMB", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_SEL_RIGHTKEYS, "");		 
+			 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 			 
 	uiDefIconTextBlockBut(block, action_selectmenu_columnmenu, 
 						  NULL, ICON_RIGHTARROW_THIN, "Column Select Keys", 0, yco-=20, 120, 20, "");
 	
-	if(curarea->headertype==HEADERTOP) {
+	if (curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
+
+
+static void do_action_channelmenu_posmenu(void *arg, int event)
+{
+	switch(event)
+	{
+		case ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_DOWN:
+			rearrange_action_channels(REARRANGE_ACTCHAN_DOWN);
+			break;
+		case ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_UP:
+			rearrange_action_channels(REARRANGE_ACTCHAN_UP);
+			break;
+		case ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_TOP:
+			rearrange_action_channels(REARRANGE_ACTCHAN_TOP);
+			break;
+		case ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_BOTTOM:
+			rearrange_action_channels(REARRANGE_ACTCHAN_BOTTOM);
+			break;
+	}
+
+	scrarea_queue_winredraw(curarea);
+}
+
+static uiBlock *action_channelmenu_posmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "action_channelmenu_posmenu", 
+					  UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_action_channelmenu_posmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Move Up|Shift Page Up", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_UP, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Move Down|Shift Page Down", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_DOWN, "");
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+					
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Move to Top|Ctrl Shift Page Up", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_TOP, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Move to Bottom|Ctrl Shift Page Down", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_CHANPOS_MOVE_CHANNEL_BOTTOM, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
+static void do_action_channelmenu_groupmenu(void *arg, int event)
+{
+	switch(event)
+	{
+		case ACTMENU_CHANNELS_GROUP_ADD_TOACTIVE:
+			action_groups_group(0);
+			break;
+		case ACTMENU_CHANNELS_GROUP_ADD_TONEW:
+			action_groups_group(1);
+			break;
+		case ACTMENU_CHANNELS_GROUP_REMOVE:
+			action_groups_ungroup();
+			break;
+	}
+}
+
+static uiBlock *action_channelmenu_groupmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "action_channelmenu_groupmenu", 
+					  UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_action_channelmenu_groupmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Add to Active Group|Shift G", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_GROUP_ADD_TOACTIVE, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Add to New Group|Ctrl Shift G", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_GROUP_ADD_TONEW, "");
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+					
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Remove From Group|Alt G", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_GROUP_REMOVE, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
+static void do_action_channelmenu_settingsmenu(void *arg, int event)
+{
+	setflag_action_channels(event);
+}
+
+static uiBlock *action_channelmenu_settingsmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "action_channelmenu_settingsmenu", 
+					  UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_action_channelmenu_settingsmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Toggle a Setting|Shift W", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_SETTINGS_TOGGLE, "");
+					 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Enable a Setting|Ctrl Shift W", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_SETTINGS_ENABLE, "");
+					
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Disable a Setting|Alt W", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_SETTINGS_DISABLE, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
+static void do_action_channelmenu(void *arg, int event)
+{	
+	SpaceAction *saction;
+	
+	saction = curarea->spacedata.first;
+	if (saction == NULL) return;
+	
+	switch(event)
+	{
+		case ACTMENU_CHANNELS_OPENLEVELS: /* Unfold selected channels one step */
+			openclose_level_action(1);
+			break;
+		case ACTMENU_CHANNELS_CLOSELEVELS: /* Fold selected channels one step */
+			openclose_level_action(-1);
+			break;
+		case ACTMENU_CHANNELS_EXPANDALL: /* Expands all channels */
+			expand_all_action();
+			break;
+		case ACTMENU_CHANNELS_SHOWACHANS: /* Unfold groups that are hiding selected achans */
+			expand_obscuregroups_action();
+			break;
+		case ACTMENU_CHANNELS_DELETE: /* Deletes selected channels */
+			delete_action_channels();
+			break;
+	}
+}
+
+static uiBlock *action_channelmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "action_channelmenu", 
+					  UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_action_channelmenu, NULL);
+	
+	uiDefIconTextBlockBut(block, action_channelmenu_groupmenu, 
+						  NULL, ICON_RIGHTARROW_THIN, 
+						  "Grouping", 0, yco-=20, 120, 20, "");	 
+						  
+	uiDefIconTextBlockBut(block, action_channelmenu_posmenu, 
+						  NULL, ICON_RIGHTARROW_THIN, 
+						  "Ordering", 0, yco-=20, 120, 20, "");
+	
+	uiDefIconTextBlockBut(block, action_channelmenu_settingsmenu, 
+						  NULL, ICON_RIGHTARROW_THIN, 
+						  "Settings", 0, yco-=20, 120, 20, "");	
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+			"Delete|X", 0, yco-=20,
+			menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_CHANNELS_DELETE, "");
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+			"Toggle Show Hierachy|~", 0, yco-=20,
+			menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_CHANNELS_EXPANDALL, "");
+			
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+			"Show Group-Hidden Channels|Shift ~", 0, yco-=20,
+			menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_CHANNELS_SHOWACHANS, "");
+			
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+			"Expand One Level|Ctrl NumPad+", 0, yco-=20,
+			menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_CHANNELS_OPENLEVELS, "");
+			
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+			"Collapse One Level|Ctrl NumPad-", 0, yco-=20,
+			menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_CHANNELS_CLOSELEVELS, "");
+	
+	if (curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
 	else {
@@ -558,42 +915,20 @@ static uiBlock *action_selectmenu(void *arg_unused)
 }
 
 static void do_action_keymenu_transformmenu(void *arg, int event)
-{
-	SpaceAction *saction;
-	bAction	*act;
-	Key *key;
-	
-	saction = curarea->spacedata.first;
-	if (!saction) return;
-
-	act = saction->action;
-	key = get_action_mesh_key();
-	
+{	
 	switch (event)
 	{
 		case ACTMENU_KEY_TRANSFORM_MOVE:
-			if (act) {	
-				transform_actionchannel_keys ('g', 0);
-			}
-			else if (key) {
-				transform_meshchannel_keys('g', key);
-			} 
+			transform_action_keys('g', 0);
 			break;
 		case ACTMENU_KEY_TRANSFORM_SCALE:
-			if (act) {
-				transform_actionchannel_keys ('s', 0);
-			}
-			else if (key) {
-				transform_meshchannel_keys('s', key);
-			} 
+			transform_action_keys('s', 0);
 			break;
 		case ACTMENU_KEY_TRANSFORM_SLIDE:
-			if (act) {
-				transform_actionchannel_keys ('t', 0);
-			}
-			else if (key) {
-				//transform_meshchannel_keys('t', key);
-			} 
+			transform_action_keys('t', 0);
+			break;
+		case ACTMENU_KEY_TRANSFORM_EXTEND:
+			transform_action_keys('e', 0);
 			break;
 	}
 
@@ -613,6 +948,9 @@ static uiBlock *action_keymenu_transformmenu(void *arg_unused)
 					 "Grab/Move|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,  
 					 ACTMENU_KEY_TRANSFORM_MOVE, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Grab/Extend from Frame|E", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_TRANSFORM_EXTEND, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "Scale|S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_TRANSFORM_SCALE, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
@@ -628,24 +966,9 @@ static uiBlock *action_keymenu_transformmenu(void *arg_unused)
 
 static void do_action_keymenu_handlemenu(void *arg, int event)
 {
-	SpaceAction *saction;
-	bAction	*act;
-	Key *key;
-	
-	saction = curarea->spacedata.first;
-	if (!saction) return;
-
-	act = saction->action;
-	key = get_action_mesh_key();
-
 	switch (event) {
 		case ACTMENU_KEY_HANDLE_AUTO:
-			if (act) {
-				sethandles_actionchannel_keys(HD_AUTO);
-			}
-			else if (key) {
-				sethandles_meshchannel_keys(HD_AUTO, key);
-			} 
+			sethandles_action_keys(HD_AUTO);
 			break;
 
 		case ACTMENU_KEY_HANDLE_ALIGN:
@@ -653,21 +976,11 @@ static void do_action_keymenu_handlemenu(void *arg, int event)
 			/* OK, this is kinda dumb, need to fix the
 			 * toggle crap in sethandles_ipo_keys() 
 			 */
-			if (act) {
-				sethandles_actionchannel_keys(HD_ALIGN);
-			}
-			else if (key) {
-				sethandles_meshchannel_keys(HD_ALIGN, key);
-			} 
+			sethandles_action_keys(HD_ALIGN);
 			break;
 
 		case ACTMENU_KEY_HANDLE_VECTOR:
-			if (act) {
-				sethandles_actionchannel_keys(HD_VECT);
-			}
-			else if (key) {
-				sethandles_meshchannel_keys(HD_VECT, key);
-			} 			
+			sethandles_action_keys(HD_VECT);	
 			break;
 	}
 }
@@ -705,32 +1018,16 @@ static uiBlock *action_keymenu_handlemenu(void *arg_unused)
 
 static void do_action_keymenu_intpolmenu(void *arg, int event)
 {
-	SpaceAction *saction;
-	bAction	*act;
-	//Key *key;
-	
-	saction = curarea->spacedata.first;
-	if (!saction) return;
-
-	act = saction->action;
-	//key = get_action_mesh_key();
-
 	switch(event)
 	{
 		case ACTMENU_KEY_INTERP_CONST:
-			if (act)
-				set_ipotype_actionchannels(SET_IPO_CONSTANT);
-			//else if (key) /* todo */
+			action_set_ipo_flags(SET_IPO_MENU, SET_IPO_CONSTANT);
 			break;
 		case ACTMENU_KEY_INTERP_LINEAR:
-			if (act)
-				set_ipotype_actionchannels(SET_IPO_LINEAR);
-			//else if (key) /* todo */
+			action_set_ipo_flags(SET_IPO_MENU, SET_IPO_LINEAR);
 			break;
 		case ACTMENU_KEY_INTERP_BEZIER:
-			if (act)
-				set_ipotype_actionchannels(SET_IPO_BEZIER);
-			//else if (key) /* todo */
+			action_set_ipo_flags(SET_IPO_MENU, SET_IPO_BEZIER);
 			break;
 	}
 
@@ -747,15 +1044,15 @@ static uiBlock *action_keymenu_intpolmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_action_keymenu_intpolmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Constant", 0, yco-=20, 
+					 "Constant|Shift T, 1", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_INTERP_CONST, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Linear", 0, yco-=20, 
+					 "Linear|Shift T, 2", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_INTERP_LINEAR, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Bezier", 0, yco-=20, 
+					 "Bezier|Shift T, 3", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_INTERP_BEZIER, "");
 
@@ -767,37 +1064,19 @@ static uiBlock *action_keymenu_intpolmenu(void *arg_unused)
 
 static void do_action_keymenu_extendmenu(void *arg, int event)
 {
-	SpaceAction *saction;
-	bAction	*act;
-	//Key *key;
-	
-	saction = curarea->spacedata.first;
-	if (!saction) return;
-
-	act = saction->action;
-	//key = get_action_mesh_key();
-
 	switch(event)
 	{
 		case ACTMENU_KEY_EXTEND_CONST:
-			if (act)
-				set_extendtype_actionchannels(SET_EXTEND_CONSTANT);
-			//else if (key) /* todo */
+			action_set_ipo_flags(SET_EXTEND_MENU, SET_EXTEND_CONSTANT);
 			break;
 		case ACTMENU_KEY_EXTEND_EXTRAPOLATION:
-			if (act)
-				set_extendtype_actionchannels(SET_EXTEND_EXTRAPOLATION);
-			//else if (key) /* todo */
+			action_set_ipo_flags(SET_EXTEND_MENU, SET_EXTEND_EXTRAPOLATION);
 			break;
 		case ACTMENU_KEY_EXTEND_CYCLIC:
-			if (act)
-				set_extendtype_actionchannels(SET_EXTEND_CYCLIC);
-			//else if (key) /* todo */
+			action_set_ipo_flags(SET_EXTEND_MENU, SET_EXTEND_CYCLIC);
 			break;
 		case ACTMENU_KEY_EXTEND_CYCLICEXTRAPOLATION:
-			if (act)
-				set_extendtype_actionchannels(SET_EXTEND_CYCLICEXTRAPOLATION);
-			//else if (key) /* todo */
+			action_set_ipo_flags(SET_EXTEND_MENU, SET_EXTEND_CYCLICEXTRAPOLATION);
 			break;
 	}
 
@@ -836,63 +1115,6 @@ static uiBlock *action_keymenu_extendmenu(void *arg_unused)
 	return block;
 }
 
-static void do_action_keymenu_chanposmenu(void *arg, int event)
-{
-	switch(event)
-	{
-		case ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_DOWN:
-			down_sel_action();
-			break;
-		case ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_UP:
-			up_sel_action();
-			break;
-		case ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_TOP:
-			top_sel_action();
-			break;
-		case ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_BOTTOM:
-			bottom_sel_action();
-			break;
-	}
-
-	scrarea_queue_winredraw(curarea);
-}
-
-static uiBlock *action_keymenu_chanposmenu(void *arg_unused)
-{
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-
-	block= uiNewBlock(&curarea->uiblocks, "action_keymenu_chanposmenu", 
-					  UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetButmFunc(block, do_action_keymenu_chanposmenu, NULL);
-
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Move Up|Ctrl Page Up", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_UP, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Move Down|Ctrl Page Down", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_DOWN, "");
-	
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
-					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-					
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Move to Top|Shift Page Up", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_TOP, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Move to Bottom|Shift Page Down", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_BOTTOM, "");
-
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-
-	return block;
-}
-
 static void do_action_keymenu_snapmenu(void *arg, int event)
 {
 	switch(event)
@@ -900,7 +1122,12 @@ static void do_action_keymenu_snapmenu(void *arg, int event)
 		case ACTMENU_KEY_SNAP_NEARFRAME:
 		case ACTMENU_KEY_SNAP_CURFRAME:
 		case ACTMENU_KEY_SNAP_NEARMARK:
-			snap_keys_to_frame(event);
+		case ACTMENU_KEY_SNAP_NEARTIME:
+			snap_action_keys(event);
+			break;
+			
+		case ACTMENU_KEY_SNAP_CFRA2KEY:
+			snap_cfra_action();
 			break;
 	}
 
@@ -916,16 +1143,37 @@ static uiBlock *action_keymenu_snapmenu(void *arg_unused)
 					  UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_action_keymenu_snapmenu, NULL);
 
+	if (G.saction->flag & SACTION_DRAWTIME) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						 "Key -> Nearest Second|Shift S, 1", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+						 ACTMENU_KEY_SNAP_NEARTIME, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						 "Key -> Current Time|Shift S, 2", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+						 ACTMENU_KEY_SNAP_CURFRAME, "");
+
+	}
+	else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						 "Key -> Nearest Frame|Shift S, 1", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+						 ACTMENU_KEY_SNAP_NEARFRAME, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						 "Key -> Current Frame|Shift S, 2", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+						 ACTMENU_KEY_SNAP_CURFRAME, "");
+	}
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Nearest Frame|Shift S, 1", 0, yco-=20, 
+					 "Key -> Nearest Marker|Shift S, 3", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_SNAP_NEARFRAME, "");
+					 ACTMENU_KEY_SNAP_NEARMARK, "");
+					 
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+			 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Current Frame|Shift S, 2", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_SNAP_CURFRAME, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Nearest Marker|Shift S, 3", 0, yco-=20, 
+					 "Current Frame -> Key|Ctrl Shift S", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_SNAP_NEARMARK, "");
 
@@ -995,31 +1243,19 @@ static void do_action_keymenu(void *arg, int event)
 	switch(event)
 	{
 		case ACTMENU_KEY_DUPLICATE:
-			if (act) {
-				duplicate_actionchannel_keys();
-				remake_action_ipos(act);
-			}
-			else if (key) {
-				duplicate_meshchannel_keys(key);
-			}
+			duplicate_action_keys();
  			break;
-
 		case ACTMENU_KEY_DELETE:
-			if (act) {
-				delete_actionchannel_keys ();
-			}
-			else if (key) {
-				delete_meshchannel_keys(key);
-			}
-			break;
-		case ACTMENU_KEY_BAKE:
-			bake_action_with_client(G.saction->action, OBACT, 0.01);
+			delete_action_keys();
 			break;
 		case ACTMENU_KEY_CLEAN:
-			if (act) 
-				clean_actionchannels(act);
-			else if (key) 
-				clean_shapekeys(key);
+			clean_action();
+			break;
+		case ACTMENU_KEY_SAMPLEKEYS:
+			sample_action_keys();
+			break;
+		case ACTMENU_KEY_INSERTKEY:
+			insertkey_action();
 			break;
 	}
 }
@@ -1044,7 +1280,15 @@ static uiBlock *action_keymenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					"Insert Key|I", 0, yco-=20, 
+					menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					ACTMENU_KEY_INSERTKEY, "");
 
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+					
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					"Duplicate|Shift D", 0, yco-=20, 
 					menuwidth, 19, NULL, 0.0, 0.0, 0, 
@@ -1062,11 +1306,11 @@ static uiBlock *action_keymenu(void *arg_unused)
 					 "Clean Action|O", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_CLEAN, "");
-			 
+					 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Bake Action to Ipo Keys", 0, yco-=20, 
+					 "Sample Keys|Alt O", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_BAKE, "");
+					 ACTMENU_KEY_SAMPLEKEYS, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -1084,9 +1328,6 @@ static uiBlock *action_keymenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, action_keymenu_intpolmenu, 
 						  NULL, ICON_RIGHTARROW_THIN, 
 						  "Interpolation Mode", 0, yco-=20, 120, 20, "");
-	uiDefIconTextBlockBut(block, action_keymenu_chanposmenu, 
-						  NULL, ICON_RIGHTARROW_THIN, 
-						  "Channel Ordering", 0, yco-=20, 120, 20, "");
 
 	
 	if(curarea->headertype==HEADERTOP) {
@@ -1121,13 +1362,24 @@ static void do_action_markermenu(void *arg, int event)
 		case ACTMENU_MARKERS_MOVE:
 			transform_markers('g', 0);
 			break;
+			
+		case ACTMENU_MARKERS_LOCALADD:
+			action_add_localmarker(G.saction->action, CFRA);
+			break;
+		case ACTMENU_MARKERS_LOCALDELETE:
+			action_remove_localmarkers(G.saction->action);
+			break;
+		case ACTMENU_MARKERS_LOCALRENAME:
+			action_rename_localmarker(G.saction->action);
+			break;
+		case ACTMENU_MARKERS_LOCALMOVE:
+			G.saction->flag |= SACTION_POSEMARKERS_MOVE;
+			transform_markers('g', 0);
+			G.saction->flag &= ~SACTION_POSEMARKERS_MOVE;
+			break;
 	}
 	
-	allqueue(REDRAWTIME, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWSOUND, 0);
+	allqueue(REDRAWMARKER, 0);
 }
 
 static uiBlock *action_markermenu(void *arg_unused)
@@ -1145,14 +1397,24 @@ static uiBlock *action_markermenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_DUPLICATE, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Marker|X", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_DELETE, "");
-					 
+					
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-
+					
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "(Re)Name Marker|Ctrl M", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_NAME, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|Ctrl G", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_MOVE, "");
+					 
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Pose Marker|Shift L", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALADD, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rename Pose Marker|Ctrl Shift L", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALRENAME, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Pose Marker|Alt L", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALDELETE, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Pose Marker|Ctrl L", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALMOVE, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -1171,23 +1433,23 @@ void action_buttons(void)
 {
 	uiBlock *block;
 	short xco, xmax;
-	char naam[256];
+	char name[256];
 	Object *ob;
 	ID *from;
 
-	if (!G.saction)
+	if (G.saction == NULL)
 		return;
 
-	// copy from drawactionspace....
+	/* copied from drawactionspace.... */
 	if (!G.saction->pin) {
 		if (OBACT)
 			G.saction->action = OBACT->action;
 		else
-			G.saction->action=NULL;
+			G.saction->action= NULL;
 	}
 
-	sprintf(naam, "header %d", curarea->headwin);
-	block= uiNewBlock(&curarea->uiblocks, naam, 
+	sprintf(name, "header %d", curarea->headwin);
+	block= uiNewBlock(&curarea->uiblocks, name, 
 					  UI_EMBOSS, UI_HELV, curarea->headwin);
 
 	if (area_is_active_area(curarea)) 
@@ -1225,10 +1487,10 @@ void action_buttons(void)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	xco+=XIC;
 
-	if((curarea->flag & HEADER_NO_PULLDOWN)==0) {
+	if ((curarea->flag & HEADER_NO_PULLDOWN)==0) {
 		/* pull down menus */
 		uiBlockSetEmboss(block, UI_EMBOSSP);
-	
+		
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, action_viewmenu, NULL, 
 					  "View", xco, -2, xmax-3, 24, "");
@@ -1238,6 +1500,13 @@ void action_buttons(void)
 		uiDefPulldownBut(block, action_selectmenu, NULL, 
 					  "Select", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
+		
+		if (G.saction->action) {
+			xmax= GetButStringLength("Channel");
+			uiDefPulldownBut(block, action_channelmenu, NULL, 
+						  "Channel", xco, -2, xmax-3, 24, "");
+			xco+= xmax;
+		}
 		
 		xmax= GetButStringLength("Marker");
 		uiDefPulldownBut(block, action_markermenu, NULL, 
@@ -1253,43 +1522,53 @@ void action_buttons(void)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* NAME ETC */
-	ob=OBACT;
-	from = (ID*) ob;
+	ob= OBACT;
+	from = (ID *)ob;
 
 	xco= std_libbuttons(block, xco, 0, B_ACTPIN, &G.saction->pin, 
 						B_ACTIONBROWSE, ID_AC, 0, (ID*)G.saction->action, 
 						from, &(G.saction->actnr), B_ACTALONE, 
 						B_ACTLOCAL, B_ACTIONDELETE, 0, 0);	
 
-		
-	/* Draw action baker */
-	xco+= 8;
-	
-	uiDefBut(block, BUT, B_ACTBAKE, 
-			 "Bake", xco, 0, 64, YIC, 0, 0, 0, 0, 0, 
-			 "Create an action with the constraint effects "
-			 "converted into Ipo keys");
-	xco+=64;
-
 	uiClearButLock();
 
+	xco += 8;
+	
+	/* COPY PASTE */
+	uiBlockBeginAlign(block);
+	if (curarea->headertype==HEADERTOP) {
+		uiDefIconBut(block, BUT, B_ACTCOPYKEYS, ICON_COPYUP,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected keyframes from the selected channel(s) to the buffer");
+		uiDefIconBut(block, BUT, B_ACTPASTEKEYS, ICON_PASTEUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the keyframes from the buffer");
+	}
+	else {
+		uiDefIconBut(block, BUT, B_ACTCOPYKEYS, ICON_COPYDOWN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected keyframes from the selected channel(s) to the buffer");
+		uiDefIconBut(block, BUT, B_ACTPASTEKEYS, ICON_PASTEDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the keyframes from the buffer");
+	}
+	uiBlockEndAlign(block);
+	xco += (XIC + 8);
+	
 	/* draw AUTOSNAP */
-	xco+= 8;
+	if (G.saction->flag & SACTION_DRAWTIME) {
+		uiDefButS(block, MENU, B_REDR,
+				"Auto-Snap Keyframes %t|No Snap %x0|Second Step %x1|Nearest Second %x2|Nearest Marker %x3", 
+				xco,0,70,YIC, &(G.saction->autosnap), 0, 1, 0, 0, 
+				"Auto-snapping mode for keyframes when transforming");
+	}
+	else {
+		uiDefButS(block, MENU, B_REDR, 
+				"Auto-Snap Keyframes %t|No Snap %x0|Frame Step %x1|Nearest Frame %x2|Nearest Marker %x3", 
+				xco,0,70,YIC, &(G.saction->autosnap), 0, 1, 0, 0, 
+				"Auto-snapping mode for keyframes when transforming");
+	}
 	
-	uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_PROP_OFF, 
-						"Auto-Snap Keys %t|Off %x0|Frame Step %x1|Nearest Frame %x2", 
-						xco,0,XIC+10,YIC, &(G.saction->autosnap), 0, 1, 0, 0, 
-						"Auto-snapping mode for keys when transforming");
+	xco += (70 + 8);
 	
-	xco+= (XIC + 18);
-	
-	/* draw LOCK*/
-		
+	/* draw LOCK */
 	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco, 0, XIC, YIC, 
 				  &(G.saction->lock), 0, 0, 0, 0, 
 				  "Updates other affected window spaces automatically "
 				  "to reflect changes in real time");
-
+	
 	/* always as last  */
 	curarea->headbutlen = xco + 2*XIC;
 

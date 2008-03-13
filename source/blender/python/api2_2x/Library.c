@@ -67,7 +67,7 @@ static PyObject *M_Library_Open( PyObject * self, PyObject * args );
 static PyObject *M_Library_Close( PyObject * self );
 static PyObject *M_Library_GetName( PyObject * self );
 static PyObject *M_Library_Update( PyObject * self );
-static PyObject *M_Library_Datablocks( PyObject * self, PyObject * args );
+static PyObject *M_Library_Datablocks( PyObject * self, PyObject * value );
 static PyObject *oldM_Library_Load( PyObject * self, PyObject * args );
 static PyObject *M_Library_LinkableGroups( PyObject * self );
 static PyObject *M_Library_LinkedLibs( PyObject * self );
@@ -123,14 +123,14 @@ static char Library_LinkedLibs_doc[] =
  * Python method structure definition for Blender.Library submodule.
  */
 struct PyMethodDef oldM_Library_methods[] = {
-	{"Open", M_Library_Open, METH_VARARGS, Library_Open_doc},
+	{"Open", M_Library_Open, METH_O, Library_Open_doc},
 	{"Close", ( PyCFunction ) M_Library_Close, METH_NOARGS,
 	 Library_Close_doc},
 	{"GetName", ( PyCFunction ) M_Library_GetName, METH_NOARGS,
 	 Library_GetName_doc},
 	{"Update", ( PyCFunction ) M_Library_Update, METH_NOARGS,
 	 Library_Update_doc},
-	{"Datablocks", M_Library_Datablocks, METH_VARARGS,
+	{"Datablocks", M_Library_Datablocks, METH_O,
 	 Library_Datablocks_doc},
 	{"Load", oldM_Library_Load, METH_VARARGS, Library_Load_doc},
 	{"LinkableGroups", ( PyCFunction ) M_Library_LinkableGroups,
@@ -147,9 +147,9 @@ struct PyMethodDef oldM_Library_methods[] = {
  * Only one can be open at a time, so this function also closes
  * the previously opened file, if any.
  */
-static PyObject *M_Library_Open( PyObject * self, PyObject * args )
+static PyObject *M_Library_Open( PyObject * self, PyObject * value )
 {
-	char *fname = NULL;
+	char *fname = PyString_AsString(value);
 	char filename[FILE_MAXDIR+FILE_MAXFILE];
 	char fname1[FILE_MAXDIR+FILE_MAXFILE];
 	
@@ -157,7 +157,7 @@ static PyObject *M_Library_Open( PyObject * self, PyObject * args )
 
 	bpy_relative= 0; /* assume non relative each time we load */
 	
-	if( !PyArg_ParseTuple( args, "s", &fname ) ) {
+	if( !fname ) {
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a .blend filename" );
 	}
@@ -244,9 +244,9 @@ static PyObject *M_Library_GetName( PyObject * self )
  * Return a list with all items of a given datablock type
  * (like 'Object', 'Mesh', etc.) in the open library file.
  */
-static PyObject *M_Library_Datablocks( PyObject * self, PyObject * args )
+static PyObject *M_Library_Datablocks( PyObject * self, PyObject * value )
 {
-	char *name = NULL;
+	char *name = PyString_AsString(value);
 	int blocktype = 0;
 	LinkNode *l = NULL, *names = NULL;
 	PyObject *list = NULL;
@@ -256,7 +256,7 @@ static PyObject *M_Library_Datablocks( PyObject * self, PyObject * args )
 					      "no library file: open one first with Blender.Lib_Open(filename)" );
 	}
 
-	if( !PyArg_ParseTuple( args, "s", &name ) ) {
+	if( !name ) {
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a string (datablock type) as argument." );
 	}
@@ -526,13 +526,13 @@ static PyObject *CreatePyObject_LibData( int idtype, int kind,
  * which can be linked/appended to a scene.
  */
 
-static PyObject *lib_link_or_append( BPy_LibraryData *self, PyObject * args,
+static PyObject *lib_link_or_append( BPy_LibraryData *self, PyObject * value,
 		int mode )
 {
-	char *name;
+	char *name = PyString_AsString(value);
 
 	/* get the name of the data used wants to append */
-	if( !PyArg_ParseTuple( args, "s", &name ) )
+	if( !name )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 			"expected a string" );
 
@@ -672,16 +672,16 @@ PyObject *LibraryData_importLibData( BPy_LibraryData *self, char *name,
 
 /* .append(): make a local copy of the library's data (except for objects) */
 
-static PyObject *LibraryData_getAppend( BPy_LibraryData *self, PyObject * args)
+static PyObject *LibraryData_getAppend( BPy_LibraryData *self, PyObject * value)
 {
-	return lib_link_or_append( self, args, OBJECT_IS_APPEND );
+	return lib_link_or_append( self, value, OBJECT_IS_APPEND );
 }
 
 /* .link(): make a link to the library's data (except for objects) */
 
-static PyObject *LibraryData_getLink( BPy_LibraryData *self, PyObject * args)
+static PyObject *LibraryData_getLink( BPy_LibraryData *self, PyObject * value)
 {
-	return lib_link_or_append( self, args, OBJECT_IS_LINK );
+	return lib_link_or_append( self, value, OBJECT_IS_LINK );
 }
 
 /************************************************************************
@@ -745,9 +745,9 @@ static PyObject *LibraryData_nextIter( BPy_LibraryData * self )
  ************************************************************************/
 
 static struct PyMethodDef BPy_LibraryData_methods[] = {
-	{"append", (PyCFunction)LibraryData_getAppend, METH_VARARGS,
+	{"append", (PyCFunction)LibraryData_getAppend, METH_O,
 	 "(str) - create new data from library"},
-	{"link", (PyCFunction)LibraryData_getLink, METH_VARARGS,
+	{"link", (PyCFunction)LibraryData_getLink, METH_O,
 	 "(str) - link data from library"},
 	{NULL, NULL, 0, NULL}
 };
@@ -1060,12 +1060,12 @@ static PyGetSetDef Library_getseters[] = {
  * actually accessed later. 
  */
 
-static PyObject *M_Library_Load(PyObject *self, PyObject * args)
+static PyObject *M_Library_Load(PyObject *self, PyObject * value)
 {
-	char *filename;
+	char *filename = PyString_AsString(value);
 	BPy_Library *lib;
 
-	if( !PyArg_ParseTuple( args, "s", &filename ) )
+	if( !filename )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 			"expected a string" );
 
@@ -1081,7 +1081,7 @@ static PyObject *M_Library_Load(PyObject *self, PyObject * args)
 }
 
 static struct PyMethodDef M_Library_methods[] = {
-	{"load", (PyCFunction)M_Library_Load, METH_VARARGS,
+	{"load", (PyCFunction)M_Library_Load, METH_O,
 	"(string) - declare a .blend file for use as a library"},
 	{NULL, NULL, 0, NULL}
 };

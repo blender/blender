@@ -110,7 +110,7 @@ def eulerRotate(x,y,z, rot_order):
 def read_bvh(file_path, GLOBAL_SCALE=1.0):
 	# File loading stuff
 	# Open the file for importing
-	file = open(file_path, 'r')	
+	file = open(file_path, 'rU')	
 	
 	# Seperate into a list of lists, each line a list of words.
 	file_lines = file.readlines()
@@ -354,7 +354,7 @@ def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False):
 			
 			bvh_node.temp.rot= rx*DEG2RAD,ry*DEG2RAD,rz*DEG2RAD
 			
-			bvh_node.temp.insertIpoKey(Blender.Object.IpoKeys.LOCROT)
+			bvh_node.temp.insertIpoKey(Blender.Object.IpoKeyTypes.LOCROT)
 	
 	scn.update(1)
 	return objects

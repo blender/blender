@@ -63,6 +63,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_action.h"
 #include "BKE_blender.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
@@ -266,7 +267,7 @@ static void clear_global(void)
 	
 	free_vertexpaint();
 	
-	G.f &= ~(G_WEIGHTPAINT + G_VERTEXPAINT + G_FACESELECT);
+	G.f &= ~(G_WEIGHTPAINT + G_VERTEXPAINT + G_FACESELECT + G_PARTICLEEDIT);
 }
 
 /* make sure path names are correct for OS */
@@ -307,7 +308,6 @@ static void clean_paths(Main *main)
 		}
 		BLI_clean(scene->r.backbuf);
 		BLI_clean(scene->r.pic);
-		BLI_clean(scene->r.ftype);
 		
 		scene= scene->id.next;
 	}
@@ -396,6 +396,9 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	/* baseflags, groups, make depsgraph, etc */
 	set_scene_bg(G.scene);
 
+	/* clear BONE_UNKEYED flags, these are not valid anymore for proxies */
+	framechange_poses_clear_unkeyed();
+
 	/* last stage of do_versions actually, that sets recalc flags for recalc poses */
 	for(ob= G.main->object.first; ob; ob= ob->id.next) {
 		if(ob->type==OB_ARMATURE)
@@ -409,8 +412,9 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 		/* there's an onload scriptlink to execute in screenmain */
 		mainqenter(ONLOAD_SCRIPT, 1);
 	}
-
-	strcpy(G.sce, filename);
+	if (G.sce != filename) /* these are the same at times, should never copy to the same location */
+		strcpy(G.sce, filename);
+	
 	strcpy(G.main->name, filename); /* is guaranteed current file */
 	
 	MEM_freeN(bfd);
@@ -478,7 +482,7 @@ int BKE_read_file_from_memory(char* filebuf, int filelength, void *type_r)
 		if (type_r)
 			*((BlenFileType*)type_r)= bfd->type;
 		
-		setup_app_data(bfd, "<memory>");
+		setup_app_data(bfd, "<memory2>");
 	} else {
 		error("Loading failed: %s", BLO_bre_as_string(bre));
 	}
@@ -500,7 +504,7 @@ int BKE_read_file_from_memfile(MemFile *memfile)
 		
 	bfd= BLO_read_from_memfile(G.sce, memfile, &bre);
 	if (bfd) {
-		setup_app_data(bfd, "<memory>");
+		setup_app_data(bfd, "<memory1>");
 	} else {
 		error("Loading failed: %s", BLO_bre_as_string(bre));
 	}
@@ -601,7 +605,7 @@ void BKE_write_undo(char *name)
 		counter= counter % U.undosteps;	
 	
 		sprintf(numstr, "%d.blend", counter);
-		BLI_make_file_string("/", tstr, U.tempdir, numstr);
+		BLI_make_file_string("/", tstr, btempdir, numstr);
 	
 		success= BLO_write_file(tstr, G.fileflags, &err);
 		
@@ -712,11 +716,11 @@ void BKE_undo_save_quit(void)
 	/* no undo state to save */
 	if(undobase.first==undobase.last) return;
 		
-	BLI_make_file_string("/", str, U.tempdir, "quit.blend");
+	BLI_make_file_string("/", str, btempdir, "quit.blend");
 
 	file = open(str,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if(file == -1) {
-		printf("Unable to save %s\n", str);
+		error("Unable to save %s, check you have permissions", str);
 		return;
 	}
 
@@ -728,7 +732,7 @@ void BKE_undo_save_quit(void)
 	
 	close(file);
 	
-	if(chunk) printf("Unable to save %s\n", str);
+	if(chunk) error("Unable to save %s, internal error", str);
 	else printf("Saved session recovery to %s\n", str);
 }
 

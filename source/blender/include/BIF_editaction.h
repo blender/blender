@@ -25,7 +25,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): 2007, Joshua Leung, Action Editor Recode
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -33,32 +33,32 @@
 #ifndef BIF_EDITACTION_H
 #define BIF_EDITACTION_H
 
-#define SET_IPO_POPUP    0
-#define SET_IPO_CONSTANT 1
-#define SET_IPO_LINEAR   2
-#define SET_IPO_BEZIER   3
-
-#define SET_EXTEND_POPUP    0
-#define SET_EXTEND_CONSTANT 1
-#define SET_EXTEND_EXTRAPOLATION  2
-#define SET_EXTEND_CYCLIC   3
-#define SET_EXTEND_CYCLICEXTRAPOLATION   4
-
+/* some interface related sizes*/
 #define	CHANNELHEIGHT	16
 #define	CHANNELSKIP		2
-#define NAMEWIDTH      164
-#define SLIDERWIDTH    125
+#define NAMEWIDTH      	164
+#define SLIDERWIDTH    	125
 #define ACTWIDTH 		(G.saction->actwidth)
 
 /* Some types for easier type-testing */
-#define ACTTYPE_NONE		0
-#define ACTTYPE_ACHAN		1
-#define ACTTYPE_CONCHAN		2
-#define ACTTYPE_ICU			3
-#define ACTTYPE_FILLIPO		4
-#define ACTTYPE_FILLCON		5
+enum {
+	ACTTYPE_NONE= 0,
+	ACTTYPE_GROUP,
+	ACTTYPE_ACHAN,
+	ACTTYPE_CONCHAN,
+	ACTTYPE_CONCHAN2,
+	ACTTYPE_ICU,
+	ACTTYPE_FILLIPO,
+	ACTTYPE_FILLCON,
+	ACTTYPE_IPO,
+	ACTTYPE_SHAPEKEY
+};
 
 /* Macros for easier/more consistant state testing */
+#define EDITABLE_AGRP(agrp) ((agrp->flag & AGRP_PROTECTED)==0)
+#define EXPANDED_AGRP(agrp) (agrp->flag & AGRP_EXPANDED)
+#define SEL_AGRP(agrp) ((agrp->flag & AGRP_SELECTED) || (agrp->flag & AGRP_ACTIVE))
+
 #define VISIBLE_ACHAN(achan) ((achan->flag & ACHAN_HIDDEN)==0)
 #define EDITABLE_ACHAN(achan) ((VISIBLE_ACHAN(achan)) && ((achan->flag & ACHAN_PROTECTED)==0))
 #define EXPANDED_ACHAN(achan) ((VISIBLE_ACHAN(achan)) && (achan->flag & ACHAN_EXPANDED))
@@ -72,75 +72,127 @@
 #define EDITABLE_ICU(icu) ((icu->flag & IPO_PROTECT)==0)
 #define SEL_ICU(icu) (icu->flag & IPO_SELECT)
 
+#define NLA_ACTION_SCALED (G.saction->pin==0 && OBACT && OBACT->action)
+#define NLA_IPO_SCALED (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname)
+
+/* constants for setting ipo-interpolation type */
+enum {
+	SET_IPO_MENU = -1,
+	SET_IPO_POPUP = 0,
+	
+	SET_IPO_CONSTANT,
+	SET_IPO_LINEAR,
+	SET_IPO_BEZIER,
+};
+
+/* constants for setting ipo-extrapolation type */
+enum {
+	SET_EXTEND_MENU = 9,
+	SET_EXTEND_POPUP = 10,
+	
+	SET_EXTEND_CONSTANT,
+	SET_EXTEND_EXTRAPOLATION,
+	SET_EXTEND_CYCLIC,
+	SET_EXTEND_CYCLICEXTRAPOLATION
+};
+
+/* constants for channel rearranging */
+/* WARNING: don't change exising ones without modifying rearrange func accordingly */
+enum {
+	REARRANGE_ACTCHAN_TOP= -2,
+	REARRANGE_ACTCHAN_UP= -1,
+	REARRANGE_ACTCHAN_DOWN= 1,
+	REARRANGE_ACTCHAN_BOTTOM= 2
+};
+
+
 struct bAction;
 struct bActionChannel;
+struct bActionGroup;
+struct bPose;
 struct bPoseChannel;
 struct Object;
 struct Ipo;
 struct BWinEvent;
 struct Key;
 struct ListBase;
+struct TimeMarker;
 
 /* Key operations */
-void delete_meshchannel_keys(struct Key *key);
-void delete_actionchannel_keys(void);
-void duplicate_meshchannel_keys(struct Key *key);
-void duplicate_actionchannel_keys(void);
-void transform_actionchannel_keys(int mode, int dummy);
-void transform_meshchannel_keys(char mode, struct Key *key);
-void snap_keys_to_frame(int snap_mode);
-void mirror_action_keys(short mirror_mode);
-void clean_shapekeys(struct Key *key);
-void clean_actionchannels(struct bAction *act);
+void transform_action_keys(int mode, int dummy);
+void duplicate_action_keys(void);
+void snap_cfra_action(void);
+void snap_action_keys(short mode);
+void mirror_action_keys(short mode);
 void insertkey_action(void);
+void delete_action_keys(void);
+void delete_action_channels(void);
+void clean_action(void);
+void sample_action_keys(void);
 
-/* Marker Operations */
-void column_select_shapekeys(struct Key *key, int mode);
-void column_select_actionkeys(struct bAction *act, int mode);
+/* Column/Channel Key select */
+void column_select_action_keys(int mode);
+void selectall_action_keys(short mval[], short mode, short selectmode);
 void markers_selectkeys_between(void);
+void nextprev_action_keyframe(short dir);
 
-/* channel/strip operations */
-void up_sel_action(void);
-void down_sel_action(void);
-void top_sel_action(void);
-void bottom_sel_action(void);
+/* Action Data Copying */
+void free_actcopybuf(void);
+void copy_actdata(void);
+void paste_actdata(void);
 
-/* Handles */
-void sethandles_meshchannel_keys(int code, struct Key *key);
-void sethandles_actionchannel_keys(int code);
+/* Group/Channel Operations */
+struct bActionGroup *get_active_actiongroup(struct bAction *act);
+void set_active_actiongroup(struct bAction *act, struct bActionGroup *agrp, short select);
+void verify_pchan2achan_grouping(struct bAction *act, struct bPose *pose, char name[]); 
+void action_groups_group(short add_group);
+void action_groups_ungroup(void);
 
-/* Ipo type */ 
-void set_ipotype_actionchannels(int ipotype);
-void set_extendtype_actionchannels(int extendtype);
+/* Channel/Strip Operations */
+void rearrange_action_channels(short mode);
+
+void expand_all_action(void);
+void expand_obscuregroups_action(void);
+void openclose_level_action(short mode);
+void setflag_action_channels(short mode);
+
+/* IPO/Handle Types  */
+void sethandles_action_keys(int code);
+void action_set_ipo_flags(short mode, short event);
 
 /* Select */
-void borderselect_mesh(struct Key *key);
 void borderselect_action(void);
-void deselect_actionchannel_keys(struct bAction *act, int test, int sel);
-void deselect_actionchannels (struct bAction *act, int test);
-void deselect_meshchannel_keys (struct Key *key, int test, int sel);
+void deselect_action_keys(short test, short sel);
+void deselect_action_channels(short mode);
+void deselect_actionchannels(struct bAction *act, short mode);
 int select_channel(struct bAction *act, struct bActionChannel *achan, int selectmode);
-void select_actionchannel_by_name (struct bAction *act, char *name, int select);
+void select_actionchannel_by_name(struct bAction *act, char *name, int select);
+void selectkeys_leftright (short leftright, short select_mode);
 
-/* */
+/* Action Markers */
+void action_set_activemarker(struct bAction *act, struct TimeMarker *active, short deselect);
+void action_add_localmarker(struct bAction *act, int frame);
+void action_rename_localmarker(struct bAction *act);
+void action_remove_localmarkers(struct bAction *act);
+
+/* ShapeKey stuff */
 struct Key *get_action_mesh_key(void);
 int get_nearest_key_num(struct Key *key, short *mval, float *x);
+
 void *get_nearest_act_channel(short mval[], short *ret_type);
 
 /* Action */
-struct bActionChannel* get_hilighted_action_channel(struct bAction* action);
+struct bActionChannel *get_hilighted_action_channel(struct bAction* action);
 struct bAction *add_empty_action(char *name);
-
-void winqreadactionspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
-
-/* contextual get action */
 struct bAction *ob_get_action(struct Object *ob);
+
+void actdata_filter(ListBase *act_data, int filter_mode, void *data, short datatype);
+void *get_action_context(short *datatype);
 
 void remake_action_ipos(struct bAction *act);
 
-/* this needs review badly! (ton) */
-struct bAction *bake_action_with_client (struct bAction *act, struct Object *arm, float tolerance);
-void world2bonespace(float boneSpaceMat[][4], float worldSpace[][4], float restPos[][4], float armPos[][4]);
+/* event handling */
+void winqreadactionspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
 #endif
 

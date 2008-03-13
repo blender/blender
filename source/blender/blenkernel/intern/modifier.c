@@ -41,16 +41,19 @@
 #include "math.h"
 #include "float.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_rand.h"
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+#include "BLI_kdtree.h"
 #include "BLI_linklist.h"
+#include "BLI_rand.h"
 #include "BLI_edgehash.h"
 #include "BLI_ghash.h"
+#include "BLI_memarena.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -58,6 +61,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_curve_types.h"
@@ -71,21 +75,28 @@
 #include "BKE_main.h"
 #include "BKE_anim.h"
 #include "BKE_bad_level_calls.h"
+#include "BKE_cloth.h"
+#include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_booleanops.h"
 #include "BKE_displist.h"
 #include "BKE_modifier.h"
 #include "BKE_lattice.h"
+#include "BKE_library.h"
 #include "BKE_subsurf.h"
 #include "BKE_object.h"
 #include "BKE_mesh.h"
 #include "BKE_softbody.h"
+#include "BKE_cloth.h"
 #include "BKE_material.h"
+#include "BKE_particle.h"
+#include "BKE_pointcache.h"
+#include "BKE_utildefines.h"
 #include "depsgraph_private.h"
+#include "BKE_bmesh.h"
 
 #include "LOD_DependKludge.h"
 #include "LOD_decimation.h"
@@ -237,12 +248,29 @@ static void latticeModifier_updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 }
 
+static void modifier_vgroup_cache(ModifierData *md, float (*vertexCos)[3])
+{
+	md= md->next;
+	if(md) {
+		if(md->type==eModifierType_Armature) {
+			ArmatureModifierData *amd = (ArmatureModifierData*) md;
+			if(amd->multi)
+				amd->prevCos= MEM_dupallocN(vertexCos);
+		}
+		/* lattice/mesh modifier too */
+	}
+}
+
+
 static void latticeModifier_deformVerts(
                 ModifierData *md, Object *ob, DerivedMesh *derivedData,
                 float (*vertexCos)[3], int numVerts)
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
+
+	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
+	
 	lattice_deform_verts(lmd->object, ob, derivedData,
 	                     vertexCos, numVerts, lmd->name);
 }
@@ -383,7 +411,7 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 	for(i = 0; i < maxFaces; ++i) faceMap[i] = i;
 
 	if (ob) {
-		frac = bsystem_time(ob, 0, (float)G.scene->r.cfra,
+		frac = bsystem_time(ob, (float)G.scene->r.cfra,
 		                    bmd->start - 1.0f) / bmd->length;
 	} else {
 		frac = G.scene->r.cfra - bmd->start / bmd->length;
@@ -408,18 +436,18 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 			MFace mf;
 			dm->getFace(dm, faceMap[i], &mf);
 
-			if(!BLI_ghash_haskey(vertHash, (void *)mf.v1))
-				BLI_ghash_insert(vertHash, (void *)mf.v1,
-				                 (void *)BLI_ghash_size(vertHash));
-			if(!BLI_ghash_haskey(vertHash, (void *)mf.v2))
-				BLI_ghash_insert(vertHash, (void *)mf.v2,
-				                 (void *)BLI_ghash_size(vertHash));
-			if(!BLI_ghash_haskey(vertHash, (void *)mf.v3))
-				BLI_ghash_insert(vertHash, (void *)mf.v3,
-				                 (void *)BLI_ghash_size(vertHash));
-			if(mf.v4 && !BLI_ghash_haskey(vertHash, (void *)mf.v4))
-				BLI_ghash_insert(vertHash, (void *)mf.v4,
-				                 (void *)BLI_ghash_size(vertHash));
+			if(!BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(mf.v1)))
+				BLI_ghash_insert(vertHash, SET_INT_IN_POINTER(mf.v1),
+				                 SET_INT_IN_POINTER(BLI_ghash_size(vertHash)));
+			if(!BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(mf.v2)))
+				BLI_ghash_insert(vertHash, SET_INT_IN_POINTER(mf.v2),
+				                 SET_INT_IN_POINTER(BLI_ghash_size(vertHash)));
+			if(!BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(mf.v3)))
+				BLI_ghash_insert(vertHash, SET_INT_IN_POINTER(mf.v3),
+				                 SET_INT_IN_POINTER(BLI_ghash_size(vertHash)));
+			if(mf.v4 && !BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(mf.v4)))
+				BLI_ghash_insert(vertHash, SET_INT_IN_POINTER(mf.v4),
+				                 SET_INT_IN_POINTER(BLI_ghash_size(vertHash)));
 		}
 
 		/* get the set of edges that will be in the new mesh (i.e. all edges
@@ -430,10 +458,10 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 			MEdge me;
 			dm->getEdge(dm, i, &me);
 
-			if(BLI_ghash_haskey(vertHash, (void *)me.v1)
-			   && BLI_ghash_haskey(vertHash, (void *)me.v2))
+			if(BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me.v1))
+			   && BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me.v2)))
 				BLI_ghash_insert(edgeHash,
-				                 (void *)BLI_ghash_size(edgeHash), (void *)i);
+				                 SET_INT_IN_POINTER(BLI_ghash_size(edgeHash)), SET_INT_IN_POINTER(i));
 		}
 	} else if(numEdges) {
 		if(bmd->randomize)
@@ -447,12 +475,12 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 			MEdge me;
 			dm->getEdge(dm, edgeMap[i], &me);
 
-			if(!BLI_ghash_haskey(vertHash, (void *)me.v1))
-				BLI_ghash_insert(vertHash, (void *)me.v1,
-				                 (void *)BLI_ghash_size(vertHash));
-			if(!BLI_ghash_haskey(vertHash, (void *)me.v2))
-				BLI_ghash_insert(vertHash, (void *)me.v2,
-				                 (void *)BLI_ghash_size(vertHash));
+			if(!BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me.v1)))
+				BLI_ghash_insert(vertHash, SET_INT_IN_POINTER(me.v1),
+				                 SET_INT_IN_POINTER(BLI_ghash_size(vertHash)));
+			if(!BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me.v2)))
+				BLI_ghash_insert(vertHash, SET_INT_IN_POINTER(me.v2),
+				                 SET_INT_IN_POINTER(BLI_ghash_size(vertHash)));
 		}
 
 		/* get the set of edges that will be in the new mesh
@@ -461,8 +489,8 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 			MEdge me;
 			dm->getEdge(dm, edgeMap[i], &me);
 
-			BLI_ghash_insert(edgeHash, (void *)BLI_ghash_size(edgeHash),
-			                 (void *)edgeMap[i]);
+			BLI_ghash_insert(edgeHash, SET_INT_IN_POINTER(BLI_ghash_size(edgeHash)),
+			                 SET_INT_IN_POINTER(edgeMap[i]));
 		}
 	} else {
 		int numVerts = dm->getNumVerts(dm) * frac;
@@ -475,7 +503,7 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 		 * mapped to the new indices
 		 */
 		for(i = 0; i < numVerts; ++i)
-			BLI_ghash_insert(vertHash, (void *)vertMap[i], (void *)i);
+			BLI_ghash_insert(vertHash, SET_INT_IN_POINTER(vertMap[i]), SET_INT_IN_POINTER(i));
 	}
 
 	/* now we know the number of verts, edges and faces, we can create
@@ -490,8 +518,8 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 		BLI_ghashIterator_step(hashIter)) {
 		MVert source;
 		MVert *dest;
-		int oldIndex = (int)BLI_ghashIterator_getKey(hashIter);
-		int newIndex = (int)BLI_ghashIterator_getValue(hashIter);
+		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(hashIter));
+		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(hashIter));
 
 		dm->getVert(dm, oldIndex, &source);
 		dest = CDDM_get_vert(result, newIndex);
@@ -505,13 +533,13 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 	for(i = 0; i < BLI_ghash_size(edgeHash); ++i) {
 		MEdge source;
 		MEdge *dest;
-		int oldIndex = (int)BLI_ghash_lookup(edgeHash, (void *)i);
+		int oldIndex = GET_INT_FROM_POINTER(BLI_ghash_lookup(edgeHash, SET_INT_IN_POINTER(i)));
 
 		dm->getEdge(dm, oldIndex, &source);
 		dest = CDDM_get_edge(result, i);
 
-		source.v1 = (int)BLI_ghash_lookup(vertHash, (void *)source.v1);
-		source.v2 = (int)BLI_ghash_lookup(vertHash, (void *)source.v2);
+		source.v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v1)));
+		source.v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v2)));
 
 		DM_copy_edge_data(dm, result, oldIndex, i, 1);
 		*dest = source;
@@ -528,11 +556,11 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 
 		orig_v4 = source.v4;
 
-		source.v1 = (int)BLI_ghash_lookup(vertHash, (void *)source.v1);
-		source.v2 = (int)BLI_ghash_lookup(vertHash, (void *)source.v2);
-		source.v3 = (int)BLI_ghash_lookup(vertHash, (void *)source.v3);
+		source.v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v1)));
+		source.v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v2)));
+		source.v3 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v3)));
 		if(source.v4)
-			source.v4 = (int)BLI_ghash_lookup(vertHash, (void *)source.v4);
+			source.v4 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v4)));
 
 		DM_copy_face_data(dm, result, faceMap[i], i, 1);
 		*dest = source;
@@ -774,10 +802,10 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	   || amd->fit_type == MOD_ARR_FITCURVE) {
 		float dist = sqrt(MTC_dot3Float(offset[3], offset[3]));
 
-		if(dist > FLT_EPSILON)
+		if(dist > 1e-6f)
 			/* this gives length = first copy start to last copy end
 			   add a tiny offset for floating point rounding errors */
-			count = (length + FLT_EPSILON) / dist;
+			count = (length + 1e-6f) / dist;
 		else
 			/* if the offset has no translation, just make one copy */
 			count = 1;
@@ -913,6 +941,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			                      count - 1);
 		}
 
+		if(med.v1 == med.v2) continue;
+
 		if (initFlags) {
 			med.flag |= ME_EDGEDRAW | ME_EDGERENDER;
 		}
@@ -974,7 +1004,9 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		if(inMF.v4 && indexMap[inMF.v4].merge_final)
 			mf->v4 = calc_mapping(indexMap, indexMap[inMF.v4].merge, count-1);
 
-		test_index_face(mf, &result->faceData, numFaces, inMF.v4?4:3);
+		if(test_index_face(mf, &result->faceData, numFaces, inMF.v4?4:3) < 3)
+			continue;
+
 		numFaces++;
 
 		/* if the face has fewer than 3 vertices, don't create it */
@@ -1229,6 +1261,7 @@ static void mirrorModifier_initData(ModifierData *md)
 
 	mmd->flag |= MOD_MIR_AXIS_X;
 	mmd->tolerance = 0.001;
+	mmd->mirror_ob = NULL;
 }
 
 static void mirrorModifier_copyData(ModifierData *md, ModifierData *target)
@@ -1239,12 +1272,37 @@ static void mirrorModifier_copyData(ModifierData *md, ModifierData *target)
 	tmmd->axis = mmd->axis;
 	tmmd->flag = mmd->flag;
 	tmmd->tolerance = mmd->tolerance;
+	tmmd->mirror_ob = mmd->mirror_ob;;
+}
+
+static void mirrorModifier_foreachObjectLink(
+                ModifierData *md, Object *ob,
+                void (*walk)(void *userData, Object *ob, Object **obpoin),
+                void *userData)
+{
+	MirrorModifierData *mmd = (MirrorModifierData*) md;
+
+	walk(userData, ob, &mmd->mirror_ob);
+}
+
+static void mirrorModifier_updateDepgraph(ModifierData *md, DagForest *forest,
+										  Object *ob, DagNode *obNode)
+{
+	MirrorModifierData *mmd = (MirrorModifierData*) md;
+
+	if(mmd->mirror_ob) {
+		DagNode *latNode = dag_get_node(forest, mmd->mirror_ob);
+
+		dag_add_relation(forest, latNode, obNode,
+		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA);
+	}
 }
 
 static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
-						   DerivedMesh *dm,
-						   int initFlags,
-						   int axis)
+								   Object *ob,
+								   DerivedMesh *dm,
+								   int initFlags,
+								   int axis)
 {
 	int i;
 	float tolerance = mmd->tolerance;
@@ -1254,6 +1312,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	int maxEdges = dm->getNumEdges(dm);
 	int maxFaces = dm->getNumFaces(dm);
 	int (*indexMap)[2];
+	float mtx[4][4], imtx[4][4];
 
 	numVerts = numEdges = numFaces = 0;
 
@@ -1261,13 +1320,28 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
 	result = CDDM_from_template(dm, maxVerts * 2, maxEdges * 2, maxFaces * 2);
 
+	if (mmd->mirror_ob) {
+		float obinv[4][4];
+
+		Mat4Invert(obinv, mmd->mirror_ob->obmat);
+		Mat4MulMat4(mtx, ob->obmat, obinv);
+		Mat4Invert(imtx, mtx);
+	}
+
 	for(i = 0; i < maxVerts; i++) {
 		MVert inMV;
 		MVert *mv = CDDM_get_vert(result, numVerts);
 		int isShared;
+		float co[3];
 
 		dm->getVert(dm, i, &inMV);
-		isShared = ABS(inMV.co[axis])<=tolerance;
+
+		VecCopyf(co, inMV.co);
+
+		if (mmd->mirror_ob) {
+			VecMat4MulVecfl(co, mtx, co);
+		}
+		isShared = ABS(co[axis])<=tolerance;
 
 		/* Because the topology result (# of vertices) must be the same if
 		 * the mesh data is overridden by vertex cos, have to calc sharedness
@@ -1281,7 +1355,12 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		indexMap[i][1] = !isShared;
 
 		if(isShared) {
-			mv->co[axis] = 0;
+			co[axis] = 0;
+			if (mmd->mirror_ob) {
+				VecMat4MulVecfl(co, imtx, co);
+			}
+			VecCopyf(mv->co, co);
+			
 			mv->flag |= ME_VERT_MERGED;
 		} else {
 			MVert *mv2 = CDDM_get_vert(result, numVerts);
@@ -1290,7 +1369,11 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			*mv2 = *mv;
 			numVerts++;
 
-			mv2->co[axis] = -mv2->co[axis];
+			co[axis] = -co[axis];
+			if (mmd->mirror_ob) {
+				VecMat4MulVecfl(co, imtx, co);
+			}
+			VecCopyf(mv2->co, co);
 		}
 	}
 
@@ -1384,23 +1467,23 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 }
 
 static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
-                                             DerivedMesh *dm,
+											 Object *ob, DerivedMesh *dm,
                                              int initFlags)
 {
 	DerivedMesh *result = dm;
 
 	/* check which axes have been toggled and mirror accordingly */
 	if(mmd->flag & MOD_MIR_AXIS_X) {
-		result = doMirrorOnAxis(mmd, result, initFlags, 0);
+		result = doMirrorOnAxis(mmd, ob, result, initFlags, 0);
 	}
 	if(mmd->flag & MOD_MIR_AXIS_Y) {
 		DerivedMesh *tmp = result;
-		result = doMirrorOnAxis(mmd, result, initFlags, 1);
+		result = doMirrorOnAxis(mmd, ob, result, initFlags, 1);
 		if(tmp != dm) tmp->release(tmp); /* free intermediate results */
 	}
 	if(mmd->flag & MOD_MIR_AXIS_Z) {
 		DerivedMesh *tmp = result;
-		result = doMirrorOnAxis(mmd, result, initFlags, 2);
+		result = doMirrorOnAxis(mmd, ob, result, initFlags, 2);
 		if(tmp != dm) tmp->release(tmp); /* free intermediate results */
 	}
 
@@ -1414,7 +1497,7 @@ static DerivedMesh *mirrorModifier_applyModifier(
 	DerivedMesh *result;
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
 
-	result = mirrorModifier__doMirror(mmd, derivedData, 0);
+	result = mirrorModifier__doMirror(mmd, ob, derivedData, 0);
 
 	CDDM_calc_normals(result);
 	
@@ -2453,7 +2536,42 @@ static void split_sharp_edges(SmoothMesh *mesh, float split_angle, int flags)
 
 }
 
-static void split_single_verts(SmoothMesh *mesh)
+static int count_bridge_verts(SmoothMesh *mesh)
+{
+	int i, j, count = 0;
+
+	for(i = 0; i < mesh->num_faces; i++) {
+		SmoothFace *face = &mesh->faces[i];
+
+		for(j = 0; j < SMOOTHFACE_MAX_EDGES && face->edges[j]; j++) {
+			SmoothEdge *edge = face->edges[j];
+			SmoothEdge *next_edge;
+			SmoothVert *vert = edge->verts[1 - face->flip[j]];
+			int next = (j + 1) % SMOOTHFACE_MAX_EDGES;
+
+			/* wrap next around if at last edge */
+			if(!face->edges[next]) next = 0;
+
+			next_edge = face->edges[next];
+
+			/* if there are other faces sharing this vertex but not
+			 * these edges, the vertex will be split, so count it
+			 */
+			/* vert has to have at least one face (this one), so faces != 0 */
+			if(!edge->faces->next && !next_edge->faces->next
+			    && vert->faces->next) {
+				count++;
+			}
+		}
+	}
+
+	/* each bridge vert will be counted once per face that uses it,
+	 * so count is too high, but it's ok for now
+	 */
+	return count;
+}
+
+static void split_bridge_verts(SmoothMesh *mesh)
 {
 	int i,j;
 
@@ -2501,6 +2619,7 @@ static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd,
 	/* 2. count max number of elements to add */
 	tag_and_count_extra_edges(mesh, emd->split_angle, emd->flags, &max_edges);
 	max_verts = max_edges * 2 + mesh->max_verts;
+	max_verts += count_bridge_verts(mesh);
 	max_edges += mesh->max_edges;
 
 	/* 3. reallocate smoothmesh arrays & copy elements across */
@@ -2518,9 +2637,8 @@ static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd,
 	printf("********** Post-edge-split **********\n");
 	smoothmesh_print(mesh);
 #endif
-#if 1
-	split_single_verts(mesh);
-#endif
+
+	split_bridge_verts(mesh);
 
 #ifdef EDGESPLIT_DEBUG_1
 	printf("********** Post-vert-split **********\n");
@@ -2560,6 +2678,90 @@ static DerivedMesh *edgesplitModifier_applyModifierEM(
 	return edgesplitModifier_applyModifier(md, ob, derivedData, 0, 1);
 }
 
+/* Bevel */
+
+static void bevelModifier_initData(ModifierData *md)
+{
+	BevelModifierData *bmd = (BevelModifierData*) md;
+
+	bmd->value = 0.1f;
+	bmd->res = 1;
+	bmd->flags = 0;
+	bmd->val_flags = 0;
+	bmd->lim_flags = 0;
+	bmd->e_flags = 0;
+	bmd->bevel_angle = 30;
+	bmd->defgrp_name[0] = '\0';
+}
+
+static void bevelModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	BevelModifierData *bmd = (BevelModifierData*) md;
+	BevelModifierData *tbmd = (BevelModifierData*) target;
+
+	tbmd->value = bmd->value;
+	tbmd->res = bmd->res;
+	tbmd->flags = bmd->flags;
+	tbmd->val_flags = bmd->val_flags;
+	tbmd->lim_flags = bmd->lim_flags;
+	tbmd->e_flags = bmd->e_flags;
+	tbmd->bevel_angle = bmd->bevel_angle;
+	strncpy(tbmd->defgrp_name, bmd->defgrp_name, 32);
+}
+
+CustomDataMask bevelModifier_requiredDataMask(ModifierData *md)
+{
+	BevelModifierData *bmd = (BevelModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if(bmd->defgrp_name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
+}
+
+static DerivedMesh *bevelModifier_applyModifier(
+                ModifierData *md, Object *ob, DerivedMesh *derivedData,
+                int useRenderParams, int isFinalCalc)
+{
+	DerivedMesh *result;
+	BME_Mesh *bm;
+	/*bDeformGroup *def;*/
+	int /*i,*/ options, defgrp_index = -1;
+	BevelModifierData *bmd = (BevelModifierData*) md;
+
+	options = bmd->flags|bmd->val_flags|bmd->lim_flags|bmd->e_flags;
+
+	//~ if ((options & BME_BEVEL_VWEIGHT) && bmd->defgrp_name[0]) {
+		//~ for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
+			//~ if (!strcmp(def->name, bmd->defgrp_name)) {
+				//~ defgrp_index = i;
+				//~ break;
+			//~ }
+		//~ }
+		//~ if (defgrp_index < 0) {
+			//~ options &= ~BME_BEVEL_VWEIGHT;
+		//~ }
+	//~ }
+
+	bm = BME_make_mesh();
+	bm = BME_derivedmesh_to_bmesh(derivedData, bm);
+	BME_bevel(bm,bmd->value,bmd->res,options,defgrp_index,bmd->bevel_angle,NULL);
+	result = BME_bmesh_to_derivedmesh(bm,derivedData);
+	BME_free_mesh(bm);
+
+	CDDM_calc_normals(result);
+
+	return result;
+}
+
+static DerivedMesh *bevelModifier_applyModifierEM(
+                        ModifierData *md, Object *ob, EditMesh *editData,
+                        DerivedMesh *derivedData)
+{
+	return bevelModifier_applyModifier(md, ob, derivedData, 0, 1);
+}
+
 /* Displace */
 
 static void displaceModifier_initData(ModifierData *md)
@@ -2577,7 +2779,14 @@ static void displaceModifier_copyData(ModifierData *md, ModifierData *target)
 	DisplaceModifierData *dmd = (DisplaceModifierData*) md;
 	DisplaceModifierData *tdmd = (DisplaceModifierData*) target;
 
-	*tdmd = *dmd;
+	tdmd->texture = dmd->texture;
+	tdmd->strength = dmd->strength;
+	tdmd->direction = dmd->direction;
+	strncpy(tdmd->defgrp_name, dmd->defgrp_name, 32);
+	tdmd->midlevel = dmd->midlevel;
+	tdmd->texmapping = dmd->texmapping;
+	tdmd->map_object = dmd->map_object;
+	strncpy(tdmd->uvlayer_name, dmd->uvlayer_name, 32);
 }
 
 CustomDataMask displaceModifier_requiredDataMask(ModifierData *md)
@@ -2609,7 +2818,7 @@ static void displaceModifier_foreachIDLink(ModifierData *md, Object *ob,
 
 	walk(userData, ob, (ID **)&dmd->texture);
 
-	displaceModifier_foreachObjectLink(md, ob, (ObjectWalkFunc) walk, userData);
+	displaceModifier_foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
 static int displaceModifier_isDisabled(ModifierData *md)
@@ -4323,11 +4532,11 @@ static void waveModifier_do(
 	MVert *mvert = NULL;
 	MDeformVert *dvert = NULL;
 	int defgrp_index;
-	float ctime = bsystem_time(ob, 0, (float)G.scene->r.cfra, 0.0);
+	float ctime = bsystem_time(ob, (float)G.scene->r.cfra, 0.0);
 	float minfac =
 	  (float)(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
 	float lifefac = wmd->height;
-	float (*tex_co)[3];
+	float (*tex_co)[3] = NULL;
 
 	if(wmd->flag & MOD_WAVE_NORM && ob->type == OB_MESH)
 		mvert = dm->getVertArray(dm);
@@ -4570,8 +4779,16 @@ static void armatureModifier_deformVerts(
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 
-	armature_deform_verts(amd->object, ob, derivedData, vertexCos, numVerts,
-	                      amd->deformflag, amd->defgrp_name);
+	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
+	
+	armature_deform_verts(amd->object, ob, derivedData, vertexCos, NULL,
+	                      numVerts, amd->deformflag, 
+						  (float(*)[3])amd->prevCos, amd->defgrp_name);
+	/* free cache */
+	if(amd->prevCos) {
+		MEM_freeN(amd->prevCos);
+		amd->prevCos= NULL;
+	}
 }
 
 static void armatureModifier_deformVertsEM(
@@ -4583,8 +4800,24 @@ static void armatureModifier_deformVertsEM(
 
 	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
 
-	armature_deform_verts(amd->object, ob, dm, vertexCos, numVerts,
-	                      amd->deformflag, amd->defgrp_name);
+	armature_deform_verts(amd->object, ob, dm, vertexCos, NULL, numVerts,
+	                      amd->deformflag, NULL, amd->defgrp_name);
+
+	if(!derivedData) dm->release(dm);
+}
+
+static void armatureModifier_deformMatricesEM(
+				ModifierData *md, Object *ob, EditMesh *editData,
+				DerivedMesh *derivedData, float (*vertexCos)[3],
+				float (*defMats)[3][3], int numVerts)
+{
+	ArmatureModifierData *amd = (ArmatureModifierData*) md;
+	DerivedMesh *dm = derivedData;
+
+	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
+
+	armature_deform_verts(amd->object, ob, dm, vertexCos, defMats, numVerts,
+	                      amd->deformflag, NULL, amd->defgrp_name);
 
 	if(!derivedData) dm->release(dm);
 }
@@ -4797,6 +5030,293 @@ static void softbodyModifier_deformVerts(
 	sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos, numVerts);
 }
 
+
+/* Cloth */
+
+static void clothModifier_initData(ModifierData *md) 
+{
+	ClothModifierData *clmd = (ClothModifierData*) md;
+	
+	clmd->sim_parms = MEM_callocN(sizeof(SimulationSettings), "cloth sim parms");
+	clmd->coll_parms = MEM_callocN(sizeof(CollisionSettings), "cloth coll parms");
+	
+	/* check for alloc failing */
+	if(!clmd->sim_parms || !clmd->coll_parms)
+		return;
+	
+	cloth_init (clmd);
+}
+
+static DerivedMesh *clothModifier_applyModifier(ModifierData *md, Object *ob,
+		 DerivedMesh *derivedData, int useRenderParams, int isFinalCalc)
+{
+	ClothModifierData *clmd = (ClothModifierData*) md;
+	DerivedMesh *result=NULL;
+	
+	/* check for alloc failing */
+	if(!clmd->sim_parms || !clmd->coll_parms)
+		return derivedData;
+
+	result = clothModifier_do(clmd, ob, derivedData, useRenderParams, isFinalCalc);
+
+	if(result)
+	{
+		CDDM_calc_normals(result);
+		return result;
+	}
+	return derivedData;
+}
+
+static void clothModifier_updateDepgraph(
+                ModifierData *md, DagForest *forest, Object *ob,
+                DagNode *obNode)
+{
+	ClothModifierData *clmd = (ClothModifierData*) md;
+	
+	Base *base;
+	
+	if(clmd)
+	{
+		for(base = G.scene->base.first; base; base= base->next) 
+		{
+			Object *ob1= base->object;
+			if(ob1 != ob)
+			{
+				CollisionModifierData *coll_clmd = (CollisionModifierData *)modifiers_findByType(ob1, eModifierType_Collision);
+				if(coll_clmd)
+				{
+					DagNode *curNode = dag_get_node(forest, ob1);
+					dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+				}
+			}
+		}
+	}	
+}
+
+CustomDataMask clothModifier_requiredDataMask(ModifierData *md)
+{
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
+}
+
+static void clothModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	ClothModifierData *clmd = (ClothModifierData*) md;
+	ClothModifierData *tclmd = (ClothModifierData*) target;
+	
+	if(tclmd->sim_parms)
+		MEM_freeN(tclmd->sim_parms);
+	if(tclmd->coll_parms)
+		MEM_freeN(tclmd->coll_parms);	
+	
+	tclmd->sim_parms = MEM_dupallocN(clmd->sim_parms);
+	tclmd->coll_parms = MEM_dupallocN(clmd->coll_parms);
+	
+	tclmd->sim_parms->lastcachedframe = 0;
+}
+
+
+static int clothModifier_dependsOnTime(ModifierData *md)
+{
+	return 1;
+}
+
+static void clothModifier_freeData(ModifierData *md)
+{
+	ClothModifierData *clmd = (ClothModifierData*) md;
+	
+	if (clmd) 
+	{
+		if(G.rt > 0)
+		printf("clothModifier_freeData\n");
+		
+		cloth_free_modifier_extern (clmd);
+		
+		if(clmd->sim_parms)
+			MEM_freeN(clmd->sim_parms);
+		if(clmd->coll_parms)
+			MEM_freeN(clmd->coll_parms);	
+	}
+}
+
+/* Collision */
+
+static void collisionModifier_initData(ModifierData *md) 
+{
+	CollisionModifierData *collmd = (CollisionModifierData*) md;
+	
+	collmd->x = NULL;
+	collmd->xnew = NULL;
+	collmd->current_x = NULL;
+	collmd->current_xnew = NULL;
+	collmd->current_v = NULL;
+	collmd->time = -1;
+	collmd->numverts = 0;
+	collmd->tree = NULL;
+}
+
+static void collisionModifier_freeData(ModifierData *md)
+{
+	CollisionModifierData *collmd = (CollisionModifierData*) md;
+	
+	if (collmd) 
+	{
+		if(collmd->tree)
+			bvh_free(collmd->tree);
+		if(collmd->x)
+			MEM_freeN(collmd->x);
+		if(collmd->xnew)
+			MEM_freeN(collmd->xnew);
+		if(collmd->current_x)
+			MEM_freeN(collmd->current_x);
+		if(collmd->current_xnew)
+			MEM_freeN(collmd->current_xnew);
+		if(collmd->current_v)
+			MEM_freeN(collmd->current_v);
+		
+		if(collmd->mfaces)
+			MEM_freeN(collmd->mfaces);
+		
+		collmd->x = NULL;
+		collmd->xnew = NULL;
+		collmd->current_x = NULL;
+		collmd->current_xnew = NULL;
+		collmd->current_v = NULL;
+		collmd->time = -1;
+		collmd->numverts = 0;
+		collmd->tree = NULL;
+		collmd->mfaces = NULL;
+	}
+}
+
+static int collisionModifier_dependsOnTime(ModifierData *md)
+{
+	return 1;
+}
+
+static void collisionModifier_deformVerts(
+	ModifierData *md, Object *ob, DerivedMesh *derivedData,
+       float (*vertexCos)[3], int numVerts)
+{
+	CollisionModifierData *collmd = (CollisionModifierData*) md;
+	DerivedMesh *dm = NULL;
+	float current_time = 0;
+	unsigned int numverts = 0, i = 0;
+	MVert *tempVert = NULL;
+	
+	/* if possible use/create DerivedMesh */
+	if(derivedData) dm = CDDM_copy(derivedData);
+	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
+	
+	if(!ob->pd)
+	{
+		printf("collisionModifier_deformVerts: Should not happen!\n");
+		return;
+	}
+	
+	if(dm)
+	{
+		CDDM_apply_vert_coords(dm, vertexCos);
+		CDDM_calc_normals(dm);
+		
+		current_time = bsystem_time ( ob, ( float ) G.scene->r.cfra, 0.0 );
+		
+		if(G.rt > 0)
+			printf("current_time %f, collmd->time %f\n", current_time, collmd->time);
+		
+		numverts = dm->getNumVerts ( dm );
+		
+		if(current_time > collmd->time)
+		{	
+			// check if mesh has changed
+			if(collmd->x && (numverts != collmd->numverts))
+				collisionModifier_freeData((ModifierData *)collmd);
+			
+			if(collmd->time == -1) // first time
+			{
+				collmd->x = dm->dupVertArray(dm); // frame start position
+				
+				for ( i = 0; i < numverts; i++ )
+				{
+					// we save global positions
+					Mat4MulVecfl ( ob->obmat, collmd->x[i].co );
+				}
+				
+				collmd->xnew = MEM_dupallocN(collmd->x); // frame end position
+				collmd->current_x = MEM_dupallocN(collmd->x); // inter-frame
+				collmd->current_xnew = MEM_dupallocN(collmd->x); // inter-frame
+				collmd->current_v = MEM_dupallocN(collmd->x); // inter-frame
+
+				collmd->numverts = numverts;
+				
+				collmd->mfaces = dm->dupFaceArray(dm);
+				collmd->numfaces = dm->getNumFaces(dm);
+				
+				// TODO: epsilon
+				// create bounding box hierarchy
+				collmd->tree = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sbift);
+				
+				collmd->time = current_time;
+			}
+			else if(numverts == collmd->numverts)
+			{
+				// put positions to old positions
+				tempVert = collmd->x;
+				collmd->x = collmd->xnew;
+				collmd->xnew = tempVert;
+				
+				memcpy(collmd->xnew, dm->getVertArray(dm), numverts*sizeof(MVert));
+				
+				for ( i = 0; i < numverts; i++ )
+				{
+					// we save global positions
+					Mat4MulVecfl ( ob->obmat, collmd->xnew[i].co );
+				}
+				
+				memcpy(collmd->current_xnew, collmd->x, numverts*sizeof(MVert));
+				memcpy(collmd->current_x, collmd->x, numverts*sizeof(MVert));
+				
+				/* happens on file load (ONLY when i decomment changes in readfile.c */
+				if(!collmd->tree)
+				{
+					collmd->tree = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sbift);
+				}
+				else
+				{
+					// recalc static bounding boxes
+					bvh_update_from_mvert(collmd->tree, collmd->current_x, numverts, NULL, 0);
+				}
+				
+				collmd->time = current_time;
+			}
+			else if(numverts != collmd->numverts)
+			{
+				collisionModifier_freeData((ModifierData *)collmd);
+			}
+			
+		}
+		else if(current_time < collmd->time)
+		{	
+			collisionModifier_freeData((ModifierData *)collmd);
+		}
+		else
+		{
+			if(numverts != collmd->numverts)
+			{
+				collisionModifier_freeData((ModifierData *)collmd);
+			}
+		}
+	}
+	
+	if(dm)
+		dm->release(dm);
+}
+
+
 /* Boolean */
 
 static void booleanModifier_copyData(ModifierData *md, ModifierData *target)
@@ -4849,7 +5369,7 @@ static DerivedMesh *booleanModifier_applyModifier(
 	/* we do a quick sanity check */
 	if(((Mesh *)ob->data)->totface > 3
 	   && bmd->object && ((Mesh *)bmd->object->data)->totface > 3) {
-		DerivedMesh *result = NewBooleanDerivedMesh(ob, bmd->object,
+		DerivedMesh *result = NewBooleanDerivedMesh(bmd->object, ob,
 		                                            1 + bmd->operation);
 
 		/* if new mesh returned, return it; otherwise there was
@@ -4861,6 +5381,1544 @@ static DerivedMesh *booleanModifier_applyModifier(
 	}
 
 	return derivedData;
+}
+
+/* Particles */
+static void particleSystemModifier_initData(ModifierData *md) 
+{
+	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
+	psmd->psys= 0;
+	psmd->dm=0;
+	psmd->totdmvert= psmd->totdmedge= psmd->totdmface= 0;
+}
+static void particleSystemModifier_freeData(ModifierData *md)
+{
+	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
+
+	if(psmd->dm){
+		psmd->dm->needsFree = 1;
+		psmd->dm->release(psmd->dm);
+		psmd->dm=0;
+	}
+
+	psmd->psys->flag &= ~PSYS_ENABLED;
+	psmd->psys->flag |= PSYS_DELETE;
+}
+static void particleSystemModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
+	ParticleSystemModifierData *tpsmd= (ParticleSystemModifierData*) target;
+
+	tpsmd->dm = 0;
+	tpsmd->totdmvert = tpsmd->totdmedge = tpsmd->totdmface = 0;
+	//tpsmd->facepa = 0;
+	tpsmd->flag = psmd->flag;
+	/* need to keep this to recognise a bit later in copy_object */
+	tpsmd->psys = psmd->psys;
+}
+
+CustomDataMask particleSystemModifier_requiredDataMask(ModifierData *md)
+{
+	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
+	CustomDataMask dataMask = (1 << CD_MTFACE) + (1 << CD_MEDGE);
+	int i;
+
+	/* ask for vertexgroups if we need them */
+	for(i=0; i<PSYS_TOT_VG; i++){
+		if(psmd->psys->vgroup[i]){
+			dataMask |= (1 << CD_MDEFORMVERT);
+			break;
+		}
+	}
+	
+	/* particles only need this if they are after a non deform modifier, and
+	 * the modifier stack will only create them in that case. */
+	dataMask |= CD_MASK_ORIGSPACE;
+
+	dataMask |= CD_MASK_ORCO;
+	
+	return dataMask;
+}
+static int is_last_displist(Object *ob)
+{
+	Curve *cu = ob->data;
+	static int curvecount=0, totcurve=0;
+
+	if(curvecount==0){
+		DispList *dl;
+
+		totcurve=0;
+		for(dl=cu->disp.first; dl; dl=dl->next){
+			totcurve++;
+		}
+	}
+
+	curvecount++;
+
+	if(curvecount==totcurve){
+		curvecount=0;
+		return 1;
+	}
+
+	return 0;
+}
+/* saves the current emitter state for a particle system and calculates particles */
+static void particleSystemModifier_deformVerts(
+                 ModifierData *md, Object *ob, DerivedMesh *derivedData,
+                float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm = derivedData;
+	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
+	ParticleSystem * psys=0;
+	int needsFree=0;
+
+	if(ob->particlesystem.first)
+		psys=psmd->psys;
+	else
+		return;
+	
+	if(!psys_check_enabled(ob, psys))
+		return;
+
+	if(dm==0){
+		if(ob->type==OB_MESH){
+			dm = CDDM_from_mesh((Mesh*)(ob->data), ob);
+
+			CDDM_apply_vert_coords(dm, vertexCos);
+			//CDDM_calc_normals(dm);
+			
+			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
+
+			needsFree=1;
+		}
+		else if(ELEM3(ob->type,OB_FONT,OB_CURVE,OB_SURF)){
+			Object *tmpobj;
+			Curve *tmpcu;
+
+			if(is_last_displist(ob)){
+				/* copies object and modifiers (but not the data) */
+				tmpobj= copy_object( ob );
+				tmpcu = (Curve *)tmpobj->data;
+				tmpcu->id.us--;
+
+				/* copies the data */
+				tmpobj->data = copy_curve( (Curve *) ob->data );
+
+				makeDispListCurveTypes( tmpobj, 1 );
+				nurbs_to_mesh( tmpobj );
+
+				dm = CDDM_from_mesh((Mesh*)(tmpobj->data), tmpobj);
+				//CDDM_calc_normals(dm);
+
+				free_libblock_us( &G.main->object, tmpobj );
+
+				needsFree=1;
+			}
+			else return;
+		}
+		else return;
+	}
+
+	/* clear old dm */
+	if(psmd->dm){
+		psmd->dm->needsFree = 1;
+		psmd->dm->release(psmd->dm);
+	}
+
+	/* make new dm */
+	psmd->dm=CDDM_copy(dm);
+	CDDM_calc_normals(psmd->dm);
+
+	if(needsFree){
+		dm->needsFree = 1;
+		dm->release(dm);
+	}
+
+	/* protect dm */
+	psmd->dm->needsFree = 0;
+
+	/* report change in mesh structure */
+	if(psmd->dm->getNumVerts(psmd->dm)!=psmd->totdmvert ||
+	   psmd->dm->getNumEdges(psmd->dm)!=psmd->totdmedge ||
+	   psmd->dm->getNumFaces(psmd->dm)!=psmd->totdmface){
+		/* in file read dm hasn't really changed but just wasn't saved in file */
+
+		psys->recalc |= PSYS_RECALC_HAIR;
+		psys->recalc |= PSYS_DISTR;
+		psmd->flag |= eParticleSystemFlag_DM_changed;
+
+		psmd->totdmvert= psmd->dm->getNumVerts(psmd->dm);
+		psmd->totdmedge= psmd->dm->getNumEdges(psmd->dm);
+		psmd->totdmface= psmd->dm->getNumFaces(psmd->dm);
+	}
+
+	if(psys){
+		particle_system_update(ob,psys);
+		psmd->flag |= eParticleSystemFlag_psys_updated;
+		psmd->flag &= ~eParticleSystemFlag_DM_changed;
+	}
+}
+
+/* disabled particles in editmode for now, until support for proper derivedmesh
+ * updates is coded */
+#if 0
+static void particleSystemModifier_deformVertsEM(
+                ModifierData *md, Object *ob, EditMesh *editData,
+                DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm = derivedData;
+
+	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
+
+	particleSystemModifier_deformVerts(md, ob, dm, vertexCos, numVerts);
+
+	if(!derivedData) dm->release(dm);
+}
+#endif
+
+/* Particle Instance */
+static void particleInstanceModifier_initData(ModifierData *md) 
+{
+	ParticleInstanceModifierData *pimd= (ParticleInstanceModifierData*) md;
+
+	pimd->flag = eParticleInstanceFlag_Parents|eParticleInstanceFlag_Unborn|
+				eParticleInstanceFlag_Alive|eParticleInstanceFlag_Dead;
+	pimd->psys = 1;
+
+}
+static void particleInstanceModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	ParticleInstanceModifierData *pimd= (ParticleInstanceModifierData*) md;
+	ParticleInstanceModifierData *tpimd= (ParticleInstanceModifierData*) target;
+
+	tpimd->ob = pimd->ob;
+	tpimd->psys = pimd->psys;
+	tpimd->flag = pimd->flag;
+}
+
+static int particleInstanceModifier_dependsOnTime(ModifierData *md) 
+{
+	return 0;
+}
+static void particleInstanceModifier_updateDepgraph(ModifierData *md, DagForest *forest,
+                                         Object *ob, DagNode *obNode)
+{
+	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData*) md;
+
+	if (pimd->ob) {
+		DagNode *curNode = dag_get_node(forest, pimd->ob);
+
+		dag_add_relation(forest, curNode, obNode,
+		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA);
+	}
+}
+
+static void particleInstanceModifier_foreachObjectLink(ModifierData *md, Object *ob,
+                                        ObjectWalkFunc walk, void *userData)
+{
+	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData*) md;
+
+	walk(userData, ob, &pimd->ob);
+}
+
+static DerivedMesh * particleInstanceModifier_applyModifier(
+                 ModifierData *md, Object *ob, DerivedMesh *derivedData,
+                 int useRenderParams, int isFinalCalc)
+{
+	DerivedMesh *dm = derivedData, *result;
+	ParticleInstanceModifierData *pimd= (ParticleInstanceModifierData*) md;
+	ParticleSystem * psys=0;
+	ParticleData *pa=0, *pars=0;
+	MFace *mface, *orig_mface;
+	MVert *mvert, *orig_mvert;
+	int i,totvert, totpart=0, totface, maxvert, maxface, first_particle=0;
+	short track=ob->trackflag%3, trackneg;
+	float max_co=0.0, min_co=0.0, temp_co[3], cross[3];
+
+	trackneg=((ob->trackflag>2)?1:0);
+
+	if(pimd->ob==ob){
+		pimd->ob=0;
+		return derivedData;
+	}
+
+	if(pimd->ob){
+		psys = BLI_findlink(&pimd->ob->particlesystem,pimd->psys-1);
+		if(psys==0 || psys->totpart==0)
+			return derivedData;
+	}
+	else return derivedData;
+
+	if(pimd->flag & eParticleInstanceFlag_Parents)
+		totpart+=psys->totpart;
+	if(pimd->flag & eParticleInstanceFlag_Children){
+		if(totpart==0)
+			first_particle=psys->totpart;
+		totpart+=psys->totchild;
+	}
+
+	if(totpart==0)
+		return derivedData;
+
+	pars=psys->particles;
+
+	totvert=dm->getNumVerts(dm);
+	totface=dm->getNumFaces(dm);
+
+	maxvert=totvert*totpart;
+	maxface=totface*totpart;
+
+	psys->lattice=psys_get_lattice(ob, psys);
+
+	if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED)){
+		float co[3];
+		for(i=0; i< totvert; i++){
+			dm->getVertCo(dm,i,co);
+			if(i==0){
+				min_co=max_co=co[track];
+			}
+			else{
+				if(co[track]<min_co)
+					min_co=co[track];
+
+				if(co[track]>max_co)
+					max_co=co[track];
+			}
+		}
+	}
+
+	result = CDDM_from_template(dm, maxvert,dm->getNumEdges(dm)*totpart,maxface);
+
+	mvert=result->getVertArray(result);
+	orig_mvert=dm->getVertArray(dm);
+
+	for(i=0; i<maxvert; i++){
+		MVert *inMV;
+		MVert *mv = mvert + i;
+		ParticleKey state;
+
+		inMV = orig_mvert + i%totvert;
+		DM_copy_vert_data(dm, result, i%totvert, i, 1);
+		*mv = *inMV;
+
+		/*change orientation based on object trackflag*/
+		VECCOPY(temp_co,mv->co);
+		mv->co[0]=temp_co[track];
+		mv->co[1]=temp_co[(track+1)%3];
+		mv->co[2]=temp_co[(track+2)%3];
+
+		if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED) && pimd->flag & eParticleInstanceFlag_Path){
+			state.time=(mv->co[0]-min_co)/(max_co-min_co);
+			if(trackneg)
+				state.time=1.0f-state.time;
+			psys_get_particle_on_path(pimd->ob,psys,first_particle + i/totvert,&state,1);
+
+			mv->co[0] = 0.0;
+
+			Normalize(state.vel);
+			
+			if(state.vel[0] < -0.9999 || state.vel[0] > 0.9999) {
+				state.rot[0] = 1.0;
+				state.rot[1] = state.rot[2] = state.rot[3] = 0.0f;
+			}
+			else {
+				/* a cross product of state.vel and a unit vector in x-direction */
+				cross[0] = 0.0f;
+				cross[1] = -state.vel[2];
+				cross[2] = state.vel[1];
+
+				/* state.vel[0] is the only component surviving from a dot product with a vector in x-direction*/
+				VecRotToQuat(cross,saacos(state.vel[0]),state.rot);
+			}
+		}
+		else{
+			state.time=-1.0;
+			psys_get_particle_state(pimd->ob,psys,i/totvert,&state,1);
+		}	
+
+		QuatMulVecf(state.rot,mv->co);
+		VECADD(mv->co,mv->co,state.co);
+	}
+
+	mface=result->getFaceArray(result);
+	orig_mface=dm->getFaceArray(dm);
+
+	for(i=0; i<maxface; i++){
+		MFace *inMF;
+		MFace *mf = mface + i;
+
+		if(pimd->flag & eParticleInstanceFlag_Parents){
+			if(i/totface>=psys->totpart){
+				if(psys->part->childtype==PART_CHILD_PARTICLES)
+					pa=psys->particles+(psys->child+i/totface-psys->totpart)->parent;
+				else
+					pa=0;
+			}
+			else
+				pa=pars+i/totface;
+		}
+		else{
+			if(psys->part->childtype==PART_CHILD_PARTICLES)
+				pa=psys->particles+(psys->child+i/totface)->parent;
+			else
+				pa=0;
+		}
+
+		if(pa){
+			if(pa->alive==PARS_UNBORN && (pimd->flag&eParticleInstanceFlag_Unborn)==0) continue;
+			if(pa->alive==PARS_ALIVE && (pimd->flag&eParticleInstanceFlag_Alive)==0) continue;
+			if(pa->alive==PARS_DEAD && (pimd->flag&eParticleInstanceFlag_Dead)==0) continue;
+		}
+
+		inMF = orig_mface + i%totface;
+		DM_copy_face_data(dm, result, i%totface, i, 1);
+		*mf = *inMF;
+
+		mf->v1+=(i/totface)*totvert;
+		mf->v2+=(i/totface)*totvert;
+		mf->v3+=(i/totface)*totvert;
+		if(mf->v4)
+			mf->v4+=(i/totface)*totvert;
+	}
+	
+	CDDM_calc_edges(result);
+	CDDM_calc_normals(result);
+
+	if(psys->lattice){
+		end_latt_deform();
+		psys->lattice=0;
+	}
+
+	return result;
+}
+static DerivedMesh *particleInstanceModifier_applyModifierEM(
+                        ModifierData *md, Object *ob, EditMesh *editData,
+                        DerivedMesh *derivedData)
+{
+	return particleInstanceModifier_applyModifier(md, ob, derivedData, 0, 1);
+}
+
+/* Explode */
+static void explodeModifier_initData(ModifierData *md)
+{
+	ExplodeModifierData *emd= (ExplodeModifierData*) md;
+
+	emd->facepa=0;
+	emd->flag |= eExplodeFlag_Unborn+eExplodeFlag_Alive+eExplodeFlag_Dead;
+}
+static void explodeModifier_freeData(ModifierData *md)
+{
+	ExplodeModifierData *emd= (ExplodeModifierData*) md;
+	
+	if(emd->facepa) MEM_freeN(emd->facepa);
+}
+static void explodeModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	ExplodeModifierData *emd= (ExplodeModifierData*) md;
+	ExplodeModifierData *temd= (ExplodeModifierData*) target;
+
+	temd->facepa = 0;
+	temd->flag = emd->flag;
+}
+static int explodeModifier_dependsOnTime(ModifierData *md) 
+{
+	return 1;
+}
+CustomDataMask explodeModifier_requiredDataMask(ModifierData *md)
+{
+	ExplodeModifierData *emd= (ExplodeModifierData*) md;
+	CustomDataMask dataMask = 0;
+
+	if(emd->vgroup)
+		dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
+}
+
+/* this should really be put somewhere permanently */
+static float vert_weight(MDeformVert *dvert, int group)
+{
+	MDeformWeight *dw;
+	int i;
+	
+	if(dvert) {
+		dw= dvert->dw;
+		for(i= dvert->totweight; i>0; i--, dw++) {
+			if(dw->def_nr == group) return dw->weight;
+			if(i==1) break; /*otherwise dw will point to somewhere it shouldn't*/
+		}
+	}
+	return 0.0;
+}
+
+static void explodeModifier_createFacepa(ExplodeModifierData *emd,
+										 ParticleSystemModifierData *psmd,
+										 Object *ob, DerivedMesh *dm)
+{
+	ParticleSystem *psys=psmd->psys;
+	MFace *fa=0, *mface=0;
+	MVert *mvert = 0;
+	ParticleData *pa;
+	KDTree *tree;
+	float center[3], co[3];
+	int *facepa=0,*vertpa=0,totvert=0,totface=0,totpart=0;
+	int i,p,v1,v2,v3,v4=0;
+
+	mvert = dm->getVertArray(dm);
+	mface = dm->getFaceArray(dm);
+	totface= dm->getNumFaces(dm);
+	totvert= dm->getNumVerts(dm);
+	totpart= psmd->psys->totpart;
+
+	BLI_srandom(psys->seed);
+
+	if(emd->facepa)
+		MEM_freeN(emd->facepa);
+
+	facepa = emd->facepa = MEM_callocN(sizeof(int)*totface, "explode_facepa");
+
+	vertpa = MEM_callocN(sizeof(int)*totvert, "explode_vertpa");
+
+	/* initialize all faces & verts to no particle */
+	for(i=0; i<totface; i++)
+		facepa[i]=totpart;
+
+	for (i=0; i<totvert; i++)
+		vertpa[i]=totpart;
+
+	/* set protected verts */
+	if(emd->vgroup){
+		MDeformVert *dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+		float val;
+		if(dvert){
+			for(i=0; i<totvert; i++){
+				val = BLI_frand();
+				val = (1.0f-emd->protect)*val + emd->protect*0.5f;
+				if(val < vert_weight(dvert+i,emd->vgroup-1))
+					vertpa[i] = -1;
+			}
+		}
+	}
+
+	/* make tree of emitter locations */
+	tree=BLI_kdtree_new(totpart);
+	for(p=0,pa=psys->particles; p<totpart; p++,pa++){
+		psys_particle_on_dm(ob,psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0,0,0);
+		BLI_kdtree_insert(tree, p, co, NULL);
+	}
+	BLI_kdtree_balance(tree);
+
+	/* set face-particle-indexes to nearest particle to face center */
+	for(i=0,fa=mface; i<totface; i++,fa++){
+		VecAddf(center,mvert[fa->v1].co,mvert[fa->v2].co);
+		VecAddf(center,center,mvert[fa->v3].co);
+		if(fa->v4){
+			VecAddf(center,center,mvert[fa->v4].co);
+			VecMulf(center,0.25);
+		}
+		else
+			VecMulf(center,0.3333f);
+
+		p= BLI_kdtree_find_nearest(tree,center,NULL,NULL);
+
+		v1=vertpa[fa->v1];
+		v2=vertpa[fa->v2];
+		v3=vertpa[fa->v3];
+		if(fa->v4)
+			v4=vertpa[fa->v4];
+
+		if(v1>=0 && v2>=0 && v3>=0 && (fa->v4==0 || v4>=0))
+			facepa[i]=p;
+
+		if(v1>=0) vertpa[fa->v1]=p;
+		if(v2>=0) vertpa[fa->v2]=p;
+		if(v3>=0) vertpa[fa->v3]=p;
+		if(fa->v4 && v4>=0) vertpa[fa->v4]=p;
+	}
+
+	if(vertpa) MEM_freeN(vertpa);
+	BLI_kdtree_free(tree);
+}
+static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, DerivedMesh *dm){
+	DerivedMesh *splitdm;
+	MFace *mf=0,*df1=0,*df2=0,*df3=0;
+	MFace *mface=CDDM_get_faces(dm);
+	MVert *dupve, *mv;
+	int totvert=dm->getNumVerts(dm);
+	int totface=dm->getNumFaces(dm);
+
+	int *edgesplit = MEM_callocN(sizeof(int)*totvert*totvert,"explode_edgesplit");
+	int *facesplit = MEM_callocN(sizeof(int)*totface,"explode_edgesplit");
+	int *vertpa = MEM_callocN(sizeof(int)*totvert,"explode_vertpa2");
+	int *facepa = emd->facepa;
+	int *fs, totesplit=0,totfsplit=0,totin=0,curdupvert=0,curdupface=0,curdupin=0;
+	int i,j,v1,v2,v3,v4;
+
+	/* recreate vertpa from facepa calculation */
+	for (i=0,mf=mface; i<totface; i++,mf++) {
+		vertpa[mf->v1]=facepa[i];
+		vertpa[mf->v2]=facepa[i];
+		vertpa[mf->v3]=facepa[i];
+		if(mf->v4)
+			vertpa[mf->v4]=facepa[i];
+	}
+
+	/* mark edges for splitting and how to split faces */
+	for (i=0,mf=mface,fs=facesplit; i<totface; i++,mf++,fs++) {
+		if(mf->v4){
+			v1=vertpa[mf->v1];
+			v2=vertpa[mf->v2];
+			v3=vertpa[mf->v3];
+			v4=vertpa[mf->v4];
+
+			if(v1!=v2){
+				edgesplit[mf->v1*totvert+mf->v2]=edgesplit[mf->v2*totvert+mf->v1]=1;
+				(*fs)++;
+			}
+
+			if(v2!=v3){
+				edgesplit[mf->v2*totvert+mf->v3]=edgesplit[mf->v3*totvert+mf->v2]=1;
+				(*fs)++;
+			}
+
+			if(v3!=v4){
+				edgesplit[mf->v3*totvert+mf->v4]=edgesplit[mf->v4*totvert+mf->v3]=1;
+				(*fs)++;
+			}
+
+			if(v1!=v4){
+				edgesplit[mf->v1*totvert+mf->v4]=edgesplit[mf->v4*totvert+mf->v1]=1;
+				(*fs)++;
+			}
+
+			if(*fs==2){
+				if((v1==v2 && v3==v4) || (v1==v4 && v2==v3))
+					*fs=1;
+				else if(v1!=v2){
+					if(v1!=v4)
+						edgesplit[mf->v2*totvert+mf->v3]=edgesplit[mf->v3*totvert+mf->v2]=1;
+					else
+						edgesplit[mf->v3*totvert+mf->v4]=edgesplit[mf->v4*totvert+mf->v3]=1;
+				}
+				else{ 
+					if(v1!=v4)
+						edgesplit[mf->v1*totvert+mf->v2]=edgesplit[mf->v2*totvert+mf->v1]=1;
+					else
+						edgesplit[mf->v1*totvert+mf->v4]=edgesplit[mf->v4*totvert+mf->v1]=1;
+				}
+			}
+		}
+	}
+
+	/* count splits & reindex */
+	totesplit=totvert;
+	for(j=0; j<totvert; j++){
+		for(i=j+1; i<totvert; i++){
+			if(edgesplit[j*totvert+i])
+				edgesplit[j*totvert+i]=edgesplit[i*totvert+j]=totesplit++;
+		}
+	}
+	/* count new faces due to splitting */
+	for(i=0,fs=facesplit; i<totface; i++,fs++){
+		if(*fs==1)
+			totfsplit+=1;
+		else if(*fs==2)
+			totfsplit+=2;
+		else if(*fs==3)
+			totfsplit+=3;
+		else if(*fs==4){
+			totfsplit+=3;
+
+			mf=dm->getFaceData(dm,i,CD_MFACE);//CDDM_get_face(dm,i);
+
+			if(vertpa[mf->v1]!=vertpa[mf->v2] && vertpa[mf->v2]!=vertpa[mf->v3])
+				totin++;
+		}
+	}
+	
+	splitdm= CDDM_from_template(dm, totesplit+totin, dm->getNumEdges(dm),totface+totfsplit);
+
+	/* copy new faces & verts (is it really this painful with custom data??) */
+	for(i=0; i<totvert; i++){
+		MVert source;
+		MVert *dest;
+		dm->getVert(dm, i, &source);
+		dest = CDDM_get_vert(splitdm, i);
+
+		DM_copy_vert_data(dm, splitdm, i, i, 1);
+		*dest = source;
+	}
+	for(i=0; i<totface; i++){
+		MFace source;
+		MFace *dest;
+		dm->getFace(dm, i, &source);
+		dest = CDDM_get_face(splitdm, i);
+
+		DM_copy_face_data(dm, splitdm, i, i, 1);
+		*dest = source;
+	}
+
+	/* override original facepa (original pointer is saved in caller function) */
+	facepa= MEM_callocN(sizeof(int)*(totface+totfsplit),"explode_facepa");
+	memcpy(facepa,emd->facepa,totface*sizeof(int));
+	emd->facepa=facepa;
+
+	/* create new verts */
+	curdupvert=totvert;
+	for(j=0; j<totvert; j++){
+		for(i=j+1; i<totvert; i++){
+			if(edgesplit[j*totvert+i]){
+				mv=CDDM_get_vert(splitdm,j);
+				dupve=CDDM_get_vert(splitdm,edgesplit[j*totvert+i]);
+
+				DM_copy_vert_data(splitdm,splitdm,j,edgesplit[j*totvert+i],1);
+
+				*dupve=*mv;
+
+				mv=CDDM_get_vert(splitdm,i);
+
+				VECADD(dupve->co,dupve->co,mv->co);
+				VecMulf(dupve->co,0.5);
+			}
+		}
+	}
+
+	/* create new faces */
+	curdupface=totface;
+	curdupin=totesplit;
+	for(i=0,fs=facesplit; i<totface; i++,fs++){
+		if(*fs){
+			mf=CDDM_get_face(splitdm,i);
+
+			v1=vertpa[mf->v1];
+			v2=vertpa[mf->v2];
+			v3=vertpa[mf->v3];
+			v4=vertpa[mf->v4];
+			/* ouch! creating new faces & remapping them to new verts is no fun */
+			if(*fs==1){
+				df1=CDDM_get_face(splitdm,curdupface);
+				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				*df1=*mf;
+				curdupface++;
+				
+				if(v1==v2){
+					df1->v1=edgesplit[mf->v1*totvert+mf->v4];
+					df1->v2=edgesplit[mf->v2*totvert+mf->v3];
+					mf->v3=df1->v2;
+					mf->v4=df1->v1;
+				}
+				else{
+					df1->v1=edgesplit[mf->v1*totvert+mf->v2];
+					df1->v4=edgesplit[mf->v3*totvert+mf->v4];
+					mf->v2=df1->v1;
+					mf->v3=df1->v4;
+				}
+
+				facepa[i]=v1;
+				facepa[curdupface-1]=v3;
+
+				test_index_face(df1, &splitdm->faceData, curdupface, (df1->v4 ? 4 : 3));
+			}
+			if(*fs==2){
+				df1=CDDM_get_face(splitdm,curdupface);
+				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				*df1=*mf;
+				curdupface++;
+
+				df2=CDDM_get_face(splitdm,curdupface);
+				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				*df2=*mf;
+				curdupface++;
+
+				if(v1!=v2){
+					if(v1!=v4){
+						df1->v1=edgesplit[mf->v1*totvert+mf->v4];
+						df1->v2=edgesplit[mf->v1*totvert+mf->v2];
+						df2->v1=df1->v3=mf->v2;
+						df2->v3=df1->v4=mf->v4;
+						df2->v2=mf->v3;
+
+						mf->v2=df1->v2;
+						mf->v3=df1->v1;
+
+						df2->v4=mf->v4=0;
+
+						facepa[i]=v1;
+					}
+					else{
+						df1->v2=edgesplit[mf->v1*totvert+mf->v2];
+						df1->v3=edgesplit[mf->v2*totvert+mf->v3];
+						df1->v4=mf->v3;
+						df2->v2=mf->v3;
+						df2->v3=mf->v4;
+
+						mf->v1=df1->v2;
+						mf->v3=df1->v3;
+
+						df2->v4=mf->v4=0;
+
+						facepa[i]=v2;
+					}
+					facepa[curdupface-1]=facepa[curdupface-2]=v3;
+				}
+				else{
+					if(v1!=v4){
+						df1->v3=edgesplit[mf->v3*totvert+mf->v4];
+						df1->v4=edgesplit[mf->v1*totvert+mf->v4];
+						df1->v2=mf->v3;
+
+						mf->v1=df1->v4;
+						mf->v2=df1->v3;
+						mf->v3=mf->v4;
+
+						df2->v4=mf->v4=0;
+
+						facepa[i]=v4;
+					}
+					else{
+						df1->v3=edgesplit[mf->v2*totvert+mf->v3];
+						df1->v4=edgesplit[mf->v3*totvert+mf->v4];
+						df1->v1=mf->v4;
+						df1->v2=mf->v2;
+						df2->v3=mf->v4;
+
+						mf->v1=df1->v4;
+						mf->v2=df1->v3;
+
+						df2->v4=mf->v4=0;
+
+						facepa[i]=v3;
+					}
+
+					facepa[curdupface-1]=facepa[curdupface-2]=v1;
+				}
+
+				test_index_face(df1, &splitdm->faceData, curdupface-2, (df1->v4 ? 4 : 3));
+				test_index_face(df1, &splitdm->faceData, curdupface-1, (df1->v4 ? 4 : 3));
+			}
+			else if(*fs==3){
+				df1=CDDM_get_face(splitdm,curdupface);
+				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				*df1=*mf;
+				curdupface++;
+
+				df2=CDDM_get_face(splitdm,curdupface);
+				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				*df2=*mf;
+				curdupface++;
+
+				df3=CDDM_get_face(splitdm,curdupface);
+				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				*df3=*mf;
+				curdupface++;
+
+				if(v1==v2){
+					df2->v1=df1->v1=edgesplit[mf->v1*totvert+mf->v4];
+					df3->v1=df1->v2=edgesplit[mf->v2*totvert+mf->v3];
+					df3->v3=df2->v2=df1->v3=edgesplit[mf->v3*totvert+mf->v4];
+					df3->v2=mf->v3;
+					df2->v3=mf->v4;
+					df1->v4=df2->v4=df3->v4=0;
+
+					mf->v3=df1->v2;
+					mf->v4=df1->v1;
+
+					facepa[i]=facepa[curdupface-3]=v1;
+					facepa[curdupface-1]=v3;
+					facepa[curdupface-2]=v4;
+				}
+				else if(v2==v3){
+					df3->v1=df2->v3=df1->v1=edgesplit[mf->v1*totvert+mf->v4];
+					df2->v2=df1->v2=edgesplit[mf->v1*totvert+mf->v2];
+					df3->v2=df1->v3=edgesplit[mf->v3*totvert+mf->v4];
+
+					df3->v3=mf->v4;
+					df2->v1=mf->v1;
+					df1->v4=df2->v4=df3->v4=0;
+
+					mf->v1=df1->v2;
+					mf->v4=df1->v3;
+
+					facepa[i]=facepa[curdupface-3]=v2;
+					facepa[curdupface-1]=v4;
+					facepa[curdupface-2]=v1;
+				}
+				else if(v3==v4){
+					df3->v2=df2->v1=df1->v1=edgesplit[mf->v1*totvert+mf->v2];
+					df2->v3=df1->v2=edgesplit[mf->v2*totvert+mf->v3];
+					df3->v3=df1->v3=edgesplit[mf->v1*totvert+mf->v4];
+
+					df3->v1=mf->v1;
+					df2->v2=mf->v2;
+					df1->v4=df2->v4=df3->v4=0;
+
+					mf->v1=df1->v3;
+					mf->v2=df1->v2;
+
+					facepa[i]=facepa[curdupface-3]=v3;
+					facepa[curdupface-1]=v1;
+					facepa[curdupface-2]=v2;
+				}
+				else{
+					df3->v1=df1->v1=edgesplit[mf->v1*totvert+mf->v2];
+					df3->v3=df2->v1=df1->v2=edgesplit[mf->v2*totvert+mf->v3];
+					df2->v3=df1->v3=edgesplit[mf->v3*totvert+mf->v4];
+
+					df3->v2=mf->v2;
+					df2->v2=mf->v3;
+					df1->v4=df2->v4=df3->v4=0;
+
+					mf->v2=df1->v1;
+					mf->v3=df1->v3;
+
+					facepa[i]=facepa[curdupface-3]=v1;
+					facepa[curdupface-1]=v2;
+					facepa[curdupface-2]=v3;
+				}
+
+				test_index_face(df1, &splitdm->faceData, curdupface-3, (df1->v4 ? 4 : 3));
+				test_index_face(df1, &splitdm->faceData, curdupface-2, (df1->v4 ? 4 : 3));
+				test_index_face(df1, &splitdm->faceData, curdupface-1, (df1->v4 ? 4 : 3));
+			}
+			else if(*fs==4){
+				if(v1!=v2 && v2!=v3){
+
+					/* set new vert to face center */
+					mv=CDDM_get_vert(splitdm,mf->v1);
+					dupve=CDDM_get_vert(splitdm,curdupin);
+					DM_copy_vert_data(splitdm,splitdm,mf->v1,curdupin,1);
+					*dupve=*mv;
+
+					mv=CDDM_get_vert(splitdm,mf->v2);
+					VECADD(dupve->co,dupve->co,mv->co);
+					mv=CDDM_get_vert(splitdm,mf->v3);
+					VECADD(dupve->co,dupve->co,mv->co);
+					mv=CDDM_get_vert(splitdm,mf->v4);
+					VECADD(dupve->co,dupve->co,mv->co);
+					VecMulf(dupve->co,0.25);
+
+
+					df1=CDDM_get_face(splitdm,curdupface);
+					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					*df1=*mf;
+					curdupface++;
+
+					df2=CDDM_get_face(splitdm,curdupface);
+					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					*df2=*mf;
+					curdupface++;
+
+					df3=CDDM_get_face(splitdm,curdupface);
+					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					*df3=*mf;
+					curdupface++;
+
+					df1->v1=edgesplit[mf->v1*totvert+mf->v2];
+					df3->v2=df1->v3=edgesplit[mf->v2*totvert+mf->v3];
+
+					df2->v1=edgesplit[mf->v1*totvert+mf->v4];
+					df3->v4=df2->v3=edgesplit[mf->v3*totvert+mf->v4];
+
+					df3->v1=df2->v2=df1->v4=curdupin;
+
+					mf->v2=df1->v1;
+					mf->v3=curdupin;
+					mf->v4=df2->v1;
+
+					curdupin++;
+
+					facepa[i]=v1;
+					facepa[curdupface-3]=v2;
+					facepa[curdupface-2]=v3;
+					facepa[curdupface-1]=v4;
+
+					test_index_face(df1, &splitdm->faceData, curdupface-3, (df1->v4 ? 4 : 3));
+
+					test_index_face(df1, &splitdm->faceData, curdupface-2, (df1->v4 ? 4 : 3));
+					test_index_face(df1, &splitdm->faceData, curdupface-1, (df1->v4 ? 4 : 3));
+				}
+				else{
+					df1=CDDM_get_face(splitdm,curdupface);
+					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					*df1=*mf;
+					curdupface++;
+
+					df2=CDDM_get_face(splitdm,curdupface);
+					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					*df2=*mf;
+					curdupface++;
+
+					df3=CDDM_get_face(splitdm,curdupface);
+					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					*df3=*mf;
+					curdupface++;
+
+					if(v2==v3){
+						df1->v1=edgesplit[mf->v1*totvert+mf->v2];
+						df3->v1=df1->v2=df1->v3=edgesplit[mf->v2*totvert+mf->v3];
+						df2->v1=df1->v4=edgesplit[mf->v1*totvert+mf->v4];
+
+						df3->v3=df2->v3=edgesplit[mf->v3*totvert+mf->v4];
+
+						df3->v2=mf->v3;
+						df3->v4=0;
+
+						mf->v2=df1->v1;
+						mf->v3=df1->v4;
+						mf->v4=0;
+
+						facepa[i]=v1;
+						facepa[curdupface-3]=facepa[curdupface-2]=v2;
+						facepa[curdupface-1]=v3;
+					}
+					else{
+						df3->v1=df2->v1=df1->v2=edgesplit[mf->v1*totvert+mf->v2];
+						df2->v4=df1->v3=edgesplit[mf->v3*totvert+mf->v4];
+						df1->v4=edgesplit[mf->v1*totvert+mf->v4];
+
+						df3->v3=df2->v2=edgesplit[mf->v2*totvert+mf->v3];
+
+						df3->v4=0;
+
+						mf->v1=df1->v4;
+						mf->v2=df1->v3;
+						mf->v3=mf->v4;
+						mf->v4=0;
+
+						facepa[i]=v4;
+						facepa[curdupface-3]=facepa[curdupface-2]=v1;
+						facepa[curdupface-1]=v2;
+					}
+
+					test_index_face(df1, &splitdm->faceData, curdupface-3, (df1->v4 ? 4 : 3));
+					test_index_face(df1, &splitdm->faceData, curdupface-2, (df1->v4 ? 4 : 3));
+					test_index_face(df1, &splitdm->faceData, curdupface-1, (df1->v4 ? 4 : 3));
+				}
+			}
+
+			test_index_face(df1, &splitdm->faceData, i, (df1->v4 ? 4 : 3));
+		}
+	}
+
+	MEM_freeN(edgesplit);
+	MEM_freeN(facesplit);
+	MEM_freeN(vertpa);
+
+	return splitdm;
+
+}
+static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd, 
+												 ParticleSystemModifierData *psmd, Object *ob, 
+												 DerivedMesh *to_explode)
+{
+	DerivedMesh *explode, *dm=to_explode;
+	MFace *mf=0;
+	MVert *dupvert=0;
+	ParticleSettings *part=psmd->psys->part;
+	ParticleData *pa, *pars=psmd->psys->particles;
+	ParticleKey state;
+	float *vertco=0, imat[4][4];
+	float loc0[3], nor[3];
+	float timestep, cfra;
+	int *facepa=emd->facepa, *vertpa=0;
+	int totdup=0,totvert=0,totface=0,totpart=0;
+	int i, j, v, mindex=0;
+
+	totface= dm->getNumFaces(dm);
+	totvert= dm->getNumVerts(dm);
+	totpart= psmd->psys->totpart;
+
+	timestep= psys_get_timestep(part);
+
+	if(part->flag & PART_GLOB_TIME)
+		cfra=bsystem_time(0,(float)G.scene->r.cfra,0.0);
+	else
+		cfra=bsystem_time(ob,(float)G.scene->r.cfra,0.0);
+
+	/* table for vertice <-> particle relations (row totpart+1 is for yet unexploded verts) */
+	vertpa = MEM_callocN(sizeof(int)*(totpart+1)*totvert, "explode_vertpatab");
+	for(i=0; i<(totpart+1)*totvert; i++)
+		vertpa[i] = -1;
+
+	for (i=0; i<totface; i++) {
+		if(facepa[i]==totpart || cfra <= (pars+facepa[i])->time)
+			mindex = totpart*totvert;
+		else 
+			mindex = facepa[i]*totvert;
+
+		mf=CDDM_get_face(dm,i);
+
+		/*set face vertices to exist in particle group*/
+		vertpa[mindex+mf->v1] = 1;
+		vertpa[mindex+mf->v2] = 1;
+		vertpa[mindex+mf->v3] = 1;
+		if(mf->v4)
+			vertpa[mindex+mf->v4] = 1;
+	}
+
+	/*make new vertice indexes & count total vertices after duplication*/
+	for(i=0; i<(totpart+1)*totvert; i++){
+		if(vertpa[i] != -1)
+			vertpa[i] = totdup++;
+	}
+
+	/*the final duplicated vertices*/
+	explode= CDDM_from_template(dm, totdup, 0,totface);
+	dupvert= CDDM_get_verts(explode);
+
+	/* getting back to object space */
+	Mat4Invert(imat,ob->obmat);
+
+	psmd->psys->lattice = psys_get_lattice(ob, psmd->psys);
+
+	/*duplicate & displace vertices*/
+	for(i=0, pa=pars; i<=totpart; i++, pa++){
+		if(i!=totpart){
+			psys_particle_on_emitter(ob, psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,loc0,nor,0,0,0,0);
+			Mat4MulVecfl(ob->obmat,loc0);
+
+			state.time=cfra;
+			psys_get_particle_state(ob,psmd->psys,i,&state,1);
+		}
+
+		for(j=0; j<totvert; j++){
+			v=vertpa[i*totvert+j];
+			if(v != -1) {
+				MVert source;
+				MVert *dest;
+
+				dm->getVert(dm, j, &source);
+				dest = CDDM_get_vert(explode,v);
+
+				DM_copy_vert_data(dm,explode,j,v,1);
+				*dest = source;
+
+				if(i!=totpart){
+					vertco=CDDM_get_vert(explode,v)->co;
+					
+					Mat4MulVecfl(ob->obmat,vertco);
+
+					VECSUB(vertco,vertco,loc0);
+
+					/* apply rotation, size & location */
+					QuatMulVecf(state.rot,vertco);
+					VecMulf(vertco,pa->size);
+					VECADD(vertco,vertco,state.co);
+
+					Mat4MulVecfl(imat,vertco);
+				}
+			}
+		}
+	}
+
+	/*map new vertices to faces*/
+	for (i=0; i<totface; i++) {
+		MFace source;
+		int orig_v4;
+
+		if(facepa[i]!=totpart)
+		{
+			pa=pars+facepa[i];
+
+			if(pa->alive==PARS_UNBORN && (emd->flag&eExplodeFlag_Unborn)==0) continue;
+			if(pa->alive==PARS_ALIVE && (emd->flag&eExplodeFlag_Alive)==0) continue;
+			if(pa->alive==PARS_DEAD && (emd->flag&eExplodeFlag_Dead)==0) continue;
+		}
+
+		dm->getFace(dm,i,&source);
+		mf=CDDM_get_face(explode,i);
+		
+		orig_v4 = source.v4;
+
+		if(facepa[i]!=totpart && cfra <= pa->time)
+			mindex = totpart*totvert;
+		else 
+			mindex = facepa[i]*totvert;
+
+		source.v1 = vertpa[mindex+source.v1];
+		source.v2 = vertpa[mindex+source.v2];
+		source.v3 = vertpa[mindex+source.v3];
+		if(source.v4)
+			source.v4 = vertpa[mindex+source.v4];
+
+		DM_copy_face_data(dm,explode,i,i,1);
+
+		*mf = source;
+
+		test_index_face(mf, &explode->faceData, i, (mf->v4 ? 4 : 3));
+	}
+
+
+	/* cleanup */
+	if(vertpa) MEM_freeN(vertpa);
+
+	/* finalization */
+	CDDM_calc_edges(explode);
+	CDDM_calc_normals(explode);
+
+	if(psmd->psys->lattice){
+		end_latt_deform();
+		psmd->psys->lattice=0;
+	}
+
+	return explode;
+}
+
+static ParticleSystemModifierData * explodeModifier_findPrecedingParticlesystem(Object *ob, ModifierData *emd)
+{
+	ModifierData *md;
+	ParticleSystemModifierData *psmd=0;
+
+	for (md=ob->modifiers.first; emd!=md; md=md->next){
+		if(md->type==eModifierType_ParticleSystem)
+			psmd= (ParticleSystemModifierData*) md;
+	}
+	return psmd;
+}
+static DerivedMesh * explodeModifier_applyModifier(
+				ModifierData *md, Object *ob, DerivedMesh *derivedData,
+                 int useRenderParams, int isFinalCalc)
+{
+	DerivedMesh *dm = derivedData;
+	ExplodeModifierData *emd= (ExplodeModifierData*) md;
+	ParticleSystemModifierData *psmd=explodeModifier_findPrecedingParticlesystem(ob,md);;
+
+	if(psmd){
+		ParticleSystem * psys=psmd->psys;
+
+		if(psys==0 || psys->totpart==0) return derivedData;
+		if(psys->part==0 || psys->particles==0) return derivedData;
+
+		/* 1. find faces to be exploded if needed */
+		if(emd->facepa==0
+			|| psmd->flag&eParticleSystemFlag_Pars
+			|| emd->flag&eExplodeFlag_CalcFaces
+			|| MEM_allocN_len(emd->facepa)/sizeof(int) != dm->getNumFaces(dm)){
+			if(psmd->flag & eParticleSystemFlag_Pars)
+				psmd->flag &= ~eParticleSystemFlag_Pars;
+			
+			if(emd->flag & eExplodeFlag_CalcFaces)
+				emd->flag &= ~eExplodeFlag_CalcFaces;
+
+			explodeModifier_createFacepa(emd,psmd,ob,derivedData);
+		}
+
+		/* 2. create new mesh */
+		if(emd->flag & eExplodeFlag_EdgeSplit){
+			int *facepa = emd->facepa;
+			DerivedMesh *splitdm=explodeModifier_splitEdges(emd,dm);
+			DerivedMesh *explode=explodeModifier_explodeMesh(emd,psmd,ob,splitdm);
+
+			MEM_freeN(emd->facepa);
+			emd->facepa=facepa;
+			splitdm->release(splitdm);
+			return explode;
+		}
+		else
+			return explodeModifier_explodeMesh(emd,psmd,ob,derivedData);
+	}
+	return derivedData;
+}
+/* MeshDeform */
+
+static void meshdeformModifier_initData(ModifierData *md)
+{
+	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+
+	mmd->gridsize= 5;
+}
+
+static void meshdeformModifier_freeData(ModifierData *md)
+{
+	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+
+	if(mmd->bindweights) MEM_freeN(mmd->bindweights);
+	if(mmd->bindcos) MEM_freeN(mmd->bindcos);
+	if(mmd->dyngrid) MEM_freeN(mmd->dyngrid);
+	if(mmd->dyninfluences) MEM_freeN(mmd->dyninfluences);
+	if(mmd->dynverts) MEM_freeN(mmd->dynverts);
+}
+
+static void meshdeformModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+	MeshDeformModifierData *tmmd = (MeshDeformModifierData*) target;
+
+	tmmd->gridsize = mmd->gridsize;
+	tmmd->object = mmd->object;
+}
+
+CustomDataMask meshdeformModifier_requiredDataMask(ModifierData *md)
+{	
+	MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if(mmd->defgrp_name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
+}
+
+static int meshdeformModifier_isDisabled(ModifierData *md)
+{
+	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+
+	return !mmd->object;
+}
+
+static void meshdeformModifier_foreachObjectLink(
+                ModifierData *md, Object *ob,
+                void (*walk)(void *userData, Object *ob, Object **obpoin),
+                void *userData)
+{
+	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+
+	walk(userData, ob, &mmd->object);
+}
+
+static void meshdeformModifier_updateDepgraph(
+                ModifierData *md, DagForest *forest, Object *ob,
+                DagNode *obNode)
+{
+	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+
+	if (mmd->object) {
+		DagNode *curNode = dag_get_node(forest, mmd->object);
+
+		dag_add_relation(forest, curNode, obNode,
+		                 DAG_RL_DATA_DATA|DAG_RL_OB_DATA|DAG_RL_DATA_OB|DAG_RL_OB_OB);
+	}
+}
+
+static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3], float *vec)
+{
+	MDefCell *cell;
+	MDefInfluence *inf;
+	float gridvec[3], dvec[3], ivec[3], co[3], wx, wy, wz;
+	float weight, cageweight, totweight, *cageco;
+	int i, j, a, x, y, z, size;
+
+	co[0]= co[1]= co[2]= 0.0f;
+	totweight= 0.0f;
+	size= mmd->dyngridsize;
+
+	for(i=0; i<3; i++) {
+		gridvec[i]= (vec[i] - mmd->dyncellmin[i] - mmd->dyncellwidth*0.5f)/mmd->dyncellwidth;
+		ivec[i]= (int)gridvec[i];
+		dvec[i]= gridvec[i] - ivec[i];
+	}
+
+	for(i=0; i<8; i++) {
+		if(i & 1) { x= ivec[0]+1; wx= dvec[0]; }
+		else { x= ivec[0]; wx= 1.0f-dvec[0]; } 
+
+		if(i & 2) { y= ivec[1]+1; wy= dvec[1]; }
+		else { y= ivec[1]; wy= 1.0f-dvec[1]; } 
+
+		if(i & 4) { z= ivec[2]+1; wz= dvec[2]; }
+		else { z= ivec[2]; wz= 1.0f-dvec[2]; } 
+
+		CLAMP(x, 0, size-1);
+		CLAMP(y, 0, size-1);
+		CLAMP(z, 0, size-1);
+
+		a= x + y*size + z*size*size;
+		weight= wx*wy*wz;
+
+		cell= &mmd->dyngrid[a];
+		inf= mmd->dyninfluences + cell->offset;
+		for(j=0; j<cell->totinfluence; j++, inf++) {
+			cageco= dco[inf->vertex];
+			cageweight= weight*inf->weight;
+			co[0] += cageweight*cageco[0];
+			co[1] += cageweight*cageco[1];
+			co[2] += cageweight*cageco[2];
+			totweight += cageweight;
+		}
+	}
+
+	VECCOPY(vec, co);
+
+	return totweight;
+}
+
+static void meshdeformModifier_do(
+                ModifierData *md, Object *ob, DerivedMesh *dm,
+                float (*vertexCos)[3], int numVerts)
+{
+	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+	float imat[4][4], cagemat[4][4], icagemat[4][4], iobmat[3][3];
+	float weight, totweight, fac, co[3], *weights, (*dco)[3], (*bindcos)[3];
+	int a, b, totvert, totcagevert, defgrp_index;
+	DerivedMesh *tmpdm, *cagedm;
+	MDeformVert *dvert = NULL;
+	MDeformWeight *dw;
+	MVert *cagemvert;
+
+	if(!mmd->object || (!mmd->bindcos && !mmd->needbind))
+		return;
+	
+	/* get cage derivedmesh */
+	if(mmd->object == G.obedit) {
+		tmpdm= editmesh_get_derived_cage_and_final(&cagedm, 0);
+		if(tmpdm)
+			tmpdm->release(tmpdm);
+	}
+	else
+		cagedm= mmd->object->derivedFinal;
+	
+	if(!cagedm)
+		return;
+
+ 	/* compute matrices to go in and out of cage object space */
+	Mat4Invert(imat, mmd->object->obmat);
+	Mat4MulMat4(cagemat, ob->obmat, imat);
+	Mat4Invert(icagemat, cagemat);
+	Mat3CpyMat4(iobmat, icagemat);
+
+	/* bind weights if needed */
+	if(!mmd->bindcos)
+		harmonic_coordinates_bind(mmd, vertexCos, numVerts, cagemat);
+
+	/* verify we have compatible weights */
+	totvert= numVerts;
+	totcagevert= cagedm->getNumVerts(cagedm);
+
+	if(mmd->totvert!=totvert || mmd->totcagevert!=totcagevert || !mmd->bindcos) {
+		cagedm->release(cagedm);
+		return;
+	}
+	
+	/* setup deformation data */
+	cagemvert= cagedm->getVertArray(cagedm);
+	weights= mmd->bindweights;
+	bindcos= (float(*)[3])mmd->bindcos;
+
+	dco= MEM_callocN(sizeof(*dco)*totcagevert, "MDefDco");
+	for(a=0; a<totcagevert; a++) {
+		/* get cage vertex in world space with binding transform */
+		VECCOPY(co, cagemvert[a].co);
+
+		if(G.rt != 527) {
+			Mat4MulVecfl(mmd->bindmat, co);
+			/* compute difference with world space bind coord */
+			VECSUB(dco[a], co, bindcos[a]);
+		}
+		else
+			VECCOPY(dco[a], co)
+	}
+
+	defgrp_index = -1;
+
+	if(mmd->defgrp_name[0]) {
+		bDeformGroup *def;
+
+		for(a=0, def=ob->defbase.first; def; def=def->next, a++) {
+			if(!strcmp(def->name, mmd->defgrp_name)) {
+				defgrp_index= a;
+				break;
+			}
+		}
+
+		if (defgrp_index >= 0)
+			dvert= dm->getVertDataArray(dm, CD_MDEFORMVERT);
+	}
+
+	/* do deformation */
+	fac= 1.0f;
+
+	for(b=0; b<totvert; b++) {
+		if(mmd->flag & MOD_MDEF_DYNAMIC_BIND)
+			if(!mmd->dynverts[b])
+				continue;
+
+		if(dvert) {
+			for(dw=NULL, a=0; a<dvert[b].totweight; a++) {
+				if(dvert[b].dw[a].def_nr == defgrp_index) {
+					dw = &dvert[b].dw[a];
+					break;
+				}
+			}
+
+			if(mmd->flag & MOD_MDEF_INVERT_VGROUP) {
+				if(!dw) fac= 1.0f;
+				else if(dw->weight == 1.0f) continue;
+				else fac=1.0f-dw->weight;
+			}
+			else {
+				if(!dw) continue;
+				else fac= dw->weight;
+			}
+		}
+
+		if(mmd->flag & MOD_MDEF_DYNAMIC_BIND) {
+			/* transform coordinate into cage's local space */
+			VECCOPY(co, vertexCos[b]);
+			Mat4MulVecfl(cagemat, co);
+			totweight= meshdeform_dynamic_bind(mmd, dco, co);
+		}
+		else {
+			totweight= 0.0f;
+			co[0]= co[1]= co[2]= 0.0f;
+
+			for(a=0; a<totcagevert; a++) {
+				weight= weights[a + b*totcagevert];
+				co[0]+= weight*dco[a][0];
+				co[1]+= weight*dco[a][1];
+				co[2]+= weight*dco[a][2];
+				totweight += weight;
+			}
+		}
+
+		if(totweight > 0.0f) {
+			VecMulf(co, fac/totweight);
+			Mat3MulVecfl(iobmat, co);
+			if(G.rt != 527)
+				VECADD(vertexCos[b], vertexCos[b], co)
+			else
+				VECCOPY(vertexCos[b], co)
+		}
+	}
+
+	/* release cage derivedmesh */
+	MEM_freeN(dco);
+	cagedm->release(cagedm);
+}
+
+static void meshdeformModifier_deformVerts(
+                ModifierData *md, Object *ob, DerivedMesh *derivedData,
+                float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm;
+
+	if(!derivedData && ob->type==OB_MESH)
+		dm= CDDM_from_mesh(ob->data, ob);
+	else
+		dm= derivedData;
+
+	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
+	
+	meshdeformModifier_do(md, ob, dm, vertexCos, numVerts);
+
+	if(dm != derivedData)
+		dm->release(dm);
+}
+
+static void meshdeformModifier_deformVertsEM(
+                ModifierData *md, Object *ob, EditMesh *editData,
+                DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm;
+
+	if(!derivedData && ob->type == OB_MESH)
+		dm = CDDM_from_editmesh(editData, ob->data);
+	else
+		dm = derivedData;
+
+	meshdeformModifier_do(md, ob, dm, vertexCos, numVerts);
+
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 /***/
@@ -4963,6 +7021,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		             | eModifierTypeFlag_EnableInEditmode;
 		mti->initData = mirrorModifier_initData;
 		mti->copyData = mirrorModifier_copyData;
+		mti->foreachObjectLink = mirrorModifier_foreachObjectLink;
+		mti->updateDepgraph = mirrorModifier_updateDepgraph;
 		mti->applyModifier = mirrorModifier_applyModifier;
 		mti->applyModifierEM = mirrorModifier_applyModifierEM;
 
@@ -4976,6 +7036,17 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->copyData = edgesplitModifier_copyData;
 		mti->applyModifier = edgesplitModifier_applyModifier;
 		mti->applyModifierEM = edgesplitModifier_applyModifierEM;
+
+		mti = INIT_TYPE(Bevel);
+		mti->type = eModifierTypeType_Constructive;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+		             | eModifierTypeFlag_SupportsEditmode
+		             | eModifierTypeFlag_EnableInEditmode;
+		mti->initData = bevelModifier_initData;
+		mti->copyData = bevelModifier_copyData;
+		mti->requiredDataMask = bevelModifier_requiredDataMask;
+		mti->applyModifier = bevelModifier_applyModifier;
+		mti->applyModifierEM = bevelModifier_applyModifierEM;
 
 		mti = INIT_TYPE(Displace);
 		mti->type = eModifierTypeType_OnlyDeform;
@@ -5060,6 +7131,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->updateDepgraph = armatureModifier_updateDepgraph;
 		mti->deformVerts = armatureModifier_deformVerts;
 		mti->deformVertsEM = armatureModifier_deformVertsEM;
+		mti->deformMatricesEM = armatureModifier_deformMatricesEM;
 
 		mti = INIT_TYPE(Hook);
 		mti->type = eModifierTypeType_OnlyDeform;
@@ -5080,15 +7152,94 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsCVs
 		             | eModifierTypeFlag_RequiresOriginalData;
 		mti->deformVerts = softbodyModifier_deformVerts;
+	
+		mti = INIT_TYPE(Cloth);
+		mti->type = eModifierTypeType_Nonconstructive;
+		mti->initData = clothModifier_initData;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_UsesPointCache;
+		mti->dependsOnTime = clothModifier_dependsOnTime;
+		mti->freeData = clothModifier_freeData; 
+		mti->requiredDataMask = clothModifier_requiredDataMask;
+		mti->copyData = clothModifier_copyData;
+		mti->applyModifier = clothModifier_applyModifier;
+		mti->updateDepgraph = clothModifier_updateDepgraph;
+		
+		mti = INIT_TYPE(Collision);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->initData = collisionModifier_initData;
+		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->dependsOnTime = collisionModifier_dependsOnTime;
+		mti->freeData = collisionModifier_freeData; 
+		mti->deformVerts = collisionModifier_deformVerts;
+		// mti->copyData = collisionModifier_copyData;
 
 		mti = INIT_TYPE(Boolean);
 		mti->type = eModifierTypeType_Nonconstructive;
-		mti->flags = eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_RequiresOriginalData;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+					 | eModifierTypeFlag_RequiresOriginalData
+					 | eModifierTypeFlag_UsesPointCache;
 		mti->copyData = booleanModifier_copyData;
 		mti->isDisabled = booleanModifier_isDisabled;
 		mti->applyModifier = booleanModifier_applyModifier;
 		mti->foreachObjectLink = booleanModifier_foreachObjectLink;
 		mti->updateDepgraph = booleanModifier_updateDepgraph;
+
+		mti = INIT_TYPE(MeshDeform);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->flags = eModifierTypeFlag_AcceptsCVs
+		             | eModifierTypeFlag_SupportsEditmode;
+		mti->initData = meshdeformModifier_initData;
+		mti->freeData = meshdeformModifier_freeData;
+		mti->copyData = meshdeformModifier_copyData;
+		mti->requiredDataMask = meshdeformModifier_requiredDataMask;
+		mti->isDisabled = meshdeformModifier_isDisabled;
+		mti->foreachObjectLink = meshdeformModifier_foreachObjectLink;
+		mti->updateDepgraph = meshdeformModifier_updateDepgraph;
+		mti->deformVerts = meshdeformModifier_deformVerts;
+		mti->deformVertsEM = meshdeformModifier_deformVertsEM;
+
+		mti = INIT_TYPE(ParticleSystem);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+					| eModifierTypeFlag_SupportsMapping
+					| eModifierTypeFlag_UsesPointCache;
+#if 0
+					| eModifierTypeFlag_SupportsEditmode;
+					|eModifierTypeFlag_EnableInEditmode;
+#endif
+		mti->initData = particleSystemModifier_initData;
+		mti->freeData = particleSystemModifier_freeData;
+		mti->copyData = particleSystemModifier_copyData;
+		mti->deformVerts = particleSystemModifier_deformVerts;
+#if 0
+		mti->deformVertsEM = particleSystemModifier_deformVertsEM;
+#endif
+		mti->requiredDataMask = particleSystemModifier_requiredDataMask;
+
+		mti = INIT_TYPE(ParticleInstance);
+		mti->type = eModifierTypeType_Constructive;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+		             | eModifierTypeFlag_SupportsMapping
+		             | eModifierTypeFlag_SupportsEditmode
+		             | eModifierTypeFlag_EnableInEditmode;
+		mti->initData = particleInstanceModifier_initData;
+		mti->copyData = particleInstanceModifier_copyData;
+		mti->dependsOnTime = particleInstanceModifier_dependsOnTime;
+		mti->foreachObjectLink = particleInstanceModifier_foreachObjectLink;
+		mti->applyModifier = particleInstanceModifier_applyModifier;
+		mti->applyModifierEM = particleInstanceModifier_applyModifierEM;
+		mti->updateDepgraph = particleInstanceModifier_updateDepgraph;
+
+		mti = INIT_TYPE(Explode);
+		mti->type = eModifierTypeType_Nonconstructive;
+		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->initData = explodeModifier_initData;
+		mti->freeData = explodeModifier_freeData;
+		mti->copyData = explodeModifier_copyData;
+		mti->dependsOnTime = explodeModifier_dependsOnTime;
+		mti->requiredDataMask = explodeModifier_requiredDataMask;
+		mti->applyModifier = explodeModifier_applyModifier;
 
 		typeArrInit = 0;
 #undef INIT_TYPE
@@ -5143,9 +7294,8 @@ int modifier_supportsMapping(ModifierData *md)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-	return (	(mti->flags & eModifierTypeFlag_SupportsEditmode) &&
-				(	(mti->type==eModifierTypeType_OnlyDeform ||
-					(mti->flags & eModifierTypeFlag_SupportsMapping))) );
+	return (mti->type==eModifierTypeType_OnlyDeform ||
+	        (mti->flags & eModifierTypeFlag_SupportsMapping));
 }
 
 ModifierData *modifiers_findByType(Object *ob, ModifierType type)
@@ -5261,6 +7411,7 @@ int modifiers_getCageIndex(Object *ob, int *lastPossibleCageIndex_r)
 		if (!(md->mode & eModifierMode_Editmode)) continue;
 		if (mti->isDisabled && mti->isDisabled(md)) continue;
 		if (!(mti->flags & eModifierTypeFlag_SupportsEditmode)) continue;
+		if (md->mode & eModifierMode_DisableTemporary) continue;
 
 		if (!modifier_supportsMapping(md))
 			break;
@@ -5277,6 +7428,20 @@ int modifiers_getCageIndex(Object *ob, int *lastPossibleCageIndex_r)
 int modifiers_isSoftbodyEnabled(Object *ob)
 {
 	ModifierData *md = modifiers_findByType(ob, eModifierType_Softbody);
+
+	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
+}
+
+int modifiers_isClothEnabled(Object *ob)
+{
+	ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
+
+	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
+}
+
+int modifiers_isParticleEnabled(Object *ob)
+{
+	ModifierData *md = modifiers_findByType(ob, eModifierType_ParticleSystem);
 
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
@@ -5440,20 +7605,61 @@ int modifiers_usesArmature(Object *ob, bArmature *arm)
 	return 0;
 }
 
+int modifier_isDeformer(ModifierData *md)
+{
+	if (md->type==eModifierType_Armature)
+		return 1;
+	if (md->type==eModifierType_Curve)
+		return 1;
+	if (md->type==eModifierType_Lattice)
+		return 1;
+	
+	return 0;
+}
+
 int modifiers_isDeformed(Object *ob)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	
 	for (; md; md=md->next) {
 		if(ob==G.obedit && (md->mode & eModifierMode_Editmode)==0);
-		else {
-			if (md->type==eModifierType_Armature)
-				return 1;
-			if (md->type==eModifierType_Curve)
-				return 1;
-			if (md->type==eModifierType_Lattice)
-				return 1;
+		else if(modifier_isDeformer(md))
+			return 1;
+	}
+	return 0;
+}
+
+int modifiers_indexInObject(Object *ob, ModifierData *md_seek)
+{
+	int i= 0;
+	ModifierData *md;
+	
+	for (md=ob->modifiers.first; (md && md_seek!=md); md=md->next, i++);
+	if (!md) return -1; /* modifier isnt in the object */
+	return i;
+}
+
+int modifiers_usesPointCache(Object *ob)
+{
+	ModifierData *md = ob->modifiers.first;
+
+	for (; md; md=md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		if (mti->flags & eModifierTypeFlag_UsesPointCache) {
+			return 1;
 		}
 	}
 	return 0;
 }
+
+void modifier_freeTemporaryData(ModifierData *md)
+{
+	if(md->type == eModifierType_Armature) {
+		ArmatureModifierData *amd= (ArmatureModifierData*)md;
+
+		if(amd->prevCos)
+			MEM_freeN(amd->prevCos);
+	}
+}
+
+

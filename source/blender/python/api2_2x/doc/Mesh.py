@@ -17,6 +17,7 @@ face's attributes (the vertex color):
 
 Example::
 	from Blender import *
+	import bpy
 
 	editmode = Window.EditMode()    # are we in edit mode?  If so ...
 	if editmode: Window.EditMode(0) # leave edit mode before getting the mesh
@@ -25,7 +26,7 @@ Example::
 	coords=[ [-1,-1,-1], [1,-1,-1], [1,1,-1], [-1,1,-1], [0,0,1] ]	
 	faces= [ [3,2,1,0], [0,1,4], [1,2,4], [2,3,4], [3,0,4] ]
 
-	me = Mesh.New('myMesh')          # create a new mesh
+	me = bpy.data.meshes.new('myMesh')          # create a new mesh
 
 	me.verts.extend(coords)          # add vertices to mesh
 	me.faces.extend(faces)           # add faces to the mesh (also adds edges)
@@ -35,7 +36,7 @@ Example::
 	me.faces[1].col[1].g = 255
 	me.faces[1].col[2].b = 255
 
-	scn = Scene.GetCurrent()          # link object to current scene
+	scn = bpy.data.scenes.active     # link object to current scene
 	ob = scn.objects.new(me, 'myObj')
 
 	if editmode: Window.EditMode(1)  # optional, just being nice
@@ -518,7 +519,7 @@ class MFace:
 			me= ob.getData(mesh=1)	# thin wrapper doesn't copy mesh data like nmesh
 			me.vertexColors= True	# Enable face, vertex colors
 			for f in me.faces:
-				for i, v in enumerate(f.v):
+				for i, v in enumerate(f):
 					no= v.no
 					col= f.col[i]
 					col.r= int((no.x+1)*128)
@@ -689,6 +690,22 @@ class MFaceSeq:
 			- a integer, specifying an index into the mesh's face list
 		"""
 
+	def sort():
+		"""
+		Sorts the faces using exactly the same syntax as pythons own list sorting function.
+
+		Example::
+			import Blender
+			from Blender import Mesh
+			me = Mesh.Get('mymesh')
+			
+			me.faces.sort(key=lambda f: f.area)
+			
+			me.faces.sort(key=lambda f: f.cent)
+		
+		@note: Internally faces only refer to their index, so after sorting, faces you alredy have will not have their index changed to match the new sorted order. 
+		"""
+		
 	def selected():
 		"""
 		Get selected faces.
@@ -740,19 +757,9 @@ class Mesh:
 	@type hide: boolean
 	@ivar subDivLevels: The [display, rendering] subdivision levels in [1, 6].
 	@type subDivLevels: list of 2 ints
-
-	@ivar faceUV: The mesh contains UV-mapped textured faces.  Enabling faceUV
-		does not initialize the face colors like the Blender UI does; this must
-		be done in the script.  B{Note}: if faceUV is set, L{vertexColors} cannot
-		be set.  Furthermore, if vertexColors is already set when faceUV is set,
-		vertexColors is cleared.  This is because the vertex color information
-		is stored with UV faces, so enabling faceUV implies enabling vertexColors.
-		In addition, faceUV cannot be set when the mesh has no faces defined
-		(this is the same behavior as the UI).  Attempting to do so will throw
-		a RuntimeError exception.
+	@ivar faceUV: The mesh contains UV-mapped textured faces.
 	@type faceUV: bool
-	@ivar vertexColors: The mesh contains vertex colors.  See L{faceUV} for the
-		use of vertex colors when UV-mapped texture faces are enabled.
+	@ivar vertexColors: The mesh contains vertex colors. Set True to add vertex colors.
 	@type vertexColors: bool
 	@ivar vertexUV: The mesh contains "sticky" per-vertex UV coordinates.
 	@type vertexUV: bool
@@ -827,10 +834,15 @@ class Mesh:
 		Recalculates the vertex normals using face data.
 		"""
 	
-	def pointInside(vector):
+	def pointInside(point, selected_only=False):
 		"""
+		@type point: vector
+		@param point: Test if this point is inside the mesh
+		@type selected_only: bool
+		@param selected_only: if True or 1, only the selected faces are taken into account.
 		Returns true if vector is inside the mesh.
 		@note: Only returns a valid result for mesh data that has no holes.
+		@note: Bubbles in the mesh work as expect.
 		"""
 	
 	def transform(matrix, recalc_normals = False, selected_only=False):
@@ -862,7 +874,7 @@ class Mesh:
 		@param matrix: 4x4 Matrix which can contain location, scale and rotation. 
 		@type recalc_normals: int
 		@param recalc_normals: if True or 1, also transform vertex normals.
-		@type selected_only: int
+		@type selected_only: bool
 		@param selected_only: if True or 1, only the selected verts will be transformed.
 		@warn: unlike L{NMesh.transform()<NMesh.NMesh.transform>}, this method
 		I{will immediately modify the mesh data} when it is used.  If you
@@ -1001,7 +1013,8 @@ class Mesh:
 		@type group: string
 		@param group: the group name.
 		@type weightsFlag: bool
-		@param weightsFlag: if 1, the weight is returned along with the index. 
+		@param weightsFlag: if 1, each item in the list returned contains a
+			tuple pair (index, weight), the weight is a float between 0.0 and 1.0.
 		@type vertList: list of ints
 		@param vertList: if given, only those vertex points that are both in the
 				list and group passed in are returned.
@@ -1087,6 +1100,15 @@ class Mesh:
 		Adds a new Vertex Color layer to this mesh, it will always be the last layer but not made active.
 		@type name: string
 		@param name: The name of the new Color layer, 31 characters max.
+		"""
+
+	def addMultiresLevel(levels = 1, type = 'catmull-clark'):
+		"""
+		Adds multires levels to this mesh.
+		@type levels: int
+		@param levels: The number of levels to add
+		@type type: string
+		@param type: The type of multires level, 'catmull-clark' or 'simple'.
 		"""
 
 	def removeUVLayer(name):

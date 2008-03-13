@@ -51,16 +51,16 @@
 /*****************************************************************************/
 /* Python API function prototypes for the sys module.                        */
 /*****************************************************************************/
-static PyObject *M_sys_basename( PyObject * self, PyObject * args );
-static PyObject *M_sys_dirname( PyObject * self, PyObject * args );
+static PyObject *M_sys_basename( PyObject * self, PyObject * value );
+static PyObject *M_sys_dirname( PyObject * self, PyObject * value );
 static PyObject *M_sys_join( PyObject * self, PyObject * args );
-static PyObject *M_sys_splitext( PyObject * self, PyObject * args );
+static PyObject *M_sys_splitext( PyObject * self, PyObject * value );
 static PyObject *M_sys_makename( PyObject * self, PyObject * args,
 	PyObject * kw );
-static PyObject *M_sys_exists( PyObject * self, PyObject * args );
+static PyObject *M_sys_exists( PyObject * self, PyObject * value );
 static PyObject *M_sys_time( PyObject * self );
 static PyObject *M_sys_sleep( PyObject * self, PyObject * args );
-static PyObject *M_sys_expandpath( PyObject *self, PyObject *args);
+static PyObject *M_sys_expandpath( PyObject *self, PyObject *value);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -131,17 +131,17 @@ If the special chars are not found in the given path, it is simply returned.";
 /* Python method structure definition for Blender.sys module:                */
 /*****************************************************************************/
 struct PyMethodDef M_sys_methods[] = {
-	{"basename", M_sys_basename, METH_VARARGS, M_sys_basename_doc},
-	{"dirname", M_sys_dirname, METH_VARARGS, M_sys_dirname_doc},
+	{"basename", M_sys_basename, METH_O, M_sys_basename_doc},
+	{"dirname", M_sys_dirname, METH_O, M_sys_dirname_doc},
 	{"join", M_sys_join, METH_VARARGS, M_sys_join_doc},
-	{"splitext", M_sys_splitext, METH_VARARGS, M_sys_splitext_doc},
+	{"splitext", M_sys_splitext, METH_O, M_sys_splitext_doc},
 	{"makename", ( PyCFunction ) M_sys_makename,
 	 METH_VARARGS | METH_KEYWORDS,
 	 M_sys_makename_doc},
-	{"exists", M_sys_exists, METH_VARARGS, M_sys_exists_doc},
+	{"exists", M_sys_exists, METH_O, M_sys_exists_doc},
 	{"sleep", M_sys_sleep, METH_VARARGS, M_sys_sleep_doc},
 	{"time", ( PyCFunction ) M_sys_time, METH_NOARGS, M_sys_time_doc},
-	{"expandpath", M_sys_expandpath, METH_VARARGS, M_sys_expandpath_doc},
+	{"expandpath", M_sys_expandpath, METH_O, M_sys_expandpath_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -165,12 +165,13 @@ PyObject *sys_Init( void )
 	return submodule;
 }
 
-static PyObject *M_sys_basename( PyObject * self, PyObject * args )
+static PyObject *M_sys_basename( PyObject * self, PyObject * value )
 {
-	char *name, *p, basename[FILE_MAXDIR + FILE_MAXFILE];
+	char *name = PyString_AsString(value);
+	char *p, basename[FILE_MAXDIR + FILE_MAXFILE];
 	int n, len;
 
-	if( !PyArg_ParseTuple( args, "s", &name ) )
+	if( !name )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
 
@@ -196,12 +197,13 @@ static PyObject *M_sys_basename( PyObject * self, PyObject * args )
 	return PyString_FromString( name );
 }
 
-static PyObject *M_sys_dirname( PyObject * self, PyObject * args )
+static PyObject *M_sys_dirname( PyObject * self, PyObject * value )
 {
-	char *name, *p, dirname[FILE_MAXDIR + FILE_MAXFILE];
+	char *name = PyString_AsString(value);
+	char *p, dirname[FILE_MAXDIR + FILE_MAXFILE];
 	int n;
 
-	if( !PyArg_ParseTuple( args, "s", &name ) )
+	if( !name )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
 
@@ -254,12 +256,13 @@ static PyObject *M_sys_join( PyObject * self, PyObject * args )
 	return PyString_FromString( filename );
 }
 
-static PyObject *M_sys_splitext( PyObject * self, PyObject * args )
+static PyObject *M_sys_splitext( PyObject * self, PyObject * value )
 {
-	char *name, *dot, *p, path[FILE_MAXDIR + FILE_MAXFILE], ext[FILE_MAXDIR + FILE_MAXFILE];
+	char *name = PyString_AsString(value);
+	char *dot, *p, path[FILE_MAXDIR + FILE_MAXFILE], ext[FILE_MAXDIR + FILE_MAXFILE];
 	int n, len;
 
-	if( !PyArg_ParseTuple( args, "s", &name ) )
+	if( !name )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
 
@@ -358,12 +361,13 @@ static PyObject *M_sys_sleep( PyObject * self, PyObject * args )
 	return EXPP_incr_ret( Py_None );
 }
 
-static PyObject *M_sys_exists( PyObject * self, PyObject * args )
+static PyObject *M_sys_exists( PyObject * self, PyObject * value )
 {
-	char *fname = NULL;
+	char *fname = PyString_AsString(value);
+	
 	int mode = 0, i = -1;
 
-	if( !PyArg_ParseTuple( args, "s", &fname ) )
+	if( !fname )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string (pathname) argument" );
 
@@ -380,12 +384,12 @@ static PyObject *M_sys_exists( PyObject * self, PyObject * args )
 	return PyInt_FromLong(i);
 }
 
-static PyObject *M_sys_expandpath( PyObject * self, PyObject * args )
+static PyObject *M_sys_expandpath( PyObject * self, PyObject * value )
 {
-	char *path = NULL;
+	char *path = PyString_AsString(value);
 	char expanded[FILE_MAXDIR + FILE_MAXFILE];
 
-	if (!PyArg_ParseTuple( args, "s", &path))
+	if (!path)
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 			"expected string argument" );
 	

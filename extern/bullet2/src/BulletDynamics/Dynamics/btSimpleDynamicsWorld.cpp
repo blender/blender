@@ -22,6 +22,14 @@ subject to the following restrictions:
 #include "BulletDynamics/ConstraintSolver/btContactSolverInfo.h"
 
 
+/*
+  Make sure this dummy function never changes so that it
+  can be used by probes that are checking whether the
+  library is actually installed.
+*/
+extern "C" void btBulletDynamicsProbe () {}
+
+
 
 
 btSimpleDynamicsWorld::btSimpleDynamicsWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache,btConstraintSolver* constraintSolver)
@@ -41,8 +49,12 @@ btSimpleDynamicsWorld::~btSimpleDynamicsWorld()
 		delete m_constraintSolver;
 }
 
-int		btSimpleDynamicsWorld::stepSimulation( float timeStep,int maxSubSteps, float fixedTimeStep)
+int		btSimpleDynamicsWorld::stepSimulation( btScalar timeStep,int maxSubSteps, btScalar fixedTimeStep)
 {
+	(void)fixedTimeStep;
+	(void)maxSubSteps;
+
+
 	///apply gravity, predict motion
 	predictUnconstraintMotion(timeStep);
 
@@ -63,7 +75,7 @@ int		btSimpleDynamicsWorld::stepSimulation( float timeStep,int maxSubSteps, floa
 		btContactSolverInfo infoGlobal;
 		infoGlobal.m_timeStep = timeStep;
 		
-		m_constraintSolver->solveGroup(manifoldPtr, numManifolds,0,0,infoGlobal,m_debugDrawer);
+		m_constraintSolver->solveGroup(0,0,manifoldPtr, numManifolds,0,0,infoGlobal,m_debugDrawer, m_stackAlloc);
 	}
 
 	///integrate transforms
@@ -81,7 +93,7 @@ int		btSimpleDynamicsWorld::stepSimulation( float timeStep,int maxSubSteps, floa
 void	btSimpleDynamicsWorld::setGravity(const btVector3& gravity)
 {
 	m_gravity = gravity;
-	for (unsigned int i=0;i<m_collisionObjects.size();i++)
+	for ( int i=0;i<m_collisionObjects.size();i++)
 	{
 		btCollisionObject* colObj = m_collisionObjects[i];
 		btRigidBody* body = btRigidBody::upcast(colObj);
@@ -110,7 +122,7 @@ void	btSimpleDynamicsWorld::addRigidBody(btRigidBody* body)
 void	btSimpleDynamicsWorld::updateAabbs()
 {
 	btTransform predictedTrans;
-	for (unsigned int i=0;i<m_collisionObjects.size();i++)
+	for ( int i=0;i<m_collisionObjects.size();i++)
 	{
 		btCollisionObject* colObj = m_collisionObjects[i];
 		btRigidBody* body = btRigidBody::upcast(colObj);
@@ -127,10 +139,10 @@ void	btSimpleDynamicsWorld::updateAabbs()
 	}
 }
 
-void	btSimpleDynamicsWorld::integrateTransforms(float timeStep)
+void	btSimpleDynamicsWorld::integrateTransforms(btScalar timeStep)
 {
 	btTransform predictedTrans;
-	for (unsigned int i=0;i<m_collisionObjects.size();i++)
+	for ( int i=0;i<m_collisionObjects.size();i++)
 	{
 		btCollisionObject* colObj = m_collisionObjects[i];
 		btRigidBody* body = btRigidBody::upcast(colObj);
@@ -147,9 +159,9 @@ void	btSimpleDynamicsWorld::integrateTransforms(float timeStep)
 
 
 
-void	btSimpleDynamicsWorld::predictUnconstraintMotion(float timeStep)
+void	btSimpleDynamicsWorld::predictUnconstraintMotion(btScalar timeStep)
 {
-	for (unsigned int i=0;i<m_collisionObjects.size();i++)
+	for ( int i=0;i<m_collisionObjects.size();i++)
 	{
 		btCollisionObject* colObj = m_collisionObjects[i];
 		btRigidBody* body = btRigidBody::upcast(colObj);
@@ -172,7 +184,7 @@ void	btSimpleDynamicsWorld::predictUnconstraintMotion(float timeStep)
 void	btSimpleDynamicsWorld::synchronizeMotionStates()
 {
 	//todo: iterate over awake simulation islands!
-	for (unsigned int i=0;i<m_collisionObjects.size();i++)
+	for ( int i=0;i<m_collisionObjects.size();i++)
 	{
 		btCollisionObject* colObj = m_collisionObjects[i];
 		btRigidBody* body = btRigidBody::upcast(colObj);

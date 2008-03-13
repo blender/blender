@@ -90,11 +90,6 @@
 #include "datatoc.h"
 #include "mydevice.h"
 
-/* OpenGL textures have to be size 2n+2 x 2m+2 for some n,m */
-/* choose ICON_RENDERSIZE accordingly */
-#define ICON_RENDERSIZE 32	
-#define ICON_MIPMAPS 8
-
 #define ICON_IMAGE_W		512
 #define ICON_IMAGE_H		256
 
@@ -105,16 +100,19 @@
 #define ICON_GRID_W		15
 #define ICON_GRID_H		16
 
+typedef struct IconImage {
+	int w;
+	int h;
+	unsigned int *rect; 
+} IconImage;
+
 typedef struct DrawInfo {
 	int w;
 	int h;
-	int rw;
-	int rh;
-	VectorDrawFunc drawFunc; /* If drawFunc is defined then it is a vector icon, otherwise use rect */
 	float aspect;
-	unsigned int *rect; 
+	VectorDrawFunc drawFunc; /* If drawFunc is defined then it is a vector icon, otherwise use rect */		
+	IconImage* icon;
 } DrawInfo;
-
 
 /* ******************* STATIC LOCAL VARS ******************* */
 /* static here to cache results of icon directory scan, so it's not 
@@ -122,34 +120,39 @@ typedef struct DrawInfo {
 static struct ListBase iconfilelist = {0, 0};
 
 
+static int preview_render_size(int miplevel);
+
 /* **************************************************** */
 
 static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs)
 {
 	Icon *new_icon = NULL;
+	IconImage *iimg = NULL;
 	DrawInfo *di;
 	int y = 0;
 
 	new_icon = MEM_callocN(sizeof(Icon), "texicon");
 
 	new_icon->obj = 0; /* icon is not for library object */
-	new_icon->type = 0;
-	new_icon->changed = 0; 
-	
+	new_icon->type = 0;	
 
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
 	di->drawFunc = 0;
 	di->w = ICON_DEFAULT_HEIGHT;
 	di->h = ICON_DEFAULT_HEIGHT;
-	di->rw = ICON_DEFAULT_HEIGHT;
-	di->rh = ICON_DEFAULT_HEIGHT;
 	di->aspect = 1.0f;
-	di->rect = MEM_mallocN(ICON_DEFAULT_HEIGHT*ICON_DEFAULT_HEIGHT*sizeof(unsigned int), "icon_rect");
 	
+	iimg = MEM_mallocN(sizeof(IconImage), "icon_img");
+	iimg->rect = MEM_mallocN(ICON_DEFAULT_HEIGHT*ICON_DEFAULT_HEIGHT*sizeof(unsigned int), "icon_rect");
+	iimg->w = ICON_DEFAULT_HEIGHT;
+	iimg->h = ICON_DEFAULT_HEIGHT;
+
 	/* Here we store the rect in the icon - same as before */
 	for (y=0; y<ICON_DEFAULT_HEIGHT; y++) {
-		memcpy(&di->rect[y*ICON_DEFAULT_HEIGHT], &bbuf->rect[(y+yofs)*512+xofs], ICON_DEFAULT_HEIGHT*sizeof(int));
+		memcpy(&iimg->rect[y*ICON_DEFAULT_HEIGHT], &bbuf->rect[(y+yofs)*512+xofs], ICON_DEFAULT_HEIGHT*sizeof(int));
 	}
+
+	di->icon = iimg;
 
 	new_icon->drawinfo_free = BIF_icons_free_drawinfo;
 	new_icon->drawinfo = di;
@@ -166,17 +169,14 @@ static void def_internal_vicon( int icon_id, VectorDrawFunc drawFunc)
 
 	new_icon->obj = 0; /* icon is not for library object */
 	new_icon->type = 0;
-	new_icon->changed = 0; 
-	
+
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
 	di->drawFunc =drawFunc;
 	di->w = ICON_DEFAULT_HEIGHT;
 	di->h = ICON_DEFAULT_HEIGHT;
-	di->rw = ICON_DEFAULT_HEIGHT;
-	di->rh = ICON_DEFAULT_HEIGHT;
 	di->aspect = 1.0f;
-	di->rect = NULL;
-	
+	di->icon = NULL;
+
 	new_icon->drawinfo_free = 0;
 	new_icon->drawinfo = di;
 
@@ -693,7 +693,10 @@ void BIF_icons_free_drawinfo(void *drawinfo)
 
 	if (di)
 	{
-		MEM_freeN(di->rect);
+		if (di->icon) {
+			MEM_freeN(di->icon->rect);
+			MEM_freeN(di->icon);
+		}
 		MEM_freeN(di);
 	}
 }
@@ -705,11 +708,9 @@ static DrawInfo *icon_create_drawinfo()
 	di = MEM_callocN(sizeof(DrawInfo), "di_icon");
 	
 	di->drawFunc = 0;
-	di->w = 16;
-	di->h = 16;
-	di->rw = ICON_RENDERSIZE;
-	di->rh = ICON_RENDERSIZE;
-	di->rect = 0;
+	di->w = ICON_DEFAULT_HEIGHT;
+	di->h = ICON_DEFAULT_HEIGHT;
+	di->icon = NULL;
 	di->aspect = 1.0f;
 
 	return di;
@@ -771,7 +772,7 @@ void BIF_icons_init(int first_dyn_id)
 	init_internal_icons();
 }
 
-static void icon_copy_rect(ImBuf *ibuf, RenderInfo *ri)
+static void icon_copy_rect(ImBuf *ibuf, unsigned int w, unsigned int h, unsigned int *rect)
 {
 	struct ImBuf *ima;
 	unsigned int *drect, *srect;
@@ -789,19 +790,19 @@ static void icon_copy_rect(ImBuf *ibuf, RenderInfo *ri)
 		return;
 	
 	if (ima->x > ima->y) {
-		scaledx = (float)ri->pr_rectx;
-		scaledy =  ( (float)ima->y/(float)ima->x )*(float)ri->pr_rectx;
+		scaledx = (float)w;
+		scaledy =  ( (float)ima->y/(float)ima->x )*(float)w;
 	}
 	else {			
-		scaledx =  ( (float)ima->x/(float)ima->y )*(float)ri->pr_recty;
-		scaledy = (float)ri->pr_recty;
+		scaledx =  ( (float)ima->x/(float)ima->y )*(float)h;
+		scaledy = (float)h;
 	}
 	
 	ex = (short)scaledx;
 	ey = (short)scaledy;
 	
-	dx = (ri->pr_rectx - ex) / 2;
-	dy = (ri->pr_recty - ey) / 2;
+	dx = (w - ex) / 2;
+	dy = (h - ey) / 2;
 	
 	IMB_scalefastImBuf(ima, ex, ey);
 	
@@ -810,61 +811,66 @@ static void icon_copy_rect(ImBuf *ibuf, RenderInfo *ri)
 		IMB_rect_from_float(ima);
 
 	srect = ima->rect;
-	drect = ri->rect;
+	drect = rect;
 
-	drect+= dy*ri->pr_rectx+dx;
+	drect+= dy*w+dx;
 	for (;ey > 0; ey--){		
 		memcpy(drect,srect, ex * sizeof(int));
-		drect += ri->pr_rectx;
+		drect += w;
 		srect += ima->x;
 	}
 	IMB_freeImBuf(ima);
 }
 
-/* create single icon from jpg, png etc. */
-static void icon_from_image(Image *img, RenderInfo *ri)
+static void icon_create_mipmap(struct PreviewImage* prv_img, int miplevel) 
 {
-	unsigned int pr_size = ri->pr_rectx*ri->pr_recty*sizeof(unsigned int);
+	unsigned int size = preview_render_size(miplevel);
+
+	if (!prv_img) {
+		printf("Error: requested preview image does not exist");
+	}
+	if (!prv_img->rect[miplevel]) {
+		prv_img->w[miplevel] = size;
+		prv_img->h[miplevel] = size;
+		prv_img->changed[miplevel] = 1;
+		prv_img->rect[miplevel] = MEM_callocN(size*size*sizeof(unsigned int), "prv_rect"); 
+	}
+}
+
+/* create single icon from jpg, png etc. */
+static void icon_from_image(Image *img, int miplevel)
+{
+	unsigned int pr_size;
+	short image_loaded = 0;
+	struct ImBuf* ibuf=NULL;
+	PreviewImage* pi;
 
 	/* img->ok is zero when Image cannot load */
 	if (img==NULL || img->ok==0)
 		return;
-	
-	if (!ri->rect) {
-		ri->rect= MEM_callocN(pr_size, "butsrect");
-		memset(ri->rect, 0x00, pr_size);
+
+	/* elubie: this needs to be changed: here image is always loaded if not
+	   already there. Very expensive for large images. Need to find a way to 
+	   only get existing ibuf */
+	ibuf = BKE_image_get_ibuf(img, NULL);
+	if(ibuf==NULL || ibuf->rect==NULL) {
+		return;
 	}
 	
-	/* we only load image if there's no preview saved already ... 
-		always loading and reducing images is too expensive */
-	/* new rule: never read images, so icons get created while user works, 
-	    not always on first use of a menu */
-	if(!img->preview) {
-		ImBuf *ibuf;
-		if(img->ok!=IMA_OK_LOADED) {				
-			return;
-		}
-		ibuf= BKE_image_get_ibuf(img, NULL);
-		icon_copy_rect(ibuf, ri);
-		
-		/* now copy the created preview to the DNA struct to be saved in file */
-		img->preview = MEM_callocN(sizeof(PreviewImage), "img_prv");
-		if (img->preview) {
-			printf("created image prv\n");
-			img->preview->w = ri->pr_rectx;
-			img->preview->h = ri->pr_recty;
-			img->preview->rect = MEM_callocN(pr_size, "prv_rect");
-			memcpy(img->preview->rect, ri->rect, pr_size);
-		}
+	pi = BKE_previewimg_get((ID*)img); 	
+	
+	if(!pi) {
+		printf("preview image could'nt be allocated");
+		return;
 	}
-	else {
-		unsigned int img_prv_size = img->preview->w*img->preview->h*sizeof(unsigned int);
-		if (!img->preview->rect || img_prv_size != pr_size) {
-			printf("Missing preview or wrong preview size!\n");
-			return;
-		}
-		memcpy(ri->rect, img->preview->rect, pr_size);
-	}
+	/* we can only create the preview rect here, since loading possibly deallocated
+	   old preview */
+	icon_create_mipmap(pi, miplevel);
+
+	pr_size = img->preview->w[miplevel]*img->preview->h[miplevel]*sizeof(unsigned int);
+
+	image_loaded = 1;
+	icon_copy_rect(ibuf, img->preview->w[miplevel], img->preview->h[miplevel], img->preview->rect[miplevel]);	
 }
 
 static void set_alpha(char* cp, int sizex, int sizey, char alpha) 
@@ -879,27 +885,36 @@ static void set_alpha(char* cp, int sizex, int sizey, char alpha)
 
 /* only called when icon has changed */
 /* only call with valid pointer from BIF_icon_draw */
-static void icon_set_image(ID *id, DrawInfo *di)
+static void icon_set_image(ID *id, DrawInfo *di, PreviewImage* prv_img, int miplevel)
 {
 	RenderInfo ri;	
-
-	if (!di) return;			
-
-	if (!di->rect)
-		di->rect = MEM_callocN(di->rw*di->rh*sizeof(unsigned int), "laprevrect");		
+	unsigned int pr_size = 0;
 	
-	ri.curtile= 0;
-	ri.tottile= 0;
-	ri.rect = NULL;
-	ri.pr_rectx = di->rw;
-	ri.pr_recty = di->rh;
+	if (!di) return;				
+	
+	if (!prv_img) {
+		printf("No preview image for this ID: %s\n", id->name);
+		return;
+	}	
 
 	/* no drawing (see last parameter doDraw, just calculate preview image 
 		- hopefully small enough to be fast */
 	if (GS(id->name) == ID_IM)
-		icon_from_image((struct Image*)id, &ri);
-	else {
+		icon_from_image((struct Image*)id, miplevel);
+	else {	
+		/* create the preview rect */
+		icon_create_mipmap(prv_img, miplevel);
+
+		ri.curtile= 0;
+		ri.tottile= 0;
+		ri.rect = NULL;
+		ri.pr_rectx = prv_img->w[miplevel];
+		ri.pr_recty = prv_img->h[miplevel];
+
+		pr_size = ri.pr_rectx*ri.pr_recty*sizeof(unsigned int);
+
 		BIF_previewrender(id, &ri, NULL, PR_ICON_RENDER);
+
 		/* world is rendered with alpha=0, so it wasn't displayed 
 		   this could be render option for sky to, for later */
 		if (GS(id->name) == ID_WO) { 
@@ -909,25 +924,74 @@ static void icon_set_image(ID *id, DrawInfo *di)
 			Material* mat = (Material*)id;
 			if (mat->mode & MA_HALO) {
 				set_alpha( (char*) ri.rect, ri.pr_rectx, ri.pr_recty, 255);
-			} 
+			}
 		}
-	}
 
-	/* and copy the image into the icon */
-	if (ri.rect) {
-		memcpy(di->rect, ri.rect,di->rw*di->rh*sizeof(unsigned int));		
+		if (ri.rect) {
+			memcpy(prv_img->rect[miplevel], ri.rect, pr_size);
 
-		/* and clean up */
-		MEM_freeN(ri.rect);
-		ri.rect = 0;
+			/* and clean up */
+			MEM_freeN(ri.rect);
+			ri.rect = 0;
+		}
 	}
 }
 
-void BIF_icon_draw_aspect(float x, float y, int icon_id, float aspect)
+static void icon_draw_rect(float x, float y, int w, int h, float aspect, int rw, int rh, unsigned int *rect)
+{
+	ui_rasterpos_safe(x, y, aspect);
+	
+	if(w<1 || h<1) {
+		printf("what the heck!\n");
+	}
+	/* rect contains image in 'rendersize', we only scale if needed */
+	else if(rw!=w && rh!=h) {
+		ImBuf *ima;
+		if(w>2000 || h>2000) { /* something has gone wrong! */
+			printf("insane icon size w=%d h=%d\n",w,h);
+			return;
+		}
+		/* first allocate imbuf for scaling and copy preview into it */
+		ima = IMB_allocImBuf(rw, rh, 32, IB_rect, 0);
+		memcpy(ima->rect, rect, rw*rh*sizeof(unsigned int));	
+		
+		/* scale it */
+		IMB_scaleImBuf(ima, w, h);
+		glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, ima->rect);
+		
+		IMB_freeImBuf(ima);
+	}
+	else
+		glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+}
+
+/* Render size for preview images at level miplevel */
+static int preview_render_size(int miplevel)
+{
+	switch (miplevel) {
+		case 0: return 32;
+		case 1: return PREVIEW_DEFAULT_HEIGHT;
+	}
+	return 0;
+}
+
+/* Drawing size for preview images at level miplevel */
+static int preview_size(int miplevel)
+{
+	switch (miplevel) {
+		case 0: return ICON_DEFAULT_HEIGHT;
+		case 1: return PREVIEW_DEFAULT_HEIGHT;
+	}
+	return 0;
+}
+
+
+static void icon_draw_mipmap(float x, float y, int icon_id, float aspect, int miplevel, int nocreate)
 {
 	Icon *icon = NULL;
 	DrawInfo *di = NULL;
-	
+	int draw_size = preview_size(miplevel);
+
 	icon = BKE_icon_get(icon_id);
 	
 	if (!icon) {
@@ -939,58 +1003,50 @@ void BIF_icon_draw_aspect(float x, float y, int icon_id, float aspect)
 	
 	if (!di) {
 		di = icon_create_drawinfo();
-		
-		icon->changed = 1; 
+	
 		icon->drawinfo = di;		
 		icon->drawinfo_free = BIF_icons_free_drawinfo;		
 	}
 	
 	di->aspect = aspect;
 	/* scale width and height according to aspect */
-	di->w = (int)(ICON_DEFAULT_HEIGHT/di->aspect + 0.5f);
-	di->h = (int)(ICON_DEFAULT_HEIGHT/di->aspect + 0.5f);
+	di->w = (int)(draw_size/di->aspect + 0.5f);
+	di->h = (int)(draw_size/di->aspect + 0.5f);
 	
 	if (di->drawFunc) {
 		/* vector icons use the uiBlock transformation, they are not drawn
 		with untransformed coordinates like the other icons */
 		di->drawFunc(x, y, ICON_DEFAULT_HEIGHT, ICON_DEFAULT_HEIGHT, 1.0f); 
+	} 
+	else if (di->icon) {
+		/* it is a builtin icon */		
+		if (!di->icon->rect) return; /* something has gone wrong! */
+
+		icon_draw_rect(x,y,di->w, di->h, di->aspect, di->icon->w, di->icon->h, di->icon->rect);
 	}
 	else {
-		if (icon->changed) /* changed only ever set by dynamic icons */
-		{
-			waitcursor(1);
-			icon_set_image((ID*)icon->obj, icon->drawinfo);
-			icon->changed = 0;		
-			waitcursor(0);
-		}
-		
-		if (!di->rect) return; /* something has gone wrong! */
-		
-		ui_rasterpos_safe(x, y, di->aspect);
-		
-		if(di->w<1 || di->h<1) {
-			printf("what the heck!\n");
-		}
-		/* di->rect contains image in 'rendersize', we only scale if needed */
-		else if(di->rw!=di->w && di->rh!=di->h) {
-			ImBuf *ima;
-			if(di->w>2000 || di->h>2000) { /* something has gone wrong! */
-				printf("insane icon size di->w %d di->h %d\n",di->w,di->h);
-				return;
+		PreviewImage* pi = BKE_previewimg_get((ID*)icon->obj); 
+
+		if (pi) {			
+			if (!nocreate && (pi->changed[miplevel] ||!pi->rect[miplevel])) /* changed only ever set by dynamic icons */
+			{
+				waitcursor(1);
+				/* create the preview rect if necessary */				
+				icon_set_image((ID*)icon->obj, icon->drawinfo, pi, miplevel);
+				pi->changed[miplevel] = 0;
+				waitcursor(0);
 			}
-			/* first allocate imbuf for scaling and copy preview into it */
-			ima = IMB_allocImBuf(di->rw, di->rh, 32, IB_rect, 0);
-			memcpy(ima->rect, di->rect, di->rw*di->rh*sizeof(unsigned int));	
 			
-			/* scale it */
-			IMB_scaleImBuf(ima, di->w, di->h);
-			glDrawPixels(di->w, di->h, GL_RGBA, GL_UNSIGNED_BYTE, ima->rect);
+			if (!pi->rect[miplevel]) return; /* something has gone wrong! */
 			
-			IMB_freeImBuf(ima);
+			icon_draw_rect(x,y,di->w, di->h, di->aspect, pi->w[miplevel], pi->h[miplevel], pi->rect[miplevel]);		
 		}
-		else
-			glDrawPixels(di->w, di->h, GL_RGBA, GL_UNSIGNED_BYTE, di->rect);
 	}
+}
+
+void BIF_icon_draw_aspect(float x, float y, int icon_id, float aspect)
+{
+	icon_draw_mipmap(x,y,icon_id, aspect, PREVIEW_MIPMAP_ZERO, 0);
 }
 
 void BIF_icon_draw(float x, float y, int icon_id)
@@ -998,6 +1054,10 @@ void BIF_icon_draw(float x, float y, int icon_id)
 	BIF_icon_draw_aspect(x, y, icon_id, 1.0f);
 }
 
+void BIF_icon_draw_preview(float x, float y, int icon_id, int nocreate)
+{
+	icon_draw_mipmap(x,y,icon_id, 1.0f, PREVIEW_MIPMAP_LARGE, nocreate);
+}
 
 void BIF_icon_draw_aspect_blended(float x, float y, int icon_id, float aspect, int shade)
 {

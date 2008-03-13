@@ -39,6 +39,7 @@
 
 #include <vector>
 #include <set>
+#include <list>
 
 #include "GEN_Map.h"
 #include "GEN_HashedPtr.h"
@@ -84,6 +85,8 @@ class RAS_IPolyMaterial;
 class RAS_IRasterizer;
 class RAS_IRenderTools;
 class SCA_JoystickManager;
+class btCollisionShape;
+class KX_BlenderSceneConverter;
 /**
  * The KX_Scene holds all data for an independent scene. It relates
  * KX_Objects to the specific objects in the modules.
@@ -110,6 +113,7 @@ protected:
 	CListValue*			m_objectlist;
 	CListValue*			m_parentlist; // all 'root' parents
 	CListValue*			m_lightlist;
+	CListValue*			m_inactivelist;	// all objects that are not in the active layer
 
 	/**
 	 *  The tree of objects in the scene.
@@ -119,8 +123,12 @@ protected:
 	/**
 	 * The set of cameras for this scene
 	 */
-	set<class KX_Camera*>       m_cameras;
-	
+	list<class KX_Camera*>       m_cameras;
+	/**
+	 * The set of bullet shapes that must be deleted at the end of the scene
+	 * to avoid memory leak (not deleted by bullet because shape are shared between replicas)
+	 */
+	vector<class btCollisionShape*> m_shapes;
 	/**
 	 * Various SCA managers used by the scene
 	 */
@@ -129,10 +137,12 @@ protected:
 	SCA_MouseManager*		m_mousemgr;
 	SCA_TimeEventManager*	m_timemgr;
 
+	// Scene converter where many scene entities are registered
+	// Used to deregister objects that are deleted
+	class KX_BlenderSceneConverter*		m_sceneConverter;
 	/**
 	* physics engine abstraction
 	*/
-
 	//e_PhysicsEngine m_physicsEngine; //who needs this ?
 	class PHY_IPhysicsEnvironment*		m_physicsEnvironment;
 
@@ -296,9 +306,10 @@ public:
 	
 	void DelayedReleaseObject(CValue* gameobj);
 
-	void NewRemoveObject(CValue* gameobj);
+	int NewRemoveObject(CValue* gameobj);
 	void ReplaceMesh(CValue* gameobj,
 					 void* meshobj);
+	void AddShape(class btCollisionShape* shape);
 	/**
 	 * @section Logic stuff
 	 * Initiate an update of the logic system.
@@ -312,6 +323,10 @@ public:
 
 		CListValue*				
 	GetObjectList(
+	);
+
+		CListValue*				
+	GetInactiveList(
 	);
 
 		CListValue*				
@@ -330,7 +345,7 @@ public:
 	GetTimeEventManager(
 	);
 
-		set<class KX_Camera*>*
+		list<class KX_Camera*>*
 	GetCameras(
 	);
  
@@ -365,6 +380,15 @@ public:
 
 		void					
 	SetActiveCamera(
+		class KX_Camera*
+	);
+
+	/**
+	 * Move this camera to the end of the list so that it is rendered last.
+	 * If the camera is not on the list, it will be added
+	 */
+		void
+	SetCameraOnTop(
 		class KX_Camera*
 	);
 
@@ -496,6 +520,8 @@ public:
 	bool IsClearingZBuffer();
 	void EnableZBufferClearing(bool isclearingZbuffer);
 	
+	void SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter);
+
 	class PHY_IPhysicsEnvironment*		GetPhysicsEnvironment()
 	{
 		return m_physicsEnvironment;

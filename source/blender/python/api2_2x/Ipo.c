@@ -86,7 +86,7 @@ struct PyMethodDef M_Ipo_methods[] = {
 	 M_Ipo_New_doc},
 	{"Get", M_Ipo_Get, METH_VARARGS, M_Ipo_Get_doc},
 	{"get", M_Ipo_Get, METH_VARARGS, M_Ipo_Get_doc},
-	{"Recalc", M_Ipo_Recalc, METH_VARARGS, M_Ipo_Get_doc},
+	{"Recalc", M_Ipo_Recalc, METH_O, M_Ipo_Get_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -103,7 +103,7 @@ static int Ipo_setRctf( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getCurve( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getCurves( BPy_Ipo * self );
 static PyObject *Ipo_getCurveNames( BPy_Ipo * self );
-static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args );
+static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * value );
 static PyObject *Ipo_delCurve( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getNcurves( BPy_Ipo * self );
 static PyObject *Ipo_getNBezPoints( BPy_Ipo * self, PyObject * args );
@@ -142,7 +142,7 @@ static PyMethodDef BPy_Ipo_methods[] = {
 	 "() - Return Ipo rctf"},
 	{"setRctf", ( PyCFunction ) Ipo_oldsetRctf, METH_VARARGS,
 	 "(flt,flt,flt,flt) - Change Ipo rctf"},
-	{"addCurve", ( PyCFunction ) Ipo_addCurve, METH_VARARGS,
+	{"addCurve", ( PyCFunction ) Ipo_addCurve, METH_O,
 	 "() - Add a curve to Ipo"},
 	{"delCurve", ( PyCFunction ) Ipo_delCurve, METH_VARARGS,
 	 "(str) - Delete curve from Ipo"},
@@ -790,15 +790,13 @@ static PyObject *M_Ipo_Get( PyObject * self_unused, PyObject * args )
 /* Description:           Receives (presumably) an IpoCurve object and       */
 /*                        updates the curve after changes to control points. */
 /*****************************************************************************/
-static PyObject *M_Ipo_Recalc( PyObject * self_unused, PyObject * args )
+static PyObject *M_Ipo_Recalc( PyObject * self_unused, PyObject * value )
 {
-	PyObject *pyobj;
-
-	if( !PyArg_ParseTuple( args, "O!", &IpoCurve_Type, &pyobj ) )
+	if( !BPy_IpoCurve_Check(value) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected Ipo curve argument" );
 
-	testhandles_ipocurve( IpoCurve_FromPyObject( pyobj ) );
+	testhandles_ipocurve( IpoCurve_FromPyObject( value ) );
 
 	Py_RETURN_NONE;
 }
@@ -808,18 +806,12 @@ static PyObject *M_Ipo_Recalc( PyObject * self_unused, PyObject * args )
 /*****************************************************************************/
 static PyObject *Ipo_getBlocktype( BPy_Ipo * self )
 {
-	PyObject *attr = PyInt_FromLong( self->ipo->blocktype );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-		   "couldn't get Ipo.blocktype attribute" );
+	return PyInt_FromLong( self->ipo->blocktype );
 }
 
 static int Ipo_setBlocktype( BPy_Ipo * self, PyObject * args )
 {
-	if( !PyInt_CheckExact( args ) )
+	if( !PyInt_Check( args ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected int argument" );
 
@@ -882,15 +874,15 @@ static PyObject *Ipo_getNcurves( BPy_Ipo * self )
    cu = ipo.addCurve('LocX')
 */
 
-static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args )
+static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * value )
 {
 	short param;		/* numeric curve name constant */
-	char *cur_name = 0;	/* input arg: curve name */
+	char *cur_name = PyString_AsString(value);	/* input arg: curve name */
 	Ipo *ipo = 0;
 	IpoCurve *icu = 0;
 	Link *link;
 
-	if( !PyArg_ParseTuple( args, "s", &cur_name ) )
+	if( !cur_name )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "expected string argument" ) );
 
@@ -959,12 +951,12 @@ static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args )
        cu = ipo.delCurve('LocX')
 */
 
-static PyObject *Ipo_delCurve( BPy_Ipo * self, PyObject * args )
+static PyObject *Ipo_delCurve( BPy_Ipo * self, PyObject * value )
 {
 	IpoCurve *icu;
-	char *strname;
+	char *strname = PyString_AsString(value);
 
-	if( !PyArg_ParseTuple( args, "s", &strname ) )
+	if( !strname )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected string argument" );
 
@@ -1491,7 +1483,7 @@ static int Ipo_setIpoCurveByName( BPy_Ipo * self, PyObject * key,
 		icu->flag |= IPO_VISIBLE|IPO_AUTO_HORIZ;
 		set_icu_vars( icu );
 		BLI_addtail( &(ipo->curve), icu);
-		insert_vert_ipo( icu, time, curval );
+		insert_vert_icu( icu, time, curval, 0);
 
 		allspace( REMAKEIPO, 0 );
 		EXPP_allqueue( REDRAWIPO, 0 );

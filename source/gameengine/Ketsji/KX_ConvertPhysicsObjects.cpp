@@ -682,8 +682,6 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 #endif //WIN32
 
 
-static GEN_Map<GEN_HashedPtr,btCollisionShape*>	map_gamemesh_to_bulletshape;
-
 // forward declarations
 static btCollisionShape* CreateBulletShapeFromMesh(RAS_MeshObject* meshobj, bool polytope)
 {
@@ -700,14 +698,6 @@ static btCollisionShape* CreateBulletShapeFromMesh(RAS_MeshObject* meshobj, bool
 
 	int numPoints = 0;
 	btVector3* points = 0;
-
-	btCollisionShape** shapeptr = map_gamemesh_to_bulletshape[GEN_HashedPtr(meshobj)];
-
-	// Mesh has already been converted: reuse
-	if (shapeptr)
-	{
-		//return *shapeptr;
-	}
 
 	// Mesh has no polygons!
 	int numpolys = meshobj->NumPolygons();
@@ -850,13 +840,15 @@ static btCollisionShape* CreateBulletShapeFromMesh(RAS_MeshObject* meshobj, bool
 	if (numvalidpolys > 0)
 	{
 		
-		//map_gamemesh_to_bulletshape.insert(GEN_HashedPtr(meshobj),collisionMeshShape);
 		if (!polytope)
 		{
-			concaveShape = new btBvhTriangleMeshShape( collisionMeshData );
+			bool useQuantization = true;
+			concaveShape = new btBvhTriangleMeshShape( collisionMeshData, useQuantization );
 			//concaveShape = new btTriangleMeshShape( collisionMeshData );
 
 			concaveShape->recalcLocalAabb();
+			if (collisionMeshShape)
+				delete collisionMeshShape;
 			collisionMeshShape = concaveShape;
 
 		} 
@@ -865,8 +857,10 @@ static btCollisionShape* CreateBulletShapeFromMesh(RAS_MeshObject* meshobj, bool
 
 		return collisionMeshShape;
 	}
-
-	delete collisionMeshShape;
+	if (collisionMeshShape)
+		delete collisionMeshShape;
+	if (collisionMeshData)
+		delete collisionMeshData;
 	return NULL;
 
 }
@@ -1020,7 +1014,10 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 //	ci.m_localInertiaTensor.setValue(0.1f,0.1f,0.1f);
 
 	if (!bm)
+	{
+		delete motionstate;
 		return;
+	}
 
 	bm->setMargin(0.06);
 
@@ -1056,6 +1053,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 				
 
 			compoundShape->addChildShape(childTrans,bm);
+			kxscene->AddShape(bm);
 			//do some recalc?
 			//recalc inertia for rigidbody
 			if (!rigidbody->isStaticOrKinematicObject())
@@ -1075,6 +1073,9 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 			btTransform identTrans;
 			identTrans.setIdentity();
 			compoundShape->addChildShape(identTrans,bm);
+			//note abount compoundShape: Bullet does not delete the child shapes when 
+			//the compound shape is deleted, so insert also the child shapes 
+			kxscene->AddShape(bm);
 			bm = compoundShape;
 		}
 
@@ -1111,9 +1112,6 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 
 	ci.m_collisionShape = bm;
-	
-
-	
 	ci.m_friction = smmaterial->m_friction;//tweak the friction a bit, so the default 0.5 works nice
 	ci.m_restitution = smmaterial->m_restitution;
 	ci.m_physicsEnv = env;
@@ -1122,8 +1120,12 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	ci.m_angularDamping = 1.f - shapeprops->m_ang_drag;
 	//need a bit of damping, else system doesn't behave well
 	ci.m_inertiaFactor = shapeprops->m_inertia/0.4f;//defaults to 0.4, don't want to change behaviour
-	
+	ci.m_collisionFilterGroup = (isbulletdyna) ? short(CcdConstructionInfo::DefaultFilter) : short(CcdConstructionInfo::StaticFilter);
+	ci.m_collisionFilterMask = (isbulletdyna) ? short(CcdConstructionInfo::AllFilter) : short(CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::StaticFilter);
+
 	KX_BulletPhysicsController* physicscontroller = new KX_BulletPhysicsController(ci,isbulletdyna);
+	//remember that we created a shape so that we can delete it when the scene is removed (bullet will not delete it) 
+	kxscene->AddShape(bm);
 
 	if (objprop->m_in_active_layer)
 	{
@@ -1187,17 +1189,6 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 void	KX_ClearBulletSharedShapes()
 {
-	int numshapes = map_gamemesh_to_bulletshape.size();
-	int i;
-	btCollisionShape*shape=0;
-	for (i=0;i<numshapes ;i++)
-	{
-		shape = *map_gamemesh_to_bulletshape.at(i);
-		//delete shape;
-	}
-	
-	map_gamemesh_to_bulletshape.clear();
-	
 }
 
 #endif

@@ -44,8 +44,8 @@ typedef struct KeyBlock {
 	
 	float pos;
 	float curval;
-	short type, adrcode;
-	int totelem;
+	short type, adrcode, relative, flag;	/* relative == 0 means first key is reference */
+	int totelem, pad2;
 	
 	void *data;
 	float *weights;
@@ -86,6 +86,9 @@ typedef struct Key {
 #define KEY_LINEAR      0
 #define KEY_CARDINAL    1
 #define KEY_BSPLINE     2
+
+/* keyblock->flag */
+#define KEYBLOCK_MUTE	1
 
 #endif
 

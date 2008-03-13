@@ -656,10 +656,10 @@ class VRML2Export:
 			self.writeMaterial(mater, self.cleanStr(mater.name,''))
 			if (mater.mode & Blender.Material.Modes['TEXFACE']):
 				if image != None:
-					self.writeImageTexture(image.name)
+					self.writeImageTexture(image.name, image.filename)
 		else:
 			if image != None:
-				self.writeImageTexture(image.name)
+				self.writeImageTexture(image.name, image.filename)
 
 		self.writeIndented("}\n", -1)
 
@@ -837,7 +837,7 @@ class VRML2Export:
 		self.writeIndented("transparency %s\n" % (round(transp,self.cp)))
 		self.writeIndented("}\n",-1)
 
-	def writeImageTexture(self, name):
+	def writeImageTexture(self, name, filename):
 		if self.texNames.has_key(name):
 			self.writeIndented("texture USE %s\n" % self.cleanStr(name))
 			self.texNames[name] += 1
@@ -846,7 +846,7 @@ class VRML2Export:
 			self.writeIndented("texture DEF %s ImageTexture {\n" % \
 							   self.cleanStr(name), 1)
 			self.writeIndented('url "%s"\n' % \
-							   name.split("\\")[-1].split("/")[-1])
+							   filename.split("\\")[-1].split("/")[-1])
 			self.writeIndented("}\n",-1)
 			self.texNames[name] = 1
 

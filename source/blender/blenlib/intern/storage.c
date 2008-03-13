@@ -50,7 +50,9 @@
 #include <time.h>
 #include <sys/stat.h>
 
-#if !defined(linux) && (defined(__sgi) || defined(__sun__) || defined(__sun) || defined(__sparc) || defined(__sparc__))
+#if defined (__sun__) || defined (__sun)
+#include <sys/statvfs.h> /* Other modern unix os's should probably use this also */
+#elif !defined(linux) && (defined(__sgi) || defined(__sparc) || defined(__sparc__))
 #include <sys/statfs.h>
 #endif
 
@@ -179,13 +181,21 @@ double BLI_diskfree(char *dir)
 
 	return (double) (freec*bytesps*sectorspc);
 #else
+
+#if defined (__sun__) || defined (__sun)
+	struct statvfs disk;
+#else
 	struct statfs disk;
-	char name[100],*slash;
-
-
+#endif
+	char name[FILE_MAXDIR],*slash;
+	int len = strlen(dir);
+	
+	if (len >= FILE_MAXDIR) /* path too long */
+		return -1;
+	
 	strcpy(name,dir);
 
-	if(strlen(name)){
+	if(len){
 		slash = strrchr(name,'/');
 		if (slash) slash[1] = 0;
 	} else strcpy(name,"/");
@@ -196,12 +206,12 @@ double BLI_diskfree(char *dir)
 #ifdef __BeOS
 	return -1;
 #endif
-#if !defined(linux) && (defined (__sgi) || defined (__sun__) || defined (__sun) || defined(__sparc) || defined(__sparc__))
 
-	if (statfs(name, &disk, sizeof(struct statfs), 0)){
-		/* printf("diskfree: Couldn't get information about %s.\n",dir); */
-		return(-1);
-	}
+#if defined (__sun__) || defined (__sun)
+	if (statvfs(name, &disk)) return(-1);	
+#elif !defined(linux) && (defined (__sgi) || defined(__sparc) || defined(__sparc__))
+	/* WARNING - This may not be supported by geeneric unix os's - Campbell */
+	if (statfs(name, &disk, sizeof(struct statfs), 0)) return(-1);
 #endif
 
 	return ( ((double) disk.f_bsize) * ((double) disk.f_bfree));
@@ -326,11 +336,11 @@ void BLI_adddirstrings()
 	char size[250];
 	static char * types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
 	int num, mode;
-	int num1, num2, num3, num4;
+	off_t num1, num2, num3, num4, num5;
 #ifdef WIN32
 	__int64 st_size;
 #else
-	long long st_size;
+	off_t st_size;
 #endif
 	
 	struct direntry * file;
@@ -392,7 +402,7 @@ void BLI_adddirstrings()
 		 * will buy us some time until files get bigger than 4GB or until
 		 * everyone starts using __USE_FILE_OFFSET64 or equivalent.
 		 */
-		st_size= (unsigned int)files[num].s.st_size;
+		st_size= (off_t)files[num].s.st_size;
 		
 		num1= st_size % 1000;
 		num2= st_size/1000;
@@ -401,11 +411,15 @@ void BLI_adddirstrings()
 		num3= num3 % 1000;
 		num4= st_size/(1000*1000*1000);
 		num4= num4 % 1000;
+		num5= st_size/(1000000000000LL);
+		num5= num5 % 1000;
 
-		if(num4) sprintf(files[num].size, "%3d %03d %03d %03d", num4, num3, num2, num1);
-		else if(num3) sprintf(files[num].size, "%7d %03d %03d", num3, num2, num1);
-		else if(num2) sprintf(files[num].size, "%11d %03d", num2, num1);
-		else if(num1) sprintf(files[num].size, "%15d", num1);
+		if(num5)
+			sprintf(files[num].size, "%1d %03d %03d %03d K", (int)num5, (int)num4, (int)num3, (int)num2);
+		else if(num4) sprintf(files[num].size, "%3d %03d %03d %03d", (int)num4, (int)num3, (int)num2, (int)num1);
+		else if(num3) sprintf(files[num].size, "%7d %03d %03d", (int)num3, (int)num2, (int)num1);
+		else if(num2) sprintf(files[num].size, "%11d %03d", (int)num2, (int)num1);
+		else if(num1) sprintf(files[num].size, "%15d", (int)num1);
 		else sprintf(files[num].size, "0");
 
 		strftime(datum, 32, "%d-%b-%y %H:%M", tm);
@@ -469,6 +483,17 @@ int BLI_filesize(int file)
 	return (buf.st_size);
 }
 
+int BLI_filepathsize(const char *path)
+{
+	int size, file = open(path, O_BINARY|O_RDONLY);
+	
+	if (file <= 0)
+		return -1;
+	
+	size = BLI_filesize(file);
+	close(file);
+	return size;
+}
 
 
 int BLI_exist(char *name)

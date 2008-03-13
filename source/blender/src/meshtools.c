@@ -93,6 +93,7 @@ void sort_faces(void);
 #include "BDR_sculptmode.h"
 
 #include "BLI_editVert.h"
+#include "BLI_ghash.h"
 #include "BLI_threads.h"
 #include "BLI_rand.h" /* for randome face sorting */
 
@@ -107,6 +108,7 @@ void sort_faces(void);
 #include "PIL_time.h"
 
 #include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
 
 /* from rendercode.c */
 #define VECMUL(dest, f)                  dest[0]*= f; dest[1]*= f; dest[2]*= f
@@ -648,6 +650,13 @@ static void mesh_octree_add_nodes(MocNode **basetable, float *co, float *offs, f
 	float fx, fy, fz;
 	int vx, vy, vz;
 	
+	if (isnan(co[0]) || !finite(co[0]) ||
+		isnan(co[1]) || !finite(co[1]) ||
+		isnan(co[2]) || !finite(co[2])
+	) {
+		return;
+	}
+	
 	fx= (co[0]-offs[0])/div[0];
 	fy= (co[1]-offs[1])/div[1];
 	fz= (co[2]-offs[2])/div[2];
@@ -684,7 +693,7 @@ static void mesh_octree_add_nodes(MocNode **basetable, float *co, float *offs, f
 	
 }
 
-static long mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
+static long mesh_octree_find_index(MocNode **bt, float (*orco)[3], MVert *mvert, float *co)
 {
 	float *vec;
 	int a;
@@ -695,7 +704,12 @@ static long mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
 	for(a=0; a<MOC_NODE_RES; a++) {
 		if((*bt)->index[a]) {
 			/* does mesh verts and editmode, code looks potential dangerous, octree should really be filled OK! */
-			if(mvert) {
+			if(orco) {
+				vec= orco[(*bt)->index[a]-1];
+				if(FloatCompare(vec, co, MOC_THRESH))
+					return (*bt)->index[a]-1;
+			}
+			else if(mvert) {
 				vec= (mvert+(*bt)->index[a]-1)->co;
 				if(FloatCompare(vec, co, MOC_THRESH))
 					return (*bt)->index[a]-1;
@@ -709,84 +723,118 @@ static long mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
 		else return -1;
 	}
 	if( (*bt)->next)
-		return mesh_octree_find_index(&(*bt)->next, mvert, co);
+		return mesh_octree_find_index(&(*bt)->next, orco, mvert, co);
 	
 	return -1;
 }
 
+static struct {
+	MocNode **table;
+	float offs[3], div[3];
+	float (*orco)[3];
+	float orcoloc[3];
+} MeshOctree = {NULL, {0, 0, 0}, {0, 0, 0}, NULL};
 
 /* mode is 's' start, or 'e' end, or 'u' use */
 /* if end, ob can be NULL */
 long mesh_octree_table(Object *ob, float *co, char mode)
 {
 	MocNode **bt;
-	static MocNode **basetable= NULL;
-	static float offs[3], div[3];
 	
 	if(mode=='u') {		/* use table */
-		if(basetable==NULL)
+		if(MeshOctree.table==NULL)
 			mesh_octree_table(ob, NULL, 's');
 	   
-		if(basetable) {
+		if(MeshOctree.table) {
 			Mesh *me= ob->data;
-			bt= basetable + mesh_octree_get_base_offs(co, offs, div);
+			bt= MeshOctree.table + mesh_octree_get_base_offs(co, MeshOctree.offs, MeshOctree.div);
 			if(ob==G.obedit)
-				return mesh_octree_find_index(bt, NULL, co);
+				return mesh_octree_find_index(bt, NULL, NULL, co);
 			else
-				return mesh_octree_find_index(bt, me->mvert, co);
+				return mesh_octree_find_index(bt, MeshOctree.orco, me->mvert, co);
 		}
 		return -1;
 	}
 	else if(mode=='s') {	/* start table */
 		Mesh *me= ob->data;
-		BoundBox *bb = mesh_get_bb(me);
-		
-		/* for quick unit coordinate calculus */
-		VECCOPY(offs, bb->vec[0]);
-		offs[0]-= MOC_THRESH;		/* we offset it 1 threshold unit extra */
-		offs[1]-= MOC_THRESH;
-		offs[2]-= MOC_THRESH;
-			
-		VecSubf(div, bb->vec[6], bb->vec[0]);
-		div[0]+= 2*MOC_THRESH;		/* and divide with 2 threshold unit more extra (try 8x8 unit grid on paint) */
-		div[1]+= 2*MOC_THRESH;
-		div[2]+= 2*MOC_THRESH;
-		
-		VecMulf(div, 1.0f/MOC_RES);
-		if(div[0]==0.0f) div[0]= 1.0f;
-		if(div[1]==0.0f) div[1]= 1.0f;
-		if(div[2]==0.0f) div[2]= 1.0f;
-			
-		if(basetable) /* happens when entering this call without ending it */
-			mesh_octree_table(ob, co, 'e');
-		
-		basetable= MEM_callocN(MOC_RES*MOC_RES*MOC_RES*sizeof(void *), "sym table");
-		
+		float min[3], max[3];
+
+		/* we compute own bounding box and don't reuse ob->bb because
+		 * we are using the undeformed coordinates*/
+		INIT_MINMAX(min, max);
+
 		if(ob==G.obedit) {
 			EditVert *eve;
 			
+			for(eve= G.editMesh->verts.first; eve; eve= eve->next)
+				DO_MINMAX(eve->co, min, max)
+		}
+		else {		
+			MVert *mvert;
+			float *co;
+			int a, totvert;
+			
+			MeshOctree.orco= mesh_getRefKeyCos(me, &totvert);
+			mesh_get_texspace(me, MeshOctree.orcoloc, NULL, NULL);
+			
+			for(a=0, mvert= me->mvert; a<me->totvert; a++, mvert++) {
+				co= (MeshOctree.orco)? MeshOctree.orco[a]: mvert->co;
+				DO_MINMAX(co, min, max);
+			}
+		}
+		
+		/* for quick unit coordinate calculus */
+		VECCOPY(MeshOctree.offs, min);
+		MeshOctree.offs[0]-= MOC_THRESH;		/* we offset it 1 threshold unit extra */
+		MeshOctree.offs[1]-= MOC_THRESH;
+		MeshOctree.offs[2]-= MOC_THRESH;
+		
+		VecSubf(MeshOctree.div, max, min);
+		MeshOctree.div[0]+= 2*MOC_THRESH;	/* and divide with 2 threshold unit more extra (try 8x8 unit grid on paint) */
+		MeshOctree.div[1]+= 2*MOC_THRESH;
+		MeshOctree.div[2]+= 2*MOC_THRESH;
+		
+		VecMulf(MeshOctree.div, 1.0f/MOC_RES);
+		if(MeshOctree.div[0]==0.0f) MeshOctree.div[0]= 1.0f;
+		if(MeshOctree.div[1]==0.0f) MeshOctree.div[1]= 1.0f;
+		if(MeshOctree.div[2]==0.0f) MeshOctree.div[2]= 1.0f;
+			
+		if(MeshOctree.table) /* happens when entering this call without ending it */
+			mesh_octree_table(ob, co, 'e');
+		
+		MeshOctree.table= MEM_callocN(MOC_RES*MOC_RES*MOC_RES*sizeof(void *), "sym table");
+		
+		if(ob==G.obedit) {
+			EditVert *eve;
+
 			for(eve= G.editMesh->verts.first; eve; eve= eve->next) {
-				mesh_octree_add_nodes(basetable, eve->co, offs, div, (long)(eve));
+				mesh_octree_add_nodes(MeshOctree.table, eve->co, MeshOctree.offs, MeshOctree.div, (long)(eve));
 			}
 		}
 		else {		
 			MVert *mvert;
-			long a;
+			float *co;
+			int a;
 			
-			for(a=1, mvert= me->mvert; a<=me->totvert; a++, mvert++) {
-				mesh_octree_add_nodes(basetable, mvert->co, offs, div, a);
+			for(a=0, mvert= me->mvert; a<me->totvert; a++, mvert++) {
+				co= (MeshOctree.orco)? MeshOctree.orco[a]: mvert->co;
+				mesh_octree_add_nodes(MeshOctree.table, co, MeshOctree.offs, MeshOctree.div, a+1);
 			}
 		}
 	}
 	else if(mode=='e') { /* end table */
-		if(basetable) {
+		if(MeshOctree.table) {
 			int a;
 			
-			for(a=0, bt=basetable; a<MOC_RES*MOC_RES*MOC_RES; a++, bt++) {
+			for(a=0, bt=MeshOctree.table; a<MOC_RES*MOC_RES*MOC_RES; a++, bt++) {
 				if(*bt) mesh_octree_free_node(bt);
 			}
-			MEM_freeN(basetable);
-			basetable= NULL;
+			MEM_freeN(MeshOctree.table);
+			MeshOctree.table= NULL;
+		}
+		if(MeshOctree.orco) {
+			MEM_freeN(MeshOctree.orco);
+			MeshOctree.orco= NULL;
 		}
 	}
 	return 0;
@@ -795,12 +843,22 @@ long mesh_octree_table(Object *ob, float *co, char mode)
 int mesh_get_x_mirror_vert(Object *ob, int index)
 {
 	Mesh *me= ob->data;
-	MVert *mvert= me->mvert+index;
+	MVert *mvert;
 	float vec[3];
 	
-	vec[0]= -mvert->co[0];
-	vec[1]= mvert->co[1];
-	vec[2]= mvert->co[2];
+	if(MeshOctree.orco) {
+		float *loc= MeshOctree.orcoloc;
+
+		vec[0]= -(MeshOctree.orco[index][0] + loc[0]) - loc[0];
+		vec[1]= MeshOctree.orco[index][1];
+		vec[2]= MeshOctree.orco[index][2];
+	}
+	else {
+		mvert= me->mvert+index;
+		vec[0]= -mvert->co[0];
+		vec[1]= mvert->co[1];
+		vec[2]= mvert->co[2];
+	}
 	
 	return mesh_octree_table(ob, vec, 'u');
 }
@@ -809,6 +867,13 @@ EditVert *editmesh_get_x_mirror_vert(Object *ob, float *co)
 {
 	float vec[3];
 	long poinval;
+	
+	/* ignore nan verts */
+	if (isnan(co[0]) || !finite(co[0]) ||
+		isnan(co[1]) || !finite(co[1]) ||
+		isnan(co[2]) || !finite(co[2])
+	   )
+		return NULL;
 	
 	vec[0]= -co[0];
 	vec[1]= co[1];
@@ -820,6 +885,95 @@ EditVert *editmesh_get_x_mirror_vert(Object *ob, float *co)
 	return NULL;
 }
 
+static unsigned int mirror_facehash(void *ptr)
+{
+	MFace *mf= ptr;
+	int v0, v1;
+
+	if(mf->v4) {
+		v0= MIN4(mf->v1, mf->v2, mf->v3, mf->v4);
+		v1= MAX4(mf->v1, mf->v2, mf->v3, mf->v4);
+	}
+	else {
+		v0= MIN3(mf->v1, mf->v2, mf->v3);
+		v1= MAX3(mf->v1, mf->v2, mf->v3);
+	}
+
+	return ((v0*39)^(v1*31));
+}
+
+static int mirror_facerotation(MFace *a, MFace *b)
+{
+	if(b->v4) {
+		if(a->v1==b->v1 && a->v2==b->v2 && a->v3==b->v3 && a->v4==b->v4)
+			return 0;
+		else if(a->v4==b->v1 && a->v1==b->v2 && a->v2==b->v3 && a->v3==b->v4)
+			return 1;
+		else if(a->v3==b->v1 && a->v4==b->v2 && a->v1==b->v3 && a->v2==b->v4)
+			return 2;
+		else if(a->v2==b->v1 && a->v3==b->v2 && a->v4==b->v3 && a->v1==b->v4)
+			return 3;
+	}
+	else {
+		if(a->v1==b->v1 && a->v2==b->v2 && a->v3==b->v3)
+			return 0;
+		else if(a->v3==b->v1 && a->v1==b->v2 && a->v2==b->v3)
+			return 1;
+		else if(a->v2==b->v1 && a->v3==b->v2 && a->v1==b->v3)
+			return 2;
+	}
+	
+	return -1;
+}
+
+static int mirror_facecmp(void *a, void *b)
+{
+	return (mirror_facerotation((MFace*)a, (MFace*)b) == -1);
+}
+
+int *mesh_get_x_mirror_faces(Object *ob)
+{
+	Mesh *me= ob->data;
+	MVert *mv, *mvert= me->mvert;
+	MFace mirrormf, *mf, *hashmf, *mface= me->mface;
+	GHash *fhash;
+	int *mirrorverts, *mirrorfaces;
+	int a;
+
+	mirrorverts= MEM_callocN(sizeof(int)*me->totvert, "MirrorVerts");
+	mirrorfaces= MEM_callocN(sizeof(int)*2*me->totface, "MirrorFaces");
+
+	mesh_octree_table(ob, NULL, 's');
+
+	for(a=0, mv=mvert; a<me->totvert; a++, mv++)
+		mirrorverts[a]= mesh_get_x_mirror_vert(ob, a);
+
+	mesh_octree_table(ob, NULL, 'e');
+
+	fhash= BLI_ghash_new(mirror_facehash, mirror_facecmp);
+	for(a=0, mf=mface; a<me->totface; a++, mf++)
+		BLI_ghash_insert(fhash, mf, mf);
+
+	for(a=0, mf=mface; a<me->totface; a++, mf++) {
+		mirrormf.v1= mirrorverts[mf->v3];
+		mirrormf.v2= mirrorverts[mf->v2];
+		mirrormf.v3= mirrorverts[mf->v1];
+		mirrormf.v4= (mf->v4)? mirrorverts[mf->v4]: 0;
+
+		hashmf= BLI_ghash_lookup(fhash, &mirrormf);
+		if(hashmf) {
+			mirrorfaces[a*2]= hashmf - mface;
+			mirrorfaces[a*2+1]= mirror_facerotation(&mirrormf, hashmf);
+		}
+		else
+			mirrorfaces[a*2]= -1;
+	}
+
+	BLI_ghash_free(fhash, NULL, NULL);
+	MEM_freeN(mirrorverts);
+	
+	return mirrorfaces;
+}
 
 /* ****************** render BAKING ********************** */
 
@@ -850,6 +1004,7 @@ static ScrArea *biggest_image_area(void)
 
 typedef struct BakeRender {
 	Render *re;
+	struct Object *actob;
 	int event, tot, ready;
 } BakeRender;
 
@@ -857,7 +1012,7 @@ static void *do_bake_render(void *bake_v)
 {
 	BakeRender *bkr= bake_v;
 	
-	bkr->tot= RE_bake_shade_all_selected(bkr->re, bkr->event);
+	bkr->tot= RE_bake_shade_all_selected(bkr->re, bkr->event, bkr->actob);
 	bkr->ready= 1;
 	
 	return NULL;
@@ -868,22 +1023,28 @@ void objects_bake_render_menu(void)
 {
 	short event;
 
-	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4");
-	
-	objects_bake_render(event);
+	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4|Displacement %x5");
+	if (event < 1) return;
+	objects_bake_render_ui(event);
 }
 
-/* all selected meshes with UV maps are rendered for current scene visibility */
-void objects_bake_render(short event)
+void objects_bake_render(short event, char **error_msg)
 {
+	Object *actob= OBACT;
+	int active= G.scene->r.bake_flag & R_BAKE_TO_ACTIVE;
 	short prev_r_raytrace= 0, prev_wo_amb_occ= 0;
 	
 	if(event==0) event= G.scene->r.bake_mode;
 	
 	if(G.scene->r.renderer!=R_INTERN) {	 
-		error("Bake only supported for Internal Renderer");	 
-		return;	 
+		*error_msg = "Bake only supported for Internal Renderer";
+		return;
 	}	 
+	
+	if(active && !actob) {
+		*error_msg = "No active object";
+		return;
+	}
 	
 	if(event>0) {
 		Render *re= RE_NewRender("_Bake View_");
@@ -891,26 +1052,28 @@ void objects_bake_render(short event)
 		ListBase threads;
 		BakeRender bkr;
 		int timer=0, tot, sculptmode= G.f & G_SCULPTMODE;
-		
+
 		if(sculptmode) set_sculptmode();
 		
 		if(event==1) event= RE_BAKE_ALL;
 		else if(event==2) event= RE_BAKE_AO;
 		else if(event==3) event= RE_BAKE_NORMALS;
-		else event= RE_BAKE_TEXTURE;
+		else if(event==4) event= RE_BAKE_TEXTURE;
+		else event= RE_BAKE_DISPLACEMENT;
 
 		if(event==RE_BAKE_AO) {
 			if(G.scene->world==NULL) {
-				error("No world set up");
+				*error_msg = "No world set up";
 				return;
 			}
 
 			/* If raytracing or AO is disabled, switch it on temporarily for baking. */
-			prev_r_raytrace = (G.scene->r.mode & R_RAYTRACE) != 0;
 			prev_wo_amb_occ = (G.scene->world->mode & WO_AMB_OCC) != 0;
-
-			G.scene->r.mode |= R_RAYTRACE;
 			G.scene->world->mode |= WO_AMB_OCC;
+		}
+		if(event==RE_BAKE_AO || active) {
+			prev_r_raytrace = (G.scene->r.mode & R_RAYTRACE) != 0;
+			G.scene->r.mode |= R_RAYTRACE;
 		}
 		
 		waitcursor(1);
@@ -918,7 +1081,7 @@ void objects_bake_render(short event)
 		g_break= 0;
 		G.afbreek= 0;	/* blender_test_break uses this global */
 		
-		RE_Database_Baking(re, G.scene, event);
+		RE_Database_Baking(re, G.scene, event, (active)? actob: NULL);
 		
 		/* baking itself is threaded, cannot use test_break in threads. we also update optional imagewindow */
 	
@@ -926,6 +1089,7 @@ void objects_bake_render(short event)
 		bkr.re= re;
 		bkr.event= event;
 		bkr.ready= 0;
+		bkr.actob= (active)? actob: NULL;
 		BLI_insert_thread(&threads, &bkr);
 		
 		while(bkr.ready==0) {
@@ -950,24 +1114,29 @@ void objects_bake_render(short event)
 		RE_Database_Free(re);
 		waitcursor(0);
 		
-		if(tot==0) error("No Images found to bake to");
+		if(tot==0) *error_msg = "No Images found to bake to";
 		else {
 			Image *ima;
-			/* force OpenGL reload */
+			/* force OpenGL reload and mipmap recalc */
 			for(ima= G.main->image.first; ima; ima= ima->id.next) {
 				if(ima->ok==IMA_OK_LOADED) {
 					ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
-					if(ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
+					if(ibuf && (ibuf->userflags & IB_BITMAPDIRTY)) {
 						free_realtime_image(ima); 
+						imb_freemipmapImBuf(ibuf);
+					}
 				}
 			}
 		}
 		
-			/* restore raytrace and AO */
-		if(event==RE_BAKE_AO) {
-			if( prev_wo_amb_occ == 0) G.scene->world->mode &= ~WO_AMB_OCC;
-			if( prev_r_raytrace == 0) G.scene->r.mode &= ~R_RAYTRACE;
-		}
+		/* restore raytrace and AO */
+		if(event==RE_BAKE_AO)
+			if(prev_wo_amb_occ == 0)
+				G.scene->world->mode &= ~WO_AMB_OCC;
+
+		if(event==RE_BAKE_AO || active)
+			if(prev_r_raytrace == 0)
+				G.scene->r.mode &= ~R_RAYTRACE;
 		
 		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWVIEW3D, 0);
@@ -977,4 +1146,20 @@ void objects_bake_render(short event)
 	}
 }
 
+/* all selected meshes with UV maps are rendered for current scene visibility */
+void objects_bake_render_ui(short event)
+{
+	char *error_msg = NULL;
+	int is_editmode = (G.obedit!=NULL);
+	
+	/* Deal with editmode, this is a bit clunky but since UV's are in editmode, users are likely to bake from their */
+	if (is_editmode) exit_editmode(0);
+	
+	objects_bake_render(event, &error_msg);
+	
+	if (is_editmode) enter_editmode(0);
+	
+	if (error_msg)
+		error(error_msg);
+}
 

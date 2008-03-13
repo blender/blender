@@ -105,8 +105,9 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 			// set a subproperty called 'timer' so that 
 			// we can register the replica of this property 
 			// at the time a game object is replicated (AddObjectActuator triggers this)
-
-			timeval->SetProperty("timer",new CBoolValue(true));
+			CValue *bval = new CBoolValue(true);
+			timeval->SetProperty("timer",bval);
+			bval->Release();
 			if (isInActiveLayer)
 			{
 				timemgr->AddTimeProperty(timeval);
@@ -128,6 +129,8 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 			{
 				scene->AddDebugProperty(gameobj,STR_String(prop->name));
 			}
+			// done with propval, release it
+			propval->Release();
 		}
 
 		prop = prop->next;

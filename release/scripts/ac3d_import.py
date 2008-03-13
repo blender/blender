@@ -679,6 +679,8 @@ class AC3DImport:
 						baseimgname = bsys.basename(objtex)
 						if bsys.exists(objtex) == 1:
 							texfname = objtex
+						elif bsys.exists(bsys.join(self.importdir, objtex)):
+							texfname = bsys.join(self.importdir, objtex)
 						else:
 							if baseimgname.find('\\') > 0:
 								baseimgname = bsys.basename(objtex.replace('\\','/'))

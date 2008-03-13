@@ -712,6 +712,8 @@ static char *actuator_name(int type)
 		return "Game";
 	case ACT_VISIBILITY:
 		return "Visibility";
+	case ACT_2DFILTER:
+		return "2D Filter";
 	}
 	return "unknown";
 }
@@ -727,13 +729,13 @@ static char *actuator_pup(Object *owner)
 		return "Actuators  %t|Action %x15|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
 			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
-			"|Visibility %x18";
+			"|Visibility %x18|2D Filter %x19";
 		break;
 	default:
 		return "Actuators  %t|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
 			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
-			"|Visibility %x18";
+			"|Visibility %x18|2D Filter %x19";
 	}
 }
 
@@ -1476,6 +1478,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 	bActionActuator	    *aa	     = NULL;
 	bGameActuator	    *gma     = NULL;
 	bVisibilityActuator *visAct  = NULL;
+	bTwoDFilterActuator	*tdfa	 = NULL;
 	
 	float *fp;
 	short ysize = 0, wval;
@@ -2172,6 +2175,58 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 		
 		yco -= ysize;
 		break;
+	case ACT_2DFILTER:
+		tdfa = act->data;
+
+		ysize = 50;
+		if(tdfa->type == ACT_2DFILTER_CUSTOMFILTER)
+		{
+			ysize +=20;
+		}
+        glRects( xco, yco-ysize, xco+width, yco ); 
+		uiEmboss( (float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1 );
+
+		switch(tdfa->type)
+		{
+			case ACT_2DFILTER_MOTIONBLUR:
+				if(!tdfa->flag)
+				{
+					uiDefButS(block, TOG, B_REDR, "D",	xco+30,yco-44,19, 19, &tdfa->flag, 0.0, 0.0, 0.0, 0.0, "Disable Motion Blur");
+					uiDefButF(block, NUM, B_REDR, "Value:", xco+52,yco-44,width-82,19,&tdfa->float_arg,0.0,1.0,0.0,0.0,"Set motion blur value");
+				}
+				else
+				{
+					uiDefButS(block, TOG, B_REDR, "Disabled",	xco+30,yco-44,width-60, 19, &tdfa->flag, 0.0, 0.0, 0.0, 0.0, "Enable Motion Blur");
+				}
+				break;
+			case ACT_2DFILTER_BLUR:
+			case ACT_2DFILTER_SHARPEN:
+			case ACT_2DFILTER_DILATION:
+			case ACT_2DFILTER_EROSION:
+			case ACT_2DFILTER_LAPLACIAN:
+			case ACT_2DFILTER_SOBEL:
+			case ACT_2DFILTER_PREWITT:
+			case ACT_2DFILTER_GRAYSCALE:
+			case ACT_2DFILTER_SEPIA:
+			case ACT_2DFILTER_INVERT:
+			case ACT_2DFILTER_NOFILTER:
+			case ACT_2DFILTER_DISABLED:
+			case ACT_2DFILTER_ENABLED:
+				uiDefButI(block, NUM, B_REDR, "Pass Number:", xco+30,yco-44,width-60,19,&tdfa->int_arg,0.0,MAX_RENDER_PASS-1,0.0,0.0,"Set motion blur value");
+				break;
+			case ACT_2DFILTER_CUSTOMFILTER:
+				uiDefButI(block, NUM, B_REDR, "Pass Number:", xco+30,yco-44,width-60,19,&tdfa->int_arg,0.0,MAX_RENDER_PASS-1,0.0,0.0,"Set motion blur value");
+				uiDefIDPoinBut(block, test_scriptpoin_but, ID_SCRIPT, 1, "Script: ", xco+30,yco-64,width-60, 19, &tdfa->text, "");
+				break;
+		}
+		
+		str= "2D Filter   %t|Motion Blur   %x1|Blur %x2|Sharpen %x3|Dilation %x4|Erosion %x5|"
+				"Laplacian %x6|Sobel %x7|Prewitt %x8|Gray Scale %x9|Sepia %x10|Invert %x11|Custom Filter %x12|"
+				"Enable Filter %x-2|Disable Filter %x-1|Remove Filter %x0|";
+		uiDefButS(block, MENU, B_REDR, str,	xco+30,yco-24,width-60, 19, &tdfa->type, 0.0, 0.0, 0.0, 0.0, "2D filter type");
+		
+		yco -= ysize;
+        break;
  	default:
 		ysize= 4;
 
@@ -2536,7 +2591,7 @@ void logic_buts(void)
 	ob= OBACT;
 
 	if(ob==0) return;
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
 	sprintf(name, "buttonswin %d", curarea->win);
 	block= uiNewBlock(&curarea->uiblocks, name, UI_EMBOSS, UI_HELV, curarea->win);
@@ -2616,7 +2671,7 @@ void logic_buts(void)
 	for(a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		uiClearButLock();
-		uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+		uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 		
 		if( (ob->scavisflag & OB_VIS_SENS) == 0) continue;
 		
@@ -2687,7 +2742,7 @@ void logic_buts(void)
 	for(a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		uiClearButLock();
-		uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+		uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 		if( (ob->scavisflag & OB_VIS_CONT) == 0) continue;
 
 		/* presume it is only objects for now */
@@ -2755,7 +2810,7 @@ void logic_buts(void)
 	for(a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		uiClearButLock();
-		uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+		uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 		if( (ob->scavisflag & OB_VIS_ACT) == 0) continue;
 
 		/* presume it is only objects for now */
@@ -2811,4 +2866,5 @@ void logic_buts(void)
 
 	if(idar) MEM_freeN(idar);
 }
+
 

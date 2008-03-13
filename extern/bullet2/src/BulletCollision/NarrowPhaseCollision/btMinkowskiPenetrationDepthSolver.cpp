@@ -25,48 +25,48 @@ subject to the following restrictions:
 #define NUM_UNITSPHERE_POINTS 42
 static btVector3	sPenetrationDirections[NUM_UNITSPHERE_POINTS+MAX_PREFERRED_PENETRATION_DIRECTIONS*2] = 
 {
-btVector3(0.000000f , -0.000000f,-1.000000f),
-btVector3(0.723608f , -0.525725f,-0.447219f),
-btVector3(-0.276388f , -0.850649f,-0.447219f),
-btVector3(-0.894426f , -0.000000f,-0.447216f),
-btVector3(-0.276388f , 0.850649f,-0.447220f),
-btVector3(0.723608f , 0.525725f,-0.447219f),
-btVector3(0.276388f , -0.850649f,0.447220f),
-btVector3(-0.723608f , -0.525725f,0.447219f),
-btVector3(-0.723608f , 0.525725f,0.447219f),
-btVector3(0.276388f , 0.850649f,0.447219f),
-btVector3(0.894426f , 0.000000f,0.447216f),
-btVector3(-0.000000f , 0.000000f,1.000000f),
-btVector3(0.425323f , -0.309011f,-0.850654f),
-btVector3(-0.162456f , -0.499995f,-0.850654f),
-btVector3(0.262869f , -0.809012f,-0.525738f),
-btVector3(0.425323f , 0.309011f,-0.850654f),
-btVector3(0.850648f , -0.000000f,-0.525736f),
-btVector3(-0.525730f , -0.000000f,-0.850652f),
-btVector3(-0.688190f , -0.499997f,-0.525736f),
-btVector3(-0.162456f , 0.499995f,-0.850654f),
-btVector3(-0.688190f , 0.499997f,-0.525736f),
-btVector3(0.262869f , 0.809012f,-0.525738f),
-btVector3(0.951058f , 0.309013f,0.000000f),
-btVector3(0.951058f , -0.309013f,0.000000f),
-btVector3(0.587786f , -0.809017f,0.000000f),
-btVector3(0.000000f , -1.000000f,0.000000f),
-btVector3(-0.587786f , -0.809017f,0.000000f),
-btVector3(-0.951058f , -0.309013f,-0.000000f),
-btVector3(-0.951058f , 0.309013f,-0.000000f),
-btVector3(-0.587786f , 0.809017f,-0.000000f),
-btVector3(-0.000000f , 1.000000f,-0.000000f),
-btVector3(0.587786f , 0.809017f,-0.000000f),
-btVector3(0.688190f , -0.499997f,0.525736f),
-btVector3(-0.262869f , -0.809012f,0.525738f),
-btVector3(-0.850648f , 0.000000f,0.525736f),
-btVector3(-0.262869f , 0.809012f,0.525738f),
-btVector3(0.688190f , 0.499997f,0.525736f),
-btVector3(0.525730f , 0.000000f,0.850652f),
-btVector3(0.162456f , -0.499995f,0.850654f),
-btVector3(-0.425323f , -0.309011f,0.850654f),
-btVector3(-0.425323f , 0.309011f,0.850654f),
-btVector3(0.162456f , 0.499995f,0.850654f)
+btVector3(btScalar(0.000000) , btScalar(-0.000000),btScalar(-1.000000)),
+btVector3(btScalar(0.723608) , btScalar(-0.525725),btScalar(-0.447219)),
+btVector3(btScalar(-0.276388) , btScalar(-0.850649),btScalar(-0.447219)),
+btVector3(btScalar(-0.894426) , btScalar(-0.000000),btScalar(-0.447216)),
+btVector3(btScalar(-0.276388) , btScalar(0.850649),btScalar(-0.447220)),
+btVector3(btScalar(0.723608) , btScalar(0.525725),btScalar(-0.447219)),
+btVector3(btScalar(0.276388) , btScalar(-0.850649),btScalar(0.447220)),
+btVector3(btScalar(-0.723608) , btScalar(-0.525725),btScalar(0.447219)),
+btVector3(btScalar(-0.723608) , btScalar(0.525725),btScalar(0.447219)),
+btVector3(btScalar(0.276388) , btScalar(0.850649),btScalar(0.447219)),
+btVector3(btScalar(0.894426) , btScalar(0.000000),btScalar(0.447216)),
+btVector3(btScalar(-0.000000) , btScalar(0.000000),btScalar(1.000000)),
+btVector3(btScalar(0.425323) , btScalar(-0.309011),btScalar(-0.850654)),
+btVector3(btScalar(-0.162456) , btScalar(-0.499995),btScalar(-0.850654)),
+btVector3(btScalar(0.262869) , btScalar(-0.809012),btScalar(-0.525738)),
+btVector3(btScalar(0.425323) , btScalar(0.309011),btScalar(-0.850654)),
+btVector3(btScalar(0.850648) , btScalar(-0.000000),btScalar(-0.525736)),
+btVector3(btScalar(-0.525730) , btScalar(-0.000000),btScalar(-0.850652)),
+btVector3(btScalar(-0.688190) , btScalar(-0.499997),btScalar(-0.525736)),
+btVector3(btScalar(-0.162456) , btScalar(0.499995),btScalar(-0.850654)),
+btVector3(btScalar(-0.688190) , btScalar(0.499997),btScalar(-0.525736)),
+btVector3(btScalar(0.262869) , btScalar(0.809012),btScalar(-0.525738)),
+btVector3(btScalar(0.951058) , btScalar(0.309013),btScalar(0.000000)),
+btVector3(btScalar(0.951058) , btScalar(-0.309013),btScalar(0.000000)),
+btVector3(btScalar(0.587786) , btScalar(-0.809017),btScalar(0.000000)),
+btVector3(btScalar(0.000000) , btScalar(-1.000000),btScalar(0.000000)),
+btVector3(btScalar(-0.587786) , btScalar(-0.809017),btScalar(0.000000)),
+btVector3(btScalar(-0.951058) , btScalar(-0.309013),btScalar(-0.000000)),
+btVector3(btScalar(-0.951058) , btScalar(0.309013),btScalar(-0.000000)),
+btVector3(btScalar(-0.587786) , btScalar(0.809017),btScalar(-0.000000)),
+btVector3(btScalar(-0.000000) , btScalar(1.000000),btScalar(-0.000000)),
+btVector3(btScalar(0.587786) , btScalar(0.809017),btScalar(-0.000000)),
+btVector3(btScalar(0.688190) , btScalar(-0.499997),btScalar(0.525736)),
+btVector3(btScalar(-0.262869) , btScalar(-0.809012),btScalar(0.525738)),
+btVector3(btScalar(-0.850648) , btScalar(0.000000),btScalar(0.525736)),
+btVector3(btScalar(-0.262869) , btScalar(0.809012),btScalar(0.525738)),
+btVector3(btScalar(0.688190) , btScalar(0.499997),btScalar(0.525736)),
+btVector3(btScalar(0.525730) , btScalar(0.000000),btScalar(0.850652)),
+btVector3(btScalar(0.162456) , btScalar(-0.499995),btScalar(0.850654)),
+btVector3(btScalar(-0.425323) , btScalar(-0.309011),btScalar(0.850654)),
+btVector3(btScalar(-0.425323) , btScalar(0.309011),btScalar(0.850654)),
+btVector3(btScalar(0.162456) , btScalar(0.499995),btScalar(0.850654))
 };
 
 
@@ -78,6 +78,9 @@ bool btMinkowskiPenetrationDepthSolver::calcPenDepth(btSimplexSolverInterface& s
 												   )
 {
 
+	(void)stackAlloc;
+	(void)v;
+	
 
 	struct btIntermediateResult : public btDiscreteCollisionDetectorInterface::Result
 	{
@@ -88,13 +91,17 @@ bool btMinkowskiPenetrationDepthSolver::calcPenDepth(btSimplexSolverInterface& s
 		
 		btVector3 m_normalOnBInWorld;
 		btVector3 m_pointInWorld;
-		float m_depth;
+		btScalar m_depth;
 		bool	m_hasResult;
 
 		virtual void setShapeIdentifiers(int partId0,int index0,	int partId1,int index1)
 		{
+			(void)partId0;
+			(void)index0;
+			(void)partId1;
+			(void)index1;
 		}
-		void addContactPoint(const btVector3& normalOnBInWorld,const btVector3& pointInWorld,float depth)
+		void addContactPoint(const btVector3& normalOnBInWorld,const btVector3& pointInWorld,btScalar depth)
 		{
 			m_normalOnBInWorld = normalOnBInWorld;
 			m_pointInWorld = pointInWorld;
@@ -104,7 +111,7 @@ bool btMinkowskiPenetrationDepthSolver::calcPenDepth(btSimplexSolverInterface& s
 	};
 
 	//just take fixed number of orientation, and sample the penetration depth in that direction
-	float minProj = 1e30f;
+	btScalar minProj = btScalar(1e30);
 	btVector3 minNorm;
 	btVector3 minVertex;
 	btVector3 minA,minB;
@@ -180,7 +187,7 @@ bool btMinkowskiPenetrationDepthSolver::calcPenDepth(btSimplexSolverInterface& s
 		pWorld = transA(pInA);	
 		qWorld = transB(qInB);
 		w	= qWorld - pWorld;
-		float delta = norm.dot(w);
+		btScalar delta = norm.dot(w);
 		//find smallest delta
 		if (delta < minProj)
 		{
@@ -234,7 +241,7 @@ bool btMinkowskiPenetrationDepthSolver::calcPenDepth(btSimplexSolverInterface& s
 		pWorld = transA(pInA);	
 		qWorld = transB(qInB);
 		w	= qWorld - pWorld;
-		float delta = norm.dot(w);
+		btScalar delta = norm.dot(w);
 		//find smallest delta
 		if (delta < minProj)
 		{
@@ -251,7 +258,7 @@ bool btMinkowskiPenetrationDepthSolver::calcPenDepth(btSimplexSolverInterface& s
 	minA += minNorm*convexA->getMargin();
 	minB -= minNorm*convexB->getMargin();
 	//no penetration
-	if (minProj < 0.f)
+	if (minProj < btScalar(0.))
 		return false;
 
 	minProj += (convexA->getMargin() + convexB->getMargin());
@@ -268,7 +275,7 @@ bool btMinkowskiPenetrationDepthSolver::calcPenDepth(btSimplexSolverInterface& s
 		debugDraw->drawLine(minA,minB,color);
 		color = btVector3 (1,1,1);
 		btVector3 vec = minB-minA;
-		float prj2 = minNorm.dot(vec);
+		btScalar prj2 = minNorm.dot(vec);
 		debugDraw->drawLine(minA,minA+(minNorm*minProj),color);
 
 	}
@@ -292,16 +299,16 @@ bool btMinkowskiPenetrationDepthSolver::calcPenDepth(btSimplexSolverInterface& s
 
 	input.m_transformA = displacedTrans;
 	input.m_transformB = transB;
-	input.m_maximumDistanceSquared = 1e30f;//minProj;
+	input.m_maximumDistanceSquared = btScalar(1e30);//minProj;
 	
 	btIntermediateResult res;
 	gjkdet.getClosestPoints(input,res,debugDraw);
 
-	float correctedMinNorm = minProj - res.m_depth;
+	btScalar correctedMinNorm = minProj - res.m_depth;
 
 
 	//the penetration depth is over-estimated, relax it
-	float penetration_relaxation= 1.f;
+	btScalar penetration_relaxation= btScalar(1.);
 	minNorm*=penetration_relaxation;
 
 	if (res.m_hasResult)

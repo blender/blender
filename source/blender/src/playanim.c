@@ -201,18 +201,18 @@ static void toscreen(Pict *picture, struct ImBuf *ibuf)
 	
 	pupdate_time();
 
-	if(picture && (qualN & LMOUSE)) {
+	if(picture && (qualN & (SHIFT|LMOUSE))) {
 		char str[256];
 		cpack(-1);
 		glRasterPos2f(0.02f,  0.03f);
-		sprintf(str, "%s", picture->name);
+		sprintf(str, "%s | %.2f frames/s\n", picture->name, 1.0 / swaptime);
 		BMF_DrawString(G.fonts, str);
 	}
 	
 	window_swap_buffers(g_window);
 }
 
-static void build_pict_list(char * first)
+static void build_pict_list(char * first, int totframes)
 {
 	int size,pic,file;
 	char *mem, name[256];
@@ -261,7 +261,8 @@ static void build_pict_list(char * first)
             O_DIRECT is a Silicon Graphics extension and is only supported on
             local EFS and XFS file systems.
 */
-		while(IMB_ispic(name)){
+		
+		while(IMB_ispic(name) && totframes){
 			file = open(name, O_BINARY|O_RDONLY, 0);
 			if (file < 0) return;
 			picture = (struct pict*)MEM_callocN(sizeof(struct pict), "picture");
@@ -271,6 +272,13 @@ static void build_pict_list(char * first)
 				return;
 			}
 			size = BLI_filesize(file);
+
+			if (size < 1) {
+				close(file);
+				MEM_freeN(picture);
+				return;
+			}
+
 			picture->size = size;
 			picture->IB_flags = IB_rect;
 						
@@ -320,6 +328,7 @@ static void build_pict_list(char * first)
 					break;
 				}
 			}
+			totframes--;
 		}
 	}
 	return;
@@ -337,8 +346,10 @@ void playanim(int argc, char **argv)
 	int sizex, sizey, ofsx, ofsy, i;
 	/* This was done to disambiguate the name for use under c++. */
 	struct anim * anim = 0;
-	int start_x= 0, start_y= 0;
-
+ 	int start_x= 0, start_y= 0;
+	int sfra= -1;
+	int efra= -1;
+	
 	while (argc > 1) {
 		if (argv[1][0] == '-'){
 			switch(argv[1][1]) {
@@ -354,6 +365,32 @@ void playanim(int argc, char **argv)
 					} else {
 						printf("too few arguments for -p (need 2): skipping\n");
 					}
+					break;
+				case 'f':
+					if (argc>3) {
+						double fps = atof(argv[2]);
+						double fps_base= atof(argv[3]);
+						if (fps == 0) {
+							fps = 1;
+							printf("invalid fps,"
+							       "forcing 1\n");
+						}
+						swaptime = fps_base / fps;
+						argc-= 2; 
+						argv+= 2;
+					} else {
+						printf("too few arguments for -f (need 2): skipping\n");
+					}
+					break;
+				case 's':
+					sfra= MIN2(MAXFRAME, MAX2(1, atoi(argv[2]) ));
+					argc--;
+					argv++;
+					break;
+				case 'e':
+					efra= MIN2(MAXFRAME, MAX2(1, atoi(argv[2]) ));
+					argc--;
+					argv++;
 					break;
 				default:
 					printf("unknown option '%c': skipping\n", argv[1][1]);
@@ -439,11 +476,17 @@ void playanim(int argc, char **argv)
 	
 	window_swap_buffers(g_window);
 	
-	build_pict_list(name);
+	if (sfra == -1 || efra == -1) {
+		/* one of the frames was invalid, just use all images */
+		sfra = 1;
+		efra = MAXFRAME;
+	}
+	
+	build_pict_list(name, (efra - sfra) + 1);
 	
 	for (i = 2; i < argc; i++){
 		strcpy(name, argv[i]);
-		build_pict_list(name);
+		build_pict_list(name, (efra - sfra) + 1);
 	}
 
 	IMB_freeImBuf(ibuf); 
@@ -650,7 +693,10 @@ void playanim(int argc, char **argv)
 					swaptime = 1.0 / 30.0;
 					break;
 				case PAD4:
-					swaptime = 1.0 / 25.0;
+					if (qualN & SHIFT)
+						swaptime = 1.0 / 24.0;
+					else
+						swaptime = 1.0 / 25.0;
 					break;
 				case PAD5:
 					swaptime = 1.0 / 20.0;

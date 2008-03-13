@@ -49,13 +49,15 @@ struct ShadeResult;
 struct World;
 struct RenderPart;
 struct RenderLayer;
+struct ObjectRen;
+struct ListBase;
 
 /* ------------------------------------------------------------------------- */
 
 typedef struct PixStr
 {
 	struct PixStr *next;
-	int facenr, z;
+	int obi, facenr, z, maskz;
 	unsigned short mask;
 	short shadfac;
 } PixStr;
@@ -89,16 +91,23 @@ void zbufshadeDA_tile(struct RenderPart *pa);
 
 void zbufshade_sss_tile(struct RenderPart *pa);
 
+int get_sample_layers(struct RenderPart *pa, struct RenderLayer *rl, struct RenderLayer **rlpp);
+
+
 /* -------- ray.c ------- */
 
-extern void freeoctree(Render *re);
-extern void makeoctree(Render *re);
+extern void freeraytree(Render *re);
+extern void makeraytree(Render *re);
 
 extern void ray_shadow(ShadeInput *, LampRen *, float *);
 extern void ray_trace(ShadeInput *, ShadeResult *);
 extern void ray_ao(ShadeInput *, float *);
 extern void init_jitter_plane(LampRen *lar);
 extern void init_ao_sphere(struct World *wrld);
+extern void init_lamp_hammersley(LampRen *lar);
+extern void free_lamp_qmcsampler(LampRen *lar);
+extern void init_render_hammersley(Render *re);
+extern void free_render_qmcsampler(Render *re);
 
 #endif /* RENDER_EXT_H */
 

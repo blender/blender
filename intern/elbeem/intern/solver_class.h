@@ -99,10 +99,9 @@
 #define LBM_INLINED  inline
 
 // sirdude fix for solaris
-#if !defined(linux) && (defined (__sparc) || defined (__sparc__))
-#include <ieeefp.h>
+#if !defined(linux) && defined(sun)
 #ifndef expf
-#define expf exp
+#define expf(x) exp((double)(x))
 #endif
 #endif
 

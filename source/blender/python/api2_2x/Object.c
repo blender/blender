@@ -70,6 +70,7 @@ struct rctf;
 #include "BKE_idprop.h"
 #include "BKE_object.h"
 #include "BKE_key.h" /* for setting the activeShape */
+#include "BKE_displist.h"
 
 #include "BSE_editipo.h"
 #include "BSE_edit.h"
@@ -133,6 +134,7 @@ struct rctf;
 #define IPOKEY_PI_SURFACEDAMP   8
 #define IPOKEY_PI_RANDOMDAMP    9
 #define IPOKEY_PI_PERM          10
+#define IPOKEY_LAYER			19
 
 #define PFIELD_FORCE	1
 #define PFIELD_VORTEX	2
@@ -171,6 +173,7 @@ enum obj_consts {
 	EXPP_OBJ_ATTR_DUPOFF,
 	EXPP_OBJ_ATTR_DUPSTA,
 	EXPP_OBJ_ATTR_DUPEND,
+ 	EXPP_OBJ_ATTR_DUPFACESCALEFAC,
 	EXPP_OBJ_ATTR_TIMEOFFSET,
 	EXPP_OBJ_ATTR_DRAWSIZE,
 	EXPP_OBJ_ATTR_PARENT_TYPE,
@@ -275,6 +278,8 @@ enum obj_consts {
 #define EXPP_OBJECT_SBINSPRINGMAX      0.999f
 #define EXPP_OBJECT_SBINFRICTMIN         0.0f
 #define EXPP_OBJECT_SBINFRICTMAX        10.0f
+#define EXPP_OBJECT_DUPFACESCALEFACMIN  0.001f
+#define EXPP_OBJECT_DUPFACESCALEFACMAX  10000.0f
 
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.		 */
@@ -394,7 +399,7 @@ static PyObject *Object_getProperty( BPy_Object * self, PyObject * args );
 static PyObject *Object_removeAllProperties( BPy_Object * self );
 static PyObject *Object_copyAllPropertiesTo( BPy_Object * self,
 					     PyObject * args );
-static PyObject *Object_getScriptLinks( BPy_Object * self, PyObject * args );
+static PyObject *Object_getScriptLinks( BPy_Object * self, PyObject * value );
 static PyObject *Object_addScriptLink( BPy_Object * self, PyObject * args );
 static PyObject *Object_clearScriptLinks( BPy_Object * self, PyObject *args );
 static PyObject *Object_getPIStrength( BPy_Object * self );
@@ -744,7 +749,7 @@ works only if self and the object specified are of the same type."},
 	{"copyAllPropertiesTo", ( PyCFunction ) Object_copyAllPropertiesTo,
 	 METH_VARARGS,
 	 "() - copy all properties from this object to another object"},
-	{"getScriptLinks", ( PyCFunction ) Object_getScriptLinks, METH_VARARGS,
+	{"getScriptLinks", ( PyCFunction ) Object_getScriptLinks, METH_O,
 	 "(eventname) - Get a list of this object's scriptlinks (Text names) "
 	 "of the given type\n"
 	 "(eventname) - string: FrameChanged, Redraw or Render."},
@@ -1209,16 +1214,16 @@ static PyObject *Object_getSelected( BPy_Object * self )
 static int Object_setSelect( BPy_Object * self, PyObject * value )
 {
 	Base *base;
-	int setting = PyObject_IsTrue( value );
+	int param = PyObject_IsTrue( value );
 
-	if( setting == -1 )
+	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected true/false argument" );
+				"expected True/False or 0/1" );
 
 	base = FIRSTBASE;
 	while( base ) {
 		if( base->object == self->object ) {
-			if( setting == 1 ) {
+			if( param ) {
 				base->flag |= SELECT;
 				self->object->flag = (short)base->flag;
 				set_active_base( base );
@@ -1230,7 +1235,9 @@ static int Object_setSelect( BPy_Object * self, PyObject * value )
 		}
 		base = base->next;
 	}
-	countall(  );
+	if (base) { /* was the object selected? */
+		countall(  );
+	}
 	return 0;
 }
 
@@ -1330,7 +1337,7 @@ static PyObject *Object_getParent( BPy_Object * self )
 
 static PyObject *Object_getParentBoneName( BPy_Object * self )
 {
-	if( self->object->parent && self->object->parsubstr[0] != '\0' )
+	if( self->object->parent && self->object->parent->type==OB_ARMATURE && self->object->parsubstr[0] != '\0' )
 		return PyString_FromString( self->object->parsubstr );
 	Py_RETURN_NONE;
 }
@@ -1364,22 +1371,30 @@ static int Object_setParentBoneName( BPy_Object * self, PyObject *value )
 
 static PyObject *Object_getSize( BPy_Object * self, PyObject * args )
 {
-	PyObject *attr;
 	char *space = "localspace";	/* default to local */
-	
+	PyObject *attr;
 	if( !PyArg_ParseTuple( args, "|s", &space ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					"expected a string or nothing" );
 
 	if( BLI_streq( space, "worldspace" ) ) {	/* Worldspace matrix */
-		float scale[3];
+		float rot[3];
+		float mat[3][3], imat[3][3], tmat[3][3];
 		disable_where_script( 1 );
 		where_is_object( self->object );
-		Mat4ToSize(self->object->obmat, scale);
+		
+		Mat3CpyMat4(mat, self->object->obmat);
+		
+		/* functionality copied from editobject.c apply_obmat */
+		Mat3ToEul(mat, rot);
+		EulToMat3(rot, tmat);
+		Mat3Inv(imat, tmat);
+		Mat3MulMat3(tmat, imat, mat);
+		
 		attr = Py_BuildValue( "fff",
-					self->object->size[0],
-					self->object->size[1],
-					self->object->size[2] );
+					tmat[0][0],
+					tmat[1][1],
+					tmat[2][2] );
 		disable_where_script( 0 );
 	} else if( BLI_streq( space, "localspace" ) ) {	/* Localspace matrix */
 		attr = Py_BuildValue( "fff",
@@ -1388,9 +1403,8 @@ static PyObject *Object_getSize( BPy_Object * self, PyObject * args )
 					self->object->size[2] );
 	} else {
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"expected either nothing, 'localspace' (default) or 'worldspace'" );
+			"expected either nothing, 'localspace' (default) or 'worldspace'" );
 	}
-
 	return attr;
 }
 
@@ -1471,7 +1485,7 @@ static PyObject *Object_getBoundBox( BPy_Object * self )
 		switch ( self->object->type ) {
 		case OB_MESH:
 			me = self->object->data;
-			vec = (float*) mesh_get_bb(me)->vec;
+			vec = (float*) mesh_get_bb(self->object)->vec;
 			break;
 		case OB_CURVE:
 		case OB_FONT:
@@ -1561,8 +1575,11 @@ static PyObject *Object_makeDisplayList( BPy_Object * self )
 {
 	Object *ob = self->object;
 
-	if( ob->type == OB_FONT )
+	if( ob->type == OB_FONT ) {
+		Curve *cu = ob->data;
+		freedisplist( &cu->disp );
 		text_to_curve( ob, 0 );
+	}
 
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
@@ -1667,9 +1684,11 @@ static PyObject *Object_link( BPy_Object * self, PyObject * args )
 	self->object->data = data;
 
 	/* creates the curve for the text object */
-	if (self->object->type == OB_FONT) 
+	if (self->object->type == OB_FONT) {
 		text_to_curve(self->object, 0);
-
+	} else if (self->object->type == OB_ARMATURE) {
+		armature_rebuild_pose(self->object, (bArmature *)data);
+	}
 	id_us_plus( id );
 	if( oldid ) {
 		if( oldid->us > 0 ) {
@@ -2327,7 +2346,7 @@ static int Object_setMatrix( BPy_Object * self, MatrixObject * mat )
 
 /*
  * Object_insertIpoKey()
- *  inserts Object IPO key for LOC, ROT, SIZE, LOCROT, or LOCROTSIZE
+ *  inserts Object IPO key for LOC, ROT, SIZE, LOCROT, LOCROTSIZE, or LAYER
  *  Note it also inserts actions! 
  */
 
@@ -2345,31 +2364,34 @@ static PyObject *Object_insertIpoKey( BPy_Object * self, PyObject * args )
 		actname= "Object";
 	
 	if (key == IPOKEY_LOC || key == IPOKEY_LOCROT || key == IPOKEY_LOCROTSIZE){
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_X);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_Y);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_Z);      
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_X, 0);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_Y, 0);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_Z, 0);      
 	}
 	if (key == IPOKEY_ROT || key == IPOKEY_LOCROT || key == IPOKEY_LOCROTSIZE){
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_X);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_Y);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_Z);      
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_X, 0);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_Y, 0);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_Z, 0);      
 	}
 	if (key == IPOKEY_SIZE || key == IPOKEY_LOCROTSIZE ){
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_X);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Y);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Z);      
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_X, 0);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Y, 0);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Z, 0);      
+	}
+	if (key == IPOKEY_LAYER ){
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LAY, 0);
 	}
 
 	if (key == IPOKEY_PI_STRENGTH ){
-		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_FSTR);   
+		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_FSTR, 0);   
 	} else if (key == IPOKEY_PI_FALLOFF ){
-		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_FFALL);   
+		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_FFALL, 0);   
 	} else if (key == IPOKEY_PI_SURFACEDAMP ){
-		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_SDAMP);   
+		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_SDAMP, 0);   
 	} else if (key == IPOKEY_PI_RANDOMDAMP ){
-		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_RDAMP);   
+		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_RDAMP, 0);   
 	} else if (key == IPOKEY_PI_PERM ){
-		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_PERM);   
+		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_PERM, 0);   
 	}
 
 	allspace(REMAKEIPO, 0);
@@ -2412,16 +2434,16 @@ static PyObject *Object_insertPoseKey( BPy_Object * self, PyObject * args )
 	/* XXX: must check chanName actually exists, otherwise segfaults! */
 	//achan = get_action_channel(sourceact->action, chanName);
 
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_X);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Y);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Z);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_X);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Y);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Z);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_W);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_X);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Y);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Z);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_X, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Y, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Z, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_X, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Y, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Z, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_W, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_X, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Y, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Z, 0);
 	
 	G.scene->r.cfra = oldframe;
 
@@ -2458,16 +2480,16 @@ static PyObject *Object_insertCurrentPoseKey( BPy_Object * self, PyObject * args
 
 	/* XXX: must check chanName actually exists, otherwise segfaults! */
 
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_X);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Y);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Z);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_X);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Y);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Z);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_W);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_X);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Y);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Z);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_X, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Y, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Z, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_X, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Y, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Z, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_W, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_X, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Y, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Z, 0);
 
 	G.scene->r.cfra = oldframe;
 
@@ -2497,14 +2519,14 @@ static PyObject *Object_setConstraintInfluenceForBone( BPy_Object * self,
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expects bonename, constraintname, influenceval" );
 	
-	icu = verify_ipocurve((ID *)self->object, ID_CO, boneName, constName,
+	icu = verify_ipocurve((ID *)self->object, ID_CO, boneName, constName, NULL,
 			CO_ENFORCE);
 	
 	if (!icu)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"cannot get a curve from this IPO, may be using libdata" );		
 	
-	insert_vert_ipo(icu, (float)CFRA, influence);
+	insert_vert_icu(icu, (float)CFRA, influence, 0);
 	self->object->recalc |= OB_RECALC_OB;  
 
 	Py_RETURN_NONE;
@@ -2929,11 +2951,11 @@ static PyObject *Object_clearScriptLinks( BPy_Object * self, PyObject * args )
 	return EXPP_clearScriptLinks( slink, args );
 }
 
-static PyObject *Object_getScriptLinks( BPy_Object * self, PyObject * args )
+static PyObject *Object_getScriptLinks( BPy_Object * self, PyObject * value )
 {
 	Object *obj = self->object;
 	ScriptLink *slink = &obj->scriptlink;
-	return EXPP_getScriptLinks( slink, args, 0 );
+	return EXPP_getScriptLinks( slink, value, 0 );
 }
 
 static PyObject *Object_getNLAflagBits ( BPy_Object * self ) 
@@ -2944,20 +2966,20 @@ static PyObject *Object_getNLAflagBits ( BPy_Object * self )
 		Py_RETURN_FALSE;
 }
 
-static int Object_setNLAflagBits ( BPy_Object * self, PyObject * args ) 
+static int Object_setNLAflagBits ( BPy_Object * self, PyObject * value ) 
 {
-	int value;
+	int param;
 
-	value = PyObject_IsTrue( args );
-	if( value == -1 )
+	param = PyObject_IsTrue( value );
+	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected 1/0 for true/false" );
+				"expected True/False or 0/1" );
 
-	if (value==1)
+	if (param)
 		self->object->nlaflag |= OB_NLA_OVERRIDE;
 	else 
 		self->object->nlaflag &= ~OB_NLA_OVERRIDE;
-		
+	
 	self->object->recalc |= OB_RECALC_OB;  
 
 	return 0;
@@ -2966,7 +2988,6 @@ static int Object_setNLAflagBits ( BPy_Object * self, PyObject * args )
 static PyObject *Object_getDupliObjects( BPy_Object * self )
 {
 	Object *ob= self->object;
-	PyObject *pair;
 	
 	if(ob->transflag & OB_DUPLI) {
 		/* before make duplis, update particle for current frame */
@@ -2988,6 +3009,7 @@ static PyObject *Object_getDupliObjects( BPy_Object * self )
 						"PyList_New() failed" );
 
 			for(dupob= duplilist->first, index=0; dupob; dupob= dupob->next, index++) {
+				PyObject *pair;
 				pair = PyTuple_New( 2 );
 				
 				PyTuple_SET_ITEM( pair, 0, Object_CreatePyObject(dupob->ob) );
@@ -3189,20 +3211,20 @@ static PyObject *Object_getPIDeflection( BPy_Object * self )
 	return PyBool_FromLong( ( long ) self->object->pd->deflect );
 }
 
-static int Object_setPIDeflection( BPy_Object * self, PyObject * args )
+static int Object_setPIDeflection( BPy_Object * self, PyObject * value )
 {
-	int value;
+	int param;
 
     if( !self->object->pd && !setupPI(self->object) )
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"particle deflection could not be accessed" );
 
-	value = PyObject_IsTrue( args );
-	if( value == -1 )
+	param = PyObject_IsTrue( value );
+	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected true/false argument" );
 
-	self->object->pd->deflect = (short)value;
+	self->object->pd->deflect = (short)param;
 	self->object->recalc |= OB_RECALC_OB;  
 
 	return 0;
@@ -3254,20 +3276,20 @@ static PyObject *Object_getPIUseMaxDist( BPy_Object * self )
 	return PyBool_FromLong( ( long )self->object->pd->flag );
 }
 
-static int Object_setPIUseMaxDist( BPy_Object * self, PyObject * args )
+static int Object_setPIUseMaxDist( BPy_Object * self, PyObject * value )
 {
-	int value;
+	int param;
 
     if( !self->object->pd && !setupPI(self->object) )
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"particle deflection could not be accessed" );
 
-	value = PyObject_IsTrue( args );
-	if( value == -1 )
+	param = PyObject_IsTrue( value );
+	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected true/false argument" );
 
-	self->object->pd->flag = (short)value;
+	self->object->pd->flag = (short)param;
 	self->object->recalc |= OB_RECALC_OB;  
 
 	return 0;
@@ -3368,9 +3390,9 @@ static PyObject *Object_getSBUseGoal( BPy_Object * self )
 		Py_RETURN_FALSE;
 }
 
-static int Object_setSBUseGoal( BPy_Object * self, PyObject * args )
+static int Object_setSBUseGoal( BPy_Object * self, PyObject * value )
 {
-	int setting = PyObject_IsTrue( args );
+	int setting = PyObject_IsTrue( value );
 
     if( !self->object->soft && !setupSB(self->object) )
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
@@ -3401,9 +3423,9 @@ static PyObject *Object_getSBUseEdges( BPy_Object * self )
 		Py_RETURN_FALSE;
 }
 
-static int Object_setSBUseEdges( BPy_Object * self, PyObject * args )
+static int Object_setSBUseEdges( BPy_Object * self, PyObject * value )
 {
-	int setting = PyObject_IsTrue( args );
+	int setting = PyObject_IsTrue( value );
 
     if( !self->object->soft && !setupSB(self->object) )
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
@@ -3434,9 +3456,9 @@ static PyObject *Object_getSBStiffQuads( BPy_Object * self )
 		Py_RETURN_FALSE;
 }
 
-static int Object_setSBStiffQuads( BPy_Object * self, PyObject * args )
+static int Object_setSBStiffQuads( BPy_Object * self, PyObject * value )
 {
-	int setting = PyObject_IsTrue( args );
+	int setting = PyObject_IsTrue( value );
 
     if( !self->object->soft && !setupSB(self->object) )
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
@@ -3533,7 +3555,6 @@ void Object_updateDag( void *data )
 
 static PyObject *getIntAttr( BPy_Object *self, void *type )
 {
-	PyObject *attr = NULL;
 	int param;
 	struct Object *object = self->object;
 
@@ -3580,13 +3601,7 @@ static PyObject *getIntAttr( BPy_Object *self, void *type )
 				"undefined type in getIntAttr" );
 	}
 
-	attr = PyInt_FromLong( param );
-	
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_MemoryError,
-				"PyInt_FromLong() failed!" );
+	return PyInt_FromLong( param );
 }
 
 /*
@@ -3669,7 +3684,7 @@ static int setIntAttrRange( BPy_Object *self, PyObject *value, void *type )
 	struct Object *object = self->object;
 	int min, max, size;
 
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected integer argument" );
 
@@ -3837,6 +3852,9 @@ static PyObject *getFloatAttr( BPy_Object *self, void *type )
 	case EXPP_OBJ_ATTR_SB_INFRICT:
     	param = object->soft->infrict;
 		break;
+	case EXPP_OBJ_ATTR_DUPFACESCALEFAC:
+		param = object->dupfacesca;
+		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError, 
 				"undefined type in getFloatAttr" );
@@ -3984,6 +4002,12 @@ static int setFloatAttrClamp( BPy_Object *self, PyObject *value, void *type )
 		max = EXPP_OBJECT_SBINFRICTMAX;
     	param = &self->object->soft->infrict;
 		break;
+	case EXPP_OBJ_ATTR_DUPFACESCALEFAC:
+		min = EXPP_OBJECT_DUPFACESCALEFACMIN;
+		max = EXPP_OBJECT_DUPFACESCALEFACMAX;
+		param = &self->object->dupfacesca;
+		break;
+		
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"undefined type in setFloatAttrClamp" );
@@ -4077,7 +4101,6 @@ static int setFloatAttr( BPy_Object *self, PyObject *value, void *type )
 
 static PyObject *getFloat3Attr( BPy_Object *self, void *type )
 {
-	PyObject *attr = NULL;
 	float *param;
 	struct Object *object = self->object;
 
@@ -4102,13 +4125,7 @@ static PyObject *getFloat3Attr( BPy_Object *self, void *type )
 				"undefined type in getFloat3Attr" );
 	}
 
-	attr = Py_BuildValue( "(fff)", param[0], param[1], param[2] );
-	
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_MemoryError,
-				"Py_BuildValue() failed!" );
+	return Py_BuildValue( "(fff)", param[0], param[1], param[2] );
 }
 
 /*
@@ -4193,7 +4210,12 @@ static PyObject *Object_getRestricted( BPy_Object *self, void *type )
 static int Object_setRestricted( BPy_Object *self, PyObject *value,
 		void *type )
 {
-	if (PyObject_IsTrue(value) )
+	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if ( param )
 		self->object->restrictflag |= (int)type;
 	else
 		self->object->restrictflag &= ~(int)type;
@@ -4297,13 +4319,16 @@ static int Object_setLayers( BPy_Object * self, PyObject *value )
 			local = base->lay;
 			base->lay = local | layers;
 			self->object->lay = base->lay;
+			break;
 		}
 		base = base->next;
 	}
 	
 	/* these to calls here are overkill! (ton) */
-	countall();
-	DAG_scene_sort( G.scene );
+	if (base) { /* The object was found? */
+		countall();
+		DAG_scene_sort( G.scene );
+	}
 	return 0;
 }
 
@@ -4312,7 +4337,7 @@ static int Object_setLayersMask( BPy_Object *self, PyObject *value )
 	int layers = 0, local;
 	Base *base;
 
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 			"expected an integer (bitmask) as argument" );
 
@@ -4333,11 +4358,14 @@ static int Object_setLayersMask( BPy_Object *self, PyObject *value )
 			local = base->lay;
 			base->lay = local | layers;
 			self->object->lay = base->lay;
+			break;
 		}
 		base = base->next;
 	}
-	countall();
-	DAG_scene_sort( G.scene );
+	if (base) { /* The object was found? */
+		countall();
+		DAG_scene_sort( G.scene );
+	}
 	return 0;
 }
 
@@ -4974,6 +5002,10 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)Object_getTransflagBits, (setter)Object_setTransflagBits,
 	 "Use face scale to scale all dupliFaces",
 	 (void *)OB_DUPLIFACES_SCALE},
+	{"dupFacesScaleFac",
+ 	 (getter)getFloatAttr, (setter)setFloatAttr,
+	"Use face scale to scale all dupliFaces",
+	 (void *)EXPP_OBJ_ATTR_DUPFACESCALEFAC},
 	{"enableDupFrames",
 	 (getter)Object_getTransflagBits, (setter)Object_setTransflagBits,
 	 "Make copy of object for every frame",
@@ -5043,10 +5075,6 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	{"rbHalfExtents",
 	 (getter)Object_getRBHalfExtents, (setter)NULL, 
 	 "Rigid body physics bounds object type",
-	 NULL},
-	{"type",
-	 (getter)Object_getType, (setter)NULL, 
-	 "String describing Object type",
 	 NULL},
 
 	{"restrictDisplay",
@@ -5301,6 +5329,7 @@ static PyObject *M_Object_IpoKeyTypesDict( void )
 		PyConstant_Insert( d, "SIZE", PyInt_FromLong( IPOKEY_SIZE ) );
 		PyConstant_Insert( d, "LOCROT", PyInt_FromLong( IPOKEY_LOCROT ) );
 		PyConstant_Insert( d, "LOCROTSIZE", PyInt_FromLong( IPOKEY_LOCROTSIZE ) );
+		PyConstant_Insert( d, "LAYER", PyInt_FromLong( IPOKEY_LAYER ) );
 		
 		PyConstant_Insert( d, "PI_STRENGTH", PyInt_FromLong( IPOKEY_PI_STRENGTH ) );
 		PyConstant_Insert( d, "PI_FALLOFF", PyInt_FromLong( IPOKEY_PI_FALLOFF ) );
@@ -5338,7 +5367,8 @@ PyObject *Object_Init( void )
 	PyModule_AddIntConstant( module, "SIZE", IPOKEY_SIZE );
 	PyModule_AddIntConstant( module, "LOCROT", IPOKEY_LOCROT );
 	PyModule_AddIntConstant( module, "LOCROTSIZE", IPOKEY_LOCROTSIZE );
-
+	PyModule_AddIntConstant( module, "LAYER", IPOKEY_LAYER );
+	
 	PyModule_AddIntConstant( module, "PI_STRENGTH", IPOKEY_PI_STRENGTH );
 	PyModule_AddIntConstant( module, "PI_FALLOFF", IPOKEY_PI_FALLOFF );
 	PyModule_AddIntConstant( module, "PI_SURFACEDAMP", IPOKEY_PI_SURFACEDAMP );

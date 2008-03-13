@@ -107,6 +107,7 @@ void open_plugin_tex(PluginTex *pit)
 	pit->result= 0;
 	pit->cfra= 0;
 	pit->version= 0;
+	pit->instance_init= 0;
 	
 	/* clear the error list */
 	PIL_dynlib_get_error_as_string(NULL);
@@ -238,12 +239,9 @@ void init_mapping(TexMapping *texmap)
 
 /* ****************** COLORBAND ******************* */
 
-ColorBand *add_colorband(int rangetype)
+void init_colorband(ColorBand *coba, int rangetype)
 {
-	ColorBand *coba;
 	int a;
-	
-	coba= MEM_callocN( sizeof(ColorBand), "colorband");
 	
 	coba->data[0].pos= 0.0;
 	coba->data[1].pos= 1.0;
@@ -280,6 +278,15 @@ ColorBand *add_colorband(int rangetype)
 	}
 	
 	coba->tot= 2;
+	
+}
+
+ColorBand *add_colorband(int rangetype)
+{
+	ColorBand *coba;
+	
+	coba= MEM_callocN( sizeof(ColorBand), "colorband");
+	init_colorband(coba, rangetype);
 	
 	return coba;
 }
@@ -390,6 +397,7 @@ void free_texture(Tex *tex)
 	free_plugin_tex(tex->plugin);
 	if(tex->coba) MEM_freeN(tex->coba);
 	if(tex->env) BKE_free_envmap(tex->env);
+	BKE_previewimg_free(&tex->preview);
 	BKE_icon_delete((struct ID*)tex);
 	tex->id.icon_id = 0;
 }
@@ -404,7 +412,7 @@ void default_tex(Tex *tex)
 
 	tex->stype= 0;
 	tex->flag= TEX_CHECKER_ODD;
-	tex->imaflag= TEX_INTERPOL+TEX_MIPMAP;
+	tex->imaflag= TEX_INTERPOL+TEX_MIPMAP+TEX_USEALPHA;
 	tex->extend= TEX_REPEAT;
 	tex->cropxmin= tex->cropymin= 0.0;
 	tex->cropxmax= tex->cropymax= 1.0;
@@ -418,7 +426,8 @@ void default_tex(Tex *tex)
 	tex->turbul= 5.0;
 	tex->nabla= 0.025;	// also in do_versions
 	tex->bright= 1.0;
-	tex->contrast= tex->filtersize= 1.0;
+	tex->contrast= 1.0;
+	tex->filtersize= 1.0;
 	tex->rfac= 1.0;
 	tex->gfac= 1.0;
 	tex->bfac= 1.0;
@@ -462,6 +471,8 @@ void default_tex(Tex *tex)
 	tex->iuser.fie_ima= 2;
 	tex->iuser.ok= 1;
 	tex->iuser.frames= 100;
+	
+	tex->preview = NULL;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -507,6 +518,7 @@ void default_mtex(MTex *mtex)
 	mtex->norfac= 0.5;
 	mtex->varfac= 1.0;
 	mtex->dispfac=0.2;
+	mtex->normapspace= MTEX_NSPACE_TANGENT;
 }
 
 
@@ -541,6 +553,8 @@ Tex *copy_texture(Tex *tex)
 	if(texn->coba) texn->coba= MEM_dupallocN(texn->coba);
 	if(texn->env) texn->env= BKE_copy_envmap(texn->env);
 	
+	if(tex->preview) texn->preview = BKE_previewimg_copy(tex->preview);
+
 	return texn;
 }
 

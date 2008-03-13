@@ -128,7 +128,7 @@ void types_InitAll( void )
 	euler_Type.ob_type = &PyType_Type;
 	matrix_Type.ob_type = &PyType_Type;
 	quaternion_Type.ob_type = &PyType_Type;
-	rgbTuple_Type.ob_type = &PyType_Type;
+	PyType_Ready( &rgbTuple_Type );
 	vector_Type.ob_type = &PyType_Type;
 	property_Type.ob_type = &PyType_Type;
 	point_Type.ob_type = &PyType_Type;

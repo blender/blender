@@ -60,7 +60,6 @@
 #include "BKE_sca.h"
 #include "BSE_filesel.h"
 
-#include "BPI_script.h"
 #include "BPY_extern.h"
 #include "BPY_menus.h"
 
@@ -117,6 +116,7 @@ static void do_script_scriptsmenu(void *arg, int event)
 	switch(event) {
 	case 0: /* update menus */
 		BPyMenu_RemoveAllEntries();
+		BPY_rebuild_syspath();
 		if (BPyMenu_Init(1) == -1) error("Invalid scripts dir: check console");
 		break;
 	}

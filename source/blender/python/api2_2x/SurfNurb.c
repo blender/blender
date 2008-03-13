@@ -457,9 +457,14 @@ static PyObject *SurfNurb_getCyclicV( BPy_SurfNurb * self )
 		Py_RETURN_FALSE;
 }
 
-static int SurfNurb_setCyclicU( BPy_SurfNurb * self, PyObject * args )
+static int SurfNurb_setCyclicU( BPy_SurfNurb * self, PyObject * value )
 {
-	if( PyObject_IsTrue( args ) )
+	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if( param )
 		self->nurb->flagu |= CU_CYCLIC;
 	else
 		self->nurb->flagu &= ~CU_CYCLIC;
@@ -467,9 +472,14 @@ static int SurfNurb_setCyclicU( BPy_SurfNurb * self, PyObject * args )
 	return 0;
 }
 
-static int SurfNurb_setCyclicV( BPy_SurfNurb * self, PyObject * args )
+static int SurfNurb_setCyclicV( BPy_SurfNurb * self, PyObject * value )
 {
-	if( PyObject_IsTrue( args ) )
+	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if( param )
 		self->nurb->flagv |= CU_CYCLIC;
 	else
 		self->nurb->flagv &= ~CU_CYCLIC;
@@ -762,7 +772,7 @@ PyTypeObject SurfNurb_Type = {
 
 	/* More standard operations (here for binary compatibility) */
 
-	( hashfunc ) GenericLib_hash,	/* hashfunc tp_hash; */
+	NULL,						/* hashfunc tp_hash; */
 	NULL,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
 	NULL,                       /* getattrofunc tp_getattro; */

@@ -20,11 +20,11 @@ subject to the following restrictions:
 
 
 btCompoundShape::btCompoundShape()
-:m_localAabbMin(1e30f,1e30f,1e30f),
-m_localAabbMax(-1e30f,-1e30f,-1e30f),
+:m_localAabbMin(btScalar(1e30),btScalar(1e30),btScalar(1e30)),
+m_localAabbMax(btScalar(-1e30),btScalar(-1e30),btScalar(-1e30)),
 m_aabbTree(0),
-m_collisionMargin(0.f),
-m_localScaling(1.f,1.f,1.f)
+m_collisionMargin(btScalar(0.)),
+m_localScaling(btScalar(1.),btScalar(1.),btScalar(1.))
 {
 }
 
@@ -60,8 +60,8 @@ void	btCompoundShape::addChildShape(const btTransform& localTransform,btCollisio
 	///getAabb's default implementation is brute force, expected derived classes to implement a fast dedicated version
 void btCompoundShape::getAabb(const btTransform& trans,btVector3& aabbMin,btVector3& aabbMax) const
 {
-	btVector3 localHalfExtents = 0.5f*(m_localAabbMax-m_localAabbMin);
-	btVector3 localCenter = 0.5f*(m_localAabbMax+m_localAabbMin);
+	btVector3 localHalfExtents = btScalar(0.5)*(m_localAabbMax-m_localAabbMin);
+	btVector3 localCenter = btScalar(0.5)*(m_localAabbMax+m_localAabbMin);
 	
 	btMatrix3x3 abs_b = trans.getBasis().absolute();  
 
@@ -84,15 +84,15 @@ void	btCompoundShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
 	btVector3 aabbMin,aabbMax;
 	getAabb(ident,aabbMin,aabbMax);
 	
-	btVector3 halfExtents = (aabbMax-aabbMin)*0.5f;
+	btVector3 halfExtents = (aabbMax-aabbMin)*btScalar(0.5);
 	
-	btScalar lx=2.f*(halfExtents.x());
-	btScalar ly=2.f*(halfExtents.y());
-	btScalar lz=2.f*(halfExtents.z());
+	btScalar lx=btScalar(2.)*(halfExtents.x());
+	btScalar ly=btScalar(2.)*(halfExtents.y());
+	btScalar lz=btScalar(2.)*(halfExtents.z());
 
-	inertia[0] = mass/(12.0f) * (ly*ly + lz*lz);
-	inertia[1] = mass/(12.0f) * (lx*lx + lz*lz);
-	inertia[2] = mass/(12.0f) * (lx*lx + ly*ly);
+	inertia[0] = mass/(btScalar(12.0)) * (ly*ly + lz*lz);
+	inertia[1] = mass/(btScalar(12.0)) * (lx*lx + lz*lz);
+	inertia[2] = mass/(btScalar(12.0)) * (lx*lx + ly*ly);
 
 }
 

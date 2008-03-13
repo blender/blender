@@ -34,10 +34,11 @@
 #define BDR_EDITFACE_H
 
 struct MTFace;
+struct EditFace;
 struct Mesh;
 struct MCol;
 
-struct MTFace *get_active_tface(struct MCol **mcol);
+struct MTFace *get_active_mtface(struct EditFace **efa, struct MCol **mcol, short sloppy);
 void calculate_uv_map(unsigned short mapmode);
 void default_uv(float uv[][2], float size);
 void make_tfaces(struct Mesh *me);
@@ -52,7 +53,6 @@ int minmax_tface(float *min, float *max);
 void face_select(void);
 void face_borderselect(void);
 void uv_autocalc_tface(void);
-void set_faceselect(void);
 void set_texturepaint(void);
 void get_same_uv(void);  
 void seam_mark_clear_tface(short mode);

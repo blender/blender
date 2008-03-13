@@ -3,9 +3,8 @@
 
 
 #include "btPolyhedralConvexShape.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
-#include <vector>
 
 /// btConvexTriangleMeshShape is a convex hull of a triangle mesh. If you just have a point cloud, you can use btConvexHullShape instead.
 /// It uses the btStridingMeshInterface instead of a point cloud. This can avoid the duplication of the triangle mesh data.
@@ -40,7 +39,8 @@ public:
 	virtual	bool isInside(const btPoint3& pt,btScalar tolerance) const;
 
 	
-	void	setLocalScaling(const btVector3& scaling);
+	virtual void	setLocalScaling(const btVector3& scaling);
+	virtual const btVector3& getLocalScaling() const;
 
 };
 

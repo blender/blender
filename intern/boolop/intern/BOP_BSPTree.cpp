@@ -69,6 +69,7 @@ void BOP_BSPTree::addMesh(BOP_Mesh* mesh, BOP_Faces& facesList)
  * @param mesh Input data for BSP tree.
  * @param face index to mesh face.
  */
+
 void BOP_BSPTree::addFace(BOP_Mesh* mesh, BOP_Face* face)
 {
 	addFace(mesh->getVertex(face->getVertex(0))->getPoint(),
@@ -91,8 +92,15 @@ void BOP_BSPTree::addFace(const MT_Point3& p1,
 {
 	if (m_root == NULL)
 		m_root = new BOP_BSPNode(plane);
-	else
-		m_root->addFace(p1,p2,p3,plane);
+	else {
+		BOP_BSPPoints pts;
+
+		pts.push_back(p1);
+		pts.push_back(p2);
+		pts.push_back(p3);
+
+		m_root->addFace(pts,plane);
+	}
 
 	// update bounding box
 	m_bbox.add(p1);
@@ -168,37 +176,6 @@ unsigned int BOP_BSPTree::getDeep() const
 	  return m_root->getDeep();
 	else
 	  return 0;
-}
-
-/**
- * Computes the bounding BSP data.
- */
-void BOP_BSPTree::computeBox()
-{
-	if ( m_root != NULL ) {
-		MT_Point3 p1(m_bbox.m_minX,m_bbox.m_minY,m_bbox.m_minZ);
-		MT_Point3 p2(m_bbox.m_maxX,m_bbox.m_minY,m_bbox.m_minZ);
-		MT_Point3 p3(m_bbox.m_maxX,m_bbox.m_maxY,m_bbox.m_minZ);
-		MT_Point3 p4(m_bbox.m_minX,m_bbox.m_maxY,m_bbox.m_minZ);
-		MT_Point3 p5(m_bbox.m_minX,m_bbox.m_minY,m_bbox.m_maxZ);
-		MT_Point3 p6(m_bbox.m_maxX,m_bbox.m_minY,m_bbox.m_maxZ);
-		MT_Point3 p7(m_bbox.m_maxX,m_bbox.m_maxY,m_bbox.m_maxZ);
-		MT_Point3 p8(m_bbox.m_minX,m_bbox.m_maxY,m_bbox.m_maxZ);        
-		
-		MT_Plane3 plane1(p3,p2,p1);
-		MT_Plane3 plane2(p5,p6,p7);
-		MT_Plane3 plane3(p1,p2,p6);
-		MT_Plane3 plane4(p8,p7,p3);
-		MT_Plane3 plane5(p2,p3,p7);
-		MT_Plane3 plane6(p1,p5,p8);
-		
-		BOP_BSPNode bsp(plane1);
-		bsp.addFace(p5,p6,p7,plane2);
-		bsp.addFace(p1,p2,p6,plane3);
-		bsp.addFace(p8,p7,p3,plane4);
-		bsp.addFace(p2,p3,p7,plane5);
-		bsp.addFace(p1,p5,p8,plane6);
-	}
 }
 
 /**

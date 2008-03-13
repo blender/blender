@@ -249,8 +249,9 @@ def UIBlock(draw):
 	@note: Within this popup, Redraw events and the registered button callback will not work.
 		For buttons to run events, use per button callbacks.
 	@note: OpenGL drawing functions wont work within this popup, for text use L{Label} rather then L{Text}
+	@warning: L{Menu} will not work properly within a UIBlock, this is a limitation with blenders user interface internals.
 	"""
-	
+
 def Register(draw = None, event = None, button = None):
 	"""
 	Register callbacks for windowing.
@@ -348,6 +349,23 @@ def PupMenu(name, maxrow = None):
 	@param name: The format string to define the contents of the button.
 	@type maxrow: int
 	@param maxrow: The maximum number of rows for each column in the pop-up.
+	@rtype: int
+	@return: the chosen entry number or -1 if none was chosen.
+	"""
+
+def PupTreeMenu( menu ):
+	"""
+	Create a popup menu tree.
+	
+	Each item in the list is a menu item - (str, event), separator - None or submenu - (str, [...]).
+	
+	Submenus list uses the same syntax as the menu list.
+
+	Example::
+		result = Draw.PupTreeMenu( [ ("Menu Item 1", 10), ("Menu Item 2", 12), ("SubMenu", [("Menu Item 3", 100), ("MenuItem4", 101) ]  ) ] )
+	
+	@type menu: string
+	@param menu: A menu list
 	@rtype: int
 	@return: the chosen entry number or -1 if none was chosen.
 	"""
@@ -768,7 +786,7 @@ def GetStringWidth(string, fontsize = 'normal'):
 	@type string: string
 	@param string: A string.
 	@type fontsize: string
-	@param fontsize: The size of the font: 'large', 'normal', 'small' or 'tiny'.
+	@param fontsize: The size of the font: 'large', 'normal', 'normalfix', 'small' or 'tiny'.
 	@rtype: int
 	@return: The width of I{string} with the chosen I{fontsize}.
 	"""
@@ -785,7 +803,7 @@ def Text(string, fontsize = 'normal'):
 	@type string: string
 	@param string: The text string to draw.
 	@type fontsize: string
-	@param fontsize: The size of the font: 'large', 'normal', 'small' or 'tiny'.
+	@param fontsize: The size of the font: 'large', 'normal', 'normalfix', 'small' or 'tiny'.
 	@rtype: int
 	@return: The width of I{string} drawn with the chosen I{fontsize}.
 	@note: For drawing text in the 3d view see the workaround in L{BGL.glRasterPos}

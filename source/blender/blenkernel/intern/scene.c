@@ -47,6 +47,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"	
+#include "DNA_color_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
@@ -63,6 +64,7 @@
 #include "BKE_anim.h"
 #include "BKE_armature.h"		
 #include "BKE_bad_level_calls.h"
+#include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -75,11 +77,11 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
+#include "BKE_sculpt.h"
 #include "BKE_world.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_previewrender.h"
-#include "BDR_sculptmode.h"
 
 #include "BPY_extern.h"
 #include "BLI_arithb.h"
@@ -151,6 +153,7 @@ void free_scene(Scene *sce)
 	}
 	
 	BLI_freelistN(&sce->markers);
+	BLI_freelistN(&sce->transform_spaces);
 	BLI_freelistN(&sce->r.layers);
 	
 	if(sce->toolsettings){
@@ -168,12 +171,14 @@ void free_scene(Scene *sce)
 		MEM_freeN(sce->nodetree);
 	}
 
-	sculptmode_free_all(sce);
+	sculptdata_free(sce);
 }
 
 Scene *add_scene(char *name)
 {
 	Scene *sce;
+	ParticleEditSettings *pset;
+	int a;
 
 	sce= alloc_libblock(&G.main->scene, ID_SCE, name);
 	sce->lay= 1;
@@ -197,11 +202,14 @@ Scene *add_scene(char *name)
 	sce->r.images= 100;
 	sce->r.framelen= 1.0;
 	sce->r.frs_sec= 25;
+	sce->r.frs_sec_base= 1;
+	sce->r.ocres = 128;
 	
 	sce->r.bake_mode= 1;	/* prevent to include render stuff here */
 	sce->r.bake_filter= 2;
 	sce->r.bake_osa= 5;
 	sce->r.bake_flag= R_BAKE_CLEAR;
+	sce->r.bake_normal_space= R_BAKE_SPACE_TANGENT;
 	
 	sce->r.xplay= 640;
 	sce->r.yplay= 480;
@@ -212,6 +220,15 @@ Scene *add_scene(char *name)
 	
 	sce->r.stereomode = 1;  // no stereo
 
+	sce->r.simplify_subsurf= 6;
+	sce->r.simplify_particles= 1.0f;
+	sce->r.simplify_shadowsamples= 16;
+	sce->r.simplify_aosss= 1.0f;
+
+	sce->r.cineonblack= 95;
+	sce->r.cineonwhite= 685;
+	sce->r.cineongamma= 1.7f;
+	
 	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");
 	sce->toolsettings->cornertype=1;
 	sce->toolsettings->degr = 90; 
@@ -229,19 +246,32 @@ Scene *add_scene(char *name)
 	sce->toolsettings->uvcalc_mapalign = 1;
 	sce->toolsettings->unwrapper = 1;
 	sce->toolsettings->select_thresh= 0.01f;
+	sce->toolsettings->jointrilimit = 0.8f;
+
+	pset= &sce->toolsettings->particle;
+	pset->flag= PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER;
+	pset->emitterdist= 0.25f;
+	pset->totrekey= 5;
+	pset->totaddkey= 5;
+	pset->brushtype= PE_BRUSH_NONE;
+	for(a=0; a<PE_TOT_BRUSH; a++) {
+		pset->brush[a].strength= 50;
+		pset->brush[a].size= 50;
+		pset->brush[a].step= 10;
+	}
+	pset->brush[PE_BRUSH_CUT].strength= 100;
 	
 	sce->jumpframe = 10;
 	sce->audio.mixrate = 44100;
 
 	strcpy(sce->r.backbuf, "//backbuf");
 	strcpy(sce->r.pic, U.renderdir);
-	strcpy(sce->r.ftype, "//ftype");
 
 	BLI_init_rctf(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
 	sce->r.osa= 8;
 
-	sculptmode_init(sce);
-	
+	sculptdata_init(sce);
+
 	/* note; in header_info.c the scene copy happens..., if you add more to renderdata it has to be checked there */
 	scene_add_render_layer(sce);
 	
@@ -477,27 +507,23 @@ void scene_select_base(Scene *sce, Base *selbase)
 int scene_check_setscene(Scene *sce)
 {
 	Scene *scene;
+	int a, totscene;
 	
 	if(sce->set==NULL) return 1;
 	
-	/* LIB_DOIT is the free flag to tag library data */
+	totscene= 0;
 	for(scene= G.main->scene.first; scene; scene= scene->id.next)
-		scene->id.flag &= ~LIB_DOIT;
+		totscene++;
 	
-	scene= sce;
-	while(scene->set) {
-		scene->id.flag |= LIB_DOIT;
-		/* when set has flag set, we got a cycle */
-		if(scene->set->id.flag & LIB_DOIT)
-			break;
-		scene= scene->set;
+	for(a=0, scene=sce; scene->set; scene=scene->set, a++) {
+		/* more iterations than scenes means we have a cycle */
+		if(a > totscene) {
+			/* the tested scene gets zero'ed, that's typically current scene */
+			sce->set= NULL;
+			return 0;
+		}
 	}
-	
-	if(scene->set) {
-		/* the tested scene gets zero'ed, that's typically current scene */
-		sce->set= NULL;
-		return 0;
-	}
+
 	return 1;
 }
 
@@ -528,6 +554,9 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 {
 	Scene *scene= sce;
 	
+	/* clears all BONE_UNKEYED flags for every pose's pchans */
+	framechange_poses_clear_unkeyed();
+	
 	/* object ipos are calculated in where_is_object */
 	do_all_data_ipos();
 	
@@ -538,7 +567,6 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 		scene_update(sce, lay);
 
 	scene_update(scene, lay);
-	
 }
 
 /* return default layer, also used to patch old files */
@@ -555,5 +583,163 @@ void scene_add_render_layer(Scene *sce)
 	srl->lay= (1<<20) -1;
 	srl->layflag= 0x7FFF;	/* solid ztra halo edge strand */
 	srl->passflag= SCE_PASS_COMBINED|SCE_PASS_Z;
+}
+
+/* Initialize 'permanent' sculpt data that is saved with file kept after
+   switching out of sculptmode. */
+void sculptdata_init(Scene *sce)
+{
+	SculptData *sd;
+
+	if(!sce)
+		return;
+
+	sd= &sce->sculptdata;
+
+	if(sd->cumap) {
+		curvemapping_free(sd->cumap);
+		sd->cumap = NULL;
+	}
+
+	memset(sd, 0, sizeof(SculptData));
+
+	sd->drawbrush.size = sd->smoothbrush.size = sd->pinchbrush.size =
+		sd->inflatebrush.size = sd->grabbrush.size =
+		sd->layerbrush.size = sd->flattenbrush.size = 50;
+	sd->drawbrush.strength = sd->smoothbrush.strength =
+		sd->pinchbrush.strength = sd->inflatebrush.strength =
+		sd->grabbrush.strength = sd->layerbrush.strength =
+		sd->flattenbrush.strength = 25;
+	sd->drawbrush.dir = sd->pinchbrush.dir = sd->inflatebrush.dir = sd->layerbrush.dir= 1;
+	sd->drawbrush.flag = sd->smoothbrush.flag =
+		sd->pinchbrush.flag = sd->inflatebrush.flag =
+		sd->layerbrush.flag = sd->flattenbrush.flag = 0;
+	sd->drawbrush.view= 0;
+	sd->brush_type= DRAW_BRUSH;
+	sd->texact= -1;
+	sd->texfade= 1;
+	sd->averaging= 1;
+	sd->texsep= 0;
+	sd->texrept= SCULPTREPT_DRAG;
+	sd->flags= SCULPT_DRAW_BRUSH;
+	sd->tablet_size=3;
+	sd->tablet_strength=10;
+	sd->rake=0;
+	sculpt_reset_curve(sd);
+}
+
+void sculptdata_free(Scene *sce)
+{
+	SculptData *sd= &sce->sculptdata;
+	int a;
+
+	sculptsession_free(sce);
+
+	for(a=0; a<MAX_MTEX; a++) {
+		MTex *mtex= sd->mtex[a];
+		if(mtex) {
+			if(mtex->tex) mtex->tex->id.us--;
+			MEM_freeN(mtex);
+		}
+	}
+
+	curvemapping_free(sd->cumap);
+	sd->cumap = NULL;
+}
+
+void sculpt_vertexusers_free(SculptSession *ss)
+{
+	if(ss && ss->vertex_users){
+		MEM_freeN(ss->vertex_users);
+		MEM_freeN(ss->vertex_users_mem);
+		ss->vertex_users= NULL;
+		ss->vertex_users_mem= NULL;
+		ss->vertex_users_size= 0;
+	}
+}
+
+void sculptsession_free(Scene *sce)
+{
+	SculptSession *ss= sce->sculptdata.session;
+	if(ss) {
+		if(ss->projverts)
+			MEM_freeN(ss->projverts);
+		if(ss->mats)
+			MEM_freeN(ss->mats);
+
+		if(ss->radialcontrol)
+			MEM_freeN(ss->radialcontrol);
+
+		sculpt_vertexusers_free(ss);
+		if(ss->texcache)
+			MEM_freeN(ss->texcache);
+		MEM_freeN(ss);
+		sce->sculptdata.session= NULL;
+	}
+}
+
+/*  Default curve approximates 0.5 * (cos(pi * x) + 1), with 0 <= x <= 1 */
+void sculpt_reset_curve(SculptData *sd)
+{
+	CurveMap *cm = NULL;
+
+	if(!sd->cumap)
+		sd->cumap = curvemapping_add(1, 0, 0, 1, 1);
+
+	cm = sd->cumap->cm;
+
+	if(cm->curve)
+		MEM_freeN(cm->curve);
+	cm->curve= MEM_callocN(6*sizeof(CurveMapPoint), "curve points");
+	cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+	cm->totpoint= 6;
+	cm->curve[0].x= 0;
+	cm->curve[0].y= 1;
+	cm->curve[1].x= 0.1;
+	cm->curve[1].y= 0.97553;
+	cm->curve[2].x= 0.3;
+	cm->curve[2].y= 0.79389;
+	cm->curve[3].x= 0.9;
+	cm->curve[3].y= 0.02447;
+	cm->curve[4].x= 0.7;
+	cm->curve[4].y= 0.20611;
+	cm->curve[5].x= 1;
+	cm->curve[5].y= 0;
+
+	curvemapping_changed(sd->cumap, 0);
+}
+
+/* render simplification */
+
+int get_render_subsurf_level(RenderData *r, int lvl)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+		return MIN2(r->simplify_subsurf, lvl);
+	else
+		return lvl;
+}
+
+int get_render_child_particle_number(RenderData *r, int num)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+		return (int)(r->simplify_particles*num);
+	else
+		return num;
+}
+
+int get_render_shadow_samples(RenderData *r, int samples)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY) && samples > 0)
+		return MIN2(r->simplify_shadowsamples, samples);
+	else
+		return samples;
+}
+
+float get_render_aosss_error(RenderData *r, float error)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+		return ((1.0f-r->simplify_aosss)*10.0f + 1.0f)*error;
+	else
+		return error;
 }
 

@@ -51,9 +51,11 @@
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h" // N_T
 #include "DNA_scene_types.h" // N_T
+#include "DNA_texture_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_particle_types.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -61,20 +63,23 @@
 #include "BLI_editVert.h"
 #include "BLI_linklist.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_material.h"
+#include "BKE_modifier.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_subsurf.h"
-#include "BKE_deform.h"
-#include "BKE_modifier.h"
-#include "BKE_key.h"
+#include "BKE_texture.h"
+#include "BKE_utildefines.h"
+#include "BKE_particle.h"
 
 #ifdef WITH_VERSE
 #include "BKE_verse.h"
@@ -82,8 +87,6 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-
-#include "multires.h"
 
 // headers for fluidsim bobj meshes
 #include <stdlib.h>
@@ -633,9 +636,10 @@ static void emDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *use
 }
 static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors)
 {
+	GLubyte act_face_stipple[32*32/8] = DM_FACE_STIPPLE;
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditFace *efa;
-	int i;
+	int i, draw;
 
 	if (emdm->vertexCos) {
 		EditVert *eve;
@@ -645,7 +649,13 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 
 		for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
 			int drawSmooth = (efa->flag & ME_SMOOTH);
-			if(!setDrawOptions || setDrawOptions(userData, i, &drawSmooth)) {
+			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, i, &drawSmooth);
+			if(draw) {
+				if (draw==2) { /* enabled with stipple */
+		  			glEnable(GL_POLYGON_STIPPLE);
+		  			glPolygonStipple(act_face_stipple);
+				}
+				
 				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
@@ -668,12 +678,20 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 					}
 				}
 				glEnd();
+				
+				if (draw==2)
+					glDisable(GL_POLYGON_STIPPLE);
 			}
 		}
 	} else {
 		for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
 			int drawSmooth = (efa->flag & ME_SMOOTH);
-			if(!setDrawOptions || setDrawOptions(userData, i, &drawSmooth)) {
+			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, i, &drawSmooth);
+			if(draw) {
+				if (draw==2) { /* enabled with stipple */
+		  			glEnable(GL_POLYGON_STIPPLE);
+		  			glPolygonStipple(act_face_stipple);
+				}
 				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
@@ -696,9 +714,178 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 					}
 				}
 				glEnd();
+				
+				if (draw==2)
+					glDisable(GL_POLYGON_STIPPLE);
 			}
 		}
 	}
+}
+
+static void emDM_drawFacesTex_common(DerivedMesh *dm,
+               int (*drawParams)(MTFace *tface, MCol *mcol, int matnr),
+               int (*drawParamsMapped)(void *userData, int index),
+               void *userData) 
+{
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditMesh *em= emdm->em;
+	float (*vertexCos)[3]= emdm->vertexCos;
+	float (*vertexNos)[3]= emdm->vertexNos;
+	EditFace *efa;
+	int i;
+
+	if (vertexCos) {
+		EditVert *eve;
+
+		for (i=0,eve=em->verts.first; eve; eve= eve->next)
+			eve->tmp.l = (long) i++;
+
+		for (i=0,efa= em->faces.first; efa; i++,efa= efa->next) {
+			MTFace *tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			MCol *mcol= CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+			unsigned char *cp= NULL;
+			int drawSmooth= (efa->flag & ME_SMOOTH);
+			int flag;
+
+			if(drawParams)
+				flag= drawParams(tf, mcol, efa->mat_nr);
+			else if(drawParamsMapped)
+				flag= drawParamsMapped(userData, i);
+			else
+				flag= 1;
+
+			if(flag != 0) { /* flag 0 == the face is hidden or invisible */
+				if (flag==1 && mcol)
+					cp= (unsigned char*)mcol;
+
+				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+
+				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+				if (!drawSmooth) {
+					glNormal3fv(emdm->faceNos[i]);
+
+					if(tf) glTexCoord2fv(tf->uv[0]);
+					if(cp) glColor3ub(cp[3], cp[2], cp[1]);
+					glVertex3fv(vertexCos[(int) efa->v1->tmp.l]);
+
+					if(tf) glTexCoord2fv(tf->uv[1]);
+					if(cp) glColor3ub(cp[7], cp[6], cp[5]);
+					glVertex3fv(vertexCos[(int) efa->v2->tmp.l]);
+
+					if(tf) glTexCoord2fv(tf->uv[2]);
+					if(cp) glColor3ub(cp[11], cp[10], cp[9]);
+					glVertex3fv(vertexCos[(int) efa->v3->tmp.l]);
+
+					if(efa->v4) {
+						if(tf) glTexCoord2fv(tf->uv[3]);
+						if(cp) glColor3ub(cp[15], cp[14], cp[13]);
+						glVertex3fv(vertexCos[(int) efa->v4->tmp.l]);
+					}
+				} else {
+					if(tf) glTexCoord2fv(tf->uv[0]);
+					if(cp) glColor3ub(cp[3], cp[2], cp[1]);
+					glNormal3fv(vertexNos[(int) efa->v1->tmp.l]);
+					glVertex3fv(vertexCos[(int) efa->v1->tmp.l]);
+
+					if(tf) glTexCoord2fv(tf->uv[1]);
+					if(cp) glColor3ub(cp[7], cp[6], cp[5]);
+					glNormal3fv(vertexNos[(int) efa->v2->tmp.l]);
+					glVertex3fv(vertexCos[(int) efa->v2->tmp.l]);
+
+					if(tf) glTexCoord2fv(tf->uv[2]);
+					if(cp) glColor3ub(cp[11], cp[10], cp[9]);
+					glNormal3fv(vertexNos[(int) efa->v3->tmp.l]);
+					glVertex3fv(vertexCos[(int) efa->v3->tmp.l]);
+
+					if(efa->v4) {
+						if(tf) glTexCoord2fv(tf->uv[3]);
+						if(cp) glColor3ub(cp[15], cp[14], cp[13]);
+						glNormal3fv(vertexNos[(int) efa->v4->tmp.l]);
+						glVertex3fv(vertexCos[(int) efa->v4->tmp.l]);
+					}
+				}
+				glEnd();
+			}
+		}
+	} else {
+		for (i=0,efa= em->faces.first; efa; i++,efa= efa->next) {
+			MTFace *tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			MCol *mcol= CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+			unsigned char *cp= NULL;
+			int drawSmooth= (efa->flag & ME_SMOOTH);
+			int flag;
+
+			if(drawParams)
+				flag= drawParams(tf, mcol, efa->mat_nr);
+			else if(drawParamsMapped)
+				flag= drawParamsMapped(userData, i);
+			else
+				flag= 1;
+
+			if(flag != 0) { /* flag 0 == the face is hidden or invisible */
+				if (flag==1 && mcol)
+					cp= (unsigned char*)mcol;
+
+				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+
+				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+				if (!drawSmooth) {
+					glNormal3fv(efa->n);
+
+					if(tf) glTexCoord2fv(tf->uv[0]);
+					if(cp) glColor3ub(cp[3], cp[2], cp[1]);
+					glVertex3fv(efa->v1->co);
+
+					if(tf) glTexCoord2fv(tf->uv[1]);
+					if(cp) glColor3ub(cp[7], cp[6], cp[5]);
+					glVertex3fv(efa->v2->co);
+
+					if(tf) glTexCoord2fv(tf->uv[2]);
+					if(cp) glColor3ub(cp[11], cp[10], cp[9]);
+					glVertex3fv(efa->v3->co);
+
+					if(efa->v4) {
+						if(tf) glTexCoord2fv(tf->uv[3]);
+						if(cp) glColor3ub(cp[15], cp[14], cp[13]);
+						glVertex3fv(efa->v4->co);
+					}
+				} else {
+					if(tf) glTexCoord2fv(tf->uv[0]);
+					if(cp) glColor3ub(cp[3], cp[2], cp[1]);
+					glNormal3fv(efa->v1->no);
+					glVertex3fv(efa->v1->co);
+
+					if(tf) glTexCoord2fv(tf->uv[1]);
+					if(cp) glColor3ub(cp[7], cp[6], cp[5]);
+					glNormal3fv(efa->v2->no);
+					glVertex3fv(efa->v2->co);
+
+					if(tf) glTexCoord2fv(tf->uv[2]);
+					if(cp) glColor3ub(cp[11], cp[10], cp[9]);
+					glNormal3fv(efa->v3->no);
+					glVertex3fv(efa->v3->co);
+
+					if(efa->v4) {
+						if(tf) glTexCoord2fv(tf->uv[3]);
+						if(cp) glColor3ub(cp[15], cp[14], cp[13]);
+						glNormal3fv(efa->v4->no);
+						glVertex3fv(efa->v4->co);
+					}
+				}
+				glEnd();
+			}
+		}
+	}
+}
+
+static void emDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, MCol *mcol, int matnr))
+{
+	emDM_drawFacesTex_common(dm, setDrawOptions, NULL, NULL);
+}
+
+static void emDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void *userData)
+{
+	emDM_drawFacesTex_common(dm, NULL, setDrawOptions, userData);
 }
 
 static void emDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
@@ -755,6 +942,7 @@ void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 
 	/* TODO what to do with vert_r->flag and vert_r->mat_nr? */
 	vert_r->mat_nr = 0;
+	vert_r->bweight = (unsigned char) (ev->bweight*255.0f);
 }
 
 void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
@@ -767,6 +955,7 @@ void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 	for(i = 0; i < index; ++i) ee = ee->next;
 
 	edge_r->crease = (unsigned char) (ee->crease*255.0f);
+	edge_r->bweight = (unsigned char) (ee->bweight*255.0f);
 	/* TODO what to do with edge_r->flag? */
 	edge_r->flag = ME_EDGEDRAW|ME_EDGERENDER;
 	if (ee->seam) edge_r->flag |= ME_SEAM;
@@ -847,6 +1036,7 @@ void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 		/* TODO what to do with vert_r->flag and vert_r->mat_nr? */
 		vert_r->mat_nr = 0;
 		vert_r->flag = 0;
+		vert_r->bweight = (unsigned char) (ev->bweight*255.0f);
 	}
 }
 
@@ -863,6 +1053,7 @@ void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 
 	for( ; ee; ee = ee->next, ++edge_r) {
 		edge_r->crease = (unsigned char) (ee->crease*255.0f);
+		edge_r->bweight = (unsigned char) (ee->bweight*255.0f);
 		/* TODO what to do with edge_r->flag? */
 		edge_r->flag = ME_EDGEDRAW|ME_EDGERENDER;
 		if (ee->seam) edge_r->flag |= ME_SEAM;
@@ -946,6 +1137,8 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
 	emdm->dm.drawMappedEdges = emDM_drawMappedEdges;
 	emdm->dm.drawMappedEdgesInterp = emDM_drawMappedEdgesInterp;
 	emdm->dm.drawMappedFaces = emDM_drawMappedFaces;
+	emdm->dm.drawMappedFacesTex = emDM_drawMappedFacesTex;
+	emdm->dm.drawFacesTex = emDM_drawFacesTex;
 	emdm->dm.drawUVEdges = emDM_drawUVEdges;
 
 	emdm->dm.release = emDM_release;
@@ -1129,6 +1322,7 @@ void vDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 				/* not supported yet */
 				edge_r->flag = 0;
 				edge_r->crease = 0;
+				edge_r->bweight = 0;
 				break;
 			}
 		}
@@ -1235,6 +1429,7 @@ void vDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 			/* not supported yet */
 			edge_r->flag = 0;
 			edge_r->crease = 0;
+			edge_r->bweight = 0;
 		}
 	}
 }
@@ -1614,7 +1809,7 @@ CustomDataMask get_viewedit_datamask()
 	ScrArea *sa;
 
 	/* check if we need tfaces & mcols due to face select or texture paint */
-	if(G.f & G_FACESELECT || G.f & G_TEXTUREPAINT) {
+	if(FACESEL_PAINT_TEST || G.f & G_TEXTUREPAINT) {
 		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 	} else {
 		/* check if we need tfaces & mcols due to view mode */
@@ -1623,9 +1818,9 @@ CustomDataMask get_viewedit_datamask()
 				View3D *view = sa->spacedata.first;
 				if(view->drawtype == OB_SHADED) {
 					/* this includes normals for mesh_create_shadedColors */
-					mask |= CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_NORMAL;
+					mask |= CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_NORMAL | CD_MASK_ORCO;
 				}
-				if(view->drawtype == OB_TEXTURE) {
+				if((view->drawtype == OB_TEXTURE) || ((view->drawtype == OB_SOLID) && (view->flag2 & V3D_SOLID_TEX))) {
 					mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 				}
 			}
@@ -1639,19 +1834,64 @@ CustomDataMask get_viewedit_datamask()
 	return mask;
 }
 
+static DerivedMesh *create_orco_dm(Object *ob, Mesh *me)
+{
+	DerivedMesh *dm;
+	float (*orco)[3];
+
+	dm= CDDM_from_mesh(me, ob);
+	orco= (float(*)[3])get_mesh_orco_verts(ob);
+	CDDM_apply_vert_coords(dm, orco);
+	CDDM_calc_normals(dm);
+	MEM_freeN(orco);
+
+	return dm;
+}
+
+static void add_orco_dm(Object *ob, DerivedMesh *dm, DerivedMesh *orcodm)
+{
+	float (*orco)[3], (*layerorco)[3];
+	int totvert;
+
+	totvert= dm->getNumVerts(dm);
+
+	if(orcodm) {
+		orco= MEM_callocN(sizeof(float)*3*totvert, "dm orco");
+
+		if(orcodm->getNumVerts(orcodm) == totvert)
+			orcodm->getVertCos(orcodm, orco);
+		else
+			dm->getVertCos(dm, orco);
+	}
+	else
+		orco= (float(*)[3])get_mesh_orco_verts(ob);
+
+	transform_mesh_orco_verts(ob->data, orco, totvert, 0);
+
+	if((layerorco = DM_get_vert_data_layer(dm, CD_ORCO))) {
+		memcpy(layerorco, orco, sizeof(float)*totvert);
+		MEM_freeN(orco);
+	}
+	else
+		DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, orco);
+}
+
 static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
                                 DerivedMesh **deform_r, DerivedMesh **final_r,
                                 int useRenderParams, int useDeform,
                                 int needMapping, CustomDataMask dataMask)
 {
 	Mesh *me = ob->data;
-	ModifierData *md = modifiers_getVirtualModifierList(ob);
+	ModifierData *firstmd, *md;
 	LinkNode *datamasks, *curr;
+	CustomDataMask mask;
 	float (*deformedVerts)[3] = NULL;
-	DerivedMesh *dm;
+	DerivedMesh *dm, *orcodm, *finaldm;
 	int numVerts = me->totvert;
 	int fluidsimMeshUsed = 0;
 	int required_mode;
+
+	md = firstmd = modifiers_getVirtualModifierList(ob);
 
 	modifiers_clearErrors(ob);
 
@@ -1729,7 +1969,10 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	} else {
 		if(!fluidsimMeshUsed) {
 			/* default behaviour for meshes */
-			deformedVerts = inputVertexCos;
+			if(inputVertexCos)
+				deformedVerts = inputVertexCos;
+			else
+				deformedVerts = mesh_getRefKeyCos(me, &numVerts);
 		} else {
 			/* the fluid sim mesh might have more vertices than the original 
 			 * one, so inputVertexCos shouldnt be used
@@ -1743,6 +1986,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	 * OnlyDeform ones. 
 	 */
 	dm = NULL;
+	orcodm = NULL;
 
 #ifdef WITH_VERSE
 	/* hack to make sure modifiers don't try to use mesh data from a verse
@@ -1764,12 +2008,20 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 		if(mti->isDisabled && mti->isDisabled(md)) continue;
 		if(needMapping && !modifier_supportsMapping(md)) continue;
 
+		/* add an orco layer if needed by this modifier */
+		if(dm && mti->requiredDataMask) {
+			mask = mti->requiredDataMask(md);
+			if(mask & CD_MASK_ORCO)
+				add_orco_dm(ob, dm, orcodm);
+		}
+
 		/* How to apply modifier depends on (a) what we already have as
 		 * a result of previous modifiers (could be a DerivedMesh or just
 		 * deformed vertices) and (b) what type the modifier is.
 		 */
 
 		if(mti->type == eModifierTypeType_OnlyDeform) {
+			
 			/* No existing verts to deform, need to build them. */
 			if(!deformedVerts) {
 				if(dm) {
@@ -1809,11 +2061,32 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 				}
 			}
 
-			/* set the DerivedMesh to only copy needed data */
-			DM_set_only_copy(dm, (CustomDataMask)curr->link);
+			/* create an orco derivedmesh in parallel */
+			mask= (CustomDataMask)curr->link;
+			if(mask & CD_MASK_ORCO) {
+				if(!orcodm)
+					orcodm= create_orco_dm(ob, me);
 
-			ndm = mti->applyModifier(md, ob, dm, useRenderParams,
-			                         !inputVertexCos);
+				mask &= ~CD_MASK_ORCO;
+				DM_set_only_copy(orcodm, mask);
+				ndm = mti->applyModifier(md, ob, orcodm, useRenderParams, !inputVertexCos);
+
+				if(ndm) {
+					/* if the modifier returned a new dm, release the old one */
+					if(orcodm && orcodm != ndm) orcodm->release(orcodm);
+					orcodm = ndm;
+				}
+			}
+
+			/* set the DerivedMesh to only copy needed data */
+			DM_set_only_copy(dm, mask);
+			
+			/* add an origspace layer if needed */
+			if(((CustomDataMask)curr->link) & CD_MASK_ORIGSPACE)
+				if(!CustomData_has_layer(&dm->faceData, CD_ORIGSPACE))
+					DM_add_face_layer(dm, CD_ORIGSPACE, CD_DEFAULT, NULL);
+
+			ndm = mti->applyModifier(md, ob, dm, useRenderParams, !inputVertexCos);
 
 			if(ndm) {
 				/* if the modifier returned a new dm, release the old one */
@@ -1831,38 +2104,54 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 		}
 	}
 
+	for(md=firstmd; md; md=md->next)
+		modifier_freeTemporaryData(md);
+
 	/* Yay, we are done. If we have a DerivedMesh and deformed vertices
 	 * need to apply these back onto the DerivedMesh. If we have no
 	 * DerivedMesh then we need to build one.
 	 */
 	if(dm && deformedVerts) {
-		*final_r = CDDM_copy(dm);
+		finaldm = CDDM_copy(dm);
 
 		dm->release(dm);
 
-		CDDM_apply_vert_coords(*final_r, deformedVerts);
-		CDDM_calc_normals(*final_r);
+		CDDM_apply_vert_coords(finaldm, deformedVerts);
+		CDDM_calc_normals(finaldm);
 	} else if(dm) {
-		*final_r = dm;
+		finaldm = dm;
 	} else {
 #ifdef WITH_VERSE
 		if(me->vnode)
-			*final_r = derivedmesh_from_versemesh(me->vnode, deformedVerts);
+			finaldm = derivedmesh_from_versemesh(me->vnode, deformedVerts);
 		else {
-			*final_r = CDDM_from_mesh(me, ob);
+			finaldm = CDDM_from_mesh(me, ob);
 			if(deformedVerts) {
-				CDDM_apply_vert_coords(*final_r, deformedVerts);
-				CDDM_calc_normals(*final_r);
+				CDDM_apply_vert_coords(finaldm, deformedVerts);
+				CDDM_calc_normals(finaldm);
 			}
 		}
 #else
-		*final_r = CDDM_from_mesh(me, ob);
+		finaldm = CDDM_from_mesh(me, ob);
 		if(deformedVerts) {
-			CDDM_apply_vert_coords(*final_r, deformedVerts);
-			CDDM_calc_normals(*final_r);
+			CDDM_apply_vert_coords(finaldm, deformedVerts);
+			CDDM_calc_normals(finaldm);
 		}
 #endif
 	}
+
+	/* add an orco layer if needed */
+	if(dataMask & CD_MASK_ORCO) {
+		add_orco_dm(ob, finaldm, orcodm);
+
+		if(deform_r && *deform_r)
+			add_orco_dm(ob, *deform_r, NULL);
+	}
+
+	*final_r = finaldm;
+
+	if(orcodm)
+		orcodm->release(orcodm);
 
 	if(deformedVerts && deformedVerts != inputVertexCos)
 		MEM_freeN(deformedVerts);
@@ -1887,6 +2176,24 @@ static float (*editmesh_getVertexCos(EditMesh *em, int *numVerts_r))[3]
 	return cos;
 }
 
+static int editmesh_modifier_is_enabled(ModifierData *md, DerivedMesh *dm)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
+
+	if((md->mode & required_mode) != required_mode) return 0;
+	if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
+		modifier_setError(md, "Internal error, modifier requires"
+		                  "original data (bad stack position).");
+		return 0;
+	}
+	if(mti->isDisabled && mti->isDisabled(md)) return 0;
+	if(!(mti->flags & eModifierTypeFlag_SupportsEditmode)) return 0;
+	if(md->mode & eModifierMode_DisableTemporary) return 0;
+	
+	return 1;
+}
+
 static void editmesh_calc_modifiers(DerivedMesh **cage_r,
                                     DerivedMesh **final_r,
                                     CustomDataMask dataMask)
@@ -1897,7 +2204,6 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r,
 	float (*deformedVerts)[3] = NULL;
 	DerivedMesh *dm;
 	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(ob, NULL);
-	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 	LinkNode *datamasks, *curr;
 
 	modifiers_clearErrors(ob);
@@ -1918,14 +2224,8 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r,
 	for(i = 0; md; i++, md = md->next, curr = curr->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-		if((md->mode & required_mode) != required_mode) continue;
-		if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
-			modifier_setError(md, "Internal error, modifier requires"
-			                  "original data (bad stack position).");
+		if(!editmesh_modifier_is_enabled(md, dm))
 			continue;
-		}
-		if(mti->isDisabled && mti->isDisabled(md)) continue;
-		if(!(mti->flags & eModifierTypeFlag_SupportsEditmode)) continue;
 
 		/* How to apply modifier depends on (a) what we already have as
 		 * a result of previous modifiers (could be a DerivedMesh or just
@@ -1980,6 +2280,10 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r,
 			/* set the DerivedMesh to only copy needed data */
 			DM_set_only_copy(dm, (CustomDataMask)curr->link);
 
+			if(((CustomDataMask)curr->link) & CD_MASK_ORIGSPACE)
+				if(!CustomData_has_layer(&dm->faceData, CD_ORIGSPACE))
+					DM_add_face_layer(dm, CD_ORIGSPACE, CD_DEFAULT, NULL);
+			
 			ndm = mti->applyModifierEM(md, ob, em, dm);
 
 			if (ndm) {
@@ -2071,10 +2375,10 @@ void weight_to_rgb(float input, float *fr, float *fg, float *fb)
 		*fb= 0.0f;
 	}
 }
-static void calc_weightpaint_vert_color(Object *ob, int vert, unsigned char *col)
+static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col)
 {
 	Mesh *me = ob->data;
-	float fr, fg, fb, input = 0.0f;
+	float colf[4], input = 0.0f;
 	int i;
 
 	if (me->dvert) {
@@ -2085,29 +2389,41 @@ static void calc_weightpaint_vert_color(Object *ob, int vert, unsigned char *col
 
 	CLAMP(input, 0.0f, 1.0f);
 	
-	weight_to_rgb(input, &fr, &fg, &fb);
+	if(coba)
+		do_colorband(coba, input, colf);
+	else
+		weight_to_rgb(input, colf, colf+1, colf+2);
 	
-	col[3] = (unsigned char)(fr * 255.0f);
-	col[2] = (unsigned char)(fg * 255.0f);
-	col[1] = (unsigned char)(fb * 255.0f);
+	col[3] = (unsigned char)(colf[0] * 255.0f);
+	col[2] = (unsigned char)(colf[1] * 255.0f);
+	col[1] = (unsigned char)(colf[2] * 255.0f);
 	col[0] = 255;
 }
+
+static ColorBand *stored_cb= NULL;
+
+void vDM_ColorBand_store(ColorBand *coba)
+{
+	stored_cb= coba;
+}
+
 static unsigned char *calc_weightpaint_colors(Object *ob) 
 {
 	Mesh *me = ob->data;
 	MFace *mf = me->mface;
+	ColorBand *coba= stored_cb;	/* warning, not a local var */
 	unsigned char *wtcol;
 	int i;
 	
 	wtcol = MEM_callocN (sizeof (unsigned char) * me->totface*4*4, "weightmap");
 	
 	memset(wtcol, 0x55, sizeof (unsigned char) * me->totface*4*4);
-	for (i=0; i<me->totface; i++, mf++){
-		calc_weightpaint_vert_color(ob, mf->v1, &wtcol[(i*4 + 0)*4]); 
-		calc_weightpaint_vert_color(ob, mf->v2, &wtcol[(i*4 + 1)*4]); 
-		calc_weightpaint_vert_color(ob, mf->v3, &wtcol[(i*4 + 2)*4]); 
+	for (i=0; i<me->totface; i++, mf++) {
+		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4]); 
+		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4]); 
+		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4]); 
 		if (mf->v4)
-			calc_weightpaint_vert_color(ob, mf->v4, &wtcol[(i*4 + 3)*4]); 
+			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4]); 
 	}
 	
 	return wtcol;
@@ -2118,6 +2434,10 @@ static void clear_mesh_caches(Object *ob)
 	Mesh *me= ob->data;
 
 		/* also serves as signal to remake texspace */
+	if (ob->bb) {
+		MEM_freeN(ob->bb);
+		ob->bb = NULL;
+	}
 	if (me->bb) {
 		MEM_freeN(me->bb);
 		me->bb = NULL;
@@ -2146,7 +2466,7 @@ static void mesh_build_data(Object *ob, CustomDataMask dataMask)
 
 	if(ob!=G.obedit) {
 		Object *obact = G.scene->basact?G.scene->basact->object:NULL;
-		int editing = (G.f & (G_FACESELECT|G_WEIGHTPAINT|G_VERTEXPAINT|G_TEXTUREPAINT));
+		int editing = (FACESEL_PAINT_TEST)|(G.f & G_PARTICLEEDIT);
 		int needMapping = editing && (ob==obact);
 
 		if( (G.f & G_WEIGHTPAINT) && ob==obact ) {
@@ -2165,7 +2485,7 @@ static void mesh_build_data(Object *ob, CustomDataMask dataMask)
 			CustomData_free_layer_active(&me->fdata, CD_MCOL, me->totface);
 		} else {
 			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform,
-			                    &ob->derivedFinal, 0, 1,
+			                    &ob->derivedFinal, G.rendering, 1,
 			                    needMapping, dataMask);
 		}
 
@@ -2173,7 +2493,9 @@ static void mesh_build_data(Object *ob, CustomDataMask dataMask)
 
 		ob->derivedFinal->getMinMax(ob->derivedFinal, min, max);
 
-		boundbox_set_from_min_max(mesh_get_bb(ob->data), min, max);
+		if(!ob->bb)
+			ob->bb= MEM_callocN(sizeof(BoundBox), "bb");
+		boundbox_set_from_min_max(ob->bb, min, max);
 
 		ob->derivedFinal->needsFree = 0;
 		ob->derivedDeform->needsFree = 0;
@@ -2209,7 +2531,9 @@ static void editmesh_build_data(CustomDataMask dataMask)
 
 	em->derivedFinal->getMinMax(em->derivedFinal, min, max);
 
-	boundbox_set_from_min_max(mesh_get_bb(G.obedit->data), min, max);
+	if(!G.obedit->bb)
+		G.obedit->bb= MEM_callocN(sizeof(BoundBox), "bb");
+	boundbox_set_from_min_max(G.obedit->bb, min, max);
 
 	em->derivedFinal->needsFree = 0;
 	em->derivedCage->needsFree = 0;
@@ -2260,7 +2584,7 @@ float *multires_render_pin(Object *ob, Mesh *me, int *orig_lvl)
 {
 	float *vert_copy= NULL;
 
-	if(me->mr) {
+	if(me->mr && !(me->mr->flag & MULTIRES_NO_RENDER)) {
 		MultiresLevel *lvl= NULL;
 		int i;
 		
@@ -2283,18 +2607,24 @@ float *multires_render_pin(Object *ob, Mesh *me, int *orig_lvl)
 }
 
 /* Propagate the changes to render level - fails if mesh topology changed */
-void multires_render_final(Object *ob, Mesh *me, DerivedMesh **dm, float *vert_copy, const int orig_lvl)
+void multires_render_final(Object *ob, Mesh *me, DerivedMesh **dm, float *vert_copy,
+			   const int orig_lvl, CustomDataMask dataMask)
 {
-	if(me->mr) {
+	if(me->mr && !(me->mr->flag & MULTIRES_NO_RENDER)) {
 		if((*dm)->getNumVerts(*dm) == me->totvert &&
 		   (*dm)->getNumFaces(*dm) == me->totface) {
 			MultiresLevel *lvl= multires_level_n(me->mr, BLI_countlist(&me->mr->levels));
 			DerivedMesh *old= NULL;
+			MVert *vertdup= NULL;
 			int i;
 
-			(*dm)->copyVertArray(*dm, me->mvert);
+			/* Copy the verts into the mesh */
+			vertdup= (*dm)->dupVertArray(*dm);
 			(*dm)->release(*dm);
+			for(i=0; i<me->totvert; ++i)
+				me->mvert[i]= vertdup[i];
 
+			/* Go to the render level */
 			me->mr->newlvl= me->mr->renderlvl;
 			multires_set_level(ob, me, 1);
 			(*dm)= getMeshDerivedMesh(me, ob, NULL);
@@ -2303,6 +2633,9 @@ void multires_render_final(Object *ob, Mesh *me, DerivedMesh **dm, float *vert_c
 			old= *dm;
 			(*dm)= CDDM_copy(old);
 			old->release(old);
+
+			if(dataMask & CD_MASK_ORCO)
+				add_orco_dm(ob, *dm, NULL);
 
 			/* Restore the original verts */
 			me->mr->newlvl= BLI_countlist(&me->mr->levels);
@@ -2331,7 +2664,7 @@ DerivedMesh *mesh_create_derived_render(Object *ob, CustomDataMask dataMask)
 	
 	vert_copy= multires_render_pin(ob, me, &orig_lvl);
 	mesh_calc_modifiers(ob, NULL, NULL, &final, 1, 1, 0, dataMask);
-	multires_render_final(ob, me, &final, vert_copy, orig_lvl);
+	multires_render_final(ob, me, &final, vert_copy, orig_lvl, dataMask);
 
 	return final;
 }
@@ -2366,7 +2699,7 @@ DerivedMesh *mesh_create_derived_no_deform_render(Object *ob,
 
 	vert_copy= multires_render_pin(ob, me, &orig_lvl);
 	mesh_calc_modifiers(ob, vertCos, NULL, &final, 1, 0, 0, dataMask);
-	multires_render_final(ob, me, &final, vert_copy, orig_lvl);
+	multires_render_final(ob, me, &final, vert_copy, orig_lvl, dataMask);
 
 	return final;
 }
@@ -2461,6 +2794,61 @@ float *mesh_get_mapped_verts_nors(Object *ob)
 	return vertexcosnos;
 }
 
+/* ********* crazyspace *************** */
+
+int editmesh_get_first_deform_matrices(float (**deformmats)[3][3], float (**deformcos)[3])
+{
+	Object *ob = G.obedit;
+	EditMesh *em = G.editMesh;
+	ModifierData *md;
+	DerivedMesh *dm;
+	int i, a, numleft = 0, numVerts = 0;
+	int cageIndex = modifiers_getCageIndex(ob, NULL);
+	float (*defmats)[3][3] = NULL, (*deformedVerts)[3] = NULL;
+
+	modifiers_clearErrors(ob);
+
+	dm = NULL;
+	md = ob->modifiers.first;
+
+	/* compute the deformation matrices and coordinates for the first
+	   modifiers with on cage editing that are enabled and support computing
+	   deform matrices */
+	for(i = 0; md && i <= cageIndex; i++, md = md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+		if(!editmesh_modifier_is_enabled(md, dm))
+			continue;
+
+		if(mti->type==eModifierTypeType_OnlyDeform && mti->deformMatricesEM) {
+			if(!defmats) {
+				dm= getEditMeshDerivedMesh(em, ob, NULL);
+				deformedVerts= editmesh_getVertexCos(em, &numVerts);
+				defmats= MEM_callocN(sizeof(*defmats)*numVerts, "defmats");
+
+				for(a=0; a<numVerts; a++)
+					Mat3One(defmats[a]);
+			}
+
+			mti->deformMatricesEM(md, ob, em, dm, deformedVerts, defmats,
+				numVerts);
+		}
+		else
+			break;
+	}
+
+	for(; md && i <= cageIndex; md = md->next, i++)
+		if(editmesh_modifier_is_enabled(md, dm) && modifier_isDeformer(md))
+			numleft++;
+
+	if(dm)
+		dm->release(dm);
+	
+	*deformmats= defmats;
+	*deformcos= deformedVerts;
+
+	return numleft;
+}
 
 /* ************************* fluidsim bobj file handling **************************** */
 

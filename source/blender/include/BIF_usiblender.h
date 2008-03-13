@@ -49,6 +49,7 @@ void BIF_read_autosavefile(void);
 void BIF_write_file(char *target);
 void BIF_write_homefile(void);
 void BIF_write_autosave(void);
+void BIF_clear_tempfiles(void);
 
 #endif
 

@@ -44,6 +44,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -54,11 +55,17 @@
 #include "BIF_resources.h"
 #include "BIF_mywindow.h"
 #include "BIF_gl.h"
+#include "BIF_editaction.h"
 #include "BIF_editarmature.h"
 #include "BIF_editmesh.h"
+#include "BIF_editnla.h"
 #include "BIF_editsima.h"
+#include "BIF_editparticle.h"
 #include "BIF_meshtools.h"
 #include "BIF_retopo.h"
+
+#include "BSE_editipo.h"
+#include "BSE_editipo_types.h"
 
 #ifdef WITH_VERSE
 #include "BIF_verse.h"
@@ -67,6 +74,7 @@
 #include "BKE_action.h"
 #include "BKE_anim.h"
 #include "BKE_armature.h"
+#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
@@ -75,6 +83,7 @@
 #include "BKE_group.h"
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
+#include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -85,6 +94,7 @@
 #endif
 
 #include "BSE_view.h"
+#include "BSE_editaction_types.h"
 #include "BDR_unwrapper.h"
 
 #include "BLI_arithb.h"
@@ -139,7 +149,7 @@ void getViewVector(float coord[3], float vec[3])
 static void clipMirrorModifier(TransInfo *t, Object *ob)
 {
 	ModifierData *md= ob->modifiers.first;
-	float tolerance[3];
+	float tolerance[3] = {0.0f, 0.0f, 0.0f};
 	int axis = 0;
 
 	for (; md; md=md->next) {
@@ -147,6 +157,7 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 			MirrorModifierData *mmd = (MirrorModifierData*) md;	
 		
 			if(mmd->flag & MOD_MIR_CLIPPING) {
+				axis = 0;
 				if(mmd->flag & MOD_MIR_AXIS_X) {
 					axis |= 1;
 					tolerance[0] = mmd->tolerance;
@@ -159,28 +170,71 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 					axis |= 4;
 					tolerance[2] = mmd->tolerance;
 				}
-			}
-		}
-	}
-	if (axis) {
-		TransData *td = t->data;
-		int i;
+				if (axis) {
+					float mtx[4][4], imtx[4][4];
+					int i;
+					TransData *td = t->data;
 		
-		for(i = 0 ; i < t->total; i++, td++) {
-			if (td->flag & TD_NOACTION)
-				break;
-			if (td->loc==NULL)
-				break;
+					if (mmd->mirror_ob) {
+						float obinv[4][4];
+
+						Mat4Invert(obinv, mmd->mirror_ob->obmat);
+						Mat4MulMat4(mtx, ob->obmat, obinv);
+						Mat4Invert(imtx, mtx);
+					}
+
+					for(i = 0 ; i < t->total; i++, td++) {
+						int clip;
+						float loc[3], iloc[3];
+
+						if (td->flag & TD_NOACTION)
+							break;
+						if (td->loc==NULL)
+							break;
+							
+						if (td->flag & TD_SKIP)
+							continue;
 			
-			if(axis & 1) {
-				if(fabs(td->iloc[0])<=tolerance[0] || td->loc[0]*td->iloc[0]<0.0f) td->loc[0]= 0.0f;
-			}
+						VecCopyf(loc,  td->loc);
+						VecCopyf(iloc, td->iloc);
+
+						if (mmd->mirror_ob) {
+							VecMat4MulVecfl(loc, mtx, loc);
+							VecMat4MulVecfl(iloc, mtx, iloc);
+						}
+
+						clip = 0;
+						if(axis & 1) {
+							if(fabs(iloc[0])<=tolerance[0] || 
+							   loc[0]*iloc[0]<0.0f) {
+								loc[0]= 0.0f;
+								clip = 1;
+							}
+						}
 			
-			if(axis & 2) {
-				if(fabs(td->iloc[1])<=tolerance[1] || td->loc[1]*td->iloc[1]<0.0f) td->loc[1]= 0.0f;
-			}
-			if(axis & 4) {
-				if(fabs(td->iloc[2])<=tolerance[2] || td->loc[2]*td->iloc[2]<0.0f) td->loc[2]= 0.0f;
+						if(axis & 2) {
+							if(fabs(iloc[1])<=tolerance[1] || 
+							   loc[1]*iloc[1]<0.0f) {
+								loc[1]= 0.0f;
+								clip = 1;
+							}
+						}
+						if(axis & 4) {
+							if(fabs(iloc[2])<=tolerance[2] || 
+							   loc[2]*iloc[2]<0.0f) {
+								loc[2]= 0.0f;
+								clip = 1;
+							}
+						}
+						if (clip) {
+							if (mmd->mirror_ob) {
+								VecMat4MulVecfl(loc, imtx, loc);
+							}
+							VecCopyf(td->loc, loc);
+						}
+					}
+				}
+
 			}
 		}
 	}
@@ -198,6 +252,8 @@ static void editmesh_apply_to_mirror(TransInfo *t)
 			break;
 		if (td->loc==NULL)
 			break;
+		if (td->flag & TD_SKIP)
+			continue;
 		
 		eve= td->tdmir;
 		if(eve) {
@@ -215,21 +271,128 @@ void recalcData(TransInfo *t)
 #ifdef WITH_VERSE
 	struct TransData *td;
 #endif
+	
+	if (t->spacetype == SPACE_ACTION) {
+		Object *ob= OBACT;
+		void *data;
+		short context;
 		
-	if (G.obedit) {
+		/* determine what type of data we are operating on */
+		data = get_action_context(&context);
+		if (data == NULL) return;
+		
+		if (G.saction->lock) {
+			if (context == ACTCONT_ACTION) {
+				if(ob) {
+					ob->ctime= -1234567.0f;
+					if(ob->pose || ob_get_key(ob))
+						DAG_object_flush_update(G.scene, ob, OB_RECALC);
+					else
+						DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+				}
+			}
+			else if (context == ACTCONT_SHAPEKEY) {
+				DAG_object_flush_update(G.scene, OBACT, OB_RECALC_OB|OB_RECALC_DATA);
+			}
+		}
+	}	
+	else if (t->spacetype == SPACE_NLA) {
+		if (G.snla->lock) {
+			for (base=G.scene->base.first; base; base=base->next) {
+				if (base->flag & BA_HAS_RECALC_OB)
+					base->object->recalc |= OB_RECALC_OB;
+				if (base->flag & BA_HAS_RECALC_DATA)
+					base->object->recalc |= OB_RECALC_DATA;
+				
+				if (base->object->recalc) 
+					base->object->ctime= -1234567.0f;	// eveil! 
+			}
+			
+			DAG_scene_flush_update(G.scene, screen_view3d_layers());
+		}
+	}
+	else if (t->spacetype == SPACE_IPO) {
+		EditIpo *ei;
+		int dosort = 0;
+		int a;
+		
+		/* do the flush first */
+		flushTransIpoData(t);
+		
+		/* now test if there is a need to re-sort */
+		ei= G.sipo->editipo;
+		for (a=0; a<G.sipo->totipo; a++, ei++) {
+			if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
+				
+				/* watch it: if the time is wrong: do not correct handles */
+				if (test_time_ipocurve(ei->icu)) dosort++;
+				else testhandles_ipocurve(ei->icu);
+			}
+		}
+		
+		/* do resort and other updates? */
+		if (dosort) remake_ipo_transdata(t);
+		if (G.sipo->showkey) update_ipokey_val();
+		
+		calc_ipo(G.sipo->ipo, (float)CFRA);
+		
+		/* update realtime - not working? */
+		if (G.sipo->lock) {
+			if (G.sipo->blocktype==ID_MA || G.sipo->blocktype==ID_TE) {
+				do_ipo(G.sipo->ipo);
+			}
+			else if(G.sipo->blocktype==ID_CA) {
+				do_ipo(G.sipo->ipo);
+			}
+			else if(G.sipo->blocktype==ID_KE) {
+				Object *ob= OBACT;
+				if(ob) {
+					ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				}
+			}
+			else if(G.sipo->blocktype==ID_PO) {
+				Object *ob= OBACT;
+				if(ob && ob->pose) {
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				}
+			}
+			else if(G.sipo->blocktype==ID_OB) {
+				Base *base= FIRSTBASE;
+				
+				while(base) {
+					if(base->object->ipo==G.sipo->ipo) {
+						do_ob_ipo(base->object);
+						base->object->recalc |= OB_RECALC_OB;
+					}
+					base= base->next;
+				}
+				DAG_scene_flush_update(G.scene, screen_view3d_layers());
+			}
+		}
+	}
+	else if (G.obedit) {
 		if (G.obedit->type == OB_MESH) {
-			retopo_do_all();
-
-			/* mirror modifier clipping? */
-			if(t->state != TRANS_CANCEL)
-				clipMirrorModifier(t, G.obedit);
-			
-			if(G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR)
-				editmesh_apply_to_mirror(t);
-			
-			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
-			
-			recalc_editnormals();
+			if(t->spacetype==SPACE_IMAGE) {
+				flushTransUVs(t);
+				if (G.sima->flag & SI_LIVE_UNWRAP)
+					unwrap_lscm_live_re_solve();
+			} else {
+				/* Only retopo if not snapping, Note, this is the only case of G.qual being used, but we have no T_SHIFT_MOD - Campbell */
+				if ((G.qual & LR_CTRLKEY)==0)
+					retopo_do_all();
+	
+				/* mirror modifier clipping? */
+				if(t->state != TRANS_CANCEL)
+					clipMirrorModifier(t, G.obedit);
+				
+				if((t->context & CTX_NO_MIRROR) == 0 && (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
+					editmesh_apply_to_mirror(t);
+				
+				DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
+				
+				recalc_editnormals();
+			}
 		}
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 			Nurb *nu= editNurb.first;
@@ -306,18 +469,23 @@ void recalcData(TransInfo *t)
 			/* bah, softbody exception... recalcdata doesnt reset */
 			for(base= FIRSTBASE; base; base= base->next) {
 				if(base->object->recalc & OB_RECALC_DATA)
+				{	
 					if(modifiers_isSoftbodyEnabled(base->object)) {
 						base->object->softflag |= OB_SB_REDO;
+					}
+					else if(modifiers_isClothEnabled(base->object)) {
+						ClothModifierData *clmd = (ClothModifierData *) modifiers_findByType(base->object, eModifierType_Cloth);
+						clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+					}
+					
 				}
 			}
 		}
 		else
 			where_is_pose(ob);
 	}
-	else if(t->spacetype==SPACE_IMAGE) {
-		flushTransUVs(t);
-		if (G.sima->flag & SI_LIVE_UNWRAP)
-			unwrap_lscm_live_re_solve();
+	else if(G.f & G_PARTICLEEDIT) {
+		flushTransParticles(t);
 	}
 	else {
 		for(base= FIRSTBASE; base; base= base->next) {
@@ -345,10 +513,16 @@ void recalcData(TransInfo *t)
 				}				
 			}
 			
-			/* softbody exception */
-			if(modifiers_isSoftbodyEnabled(ob)) {
-				if(ob->recalc & OB_RECALC_DATA)
-					ob->softflag |= OB_SB_REDO;
+			/* softbody & cloth exception */
+			if(ob->recalc & OB_RECALC_DATA)
+			{
+				if(modifiers_isSoftbodyEnabled(ob)) {
+						ob->softflag |= OB_SB_REDO;
+				}
+				else if(modifiers_isClothEnabled(ob)) {
+					ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+					clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+				}
 			}
 			
 			/* proxy exception */
@@ -374,6 +548,39 @@ void recalcData(TransInfo *t)
 	if(t->spacetype==SPACE_VIEW3D && G.vd->drawtype == OB_SHADED)
 		reshadeall_displist();
 	
+}
+
+void initTransModeFlags(TransInfo *t, int mode) 
+{
+	t->mode = mode;
+	t->num.flag = 0;
+
+	/* REMOVING RESTRICTIONS FLAGS */
+	t->flag &= ~T_ALL_RESTRICTIONS;
+	
+	switch (mode) {
+	case TFM_RESIZE:
+		t->flag |= T_NULL_ONE;
+		t->num.flag |= NUM_NULL_ONE;
+		t->num.flag |= NUM_AFFECT_ALL;
+		if (!G.obedit) {
+			t->flag |= T_NO_ZERO;
+			t->num.flag |= NUM_NO_ZERO;
+		}
+		break;
+	case TFM_TOSPHERE:
+		t->num.flag |= NUM_NULL_ONE;
+		t->num.flag |= NUM_NO_NEGATIVE;
+		t->flag |= T_NO_CONSTRAINT;
+		break;
+	case TFM_SHEAR:
+	case TFM_CREASE:
+	case TFM_BONE_ENVELOPE:
+	case TFM_CURVE_SHRINKFATTEN:
+	case TFM_BONE_ROLL:
+		t->flag |= T_NO_CONSTRAINT;
+		break;
+	}
 }
 
 void drawLine(float *center, float *dir, char axis, short options)
@@ -413,6 +620,7 @@ void initTrans (TransInfo *t)
 	
 	/* moving: is shown in drawobject() (transform color) */
 	if(G.obedit || (t->flag & T_POSE) ) G.moving= G_TRANSFORM_EDIT;
+	else if(G.f & G_PARTICLEEDIT) G.moving= G_TRANSFORM_PARTICLE;
 	else G.moving= G_TRANSFORM_OBJ;
 
 	t->data = NULL;
@@ -459,6 +667,8 @@ void initTrans (TransInfo *t)
 	if(t->spacetype==SPACE_VIEW3D) {
 		if(G.vd->flag & V3D_ALIGN) t->flag |= T_V3D_ALIGN;
 		t->around = G.vd->around;
+	} else if(t->spacetype==SPACE_IMAGE) {
+		t->around = G.v2d->around;
 	}
 	else
 		t->around = V3D_CENTER;
@@ -551,7 +761,7 @@ static void restoreElement(TransData *td) {
 	if (td->val) {
 		*td->val = td->ival;
 	}
-	if (td->ext) {
+	if (td->ext && (td->flag&TD_NO_EXT)==0) {
 		if (td->ext->rot) {
 			VECCOPY(td->ext->rot, td->ext->irot);
 		}
@@ -646,6 +856,19 @@ void calculateCenterCursor(TransInfo *t)
 	calculateCenter2D(t);
 }
 
+void calculateCenterCursor2D(TransInfo *t)
+{
+	float aspx=1.0, aspy=1.0;
+	
+	if(t->spacetype==SPACE_IMAGE) /* only space supported right now but may change */
+		transform_aspect_ratio_tface_uv(&aspx, &aspy);
+	if (G.v2d) {
+		t->center[0] = G.v2d->cursor[0] * aspx; 
+		t->center[1] = G.v2d->cursor[1] * aspy; 
+	}
+	calculateCenter2D(t);
+}
+
 void calculateCenterMedian(TransInfo *t)
 {
 	float partial[3] = {0.0f, 0.0f, 0.0f};
@@ -653,7 +876,8 @@ void calculateCenterMedian(TransInfo *t)
 	
 	for(i = 0; i < t->total; i++) {
 		if (t->data[i].flag & TD_SELECTED) {
-			VecAddf(partial, partial, t->data[i].center);
+			if (!(t->data[i].flag & TD_NOCENTER))
+				VecAddf(partial, partial, t->data[i].center);
 		}
 		else {
 			/* 
@@ -678,7 +902,8 @@ void calculateCenterBound(TransInfo *t)
 	for(i = 0; i < t->total; i++) {
 		if (i) {
 			if (t->data[i].flag & TD_SELECTED) {
-				MinMax3(min, max, t->data[i].center);
+				if (!(t->data[i].flag & TD_NOCENTER))
+					MinMax3(min, max, t->data[i].center);
 			}
 			else {
 				/* 
@@ -709,7 +934,10 @@ void calculateCenter(TransInfo *t)
 		calculateCenterMedian(t);
 		break;
 	case V3D_CURSOR:
-		calculateCenterCursor(t);
+		if(t->spacetype==SPACE_IMAGE)
+			calculateCenterCursor2D(t);
+		else
+			calculateCenterCursor(t);
 		break;
 	case V3D_LOCAL:
 		/* Individual element center uses median center for helpline and such */

@@ -44,6 +44,7 @@ struct Object;
 struct IpoKey;
 struct TransOb;
 struct Tex;
+struct TransInfo;
 
 void remake_object_ipos(struct Object *ob);
 char *getname_ac_ei(int nr);
@@ -59,14 +60,15 @@ char *getname_la_ei(int nr);
 char *getname_cam_ei(int nr);
 char *getname_snd_ei(int nr);
 char *getname_fluidsim_ei(int nr);
+char *getname_part_ei(int nr);
 
-char *getname_ipocurve(struct IpoCurve *icu);
+char *getname_ipocurve(struct IpoCurve *icu, struct Object *ob);
 int geticon_ipo_blocktype(short blocktype);
 
 struct EditIpo *get_active_editipo(void);
 
-void boundbox_ipocurve(struct IpoCurve *icu);
-void boundbox_ipo(struct Ipo *ipo, struct rctf *bb);
+void boundbox_ipocurve(struct IpoCurve *icu, int selectedonly);
+void boundbox_ipo(struct Ipo *ipo, struct rctf *bb, int selectedonly);
 void editipo_changed(struct SpaceIpo *si, int doredraw);
 void scale_editipo(void);
 
@@ -87,12 +89,14 @@ void do_ipo_selectbuttons(void);
 
 
 /* gets ipo curve, creates if needed */
-struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, int);
-struct Ipo *verify_ipo(struct ID *, short, char *, char *);
+struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, char *, int);
+struct Ipo *verify_ipo(struct ID *, short, char *, char *, char *);
 int texchannel_to_adrcode(int channel);
 
-void insert_vert_ipo(struct IpoCurve *icu, float x, float y);
+int insert_bezt_icu(struct IpoCurve *icu, struct BezTriple *bezt);
+void insert_vert_icu(struct IpoCurve *icu, float x, float y, short fast);
 void add_vert_ipo(void);
+
 void add_duplicate_editipo(void);
 void remove_doubles_ipo(void);
 void clean_ipo(void);
@@ -107,6 +111,7 @@ void ipo_mirror(short event);
 void mouse_select_ipo(void);
 void sethandles_ipo(int code);
 void select_ipo_bezier_keys(struct Ipo *ipo, int selectmode);
+void select_icu_bezier_keys(struct IpoCurve *icu, int selectmode);
 void set_ipotype(void);
 void borderselect_ipo(void);
 void del_ipo(int need_check);
@@ -118,7 +123,7 @@ void paste_editipo(void);
 void set_exprap_ipo(int mode);
 
 void set_speed_editipo(float speed);
-void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcode);
+void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcode, short fast);
 void insertkey_smarter(ID *id, int blocktype, char *actname, char *constname, int adrcode);
 void insertkey_editipo(void);
 void common_insertkey(void);
@@ -135,21 +140,24 @@ void movekey_ipo(int dir);
 void movekey_obipo(int dir);
 void nextkey_ipo(int dir);
 void nextkey_obipo(int dir);
-void remake_ipo_transverts(struct TransVert *transmain, float *dvec, int tot);
-void transform_ipo(int mode);
 void filter_sampledata(float *data, int sfra, int efra);
 void sampledata_to_ipocurve(float *data, int sfra, int efra, struct IpoCurve *icu);
-void ipo_record(void);    
+void ipo_record(void); 
+
+void make_ipo_transdata(struct TransInfo *t);
+void remake_ipo_transdata(struct TransInfo *t);
+void transform_ipo(int mode);   
 
 void actstrip_map_ipo_keys(struct Object *ob, struct Ipo *ipo, short restore, short only_keys);
 
 void sethandles_ipo_keys(struct Ipo *ipo, int code);
+void snap_cfra_ipo_keys(struct Ipo *ipo, short mode);
 void snap_ipo_keys(struct Ipo *ipo, short snaptype);
 void mirror_ipo_keys(struct Ipo *ipo, short mirror_mode);
 void setipotype_ipo(struct Ipo *ipo, int code);
 void set_ipo_key_selection(struct Ipo *ipo, int sel);
 int is_ipo_key_selected(struct Ipo *ipo);
-void delete_icu_key(struct IpoCurve *icu, int index);
+void delete_icu_key(struct IpoCurve *icu, int index, short do_recalc);
 void delete_ipo_keys(struct Ipo *ipo);
 int fullselect_ipo_keys(struct Ipo *ipo);
 int add_trans_ipo_keys(struct Ipo *ipo, struct TransVert *tv, int tvtot);
@@ -157,8 +165,8 @@ void duplicate_ipo_keys(struct Ipo *ipo);
 void borderselect_ipo_key(struct Ipo *ipo, float xmin, float xmax, int val);
 void borderselect_icu_key(struct IpoCurve *icu, float xmin, float xmax, 
 						  int (*select_function)(struct BezTriple *));
-void insertmatrixkey(ID *id, int blocktype, char *actname, char *constname, int adrcode, float matrixvalue);
-
+int insertmatrixkey(ID *id, int blocktype, char *actname, char *constname, int adrcode);
+void insertfloatkey(ID *id, int blocktype, char *actname, char *constname, int adrcode, float floatkey);
 void select_ipo_key(struct Ipo *ipo, float selx, int sel);
 void select_icu_key(struct IpoCurve *icu, float selx, int selectmode);
 void setexprap_ipoloop(struct Ipo *ipo, int code);

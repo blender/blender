@@ -85,7 +85,7 @@ typedef struct RetopoPaintHit {
 	float where;
 } RetopoPaintHit;
 
-void retopo_do_2d(View3D *v3d, short proj[2], float *v, char adj);
+void retopo_do_2d(View3D *v3d, double proj[2], float *v, char adj);
 void retopo_paint_debug_print(RetopoPaintData *rpd);
 
 /* Painting */
@@ -295,7 +295,8 @@ void retopo_paint_apply()
 
 		for(i=0; i<hitcount; ++i) {
 			RetopoPaintPoint *intersection= BLI_findlink(&rpd->intersections,i);
-			retopo_do_2d(rpd->paint_v3d,&intersection->loc.x, hitco, 1);
+			double proj[2] = {intersection->loc.x, intersection->loc.y};
+			retopo_do_2d(rpd->paint_v3d, proj, hitco, 1);
 			intersection->eve= addvertlist(hitco, NULL);
 			intersection->eve->f= SELECT;
 		}
@@ -320,12 +321,16 @@ void retopo_paint_apply()
 void add_rppoint(RetopoPaintLine *l, short x, short y)
 {
 	RetopoPaintPoint *p= MEM_callocN(sizeof(RetopoPaintPoint),"RetopoPaintPoint");
+	double proj[2];
 	p->loc.x= x;
 	p->loc.y= y;
 	BLI_addtail(&l->points,p);
 	p->index= p->prev?p->prev->index+1:0;
 
-	retopo_do_2d(G.editMesh->retopo_paint_data->paint_v3d, &p->loc.x, p->co, 1);
+	proj[0] = p->loc.x;
+	proj[1] = p->loc.y;
+
+	retopo_do_2d(G.editMesh->retopo_paint_data->paint_v3d, proj, p->co, 1);
 }
 RetopoPaintLine *add_rpline(RetopoPaintData *rpd)
 {
@@ -447,11 +452,8 @@ void retopo_force_update()
 		if(vd) {
 			if(vd->depths) vd->depths->damaged= 1;
 			retopo_queue_updates(vd);
-			if(retopo_mesh_paint_check() && vd->retopo_view_data) {
-				/* Force redraw */
-				drawview3dspace(vd->area, vd);
-				retopo_paint_view_update(vd);
-			}
+			if(retopo_mesh_paint_check() && vd->retopo_view_data)
+				allqueue(REDRAWVIEW3D, 0);
 		}
 	}
 }
@@ -749,13 +751,13 @@ void retopo_toggle(void *j1,void *j2)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-void retopo_do_2d(View3D *v3d, short proj[2], float *v, char adj)
+void retopo_do_2d(View3D *v3d, double proj[2], float *v, char adj)
 {
 	/* Check to make sure vert is visible in window */
 	if(proj[0]>0 && proj[1]>0 && proj[0] < v3d->depths->w && proj[1] < v3d->depths->h) {
-		float depth= v3d->depths->depths[(int)(proj[1]*v3d->depths->w+proj[0])];
+		float depth= v3d->depths->depths[((int)proj[1])*v3d->depths->w+((int)proj[0])];
 		double px, py, pz;
-		
+	
 		/* Don't modify the point if it'll be mapped to the background */
 		if(depth==v3d->depths->depth_range[1]) {
 			if(adj) {
@@ -781,14 +783,11 @@ void retopo_do_2d(View3D *v3d, short proj[2], float *v, char adj)
 
 void retopo_do_vert(View3D *v3d, float *v)
 {
-	short proj[2];
-	double px, py, pz;
+	double proj[3];
 
 	/* Find 2D location (project) */
 	gluProject(v[0],v[1],v[2],v3d->retopo_view_data->mats.modelview,v3d->retopo_view_data->mats.projection,
-		   (GLint *)v3d->retopo_view_data->mats.viewport,&px,&py,&pz);
-	proj[0]= px;
-	proj[1]= py;
+		   (GLint *)v3d->retopo_view_data->mats.viewport,&proj[0],&proj[1],&proj[2]);
 	
 	retopo_do_2d(v3d,proj,v,0);
 }
@@ -839,7 +838,7 @@ void retopo_do_all()
 					bp= nu->bp;
 					for(i=0; i<nu->pntsv; ++i) {
 						for(j=0; j<nu->pntsu; ++j, ++bp) {
-							if(bp->f1 & 1)
+							if(bp->f1 & SELECT)
 								retopo_do_vert(G.vd,bp->vec);
 						}
 					}

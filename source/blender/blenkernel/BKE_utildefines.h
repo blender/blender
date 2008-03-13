@@ -57,6 +57,11 @@
 #define ELEM6(a, b, c, d, e, f, g)      ( ELEM(a, b, c) || ELEM4(a, d, e, f, g) )
 #define ELEM7(a, b, c, d, e, f, g, h)   ( ELEM3(a, b, c, d) || ELEM4(a, e, f, g, h) )
 #define ELEM8(a, b, c, d, e, f, g, h, i)        ( ELEM4(a, b, c, d, e) || ELEM4(a, f, g, h, i) )
+#define ELEM9(a, b, c, d, e, f, g, h, i, j)        ( ELEM4(a, b, c, d, e) || ELEM5(a, f, g, h, i, j) )
+
+/* shift around elements */
+#define SHIFT3(type, a, b, c) { type tmp; tmp = a; a = c; c = b; b = tmp; }
+#define SHIFT4(type, a, b, c, d) { type tmp; tmp = a; a = d; d = c; c = b; b = tmp; }
 
 /* string compare */
 #define STREQ(str, a)           ( strcmp((str), (a))==0 )
@@ -96,14 +101,19 @@
 
 #define ABS(a)					( (a)<0 ? (-(a)) : (a) )
 
+#define AVG2(x, y)		( 0.5 * ((x) + (y)) )
+
 #define VECCOPY(v1,v2)          {*(v1)= *(v2); *(v1+1)= *(v2+1); *(v1+2)= *(v2+2);}
+#define VECCOPY2D(v1,v2)          {*(v1)= *(v2); *(v1+1)= *(v2+1);}
 #define QUATCOPY(v1,v2)         {*(v1)= *(v2); *(v1+1)= *(v2+1); *(v1+2)= *(v2+2); *(v1+3)= *(v2+3);}
 #define LONGCOPY(a, b, c)	{int lcpc=c, *lcpa=(int *)a, *lcpb=(int *)b; while(lcpc-->0) *(lcpa++)= *(lcpb++);}
 
 
 #define VECADD(v1,v2,v3) 	{*(v1)= *(v2) + *(v3); *(v1+1)= *(v2+1) + *(v3+1); *(v1+2)= *(v2+2) + *(v3+2);}
 #define VECSUB(v1,v2,v3) 	{*(v1)= *(v2) - *(v3); *(v1+1)= *(v2+1) - *(v3+1); *(v1+2)= *(v2+2) - *(v3+2);}
+#define VECSUB2D(v1,v2,v3) 	{*(v1)= *(v2) - *(v3); *(v1+1)= *(v2+1) - *(v3+1);}
 #define VECADDFAC(v1,v2,v3,fac) {*(v1)= *(v2) + *(v3)*(fac); *(v1+1)= *(v2+1) + *(v3+1)*(fac); *(v1+2)= *(v2+2) + *(v3+2)*(fac);}
+#define QUATADDFAC(v1,v2,v3,fac) {*(v1)= *(v2) + *(v3)*(fac); *(v1+1)= *(v2+1) + *(v3+1)*(fac); *(v1+2)= *(v2+2) + *(v3+2)*(fac); *(v1+3)= *(v2+3) + *(v3+3)*(fac);}
 
 #define INPR(v1, v2)		( (v1)[0]*(v2)[0] + (v1)[1]*(v2)[1] + (v1)[2]*(v2)[2] )
 
@@ -162,20 +172,22 @@
 
 /* This one rotates the bytes in an int */
 #define SWITCH_INT(a) { \
-    char s_i, *p_i; \
-    p_i= (char *)&(a); \
-    s_i=p_i[0]; p_i[0]=p_i[3]; p_i[3]=s_i; \
-    s_i=p_i[1]; p_i[1]=p_i[2]; p_i[2]=s_i; }
+	char s_i, *p_i; \
+	p_i= (char *)&(a); \
+	s_i=p_i[0]; p_i[0]=p_i[3]; p_i[3]=s_i; \
+	s_i=p_i[1]; p_i[1]=p_i[2]; p_i[2]=s_i; }
 
 #define SWITCH_SHORT(a)	{ \
-    char s_i, *p_i; \
-		p_i= (char *)&(a); \
-			s_i=p_i[0]; p_i[0]=p_i[1]; p_i[1]=s_i; }
+	char s_i, *p_i; \
+	p_i= (char *)&(a); \
+	s_i=p_i[0]; p_i[0]=p_i[1]; p_i[1]=s_i; }
 
 
 /* Bit operations */
-#define BTST(a,b)     ( ( (a) & 1<<(b) )!=0 )   
-#define BSET(a,b)     ( (a) | 1<<(b) )
+#define BTST(a,b)	( ( (a) & 1<<(b) )!=0 )   
+#define BNTST(a,b)	( ( (a) & 1<<(b) )==0 )
+#define BTST2(a,b,c)	( BTST( (a), (b) ) || BTST( (a), (c) ) )
+#define BSET(a,b)	( (a) | 1<<(b) )
 #define BCLR(a,b)	( (a) & ~(1<<(b)) )
 /* bit-row */
 #define BROW(min, max)	(((max)>=31? 0xFFFFFFFF: (1<<(max+1))-1) - ((min)? ((1<<(min))-1):0) )
@@ -185,6 +197,11 @@
 #undef GS
 #endif
 #define GS(a)	(*((short *)(a)))
+
+/* Warning-free macros for storing ints in pointers. Use these _only_
+ * for storing an int in a pointer, not a pointer in an int (64bit)! */
+#define SET_INT_IN_POINTER(i) ((void*)(long)(i))
+#define GET_INT_FROM_POINTER(i) ((int)(long)(i))
 
 #endif
 

@@ -33,6 +33,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_userdef_types.h"
+#include "DNA_vec_types.h"
 
 #include "BKE_global.h"		/* G */
 #include "BKE_utildefines.h"
@@ -51,6 +52,33 @@
 #include "mydevice.h"		/* REDRAWALL */
 
 #include "BMF_Api.h"
+
+#ifdef WITH_ICONV
+#include "iconv.h"
+
+void string_to_utf8(char *original, char *utf_8, char *code)
+{
+	size_t inbytesleft=strlen(original);
+	size_t outbytesleft=512;
+	size_t rv=0;
+	iconv_t cd;
+	
+	cd=iconv_open("UTF-8", code);
+
+	if (cd == (iconv_t)(-1)) {
+		printf("iconv_open Error");
+		*utf_8='\0';
+		return ;
+	}
+	rv=iconv(cd, &original, &inbytesleft, &utf_8, &outbytesleft);
+	if (rv == (size_t) -1) {
+		printf("iconv Error\n");
+		return ;
+	}
+	*utf_8 = '\0';
+	iconv_close(cd);
+}
+#endif // WITH_ICONV
 
 #ifdef INTERNATIONAL
 #include "FTF_Api.h"
@@ -92,23 +120,33 @@ int BIF_DrawString(BMF_Font* font, char *str, int translate)
 #ifdef INTERNATIONAL
 	if(G.ui_international == TRUE) {
 		if(translate)
-			return FTF_DrawString(str, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+		{
+#ifdef WITH_ICONV
+			if(translate & CONVERT_TO_UTF8) {
+				char utf_8[512];
+
+				struct LANGMenuEntry *lme;
+				lme = find_language(U.language);
+
+				if (lme !=NULL) {
+					if (!strcmp(lme->code, "ja_JP"))
+						string_to_utf8(str, utf_8, "Shift_JIS");	/* Japanese */
+					else if (!strcmp(lme->code, "zh_CN"))
+						string_to_utf8(str, utf_8, "GB2312");		/* Chinese */
+				}
+	
+				return FTF_DrawString(utf_8, FTF_INPUT_UTF8);
+			}
+			else
+#endif // WITH_ICONV
+				return FTF_DrawString(str, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+		}
 		else
 			return FTF_DrawString(str, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
 	} else {
 		return BMF_DrawString(font, str);
-/*
-		glEnable(GL_TEXTURE_2D);
-		glEnable(GL_BLEND);
-		BMF_GetFontTexture(font);??
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		BMF_DrawStringTexture(font, str, pen_x, pen_y, 0.0);
-		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_BLEND);
-		return 0;
-*/
 	}
-#else
+#else // INTERNATIONAL
 	return BMF_DrawString(font, str);
 #endif
 
@@ -132,6 +170,21 @@ float BIF_GetStringWidth(BMF_Font* font, char *str, int translate)
 #endif
 
 	return rt;
+}
+
+void BIF_GetBoundingBox(struct BMF_Font* font, char* str, int translate, rctf *bbox){
+#ifdef INTERNATIONAL
+	float dummy;
+	if(G.ui_international == TRUE)
+		if(translate && (U.transopts & USER_TR_BUTTONS))
+			FTF_GetBoundingBox(str, &bbox->xmin, &bbox->ymin, &dummy, &bbox->xmax, &bbox->ymax, &dummy, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+		else
+			FTF_GetBoundingBox(str, &bbox->xmin, &bbox->ymin, &dummy, &bbox->xmax, &bbox->ymax, &dummy, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+	else
+		BMF_GetStringBoundingBox(font, str, &bbox->xmin, &bbox->ymin, &bbox->xmax, &bbox->ymax);
+#else
+	BMF_GetStringBoundingBox(font, str, &bbox->xmin, &bbox->ymin, &bbox->xmax, &bbox->ymax);
+#endif
 }
 
 

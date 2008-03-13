@@ -43,10 +43,19 @@
 extern "C" {
 #endif
 
+/* generic - all structs which are used in linked-lists used this */
 typedef struct Link
 {
 	struct Link *next,*prev;
 } Link;
+
+
+/* use this when it is not worth defining a custom one... */
+typedef struct LinkData
+{
+	struct LinkData *next, *prev;
+	void *data;
+} LinkData;
 
 /* never change the size of this! genfile.c detects pointerlen with it */
 typedef struct ListBase 

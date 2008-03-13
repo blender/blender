@@ -62,7 +62,7 @@
 	 NULL},\
 	{"tag",\
 	 (getter)GenericLib_getTag, (setter)GenericLib_setTag,\
-	 "temproary tag",\
+	 "temporary tag",\
 	 NULL}
 
 /* Dummy struct for getting the ID from a libdata BPyObject */
@@ -90,5 +90,5 @@ short GenericLib_getType(PyObject * pydata);
 /* Other ID functions */
 ID			*GetIdFromList( ListBase * list, char *name );
 PyObject	*GetPyObjectFromID( ID * id );
-long GenericLib_hash(PyObject * pydata);
+long GenericLib_hash(BPy_GenericLib * pydata);
 #endif				/* EXPP_gen_library_h */

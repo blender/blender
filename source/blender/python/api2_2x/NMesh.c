@@ -1554,13 +1554,7 @@ Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh )
 
 static PyObject *NMesh_getMaxSmoothAngle( BPy_NMesh * self )
 {
-	PyObject *attr = PyInt_FromLong( self->smoothresh );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get NMesh.maxSmoothAngle attribute" );
+	return PyInt_FromLong( self->smoothresh );
 }
 
 static PyObject *NMesh_setMaxSmoothAngle( PyObject * self, PyObject * args )
@@ -1581,14 +1575,7 @@ static PyObject *NMesh_setMaxSmoothAngle( PyObject * self, PyObject * args )
 
 static PyObject *NMesh_getSubDivLevels( BPy_NMesh * self )
 {
-	PyObject *attr =
-		Py_BuildValue( "[h,h]", self->subdiv[0], self->subdiv[1] );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get NMesh.subDivLevels attribute" );
+	return Py_BuildValue( "[h,h]", self->subdiv[0], self->subdiv[1] );
 }
 
 static PyObject *NMesh_setSubDivLevels( PyObject * self, PyObject * args )
@@ -1613,13 +1600,7 @@ static PyObject *NMesh_setSubDivLevels( PyObject * self, PyObject * args )
 
 static PyObject *NMesh_getMode( BPy_NMesh * self )
 {
-	PyObject *attr = PyInt_FromLong( self->mode );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get NMesh.mode attribute" );
+	return PyInt_FromLong( self->mode );
 }
 
 static PyObject *NMesh_setMode( PyObject * self, PyObject * args )
@@ -1997,20 +1978,11 @@ static BPy_NMVert *nmvert_from_data( MVert * vert, MSticky * st, float *co,
 
 static int get_active_faceindex( Mesh * me )
 {
-	MTFace *tf;
-	int i;
-
 	if( me == NULL )
 		return -1;
 
-	tf = me->mtface;
-	if( tf == 0 )
-		return -1;
-
-	for( i = 0; i < me->totface; i++ )
-		if( tf[i].flag & TF_ACTIVE )
-			return i;
-
+	if (me->act_face != -1 && me->act_face < me->totface)
+		return me->act_face; 
 	return -1;
 }
 
@@ -2571,13 +2543,15 @@ static int assignFaceUV( MTFace * tf, BPy_NMFace * nmface )
 
 	/* fuv = [(u_1, v_1), ... (u_n, v_n)] */
 	for( i = 0; i < len; i++ ) {
-		tmp = PyList_GetItem( fuv, i );	/* stolen reference ! */
+		tmp = PySequence_GetItem( fuv, i );	/* stolen reference ! */
 		if( !PyArg_ParseTuple
 		    ( tmp, "ff", &( tf->uv[i][0] ), &( tf->uv[i][1] ) ) ) {
 				PyErr_SetString ( PyExc_TypeError,
 						      "expected tuple of two floats for uv" );
+				Py_DECREF( tmp );
 				return 0;
 		}
+		Py_DECREF( tmp );
 	}
 	if( nmface->image ) {	/* image assigned ? */
 		tf->tpage = ( void * ) nmface->image;

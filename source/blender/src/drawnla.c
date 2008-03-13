@@ -148,6 +148,15 @@ static void draw_nla_channels(void)
 				else
 					BIF_icon_draw(x+17, y-8, ICON_ACTION);
 			}	
+			
+			/* icon to indicate if ipo-channel muted */
+			if (ob->ipo) {
+				if (ob->ipo->muteipo) 
+					BIF_icon_draw(NLAWIDTH-16, y-NLACHANNELHEIGHT/2, ICON_MUTE_IPO_ON);
+				else 
+					BIF_icon_draw(NLAWIDTH-16, y-NLACHANNELHEIGHT/2, ICON_MUTE_IPO_OFF);
+			}
+			
 			glDisable(GL_BLEND);
 			y-=NLACHANNELHEIGHT+NLACHANNELSKIP;
 			
@@ -192,16 +201,20 @@ static void draw_nla_channels(void)
 						glRasterPos2f(x+48,  y-4);
 						BMF_DrawString(G.font, strip->act->id.name+2);
 						
-						if(strip->flag & ACTSTRIP_ACTIVE) {
-							glEnable(GL_BLEND);
+						glEnable(GL_BLEND);
+						
+						if(strip->flag & ACTSTRIP_ACTIVE)
 							BIF_icon_draw(x+16, y-8, ICON_DOT);
-							glDisable(GL_BLEND);
-						}
-						if(strip->modifiers.first) {
-							glEnable(GL_BLEND);
+							
+						if(strip->modifiers.first)
 							BIF_icon_draw(x+34, y-8, ICON_MODIFIER);
-							glDisable(GL_BLEND);
-						}
+						
+						if(strip->flag & ACTSTRIP_MUTE)
+							BIF_icon_draw(NLAWIDTH-16, y-NLACHANNELHEIGHT/2, ICON_MUTE_IPO_ON);
+						else
+							BIF_icon_draw(NLAWIDTH-16, y-NLACHANNELHEIGHT/2, ICON_MUTE_IPO_OFF);
+						
+						glDisable(GL_BLEND);
 					}
 					
 					y-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
@@ -433,11 +446,13 @@ static void draw_nla_strips_keys(SpaceNla *snla)
 
 #define B_NLA_PANEL		121
 #define B_NLA_LOCK		122
-#define B_NLA_MOD_ADD	123
-#define B_NLA_MOD_NEXT	124
-#define B_NLA_MOD_PREV	125
-#define B_NLA_MOD_DEL	126
-#define B_NLA_MOD_DEPS	127
+#define B_NLA_SCALE		123
+#define B_NLA_SCALE2	124
+#define B_NLA_MOD_ADD	125
+#define B_NLA_MOD_NEXT	126
+#define B_NLA_MOD_PREV	127
+#define B_NLA_MOD_DEL	128
+#define B_NLA_MOD_DEPS	129
 
 /* For now just returns the first selected strip */
 bActionStrip *get_active_nlastrip(Object **obpp)
@@ -478,9 +493,37 @@ void do_nlabuts(unsigned short event)
 		allqueue (REDRAWNLA, 0);
 		allqueue (REDRAWVIEW3D, 0);
 		break;
+	case B_NLA_SCALE:
+		{
+			float actlen= strip->actend - strip->actstart;
+			float mapping= strip->scale * strip->repeat;
+			
+			strip->end = (actlen * mapping) + strip->start; 
+			
+			allqueue (REDRAWNLA, 0);
+			allqueue (REDRAWIPO, 0);
+			allqueue (REDRAWACTION, 0);
+			allqueue (REDRAWVIEW3D, 0);
+		}
+		break;
+	case B_NLA_SCALE2:
+		{
+			float actlen= strip->actend - strip->actstart;
+			float len= strip->end - strip->start;
+			
+			strip->scale= len / (actlen * strip->repeat);
+			
+			allqueue (REDRAWNLA, 0);
+			allqueue (REDRAWIPO, 0);
+			allqueue (REDRAWACTION, 0);
+			allqueue (REDRAWVIEW3D, 0);
+		}
+		break;
 	case B_NLA_LOCK:
 		synchronize_action_strips();
+		
 		allqueue (REDRAWNLA, 0);
+		allqueue (REDRAWIPO, 0);
 		allqueue (REDRAWACTION, 0);
 		allqueue (REDRAWVIEW3D, 0);
 		break;
@@ -563,7 +606,7 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_NLA_PANEL, "Strip Start:",	10,160,150,19, &strip->start, -1000.0, strip->end-1, 100, 0, "First frame in the timeline");
-	uiDefButF(block, NUM, B_NLA_PANEL, "Strip End:", 	160,160,150,19, &strip->end, strip->start+1, MAXFRAMEF, 100, 0, "Last frame in the timeline");
+	uiDefButF(block, NUM, B_NLA_SCALE2, "Strip End:", 	160,160,150,19, &strip->end, strip->start+1, MAXFRAMEF, 100, 0, "Last frame in the timeline");
 
 	uiDefIconButBitS(block, ICONTOG, ACTSTRIP_LOCK_ACTION, B_NLA_LOCK, ICON_UNLOCKED,	10,140,20,19, &(strip->flag), 0, 0, 0, 0, "Toggles Action end/start to be automatic mapped to strip duration");
 	if(strip->flag & ACTSTRIP_LOCK_ACTION) {
@@ -594,7 +637,15 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	uiDefButBitS(block, TOG, ACTSTRIP_MUTE, B_NLA_PANEL, "Mute", 10,60,145,19, &strip->flag, 0, 0, 0, 0, "Toggles whether the strip contributes to the NLA solution");
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_NLA_PANEL, "Repeat:", 	160,100,150,19, &strip->repeat, 0.001, 1000.0f, 100, 0, "Number of times the action should repeat");
+		// FIXME: repeat and scale are too cramped!
+	uiDefButF(block, NUM, B_NLA_SCALE, "Repeat:", 	160,100,75,19, &strip->repeat, 0.001, 1000.0f, 100, 0, "Number of times the action should repeat");
+	if ((strip->actend - strip->actstart) < 1.0f) {
+		uiBlockSetCol(block, TH_REDALERT);
+		uiDefButF(block, NUM, B_NLA_SCALE, "Scale:", 	235,100,75,19, &strip->scale, 0.001, 1000.0f, 100, 0, "Please run Alt-S to fix up this error");
+		uiBlockSetCol(block, TH_AUTO);
+	}
+	else
+		uiDefButF(block, NUM, B_NLA_SCALE, "Scale:", 	235,100,75,19, &strip->scale, 0.001, 1000.0f, 100, 0, "Amount the action should be scaled by");
 	but= uiDefButC(block, TEX, B_NLA_PANEL, "OffsBone:", 160,80,150,19, strip->offs_bone, 0, 31.0f, 0, 0, "Name of Bone that defines offset for repeat");
 	uiButSetCompleteFunc(but, autocomplete_bone, (void *)ob);
 	uiDefButBitS(block, TOG, ACTSTRIP_HOLDLASTFRAME, B_NLA_PANEL, "Hold",	160,60,75,19, &strip->flag, 0, 0, 0, 0, "Toggles whether to continue displaying the last frame past the end of the strip");
@@ -741,7 +792,7 @@ void drawnlaspace(ScrArea *sa, void *spacedata)
 	draw_cfra_action();
 	
 	/* draw markers */
-	draw_markers_timespace();
+	draw_markers_timespace(SCE_MARKERS, 0);
 	
 	/* Draw preview 'curtains' */
 	draw_anim_preview_timespace();

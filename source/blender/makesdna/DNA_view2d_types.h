@@ -45,6 +45,10 @@ typedef struct View2D {
 	short keepaspect, keepzoom;
 	short oldwinx, oldwiny;
 	int flag;
+	
+	float cursor[2]; /* only used in the UV view for now*/
+	short around;
+	char pad[6];
 } View2D;
 
 /* v2d->keepzoom */

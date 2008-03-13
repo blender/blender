@@ -52,7 +52,6 @@ SOEXT = .so
 
 ifeq ($(OS),beos)
     LLIBS = -L/boot/develop/lib/x86/ -lGL -lbe -L/boot/home/config/lib/
-    LLIBS += -lpython1.5
 endif
 
 ifeq ($(OS),darwin)
@@ -118,7 +117,14 @@ ifeq ($(OS),openbsd)
 endif
 
 ifeq ($(OS),solaris)
-    LLIBS = -lGLU -lGL -lXmu -lXext -lXi -lX11 -lc -lm -ldl -lsocket -lnsl
+    ifeq (x86_64, $(findstring x86_64, $(CPU)))
+        LLIBS = -lrt
+        LLIBS += -L$(NAN_MESA)/lib/amd64
+    else
+        LLIBS += -L$(NAN_MESA)/lib
+    endif
+    
+    LLIBS += -lGLU -lGL -lXmu -lXext -lXi -lX11 -lc -lm -ldl -lsocket -lnsl 
     DYNLDFLAGS = -shared $(LDFLAGS)
 endif
 
@@ -162,3 +168,9 @@ endif
 ifeq ($(WITH_FFMPEG),true)
    LLIBS += $(NAN_FFMPEGLIBS)
 endif
+
+ifeq ($(INTERNATIONAL),true)
+   LLIBS += $(NAN_GETTEXT_LIB)
+endif
+
+LLIBS += $(NAN_PYTHON_LIB)

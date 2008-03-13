@@ -55,16 +55,19 @@ char*	fsmenu_build_menu		(void);
 	/** Append a seperator to the FSMenu, inserts always follow the
 	 * last seperator.
 	 */
-void	fsmenu_append_seperator	(void);
+void	fsmenu_append_separator	(void);
 
 	/** Inserts a new fsmenu entry with the given @a path.
 	 * Duplicate entries are not added.
 	 * @param sorted Should entry be inserted in sorted order?
 	 */
-void	fsmenu_insert_entry		(char *path, int sorted);
+void	fsmenu_insert_entry		(char *path, int sorted, short save);
 
 	/** Removes the fsmenu entry at the given @a index. */
 void	fsmenu_remove_entry		(int index);
+
+	/** saves the 'favourites' to the specified file */
+void	fsmenu_write_file(const char *filename);
 
 	/** Free's all the memory associated with the fsmenu */
 void	fsmenu_free				(void);

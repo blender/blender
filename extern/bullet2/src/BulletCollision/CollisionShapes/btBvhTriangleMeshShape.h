@@ -16,20 +16,26 @@ subject to the following restrictions:
 #ifndef BVH_TRIANGLE_MESH_SHAPE_H
 #define BVH_TRIANGLE_MESH_SHAPE_H
 
-#include "BulletCollision/CollisionShapes/btTriangleMeshShape.h"
-#include "BulletCollision/CollisionShapes/btOptimizedBvh.h"
+#include "btTriangleMeshShape.h"
+#include "btOptimizedBvh.h"
 
 ///Bvh Concave triangle mesh is a static-triangle mesh shape with Bounding Volume Hierarchy optimization.
 ///Uses an interface to access the triangles to allow for sharing graphics/physics triangles.
-class btBvhTriangleMeshShape : public btTriangleMeshShape
+ATTRIBUTE_ALIGNED16(class) btBvhTriangleMeshShape : public btTriangleMeshShape
 {
 
 	btOptimizedBvh*	m_bvh;
-	
-	
-public:
-	btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface);
+	bool m_useQuantizedAabbCompression;
+	bool m_pad[12];////need padding due to alignment
 
+public:
+
+	btBvhTriangleMeshShape() :btTriangleMeshShape(0) {};
+	btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression);
+
+	///optionally pass in a larger bvh aabb, used for quantization. This allows for deformations within this aabb
+	btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression,const btVector3& bvhAabbMin,const btVector3& bvhAabbMax);
+	
 	virtual ~btBvhTriangleMeshShape();
 
 	
@@ -44,6 +50,10 @@ public:
 
 	virtual void	processAllTriangles(btTriangleCallback* callback,const btVector3& aabbMin,const btVector3& aabbMax) const;
 
+	void	refitTree();
+
+	///for a fast incremental refit of parts of the tree. Note: the entire AABB of the tree will become more conservative, it never shrinks
+	void	partialRefitTree(const btVector3& aabbMin,const btVector3& aabbMax);
 
 	//debugging
 	virtual char*	getName()const {return "BVHTRIANGLEMESH";}
@@ -51,8 +61,15 @@ public:
 
 	virtual void	setLocalScaling(const btVector3& scaling);
 	
-
-
-};
+	btOptimizedBvh*	getOptimizedBvh()
+	{
+		return m_bvh;
+	}
+	bool	usesQuantizedAabbCompression() const
+	{
+		return	m_useQuantizedAabbCompression;
+	}
+}
+;
 
 #endif //BVH_TRIANGLE_MESH_SHAPE_H

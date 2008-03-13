@@ -170,11 +170,31 @@ else:
 opts = btools.read_opts(optfiles, B.arguments)
 opts.Update(env)
 
+if not env['BF_FANCY']:
+    B.bc.disable()
+
 # disable elbeem (fluidsim) compilation?
 if env['BF_NO_ELBEEM'] == 1:
     env['CPPFLAGS'].append('-DDISABLE_ELBEEM')
     env['CXXFLAGS'].append('-DDISABLE_ELBEEM')
     env['CCFLAGS'].append('-DDISABLE_ELBEEM')
+
+if env['WITH_BF_OPENMP'] == 1:
+	if env['OURPLATFORM']=='win32-vc':
+		env['CCFLAGS'].append('/openmp')
+		env['CPPFLAGS'].append('/openmp')
+		env['CXXFLAGS'].append('/openmp')
+	else:
+		if env['CC'] == 'icc':
+			env.Append(LINKFLAGS=['-openmp', '-static-intel'])
+			env['CCFLAGS'].append('-openmp')
+			env['CPPFLAGS'].append('-openmp')
+			env['CXXFLAGS'].append('-openmp')
+		else:
+			env.Append(LINKFLAGS=['-lgomp'])
+			env['CCFLAGS'].append('-fopenmp')
+			env['CPPFLAGS'].append('-fopenmp')
+			env['CXXFLAGS'].append('-fopenmp')
 
 #check for additional debug libnames
 
@@ -241,13 +261,16 @@ if 'clean' in B.targets:
     do_clean = True
 
 if not quickie and do_clean:
-    print B.bc.HEADER+'Cleaning...'+B.bc.ENDC
-    dirs = os.listdir(B.root_build_dir)
-    for dir in dirs:
-        if os.path.isdir(B.root_build_dir + dir) == 1:
-            print "clean dir %s"%(B.root_build_dir+dir)
-            shutil.rmtree(B.root_build_dir+dir)
-    print B.bc.OKGREEN+'...done'+B.bc.ENDC
+    if os.path.exists(B.root_build_dir):
+        print B.bc.HEADER+'Cleaning...'+B.bc.ENDC
+        dirs = os.listdir(B.root_build_dir)
+        for dir in dirs:
+            if os.path.isdir(B.root_build_dir + dir) == 1:
+                print "clean dir %s"%(B.root_build_dir+dir)
+                shutil.rmtree(B.root_build_dir+dir)
+        print B.bc.OKGREEN+'...done'+B.bc.ENDC
+    else:
+        print B.bc.HEADER+'Already Clean, nothing to do.'+B.bc.ENDC
     Exit()
 
 if not os.path.isdir ( B.root_build_dir):
@@ -390,12 +413,12 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
     dllsources = ['${LCGDIR}/gettext/lib/gnu_gettext.dll',
                         '${LCGDIR}/png/lib/libpng.dll',
                         '#release/windows/extra/python25.zip',
-#                        '#release/windows/extra/zlib.pyd',
+                        '#release/windows/extra/zlib.pyd',
                         '${LCGDIR}/sdl/lib/SDL.dll',
                         '${LCGDIR}/zlib/lib/zlib.dll',
                         '${LCGDIR}/tiff/lib/libtiff.dll']
     if env['BF_DEBUG']:
-        dllsources.append('${LCGDIR}/python/lib/${BF_PYTHON_LIB}.dll')
+        dllsources.append('${LCGDIR}/python/lib/${BF_PYTHON_LIB}_d.dll')
     else:
         dllsources.append('${LCGDIR}/python/lib/${BF_PYTHON_LIB}.dll')
     if env['OURPLATFORM'] == 'win32-mingw':
@@ -404,10 +427,10 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
         dllsources += ['${LCGDIR}/pthreads/lib/pthreadVC2.dll']
     if env['WITH_BF_ICONV']:
         dllsources += ['${LCGDIR}/iconv/lib/iconv.dll']
-    if env['WITH_BF_FFMPEG']:
-        dllsources += ['${LCGDIR}/ffmpeg/lib/avcodec-51.dll',
-                        '${LCGDIR}/ffmpeg/lib/avformat-51.dll',
-                        '${LCGDIR}/ffmpeg/lib/avutil-49.dll']
+#    if env['WITH_BF_FFMPEG']:
+#        dllsources += ['${LCGDIR}/ffmpeg/lib/avcodec-51.dll',
+#                        '${LCGDIR}/ffmpeg/lib/avformat-51.dll',
+#                        '${LCGDIR}/ffmpeg/lib/avutil-49.dll']
     windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
     allinstall += windlls
 
@@ -429,7 +452,9 @@ if not env['WITH_BF_GAMEENGINE']:
 Depends(nsiscmd, allinstall)
 
 Default(B.program_list)
-Default(installtarget)
+
+if not env['WITHOUT_BF_INSTALL']:
+	Default(installtarget)
 
 #------------ RELEASE
 # TODO: zipup the installation

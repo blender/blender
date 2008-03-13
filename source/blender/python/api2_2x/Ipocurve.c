@@ -67,16 +67,16 @@ struct PyMethodDef M_IpoCurve_methods[] = {
 /*****************************************************************************/
 static PyObject *IpoCurve_getName( C_IpoCurve * self );
 static PyObject *IpoCurve_Recalc( C_IpoCurve * self );
-static PyObject *IpoCurve_append( C_IpoCurve * self, PyObject * args );
-static PyObject *IpoCurve_addBezier( C_IpoCurve * self, PyObject * args );
+static PyObject *IpoCurve_append( C_IpoCurve * self, PyObject * value );
+static PyObject *IpoCurve_addBezier( C_IpoCurve * self, PyObject * value );
 static PyObject *IpoCurve_delBezier( C_IpoCurve * self, PyObject * args );
 static PyObject *IpoCurve_setInterpolation( C_IpoCurve * self,
-					    PyObject * args );
+					    PyObject * value );
 static PyObject *IpoCurve_getInterpolation( C_IpoCurve * self );
 static PyObject *IpoCurve_newgetInterp( C_IpoCurve * self );
 static int IpoCurve_newsetInterp( C_IpoCurve * self, PyObject * args );
 static PyObject *IpoCurve_setExtrapolation( C_IpoCurve * self,
-					    PyObject * args );
+					    PyObject * value );
 static PyObject *IpoCurve_getExtrapolation( C_IpoCurve * self );
 static PyObject *IpoCurve_newgetExtend( C_IpoCurve * self );
 static int IpoCurve_newsetExtend( C_IpoCurve * self, PyObject * args );
@@ -110,18 +110,18 @@ static PyMethodDef C_IpoCurve_methods[] = {
 	 "() - Recomputes the curve after changes"},
 	{"update", ( PyCFunction ) IpoCurve_Recalc, METH_NOARGS,
 	 "() - deprecated method: use recalc method instead."},
-	{"append", ( PyCFunction ) IpoCurve_append, METH_VARARGS,
+	{"append", ( PyCFunction ) IpoCurve_append, METH_O,
 	 "(coordlist) -  Adds a Bezier point to a curve"},
-	{"addBezier", ( PyCFunction ) IpoCurve_addBezier, METH_VARARGS,
+	{"addBezier", ( PyCFunction ) IpoCurve_addBezier, METH_O,
 	 "() - deprecated method. use append() instead"},
 	{"delBezier", ( PyCFunction ) IpoCurve_delBezier, METH_VARARGS,
 	 "() - deprecated method. use \"del icu[index]\" instead"},
 	{"setInterpolation", ( PyCFunction ) IpoCurve_setInterpolation,
-	 METH_VARARGS, "(str) - Sets the interpolation type of the curve"},
+	 METH_O, "(str) - Sets the interpolation type of the curve"},
 	{"getInterpolation", ( PyCFunction ) IpoCurve_getInterpolation,
 	 METH_NOARGS, "() - Gets the interpolation type of the curve"},
 	{"setExtrapolation", ( PyCFunction ) IpoCurve_setExtrapolation,
-	 METH_VARARGS, "(str) - Sets the extend mode of the curve"},
+	 METH_O, "(str) - Sets the extend mode of the curve"},
 	{"getExtrapolation", ( PyCFunction ) IpoCurve_getExtrapolation,
 	 METH_NOARGS, "() - Gets the extend mode of the curve"},
 	{"getPoints", ( PyCFunction ) IpoCurve_getPoints, METH_NOARGS,
@@ -394,12 +394,12 @@ static void del_beztriple( IpoCurve *icu, int index )
 /*****************************************************************************/
 
 static PyObject *IpoCurve_setInterpolation( C_IpoCurve * self,
-					    PyObject * args )
+					    PyObject * value )
 {
-	char *interpolationtype = 0;
+	char *interpolationtype = PyString_AsString(value);
 	short id;
 
-	if( !PyArg_ParseTuple( args, "s", &interpolationtype ) )
+	if( !interpolationtype )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected string argument" );
 
@@ -441,12 +441,12 @@ static PyObject *IpoCurve_getInterpolation( C_IpoCurve * self )
 }
 
 static PyObject * IpoCurve_setExtrapolation( C_IpoCurve * self,
-		PyObject * args )
+		PyObject * value )
 {
-	char *extrapolationtype = 0;
+	char *extrapolationtype = PyString_AsString(value);
 	short id;
 
-	if( !PyArg_ParseTuple( args, "s", &extrapolationtype ) )
+	if( !extrapolationtype )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected string argument" );
 
@@ -496,19 +496,14 @@ static PyObject *IpoCurve_getExtrapolation( C_IpoCurve * self )
  * append a new BezTriple to curve
  */
 
-static PyObject *IpoCurve_append( C_IpoCurve * self, PyObject * args )
+static PyObject *IpoCurve_append( C_IpoCurve * self, PyObject * value )
 {
 	float x, y;
 	IpoCurve *icu = self->ipocurve;
-	PyObject *obj = NULL;
-
-	if( !PyArg_ParseTuple( args, "O", &obj ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected tuple or BezTriple argument" );
 
 	/* if args is a already a beztriple, tack onto end of list */
-	if( BPy_BezTriple_Check ( obj ) ) {
-		BPy_BezTriple *bobj = (BPy_BezTriple *)obj;
+	if( BPy_BezTriple_Check ( value ) ) {
+		BPy_BezTriple *bobj = (BPy_BezTriple *)value;
 
 		BezTriple *newb = MEM_callocN( (icu->totvert+1)*sizeof(BezTriple),
 				"BPyBeztriple" );
@@ -525,8 +520,8 @@ static PyObject *IpoCurve_append( C_IpoCurve * self, PyObject * args )
 	/* otherwise try to get two floats and add to list */
 	} else {
 		PyObject *xobj, *yobj;
-		xobj = PyNumber_Float( PyTuple_GetItem( obj, 0 ) );
-		yobj = PyNumber_Float( PyTuple_GetItem( obj, 1 ) );
+		xobj = PyNumber_Float( PyTuple_GetItem( value, 0 ) );
+		yobj = PyNumber_Float( PyTuple_GetItem( value, 1 ) );
 
 		if( !xobj || !yobj )
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -536,7 +531,7 @@ static PyObject *IpoCurve_append( C_IpoCurve * self, PyObject * args )
 		Py_DECREF( xobj );
 		y = (float)PyFloat_AsDouble( yobj );
 		Py_DECREF( yobj );
-		insert_vert_ipo( icu, x, y);
+		insert_vert_icu( icu, x, y, 0);
 	}
 
 	Py_RETURN_NONE;
@@ -750,7 +745,7 @@ static int IpoCurve_setCurval( C_IpoCurve * self, PyObject * key,
 
 	/* insert a key at the specified time */
 
-	insert_vert_ipo( self->ipocurve, time, curval );
+	insert_vert_icu( self->ipocurve, time, curval, 0);
 	allspace(REMAKEIPO, 0);
 	return 0;
 }
@@ -801,7 +796,7 @@ static int IpoCurve_setDriver( C_IpoCurve * self, PyObject * args )
 {
 	IpoCurve *ipo = self->ipocurve;
 	int type;
-	if( !PyInt_CheckExact( args ) )
+	if( !PyInt_Check( args ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected int argument 0 or 1 " );
 	
@@ -884,7 +879,7 @@ static int IpoCurve_setDriverChannel( C_IpoCurve * self, PyObject * args )
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"This IpoCurve does not have an active driver" );
 
-	if( !PyInt_CheckExact( args ) )
+	if( !PyInt_Check( args ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected int argument" );
 
@@ -1003,13 +998,7 @@ PyObject *IpoCurve_Init( void )
 
 static PyObject *IpoCurve_newgetInterp( C_IpoCurve * self )
 {
-	PyObject *attr = PyInt_FromLong( self->ipocurve->ipo );	
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get IpoCurve.interp atrtribute" );
+	return PyInt_FromLong( self->ipocurve->ipo );	
 }
 
 static int IpoCurve_newsetInterp( C_IpoCurve * self, PyObject * value )
@@ -1020,13 +1009,7 @@ static int IpoCurve_newsetInterp( C_IpoCurve * self, PyObject * value )
 
 static PyObject *IpoCurve_newgetExtend( C_IpoCurve * self )
 {
-	PyObject *attr = PyInt_FromLong( self->ipocurve->extrap );	
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get IpoCurve.extend atrtribute" );
+	return PyInt_FromLong( self->ipocurve->extrap );	
 }
 
 static int IpoCurve_newsetExtend( C_IpoCurve * self, PyObject * value )
@@ -1046,6 +1029,9 @@ static PyObject *IpoCurve_getFlag( C_IpoCurve * self, void *type )
 static int IpoCurve_setFlag( C_IpoCurve * self, PyObject *value, void *type )
 {
 	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
 	
 	if (param)
 		self->ipocurve->flag |= (int)type;
@@ -1058,20 +1044,17 @@ static int IpoCurve_setFlag( C_IpoCurve * self, PyObject *value, void *type )
 
 /* #####DEPRECATED###### */
 
-static PyObject *IpoCurve_addBezier( C_IpoCurve * self, PyObject * args )
+static PyObject *IpoCurve_addBezier( C_IpoCurve * self, PyObject * value )
 {
 	float x, y;
 	int npoints;
 	IpoCurve *icu;
 	BezTriple *bzt, *tmp;
 	static char name[10] = "mlml";
-	PyObject *popo = 0;
-	if( !PyArg_ParseTuple( args, "O", &popo ) )
+	if( !PyArg_ParseTuple( value, "ff", &x, &y ) )
 		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected tuple argument" ) );
+			 ( PyExc_TypeError, "expected a tuple of 2 floats" ) );
 
-	x = (float)PyFloat_AsDouble( PyTuple_GetItem( popo, 0 ) );
-	y = (float)PyFloat_AsDouble( PyTuple_GetItem( popo, 1 ) );
 	icu = self->ipocurve;
 	npoints = icu->totvert;
 	tmp = icu->bezt;
@@ -1093,6 +1076,5 @@ static PyObject *IpoCurve_addBezier( C_IpoCurve * self, PyObject * args )
 	bzt->h1 = HD_AUTO;
 	bzt->h2 = HD_AUTO;
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }

@@ -45,7 +45,7 @@ int  getElbeemState(void);
 int  isSimworldOk(void);
 
 // access elbeem simulator error string
-void setElbeemErrorString(char* set);
+void setElbeemErrorString(const char* set);
 char* getElbeemErrorString(void);
 
 

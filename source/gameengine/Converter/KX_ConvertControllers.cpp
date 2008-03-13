@@ -174,6 +174,8 @@ void BL_ConvertControllers(
 			gameobj->AddController(gamecontroller);
 			
 			converter->RegisterGameController(gamecontroller, bcontr);
+			//done with gamecontroller
+			gamecontroller->Release();
 		}
 		
 		bcontr = bcontr->next;

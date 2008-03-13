@@ -58,6 +58,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_font.h"
@@ -1186,7 +1187,8 @@ void add_primitiveFont(int dummy_argument)
 	cu->tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "textbox");
 	cu->tb[0].w = cu->tb[0].h = 0.0;
 	
-	enter_editmode(EM_WAITCURSOR);
+	if (U.flag & USER_ADD_EDITMODE) 
+		enter_editmode(EM_WAITCURSOR);
 
 	allqueue(REDRAWALL, 0);
 }
@@ -1281,7 +1283,7 @@ static void free_undoFont(void *strv)
 /* and this is all the undo system needs to know */
 void undo_push_font(char *name)
 {
-	undo_editmode_push(name, free_undoFont, undoFont_to_editFont, editFont_to_undoFont);
+	undo_editmode_push(name, free_undoFont, undoFont_to_editFont, editFont_to_undoFont, NULL);
 }
 
 

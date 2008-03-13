@@ -56,6 +56,10 @@ ifneq ($(NAN_NO_KETSJI), true)
     DIRS += bullet2
 endif
 
+ifeq ($(WITH_BINRELOC), true)
+    DIRS += binreloc
+endif
+
 TARGET =
 ifneq ($(OS),irix)
   TARGET=solid

@@ -64,7 +64,12 @@ typedef struct CustomData {
 #define CD_ORIGINDEX	7
 #define CD_NORMAL		8
 #define CD_FLAGS		9
-#define CD_NUMTYPES		10
+#define CD_PROP_FLT		10
+#define CD_PROP_INT		11
+#define CD_PROP_STR		12
+#define CD_ORIGSPACE	13 /* for modifier stack face location mapping */
+#define CD_ORCO			14
+#define CD_NUMTYPES		15
 
 /* Bits for CustomDataMask */
 #define CD_MASK_MVERT		(1 << CD_MVERT)
@@ -77,6 +82,12 @@ typedef struct CustomData {
 #define CD_MASK_ORIGINDEX	(1 << CD_ORIGINDEX)
 #define CD_MASK_NORMAL		(1 << CD_NORMAL)
 #define CD_MASK_FLAGS		(1 << CD_FLAGS)
+#define CD_MASK_PROP_FLT	(1 << CD_PROP_FLT)
+#define CD_MASK_PROP_INT	(1 << CD_PROP_INT)
+#define CD_MASK_PROP_STR	(1 << CD_PROP_STR)
+#define CD_MASK_ORIGSPACE	(1 << CD_ORIGSPACE)
+#define CD_MASK_ORCO		(1 << CD_ORCO)
+
 
 /* CustomData.flag */
 

@@ -50,6 +50,7 @@ void del_defgroup (struct Object *ob);
 void duplicate_defgroup ( struct Object *ob );
 void assign_verts_defgroup (void);
 void remove_verts_defgroup (int allverts);
+void remove_verts_defgroups (int allverts);
 void sel_verts_defgroup (int select);
 
 struct MDeformWeight *get_defweight (struct MDeformVert *dv, int defgroup);
@@ -61,6 +62,8 @@ void add_vert_to_defgroup (struct Object *ob, struct bDeformGroup *dg,
 						   int assignmode);
 void remove_vert_defgroup (struct Object *ob, struct bDeformGroup  *dg, 
 						   int vertnum);
+float get_vert_defgroup	(struct Object *ob, struct bDeformGroup  *dg,
+                         int vertnum);
 void create_dverts(ID *id);
 
 void vertexgroup_select_by_name(struct Object *ob, char *name);

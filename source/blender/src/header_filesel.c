@@ -136,10 +136,13 @@ void file_buttons(void)
 	uiDefIconButBitS(block, TOG, FILE_HIDE_DOT, B_RELOADDIR, ICON_GHOST,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Hides dot files");
 	uiBlockEndAlign(block);
 	
-	uiDefButBitS(block, TOG, FILE_STRINGCODE, 0, "Relative Paths", xco+=XIC+20,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Makes sure returned paths are relative to the current .blend file");
-
-	xco+=90;
-
+	if(sfile->type==FILE_BLENDER) {
+		xco+=20;
+	} else {
+		uiDefButBitS(block, TOG, FILE_STRINGCODE, 0, "Relative Paths", xco+=XIC+20,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Makes sure returned paths are relative to the current .blend file");
+		xco+=90;
+	}
+	
 	if(sfile->type==FILE_LOADLIB) {
 		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOGN, FILE_LINK, B_REDR, "Append",		xco+=XIC,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Copies selected data into current project");
@@ -158,6 +161,15 @@ void file_buttons(void)
 	
 		xco+= 100;	// scroll
 	}
+	#ifdef INTERNATIONAL
+	else if(sfile->type==FILE_LOADFONT) {
+		uiDefIconButBitS(block, TOG, FILE_SHOWSHORT, B_SORTFILELIST, ICON_FONTPREVIEW, xco+= XIC, 0, XIC, YIC, &sfile->f_fp, 0, 0, 0, 0, "Activate font preview");
+		if (sfile->f_fp)
+			uiDefButC(block, FTPREVIEW, 0, "Font preview", xco+= XIC, 0, 100, YIC, sfile->fp_str, (float)0, (float)16, 0, 0, "Font preview");
+	
+		xco+= 100;	// scroll
+	}
+	#endif
 
 	uiDrawBlock(block);
 	
@@ -179,7 +191,7 @@ void file_buttons(void)
 	
 		BIF_DrawString(G.font, naam, 0);
 	}
-	
+
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
 }

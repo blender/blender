@@ -61,6 +61,7 @@ SCA_RandomActuator::SCA_RandomActuator(SCA_IObject *gameobj,
 	  m_parameter2(para2),
 	  m_distribution(mode)
 {
+	// m_base is never deleted, probably a memory leak!
 	m_base = new SCA_RandomNumberGenerator(seed);
 	m_counter = 0;
 	enforceConstraints();
@@ -78,6 +79,7 @@ SCA_RandomActuator::~SCA_RandomActuator()
 CValue* SCA_RandomActuator::GetReplica()
 {
 	SCA_RandomActuator* replica = new SCA_RandomActuator(*this);
+	// replication just copy the m_base pointer => common random generator
 	replica->ProcessReplica();
 	CValue::AddDataToReplica(replica);
 
@@ -432,12 +434,12 @@ PyObject* SCA_RandomActuator::PySetProperty(PyObject* self, PyObject* args, PyOb
 
 	CValue* prop = GetParent()->FindIdentifier(nameArg);
 
-	if (prop) {
+	if (!prop->IsError()) {
 		m_propname = nameArg;
-		prop->Release();
 	} else {
 		; /* not found ... */
 	}
+	prop->Release();
 	
 	Py_Return;
 }

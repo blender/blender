@@ -76,7 +76,24 @@ public:
 	 * box represent the extent of the font and its positioning
 	 * about the origin.
 	 */
-	void GetBoundingBox(int & xMin, int & yMin, int & xMax, int & yMax);
+	void GetFontBoundingBox(int & xMin, int & yMin, int & xMax, int & yMax);
+	
+	/**
+	 * Return the bounding box height of the font.
+	 */
+	int GetFontHeight(void);
+	
+	/**
+	 * Returns the bounding box of a string of characters.
+	 * @param font	The font to use.
+	 * @param str	The string.
+	 * @param llx   Lower left x coord
+	 * @param lly   Lower left y coord
+	 * @param urx   Upper right x coord
+	 * @param ury   Upper right y coord
+	 */
+	void GetStringBoundingBox(char* str, float*llx, float *lly, float *urx, float *ury);
+
 
 	/**
 	 * Convert the font to a texture, and return the GL texture
@@ -100,6 +117,22 @@ public:
 	 * @param z The z coordinate to start drawing at.
 	 */
 	void DrawStringTexture(char* string, float x, float y, float z);
+	
+	/**
+	 * Draw the given @a string at the point @a xpos, @a ypos using
+	 * char and float buffers.
+	 * 
+	 * @param string The c-string to draw.
+	 * @param xpos The x coordinate to start drawing at.
+	 * @param ypos The y coordinate to start drawing at.
+	 * @param col The forground color.
+	 * @param buf Unsigned char image buffer, when NULL to not operate on it.
+	 * @param fbuf float image buffer, when NULL to not operate on it.
+	 * @param w image buffer width.
+	 * @param h image buffer height.
+	 * @param channels number of channels in the image (3 or 4 - currently)
+	 */
+	void DrawStringBuf(char *str, int posx, int posy, float *col, unsigned char *buf, float *fbuf, int w, int h, int channels);
 	
 protected:
 	/** Pointer to the font data. */

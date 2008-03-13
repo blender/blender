@@ -36,7 +36,7 @@
 
 #include "BKE_bad_level_calls.h"
 #include "BLI_blenlib.h"
-#include "BPI_script.h"
+#include "DNA_space_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -49,14 +49,21 @@
 int winqueue_break= 0;
 
 char bprogname[1];
+char btempdir[1];
 
 struct IpoCurve;
 struct FluidsimSettings;
 struct Render;
 struct RenderResult;
+struct Object;
+struct bPythonConstraint;
+struct bConstraintOb;
+struct bConstraintTarget;
+struct ListBase;
+struct EditFace;
 
 char *getIpoCurveName( struct IpoCurve * icu );
-void insert_vert_ipo(struct IpoCurve *icu, float x, float y);
+void insert_vert_icu(struct IpoCurve *icu, float x, float y, short fast);
 struct IpoCurve *verify_ipocurve(struct ID *id, short a, char *b, char *d, int e);
 void elbeemDebugOut(char *msg);
 void fluidsimSettingsFree(struct FluidsimSettings* sb);
@@ -80,7 +87,7 @@ char *getIpoCurveName( struct IpoCurve * icu )
 	return 0;
 }
 
-void insert_vert_ipo(struct IpoCurve *icu, float x, float y)
+void insert_vert_icu(struct IpoCurve *icu, float x, float y, short fast)
 {
 }
 
@@ -114,6 +121,21 @@ float BPY_pydriver_eval(struct IpoDriver *driver)
 {
 	return 0;
 }
+int EXPP_dict_set_item_str(struct PyObject *dict, char *key, struct PyObject *value)
+{
+	return 0;
+}
+void Node_SetStack(struct BPy_Node *self, struct bNodeStack **stack, int type){}
+void InitNode(struct BPy_Node *self, struct bNode *node){}
+void Node_SetShi(struct BPy_Node *self, struct ShadeInput *shi){}
+struct BPy_NodeSockets *Node_CreateSockets(struct bNode *node)
+{
+	return 0;
+}
+int pytype_is_pynode(struct PyObject *pyob)
+{
+	return 0;
+}
 /* depsgraph.c: */
 struct Object **BPY_pydriver_get_objects(struct IpoDriver *driver)
 {
@@ -123,6 +145,15 @@ int BPY_button_eval(char *expr, double *value)
 {
 	return 0;
 }
+
+/* PyConstraints - BPY_interface.c */
+void BPY_pyconstraint_eval(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets)
+{
+}
+void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct)
+{
+}
+
 
 /* writefile.c */
 	/* struct Oops; */
@@ -176,6 +207,20 @@ short pupmenu(char *instr){ return 0;}  // will be general callback
 void free_editing(struct Editing *ed){}	// scenes and sequences problem...
 void BPY_do_all_scripts (short int event){}
 
+/*editmesh_lib.c*/
+void EM_select_face(struct EditFace *efa, int sel) {}
+void EM_select_edge(struct EditEdge *eed, int sel) {}
+
+/*editmesh.c*/
+struct EditVert *addvertlist(float *vec, struct EditVert *example) { return 0;}
+struct EditEdge *addedgelist(struct EditVert *v1, struct EditVert *v2, struct EditEdge *example) { return 0;}
+struct EditFace *addfacelist(struct EditVert *v1, struct EditVert *v2, struct EditVert *v3, struct EditVert *v4, struct EditFace *example, struct EditFace *exampleEdges) { return 0;}
+struct EditEdge *findedgelist(struct EditVert *v1, struct EditVert *v2)  { return 0;}
+/*edit.c*/
+
+void countall(void) {}
+
+
 /* IKsolver stubs */
 #include "IK_solver.h"
 
@@ -194,6 +239,9 @@ void IK_FreeSolver(IK_Solver *solver) {};
 
 void IK_SolverAddGoal(IK_Solver *solver, IK_Segment *tip, float goal[3], float weight) {}
 void IK_SolverAddGoalOrientation(IK_Solver *solver, IK_Segment *tip, float goal[][3], float weight) {}
+void IK_SolverSetPoleVectorConstraint(IK_Solver *solver, IK_Segment *tip, float goal[3], float polegoal[3], float poleangle, int getangle) {}
+float IK_SolverGetPoleAngle(IK_Solver *solver) { return 0.0f; }
+
 int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations) { return 0; }
 
 /* exotic.c */
@@ -229,6 +277,8 @@ void fluidsimSettingsCopy(struct FluidsimSettings* sb) {}
 
 /*new render funcs */
 int     externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta) { return 0; }
+void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg, int blendtype) {}
+float texture_value_blend(float tex, float out, float fact, float facg, int blendtype, int flip) { return 0; }
 
 void RE_FreeRenderResult(struct RenderResult *rr) {}
 void RE_GetResultImage(struct Render *re, struct RenderResult *rr) {}
@@ -243,7 +293,7 @@ void RE_FreeRender(Render *re) {}
 void RE_shade_external(Render *re, ShadeInput *shi, ShadeResult *shr) {}
 void RE_DataBase_GetView(Render *re, float mat[][4]) {}
 struct Render *RE_NewRender(const char *name) {return (struct Render *)NULL;}
-void RE_Database_Baking(struct Render *re, struct Scene *scene, int make_faces) {};
+void RE_Database_Baking(struct Render *re, struct Scene *scene, int type, struct Object *actob) {};
 
 
 /* node_composite.c */
@@ -291,15 +341,6 @@ void post_geometry_free_constraint(struct VNode *vnode) {}
 void post_layer_create(struct VLayer *vlayer) {}
 void post_layer_destroy(struct VLayer *vlayer) {}
 void post_server_add(void) {}
- /* Multires/sculpt stubs */
-struct MultiresLevel *multires_level_n(struct Multires *mr, int n) {return NULL;}
-void multires_free(struct Multires *mr) {}
-void multires_set_level(struct Object *ob, struct Mesh *me, const int render) {}
-void multires_update_levels(struct Mesh *me, const int render) {}
-void multires_calc_level_maps(struct MultiresLevel *lvl) {}
-struct Multires *multires_copy(struct Multires *orig) {return NULL;}
-void sculptmode_init(struct Scene *sce) {}
-void sculptmode_free_all(struct Scene *sce) {}
 
 /* zbuf.c stub */
 void antialias_tagbuf(int xsize, int ysize, char *rectmove) {}
@@ -307,6 +348,22 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove) {}
 /* imagetexture.c stub */
 void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result) {}
 
-void update_for_newframe()
-{
-}
+void update_for_newframe() {}
+
+struct FileList;
+void BIF_filelist_freelib(struct FileList* filelist) {};
+
+/* edittime.c stub */
+TimeMarker *get_frame_marker(int frame){return 0;};
+
+/* editseq.c */
+Sequence *get_forground_frame_seq(int frame){return 0;};
+
+/* modifier.c stub */
+void harmonic_coordinates_bind(struct MeshDeformModifierData *mmd,
+	float (*vertexcos)[3], int totvert, float cagemat[][4]) {}
+
+/* particle.c */
+void PE_free_particle_edit(struct ParticleSystem *psys) {}
+void PE_get_colors(char sel[4], char nosel[4]) {}
+void PE_recalc_world_cos(struct Object *ob, struct ParticleSystem *psys) {}

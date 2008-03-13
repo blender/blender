@@ -172,6 +172,7 @@ static PyObject *ThemeSpace_getAttr( BPy_ThemeSpace * self, char *name )
 		ELSEIF_TSP_RGBA( edge_select )
 		ELSEIF_TSP_RGBA( edge_seam )
 		ELSEIF_TSP_RGBA( edge_sharp )
+		ELSEIF_TSP_RGBA( editmesh_active )
 		ELSEIF_TSP_RGBA( edge_facesel )
 		ELSEIF_TSP_RGBA( face )
 		ELSEIF_TSP_RGBA( face_select )
@@ -199,13 +200,13 @@ static PyObject *ThemeSpace_getAttr( BPy_ThemeSpace * self, char *name )
 		else if( !strcmp( name, "facedot_size" ) )
 		attrib = Py_BuildValue( "i", tsp->facedot_size );
 	else if( !strcmp( name, "__members__" ) )
-		attrib = Py_BuildValue("[sssssssssssssssssssssssssssssssssssssssssssssss]", "theme",
+		attrib = Py_BuildValue("[ssssssssssssssssssssssssssssssssssssssssssssssss]", "theme",
 					"back", "text", "text_hi", "header",
 					"panel", "shade1", "shade2", "hilite",
 					"grid", "wire", "select", "lamp", "active",
 					"group", "group_active",
 					"transform", "vertex", "vertex_select",
-					"edge", "edge_select", "edge_seam", "edge_sharp",
+					"edge", "edge_select", "edge_seam", "edge_sharp", "editmesh_active",
 					"edge_facesel", "face", "face_select",
 					"face_dot", "normal", "bone_solid", "bone_pose",
 					"strip", "strip_select",
@@ -251,6 +252,7 @@ static int ThemeSpace_setAttr( BPy_ThemeSpace * self, char *name,
 		ELSEIF_TSP_RGBA( edge_select )
 		ELSEIF_TSP_RGBA( edge_seam )
 		ELSEIF_TSP_RGBA( edge_sharp )
+		ELSEIF_TSP_RGBA( editmesh_active )
 		ELSEIF_TSP_RGBA( edge_facesel )
 		ELSEIF_TSP_RGBA( face )
 		ELSEIF_TSP_RGBA( face_select )
@@ -519,7 +521,7 @@ static PyObject *Theme_repr( BPy_Theme * self );
 
 static PyObject *Theme_get( BPy_Theme * self, PyObject * args );
 static PyObject *Theme_getName( BPy_Theme * self );
-static PyObject *Theme_setName( BPy_Theme * self, PyObject * args );
+static PyObject *Theme_setName( BPy_Theme * self, PyObject * value );
 
 static PyMethodDef BPy_Theme_methods[] = {
 	{"get", ( PyCFunction ) Theme_get, METH_VARARGS,
@@ -530,7 +532,7 @@ static PyMethodDef BPy_Theme_methods[] = {
 - (s) - string: 'UI' or a space name, like 'VIEW3D', etc."},
 	{"getName", ( PyCFunction ) Theme_getName, METH_NOARGS,
 	 "() - Return Theme name"},
-	{"setName", ( PyCFunction ) Theme_setName, METH_VARARGS,
+	{"setName", ( PyCFunction ) Theme_setName, METH_O,
 	 "(s) - Set Theme name"},
 	{NULL, NULL, 0, NULL}
 };
@@ -775,11 +777,11 @@ static PyObject *Theme_getName( BPy_Theme * self )
 	return PyString_FromString( self->theme->name );
 }
 
-static PyObject *Theme_setName( BPy_Theme * self, PyObject * args )
+static PyObject *Theme_setName( BPy_Theme * self, PyObject * value )
 {
-	char *name = NULL;
+	char *name = PyString_AsString(value);
 
-	if( !PyArg_ParseTuple( args, "s", &name ) )
+	if( !name )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
 
@@ -807,15 +809,10 @@ static void Theme_dealloc( BPy_Theme * self )
 
 static PyObject *Theme_getAttr( BPy_Theme * self, char *name )
 {
-	PyObject *attr = Py_None;
-
 	if( !strcmp( name, "name" ) )
-		attr = PyString_FromString( self->theme->name );
+		return PyString_FromString( self->theme->name );
 	else if( !strcmp( name, "__members__" ) )
-		attr = Py_BuildValue( "[s]", "name" );
-
-	if( attr != Py_None )
-		return attr;
+		return Py_BuildValue( "[s]", "name" );
 
 	return Py_FindMethod( BPy_Theme_methods, ( PyObject * ) self, name );
 }

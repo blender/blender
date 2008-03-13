@@ -17,14 +17,14 @@ subject to the following restrictions:
 #define PERSISTENT_MANIFOLD_H
 
 
-#include "LinearMath/btVector3.h"
-#include "LinearMath/btTransform.h"
+#include "../../LinearMath/btVector3.h"
+#include "../../LinearMath/btTransform.h"
 #include "btManifoldPoint.h"
 
 struct btCollisionResult;
 
 ///contact breaking and merging threshold
-extern float gContactBreakingThreshold;
+extern btScalar gContactBreakingThreshold;
 
 typedef bool (*ContactDestroyedCallback)(void* userPersistentData);
 extern ContactDestroyedCallback	gContactDestroyedCallback;
@@ -36,7 +36,7 @@ extern ContactDestroyedCallback	gContactDestroyedCallback;
 
 ///btPersistentManifold maintains contact points, and reduces them to 4.
 ///It does contact filtering/contact reduction.
-class btPersistentManifold 
+ATTRIBUTE_ALIGNED16( class) btPersistentManifold 
 {
 
 	btManifoldPoint m_pointCache[MANIFOLD_CACHE_SIZE];
@@ -97,7 +97,7 @@ public:
 	}
 
 	/// todo: get this margin from the current physics / collision environment
-	float	getContactBreakingThreshold() const;
+	btScalar	getContactBreakingThreshold() const;
 	
 	int getCacheEntry(const btManifoldPoint& newPoint) const;
 
@@ -108,18 +108,36 @@ public:
 		clearUserCache(m_pointCache[index]);
 
 		int lastUsedIndex = getNumContacts() - 1;
-		m_pointCache[index] = m_pointCache[lastUsedIndex];
-		//get rid of duplicated userPersistentData pointer
-		m_pointCache[lastUsedIndex].m_userPersistentData = 0;
+//		m_pointCache[index] = m_pointCache[lastUsedIndex];
+		if(index != lastUsedIndex) 
+		{
+			m_pointCache[index] = m_pointCache[lastUsedIndex]; 
+			//get rid of duplicated userPersistentData pointer
+			m_pointCache[lastUsedIndex].m_userPersistentData = 0;
+		}
+
+		btAssert(m_pointCache[lastUsedIndex].m_userPersistentData==0);
 		m_cachedPoints--;
 	}
 	void replaceContactPoint(const btManifoldPoint& newPoint,int insertIndex)
 	{
-		assert(validContactDistance(newPoint));
+		btAssert(validContactDistance(newPoint));
 
-		clearUserCache(m_pointCache[insertIndex]);
+#define MAINTAIN_PERSISTENCY 1
+#ifdef MAINTAIN_PERSISTENCY
+		int	lifeTime = m_pointCache[insertIndex].getLifeTime();
+		btAssert(lifeTime>=0);
+		void* cache = m_pointCache[insertIndex].m_userPersistentData;
 		
 		m_pointCache[insertIndex] = newPoint;
+
+		m_pointCache[insertIndex].m_userPersistentData = cache;
+		m_pointCache[insertIndex].m_lifeTime = lifeTime;
+#else
+		clearUserCache(m_pointCache[insertIndex]);
+		m_pointCache[insertIndex] = newPoint;
+	
+#endif
 	}
 
 	bool validContactDistance(const btManifoldPoint& pt) const
@@ -133,7 +151,10 @@ public:
 
 
 
-};
+}
+;
+
+
 
 
 

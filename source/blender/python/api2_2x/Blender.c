@@ -1,5 +1,6 @@
 /* 
  * $Id$
+ *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -36,8 +37,10 @@ struct ID; /*keep me up here */
 /* for open, close in Blender_Load */
 #include <fcntl.h>
 #include "BDR_editobject.h"	/* exit_editmode() */
+#include "BDR_drawmesh.h"	/* set_mipmap() */
 #include "BIF_usiblender.h"
 #include "BLI_blenlib.h"
+#include "BLI_bpath.h"
 #include "BLO_writefile.h"
 #include "BKE_blender.h"
 #include "BKE_exotic.h"
@@ -50,7 +53,8 @@ struct ID; /*keep me up here */
 #include "BKE_ipo.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BPI_script.h"
+#include "BIF_space.h"
+#include "DNA_space_types.h"		/* script struct */
 #include "BSE_headerbuttons.h"
 #include "DNA_screen_types.h"	/* for SPACE_VIEW3D */
 #include "DNA_userdef_types.h"
@@ -82,6 +86,7 @@ struct ID; /*keep me up here */
 #include "Metaball.h"
 #include "Modifier.h"
 #include "NMesh.h"
+#include "Node.h"
 #include "Object.h"
 #include "Group.h"
 #include "Registry.h"
@@ -99,18 +104,19 @@ struct ID; /*keep me up here */
 /* Python API function prototypes for the Blender module.	*/
 /**********************************************************/
 static PyObject *Blender_Set( PyObject * self, PyObject * args );
-static PyObject *Blender_Get( PyObject * self, PyObject * args );
+static PyObject *Blender_Get( PyObject * self, PyObject * value );
 static PyObject *Blender_Redraw( PyObject * self, PyObject * args );
 static PyObject *Blender_Quit( PyObject * self );
 static PyObject *Blender_Load( PyObject * self, PyObject * args );
 static PyObject *Blender_Save( PyObject * self, PyObject * args );
-static PyObject *Blender_Run( PyObject * self, PyObject * args );
-static PyObject *Blender_ShowHelp( PyObject * self, PyObject * args );
+static PyObject *Blender_Run( PyObject * self, PyObject * value );
+static PyObject *Blender_ShowHelp( PyObject * self, PyObject * script );
 static PyObject *Blender_UpdateMenus( PyObject * self);
 static PyObject *Blender_PackAll( PyObject * self);
-static PyObject *Blender_UnpackAll( PyObject * self, PyObject * args);
+static PyObject *Blender_UnpackAll( PyObject * self, PyObject * value);
 static PyObject *Blender_CountPackedFiles( PyObject * self );
-
+static PyObject *Blender_GetPaths( PyObject * self, PyObject *args, PyObject *keywds );
+static PyObject *Blender_SaveUndoState( PyObject * self, PyObject *args );
 extern PyObject *Text3d_Init( void ); /* missing in some include */
 
 /*****************************************************************************/
@@ -194,23 +200,30 @@ All files will be unpacked using specified mode.\n\n\
 static char Blender_CountPackedFiles_doc[] =
 "() - Returns the number of packed files.";
 
+static char Blender_GetPaths_doc[] =
+"() - Returns a list of paths used in this blend file.";
+
+static char Blender_SaveUndoState_doc[] =
+"(s) - Push an undo with blenders current state.";
+
 /*****************************************************************************/
 /* Python method structure definition.		 */
 /*****************************************************************************/
 static struct PyMethodDef Blender_methods[] = {
 	{"Set", Blender_Set, METH_VARARGS, Blender_Set_doc},
-	{"Get", Blender_Get, METH_VARARGS, Blender_Get_doc},
+	{"Get", Blender_Get, METH_O, Blender_Get_doc},
 	{"Redraw", Blender_Redraw, METH_VARARGS, Blender_Redraw_doc},
 	{"Quit", ( PyCFunction ) Blender_Quit, METH_NOARGS, Blender_Quit_doc},
 	{"Load", Blender_Load, METH_VARARGS, Blender_Load_doc},
 	{"Save", Blender_Save, METH_VARARGS, Blender_Save_doc},
-	{"Run", Blender_Run, METH_VARARGS, Blender_Run_doc},
-	{"ShowHelp", Blender_ShowHelp, METH_VARARGS, Blender_ShowHelp_doc},
+	{"Run", Blender_Run, METH_O, Blender_Run_doc},
+	{"ShowHelp", Blender_ShowHelp, METH_O, Blender_ShowHelp_doc},
 	{"CountPackedFiles", ( PyCFunction ) Blender_CountPackedFiles, METH_NOARGS, Blender_CountPackedFiles_doc},
+	{"GetPaths", ( PyCFunction ) Blender_GetPaths, METH_VARARGS|METH_KEYWORDS, Blender_GetPaths_doc},
 	{"PackAll", ( PyCFunction ) Blender_PackAll, METH_NOARGS, Blender_PackAll_doc},
-	{"UnpackAll", Blender_UnpackAll, METH_VARARGS, Blender_UnpackAll_doc},
-	{"UpdateMenus", ( PyCFunction ) Blender_UpdateMenus, METH_NOARGS,
-	 Blender_UpdateMenus_doc},
+	{"UnpackAll", Blender_UnpackAll, METH_O, Blender_UnpackAll_doc},
+	{"UpdateMenus", ( PyCFunction ) Blender_UpdateMenus, METH_NOARGS, Blender_UpdateMenus_doc},
+	{"SaveUndoState", Blender_SaveUndoState, METH_VARARGS, Blender_SaveUndoState_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -278,7 +291,32 @@ static PyObject *Blender_Set( PyObject * self, PyObject * args )
 		if ( !PyArg_Parse( arg , "s" , &dir ))
 			return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a string" );
 		BLI_strncpy(U.tempdir, dir, FILE_MAXDIR);
-	} else
+		BLI_where_is_temp( btempdir, 1 );
+	} else if (StringEqual( name , "compressfile" ) ) {
+		int value = PyObject_IsTrue( arg );
+		
+		if (value==-1)
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"expected an integer" );
+		
+		if (value)
+			U.flag |= USER_FILECOMPRESS;
+		else
+			U.flag &= ~USER_FILECOMPRESS;
+	} else if (StringEqual( name , "mipmap" ) ) {
+		int value = PyObject_IsTrue( arg );
+		
+		if (value==-1)
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"expected an integer" );
+		
+		if (value)
+			U.gameflags &= ~USER_DISABLE_MIPMAP;
+		else
+			U.gameflags |= USER_DISABLE_MIPMAP;
+		
+		set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
+	}else
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"value given is not a blender setting" ) );
 	Py_RETURN_NONE;
@@ -288,12 +326,12 @@ static PyObject *Blender_Set( PyObject * self, PyObject * args )
 /* Function:		Blender_Get	 */
 /* Python equivalent:	Blender.Get		 */
 /*****************************************************************************/
-static PyObject *Blender_Get( PyObject * self, PyObject * args )
+static PyObject *Blender_Get( PyObject * self, PyObject * value )
 {
 	PyObject *ret = NULL;
-	char *str = NULL;
+	char *str = PyString_AsString(value);
 
-	if( !PyArg_ParseTuple( args, "s", &str ) )
+	if( !str )
 		return EXPP_ReturnPyObjError (PyExc_TypeError,
 			"expected string argument");
 
@@ -308,10 +346,10 @@ static PyObject *Blender_Get( PyObject * self, PyObject * args )
 	else if( StringEqual( str, "endframe" ) )
 		ret = PyInt_FromLong( G.scene->r.efra );
 	else if( StringEqual( str, "filename" ) ) {
-		if ( strstr(G.main->name, ".B.blend") != 0)
+		if (!G.relbase_valid)
 			ret = PyString_FromString("");
 		else
-			ret = PyString_FromString(G.main->name);
+			ret = PyString_FromString(G.sce);
 	}
 	else if( StringEqual( str, "homedir" ) ) {
 		char *hdir = bpy_gethome(0);
@@ -506,13 +544,18 @@ static PyObject *Blender_Get( PyObject * self, PyObject * args )
 	} /* End 'quick hack' part. */
 	else if(StringEqual( str, "version" ))
 		ret = PyInt_FromLong( G.version );
+		
+	else if(StringEqual( str, "compressfile" ))
+		ret = PyInt_FromLong( (U.flag & USER_FILECOMPRESS) >> 15  );
+	else if(StringEqual( str, "mipmap" ))
+		ret = PyInt_FromLong( (U.gameflags & USER_DISABLE_MIPMAP) == 0  );
 	else
 		return EXPP_ReturnPyObjError( PyExc_AttributeError, "unknown attribute" );
 
 	if (ret) return ret;
 	else
 		return EXPP_ReturnPyObjError (PyExc_MemoryError,
-			"could not create pystring!");
+			"could not create the PyObject!");
 }
 
 /*****************************************************************************/
@@ -676,7 +719,7 @@ static PyObject *Blender_Save( PyObject * self, PyObject * args )
 
 	len = strlen( fname );
 
-	if( len > FILE_MAXFILE )
+	if( len > FILE_MAXDIR + FILE_MAXFILE )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "filename is too long!" );
 	else if( BLI_exists( fname ) && !overwrite )
@@ -685,10 +728,16 @@ static PyObject *Blender_Save( PyObject * self, PyObject * args )
 
 	disable_where_script( 1 );	/* to avoid error popups in the write_* functions */
 
-	if( BLI_testextensie( fname, ".blend" ) ) {		
+	if( BLI_testextensie( fname, ".blend" ) ) {
+		int writeflags;
 		if( G.fileflags & G_AUTOPACK )
 			packAll(  );
-		if( !BLO_write_file( fname, G.fileflags, &error ) ) {
+		
+		writeflags= G.fileflags & ~G_FILE_COMPRESS;
+		if(U.flag & USER_FILECOMPRESS)
+		writeflags |= G_FILE_COMPRESS;
+		
+		if( !BLO_write_file( fname, writeflags, &error ) ) {
 			disable_where_script( 0 );
 			return EXPP_ReturnPyObjError( PyExc_SystemError,
 						      error );
@@ -712,14 +761,13 @@ static PyObject *Blender_Save( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Blender_ShowHelp(PyObject *self, PyObject *args)
+static PyObject *Blender_ShowHelp(PyObject *self, PyObject *script)
 {
-	PyObject *script = NULL;
 	char hspath[FILE_MAXDIR + FILE_MAXFILE]; /* path to help_browser.py */
 	char *sdir = bpy_gethome(1);
 	PyObject *rkeyd = NULL, *arglist = NULL;
 
-	if (!PyArg_ParseTuple(args, "O!", &PyString_Type, &script))
+	if (!PyString_Check(script))
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
 			"expected a script filename as argument");
 
@@ -752,21 +800,21 @@ static PyObject *Blender_ShowHelp(PyObject *self, PyObject *args)
 
 	EXPP_dict_set_item_str(bpy_registryDict, "__help_browser", rkeyd);
 
-	arglist = Py_BuildValue("(s)", hspath);
+	arglist = Py_BuildValue("s", hspath);
 	Blender_Run(self, arglist);
 	Py_DECREF(arglist);
 
 	Py_RETURN_NONE;
 }
 
-static PyObject *Blender_Run(PyObject *self, PyObject *args)
+static PyObject *Blender_Run(PyObject *self, PyObject *value)
 {
-	char *fname = NULL;
+	char *fname = PyString_AsString(value);
 	Text *text = NULL;
 	int is_blender_text = 0;
 	Script *script = NULL;
 
-	if (!PyArg_ParseTuple(args, "s", &fname))
+	if (!fname)
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
 			"expected a filename or a Blender Text name as argument");
 
@@ -848,10 +896,12 @@ static PyObject *Blender_PackAll( PyObject * self)
 /* Function:		Blender_UnpackAll		 */
 /* Python equivalent:	Blender.UnpackAll			 */
 /*****************************************************************************/
-static PyObject *Blender_UnpackAll( PyObject * self, PyObject *args)
+static PyObject *Blender_UnpackAll( PyObject * self, PyObject *value)
 {
-	int mode;
-	PyArg_ParseTuple( args, "i", &mode );
+	int mode = PyInt_AsLong(value);
+	
+	if (mode==-1)
+		return EXPP_ReturnPyObjError( PyExc_ValueError, "expected an int Blender.UnpackModes");
 	unpackAll(mode);
 	Py_RETURN_NONE;
 }
@@ -865,6 +915,55 @@ static PyObject *Blender_CountPackedFiles( PyObject * self )
 	int nfiles = countPackedFiles();
 	return PyInt_FromLong( nfiles );
 }
+
+/*****************************************************************************/
+/* Function:		Blender_GetPaths		 */
+/* Python equivalent:	Blender.GetPaths			 */
+/*****************************************************************************/
+static PyObject *Blender_GetPaths( PyObject * self, PyObject *args, PyObject *keywds )
+{
+	struct BPathIterator bpi;
+	PyObject *list = PyList_New(0), *st;
+	/* be sure there is low chance of the path being too short */
+	char filepath_expanded[FILE_MAXDIR*2]; 
+	
+	int absolute = 0;
+	static char *kwlist[] = {"absolute", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "|i", kwlist, &absolute ) )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+				"expected nothing or one bool (0 or 1) as argument" );
+	
+	BLI_bpathIterator_init(&bpi);
+	
+	while (!BLI_bpathIterator_isDone(&bpi)) {
+		
+		/* build the list */
+		if (absolute) {
+			BLI_bpathIterator_copyPathExpanded( &bpi, filepath_expanded );
+			st = PyString_FromString(filepath_expanded);
+		} else {
+			st = PyString_FromString(BLI_bpathIterator_getPath(&bpi));
+		}
+		
+		PyList_Append(list, st);
+		Py_DECREF(st);
+		
+		BLI_bpathIterator_step(&bpi);
+	}
+	
+	return list;
+}
+
+static PyObject *Blender_SaveUndoState( PyObject * self, PyObject *args )
+{
+	char *str;
+	if ( !PyArg_ParseTuple( args , "s" , &str ))	
+		return EXPP_ReturnPyObjError( PyExc_TypeError, "expected a string" );
+	BIF_undo_push(str);
+	Py_RETURN_NONE;
+}
+
 static PyObject *Blender_UnpackModesDict( void )
 {
 	PyObject *UnpackModes = PyConstant_New(  );
@@ -963,6 +1062,7 @@ void M_Blender_Init(void)
 	PyDict_SetItemString(dict, "Geometry", Geometry_Init());
 	PyDict_SetItemString(dict, "Modifier", Modifier_Init());
 	PyDict_SetItemString(dict, "NMesh", NMesh_Init());
+	PyDict_SetItemString(dict, "Node", Node_Init());
 	PyDict_SetItemString(dict, "Noise", Noise_Init());
 	PyDict_SetItemString(dict, "Object", Object_Init());
 	PyDict_SetItemString(dict, "Group", Group_Init());

@@ -335,6 +335,8 @@ float FTF_TTFont::DrawString(char* str, unsigned int flag)
 	   removes special characters completely. So, for now we just skip that then. (ton) */
 	if (FTF_USE_GETTEXT & flag) 
 		utf8towchar(wstr, gettext(str));
+	else if (FTF_INPUT_UTF8 & flag) 
+		utf8towchar(wstr, str);
 
 	glGetFloatv(GL_CURRENT_COLOR, color);
 	
@@ -344,7 +346,7 @@ float FTF_TTFont::DrawString(char* str, unsigned int flag)
 		glPixelTransferf(GL_GREEN_SCALE, color[1]);
 		glPixelTransferf(GL_BLUE_SCALE, color[2]);
 
-		if (FTF_USE_GETTEXT & flag) 
+		if ((FTF_USE_GETTEXT | FTF_INPUT_UTF8) & flag) 
 			font->Render(wstr);
 		else
 			font->Render(str);
@@ -362,7 +364,7 @@ float FTF_TTFont::DrawString(char* str, unsigned int flag)
 		glTranslatef(pen_x, pen_y, 0.0);
 		glScalef(fsize, fsize, 1.0);
 
-		if (FTF_USE_GETTEXT & flag) 
+		if ((FTF_USE_GETTEXT | FTF_INPUT_UTF8) & flag) 
 			font->Render(wstr);
 		else
 			font->Render(str);
@@ -373,7 +375,7 @@ float FTF_TTFont::DrawString(char* str, unsigned int flag)
 		glDisable(GL_TEXTURE_2D);
 	}
 
-	if (FTF_USE_GETTEXT & flag) 
+	if ((FTF_USE_GETTEXT | FTF_INPUT_UTF8) & flag) 
 		return font->Advance(wstr);
 	else
 		return font->Advance(str);

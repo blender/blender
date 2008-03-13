@@ -65,6 +65,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
+#include "BKE_cloth.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
@@ -72,7 +73,10 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
+#include "BKE_multires.h"
 #include "BKE_object.h"
+#include "BKE_pointcache.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -159,10 +163,13 @@ EditVert *addvertlist(float *vec, EditVert *example)
 	createVerseVert(eve);
 #endif
 
-	if(example)
+	if(example) {
 		CustomData_em_copy_data(&em->vdata, &em->vdata, example->data, &eve->data);
-	else
+		eve->bweight = example->bweight;
+	}
+	else {
 		CustomData_em_set_default(&em->vdata, &eve->data);
+	}
 
 	return eve;
 }
@@ -295,6 +302,7 @@ EditEdge *addedgelist(EditVert *v1, EditVert *v2, EditEdge *example)
 		   rule is to do this with addedgelist call, before addfacelist */
 		if(example) {
 			eed->crease= example->crease;
+			eed->bweight= example->bweight;
 			eed->sharp = example->sharp;
 			eed->seam = example->seam;
 			eed->h |= (example->h & EM_FGON);
@@ -333,6 +341,10 @@ void free_editface(EditFace *efa)
 	}
 #endif
 	EM_remove_selection(efa, EDITFACE);
+	
+	if (G.editMesh->act_face==efa)
+		EM_set_actFace(NULL);
+		
 	CustomData_em_free_block(&G.editMesh->fdata, &efa->data);
 	if(efa->fast==0)
 		free(efa);
@@ -797,7 +809,10 @@ void make_editMesh()
 	EditFace *efa;
 	EditEdge *eed;
 	EditSelection *ese;
-	int tot, a, eekadoodle= 0;
+	int tot, a, eekadoodle= 0, cloth_enabled = 0;
+	ClothModifierData *clmd = NULL;
+	Cloth *cloth = NULL;
+	float temp[3];
 
 #ifdef WITH_VERSE
 	if(me->vnode){
@@ -809,10 +824,11 @@ void make_editMesh()
 	/* because of reload */
 	free_editMesh(em);
 	
+	em->act_face = NULL;
 	G.totvert= tot= me->totvert;
 	G.totedge= me->totedge;
 	G.totface= me->totface;
-
+	
 	if(tot==0) {
 		countall();
 		return;
@@ -831,20 +847,61 @@ void make_editMesh()
 	/* make editverts */
 	CustomData_copy(&me->vdata, &em->vdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	mvert= me->mvert;
+	
+	/* lots of checks to be sure if we have nice cloth object */
+	if(modifiers_isClothEnabled(G.obedit))
+	{
+		clmd = (ClothModifierData *) modifiers_findByType(G.obedit, eModifierType_Cloth);
+		cloth = clmd->clothObject;
+		
+		clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_EDITMODE;
+		
+		/* just to be sure also check vertcount */
+		/* also check if we have a protected cache */
+		if(cloth && (tot == cloth->numverts) && (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
+		{
+			/* check if we have cache for this frame */
+			int stack_index = modifiers_indexInObject(G.obedit, (ModifierData *)clmd);
+		
+			if(BKE_ptcache_id_exist((ID *)G.obedit, G.scene->r.cfra, stack_index))
+			{
+				cloth_enabled = 1;
+				
+				clmd->sim_parms->editedframe = G.scene->r.cfra;
+				
+				/* inverse matrix is not uptodate... */
+				Mat4Invert ( G.obedit->imat, G.obedit->obmat );
+				if(G.rt > 0)
+				printf("make_editmesh --> cloth_enabled\n");
+			}
+		}
+	}
 
 	evlist= (EditVert **)MEM_mallocN(tot*sizeof(void *),"evlist");
 	for(a=0; a<tot; a++, mvert++) {
-		eve= addvertlist(mvert->co, NULL);
+		
+		if(cloth_enabled)
+		{
+			VECCOPY(temp, cloth->verts[a].x);
+			Mat4MulVecfl ( G.obedit->imat, temp );
+			eve= addvertlist(temp, NULL);
+			
+			/* TODO: what about normals? */
+		}
+		else	
+			eve= addvertlist(mvert->co, NULL);
 		evlist[a]= eve;
 		
 		// face select sets selection in next loop
-		if( (G.f & G_FACESELECT)==0 )
+		if( (FACESEL_PAINT_TEST)==0 )
 			eve->f |= (mvert->flag & 1);
 		
 		if (mvert->flag & ME_HIDE) eve->h= 1;		
 		eve->no[0]= mvert->no[0]/32767.0;
 		eve->no[1]= mvert->no[1]/32767.0;
 		eve->no[2]= mvert->no[2]/32767.0;
+
+		eve->bweight= ((float)mvert->bweight)/255.0f;
 
 		/* lets overwrite the keyindex of the editvert
 		 * with the order it used to be in before
@@ -859,12 +916,14 @@ void make_editMesh()
 	else {
 		MEdge *medge= me->medge;
 		
+		CustomData_copy(&me->edata, &em->edata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 		/* make edges */
 		for(a=0; a<me->totedge; a++, medge++) {
 			eed= addedgelist(evlist[medge->v1], evlist[medge->v2], NULL);
 			/* eed can be zero when v1 and v2 are identical, dxf import does this... */
 			if(eed) {
-				eed->crease= ((float)medge->crease)/255.0;
+				eed->crease= ((float)medge->crease)/255.0f;
+				eed->bweight= ((float)medge->bweight)/255.0f;
 				
 				if(medge->flag & ME_SEAM) eed->seam= 1;
 				if(medge->flag & ME_SHARP) eed->sharp = 1;
@@ -873,6 +932,7 @@ void make_editMesh()
 				if(medge->flag & ME_HIDE) eed->h |= 1;
 				if(G.scene->selectmode==SCE_SELECT_EDGE) 
 					EM_select_edge(eed, eed->f & SELECT);		// force edge selection to vertices, seems to be needed ...
+				CustomData_to_em_block(&me->edata,&em->edata, a, &eed->data);
 			}
 		}
 		
@@ -902,8 +962,11 @@ void make_editMesh()
 				}
 				if(mface->flag & ME_HIDE) efa->h= 1;
 
-				if((G.f & G_FACESELECT) && (efa->f & SELECT))
+				if((FACESEL_PAINT_TEST) && (efa->f & SELECT))
 					EM_select_face(efa, 1); /* flush down */
+				
+				if (a==me->act_face)
+					em->act_face = efa;
 			}
 		}
 	}
@@ -922,7 +985,7 @@ void make_editMesh()
 		
 		for(a=0; a<me->totselect; a++, mselect++){
 			/*check if recorded selection is still valid, if so copy into editmesh*/
-			if( (mselect->type == EDITVERT && me->mvert[mselect->index].flag & SELECT) || (mselect->type == EDITEDGE && me->medge[mselect->index].flag & SELECT) || (mselect->type == EDITFACE && me->mface[mselect->index].flag & SELECT) ){
+			if( (mselect->type == EDITVERT && me->mvert[mselect->index].flag & SELECT) || (mselect->type == EDITEDGE && me->medge[mselect->index].flag & SELECT) || (mselect->type == EDITFACE && me->mface[mselect->index].flag & ME_FACE_SEL) ){
 				ese = MEM_callocN(sizeof(EditSelection), "Edit Selection");
 				ese->type = mselect->type;	
 				if(ese->type == EDITVERT) ese->data = EM_get_vert_for_index(mselect->index); else
@@ -958,8 +1021,11 @@ void load_editMesh(void)
 	EditEdge *eed;
 	EditSelection *ese;
 	float *fp, *newkey, *oldkey, nor[3];
-	int i, a, ototvert, totedge=0;
-
+	int i, a, ototvert, totedge=0, cloth_enabled = 0;
+	ClothModifierData *clmd = NULL;
+	Cloth *cloth = NULL;
+	float temp[3], dt = 0.0;
+	
 #ifdef WITH_VERSE
 	if(em->vnode) {
 		struct VNode *vnode = (VNode*)em->vnode;
@@ -1014,6 +1080,7 @@ void load_editMesh(void)
 	me->totface= G.totface;
 
 	CustomData_copy(&em->vdata, &me->vdata, CD_MASK_MESH, CD_CALLOC, me->totvert);
+	CustomData_copy(&em->edata, &me->edata, CD_MASK_MESH, CD_CALLOC, me->totedge);
 	CustomData_copy(&em->fdata, &me->fdata, CD_MASK_MESH, CD_CALLOC, me->totface);
 
 	CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, mvert, me->totvert);
@@ -1024,9 +1091,60 @@ void load_editMesh(void)
 	/* the vertices, use ->tmp.l as counter */
 	eve= em->verts.first;
 	a= 0;
-
+	
+	/* lots of checks to be sure if we have nice cloth object */
+	if(modifiers_isClothEnabled(G.obedit))
+	{
+		clmd = (ClothModifierData *) modifiers_findByType(G.obedit, eModifierType_Cloth);
+		cloth = clmd->clothObject;
+		
+		/* just to be sure also check vertcount */
+		/* also check if we have a protected cache */
+		if(cloth && (G.totvert == cloth->numverts) && (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
+		{
+			/* check if we have cache for this frame */
+			int stack_index = modifiers_indexInObject(G.obedit, (ModifierData *)clmd);
+		
+			if(BKE_ptcache_id_exist((ID *)G.obedit, clmd->sim_parms->editedframe, stack_index))
+			{
+				cloth_enabled = 1;
+				
+				/* inverse matrix is not uptodate... */
+				Mat4Invert ( G.obedit->imat, G.obedit->obmat );
+				dt = 1.0f / clmd->sim_parms->stepsPerFrame;
+			}
+			if(G.rt > 0)
+			printf("loadmesh --> tot: %d, num: %d\n", G.totvert, cloth->numverts);
+		}
+	}
+	
+	i=0;
 	while(eve) {
-		VECCOPY(mvert->co, eve->co);
+		
+		if(cloth_enabled)
+		{	
+			if(G.rt > 0)
+			printf("loadmesh --> cloth_enabled\n");
+			
+			VECCOPY(temp, cloth->verts[i].x);
+			VECCOPY(cloth->verts[i].x, eve->co);
+			Mat4MulVecfl ( G.obedit->obmat, cloth->verts[i].x );
+			
+			
+			// not physical correct but gives nicer results when commented
+			VECSUB(temp, cloth->verts[i].x, temp);
+			VecMulf(temp, 1.0f / (dt*10.0));
+			VECADD(cloth->verts[i].v, cloth->verts[i].v, temp);
+			
+			if(oldverts) {
+				VECCOPY(mvert->co, oldverts[i].co);
+				if(G.rt > 0)
+				printf("loadmesh --> cloth_enabled oldverts\n");
+			}
+			i++;
+		}
+		else	
+			VECCOPY(mvert->co, eve->co);
 		mvert->mat_nr= 255;  /* what was this for, halos? */
 		
 		/* vertex normal */
@@ -1043,7 +1161,8 @@ void load_editMesh(void)
 		mvert->flag= 0;
 		if(eve->f1==1) mvert->flag |= ME_SPHERETEST;
 		mvert->flag |= (eve->f & SELECT);
-		if (eve->h) mvert->flag |= ME_HIDE;			
+		if (eve->h) mvert->flag |= ME_HIDE;
+		mvert->bweight= (char)(255.0*eve->bweight);
 
 #ifdef WITH_VERSE
 		if(eve->vvert) {
@@ -1053,6 +1172,36 @@ void load_editMesh(void)
 #endif			
 		eve= eve->next;
 		mvert++;
+	}
+	
+	/* burn changes to cache */
+	if(cloth_enabled)
+	{
+		if(G.rt > 0)
+		printf("loadmesh --> cloth_enabled cloth_write_cache\n");
+		cloth_write_cache(G.obedit, clmd, clmd->sim_parms->editedframe);
+		
+		if(G.scene->r.cfra != clmd->sim_parms->editedframe)
+		{
+			if(cloth_read_cache(G.obedit, clmd, G.scene->r.cfra))
+				implicit_set_positions(clmd);
+		}
+		else
+			implicit_set_positions(clmd);
+		
+		clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_EDITMODE;
+	}
+	else
+	{
+		if(modifiers_isClothEnabled(G.obedit)) {
+			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(G.obedit, eModifierType_Cloth);
+			if(G.rt > 0)
+			printf("loadmesh --> CLOTH_SIMSETTINGS_FLAG_RESET\n");
+			/* only reset cloth when no cache was used */
+			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
+			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
+			clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_EDITMODE;
+		}
 	}
 
 	/* the edges */
@@ -1071,7 +1220,9 @@ void load_editMesh(void)
 		if(eed->h & 1) medge->flag |= ME_HIDE;
 		
 		medge->crease= (char)(255.0*eed->crease);
-		
+		medge->bweight= (char)(255.0*eed->bweight);
+		CustomData_from_em_block(&em->edata, &me->edata, eed->data, a);		
+
 		eed->tmp.l = a++;
 		
 		medge++;
@@ -1082,6 +1233,7 @@ void load_editMesh(void)
 	a = 0;
 	efa= em->faces.first;
 	i = 0;
+	me->act_face = -1;
 	while(efa) {
 		mface= &((MFace *) me->mface)[i];
 		
@@ -1136,6 +1288,9 @@ void load_editMesh(void)
 
 		/* no index '0' at location 3 or 4 */
 		test_index_face(mface, &me->fdata, i, efa->v4?4:3);
+		
+		if (EM_get_actFace() == efa)
+			me->act_face = a;
 
 #ifdef WITH_VERSE
 		if(efa->vface) {
@@ -1322,6 +1477,7 @@ void remake_editMesh(void)
 {
 	make_editMesh();
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0); /* needed to have nice cloth panels */
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	BIF_undo_push("Undo all changes");
 }
@@ -1787,6 +1943,7 @@ typedef struct EditVertC
 	float no[3];
 	float co[3];
 	unsigned char f, h;
+	short bweight;
 	int keyindex;
 } EditVertC;
 
@@ -1794,7 +1951,7 @@ typedef struct EditEdgeC
 {
 	int v1, v2;
 	unsigned char f, h, seam, sharp, pad;
-	short crease, fgoni;
+	short crease, bweight, fgoni;
 } EditEdgeC;
 
 typedef struct EditFaceC
@@ -1823,7 +1980,7 @@ typedef struct UndoMesh {
 	short selectmode;
 	RetopoPaintData *retopo_paint_data;
 	char retopo_mode;
-	CustomData vdata, fdata;
+	CustomData vdata, edata, fdata;
 	EM_MultiresUndo *mru;
 } UndoMesh;
 
@@ -1839,6 +1996,7 @@ static void free_undoMesh(void *umv)
 	if(um->selected) MEM_freeN(um->selected);
 	if(um->retopo_paint_data) retopo_free_paint_data(um->retopo_paint_data);
 	CustomData_free(&um->vdata, um->totvert);
+	CustomData_free(&um->edata, um->totedge);
 	CustomData_free(&um->fdata, um->totface);
 	if(um->mru) {
 		--um->mru->users;
@@ -1881,6 +2039,7 @@ static void *editMesh_to_undoMesh(void)
 	if(um->totsel) esec= um->selected= MEM_callocN(um->totsel*sizeof(EditSelectionC), "allselections");
 
 	if(um->totvert) CustomData_copy(&em->vdata, &um->vdata, CD_MASK_EDITMESH, CD_CALLOC, um->totvert);
+	if(um->totedge) CustomData_copy(&em->edata, &um->edata, CD_MASK_EDITMESH, CD_CALLOC, um->totedge);
 	if(um->totface) CustomData_copy(&em->fdata, &um->fdata, CD_MASK_EDITMESH, CD_CALLOC, um->totface);
 	
 	/* now copy vertices */
@@ -1893,6 +2052,7 @@ static void *editMesh_to_undoMesh(void)
 		evec->h= eve->h;
 		evec->keyindex= eve->keyindex;
 		eve->tmp.l = a; /*store index*/
+		evec->bweight= (short)(eve->bweight*255.0);
 
 		CustomData_from_em_block(&em->vdata, &um->vdata, eve->data, a);
 	}
@@ -1907,8 +2067,11 @@ static void *editMesh_to_undoMesh(void)
 		eedc->seam= eed->seam;
 		eedc->sharp= eed->sharp;
 		eedc->crease= (short)(eed->crease*255.0);
+		eedc->bweight= (short)(eed->bweight*255.0);
 		eedc->fgoni= eed->fgoni;
 		eed->tmp.l = a; /*store index*/
+		CustomData_from_em_block(&em->edata, &um->edata, eed->data, a);
+	
 	}
 	
 	/* copy faces */
@@ -2000,9 +2163,11 @@ static void undoMesh_to_editMesh(void *umv)
 #endif
 
 	CustomData_free(&em->vdata, 0);
+	CustomData_free(&em->edata, 0);
 	CustomData_free(&em->fdata, 0);
 
 	CustomData_copy(&um->vdata, &em->vdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
+	CustomData_copy(&um->edata, &em->edata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	CustomData_copy(&um->fdata, &em->fdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 
 	/* now copy vertices */
@@ -2016,6 +2181,7 @@ static void undoMesh_to_editMesh(void *umv)
 		eve->f= evec->f;
 		eve->h= evec->h;
 		eve->keyindex= evec->keyindex;
+		eve->bweight= ((float)evec->bweight)/255.0f;
 
 		CustomData_to_em_block(&um->vdata, &em->vdata, a, &eve->data);
 	}
@@ -2029,7 +2195,9 @@ static void undoMesh_to_editMesh(void *umv)
 		eed->seam= eedc->seam;
 		eed->sharp= eedc->sharp;
 		eed->fgoni= eedc->fgoni;
-		eed->crease= ((float)eedc->crease)/255.0;
+		eed->crease= ((float)eedc->crease)/255.0f;
+		eed->bweight= ((float)eedc->bweight)/255.0f;
+		CustomData_to_em_block(&um->edata, &em->edata, a, &eed->data);
 	}
 	
 	/* copy faces */
@@ -2089,7 +2257,7 @@ static void undoMesh_to_editMesh(void *umv)
 /* and this is all the undo system needs to know */
 void undo_push_mesh(char *name)
 {
-	undo_editmode_push(name, free_undoMesh, undoMesh_to_editMesh, editMesh_to_undoMesh);
+	undo_editmode_push(name, free_undoMesh, undoMesh_to_editMesh, editMesh_to_undoMesh, NULL);
 }
 
 
@@ -2153,3 +2321,30 @@ EditFace *EM_get_face_for_index(int index)
 {
 	return g_em_face_array?g_em_face_array[index]:NULL;
 }
+
+/* can we edit UV's for this mesh?*/
+int EM_texFaceCheck(void)
+{
+	/* some of these checks could be a touch overkill */
+	if (	(G.obedit) &&
+			(G.obedit->type == OB_MESH) &&
+			(G.editMesh) &&
+			(G.editMesh->faces.first) &&
+			(CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE)))
+		return 1;
+	return 0;
+}
+
+/* can we edit colors for this mesh?*/
+int EM_vertColorCheck(void)
+{
+	/* some of these checks could be a touch overkill */
+	if (	(G.obedit) &&
+			(G.obedit->type == OB_MESH) &&
+			(G.editMesh) &&
+			(G.editMesh->faces.first) &&
+			(CustomData_has_layer(&G.editMesh->fdata, CD_MCOL)))
+		return 1;
+	return 0;
+}
+

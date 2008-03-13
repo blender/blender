@@ -14,12 +14,12 @@ several IpoCurves, and an IpoCurve is composed of several BezTriples.
 Example::
 	from Blender import Ipo
 
-	ob = Ipo.Get('ObIpo')          # retrieves an Ipo object
-	ob.name = 'ipo1'				 # change the Ipo's name
-	icu = ipo[Ipo.OB_LOCX]         # request X Location Ipo curve object
+	ipo = Ipo.Get('ObIpo')				# retrieves an Ipo object
+	ipo.name = 'ipo1'					# change the Ipo's name
+	icu = ipo[Ipo.OB_LOCX]				# request X Location Ipo curve
 	if icu != None and len(icu.bezierPoints) > 0: # if curve exists and has BezTriple points
-		 val = icu[2.5]              # get the curve's value at time 2.5
-		 icu[Ipo.OB_LOCX] = None     # delete the ipo curve
+		val = icu[2.5]					# get the curve's value at time 2.5
+		ipo[Ipo.OB_LOCX] = None			# delete the Ipo curve
 	
 Each type of Ipo has different types Ipocurves.  With the exception of Shape
 Key Ipos, constants are used to specify all Ipocurves.  There are two ways
@@ -47,7 +47,7 @@ The valid IpoCurve constants are:
 			4. Camera Ipo: CA_LENS, CA_CLSTA, CA_CLEND, CA_APERT, CA_FDIST
 			5. Object Ipo: OB_LOCX, OB_LOCY, OB_LOCZ, OB_DLOCX, OB_DLOCY, OB_DLOCZ,
 			OB_ROTX, OB_ROTY, OB_ROTZ, OB_DROTX, OB_DROTY, OB_DROTZ,
-			OB_SIZEX, OB_SIZEY, OB_SIZEZ, OB_DSIZEX, OB_DSIZEY, OB_DSIZEZ,
+			OB_SCALEX, OB_SCALEY, OB_SCALEZ, OB_DSCALEX, OB_DSCALEY, OB_DSCALEZ,
 			OB_LAYER, OB_TIME, OB_COLR, OB_COLG, OB_COLB, OB_COLA,
 			OB_FSTRENG, OB_FFALL, OB_RDAMP, OB_DAMPING, OB_PERM
 			6. Curve Ipo: CU_SPEED

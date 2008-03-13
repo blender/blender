@@ -61,6 +61,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -74,6 +75,7 @@
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
+#include "BLI_rand.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_curve.h"
@@ -93,6 +95,8 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_anim.h"			//for the where_on_path function
+#include "BKE_particle.h"
+#include "BKE_utildefines.h"
 #ifdef WITH_VERSE
 #include "BKE_verse.h"
 #endif
@@ -100,6 +104,7 @@
 #include "BIF_editarmature.h"
 #include "BIF_editdeform.h"
 #include "BIF_editmesh.h"
+#include "BIF_editparticle.h"
 #include "BIF_glutil.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -108,6 +113,7 @@
 #include "BIF_retopo.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
+#include "BIF_toolbox.h"
 
 #include "BDR_drawmesh.h"
 #include "BDR_drawobject.h"
@@ -134,6 +140,11 @@ extern ListBase editNurb;
 extern ListBase editelems;
 
 static void draw_bounding_volume(Object *ob);
+
+static void drawcube_size(float size);
+static void drawcircle_size(float size);
+static void draw_empty_sphere(float size);
+static void draw_empty_cone(float size);
 
 /* ************* Setting OpenGL Material ************ */
 
@@ -264,6 +275,79 @@ static float cube[8][3] = {
 	{ 1.0,  1.0, -1.0},
 };
 
+/* ----------------- OpenGL Circle Drawing - Tables for Optimised Drawing Speed ------------------ */
+/* 32 values of sin function (still same result!) */
+static float sinval[32] = {
+	0.00000000,
+	0.20129852,
+	0.39435585,
+	0.57126821,
+	0.72479278,
+	0.84864425,
+	0.93775213,
+	0.98846832,
+	0.99871650,
+	0.96807711,
+	0.89780453,
+	0.79077573,
+	0.65137248,
+	0.48530196,
+	0.29936312,
+	0.10116832,
+	-0.10116832,
+	-0.29936312,
+	-0.48530196,
+	-0.65137248,
+	-0.79077573,
+	-0.89780453,
+	-0.96807711,
+	-0.99871650,
+	-0.98846832,
+	-0.93775213,
+	-0.84864425,
+	-0.72479278,
+	-0.57126821,
+	-0.39435585,
+	-0.20129852,
+	0.00000000
+};
+
+/* 32 values of cos function (still same result!) */
+static float cosval[32] ={
+	1.00000000,
+	0.97952994,
+	0.91895781,
+	0.82076344,
+	0.68896691,
+	0.52896401,
+	0.34730525,
+	0.15142777,
+	-0.05064916,
+	-0.25065253,
+	-0.44039415,
+	-0.61210598,
+	-0.75875812,
+	-0.87434661,
+	-0.95413925,
+	-0.99486932,
+	-0.99486932,
+	-0.95413925,
+	-0.87434661,
+	-0.75875812,
+	-0.61210598,
+	-0.44039415,
+	-0.25065253,
+	-0.05064916,
+	0.15142777,
+	0.34730525,
+	0.52896401,
+	0.68896691,
+	0.82076344,
+	0.91895781,
+	0.97952994,
+	1.00000000
+};
+
 /* flag is same as for draw_object */
 void drawaxes(float size, int flag, char drawtype)
 {
@@ -322,6 +406,22 @@ void drawaxes(float size, int flag, char drawtype)
 		glEnd();
 		
 		break;
+	case OB_CUBE:
+		drawcube_size(size);
+		break;
+		
+	case OB_CIRCLE:
+		drawcircle_size(size);
+		break;
+	
+	case OB_EMPTY_SPHERE:
+		 draw_empty_sphere(size);
+	     break;
+
+	case OB_EMPTY_CONE:
+		 draw_empty_cone(size);
+	     break;
+
 	case OB_ARROWS:
 	default:
 		for (axis=0; axis<3; axis++) {
@@ -475,6 +575,31 @@ static void drawcube(void)
 	glEnd();
 }
 
+/* draws a cube on given the scaling of the cube, assuming that 
+ * all required matrices have been set (used for drawing empties)
+ */
+static void drawcube_size(float size)
+{
+	glBegin(GL_LINE_STRIP);
+		glVertex3f(-size,-size,-size); glVertex3f(-size,-size,size);glVertex3f(-size,size,size); glVertex3f(-size,size,-size);
+		glVertex3f(-size,-size,-size); glVertex3f(size,-size,-size);glVertex3f(size,-size,size); glVertex3f(size,size,size);
+		glVertex3f(size,size,-size); glVertex3f(size,-size,-size);
+	glEnd();
+
+	glBegin(GL_LINE_STRIP);
+		glVertex3f(-size,-size,size); glVertex3f(size,-size,size);
+	glEnd();
+
+	glBegin(GL_LINE_STRIP);
+		glVertex3f(-size,size,size); glVertex3f(size,size,size);
+	glEnd();
+
+	glBegin(GL_LINE_STRIP);
+		glVertex3f(-size,size,-size); glVertex3f(size,size,-size);
+	glEnd();
+}
+
+/* this is an unused (old) cube-drawing function based on a given size */
 #if 0
 static void drawcube_size(float *size)
 {
@@ -987,7 +1112,7 @@ static void drawcamera(Object *ob, int flag)
 			if(cam->flag & CAM_SHOWLIMITS) {
 				draw_limit_line(cam->clipsta, cam->clipend, 0x77FFFF);
 				/* qdn: was yafray only, now also enabled for Blender to be used with defocus composit node */
-				draw_focus_cross(cam->YF_dofdist, cam->drawsize);
+				draw_focus_cross(dof_camera(ob), cam->drawsize);
 			}
 
 			wrld= G.scene->world;
@@ -1017,7 +1142,7 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, short sel)
 				int uxt = (u==0 || u==lt->pntsu-1);
 				if(!(lt->flag & LT_OUTSIDE) || uxt || vxt || wxt) {
 					if(bp->hide==0) {
-						if((bp->f1 & 1)==sel) {
+						if((bp->f1 & SELECT)==sel) {
 							bglVertex3fv(dl?co:bp->vec);
 						}
 					}
@@ -1248,12 +1373,21 @@ void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, 
 				BezTriple *bezt = &nu->bezt[i];
 
 				if(bezt->hide==0) {
-					view3d_project_short_clip(curarea, bezt->vec[0], s, pmat, vmat);
-					func(userData, nu, NULL, bezt, 0, s[0], s[1]);
-					view3d_project_short_clip(curarea, bezt->vec[1], s, pmat, vmat);
-					func(userData, nu, NULL, bezt, 1, s[0], s[1]);
-					view3d_project_short_clip(curarea, bezt->vec[2], s, pmat, vmat);
-					func(userData, nu, NULL, bezt, 2, s[0], s[1]);
+					if (G.f & G_HIDDENHANDLES) {
+						view3d_project_short_clip(curarea, bezt->vec[1], s, pmat, vmat);
+						if (s[0] != IS_CLIPPED)
+							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
+					} else {
+						view3d_project_short_clip(curarea, bezt->vec[0], s, pmat, vmat);
+						if (s[0] != IS_CLIPPED)
+							func(userData, nu, NULL, bezt, 0, s[0], s[1]);
+						view3d_project_short_clip(curarea, bezt->vec[1], s, pmat, vmat);
+						if (s[0] != IS_CLIPPED)
+							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
+						view3d_project_short_clip(curarea, bezt->vec[2], s, pmat, vmat);
+						if (s[0] != IS_CLIPPED)
+							func(userData, nu, NULL, bezt, 2, s[0], s[1]);
+					}
 				}
 			}
 		}
@@ -1341,17 +1475,38 @@ static void draw_dm_vert_normals(DerivedMesh *dm) {
 	/* Draw verts with color set based on selection */
 static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
+	struct { int sel; EditVert *eve_act; } * data = userData;
 	EditVert *eve = EM_get_vert_for_index(index);
-	int sel = *((int*) userData);
 
-	if (eve->h==0 && (eve->f&SELECT)==sel) {
-		bglVertex3fv(co);
+	if (eve->h==0 && (eve->f&SELECT)==data->sel) {
+		/* draw active larger - need to stop/start point drawing for this :/ */
+		if (eve==data->eve_act) {
+			float size = BIF_GetThemeValuef(TH_VERTEX_SIZE);
+			BIF_ThemeColor4(TH_EDITMESH_ACTIVE);
+			
+			bglEnd();
+			
+			glPointSize(size);
+			bglBegin(GL_POINTS);
+			bglVertex3fv(co);
+			bglEnd();
+			
+			BIF_ThemeColor4(data->sel?TH_VERTEX_SELECT:TH_VERTEX);
+			glPointSize(size);
+			bglBegin(GL_POINTS);
+		} else {
+			bglVertex3fv(co);
+		}
 	}
 }
-static void draw_dm_verts(DerivedMesh *dm, int sel)
+static void draw_dm_verts(DerivedMesh *dm, int sel, EditVert *eve_act)
 {
+	struct { int sel; EditVert *eve_act; } data;
+	data.sel = sel;
+	data.eve_act = eve_act;
+	
 	bglBegin(GL_POINTS);
-	dm->foreachMappedVert(dm, draw_dm_verts__mapFunc, &sel);
+	dm->foreachMappedVert(dm, draw_dm_verts__mapFunc, &data);
 	bglEnd();
 }
 
@@ -1359,21 +1514,38 @@ static void draw_dm_verts(DerivedMesh *dm, int sel)
 static int draw_dm_edges_sel__setDrawOptions(void *userData, int index)
 {
 	EditEdge *eed = EM_get_edge_for_index(index);
-	unsigned char **cols = userData;
+	//unsigned char **cols = userData, *col;
+	struct { unsigned char *baseCol, *selCol, *actCol; EditEdge *eed_act; } * data = userData;
+	unsigned char *col;
 
 	if (eed->h==0) {
-		glColor4ubv(cols[(eed->f&SELECT)?1:0]);
+		if (eed==data->eed_act) {
+			glColor4ubv(data->actCol);
+		} else {
+			if (eed->f&SELECT) {
+				col = data->selCol;
+			} else {
+				col = data->baseCol;
+			}
+			/* no alpha, this is used so a transparent color can disable drawing unselected edges in editmode  */
+			if (col[3]==0) return 0;
+			
+			glColor4ubv(col);
+		}
 		return 1;
 	} else {
 		return 0;
 	}
 }
-static void draw_dm_edges_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol) 
+static void draw_dm_edges_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol, unsigned char *actCol, EditEdge *eed_act) 
 {
-	unsigned char *cols[2];
-	cols[0] = baseCol;
-	cols[1] = selCol;
-	dm->drawMappedEdges(dm, draw_dm_edges_sel__setDrawOptions, cols);
+	struct { unsigned char *baseCol, *selCol, *actCol; EditEdge *eed_act; } data;
+	
+	data.baseCol = baseCol;
+	data.selCol = selCol;
+	data.actCol = actCol;
+	data.eed_act = eed_act;
+	dm->drawMappedEdges(dm, draw_dm_edges_sel__setDrawOptions, &data);
 }
 
 	/* Draw edges */
@@ -1436,25 +1608,38 @@ static void draw_dm_edges_sharp(DerivedMesh *dm)
 }
 
 
-	/* Draw faces with color set based on selection */
+	/* Draw faces with color set based on selection
+	 * return 2 for the active face so it renders with stipple enabled */
 static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *drawSmooth_r)
 {
+	struct { unsigned char *cols[3]; EditFace *efa_act; } * data = userData;
 	EditFace *efa = EM_get_face_for_index(index);
-	unsigned char **cols = userData;
-
+	unsigned char *col;
+	
 	if (efa->h==0) {
-		glColor4ubv(cols[(efa->f&SELECT)?1:0]);
-		return 1;
-	} else {
-		return 0;
+		if (efa == data->efa_act) {
+			glColor4ubv(data->cols[2]);
+			return 2; /* stipple */
+		} else {
+			col = data->cols[(efa->f&SELECT)?1:0];
+			if (col[3]==0) return 0;
+			glColor4ubv(col);
+			return 1;
+		}
 	}
+	return 0;
 }
-static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol) 
+
+/* also draws the active face */
+static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol, unsigned char *actCol, EditFace *efa_act) 
 {
-	unsigned char *cols[2];
-	cols[0] = baseCol;
-	cols[1] = selCol;
-	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, cols, 0);
+	struct { unsigned char *cols[3]; EditFace *efa_act; } data;
+	data.cols[0] = baseCol;
+	data.cols[1] = selCol;
+	data.cols[2] = actCol;
+	data.efa_act = efa_act;
+	
+	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, &data, 0);
 }
 
 static int draw_dm_creases__setDrawOptions(void *userData, int index)
@@ -1475,6 +1660,41 @@ static void draw_dm_creases(DerivedMesh *dm)
 	glLineWidth(1.0);
 }
 
+static int draw_dm_bweights__setDrawOptions(void *userData, int index)
+{
+	EditEdge *eed = EM_get_edge_for_index(index);
+
+	if (eed->h==0 && eed->bweight!=0.0) {
+		BIF_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, eed->bweight);
+		return 1;
+	} else {
+		return 0;
+	}
+}
+static void draw_dm_bweights__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
+{
+	EditVert *eve = EM_get_vert_for_index(index);
+
+	if (eve->h==0 && eve->bweight!=0.0) {
+		BIF_ThemeColorBlend(TH_VERTEX, TH_VERTEX_SELECT, eve->bweight);
+		bglVertex3fv(co);
+	}
+}
+static void draw_dm_bweights(DerivedMesh *dm)
+{
+	if (G.scene->selectmode & SCE_SELECT_VERTEX) {
+		glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE) + 2);
+		bglBegin(GL_POINTS);
+		dm->foreachMappedVert(dm, draw_dm_bweights__mapFunc, NULL);
+		bglEnd();
+	}
+	else {
+		glLineWidth(3.0);
+		dm->drawMappedEdges(dm, draw_dm_bweights__setDrawOptions, NULL);
+		glLineWidth(1.0);
+	}
+}
+
 /* Second section of routines: Combine first sets to form fancy
  * drawing routines (for example rendering twice to get overlays).
  *
@@ -1484,7 +1704,7 @@ static void draw_dm_creases(DerivedMesh *dm)
 
 /* EditMesh drawing routines*/
 
-static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
+static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM, EditVert *eve_act)
 {
 	int sel;
 
@@ -1520,10 +1740,10 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 			if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 				glPointSize(size);
 				glColor4ubv((GLubyte *)col);
-				draw_dm_verts(cageDM, sel);
+				draw_dm_verts(cageDM, sel, eve_act);
 			}
 			
-			if(G.scene->selectmode & SCE_SELECT_FACE) {
+			if( CHECK_OB_DRAWFACEDOT(G.scene, G.vd, G.obedit->dt) ) {
 				glPointSize(fsize);
 				glColor4ubv((GLubyte *)fcol);
 				draw_dm_face_centers(cageDM, sel);
@@ -1540,14 +1760,20 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 	glPointSize(1.0);
 }
 
-static void draw_em_fancy_edges(DerivedMesh *cageDM)
+static void draw_em_fancy_edges(DerivedMesh *cageDM, short sel_only, EditEdge *eed_act)
 {
 	int pass;
-	unsigned char wire[4], sel[4];
+	unsigned char wireCol[4], selCol[4], actCol[4];
 
 	/* since this function does transparant... */
-	BIF_GetThemeColor3ubv(TH_EDGE_SELECT, (char *)sel);
-	BIF_GetThemeColor3ubv(TH_WIRE, (char *)wire);
+	BIF_GetThemeColor4ubv(TH_EDGE_SELECT, (char *)selCol);
+	BIF_GetThemeColor4ubv(TH_WIRE, (char *)wireCol);
+	BIF_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, (char *)actCol);
+	
+	/* when sel only is used, dont render wire, only selected, this is used for
+	 * textured draw mode when the 'edges' option is disabled */
+	if (sel_only)
+		wireCol[3] = 0;
 
 	for (pass=0; pass<2; pass++) {
 			/* show wires in transparant when no zbuf clipping for select */
@@ -1555,30 +1781,33 @@ static void draw_em_fancy_edges(DerivedMesh *cageDM)
 			if (G.vd->zbuf && (G.vd->flag & V3D_ZBUF_SELECT)==0) {
 				glEnable(GL_BLEND);
 				glDisable(GL_DEPTH_TEST);
-
-				wire[3] = sel[3] = 85;
+				selCol[3] = 85;
+				if (!sel_only) wireCol[3] = 85;
 			} else {
 				continue;
 			}
 		} else {
-			wire[3] = sel[3] = 255;
+			selCol[3] = 255;
+			if (!sel_only) wireCol[3] = 255;
 		}
 
 		if(G.scene->selectmode == SCE_SELECT_FACE) {
-			draw_dm_edges_sel(cageDM, wire, sel);
+			draw_dm_edges_sel(cageDM, wireCol, selCol, actCol, eed_act);
 		}	
 		else if( (G.f & G_DRAWEDGES) || (G.scene->selectmode & SCE_SELECT_EDGE) ) {	
 			if(cageDM->drawMappedEdgesInterp && (G.scene->selectmode & SCE_SELECT_VERTEX)) {
 				glShadeModel(GL_SMOOTH);
-				draw_dm_edges_sel_interp(cageDM, wire, sel);
+				draw_dm_edges_sel_interp(cageDM, wireCol, selCol);
 				glShadeModel(GL_FLAT);
 			} else {
-				draw_dm_edges_sel(cageDM, wire, sel);
+				draw_dm_edges_sel(cageDM, wireCol, selCol, actCol, eed_act);
 			}
 		}
 		else {
-			glColor4ubv(wire);
-			draw_dm_edges(cageDM);
+			if (!sel_only) {
+				glColor4ubv(wireCol);
+				draw_dm_edges(cageDM);
+			}
 		}
 
 		if (pass==0) {
@@ -1832,20 +2061,38 @@ static int draw_em_fancy__setFaceOpts(void *userData, int index, int *drawSmooth
 static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, int dt)
 {
 	Mesh *me = ob->data;
-
+	EditFace *efa_act = NULL;
+	EditEdge *eed_act = NULL;
+	EditVert *eve_act = NULL;
+	
+	if (G.editMesh->selected.last) {
+		EditSelection *ese = G.editMesh->selected.last;
+		if ( ese->type == EDITFACE ) {
+			efa_act = (EditFace *)ese->data;
+		} else if ( ese->type == EDITEDGE ) {
+			eed_act = (EditEdge *)ese->data;
+		} else if ( ese->type == EDITVERT ) {
+			eve_act = (EditVert *)ese->data;
+		}
+	}
+	
 	EM_init_index_arrays(1, 1, 1);
 
 	if(dt>OB_WIRE) {
-		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
+		if( CHECK_OB_DRAWTEXTURE(G.vd, dt) ) {
+			draw_mesh_textured(ob, finalDM, 0);
+		} else {
+			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
 
-		glEnable(GL_LIGHTING);
-		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+			glEnable(GL_LIGHTING);
+			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
-		finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, NULL, 0);
+			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, 0, 0);
 
-		glFrontFace(GL_CCW);
-		glDisable(GL_LIGHTING);
-		
+			glFrontFace(GL_CCW);
+			glDisable(GL_LIGHTING);
+		}
+			
 		// Setup for drawing wire over, disable zbuffer
 		// write to show selected edge wires better
 		BIF_ThemeColor(TH_WIRE);
@@ -1860,53 +2107,83 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 		}
 	}
 	
-	if((G.f & (G_FACESELECT+G_DRAWFACES))) {	/* transp faces */
-		unsigned char col1[4], col2[4];
+	if((G.f & (G_DRAWFACES)) || FACESEL_PAINT_TEST) {	/* transp faces */
+		unsigned char col1[4], col2[4], col3[4];
 			
 		BIF_GetThemeColor4ubv(TH_FACE, (char *)col1);
 		BIF_GetThemeColor4ubv(TH_FACE_SELECT, (char *)col2);
+		BIF_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, (char *)col3);
 		
 		glEnable(GL_BLEND);
 		glDepthMask(0);		// disable write in zbuffer, needed for nice transp
 		
-		draw_dm_faces_sel(cageDM, col1, col2);
+		/* dont draw unselected faces, only selected, this is MUCH nicer when texturing */
+		if CHECK_OB_DRAWTEXTURE(G.vd, dt)
+			col1[3] = 0;
+		
+		draw_dm_faces_sel(cageDM, col1, col2, col3, efa_act);
 
 		glDisable(GL_BLEND);
 		glDepthMask(1);		// restore write in zbuffer
+	} else if (efa_act) {
+		/* even if draw faces is off it would be nice to draw the stipple face
+		 * Make all other faces zero alpha except for the active
+		 * */
+		unsigned char col1[4], col2[4], col3[4];
+		col1[3] = col2[3] = 0; /* dont draw */
+		BIF_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, (char *)col3);
+		
+		glEnable(GL_BLEND);
+		glDepthMask(0);		// disable write in zbuffer, needed for nice transp
+		
+		draw_dm_faces_sel(cageDM, col1, col2, col3, efa_act);
+
+		glDisable(GL_BLEND);
+		glDepthMask(1);		// restore write in zbuffer
+		
 	}
 
 	/* here starts all fancy draw-extra over */
-
-	if(G.f & G_DRAWSEAMS) {
-		BIF_ThemeColor(TH_EDGE_SEAM);
-		glLineWidth(2);
-
-		draw_dm_edges_seams(cageDM);
-
-		glColor3ub(0,0,0);
-		glLineWidth(1);
-	}
+	if((G.f & G_DRAWEDGES)==0 && CHECK_OB_DRAWTEXTURE(G.vd, dt)) {
+		/* we are drawing textures and 'G_DRAWEDGES' is disabled, dont draw any edges */
+		
+		/* only draw selected edges otherwise there is no way of telling if a face is selected */
+		draw_em_fancy_edges(cageDM, 1, eed_act);
+		
+	} else {
+		if(G.f & G_DRAWSEAMS) {
+			BIF_ThemeColor(TH_EDGE_SEAM);
+			glLineWidth(2);
 	
-	if(G.f & G_DRAWSHARP) {
-		BIF_ThemeColor(TH_EDGE_SHARP);
-		glLineWidth(2);
-
-		draw_dm_edges_sharp(cageDM);
-
-		glColor3ub(0,0,0);
-		glLineWidth(1);
+			draw_dm_edges_seams(cageDM);
+	
+			glColor3ub(0,0,0);
+			glLineWidth(1);
+		}
+		
+		if(G.f & G_DRAWSHARP) {
+			BIF_ThemeColor(TH_EDGE_SHARP);
+			glLineWidth(2);
+	
+			draw_dm_edges_sharp(cageDM);
+	
+			glColor3ub(0,0,0);
+			glLineWidth(1);
+		}
+	
+		if(G.f & G_DRAWCREASES) {
+			draw_dm_creases(cageDM);
+		}
+		if(G.f & G_DRAWBWEIGHTS) {
+			draw_dm_bweights(cageDM);
+		}
+	
+		draw_em_fancy_edges(cageDM, 0, eed_act);
 	}
-
-	if(G.f & G_DRAWCREASES) {
-		draw_dm_creases(cageDM);
-	}
-
-	draw_em_fancy_edges(cageDM);
-
 	if(ob==G.obedit) {
 		retopo_matrix_update(G.vd);
 
-		draw_em_fancy_verts(em, cageDM);
+		draw_em_fancy_verts(em, cageDM, eve_act);
 
 		if(G.f & G_DRAWNORMALS) {
 			BIF_ThemeColor(TH_NORMAL);
@@ -1991,14 +2268,14 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 		else totface = 0;
 	}
 	else {
-		totvert = me->totvert;
-		totedge = me->totedge;
-		totface = me->totface;
+		totvert = dm->getNumVerts(dm);
+		totedge = dm->getNumEdges(dm);
+		totface = dm->getNumFaces(dm);
 	}
 #else
-	totvert = me->totvert;
-	totedge = me->totedge;
-	totface = me->totface;
+	totvert = dm->getNumVerts(dm);
+	totedge = dm->getNumEdges(dm);
+	totface = dm->getNumFaces(dm);
 #endif
 	
 	/* vertexpaint, faceselect wants this, but it doesnt work for shaded? */
@@ -2006,7 +2283,7 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 		// Unwanted combination.
-	if (ob==OBACT && (G.f&G_FACESELECT)) draw_wire = 0;
+	if (ob==OBACT && FACESEL_PAINT_TEST) draw_wire = 0;
 
 	if(dt==OB_BOUNDBOX) {
 		draw_bounding_volume(ob);
@@ -2019,13 +2296,25 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 	else if(dt==OB_WIRE || totface==0) {
 		draw_wire = 1;
 	}
-	else if( (ob==OBACT && (G.f & (G_FACESELECT|G_TEXTUREPAINT))) || (G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID)) {
-		
-		if ((G.vd->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !(G.f&(G_FACESELECT|G_PICKSEL)) && !draw_wire) {
+	else if(	(ob==OBACT && (G.f & G_TEXTUREPAINT || FACESEL_PAINT_TEST)) ||
+				CHECK_OB_DRAWTEXTURE(G.vd, dt))
+	{
+		int faceselect= (ob==OBACT && FACESEL_PAINT_TEST);
+
+		if ((G.vd->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !(G.f&G_PICKSEL || FACESEL_PAINT_TEST) && !draw_wire) {
 			draw_mesh_object_outline(ob, dm);
 		}
 
-		draw_tface_mesh(ob, ob->data, dt);
+		draw_mesh_textured(ob, dm, faceselect);
+
+		if(!faceselect) {
+			if(base->flag & SELECT)
+				BIF_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
+			else
+				BIF_ThemeColor(TH_WIRE);
+
+			dm->drawLooseEdges(dm);
+		}
 	}
 	else if(dt==OB_SOLID ) {
 		
@@ -2075,7 +2364,7 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 			else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->mcol) {
 				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 1);
 			}
-			else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->mtface) {
+			else if(G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) {
 				glColor3f(1.0f, 1.0f, 1.0f);
 				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 0);
 			}
@@ -2180,18 +2469,16 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 		if(dt>OB_WIRE) init_gl_materials(ob, 0);	// no transp in editmode, the fancy draw over goes bad then
 		draw_em_fancy(ob, G.editMesh, cageDM, finalDM, dt);
 
-		if (cageDM != finalDM)
-			cageDM->release(cageDM);
-		finalDM->release(finalDM);
+		if (G.obedit!=ob && finalDM)
+			finalDM->release(finalDM);
 	}
-	else if(!G.obedit && (G.f & G_SCULPTMODE) &&(G.scene->sculptdata.draw_flag & SCULPTDRAW_FAST) &&
+	else if(!G.obedit && (G.f & G_SCULPTMODE) &&(G.scene->sculptdata.flags & SCULPT_DRAW_FAST) &&
 	        OBACT==ob && !sculpt_modifiers_active(ob)) {
 		sculptmode_draw_mesh(0);
 	}
 	else {
 		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */
-		
-		if(me->totface<=4 || boundbox_clip(ob->obmat, me->bb)) {
+		if(me->totface<=4 || boundbox_clip(ob->obmat, (ob->bb)? ob->bb: me->bb)) {
 			if(dt==OB_SOLID) has_alpha= init_gl_materials(ob, (base->flag & OB_FROMDUPLI)==0);
 			draw_mesh_fancy(base, dt, flag);
 			
@@ -2608,9 +2895,9 @@ static void draw_particle_system(Base *base, PartEff *paf)
 		mymultmatrix(mat);
 	}
 	
-	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= ob->sf;
+	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= give_timeoffset(ob);
 	else ptime= 0.0;
-	ctime= bsystem_time(ob, 0, (float)(G.scene->r.cfra), ptime);
+	ctime= bsystem_time(ob, (float)(G.scene->r.cfra), ptime);
 
 	glPointSize(1.0);
 	
@@ -2718,6 +3005,757 @@ static void draw_static_particle_system(Object *ob, PartEff *paf, int dt)
 	
 }
 
+/* unified drawing of all new particle systems draw types except dupli ob & group	*/
+/* mostly tries to use vertex arrays for speed										*/
+
+/* 1. check that everything is ok & updated */
+/* 2. start initialising things				*/
+/* 3. initialize according to draw type		*/
+/* 4. allocate drawing data arrays			*/
+/* 5. start filling the arrays				*/
+/* 6. draw the arrays						*/
+/* 7. clean up								*/
+static void draw_new_particle_system(Base *base, ParticleSystem *psys)
+{
+	View3D *v3d= G.vd;
+	Object *ob=base->object;
+	ParticleSystemModifierData *psmd;
+	ParticleSettings *part;
+	ParticleData *pars, *pa;
+	ParticleKey state, *states=0;
+	ParticleCacheKey *cache=0;
+	Material *ma;
+	Object *bb_ob=0;
+	float vel[3], vec[3], vec2[3], imat[4][4], onevec[3]={0.0f,0.0f,0.0f}, bb_center[3];
+	float timestep, pixsize=1.0, pa_size, pa_time, r_tilt;
+	float cfra=bsystem_time(ob,(float)CFRA,0.0);
+	float *vdata=0, *vedata=0, *cdata=0, *ndata=0, *vd=0, *ved=0, *cd=0, *nd=0, xvec[3], yvec[3], zvec[3];
+	int a, k, k_max=0, totpart, totpoint=0, draw_as, path_nbr=0;
+	int path_possible=0, keys_possible=0, draw_keys=0, totchild=0;
+	int select=ob->flag&SELECT;
+	GLint polygonmode[2];
+	char val[32];
+
+/* 1. */
+	if(psys==0)
+		return;
+
+	part=psys->part;
+	pars=psys->particles;
+
+	if(part==0 || !psys_check_enabled(ob, psys))
+		return;
+
+	if(pars==0) return;
+
+	if(!G.obedit && psys_in_edit_mode(psys)
+		&& psys->flag & PSYS_HAIR_DONE && part->draw_as==PART_DRAW_PATH)
+		return;
+		
+	if(part->draw_as==PART_DRAW_NOT) return;
+
+/* 2. */
+	if(part->phystype==PART_PHYS_KEYED){
+		if(psys->flag & PSYS_FIRST_KEYED){
+			if(psys->flag&PSYS_KEYED){
+				select=psys_count_keyed_targets(ob,psys);
+				if(psys->totkeyed==0)
+					return;
+			}
+		}
+		else
+			return;
+	}
+
+	if(select){
+		select=0;
+		if(psys_get_current(ob)==psys)
+			select=1;
+	}
+
+	psys->flag|=PSYS_DRAWING;
+
+	if(part->type==PART_HAIR && !psys->childcache)
+		totchild=0;
+	else
+		totchild=psys->totchild*part->disp/100;
+	
+	ma= give_current_material(ob,part->omat);
+
+	if(select)
+		cpack(0xFFFFFF);
+	else if((ma) && (part->draw&PART_DRAW_MAT_COL))
+		glColor3f(ma->r,ma->g,ma->b);
+	else
+		cpack(0);
+
+	psmd= psys_get_modifier(ob,psys);
+
+	timestep= psys_get_timestep(part);
+
+	myloadmatrix(G.vd->viewmat);
+
+	if( (base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP) ) {
+		float mat[4][4];
+		Mat4MulMat4(mat, psys->imat, ob->obmat);
+		mymultmatrix(mat);
+	}
+
+	totpart=psys->totpart;
+	draw_as=part->draw_as;
+
+	if(part->flag&PART_ABS_TIME && part->ipo){
+		calc_ipo(part->ipo, cfra);
+		execute_ipo((ID *)part, part->ipo);
+	}
+
+	if(part->flag&PART_GLOB_TIME)
+		cfra=bsystem_time(0,(float)CFRA,0.0);
+
+	if(psys->pathcache){
+		path_possible=1;
+		keys_possible=1;
+	}
+	if(draw_as==PART_DRAW_PATH && path_possible==0)
+		draw_as=PART_DRAW_DOT;
+
+	if(draw_as!=PART_DRAW_PATH && keys_possible && part->draw&PART_DRAW_KEYS){
+		path_nbr=part->keys_step;
+		draw_keys=1;
+	}
+
+/* 3. */
+	switch(draw_as){
+		case PART_DRAW_DOT:
+			if(part->draw_size)
+				glPointSize(part->draw_size);
+			else
+				glPointSize(2.0); /* default dot size */
+			break;
+		case PART_DRAW_CIRC:
+			/* calculate view aligned matrix: */
+			Mat4CpyMat4(imat, G.vd->viewinv);
+			Normalize(imat[0]);
+			Normalize(imat[1]);
+			/* no break! */
+		case PART_DRAW_CROSS:
+		case PART_DRAW_AXIS:
+			/* lets calculate the scale: */
+			pixsize= v3d->persmat[0][3]*ob->obmat[3][0]+ v3d->persmat[1][3]*ob->obmat[3][1]+ v3d->persmat[2][3]*ob->obmat[3][2]+ v3d->persmat[3][3];
+			pixsize*= v3d->pixsize;
+			if(part->draw_size==0.0)
+				pixsize*=2.0;
+			else
+				pixsize*=part->draw_size;
+			break;
+		case PART_DRAW_OB:
+			if(part->dup_ob==0)
+				draw_as=PART_DRAW_DOT;
+			else
+				draw_as=0;
+			break;
+		case PART_DRAW_GR:
+			if(part->dup_group==0)
+				draw_as=PART_DRAW_DOT;
+			else
+				draw_as=0;
+			break;
+		case PART_DRAW_BB:
+			if(G.vd->camera==0 && part->bb_ob==0){
+				error("Billboards need an active camera or a target object!");
+
+				draw_as=part->draw_as=PART_DRAW_DOT;
+
+				if(part->draw_size)
+					glPointSize(part->draw_size);
+				else
+					glPointSize(2.0); /* default dot size */
+			}
+			else if(part->bb_ob)
+				bb_ob=part->bb_ob;
+			else
+				bb_ob=G.vd->camera;
+
+			if(part->bb_align<PART_BB_VIEW)
+				onevec[part->bb_align]=1.0f;
+			break;
+		case PART_DRAW_PATH:
+			break;
+	}
+	if(part->draw & PART_DRAW_SIZE && part->draw_as!=PART_DRAW_CIRC){
+		Mat4CpyMat4(imat, G.vd->viewinv);
+		Normalize(imat[0]);
+		Normalize(imat[1]);
+	}
+
+/* 4. */
+	if(draw_as && draw_as!=PART_DRAW_PATH){
+		if(draw_as!=PART_DRAW_CIRC){
+			switch(draw_as){
+				case PART_DRAW_AXIS:
+					cdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*6*3*sizeof(float), "particle_cdata");
+					/* no break! */
+				case PART_DRAW_CROSS:
+					vdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*6*3*sizeof(float), "particle_vdata");
+					break;
+				case PART_DRAW_LINE:
+					vdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*2*3*sizeof(float), "particle_vdata");
+					break;
+				case PART_DRAW_BB:
+					vdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*4*3*sizeof(float), "particle_vdata");
+					ndata=MEM_callocN((totpart+totchild)*(path_nbr+1)*4*3*sizeof(float), "particle_vdata");
+					break;
+				default:
+					vdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*3*sizeof(float), "particle_vdata");
+			}
+		}
+
+		if(part->draw&PART_DRAW_VEL && draw_as!=PART_DRAW_LINE)
+			vedata=MEM_callocN((totpart+totchild)*2*3*(path_nbr+1)*sizeof(float), "particle_vedata");
+
+		vd=vdata;
+		ved=vedata;
+		cd=cdata;
+		nd=ndata;
+
+		psys->lattice=psys_get_lattice(ob,psys);
+	}
+
+	if(draw_as){
+/* 5. */
+		for(a=0,pa=pars; a<totpart+totchild; a++, pa++){
+			if(a<totpart){
+				if(totchild && (part->draw&PART_DRAW_PARENT)==0) continue;
+				if(pa->flag & PARS_NO_DISP || pa->flag & PARS_UNEXIST) continue;
+
+				pa_time=(cfra-pa->time)/pa->lifetime;
+
+				if((part->flag&PART_ABS_TIME)==0 && part->ipo){
+					calc_ipo(part->ipo, 100*pa_time);
+					execute_ipo((ID *)part, part->ipo);
+				}
+
+				pa_size=pa->size;
+
+				r_tilt=1.0f+pa->r_ave[0];
+
+				if(path_nbr){
+					cache=psys->pathcache[a];
+					k_max=(int)(cache->steps);
+				}
+			}
+			else{
+				ChildParticle *cpa= &psys->child[a-totpart];
+
+				pa_time=psys_get_child_time(psys,cpa,cfra);
+
+				if((part->flag&PART_ABS_TIME)==0 && part->ipo){
+					calc_ipo(part->ipo, 100*pa_time);
+					execute_ipo((ID *)part, part->ipo);
+				}
+
+				pa_size=psys_get_child_size(psys,cpa,cfra,0);
+
+				r_tilt=2.0f*cpa->rand[2];
+				if(path_nbr){
+					cache=psys->childcache[a-totpart];
+					k_max=(int)(cache->steps);
+				}
+			}
+
+			if(draw_as!=PART_DRAW_PATH){
+				int next_pa=0;
+				for(k=0; k<=path_nbr; k++){
+					if(draw_keys){
+						state.time=(float)k/(float)path_nbr;
+						psys_get_particle_on_path(ob,psys,a,&state,1);
+					}
+					else if(path_nbr){
+						if(k<=k_max){
+							VECCOPY(state.co,(cache+k)->co);
+							VECCOPY(state.vel,(cache+k)->vel);
+							QUATCOPY(state.rot,(cache+k)->rot);
+						}
+						else
+							continue;	
+					}
+					else{
+						state.time=cfra;
+						if(psys_get_particle_state(ob,psys,a,&state,0)==0){
+							next_pa=1;
+							break;
+						}
+					}
+
+					switch(draw_as){
+						case PART_DRAW_DOT:
+							if(vd){
+								VECCOPY(vd,state.co) vd+=3;
+							}
+							break;
+						case PART_DRAW_CROSS:
+						case PART_DRAW_AXIS:
+							vec[0]=2.0f*pixsize;
+							vec[1]=vec[2]=0.0;
+							QuatMulVecf(state.rot,vec);
+							if(draw_as==PART_DRAW_AXIS){
+								cd[1]=cd[2]=cd[4]=cd[5]=0.0;
+								cd[0]=cd[3]=1.0;
+								cd[6]=cd[8]=cd[9]=cd[11]=0.0;
+								cd[7]=cd[10]=1.0;
+								cd[13]=cd[12]=cd[15]=cd[16]=0.0;
+								cd[14]=cd[17]=1.0;
+								cd+=18;
+
+								VECCOPY(vec2,state.co);
+							}
+							else VECSUB(vec2,state.co,vec);
+
+							VECADD(vec,state.co,vec);
+							VECCOPY(vd,vec); vd+=3;
+							VECCOPY(vd,vec2); vd+=3;
+								
+							vec[1]=2.0f*pixsize;
+							vec[0]=vec[2]=0.0;
+							QuatMulVecf(state.rot,vec);
+							if(draw_as==PART_DRAW_AXIS){
+								VECCOPY(vec2,state.co);
+							}		
+							else VECSUB(vec2,state.co,vec);
+
+							VECADD(vec,state.co,vec);
+							VECCOPY(vd,vec); vd+=3;
+							VECCOPY(vd,vec2); vd+=3;
+
+							vec[2]=2.0f*pixsize;
+							vec[0]=vec[1]=0.0;
+							QuatMulVecf(state.rot,vec);
+							if(draw_as==PART_DRAW_AXIS){
+								VECCOPY(vec2,state.co);
+							}
+							else VECSUB(vec2,state.co,vec);
+
+							VECADD(vec,state.co,vec);
+
+							VECCOPY(vd,vec); vd+=3;
+							VECCOPY(vd,vec2); vd+=3;
+							break;
+						case PART_DRAW_LINE:
+							VECCOPY(vec,state.vel);
+							Normalize(vec);
+							if(part->draw & PART_DRAW_VEL_LENGTH)
+								VecMulf(vec,VecLength(state.vel));
+							VECADDFAC(vd,state.co,vec,-part->draw_line[0]); vd+=3;
+							VECADDFAC(vd,state.co,vec,part->draw_line[1]); vd+=3;
+							break;
+						case PART_DRAW_CIRC:
+							drawcircball(GL_LINE_LOOP, state.co, pixsize, imat);
+							break;
+						case PART_DRAW_BB:
+							if(part->draw&PART_DRAW_BB_LOCK && part->bb_align==PART_BB_VIEW){
+								VECCOPY(xvec,bb_ob->obmat[0]);
+								Normalize(xvec);
+								VECCOPY(yvec,bb_ob->obmat[1]);
+								Normalize(yvec);
+								VECCOPY(zvec,bb_ob->obmat[2]);
+								Normalize(zvec);
+							}
+							else if(part->bb_align==PART_BB_VEL){
+								float temp[3];
+								VECCOPY(temp,state.vel);
+								Normalize(temp);
+								VECSUB(zvec,bb_ob->obmat[3],state.co);
+								if(part->draw&PART_DRAW_BB_LOCK){
+									float fac=-Inpf(zvec,temp);
+									VECADDFAC(zvec,zvec,temp,fac);
+								}
+								Normalize(zvec);
+								Crossf(xvec,temp,zvec);
+								Normalize(xvec);
+								Crossf(yvec,zvec,xvec);
+							}
+							else{
+								VECSUB(zvec,bb_ob->obmat[3],state.co);
+								if(part->draw&PART_DRAW_BB_LOCK)
+									zvec[part->bb_align]=0.0f;
+								Normalize(zvec);
+
+								if(part->bb_align<PART_BB_VIEW)
+									Crossf(xvec,onevec,zvec);
+								else
+									Crossf(xvec,bb_ob->obmat[1],zvec);
+								Normalize(xvec);
+								Crossf(yvec,zvec,xvec);
+							}
+
+							VECCOPY(vec,xvec);
+							VECCOPY(vec2,yvec);
+
+							VecMulf(xvec,cos(part->bb_tilt*(1.0f-part->bb_rand_tilt*r_tilt)*(float)M_PI));
+							VecMulf(vec2,sin(part->bb_tilt*(1.0f-part->bb_rand_tilt*r_tilt)*(float)M_PI));
+							VECADD(xvec,xvec,vec2);
+
+							VecMulf(yvec,cos(part->bb_tilt*(1.0f-part->bb_rand_tilt*r_tilt)*(float)M_PI));
+							VecMulf(vec,-sin(part->bb_tilt*(1.0f-part->bb_rand_tilt*r_tilt)*(float)M_PI));
+							VECADD(yvec,yvec,vec);
+
+							VecMulf(xvec,pa_size);
+							VecMulf(yvec,pa_size);
+
+							VECADDFAC(bb_center,state.co,xvec,part->bb_offset[0]);
+							VECADDFAC(bb_center,bb_center,yvec,part->bb_offset[1]);
+
+							VECADD(vd,bb_center,xvec);
+							VECADD(vd,vd,yvec); vd+=3;
+
+							VECSUB(vd,bb_center,xvec);
+							VECADD(vd,vd,yvec); vd+=3;
+
+							VECSUB(vd,bb_center,xvec);
+							VECSUB(vd,vd,yvec); vd+=3;
+
+							VECADD(vd,bb_center,xvec);
+							VECSUB(vd,vd,yvec); vd+=3;
+
+							VECCOPY(nd, zvec); nd+=3;
+							VECCOPY(nd, zvec); nd+=3;
+							VECCOPY(nd, zvec); nd+=3;
+							VECCOPY(nd, zvec); nd+=3;
+							break;
+					}
+
+					if(vedata){
+						VECCOPY(ved,state.co);
+						ved+=3;
+						VECCOPY(vel,state.vel);
+						VecMulf(vel,timestep);
+						VECADD(ved,state.co,vel);
+						ved+=3;
+					}
+
+					if(part->draw & PART_DRAW_SIZE){
+						setlinestyle(3);
+						drawcircball(GL_LINE_LOOP, state.co, pa_size, imat);
+						setlinestyle(0);
+					}
+
+					totpoint++;
+				}
+				if(next_pa)
+						continue;
+				if(part->draw&PART_DRAW_NUM){
+					/* in path drawing state.co is the end point */
+					glRasterPos3f(state.co[0],  state.co[1],  state.co[2]);
+					sprintf(val," %i",a);
+					BMF_DrawString(G.font, val);
+				}
+			}
+		}
+/* 6. */
+
+		glGetIntegerv(GL_POLYGON_MODE, polygonmode);
+		glDisableClientState(GL_NORMAL_ARRAY);
+
+		if(draw_as != PART_DRAW_CIRC){
+			if(draw_as==PART_DRAW_PATH){
+				ParticleCacheKey **cache, *path;
+				float *cd2=0,*cdata2=0;
+
+				glEnableClientState(GL_VERTEX_ARRAY);
+				glEnableClientState(GL_NORMAL_ARRAY);
+				glEnable(GL_LIGHTING);
+
+				glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+				glEnable(GL_COLOR_MATERIAL);
+
+				if(part->draw&PART_DRAW_MAT_COL)
+					glEnableClientState(GL_COLOR_ARRAY);
+
+				if(totchild && (part->draw&PART_DRAW_PARENT)==0)
+					totpart=0;
+
+				cache=psys->pathcache;
+				for(a=0, pa=psys->particles; a<totpart; a++, pa++){
+					path=cache[a];
+					glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
+					glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
+					if(part->draw&PART_DRAW_MAT_COL)
+						glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
+					glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
+				}
+				
+				cache=psys->childcache;
+				for(a=0; a<totchild; a++){
+					path=cache[a];
+					glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
+					glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
+					if(part->draw&PART_DRAW_MAT_COL)
+						glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
+					glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
+				}
+
+				if(part->draw&PART_DRAW_MAT_COL)
+					glDisable(GL_COLOR_ARRAY);
+				glDisable(GL_COLOR_MATERIAL);
+
+				if(cdata2)
+					MEM_freeN(cdata2);
+				cd2=cdata2=0;
+
+				glLineWidth(1.0f);
+
+				/* draw particle edit mode key points*/
+			}
+
+			if(draw_as!=PART_DRAW_PATH){
+				glDisableClientState(GL_COLOR_ARRAY);
+
+				if(vdata){
+					glEnableClientState(GL_VERTEX_ARRAY);
+					glVertexPointer(3, GL_FLOAT, 0, vdata);
+				}
+				else
+					glDisableClientState(GL_VERTEX_ARRAY);
+
+				if(ndata && MIN2(G.vd->drawtype, ob->dt)>OB_WIRE){
+					glEnableClientState(GL_NORMAL_ARRAY);
+					glNormalPointer(GL_FLOAT, 0, ndata);
+					glEnable(GL_LIGHTING);
+				}
+				else{
+					glDisableClientState(GL_NORMAL_ARRAY);
+					glDisable(GL_LIGHTING);
+				}
+
+				switch(draw_as){
+					case PART_DRAW_AXIS:
+					case PART_DRAW_CROSS:
+						if(cdata){
+							glEnableClientState(GL_COLOR_ARRAY);
+							glColorPointer(3, GL_FLOAT, 0, cdata);
+						}
+						glDrawArrays(GL_LINES, 0, 6*totpoint);
+						break;
+					case PART_DRAW_LINE:
+						glDrawArrays(GL_LINES, 0, 2*totpoint);
+						break;
+					case PART_DRAW_BB:
+						if(MIN2(G.vd->drawtype, ob->dt)<=OB_WIRE)
+							glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+
+						glDrawArrays(GL_QUADS, 0, 4*totpoint);
+						break;
+					default:
+						glDrawArrays(GL_POINTS, 0, totpoint);
+						break;
+				}
+			}
+
+		}
+		if(vedata){
+			glDisableClientState(GL_COLOR_ARRAY);
+			cpack(0xC0C0C0);
+			
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glVertexPointer(3, GL_FLOAT, 0, vedata);
+			
+			glDrawArrays(GL_LINES, 0, 2*totpoint);
+		}
+
+		glPolygonMode(GL_FRONT, polygonmode[0]);
+		glPolygonMode(GL_BACK, polygonmode[1]);
+	}
+
+/* 7. */
+	
+	glDisable(GL_LIGHTING);
+	glDisableClientState(GL_COLOR_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+#if 0 /* If this is needed, it cant be enabled in wire mode, since it messes up the view - Campbell */
+	glEnable(GL_DEPTH_TEST);
+#endif
+
+	if(states)
+		MEM_freeN(states);
+	if(vdata)
+		MEM_freeN(vdata);
+	if(vedata)
+		MEM_freeN(vedata);
+	if(cdata)
+		MEM_freeN(cdata);
+	if(ndata)
+		MEM_freeN(ndata);
+
+	psys->flag &= ~PSYS_DRAWING;
+
+	if(psys->lattice){
+		end_latt_deform();
+		psys->lattice=0;
+	}
+
+	myloadmatrix(G.vd->viewmat);
+	mymultmatrix(ob->obmat);	// bring back local matrix for dtx
+}
+
+static void draw_particle_edit(Object *ob, ParticleSystem *psys)
+{
+	ParticleEdit *edit = psys->edit;
+	ParticleData *pa;
+	ParticleCacheKey **path;
+	ParticleEditKey *key;
+	ParticleEditSettings *pset = PE_settings();
+	int i, k, totpart = psys->totpart, totchild=0, timed = pset->draw_timed;
+	char nosel[4], sel[4];
+	float sel_col[3];
+	float nosel_col[3];
+	char val[32];
+
+	if(psys->pathcache==0){
+		PE_hide_keys_time(psys,CFRA);
+		psys_cache_paths(ob,psys,CFRA,0);
+	}
+
+	if(pset->flag & PE_SHOW_CHILD && psys->part->draw_as == PART_DRAW_PATH) {
+		if(psys->childcache==0)
+			psys_cache_child_paths(ob, psys, CFRA, 0);
+	}
+	else if(!(pset->flag & PE_SHOW_CHILD) && psys->childcache)
+		free_child_path_cache(psys);
+
+	if((G.vd->flag & V3D_ZBUF_SELECT)==0)
+		glDisable(GL_DEPTH_TEST);
+
+	myloadmatrix(G.vd->viewmat);
+
+	BIF_GetThemeColor3ubv(TH_VERTEX_SELECT, sel);
+	BIF_GetThemeColor3ubv(TH_VERTEX, nosel);
+	sel_col[0]=(float)sel[0]/255.0f;
+	sel_col[1]=(float)sel[1]/255.0f;
+	sel_col[2]=(float)sel[2]/255.0f;
+	nosel_col[0]=(float)nosel[0]/255.0f;
+	nosel_col[1]=(float)nosel[1]/255.0f;
+	nosel_col[2]=(float)nosel[2]/255.0f;
+
+	if(psys->childcache)
+		totchild = psys->totchildcache;
+
+	/* draw paths */
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
+	if(timed)
+		glEnable(GL_BLEND);
+
+	if(pset->brushtype == PE_BRUSH_WEIGHT){
+		glLineWidth(2.0f);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glDisable(GL_LIGHTING);
+	}
+
+	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+	glEnable(GL_COLOR_MATERIAL);
+
+	for(i=0, pa=psys->particles, path = psys->pathcache; i<totpart; i++, pa++, path++){
+		glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->co);
+		glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), (*path)->vel);
+		glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->col);
+
+		glDrawArrays(GL_LINE_STRIP, 0, (int)(*path)->steps + 1);
+	}
+
+	glEnable(GL_LIGHTING);
+	if(psys->part->draw_as == PART_DRAW_PATH) {
+		for(i=0, path=psys->childcache; i<totchild; i++,path++){
+			glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->co);
+			glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), (*path)->vel);
+			glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->col);
+
+			glDrawArrays(GL_LINE_STRIP, 0, (int)(*path)->steps + 1);
+		}
+	}
+
+	glDisable(GL_COLOR_MATERIAL);
+
+	/* draw edit vertices */
+	if(G.scene->selectmode!=SCE_SELECT_PATH){
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glDisable(GL_LIGHTING);
+		glPointSize(4.0f);
+
+		if(G.scene->selectmode==SCE_SELECT_POINT){
+			float *cd=0,*cdata=0;
+			cd=cdata=MEM_callocN(edit->totkeys*(timed?4:3)*sizeof(float), "particle edit color data");
+
+			for(i=0, pa=psys->particles; i<totpart; i++, pa++){
+				for(k=0, key=edit->keys[i]; k<pa->totkey; k++, key++){
+					if(key->flag&PEK_SELECT){
+						VECCOPY(cd,sel_col);
+					}
+					else{
+						VECCOPY(cd,nosel_col);
+					}
+					if(timed)
+						*(cd+3) = (key->flag&PEK_HIDE)?0.0f:1.0f;
+					cd += (timed?4:3);
+				}
+			}
+			cd=cdata;
+			for(i=0, pa=psys->particles; i<totpart; i++, pa++){
+				if((pa->flag & PARS_HIDE)==0){
+					glVertexPointer(3, GL_FLOAT, sizeof(ParticleEditKey), edit->keys[i]->world_co);
+					glColorPointer((timed?4:3), GL_FLOAT, (timed?4:3)*sizeof(float), cd);
+					glDrawArrays(GL_POINTS, 0, pa->totkey);
+				}
+				cd += (timed?4:3) * pa->totkey;
+
+				if(pset->flag&PE_SHOW_TIME && (pa->flag&PARS_HIDE)==0){
+					for(k=0, key=edit->keys[i]+k; k<pa->totkey; k++, key++){
+						if(key->flag & PEK_HIDE) continue;
+
+						glRasterPos3fv(key->world_co);
+						sprintf(val," %.1f",*key->time);
+						BMF_DrawString(G.font, val);
+					}
+				}
+			}
+			if(cdata)
+				MEM_freeN(cdata);
+			cd=cdata=0;
+		}
+		else if(G.scene->selectmode == SCE_SELECT_END){
+			for(i=0, pa=psys->particles; i<totpart; i++, pa++){
+				if((pa->flag & PARS_HIDE)==0){
+					key = edit->keys[i] + pa->totkey - 1;
+					if(key->flag & PEK_SELECT)
+						glColor3fv(sel_col);
+					else
+						glColor3fv(nosel_col);
+					/* has to be like this.. otherwise selection won't work, have try glArrayElement later..*/
+					glBegin(GL_POINTS);
+					glVertex3fv(key->world_co);
+					glEnd();
+
+					if(pset->flag & PE_SHOW_TIME){
+						glRasterPos3fv(key->world_co);
+						sprintf(val," %.1f",*key->time);
+						BMF_DrawString(G.font, val);
+					}
+				}
+			}
+		}
+	}
+
+	glDisable(GL_BLEND);
+	glDisable(GL_LIGHTING);
+	glDisableClientState(GL_COLOR_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnable(GL_DEPTH_TEST);
+	glLineWidth(1.0f);
+
+	mymultmatrix(ob->obmat);	// bring back local matrix for dtx
+}
+
 unsigned int nurbcol[8]= {
 	0, 0x9090, 0x409030, 0x603080, 0, 0x40fff0, 0x40c033, 0xA090F0 };
 
@@ -2727,8 +3765,8 @@ static void tekenhandlesN(Nurb *nu, short sel)
 	float *fp;
 	unsigned int *col;
 	int a;
-
-	if(nu->hide) return;
+	
+	if(nu->hide || (G.f & G_HIDDENHANDLES)) return;
 	
 	glBegin(GL_LINES); 
 	
@@ -2740,7 +3778,7 @@ static void tekenhandlesN(Nurb *nu, short sel)
 		a= nu->pntsu;
 		while(a--) {
 			if(bezt->hide==0) {
-				if( (bezt->f2 & 1)==sel) {
+				if( (bezt->f2 & SELECT)==sel) {
 					fp= bezt->vec[0];
 					
 					cpack(col[bezt->h1]);
@@ -2751,14 +3789,14 @@ static void tekenhandlesN(Nurb *nu, short sel)
 					glVertex3fv(fp+3); 
 					glVertex3fv(fp+6); 
 				}
-				else if( (bezt->f1 & 1)==sel) {
+				else if( (bezt->f1 & SELECT)==sel) {
 					fp= bezt->vec[0];
 					
 					cpack(col[bezt->h1]);
 					glVertex3fv(fp); 
 					glVertex3fv(fp+3); 
 				}
-				else if( (bezt->f3 & 1)==sel) {
+				else if( (bezt->f3 & SELECT)==sel) {
 					fp= bezt->vec[1];
 					
 					cpack(col[bezt->h2]);
@@ -2795,9 +3833,13 @@ static void tekenvertsN(Nurb *nu, short sel)
 		a= nu->pntsu;
 		while(a--) {
 			if(bezt->hide==0) {
-				if((bezt->f1 & 1)==sel) bglVertex3fv(bezt->vec[0]);
-				if((bezt->f2 & 1)==sel) bglVertex3fv(bezt->vec[1]);
-				if((bezt->f3 & 1)==sel) bglVertex3fv(bezt->vec[2]);
+				if (G.f & G_HIDDENHANDLES) {
+					if((bezt->f2 & SELECT)==sel) bglVertex3fv(bezt->vec[1]);
+				} else {
+					if((bezt->f1 & SELECT)==sel) bglVertex3fv(bezt->vec[0]);
+					if((bezt->f2 & SELECT)==sel) bglVertex3fv(bezt->vec[1]);
+					if((bezt->f3 & SELECT)==sel) bglVertex3fv(bezt->vec[2]);
+				}
 			}
 			bezt++;
 		}
@@ -2807,7 +3849,7 @@ static void tekenvertsN(Nurb *nu, short sel)
 		a= nu->pntsu*nu->pntsv;
 		while(a--) {
 			if(bp->hide==0) {
-				if((bp->f1 & 1)==sel) bglVertex3fv(bp->vec);
+				if((bp->f1 & SELECT)==sel) bglVertex3fv(bp->vec);
 			}
 			bp++;
 		}
@@ -2850,7 +3892,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 					for(a=nu->pntsu-1; a>0; a--, bp++) {
 						if(bp->hide==0 && bp1->hide==0) {
 							if(sel) {
-								if( (bp->f1 & 1) && ( bp1->f1 & 1) ) {
+								if( (bp->f1 & SELECT) && ( bp1->f1 & SELECT ) ) {
 									cpack(nurbcol[5]);
 		
 									glBegin(GL_LINE_STRIP);
@@ -2860,7 +3902,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 								}
 							}
 							else {
-								if( (bp->f1 & 1) && ( bp1->f1 & 1) );
+								if( (bp->f1 & SELECT) && ( bp1->f1 & SELECT) );
 								else {
 									cpack(nurbcol[1]);
 		
@@ -2883,7 +3925,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 						for(a=nu->pntsv-1; a>0; a--, bp+=ofs) {
 							if(bp->hide==0 && bp1->hide==0) {
 								if(sel) {
-									if( (bp->f1 & 1) && ( bp1->f1 & 1) ) {
+									if( (bp->f1 & SELECT) && ( bp1->f1 & SELECT) ) {
 										cpack(nurbcol[7]);
 			
 										glBegin(GL_LINE_STRIP);
@@ -2893,7 +3935,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 									}
 								}
 								else {
-									if( (bp->f1 & 1) && ( bp1->f1 & 1) );
+									if( (bp->f1 & SELECT) && ( bp1->f1 & SELECT) );
 									else {
 										cpack(nurbcol[3]);
 			
@@ -2947,8 +3989,9 @@ static void drawnurb(Base *base, Nurb *nurb, int dt)
 	
 	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 
-	/* direction vectors for 3d curve paths */
-	if(cu->flag & CU_3D) {
+	/*	direction vectors for 3d curve paths
+		when at its lowest, dont render normals */
+	if(cu->flag & CU_3D && G.scene->editbutsize > 0.0015) {
 		BIF_ThemeColor(TH_WIRE);
 		for (bl=cu->bev.first,nu=nurb; nu && bl; bl=bl->next,nu=nu->next) {
 			BevPoint *bevp= (BevPoint *)(bl+1);		
@@ -2956,7 +3999,7 @@ static void drawnurb(Base *base, Nurb *nurb, int dt)
 			int skip= nu->resolu/16;
 			float fac;
 			
-			while (nr-->0) {
+			while (nr-->0) { /* accounts for empty bevel lists */
 				float ox,oy,oz; // Offset perpendicular to the curve
 				float dx,dy,dz; // Delta along the curve
 
@@ -2989,6 +4032,45 @@ static void drawnurb(Base *base, Nurb *nurb, int dt)
 	}
 	
 	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST); 
+}
+
+/* draw a sphere for use as an empty drawtype */
+static void draw_empty_sphere (float size)
+{
+	float cent=0;
+	GLUquadricObj *qobj = gluNewQuadric(); 
+	gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
+		
+	glPushMatrix();
+	glTranslatef(cent, cent, cent);
+	glScalef(size, size, size);
+	gluSphere(qobj, 1.0, 8, 5);
+		
+	glPopMatrix();
+	
+	gluDeleteQuadric(qobj); 
+}
+
+/* draw a cone for use as an empty drawtype */
+static void draw_empty_cone (float size)
+{
+	float cent=0;
+    float radius;
+	GLUquadricObj *qobj = gluNewQuadric(); 
+	gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
+	
+	
+	glPushMatrix();
+	
+	radius = size;
+	glTranslatef(cent,cent, cent);
+	glScalef(radius, 2.0*size, radius);
+	glRotatef(-90., 1.0, 0.0, 0.0);
+	gluCylinder(qobj, 1.0, 0.0, 1.0, 8, 1);
+
+	glPopMatrix();
+	
+	gluDeleteQuadric(qobj); 
 }
 
 /* draw points on curve speed handles */
@@ -3041,72 +4123,6 @@ static void drawspiral(float *cent, float rad, float tmat[][4], int start)
 	float vec[3], vx[3], vy[3];
 	int a, tot=32;
 	char inverse=0;
-	/* 32 values of sin function (still same result!) */
-	static float si[32] = {0.00000000,
-		0.20129852,
-		0.39435585,
-		0.57126821,
-		0.72479278,
-		0.84864425,
-		0.93775213,
-		0.98846832,
-		0.99871650,
-		0.96807711,
-		0.89780453,
-		0.79077573,
-		0.65137248,
-		0.48530196,
-		0.29936312,
-		0.10116832,
-		-0.10116832,
-                -0.29936312,
-                -0.48530196,
-                -0.65137248,
-                -0.79077573,
-                -0.89780453,
-                -0.96807711,
-                -0.99871650,
-                -0.98846832,
-                -0.93775213,
-                -0.84864425,
-                -0.72479278,
-                -0.57126821,
-                -0.39435585,
-                -0.20129852,
-		0.00000000};
-	/* 32 values of cos function (still same result!) */
-	static float co[32] ={1.00000000,
-                0.97952994,
-                0.91895781,
-                0.82076344,
-                0.68896691,
-                0.52896401,
-                0.34730525,
-                0.15142777,
-                -0.05064916,
-                -0.25065253,
-                -0.44039415,
-                -0.61210598,
-                -0.75875812,
-                -0.87434661,
-                -0.95413925,
-                -0.99486932,
-                -0.99486932,
-                -0.95413925,
-                -0.87434661,
-                -0.75875812,
-                -0.61210598,
-                -0.44039415,
-                -0.25065253,
-                -0.05064916,
-                0.15142777,
-                0.34730525,
-                0.52896401,
-                0.68896691,
-                0.82076344,
-                0.91895781,
-                0.97952994,
-                1.00000000};
 		
 	if (start < 0) {
 		inverse = 1;
@@ -3126,103 +4142,58 @@ static void drawspiral(float *cent, float rad, float tmat[][4], int start)
 				start=-a + 1;
 			glBegin(GL_LINES);							
 			glVertex3fv(vec);
-			vec[0]= cent[0] + *(si+a+start) * (vx[0] * (float)a/(float)tot) + *(co+a+start) * (vy[0] * (float)a/(float)tot);
-			vec[1]= cent[1] + *(si+a+start) * (vx[1] * (float)a/(float)tot) + *(co+a+start) * (vy[1] * (float)a/(float)tot);
-			vec[2]= cent[2] + *(si+a+start) * (vx[2] * (float)a/(float)tot) + *(co+a+start) * (vy[2] * (float)a/(float)tot);
+			vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)a/(float)tot) + *(cosval+a+start) * (vy[0] * (float)a/(float)tot);
+			vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)a/(float)tot) + *(cosval+a+start) * (vy[1] * (float)a/(float)tot);
+			vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)a/(float)tot) + *(cosval+a+start) * (vy[2] * (float)a/(float)tot);
 			glVertex3fv(vec);
 			glEnd();
 		}
 	}
 	else {
 		a=0;
-		vec[0]= cent[0] + *(si+a+start) * (vx[0] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[0] * (float)(-a+31)/(float)tot);
-		vec[1]= cent[1] + *(si+a+start) * (vx[1] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[1] * (float)(-a+31)/(float)tot);
-		vec[2]= cent[2] + *(si+a+start) * (vx[2] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[2] * (float)(-a+31)/(float)tot);
+		vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[0] * (float)(-a+31)/(float)tot);
+		vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[1] * (float)(-a+31)/(float)tot);
+		vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[2] * (float)(-a+31)/(float)tot);
 		for(a=0; a<tot; a++) {
 			if (a+start>31)
 				start=-a + 1;
 			glBegin(GL_LINES);							
 			glVertex3fv(vec);
-			vec[0]= cent[0] + *(si+a+start) * (vx[0] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[0] * (float)(-a+31)/(float)tot);
-			vec[1]= cent[1] + *(si+a+start) * (vx[1] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[1] * (float)(-a+31)/(float)tot);
-			vec[2]= cent[2] + *(si+a+start) * (vx[2] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[2] * (float)(-a+31)/(float)tot);
+			vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[0] * (float)(-a+31)/(float)tot);
+			vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[1] * (float)(-a+31)/(float)tot);
+			vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[2] * (float)(-a+31)/(float)tot);
 			glVertex3fv(vec);
 			glEnd();
 		}
 	}
 }
 
+/* draws a circle on x-z plane given the scaling of the circle, assuming that 
+ * all required matrices have been set (used for drawing empties)
+ */
+static void drawcircle_size(float size)
+{
+    float x, y;
+	short degrees;
+
+	glBegin(GL_LINE_LOOP);
+    
+	/* coordinates are: cos(degrees*11.25)=x, sin(degrees*11.25)=y, 0.0f=z */
+	for (degrees=0; degrees<32; degrees++) {
+		x= *(cosval + degrees);
+		y= *(sinval + degrees);
+		
+		glVertex3f(x*size, 0.0f, y*size);
+	}
+	
+	glEnd();
+
+}
+
 void drawcircball(int mode, float *cent, float rad, float tmat[][4])
 {
 	float vec[3], vx[3], vy[3];
 	int a, tot=32;
-
-	/* 32 values of sin function (still same result!) */
-	static float si[32] = {0.00000000,
-		0.20129852,
-		0.39435585,
-		0.57126821,
-		0.72479278,
-		0.84864425,
-		0.93775213,
-		0.98846832,
-		0.99871650,
-		0.96807711,
-		0.89780453,
-		0.79077573,
-		0.65137248,
-		0.48530196,
-		0.29936312,
-		0.10116832,
-		-0.10116832,
-                -0.29936312,
-                -0.48530196,
-                -0.65137248,
-                -0.79077573,
-                -0.89780453,
-                -0.96807711,
-                -0.99871650,
-                -0.98846832,
-                -0.93775213,
-                -0.84864425,
-                -0.72479278,
-                -0.57126821,
-                -0.39435585,
-                -0.20129852,
-		0.00000000};
-	/* 32 values of cos function (still same result!) */
-	static float co[32] ={1.00000000,
-                0.97952994,
-                0.91895781,
-                0.82076344,
-                0.68896691,
-                0.52896401,
-                0.34730525,
-                0.15142777,
-                -0.05064916,
-                -0.25065253,
-                -0.44039415,
-                -0.61210598,
-                -0.75875812,
-                -0.87434661,
-                -0.95413925,
-                -0.99486932,
-                -0.99486932,
-                -0.95413925,
-                -0.87434661,
-                -0.75875812,
-                -0.61210598,
-                -0.44039415,
-                -0.25065253,
-                -0.05064916,
-                0.15142777,
-                0.34730525,
-                0.52896401,
-                0.68896691,
-                0.82076344,
-                0.91895781,
-                0.97952994,
-                1.00000000};
 		
 	VECCOPY(vx, tmat[0]);
 	VECCOPY(vy, tmat[1]);
@@ -3231,14 +4202,56 @@ void drawcircball(int mode, float *cent, float rad, float tmat[][4])
 	
 	glBegin(mode);
 	for(a=0; a<tot; a++) {
-		vec[0]= cent[0] + *(si+a) * vx[0] + *(co+a) * vy[0];
-		vec[1]= cent[1] + *(si+a) * vx[1] + *(co+a) * vy[1];
-		vec[2]= cent[2] + *(si+a) * vx[2] + *(co+a) * vy[2];
+		vec[0]= cent[0] + *(sinval+a) * vx[0] + *(cosval+a) * vy[0];
+		vec[1]= cent[1] + *(sinval+a) * vx[1] + *(cosval+a) * vy[1];
+		vec[2]= cent[2] + *(sinval+a) * vx[2] + *(cosval+a) * vy[2];
 		glVertex3fv(vec);
 	}
 	glEnd();
 }
+/* needs fixing if non-identity matrice used */
+static void drawtube(float *vec, float radius, float height, float tmat[][4])
+{
+	float cur[3];
+	drawcircball(GL_LINE_LOOP, vec, radius, tmat);
 
+	VecCopyf(cur,vec);
+	cur[2]+=height;
+
+	drawcircball(GL_LINE_LOOP, cur, radius, tmat);
+
+	glBegin(GL_LINES);
+		glVertex3f(vec[0]+radius,vec[1],vec[2]);
+		glVertex3f(cur[0]+radius,cur[1],cur[2]);
+		glVertex3f(vec[0]-radius,vec[1],vec[2]);
+		glVertex3f(cur[0]-radius,cur[1],cur[2]);
+		glVertex3f(vec[0],vec[1]+radius,vec[2]);
+		glVertex3f(cur[0],cur[1]+radius,cur[2]);
+		glVertex3f(vec[0],vec[1]-radius,vec[2]);
+		glVertex3f(cur[0],cur[1]-radius,cur[2]);
+	glEnd();
+}
+/* needs fixing if non-identity matrice used */
+static void drawcone(float *vec, float radius, float height, float tmat[][4])
+{
+	float cur[3];
+
+	VecCopyf(cur,vec);
+	cur[2]+=height;
+
+	drawcircball(GL_LINE_LOOP, cur, radius, tmat);
+
+	glBegin(GL_LINES);
+		glVertex3f(vec[0],vec[1],vec[2]);
+		glVertex3f(cur[0]+radius,cur[1],cur[2]);
+		glVertex3f(vec[0],vec[1],vec[2]);
+		glVertex3f(cur[0]-radius,cur[1],cur[2]);
+		glVertex3f(vec[0],vec[1],vec[2]);
+		glVertex3f(cur[0],cur[1]+radius,cur[2]);
+		glVertex3f(vec[0],vec[1],vec[2]);
+		glVertex3f(cur[0],cur[1]-radius,cur[2]);
+	glEnd();
+}
 /* return 1 if nothing was drawn */
 static int drawmball(Base *base, int dt)
 {
@@ -3368,7 +4381,7 @@ static void draw_forcefield(Object *ob)
 	else if (pd->forcefield == PFIELD_VORTEX) {
 		float ffall_val, force_val;
 
-		Mat4One(imat);
+		Mat4One(tmat);
 		if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
 			ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, G.scene->r.cfra);
 		else 
@@ -3381,12 +4394,12 @@ static void draw_forcefield(Object *ob)
 
 		BIF_ThemeColorBlend(curcol, TH_BACK, 0.7);
 		if (force_val < 0) {
-			drawspiral(vec, size*1.0, imat, 1);
-			drawspiral(vec, size*1.0, imat, 16);
+			drawspiral(vec, size*1.0, tmat, 1);
+			drawspiral(vec, size*1.0, tmat, 16);
 		}
 		else {
-			drawspiral(vec, size*1.0, imat, -1);
-			drawspiral(vec, size*1.0, imat, -16);
+			drawspiral(vec, size*1.0, tmat, -1);
+			drawspiral(vec, size*1.0, tmat, -16);
 		}
 	}
 	else if (pd->forcefield == PFIELD_GUIDE && ob->type==OB_CURVE) {
@@ -3414,14 +4427,66 @@ static void draw_forcefield(Object *ob)
 			VECCOPY(vec, guidevec1);	/* max center */
 		}
 	}
-	
-	/* as last, guide curve alters it */
-	if(pd->flag & PFIELD_USEMAX) {
-		setlinestyle(3);
-		BIF_ThemeColorBlend(curcol, TH_BACK, 0.5);
-		drawcircball(GL_LINE_LOOP, vec, pd->maxdist, imat);
-		setlinestyle(0);
+
+	setlinestyle(3);
+	BIF_ThemeColorBlend(curcol, TH_BACK, 0.5);
+
+	if(pd->falloff==PFIELD_FALL_SPHERE){
+		/* as last, guide curve alters it */
+		if(pd->flag & PFIELD_USEMAX)
+			drawcircball(GL_LINE_LOOP, vec, pd->maxdist, imat);		
+
+		if(pd->flag & PFIELD_USEMIN)
+			drawcircball(GL_LINE_LOOP, vec, pd->mindist, imat);
 	}
+	else if(pd->falloff==PFIELD_FALL_TUBE){
+		float radius,distance;
+
+		Mat4One(tmat);
+
+		vec[0]=vec[1]=0.0f;
+		radius=(pd->flag&PFIELD_USEMAXR)?pd->maxrad:1.0f;
+		distance=(pd->flag&PFIELD_USEMAX)?pd->maxdist:0.0f;
+		vec[2]=distance;
+		distance=(pd->flag&PFIELD_POSZ)?-distance:-2.0f*distance;
+
+		if(pd->flag & (PFIELD_USEMAX|PFIELD_USEMAXR))
+			drawtube(vec,radius,distance,tmat);
+
+		radius=(pd->flag&PFIELD_USEMINR)?pd->minrad:1.0f;
+		distance=(pd->flag&PFIELD_USEMIN)?pd->mindist:0.0f;
+		vec[2]=distance;
+		distance=(pd->flag&PFIELD_POSZ)?-distance:-2.0f*distance;
+
+		if(pd->flag & (PFIELD_USEMIN|PFIELD_USEMINR))
+			drawtube(vec,radius,distance,tmat);
+	}
+	else if(pd->falloff==PFIELD_FALL_CONE){
+		float radius,distance;
+
+		Mat4One(tmat);
+
+		radius=(pd->flag&PFIELD_USEMAXR)?pd->maxrad:1.0f;
+		radius*=(float)M_PI/180.0f;
+		distance=(pd->flag&PFIELD_USEMAX)?pd->maxdist:0.0f;
+
+		if(pd->flag & (PFIELD_USEMAX|PFIELD_USEMAXR)){
+			drawcone(vec,distance*sin(radius),distance*cos(radius),tmat);
+			if((pd->flag & PFIELD_POSZ)==0)
+				drawcone(vec,distance*sin(radius),-distance*cos(radius),tmat);
+		}
+
+		radius=(pd->flag&PFIELD_USEMINR)?pd->minrad:1.0f;
+		radius*=(float)M_PI/180.0f;
+		distance=(pd->flag&PFIELD_USEMIN)?pd->mindist:0.0f;
+
+		if(pd->flag & (PFIELD_USEMIN|PFIELD_USEMINR)){
+			drawcone(vec,distance*sin(radius),distance*cos(radius),tmat);
+			if((pd->flag & PFIELD_POSZ)==0)
+				drawcone(vec,distance*sin(radius),-distance*cos(radius),tmat);
+		}
+	}
+	setlinestyle(0);
 }
 
 static void draw_box(float vec[8][3])
@@ -3505,7 +4570,7 @@ static void draw_bounding_volume(Object *ob)
 	BoundBox *bb=0;
 	
 	if(ob->type==OB_MESH) {
-		bb= mesh_get_bb(ob->data);
+		bb= mesh_get_bb(ob);
 	}
 	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
 		bb= ( (Curve *)ob->data )->bb;
@@ -3731,10 +4796,13 @@ void draw_object(Base *base, int flag)
 
 	/* xray delay? */
 	if((flag & DRAW_PICKING)==0 && (base->flag & OB_FROMDUPLI)==0) {
-		/* xray and transp are set when it is drawing the 2nd/3rd pass */
-		if(!G.vd->xray && !G.vd->transp && (ob->dtx & OB_DRAWXRAY)) {
-			add_view3d_after(G.vd, base, V3D_XRAY);
-			return;
+		/* don't do xray in particle mode, need the z-buffer */
+		if(!(G.f & G_PARTICLEEDIT)) {
+			/* xray and transp are set when it is drawing the 2nd/3rd pass */
+			if(!G.vd->xray && !G.vd->transp && (ob->dtx & OB_DRAWXRAY)) {
+				add_view3d_after(G.vd, base, V3D_XRAY);
+				return;
+			}
 		}
 	}
 
@@ -3868,22 +4936,21 @@ void draw_object(Base *base, int flag)
 	dtx= 0;
 
 	/* faceselect exception: also draw solid when dt==wire, except in editmode */
-	if(ob==OBACT && (G.f & (G_FACESELECT+G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT))) {
+	if(ob==OBACT && (G.f & (G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT))) {
 		if(ob->type==OB_MESH) {
 
 			if(ob==G.obedit);
 			else {
-				dt= OB_SHADED;
+				if(dt<OB_SOLID)
+					zbufoff= 1;
 
-				glClearDepth(1.0); glClear(GL_DEPTH_BUFFER_BIT);
+				dt= OB_SHADED;
 				glEnable(GL_DEPTH_TEST);
-				if(dt<OB_SOLID) zbufoff= 1;
 			}
 		}
 		else {
 			if(dt<OB_SOLID) {
 				dt= OB_SOLID;
-				glClearDepth(1.); glClear(GL_DEPTH_BUFFER_BIT);
 				glEnable(GL_DEPTH_TEST);
 				zbufoff= 1;
 			}
@@ -4071,6 +5138,28 @@ void draw_object(Base *base, int flag)
 	}
 	if(ob->pd && ob->pd->forcefield) draw_forcefield(ob);
 
+	/* code for new particle system */
+	if(		(warning_recursive==0) &&
+			(ob->particlesystem.first) &&
+			(flag & DRAW_PICKING)==0 &&
+			(ob!=G.obedit)	
+	  ) {
+		ParticleSystem *psys;
+		if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
+		glDepthMask(GL_FALSE);
+		
+		for(psys=ob->particlesystem.first; psys; psys=psys->next)
+			draw_new_particle_system(base, psys);
+		
+		if(G.f & G_PARTICLEEDIT && ob==OBACT) {
+			psys= PE_get_current(ob);
+			if(psys && !G.obedit && psys_in_edit_mode(psys))
+				draw_particle_edit(ob, psys);
+		}
+		glDepthMask(GL_TRUE); 
+		if(col) cpack(col);
+	}
+
 	{
 		bConstraint *con;
 		for(con=ob->constraints.first; con; con= con->next) 
@@ -4102,7 +5191,7 @@ void draw_object(Base *base, int flag)
 				BMF_DrawString(G.font, ob->id.name+2);
 			}
 		}
-		if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);
+		/*if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);*/
 		if((dtx & OB_DRAWWIRE) && dt>=OB_SOLID) drawWireExtra(ob);
 	}
 
@@ -4129,7 +5218,7 @@ void draw_object(Base *base, int flag)
 	if(G.f & G_SIMULATION) return;
 
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
-	if(ob!=OBACT || (G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0) {
+	if(ob!=OBACT || (G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0) {
 		int do_draw_center= -1;	/* defines below are zero or positive... */
 
 		if((G.scene->basact)==base) 
@@ -4161,10 +5250,10 @@ void draw_object(Base *base, int flag)
 	/* not for sets, duplicators or picking */
 	if(flag==0 && (!(G.vd->flag & V3D_HIDE_HELPLINES))) {
 		ListBase *list;
-
+		
 		/* draw hook center and offset line */
 		if(ob!=G.obedit) draw_hooks(ob);
-
+		
 		/* help lines and so */
 		if(ob!=G.obedit && ob->parent && (ob->parent->lay & G.vd->lay)) {
 			setlinestyle(3);
@@ -4177,29 +5266,46 @@ void draw_object(Base *base, int flag)
 
 		/* Drawing the constraint lines */
 		list = &ob->constraints;
-		if (list){
-			/*
-		 extern void make_axis_color(char *col, char *col2, char axis);	// drawview.c
-		 */
+		if (list) {
 			bConstraint *curcon;
-			float size[3], tmat[4][4];
+			bConstraintOb *cob;
 			char col[4], col2[4];
-
+			
 			BIF_GetThemeColor3ubv(TH_GRID, col);
 			make_axis_color(col, col2, 'z');
 			glColor3ubv((GLubyte *)col2);
-
-			for (curcon = list->first; curcon; curcon=curcon->next){
-				if ((curcon->flag & CONSTRAINT_EXPAND)&&(curcon->type!=CONSTRAINT_TYPE_NULL)&&(constraint_has_target(curcon))){
-					get_constraint_target_matrix(curcon, TARGET_OBJECT, NULL, tmat, size, bsystem_time(ob, 0, (float)(G.scene->r.cfra), ob->sf));
-					setlinestyle(3);
-					glBegin(GL_LINES);
-					glVertex3fv(tmat[3]);
-					glVertex3fv(ob->obmat[3]);
-					glEnd();
-					setlinestyle(0);
+			
+			cob= constraints_make_evalob(ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+			
+			for (curcon = list->first; curcon; curcon=curcon->next) {
+				bConstraintTypeInfo *cti= constraint_get_typeinfo(curcon);
+				ListBase targets = {NULL, NULL};
+				bConstraintTarget *ct;
+				
+				if ((curcon->flag & CONSTRAINT_EXPAND) && (cti) && (cti->get_constraint_targets)) {
+					cti->get_constraint_targets(curcon, &targets);
+					
+					for (ct= targets.first; ct; ct= ct->next) {
+						/* calculate target's matrix */
+						if (cti->get_target_matrix) 
+							cti->get_target_matrix(curcon, cob, ct, bsystem_time(ob, (float)(G.scene->r.cfra), give_timeoffset(ob)));
+						else
+							Mat4One(ct->matrix);
+						
+						setlinestyle(3);
+						glBegin(GL_LINES);
+						glVertex3fv(ct->matrix[3]);
+						glVertex3fv(ob->obmat[3]);
+						glEnd();
+						setlinestyle(0);
+					}
+					
+					if (cti->flush_constraint_targets)
+						cti->flush_constraint_targets(curcon, &targets, 1);
 				}
 			}
+			
+			constraints_clear_evalob(cob);
 		}
 	}
 
@@ -4314,7 +5420,7 @@ static int bbs_mesh_solid_EM(DerivedMesh *dm, int facecol)
 	if (facecol) {
 		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*)(long) 1, 0);
 
-		if(G.scene->selectmode & SCE_SELECT_FACE) {
+		if( CHECK_OB_DRAWFACEDOT(G.scene, G.vd, G.obedit->dt) ) {
 			glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
 		
 			bglBegin(GL_POINTS);
@@ -4333,7 +5439,7 @@ static int bbs_mesh_solid__setDrawOpts(void *userData, int index, int *drawSmoot
 {
 	Mesh *me = userData;
 
-	if (!me->mtface || !(me->mface[index].flag&ME_HIDE)) {
+	if (!(me->mface[index].flag&ME_HIDE)) {
 		set_framebuffer_index_color(index+1);
 		return 1;
 	} else {
@@ -4354,6 +5460,7 @@ static int bbs_mesh_wire__setDrawOpts(void *userData, int index)
 		return 0;
 }
 
+/* TODO remove this - since face select mode now only works with painting */
 static void bbs_mesh_solid(Object *ob)
 {
 	DerivedMesh *dm = mesh_get_derived_final(ob, get_viewedit_datamask());
@@ -4364,7 +5471,7 @@ static void bbs_mesh_solid(Object *ob)
 
 	/* draw edges for seam marking in faceselect mode, but not when painting,
 	   so that painting doesn't get interrupted on an edge */
-	if ((G.f & G_FACESELECT) && !(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)) && me->mtface) {
+	if ((G.f & G_FACESELECT) && !(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))) {
 		struct { Mesh *me; EdgeHash *eh; int offset; } userData;
 
 		userData.me = me;
@@ -4429,11 +5536,10 @@ void draw_object_backbufsel(Object *ob)
 /* ************* draw object instances for bones, for example ****************** */
 /*               assumes all matrices/etc set OK */
 
-void draw_object_instance(Object *ob, int dt, int outline)
+/* helper function for drawing object instances - meshes */
+static void draw_object_mesh_instance(Object *ob, int dt, int outline)
 {
 	DerivedMesh *dm=NULL, *edm=NULL;
-	
-	if(ob==NULL || ob->type!=OB_MESH) return;
 	
 	if(G.obedit && ob->data==G.obedit->data)
 		edm= editmesh_get_derived_base();
@@ -4474,3 +5580,17 @@ void draw_object_instance(Object *ob, int dt, int outline)
 	if(dm) dm->release(dm);
 }
 
+void draw_object_instance(Object *ob, int dt, int outline)
+{
+	if (ob == NULL) 
+		return;
+		
+	switch (ob->type) {
+		case OB_MESH:
+			draw_object_mesh_instance(ob, dt, outline);
+			break;
+		case OB_EMPTY:
+			drawaxes(ob->empty_drawsize, 0, ob->empty_drawtype);
+			break;
+	}
+}

@@ -55,7 +55,9 @@ SCA_IObject::~SCA_IObject()
 	SCA_SensorList::iterator its;
 	for (its = m_sensors.begin(); !(its == m_sensors.end()); ++its)
 	{
-		((CValue*)(*its))->Release();
+		//Use Delete for sensor to ensure proper cleaning
+		(*its)->Delete();
+		//((CValue*)(*its))->Release();
 	}
 	SCA_ControllerList::iterator itc; 
 	for (itc = m_controllers.begin(); !(itc == m_controllers.end()); ++itc)
@@ -99,6 +101,7 @@ SCA_ActuatorList& SCA_IObject::GetActuators()
 
 void SCA_IObject::AddSensor(SCA_ISensor* act)
 {
+	act->AddRef();
 	m_sensors.push_back(act);
 }
 
@@ -106,6 +109,7 @@ void SCA_IObject::AddSensor(SCA_ISensor* act)
 
 void SCA_IObject::AddController(SCA_IController* act)
 {
+	act->AddRef();
 	m_controllers.push_back(act);
 }
 
@@ -113,6 +117,7 @@ void SCA_IObject::AddController(SCA_IController* act)
 
 void SCA_IObject::AddActuator(SCA_IActuator* act)
 {
+	act->AddRef();
 	m_actuators.push_back(act);
 }
 

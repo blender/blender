@@ -69,10 +69,21 @@ public:
  */
 class KX_ListSlot
 {
+protected:
+	int m_refcount;
 public:
-	KX_ListSlot(){}
-	virtual ~KX_ListSlot(){}
-
+	KX_ListSlot(){ m_refcount=1; }
+	virtual ~KX_ListSlot() {}
+	virtual int Release() { 
+		if (--m_refcount > 0)
+			return m_refcount;
+		delete this;
+		return 0;
+	}
+	virtual KX_ListSlot* AddRef() {
+		m_refcount++;
+		return this;
+	}
 	virtual void SetModified(bool mod)=0;
 };
 
@@ -96,7 +107,7 @@ public:
 		m_DisplayList(0)
 	{
 	}
-	~KX_MeshSlot(){}
+	~KX_MeshSlot();
 	bool					Less(const KX_MeshSlot& lhs) const;
 };
 

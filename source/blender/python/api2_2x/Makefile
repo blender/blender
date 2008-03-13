@@ -38,13 +38,15 @@ CSRCS ?= $(wildcard *.c) $(wildcard ../*.c)
 
 include nan_compile.mk
 
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
-    CFLAGS += -funsigned-char
-    CFLAGS += -fno-strict-aliasing
-endif
-
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
+ifeq ($(WITH_FFMPEG), true)
+   CPPFLAGS += -DWITH_FFMPEG
+endif
+
+ifeq ($(WITH_OPENEXR),true)
+	CPPFLAGS += -DWITH_OPENEXR
+endif
 
 CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include

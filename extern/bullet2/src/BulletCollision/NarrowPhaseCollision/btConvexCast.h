@@ -17,11 +17,11 @@ subject to the following restrictions:
 #ifndef CONVEX_CAST_H
 #define CONVEX_CAST_H
 
-#include <LinearMath/btTransform.h>
-#include <LinearMath/btVector3.h>
-#include <LinearMath/btScalar.h>
+#include "../../LinearMath/btTransform.h"
+#include "../../LinearMath/btVector3.h"
+#include "../../LinearMath/btScalar.h"
 class btMinkowskiSumShape;
-#include "LinearMath/btIDebugDraw.h"
+#include "../../LinearMath/btIDebugDraw.h"
 
 /// btConvexCast is an interface for Casting
 class btConvexCast
@@ -37,11 +37,11 @@ public:
 	{
 		//virtual bool	addRayResult(const btVector3& normal,btScalar	fraction) = 0;
 				
-		virtual void	DebugDraw(btScalar	fraction) {}
-		virtual void	drawCoordSystem(const btTransform& trans) {}
+		virtual void	DebugDraw(btScalar	fraction) {(void)fraction;}
+		virtual void	drawCoordSystem(const btTransform& trans) {(void)trans;}
 
 		CastResult()
-			:m_fraction(1e30f),
+			:m_fraction(btScalar(1e30)),
 			m_debugDrawer(0)
 		{
 		}

@@ -201,6 +201,21 @@ public:
 		volatile GHOST_TEventNDOFData *current_values
 	);
 		
+	/**
+	 * Returns unsinged char from CUT_BUFFER0
+	 * @param flag		Flag indicates which buffer to return 0 for clipboard 1 for selection
+	 * @return		Returns the Clipboard indicated by Flag
+	 */
+		GHOST_TUns8*
+	getClipboard(int flag) const;
+	
+	/**
+	 * Puts buffer to system clipboard
+	 * @param buffer	The buffer to copy to the clipboard	
+	 * @param flag		Flag indicates which buffer to set ownership of 0 for clipboard 1 for selection
+	 */
+	virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const;
+
 private :
 
 	Display * m_display;

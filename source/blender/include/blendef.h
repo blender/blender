@@ -40,7 +40,6 @@
 #define MINFRAME	1
 #define MINFRAMEF	1.0
 
-#define MAXLAMP		32765
 /* max length material array, 16 because of bits in matfrom */
 #define MAXPICKBUF      10000
 #define MAXSEQ          32
@@ -54,7 +53,7 @@
 
 /* also fill in structs itself, dna cannot handle defines, duplicate with utildefines.h still */
 #ifndef FILE_MAXDIR
-#define FILE_MAXDIR			160
+#define FILE_MAXDIR		160
 #define FILE_MAXFILE		80
 #endif
 
@@ -87,13 +86,16 @@
 #endif
 
 #define SELECT			1
+#define HIDDEN			1
+#define FIRST			1
 #define ACTIVE			2
 /*#ifdef WITH_VERSE*/
 #define VERSE			3
 /*#endif*/
 #define DESELECT		0
 #define NOT_YET			0
-
+#define VISIBLE			0
+#define LAST			0
 
 #define TESTBASE(base)	( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0) )
 #define TESTBASELIB(base)	( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
@@ -111,12 +113,17 @@
 #define	EFRA			(G.scene->r.efra)
 #define PSFRA			((G.scene->r.psfra != 0)? (G.scene->r.psfra): (G.scene->r.sfra))
 #define PEFRA			((G.scene->r.psfra != 0)? (G.scene->r.pefra): (G.scene->r.efra))
+#define FRA2TIME(a)           ((((double) G.scene->r.frs_sec_base) * (a)) / G.scene->r.frs_sec)
+#define TIME2FRA(a)           ((((double) G.scene->r.frs_sec) * (a)) / G.scene->r.frs_sec_base)
+#define FPS                     (((double) G.scene->r.frs_sec) / G.scene->r.frs_sec_base)
 
 #define ISPOIN(a, b, c)			( (a->b) && (a->c) )
 #define ISPOIN3(a, b, c, d)		( (a->b) && (a->c) && (a->d) )
 #define ISPOIN4(a, b, c, d, e)	( (a->b) && (a->c) && (a->d) && (a->e) )
 
-#define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
+#define BEZSELECTED(bezt)   (((bezt)->f1 & SELECT) || ((bezt)->f2 & SELECT) || ((bezt)->f3 & SELECT))
+/* for curve objects in editmode that can have hidden handles - may use for IPO's later */
+#define BEZSELECTED_HIDDENHANDLES(bezt)   ((G.f & G_HIDDENHANDLES) ? (bezt)->f2 & SELECT : BEZSELECTED(bezt))
 
 /* psfont */
 #define FNT_PDRAW 1
@@ -158,7 +165,6 @@
 #define B_TEXALONE		47
 #define B_MESHALONE		48
 #define B_CURVEALONE		49
-#define B_HEMESHALONE	50
 
 /* EVENT < 50: alones en locals */
 
@@ -171,7 +177,7 @@
 #define B_PLAINMENUS		66
 
 
-#define B_GLRESLIMITCHANGED		69
+#define B_GLRESLIMITCHANGED	69
 #define B_SHOWSPLASH		70
 #define B_RESETAUTOSAVE		71
 #define B_SOUNDTOGGLE		72
@@ -212,17 +218,15 @@
 #define B_AUTOKEY		139
 #define B_SCENELOCK		140
 #define B_LOCALVIEW		141
-#define B_U_CAPSLOCK	142
+#define B_U_CAPSLOCK		142
 
 #define B_VIEWBUT		146
 #define B_PERSP			147
 #define B_PROPTOOL		148
-#define B_VIEWRENDER	149
-#define B_VIEWTRANS		150
-#define B_VIEWZOOM		151
-#define B_STARTGAME		152
+#define B_VIEWRENDER		149
+#define B_STARTGAME		150
 
-#define B_MODESELECT	156
+#define B_MODESELECT		156
 #define B_AROUND		157
 #define B_SEL_VERT		158
 #define B_SEL_EDGE		159
@@ -230,9 +234,11 @@
 #define B_MAN_TRANS		161
 #define B_MAN_ROT		162
 #define B_MAN_SCALE		163
-#define B_HEMESHBROWSE	164
-#define B_HEMESHLOCAL	165
-#define B_NDOF			166
+#define B_SEL_PATH		166
+#define B_SEL_POINT		167
+#define B_SEL_END		168
+#define B_MAN_MODE		169
+#define B_NDOF			170
 
 /* IPO: 200 */
 #define B_IPOHOME		201
@@ -243,14 +249,16 @@
 #define B_IPOEXTRAP		206
 #define B_IPOCYCLIC		207
 #define B_IPOMAIN		208
-#define B_IPOSHOWKEY	209
-#define B_IPOCYCLICX	210
+#define B_IPOSHOWKEY		209
+#define B_IPOCYCLICX		210
 	/* warn: also used for oops and seq */
-#define B_VIEW2DZOOM	211
+#define B_VIEW2DZOOM		211
 #define B_IPOPIN		212
 #define B_IPO_ACTION_OB		213
 #define B_IPO_ACTION_KEY	214
-
+#define B_IPOVIEWCENTER		215
+#define B_IPOVIEWALL		216
+#define B_IPOREDRAW			217
 
 /* OOPS: 250 */
 #define B_OOPSHOME		251
@@ -261,15 +269,15 @@
 /* INFO: 300 */
 /* watch: also in filesel.c and editobject.c */
 #define B_INFOSCR		301
-#define B_INFODELSCR	302
+#define B_INFODELSCR		302
 #define B_INFOSCE		304
-#define B_INFODELSCE	305
+#define B_INFODELSCE		305
 #define B_FILEMENU		306
 #define B_PACKFILE		307
 
 #define B_CONSOLEOUT		308
 #define B_CONSOLENUMLINES	309
-#define B_USERPREF			310
+#define B_USERPREF		310
 #define B_LOADUIFONT		311
 #define B_SETLANGUAGE		312
 #define B_SETFONTSIZE		313
@@ -285,32 +293,33 @@
 #define B_UITHEMEIMPORT		323
 #define B_UITHEMEEXPORT		324
 
-#define B_MEMCACHELIMIT         325
+#define B_MEMCACHELIMIT		325
+#define B_WPAINT_RANGE		326
 
 /* Definitions for the fileselect buttons in user prefs */
 #define B_FONTDIRFILESEL  	330
 #define B_TEXTUDIRFILESEL  	331
-#define B_PLUGTEXDIRFILESEL 332
-#define B_PLUGSEQDIRFILESEL 333
-#define B_RENDERDIRFILESEL  334
-#define B_PYTHONDIRFILESEL  335
+#define B_PLUGTEXDIRFILESEL	332
+#define B_PLUGSEQDIRFILESEL	333
+#define B_RENDERDIRFILESEL 	334
+#define B_PYTHONDIRFILESEL 	335
 #define B_SOUNDDIRFILESEL  	336
 #define B_TEMPDIRFILESEL  	337
 /* yafray: for exportdir select */
 #define B_YAFRAYDIRFILESEL	338
-#define B_PYMENUEVAL	339 /* re-eval scripts registration in menus */
+#define B_PYMENUEVAL		339 /* re-eval scripts registration in menus */
 /* END Definitions for the fileselect buttons in user prefs */
 
 /* IMAGE: 350 */
 #define B_SIMAGEHOME		351
 #define B_SIMABROWSE		352
 #define B_SIMAGELOAD		353
-#define B_SIMAGEDRAW		354
-#define B_BE_SQUARE		355
-#define B_SIMAGEDRAW1		356
-#define B_TWINANIM		357
+#define B_SIMA_REDR_IMA_3D	354
+#define B_SIMAGETILE		355
+#define B_BE_SQUARE			356
+#define B_TWINANIM			357
 #define B_SIMAGEREPLACE		358
-#define B_CLIP_UV		359
+#define B_CLIP_UV			359
 #define B_SIMAGELOAD1		360
 #define B_SIMAGEREPLACE1	361
 #define B_SIMAGEPAINTTOOL	362
@@ -334,20 +343,27 @@
 #define B_SIMANAME			381
 #define B_SIMAMULTI			382
 #define B_TRANS_IMAGE		383
-#define B_SIMA_REPACK		384
-#define B_SIMA_PLAY			385
-#define B_SIMA_RECORD		386
+#define B_CURSOR_IMAGE		384
+#define B_SIMA_REPACK		385
+#define B_SIMA_PLAY			386
+#define B_SIMA_RECORD		387
+#define B_SIMAPIN			388
+#define B_SIMA3DVIEWDRAW	389
+
 
 /* BUTS: 400 */
-#define B_BUTSHOME		401
-#define B_BUTSPREVIEW	402
-#define B_MATCOPY		403
-#define B_MATPASTE		404
-#define B_MESHTYPE		405
+#define B_BUTSHOME			401
+#define B_BUTSPREVIEW		402
+#define B_MATCOPY			403
+#define B_MATPASTE			404
+#define B_MESHTYPE			405
 #define B_CONTEXT_SWITCH	406
 
 /* IMASEL: 450 */
-/* in imasel.h */
+/* in imasel.h - not any more - elubie */
+#define B_SORTIMASELLIST	451
+#define B_RELOADIMASELDIR	452
+#define B_FILTERIMASELDIR	453
 
 /* TEXT: 500 */
 #define B_TEXTBROWSE		501
@@ -361,8 +377,8 @@
 #define B_SYNTAX		509
 
 /* SCRIPT: 525 */
-#define B_SCRIPTBROWSE 526
-#define B_SCRIPT2PREV  527
+#define B_SCRIPTBROWSE		526
+#define B_SCRIPT2PREV		527
 
 /* FILE: 550 */
 #define B_SORTFILELIST		551
@@ -382,34 +398,35 @@
 #define B_ACTHOME		701
 #define	B_ACTCOPY		702
 #define B_ACTPASTE		703
-#define B_ACTPASTEFLIP	704
+#define B_ACTPASTEFLIP		704
 #define B_ACTCYCLIC		705
 #define B_ACTCONT		706
 #define B_ACTMAIN		707
 #define	B_ACTPIN		708
 #define B_ACTBAKE		709
+#define B_ACTCOPYKEYS		710
+#define B_ACTPASTEKEYS		711
 
 /* TIME: 751 - 800 */
 #define B_TL_REW		751
 #define B_TL_PLAY		752
 #define B_TL_FF			753
-#define B_TL_PREVKEY	754
-#define B_TL_NEXTKEY	755
+#define B_TL_PREVKEY		754
+#define B_TL_NEXTKEY		755
 #define B_TL_STOP		756
-#define B_TL_PREVIEWON	757
+#define B_TL_PREVIEWON		757
 
 /* NLA: 801-850 */
 #define B_NLAHOME		801
 
 /* NODE: 851-900 */
-#define B_NODEHOME			851
+#define B_NODEHOME		851
 #define B_NODE_USEMAT		852
 #define B_NODE_USESCENE		853
 
 /* FREE 901 - 999 */
 
 
-#define B_NOTHING		-1
 #define B_NOP			-1
 
 
@@ -418,22 +435,22 @@
 #define B_KEEPORIG		2
 #define B_BEAUTY		4
 #define B_SMOOTH		8
-#define B_BEAUTY_SHORT  16
+#define B_BEAUTY_SHORT  	16
 #define B_AUTOFGON		32
 #define B_KNIFE			0x80
-#define B_PERCENTSUBD	0x40
-#define B_MESH_X_MIRROR	0x100
-#define B_JOINTRIA_UV 0x200
-#define B_JOINTRIA_VCOL 0X400
-#define B_JOINTRIA_SHARP 0X800
-#define B_JOINTRIA_MAT 0X1000
+#define B_PERCENTSUBD		0x40
+#define B_MESH_X_MIRROR		0x100
+#define B_JOINTRIA_UV		0x200
+#define B_JOINTRIA_VCOL		0X400
+#define B_JOINTRIA_SHARP	0X800
+#define B_JOINTRIA_MAT		0X1000
 
 /* DISPLAYMODE */
 #define R_DISPLAYIMAGE	0
 #define R_DISPLAYWIN	1
 #define R_DISPLAYSCREEN	2
 
-	/* Gvp.flag and Gwp.flag */
+/* Gvp.flag and Gwp.flag */
 #define VP_COLINDEX	1
 #define VP_AREA		2
 #define VP_SOFT		4
@@ -441,10 +458,11 @@
 #define VP_SPRAY	16
 #define VP_MIRROR_X	32
 #define VP_HARD		64
-#define VP_ONLYVGROUP 128
+#define VP_ONLYVGROUP	128
 
 /* Error messages */
 #define ERROR_LIBDATA_MESSAGE "Can't edit external libdata"
 
+#define MAX_RENDER_PASS	100
 
 #endif

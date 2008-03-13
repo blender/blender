@@ -52,6 +52,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sound_types.h"
@@ -85,7 +86,7 @@
 */
 
 int co_ar[CO_TOTIPO]= {
-	CO_ENFORCE
+	CO_ENFORCE, CO_HEADTAIL
 };
 
 int ob_ar[OB_TOTIPO]= {
@@ -93,7 +94,7 @@ int ob_ar[OB_TOTIPO]= {
 	OB_ROT_X, OB_ROT_Y, OB_ROT_Z, OB_DROT_X, OB_DROT_Y, OB_DROT_Z, 
 	OB_SIZE_X, OB_SIZE_Y, OB_SIZE_Z, OB_DSIZE_X, OB_DSIZE_Y, OB_DSIZE_Z, 
 	OB_LAY, OB_TIME, OB_COL_R, OB_COL_G, OB_COL_B, OB_COL_A,
-	OB_PD_FSTR, OB_PD_FFALL, OB_PD_SDAMP, OB_PD_RDAMP, OB_PD_PERM
+	OB_PD_FSTR, OB_PD_FFALL, OB_PD_SDAMP, OB_PD_RDAMP, OB_PD_PERM, OB_PD_FMAXD
 };
 
 int ac_ar[AC_TOTIPO]= {
@@ -180,6 +181,12 @@ int fluidsim_ar[FLUIDSIM_TOTIPO]= {
 	FLUIDSIM_ACTIVE 
 };
 
+int part_ar[PART_TOTIPO]= {
+	PART_EMIT_FREQ, PART_EMIT_LIFE, PART_EMIT_VEL, PART_EMIT_AVE, PART_EMIT_SIZE,
+	PART_AVE, PART_SIZE, PART_DRAG, PART_BROWN, PART_DAMP, PART_LENGTH, PART_CLUMP,
+    PART_GRAV_X, PART_GRAV_Y, PART_GRAV_Z, PART_KINK_AMP, PART_KINK_FREQ, PART_KINK_SHAPE,
+	PART_BB_TILT
+};
 
 
 float frame_to_float(int cfra)		/* see also bsystem_time in object.c */
@@ -523,9 +530,9 @@ void testhandles_ipocurve(IpoCurve *icu)
 	a= icu->totvert;
 	while(a--) {
 		flag= 0;
-		if(bezt->f1 & 1) flag++;
-		if(bezt->f2 & 1) flag += 2;
-		if(bezt->f3 & 1) flag += 4;
+		if(bezt->f1 & SELECT) flag++;
+		if(bezt->f2 & SELECT) flag += 2;
+		if(bezt->f3 & SELECT) flag += 4;
 
 		if( !(flag==0 || flag==7) ) {
 			if(bezt->h1==HD_AUTO) {   /* auto */
@@ -751,6 +758,49 @@ void berekenx(float *f, float *o, int b)
 	}
 }
 
+/* we need the local transform = current transform - (parent transform + bone transform) */
+/* (local transform is on action channel level) */
+static void posechannel_get_local_transform(bPoseChannel *pchan, float *loc, float *eul, float *size)
+{
+	float diff_mat[4][4];
+	float parmat[4][4], offs_bone[4][4], imat[4][4];
+	
+	if (pchan->parent) {
+		/* get first the parent + bone transform in parmat */
+		
+		/* bone transform itself */
+		Mat4CpyMat3(offs_bone, pchan->bone->bone_mat);
+		/* The bone's root offset (is in the parent's coordinate system) */
+		VECCOPY(offs_bone[3], pchan->bone->head);
+		/* Get the length translation of parent (length along y axis) */
+		offs_bone[3][1]+= pchan->parent->bone->length;
+	
+		Mat4MulSerie(parmat, pchan->parent->pose_mat, offs_bone, NULL, NULL, NULL, NULL, NULL, NULL);
+		
+		/* invert it */
+		Mat4Invert(imat, parmat);
+	}
+	else {
+		Mat4CpyMat3(offs_bone, pchan->bone->bone_mat);
+		VECCOPY(offs_bone[3], pchan->bone->head);
+
+		/* invert it */
+		Mat4Invert(imat, offs_bone);
+		
+	}
+	
+	/* difference: current transform - (parent transform + bone transform)  */
+	Mat4MulMat4(diff_mat, pchan->pose_mat, imat);
+
+	if(loc)
+		VECCOPY(loc, diff_mat[3]);
+	if(eul)
+		Mat4ToEul(diff_mat, eul);
+	if(size)
+		Mat4ToSize(diff_mat, size);
+	
+}
+
 /* has to return a float value */
 static float eval_driver(IpoDriver *driver, float ipotime)
 {
@@ -802,48 +852,49 @@ static float eval_driver(IpoDriver *driver, float ipotime)
 		else {	/* ID_AR */
 			bPoseChannel *pchan= get_pose_channel(ob->pose, driver->name);
 			if(pchan && pchan->bone) {
-				float pose_mat[3][3];
-				float diff_mat[3][3], par_mat[3][3], ipar_mat[3][3];
-				float eul[3], size[3];
 				
-				/* we need the local transform = current transform - (parent transform + bone transform) */
-				
-				Mat3CpyMat4(pose_mat, pchan->pose_mat);
-				
-				if (pchan->parent) {
-					Mat3CpyMat4(par_mat, pchan->parent->pose_mat);
-					Mat3MulMat3(diff_mat, par_mat, pchan->bone->bone_mat);
-					
-					Mat3Inv(ipar_mat, diff_mat);
+				/* rotation difference is not a simple driver (i.e. value drives value), but the angle between 2 bones is driving stuff... which is useful */
+				if(driver->adrcode==OB_ROT_DIFF) {
+					bPoseChannel *pchan2= get_pose_channel(ob->pose, driver->name+DRIVER_NAME_OFFS);
+					if(pchan2 && pchan2->bone) {
+						float q1[4], q2[4], quat[4], angle;
+						
+						Mat4ToQuat(pchan->pose_mat, q1);
+						Mat4ToQuat(pchan2->pose_mat, q2);
+						
+						QuatInv(q1);
+						QuatMul(quat, q1, q2);
+						angle = 2.0f * (saacos(quat[0]));
+						angle= ABS(angle);
+						
+						return angle>M_PI?2.0f*M_PI-angle:angle;
+					}
 				}
 				else {
-					Mat3Inv(ipar_mat, pchan->bone->bone_mat);
-				}
-				
-				Mat3MulMat3(diff_mat, ipar_mat, pose_mat);
-				
-				Mat3ToEul(diff_mat, eul);
-				Mat3ToSize(diff_mat, size);
+					float loc[3], eul[3], size[3];
+					
+					posechannel_get_local_transform(pchan, loc, eul, size);
 
-				switch(driver->adrcode) {
-				case OB_LOC_X:
-					return pchan->loc[0];
-				case OB_LOC_Y:
-					return pchan->loc[1];
-				case OB_LOC_Z:
-					return pchan->loc[2];
-				case OB_ROT_X:
-					return eul[0]/(M_PI_2/9.0);
-				case OB_ROT_Y:
-					return eul[1]/(M_PI_2/9.0);
-				case OB_ROT_Z:
-					return eul[2]/(M_PI_2/9.0);
-				case OB_SIZE_X:
-					return size[0];
-				case OB_SIZE_Y:
-					return size[1];
-				case OB_SIZE_Z:
-					return size[2];
+					switch(driver->adrcode) {
+					case OB_LOC_X:
+						return loc[0];
+					case OB_LOC_Y:
+						return loc[1];
+					case OB_LOC_Z:
+						return loc[2];
+					case OB_ROT_X:
+						return eul[0]/(M_PI_2/9.0);
+					case OB_ROT_Y:
+						return eul[1]/(M_PI_2/9.0);
+					case OB_ROT_Z:
+						return eul[2]/(M_PI_2/9.0);
+					case OB_SIZE_X:
+						return size[0];
+					case OB_SIZE_Y:
+						return size[1];
+					case OB_SIZE_Z:
+						return size[2];
+					}
 				}
 			}
 		}
@@ -995,10 +1046,13 @@ void calc_ipo(Ipo *ipo, float ctime)
 	IpoCurve *icu;
 	
 	if(ipo==NULL) return;
+	if(ipo->muteipo) return;
 	
 	for(icu= ipo->curve.first; icu; icu= icu->next) {
-		if(icu->driver || (icu->flag & IPO_LOCK)==0) 
-			calc_icu(icu, ctime);
+		if(icu->driver || (icu->flag & IPO_LOCK)==0) { 
+			if((icu->flag & IPO_MUTE)==0)
+				calc_icu(icu, ctime);
+		}
 	}
 }
 
@@ -1185,6 +1239,7 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 	Lamp *la;
 	Sequence *seq;
 	World *wo;
+	ParticleSettings *part;
 
 	*type= IPO_FLOAT;
 
@@ -1261,6 +1316,9 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			break;
 		case OB_PD_PERM:
 			if(ob->pd) poin= &(ob->pd->pdef_perm);
+			break;
+		case OB_PD_FMAXD:
+			if(ob->pd) poin= &(ob->pd->maxdist);
 			break;
 		}
 	}
@@ -1514,13 +1572,54 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			poin= &(snd->attenuation); break;
 		}
 	}
-	
+	else if( GS(id->name)==ID_PA) {
+		
+		part= (ParticleSettings *)id;
+		
+		switch(icu->adrcode) {
+		case PART_EMIT_FREQ:
+		case PART_EMIT_LIFE:
+		case PART_EMIT_VEL:
+		case PART_EMIT_AVE:
+		case PART_EMIT_SIZE:
+			poin= NULL; break;
+		case PART_CLUMP:
+			poin= &(part->clumpfac); break;
+		case PART_AVE:
+			poin= &(part->avefac); break;
+		case PART_SIZE:
+			poin= &(part->size); break;
+		case PART_DRAG:
+			poin= &(part->dragfac); break;
+		case PART_BROWN:
+			poin= &(part->brownfac); break;
+		case PART_DAMP:
+			poin= &(part->dampfac); break;
+		case PART_LENGTH:
+			poin= &(part->length); break;
+		case PART_GRAV_X:
+			poin= &(part->acc[0]); break;
+		case PART_GRAV_Y:
+			poin= &(part->acc[1]); break;
+		case PART_GRAV_Z:
+			poin= &(part->acc[2]); break;
+		case PART_KINK_AMP:
+			poin= &(part->kink_amp); break;
+		case PART_KINK_FREQ:
+			poin= &(part->kink_freq); break;
+		case PART_KINK_SHAPE:
+			poin= &(part->kink_shape); break;
+		case PART_BB_TILT:
+			poin= &(part->bb_tilt); break;
+		}
+	}
+
 	return poin;
 }
 
 void set_icu_vars(IpoCurve *icu)
 {
-	
+	/* defaults. 0.0 for y-extents makes these ignored */
 	icu->ymin= icu->ymax= 0.0;
 	icu->ipo= IPO_BEZ;
 	
@@ -1809,6 +1908,37 @@ void set_icu_vars(IpoCurve *icu)
 			break;
 		}
 	}
+	else if(icu->blocktype==ID_PA){
+
+		switch(icu->adrcode) {
+		case PART_EMIT_LIFE:
+		case PART_SIZE:
+		case PART_KINK_FREQ:
+		case PART_EMIT_VEL:
+		case PART_EMIT_AVE:
+		case PART_EMIT_SIZE:
+			icu->ymin= 0.0;
+			break;
+		case PART_CLUMP:
+		case PART_DRAG:
+		case PART_DAMP:
+		case PART_LENGTH:
+			icu->ymin= 0.0;
+			icu->ymax= 1.0;
+			break;
+		case PART_KINK_SHAPE:
+			icu->ymin= -0.999;
+			icu->ymax= 0.999;
+		}
+	}
+	else if(icu->blocktype==ID_CO) {
+		icu->ymin= 0.0;
+		icu->ymax= 1.0f;
+	}
+	
+	/* by default, slider limits will be icu->ymin and icu->ymax */
+	icu->slide_min= icu->ymin;
+	icu->slide_max= icu->ymax;
 }
 
 /* not for actions or constraints! */
@@ -1997,7 +2127,7 @@ void do_ob_ipo(Object *ob)
 
 	/* do not set ob->ctime here: for example when parent in invisible layer */
 	
-	ctime= bsystem_time(ob, 0, (float) G.scene->r.cfra, 0.0);
+	ctime= bsystem_time(ob, (float) G.scene->r.cfra, 0.0);
 
 	calc_ipo(ob->ipo, ctime);
 
@@ -2031,7 +2161,7 @@ void do_ob_ipodrivers(Object *ob, Ipo *ipo, float ctime)
 	}
 }
 
-void do_seq_ipo(Sequence *seq)
+void do_seq_ipo(Sequence *seq, int cfra)
 {
 	float ctime, div;
 	
@@ -2039,11 +2169,10 @@ void do_seq_ipo(Sequence *seq)
 	
 	if(seq->ipo) {
 		if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
-			ctime = frame_to_float(G.scene->r.cfra);
+			ctime = frame_to_float(cfra);
 			div = 1.0;
 		} else {
-			ctime= frame_to_float(G.scene->r.cfra 
-					      - seq->startdisp);
+			ctime= frame_to_float(cfra - seq->startdisp);
 			div= (seq->enddisp - seq->startdisp)/100.0f;
 			if(div==0.0) return;
 		}
@@ -2161,7 +2290,7 @@ void do_all_data_ipos()
 			     || seq->type == SEQ_HD_SOUND) && (seq->ipo) && 
 				(seq->startdisp<=G.scene->r.cfra+2) && 
 			    (seq->enddisp>G.scene->r.cfra)) 
-					do_seq_ipo(seq);
+					do_seq_ipo(seq, G.scene->r.cfra);
 			seq= seq->next;
 		}
 	}
@@ -2219,7 +2348,7 @@ void add_to_cfra_elem(ListBase *lb, BezTriple *bezt)
 		
 		if( ce->cfra==bezt->vec[1][0] ) {
 			/* do because of double keys */
-			if(bezt->f2 & 1) ce->sel= bezt->f2;
+			if(bezt->f2 & SELECT) ce->sel= bezt->f2;
 			return;
 		}
 		else if(ce->cfra > bezt->vec[1][0]) break;
@@ -2271,6 +2400,7 @@ void make_cfra_list(Ipo *ipo, ListBase *elems)
 				case OB_PD_SDAMP:
 				case OB_PD_RDAMP:
 				case OB_PD_PERM:
+				case OB_PD_FMAXD:
 					bezt= icu->bezt;
 					if(bezt) {
 						a= icu->totvert;

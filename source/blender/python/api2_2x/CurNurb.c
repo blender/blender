@@ -37,6 +37,9 @@
 #include "gen_utils.h"
 #include "BezTriple.h"
 
+/* Only for ME_SMOOTH */
+#include "DNA_meshdata_types.h"
+
 /*
  * forward declarations go here
  */
@@ -62,14 +65,15 @@ static int CurNurb_setPoint( BPy_CurNurb * self, int index, PyObject * ob );
 static int CurNurb_length( PyInstanceObject * inst );
 static PyObject *CurNurb_getIter( BPy_CurNurb * self );
 static PyObject *CurNurb_iterNext( BPy_CurNurb * self );
-PyObject *CurNurb_append( BPy_CurNurb * self, PyObject * args );
+PyObject *CurNurb_append( BPy_CurNurb * self, PyObject * value );
 
 static PyObject *CurNurb_isNurb( BPy_CurNurb * self );
 static PyObject *CurNurb_isCyclic( BPy_CurNurb * self );
 static PyObject *CurNurb_dump( BPy_CurNurb * self );
 static PyObject *CurNurb_switchDirection( BPy_CurNurb * self );
 static PyObject *CurNurb_recalc( BPy_CurNurb * self );
-
+static PyObject *CurNurb_getFlagBits( BPy_CurNurb * self, void *type );
+static int CurNurb_setFlagBits( BPy_CurNurb * self, PyObject *value, void *type );
 char M_CurNurb_doc[] = "CurNurb";
 
 
@@ -124,7 +128,7 @@ static PyMethodDef BPy_CurNurb_methods[] = {
 	 "( type ) - change the type of the curve (Poly: 0, Bezier: 1, NURBS: 4)"},
 	{"getType", ( PyCFunction ) CurNurb_getType, METH_NOARGS,
 	 "( ) - get the type of the curve (Poly: 0, Bezier: 1, NURBS: 4)"},
-	{"append", ( PyCFunction ) CurNurb_append, METH_VARARGS,
+	{"append", ( PyCFunction ) CurNurb_append, METH_O,
 	 "( point ) - add a new point.  arg is BezTriple or list of x,y,z,w floats"},
 	{"isNurb", ( PyCFunction ) CurNurb_isNurb, METH_NOARGS,
 	 "( ) - boolean function tests if this spline is type nurb or bezier"},
@@ -185,7 +189,10 @@ static PyGetSetDef BPy_CurNurb_getseters[] = {
 	 (getter)CurNurb_getKnotsV, (setter)NULL,
 	 "The The knot vector in the V direction",
 	 NULL},
-
+	{"smooth",
+	 (getter)CurNurb_getFlagBits, (setter)CurNurb_setFlagBits,
+	 "The smooth bool setting",
+	 (void *)ME_SMOOTH},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -420,13 +427,20 @@ static PyObject *CurNurb_getKnotsV( BPy_CurNurb * self )
 
 static PyObject *CurNurb_getPoints( BPy_CurNurb * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->nurb->pntsu );
+	return PyInt_FromLong( ( long ) self->nurb->pntsu );
+}
 
-	if( attr )
-		return attr;
+static PyObject *CurNurb_getFlagBits( BPy_CurNurb * self, void *type )
+{
+	return EXPP_getBitfield( (void *)&self->nurb->flag,
+							  (int)type, 'h' );
+}
 
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"could not get number of points" );
+static int CurNurb_setFlagBits( BPy_CurNurb * self, PyObject *value,
+									void *type )
+{
+	return EXPP_setBitfield( value, (void *)&self->nurb->flag,
+							 (int)type, 'h' );
 }
 
 /*
@@ -435,11 +449,9 @@ static PyObject *CurNurb_getPoints( BPy_CurNurb * self )
  * arg is BezTriple or list of xyzw floats 
  */
 
-PyObject *CurNurb_append( BPy_CurNurb * self, PyObject * args )
+PyObject *CurNurb_append( BPy_CurNurb * self, PyObject * value )
 {
-	Nurb *nurb = self->nurb;
-
-	return CurNurb_appendPointToNurb( nurb, args );
+	return CurNurb_appendPointToNurb( self->nurb, value );
 }
 
 
@@ -449,29 +461,22 @@ PyObject *CurNurb_append( BPy_CurNurb * self, PyObject * args )
  * notice the first arg is Nurb*.
  */
 
-PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * args )
+PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * value )
 {
 
 	int i;
 	int size;
-	PyObject *pyOb;
 	int npoints = nurb->pntsu;
 
 	/*
 	   do we have a list of four floats or a BezTriple?
 	*/
-	if( !PyArg_ParseTuple( args, "O", &pyOb ))
-		return EXPP_ReturnPyObjError
-				( PyExc_RuntimeError,
-				  "Internal error parsing arguments" );
-
-
-
+	
 	/* if curve is empty, adjust type depending on input type */
 	if (nurb->bezt==NULL && nurb->bp==NULL) {
-		if (BPy_BezTriple_Check( pyOb ))
+		if (BPy_BezTriple_Check( value ))
 			nurb->type |= CU_BEZIER;
-		else if (PySequence_Check( pyOb ))
+		else if (PySequence_Check( value ))
 			nurb->type |= CU_NURBS;
 		else
 			return( EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -483,7 +488,7 @@ PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * args )
 	if ((nurb->type & 7)==CU_BEZIER) {
 		BezTriple *tmp;
 
-		if( !BPy_BezTriple_Check( pyOb ) )
+		if( !BPy_BezTriple_Check( value ) )
 			return( EXPP_ReturnPyObjError( PyExc_TypeError,
 					  "Expected a BezTriple\n" ) );
 
@@ -507,11 +512,11 @@ PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * args )
 		nurb->pntsu++;
 		/* add new point to end of list */
 		memcpy( nurb->bezt + npoints,
-			BezTriple_FromPyObject( pyOb ), sizeof( BezTriple ) );
+			BezTriple_FromPyObject( value ), sizeof( BezTriple ) );
 
 	}
-	else if( PySequence_Check( pyOb ) ) {
-		size = PySequence_Size( pyOb );
+	else if( PySequence_Check( value ) ) {
+		size = PySequence_Size( value );
 /*		printf("\ndbg: got a sequence of size %d\n", size );  */
 		if( size == 4 || size == 5 ) {
 			BPoint *tmp;
@@ -537,7 +542,7 @@ PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * args )
 				sizeof( BPoint ) );
 
 			for( i = 0; i < 4; ++i ) {
-				PyObject *item = PySequence_GetItem( pyOb, i );
+				PyObject *item = PySequence_GetItem( value, i );
 
 				if (item == NULL)
 					return NULL;
@@ -548,7 +553,7 @@ PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * args )
 			}
 
 			if (size == 5) {
-				PyObject *item = PySequence_GetItem( pyOb, i );
+				PyObject *item = PySequence_GetItem( value, i );
 
 				if (item == NULL)
 					return NULL;
@@ -771,9 +776,9 @@ static PyObject *CurNurb_isNurb( BPy_CurNurb * self )
 	 */
 
 	if( self->nurb->bp ) {
-		return EXPP_incr_ret_True();
+		Py_RETURN_TRUE;
 	} else {
-		return EXPP_incr_ret_False();
+		Py_RETURN_FALSE;
 	}
 }
 
@@ -787,9 +792,9 @@ static PyObject *CurNurb_isCyclic( BPy_CurNurb * self )
         /* supposing that the flagu is always set */ 
 
 	if( self->nurb->flagu & CU_CYCLIC ) {
-		return EXPP_incr_ret_True();
+		Py_RETURN_TRUE;
 	} else {
-		return EXPP_incr_ret_False();
+		Py_RETURN_FALSE;
 	}
 }
 

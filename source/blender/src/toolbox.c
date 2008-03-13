@@ -288,7 +288,7 @@ short button(short *var, short min, short max, char *str)
 
 	uiBoundsBlock(block, 5);
 
-	ret= uiDoBlocks(&listb, 0);
+	ret= uiDoBlocks(&listb, 0, 0);
 
 	if(ret==UI_RETURN_OK) return 1;
 	return 0;
@@ -305,7 +305,7 @@ short sbutton(char *var, float min, float max, char *str)
 
 	getmouseco_sc(mval);
 	
-	if(mval[0]<150) mval[0]=150;
+	if(mval[0]<250) mval[0]=250;
 	if(mval[1]<30) mval[1]=30;
 	if(mval[0]>G.curscreen->sizex) mval[0]= G.curscreen->sizex-10;
 	if(mval[1]>G.curscreen->sizey) mval[1]= G.curscreen->sizey-10;
@@ -313,19 +313,20 @@ short sbutton(char *var, float min, float max, char *str)
 	block= uiNewBlock(&listb, "button", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_ENTER_OK);
 
-	x1=mval[0]-150; 
+	x1=mval[0]-250; 
 	y1=mval[1]-20; 
 	
-	uiDefButC(block, TEX, 32766, str,	x1+5,y1+10,125,20, var,(float)min,(float)max, 0, 0, "");
-	uiDefBut(block, BUT, 32767, "OK",	x1+136,y1+10,25,20, NULL, 0, 0, 0, 0, "");
+	uiDefButC(block, TEX, 32766, str,	x1+5,y1+10,225,20, var,(float)min,(float)max, 0, 0, "");
+	uiDefBut(block, BUT, 32767, "OK",	x1+236,y1+10,25,20, NULL, 0, 0, 0, 0, "");
 
 	uiBoundsBlock(block, 5);
 	
 	mainqenter_ext(BUT_ACTIVATE, 32766, 0);	/* note, button id '32766' is asking for errors some day! */
-	ret= uiDoBlocks(&listb, 0);
+	ret= uiDoBlocks(&listb, 0, 0);
 
 	if(ret==UI_RETURN_OK) return 1;
 	return 0;
+	
 }
 
 short fbutton(float *var, float min, float max, float a1, float a2, char *str)
@@ -355,7 +356,7 @@ short fbutton(float *var, float min, float max, float a1, float a2, char *str)
 
 	uiBoundsBlock(block, 2);
 
-	ret= uiDoBlocks(&listb, 0);
+	ret= uiDoBlocks(&listb, 0, 0);
 
 	if(ret==UI_RETURN_OK) return 1;
 	return 0;
@@ -415,7 +416,7 @@ int movetolayer_buts(unsigned int *lay, char *title)
 
 	uiBoundsBlock(block, 2);
 
-	ret= uiDoBlocks(&listb, 0);
+	ret= uiDoBlocks(&listb, 0, 0);
 
 	if(ret==UI_RETURN_OK) return 1;
 	return 0;
@@ -465,7 +466,7 @@ int movetolayer_short_buts(short *lay, char *title)
 	
 	uiBoundsBlock(block, 2);
 	
-	ret= uiDoBlocks(&listb, 0);
+	ret= uiDoBlocks(&listb, 0, 0);
 	
 	if(ret==UI_RETURN_OK) return 1;
 	return 0;
@@ -602,7 +603,7 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 	
 	uiBoundsBlock(block, 5);
 
-	event= uiDoBlocks(&listb, 0);
+	event= uiDoBlocks(&listb, 0, 0);
 
 	areawinset(curarea->win);
 	
@@ -763,13 +764,6 @@ ListBase tb_listb= {NULL, NULL};
 #define TB_PAD	2048
 #define TB_SHIFT 4096
 
-typedef struct TBitem {
-	int icon;
-	char *name;
-	int retval;
-	void *poin;
-} TBitem;
-
 static void tb_do_hotkey(void *arg, int event)
 {
 	unsigned short i, key=0;
@@ -892,6 +886,7 @@ static TBitem tb_object_select_grouped[]= {
 {	0, "Objects on Shared Layers|Shift G, 6", 	6, NULL},
 {	0, "Objects in Same Group|Shift G, 7", 	7, NULL},
 {	0, "Object Hooks|Shift G, 8", 	8, NULL},
+{	0, "Object PassIndex|Shift G, 9", 	9, NULL},
 {  -1, "", 			0, do_view3d_select_object_groupedmenu}};
 
 static TBitem tb_object_select[]= {
@@ -899,6 +894,7 @@ static TBitem tb_object_select[]= {
 {	0, "SEPR",				0, NULL},
 {	0, "Select/Deselect All|A", 	1, NULL},
 {	0, "Inverse",			2, NULL},
+{	0, "Random",			3, NULL},
 {	0, "Select All by Layer", 	0, 		tb_object_select_layer},
 {	0, "Select All by Type", 	0, 		tb_object_select_type},
 {	0, "SEPR",				0, NULL},
@@ -919,8 +915,8 @@ static TBitem tb_face_select[]= {
 static TBitem tb_mesh_select[]= {
 {	0, "Border Select|B",               0, NULL},
 {	0, "SEPR",                          0, NULL},
-{	0, "(De)select All|A",              2, NULL},
-{	0, "Inverse",                       3, NULL},
+{	0, "Select/Deselect All|A",              2, NULL},
+{	0, "Inverse|Ctrl I",                       3, NULL},
 {	0, "SEPR",                          0, NULL},
 {	0, "Random...",			            5, NULL},
 {	0, "Non-Manifold|Shift Ctrl Alt M", 9, NULL},
@@ -929,7 +925,7 @@ static TBitem tb_mesh_select[]= {
 {	0, "Triangles|Shift Ctrl Alt 3",    11, NULL},
 {	0, "Quads|Shift Ctrl Alt 4",        12, NULL},
 {	0, "Non-Triangles/Quads|Shift Ctrl Alt 5", 13, NULL},
-{	0, "Group From Selection|Shift G", 21, NULL},
+{	0, "Similar to Selection|Shift G", 21, NULL},
 {	0, "SEPR",                          0, NULL},
 {	0, "More|Ctrl NumPad +",            7, NULL},
 {	0, "Less|Ctrl NumPad -",            8, NULL},
@@ -949,7 +945,9 @@ static TBitem tb_curve_select[]= {
 {	0, "SEPR", 				0, NULL},
 {	0, "(De)select All|A", 	2, NULL},
 {	0, "Inverse", 			3, NULL},
-{	0, "Row|Shift R", 			5, NULL},
+{	0, "Random...", 		13, NULL},
+{	0, "Every Nth", 		14, NULL},
+{	0, "Row|Shift R", 			5, NULL}, /* shouldn't be visible in case of bezier curves*/
 {	0, "SEPR",				0, NULL},
 {	0, "(De)select First",	7, NULL},
 {	0, "(De)select Last", 	8, NULL},
@@ -959,6 +957,15 @@ static TBitem tb_curve_select[]= {
 {	0, "More|Ctrl NumPad +",	9, NULL},
 {	0, "Less|Ctrl NumPad -",	10, NULL},
 {  -1, "", 				0, do_view3d_select_curvemenu}};
+
+static TBitem tb_mball_select[]= {
+{	0, "Border Select|B", 	0, NULL},
+{	0, "SEPR", 		0, NULL},
+{	0, "(De)select All|A", 	2, NULL},
+{	0, "Inverse", 		3, NULL},
+{	0, "SEPR",		0, NULL},
+{	0, "Random...",		4, NULL},
+{  -1, "",                      0, do_view3d_select_metaballmenu}};
 
 static TBitem tb__select[]= {
 {       0, "Border Select|B",   'b', NULL},
@@ -1049,9 +1056,9 @@ static TBitem tb_mesh_edit_face[]= {
 {	0, "SEPR",					0, NULL},
 {	0, "Convert to Triangles|Ctrl T", 	2, 		NULL},
 {	0, "Convert to Quads|Alt J", 		3, 		NULL},
-{	0, "Flip Triangle Edges|Ctrl F", 	4, 		NULL},
-{	0, "Set Smooth|W, Alt 3", 	6, 		NULL},
-{	0, "Set Solid|W, Alt 4", 	7, 		NULL},
+{	0, "Flip Triangle Edges|Ctrl Shift F", 	4, 		NULL},
+{	0, "Set Smooth|Ctrl F, 3", 	6, 		NULL},
+{	0, "Set Solid|Ctrl F, 4", 	7, 		NULL},
 {  -1, "", 			0, do_view3d_edit_mesh_facesmenu}};
 
 
@@ -1059,13 +1066,13 @@ static TBitem tb_mesh_edit_normal[]= {
 {	0, "Recalculate Outside|Ctrl N", 	2, 		NULL},
 {	0, "Recalculate Inside|Ctrl Shift N", 	1, 		NULL},
 {	0, "SEPR",					0, NULL},
-{	0, "Flip|W, 9", 				0, 		NULL},
+{	0, "Flip|Ctrl F, 1", 				0, 		NULL},
 {  -1, "", 			0, do_view3d_edit_mesh_normalsmenu}};
 
 static TBitem tb_mesh_edit[]= {
 {	0, "Exit Editmode|Tab", 	TB_TAB, NULL},
-{	0, "Undo|U", 			'u', 		NULL},
-{	0, "Redo|Shift U", 		'U', 		NULL},
+{	0, "Undo|Ctrl Z", 			'u', 		NULL},
+{	0, "Redo|Ctrl Shift Z", 		'U', 		NULL},
 {	0, "SEPR", 				0, 			NULL},
 {	0, "Extrude|E", 		'e', 		NULL},
 {	0, "Duplicate|Shift D", 'D', 		NULL},
@@ -1259,12 +1266,15 @@ static void tb_do_transform_clearapply(void *arg, int event)
 			clear_object('s');
 			break;
 		case 3: /* apply scale/rotation */
-			apply_object();
+			apply_objects_locrot();
 			break;
-		case 4: /* apply deformation */
+		case 4: /* apply scale/rotation */
+			apply_objects_visual_tx();
+			break;
+		case 5: /* apply deformation */
 			object_apply_deform(ob);
 			break;
-		case 5: /* make duplicates real */
+		case 6: /* make duplicates real */
 			if (ob->transflag & OB_DUPLI) make_duplilist_real();
 			else error("The active object does not have dupliverts");
 			break;
@@ -1276,17 +1286,19 @@ static TBitem tb_transform_clearapply[]= {
 {	0, "Clear Rotation|Alt R", 		1, NULL},
 {	0, "Clear Scale|Alt S", 		2, NULL},
 {	0, "SEPR", 					0, NULL},
-{	0, "Apply Scale/Rotation|Ctrl A", 3, NULL},
-{	0, "Apply Deformation|Shift Ctrl A", 4, NULL},
-{	0, "Make Duplicates Real|Shift Ctrl A", 5, NULL},
+{	0, "Apply Scale/Rotation to ObData|Ctrl A, 1", 3, NULL},
+{	0, "Apply Visual Transform|Ctrl A, 2", 4, NULL},
+{	0, "Apply Deformation|Shift Ctrl A", 5, NULL},
+{	0, "Make Duplicates Real|Shift Ctrl A", 6, NULL},
 {  -1, "", 			0, tb_do_transform_clearapply}};
 
 static TBitem tb_transform_snap[]= {
 {	0, "Selection -> Grid|Shift S, 1", 		1, NULL},
 {	0, "Selection -> Cursor|Shift S, 2", 	2, NULL},
-{	0, "Cursor -> Grid|Shift S, 3", 		3, NULL},
+{	0, "Selection -> Center|Shift S, 3", 3, NULL},
 {	0, "Cursor -> Selection|Shift S, 4", 4, NULL},
-{	0, "Selection -> Center|Shift S, 5", 5, NULL},
+{	0, "Cursor -> Grid|Shift S, 5", 		5, NULL},
+{	0, "Cursor -> Active|Shift S, 6", 		6, NULL},
 {  -1, "", 			0, do_view3d_edit_snapmenu}};
 
 static void tb_do_transform(void *arg, int event)
@@ -1552,6 +1564,7 @@ static TBitem tb_node_addsh[]= {
 	{	0, "Vector",		4, NULL},
 	{	0, "Convertor",	5, NULL},
 	{	0, "Group",		6, NULL},
+	{	0, "Dynamic",	7, NULL},
 	{  -1, "", 			0, NULL}};
 
 static TBitem tb_node_addcomp[]= {
@@ -1564,6 +1577,7 @@ static TBitem tb_node_addcomp[]= {
 	{ 	0, "Matte",		7, NULL},
 	{	0, "Distort",	8, NULL},
 	{	0, "Group",		9, NULL},
+	{	0, "Dynamic",	10, NULL},
 	{  	-1, "", 		0, NULL}};
 
 /* do_node_addmenu() in header_node.c, prototype in BSE_headerbuttons.h */
@@ -1612,11 +1626,21 @@ static TBitem *node_add_sublevel(ListBase *storage, bNodeTree *ntree, int nodecl
 		}
 	}
 	else {
-		bNodeType *ntype= ntree->alltypes.first;
-		for(a=0; ntype; ntype= ntype->next) {
-			if( ntype->nclass == nodeclass ) {
-				addmenu[a].name= ntype->name;
-				addmenu[a].retval= ntype->type;
+		bNodeType *type= ntree->alltypes.first;
+		int script=0;
+		for(a=0; type; type= type->next) {
+			if( type->nclass == nodeclass ) {
+				if(type->type == NODE_DYNAMIC) {
+					if(type->id)
+						addmenu[a].name= type->id->name+2;
+					else
+						addmenu[a].name= type->name;
+					addmenu[a].retval= NODE_DYNAMIC_MENU+script;
+					script++;
+				} else {
+					addmenu[a].name= type->name;
+					addmenu[a].retval= type->type;
+				}
 				a++;
 			}
 		}
@@ -1635,11 +1659,14 @@ static TBitem tb_node_node[]= {
 	{	0, "Duplicate|Shift D", TB_SHIFT|'d', 		NULL},
 	{	0, "Delete|X", 'x', 		NULL},
 	{	0, "SEPR", 		0, NULL},
+	{	0, "Make Link|F", 'f', NULL},
+	{	0, "SEPR", 		0, NULL},
 	{	0, "Make Group|Ctrl G", TB_CTRL|'g', 		NULL},
 	{	0, "Ungroup|Alt G", TB_ALT|'g', 		NULL},
 	{	0, "Edit Group|Tab", TB_TAB, NULL},
 	{	0, "SEPR", 		0, NULL},
 	{	0, "Hide/Unhide|H", 'h', NULL},
+	{	0, "Rename|Ctrl R", TB_CTRL|'r', 		NULL},
 	{	0, "SEPR", 		0, NULL},
 	{	0, "Read Saved Render Results|R", 'r', NULL},
 	{	0, "Show Cyclic Dependencies|C", 'c', NULL},
@@ -1735,6 +1762,8 @@ static void do_group_addmenu(void *arg, int event)
 	
 	ob->dup_group= BLI_findlink(&G.main->group, event);
 	if(ob->dup_group) {
+		rename_id(&ob->id, ob->dup_group->id.name+2);
+
 		id_us_plus((ID *)ob->dup_group);
 		ob->transflag |= OB_DUPLIGROUP;
 		DAG_scene_sort(G.scene);
@@ -1949,6 +1978,9 @@ void toolbox_n(void)
 		}
 	}
 	
+	/* save present mouse position */
+	toolbox_mousepos(mval, 1);
+
 	mywinset(G.curscreen->mainwin); // we go to screenspace
 	
 	block= uiNewBlock(&tb_listb, "toolbox", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
@@ -2019,7 +2051,7 @@ void toolbox_n(void)
 				case OB_MBALL:
 					menu1= addmenu_meta;
 					menu2= tb_edit;
-					menu3= tb__select;
+					menu3= tb_mball_select;
 					menu4= tb_transform_editmode2;
 					menu5= tb_obdata; str5= "Meta";
 				break;
@@ -2083,7 +2115,7 @@ void toolbox_n(void)
 				}
 			}
 		}
-		else if (G.f & G_FACESELECT) {
+		else if (FACESEL_PAINT_TEST) {
 			menu3 = tb_face_select;
 		}
 	}
@@ -2107,6 +2139,7 @@ void toolbox_n(void)
 			menu1[3].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_VECTOR);
 			menu1[4].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_CONVERTOR);
 			menu1[5].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_GROUP);
+			menu1[6].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_DYNAMIC);
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
 			menu1[0].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_INPUT);
@@ -2118,6 +2151,7 @@ void toolbox_n(void)
 			menu1[6].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_MATTE);
 			menu1[7].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_DISTORT);
 			menu1[8].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_GROUP);
+			menu1[9].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_DYNAMIC);
 
 		}
 		
@@ -2206,7 +2240,7 @@ void toolbox_n(void)
 	}
 	
 	uiBoundsBlock(block, 2);
-	event= uiDoBlocks(&tb_listb, 0);
+	event= uiDoBlocks(&tb_listb, 0, 1);
 	
 	/* free all dynamic entries... */
 	BLI_freelistN(&storage);
@@ -2228,5 +2262,76 @@ void reset_toolbox(void)
 	} else {
 		tb_mainx= 0;
 		tb_mainy= -5;
+	}
+}
+
+/* general toolbox for python access */
+void toolbox_generic( TBitem *generic_menu )
+{
+	uiBlock *block;
+	uiBut *but;
+	TBitem *menu;
+	int dx=96;
+	short event, mval[2];
+	long ypos = -5;
+	
+	tb_mainx= -32;
+	tb_mainy= -5;
+	
+	mywinset(G.curscreen->mainwin); // we go to screenspace
+	
+	block= uiNewBlock(&tb_listb, "toolbox", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
+	uiBlockSetCol(block, TH_MENU_ITEM);
+	
+	getmouseco_sc(mval);
+	
+	menu= generic_menu;
+	while(menu->icon != -1) menu++;
+	uiBlockSetButmFunc(block, menu->poin, NULL);
+	
+	/* Add the menu */
+	for (menu = generic_menu; menu->icon != -1; menu++) {
+		if (menu->poin) {
+			but=uiDefIconTextBlockBut(block, tb_makemenu, menu->poin, ICON_RIGHTARROW_THIN, menu->name, mval[0]+tb_mainx,mval[1]+tb_mainy+ypos+5, dx, 19, "");
+			uiButSetFlag(but, UI_MAKE_RIGHT);
+			
+			uiButSetFunc(but, store_main, (void *)+32, (void *)ypos);
+		} else {
+			/* TODO - add icon support */
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, menu->name, mval[0]+tb_mainx,mval[1]+tb_mainy+ypos+5, dx, 19, NULL, 0.0, 0.0, 0, menu->retval, "");
+		}
+		ypos-=20;
+	}
+	
+	uiBlockSetButmFunc(block, menu->poin, NULL);
+	
+	uiBoundsBlock(block, 2);
+	event= uiDoBlocks(&tb_listb, 0, 1);
+	
+	mywinset(curarea->win);
+	
+	reset_toolbox();
+}
+
+/* save or restore mouse position when entering/exiting menus */
+void toolbox_mousepos( short *mpos, int save )
+{
+	static short initpos[2];
+	static int tog;
+	
+	if (save) {
+		getmouseco_areawin(mpos);
+		initpos[0]= mpos[0];
+		initpos[1]= mpos[1];
+		tog=1;
+	} else {
+		if (tog) {
+			mpos[0]= initpos[0];
+			mpos[1]= initpos[1];
+		} else {
+			getmouseco_areawin(mpos);
+		}
+		tog= 0;
 	}
 }

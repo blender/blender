@@ -57,11 +57,13 @@ typedef struct _Button {
 		char *asstr;
 		float asvec[3];
 	} val;
-	char *tooltip;
+	char tooltip[256];
 } Button;
 
-#define BINT_TYPE		1
-#define BFLOAT_TYPE		2
+#define BPY_MAX_TOOLTIP	255
+
+#define BINT_TYPE			1
+#define BFLOAT_TYPE			2
 #define BSTRING_TYPE		3
 #define BVECTOR_TYPE		4
 

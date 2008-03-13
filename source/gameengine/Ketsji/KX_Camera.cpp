@@ -32,7 +32,8 @@
  */
  
 #include "KX_Camera.h"
-
+#include "KX_Scene.h"
+#include "KX_PythonInit.h"
 #include "KX_Python.h"
 #include "KX_PyMath.h"
 #ifdef HAVE_CONFIG_H
@@ -57,7 +58,9 @@ KX_Camera::KX_Camera(void* sgReplicationInfo,
 	m_name = "cam";
 	m_projection_matrix.setIdentity();
 	m_modelview_matrix.setIdentity();
-	SetProperty("camera",new CIntValue(1));
+	CValue* val = new CIntValue(1);
+	SetProperty("camera",val);
+	val->Release();
 }
 
 
@@ -391,6 +394,7 @@ PyMethodDef KX_Camera::Methods[] = {
 	KX_PYMETHODTABLE(KX_Camera, setProjectionMatrix),
 	KX_PYMETHODTABLE(KX_Camera, enableViewport),
 	KX_PYMETHODTABLE(KX_Camera, setViewport),
+	KX_PYMETHODTABLE(KX_Camera, setOnTop),
 	
 	{NULL,NULL} //Sentinel
 };
@@ -757,5 +761,17 @@ KX_PYMETHODDEF_DOC(KX_Camera, setViewport,
 	{
 		SetViewport(left, bottom, right, top);
 	}
+	Py_Return;
+}
+
+KX_PYMETHODDEF_DOC(KX_Camera, setOnTop,
+"setOnTop()\n"
+"Sets this camera's viewport on top\n")
+{
+	class KX_Scene* scene;
+	
+	scene = PHY_GetActiveScene();
+	MT_assert(scene);
+	scene->SetCameraOnTop(this);
 	Py_Return;
 }

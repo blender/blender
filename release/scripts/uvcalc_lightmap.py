@@ -221,7 +221,11 @@ PREF_MARGIN_DIV=		512):
 	else:
 		face_groups = []
 	
-	for me in meshes:			
+	for me in meshes:
+		# Add face UV if it does not exist.
+		# All new faces are selected.
+		me.faceUV = True
+			
 		if PREF_SEL_ONLY:
 			faces = [f for f in me.faces if f.sel]
 		else:
@@ -540,6 +544,12 @@ def main():
 			Draw.PupMenu('Error%t|No mesh objects selected.')
 			return
 	
+	# Toggle Edit mode
+	is_editmode = Window.EditMode()
+	if is_editmode:
+		Window.EditMode(0)
+
+
 	Window.WaitCursor(1)
 	lightmap_uvpack(meshes,\
 			PREF_SEL_ONLY.val,\
@@ -549,6 +559,9 @@ def main():
 			PREF_IMG_PX_SIZE.val,\
 			PREF_BOX_DIV.val,\
 			int(1/(PREF_MARGIN_DIV.val/100)))
+	
+	if is_editmode:
+		Window.EditMode(1)
 	
 	Window.WaitCursor(0)
 

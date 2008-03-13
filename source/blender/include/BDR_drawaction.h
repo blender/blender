@@ -38,8 +38,22 @@ struct Ipo;
 struct IpoCurve;
 struct gla2DDrawInfo;
 struct bAction;
+struct bActionGroup;
 struct Object;
 struct ListBase;
+
+/* ****************************** Base Structs ****************************** */
+
+/* Keyframe Column Struct */
+typedef struct ActKeyColumn {
+	struct ActKeyColumn *next, *prev;
+	short sel, handle_type;
+	float cfra;
+	
+	/* only while drawing - used to determine if long-keyframe needs to be drawn */
+	short modified;
+	short totcurve;
+} ActKeyColumn;
 
 /* 'Long Keyframe' Struct */
 typedef struct ActKeyBlock {
@@ -53,21 +67,31 @@ typedef struct ActKeyBlock {
 	short totcurve; 
 } ActKeyBlock;
 
-/*Action Generics */
+
+/* Inclusion-Range Limiting Struct (optional) */
+typedef struct ActKeysInc {
+	struct Object *ob;				/* if present, used to find action-scaled time */
+	float start, end;				/* frames (global-time) to only consider keys between */
+} ActKeysInc;
+
+/* ******************************* Methods ****************************** */
+
+/* Action Generics */
 void draw_cfra_action(void);
-int count_action_levels (struct bAction *act);
 
 /* Channel Drawing */
 void draw_icu_channel(struct gla2DDrawInfo *di, struct IpoCurve *icu, float ypos);
 void draw_ipo_channel(struct gla2DDrawInfo *di, struct Ipo *ipo, float ypos);
-void draw_action_channel(struct gla2DDrawInfo *di, bAction *act, float ypos);
-void draw_object_channel(struct gla2DDrawInfo *di, Object *ob, float ypos);
+void draw_agroup_channel(struct gla2DDrawInfo *di, struct bActionGroup *agrp, float ypos);
+void draw_action_channel(struct gla2DDrawInfo *di, struct bAction *act, float ypos);
+void draw_object_channel(struct gla2DDrawInfo *di, struct Object *ob, float ypos);
 
 /* Keydata Generation */
-void icu_to_keylist(struct IpoCurve *icu, ListBase *keys, ListBase *blocks);
-int ipo_to_keylist(struct Ipo *ipo, ListBase *keys, ListBase *blocks);
-int action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks);
-int ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks);
+void icu_to_keylist(struct IpoCurve *icu, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
+void ipo_to_keylist(struct Ipo *ipo, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
+void agroup_to_keylist(struct bActionGroup *agrp, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
+void action_to_keylist(struct bAction *act, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
+void ob_to_keylist(struct Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
 
 #endif  /*  BDR_DRAWACTION_H */
 

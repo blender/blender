@@ -324,7 +324,20 @@ int count_curveverts(ListBase *nurb)
 	return tot;
 }
 
-
+int count_curveverts_without_handles(ListBase *nurb)
+{
+	Nurb *nu;
+	int tot=0;
+	
+	nu= nurb->first;
+	while(nu) {
+		if(nu->bezt) tot+= nu->pntsu;
+		else if(nu->bp) tot+= nu->pntsu*nu->pntsv;
+		
+		nu= nu->next;
+	}
+	return tot;
+}
 
 /* **************** NURBS ROUTINES ******************** */
 
@@ -573,7 +586,7 @@ static void basisNurb(float t, short order, short pnts, float *knots, float *bas
 
 	/* this is for float inaccuracy */
 	if(t < knots[0]) t= knots[0];
-	else if(t > knots[opp2]) t= knots[opp2];
+	else if(t > knots[opp2]) t= knots[opp2]; /* Valgrind reports an error here, use a nurbs torus and change u/v res to reproduce a crash TODO*/
 
 	/* this part is order '1' */
         o2 = order + 1;
@@ -1432,7 +1445,7 @@ static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *
 	
 	for(a=0; a<resolu; a++, fac+= dfac) {
 		
-		set_four_ipo(fac, t, KEY_LINEAR);
+		set_four_ipo(fac, t, nu->tilt_interp);
 		
 		data_a[a]= t[0]*pprev->alfa + t[1]*prevbezt->alfa + t[2]*bezt->alfa + t[3]*next->alfa;
 	}
@@ -1454,7 +1467,7 @@ void makeBevelList(Object *ob)
 	BevPoint *bevp, *bevp2, *bevp1 = NULL, *bevp0;
 	float  *data, *data_a, *v1, *v2, min, inp, x1, x2, y1, y2, vec[3];
 	struct bevelsort *sortdata, *sd, *sd1;
-	int a, b, len, nr, poly, resolu;
+	int a, b, nr, poly, resolu, len=0;
 
 	/* this function needs an object, because of tflag and upflag */
 	cu= ob->data;
@@ -1466,14 +1479,17 @@ void makeBevelList(Object *ob)
 	else nu= cu->nurb.first;
 	
 	while(nu) {
-		if(nu->pntsu>1) {
+		if(nu->pntsu<=1) {
+			bl= MEM_callocN(sizeof(BevList)+1*sizeof(BevPoint), "makeBevelList");
+			BLI_addtail(&(cu->bev), bl);
+			bl->nr= 0;
+		} else {
 			if(G.rendering && cu->resolu_ren!=0) 
 				resolu= cu->resolu_ren;
 			else
 				resolu= nu->resolu;
 			
 			if((nu->type & 7)==CU_POLY) {
-	
 				len= nu->pntsu;
 				bl= MEM_callocN(sizeof(BevList)+len*sizeof(BevPoint), "makeBevelList");
 				BLI_addtail(&(cu->bev), bl);
@@ -1526,7 +1542,7 @@ void makeBevelList(Object *ob)
 						bevp->y= prevbezt->vec[1][1];
 						bevp->z= prevbezt->vec[1][2];
 						bevp->alfa= prevbezt->alfa;
-						bevp->f1= 1;
+						bevp->f1= SELECT;
 						bevp->f2= 0;
 						bevp++;
 						bl->nr++;
@@ -1624,28 +1640,30 @@ void makeBevelList(Object *ob)
 	/* STEP 2: DOUBLE POINTS AND AUTOMATIC RESOLUTION, REDUCE DATABLOCKS */
 	bl= cu->bev.first;
 	while(bl) {
-		nr= bl->nr;
-		bevp1= (BevPoint *)(bl+1);
-		bevp0= bevp1+(nr-1);
-		nr--;
-		while(nr--) {
-			if( fabs(bevp0->x-bevp1->x)<0.00001 ) {
-				if( fabs(bevp0->y-bevp1->y)<0.00001 ) {
-					if( fabs(bevp0->z-bevp1->z)<0.00001 ) {
-						bevp0->f2= 1;
-						bl->flag++;
+		if (bl->nr) { /* null bevel items come from single points */
+			nr= bl->nr;
+			bevp1= (BevPoint *)(bl+1);
+			bevp0= bevp1+(nr-1);
+			nr--;
+			while(nr--) {
+				if( fabs(bevp0->x-bevp1->x)<0.00001 ) {
+					if( fabs(bevp0->y-bevp1->y)<0.00001 ) {
+						if( fabs(bevp0->z-bevp1->z)<0.00001 ) {
+							bevp0->f2= SELECT;
+							bl->flag++;
+						}
 					}
 				}
+				bevp0= bevp1;
+				bevp1++;
 			}
-			bevp0= bevp1;
-			bevp1++;
 		}
 		bl= bl->next;
 	}
 	bl= cu->bev.first;
 	while(bl) {
 		blnext= bl->next;
-		if(bl->flag) {
+		if(bl->nr && bl->flag) {
 			nr= bl->nr- bl->flag+1;	/* +1 because vectorbezier sets flag too */
 			blnew= MEM_mallocN(sizeof(BevList)+nr*sizeof(BevPoint), "makeBevelList");
 			memcpy(blnew, bl, sizeof(BevList));
@@ -1673,7 +1691,7 @@ void makeBevelList(Object *ob)
 	bl= cu->bev.first;
 	poly= 0;
 	while(bl) {
-		if(bl->poly>=0) {
+		if(bl->nr && bl->poly>=0) {
 			poly++;
 			bl->poly= poly;
 			bl->gat= 0;	/* 'gat' is dutch for hole */
@@ -1770,13 +1788,13 @@ void makeBevelList(Object *ob)
 			bevp2->cosa= bevp1->cosa;
 
 			if(cu->flag & CU_3D) {	/* 3D */
-				float *quat, q[4];
+				float quat[4], q[4];
 			
 				vec[0]= bevp1->x - bevp2->x;
 				vec[1]= bevp1->y - bevp2->y;
 				vec[2]= bevp1->z - bevp2->z;
 				
-				quat= vectoquat(vec, 5, 1);
+				vectoquat(vec, 5, 1, quat);
 				
 				Normalize(vec);
 				q[0]= (float)cos(0.5*bevp1->alfa);
@@ -1802,7 +1820,7 @@ void makeBevelList(Object *ob)
 			while(nr--) {
 	
 				if(cu->flag & CU_3D) {	/* 3D */
-					float *quat, q[4];
+					float quat[4], q[4];
 				
 					vec[0]= bevp2->x - bevp0->x;
 					vec[1]= bevp2->y - bevp0->y;
@@ -1810,7 +1828,7 @@ void makeBevelList(Object *ob)
 					
 					Normalize(vec);
 
-					quat= vectoquat(vec, 5, 1);
+					vectoquat(vec, 5, 1, quat);
 					
 					q[0]= (float)cos(0.5*bevp1->alfa);
 					x1= (float)sin(0.5*bevp1->alfa);
@@ -1956,7 +1974,7 @@ float calc_curve_subdiv_radius(Curve *cu, Nurb *nu, int cursubdiv)
 		}
 		
 		if ( ((nu->type & 7)==CU_NURBS) && (nu->flagu & CU_CYCLIC)) {
-			if (bp == bplast) bp = bpfirst;
+			if (bp >= bplast) bp = bpfirst;
 			else bp++;
 		}
 		
@@ -2149,7 +2167,7 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 	if(len1==0.0) len1=1.0;
 	if(len2==0.0) len2=1.0;
 
-	if(bezt->f1 & 1) { /* order of calculation */
+	if(bezt->f1 & SELECT) { /* order of calculation */
 		if(bezt->h2==HD_ALIGN) {	/* aligned */
 			len= len2/len1;
 			p2[3]= p2[0]+len*(p2[0]-p2[-3]);
@@ -2225,9 +2243,9 @@ void testhandlesNurb(Nurb *nu)
 	a= nu->pntsu;
 	while(a--) {
 		flag= 0;
-		if(bezt->f1 & 1) flag++;
-		if(bezt->f2 & 1) flag += 2;
-		if(bezt->f3 & 1) flag += 4;
+		if(bezt->f1 & SELECT) flag++;
+		if(bezt->f2 & SELECT) flag += 2;
+		if(bezt->f3 & SELECT) flag += 4;
 
 		if( !(flag==0 || flag==7) ) {
 			if(bezt->h1==HD_AUTO) {   /* auto */
@@ -2338,6 +2356,8 @@ void sethandlesNurb(short code)
 	/* code==2: set vectorhandle */
 	/* code==3 (HD_ALIGN) it toggle, vectorhandles become HD_FREE */
 	/* code==4: sets icu flag to become IPO_AUTO_HORIZ, horizontal extremes on auto-handles */
+	/* code==5: Set align, like 3 but no toggle */
+	/* code==6: Clear align, like 3 but no toggle */
 	Nurb *nu;
 	BezTriple *bezt;
 	short a, ok=0;
@@ -2368,22 +2388,28 @@ void sethandlesNurb(short code)
 		/* there is 1 handle not FREE: FREE it all, else make ALIGNED  */
 		
 		nu= editNurb.first;
-		while(nu) {
-			if( (nu->type & 7)==1) {
-				bezt= nu->bezt;
-				a= nu->pntsu;
-				while(a--) {
-					if(bezt->f1 && bezt->h1) ok= 1;
-					if(bezt->f3 && bezt->h2) ok= 1;
-					if(ok) break;
-					bezt++;
+		if (code == 5) {
+			ok = HD_ALIGN;
+		} else if (code == 6) {
+			ok = HD_FREE;
+		} else {
+			/* Toggle */
+			while(nu) {
+				if( (nu->type & 7)==1) {
+					bezt= nu->bezt;
+					a= nu->pntsu;
+					while(a--) {
+						if(bezt->f1 && bezt->h1) ok= 1;
+						if(bezt->f3 && bezt->h2) ok= 1;
+						if(ok) break;
+						bezt++;
+					}
 				}
+				nu= nu->next;
 			}
-			nu= nu->next;
+			if(ok) ok= HD_FREE;
+			else ok= HD_ALIGN;
 		}
-		if(ok) ok= HD_FREE;
-		else ok= HD_ALIGN;
-		
 		nu= editNurb.first;
 		while(nu) {
 			if( (nu->type & 7)==1) {

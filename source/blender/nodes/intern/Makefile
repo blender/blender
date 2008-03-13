@@ -36,12 +36,10 @@ DIR = $(OCGDIR)/blender/$(LIBNAME)
 
 include nan_compile.mk
 
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd openbsd linux solaris windows"))
-    CFLAGS += -funsigned-char
-endif
-
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
+CPPFLAGS +=  -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
+CPPFLAGS += -I../../python
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../../makesdna
@@ -49,3 +47,4 @@ CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../include
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../render/extern/include
+CPPFLAGS += -I$(OPENGL_HEADERS)

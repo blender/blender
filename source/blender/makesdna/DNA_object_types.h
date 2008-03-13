@@ -54,6 +54,7 @@ struct bConstraintChannel;
 struct PartDeflect;
 struct SoftBody;
 struct FluidsimSettings;
+struct ParticleSystem;
 struct DerivedMesh;
 
 typedef struct bDeformGroup {
@@ -69,20 +70,6 @@ typedef struct BoundBox {
 /* boundbox flag */
 #define OB_BB_DISABLED	1
 
-/* OcInfo and LBuf structs are for the Enji gameengine */
-
-typedef struct OcInfo {
-	float dvec[3];
-	float size[3];
-} OcInfo;
-
-typedef struct LBuf {
-	short tot, max;
-	int pad;
-	struct Object **ob;
-} LBuf;
-
-
 typedef struct Object {
 	ID id;
 
@@ -97,12 +84,12 @@ typedef struct Object {
 	struct Path *path;
 	struct BoundBox *bb;
 	struct bAction *action;	
+	struct bAction *poselib;
 	struct bPose *pose;	
 	void *data;
 	
 	ListBase constraintChannels;
 	ListBase effect;
-	ListBase network;
 	ListBase disp;
 	ListBase defbase;
 	ListBase modifiers; /* list of ModifierData structures */
@@ -115,7 +102,8 @@ typedef struct Object {
 	float rot[3], drot[3];
 	float quat[4], dquat[4];
 	float obmat[4][4];
-	float parentinv[4][4];
+	float parentinv[4][4]; /* inverse result of parent, so that object doesn't 'stick' to parent */
+	float constinv[4][4]; /* inverse result of constraints. doesn't include effect of parent or object local transform */
 	float imat[4][4];	/* for during render, old game engine, temporally: ipokeys of transform  */
 	
 	unsigned int lay;				/* copy of Base */
@@ -131,7 +119,7 @@ typedef struct Object {
 	
 	int dupon, dupoff, dupsta, dupend;
 
-	float sf, ctime;
+	float sf, ctime; /* sf is time-offset, ctime is the objects current time */
 	
 	/* during realtime */
 
@@ -153,9 +141,10 @@ typedef struct Object {
 	
 	char dt, dtx;
 	char totcol;	/* copy of mesh or curve or meta */
-	char actcol;
-	char empty_drawtype, pad1[7];
+	char actcol;	/* currently selected material in the user interface */
+	char empty_drawtype, pad1[3];
 	float empty_drawsize;
+	float dupfacesca;	/* dupliface scale */
 	
 	ScriptLink scriptlink;
 	ListBase prop;
@@ -163,12 +152,14 @@ typedef struct Object {
 	ListBase controllers;
 	ListBase actuators;
 
-    void *sumohandle;
+	/* now used to store cache particles,
+	 * should be renamed see effect.c (Campbell) */
+    void *sumohandle;		
     
 	float bbsize[3];
 	short index;			/* custom index, for renderpasses */
 	unsigned short actdef;	/* current deformation group */
-	float col[4];
+	float col[4];			/* object color, adjusted via IPO's only */
 	/**
 	 * Settings for game objects
 	 * bit 0: Object has dynamic behaviour
@@ -193,6 +184,7 @@ typedef struct Object {
 	ListBase constraints;
 	ListBase nlastrips;
 	ListBase hooks;
+	ListBase particlesystem;	/* particle systems */
 	
 	struct PartDeflect *pd;		/* particle deflector/attractor/collision data */
 	struct SoftBody *soft;		/* if exists, saved in file */
@@ -204,10 +196,10 @@ typedef struct Object {
 
 	short shapenr, shapeflag;	/* current shape key for menu or pinned, flag for pinning */
 	float smoothresh;			/* smoothresh is phong interpolation ray_shadow correction in render */
-	int pad4;
+	short recalco, pad4;		/* recalco for temp storage of ob->recalc, bad design warning */
 	
 	struct FluidsimSettings *fluidsimSettings; /* if fluidsim enabled, store additional settings */
-  
+
 	struct DerivedMesh *derivedDeform, *derivedFinal;
 	int lastDataMask;			/* the custom data layer mask that was last used to calculate derivedDeform and derivedFinal */
 	int pad;
@@ -217,6 +209,7 @@ typedef struct Object {
 /*#endif*/
 } Object;
 
+/* Warning, this is not used anymore because hooks are now modifiers */
 typedef struct ObHook {
 	struct ObHook *next, *prev;
 	
@@ -277,7 +270,7 @@ extern Object workob;
 #define OB_OFFS_LOCAL		1
 #define OB_QUAT				2
 #define OB_NEG_SCALE		4
-#define OB_DUPLI			(8+16+256+512)
+#define OB_DUPLI			(8+16+256+512+2048)
 #define OB_DUPLIFRAMES		8
 #define OB_DUPLIVERTS		16
 #define OB_DUPLIROT			32
@@ -286,6 +279,8 @@ extern Object workob;
 #define OB_DUPLIGROUP		256
 #define OB_DUPLIFACES		512
 #define OB_DUPLIFACES_SCALE	1024
+#define OB_DUPLIPARTS		2048
+#define OB_RENDER_DUPLI		4096
 
 /* (short) ipoflag */
 #define OB_DRAWKEY			1
@@ -301,6 +296,9 @@ extern Object workob;
 #define OB_ACTION_KEY		512
 	/* for stride edit */
 #define OB_DISABLE_PATH		1024
+
+#define OB_OFFS_PARENTADD	2048
+
 
 /* (short) trackflag / upflag */
 #define OB_POSX			0
@@ -319,6 +317,18 @@ extern Object workob;
 #define OB_SHADED		4
 #define OB_TEXTURE		5
 
+/* this condition has been made more complex since editmode can draw textures */
+#define CHECK_OB_DRAWTEXTURE(vd, dt) \
+	((vd->drawtype==OB_TEXTURE && dt>OB_SOLID) || \
+	(vd->drawtype==OB_SOLID && vd->flag2 & V3D_SOLID_TEX))
+
+#define CHECK_OB_DRAWFACEDOT(sce, vd, dt) \
+	(	(sce->selectmode & SCE_SELECT_FACE) && \
+		(vd->drawtype<=OB_SOLID) && \
+		(((vd->drawtype==OB_SOLID) && (dt>=OB_SOLID) && (vd->flag2 & V3D_SOLID_TEX) && (vd->flag & V3D_ZBUF_SELECT)) == 0) \
+	)
+
+
 /* dtx: flags, char! */
 #define OB_AXIS			2
 #define OB_TEXSPACE		4
@@ -336,6 +346,9 @@ extern Object workob;
 #define OB_PLAINAXES	2
 #define OB_CIRCLE		3
 #define OB_SINGLE_ARROW	4
+#define OB_CUBE			5
+#define OB_EMPTY_SPHERE	6
+#define OB_EMPTY_CONE	7
 
 /* boundtype */
 #define OB_BOUND_BOX		0
@@ -446,4 +459,5 @@ extern Object workob;
 #endif
 
 #endif
+
 

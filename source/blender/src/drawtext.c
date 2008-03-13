@@ -62,6 +62,7 @@
 #include "BKE_text.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -83,6 +84,7 @@
 
 #include "mydevice.h"
 #include "blendef.h" 
+#include "winlay.h"
 
 #define TEXTXLOC	38
 
@@ -91,10 +93,9 @@
 void drawtextspace(ScrArea *sa, void *spacedata);
 void winqreadtextspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 void txt_copy_selectbuffer (Text *text);
-void txt_paste_clipboard(Text *text); /* blank on non Win32 */
-void txt_copy_clipboard(Text *text); /* blank on non Win32 */
 void do_brackets();
 
+void get_selection_buffer(Text *text);
 int check_bracket(char *string);
 static int check_delim(char *string);
 static int check_numbers(char *string);
@@ -167,15 +168,13 @@ void free_txt_data(void) {
 	if (temp_char_accum) MEM_freeN(temp_char_accum);	
 }
 
-static int render_string (char *in) {
-	SpaceText *st= curarea->spacedata.first;
+static int render_string (SpaceText *st, char *in) {
 	int r = 0, i = 0;
 	
 	while(*in) {
 		if (*in=='\t') {
 			if (temp_char_pos && *(in-1)=='\t') i= st->tabnumber;
 			else if (st->tabnumber > 0) i= st->tabnumber - (temp_char_pos%st->tabnumber);
-
 			while(i--) temp_char_write(' ', r);
 		} else temp_char_write(*in, r);
 
@@ -188,9 +187,8 @@ static int render_string (char *in) {
 	return r;
 }
 
-void get_format_string(void) 
+void get_format_string(SpaceText *st) 
 {
-	SpaceText *st = curarea->spacedata.first;
 	Text *text = st->text;
 	TextLine *tmp;
 	char *in_line;
@@ -538,7 +536,7 @@ static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int dra
 	char *in;
 	int *acc;
 
-	w= render_string(str);
+	w= render_string(st, str);
 	if(w<cshift ) return 0; /* String is shorter than shift */
 	
 	in= temp_char_buf+cshift;
@@ -630,7 +628,7 @@ static void set_cursor_to_pos (SpaceText *st, int x, int y, int sel)
 	if (x<0) x= 0;
 	x = (x/spacetext_get_fontwidth(st)) + st->left;
 	
-	w= render_string((*linep)->line);
+	w= render_string(st, (*linep)->line);
 	if(x<w) *charp= temp_char_accum[x];
 	else *charp= (*linep)->len;
 	
@@ -725,45 +723,106 @@ static void draw_cursor(SpaceText *st) {
 
 static void calc_text_rcts(SpaceText *st)
 {
-	short barheight, barstart;
-	int lbarstart, lbarh, ltexth;
+	int lhlstart, lhlend, ltexth;
+	short barheight, barstart, hlstart, hlend, blank_lines;
+	short pix_available, pix_top_margin, pix_bottom_margin, pix_bardiff;
 
-	lbarstart= st->top;
-	lbarh= 	st->viewlines;
-	ltexth= txt_get_span(st->text->lines.first, st->text->lines.last)+1;
-
-	barheight= (lbarh*(curarea->winy-4))/ltexth;
-	if (barheight<20) barheight=20;
+	pix_top_margin = 8;
+	pix_bottom_margin = 4;
+	pix_available = curarea->winy - pix_top_margin - pix_bottom_margin;
+	ltexth= txt_get_span(st->text->lines.first, st->text->lines.last);
+	blank_lines = st->viewlines / 2;
 	
-	barstart= (lbarstart*(curarea->winy-4))/ltexth + 8;
+	/* when resizing a vieport with the bar at the bottom to a greater height more blank lines will be added */
+	if (ltexth + blank_lines < st->top + st->viewlines) {
+		blank_lines = st->top + st->viewlines - ltexth;
+	}
+	
+	ltexth += blank_lines;
 
-	st->txtbar.xmin= 5;
-	st->txtbar.xmax= 17;
-	st->txtbar.ymax= curarea->winy - barstart;
-	st->txtbar.ymin= st->txtbar.ymax - barheight;
+	barheight = (ltexth > 0)? (st->viewlines*pix_available)/ltexth: 0;
+	pix_bardiff = 0;
+	if (barheight < 20) {
+		pix_bardiff = 20 - barheight; /* take into account the now non-linear sizing of the bar */	
+		barheight = 20;
+	}
+	barstart = (ltexth > 0)? ((pix_available - pix_bardiff) * st->top)/ltexth: 0;
 
-	CLAMP(st->txtbar.ymin, 2, curarea->winy-2);
-	CLAMP(st->txtbar.ymax, 2, curarea->winy-2);
+	st->txtbar.xmin = 5;
+	st->txtbar.xmax = 17;
+	st->txtbar.ymax = curarea->winy - pix_top_margin - barstart;
+	st->txtbar.ymin = st->txtbar.ymax - barheight;
 
-	st->pix_per_line= (float) ltexth/curarea->winy;
+	CLAMP(st->txtbar.ymin, pix_bottom_margin, curarea->winy - pix_top_margin);
+	CLAMP(st->txtbar.ymax, pix_bottom_margin, curarea->winy - pix_top_margin);
+
+	st->pix_per_line= (pix_available > 0)? (float) ltexth/pix_available: 0;
 	if (st->pix_per_line<.1) st->pix_per_line=.1f;
 
-	lbarstart= MIN2(txt_get_span(st->text->lines.first, st->text->curl), 
+	lhlstart = MIN2(txt_get_span(st->text->lines.first, st->text->curl), 
 				txt_get_span(st->text->lines.first, st->text->sell));
-	lbarh= abs(txt_get_span(st->text->lines.first, st->text->curl)-txt_get_span(st->text->lines.first, st->text->sell));
-	
-	barheight= (lbarh*(curarea->winy-4))/ltexth;
-	if (barheight<2) barheight=2; 
-	
-	barstart= (lbarstart*(curarea->winy-4))/ltexth + 8;
+	lhlend = MAX2(txt_get_span(st->text->lines.first, st->text->curl), 
+				txt_get_span(st->text->lines.first, st->text->sell));
+
+	if(ltexth > 0) {
+		hlstart = (lhlstart * pix_available)/ltexth;
+		hlend = (lhlend * pix_available)/ltexth;
+
+		/* the scrollbar is non-linear sized */
+		if (pix_bardiff > 0) {
+			/* the start of the highlight is in the current viewport */
+			if (lhlstart >= st->top && lhlstart <= st->top + st->viewlines) { 
+				/* speed the progresion of the start of the highlight through the scrollbar */
+				hlstart = ( ( (pix_available - pix_bardiff) * lhlstart) / ltexth) + (pix_bardiff * (lhlstart - st->top) / st->viewlines); 	
+			}
+			else if (lhlstart > st->top + st->viewlines && hlstart < barstart + barheight && hlstart > barstart) {
+				/* push hl start down */
+				hlstart = barstart + barheight;
+			}
+			else if (lhlend > st->top  && lhlstart < st->top && hlstart > barstart) {
+				/*fill out start */
+				hlstart = barstart;
+			}
+
+			if (hlend <= hlstart) { 
+				hlend = hlstart + 2;
+			}
+
+			/* the end of the highlight is in the current viewport */
+			if (lhlend >= st->top && lhlend <= st->top + st->viewlines) { 
+				/* speed the progresion of the end of the highlight through the scrollbar */
+				hlend = (((pix_available - pix_bardiff )*lhlend)/ltexth) + (pix_bardiff * (lhlend - st->top)/st->viewlines); 	
+			}
+			else if (lhlend < st->top && hlend >= barstart - 2 && hlend < barstart + barheight) {
+				/* push hl end up */
+				hlend = barstart;
+			}					
+			else if (lhlend > st->top + st->viewlines && lhlstart < st->top + st->viewlines && hlend < barstart + barheight) {
+				/* fill out end */
+				hlend = barstart + barheight;
+			}
+
+			if (hlend <= hlstart) { 
+				hlstart = hlend - 2;
+			}	
+		}	
+	}
+	else {
+		hlstart = 0;
+		hlend = 0;
+	}
+
+	if (hlend - hlstart < 2) { 
+		hlend = hlstart + 2;
+	}
 	
 	st->txtscroll.xmin= 5;
 	st->txtscroll.xmax= 17;
-	st->txtscroll.ymax= curarea->winy-barstart;
-	st->txtscroll.ymin= st->txtscroll.ymax - barheight;
+	st->txtscroll.ymax= curarea->winy - pix_top_margin - hlstart;
+	st->txtscroll.ymin= curarea->winy - pix_top_margin - hlend;
 
-	CLAMP(st->txtscroll.ymin, 2, curarea->winy-2);
-	CLAMP(st->txtscroll.ymax, 2, curarea->winy-2);
+	CLAMP(st->txtscroll.ymin, pix_bottom_margin, curarea->winy - pix_top_margin);
+	CLAMP(st->txtscroll.ymax, pix_bottom_margin, curarea->winy - pix_top_margin);
 }
 
 static void draw_textscroll(SpaceText *st)
@@ -941,6 +1000,8 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	float col[3];
 	int linecount = 0;
 
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
 	BIF_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -975,13 +1036,18 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	
 	if(st->showsyntax) {
 		if (tmp && !tmp->format) {
-			get_format_string();
+			get_format_string(st);
 		}
 	}
 	
 	for (i=0; i<st->viewlines && tmp; i++, tmp= tmp->next) {
 		if(st->showlinenrs) {
-			BIF_ThemeColor(TH_TEXT);
+			/*Change the color of the current line the cursor is on*/
+			if(tmp == text->curl) { 
+				BIF_ThemeColor(TH_HILITE);
+			} else {
+				BIF_ThemeColor(TH_TEXT);
+			}
 			if(((float)(i + linecount + 1)/10000.0) < 1.0) {
 				sprintf(linenr, "%4d", i + linecount + 1);
 				glRasterPos2i(TXT_OFFSET - 7, curarea->winy-st->lheight*(i+1));
@@ -989,6 +1055,7 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 				sprintf(linenr, "%5d", i + linecount + 1);
 				glRasterPos2i(TXT_OFFSET - 11, curarea->winy-st->lheight*(i+1));
 			}
+			BIF_ThemeColor(TH_TEXT);
 			BMF_DrawString(spacetext_get_font(st), linenr);
 			text_draw(st, tmp->line, st->left, 0, 1, TXT_OFFSET + TEXTXLOC, curarea->winy-st->lheight*(i+1), tmp->format);
 		} else
@@ -1025,13 +1092,12 @@ void pop_space_text (SpaceText *st)
 	if (st->left <0) st->left= 0;
 }
 
-void add_text_fs(char *file) 
+void add_text_fs(char *file) /* bad but cant pass an as arg here */
 {
 	SpaceText *st= curarea->spacedata.first;
 	Text *text;
 
-	if (!st) return;
-	if (st->spacetype != SPACE_TEXT) return;
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 
 	text= add_text(file);
 
@@ -1039,7 +1105,7 @@ void add_text_fs(char *file)
 
 	st->top= 0;
 
-	if (st->showsyntax) get_format_string();
+	if (st->showsyntax) get_format_string(st);
 	allqueue(REDRAWTEXT, 0);
 	allqueue(REDRAWHEADERS, 0);	
 }
@@ -1126,6 +1192,10 @@ void unlink_text(Text *text)
 	 * script links used this Text */
 	if (BPY_check_all_scriptlinks (text)) {
 		allqueue(REDRAWBUTSSCRIPT, 0);
+	}
+	/* equivalently for pynodes: */
+	if (nodeDynamicUnlinkText ((ID*)text)) {
+		allqueue(REDRAWNODE, 0);
 	}
 
 	for (scr= G.main->screen.first; scr; scr= scr->id.next) {
@@ -1248,8 +1318,6 @@ void txt_copy_selectbuffer (Text *text)
 	bufferlength = length;
 }
 
-
-#ifdef _WIN32
 static char *unixNewLine(char *buffer)
 {
 	char *p, *p2, *output;
@@ -1282,55 +1350,42 @@ static char *winNewLine(char *buffer)
 	
 	return(output);
 }
-#endif
-
 
 void txt_paste_clipboard(Text *text) {
-#ifdef _WIN32
-	char * buffer = NULL;
 
-	if ( OpenClipboard(NULL) ) {
-		HANDLE hData = GetClipboardData( CF_TEXT );
-		buffer = (char*)GlobalLock( hData );
-		if (buffer) {
-			buffer = unixNewLine(buffer);
-			if (buffer) txt_insert_buf(text, buffer);
-		}
-		GlobalUnlock( hData );
-		CloseClipboard();
-		MEM_freeN(buffer);
+	char * buff;
+	char *temp_buff;
+	
+	buff = (char*)getClipboard(0);
+	if(buff) {
+		temp_buff = unixNewLine(buff);
+		
+		txt_insert_buf(text, temp_buff);
+		if(buff){free((void*)buff);}
+		if(temp_buff){MEM_freeN(temp_buff);}
 	}
-#endif
+}
+
+void get_selection_buffer(Text *text)
+{
+	char *buff = getClipboard(1);
+	txt_insert_buf(text, buff);
 }
 
 void txt_copy_clipboard(Text *text) {
-#ifdef _WIN32
+	char *temp;
+
 	txt_copy_selectbuffer(text);
 
-	if (OpenClipboard(NULL)) {
-		HLOCAL clipbuffer;
-		char* buffer;
-		
-		if (copybuffer) {
-			copybuffer = winNewLine(copybuffer);
-
-			EmptyClipboard();
-			clipbuffer = LocalAlloc(LMEM_FIXED,((bufferlength+1)));
-			buffer = (char *) LocalLock(clipbuffer);
-
-			strncpy(buffer, copybuffer, bufferlength);
-			buffer[bufferlength] =  '\0';
-			LocalUnlock(clipbuffer);
-			SetClipboardData(CF_TEXT,clipbuffer);
-		}
-		CloseClipboard();
-	}
-
 	if (copybuffer) {
+		copybuffer[bufferlength] = '\0';
+		temp = winNewLine(copybuffer);
+		
+		putClipboard(temp, 0);
+		MEM_freeN(temp);
 		MEM_freeN(copybuffer);
 		copybuffer= NULL;
 	}
-#endif
 }
 
 /*
@@ -1411,9 +1466,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	short val= evt->val;
 	char ascii= evt->ascii;
 	SpaceText *st= curarea->spacedata.first;
-	Text *text= st->text;
+	Text *text;
 	int do_draw=0, p;
-
+	
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
 	/* smartass code to prevent the CTRL/ALT events below from not working! */
 	if(G.qual & (LR_ALTKEY|LR_CTRLKEY))
 		if(!ispunct(ascii)) 
@@ -1477,19 +1534,34 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if (event==LEFTMOUSE) {
 		if (val) {
 			short mval[2];
+			char *buffer;
 			set_tabs(text);
 			getmouseco_areawin(mval);
-
+			
 			if (mval[0]>2 && mval[0]<20 && mval[1]>2 && mval[1]<curarea->winy-2) {
 				do_textscroll(st, 2);
-			} else {			
+			} else {
 				do_selection(st, G.qual&LR_SHIFTKEY);
+				if (txt_has_sel(text)) {
+					buffer = txt_sel_to_buf(text);
+					putClipboard(buffer, 1);
+					MEM_freeN(buffer);
+				}
 				do_draw= 1;
 			}
 		}
 	} else if (event==MIDDLEMOUSE) {
 		if (val) {
-			do_textscroll(st, 1);
+			if (U.uiflag & USER_MMB_PASTE)
+			{
+				do_selection(st, G.qual&LR_SHIFTKEY);
+				get_selection_buffer(text);
+				do_draw= 1;
+			}
+			else
+			{
+				do_textscroll(st, 1);
+			}
 		}
 	} else if (event==RIGHTMOUSE) {
 		if (val) {
@@ -1525,7 +1597,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	} else if (ascii) {
 		if (txt_add_char(text, ascii)) {
-			if (st->showsyntax) get_format_string();
+			if (st->showsyntax) get_format_string(st);
 			pop_space_text(st);
 			do_draw= 1;
 		}
@@ -1546,7 +1618,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(G.qual & LR_SHIFTKEY)
 					txt_copy_clipboard(text);
 				else
-					txt_copy_sel(text);
+					txt_copy_clipboard(text);
 
 				do_draw= 1;	
 			}
@@ -1557,11 +1629,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				txt_order_cursors(text);
 				uncomment(text);
 				do_draw = 1;
-				if (st->showsyntax) get_format_string();
+				if (st->showsyntax) get_format_string(st);
 				break;
 			} else if (G.qual == LR_CTRLKEY) {
 				txt_delete_char(text);
-				if (st->showsyntax) get_format_string();
+				if (st->showsyntax) get_format_string(st);
 				do_draw= 1;
 				pop_space_text(st);
 			}
@@ -1570,16 +1642,19 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (G.qual == (LR_ALTKEY|LR_SHIFTKEY)) {
 				switch(pupmenu("Edit %t|Cut %x0|Copy %x1|Paste %x2|Print Cut Buffer %x3")) {
 				case 0:
+					txt_copy_clipboard(text); //First copy to clipboard
 					txt_cut_sel(text);
 					do_draw= 1;
 					break;
 				case 1:
-					txt_copy_sel(text);
+					txt_copy_clipboard(text);
+					//txt_copy_sel(text);
 					do_draw= 1;
 					break;
 				case 2:
-					txt_paste(text);
-					if (st->showsyntax) get_format_string();
+					//txt_paste(text);
+					txt_paste_clipboard(text);
+					if (st->showsyntax) get_format_string(st);
 					do_draw= 1;
 					break;
 				case 3:
@@ -1667,7 +1742,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if (okee("Reopen text")) {
 					if (!reopen_text(text))
 						error("Could not reopen file");
-				if (st->showsyntax) get_format_string();
+				if (st->showsyntax) get_format_string(st);
 				}
 				do_draw= 1;	
 			}
@@ -1711,7 +1786,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			if (G.qual == LR_ALTKEY) {
 				txt_do_undo(text);
-				if (st->showsyntax) get_format_string();
+				if (st->showsyntax) get_format_string(st);
 				do_draw= 1;
 			}
 			break; /* BREAK U */
@@ -1744,8 +1819,8 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if (G.qual & LR_SHIFTKEY)
 					txt_paste_clipboard(text);
 				else
-					txt_paste(text);
-				if (st->showsyntax) get_format_string();
+					txt_paste_clipboard(text);
+				if (st->showsyntax) get_format_string(st);
 				do_draw= 1;	
 				pop_space_text(st);
 			}
@@ -1753,7 +1828,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case XKEY:
 			if (G.qual == LR_ALTKEY || G.qual == LR_CTRLKEY) {
 				txt_cut_sel(text);
-				if (st->showsyntax) get_format_string();
+				if (st->showsyntax) get_format_string(st);
 				do_draw= 1;	
 				pop_space_text(st);
 			}
@@ -1765,7 +1840,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				} else {
 					txt_do_undo(text);
 				}
-				if (st->showsyntax) get_format_string();
+				if (st->showsyntax) get_format_string(st);
 				do_draw= 1;
 			}
 			break;
@@ -1784,7 +1859,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					txt_add_char(text, '\t');
 				}
 			}
-			if (st->showsyntax) get_format_string();
+			if (st->showsyntax) get_format_string(st);
 			pop_space_text(st);
 			do_draw= 1;
 			st->currtab_set = setcurr_tab(text);
@@ -1803,20 +1878,20 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				}
 			}
-			if (st->showsyntax) get_format_string();
+			if (st->showsyntax) get_format_string(st);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
 		case BACKSPACEKEY:
 			txt_backspace_char(text);
 			set_tabs(text);
-			if (st->showsyntax) get_format_string();
+			if (st->showsyntax) get_format_string(st);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
 		case DELKEY:
 			txt_delete_char(text);
-			if (st->showsyntax) get_format_string();
+			if (st->showsyntax) get_format_string(st);
 			do_draw= 1;
 			pop_space_text(st);
 			st->currtab_set = setcurr_tab(text);
@@ -2083,18 +2158,18 @@ void convert_tabs (struct SpaceText *st, int tab)
 	//first convert to all space, this make it alot easier to convert to tabs because there is no mixtures of ' ' && '\t'
 	while(tmp) {
 		check_line = tmp->line;
-		new_line = MEM_mallocN(render_string(check_line)+1, "Converted_Line");
-		format = MEM_mallocN(render_string(check_line)+1, "Converted_Syntax_format");
+		new_line = MEM_mallocN(render_string(st, check_line)+1, "Converted_Line");
+		format = MEM_mallocN(render_string(st, check_line)+1, "Converted_Syntax_format");
 		j = 0;
 		for (a=0; a < strlen(check_line); a++) { //foreach char in line
 			if(check_line[a] == '\t') { //checking for tabs
 				//get the number of spaces this tabs is showing
 				//i dont like doing it this way but will look into it later
 				new_line[j] = '\0';
-				number = render_string(new_line);
+				number = render_string(st, new_line);
 				new_line[j] = '\t';
 				new_line[j+1] = '\0';
-				number = render_string(new_line)-number;
+				number = render_string(st, new_line)-number;
 				for(extra = 0; extra < number; extra++) {
 					new_line[j] = ' ';
 					j++;

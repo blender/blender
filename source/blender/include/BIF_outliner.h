@@ -78,6 +78,8 @@ typedef struct TreeElement {
 #define TSE_LINKED_MAT		22
 		/* NOTE, is used for light group */
 #define TSE_LINKED_LAMP		23
+#define TSE_POSEGRP_BASE	24
+#define TSE_POSEGRP			25
 
 /* outliner search flags */
 #define OL_FIND					0
@@ -97,6 +99,9 @@ extern void outliner_show_hierarchy(struct ScrArea *sa);
 extern void outliner_one_level(struct ScrArea *sa, int add);
 extern void outliner_select(struct ScrArea *sa);
 extern void outliner_toggle_selected(struct ScrArea *sa);
+extern void outliner_toggle_visibility(struct ScrArea *sa);
+extern void outliner_toggle_selectability(struct ScrArea *sa);
+extern void outliner_toggle_renderability(struct ScrArea *sa);
 extern void outliner_del(struct ScrArea *sa);
 extern void outliner_operation_menu(struct ScrArea *sa);
 extern void outliner_page_up_down(struct ScrArea *sa, int up);

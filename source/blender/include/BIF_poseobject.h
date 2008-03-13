@@ -35,6 +35,7 @@
 
 
 struct Object;
+struct bPose;
 struct bPoseChannel;
 
 void enter_posemode(void);
@@ -58,14 +59,28 @@ void free_posebuf(void);
 void copy_posebuf (void);
 void paste_posebuf (int flip);
 
-void pose_adds_vgroups(struct Object *meshobj);
+void pose_adds_vgroups(struct Object *meshobj, int heatweights);
+
+void pose_add_posegroup(void);
+void pose_remove_posegroup(void);
+char *build_posegroups_menustr(struct bPose *pose, short for_pupmenu);
+void pose_assign_to_posegroup(short active);
+void pose_remove_from_posegroups(void);
+void pgroup_operation_with_menu(void);
+
+void pose_select_grouped(short nr);
+void pose_select_grouped_menu(void);
 
 void pose_calculate_path(struct Object *ob);
+void pose_recalculate_paths(struct Object *ob);
 void pose_clear_paths(struct Object *ob);
 
 void pose_flip_names(void);
+void pose_autoside_names(short axis);
 void pose_activate_flipped_bone(void);
 void pose_movetolayer(void);
+void pose_relax(void);
+void pose_flipquats(void);
 
 #endif
 

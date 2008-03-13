@@ -817,3 +817,16 @@ GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
 
 	return result;
 }
+
+GHOST_TUns8* GHOST_getClipboard(int flag)
+{
+	GHOST_ISystem* system = GHOST_ISystem::getSystem();
+	return system->getClipboard(flag);
+}
+
+void GHOST_putClipboard(GHOST_TInt8 *buffer, int flag)
+{
+	GHOST_ISystem* system = GHOST_ISystem::getSystem();
+	system->putClipboard(buffer, flag);
+}
+

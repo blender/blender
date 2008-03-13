@@ -44,6 +44,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "MEM_guardedalloc.h"
+#include "BDR_editobject.h"
 #include "butspace.h"
 #include "blendef.h"
 #include "mydevice.h"
@@ -749,11 +750,11 @@ static int wave_setter( BPy_Modifier *self, int type, PyObject *value )
 	case EXPP_MOD_SPEED:
 		return EXPP_setFloatClamped( value, &md->speed, -2.0, 2.0 );
 	case EXPP_MOD_DAMP:
-		return EXPP_setFloatClamped( value, &md->damp, -1000.0, 1000.0 );
+		return EXPP_setFloatClamped( value, &md->damp, -MAXFRAMEF, MAXFRAMEF );
 	case EXPP_MOD_LIFETIME:
-		return EXPP_setFloatClamped( value, &md->lifetime, -1000.0, 1000.0 );
+		return EXPP_setFloatClamped( value, &md->lifetime, -MAXFRAMEF, MAXFRAMEF );
 	case EXPP_MOD_TIMEOFFS:
-		return EXPP_setFloatClamped( value, &md->timeoffs, -1000.0, 1000.0 );
+		return EXPP_setFloatClamped( value, &md->timeoffs, -MAXFRAMEF, MAXFRAMEF );
 	case EXPP_MOD_FLAG:
 		return EXPP_setIValueRange( value, &md->flag, 0, 
 				MOD_WAVE_X | MOD_WAVE_Y | MOD_WAVE_CYCL, 'h' );
@@ -774,8 +775,6 @@ static PyObject *array_getter( BPy_Modifier * self, int type )
 		return PyInt_FromLong( (long)md->count );
 	else if( type == EXPP_MOD_LENGTH )
 		return PyFloat_FromDouble( md->length );
-	else if( type == EXPP_MOD_MERGE_DIST )
-		return PyFloat_FromDouble( md->merge_dist );
 	else if( type == EXPP_MOD_MERGE_DIST )
 		return PyFloat_FromDouble( md->merge_dist );
 	else if( type == EXPP_MOD_OFFSET_VEC)
@@ -987,7 +986,7 @@ static PyObject *Modifier_getData( BPy_Modifier * self, PyObject * key )
 {
 	int setting;
 
-	if( !PyInt_CheckExact( key ) )
+	if( !PyInt_Check( key ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected an int arg as stored in Blender.Modifier.Settings" );
 
@@ -1261,24 +1260,23 @@ static PySequenceMethods ModSeq_as_sequence = {
  * helper function to check for a valid modifier argument
  */
 
-static ModifierData *locate_modifier( BPy_ModSeq *self, PyObject * args )
+static ModifierData *locate_modifier( BPy_ModSeq *self, BPy_Modifier * value )
 {
-	BPy_Modifier *pyobj;
 	ModifierData *md;
 
 	/* check that argument is a modifier */
-	if( !PyArg_ParseTuple( args, "O!", &Modifier_Type, &pyobj ) )
+	if( !BPy_Modifier_Check(value) )
 		return (ModifierData *)EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected an modifier as an argument" );
 
 	/* check whether modifier has been removed */
-	if( !pyobj->md )
+	if( !value->md )
 		return (ModifierData *)EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"This modifier has been removed!" );
 
 	/* find the modifier in the object's list */
 	for( md = self->object->modifiers.first; md; md = md->next )
-		if( md == pyobj->md )
+		if( md == value->md )
 			return md;
 
 	/* return exception if we can't find the modifier */
@@ -1288,18 +1286,14 @@ static ModifierData *locate_modifier( BPy_ModSeq *self, PyObject * args )
 
 /* create a new modifier at the end of the list */
 
-static PyObject *ModSeq_append( BPy_ModSeq *self, PyObject *args )
+static PyObject *ModSeq_append( BPy_ModSeq *self, PyObject *value )
 {
-	int type;
-
-	if( !PyArg_ParseTuple( args, "i", &type ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected int argument" );
-
+	int type = PyInt_AsLong(value);
+	
 	/* type 0 is eModifierType_None, should we be able to add one of these? */
 	if( type <= 0 || type >= NUM_MODIFIER_TYPES )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"int argument out of range, expected an int from Blender.Modifier.Type" );
+				"Not an int or argument out of range, expected an int from Blender.Modifier.Type" );
 	
 	BLI_addtail( &self->object->modifiers, modifier_new( type ) );
 	return Modifier_CreatePyObject( self->object, self->object->modifiers.last );
@@ -1307,10 +1301,9 @@ static PyObject *ModSeq_append( BPy_ModSeq *self, PyObject *args )
 
 /* remove an existing modifier */
 
-static PyObject *ModSeq_remove( BPy_ModSeq *self, PyObject *args )
+static PyObject *ModSeq_remove( BPy_ModSeq *self, BPy_Modifier *value )
 {
-	ModifierData *md = locate_modifier( self, args );
-	BPy_Modifier *py_obj;
+	ModifierData *md = locate_modifier( self, value );
 
 	/* if we can't locate the modifier, return (exception already set) */
 	if( !md )
@@ -1321,17 +1314,16 @@ static PyObject *ModSeq_remove( BPy_ModSeq *self, PyObject *args )
 	modifier_free( md );
 
 	/* erase the link to the modifier */
-	py_obj = ( BPy_Modifier * )PyTuple_GET_ITEM( args, 0 );
-	py_obj->md = NULL;
+	value->md = NULL;
 
 	Py_RETURN_NONE;
 }
 
 /* move the modifier up in the stack */
 
-static PyObject *ModSeq_moveUp( BPy_ModSeq * self, PyObject * args )
+static PyObject *ModSeq_moveUp( BPy_ModSeq * self, BPy_Modifier * value )
 {
-	ModifierData *md = locate_modifier( self, args );
+	ModifierData *md = locate_modifier( self, value );
 
 	/* if we can't locate the modifier, return (exception already set) */
 	if( !md )
@@ -1346,9 +1338,9 @@ static PyObject *ModSeq_moveUp( BPy_ModSeq * self, PyObject * args )
 
 /* move the modifier down in the stack */
 
-static PyObject *ModSeq_moveDown( BPy_ModSeq * self, PyObject *args )
+static PyObject *ModSeq_moveDown( BPy_ModSeq * self, BPy_Modifier *value )
 {
-	ModifierData *md = locate_modifier( self, args );
+	ModifierData *md = locate_modifier( self, value );
 
 	/* if we can't locate the modifier, return (exception already set) */
 	if( !md )
@@ -1361,19 +1353,33 @@ static PyObject *ModSeq_moveDown( BPy_ModSeq * self, PyObject *args )
 	Py_RETURN_NONE;
 }
 
+
+/* quick hack for ZanQdo: add new hook modifier for selected verts */
+static PyObject *ModSeq_ZanQdoHack(BPy_ModSeq *self)
+{
+	/* this should add the hook (assumes that modifier stack is on same ob!) */
+	if ((self) && (G.obedit) && (self->object==G.obedit)) {
+		add_hook(1);
+	}
+	
+	Py_RETURN_NONE;
+}
+
 /*****************************************************************************/
 /* Python BPy_ModSeq methods table:                                       */
 /*****************************************************************************/
 static PyMethodDef BPy_ModSeq_methods[] = {
 	/* name, method, flags, doc */
-	{"append", ( PyCFunction ) ModSeq_append, METH_VARARGS,
+	{"append", ( PyCFunction ) ModSeq_append, METH_O,
 	 "(type) - add a new modifier, where type is the type of modifier"},
-	{"remove", ( PyCFunction ) ModSeq_remove, METH_VARARGS,
+	{"remove", ( PyCFunction ) ModSeq_remove, METH_O,
 	 "(modifier) - remove an existing modifier, where modifier is a modifier from this object."},
-	{"moveUp", ( PyCFunction ) ModSeq_moveUp, METH_VARARGS,
+	{"moveUp", ( PyCFunction ) ModSeq_moveUp, METH_O,
 	 "(modifier) - Move a modifier up in stack"},
-	{"moveDown", ( PyCFunction ) ModSeq_moveDown, METH_VARARGS,
+	{"moveDown", ( PyCFunction ) ModSeq_moveDown, METH_O,
 	 "(modifier) - Move a modifier down in stack"},
+	{"ZanQdoHack", (PyCFunction)ModSeq_ZanQdoHack, METH_NOARGS,
+	 "while in editmode, adds a hook for the selected verts (adds new modifier, and deselects object)"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1512,6 +1518,8 @@ static PyObject *M_Modifier_TypeDict( void )
 				PyInt_FromLong( eModifierType_Smooth ) );
 		PyConstant_Insert( d, "CAST",
 				PyInt_FromLong( eModifierType_Cast ) );
+		PyConstant_Insert( d, "DISPLACE",
+				PyInt_FromLong( eModifierType_Displace ) );
 	}
 	return S;
 }

@@ -1,6 +1,6 @@
 $Id$
 
-    Note: The current official release of SCons is 0.96.1
+    Note: The current official release of SCons is 0.97
 
     Blenders SCons build scripts
     ============================
@@ -29,7 +29,7 @@ $Id$
 
     To build Blender with the SCons scripts you need a full Python
     install, version 2.4 or later (http://www.python.org) and a SCons
-    installation, version v0.96.1 (http://www.scons.org).
+    installation, version v0.97 (http://www.scons.org).
 
     Check from the page
     http://www.blender.org/development/building-blender/getting-dependencies/
@@ -158,6 +158,17 @@ $Id$
     (see below) will override these settings and compile ALL of Blender with
     debug symbols.  Also note that BF_QUICKDEBUG and BF_DEBUG_LIBS are combined;
     for example, setting BF_QUICKDEBUG won't overwrite the contents of BF_DEBUG_LIBS.
+
+
+    Not installing
+    --------------
+
+    If you dont want to install the build result, you can use the following option either
+    on the commandline or in your user-config.py :
+
+        WITHOUT_BF_INSTALL='true'
+
+    by default, this is set to 'false', and so the build is installed
 
 
     Supported toolset

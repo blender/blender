@@ -75,7 +75,8 @@ typedef struct BevPoint {
 	short f1, f2;
 } BevPoint;
 
-/* note; alfa location in struct is abused by Key system */
+/* Keyframes on IPO curves and Points on Bezier Curves/Paths are generally BezTriples */
+/* note: alfa location in struct is abused by Key system */
 /* vec in BezTriple looks like this:
 	vec[0][0]=x location of handle 1
 	vec[0][1]=y location of handle 1
@@ -90,15 +91,15 @@ typedef struct BevPoint {
 typedef struct BezTriple {
 	float vec[3][3];
 	float alfa, weight, radius;	/* alfa: tilt in 3D View, weight: used for softbody goal weight, radius: for bevel tapering */
-	short h1, h2;
-	char f1, f2, f3, hide;
+	short h1, h2; 				/* h1, h2: the handle type of the two handles */
+	char f1, f2, f3, hide;		/* f1, f2, f3: used for selection status,  hide: used to indicate whether BezTriple is hidden */
 } BezTriple;
 
 /* note; alfa location in struct is abused by Key system */
 typedef struct BPoint {
 	float vec[4];
 	float alfa, weight;		/* alfa: tilt in 3D View, weight: used for softbody goal weight */
-	short f1, hide;
+	short f1, hide;			/* f1: selection status,  hide: is point hidden or not */
 	float radius, pad;		/* user-set radius per point for bevelling etc */
 } BPoint;
 
@@ -115,9 +116,11 @@ typedef struct Nurb {
 	float *knotsu, *knotsv;
 	BPoint *bp;
 	BezTriple *bezt;
+
+	short tilt_interp;	/* KEY_LINEAR, KEY_CARDINAL, KEY_BSPLINE */
+	short pad;
 	
 	int charidx;
-	int pad;
 } Nurb;
 
 typedef struct CharInfo {
@@ -190,8 +193,11 @@ typedef struct Curve {
 typedef struct IpoDriver {
 	struct Object *ob;
 	short blocktype, adrcode, type, flag;
-	char name[128];	/* bone or constraint(?), or python expression here */
+	char name[128];	 /* bone or constraint(?), or python expression here */
 } IpoDriver;
+
+/* temp? we store more bone names in 1 driver... */
+#define DRIVER_NAME_OFFS	32
 
 typedef struct IpoCurve {
 	struct IpoCurve *next,  *prev;

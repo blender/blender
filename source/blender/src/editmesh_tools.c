@@ -51,6 +51,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -72,6 +73,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_bmesh.h"
 
 #ifdef WITH_VERSE
 #include "BKE_verse.h"
@@ -89,6 +91,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BIF_resources.h"
 #include "BIF_toolbox.h"
 #include "BIF_transform.h"
+#include "transform.h"
 
 #ifdef WITH_VERSE
 #include "BIF_verse.h"
@@ -195,8 +198,15 @@ void convert_to_triface(int direction)
 	
 }
 
-int removedoublesflag(short flag, float limit)		/* return amount */
+int removedoublesflag(short flag, short automerge, float limit)		/* return amount */
 {
+	/*
+		flag -		Test with vert->flags
+		automerge -	Alternative operation, merge unselected into selected.
+					Used for "Auto Weld" mode. warning.
+		limit -		Quick manhattan distance between verts.
+	*/
+	
 	EditMesh *em = G.editMesh;
 	/* all verts with (flag & 'flag') are being evaluated */
 	EditVert *eve, *v1, *nextve;
@@ -204,17 +214,19 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 	EditFace *efa, *nextvl;
 	xvertsort *sortblock, *sb, *sb1;
 	struct facesort *vlsortblock, *vsb, *vsb1;
-	float dist;
 	int a, b, test, amount;
 	
 	if(multires_test()) return 0;
 
+	
 	/* flag 128 is cleared, count */
+
+	/* Normal non weld operation */
 	eve= em->verts.first;
 	amount= 0;
 	while(eve) {
 		eve->f &= ~128;
-		if(eve->h==0 && (eve->f & flag)) amount++;
+		if(eve->h==0 && (automerge || (eve->f & flag))) amount++;
 		eve= eve->next;
 	}
 	if(amount==0) return 0;
@@ -223,7 +235,7 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 	sb= sortblock= MEM_mallocN(sizeof(xvertsort)*amount,"sortremovedoub");
 	eve= em->verts.first;
 	while(eve) {
-		if(eve->h==0 && (eve->f & flag)) {
+		if(eve->h==0 && (automerge || (eve->f & flag))) {
 			sb->x= eve->co[0]+eve->co[1]+eve->co[2];
 			sb->v1= eve;
 			sb++;
@@ -232,44 +244,72 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 	}
 	qsort(sortblock, amount, sizeof(xvertsort), vergxco);
 
+	
 	/* test for doubles */
-	sb= sortblock;
-	for(a=0; a<amount; a++) {
-		eve= sb->v1;
-		if( (eve->f & 128)==0 ) {
-			sb1= sb+1;
-			for(b=a+1; b<amount; b++) {
-				/* first test: simpel dist */
-				dist= sb1->x - sb->x;
-				if(dist > limit) break;
-				
-				/* second test: is vertex allowed */
-				v1= sb1->v1;
-				if( (v1->f & 128)==0 ) {
+	sb= sortblock;	
+	if (automerge) {
+		for(a=0; a<amount; a++, sb++) {
+			eve= sb->v1;
+			if( (eve->f & 128)==0 ) {
+				sb1= sb+1;
+				for(b=a+1; b<amount && (eve->f & 128)==0; b++, sb1++) {
+					if(sb1->x - sb->x > limit) break;
 					
-					dist= (float)fabs(v1->co[0]-eve->co[0]);
-					if(dist<=limit) {
-						dist= (float)fabs(v1->co[1]-eve->co[1]);
-						if(dist<=limit) {
-							dist= (float)fabs(v1->co[2]-eve->co[2]);
-							if(dist<=limit) {
+					/* when automarge, only allow unselected->selected */
+					v1= sb1->v1;
+					if( (v1->f & 128)==0 ) {
+						if ((eve->f & flag)==0 && (v1->f & flag)==1) {
+							if(	(float)fabs(v1->co[0]-eve->co[0])<=limit && 
+								(float)fabs(v1->co[1]-eve->co[1])<=limit &&
+								(float)fabs(v1->co[2]-eve->co[2])<=limit)
+							{	/* unique bit */
+								eve->f|= 128;
+								eve->tmp.v = v1;
+							}
+						} else if(	(eve->f & flag)==1 && (v1->f & flag)==0 ) {
+							if(	(float)fabs(v1->co[0]-eve->co[0])<=limit && 
+								(float)fabs(v1->co[1]-eve->co[1])<=limit &&
+								(float)fabs(v1->co[2]-eve->co[2])<=limit)
+							{	/* unique bit */
 								v1->f|= 128;
 								v1->tmp.v = eve;
 							}
 						}
 					}
 				}
-				sb1++;
 			}
 		}
-		sb++;
+	} else {
+		for(a=0; a<amount; a++, sb++) {
+			eve= sb->v1;
+			if( (eve->f & 128)==0 ) {
+				sb1= sb+1;
+				for(b=a+1; b<amount; b++, sb1++) {
+					/* first test: simpel dist */
+					if(sb1->x - sb->x > limit) break;
+					v1= sb1->v1;
+					
+					/* second test: is vertex allowed */
+					if( (v1->f & 128)==0 ) {
+						if(	(float)fabs(v1->co[0]-eve->co[0])<=limit && 
+							(float)fabs(v1->co[1]-eve->co[1])<=limit &&
+							(float)fabs(v1->co[2]-eve->co[2])<=limit)
+						{
+							v1->f|= 128;
+							v1->tmp.v = eve;
+						}
+					}
+				}
+			}
+		}
 	}
 	MEM_freeN(sortblock);
-
-	for(eve = em->verts.first; eve; eve=eve->next)
-		if((eve->f & flag) && (eve->f & 128))
-			EM_data_interp_from_verts(eve, eve->tmp.v, eve->tmp.v, 0.5f);
-
+	
+	if (!automerge)
+		for(eve = em->verts.first; eve; eve=eve->next)
+			if((eve->f & flag) && (eve->f & 128))
+				EM_data_interp_from_verts(eve, eve->tmp.v, eve->tmp.v, 0.5f);
+	
 	/* test edges and insert again */
 	eed= em->edges.first;
 	while(eed) {
@@ -445,7 +485,7 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 	eve= (struct EditVert *)em->verts.first;
 	while(eve) {
 		nextve= eve->next;
-		if(eve->f & flag) {
+		if(automerge || eve->f & flag) {
 			if(eve->f & 128) {
 				a++;
 				BLI_remlink(&em->verts, eve);
@@ -642,15 +682,15 @@ void extrude_mesh(void)
 		/* individual faces? */
 		BIF_TransformSetUndo("Extrude");
 		if(nr==2) {
-			initTransform(TFM_SHRINKFATTEN, CTX_NO_PET);
+			initTransform(TFM_SHRINKFATTEN, CTX_NO_PET|CTX_NO_MIRROR);
 			Transform();
 		}
 		else {
-			initTransform(TFM_TRANSLATION, CTX_NO_PET);
+			initTransform(TFM_TRANSLATION, CTX_NO_PET|CTX_NO_MIRROR);
 			if(transmode=='n') {
 				Mat4MulVecfl(G.obedit->obmat, nor);
 				VecSubf(nor, nor, G.obedit->obmat[3]);
-				BIF_setSingleAxisConstraint(nor, NULL);
+				BIF_setSingleAxisConstraint(nor, "along normal");
 			}
 			Transform();
 		}
@@ -756,14 +796,15 @@ void spin_mesh(int steps, float degr, float *dvec, int mode)
 	if(G.scene->toolsettings->editbutflag & B_CLOCKWISE) phi= -phi;
 
 	if(dvec) {
-		n[0]=n[1]= 0.0;
-		n[2]= 1.0;
+		n[0]= G.vd->viewinv[1][0];
+		n[1]= G.vd->viewinv[1][1];
+		n[2]= G.vd->viewinv[1][2];
 	} else {
 		n[0]= G.vd->viewinv[2][0];
 		n[1]= G.vd->viewinv[2][1];
 		n[2]= G.vd->viewinv[2][2];
-		Normalize(n);
 	}
+	Normalize(n);
 
 	q[0]= (float)cos(phi);
 	si= (float)sin(phi);
@@ -824,12 +865,6 @@ void screw_mesh(int steps, int turns)
 
 	TEST_EDITMESH
 	if(multires_test()) return;
-
-	/* first condition: we need frontview! */
-	if(G.vd->view!=1) {
-		error("Must be in Front View");
-		return;
-	}
 	
 	/* clear flags */
 	eve= em->verts.first;
@@ -1250,6 +1285,19 @@ static EditVert *subdivide_edge_addvert(EditEdge *edge, float rad, int beauty, f
 	
 	/* offset for smooth or sphere or fractal */
 	alter_co(co, edge, rad, beauty, percent);
+	
+	/* clip if needed by mirror modifier */
+	if (edge->v1->f2) {
+		if ( edge->v1->f2 & edge->v2->f2 & 1) {
+			co[0]= 0.0f;
+		}
+		if ( edge->v1->f2 & edge->v2->f2 & 2) {
+			co[1]= 0.0f;
+		}
+		if ( edge->v1->f2 & edge->v2->f2 & 4) {
+			co[2]= 0.0f;
+		}
+	}
 	
 	ev = addvertlist(co, NULL);
 	
@@ -2371,12 +2419,39 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	EditMesh *em = G.editMesh;
 	EditFace *ef;
 	EditEdge *eed, *cedge, *sort[4];
-	EditVert **templist;
+	EditVert *eve, **templist;
 	struct GHash *gh;
 	float length[4], v1mat[3], v2mat[3], v3mat[3], v4mat[3];
 	int i, j, edgecount, touchcount, facetype,hold;
+	ModifierData *md= G.obedit->modifiers.first;
 	
 	if(multires_test()) return;
+
+	for (; md; md=md->next) {
+		if (md->type==eModifierType_Mirror) {
+			MirrorModifierData *mmd = (MirrorModifierData*) md;	
+		
+			if(mmd->flag & MOD_MIR_CLIPPING) {
+				for (eve= em->verts.first; eve; eve= eve->next) {
+					eve->f2= 0;
+					switch(mmd->axis){
+						case 0:
+							if (fabs(eve->co[0]) < mmd->tolerance)
+								eve->f2 |= 1;
+							break;
+						case 1:
+							if (fabs(eve->co[1]) < mmd->tolerance)
+								eve->f2 |= 2;
+							break;
+						case 2:
+							if (fabs(eve->co[2]) < mmd->tolerance)
+								eve->f2 |= 4;
+							break;
+					}
+				}
+			}
+		}
+	}
 	
 	//Set faces f1 to 0 cause we need it later
 	for(ef=em->faces.first;ef;ef = ef->next) {
@@ -2919,8 +2994,6 @@ void beauty_fill(void)
 	totedge = count_selected_edges(em->edges.first);
 	if(totedge==0) return;
 
-	if(okee("Beautify fill")==0) return;
-	
 	/* temp block with face pointers */
 	efaar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "beautyfill");
 
@@ -3636,6 +3709,7 @@ static void edge_rotate(EditEdge *eed,int dir)
 			srchedge->dir = eed->dir;
 			srchedge->seam = eed->seam;
 			srchedge->crease = eed->crease;
+			srchedge->bweight = eed->bweight;
 		}
 	}
 	
@@ -4030,7 +4104,7 @@ static void bevel_mesh(float bsize, int allfaces)
 
 	waitcursor(1);
 
-	removedoublesflag(1, limit);
+	removedoublesflag(1, 0, limit);
 
 	/* tag all original faces */
 	efa= em->faces.first;
@@ -4385,7 +4459,7 @@ static void bevel_mesh(float bsize, int allfaces)
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	
-	removedoublesflag(1, limit);
+	removedoublesflag(1, 0, limit);
 
 	/* flush selected vertices to edges/faces */
 	EM_select_flush();
@@ -4405,7 +4479,53 @@ static void bevel_mesh_recurs(float bsize, short recurs, int allfaces)
 	}
 }
 
-void bevel_menu()
+void bevel_menu() {
+	BME_Mesh *bm;
+	BME_TransData_Head *td;
+	TransInfo *t;
+	int options, res, gbm_free = 0;
+
+	t = BIF_GetTransInfo();
+	if (!G.editBMesh) {
+		G.editBMesh = MEM_callocN(sizeof(*(G.editBMesh)),"bevel_menu() G.editBMesh");
+		gbm_free = 1;
+	}
+
+	G.editBMesh->options = BME_BEVEL_RUNNING | BME_BEVEL_SELECT;
+	G.editBMesh->res = 1;
+
+	while(G.editBMesh->options & BME_BEVEL_RUNNING) {
+		options = G.editBMesh->options;
+		res = G.editBMesh->res;
+		bm = BME_make_mesh();
+		bm = BME_editmesh_to_bmesh(G.editMesh, bm);
+		BIF_undo_push("Pre-Bevel");
+		free_editMesh(G.editMesh);
+		BME_bevel(bm,0.1f,res,options,0,0,&td);
+		BME_bmesh_to_editmesh(bm, td);
+		EM_selectmode_flush();
+		G.editBMesh->bm = bm;
+		G.editBMesh->td = td;
+		initTransform(TFM_BEVEL,CTX_BMESH);
+		Transform();
+		BME_free_transdata(td);
+		BME_free_mesh(bm);
+		if (t->state != TRANS_CONFIRM) {
+			BIF_undo();
+		}
+		if (options == G.editBMesh->options) {
+			G.editBMesh->options &= ~BME_BEVEL_RUNNING;
+		}
+	}
+
+	if (gbm_free) {
+		MEM_freeN(G.editBMesh);
+		G.editBMesh = NULL;
+	}
+}
+
+
+void bevel_menu_old()
 {
 	char Finished = 0, Canceled = 0, str[100], Recalc = 0;
 	short mval[2], oval[2], curval[2], event = 0, recurs = 1, nr;
@@ -4538,7 +4658,7 @@ int EdgeLoopDelete(void) {
 		return 0;
 	}
 	select_more();
-	removedoublesflag(1,0.001);
+	removedoublesflag(1,0, 0.001);
 	EM_select_flush();
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	return 1;
@@ -4803,34 +4923,35 @@ int EdgeSlide(short immediate, float imperc)
 	nearest = NULL;
 	vertdist = -1;  
 	while(look) {	
+		tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
+		
+		if(!tempsv->up || !tempsv->down) {
+			error("Missing rails");
+			BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
+			BLI_linklist_free(vertlist,NULL); 
+			BLI_linklist_free(edgelist,NULL); 
+			return 0;
+		}
+
+		if(G.f & G_DRAW_EDGELEN) {
+			if(!(tempsv->up->f & SELECT)) {
+				tempsv->up->f |= SELECT;
+				tempsv->up->f2 |= 16;
+			} else {
+				tempsv->up->f2 |= ~16;
+			}
+			if(!(tempsv->down->f & SELECT)) {
+				tempsv->down->f |= SELECT;
+				tempsv->down->f2 |= 16;
+			} else {
+				tempsv->down->f2 |= ~16;
+			}
+		}
+
 		if(look->next != NULL) {
 			SlideVert *sv;
 
-			tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
-			sv		= BLI_ghash_lookup(vertgh,(EditVert*)look->next->link);
-			
-			if(!tempsv->up || !tempsv->down) {
-				error("Missing rails");
-				BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
-				BLI_linklist_free(vertlist,NULL); 
-				BLI_linklist_free(edgelist,NULL); 
-				return 0;
-			}
-
-			if(G.f & G_DRAW_EDGELEN) {
-				if(!(tempsv->up->f & SELECT)) {
-					tempsv->up->f |= SELECT;
-					tempsv->up->f2 |= 16;
-				} else {
-					tempsv->up->f2 |= ~16;
-				}
-				if(!(tempsv->down->f & SELECT)) {
-					tempsv->down->f |= SELECT;
-					tempsv->down->f2 |= 16;
-				} else {
-					tempsv->down->f2 |= ~16;
-				}
-			}
+			sv = BLI_ghash_lookup(vertgh,(EditVert*)look->next->link);
 
 			if(sv) {
 				float tempdist, co[2];
@@ -5086,6 +5207,9 @@ int EdgeSlide(short immediate, float imperc)
 	}
 	
 	force_draw(0);
+	
+	if(!immediate)
+		EM_automerge(0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	scrarea_queue_winredraw(curarea);		 
 	
@@ -5109,6 +5233,58 @@ int EdgeSlide(short immediate, float imperc)
 }
 
 /* -------------------- More tools ------------------ */
+
+void mesh_set_face_flags(short mode)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	MTFace *tface;
+	short m_tex=0, m_tiles=0, m_shared=0, m_light=0, m_invis=0, m_collision=0, m_twoside=0, m_obcolor=0; 
+	short flag = 0, change = 0;
+	
+	if (!EM_texFaceCheck()) {
+		error("not a mesh with uv/image layers");
+		return;
+	}
+	
+	add_numbut(0, TOG|SHO, "Texture", 0, 0, &m_tex, NULL);
+	add_numbut(1, TOG|SHO, "Tiles", 0, 0, &m_tiles, NULL);
+	add_numbut(2, TOG|SHO, "Shared", 0, 0, &m_shared, NULL);
+	add_numbut(3, TOG|SHO, "Light", 0, 0, &m_light, NULL);
+	add_numbut(4, TOG|SHO, "Invisible", 0, 0, &m_invis, NULL);
+	add_numbut(5, TOG|SHO, "Collision", 0, 0, &m_collision, NULL);
+	add_numbut(6, TOG|SHO, "Twoside", 0, 0, &m_twoside, NULL);
+	add_numbut(7, TOG|SHO, "ObColor", 0, 0, &m_obcolor, NULL);
+	
+	if (!do_clever_numbuts((mode ? "Set Flags" : "Clear Flags"), 8, REDRAW))
+ 		return;
+	
+	if (m_tex)			flag |= TF_TEX;
+	if (m_tiles)		flag |= TF_TILES;
+	if (m_shared)		flag |= TF_SHAREDCOL;
+	if (m_light)		flag |= TF_LIGHT;
+	if (m_invis)		flag |= TF_INVISIBLE;
+	if (m_collision)	flag |= TF_DYNAMIC;
+	if (m_twoside)		flag |= TF_TWOSIDE;
+	if (m_obcolor)		flag |= TF_OBCOL;
+	
+	efa= em->faces.first;
+	while(efa) {
+		if(efa->f & SELECT) {
+			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (mode)	tface->mode |= flag;
+			else		tface->mode &= ~flag;
+		}
+		efa= efa->next;
+	}
+	
+	if (change) {
+		BIF_undo_push((mode ? "Set Flags" : "Clear Flags"));
+		
+		allqueue(REDRAWIMAGE, 0);
+		allqueue(REDRAWVIEW3D, 0);
+	}
+}
 
 void mesh_set_smooth_faces(short event)
 {
@@ -5844,7 +6020,7 @@ static void collapse_edgeuvs(void)
 	int curtag, balanced, collectionfound= 0, vcount;
 	float avg[2];
 
-	if (!CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE))
+	if (!EM_texFaceCheck())
 		return;
 	
 	uvverts.first = uvverts.last = uvedges.first = uvedges.last = allcollections.first = allcollections.last = NULL;
@@ -5946,7 +6122,7 @@ static void collapseuvs(void)
 	int uvcount;
 	float uvav[2];
 
-	if (!CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE))
+	if (!EM_texFaceCheck())
 		return;
 	
 	uvcount = 0;
@@ -6054,7 +6230,7 @@ int collapseEdges(void)
 			VECCOPY(((EditEdge*)curredge->eed)->v2->co,avgcount);
 		}
 		
-		if (CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE)) {
+		if (EM_texFaceCheck()) {
 			/*uv collapse*/
 			for(eve=G.editMesh->verts.first; eve; eve=eve->next) eve->f1 = 0;
 			for(eed=G.editMesh->edges.first; eed; eed=eed->next) eed->f1 = 0;
@@ -6068,11 +6244,13 @@ int collapseEdges(void)
 		
 	}
 	freecollections(&allcollections);
-	removedoublesflag(1, MERGELIMIT);
+	removedoublesflag(1, 0, MERGELIMIT);
 	/*get rid of this!*/
 	countall();
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
 	return mergecount;
 }
 
@@ -6110,7 +6288,7 @@ int merge_firstlast(int first, int uvmerge)
 	}
 	
 	countall();
-	return removedoublesflag(1,MERGELIMIT);
+	return removedoublesflag(1, 0, MERGELIMIT);
 }
 
 int merge_target(int target, int uvmerge)
@@ -6133,7 +6311,7 @@ int merge_target(int target, int uvmerge)
 	countall();
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);
-	return removedoublesflag(1,MERGELIMIT);
+	return removedoublesflag(1, 0, MERGELIMIT);
 	
 }
 #undef MERGELIMIT
@@ -6301,6 +6479,8 @@ void pathselect(void)
 			countall();
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
+			if (EM_texFaceCheck())
+				allqueue(REDRAWIMAGE, 0);
 		}
 	}
 	else{
@@ -6338,6 +6518,8 @@ void region_to_loop(void)
 		countall();
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
+		if (EM_texFaceCheck())
+			allqueue(REDRAWIMAGE, 0);
 		BIF_undo_push("Face Region to Edge Loop");
 
 	}
@@ -6496,6 +6678,215 @@ void loop_to_region(void)
 	freecollections(&allcollections);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
 	BIF_undo_push("Edge Loop to Face Region");
 }
 
+
+/* texface and vertex color editmode tools for the face menu */
+
+void mesh_rotate_uvs(void)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	short change = 0, ccw;
+	MTFace *tf;
+	float u1, v1;
+	
+	if (!EM_texFaceCheck()) {
+		error("mesh has no uv/image layers");
+		return;
+	}
+	
+	ccw = (G.qual == LR_SHIFTKEY);
+	
+	for(efa=em->faces.first; efa; efa=efa->next) {
+		if (efa->f & SELECT) {
+			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			u1= tf->uv[0][0];
+			v1= tf->uv[0][1];
+			
+			if (ccw) {
+				if(efa->v4) {
+					tf->uv[0][0]= tf->uv[3][0];
+					tf->uv[0][1]= tf->uv[3][1];
+					
+					tf->uv[3][0]= tf->uv[2][0];
+					tf->uv[3][1]= tf->uv[2][1];
+				} else {
+					tf->uv[0][0]= tf->uv[2][0];
+					tf->uv[0][1]= tf->uv[2][1];
+				}
+				
+				tf->uv[2][0]= tf->uv[1][0];
+				tf->uv[2][1]= tf->uv[1][1];
+				
+				tf->uv[1][0]= u1;
+				tf->uv[1][1]= v1;
+			} else {	
+				tf->uv[0][0]= tf->uv[1][0];
+				tf->uv[0][1]= tf->uv[1][1];
+	
+				tf->uv[1][0]= tf->uv[2][0];
+				tf->uv[1][1]= tf->uv[2][1];
+				
+				if(efa->v4) {
+					tf->uv[2][0]= tf->uv[3][0];
+					tf->uv[2][1]= tf->uv[3][1];
+				
+					tf->uv[3][0]= u1;
+					tf->uv[3][1]= v1;
+				}
+				else {
+					tf->uv[2][0]= u1;
+					tf->uv[2][1]= v1;
+				}
+			}
+			change = 1;
+		}
+	}
+	
+	if (change) {
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Rotate UV face");
+	}
+}
+
+void mesh_mirror_uvs(void)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	short change = 0;
+	MTFace *tf;
+	float u1, v1;
+	
+	if (!EM_texFaceCheck()) {
+		error("mesh has no uv/image layers");
+		return;
+	}
+	
+	for(efa=em->faces.first; efa; efa=efa->next) {
+		if (efa->f & SELECT) {
+			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			u1= tf->uv[0][0];
+			v1= tf->uv[0][1];
+			if(efa->v4) {
+				tf->uv[0][0]= tf->uv[3][0];
+				tf->uv[0][1]= tf->uv[3][1];
+			
+				tf->uv[3][0]= u1;
+				tf->uv[3][1]= v1;
+
+				u1= tf->uv[1][0];
+				v1= tf->uv[1][1];
+
+				tf->uv[1][0]= tf->uv[2][0];
+				tf->uv[1][1]= tf->uv[2][1];
+			
+				tf->uv[2][0]= u1;
+				tf->uv[2][1]= v1;
+			}
+			else {
+				tf->uv[0][0]= tf->uv[2][0];
+				tf->uv[0][1]= tf->uv[2][1];
+				tf->uv[2][0]= u1;
+				tf->uv[2][1]= v1;
+			}
+			change = 1;
+		}
+	}
+	
+	if (change) {
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Mirror UV face");
+	}
+}
+
+void mesh_rotate_colors(void)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	short change = 0, ccw;
+	MCol tmpcol, *mcol;
+	if (!EM_vertColorCheck()) {
+		error("mesh has no color layers");
+		return;
+	}
+	
+	ccw = (G.qual == LR_SHIFTKEY);
+	
+	for(efa=em->faces.first; efa; efa=efa->next) {
+		if (efa->f & SELECT) {
+			mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+			tmpcol= mcol[0];
+			
+			if (ccw) {
+				if(efa->v4) {
+					mcol[0]= mcol[3];
+					mcol[3]= mcol[2];
+				} else {
+					mcol[0]= mcol[2];
+				}
+				mcol[2]= mcol[1];
+				mcol[1]= tmpcol;
+			} else {
+				mcol[0]= mcol[1];
+				mcol[1]= mcol[2];
+	
+				if(efa->v4) {
+					mcol[2]= mcol[3];
+					mcol[3]= tmpcol;
+				}
+				else
+					mcol[2]= tmpcol;
+			}
+			change = 1;
+		}
+	}
+	
+	if (change) {
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Rotate Color face");
+	}	
+}
+
+void mesh_mirror_colors(void)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	short change = 0;
+	MCol tmpcol, *mcol;
+	if (!EM_vertColorCheck()) {
+		error("mesh has no color layers");
+		return;
+	}
+	
+	for(efa=em->faces.first; efa; efa=efa->next) {
+		if (efa->f & SELECT) {
+			mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+			tmpcol= mcol[0];
+			
+			mcol[0]= mcol[1];
+			mcol[1]= mcol[2];
+
+			if(efa->v4) {
+				mcol[2]= mcol[3];
+				mcol[3]= tmpcol;
+			}
+			else {
+				mcol[2]= tmpcol;
+			}
+			change = 1;
+		}
+	}
+	
+	if (change) {
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Mirror Color face");
+	}
+}

@@ -36,6 +36,7 @@
 struct Image;
 struct MTFace;
 struct Object;
+struct DerivedMesh;
 struct Mesh;
 struct EdgeHash;
 
@@ -75,7 +76,7 @@ int set_tpage(struct MTFace *tface);
 void texpaint_enable_mipmap(void);
 void texpaint_disable_mipmap(void);
 
-void draw_tface_mesh(struct Object *ob, struct Mesh *me, int dt);
+void draw_mesh_textured(struct Object *ob, struct DerivedMesh *dm, int facesel);
 struct EdgeHash *get_tface_mesh_marked_edge_info(struct Mesh *me);
 void init_realtime_GL(void); 
 

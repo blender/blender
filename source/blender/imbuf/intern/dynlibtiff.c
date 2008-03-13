@@ -83,13 +83,19 @@ void libtiff_loadlibtiff(void)
 	/* Try to find libtiff in a couple of standard places */
 	libtiff = PIL_dynlib_open("libtiff.so");
 	if (libtiff != NULL)  return;
+	libtiff = PIL_dynlib_open("libtiff.so.3");
+	if (libtiff != NULL)  return;
 	libtiff = PIL_dynlib_open("libtiff.dll");
 	if (libtiff != NULL)  return;
 	libtiff = PIL_dynlib_open("/usr/lib/libtiff.so");
 	if (libtiff != NULL)  return;
-	/* OSX has version specific library */
 	libtiff = PIL_dynlib_open("/usr/lib/libtiff.so.3");
 	if (libtiff != NULL)  return;
+	/* OSX has version specific library */
+#ifdef __x86_64__
+	libtiff = PIL_dynlib_open("/usr/lib64/libtiff.so.3");
+	if (libtiff != NULL)  return;
+#endif
 	libtiff = PIL_dynlib_open("/usr/local/lib/libtiff.so");
 	if (libtiff != NULL)  return;
 	/* For solaris */

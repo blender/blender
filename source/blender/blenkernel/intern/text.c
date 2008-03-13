@@ -1033,7 +1033,7 @@ int txt_find_string(Text *text, char *findstr)
 
 void txt_cut_sel (Text *text)
 {
-	txt_copy_sel(text);
+	txt_copy_clipboard(text);
 	
 	txt_delete_sel(text);
 	txt_make_dirty(text);
@@ -2352,7 +2352,7 @@ int setcurr_tab (Text *text)
 	int test = 0;
 	char *word = ":";
 	char *comm = "#";
-	char back_words[3][7] = {"return", "break", "pass"};
+	char back_words[4][7] = {"return", "break", "pass", "yield"};
 	if (!text) return 0;
 	if (!text->curl) return 0;
 	
@@ -2369,16 +2369,25 @@ int setcurr_tab (Text *text)
 	if(strstr(text->curl->line, word))
 	{
 		//if we find a : then add a tab but not if it is in a comment
-		if(strcspn(text->curl->line, word) < strcspn(text->curl->line, comm))
+		int a, indent = 0;
+		for(a=0; text->curl->line[a] != '\0'; a++)
 		{
+			if (text->curl->line[a]=='#') {
+				break;
+			} else if (text->curl->line[a]==':') {
+				indent = 1;
+			} else if (text->curl->line[a]==']') {
+				indent = 0;
+			}
+		}
+		if (indent) {
 			i++;
-
 		}
 	}
 
-	while(test < 3)
+	for(test=0; test < 4; test++)
 	{
-		//if there are these 3 key words then remove a tab because we are done with the block
+		//if there are these 4 key words then remove a tab because we are done with the block
 		if(strstr(text->curl->line, back_words[test]) && i > 0)
 		{
 			if(strcspn(text->curl->line, back_words[test]) < strcspn(text->curl->line, comm))
@@ -2386,7 +2395,6 @@ int setcurr_tab (Text *text)
 				i--;
 			}
 		}
-		test++;
 	}
 	return i;
 }

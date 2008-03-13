@@ -34,12 +34,14 @@
 
 #include "MT_Transform.h"
 #include "RAS_IRasterizer.h"
+#include "RAS_2DFilterManager.h"
 
 #include <vector>
 #include <algorithm>
 
 class		RAS_IPolyMaterial;
 struct		RAS_LightObject;
+
 
 class RAS_IRenderTools
 {
@@ -52,7 +54,8 @@ protected:
 	bool	m_modified;
 	
 	std::vector<struct	RAS_LightObject*> m_lights;
-
+	
+	RAS_2DFilterManager m_filtermanager;
 
 public:
 	enum RAS_TEXT_RENDER_MODE {
@@ -61,7 +64,7 @@ public:
 		RAS_TEXT_PADDED,
 		RAS_TEXT_MAX
 	};
-	
+
 	RAS_IRenderTools(
 	) :
 		m_clientobject(NULL),
@@ -174,6 +177,18 @@ public:
 		struct RAS_LightObject* lightobject
 	);
 
+	virtual
+		void
+	MotionBlur(RAS_IRasterizer* rasterizer)=0;
+
+	virtual
+		void
+		Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)=0;
+
+	virtual
+		void
+		Render2DFilters(RAS_ICanvas* canvas)=0;
+
 	virtual 
 		class RAS_IPolyMaterial*	
 	CreateBlenderPolyMaterial(
@@ -194,4 +209,6 @@ public:
 };
 
 #endif //__RAS_IRENDERTOOLS
+
+
 

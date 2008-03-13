@@ -52,17 +52,17 @@ class Font:
 
 	def pack():
 		"""
-		Packs the sound into the current blend file.
-		@note: An error will be raised if the sound is already packed or the filename path does not exist.
+		Packs the font into the current blend file.
+		@note: 
 		@returns: nothing
 		@rtype: none
 		"""
 
 	def unpack(mode):
 		"""
-		Unpacks the sound to the samples filename.
+		Unpacks the font.
 		@param mode: One of the values in Blender.UnpackModes dict.
-		@note: An error will be raised if the sound is not packed or the filename path does not exist.
+		@note: An error will be raised if the font is not packed or the filename path does not exist.
 		@returns: nothing
 		@rtype: none
 		@type mode: int

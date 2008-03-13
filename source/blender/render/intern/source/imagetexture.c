@@ -93,10 +93,10 @@ static void ibuf_get_color(float *col, struct ImBuf *ibuf, int x, int y)
 	else {
 		char *rect = (char *)( ibuf->rect+ ofs);
 
-		col[0] = ((float)rect[0])/255.0f;
-		col[1] = ((float)rect[1])/255.0f;
-		col[2] = ((float)rect[2])/255.0f;
-		col[3] = ((float)rect[3])/255.0f;
+		col[0] = ((float)rect[0])*(1.0f/255.0f);
+		col[1] = ((float)rect[1])*(1.0f/255.0f);
+		col[2] = ((float)rect[2])*(1.0f/255.0f);
+		col[3] = ((float)rect[3])*(1.0f/255.0f);
 	}	
 }
 
@@ -244,6 +244,14 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, TexResult *texre
 	
 	if(tex->flag & TEX_NEGALPHA) texres->ta= 1.0f-texres->ta;
 
+	/* de-premul, this is being premulled in shade_input_do_shade() */
+	if(texres->ta!=1.0f && texres->ta!=0.0f) {
+		fx= 1.0f/texres->ta;
+		texres->tr*= fx;
+		texres->tg*= fx;
+		texres->tb*= fx;
+	}
+	
 	return retval;
 }
 
@@ -691,10 +699,22 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *dxt, f
 	maxy= MAX3(dxt[1],dyt[1],dxt[1]+dyt[1] );
 
 	/* tex_sharper has been removed */
-	minx= tex->filtersize*(maxx-minx)/2.0f;
-	miny= tex->filtersize*(maxy-miny)/2.0f;
+	minx= (maxx-minx)/2.0f;
+	miny= (maxy-miny)/2.0f;
 	
-	if(tex->filtersize!=1.0f) {
+	if(tex->imaflag & TEX_FILTER_MIN) {
+		/* make sure the filtersize is minimal in pixels (normal, ref map can have miniature pixel dx/dy) */
+	 	float addval= (0.5f * tex->filtersize) / (float) MIN2(ibuf->x, ibuf->y);
+ 		
+		if(addval > minx)
+			minx= addval;
+		if(addval > miny)
+			miny= addval;
+	}
+	else if(tex->filtersize!=1.0f) {
+		minx*= tex->filtersize;
+		miny*= tex->filtersize;
+		
 		dxt[0]*= tex->filtersize;
 		dxt[1]*= tex->filtersize;
 		dyt[0]*= tex->filtersize;
@@ -968,5 +988,13 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *dxt, f
 		texres->nor[2] = 2.f*(texres->tb - 0.5f);
 	}
 	
+	/* de-premul, this is being premulled in shade_input_do_shade() */
+	if(texres->ta!=1.0f && texres->ta!=0.0f) {
+		fx= 1.0f/texres->ta;
+		texres->tr*= fx;
+		texres->tg*= fx;
+		texres->tb*= fx;
+	}
+
 	return retval;
 }

@@ -1213,6 +1213,12 @@ def glPopAttrib():
   @see: U{www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/pushattrib.html}
   """
 
+def glPopClientAttrib():
+  """
+  Pop the client attribute stack
+  @see: U{www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/pushclientattrib.html}
+  """
+
 def glPopMatrix():
   """
   Pop the current matrix stack
@@ -1243,6 +1249,15 @@ def glPushAttrib(mask):
   """
   Push the server attribute stack
   @see: U{www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/pushattrib.html}
+
+  @type mask: Enumerated constant(s)
+  @param mask: Specifies a mask that indicates which attributes to save.
+  """
+
+def glPushClientAttrib(mask):
+  """
+  Push the client attribute stack
+  @see: U{www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/pushclientattrib.html}
 
   @type mask: Enumerated constant(s)
   @param mask: Specifies a mask that indicates which attributes to save.

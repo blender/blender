@@ -483,6 +483,7 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir)
 	
 	/* test for cyclic */
 	bl= cu->bev.first;
+	if (!bl->nr) return 0;
 	if(bl && bl->poly> -1) cycl= 1;
 
 	if(cycl==0) {
@@ -518,7 +519,7 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir)
 	/* co: local coord, result local too */
 	/* returns quaternion for rotation, using cd->no_rot_axis */
 	/* axis is using another define!!! */
-static float *calc_curve_deform(Object *par, float *co, short axis, CurveDeform *cd)
+static int calc_curve_deform(Object *par, float *co, short axis, CurveDeform *cd, float *quatp)
 {
 	Curve *cu= par->data;
 	float fac, loc[4], dir[3], cent[3];
@@ -548,7 +549,7 @@ static float *calc_curve_deform(Object *par, float *co, short axis, CurveDeform 
 	/* to be sure, mostly after file load */
 	if(cu->path==NULL) {
 		makeDispListCurveTypes(par, 0);
-		if(cu->path==NULL) return NULL;	// happens on append...
+		if(cu->path==NULL) return 0;	// happens on append...
 	}
 	
 	/* options */
@@ -574,14 +575,13 @@ static float *calc_curve_deform(Object *par, float *co, short axis, CurveDeform 
 	}
 	
 	if( where_on_path_deform(par, fac, loc, dir)) {	/* returns OK */
-		float q[4], mat[3][3];
-		float *quat;
+		float q[4], mat[3][3], quat[4];
 		
 		if(cd->no_rot_axis)	/* set by caller */
 			dir[cd->no_rot_axis-1]= 0.0f;
 		
 		/* -1 for compatibility with old track defines */
-		quat= vectoquat(dir, axis-1, upflag);	/* gives static quat */
+		vectoquat(dir, axis-1, upflag, quat);
 		
 		/* the tilt */
 		if(loc[3]!=0.0) {
@@ -601,9 +601,12 @@ static float *calc_curve_deform(Object *par, float *co, short axis, CurveDeform 
 		/* translation */
 		VECADD(co, cent, loc);
 		
-		return quat;
+		if(quatp)
+			QUATCOPY(quatp, quat);
+		
+		return 1;
 	}
-	return NULL;
+	return 0;
 }
 
 void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*vertexCos)[3], int numVerts, char *vgroup, short defaxis)
@@ -667,7 +670,7 @@ void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*v
 				for(j = 0; j < dvert->totweight; j++) {
 					if(dvert->dw[j].def_nr == index) {
 						VECCOPY(vec, vertexCos[a]);
-						calc_curve_deform(cuOb, vec, defaxis, &cd);
+						calc_curve_deform(cuOb, vec, defaxis, &cd, NULL);
 						VecLerpf(vertexCos[a], vertexCos[a], vec,
 						         dvert->dw[j].weight);
 						Mat4MulVecfl(cd.objectspace, vertexCos[a]);
@@ -685,7 +688,7 @@ void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*v
 		}
 
 		for(a = 0; a < numVerts; a++) {
-			calc_curve_deform(cuOb, vertexCos[a], defaxis, &cd);
+			calc_curve_deform(cuOb, vertexCos[a], defaxis, &cd, NULL);
 			Mat4MulVecfl(cd.objectspace, vertexCos[a]);
 		}
 	}
@@ -698,7 +701,7 @@ void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*v
 void curve_deform_vector(Object *cuOb, Object *target, float *orco, float *vec, float mat[][3], int no_rot_axis)
 {
 	CurveDeform cd;
-	float *quat;
+	float quat[4];
 	
 	init_curve_deform(cuOb, target, &cd, 0);	/* 0 no dloc */
 	cd.no_rot_axis= no_rot_axis;				/* option to only rotate for XY, for example */
@@ -708,8 +711,7 @@ void curve_deform_vector(Object *cuOb, Object *target, float *orco, float *vec, 
 
 	Mat4MulVecfl(cd.curvespace, vec);
 	
-	quat= calc_curve_deform(cuOb, vec, target->trackflag+1, &cd);
-	if(quat) {
+	if(calc_curve_deform(cuOb, vec, target->trackflag+1, &cd, quat)) {
 		float qmat[3][3];
 		
 		QuatToMat3(quat, qmat);

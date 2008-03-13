@@ -69,7 +69,7 @@ static char M_Lattice_doc[] = "The Blender Lattice module\n\n";
 
 static char M_Lattice_New_doc[] = "() - return a new Lattice object";
 
-static char M_Lattice_Get_doc[] = "() - geta a Lattice from blender";
+static char M_Lattice_Get_doc[] = "() - get a Lattice from blender";
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Lattice module:	*/
@@ -708,13 +708,13 @@ static PyObject *Lattice_getAxisType(BPy_Lattice * self, void * type)
 static PyGetSetDef BPy_Lattice_getseters[] = {
 	GENERIC_LIB_GETSETATTR,
 	{"width", (getter)Lattice_getWidth, (setter)NULL,
-	 "lattice U sibdivision ", NULL},
+	 "lattice U subdivision ", NULL},
 	{"height", (getter)Lattice_getHeight, (setter)NULL,
-	 "lattice V sibdivision", NULL},
+	 "lattice V subdivision", NULL},
 	{"depth", (getter)Lattice_getDepth, (setter)NULL,
-	 "lattice W sibdivision", NULL},
+	 "lattice W subdivision", NULL},
 	{"latSize", (getter)Lattice_getLatSize, (setter)NULL,
-	 "lattice W sibdivision", NULL},	 
+	 "lattice W subdivision", NULL},	 
 	 
 	{"widthType", (getter)Lattice_getAxisType, NULL,
 	 "lattice U interpolation type", (void *)0},

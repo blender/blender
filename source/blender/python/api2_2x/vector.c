@@ -168,7 +168,7 @@ PyObject *Vector_Resize4D(VectorObject * self)
   extract a quaternion from the vector and the track and up axis */
 PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 {
-	float vec[3];
+	float vec[3], quat[4];
 	char *strack, *sup;
 	short track = 2, up = 1;
 
@@ -271,7 +271,9 @@ PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 	vec[1] = -self->vec[1];
 	vec[2] = -self->vec[2];
 
-	return newQuaternionObject(vectoquat(vec, track, up), Py_NEW);
+	vectoquat(vec, track, up, quat);
+
+	return newQuaternionObject(quat, Py_NEW);
 }
 
 
@@ -359,6 +361,7 @@ static PyObject *Vector_slice(VectorObject * self, int begin, int end)
 	int count;
 
 	CLAMP(begin, 0, self->size);
+	if (end<0) end= self->size+end+1;
 	CLAMP(end, 0, self->size);
 	begin = MIN2(begin,end);
 
@@ -380,6 +383,7 @@ static int Vector_ass_slice(VectorObject * self, int begin, int end,
 	PyObject *v;
 
 	CLAMP(begin, 0, self->size);
+	if (end<0) end= self->size+end+1;
 	CLAMP(end, 0, self->size);
 	begin = MIN2(begin,end);
 

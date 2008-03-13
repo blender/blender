@@ -158,7 +158,7 @@ struct ImBuf *IMB_testiffname(char *naam,int flags);
  *
  * @attention Defined in readimage.c
  */
-struct ImBuf *IMB_loadiffname(char *naam, int flags);
+struct ImBuf *IMB_loadiffname(const char *naam, int flags);
 
 /**
  *
@@ -258,7 +258,7 @@ int IMB_anim_get_duration(struct anim *anim);
  *
  * @attention Defined in anim.c
  */
-struct anim * IMB_open_anim(char * name, int ib_flags);
+struct anim * IMB_open_anim(const char * name, int ib_flags);
 void IMB_close_anim(struct anim * anim);
 
 /**
@@ -276,6 +276,13 @@ int IMB_anim_get_preseek(struct anim * anim);
  */
 
 struct ImBuf * IMB_anim_absolute(struct anim * anim, int position);
+
+/**
+ *
+ * @attention Defined in anim.c
+ * fetches a define previewframe, usually half way into the movie
+ */
+struct ImBuf * IMB_anim_previewframe(struct anim * anim);
 
 /**
  *
@@ -314,7 +321,7 @@ void IMB_antialias(struct ImBuf * ibuf);
  */
 void IMB_filter(struct ImBuf *ibuf);
 void IMB_filterN(struct ImBuf *out, struct ImBuf *in);
-void IMB_filter_extend(struct ImBuf *ibuf);
+void IMB_filter_extend(struct ImBuf *ibuf, char *mask);
 void IMB_makemipmap(struct ImBuf *ibuf, int use_filter);
 
 /**
@@ -395,7 +402,13 @@ void IMB_float_from_rect(struct ImBuf *ibuf);
  * @attention Defined in imageprocess.c
  */
 void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf);
-
+/**
+ *
+ * @attention defined in imageprocess.c
+ */
+void bicubic_interpolation(struct ImBuf *in, struct ImBuf *out, float x, float y, int xout, int yout);
+void neareast_interpolation(struct ImBuf *in, struct ImBuf *out, float u, float v, int xout, int yout);
+void bilinear_interpolation(struct ImBuf *in, struct ImBuf *out, float u, float v, int xout, int yout);
 /**
  * Change the ordering of the color bytes pointed to by rect from
  * rgba to abgr. size * 4 color bytes are reordered.
@@ -511,6 +524,7 @@ extern float rgb_to_bw[4][4];
  *
  * @attention Defined in rotate.c
  */
+void IMB_flipx(struct ImBuf *ibuf);
 void IMB_flipy(struct ImBuf * ibuf);
 
 /**
@@ -531,6 +545,13 @@ void IMB_freezbuffloatImBuf(struct ImBuf * ibuf);
  * @attention Defined in rectop.c
  */
 void IMB_rectfill(struct ImBuf *drect, float col[4]);
+void IMB_rectfill_area(struct ImBuf *ibuf, float *col, int x1, int y1, int x2, int y2);
+
+/* this should not be here, really, we needed it for operating on render data, IMB_rectfill_area calls it */
+void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height, float *col, int x1, int y1, int x2, int y2);
+
+/* defined in imginfo.c */
+int IMB_imginfo_change_field(struct ImBuf *img, const char *key, const char *field);
 
 /* exported for image tools in blender, to quickly allocate 32 bits rect */
 short imb_addrectImBuf(struct ImBuf * ibuf);

@@ -76,7 +76,7 @@ int GenericLib_setFakeUser( void *self, PyObject *value )
 	param = PyObject_IsTrue( value );
 	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected int argument in range [0,1]" );
+				"expected True/False or 0/1" );
 	
 	if (param) {
 		if (!(id->flag & LIB_FAKEUSER)) {
@@ -325,14 +325,8 @@ PyObject *GetPyObjectFromID( ID * id )
 	Py_RETURN_NONE;
 }
 
-/* return a unique tuple for this libdata*/
-long GenericLib_hash(PyObject * pydata)
+long GenericLib_hash(BPy_GenericLib * pydata)
 {
-	ID *id = ((BPy_GenericLib *)pydata)->id;
-	PyObject *pyhash = PyTuple_New( 2 );
-	PyTuple_SetItem( pyhash, 0, PyString_FromString(id->name) );
-	if (id->lib) PyTuple_SetItem( pyhash, 0, PyString_FromString(id->lib->name) );
-	else		PyTuple_SetItem( pyhash, 1, Py_None );
-	return PyObject_Hash(pyhash);
+	return (long)pydata->id;
 }
 

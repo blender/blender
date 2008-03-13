@@ -68,15 +68,11 @@ def fixName(name):
 	else:
 		return name.replace(' ', '_')
 
-# Used to add the scene name into the filename without using odd chars
-global MTL_DICT
-
 # A Dict of Materials
 # (material.name, image.name):matname_imagename # matname_imagename has gaps removed.
 MTL_DICT = {} 
 
 def write_mtl(filename):
-	global MTL_DICT
 	
 	world = Blender.World.GetCurrent()
 	if world:
@@ -88,23 +84,14 @@ def write_mtl(filename):
 	file.write('# Blender3D MTL File: %s\n' % Blender.Get('filename').split('\\')[-1].split('/')[-1])
 	file.write('# Material Count: %i\n' % len(MTL_DICT))
 	# Write material/image combinations we have used.
-	for key, mtl_mat_name in MTL_DICT.iteritems():
+	for key, (mtl_mat_name, mat, img) in MTL_DICT.iteritems():
 		
 		# Get the Blender data for the material and the image.
 		# Having an image named None will make a bug, dont do it :)
 		
 		file.write('newmtl %s\n' % mtl_mat_name) # Define a new material: matname_imgname
 		
-		if key[0] == None:
-			#write a dummy material here?
-			file.write('Ns 0\n')
-			file.write('Ka %.6f %.6f %.6f\n' %  tuple([c for c in worldAmb])  ) # Ambient, uses mirror colour,
-			file.write('Kd 0.8 0.8 0.8\n')
-			file.write('Ks 0.8 0.8 0.8\n')
-			file.write('d 1\n') # No alpha
-			file.write('illum 2\n') # light normaly	
-		else:
-			mat = Blender.Material.Get(key[0])
+		if mat:
 			file.write('Ns %.6f\n' % ((mat.getHardness()-1) * 1.9607843137254901) ) # Hardness, convert blenders 1-511 to MTL's 
 			file.write('Ka %.6f %.6f %.6f\n' %  tuple([c*mat.amb for c in worldAmb])  ) # Ambient, uses mirror colour,
 			file.write('Kd %.6f %.6f %.6f\n' % tuple([c*mat.ref for c in mat.rgbCol]) ) # Diffuse
@@ -120,13 +107,20 @@ def write_mtl(filename):
 			else:
 				file.write('illum 2\n') # light normaly	
 		
+		else:
+			#write a dummy material here?
+			file.write('Ns 0\n')
+			file.write('Ka %.6f %.6f %.6f\n' %  tuple([c for c in worldAmb])  ) # Ambient, uses mirror colour,
+			file.write('Kd 0.8 0.8 0.8\n')
+			file.write('Ks 0.8 0.8 0.8\n')
+			file.write('d 1\n') # No alpha
+			file.write('illum 2\n') # light normaly
 		
 		# Write images!
-		if key[1] != None:  # We have an image on the face!
-			img = Image.Get(key[1])
+		if img:  # We have an image on the face!
 			file.write('map_Kd %s\n' % img.filename.split('\\')[-1].split('/')[-1]) # Diffuse mapping image			
 		
-		elif key[0] != None: # No face image. if we havea material search for MTex image.
+		elif not mat: # No face image. if we havea material search for MTex image.
 			for mtex in mat.getTextures():
 				if mtex and mtex.tex.type == Blender.Texture.Types.IMAGE:
 					try:
@@ -157,26 +151,26 @@ def copy_images(dest_dir):
 	
 	# Get unique image names
 	uniqueImages = {}
-	for matname, imagename in MTL_DICT.iterkeys(): # Only use image name
+	for matname, mat, image in MTL_DICT.itervalues(): # Only use image name
 		# Get Texface images
-		if imagename != None:
-			uniqueImages[imagename] = None # Should use sets here. wait until Python 2.4 is default.
+		if image:
+			uniqueImages[image] = image # Should use sets here. wait until Python 2.4 is default.
 		
 		# Get MTex images
-		if matname != None:
-			mat= Blender.Material.Get(matname)
+		if mat:
 			for mtex in mat.getTextures():
 				if mtex and mtex.tex.type == Blender.Texture.Types.IMAGE:
-					try:
-						uniqueImages[mtex.tex.image.name] = None
-					except:
-						pass
+					image_tex = mtex.tex.image
+					if image_tex:
+						try:
+							uniqueImages[image_tex] = image_tex
+						except:
+							pass
 	
 	# Now copy images
 	copyCount = 0
 	
-	for imageName in uniqueImages.iterkeys():
-		bImage = Image.Get(imageName)
+	for bImage in uniqueImages.itervalues():
 		image_path = sys.expandpath(bImage.filename)
 		if sys.exists(image_path):
 			# Make a name for the target path.
@@ -186,12 +180,6 @@ def copy_images(dest_dir):
 				copy_file(image_path, dest_image_path)
 				copyCount+=1
 	print '\tCopied %d images' % copyCount
-
-def veckey3d(v):
-	return round(v.x, 6), round(v.y, 6), round(v.z, 6)
-
-def veckey2d(v):
-	return round(v.x, 6), round(v.y, 6)
 
 def write(filename, objects,\
 EXPORT_TRI=False,  EXPORT_EDGES=False,  EXPORT_NORMALS=False,  EXPORT_NORMALS_HQ=False,\
@@ -204,8 +192,14 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 	eg.
 	write( 'c:\\test\\foobar.obj', Blender.Object.GetSelected() ) # Using default options.
 	'''
+	
+	def veckey3d(v):
+		return round(v.x, 6), round(v.y, 6), round(v.z, 6)
+		
+	def veckey2d(v):
+		return round(v.x, 6), round(v.y, 6)
+	
 	print 'OBJ Export path: "%s"' % filename
-	global MTL_DICT
 	temp_mesh_name = '~tmp-mesh'
 
 	time1 = sys.time()
@@ -241,7 +235,7 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 	# Initialize totals, these are updated each object
 	totverts = totuvco = totno = 1
 	
-	face_vert_index = 1 # used for uvs now
+	face_vert_index = 1
 	
 	globalNormals = {}
 	
@@ -253,7 +247,11 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 			me= BPyMesh.getMeshFromObject(ob, containerMesh, EXPORT_APPLY_MODIFIERS, False, scn)
 			if not me:
 				continue
-			faceuv= me.faceUV
+			
+			if EXPORT_UV:
+				faceuv= me.faceUV
+			else:
+				faceuv = False
 			
 			# We have a valid mesh
 			if EXPORT_TRI and me.faces:
@@ -293,14 +291,21 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 				me.transform(ob_mat)
 			
 			# High Quality Normals
-			if EXPORT_NORMALS and EXPORT_NORMALS_HQ and faces:
-				BPyMesh.meshCalcNormals(me)
+			if EXPORT_NORMALS and faces:
+				if EXPORT_NORMALS_HQ:
+					BPyMesh.meshCalcNormals(me)
+				else:
+					# transforming normals is incorrect
+					# when the matrix is scaled,
+					# better to recalculate them
+					me.calcNormals()
 			
 			# # Crash Blender
 			#materials = me.getMaterials(1) # 1 == will return None in the list.
 			materials = me.materials
 			
 			materialNames = []
+			materialItems = materials[:]
 			if materials:
 				for mat in materials:
 					if mat: # !=None
@@ -313,13 +318,13 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 			# Possible there null materials, will mess up indicies
 			# but at least it will export, wait until Blender gets fixed.
 			materialNames.extend((16-len(materialNames)) * [None])
-			
+			materialItems.extend((16-len(materialItems)) * [None])
 			
 			# Sort by Material, then images
 			# so we dont over context switch in the obj file.
 			if EXPORT_MORPH_TARGET:
 				pass
-			elif faceuv and EXPORT_UV:
+			elif faceuv:
 				try:	faces.sort(key = lambda a: (a.mat, a.image, a.smooth))
 				except:	faces.sort(lambda a,b: cmp((a.mat, a.image, a.smooth), (b.mat, b.image, b.smooth)))
 			elif len(materials) > 1:
@@ -353,10 +358,23 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 				file.write('v %.6f %.6f %.6f\n' % tuple(v.co))
 			
 			# UV
-			if faceuv and EXPORT_UV:
-				for f in faces:
-					for uv in f.uv:
-						file.write('vt %.6f %.6f 0.0\n' % tuple(uv))
+			if faceuv:
+				uv_face_mapping = [[0,0,0,0] for f in faces] # a bit of a waste for tri's :/
+				
+				uv_dict = {} # could use a set() here
+				for f_index, f in enumerate(faces):
+					
+					for uv_index, uv in enumerate(f.uv):
+						uvkey = veckey2d(uv)
+						try:
+							uv_face_mapping[f_index][uv_index] = uv_dict[uvkey]
+						except:
+							uv_face_mapping[f_index][uv_index] = uv_dict[uvkey] = len(uv_dict)
+							file.write('vt %.6f %.6f\n' % tuple(uv))
+				
+				uv_unique_count = len(uv_dict)
+				del uv, uvkey, uv_dict, f_index, uv_index
+				# Only need uv_unique_count and uv_face_mapping
 			
 			# NORMAL, Smooth/Non smoothed.
 			if EXPORT_NORMALS:
@@ -376,18 +394,22 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 							totno +=1
 							file.write('vn %.6f %.6f %.6f\n' % noKey)
 			
-			for f in faces:
+			if not faceuv:
+				f_image = None
+			
+			for f_index, f in enumerate(faces):
 				f_v= f.v
+				f_smooth= f.smooth
+				f_mat = min(f.mat, len(materialNames)-1)
 				if faceuv:
+					f_image = f.image
 					f_uv= f.uv
 				
 				# MAKE KEY
-				if EXPORT_UV and faceuv and f.image: # Object is always true.
-					key = materialNames[min(f.mat,len(materialNames)-1)],  f.image.name
-					#key = materialNames[f.mat],  f.image.name
+				if faceuv and f_image: # Object is always true.
+					key = materialNames[f_mat],  f_image.name
 				else:
-					key = materialNames[min(f.mat,len(materialNames)-1)],  None # No image, use None instead.
-					#key = materialNames[f.mat],  None # No image, use None instead.
+					key = materialNames[f_mat],  None # No image, use None instead.
 				
 				# CHECK FOR CONTEXT SWITCH
 				if key == contextMat:
@@ -395,16 +417,13 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 				else:
 					if key[0] == None and key[1] == None:
 						# Write a null material, since we know the context has changed.
-						matstring = '(null)'
+						if EXPORT_GROUP_BY_MAT:
+							file.write('g %s_%s\n' % (fixName(ob.name), fixName(ob.getData(1))) ) # can be mat_image or (null)
 						file.write('usemtl (null)\n') # mat, image
 						
 					else:
-						try: # Faster to try then 2x dict lookups.
-							# We have the material, just need to write the context switch,
-							matstring = MTL_DICT[key]
-							
-							
-						except KeyError:
+						mat_data= MTL_DICT.get(key)
+						if not mat_data:
 							# First add to global dict so we can export to mtl
 							# Then write mtl
 							
@@ -413,32 +432,31 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 							
 							# If none image dont bother adding it to the name
 							if key[1] == None:
-								matstring = MTL_DICT[key] ='%s' % fixName(key[0])
+								mat_data = MTL_DICT[key] = ('%s'%fixName(key[0])), materialItems[f_mat], f_image
 							else:
-								matstring = MTL_DICT[key] = '%s_%s' % (fixName(key[0]), fixName(key[1]))
-					
-					if EXPORT_GROUP_BY_MAT:
-						file.write('g %s_%s_%s\n' % (fixName(ob.name), fixName(ob.getData(1)), matstring) ) # can be mat_image or (null)
-					file.write('usemtl %s\n' % matstring) # can be mat_image or (null)
+								mat_data = MTL_DICT[key] = ('%s_%s' % (fixName(key[0]), fixName(key[1]))), materialItems[f_mat], f_image
+						
+						if EXPORT_GROUP_BY_MAT:
+							file.write('g %s_%s_%s\n' % (fixName(ob.name), fixName(ob.getData(1)), mat_data[0]) ) # can be mat_image or (null)
+						file.write('usemtl %s\n' % mat_data[0]) # can be mat_image or (null)
 					
 				contextMat = key
-				
-				if f.smooth != contextSmooth:
-					if contextSmooth: # on now off
-						file.write('s off\n')
-						contextSmooth = True
-					else: # was off now on
+				if f_smooth != contextSmooth:
+					if f_smooth: # on now off
 						file.write('s 1\n')
-						contextSmooth = False
+						contextSmooth = f_smooth
+					else: # was off now on
+						file.write('s off\n')
+						contextSmooth = f_smooth
 				
 				file.write('f')
-				if faceuv and EXPORT_UV:
+				if faceuv:
 					if EXPORT_NORMALS:
-						if f.smooth: # Smoothed, use vertex normals
+						if f_smooth: # Smoothed, use vertex normals
 							for vi, v in enumerate(f_v):
 								file.write( ' %d/%d/%d' % (\
 								  v.index+totverts,\
-								  face_vert_index + vi,\
+								  totuvco + uv_face_mapping[f_index][vi],\
 								  globalNormals[ veckey3d(v.no) ])) # vert, uv, normal
 							
 						else: # No smoothing, face normals
@@ -446,20 +464,20 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 							for vi, v in enumerate(f_v):
 								file.write( ' %d/%d/%d' % (\
 								  v.index+totverts,\
-								  face_vert_index + vi,\
+								  totuvco + uv_face_mapping[f_index][vi],\
 								  no)) # vert, uv, normal
 					
 					else: # No Normals
 						for vi, v in enumerate(f_v):
 							file.write( ' %d/%d' % (\
 							  v.index+totverts,\
-							  face_vert_index + vi)) # vert, uv
+							  totuvco + uv_face_mapping[f_index][vi])) # vert, uv
 					
 					face_vert_index += len(f_v)
 				
 				else: # No UV's
 					if EXPORT_NORMALS:
-						if f.smooth: # Smoothed, use vertex normals
+						if f_smooth: # Smoothed, use vertex normals
 							for v in f_v:
 								file.write( ' %d//%d' % (\
 								  v.index+totverts,\
@@ -486,6 +504,8 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 				
 			# Make the indicies global rather then per mesh
 			totverts += len(me.verts)
+			if faceuv:
+				totuvco += uv_unique_count
 			me.verts= None
 	file.close()
 	
@@ -512,9 +532,8 @@ def write_ui(filename):
 	if not filename.lower().endswith('.obj'):
 		filename += '.obj'
 	
-	#if not BPyMessages.Warning_SaveOver(filename):
-	#	return
-	
+	if not BPyMessages.Warning_SaveOver(filename):
+		return
 	
 	EXPORT_APPLY_MODIFIERS = Draw.Create(1)
 	EXPORT_ROTX90 = Draw.Create(1)
@@ -534,7 +553,6 @@ def write_ui(filename):
 	EXPORT_MORPH_TARGET = Draw.Create(0)
 	
 	# removed too many options are bad!
-	
 	
 	# Get USER Options
 	pup_block = [\
@@ -631,14 +649,14 @@ def write_ui(filename):
 			
 			full_path= ''.join(context_name)
 			
-			if BPyMessages.Warning_SaveOver(full_path):
-				# EXPORT THE FILE.
-				write(full_path, export_objects,\
-				EXPORT_TRI, EXPORT_EDGES, EXPORT_NORMALS,\
-				EXPORT_NORMALS_HQ, EXPORT_UV, EXPORT_MTL,\
-				EXPORT_COPY_IMAGES, EXPORT_APPLY_MODIFIERS,\
-				EXPORT_ROTX90, EXPORT_BLEN_OBS,\
-				EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_MORPH_TARGET)
+			# erm... bit of a problem here, this can overwrite files when exporting frames. not too bad.
+			# EXPORT THE FILE.
+			write(full_path, export_objects,\
+			EXPORT_TRI, EXPORT_EDGES, EXPORT_NORMALS,\
+			EXPORT_NORMALS_HQ, EXPORT_UV, EXPORT_MTL,\
+			EXPORT_COPY_IMAGES, EXPORT_APPLY_MODIFIERS,\
+			EXPORT_ROTX90, EXPORT_BLEN_OBS,\
+			EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_MORPH_TARGET)
 		
 		Blender.Set('curframe', orig_frame)
 	

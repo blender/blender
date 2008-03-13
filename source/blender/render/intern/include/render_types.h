@@ -32,6 +32,7 @@
 /* exposed internal in render module only! */
 /* ------------------------------------------------------------------------- */
 
+#include "DNA_color_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
@@ -46,8 +47,9 @@ struct Object;
 struct MemArena;
 struct VertTableNode;
 struct VlakTableNode;
-struct Octree;
 struct GHash;
+struct RenderBuckets;
+struct ObjectInstanceRen;
 
 #define TABLEINITSIZE 1024
 #define LAMPINITSIZE 256
@@ -60,21 +62,36 @@ typedef struct SampleTables
 	
 } SampleTables;
 
+typedef struct QMCSampler
+{
+	int type;
+	int tot;
+	double *samp2d;
+	double offs[BLENDER_MAX_THREADS][2];
+} QMCSampler;
+
+#define SAMP_TYPE_JITTERED		0
+#define SAMP_TYPE_HALTON		1
+#define SAMP_TYPE_HAMMERSLEY	2
+
 /* this is handed over to threaded hiding/passes/shading engine */
 typedef struct RenderPart
 {
 	struct RenderPart *next, *prev;
 	
-	/* result of part rendering */
-	RenderResult *result;
+	RenderResult *result;			/* result of part rendering */
+	ListBase fullresult;			/* optional full sample buffers */
 	
+	int *recto;						/* object table for objects */
 	int *rectp;						/* polygon index table */
 	int *rectz;						/* zbuffer */
+	int *rectmask;					/* negative zmask */
 	long *rectdaps;					/* delta acum buffer for pixel structs */
+	int *rectbacko;					/* object table for backside sss */
 	int *rectbackp;					/* polygon index table for backside sss */
 	int *rectbackz;					/* zbuffer for backside sss */
 	long *rectall;					/* buffer for all faces for sss */
-	
+
 	rcti disprect;					/* part coordinates within total picture */
 	int rectx, recty;				/* the size */
 	short crop, ready;				/* crop is amount of pixels we crop, for filter */
@@ -83,16 +100,6 @@ typedef struct RenderPart
 	
 	char *clipflag;					/* clipflags for part zbuffering */
 } RenderPart;
-
-typedef struct Octree {
-	struct Branch **adrbranch;
-	struct Node **adrnode;
-	float ocsize;	/* ocsize: mult factor,  max size octree */
-	float ocfacx,ocfacy,ocfacz;
-	float min[3], max[3];
-	int ocres;
-	int branchcount, nodecount;
-} Octree;
 
 /* controls state of render, everything that's read-only during render stage */
 struct Render
@@ -107,6 +114,8 @@ struct Render
 	RenderResult *result;
 	/* if render with single-layer option, other rendered layers are stored here */
 	RenderResult *pushedresult;
+	/* a list of RenderResults, for fullsample */
+	ListBase fullresult;	
 	
 	/* window size, display rect, viewplane */
 	int winx, winy;
@@ -141,6 +150,10 @@ struct Render
 	/* samples */
 	SampleTables *samples;
 	float jit[32][2];
+	QMCSampler *qsa;
+	
+	/* shadow counter, detect shadow-reuse for shaders */
+	int shadowsamplenr[BLENDER_MAX_THREADS];
 	
 	/* scene, and its full copy of renderdata and world */
 	Scene *scene;
@@ -150,23 +163,27 @@ struct Render
 	ListBase parts;
 	
 	/* octree tables and variables for raytrace */
-	Octree oc;
+	void *raytree;
+
+	/* occlusion tree */
+	void *occlusiontree;
+	ListBase strandsurface;
 	
 	/* use this instead of R.r.cfra */
 	float cfra;	
 	
 	/* render database */
-	int totvlak, totvert, tothalo, totlamp;
+	int totvlak, totvert, tothalo, totstrand, totlamp;
+	struct HaloRen **sortedhalos;
+
 	ListBase lights;	/* GroupObject pointers */
 	ListBase lampren;	/* storage, for free */
 	
-	int vertnodeslen;
-	struct VertTableNode *vertnodes;
-	int vlaknodeslen;
-	struct VlakTableNode *vlaknodes;
-	int blohalen;
-	struct HaloRen **bloha;
 	ListBase objecttable;
+
+	struct ObjectInstanceRen *objectinstance;
+	ListBase instancetable;
+	int totinstance;
 
 	struct Image *backbuf, *bakebuf;
 	
@@ -177,6 +194,8 @@ struct Render
 	struct Material *sss_mat;
 
 	ListBase customdata_names;
+
+	struct Object *excludeob;
 
 	/* arena for allocating data for use during render, for
 		* example dynamic TFaces to go in the VlakRen structure.
@@ -225,13 +244,46 @@ typedef struct ShadBuf {
 } ShadBuf;
 
 /* ------------------------------------------------------------------------- */
-/* lookup of objects in database */
+
 typedef struct ObjectRen {
 	struct ObjectRen *next, *prev;
 	struct Object *ob, *par;
-	int index, startvert, endvert, startface, endface;
-	float *vectors;
+	struct Scene *sce;
+	int index, psysindex, flag, lay;
+
+	float boundbox[2][3];
+
+	int totvert, totvlak, totstrand, tothalo;
+	int vertnodeslen, vlaknodeslen, strandnodeslen, blohalen;
+	struct VertTableNode *vertnodes;
+	struct VlakTableNode *vlaknodes;
+	struct StrandTableNode *strandnodes;
+	struct HaloRen **bloha;
+	struct StrandBuffer *strandbuf;
+
+	char (*mtface)[32];
+	char (*mcol)[32];
+	int  actmtface, actmcol;
+
+	float obmat[4][4];	/* only used in convertblender.c, for instancing */
 } ObjectRen;
+
+typedef struct ObjectInstanceRen {
+	struct ObjectInstanceRen *next, *prev;
+
+	ObjectRen *obr;
+	Object *ob, *par;
+	int index, psysindex, lay;
+
+	float mat[4][4], nmat[3][3]; /* nmat is inverse mat tranposed */
+	short flag;
+
+	float dupliorco[3], dupliuv[2];
+	float (*duplitexmat)[4];
+
+	float *vectors;
+	int totvector;
+} ObjectInstanceRen;
 
 /* ------------------------------------------------------------------------- */
 
@@ -239,9 +291,8 @@ typedef struct VertRen
 {
 	float co[3];
 	float n[3];
-	float ho[4];
 	float *orco;
-	short clip;	
+	short clip;
 	unsigned short flag;		/* in use for clipping zbuffer parts, temp setting stuff in convertblender.c */
 	float accum;		/* accum for radio weighting, and for strand texco static particles */
 	int index;			/* index allows extending vertren with any property */
@@ -266,13 +317,10 @@ typedef struct RadFace {
 
 typedef struct VlakRen {
 	struct VertRen *v1, *v2, *v3, *v4;	/* keep in order for ** addressing */
-	unsigned int lay;
 	float n[3];
 	struct Material *mat;
-	char noflag, puno;
+	char puno;
 	char flag, ec;
-	RadFace *radface;
-	Object *ob;
 	int index;
 } VlakRen;
 
@@ -291,6 +339,57 @@ typedef struct HaloRen
     unsigned int lay;
     struct Material *mat;
 } HaloRen;
+
+/* ------------------------------------------------------------------------- */
+
+typedef struct StrandVert {
+	float co[3];
+	float strandco;
+} StrandVert;
+
+typedef struct StrandSurface {
+	struct StrandSurface *next, *prev;
+	ObjectRen obr;
+	int (*face)[4];
+	float (*co)[3];
+	/* for occlusion caching */
+	float (*col)[3];
+	/* for speedvectors */
+	float (*prevco)[3], (*nextco)[3];
+	int totvert, totface;
+} StrandSurface;
+
+typedef struct StrandBound {
+	int start, end;
+	float boundbox[2][3];
+} StrandBound;
+
+typedef struct StrandBuffer {
+	struct StrandBuffer *next, *prev;
+	struct StrandVert *vert;
+	struct StrandBound *bound;
+	int totvert, totbound;
+
+	struct ObjectRen *obr;
+	struct Material *ma;
+	struct StrandSurface *surface;
+	unsigned int lay;
+	int overrideuv;
+	int flag, maxdepth;
+	float adaptcos, minwidth, widthfade;
+
+	float winmat[4][4];
+	int winx, winy;
+} StrandBuffer;
+
+typedef struct StrandRen {
+	StrandVert *vert;
+	StrandBuffer *buffer;
+	int totvert, flag;
+	int clip, index;
+	float orco[3];
+} StrandRen;
+
 
 struct LampRen;
 struct MTex;
@@ -322,7 +421,10 @@ typedef struct LampRen {
 	float vec[3];
 	float xsp, ysp, distkw, inpr;
 	float halokw, halo;
+	
+	short falloff_type;
 	float ld1,ld2;
+	struct CurveMapping *curfalloff;
 
 	/* copied from Lamp, to decouple more rendering stuff */
 	/** Size of the shadowbuffer */
@@ -346,12 +448,14 @@ typedef struct LampRen {
 	/** A small depth offset to prevent self-shadowing. */
 	float bias;
 	
-	short ray_samp, ray_sampy, ray_sampz, ray_samp_type, area_shape, ray_totsamp;
+	short ray_samp, ray_sampy, ray_sampz, ray_samp_method, ray_samp_type, area_shape, ray_totsamp;
 	short xold[BLENDER_MAX_THREADS], yold[BLENDER_MAX_THREADS];	/* last jitter table for area lights */
 	float area_size, area_sizey, area_sizez;
-	
+	float adapt_thresh;
+
 	struct ShadBuf *shb;
 	float *jitter;
+	QMCSampler *qsa;
 	
 	float imat[3][3];
 	float spottexfac;
@@ -362,7 +466,7 @@ typedef struct LampRen {
 	
 	/* passes & node shader support: all shadow info for a pixel */
 	LampShadowSample *shadsamp;
-	
+		
 	/* yafray: photonlight params */
 	int YF_numphotons, YF_numsearch;
 	short YF_phdepth, YF_useqmc, YF_bufsize;
@@ -372,8 +476,13 @@ typedef struct LampRen {
 	
 	/* ray optim */
 	VlakRen *vlr_last[BLENDER_MAX_THREADS];
+	ObjectInstanceRen *obi_last[BLENDER_MAX_THREADS];
 	
 	struct MTex *mtex[MAX_MTEX];
+
+	/* threading */
+	int thread_assigned;
+	int thread_ready;
 } LampRen;
 
 /* **************** defines ********************* */
@@ -386,10 +495,12 @@ typedef struct LampRen {
 #define R_SEC_FIELD		4
 #define R_LAMPHALO		8
 #define R_GLOB_NOPUNOFLIP	16
+#define R_NEED_TANGENT	32
+#define R_SKIP_MULTIRES	64
 
 /* vlakren->flag (vlak = face in dutch) char!!! */
 #define R_SMOOTH		1
-#define R_VISIBLE		2
+#define R_HIDDEN		2
 /* strand flag, means special handling */
 #define R_STRAND		4
 #define R_NOPUNOFLIP	8
@@ -400,13 +511,18 @@ typedef struct LampRen {
 /* vertex normals are tangent or view-corrected vector, for hair strands */
 #define R_TANGENT		128		
 
-/* vlakren->noflag (char) */
-#define R_SNPROJ_X		1
-#define R_SNPROJ_Y		2
-#define R_SNPROJ_Z		4
-#define R_FLIPPED_NO	8
+/* strandbuffer->flag */
+#define R_STRAND_BSPLINE	1
+#define R_STRAND_B_UNITS	2
 
+/* objectren->flag */
+#define R_INSTANCEABLE		1
 
+/* objectinstance->flag */
+#define R_DUPLI_TRANSFORMED	1
+#define R_ENV_TRANSFORMED	2
+#define R_TRANSFORMED		(1|2)
+#define R_NEED_VECTORS		4
 
 #endif /* RENDER_TYPES_H */
 

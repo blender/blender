@@ -367,6 +367,8 @@ static PyObject *Material_ModesDict( void )
 		PyConstant_Insert(c, "TANGENT_V", PyInt_FromLong(MA_TANGENT_V));
 		PyConstant_Insert(c, "NMAP_TS", PyInt_FromLong(MA_NORMAP_TANG));
 		PyConstant_Insert(c, "GROUP_EXCLUSIVE", PyInt_FromLong(MA_GROUP_NOLAY));
+		PyConstant_Insert(c, "TEXFACE_ALPHA", PyInt_FromLong(MA_FACETEXTURE_ALPHA));
+		
 	}
 
 	return Modes;
@@ -621,9 +623,9 @@ static PyObject *Material_getTextures( BPy_Material * self );
 static PyObject *Material_clearIpo( BPy_Material * self );
 
 static PyObject *Material_setTexture( BPy_Material * self, PyObject * args );
-static PyObject *Material_clearTexture( BPy_Material * self, PyObject * args );
+static PyObject *Material_clearTexture( BPy_Material * self, PyObject * value );
 
-static PyObject *Material_getScriptLinks(BPy_Material *self, PyObject * args );
+static PyObject *Material_getScriptLinks(BPy_Material *self, PyObject * value );
 static PyObject *Material_addScriptLink(BPy_Material * self, PyObject * args );
 static PyObject *Material_clearScriptLinks(BPy_Material *self, PyObject *args);
 
@@ -840,10 +842,9 @@ static PyMethodDef BPy_Material_methods[] = {
 	 "(f) - Set fresnel power for refractions factor- [0.0, 5.0]"},
 	{"setTexture", ( PyCFunction ) Material_setTexture, METH_VARARGS,
 	 "(n,tex,texco=0,mapto=0) - Set numbered texture to tex"},
-	{"clearTexture", ( PyCFunction ) Material_clearTexture, METH_VARARGS,
+	{"clearTexture", ( PyCFunction ) Material_clearTexture, METH_O,
 	 "(n) - Remove texture from numbered slot"},
-	{"getScriptLinks", ( PyCFunction ) Material_getScriptLinks,
-	 METH_VARARGS,
+	{"getScriptLinks", ( PyCFunction ) Material_getScriptLinks, METH_O,
 	 "(eventname) - Get a list of this material's scriptlinks (Text names) "
 	 "of the given type\n"
 	 "(eventname) - string: FrameChanged, Redraw or Render."},
@@ -1114,11 +1115,11 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	 (void *) EXPP_MAT_COMP_B },
 	{"colorbandDiffuse",
 	 (getter)Material_getColorband, (setter)Material_setColorband,
-	 "Set the light group for this material",
+	 "The diffuse colorband for this material",
 	 (void *) 0},
 	{"colorbandSpecular",
 	 (getter)Material_getColorband, (setter)Material_setColorband,
-	 "Set the light group for this material",
+	 "The specular colorband for this material",
 	 (void *) 1},
 	
 	/* SSS settings */
@@ -1320,12 +1321,6 @@ PyObject *Material_CreatePyObject( struct Material *mat )
 	pymat->spec = ( BPy_rgbTuple * ) rgbTuple_New( spec );
 	pymat->mir = ( BPy_rgbTuple * ) rgbTuple_New( mir );
 	pymat->sss = ( BPy_rgbTuple * ) rgbTuple_New( sss );
-	
-	Py_INCREF(pymat->col);
-	Py_INCREF(pymat->amb);
-	Py_INCREF(pymat->spec);
-	Py_INCREF(pymat->mir);
-	Py_INCREF(pymat->sss);
 
 	return ( PyObject * ) pymat;
 }
@@ -1352,13 +1347,7 @@ static PyObject *Material_getIpo( BPy_Material * self )
 
 static PyObject *Material_getMode( BPy_Material * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->material->mode );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.Mode attribute" );
+	return PyInt_FromLong( ( long ) self->material->mode );
 }
 
 static PyObject *Material_getRGBCol( BPy_Material * self )
@@ -1389,494 +1378,217 @@ static PyObject *Material_getSssCol( BPy_Material * self )
 
 static PyObject *Material_getSpecShader( BPy_Material * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->material->spec_shader );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.specShader attribute" );
+	return PyInt_FromLong( ( long ) self->material->spec_shader );
 }
 
 static PyObject *Material_getDiffuseShader( BPy_Material * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->material->diff_shader );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.diffuseShader attribute" );
+	return PyInt_FromLong( ( long ) self->material->diff_shader );
 }
 
 static PyObject *Material_getRoughness( BPy_Material * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->material->roughness );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					  "couldn't get Material.roughness attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->roughness );
 }
 
 static PyObject *Material_getSpecSize( BPy_Material * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->material->param[2] );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					  "couldn't get Material.specSize attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->param[2] );
 }
 
 static PyObject *Material_getDiffuseSize( BPy_Material * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->material->param[0] );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					  "couldn't get Material.diffuseSize attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->param[0] );
 }
 
 static PyObject *Material_getSpecSmooth( BPy_Material * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->material->param[3] );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					  "couldn't get Material.specSmooth attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->param[3] );
 }
 
 static PyObject *Material_getDiffuseSmooth( BPy_Material * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->material->param[1] );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					  "couldn't get Material.diffuseSmooth( attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->param[1] );
 }
 
 static PyObject *Material_getDiffuseDarkness( BPy_Material * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->material->darkness );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					  "couldn't get Material.diffuseDarkness attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->darkness );
 }
 
 static PyObject *Material_getRefracIndex( BPy_Material * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->material->refrac );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					  "couldn't get Material.refracIndex attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->refrac );
 }
 	
 static PyObject *Material_getRms( BPy_Material * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->material->rms );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					  "couldn't get Material.rms attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->rms );
 }
 
 static PyObject *Material_getAmb( BPy_Material * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->material->amb );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.amb attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->amb );
 }
 
 static PyObject *Material_getEmit( BPy_Material * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->material->emit );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.emit attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->emit );
 }
 
 static PyObject *Material_getAlpha( BPy_Material * self )
 {
-	PyObject *attr =
-		PyFloat_FromDouble( ( double ) self->material->alpha );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.alpha attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->alpha );
 }
 
 static PyObject *Material_getShadAlpha( BPy_Material * self )
 {
-	PyObject *attr =
-		PyFloat_FromDouble( ( double ) self->material->shad_alpha );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.shad_alpha attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->shad_alpha );
 }
 
 static PyObject *Material_getRef( BPy_Material * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->material->ref );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.ref attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->ref );
 }
 
 static PyObject *Material_getSpec( BPy_Material * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->material->spec );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.spec attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->spec );
 }
 
 static PyObject *Material_getSpecTransp( BPy_Material * self )
 {
-	PyObject *attr =
-		PyFloat_FromDouble( ( double ) self->material->spectra );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.specTransp attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->spectra );
 }
 
 static PyObject *Material_getAdd( BPy_Material * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->material->add );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.add attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->add );
 }
 
 static PyObject *Material_getZOffset( BPy_Material * self )
 {
-	PyObject *attr =
-		PyFloat_FromDouble( ( double ) self->material->zoffs );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.zOffset attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->zoffs );
 }
 
 static PyObject *Material_getLightGroup( BPy_Material * self )
 {
-	PyObject *attr =
-		Group_CreatePyObject( self->material->group );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.lightGroup attribute" );
+	return Group_CreatePyObject( self->material->group );
 }
 
 static PyObject *Material_getHaloSize( BPy_Material * self )
 {
-	PyObject *attr =
-		PyFloat_FromDouble( ( double ) self->material->hasize );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.haloSize attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->hasize );
 }
 
 static PyObject *Material_getFlareSize( BPy_Material * self )
 {
-	PyObject *attr =
-		PyFloat_FromDouble( ( double ) self->material->flaresize );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.flareSize attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->flaresize );
 }
 
 static PyObject *Material_getFlareBoost( BPy_Material * self )
 {
-	PyObject *attr =
-		PyFloat_FromDouble( ( double ) self->material->flareboost );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.flareBoost attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->flareboost );
 }
 
 static PyObject *Material_getSubSize( BPy_Material * self )
 {
-	PyObject *attr =
-		PyFloat_FromDouble( ( double ) self->material->subsize );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.subSize attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->subsize );
 }
 
 static PyObject *Material_getHaloSeed( BPy_Material * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->material->seed1 );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.haloSeed attribute" );
+	return PyInt_FromLong( ( long ) self->material->seed1 );
 }
 
 static PyObject *Material_getFlareSeed( BPy_Material * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->material->seed2 );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.flareSeed attribute" );
+	return PyInt_FromLong( ( long ) self->material->seed2 );
 }
 
 static PyObject *Material_getHardness( BPy_Material * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->material->har );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.hard attribute" );
+	return PyInt_FromLong( ( long ) self->material->har );
 }
 
 static PyObject *Material_getNFlares( BPy_Material * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->material->flarec );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.nFlares attribute" );
+	return PyInt_FromLong( ( long ) self->material->flarec );
 }
 
 static PyObject *Material_getNStars( BPy_Material * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->material->starc );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.nStars attribute" );
+	return PyInt_FromLong( ( long ) self->material->starc );
 }
 
 static PyObject *Material_getNLines( BPy_Material * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->material->linec );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.nLines attribute" );
+	return PyInt_FromLong( ( long ) self->material->linec );
 }
 
 static PyObject *Material_getNRings( BPy_Material * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->material->ringc );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.nRings attribute" );
+	return PyInt_FromLong( ( long ) self->material->ringc );
 }
 
 static PyObject *Material_getRayMirr( BPy_Material * self )
 {
-	PyObject *attr =
-		PyFloat_FromDouble( ( double ) self->material->ray_mirror );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.rayMirr attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->ray_mirror );
 }
 
 static PyObject *Material_getMirrDepth( BPy_Material * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->material->ray_depth );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.rayMirrDepth attribute" );
+	return PyInt_FromLong( ( long ) self->material->ray_depth );
 }
 
 static PyObject *Material_getFresnelMirr( BPy_Material * self )
 {
-	PyObject *attr =
-		PyFloat_FromDouble( ( double ) self->material->fresnel_mir );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.fresnelDepth attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->fresnel_mir );
 }
 
 static PyObject *Material_getFresnelMirrFac( BPy_Material * self )
 {
-	PyObject *attr =
-		PyFloat_FromDouble( ( double ) self->material->fresnel_mir_i );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.fresnelDepthFac attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->fresnel_mir_i );
 }
 
 static PyObject *Material_getFilter( BPy_Material * self )
 {
-	PyObject *attr =
-		PyFloat_FromDouble( ( double ) self->material->filter );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.filter attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->filter );
 }
 
 static PyObject *Material_getTranslucency( BPy_Material * self )
 {
-	PyObject *attr =
-		PyFloat_FromDouble( ( double ) self->material->translucency );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.translucency attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->translucency );
 }
 
 static PyObject *Material_getIOR( BPy_Material * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->material->ang );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.IOR attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->ang );
 }
 
 static PyObject *Material_getTransDepth( BPy_Material * self )
 {
-	PyObject *attr =
-		PyInt_FromLong( ( long ) self->material->ray_depth_tra );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.transDepth attribute" );
+	return PyInt_FromLong( ( long ) self->material->ray_depth_tra );
 }
 
 static PyObject *Material_getFresnelTrans( BPy_Material * self )
 {
-	PyObject *attr =
-		PyFloat_FromDouble( ( double ) self->material->fresnel_tra );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.fresnelTrans attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->fresnel_tra );
 }
 
 static PyObject *Material_getFresnelTransFac( BPy_Material * self )
 {
-	PyObject *attr =
-		PyFloat_FromDouble( ( double ) self->material->fresnel_tra_i );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.fresnelTransFac attribute" );
+	return PyFloat_FromDouble( ( double ) self->material->fresnel_tra_i );
 }
 
 static PyObject* Material_getRigidBodyFriction( BPy_Material * self )
 {
-	PyObject *attr =
-		PyFloat_FromDouble( ( double ) self->material->friction );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.friction" );
+	return PyFloat_FromDouble( ( double ) self->material->friction );
 }
 
 static PyObject* Material_getRigidBodyRestitution( BPy_Material * self )
 {
-	PyObject *attr =
-		PyFloat_FromDouble( ( double ) self->material->reflect );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.reflect" );
+	return PyFloat_FromDouble( ( double ) self->material->reflect );
 }
 
 /* SSS */
@@ -1981,58 +1693,58 @@ static PyObject *Material_insertIpoKey( BPy_Material * self, PyObject * args )
 	map = texchannel_to_adrcode(self->material->texact);
 	
 	if(key==IPOKEY_RGB || key==IPOKEY_ALLCOLOR) {
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_COL_R);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_COL_G);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_COL_B);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_COL_R, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_COL_G, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_COL_B, 0);
 	}
 	if(key==IPOKEY_ALPHA || key==IPOKEY_ALLCOLOR) {
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_ALPHA);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_ALPHA, 0);
 	}
 	if(key==IPOKEY_HALOSIZE || key==IPOKEY_ALLCOLOR) {
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_HASIZE);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_HASIZE, 0);
 	}
 	if(key==IPOKEY_MODE || key==IPOKEY_ALLCOLOR) {
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_MODE);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_MODE, 0);
 	}
 	if(key==IPOKEY_ALLCOLOR) {
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_SPEC_R);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_SPEC_G);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_SPEC_B);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_REF);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_EMIT);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_AMB);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_SPEC);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_HARD);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_MODE);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_TRANSLU);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_ADD);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_SPEC_R, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_SPEC_G, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_SPEC_B, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_REF, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_EMIT, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_AMB, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_SPEC, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_HARD, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_MODE, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_TRANSLU, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_ADD, 0);
 	}
 	if(key==IPOKEY_ALLMIRROR) {
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_RAYM);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_FRESMIR);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_FRESMIRI);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_FRESTRA);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_FRESTRAI);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_RAYM, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_FRESMIR, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_FRESMIRI, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_FRESTRA, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_FRESTRAI, 0);
 	}
 	if(key==IPOKEY_OFS || key==IPOKEY_ALLMAPPING) {
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_OFS_X);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_OFS_Y);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_OFS_Z);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_OFS_X, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_OFS_Y, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_OFS_Z, 0);
 	}
 	if(key==IPOKEY_SIZE || key==IPOKEY_ALLMAPPING) {
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_SIZE_X);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_SIZE_Y);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_SIZE_Z);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_SIZE_X, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_SIZE_Y, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_SIZE_Z, 0);
 	}
 	if(key==IPOKEY_ALLMAPPING) {
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_R);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_G);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_B);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_DVAR);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_COLF);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_NORF);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_VARF);
-		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_DISP);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_R, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_G, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_B, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_DVAR, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_COLF, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_NORF, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_VARF, 0);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_DISP, 0);
 	}
 
 	allspace(REMAKEIPO, 0);
@@ -2048,7 +1760,7 @@ static int Material_setMode( BPy_Material * self, PyObject * value )
 {
 	int param;
 
-	if( !PyInt_CheckExact ( value ) ) {
+	if( !PyInt_Check( value ) ) {
 		char errstr[128];
 		sprintf ( errstr , "expected int bitmask of 0x%08x", MA_MODE_MASK );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
@@ -2548,14 +2260,11 @@ static PyObject *Material_setTexture( BPy_Material * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Material_clearTexture( BPy_Material * self, PyObject * args )
+static PyObject *Material_clearTexture( BPy_Material * self, PyObject * value )
 {
-	int texnum;
+	int texnum = (int)PyInt_AsLong(value);
 	struct MTex *mtex;
-
-	if( !PyArg_ParseTuple( args, "i", &texnum ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected int in [0,9]" );
+	/* non ints will be -1 */
 	if( ( texnum < 0 ) || ( texnum >= MAX_MTEX ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected int in [0,9]" );
@@ -2595,7 +2304,7 @@ static PyObject *Material_clearScriptLinks(BPy_Material *self, PyObject *args )
 
 /* mat.getScriptLinks */
 static PyObject *Material_getScriptLinks( BPy_Material * self,
-					  PyObject * args )
+					  PyObject * value )
 {
 	Material *mat = self->material;
 	ScriptLink *slink = NULL;
@@ -2606,7 +2315,7 @@ static PyObject *Material_getScriptLinks( BPy_Material * self,
 	/* can't this just return?  EXP_getScriptLinks() returns a PyObject*
 	 * or NULL anyway */
 
-	ret = EXPP_getScriptLinks( slink, args, 0 );
+	ret = EXPP_getScriptLinks( slink, value, 0 );
 
 	if( ret )
 		return ret;
@@ -2930,54 +2639,35 @@ void EXPP_incr_mats_us( Material ** matlist, int len )
 static PyObject *Material_getColorComponent( BPy_Material * self, 
 							void * closure )
 {
-	PyObject *attr = NULL;
-
 	switch ( (int)closure ) {
 	case EXPP_MAT_COMP_R:
-		attr = PyFloat_FromDouble( ( double ) self->material->r );
-		break;
+		return PyFloat_FromDouble( ( double ) self->material->r );
 	case EXPP_MAT_COMP_G:
-		attr = PyFloat_FromDouble( ( double ) self->material->g );
-		break;
+		return PyFloat_FromDouble( ( double ) self->material->g );
 	case EXPP_MAT_COMP_B:
-		attr = PyFloat_FromDouble( ( double ) self->material->b );
-		break;
+		return PyFloat_FromDouble( ( double ) self->material->b );
 	case EXPP_MAT_COMP_SPECR:
-		attr = PyFloat_FromDouble( ( double ) self->material->specr );
-		break;
+		return PyFloat_FromDouble( ( double ) self->material->specr );
 	case EXPP_MAT_COMP_SPECG:
-		attr = PyFloat_FromDouble( ( double ) self->material->specg );
-		break;
+		return PyFloat_FromDouble( ( double ) self->material->specg );
 	case EXPP_MAT_COMP_SPECB:
-		attr = PyFloat_FromDouble( ( double ) self->material->specb );
-		break;
+		return PyFloat_FromDouble( ( double ) self->material->specb );
 	case EXPP_MAT_COMP_MIRR:
-		attr = PyFloat_FromDouble( ( double ) self->material->mirr );
-		break;
+		return PyFloat_FromDouble( ( double ) self->material->mirr );
 	case EXPP_MAT_COMP_MIRG:
-		attr = PyFloat_FromDouble( ( double ) self->material->mirg );
-		break;
+		return PyFloat_FromDouble( ( double ) self->material->mirg );
 	case EXPP_MAT_COMP_MIRB:
-		attr = PyFloat_FromDouble( ( double ) self->material->mirb );
-		break;
+		return PyFloat_FromDouble( ( double ) self->material->mirb );
 	case EXPP_MAT_COMP_SSSR:
-		attr = PyFloat_FromDouble( ( double ) self->material->sss_col[0] );
-		break;
+		return PyFloat_FromDouble( ( double ) self->material->sss_col[0] );
 	case EXPP_MAT_COMP_SSSG:
-		attr = PyFloat_FromDouble( ( double ) self->material->sss_col[1] );
-		break;
+		return PyFloat_FromDouble( ( double ) self->material->sss_col[1] );
 	case EXPP_MAT_COMP_SSSB:
-		attr = PyFloat_FromDouble( ( double ) self->material->sss_col[2] );
-		break;
+		return PyFloat_FromDouble( ( double ) self->material->sss_col[2] );
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"unknown color component specified" );
 	}
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"PyFloat_FromDouble() failed" );
-	return attr;
 }
 
 static PyObject *Material_getColorband( BPy_Material * self, void * type)
@@ -3330,7 +3020,7 @@ static PyObject *Matr_oldsetMode( BPy_Material * self, PyObject * args )
 			   "expected nothing, an integer or up to 22 string argument(s)" ) );
 	/* build tuple, call wrapper */
 
-	value = PyInt_FromLong( (long)flag );
+	value = Py_BuildValue("(i)", flag);
 	error = EXPP_setterWrapper( (void *)self, value, (setter)Material_setMode );
 	Py_DECREF ( value );
 	return error;

@@ -1115,3 +1115,71 @@ OSStatus GHOST_SystemCarbon::sEventHandlerProc(EventHandlerCallRef handler, Even
 
     return err;
 }
+
+GHOST_TUns8* GHOST_SystemCarbon::getClipboard(int flag) const
+{
+	PasteboardRef inPasteboard;
+	PasteboardItemID itemID;
+	CFDataRef flavorData;
+	OSStatus err = noErr;
+	GHOST_TUns8 * temp_buff;
+	CFRange range;
+	
+	err = PasteboardCreate(kPasteboardClipboard, &inPasteboard);
+	if(err != noErr) { return NULL;}
+
+	err = PasteboardSynchronize( inPasteboard );
+	if(err != noErr) { return NULL;}
+
+	err = PasteboardGetItemIdentifier( inPasteboard, 1, &itemID );
+	if(err != noErr) { return NULL;}
+
+	err = PasteboardCopyItemFlavorData( inPasteboard, itemID, CFSTR("public.utf8-plain-text"), &flavorData);
+	if(err != noErr) { return NULL;}
+
+	range = CFRangeMake(0, CFDataGetLength(flavorData));
+	
+	temp_buff = (GHOST_TUns8*) malloc(range.length+1); 
+
+	CFDataGetBytes(flavorData, range, (UInt8*)temp_buff);
+	
+	temp_buff[range.length] = '\0';
+	
+	if(temp_buff) {
+		return temp_buff;
+	} else {
+		return NULL;
+	}
+}
+
+void GHOST_SystemCarbon::putClipboard(GHOST_TInt8 *buffer, int flag) const
+{
+	if(flag == 1) {return;} //If Flag is 1 means the selection and is used on X11
+	PasteboardRef inPasteboard;
+	CFDataRef textData = NULL;
+	OSStatus err = noErr; /*For error checking*/
+	
+	err = PasteboardCreate(kPasteboardClipboard, &inPasteboard);
+	if(err != noErr) { return;}
+	
+	err = PasteboardSynchronize( inPasteboard ); 
+	if(err != noErr) { return;}
+	
+	err = PasteboardClear( inPasteboard );
+	if(err != noErr) { return;}
+	
+	textData = CFDataCreate(kCFAllocatorDefault, (UInt8*)buffer, strlen(buffer));
+	
+	if (textData) {
+		err = PasteboardPutItemFlavor( inPasteboard, (PasteboardItemID)1, CFSTR("public.utf8-plain-text"), textData, 0);
+			if(err != noErr) { 
+				if(textData) { CFRelease(textData);}
+				return;
+			}
+	}
+	
+	if(textData) {
+		CFRelease(textData);
+	}
+}
+

@@ -44,6 +44,7 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_ID.h"
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
@@ -56,6 +57,7 @@
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h"
 #include "DNA_oops_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -71,8 +73,9 @@
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_scene.h"
+#include "BKE_particle.h"
 #include "BKE_utildefines.h"
+#include "BKE_scene.h"
 
 #include "MEM_guardedalloc.h"
 #include "blendef.h"
@@ -347,10 +350,12 @@ static void dag_add_driver_relation(Ipo *ipo, DagForest *dag, DagNode *node, int
 static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int mask)
 {
 	bConstraint *con;
+	bConstraintChannel *conchan;
 	DagNode * node;
 	DagNode * node2;
 	DagNode * node3;
 	Key *key;
+	ParticleSystem *psys;
 	int addtoroot= 1;
 	
 	node = dag_get_node(dag, ob);
@@ -366,25 +371,34 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 		if (ob->pose){
 			bPoseChannel *pchan;
 			bConstraint *con;
-			Object * target;
-			char *subtarget;
 			
-			for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next){
-				for (con = pchan->constraints.first; con; con=con->next){
-					if (constraint_has_target(con)) {
+			for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+				for (con = pchan->constraints.first; con; con=con->next) {
+					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+					ListBase targets = {NULL, NULL};
+					bConstraintTarget *ct;
+					
+					if (cti && cti->get_constraint_targets) {
+						cti->get_constraint_targets(con, &targets);
 						
-						target = get_constraint_target(con, &subtarget);
-						if (target!=ob) {
-							// fprintf(stderr,"armature %s target :%s \n", ob->id.name, target->id.name);
-							node3 = dag_get_node(dag, target);
-							
-							if(subtarget && subtarget[0])
-								dag_add_relation(dag,node3,node, DAG_RL_OB_DATA|DAG_RL_DATA_DATA);
-							else
-								dag_add_relation(dag,node3,node, DAG_RL_OB_DATA);
-							
+						for (ct= targets.first; ct; ct= ct->next) {
+							if (ct->tar && ct->tar != ob) {
+								// fprintf(stderr,"armature %s target :%s \n", ob->id.name, target->id.name);
+								node3 = dag_get_node(dag, ct->tar);
+								
+								if (ct->subtarget[0])
+									dag_add_relation(dag,node3,node, DAG_RL_OB_DATA|DAG_RL_DATA_DATA);
+								else if(ELEM(con->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO)) 	
+									dag_add_relation(dag,node3,node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+								else
+									dag_add_relation(dag,node3,node, DAG_RL_OB_DATA);
+							}
 						}
+						
+						if (cti->flush_constraint_targets)
+							cti->flush_constraint_targets(con, &targets, 1);
 					}
+					
 				}
 			}
 		}
@@ -398,9 +412,12 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 	if(key && key->ipo)
 		dag_add_driver_relation(key->ipo, dag, node, 1);
 	
+	for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next)
+		if(conchan->ipo)
+			dag_add_driver_relation(conchan->ipo, dag, node, 0);
+
 	if(ob->action) {
 		bActionChannel *chan;
-		bConstraintChannel *conchan;
 		for (chan = ob->action->chanbase.first; chan; chan=chan->next){
 			if(chan->ipo)
 				dag_add_driver_relation(chan->ipo, dag, node, 1);
@@ -477,7 +494,13 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 		dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA|DAG_RL_OB_OB);
 		/* inverted relation, so addtoroot shouldn't be set to zero */
 	}
-	
+	if (ob->type==OB_CAMERA) {
+		Camera *cam = (Camera *)ob->data;
+		if (cam->dof_ob) {
+			node2 = dag_get_node(dag, cam->dof_ob);
+			dag_add_relation(dag,node2,node,DAG_RL_OB_OB);
+		}
+	}
 	if (ob->transflag & OB_DUPLI) {
 		if((ob->transflag & OB_DUPLIGROUP) && ob->dup_group) {
 			GroupObject *go;
@@ -566,22 +589,98 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 			}
 		}
 	}
-	
-	for (con = ob->constraints.first; con; con=con->next){
-		if (constraint_has_target(con)) {
-			char *str;
-			Object *obt= get_constraint_target(con, &str);
+
+	psys= ob->particlesystem.first;
+	if(psys) {
+		ParticleEffectorCache *nec;
+		GroupObject *go;
+
+		for(; psys; psys=psys->next) {
+			ParticleSettings *part= psys->part;
 			
-			node2 = dag_get_node(dag, obt);
-			if(con->type==CONSTRAINT_TYPE_FOLLOWPATH)
-				dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB);
-			else {
-				if(obt->type==OB_ARMATURE && str[0])
-					dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB);
-				else
-					dag_add_relation(dag, node2, node, DAG_RL_OB_OB);
+			dag_add_relation(dag, node, node, DAG_RL_OB_DATA);
+
+			if(part->phystype==PART_PHYS_KEYED && psys->keyed_ob &&
+			   BLI_findlink(&psys->keyed_ob->particlesystem,psys->keyed_psys-1)) {
+				node2 = dag_get_node(dag, psys->keyed_ob);
+				dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA);
 			}
-			addtoroot = 0;
+
+			if(part->draw_as == PART_DRAW_OB && part->dup_ob) {
+				node2 = dag_get_node(dag, part->dup_ob);
+				dag_add_relation(dag, node, node2, DAG_RL_OB_OB);
+			}
+
+			if(part->draw_as == PART_DRAW_GR && part->dup_group) {
+				for(go=part->dup_group->gobject.first; go; go=go->next) {
+					node2 = dag_get_node(dag, go->ob);
+					dag_add_relation(dag, node, node2, DAG_RL_OB_OB);
+				}
+			}
+
+			if(psys->effectors.first)
+				psys_end_effectors(psys);
+			psys_init_effectors(ob,psys->part->eff_group,psys);
+
+			if(psys->effectors.first) {
+				for(nec= psys->effectors.first; nec; nec= nec->next) {
+					Object *ob1= nec->ob;
+
+					if(nec->type & PSYS_EC_EFFECTOR) {
+						node2 = dag_get_node(dag, ob1);
+						if(ob1->pd->forcefield==PFIELD_GUIDE)
+							dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+						else
+							dag_add_relation(dag, node2, node, DAG_RL_OB_DATA);
+					}
+					else if(nec->type & PSYS_EC_DEFLECT) {
+						node2 = dag_get_node(dag, ob1);
+						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+					}
+					else if(nec->type & PSYS_EC_PARTICLE) {
+						node2 = dag_get_node(dag, ob1);
+						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA);
+					}
+					
+					if(nec->type & PSYS_EC_REACTOR) {
+						node2 = dag_get_node(dag, ob1);
+						dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA);
+					}
+				}
+			}
+		}
+	}
+	
+	for (con = ob->constraints.first; con; con=con->next) {
+		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+		ListBase targets = {NULL, NULL};
+		bConstraintTarget *ct;
+		
+		if (cti && cti->get_constraint_targets) {
+			cti->get_constraint_targets(con, &targets);
+			
+			for (ct= targets.first; ct; ct= ct->next) {
+				Object *obt;
+				
+				if (ct->tar)
+					obt= ct->tar;
+				else
+					continue;
+				
+				node2 = dag_get_node(dag, obt);
+				if (ELEM(con->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO))
+					dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB);
+				else {
+					if (ELEM3(obt->type, OB_ARMATURE, OB_MESH, OB_LATTICE) && (ct->subtarget[0]))
+						dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB);
+					else
+						dag_add_relation(dag, node2, node, DAG_RL_OB_OB);
+				}
+				addtoroot = 0;
+			}
+			
+			if (cti->flush_constraint_targets)
+				cti->flush_constraint_targets(con, &targets, 1);
 		}
 	}
 
@@ -1705,10 +1804,23 @@ static void dag_object_time_update_flags(Object *ob)
 	if(ob->ipo) ob->recalc |= OB_RECALC_OB;
 	else if(ob->constraints.first) {
 		bConstraint *con;
-		for (con = ob->constraints.first; con; con=con->next){
-			if (constraint_has_target(con)) {
-				ob->recalc |= OB_RECALC_OB;
-				break;
+		for (con = ob->constraints.first; con; con=con->next) {
+			bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+			ListBase targets = {NULL, NULL};
+			bConstraintTarget *ct;
+			
+			if (cti && cti->get_constraint_targets) {
+				cti->get_constraint_targets(con, &targets);
+				
+				for (ct= targets.first; ct; ct= ct->next) {
+					if (ct->tar) {
+						ob->recalc |= OB_RECALC_OB;
+						break;
+					}
+				}
+				
+				if (cti->flush_constraint_targets)
+					cti->flush_constraint_targets(con, &targets, 1);
 			}
 		}
 	}
@@ -1765,6 +1877,8 @@ static void dag_object_time_update_flags(Object *ob)
 						ob->recalc |= OB_RECALC_DATA; // NT FSPARTICLE
 					}
 				}
+				if(ob->particlesystem.first)
+					ob->recalc |= OB_RECALC_DATA;
 				break;
 			case OB_CURVE:
 			case OB_SURF:
@@ -1793,6 +1907,17 @@ static void dag_object_time_update_flags(Object *ob)
 			case OB_MBALL:
 				if(ob->transflag & OB_DUPLI) ob->recalc |= OB_RECALC_DATA;
 				break;
+		}
+
+		if(ob->particlesystem.first) {
+			ParticleSystem *psys= ob->particlesystem.first;
+
+			for(; psys; psys=psys->next) {
+				if(psys_check_enabled(ob, psys)) {
+					ob->recalc |= OB_RECALC_DATA;
+					break;
+				}
+			}
 		}
 	}		
 }
@@ -1952,8 +2077,8 @@ void DAG_object_update_flags(Scene *sce, Object *ob, unsigned int lay)
 	
 	/* object not in scene? then handle group exception. needs to be dagged once too */
 	if(node==NULL) {
-		Group *group= find_group(ob);
-		if(group) {
+		Group *group= NULL;
+		while( (group = find_group(ob, group)) ) {
 			GroupObject *go;
 			/* primitive; tag all... this call helps building groups for particles */
 			for(go= group->gobject.first; go; go= go->next)
@@ -1989,16 +2114,21 @@ void DAG_object_update_flags(Scene *sce, Object *ob, unsigned int lay)
 static int node_recurs_level(DagNode *node, int level)
 {
 	DagAdjList *itA;
-	
+	int newlevel;
+
 	node->color= DAG_BLACK;	/* done */
-	level++;
+	newlevel= ++level;
 	
 	for(itA= node->parent; itA; itA= itA->next) {
-		if(itA->node->color==DAG_WHITE)
+		if(itA->node->color==DAG_WHITE) {
 			itA->node->ancestor_count= node_recurs_level(itA->node, level);
+			newlevel= MAX2(newlevel, level+itA->node->ancestor_count);
+		}
+		else
+			newlevel= MAX2(newlevel, level+itA->node->ancestor_count);
 	}
 	
-	return level;
+	return newlevel;
 }
 
 static void pose_check_cycle(DagForest *dag)
@@ -2063,42 +2193,72 @@ void DAG_pose_sort(Object *ob)
 			dag_add_parent_relation(dag, node2, node, 0);
 			addtoroot = 0;
 		}
-		for (con = pchan->constraints.first; con; con=con->next){
-			if (constraint_has_target(con)) {
-				char *subtarget;
-				Object *target = get_constraint_target(con, &subtarget);
+		for (con = pchan->constraints.first; con; con=con->next) {
+			bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+			ListBase targets = {NULL, NULL};
+			bConstraintTarget *ct;
+			
+			if(con->ipo) {
+				IpoCurve *icu;
+				for(icu= con->ipo->curve.first; icu; icu= icu->next) {
+					/* icu->driver->ob should actually point to ob->proxy if it
+					 * is a proxy, but since it wasn't set correct it older
+					 * files comparing with ob->proxy makes it work for those */
+					if(icu->driver && (icu->driver->ob==ob || icu->driver->ob==ob->proxy)) {
+						bPoseChannel *target= get_pose_channel(ob->pose, icu->driver->name);
+						if(target) {
+							node2 = dag_get_node(dag, target);
+							dag_add_relation(dag, node2, node, 0);
+							dag_add_parent_relation(dag, node2, node, 0);
+
+							/* uncommented this line, results in dependencies
+							 * not being added properly for this constraint,
+							 * what is the purpose of this? - brecht */
+							/*cti= NULL;*/	/* trick to get next loop skipped */
+						}
+					}
+				}
+			}
+			
+			if (cti && cti->get_constraint_targets) {
+				cti->get_constraint_targets(con, &targets);
 				
-				if (target==ob && subtarget) {
-					bPoseChannel *target= get_pose_channel(ob->pose, subtarget);
-					if(target) {
-						node2= dag_get_node(dag, target);
-						dag_add_relation(dag, node2, node, 0);
-						dag_add_parent_relation(dag, node2, node, 0);
-						
-						if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
-							bKinematicConstraint *data = (bKinematicConstraint*)con->data;
-							bPoseChannel *parchan;
-							int segcount= 0;
+				for (ct= targets.first; ct; ct= ct->next) {
+					if (ct->tar==ob && ct->subtarget[0]) {
+						bPoseChannel *target= get_pose_channel(ob->pose, ct->subtarget);
+						if (target) {
+							node2= dag_get_node(dag, target);
+							dag_add_relation(dag, node2, node, 0);
+							dag_add_parent_relation(dag, node2, node, 0);
 							
-							/* exclude tip from chain? */
-							if(!(data->flag & CONSTRAINT_IK_TIP))
-								parchan= pchan->parent;
-							else
-								parchan= pchan;
-							
-							/* Walk to the chain's root */
-							while (parchan){
-								node3= dag_get_node(dag, parchan);
-								dag_add_relation(dag, node2, node3, 0);
-								dag_add_parent_relation(dag, node2, node3, 0);
+							if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
+								bKinematicConstraint *data = (bKinematicConstraint *)con->data;
+								bPoseChannel *parchan;
+								int segcount= 0;
 								
-								segcount++;
-								if(segcount==data->rootbone || segcount>255) break; // 255 is weak
-								parchan= parchan->parent;
+								/* exclude tip from chain? */
+								if(!(data->flag & CONSTRAINT_IK_TIP))
+									parchan= pchan->parent;
+								else
+									parchan= pchan;
+								
+								/* Walk to the chain's root */
+								while (parchan) {
+									node3= dag_get_node(dag, parchan);
+									dag_add_relation(dag, node2, node3, 0);
+									dag_add_parent_relation(dag, node2, node3, 0);
+									
+									segcount++;
+									if (segcount==data->rootbone || segcount>255) break; // 255 is weak
+									parchan= parchan->parent;
+								}
 							}
 						}
 					}
 				}
+				
+				if (cti->flush_constraint_targets)
+					cti->flush_constraint_targets(con, &targets, 1);
 			}
 		}
 		if (addtoroot == 1 ) {

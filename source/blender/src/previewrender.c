@@ -264,12 +264,15 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 	
 	sce= pr_main->scene.first;
 	if(sce) {
-		
-		// sce->r.mode |= G.scene->r.mode & R_THREADS;
 		/* this flag tells render to not execute depsgraph or ipos etc */
 		sce->r.scemode |= R_PREVIEWBUTS;
 		/* set world always back, is used now */
 		sce->world= pr_main->world.first;
+		/* now: exposure copy */
+		if(G.scene->world) {
+			sce->world->exp= G.scene->world->exp;
+			sce->world->range= G.scene->world->range;
+		}
 		
 		sce->r.cfra= G.scene->r.cfra;
 		
@@ -458,7 +461,7 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 		}
 		
 		/* allocates render result */
-		RE_InitState(re, &sce->r, ri->pr_rectx, ri->pr_recty, NULL);
+		RE_InitState(re, NULL, &sce->r, ri->pr_rectx, ri->pr_recty, NULL);
 		
 		/* enforce preview image clear */
 		if(GS(id->name)==ID_MA) {
@@ -775,7 +778,7 @@ void BIF_view3d_previewrender(ScrArea *sa)
 		rdata.layers.first= rdata.layers.last= NULL;
 		rdata.renderer= R_INTERN;
 		 
-		RE_InitState(re, &rdata, sa->winx, sa->winy, &ri->disprect);
+		RE_InitState(re, NULL, &rdata, sa->winx, sa->winy, &ri->disprect);
 	
 		if(orth)
 			RE_SetOrtho(re, &viewplane, clipsta, clipend);

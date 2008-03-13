@@ -51,6 +51,10 @@ SCA_LogicManager::SCA_LogicManager()
 
 SCA_LogicManager::~SCA_LogicManager()
 {
+	/* AddRef() is not used when the objects are added to m_mapStringToGameObjects
+	   so Release() should not be used either. The memory leak big is fixed
+	   in BL_ConvertBlenderObjects()
+
 	int numgameobj = m_mapStringToGameObjects.size();
 	for (int i = 0; i < numgameobj; i++)
 	{
@@ -58,8 +62,9 @@ SCA_LogicManager::~SCA_LogicManager()
 		assert(gameobjptr);
 		if (gameobjptr)
 			(*gameobjptr)->Release();
-
+    
 	}
+	*/
 	/*for (int i=0;i<m_sensorcontrollermap.size();i++)
 	{
 		vector<SCA_IController*>* controllerarray = *(m_sensorcontrollermap[i]);
@@ -72,6 +77,8 @@ SCA_LogicManager::~SCA_LogicManager()
 	}
 	m_eventmanagers.clear();
 	m_sensorcontrollermapje.clear();
+	m_removedActuators.clear();
+	m_activeActuators.clear();
 }
 
 

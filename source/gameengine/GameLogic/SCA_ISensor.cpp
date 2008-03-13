@@ -160,6 +160,8 @@ PyMethodDef SCA_ISensor::Methods[] = {
 	 METH_VARARGS, GetInvert_doc},
 	{"setInvert", (PyCFunction) SCA_ISensor::sPySetInvert, 
 	 METH_VARARGS, SetInvert_doc},
+	{"evaluate", (PyCFunction) SCA_ISensor::sPyEvaluate, 
+	 METH_VARARGS, Evaluate_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -331,4 +333,14 @@ PyObject* SCA_ISensor::PySetUseNegPulseMode(PyObject* self, PyObject* args, PyOb
 	Py_Return;
 }
 
+char SCA_ISensor::Evaluate_doc[] = 
+"evaluate()\n"
+"\tRe-evaluate the sensor so that isPositive() and other methods are up to date\n"
+"\twith current game conditions. BGE does it automatically on each frame so it's\n"
+"\tnot usually needed.\n"
+"\tReturns True or False if the sensor evaluates positively or negatively\n";
+PyObject* SCA_ISensor::PyEvaluate(PyObject* self, PyObject* args, PyObject* kwds)
+{
+	return BoolToPyArg(Evaluate(NULL));
+}
 /* eof */

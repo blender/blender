@@ -25,7 +25,6 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.h"
 #include "BulletCollision/CollisionShapes/btCollisionShape.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
-#include <algorithm>
 #include "BulletCollision/BroadphaseCollision/btOverlappingPairCache.h"
 
 int gNumManifold = 0;
@@ -33,16 +32,17 @@ int gNumManifold = 0;
 #include <stdio.h>
 
 	
-btCollisionDispatcher::btCollisionDispatcher(bool noDefaultAlgorithms)
-:m_useIslands(true),
-m_convexConvexCreateFunc(0),
+btCollisionDispatcher::btCollisionDispatcher(bool noDefaultAlgorithms):
 m_count(0),
+m_useIslands(true),
+m_convexConvexCreateFunc(0),
 m_convexConcaveCreateFunc(0),
 m_swappedConvexConcaveCreateFunc(0),
 m_compoundCreateFunc(0),
 m_swappedCompoundCreateFunc(0),
 m_emptyCreateFunc(0)
 {
+	(void)noDefaultAlgorithms;
 	int i;
 
 	setNearCallback(defaultNearCallback);
@@ -56,11 +56,14 @@ m_emptyCreateFunc(0)
 		}
 	}
 }
-
+//if you want to not link with the default collision algorithms, you can
+//define BT_EXCLUDE_DEFAULT_COLLISIONALGORITHM_REGISTRATION 
+//in your Bullet library build system
+#ifndef BT_EXCLUDE_DEFAULT_COLLISIONALGORITHM_REGISTRATION
 
 btCollisionDispatcher::btCollisionDispatcher (): 
-	m_useIslands(true),
-		m_count(0)
+	m_count(0),
+	m_useIslands(true)
 {
 	int i;
 
@@ -85,6 +88,9 @@ btCollisionDispatcher::btCollisionDispatcher ():
 	
 	
 };
+
+#endif //BT_EXCLUDE_DEFAULT_COLLISIONALGORITHM_REGISTRATION
+
 
 void btCollisionDispatcher::registerCollisionCreateFunc(int proxyType0, int proxyType1, btCollisionAlgorithmCreateFunc *createFunc)
 {
@@ -129,19 +135,16 @@ void btCollisionDispatcher::releaseManifold(btPersistentManifold* manifold)
 	gNumManifold--;
 
 	//printf("releaseManifold: gNumManifold %d\n",gNumManifold);
-
 	clearManifold(manifold);
 
-	std::vector<btPersistentManifold*>::iterator i =
-		std::find(m_manifoldsPtr.begin(), m_manifoldsPtr.end(), manifold);
-	if (!(i == m_manifoldsPtr.end()))
+	///todo: this can be improved a lot, linear search might be slow part!
+	int findIndex = m_manifoldsPtr.findLinearSearch(manifold);
+	if (findIndex < m_manifoldsPtr.size())
 	{
-		std::swap(*i, m_manifoldsPtr.back());
+		m_manifoldsPtr.swap(findIndex,m_manifoldsPtr.size()-1);
 		m_manifoldsPtr.pop_back();
 		delete manifold;
-
 	}
-	
 	
 }
 
@@ -163,6 +166,8 @@ btCollisionAlgorithm* btCollisionDispatcher::findAlgorithm(btCollisionObject* bo
 	return algo;
 }
 
+
+#ifndef BT_EXCLUDE_DEFAULT_COLLISIONALGORITHM_REGISTRATION
 
 btCollisionAlgorithmCreateFunc* btCollisionDispatcher::internalFindCreateFunc(int proxyType0,int proxyType1)
 {
@@ -196,6 +201,8 @@ btCollisionAlgorithmCreateFunc* btCollisionDispatcher::internalFindCreateFunc(in
 	//failed to find an algorithm
 	return m_emptyCreateFunc;
 }
+
+#endif //BT_EXCLUDE_DEFAULT_COLLISIONALGORITHM_REGISTRATION
 
 
 #ifndef USE_DISPATCH_REGISTRY_ARRAY
@@ -266,6 +273,8 @@ bool	btCollisionDispatcher::needsCollision(btCollisionObject* body0,btCollisionO
 		
 	if ((!body0->isActive()) && (!body1->isActive()))
 		needsCollision = false;
+	else if (!body0->checkCollideWith(body1))
+		needsCollision = false;
 	
 	return needsCollision ;
 
@@ -287,6 +296,16 @@ public:
 	m_dispatcher(dispatcher)
 	{
 	}
+
+	btCollisionPairCallback& operator=(btCollisionPairCallback& other)
+	{
+		m_dispatchInfo = other.m_dispatchInfo;
+		m_dispatcher = other.m_dispatcher;
+		return *this;
+	}
+
+	virtual ~btCollisionPairCallback() {}
+
 
 	virtual bool	processOverlap(btBroadphasePair& pair)
 	{
@@ -337,7 +356,7 @@ void btCollisionDispatcher::defaultNearCallback(btBroadphasePair& collisionPair,
 				} else
 				{
 					//continuous collision detection query, time of impact (toi)
-					float toi = collisionPair.m_algorithm->calculateTimeOfImpact(colObj0,colObj1,dispatchInfo,&contactPointResult);
+					btScalar toi = collisionPair.m_algorithm->calculateTimeOfImpact(colObj0,colObj1,dispatchInfo,&contactPointResult);
 					if (dispatchInfo.m_timeOfImpact > toi)
 						dispatchInfo.m_timeOfImpact = toi;
 

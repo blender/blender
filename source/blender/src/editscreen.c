@@ -176,8 +176,9 @@ static int choose_cursor(ScrArea *sa)
 		if(G.obedit) return CURSOR_EDIT;
 		else if(G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))
 				return CURSOR_VPAINT;
-		else if(G.f & G_FACESELECT) return CURSOR_FACESEL;
+		else if(FACESEL_PAINT_TEST) return CURSOR_FACESEL;
 		else if(G.f & G_SCULPTMODE) return CURSOR_EDIT;
+		else if(G.f & G_PARTICLEEDIT) return CURSOR_EDIT;
 		else return CURSOR_STD;
 	}
 	else if (sa->spacetype==SPACE_TEXT) {
@@ -358,6 +359,11 @@ void areawinset(short win)
 			G.v2d= &snode->v2d;
 		}
 			break;
+		case SPACE_IMASEL:
+		{
+			SpaceImaSel *simasel= curarea->spacedata.first;
+			G.v2d= &simasel->v2d;
+		}
 		default:
 			break;
 		}
@@ -485,6 +491,8 @@ static void addqueue_ext(short win, unsigned short event, short val, char ascii)
 	} 
 	else {
 		BWinEvent evt;
+
+		memset(&evt, 0, sizeof(evt));
 		evt.event= event;
 		evt.val= val;
 		evt.ascii= ascii;
@@ -523,7 +531,7 @@ static void scrarea_dispatch_header_events(ScrArea *sa)
 	
 	while(bwin_qread(sa->headwin, &evt)) {
 		if(evt.val) {
-			if( uiDoBlocks(&curarea->uiblocks, evt.event)!=UI_NOTHING ) evt.event= 0;
+			if( uiDoBlocks(&curarea->uiblocks, evt.event, 1)!=UI_NOTHING ) evt.event= 0;
 
 			switch(evt.event) {
 			case UI_BUT_EVENT:
@@ -1078,7 +1086,7 @@ int has_screenhandler(bScreen *sc, short eventcode)
 
 static void animated_screen(bScreen *sc, short val)
 {
-	if (U.mixbufsize && (val & TIME_WITH_SEQ_AUDIO)) {
+	if ((val & TIME_WITH_SEQ_AUDIO)) {
 		if(CFRA>=PEFRA) {
 			CFRA= PSFRA;
 			audiostream_stop();
@@ -1114,7 +1122,9 @@ static void animated_screen(bScreen *sc, short val)
 	}
 	if(val & TIME_ALL_ANIM_WIN) allqueue(REDRAWANIM, 0);
 	if(val & TIME_ALL_BUTS_WIN) allqueue(REDRAWBUTSALL, 0);
-	if(val & TIME_SEQ) allqueue(REDRAWSEQ, 0);
+	if(val & TIME_SEQ) {
+		allqueue(REDRAWSEQ, 0);
+	}
 	
 	allqueue(REDRAWTIME, 0);
 }
@@ -1131,7 +1141,7 @@ int do_screenhandlers(bScreen *sc)
 	short a, done= 0;
 	
 	time = PIL_check_seconds_timer();
-	swaptime= 1.0/(float)G.scene->r.frs_sec;
+	swaptime= 1.0/FPS;
 	
 	/* only now do the handlers */
 	if(swaptime < time-ltime || ltime==0.0) {
@@ -1387,9 +1397,14 @@ void screenmain(void)
 			towin= 0;
 		}
 		else if (event==QKEY) {
-			if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT);
+			/* Temp place to print mem debugging info ctrl+alt+shift + qkey */
+			if ( G.qual == (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
+				MEM_printmemlist_pydict();
+			}
+			
+			else if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT);
 			else {
-				if(val && (G.qual & LR_CTRLKEY)) {
+				if(val && (G.qual == LR_CTRLKEY)) {
 					if(okee("Quit Blender")) exit_usiblender();
 				}
 				towin= 0;
@@ -1400,10 +1415,10 @@ void screenmain(void)
 				bScreen *sc= G.curscreen->id.next;
 
 				/* if screen is last, set it to first */
-				if(sc == NULL)
+				if(sc == NULL) 
 					sc= G.main->screen.first;
 				
-				setscreen(sc);
+				if(is_allowed_to_change_screen(sc)) setscreen(sc);
 				g_activearea= NULL;
 				towin= 0;
 			}
@@ -1413,10 +1428,10 @@ void screenmain(void)
 				bScreen *sc= G.curscreen->id.prev;
 				
 				/* if screen is first, set it to last */
-				if(sc == NULL)
+				if(sc == NULL) 
 					sc= G.main->screen.last;
 				
-				setscreen(sc);
+				if(is_allowed_to_change_screen(sc)) setscreen(sc);
 				g_activearea= NULL;
 				towin= 0;
 			}
@@ -2453,9 +2468,6 @@ void area_fullscreen(void)	/* with curarea */
 		wich_cursor(newa);
 	}
 	
-	if(curarea->full)
-		retopo_force_update();
-
 	/* there's also events in queue for this, but we call fullscreen for render output
 	now, and that doesn't go back to queue. Bad code, but doesn't hurt... (ton) */
 	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
@@ -2465,8 +2477,7 @@ void area_fullscreen(void)	/* with curarea */
 	/* bad code #2: setscreen() ends with first area active. fullscreen render assumes this too */
 	curarea= sc->areabase.first;
 	
-	if(!curarea->full)
-		retopo_force_update();
+	retopo_force_update();
 }
 
 static void area_autoplayscreen(void)
@@ -3089,7 +3100,7 @@ static void splitarea_interactive(ScrArea *area, ScrEdge *onedge)
 	ScrArea *scr, *sa= area;
 	float fac= 0.0;
 	unsigned short event;
-	short ok= 0, val, split = 0, mval[2], mvalo[2], first= 1;
+	short ok= 0, val, split = 0, mval[2], mvalo[2]= {-1, -1}, first= 1;
 	char dir;
 	
 	if(sa->win==0) return;
@@ -3133,7 +3144,7 @@ static void splitarea_interactive(ScrArea *area, ScrEdge *onedge)
 			}
 		}
 		
-		if (first || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
+		if (first || (dir=='v' && mval[0]!=mvalo[0]) || (dir=='h' && mval[1]!=mvalo[1])) {
 			if (!first) {
 				scrarea_draw_splitpoint(sa, dir, fac);
 			}
@@ -3409,7 +3420,7 @@ static void moveareas(ScrEdge *edge)
 {
 	ScrVert *v1;
 	ScrArea *sa;
-	short mvalo[2];
+	short mvalo[2], mval_prev=-1;
 	short edge_start, edge_end, edge_position;
 	short bigger, smaller, headery, areaminy;
 	int delta, doit;
@@ -3498,13 +3509,18 @@ static void moveareas(ScrEdge *edge)
 			short mval[2];
 			
 			getmouseco_sc(mval);
-			
-			draw_front_xor_dirdist_line(dir, edge_position+delta, edge_start, edge_end);
+			if ((dir=='h' && mval_prev != mval[1]) || (dir=='v' && mval_prev != mval[0])) {
+				/* update the previous val with this one for comparison next loop */
+				if (dir=='h')	mval_prev = mval[1];
+				else			mval_prev = mval[0];
+				
+				draw_front_xor_dirdist_line(dir, edge_position+delta, edge_start, edge_end);
 
-			delta= (dir=='h')?(mval[1]-mvalo[1]):(mval[0]-mvalo[0]);
-			delta= CLAMPIS(delta, -smaller, bigger);
-			draw_front_xor_dirdist_line(dir, edge_position+delta, edge_start, edge_end);
-			bglFlush();
+				delta= (dir=='h')?(mval[1]-mvalo[1]):(mval[0]-mvalo[0]);
+				delta= CLAMPIS(delta, -smaller, bigger);
+				draw_front_xor_dirdist_line(dir, edge_position+delta, edge_start, edge_end);
+				bglFlush();
+			}
 		} 
 		else if (event==LEFTMOUSE) {
 			doit= 1;

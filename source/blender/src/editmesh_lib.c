@@ -72,6 +72,17 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 
 #include "editmesh.h"
 
+/* this replaces the active flag used in uv/face mode */
+void EM_set_actFace(EditFace *efa)
+{
+	G.editMesh->act_face = efa;
+}
+
+EditFace * EM_get_actFace(void)
+{
+	return G.editMesh->act_face;
+}
+
 /* ********* Selection History ************ */
 static int EM_check_selection(void *data)
 {
@@ -1131,26 +1142,39 @@ static short extrudeflag_edge(short flag, float *nor)
 			MirrorModifierData *mmd = (MirrorModifierData*) md;	
 		
 			if(mmd->flag & MOD_MIR_CLIPPING) {
+				float mtx[4][4];
+				if (mmd->mirror_ob) {
+					float imtx[4][4];
+					Mat4Invert(imtx, mmd->mirror_ob->obmat);
+					Mat4MulMat4(mtx, G.obedit->obmat, imtx);
+				}
+
 				for (eed= em->edges.first; eed; eed= eed->next) {
 					if(eed->f2 == 1) {
+						float co1[3], co2[3];
 
-						switch(mmd->axis){
-							case 0:
-								if ( (fabs(eed->v1->co[0]) < mmd->tolerance) &&
-									 (fabs(eed->v2->co[0]) < mmd->tolerance) )
-									++eed->f2;
-								break;
-							case 1:
-								if ( (fabs(eed->v1->co[1]) < mmd->tolerance) &&
-									 (fabs(eed->v2->co[1]) < mmd->tolerance) )
-									++eed->f2;
-								break;
-							case 2:
-								if ( (fabs(eed->v1->co[2]) < mmd->tolerance) &&
-									 (fabs(eed->v2->co[2]) < mmd->tolerance) )
-									++eed->f2;
-								break;
+						VecCopyf(co1, eed->v1->co);
+						VecCopyf(co2, eed->v2->co);
+
+						if (mmd->mirror_ob) {
+							VecMat4MulVecfl(co1, mtx, co1);
+							VecMat4MulVecfl(co2, mtx, co2);
 						}
+
+						if (mmd->flag & MOD_MIR_AXIS_X)
+							if ( (fabs(co1[0]) < mmd->tolerance) &&
+								 (fabs(co2[0]) < mmd->tolerance) )
+								++eed->f2;
+
+						if (mmd->flag & MOD_MIR_AXIS_Y)
+							if ( (fabs(co1[1]) < mmd->tolerance) &&
+								 (fabs(co2[1]) < mmd->tolerance) )
+								++eed->f2;
+
+						if (mmd->flag & MOD_MIR_AXIS_Z)
+							if ( (fabs(co1[2]) < mmd->tolerance) &&
+								 (fabs(co2[2]) < mmd->tolerance) )
+								++eed->f2;
 					}
 				}
 			}
@@ -1400,26 +1424,38 @@ short extrudeflag_vert(short flag, float *nor)
 			MirrorModifierData *mmd = (MirrorModifierData*) md;	
 		
 			if(mmd->flag & MOD_MIR_CLIPPING) {
+				float mtx[4][4];
+				if (mmd->mirror_ob) {
+					float imtx[4][4];
+					Mat4Invert(imtx, mmd->mirror_ob->obmat);
+					Mat4MulMat4(mtx, G.obedit->obmat, imtx);
+				}
+
 				for (eed= em->edges.first; eed; eed= eed->next) {
 					if(eed->f2 == 2) {
+						float co1[3], co2[3];
 
-						switch(mmd->axis){
-							case 0:
-								if ( (fabs(eed->v1->co[0]) < mmd->tolerance) &&
-									 (fabs(eed->v2->co[0]) < mmd->tolerance) )
-									++eed->f2;
-								break;
-							case 1:
-								if ( (fabs(eed->v1->co[1]) < mmd->tolerance) &&
-									 (fabs(eed->v2->co[1]) < mmd->tolerance) )
-									++eed->f2;
-								break;
-							case 2:
-								if ( (fabs(eed->v1->co[2]) < mmd->tolerance) &&
-									 (fabs(eed->v2->co[2]) < mmd->tolerance) )
-									++eed->f2;
-								break;
+						VecCopyf(co1, eed->v1->co);
+						VecCopyf(co2, eed->v2->co);
+
+						if (mmd->mirror_ob) {
+							VecMat4MulVecfl(co1, mtx, co1);
+							VecMat4MulVecfl(co2, mtx, co2);
 						}
+
+						if (mmd->flag & MOD_MIR_AXIS_X)
+							if ( (fabs(co1[0]) < mmd->tolerance) &&
+								 (fabs(co2[0]) < mmd->tolerance) )
+								++eed->f2;
+
+						if (mmd->flag & MOD_MIR_AXIS_Y)
+							if ( (fabs(co1[1]) < mmd->tolerance) &&
+								 (fabs(co2[1]) < mmd->tolerance) )
+								++eed->f2;
+						if (mmd->flag & MOD_MIR_AXIS_Z)
+							if ( (fabs(co1[2]) < mmd->tolerance) &&
+								 (fabs(co2[2]) < mmd->tolerance) )
+								++eed->f2;
 					}
 				}
 			}
@@ -2070,3 +2106,134 @@ void EM_fgon_flags(void)
 	}
 	
 }
+
+/* editmesh vertmap, copied from intern.mesh.c
+ * if do_face_idx_array is 0 it means we need to run it as well as freeing
+ * */
+
+UvVertMap *make_uv_vert_map_EM(int selected, int do_face_idx_array, float *limit)
+{
+	EditMesh *em = G.editMesh;
+	EditVert *ev;
+	EditFace *efa;
+	int totverts;
+	
+	/* vars from original func */
+	UvVertMap *vmap;
+	UvMapVert *buf;
+	MTFace *tf;
+	unsigned int a;
+	int	i, totuv, nverts;
+	
+	if (do_face_idx_array)
+		EM_init_index_arrays(0, 0, 1);
+	
+	/* we need the vert */
+	for (ev= em->verts.first, totverts=0; ev; ev= ev->next, totverts++) {
+		ev->tmp.l = totverts;
+	}
+	
+	totuv = 0;
+
+	/* generate UvMapVert array */
+	for (efa= em->faces.first; efa; efa= efa->next)
+		if(!selected || ((!efa->h) && (efa->f & SELECT)))
+			totuv += (efa->v4)? 4: 3;
+		
+	if(totuv==0)
+		return NULL;
+	
+	vmap= (UvVertMap*)MEM_callocN(sizeof(*vmap), "UvVertMap");
+	if (!vmap)
+		return NULL;
+
+	vmap->vert= (UvMapVert**)MEM_callocN(sizeof(*vmap->vert)*totverts, "UvMapVert*");
+	buf= vmap->buf= (UvMapVert*)MEM_callocN(sizeof(*vmap->buf)*totuv, "UvMapVert");
+
+	if (!vmap->vert || !vmap->buf) {
+		free_uv_vert_map(vmap);
+		return NULL;
+	}
+
+	for (a=0, efa= em->faces.first; efa; a++, efa= efa->next) {
+		if(!selected || ((!efa->h) && (efa->f & SELECT))) {
+			nverts= (efa->v4)? 4: 3;
+			
+			for(i=0; i<nverts; i++) {
+				buf->tfindex= i;
+				buf->f= a;
+				buf->separate = 0;
+				
+				buf->next= vmap->vert[(*(&efa->v1 + i))->tmp.l];
+				vmap->vert[(*(&efa->v1 + i))->tmp.l]= buf;
+				
+				buf++;
+			}
+		}
+	}
+	
+	/* sort individual uvs for each vert */
+	for(a=0, ev=em->verts.first; ev; a++, ev= ev->next) {
+		UvMapVert *newvlist= NULL, *vlist=vmap->vert[a];
+		UvMapVert *iterv, *v, *lastv, *next;
+		float *uv, *uv2, uvdiff[2];
+
+		while(vlist) {
+			v= vlist;
+			vlist= vlist->next;
+			v->next= newvlist;
+			newvlist= v;
+
+			efa = EM_get_face_for_index(v->f);
+			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			uv = tf->uv[v->tfindex]; 
+			
+			lastv= NULL;
+			iterv= vlist;
+
+			while(iterv) {
+				next= iterv->next;
+				efa = EM_get_face_for_index(iterv->f);
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				uv2 = tf->uv[iterv->tfindex];
+				
+				Vec2Subf(uvdiff, uv2, uv);
+
+				if(fabs(uv[0]-uv2[0]) < limit[0] && fabs(uv[1]-uv2[1]) < limit[1]) {
+					if(lastv) lastv->next= next;
+					else vlist= next;
+					iterv->next= newvlist;
+					newvlist= iterv;
+				}
+				else
+					lastv=iterv;
+
+				iterv= next;
+			}
+
+			newvlist->separate = 1;
+		}
+
+		vmap->vert[a]= newvlist;
+	}
+	
+	if (do_face_idx_array)
+		EM_free_index_arrays();
+	
+	return vmap;
+}
+
+UvMapVert *get_uv_map_vert_EM(UvVertMap *vmap, unsigned int v)
+{
+	return vmap->vert[v];
+}
+
+void free_uv_vert_map_EM(UvVertMap *vmap)
+{
+	if (vmap) {
+		if (vmap->vert) MEM_freeN(vmap->vert);
+		if (vmap->buf) MEM_freeN(vmap->buf);
+		MEM_freeN(vmap);
+	}
+}
+

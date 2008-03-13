@@ -36,11 +36,12 @@
 #define DNA_USERDEF_TYPES_H
 
 #include "DNA_listBase.h"
+#include "DNA_texture_types.h"
 
 /* themes; defines in BIF_resource.h */
+struct ColorBand;
 
-// global, button colors
-
+/* global, button colors */
 typedef struct ThemeUI {
 	char outline[4];
 	char neutral[4];
@@ -63,11 +64,11 @@ typedef struct ThemeUI {
 	char but_drawtype;
 	char pad[3];
 	char iconfile[80];	// FILE_MAXFILE length
-
 } ThemeUI;
 
-// try to put them all in one, if needed a special struct can be created as well
-// for example later on, when we introduce wire colors for ob types or so...
+/* try to put them all in one, if needed a special struct can be created as well
+ * for example later on, when we introduce wire colors for ob types or so...
+ */
 typedef struct ThemeSpace {
 	char back[4];
 	char text[4];	
@@ -92,6 +93,7 @@ typedef struct ThemeSpace {
 	char normal[4];
 	char bone_solid[4], bone_pose[4];
 	char strip[4], strip_select[4];
+	char cframe[4], pad[4];
 	
 	char vertex_size, facedot_size;
 	char bpad[2]; 
@@ -101,17 +103,32 @@ typedef struct ThemeSpace {
 	
 	char movie[4], image[4], scene[4], audio[4];		// for sequence editor
 	char effect[4], plugin[4], transition[4], meta[4];
-	char bpad1[4]; 
-	
+	char editmesh_active[4]; 
 } ThemeSpace;
 
 
+/* set of colors for use as a custom color set for Objects/Bones wire drawing */
+typedef struct ThemeWireColor {
+	char 	solid[4];
+	char	select[4];
+	char 	active[4];
+	
+	short 	flag;
+	short 	pad;
+} ThemeWireColor; 
+
+/* flags for ThemeWireColor */
+#define TH_WIRECOLOR_CONSTCOLS	(1<<0)
+
+/* A theme */
 typedef struct bTheme {
 	struct bTheme *next, *prev;
 	char name[32];
 	
+	/* Interface Elements (buttons, menus, icons) */
 	ThemeUI tui;
 	
+	/* Individual Spacetypes */
 	ThemeSpace tbuts;	
 	ThemeSpace tv3d;
 	ThemeSpace tfile;
@@ -127,9 +144,12 @@ typedef struct bTheme {
 	ThemeSpace toops;
 	ThemeSpace ttime;
 	ThemeSpace tnode;
+	
+	/* 20 sets of bone colors for this theme */
+	ThemeWireColor tarm[20];
+	/*ThemeWireColor tobj[20];*/
 
 	unsigned char bpad[4], bpad1[4];
-	
 } bTheme;
 
 typedef struct SolidLight {
@@ -171,19 +191,26 @@ typedef struct UserDef {
 	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
 	int textimeout, texcollectrate;
 	int memcachelimit;
+	int prefetchframes;
 	short frameserverport;
 	short pad_rot_angle;	/*control the rotation step of the view when PAD2,PAD4,PAD6&PAD8 is use*/
 	short obcenter_dia;
 	short rvisize;			/* rotating view icon size */
 	short rvibright;		/* rotating view icon brightness */
-	char versemaster[160];
-	char verseuser[160];
 	short recent_files;		/* maximum number of recently used files to remember  */
 	short smooth_viewtx;	/* miliseconds to spend spinning the view */
 	short glreslimit;
 	short ndof_pan, ndof_rotate;
 //	short pads[4];
 //	char pad[8];
+	char versemaster[160];
+	char verseuser[160];
+	float glalphaclip;
+	
+	short autokey_mode;		/* autokeying mode */
+	short autokey_flag;		/* flags for autokeying */
+	
+	struct ColorBand coba_weight;	/* from texture.h */
 } UserDef;
 
 extern UserDef U; /* from usiblender.c !!!! */
@@ -191,22 +218,28 @@ extern UserDef U; /* from usiblender.c !!!! */
 /* ***************** USERDEF ****************** */
 
 /* flag */
-#define USER_AUTOSAVE			1
-#define USER_AUTOGRABGRID		2
-#define USER_AUTOROTGRID		4
-#define USER_AUTOSIZEGRID		8
-#define USER_SCENEGLOBAL		16
-#define USER_TRACKBALL			32
-#define USER_DUPLILINK			64
-#define USER_FSCOLLUM			128
-#define USER_MAT_ON_OB			256
-#define USER_NO_CAPSLOCK		512
-#define USER_VIEWMOVE			1024
-#define USER_TOOLTIPS			2048
-#define USER_TWOBUTTONMOUSE		4096
-#define USER_NONUMPAD			8192
-#define USER_LMOUSESELECT		16384
-#define USER_FILECOMPRESS		32768
+#define USER_AUTOSAVE			(1 << 0)
+#define USER_AUTOGRABGRID		(1 << 1)
+#define USER_AUTOROTGRID		(1 << 2)
+#define USER_AUTOSIZEGRID		(1 << 3)
+#define USER_SCENEGLOBAL		(1 << 4)
+#define USER_TRACKBALL			(1 << 5)
+#define USER_DUPLILINK			(1 << 6)
+#define USER_FSCOLLUM			(1 << 7)
+#define USER_MAT_ON_OB			(1 << 8)
+#define USER_NO_CAPSLOCK		(1 << 9)
+#define USER_VIEWMOVE			(1 << 10)
+#define USER_TOOLTIPS			(1 << 11)
+#define USER_TWOBUTTONMOUSE		(1 << 12)
+#define USER_NONUMPAD			(1 << 13)
+#define USER_LMOUSESELECT		(1 << 14)
+#define USER_FILECOMPRESS		(1 << 15)
+#define USER_SAVE_PREVIEWS		(1 << 16)
+#define USER_CUSTOM_RANGE		(1 << 17)
+#define USER_ADD_EDITMODE		(1 << 18)
+#define USER_ADD_VIEWALIGNED	(1 << 19)
+#define USER_RELPATHS			(1 << 20)
+#define USER_DRAGIMMEDIATE			(1 << 21)
 
 /* viewzom */
 #define USER_ZOOM_CONT			0
@@ -214,60 +247,76 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_ZOOM_DOLLY			2
 
 /* uiflag */
-
-#define	USER_KEYINSERTACT		1
-#define	USER_KEYINSERTOBJ		2
-#define USER_WHEELZOOMDIR		4
-#define USER_FILTERFILEEXTS		8
-#define USER_DRAWVIEWINFO		16
-#define USER_PLAINMENUS			32		// old EVTTOCONSOLE print ghost events, here for tuhopuu compat. --phase
+// old flag for #define	USER_KEYINSERTACT		(1 << 0)
+// old flag for #define	USER_KEYINSERTOBJ		(1 << 1)
+#define USER_WHEELZOOMDIR		(1 << 2)
+#define USER_FILTERFILEEXTS		(1 << 3)
+#define USER_DRAWVIEWINFO		(1 << 4)
+#define USER_PLAINMENUS			(1 << 5)		// old EVTTOCONSOLE print ghost events, here for tuhopuu compat. --phase
 								// old flag for hide pulldown was here 
-#define USER_FLIPFULLSCREEN		128
-#define USER_ALLWINCODECS		256
-#define USER_MENUOPENAUTO		512
-#define USER_PANELPINNED		1024
-#define USER_AUTOPERSP     		2048
-#define USER_LOCKAROUND     	4096
-#define USER_GLOBALUNDO     	8192
-#define USER_ORBIT_SELECTION	16384
-#define USER_KEYINSERTAVAI		32768
-#define USER_HIDE_DOT			65536
-#define USER_SHOW_ROTVIEWICON	131072
-#define USER_SHOW_VIEWPORTNAME	262144
-#define USER_KEYINSERTNEED		524288
+#define USER_FLIPFULLSCREEN		(1 << 7)
+#define USER_ALLWINCODECS		(1 << 8)
+#define USER_MENUOPENAUTO		(1 << 9)
+#define USER_PANELPINNED		(1 << 10)
+#define USER_AUTOPERSP     		(1 << 11)
+#define USER_LOCKAROUND     	(1 << 12)
+#define USER_GLOBALUNDO     	(1 << 13)
+#define USER_ORBIT_SELECTION	(1 << 14)
+// old flag for #define USER_KEYINSERTAVAI		(1 << 15)
+#define USER_HIDE_DOT			(1 << 16)
+#define USER_SHOW_ROTVIEWICON	(1 << 17)
+#define USER_SHOW_VIEWPORTNAME	(1 << 18)
+// old flag for #define USER_KEYINSERTNEED		(1 << 19)
+#define USER_ZOOM_TO_MOUSEPOS	(1 << 20)
+#define USER_SHOW_FPS			(1 << 21)
+#define USER_MMB_PASTE			(1 << 22)
+
+/* Auto-Keying mode */
+	/* AUTOKEY_ON is a bitflag */
+#define 	AUTOKEY_ON				1
+	/* AUTOKEY_ON + 2**n...  (i.e. AUTOKEY_MODE_NORMAL = AUTOKEY_ON + 2) to preserve setting, even when autokey turned off  */
+#define		AUTOKEY_MODE_NORMAL		3
+#define		AUTOKEY_MODE_EDITKEYS	5
+
+/* Auto-Keying flag */
+#define		AUTOKEY_FLAG_INSERTAVAIL	(1<<0)
+#define		AUTOKEY_FLAG_INSERTNEEDED	(1<<1)
+#define		AUTOKEY_FLAG_AUTOMATKEY		(1<<2)
+
+/* Auto-Keying macros */
+#define IS_AUTOKEY_ON			(U.autokey_mode & AUTOKEY_ON)
+#define IS_AUTOKEY_MODE(mode) 	(U.autokey_mode == AUTOKEY_MODE_##mode)
+#define IS_AUTOKEY_FLAG(flag)	(U.autokey_flag == AUTOKEY_FLAG_##flag)
 
 /* transopts */
-
-#define	USER_TR_TOOLTIPS		1
-#define	USER_TR_BUTTONS			2
-#define USER_TR_MENUS			4
-#define USER_TR_FILESELECT		8
-#define USER_TR_TEXTEDIT		16
-#define USER_DOTRANSLATE		32
-#define USER_USETEXTUREFONT		64
+#define	USER_TR_TOOLTIPS		(1 << 0)
+#define	USER_TR_BUTTONS			(1 << 1)
+#define USER_TR_MENUS			(1 << 2)
+#define USER_TR_FILESELECT		(1 << 3)
+#define USER_TR_TEXTEDIT		(1 << 4)
+#define USER_DOTRANSLATE		(1 << 5)
+#define USER_USETEXTUREFONT		(1 << 6)
+#define CONVERT_TO_UTF8			(1 << 7)
 
 /* dupflag */
-
-#define USER_DUP_MESH			1
-#define USER_DUP_CURVE			2
-#define USER_DUP_SURF			4
-#define USER_DUP_FONT			8
-#define USER_DUP_MBALL			16
-#define USER_DUP_LAMP			32
-#define USER_DUP_IPO			64
-#define USER_DUP_MAT			128
-#define USER_DUP_TEX			256
-#define	USER_DUP_ARM			512
-#define	USER_DUP_ACT			1024
+#define USER_DUP_MESH			(1 << 0)
+#define USER_DUP_CURVE			(1 << 1)
+#define USER_DUP_SURF			(1 << 2)
+#define USER_DUP_FONT			(1 << 3)
+#define USER_DUP_MBALL			(1 << 4)
+#define USER_DUP_LAMP			(1 << 5)
+#define USER_DUP_IPO			(1 << 6)
+#define USER_DUP_MAT			(1 << 7)
+#define USER_DUP_TEX			(1 << 8)
+#define	USER_DUP_ARM			(1 << 9)
+#define	USER_DUP_ACT			(1 << 10)
 
 /* gameflags */
-
 #define USER_VERTEX_ARRAYS		1
 #define USER_DISABLE_SOUND		2
 #define USER_DISABLE_MIPMAP		4
 
 /* vrml flag */
-
 #define USER_VRML_LAYERS		1
 #define USER_VRML_AUTOSCALE		2
 #define USER_VRML_TWOSIDED		4

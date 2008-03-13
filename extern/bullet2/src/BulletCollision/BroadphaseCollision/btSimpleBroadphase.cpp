@@ -20,7 +20,7 @@ subject to the following restrictions:
 #include "LinearMath/btVector3.h"
 #include "LinearMath/btTransform.h"
 #include "LinearMath/btMatrix3x3.h"
-#include <vector>
+#include <new>
 
 
 void	btSimpleBroadphase::validate()
@@ -85,8 +85,8 @@ btBroadphaseProxy*	btSimpleBroadphase::createProxy(  const btVector3& min,  cons
 
 	btSimpleBroadphaseProxy* proxy1 = &m_proxies[0];
 		
-	int index = proxy - proxy1;
-	assert(index == freeIndex);
+	int	index = int(proxy - proxy1);
+	btAssert(index == freeIndex);
 
 	m_pProxies[m_numProxies] = proxy;
 	m_numProxies++;
@@ -100,7 +100,8 @@ class	RemovingOverlapCallback : public btOverlapCallback
 protected:
 	virtual bool	processOverlap(btBroadphasePair& pair)
 	{
-		assert(0);
+		(void)pair;
+		btAssert(0);
 		return false;
 	}
 };
@@ -131,8 +132,8 @@ void	btSimpleBroadphase::destroyProxy(btBroadphaseProxy* proxyOrg)
 		btSimpleBroadphaseProxy* proxy0 = static_cast<btSimpleBroadphaseProxy*>(proxyOrg);
 		btSimpleBroadphaseProxy* proxy1 = &m_proxies[0];
 	
-		int index = proxy0 - proxy1;
-		assert (index < m_maxProxies);
+		int index = int(proxy0 - proxy1);
+		btAssert (index < m_maxProxies);
 		m_freeProxies[--m_firstFreeProxy] = index;
 
 		removeOverlappingPairsContainingProxy(proxyOrg);

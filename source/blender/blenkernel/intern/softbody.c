@@ -61,9 +61,11 @@ variables on the UI for now
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"	/* here is the softbody struct */
+#include "DNA_particle_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
 
@@ -75,13 +77,17 @@ variables on the UI for now
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_pointcache.h"
+#include "BKE_modifier.h"
 
 #include  "BIF_editdeform.h"
 #include  "BIF_graphics.h"
 #include  "PIL_time.h"
+// #include  "ONL_opennl.h" remove linking to ONL for now
 
 /* callbacks for errors and interrupts and some goo */
 static int (*SB_localInterruptCallBack)(void) = NULL;
@@ -90,21 +96,9 @@ static int (*SB_localInterruptCallBack)(void) = NULL;
 /* ********** soft body engine ******* */
 
 
-
-typedef struct BodyPoint {
-	float origS[3], origE[3], origT[3], pos[3], vec[3], force[3];
-	float goal;
-	float prevpos[3], prevvec[3], prevdx[3], prevdv[3]; /* used for Heun integration */
-    int nofsprings; int *springs;
-	float choke;
-	float colball;
-	short flag;
-	char octantflag;
-} BodyPoint;
-
 typedef struct BodySpring {
 	int v1, v2;
-	float len, strength, cf;
+	float len, strength, cf,load;
 	float ext_force[3]; /* edges colliding and sailing */
 	short order;
 	short flag;
@@ -112,7 +106,7 @@ typedef struct BodySpring {
 
 typedef struct BodyFace {
 	int v1, v2, v3 ,v4;
-	float ext_force[3]; /* edges colliding and sailing */
+	float ext_force[3]; /* faces colliding */
 	short flag;
 } BodyFace;
 
@@ -127,6 +121,11 @@ typedef struct SBScratch {
 	float aabbmin[3],aabbmax[3];
 }SBScratch;
 
+#define NLF_BUILD  1 
+#define NLF_SOLVE  2 
+
+#define MID_PRESERVE 1
+
 #define SOFTGOALSNAP  0.999f 
 /* if bp-> goal is above make it a *forced follow original* and skip all ODE stuff for this bp
    removes *unnecessary* stiffnes from ODE system
@@ -136,7 +135,9 @@ typedef struct SBScratch {
 
 #define BSF_INTERSECT   1 /* edge intersects collider face */
 #define SBF_DOFUZZY     1 /* edge intersects collider face */
-#define BFF_INTERSECT   1 /* edge intersects collider face */
+
+#define BFF_INTERSECT   1 /* collider edge   intrudes face */
+#define BFF_CLOSEVERT   2 /* collider vertex repulses face */
 
 
 float SoftHeunTol = 1.0f; /* humm .. this should be calculated from sb parameters and sizes */
@@ -480,21 +481,31 @@ void ccd_build_deflector_hache(Object *vertexowner,GHash *hash)
 	while (base) {
 		/*Only proceed for mesh object in same layer */
 		if(base->object->type==OB_MESH && (base->lay & vertexowner->lay)) {
+			int particles=0;
 			ob= base->object;
-			if((vertexowner) && (ob == vertexowner)){ 
-				/* if vertexowner is given  we don't want to check collision with owner object */ 
-				base = base->next;
-				continue;				
+			if((vertexowner) && (ob == vertexowner)) {
+				if(vertexowner->soft->particles){
+					particles=1;
+				}
+				else {
+					/* if vertexowner is given  we don't want to check collision with owner object */ 
+					base = base->next;
+					continue;				
+				}
 			}
 
 			/*+++ only with deflecting set */
 			if(ob->pd && ob->pd->deflect && BLI_ghash_lookup(hash, ob) == 0) {
 				DerivedMesh *dm= NULL;
-				
-				if(ob->softflag & OB_SB_COLLFINAL) { /* so maybe someone wants overkill to collide with subsurfed */
-					dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
-				} else {
-					dm = mesh_get_derived_deform(ob, CD_MASK_BAREMESH);
+
+				if(particles) {
+					dm = psys_get_modifier(ob,psys_get_current(ob))->dm;
+				}
+				else {
+					if(ob->softflag & OB_SB_COLLFINAL) /* so maybe someone wants overkill to collide with subsurfed */
+						dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
+					else
+						dm = mesh_get_derived_deform(ob, CD_MASK_BAREMESH);
 				}
 
 				if(dm){
@@ -582,6 +593,7 @@ static void add_mesh_quad_diag_springs(Object *ob)
 	
 	if (ob->soft){
 		int nofquads;
+		float s_shear = ob->soft->shearstiff*ob->soft->shearstiff;
 		
 		nofquads = count_mesh_quads(me);
 		if (nofquads) {
@@ -602,12 +614,12 @@ static void add_mesh_quad_diag_springs(Object *ob)
 					if(mface->v4) {
 						bs->v1= mface->v1;
 						bs->v2= mface->v3;
-						bs->strength= 1.0;
+						bs->strength= s_shear;
 						bs->order   =2;
 						bs++;
 						bs->v1= mface->v2;
 						bs->v2= mface->v4;
-						bs->strength= 1.0;
+						bs->strength= s_shear;
 						bs->order   =2;
 						bs++;
 						
@@ -689,6 +701,7 @@ static void add_2nd_order_springs(Object *ob,float stiffness)
 {
 	int counter = 0;
 	BodySpring *bs_new;
+	stiffness *=stiffness;
 	
 	add_2nd_order_roller(ob,stiffness,&counter,0); /* counting */
 	if (counter) {
@@ -782,80 +795,37 @@ static void calculate_collision_balls(Object *ob)
 		}
 
 		if (akku_count > 0) {
-			if (sb->sbc_mode == 0){
+			if (sb->sbc_mode == SBC_MODE_MANUAL){
 				bp->colball=sb->colball;
-			}		
-			if (sb->sbc_mode == 1){
-			 bp->colball = akku/(float)akku_count*sb->colball;
 			}
-			if (sb->colball == 2){
+			if (sb->sbc_mode == SBC_MODE_AVG){
+				bp->colball = akku/(float)akku_count*sb->colball;
+			}
+			if (sb->sbc_mode == SBC_MODE_MIN){
 				bp->colball=min*sb->colball;
-			}		
-			if (sb->colball == 3){
+			}
+			if (sb->sbc_mode == SBC_MODE_MAX){
 				bp->colball=max*sb->colball;
-			}		
-			if (sb->colball == 4){
-			bp->colball = (min + max)/2.0f*sb->colball;
-			}		
+			}
+			if (sb->sbc_mode == SBC_MODE_AVGMINMAX){
+				bp->colball = (min + max)/2.0f*sb->colball;
+			}
 		}
 		else bp->colball=0;
 	}/*for bp*/		
 }
 
 
-char set_octant_flags(float *ce, float *pos, float ball)
-{ 
-	float x,y,z;
-	char res = 0;
-	int a;
-	
-	for (a=0;a<7;a++){
-		switch(a){
-		case 0: x=pos[0];      y=pos[1];      z=pos[2]; break;
-		case 1: x=pos[0]+ball; y=pos[1];      z=pos[2]; break;
-		case 2: x=pos[0]-ball; y=pos[1];      z=pos[2]; break;
-		case 3: x=pos[0];      y=pos[1]+ball; z=pos[2]; break;
-		case 4: x=pos[0];      y=pos[1]-ball; z=pos[2]; break;
-		case 5: x=pos[0];      y=pos[1];      z=pos[2]+ball; break;
-		case 6: x=pos[0];      y=pos[1];      z=pos[2]-ball; break;
-		}
-
-		x=pos[0]; y=pos[1]; z=pos[2];
-		
-		if (x > ce[0]){
-			if (y > ce[1]){
-				if (z > ce[2])  res|= 1;
-				else res|= 2;
-			}
-			else{
-				if (z > ce[2])  res|= 4;
-				else res|= 8;
-			}
-		}
-		
-		else{
-			if (y > ce[1]){
-				if (z > ce[2])  res|= 16;
-				else res|= 32;
-			}
-			else{
-				if (z > ce[2])  res|= 64;
-				else res|= 128;
-			}
-		}
-	}
-	return res;
-}
-
 /* creates new softbody if didn't exist yet, makes new points and springs arrays */
 static void renew_softbody(Object *ob, int totpoint, int totspring)  
 {
 	SoftBody *sb;
 	int i;
-	
+	short softflag;
 	if(ob->soft==NULL) ob->soft= sbNew();
 	else free_softbody_intern(ob->soft);
 	sb= ob->soft;
+	softflag=ob->softflag;
 	   
 	if(totpoint) {
 		sb->totpoint= totpoint;
@@ -869,8 +839,8 @@ static void renew_softbody(Object *ob, int totpoint, int totspring)
 		for (i=0; i<totpoint; i++) {
 			BodyPoint *bp = &sb->bpoint[i];
 
-			if(ob->softflag & OB_SB_GOAL) {
-				bp->goal= ob->soft->defgoal;
+			if(softflag & OB_SB_GOAL) {
+				bp->goal= sb->defgoal;
 			}
 			else { 
 				bp->goal= 0.0f; 
@@ -880,6 +850,8 @@ static void renew_softbody(Object *ob, int totpoint, int totspring)
 			bp->nofsprings= 0;
 			bp->springs= NULL;
 			bp->choke = 0.0f;
+			bp->choke2 = 0.0f;
+			bp->frozen = 1.0f;
 			bp->colball = 0.0f;
 			bp->flag = 0;
 
@@ -900,7 +872,6 @@ static void free_softbody_baked(SoftBody *sb)
 	
 	sb->keys= NULL;
 	sb->totkey= 0;
-	
 }
 static void free_scratch(SoftBody *sb)
 {
@@ -985,6 +956,7 @@ static void Vec3PlusStVec(float *v, float s, float *v1)
 }
 
 /* +++ dependancy information functions*/
+
 static int are_there_deflectors(unsigned int layer)
 {
 	Base *base;
@@ -1002,37 +974,8 @@ static int query_external_colliders(Object *me)
 {
 	return(are_there_deflectors(me->lay));
 }
-
-#if 0
-static int query_external_forces(Object *me)
-{
-/* silly but true: we need to create effector cache to see if anything is in it */
-	ListBase *ec = pdInitEffectors(me,NULL);
-	int result = 0;
-	if (ec){
-		result = 1;
-		pdEndEffectors(ec); /* sorry ec, yes i'm an idiot, but i needed to know if you were there */
-	}
-	return result;
-}
-
-/* 
-any of that external objects may have an IPO or something alike ..
-so unless we can ask them if they are moving we have to assume they do
-*/
-static int query_external_time(Object *me)
-{
-	if (query_external_colliders(me)) return 1;
-	if (query_external_forces(me)) return 1;
-	return 0;
-}
-static int query_internal_time(Object *me)
-{
-	if (me->softflag & OB_SB_GOAL) return 1;
-	return 0;
-}
-#endif
 /* --- dependancy information functions*/
+
 
 /* +++ the aabb "force" section*/
 int sb_detect_aabb_collisionCached(	float force[3], unsigned int par_layer,struct Object *vertexowner,float time)
@@ -1099,6 +1042,103 @@ int sb_detect_aabb_collisionCached(	float force[3], unsigned int par_layer,struc
 
 
 /* +++ the face external section*/
+int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float face_v3[3],float *damp,						
+								   float force[3], unsigned int par_layer,struct Object *vertexowner,float time)
+								   {
+	Object *ob;
+	GHash *hash;
+	GHashIterator *ihash;
+	float nv1[3], edge1[3], edge2[3], d_nvect[3], aabbmin[3],aabbmax[3];
+	float facedist,outerfacethickness,tune = 10.f;
+	int a, deflected=0;
+
+	aabbmin[0] = MIN3(face_v1[0],face_v2[0],face_v3[0]);
+	aabbmin[1] = MIN3(face_v1[1],face_v2[1],face_v3[1]);
+	aabbmin[2] = MIN3(face_v1[2],face_v2[2],face_v3[2]);
+	aabbmax[0] = MAX3(face_v1[0],face_v2[0],face_v3[0]);
+	aabbmax[1] = MAX3(face_v1[1],face_v2[1],face_v3[1]);
+	aabbmax[2] = MAX3(face_v1[2],face_v2[2],face_v3[2]);
+
+	/* calculate face normal once again SIGH */
+	VECSUB(edge1, face_v1, face_v2);
+	VECSUB(edge2, face_v3, face_v2);
+	Crossf(d_nvect, edge2, edge1);
+	Normalize(d_nvect);
+
+
+	hash  = vertexowner->soft->scratch->colliderhash;
+	ihash =	BLI_ghashIterator_new(hash);
+    while (!BLI_ghashIterator_isDone(ihash) ) {
+
+		ccd_Mesh *ccdm = BLI_ghashIterator_getValue	(ihash);
+		ob             = BLI_ghashIterator_getKey	(ihash);
+			/* only with deflecting set */
+			if(ob->pd && ob->pd->deflect) {
+				MVert *mvert= NULL;
+				MVert *mprevvert= NULL;
+				if(ccdm){
+					mvert= ccdm->mvert;
+					a    = ccdm->totvert; 
+					mprevvert= ccdm->mprevvert;				
+					outerfacethickness =ob->pd->pdef_sboft;
+					if ((aabbmax[0] < ccdm->bbmin[0]) || 
+						(aabbmax[1] < ccdm->bbmin[1]) ||
+						(aabbmax[2] < ccdm->bbmin[2]) ||
+						(aabbmin[0] > ccdm->bbmax[0]) || 
+						(aabbmin[1] > ccdm->bbmax[1]) || 
+						(aabbmin[2] > ccdm->bbmax[2]) ) {
+						/* boxes dont intersect */ 
+						BLI_ghashIterator_step(ihash);
+						continue;				
+					}					
+
+				}
+				else{
+					/*aye that should be cached*/
+					printf("missing cache error \n");
+					BLI_ghashIterator_step(ihash);
+					continue;				
+				}
+
+
+				/* use mesh*/
+				if (mvert) {
+					while(a){
+						VECCOPY(nv1,mvert[a-1].co);						
+						if(mprevvert){
+							VecMulf(nv1,time);
+							Vec3PlusStVec(nv1,(1.0f-time),mprevvert[a-1].co);
+						}
+						/* origin to face_v2*/
+						VECSUB(nv1, nv1, face_v2);
+						facedist = Inpf(nv1,d_nvect);
+						if (ABS(facedist)<outerfacethickness){
+							if (point_in_tri_prism(nv1, face_v1,face_v2,face_v3) ){
+								float df;
+								if (facedist > 0){
+									df = (outerfacethickness-facedist)/outerfacethickness;
+								}
+								else {
+									df = (outerfacethickness+facedist)/outerfacethickness;
+								}
+
+								*damp=df*tune*ob->pd->pdef_sbdamp;
+
+								df = 0.01f*exp(- 100.0f*df);
+								Vec3PlusStVec(force,-df,d_nvect);
+								deflected = 3;
+							}
+						}
+						a--;
+					}/* while(a)*/
+				} /* if (mvert) */
+			} /* if(ob->pd && ob->pd->deflect) */
+			BLI_ghashIterator_step(ihash);
+	} /* while () */
+	BLI_ghashIterator_free(ihash);
+	return deflected;	
+}
+
 
 int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_v3[3],float *damp,						
 								   float force[3], unsigned int par_layer,struct Object *vertexowner,float time)
@@ -1107,7 +1147,7 @@ int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_
 	GHash *hash;
 	GHashIterator *ihash;
 	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3], d_nvect[3], aabbmin[3],aabbmax[3];
-	float t;
+	float t,tune = 10.0f;
 	int a, deflected=0;
 
 	aabbmin[0] = MIN3(face_v1[0],face_v2[0],face_v3[0]);
@@ -1203,11 +1243,11 @@ int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_
 					Crossf(d_nvect, edge2, edge1);
 					Normalize(d_nvect);
 					if ( 
-						LineIntersectsTriangle(nv1, nv2, face_v1, face_v2, face_v3, &t) ||
-						LineIntersectsTriangle(nv2, nv3, face_v1, face_v2, face_v3, &t) ||
-						LineIntersectsTriangle(nv3, nv1, face_v1, face_v2, face_v3, &t) ){
-						Vec3PlusStVec(force,-1.0f,d_nvect);
-						*damp=ob->pd->pdef_sbdamp;
+						LineIntersectsTriangle(nv1, nv2, face_v1, face_v2, face_v3, &t, NULL) ||
+						LineIntersectsTriangle(nv2, nv3, face_v1, face_v2, face_v3, &t, NULL) ||
+						LineIntersectsTriangle(nv3, nv1, face_v1, face_v2, face_v3, &t, NULL) ){
+						Vec3PlusStVec(force,-0.5f,d_nvect);
+						*damp=tune*ob->pd->pdef_sbdamp;
 						deflected = 2;
 					}
 					if (mface->v4){ /* quad */
@@ -1217,11 +1257,12 @@ int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_
 						Crossf(d_nvect, edge2, edge1);
 						Normalize(d_nvect);	
 						if ( 
-							LineIntersectsTriangle(nv1, nv3, face_v1, face_v2, face_v3, &t) ||
-							LineIntersectsTriangle(nv3, nv4, face_v1, face_v2, face_v3, &t) ||
-							LineIntersectsTriangle(nv4, nv1, face_v1, face_v2, face_v3, &t) ){
-							Vec3PlusStVec(force,-1.0f,d_nvect);
-							*damp=ob->pd->pdef_sbdamp;
+							/* LineIntersectsTriangle(nv1, nv3, face_v1, face_v2, face_v3, &t, NULL) ||
+							 we did that edge allready */
+							LineIntersectsTriangle(nv3, nv4, face_v1, face_v2, face_v3, &t, NULL) ||
+							LineIntersectsTriangle(nv4, nv1, face_v1, face_v2, face_v3, &t, NULL) ){
+							Vec3PlusStVec(force,-0.5f,d_nvect);
+							*damp=tune*ob->pd->pdef_sbdamp;
 							deflected = 2;
 						}
 					}
@@ -1242,7 +1283,7 @@ void scan_for_ext_face_forces(Object *ob,float timenow)
 	SoftBody *sb = ob->soft;
 	BodyFace *bf;
 	int a;
-	float damp; 
+	float damp=0.0f,choke=1.0f; 
 	float tune = -10.0f;
 	float feedback[3];
 	
@@ -1252,43 +1293,71 @@ void scan_for_ext_face_forces(Object *ob,float timenow)
 		bf = sb->scratch->bodyface;
 		for(a=0; a<sb->scratch->totface; a++, bf++) {
 			bf->ext_force[0]=bf->ext_force[1]=bf->ext_force[2]=0.0f; 
+/*+++edges intruding*/
+			bf->flag &= ~BFF_INTERSECT;		
 			feedback[0]=feedback[1]=feedback[2]=0.0f;
-			bf->flag &= ~BFF_INTERSECT;
-			
 			if (sb_detect_face_collisionCached(sb->bpoint[bf->v1].pos,sb->bpoint[bf->v2].pos, sb->bpoint[bf->v3].pos, 
 				&damp,	feedback, ob->lay ,ob , timenow)){
-				Vec3PlusStVec(bf->ext_force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v1].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v2].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v3].force,tune,feedback);
+//				Vec3PlusStVec(bf->ext_force,tune,feedback);
 				bf->flag |= BFF_INTERSECT;
+				choke = MIN2(MAX2(damp,choke),1.0f);
 			}
 
 			feedback[0]=feedback[1]=feedback[2]=0.0f;
 			if ((bf->v4) && (sb_detect_face_collisionCached(sb->bpoint[bf->v1].pos,sb->bpoint[bf->v3].pos, sb->bpoint[bf->v4].pos, 
 				&damp,	feedback, ob->lay ,ob , timenow))){
-				Vec3PlusStVec(bf->ext_force,tune,feedback);
-				bf->flag |= BFF_INTERSECT;	
+				Vec3PlusStVec(sb->bpoint[bf->v1].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v3].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v4].force,tune,feedback);
+//				Vec3PlusStVec(bf->ext_force,tune,feedback);
+				bf->flag |= BFF_INTERSECT;
+				choke = MIN2(MAX2(damp,choke),1.0f);
 			}
-		}
+/*---edges intruding*/
 
-		
-		
-		bf = sb->scratch->bodyface;
-		for(a=0; a<sb->scratch->totface; a++, bf++) {
-			if ( bf->flag & BFF_INTERSECT)
-			{
-				VECADD(sb->bpoint[bf->v1].force,sb->bpoint[bf->v1].force,bf->ext_force); 
-				VECADD(sb->bpoint[bf->v2].force,sb->bpoint[bf->v2].force,bf->ext_force);
-				VECADD(sb->bpoint[bf->v3].force,sb->bpoint[bf->v3].force,bf->ext_force); 
-				if (bf->v4){
-				VECADD(sb->bpoint[bf->v4].force,sb->bpoint[bf->v4].force,bf->ext_force);
+/*+++ close vertices*/
+			if  (( bf->flag & BFF_INTERSECT)==0){
+				bf->flag &= ~BFF_CLOSEVERT;
+				tune = -1.0f;
+				feedback[0]=feedback[1]=feedback[2]=0.0f;
+				if (sb_detect_face_pointCached(sb->bpoint[bf->v1].pos,sb->bpoint[bf->v2].pos, sb->bpoint[bf->v3].pos, 
+					&damp,	feedback, ob->lay ,ob , timenow)){
+				Vec3PlusStVec(sb->bpoint[bf->v1].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v2].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v3].force,tune,feedback);
+//						Vec3PlusStVec(bf->ext_force,tune,feedback);
+						bf->flag |= BFF_CLOSEVERT;
+						choke = MIN2(MAX2(damp,choke),1.0f);
 				}
 
+				feedback[0]=feedback[1]=feedback[2]=0.0f;
+				if ((bf->v4) && (sb_detect_face_pointCached(sb->bpoint[bf->v1].pos,sb->bpoint[bf->v3].pos, sb->bpoint[bf->v4].pos, 
+					&damp,	feedback, ob->lay ,ob , timenow))){
+				Vec3PlusStVec(sb->bpoint[bf->v1].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v3].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v4].force,tune,feedback);
+//						Vec3PlusStVec(bf->ext_force,tune,feedback);
+						bf->flag |= BFF_CLOSEVERT;
+						choke = MIN2(MAX2(damp,choke),1.0f);
+				}
 			}
-			
+/*--- close vertices*/
 		}
-
-
-
-
+		bf = sb->scratch->bodyface;
+		for(a=0; a<sb->scratch->totface; a++, bf++) {
+			if (( bf->flag & BFF_INTERSECT) || ( bf->flag & BFF_CLOSEVERT))
+			{
+                sb->bpoint[bf->v1].choke2=MAX2(sb->bpoint[bf->v1].choke2,choke);
+                sb->bpoint[bf->v2].choke2=MAX2(sb->bpoint[bf->v2].choke2,choke);
+                sb->bpoint[bf->v3].choke2=MAX2(sb->bpoint[bf->v3].choke2,choke);
+				if (bf->v4){
+                sb->bpoint[bf->v2].choke2=MAX2(sb->bpoint[bf->v2].choke2,choke);
+				}
+			}	
+		}
 	}
 }
 
@@ -1402,7 +1471,7 @@ int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],float *damp
 
 					Crossf(d_nvect, edge2, edge1);
 					Normalize(d_nvect);
-					if ( LineIntersectsTriangle(edge_v1, edge_v2, nv1, nv2, nv3, &t)){
+					if ( LineIntersectsTriangle(edge_v1, edge_v2, nv1, nv2, nv3, &t, NULL)){
 						float v1[3],v2[3];
 						float intrusiondepth,i1,i2;
 						VECSUB(v1, edge_v1, nv2);
@@ -1421,7 +1490,7 @@ int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],float *damp
 
 						Crossf(d_nvect, edge2, edge1);
 						Normalize(d_nvect);						
-						if (LineIntersectsTriangle( edge_v1, edge_v2,nv1, nv3, nv4, &t)){
+						if (LineIntersectsTriangle( edge_v1, edge_v2,nv1, nv3, nv4, &t, NULL)){
 							float v1[3],v2[3];
 							float intrusiondepth,i1,i2;
 							VECSUB(v1, edge_v1, nv4);
@@ -1445,6 +1514,7 @@ int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],float *damp
 	BLI_ghashIterator_free(ihash);
 	return deflected;	
 }
+
 
 
 void scan_for_ext_spring_forces(Object *ob,float timenow)
@@ -1498,14 +1568,20 @@ void scan_for_ext_spring_forces(Object *ob,float timenow)
 					}
 					f = Normalize(vel);
 					f = -0.0001f*f*f*sb->aeroedge;
-					/* todo add a nice angle dependant function */
-					/* look up one at bergman scheafer */
+					/* (todo) add a nice angle dependant function done for now BUT */
+					/* still there could be some nice drag/lift function, but who needs it */ 
 
 					VECSUB(sp, sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos);
 					Projf(pr,vel,sp);
 					VECSUB(vel,vel,pr);
 					Normalize(vel);
-					Vec3PlusStVec(bs->ext_force,f,vel);
+					if (ob->softflag & OB_SB_AERO_ANGLE){
+						Normalize(sp);
+						Vec3PlusStVec(bs->ext_force,f*(1.0f-ABS(Inpf(vel,sp))),vel);
+					}
+					else{ 
+						Vec3PlusStVec(bs->ext_force,f,vel); // to keep compatible with 2.45 release files
+					}
 				}
 				/* --- springs seeing wind */
 			}
@@ -1547,19 +1623,22 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 									 float force[3], unsigned int par_layer,struct Object *vertexowner,
 									 float time,float vel[3], float *intrusion)
 {
-	Object *ob;
+	Object *ob= NULL;
 	GHash *hash;
 	GHashIterator *ihash;
-	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3],d_nvect[3], dv1[3],ve[3],avel[3],
-    vv1[3], vv2[3], vv3[3], vv4[3],
+	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3],d_nvect[3], dv1[3],ve[3],avel[3]={0.0,0.0,0.0},
+    vv1[3], vv2[3], vv3[3], vv4[3], coledge[3], mindistedge = 1000.0f, 
+	outerforceaccu[3],innerforceaccu[3],
 		facedist,n_mag,force_mag_norm,minx,miny,minz,maxx,maxy,maxz,
 		innerfacethickness = -0.5f, outerfacethickness = 0.2f,
-		ee = 5.0f, ff = 0.1f, fa;
+		ee = 5.0f, ff = 0.1f, fa=1;
 	int a, deflected=0, cavel=0,ci=0;
 /* init */
 	*intrusion = 0.0f;
 	hash  = vertexowner->soft->scratch->colliderhash;
 	ihash =	BLI_ghashIterator_new(hash);
+	outerforceaccu[0]=outerforceaccu[1]=outerforceaccu[2]=0.0f;
+	innerforceaccu[0]=innerforceaccu[1]=innerforceaccu[2]=0.0f;
 /* go */
     while (!BLI_ghashIterator_isDone(ihash) ) {
 
@@ -1675,16 +1754,24 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 					Crossf(d_nvect, edge2, edge1);
 					n_mag = Normalize(d_nvect);
 					facedist = Inpf(dv1,d_nvect);
+					// so rules are
+					//
 
 					if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){		
 						if (point_in_tri_prism(opco, nv1, nv2, nv3) ){
 							force_mag_norm =(float)exp(-ee*facedist);
 							if (facedist > outerfacethickness*ff)
 								force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
-							Vec3PlusStVec(force,force_mag_norm,d_nvect);
 							*damp=ob->pd->pdef_sbdamp;
 							if (facedist > 0.0f){
 								*damp *= (1.0f - facedist/outerfacethickness);
+								Vec3PlusStVec(outerforceaccu,force_mag_norm,d_nvect);
+								deflected = 3;
+
+							}
+							else {
+								Vec3PlusStVec(innerforceaccu,force_mag_norm,d_nvect);
+								if (deflected < 2) deflected = 2;
 							}
 							if ((mprevvert) && (*damp > 0.0f)){
 								choose_winner(ve,opco,nv1,nv2,nv3,vv1,vv2,vv3);
@@ -1693,7 +1780,6 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 							}
 							*intrusion += facedist;
 							ci++;
-							deflected = 2;
 						}
 					}		
 					if (mface->v4){ /* quad */
@@ -1711,11 +1797,17 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 								force_mag_norm =(float)exp(-ee*facedist);
 								if (facedist > outerfacethickness*ff)
 									force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
-								Vec3PlusStVec(force,force_mag_norm,d_nvect);
 								*damp=ob->pd->pdef_sbdamp;
-								if (facedist > 0.0f){
-									*damp *= (1.0f - facedist/outerfacethickness);
-								}
+							if (facedist > 0.0f){
+								*damp *= (1.0f - facedist/outerfacethickness);
+								Vec3PlusStVec(outerforceaccu,force_mag_norm,d_nvect);
+								deflected = 3;
+
+							}
+							else {
+								Vec3PlusStVec(innerforceaccu,force_mag_norm,d_nvect);
+								if (deflected < 2) deflected = 2;
+							}
 
 								if ((mprevvert) && (*damp > 0.0f)){
 									choose_winner(ve,opco,nv1,nv3,nv4,vv1,vv3,vv4);
@@ -1724,8 +1816,60 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 								}
 							    *intrusion += facedist;
 								ci++;
-								deflected = 2;
 							}
+
+						}
+						if ((deflected < 2)&& (G.rt != 444)) // we did not hit a face until now
+						{ // see if 'outer' hits an edge
+							float dist;
+
+							PclosestVL3Dfl(ve, opco, nv1, nv2);
+ 				            VECSUB(ve,opco,ve); 
+							dist = Normalize(ve);
+							if ((dist < outerfacethickness)&&(dist < mindistedge )){
+								VECCOPY(coledge,ve);
+								mindistedge = dist,
+								deflected=1;
+							}
+
+							PclosestVL3Dfl(ve, opco, nv2, nv3);
+ 				            VECSUB(ve,opco,ve); 
+							dist = Normalize(ve);
+							if ((dist < outerfacethickness)&&(dist < mindistedge )){
+								VECCOPY(coledge,ve);
+								mindistedge = dist,
+								deflected=1;
+							}
+
+							PclosestVL3Dfl(ve, opco, nv3, nv1);
+ 				            VECSUB(ve,opco,ve); 
+							dist = Normalize(ve);
+							if ((dist < outerfacethickness)&&(dist < mindistedge )){
+								VECCOPY(coledge,ve);
+								mindistedge = dist,
+								deflected=1;
+							}
+							if (mface->v4){ /* quad */
+								PclosestVL3Dfl(ve, opco, nv3, nv4);
+								VECSUB(ve,opco,ve); 
+								dist = Normalize(ve);
+								if ((dist < outerfacethickness)&&(dist < mindistedge )){
+									VECCOPY(coledge,ve);
+									mindistedge = dist,
+										deflected=1;
+								}
+
+								PclosestVL3Dfl(ve, opco, nv1, nv4);
+								VECSUB(ve,opco,ve); 
+								dist = Normalize(ve);
+								if ((dist < outerfacethickness)&&(dist < mindistedge )){
+									VECCOPY(coledge,ve);
+									mindistedge = dist,
+										deflected=1;
+								}
+							
+							}
+
 
 						}
 					}
@@ -1735,6 +1879,25 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 			} /* if(ob->pd && ob->pd->deflect) */
 			BLI_ghashIterator_step(ihash);
 	} /* while () */
+
+	if (deflected == 1){ // no face but 'outer' edge cylinder sees vert
+		force_mag_norm =(float)exp(-ee*mindistedge);
+		if (mindistedge > outerfacethickness*ff)
+			force_mag_norm =(float)force_mag_norm*fa*(mindistedge - outerfacethickness)*(mindistedge - outerfacethickness);
+		Vec3PlusStVec(force,force_mag_norm,coledge);
+		*damp=ob->pd->pdef_sbdamp;
+		if (mindistedge > 0.0f){
+			*damp *= (1.0f - mindistedge/outerfacethickness);
+		}
+
+	}
+	if (deflected == 2){ //  face inner detected
+		VECADD(force,force,innerforceaccu);
+	}
+	if (deflected == 3){ //  face outer detected
+		VECADD(force,force,outerforceaccu);
+	}
+
 	BLI_ghashIterator_free(ihash);
 	if (cavel) VecMulf(avel,1.0f/(float)cavel);
 	VECCOPY(vel,avel);
@@ -1745,253 +1908,6 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 	}
 	return deflected;	
 }
-
-/* not complete yet ..
-   try to find a pos resolving all inside collisions 
-*/
-#if 0 //mute it for now 
-int sb_detect_vertex_collisionCachedEx(float opco[3], float facenormal[3], float *damp,
-									 float force[3], unsigned int par_layer,struct Object *vertexowner,
-									 float time,float vel[3], float *intrusion)
-{
-	Object *ob;
-	GHash *hash;
-	GHashIterator *ihash;
-	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3],d_nvect[3], dv1[3],ve[3],avel[3],
-    vv1[3], vv2[3], vv3[3], vv4[3],
-		facedist,n_mag,force_mag_norm,minx,miny,minz,maxx,maxy,maxz,
-		innerfacethickness,outerfacethickness,
-		closestinside,
-		ee = 5.0f, ff = 0.1f, fa;
-	int a, deflected=0, cavel=0;
-/* init */
-	*intrusion = 0.0f;
-	hash  = vertexowner->soft->scratch->colliderhash;
-	ihash =	BLI_ghashIterator_new(hash);
-/* go */
-    while (!BLI_ghashIterator_isDone(ihash) ) {
-
-		ccd_Mesh *ccdm = BLI_ghashIterator_getValue	(ihash);
-		ob             = BLI_ghashIterator_getKey	(ihash);
-			/* only with deflecting set */
-			if(ob->pd && ob->pd->deflect) {
-				MFace *mface= NULL;
-				MVert *mvert= NULL;
-				MVert *mprevvert= NULL;
-				ccdf_minmax *mima= NULL;
-
-				if(ccdm){
-					mface= ccdm->mface;
-					mvert= ccdm->mvert;
-					mprevvert= ccdm->mprevvert;
-					mima= ccdm->mima;
-					a = ccdm->totface;
-
-					minx =ccdm->bbmin[0]; 
-					miny =ccdm->bbmin[1]; 
-					minz =ccdm->bbmin[2];
-
-					maxx =ccdm->bbmax[0]; 
-					maxy =ccdm->bbmax[1]; 
-					maxz =ccdm->bbmax[2]; 
-
-					if ((opco[0] < minx) || 
-						(opco[1] < miny) ||
-						(opco[2] < minz) ||
-						(opco[0] > maxx) || 
-						(opco[1] > maxy) || 
-						(opco[2] > maxz) ) {
-							/* outside the padded boundbox --> collision object is too far away */ 
-												BLI_ghashIterator_step(ihash);
-							continue;				
-					}					
-				}
-				else{
-					/*aye that should be cached*/
-					printf("missing cache error \n");
-						BLI_ghashIterator_step(ihash);
-					continue;				
-				}
-
-				/* do object level stuff */
-				/* need to have user control for that since it depends on model scale */
-				innerfacethickness =-ob->pd->pdef_sbift;
-				outerfacethickness =ob->pd->pdef_sboft;
-				closestinside = innerfacethickness;
-				fa = (ff*outerfacethickness-outerfacethickness);
-				fa *= fa;
-				fa = 1.0f/fa;
-                avel[0]=avel[1]=avel[2]=0.0f;
-				/* use mesh*/
-				while (a--) {
-					if (
-						(opco[0] < mima->minx) || 
-						(opco[0] > mima->maxx) || 
-						(opco[1] < mima->miny) ||
-						(opco[1] > mima->maxy) || 
-						(opco[2] < mima->minz) ||
-						(opco[2] > mima->maxz) 
-						) {
-							mface++;
-							mima++;
-							continue;
-					}
-
-					if (mvert){
-
-						VECCOPY(nv1,mvert[mface->v1].co);						
-						VECCOPY(nv2,mvert[mface->v2].co);
-						VECCOPY(nv3,mvert[mface->v3].co);
-						if (mface->v4){
-							VECCOPY(nv4,mvert[mface->v4].co);
-						}
-
-						if (mprevvert){
-							/* grab the average speed of the collider vertices
-							before we spoil nvX 
-							humm could be done once a SB steps but then we' need to store that too
-							since the AABB reduced propabitlty to get here drasticallly
-							it might be a nice tradeof CPU <--> memory
-							*/
-							VECSUB(vv1,nv1,mprevvert[mface->v1].co);
-							VECSUB(vv2,nv2,mprevvert[mface->v2].co);
-							VECSUB(vv3,nv3,mprevvert[mface->v3].co);
-							if (mface->v4){
-								VECSUB(vv4,nv4,mprevvert[mface->v4].co);
-							}
-
-							VecMulf(nv1,time);
-							Vec3PlusStVec(nv1,(1.0f-time),mprevvert[mface->v1].co);
-
-							VecMulf(nv2,time);
-							Vec3PlusStVec(nv2,(1.0f-time),mprevvert[mface->v2].co);
-
-							VecMulf(nv3,time);
-							Vec3PlusStVec(nv3,(1.0f-time),mprevvert[mface->v3].co);
-
-							if (mface->v4){
-								VecMulf(nv4,time);
-								Vec3PlusStVec(nv4,(1.0f-time),mprevvert[mface->v4].co);
-							}
-						}	
-					}
-					
-					/* switch origin to be nv2*/
-					VECSUB(edge1, nv1, nv2);
-					VECSUB(edge2, nv3, nv2);
-					VECSUB(dv1,opco,nv2); /* abuse dv1 to have vertex in question at *origin* of triangle */
-
-					Crossf(d_nvect, edge2, edge1);
-					n_mag = Normalize(d_nvect);
-					facedist = Inpf(dv1,d_nvect);
-
-					if ((facedist > closestinside) && (facedist < outerfacethickness)){		
-//					if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){		
-						if (point_in_tri_prism(opco, nv1, nv2, nv3) ){
-							force_mag_norm =(float)exp(-ee*facedist);
-							if (facedist > outerfacethickness*ff)
-								force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
-							    *damp=ob->pd->pdef_sbdamp;
-
-								if (facedist > 0.0f){
-									*damp *= (1.0f - facedist/outerfacethickness);								
-									Vec3PlusStVec(force,force_mag_norm,d_nvect);
-									if (deflected < 2){
-										deflected = 1;
-										if ((mprevvert) && (*damp > 0.0f)){
-											choose_winner(ve,opco,nv1,nv2,nv3,vv1,vv2,vv3);
-											VECADD(avel,avel,ve);
-											cavel ++;
-										}
-									}
-									
-								}
-								else{
-									Vec3PlusStVec(force,force_mag_norm,d_nvect);
-									VECCOPY(facenormal,d_nvect);
-									if ((mprevvert) && (*damp > 0.0f)){
-										choose_winner(avel,opco,nv1,nv2,nv3,vv1,vv2,vv3);
-										cavel = 1;
-										deflected = 2;
-										closestinside = facedist;
-									}
-								}
-							*intrusion = facedist;
-						}
-					}		
-					if (mface->v4){ /* quad */
-						/* switch origin to be nv4 */
-						VECSUB(edge1, nv3, nv4);
-						VECSUB(edge2, nv1, nv4);
-						VECSUB(dv1,opco,nv4); /* abuse dv1 to have vertex in question at *origin* of triangle */
-
-						Crossf(d_nvect, edge2, edge1);
-						n_mag = Normalize(d_nvect);
-						facedist = Inpf(dv1,d_nvect);
-
-						if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){
-							if (point_in_tri_prism(opco, nv1, nv3, nv4) ){
-								force_mag_norm =(float)exp(-ee*facedist);
-								if (facedist > outerfacethickness*ff)
-									force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
-								Vec3PlusStVec(force,force_mag_norm,d_nvect);
-								*damp=ob->pd->pdef_sbdamp;
-
-								if (facedist > 0.0f){
-									*damp *= (1.0f - facedist/outerfacethickness);								
-									Vec3PlusStVec(force,force_mag_norm,d_nvect);
-									if (deflected < 2){
-										deflected = 1;
-										if ((mprevvert) && (*damp > 0.0f)){
-											choose_winner(ve,opco,nv1,nv3,nv4,vv1,vv3,vv4);
-											VECADD(avel,avel,ve);
-											cavel ++;
-										}
-									}
-									
-								}
-								else{
-									Vec3PlusStVec(force,force_mag_norm,d_nvect);
-									VECCOPY(facenormal,d_nvect);
-									if ((mprevvert) && (*damp > 0.0f)){
-										choose_winner(avel,opco,nv1,nv3,nv4,vv1,vv3,vv4);
-										cavel = 1;
-										deflected = 2;
-										closestinside = facedist;
-									}
-								}
-
-
-
-							    *intrusion = facedist;
-							}
-
-						}
-					}
-					mface++;
-					mima++;					
-				}/* while a */		
-			} /* if(ob->pd && ob->pd->deflect) */
-			BLI_ghashIterator_step(ihash);
-	} /* while () */
-	BLI_ghashIterator_free(ihash);
-	if (cavel) VecMulf(avel,1.0f/(float)cavel);
-	VECCOPY(vel,avel);
-
-    /* we  did stay "outside" but have some close to contact forces
-	   just to be complete fake a face normal
-	*/
-	if (deflected ==1){ 
-		VECCOPY(facenormal,force);
-		Normalize(facenormal);
-	} 
-	else{
-		facenormal[0] = facenormal[1] = facenormal[2] = 0.0f;
-	}
-	return deflected;	
-}
-#endif
-
 
 
 /* sandbox to plug in various deflection algos */
@@ -2005,8 +1921,112 @@ static int sb_deflect_face(Object *ob,float *actpos,float *facenormal,float *for
 	return(deflected);
 }
 
+/* hiding this for now .. but the jacobian may pop up on other tasks .. so i'd like to keep it
+static void dfdx_spring(int ia, int ic, int op, float dir[3],float L,float len,float factor)
+{ 
+	float m,delta_ij;
+	int i ,j;
+	if (L < len){
+		for(i=0;i<3;i++)
+			for(j=0;j<3;j++){
+				delta_ij = (i==j ? (1.0f): (0.0f));
+				m=factor*(dir[i]*dir[j] + (1-L/len)*(delta_ij - dir[i]*dir[j]));
+				nlMatrixAdd(ia+i,op+ic+j,m);
+			}
+	}
+	else{
+		for(i=0;i<3;i++)
+			for(j=0;j<3;j++){
+				m=factor*dir[i]*dir[j];
+				nlMatrixAdd(ia+i,op+ic+j,m);
+			}
+	}
+}
 
-static void softbody_calc_forces(Object *ob, float forcetime, float timenow)
+
+static void dfdx_goal(int ia, int ic, int op, float factor)
+{ 
+	int i;
+	for(i=0;i<3;i++) nlMatrixAdd(ia+i,op+ic+i,factor);
+}
+
+static void dfdv_goal(int ia, int ic,float factor)
+{ 
+	int i;
+	for(i=0;i<3;i++) nlMatrixAdd(ia+i,ic+i,factor);
+}
+*/
+static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float forcetime,int nl_flags)
+{
+	SoftBody *sb= ob->soft;	/* is supposed to be there */
+	BodyPoint  *bp1,*bp2;
+
+	float dir[3],dvel[3];
+	float distance,forcefactor,kd,absvel,projvel;
+	int ia,ic;
+	/* prepare depending on which side of the spring we are on */
+	if (bpi == bs->v1){
+		bp1 = &sb->bpoint[bs->v1];
+		bp2 = &sb->bpoint[bs->v2];
+		ia =3*bs->v1;
+		ic =3*bs->v2;
+	}
+	else if (bpi == bs->v2){
+		bp1 = &sb->bpoint[bs->v2];
+		bp2 = &sb->bpoint[bs->v1];
+		ia =3*bs->v2;
+		ic =3*bs->v1;
+	}
+	else{
+		/* TODO make this debug option */
+		/**/
+		printf("bodypoint <bpi> is not attached to spring  <*bs> --> sb_spring_force()\n");
+		return;
+	}
+
+	/* do bp1 <--> bp2 elastic */
+	VecSubf(dir,bp1->pos,bp2->pos);
+	distance = Normalize(dir);
+	if (bs->len < distance)
+		iks  = 1.0f/(1.0f-sb->inspring)-1.0f ;/* inner spring constants function */
+	else
+		iks  = 1.0f/(1.0f-sb->inpush)-1.0f ;/* inner spring constants function */
+
+	if(bs->len > 0.0f) /* check for degenerated springs */
+		forcefactor = iks/bs->len;
+	else
+		forcefactor = iks;
+	forcefactor *= bs->strength; 
+	Vec3PlusStVec(bp1->force,(bs->len - distance)*forcefactor,dir);
+
+	/* do bp1 <--> bp2 viscous */
+	VecSubf(dvel,bp1->vec,bp2->vec);
+	kd = sb->infrict * sb_fric_force_scale(ob);
+	absvel  = Normalize(dvel);
+	projvel = Inpf(dir,dvel);
+	kd     *= absvel * projvel;
+	Vec3PlusStVec(bp1->force,-kd,dir);
+
+	/* do jacobian stuff if needed */
+	if(nl_flags & NLF_BUILD){
+		//int op =3*sb->totpoint;
+		//float mvel = -forcetime*kd;
+		//float mpos = -forcetime*forcefactor;
+		/* depending on my pos */ 
+		// dfdx_spring(ia,ia,op,dir,bs->len,distance,-mpos);
+		/* depending on my vel */
+		// dfdv_goal(ia,ia,mvel); // well that ignores geometie
+		if(bp2->goal < SOFTGOALSNAP){ /* ommit this bp when it snaps */
+			/* depending on other pos */ 
+			// dfdx_spring(ia,ic,op,dir,bs->len,distance,mpos);
+			/* depending on other vel */
+			// dfdv_goal(ia,ia,-mvel); // well that ignores geometie
+		}
+	}
+}
+
+
+static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int nl_flags)
 {
 /* rule we never alter free variables :bp->vec bp->pos in here ! 
  * this will ruin adaptive stepsize AKA heun! (BM) 
@@ -2016,10 +2036,20 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow)
 	BodyPoint *bproot;
 	BodySpring *bs;	
 	ListBase *do_effector;
-	float iks, ks, kd, gravity, actspringlen, forcefactor, sd[3];
+	float iks, ks, kd, gravity;
 	float fieldfactor = 1000.0f, windfactor  = 250.0f;   
 	float tune = sb->ballstiff;
 	int a, b,  do_deflector,do_selfcollision,do_springcollision,do_aero;
+
+
+/* jacobian
+	NLboolean success;
+
+	if(nl_flags){
+		nlBegin(NL_SYSTEM);
+		nlBegin(NL_MATRIX);
+	}
+*/
 	
 	
 	gravity = sb->grav * sb_grav_force_scale(ob);	
@@ -2042,17 +2072,29 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow)
 		do_deflector = sb_detect_aabb_collisionCached(defforce,ob->lay,ob,timenow);
 	}
 
-	if (do_selfcollision ){ 
-		float ce[3]; 
-		VecMidf(ce,sb->scratch->aabbmax,sb->scratch->aabbmin);
-		for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-			bp->octantflag = set_octant_flags(ce,bp->pos,bp->colball);
-		}
-	}
-
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 		/* clear forces  accumulator */
 		bp->force[0]= bp->force[1]= bp->force[2]= 0.0;
+		if(nl_flags & NLF_BUILD){
+			//int ia =3*(sb->totpoint-a);
+			//int op =3*sb->totpoint;
+			/* dF/dV = v */ 
+			/* jacobioan
+			nlMatrixAdd(op+ia,ia,-forcetime);
+			nlMatrixAdd(op+ia+1,ia+1,-forcetime);
+			nlMatrixAdd(op+ia+2,ia+2,-forcetime);
+     		
+			nlMatrixAdd(ia,ia,1);
+			nlMatrixAdd(ia+1,ia+1,1);
+			nlMatrixAdd(ia+2,ia+2,1);
+
+			nlMatrixAdd(op+ia,op+ia,1);
+			nlMatrixAdd(op+ia+1,op+ia+1,1);
+			nlMatrixAdd(op+ia+2,op+ia+2,1);
+			*/
+
+
+		}
 
 		/* naive ball self collision */
 		/* needs to be done if goal snaps or not */
@@ -2066,7 +2108,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow)
 
 				for(c=sb->totpoint, obp= sb->bpoint; c>=a; c--, obp++) {
 					
-					if ((bp->octantflag & obp->octantflag) == 0) continue;
+					//if ((bp->octantflag & obp->octantflag) == 0) continue;
 
 					compare = (obp->colball + bp->colball);		
 					VecSubf(def, bp->pos, obp->pos);
@@ -2092,14 +2134,40 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow)
 							VecSubf(dvel,velcenter,bp->vec);
 							VecMulf(dvel,sb->nodemass);
 
-							Vec3PlusStVec(bp->force,sb->balldamp,dvel);
 							Vec3PlusStVec(bp->force,f*(1.0f-sb->balldamp),def);
+							Vec3PlusStVec(bp->force,sb->balldamp,dvel);
+
+							if(nl_flags & NLF_BUILD){
+								//int ia =3*(sb->totpoint-a);
+								//int ic =3*(sb->totpoint-c);
+								//int op =3*sb->totpoint;
+								//float mvel = forcetime*sb->nodemass*sb->balldamp;
+								//float mpos = forcetime*tune*(1.0f-sb->balldamp);
+								/*some quick and dirty entries to the jacobian*/
+								//dfdx_goal(ia,ia,op,mpos);
+								//dfdv_goal(ia,ia,mvel);
+								/* exploit force(a,b) == -force(b,a) part1/2 */
+								//dfdx_goal(ic,ic,op,mpos);
+								//dfdv_goal(ic,ic,mvel);
+								
+								
+								/*TODO sit down an X-out the true jacobian entries*/
+								/*well does not make to much sense because the eigenvalues
+								of the jacobian go negative; and negative eigenvalues
+								on a complex iterative system z(n+1)=A * z(n) 
+								give imaginary roots in the charcateristic polynom
+								--> solutions that to z(t)=u(t)* exp ( i omega t) --> oscilations we don't want here 
+								where u(t) is a unknown amplitude function (worst case rising fast)
+								*/ 
+							}
+
 							/* exploit force(a,b) == -force(b,a) part2/2 */
 							VecSubf(dvel,velcenter,obp->vec);
 							VecMulf(dvel,sb->nodemass);
 
 							Vec3PlusStVec(obp->force,sb->balldamp,dvel);
 							Vec3PlusStVec(obp->force,-f*(1.0f-sb->balldamp),def);
+
 
 						}
 					}
@@ -2110,24 +2178,40 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow)
 		if(bp->goal < SOFTGOALSNAP){ /* ommit this bp when it snaps */
 			float auxvect[3];  
 			float velgoal[3];
-			float absvel =0, projvel= 0;
-			
+
 			/* do goal stuff */
 			if(ob->softflag & OB_SB_GOAL) {
 				/* true elastic goal */
-				VecSubf(auxvect,bp->origT,bp->pos);
+				VecSubf(auxvect,bp->pos,bp->origT);
 				ks  = 1.0f/(1.0f- bp->goal*sb->goalspring)-1.0f ;
-				bp->force[0]+= ks*(auxvect[0]);
-				bp->force[1]+= ks*(auxvect[1]);
-				bp->force[2]+= ks*(auxvect[2]);
+				bp->force[0]+= -ks*(auxvect[0]);
+				bp->force[1]+= -ks*(auxvect[1]);
+				bp->force[2]+= -ks*(auxvect[2]);
+
+				if(nl_flags & NLF_BUILD){
+					//int ia =3*(sb->totpoint-a);
+					//int op =3*(sb->totpoint);
+					/* depending on my pos */ 
+					//dfdx_goal(ia,ia,op,ks*forcetime);
+				}
+
+
 				/* calulate damping forces generated by goals*/
 				VecSubf(velgoal,bp->origS, bp->origE);
 				kd =  sb->goalfrict * sb_fric_force_scale(ob) ;
+				VecAddf(auxvect,velgoal,bp->vec);
 				
 				if (forcetime > 0.0 ) { /* make sure friction does not become rocket motor on time reversal */
-					bp->force[0]-= kd * (velgoal[0] + bp->vec[0]);
-					bp->force[1]-= kd * (velgoal[1] + bp->vec[1]);
-					bp->force[2]-= kd * (velgoal[2] + bp->vec[2]);
+					bp->force[0]-= kd * (auxvect[0]);
+					bp->force[1]-= kd * (auxvect[1]);
+					bp->force[2]-= kd * (auxvect[2]);
+					if(nl_flags & NLF_BUILD){
+						//int ia =3*(sb->totpoint-a);
+						Normalize(auxvect);
+						/* depending on my vel */ 
+						//dfdv_goal(ia,ia,kd*forcetime);
+					}
+
 				}
 				else {
 					bp->force[0]-= kd * (velgoal[0] - bp->vec[0]);
@@ -2140,6 +2224,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow)
 			
 			/* gravitation */
 			bp->force[2]-= gravity*sb->nodemass; /* individual mass of node here */
+			//bp->force[1]-= gravity*sb->nodemass; /* individual mass of node here */
 
 			
 			/* particle field & vortex */
@@ -2170,16 +2255,26 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow)
 				bp->force[1]-= bp->vec[1]*kd;
 				bp->force[2]-= bp->vec[2]*kd;
 				/* friction in media done */
+				if(nl_flags & NLF_BUILD){
+					//int ia =3*(sb->totpoint-a);
+					/* da/dv =  */ 
+
+//					nlMatrixAdd(ia,ia,forcetime*kd);
+//					nlMatrixAdd(ia+1,ia+1,forcetime*kd);
+//					nlMatrixAdd(ia+2,ia+2,forcetime*kd);
+				}
+
 			}
 			/* +++cached collision targets */
 			bp->choke = 0.0f;
+			bp->choke2 = 0.0f;
 			bp->flag &= ~SBF_DOFUZZY;
 			if(do_deflector) {
 				float cfforce[3],defforce[3] ={0.0f,0.0f,0.0f}, vel[3] = {0.0f,0.0f,0.0f}, facenormal[3], cf = 1.0f,intrusion;
 				kd = 1.0f;
 
 				if (sb_deflect_face(ob,bp->pos,facenormal,defforce,&cf,timenow,vel,&intrusion)){
-					if (intrusion < 0.0f){
+					if ((!nl_flags)&&(intrusion < 0.0f)){
 						/*bjornmose:  uugh.. what an evil hack 
 						violation of the 'don't touch bp->pos in here' rule 
 						but works nice, like this-->
@@ -2197,8 +2292,15 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow)
 							VECSUB(cfforce,bp->vec,vel);
 							Vec3PlusStVec(bp->force,-cf*50.0f,cfforce);
 					}
-
 					Vec3PlusStVec(bp->force,kd,defforce);
+					if (nl_flags & NLF_BUILD){
+						// int ia =3*(sb->totpoint-a);
+						// int op =3*sb->totpoint;
+						//dfdx_goal(ia,ia,op,mpos); // don't do unless you know
+						//dfdv_goal(ia,ia,-cf);
+
+					}
+  
 				}
 
 			}
@@ -2215,50 +2317,8 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow)
 								bp->choke = bs->cf; 
 
 						}
-
-						if (( (sb->totpoint-a) == bs->v1) ){ 
-							actspringlen= VecLenf( (bproot+bs->v2)->pos, bp->pos);
-							VecSubf(sd,(bproot+bs->v2)->pos, bp->pos);
-							Normalize(sd);
-							
-							/* friction stuff V1 */
-							VecSubf(velgoal,bp->vec,(bproot+bs->v2)->vec);
-							kd = sb->infrict * sb_fric_force_scale(ob);
-							absvel  = Normalize(velgoal);
-							projvel = ABS(Inpf(sd,velgoal));
-							kd *= absvel * projvel;
-							Vec3PlusStVec(bp->force,-kd,velgoal);
-							
-							if(bs->len > 0.0f) /* check for degenerated springs */
-								forcefactor = (bs->len - actspringlen)/bs->len * iks;
-							else
-								forcefactor = actspringlen * iks;
-							forcefactor *= bs->strength; 
-							
-							Vec3PlusStVec(bp->force,-forcefactor,sd);
-							
-						}
-						
-						if (( (sb->totpoint-a) == bs->v2) ){ 
-							actspringlen= VecLenf( (bproot+bs->v1)->pos, bp->pos);
-							VecSubf(sd,bp->pos,(bproot+bs->v1)->pos);
-							Normalize(sd);
-							
-							/* friction stuff V2 */
-							VecSubf(velgoal,bp->vec,(bproot+bs->v1)->vec);
-							kd = sb->infrict * sb_fric_force_scale(ob);
-							absvel  = Normalize(velgoal);
-							projvel = ABS(Inpf(sd,velgoal));
-							kd *= absvel * projvel;
-							Vec3PlusStVec(bp->force,-kd,velgoal);
-							
-							if(bs->len > 0.0)
-								forcefactor = (bs->len - actspringlen)/bs->len * iks;
-							else
-								forcefactor = actspringlen * iks;
-							forcefactor *= bs->strength; 
-							Vec3PlusStVec(bp->force,+forcefactor,sd);							
-						}
+                        // sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float forcetime,int nl_flags)
+						sb_spring_force(ob,sb->totpoint-a,bs,iks,forcetime,nl_flags);
 					}/* loop springs */
 				}/* existing spring list */ 
 			}/*any edges*/
@@ -2268,14 +2328,81 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow)
 
 
 	/* finally add forces caused by face collision */
-    if (ob->softflag & OB_SB_FACECOLL) scan_for_ext_face_forces(ob,timenow);
+	if (ob->softflag & OB_SB_FACECOLL) scan_for_ext_face_forces(ob,timenow);
+	
+	/* finish matrix and solve */
+#if (0) // remove onl linking for now .. still i am not sure .. the jacobian can be usefull .. so keep that BM
+	if(nl_flags & NLF_SOLVE){
+		//double sct,sst=PIL_check_seconds_timer();
+		for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+			int iv =3*(sb->totpoint-a);
+			int ip =3*(2*sb->totpoint-a);
+			int n;
+			for (n=0;n<3;n++) {nlRightHandSideSet(0, iv+n, bp->force[0+n]);}
+			for (n=0;n<3;n++) {nlRightHandSideSet(0, ip+n, bp->vec[0+n]);}
+		}
+		nlEnd(NL_MATRIX);
+		nlEnd(NL_SYSTEM);
+
+		if ((G.rt >0) && (nl_flags & NLF_BUILD))
+		{ 
+			printf("####MEE#####\n");
+			nlPrintMatrix();
+		}
+
+		success= nlSolveAdvanced(NULL, 1);
+
+		// nlPrintMatrix(); /* for debug purpose .. anyhow cropping B vector looks like working */
+		if(success){
+			float f;
+			int index =0;
+			/* for debug purpose .. anyhow cropping B vector looks like working */
+			if (G.rt >0)
+				for(a=2*sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+					f=nlGetVariable(0,index);
+					printf("(%f ",f);index++;
+					f=nlGetVariable(0,index);
+					printf("%f ",f);index++;
+					f=nlGetVariable(0,index);
+					printf("%f)",f);index++;
+				}
+
+				index =0;
+				for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+					f=nlGetVariable(0,index);
+					bp->impdv[0] = f; index++;
+					f=nlGetVariable(0,index);
+					bp->impdv[1] = f; index++;
+					f=nlGetVariable(0,index);
+					bp->impdv[2] = f; index++;
+				}
+				/*
+				for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+				f=nlGetVariable(0,index);
+				bp->impdx[0] = f; index++;
+				f=nlGetVariable(0,index);
+				bp->impdx[1] = f; index++;
+				f=nlGetVariable(0,index);
+				bp->impdx[2] = f; index++;
+				}
+				*/
+		}
+		else{
+			printf("Matrix inversion failed \n");
+			for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+				VECCOPY(bp->impdv,bp->force);
+			}
+
+		}
+
+		//sct=PIL_check_seconds_timer();
+		//if (sct-sst > 0.01f) printf(" implicit solver time %f %s \r",sct-sst,ob->id.name);
+	}
 	/* cleanup */
+#endif
 	if(do_effector) pdEndEffectors(do_effector);
 }
-
-
-
-static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *err)
+static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *err, int mid_flags)
 {
 	/* time evolution */
 	/* actually does an explicit euler step mode == 0 */
@@ -2283,7 +2410,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint *bp;
 	float dx[3],dv[3],aabbmin[3],aabbmax[3],cm[3]={0.0f,0.0f,0.0f};
-	float timeovermass;
+	float timeovermass/*,freezeloc=0.00001f,freezeforce=0.00000000001f*/;
 	float maxerrpos= 0.0f,maxerrvel = 0.0f;
 	int a,fuzzy=0;
 
@@ -2298,14 +2425,14 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 		if(bp->goal < SOFTGOALSNAP){
+            /* this makes t~ = t */
+			if(mid_flags & MID_PRESERVE) VECCOPY(dx,bp->vec);
 			
 			/* so here is (v)' = a(cceleration) = sum(F_springs)/m + gravitation + some friction forces  + more forces*/
 			/* the ( ... )' operator denotes derivate respective time */
 			/* the euler step for velocity then becomes */
 			/* v(t + dt) = v(t) + a(t) * dt */ 
-			bp->force[0]*= timeovermass; /* individual mass of node here */ 
-			bp->force[1]*= timeovermass;
-			bp->force[2]*= timeovermass;
+			VecMulf(bp->force,timeovermass);/* individual mass of node here */
 			/* some nasty if's to have heun in here too */
 			VECCOPY(dv,bp->force); 
 
@@ -2313,6 +2440,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 				VECCOPY(bp->prevvec, bp->vec);
 				VECCOPY(bp->prevdv, dv);
 			}
+
 			if (mode ==2){
 				/* be optimistic and execute step */
 				bp->vec[0] = bp->prevvec[0] + 0.5f * (dv[0] + bp->prevdv[0]);
@@ -2325,15 +2453,24 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 			}
 			else {VECADD(bp->vec, bp->vec, bp->force);}
 
+            /* this makes t~ = t+dt */
+			if(!(mid_flags & MID_PRESERVE)) VECCOPY(dx,bp->vec);
+
 			/* so here is (x)'= v(elocity) */
 			/* the euler step for location then becomes */
-			/* x(t + dt) = x(t) + v(t) * dt */ 
-			
-			VECCOPY(dx,bp->vec);
-			dx[0]*=forcetime ; 
-			dx[1]*=forcetime ; 
-			dx[2]*=forcetime ; 
-			
+			/* x(t + dt) = x(t) + v(t~) * dt */ 
+			VecMulf(dx,forcetime);
+
+			/* the freezer */
+			/*
+			if  ((Inpf(dx,dx)<freezeloc )&&(Inpf(bp->force,bp->force)<freezeforce )){
+				bp->frozen /=2;
+			}
+			else{
+				bp->frozen =MIN2(bp->frozen*1.05f,1.0f);
+			}
+			VecMulf(dx,bp->frozen);
+            */
 			/* again some nasty if's to have heun in here too */
 			if (mode ==1){
 				VECCOPY(bp->prevpos,bp->pos);
@@ -2343,7 +2480,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 			if (mode ==2){
 				bp->pos[0] = bp->prevpos[0] + 0.5f * ( dx[0] + bp->prevdx[0]);
 				bp->pos[1] = bp->prevpos[1] + 0.5f * ( dx[1] + bp->prevdx[1]);
-				bp->pos[2] = bp->prevpos[2] + 0.5f* ( dx[2] + bp->prevdx[2]);
+				bp->pos[2] = bp->prevpos[2] + 0.5f * ( dx[2] + bp->prevdx[2]);
 				maxerrpos = MAX2(maxerrpos,ABS(dx[0] - bp->prevdx[0]));
 				maxerrpos = MAX2(maxerrpos,ABS(dx[1] - bp->prevdx[1]));
 				maxerrpos = MAX2(maxerrpos,ABS(dx[2] - bp->prevdx[2]));
@@ -2352,10 +2489,11 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
    the collider object signals to get out by pushing hard. on the other hand 
    we don't want to end up in deep space so we add some <viscosity> 
    to balance that out */
+				if (bp->choke2 > 0.0f){
+					VecMulf(bp->vec,(1.0f - bp->choke2));
+				}
 				if (bp->choke > 0.0f){
-					bp->vec[0] = bp->vec[0]*(1.0f - bp->choke);
-					bp->vec[1] = bp->vec[1]*(1.0f - bp->choke);
-					bp->vec[2] = bp->vec[2]*(1.0f - bp->choke);
+					VecMulf(bp->vec,(1.0f - bp->choke));
 				}
 
 			}
@@ -2402,6 +2540,81 @@ static void softbody_restore_prev_step(Object *ob)
 	}
 }
 
+#if 0
+static void softbody_store_step(Object *ob)
+{
+	SoftBody *sb= ob->soft;	/* is supposed to be there*/
+	BodyPoint *bp;
+	int a;
+	
+	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+		VECCOPY(bp->prevvec,bp->vec);
+		VECCOPY(bp->prevpos,bp->pos);
+	}
+}
+
+
+/* used by predictors and correctors */
+static void softbody_store_state(Object *ob,float *ppos,float *pvel)
+{
+	SoftBody *sb= ob->soft;	/* is supposed to be there*/
+	BodyPoint *bp;
+	int a;
+	float *pp=ppos,*pv=pvel;
+	
+	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+		
+		VECCOPY(pv, bp->vec); 
+		pv+=3;
+		
+		VECCOPY(pp, bp->pos);
+		pp+=3;
+	}
+}
+
+/* used by predictors and correctors */
+static void softbody_retrieve_state(Object *ob,float *ppos,float *pvel)
+{
+	SoftBody *sb= ob->soft;	/* is supposed to be there*/
+	BodyPoint *bp;
+	int a;
+	float *pp=ppos,*pv=pvel;
+	
+	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+		
+		VECCOPY(bp->vec,pv); 
+		pv+=3;
+		
+		VECCOPY(bp->pos,pp);
+		pp+=3;
+	}
+}
+
+/* used by predictors and correctors */
+static void softbody_swap_state(Object *ob,float *ppos,float *pvel)
+{
+	SoftBody *sb= ob->soft;	/* is supposed to be there*/
+	BodyPoint *bp;
+	int a;
+	float *pp=ppos,*pv=pvel;
+	float temp[3];
+	
+	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+		
+		VECCOPY(temp, bp->vec); 
+		VECCOPY(bp->vec,pv); 
+        VECCOPY(pv,temp); 
+		pv+=3;
+		
+		VECCOPY(temp, bp->pos);
+		VECCOPY(bp->pos,pp); 
+        VECCOPY(pp,temp); 
+		pp+=3;
+	}
+}
+#endif
+
+
 /* care for bodypoints taken out of the 'ordinary' solver step
 ** because they are screwed to goal by bolts
 ** they just need to move along with the goal in time 
@@ -2419,6 +2632,30 @@ static void softbody_apply_goalsnap(Object *ob)
 			VECCOPY(bp->prevpos,bp->pos);
 			VECCOPY(bp->pos,bp->origT);
 		}		
+	}
+}
+
+
+void apply_spring_memory(Object *ob)
+{
+	SoftBody *sb = ob->soft;
+	BodySpring *bs;
+	BodyPoint *bp1, *bp2;
+	int a;
+	float b,l,r;
+
+    b = sb->plastic;
+	if (sb && sb->totspring){
+		for(a=0; a<sb->totspring; a++) {
+			bs  = &sb->bspring[a];
+			bp1 =&sb->bpoint[bs->v1];
+			bp2 =&sb->bpoint[bs->v2];
+			l = VecLenf(bp1->pos,bp2->pos);
+			r = bs->len/l;
+			if (( r > 1.05f) || (r < 0.95)){
+			bs->len = ((100.0f - b) * bs->len  + b*l)/100.0f;
+			}
+		}
 	}
 }
 
@@ -2492,6 +2729,7 @@ static void springs_from_mesh(Object *ob)
 	Mesh *me= ob->data;
 	BodyPoint *bp;
 	int a;
+	float scale =1.0f;
 	
 	sb= ob->soft;	
 	if (me && sb)
@@ -2509,9 +2747,13 @@ static void springs_from_mesh(Object *ob)
 			
 		}
 		/* recalculate spring length for meshes here */
+		/* special hidden feature! shrink to fit */
+		if (G.rt > 500){
+			scale = (G.rt - 500) / 100.0f;
+		}
 		for(a=0; a<sb->totspring; a++) {
 			BodySpring *bs = &sb->bspring[a];
-			bs->len= VecLenf(sb->bpoint[bs->v1].origS, sb->bpoint[bs->v2].origS);
+			bs->len= scale*VecLenf(sb->bpoint[bs->v1].origS, sb->bpoint[bs->v2].origS);
 		}
 	}
 }
@@ -2861,6 +3103,106 @@ static void curve_surf_to_softbody(Object *ob)
 }
 
 
+static void springs_from_particles(Object *ob)
+{
+	ParticleSystem *psys;
+	ParticleSystemModifierData *psmd=0;
+	ParticleData *pa=0;
+	HairKey *key=0;
+	SoftBody *sb;
+	BodyPoint *bp;
+	BodySpring *bs;
+	int a,k;
+	float hairmat[4][4];
+
+	psys= ob->soft->particles;
+	sb= ob->soft;	
+	if(ob && sb && psys) { 	
+		psmd = psys_get_modifier(ob, psys);
+
+		bp= sb->bpoint;
+		for(a=0, pa=psys->particles; a<psys->totpart; a++, pa++) {
+			for(k=0, key=pa->hair; k<pa->totkey; k++, bp++, key++) {
+				VECCOPY(bp->origS, key->co);
+
+				psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
+
+				Mat4MulVecfl(hairmat, bp->origS);
+			}
+		}
+
+		for(a=0, bs=sb->bspring; a<sb->totspring; a++, bs++)
+			bs->len= VecLenf(sb->bpoint[bs->v1].origS, sb->bpoint[bs->v2].origS);
+	}
+}
+
+static void particles_to_softbody(Object *ob)
+{
+	SoftBody *sb;
+	BodyPoint *bp;
+	BodySpring *bs;
+	ParticleData *pa;
+	HairKey *key;
+	ParticleSystem *psys= ob->soft->particles;
+	float goalfac;
+	int a, k, curpoint;
+	int totpoint= psys_count_keys(psys);
+	int totedge= totpoint-psys->totpart;
+	
+	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
+	renew_softbody(ob, totpoint, totedge);
+
+	/* find first BodyPoint index for each particle */
+	if(psys->totpart > 0) {
+		psys->particles->bpi = 0;
+		for(a=1, pa=psys->particles+1; a<psys->totpart; a++, pa++)
+			pa->bpi = (pa-1)->bpi + (pa-1)->totkey;
+	}
+
+	/* we always make body points */
+	sb= ob->soft;	
+	bp= sb->bpoint;
+	bs= sb->bspring;
+	goalfac= ABS(sb->maxgoal - sb->mingoal);
+
+	if((ob->softflag & OB_SB_GOAL)) {
+		for(a=0, pa=psys->particles; a<psys->totpart; a++, pa++) {
+			for(k=0, key=pa->hair; k<pa->totkey; k++,bp++,key++) {
+				if(k) {
+					bp->goal= key->weight;
+					bp->goal= sb->mingoal + bp->goal*goalfac;
+					bp->goal= (float)pow(bp->goal, 4.0f);
+				}
+				else{
+					/* hair roots are allways fixed fully to goal */
+					bp->goal= 1.0f;
+				}
+			}
+		}
+	}
+
+	bp= sb->bpoint;
+	curpoint=0;
+	for(a=0, pa=psys->particles; a<psys->totpart; a++, curpoint++, pa++) {
+		for(k=0; k<pa->totkey-1; k++,bs++,curpoint++) {
+			bs->v1=curpoint;
+			bs->v2=curpoint+1;
+			bs->strength= 1.0;
+			bs->order=1;
+		}
+	}
+	
+	build_bps_springlist(ob); /* scan for springs attached to bodypoints ONCE */
+	/* insert *other second order* springs if desired */
+	if(sb->secondspring > 0.0000001f) {
+		add_2nd_order_springs(ob,sb->secondspring*10.0); /* exploits the the first run of build_bps_springlist(ob);*/
+		build_bps_springlist(ob); /* yes we need to do it again*/
+	}
+	springs_from_particles(ob); /* write the 'rest'-lenght of the springs */
+    if(ob->softflag & OB_SB_SELF)
+		calculate_collision_balls(ob);
+}
+
 /* copies softbody result back in object */
 static void softbody_to_object(Object *ob, float (*vertexCos)[3], int numVerts, int local)
 {
@@ -2877,117 +3219,94 @@ static void softbody_to_object(Object *ob, float (*vertexCos)[3], int numVerts, 
 	}
 }
 
-/* return 1 if succesfully baked and applied step */
-static int softbody_baked_step(Object *ob, float framenr, float (*vertexCos)[3], int numVerts)
+void softbody_clear_cache(Object *ob, float framenr)
 {
-	SoftBody *sb= ob->soft;
-	SBVertex *key0, *key1, *key2, *key3;
-	BodyPoint *bp;
-	float data[4], sfra, efra, cfra, dfra, fac;	/* start, end, current, delta */
-	int ofs1, a;
+	SoftBody *sb = ob->soft;
+	ModifierData *md = ob->modifiers.first;
+	int stack_index = -1;
+	int a;
 
-	/* precondition check */
-	if(sb==NULL || sb->keys==NULL || sb->totkey==0) return 0;
-	/* so we got keys, but no bodypoints... even without simul we need it for the bake */	 
-	if(sb->bpoint==NULL) sb->bpoint= MEM_callocN( sb->totpoint*sizeof(BodyPoint), "bodypoint");	 
- 	
-	/* convert cfra time to system time */
-	sfra= (float)sb->sfra;
-	cfra= bsystem_time(ob, NULL, framenr, 0.0);
-	efra= (float)sb->efra;
-	dfra= (float)sb->interval;
+	if(sb==NULL) return;
 
-	/* offset in keys array */
-	ofs1= (int)floor( (cfra-sfra)/dfra );
-
-	if(ofs1 < 0) {
-		key0=key1=key2=key3= *sb->keys;
-	}
-	else if(ofs1 >= sb->totkey-1) {
-		key0=key1=key2=key3= *(sb->keys+sb->totkey-1);
-	}
+	if(sb->particles)
+		stack_index = modifiers_indexInObject(ob,(ModifierData*)psys_get_modifier(ob,sb->particles));
 	else {
-		key1= *(sb->keys+ofs1);
-		key2= *(sb->keys+ofs1+1);
-
-		if(ofs1>0) key0= *(sb->keys+ofs1-1);
-		else key0= key1;
-		
-		if(ofs1<sb->totkey-2) key3= *(sb->keys+ofs1+2);
-		else key3= key2;
-	}
-	
-	sb->ctime= cfra;	/* needed? */
-	
-	/* timing */
-	fac= ((cfra-sfra)/dfra) - (float)ofs1;
-	CLAMP(fac, 0.0, 1.0);
-	set_four_ipo(fac, data, KEY_BSPLINE);
-	if (key0&&key1&&key2&&key3) // may be null because we SHIFT_ESCAPED 
-	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++, key0++, key1++, key2++, key3++) {
-		bp->pos[0]= data[0]*key0->vec[0] +  data[1]*key1->vec[0] + data[2]*key2->vec[0] + data[3]*key3->vec[0];
-		bp->pos[1]= data[0]*key0->vec[1] +  data[1]*key1->vec[1] + data[2]*key2->vec[1] + data[3]*key3->vec[1];
-		bp->pos[2]= data[0]*key0->vec[2] +  data[1]*key1->vec[2] + data[2]*key2->vec[2] + data[3]*key3->vec[2];
-	}
-	
-	softbody_to_object(ob, vertexCos, numVerts, sb->local);
-	
-	return 1;
-}
-
-/* only gets called after succesfully doing softbody_step */
-/* already checked for OB_SB_BAKE flag */
-static void softbody_baked_add(Object *ob, float framenr)
-{
-	SoftBody *sb= ob->soft;
-	SBVertex *key;
-	BodyPoint *bp;
-	float sfra, efra, cfra, dfra, fac1;	/* start, end, current, delta */
-	int ofs1, a;
-	
-	/* convert cfra time to system time */
-	sfra= (float)sb->sfra;
-	fac1= ob->sf; ob->sf= 0.0f;	/* disable startframe */
-	cfra= bsystem_time(ob, NULL, framenr, 0.0);
-	ob->sf= fac1;
-	efra= (float)sb->efra;
-	dfra= (float)sb->interval;
-	
-	if(sb->totkey==0) {
-		if(sb->sfra >= sb->efra) return;		/* safety, UI or py setting allows */
-		if(sb->interval<1) sb->interval= 1;		/* just be sure */
-		
-		sb->totkey= 1 + (int)(ceil( (efra-sfra)/dfra ) );
-		sb->keys= MEM_callocN( sizeof(void *)*sb->totkey, "sb keys");
-	}
-	
-	/* inverse matrix might not be uptodate... */
-	Mat4Invert(ob->imat, ob->obmat);
-	
-	/* now find out if we have to store a key */
-	
-	/* offset in keys array */
-	if(cfra>=(efra)) {
-		ofs1= sb->totkey-1;
-		fac1= 0.0;
-	}
-	else {
-		ofs1= (int)floor( (cfra-sfra)/dfra );
-		fac1= ((cfra-sfra)/dfra) - (float)ofs1;
-	}	
-	if( fac1 < 1.0/dfra ) {
-		
-		key= *(sb->keys+ofs1);
-		if(key == NULL) {
-			*(sb->keys+ofs1)= key= MEM_mallocN(sb->totpoint*sizeof(SBVertex), "softbody key");
-			
-			for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++, key++) {
-				VECCOPY(key->vec, bp->pos);
-				if(sb->local)
-					Mat4MulVecfl(ob->imat, key->vec);
+		for(a=0; md; md=md->next, a++) {
+			if(md->type == eModifierType_Softbody) {
+				stack_index = a;
+				break;
 			}
 		}
 	}
+
+	BKE_ptcache_id_clear((ID *)ob, PTCACHE_CLEAR_ALL, framenr, stack_index);
+}
+static void softbody_write_cache(Object *ob, float framenr)
+{
+	FILE *fp = NULL;
+	SoftBody *sb = ob->soft;
+	BodyPoint *bp;
+	ModifierData *md = ob->modifiers.first;
+	int stack_index = -1;
+	int a;
+
+	if(sb->totpoint == 0) return;
+
+	if(sb->particles)
+		stack_index = modifiers_indexInObject(ob,(ModifierData*)psys_get_modifier(ob,sb->particles));
+	else {
+		for(a=0; md; md=md->next, a++) {
+			if(md->type == eModifierType_Softbody) {
+				stack_index = a;
+				break;
+			}
+		}
+	}
+
+	fp = BKE_ptcache_id_fopen((ID *)ob, 'w', framenr, stack_index);
+	if(!fp) return;
+
+	for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++)
+		fwrite(&bp->pos, sizeof(float), 3, fp);
+	
+	fclose(fp);
+}
+static int softbody_read_cache(Object *ob, float framenr)
+{
+	FILE *fp = NULL;
+	SoftBody *sb = ob->soft;
+	BodyPoint *bp;
+	ModifierData *md = ob->modifiers.first;
+	int stack_index = -1;
+	int a, ret = 1;
+
+	if(sb->totpoint == 0) return 0;
+
+	if(sb->particles)
+		stack_index = modifiers_indexInObject(ob,(ModifierData*)psys_get_modifier(ob,sb->particles));
+	else {
+		for(a=0; md; md=md->next, a++) {
+			if(md->type == eModifierType_Softbody) {
+				stack_index = a;
+				break;
+			}
+		}
+	}
+
+	fp = BKE_ptcache_id_fopen((ID *)ob, 'r', framenr, stack_index);
+	if(!fp)
+		ret = 0;
+	else {
+		for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++)
+			if(fread(&bp->pos, sizeof(float), 3, fp) != 3) {
+				ret = 0;
+				break;
+			}
+
+		fclose(fp);
+	}
+
+	return ret;
 }
 /* +++ ************ maintaining scratch *************** */
 void sb_new_scratch(SoftBody *sb)
@@ -3026,6 +3345,8 @@ SoftBody *sbNew(void)
 	
 	sb->inspring= 0.5f;
 	sb->infrict= 0.5f; 
+	/*todo backward file compat should copy inspring to inpush while reading old files*/
+	sb->inpush = 0.5f; 
 	
 	sb->interval= 10;
 	sb->sfra= G.scene->r.sfra;
@@ -3035,7 +3356,16 @@ SoftBody *sbNew(void)
 	sb->balldamp = 0.50f;
 	sb->ballstiff= 1.0f;
 	sb->sbc_mode = 1;
+
+
+	sb->minloops = 10;
+	sb->maxloops = 300;
+
+	sb->choke = 3;
 	sb_new_scratch(sb);
+	/*todo backward file compat should set sb->shearstiff = 1.0f while reading old files*/
+	sb->shearstiff = 1.0f;
+	sb->solverflags |= SBSO_OLDERR;
 	return sb;
 }
 
@@ -3078,15 +3408,14 @@ void sbSetInterruptCallBack(int (*f)(void))
 /* simulates one step. framenr is in frames */
 void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts)
 {
+	ParticleSystemModifierData *psmd=0;
+	ParticleData *pa=0;
 	SoftBody *sb;
+	HairKey *key= NULL;
 	BodyPoint *bp;
 	int a;
-	float dtime,ctime,forcetime,err;
-
-	/* baking works with global time */
-	if(!(ob->softflag & OB_SB_BAKEDO) )
-		if(softbody_baked_step(ob, framenr, vertexCos, numVerts) ) return;
-
+	float dtime,ctime,forcetime;
+	float hairmat[4][4];
 
 	/* This part only sets goals and springs, based on original mesh/curve/lattice data.
 	Copying coordinates happens in next chunk by setting softbody flag OB_SB_RESET */
@@ -3097,7 +3426,13 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 		(numVerts!=ob->soft->totpoint) ||	/* should never happen, just to be safe */
 		((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob))) /* happens when in UI edges was set */
 	{
-		switch(ob->type) {
+		if(ob->soft && ob->soft->bpoint) /* don't clear on file load */
+			softbody_clear_cache(ob, framenr);
+
+		if(ob->soft->particles){
+			particles_to_softbody(ob);
+		}
+		else switch(ob->type) {
 		case OB_MESH:
 			mesh_to_softbody(ob);
 			break;
@@ -3123,10 +3458,14 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 	/* still no points? go away */
 	if(sb->totpoint==0) return;
 
+	if(sb->particles){
+		psmd=psys_get_modifier(ob,sb->particles);
+		pa=sb->particles->particles;
+	}
 
 	/* checking time: */
 
-	ctime= bsystem_time(ob, NULL, framenr, 0.0);
+	ctime= bsystem_time(ob, framenr, 0.0);
 
 	if (ob->softflag&OB_SB_RESET) {
 		dtime = 0.0;
@@ -3134,17 +3473,45 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 		dtime= ctime - sb->ctime;
 	}
 
+	if(softbody_read_cache(ob, framenr)) {
+		if(sb->particles==0)
+			softbody_to_object(ob, vertexCos, numVerts, sb->local);
+		sb->ctime = ctime;
+		return;
+	}
+
 	/* the simulator */
 
 	/* update the vertex locations */
 	if (dtime!=0.0) {
+		if(sb->particles) {
+			pa=sb->particles->particles;
+			key = pa->hair;
+
+			psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
+		}
+
 		for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
 			/* store where goals are now */ 
 			VECCOPY(bp->origS, bp->origE);
 			/* copy the position of the goals at desired end time */
-			VECCOPY(bp->origE, vertexCos[a]);
-			/* vertexCos came from local world, go global */
-			Mat4MulVecfl(ob->obmat, bp->origE); 
+			if(sb->particles) {
+				if(key == pa->hair + pa->totkey) {
+					pa++;
+					key = pa->hair;
+
+					psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
+				}
+				VECCOPY(bp->origE, key->co);
+				Mat4MulVecfl(hairmat,bp->origE);
+
+				key++;
+			}
+			else{
+				VECCOPY(bp->origE, vertexCos[a]);
+				/* vertexCos came from local world, go global */
+				Mat4MulVecfl(ob->obmat, bp->origE);
+			}
 			/* just to be save give bp->origT a defined value
 			will be calulated in interpolate_exciter()*/
 			VECCOPY(bp->origT, bp->origE); 
@@ -3156,9 +3523,29 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 		(dtime>=9.9*G.scene->r.framelen) /* too far forward in time --> goals won't be accurate enough */
 		)
 	{
+		if(sb->particles) {
+			pa=sb->particles->particles;
+			key = pa->hair;
+
+			psys_mat_hair_to_global(ob, psmd->dm,  sb->particles->part->from, pa, hairmat);
+		}
+
 		for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
-			VECCOPY(bp->pos, vertexCos[a]);
-			Mat4MulVecfl(ob->obmat, bp->pos);  /* yep, sofbody is global coords*/
+			if(sb->particles) {
+				if(key == pa->hair + pa->totkey) {
+					pa++;
+					key = pa->hair;
+
+					psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
+				}
+				VECCOPY(bp->pos, key->co);
+				Mat4MulVecfl(hairmat, bp->pos);
+				key++;
+			}
+			else {
+				VECCOPY(bp->pos, vertexCos[a]);
+				Mat4MulVecfl(ob->obmat, bp->pos);  /* yep, sofbody is global coords*/
+			}
 			VECCOPY(bp->origS, bp->pos);
 			VECCOPY(bp->origE, bp->pos);
 			VECCOPY(bp->origT, bp->pos);
@@ -3186,22 +3573,21 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 		sb_new_scratch(sb); /* make a new */
 	    sb->scratch->needstobuildcollider=1; 
 
-
-        /* copy some info to scratch */
-		switch(ob->type) {
-		case OB_MESH:
-			if (ob->softflag & OB_SB_FACECOLL) mesh_faces_to_scratch(ob);
-			break;
-		case OB_LATTICE:
-			break;
-		case OB_CURVE:
-		case OB_SURF:
-			break;
-		default:
-			break;
+		if((sb->particles)==0) {
+			/* copy some info to scratch */
+			switch(ob->type) {
+			case OB_MESH:
+				if (ob->softflag & OB_SB_FACECOLL) mesh_faces_to_scratch(ob);
+				break;
+			case OB_LATTICE:
+				break;
+			case OB_CURVE:
+			case OB_SURF:
+				break;
+			default:
+				break;
+			}
 		}
-
-
 
 		ob->softflag &= ~OB_SB_RESET;
 	}
@@ -3218,8 +3604,10 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 			}
 
 
-			if (TRUE) {	/*  */
+			if (sb->solver_ID < 2) {	
 				/* special case of 2nd order Runge-Kutta type AKA Heun */
+				int mid_flags=0;
+				float err = 0;
 				float forcetimemax = 1.0f;
 				float forcetimemin = 0.001f;
 				float timedone =0.0; /* how far did we get without violating error condition */
@@ -3231,7 +3619,8 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 				if (sb->minloops > 0) forcetimemax = 1.0f / sb->minloops;
 				
 				if (sb->maxloops > 0) forcetimemin = 1.0f / sb->maxloops;
-                
+
+                if(sb->solver_ID>0) mid_flags |= MID_PRESERVE;
 				
 				//forcetime = dtime; /* hope for integrating in one step */
 				forcetime =forcetimemax; /* hope for integrating in one step */
@@ -3242,11 +3631,14 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 					
 					sb->scratch->flag &= ~SBF_DOFUZZY;
 					/* do predictive euler step */
-					softbody_calc_forces(ob, forcetime,timedone/dtime);
-					softbody_apply_forces(ob, forcetime, 1, NULL);
+					softbody_calc_forces(ob, forcetime,timedone/dtime,0);
+					softbody_apply_forces(ob, forcetime, 1, NULL,mid_flags);
+
+
 					/* crop new slope values to do averaged slope step */
-					softbody_calc_forces(ob, forcetime,timedone/dtime);
-					softbody_apply_forces(ob, forcetime, 2, &err);
+					softbody_calc_forces(ob, forcetime,timedone/dtime,0);
+					softbody_apply_forces(ob, forcetime, 2, &err,mid_flags);
+
 					softbody_apply_goalsnap(ob);
 					
 					if (err > SoftHeunTol) { /* error needs to be scaled to some quantity */
@@ -3286,6 +3678,7 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 						sct=PIL_check_seconds_timer();
 						if (sct-sst > 0.5f) printf("%3.0f%% \r",100.0f*timedone);
 					}
+					/* ask for user break */ 
 					if (SB_localInterruptCallBack && SB_localInterruptCallBack()) break;
 
 				}
@@ -3300,21 +3693,34 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 				}
 				
 			}
+			else if (sb->solver_ID == 2)
+			{/* do semi "fake" implicit euler */
+				//removed
+			}/*SOLVER SELECT*/
+			else if (sb->solver_ID == 4)
+			{
+				/* do semi "fake" implicit euler */
+			}/*SOLVER SELECT*/
+			else if (sb->solver_ID == 3){
+				/* do "stupid" semi "fake" implicit euler */
+				//removed
+
+			}/*SOLVER SELECT*/
 			else{
-				/* do brute force explicit euler */
-				/* removed but left this branch for better integrators / solvers (BM) */
-				/* yah! Nicholas Guttenberg (NichG) here is the place to plug in */
-			}
+				printf("softbody no valid solver ID!");
+			}/*SOLVER SELECT*/
+			if(sb->plastic){ apply_spring_memory(ob);}
+
 			if(sb->solverflags & SBSO_MONITOR ){
 				sct=PIL_check_seconds_timer();
 				if (sct-sst > 0.5f) printf(" solver time %f %s \r",sct-sst,ob->id.name);
 			}
 	}
 
-	softbody_to_object(ob, vertexCos, numVerts, 0);
+	if(sb->particles==0)
+		softbody_to_object(ob, vertexCos, numVerts, 0);
 	sb->ctime= ctime;
 
-
-	if(ob->softflag & OB_SB_BAKEDO) softbody_baked_add(ob, framenr);
+	softbody_write_cache(ob, framenr);
 }
 

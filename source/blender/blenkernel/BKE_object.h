@@ -45,11 +45,16 @@ struct BoundBox;
 struct View3D;
 struct SoftBody;
 struct Group;
+struct bAction;
 
 void clear_workob(void);
 void copy_baseflags(void);
 void copy_objectflags(void);
 struct SoftBody *copy_softbody(struct SoftBody *sb);
+void copy_object_particlesystems(struct Object *obn, struct Object *ob);
+void copy_object_softbody(struct Object *obn, struct Object *ob);
+void object_free_particlesystems(struct Object *ob);
+void object_free_softbody(struct Object *ob);
 void update_base_layer(struct Object *ob);
 
 void free_object(struct Object *ob);
@@ -63,6 +68,7 @@ int exist_object(struct Object *obtest);
 void *add_camera(char *name);
 struct Camera *copy_camera(struct Camera *cam);
 void make_local_camera(struct Camera *cam);
+float dof_camera(struct Object *ob);
 void *add_lamp(char *name);
 struct Lamp *copy_lamp(struct Lamp *la);
 void make_local_lamp(struct Lamp *la);
@@ -81,7 +87,7 @@ void set_mblur_offs(float blur);
 void set_field_offs(float field);
 void disable_speed_curve(int val);
 
-float bsystem_time(struct Object *ob, struct Object *par, float cfra, float ofs);
+float bsystem_time(struct Object *ob, float cfra, float ofs);
 void object_to_mat3(struct Object *ob, float mat[][3]);
 void object_to_mat4(struct Object *ob, float mat[][4]);
 
@@ -97,6 +103,7 @@ void where_is_object(struct Object *ob);
 void where_is_object_simul(struct Object *ob);
 
 void what_does_parent(struct Object *ob);
+
 struct BoundBox *unit_boundbox(void);
 void boundbox_set_from_min_max(struct BoundBox *bb, float min[3], float max[3]);
 struct BoundBox *object_get_boundbox(struct Object *ob);
@@ -104,13 +111,13 @@ void object_boundbox_flag(struct Object *ob, int flag, int set);
 void minmax_object(struct Object *ob, float *min, float *max);
 void minmax_object_duplis(struct Object *ob, float *min, float *max);
 void solve_tracking (struct Object *ob, float targetmat[][4]);
-void solve_constraints (struct Object *ob, short obtype, void *obdata, float ctime);
 
 void object_handle_update(struct Object *ob);
+
+float give_timeoffset(struct Object *ob);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-

@@ -36,6 +36,7 @@
 struct ScrArea;
 struct Sequence;
 
+void drawprefetchseqspace(struct ScrArea *sa, void *spacedata);
 void drawseqspace(struct ScrArea *sa, void *spacedata);
 void set_special_seq_update(int val);
 

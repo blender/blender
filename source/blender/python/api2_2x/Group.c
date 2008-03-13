@@ -58,7 +58,7 @@
 /*****************************************************************************/
 static PyObject *M_Group_New( PyObject * self, PyObject * args );
 PyObject *M_Group_Get( PyObject * self, PyObject * args );
-PyObject *M_Group_Unlink( PyObject * self, PyObject * args );
+PyObject *M_Group_Unlink( PyObject * self, BPy_Group * pygrp );
 
 /* internal */
 static PyObject *GroupObSeq_CreatePyObject( BPy_Group *self, GroupObject *iter );
@@ -72,7 +72,7 @@ struct PyMethodDef M_Group_methods[] = {
 	{"Get", ( PyCFunction ) M_Group_Get, METH_VARARGS,
 "(name) - return the group with the name 'name',\
 returns None if notfound.\nIf 'name' is not specified, it returns a list of all groups."},
-	{"Unlink", ( PyCFunction ) M_Group_Unlink, METH_VARARGS,
+	{"Unlink", ( PyCFunction ) M_Group_Unlink, METH_O,
 	 "(group) - Unlink (delete) this group from Blender."},
 	{NULL, NULL, 0, NULL}
 };
@@ -220,7 +220,7 @@ static int Group_setLayers( BPy_Group * self, PyObject * value )
 	
 	GROUP_DEL_CHECK_INT(self);
 	
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 			"expected an integer (bitmask) as argument" );
 	
@@ -447,16 +447,12 @@ PyObject *M_Group_Get( PyObject * self, PyObject * args )
 /* Function:	  M_Group_Unlink						*/
 /* Python equivalent:	  Blender.Group.Unlink				*/
 /*****************************************************************************/
-PyObject *M_Group_Unlink( PyObject * self, PyObject * args )
+PyObject *M_Group_Unlink( PyObject * self, BPy_Group * pygrp )
 {
-	PyObject *pyob=NULL;
-	BPy_Group *pygrp=NULL;
 	Group *group;
-	if( !PyArg_ParseTuple( args, "O!", &Group_Type, &pyob) )
+	if( !BPy_Group_Check(pygrp) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected a group" ) );
-	
-	pygrp= (BPy_Group *)pyob;
 	
 	GROUP_DEL_CHECK_PY(pygrp);
 	
@@ -661,14 +657,13 @@ static PyObject *GroupObSeq_nextIter( BPy_GroupObSeq * self )
 }
 
 
-static PyObject *GroupObSeq_link( BPy_GroupObSeq * self, PyObject *args )
+static PyObject *GroupObSeq_link( BPy_GroupObSeq * self, BPy_Object *value )
 {
-	PyObject *pyobj;
 	Object *blen_ob;
 	
 	GROUP_DEL_CHECK_PY(self->bpygroup);
 	
-	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &pyobj ) )
+	if( !BPy_Object_Check(value) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected a python object as an argument" ) );
 	
@@ -678,32 +673,31 @@ static PyObject *GroupObSeq_link( BPy_GroupObSeq * self, PyObject *args )
 					      "Cannot modify group objects while iterating" );
 	*/
 	
-	blen_ob = ( ( BPy_Object * ) pyobj )->object;
+	blen_ob = value->object;
 	
 	add_to_group_wraper(self->bpygroup->group, blen_ob); /* this checks so as not to add the object into the group twice*/
 	
 	Py_RETURN_NONE;
 }
 
-static PyObject *GroupObSeq_unlink( BPy_GroupObSeq * self, PyObject *args )
+static PyObject *GroupObSeq_unlink( BPy_GroupObSeq * self, BPy_Object *value )
 {
-	PyObject *pyobj;
 	Object *blen_ob;
 	Base *base= NULL;
 	
 	GROUP_DEL_CHECK_PY(self->bpygroup);
 	
-	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &pyobj ) )
+	if( !BPy_Object_Check(value) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected a python object as an argument" ) );
 	
-	blen_ob = ( ( BPy_Object * ) pyobj )->object;
+	blen_ob = value->object;
 	
 
 	
 	rem_from_group(self->bpygroup->group, blen_ob);
 	
-	if(find_group(blen_ob)==NULL) {
+	if(find_group(blen_ob, NULL)==NULL) {
 		blen_ob->flag &= ~OB_FROMGROUP;
 		
 		base= object_in_scene(blen_ob, G.scene);
@@ -714,9 +708,9 @@ static PyObject *GroupObSeq_unlink( BPy_GroupObSeq * self, PyObject *args )
 }
 
 static struct PyMethodDef BPy_GroupObSeq_methods[] = {
-	{"link", (PyCFunction)GroupObSeq_link, METH_VARARGS,
+	{"link", (PyCFunction)GroupObSeq_link, METH_O,
 		"make the object a part of this group"},
-	{"unlink", (PyCFunction)GroupObSeq_unlink, METH_VARARGS,
+	{"unlink", (PyCFunction)GroupObSeq_unlink, METH_O,
 		"unlink an object from this group"},
 	{NULL, NULL, 0, NULL}	
 };

@@ -46,19 +46,59 @@ struct Scene;
 
 typedef struct StripElem {
 	char name[80];
-	struct ImBuf *ibuf;
-	struct StripElem *se1, *se2, *se3;
-	short ok;
-	short pad;
-	int nr;
 } StripElem;
+
+typedef struct TStripElem {
+	struct ImBuf *ibuf;
+	struct ImBuf *ibuf_comp;
+	struct TStripElem *se1, *se2, *se3;
+	short ok;
+	short flag;
+	int nr;
+} TStripElem;
+
+typedef struct StripCrop {
+	int top;
+	int bottom;
+	int left;
+	int right;
+} StripCrop;
+
+typedef struct StripTransform {
+	int xofs;
+	int yofs;
+} StripTransform;
+
+typedef struct StripColorBalance {
+	float lift[3];
+	float gamma[3];
+	float gain[3];
+	int flag;
+	int pad;
+	float exposure;
+	float saturation;
+} StripColorBalance;
+
+typedef struct StripProxy {
+	char dir[160];
+} StripProxy;
 
 typedef struct Strip {
 	struct Strip *next, *prev;
 	int rt, len, us, done;
+	int startstill, endstill;
 	StripElem *stripdata;
 	char dir[160];
 	int orx, ory;
+	StripProxy *proxy;
+	StripCrop *crop;
+	StripTransform *transform;
+	StripColorBalance *color_balance;
+	TStripElem *tstripdata;
+	TStripElem *tstripdata_startstill;
+	TStripElem *tstripdata_endstill;
+	struct ImBuf *ibuf_startstill;
+	struct ImBuf *ibuf_endstill;
 } Strip;
 
 
@@ -87,22 +127,23 @@ typedef struct PluginSeq {
 /* WATCH IT: first part identical to ID (for use in ipo's) */
 
 typedef struct Sequence {
+	struct Sequence *next, *prev;
+	void *tmp; /* tmp var for copying, and tagging for linked selection */
+	void *lib; /* needed (to be like ipo), else it will raise libdata warnings, this should never be used */
+	char name[24]; /* name, not set by default and dosnt need to be unique as with ID's */
 
-	struct Sequence *next, *prev, *newseq;
-	void *lib;
-	char name[24];
-
-	short flag, type;	/*flags bitmap (see below) and the type of sequence*/
-	int len;
+	int flag, type;	/*flags bitmap (see below) and the type of sequence*/
+	int len; /* the length of the contense of this strip - before handles are applied */
 	int start, startofs, endofs;
 	int startstill, endstill;
-	int machine, depth;
+	int machine, depth; /*machine - the strip channel, depth - the depth in the sequence when dealing with metastrips */
 	int startdisp, enddisp;	/*starting and ending points in the sequence*/
 	float mul, handsize;
-	int sfra;		/* starting frame according to the timeline of the scene */
+					/* is sfra needed anymore? - it looks like its only used in one place */
+	int sfra;		/* starting frame according to the timeline of the scene. */
+	int anim_preseek;
 
 	Strip *strip;
-	StripElem *curelem;
 
 	struct Ipo *ipo;
 	struct Scene *scene;
@@ -114,8 +155,7 @@ typedef struct Sequence {
 	/* pointers for effects: */
 	struct Sequence *seq1, *seq2, *seq3;
 
-	/* meta */
-	ListBase seqbase;
+	ListBase seqbase;	/* list of strips for metastrips */
 
 	struct bSound *sound;	/* the linked "bSound" object */
         struct hdaudio *hdaudio; /* external hdaudio object */
@@ -125,7 +165,13 @@ typedef struct Sequence {
 
 	void *effectdata;	/* Struct pointer for effect settings */
 
-	int anim_preseek;
+	int anim_startofs;    /* only use part of animation file */
+	int anim_endofs;      /* is subtle different to startofs / endofs */
+
+	int blend_mode;
+	float blend_opacity;
+
+	int scenenr;          /* for scene selection */
 	int pad;
 } Sequence;
 
@@ -170,6 +216,8 @@ typedef struct TransformVars {
 	float yFin;
 	float rotIni;
 	float rotFin;
+	int percent;
+	int interpolation;
 } TransformVars;
 
 typedef struct SolidColorVars {
@@ -182,7 +230,7 @@ typedef struct SpeedControlVars {
 	float globalSpeed;
 	int flags;
 	int length;
-	int pad;
+	int lastValidFrame;
 } SpeedControlVars;
 
 /* SpeedControlVars->flags */
@@ -203,6 +251,19 @@ typedef struct SpeedControlVars {
 #define SEQ_IPO_FRAME_LOCKED	256
 #define SEQ_EFFECT_NOT_LOADED	512
 #define SEQ_FLAG_DELETE			1024
+#define SEQ_FLIPX				2048
+#define SEQ_FLIPY				4096
+#define SEQ_MAKE_FLOAT				8192
+#define SEQ_LOCK				16384
+#define SEQ_USE_PROXY                           32768
+#define SEQ_USE_TRANSFORM                       65536
+#define SEQ_USE_CROP                           131072
+#define SEQ_USE_COLOR_BALANCE                  262144
+#define SEQ_USE_PROXY_CUSTOM_DIR               524288
+
+#define SEQ_COLOR_BALANCE_INVERSE_GAIN 1
+#define SEQ_COLOR_BALANCE_INVERSE_GAMMA 2
+#define SEQ_COLOR_BALANCE_INVERSE_LIFT 4
 
 /* seq->type WATCH IT: SEQ_EFFECT BIT is used to determine if this is an effect strip!!! */
 #define SEQ_IMAGE		0
@@ -228,7 +289,19 @@ typedef struct SpeedControlVars {
 #define SEQ_TRANSFORM		27
 #define SEQ_COLOR               28
 #define SEQ_SPEED               29
+#define SEQ_EFFECT_MAX          29
 
+#define STRIPELEM_FAILED       0
+#define STRIPELEM_OK           1
+#define STRIPELEM_META         2
+
+#define STRIPELEM_PREVIEW_DONE  1
+
+#define SEQ_BLEND_REPLACE      0
+/* all other BLEND_MODEs are simple SEQ_EFFECT ids and therefore identical
+   to the table above. (Only those effects that handle _exactly_ two inputs,
+   otherwise, you can't really blend, right :) !)
+*/
 
 #endif
 

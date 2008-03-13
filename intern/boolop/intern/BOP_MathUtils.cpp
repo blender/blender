@@ -1,4 +1,7 @@
 /**
+ *
+ * $Id$
+ *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +26,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Marc Freixas, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -40,8 +43,37 @@ using namespace std;
  */
 int BOP_comp(const MT_Scalar A, const MT_Scalar B)
 {
+#ifndef VAR_EPSILON
 	if (A >= B + BOP_EPSILON) return 1;
 	else if (B >= A + BOP_EPSILON) return -1;
+	else return 0; 
+#else
+	int expA, expB;
+	float mant;
+	frexp(A, &expA);	/* get exponents of each number */
+	frexp(B, &expB);
+
+	if(expA < expB)		/* find the larger exponent */
+		expA = expB;
+	mant = frexp((A-B), &expB);	/* get exponent of the difference */
+	/* mantissa will only be zero is (A-B) is really zero; otherwise, also
+	 * also allow a "reasonably" small exponent or "reasonably large"
+	 * difference in exponents to be considers "close to zero" */
+	if( mant == 0 || expB < -30 || expA - expB > 31) return 0;
+	else if( mant > 0) return 1;
+	else return -1;
+#endif
+}
+
+/**
+ * Compares a scalar with EPSILON accuracy.
+ * @param A scalar
+ * @return 1 if A > 0, -1 if A < 0, 0 otherwise
+ */
+int BOP_comp0(const MT_Scalar A)
+{
+	if (A >= BOP_EPSILON) return 1;
+	else if (0 >= A + BOP_EPSILON) return -1;
 	else return 0; 
 }
 
@@ -53,6 +85,7 @@ int BOP_comp(const MT_Scalar A, const MT_Scalar B)
  */
 int BOP_comp(const MT_Tuple3& A, const MT_Tuple3& B)
 {
+#ifndef VAR_EPSILON
 	if (A.x() >= (B.x() + BOP_EPSILON)) return 1;
 	else if (B.x() >= (A.x() + BOP_EPSILON)) return -1;
 	else if (A.y() >= (B.y() + BOP_EPSILON)) return 1;
@@ -60,6 +93,13 @@ int BOP_comp(const MT_Tuple3& A, const MT_Tuple3& B)
 	else if (A.z() >= (B.z() + BOP_EPSILON)) return 1;
 	else if (B.z() >= (A.z() + BOP_EPSILON)) return -1;
 	else return 0;
+#else
+	int result = BOP_comp(A.x(), B.x());
+	if (result != 0) return result;
+	result = BOP_comp(A.y(), B.y());
+	if (result != 0) return result;
+	return BOP_comp(A.z(), B.z());
+#endif
 }
 
 /**
@@ -113,12 +153,20 @@ bool BOP_between(const MT_Point3& p1, const MT_Point3& p2, const MT_Point3& p3)
  */
 bool BOP_collinear(const MT_Point3& p1, const MT_Point3& p2, const MT_Point3& p3)
 {
+	if( BOP_comp(p1,p2) == 0 || BOP_comp(p2,p3) == 0 ) return true;
+
 	MT_Vector3 v1 = p2 - p1;
 	MT_Vector3 v2 = p3 - p2;
-	
+
+	/* normalize vectors before taking their cross product, so its length 
+     * has some actual meaning */
+	// if(MT_fuzzyZero(v1.length()) || MT_fuzzyZero(v2.length())) return true;
+	v1.normalize();	
+	v2.normalize();
+
 	MT_Vector3 w = v1.cross(v2);
 	
-	return (BOP_comp(w.x(),0.0) == 0) && (BOP_comp(w.y(),0.0) == 0) && (BOP_comp(w.z(),0.0) == 0);
+	return (BOP_fuzzyZero(w.x()) && BOP_fuzzyZero(w.y()) && BOP_fuzzyZero(w.z()));
 }
 
 /**
@@ -184,17 +232,17 @@ bool BOP_intersect(const MT_Vector3& vL1, const MT_Point3& pL1, const MT_Vector3
 	MT_Scalar t = -1;
 	MT_Scalar den = (vL1.y()*vL2.x() - vL1.x() * vL2.y());
 	
-	if (BOP_comp(den,0)) {
+	if (!BOP_fuzzyZero(den)) {
 		t =  (pL2.y()*vL1.x() - vL1.y()*pL2.x() + pL1.x()*vL1.y() - pL1.y()*vL1.x()) / den ;
 	}
 	else {
 		den = (vL1.y()*vL2.z() - vL1.z() * vL2.y());
-		if (BOP_comp(den,0)) {
+		if (!BOP_fuzzyZero(den)) {
 			t =  (pL2.y()*vL1.z() - vL1.y()*pL2.z() + pL1.z()*vL1.y() - pL1.y()*vL1.z()) / den ;
 		}
 		else {
 			den = (vL1.x()*vL2.z() - vL1.z() * vL2.x());
-			if (BOP_comp(den,0)) {
+			if (!BOP_fuzzyZero(den)) {
 				t =  (pL2.x()*vL1.z() - vL1.x()*pL2.z() + pL1.z()*vL1.x() - pL1.x()*vL1.z()) / den ;
 			}
 			else {
@@ -318,7 +366,7 @@ MT_Scalar BOP_orientation(const MT_Plane3& p1, const MT_Plane3& p2)
 int BOP_classify(const MT_Point3& p, const MT_Plane3& plane)
 {
 	// Compare plane - point distance with zero
-	return BOP_comp(plane.signedDistance(p),0);
+	return BOP_comp0(plane.signedDistance(p));
 }
 
 /**
@@ -360,7 +408,7 @@ MT_Point3 BOP_intersectPlane(const MT_Plane3& plane, const MT_Point3& p1, const 
  */
 bool BOP_containsPoint(const MT_Plane3& plane, const MT_Point3& point)
 {
-	return BOP_comp(plane.signedDistance(point),0) == 0;
+	return BOP_fuzzyZero(plane.signedDistance(point));
 }
 
 /**
@@ -416,8 +464,8 @@ MT_Scalar BOP_EpsilonDistance(const MT_Point3& p0, const MT_Point3& p1, const MT
 	MT_Scalar d1 = p0.distance(q);
 	MT_Scalar d;
 	
-	if (BOP_comp(d0,0)==0) d = 1.0;
-	else if (BOP_comp(d1,0)==0) d = 0.0;
+	if (BOP_fuzzyZero(d0)) d = 1.0;
+	else if (BOP_fuzzyZero(d1)) d = 0.0;
 	else d = d1 / d0;
 	return d;
 }

@@ -45,7 +45,7 @@ typedef struct MFace {
 
 typedef struct MEdge {
 	unsigned int v1, v2;
-	char crease, pad;
+	char crease, bweight;
 	short flag;
 } MEdge;
 
@@ -63,11 +63,13 @@ typedef struct MDeformVert {
 typedef struct MVert {
 	float	co[3];
 	short	no[3];
-	char flag, mat_nr;
+	char flag, mat_nr, bweight, pad[3];
 } MVert;
 
+/* at the moment alpha is abused for vertex painting
+ * and not used for transperency, note that red and blue are swapped */
 typedef struct MCol {
-	char a, r, g, b;
+	char a, r, g, b;	
 } MCol;
 
 typedef struct MSticky {
@@ -86,6 +88,21 @@ typedef struct MTFace {
 	short mode, tile, unwrap;
 } MTFace;
 
+/*Custom Data Properties*/
+typedef struct MFloatProperty{
+	float	f;
+} MFloatProperty;
+typedef struct MIntProperty{
+	int		i;
+} MIntProperty;
+typedef struct MStringProperty{
+	char	s[256];
+} MStringProperty;
+
+typedef struct OrigSpaceFace {
+	float uv[4][2];
+} OrigSpaceFace;
+
 /* Multiresolution modeling */
 typedef struct MultiresCol {
 	float a, r, g, b;
@@ -97,7 +114,6 @@ typedef struct MultiresColFace {
 typedef struct MultiresFace {
 	unsigned int v[4];
        	unsigned int mid;
-	unsigned int childrenstart;
 	char flag, mat_nr, pad[2];
 } MultiresFace;
 typedef struct MultiresEdge {
@@ -112,6 +128,9 @@ typedef struct MultiresLevel {
 	MultiresFace *faces;
 	MultiresColFace *colfaces;
 	MultiresEdge *edges;
+
+	/* Temporary connectivity data */
+	char *edge_boundary_states;
 	struct ListBase *vert_edge_map;
 	struct ListBase *vert_face_map;
 	struct MultiresMapNode *map_mem;
@@ -127,7 +146,7 @@ typedef struct Multires {
 	MVert *verts;
 
 	unsigned char level_count, current, newlvl, edgelvl, pinlvl, renderlvl;
-	unsigned char use_col, pad;
+	unsigned char use_col, flag;
 
 	/* Special level 1 data that cannot be modified from other levels */
 	CustomData vdata;
@@ -188,7 +207,7 @@ typedef struct PartialVisibility {
 
 /* mtface->flag */
 #define TF_SELECT	1 /* use MFace hide flag (after 2.43), should be able to reuse after 2.44 */
-#define TF_ACTIVE	2
+#define TF_ACTIVE	2 /* deprecated! */
 #define TF_SEL1		4
 #define TF_SEL2		8
 #define TF_SEL3		16
@@ -217,6 +236,8 @@ typedef struct PartialVisibility {
 #define TF_SOLID	0
 #define TF_ADD		1
 #define TF_ALPHA	2
+
+/* sub is not available in the user interface anymore */
 #define TF_SUB		3
 
 /* mtface->unwrap */
@@ -228,5 +249,8 @@ typedef struct PartialVisibility {
 #define TF_PIN2		    32
 #define TF_PIN3	   		64
 #define TF_PIN4	    	128
+
+/* multires->flag */
+#define MULTIRES_NO_RENDER 1
 
 #endif

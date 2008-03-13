@@ -878,7 +878,7 @@ static void read_videoscape_lamp(char *str)
 	Object *ob;
 	Lamp *la;
 	FILE *fp;
-	float vec[3], *q1;
+	float vec[3], q1[4];
 	int tot, val;
 	char s[50];
 	
@@ -906,7 +906,7 @@ static void read_videoscape_lamp(char *str)
 		
 		fscanf(fp, "%f %f %f\n", ob->loc, ob->loc+1, ob->loc+2);
 		val= fscanf(fp, "%f %f %f\n", vec, vec+1, vec+2);
-		q1= vectoquat(vec, 5, 2);
+		vectoquat(vec, 5, 2, q1);
 		QuatToEul(q1, ob->rot);
 		
 		if(val<=0) break;
@@ -1246,7 +1246,12 @@ static void read_inventor(char *str, struct ListBase *listb)
 		error("Can't read file\n");
 		return;
 	}
+
 	filelen= BLI_filesize(file);
+	if(filelen < 1) {
+		close(file);
+		return;
+	}
 	
 	maindata= MEM_mallocN(filelen, "leesInventor");
 	read(file, maindata, filelen);
@@ -3020,7 +3025,7 @@ void write_vrml(char *str)
 	
 	/* FIRST: write all the datablocks */
 	
-	fprintf(fp, "#VRML V1.0 ascii\n\n# Blender V2.0\n\n# 'Switch' is used as a hack, to ensure it is not part of the drawing\n\n");
+	fprintf(fp, "#VRML V1.0 ascii\n\n# Blender V%d\n\n# 'Switch' is used as a hack, to ensure it is not part of the drawing\n\n", G.version);
 	fprintf(fp, "Separator {\n");
 	fprintf(fp, "Switch {\n");
 
@@ -3032,9 +3037,16 @@ void write_vrml(char *str)
 		ma= ma->id.next;
 	}
 
+	/* only write meshes we're using in this scene */
+	flag_listbase_ids(&G.main->mesh, LIB_DOIT, 0);
+	
+	for(base= G.scene->base.first; base; base= base->next)
+		if(base->object->type== OB_MESH)
+			((ID *)base->object->data)->flag |= LIB_DOIT;	
+	
 	me= G.main->mesh.first;
 	while(me) {
-		if(me->id.us) {
+		if(me->id.flag & LIB_DOIT) { /* is the mesh used in this scene ? */
 			write_mesh_vrml(fp, me);
 		}
 		me= me->id.next;
@@ -3337,10 +3349,18 @@ void write_dxf(char *str)
 	write_group(0, "SECTION");
     write_group(2, "BLOCKS");
 
+    
+	/* only write meshes we're using in this scene */
+	flag_listbase_ids(&G.main->mesh, LIB_DOIT, 0);
+	
+	for(base= G.scene->base.first; base; base= base->next)
+		if(base->object->type== OB_MESH)
+			((ID *)base->object->data)->flag |= LIB_DOIT;	
+	
 	/* Write all the meshes */
 	me= G.main->mesh.first;
 	while(me) {
-		if(me->id.us) {
+		if(me->id.flag & LIB_DOIT) { /* is the mesh used in this scene ? */
 			write_mesh_dxf(fp, me);
 		}
 		me= me->id.next;

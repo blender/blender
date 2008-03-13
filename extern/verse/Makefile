@@ -34,6 +34,7 @@ DIR = $(OCGDIR)/$(SOURCEDIR)
 DIRS = dist
 
 include nan_subdirs.mk
+include nan_compile.mk
 include nan_link.mk
 
 DISTDIR = dist
@@ -53,5 +54,5 @@ install: all debug
 ifeq ($(OS),darwin)
 	ranlib $(NAN_VERSE)/lib/libverse.a
 endif
-	$(CC) $(LDFLAGS) -o $(DIR)/verse$(EXT) $(DIR)/libverse.a $(LIBS) $(SLIBS) $(LLIBS) $(DADD) $(LOPTS)
+	$(CCC) $(CCFLAGS) $(LDFLAGS) -o $(DIR)/verse$(EXT) $(DIR)/libverse.a $(LIBS) $(SLIBS) $(LLIBS) $(DADD) $(LOPTS)
 	@$(CP) $(DIR)/verse$(EXT) $(OCGDIR)/bin

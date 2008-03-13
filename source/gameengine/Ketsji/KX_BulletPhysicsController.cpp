@@ -24,7 +24,18 @@ CcdPhysicsController(ci)
 	
 KX_BulletPhysicsController::~KX_BulletPhysicsController ()
 {
-
+	// The game object has a direct link to 
+	if (m_pObject)
+	{
+		// If we cheat in SetObject, we must also cheat here otherwise the 
+		// object will still things it has a physical controller
+		// Note that it requires that m_pObject is reset in case the object is deleted
+		// before the controller (usual case, see KX_Scene::RemoveNodeDestructObjec)
+		// The non usual case is when the object is not deleted because its reference is hanging
+		// in a AddObject actuator but the node is deleted. This case is covered here.
+		KX_GameObject* gameobj = (KX_GameObject*)	m_pObject->GetSGClientObject();
+		gameobj->SetPhysicsController(NULL,false);
+	}
 }
 
 void	KX_BulletPhysicsController::resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ)
@@ -57,6 +68,7 @@ void	KX_BulletPhysicsController::SetObject (SG_IObject* object)
 
 
 }
+
 
 void	KX_BulletPhysicsController::setMargin (float collisionMargin)
 {

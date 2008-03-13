@@ -54,7 +54,7 @@
 #define WM_MOUSEWHEEL 0x020A
 #endif // WM_MOUSEWHEEL
 #ifndef WHEEL_DELTA
-#define WHEEL_DELTA 120	/* Value for rolling one detent */
+#define WHEEL_DELTA 120	/* Value for rolling one detent, (old convention! MS changed it) */
 #endif // WHEEL_DELTA
 
 
@@ -481,7 +481,11 @@ GHOST_EventWheel* GHOST_SystemWin32::processWheelEvent(GHOST_IWindow *window, WP
 {
 	// short fwKeys = LOWORD(wParam);			// key flags
 	int zDelta = (short) HIWORD(wParam);	// wheel rotation
-	zDelta /= WHEEL_DELTA;
+	
+	// zDelta /= WHEEL_DELTA;
+	// temporary fix below: microsoft now has added more precision, making the above division not work
+	if (zDelta <= 0 ) zDelta= -1; else zDelta= 1;	
+	
 	// short xPos = (short) LOWORD(lParam);	// horizontal position of pointer
 	// short yPos = (short) HIWORD(lParam);	// vertical position of pointer
 	return new GHOST_EventWheel (getSystem()->getMilliSeconds(), window, zDelta);
@@ -893,3 +897,54 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 	}
 	return lResult;
 }
+
+GHOST_TUns8* GHOST_SystemWin32::getClipboard(int flag) const 
+{
+	char *buffer;
+	char *temp_buff;
+	
+	if ( OpenClipboard(NULL) ) {
+		HANDLE hData = GetClipboardData( CF_TEXT );
+		buffer = (char*)GlobalLock( hData );
+		
+		temp_buff = (char*) malloc(strlen(buffer)+1);
+		strcpy(temp_buff, buffer);
+		
+		GlobalUnlock( hData );
+		CloseClipboard();
+		
+		temp_buff[strlen(buffer)] = '\0';
+		if (buffer) {
+			return (GHOST_TUns8*)temp_buff;
+		} else {
+			return NULL;
+		}
+	} else {
+		return NULL;
+	}
+}
+
+void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, int flag) const
+{
+	if(flag == 1) {return;} //If Flag is 1 means the selection and is used on X11
+	if (OpenClipboard(NULL)) {
+		HLOCAL clipbuffer;
+		char *data;
+		
+		if (buffer) {
+			EmptyClipboard();
+			
+			clipbuffer = LocalAlloc(LMEM_FIXED,((strlen(buffer)+1)));
+			data = (char*)GlobalLock(clipbuffer);
+
+			strcpy(data, (char*)buffer);
+			data[strlen(buffer)] = '\0';
+			LocalUnlock(clipbuffer);
+			SetClipboardData(CF_TEXT,clipbuffer);
+		}
+		CloseClipboard();
+	} else {
+		return;
+	}
+}
+

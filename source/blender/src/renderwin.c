@@ -137,13 +137,8 @@ typedef struct {
 
 	int rectx, recty;	/* size of image */
 	
-	int sparex, sparey;	/* spare rect size */
-	unsigned int *rectspare;
-	float *rectsparef;
-	
 	float zoom, zoomofs[2];
 	int active;
-	short storespare, showspare;
 	
 	int mbut[5];
 	int lmouse[2];
@@ -153,14 +148,29 @@ typedef struct {
 	float pan_mouse_start[2], pan_ofs_start[2];
 
 	char *info_text;
-	char *render_text, *render_text_spare;
 	
 } RenderWin;
 
+typedef struct RenderSpare {
+	ImBuf *ibuf;
+	
+	short storespare, showspare;
+	char *render_text_spare;
+} RenderSpare;
+
 static RenderWin *render_win= NULL;
+static RenderSpare *render_spare= NULL;
+static char *render_text= NULL;
 
 /* --------------- help functions for RenderWin struct ---------------------------- */
 
+static RenderSpare *renderspare_alloc()
+{
+	RenderSpare *rspare= MEM_callocN(sizeof(*rspare), "RenderSpare");
+	rspare->render_text_spare= MEM_callocN(RW_MAXTEXT, "rendertext spare");
+
+	return rspare;
+}
 
 /* only called in function open_renderwin */
 static RenderWin *renderwin_alloc(Window *win)
@@ -172,8 +182,6 @@ static RenderWin *renderwin_alloc(Window *win)
 	rw->flags= 0;
 	rw->zoomofs[0]= rw->zoomofs[1]= 0;
 	rw->info_text= NULL;
-	rw->render_text= MEM_callocN(RW_MAXTEXT, "rendertext");
-	rw->render_text_spare= MEM_callocN(RW_MAXTEXT, "rendertext spare");
 
 	rw->lmouse[0]= rw->lmouse[1]= 0;
 	rw->mbut[0]= rw->mbut[1]= rw->mbut[2]= rw->mbut[3] = rw->mbut[4] = 0;
@@ -291,10 +299,7 @@ static void renderwin_draw_render_info(RenderWin *rw)
 		glClearColor(colf[0], colf[1], colf[2], 1.0); 
 		glClear(GL_COLOR_BUFFER_BIT);
 		
-		if(rw->showspare)
-			str= rw->render_text_spare;
-		else
-			str= rw->render_text;
+		str= BIF_render_text();
 		
 		if(str) {
 			BIF_ThemeColor(TH_TEXT);
@@ -339,12 +344,18 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 		glRectfv(fullrect[0], fullrect[1]);
 	} else {
 		RenderResult rres;
+		RenderSpare *rspare= render_spare;
 		
-		if(rw->showspare) {
-			rres.rectx= rw->sparex;
-			rres.recty= rw->sparey;
-			rres.rect32= (int *)rw->rectspare;
-			rres.rectf= rw->rectsparef;
+		if(rspare && rspare->showspare) {
+			if(rspare->ibuf) {
+				rres.rectx= rspare->ibuf->x;
+				rres.recty= rspare->ibuf->y;
+				rres.rect32= (int *)rspare->ibuf->rect;
+				rres.rectf= rspare->ibuf->rect_float;
+				rres.rectz= rspare->ibuf->zbuf_float;
+			}
+			else
+				memset(&rres, 0, sizeof(rres));
 		}
 		else
 			RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
@@ -419,11 +430,26 @@ static void renderwin_zoom(RenderWin *rw, int ZoomIn) {
 	renderwin_queue_redraw(rw);
 }
 
+#define FTOCHAR(val) val<=0.0f? 0 : (val>=(1.0f-0.5f/255.0f)? 255 :(char)((255.0f*val)+0.5f))
+
 static void renderwin_mouse_moved(RenderWin *rw)
 {
 	RenderResult rres;
-	
-	RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
+	RenderSpare *rspare= render_spare;
+		
+	if(rspare && rspare->showspare) {
+		if(rspare->ibuf) {
+			rres.rectx= rspare->ibuf->x;
+			rres.recty= rspare->ibuf->y;
+			rres.rect32= (int *)rspare->ibuf->rect;
+			rres.rectf= rspare->ibuf->rect_float;
+			rres.rectz= rspare->ibuf->zbuf_float;
+		}
+		else
+			memset(&rres, 0, sizeof(rres));
+	}
+	else
+		RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
 
 	if (rw->flags & RW_FLAGS_PIXEL_EXAMINING) {
 		int imgco[2], ofs=0;
@@ -431,12 +457,16 @@ static void renderwin_mouse_moved(RenderWin *rw)
 		char *pxl;
 
 		if (renderwin_win_to_image_co(rw, rw->lmouse, imgco)) {
+			ofs= sprintf(buf, "X: %d Y: %d ", imgco[0], imgco[1]);
 			if (rres.rect32) {
 				pxl= (char*) &rres.rect32[rres.rectx*imgco[1] + imgco[0]];
-				ofs= sprintf(buf, "R: %d G: %d B: %d A: %d", pxl[0], pxl[1], pxl[2], pxl[3]);	
+				ofs+= sprintf(buf+ofs, " | R: %d G: %d B: %d A: %d", pxl[0], pxl[1], pxl[2], pxl[3]);	
 			}
 			if (rres.rectf) {
 				float *pxlf= rres.rectf + 4*(rres.rectx*imgco[1] + imgco[0]);
+				if(!rres.rect32){
+					ofs+= sprintf(buf+ofs, " | R: %d G: %d B: %d A: %d", FTOCHAR(pxlf[0]), FTOCHAR(pxlf[1]), FTOCHAR(pxlf[2]), FTOCHAR(pxlf[3]));
+				}
 				ofs+= sprintf(buf+ofs, " | R: %.3f G: %.3f B: %.3f A: %.3f ", pxlf[0], pxlf[1], pxlf[2], pxlf[3]);
 			}
 			if (rres.rectz) {
@@ -612,14 +642,11 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 	}
 }
 
-static char *renderwin_get_title(int doswap)
+static char *renderwin_get_title()
 {
-	static int swap= 0;
 	char *title="";
 	
-	swap+= doswap;
-	
-	if(swap & 1) {
+	if(BIF_show_render_spare()) {
 		if (G.scene->r.renderer==R_YAFRAY) title = "YafRay:Render (previous)";
 		else title = "Blender:Render (previous)";
 	}
@@ -638,7 +665,7 @@ static void open_renderwin(int winpos[2], int winsize[2], int imagesize[2])
 	Window *win;
 	char *title;
 	
-	title= renderwin_get_title(0);	/* 0 = no swap */
+	title= renderwin_get_title();
 	win= window_open(title, winpos[0], winpos[1], winsize[0], winsize[1]+RW_HEADERY, 0);
 
 	render_win= renderwin_alloc(win);
@@ -894,11 +921,11 @@ void make_renderinfo_string(RenderStats *rs, char *str)
 	else if(G.scene->r.scemode & R_SINGLE_LAYER)
 		spos+= sprintf(spos, "Single Layer | ");
 	
-	if(rs->tothalo)
-		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d Ha:%d La:%d Mem:%.2fM (%.2fM) ", (G.scene->r.cfra), rs->totvert, rs->totface, rs->tothalo, rs->totlamp, megs_used_memory, mmap_used_memory);
-	else 
-		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d La:%d Mem:%.2fM (%.2fM) ", (G.scene->r.cfra), rs->totvert, rs->totface, rs->totlamp, megs_used_memory, mmap_used_memory);
-	
+	spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d ", (G.scene->r.cfra), rs->totvert, rs->totface);
+	if(rs->tothalo) spos+= sprintf(spos, "Ha:%d ", rs->tothalo);
+	if(rs->totstrand) spos+= sprintf(spos, "St:%d ", rs->totstrand);
+	spos+= sprintf(spos, "La:%d Mem:%.2fM (%.2fM) ", rs->totlamp, megs_used_memory, mmap_used_memory);
+
 	if(rs->curfield)
 		spos+= sprintf(spos, "Field %d ", rs->curfield);
 	if(rs->curblur)
@@ -922,7 +949,7 @@ static void renderwin_renderinfo_cb(RenderStats *rs)
 	
 	if(render_win) {
 		
-		make_renderinfo_string(rs, render_win->render_text);
+		BIF_make_render_text(rs);
 		
 #ifdef __APPLE__
 #else
@@ -1081,11 +1108,14 @@ static void do_render(int anim)
 
 	/* allow localview render for objects with lights in normal layers */
 	if(curarea->spacetype==SPACE_VIEW3D) {
-		if(G.vd->lay & 0xFF000000) {
-			G.scene->lay |= G.vd->lay;
-			G.scene->r.scemode |= R_SINGLE_LAYER;
+		/* if view is defined (might not be if called from script), check and set layers. */
+		if(G.vd) {
+			if(G.vd->lay & 0xFF000000) {
+				G.scene->lay |= G.vd->lay;
+				G.scene->r.scemode |= R_SINGLE_LAYER;
+			}
+			else G.scene->lay= G.vd->lay;
 		}
-		else G.scene->lay= G.vd->lay;
 	}
 	
 	if(anim)
@@ -1121,36 +1151,46 @@ static void do_render(int anim)
 }
 
 /* called before render, store old render in spare buffer */
-static void renderwin_store_spare(void)
+static int render_store_spare(void)
 {
 	RenderResult rres;
+	RenderSpare *rspare= render_spare;
 	
-	if(render_win==0 || render_win->storespare==0)
-		return;
+	if(rspare==0 || rspare->storespare==0)
+		return 0;
 	
 	/* only store when it does not show spare */
-	if(render_win->showspare==0)
-		return;
+	if(rspare->showspare==0)
+		return 0;
 	
-	render_win->showspare= 0;
-	window_set_title(render_win->win, renderwin_get_title(1));
-	
-	BLI_strncpy(render_win->render_text_spare, render_win->render_text, RW_MAXTEXT);
-	
-	if(render_win->rectspare) MEM_freeN(render_win->rectspare);
-	render_win->rectspare= NULL;
-	if(render_win->rectsparef) MEM_freeN(render_win->rectsparef);
-	render_win->rectsparef= NULL;
+	rspare->showspare= 0;
+
+	if(rspare->ibuf) {
+		IMB_freeImBuf(rspare->ibuf);
+		rspare->ibuf= NULL;
+	}
 	
 	RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
-	
-	if(rres.rect32)
-		render_win->rectspare= MEM_dupallocN(rres.rect32);
-	else if(rres.rectf)
-		render_win->rectsparef= MEM_dupallocN(rres.rectf);
 
-	render_win->sparex= rres.rectx;
-	render_win->sparey= rres.recty;
+	rspare->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, 0, 0);
+	
+	if(rres.rect32) {
+		rspare->ibuf->rect= MEM_dupallocN(rres.rect32);
+		rspare->ibuf->flags |= IB_rect;
+		rspare->ibuf->mall |= IB_rect;
+	}
+	if(rres.rectf) {
+		rspare->ibuf->rect_float= MEM_dupallocN(rres.rectf);
+		rspare->ibuf->flags |= IB_rectfloat;
+		rspare->ibuf->mall |= IB_rectfloat;
+	}
+	if(rres.rectz) {
+		rspare->ibuf->zbuf_float= MEM_dupallocN(rres.rectz);
+		rspare->ibuf->flags |= IB_zbuffloat;
+		rspare->ibuf->mall |= IB_zbuffloat;
+	}
+
+	return 1;
 }
 
 /* -------------- API: externally called --------------- */
@@ -1207,10 +1247,14 @@ void BIF_end_render_callbacks(void)
 
 void BIF_store_spare(void)
 {
-	if(render_win)
-		renderwin_store_spare();
-	else
-		imagewin_store_spare();
+	if(render_store_spare()) {
+		if(render_text)
+			BLI_strncpy(render_spare->render_text_spare, render_text, RW_MAXTEXT);
+
+		if(render_win)
+			window_set_title(render_win->win, renderwin_get_title());
+		allqueue(REDRAWIMAGE, 0);
+	}
 }
 
 /* set up display, render an image or scene */
@@ -1238,6 +1282,21 @@ void BIF_do_render(int anim)
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_POSTRENDER);
 }
 
+void do_ogl_view3d_render(Render *re, View3D *v3d, int winx, int winy)
+{
+	float winmat[4][4];
+
+	update_for_newframe_muted();	/* here, since camera can be animated */
+
+	if(v3d->persp==2 && v3d->camera) {
+		/* in camera view, use actual render winmat */
+		RE_GetCameraWindow(re, v3d->camera, CFRA, winmat);
+		drawview3d_render(v3d, winx, winy, winmat);
+	}
+	else
+		drawview3d_render(v3d, winx, winy, NULL);
+}
+
 /* set up display, render the current area view in an image */
 /* the RE_Render is only used to make sure we got the picture in the result */
 void BIF_do_ogl_render(View3D *v3d, int anim)
@@ -1252,8 +1311,8 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 	winx= (G.scene->r.size*G.scene->r.xsch)/100;
 	winy= (G.scene->r.size*G.scene->r.ysch)/100;
 	
-	RE_InitState(re, &G.scene->r, winx, winy, NULL);
-	
+	RE_InitState(re, NULL, &G.scene->r, winx, winy, NULL);
+
 	/* for now, result is defaulting to floats still... */
 	rr= RE_GetResult(re);
 	if(rr->rect32==NULL)
@@ -1279,8 +1338,12 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 			/* user event can close window */
 			if(render_win==NULL)
 				break;
-			drawview3d_render(v3d, winx, winy);
+
+			do_ogl_view3d_render(re, v3d, winx, winy);
 			glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
+			if((G.scene->r.scemode & R_STAMP_INFO) && (G.scene->r.stamp & R_STAMP_DRAW)) {
+				BKE_stamp_buf((unsigned char *)rr->rect32, rr->rectf, rr->rectx, rr->recty, 3);
+			}
 			window_swap_buffers(render_win->win);
 			
 			if(BKE_imtype_is_movie(G.scene->r.imtype)) {
@@ -1294,7 +1357,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 				
 				BKE_makepicstring(name, G.scene->r.pic, G.scene->r.cfra, G.scene->r.imtype);
 
-				ibuf->rect= (unsigned int *)rr->rect32;    
+				ibuf->rect= (unsigned int *)rr->rect32;
 				ok= BKE_write_ibuf(ibuf, name, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality);
 				
 				if(ok==0) {
@@ -1318,8 +1381,11 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 		CFRA= cfrao;
 	}
 	else {
-		drawview3d_render(v3d, winx, winy);
+		do_ogl_view3d_render(re, v3d, winx, winy);
 		glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
+		if((G.scene->r.scemode & R_STAMP_INFO) && (G.scene->r.stamp & R_STAMP_DRAW)) {
+			BKE_stamp_buf((unsigned char *)rr->rect32, rr->rectf, rr->rectx, rr->recty, 3);
+		}
 		window_swap_buffers(render_win->win);
 	}
 	
@@ -1338,53 +1404,88 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 void BIF_redraw_render_rect(void)
 {
 	/* redraw */
-	if (render_win) {
+	if(render_win)
 		renderwin_queue_redraw(render_win);
-	}
-	else {
-		allqueue(REDRAWIMAGE, 0);
-	}
+	allqueue(REDRAWIMAGE, 0);
 }	
 
 void BIF_swap_render_rects(void)
 {
 	RenderResult rres;
+	RenderSpare *rspare;
+	ImBuf *ibuf;
 	
-	if(G.displaymode!=R_DISPLAYWIN) {
-		imagewindow_swap_render_rects();
-	}
-	else if(render_win) {
+	if(!render_spare)
+		render_spare= renderspare_alloc();
+
+	rspare= render_spare;
+	rspare->storespare= 1;
+	rspare->showspare ^= 1;
 		
-		render_win->storespare= 1;
-		render_win->showspare ^= 1;
-			
-		RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
-			
-		if(render_win->sparex!=rres.rectx || render_win->sparey!=rres.recty) {
-			if(render_win->rectspare) MEM_freeN(render_win->rectspare);
-			render_win->rectspare= NULL;
-			if(render_win->rectsparef) MEM_freeN(render_win->rectsparef);
-			render_win->rectsparef= NULL;
-		}
-		
-		window_set_title(render_win->win, renderwin_get_title(1));
+	RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
+	
+	ibuf= rspare->ibuf;
+	if(ibuf && (ibuf->x!=rres.rectx || ibuf->y!=rres.recty)) {
+		IMB_freeImBuf(ibuf);
+		rspare->ibuf= NULL;
 	}
+	
+	if(render_win)
+		window_set_title(render_win->win, renderwin_get_title());
 	
 	/* redraw */
 	BIF_redraw_render_rect();
-
 }				
 
+ImBuf *BIF_render_spare_imbuf()
+{
+	return (render_spare)? render_spare->ibuf: NULL;
+}
+
+int BIF_show_render_spare()
+{
+	return (render_spare && render_spare->showspare);
+}
+
+char *BIF_render_text()
+{
+	if(render_spare && render_spare->showspare)
+		return render_spare->render_text_spare;
+	else
+		return render_text;
+}
+
+void BIF_make_render_text(RenderStats *rs)
+{
+	if(!render_text)
+		render_text= MEM_callocN(RW_MAXTEXT, "rendertext");
+	make_renderinfo_string(rs, render_text);
+}
+
 /* called from usiblender.c too, to free and close renderwin */
+
+void BIF_free_render_spare()
+{
+	RenderSpare *rspare= render_spare;
+
+	if(render_text) {
+		MEM_freeN(render_text);
+		render_text= NULL;
+	}
+
+	if(rspare) {
+		if (rspare->render_text_spare) MEM_freeN(rspare->render_text_spare);
+		if (rspare->ibuf) IMB_freeImBuf(rspare->ibuf);
+		
+		MEM_freeN(rspare);
+		render_spare= NULL;
+	}
+}
+	
 void BIF_close_render_display(void)
 {
 	if (render_win) {
 		if (render_win->info_text) MEM_freeN(render_win->info_text);
-		if (render_win->render_text) MEM_freeN(render_win->render_text);
-		if (render_win->render_text_spare) MEM_freeN(render_win->render_text_spare);
-		if (render_win->rectspare) MEM_freeN(render_win->rectspare);
-		if (render_win->rectsparef) MEM_freeN(render_win->rectsparef);
-			
 		window_destroy(render_win->win); /* ghost close window */
 		MEM_freeN(render_win);
 

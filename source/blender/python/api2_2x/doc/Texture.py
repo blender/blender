@@ -59,6 +59,10 @@ Example::
 		- NEGALPHA - Reverse the alpha value
 		- CHECKER_ODD - Fill the "odd" checkerboard tiles
 		- CHECKER_EVEN - Fill the "even" checkerboard tiles
+		- COLORBAND - Enable colorband for this texture
+        - PREVIEW_ALPHA - Show alpha in preview
+        - REPEAT_XMIR - Mirrors X direction repeat
+        - REPEAT_YMIR - Mirrors Y direction repeat
 
 @type ImageFlags: readonly dictionary
 @var ImageFlags: The available image flags for Texture.imageFlags:
@@ -428,7 +432,7 @@ class Texture:
 		"""
 		Set the Image of this texture.
 		@param image: The new Image.
-		@type image: Blender Image
+		@type image: Blender Image or None.
 		@warning: This sets the texture's type to 'Image' if it is not already.
 		"""
 
@@ -476,7 +480,7 @@ class Texture:
 		
 		The return value is a 4D vector where (x,y,z,w) are (red, green, blue, intensity)
 		For greyscale textures, often intensity only will be used.
-		@type coord: vector
+		@type coord: vector or tuple of 3 numbers
 		"""
 		
 import id_generics
@@ -528,6 +532,8 @@ class MTex:
 	@ivar mtAmb: How texture maps to ambient value
 	@ivar mtDisp: How texture maps to displacement
 	@ivar mtWarp: How texture maps to warp
+	@ivar uvlayer: The name of the UV Layer this texture is mapped to (when left blank uses render layer)
+	@type uvlayer: string
 	"""
 
 	def getIpo():

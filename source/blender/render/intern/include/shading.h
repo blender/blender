@@ -29,6 +29,10 @@ struct RenderPart;
 struct RenderLayer;
 struct PixStr;
 struct LampRen;
+struct VlakRen;
+struct StrandSegment;
+struct StrandPoint;
+struct ObjectInstanceRen obi;
 
 /* shadeinput.c */
 
@@ -36,32 +40,36 @@ struct LampRen;
 
 /* needed to calculate shadow and AO for an entire pixel */
 typedef struct ShadeSample {
-	int tot;				/* amount of shi in use, can be 1 for not FULL_OSA */
+	int tot;						/* amount of shi in use, can be 1 for not FULL_OSA */
+	
+	RenderLayer *rlpp[RE_MAX_OSA];	/* fast lookup from sample to renderlayer (fullsample buf) */
 	
 	/* could be malloced once */
 	ShadeInput shi[RE_MAX_OSA];
 	ShadeResult shr[RE_MAX_OSA];
-	
-	int samplenr;			/* counter, detect shadow-reuse for shaders */
 } ShadeSample;
 
 
 	/* also the node shader callback */
 void shade_material_loop(struct ShadeInput *shi, struct ShadeResult *shr);
 
-void shade_input_set_triangle_i(struct ShadeInput *shi, struct VlakRen *vlr, short i1, short i2, short i3);
-void shade_input_set_triangle(struct ShadeInput *shi, volatile int facenr, int normal_flip);
+void shade_input_set_triangle_i(struct ShadeInput *shi, struct ObjectInstanceRen *obi, struct VlakRen *vlr, short i1, short i2, short i3);
+void shade_input_set_triangle(struct ShadeInput *shi, volatile int obi, volatile int facenr, int normal_flip);
 void shade_input_copy_triangle(struct ShadeInput *shi, struct ShadeInput *from);
 void shade_input_set_viewco(struct ShadeInput *shi, float x, float y, float z);
 void shade_input_set_uv(struct ShadeInput *shi);
 void shade_input_set_normals(struct ShadeInput *shi);
+void shade_input_flip_normals(struct ShadeInput *shi);
 void shade_input_set_shade_texco(struct ShadeInput *shi);
+void shade_input_set_strand(struct ShadeInput *shi, struct StrandRen *strand, struct StrandPoint *spoint);
+void shade_input_set_strand_texco(struct ShadeInput *shi, struct StrandRen *strand, struct StrandVert *svert, struct StrandPoint *spoint);
 void shade_input_do_shade(struct ShadeInput *shi, struct ShadeResult *shr);
 
 void shade_input_initialize(struct ShadeInput *shi, struct RenderPart *pa, struct RenderLayer *rl, int sample);
 
 void shade_sample_initialize(struct ShadeSample *ssamp, struct RenderPart *pa, struct RenderLayer *rl);
 void shade_samples_do_AO(struct ShadeSample *ssamp);
+void shade_samples_fill_with_ps(struct ShadeSample *ssamp, struct PixStr *ps, int x, int y);
 int shade_samples(struct ShadeSample *ssamp, struct PixStr *ps, int x, int y);
 
 void vlr_set_uv_indices(struct VlakRen *vlr, int *i1, int *i2, int *i3);

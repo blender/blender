@@ -35,6 +35,7 @@
 #pragma warning (disable : 4786)
 #endif //WIN32
 
+
 #include "KX_Scene.h"
 #include "MT_assert.h"
 
@@ -74,10 +75,18 @@
 #include "NG_NetworkScene.h"
 #include "PHY_IPhysicsEnvironment.h"
 #include "KX_IPhysicsController.h"
+#include "KX_BlenderSceneConverter.h"
 
 #include "BL_SkinDeformer.h"
 #include "BL_DeformableGameObject.h"
 
+// to get USE_BULLET!
+#include "KX_ConvertPhysicsObject.h"
+
+#ifdef USE_BULLET
+#include "CcdPhysicsEnvironment.h"
+#include "CcdPhysicsController.h"
+#endif
 
 void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
 {
@@ -112,7 +121,8 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_adi(adi),
 	m_networkDeviceInterface(ndi),
 	m_active_camera(NULL),
-	m_ueberExecutionPriority(0)
+	m_ueberExecutionPriority(0),
+	m_sceneConverter(NULL)
 {
 	m_suspendedtime = 0.0;
 	m_suspendeddelta = 0.0;
@@ -124,6 +134,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_objectlist = new CListValue();
 	m_parentlist = new CListValue();
 	m_lightlist= new CListValue();
+	m_inactivelist = new CListValue();
 	m_euthanasyobjects = new CListValue();
 	m_delayReleaseObjects = new CListValue();
 
@@ -171,12 +182,9 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 KX_Scene::~KX_Scene()
 {
 	
-//	int numobj = m_objectlist->GetCount();
-
-	//int numrootobjects = GetRootParentList()->GetCount();
-	for (int i = 0; i < GetRootParentList()->GetCount(); i++)
+	while (GetRootParentList()->GetCount() > 0) 
 	{
-		KX_GameObject* parentobj = (KX_GameObject*) GetRootParentList()->GetValue(i);
+		KX_GameObject* parentobj = (KX_GameObject*) GetRootParentList()->GetValue(0);
 		this->RemoveObject(parentobj);
 	}
 
@@ -186,6 +194,9 @@ KX_Scene::~KX_Scene()
 	if (m_parentlist)
 		m_parentlist->Release();
 	
+	if (m_inactivelist)
+		m_inactivelist->Release();
+
 	if (m_lightlist)
 		m_lightlist->Release();
 	
@@ -213,11 +224,38 @@ KX_Scene::~KX_Scene()
 	{
 		delete m_bucketmanager;
 	}
-
+#ifdef USE_BULLET
+	// This is a fix for memory leaks in bullet: the collision shapes is not destroyed 
+	// when the physical controllers are destroyed. The reason is that shapes are shared
+	// between replicas of an object. There is no reference count in Bullet so the
+	// only workaround that does not involve changes in Bullet is to save in this array
+	// the list of shapes that are created when the scene is created (see KX_ConvertPhysicsObjects.cpp)
+	class btCollisionShape* shape;
+	class btTriangleMeshShape* meshShape;
+	vector<class btCollisionShape*>::iterator it = m_shapes.begin();
+	while (it != m_shapes.end()) {
+		shape = *it;
+		if (shape->getShapeType() == TRIANGLE_MESH_SHAPE_PROXYTYPE)
+		{
+			meshShape = static_cast<btTriangleMeshShape*>(shape);
+			// shapes based on meshes use an interface that contains the vertices.
+			// Again the idea is to be able to share the interface between shapes but
+			// this is not used in Blender: each base object will have its own interface 
+			btStridingMeshInterface* meshInterface = meshShape->getMeshInterface();
+			if (meshInterface)
+				delete meshInterface;
+		}
+		delete shape;
+		it++;
+	}
+#endif
 	//Py_DECREF(m_attrlist);
 }
 
-
+void KX_Scene::AddShape(class btCollisionShape*shape)
+{
+	m_shapes.push_back(shape);
+}
 
 
 void KX_Scene::SetProjectionMatrix(MT_CmMatrix4x4& pmat)
@@ -246,6 +284,11 @@ CListValue* KX_Scene::GetRootParentList()
 	return m_parentlist;
 }
 
+CListValue* KX_Scene::GetInactiveList()
+{
+	return m_inactivelist;
+}
+
 
 
 CListValue* KX_Scene::GetLightList()
@@ -266,7 +309,7 @@ SCA_TimeEventManager* KX_Scene::GetTimeEventManager()
 
 
  
-set<class KX_Camera*>* KX_Scene::GetCameras()
+list<class KX_Camera*>* KX_Scene::GetCameras()
 {
 	return &m_cameras;
 }
@@ -367,8 +410,15 @@ void KX_Scene::EnableZBufferClearing(bool isclearingZbuffer)
 void KX_Scene::RemoveNodeDestructObject(class SG_IObject* node,class CValue* gameobj)
 {
 	KX_GameObject* orgobj = (KX_GameObject*)gameobj;	
-	NewRemoveObject(orgobj);
-
+	if (NewRemoveObject(orgobj) != 0)
+	{
+		// object is not yet deleted (this can happen when it hangs in an add object actuator
+		// last object created reference. It's a bad situation, don't know how to fix it exactly
+		// The least I can do, is remove the reference to the node in the object as the node
+		// will in any case be deleted. This ensures that the object will not try to use the node
+		// when it is finally deleted (see KX_GameObject destructor)
+		orgobj->SetSGNode(NULL);
+	}
 	if (node)
 		delete node;
 }
@@ -418,7 +468,7 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 	replicanode->SetSGClientObject(newobj);
 
 	// this is the list of object that are send to the graphics pipeline
-	m_objectlist->Add(newobj);
+	m_objectlist->Add(newobj->AddRef());
 	newobj->Bucketize();
 
 	// logic cannot be replicated, until the whole hierarchy is replicated.
@@ -574,7 +624,9 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 		// add a timebomb to this object
 		// for now, convert between so called frames and realtime
 		m_tempObjectList->Add(replica->AddRef());
-		replica->SetProperty("::timebomb",new CFloatValue(lifespan*0.02));
+		CValue *fval = new CFloatValue(lifespan*0.02);
+		replica->SetProperty("::timebomb",fval);
+		fval->Release();
 	}
 
 	// add to 'rootparent' list (this is the list of top hierarchy objects, updated each frame)
@@ -637,7 +689,7 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	replica->GetSGNode()->UpdateWorldData(0);
 	replica->GetSGNode()->SetBBox(originalobj->GetSGNode()->BBox());
 	replica->GetSGNode()->SetRadius(originalobj->GetSGNode()->Radius());
-	
+	//	don't release replica here because we are returning it, not done with it...
 	return replica;
 }
 
@@ -657,7 +709,8 @@ void KX_Scene::RemoveObject(class CValue* gameobj)
 		// recursively destruct
 		node->Destruct();
 	}
-	newobj->SetSGNode(0);
+	//no need to do that: the object is destroyed and memory released 
+	//newobj->SetSGNode(0);
 }
 
 void KX_Scene::DelayedReleaseObject(CValue* gameobj)
@@ -677,8 +730,9 @@ void KX_Scene::DelayedRemoveObject(class CValue* gameobj)
 
 
 
-void KX_Scene::NewRemoveObject(class CValue* gameobj)
+int KX_Scene::NewRemoveObject(class CValue* gameobj)
 {
+	int ret;
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
 
 	//todo: look at this
@@ -707,6 +761,7 @@ void KX_Scene::NewRemoveObject(class CValue* gameobj)
 	{
 		m_logicmgr->RemoveDestroyedActuator(*ita);
 	}
+	// the sensors/controllers/actuators must also be released, this is done in ~SCA_IObject
 
 	// now remove the timer properties from the time manager
 	int numprops = newobj->GetPropertyCount();
@@ -721,20 +776,28 @@ void KX_Scene::NewRemoveObject(class CValue* gameobj)
 	}
 	
 	newobj->RemoveMeshes();
+	ret = 1;
 	if (m_objectlist->RemoveValue(newobj))
-		newobj->Release();
+		ret = newobj->Release();
 	if (m_tempObjectList->RemoveValue(newobj))
-		newobj->Release();
+		ret = newobj->Release();
 	if (m_parentlist->RemoveValue(newobj))
-		newobj->Release();
+		ret = newobj->Release();
+	if (m_inactivelist->RemoveValue(newobj))
+		ret = newobj->Release();
 	if (m_euthanasyobjects->RemoveValue(newobj))
-		newobj->Release();
+		ret = newobj->Release();
 		
 	if (newobj == m_active_camera)
 	{
-		m_active_camera->Release();
+		//no AddRef done on m_active_camera so no Release
+		//m_active_camera->Release();
 		m_active_camera = NULL;
 	}
+	if (m_sceneConverter)
+		m_sceneConverter->UnregisterGameObject(newobj);
+	// return value will be 0 if the object is actually deleted (all reference gone)
+	return ret;
 }
 
 
@@ -850,7 +913,7 @@ MT_CmMatrix4x4& KX_Scene::GetProjectionMatrix()
 
 KX_Camera* KX_Scene::FindCamera(KX_Camera* cam)
 {
-	set<KX_Camera*>::iterator it = m_cameras.begin();
+	list<KX_Camera*>::iterator it = m_cameras.begin();
 
 	while ( (it != m_cameras.end()) 
 			&& ((*it) != cam) ) {
@@ -863,7 +926,7 @@ KX_Camera* KX_Scene::FindCamera(KX_Camera* cam)
 
 KX_Camera* KX_Scene::FindCamera(STR_String& name)
 {
-	set<KX_Camera*>::iterator it = m_cameras.begin();
+	list<KX_Camera*>::iterator it = m_cameras.begin();
 
 	while ( (it != m_cameras.end()) 
 			&& ((*it)->GetName() != name) ) {
@@ -875,7 +938,8 @@ KX_Camera* KX_Scene::FindCamera(STR_String& name)
 
 void KX_Scene::AddCamera(KX_Camera* cam)
 {
-	m_cameras.insert(cam);
+	if (!FindCamera(cam))
+		m_cameras.push_back(cam);
 }
 
 KX_Camera* KX_Scene::GetActiveCamera()
@@ -896,6 +960,17 @@ void KX_Scene::SetActiveCamera(KX_Camera* cam)
 	m_active_camera = cam;
 }
 
+void KX_Scene::SetCameraOnTop(KX_Camera* cam)
+{
+	if (!FindCamera(cam)){
+		// adding is always done at the back, so that's all that needs to be done
+		AddCamera(cam);
+		if (cam) std::cout << "Added cam " << cam->GetName() << std::endl;
+	} else {
+		m_cameras.remove(cam);
+		m_cameras.push_back(cam);
+	}
+}
 
 
 void KX_Scene::UpdateMeshTransformations()
@@ -1099,6 +1174,8 @@ void KX_Scene::LogicEndFrame()
 	for (i = numobj - 1; i >= 0; i--)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*)m_euthanasyobjects->GetValue(i);
+		// KX_Scene::RemoveObject will also remove the object from this list
+		// that's why we start from the end
 		this->RemoveObject(gameobj);
 	}
 
@@ -1106,11 +1183,11 @@ void KX_Scene::LogicEndFrame()
 	for (i = numobj-1;i>=0;i--)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*)m_delayReleaseObjects->GetValue(i);
-		m_delayReleaseObjects->RemoveValue(gameobj);	
-		
+		// This list is not for object removal, but just object release
+		gameobj->Release();
 	}
-	
-
+	// empty the list as we have removed all references
+	m_delayReleaseObjects->Resize(0);	
 }
 
 
@@ -1213,6 +1290,11 @@ void	KX_Scene::SetGravity(const MT_Vector3& gravity)
 void KX_Scene::SetNodeTree(SG_Tree* root)
 {
 	m_objecttree = root;
+}
+
+void KX_Scene::SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter)
+{
+	m_sceneConverter = sceneConverter;
 }
 
 void KX_Scene::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment* physEnv)

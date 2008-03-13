@@ -143,7 +143,7 @@ def setup_syslibs(lenv):
         lenv['BF_PNG_LIB'],
         lenv['BF_ZLIB_LIB']
         ]
-    if lenv['BF_DEBUG']==1 and lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
+    if lenv['BF_DEBUG']==1 and lenv['OURPLATFORM'] in ('win32-vc'):
         syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
     else:
         syslibs.append(lenv['BF_PYTHON_LIB'])
@@ -191,12 +191,15 @@ def buildinfo(lenv, build_type):
     """
     build_date = time.strftime ("%Y-%m-%d")
     build_time = time.strftime ("%H:%M:%S")
+    build_rev = os.popen('svnversion').read()[:-1] # remove \n
+
     obj = []
     if lenv['BF_BUILDINFO']==1: #user_options_dict['USE_BUILDINFO'] == 1:
         if sys.platform=='win32':
             build_info_file = open("source/creator/winbuildinfo.h", 'w')
             build_info_file.write("char *build_date=\"%s\";\n"%build_date)
             build_info_file.write("char *build_time=\"%s\";\n"%build_time)
+            build_info_file.write("char *build_rev=\"%s\";\n"%build_rev)
             build_info_file.write("char *build_platform=\"win32\";\n")
             build_info_file.write("char *build_type=\"dynamic\";\n")
             build_info_file.close()
@@ -205,6 +208,7 @@ def buildinfo(lenv, build_type):
             lenv.Append (CPPDEFINES = ['BUILD_TIME=\'"%s"\''%(build_time),
                                         'BUILD_DATE=\'"%s"\''%(build_date),
                                         'BUILD_TYPE=\'"dynamic"\'',
+                                        'BUILD_REV=\'"%s"\''%(build_rev),
                                         'NAN_BUILDINFO',
                                         'BUILD_PLATFORM=\'"%s"\''%(sys.platform)])
         obj = [lenv.Object (root_build_dir+'source/creator/%s_buildinfo'%build_type,
@@ -328,7 +332,7 @@ def AppIt(target=None, source=None, env=None):
     commands.getoutput(cmd)
     cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(builddir,binary, binary)
     commands.getoutput(cmd)
-    cmd = 'find %s/%s.app -name ".svn" -prune -exec rm -rf {} \;'%(builddir, binary)
+    cmd = 'find %s/%s.app -name .svn -prune -exec rm -rf {} \;'%(builddir, binary)
     commands.getoutput(cmd)
     cmd = 'find %s/%s.app -name .DS_Store -exec rm -rf {} \;'%(builddir, binary)
     commands.getoutput(cmd)
@@ -388,15 +392,18 @@ class BlenderEnvironment(SConsEnvironment):
             lenv.Append(CPPDEFINES=defines)
             if lenv['WITH_BF_GAMEENGINE']:
                     lenv.Append(CPPDEFINES=['GAMEBLENDER=1'])
+            if lenv['WITH_BF_BULLET']:
+                    lenv.Append(CPPDEFINES=['WITH_BULLET=1'])
             # debug or not
             # CXXFLAGS defaults to CCFLAGS, therefore
             #  we Replace() rather than Append() to CXXFLAGS the first time
+            lenv.Replace(CXXFLAGS = lenv['CCFLAGS'])
             if lenv['BF_DEBUG'] or (libname in quickdebug):
                     lenv.Append(CCFLAGS = Split(lenv['BF_DEBUG_FLAGS']))
-                    lenv.Replace( CXXFLAGS = Split(lenv['BF_DEBUG_FLAGS']))
+                    lenv.Append( CXXFLAGS = Split(lenv['BF_DEBUG_FLAGS']))
             else:
                     lenv.Append(CCFLAGS = lenv['REL_CFLAGS'])
-                    lenv.Replace(CXXFLAGS = lenv['REL_CCFLAGS'])
+                    lenv.Append(CXXFLAGS = lenv['REL_CCFLAGS'])
             if lenv['BF_PROFILE']:
                     lenv.Append(CCFLAGS = Split(lenv['BF_PROFILE_FLAGS']),
                                 CXXFLAGS = Split(lenv['BF_PROFILE_FLAGS']))
@@ -425,6 +432,8 @@ class BlenderEnvironment(SConsEnvironment):
         if  lenv['OURPLATFORM']=='sunos5':
             lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
             lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
+            if lenv['CXX'].endswith('CC'):
+                 lenv.Replace(LINK = '$CXX')
         if  lenv['OURPLATFORM']=='darwin':
             lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
             lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])

@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\expressions"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\Rasterizer"
 				PreprocessorDefinitions="WIN32;_LIB;EXP_PYTHON_EMBEDDING;_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -73,7 +73,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\expressions"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\Rasterizer"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -125,7 +125,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\expressions"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\Rasterizer"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -177,7 +177,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\expressions"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\Rasterizer"
 				PreprocessorDefinitions="WIN32,_LIB,EXP_PYTHON_EMBEDDING,_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -229,7 +229,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\expressions"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\Rasterizer"
 				PreprocessorDefinitions="WIN32;_LIB;EXP_PYTHON_EMBEDDING;_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -281,7 +281,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\expressions"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\Rasterizer"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -329,6 +329,9 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_2DFilterActuator.cpp">
+			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_AlwaysEventManager.cpp">
 			</File>
@@ -426,6 +429,9 @@
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_2DFilterActuator.h">
+			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_AlwaysEventManager.h">
 			</File>

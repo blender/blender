@@ -46,7 +46,8 @@ struct CcdConstructionInfo
 	        StaticFilter = 2,
 	        KinematicFilter = 4,
 	        DebrisFilter = 8,
-	        AllFilter = DefaultFilter | StaticFilter | KinematicFilter | DebrisFilter,
+			SensorFilter = 16,
+	        AllFilter = DefaultFilter | StaticFilter | KinematicFilter | DebrisFilter | SensorFilter,
 	};
 
 
@@ -61,6 +62,7 @@ struct CcdConstructionInfo
 		m_collisionFlags(0),
 		m_collisionFilterGroup(DefaultFilter),
 		m_collisionFilterMask(AllFilter),
+		m_collisionShape(0),
 		m_MotionState(0),
 		m_physicsEnv(0),
 		m_inertiaFactor(1.f)
@@ -85,9 +87,8 @@ struct CcdConstructionInfo
 	short int	m_collisionFilterGroup;
 	short int	m_collisionFilterMask;
 
-
-	btCollisionShape*			m_collisionShape;
-	class	PHY_IMotionState*			m_MotionState;
+	class btCollisionShape*	m_collisionShape;
+	class PHY_IMotionState*	m_MotionState;
 	
 	CcdPhysicsEnvironment*	m_physicsEnv; //needed for self-replication
 	float	m_inertiaFactor;//tweak the inertia (hooked up to Blender 'formfactor'
@@ -96,11 +97,12 @@ struct CcdConstructionInfo
 
 class btRigidBody;
 
+
 ///CcdPhysicsController is a physics object that supports continuous collision detection and time of impact based physics resolution.
 class CcdPhysicsController : public PHY_IPhysicsController	
 {
 	btRigidBody* m_body;
-	class	PHY_IMotionState*			m_MotionState;
+	class PHY_IMotionState*		m_MotionState;
 	btMotionState* 	m_bulletMotionState;
 
 
@@ -215,7 +217,11 @@ class CcdPhysicsController : public PHY_IPhysicsController
 			return m_MotionState;
 		}
 
-
+		class CcdPhysicsEnvironment* GetPhysicsEnvironment()
+		{
+			return m_cci.m_physicsEnv;
+		}
+		
 };
 
 

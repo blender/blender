@@ -1,72 +1,26 @@
 #!BPY
 """ Registration info for Blender menus:
 Name: 'OpenFlight (.flt)...'
-Blender: 238
+Blender: 245
 Group: 'Import'
 Tip: 'Import OpenFlight (.flt)'
 """
 
-__author__ = "Greg MacDonald, Campbell Barton"
-__version__ = "1.2 10/20/05"
+__author__ = "Greg MacDonald, Campbell Barton, Geoffrey Bantle"
+__version__ = "2.0 11/21/07"
 __url__ = ("blender", "elysiun", "Author's homepage, http://sourceforge.net/projects/blight/")
 __bpydoc__ = """\
 This script imports OpenFlight files into Blender. OpenFlight is a
 registered trademark of MultiGen-Paradigm, Inc.
 
-Run from "File->Import" menu.
+Feature overview and more availible at:
+http://wiki.blender.org/index.php/Scripts/Manual/Import/openflight_flt
 
-Options are available from Blender's "Scripts Config Editor," accessible through
-the "Scripts->System" menu from the scripts window.
-
-All global_prefs are toggle switches that let the user choose what is imported. Most
-are straight-forward, but one option could be a source of confusion. The 
-"Diffuse Color From Face" option when set pulls the diffuse color from the face
-colors. Otherwise the diffuse color comes from the material. What may be
-confusing is that this global_prefs only works if the "Diffuse Color" option is set.
-
-New Features:<br>
-* Importer is 14 times faster.<br>
-* External triangle module is no longer required, but make sure the importer
-has a 3d View screen open while its running or triangulation won't work.<br>
-* Should be able to import all versions of flight files.
-
-Features:<br>
-* Heirarchy retained.<br>
-* First texture imported.<br>
-* Colors imported from face or material.<br>
-* LOD seperated out into different layers.<br>
-* Asks for location of unfound textures or external references.<br>
-* Searches Blender's texture directory in the user preferences panel.<br>
-* Triangles with more than 4 verts are triangulated if the Triangle python
-module is installed.<br>
-* Matrix transforms imported.<br>
-* External references to whole files are imported.
-
-Things To Be Aware Of:<br>
-* Each new color and face attribute creates a new material and there are only a maximum of 16
-materials per object.<br>
-* For triangulated faces, normals must be recomputed outward manually by typing
-CTRL+N in edit mode.<br>
-* You can change global_prefs only after an initial import.<br>
-* External references are imported as geometry and will be exported that way.<br>
-* A work around for not using the Triangle python module is to simply to 
-triangulate in Creator before importing. This is only necessary if your
-model contains 5 or more vertices.<br>
-* You have to manually blend the material color with the texture color.
-
-What's Not Handled:<br>
-* Special texture repeating modes.<br>
-* Replications and instancing.<br>
-* Comment and attribute fields.<br>
-* Light points.<br>
-* Animations.<br>
-* External references to a node within a file.<br>
-* Multitexturing.<br>
-* Vetex colors.<br>
+Note: This file is a grab-bag of old and new code. It needs some cleanup still.
 """
 
 # flt_import.py is an OpenFlight importer for blender.
-# Copyright (C) 2005 Greg MacDonald
+# Copyright (C) 2005 Greg MacDonald, 2007  Blender Foundation
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -87,15 +41,33 @@ import os
 import BPyMesh
 import BPyImage
 import flt_filewalker 
+import flt_properties
+reload(flt_properties)
+from flt_properties import *
+
+#Globals. Should Clean these up and minimize their usage.
+
+typecodes = ['c','C','s','S','i','I','f','d','t']
+records = dict()
+
+FLTBaseLabel = None
+FLTBaseString = None
+FLTBaseChooser = None
+FLTExport = None
+FLTClose = None
+FLTDoXRef = None
+FLTScale = None
+FLTShadeImport = None
+FLTAttrib = None
 
 Vector= Blender.Mathutils.Vector
+FLOAT_TOLERANCE = 0.01
 
-def col_to_gray(c):
-	return 0.3*c[0] + 0.59*c[1] + 0.11*c[2]
-
+FF = flt_filewalker.FileFinder()
+current_layer = 0x01
 
 global_prefs = dict()
-global_prefs['verbose']= 1
+global_prefs['verbose']= 4
 global_prefs['get_texture'] = True
 global_prefs['get_diffuse'] = True
 global_prefs['get_specular'] = False
@@ -105,8 +77,41 @@ global_prefs['get_ambient'] = False
 global_prefs['get_shininess'] = True
 global_prefs['color_from_face'] = True
 global_prefs['fltfile']= ''
+global_prefs['smoothshading'] = 1
+global_prefs['doxrefs'] = 1
+global_prefs['scale'] = 1.0
+global_prefs['attrib'] = 0
 msg_once = False
 
+throw_back_opcodes = [2, 73, 4, 11, 96, 14, 91, 98, 63,111] # Opcodes that indicate its time to return control to parent.
+do_not_report_opcodes = [76, 78, 79, 80, 81, 82, 94, 83, 33, 112, 100, 101, 102, 97, 31, 103, 104, 117, 118, 120, 121, 124, 125]
+
+#Process FLT record definitions
+for record in FLT_Records:
+	props = dict()
+	for prop in FLT_Records[record]:
+		position = ''
+		slice = 0
+		(format,name) = prop.split('!')
+		for i in format:
+			if i not in typecodes:
+				position = position + i
+				slice = slice + 1
+			else:
+				break
+		type = format[slice:]
+		length = type[1:] 
+		if len(length) == 0:
+			length = 1
+		else:
+			type = type[0]
+			length = int(length)
+		
+		props[int(position)] = (type,length,prop)
+	records[record] = props
+
+def col_to_gray(c):
+	return 0.3*c[0] + 0.59*c[1] + 0.11*c[2]
 class MaterialDesc:
 	# Was going to use int(f*1000.0) instead of round(f,3), but for some reason
 	# round produces better results, as in less dups.
@@ -185,16 +190,14 @@ class VertexDesc:
 		self.y = 0.0
 		self.z = 0.0
 		
-		''' # IGNORE_NORMALS
+		
 		self.nx = 0.0
-		self.ny = 1.0
+		self.ny = 0.0
 		self.nz = 0.0
-		'''
+		
 		self.uv= Vector(0,0)
-		self.r = 1.0
-		self.g = 1.0
-		self.b = 1.0
-		self.a = 1.0        
+		self.cindex = 127 #default/lowest
+		self.cnorm = False        
 
 class LightPointAppDesc:
 	def make_key(self):
@@ -222,7 +225,7 @@ class LightPointAppDesc:
 		self.props.update({'LOD scale': 0.0})
 
 class GlobalResourceRepository:
-	def request_lightpoint_app(self, desc):
+	def request_lightpoint_app(self, desc, scene):
 		match = self.light_point_app.get(desc.make_key())
 		
 		if match:
@@ -231,7 +234,7 @@ class GlobalResourceRepository:
 			# Create empty and fill with properties.
 			name = desc.props['type'] + ': ' + desc.props['id']
 			object = Blender.Object.New('Empty', name)
-			scene.link(object)
+			scene.objects.link(object)
 			object.Layers= current_layer
 			object.sel= 1
 			
@@ -306,6 +309,9 @@ class GlobalResourceRepository:
 		return tex
 		
 	def __init__(self):
+		
+		#list of scenes xrefs belong to.
+		self.xrefs = dict()
 		# material
 		self.mat_dict = dict()
 		mat_lst = Blender.Material.Get()
@@ -341,108 +347,6 @@ class GlobalResourceRepository:
 		# light point
 		self.light_point_app = dict()
 		
-# Globals
-GRR = GlobalResourceRepository()
-FF = flt_filewalker.FileFinder()
-scene = Blender.Scene.GetCurrent() # just hope they dont chenge scenes once the file selector pops up.
-current_layer = 0x01
-
-
-# Opcodes that indicate its time to return control to parent.
-throw_back_opcodes = [2, 73, 4, 11, 96, 14, 91, 98, 63]
-do_not_report_opcodes = [76, 78, 79, 80, 81, 82, 94, 83, 33, 112, 100, 101, 102, 97, 31, 103, 104, 117, 118, 120, 121, 124, 125]
-
-opcode_name = { 0: 'db',
-				1: 'head',
-				2: 'grp',
-				4: 'obj',
-				5: 'face',
-				10: 'push',
-				11: 'pop',
-				14: 'dof',
-				19: 'push sub',
-				20: 'pop sub',
-				21: 'push ext',
-				22: 'pop ext',
-				23: 'cont',
-				31: 'comment',
-				32: 'color pal',
-				33: 'long id',
-				49: 'matrix',
-				50: 'vector',
-				52: 'multi-tex',
-				53: 'uv lst',
-				55: 'bsp',
-				60: 'rep',
-				61: 'inst ref',
-				62: 'inst def',
-				63: 'ext ref',
-				64: 'tex pal',
-				67: 'vert pal',
-				68: 'vert w col',
-				69: 'vert w col & norm',
-				70: 'vert w col, norm & uv',
-				71: 'vert w col & uv',
-				72: 'vert lst',
-				73: 'lod',
-				74: 'bndin box',
-				76: 'rot edge',
-				78: 'trans',
-				79: 'scl',
-				80: 'rot pnt',
-				81: 'rot and/or scale pnt',
-				82: 'put',
-				83: 'eyepoint & trackplane pal',
-				84: 'mesh',
-				85: 'local vert pool',
-				86: 'mesh prim',
-				87: 'road seg',
-				88: 'road zone',
-				89: 'morph vert lst',
-				90: 'link pal',
-				91: 'snd',
-				92: 'rd path',
-				93: 'snd pal',
-				94: 'gen matrix',
-				95: 'txt',
-				96: 'sw',
-				97: 'line styl pal',
-				98: 'clip reg',
-				100: 'ext',
-				101: 'light src',
-				102: 'light src pal',
-				103: 'reserved',
-				104: 'reserved',
-				105: 'bndin sph',
-				106: 'bndin cyl',
-				107: 'bndin hull',
-				108: 'bndin vol cntr',
-				109: 'bndin vol orient',
-				110: 'rsrvd',
-				111: 'light pnt',
-				112: 'tex map pal',
-				113: 'mat pal',
-				114: 'name tab',
-				115: 'cat',
-				116: 'cat dat',
-				117: 'rsrvd',
-				118: 'rsrvd',
-				119: 'bounding hist',
-				120: 'rsrvd',
-				121: 'rsrvd',
-				122: 'push attrib',
-				123: 'pop attrib',
-				124: 'rsrvd',
-				125: 'rsrvd',
-				126: 'curv',
-				127: 'road const',
-				128: 'light pnt appear pal',
-				129: 'light pnt anim pal',
-				130: 'indexed lp',
-				131: 'lp sys',
-				132: 'indx str',
-				133: 'shdr pal'}
-
 class Handler:
 	def in_throw_back_lst(self, opcode):
 		return opcode in self.throw_back_lst
@@ -487,11 +391,11 @@ class Node:
 			print '-', self.props['comment'],
 
 			print
-
+                
 		for child in self.children:
 			child.blender_import()
-		
-		# Import comment.
+			
+# Import comment.
 #        if self.props['comment'] != '':
 #            name = 'COMMENT: ' + self.props['id']
 #            t = Blender.Text.New(name)
@@ -568,8 +472,8 @@ class Node:
 				else:
 					if global_prefs['verbose'] >= 3:
 						print p + ' ignored'
-					elif global_prefs['verbose'] >= 1 and not opcode in do_not_report_opcodes and opcode in opcode_name:
-						print opcode_name[opcode], 'not handled'                        
+					elif global_prefs['verbose'] >= 1 and not opcode in do_not_report_opcodes and opcode in opcode_name:   
+						print 'not handled'
 					
 	def get_level(self):
 		return self.level
@@ -581,7 +485,19 @@ class Node:
 	def parse_comment(self):
 		self.props['comment'] = self.header.fw.read_string(self.header.fw.get_length()-4)
 		return True
-
+	
+	def parse_record(self):
+		self.props['type'] = self.opcode
+		props = records[self.opcode]
+		propkeys = props.keys()
+		propkeys.sort()
+		for position in propkeys:
+			(type,length,name) = props[position]
+			self.props[name] = read_prop(self.header.fw,type,length)
+		try: #remove me!
+			self.props['id'] = self.props['3t8!id']
+		except:
+			pass
 	def __init__(self, parent, header):
 		self.root_handler = Handler()
 		self.child_handler = Handler()
@@ -647,20 +563,16 @@ class VertexPalette(Node):
 		return v
 
 	def parse_vertex_post_common(self, v):
-		if not v.flags & 0x2000: # 0x2000 = no color
-			if v.flags & 0x1000: # 0x1000 = packed color
-				v.a = self.header.fw.read_uchar()
-				v.b = self.header.fw.read_uchar()
-				v.g = self.header.fw.read_uchar()
-				v.r = self.header.fw.read_uchar()
-			else:
-				self.header.fw.read_ahead(4)
-			
-			color_index = self.header.fw.read_uint()
-			v.r, v.g, v.b, v.a= self.header.get_color(color_index)
-		
+		#if not v.flags & 0x2000: # 0x2000 = no color
+			#if v.flags & 0x1000: # 0x1000 = packed color
+			#	v.a = self.header.fw.read_uchar()
+			#	v.b = self.header.fw.read_uchar()
+			#	v.g = self.header.fw.read_uchar()
+			#	v.r = self.header.fw.read_uchar()
+			#else:
+		self.header.fw.read_ahead(4) #skip packed color
+		v.cindex = self.header.fw.read_uint()
 		self.vert_desc_lst.append(v)
-		
 		return True
 
 	def parse_vertex_c(self):
@@ -672,16 +584,10 @@ class VertexPalette(Node):
 
 	def parse_vertex_cn(self):
 		v = self.parse_vertex_common()
-		
-		'''
+		v.cnorm = True
 		v.nx = self.header.fw.read_float()
 		v.ny = self.header.fw.read_float()
 		v.nz = self.header.fw.read_float()
-		'''
-		# Just to advance
-		self.header.fw.read_float()
-		self.header.fw.read_float()
-		self.header.fw.read_float()
 		
 		self.parse_vertex_post_common(v)
 		
@@ -698,15 +604,10 @@ class VertexPalette(Node):
 
 	def parse_vertex_cnuv(self):
 		v = self.parse_vertex_common()
-		'''
+		v.cnorm = True
 		v.nx = self.header.fw.read_float()
 		v.ny = self.header.fw.read_float()
 		v.nz = self.header.fw.read_float()
-		'''
-		# Just to advance
-		self.header.fw.read_float()
-		self.header.fw.read_float()
-		self.header.fw.read_float()
 		
 		v.uv[:] = self.header.fw.read_float(), self.header.fw.read_float()
 
@@ -721,89 +622,374 @@ class InterNode(Node):
 	def __init__(self):
 		self.object = None
 		self.mesh = None
-		self.isMesh = False
+		self.hasMesh = False
 		self.faceLs= []
 		self.matrix = None
-	
-	def blender_import_my_faces(self):
+		self.vis = True
+		self.hasmtex = False
+		self.uvlayers = dict()
+		self.blayernames = dict()
+		self.subfacelevel = 0
 		
+		mask = 2147483648
+		for i in xrange(7):
+			self.uvlayers[mask] = False
+			mask = mask / 2
+		
+
+	def blender_import_my_faces(self):
+
 		# Add the verts onto the mesh
-		mesh = self.mesh
 		blender_verts= self.header.vert_pal.blender_verts
 		vert_desc_lst= self.header.vert_pal.vert_desc_lst
 		
-		vert_list= [ i for flt_face in self.faceLs for i in flt_face.indices]
-		
-		mesh.verts.extend([blender_verts[i] for i in vert_list])
-		
+		vert_list= [ i for flt_face in self.faceLs for i in flt_face.indices] #splitting faces apart. Is this a good thing?
+		face_edges= []
+		face_verts= []
+		self.mesh.verts.extend([blender_verts[i] for i in vert_list])
 		
 		new_faces= []
 		new_faces_props= []
 		ngon= BPyMesh.ngon
 		vert_index= 1
+		
+		#add vertex color layer for baked face colors.
+		self.mesh.addColorLayer("FLT_Fcol")
+		self.mesh.activeColorLayer = "FLT_Fcol"
+		
+		FLT_OrigIndex = 0
 		for flt_face in self.faceLs:
-			material_index= flt_face.blen_mat_idx
-			image= flt_face.blen_image
-			
+			if flt_face.tex_index != -1:
+				try:
+					image= self.header.tex_pal[flt_face.tex_index][1]
+				except KeyError:
+					image= None
+			else:
+				image= None
 			face_len= len(flt_face.indices)
 			
+			#create dummy uvert dicts
+			if len(flt_face.uverts) == 0:
+				for i in xrange(face_len):
+					flt_face.uverts.append(dict())
+			#May need to patch up MTex info
+			if self.hasmtex:
+				#For every layer in mesh, there should be corresponding layer in the face
+				for mask in self.uvlayers.keys():
+					if self.uvlayers[mask]:
+						if not flt_face.uvlayers.has_key(mask): #Does the face have this layer?
+							#Create Layer info for this face
+							flt_face.uvlayers[mask] = dict()
+							flt_face.uvlayers[mask]['texture index'] = -1
+							flt_face.uvlayers[mask]['texture enviorment'] = 3
+							flt_face.uvlayers[mask]['texture mapping'] = 0
+							flt_face.uvlayers[mask]['texture data'] = 0
+							
+							#now go through and create dummy uvs for this layer
+							for uvert in flt_face.uverts:
+									uv = Vector(0.0,0.0)
+									uvert[mask] = uv
+
 			# Get the indicies in reference to the mesh.
-			
 			uvs= [vert_desc_lst[j].uv for j in flt_face.indices]
-			if face_len <=4: # tri or quad
+			if face_len == 1:
+				pass
+			elif face_len == 2:
+				face_edges.append((vert_index, vert_index+1))
+			elif flt_face.props['draw type'] == 2 or flt_face.props['draw type'] == 3:
+				i = 0
+				while i < (face_len-1):
+					face_edges.append((vert_index + i, vert_index + i + 1))
+					i = i + 1
+				if flt_face.props['draw type'] == 2:
+					face_edges.append((vert_index + i,vert_index)) 
+			elif face_len == 3 or face_len == 4: # tri or quad
+				#if face_len == 1:
+				#	pass
+				#if face_len == 2:
+				#	face_edges.append((vert_index, vert_index+1))
 				new_faces.append( [i+vert_index for i in xrange(face_len)] )
-				new_faces_props.append((material_index, image, uvs))
+				new_faces_props.append((None, image, uvs, flt_face.uverts, flt_face.uvlayers, flt_face.color_index, flt_face.props,FLT_OrigIndex,0, flt_face.subfacelevel))
 			
 			else: # fgon
 				mesh_face_indicies = [i+vert_index for i in xrange(face_len)]
-				tri_ngons= ngon(mesh, mesh_face_indicies)
+				tri_ngons= ngon(self.mesh, mesh_face_indicies)
 				new_faces.extend([ [mesh_face_indicies[t] for t in tri] for tri in tri_ngons])
-				new_faces_props.extend( [ (material_index, image, (uvs[tri[0]], uvs[tri[1]], uvs[tri[2]]) ) for tri in tri_ngons ] )
+				new_faces_props.extend( [ (None, image, (uvs[tri[0]], uvs[tri[1]], uvs[tri[2]]), [flt_face.uverts[tri[0]], flt_face.uverts[tri[1]], flt_face.uverts[tri[2]]], flt_face.uvlayers, flt_face.color_index, flt_face.props,FLT_OrigIndex,1, flt_face.subfacelevel) for tri in tri_ngons ])
 			
 			vert_index+= face_len
+			FLT_OrigIndex+=1
 		
-		mesh.faces.extend(new_faces)
+		self.mesh.faces.extend(new_faces)
+		self.mesh.edges.extend(face_edges)
 		
-		try:	mesh.faceUV= True
-		except:	pass
+		#add in the FLT_ORIGINDEX layer
+		if len(self.mesh.faces):
+			try:	self.mesh.faceUV= True
+			except:	pass
 		
-		for i, f in enumerate(mesh.faces):
-			f.mat, f.image, f.uv= new_faces_props[i]
-	
+			if self.mesh.faceUV == True:
+				self.mesh.renameUVLayer(self.mesh.activeUVLayer, 'Layer0')
+		
+			#create name layer for faces
+			self.mesh.faces.addPropertyLayer("FLT_ID",Blender.Mesh.PropertyTypes["STRING"])
+			#create layer for face color indices
+			self.mesh.faces.addPropertyLayer("FLT_COL",Blender.Mesh.PropertyTypes["INT"])
+			#create index layer for faces. This is needed by both FGONs and subfaces
+			self.mesh.faces.addPropertyLayer("FLT_ORIGINDEX",Blender.Mesh.PropertyTypes["INT"])
+			#create temporary FGON flag layer. Delete after remove doubles
+			self.mesh.faces.addPropertyLayer("FLT_FGON",Blender.Mesh.PropertyTypes["INT"])
+			self.mesh.faces.addPropertyLayer("FLT_SFLEVEL", Blender.Mesh.PropertyTypes["INT"])
+			
+			for i, f in enumerate(self.mesh.faces):
+				props = new_faces_props[i]
+				if props[6]['template billboard'] > 0:
+					f.transp |= Blender.Mesh.FaceTranspModes["ALPHA"]
+					if props[6]['template billboard'] == 2:
+						f.mode |=  Blender.Mesh.FaceModes["BILLBOARD"]
+					f.mode |= Blender.Mesh.FaceModes["LIGHT"]
+				
+				#f.mat = props[0]
+				f.image = props[1]
+				f.uv = props[2]
+				#set vertex colors
+				color = self.header.get_color(props[5])
+				if not color:
+					color = [255,255,255,255]
+				for mcol in f.col:
+					mcol.a = color[3]
+					mcol.r = color[0]
+					mcol.g = color[1]
+					mcol.b = color[2]
+				
+				f.setProperty("FLT_SFLEVEL", props[9])
+				f.setProperty("FLT_ORIGINDEX",i)
+				f.setProperty("FLT_ID",props[6]['id'])
+				#if props[5] > 13199:
+				#	print "Warning, invalid color index read in! Using default!"
+				#	f.setProperty("FLT_COL",127)
+				#else:
+				if(1):			#uh oh....
+					value = struct.unpack('>i',struct.pack('>I',props[5]))[0]
+					f.setProperty("FLT_COL",value)
+				
+				#if props[8]: 
+				#	f.setProperty("FLT_FGON",1)
+				#else:
+				#	f.setProperty("FLT_FGON",0)
+			
+			
+			#Create multitex layers, if present.
+			actuvlayer = self.mesh.activeUVLayer
+			if(self.hasmtex):
+				#For every multi-tex layer, we have to add a new UV layer to the mesh
+				for i,mask in enumerate(reversed(sorted(self.uvlayers))):
+					if self.uvlayers[mask]:
+						self.blayernames[mask] = "Layer" + str(i+1)
+						self.mesh.addUVLayer(self.blayernames[mask])
+				
+				#Cycle through availible multi-tex layers and add face UVS
+				for mask in self.uvlayers:
+					if self.uvlayers[mask]:
+						self.mesh.activeUVLayer = self.blayernames[mask]
+						for j, f in enumerate(self.mesh.faces):
+							f.transp |= Blender.Mesh.FaceTranspModes["ALPHA"]
+							f.mode |= Blender.Mesh.FaceModes["LIGHT"]
+							props = new_faces_props[j]
+							uvlayers = props[4]
+							if uvlayers.has_key(mask): #redundant
+								uverts = props[3]
+								for k, uv in enumerate(f.uv):
+									uv[0] = uverts[k][mask][0]
+									uv[1] = uverts[k][mask][1]
+				
+								uvlayer = uvlayers[mask]
+								tex_index = uvlayer['texture index']
+								if tex_index != -1:
+									try:
+										f.image = self.header.tex_pal[tex_index][1]
+									except KeyError:
+										f.image = None
+									
+			if global_prefs['smoothshading'] == True and len(self.mesh.faces):
+				#We need to store per-face vertex normals in the faces as UV layers and delete them later.
+				self.mesh.addUVLayer("FLTNorm1")
+				self.mesh.addUVLayer("FLTNorm2")
+				self.mesh.activeUVLayer = "FLTNorm1"
+				for f in self.mesh.faces:
+					f.smooth = 1
+					#grab the X and Y components of normal and store them in UV 
+					for i, uv in enumerate(f.uv):
+						vert = f.v[i].index
+						vert_desc = vert_desc_lst[vert_list[vert-1]]
+						if vert_desc.cnorm:
+							uv[0] = vert_desc.nx
+							uv[1] = vert_desc.ny
+						else:
+							uv[0] = 0.0
+							uv[1] = 0.0
+				
+				#Now go through and populate the second UV Layer with the z component
+				self.mesh.activeUVLayer = "FLTNorm2"
+				for f in self.mesh.faces:
+					for i, uv in enumerate(f.uv):
+						vert = f.v[i].index
+						vert_desc = vert_desc_lst[vert_list[vert-1]]
+						if vert_desc.cnorm:
+							uv[0] = vert_desc.nz
+							uv[1] = 0.0
+						else:
+							uv[0] = 0.0
+							uv[1] = 0.0
+			
+				
+				
+			#Finally, go through, remove dummy vertex, remove doubles and add edgesplit modifier.
+			Blender.Mesh.Mode(Blender.Mesh.SelectModes['VERTEX'])
+			self.mesh.verts.delete(0) # remove the dummy vert
+			self.mesh.sel= 1
+			self.header.scene.update(1) #slow!
+			self.mesh.remDoubles(0.0001)
+			
+			edgeHash = dict()
+
+			for edge in self.mesh.edges:
+				edgeHash[edge.key] = edge.index
+
+
+			if global_prefs['smoothshading'] == True and len(self.mesh.faces):
+				
+				#rip out the custom vertex normals from the mesh and place them in a face aligned list. Easier to compare this way.
+				facenorms = []
+				self.mesh.activeUVLayer = "FLTNorm1"
+				for face in self.mesh.faces:
+					facenorm = []
+					for uv in face.uv:
+						facenorm.append(Vector(uv[0],uv[1],0.0))
+					facenorms.append(facenorm)
+				self.mesh.activeUVLayer = "FLTNorm2"
+				for i, face in enumerate(self.mesh.faces):
+					facenorm = facenorms[i]
+					for j, uv in enumerate(face.uv):
+						facenorm[j][2] = uv[0]
+				self.mesh.removeUVLayer("FLTNorm1")
+				self.mesh.removeUVLayer("FLTNorm2")
+
+				#find hard edges
+				#store edge data for lookup by faces
+				#edgeHash = dict()
+				#for edge in self.mesh.edges:
+				#	edgeHash[edge.key] = edge.index
+
+				edgeNormHash = dict()
+				#make sure to align the edgenormals to key value!
+				for i, face in enumerate(self.mesh.faces):
+					
+					facenorm = facenorms[i]
+					faceEdges = []
+					faceEdges.append((face.v[0].index,face.v[1].index,facenorm[0],facenorm[1],face.edge_keys[0]))
+					faceEdges.append((face.v[1].index,face.v[2].index,facenorm[1],facenorm[2],face.edge_keys[1]))
+					if len(face.v) == 3:
+						faceEdges.append((face.v[2].index,face.v[0].index,facenorm[2],facenorm[0],face.edge_keys[2]))
+					elif len(face.v) == 4:
+						faceEdges.append((face.v[2].index,face.v[3].index,facenorm[2],facenorm[3],face.edge_keys[2]))
+						faceEdges.append((face.v[3].index,face.v[0].index,facenorm[3],facenorm[0],face.edge_keys[3]))
+					
+					#check to see if edgeNormal has been placed in the edgeNormHash yet
+					#this is a redundant test, and should be optimized to not be called as often as it is.
+					for j, faceEdge in enumerate(faceEdges):
+						#the value we are looking for is (faceEdge[2],faceEdge[3])
+						hashvalue = (faceEdge[2],faceEdge[3])
+						if (faceEdge[0],faceEdge[1]) != faceEdge[4]:
+							hashvalue = (hashvalue[1],hashvalue[0])
+							assert (faceEdge[1],faceEdge[0]) == faceEdge[4]
+						if edgeNormHash.has_key(faceEdge[4]):
+							#compare value in the hash, if different, mark as sharp
+							edgeNorm = edgeNormHash[faceEdge[4]]
+							if\
+							abs(hashvalue[0][0] - edgeNorm[0][0]) > FLOAT_TOLERANCE or\
+							abs(hashvalue[0][1] - edgeNorm[0][1]) > FLOAT_TOLERANCE or\
+							abs(hashvalue[0][2] - edgeNorm[0][2]) > FLOAT_TOLERANCE or\
+							abs(hashvalue[1][0] - edgeNorm[1][0]) > FLOAT_TOLERANCE or\
+							abs(hashvalue[1][1] - edgeNorm[1][1]) > FLOAT_TOLERANCE or\
+							abs(hashvalue[1][2] - edgeNorm[1][2]) > FLOAT_TOLERANCE:
+								edge = self.mesh.edges[edgeHash[faceEdge[4]]]
+								edge.flag |= Blender.Mesh.EdgeFlags.SHARP
+								
+						else:
+							edgeNormHash[faceEdge[4]] = hashvalue
+				
+				#add in edgesplit modifier
+				mod = self.object.modifiers.append(Blender.Modifier.Types.EDGESPLIT)
+				mod[Blender.Modifier.Settings.EDGESPLIT_FROM_SHARP] = True
+				mod[Blender.Modifier.Settings.EDGESPLIT_FROM_ANGLE] = False
+
+			if(actuvlayer):
+				self.mesh.activeUVLayer = actuvlayer
+ 		
 	def blender_import(self):
-#        name = self.props['type'] + ': ' + self.props['id']
+		if self.vis and self.parent:
+			self.vis = self.parent.vis
 		name = self.props['id']
-		if self.isMesh:
-			self.object = Blender.Object.New('Mesh', name)
-			#self.mesh = self.object.getData()
+		
+		if self.hasMesh:
 			self.mesh = Blender.Mesh.New()
-			self.mesh.verts.extend( Vector() ) # DUMMYVERT
-			self.object.link(self.mesh)
+			self.mesh.name = 'FLT_FaceList'
+			self.mesh.fakeUser = True
+			self.mesh.verts.extend( Vector()) #DUMMYVERT
+			self.object = self.header.scene.objects.new(self.mesh)
 		else:
-			self.object = Blender.Object.New('Empty', name)
+			self.object = self.header.scene.objects.new('Empty')
 
-		if self.parent:
-			self.parent.object.makeParent([self.object])
+		self.object.name = name
+		self.header.group.objects.link(self.object)
 
-		scene.link(self.object)
-		self.object.Layer = current_layer
-		self.object.sel = 1
+		#id props import
+		self.object.properties['FLT'] = dict()
+		for key in self.props:
+			try:
+				self.object.properties['FLT'][key] = self.props[key]
+			except: #horrible...
+				pass
 		
-		Node.blender_import(self) # Attach faces to self.faceLs
+		if self.parent and self.parent.object and (self.header.scene == self.parent.header.scene):
+				self.parent.object.makeParent([self.object])
+
+		if self.vis == False:
+			self.object.restrictDisplay = True
+			self.object.restrictRender = True
 		
-		if self.isMesh:
-			# Add all my faces into the mesh at once
-			self.blender_import_my_faces()
+		else: #check for LOD children and set the proper flags
+			lodlist = list()
+			for child in self.children:
+				if child.props.has_key('type') and child.props['type'] == 73:
+					lodlist.append(child)
 		
+			def LODmin(a,b):
+				if a.props['5d!switch in'] < b.props['5d!switch in']:
+					return a 
+				return b
+		
+			min= None
+			if len(lodlist) > 1:
+				for lod in lodlist:
+					lod.vis = False
+				min = lodlist[0]
+				for i in xrange(len(lodlist)):
+					min= LODmin(min,lodlist[i])
+				min.vis = True
+				
 		if self.matrix:
 			self.object.setMatrix(self.matrix)
+			
+		Node.blender_import(self) # Attach faces to self.faceLs
 		
-		# Attach properties
-		#for name, value in self.props.items():
-		#    self.object.addProperty(name, value)
-		
+		if self.hasMesh:
+			# Add all my faces into the mesh at once
+			self.blender_import_my_faces()
+			
 	def parse_face(self):
-		child = Face(self)
+		child = Face(self, self.subfacelevel)
 		child.parse()
 		return True
 
@@ -838,6 +1024,11 @@ class InterNode(Node):
 		child.parse()
 		return True
 
+	def parse_dof(self):
+		child = DOF(self)
+		child.parse()
+		return True
+
 	def parse_indexed_light_point(self):
 		child = IndexedLightPoint(self)
 		child.parse()
@@ -857,32 +1048,42 @@ class InterNode(Node):
 				m[i].append(f)
 		self.matrix = Blender.Mathutils.Matrix(m[0], m[1], m[2], m[3])
 		
-EDGE_FGON= Blender.Mesh.EdgeFlags['FGON']
-FACE_TEX= Blender.Mesh.FaceModes['TEX']
+	def parse_subpush(self):
+		self.parse_push()
+		self.subfacelevel+= 1
+		return True
+	def  parse_subpop(self):
+		self.parse_pop()
+		self.subfacelevel -= 1
+		return True
 
+		
+		
 class Face(Node):
-	def __init__(self, parent):
+	def __init__(self, parent,subfacelevel):
 		Node.__init__(self, parent, parent.header)
 		self.root_handler.set_handler({31: self.parse_comment,
-									   10: self.parse_push})
+									   10: self.parse_push,
+									   52: self.parse_multitex})
 		self.root_handler.set_throw_back_lst(throw_back_opcodes)
 		
 		self.child_handler.set_handler({72: self.parse_vertex_list,
 										10: self.parse_push,
-										11: self.parse_pop})
+										11: self.parse_pop,
+										53: self.parse_uvlist})
 		
 		if parent:
-			parent.isMesh = True
+			parent.hasMesh = True
 
-		self.indices =  list() # face verts here
+		self.subfacelevel = subfacelevel
+		self.indices =  list()	# face verts here
+		self.uvlayers = dict()	# MultiTexture layers keyed to layer bitmask.
+		self.uverts = list()	# Vertex aligned list of dictionaries keyed to layer bitmask.
+		self.uvmask = 0			# Bitfield read from MTex record
 		
 		self.comment = ''
-		self.props = dict.fromkeys(['ir color', 'priority', 
-									'draw type', 'texture white', 'template billboard',
-									'smc', 'fid', 'ir material', 'lod generation control',
-									'flags', 'light mode'])
-		
-		self.header.fw.read_ahead(8) # face id
+		self.props = dict()		
+		self.props['id'] = self.header.fw.read_string(8)
 		# Load face.
 		self.props['ir color'] = self.header.fw.read_int()
 		self.props['priority'] = self.header.fw.read_short()
@@ -919,186 +1120,14 @@ class Face(Node):
 		self.alt_color_index = self.header.fw.read_uint()
 		#self.header.fw.read_ahead(2)
 		#self.shader_index = self.header.fw.read_short()
-	
-	
-	"""
-	def blender_import_face(self, material_index, image):
-		
-		
-		mesh = self.parent.mesh
-		face_len= len(self.indices)
-		
-		mesh_vert_len_orig= len(mesh.verts)
-		mesh.verts.extend([ self.header.vert_pal.blender_verts[i] for i in self.indices])
-		
-		# Exception for an edge
-		if face_len==2:
-			mesh.edges.extend((mesh.verts[-1], mesh.verts[-2]))
-			return
-		
-		
-		mesh_face_indicies = range(mesh_vert_len_orig, mesh_vert_len_orig+face_len)
-		
-		#print mesh_face_indicies , 'mesh_face_indicies '
-		
-		# First we need to triangulate NGONS
-		if face_len>4:
-			tri_indicies = [[i+mesh_vert_len_orig for i in t] for t in BPyMesh.ngon(mesh, mesh_face_indicies) ]   # use range because the verts are in order.
-		else:
-			tri_indicies= [mesh_face_indicies] # can be a quad but thats ok
-		
-		# Extend face or ngon
-		
-		mesh.faces.extend(tri_indicies)
-		#print mesh.faces, 'mesh.faces'
-		mesh.faceUV= True
-		
-		# Now set UVs
-		for i in xrange(len(mesh.faces)-len(tri_indicies), len(mesh.faces)):
-			f= mesh.faces[i]
-			f_v= f.v
-			for j, uv in enumerate(f.uv):
-				vertex_index_flt= self.indices[f_v[j].index - mesh_vert_len_orig]
-				
-				vert_desc = self.header.vert_pal.vert_desc_lst[vertex_index_flt]
-				uv.x, uv.y= vert_desc.u, vert_desc.v
-			
-			# Only a bug in 2.42, fixed in cvs
-			for c in f.col:
-				c.r=c.g=c.b= 255
-			
-			f.mat = material_index
-			if image:
-				f.image = image
-			else:
-				f.mode &= ~FACE_TEX
-		
-		# FGon
-		
-		if face_len>4:
-			# Add edges we know are not fgon
-			end_index= len(mesh.verts)
-			start_index= end_index - len(self.indices)
-			edge_dict= dict([ ((i, i+1), None) for i in xrange(start_index, end_index-1)])
-			edge_dict[(start_index, end_index)]= None # wish this was a set
-			
-			fgon_edges= {}
-			for tri in tri_indicies:
-				for i in (0,1,2):
-					i1= tri[i]
-					i2= tri[i-1]
-					
-					# Sort
-					if i1>i2:
-						i1,i2= i2,i1
-					
-					if not edge_dict.has_key( (i1,i2) ): # if this works its an edge vert
-						fgon_edges[i1,i2]= None
-			
-			
-			# Now set fgon flags
-			for ed in mesh.edges:
-				i1= ed.v1.index
-				i2= ed.v2.index
-				if i1>i2:
-					i1,i2= i2,i1
-				
-				if fgon_edges.has_key( (i1,i2) ):
-					# This is an edge tagged for fgonning?
-					fgon_edges[i1, i2]
-					ed.flag |= EDGE_FGON
-					del fgon_edges[i1, i2] # make later searches faster?
-				
-				if not fgon_edges:
-					break
-	"""
-	
+
 	def parse_comment(self):
 		self.comment = self.header.fw.read_string(self.header.fw.get_length()-4)
 		return True
 		
-	# returns a tuple (material, image) where material is the blender material and
-	# image is the blender image or None.
-	def create_blender_material(self):
-		 # Create face material.
-		mat_desc = MaterialDesc()
-		
-		if self.mat_index != -1:
-			if not self.mat_index in self.header.mat_desc_pal:
-				if global_prefs['verbose'] >= 1:
-					#print 'Warning: Material index', self.mat_index, 'not in material palette.'
-					pass
-			else:
-				mat_pal_desc = self.header.mat_desc_pal[self.mat_index]
-				mat_desc.alpha = mat_pal_desc.alpha * self.alpha # combine face and mat alphas
-				mat_desc.ambient = mat_pal_desc.ambient
-				mat_desc.diffuse = mat_pal_desc.diffuse
-				mat_desc.specular = mat_pal_desc.specular
-				mat_desc.emissive = mat_pal_desc.emissive
-				mat_desc.shininess = mat_pal_desc.shininess
-		else:
-			# if no material get alpha from just face.
-			mat_desc.alpha = self.alpha
-
-		# Color.
-		if global_prefs['color_from_face']:
-			color = None
-			if not self.props['flags'] & 0x40000000:
-				if self.props['flags'] & 0x10000000: # packed color
-					color = self.packed_color
-				else:
-					color = self.header.get_color(self.color_index)
-
-			if color:
-				r = float(color[0])/255.0
-				g = float(color[1])/255.0
-				b = float(color[2])/255.0
-				mat_desc.diffuse = [r, g, b]
-
-		# Texture
-		image = None
-		if self.tex_index != -1 and self.tex_index in self.header.bl_tex_pal:
-			mat_desc.tex0 = self.header.bl_tex_pal[self.tex_index]
-			if mat_desc.tex0:
-				mat_desc.name = FF.strip_path(self.header.tex_pal[self.tex_index])
-				image = mat_desc.tex0.image
-
-		# OpenFlight Face Attributes
-		mat_desc.face_props = self.props
-		
-		# Get material.
-		mat = GRR.request_mat(mat_desc)
-		
-		# Add material to mesh.
-		mesh = self.parent.mesh
-		
-		# Return where it is in the mesh for faces.
-		mesh_materials= mesh.materials
-		
-		material_index= -1
-		for i,m in enumerate(mesh_materials):
-			if m.name==mat.name:
-				material_index= i
-				break
-		
-		if material_index==-1:
-			material_index= len(mesh_materials)
-			if material_index==16:
-				material_index= 15
-				if global_prefs['verbose'] >= 1:
-					print 'Warning: Too many materials per mesh object. Only a maximum of 16 ' + \
-						  'allowed. Using 16th material instead.'
-			
-			else:
-				mesh_materials.append(mat)
-				mesh.materials= mesh_materials
-		
-		return (material_index, image)
-	
-	
 	def blender_import(self):
 		vert_count = len(self.indices)
-		if vert_count < 3:
+		if vert_count < 1:
 			if global_prefs['verbose'] >= 2:
 				print 'Warning: Ignoring face with no vertices.'
 			return
@@ -1106,18 +1135,21 @@ class Face(Node):
 		# Assign material and image
 		
 		self.parent.faceLs.append(self)
-		self.blen_mat_idx, self.blen_image= self.create_blender_material()
-		
-		
-		
+		#need to store comment in mesh prop layer!
 		
 		# Store comment info in parent.
-		if self.comment != '':
-			if self.parent.props['comment'] != '':
-				self.parent.props['comment'] += '\n\nFrom Face:\n' + self.comment
-			else:
-				self.parent.props['comment'] = self.comment
+		#if self.comment != '':
+		#	if self.parent.props['comment'] != '':
+		#		self.parent.props['comment'] += '\n\nFrom Face:\n' + self.comment
+		#	else:
+		#		self.parent.props['comment'] = self.comment
 		
+		if self.uvlayers:
+			#Make sure that the mesh knows about the layers that this face uses
+			self.parent.hasmtex = True
+			for mask in self.uvlayers.keys():
+				self.parent.uvlayers[mask] = True
+			
 	def parse_vertex_list(self):
 		length = self.header.fw.get_length()
 		fw = self.header.fw
@@ -1138,8 +1170,49 @@ class Face(Node):
 					  ' to vertex index.' % byte_offset
 		'''
 		return True
-
-
+	
+	def parse_multitex(self):
+		#Parse  MultiTex Record.
+		length = self.header.fw.get_length()
+		fw = self.header.fw
+		#num layers == (length - 8) / 4
+		uvmask = fw.read_uint()
+		mask = 2147483648
+		for i in xrange(7):
+			if mask & uvmask:
+				uvlayer = dict()
+				self.uvlayers[mask] = uvlayer
+			mask = mask / 2
+		
+		#read in record for each individual layer.
+		for key in reversed(sorted(self.uvlayers)):
+			uvlayer = self.uvlayers[key]
+			uvlayer['texture index'] = fw.read_ushort()
+			uvlayer['texture enviorment'] = fw.read_ushort()
+			uvlayer['texture mapping'] = fw.read_ushort()
+			uvlayer['texture data'] = fw.read_ushort()
+		
+			self.uvmask = uvmask
+		
+	def parse_uvlist(self):
+		#for each uvlayer, add uv vertices
+		length = self.header.fw.get_length()
+		fw = self.header.fw
+		uvmask = fw.read_uint()
+		if uvmask != self.uvmask: #This should never happen!
+			fw.read_ahead(self.length -  4) #potentially unnessecary?
+		else:	
+			#need to store in uvverts dictionary for each vertex.
+			totverts = len(self.indices)
+			for i in xrange(totverts):
+				uvert = dict()
+				for key in reversed(sorted(self.uvlayers)):
+					uv = Vector(0.0,0.0)
+					uv[0] = fw.read_float()
+					uv[1] = fw.read_float()
+					uvert[key] = uv
+				self.uverts.append(uvert)
+				
 class Object(InterNode):
 	def __init__(self, parent):
 		Node.__init__(self, parent, parent.header)
@@ -1152,15 +1225,15 @@ class Object(InterNode):
 		self.root_handler.set_throw_back_lst(throw_back_opcodes)
 		
 		self.child_handler.set_handler({5: self.parse_face,
-										#130: self.parse_indexed_light_point,
-										#111: self.parse_inline_light_point,
+										19: self.parse_subpush,
+										20: self.parse_subpop,
+										111: self.parse_inline_light_point,
 										10: self.parse_push,
 										11: self.parse_pop})
 
-		self.props['type'] = 'Object'
-		self.props['id'] = self.header.fw.read_string(8)
-
-
+		self.props = dict()		
+		self.props['comment'] = ''
+		self.parse_record()
 
 class Group(InterNode):
 	def __init__(self, parent):
@@ -1174,15 +1247,16 @@ class Group(InterNode):
 		self.root_handler.set_throw_back_lst(throw_back_opcodes)
 		
 		self.child_handler.set_handler({5: self.parse_face,
-										#130: self.parse_indexed_light_point,
-										#111: self.parse_inline_light_point,
+										19: self.parse_subpush,
+										20: self.parse_subpop,
+										111: self.parse_inline_light_point,
 										2: self.parse_group,
 										73: self.parse_lod,
 										4: self.parse_object,
 										10: self.parse_push,
 										11: self.parse_pop,
 										96: self.parse_unhandled,
-										14: self.parse_unhandled,
+										14: self.parse_dof,
 										91: self.parse_unhandled,
 										98: self.parse_unhandled,
 										63: self.parse_xref})
@@ -1190,49 +1264,20 @@ class Group(InterNode):
 									'special2', 'significance', 'layer code', 'loop count',
 									'loop duration', 'last frame duration'])
 		
-		self.props['type'] = 'Group'
 		self.props['comment'] = ''
-		self.props['id'] = self.header.fw.read_string(8)
-		self.props['priority'] = self.header.fw.read_short()
-		self.header.fw.read_ahead(2)
-		self.props['flags'] = self.header.fw.read_int()
-		self.props['special1'] = self.header.fw.read_short()
-		self.props['special2'] = self.header.fw.read_short()
-		self.props['significance'] = self.header.fw.read_short()
-		self.props['layer code'] = self.header.fw.read_char()
-		self.header.fw.read_ahead(5)
-		self.props['loop count'] = self.header.fw.read_int()
-		self.props['loop duration'] = self.header.fw.read_float()
-		self.props['last frame duration'] = self.header.fw.read_float()               
-
-class XRef(InterNode):
-	def parse(self):
-		if self.xref:
-			self.xref.parse()
-		Node.parse(self)
-
-	def __init__(self, parent):
-		Node.__init__(self, parent, parent.header)
-		InterNode.__init__(self)
-
-		self.root_handler.set_handler({49: self.parse_matrix})
-		self.root_handler.set_throw_back_lst(throw_back_opcodes)
+		self.parse_record()
 		
-		xref_filename = self.header.fw.read_string(200)
-		filename = FF.find(xref_filename)
+		#self.props['type'] = str(self.opcode) + ':' + opcode_name[self.opcode]
+		#props = records[self.opcode]
+		#propkeys = props.keys()
+		#propkeys.sort()
+		#for position in propkeys:
+		#	(type,length,name) = props[position]
+		#	self.props[name] = read_prop(self.header.fw,type,length)
+		#self.props['id'] = self.props['3t8!id']
 
-		self.props['type'] = 'XRef'
-		
-		if filename != None:
-			self.xref = Database(filename, self)
-			self.props['id'] = 'X: ' + Blender.sys.splitext(Blender.sys.basename(filename))[0]
-		else:
-			self.xref = None
-			self.props['id'] = 'X: broken'
-
-class LOD(InterNode):
+class DOF(InterNode):
 	def blender_import(self):
-		self.move_to_next_layer()
 		InterNode.blender_import(self)
 
 	def __init__(self, parent):
@@ -1245,19 +1290,113 @@ class LOD(InterNode):
 									   49: self.parse_matrix})
 		self.root_handler.set_throw_back_lst(throw_back_opcodes)
 		
+		self.child_handler.set_handler({#130: self.parse_indexed_light_point,
+										111: self.parse_inline_light_point,
+										2: self.parse_group,
+										73: self.parse_lod,
+										4: self.parse_object,
+										10: self.parse_push,
+										11: self.parse_pop,
+										96: self.parse_unhandled,
+										14: self.parse_dof,
+										91: self.parse_unhandled,
+										98: self.parse_unhandled,
+										63: self.parse_xref})
+		self.props = dict()		
+		self.props['comment'] = ''
+		self.parse_record()
+
+
+class XRef(InterNode):
+	def parse(self):
+		if self.xref:
+			self.xref.parse()
+		Node.parse(self)
+
+	def __init__(self, parent):
+		Node.__init__(self, parent, parent.header)
+		InterNode.__init__(self)
+		
+		self.root_handler.set_handler({49: self.parse_matrix})
+		self.root_handler.set_throw_back_lst(throw_back_opcodes)
+		
+		self.props = dict()		
+		self.props['comment'] = ''
+		self.parse_record()
+
+		xref_filename = self.props['3t200!filename']
+		self.props['id'] = 'X: ' + Blender.sys.splitext(Blender.sys.basename(xref_filename))[0] #this is really wrong as well....
+		
+		if global_prefs['doxrefs'] and os.path.exists(xref_filename) and not self.header.grr.xrefs.has_key(xref_filename):
+			self.xref = Database(xref_filename, self.header.grr, self)
+			self.header.grr.xrefs[xref_filename] = self.xref
+		else:
+			self.xref = None
+		
+
+	def blender_import(self):
+		#name = self.props['type'] + ': ' + self.props['id']
+		name = self.props['id']
+		self.object = self.header.scene.objects.new('Empty')
+		self.object.name = name
+		self.object.enableDupGroup = True
+		self.header.group.objects.link(self.object)
+		
+		#for broken links its ok to leave this empty! they purely for visual purposes anyway.....
+		try:
+			self.object.DupGroup = self.header.grr.xrefs[self.props['3t200!filename']].group
+		except:
+			pass
+			
+		if self.parent and self.parent.object:
+			self.parent.object.makeParent([self.object])
+
+		#id props import
+		self.object.properties['FLT'] = dict()
+		for key in self.props:
+			try:
+				self.object.properties['FLT'][key] = self.props[key]
+			except: #horrible...
+				pass
+
+		self.object.Layer = current_layer
+		self.object.sel = 1
+		if self.matrix:
+			self.object.setMatrix(self.matrix)
+		Node.blender_import(self)
+		
+		
+class LOD(InterNode):
+	def blender_import(self):
+		#self.move_to_next_layer()
+		InterNode.blender_import(self)
+		#self.object.properties['FLT'] = self.props.copy()
+		
+	def __init__(self, parent):
+		Node.__init__(self, parent, parent.header)
+		InterNode.__init__(self)
+
+		self.root_handler.set_handler({33: self.parse_long_id,
+									   31: self.parse_comment,
+									   10: self.parse_push,
+									   49: self.parse_matrix})
+		self.root_handler.set_throw_back_lst(throw_back_opcodes)
+		
 		self.child_handler.set_handler({2: self.parse_group,
+										111: self.parse_inline_light_point,
 										73: self.parse_lod,
 										4: self.parse_object,
 										10: self.parse_push,
 										11: self.parse_pop,
 										96: self.parse_unhandled, # switch
-										14: self.parse_unhandled, # DOF
+										14: self.parse_dof, # DOF
 										91: self.parse_unhandled, # sound
 										98: self.parse_unhandled, # clip
 										63: self.parse_xref})
 
-		self.props['type'] = 'LOD'
-		self.props['id'] = self.header.fw.read_string(8)
+		self.props = dict()		
+		self.props['comment'] = ''
+		self.parse_record()
 
 class InlineLightPoint(InterNode):
 	def __init__(self, parent):
@@ -1274,119 +1413,49 @@ class InlineLightPoint(InterNode):
 										11: self.parse_pop})
 
 		self.indices = list()
-				
-		self.props = dict.fromkeys(['id', 'type', 'comment', 'draw order', 'appearance'])
-		self.app_props = dict()
-		
+		self.props = dict()		
 		self.props['comment'] = ''
-		self.props['type'] = 'Light Point'
-		self.props['id'] = self.header.fw.read_string(8)
-		
-		self.app_props.update({'smc': self.header.fw.read_short()})
-		self.app_props.update({'fid': self.header.fw.read_short()})
-		self.app_props.update({'back color: a': self.header.fw.read_uchar()})
-		self.app_props.update({'back color: b': self.header.fw.read_uchar()})
-		self.app_props.update({'back color: g': self.header.fw.read_uchar()})
-		self.app_props.update({'back color: r': self.header.fw.read_uchar()})
-		self.app_props.update({'display mode': self.header.fw.read_int()})
-		self.app_props.update({'intensity': self.header.fw.read_float()})
-		self.app_props.update({'back intensity': self.header.fw.read_float()})
-		self.app_props.update({'minimum defocus': self.header.fw.read_float()})
-		self.app_props.update({'maximum defocus': self.header.fw.read_float()})
-		self.app_props.update({'fading mode': self.header.fw.read_int()})
-		self.app_props.update({'fog punch mode': self.header.fw.read_int()})
-		self.app_props.update({'directional mode': self.header.fw.read_int()})
-		self.app_props.update({'range mode': self.header.fw.read_int()})
-		self.app_props.update({'min pixel size': self.header.fw.read_float()})
-		self.app_props.update({'max pixel size': self.header.fw.read_float()})
-		self.app_props.update({'actual size': self.header.fw.read_float()})
-		self.app_props.update({'trans falloff pixel size': self.header.fw.read_float()})
-		self.app_props.update({'trans falloff exponent': self.header.fw.read_float()})
-		self.app_props.update({'trans falloff scalar': self.header.fw.read_float()})
-		self.app_props.update({'trans falloff clamp': self.header.fw.read_float()})
-		self.app_props.update({'fog scalar': self.header.fw.read_float()})
-		self.app_props.update({'fog intensity': self.header.fw.read_float()})
-		self.app_props.update({'size threshold': self.header.fw.read_float()})
-		self.app_props.update({'directionality': self.header.fw.read_int()})
-		self.app_props.update({'horizontal lobe angle': self.header.fw.read_float()})
-		self.app_props.update({'vertical lobe angle': self.header.fw.read_float()})
-		self.app_props.update({'lobe roll angle': self.header.fw.read_float()})
-		self.app_props.update({'dir falloff exponent': self.header.fw.read_float()})
-		self.app_props.update({'dir ambient intensity': self.header.fw.read_float()})
-		self.header.fw.read_ahead(12) # Animation settings.        
-		self.app_props.update({'significance': self.header.fw.read_float()})
-		self.props['draw order'] = self.header.fw.read_int()
-		self.app_props.update({'flags': self.header.fw.read_int()})
-		#self.fw.read_ahead(12) # More animation settings.  
-	
-	# return dictionary: lp_app name => index list
-	def group_points(self, props):
-		
-		name_to_indices = {}
-		
-		for i in self.indices:
-			vert_desc = self.header.vert_pal.vert_desc_lst[i]
-			app_desc = LightPointAppDesc()
-			app_desc.props.update(props)
-			# add vertex normal and color
-			app_desc.props.update({'nx': vert_desc.nx})
-			app_desc.props.update({'ny': vert_desc.ny})
-			app_desc.props.update({'nz': vert_desc.nz})
-			
-			app_desc.props.update({'r': vert_desc.r})
-			app_desc.props.update({'g': vert_desc.g})
-			app_desc.props.update({'b': vert_desc.b})
-			app_desc.props.update({'a': vert_desc.a})
-			
-			app_name = GRR.request_lightpoint_app(app_desc)
+		self.parse_record()
 
-			if name_to_indices.get(app_name):
-				name_to_indices[app_name].append(i)
-			else:
-				name_to_indices.update({app_name: [i]})
-			
-		return name_to_indices
 		
 	def blender_import(self):
-		name = '%s: %s' % (self.props['type'], self.props['id'])
+		
 
-		name_to_indices = self.group_points(self.app_props)
+		name = self.props['id']
+		self.mesh= Blender.Mesh.New()
+		self.mesh.name = 'FLT_LP'
+		self.object = self.header.scene.objects.new(self.mesh)
+		self.object.name = name
+		#self.mesh.verts.extend(Vector() ) # DUMMYVERT
+		self.object.Layer = current_layer
+		self.object.sel= 1
+	
+		self.object.properties['FLT'] = dict()
+		for key in self.props:
+			try:
+				self.object.properties['FLT'][key] = self.props[key]
+			except: #horrible...
+				pass
 
-		for app_name, indices in name_to_indices.iteritems():
-			self.object = Blender.Object.New('Mesh', name)
-			#self.mesh = self.object.getData()
-			self.mesh= Blender.Mesh.New()
-			self.mesh.verts.extend( Vector() ) # DUMMYVERT
-			self.object.link(self.mesh)
+		if self.parent and self.parent.object and self.header.scene == self.parent.header.scene:
+			self.parent.object.makeParent([self.object])
 
-			if self.parent:
-				self.parent.object.makeParent([self.object])
+		if self.matrix:
+			self.object.setMatrix(self.matrix)
+
+		self.mesh.verts.extend([self.header.vert_pal.blender_verts[i] for i in self.indices])
+		
+		#add color index information.
+		self.mesh.verts.addPropertyLayer("FLT_VCOL",Blender.Mesh.PropertyTypes["INT"])
+		for i, vindex in enumerate(self.indices):
+			vdesc = self.header.vert_pal.vert_desc_lst[vindex]
+			v = self.mesh.verts[i]
+			v.setProperty("FLT_VCOL",vdesc.cindex)
+		#for i, v in enumerate(self.mesh.verts):
+		#	vdesc = self.header.vert_pal.vert_desc_lst[i]
+		#	v.setProperty("FLT_VCOL",vdesc.cindex)
+		self.mesh.update()
 				
-			for i in indices:
-				vert = self.header.vert_pal.blender_verts[i]
-				self.mesh.verts.append(vert)
-			
-			scene.link(self.object)
-			self.object.Layer = current_layer
-			self.object.sel= 1
-			
-			if self.matrix:
-				self.object.setMatrix(self.matrix)
-				
-			# Import comment.
-			if self.props['comment'] != '':
-				name = 'COMMENT: ' + self.props['id']
-				t = Blender.Text.New(name)
-				t.write(self.props['comment'])
-				self.props['comment'] = name
-				
-			# Attach properties.
-			self.props.update({'appearance': app_name})
-			for name, value in self.props.iteritems():
-				self.object.addProperty(name, value)
-			
-			self.mesh.update()
-			
 	def parse_vertex_list(self):
 		length = self.header.fw.get_length()
 		fw = self.header.fw
@@ -1432,7 +1501,7 @@ class IndexedLightPoint(InterNode):
 			app_desc.props.update({'b': vert_desc.b})
 			app_desc.props.update({'a': vert_desc.a})
 			
-			app_name = GRR.request_lightpoint_app(app_desc)
+			app_name = self.header.grr.request_lightpoint_app(app_desc, self.header.scene)
 
 			if name_to_indices.get(app_name):
 				name_to_indices[app_name].append(i)
@@ -1448,7 +1517,6 @@ class IndexedLightPoint(InterNode):
 		
 		for app_name, indices in name_to_indices.iteritems():        
 			self.object = Blender.Object.New('Mesh', name)
-			#self.mesh = self.object.getData()
 			self.mesh= Blender.Mesh.New()
 			self.mesh.verts.extend( Vector() ) # DUMMYVERT
 			self.object.link(self.mesh)
@@ -1460,7 +1528,7 @@ class IndexedLightPoint(InterNode):
 				vert = self.header.vert_pal.blender_verts[i]
 				self.mesh.verts.append(vert)
 			
-			scene.link(self.object)
+			self.header.scene.objects.link(self.object)
 	
 			self.object.Layer = current_layer
 			
@@ -1543,7 +1611,7 @@ class Unhandled(InterNode):
 										10: self.parse_push,
 										11: self.parse_pop,
 										96: self.parse_unhandled, # switch
-										14: self.parse_unhandled, # DOF
+										14: self.parse_dof, # DOF
 										91: self.parse_unhandled, # sound
 										98: self.parse_unhandled, # clip
 										63: self.parse_xref})
@@ -1552,30 +1620,31 @@ class Unhandled(InterNode):
 
 class Database(InterNode):
 	def blender_import(self):
-		self.tex_pal = dict(self.tex_pal_lst)
-		del self.tex_pal_lst
-
-		# Setup Textures
-		bl_tex_pal_lst = list()
-		for i in self.tex_pal.iterkeys():
-			path_filename = FF.find(self.tex_pal[i])
+		for key in self.tex_pal.keys():
+			path_filename= FF.find(self.tex_pal[key][0])
 			if path_filename != None:
-				img = GRR.request_image(path_filename)
+				img = self.grr.request_image(path_filename)
 				if img:
-					tex = GRR.request_texture(img)
-					tex.setName(FF.strip_path(self.tex_pal[i]))
-					bl_tex_pal_lst.append( (i, tex) )
-				else:
-					bl_tex_pal_lst.append( (i, None) )
+					self.tex_pal[key][1] = img
 			elif global_prefs['verbose'] >= 1:
-				print 'Warning: Unable to find', self.tex_pal[i]
-
-		self.bl_tex_pal = dict(bl_tex_pal_lst)
-
-		# Setup Materials
-		self.mat_desc_pal = dict(self.mat_desc_pal_lst)
-
-		InterNode.blender_import(self)
+				print 'Warning: Unable to find', self.tex_pal[key][0]
+		
+		self.scene.properties['FLT'] = dict()
+		for key in self.props:
+			try:
+				self.scene.properties['FLT'][key] = self.props[key]
+			except: #horrible...
+				pass
+		
+		self.scene.properties['FLT']['Main'] = 0
+		self.scene.properties['FLT']['Filename'] = self.bname
+		
+		#import color palette
+		carray = list()
+		for color in self.col_pal:
+			carray.append(struct.unpack('>i',struct.pack('>BBBB',color[0],color[1],color[2],color[3]))[0])
+		self.scene.properties['FLT']['Color Palette'] = carray
+		Node.blender_import(self)
 
 	def parse_appearance_palette(self):
 		props = dict()
@@ -1696,9 +1765,10 @@ class Database(InterNode):
 		return True
 	
 	def get_color(self, color_index):
+		color = None
 		index = color_index / 128
 		intensity = float(color_index - 128.0 * index) / 127.0
-
+		
 		if index >= 0 and index <= 1023:
 			brightest = self.col_pal[index]
 			r = int(brightest[0] * intensity)
@@ -1707,7 +1777,7 @@ class Database(InterNode):
 			a = int(brightest[3])
 			
 			color = [r, g, b, a]
-			
+		
 		return color
 	
 	def parse_color_palette(self):
@@ -1728,15 +1798,56 @@ class Database(InterNode):
 	def parse_texture_palette(self):
 		name = self.fw.read_string(200)
 		index = self.fw.read_int()
-		self.tex_pal_lst.append( (index, name) )
+		self.tex_pal[index]= [name, None]
 		return True
-		
-	def __init__(self, filename, parent=None):
+	
+	def read_attribute_files(self):
+		for tex in self.tex_pal.keys():
+			[name,image] = self.tex_pal[tex]
+			basename = os.path.basename(name)
+			if(image):
+				basename = basename + ".attr"
+				dirname = os.path.dirname(Blender.sys.expandpath(image.getFilename())) #can't rely on original info stored in pallette since it might be relative link
+				newpath = os.path.join(dirname, basename)
+				if os.path.exists(newpath) and not image.properties.has_key('FLT'):
+					fw = flt_filewalker.FltIn(newpath)
+					fw.read_ahead(8) #We dont care what the attribute file says about x/y dimensions
+					image.properties['FLT']={}
+					
+					#need to steal code from parse records....
+					props = records['Image']
+					propkeys = props.keys()
+					propkeys.sort()
+					for position in propkeys:
+						(type,length,name) = props[position]
+						image.properties['FLT'][name] = read_prop(fw,type,length)
+					fw.close_file()
+					
+					#copy clamp settings
+					wrap = image.properties['FLT']['10i!Wrap']
+					wrapu = image.properties['FLT']['11i!WrapU']
+					wrapv = image.properties['FLT']['12i!WrapV']
+					
+					if wrapu == 3 or wrapv == 3:
+						wrapuv = (wrap,wrap)
+					else:
+						wrapuv = (wrapu, wrapv)
+					image.clampX = wrapuv[0]
+					image.clampY = wrapuv[1]
+					
+				elif not os.path.exists(newpath):
+					print "Cannot read attribute file:" + newpath
+					
+	def __init__(self, filename, grr, parent=None):
 		if global_prefs['verbose'] >= 1:
 			print 'Parsing:', filename
 			print
 		
 		self.fw = flt_filewalker.FltIn(filename)
+		self.filename = filename
+		self.bname = os.path.splitext(os.path.basename(filename))[0]
+		self.grr = grr
+		
 		Node.__init__(self, parent, self)
 		InterNode.__init__(self)
 		
@@ -1753,23 +1864,26 @@ class Database(InterNode):
 			self.root_handler.set_throw_back_lst(throw_back_opcodes)
 
 		self.child_handler.set_handler({#130: self.parse_indexed_light_point,
-										#111: self.parse_inline_light_point,
+										111: self.parse_inline_light_point,
 										2: self.parse_group,
 										73: self.parse_lod,
 										4: self.parse_object,
 										10: self.parse_push,
 										11: self.parse_pop,
 										96: self.parse_unhandled,
-										14: self.parse_unhandled,
+										14: self.parse_dof,
 										91: self.parse_unhandled,
 										98: self.parse_unhandled,
 										63: self.parse_xref})
 		
+		self.scene = Blender.Scene.New(self.bname)
+		self.group = Blender.Group.New(self.bname)
+
 		self.vert_pal = None
 		self.lightpoint_appearance_pal = dict()
 		self.tex_pal = dict()
-		self.tex_pal_lst = list()
-		self.bl_tex_pal = dict()
+		#self.tex_pal_lst = list()
+		#self.bl_tex_pal = dict()
 		self.col_pal = list()
 		self.mat_desc_pal_lst = list()
 		self.mat_desc_pal = dict()
@@ -1778,7 +1892,70 @@ class Database(InterNode):
 			'sw lon', 'ne lat', 'ne lon', 'origin lat', 'origin lon', 'lambert lat1',
 			'lambert lat2', 'ellipsoid model', 'utm zone', 'radius', 'major axis', 'minor axis'])
 
-def select_file(filename):
+
+def clearparent(root,childhash):
+	for child in childhash[root]:
+		clearparent(child,childhash)
+	root.clrParent(2,0)
+
+def fixscale(root,childhash):	
+	for child in childhash[root]:
+		fixscale(child,childhash)
+	location = Blender.Mathutils.Vector(root.getLocation('worldspace'))
+	if location[0] != 0.0 and location[1] != 0.0 and location[2] != 0.0:
+		#direction = Blender.Mathutils.Vector(0-location[0],0-location[1],0-location[2]) #reverse vector
+		smat = Blender.Mathutils.ScaleMatrix(global_prefs['scale'],4)
+		root.setLocation(location * smat)
+	#if its a mesh, we need to scale all of its vertices too
+	if root.type == 'Mesh':
+		smat = Blender.Mathutils.ScaleMatrix(global_prefs['scale'],4)
+		rmesh = root.getData(mesh=True)
+		for v in rmesh.verts:
+			v.co = v.co * smat
+	
+	
+def reparent(root,childhash,sce):
+	for child in childhash[root]:
+		reparent(child,childhash,sce)
+	
+	root.makeParent(childhash[root])
+	sce.update(1)
+	
+def update_scene(root,sdone):
+	for object in root.objects:
+		if object.DupGroup:
+			try:
+				child = Blender.Scene.Get(object.DupGroup.name)
+			except:
+				child = None
+			if child and child not in sdone:
+				update_scene(child,sdone)
+	root.makeCurrent()
+	#create a list of children for each object
+	childhash = dict()
+	for object in root.objects:
+		childhash[object] = list()
+		
+	for object in root.objects:
+		if object.parent:
+			childhash[object.parent].append(object)
+	
+	for object in root.objects:
+		if not object.parent:
+			#recursivley go through and clear all the children of their transformation, starting at deepest level first.
+			clearparent(object,childhash)
+			#now fix the location of everything
+			fixscale(object,childhash)
+			#now fix the parenting
+			reparent(object,childhash,root)
+	
+	for object in root.objects:
+		object.makeDisplayList()
+	root.update(1)
+	sdone.append(root)
+
+
+def select_file(filename, grr):
 	if not Blender.sys.exists(filename):
 		msg = 'Error: File ' + filename + ' does not exist.'
 		Blender.Draw.PupMenu(msg)
@@ -1801,13 +1978,12 @@ def select_file(filename):
 	global_prefs['get_ambient'] = False
 	global_prefs['get_shininess'] = True
 	global_prefs['color_from_face'] = True
+	global_prefs['log to blender'] = True
 	
-	# Start loading the file,
-	# first set the context
+	
+	
 	Blender.Window.WaitCursor(True)
 	Blender.Window.EditMode(0)
-	for ob in scene.objects:
-		ob.sel=0
 	
 	
 	FF.add_file_to_search_path(filename)
@@ -1817,7 +1993,7 @@ def select_file(filename):
 		print
 
 	load_time = Blender.sys.time()    
-	db = Database(filename)
+	db = Database(filename,grr)
 	db.parse()
 	load_time = Blender.sys.time() - load_time
 
@@ -1828,23 +2004,15 @@ def select_file(filename):
 
 	import_time = Blender.sys.time()
 	db.blender_import()
-	import_time = Blender.sys.time() - import_time
+	
+	if global_prefs['attrib']:
+		print "reading attribute files"
+		db.read_attribute_files()
 	
 	Blender.Window.ViewLayer(range(1,21))
 	
-	# FIX UP AFTER DUMMY VERT AND REMOVE DOUBLES
-	Blender.Mesh.Mode(Blender.Mesh.SelectModes['VERTEX'])
-	for ob in scene.objects.context:
-		if ob.type=='Mesh':
-			me=ob.getData(mesh=1)
-			me.verts.delete(0) # remove the dummy vert
-			me.sel= 1
-			me.remDoubles(0.0001)
-	
-	
-	
-	Blender.Window.RedrawAll()
-		
+	update_scene(db.scene,[])
+	import_time = Blender.sys.time() - import_time
 	if global_prefs['verbose'] >= 1:
 		print 'Done.'
 		print
@@ -1854,37 +2022,112 @@ def select_file(filename):
 	
 	Blender.Window.WaitCursor(False)
 
+def setimportscale(ID,val):
+	global global_prefs
+	global_prefs['scale'] = val
+def setBpath(fname):
+	global_prefs['fltfile'] = fname
 
-if global_prefs['verbose'] >= 1:
-	print
-	print 'OpenFlight Importer'
-	print 'Version:', __version__
-	print 'Author: Greg MacDonald'
-	print __url__[2]
-	print
-
-
-if __name__ == '__main__':
-	Blender.Window.FileSelector(select_file, "Import OpenFlight", "*.flt")
-	#select_file('/fe/flt/helnwsflt/helnws.flt')
-	#select_file('/fe/flt/Container_006.flt')
-	#select_file('/fe/flt/NaplesORIGINALmesh.flt')
-	#select_file('/Anti_tank_D30.flt')
-	#select_file('/metavr/file_examples/flt/cherrypoint/CherryPoint_liter_runway.flt')
-
-
-"""
-TIME= Blender.sys.time()
-import os
-PATH= 'c:\\flt_test'
-for FNAME in os.listdir(PATH):
-	if FNAME.lower().endswith('.flt'):
-		FPATH= os.path.join(PATH, FNAME)
-		newScn= Blender.Scene.New(FNAME)
-		newScn.makeCurrent()
-		scene= newScn
-		select_file(FPATH)
-
-print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
-"""
+def event(evt,val):
+	pass
+def but_event(evt):
 	
+	global FLTBaseLabel
+	global FLTBaseString
+	global FLTBaseChooser
+
+	global FLTExport
+	global FLTClose
+	
+	global FLTDoXRef
+	global FLTShadeImport
+	global FLTAttrib
+	
+	#Import DB
+	if evt == 1:
+		if global_prefs['verbose'] >= 1:
+			print
+			print 'OpenFlight Importer'
+			print 'Version:', __version__
+			print 'Author: Greg MacDonald, Campbell Barton, Geoffrey Bantle'
+			print __url__[2]
+			print
+		
+		GRR = GlobalResourceRepository()
+		select_file(global_prefs['fltfile'], GRR)
+	#choose base path for export
+	if evt == 4:
+		Blender.Window.FileSelector(setBpath, "DB Root", global_prefs['fltfile'])
+	#Import custom shading?
+	if evt == 9:
+		global_prefs['smoothshading'] = FLTShadeImport.val
+	#Import Image attribute files
+	if evt == 10:
+		global_prefs['attrib'] = FLTAttrib.val
+	#export XRefs
+	if evt == 13:
+		global_prefs['doxrefs'] = FLTDoXRef.val
+	
+	if evt == 2:
+		Draw.Exit()
+	
+
+	
+
+from Blender.BGL import *
+from Blender import Draw
+def gui():
+	
+	global FLTBaseLabel
+	global FLTBaseString
+	global FLTBaseChooser
+
+	global FLTExport
+	global FLTClose
+	
+	global FLTDoXRef
+	global FLTShadeImport
+	
+	global FLTAttrib
+	
+	
+	glClearColor(0.772,0.832,0.847,1.0)
+	glClear(GL_COLOR_BUFFER_BIT)
+	
+	areas = Blender.Window.GetScreenInfo()
+	curarea = Blender.Window.GetAreaID()
+	curRect = None
+	
+	for area in areas:
+		if area['id'] == curarea:
+			curRect = area['vertices']
+			break
+	
+	width = curRect[2] - curRect[0]
+	height = curRect[3] - curRect[1]
+	cx = 50
+	cy = height - 80
+
+	FLTBaseLabel = Draw.Label("Base file:",cx,cy,100,20)
+	FLTBaseString = Draw.String("",3,cx+100,cy,300,20,global_prefs['fltfile'],255,"Root DB file")
+	FLTBaseChooser = Draw.PushButton("...",4,cx+400,cy,20,20,"Choose Folder")
+	
+	cy = cy-40
+	FLTScale = Draw.Number("Import Scale",14,cx,cy,220,20,global_prefs['scale'],0.0,100.0,"Export scaleing factor",setimportscale)
+	
+	cy = cy-40
+	FLTDoXRef = Draw.Toggle("Import XRefs", 13,cx,cy,220,20,global_prefs['doxrefs'],"Import External references")
+	
+	cy = cy-40
+	FLTShadeImport = Draw.Toggle("Import Custom Shading",9,cx,cy,220,20,global_prefs['smoothshading'],"Import custom shading via edgesplit modifiers")
+	
+	cy = cy-40
+	FLTAttrib = Draw.Toggle("Import Attribute Files", 10,cx,cy,220,20,global_prefs['attrib'],"Import Image Attribute files")
+	
+	cy = cy - 40
+	FLTExport = Draw.PushButton("Import",1,cx,20,100,20,"Import FLT Database")
+	FLTClose = Draw.PushButton("Close",2,cx+120,20,100,20,"Close Window")
+
+	
+	
+Draw.Register(gui,event,but_event)

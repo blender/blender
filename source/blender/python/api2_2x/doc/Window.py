@@ -210,6 +210,20 @@ def SetCursorPos (coords):
 		can be done with L{Redraw}.
 	"""
 
+def GetPivot ():
+	"""
+	Get the pivot for the active 3D view.
+	@rtype: int
+	@return: constant - Window.PivotTypes
+	"""
+
+def SetPivot (pivot):
+	"""
+	Set the pivot on the active 3D view.
+	@type pivot: int
+	@param pivot: constant - Window.PivotTypes
+	"""
+
 def WaitCursor (bool):
   """
   Set cursor to wait or back to normal mode.
@@ -284,13 +298,31 @@ def EditMode(enable = -1, undo_msg = 'From script', undo = 1):
       because the normal mesh will be rebuilt based on its unchanged edit mesh.
   """
 
-def ViewLayers (layers = []):
+def PoseMode(enable = -1):
+  """
+  Get and optionally set the current pose mode status: in or out.
+  @type enable: int
+  @param enable: get/set current status:
+      - -1: just return current status (default);
+      -  0: leave edit mode;
+      -  1: enter edit mode.
+
+  @return: 0 if Blender is not in edit mode right now, 1 otherwise. 
+  @warn: This uses the active armature objects posemode status, enabling pose
+      mode for non armature objects will always fail.
+  """
+
+def ViewLayers (layers = [], winid = None):
   """
   Get and optionally set the currently visible layers in all 3d Views.
   @type layers: list of ints
   @param layers: a list with indexes of the layers that will be visible.  Each
       index must be in the range [1, 20].  If not given or equal to [], the
       function simply returns the visible ones without changing anything.
+  @type winid: window id from as redurned by GetScreenInfo
+  @param winid: An optional argument to set the layer of a window
+      rather then setting the scene layers. For this to display in the 3d view
+      the layer lock must be disabled (unlocked).
   @rtype: list of ints
   @return: the currently visible layers.
   """
@@ -401,6 +433,12 @@ def QHandle (winId):
   @type winId: int
   @param winId: the window id, see L{GetScreenInfo}.
   @note: see L{QAdd} for how to send events to a particular window.
+  """
+def TestBreak ():
+  """
+  Return true if the user has pressed escape
+  @rtype: bool
+  @return: a boolean from a test if the user pressed escape
   """
 
 def GetMouseCoords ():

@@ -2,6 +2,8 @@
 
 #include <math.h>
 
+#include <cstring>
+
 using namespace std;
 
 static string command_path = "";
@@ -1188,7 +1190,7 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 }
 
 
-void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_list, const float obmat[4][4])
+void yafrayFileRender_t::writeObject(Object* obj, ObjectRen *obr, const vector<VlakRen*> &VLR_list, const float obmat[4][4])
 {
 	ostr.str("");
 	// transform first (not necessarily actual obj->obmat, can be duplivert see below)
@@ -1230,7 +1232,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 	string matname(face0mat->id.name);
 	// use name in imgtex_shader list if 'TexFace' enabled for this material
 	if (face0mat->mode & MA_FACETEXTURE) {
-		MTFace* tface = RE_vlakren_get_tface(re, face0, 0, NULL, 0);
+		MTFace* tface = RE_vlakren_get_tface(obr, face0, obr->actmtface, NULL, 0);
 		if (tface) {
 			Image* fimg = (Image*)tface->tpage;
 			if (fimg) matname = imgtex_shader[string(face0mat->id.name) + string(fimg->id.name)];
@@ -1412,7 +1414,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		string fmatname(fmat->id.name);
 		// use name in imgtex_shader list if 'TexFace' enabled for this face material
 		if (fmat->mode & MA_FACETEXTURE) {
-			MTFace* tface = RE_vlakren_get_tface(re, vlr, 0, NULL, 0);
+			MTFace* tface = RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0);
 			if (tface) {
 				Image* fimg = (Image*)tface->tpage;
 				if (fimg) fmatname = imgtex_shader[fmatname + string(fimg->id.name)];
@@ -1437,14 +1439,14 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		}
 		else if (vlr->flag & R_FACE_SPLIT) { ui2++;  ui3++; }
 
-		MTFace* uvc = RE_vlakren_get_tface(re, vlr, 0, NULL, 0); // possible uvcoords (v upside down)
+		MTFace* uvc = RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0); // possible uvcoords (v upside down)
 		if (uvc) {
 			ostr << " u_a=\"" << uvc->uv[ui1][0] << "\" v_a=\"" << 1-uvc->uv[ui1][1] << "\""
 			     << " u_b=\"" << uvc->uv[ui2][0] << "\" v_b=\"" << 1-uvc->uv[ui2][1] << "\""
 			     << " u_c=\"" << uvc->uv[ui3][0] << "\" v_c=\"" << 1-uvc->uv[ui3][1] << "\"";
 		}
 
-		MCol *mcol= RE_vlakren_get_mcol(re, vlr, 0, NULL, 0);
+		MCol *mcol= RE_vlakren_get_mcol(obr, vlr, obr->actmcol, NULL, 0);
 
 		// since Blender seems to need vcols when uvs are used, for yafray only export when the material actually uses vcols
 		if ((EXPORT_VCOL) && mcol) {
@@ -1508,13 +1510,13 @@ void yafrayFileRender_t::writeAllObjects()
 {
 
 	// first all objects except dupliverts (and main instance object for dups)
-	for (map<Object*, vector<VlakRen*> >::const_iterator obi=all_objects.begin();
+	for (map<Object*, yafrayObjectRen >::const_iterator obi=all_objects.begin();
 			obi!=all_objects.end(); ++obi)
 	{
 		// skip main duplivert object if in dupliMtx_list, written later
 		Object* obj = obi->first;
 		if (dupliMtx_list.find(string(obj->id.name))!=dupliMtx_list.end()) continue;
-		writeObject(obj, obi->second, obj->obmat);
+		writeObject(obj, obi->second.obr, obi->second.faces, obj->obmat);
 	}
 
 	// Now all duplivert objects (if any) as instances of main object
@@ -1534,7 +1536,7 @@ void yafrayFileRender_t::writeAllObjects()
 
 		// first object written as normal (but with transform of first duplivert)
 		Object* obj = dup_srcob[dupMtx->first];
-		writeObject(obj, all_objects[obj], obmat);
+		writeObject(obj, all_objects[obj].obr, all_objects[obj].faces, obmat);
 
 		// all others instances of first
 		for (unsigned int curmtx=16;curmtx<dupMtx->second.size();curmtx+=16) {	// number of 4x4 matrices
@@ -2015,7 +2017,7 @@ bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 {
 	ostr.str("");
 	if (re->r.mode & R_BORDER) {
-		ostr << command_path << "yafray -c " << re->r.YF_numprocs
+		ostr << command_path << "yafray -c " << re->r.threads
 		     << " -r " << (2.f*re->r.border.xmin - 1.f)
 		     << ":"    << (2.f*re->r.border.xmax - 1.f)
 		     << ":"    << (2.f*re->r.border.ymin - 1.f)
@@ -2023,7 +2025,7 @@ bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 		     << " \"" << xmlpath << "\"";
 	}
 	else
-		ostr << command_path << "yafray -c " << re->r.YF_numprocs << " \"" << xmlpath << "\"";
+		ostr << command_path << "yafray -c " << re->r.threads << " \"" << xmlpath << "\"";
 	
 	string command = ostr.str();
 	cout << "COMMAND: " << command << endl;

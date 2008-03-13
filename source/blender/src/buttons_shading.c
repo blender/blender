@@ -52,6 +52,7 @@
 #include "DNA_object_types.h"
 #include "DNA_node_types.h"
 #include "DNA_packedFile_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_radio_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -61,6 +62,8 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
+#include "BKE_colortools.h"
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
@@ -68,6 +71,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_material.h"
+#include "BKE_particle.h"
 #include "BKE_utildefines.h"
 #include "BKE_texture.h"
 
@@ -94,6 +98,7 @@
 #include "BIF_mywindow.h"
 #include "BIF_space.h"
 #include "BIF_glutil.h"
+#include "BIF_imasel.h"
 #include "BIF_interface.h"
 #include "BIF_toolbox.h"
 #include "BIF_space.h"
@@ -137,6 +142,11 @@ static char *mapto_blendtype_pup(void)
 	str += sprintf(str, formatstr, "Darken", MTEX_DARK);
 	str += sprintf(str, formatstr, "Lighten", MTEX_LIGHT);
 
+	str += sprintf(str, formatstr, "Hue", MTEX_BLEND_HUE);
+	str += sprintf(str, formatstr, "Saturation", MTEX_BLEND_SAT);
+	str += sprintf(str, formatstr, "Value", MTEX_BLEND_VAL);
+	str += sprintf(str, formatstr, "Color", MTEX_BLEND_COLOR);
+	
 	return string;
 }
 
@@ -471,15 +481,15 @@ static void texture_panel_blend(Tex *tex)
 	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_TEXPRV, "Lin",		10, 180, 75, 19, &tex->stype, 2.0, 0.0, 0, 0, "Creates a linear progresion"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Quad",		85, 180, 75, 19, &tex->stype, 2.0, 1.0, 0, 0, "Creates a quadratic progression"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Ease",		160, 180, 75, 19, &tex->stype, 2.0, 2.0, 0, 0, "Creates a progression easing from one step to the next"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Lin",		10, 180, 75, 19, &tex->stype, 2.0, (float)TEX_LIN, 0, 0, "Creates a linear progresion"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Quad",		85, 180, 75, 19, &tex->stype, 2.0, (float)TEX_QUAD, 0, 0, "Creates a quadratic progression"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Ease",		160, 180, 75, 19, &tex->stype, 2.0, (float)TEX_EASE, 0, 0, "Creates a progression easing from one step to the next"); 
 	uiDefButBitS(block, TOG, TEX_FLIPBLEND, B_TEXPRV, "Flip XY",	235, 180, 75, 19, &tex->flag, 0, 0, 0, 0, "Flips the direction of the progression 90 degrees");
 
-	uiDefButS(block, ROW, B_TEXPRV, "Diag",		10, 160, 75, 19, &tex->stype, 2.0, 3.0, 0, 0, "Use a diagonal progression");
-	uiDefButS(block, ROW, B_TEXPRV, "Sphere",	85, 160, 75, 19, &tex->stype, 2.0, 4.0, 0, 0, "Use progression with the shape of a sphere");
-	uiDefButS(block, ROW, B_TEXPRV, "Halo",		160, 160, 75, 19, &tex->stype, 2.0, 5.0, 0, 0, "Use a quadratic progression with the shape of a sphere");
-	uiDefButS(block, ROW, B_TEXPRV, "Radial",	235, 160, 75, 19, &tex->stype, 2.0, 6.0, 0, 0, "Use a polar progression");
+	uiDefButS(block, ROW, B_TEXPRV, "Diag",		10, 160, 75, 19, &tex->stype, 2.0, (float)TEX_DIAG, 0, 0, "Use a diagonal progression");
+	uiDefButS(block, ROW, B_TEXPRV, "Sphere",	85, 160, 75, 19, &tex->stype, 2.0, (float)TEX_SPHERE, 0, 0, "Use progression with the shape of a sphere");
+	uiDefButS(block, ROW, B_TEXPRV, "Halo",		160, 160, 75, 19, &tex->stype, 2.0, (float)TEX_HALO, 0, 0, "Use a quadratic progression with the shape of a sphere");
+	uiDefButS(block, ROW, B_TEXPRV, "Radial",	235, 160, 75, 19, &tex->stype, 2.0, (float)TEX_RAD, 0, 0, "Use a polar progression");
 	
 }
 
@@ -500,16 +510,16 @@ static void texture_panel_wood(Tex *tex)
 	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_TEXPRV, "Bands",		10, 180, 75, 18, &tex->stype, 2.0, 0.0, 0, 0, "Uses standard wood texture in bands"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Rings",		85, 180, 75, 18, &tex->stype, 2.0, 1.0, 0, 0, "Uses wood texture in rings"); 
-	uiDefButS(block, ROW, B_TEXPRV, "BandNoise",	160, 180, 75, 18, &tex->stype, 2.0, 2.0, 0, 0, "Adds noise to standard wood"); 
-	uiDefButS(block, ROW, B_TEXPRV, "RingNoise",	235, 180, 75, 18, &tex->stype, 2.0, 3.0, 0, 0, "Adds noise to rings");
+	uiDefButS(block, ROW, B_TEXPRV, "Bands",		10, 180, 75, 18, &tex->stype, 2.0, (float)TEX_BAND, 0, 0, "Uses standard wood texture in bands"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Rings",		85, 180, 75, 18, &tex->stype, 2.0, (float)TEX_RING, 0, 0, "Uses wood texture in rings"); 
+	uiDefButS(block, ROW, B_TEXPRV, "BandNoise",	160, 180, 75, 18, &tex->stype, 2.0, (float)TEX_BANDNOISE, 0, 0, "Adds noise to standard wood"); 
+	uiDefButS(block, ROW, B_TEXPRV, "RingNoise",	235, 180, 75, 18, &tex->stype, 2.0, (float)TEX_RINGNOISE, 0, 0, "Adds noise to rings");
 	
-	uiDefButS(block, ROW, B_TEXPRV, "Sin",			10, 160, 50, 19, &tex->noisebasis2, 8.0, 0.0, 0, 0, "Uses a sine wave to produce bands"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Saw",			60, 160, 50, 19, &tex->noisebasis2, 8.0, 1.0, 0, 0, "Uses a saw wave to produce bands"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Tri",			110, 160, 50, 19, &tex->noisebasis2, 8.0, 2.0, 0, 0, "Uses a triangle wave to produce bands");
-	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	160, 160, 75, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
-	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	235, 160, 75, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Sin",			10, 160, 50, 19, &tex->noisebasis2, 8.0, (float)TEX_SIN, 0, 0, "Uses a sine wave to produce bands"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Saw",			60, 160, 50, 19, &tex->noisebasis2, 8.0, (float)TEX_SAW, 0, 0, "Uses a saw wave to produce bands"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Tri",			110, 160, 50, 19, &tex->noisebasis2, 8.0, (float)TEX_TRI, 0, 0, "Uses a triangle wave to produce bands");
+	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	160, 160, 75, 19, &tex->noisetype, 12.0, (float)TEX_NOISESOFT, 0, 0, "Generates soft noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	235, 160, 75, 19, &tex->noisetype, 12.0, (float)TEX_NOISEPERL, 0, 0, "Generates hard noise");
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
@@ -532,12 +542,12 @@ static void texture_panel_stucci(Tex *tex)
 	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_TEXPRV, "Plastic",		10, 180, 100, 19, &tex->stype, 2.0, 0.0, 0, 0, "Uses standard stucci");
-	uiDefButS(block, ROW, B_TEXPRV, "Wall In",		110, 180, 100, 19, &tex->stype, 2.0, 1.0, 0, 0, "Creates Dimples"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Wall Out",		210, 180, 100, 19, &tex->stype, 2.0, 2.0, 0, 0, "Creates Ridges"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Plastic",		10, 180, 100, 19, &tex->stype, 2.0, (float)TEX_PLASTIC, 0, 0, "Uses standard stucci");
+	uiDefButS(block, ROW, B_TEXPRV, "Wall In",		110, 180, 100, 19, &tex->stype, 2.0, (float)TEX_WALLIN, 0, 0, "Creates Dimples"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Wall Out",		210, 180, 100, 19, &tex->stype, 2.0, (float)TEX_WALLOUT, 0, 0, "Creates Ridges"); 
 	
-	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 150, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
-	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	160, 160, 150, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 150, 19, &tex->noisetype, 12.0, (float)TEX_NOISESOFT, 0, 0, "Generates soft noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	160, 160, 150, 19, &tex->noisetype, 12.0, (float)TEX_NOISEPERL, 0, 0, "Generates hard noise");
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
@@ -561,12 +571,12 @@ static void texture_panel_marble(Tex *tex)
 	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_TEXPRV, "Soft",			10, 180, 100, 18, &tex->stype, 2.0, 0.0, 0, 0, "Uses soft marble"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Sharp",		110, 180, 100, 18, &tex->stype, 2.0, 1.0, 0, 0, "Uses more clearly defined marble"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Sharper",		210, 180, 100, 18, &tex->stype, 2.0, 2.0, 0, 0, "Uses very clearly defined marble"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Soft",			10, 180, 100, 18, &tex->stype, 2.0, (float)TEX_SOFT, 0, 0, "Uses soft marble"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Sharp",		110, 180, 100, 18, &tex->stype, 2.0, (float)TEX_SHARP, 0, 0, "Uses more clearly defined marble"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Sharper",		210, 180, 100, 18, &tex->stype, 2.0, (float)TEX_SHARPER, 0, 0, "Uses very clearly defined marble"); 
 	
-	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 150, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
-	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	160, 160, 150, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 150, 19, &tex->noisetype, 12.0, (float)TEX_NOISESOFT, 0, 0, "Generates soft noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	160, 160, 150, 19, &tex->noisetype, 12.0, (float)TEX_NOISEPERL, 0, 0, "Generates hard noise");
 	
 	uiDefButS(block, ROW, B_TEXPRV, "Sin",			10, 140, 100, 18, &tex->noisebasis2, 8.0, 0.0, 0, 0, "Uses a sine wave to produce bands."); 
 	uiDefButS(block, ROW, B_TEXPRV, "Saw",			110, 140, 100, 18, &tex->noisebasis2, 8.0, 1.0, 0, 0, "Uses a saw wave to produce bands"); 
@@ -594,10 +604,10 @@ static void texture_panel_clouds(Tex *tex)
 	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_TEXPRV, "Default",		10, 180, 70, 18, &tex->stype, 2.0, 0.0, 0, 0, "Uses standard noise"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Color",		80, 180, 70, 18, &tex->stype, 2.0, 1.0, 0, 0, "Lets Noise return RGB value"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	155, 180, 75, 18, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
-	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	230, 180, 80, 18, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Default",		10, 180, 70, 18, &tex->stype, 2.0, (float)TEX_DEFAULT, 0, 0, "Uses standard noise"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Color",		80, 180, 70, 18, &tex->stype, 2.0, (float)TEX_COLOR, 0, 0, "Lets Noise return RGB value"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	155, 180, 75, 18, &tex->noisetype, 12.0, (float)TEX_NOISESOFT, 0, 0, "Generates soft noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	230, 180, 80, 18, &tex->noisetype, 12.0, (float)TEX_NOISEPERL, 0, 0, "Generates hard noise");
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
 	uiDefButS(block, NUM, B_TEXPRV, "NoiseDepth:",	160, 130, 150, 19, &tex->noisedepth, 0.0, 6.0, 0, 0, "Sets the depth of the cloud calculation");
@@ -622,7 +632,8 @@ static void texture_panel_musgrave(Tex *tex)
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_musgrave", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Musgrave", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
-
+	
+	/* TEX_MFRACTAL, TEX_RIDGEDMF, TEX_HYBRIDMF, TEX_FBM, TEX_HTERRAIN */
 	str= "Multifractal %x0|Ridged Multifractal %x1|Hybrid Multifractal %x2|Hetero Terrain %x4|fBm %x3";
 	uiDefButS(block, MENU, B_TEXREDR_PRV, str, 10, 160, 150, 19, &tex->stype, 0.0, 0.0, 0, 0, "Sets Musgrave type");
 	
@@ -737,8 +748,7 @@ static char *layer_menu(RenderResult *rr, short *curlay)
 		a+= sprintf(str+a, "|%s %%x%d", rl->name, nr);
 	}
 	
-	if(*curlay >= nr)
-		*curlay= 0;
+	/* no curlay clip here, on render (redraws) the amount of layers can be 1 fir single-layer render */
 	
 	return str;
 }
@@ -875,7 +885,12 @@ static void image_load_fs_cb(void *ima_pp_v, void *iuser_v)
 #else
 	else name = U.textudir;
 #endif
-	activate_fileselect_args(FILE_SPECIAL, "SELECT IMAGE", name, load_image_cb, ima_pp_v, iuser_v);
+	if (G.qual & LR_CTRLKEY) {
+		activate_imageselect_args(FILE_SPECIAL, "SELECT IMAGE", name, load_image_cb, ima_pp_v, iuser_v);
+	}
+	else  {
+		activate_fileselect_args(FILE_SPECIAL, "SELECT IMAGE", name, load_image_cb, ima_pp_v, iuser_v);
+	}
 }
 
 /* 5 layer button callbacks... */
@@ -1150,22 +1165,24 @@ void uiblock_image_panel(uiBlock *block, Image **ima_pp, ImageUser *iuser,
 		 }
 		 else {
 			 image_info(ima, ibuf, str);
-			 uiDefBut(block, LABEL, 0, str,		10, 107, 300, 20, NULL, 1, 0, 0, 0, "");
+			 uiDefBut(block, LABEL, 0, str,		10, 112, 300, 20, NULL, 1, 0, 0, 0, "");
 		 }
 		 
 		 /* exception, let's do because we only use this panel 3 times in blender... but not real good code! */
-		 if( (G.f & G_FACESELECT) && G.sima && &G.sima->iuser==iuser)
+		 if( (FACESEL_PAINT_TEST) && G.sima && &G.sima->iuser==iuser)
 			 return;
 		 /* left side default per-image options, right half the additional options */
 		 
 		 /* fields */
 		 uiBlockBeginAlign(block);
-		 but= uiDefButBitS(block, TOG, IMA_FIELDS, imagechanged, "Fields",	10, 70, 100, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
+		 but= uiDefButBitS(block, TOG, IMA_FIELDS, imagechanged, "Fields",	10, 70, 65, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
 		 uiButSetFunc(but, image_field_test, ima, iuser);
-		 uiDefButBitS(block, TOG, IMA_STD_FIELD, B_NOP, "Odd",			10, 50, 100, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
-		 uiBlockEndAlign(block);
+		 uiDefButBitS(block, TOG, IMA_STD_FIELD, B_NOP, "Odd",			75, 70, 45, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
 		 
-		 uiDefButBitS(block, TOG, IMA_ANTIALI, B_NOP, "Anti",			10, 10, 100, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
+		 uiBlockSetFunc(block, image_reload_cb, ima, iuser);
+		 uiDefButBitS(block, TOG, IMA_ANTIALI, B_NOP, "Anti",			10, 50, 45, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
+		 uiDefButBitS(block, TOG, IMA_DO_PREMUL, imagechanged, "Premul",		55, 50, 65, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
+		 uiBlockEndAlign(block);
 		 
 		 if( ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 			 sprintf(str, "(%d) Frames:", iuser->framenr);
@@ -1200,7 +1217,7 @@ void uiblock_image_panel(uiBlock *block, Image **ima_pp, ImageUser *iuser,
 			 uiBlockSetFunc(block, NULL, NULL, NULL);
 		 }
 	 }
-
+	 uiBlockEndAlign(block);
 }	
 
 static void texture_panel_image(Image **ima, ImageUser *iuser)
@@ -1213,7 +1230,7 @@ static void texture_panel_image(Image **ima, ImageUser *iuser)
 	uiblock_image_panel(block, ima, iuser, B_REDR, B_IMAGECHANGED);
 }	
 
-static void texture_panel_image_map(Tex *tex)
+static void texture_panel_image_map(Tex *tex, MTex *mtex)
 {
 	uiBlock *block;
 	
@@ -1231,12 +1248,18 @@ static void texture_panel_image_map(Tex *tex)
 	uiDefButBitS(block, TOG, TEX_USEALPHA, B_TEXPRV, "UseAlpha",	10, 160, 100, 20, &tex->imaflag, 0, 0, 0, 0, "Click to use Image's alpha channel");
 	uiDefButBitS(block, TOG, TEX_CALCALPHA, B_TEXPRV, "CalcAlpha",	110, 160, 100, 20, &tex->imaflag, 0, 0, 0, 0, "Click to calculate an alpha channel based on Image RGB values");
 	uiDefButBitS(block, TOG, TEX_NEGALPHA, B_TEXPRV, "NegAlpha",	210, 160, 100, 20, &tex->flag, 0, 0, 0, 0, "Click to invert the alpha values");
-	uiBlockEndAlign(block);
 
-	uiDefButF(block, NUM, B_TEXPRV, "Filter :",						10,120,150,20, &tex->filtersize, 0.1, 25.0, 10, 3, "Sets the filter size used by mipmap and interpol");
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, TEX_FILTER_MIN, B_TEXPRV, "Min",	10, 120, 30, 20, &tex->imaflag, 0, 0, 0, 0, "Use Filtersize as a minimal filter value in pixels");
+	uiDefButF(block, NUM, B_TEXPRV, "Filter: ",					40,120,120,20, &tex->filtersize, 0.1, 50.0, 10, 3, "Multiplies the filter size used by mipmap and interpol");
 	
-	uiDefButBitS(block, TOG, TEX_NORMALMAP, B_NOP, "Normal Map",	160,120,150,20, &tex->imaflag,
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, TEX_NORMALMAP, B_NOP, "Normal Map",	160,120,(mtex)? 75: 150,20, &tex->imaflag,
 					0, 0, 0, 0, "Use image RGB values for normal mapping");
+	if(mtex)
+		uiDefButS(block, MENU, B_DIFF, "Normal Space %t|Camera %x0|World %x1|Object %x2|Tangent %x3", 
+						235,120,75,20, &mtex->normapspace, 0, 0, 0, 0, "Sets space of normal map image");
+	uiBlockEndAlign(block);
 
 	/* crop extend clip */
 	
@@ -1294,9 +1317,9 @@ static void texture_panel_envmap(Tex *tex)
 		env= tex->env;
 		
 		uiBlockBeginAlign(block);
-		uiDefButS(block, ROW, B_REDR, 	"Static", 	10, 180, 100, 19, &env->stype, 2.0, 0.0, 0, 0, "Calculates environment map only once");
-		uiDefButS(block, ROW, B_REDR, 	"Anim", 	110, 180, 100, 19, &env->stype, 2.0, 1.0, 0, 0, "Calculates environment map at each rendering");
-		uiDefButS(block, ROW, B_ENV_FREE, "Load", 	210, 180, 100, 19, &env->stype, 2.0, 2.0, 0, 0, "Loads saved environment map from disk");
+		uiDefButS(block, ROW, B_REDR, 	"Static", 	10, 180, 100, 19, &env->stype, 2.0, (float)ENV_STATIC, 0, 0, "Calculates environment map only once");
+		uiDefButS(block, ROW, B_REDR, 	"Anim", 	110, 180, 100, 19, &env->stype, 2.0, (float)ENV_ANIM, 0, 0, "Calculates environment map at each rendering");
+		uiDefButS(block, ROW, B_ENV_FREE, "Load", 	210, 180, 100, 19, &env->stype, 2.0, (float)ENV_LOAD, 0, 0, "Loads saved environment map from disk");
 		uiBlockEndAlign(block);
 		
 		if(env->stype==ENV_LOAD) {
@@ -1339,8 +1362,8 @@ static void texture_panel_envmap(Tex *tex)
 			uiDefBut(block, BUT, B_ENV_FREE_ALL, "Free all EnvMaps", 210,145,100,20, 0, 0, 0, 0, 0, "Frees all rendered environment maps for all materials");
 			
 			uiBlockBeginAlign(block);
-			uiDefButS(block, ROW, B_NOP, "Cube",			10,120,100,20, &env->type, 3.0f, 0.0f, 0, 0, "Use environment map with six cube sides");
-			uiDefButS(block, ROW, B_NOP, "Plane",			110,120,100,20, &env->type, 3.0f, 1.0f, 0, 0, "Only one side is rendered, with Z axis pointing in direction of image");
+			uiDefButS(block, ROW, B_NOP, "Cube",			10,120,100,20, &env->type, 3.0f, (float)ENV_CUBE, 0, 0, "Use environment map with six cube sides");
+			uiDefButS(block, ROW, B_NOP, "Plane",			110,120,100,20, &env->type, 3.0f, (float)ENV_PLANE, 0, 0, "Only one side is rendered, with Z axis pointing in direction of image");
 			uiDefButF(block, NUM, B_NOP, "Zoom: ",			210,120,100,20, &env->viewscale, 0.5f, 5.0f, 100, 2, "Zoom factor for planar environment map");
 			uiBlockEndAlign(block);
 		}
@@ -1350,10 +1373,11 @@ static void texture_panel_envmap(Tex *tex)
 			uiDefButS(block, NUM, B_ENV_FREE, 	"CubeRes", 		160,90,150,20, &env->cuberes, 50, 4096.0, 0, 0, "Sets the pixel resolution of the rendered environment map");
 		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_TEXPRV, "Filter :",				10,65,150,20, &tex->filtersize, 0.1, 25.0, 0, 3, "Adjusts sharpness or blurriness of the reflection"),
+		uiDefButBitS(block, TOG, TEX_FILTER_MIN, B_TEXPRV, "Min",	10, 65, 30, 20, &tex->imaflag, 0, 0, 0, 0, "Use Filtersize as a minimal filter value in pixels");
+		uiDefButF(block, NUM, B_TEXPRV, "Filter :",					40,65,120,20, &tex->filtersize, 0.1, 25.0, 0, 3, "Adjusts sharpness or blurriness of the reflection"),
 			uiDefButS(block, NUM, B_ENV_FREE, "Depth:",				160,65,150,20, &env->depth, 0, 5.0, 0, 0, "Sets the number of times a map will be rendered recursively mirror effects"),
 			uiDefButF(block, NUM, REDRAWVIEW3D, 	"ClipSta", 		10,40,150,20, &env->clipsta, 0.01, 50.0, 100, 0, "Sets start value for clipping: objects nearer than this are not visible to map");
-		uiDefButF(block, NUM, B_NOP, 	"ClipEnd", 					160,40,150,20, &env->clipend, 0.1, 5000.0, 1000, 0, "Sets end value for clipping beyond which objects are not visible to map");
+		uiDefButF(block, NUM, B_NOP, 	"ClipEnd", 					160,40,150,20, &env->clipend, 0.1, 20000.0, 1000, 0, "Sets end value for clipping beyond which objects are not visible to map");
 		uiBlockEndAlign(block);
 		
 		uiDefBut(block, LABEL, 0, "Don't render layer:",		10,10,140,22, 0, 0.0, 0.0, 0, 0, "");	
@@ -1871,6 +1895,7 @@ void do_worldbuts(unsigned short event)
 	static MTex mtexcopybuf;
 	World *wrld;
 	MTex *mtex;
+	MTex *mtexswap;
 	
 	switch(event) {
 	case B_TEXCLEARWORLD:
@@ -1915,8 +1940,28 @@ void do_worldbuts(unsigned short event)
 			scrarea_queue_winredraw(curarea);
 		}
 		break;
-	case B_AO_DISTANCES:
-		/* distances option only supports plain */
+	case B_WMTEXMOVEUP:
+		wrld= G.buts->lockpoin;
+		if(wrld && (int)wrld->texact > 0) {
+			mtexswap = wrld->mtex[(int)wrld->texact];
+			wrld->mtex[(int)wrld->texact] = wrld->mtex[((int)wrld->texact)-1];
+			wrld->mtex[((int)wrld->texact)-1] = mtexswap;
+			wrld->texact--;
+			allqueue(REDRAWBUTSSHADING, 0);
+		}
+		break;
+	case B_WMTEXMOVEDOWN:
+		wrld= G.buts->lockpoin;
+		if(wrld && (int)wrld->texact < MAX_MTEX-1) {
+			mtexswap = wrld->mtex[(int)wrld->texact];
+			wrld->mtex[(int)wrld->texact] = wrld->mtex[((int)wrld->texact)+1];
+			wrld->mtex[((int)wrld->texact)+1] = mtexswap;
+			wrld->texact++;
+			allqueue(REDRAWBUTSSHADING, 0);
+		}
+		break;
+	case B_AO_FALLOFF:
+		/* falloff distances option only supports plain */
 		wrld= G.buts->lockpoin;
 		if(wrld)
 			wrld->aocolor= WO_AOPLAIN;
@@ -1945,7 +1990,7 @@ static void world_panel_mapto(World *wrld)
 
 	/* TEXTURE OUTPUT */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, MTEX_STENCIL, B_WORLDPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
+	uiDefButBitS(block, TOG, MTEX_STENCIL, B_WORLDPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Use this texture as a blending value on the next texture");
 	uiDefButBitS(block, TOG, MTEX_NEGATIVE, B_WORLDPRV, "Neg",		55,125,30,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
 	uiDefButBitS(block, TOG, MTEX_RGBTOINT, B_WORLDPRV, "No RGB",		85,125,60,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);
@@ -1956,7 +2001,7 @@ static void world_panel_mapto(World *wrld)
 	uiDefButF(block, NUMSLI, B_WORLDPRV, "G ",			10,60,135,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiDefButF(block, NUMSLI, B_WORLDPRV, "B ",			10,40,135,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiBlockEndAlign(block);
-	uiDefButF(block, NUMSLI, B_WORLDPRV, "DVar ",		10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value for textures to mix with values (not RGB)");
+	uiDefButF(block, NUMSLI, B_WORLDPRV, "DVar ",		10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard");
 	
 	/* MAP TO */
 	uiBlockBeginAlign(block);
@@ -2019,24 +2064,26 @@ static void world_panel_texture(World *wrld)
 	if(id) {
 		uiDefBut(block, TEX, B_IDNAME, "TE:",	100,160,200,19, id->name+2, 0.0, 21.0, 0, 0, "Displays name of the texture block: click to change");
 		sprintf(str, "%d", id->us);
-		uiDefBut(block, BUT, 0, str,			196,140,21,19, 0, 0, 0, 0, 0, "Displays number of users of texture: click to make single user");
-		uiDefIconBut(block, BUT, B_AUTOTEXNAME, ICON_AUTO, 220,140,21,19, 0, 0, 0, 0, 0, "Auto-assigns name to texture");
+		uiDefBut(block, BUT, 0, str,			177,140,21,19, 0, 0, 0, 0, 0, "Displays number of users of texture: click to make single user");
+		uiDefIconBut(block, BUT, B_AUTOTEXNAME, ICON_AUTO, 155,140,21,19, 0, 0, 0, 0, 0, "Auto-assigns name to texture");
 		if(id->lib) {
 			if(wrld->id.lib) uiDefIconBut(block, BUT, 0, ICON_DATALIB,	219,140,21,19, 0, 0, 0, 0, 0, "");
 			else uiDefIconBut(block, BUT, 0, ICON_PARLIB,	219,140,21,19, 0, 0, 0, 0, 0, "");	
 		}
 		uiBlockSetCol(block, TH_AUTO);
-		uiDefBut(block, BUT, B_TEXCLEARWORLD, "Clear", 122, 140, 72, 19, 0, 0, 0, 0, 0, "Erases link to texture");
+		uiDefBut(block, BUT, B_TEXCLEARWORLD, "Clear", 122, 140, 32, 19, 0, 0, 0, 0, 0, "Erases link to texture");
 	}
 	else 
 		uiDefButS(block, TOG, B_WTEXBROWSE, "Add New" ,100, 160, 200, 19, &(G.buts->texnr), -1.0, 32767.0, 0, 0, "Adds a new texture datablock");
 
 	uiBlockSetCol(block, TH_AUTO);
 	
-	/* copy/paste */
+	/* copy/paste/up/down */
 	uiBlockBeginAlign(block);
-	uiDefIconBut(block, BUT, B_WMTEXCOPY, ICON_COPYUP,	250,140,25,19, 0, 0, 0, 0, 0, "Copies the mapping settings to the buffer");
-	uiDefIconBut(block, BUT, B_WMTEXPASTE, ICON_PASTEUP,275,140,25,19, 0, 0, 0, 0, 0, "Pastes the mapping settings from the buffer");
+	uiDefIconBut(block, BUT, B_WMTEXCOPY, ICON_COPYUP, 	200,140,25,19, 0, 0, 0, 0, 0, "Copies the mapping settings to the buffer");
+	uiDefIconBut(block, BUT, B_WMTEXPASTE, ICON_PASTEUP, 	225,140,25,19, 0, 0, 0, 0, 0, "Pastes the mapping settings from the buffer");
+	uiDefIconBut(block, BUT, B_WMTEXMOVEUP, VICON_MOVE_UP, 	250,140,25,19, 0, 0, 0, 0, 0, "Move texture channel up");
+	uiDefIconBut(block, BUT, B_WMTEXMOVEDOWN, VICON_MOVE_DOWN, 275,140,25,19, 0, 0, 0, 0, 0, "Move texture channel down");
 		
 	/* TEXCO */
 	uiBlockBeginAlign(block);
@@ -2086,29 +2133,29 @@ static void world_panel_mistaph(World *wrld)
 #endif
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButBitS(block, TOG, WO_MIST, REDRAWVIEW3D,"Mist",	10,120,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles mist simulation");
+	uiDefButBitS(block, TOG, WO_MIST, B_WORLDPRV2,"Mist",	10,120,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles mist simulation");
 	uiBlockSetCol(block, TH_AUTO);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_DIFF, "Qua", 10, 90, 40, 19, &wrld->mistype, 1.0, 0.0, 0, 0, "Mist uses quadratic progression");
-	uiDefButS(block, ROW, B_DIFF, "Lin", 50, 90, 50, 19, &wrld->mistype, 1.0, 1.0, 0, 0, "Mist uses linear progression");
-	uiDefButS(block, ROW, B_DIFF, "Sqr", 100, 90, 50, 19, &wrld->mistype, 1.0, 2.0, 0, 0, "Mist uses inverse quadratic progression");
+	uiDefButS(block, ROW, B_WORLDPRV2, "Quad", 10, 90, 40, 19, &wrld->mistype, 1.0, 0.0, 0, 0, "Mist uses quadratic progression");
+	uiDefButS(block, ROW, B_WORLDPRV2, "Lin", 50, 90, 50, 19, &wrld->mistype, 1.0, 1.0, 0, 0, "Mist uses linear progression");
+	uiDefButS(block, ROW, B_WORLDPRV2, "Sqr", 100, 90, 50, 19, &wrld->mistype, 1.0, 2.0, 0, 0, "Mist uses inverse quadratic progression");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM,REDRAWVIEW3D, "Sta:",10,70,140,19, &wrld->miststa, 0.0, 1000.0, 10, 0, "Specifies the starting distance of the mist");
-	uiDefButF(block, NUM,REDRAWVIEW3D, "Di:",10,50,140,19, &wrld->mistdist, 0.0,1000.0, 10, 00, "Specifies the depth of the mist");
-	uiDefButF(block, NUM,B_DIFF,"Hi:",		10,30,140,19, &wrld->misthi,0.0,100.0, 10, 0, "Specifies the factor for a less dense mist with increasing height");
-	uiDefButF(block, NUMSLI, B_DIFF, "Misi ",		10,10,140,19,	&(wrld->misi), 0., 1.0, 0, 0, "Sets the mist intensity");
+	uiDefButF(block, NUM,B_WORLDPRV2, "Start:",10,70,140,19, &wrld->miststa, 0.0, 10000.0, 10, 0, "Specifies the starting distance of the mist");
+	uiDefButF(block, NUM,B_WORLDPRV2, "Dist:",10,50,140,19, &wrld->mistdist, 0.0,10000.0, 10, 00, "Specifies the depth of the mist");
+	uiDefButF(block, NUM,B_WORLDPRV2,"Height:",		10,30,140,19, &wrld->misthi,0.0,100.0, 10, 0, "Specifies the factor for a less dense mist with increasing height");
+	uiDefButF(block, NUMSLI, B_WORLDPRV2, "Misi ",		10,10,140,19,	&(wrld->misi), 0., 1.0, 0, 0, "Sets the mist intensity");
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButBitS(block, TOG, WO_STARS, REDRAWVIEW3D,	"Stars",160,120,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles starfield generation");
+	uiDefButBitS(block, TOG, WO_STARS, B_WORLDPRV2,	"Stars",160,120,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles starfield generation");
 	uiBlockSetCol(block, TH_AUTO);
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM,B_DIFF,"StarDist:",	160,70,140,19, &(wrld->stardist), 2.0, 1000.0, 100, 0, "Specifies the average distance between any two stars");
-	uiDefButF(block, NUM,B_DIFF,"MinDist:",		160,50,140,19, &(wrld->starmindist), 0.0, 1000.0, 100, 0, "Specifies the minimum distance to the camera for stars");
-	uiDefButF(block, NUMSLI,B_DIFF,"Size:",		160,30,140,19, &(wrld->starsize), 0.0, 10.0, 10, 0, "Specifies the average screen dimension of stars");
-	uiDefButF(block, NUMSLI,B_DIFF,"Colnoise:",	160,10,140,19, &(wrld->starcolnoise), 0.0, 1.0, 100, 0, "Randomizes star color");
+	uiDefButF(block, NUM,B_WORLDPRV2,"StarDist:",	160,70,140,19, &(wrld->stardist), 2.0, 1000.0, 100, 0, "Specifies the average distance between any two stars");
+	uiDefButF(block, NUM,B_WORLDPRV2,"MinDist:",		160,50,140,19, &(wrld->starmindist), 0.0, 1000.0, 100, 0, "Specifies the minimum distance to the camera for stars");
+	uiDefButF(block, NUMSLI,B_WORLDPRV2,"Size:",		160,30,140,19, &(wrld->starsize), 0.0, 10.0, 10, 0, "Specifies the average screen dimension of stars");
+	uiDefButF(block, NUMSLI,B_WORLDPRV2,"Colnoise:",	160,10,140,19, &(wrld->starcolnoise), 0.0, 1.0, 100, 0, "Randomizes star color");
 	uiBlockEndAlign(block);
 
 }
@@ -2116,49 +2163,115 @@ static void world_panel_mistaph(World *wrld)
 static void world_panel_amb_occ(World *wrld)
 {
 	uiBlock *block;
+	short yco=PANEL_YMAX;
 	
 	block= uiNewBlock(&curarea->uiblocks, "world_panel_amb_oc", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Mist / Stars / Physics", "World");
-	if(uiNewPanel(curarea, block, "Amb Occ", "World", 320, 0, 318, 204)==0) return;
-
+	if(uiNewPanel(curarea, block, "Amb Occ", "World", PANELX, PANELY, PANELW, PANELH)==0) return;
+	uiSetButLock(wrld->id.lib!=0, ERROR_LIBDATA_MESSAGE);
+	
+	
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButBitS(block, TOG, WO_AMB_OCC, B_REDR,	"Ambient Occlusion",10,150,300,19, &wrld->mode, 0, 0, 0, 0, "Toggles ambient occlusion (soft shadows)");
+	uiDefButBitS(block, TOG, WO_AMB_OCC, B_REDR, "Ambient Occlusion",
+		X2CLM1, yco-=BUTH, BUTW1, BUTH, &wrld->mode, 0, 0, 0, 0, "Toggles ambient occlusion (soft shadows)");
 	uiBlockSetCol(block, TH_AUTO);
+	
+	if(!(wrld->mode & WO_AMB_OCC)) return;
 
-	if(wrld->mode & WO_AMB_OCC) {
+	yco -= YSPACE;
 
-		/* aolight: samples */
-		uiBlockBeginAlign(block);
-		uiDefButS(block, NUM, B_REDR, "Samples:", 10, 120, 150, 19, &wrld->aosamp, 1.0, 16.0, 100, 0, "Sets the number of samples used for AO  (actual number: squared)");
-		/* enable/disable total random sampling */
-		uiDefButBitS(block, TOG, WO_AORNDSMP, 0, "Random Sampling", 160, 120, 150, 19, &wrld->aomode, 0, 0, 0, 0, "When enabled, total random sampling will be used for an even noisier effect");
-		uiBlockEndAlign(block);
+	if(wrld->ao_gather_method == WO_AOGATHER_RAYTRACE) {
+		uiDefButS(block, NUM, B_REDR, "Samples:",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->aosamp, 1.0, 32.0, 100, 0, "Sets the number of samples used for AO  (actual number: squared)");
 
-		uiDefButF(block, NUM, B_REDR, "Dist:", 10, 95, 150, 19, &wrld->aodist, 0.001, 5000.0, 100, 0, "Sets length of AO rays, defines how far away other faces give occlusion effect");
-
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, WO_AODIST, B_AO_DISTANCES, "Use Distances", 10, 70, 150, 19, &wrld->aomode, 0, 0, 0, 0, "When enabled, distances to objects will be used to attenuate shadows. Only for Plain AO.");
-		/* distance attenuation factor */
-		if (wrld->aomode & WO_AODIST)
-			uiDefButF(block, NUM, B_REDR, "DistF:", 160, 70, 150, 19, &wrld->aodistfac, 0.00001, 10.0, 100, 0, "Distance factor, the higher, the 'shorter' the shadows");
-
-		/* result mix modes */
-		uiBlockBeginAlign(block);
-		uiDefButS(block, ROW, B_REDR, "Add", 10, 45, 100, 20, &wrld->aomix, 1.0, (float)WO_AOADD, 0, 0, "adds light/shadows");
-		uiDefButS(block, ROW, B_REDR, "Sub", 110, 45, 100, 20, &wrld->aomix, 1.0, (float)WO_AOSUB, 0, 0, "subtracts light/shadows (needs at least one normal light to make anything visible)");
-		uiDefButS(block, ROW, B_REDR, "Both", 210, 45, 100, 20, &wrld->aomix, 1.0, (float)WO_AOADDSUB, 0, 0, "both lightens & darkens");
-
-		/* color treatment */
-		uiBlockBeginAlign(block);
-		uiDefButS(block, ROW, B_REDR, "Plain", 10, 25, 100, 20, &wrld->aocolor, 2.0, (float)WO_AOPLAIN, 0, 0, "Plain diffuse energy (white)");
-		uiDefButS(block, ROW, B_REDR, "Sky Color", 110, 25, 100, 20, &wrld->aocolor, 2.0, (float)WO_AOSKYCOL, 0, 0, "Use horizon and zenith color for diffuse energy");
-		uiDefButS(block, ROW, B_REDR, "Sky Texture", 210, 25, 100, 20, &wrld->aocolor, 2.0, (float)WO_AOSKYTEX, 0, 0, "Does full Sky texture render for diffuse energy");
+		yco -= YSPACE;
 		
+		uiDefButF(block, NUM, B_REDR, "Max Dist:",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->aodist, 0.001, 5000.0, 100, 0, "Sets length of AO rays, defines how far away other faces give occlusion effect");
+	}
+	else {
+		uiDefButS(block, NUM, B_REDR, "Passes:",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->ao_approx_passes, 0.0, 10.0, 0, 0, "Sets the number of preprocessing passes to reduce overocclusion");
+
+		yco -= YSPACE;
+	
+		uiDefButF(block, NUM, B_REDR, "Correction:",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->ao_approx_correction, 0.0, 1.0, 0, 0, "Ad-hoc correction for over-occlusion due to the approximation.");
+	}
+	
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, WO_AODIST, B_AO_FALLOFF, "Use Falloff",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->aomode, 0, 0, 0, 0, "When enabled, distances to objects will be used to attenuate shadows. Only for Plain AO.");
+	if (wrld->aomode & WO_AODIST)
+		uiDefButF(block, NUM, B_REDR, "Strength:",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->aodistfac, 0.00001, 10.0, 100, 0, "Distance attenuation factor, the higher, the 'shorter' the shadows");
+	uiBlockEndAlign(block);
+	
+	/* column 2 */
+	yco = PANEL_YMAX - BUTH - YSPACE;
+	
+	uiDefButS(block, MENU, B_REDR, "Gather Method%t|Raytrace %x0|Approximate %x1",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->ao_gather_method, 0, 0, 0, 0, "Method for occlusion gathering: Raytrace: slow when noise free results are required, but accurate, Approximate: faster and without noise, but inaccurate");
+
+	yco -= YSPACE;
+
+	if(wrld->ao_gather_method == WO_AOGATHER_RAYTRACE) {
+		uiDefButS(block, MENU, B_REDR, "Constant QMC %x2|Adaptive QMC %x1|Constant Jittered %x0",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->ao_samp_method, 0, 0, 0, 0, "Method for generating shadow samples: Constant QMC: best quality, Adaptive QMC: fast in high contrast areas");
+		
+		yco -= YSPACE;
+
+		if (wrld->ao_samp_method == WO_AOSAMP_HALTON) {	
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_REDR, "Threshold:",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->ao_adapt_thresh, 0.0, 1.0, 100, 0, "Samples below this threshold will be considered fully shadowed/unshadowed and skipped");
+			uiDefButF(block, NUMSLI, B_REDR, "Adapt Vec:",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->ao_adapt_speed_fac, 0.0, 1.0, 100, 0, "Use the speed vector pass to reduce AO samples in fast moving pixels. The higher the value, the more aggressive the sample reduction. Requires Vec pass enabled.");
+			uiBlockEndAlign(block);
+		} else if (wrld->ao_samp_method == WO_AOSAMP_CONSTANT) {
+			uiDefButF(block, NUMSLI, B_REDR, "Bias:",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->aobias, 0.0, 0.5, 10, 0, "Sets bias to prevent smoothed faces to show banding (in radians)");
+		}
+	}
+	else {
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, B_REDR, "Energy:", 10, 0, 150, 19, &wrld->aoenergy, 0.01, 3.0, 100, 0, "Sets global energy scale for AO");
-		uiDefButF(block, NUMSLI, B_REDR, "Bias:", 160, 0, 150, 19, &wrld->aobias, 0.0, 0.5, 10, 0, "Sets bias to prevent smoothed faces to show banding (in radians)");
+		uiDefButF(block, NUM, B_REDR, "Error:",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->ao_approx_error, 0.0001, 10.0, 0, 0, "Error tolerance (low values are slower and higher quality)");
+
+		uiDefButBitS(block, TOG, WO_AOCACHE, B_REDR, "Pixel Cache",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->aomode, 0, 0, 0, 0, "Cache AO results in pixels and interpolate over neighbouring pixels for speedup.");
+		uiBlockEndAlign(block);
 	}
 
+	yco = PANEL_YMAX - (5*BUTH+4*YSPACE);
+
+	/* result mix modes */
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW, B_REDR, "Add",
+		X3CLM1, yco-=BUTH, BUTW3, BUTH, &wrld->aomix, 1.0, (float)WO_AOADD, 0, 0, "adds light/shadows");
+	uiDefButS(block, ROW, B_REDR, "Sub",
+		X3CLM2, yco, BUTW3, BUTH, &wrld->aomix, 1.0, (float)WO_AOSUB, 0, 0, "subtracts light/shadows (needs at least one normal light to make anything visible)");
+	uiDefButS(block, ROW, B_REDR, "Both",
+		X3CLM3, yco, BUTW3, BUTH, &wrld->aomix, 1.0, (float)WO_AOADDSUB, 0, 0, "both lightens & darkens");
+	uiBlockEndAlign(block);
+
+	yco -= YSPACE;
+
+	/* color treatment */
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW, B_REDR, "Plain",
+		X3CLM1, yco-=BUTH, BUTW3, BUTH, &wrld->aocolor, 2.0, (float)WO_AOPLAIN, 0, 0, "Plain diffuse energy (white)");
+	uiDefButS(block, ROW, B_REDR, "Sky Color", 
+		X3CLM2, yco, BUTW3, BUTH, &wrld->aocolor, 2.0, (float)WO_AOSKYCOL, 0, 0, "Use horizon and zenith color for diffuse energy");
+	if(wrld->ao_gather_method == WO_AOGATHER_RAYTRACE)
+		uiDefButS(block, ROW, B_REDR, "Sky Texture", 
+			X3CLM3, yco, BUTW3, BUTH, &wrld->aocolor, 2.0, (float)WO_AOSKYTEX, 0, 0, "Does full Sky texture render for diffuse energy");
+	uiBlockEndAlign(block);
+
+	yco -= YSPACE;
+		
+	uiDefButF(block, NUMSLI, B_REDR, "Energy:",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->aoenergy, 0.01, 3.0, 100, 0, "Sets global energy scale for AO");
 }
 
 static void world_panel_world(World *wrld)
@@ -2176,28 +2289,28 @@ static void world_panel_world(World *wrld)
 	uiSetButLock(wrld->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 	uiBlockSetCol(block, TH_AUTO);
 
-	uiDefButF(block, COL, B_WORLDPRV, "",			10,150,145,19, &wrld->horr, 0, 0, 0, B_COLHOR, "");
-	uiDefButF(block, COL, B_WORLDPRV, "",			160,150,145,19, &wrld->zenr, 0, 0, 0, B_COLZEN, "");
-
 	uiBlockBeginAlign(block);
+	uiDefButF(block, COL, B_WORLDPRV, "",			10,150,145,19, &wrld->horr, 0, 0, 0, B_COLHOR, "");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"HoR ",	10,130,145,19,	&(wrld->horr), 0.0, 1.0, B_COLHOR,0, "Sets the amount of red color at the horizon");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"HoG ",	10,110,145,19,	&(wrld->horg), 0.0, 1.0, B_COLHOR,0, "Sets the amount of green color at the horizon");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"HoB ",	10,90,145,19,	&(wrld->horb), 0.0, 1.0, B_COLHOR,0, "Sets the amount of blue color at the horizon");
 	
 	uiBlockBeginAlign(block);
+	uiDefButF(block, COL, B_WORLDPRV, "",			160,150,145,19, &wrld->zenr, 0, 0, 0, B_COLZEN, "");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"ZeR ",	160,130,145,19,	&(wrld->zenr), 0.0, 1.0, B_COLZEN,0, "Sets the amount of red color at the zenith");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"ZeG ",	160,110,145,19,	&(wrld->zeng), 0.0, 1.0, B_COLZEN,0, "Sets the amount of green color at the zenith");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"ZeB ",	160,90,145,19,	&(wrld->zenb), 0.0, 1.0, B_COLZEN,0, "Sets the amount of blue color at the zenith");
 
 	uiBlockBeginAlign(block);
+	uiDefButF(block, COL, B_WORLDPRV, "",		10,70,145,19, &wrld->ambr, 0, 0, 0, 0, "");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"AmbR ",	10,50,145,19,	&(wrld->ambr), 0.0, 1.0 ,0,0, "Sets the amount of red ambient color");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"AmbG ",	10,30,145,19,	&(wrld->ambg), 0.0, 1.0 ,0,0, "Sets the amount of green ambient color");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"AmbB ",	10,10,145,19,	&(wrld->ambb), 0.0, 1.0 ,0,0, "Sets the amount of blue ambient color");
 
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButF(block, NUMSLI,B_WORLDPRV, "Exp ",			160,30,145,19,	&(wrld->exp), 0.0, 1.0, 0, 2, "Sets amount of exponential color correction for light");
-	uiDefButF(block, NUMSLI,B_WORLDPRV, "Range ",		160,10,145,19,	&(wrld->range), 0.2, 5.0, 0, 2, "Sets the color amount that will be mapped on color 1.0");
+	uiDefButF(block, NUMSLI,B_WORLDPRV2, "Exp ",			160,30,145,19,	&(wrld->exp), 0.0, 1.0, 0, 2, "Sets amount of exponential color correction for light");
+	uiDefButF(block, NUMSLI,B_WORLDPRV2, "Range ",		160,10,145,19,	&(wrld->range), 0.2, 5.0, 0, 2, "Sets the color amount that will be mapped on color 1.0");
 
 
 }
@@ -2235,6 +2348,7 @@ void do_lampbuts(unsigned short event)
 	static MTex mtexcopybuf;
 	Lamp *la;
 	MTex *mtex;
+	MTex *mtexswap;
 
 	switch(event) {
 	case B_LAMPREDRAW:
@@ -2305,6 +2419,33 @@ void do_lampbuts(unsigned short event)
 			scrarea_queue_winredraw(curarea);
 		}
 		break;
+	case B_LMTEXMOVEUP:
+		la= G.buts->lockpoin;
+		if(la && (int)la->texact > 0) {
+			mtexswap = la->mtex[(int)la->texact];
+			la->mtex[(int)la->texact] = la->mtex[((int)la->texact)-1];
+			la->mtex[((int)la->texact)-1] = mtexswap;
+			la->texact--;
+			allqueue(REDRAWBUTSSHADING, 0);
+		}
+		break;
+	case B_LMTEXMOVEDOWN:
+		la= G.buts->lockpoin;
+		if(la && (int)la->texact < MAX_MTEX-1) {
+			mtexswap = la->mtex[(int)la->texact];
+			la->mtex[(int)la->texact] = la->mtex[((int)la->texact)+1];
+			la->mtex[((int)la->texact)+1] = mtexswap;
+			la->texact++;
+			allqueue(REDRAWBUTSSHADING, 0);
+		}
+		break;
+	case B_LFALLOFFCHANGED:
+		la= G.buts->lockpoin;
+		curvemapping_changed(la->curfalloff, 1);
+		BIF_undo_push("Edit Lamp falloff curve");
+		BIF_preview_changed(ID_LA);
+		scrarea_queue_winredraw(curarea);
+		break;
 		
 	}
 }
@@ -2330,7 +2471,7 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 
 	/* TEXTURE OUTPUT */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, MTEX_STENCIL, B_LAMPPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
+	uiDefButBitS(block, TOG, MTEX_STENCIL, B_LAMPPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Use this texture as a blending value on the next texture");
 	uiDefButBitS(block, TOG, MTEX_NEGATIVE, B_LAMPPRV, "Neg",		55,125,30,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
 	uiDefButBitS(block, TOG, MTEX_RGBTOINT, B_LAMPPRV, "No RGB",		85,125,60,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);
@@ -2341,7 +2482,7 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 	uiDefButF(block, NUMSLI, B_LAMPPRV, "G ",			10,60,135,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiDefButF(block, NUMSLI, B_LAMPPRV, "B ",			10,40,135,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiBlockEndAlign(block);
-	uiDefButF(block, NUMSLI, B_LAMPPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value the textures uses to mix with");
+	uiDefButF(block, NUMSLI, B_LAMPPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard");
 	
 	/* MAP TO */
 	uiDefButBitS(block, TOG, MAP_COL, B_LAMPPRV, "Col",		10,180,135,19, &(mtex->mapto), 0, 0, 0, 0, "Lets the texture affect the basic color of the lamp");
@@ -2399,22 +2540,25 @@ static void lamp_panel_texture(Object *ob, Lamp *la)
 	if(id) {
 		uiDefBut(block, TEX, B_IDNAME, "TE:",	100,160,200,19, id->name+2, 0.0, 21.0, 0, 0, "Displays name of the texture block: click to change");
 		sprintf(str, "%d", id->us);
-		uiDefBut(block, BUT, 0, str,			196,140,21,19, 0, 0, 0, 0, 0, "Displays number of users of texture: click to make single user");
-		uiDefIconBut(block, BUT, B_AUTOTEXNAME, ICON_AUTO, 221,140,21,19, 0, 0, 0, 0, 0, "Auto-assigns name to texture");
+		uiDefBut(block, BUT, 0, str,			155,140,21,19, 0, 0, 0, 0, 0, "Displays number of users of texture: click to make single user");
+		uiDefIconBut(block, BUT, B_AUTOTEXNAME, ICON_AUTO, 177,140,21,19, 0, 0, 0, 0, 0, "Auto-assigns name to texture");
 		if(id->lib) {
 			if(la->id.lib) uiDefIconBut(block, BUT, 0, ICON_DATALIB,	219,140,21,19, 0, 0, 0, 0, 0, "");
 			else uiDefIconBut(block, BUT, 0, ICON_PARLIB,	219,140,21,19, 0, 0, 0, 0, 0, "");	
 		}
 		uiBlockSetCol(block, TH_AUTO);
-		uiDefBut(block, BUT, B_TEXCLEARLAMP, "Clear", 122, 140, 72, 19, 0, 0, 0, 0, 0, "Erases link to texture");
+		uiDefBut(block, BUT, B_TEXCLEARLAMP, "Clear", 122, 140, 32, 19, 0, 0, 0, 0, 0, "Erases link to texture");
 	}
 	else 
 		uiDefButS(block, TOG, B_LTEXBROWSE, "Add New" ,100, 160, 200, 19, &(G.buts->texnr), -1.0, 32767.0, 0, 0, "Adds a new texture datablock");
 
-	/* copy/paste */
+	/* copy/paste/up/down */
 	uiBlockBeginAlign(block);
-	uiDefIconBut(block, BUT, B_LMTEXCOPY, ICON_COPYUP,	250,140,25,19, 0, 0, 0, 0, 0, "Copies the mapping settings to the buffer");
-	uiDefIconBut(block, BUT, B_LMTEXPASTE, ICON_PASTEUP,	275,140,25,19, 0, 0, 0, 0, 0, "Pastes the mapping settings from the buffer");
+	uiDefIconBut(block, BUT, B_LMTEXCOPY, ICON_COPYUP,	200,140,25,19, 0, 0, 0, 0, 0, "Copies the mapping settings to the buffer");
+	uiDefIconBut(block, BUT, B_LMTEXPASTE, ICON_PASTEUP,	225,140,25,19, 0, 0, 0, 0, 0, "Pastes the mapping settings from the buffer");
+	uiDefIconBut(block, BUT, B_LMTEXMOVEUP, VICON_MOVE_UP, 250,140,25,19, 0, 0, 0, 0, 0, "Move texture channel up");
+	uiDefIconBut(block, BUT, B_LMTEXMOVEDOWN, VICON_MOVE_DOWN, 275,140,25,19, 0, 0, 0, 0, 0, "Move texture channel down");
+
 	
 	/* TEXCO */
 	uiBlockSetCol(block, TH_AUTO);
@@ -2441,7 +2585,7 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 	float grid=0.0;
 	
 	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_spot", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Shadow and Spot", "Lamp", 640, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Shadow and Spot", "Lamp", 640, 0, 318, 224)==0) return;
 
 	/* hemis and ray shadow dont work at all... */
 	/* yafray: ignore photonlight as well */
@@ -2469,14 +2613,13 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 	}
 	uiBlockEndAlign(block);
 	
-	uiDefButBitS(block, TOG, LA_ONLYSHADOW, B_NOP,"OnlyShadow",		10,110,80,19,&la->mode, 0, 0, 0, 0, "Causes light to cast shadows only without illuminating objects");
+	uiDefButBitS(block, TOG, LA_ONLYSHADOW, B_LAMPPRV,"OnlyShadow",		10,110,80,19,&la->mode, 0, 0, 0, 0, "Causes light to cast shadows only without illuminating objects");
 
 	if(la->type==LA_SPOT) {
 		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, LA_SQUARE, B_LAMPREDRAW,"Square",	10,60,80,19,&la->mode, 0, 0, 0, 0, "Sets square spotbundles");
 		uiDefButBitS(block, TOG, LA_HALO, B_LAMPREDRAW,"Halo",		10,40,80,19,&la->mode, 0, 0, 0, 0, "Renders spotlight with a volumetric halo"); 
 
-		uiBlockSetCol(block, TH_AUTO);
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI,B_LAMPREDRAW,"SpotSi ",	100,180,200,19,&la->spotsize, 1.0, 180.0, 0, 0, "Sets the angle of the spotlight beam in degrees");
 		uiDefButF(block, NUMSLI,B_LAMPREDRAW,"SpotBl ",		100,160,200,19,&la->spotblend, 0.0, 1.0, 0, 0, "Sets the softness of the spotlight edge");
@@ -2492,9 +2635,10 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 				uiDefButS(block, ROW,B_NOP,	"Tent",				165,90,65,19, &la->filtertype, 0.0, LA_SHADBUF_TENT, 0, 0, "Apply Tent filter for shadowbuffer samples");
 				uiDefButS(block, ROW,B_NOP,	"Gauss",			230,90,70,19, &la->filtertype, 0.0, LA_SHADBUF_GAUSS, 0, 0, "Apply Gauss filter for shadowbuffer samples");
 				
-	//			uiDefButS(block, ROW,B_NOP,"SubSamples: 1",		100,90,140,19, &la->buffers, 1.0, 1.0, 0, 0, "Amount of lampbuffer subsamples, a value of larger than 1 halves the shadowbuffer size");
-	//			uiDefButS(block, ROW,B_NOP,"4",					240,90,30,19, &la->buffers, 1.0, 4.0, 0, 0, "Amount of lampbuffer subsamples, this halves the actual shadowbuffer size");
-	//			uiDefButS(block, ROW,B_NOP,"9",					270,90,30,19, &la->buffers, 1.0, 9.0, 0, 0, "Amount of lampbuffer subsamples, this halves the shadowbuffer size");
+				uiBlockBeginAlign(block);
+				uiDefButS(block, ROW,B_NOP,"SampleBuffers: 1",	100,-15,140,19, &la->buffers, 1.0, 1.0, 0, 0, "Only one lampbuffer rendered");
+				uiDefButS(block, ROW,B_NOP,"4",					240,-15,30,19, &la->buffers, 1.0, 4.0, 0, 0, "Renders 4 lampbuffers for better AA, this quadruples memory usage");
+				uiDefButS(block, ROW,B_NOP,"9",					270,-15,30,19, &la->buffers, 1.0, 9.0, 0, 0, "Renders 9 lampbuffers for better AA, this uses nine times more memory");
 			
 				uiBlockBeginAlign(block);
 				uiDefButS(block, NUM,B_LAMPREDRAW,"Samples:",	100,60,100,19,	&la->samp,1.0,16.0, 0, 0, "Sets the number of shadow map samples");
@@ -2521,25 +2665,46 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 			
 		}
 	}
-	else if(la->type==LA_AREA && (la->mode & LA_SHAD_RAY)) {
-		uiBlockBeginAlign(block);
-		uiBlockSetCol(block, TH_AUTO);
-		if(la->area_shape==LA_AREA_SQUARE) 
-			uiDefButS(block, NUM,0,"Samples:",	100,180,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp)");
-		if(la->area_shape==LA_AREA_CUBE) 
-			uiDefButS(block, NUM,0,"Samples:",	100,160,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp x samp)");
+	if(ELEM4(la->type, LA_AREA, LA_SPOT, LA_SUN, LA_LOCAL) && (la->mode & LA_SHAD_RAY)) {
+		
+		if (ELEM3(la->type, LA_SPOT, LA_SUN, LA_LOCAL)) {
+			if (la->ray_samp_method == LA_SAMP_CONSTANT) la->ray_samp_method = LA_SAMP_HALTON;
+		
+			uiDefButS(block, MENU, B_REDR, "Adaptive QMC %x1|Constant QMC %x2",
+				100,110,200,19, &la->ray_samp_method, 0, 0, 0, 0, "Method for generating shadow samples: Adaptive QMC is fastest, Constant QMC is less noisy but slower");
+		
+			uiDefButF(block, NUM,B_LAMPREDRAW,"Soft Size",	100,80,200,19, &la->area_size, 0.01, 100.0, 10, 0, "Area light size, doesn't affect energy amount");
+			
+			uiDefButS(block, NUM,0,"Samples:",	100,60,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp)");
+			uiDefButF(block, NUM,0,"Threshold:",	100,40,200,19,	&la->adapt_thresh, 0.0, 1.0, 100, 0, "Threshold for adaptive sampling, to control what level is considered already in shadow");
+		}
+		else if (la->type == LA_AREA) {
+			uiDefButS(block, MENU, B_REDR, "Adaptive QMC %x1|Constant QMC %x2|Constant Jittered %x0",
+				100,180,200,19, &la->ray_samp_method, 0, 0, 0, 0, "Method for generating shadow samples: Adaptive QMC is fastest");
+		
+			if(la->area_shape==LA_AREA_SQUARE) 
+				uiDefButS(block, NUM,0,"Samples:",	100,150,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp)");
+			else if(la->area_shape==LA_AREA_CUBE) 
+				uiDefButS(block, NUM,0,"Samples:",	100,130,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp x samp)");
 
-		if (ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_BOX)) {
-			uiDefButS(block, NUM,0,"SamplesX:",	100,180,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of X samples taken extra");
-			uiDefButS(block, NUM,0,"SamplesY:",	100,160,200,19,	&la->ray_sampy, 1.0, 16.0, 100, 0, "Sets the amount of Y samples taken extra");
-			if(la->area_shape==LA_AREA_BOX)
-				uiDefButS(block, NUM,0,"SamplesZ:",	100,140,200,19,	&la->ray_sampz, 1.0, 8.0, 100, 0, "Sets the amount of Z samples taken extra");
+			if (ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_BOX)) {
+				uiDefButS(block, NUM,0,"SamplesX:",	100,150,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of X samples taken extra");
+				uiDefButS(block, NUM,0,"SamplesY:",	100,130,200,19,	&la->ray_sampy, 1.0, 16.0, 100, 0, "Sets the amount of Y samples taken extra");
+				if(la->area_shape==LA_AREA_BOX)
+					uiDefButS(block, NUM,0,"SamplesZ:",	100,110,200,19,	&la->ray_sampz, 1.0, 8.0, 100, 0, "Sets the amount of Z samples taken extra");
+			}
+			
+			if (la->ray_samp_method == LA_SAMP_CONSTANT) {
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG, LA_SAMP_UMBRA, 0,"Umbra",			100,90,200,19,&la->ray_samp_type, 0, 0, 0, 0, "Emphasis parts that are fully shadowed");
+				uiDefButBitS(block, TOG, LA_SAMP_DITHER, 0,"Dither",			100,70,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use 2x2 dithering for sampling");
+				uiDefButBitS(block, TOG, LA_SAMP_JITTER, 0,"Noise",			200,70,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use noise for sampling");
+			} else if (la->ray_samp_method == LA_SAMP_HALTON) {
+				uiDefButF(block, NUM,0,"Threshold:",	100,90,200,19,	&la->adapt_thresh, 0.0, 1.0, 100, 0, "Threshold for adaptive sampling, to control what level is considered already in shadow");
+			}
 		}
 		
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, LA_SAMP_UMBRA, 0,"Umbra",			100,110,200,19,&la->ray_samp_type, 0, 0, 0, 0, "Emphasis parts that are fully shadowed");
-		uiDefButBitS(block, TOG, LA_SAMP_DITHER, 0,"Dither",			100,90,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use 2x2 dithering for sampling");
-		uiDefButBitS(block, TOG, LA_SAMP_JITTER, 0,"Noise",			200,90,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use noise for sampling");
+		
 	}
 	else uiDefBut(block, LABEL,0," ",	100,180,200,19,NULL, 0, 0, 0, 0, "");
 
@@ -2632,6 +2797,28 @@ static void lamp_panel_yafray(Object *ob, Lamp *la)
 
 }
 
+static void lamp_panel_falloff(Object *ob, Lamp *la)
+{
+	uiBlock *block;
+	rctf butr;
+	short yco=PANEL_YMAX;
+	float grid= 0.0;
+	
+	/* name "Preview" is abused to detect previewrender offset panel */
+	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_falloff", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Lamp", "Lamp");
+	if(uiNewPanel(curarea, block, "Falloff Curve", "Lamp", PANELX, PANELY, PANELW, PANELH)==0) return;
+	
+	if(G.vd) grid= G.vd->grid; 
+	if(grid<1.0) grid= 1.0;
+	
+	uiSetButLock(la->id.lib!=0, ERROR_LIBDATA_MESSAGE);
+	
+	BLI_init_rctf(&butr, 10.0, 310.0, 10.0, (float)yco);
+	curvemap_buttons(block, la->curfalloff, 's', B_LFALLOFFCHANGED, B_LAMPREDRAW, &butr);
+	
+}
+
 static void lamp_panel_lamp(Object *ob, Lamp *la)
 {
 	uiBlock *block;
@@ -2669,7 +2856,8 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	}
 	else if( ELEM(la->type, LA_LOCAL, LA_SPOT)) {
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButBitS(block, TOG, LA_QUAD, B_LAMPPRV,"Quad",		10,150,100,19,&la->mode, 0, 0, 0, 0, "Uses inverse quadratic proportion for light attenuation");
+		uiDefButS(block, MENU, B_LAMPREDRAW,  "Falloff %t|Constant %x0|Inverse Linear %x1|Inverse Square %x2|Custom Curve %x3|Lin/Quad Weighted %x4|",
+			10,150,100,19, &la->falloff_type, 0,0,0,0, "Lamp falloff - intensity decay with distance");	
 		uiDefButBitS(block, TOG, LA_SPHERE, REDRAWVIEW3D,"Sphere",	10,130,100,19,&la->mode, 0, 0, 0, 0, "Sets light intensity to zero for objects beyond the distance value");
 	}
 
@@ -2693,9 +2881,9 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	uiDefButF(block, COL, B_LAMPPRV, "",		120,52,180,24, &la->r, 0, 0, 0, B_COLLAMP, "");
 	
 	uiBlockBeginAlign(block);
-	if (ELEM(la->type, LA_LOCAL, LA_SPOT)) {
-		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad1 ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the linear distance attenuatation for a quad lamp");
-		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad2 ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the quadratic distance attenuatation for a quad lamp");
+	if (ELEM(la->type, LA_LOCAL, LA_SPOT) && (la->falloff_type == LA_FALLOFF_SLIDERS)) {
+		uiDefButF(block, NUMSLI,B_LAMPPRV,"Linear ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the linear distance attenuatation for a quad lamp");
+		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the quadratic distance attenuatation for a quad lamp");
 	}
 	else if(la->type==LA_AREA) {
 		if(la->k==0.0) la->k= 1.0;
@@ -2739,6 +2927,7 @@ void do_matbuts(unsigned short event)
 	static MTex mtexcopybuf;
 	Material *ma;
 	MTex *mtex;
+	MTex *mtexswap;
 
 	/* all operations default on active material layer here */
 	/* but this also gets called for lamp and world... */
@@ -2825,10 +3014,16 @@ void do_matbuts(unsigned short event)
 	case B_LAMPPRV:
 		BIF_preview_changed(ID_LA);
 		allqueue(REDRAWBUTSSHADING, 0);
+		shade_buttons_change_3d();
 		break;
 	case B_WORLDPRV:
 		BIF_preview_changed(ID_WO);
 		allqueue(REDRAWBUTSSHADING, 0);
+		break;
+	case B_WORLDPRV2:
+		BIF_preview_changed(ID_TE);
+		allqueue(REDRAWBUTSSHADING, 0);
+		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_MATHALO:
 		/* when halo is disabled, clear star flag, this is the same as MA_FACETEXTURE <blush> */
@@ -2880,6 +3075,24 @@ void do_matbuts(unsigned short event)
 			BIF_undo_push("Paste mapping settings");
 			BIF_preview_changed(ID_MA);
 			scrarea_queue_winredraw(curarea);
+		}
+		break;
+	case B_MTEXMOVEUP:
+		if(ma && (int)ma->texact > 0) {
+			mtexswap = ma->mtex[(int)ma->texact];
+			ma->mtex[(int)ma->texact] = ma->mtex[((int)ma->texact)-1];
+			ma->mtex[((int)ma->texact)-1] = mtexswap;
+			ma->texact--;
+			allqueue(REDRAWBUTSSHADING, 0);
+		}
+		break;
+	case B_MTEXMOVEDOWN:
+		if(ma && (int)ma->texact < MAX_MTEX-1) {
+			mtexswap = ma->mtex[(int)ma->texact];
+			ma->mtex[(int)ma->texact] = ma->mtex[((int)ma->texact)+1];
+			ma->mtex[((int)ma->texact)+1] = mtexswap;
+			ma->texact++;
+			allqueue(REDRAWBUTSSHADING, 0);
 		}
 		break;
 	case B_MATZTRANSP:
@@ -2938,16 +3151,65 @@ void do_matbuts(unsigned short event)
 			allqueue(REDRAWBUTSSHADING, 0);
 		}
 		break;
-		
+
+	case B_MAT_PARTICLE:
+		if(ma) {
+			Base *base;
+			Object *ob;
+			ParticleSystem *psys;
+
+			base= G.scene->base.first;
+			while(base){
+				if(base->object->type==OB_MESH) {
+					ob=base->object;
+					for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+						if(psys && ma==give_current_material(ob,psys->part->omat)) {
+							psys->recalc |= PSYS_INIT;
+
+							DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+						}
+					}
+				}
+				base = base->next;
+			}
+			allqueue(REDRAWVIEW3D, 0);
+		}
 	}
 }
 
+static void particle_recalc_material(void *ma_v, void *arg2)
+{
+	Material *ma = ma_v;
+	Base *base;
+	Object *ob;
+	ParticleSystem *psys;
+
+	base= G.scene->base.first;
+	while(base){
+		if(base->object->type==OB_MESH){
+			ob=base->object;
+			for(psys=ob->particlesystem.first; psys; psys=psys->next){
+				if(psys && ma==give_current_material(ob,psys->part->omat)){
+					psys->recalc |= PSYS_INIT;
+
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				}
+			}
+		}
+		base = base->next;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
 
 /* if from nodes, hide options that are not available */
-static void material_panel_map_to(Material *ma, int from_nodes)
+static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 {
 	uiBlock *block;
+	uiBut *but;
 	MTex *mtex;
+	ParticleSystem *psys;
+	int psys_mapto=0;
+	static short pattr=0;
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_map_to", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Texture", "Material");
@@ -2963,7 +3225,7 @@ static void material_panel_map_to(Material *ma, int from_nodes)
 
 	/* TEXTURE OUTPUT */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, MTEX_STENCIL, B_MATPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
+	uiDefButBitS(block, TOG, MTEX_STENCIL, B_MATPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Use this texture as a blending value on the next texture");
 	uiDefButBitS(block, TOG, MTEX_NEGATIVE, B_MATPRV, "Neg",		55,125,30,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
 	uiDefButBitS(block, TOG,MTEX_RGBTOINT, B_MATPRV, "No RGB",		85,125,60,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);
@@ -2985,36 +3247,86 @@ static void material_panel_map_to(Material *ma, int from_nodes)
 	}
 	uiBlockEndAlign(block);
 	
-	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value the texture uses to mix with (not RGB)");
+	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard");
 	
 	/* MAP TO */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, MAP_COL, B_MATPRV, "Col",		10,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic color of the material");
-	uiDefButBitS(block, TOG3, MAP_NORM, B_MATPRV, "Nor",		50,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the rendered normal");
-	uiDefButBitS(block, TOG, MAP_COLSPEC, B_MATPRV, "Csp",		90,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the specularity color");
-	uiDefButBitS(block, TOG, MAP_COLMIR, B_MATPRV, "Cmir",		130,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the mirror color");
-	uiDefButBitS(block, TOG3, MAP_REF, B_MATPRV, "Ref",		180,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of the materials reflectivity");
-	uiDefButBitS(block, TOG3, MAP_SPEC, B_MATPRV, "Spec",		220,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of specularity");
-	uiDefButBitS(block, TOG3, MAP_AMB, B_MATPRV, "Amb",		270,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of ambient");
-	
-	uiDefButBitS(block, TOG3, MAP_HAR, B_MATPRV, "Hard",		10,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the hardness value");
-	uiDefButBitS(block, TOG3, MAP_RAYMIRR, B_MATPRV, "RayMir",	60,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the ray-mirror value");
-	uiDefButBitS(block, TOG3, MAP_ALPHA, B_MATPRV, "Alpha",		110,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
-	uiDefButBitS(block, TOG3, MAP_EMIT, B_MATPRV, "Emit",		160,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
-	uiDefButBitS(block, TOG3, MAP_TRANSLU, B_MATPRV, "TransLu",		205,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the layer blending value");
-	if(from_nodes==0)
-		uiDefButBitS(block, TOG3, MAP_DISPLACE, B_MATPRV, "Disp",		265,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
+
+	/*check if material is being used by particles*/
+	for(psys=ob->particlesystem.first; psys; psys=psys->next)
+		if(psys->part->omat==ob->actcol)
+			psys_mapto=1;
+
+	if(psys_mapto && pattr) {
+		but=uiDefButBitS(block, TOG3, MAP_PA_TIME, B_MAT_PARTICLE, "Time",	10,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the emission time of particles");
+			//uiButSetFunc(but, particle_recalc_material, ma, NULL);		
+		but=uiDefButBitS(block, TOG3, MAP_PA_LIFE, B_MAT_PARTICLE, "Life",	70,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the life time of particles");
+			//uiButSetFunc(but, particle_recalc_material, ma, NULL);		
+		but=uiDefButBitS(block, TOG3, MAP_PA_DENS, B_MAT_PARTICLE, "Dens",	130,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the density of particles");
+			//uiButSetFunc(but, particle_recalc_material, ma, NULL);		
+		uiDefButBitS(block, TOG3, MAP_PA_IVEL, B_MAT_PARTICLE, "IVel",		190,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the initial velocity of particles");
+		uiDefButBitS(block, TOG3, MAP_PA_ROUGH, B_MAT_PARTICLE, "Rough",		250,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the roughness of child particles");
+
+		but=uiDefButBitS(block, TOG3, MAP_PA_SIZE, B_MAT_PARTICLE, "Size",	10,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the size of particles");
+			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
+		but=uiDefButBitS(block, TOG3, MAP_PA_KINK, B_MAT_PARTICLE, "Kink",	70,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the kink of child particles");
+			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
+		but=uiDefButBitS(block, TOG3, MAP_PA_LENGTH, B_MAT_PARTICLE, "Length",130,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the length of particles");
+			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
+		but=uiDefButBitS(block, TOG3, MAP_PA_CLUMP, B_MAT_PARTICLE, "Clump",	190,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the clump of child particles");
+			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
+
+		uiBlockSetCol(block, TH_BUT_SETTING1);
+		uiDefButBitS(block, TOG, 1, B_MATPRV, "PAttr",		250,160,60,19, &pattr, 0, 0, 0, 0, "Display settings for particle attributes");
+		uiBlockSetCol(block, TH_AUTO);
+	}
+	else {
+		uiDefButBitS(block, TOG, MAP_COL, B_MATPRV, "Col",		10,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic colour of the material");
+		uiDefButBitS(block, TOG3, MAP_NORM, B_MATPRV, "Nor",		50,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the rendered normal");
+		uiDefButBitS(block, TOG, MAP_COLSPEC, B_MATPRV, "Csp",		90,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the specularity colour");
+		uiDefButBitS(block, TOG, MAP_COLMIR, B_MATPRV, "Cmir",		130,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the mirror colour");
+		uiDefButBitS(block, TOG3, MAP_REF, B_MATPRV, "Ref",		180,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of the materials reflectivity");
+		uiDefButBitS(block, TOG3, MAP_SPEC, B_MATPRV, "Spec",		220,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of specularity");
+		uiDefButBitS(block, TOG3, MAP_AMB, B_MATPRV, "Amb",		270,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of ambient");
+		
+		if(psys_mapto) {
+			uiDefButBitS(block, TOG3, MAP_HAR, B_MATPRV, "Hard",		10,160,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the hardness value");
+			uiDefButBitS(block, TOG3, MAP_RAYMIRR, B_MATPRV, "RayMir",	50,160,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the ray-mirror value");
+			uiDefButBitS(block, TOG3, MAP_ALPHA, B_MATPRV, "Alpha",		90,160,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
+			uiDefButBitS(block, TOG3, MAP_EMIT, B_MATPRV, "Emit",		130,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
+			uiDefButBitS(block, TOG3, MAP_TRANSLU, B_MATPRV, "TransLu",		180,160,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the layer blending value");
+			if(from_nodes==0)
+				uiDefButBitS(block, TOG3, MAP_DISPLACE, B_MATPRV, "Disp",		220,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
+			uiBlockSetCol(block, TH_BUT_SETTING1);
+			uiDefButBitS(block, TOG, 1, B_MATPRV, "PAttr",		270,160,40,19, &pattr, 0, 0, 0, 0, "Display settings for particle attributes");
+			uiBlockSetCol(block, TH_AUTO);
+		}
+		else {
+			uiDefButBitS(block, TOG3, MAP_HAR, B_MATPRV, "Hard",		10,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the hardness value");
+			uiDefButBitS(block, TOG3, MAP_RAYMIRR, B_MATPRV, "RayMir",	60,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the ray-mirror value");
+			uiDefButBitS(block, TOG3, MAP_ALPHA, B_MATPRV, "Alpha",		110,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
+			uiDefButBitS(block, TOG3, MAP_EMIT, B_MATPRV, "Emit",		160,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
+			uiDefButBitS(block, TOG3, MAP_TRANSLU, B_MATPRV, "TransLu",		205,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the layer blending value");
+			if(from_nodes==0)
+				uiDefButBitS(block, TOG3, MAP_DISPLACE, B_MATPRV, "Disp",		265,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
+		}
+	}
+
 	uiBlockEndAlign(block);
-	
+
 	uiBlockBeginAlign(block);
-	uiDefButS(block, MENU, B_MATPRV, mapto_blendtype_pup(),155,125,155,19, &(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
+	but=uiDefButS(block, MENU, B_MATPRV, mapto_blendtype_pup(),155,125,155,19, &(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
 	uiBlockEndAlign(block);
+	if(psys_mapto && mtex->pmapto & MAP_PA_INIT)
+		uiButSetFunc(but, particle_recalc_material, ma, NULL);
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_MATPRV, "Col ",			155,100,155,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects color values");
 	/* newnoise: increased range to 25, the constant offset for bumpmapping quite often needs a higher nor setting */
 	uiDefButF(block, NUMSLI, B_MATPRV, "Nor ",			155,80,155,19, &(mtex->norfac), 0.0, 25.0, 0, 0, "Sets the amount the texture affects normal values");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Var ",			155,60,155,19, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
+	but=uiDefButF(block, NUMSLI, B_MATPRV, "Var ",			155,60,155,19, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
+	if(psys_mapto && mtex->pmapto & MAP_PA_INIT)
+		uiButSetFunc(but, particle_recalc_material, ma, NULL);
 	uiDefButF(block, NUMSLI, B_MATPRV, "Disp ",			155,40,155,19, &(mtex->dispfac), 0.0, 1.0, 0, 0, "Sets the amount the texture displaces the surface");
 
 	uiBlockBeginAlign(block);
@@ -3023,7 +3335,7 @@ static void material_panel_map_to(Material *ma, int from_nodes)
 }
 
 /* autocomplete callback for buttons */
-static void autocomplete_uv(char *str, void *arg_v)
+void autocomplete_uv(char *str, void *arg_v)
 {
 	Mesh *me;
 	CustomDataLayer *layer;
@@ -3044,7 +3356,7 @@ static void autocomplete_uv(char *str, void *arg_v)
 	autocomplete_end(autocpl, str);
 }
 
-static int verify_valid_uv_name(char *str)
+int verify_valid_uv_name(char *str)
 {
 	Mesh *me;
 	CustomDataLayer *layer;
@@ -3086,7 +3398,7 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_MATPRV, "Glob",			630,180,45,18, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Object",		675,180,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
-	if(mtex->texco == TEXCO_UV) {
+	if(mtex->texco == TEXCO_UV && !(mtex->texflag & MTEX_DUPLI_MAPTO)) {
 		if(!verify_valid_uv_name(mtex->uvname))
             uiBlockSetCol(block, TH_REDALERT);
 		but=uiDefBut(block, TEX, B_MATPRV, "UV:", 750,180,158,18, mtex->uvname, 0, 31, 0, 0, "Set name of UV layer to use, default is active UV layer");
@@ -3098,7 +3410,7 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	
 	uiDefButS(block, ROW, B_MATPRV, "UV",			630,160,40,18, &(mtex->texco), 4.0, (float)TEXCO_UV, 0, 0, "Uses UV coordinates for texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Orco",			670,160,55,18, &(mtex->texco), 4.0, (float)TEXCO_ORCO, 0, 0, "Uses the original undeformed coordinates of the object");
-	if( give_parteff(ob) )
+	if( ob->particlesystem.first )
 		uiDefButS(block, ROW, B_MATPRV, "Strand",	725,160,50,18, &(mtex->texco), 4.0, (float)TEXCO_STRAND, 0, 0, "Uses normalized strand texture coordinate (1D)");
 	else
 		uiDefButS(block, ROW, B_MATPRV, "Stick",	725,160,50,18, &(mtex->texco), 4.0, (float)TEXCO_STICKY, 0, 0, "Uses mesh's sticky coordinates for the texture coordinates");
@@ -3108,6 +3420,10 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	
 	uiDefButS(block, ROW, B_MATPRV, "Stress",		630,140,70,18, &(mtex->texco), 4.0, (float)TEXCO_STRESS, 0, 0, "Uses the difference of edge lengths compared to original coordinates of the mesh");
 	uiDefButS(block, ROW, B_MATPRV, "Tangent",		700,140,70,18, &(mtex->texco), 4.0, (float)TEXCO_TANGENT, 0, 0, "Uses the optional tangent vector as texture coordinates");
+	uiBlockEndAlign(block);
+
+	if(ELEM(mtex->texco, TEXCO_UV, TEXCO_ORCO))
+		uiDefButBitS(block, TOG, MTEX_DUPLI_MAPTO, B_MATPRV, "From Dupli",	820,140,88,18, &(mtex->texflag), 0, 0, 0, 0, "If object is duplicated by vertices, faces or particles, inherit texture coordinate from parent object");
 
 	/* COORDS */
 	uiBlockBeginAlign(block);
@@ -3142,12 +3458,14 @@ static void material_panel_map_input(Object *ob, Material *ma)
 }
 
 
-static void material_panel_texture(Material *ma)
+static void material_panel_texture(Object *ob, Material *ma)
 {
 	uiBlock *block;
+	uiBut *but;
 	MTex *mtex;
 	ID *id;
-	int loos;
+	ParticleSystem *psys;
+	int loos, psys_mapto=0;
 	int a;
 	char str[64], *strp;
 	
@@ -3155,6 +3473,11 @@ static void material_panel_texture(Material *ma)
 	if(uiNewPanel(curarea, block, "Texture", "Material", 960, 0, 318, 204)==0) return;
 	uiClearButLock();
 	
+	/*check if material is being used by particles*/
+	for(psys=ob->particlesystem.first; psys; psys=psys->next)
+		if(psys->part->omat==ob->actcol)
+			psys_mapto=1;
+
 	/* TEX CHANNELS */
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	
@@ -3176,12 +3499,18 @@ static void material_panel_texture(Material *ma)
 	for(a= 0; a<MAX_MTEX; a++) {
 		mtex= ma->mtex[a];
 		if(mtex && mtex->tex) {
-			uiDefIconButBitS(block, ICONTOGN, 1<<a, B_MATPRV, ICON_CHECKBOX_HLT-1,	-20, 180-18*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
+			but=uiDefIconButBitS(block, ICONTOGN, 1<<a, B_MATPRV, ICON_CHECKBOX_HLT-1,	-20, 180-18*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
+
+			if(psys_mapto && ma->mtex[a]->mapto & MAP_PA_IVEL)
+				uiButSetFunc(but, particle_recalc_material, ma, NULL);
 		}
 	}
+	/* copy/paste/up/down */
 	uiBlockBeginAlign(block);
-	uiDefIconBut(block, BUT, B_MTEXCOPY, ICON_COPYUP,	100,180,23,21, 0, 0, 0, 0, 0, "Copies the mapping settings to the buffer");
-	uiDefIconBut(block, BUT, B_MTEXPASTE, ICON_PASTEUP,	125,180,23,21, 0, 0, 0, 0, 0, "Pastes the mapping settings from the buffer");
+	uiDefIconBut(block, BUT, B_MTEXCOPY, ICON_COPYUP,	100,180,25,19, 0, 0, 0, 0, 0, "Copies the mapping settings to the buffer");
+	uiDefIconBut(block, BUT, B_MTEXPASTE, ICON_PASTEUP,	125,180,25,19, 0, 0, 0, 0, 0, "Pastes the mapping settings from the buffer");
+	uiDefIconBut(block, BUT, B_MTEXMOVEUP, VICON_MOVE_UP, 	150,180,25,19, 0, 0, 0, 0, 0, "Move texture channel up");
+	uiDefIconBut(block, BUT, B_MTEXMOVEDOWN, VICON_MOVE_DOWN, 175,180,25,19, 0, 0, 0, 0, 0, "Move texture channel down");
 	uiBlockEndAlign(block);
 	uiBlockSetCol(block, TH_AUTO);
 	
@@ -3225,44 +3554,102 @@ static void material_panel_texture(Material *ma)
 
 static void material_panel_tramir(Material *ma)
 {
-	uiBlock *block;
+ 	uiBlock *block;
+	short yco=PANEL_YMAX;
+ 	
+ 	block= uiNewBlock(&curarea->uiblocks, "material_panel_tramir", UI_EMBOSS, UI_HELV, curarea->win);
+ 	uiNewPanelTabbed("Shaders", "Material");
+	if(uiNewPanel(curarea, block, "Mirror Transp", "Material", PANELX, PANELY, PANELW, PANELH+80)==0) return;
+ 
+ 	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
+ 	
+	uiDefButBitI(block, TOG, MA_RAYMIRROR, B_MATPRV, "Ray Mirror",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for mirror reflection rendering");
+ 
+	yco -= YSPACE;
 	
-	block= uiNewBlock(&curarea->uiblocks, "material_panel_tramir", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Shaders", "Material");
-	if(uiNewPanel(curarea, block, "Mirror Transp", "Material", 640, 0, 318, 204)==0) return;
-
-	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
-	
-	uiDefButBitI(block, TOG, MA_RAYMIRROR, B_MATPRV,"Ray Mirror",210,180,100,20, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for mirror reflection rendering");
-
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "RayMir ",	10,160,200,20, &(ma->ray_mirror), 0.0, 1.0, 100, 2, "Sets the amount mirror reflection for raytrace");
-	uiDefButS(block, NUM, B_MATPRV, "Depth:",		210,160,100,20, &(ma->ray_depth), 0.0, 10.0, 100, 0, "Amount of inter-reflections calculated maximal ");
-
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,140,160,20, &(ma->fresnel_mir), 0.0, 5.0, 10, 2, "Power of Fresnel for mirror reflection");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fac ",		170,140,140,20, &(ma->fresnel_mir_i), 1.0, 5.0, 10, 2, "Blending factor for Fresnel");
-
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_MATPRV, "Filt:",		10,110,150,20, &(ma->filter), 0.0, 1.0, 10, 0, "Amount of filtering for transparent raytrace");
-	uiDefButBitI(block, TOG, MA_RAYTRANSP, B_MATRAYTRANSP,"Ray Transp",160,110,150,20, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparency rendering");
-
-	/* uiBlockBeginAlign(block); */
-	uiDefButF(block, NUMSLI, B_MATPRV, "IOR ",	10,90,200,20, &(ma->ang), 1.0, 3.0, 100, 2, "Sets the angular index of refraction for raytrace");
-	uiDefButS(block, NUM, B_MATPRV, "Depth:",	210,90,100,20, &(ma->ray_depth_tra), 0.0, 10.0, 100, 0, "Amount of refractions calculated maximal ");
-
-	uiDefButF(block, NUMSLI, B_MATPRV, "Limit ",	10,70,160,20, &(ma->tx_limit), 0.0, 100.0, 10, 2, "Depth limit for transmissivity (0.0 is disabled)");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Falloff ",	170,70,140,20, &(ma->tx_falloff), 0.1, 10.0, 10, 2, "Falloff power for transmissivity (1.0 is linear)");
-
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,50,160,20, &(ma->fresnel_tra), 0.0, 5.0, 10, 2, "Power of Fresnel for transparency");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fac ",		170,50,140,20, &(ma->fresnel_tra_i), 1.0, 5.0, 10, 2, "Blending factor for Fresnel");
-
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "SpecTra ",	10,20,150,20, &(ma->spectra), 0.0, 1.0, 0, 0, "Makes specular areas opaque on transparent materials");
-//	uiDefButF(block, NUMSLI, B_MATPRV, "Add ",		160,20,150,20, &(ma->add), 0.0, 1.0, 0, 0, "Uses additive blending for Z-transparant materials");
-
+ 	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_MATPRV, "RayMir: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->ray_mirror), 0.0, 1.0, 100, 2, "Sets the amount mirror reflection for raytrace");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->fresnel_mir), 0.0, 5.0, 10, 2, "Power of Fresnel for mirror reflection");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fac: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->fresnel_mir_i), 1.0, 5.0, 10, 2, "Blending factor for Fresnel");
 	uiBlockEndAlign(block);
-}
+ 
+	yco -= YSPACE;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_MATPRV, "Gloss: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->gloss_mir), 0.0, 1.0, 100, 0, "The shininess of the reflection. Values < 1.0 give diffuse, blurry reflections ");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Aniso: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->aniso_gloss_mir), 0.0, 1.0, 100, 0, "The shape of the reflection, from 0. (circular) to 1.0 (fully stretched along the tangent)");
+	uiDefButS(block, NUM, B_MATPRV, "Samples:",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->samp_gloss_mir), 1.0, 1024.0, 100, 0, "Number of cone samples averaged for blurry reflections");	
+	uiDefButF(block, NUM, B_MATPRV, "Thresh: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->adapt_thresh_mir), 0.0, 1.0, 100, 0, "Threshold for adaptive sampling. If a sample contributes less than this amount (as a percentage), sampling is stopped");
+	uiBlockEndAlign(block);
+ 
+	yco -= YSPACE;
+	uiDefButS(block, NUM, B_MATPRV, "Depth:",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->ray_depth), 0.0, 10.0, 100, 0, "Maximum allowed number of light inter-reflections");
+		
+	yco -= YSPACE;
+ 	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_MATPRV, "Max Dist:",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->dist_mir), 0.0, 10000.0, 100, 0, "Maximum distance of reflected rays. Reflections further than this range fade to sky color");
+	uiDefButS(block, MENU, B_MATPRV, "Ray end fade-out: %t|Fade to Sky Color %x0|Fade to Material Color %x1",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->fadeto_mir), 0, 0, 0, 0, "The color that rays with no intersection within the Max Distance take. Material color can be best for indoor scenes, sky color for outdoor.");
+	uiBlockEndAlign(block);
+ 
+	yco=PANEL_YMAX;
 
+	uiDefButBitI(block, TOG, MA_RAYTRANSP, B_MATRAYTRANSP,"Ray Transp",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparent refraction rendering");
+	
+	yco -= YSPACE;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_MATPRV, "IOR: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->ang), 1.0, 3.0, 100, 2, "Sets angular index of refraction for raytraced refraction");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->fresnel_tra), 0.0, 5.0, 10, 2, "Power of Fresnel for mirror reflection");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fac: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->fresnel_tra_i), 1.0, 5.0, 10, 2, "Blending factor for Fresnel");
+	uiBlockEndAlign(block);
+ 
+	yco -= YSPACE;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_MATPRV, "Gloss: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->gloss_tra), 0.0, 1.0, 100, 0, "The clarity of the refraction. Values < 1.0 give diffuse, blurry reflections ");
+	uiDefButS(block, NUM, B_MATPRV, "Samples:",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->samp_gloss_tra), 0.0, 1024.0, 100, 0, "Number of cone samples averaged for blurry refractions");	
+	uiDefButF(block, NUM, B_MATPRV, "Thresh: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->adapt_thresh_tra), 0.0, 1.0, 100, 0, "Threshold for adaptive sampling. If a sample contributes less than this amount (as a percentage), sampling is stopped");
+ 	uiBlockEndAlign(block);
+
+	yco -= YSPACE;
+	
+	uiDefButS(block, NUM, B_MATPRV, "Depth:",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->ray_depth_tra), 0.0, 10.0, 100, 0, "Maximum allowed number of light inter-refractions");
+
+	yco -= YSPACE;
+	
+ 	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_MATPRV, "Filter:",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->filter), 0.0, 1.0, 10, 0, "Amount to blend in the material's diffuse color in raytraced transparency (simulating absorption)");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Limit: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->tx_limit), 0.0, 100.0, 10, 2, "Maximum depth for light to travel through the transparent material before becoming fully filtered (0.0 is disabled)");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Falloff: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->tx_falloff), 0.1, 10.0, 10, 2, "Falloff power for transmissivity filter effect (1.0 is linear)");
+	uiBlockEndAlign(block);
+
+	yco -= YSPACE;
+	
+	uiDefButF(block, NUMSLI, B_MATPRV, "SpecTra: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->spectra), 0.0, 1.0, 0, 0, "Makes specular areas opaque on transparent materials");
+}
 
 /* yafray: adapted version of Blender's tramir panel.
  * Only removed the buttons not needed, so only the ones that are important for yafray are left.
@@ -3425,7 +3812,7 @@ static void material_panel_shading(Material *ma)
 	uiBlock *block;
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_shading", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Shaders", "Material", 640, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Shaders", "Material", 640, 0, 318, 224)==0) return;
 	
 	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 	
@@ -3502,24 +3889,25 @@ static void material_panel_shading(Material *ma)
 		uiDefButF(block, NUMSLI, B_MATPRV, "Tralu ",	9,30,150,19, &(ma->translucency), 0.0, 1.0, 100, 2, "Translucency, amount of diffuse shading of the back side");
 		uiDefButF(block, NUMSLI, B_MATPRV, "SBias ",	159,30,151,19, &(ma->sbias), 0.0, 0.25, 10, 2, "Shadow bias, to prevent terminator problems on shadow boundary");
 		uiDefButF(block, NUMSLI, B_MATPRV, "Amb ",		9,10,150,19, &(ma->amb), 0.0, 1.0, 0, 0, "Sets the amount of global ambient color the material receives");
-		uiDefButF(block, NUMSLI, B_MATPRV, "Emit ",		159,10,151,19, &(ma->emit), 0.0, 1.0, 0, 0, "Sets the amount of light the material emits");
+		uiDefButF(block, NUMSLI, B_MATPRV, "Emit ",		159,10,151,19, &(ma->emit), 0.0, 2.0, 0, 0, "Sets the amount of light the material emits");
+		uiDefButF(block, NUMSLI, B_MATPRV, "LBias ",	9,-10,300,19, &(ma->lbias), 0.0, 10.0, 100, 2, "Factor to multiply shadowbuffer bias with (0 is ignore)");
 		uiBlockEndAlign(block);
 
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefButBitI(block, TOG, MA_TANGENT_V, B_MATPRV, "Tangent V",	245,180,65,19, &(ma->mode), 0, 0, 0, 0, "Use the tangent vector in V direction for shading");
 		
-		/* qdn: normalmap tangents separated from shading */
-		uiDefButBitI(block, TOG, MA_NORMAP_TANG, B_MATPRV, "NMap TS",	245,160,65,19, &(ma->mode), 0, 0, 0, 0, "Enable Tangent Space normal mapping");
-
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, MA_SHADOW, B_MATPRV,	"Shadow",			245,140,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows");
 		uiDefButBitI(block, TOG, MA_SHADOW_TRA, B_MATPRV, "TraShadow",		245,120,65,19, &(ma->mode), 0, 0, 0, 0, "Receives transparent shadows based at material color and alpha");
 		uiDefButBitI(block, TOG, MA_ONLYSHADOW, B_MATPRV,	"OnlyShad",		245,100,65,20, &(ma->mode), 0, 0, 0, 0, "Renders shadows on material as Alpha value");
-		uiDefButBitI(block, TOG, MA_RAYBIAS, B_MATPRV, "Bias",				245,80,65,19, &(ma->mode), 0, 0, 0, 0, "Prevents ray traced shadow errors with phong interpolated normals (terminator problem)");
+		uiDefButBitS(block, TOG, MA_CUBIC, B_MATPRV, "Cubic",				245,80,65,19, &(ma->shade_flag), 0, 0, 0, 0, "Use Cubic interpolation of diffuse values, for smoother transitions");
+		uiDefButBitI(block, TOG, MA_RAYBIAS, B_MATPRV, "Bias",				245,60,65,19, &(ma->mode), 0, 0, 0, 0, "Prevents ray traced shadow errors with phong interpolated normals (terminator problem)");
 
 		uiBlockBeginAlign(block);
 		uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_MATPRV, "GR:",	9, 55, 150, 19, &ma->group, "Limit Lighting to Lamps in this Group"); 
-		uiDefButBitI(block, TOG, MA_GROUP_NOLAY, B_MATPRV,	"Exclusive",	159,55, 85,20, &(ma->mode), 0, 0, 0, 0, "The material exclusively uses Lamps in this Group");
+		uiDefButBitI(block, TOG, MA_GROUP_NOLAY, B_MATPRV,	"Exclusive",	159,55, 85,20, &(ma->mode), 0, 0, 0, 0, "Material uses Lights in this group exclusively, they get excluded from the Scene lighting");
+		
+		
 	}
 }
 
@@ -3534,13 +3922,13 @@ static void material_panel_ramps(Material *ma)
 	uiNewPanelTabbed("Material", "Material");
 	if(uiNewPanel(curarea, block, "Ramps", "Material", 640, 0, 318, 204)==0) return;
 	
-	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
-	
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButS(block, ROW, B_REDR, "Show Col Ramp",10,180,150,20, &ma->ramp_show, 0, 0, 0, 0, "Show ramp buttons for material diffuse color");
 	uiDefButS(block, ROW, B_REDR, "Show Spec Ramp",160,180,150,20, &ma->ramp_show, 0, 1, 0, 0, "Show ramp buttons for material specular color");
 	uiBlockSetCol(block, TH_AUTO);
+	
+	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 	
 	/* COLORBAND */
 	uiBlockBeginAlign(block);
@@ -3576,21 +3964,41 @@ static uiBlock *strand_menu(void *mat_v)
 {
 	Material *ma= mat_v;
 	uiBlock *block;
-	
+	int buth=20, butw=230, butx=10, buty=180;
+
 	block= uiNewBlock(&curarea->uiblocks, "strand menu", UI_EMBOSS, UI_HELV, curarea->win);
-	
+	 
+  	if(ma->mode & MA_STR_B_UNITS)
+		buty += buth;
+
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "", 0, 0, 250, 100, NULL,  0, 0, 0, 0, "");
-	
+	uiDefBut(block, LABEL, 0, "", 0, 0, butw+20, buty+10, NULL,  0, 0, 0, 0, "");
+  					/* event return 0, to prevent menu to close */
+  	
+  	uiBlockBeginAlign(block);
+	uiDefButBitI(block, TOG, MA_TANGENT_STR, 0,	"Use Tangent Shading",	butx,buty-=buth,butw,buth, &(ma->mode), 0, 0, 0, 0, "Uses direction of strands as normal for tangent-shading");
+	uiDefButBitI(block, TOG, MA_STR_SURFDIFF, 0, "Surface Diffuse",	butx,buty-=buth,butw/2,buth, &(ma->mode), 0, 0, 0, 0, "Make diffuse shading more similar to shading the surface");
+	uiDefButF(block, NUM, 0, "Dist", butx+butw/2,buty,butw/2,buth, &ma->strand_surfnor, 0.0f, 10.0f, 2, 0, "Distance in Blender units over which to blend in the surface normal");
+
+	buty -= 5;
+ 
 	uiBlockBeginAlign(block);
-					/* event return 0, to prevent menu to close */
-	uiDefButBitI(block, TOG, MA_TANGENT_STR, 0,	"Use Tangent Shading",	10,70,230,20, &(ma->mode), 0, 0, 0, 0, "Uses direction of strands as normal for tangent-shading");
-	uiDefButF(block, NUMSLI, 0, "Start ",	10, 50, 230,20,   &ma->strand_sta, 0.25, 20.0, 2, 0, "Start size of strands in pixels");
-	uiDefButF(block, NUMSLI, 0, "End ",		10, 30, 230,20,  &ma->strand_end, 0.25, 10.0, 2, 0, "End size of strands in pixels");
-	uiDefButF(block, NUMSLI, 0, "Shape ",	10, 10, 230,20,  &ma->strand_ease, -0.9, 0.9, 2, 0, "Shape of strands, positive value makes it rounder, negative makes it spiky");
+	uiDefButBitI(block, TOG, MA_STR_B_UNITS, 0,	"Use Blender Units", butx,buty-=buth,butw,buth, &(ma->mode), 0, 0, 0, 0, "Use actual Blender units for widths instead of pixels");
+  	if(ma->mode & MA_STR_B_UNITS){
+		uiDefButF(block, NUMSLI, 0, "Start ",	butx,buty-=buth, butw,buth,   &ma->strand_sta, 0.0001, 2.0, 2, 0, "Start size of strands in Blender units");
+		uiDefButF(block, NUMSLI, 0, "End ",		butx,buty-=buth, butw,buth,  &ma->strand_end, 0.0001, 1.0, 2, 0, "End size of strands in Blender units");
+		uiDefButF(block, NUMSLI, 0, "Minimum ",		butx,buty-=buth, butw,buth,  &ma->strand_min, 0.001, 10.0, 0, 0, "Minimum size of strands in pixels");
+  	}
+  	else{
+		uiDefButF(block, NUMSLI, 0, "Start ",	butx,buty-=buth, butw,buth,   &ma->strand_sta, 0.25, 20.0, 2, 0, "Start size of strands in pixels");
+		uiDefButF(block, NUMSLI, 0, "End ",		butx,buty-=buth, butw,buth,  &ma->strand_end, 0.25, 10.0, 2, 0, "End size of strands in pixels");
+  	}
+	uiDefButF(block, NUMSLI, 0, "Shape ",	butx,buty-=buth, butw,buth,  &ma->strand_ease, -0.9, 0.9, 2, 0, "Shape of strands, positive value makes it rounder, negative makes it spiky");
+	uiDefButF(block, NUMSLI, 0, "Width Fade ",	butx,buty-=buth, butw,buth,  &ma->strand_widthfade, 0.0, 2.0, 2, 0, "Transparency along the width of the strand");
+	uiDefBut(block, TEX, B_MATPRV, "UV:", butx,buty-=buth,butw,buth, ma->strand_uvname, 0, 31, 0, 0, "Set name of UV layer to override");
 
 	uiBlockSetDirection(block, UI_TOP);
-	
+	BIF_preview_changed(ID_MA);
 	return block;
 }
 
@@ -3625,8 +4033,9 @@ static void material_panel_material(Material *ma)
 			uiBlockSetCol(block, TH_BUT_SETTING1);
 			uiDefButBitI(block, TOG, MA_VERTEXCOL, B_MAT_VCOL_LIGHT,	"VCol Light",	8,166,74,20, &(ma->mode), 0, 0, 0, 0, "Adds vertex colors as extra light");
 			uiDefButBitI(block, TOG, MA_VERTEXCOLP, B_MAT_VCOL_PAINT, "VCol Paint",	82,166,74,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colors with vertex colors");
-			uiDefButBitI(block, TOG, MA_FACETEXTURE, B_REDR, "TexFace",		156,166,74,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
-			uiDefButBitI(block, TOG, MA_SHLESS, B_MATPRV, "Shadeless",	230,166,73,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
+			uiDefButBitI(block, TOG, MA_FACETEXTURE, B_REDR, "TexFace",		156,166,64,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
+			if (ma->mode & MA_FACETEXTURE) uiDefButBitI(block, TOG, MA_FACETEXTURE_ALPHA, B_REDR, "A",		220,166,20,20, &(ma->mode), 0, 0, 0, 0, "Use alpha channel in 'TexFace' assigned images");
+			uiDefButBitI(block, TOG, MA_SHLESS, B_MATPRV, "Shadeless",	240,166,63,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
 			
 			uiDefButBitI(block, TOG, MA_NOMIST, B_NOP,	"No Mist",		8,146,74,20, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
 			uiDefButBitI(block, TOG, MA_ENV, B_MATPRV,	"Env",			82,146,74,20, &(ma->mode), 0, 0, 0, 0, "Causes faces to render with alpha zero: allows sky/backdrop to show through (only for solid faces)");
@@ -3670,7 +4079,8 @@ static void material_panel_material(Material *ma)
 			uiDefButF(block, NUMSLI, B_MATPRV, "B ",		128,57,175,19, colpoin+2, 0.0, 1.0, rgbsel, 0, "");
 		}
 		uiBlockEndAlign(block);
-		uiDefButF(block, NUMSLI, B_MATPRV, "A ",			128,30,175,19, &ma->alpha, 0.0, 1.0, 0, 0, "Alpha");
+		if (ma->mode & (MA_FACETEXTURE) && ma->mode & (MA_FACETEXTURE_ALPHA)) ;
+		else uiDefButF(block, NUMSLI, B_MATPRV, "A ",			128,30,175,19, &ma->alpha, 0.0, 1.0, 0, 0, "Alpha");
 		
 	}
 	uiBlockBeginAlign(block);
@@ -3757,6 +4167,7 @@ static void material_panel_links(Object *ob, Material *ma)
 	}
 	
 	uiBlockSetCol(block, TH_BUT_ACTION);
+	uiClearButLock();
 	uiDefButBitS(block, TOG, 1<<(ob->actcol-1), B_MATFROM, "OB",	125,135,32,20, &ob->colbits, 0, 0, 0, 0, "Links material to object");
 	idn= ob->data;
 	strncpy(str, idn->name, 2);
@@ -3799,7 +4210,7 @@ static void material_panel_links(Object *ob, Material *ma)
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, MA_HALO, B_MATHALO, "Halo",		10,50,100,19, &(ma->mode), 0, 0, 0, 0, "Renders material as a halo");
 	uiDefButBitI(block, TOG, MA_ZTRA, B_MATZTRANSP,"ZTransp",	110,50,100,19, &(ma->mode), 0, 0, 0, 0, "Enables Z-Buffering of transparent faces");
-	uiDefButF(block, NUM, B_DIFF, "Zoffs:",						210,50,100,19, &(ma->zoffs), 0.0, 10.0, 100, 0, "Gives faces an artificial offset in the Z buffer for Ztransp option");
+	uiDefButF(block, NUM, B_DIFF, "Zoffs:",						210,50,100,19, &(ma->zoffs), 0.0, 100.0, 100, 0, "Gives faces an artificial offset in the Z buffer for Ztransp option");
 				  
 	uiDefButBitI(block, TOG, MA_FULL_OSA, 0, "Full Osa",		10,30,75,19, &(ma->mode), 0.0, 10.0, 0, 0, "Forces to render all OSA samples, for shading and texture antialiasing");
 	uiDefButBitI(block, TOG, MA_WIRE, B_MATPRV,	"Wire",				85,30,75,19, &(ma->mode), 0, 0, 0, 0, "Renders only the edges of faces as a wireframe");
@@ -3883,12 +4294,12 @@ void material_panels()
 			}
 
 			material_panel_sss(ma);
-			material_panel_texture(ma);
+			material_panel_texture(ob, ma);
 			
 			mtex= ma->mtex[ ma->texact ];
 			if(mtex && mtex->tex) {
 				material_panel_map_input(ob, ma);
-				material_panel_map_to(ma, from_nodes);
+				material_panel_map_to(ob, ma, from_nodes);
 			}
 		}
 	}
@@ -3897,24 +4308,29 @@ void material_panels()
 void lamp_panels()
 {
 	Object *ob= OBACT;
+	Lamp *la;
 	
 	if(ob==NULL || ob->type!= OB_LAMP) return;
+	la= ob->data;
 
 	lamp_panel_preview(ob, ob->data);
 	lamp_panel_lamp(ob, ob->data);
+	
+	if (ELEM(la->type, LA_SPOT, LA_LOCAL) && (la->falloff_type == LA_FALLOFF_CURVE))
+		lamp_panel_falloff(ob, ob->data);
+	
 	/* switch to yafray lamp panel if yafray enabled */
 	if (G.scene->r.renderer==R_INTERN)
 		lamp_panel_spot(ob, ob->data);
 	else {
 		/* init vars */
-		Lamp* lp = ob->data;
-		if (lp->YF_numphotons==0) lp->YF_numphotons=1000;
-		if (lp->YF_numsearch==0) lp->YF_numsearch=10;
-		if (lp->YF_phdepth==0) lp->YF_phdepth=1;
-		if (lp->YF_causticblur==0.0) lp->YF_causticblur=0.001;
-		if (lp->YF_bufsize==0) lp->YF_bufsize=128;
+		if (la->YF_numphotons==0) la->YF_numphotons=1000;
+		if (la->YF_numsearch==0) la->YF_numsearch=10;
+		if (la->YF_phdepth==0) la->YF_phdepth=1;
+		if (la->YF_causticblur==0.0) la->YF_causticblur=0.001;
+		if (la->YF_bufsize==0) la->YF_bufsize=128;
 		/* spherelight radius default is zero, so nothing to do */
-		lamp_panel_yafray(ob, lp);
+		lamp_panel_yafray(ob, la);
 	}
 	lamp_panel_texture(ob, ob->data);
 	lamp_panel_mapto(ob, ob->data);
@@ -4003,7 +4419,7 @@ void texture_panels()
 			switch(tex->type) {
 			case TEX_IMAGE:
 				texture_panel_image(&tex->ima, &tex->iuser);
-				texture_panel_image_map(tex);
+				texture_panel_image_map(tex, mtex);
 				break;
 			case TEX_ENVMAP:
 				texture_panel_envmap(tex);

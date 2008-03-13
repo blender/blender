@@ -49,6 +49,7 @@ Example::
 @var Types: Constant Modifier dict used for  L{ModSeq.append} to a
   modifier sequence and comparing with L{Modifier.type}:
     - ARMATURE - type value for Armature modifiers
+    - ARRAY - type value for Array modifiers
     - BOOLEAN - type value for Boolean modifiers
     - BUILD - type value for Build modifiers
     - CURVE - type value for Curve modifiers
@@ -110,9 +111,9 @@ Example::
 	- WIDTH - Used for Wave only (float [0.0 - 5.0])
 	- NARROW - Used for Wave only (float [0.0 - 10.0])
 	- SPEED - Used for Wave only (float [-2.0 - 2.0])
-	- DAMP - Used for Wave only (float [-1000.0 - 1000.0])
-	- LIFETIME - Used for Wave only (float [-1000.0 - 1000.0])
-	- TIMEOFFS - Used for Wave only (float [-1000.0 - 1000.0])
+	- DAMP - Used for Wave only (float [-MAXFRAME - MAXFRAME])
+	- LIFETIME - Used for Wave only (float [-MAXFRAME - MAXFRAME])
+	- TIMEOFFS - Used for Wave only (float [-MAXFRAME - MAXFRAME])
 	
 	- OPERATION - Used for boolean only (int 0,1,2 : Intersect, Union, Difference)
 	

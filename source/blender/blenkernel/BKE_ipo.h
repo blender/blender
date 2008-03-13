@@ -95,7 +95,7 @@ void do_ipo_nocalc(struct Ipo *ipo);
 void do_ipo(struct Ipo *ipo);
 void do_mat_ipo(struct Material *ma);
 void do_ob_ipo(struct Object *ob);
-void do_seq_ipo(struct Sequence *seq);
+void do_seq_ipo(struct Sequence *seq, int cfra);
 void do_ob_ipodrivers(struct Object *ob, struct Ipo *ipo, float ctime);
 
 int has_ipo_code(struct Ipo *ipo, int code);

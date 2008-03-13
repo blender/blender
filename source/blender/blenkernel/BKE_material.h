@@ -57,6 +57,9 @@ struct ID *material_from(struct Object *ob, int act);
 void assign_material(struct Object *ob, struct Material *ma, int act);
 void new_material_to_objectdata(struct Object *ob);
 
+int find_material_index(struct Object *ob, struct Material *ma);
+
+
 void init_render_material(struct Material *, int, float *);
 void init_render_materials(int, float *);
 void end_render_material(struct Material *);

@@ -17,7 +17,7 @@ subject to the following restrictions:
 #include "btHingeConstraint.h"
 #include "BulletDynamics/Dynamics/btRigidBody.h"
 #include "LinearMath/btTransformUtil.h"
-
+#include <new>
 
 btHingeConstraint::btHingeConstraint():
 m_enableAngularMotor(false)
@@ -49,7 +49,7 @@ m_enableAngularMotor(false)
 
 void	btHingeConstraint::buildJacobian()
 {
-	m_appliedImpulse = 0.f;
+	m_appliedImpulse = btScalar(0.);
 
 	btVector3	normal(0,0,0);
 
@@ -115,8 +115,8 @@ void	btHingeConstraint::solveConstraint(btScalar	timeStep)
 	btVector3 pivotBInW = m_rbB.getCenterOfMassTransform()*m_pivotInB;
 
 	btVector3 normal(0,0,0);
-	btScalar tau = 0.3f;
-	btScalar damping = 1.f;
+	btScalar tau = btScalar(0.3);
+	btScalar damping = btScalar(1.);
 
 //linear part
 	if (!m_angularOnly)
@@ -124,7 +124,7 @@ void	btHingeConstraint::solveConstraint(btScalar	timeStep)
 		for (int i=0;i<3;i++)
 		{		
 			normal[i] = 1;
-			btScalar jacDiagABInv = 1.f / m_jac[i].getDiagonal();
+			btScalar jacDiagABInv = btScalar(1.) / m_jac[i].getDiagonal();
 
 			btVector3 rel_pos1 = pivotAInW - m_rbA.getCenterOfMassPosition(); 
 			btVector3 rel_pos2 = pivotBInW - m_rbB.getCenterOfMassPosition();
@@ -165,27 +165,27 @@ void	btHingeConstraint::solveConstraint(btScalar	timeStep)
 		btVector3 velrelOrthog = angAorthog-angBorthog;
 		{
 			//solve orthogonal angular velocity correction
-			float relaxation = 1.f;
-			float len = velrelOrthog.length();
-			if (len > 0.00001f)
+			btScalar relaxation = btScalar(1.);
+			btScalar len = velrelOrthog.length();
+			if (len > btScalar(0.00001))
 			{
 				btVector3 normal = velrelOrthog.normalized();
-				float denom = getRigidBodyA().computeAngularImpulseDenominator(normal) +
+				btScalar denom = getRigidBodyA().computeAngularImpulseDenominator(normal) +
 					getRigidBodyB().computeAngularImpulseDenominator(normal);
 				// scale for mass and relaxation
 				//todo:  expose this 0.9 factor to developer
-				velrelOrthog *= (1.f/denom) * 0.9f;
+				velrelOrthog *= (btScalar(1.)/denom) * btScalar(0.9);
 			}
 
 			//solve angular positional correction
-			btVector3 angularError = -axisA.cross(axisB) *(1.f/timeStep);
-			float len2 = angularError.length();
-			if (len2>0.00001f)
+			btVector3 angularError = -axisA.cross(axisB) *(btScalar(1.)/timeStep);
+			btScalar len2 = angularError.length();
+			if (len2>btScalar(0.00001))
 			{
 				btVector3 normal2 = angularError.normalized();
-				float denom2 = getRigidBodyA().computeAngularImpulseDenominator(normal2) +
+				btScalar denom2 = getRigidBodyA().computeAngularImpulseDenominator(normal2) +
 						getRigidBodyB().computeAngularImpulseDenominator(normal2);
-				angularError *= (1.f/denom2) * relaxation;
+				angularError *= (btScalar(1.)/denom2) * relaxation;
 			}
 
 			m_rbA.applyTorqueImpulse(-velrelOrthog+angularError);
@@ -204,10 +204,10 @@ void	btHingeConstraint::solveConstraint(btScalar	timeStep)
 			btScalar desiredMotorVel = m_motorTargetVelocity;
 			btScalar motor_relvel = desiredMotorVel - projRelVel;
 
-			float denom3 = getRigidBodyA().computeAngularImpulseDenominator(axisA) +
+			btScalar denom3 = getRigidBodyA().computeAngularImpulseDenominator(axisA) +
 					getRigidBodyB().computeAngularImpulseDenominator(axisA);
 
-			btScalar unclippedMotorImpulse = (1.f/denom3) * motor_relvel;;
+			btScalar unclippedMotorImpulse = (btScalar(1.)/denom3) * motor_relvel;;
 			//todo: should clip against accumulated impulse
 			btScalar clippedMotorImpulse = unclippedMotorImpulse > m_maxMotorImpulse ? m_maxMotorImpulse : unclippedMotorImpulse;
 			clippedMotorImpulse = clippedMotorImpulse < -m_maxMotorImpulse ? -m_maxMotorImpulse : clippedMotorImpulse;
@@ -223,6 +223,7 @@ void	btHingeConstraint::solveConstraint(btScalar	timeStep)
 
 void	btHingeConstraint::updateRHS(btScalar	timeStep)
 {
+	(void)timeStep;
 
 }
 

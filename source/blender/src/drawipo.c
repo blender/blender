@@ -42,9 +42,8 @@
 #include <unistd.h>
 #else
 #include <io.h>
-#endif   
+#endif
 
-#include "BMF_Api.h"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -66,6 +65,7 @@
 #include "BKE_global.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
+#include "BKE_object.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_cursors.h"
@@ -80,6 +80,7 @@
 #include "BIF_glutil.h"
 #include "BIF_editseq.h"
 #include "BIF_editaction.h"
+#include "BIF_language.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_view.h"
@@ -93,6 +94,7 @@
 #include "mydevice.h"
 #include "blendef.h"
 #include "butspace.h"	// shouldnt be...
+#include "interface.h"	/* for ui_rasterpos_safe */
 #include "winlay.h"
 
 /* local define... also used in editipo ... */
@@ -133,8 +135,8 @@ static void scroll_prstr(float x, float y, float val, char dir, int disptype)
 		str[len+1]= 0;
 	}
 	
-	glRasterPos2f(x,  y);
-	BMF_DrawString(G.fonts, str);
+	ui_rasterpos_safe(x, y, 1.0);
+	BIF_DrawString(G.fonts, str, 0);
 }
 
 static void step_to_grid(float *step, int *macht)
@@ -209,7 +211,7 @@ void calc_ipogrid()
 		SpaceTime *stime= curarea->spacedata.first;
 		if(!(stime->flag & TIME_DRAWFRAMES)) {
 			secondgrid= 1;
-			secondiv= 0.01 * (float)G.scene->r.frs_sec;
+			secondiv= 0.01 * FPS;
 		}
 		break;
 	}
@@ -217,8 +219,25 @@ void calc_ipogrid()
 		SpaceSeq * sseq = curarea->spacedata.first;
 		if (!(sseq->flag & SEQ_DRAWFRAMES)) {
 			secondgrid = 1;
-			secondiv = 0.01 * (float)G.scene->r.frs_sec;
+			secondiv = 0.01 * FPS;
 		}
+		break;
+	}
+	case SPACE_ACTION: {
+		SpaceAction *saction = curarea->spacedata.first;
+		if (saction->flag & SACTION_DRAWTIME) {
+			secondgrid = 1;
+			secondiv = 0.01 * FPS;
+		}
+		break;
+	}
+	case SPACE_NLA: {
+		SpaceNla *snla = curarea->spacedata.first;
+		if (snla->flag & SNLA_DRAWTIME) {
+			secondgrid = 1;
+			secondiv = 0.01 * FPS;
+		}
+		break;
 	}
 	default:
 		break;
@@ -231,7 +250,7 @@ void calc_ipogrid()
 	step_to_grid(&ipogrid_dx, &ipomachtx);
 	ipogrid_dx*= secondiv;
 	
-	if ELEM3(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_TIME) {
+	if ELEM5(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_TIME, SPACE_ACTION, SPACE_NLA) {
 		if(ipogrid_dx < 0.1) ipogrid_dx= 0.1;
 		ipomachtx-= 2;
 		if(ipomachtx<-2) ipomachtx= -2;
@@ -242,7 +261,7 @@ void calc_ipogrid()
 	ipogrid_dy= IPOSTEP*space/pixels;
 	step_to_grid(&ipogrid_dy, &ipomachty);
 	
-	if ELEM3(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_TIME) {
+	if ELEM5(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_TIME, SPACE_ACTION, SPACE_NLA) {
 		if(ipogrid_dy < 1.0) ipogrid_dy= 1.0;
 		if(ipomachty<1) ipomachty= 1;
 	}
@@ -502,6 +521,10 @@ void view2d_zoom(View2D *v2d, float factor, int winx, int winy)
 	view2d_do_locks(curarea, V2D_LOCK_COPY);
 }
 
+void view2d_getscale(View2D *v2d, float *x, float *y) {
+	if (x) *x = (G.v2d->mask.xmax-G.v2d->mask.xmin)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
+	if (y) *y = (G.v2d->mask.ymax-G.v2d->mask.ymin)/(G.v2d->cur.ymax-G.v2d->cur.ymin);
+}
 
 void test_view2d(View2D *v2d, int winx, int winy)
 {
@@ -512,6 +535,7 @@ void test_view2d(View2D *v2d, int winx, int winy)
 	/* correct winx for scroll */
 	if(v2d->scroll & L_SCROLL) winx-= SCROLLB;
 	if(v2d->scroll & B_SCROLL) winy-= SCROLLH;
+	if(v2d->scroll & B_SCROLLO) winy-= SCROLLH; /* B_SCROLL and B_SCROLLO are basically same thing */
 	
 	/* header completely closed window */
 	if(winy<=0) return;
@@ -603,17 +627,23 @@ void test_view2d(View2D *v2d, int winx, int winy)
 			else if( dy > 1.0) do_x= 0; else do_x= 1;
 		}
 		
-		v2d->oldwinx= winx; 
-		v2d->oldwiny= winy;
-		
 		if( do_x ) {
-			
-			/* portrait window: correct for x */
-			dx= cur->ymax-cur->ymin;
-			temp= (cur->xmax+cur->xmin);
-			
-			cur->xmin= temp/2.0 - 0.5*dx/dy;
-			cur->xmax= temp/2.0 + 0.5*dx/dy;
+			if (v2d->keeptot == 2 && winx < v2d->oldwinx) {
+				/* This is a special hack for the outliner, to ensure that the 
+				 * outliner contents will not eventually get pushed out of view
+				 * when shrinking the view. 
+				 */
+				cur->xmax -= cur->xmin;
+				cur->xmin= 0.0f;
+			}
+			else {
+				/* portrait window: correct for x */
+				dx= cur->ymax-cur->ymin;
+				temp= (cur->xmax+cur->xmin);
+				
+				cur->xmin= temp/2.0 - 0.5*dx/dy;
+				cur->xmax= temp/2.0 + 0.5*dx/dy;
+			}
 		}
 		else {
 			dx= cur->xmax-cur->xmin;
@@ -622,6 +652,9 @@ void test_view2d(View2D *v2d, int winx, int winy)
 			cur->ymin= temp/2.0 - 0.5*dy*dx;
 			cur->ymax= temp/2.0 + 0.5*dy*dx;
 		}
+		
+		v2d->oldwinx= winx; 
+		v2d->oldwiny= winy;
 	}
 	
 	if(v2d->keeptot) {
@@ -652,7 +685,8 @@ void test_view2d(View2D *v2d, int winx, int winy)
 				cur->xmin+= dx;
 				cur->xmax+= dx;
 			}
-			else if(cur->xmax > tot->xmax) {
+			else if((v2d->keeptot!=2) && (cur->xmax > tot->xmax)) {
+				/* keeptot==2 is a special case for the outliner. see space.c, init_v2d_oops for details */
 				dx= cur->xmax-tot->xmax;
 				cur->xmin-= dx;
 				cur->xmax-= dx;
@@ -699,6 +733,7 @@ static int calc_ipobuttonswidth(ScrArea *sa)
 	EditIpo *ei;
 	int ipowidth = IPOBUTX;
 	int a;
+	float textwidth = 0;
 	
 	/* default width when no space ipo or no channels */
 	if (sipo == NULL) return IPOBUTX;
@@ -707,8 +742,9 @@ static int calc_ipobuttonswidth(ScrArea *sa)
 	ei= sipo->editipo;
 	
 	for(a=0; a<sipo->totipo; a++, ei++) {
-		if (BMF_GetStringWidth(G.font, ei->name) + 18 > ipowidth) 
-			ipowidth = BMF_GetStringWidth(G.font, ei->name) + 18;
+		textwidth = BIF_GetStringWidth(G.font, ei->name, 0);
+		if (textwidth + 18 > ipowidth) 
+			ipowidth = textwidth + 18;
 	}
 	return ipowidth;
 
@@ -753,7 +789,7 @@ void calc_scrollrcts(ScrArea *sa, View2D *v2d, int winx, int winy)
 			v2d->mask.xmax= v2d->vert.xmin;
 		}
 		
-		if(v2d->scroll & B_SCROLL) {
+		if((v2d->scroll & B_SCROLL) || (v2d->scroll & B_SCROLLO)) {
 			v2d->hor= v2d->mask;
 			v2d->hor.ymax= SCROLLH;
 			v2d->mask.ymin= SCROLLH;
@@ -832,7 +868,7 @@ void draw_view2d_numbers_horiz(int drawframes)
 			scroll_prstr(fac, 2.0+(float)(G.v2d->mask.ymin), val, 'h', 0);
 		}
 		else {
-			fac2= val/(float)G.scene->r.frs_sec;
+			fac2= val/FPS;
 			scroll_prstr(fac, 2.0+(float)(G.v2d->mask.ymin), fac2, 'h', 0);
 		}
 		
@@ -856,7 +892,7 @@ void drawscroll(int disptype)
 	light= 20;
 	lighter= 50;
 	
-	if(G.v2d->scroll & HOR_SCROLL) {
+	if((G.v2d->scroll & HOR_SCROLL) || (G.v2d->scroll & HOR_SCROLLO)) {
 		
 		BIF_ThemeColorShade(TH_SHADE1, light);
 		glRecti(hor.xmin,  hor.ymin,  hor.xmax,  hor.ymax);
@@ -890,17 +926,23 @@ void drawscroll(int disptype)
 		val= ipogrid_startx;
 		while(fac < hor.xmax) {
 			
-			if(curarea->spacetype==SPACE_OOPS);
+			if(curarea->spacetype==SPACE_OOPS) { 
+				/* Under no circumstances may the outliner/oops display numbers on its scrollbar 
+				 * Unfortunately, versions of Blender without this patch will hang on loading files with
+				 * horizontally scrollable Outliners.
+				 */
+				break;
+			}
 			else if(curarea->spacetype==SPACE_SEQ) {
 				SpaceSeq * sseq = curarea->spacedata.first;
 				if (sseq->flag & SEQ_DRAWFRAMES) {
 					ipomachtx = 1;
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
 				} else {
-					fac2= val/(float)G.scene->r.frs_sec;
+					fac2= val/FPS;
 					tim= floor(fac2);
 					fac2= fac2-tim;
-					scroll_prstr(fac, 3.0+(float)(hor.ymin), tim+G.scene->r.frs_sec*fac2/100.0, 'h', disptype);
+					scroll_prstr(fac, 3.0+(float)(hor.ymin), tim+FPS*fac2/100.0, 'h', disptype);
 				}
 			}
 			else if (curarea->spacetype==SPACE_SOUND) {
@@ -911,7 +953,7 @@ void drawscroll(int disptype)
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
 				}
 				else {
-					fac2= val/(float)G.scene->r.frs_sec;
+					fac2= val/FPS;
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), fac2, 'h', disptype);
 				}
 			}
@@ -923,7 +965,7 @@ void drawscroll(int disptype)
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
 				}
 				else {
-					fac2= val/(float)G.scene->r.frs_sec;
+					fac2= val/FPS;
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), fac2, 'h', disptype);
 				}
 			}
@@ -941,6 +983,30 @@ void drawscroll(int disptype)
 				}
 				else 
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
+			}
+			else if (curarea->spacetype==SPACE_ACTION) {
+				SpaceAction *saction= curarea->spacedata.first;
+				
+				if (saction->flag & SACTION_DRAWTIME) {
+					fac2= val/FPS;
+					scroll_prstr(fac, 3.0+(float)(hor.ymin), fac2, 'h', disptype);
+				}
+				else {
+					ipomachtx= 1;
+					scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
+				}
+			}
+			else if (curarea->spacetype==SPACE_NLA) {
+				SpaceNla *snla= curarea->spacedata.first;
+				
+				if (snla->flag & SNLA_DRAWTIME) {
+					fac2= val/FPS;
+					scroll_prstr(fac, 3.0+(float)(hor.ymin), fac2, 'h', disptype);
+				}
+				else {
+					ipomachtx= 1;
+					scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
+				}
 			}
 			else {
 				scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
@@ -1129,7 +1195,7 @@ static void draw_ipovertices(int sel)
 					ok= 0;
 					
 					if(ei->flag & IPO_EDIT) {
-						if( (bezt->f2 & 1) == sel ) ok= 1;
+						if( (bezt->f2 & SELECT) == sel ) ok= 1;
 					}
 					else ok= 1;
 					
@@ -1151,15 +1217,15 @@ static void draw_ipovertices(int sel)
 					if(ei->flag & IPO_EDIT) {
 						if(ei->icu->ipo==IPO_BEZ) {
 							/* Draw the editmode hendels for a bezier curve */
-							if( (bezt->f1 & 1) == sel)/* && G.v2d->cur.xmin < bezt->vec[0][0] < G.v2d->cur.xmax)*/
+							if( (bezt->f1 & SELECT) == sel)/* && G.v2d->cur.xmin < bezt->vec[0][0] < G.v2d->cur.xmax)*/
 								bglVertex3fv(bezt->vec[0]);
 							
-							if( (bezt->f3 & 1) == sel)/* && G.v2d->cur.xmin < bezt->vec[2][0] < G.v2d->cur.xmax)*/
+							if( (bezt->f3 & SELECT) == sel)/* && G.v2d->cur.xmin < bezt->vec[2][0] < G.v2d->cur.xmax)*/
 								bglVertex3fv(bezt->vec[2]);
 							
 						}
 						
-						if( (bezt->f2 & 1) == sel) /* && G.v2d->cur.xmin < bezt->vec[1][0] < G.v2d->cur.xmax)*/
+						if( (bezt->f2 & SELECT) == sel) /* && G.v2d->cur.xmin < bezt->vec[1][0] < G.v2d->cur.xmax)*/
 							bglVertex3fv(bezt->vec[1]);
 						
 					}
@@ -1200,7 +1266,7 @@ static void draw_ipohandles(int sel)
 				b= ei->icu->totvert;
 				while(b--) {
 					
-					if( (bezt->f2 & 1)==sel) {
+					if( (bezt->f2 & SELECT)==sel) {
 						fp= bezt->vec[0];
 						cpack(col[bezt->h1]);
 						
@@ -1221,7 +1287,7 @@ static void draw_ipohandles(int sel)
 						glVertex2fv(fp); glVertex2fv(fp+3); 
 						glEnd();
 					}
-					else if( (bezt->f3 & 1)==sel) {
+					else if( (bezt->f3 & SELECT)==sel) {
 						fp= bezt->vec[1];
 						cpack(col[bezt->h2]);
 						
@@ -1499,7 +1565,7 @@ static void draw_cfra(SpaceIpo *sipo)
 	vec[0]*= G.scene->r.framelen;
 	
 	vec[1]= v2d->cur.ymin;
-	glColor3ub(0x60, 0xc0, 0x40);	// no theme, should be global color once...
+	BIF_ThemeColor(TH_CFRAME);
 	glLineWidth(2.0);
 	
 	glBegin(GL_LINE_STRIP);
@@ -1510,8 +1576,8 @@ static void draw_cfra(SpaceIpo *sipo)
 	
 	if(sipo->blocktype==ID_OB) {
 		ob= (G.scene->basact) ? (G.scene->basact->object) : 0;
-		if(ob && ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
-			vec[0]-= ob->sf;
+		if (ob && (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0)) { 
+			vec[0]-= give_timeoffset(ob);
 			
 			BIF_ThemeColorShade(TH_HILITE, -30);
 			
@@ -1623,7 +1689,7 @@ static void boundbox_ipo_curves(SpaceIpo *si)
 		if(ei->icu) {
 			if(ei->flag & IPO_VISIBLE) {
 	
-				boundbox_ipocurve(ei->icu);
+				boundbox_ipocurve(ei->icu, 0);
 				if(first) {
 					si->v2d.tot= ei->icu->totrct;
 					first= 0;
@@ -1669,16 +1735,16 @@ static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float m
 					b= ei->icu->totvert;
 					while(b--) {
 						// all three selected 
-						if(bezt->f2 & 1) {
+						if(bezt->f2 & SELECT) {
 							VecAddf(median, median, bezt->vec[1]);
 							tot++;
 						}
 						else {
-							if(bezt->f1 & 1) {
+							if(bezt->f1 & SELECT) {
 								VecAddf(median, median, bezt->vec[0]);
 								tot++;
 							}
-							if(bezt->f3 & 1) {
+							if(bezt->f3 & SELECT) {
 								VecAddf(median, median, bezt->vec[2]);
 								tot++;
 							}
@@ -1763,16 +1829,16 @@ static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float m
 						b= ei->icu->totvert;
 						while(b--) {
 							// all three selected
-							if(bezt->f2 & 1) {
+							if(bezt->f2 & SELECT) {
 								VecAddf(bezt->vec[0], bezt->vec[0], median);
 								VecAddf(bezt->vec[1], bezt->vec[1], median);
 								VecAddf(bezt->vec[2], bezt->vec[2], median);
 							}
 							else {
-								if(bezt->f1 & 1) {
+								if(bezt->f1 & SELECT) {
 									VecAddf(bezt->vec[0], bezt->vec[0], median);
 								}
-								if(bezt->f3 & 1) {
+								if(bezt->f3 & SELECT) {
 									VecAddf(bezt->vec[2], bezt->vec[2], median);
 								}
 							}
@@ -1838,7 +1904,7 @@ void do_ipobuts(unsigned short event)
 		ei= get_active_editipo();
 		if(ei) {
 			if(ei->icu==NULL) {
-				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei->adrcode);
+				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei->adrcode);
 				if (!ei->icu) {
 					error("Could not add a driver to this curve, may be linked data!");
 					break;
@@ -1905,7 +1971,7 @@ void do_ipobuts(unsigned short event)
 				}
 				else {
 					if(driver->ob) {
-						if(ob==driver->ob) {
+						if(ob==driver->ob && G.sipo->bonename[0]==0) {
 							error("Cannot assign a Driver to own Object");
 							driver->ob= NULL;
 						}
@@ -1953,7 +2019,7 @@ static char *ipodriver_modeselect_pup(Object *ob)
 	return (string);
 }
 
-static char *ipodriver_channelselect_pup(void)
+static char *ipodriver_channelselect_pup(int is_armature)
 {
 	static char string[1024];
 	char *tmp;
@@ -1970,6 +2036,8 @@ static char *ipodriver_channelselect_pup(void)
 	tmp+= sprintf(tmp, "|Scale X %%x%d", OB_SIZE_X);
 	tmp+= sprintf(tmp, "|Scale Y %%x%d", OB_SIZE_Y);
 	tmp+= sprintf(tmp, "|Scale Z %%x%d", OB_SIZE_Z);
+	if(is_armature)
+		tmp+= sprintf(tmp, "|Rotation Difference %%x%d", OB_ROT_DIFF);
 	
 	return (string);
 }
@@ -2020,6 +2088,10 @@ static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 					if(driver->ob->type==OB_ARMATURE && driver->blocktype==ID_AR) {
 						icon = ICON_POSE_DEHLT;
 						uiDefBut(block, TEX, B_IPO_REDR, "BO:",				10,220,150,20, driver->name, 0, 31, 0, 0, "Bone name");
+						
+						if(driver->adrcode==OB_ROT_DIFF)
+							uiDefBut(block, TEX, B_IPO_REDR, "BO:",			10,200,150,20, driver->name+DRIVER_NAME_OFFS, 0, 31, 0, 0, "Bone name for angular reference");
+
 					}
 					else driver->blocktype= ID_OB;	/* safety when switching object button */
 					
@@ -2028,7 +2100,8 @@ static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 									  ipodriver_modeselect_pup(driver->ob), 165,240,145,20, &(driver->blocktype), 0, 0, 0, 0, "Driver type");
 
 					uiDefButS(block, MENU, B_IPO_REDR, 
-								ipodriver_channelselect_pup(),			165,220,145,20, &(driver->adrcode), 0, 0, 0, 0, "Driver channel");
+								ipodriver_channelselect_pup(driver->ob->type==OB_ARMATURE && driver->blocktype==ID_AR),			
+														165,220,145,20, &(driver->adrcode), 0, 0, 0, 0, "Driver channel");
 				}
 				uiBlockEndAlign(block);
 			}
@@ -2045,7 +2118,7 @@ static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 	/* note ranges for buttons below are idiot... we need 2 ranges, one for sliding scale, one for real clip */
 	if(G.sipo->ipo && G.sipo->ipo->curve.first && totipo_curve) {
 		extern int totipo_vertsel;	// editipo.c
-		uiDefBut(block, LABEL, 0, "Visible curves",		10, 200, 150, 19, NULL, 1.0, 0.0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Visible curves",		160, 200, 150, 19, NULL, 1.0, 0.0, 0, 0, "");
 		
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_MUL_IPO, "Xmin:",		10, 180, 150, 19, &G.sipo->tot.xmin, G.sipo->tot.xmin-1000.0, MAXFRAMEF, 100, 0, "");
@@ -2158,9 +2231,8 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		}
 		
 		/* map ipo-points for drawing if scaled ipo */
-		if (OBACT && OBACT->action && sipo->pin==0 && sipo->actname) {
+		if (NLA_IPO_SCALED)
 			actstrip_map_ipo_keys(OBACT, sipo->ipo, 0, 0);
-		}
 
 		/* draw deselect */
 		draw_ipocurves(0);
@@ -2173,15 +2245,14 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		draw_ipovertices(1);
 		
 		/* undo mapping of ipo-points for drawing if scaled ipo */
-		if (OBACT && OBACT->action && sipo->pin==0 && sipo->actname) {
+		if (NLA_IPO_SCALED)
 			actstrip_map_ipo_keys(OBACT, sipo->ipo, 1, 0);
-		}
 		
 		/* Draw 'curtains' for preview */
 		draw_anim_preview_timespace();
 		
 		/* draw markers */
-		draw_markers_timespace();
+		draw_markers_timespace(SCE_MARKERS, 0);
 		
 		/* restore viewport */
 		mywinset(sa->win);
@@ -2493,13 +2564,7 @@ int view2dmove(unsigned short event)
 	}
 	
 	cursor = BC_NSEW_SCROLLCURSOR;
-	
-	/* no x move in outliner */
-	if(curarea->spacetype==SPACE_OOPS && G.v2d->scroll) {
-		facx= 0.0;
-		cursor = BC_NS_SCROLLCURSOR;
-	}
-	
+		
 	/* no y move in audio & time */
 	if ELEM(curarea->spacetype, SPACE_SOUND, SPACE_TIME) {
 		facy= 0.0;

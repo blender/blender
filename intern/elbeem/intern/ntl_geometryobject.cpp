@@ -83,7 +83,7 @@ bool ntlGeometryObject::checkIsAnimated() {
 /* Init attributes etc. of this object */
 /*****************************************************************************/
 #define GEOINIT_STRINGS  9
-static char *initStringStrs[GEOINIT_STRINGS] = {
+static const char *initStringStrs[GEOINIT_STRINGS] = {
 	"fluid",
 	"bnd_no","bnd_noslip",
 	"bnd_free","bnd_freeslip",

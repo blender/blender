@@ -238,6 +238,10 @@ char *event_to_name( short event )
 	switch ( event ) {
 	case SCRIPT_FRAMECHANGED:
 		return "FrameChanged";
+	case SCRIPT_OBJECTUPDATE:
+		return "ObjectUpdate";
+	case SCRIPT_OBDATAUPDATE:
+		return "ObDataUpdate";
 	case SCRIPT_ONLOAD:
 		return "OnLoad";
 	case SCRIPT_ONSAVE:
@@ -383,29 +387,33 @@ void EXPP_allqueue(unsigned short event, short val)
 /************************************************************************/
 /* Scriptlink-related functions, used by scene, object, etc. bpyobjects */
 /************************************************************************/
-PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * args,
+PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * value,
 			       int is_scene )
 {
 	PyObject *list = NULL, *tmpstr;
-	char *eventname = NULL;
+	char *eventname = PyString_AsString(value);
 	int i, event = 0;
 
 
-	if( !PyArg_ParseTuple( args, "s", &eventname ) )
+	if( !eventname )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected event name (string) as argument" );
-
-	/* actually !scriptlink shouldn't happen ... */
-	if( !slink || !slink->totscript )
-		return list;
 	
 	list = PyList_New( 0 );
 	if( !list )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
 					      "couldn't create PyList!" );
 
+	/* actually !scriptlink shouldn't happen ... */
+	if( !slink || !slink->totscript )
+		return list;
+	
 	if( !strcmp( eventname, "FrameChanged" ) )
 		event = SCRIPT_FRAMECHANGED;
+	else if( !strcmp( eventname, "ObjectUpdate" ) )
+		event = SCRIPT_OBJECTUPDATE;
+	else if( !strcmp( eventname, "ObDataUpdate" ) )
+		event = SCRIPT_OBDATAUPDATE;
 	else if( !strcmp( eventname, "Redraw" ) )
 		event = SCRIPT_REDRAW;
 	else if( !strcmp( eventname, "Render" ) )
@@ -415,7 +423,7 @@ PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * args,
 	else if( is_scene && !strcmp( eventname, "OnSave" ) )
 		event = SCRIPT_ONSAVE;
 	else {
-		Py_XDECREF(list);
+		Py_DECREF(list);
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "invalid event name" );
 	}
@@ -562,6 +570,10 @@ PyObject *EXPP_addScriptLink(ScriptLink *slink, PyObject *args, int is_scene)
 
 	if( !strcmp( eventname, "FrameChanged" ) )
 		event = SCRIPT_FRAMECHANGED;
+	else if( !strcmp( eventname, "ObjectUpdate" ) )
+		event = SCRIPT_OBJECTUPDATE;
+	else if( !strcmp( eventname, "ObDataUpdate" ) )
+		event = SCRIPT_OBDATAUPDATE;
 	else if( !strcmp( eventname, "Redraw" ) )
 		event = SCRIPT_REDRAW;
 	else if( !strcmp( eventname, "Render" ) )
@@ -638,7 +650,7 @@ int EXPP_setIValueClamped( PyObject *value, void *param,
 {
 	int number;
 
-	if( !PyInt_CheckExact ( value ) ) {
+	if( !PyInt_Check( value ) ) {
 		char errstr[128];
 		sprintf ( errstr, "expected int argument in [%d,%d]", min, max );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
@@ -729,7 +741,7 @@ int EXPP_setIValueRange( PyObject *value, void *param,
 
 	sprintf ( errstr, "expected int argument in [%d,%d]", min, max );
 
-	if( !PyInt_CheckExact ( value ) )
+	if( !PyInt_Check ( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 
 	number = PyInt_AS_LONG( value );
@@ -828,23 +840,27 @@ PyObject *EXPP_getBitfield( void *param, int setting, char type )
 
 int EXPP_setBitfield( PyObject * value, void *param, int setting, char type )
 {
-	int flag = PyObject_IsTrue( value );
+	int param_bool = PyObject_IsTrue( value );
 
+	if( param_bool == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
 	switch ( type ) {
 	case 'b':
-		if ( flag )
+		if ( param_bool )
 			*(char *)param |= setting;
 		else
 			*(char *)param &= ~setting;
 		return 0;
 	case 'h':
-		if ( flag )
+		if ( param_bool )
 			*(short *)param |= setting;
 		else
 			*(short *)param &= ~setting;
 		return 0;
 	case 'i':
-		if ( flag )
+		if ( param_bool )
 			*(int *)param |= setting;
 		else
 			*(int *)param &= ~setting;
@@ -913,4 +929,32 @@ int EXPP_dict_set_item_str( PyObject *dict, char *key, PyObject *value)
 	int ret = PyDict_SetItemString(dict, key, value);
 	Py_DECREF( value ); /* delete original */
 	return ret;
+}
+
+/*
+ * Helper function for subtypes that what the base types methods.
+ * The command below needs to have args modified to have 'self' added at the start
+ * ret = PyObject_Call(PyDict_GetItemString(PyList_Type.tp_dict, "sort"), newargs, keywds);
+ * 
+ * This is not easy with the python API so adding a function here,
+ * remember to Py_DECREF the tuple after
+ */
+
+PyObject * EXPP_PyTuple_New_Prepend(PyObject *tuple, PyObject *value)
+{
+	PyObject *item;
+	PyObject *new_tuple;
+	int i;
+	
+	i = PyTuple_Size(tuple);
+	new_tuple = PyTuple_New(i+1);
+	PyTuple_SetItem(new_tuple, 0, value);
+	Py_INCREF(value);
+	while (i) {
+		i--;
+		item = PyTuple_GetItem(tuple, i);
+		PyTuple_SetItem(new_tuple, i+1, item);
+		Py_INCREF(item);
+	}
+	return new_tuple;
 }

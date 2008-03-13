@@ -655,6 +655,7 @@ bool LbmFsgrSolver::initializeSolverMemory()
 	int orgSz = mSizez;
 	double sizeReduction = 1.0;
 	double memEstFromFunc = -1.0;
+	double memEstFine = -1.0;
 	string memreqStr("");	
 	bool firstMInit = true;
 	int minitTries=0;
@@ -672,7 +673,7 @@ bool LbmFsgrSolver::initializeSolverMemory()
 		firstMInit=false;
 
 		calculateMemreqEstimate( mSizex, mSizey, mSizez, 
-				mMaxRefine, mFarFieldSize, &memEstFromFunc, &memreqStr );
+				mMaxRefine, mFarFieldSize, &memEstFromFunc, &memEstFine, &memreqStr );
 		
 		double memLimit;
 		string memLimStr("-");
@@ -685,13 +686,36 @@ bool LbmFsgrSolver::initializeSolverMemory()
 			memLimit = 16.0* 1024.0*1024.0*1024.0;
 			memLimStr = string("16GB");
 		}
-		if(memEstFromFunc>memLimit) {
+
+		// restrict max. chunk of 1 mem block to 1GB for windos
+		bool memBlockAllocProblem = false;
+		double maxWinMemChunk = 1100.*1024.*1024.;
+		double maxMacMemChunk = 1200.*1024.*1024.;
+		double maxDefaultMemChunk = 2.*1024.*1024.*1024.;
+		//std::cerr<<" memEstFine "<< memEstFine <<" maxWin:" <<maxWinMemChunk <<" maxMac:" <<maxMacMemChunk ; // DEBUG
+#ifdef WIN32
+		if(memEstFine> maxWinMemChunk) {
+			memBlockAllocProblem = true;
+		}
+#endif // WIN32
+#ifdef __APPLE__
+		if(memEstFine> maxMacMemChunk) {
+			memBlockAllocProblem = true;
+		}
+#endif // Mac
+		if(sizeof(void *)==4 && memEstFine>maxDefaultMemChunk) {
+			// max memory chunk for 32bit systems 2gig
+			memBlockAllocProblem = true;
+		}
+
+		if(memEstFromFunc>memLimit || memBlockAllocProblem) {
 			sizeReduction *= 0.9;
 			mSizex = (int)(orgSx * sizeReduction);
 			mSizey = (int)(orgSy * sizeReduction);
 			mSizez = (int)(orgSz * sizeReduction);
 			debMsgStd("LbmFsgrSolver::initialize",DM_WARNING,"initGridSizes: memory limit exceeded "<<
 					//memEstFromFunc<<"/"<<memLimit<<", "<<
+					//memEstFine<<"/"<<maxWinMemChunk<<", "<<
 					memreqStr<<"/"<<memLimStr<<", "<<
 					"retrying: "<<PRINT_VEC(mSizex,mSizey,mSizez)<<" org:"<<PRINT_VEC(orgSx,orgSy,orgSz)
 					, 3 );
@@ -778,10 +802,6 @@ bool LbmFsgrSolver::initializeSolverMemory()
 	mLevel[ mMaxRefine ].simCellSize = mpParam->getCellSize();
 	mLevel[ mMaxRefine ].lcellfactor = 1.0;
 	LONGINT rcellSize = ((mLevel[mMaxRefine].lSizex*mLevel[mMaxRefine].lSizey*mLevel[mMaxRefine].lSizez) *dTotalNum);
-	// +4 for safety ?
-	mLevel[ mMaxRefine ].mprsFlags[0] = new CellFlagType[ rcellSize/dTotalNum +4 ];
-	mLevel[ mMaxRefine ].mprsFlags[1] = new CellFlagType[ rcellSize/dTotalNum +4 ];
-	ownMemCheck += 2 * sizeof(CellFlagType) * (rcellSize/dTotalNum +4);
 
 #if COMPRESSGRIDS==0
 	mLevel[ mMaxRefine ].mprsCells[0] = new LbmFloat[ rcellSize +4 ];
@@ -789,10 +809,33 @@ bool LbmFsgrSolver::initializeSolverMemory()
 	ownMemCheck += 2 * sizeof(LbmFloat) * (rcellSize+4);
 #else // COMPRESSGRIDS==0
 	LONGINT compressOffset = (mLevel[mMaxRefine].lSizex*mLevel[mMaxRefine].lSizey*dTotalNum*2);
+	// D int tmp = ( (rcellSize +compressOffset +4)/(1024*1024) )*4;
+	// D printf("Debug MEMMMM excee: %d\n", tmp);
 	mLevel[ mMaxRefine ].mprsCells[1] = new LbmFloat[ rcellSize +compressOffset +4 ];
 	mLevel[ mMaxRefine ].mprsCells[0] = mLevel[ mMaxRefine ].mprsCells[1]+compressOffset;
 	ownMemCheck += sizeof(LbmFloat) * (rcellSize +compressOffset +4);
 #endif // COMPRESSGRIDS==0
+
+	if(!mLevel[ mMaxRefine ].mprsCells[1] || !mLevel[ mMaxRefine ].mprsCells[0]) {
+		errFatal("LbmFsgrSolver::initialize","Fatal: Couldnt allocate memory (1)! Aborting...",SIMWORLD_INITERROR);
+		return false;
+	}
+
+	// +4 for safety ?
+	mLevel[ mMaxRefine ].mprsFlags[0] = new CellFlagType[ rcellSize/dTotalNum +4 ];
+	mLevel[ mMaxRefine ].mprsFlags[1] = new CellFlagType[ rcellSize/dTotalNum +4 ];
+	ownMemCheck += 2 * sizeof(CellFlagType) * (rcellSize/dTotalNum +4);
+	if(!mLevel[ mMaxRefine ].mprsFlags[1] || !mLevel[ mMaxRefine ].mprsFlags[0]) {
+		errFatal("LbmFsgrSolver::initialize","Fatal: Couldnt allocate memory (2)! Aborting...",SIMWORLD_INITERROR);
+
+#if COMPRESSGRIDS==0
+		delete[] mLevel[ mMaxRefine ].mprsCells[0];
+		delete[] mLevel[ mMaxRefine ].mprsCells[1];
+#else // COMPRESSGRIDS==0
+		delete[] mLevel[ mMaxRefine ].mprsCells[1];
+#endif // COMPRESSGRIDS==0
+		return false;
+	}
 
 	LbmFloat lcfdimFac = 8.0;
 	if(LBMDIM==2) lcfdimFac = 4.0;

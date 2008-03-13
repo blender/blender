@@ -53,6 +53,14 @@ static void scope_put_pixel(unsigned char* table, unsigned char * pos)
 	pos[3] = 255;
 }
 
+static void scope_put_pixel_single(unsigned char* table, unsigned char * pos,
+				   int col)
+{
+	char newval = table[pos[col]];
+	pos[col] = newval;
+	pos[3] = 255;
+}
+
 static void wform_put_line(int w,
 			   unsigned char * last_pos, unsigned char * new_pos)
 {
@@ -71,6 +79,67 @@ static void wform_put_line(int w,
 	}
 }
 
+static void wform_put_line_single(
+	int w, unsigned char * last_pos, unsigned char * new_pos, int col)
+{
+	if (last_pos > new_pos) {
+		unsigned char* temp = new_pos;
+		new_pos = last_pos;
+		last_pos = temp;
+	}
+
+	while (last_pos < new_pos) {
+		if (last_pos[col] == 0) {
+			last_pos[col] = 32;
+			last_pos[3] = 255;
+		}
+		last_pos += 4*w;
+	}
+}
+
+static void wform_put_border(unsigned char * tgt, int w, int h)
+{
+	int x, y;
+
+	for (x = 0; x < w; x++) {
+		unsigned char * p = tgt + 4 * x;
+		p[1] = p[3] = 255.0;
+		p[4 * w + 1] = p[4 * w + 3] = 255.0;
+		p = tgt + 4 * (w * (h - 1) + x);
+		p[1] = p[3] = 255.0;
+		p[-4 * w + 1] = p[-4 * w + 3] = 255.0;
+	}
+
+	for (y = 0; y < h; y++) {
+		unsigned char * p = tgt + 4 * w * y;
+		p[1] = p[3] = 255.0;
+		p[4 + 1] = p[4 + 3] = 255.0;
+		p = tgt + 4 * (w * y + w - 1);
+		p[1] = p[3] = 255.0;
+		p[-4 + 1] = p[-4 + 3] = 255.0;
+	}
+}
+
+static void wform_put_gridrow(unsigned char * tgt, float perc, int w, int h)
+{
+	int i;
+
+	tgt += (int) (perc/100.0 * h) * w * 4;
+
+	for (i = 0; i < w*2; i++) {
+		tgt[0] = 255;
+
+		tgt += 4;
+	}
+}
+
+static void wform_put_grid(unsigned char * tgt, int w, int h)
+{
+	wform_put_gridrow(tgt, 90.0, w, h);
+	wform_put_gridrow(tgt, 70.0, w, h);
+	wform_put_gridrow(tgt, 10.0, w, h);
+}
+
 static struct ImBuf *make_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 {
 	struct ImBuf * rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect, 0);
@@ -81,6 +150,8 @@ static struct ImBuf *make_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 	int h = 515;
 	float waveform_gamma = 0.2;
 	unsigned char wtable[256];
+
+	wform_put_grid(tgt, w, h);
 
 	for (x = 0; x < 256; x++) {
 		wtable[x] = (unsigned char) (pow(((float) x + 1)/256, 
@@ -110,23 +181,7 @@ static struct ImBuf *make_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
 		}
 	}
 
-	for (x = 0; x < w; x++) {
-		unsigned char * p = tgt + 4 * x;
-		p[1] = p[3] = 255.0;
-		p[4 * w + 1] = p[4 * w + 3] = 255.0;
-		p = tgt + 4 * (w * (h - 1) + x);
-		p[1] = p[3] = 255.0;
-		p[-4 * w + 1] = p[-4 * w + 3] = 255.0;
-	}
-
-	for (y = 0; y < h; y++) {
-		unsigned char * p = tgt + 4 * w * y;
-		p[1] = p[3] = 255.0;
-		p[4 + 1] = p[4 + 3] = 255.0;
-		p = tgt + 4 * (w * y + w - 1);
-		p[1] = p[3] = 255.0;
-		p[-4 + 1] = p[-4 + 3] = 255.0;
-	}
+	wform_put_border(tgt, w, h);
 	
 	return rval;
 }
@@ -141,6 +196,8 @@ static struct ImBuf *make_waveform_view_from_ibuf_float(struct ImBuf * ibuf)
 	int h = 515;
 	float waveform_gamma = 0.2;
 	unsigned char wtable[256];
+
+	wform_put_grid(tgt, w, h);
 
 	for (x = 0; x < 256; x++) {
 		wtable[x] = (unsigned char) (pow(((float) x + 1)/256, 
@@ -173,23 +230,7 @@ static struct ImBuf *make_waveform_view_from_ibuf_float(struct ImBuf * ibuf)
 		}
 	}
 
-	for (x = 0; x < w; x++) {
-		unsigned char * p = tgt + 4 * x;
-		p[1] = p[3] = 255.0;
-		p[4 * w + 1] = p[4 * w + 3] = 255.0;
-		p = tgt + 4 * (w * (h - 1) + x);
-		p[1] = p[3] = 255.0;
-		p[-4 * w + 1] = p[-4 * w + 3] = 255.0;
-	}
-
-	for (y = 0; y < h; y++) {
-		unsigned char * p = tgt + 4 * w * y;
-		p[1] = p[3] = 255.0;
-		p[4 + 1] = p[4 + 3] = 255.0;
-		p = tgt + 4 * (w * y + w - 1);
-		p[1] = p[3] = 255.0;
-		p[-4 + 1] = p[-4 + 3] = 255.0;
-	}
+	wform_put_border(tgt, w, h);
 	
 	return rval;
 }
@@ -203,6 +244,326 @@ struct ImBuf *make_waveform_view_from_ibuf(struct ImBuf * ibuf)
 	}
 }
 
+
+static struct ImBuf *make_sep_waveform_view_from_ibuf_byte(struct ImBuf * ibuf)
+{
+	struct ImBuf * rval = IMB_allocImBuf(
+		ibuf->x + 3, 515, 32, IB_rect, 0);
+	int x,y;
+	unsigned char* src = (unsigned char*) ibuf->rect;
+	unsigned char* tgt = (unsigned char*) rval->rect;
+	int w = ibuf->x + 3;
+	int sw = ibuf->x/3;
+	int h = 515;
+	float waveform_gamma = 0.2;
+	unsigned char wtable[256];
+
+	wform_put_grid(tgt, w, h);
+
+	for (x = 0; x < 256; x++) {
+		wtable[x] = (unsigned char) (pow(((float) x + 1)/256, 
+						 waveform_gamma)*255);
+	}
+
+	for (y = 0; y < ibuf->y; y++) {
+		unsigned char * last_p[3] = {0,0,0};
+
+		for (x = 0; x < ibuf->x; x++) {
+			int c;
+			unsigned char * rgb = src + 4 * (ibuf->x * y + x);
+			for (c = 0; c < 3; c++) {
+				unsigned char * p = tgt;
+				p += 4 * (w * ((rgb[c] * (h - 3))/255 + 1) 
+					  + c * sw + x/3 + 1);
+
+				scope_put_pixel_single(wtable, p, c);
+				p += 4 * w;
+				scope_put_pixel_single(wtable, p, c);
+
+				if (last_p[c] != 0) {
+					wform_put_line_single(
+						w, last_p[c], p, c);
+				}
+				last_p[c] = p;
+			}
+		}
+	}
+
+	wform_put_border(tgt, w, h);
+	
+	return rval;
+}
+
+static struct ImBuf *make_sep_waveform_view_from_ibuf_float(
+	struct ImBuf * ibuf)
+{
+	struct ImBuf * rval = IMB_allocImBuf(
+		ibuf->x + 3, 515, 32, IB_rect, 0);
+	int x,y;
+	float* src = ibuf->rect_float;
+	unsigned char* tgt = (unsigned char*) rval->rect;
+	int w = ibuf->x + 3;
+	int sw = ibuf->x/3;
+	int h = 515;
+	float waveform_gamma = 0.2;
+	unsigned char wtable[256];
+
+	wform_put_grid(tgt, w, h);
+
+	for (x = 0; x < 256; x++) {
+		wtable[x] = (unsigned char) (pow(((float) x + 1)/256, 
+						 waveform_gamma)*255);
+	}
+
+	for (y = 0; y < ibuf->y; y++) {
+		unsigned char * last_p[3] = {0, 0, 0};
+
+		for (x = 0; x < ibuf->x; x++) {
+			int c;
+			float * rgb = src + 4 * (ibuf->x * y + x);
+			for (c = 0; c < 3; c++) {
+				unsigned char * p = tgt;
+				float v = rgb[c];
+
+				CLAMP(v, 0.0, 1.0);
+
+				p += 4 * (w * ((int) (v * (h - 3)) + 1)
+					  + c * sw + x/3 + 1);
+
+				scope_put_pixel_single(wtable, p, c);
+				p += 4 * w;
+				scope_put_pixel_single(wtable, p, c);
+
+				if (last_p[c] != 0) {
+					wform_put_line_single(
+						w, last_p[c], p, c);
+				}
+				last_p[c] = p;
+			}
+		}
+	}
+
+	wform_put_border(tgt, w, h);
+	
+	return rval;
+}
+
+struct ImBuf *make_sep_waveform_view_from_ibuf(struct ImBuf * ibuf)
+{
+	if (ibuf->rect_float) {
+		return make_sep_waveform_view_from_ibuf_float(ibuf);
+	} else {
+		return make_sep_waveform_view_from_ibuf_byte(ibuf);
+	}
+}
+
+static void draw_zebra_byte(struct ImBuf * src,struct ImBuf * ibuf, float perc)
+{
+	unsigned int limit = 255 * perc / 100.0;
+	unsigned char * p = (unsigned char*) src->rect;
+	unsigned char * o = (unsigned char*) ibuf->rect;
+	int x;
+	int y;
+
+	for (y = 0; y < ibuf->y; y++) {
+		for (x = 0; x < ibuf->x; x++) {
+			unsigned char r = *p++;
+			unsigned char g = *p++;
+			unsigned char b = *p++;
+			unsigned char a = *p++;
+
+			if (r >= limit || g >= limit || b >= limit) {
+				if (((x + y) & 0x08) != 0) {
+					r = 255 - r;
+					g = 255 - g;
+					b = 255 - b;
+				}
+			}
+			*o++ = r;
+			*o++ = g;
+			*o++ = b;
+			*o++ = a;
+		}
+	}
+}
+
+#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.99f*val))
+
+static void draw_zebra_float(struct ImBuf * src,struct ImBuf * ibuf,float perc)
+{
+	float limit = perc / 100.0;
+	float * p = src->rect_float;
+	unsigned char * o = (unsigned char*) ibuf->rect;
+	int x;
+	int y;
+
+	for (y = 0; y < ibuf->y; y++) {
+		for (x = 0; x < ibuf->x; x++) {
+			float r = *p++;
+			float g = *p++;
+			float b = *p++;
+			float a = *p++;
+
+			if (r >= limit || g >= limit || b >= limit) {
+				if (((x + y) & 0x08) != 0) {
+					r = -r;
+					g = -g;
+					b = -b;
+				}
+			}
+
+			*o++ = FTOCHAR(r);
+			*o++ = FTOCHAR(g);
+			*o++ = FTOCHAR(b);
+			*o++ = FTOCHAR(a);
+		}
+	}
+}
+
+struct ImBuf * make_zebra_view_from_ibuf(struct ImBuf * src, float perc)
+{
+	struct ImBuf * ibuf = IMB_allocImBuf(src->x, src->y, 32, IB_rect, 0);
+
+	if (src->rect_float) {
+		draw_zebra_float(src, ibuf, perc);
+	} else {
+		draw_zebra_byte(src, ibuf, perc);
+	}
+	return ibuf;
+}
+
+static void draw_histogram_marker(struct ImBuf * ibuf, int x)
+{
+	unsigned char * p = (unsigned char*) ibuf->rect;
+	int barh = ibuf->y * 0.1;
+	int i;
+
+	p += 4 * (x + ibuf->x * (ibuf->y - barh + 1));
+
+	for (i = 0; i < barh-1; i++) {
+		p[0] = p[1] = p[2] = 255;
+		p += ibuf->x * 4;
+	}
+}
+
+static void draw_histogram_bar(struct ImBuf * ibuf, int x,float val, int col)
+{
+	unsigned char * p = (unsigned char*) ibuf->rect;
+	int barh = ibuf->y * val * 0.9;
+	int i;
+
+	p += 4 * (x + ibuf->x);
+
+	for (i = 0; i < barh; i++) {
+		p[col] = 255;
+		p += ibuf->x * 4;
+	}
+}
+
+static struct ImBuf *make_histogram_view_from_ibuf_byte(
+	struct ImBuf * ibuf)
+{
+	struct ImBuf * rval = IMB_allocImBuf(515, 128, 32, IB_rect, 0);
+	int n,c,x,y;
+	unsigned char* src = (unsigned char*) ibuf->rect;
+
+	unsigned int bins[3][256];
+
+	memset(bins, 0, 3 * 256* sizeof(unsigned int));
+
+	for (y = 0; y < ibuf->y; y++) {
+		for (x = 0; x < ibuf->x; x++) {
+			bins[0][*src++]++;
+			bins[1][*src++]++;
+			bins[2][*src++]++;
+			src++;
+		}
+	}
+
+	n = 0;
+	for (c = 0; c < 3; c++) {
+		for (x = 0; x < 256; x++) {
+			if (bins[c][x] > n) {
+				n = bins[c][x];
+			}
+		}
+	}
+
+	for (c = 0; c < 3; c++) {
+		for (x = 0; x < 256; x++) {
+			draw_histogram_bar(rval, x*2+1, 
+					   ((float) bins[c][x])/n, c);
+			draw_histogram_bar(rval, x*2+2, 
+					   ((float) bins[c][x])/n, c);
+		}
+	}
+
+	wform_put_border((unsigned char*) rval->rect, rval->x, rval->y);
+	
+	return rval;
+}
+
+static int get_bin_float(float f)
+{
+	if (f < -0.25) {
+		f = -0.25;
+	} else if (f > 1.25) {
+		f = 1.25;
+	}
+
+	return (int) (((f + 0.25) / 1.5) * 512);
+}
+
+static struct ImBuf *make_histogram_view_from_ibuf_float(
+	struct ImBuf * ibuf)
+{
+	struct ImBuf * rval = IMB_allocImBuf(515, 128, 32, IB_rect, 0);
+	int n,c,x,y;
+	float* src = ibuf->rect_float;
+
+	unsigned int bins[3][512];
+
+	memset(bins, 0, 3 * 256* sizeof(unsigned int));
+
+	for (y = 0; y < ibuf->y; y++) {
+		for (x = 0; x < ibuf->x; x++) {
+			bins[0][get_bin_float(*src++)]++;
+			bins[1][get_bin_float(*src++)]++;
+			bins[2][get_bin_float(*src++)]++;
+			src++;
+		}
+	}
+
+	draw_histogram_marker(rval, get_bin_float(0.0));
+	draw_histogram_marker(rval, get_bin_float(1.0));
+
+	n = 0;
+	for (c = 0; c < 3; c++) {
+		for (x = 0; x < 512; x++) {
+			if (bins[c][x] > n) {
+				n = bins[c][x];
+			}
+		}
+	}
+	for (c = 0; c < 3; c++) {
+		for (x = 0; x < 512; x++) {
+			draw_histogram_bar(rval, x+1, (float) bins[c][x]/n, c);
+		}
+	}
+
+	wform_put_border((unsigned char*) rval->rect, rval->x, rval->y);
+	
+	return rval;
+}
+
+struct ImBuf *make_histogram_view_from_ibuf(struct ImBuf * ibuf)
+{
+	if (ibuf->rect_float) {
+		return make_histogram_view_from_ibuf_float(ibuf);
+	} else {
+		return make_histogram_view_from_ibuf_byte(ibuf);
+	}
+}
 
 static void vectorscope_put_cross(unsigned char r, unsigned char g, 
 				  unsigned char b, 

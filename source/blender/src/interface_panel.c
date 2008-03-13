@@ -1766,7 +1766,7 @@ static void panel_clicked_tabs(uiBlock *block,  int mousex)
 	pa= curarea->panels.first;
 	while(pa) {
 		if(pa!=panel) {
-			if(pa->paneltab==panel) nr++;
+			if(pa->active && pa->paneltab==panel) nr++;
 		}
 		pa= pa->next;
 	}
@@ -1778,7 +1778,7 @@ static void panel_clicked_tabs(uiBlock *block,  int mousex)
 	width= (int)((float)(panel->sizex - ofsx-10)/nr);
 	pa= curarea->panels.first;
 	while(pa) {
-		if(pa==panel || pa->paneltab==panel) {
+		if(pa==panel || (pa->active && pa->paneltab==panel)) {
 			if( (mousex > ofsx+a*width) && (mousex < ofsx+(a+1)*width) ) {
 				tabsel= pa;
 				break;
@@ -1805,6 +1805,13 @@ static void panel_clicked_tabs(uiBlock *block,  int mousex)
 			}
 			
 			addqueue(curarea->win, REDRAW, 1);
+			
+			/* panels now differ size.. */
+			if(curarea->spacetype==SPACE_BUTS) {
+				SpaceButs *sbuts= curarea->spacedata.first;
+				if(sbuts->align)
+					uiAlignPanelStep(curarea, 1.0);
+			}
 		}
 	}
 	

@@ -127,6 +127,8 @@ char *includefiles[] = {
 	"DNA_color_types.h",
 	"DNA_brush_types.h",
 	"DNA_customdata_types.h",
+	"DNA_particle_types.h",
+	"DNA_cloth_types.h",
 	// if you add files here, please add them at the end
 	// of makesdna.c (this file) as well
 
@@ -714,8 +716,10 @@ static int calculate_structlens(int firststruct)
 						
 						/* struct alignment */
 						if(type >= firststruct) {
-							if(sizeof(void *)==8 && (len % 8) )
+							if(sizeof(void *)==8 && (len % 8) ) {
 								printf("Align struct error: %s %s\n", types[structtype],cp);
+								dna_error = 1;
+							}
 						}
 						
 						/* 2-4 aligned/ */
@@ -1144,4 +1148,6 @@ int main(int argc, char ** argv)
 #include "DNA_color_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
+#include "DNA_particle_types.h"
+#include "DNA_cloth_types.h"
 /* end of list */

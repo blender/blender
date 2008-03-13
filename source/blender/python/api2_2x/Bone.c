@@ -709,6 +709,40 @@ AttributeError:
 		sEditBoneError, ".tailRadius: ", "expects a float");
 }
 
+//------------------------Bone.layerMask (get)
+static PyObject *EditBone_getLayerMask(BPy_EditBone *self)
+{
+	/* do this extra stuff because the short's bits can be negative values */
+	unsigned short laymask = 0;
+	if (self->editbone)	laymask |= self->editbone->layer;
+	else				laymask |= self->layer;
+	return PyInt_FromLong((int)laymask);
+}
+//------------------------Bone.layerMask (set)
+static int EditBone_setLayerMask(BPy_EditBone *self, PyObject *value)
+{
+	int laymask;
+	if (!PyInt_Check(value)) {
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+									"expected an integer (bitmask) as argument" );
+	}
+	
+	laymask = PyInt_AsLong(value);
+
+	if (laymask <= 0 || laymask > (1<<16) - 1)
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+									"bitmask must have from 1 up to 16 bits set");
+	
+	if (self->editbone) {
+		self->editbone->layer = 0;
+		self->editbone->layer |= laymask;
+	} else {
+		self->layer = 0;
+		self->layer |= laymask;
+	}
+	
+	return 0;
+}
 
 //------------------TYPE_OBECT IMPLEMENTATION--------------------------
 //------------------------tp_methods
@@ -749,6 +783,8 @@ static PyGetSetDef BPy_EditBone_getset[] = {
 		"Set the radius of this bones tip", NULL},
 	{"headRadius", (getter)EditBone_getHeadRadius, (setter)EditBone_setHeadRadius, 
 		"Set the radius of this bones head", NULL},
+	{"layerMask", (getter)EditBone_getLayerMask, (setter)EditBone_setLayerMask, 
+		"Layer bitmask", NULL },
 	{NULL, NULL, NULL, NULL,NULL}
 };
 
@@ -761,6 +797,14 @@ static PyObject *EditBone_repr(BPy_EditBone *self)
 	else
 		return PyString_FromFormat( "[EditBone \"%s\"]", self->name ); 
 }
+
+static int EditBone_compare( BPy_EditBone * a, BPy_EditBone * b )
+{
+	/* if they are not wrapped, then they cant be the same */
+	if (a->editbone==NULL && b->editbone==NULL) return -1;
+	return ( a->editbone == b->editbone ) ? 0 : -1;
+}
+
 
 //------------------------tp_doc
 //The __doc__ string for this object
@@ -795,6 +839,7 @@ static PyObject *EditBone_new(PyTypeObject *type, PyObject *args, PyObject *kwds
 	py_editBone->rad_head= 0.10f;
 	py_editBone->rad_tail= 0.05f;
 	py_editBone->segments= 1;
+	py_editBone->layer= 1;
 	py_editBone->flag = 0;
 	py_editBone->roll = 0.0f;
 
@@ -829,7 +874,7 @@ PyTypeObject EditBone_Type = {
 	0,											//tp_print
 	0,											//tp_getattr
 	0,											//tp_setattr
-	0,											//tp_compare
+	(cmpfunc)EditBone_compare,					//tp_compare
 	(reprfunc)EditBone_repr,			//tp_repr
 	0,											//tp_as_number
 	0,											//tp_as_sequence
@@ -1195,6 +1240,35 @@ AttributeError:
 		sEditBoneError, ".headRadius: ", "expects a float");
 }
 
+//------------------------Bone.layerMask (get)
+static PyObject *Bone_getLayerMask(BPy_Bone *self)
+{
+	/* do this extra stuff because the short's bits can be negative values */
+	unsigned short laymask = 0;
+	laymask |= self->bone->layer;
+	return PyInt_FromLong((int)laymask);
+}
+//------------------------Bone.layerMask (set)
+static int Bone_setLayerMask(BPy_Bone *self, PyObject *value)
+{
+	int laymask;
+	if (!PyInt_Check(value)) {
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+									"expected an integer (bitmask) as argument" );
+	}
+	
+	laymask = PyInt_AsLong(value);
+
+	if (laymask <= 0 || laymask > (1<<16) - 1)
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+									"bitmask must have from 1 up to 16 bits set");
+
+	self->bone->layer = 0;
+	self->bone->layer |= laymask;
+
+	return 0;
+}
+
 //------------------TYPE_OBECT IMPLEMENTATION--------------------------
 //------------------------tp_methods
 //This contains a list of all methods the object contains
@@ -1238,6 +1312,8 @@ static PyGetSetDef BPy_Bone_getset[] = {
 		"Set the radius of this bones tip", NULL},
 	{"headRadius", (getter)Bone_getHeadRadius, (setter)Bone_setHeadRadius, 
 		"Set the radius of this bones head", NULL},
+	{"layerMask", (getter)Bone_getLayerMask, (setter)Bone_setLayerMask, 
+		"Layer bitmask", NULL },
 	{NULL, NULL, NULL, NULL,NULL}
 };
 //------------------------tp_repr
@@ -1245,6 +1321,10 @@ static PyGetSetDef BPy_Bone_getset[] = {
 static PyObject *Bone_repr(BPy_Bone *self)
 {
 	return PyString_FromFormat( "[Bone \"%s\"]", self->bone->name ); 
+}
+static int Bone_compare( BPy_Bone * a, BPy_Bone * b )
+{
+	return ( a->bone == b->bone ) ? 0 : -1;
 }
 //------------------------tp_dealloc
 //This tells how to 'tear-down' our object when ref count hits 0
@@ -1262,15 +1342,15 @@ static char BPy_Bone_doc[] = "This object wraps a Blender Boneobject.\n\
 PyTypeObject Bone_Type = {
 	PyObject_HEAD_INIT(NULL)   //tp_head
 	0,										//tp_internal
-	"Bone",								//tp_name
-	sizeof(BPy_Bone),					//tp_basicsize
+	"Bone",									//tp_name
+	sizeof(BPy_Bone),						//tp_basicsize
 	0,										//tp_itemsize
-	(destructor)Bone_dealloc,		//tp_dealloc
+	(destructor)Bone_dealloc,				//tp_dealloc
 	0,										//tp_print
 	0,										//tp_getattr
 	0,										//tp_setattr
-	0,										//tp_compare
-	(reprfunc) Bone_repr,			//tp_repr
+	(cmpfunc) Bone_compare,					//tp_compare
+	(reprfunc) Bone_repr,					//tp_repr
 	0,										//tp_as_number
 	0,										//tp_as_sequence
 	0,										//tp_as_mapping

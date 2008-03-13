@@ -53,6 +53,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -63,6 +64,7 @@
 #include "BKE_global.h"
 #include "BKE_lattice.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
@@ -76,6 +78,7 @@
 #include "BIF_space.h"
 #include "BIF_transform.h"
 #include "BIF_editmesh.h"
+#include "BIF_editparticle.h"
 
 #include "BSE_edit.h"
 #include "BSE_view.h"
@@ -231,51 +234,18 @@ int calc_manipulator_stats(ScrArea *sa)
 			EditMesh *em = G.editMesh;
 			EditVert *eve;
 			float vec[3]= {0,0,0};
-			int no_faces= 1;
 			
 			/* USE LAST SELECTE WITH ACTIVE */
 			if (G.vd->around==V3D_ACTIVE && em->selected.last) {
 				EM_editselection_center(vec, em->selected.last);
 				calc_tw_center(vec);
 				totsel= 1;
-				if (v3d->twmode == V3D_MANIP_NORMAL) {
-					EM_editselection_normal(normal, em->selected.last);
-					EM_editselection_plane(plane, em->selected.last);
-				} /* NORMAL OPERATION */
 			} else {
-				if(v3d->twmode == V3D_MANIP_NORMAL) {
-					EditFace *efa;
-					
-					for(efa= em->faces.first; efa; efa= efa->next) {
-						if(efa->f & SELECT) {
-							no_faces= 0;
-							VECADD(normal, normal, efa->n);
-							VecSubf(vec, efa->v2->co, efa->v1->co);
-							VECADD(plane, plane, vec);
-						}
-					}
-				}
-				
 				/* do vertices for center, and if still no normal found, use vertex normals */
 				for(eve= em->verts.first; eve; eve= eve->next) {
 					if(eve->f & SELECT) {
-						if(no_faces) VECADD(normal, normal, eve->no);
-						
 						totsel++;
 						calc_tw_center(eve->co);
-					}
-				}
-				/* the edge case... */
-				if(no_faces && v3d->twmode == V3D_MANIP_NORMAL) {
-					EditEdge *eed;
-					
-					for(eed= em->edges.first; eed; eed= eed->next) {
-						if(eed->f & SELECT) {
-							/* ok we got an edge, only use one, and as normal */
-							VECCOPY(plane, normal);
-							VecSubf(normal, eed->v2->co, eed->v1->co);
-							break;
-						}
 					}
 				}
 			}
@@ -333,7 +303,7 @@ int calc_manipulator_stats(ScrArea *sa)
 					bp= nu->bp;
 					a= nu->pntsu*nu->pntsv;
 					while(a--) {
-						if(bp->f1 & 1) {
+						if(bp->f1 & SELECT) {
 							calc_tw_center(bp->vec);
 							totsel++;
 						}
@@ -357,23 +327,6 @@ int calc_manipulator_stats(ScrArea *sa)
 				}
 				ml= ml->next;
 			}
-			/* normal manipulator */
-			if(totsel==1){	
-				float mat1[4][4];
-
-				/* Rotation of MetaElem is stored in quat */
- 				QuatToMat4(ml_sel->quat, mat1);
-
-				/* Translation of MetaElem */
-				mat1[3][0]= ml_sel->x;
-				mat1[3][1]= ml_sel->y;
-				mat1[3][2]= ml_sel->z;
-
-				VECCOPY(normal, mat1[2]);
-				VECCOPY(plane, mat1[1]);
-
-				VecMulf(plane, -1.0);
-			}
 		}
 		else if(G.obedit->type==OB_LATTICE) {
 			BPoint *bp;
@@ -381,7 +334,7 @@ int calc_manipulator_stats(ScrArea *sa)
 			
 			a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 			while(a--) {
-				if(bp->f1 & 1) {
+				if(bp->f1 & SELECT) {
 					calc_tw_center(bp->vec);
 					totsel++;
 				}
@@ -427,8 +380,29 @@ int calc_manipulator_stats(ScrArea *sa)
 		/* restore, mode can be TFM_INIT */
 		Trans.mode= mode;
 	}
-	else if(G.f & (G_FACESELECT + G_VERTEXPAINT + G_TEXTUREPAINT +G_WEIGHTPAINT)) {
+	else if(G.f & (G_VERTEXPAINT + G_TEXTUREPAINT + G_WEIGHTPAINT + G_SCULPTMODE)) {
 		;
+	}
+	else if(G.f & G_PARTICLEEDIT) {
+		ParticleSystem *psys=PE_get_current(OBACT);
+		ParticleData *pa = psys->particles;
+		ParticleEditKey *ek;
+		int k;
+
+		if(psys->edit){
+			for(a=0; a<psys->totpart; a++,pa++){
+				if(pa->flag & PARS_HIDE) continue;
+				for(k=0, ek=psys->edit->keys[a]; k<pa->totkey; k++,ek++){
+					if(ek->flag & PEK_SELECT){
+						calc_tw_center(ek->world_co);
+						totsel++;
+					}
+				}
+			}
+			/* selection center */
+			if(totsel)
+				VecMulf(G.scene->twcent, 1.0f/(float)totsel);	// centroid!
+		}
 	}
 	else {
 		
@@ -461,7 +435,55 @@ int calc_manipulator_stats(ScrArea *sa)
 			break;
 			
 		case V3D_MANIP_NORMAL:
-			if(G.obedit || (ob->flag & OB_POSEMODE)) {
+			if(G.obedit) {
+				float mat[3][3];
+				int type;
+
+				strcpy(t->spacename, "normal");
+			
+				type = getTransformOrientation(normal, plane, 0);
+				
+				switch (type)
+				{
+					case ORIENTATION_NORMAL:
+						if (createSpaceNormalTangent(mat, normal, plane) == 0)
+						{
+							type = ORIENTATION_NONE;
+						}
+						break;
+					case ORIENTATION_VERT:
+						if (createSpaceNormal(mat, normal) == 0)
+						{
+							type = ORIENTATION_NONE;
+						}
+						break;
+					case ORIENTATION_EDGE:
+						if (createSpaceNormalTangent(mat, normal, plane) == 0)
+						{
+							type = ORIENTATION_NONE;
+						}
+						break;
+					case ORIENTATION_FACE:
+						if (createSpaceNormalTangent(mat, normal, plane) == 0)
+						{
+							type = ORIENTATION_NONE;
+						}
+						break;
+				}
+				
+				if (type == ORIENTATION_NONE)
+				{
+					Mat4One(v3d->twmat);
+				}
+				else
+				{
+					Mat4CpyMat3(v3d->twmat, mat);
+				}
+				break;
+			}
+			/* pose mode is a bit weird, so keep it separated */
+			else if (ob->flag & OB_POSEMODE)
+			{
 				strcpy(t->spacename, "normal");
 				if(normal[0]!=0.0 || normal[1]!=0.0 || normal[2]!=0.0) {
 					float imat[3][3], mat[3][3];
@@ -502,6 +524,9 @@ int calc_manipulator_stats(ScrArea *sa)
 				Mat3Ortho(mat);
 				Mat4CpyMat3(v3d->twmat, mat);
 			}
+			break;
+		default: /* V3D_MANIP_CUSTOM */
+			applyTransformOrientation();
 			break;
 		}
 		
@@ -1334,13 +1359,13 @@ static void draw_manipulator_rotate_cyl(float mat[][4], int moving, int drawflag
 
 /* ********************************************* */
 
-float get_drawsize(View3D *v3d)
+float get_drawsize(View3D *v3d, float *co)
 {
 	ScrArea *sa = v3d->area;
 	float size, vec[3], len1, len2;
 	
 	/* size calculus, depending ortho/persp settings, like initgrabz() */
-	size= v3d->persmat[0][3]*v3d->twmat[3][0]+ v3d->persmat[1][3]*v3d->twmat[3][1]+ v3d->persmat[2][3]*v3d->twmat[3][2]+ v3d->persmat[3][3];
+	size= v3d->persmat[0][3]*co[0]+ v3d->persmat[1][3]*co[1]+ v3d->persmat[2][3]*co[2]+ v3d->persmat[3][3];
 	
 	VECCOPY(vec, v3d->persinv[0]);
 	len1= Normalize(vec);
@@ -1359,7 +1384,7 @@ float get_drawsize(View3D *v3d)
 static float get_manipulator_drawsize(ScrArea *sa)
 {
 	View3D *v3d= sa->spacedata.first;
-	float size = get_drawsize(v3d);
+	float size = get_drawsize(v3d, v3d->twmat[3]);
 	
 	size*= (float)U.tw_size;
 

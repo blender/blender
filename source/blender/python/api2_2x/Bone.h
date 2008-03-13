@@ -65,6 +65,7 @@ typedef struct {
 	float rad_head;
 	float rad_tail;
 	short segments;
+	short layer;
 } BPy_EditBone;
 /*-------------------VISIBLE PROTOTYPES-------------------------*/
 PyObject *PyBone_FromBone(struct Bone *bone);

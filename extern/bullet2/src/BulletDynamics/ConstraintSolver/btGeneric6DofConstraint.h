@@ -16,9 +16,8 @@ subject to the following restrictions:
 #ifndef GENERIC_6DOF_CONSTRAINT_H
 #define GENERIC_6DOF_CONSTRAINT_H
 
-#include "LinearMath/btVector3.h"
-
-#include "BulletDynamics/ConstraintSolver/btJacobianEntry.h"
+#include "../../LinearMath/btVector3.h"
+#include "btJacobianEntry.h"
 #include "btTypedConstraint.h"
 
 class btRigidBody;
@@ -41,12 +40,19 @@ class btGeneric6DofConstraint : public btTypedConstraint
 
 	btScalar		m_accumulatedImpulse[6];
 
+	btGeneric6DofConstraint&	operator=(btGeneric6DofConstraint&	other)
+	{
+		btAssert(0);
+		(void) other;
+		return *this;
+	}
 		
 public:
 	btGeneric6DofConstraint(btRigidBody& rbA, btRigidBody& rbB, const btTransform& frameInA, const btTransform& frameInB );
 
 	btGeneric6DofConstraint();
 
+	
 	virtual void	buildJacobian();
 
 	virtual	void	solveConstraint(btScalar	timeStep);

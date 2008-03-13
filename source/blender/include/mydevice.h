@@ -257,6 +257,8 @@
 #define REDRAWANIM			0x4037
 #define REDRAWNODE			0x4038
 #define RECALC_COMPOSITE	0x4039
+#define REDRAWMARKER		0x4040 /* all views that display markers */
+#define REDRAWVIEW3D_IMAGE	0x4041
 
 #endif	/* !__MYDEVICE_H__ */
 

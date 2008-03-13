@@ -760,7 +760,28 @@ void Mat4MulSerie(float answ[][4], float m1[][4],
 	}
 }
 
+void Mat4BlendMat4(float out[][4], float dst[][4], float src[][4], float srcweight)
+{
+	float squat[4], dquat[4], fquat[4];
+	float ssize[3], dsize[3], fsize[4];
+	float sloc[3], dloc[3], floc[3];
+	
+	Mat4ToQuat(dst, dquat);
+	Mat4ToSize(dst, dsize);
+	VecCopyf(dloc, dst[3]);
 
+	Mat4ToQuat(src, squat);
+	Mat4ToSize(src, ssize);
+	VecCopyf(sloc, src[3]);
+	
+	/* do blending */
+	VecLerpf(floc, dloc, sloc, srcweight);
+	QuatInterpol(fquat, dquat, squat, srcweight);
+	VecLerpf(fsize, dsize, ssize, srcweight);
+
+	/* compose new matrix */
+	LocQuatSizeToMat4(out, floc, fquat, fsize);
+}
 
 void Mat4Clr(float *m)
 {
@@ -915,7 +936,7 @@ void Mat4MulFloat(float *m, float f)
 {
 	int i;
 
-	for(i=0;i<12;i++) m[i]*=f;	/* count to 12: without vector component */
+	for(i=0;i<16;i++) m[i]*=f;	/* count to 12: without vector component */
 }
 
 
@@ -929,6 +950,24 @@ void Mat4MulFloat3(float *m, float f)		/* only scale component */
 			m[4*i+j] *= f;
 		}
 	}
+}
+
+void Mat3AddMat3(float m1[][3], float m2[][3], float m3[][3])
+{
+	int i, j;
+
+	for(i=0;i<3;i++)
+		for(j=0;j<3;j++)
+			m1[i][j]= m2[i][j] + m3[i][j];
+}
+
+void Mat4AddMat4(float m1[][4], float m2[][4], float m3[][4])
+{
+	int i, j;
+
+	for(i=0;i<4;i++)
+		for(j=0;j<4;j++)
+			m1[i][j]= m2[i][j] + m3[i][j];
 }
 
 void VecStar(float mat[][3], float *vec)
@@ -1070,6 +1109,7 @@ void QuatInv(float *q)
 	QuatMulf(q, 1.0f/f);
 }
 
+/* simple mult */
 void QuatMulf(float *q, float f)
 {
 	q[0] *= f;
@@ -1085,6 +1125,20 @@ void QuatSub(float *q, float *q1, float *q2)
 	q2[0]= -q2[0];
 }
 
+/* angular mult factor */
+void QuatMulFac(float *q, float fac)
+{
+	float angle= fac*saacos(q[0]);	/* quat[0]= cos(0.5*angle), but now the 0.5 and 2.0 rule out */
+	
+	float co= (float)cos(angle);
+	float si= (float)sin(angle);
+	q[0]= co;
+	Normalize(q+1);
+	q[1]*= si;
+	q[2]*= si;
+	q[3]*= si;
+	
+}
 
 void QuatToMat3( float *q, float m[][3])
 {
@@ -1157,7 +1211,7 @@ void QuatToMat4( float *q, float m[][4])
 	m[3][3]= 1.0f;
 }
 
-void Mat3ToQuat( float wmat[][3], float *q)		/* from Sig.Proc.85 pag 253 */
+void Mat3ToQuat(float wmat[][3], float *q)
 {
 	double tr, s;
 	float mat[3][3];
@@ -1171,34 +1225,38 @@ void Mat3ToQuat( float wmat[][3], float *q)		/* from Sig.Proc.85 pag 253 */
 	if(tr>FLT_EPSILON) {
 		s= sqrt( tr);
 		q[0]= (float)s;
-		s*= 4.0;
-		q[1]= (float)((mat[1][2]-mat[2][1])/s);
-		q[2]= (float)((mat[2][0]-mat[0][2])/s);
-		q[3]= (float)((mat[0][1]-mat[1][0])/s);
+		s= 1.0/(4.0*s);
+		q[1]= (float)((mat[1][2]-mat[2][1])*s);
+		q[2]= (float)((mat[2][0]-mat[0][2])*s);
+		q[3]= (float)((mat[0][1]-mat[1][0])*s);
 	}
 	else {
-		q[0]= 0.0f;
-		s= -0.5*(mat[1][1]+mat[2][2]);
-		
-		if(s>FLT_EPSILON) {
-			s= sqrt(s);
-			q[1]= (float)s;
-			q[2]= (float)(mat[0][1]/(2*s));
-			q[3]= (float)(mat[0][2]/(2*s));
+		if(mat[0][0] > mat[1][1] && mat[0][0] > mat[2][2]) {
+			s= 2.0*sqrtf(1.0 + mat[0][0] - mat[1][1] - mat[2][2]);
+			q[1]= (float)(0.25*s);
+
+			s= 1.0/s;
+			q[0]= (float)((mat[2][1] - mat[1][2])*s);
+			q[2]= (float)((mat[1][0] + mat[0][1])*s);
+			q[3]= (float)((mat[2][0] + mat[0][2])*s);
+		}
+		else if(mat[1][1] > mat[2][2]) {
+			s= 2.0*sqrtf(1.0 + mat[1][1] - mat[0][0] - mat[2][2]);
+			q[2]= (float)(0.25*s);
+
+			s= 1.0/s;
+			q[0]= (float)((mat[2][0] - mat[0][2])*s);
+			q[1]= (float)((mat[1][0] + mat[0][1])*s);
+			q[3]= (float)((mat[2][1] + mat[1][2])*s);
 		}
 		else {
-			q[1]= 0.0f;
-			s= 0.5*(1.0-mat[2][2]);
-			
-			if(s>FLT_EPSILON) {
-				s= sqrt(s);
-				q[2]= (float)s;
-				q[3]= (float)(mat[1][2]/(2*s));
-			}
-			else {
-				q[2]= 0.0f;
-				q[3]= 1.0f;
-			}
+			s= 2.0*sqrtf(1.0 + mat[2][2] - mat[0][0] - mat[1][1]);
+			q[3]= (float)(0.25*s);
+
+			s= 1.0/s;
+			q[0]= (float)((mat[1][0] - mat[0][1])*s);
+			q[1]= (float)((mat[2][0] + mat[0][2])*s);
+			q[2]= (float)((mat[2][1] + mat[1][2])*s);
 		}
 	}
 	NormalQuat(q);
@@ -1279,9 +1337,8 @@ void NormalQuat(float *q)
 	}
 }
 
-float *vectoquat( float *vec, short axis, short upflag)
+void vectoquat(float *vec, short axis, short upflag, float *q)
 {
-	static float q1[4];
 	float q2[4], nor[3], *fp, mat[3][3], angle, si, co, x2, y2, z2, len1;
 	
 	/* first rotate to axis */
@@ -1293,11 +1350,11 @@ float *vectoquat( float *vec, short axis, short upflag)
 		x2= -vec[0] ; y2= -vec[1] ; z2= -vec[2];
 	}
 	
-	q1[0]=1.0; 
-	q1[1]=q1[2]=q1[3]= 0.0;
+	q[0]=1.0; 
+	q[1]=q[2]=q[3]= 0.0;
 
 	len1= (float)sqrt(x2*x2+y2*y2+z2*z2);
-	if(len1 == 0.0) return(q1);
+	if(len1 == 0.0) return;
 
 	/* nasty! I need a good routine for this...
 	 * problem is a rotation of an Y axis to the negative Y-axis for example.
@@ -1308,9 +1365,8 @@ float *vectoquat( float *vec, short axis, short upflag)
 		nor[1]= -z2;
 		nor[2]= y2;
 
-		if( fabs(y2)+fabs(z2)<0.0001 ) {
+		if(fabs(y2)+fabs(z2)<0.0001)
 			nor[1]= 1.0;
-		}
 
 		co= x2;
 	}
@@ -1319,9 +1375,8 @@ float *vectoquat( float *vec, short axis, short upflag)
 		nor[1]= 0.0;
 		nor[2]= -x2;
 		
-		if( fabs(x2)+fabs(z2)<0.0001 ) {
+		if(fabs(x2)+fabs(z2)<0.0001)
 			nor[2]= 1.0;
-		}
 		
 		co= y2;
 	}
@@ -1330,9 +1385,8 @@ float *vectoquat( float *vec, short axis, short upflag)
 		nor[1]= x2;
 		nor[2]= 0.0;
 
-		if( fabs(x2)+fabs(y2)<0.0001 ) {
+		if(fabs(x2)+fabs(y2)<0.0001)
 			nor[0]= 1.0;
-		}
 
 		co= z2;
 	}
@@ -1342,13 +1396,13 @@ float *vectoquat( float *vec, short axis, short upflag)
 	
 	angle= 0.5f*saacos(co);
 	si= (float)sin(angle);
-	q1[0]= (float)cos(angle);
-	q1[1]= nor[0]*si;
-	q1[2]= nor[1]*si;
-	q1[3]= nor[2]*si;
+	q[0]= (float)cos(angle);
+	q[1]= nor[0]*si;
+	q[2]= nor[1]*si;
+	q[3]= nor[2]*si;
 	
 	if(axis!=upflag) {
-		QuatToMat3(q1, mat);
+		QuatToMat3(q, mat);
 
 		fp= mat[2];
 		if(axis==0) {
@@ -1371,10 +1425,8 @@ float *vectoquat( float *vec, short axis, short upflag)
 		q2[2]= y2*si;
 		q2[3]= z2*si;
 			
-		QuatMul(q1,q2,q1);
+		QuatMul(q,q2,q);
 	}
-
-	return(q1);
 }
 
 void VecUpMat3old( float *vec, float mat[][3], short axis)
@@ -1556,6 +1608,225 @@ void QuatAdd(float *result, float *quat1, float *quat2, float t)
 	result[1]= quat1[1] + t*quat2[1];
 	result[2]= quat1[2] + t*quat2[2];
 	result[3]= quat1[3] + t*quat2[3];
+}
+
+void QuatCopy(float *q1, float *q2)
+{
+	q1[0]= q2[0];
+	q1[1]= q2[1];
+	q1[2]= q2[2];
+	q1[3]= q2[3];
+}
+
+/* **************** DUAL QUATERNIONS ************** */
+
+/*
+   Conversion routines between (regular quaternion, translation) and
+   dual quaternion.
+
+   Version 1.0.0, February 7th, 2007
+
+   Copyright (C) 2006-2007 University of Dublin, Trinity College, All Rights 
+   Reserved
+
+   This software is provided 'as-is', without any express or implied
+   warranty.  In no event will the author(s) be held liable for any damages
+   arising from the use of this software.
+
+   Permission is granted to anyone to use this software for any purpose,
+   including commercial applications, and to alter it and redistribute it
+   freely, subject to the following restrictions:
+
+   1. The origin of this software must not be misrepresented; you must not
+      claim that you wrote the original software. If you use this software
+      in a product, an acknowledgment in the product documentation would be
+      appreciated but is not required.
+   2. Altered source versions must be plainly marked as such, and must not be
+      misrepresented as being the original software.
+   3. This notice may not be removed or altered from any source distribution.
+
+   Author: Ladislav Kavan, kavanl@cs.tcd.ie
+
+   Changes for Blender:
+   - renaming, style changes and optimizations
+   - added support for scaling
+*/
+
+void Mat4ToDQuat(float basemat[][4], float mat[][4], DualQuat *dq)
+{
+	float *t, *q, dscale[3], scale[3], basequat[4];
+	float baseRS[4][4], baseinv[4][4], baseR[4][4], baseRinv[4][4];
+	float R[4][4], S[4][4];
+
+	/* split scaling and rotation, there is probably a faster way to do
+	   this, it's done like this now to correctly get negative scaling */
+	Mat4MulMat4(baseRS, basemat, mat);
+	Mat4ToSize(baseRS, scale);
+
+	VecCopyf(dscale, scale);
+	dscale[0] -= 1.0f; dscale[1] -= 1.0f; dscale[2] -= 1.0f;
+
+	if((Det4x4(mat) < 0.0f) || VecLength(dscale) > 1e-4) {
+		/* extract R and S  */
+		Mat4ToQuat(baseRS, basequat);
+		QuatToMat4(basequat, baseR);
+		VecCopyf(baseR[3], baseRS[3]);
+
+		Mat4Invert(baseinv, basemat);
+		Mat4MulMat4(R, baseinv, baseR);
+
+		Mat4Invert(baseRinv, baseR);
+		Mat4MulMat4(S, baseRS, baseRinv);
+
+		/* set scaling part */
+		Mat4MulSerie(dq->scale, basemat, S, baseinv, 0, 0, 0, 0, 0);
+		dq->scale_weight= 1.0f;
+	}
+	else {
+		/* matrix does not contain scaling */
+		Mat4CpyMat4(R, mat);
+		dq->scale_weight= 0.0f;
+	}
+
+	/* non-dual part */
+	Mat4ToQuat(R, dq->quat);
+
+	/* dual part */
+	t= R[3];
+	q= dq->quat;
+	dq->trans[0]= -0.5f*( t[0]*q[1] + t[1]*q[2] + t[2]*q[3]);
+	dq->trans[1]=  0.5f*( t[0]*q[0] + t[1]*q[3] - t[2]*q[2]);
+	dq->trans[2]=  0.5f*(-t[0]*q[3] + t[1]*q[0] + t[2]*q[1]);
+	dq->trans[3]=  0.5f*( t[0]*q[2] - t[1]*q[1] + t[2]*q[0]);
+}
+
+void DQuatToMat4(DualQuat *dq, float mat[][4])
+{
+	float len, *t, q0[4];
+	
+	/* regular quaternion */
+	QuatCopy(q0, dq->quat);
+
+	/* normalize */
+	len= sqrt(QuatDot(q0, q0)); 
+	if(len != 0.0f)
+		QuatMulf(q0, 1.0f/len);
+	
+	/* rotation */
+	QuatToMat4(q0, mat);
+
+	/* translation */
+	t= dq->trans;
+	mat[3][0]= 2.0*(-t[0]*q0[1] + t[1]*q0[0] - t[2]*q0[3] + t[3]*q0[2]);
+	mat[3][1]= 2.0*(-t[0]*q0[2] + t[1]*q0[3] + t[2]*q0[0] - t[3]*q0[1]);
+	mat[3][2]= 2.0*(-t[0]*q0[3] - t[1]*q0[2] + t[2]*q0[1] + t[3]*q0[0]);
+
+	/* note: this does not handle scaling */
+}	
+
+void DQuatAddWeighted(DualQuat *dqsum, DualQuat *dq, float weight)
+{
+	/* make sure we interpolate quats in the right direction */
+	if (QuatDot(dq->quat, dqsum->quat) < 0)
+		weight = -weight;
+
+	/* interpolate rotation and translation */
+	dqsum->quat[0] += weight*dq->quat[0];
+	dqsum->quat[1] += weight*dq->quat[1];
+	dqsum->quat[2] += weight*dq->quat[2];
+	dqsum->quat[3] += weight*dq->quat[3];
+
+	dqsum->trans[0] += weight*dq->trans[0];
+	dqsum->trans[1] += weight*dq->trans[1];
+	dqsum->trans[2] += weight*dq->trans[2];
+	dqsum->trans[3] += weight*dq->trans[3];
+
+	/* interpolate scale - but only if needed */
+	if (dq->scale_weight) {
+		float wmat[4][4];
+
+		Mat4CpyMat4(wmat, dq->scale);
+		Mat4MulFloat((float*)wmat, weight);
+		Mat4AddMat4(dqsum->scale, dqsum->scale, wmat);
+		dqsum->scale_weight += weight;
+	}
+}
+
+void DQuatNormalize(DualQuat *dq, float totweight)
+{
+	float scale= 1.0f/totweight;
+
+	QuatMulf(dq->quat, scale);
+	QuatMulf(dq->trans, scale);
+	
+	if(dq->scale_weight) {
+		float addweight= totweight - dq->scale_weight;
+
+		if(addweight) {
+			dq->scale[0][0] += addweight;
+			dq->scale[1][1] += addweight;
+			dq->scale[2][2] += addweight;
+			dq->scale[3][3] += addweight;
+		}
+
+		Mat4MulFloat((float*)dq->scale, scale);
+		dq->scale_weight= 1.0f;
+	}
+}
+
+void DQuatMulVecfl(DualQuat *dq, float *co, float mat[][3])
+{	
+	float M[3][3], t[3], scalemat[3][3], len2;
+	float w= dq->quat[0], x= dq->quat[1], y= dq->quat[2], z= dq->quat[3];
+	float t0= dq->trans[0], t1= dq->trans[1], t2= dq->trans[2], t3= dq->trans[3];
+	
+	/* rotation matrix */
+	M[0][0]= w*w + x*x - y*y - z*z;
+	M[1][0]= 2*(x*y - w*z);
+	M[2][0]= 2*(x*z + w*y);
+
+	M[0][1]= 2*(x*y + w*z);
+	M[1][1]= w*w + y*y - x*x - z*z;
+	M[2][1]= 2*(y*z - w*x); 
+
+	M[0][2]= 2*(x*z - w*y);
+	M[1][2]= 2*(y*z + w*x);
+	M[2][2]= w*w + z*z - x*x - y*y;
+	
+	len2= QuatDot(dq->quat, dq->quat);
+	if(len2 > 0.0f)
+		len2= 1.0f/len2;
+	
+	/* translation */
+	t[0]= 2*(-t0*x + w*t1 - t2*z + y*t3);
+	t[1]= 2*(-t0*y + t1*z - x*t3 + w*t2);
+	t[2]= 2*(-t0*z + x*t2 + w*t3 - t1*y);
+
+	/* apply scaling */
+	if(dq->scale_weight)
+		Mat4MulVecfl(dq->scale, co);
+	
+	/* apply rotation and translation */
+	Mat3MulVecfl(M, co);
+	co[0]= (co[0] + t[0])*len2;
+	co[1]= (co[1] + t[1])*len2;
+	co[2]= (co[2] + t[2])*len2;
+
+	/* compute crazyspace correction mat */
+	if(mat) {
+		if(dq->scale_weight) {
+			Mat3CpyMat4(scalemat, dq->scale);
+			Mat3MulMat3(mat, M, scalemat);
+		}
+		else
+			Mat3CpyMat3(mat, M);
+		Mat3MulFloat((float*)mat, len2);
+	}
+}
+
+void DQuatCpyDQuat(DualQuat *dq1, DualQuat *dq2)
+{
+	memcpy(dq1, dq2, sizeof(DualQuat));
 }
 
 /* **************** VIEW / PROJECTION ********************************  */
@@ -1767,7 +2038,6 @@ void Mat4Ortho(float mat[][4])
 
 void VecCopyf(float *v1, float *v2)
 {
-
 	v1[0]= v2[0];
 	v1[1]= v2[1];
 	v1[2]= v2[2];
@@ -1834,6 +2104,30 @@ void VecMulf(float *v1, float f)
 	v1[0]*= f;
 	v1[1]*= f;
 	v1[2]*= f;
+}
+
+void VecOrthoBasisf(float *v, float *v1, float *v2)
+{
+	if (v[0] == 0.0f && v[1] == 0.0f)
+	{
+		// degenerate case
+		v1[0] = 0.0f; v1[1] = 1.0f; v1[2] = 0.0f;
+		if (v[2] > 0.0f) {
+			v2[0] = 1.0f; v2[1] = v2[2] = 0.0f;
+		}
+		else {
+			v2[0] = -1.0f; v2[1] = v2[2] = 0.0f;
+		}
+	}
+	else 
+	{
+		float f = 1.0f/sqrt(v[0]*v[0] + v[1]*v[1]);
+		v1[0] = v[1]*f;
+		v1[1] = -v[0]*f;
+		v1[2] = 0.0f;
+
+		Crossf(v2, v, v1);
+	}
 }
 
 int VecLenCompare(float *v1, float *v2, float limit)
@@ -2125,6 +2419,98 @@ short IsectLL2Df(float *v1, float *v2, float *v3, float *v4)
 	return 0;
 }
 
+/*
+-1: colliniar
+ 1: intersection
+
+*/
+short IsectLLPt2Df(float x0,float y0,float x1,float y1,
+					 float x2,float y2,float x3,float y3, float *xi,float *yi)
+
+{
+	/*
+	this function computes the intersection of the sent lines
+	and returns the intersection point, note that the function assumes
+	the lines intersect. the function can handle vertical as well
+	as horizontal lines. note the function isn't very clever, it simply
+	applies the math, but we don't need speed since this is a
+	pre-processing step
+	*/
+	float c1,c2, // constants of linear equations
+	det_inv,  // the inverse of the determinant of the coefficient
+	m1,m2;    // the slopes of each line
+	/*
+	compute slopes, note the cludge for infinity, however, this will
+	be close enough
+	*/
+	if ( fabs( x1-x0 ) > 0.000001 )
+		m1 = ( y1-y0 ) / ( x1-x0 );
+	else
+		return -1; /*m1 = ( float ) 1e+10;*/   // close enough to infinity
+
+	if ( fabs( x3-x2 ) > 0.000001 )
+		m2 = ( y3-y2 ) / ( x3-x2 );
+	else
+		return -1; /*m2 = ( float ) 1e+10;*/   // close enough to infinity
+
+	if (fabs(m1-m2) < 0.000001)
+		return -1; /* paralelle lines */
+	
+// compute constants
+
+	c1 = ( y0-m1*x0 );
+	c2 = ( y2-m2*x2 );
+
+// compute the inverse of the determinate
+
+	det_inv = 1.0f / ( -m1 + m2 );
+
+// use Kramers rule to compute xi and yi
+
+	*xi= ( ( -c2 + c1 ) *det_inv );
+	*yi= ( ( m2*c1 - m1*c2 ) *det_inv );
+	
+	return 1; 
+} // end Intersect_Lines
+
+#define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
+#define ISECT_EPSILON 1e-6
+
+/* point in tri */
+int IsectPT2Df(float pt[2], float v1[2], float v2[2], float v3[2])
+{
+	if ((SIDE_OF_LINE(v1,v2,pt)>=-ISECT_EPSILON) &&
+		(SIDE_OF_LINE(v2,v3,pt)>=-ISECT_EPSILON) &&
+		(SIDE_OF_LINE(v3,v1,pt)>=-ISECT_EPSILON))
+		return 1;
+	else {
+		return 0;
+	}
+}
+/* point in quad - only convex quads */
+int IsectPQ2Df(float pt[2], float v1[2], float v2[2], float v3[2], float v4[2])
+{
+	if ((SIDE_OF_LINE(v1,v2,pt)>=-ISECT_EPSILON) &&
+		(SIDE_OF_LINE(v2,v3,pt)>=-ISECT_EPSILON) &&
+		(SIDE_OF_LINE(v3,v4,pt)>=-ISECT_EPSILON) &&
+		(SIDE_OF_LINE(v4,v1,pt)>=-ISECT_EPSILON))
+		return 1;
+	else
+		return 0;
+}
+
+
+
+			/* copied from Geometry.c - todo - move to arithb.c or some other generic place we can reuse */
+#define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
+#define POINT_IN_TRI(p0,p1,p2,p3)	((SIDE_OF_LINE(p1,p2,p0)>=0) && (SIDE_OF_LINE(p2,p3,p0)>=0) && (SIDE_OF_LINE(p3,p1,p0)>=0))
+
+/**
+ * 
+ * @param min 
+ * @param max 
+ * @param vec 
+ */
 void MinMax3(float *min, float *max, float *vec)
 {
 	if(min[0]>vec[0]) min[0]= vec[0];
@@ -2225,7 +2611,53 @@ void InterpWeightsQ3Dfl(float *v1, float *v2, float *v3, float *v4, float *co, f
 		else
 			BarycentricWeights(v1, v2, v3, co, n, w);
 	}
-} 
+}
+
+/* Mean value weights - smooth interpolation weights for polygons with
+ * more than 3 vertices */
+static float MeanValueHalfTan(float *v1, float *v2, float *v3)
+{
+	float d2[3], d3[3], cross[3], area, dot, len;
+
+	VecSubf(d2, v2, v1);
+	VecSubf(d3, v3, v1);
+	Crossf(cross, d2, d3);
+
+	area= VecLength(cross);
+	dot= Inpf(d2, d3);
+	len= VecLength(d2)*VecLength(d3);
+
+	if(area == 0.0f)
+		return 0.0f;
+	else
+		return (len - dot)/area;
+}
+
+void MeanValueWeights(float v[][3], int n, float *co, float *w)
+{
+	float totweight, t1, t2, len, *vmid, *vprev, *vnext;
+	int i;
+
+	totweight= 0.0f;
+
+	for(i=0; i<n; i++) {
+		vmid= v[i];
+		vprev= (i == 0)? v[n-1]: v[i-1];
+		vnext= (i == n-1)? v[0]: v[i+1];
+
+		t1= MeanValueHalfTan(co, vprev, vmid);
+		t2= MeanValueHalfTan(co, vmid, vnext);
+
+		len= VecLenf(co, vmid);
+		w[i]= (t1+t2)/len;
+		totweight += w[i];
+	}
+
+	if(totweight != 0.0f)
+		for(i=0; i<n; i++)
+			w[i] /= totweight;
+}
+
 
 /* ************ EULER *************** */
 
@@ -2391,6 +2823,15 @@ void VecRotToMat3( float *vec, float phi, float mat[][3])
 	
 }
 
+void VecRotToMat4( float *vec, float phi, float mat[][4])
+{
+	float tmat[3][3];
+	
+	VecRotToMat3(vec, phi, tmat);
+	Mat4One(mat);
+	Mat4CpyMat3(mat, tmat);
+}
+
 void VecRotToQuat( float *vec, float phi, float *quat)
 {
 	/* rotation of phi radials around vec */
@@ -2399,7 +2840,7 @@ void VecRotToQuat( float *vec, float phi, float *quat)
 	quat[1]= vec[0];
 	quat[2]= vec[1];
 	quat[3]= vec[2];
-													   
+	
 	if( Normalize(quat+1) == 0.0) {
 		QuatOne(quat);
 	}
@@ -2425,6 +2866,22 @@ float VecAngle3(float *v1, float *v2, float *v3)
 	Normalize(vec2);
 
 	return NormalizedVecAngle2(vec1, vec2) * 180.0/M_PI;
+}
+
+float VecAngle3_2D(float *v1, float *v2, float *v3)
+{
+	float vec1[2], vec2[2];
+
+	vec1[0] = v2[0]-v1[0];
+	vec1[1] = v2[1]-v1[1];
+	
+	vec2[0] = v2[0]-v3[0];
+	vec2[1] = v2[1]-v3[1];
+	
+	Normalize2(vec1);
+	Normalize2(vec2);
+
+	return NormalizedVecAngle2_2D(vec1, vec2) * 180.0/M_PI;
 }
 
 /* Return the shortest angle in degrees between the 2 vectors */
@@ -2454,6 +2911,21 @@ float NormalizedVecAngle2(float *v1, float *v2)
 	}
 	else
 		return 2.0f*saasin(VecLenf(v2, v1)/2.0);
+}
+
+float NormalizedVecAngle2_2D(float *v1, float *v2)
+{
+	/* this is the same as acos(Inpf(v1, v2)), but more accurate */
+	if (Inp2f(v1, v2) < 0.0f) {
+		float vec[2];
+		
+		vec[0]= -v2[0];
+		vec[1]= -v2[1];
+
+		return (float)M_PI - 2.0f*saasin(Vec2Lenf(vec, v1)/2.0f);
+	}
+	else
+		return 2.0f*saasin(Vec2Lenf(v2, v1)/2.0);
 }
 
 void euler_rot(float *beul, float ang, char axis)
@@ -2577,31 +3049,47 @@ void SizeToMat3( float *size, float mat[][3])
 	mat[2][0]= 0.0;
 }
 
+void SizeToMat4( float *size, float mat[][4])
+{
+	float tmat[3][3];
+	
+	SizeToMat3(size, tmat);
+	Mat4One(mat);
+	Mat4CpyMat3(mat, tmat);
+}
+
 void Mat3ToSize( float mat[][3], float *size)
 {
-	float vec[3];
-
-	VecCopyf(vec, mat[0]);
-	size[0]= Normalize(vec);
-	VecCopyf(vec, mat[1]);
-	size[1]= Normalize(vec);
-	VecCopyf(vec, mat[2]);
-	size[2]= Normalize(vec);
-
+	size[0]= VecLength(mat[0]);
+	size[1]= VecLength(mat[1]);
+	size[2]= VecLength(mat[2]);
 }
 
 void Mat4ToSize( float mat[][4], float *size)
 {
-	float vec[3];
-	
-
-	VecCopyf(vec, mat[0]);
-	size[0]= Normalize(vec);
-	VecCopyf(vec, mat[1]);
-	size[1]= Normalize(vec);
-	VecCopyf(vec, mat[2]);
-	size[2]= Normalize(vec);
+	size[0]= VecLength(mat[0]);
+	size[1]= VecLength(mat[1]);
+	size[2]= VecLength(mat[2]);
 }
+
+/* this gets the average scale of a matrix, only use when your scaling
+ * data that has no idea of scale axis, examples are bone-envelope-radius
+ * and curve radius */
+float Mat3ToScalef(float mat[][3])
+{
+	/* unit length vector */
+	float unit_vec[3] = {0.577350269189626, 0.577350269189626, 0.577350269189626};
+	Mat3MulVecfl(mat, unit_vec);
+	return VecLength(unit_vec);
+}
+
+float Mat4ToScalef(float mat[][4])
+{
+	float tmat[3][3];
+	Mat3CpyMat4(tmat, mat);
+	return Mat3ToScalef(tmat);
+}
+
 
 /* ************* SPECIALS ******************* */
 
@@ -2666,6 +3154,11 @@ float Vec2Lenf(float *v1, float *v2)
 	x = v1[0]-v2[0];
 	y = v1[1]-v2[1];
 	return (float)sqrt(x*x+y*y);
+}
+
+float Vec2Length(float *v)
+{
+	return (float)sqrt(v[0]*v[0] + v[1]*v[1]);
 }
 
 void Vec2Mulf(float *v1, float f)
@@ -2947,6 +3440,8 @@ void tubemap(float x, float y, float z, float *u, float *v)
 	len= sqrt(x*x+y*y);
 	if(len>0) {
 		*u = (1.0 - (atan2(x/len,y/len) / M_PI)) / 2.0;
+	} else {
+		*v = *u = 0.0f; /* to avoid un-initialized variables */
 	}
 }
 
@@ -2964,6 +3459,8 @@ void spheremap(float x, float y, float z, float *u, float *v)
 		
 		z/=len;
 		*v = 1.0- saacos(z)/M_PI;
+	} else {
+		*v = *u = 0.0f; /* to avoid un-initialized variables */
 	}
 }
 
@@ -3134,7 +3631,7 @@ void mul_v3_v3m4(float *v1, float *v2, float mat[][4])
    test if the line starting at p1 ending at p2 intersects the triangle v0..v2
    return non zero if it does 
 */
-int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda)
+int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv)
 {
 
 	float p[3], s[3], d[3], e1[3], e2[3], q[3];
@@ -3160,15 +3657,318 @@ int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], f
 	
 	v = f * Inpf(d, q);
 	if ((v < 0.0)||((u + v) > 1.0)) return 0;
+
+	if(uv) {
+		uv[0]= u;
+		uv[1]= v;
+	}
 	
 	return 1;
 }
 
+/* Adapted from the paper by Kasper Fauerby */
+/* "Improved Collision detection and Response" */
+int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, float v0[3], float v1[3], float v2[3], float *lambda, float *ipoint)
+{
+	float e1[3], e2[3], e3[3], point[3], vel[3], /*dist[3],*/ nor[3], temp[3], bv[3];
+	float a, b, c, d, e, x, y, z, t, t0, t1, radius2=radius*radius;
+	float elen2,edotv,edotbv,nordotv,vel2;
+	int embedded_in_plane=0, found_by_sweep=0;
 
-/*
-find closest point to p on line through l1,l2
-and return lambda, where (0 <= lambda <= 1) when cp is in the line segement l1,l2
-*/
+	VecSubf(e1,v1,v0);
+	VecSubf(e2,v2,v0);
+	VecSubf(vel,p2,p1);
+
+/*---test plane of tri---*/
+	Crossf(nor,e1,e2);
+	Normalize(nor);
+	/* flip normal */
+	if(Inpf(nor,vel)>0.0f) VecMulf(nor,-1.0f);
+	
+	a=Inpf(p1,nor)-Inpf(v0,nor);
+
+	nordotv=Inpf(nor,vel);
+
+	if ((nordotv > -0.000001) && (nordotv < 0.000001)) {
+		if(fabs(a)>=1.0f)
+			return 0;
+		else{
+			embedded_in_plane=1;
+			t0=0.0f;
+			t1=1.0f;
+		}
+	}
+	else{
+		t0=(radius-a)/nordotv;
+		t1=(-radius-a)/nordotv;
+		/* make t0<t1 */
+		if(t0>t1){b=t1; t1=t0; t0=b;}
+
+		if(t0>1.0f || t1<0.0f) return 0;
+
+		/* clamp to [0,1] */
+		t0=(t0<0.0f)?0.0f:((t0>1.0f)?1.0:t0);
+		t1=(t1<0.0f)?0.0f:((t1>1.0f)?1.0:t1);
+	}
+
+/*---test inside of tri---*/
+	if(embedded_in_plane==0){
+		/* plane intersection point */
+		VecCopyf(point,vel);
+		VecMulf(point,t0);
+		VecAddf(point,point,p1);
+		VecCopyf(temp,nor);
+		VecMulf(temp,radius);
+		VecSubf(point,point,temp);
+
+		/* is the point in the tri? */
+		a=Inpf(e1,e1);
+		b=Inpf(e1,e2);
+		c=Inpf(e2,e2);
+
+		VecSubf(temp,point,v0);
+		d=Inpf(temp,e1);
+		e=Inpf(temp,e2);
+		
+		x=d*c-e*b;
+		y=e*a-d*b;
+		z=x+y-(a*c-b*b);
+
+		if(( ((unsigned int)z)& ~(((unsigned int)x)|((unsigned int)y)) ) & 0x80000000){
+			*lambda=t0;
+			VecCopyf(ipoint,point);
+			return 1;
+		}
+	}
+
+	*lambda=1.0f;
+/*---test points---*/
+	a=vel2=Inpf(vel,vel);
+
+	/*v0*/
+	VecSubf(temp,p1,v0);
+	b=2.0f*Inpf(vel,temp);
+	c=Inpf(temp,temp)-radius2;
+	d=b*b-4*a*c;
+
+	if(d>=0.0f){
+		if(d==0.0f)
+			t=-b/2*a;
+		else{
+			z=sqrt(d);
+			x=(-b-z)*0.5/a;
+			y=(-b+z)*0.5/a;
+			t=x<y?x:y;
+		}
+
+		if(t>0.0 && t < *lambda){
+			*lambda=t;
+			VecCopyf(ipoint,v0);
+			found_by_sweep=1;
+		}
+	}
+
+	/*v1*/
+	VecSubf(temp,p1,v1);
+	b=2.0f*Inpf(vel,temp);
+	c=Inpf(temp,temp)-radius2;
+	d=b*b-4*a*c;
+
+	if(d>=0.0f){
+		if(d==0.0f)
+			t=-b/2*a;
+		else{
+			z=sqrt(d);
+			x=(-b-z)*0.5/a;
+			y=(-b+z)*0.5/a;
+			t=x<y?x:y;
+		}
+
+		if(t>0.0 && t < *lambda){
+			*lambda=t;
+			VecCopyf(ipoint,v1);
+			found_by_sweep=1;
+		}
+	}
+	/*v2*/
+	VecSubf(temp,p1,v2);
+	b=2.0f*Inpf(vel,temp);
+	c=Inpf(temp,temp)-radius2;
+	d=b*b-4*a*c;
+
+	if(d>=0.0f){
+		if(d==0.0f)
+			t=-b/2*a;
+		else{
+			z=sqrt(d);
+			x=(-b-z)*0.5/a;
+			y=(-b+z)*0.5/a;
+			t=x<y?x:y;
+		}
+
+		if(t>0.0 && t < *lambda){
+			*lambda=t;
+			VecCopyf(ipoint,v2);
+			found_by_sweep=1;
+		}
+	}
+
+/*---test edges---*/
+	/*e1*/
+	VecSubf(bv,v0,p1);
+	elen2 = Inpf(e1,e1);
+	edotv = Inpf(e1,vel);
+	edotbv = Inpf(e1,bv);
+
+	a=elen2*(-Inpf(vel,vel))+edotv*edotv;
+	b=2.0f*(elen2*Inpf(vel,bv)-edotv*edotbv);
+	c=elen2*(radius2-Inpf(bv,bv))+edotbv*edotbv;
+	d=b*b-4*a*c;
+	if(d>=0.0f){
+		if(d==0.0f)
+			t=-b/2*a;
+		else{
+			z=sqrt(d);
+			x=(-b-z)*0.5/a;
+			y=(-b+z)*0.5/a;
+			t=x<y?x:y;
+		}
+
+		e=(edotv*t-edotbv)/elen2;
+
+		if((e>=0.0f) && (e<=1.0f)){
+			if(t>0.0 && t < *lambda){
+				*lambda=t;
+				VecCopyf(ipoint,e1);
+				VecMulf(ipoint,e);
+				VecAddf(ipoint,ipoint,v0);
+				found_by_sweep=1;
+			}
+		}
+	}
+
+	/*e2*/
+	/*bv is same*/
+	elen2 = Inpf(e2,e2);
+	edotv = Inpf(e2,vel);
+	edotbv = Inpf(e2,bv);
+
+	a=elen2*(-Inpf(vel,vel))+edotv*edotv;
+	b=2.0f*(elen2*Inpf(vel,bv)-edotv*edotbv);
+	c=elen2*(radius2-Inpf(bv,bv))+edotbv*edotbv;
+	d=b*b-4*a*c;
+	if(d>=0.0f){
+		if(d==0.0f)
+			t=-b/2*a;
+		else{
+			z=sqrt(d);
+			x=(-b-z)*0.5/a;
+			y=(-b+z)*0.5/a;
+			t=x<y?x:y;
+		}
+
+		e=(edotv*t-edotbv)/elen2;
+
+		if((e>=0.0f) && (e<=1.0f)){
+			if(t>0.0 && t < *lambda){
+				*lambda=t;
+				VecCopyf(ipoint,e2);
+				VecMulf(ipoint,e);
+				VecAddf(ipoint,ipoint,v0);
+				found_by_sweep=1;
+			}
+		}
+	}
+
+	/*e3*/
+	VecSubf(e3,v2,v1);
+	VecSubf(bv,v1,p1);
+	elen2 = Inpf(e3,e3);
+	edotv = Inpf(e3,vel);
+	edotbv = Inpf(e3,bv);
+
+	a=elen2*(-Inpf(vel,vel))+edotv*edotv;
+	b=2.0f*(elen2*Inpf(vel,bv)-edotv*edotbv);
+	c=elen2*(radius2-Inpf(bv,bv))+edotbv*edotbv;
+	d=b*b-4*a*c;
+	if(d>=0.0f){
+		if(d==0.0f)
+			t=-b/2*a;
+		else{
+			z=sqrt(d);
+			x=(-b-z)*0.5/a;
+			y=(-b+z)*0.5/a;
+			t=x<y?x:y;
+		}
+
+		e=(edotv*t-edotbv)/elen2;
+
+		if((e>=0.0f) && (e<=1.0f)){
+			if(t>0.0 && t < *lambda){
+				*lambda=t;
+				VecCopyf(ipoint,e3);
+				VecMulf(ipoint,e);
+				VecAddf(ipoint,ipoint,v1);
+				found_by_sweep=1;
+			}
+		}
+	}
+
+	return found_by_sweep;
+}
+int AxialLineIntersectsTriangle(int axis, float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda)
+{
+	float p[3], e1[3], e2[3];
+	float u, v, f;
+	int a0=axis, a1=(axis+1)%3, a2=(axis+2)%3;
+
+	//return LineIntersectsTriangle(p1,p2,v0,v1,v2,lambda);
+
+	///* first a simple bounding box test */
+	//if(MIN3(v0[a1],v1[a1],v2[a1]) > p1[a1]) return 0;
+	//if(MIN3(v0[a2],v1[a2],v2[a2]) > p1[a2]) return 0;
+	//if(MAX3(v0[a1],v1[a1],v2[a1]) < p1[a1]) return 0;
+	//if(MAX3(v0[a2],v1[a2],v2[a2]) < p1[a2]) return 0;
+
+	///* then a full intersection test */
+	
+	VecSubf(e1,v1,v0);
+	VecSubf(e2,v2,v0);
+	VecSubf(p,v0,p1);
+
+	f= (e2[a1]*e1[a2]-e2[a2]*e1[a1]);
+	if ((f > -0.000001) && (f < 0.000001)) return 0;
+
+	v= (p[a2]*e1[a1]-p[a1]*e1[a2])/f;
+	if ((v < 0.0)||(v > 1.0)) return 0;
+	
+	f= e1[a1];
+	if((f > -0.000001) && (f < 0.000001)){
+		f= e1[a2];
+		if((f > -0.000001) && (f < 0.000001)) return 0;
+		u= (-p[a2]-v*e2[a2])/f;
+	}
+	else
+		u= (-p[a1]-v*e2[a1])/f;
+
+	if ((u < 0.0)||((u + v) > 1.0)) return 0;
+
+	*lambda = (p[a0]+u*e1[a0]+v*e2[a0])/(p2[a0]-p1[a0]);
+
+	if ((*lambda < 0.0)||(*lambda > 1.0)) return 0;
+
+	return 1;
+}
+
+int AabbIntersectAabb(float min1[3], float max1[3], float min2[3], float max2[3])
+{
+	return (min1[0]<max2[0] && min1[1]<max2[1] && min1[2]<max2[2] &&
+	        min2[0]<max1[0] && min2[1]<max1[1] && min2[2]<max1[2]);
+}
+
+/* find closest point to p on line through l1,l2 and return lambda,
+ * where (0 <= lambda <= 1) when cp is in the line segement l1,l2
+ */
 float lambda_cp_line_ex(float p[3], float l1[3], float l2[3], float cp[3])
 {
 	float h[3],u[3],lambda;
@@ -3180,6 +3980,7 @@ float lambda_cp_line_ex(float p[3], float l1[3], float l2[3], float cp[3])
 	cp[2] = l1[2] + u[2] * lambda;
 	return lambda;
 }
+
 /* little sister we only need to know lambda */
 float lambda_cp_line(float p[3], float l1[3], float l2[3])
 {
@@ -3189,7 +3990,156 @@ float lambda_cp_line(float p[3], float l1[3], float l2[3])
 	return(Inpf(u,h)/Inpf(u,u));
 }
 
+/* Similar to LineIntersectsTriangleUV, except it operates on a quad and in 2d, assumes point is in quad */
+void PointInQuad2DUV(float v0[2], float v1[2], float v2[2], float v3[2], float pt[2], float *uv)
+{
+	float x0,y0, x1,y1, wtot, v2d[2], w1, w2;
+	
+	/* used for paralelle lines */
+	float pt3d[3], l1[3], l2[3], pt_on_line[3];
+	
+	/* compute 2 edges  of the quad  intersection point */
+	if (IsectLLPt2Df(v0[0],v0[1],v1[0],v1[1],  v2[0],v2[1],v3[0],v3[1], &x0,&y0) == 1) {
+		/* the intersection point between the quad-edge intersection and the point in the quad we want the uv's for */
+		/* should never be paralle !! */
+		/*printf("\tnot paralelle 1\n");*/
+		IsectLLPt2Df(pt[0],pt[1],x0,y0,  v0[0],v0[1],v3[0],v3[1], &x1,&y1);
+		
+		/* Get the weights from the new intersection point, to each edge */
+		v2d[0] = x1-v0[0];
+		v2d[1] = y1-v0[1];
+		w1 = Vec2Length(v2d);
+		
+		v2d[0] = x1-v3[0]; /* some but for the other vert */
+		v2d[1] = y1-v3[1];
+		w2 = Vec2Length(v2d);
+		wtot = w1+w2;
+		/*w1 = w1/wtot;*/
+		/*w2 = w2/wtot;*/
+		uv[0] = w1/wtot;
+	} else {
+		/* lines are paralelle, lambda_cp_line_ex is 3d grrr */
+		/*printf("\tparalelle1\n");*/
+		pt3d[0] = pt[0];
+		pt3d[1] = pt[1];
+		pt3d[2] = l1[2] = l2[2] = 0.0f;
+		
+		l1[0] = v0[0]; l1[1] = v0[1];
+		l2[0] = v1[0]; l2[1] = v1[1];
+		lambda_cp_line_ex(pt3d, l1, l2, pt_on_line);
+		v2d[0] = pt[0]-pt_on_line[0]; /* same, for the other vert */
+		v2d[1] = pt[1]-pt_on_line[1];
+		w1 = Vec2Length(v2d);
+		
+		l1[0] = v2[0]; l1[1] = v2[1];
+		l2[0] = v3[0]; l2[1] = v3[1];
+		lambda_cp_line_ex(pt3d, l1, l2, pt_on_line);
+		v2d[0] = pt[0]-pt_on_line[0]; /* same, for the other vert */
+		v2d[1] = pt[1]-pt_on_line[1];
+		w2 = Vec2Length(v2d);
+		wtot = w1+w2;
+		uv[0] = w1/wtot;	
+	}
+	
+	/* Same as above to calc the uv[1] value, alternate calculation */
+	
+	if (IsectLLPt2Df(v0[0],v0[1],v3[0],v3[1],  v1[0],v1[1],v2[0],v2[1], &x0,&y0) == 1) { /* was v0,v1  v2,v3  now v0,v3  v1,v2*/
+		/* never paralle if above was not */
+		/*printf("\tnot paralelle2\n");*/
+		IsectLLPt2Df(pt[0],pt[1],x0,y0,  v0[0],v0[1],v1[0],v1[1], &x1,&y1);/* was v0,v3  now v0,v1*/
+		
+		v2d[0] = x1-v0[0];
+		v2d[1] = y1-v0[1];
+		w1 = Vec2Length(v2d);
+		
+		v2d[0] = x1-v1[0];
+		v2d[1] = y1-v1[1];
+		w2 = Vec2Length(v2d);
+		wtot = w1+w2;
+		uv[1] = w1/wtot;
+	} else {
+		/* lines are paralelle, lambda_cp_line_ex is 3d grrr */
+		/*printf("\tparalelle2\n");*/
+		pt3d[0] = pt[0];
+		pt3d[1] = pt[1];
+		pt3d[2] = l1[2] = l2[2] = 0.0f;
+		
+		
+		l1[0] = v0[0]; l1[1] = v0[1];
+		l2[0] = v3[0]; l2[1] = v3[1];
+		lambda_cp_line_ex(pt3d, l1, l2, pt_on_line);
+		v2d[0] = pt[0]-pt_on_line[0]; /* some but for the other vert */
+		v2d[1] = pt[1]-pt_on_line[1];
+		w1 = Vec2Length(v2d);
+		
+		l1[0] = v1[0]; l1[1] = v1[1];
+		l2[0] = v2[0]; l2[1] = v2[1];
+		lambda_cp_line_ex(pt3d, l1, l2, pt_on_line);
+		v2d[0] = pt[0]-pt_on_line[0]; /* some but for the other vert */
+		v2d[1] = pt[1]-pt_on_line[1];
+		w2 = Vec2Length(v2d);
+		wtot = w1+w2;
+		uv[1] = w1/wtot;
+	}
+	/* may need to flip UV's here */
+}
 
+/* same as above but does tri's and quads, tri's are a bit of a hack */
+void PointInFace2DUV(int isquad, float v0[2], float v1[2], float v2[2], float v3[2], float pt[2], float *uv)
+{
+	if (isquad) {
+		PointInQuad2DUV(v0, v1, v2, v3, pt, uv);
+	}
+	else {
+		/* not for quads, use for our abuse of LineIntersectsTriangleUV */
+		float p1_3d[3], p2_3d[3], v0_3d[3], v1_3d[3], v2_3d[3], lambda;
+			
+		p1_3d[0] = p2_3d[0] = uv[0];
+		p1_3d[1] = p2_3d[1] = uv[1];
+		p1_3d[2] = 1.0f;
+		p2_3d[2] = -1.0f;
+		v0_3d[2] = v1_3d[2] = v2_3d[2] = 0.0;
+		
+		/* generate a new fuv, (this is possibly a non optimal solution,
+		 * since we only need 2d calculation but use 3d func's)
+		 * 
+		 * this method makes an imaginary triangle in 2d space using the UV's from the derived mesh face
+		 * Then find new uv coords using the fuv and this face with LineIntersectsTriangleUV.
+		 * This means the new values will be correct in relation to the derived meshes face. 
+		 */
+		Vec2Copyf(v0_3d, v0);
+		Vec2Copyf(v1_3d, v1);
+		Vec2Copyf(v2_3d, v2);
+		
+		/* Doing this in 3D is not nice */
+		LineIntersectsTriangle(p1_3d, p2_3d, v0_3d, v1_3d, v2_3d, &lambda, uv);
+	}
+}
+
+/* (x1,v1)(t1=0)------(x2,v2)(t2=1), 0<t<1 --> (x,v)(t) */
+void VecfCubicInterpol(float *x1, float *v1, float *x2, float *v2, float t, float *x, float *v)
+{
+	float a[3],b[3];
+	float t2= t*t;
+	float t3= t2*t;
+
+	/* cubic interpolation */
+	a[0]= v1[0] + v2[0] + 2*(x1[0] - x2[0]);
+	a[1]= v1[1] + v2[1] + 2*(x1[1] - x2[1]);
+	a[2]= v1[2] + v2[2] + 2*(x1[2] - x2[2]);
+
+	b[0]= -2*v1[0] - v2[0] - 3*(x1[0] - x2[0]);
+	b[1]= -2*v1[1] - v2[1] - 3*(x1[1] - x2[1]);
+	b[2]= -2*v1[2] - v2[2] - 3*(x1[2] - x2[2]);
+
+	x[0]= a[0]*t3 + b[0]*t2 + v1[0]*t + x1[0];
+	x[1]= a[1]*t3 + b[1]*t2 + v1[1]*t + x1[1];
+	x[2]= a[2]*t3 + b[2]*t2 + v1[2]*t + x1[2];
+
+	v[0]= 3*a[0]*t2 + 2*b[0]*t + v1[0];
+	v[1]= 3*a[1]*t2 + 2*b[1]*t + v1[1];
+	v[2]= 3*a[2]*t2 + 2*b[2]*t + v1[2];
+}
 
 int point_in_slice(float p[3], float v1[3], float l1[3], float l2[3])
 {
@@ -3246,46 +4196,75 @@ int point_in_tri_prism(float p[3], float v1[3], float v2[3], float v3[3])
 	return 1;
 }
 
+/* point closest to v1 on line v2-v3 in 3D */
+void PclosestVL3Dfl(float *closest, float *v1, float *v2, float *v3)
+{
+	float lambda, cp[3];
+
+	lambda= lambda_cp_line_ex(v1, v2, v3, cp);
+
+	if(lambda <= 0.0f)
+		VecCopyf(closest, v2);
+	else if(lambda >= 1.0f)
+		VecCopyf(closest, v3);
+	else
+		VecCopyf(closest, cp);
+}
+
+/* distance v1 to line-piece v2-v3 in 3D */
+float PdistVL3Dfl(float *v1, float *v2, float *v3) 
+{
+	float closest[3];
+
+	PclosestVL3Dfl(closest, v1, v2, v3);
+
+	return VecLenf(closest, v1);
+}
+
 /********************************************************/
 
 /* make a 4x4 matrix out of 3 transform components */
+/* matrices are made in the order: scale * rot * loc */
 void LocEulSizeToMat4(float mat[][4], float loc[3], float eul[3], float size[3])
 {
-	float tmat[3][3];
+	float rmat[3][3], smat[3][3], tmat[3][3];
 	
-	/* make base matrix */
-	EulToMat3(eul, tmat);
-
-	/* make new matrix */
+	/* initialise new matrix */
 	Mat4One(mat);
 	
-	mat[0][0] = tmat[0][0] * size[0];
-	mat[0][1] = tmat[0][1] * size[1];
-	mat[0][2] = tmat[0][2] * size[2];
+	/* make rotation + scaling part */
+	EulToMat3(eul, rmat);
+	SizeToMat3(size, smat);
+	Mat3MulMat3(tmat, rmat, smat);
 	
-	mat[1][0] = tmat[1][0] * size[0];
-	mat[1][1] = tmat[1][1] * size[1];
-	mat[1][2] = tmat[1][2] * size[2];
+	/* copy rot/scale part to output matrix*/
+	Mat4CpyMat3(mat, tmat);
 	
-	mat[2][0] = tmat[2][0] * size[0];
-	mat[2][1] = tmat[2][1] * size[1];
-	mat[2][2] = tmat[2][2] * size[2];
-	
+	/* copy location to matrix */
 	mat[3][0] = loc[0];
 	mat[3][1] = loc[1];
 	mat[3][2] = loc[2];
 }
 
 /* make a 4x4 matrix out of 3 transform components */
+/* matrices are made in the order: scale * rot * loc */
 void LocQuatSizeToMat4(float mat[][4], float loc[3], float quat[4], float size[3])
 {
-	float eul[3];
+	float rmat[3][3], smat[3][3], tmat[3][3];
 	
-	/* convert quaternion component to euler 
-	 * 	NOTE: not as good as using quat directly. Todo for later.
-	 */
-	QuatToEul(quat, eul);
+	/* initialise new matrix */
+	Mat4One(mat);
 	
-	/* make into matrix using exisiting code */
-	LocEulSizeToMat4(mat, loc, eul, size);
+	/* make rotation + scaling part */
+	QuatToMat3(quat, rmat);
+	SizeToMat3(size, smat);
+	Mat3MulMat3(tmat, rmat, smat);
+	
+	/* copy rot/scale part to output matrix*/
+	Mat4CpyMat3(mat, tmat);
+	
+	/* copy location to matrix */
+	mat[3][0] = loc[0];
+	mat[3][1] = loc[1];
+	mat[3][2] = loc[2];
 }

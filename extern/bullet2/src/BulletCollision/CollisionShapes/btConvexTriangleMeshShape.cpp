@@ -22,6 +22,7 @@ subject to the following restrictions:
 btConvexTriangleMeshShape ::btConvexTriangleMeshShape (btStridingMeshInterface* meshInterface)
 :m_stridingMesh(meshInterface)
 {
+	recalcLocalAabb();
 }
 
 
@@ -39,14 +40,17 @@ public:
 	btVector3 m_supportVecLocal;
 
 	LocalSupportVertexCallback(const btVector3& supportVecLocal)
-		: m_supportVertexLocal(0.f,0.f,0.f),
-		m_maxDot(-1e30f),
+		: m_supportVertexLocal(btScalar(0.),btScalar(0.),btScalar(0.)),
+		m_maxDot(btScalar(-1e30)),
                 m_supportVecLocal(supportVecLocal)
 	{
 	}
 
 	virtual void internalProcessTriangleIndex(btVector3* triangle,int partId,int  triangleIndex)
 	{
+		(void)triangleIndex;
+		(void)partId;
+
 		for (int i=0;i<3;i++)
 		{
 			btScalar dot = m_supportVecLocal.dot(triangle[i]);
@@ -71,21 +75,21 @@ public:
 
 btVector3	btConvexTriangleMeshShape::localGetSupportingVertexWithoutMargin(const btVector3& vec0)const
 {
-	btVector3 supVec(0.f,0.f,0.f);
+	btVector3 supVec(btScalar(0.),btScalar(0.),btScalar(0.));
 
 	btVector3 vec = vec0;
 	btScalar lenSqr = vec.length2();
-	if (lenSqr < 0.0001f)
+	if (lenSqr < btScalar(0.0001))
 	{
 		vec.setValue(1,0,0);
 	} else
 	{
-		float rlen = 1.f / btSqrt(lenSqr );
+		btScalar rlen = btScalar(1.) / btSqrt(lenSqr );
 		vec *= rlen;
 	}
 
 	LocalSupportVertexCallback	supportCallback(vec);
-	btVector3 aabbMax(1e30f,1e30f,1e30f);
+	btVector3 aabbMax(btScalar(1e30),btScalar(1e30),btScalar(1e30));
 	m_stridingMesh->InternalProcessAllTriangles(&supportCallback,-aabbMax,aabbMax);
 	supVec = supportCallback.GetSupportVertexLocal();
 
@@ -98,7 +102,7 @@ void	btConvexTriangleMeshShape::batchedUnitVectorGetSupportingVertexWithoutMargi
 	{
 		for (int i=0;i<numVectors;i++)
 		{
-			supportVerticesOut[i][3] = -1e30f;
+			supportVerticesOut[i][3] = btScalar(-1e30);
 		}
 	}
 	
@@ -109,7 +113,7 @@ void	btConvexTriangleMeshShape::batchedUnitVectorGetSupportingVertexWithoutMargi
 	{
 		const btVector3& vec = vectors[j];
 		LocalSupportVertexCallback	supportCallback(vec);
-		btVector3 aabbMax(1e30f,1e30f,1e30f);
+		btVector3 aabbMax(btScalar(1e30),btScalar(1e30),btScalar(1e30));
 		m_stridingMesh->InternalProcessAllTriangles(&supportCallback,-aabbMax,aabbMax);
 		supportVerticesOut[j] = supportCallback.GetSupportVertexLocal();
 	}
@@ -122,12 +126,12 @@ btVector3	btConvexTriangleMeshShape::localGetSupportingVertex(const btVector3& v
 {
 	btVector3 supVertex = localGetSupportingVertexWithoutMargin(vec);
 
-	if ( getMargin()!=0.f )
+	if ( getMargin()!=btScalar(0.) )
 	{
 		btVector3 vecnorm = vec;
 		if (vecnorm .length2() < (SIMD_EPSILON*SIMD_EPSILON))
 		{
-			vecnorm.setValue(-1.f,-1.f,-1.f);
+			vecnorm.setValue(btScalar(-1.),btScalar(-1.),btScalar(-1.));
 		} 
 		vecnorm.normalize();
 		supVertex+= getMargin() * vecnorm;
@@ -157,14 +161,14 @@ int btConvexTriangleMeshShape::getNumEdges() const
 	return 0;
 }
 
-void btConvexTriangleMeshShape::getEdge(int i,btPoint3& pa,btPoint3& pb) const
+void btConvexTriangleMeshShape::getEdge(int ,btPoint3& ,btPoint3& ) const
 {
-	assert(0);	
+	btAssert(0);	
 }
 
-void btConvexTriangleMeshShape::getVertex(int i,btPoint3& vtx) const
+void btConvexTriangleMeshShape::getVertex(int ,btPoint3& ) const
 {
-	assert(0);
+	btAssert(0);
 }
 
 int	btConvexTriangleMeshShape::getNumPlanes() const
@@ -172,15 +176,15 @@ int	btConvexTriangleMeshShape::getNumPlanes() const
 	return 0;
 }
 
-void btConvexTriangleMeshShape::getPlane(btVector3& planeNormal,btPoint3& planeSupport,int i ) const
+void btConvexTriangleMeshShape::getPlane(btVector3& ,btPoint3& ,int  ) const
 {
-	assert(0);
+	btAssert(0);
 }
 
 //not yet
-bool btConvexTriangleMeshShape::isInside(const btPoint3& pt,btScalar tolerance) const
+bool btConvexTriangleMeshShape::isInside(const btPoint3& ,btScalar ) const
 {
-	assert(0);
+	btAssert(0);
 	return false;
 }
 
@@ -189,5 +193,13 @@ bool btConvexTriangleMeshShape::isInside(const btPoint3& pt,btScalar tolerance) 
 void	btConvexTriangleMeshShape::setLocalScaling(const btVector3& scaling)
 {
 	m_stridingMesh->setScaling(scaling);
+	
+	recalcLocalAabb();
+	
 }
 
+
+const btVector3& btConvexTriangleMeshShape::getLocalScaling() const
+{
+	return m_stridingMesh->getScaling();
+}

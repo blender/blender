@@ -63,6 +63,15 @@ struct Script;
 struct Text;
 struct IpoDriver; /* DNA_curve_types.h */
 struct Object;
+struct PyObject;
+struct Node_Type;
+struct BPy_Node;
+struct bNode;
+struct bNodeStack;
+struct ShadeInput;
+struct bPythonConstraint;
+struct bConstraintOb;
+struct bConstraintTarget;
 void BPY_do_pyscript (struct ID *id, short int event);
 void BPY_clear_script (struct Script *script);
 void BPY_free_compiled_text (struct Text *text);
@@ -72,7 +81,16 @@ float BPY_pydriver_eval(struct IpoDriver *driver);
 void BPY_pydriver_update(void);
 /* button python evaluation */
 int BPY_button_eval(char *expr, double *value);
-
+/* pyconstraints */
+void BPY_pyconstraint_eval(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets);
+void BPY_pyconstraint_targets(struct bPythonConstraint *con, struct bConstraintTarget *ct);
+/* pynodes */
+int EXPP_dict_set_item_str(struct PyObject *dict, char *key, struct PyObject *value);
+void Node_SetStack(struct BPy_Node *self, struct bNodeStack **stack, int type);
+void InitNode(struct BPy_Node *self, struct bNode *node);
+void Node_SetShi(struct BPy_Node *self, struct ShadeInput *shi);
+struct BPy_NodeSockets *Node_CreateSockets(struct bNode *node);
+int pytype_is_pynode(struct PyObject *pyob);
 /* writefile.c */
 struct Oops;
 void free_oops(struct Oops *oops);
@@ -84,8 +102,9 @@ extern struct ListBase editNurb;
 void mainqenter (unsigned short event, short val);
 void waitcursor(int);
 void allqueue(unsigned short event, short val);
-#define REDRAWVIEW3D	0x4010
-#define REDRAWBUTSEDIT	0x4019
+#define REDRAWVIEW3D		0x4010
+#define REDRAWBUTSOBJECT	0x4018
+#define REDRAWBUTSEDIT		0x4019
 struct Material;
 extern struct Material defmaterial;
 
@@ -179,6 +198,9 @@ void post_tag_change(struct VTag *vtag);
 void post_taggroup_create(struct VTagGroup *vtaggroup);
 char *verse_client_name(void);
 void post_transform(struct VNode *vnode);
+void post_transform_pos(struct VNode *vnode);
+void post_transform_rot(struct VNode *vnode);
+void post_transform_scale(struct VNode *vnode);
 void post_object_free_constraint(struct VNode *vnode);
 void post_link_set(struct VLink *vlink);
 void post_link_destroy(struct VLink *vlink);
@@ -196,24 +218,24 @@ void post_layer_create(struct VLayer *vlayer);
 void post_layer_destroy(struct VLayer *vlayer);
 void post_server_add(void);
 
-/* multires.c */
-struct Multires;
-struct MultiresLevel;
-struct MultiresLevel *multires_level_n(struct Multires *mr, int n);
-void multires_free(struct Multires *mr);
-void multires_set_level(struct Object *ob, struct Mesh *me, const int render);
-void multires_update_levels(struct Mesh *me, const int render);
-void multires_calc_level_maps(struct MultiresLevel *lvl);
-struct Multires *multires_copy(struct Multires *orig);
-/* sculptmode.c */
-void sculptmode_free_all(struct Scene *sce);
-void sculptmode_init(struct Scene *sce);
-
 /* zbuf.c */
 void antialias_tagbuf(int xsize, int ysize, char *rectmove);
 
 /* imagetexture.c */
 void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result);
+
+/* modifier.c */
+struct MeshDeformModifierData;
+
+void harmonic_coordinates_bind(struct MeshDeformModifierData *mmd,
+	float (*vertexcos)[3], int totvert, float cagemat[][4]);
+
+/* particle.c */
+struct ParticleSystem;
+
+void PE_free_particle_edit(struct ParticleSystem *psys);
+void PE_get_colors(char sel[4], char nosel[4]);
+void PE_recalc_world_cos(struct Object *ob, struct ParticleSystem *psys);
 
 #endif
 

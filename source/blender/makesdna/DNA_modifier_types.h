@@ -28,6 +28,13 @@ typedef enum ModifierType {
 	eModifierType_UVProject,
 	eModifierType_Smooth,
 	eModifierType_Cast,
+	eModifierType_MeshDeform,
+	eModifierType_ParticleSystem,
+	eModifierType_ParticleInstance,
+	eModifierType_Explode,
+	eModifierType_Cloth,
+	eModifierType_Collision,
+	eModifierType_Bevel,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -38,6 +45,7 @@ typedef enum ModifierMode {
 	eModifierMode_OnCage = (1<<3),
 	eModifierMode_Expanded = (1<<4),
 	eModifierMode_Virtual = (1<<5),
+	eModifierMode_DisableTemporary = (1 << 31)
 } ModifierMode;
 
 typedef struct ModifierData {
@@ -158,6 +166,7 @@ typedef struct MirrorModifierData {
 
 	short axis, flag;
 	float tolerance;
+	struct Object *mirror_ob;
 } MirrorModifierData;
 
 /* MirrorModifierData->flag */
@@ -178,6 +187,27 @@ typedef struct EdgeSplitModifierData {
 /* EdgeSplitModifierData->flags */
 #define MOD_EDGESPLIT_FROMANGLE   1<<1
 #define MOD_EDGESPLIT_FROMFLAG    1<<2
+
+typedef struct BevelModifierData {
+	ModifierData modifier;
+
+	float value;          /* the "raw" bevel value (distance/amount to bevel) */
+	int res;              /* the resolution (as originally coded, it is the number of recursive bevels) */
+	int pad;
+	short flags;          /* general option flags */
+	short val_flags;      /* flags used to interpret the bevel value */
+	short lim_flags;      /* flags to tell the tool how to limit the bevel */
+	short e_flags;        /* flags to direct how edge weights are applied to verts */
+	float bevel_angle;    /* if the BME_BEVEL_ANGLE is set, this will be how "sharp" an edge must be before it gets beveled */
+	char defgrp_name[32]; /* if the BME_BEVEL_VWEIGHT option is set, this will be the name of the vert group */
+} BevelModifierData;
+
+typedef struct BMeshModifierData {
+	ModifierData modifier;
+
+	float pad;
+	int type;
+} BMeshModifierData;
 
 typedef struct DisplaceModifierData {
 	ModifierData modifier;
@@ -310,9 +340,10 @@ typedef struct WaveModifierData {
 typedef struct ArmatureModifierData {
 	ModifierData modifier;
 
-	short deformflag, pad1;		/* deformflag replaces armature->deformflag */
+	short deformflag, multi;		/* deformflag replaces armature->deformflag */
 	int pad2;
 	struct Object *object;
+	float *prevCos;		/* stored input of previous modifier, for vertexgroup blending */
 	char defgrp_name[32];
 } ArmatureModifierData;
 
@@ -334,6 +365,33 @@ typedef struct SoftbodyModifierData {
 	ModifierData modifier;
 } SoftbodyModifierData;
 
+typedef struct ClothModifierData {
+   ModifierData		modifier;
+
+   struct Cloth *clothObject; /* The internal data structure for cloth. */
+   struct SimulationSettings *sim_parms; /* definition is in DNA_cloth_types.h */
+   struct CollisionSettings *coll_parms; /* definition is in DNA_cloth_types.h */
+} ClothModifierData;
+
+typedef struct CollisionModifierData {
+	ModifierData	modifier;
+	
+	struct MVert *x; /* position at the beginning of the frame */
+	struct MVert *xnew; /* position at the end of the frame */
+	struct MVert *xold; /* unsued atm, but was discussed during sprint */
+	struct MVert *current_xnew; /* new position at the actual inter-frame step */
+	struct MVert *current_x; /* position at the actual inter-frame step */
+	struct MVert *current_v; /* position at the actual inter-frame step */
+	
+	struct MFace *mfaces; /* object face data */
+	
+	unsigned int numverts;
+	unsigned int numfaces;
+	int pad;
+	float time;
+	struct BVH *tree;	/* collision tree for this cloth object */
+} CollisionModifierData;
+
 typedef enum {
 	eBooleanModifierOp_Intersect,
 	eBooleanModifierOp_Union,
@@ -345,5 +403,88 @@ typedef struct BooleanModifierData {
 	struct Object *object;
 	int operation, pad;
 } BooleanModifierData;
+
+#define MOD_MDEF_INVERT_VGROUP (1<<0)
+#define MOD_MDEF_DYNAMIC_BIND  (1<<1)
+
+typedef struct MDefInfluence {
+	int vertex;
+	float weight;
+} MDefInfluence;
+
+typedef struct MDefCell {
+	int offset;
+	int totinfluence;
+} MDefCell;
+
+typedef struct MeshDeformModifierData {
+	ModifierData modifier;
+
+	struct Object *object;			/* mesh object */
+	char defgrp_name[32];			/* optional vertexgroup name */
+
+	short gridsize, needbind;
+	short flag, pad;
+
+	/* variables filled in when bound */
+	float *bindweights, *bindcos;	/* computed binding weights */
+	int totvert, totcagevert;		/* total vertices in mesh and cage */
+	MDefCell *dyngrid;				/* grid with dynamic binding cell points */
+	MDefInfluence *dyninfluences;	/* dynamic binding vertex influences */
+	int *dynverts, *pad2;			/* is this vertex bound or not? */
+	int dyngridsize;				/* size of the dynamic bind grid */
+	int totinfluence;				/* total number of vertex influences */
+	float dyncellmin[3];			/* offset of the dynamic bind grid */
+	float dyncellwidth;				/* width of dynamic bind cell */
+	float bindmat[4][4];			/* matrix of cage at binding time */
+} MeshDeformModifierData;
+
+typedef enum {
+	eParticleSystemFlag_Loaded =		(1<<0),
+	eParticleSystemFlag_Pars =			(1<<1),
+	eParticleSystemFlag_FromCurve =		(1<<2),
+	eParticleSystemFlag_DM_changed =	(1<<3),
+	eParticleSystemFlag_Disabled =		(1<<4),
+	eParticleSystemFlag_psys_updated =	(1<<5),
+} ParticleSystemModifierFlag;
+
+typedef struct ParticleSystemModifierData {
+	ModifierData modifier;
+	struct ParticleSystem *psys;
+	struct DerivedMesh *dm;
+	int totdmvert, totdmedge, totdmface;
+	short flag, rt;
+} ParticleSystemModifierData;
+
+typedef enum {
+	eParticleInstanceFlag_Parents =		(1<<0),
+	eParticleInstanceFlag_Children =	(1<<1),
+	eParticleInstanceFlag_Path =		(1<<2),
+	eParticleInstanceFlag_Unborn =		(1<<3),
+	eParticleInstanceFlag_Alive =		(1<<4),
+	eParticleInstanceFlag_Dead =		(1<<5),
+} ParticleInstanceModifierFlag;
+
+typedef struct ParticleInstanceModifierData {
+	ModifierData modifier;
+	struct Object *ob;
+	short psys, flag, rt[2];
+} ParticleInstanceModifierData;
+
+typedef enum {
+	eExplodeFlag_CalcFaces =	(1<<0),
+	//eExplodeFlag_PaSize =		(1<<1),
+	eExplodeFlag_EdgeSplit =	(1<<2),
+	eExplodeFlag_Unborn =		(1<<3),
+	eExplodeFlag_Alive =		(1<<4),
+	eExplodeFlag_Dead =			(1<<5),
+} ExplodeModifierFlag;
+
+typedef struct ExplodeModifierData {
+	ModifierData modifier;
+	int *facepa;
+	short flag, vgroup;
+	float protect;
+} ExplodeModifierData;
 
 #endif

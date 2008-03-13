@@ -44,19 +44,23 @@
 #endif
 
 #include "BMF_Api.h"
-#include "BIF_language.h"
+
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "BKE_utildefines.h"
 
 #include "DNA_ID.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 
+#include "BIF_filelist.h"
 #include "BIF_gl.h"
 #include "BIF_imasel.h"
 #include "BIF_interface.h"
+#include "BIF_language.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
 #include "BSE_headerbuttons.h"
 
 #include "blendef.h"
@@ -65,26 +69,30 @@
 void do_imasel_buttons(short event)
 {
 	SpaceImaSel *simasel;
-	char name[256];
-	
+
 	simasel= curarea->spacedata.first;
 	
 	if(curarea->win==0) return;
 
 	switch(event) {
-	case B_IMASELHOME:
+	case B_SORTIMASELLIST:
+		BIF_filelist_sort(simasel->files, simasel->sort);
+		scrarea_queue_winredraw(curarea);
 		break;
 		
-	case B_IMASELREMOVEBIP:
-		
-		if(bitset(simasel->fase, IMS_FOUND_BIP)){
-		
-			strcpy(name, simasel->dir);
-			strcat(name, ".Bpib");
-		
-			remove(name);
-		
-			simasel->fase &= ~ IMS_FOUND_BIP;
+	case B_RELOADIMASELDIR:
+		BIF_filelist_free(simasel->files);
+		scrarea_queue_winredraw(curarea);
+		break;
+	case B_FILTERIMASELDIR:
+		if (simasel->flag & FILE_FILTER) {
+			BIF_filelist_setfilter(simasel->files,simasel->filter);
+			BIF_filelist_filter(simasel->files);
+			scrarea_queue_winredraw(curarea);
+		} else {
+			BIF_filelist_setfilter(simasel->files,0);
+			BIF_filelist_filter(simasel->files);
+			scrarea_queue_winredraw(curarea);
 		}
 		break;
 	}
@@ -94,9 +102,12 @@ void imasel_buttons(void)
 {
 	SpaceImaSel *simasel;
 	uiBlock *block;
-	short xco;
+	short xco, xcotitle;
 	char naam[256];
-	
+	char dir[FILE_MAXDIR], group[32];
+	short type;
+	int do_filter = 0;
+
 	simasel= curarea->spacedata.first;
 
 	sprintf(naam, "header %d", curarea->headwin);
@@ -117,24 +128,93 @@ void imasel_buttons(void)
 	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "");
 	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "");
 	
+	/* SORT TYPE */
 	xco+=XIC;
-	if (simasel->title){
-		xco+=25;
-		glRasterPos2i(xco,	4);
-		BMF_DrawString(G.font, simasel->title);
-		xco+=BMF_GetStringWidth(G.fonts, simasel->title);
-		xco+=25;
+	uiBlockBeginAlign(block);
+	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTALPHA,	xco+=XIC,0,XIC,YIC, &simasel->sort, 1.0, 0.0, 0, 0, "Sorts files alphabetically");
+	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTBYEXT,	xco+=XIC,0,XIC,YIC, &simasel->sort, 1.0, 3.0, 0, 0, "Sorts files by extension");	
+	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTTIME,	xco+=XIC,0,XIC,YIC, &simasel->sort, 1.0, 1.0, 0, 0, "Sorts files by time");
+	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTSIZE,	xco+=XIC,0,XIC,YIC, &simasel->sort, 1.0, 2.0, 0, 0, "Sorts files by size");	
+	uiBlockEndAlign(block);
+
+	cpack(0x0);
+	xco+=XIC+10;
+
+	type = simasel->type;
+
+	if (type != FILE_MAIN) {
+		uiDefIconButBitS(block, TOG, FILE_BOOKMARKS, B_RELOADIMASELDIR, ICON_BOOKMARKS,xco+=XIC,0,XIC,YIC, &simasel->flag, 0, 0, 0, 0, "Toggles Bookmarks on/off");
+		xco+=XIC+10;
+	} 
+	xcotitle= xco;
+	xco+= BIF_GetStringWidth(G.font, simasel->title, (U.transopts & USER_TR_BUTTONS));
+	
+	if(simasel->pupmenu && simasel->menup) {
+		uiDefButS(block, MENU, B_NOP, simasel->pupmenu, xco+10,0,90,20, simasel->menup, 0, 0, 0, 0, "");
+		xco+= 100;
+	}
+	uiBlockBeginAlign(block);
+	uiDefIconButBitS(block, TOG, FILE_HIDE_DOT, B_RELOADIMASELDIR, ICON_GHOST,xco+=XIC,0,XIC,YIC, &simasel->flag, 0, 0, 0, 0, "Hides dot files");		
+	uiBlockEndAlign(block);
+	xco+=20;
+	
+	if(!simasel->files) {
+		simasel->files = BIF_filelist_new();
+	}
+
+	if (type == FILE_LOADLIB) {
+		do_filter = !BIF_filelist_islibrary(simasel->files, dir, group);
+	} else {
+		do_filter = (type != FILE_MAIN);
+	}
+	if ( do_filter ) {
+		uiDefIconButBitS(block, TOG, FILE_FILTER, B_FILTERIMASELDIR, ICON_SORTBYEXT,xco+=XIC,0,XIC,YIC, &simasel->flag, 0, 0, 0, 0, "Filter files");
+		if (simasel->flag & FILE_FILTER) {
+			xco+=4;
+			uiBlockBeginAlign(block);
+			uiDefIconButBitS(block, TOG, IMAGEFILE, B_FILTERIMASELDIR, ICON_IMAGE_COL,xco+=XIC,0,XIC,YIC, &simasel->filter, 0, 0, 0, 0, "Show images");
+			uiDefIconButBitS(block, TOG, BLENDERFILE, B_FILTERIMASELDIR, ICON_BLENDER,xco+=XIC,0,XIC,YIC, &simasel->filter, 0, 0, 0, 0, "Show .blend files");
+			uiDefIconButBitS(block, TOG, MOVIEFILE, B_FILTERIMASELDIR, ICON_SEQUENCE,xco+=XIC,0,XIC,YIC, &simasel->filter, 0, 0, 0, 0, "Show movies");
+			uiDefIconButBitS(block, TOG, PYSCRIPTFILE, B_FILTERIMASELDIR, ICON_PYTHON,xco+=XIC,0,XIC,YIC, &simasel->filter, 0, 0, 0, 0, "Show python scripts");
+			uiDefIconButBitS(block, TOG, FTFONTFILE, B_FILTERIMASELDIR, ICON_SYNTAX,xco+=XIC,0,XIC,YIC, &simasel->filter, 0, 0, 0, 0, "Show fonts");
+			uiDefIconButBitS(block, TOG, SOUNDFILE, B_FILTERIMASELDIR, ICON_SOUND,xco+=XIC,0,XIC,YIC, &simasel->filter, 0, 0, 0, 0, "Show sound files");
+			uiDefIconButBitS(block, TOG, TEXTFILE, B_FILTERIMASELDIR, ICON_TEXT,xco+=XIC,0,XIC,YIC, &simasel->filter, 0, 0, 0, 0, "Show text files");
+			uiDefIconButBitS(block, TOG, FOLDERFILE, B_FILTERIMASELDIR, ICON_FILESEL,xco+=XIC,0,XIC,YIC, &simasel->filter, 0, 0, 0, 0, "Show folders");
+			uiBlockEndAlign(block);
+		}
 	}
 	
-	uiBlockBeginAlign(block);
-	uiDefIconBut(block, BUT, B_IMASELREMOVEBIP, ICON_BPIBFOLDER_X, xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "");/* remove  */
+	if(simasel->type==FILE_BLENDER) {
+		xco+=20;
+	} else {
+		uiDefButBitS(block, TOG, FILE_STRINGCODE, 0, "Relative Paths", xco+=XIC+20,0,100,YIC, &simasel->flag, 0, 0, 0, 0, "Makes sure returned paths are relative to the current .blend file");
+		xco+=90;
+	}
+
+	if(simasel->type==FILE_LOADLIB) {
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOGN, FILE_LINK, B_REDR, "Append",		xco+=XIC,0,100,YIC, &simasel->flag, 0, 0, 0, 0, "Copies selected data into current project");
+		uiDefButBitS(block, TOG, FILE_LINK, B_REDR, "Link",	xco+=100,0,100,YIC, &simasel->flag, 0, 0, 0, 0, "Creates a link to selected data from current project");
+		uiBlockEndAlign(block);
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, FILE_AUTOSELECT, B_REDR, "Autosel", xco+=125,0,65,YIC, &simasel->flag, 0, 0, 0, 0, "Autoselect imported objects");
+		uiDefButBitS(block, TOG, FILE_ACTIVELAY, B_REDR, "Active Layer", xco+=65,0,80,YIC, &simasel->flag, 0, 0, 0, 0, "Append object(s) in active layer");
+		uiDefButBitS(block, TOG, FILE_ATCURSOR, B_REDR, "At Cursor", xco+=80,0,65,YIC, &simasel->flag, 0, 0, 0, 0, "Append object(s) at cursor, use centroid if more than one object is selected");
+		uiBlockEndAlign(block);
+		
+		xco+= 100;	// scroll
+		
+	} else if(simasel->type==FILE_BLENDER) {
+		uiDefButBitI(block, TOGN, G_FILE_NO_UI, B_REDR, "Load UI", xco+=XIC,0,80,YIC, &G.fileflags, 0, 0, 0, 0, "Load the UI setup as well as the scene data");
 	
-	uiDefIconButS(block, TOG|BIT|0, B_REDR, ICON_BPIBFOLDERGREY, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "Toggles display of directory information");/* dir		*/
-	uiDefIconButS(block, TOG|BIT|1, B_REDR, ICON_INFO, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "Toggles display of selected image information");/* info  */
-	uiDefIconButS(block, TOG|BIT|2, B_REDR, ICON_IMAGE_COL, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "");/* image */
-	uiDefIconButS(block, TOG|BIT|3, B_REDR, ICON_MAGNIFY, xco+=XIC,0,XIC,YIC, &simasel->mode, 0, 0, 0, 0, "Toggles magnified view of thumbnail of images under mouse pointer");/* magnify */
-	uiBlockEndAlign(block);
-	
+		xco+= 100;	// scroll
+	}
+
+	glRasterPos2f((float)xcotitle, 5.0);
+	BIF_RasterPos((float)xcotitle, 5.0);	// stupid texture fonts
+	BIF_ThemeColor(TH_TEXT);
+	BIF_DrawString(uiBlockGetCurFont(block), simasel->title, (U.transopts & USER_TR_BUTTONS));
+
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
 

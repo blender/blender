@@ -148,8 +148,6 @@
 #include "BIF_writeimage.h"
 #include "BIF_butspace.h"
 
-#include "BPI_script.h"
-
 #include "BSE_edit.h"
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
@@ -255,7 +253,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 	if(browse) {
 		char *extrastr= NULL;
 		
-		if(ELEM3(id_code, ID_MA, ID_TE, ID_BR)) add_addbutton= 1;
+		if(ELEM4(id_code, ID_MA, ID_TE, ID_BR, ID_PA)) add_addbutton= 1;
 			
 		lb= wich_libbase(G.main, id_code);
 		
@@ -265,7 +263,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 			uiBlockSetCol(block, TH_BUT_SETTING2);
 		}
 		
-		if ELEM8( id_code, ID_SCE, ID_SCR, ID_MA, ID_TE, ID_WO, ID_IP, ID_AC, ID_BR) extrastr= "ADD NEW %x 32767";
+		if (ELEM8( id_code, ID_SCE, ID_SCR, ID_MA, ID_TE, ID_WO, ID_IP, ID_AC, ID_BR) || id_code == ID_PA) extrastr= "ADD NEW %x 32767";
 		else if (id_code==ID_TXT) extrastr= "OPEN NEW %x 32766 |ADD NEW %x 32767";
 		else if (id_code==ID_SO) extrastr= "OPEN NEW %x 32766";
 
@@ -325,6 +323,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 		}
 		
 		if( GS(id->name)==ID_IP) len= 110;
+		else if((yco) && (GS(id->name)==ID_AC)) len= 100; // comes from button panel (poselib)
 		else if(yco) len= 140;	// comes from button panel
 		else len= 120;
 		
@@ -392,6 +391,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 	}
 	else if(add_addbutton) {	/* "add new" button */
 		uiBlockSetCol(block, oldcol);
+		if(parid) uiSetButLock(parid->lib!=0, ERROR_LIBDATA_MESSAGE);
 		uiDefButS(block, TOG, browse, "Add New" ,xco, yco, 110, YIC, menupoin, (float)*menupoin, 32767.0, 0, 0, "Add new data block");
 		xco+= 110;
 	}
@@ -457,11 +457,12 @@ static void show_splash(void)
 	char buffer[1024];
 	extern char * build_date;
 	extern char * build_time;
+	extern char * build_rev;
 	extern char * build_platform;
 	extern char * build_type;
 
 	string = &buffer[0];
-	sprintf(string,"Built on %s %s     Version %s %s", build_date, build_time, build_platform, build_type);
+	sprintf(string,"Built on %s %s, Rev-%s    Version %s %s", build_date, build_time, build_rev, build_platform, build_type);
 #endif
 
 	splash((void *)datatoc_splash_jpg, datatoc_splash_jpg_size, string);
@@ -567,6 +568,8 @@ static void filesel_u_tempdir(char *name)
 	BLI_split_dirfile(name, dir, file);
 
 	strcpy(U.tempdir, dir);
+	BLI_where_is_temp( btempdir, 1 );
+	
 	allqueue(REDRAWALL, 0);
 }
 
@@ -587,7 +590,10 @@ void do_global_buttons(unsigned short event)
 	ScrArea *sa;
 	Brush *br;
 	int nr= 1;
+	
+#ifdef INTERNATIONAL
 	char buf[FILE_MAX];
+#endif
 
 	ob= OBACT;
 
@@ -709,7 +715,12 @@ void do_global_buttons(unsigned short event)
 		else return;
 		
 		if(*menunr== -2) {
-			activate_databrowse((ID *)lockpoin, ID_MA, 0, B_MATBROWSE, menunr, do_global_buttons);
+			if(G.qual & LR_CTRLKEY) {
+				activate_databrowse_imasel((ID *)lockpoin, ID_MA, 0, B_MATBROWSE, menunr, do_global_buttons);
+			}
+			else {
+				activate_databrowse((ID *)lockpoin, ID_MA, 0, B_MATBROWSE, menunr, do_global_buttons);
+			}
 			return;
 		}
 		
@@ -854,8 +865,12 @@ void do_global_buttons(unsigned short event)
 					if(mtex) id= (ID *)mtex->tex;
 				}
 			}
-			
-			activate_databrowse(id, ID_TE, 0, B_TEXBROWSE, &G.buts->texnr, do_global_buttons);
+			if(G.qual & LR_CTRLKEY) {
+				activate_databrowse_imasel(id, ID_TE, 0, B_TEXBROWSE, &G.buts->texnr, do_global_buttons);
+			}
+			else {
+				activate_databrowse(id, ID_TE, 0, B_TEXBROWSE, &G.buts->texnr, do_global_buttons);
+			}
 			return;
 		}
 		if(G.buts->texnr < 0) break;
@@ -919,20 +934,21 @@ void do_global_buttons(unsigned short event)
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWNLA, 0);
 		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
 		break;
 	case B_ACTIONBROWSE:
 		if (!ob)
 			break;
 		act=ob->action;
 		id= (ID *)act;
-
+		
 		if (G.saction->actnr== -2){
 				activate_databrowse((ID *)G.saction->action, ID_AC,  0, B_ACTIONBROWSE, &G.saction->actnr, do_global_buttons);
 			return;
 		}
-
+		
 		if(G.saction->actnr < 0) break;
-
+		
 		/*	See if we have selected a valid action */
 		for (idtest= G.main->action.first; idtest; idtest= idtest->next) {
 				if(nr==G.saction->actnr) {
@@ -943,19 +959,58 @@ void do_global_buttons(unsigned short event)
 		}
 
 		if(G.saction->pin) {
-			G.saction->action= (bAction *)idtest;
+			if (idtest == NULL) {
+				/* assign new/copy of pinned action only - messy as it doesn't assign to any obj's */
+				if (G.saction->action)
+					G.saction->action= (bAction *)copy_action(G.saction->action);
+				else
+					G.saction->action= (bAction *)add_empty_action("PinnedAction");
+			}
+			else {
+				G.saction->action= (bAction *)idtest;
+			}
 			allqueue(REDRAWACTION, 0);
 		}
 		else {
 
 			/* Store current action */
-			if (!idtest){
+			if (!idtest) {
+				/* 'Add New' option: 
+				 * 	- make a copy of an exisiting action
+				 *	- or make a new empty action if no existing action
+				 */
 				if (act) {
 					idtest= (ID *)copy_action(act);
-				} else { 
+				} 
+				else { 
 					if (ID_OB==ob->type) {
+						/* for empties */
 						idtest=(ID *)add_empty_action("ObAction");
-					} else {
+					} 
+					else if (ELEM(ob->type, OB_MESH, OB_LATTICE) && ob_get_key(ob)) {
+						/* shapekey - like if B_IPO_ACTION_KEY is triggered */
+						bActionChannel *achan;
+						Key *key= ob_get_key(ob);
+						
+						ob->ipoflag |= OB_ACTION_KEY;
+						
+						act = add_empty_action("ShapeAction");
+						idtest=(ID *)act;
+						
+						achan= verify_action_channel(act, "Shape");
+						achan->flag = (ACHAN_HILIGHTED|ACHAN_SELECTED|ACHAN_EXPANDED|ACHAN_SHOWIPO);
+						
+						if(achan->ipo==NULL && key->ipo) {
+							achan->ipo= key->ipo;
+							key->ipo= NULL;
+							
+							allqueue(REDRAWVIEW3D, 0);
+							allqueue(REDRAWIPO, 0);
+							allqueue(REDRAWOOPS, 0);
+						}
+					}
+					else {
+						/* a plain action */
 						idtest=(ID *)add_empty_action("Action");
 					}
 				}
@@ -978,6 +1033,7 @@ void do_global_buttons(unsigned short event)
 				allqueue(REDRAWNLA, 0);
 				allqueue(REDRAWACTION, 0);
 				allqueue(REDRAWHEADERS, 0); 
+				allqueue(REDRAWBUTSEDIT, 0);
 			}
 		}
 		
@@ -1032,6 +1088,8 @@ void do_global_buttons(unsigned short event)
 					else if(nr==ID_LA) idtest= (ID *)add_ipo("LaIpo", nr);
 					else if(nr==ID_CA) idtest= (ID *)add_ipo("CaIpo", nr);
 					else if(nr==ID_SO) idtest= (ID *)add_ipo("SndIpo", nr);
+					else if(nr==ID_FLUIDSIM) idtest= (ID *)add_ipo("FluidsimIpo", nr);
+					else if(nr==ID_PA) idtest= (ID *)add_ipo("PaIpo", nr);
 					else error("Warn bugtracker!");
 				}
 				idtest->us--;
@@ -1262,17 +1320,15 @@ void do_global_buttons(unsigned short event)
 		break;
 
 	case B_IMAGEDELETE:
-		
-		if(G.sima->image && BLI_streq(G.sima->image->id.name+2, "Render Result")==0) {
-			/* Run on non render images, unlink normally */
-			G.sima->image= NULL;
-			image_changed(G.sima, 0);
-			BIF_undo_push("Unlink Image");
-			allqueue(REDRAWIMAGE, 0);
-		} else {
+		if(G.sima->image && (G.sima->image->type == IMA_TYPE_R_RESULT || G.sima->image->type == IMA_TYPE_COMPOSITE)) {
 			/* Run if G.sima is render, remove the render and display the meshes image if it exists */
 			G.sima->image= NULL;
 			what_image(G.sima);
+			allqueue(REDRAWIMAGE, 0);
+		} else {
+			/* Run on non render images, unlink normally */
+			image_changed(G.sima, NULL);
+			BIF_undo_push("Unlink Image");
 			allqueue(REDRAWIMAGE, 0);
 		}
 		break;
@@ -1439,6 +1495,7 @@ void do_global_buttons(unsigned short event)
 	case B_PYMENUEVAL: /* is button from space.c *info* */
 		waitcursor( 1 ); /* can take some time */
 		BPyMenu_RemoveAllEntries(); /* free old data */
+		BPY_rebuild_syspath();
 		if (BPyMenu_Init(1) == -1) { /* re-eval scripts registration in menus */
 			waitcursor( 0 );
 			error("Invalid scripts dir: check console");
@@ -1651,7 +1708,8 @@ void do_global_buttons2(short event)
 			if(act->id.lib) {
 				if(okee("Make local")) {
 					make_local_action(act);
-					allqueue(REDRAWACTION,0);
+					allqueue(REDRAWACTION, 0);
+					allqueue(REDRAWBUTSEDIT, 0);
 				}
 			}
 		}
@@ -1659,12 +1717,13 @@ void do_global_buttons2(short event)
 	case B_ACTALONE:
 		if(ob && ob->id.lib==0) {
 			act= ob->action;
-		
+			
 			if(act->id.us>1) {
 				if(okee("Single user")) {
 					ob->action=copy_action(act);
 					act->id.us--;
 					allqueue(REDRAWACTION, 0);
+					allqueue(REDRAWBUTSEDIT, 0);
 				}
 			}
 		}

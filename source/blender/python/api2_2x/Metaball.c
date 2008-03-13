@@ -661,7 +661,7 @@ static int Metaball_setUpdate( BPy_Metaball * self, PyObject * value )
 {
 
 	int param;
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					"metaball.update - expected an int argument" );
 
@@ -744,24 +744,15 @@ static void Metaelem_dealloc( BPy_Metaelem * self )
  * elem.type - int to set the shape of the element
  */
 static PyObject *Metaelem_getType( BPy_Metaelem *self )
-{
-	PyObject *attr = NULL;
-	
+{	
 	METAELEM_DEL_CHECK_PY(self);
 	
-	attr = PyInt_FromLong( self->metaelem->type );
-	
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_MemoryError,
-				"metaelem.type - PyInt_FromLong() failed!" );
+	return PyInt_FromLong( self->metaelem->type );
 }
 static int Metaelem_setType( BPy_Metaelem * self,  PyObject * value )
 {
-
 	int type;
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 			"metaelem.type - expected an integer (bitmask) as argument" );
 	
@@ -1066,12 +1057,11 @@ static PyObject *MetaElemSeq_add( BPy_MetaElemSeq * self )
  * no args are taken so the returned metaball must be modified after adding.
  * Accessed as mball.elements.add() where mball is a python metaball data type.
  */
-static PyObject *MetaElemSeq_remove( BPy_MetaElemSeq * self, PyObject *args )
+static PyObject *MetaElemSeq_remove( BPy_MetaElemSeq * self, BPy_Metaelem *elem )
 {
-	BPy_Metaelem *elem;
 	MetaElem *ml_iter, *ml_py;
 	
-	if( !PyArg_ParseTuple( args, "O!", &Metaelem_Type, &elem) )
+	if( !BPy_Metaelem_Check(elem) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 			"elements.remove(metaelem) - expected a Metaball element" );
 	
@@ -1095,7 +1085,7 @@ static PyObject *MetaElemSeq_remove( BPy_MetaElemSeq * self, PyObject *args )
 static struct PyMethodDef BPy_MetaElemSeq_methods[] = {
 	{"add", (PyCFunction)MetaElemSeq_add, METH_NOARGS,
 		"add metaelem to metaball data"},
-	{"remove", (PyCFunction)MetaElemSeq_remove, METH_VARARGS,
+	{"remove", (PyCFunction)MetaElemSeq_remove, METH_O,
 		"remove element from metaball data"},
 	{NULL, NULL, 0, NULL}
 };

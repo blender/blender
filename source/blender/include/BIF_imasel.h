@@ -33,28 +33,20 @@
 #define BIF_IMASEL_H
 
 struct SpaceImaSel;
-struct OneSelectableIma;
 struct ScrArea;
-struct ImaDir;
+struct ID;
 
-void imadir_parent(struct SpaceImaSel *simasel);
-int  bitset(int l,  int bit);
-void free_sel_ima(struct OneSelectableIma *firstima);
-
-void write_new_pib(struct SpaceImaSel *simasel);
-void free_ima_dir(struct ImaDir *firstdir);
-void check_for_pib(struct SpaceImaSel *simasel);
-void clear_ima_dir(struct SpaceImaSel *simasel);
-void check_ima_dir_name(char *dir);
-int get_ima_dir(char *dirname, int dtype, int *td, struct ImaDir **first);
-void get_next_image(struct SpaceImaSel *simasel);
-void get_file_info(struct SpaceImaSel *simasel);
-void get_pib_file(struct SpaceImaSel *simasel);
-void change_imadir(struct SpaceImaSel *simasel);
-void check_imasel_copy(struct SpaceImaSel *simasel);
 void free_imasel(struct SpaceImaSel *simasel);
 
 void clever_numbuts_imasel(void);
 
+void activate_imageselect(int type, char *title, char *file, void (*func)(char *));
+void activate_imageselect_menu(int type, char *title, char *file, char *pupmenu, short *menup, void (*func)(char *));
+void activate_imageselect_args(int type, char *title, char *file, void (*func)(char *, void *, void *), void *arg1, void *arg2);
+
+void activate_databrowse_imasel(struct ID *id, int idcode, int fromcode, int retval, short *menup, void (*func)(unsigned short));
+/*
+void activate_databrowse_imasel_args(struct ID *id, int idcode, int fromcode, short *menup, void (*func)(char *, void *, void *), void *arg1, void *arg2);
+*/
 #endif
 

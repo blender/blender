@@ -162,7 +162,8 @@ class VRML2Export:
 ##########################################################
 
     def writeHeader(self):
-        bfile = sys.expandpath(Blender.Get('filename'))
+        #bfile = sys.expandpath( Blender.Get('filename') ).replace('<', '&lt').replace('>', '&gt')
+        bfile = self.filename.replace('<', '&lt').replace('>', '&gt') # use outfile name
         self.file.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
         self.file.write("<!DOCTYPE X3D PUBLIC \"ISO//Web3D//DTD X3D 3.0//EN\" \"http://www.web3d.org/specifications/x3d-3.0.dtd\">\n")
         self.file.write("<X3D version=\"3.0\" profile=\"Immersive\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema-instance\" xsd:noNamespaceSchemaLocation=\"http://www.web3d.org/specifications/x3d-3.0.xsd\">\n")
@@ -246,17 +247,17 @@ class VRML2Export:
     def writeNavigationInfo(self, scene):
         allObj = []
         allObj = list(scene.objects)
-        headlight = "TRUE"
+        headlight = "true"
         vislimit = 0.0
         for thisObj in allObj:
             objType=thisObj.type
             if objType == "Camera":
                 vislimit = thisObj.data.clipEnd
             elif objType == "Lamp":
-                headlight = "FALSE"
+                headlight = "false"
         self.file.write("<NavigationInfo headlight=\"%s\" " % headlight)
         self.file.write("visibilityLimit=\"%s\" " % (round(vislimit,self.cp)))
-        self.file.write("type=\"EXAMINE, ANY\" avatarSize=\"0.25, 1.75, 0.75\" />\n\n")
+        self.file.write("type=\"EXAMINE\", \"ANY\" avatarSize=\"0.25, 1.75, 0.75\" />\n\n")
 
     def writeSpotLight(self, ob, lamp):
         safeName = self.cleanStr(ob.name)
@@ -404,7 +405,7 @@ class VRML2Export:
           self.writeIndented("<Appearance>\n", 1)
           # right now this script can only handle a single material per mesh.
           if len(maters) >= 1:
-            mat=Blender.Material.Get(maters[0].name)
+            mat=maters[0]
             matFlags = mat.getMode()
             if not matFlags & Blender.Material.Modes['TEXFACE']:
               self.writeMaterial(mat, self.cleanStr(maters[0].name,''))
@@ -452,6 +453,7 @@ class VRML2Export:
             for face in mesh.faces:
                 if face.smooth:
                      issmooth=1
+                     break
             if issmooth==1 and self.wire == 0:
                 creaseAngle=(mesh.getMaxSmoothAngle())*(math.pi/180.0)
                 self.file.write("creaseAngle=\"%s\" " % (round(creaseAngle,self.cp)))

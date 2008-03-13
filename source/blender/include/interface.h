@@ -230,7 +230,7 @@ extern void ui_draw_but(uiBut *but);
 extern void ui_rasterpos_safe(float x, float y, float aspect);
 extern void ui_draw_tria_icon(float x, float y, float aspect, char dir);
 extern void ui_draw_anti_x(float x1, float y1, float x2, float y2);
-
+extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
 
 #endif
 

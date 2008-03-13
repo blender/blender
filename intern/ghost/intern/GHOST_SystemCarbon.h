@@ -60,12 +60,12 @@ public:
     /**
      * Constructor.
      */
-    GHOST_SystemCarbon::GHOST_SystemCarbon();
+    GHOST_SystemCarbon();
     
     /** 
      * Destructor.
      */
-    GHOST_SystemCarbon::~GHOST_SystemCarbon();
+    ~GHOST_SystemCarbon();
     
 	/***************************************************************************************
 	 ** Time(r) functionality
@@ -167,6 +167,20 @@ public:
 	 * @return			Indication of success.
 	 */
 	virtual GHOST_TSuccess getButtons(GHOST_Buttons& buttons) const;
+
+	/**
+	 * Returns Clipboard data
+	 * @param flag		Indicate which buffer to return
+	 * @return		Returns the selected buffer
+	 */
+	virtual GHOST_TUns8* getClipboard(int flag) const;
+	
+	/**
+	 * Puts buffer to system clipboard
+	 * @param buffer	The buffer to be copied
+	 * @param flag		Indicates which buffer to copy too Only used on X11
+	 */
+	virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const;
 
 protected:
 	/**

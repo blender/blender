@@ -44,6 +44,8 @@ struct NumInput;
 struct Object;
 struct View3D;
 struct ScrArea;
+struct bPose;
+struct bConstraint;
 
 
 typedef struct NDofInput {
@@ -127,7 +129,7 @@ typedef struct TransDataExtension {
     float  iquat[4];	 /* Initial rotation quaternion                                                    */
     float *size;         /* Size of the data to transform (Faculative)                                     */
     float  isize[3];	 /* Initial size                                                                   */
-	float  obmat[3][3];	 /* Object matrix */  
+	float  obmat[4][4];	 /* Object matrix */  
 } TransDataExtension;
 
 typedef struct TransData2D {
@@ -148,6 +150,7 @@ typedef struct TransData {
     float  smtx[3][3];   /* Transformation matrix from global space to data space                          */
 	float  axismtx[3][3];/* Axis orientation matrix of the data                                            */
 	struct Object *ob;
+	struct bConstraint *con;	/* for objects/bones, the first constraint in its constraint stack */
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
 	TransDataIpokey *tdi;		/* for objects, ipo keys. per transdata a malloc */
 	void *tdmir;		 /* mirrored element pointer, in editmode mesh to EditVert */
@@ -238,7 +241,7 @@ typedef struct TransInfo {
 		// for manipulator exceptions, like scaling using center point, drawing help lines
 #define T_USES_MANIPULATOR	(1 << 7)
 
-/* restrictions flags */
+	/* restrictions flags */
 #define T_ALL_RESTRICTIONS	((1 << 8)|(1 << 9)|(1 << 10))
 #define T_NO_CONSTRAINT		(1 << 8)
 #define T_NULL_ONE			(1 << 9)
@@ -247,14 +250,17 @@ typedef struct TransInfo {
 #define T_PROP_EDIT			(1 << 11)
 #define T_PROP_CONNECTED	(1 << 12)
 
-/* if MMB is pressed or not */
+	/* if MMB is pressed or not */
 #define	T_MMB_PRESSED		(1 << 13)
 
 #define T_V3D_ALIGN			(1 << 14)
-#define T_2D_EDIT			(1 << 15) /* for 2d views like uv or ipo */
+	/* for 2d views like uv or ipo */
+#define T_2D_EDIT			(1 << 15) 
 #define T_CLIP_UV			(1 << 16)
 
 #define T_FREE_CUSTOMDATA	(1 << 17)
+	/* auto-ik is on */
+#define T_AUTOIK			(1 << 18)
 
 /* ******************************************************************************** */
 
@@ -270,14 +276,19 @@ typedef struct TransInfo {
 
 /* transdata->flag */
 #define TD_SELECTED			1
-#define	TD_NOACTION			2
-#define	TD_USEQUAT			4
-#define TD_NOTCONNECTED		8
-#define TD_SINGLESIZE		16	/* used for scaling of MetaElem->rad */
+#define TD_ACTIVE			(1 << 1)
+#define	TD_NOACTION			(1 << 2)
+#define	TD_USEQUAT			(1 << 3)
+#define TD_NOTCONNECTED		(1 << 4)
+#define TD_SINGLESIZE		(1 << 5)	/* used for scaling of MetaElem->rad */
 #ifdef WITH_VERSE
-#define TD_VERSE_OBJECT		32
-#define TD_VERSE_VERT		64
+	#define TD_VERSE_OBJECT		(1 << 6)
+	#define TD_VERSE_VERT		(1 << 7)
 #endif
+#define TD_TIMEONLY			(1 << 8)
+#define TD_NOCENTER			(1 << 9)
+#define TD_NO_EXT			(1 << 10)	/* ext abused for particle key timing */
+#define TD_SKIP				(1 << 11)	/* don't transform this data */
 
 /* transsnap->status */
 #define SNAP_ON			1
@@ -292,6 +303,7 @@ typedef struct TransInfo {
 #define SNAP_CLOSEST		0
 #define SNAP_CENTER			1
 #define SNAP_MEDIAN			2
+#define SNAP_ACTIVE			3
 
 void checkFirstTime(void);
 
@@ -304,6 +316,7 @@ void convertVecToDisplayNum(float *vec, float *num);
 void convertDisplayNumToVec(float *num, float *vec);
 
 void initWarp(TransInfo *t);
+int handleEventWarp(TransInfo *t, unsigned short event, short val);
 int Warp(TransInfo *t, short mval[2]);
 
 void initShear(TransInfo *t);
@@ -337,6 +350,13 @@ int Trackball(TransInfo *t, short mval[2]);
 void initPushPull(TransInfo *t);
 int PushPull(TransInfo *t, short mval[2]);
 
+void initBevel(TransInfo *t);
+int handleEventBevel(TransInfo *t, unsigned short evenl, short val);
+int Bevel(TransInfo *t, short mval[2]);
+
+void initBevelWeight(TransInfo *t);
+int BevelWeight(TransInfo *t, short mval[2]);
+
 void initCrease(TransInfo *t);
 int Crease(TransInfo *t, short mval[2]);
 
@@ -349,21 +369,48 @@ int BoneEnvelope(TransInfo *t, short mval[2]);
 void initBoneRoll(TransInfo *t);
 int BoneRoll(TransInfo *t, short mval[2]);
 
+void initTimeTranslate(TransInfo *t);
+int TimeTranslate(TransInfo *t, short mval[2]);
+
+void initTimeSlide(TransInfo *t);
+int TimeSlide(TransInfo *t, short mval[2]);
+
+void initTimeScale(TransInfo *t);
+int TimeScale(TransInfo *t, short mval[2]);
+
+void initBakeTime(TransInfo *t);
+int BakeTime(TransInfo *t, short mval[2]);
+
+void initMirror(TransInfo *t);
+int Mirror(TransInfo *t, short mval[2]);
+
+void initAlign(TransInfo *t);
+int Align(TransInfo *t, short mval[2]);
+
 /*********************** transform_conversions.c ********** */
 struct ListBase;
+void flushTransIpoData(TransInfo *t);
 void flushTransUVs(TransInfo *t);
+void flushTransParticles(TransInfo *t);
 int clipUVTransform(TransInfo *t, float *vec, int resize);
 
 /*********************** exported from transform_manipulator.c ********** */
 void draw_manipulator_ext(struct ScrArea *sa, int type, char axis, int col, float vec[3], float mat[][3]);
 int calc_manipulator_stats(struct ScrArea *sa);
-float get_drawsize(struct View3D *v3d);
+float get_drawsize(struct View3D *v3d, float *co);
 
 /*********************** TransData Creation and General Handling *********** */
 void createTransData(TransInfo *t);
 void sort_trans_data_dist(TransInfo *t);
 void add_tdi_poin(float *poin, float *old, float delta);
 void special_aftertrans_update(TransInfo *t);
+
+void transform_autoik_update(TransInfo *t, short mode);
+
+/* auto-keying stuff used by special_aftertrans_update */
+short autokeyframe_cfra_can_key(struct Object *ob);
+void autokeyframe_ob_cb_func(struct Object *ob, int tmode);
+void autokeyframe_pose_cb_func(struct Object *ob, int tmode, short targetless_ik);
 
 /*********************** Constraints *****************************/
 
@@ -428,6 +475,7 @@ void calculateCenterBound(TransInfo *t);
 void calculateCenterMedian(TransInfo *t);
 void calculateCenterCursor(TransInfo *t);
 
+void calculateCenterCursor2D(TransInfo *t);
 void calculatePropRatio(TransInfo *t);
 
 void getViewVector(float coord[3], float vec[3]);
@@ -455,5 +503,30 @@ int handleNDofInput(NDofInput *n, unsigned short event, short val);
 #define NDOF_CANCEL		4
 
 
+/*********************** TransSpace ******************************/
+
+int manageObjectSpace(int confirm, int set);
+int manageMeshSpace(int confirm, int set);
+
+/* Those two fill in mat and return non-zero on success */
+int createSpaceNormal(float mat[3][3], float normal[3]);
+int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
+
+int addMatrixSpace(float mat[3][3], char name[]);
+int addObjectSpace(struct Object *ob);
+void applyTransformOrientation(void);
+
+
+#define ORIENTATION_NONE	0
+#define ORIENTATION_NORMAL	1
+#define ORIENTATION_VERT	2
+#define ORIENTATION_EDGE	3
+#define ORIENTATION_FACE	4
+
+int getTransformOrientation(float normal[3], float plane[3], int activeOnly);
+int createSpaceNormal(float mat[3][3], float normal[3]);
+int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
+
 #endif
+
 

@@ -91,7 +91,7 @@ def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True, cam
 	render_cam_ob= Object.New('Camera')
 	render_cam_ob.link(render_cam_data)
 	render_scn.link(render_cam_ob)
-	render_scn.setCurrentCamera(render_cam_ob)
+	render_scn.objects.camera = render_cam_ob
 	
 	render_cam_data.type= 'ortho'
 	
@@ -181,7 +181,6 @@ def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True, cam
 	
 	Blender.Window.RedrawAll()
 	
-	render_context.threads= 2 # good for dual core cpu's
 	render_context.render()
 	render_context.saveRenderedImage(path)
 	Render.CloseRenderWindow()
@@ -496,3 +495,135 @@ def vcol2image(me_s,\
 				mat.mode &= ~Blender.Material.Modes.SHADELESS
 	
 	return image
+
+def bakeToPlane(sce, ob_from, width, height, bakemodes, axis='z', margin=0):
+	'''
+	Bakes terrain onto a plane from one object
+	sce - scene to bake with
+	ob_from - mesh object
+	width/height - image size
+	bakemodes - list of baking modes to use, Blender.Scene.Render.BakeModes.NORMALS, Blender.Scene.Render.BakeModes.AO ... etc
+	axis - axis to allign the plane to.
+	margin - margin setting for baking.
+	
+	Example:
+		import Blender
+		from Blender import *
+		import BPyRender
+		sce = Scene.GetCurrent()
+		ob = Object.Get('Plane')
+		BPyRender.bakeToPlane(sce, ob, 512, 512, [Scene.Render.BakeModes.DISPLACEMENT, Scene.Render.BakeModes.NORMALS], 'z', 8 )
+	'''
+	
+	# Backup bake settings
+	rend = sce.render
+	BACKUP_bakeDist = rend.bakeDist
+	BACKUP_bakeBias = rend.bakeBias
+	BACKUP_bakeMode = rend.bakeMode
+	BACKUP_bakeClear = rend.bakeClear
+	BACKUP_bakeMargin = rend.bakeMargin
+	BACKUP_bakeToActive = rend.bakeToActive
+	
+	# Backup object selection
+	BACKUP_obsel = list(sce.objects.selected)
+	BACKUP_obact = sce.objects.active
+	
+	# New bake settings
+	rend.bakeClear = True
+	rend.bakeMargin = margin
+	BACKUP_bakeToActive = True
+	
+	# Assume a mesh
+	me_from = ob_from.getData(mesh=1)
+	
+	xmin = ymin = zmin = 10000000000
+	xmax = ymax = zmax =-10000000000
+	
+	# Dont trust bounding boxes :/
+	#bounds = ob_from.boundingBox
+	#for v in bounds:
+	#	x,y,z = tuple(v)
+	mtx = ob_from.matrixWorld
+	for v in me_from.verts:
+		x,y,z = tuple(v.co*mtx)
+		
+		xmax = max(xmax, x)
+		ymax = max(ymax, y)
+		zmax = max(zmax, z)
+		
+		xmin = min(xmin, x)
+		ymin = min(ymin, y)
+		zmin = min(zmin, z)
+
+	if axis=='x':
+		xmed = (xmin+xmax)/2.0
+		co1 = (xmed, ymin, zmin)
+		co2 = (xmed, ymin, zmax)
+		co3 = (xmed, ymax, zmax)
+		co4 = (xmed, ymax, zmin)
+		rend.bakeDist = (xmax-xmin)/2.0
+	elif axis=='y':
+		ymed = (ymin+ymax)/2.0
+		co1 = (xmin, ymed, zmin)
+		co2 = (xmin, ymed, zmax)
+		co3 = (xmax, ymed, zmax)
+		co4 = (xmax, ymed, zmin)
+		rend.bakeDist = (ymax-ymin)/2.0
+	elif axis=='z':
+		zmed = (zmin+zmax)/2.0
+		co1 = (xmin, ymin, zmed)
+		co2 = (xmin, ymax, zmed)
+		co3 = (xmax, ymax, zmed)
+		co4 = (xmax, ymin, zmed)
+		rend.bakeDist = (zmax-zmin)/2.0
+	else:
+		raise "invalid axis"
+	me_plane = Blender.Mesh.New()
+	ob_plane = Blender.Object.New('Mesh')
+	ob_plane.link(me_plane)
+	sce.objects.link(ob_plane)
+	ob_plane.Layers = ob_from.Layers
+	
+	ob_from.sel = 1 # make active
+	sce.objects.active = ob_plane
+	ob_plane.sel = 1
+	
+	me_plane.verts.extend([co4, co3, co2, co1])
+	me_plane.faces.extend([(0,1,2,3)])
+	me_plane.faceUV = True
+	me_plane_face = me_plane.faces[0]
+	uvs = me_plane_face.uv
+	uvs[0].x = 0.0;	uvs[0].y = 0.0
+	uvs[1].x = 0.0;	uvs[1].y = 1.0
+	uvs[2].x = 1.0;	uvs[2].y = 1.0
+	uvs[3].x = 1.0;	uvs[3].y = 0.0
+	
+	images_return = []
+	
+	for mode in bakemodes:
+		img = Blender.Image.New('bake', width, height, 24)
+		
+		me_plane_face.image = img
+		rend.bakeMode = mode
+		rend.bake()
+		images_return.append( img )
+	
+	# Restore bake settings
+	#'''
+	rend.bakeDist = BACKUP_bakeDist
+	rend.bakeBias = BACKUP_bakeBias
+	rend.bakeMode = BACKUP_bakeMode
+	rend.bakeClear = BACKUP_bakeClear
+	rend.bakeMargin = BACKUP_bakeMargin
+	rend.bakeToActive = BACKUP_bakeToActive
+	
+	# Restore obsel
+	sce.objects.selected = BACKUP_obsel
+	sce.objects.active = BACKUP_obact
+	
+	me_plane.verts = None
+	sce.objects.unlink(ob_plane)
+	#'''
+	
+	return images_return
+

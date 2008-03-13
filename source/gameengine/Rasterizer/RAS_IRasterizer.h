@@ -48,7 +48,6 @@ class RAS_IPolyMaterial;
  */
 class RAS_IRasterizer
 {
-
 public:
 
 	RAS_IRasterizer(RAS_ICanvas* canv){};
@@ -398,7 +397,15 @@ public:
 
 	virtual bool	QueryLists(){return false;}
 	virtual bool	QueryArrays(){return false;}
+	
+	virtual void	EnableMotionBlur(float motionblurvalue)=0;
+	virtual void	DisableMotionBlur()=0;
+	
+	virtual float	GetMotionBlurValue()=0;
+	virtual int	GetMotionBlurState()=0;
+	virtual void SetMotionBlurState(int newstate)=0;
 };
 
 #endif //__RAS_IRASTERIZER
+
 

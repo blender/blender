@@ -31,7 +31,12 @@
  */
 
 struct Mesh;
+struct EditMesh;
+struct SpaceImage;
+struct EditFace;
+struct MTFace;
 
+/* id can be from 0 to 3 */
 #define TF_PIN_MASK(id) (TF_PIN1 << id)
 #define TF_SEL_MASK(id) (TF_SEL1 << id)
 
@@ -45,27 +50,34 @@ int is_uv_tface_editing_allowed_silent(void);
 
 void get_connected_limit_tface_uv(float *limit);
 int minmax_tface_uv(float *min, float *max);
+int cent_tface_uv(float *cent, int mode);
 
 void transform_width_height_tface_uv(int *width, int *height);
 void transform_aspect_ratio_tface_uv(float *aspx, float *aspy);
 
+void mouseco_to_cursor_sima(void);
 void borderselect_sima(short whichuvs);
 void mouseco_to_curtile(void);
 void mouse_select_sima(void);
+void snap_menu_sima(void);
+void aspect_sima(struct SpaceImage *sima, float *x, float *y);
+
+void select_invert_tface_uv(void);
 void select_swap_tface_uv(void);
 void mirrormenu_tface_uv(void);
-void mirror_tface_uv(char mirroraxis);
 void hide_tface_uv(int swap);
 void reveal_tface_uv(void);
-void stitch_uv_tface(int mode);
+void stitch_limit_uv_tface(void);
+void stitch_vert_uv_tface(void);
 void unlink_selection(void);
+void uvface_setsel__internal(short select);
 void select_linked_tface_uv(int mode);
-void toggle_uv_select(int mode);
 void pin_tface_uv(int mode);
 void weld_align_menu_tface_uv(void);
 void weld_align_tface_uv(char tool);
-void be_square_tface_uv(struct Mesh *me);
+void be_square_tface_uv(struct EditMesh *em);
 void select_pinned_tface_uv(void);
+void select_edgeloop_tface_uv(struct EditFace *efa, int a, int shift, int *flush);
 
 void sima_sample_color(void);
 
@@ -83,3 +95,18 @@ void pack_image_sima(void);
 
 /* checks images for forced updates on frame change */
 void BIF_image_update_frame(void);
+
+void find_nearest_uv(struct MTFace **nearesttf, struct EditFace **nearestefa, unsigned int *nearestv, int *nearestuv);
+
+/* face selection check functions */
+
+int simaFaceDraw_Check_nolocal( struct EditFace *efa );
+int simaFaceDraw_Check( struct EditFace *efa, struct MTFace *tf );
+
+int simaFaceSel_Check( struct EditFace *efa, struct MTFace *tf );
+void simaFaceSel_Set( struct EditFace *efa, struct MTFace *tf );
+void simaFaceSel_UnSet( struct EditFace *efa, struct MTFace *tf );
+
+int simaUVSel_Check( struct EditFace *efa, struct MTFace *tf, int i);
+void simaUVSel_Set( struct EditFace *efa, struct MTFace *tf, int i);
+void simaUVSel_UnSet( struct EditFace *efa, struct MTFace *tf, int i);

@@ -57,6 +57,8 @@
 
 #include "DNA_armature_types.h" /*used for pose bone select*/
 
+#include "MEM_guardedalloc.h"
+
 extern void chan_calc_mat(bPoseChannel *chan);
 
 //------------------------ERROR CODES---------------------------------
@@ -143,11 +145,14 @@ static int PoseBonesDict_InitBones(BPy_PoseBonesDict *self)
 //This is the string representation of the object
 static PyObject *PoseBonesDict_repr(BPy_PoseBonesDict *self)
 {
-	char buffer[128], str[4096];
+	char buffer[128], *str;
 	PyObject *key, *value;
 	int pos = 0;
-
-	BLI_strncpy(str,"",4096);
+	
+	/* probably a bit of overkill but better then crashing */
+	str = MEM_mallocN( 64 + ( PyDict_Size( self->bonesMap ) * 128), "PoseBonesDict_repr" );
+	str[0] = '\0';
+	
 	sprintf(buffer, "[Pose Bone Dict: {");
 	strcat(str,buffer);
 	while (PyDict_Next(self->bonesMap, &pos, &key, &value)) {
@@ -157,6 +162,9 @@ static PyObject *PoseBonesDict_repr(BPy_PoseBonesDict *self)
 	}
 	sprintf(buffer, "}]\n");
 	strcat(str,buffer);
+	
+	MEM_freeN( str );
+	
 	return PyString_FromString(str);
 }
 
@@ -414,7 +422,11 @@ static PyObject *PoseBone_insertKey(BPy_PoseBone *self, PyObject *args)
 
 	if (!PyArg_ParseTuple(args, "O!i|Oi", &Object_Type, &parent_object, &frame, &constants, &no_ipo_update ))
 		goto AttributeError;
-
+	
+	/* incase we ever have a value other then 1 for fast */
+	if (no_ipo_update)
+		no_ipo_update = 1;
+	
 	//verify that this pchannel is part of the object->pose
 	for (pchan = ((BPy_Object*)parent_object)->object->pose->chanbase.first; 
 		pchan; pchan = pchan->next){
@@ -479,40 +491,40 @@ static PyObject *PoseBone_insertKey(BPy_PoseBone *self, PyObject *args)
 	//add the action channel if it's not there
 	verify_action_channel(((BPy_Object*)parent_object)->object->action, 
 		self->posechannel->name);
-
+	
 	//insert the pose keys
 	if (self->posechannel->flag & POSE_ROT){
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_QUAT_X);
+			ID_PO, self->posechannel->name, NULL, AC_QUAT_X, no_ipo_update);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_QUAT_Y);
+			ID_PO, self->posechannel->name, NULL, AC_QUAT_Y, no_ipo_update);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_QUAT_Z);
+			ID_PO, self->posechannel->name, NULL, AC_QUAT_Z, no_ipo_update);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_QUAT_W);
+			ID_PO, self->posechannel->name, NULL, AC_QUAT_W, no_ipo_update);
 	}
 	if (self->posechannel->flag & POSE_LOC){
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_LOC_X);
+			ID_PO, self->posechannel->name, NULL, AC_LOC_X, no_ipo_update);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_LOC_Y);
+			ID_PO, self->posechannel->name, NULL, AC_LOC_Y, no_ipo_update);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_LOC_Z);
+			ID_PO, self->posechannel->name, NULL, AC_LOC_Z, no_ipo_update);
 	}
 	if (self->posechannel->flag & POSE_SIZE){
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_SIZE_X);
+			ID_PO, self->posechannel->name, NULL, AC_SIZE_X, no_ipo_update);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_SIZE_Y);
+			ID_PO, self->posechannel->name, NULL, AC_SIZE_Y, no_ipo_update);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_SIZE_Z);
+			ID_PO, self->posechannel->name, NULL, AC_SIZE_Z, no_ipo_update);
 	}
 
 	//flip the frame back
 	G.scene->r.cfra = oldframe;
 
 	//update the IPOs
-	if (!no_ipo_update)
+	if (no_ipo_update==0)
 		remake_action_ipos (((BPy_Object*)parent_object)->object->action);
 
 	Py_RETURN_NONE;
@@ -685,8 +697,11 @@ static int PoseBone_setLocalMatrix(BPy_PoseBone *self, PyObject *value, void *cl
 	}
 
 	//get loc
-	if (matsize == 4){
+	if (matsize == 4) {
 		VECCOPY(loc, matrix->matrix[3]);
+	}
+	else {
+		loc[0]= loc[1]= loc[2]= 0.0f;
 	}
 
 	//copy new attributes
@@ -712,10 +727,35 @@ static PyObject *PoseBone_getPoseMatrix(BPy_PoseBone *self, void *closure)
 }
 //------------------------PoseBone.poseMatrix (setter)
 //Sets the pose_mat
-static int PoseBone_setPoseMatrix(BPy_PoseBone *self, PyObject *value, void *closure)
+static int PoseBone_setPoseMatrix(BPy_PoseBone *self, MatrixObject *value, void *closure)
 {
-	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
-		sPoseBoneError, ".poseMatrix: ", "not able to set this property");
+	float delta_mat[4][4], quat[4]; /* rotation */
+	float size[4]; /* size only */
+	
+	if( !MatrixObject_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+									"expected matrix object as argument" );
+	
+	if( value->colSize != 4 || value->rowSize != 4 )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+			"matrix must be a 4x4 transformation matrix\n"
+			"for example as returned by object.matrixWorld" );
+
+	/* get bone-space cursor matrix and extract location */
+	armature_mat_pose_to_bone(self->posechannel, (float (*)[4]) *value->matrix, delta_mat);
+	
+	/* Visual Location */
+	VECCOPY(self->posechannel->loc, delta_mat[3]);
+
+	/* Visual Size */
+	Mat4ToSize(delta_mat, size);
+	VECCOPY(self->posechannel->size, size);
+	
+	/* Visual Rotation */
+	Mat4ToQuat(delta_mat, quat);
+	QUATCOPY(self->posechannel->quat, quat);
+	
+	return 0;
 }
 //------------------------PoseBone.constraints (getter)
 //Gets the constraints sequence
@@ -931,7 +971,12 @@ static PyObject *PoseBone_getSelect(BPy_PoseBone *self, void *closure)
 //Sets the pose bones selection
 static int PoseBone_setSelect(BPy_PoseBone *self, PyObject *value, void *closure)
 {
-	if (PyObject_IsTrue( value ))
+	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if ( param )
 		self->posechannel->bone->flag |= BONE_SELECTED;
 	else
 		self->posechannel->bone->flag &= ~(BONE_SELECTED | BONE_ACTIVE);
@@ -1071,13 +1116,46 @@ static PyObject *PoseBone_getIKFlag(BPy_PoseBone *self, void *flag)
 //Sets the pose bones ikflag
 static int PoseBone_setIKFlag(BPy_PoseBone *self, PyObject *value, void *flag)
 {
-	if ( PyObject_IsTrue(value) )
+	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if ( param )
 		self->posechannel->ikflag |= (int)flag;
 	else
 		self->posechannel->ikflag &= ~(int)flag;
 	return 0;
 }
 
+//------------------------Bone.layerMask (get)
+static PyObject *PoseBone_getLayerMask(BPy_PoseBone *self)
+{
+	/* do this extra stuff because the short's bits can be negative values */
+	unsigned short laymask = 0;
+	laymask |= self->posechannel->bone->layer;
+	return PyInt_FromLong((int)laymask);
+}
+//------------------------Bone.layerMask (set)
+static int PoseBone_setLayerMask(BPy_PoseBone *self, PyObject *value)
+{
+	int laymask;
+	if (!PyInt_Check(value)) {
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+									"expected an integer (bitmask) as argument" );
+	}
+	
+	laymask = PyInt_AsLong(value);
+
+	if (laymask <= 0 || laymask > (1<<16) - 1)
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+									"bitmask must have from 1 up to 16 bits set");
+
+	self->posechannel->bone->layer = 0;
+	self->posechannel->bone->layer |= laymask;
+
+	return 0;
+}
 
 //------------------TYPE_OBECT IMPLEMENTATION---------------------------
 //------------------------tp_getset
@@ -1138,7 +1216,8 @@ static PyGetSetDef BPy_PoseBone_getset[] = {
 		"disable Y DoF when part of an IK", (void *)BONE_IK_NO_YDOF },
 	{"lockZRot", (getter)PoseBone_getIKFlag, (setter)PoseBone_setIKFlag,
 		"disable Z DoF when part of an IK", (void *)BONE_IK_NO_ZDOF },
-	
+	{"layerMask", (getter)PoseBone_getLayerMask, (setter)PoseBone_setLayerMask, 
+		"Layer bitmask", NULL },
 	{NULL, NULL, NULL, NULL, NULL}
 };
 //------------------------tp_dealloc

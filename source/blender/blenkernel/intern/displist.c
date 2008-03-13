@@ -152,12 +152,9 @@ DispList *find_displist(ListBase *lb, int type)
 int displist_has_faces(ListBase *lb)
 {
 	DispList *dl;
-	
-	dl= lb->first;
-	while(dl) {
+	for(dl= lb->first; dl; dl= dl->next) {
 		if ELEM3(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)
 			return 1;
-		dl= dl->next;
 	}
 	return 0;
 }
@@ -296,7 +293,7 @@ static Render *fastshade_get_render(void)
 	if(re==NULL) {
 		re= RE_NewRender("_Shade View_");
 	
-		RE_Database_Baking(re, G.scene, 0);	/* 0= no faces */
+		RE_Database_Baking(re, G.scene, 0, 0);	/* 0= no faces */
 	}
 	return re;
 }
@@ -485,9 +482,11 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 	CustomDataMask dataMask = CD_MASK_BAREMESH | CD_MASK_MCOL
 	                          | CD_MASK_MTFACE | CD_MASK_NORMAL;
 
+
 	init_fastshade_for_ob(re, ob, &need_orco, mat, imat);
 
-	orco = (need_orco)? mesh_create_orco(ob): NULL;
+	if(need_orco)
+		dataMask |= CD_MASK_ORCO;
 
 	if (onlyForMesh)
 		dm = mesh_get_derived_deform(ob, dataMask);
@@ -499,6 +498,7 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 	nors = dm->getFaceDataArray(dm, CD_NORMAL);
 	totvert = dm->getNumVerts(dm);
 	totface = dm->getNumFaces(dm);
+	orco= dm->getVertDataArray(dm, CD_ORCO);
 
 	if (onlyForMesh) {
 		col1 = *col1_r;
@@ -576,9 +576,6 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 		}
 	} 
 	MEM_freeN(vnors);
-
-	if (orco)
-		MEM_freeN(orco);
 
 	dm->release(dm);
 
@@ -1098,7 +1095,7 @@ void curve_to_filledpoly(Curve *cu, ListBase *nurb, ListBase *dispbase)
   - first point left, last point right
   - based on subdivided points in original curve, not on points in taper curve (still)
 */
-static float calc_taper(Object *taperobj, int cur, int tot)
+float calc_taper(Object *taperobj, int cur, int tot)
 {
 	Curve *cu;
 	DispList *dl;
@@ -1256,7 +1253,7 @@ void curve_calc_modifiers_post(Object *ob, ListBase *nurb, ListBase *dispbase, i
 
 		if ((md->mode & required_mode) != required_mode) continue;
 		if (mti->isDisabled && mti->isDisabled(md)) continue;
-		if (mti->type!=eModifierTypeType_OnlyDeform) continue;
+		if (mti->type!=eModifierTypeType_OnlyDeform && mti->type!=eModifierTypeType_DeformOrConstruct) continue;
 
 		for (dl=dispbase->first; dl; dl=dl->next) {
 			mti->deformVerts(md, ob, NULL, (float(*)[3]) dl->verts, (dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr);
@@ -1426,99 +1423,102 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 				BevPoint *bevp;
 				int a,b;
 				
-				/* exception handling; curve without bevel or extrude, with width correction */
-				if(dlbev.first==NULL) {
-					dl= MEM_callocN(sizeof(DispList), "makeDispListbev");
-					dl->verts= MEM_callocN(3*sizeof(float)*bl->nr, "dlverts");
-					BLI_addtail(dispbase, dl);
+				if (bl->nr) { /* blank bevel lists can happen */
 					
-					if(bl->poly!= -1) dl->type= DL_POLY;
-					else dl->type= DL_SEGM;
-					
-					if(dl->type==DL_SEGM) dl->flag = (DL_FRONT_CURVE|DL_BACK_CURVE);
-					
-					dl->parts= 1;
-					dl->nr= bl->nr;
-					dl->col= nu->mat_nr;
-					dl->charidx= nu->charidx;
-					dl->rt= nu->flag;
-					
-					a= dl->nr;
-					bevp= (BevPoint *)(bl+1);
-					data= dl->verts;
-					while(a--) {
-						data[0]= bevp->x+widfac*bevp->sina;
-						data[1]= bevp->y+widfac*bevp->cosa;
-						data[2]= bevp->z;
-						bevp++;
-						data+=3;
-					}
-				}
-				else {
-					DispList *dlb;
-					
-					for (dlb=dlbev.first; dlb; dlb=dlb->next) {
-
-							/* for each part of the bevel use a separate displblock */
-						dl= MEM_callocN(sizeof(DispList), "makeDispListbev1");
-						dl->verts= data= MEM_callocN(3*sizeof(float)*dlb->nr*bl->nr, "dlverts");
+					/* exception handling; curve without bevel or extrude, with width correction */
+					if(dlbev.first==NULL) {
+						dl= MEM_callocN(sizeof(DispList), "makeDispListbev");
+						dl->verts= MEM_callocN(3*sizeof(float)*bl->nr, "dlverts");
 						BLI_addtail(dispbase, dl);
-
-						dl->type= DL_SURF;
 						
-						dl->flag= dlb->flag & (DL_FRONT_CURVE|DL_BACK_CURVE);
-						if(dlb->type==DL_POLY) dl->flag |= DL_CYCL_U;
-						if(bl->poly>=0) dl->flag |= DL_CYCL_V;
+						if(bl->poly!= -1) dl->type= DL_POLY;
+						else dl->type= DL_SEGM;
 						
-						dl->parts= bl->nr;
-						dl->nr= dlb->nr;
+						if(dl->type==DL_SEGM) dl->flag = (DL_FRONT_CURVE|DL_BACK_CURVE);
+						
+						dl->parts= 1;
+						dl->nr= bl->nr;
 						dl->col= nu->mat_nr;
 						dl->charidx= nu->charidx;
 						dl->rt= nu->flag;
-						dl->bevelSplitFlag= MEM_callocN(sizeof(*dl->col2)*((bl->nr+0x1F)>>5), "col2");
+						
+						a= dl->nr;
 						bevp= (BevPoint *)(bl+1);
-
-							/* for each point of poly make a bevel piece */
-						bevp= (BevPoint *)(bl+1);
-						for(a=0; a<bl->nr; a++,bevp++) {
-							float fac=1.0;
-							if (cu->taperobj==NULL) {
-								if ( (cu->bevobj!=NULL) || !((cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) )
-								fac = calc_curve_subdiv_radius(cu, nu, a);
-							} else {
-								fac = calc_taper(cu->taperobj, a, bl->nr);
+						data= dl->verts;
+						while(a--) {
+							data[0]= bevp->x+widfac*bevp->sina;
+							data[1]= bevp->y+widfac*bevp->cosa;
+							data[2]= bevp->z;
+							bevp++;
+							data+=3;
+						}
+					}
+					else {
+						DispList *dlb;
+						
+						for (dlb=dlbev.first; dlb; dlb=dlb->next) {
+	
+								/* for each part of the bevel use a separate displblock */
+							dl= MEM_callocN(sizeof(DispList), "makeDispListbev1");
+							dl->verts= data= MEM_callocN(3*sizeof(float)*dlb->nr*bl->nr, "dlverts");
+							BLI_addtail(dispbase, dl);
+	
+							dl->type= DL_SURF;
+							
+							dl->flag= dlb->flag & (DL_FRONT_CURVE|DL_BACK_CURVE);
+							if(dlb->type==DL_POLY) dl->flag |= DL_CYCL_U;
+							if(bl->poly>=0) dl->flag |= DL_CYCL_V;
+							
+							dl->parts= bl->nr;
+							dl->nr= dlb->nr;
+							dl->col= nu->mat_nr;
+							dl->charidx= nu->charidx;
+							dl->rt= nu->flag;
+							dl->bevelSplitFlag= MEM_callocN(sizeof(*dl->col2)*((bl->nr+0x1F)>>5), "col2");
+							bevp= (BevPoint *)(bl+1);
+	
+								/* for each point of poly make a bevel piece */
+							bevp= (BevPoint *)(bl+1);
+							for(a=0; a<bl->nr; a++,bevp++) {
+								float fac=1.0;
+								if (cu->taperobj==NULL) {
+									if ( (cu->bevobj!=NULL) || !((cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) )
+									fac = calc_curve_subdiv_radius(cu, nu, a);
+								} else {
+									fac = calc_taper(cu->taperobj, a, bl->nr);
+								}
+								
+								if (bevp->f1) {
+									dl->bevelSplitFlag[a>>5] |= 1<<(a&0x1F);
+								}
+	
+									/* rotate bevel piece and write in data */
+								fp1= dlb->verts;
+								for (b=0; b<dlb->nr; b++,fp1+=3,data+=3) {
+									if(cu->flag & CU_3D) {
+										float vec[3];
+	
+										vec[0]= fp1[1]+widfac;
+										vec[1]= fp1[2];
+										vec[2]= 0.0;
+										
+										Mat3MulVecfl(bevp->mat, vec);
+										
+										data[0]= bevp->x+ fac*vec[0];
+										data[1]= bevp->y+ fac*vec[1];
+										data[2]= bevp->z+ fac*vec[2];
+									}
+									else {
+										data[0]= bevp->x+ fac*(widfac+fp1[1])*bevp->sina;
+										data[1]= bevp->y+ fac*(widfac+fp1[1])*bevp->cosa;
+										data[2]= bevp->z+ fac*fp1[2];
+									}
+								}
 							}
 							
-							if (bevp->f1) {
-								dl->bevelSplitFlag[a>>5] |= 1<<(a&0x1F);
-							}
-
-								/* rotate bevel piece and write in data */
-							fp1= dlb->verts;
-							for (b=0; b<dlb->nr; b++,fp1+=3,data+=3) {
-								if(cu->flag & CU_3D) {
-									float vec[3];
-
-									vec[0]= fp1[1]+widfac;
-									vec[1]= fp1[2];
-									vec[2]= 0.0;
-									
-									Mat3MulVecfl(bevp->mat, vec);
-									
-									data[0]= bevp->x+ fac*vec[0];
-									data[1]= bevp->y+ fac*vec[1];
-									data[2]= bevp->z+ fac*vec[2];
-								}
-								else {
-									data[0]= bevp->x+ fac*(widfac+fp1[1])*bevp->sina;
-									data[1]= bevp->y+ fac*(widfac+fp1[1])*bevp->cosa;
-									data[2]= bevp->z+ fac*fp1[2];
-								}
-							}
+							/* gl array drawing: using indices */
+							displist_surf_indices(dl);
 						}
-						
-						/* gl array drawing: using indices */
-						displist_surf_indices(dl);
 					}
 				}
 

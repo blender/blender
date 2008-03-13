@@ -27,7 +27,7 @@ subject to the following restrictions:
 #endif
 
 //must be above the machine epsilon
-#define REL_ERROR2 1.0e-6f
+#define REL_ERROR2 btScalar(1.0e-6)
 
 //temp globals, to improve GJK/EPA/penetration calculations
 int gNumDeepPenetrationChecks = 0;
@@ -36,7 +36,7 @@ int gNumGjkChecks = 0;
 
 
 btGjkPairDetector::btGjkPairDetector(btConvexShape* objectA,btConvexShape* objectB,btSimplexSolverInterface* simplexSolver,btConvexPenetrationDepthSolver*	penetrationDepthSolver)
-:m_cachedSeparatingAxis(0.f,0.f,1.f),
+:m_cachedSeparatingAxis(btScalar(0.),btScalar(0.),btScalar(1.)),
 m_penetrationDepthSolver(penetrationDepthSolver),
 m_simplexSolver(simplexSolver),
 m_minkowskiA(objectA),
@@ -49,25 +49,25 @@ m_catchDegeneracies(1)
 
 void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& output,class btIDebugDraw* debugDraw)
 {
-	btScalar distance=0.f;
-	btVector3	normalInB(0.f,0.f,0.f);
+	btScalar distance=btScalar(0.);
+	btVector3	normalInB(btScalar(0.),btScalar(0.),btScalar(0.));
 	btVector3 pointOnA,pointOnB;
 	btTransform	localTransA = input.m_transformA;
 	btTransform localTransB = input.m_transformB;
-	btVector3 positionOffset = (localTransA.getOrigin() + localTransB.getOrigin()) * 0.5f;
+	btVector3 positionOffset = (localTransA.getOrigin() + localTransB.getOrigin()) * btScalar(0.5);
 	localTransA.getOrigin() -= positionOffset;
 	localTransB.getOrigin() -= positionOffset;
 
-	float marginA = m_minkowskiA->getMargin();
-	float marginB = m_minkowskiB->getMargin();
+	btScalar marginA = m_minkowskiA->getMargin();
+	btScalar marginB = m_minkowskiB->getMargin();
 
 	gNumGjkChecks++;
 
 	//for CCD we don't use margins
 	if (m_ignoreMargin)
 	{
-		marginA = 0.f;
-		marginB = 0.f;
+		marginA = btScalar(0.);
+		marginB = btScalar(0.);
 	}
 
 	m_curIter = 0;
@@ -83,7 +83,7 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 
 	{
 		btScalar squaredDistance = SIMD_INFINITY;
-		btScalar delta = 0.f;
+		btScalar delta = btScalar(0.);
 		
 		btScalar margin = marginA + marginB;
 		
@@ -91,7 +91,8 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 
 		m_simplexSolver->reset();
 		
-		while (true)
+		for ( ; ; )
+		//while (true)
 		{
 
 			btVector3 seperatingAxisInA = (-m_cachedSeparatingAxis)* input.m_transformA.getBasis();
@@ -120,12 +121,12 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 				break;
 			}
 			// are we getting any closer ?
-			float f0 = squaredDistance - delta;
-			float f1 = squaredDistance * REL_ERROR2;
+			btScalar f0 = squaredDistance - delta;
+			btScalar f1 = squaredDistance * REL_ERROR2;
 
 			if (f0 <= f1)
 			{
-				if (f0 <= 0.f)
+				if (f0 <= btScalar(0.))
 				{
 					m_degenerateSimplex = 2;
 				}
@@ -191,7 +192,7 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 		{
 			m_simplexSolver->compute_points(pointOnA, pointOnB);
 			normalInB = pointOnA-pointOnB;
-			float lenSqr = m_cachedSeparatingAxis.length2();
+			btScalar lenSqr = m_cachedSeparatingAxis.length2();
 			//valid normal
 			if (lenSqr < 0.0001)
 			{
@@ -199,14 +200,14 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 			} 
 			if (lenSqr > SIMD_EPSILON*SIMD_EPSILON)
 			{
-				float rlen = 1.f / btSqrt(lenSqr );
+				btScalar rlen = btScalar(1.) / btSqrt(lenSqr );
 				normalInB *= rlen; //normalize
 				btScalar s = btSqrt(squaredDistance);
 			
 				btAssert(s > btScalar(0.0));
 				pointOnA -= m_cachedSeparatingAxis * (marginA / s);
 				pointOnB += m_cachedSeparatingAxis * (marginB / s);
-				distance = ((1.f/rlen) - margin);
+				distance = ((btScalar(1.)/rlen) - margin);
 				isValid = true;
 				
 				m_lastUsedMethod = 1;
@@ -243,11 +244,11 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 				if (isValid2)
 				{
 					btVector3 tmpNormalInB = tmpPointOnB-tmpPointOnA;
-					float lenSqr = tmpNormalInB.length2();
+					btScalar lenSqr = tmpNormalInB.length2();
 					if (lenSqr > (SIMD_EPSILON*SIMD_EPSILON))
 					{
 						tmpNormalInB /= btSqrt(lenSqr);
-						float distance2 = -(tmpPointOnA-tmpPointOnB).length();
+						btScalar distance2 = -(tmpPointOnA-tmpPointOnB).length();
 						//only replace valid penetrations when the result is deeper (check)
 						if (!isValid || (distance2 < distance))
 						{

@@ -1514,7 +1514,8 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 		default:
 			break;
 	}
-
+	delete shapeprops;
+	delete smmaterial;
 }
 
 
@@ -1599,7 +1600,8 @@ static KX_GameObject *gameobject_from_blenderobject(
 		KX_Camera* gamecamera = gamecamera_from_bcamera(static_cast<Camera*>(ob->data), kxscene, converter);
 		gameobj = gamecamera;
 		
-		gamecamera->AddRef();
+		//don't add a reference: the camera list in kxscene->m_cameras is not released at the end
+		//gamecamera->AddRef();
 		kxscene->AddCamera(gamecamera);
 		
 		break;
@@ -1845,6 +1847,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	vector<parentChildLink> vec_parent_child;
 	
 	CListValue* objectlist = kxscene->GetObjectList();
+	CListValue* inactivelist = kxscene->GetInactiveList();
 	CListValue* parentlist = kxscene->GetRootParentList();
 	
 	SCA_LogicManager* logicmgr = kxscene->GetLogicManager();
@@ -1852,7 +1855,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	
 	CListValue* logicbrick_conversionlist = new CListValue();
 	
-	SG_TreeFactory tf;
+	//SG_TreeFactory tf;
 	
 	// Convert actions to actionmap
 	bAction *curAct;
@@ -1913,10 +1916,14 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				eulxyzPrev[0]=blenderobject->rot[0];
 				eulxyzPrev[1]=blenderobject->rot[1];
 				eulxyzPrev[2]=blenderobject->rot[2];
-				tmp.scale((float)blenderscene->r.frs_sec,(float)blenderscene->r.frs_sec,(float)blenderscene->r.frs_sec);
+
+				double fps = (double) blenderscene->r.frs_sec/
+					(double) blenderscene->r.frs_sec_base;
+
+				tmp.scale(fps, fps, fps);
 				inivel.push_back(tmp);
 				tmp=eulxyz-eulxyzPrev;
-				tmp.scale((float)blenderscene->r.frs_sec,(float)blenderscene->r.frs_sec,(float)blenderscene->r.frs_sec);
+				tmp.scale(fps, fps, fps);
 				iniang.push_back(tmp);
 				blenderscene->r.cfra=blenderscene->r.sfra;
 				update_for_newframe();
@@ -1986,11 +1993,17 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			if (isInActiveLayer)
 			{
 				objectlist->Add(gameobj->AddRef());
-				tf.Add(gameobj->GetSGNode());
+				//tf.Add(gameobj->GetSGNode());
 				
 				gameobj->NodeUpdateGS(0,true);
 				gameobj->Bucketize();
 				
+			}
+			else
+			{
+				//we must store this object otherwise it will be deleted 
+				//at the end of this function if it is not a root object
+				inactivelist->Add(gameobj->AddRef());
 			}
 			if (converter->addInitFromFrame){
 				gameobj->NodeSetLocalPosition(posPrev);
@@ -1998,7 +2011,17 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			}
 						
 		}
-			
+		/* Note about memory leak issues:
+		   When a CValue derived class is created, m_refcount is initialized to 1
+		   so the class must be released after being used to make sure that it won't 
+		   hang in memory. If the object needs to be stored for a long time, 
+		   use AddRef() so that this Release() does not free the object.
+		   Make sure that for any AddRef() there is a Release()!!!! 
+		   Do the same for any object derived from CValue, CExpression and NG_NetworkMessage
+		 */
+		if (gameobj)
+			gameobj->Release();
+
 		base = base->next;
 	}
 

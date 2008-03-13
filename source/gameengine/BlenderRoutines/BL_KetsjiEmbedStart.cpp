@@ -105,11 +105,16 @@ static BlendFileData *load_game_data(char *filename) {
 		fseek(file, 0L, SEEK_SET);	
 		char* filebuffer= new char[len];//MEM_mallocN(len, "text_buffer");
 		int sizeread = fread(filebuffer,len,1,file);
-		if (sizeread==1)
-		{
+		if (sizeread==1){
 			bfd = BLO_read_from_memory(filebuffer, len, &error);
+		} else {
+			error = BRE_UNABLE_TO_READ;
 		}
 		fclose(file);
+		// the memory is not released in BLO_read_from_memory, must do it here
+		delete filebuffer;
+	} else {
+		error = BRE_UNABLE_TO_OPEN;
 	}
 
 	if (!bfd) {
@@ -134,6 +139,10 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 	strcpy (pathname, blenderdata->name);
 	STR_String exitstring = "";
 	BlendFileData *bfd= NULL;
+
+	// Acquire Python's GIL (global interpreter lock)
+	// so we can safely run Python code and API calls
+	PyGILState_STATE gilstate = PyGILState_Ensure();
 
 	bgl::InitExtensions(1);
 	
@@ -176,9 +185,13 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		
 		bool lock_arrays = (displaylists && useVertexArrays);
 
-		if(displaylists && !useVertexArrays)
-			rasterizer = new RAS_ListRasterizer(canvas);
-		else if (useVertexArrays && bgl::QueryVersion(1, 1))
+		if(displaylists){
+			if (useVertexArrays) {
+				rasterizer = new RAS_ListRasterizer(canvas, true, lock_arrays);
+			} else {
+				rasterizer = new RAS_ListRasterizer(canvas);
+			}
+		} else if (useVertexArrays && bgl::QueryVersion(1, 1))
 			rasterizer = new RAS_VAOpenGLRasterizer(canvas, lock_arrays);
 		else
 			rasterizer = new RAS_OpenGLRasterizer(canvas);
@@ -340,7 +353,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			initGameKeys();
 			initPythonConstraintBinding();
 
-			
+
 			if (sceneconverter)
 			{
 				// convert and add scene
@@ -460,6 +473,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 
 	if (bfd) BLO_blendfiledata_free(bfd);
+
+	// Release Python's GIL
+	PyGILState_Release(gilstate);
 }
 
 extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
@@ -477,6 +493,10 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 	strcpy (pathname, maggie->name);
 	STR_String exitstring = "";
 	BlendFileData *bfd= NULL;
+
+	// Acquire Python's GIL (global interpreter lock)
+	// so we can safely run Python code and API calls
+	PyGILState_STATE gilstate = PyGILState_Ensure();
 
 	bgl::InitExtensions(1);
 
@@ -605,7 +625,9 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 				
 				ketsjiengine->SetUseFixedTime(true);
 				
-				ketsjiengine->SetTicRate(blscene->r.frs_sec);
+				ketsjiengine->SetTicRate(
+					(double) blscene->r.frs_sec /
+					(double) blscene->r.frs_sec_base);
 
 				// the mainloop
 				while ((blscene->r.cfra<=blscene->r.efra)&&(!exitrequested))
@@ -663,4 +685,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 	if (bfd) BLO_blendfiledata_free(bfd);
+
+	// Release Python's GIL
+	PyGILState_Release(gilstate);
 }

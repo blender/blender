@@ -161,7 +161,7 @@ PyObject *EXPP_setterWrapperTuple ( PyObject * self, PyObject * args,
 				setter func);
 
 /* scriplinks-related: */
-PyObject *EXPP_getScriptLinks(ScriptLink *slink, PyObject *args, int is_scene);
+PyObject *EXPP_getScriptLinks(ScriptLink *slink, PyObject *value, int is_scene);
 PyObject *EXPP_addScriptLink(ScriptLink *slink, PyObject *args, int is_scene);
 PyObject *EXPP_clearScriptLinks(ScriptLink *slink, PyObject *args);
 
@@ -170,6 +170,7 @@ void EXPP_allqueue(unsigned short event, short val);
 
 /* helper to keep dictionaries from causing memory leaks */
 int EXPP_dict_set_item_str( PyObject *dict, char *key, PyObject *value);
+PyObject * EXPP_PyTuple_New_Prepend(PyObject *tuple, PyObject *value);
 
 #endif				/* EXPP_gen_utils_h */
 

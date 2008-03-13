@@ -122,6 +122,9 @@ static void do_nla_viewmenu(void *arg, int event)
 	case 6: /* Show all objects that have keyframes? */
 		G.snla->flag ^= SNLA_ALLKEYED;
 		break;
+	case 7:	/* Show timing in Frames or Seconds */
+		G.snla->flag ^= SNLA_DRAWTIME;
+		break;
 	}
 }
 
@@ -136,6 +139,12 @@ static uiBlock *nla_viewmenu(void *arg_unused)
 		
 	uiDefIconTextBut(block, BUTM, 1, (G.snla->flag & SNLA_ALLKEYED)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
 					 "Only Objects On Visible Layers|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+		
+	if (G.snla->flag & SNLA_DRAWTIME) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Frames|Ctrl T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	} else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Seconds|Ctrl T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	}
 		
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		
@@ -193,11 +202,7 @@ static void do_nla_selectmenu(void *arg, int event)
 		break;
 	case 3: /* Select/Deselect All Markers */
 		deselect_markers(1, 0);
-		allqueue(REDRAWTIME, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWSOUND, 0);
+		allqueue(REDRAWMARKER, 0);
 		break;
 	case 4: /* Borderselect markers */
 		borderselect_markers();
@@ -264,12 +269,16 @@ static void do_nla_strip_transformmenu(void *arg, int event)
 {
 	switch(event) {
 	case 0: /* grab/move */
-		transform_nlachannel_keys ('g', 0);
-			update_for_newframe_muted();
+		transform_nlachannel_keys('g', 0);
+		update_for_newframe_muted();
 		break;
 	case 1: /* scale */
-		transform_nlachannel_keys ('s', 0);
-			update_for_newframe_muted();
+		transform_nlachannel_keys('s', 0);
+		update_for_newframe_muted();
+		break;
+	case 2: /* extend */
+		transform_nlachannel_keys('e', 0);
+		update_for_newframe_muted();
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -284,8 +293,10 @@ static uiBlock *nla_strip_transformmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_nla_strip_transformmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Extend from Frame|E",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale|S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-
+	
+	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
 	return block;
@@ -320,7 +331,7 @@ static void do_nla_stripmenu(void *arg, int event)
 	case 7: /* Move Down */
 		shift_nlastrips_down();
 		break;
-	case 8:	/* size */
+	case 8:	/* reset scale */
 		reset_action_strips(1);
 		break;
 	case 9:	/* reset start/end of action */
@@ -328,6 +339,9 @@ static void do_nla_stripmenu(void *arg, int event)
 		break;
 	case 10: /* add new action as new action strip */
 		add_empty_nlablock();
+		break;
+	case 11: /* apply scale */
+		reset_action_strips(3);
 		break;
 	}
 }
@@ -342,10 +356,11 @@ static uiBlock *nla_stripmenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Strip Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBlockBut(block, nla_strip_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 20, "");
-	uiDefIconTextBlockBut(block, nla_strip_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap To Frame", 0, yco-=20, 120, 20, "");
+	uiDefIconTextBlockBut(block, nla_strip_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 20, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Strip Size|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Strip Scale|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Action Start/End|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Strip Scaling|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -396,11 +411,7 @@ static void do_nla_markermenu(void *arg, int event)
 			break;
 	}
 	
-	allqueue(REDRAWTIME, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWSOUND, 0);
+	allqueue(REDRAWMARKER, 0);
 }
 
 static uiBlock *nla_markermenu(void *arg_unused)
@@ -501,34 +512,24 @@ void nla_buttons(void)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
 
-	/* FULL WINDOW */
+	/* draw AUTOSNAP */
+	xco += 8;
 	
+	if (G.snla->flag & SNLA_DRAWTIME) {
+		uiDefButS(block, MENU, B_REDR,
+				"Auto-Snap Strips/Keyframes %t|No Snap %x0|Second Step %x1|Nearest Second %x2|Nearest Marker %x3", 
+				xco,0,70,YIC, &(G.snla->autosnap), 0, 1, 0, 0, 
+				"Auto-snapping mode for strips and keyframes when transforming");
+	}
+	else {
+		uiDefButS(block, MENU, B_REDR, 
+				"Auto-Snap Strips/Keyframes %t|No Snap %x0|Frame Step %x1|Nearest Frame %x2|Nearest Marker %x3", 
+				xco,0,70,YIC, &(G.snla->autosnap), 0, 1, 0, 0, 
+				"Auto-snapping mode for strips and keyframes when transforming");
+	}
 	
-//	xco = 8;
+	xco += (70 + 8);
 	
-//	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), xco,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
-
-//	xco+= XIC+22;
-	
-	/* FULL WINDOW */
-//	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
-//	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
-	
-	/* HOME */
-//	uiDefIconBut(block, BUT, B_NLAHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");	
-//	xco+= XIC;
-	
-	/* IMAGE */
-//	uiDefIconButS(block, TOG, B_REDR, ICON_IMAGE_COL,	xco+=XIC,0,XIC,YIC, &sseq->mainb, 0, 0, 0, 0, "Toggles image display");
-
-	/* ZOOM en BORDER */
-//	xco+= XIC;
-//	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zoom view (CTRL+MiddleMouse)");
-//	uiDefIconBut(block, BUT, B_NLABORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zoom view to area");
-
-	/* draw LOCK */
-//	xco+= XIC/2;
-
 	xco += 8;
 
 	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco,0,XIC,YIC, &(snla->lock), 0, 0, 0, 0, "Toggles forced redraw of other windows to reflect changes in real time");

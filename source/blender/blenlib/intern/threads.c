@@ -38,6 +38,15 @@
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 
+/* for checking system threads - BLI_system_thread_count */
+#ifdef WIN32
+#include "Windows.h"
+#elif defined(__APPLE__)
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#else
+#include <unistd.h> 
+#endif
 
 /* ********** basic thread control API ************ 
 
@@ -109,22 +118,26 @@ static void BLI_unlock_malloc_thread(void)
 	pthread_mutex_unlock(&_malloc_lock);
 }
 
+/* tot = 0 only initializes malloc mutex in a safe way (see sequence.c)
+   problem otherwise: scene render will kill of the mutex!
+*/
+
 void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 {
 	int a;
 	
-	if(threadbase==NULL)
-		return;
-	threadbase->first= threadbase->last= NULL;
+	if(threadbase != NULL && tot > 0) {
+		threadbase->first= threadbase->last= NULL;
 	
-	if(tot>RE_MAX_THREAD) tot= RE_MAX_THREAD;
-	else if(tot<1) tot= 1;
+		if(tot>RE_MAX_THREAD) tot= RE_MAX_THREAD;
+		else if(tot<1) tot= 1;
 	
-	for(a=0; a<tot; a++) {
-		ThreadSlot *tslot= MEM_callocN(sizeof(ThreadSlot), "threadslot");
-		BLI_addtail(threadbase, tslot);
-		tslot->do_thread= do_thread;
-		tslot->avail= 1;
+		for(a=0; a<tot; a++) {
+			ThreadSlot *tslot= MEM_callocN(sizeof(ThreadSlot), "threadslot");
+			BLI_addtail(threadbase, tslot);
+			tslot->do_thread= do_thread;
+			tslot->avail= 1;
+		}
 	}
 
 	MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
@@ -190,12 +203,14 @@ void BLI_end_threads(ListBase *threadbase)
 {
 	ThreadSlot *tslot;
 	
-	for(tslot= threadbase->first; tslot; tslot= tslot->next) {
-		if(tslot->avail==0) {
-			pthread_join(tslot->pthread, NULL);
+	if (threadbase) {
+		for(tslot= threadbase->first; tslot; tslot= tslot->next) {
+			if(tslot->avail==0) {
+				pthread_join(tslot->pthread, NULL);
+			}
 		}
+		BLI_freelistN(threadbase);
 	}
-	BLI_freelistN(threadbase);
 	
 	thread_levels--;
 	if(thread_levels==0)
@@ -216,6 +231,36 @@ void BLI_unlock_thread(int type)
 		pthread_mutex_unlock(&_image_lock);
 	else if(type==LOCK_CUSTOM1)
 		pthread_mutex_unlock(&_custom1_lock);
+}
+
+/* how many threads are native on this system? */
+int BLI_system_thread_count( void )
+{
+	int t;
+#ifdef WIN32
+	SYSTEM_INFO info;
+	GetSystemInfo(&info);
+	t = (int) info.dwNumberOfProcessors;
+#else 
+#	ifdef __APPLE__
+	int mib[2];
+	size_t len;
+	
+	mib[0] = CTL_HW;
+	mib[1] = HW_NCPU;
+	len = sizeof(t);
+	sysctl(mib, 2, &t, &len, NULL, 0);
+#	else
+	t = (int)sysconf(_SC_NPROCESSORS_ONLN);
+#	endif
+#endif
+	
+	if (t>RE_MAX_THREAD)
+		return RE_MAX_THREAD;
+	if (t<1)
+		return 1;
+	
+	return t;
 }
 
 /* eof */

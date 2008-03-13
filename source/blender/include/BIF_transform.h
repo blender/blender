@@ -55,6 +55,14 @@
 #define TFM_BONE_ENVELOPE	16
 #define TFM_CURVE_SHRINKFATTEN		17
 #define TFM_BONE_ROLL		18
+#define TFM_TIME_TRANSLATE	19	
+#define TFM_TIME_SLIDE		20
+#define	TFM_TIME_SCALE		21
+#define TFM_TIME_EXTEND		22
+#define TFM_BAKE_TIME		23
+#define TFM_BEVEL			24
+#define TFM_BWEIGHT			25
+#define TFM_ALIGN			26
 
 /* TRANSFORM CONTEXTS */
 #define CTX_NONE			0
@@ -62,11 +70,13 @@
 #define CTX_EDGE			2
 #define CTX_NO_PET			4
 #define CTX_TWEAK			8
-#define CTX_NDOF			16
+#define CTX_NO_MIRROR		16
+#define CTX_AUTOCONFIRM		32
+#define CTX_BMESH			64
+#define CTX_NDOF			128
 
 void initTransform(int mode, int context);
 void Transform(void);
-void Mirror(short mode);
 void NDofTransform();
 
 /* Standalone call to get the transformation center corresponding to the current situation
@@ -77,12 +87,28 @@ int calculateTransformCenter(int centerMode, float *vec);
 
 struct TransInfo;
 struct ScrArea;
+struct Base;
+struct Scene;
 
 struct TransInfo * BIF_GetTransInfo(void);
 void BIF_setSingleAxisConstraint(float vec[3], char *text);
 void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text);
 void BIF_setLocalAxisConstraint(char axis, char *text);
 void BIF_setLocalLockConstraint(char axis, char *text);
+
+int BIF_snappingSupported(void);
+
+struct TransformOrientation;
+
+void BIF_clearTransformOrientation(void);
+void BIF_removeTransformOrientation(struct TransformOrientation *ts);
+void BIF_manageTransformOrientation(int confirm, int set);
+int BIF_menuselectTransformOrientation(void);
+void BIF_selectTransformOrientation(struct TransformOrientation *ts);
+void BIF_selectTransformOrientationFromIndex(int index);
+
+char * BIF_menustringTransformOrientation(); /* the returned value was allocated and needs to be freed after use */
+int BIF_countTransformOrientation();
 
 /* Drawing callbacks */
 void BIF_drawConstraint(void);

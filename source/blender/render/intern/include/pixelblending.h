@@ -35,6 +35,8 @@
  */
 void add_filt_fmask(unsigned int mask, float *col, float *rowbuf, int row_w);
 void add_filt_fmask_pixsize(unsigned int mask, float *in, float *rowbuf, int row_w, int pixsize);
+void add_filt_fmask_coord(float filt[][3], float *col, float *rowbuf, int row_w, int col_h, int x, int y);
+void mask_array(unsigned int mask, float filt[][3]);
 
 /**
  * Alpha-over blending for floats.

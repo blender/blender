@@ -55,9 +55,9 @@ typedef struct EditVert
 		struct EditVert *v;
 		struct EditEdge *e;
 		struct EditFace *f;
-		float           *fp;
 		void            *p;
 		long             l;
+		float            fp;
 	} tmp;
 	float no[3]; /*vertex normal */
 	float co[3]; /*vertex location */
@@ -67,6 +67,7 @@ typedef struct EditVert
 	h for hidden. if (!eve->h) {...
 	f1 and f2 can be used for temp data, clear them first*/
 	unsigned char f, h, f1, f2; 
+	float bweight;
 	short fast;	/* only 0 or 1, for editmesh_fastmalloc, do not store temp data here! */
 	int hash;
 	int keyindex; /* original index #, for restoring  key information */
@@ -103,9 +104,11 @@ typedef struct EditEdge
 	short f1, f2;	/* short, f1 is (ab)used in subdiv */
 	unsigned char f, h, dir, seam, sharp;
 	float crease;
+	float bweight;
 	short fast; 		/* only 0 or 1, for editmesh_fastmalloc */
 	short fgoni;		/* index for fgon, for search */
 	HashEdge hash;
+	void *data;			/*custom edge data*/
 } EditEdge;
 
 /* note; changing this also might affect the undo copy in editmesh.c */
@@ -163,6 +166,13 @@ typedef struct EditMesh
 		/* DerivedMesh caches... note that derived cage can be equivalent
 		 * to derived final, care should be taken on release.
 		 */
+	
+	/* used for keeping track of the last clicked on face - so the space image
+	 * when using the last selected face - (EditSelection) the space image flickered too much
+	 * 
+	 * never access this directly, use EM_set_actFace and EM_get_actFace */
+	EditFace *act_face; 
+	
 	struct DerivedMesh *derivedCage, *derivedFinal;
 	/* the custom data layer mask that was last used to calculate
 	 * derivedCage and derivedFinal
@@ -171,7 +181,7 @@ typedef struct EditMesh
 
 	struct RetopoPaintData *retopo_paint_data;
 
-	CustomData vdata, fdata;
+	CustomData vdata, edata, fdata;
 
 #ifdef WITH_VERSE
 	void *vnode;

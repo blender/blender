@@ -18,7 +18,7 @@ which module is supported in the end.
 Example::
 	import bpy
 
-	scn= bpy.scenes.active                            # get current scene
+	scn= bpy.data.scenes.active                       # get current scene
 	lib = bpy.libraries.load('//file.blend')          # open file.blend
 	ob = scn.objects.link(lib.objects.append('Cube')) # append Cube object from library to current scene
 	mat = lib.objects.link('Material')                # get a link to a material
@@ -103,17 +103,17 @@ class LibData:
 		B{Note}: Blender Objects cannot be appended or linked without linking
 		them to a scene.  For this reason, lib.objects.append() returns a
 		special "wrapper object" which must be passed to Scene.objects.link()
-		or bpy.scenes.active.link() in order to actually create the object.
+		or bpy.data.scenes.active.link() in order to actually create the object.
 		So the following code will not create a new object::
 			import bpy
 
-			scn= bpy.scenes.active                            # get current scene
+			scn= bpy.data.scenes.active                       # get current scene
 			lib = bpy.libraries.load('//file.blend')          # open file.blend
 			pseudoOb = lib.objects.append('Cube'))            # get an object wrapper
 		But this code will::
 			import bpy
 
-			scn= bpy.scenes.active                            # get current scene
+			scn= bpy.data.scenes.active                       # get current scene
 			lib = bpy.libraries.load('//file.blend')          # open file.blend
 			pseudoOb = lib.objects.append('Cube'))            # get an object wrapper
 			ob = scn.objects.link(pseudoOb)  				  # link to scene

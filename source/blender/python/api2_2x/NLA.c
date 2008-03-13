@@ -87,11 +87,11 @@ struct PyMethodDef M_NLA_methods[] = {
 /*****************************************************************************/
 static PyObject *Action_setActive( BPy_Action * self, PyObject * args );
 static PyObject *Action_getFrameNumbers(BPy_Action *self);
-static PyObject *Action_getChannelIpo( BPy_Action * self, PyObject * args );
+static PyObject *Action_getChannelIpo( BPy_Action * self, PyObject * value );
 static PyObject *Action_getChannelNames( BPy_Action * self );
 static PyObject *Action_renameChannel( BPy_Action * self, PyObject * args );
-static PyObject *Action_verifyChannel( BPy_Action * self, PyObject * args );
-static PyObject *Action_removeChannel( BPy_Action * self, PyObject * args );
+static PyObject *Action_verifyChannel( BPy_Action * self, PyObject * value );
+static PyObject *Action_removeChannel( BPy_Action * self, PyObject * value );
 static PyObject *Action_getAllChannelIpos( BPy_Action * self );
 
 /*****************************************************************************/
@@ -107,15 +107,15 @@ static PyMethodDef BPy_Action_methods[] = {
 	 "(str) -set this action as the active action for an object"},
 	{"getFrameNumbers", (PyCFunction) Action_getFrameNumbers, METH_NOARGS,
 	"() - get the frame numbers at which keys have been inserted"},
-	{"getChannelIpo", ( PyCFunction ) Action_getChannelIpo, METH_VARARGS,
+	{"getChannelIpo", ( PyCFunction ) Action_getChannelIpo, METH_O,
 	 "(str) -get the Ipo from a named action channel in this action"},
 	{"getChannelNames", ( PyCFunction ) Action_getChannelNames, METH_NOARGS,
 	 "() -get the channel names for this action"},
 	 {"renameChannel", ( PyCFunction ) Action_renameChannel, METH_VARARGS,
 		 "(from, to) -rename the channel from string to string"},
-	{"verifyChannel", ( PyCFunction ) Action_verifyChannel, METH_VARARGS,
+	{"verifyChannel", ( PyCFunction ) Action_verifyChannel, METH_O,
 	 "(str) -verify the channel in this action"},
-	{"removeChannel", ( PyCFunction ) Action_removeChannel, METH_VARARGS,
+	{"removeChannel", ( PyCFunction ) Action_removeChannel, METH_O,
 	 "(str) -remove the channel from the action"},
 	{"getAllChannelIpos", ( PyCFunction ) Action_getAllChannelIpos,
 	 METH_NOARGS,
@@ -221,18 +221,20 @@ static PyObject *Action_getFrameNumbers(BPy_Action *self)
 	
 	py_list = PyList_New(0);
 	for(achan = self->action->chanbase.first; achan; achan = achan->next){
-		for (icu = achan->ipo->curve.first; icu; icu = icu->next){
-			bezt= icu->bezt;
-			if(bezt) {
-				verts = icu->totvert;
-				while(verts--) {
-					PyObject *value;
-					value = PyInt_FromLong((int)bezt->vec[1][0]);
-					if ( PySequence_Contains(py_list, value) == 0){
-						PyList_Append(py_list, value);
+		if (achan->ipo) {
+			for (icu = achan->ipo->curve.first; icu; icu = icu->next){
+				bezt= icu->bezt;
+				if(bezt) {
+					verts = icu->totvert;
+					while(verts--) {
+						PyObject *value;
+						value = PyInt_FromLong((int)bezt->vec[1][0]);
+						if ( PySequence_Contains(py_list, value) == 0){
+							PyList_Append(py_list, value);
+						}
+						Py_DECREF(value);
+						bezt++;
 					}
-					Py_DECREF(value);
-					bezt++;
 				}
 			}
 		}
@@ -268,12 +270,12 @@ static PyObject *Action_setActive( BPy_Action * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Action_getChannelIpo( BPy_Action * self, PyObject * args )
+static PyObject *Action_getChannelIpo( BPy_Action * self, PyObject * value )
 {
-	char *chanName;
+	char *chanName = PyString_AsString(value);
 	bActionChannel *chan;
 
-	if( !PyArg_ParseTuple( args, "s", &chanName ) )
+	if( !chanName )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 				       "string expected" );
 
@@ -328,16 +330,16 @@ static PyObject *Action_renameChannel( BPy_Action * self, PyObject * args )
 }
 
 /*----------------------------------------------------------------------*/
-static PyObject *Action_verifyChannel( BPy_Action * self, PyObject * args )
+static PyObject *Action_verifyChannel( BPy_Action * self, PyObject * value )
 {
-	char *chanName;
+	char *chanName = PyString_AsString(value);
 	bActionChannel *chan;
 
 	if( !self->action )
 		( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					 "couldn't create channel for a NULL action" ) );
 
-	if( !PyArg_ParseTuple( args, "s", &chanName ) )
+	if( !chanName )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected string argument" ) );
 
@@ -347,16 +349,15 @@ static PyObject *Action_verifyChannel( BPy_Action * self, PyObject * args )
 }
 
 
-static PyObject *Action_removeChannel( BPy_Action * self, PyObject * args )
+static PyObject *Action_removeChannel( BPy_Action * self, PyObject * value )
 {
-	char *chanName;
+	char *chanName = PyString_AsString(value);
 	bActionChannel *chan;
 
-	if( !PyArg_ParseTuple( args, "s", &chanName ) ) {
-		EXPP_ReturnPyObjError( PyExc_AttributeError,
-				       "string expected" );
-		return NULL;
-	}
+	if( !chanName )
+		return (EXPP_ReturnPyObjError( PyExc_AttributeError,
+				       "string expected" ));
+
 
 	chan = get_action_channel( self->action, chanName );
 	if( chan == NULL ) {
@@ -804,7 +805,8 @@ static int ActionStrip_setBlendMode( BPy_ActionStrip * self, PyObject * value )
  */
 
 #define ACTIONSTRIP_MASK (ACTSTRIP_SELECT | ACTSTRIP_USESTRIDE \
-		| ACTSTRIP_HOLDLASTFRAME | ACTSTRIP_ACTIVE | ACTSTRIP_LOCK_ACTION)
+		| ACTSTRIP_HOLDLASTFRAME | ACTSTRIP_ACTIVE | ACTSTRIP_LOCK_ACTION \
+		| ACTSTRIP_MUTE)
 
 static PyObject *ActionStrip_getFlag( BPy_ActionStrip * self )
 {
@@ -1180,6 +1182,8 @@ static PyObject *M_ActionStrip_FlagsDict( void )
 				PyInt_FromLong( ACTSTRIP_ACTIVE ) );
 		PyConstant_Insert( d, "LOCK_ACTION",
 				PyInt_FromLong( ACTSTRIP_LOCK_ACTION ) );
+		PyConstant_Insert( d, "MUTE",
+				PyInt_FromLong( ACTSTRIP_MUTE ) );
 	}
 	return S;
 }

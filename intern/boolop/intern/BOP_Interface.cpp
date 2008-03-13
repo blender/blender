@@ -152,12 +152,10 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 	// Create BSPs trees for mesh A & B
 	BOP_BSPTree bspA;
 	bspA.addMesh(meshC, *facesA);
-	bspA.computeBox();
 
 	BOP_BSPTree bspB;
 	bspB.addMesh(meshC, *facesB);
-	bspB.computeBox();
-	
+
 	#ifdef DEBUG
 	c = chrono.stamp(); t += c;
 	cout << "Create BSP     " << c << endl;	

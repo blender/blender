@@ -799,7 +799,7 @@ static int pdDoDeflection(RNG *rng, float opco[3], float npco[3], float opno[3],
 						
 //					t= 0.5;	// this is labda of line, can use it optimize quad intersection
 // sorry but no .. see below (BM)					
-					if( LineIntersectsTriangle(opco, npco, nv1, nv2, nv3, &t) ) {
+					if( LineIntersectsTriangle(opco, npco, nv1, nv2, nv3, &t, NULL) ) {
 						if (t < min_t) {
 							deflected = 1;
 							deflected_now = 1;
@@ -810,7 +810,7 @@ static int pdDoDeflection(RNG *rng, float opco[3], float npco[3], float opno[3],
 // it might give a smaller t on (close to) the edge .. this is numerics not esoteric maths :)
 // note: the 2 triangles don't need to share a plane ! (BM)
 					if (mface->v4) {
-						if( LineIntersectsTriangle(opco, npco, nv1, nv3, nv4, &t2) ) {
+						if( LineIntersectsTriangle(opco, npco, nv1, nv3, nv4, &t2, NULL) ) {
 							if (t2 < min_t) {
 								deflected = 1;
 								deflected_now = 2;
@@ -1541,6 +1541,7 @@ typedef struct pMatrixCache {
 
 
 /* WARN: this function stores data in ob->id.idnew! */
+/* error: this function changes ob->recalc of other objects... */
 static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 {
 	pMatrixCache *mcache, *mc;
@@ -1551,26 +1552,27 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 	
 	/* object can be linked in group... stupid exception */
 	if(NULL==object_in_scene(ob, G.scene))
-		group= find_group(ob);
+		group= find_group(ob, NULL); /* TODO - dont just use the first group! - Campbell */
 	
 	mcache= mc= MEM_mallocN( (end-start+1)*sizeof(pMatrixCache), "ob matrix cache");
 	
 	framelenold= G.scene->r.framelen;
 	G.scene->r.framelen= 1.0f;
 	cfrao= G.scene->r.cfra;
-	sfo= ob->sf;
+	sfo= ob->sf; /* warning, dont use sfo, value should be from give_timeoffset if used for anything */
 	ob->sf= 0.0f;
 
-	/* clear storage */
-	for(obcopy= G.main->object.first; obcopy; obcopy= obcopy->id.next) 
+	/* clear storage, copy recalc tag (bad loop) */
+	for(obcopy= G.main->object.first; obcopy; obcopy= obcopy->id.next) {
 		obcopy->id.newid= NULL;
+		obcopy->recalco= obcopy->recalc;
+		obcopy->recalc= 0;
+	}
 	
 	/* all objects get tagged recalc that influence this object (does group too) */
-	/* another hack; while transform you cannot call this, it sets own recalc flags */
-	if(G.moving==0) {
-		ob->recalc |= OB_RECALC_OB; /* make sure a recalc gets flushed */
-		DAG_object_update_flags(G.scene, ob, -1);
-	}
+	/* note that recalco has the real recalc tags, set by callers of this function */
+	ob->recalc |= OB_RECALC_OB; /* make sure a recalc gets flushed */
+	DAG_object_update_flags(G.scene, ob, -1);
 	
 	for(G.scene->r.cfra= start; G.scene->r.cfra<=end; G.scene->r.cfra++, mc++) {
 		
@@ -1649,7 +1651,12 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 				}
 			}
 		}
-	}	
+	}
+	
+	/* copy recalc tag (bad loop) */
+	for(obcopy= G.main->object.first; obcopy; obcopy= obcopy->id.next)
+		obcopy->recalc= obcopy->recalco;
+	
 	return mcache;
 }
 
@@ -1679,7 +1686,9 @@ void build_particle_system(Object *ob)
 	float *volengths= NULL, *folengths= NULL;
 	int deform=0, a, totpart, paf_sta, paf_end;
 	int waitcursor_set= 0, totvert, totface, curface, curvert;
+#ifndef DISABLE_ELBEEM
 	int readMask, activeParts, fileParts;
+#endif
 	
 	/* return conditions */
 	if(ob->type!=OB_MESH) return;
@@ -2088,6 +2097,7 @@ void build_particle_system(Object *ob)
 	/* reset deflector cache */
 	for(base= G.scene->base.first; base; base= base->next) {
 		if(base->object->sumohandle) {
+			
 			MEM_freeN(base->object->sumohandle);
 			base->object->sumohandle= NULL;
 		}

@@ -95,6 +95,8 @@ static int audio_pos;
 static int audio_scrub=0;
 static int audio_playing=0;
 static int audio_initialised=0;
+static int audio_startframe=0;
+static double audio_starttime = 0.0;
 /////
 //
 /* local protos ------------------- */
@@ -139,7 +141,7 @@ void audio_mixdown()
 
 	strcpy(buf, "RIFFlengWAVEfmt fmln01ccRATEbsecBP16dataDLEN");
 	totframe = (EFRA - SFRA + 1);
-	totlen = (int) ( ((float)totframe / (float)G.scene->r.frs_sec) * (float)G.scene->audio.mixrate * 4.0);
+	totlen = (int) ( FRA2TIME(totframe) * (float)G.scene->audio.mixrate * 4.0);
 	printf(" totlen %d\n", totlen+36+8);
 	
 	totlen+= 36;	/* len is filesize-8 in WAV spec, total header is 44 bytes */
@@ -182,7 +184,7 @@ void audio_mixdown()
 		
 		memset(buf+i, 0, 64);
 		
-		CFRA=(int) ( ((float)(audio_pos-64)/( G.scene->audio.mixrate*4 ))*(float)G.scene->r.frs_sec );
+		CFRA=(int) ( ((float)(audio_pos-64)/( G.scene->audio.mixrate*4 ))*FPS );
 			
 		audio_fill(buf+i, NULL, 64);
 		if (G.order == B_ENDIAN) {
@@ -216,7 +218,7 @@ void audiostream_fill(Uint8 *mixdown, int len)
 	for (i = 0; i < len; i += 64) {
 		CFRA = (int) ( ((float)(audio_pos-64)
 				/( G.scene->audio.mixrate*4 ))
-			       *(float)G.scene->r.frs_sec );
+			       * FPS );
 
 		audio_fill(mixdown + i, NULL, 
 			   (len - i) > 64 ? 64 : (len - i));
@@ -302,7 +304,7 @@ static void audio_fill_ram_sound(Sequence *seq, void * mixdown,
 	    (seq->startdisp <= CFRA) && ((seq->enddisp) > CFRA))
 	{
 		if(seq->ipo && seq->ipo->curve.first) {
-			do_seq_ipo(seq);
+			do_seq_ipo(seq, CFRA);
 			facf = seq->facf0;
 		} else {
 			facf = 1.0;
@@ -331,7 +333,7 @@ static void audio_fill_hd_sound(Sequence *seq,
 	    (seq->startdisp <= CFRA) && ((seq->enddisp) > CFRA))
 	{
 		if(seq->ipo && seq->ipo->curve.first) {
-			do_seq_ipo(seq);
+			do_seq_ipo(seq, CFRA);
 			facf = seq->facf0; 
 		} else {
 			facf = 1.0;
@@ -360,7 +362,8 @@ static void audio_fill_seq(Sequence * seq, void * mixdown,
 			   Uint8 *sstream, int len)
 {
 	while(seq) {
-		if (seq->type == SEQ_META) {
+		if (seq->type == SEQ_META &&
+		    (!(seq->flag & SEQ_MUTE))) {
 			audio_fill_seq(seq->seqbase.first,
 				       mixdown, sstream, len);
 		}
@@ -452,9 +455,8 @@ static int audiostream_play_seq(Sequence * seq, Uint32 startframe)
 		}
 		if ((seq->type == SEQ_RAM_SOUND) && (seq->sound)) {
 			have_sound = 1;
-			seq->curpos = (int)( (((float)((float)startframe
-						       -(float)seq->start)
-					       / (float)G.scene->r.frs_sec)
+			seq->curpos = (int)( (FRA2TIME((double) startframe -
+						       (double) seq->start)
 					      * ((float)G.scene->audio.mixrate)
 					      * 4 ));
 		}
@@ -467,9 +469,8 @@ static int audiostream_play_seq(Sequence * seq, Uint32 startframe)
 				
 				seq->hdaudio = sound_open_hdaudio(name);
 			}
-			seq->curpos = (int)( (((float)((float)startframe
-						       - (float)seq->start)
-					       / (float)G.scene->r.frs_sec)
+			seq->curpos = (int)( (FRA2TIME((double) startframe - 
+						       (double) seq->start)
 					      * ((float)G.scene->audio.mixrate)
 					      * 4 ));
 		}
@@ -495,7 +496,7 @@ void audiostream_play(Uint32 startframe, Uint32 duration, int mixdown)
 		sound_init_audio();
 	}
 
-   	if (!audio_initialised && !(duration + mixdown)) {
+   	if (U.mixbufsize && !audio_initialised && !mixdown) {
    		desired.freq=G.scene->audio.mixrate;
 		desired.format=AUDIO_S16SYS;
    		desired.channels=2;
@@ -506,11 +507,16 @@ void audiostream_play(Uint32 startframe, Uint32 duration, int mixdown)
    		}
    	}
 
-	audio_pos = ( ((int)( (((float)startframe)
-			       /(float)G.scene->r.frs_sec)
+	audio_startframe = startframe;
+	audio_pos = ( ((int)( FRA2TIME(startframe)
 			      *(G.scene->audio.mixrate)*4 )) & (~3) );
-	
-	audio_scrub = duration;
+	audio_starttime = PIL_check_seconds_timer();
+
+	/* if audio already is playing, just reseek, otherwise
+	   remember scrub-duration */
+	if (!(audio_playing && !audio_scrub)) {
+		audio_scrub = duration;
+	}
 	if (!mixdown) {
 		SDL_PauseAudio(0);
 		audio_playing++;
@@ -536,9 +542,17 @@ void audiostream_stop(void)
 int audiostream_pos(void) 
 {
 	int pos;
-	
-	pos = (int) ( ((float)(audio_pos-U.mixbufsize)/( G.scene->audio.mixrate*4 ))*(float)G.scene->r.frs_sec );
-	if (pos<1) pos=1;
+
+	if (U.mixbufsize) {
+		pos = (int) (((double)(audio_pos-U.mixbufsize)
+			      / ( G.scene->audio.mixrate*4 ))
+			     * FPS );
+	} else { /* fallback to seconds_timer when no audio available */
+		pos = (int) ((PIL_check_seconds_timer() - audio_starttime) 
+			     * FPS);
+	}
+
+	if (pos < audio_startframe) pos = audio_startframe;
 	return ( pos );
 }
 

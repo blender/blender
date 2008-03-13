@@ -240,7 +240,7 @@ static void findnearestLattvert__doClosest(void *userData, BPoint *bp, int x, in
 	struct { BPoint *bp; short dist, select, mval[2]; } *data = userData;
 	float temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
 	
-	if ((bp->f1&1)==data->select) temp += 5;
+	if ((bp->f1 & SELECT)==data->select) temp += 5;
 	if (temp<data->dist) {
 		data->dist = temp;
 
@@ -274,17 +274,13 @@ void mouse_lattice(void)
 		if((G.qual & LR_SHIFTKEY)==0) {
 		
 			setflagsLatt(0);
-			bp->f1 |= 1;
+			bp->f1 |= SELECT;
 
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		else {
-			
-			if(bp->f1 & 1) bp->f1 &= ~1;
-			else bp->f1 |= 1;
-
+			bp->f1 ^= SELECT; /* swap */
 			allqueue(REDRAWVIEW3D, 0);
-
 		}
 
 		countall();
@@ -298,28 +294,51 @@ void mouse_lattice(void)
 
 /* **************** undo for lattice object ************** */
 
-static void undoLatt_to_editLatt(void *defv)
+typedef struct UndoLattice {
+	BPoint *def;
+	int pntsu, pntsv, pntsw;
+} UndoLattice;
+
+static void undoLatt_to_editLatt(void *data)
 {
+	UndoLattice *ult= (UndoLattice*)data;
 	int a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 
-	memcpy(editLatt->def, defv, a*sizeof(BPoint));
+	memcpy(editLatt->def, ult->def, a*sizeof(BPoint));
 }
 
 static void *editLatt_to_undoLatt(void)
 {
+	UndoLattice *ult= MEM_callocN(sizeof(UndoLattice), "UndoLattice");
+	ult->def= MEM_dupallocN(editLatt->def);
+	ult->pntsu= editLatt->pntsu;
+	ult->pntsv= editLatt->pntsv;
+	ult->pntsw= editLatt->pntsw;
 	
-	return MEM_dupallocN(editLatt->def);
+	return ult;
 }
 
-static void free_undoLatt(void *defv)
+static void free_undoLatt(void *data)
 {
-	MEM_freeN(defv);
+	UndoLattice *ult= (UndoLattice*)data;
+
+	if(ult->def) MEM_freeN(ult->def);
+	MEM_freeN(ult);
+}
+
+static int validate_undoLatt(void *data)
+{
+	UndoLattice *ult= (UndoLattice*)data;
+
+	return (ult->pntsu == editLatt->pntsu &&
+	        ult->pntsv == editLatt->pntsv &&
+	        ult->pntsw == editLatt->pntsw);
 }
 
 /* and this is all the undo system needs to know */
 void undo_push_lattice(char *name)
 {
-	undo_editmode_push(name, free_undoLatt, undoLatt_to_editLatt, editLatt_to_undoLatt);
+	undo_editmode_push(name, free_undoLatt, undoLatt_to_editLatt, editLatt_to_undoLatt, validate_undoLatt);
 }
 
 

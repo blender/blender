@@ -38,14 +38,11 @@ CSRCS = creator.c
 
 include nan_compile.mk
 
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
-    CFLAGS += -funsigned-char
-endif
-
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 CPPFLAGS += -I../blender/render/extern/include
 CPPFLAGS += -I../blender/radiosity/extern/include
+
 # two needed for the kernel
 CPPFLAGS += -I../blender/imbuf
 CPPFLAGS += -I../blender/makesdna
@@ -61,6 +58,10 @@ CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 ifeq ($(WITH_QUICKTIME), true)
 	CPPFLAGS += -I$(NAN_QUICKTIME)/include -DWITH_QUICKTIME
+endif
+
+ifeq ($(WITH_BINRELOC), true)
+	CPPFLAGS += -I$(OCGDIR)/extern/binreloc/include -DWITH_BINRELOC
 endif
 
 ifeq ($(NAN_YESIAMSTUPID), true)

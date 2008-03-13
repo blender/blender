@@ -61,11 +61,11 @@ static MT_Scalar EulerAngleFromMatrix(const MT_Matrix3x3& R, int axis)
 	MT_Scalar t = sqrt(R[0][0]*R[0][0] + R[0][1]*R[0][1]);
 
     if (t > 16.0*MT_EPSILON) {
-		if (axis == 0) return atan2(R[1][2], R[2][2]);
+		if (axis == 0) return -atan2(R[1][2], R[2][2]);
         else if(axis == 1) return atan2(-R[0][2], t);
-        else return atan2(R[0][1], R[0][0]);
+        else return -atan2(R[0][1], R[0][0]);
     } else {
-		if (axis == 0) return atan2(-R[2][1], R[1][1]);
+		if (axis == 0) return -atan2(-R[2][1], R[1][1]);
         else if(axis == 1) return atan2(-R[0][2], t);
         else return 0.0f;
     }
@@ -236,6 +236,18 @@ IK_QSegment::IK_QSegment(int num_DoF, bool translational)
 	m_orig_translation = m_translation;
 }
 
+void IK_QSegment::Reset()
+{
+	m_locked[0] = m_locked[1] = m_locked[2] = false;
+
+	m_basis = m_orig_basis;
+	m_translation = m_orig_translation;
+	SetBasis(m_basis);
+
+	for (IK_QSegment *seg = m_child; seg; seg = seg->m_sibling)
+		seg->Reset();
+}
+
 void IK_QSegment::SetTransform(
 	const MT_Vector3& start,
 	const MT_Matrix3x3& rest_basis,
@@ -324,6 +336,21 @@ void IK_QSegment::UpdateTransform(const MT_Transform& global)
 	// update child transforms
 	for (IK_QSegment *seg = m_child; seg; seg = seg->m_sibling)
 		seg->UpdateTransform(m_global_transform);
+}
+
+void IK_QSegment::PrependBasis(const MT_Matrix3x3& mat)
+{
+	m_basis = m_rest_basis.inverse() * mat * m_rest_basis * m_basis;
+}
+
+void IK_QSegment::Scale(float scale)
+{
+	m_start *= scale;
+	m_translation *= scale;
+	m_orig_translation *= scale;
+	m_global_start *= scale;
+	m_global_transform.getOrigin() *= scale;
+	m_max_extension *= scale;
 }
 
 // IK_QSphericalSegment
@@ -1007,5 +1034,19 @@ void IK_QTranslateSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 	m_min[axis]= lmin;
 	m_max[axis]= lmax;
 	m_limit[axis]= true;
+}
+
+void IK_QTranslateSegment::Scale(float scale)
+{
+	int i;
+
+	IK_QSegment::Scale(scale);
+
+	for (i = 0; i < 3; i++) {
+		m_min[0] *= scale;
+		m_max[1] *= scale;
+	}
+
+	m_new_translation *= scale;
 }
 

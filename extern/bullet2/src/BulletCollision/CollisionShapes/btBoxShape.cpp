@@ -42,17 +42,16 @@ void btBoxShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabb
 
 void	btBoxShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
 {
-	//float margin = 0.f;
+	//btScalar margin = btScalar(0.);
 	btVector3 halfExtents = getHalfExtents();
 
-	btScalar lx=2.f*(halfExtents.x());
-	btScalar ly=2.f*(halfExtents.y());
-	btScalar lz=2.f*(halfExtents.z());
+	btScalar lx=btScalar(2.)*(halfExtents.x());
+	btScalar ly=btScalar(2.)*(halfExtents.y());
+	btScalar lz=btScalar(2.)*(halfExtents.z());
 
-	inertia[0] = mass/(12.0f) * (ly*ly + lz*lz);
-	inertia[1] = mass/(12.0f) * (lx*lx + lz*lz);
-	inertia[2] = mass/(12.0f) * (lx*lx + ly*ly);
-
+	inertia.setValue(mass/(btScalar(12.0)) * (ly*ly + lz*lz),
+					mass/(btScalar(12.0)) * (lx*lx + lz*lz),
+					mass/(btScalar(12.0)) * (lx*lx + ly*ly));
 
 }
 

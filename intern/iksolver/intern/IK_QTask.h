@@ -75,6 +75,10 @@ public:
 
 	virtual MT_Scalar Distance() const=0;
 
+	virtual bool PositionTask() const { return false; }
+
+	virtual void Scale(float scale) {}
+
 protected:
 	int m_id;
 	int m_size;
@@ -96,6 +100,9 @@ public:
 	void ComputeJacobian(IK_QJacobian& jacobian);
 
 	MT_Scalar Distance() const;
+
+	bool PositionTask() const { return true; }
+	void Scale(float scale) { m_goal *= scale; m_clamp_length *= scale; }
 
 private:
 	MT_Vector3 m_goal;
@@ -132,6 +139,8 @@ public:
 	void ComputeJacobian(IK_QJacobian& jacobian);
 
 	MT_Scalar Distance() const;
+
+	void Scale(float scale) { m_goal_center *= scale; m_distance *= scale; }
 
 private:
 	MT_Scalar ComputeTotalMass(const IK_QSegment *segment);

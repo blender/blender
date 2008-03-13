@@ -65,6 +65,8 @@ void exit_editmode(int flag);
 void check_editmode(int type);
 void enter_editmode(int wc);
 
+void exit_paint_modes(void);
+
 void docenter(int centermode);
 void docenter_new(void);
 void docenter_cursor(void);
@@ -77,6 +79,8 @@ void link_to_scene(unsigned short nr);
 void make_links_menu(void);
 void make_links(short event);
 void make_duplilist_real(void);
+void apply_objects_locrot(void);
+void apply_objects_visual_tx(void);
 void apply_object(void);
 
 /* old transform */
@@ -93,6 +97,7 @@ void single_object_users(int flag);
 void new_id_matar(struct Material **matar, int totcol);
 void single_obdata_users(int flag);
 void single_mat_users(int flag);
+void single_ipo_users(int flag);
 void do_single_tex_user(struct Tex **from);
 void single_tex_users_expand(void);
 void single_mat_users_expand(void);
@@ -107,16 +112,20 @@ void set_ob_ipoflags(void);
 void select_select_keys(void);
 int vergbaseco(const void *a1, const void *a2);
 void auto_timeoffs(void);
+void ofs_timeoffs(void);
+void rand_timeoffs(void);
 void texspace_edit(void);
 void flip_subdivison(int);
 void mirrormenu(void);
 void hookmenu(void); /* object mode hook menu */
 
 
-void add_hook(void);
+void add_hook_menu(void);
+void add_hook(int mode);
 void hook_select(struct HookModifierData *hmd);
 int hook_getIndexArray(int *tot, int **indexar, char *name, float *cent_r);
 
+int object_is_libdata(struct Object *ob);
 int object_data_is_libdata(struct Object *ob);	
 void hide_objects(int select);
 void show_objects(void);

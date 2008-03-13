@@ -84,8 +84,11 @@ void	delete_armature(void);
 void	deselectall_armature(int toggle, int doundo);
 void	deselectall_posearmature (struct Object *ob, int test, int doundo);
 int		draw_armature(struct Base *base, int dt);
+
 void	extrude_armature(int forked);
-void	subdivide_armature(void);
+void	subdivide_armature(int numcuts);
+void	fill_bones_armature(void);
+void	merge_armature(void);
 
 void	free_editArmature(void);
 
@@ -101,26 +104,32 @@ void	make_trans_bones (char mode);
 
 int		do_pose_selectbuffer(struct Base *base, unsigned int *buffer, short hits);
 
+void generateSkeleton(void);
+
 void	mouse_armature(void);
 void	remake_editArmature(void);
 void	selectconnected_armature(void);
 void	selectconnected_posearmature(void);
 void	select_bone_parent(void);
-void    unique_editbone_name (struct ListBase *ebones, char* name);
+void	setflag_armature(short mode);
+void    unique_editbone_name (struct ListBase *ebones, char *name);
 
-void	auto_align_armature(void);
-void	create_vgroups_from_armature(Object *ob, Object *par);
+void	auto_align_armature(short mode);
+
+void	create_vgroups_from_armature(struct Object *ob, struct Object *par);
+void 	add_verts_to_dgroups(struct Object *ob, struct Object *par, int heat, int mirror);
 
 void	hide_selected_pose_bones(void);
 void	hide_unselected_pose_bones(void);
 void	show_all_pose_bones(void);
 
-int		bone_looper(Object *ob, struct Bone *bone, void *data,
-				int (*bone_func)(Object *, struct Bone *, void *));
+int		bone_looper(struct Object *ob, struct Bone *bone, void *data,
+				int (*bone_func)(struct Object *, struct Bone *, void *));
 
 void	undo_push_armature(char *name);
 void	armature_bone_rename(struct bArmature *arm, char *oldname, char *newname);
 void	armature_flip_names(void);
+void 	armature_autoside_names(short axis);
 EditBone *armature_bone_get_mirrored(EditBone *ebo);
 void	transform_armature_mirror_update(void);
 
@@ -136,4 +145,5 @@ void	show_all_armature_bones(void);
 #define BONESEL_NOSEL	0x80000000	/* Indicates a negative number */
 
 #endif
+
 

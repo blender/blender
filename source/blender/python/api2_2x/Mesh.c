@@ -60,6 +60,7 @@
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_main.h"
+#include "BKE_multires.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_DerivedMesh.h"
@@ -125,6 +126,8 @@ static PyObject *MEdgeSeq_CreatePyObject( Mesh * mesh );
 static PyObject *MFace_CreatePyObject( Mesh * mesh, int i );
 static PyObject *MEdge_CreatePyObject( Mesh * mesh, int i );
 
+#define MFACE_VERT_BADRANGE_CHECK(me, face) ((int)face->v1 >= me->totvert || (int)face->v2 >= me->totvert || (int)face->v3 >= me->totvert || (int)face->v4 >= me->totvert)
+#define MEDGE_VERT_BADRANGE_CHECK(me, edge) ((int)edge->v1 >= me->totvert || (int)edge->v2 >= me->totvert)
 
 /************************************************************************
  *
@@ -587,7 +590,6 @@ static unsigned int make_vertex_table( unsigned int *vert_table, int count )
 static PyObject *MCol_getAttr( BPy_MCol * self, void *type )
 {
 	unsigned char param;
-	PyObject *attr;
 
 	switch( (long)type ) {
     case 'R':	/* these are backwards, but that how it works */
@@ -611,12 +613,7 @@ static PyObject *MCol_getAttr( BPy_MCol * self, void *type )
 		}
 	}
 
-	attr = PyInt_FromLong( param );
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed"); 
+	return PyInt_FromLong( param ); 
 }
 
 /*
@@ -684,7 +681,6 @@ static PyGetSetDef BPy_MCol_getseters[] = {
 static PyObject *MCol_item(BPy_MCol * self, int i)
 {
 	unsigned char param;
-	PyObject *attr;
 	switch (i) {
 	case 0:
 		param = self->color->b;
@@ -703,12 +699,7 @@ static PyObject *MCol_item(BPy_MCol * self, int i)
 			"vector[index] = x: assignment index out of range\n");
 	}
 	
-	attr = PyInt_FromLong( param );
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed");
+	return PyInt_FromLong( param );
 }
 
 /*----------------------------object[]-------------------------
@@ -924,18 +915,11 @@ static int MVert_setCoord( BPy_MVert * self, VectorObject * value )
 
 static PyObject *MVert_getIndex( BPy_MVert * self )
 {
-	PyObject *attr;
-
 	if( self->index >= ((Mesh *)self->data)->totvert )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"MVert is no longer valid" );
 
-	attr = PyInt_FromLong( self->index );
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+	return PyInt_FromLong( self->index );
 }
 
 
@@ -947,11 +931,9 @@ static PyObject *MVert_getMFlagBits( BPy_MVert * self, void * type )
 {
 	MVert *v;
 
-	v = MVert_get_pointer( self );
-	
-	if( self->index >= ((Mesh *)self->data)->totvert )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"MVert is no longer valid" );
+	v = MVert_get_pointer( self );	
+	if (!v)
+		return NULL; /* error is set */
 
 	return EXPP_getBitfield( &v->flag, (int)((long)type & 0xff), 'b' );
 }
@@ -968,9 +950,8 @@ static int MVert_setMFlagBits( BPy_MVert * self, PyObject * value,
 
 	v = MVert_get_pointer( self );
 
-	if( self->index >= ((Mesh *)self->data)->totvert )
-		return EXPP_ReturnIntError( PyExc_RuntimeError,
-				"MVert is no longer valid" );
+	if (!v)
+		return -1; /* error is set */
 
 	return EXPP_setBitfield( value, &v->flag, 
 			(int)((long)type & 0xff), 'b' );
@@ -989,7 +970,7 @@ static PyObject *MVert_getNormal( BPy_MVert * self )
 
 	v = MVert_get_pointer( self );
 	if( !v )
-		return NULL;
+		return NULL; /* error set */
 
 	for( i = 0; i < 3; ++i )
 		no[i] = (float)(v->no[i] / 32767.0);
@@ -1008,7 +989,7 @@ static int MVert_setNormal( BPy_MVert * self, VectorObject * value )
 	
 	v = MVert_get_pointer( self );
 	if( !v )
-		return -1;
+		return -1; /* error set */
 
 	if( !VectorObject_Check( value ) || value->size != 3 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
@@ -1037,7 +1018,7 @@ static PyObject *MVert_getSel( BPy_MVert *self )
 
 	v = MVert_get_pointer( self );
 	if( !v )
-		return NULL;
+		return NULL; /* error is set */
 
 	return EXPP_getBitfield( &v->flag, SELECT, 'b' );
 }
@@ -1050,6 +1031,8 @@ static int MVert_setSel( BPy_MVert *self, PyObject *value )
 {
 	MVert *v = MVert_get_pointer( self );
 	Mesh *me = (Mesh *)self->data;
+	if (!v)
+		return -1; /* error is set */
 
 	/* 
 	 * if vertex exists and setting status is OK, delete select storage
@@ -1226,6 +1209,239 @@ static long MVert_hash( BPy_MVert *self )
 	return (long)self->index;
 }
 
+static PyObject *Mesh_addPropLayer_internal(Mesh *mesh, CustomData *data, int tot, PyObject *args)
+{
+	char *name=NULL;
+	int type = -1;
+	
+	if( !PyArg_ParseTuple( args, "si", &name, &type) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+							"expected a string and an int" );
+	if (strlen(name)>31)
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+							"error, maximum name length is 31");
+	if((type != CD_PROP_FLT) && (type != CD_PROP_INT) && (type != CD_PROP_STR))
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+							"error, unknown layer type");
+	if (name)
+		CustomData_add_layer_named(data, type, CD_DEFAULT, NULL,tot,name);
+	
+	mesh_update_customdata_pointers(mesh);
+	Py_RETURN_NONE;
+}
+
+static PyObject *Mesh_removePropLayer_internal(Mesh *mesh, CustomData *data, int tot,PyObject *value)
+{
+	CustomDataLayer *layer;
+	char *name=PyString_AsString(value);
+	int i;
+	
+	if( !name )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected string argument" );
+	
+	if (strlen(name)>31)
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"error, maximum name length is 31" );
+	
+	i = CustomData_get_named_layer_index(data, CD_PROP_FLT, name);
+	if(i == -1) i = CustomData_get_named_layer_index(data, CD_PROP_INT, name);
+	if(i == -1) i = CustomData_get_named_layer_index(data, CD_PROP_STR, name);
+	if (i==-1)
+		return EXPP_ReturnPyObjError(PyExc_ValueError,
+			"No matching layers to remove" );	
+	layer = &data->layers[i];
+	CustomData_free_layer(data, layer->type, tot, i);
+	mesh_update_customdata_pointers(mesh);
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *Mesh_renamePropLayer_internal(Mesh *mesh, CustomData *data, PyObject *args)
+{
+	CustomDataLayer *layer;
+	int i;
+	char *name_from, *name_to;
+	
+	if( !PyArg_ParseTuple( args, "ss", &name_from, &name_to ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected 2 strings" );
+	
+	if (strlen(name_from)>31 || strlen(name_to)>31)
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"error, maximum name length is 31" );
+	
+	i = CustomData_get_named_layer_index(data, CD_PROP_FLT, name_from);
+	if(i == -1) i = CustomData_get_named_layer_index(data, CD_PROP_INT, name_from);
+	if(i == -1) i = CustomData_get_named_layer_index(data, CD_PROP_STR, name_from);
+	if(i == -1)
+		return EXPP_ReturnPyObjError(PyExc_ValueError,
+			"No matching layers to rename" );	
+
+	layer = &data->layers[i];
+	
+	strcpy(layer->name, name_to); /* we alredy know the string sizes are under 32 */
+	CustomData_set_layer_unique_name(data, i);
+	Py_RETURN_NONE;
+}
+
+static PyObject *Mesh_propList_internal(CustomData *data)
+{
+	CustomDataLayer *layer;
+	PyObject *list = PyList_New( 0 ), *item;
+	int i;
+	for(i=0; i<data->totlayer; i++) {
+		layer = &data->layers[i];
+		if( (layer->type == CD_PROP_FLT) || (layer->type == CD_PROP_INT) || (layer->type == CD_PROP_STR)) {
+			item = PyString_FromString(layer->name);
+			PyList_Append( list, item );
+			Py_DECREF(item);
+		}
+	}
+	return list;
+} 
+
+static PyObject *Mesh_getProperty_internal(CustomData *data, int eindex, PyObject *value)
+{
+	CustomDataLayer *layer;
+	char *name=PyString_AsString(value);
+	int i;
+	MFloatProperty *pf;
+	MIntProperty *pi;
+	MStringProperty *ps;
+
+	if(!name)
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"expected an string argument" );
+	
+	if (strlen(name)>31)
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"error, maximum name length is 31" );
+	
+	i = CustomData_get_named_layer_index(data, CD_PROP_FLT, name);
+	if(i == -1) i = CustomData_get_named_layer_index(data, CD_PROP_INT, name);
+	if(i == -1) i = CustomData_get_named_layer_index(data, CD_PROP_STR, name);
+	if(i == -1)
+		return EXPP_ReturnPyObjError(PyExc_ValueError,
+			"No matching layers" );	
+	
+	layer = &data->layers[i];
+
+	if(layer->type == CD_PROP_FLT){ 
+		pf = layer->data;
+		return PyFloat_FromDouble(pf[eindex].f);
+	}
+	else if(layer->type == CD_PROP_INT){
+		pi = layer->data;
+		return PyInt_FromLong(pi[eindex].i);
+	
+	}
+	else if(layer->type == CD_PROP_STR){
+		ps = layer->data;
+		return PyString_FromString(ps[eindex].s);
+	}
+	Py_RETURN_NONE;
+}
+
+static PyObject *Mesh_setProperty_internal(CustomData *data, int eindex, PyObject *args)
+{
+	CustomDataLayer *layer;
+	int i = 0, index, type = -1;
+	float f = 0.0f;
+	char *s=NULL, *name=NULL;
+	MFloatProperty *pf;
+	MIntProperty  *pi;
+	MStringProperty *ps;
+	PyObject *val;
+	
+	if(PyArg_ParseTuple(args, "sO", &name, &val)){
+		if (strlen(name)>31)
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"error, maximum name length is 31" );
+		
+		if(PyInt_Check(val)){ 
+			type = CD_PROP_INT;
+			i = (int)PyInt_AS_LONG(val);
+		}
+		else if(PyFloat_Check(val)){
+			type = CD_PROP_FLT;
+			f = (float)PyFloat_AsDouble(val);
+		}
+		else if(PyString_Check(val)){
+			type = CD_PROP_STR;
+			s = PyString_AsString(val);
+		}
+		else
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected an name plus either float/int/string" );
+
+	}
+
+	index = CustomData_get_named_layer_index(data, type, name);
+	if(index == -1)
+		return EXPP_ReturnPyObjError(PyExc_ValueError,
+			"No matching layers or type mismatch" );	
+
+	layer = &data->layers[index];
+	
+	if(type==CD_PROP_STR){
+		if (strlen(s)>255){
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"error, maximum string length is 255");
+		}
+		else{
+			ps =  layer->data;
+			strcpy(ps[eindex].s,s);
+		}
+	}
+	else if(type==CD_PROP_FLT){
+		pf = layer->data;
+		pf[eindex].f = f;
+	}
+	else{
+		pi = layer->data;
+		pi[eindex].i = i;
+	}
+	Py_RETURN_NONE;
+}
+
+static PyObject *MVert_getProp( BPy_MVert *self, PyObject *args)
+{
+	if( BPy_MVert_Check( self ) ){
+		Mesh *me = (Mesh *)self->data;
+		if(self->index >= me->totvert)
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"error, MVert is no longer valid part of mesh!");
+		else
+			return Mesh_getProperty_internal(&(me->vdata), self->index, args);
+	}
+	return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"error, Vertex not part of a mesh!");
+}
+
+static PyObject *MVert_setProp( BPy_MVert *self,  PyObject *args)
+{
+	if( BPy_MVert_Check( self ) ){
+		Mesh *me = (Mesh *)self->data;
+		if(self->index >= me->totvert)
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"error, MVert is no longer valid part of mesh!");
+		else
+			return Mesh_setProperty_internal(&(me->vdata), self->index, args);
+	}
+	return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"error, Vertex not part of a mesh!");
+}
+	
+static struct PyMethodDef BPy_MVert_methods[] = {
+	{"getProperty", (PyCFunction)MVert_getProp, METH_O,
+		"get property indicated by name"},
+	{"setProperty", (PyCFunction)MVert_setProp, METH_VARARGS,
+		"set property indicated by name"},
+	{NULL, NULL, 0, NULL}
+};
+
+
 /************************************************************************
  *
  * Python MVert_Type structure definition
@@ -1290,7 +1506,7 @@ PyTypeObject MVert_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	NULL,                       /* struct PyMethodDef *tp_methods; */
+	BPy_MVert_methods,          /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
 	BPy_MVert_getseters,        /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
@@ -1870,7 +2086,7 @@ static PyObject *MVertSeq_delete( BPy_MVertSeq * self, PyObject *args )
 						"MVert belongs to a different mesh" );
 			}
 			index = ((BPy_MVert*)tmp)->index;
-		} else if( PyInt_CheckExact( tmp ) ) {
+		} else if( PyInt_Check( tmp ) ) {
 			index = PyInt_AsLong ( tmp );
 		} else {
 			MEM_freeN( vert_table );
@@ -1955,6 +2171,37 @@ static PyObject *MVertSeq_selected( BPy_MVertSeq * self )
 	}
 	return list;
 }
+static PyObject *MVertSeq_add_layertype(BPy_MVertSeq *self, PyObject *args)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_addPropLayer_internal(me, &(me->vdata), me->totvert, args);
+}
+static PyObject *MVertSeq_del_layertype(BPy_MVertSeq *self, PyObject *value)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_removePropLayer_internal(me, &(me->vdata), me->totvert, value);
+}
+static PyObject *MVertSeq_rename_layertype(BPy_MVertSeq *self, PyObject *args)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_renamePropLayer_internal(me,&(me->vdata),args);
+}
+static PyObject *MVertSeq_PropertyList(BPy_MVertSeq *self) 
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_propList_internal(&(me->vdata));
+}
+static PyObject *M_Mesh_PropertiesTypeDict(void)
+{
+	PyObject *Types = PyConstant_New( );
+	if(Types) {
+		BPy_constant *d = (BPy_constant *) Types;
+		PyConstant_Insert(d, "FLOAT", PyInt_FromLong(CD_PROP_FLT));
+		PyConstant_Insert(d, "INT" , PyInt_FromLong(CD_PROP_INT));
+		PyConstant_Insert(d, "STRING", PyInt_FromLong(CD_PROP_STR));
+	}
+	return Types;
+}
 
 static struct PyMethodDef BPy_MVertSeq_methods[] = {
 	{"extend", (PyCFunction)MVertSeq_extend, METH_VARARGS,
@@ -1963,8 +2210,24 @@ static struct PyMethodDef BPy_MVertSeq_methods[] = {
 		"delete vertices from mesh"},
 	{"selected", (PyCFunction)MVertSeq_selected, METH_NOARGS,
 		"returns a list containing indices of selected vertices"},
+	{"addPropertyLayer",(PyCFunction)MVertSeq_add_layertype, METH_VARARGS,
+		"add a new property layer"},
+	{"removePropertyLayer",(PyCFunction)MVertSeq_del_layertype, METH_O,
+		"removes a property layer"},
+	{"renamePropertyLayer",(PyCFunction)MVertSeq_rename_layertype, METH_VARARGS,
+		"renames an existing property layer"},
 	{NULL, NULL, 0, NULL}
 };
+
+static PyGetSetDef BPy_MVertSeq_getseters[] = {
+	{"properties",
+	(getter)MVertSeq_PropertyList, (setter)NULL,
+	"vertex property layers, read only",
+	NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
+
 
 /************************************************************************
  *
@@ -2035,7 +2298,7 @@ PyTypeObject MVertSeq_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	BPy_MVertSeq_methods,       /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	NULL,                       /* struct PyGetSetDef *tp_getset; */
+	BPy_MVertSeq_getseters,     /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
@@ -2077,18 +2340,12 @@ static MEdge * MEdge_get_pointer( BPy_MEdge * self )
 
 static PyObject *MEdge_getCrease( BPy_MEdge * self )
 {
-	PyObject *attr;
 	MEdge *edge = MEdge_get_pointer( self );
 
 	if( !edge )
 		return NULL;
 
-	attr = PyInt_FromLong( edge->crease );
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+	return PyInt_FromLong( edge->crease );
 }
 
 /*
@@ -2111,19 +2368,12 @@ static int MEdge_setCrease( BPy_MEdge * self, PyObject * value )
 
 static PyObject *MEdge_getFlag( BPy_MEdge * self )
 {
-	PyObject *attr;
 	MEdge *edge = MEdge_get_pointer( self );
 
 	if( !edge )
 		return NULL;
 
-	attr = PyInt_FromLong( edge->flag );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+	return PyInt_FromLong( edge->flag );
 }
 
 /*
@@ -2147,7 +2397,7 @@ static int MEdge_setFlag( BPy_MEdge * self, PyObject * value )
 	if( !edge )
 		return -1;
 
-	if( !PyInt_CheckExact ( value ) ) {
+	if( !PyInt_Check ( value ) ) {
 		char errstr[128];
 		sprintf ( errstr , "expected int bitmask of 0x%04x", bitmask );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
@@ -2203,8 +2453,8 @@ static PyObject *MEdge_getV2( BPy_MEdge * self )
 	MEdge *edge = MEdge_get_pointer( self );
 
 	if( !edge )
-		return NULL;
-
+		return NULL; /* error is set */
+	/* if v2 is out of range, the python mvert will complain, no need to check here  */
 	return MVert_CreatePyObject( self->mesh, edge->v2 );
 }
 
@@ -2217,10 +2467,13 @@ static int MEdge_setV2( BPy_MEdge * self, BPy_MVert * value )
 	MEdge *edge = MEdge_get_pointer( self );
 
 	if( !edge )
-		return -1;
+		return -1; /* error is set */
 	if( !BPy_MVert_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, "expected an MVert" );
 
+	if ( edge->v1 == value->index )
+		return EXPP_ReturnIntError( PyExc_ValueError, "an edge cant use the same vertex for each end" );
+	
 	edge->v2 = value->index;
 	return 0;
 }
@@ -2231,18 +2484,10 @@ static int MEdge_setV2( BPy_MEdge * self, BPy_MVert * value )
 
 static PyObject *MEdge_getIndex( BPy_MEdge * self )
 {
-	PyObject *attr;
-
 	if( !MEdge_get_pointer( self ) )
-		return NULL;
+		return NULL; /* error is set */
 
-	attr = PyInt_FromLong( self->index );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+	return PyInt_FromLong( self->index );
 }
 
 /*
@@ -2254,7 +2499,7 @@ static PyObject *MEdge_getMFlagBits( BPy_MEdge * self, void * type )
 	MEdge *edge = MEdge_get_pointer( self );
 
 	if( !edge )
-		return NULL;
+		return NULL; /* error is set */
 
 	return EXPP_getBitfield( &edge->flag, (int)((long)type & 0xff), 'b' );
 }
@@ -2271,6 +2516,12 @@ static PyObject *MEdge_getLength( BPy_MEdge * self )
 	int i;
 	float *v1, *v2;
 
+	if (!edge)
+		return NULL; /* error is set */	
+	
+	if MEDGE_VERT_BADRANGE_CHECK(self->mesh, edge)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError, "This edge uses removed vert(s)" );
+	
 	/* get the 2 edges vert locations */
 	v1= (&((Mesh *)self->mesh)->mvert[edge->v1])->co;
 	v2= (&((Mesh *)self->mesh)->mvert[edge->v2])->co;
@@ -2291,14 +2542,18 @@ static PyObject *MEdge_getLength( BPy_MEdge * self )
 
 static PyObject *MEdge_getKey( BPy_MEdge * self )
 {
+	PyObject *attr;
 	MEdge *edge = MEdge_get_pointer( self );
-	PyObject *attr = PyTuple_New( 2 );
+	if (!edge)
+		return NULL; /* error is set */	
+	
+	attr = PyTuple_New( 2 );
 	if (edge->v1 > edge->v2) {
-		PyTuple_SetItem( attr, 0, PyInt_FromLong(edge->v2) );
-		PyTuple_SetItem( attr, 1, PyInt_FromLong(edge->v1) );
+		PyTuple_SET_ITEM( attr, 0, PyInt_FromLong(edge->v2) );
+		PyTuple_SET_ITEM( attr, 1, PyInt_FromLong(edge->v1) );
 	} else {
-		PyTuple_SetItem( attr, 0, PyInt_FromLong(edge->v1) );
-		PyTuple_SetItem( attr, 1, PyInt_FromLong(edge->v2) );
+		PyTuple_SET_ITEM( attr, 0, PyInt_FromLong(edge->v1) );
+		PyTuple_SET_ITEM( attr, 1, PyInt_FromLong(edge->v2) );
 	}
 	return attr;
 }
@@ -2312,16 +2567,17 @@ static int MEdge_setSel( BPy_MEdge * self,PyObject * value,
 {
 	MEdge *edge = MEdge_get_pointer( self );
 	int param = PyObject_IsTrue( value );
-	Mesh *me;
+	Mesh *me = self->mesh;
 
 	if( !edge )
 		return -1;
-
+	
+	if MEDGE_VERT_BADRANGE_CHECK(me, edge)
+		return EXPP_ReturnIntError( PyExc_RuntimeError, "This edge uses removed vert(s)" );
+	
 	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected true/false argument" );
-
-	me = self->mesh;
+				"expected True/False or 0/1" );
 
 	if( param ) {
 		edge->flag |= SELECT;
@@ -2452,7 +2708,25 @@ static long MEdge_hash( BPy_MEdge *self )
 {
 	return (long)self->index;
 }
+static PyObject *MEdge_getProp( BPy_MEdge *self, PyObject *args)
+{
+	Mesh *me = (Mesh *)self->mesh;
+	return Mesh_getProperty_internal(&(me->edata), self->index, args);
+}
 
+static PyObject *MEdge_setProp( BPy_MEdge *self,  PyObject *args)
+{
+	Mesh *me = (Mesh *)self->mesh;
+	return Mesh_setProperty_internal(&(me->edata), self->index, args);
+}
+
+static struct PyMethodDef BPy_MEdge_methods[] = {
+	{"getProperty", (PyCFunction)MEdge_getProp, METH_O,
+		"get property indicated by name"},
+	{"setProperty", (PyCFunction)MEdge_setProp, METH_VARARGS,
+		"set property indicated by name"},
+	{NULL, NULL, 0, NULL}
+};
 /************************************************************************
  *
  * Python MEdge_Type structure definition
@@ -2517,7 +2791,7 @@ PyTypeObject MEdge_Type = {
 	( iternextfunc ) MEdge_nextIter, /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	NULL,                       /* struct PyMethodDef *tp_methods; */
+	BPy_MEdge_methods,          /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
 	BPy_MEdge_getseters,        /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
@@ -2745,7 +3019,7 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			ok = 0; 
 			for( j = 0; ok == 0 && j < nverts; ++j ) {
 				PyObject *item = PySequence_ITEM( tmp, j );
-				if( !PyInt_CheckExact( item ) )
+				if( !PyInt_Check( item ) )
 					ok = 1;
 				else {
 					int index = PyInt_AsLong ( item );
@@ -2979,7 +3253,7 @@ static PyObject *MEdgeSeq_delete( BPy_MEdgeSeq * self, PyObject *args )
 		PyObject *tmp = PySequence_GetItem( args, i );
 		if( BPy_MEdge_Check( tmp ) )
 			edge_table[i] = ((BPy_MEdge *)tmp)->index;
-		else if( PyInt_CheckExact( tmp ) )
+		else if( PyInt_Check( tmp ) )
 			edge_table[i] = PyInt_AsLong ( tmp );
 		else {
 			MEM_freeN( edge_table );
@@ -3189,7 +3463,7 @@ static PyObject *MEdgeSeq_collapse( BPy_MEdgeSeq * self, PyObject *args )
 		tmp1 = PySequence_GetItem( tmp, 0 );
 		tmp2 = PySequence_GetItem( tmp, 1 );
 		Py_DECREF( tmp );
-		if( !(BPy_MEdge_Check( tmp1 ) || PyInt_CheckExact( tmp1 )) ||
+		if( !(BPy_MEdge_Check( tmp1 ) || PyInt_Check( tmp1 )) ||
 				!VectorObject_Check ( tmp2 ) ) {
 			MEM_freeN( edge_table );
 			MEM_freeN( vert_list );
@@ -3201,7 +3475,7 @@ static PyObject *MEdgeSeq_collapse( BPy_MEdgeSeq * self, PyObject *args )
 		}
 
 		/* store edge index, new vertex location */
-		if( PyInt_CheckExact( tmp1 ) )
+		if( PyInt_Check( tmp1 ) )
 			edge_table[i] = PyInt_AsLong ( tmp1 );
 		else
 			edge_table[i] = ((BPy_MEdge *)tmp1)->index;
@@ -3253,7 +3527,7 @@ static PyObject *MEdgeSeq_collapse( BPy_MEdgeSeq * self, PyObject *args )
 	basact = BASACT;
 	BASACT = base;
 	
-	removedoublesflag( 1, 0.0 );
+	removedoublesflag( 1, 0, 0.0 );
 	/* make mesh's object active, enter mesh edit mode */
 	G.obedit = object;
 	
@@ -3311,6 +3585,28 @@ static PyObject *MEdgeSeq_selected( BPy_MEdgeSeq * self )
 	return list;
 }
 
+static PyObject *MEdgeSeq_add_layertype(BPy_MEdgeSeq *self, PyObject *args)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_addPropLayer_internal(me, &(me->edata), me->totedge, args);
+}
+static PyObject *MEdgeSeq_del_layertype(BPy_MEdgeSeq *self, PyObject *value)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_removePropLayer_internal(me, &(me->edata), me->totedge, value);
+}
+static PyObject *MEdgeSeq_rename_layertype(BPy_MEdgeSeq *self, PyObject *args)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_renamePropLayer_internal(me,&(me->edata),args);
+}
+static PyObject *MEdgeSeq_PropertyList(BPy_MEdgeSeq *self) 
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_propList_internal(&(me->edata));
+}
+
+
 static struct PyMethodDef BPy_MEdgeSeq_methods[] = {
 	{"extend", (PyCFunction)MEdgeSeq_extend, METH_VARARGS,
 		"add edges to mesh"},
@@ -3320,8 +3616,23 @@ static struct PyMethodDef BPy_MEdgeSeq_methods[] = {
 		"returns a list containing indices of selected edges"},
 	{"collapse", (PyCFunction)MEdgeSeq_collapse, METH_VARARGS,
 		"collapse one or more edges to a vertex"},
+	{"addPropertyLayer",(PyCFunction)MEdgeSeq_add_layertype, METH_VARARGS,
+		"add a new property layer"},
+	{"removePropertyLayer",(PyCFunction)MEdgeSeq_del_layertype, METH_O,
+		"removes a property layer"},
+	{"renamePropertyLayer",(PyCFunction)MEdgeSeq_rename_layertype, METH_VARARGS,
+		"renames an existing property layer"},
+
 	{NULL, NULL, 0, NULL}
 };
+static PyGetSetDef BPy_MEdgeSeq_getseters[] = {
+	{"properties",
+	(getter)MEdgeSeq_PropertyList, (setter)NULL,
+	"edge property layers, read only",
+	NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
 
 /************************************************************************
  *
@@ -3392,7 +3703,7 @@ PyTypeObject MEdgeSeq_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	BPy_MEdgeSeq_methods,       /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	NULL,                       /* struct PyGetSetDef *tp_getset; */
+	BPy_MEdgeSeq_getseters,     /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
@@ -3472,7 +3783,26 @@ static int MFace_setVerts( BPy_MFace * self, PyObject * args )
 				&MVert_Type, &v2, &MVert_Type, &v3, &MVert_Type, &v4 ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 			"expected tuple of 3 or 4 MVerts" );
-
+	
+	if(	v1->index == v2->index || 
+		v1->index == v3->index || 
+		v2->index == v3->index  ) 
+		return EXPP_ReturnIntError( PyExc_ValueError,
+			"cannot assign 2 or move verts that are the same" );
+	
+	if(v4 && (	v1->index == v4->index ||
+				v2->index == v4->index ||
+				v3->index == v4->index ))
+		return EXPP_ReturnIntError( PyExc_ValueError,
+			"cannot assign 2 or move verts that are the same" );
+	
+	if(		v1->index >= self->mesh->totvert || 
+			v2->index >= self->mesh->totvert || 
+			v3->index >= self->mesh->totvert ||
+	(v4 &&(	v4->index >= self->mesh->totvert)))
+		return EXPP_ReturnIntError( PyExc_ValueError,
+			"cannot assign verts that have been removed" );
+	
 	face->v1 = v1->index;
 	face->v2 = v2->index;
 	face->v3 = v3->index;
@@ -3487,19 +3817,12 @@ static int MFace_setVerts( BPy_MFace * self, PyObject * args )
 
 static PyObject *MFace_getMat( BPy_MFace * self )
 {
-	PyObject *attr;
 	MFace *face = MFace_get_pointer( self );
 
 	if( !face )
 		return NULL;
 
-	attr = PyInt_FromLong( face->mat_nr );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+	return PyInt_FromLong( face->mat_nr );
 }
 
 /*
@@ -3511,7 +3834,7 @@ static int MFace_setMat( BPy_MFace * self, PyObject * value )
 	MFace *face = MFace_get_pointer( self );
 
 	if( !face )
-		return -1;
+		return -1; /* error is set */
 
 	return EXPP_setIValueRange( value, &face->mat_nr, 0, 15, 'b' );
 }
@@ -3522,19 +3845,12 @@ static int MFace_setMat( BPy_MFace * self, PyObject * value )
 
 static PyObject *MFace_getIndex( BPy_MFace * self )
 {
-	PyObject *attr;
 	MFace *face = MFace_get_pointer( self );
 
 	if( !face )
-		return NULL;
+		return NULL; /* error is set */
 
-	attr = PyInt_FromLong( self->index );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+	return PyInt_FromLong( self->index );
 }
 
 /*
@@ -3547,21 +3863,20 @@ static PyObject *MFace_getNormal( BPy_MFace * self )
 	float no[3];
 	MFace *face = MFace_get_pointer( self );
 
+	Mesh *me = self->mesh;
+	
 	if( !face )
-		return NULL;
-
-	if( (int)face->v1 >= self->mesh->totvert ||
-			(int)face->v2 >= self->mesh->totvert ||
-			(int)face->v3 >= self->mesh->totvert ||
-			(int)face->v4 >= self->mesh->totvert )
+	return NULL; /* error is set */
+	
+	if MFACE_VERT_BADRANGE_CHECK(me, face)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"one or more MFace vertices are no longer valid" );
 
-	vert[0] = self->mesh->mvert[face->v1].co;
-	vert[1] = self->mesh->mvert[face->v2].co;
-	vert[2] = self->mesh->mvert[face->v3].co;
+	vert[0] = me->mvert[face->v1].co;
+	vert[1] = me->mvert[face->v2].co;
+	vert[2] = me->mvert[face->v3].co;
 	if( face->v4 ) {
-		vert[3] = self->mesh->mvert[face->v4].co;
+		vert[3] = me->mvert[face->v4].co;
 		CalcNormFloat4( vert[0], vert[1], vert[2], vert[3], no );
 	} else
 		CalcNormFloat( vert[0], vert[1], vert[2], no );
@@ -3578,23 +3893,22 @@ static PyObject *MFace_getCent( BPy_MFace * self )
 	float *vert[4];
 	float cent[3]= {0,0,0};
 	int i=3, j, k;
+	Mesh *me = self->mesh;
 	MFace *face = MFace_get_pointer( self );
 	
 	if( !face )
-		return NULL;
+		return NULL; /* error is set */
+	
 
-	if( (int)face->v1 >= self->mesh->totvert ||
-			(int)face->v2 >= self->mesh->totvert ||
-			(int)face->v3 >= self->mesh->totvert ||
-			(int)face->v4 >= self->mesh->totvert )
+	if MFACE_VERT_BADRANGE_CHECK(me, face)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"one or more MFace vertices are no longer valid" );
 
-	vert[0] = self->mesh->mvert[face->v1].co;
-	vert[1] = self->mesh->mvert[face->v2].co;
-	vert[2] = self->mesh->mvert[face->v3].co;
+	vert[0] = me->mvert[face->v1].co;
+	vert[1] = me->mvert[face->v2].co;
+	vert[2] = me->mvert[face->v3].co;
 	if( face->v4 ) {
-		vert[3] = self->mesh->mvert[face->v4].co;
+		vert[3] = me->mvert[face->v4].co;
 		i=4;
 	} 
 	
@@ -3617,23 +3931,21 @@ static PyObject *MFace_getArea( BPy_MFace * self )
 {
 	float *v1,*v2,*v3,*v4;
 	MFace *face = MFace_get_pointer( self );
+	Mesh *me = self->mesh;
 	
 	if( !face )
-		return NULL;
+		return NULL; /* error is set */
 
-	if( (int)face->v1 >= self->mesh->totvert ||
-			(int)face->v2 >= self->mesh->totvert ||
-			(int)face->v3 >= self->mesh->totvert ||
-			(int)face->v4 >= self->mesh->totvert )
+	if MFACE_VERT_BADRANGE_CHECK(me, face)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"one or more MFace vertices are no longer valid" );
 
-	v1 = self->mesh->mvert[face->v1].co;
-	v2 = self->mesh->mvert[face->v2].co;
-	v3 = self->mesh->mvert[face->v3].co;
+	v1 = me->mvert[face->v1].co;
+	v2 = me->mvert[face->v2].co;
+	v3 = me->mvert[face->v3].co;
 	
 	if( face->v4 ) {
-		v4 = self->mesh->mvert[face->v4].co;
+		v4 = me->mvert[face->v4].co;
 		return PyFloat_FromDouble( AreaQ3Dfl(v1, v2, v3, v4));
 	} else
 		return PyFloat_FromDouble( AreaT3Dfl(v1, v2, v3));
@@ -3648,7 +3960,7 @@ static PyObject *MFace_getMFlagBits( BPy_MFace * self, void * type )
 	MFace *face = MFace_get_pointer( self );
 
 	if( !face )
-		return NULL;
+		return NULL; /* error is set */
 
 	return EXPP_getBitfield( &face->flag, (int)((long)type & 0xff), 'b' );
 }
@@ -3663,7 +3975,7 @@ static int MFace_setMFlagBits( BPy_MFace * self, PyObject * value,
 	MFace *face = MFace_get_pointer( self );
 
 	if( !face )
-		return -1;
+		return -1; /* error is set */
 
 	return EXPP_setBitfield( value, &face->flag, 
 			(int)((long)type & 0xff), 'b' );
@@ -3677,11 +3989,11 @@ static int MFace_setSelect( BPy_MFace * self, PyObject * value,
 	Mesh *me;
 
 	if( !face )
-		return -1;
+		return -1; /* error is set */
 
 	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected true/false argument" );
+				"expected True/False or 0/1" );
 
 	me = self->mesh;
 	if( param ) {
@@ -3766,7 +4078,7 @@ static int MFace_setImage( BPy_MFace *self, PyObject *value )
 	return 0;
 }
 
-#define MFACE_FLAG_BITMASK ( TF_SELECT | TF_ACTIVE | TF_SEL1 | \
+#define MFACE_FLAG_BITMASK ( TF_SELECT | TF_SEL1 | \
 		TF_SEL2 | TF_SEL3 | TF_SEL4 | TF_HIDE )
 
 /*
@@ -3775,6 +4087,7 @@ static int MFace_setImage( BPy_MFace *self, PyObject *value )
 
 static PyObject *MFace_getFlag( BPy_MFace *self )
 {
+	int flag;
 	if( !self->mesh->mtface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
@@ -3782,8 +4095,13 @@ static PyObject *MFace_getFlag( BPy_MFace *self )
 	if( !MFace_get_pointer( self ) )
 		return NULL;
 
-	return PyInt_FromLong( (long) ( self->mesh->mtface[self->index].flag
-			& MFACE_FLAG_BITMASK ) );
+	flag = self->mesh->mtface[self->index].flag & MFACE_FLAG_BITMASK;
+	
+	/* so old scripts still work */
+	if (self->index == self->mesh->act_face)
+		flag |= TF_ACTIVE;
+		
+	return PyInt_FromLong( (long)( flag ) );
 }
 
 /*
@@ -3801,7 +4119,7 @@ static int MFace_setFlag( BPy_MFace *self, PyObject *value )
 	if( !MFace_get_pointer( self ) )
 		return -1;
 
-	if( !PyInt_CheckExact ( value ) ) {
+	if( !PyInt_Check ( value ) ) {
 		char errstr[128];
 		sprintf ( errstr , "expected int bitmask of 0x%04x", MFACE_FLAG_BITMASK );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
@@ -3817,7 +4135,7 @@ static int MFace_setFlag( BPy_MFace *self, PyObject *value )
 						"invalid bit(s) set in mask" );
 
 	/* merge active setting with other new params */
-	param |= (self->mesh->mtface[self->index].flag & TF_ACTIVE);
+	param |= (self->mesh->mtface[self->index].flag);
 	self->mesh->mtface[self->index].flag = (char)param;
 
 	return 0;
@@ -3829,8 +4147,6 @@ static int MFace_setFlag( BPy_MFace *self, PyObject *value )
 
 static PyObject *MFace_getMode( BPy_MFace *self )
 {
-	PyObject *attr;
-
 	if( !self->mesh->mtface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
@@ -3838,13 +4154,7 @@ static PyObject *MFace_getMode( BPy_MFace *self )
 	if( !MFace_get_pointer( self ) )
 		return NULL;
 
-	attr = PyInt_FromLong( self->mesh->mtface[self->index].mode );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+	return PyInt_FromLong( self->mesh->mtface[self->index].mode );
 }
 
 /*
@@ -3875,7 +4185,7 @@ static int MFace_setMode( BPy_MFace *self, PyObject *value )
 	if( !MFace_get_pointer( self ) )
 		return -1;
 
-	if( !PyInt_CheckExact ( value ) ) {
+	if( !PyInt_Check ( value ) ) {
 		char errstr[128];
 		sprintf ( errstr , "expected int bitmask of 0x%04x", bitmask );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
@@ -3906,7 +4216,6 @@ static int MFace_setMode( BPy_MFace *self, PyObject *value )
 
 static PyObject *MFace_getTransp( BPy_MFace *self )
 {
-	PyObject *attr;
 	if( !self->mesh->mtface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
@@ -3914,13 +4223,7 @@ static PyObject *MFace_getTransp( BPy_MFace *self )
 	if( !MFace_get_pointer( self ) )
 		return NULL;
 
-	attr = PyInt_FromLong( self->mesh->mtface[self->index].transp );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+	return PyInt_FromLong( self->mesh->mtface[self->index].transp );
 }
 
 /*
@@ -4089,7 +4392,7 @@ static int MFace_setUVSel( BPy_MFace * self, PyObject * value )
 	mask = TF_SEL1;
 	for( i=0; i<length; ++i, mask <<= 1 ) {
 		PyObject *tmp = PySequence_GetItem( value, i ); /* adds a reference, remove below */
-		if( !PyInt_CheckExact( tmp ) ) {
+		if( !PyInt_Check( tmp ) ) {
 			Py_DECREF(tmp);
 			return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected a tuple of integers" );
@@ -4196,80 +4499,84 @@ static PyObject *MFace_getEdgeKeys( BPy_MFace * self )
 {
 	MFace *face = MFace_get_pointer( self );
 	PyObject *attr, *edpair;
+	
+	if (!face)
+		return NULL; /* error set */
+	
 	if (face->v4) {
 		attr = PyTuple_New( 4 );
 		edpair = PyTuple_New( 2 );
 		if (face->v1 > face->v2) {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v2) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v1) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v2) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v1) );
 		} else {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v1) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v2) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v1) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v2) );
 		}
-		PyTuple_SetItem( attr, 0, edpair );
+		PyTuple_SET_ITEM( attr, 0, edpair );
 		
 		edpair = PyTuple_New( 2 );
 		if (face->v2 > face->v3) {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v3) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v2) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v3) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v2) );
 		} else {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v2) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v3) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v2) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v3) );
 		}
-		PyTuple_SetItem( attr, 1, edpair );
+		PyTuple_SET_ITEM( attr, 1, edpair );
 
 		edpair = PyTuple_New( 2 );
 		if (face->v3 > face->v4) {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v4) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v3) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v4) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v3) );
 		} else {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v3) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v4) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v3) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v4) );
 		}
-		PyTuple_SetItem( attr, 2, edpair );
+		PyTuple_SET_ITEM( attr, 2, edpair );
 		
 		edpair = PyTuple_New( 2 );
 		if (face->v4 > face->v1) {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v1) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v4) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v1) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v4) );
 		} else {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v4) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v1) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v4) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v1) );
 		}
-		PyTuple_SetItem( attr, 3, edpair );
+		PyTuple_SET_ITEM( attr, 3, edpair );
 		
 	} else {
 		
 		attr = PyTuple_New( 3 );
 		edpair = PyTuple_New( 2 );
 		if (face->v1 > face->v2) {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v2) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v1) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v2) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v1) );
 		} else {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v1) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v2) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v1) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v2) );
 		}
-		PyTuple_SetItem( attr, 0, edpair );
+		PyTuple_SET_ITEM( attr, 0, edpair );
 		
 		edpair = PyTuple_New( 2 );
 		if (face->v2 > face->v3) {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v3) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v2) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v3) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v2) );
 		} else {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v2) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v3) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v2) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v3) );
 		}
-		PyTuple_SetItem( attr, 1, edpair );
+		PyTuple_SET_ITEM( attr, 1, edpair );
 
 		edpair = PyTuple_New( 2 );
 		if (face->v3 > face->v1) {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v1) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v3) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v1) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v3) );
 		} else {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v3) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v1) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v3) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v1) );
 		}
-		PyTuple_SetItem( attr, 2, edpair );
+		PyTuple_SET_ITEM( attr, 2, edpair );
 	}
 	
 	return attr;
@@ -4469,6 +4776,36 @@ static PySequenceMethods MFace_as_sequence = {
 	0,0,0,
 };
 
+static PyObject *MFace_getProp( BPy_MFace *self, PyObject *args)
+{
+	Mesh *me = (Mesh *)self->mesh;
+	MFace *face = MFace_get_pointer( self );
+	if( !face )
+		return NULL;
+	mesh_update_customdata_pointers(me); //!
+	return Mesh_getProperty_internal(&(me->fdata), self->index, args);
+}
+
+static PyObject *MFace_setProp( BPy_MFace *self,  PyObject *args)
+{
+	Mesh *me = (Mesh *)self->mesh;
+	PyObject *obj;
+	MFace *face = MFace_get_pointer( self );
+	if( !face )
+		return NULL; /* error set */
+	
+	obj = Mesh_setProperty_internal(&(me->fdata), self->index, args);
+	mesh_update_customdata_pointers(me); //!
+	return obj;
+}
+
+static struct PyMethodDef BPy_MFace_methods[] = {
+	{"getProperty", (PyCFunction)MFace_getProp, METH_O,
+		"get property indicated by name"},
+	{"setProperty", (PyCFunction)MFace_setProp, METH_VARARGS,
+		"set property indicated by name"},
+	{NULL, NULL, 0, NULL}
+};
 /************************************************************************
  *
  * Python MFace_Type structure definition
@@ -4533,7 +4870,7 @@ PyTypeObject MFace_Type = {
 	( iternextfunc ) MFace_nextIter, /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	NULL,                       /* struct PyMethodDef *tp_methods; */
+	BPy_MFace_methods,          /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
 	BPy_MFace_getseters,        /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
@@ -4668,7 +5005,8 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
 	Mesh *mesh = self->mesh;
 	int ignore_dups = 0;
 	PyObject *return_list = NULL;
-
+	char flag = ME_FACE_SEL;
+	
 	/* before we try to add faces, add edges; if it fails; exit */
 
 	tmp = MEdgeSeq_extend( self, args );
@@ -4679,12 +5017,39 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
 	/* process any keyword arguments */
 	if( keywds ) {
 		PyObject *res = PyDict_GetItemString( keywds, "ignoreDups" );
-		if( res )
+		if( res ) {
 			ignore_dups = PyObject_IsTrue( res );
-
+			if (ignore_dups==-1) {
+				return EXPP_ReturnPyObjError( PyExc_TypeError,
+						"keyword argument \"ignoreDups\" expected True/False or 0/1" );
+			}
+		}
 		res = PyDict_GetItemString( keywds, "indexList" );
-		if( res && PyObject_IsTrue( res ) )
-			return_list = PyList_New( 0 );
+		if (res) {
+			switch( PyObject_IsTrue( res ) ) {
+			case  0:
+				break;
+			case -1:
+				return EXPP_ReturnPyObjError( PyExc_TypeError,
+						"keyword argument \"indexList\" expected True/False or 0/1" );
+			default:
+				return_list = PyList_New( 0 );
+			}
+		}
+		
+		res = PyDict_GetItemString( keywds, "smooth" );
+		if (res) {
+			switch( PyObject_IsTrue( res ) ) {
+				case  0:
+					break;
+				case -1:
+					return EXPP_ReturnPyObjError( PyExc_TypeError,
+							"keyword argument \"smooth\" expected True/False or 0/1" );
+				default:
+					flag |= ME_SMOOTH;
+			
+			}
+		}
 	}
 
 	/* make sure we get a tuple of sequences of something */
@@ -4970,7 +5335,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
 				tmpface->v3 = tmppair->v[index[2]];
 				tmpface->v4 = tmppair->v[index[3]];
 
-				tmpface->flag = ME_FACE_SEL;
+				tmpface->flag = flag;
 
 				if( return_list ) {
 					tmp = PyInt_FromLong( mesh->totface );
@@ -5030,7 +5395,7 @@ static PyObject *MFaceSeq_delete( BPy_MFaceSeq * self, PyObject *args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"sequence must contain at least one int or MFace" );
 
-	face_table = (unsigned int *)MEM_callocN( len*sizeof( unsigned int ),
+	face_table = MEM_callocN( len*sizeof( unsigned int ),
 			"face_table" );
 
 	/* get the indices of faces to be removed */
@@ -5038,7 +5403,7 @@ static PyObject *MFaceSeq_delete( BPy_MFaceSeq * self, PyObject *args )
 		PyObject *tmp = PySequence_GetItem( args, i );
 		if( BPy_MFace_Check( tmp ) )
 			face_table[i] = ((BPy_MFace *)tmp)->index;
-		else if( PyInt_CheckExact( tmp ) )
+		else if( PyInt_Check( tmp ) )
 			face_table[i] = PyInt_AsLong( tmp );
 		else {
 			MEM_freeN( face_table );
@@ -5153,15 +5518,12 @@ static PyObject *MFaceSeq_delete( BPy_MFaceSeq * self, PyObject *args )
 				++face_count;
 			}
 		}
-
-		/* for each face, deselect each edge */
+		
+		/* for each remaining face, select all edges */
 		tmpface = mesh->mface;
 		fface = (struct fourEdges *)face_edges;
 		for( i = mesh->totface; i--; ++tmpface, ++fface ) {
 			if( tmpface->v1 != UINT_MAX ) {
-				FaceEdges (*face)[4];
-				face = (void *)face_edges;
-				face += face_table[i];
 				fface->v[0]->sel = 1;
 				fface->v[1]->sel = 1;
 				fface->v[2]->sel = 1;
@@ -5169,7 +5531,6 @@ static PyObject *MFaceSeq_delete( BPy_MFaceSeq * self, PyObject *args )
 					fface->v[3]->sel = 1;
 			}
 		}
-
 		/* now mark the selected edges for deletion */
 
 		edge_count = 0;
@@ -5203,6 +5564,70 @@ static PyObject *MFaceSeq_delete( BPy_MFaceSeq * self, PyObject *args )
 	MEM_freeN( face_table );
 	mesh_update ( mesh );
 	Py_RETURN_NONE;
+}
+
+/* copied from meshtools.c - should make generic? */
+static void permutate(void *list, int num, int size, int *index)
+{
+	void *buf;
+	int len;
+	int i;
+
+	len = num * size;
+
+	buf = MEM_mallocN(len, "permutate");
+	memcpy(buf, list, len);
+	
+	for (i = 0; i < num; i++) {
+		memcpy((char *)list + (i * size), (char *)buf + (index[i] * size), size);
+	}
+	MEM_freeN(buf);
+}
+
+/* this wrapps list sorting then applies back to the mesh */
+static PyObject *MFaceSeq_sort( BPy_MEdgeSeq * self, PyObject *args,
+	  PyObject *keywds )
+{
+	PyObject *ret, *sort_func, *newargs;
+	
+	Mesh *mesh = self->mesh;
+	PyObject *sorting_list;
+	CustomDataLayer *layer;
+	int i, *index;
+	
+	/* get a list for internal use */
+	sorting_list = PySequence_List( (PyObject *)self );
+	if( !sorting_list )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"PyList_New() failed" );
+	
+	/* create index list */
+	index = (int *) MEM_mallocN(sizeof(int) * mesh->totface, "sort faces");
+	if (!index)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"faces.sort(...) failed to allocate memory" );
+	
+	newargs = EXPP_PyTuple_New_Prepend(args, sorting_list);
+	sort_func = PyObject_GetAttrString( ((PyObject *)&PyList_Type), "sort");
+	
+	ret = PyObject_Call(sort_func, newargs, keywds);
+	
+	Py_DECREF(newargs);
+	Py_DECREF(sort_func);
+	
+	if (ret) {
+		/* copy the faces indicies to index */
+		for (i = 0; i < mesh->totface; i++)
+			index[i] = ((BPy_MFace *)PyList_GET_ITEM(sorting_list, i))->index;
+		
+		for(i = 0; i < mesh->fdata.totlayer; i++) {
+			layer = &mesh->fdata.layers[i];
+			permutate(layer->data, mesh->totface, CustomData_sizeof(layer->type), index);
+		}
+	}
+	Py_DECREF(sorting_list);
+	MEM_freeN(index);
+	return ret;
 }
 
 static PyObject *MFaceSeq_selected( BPy_MFaceSeq * self )
@@ -5242,15 +5667,52 @@ static PyObject *MFaceSeq_selected( BPy_MFaceSeq * self )
 	return list;
 }
 
+static PyObject *MFaceSeq_add_layertype(BPy_MFaceSeq *self, PyObject *args)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_addPropLayer_internal(me, &(me->fdata), me->totface, args);
+}
+static PyObject *MFaceSeq_del_layertype(BPy_MFaceSeq *self, PyObject *value)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_removePropLayer_internal(me, &(me->fdata), me->totface, value);
+}
+static PyObject *MFaceSeq_rename_layertype(BPy_MFaceSeq *self, PyObject *args)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_renamePropLayer_internal(me,&(me->fdata),args);
+}
+static PyObject *MFaceSeq_PropertyList(BPy_MFaceSeq *self) 
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_propList_internal(&(me->fdata));
+}
+
 static struct PyMethodDef BPy_MFaceSeq_methods[] = {
 	{"extend", (PyCFunction)MFaceSeq_extend, METH_VARARGS|METH_KEYWORDS,
 		"add faces to mesh"},
 	{"delete", (PyCFunction)MFaceSeq_delete, METH_VARARGS,
 		"delete faces from mesh"},
+	{"sort", (PyCFunction)MFaceSeq_sort, METH_VARARGS|METH_KEYWORDS,
+		"sort the faces using list sorts syntax"},
 	{"selected", (PyCFunction)MFaceSeq_selected, METH_NOARGS,
 		"returns a list containing indices of selected faces"},
+	{"addPropertyLayer",(PyCFunction)MFaceSeq_add_layertype, METH_VARARGS,
+		"add a new property layer"},
+	{"removePropertyLayer",(PyCFunction)MFaceSeq_del_layertype, METH_O,
+		"removes a property layer"},
+	{"renamePropertyLayer",(PyCFunction)MFaceSeq_rename_layertype, METH_VARARGS,
+		"renames an existing property layer"},		
 	{NULL, NULL, 0, NULL}
 };
+static PyGetSetDef BPy_MFaceSeq_getseters[] = {
+	{"properties",
+	(getter)MFaceSeq_PropertyList, (setter)NULL,
+	"vertex property layers, read only",
+	NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
 
 /************************************************************************
  *
@@ -5321,7 +5783,7 @@ PyTypeObject MFaceSeq_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	BPy_MFaceSeq_methods,       /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	NULL,                       /* struct PyGetSetDef *tp_getset; */
+	BPy_MFaceSeq_getseters,     /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
@@ -5581,7 +6043,7 @@ static PyObject *Mesh_findEdges( PyObject * self, PyObject *args )
 			}
 			index1 = v1->index;
 			index2 = v2->index;
-		} else if( PyInt_CheckExact( v1 ) && PyInt_CheckExact( v2 ) ) {
+		} else if( PyInt_Check( v1 ) && PyInt_Check( v2 ) ) {
 			index1 = PyInt_AsLong( (PyObject *)v1 );
 			index2 = PyInt_AsLong( (PyObject *)v2 );
 			if( (int)index1 >= mesh->totvert
@@ -5702,13 +6164,16 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 		/* get updated display list, and convert to a mesh */
 		makeDispListCurveTypes( tmpobj, 0 );
 		nurbs_to_mesh( tmpobj );
-		tmpmesh = tmpobj->data;
-		free_libblock_us( &G.main->object, tmpobj );
 		
-		if (ob->type != OB_MESH)
+		/* nurbs_to_mesh changes the type tp a mesh, check it worked */
+		if (tmpobj->type != OB_MESH) {
+			free_libblock_us( &G.main->object, tmpobj );
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"cant convert curve to mesh. Does the curve have any segments?" );
- 		break;
+		}
+		tmpmesh = tmpobj->data;
+		free_libblock_us( &G.main->object, tmpobj );
+		break;
  	case OB_MBALL:
 		/* metaballs don't have modifiers, so just convert to mesh */
 		ob = find_basis_mball( ob );
@@ -5926,20 +6391,20 @@ static PyObject *Mesh_transform( BPy_Mesh *self, PyObject *args, PyObject *kwd )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Mesh_addVertGroup( PyObject * self, PyObject * args )
+static PyObject *Mesh_addVertGroup( PyObject * self, PyObject * value )
 {
-	char *groupStr;
+	char *groupStr = PyString_AsString(value);
 	struct Object *object;
 
-	if( !PyArg_ParseTuple( args, "s", &groupStr ) )
+	if( !groupStr )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
 
-	if( ( ( BPy_Mesh * ) self )->object == NULL )
+	object = ( ( BPy_Mesh * ) self )->object;
+	
+	if( object == NULL )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "mesh not linked to an object" );
-
-	object = ( ( BPy_Mesh * ) self )->object;
 
 	/* add_defgroup_name clamps the name to 32, make sure that dosnt change  */
 	add_defgroup_name( object, groupStr );
@@ -5949,14 +6414,18 @@ static PyObject *Mesh_addVertGroup( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Mesh_removeVertGroup( PyObject * self, PyObject * args )
+static PyObject *Mesh_removeVertGroup( PyObject * self, PyObject * value )
 {
-	char *groupStr;
+	char *groupStr = PyString_AsString(value);
 	struct Object *object;
 	int nIndex;
 	bDeformGroup *pGroup;
 
-	if( !PyArg_ParseTuple( args, "s", &groupStr ) )
+	if( G.obedit )
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+			"can't use removeVertGroup() while in edit mode" );
+	
+	if( !groupStr )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
 
@@ -5978,8 +6447,8 @@ static PyObject *Mesh_removeVertGroup( PyObject * self, PyObject * args )
 	nIndex++;
 	object->actdef = (unsigned short)nIndex;
 
-	del_defgroup( object );
-
+	del_defgroup_in_object_mode( object );
+	
 	EXPP_allqueue( REDRAWBUTSALL, 1 );
 
 	Py_RETURN_NONE;
@@ -6137,7 +6606,6 @@ static PyObject *Mesh_getVertsFromGroup( BPy_Mesh* self, PyObject * args )
 	PyObject *vertexList;
 	Object *object;
 	Mesh *mesh;
-	PyObject *tempVertexList;
 
 	int num = 0;
 	int weightRet = 0;
@@ -6176,15 +6644,14 @@ static PyObject *Mesh_getVertsFromGroup( BPy_Mesh* self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "no deform groups assigned to mesh" );
 
-	/* temporary list */
-	tempVertexList = PyList_New( mesh->totvert );
-	if( !tempVertexList )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "getVertsFromGroup: can't create pylist!" );
-
 	count = 0;
 
 	if( !listObject ) {	/* do entire group */
+		vertexList = PyList_New( mesh->totvert );
+		if( !vertexList )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+							  "getVertsFromGroup: can't create pylist!" );
+		
 		dvert = mesh->dvert;
 		for( num = 0; num < mesh->totvert; num++, ++dvert ) {
 			for( i = 0; i < dvert->totweight; i++ ) {
@@ -6195,23 +6662,31 @@ static PyObject *Mesh_getVertsFromGroup( BPy_Mesh* self, PyObject * args )
 								dvert->dw[i].weight );
 					else
 						attr = PyInt_FromLong ( num );
-					PyList_SetItem( tempVertexList, count, attr );
+					PyList_SetItem( vertexList, count, attr );
 					count++;
 				}
 			}
 		}
+		
+		if (count < mesh->totvert)
+			PyList_SetSlice(vertexList, count, mesh->totvert, NULL);
+		
 	} else {			/* do individual vertices */
-		for( i = 0; i < PyList_Size( listObject ); i++ ) {
+		int listObjectLen = PyList_Size( listObject );
+		
+		vertexList = PyList_New( listObjectLen );
+		for( i = 0; i < listObjectLen; i++ ) {
 			PyObject *attr = NULL;
 
-			if( !PyArg_Parse( PyList_GetItem( listObject, i ), "i", &num ) ) {
-				Py_DECREF(tempVertexList);
+			num = PyInt_AsLong( PyList_GetItem( listObject, i ) );
+			if (num == -1) {/* -1 is an error AND an invalid range, we dont care which */
+				Py_DECREF(vertexList);
 				return EXPP_ReturnPyObjError( PyExc_TypeError,
 							      "python list integer not parseable" );
 			}
 
 			if( num < 0 || num >= mesh->totvert ) {
-				Py_DECREF(tempVertexList);
+				Py_DECREF(vertexList);
 				return EXPP_ReturnPyObjError( PyExc_ValueError,
 							      "bad vertex index in list" );
 			}
@@ -6223,17 +6698,15 @@ static PyObject *Mesh_getVertsFromGroup( BPy_Mesh* self, PyObject * args )
 								dvert->dw[k].weight );
 					else
 						attr = PyInt_FromLong ( num );
-					PyList_SetItem( tempVertexList, count, attr );
+					PyList_SetItem( vertexList, count, attr );
 					count++;
 				}
 			}
 		}
+		if (count < listObjectLen)
+			PyList_SetSlice(vertexList, count, listObjectLen, NULL);
 	}
-	/* only return what we need */
-	vertexList = PyList_GetSlice( tempVertexList, 0, count );
-
-	Py_DECREF( tempVertexList );
-
+	
 	return vertexList;
 }
 
@@ -6443,14 +6916,14 @@ static PyObject *Mesh_addColorLayer( BPy_Mesh * self, PyObject * args )
 	return Mesh_addCustomLayer_internal(self->mesh, args, CD_MCOL);
 }
 
-static PyObject *Mesh_removeLayer_internal( BPy_Mesh * self, PyObject * args, int type )
+static PyObject *Mesh_removeLayer_internal( BPy_Mesh * self, PyObject * value, int type )
 {
 	Mesh *me = self->mesh;
 	CustomData *data = &me->fdata;
-	char *name;
+	char *name = PyString_AsString(value);
 	int i;
 	
-	if( !PyArg_ParseTuple( args, "s", &name ) )
+	if( !name )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
 	
@@ -6474,7 +6947,7 @@ static PyObject *Mesh_removeLayer_internal( BPy_Mesh * self, PyObject * args, in
 			if(type == CD_MCOL && (G.f & G_VERTEXPAINT))
 				G.f &= ~G_VERTEXPAINT; /* get out of vertexpaint mode */
 			if(type == CD_MTFACE && (G.f & G_FACESELECT))
-				set_faceselect();  /* get out of faceselect mode */
+				G.f |= ~G_FACESELECT; /* get out of faceselect mode */
 		}
 	}
 	
@@ -6482,14 +6955,14 @@ static PyObject *Mesh_removeLayer_internal( BPy_Mesh * self, PyObject * args, in
 }
 
 
-static PyObject *Mesh_removeUVLayer( BPy_Mesh * self, PyObject * args )
+static PyObject *Mesh_removeUVLayer( BPy_Mesh * self, PyObject * value )
 {
-	return Mesh_removeLayer_internal(self, args, CD_MTFACE);
+	return Mesh_removeLayer_internal(self, value, CD_MTFACE);
 }
 
-static PyObject *Mesh_removeColorLayer( BPy_Mesh * self, PyObject * args )
+static PyObject *Mesh_removeColorLayer( BPy_Mesh * self, PyObject * value )
 {
-	return Mesh_removeLayer_internal(self, args, CD_MCOL);
+	return Mesh_removeLayer_internal(self, value, CD_MCOL);
 }
 
 
@@ -6663,7 +7136,7 @@ static PyObject *Mesh_getMultires( BPy_Mesh * self, void *type )
 static int Mesh_setMultires( BPy_Mesh * self, PyObject *value, void *type )
 {
 	int i;
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected integer argument" );
 	
@@ -6688,7 +7161,7 @@ static int Mesh_setMultires( BPy_Mesh * self, PyObject *value, void *type )
 	switch ((int)type) {
 	case MESH_MULTIRES_LEVEL:
 		self->mesh->mr->newlvl = i;
-		multires_set_level(self->object, self->mesh, 0);
+		multires_set_level_cb(self->object, self->mesh);
 		break;
 	case MESH_MULTIRES_EDGE:
 		self->mesh->mr->edgelvl = i;
@@ -6703,6 +7176,36 @@ static int Mesh_setMultires( BPy_Mesh * self, PyObject *value, void *type )
 	}
 	
 	return 0;
+}
+
+static PyObject *Mesh_addMultiresLevel( BPy_Mesh * self, PyObject * args )
+{
+	char typenum;
+	int i, levels = 1;
+	char *type = NULL;
+	if( G.obedit )
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+					"can't add multires level while in edit mode" );
+	if( !PyArg_ParseTuple( args, "|is", &levels, &type ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected nothing or an int and optionally a string as arguments" );
+	if( !type || !strcmp( type, "catmull-clark" ) )
+		typenum = 0;
+	else if( !strcmp( type, "simple" ) )
+		typenum = 1;
+	else
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "if given, type should be 'catmull-clark' or 'simple'" );
+	if (!self->mesh->mr)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"the mesh has no multires data" );
+	for( i = 0; i < levels; i++ ) {
+		multires_add_level(self->object, self->mesh, typenum);
+	};
+	multires_update_levels(self->mesh, 0);
+	multires_level_to_editmesh(self->object, self->mesh, 0);	
+	multires_finish_mesh_update(self->object);
+	Py_RETURN_NONE;
 }
 
 /* end multires */
@@ -6757,7 +7260,7 @@ static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 		esubdivideflag( 1, 0.0, *((int *)args[0]), 1, 0 );
 		break;
 	case MESH_TOOL_REMDOUB:
-		result = removedoublesflag( 1, *((float *)args[0]) );
+		result = removedoublesflag( 1, 0, *((float *)args[0]) );
 
 		attr = PyInt_FromLong( result );
 		if( !attr )
@@ -6922,53 +7425,66 @@ static PyObject *Mesh_fill( BPy_Mesh * self )
 /*
  * "pointInside" function
  */
+/* Warning - this is ordered - need to test both orders to be sure */
 #define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
 #define POINT_IN_TRI(p0,p1,p2,p3)	((SIDE_OF_LINE(p1,p2,p0)>=0) && (SIDE_OF_LINE(p2,p3,p0)>=0) && (SIDE_OF_LINE(p3,p1,p0)>=0))
 static short pointInside_internal(float *vec, float *v1, float *v2, float  *v3 )
 {	
 	float z,w1,w2,w3,wtot;
 	
-	if (!POINT_IN_TRI(vec, v1,v2,v3))
+	
+	if (vec[2] > MAX3(v1[2], v2[2], v3[2]))
 		return 0;
 	
-	if (vec[2] < MAX3(v1[2], v2[2], v3[2])) {
-		w1= AreaF2Dfl(vec, v2, v3);
-		w2=	AreaF2Dfl(v1, vec, v3);
-		w3=	AreaF2Dfl(v1, v2, vec);
-		wtot = w1+w2+w3;
-		w1/=wtot; w2/=wtot; w3/=wtot;
-		z =((v1[2] * (w2+w3)) +
-			(v2[2] * (w1+w3)) +
-			(v3[2] * (w1+w2))) * 0.5;
-		/* only return true if the face is above vec*/
-		if (vec[2] < z )
-			return 1;
-	}
+	/* need to test both orders */
+	if (!POINT_IN_TRI(vec, v1,v2,v3) && !POINT_IN_TRI(vec, v3,v2,v1))
+		return 0;
+	
+	w1= AreaF2Dfl(vec, v2, v3);
+	w2=	AreaF2Dfl(v1, vec, v3);
+	w3=	AreaF2Dfl(v1, v2, vec);
+	wtot = w1+w2+w3;
+	w1/=wtot; w2/=wtot; w3/=wtot;
+	z =((v1[2] * w1) +
+		(v2[2] * w2) +
+		(v3[2] * w3));
+	
+	/* only return true if the face is above vec*/
+	if (vec[2] < z )
+		return 1;
+
 	return 0;
 }
 
-static PyObject *Mesh_pointInside( BPy_Mesh * self, PyObject *args )
+static PyObject *Mesh_pointInside( BPy_Mesh * self, PyObject * args, PyObject *kwd )
 {
-	VectorObject *vec = NULL;
 	Mesh *mesh = self->mesh;
 	MFace *mf = mesh->mface;
 	MVert *mvert = mesh->mvert;
 	int i;
 	int isect_count=0;
+	int selected_only = 0;
+	VectorObject *vec;
+	static char *kwlist[] = {"point", "selected_only", NULL};
 	
-	if(!PyArg_ParseTuple(args, "O!", &vector_Type, &vec))
-			return EXPP_ReturnPyObjError( PyExc_TypeError,
-					"expected one or 2 vector types" );
+	if( !PyArg_ParseTupleAndKeywords(args, kwd, "|O!i", kwlist,
+		 &vector_Type, &vec, &selected_only) ) {
+			 return EXPP_ReturnPyObjError( PyExc_TypeError, "expected a vector and an optional bool argument");
+	}
 	
 	if(vec->size < 3)
 		return EXPP_ReturnPyObjError(PyExc_AttributeError, 
-			"Mesh.pointInside(vec) expects a 3D vector objects\n");
+			"Mesh.pointInside(vec) expects a 3D vector object\n");
 	
-	for( i = 0; i < mesh->totface; ++mf, ++i ) {
-		if (pointInside_internal(vec->vec, mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co))
-			isect_count++;
-		else if (mf->v4 && pointInside_internal(vec->vec,mvert[mf->v1].co, mvert[mf->v3].co, mvert[mf->v4].co))
-			isect_count++;
+	for( i = 0; i < mesh->totface; mf++, i++ ) {
+		if (!selected_only || mf->flag & ME_FACE_SEL) {
+			if (pointInside_internal(vec->vec, mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co)) {
+				isect_count++;
+			} else if (mf->v4 && pointInside_internal(vec->vec,mvert[mf->v1].co, mvert[mf->v3].co, mvert[mf->v4].co)) {
+				
+				isect_count++;
+			}
+		}
 	}
 	
 	if (isect_count % 2)
@@ -7013,9 +7529,9 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Update display lists after changes to mesh"},
 	{"transform", (PyCFunction)Mesh_transform, METH_VARARGS | METH_KEYWORDS,
 		"Applies a transformation matrix to mesh's vertices"},
-	{"addVertGroup", (PyCFunction)Mesh_addVertGroup, METH_VARARGS,
+	{"addVertGroup", (PyCFunction)Mesh_addVertGroup, METH_O,
 		"Assign vertex group name to the object linked to the mesh"},
-	{"removeVertGroup", (PyCFunction)Mesh_removeVertGroup, METH_VARARGS,
+	{"removeVertGroup", (PyCFunction)Mesh_removeVertGroup, METH_O,
 		"Delete vertex group name from the object linked to the mesh"},
 	{"assignVertsToGroup", (PyCFunction)Mesh_assignVertsToGroup, METH_VARARGS,
 		"Assigns vertices to a vertex group"},
@@ -7053,7 +7569,7 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Removes duplicates from selected vertices (experimental)"},
 	{"recalcNormals", (PyCFunction)Mesh_recalcNormals, METH_VARARGS,
 		"Recalculates inside or outside normals (experimental)"},
-	{"pointInside", (PyCFunction)Mesh_pointInside, METH_VARARGS,
+	{"pointInside", (PyCFunction)Mesh_pointInside, METH_VARARGS|METH_KEYWORDS,
 		"Recalculates inside or outside normals (experimental)"},
 	
 	/* mesh custom data layers */
@@ -7061,9 +7577,9 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"adds a UV layer to this mesh"},
 	{"addColorLayer", (PyCFunction)Mesh_addColorLayer, METH_VARARGS,
 		"adds a color layer to this mesh "},
-	{"removeUVLayer", (PyCFunction)Mesh_removeUVLayer, METH_VARARGS,
+	{"removeUVLayer", (PyCFunction)Mesh_removeUVLayer, METH_O,
 		"removes a UV layer to this mesh"},
-	{"removeColorLayer", (PyCFunction)Mesh_removeColorLayer, METH_VARARGS,
+	{"removeColorLayer", (PyCFunction)Mesh_removeColorLayer, METH_O,
 		"removes a color layer to this mesh"},
 	{"getUVLayerNames", (PyCFunction)Mesh_getUVLayerNames, METH_NOARGS,
 		"Get names of UV layers"},
@@ -7073,6 +7589,9 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Rename a UV Layer"},
 	{"renameColorLayer", (PyCFunction)Mesh_renameColorLayer, METH_VARARGS,
 		"Rename a Color Layer"},
+	/* mesh multires */
+	{"addMultiresLevel", (PyCFunction)Mesh_addMultiresLevel, METH_VARARGS,
+		"(levels=1, type='catmull-clark') - adds multires levels of given type"},
 		
 	/* python standard class functions */
 	{"__copy__", (PyCFunction)Mesh_copy, METH_NOARGS,
@@ -7121,7 +7640,7 @@ static int Mesh_setVerts( BPy_Mesh * self, PyObject * args )
 		free_mesh( me );
         me->mvert = NULL; me->medge = NULL; me->mface = NULL;
 		me->mtface = NULL; me->dvert = NULL; me->mcol = NULL;
-		me->msticky = NULL; me->mat = NULL; me->bb = NULL;
+		me->msticky = NULL; me->mat = NULL; me->bb = NULL; me->mselect = NULL;
 		me->totvert = me->totedge = me->totface = me->totcol = 0;
 		mesh_update( me );
 		return 0;
@@ -7240,13 +7759,7 @@ static int Mesh_setMaterials( BPy_Mesh *self, PyObject * value )
 
 static PyObject *Mesh_getMaxSmoothAngle( BPy_Mesh * self )
 {
-    PyObject *attr = PyInt_FromLong( self->mesh->smoothresh );
-
-    if( attr )
-        return attr;
-
-    return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+    return PyInt_FromLong( self->mesh->smoothresh );
 }
 
 static int Mesh_setMaxSmoothAngle( BPy_Mesh *self, PyObject *value )
@@ -7258,14 +7771,8 @@ static int Mesh_setMaxSmoothAngle( BPy_Mesh *self, PyObject *value )
 
 static PyObject *Mesh_getSubDivLevels( BPy_Mesh * self )
 {
-	PyObject *attr = Py_BuildValue( "(h,h)",
+	return  Py_BuildValue( "(h,h)",
 			self->mesh->subdiv, self->mesh->subdivr );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"Py_BuildValue() failed" );
 }
 
 static int Mesh_setSubDivLevels( BPy_Mesh *self, PyObject *value )
@@ -7295,34 +7802,23 @@ static int Mesh_setSubDivLevels( BPy_Mesh *self, PyObject *value )
 
 static PyObject *Mesh_getFlag( BPy_Mesh * self, void *type )
 {
-	PyObject *attr;
-
 	switch( (long)type ) {
 	case MESH_HASFACEUV:
-		attr = self->mesh->mtface ? EXPP_incr_ret_True() :
+		return self->mesh->mtface ? EXPP_incr_ret_True() :
 			EXPP_incr_ret_False();
-		break;
 	case MESH_HASMCOL:
-		attr = self->mesh->mcol ? EXPP_incr_ret_True() :
+		return self->mesh->mcol ? EXPP_incr_ret_True() :
 			EXPP_incr_ret_False();
-		break;
 	case MESH_HASVERTUV:
-		attr = self->mesh->msticky ? EXPP_incr_ret_True() :
+		return self->mesh->msticky ? EXPP_incr_ret_True() :
 			EXPP_incr_ret_False();
-		break;
 	case MESH_HASMULTIRES:
-		attr = self->mesh->mr ? EXPP_incr_ret_True() :
+		return self->mesh->mr ? EXPP_incr_ret_True() :
 			EXPP_incr_ret_False();
-		break;
 	default:
-		attr = NULL;
-	}
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"couldn't get attribute" );
+	}
 }
 
 static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
@@ -7334,7 +7830,7 @@ static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 
 	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected int argument in range [0,1]" );
+				"expected True/False or 0/1" );
 
 	/* sticky is independent of faceUV and vertUV */
 
@@ -7405,13 +7901,7 @@ static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 
 static PyObject *Mesh_getMode( BPy_Mesh * self )
 {
-	PyObject *attr = PyInt_FromLong( self->mesh->flag );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Mesh.mode attribute" );
+	return PyInt_FromLong( self->mesh->flag );
 }
 
 static int Mesh_setMode( BPy_Mesh *self, PyObject *value )
@@ -7421,7 +7911,7 @@ static int Mesh_setMode( BPy_Mesh *self, PyObject *value )
 		ME_UVEFFECT | ME_VCOLEFFECT | ME_AUTOSMOOTH | ME_SMESH |
 		ME_SUBSURF | ME_OPT_EDGES;
 
-	if( !PyInt_CheckExact ( value ) ) {
+	if( !PyInt_Check ( value ) ) {
 		char errstr[128];
 		sprintf ( errstr , "expected int bitmask of 0x%04x", bitmask );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
@@ -7448,33 +7938,19 @@ static PyObject *Mesh_getKey( BPy_Mesh * self )
 
 static PyObject *Mesh_getActiveFace( BPy_Mesh * self )
 {
-	MTFace *face;
-	int i, totface;
-
+	/* not needed but keep incase exceptions make use of it */
 	if( !self->mesh->mtface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
 
-	face = self->mesh->mtface;
-	totface = self->mesh->totface;
-
-	for( i = 0; i < totface; ++face, ++i )
-		if( face->flag & TF_ACTIVE ) {
-			PyObject *attr = PyInt_FromLong( i );
-
-			if( attr )
-				return attr;
-
-			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"PyInt_FromLong() failed" );
-		}
-
+	if (self->mesh->act_face != -1 && self->mesh->act_face <= self->mesh->totface)
+		return PyInt_FromLong( self->mesh->act_face );
+	
 	Py_RETURN_NONE;
 }
 
 static int Mesh_setActiveFace( BPy_Mesh * self, PyObject * value )
 {
-	MTFace *face;
 	int param;
 
 	/* if no texture faces, error */
@@ -7485,7 +7961,7 @@ static int Mesh_setActiveFace( BPy_Mesh * self, PyObject * value )
 
 	/* if param isn't an int, error */
 
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected an int argument" );
 
@@ -7495,18 +7971,8 @@ static int Mesh_setActiveFace( BPy_Mesh * self, PyObject * value )
 	if( param < 0 || param > self->mesh->totface )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"face index out of range" );
-
-	face = self->mesh->mtface;
-
-	/* if requested face isn't already active, then inactivate all
-	 * faces and activate the requested one */
-
-	if( !( face[param].flag & TF_ACTIVE ) ) {
-		int i;
-		for( i = self->mesh->totface; i > 0; ++face, --i )
-			face->flag &= ~TF_ACTIVE;
-		self->mesh->mtface[param].flag |= TF_ACTIVE;
-	}
+	
+	self->mesh->act_face = param;
 	return 0;
 }
 
@@ -7570,18 +8036,22 @@ static int Mesh_setTexMesh( BPy_Mesh * self, PyObject * value )
 	if (ret==0 && value!=Py_None) /*This must be a mesh type*/
 		(( BPy_Mesh * ) value)->new= 0;
 	
-	return 0;
+	return ret;
 }
 
-static int Mesh_setSel( BPy_Mesh * self, PyObject * arg )
+static int Mesh_setSel( BPy_Mesh * self, PyObject * value )
 {
-	int i;
+	int i, param = PyObject_IsTrue( value );
 	Mesh *me = self->mesh;
 	MVert *mvert = me->mvert;
 	MEdge *medge = me->medge;
 	MFace *mface = me->mface;
 
-	if( PyObject_IsTrue( arg ) ) {
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if( param ) {
 		for( i = 0; i < me->totvert; ++mvert, ++i )
 			mvert->flag |= SELECT;
 		for( i = 0; i < me->totedge; ++medge, ++i )
@@ -7600,15 +8070,19 @@ static int Mesh_setSel( BPy_Mesh * self, PyObject * arg )
 	return 0;
 }
 
-static int Mesh_setHide( BPy_Mesh * self, PyObject * arg )
+static int Mesh_setHide( BPy_Mesh * self, PyObject * value )
 {
-	int i;
+	int i, param = PyObject_IsTrue( value );
 	Mesh *me = self->mesh;
 	MVert *mvert = me->mvert;
 	MEdge *medge = me->medge;
 	MFace *mface = me->mface;
 
-	if( PyObject_IsTrue( arg ) ) {
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if( param ) {
 		for( i = 0; i < me->totvert; ++mvert, ++i )
 			mvert->flag |= ME_HIDE;
 		for( i = 0; i < me->totedge; ++medge, ++i )
@@ -8077,7 +8551,7 @@ static PyObject *M_Mesh_FaceFlagsDict( void )
 
 		PyConstant_Insert( d, "SELECT", PyInt_FromLong( TF_SELECT ) );
 		PyConstant_Insert( d, "HIDE", PyInt_FromLong( TF_HIDE ) );
-		PyConstant_Insert( d, "ACTIVE", PyInt_FromLong( TF_ACTIVE ) );
+		PyConstant_Insert( d, "ACTIVE", PyInt_FromLong( TF_ACTIVE ) ); /* deprecated */
 	}
 
 	return FF;
@@ -8156,7 +8630,8 @@ PyObject *Mesh_Init( void )
 	PyObject *EdgeFlags = M_Mesh_EdgeFlagsDict(  );
 	PyObject *AssignModes = M_Mesh_VertAssignDict( );
 	PyObject *SelectModes = M_Mesh_SelectModeDict( );
-
+	PyObject *PropertyTypes = M_Mesh_PropertiesTypeDict( );
+	
 	if( PyType_Ready( &MCol_Type ) < 0 )
 		return NULL;
 	if( PyType_Ready( &MVert_Type ) < 0 )
@@ -8196,6 +8671,9 @@ PyObject *Mesh_Init( void )
 		PyModule_AddObject( submodule, "AssignModes", AssignModes );
 	if( SelectModes )
 		PyModule_AddObject( submodule, "SelectModes", SelectModes );
+	if( PropertyTypes )
+		PyModule_AddObject( submodule, "PropertyTypes", PropertyTypes );
+
 
 
 	return submodule;

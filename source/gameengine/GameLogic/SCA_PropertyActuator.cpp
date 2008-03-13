@@ -90,12 +90,11 @@ bool SCA_PropertyActuator::Update()
 				if (oldprop)
 				{
 					oldprop->SetValue(newval);
-					newval->Release();
 				} else
 				{
 					propowner->SetProperty(m_propname,newval);
 				}
-
+				newval->Release();
 				break;
 			}
 		case KX_ACT_PROP_ADD:
@@ -123,9 +122,11 @@ bool SCA_PropertyActuator::Update()
 					CValue* copyprop = m_sourceObj->GetProperty(m_exprtxt);
 					if (copyprop)
 					{
+						CValue *val = copyprop->GetReplica();
 						GetParent()->SetProperty(
 							 m_propname,
-							copyprop->GetReplica());
+							 val);
+						val->Release();
 
 					}
 				}
@@ -239,11 +240,12 @@ PyObject* SCA_PropertyActuator::PySetProperty(PyObject* self, PyObject* args, Py
 
 	CValue* prop = GetParent()->FindIdentifier(nameArg);
 
-	if (prop) {
+	if (!prop->IsError()) {
 		m_propname = nameArg;
 	} else {
 		; /* not found ... */
 	}
+	prop->Release();
 	
 	Py_Return;
 }

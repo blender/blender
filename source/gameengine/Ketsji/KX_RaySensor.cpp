@@ -143,7 +143,7 @@ bool KX_RaySensor::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_
 			
 	}
 
-	return true;
+	return bFound;
 	
 }
 

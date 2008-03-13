@@ -55,18 +55,21 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_modifier_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
+#include "BLI_ghash.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
@@ -82,6 +85,8 @@
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
+#include "BIF_meshlaplacian.h"
+#include "BIF_meshtools.h"
 #include "BIF_poseobject.h"
 #include "BIF_mywindow.h"
 #include "BIF_resources.h"
@@ -99,6 +104,8 @@
 
 #include "PIL_time.h"
 
+#include "reeb.h" // FIX ME
+
 #include "mydevice.h"
 #include "blendef.h"
 #include "nla.h"
@@ -114,7 +121,7 @@ static EditBone *editbone_name_exists (ListBase *ebones, char *name);	// proto f
 /* **************** tools on Editmode Armature **************** */
 
 /* converts Bones to EditBone list, used for tools as well */
-void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
+void make_boneList(ListBase *list, ListBase *bones, EditBone *parent)
 {
 	EditBone	*eBone;
 	Bone		*curBone;
@@ -124,7 +131,7 @@ void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 	float imat[3][3];
 	float difmat[3][3];
 		
-	for (curBone=bones->first; curBone; curBone=curBone->next){
+	for (curBone=bones->first; curBone; curBone=curBone->next) {
 		eBone= MEM_callocN(sizeof(EditBone), "make_editbone");
 		
 		/*	Copy relevant data from bone to eBone */
@@ -133,7 +140,7 @@ void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 		eBone->flag = curBone->flag;
 		
 		/* fix selection flags */
-		if(eBone->flag & BONE_SELECTED) {
+		if (eBone->flag & BONE_SELECTED) {
 			eBone->flag |= BONE_TIPSEL;
 			if(eBone->parent && (eBone->flag & BONE_CONNECTED))
 				eBone->parent->flag |= BONE_TIPSEL;
@@ -153,7 +160,7 @@ void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 		vec_roll_to_mat3(delta, 0.0, postmat);
 		
 		Mat3CpyMat4(premat, curBone->arm_mat);
-
+		
 		Mat3Inv(imat, postmat);
 		Mat3MulMat3(difmat, imat, premat);
 		
@@ -172,7 +179,7 @@ void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 		eBone->segments = curBone->segments;		
 		eBone->layer = curBone->layer;
 		
-		BLI_addtail (list, eBone);
+		BLI_addtail(list, eBone);
 		
 		/*	Add children if necessary */
 		if (curBone->childbase.first) 
@@ -203,7 +210,7 @@ static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
 		
 		if (ebone) {
 			/* Get the ebone premat */
-			VecSubf (delta, ebone->tail, ebone->head);
+			VecSubf(delta, ebone->tail, ebone->head);
 			vec_roll_to_mat3(delta, ebone->roll, premat);
 			
 			/* Get the bone postmat */
@@ -213,9 +220,9 @@ static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
 			Mat3MulMat3(difmat, imat, postmat);
 #if 0
 			printf ("Bone %s\n", curBone->name);
-			printmatrix4 ("premat", premat);
-			printmatrix4 ("postmat", postmat);
-			printmatrix4 ("difmat", difmat);
+			printmatrix4("premat", premat);
+			printmatrix4("postmat", postmat);
+			printmatrix4("difmat", difmat);
 			printf ("Roll = %f\n",  (-atan2(difmat[2][0], difmat[2][2]) * (180.0/M_PI)));
 #endif
 			curBone->roll = -atan2(difmat[2][0], difmat[2][2]);
@@ -223,7 +230,7 @@ static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
 			/* and set restposition again */
 			where_is_armature_bone(curBone, curBone->parent);
 		}
-		fix_bonelist_roll (&curBone->childbase, editbonelist);
+		fix_bonelist_roll(&curBone->childbase, editbonelist);
 	}
 }
 
@@ -246,29 +253,30 @@ void editbones_to_armature (ListBase *list, Object *ob)
 	for (eBone=list->first; eBone; eBone= neBone) {
 		float len= VecLenf(eBone->head, eBone->tail);
 		neBone= eBone->next;
-		if(len <= FLT_EPSILON) {
+		if (len <= FLT_EPSILON) {
 			EditBone *fBone;
 			
 			/*	Find any bones that refer to this bone	*/
-			for (fBone=list->first; fBone; fBone= fBone->next){
+			for (fBone=list->first; fBone; fBone= fBone->next) {
 				if (fBone->parent==eBone)
 					fBone->parent= eBone->parent;
 			}
-			printf("Warning; removed zero sized bone: %s\n", eBone->name);
+			printf("Warning: removed zero sized bone: %s\n", eBone->name);
 			BLI_freelinkN (list, eBone);
 		}
 	}
 	
 	/*	Copy the bones from the editData into the armature */
-	for (eBone=list->first; eBone; eBone=eBone->next){
+	for (eBone=list->first; eBone; eBone=eBone->next) {
 		newBone= MEM_callocN (sizeof(Bone), "bone");
 		eBone->temp= newBone;	/* Associate the real Bones with the EditBones */
 		
 		BLI_strncpy (newBone->name, eBone->name, 32);
-		memcpy (newBone->head, eBone->head, sizeof(float)*3);
-		memcpy (newBone->tail, eBone->tail, sizeof(float)*3);
+		memcpy(newBone->head, eBone->head, sizeof(float)*3);
+		memcpy(newBone->tail, eBone->tail, sizeof(float)*3);
 		newBone->flag= eBone->flag;
-		if(eBone->flag & BONE_ACTIVE) newBone->flag |= BONE_SELECTED;	/* important, editbones can be active with only 1 point selected */
+		if (eBone->flag & BONE_ACTIVE) 
+			newBone->flag |= BONE_SELECTED;	/* important, editbones can be active with only 1 point selected */
 		newBone->roll = 0.0f;
 		
 		newBone->weight = eBone->weight;
@@ -282,16 +290,15 @@ void editbones_to_armature (ListBase *list, Object *ob)
 		newBone->rad_tail= eBone->rad_tail;
 		newBone->segments= eBone->segments;
 		newBone->layer = eBone->layer;
-		
 	}
 	
 	/*	Fix parenting in a separate pass to ensure ebone->bone connections
 		are valid at this point */
 	for (eBone=list->first;eBone;eBone=eBone->next) {
-		newBone= (Bone*) eBone->temp;
-		if (eBone->parent){
-			newBone->parent=(Bone*) eBone->parent->temp;
-			BLI_addtail (&newBone->parent->childbase,newBone);
+		newBone= (Bone *)eBone->temp;
+		if (eBone->parent) {
+			newBone->parent=(Bone *)eBone->parent->temp;
+			BLI_addtail(&newBone->parent->childbase,newBone);
 			
 			{
 				float M_boneRest[3][3];
@@ -311,24 +318,24 @@ void editbones_to_armature (ListBase *list, Object *ob)
 				Mat3Inv(iM_parentRest, M_parentRest);
 				
 				/* Get the new head and tail */
-				VecSubf (newBone->head, eBone->head, eBone->parent->tail);
-				VecSubf (newBone->tail, eBone->tail, eBone->parent->tail);
-
+				VecSubf(newBone->head, eBone->head, eBone->parent->tail);
+				VecSubf(newBone->tail, eBone->tail, eBone->parent->tail);
+				
 				Mat3MulVecfl(iM_parentRest, newBone->head);
 				Mat3MulVecfl(iM_parentRest, newBone->tail);
 			}
 		}
 		/*	...otherwise add this bone to the armature's bonebase */
 		else
-			BLI_addtail (&arm->bonebase,newBone);
+			BLI_addtail(&arm->bonebase,newBone);
 	}
 	
 	/* Make a pass through the new armature to fix rolling */
 	/* also builds restposition again (like where_is_armature) */
-	fix_bonelist_roll (&arm->bonebase, list);
+	fix_bonelist_roll(&arm->bonebase, list);
 	
 	/* so all users of this armature should get rebuilt */
-	for(obt= G.main->object.first; obt; obt= obt->id.next) {
+	for (obt= G.main->object.first; obt; obt= obt->id.next) {
 		if(obt->data==arm)
 			armature_rebuild_pose(obt, arm);
 	}
@@ -343,12 +350,12 @@ void apply_rot_armature (Object *ob, float mat[3][3])
 	ListBase	list;
 	EditBone *ebone;
 	bArmature *arm;
-
+	float scale = Mat3ToScalef(mat);	/* store the scale of the matrix here to use on envelopes */
 	arm = get_armature(ob);
 
 	if (!arm)
-		return;
-
+		return;	
+	
 	/* Put the armature into editmode */
 	list.first= list.last = NULL;
 	make_boneList(&list, &arm->bonebase, NULL);
@@ -357,6 +364,10 @@ void apply_rot_armature (Object *ob, float mat[3][3])
 	for (ebone = list.first; ebone; ebone=ebone->next){
 		Mat3MulVecfl(mat, ebone->head);
 		Mat3MulVecfl(mat, ebone->tail);
+		
+		ebone->rad_head	*= scale;
+		ebone->rad_tail	*= scale;
+		ebone->dist		*= scale;
 	}
 	
 	/* Turn the list into an armature */
@@ -444,16 +455,28 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 			pose= ob->pose;
 			for (pchant= pose->chanbase.first; pchant; pchant= pchant->next) {
 				for (con= pchant->constraints.first; con; con= con->next) {
-					Object *conOb;
-					char *subtarget;
+					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+					ListBase targets = {NULL, NULL};
+					bConstraintTarget *ct;
 					
 					/* constraint targets */
-					conOb= get_constraint_target(con, &subtarget);
-					if (conOb == srcArm) {
-						if (strcmp(subtarget, "")==0)
-							set_constraint_target(con, tarArm, "");
-						else if (strcmp(pchan->name, subtarget)==0)
-							set_constraint_target(con, tarArm, curbone->name);
+					if (cti && cti->get_constraint_targets) {
+						cti->get_constraint_targets(con, &targets);
+						
+						for (ct= targets.first; ct; ct= ct->next) {
+							if (ct->tar == srcArm) {
+								if (strcmp(ct->subtarget, "")==0) {
+									ct->tar = tarArm;
+								}
+								else if (strcmp(ct->subtarget, pchan->name)==0) {
+									ct->tar = tarArm;
+									strcpy(ct->subtarget, curbone->name);
+								}
+							}
+						}
+						
+						if (cti->flush_constraint_targets)
+							cti->flush_constraint_targets(con, &targets, 0);
 					}
 					
 					/* action constraint? */
@@ -479,15 +502,28 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 		/* fix object-level constraints */
 		if (ob != srcArm) {
 			for (con= ob->constraints.first; con; con= con->next) {
-				Object *conOb;
-				char *subtarget;
+				bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+				ListBase targets = {NULL, NULL};
+				bConstraintTarget *ct;
 				
-				conOb= get_constraint_target(con, &subtarget);
-				if (conOb == srcArm) {
-					if (strcmp(subtarget, "")==0)
-						set_constraint_target(con, tarArm, "");
-					else if (strcmp(pchan->name, subtarget)==0)
-						set_constraint_target(con, tarArm, curbone->name);
+				/* constraint targets */
+				if (cti && cti->get_constraint_targets) {
+					cti->get_constraint_targets(con, &targets);
+					
+					for (ct= targets.first; ct; ct= ct->next) {
+						if (ct->tar == srcArm) {
+							if (strcmp(ct->subtarget, "")==0) {
+								ct->tar = tarArm;
+							}
+							else if (strcmp(ct->subtarget, pchan->name)==0) {
+								ct->tar = tarArm;
+								strcpy(ct->subtarget, curbone->name);
+							}
+						}
+					}
+					
+					if (cti->flush_constraint_targets)
+						cti->flush_constraint_targets(con, &targets, 0);
 				}
 			}
 		}
@@ -800,6 +836,98 @@ void select_bone_parent (void)
 	BIF_undo_push("Select Parent");
 }
 
+/* helper for setflag_sel_bone() */
+static void bone_setflag (int *bone, int flag, short mode)
+{
+	if (bone && flag) {
+		/* exception for inverse flags */
+		if (flag == BONE_NO_DEFORM) {
+			if (mode == 2)
+				*bone |= flag;
+			else if (mode == 1)
+				*bone &= ~flag;
+			else
+				*bone ^= flag;
+
+		}
+		else {
+			if (mode == 2)
+				*bone &= ~flag;
+			else if (mode == 1)
+				*bone |= flag;
+			else
+				*bone ^= flag;
+		}
+	}
+}
+
+/* used by posemode and editmode */
+void setflag_armature (short mode)
+{
+	Object *ob;
+	bArmature *arm;	
+	int flag;
+	
+	/* get data */
+	if (G.obedit)
+		ob= G.obedit;
+	else if (OBACT)
+		ob= OBACT;
+	else
+		return;
+	arm= (bArmature *)ob->data;
+	
+	/* get flag to set (sync these with the ones used in eBone_Flag */
+	if (mode == 2)
+		flag= pupmenu("Disable Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5");
+	else if (mode == 1)
+		flag= pupmenu("Enable Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5");
+	else
+		flag= pupmenu("Toggle Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5");
+	switch (flag) {
+		case 1: 	flag = BONE_DRAWWIRE; 	break;
+		case 2:		flag = BONE_NO_DEFORM; break;
+		case 3: 	flag = BONE_MULT_VG_ENV; break;
+		case 4:		flag = BONE_HINGE; break;
+		case 5:		flag = BONE_NO_SCALE; break;
+		default:	return;
+	}
+	
+	/* determine which mode armature is in */
+	if ((!G.obedit) && (ob->flag & OB_POSEMODE)) {
+		/* deal with pose channels */
+		bPoseChannel *pchan;
+		
+		/* set setting */
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
+				if (pchan->bone->flag & BONE_SELECTED) {
+					bone_setflag(&pchan->bone->flag, flag, mode);
+				}
+			}
+		}
+	}
+	else if (G.obedit) {
+		/* deal with editbones */
+		EditBone *curbone;
+		
+		/* set setting */
+		for (curbone= G.edbo.first; curbone; curbone= curbone->next) {
+			if (arm->layer & curbone->layer) {
+				if (curbone->flag & BONE_SELECTED) {
+					bone_setflag(&curbone->flag, flag, mode);
+				}
+			}
+		}
+	}
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWOOPS, 0);
+	
+	BIF_undo_push("Change Bone Setting");
+}
 
 /* **************** END PoseMode & EditMode *************************** */
 /* **************** Posemode stuff ********************** */
@@ -1042,28 +1170,55 @@ void delete_armature(void)
 	bConstraint *con;
 	
 	TEST_EDITARMATURE;
-	if(okee("Erase selected bone(s)")==0) return;
+	if (okee("Erase selected bone(s)")==0) return;
+
+	/* Select mirrored bones */
+	if (arm->flag & ARM_MIRROR_EDIT) {
+		for (curBone=G.edbo.first; curBone; curBone=curBone->next) {
+			if (arm->layer & curBone->layer) {
+				if (curBone->flag & BONE_SELECTED) {
+					next = armature_bone_get_mirrored(curBone);
+					if (next)
+						next->flag |= BONE_SELECTED;
+				}
+			}
+		}
+	}
 	
 	/*  First erase any associated pose channel */
-	if (G.obedit->pose){
+	if (G.obedit->pose) {
 		bPoseChannel *chan, *next;
 		for (chan=G.obedit->pose->chanbase.first; chan; chan=next) {
 			next= chan->next;
-			curBone = editbone_name_exists (&G.edbo, chan->name);
+			curBone = editbone_name_exists(&G.edbo, chan->name);
 			
 			if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
 				free_constraints(&chan->constraints);
 				BLI_freelinkN (&G.obedit->pose->chanbase, chan);
 			}
 			else {
-				for(con= chan->constraints.first; con; con= con->next) {
-					char *subtarget = get_con_subtarget_name(con, G.obedit);
-					if (subtarget) {
-						curBone = editbone_name_exists (&G.edbo, subtarget);
-						if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
-							con->flag |= CONSTRAINT_DISABLE;
-							subtarget[0]= 0;
+				for (con= chan->constraints.first; con; con= con->next) {
+					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+					ListBase targets = {NULL, NULL};
+					bConstraintTarget *ct;
+					
+					if (cti && cti->get_constraint_targets) {
+						cti->get_constraint_targets(con, &targets);
+						
+						for (ct= targets.first; ct; ct= ct->next) {
+							if (ct->tar == G.obedit) {
+								if (ct->subtarget[0]) {
+									curBone = editbone_name_exists(&G.edbo, ct->subtarget);
+									if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
+										con->flag |= CONSTRAINT_DISABLE;
+										ct->subtarget[0]= 0;
+									}
+								}
+							}
 						}
+						
+						if (cti->flush_constraint_targets)
+							cti->flush_constraint_targets(con, &targets, 0);
 					}
 				}
 			}
@@ -1071,9 +1226,9 @@ void delete_armature(void)
 	}
 	
 	
-	for (curBone=G.edbo.first;curBone;curBone=next){
+	for (curBone=G.edbo.first;curBone;curBone=next) {
 		next=curBone->next;
-		if(arm->layer & curBone->layer)
+		if (arm->layer & curBone->layer)
 			if (curBone->flag & BONE_SELECTED)
 				delete_bone(curBone);
 	}
@@ -1166,11 +1321,9 @@ void mouse_armature(void)
 
 void free_editArmature(void)
 {
-	
 	/*	Clear the editbones list */
-	if (G.edbo.first){
-		BLI_freelistN (&G.edbo);
-	}
+	if (G.edbo.first)
+		BLI_freelistN(&G.edbo);
 }
 
 void remake_editArmature(void)
@@ -1185,29 +1338,27 @@ void remake_editArmature(void)
 	allqueue(REDRAWBUTSOBJECT, 0);
 	
 //	BIF_undo_push("Delete bone");
-
 }
 
 /* Put object in EditMode */
 void make_editArmature(void)
 {
-	bArmature	*arm;
+	bArmature *arm;
 	
 	if (G.obedit==0) return;
 	
 	free_editArmature();
 	
 	arm= get_armature(G.obedit);
-	if (!arm)
-		return;
+	if (!arm) return;
 	
-	make_boneList (&G.edbo, &arm->bonebase,NULL);
+	make_boneList(&G.edbo, &arm->bonebase,NULL);
 }
 
 /* put EditMode back in Object */
 void load_editArmature(void)
 {
-	bArmature		*arm;
+	bArmature *arm;
 
 	arm= get_armature(G.obedit);
 	if (!arm) return;
@@ -1266,37 +1417,86 @@ void deselectall_armature(int toggle, int doundo)
 	}
 }
 
-void auto_align_armature(void)
-/* Sets the roll value of selected bones so that their zaxes point upwards */
+/* Sets the roll value of selected bones, depending on the mode
+ * 	mode == 0: their z-axes point upwards 
+ * 	mode == 1: their z-axes point towards 3d-cursor
+ */
+void auto_align_armature(short mode)
 {
 	bArmature *arm= G.obedit->data;
 	EditBone *ebone;
-	float	xaxis[3]={1.0, 0.0, 0.0}, yaxis[3], zaxis[3]={0.0, 0.0, 1.0};
-	float	targetmat[3][3], imat[3][3];
-	float	curmat[3][3], diffmat[3][3];
+	EditBone *flipbone = NULL;
 	float	delta[3];
-	
-	for (ebone = G.edbo.first; ebone; ebone=ebone->next){
-		if(arm->layer & ebone->layer) {
-			if (ebone->flag & BONE_SELECTED){
-				/* Find the current bone matrix */
-				VecSubf(delta, ebone->tail, ebone->head);
-				vec_roll_to_mat3(delta, 0.0, curmat);
-				
-				/* Make new matrix based on y axis & z-up */
-				VECCOPY (yaxis, curmat[1]);
-				
-				Mat3One(targetmat);
-				VECCOPY (targetmat[0], xaxis);
-				VECCOPY (targetmat[1], yaxis);
-				VECCOPY (targetmat[2], zaxis);
-				Mat3Ortho(targetmat);
-				
-				/* Find the difference between the two matrices */
-				Mat3Inv(imat, targetmat);
-				Mat3MulMat3(diffmat, imat, curmat);
-				
-				ebone->roll = atan2(diffmat[2][0], diffmat[2][2]);
+	float	curmat[3][3];
+	float  	*cursor= give_cursor();
+		
+	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
+		if (arm->layer & ebone->layer) {
+			if (arm->flag & ARM_MIRROR_EDIT)
+				flipbone = armature_bone_get_mirrored(ebone);
+			
+			if ((ebone->flag & BONE_SELECTED) || 
+				(flipbone && flipbone->flag & BONE_SELECTED)) 
+			{
+				/* specific method used to calculate roll depends on mode */
+				if (mode == 1) {
+					/* Z-Axis point towards cursor */
+					float	mat[4][4], tmat[4][4], imat[4][4];
+					float 	rmat[4][4], rot[3];
+					float	vec[3];
+					
+					/* find the current bone matrix as a 4x4 matrix (in Armature Space) */
+					VecSubf(delta, ebone->tail, ebone->head);
+					vec_roll_to_mat3(delta, ebone->roll, curmat);
+					Mat4CpyMat3(mat, curmat);
+					VECCOPY(mat[3], ebone->head);
+					
+					/* multiply bone-matrix by object matrix (so that bone-matrix is in WorldSpace) */
+					Mat4MulMat4(tmat, mat, G.obedit->obmat);
+					Mat4Invert(imat, tmat);
+					
+					/* find position of cursor relative to bone */
+					VecMat4MulVecfl(vec, imat, cursor);
+					
+					/* check that cursor is in usable position */
+					if ((IS_EQ(vec[0], 0)==0) && (IS_EQ(vec[2], 0)==0)) {
+						/* Compute a rotation matrix around y */
+						rot[1] = atan2(vec[0], vec[2]);
+						rot[0] = rot[2] = 0.0f;
+						EulToMat4(rot, rmat);
+						
+						/* Multiply the bone matrix by rotation matrix. This should be new bone-matrix */
+						Mat4MulMat4(tmat, rmat, mat);
+						Mat3CpyMat4(curmat, tmat);
+						
+						/* Now convert from new bone-matrix, back to a roll value (in radians) */
+						mat3_to_vec_roll(curmat, delta, &ebone->roll);
+					}
+				}
+				else { 
+					/* Z-Axis Point Up */
+					float	xaxis[3]={1.0, 0.0, 0.0}, yaxis[3], zaxis[3]={0.0, 0.0, 1.0};
+					float	targetmat[3][3], imat[3][3], diffmat[3][3];
+					
+					/* Find the current bone matrix */
+					VecSubf(delta, ebone->tail, ebone->head);
+					vec_roll_to_mat3(delta, 0.0, curmat);
+					
+					/* Make new matrix based on y axis & z-up */
+					VECCOPY (yaxis, curmat[1]);
+					
+					Mat3One(targetmat);
+					VECCOPY (targetmat[0], xaxis);
+					VECCOPY (targetmat[1], yaxis);
+					VECCOPY (targetmat[2], zaxis);
+					Mat3Ortho(targetmat);
+					
+					/* Find the difference between the two matrices */
+					Mat3Inv(imat, targetmat);
+					Mat3MulMat3(diffmat, imat, curmat);
+					
+					ebone->roll = atan2(diffmat[2][0], diffmat[2][2]);
+				}				
 			}
 		}
 	}
@@ -1335,7 +1535,7 @@ static void *editBones_to_undoBones(void)
 	
 	lb= MEM_callocN(sizeof(ListBase), "listbase undo");
 	
-	/* copy  */
+	/* copy */
 	for(ebo= G.edbo.first; ebo; ebo= ebo->next) {
 		newebo= MEM_dupallocN(ebo);
 		ebo->temp= newebo;
@@ -1361,7 +1561,7 @@ static void free_undoBones(void *lbv)
 /* and this is all the undo system needs to know */
 void undo_push_armature(char *name)
 {
-	undo_editmode_push(name, free_undoBones, undoBones_to_editBones, editBones_to_undoBones);
+	undo_editmode_push(name, free_undoBones, undoBones_to_editBones, editBones_to_undoBones, NULL);
 }
 
 
@@ -1376,7 +1576,7 @@ static EditBone *add_editbone(char *name)
 	
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
 	
-	BLI_strncpy (bone->name, name, 32);
+	BLI_strncpy(bone->name, name, 32);
 	unique_editbone_name(&G.edbo, bone->name);
 	
 	BLI_addtail(&G.edbo, bone);
@@ -1396,7 +1596,7 @@ static EditBone *add_editbone(char *name)
 	return bone;
 }
 
-static void add_primitive_bone(Object *ob)
+static void add_primitive_bone(Object *ob, short newob)
 {
 	float		obmat[3][3], curs[3], viewmat[3][3], totmat[3][3], imat[3][3];
 	EditBone	*bone;
@@ -1407,7 +1607,9 @@ static void add_primitive_bone(Object *ob)
 	Mat4Invert(G.obedit->imat, G.obedit->obmat);
 	Mat4MulVecfl(G.obedit->imat, curs);
 
-	Mat3CpyMat4(obmat, G.vd->viewmat);
+	if ( !(newob) || U.flag & USER_ADD_VIEWALIGNED) Mat3CpyMat4(obmat, G.vd->viewmat);
+	else Mat3One(obmat);
+	
 	Mat3CpyMat4(viewmat, G.obedit->obmat);
 	Mat3MulMat3(totmat, obmat, viewmat);
 	Mat3Inv(imat, totmat);
@@ -1418,19 +1620,25 @@ static void add_primitive_bone(Object *ob)
 	bone= add_editbone("Bone");
 
 	VECCOPY(bone->head, curs);
-	VecAddf(bone->tail, bone->head, imat[1]);	// bone with unit length 1
+	
+	if ( !(newob) || U.flag & USER_ADD_VIEWALIGNED)
+		VecAddf(bone->tail, bone->head, imat[1]);	// bone with unit length 1
+	else
+		VecAddf(bone->tail, bone->head, imat[2]);	// bone with unit length 1, pointing up Z
 	
 }
 
 void add_primitiveArmature(int type)
 {
+	short newob=0;
+	
 	if(G.scene->id.lib) return;
 	
 	/* this function also comes from an info window */
 	if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_INFO); else return;
 	if(G.vd==NULL) return;
 	
-	G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT);
+	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT);
 	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 
 	check_editmode(OB_ARMATURE);
@@ -1445,13 +1653,18 @@ void add_primitiveArmature(int type)
 		
 		make_editArmature();
 		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
+		newob=1;
 	}
 	
 	/* no primitive support yet */
-	add_primitive_bone(G.obedit);
+	add_primitive_bone(G.obedit, newob);
 	
 	countall(); // flushes selection!
 
+	if ( (newob) && !(U.flag & USER_ADD_EDITMODE)) {
+		exit_editmode(2);
+	}
+	
 	allqueue(REDRAWALL, 0);
 	BIF_undo_push("Add primitive");
 }
@@ -1538,6 +1751,19 @@ void addvert_armature(void)
 	while(get_mbut()&R_MOUSE);
 }
 
+/* adds an EditBone between the nominated locations (should be in the right space) */
+static EditBone *add_points_bone (float head[], float tail[]) 
+{
+	EditBone *ebo;
+	
+	ebo= add_editbone("Bone");
+	
+	VECCOPY(ebo->head, head);
+	VECCOPY(ebo->tail, tail);
+	
+	return ebo;
+}
+
 
 static EditBone *get_named_editbone(char *name)
 {
@@ -1562,28 +1788,43 @@ static void update_dup_subtarget(EditBone *dupBone)
 	bPoseChannel *chan;
 	bConstraint  *curcon;
 	ListBase     *conlist;
-	char         *subname;
 
 
-	if ( (chan = verify_pose_channel(OBACT->pose, dupBone->name)) )
-		if ( (conlist = &chan->constraints) )
+	if ( (chan = verify_pose_channel(OBACT->pose, dupBone->name)) ) {
+		if ( (conlist = &chan->constraints) ) {
 			for (curcon = conlist->first; curcon; curcon=curcon->next) {
 				/* does this constraint have a subtarget in
 				 * this armature?
 				 */
-				subname = get_con_subtarget_name(curcon, G.obedit);
-				oldtarget = get_named_editbone(subname);
-				if (oldtarget)
-					/* was the subtarget bone duplicated too? If
-					 * so, update the constraint to point at the 
-					 * duplicate of the old subtarget.
-					 */
-					if (oldtarget->flag & BONE_SELECTED){
-						newtarget = (EditBone*) oldtarget->temp;
-						strcpy(subname, newtarget->name);
+				bConstraintTypeInfo *cti= constraint_get_typeinfo(curcon);
+				ListBase targets = {NULL, NULL};
+				bConstraintTarget *ct;
+				
+				if (cti && cti->get_constraint_targets) {
+					cti->get_constraint_targets(curcon, &targets);
+					
+					for (ct= targets.first; ct; ct= ct->next) {
+						if ((ct->tar == G.obedit) && (ct->subtarget[0])) {
+							oldtarget = get_named_editbone(ct->subtarget);
+							if (oldtarget) {
+								/* was the subtarget bone duplicated too? If
+								 * so, update the constraint to point at the 
+								 * duplicate of the old subtarget.
+								 */
+								if (oldtarget->flag & BONE_SELECTED){
+									newtarget = (EditBone *) oldtarget->temp;
+									strcpy(ct->subtarget, newtarget->name);
+								}
+							}
+						}
 					}
+					
+					if (cti->flush_constraint_targets)
+						cti->flush_constraint_targets(curcon, &targets, 0);
+				}
 			}
-	
+		}
+	}
 }
 
 
@@ -1595,11 +1836,24 @@ void adduplicate_armature(void)
 	EditBone	*firstDup=NULL;	/*	The beginning of the duplicated bones in the edbo list */
 	
 	countall(); // flushes selection!
+
+	/* Select mirrored bones */
+	if (arm->flag & ARM_MIRROR_EDIT) {
+		for (curBone=G.edbo.first; curBone; curBone=curBone->next) {
+			if (arm->layer & curBone->layer) {
+				if (curBone->flag & BONE_SELECTED) {
+					eBone = armature_bone_get_mirrored(curBone);
+					if (eBone)
+						eBone->flag |= BONE_SELECTED;
+				}
+			}
+		}
+	}
 	
 	/*	Find the selected bones and duplicate them as needed */
 	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next){
-		if(arm->layer & curBone->layer) {
-			if (curBone->flag & BONE_SELECTED){
+		if (arm->layer & curBone->layer) {
+			if (curBone->flag & BONE_SELECTED) {
 				
 				eBone=MEM_callocN(sizeof(EditBone), "addup_editbone");
 				eBone->flag |= BONE_SELECTED;
@@ -1615,9 +1869,9 @@ void adduplicate_armature(void)
 				if (!firstDup)
 					firstDup=eBone;
 				
-				/* Lets duplicate the list of constraits that the
-					* current bone has.
-					*/
+				/* Lets duplicate the list of constraints that the
+				 * current bone has.
+				 */
 				if (OBACT->pose) {
 					bPoseChannel *chanold, *channew;
 					ListBase     *listold, *listnew;
@@ -1625,17 +1879,30 @@ void adduplicate_armature(void)
 					chanold = verify_pose_channel (OBACT->pose, curBone->name);
 					if (chanold) {
 						listold = &chanold->constraints;
-						if (listold){
+						if (listold) {
+							/* WARNING: this creates a new posechannel, but there will not be an attached bone 
+							 *		yet as the new bones created here are still 'EditBones' not 'Bones'. 
+							 */
 							channew = 
 								verify_pose_channel(OBACT->pose, eBone->name);
 							if (channew) {
+								/* copy transform locks */
+								channew->protectflag = chanold->protectflag;
+								
+								/* ik (dof) settings */
+								channew->ikflag = chanold->ikflag;
+								VECCOPY(channew->limitmin, chanold->limitmin);
+								VECCOPY(channew->limitmax, chanold->limitmax);
+								VECCOPY(channew->stiffness, chanold->stiffness);
+								channew->ikstretch= chanold->ikstretch;
+								
+								/* constraints */
 								listnew = &channew->constraints;
 								copy_constraints (listnew, listold);
 							}
 						}
 					}
 				}
-
 			}
 		}
 	}
@@ -1692,6 +1959,383 @@ void adduplicate_armature(void)
 
 
 /* *************** END Adding stuff in editmode *************** */
+/* ************** Add/Remove stuff in editmode **************** */
+
+/* temporary data-structure for merge/fill bones */
+typedef struct EditBonePoint {
+	struct EditBonePoint *next, *prev;
+	
+	EditBone *head_owner;		/* EditBone which uses this point as a 'head' point */
+	EditBone *tail_owner;		/* EditBone which uses this point as a 'tail' point */
+	
+	float vec[3];				/* the actual location of the point in local/EditMode space */
+} EditBonePoint;
+
+/* find chain-tips (i.e. bones without children) */
+static void chains_find_tips (ListBase *list)
+{
+	EditBone *curBone, *ebo;
+	LinkData *ld;
+	
+	/* note: this is potentially very slow ... there's got to be a better way */
+	for (curBone= G.edbo.first; curBone; curBone= curBone->next) {
+		short stop= 0;
+		
+		/* is this bone contained within any existing chain? (skip if so) */
+		for (ld= list->first; ld; ld= ld->next) {
+			for (ebo= ld->data; ebo; ebo= ebo->parent) {
+				if (ebo == curBone) {
+					stop= 1;
+					break;
+				}
+			}
+			
+			if (stop) break;
+		}
+		/* skip current bone if it is part of an existing chain */
+		if (stop) continue;
+		
+		/* is any existing chain part of the chain formed by this bone? */
+		stop= 0;
+		for (ebo= curBone->parent; ebo; ebo= ebo->parent) {
+			for (ld= list->first; ld; ld= ld->next) {
+				if (ld->data == ebo) {
+					ld->data= curBone;
+					stop= 1;
+					break;
+				}
+			}
+			
+			if (stop) break;
+		}
+		/* current bone has already been added to a chain? */
+		if (stop) continue;
+		
+		/* add current bone to a new chain */
+		ld= MEM_callocN(sizeof(LinkData), "BoneChain");
+		ld->data= curBone;
+		BLI_addtail(list, ld);
+	}
+}
+
+
+static void fill_add_joint (EditBone *ebo, short eb_tail, ListBase *points)
+{
+	EditBonePoint *ebp;
+	float vec[3];
+	short found= 0;
+	
+	if (eb_tail) {
+		VECCOPY(vec, ebo->tail);
+	}
+	else {
+		VECCOPY(vec, ebo->head);
+	}
+	
+	// FIXME: this algorithm sucks... it misses things it shouldn't
+	for (ebp= points->first; ebp; ebp= ebp->next) {
+		if (VecEqual(ebp->vec, vec)) {			
+			if (eb_tail) {
+				if ((ebp->head_owner) && (ebp->head_owner->parent == ebo)) {
+					/* so this bone's tail owner is this bone*/
+					ebp->tail_owner= ebo;
+					found= 1;
+					break;
+				}
+			}
+			else {
+				if ((ebp->tail_owner) && (ebo->parent == ebp->tail_owner)) {
+					/* so this bone's head owner is this bone */
+					ebp->head_owner= ebo;
+					found = 1;
+					break;
+				}
+			}
+		}
+	}
+	
+	/* allocate a new point if no existing point was related */
+	if (found == 0) {
+		ebp= MEM_callocN(sizeof(EditBonePoint), "EditBonePoint");
+		
+		if (eb_tail) {
+			VECCOPY(ebp->vec, ebo->tail);
+			ebp->tail_owner= ebo;
+		}
+		else {
+			VECCOPY(ebp->vec, ebo->head);
+			ebp->head_owner= ebo;
+		}
+		
+		BLI_addtail(points, ebp);
+	}
+}
+
+/* bone adding between selected joints */
+void fill_bones_armature(void)
+{
+	bArmature *arm= G.obedit->data;
+	EditBone *ebo, *newbone=NULL;
+	ListBase points = {NULL, NULL};
+	int count;
+	
+	/* loop over all bones, and only consider if visible */
+	for (ebo= G.edbo.first; ebo; ebo= ebo->next) {
+		if ((arm->layer & ebo->layer) && !(ebo->flag & BONE_HIDDEN_A)) {
+			if (!(ebo->flag & BONE_CONNECTED) && (ebo->flag & BONE_ROOTSEL))
+				fill_add_joint(ebo, 0, &points);
+			if (ebo->flag & BONE_TIPSEL) 
+				fill_add_joint(ebo, 1, &points);
+		}
+	}
+	
+	/* the number of joints determines how we fill:
+	 *	1) between joint and cursor (joint=head, cursor=tail)
+	 *	2) between the two joints (order is dependent on active-bone/hierachy)
+	 * 	3+) error (a smarter method involving finding chains needs to be worked out
+	 */
+	count= BLI_countlist(&points);
+	
+	if (count == 0) {
+		error("No joints selected");
+		return;
+	}
+	else if (count == 1) {
+		EditBonePoint *ebp;
+		float curs[3];
+		
+		/* Get Points - selected joint */
+		ebp= (EditBonePoint *)points.first;
+		
+		/* Get points - cursor (tail) */
+		VECCOPY (curs, give_cursor());	
+		
+		Mat4Invert(G.obedit->imat, G.obedit->obmat);
+		Mat4MulVecfl(G.obedit->imat, curs);
+		
+		/* Create a bone */
+		newbone= add_points_bone(ebp->vec, curs);
+	}
+	else if (count == 2) {
+		EditBonePoint *ebp, *ebp2;
+		float head[3], tail[3];
+		
+		/* check that the points don't belong to the same bone */
+		ebp= (EditBonePoint *)points.first;
+		ebp2= ebp->next;
+		
+		if ((ebp->head_owner==ebp2->tail_owner) && (ebp->head_owner!=NULL)) {
+			error("Same bone selected...");
+			BLI_freelistN(&points);
+			return;
+		}
+		if ((ebp->tail_owner==ebp2->head_owner) && (ebp->tail_owner!=NULL)) {
+			error("Same bone selected...");
+			BLI_freelistN(&points);
+			return;
+		}
+		
+		/* find which one should be the 'head' */
+		if ((ebp->head_owner && ebp2->head_owner) || (ebp->tail_owner && ebp2->tail_owner)) {
+			/* rule: whichever one is closer to 3d-cursor */
+			float curs[3];
+			float vecA[3], vecB[3];
+			float distA, distB;
+			
+			/* get cursor location */
+			VECCOPY (curs, give_cursor());	
+			
+			Mat4Invert(G.obedit->imat, G.obedit->obmat);
+			Mat4MulVecfl(G.obedit->imat, curs);
+			
+			/* get distances */
+			VecSubf(vecA, ebp->vec, curs);
+			VecSubf(vecB, ebp2->vec, curs);
+			distA= VecLength(vecA);
+			distB= VecLength(vecB);
+			
+			/* compare distances - closer one therefore acts as direction for bone to go */
+			if (distA < distB) {
+				VECCOPY(head, ebp2->vec);
+				VECCOPY(tail, ebp->vec);
+			}
+			else {
+				VECCOPY(head, ebp->vec);
+				VECCOPY(tail, ebp2->vec);
+			}
+		}
+		else if (ebp->head_owner) {
+			VECCOPY(head, ebp->vec);
+			VECCOPY(tail, ebp2->vec);
+		}
+		else if (ebp2->head_owner) {
+			VECCOPY(head, ebp2->vec);
+			VECCOPY(tail, ebp->vec);
+		}
+		
+		/* add new bone */
+		newbone= add_points_bone(head, tail);
+	}
+	else {
+		// FIXME.. figure out a method for multiple bones
+		error("Too many points selected"); 
+		printf("Points selected: %d \n", count);
+		BLI_freelistN(&points);
+		return;
+	}
+	
+	/* free points */
+	BLI_freelistN(&points);
+	
+	/* undo + updates */
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	BIF_undo_push("Fill Bones");
+}
+
+/* this function merges between two bones, removes them and those in-between, 
+ * and adjusts the parent relationships for those in-between
+ */
+static void bones_merge(EditBone *start, EditBone *end, EditBone *endchild, ListBase *chains)
+{
+	EditBone *ebo, *ebone, *newbone;
+	LinkData *chain;
+	float head[3], tail[3];
+	
+	/* check if same bone */
+	if (start == end) {
+		printf("Error: same bone! \n");
+		printf("\tstart = %s, end = %s \n", start->name, end->name);
+	}
+	
+	/* step 1: add a new bone
+	 *	- head = head/tail of start (default head)
+	 *	- tail = head/tail of end (default tail)
+	 *	- parent = parent of start
+	 */
+	if ((start->flag & BONE_TIPSEL) && !(start->flag & (BONE_SELECTED|BONE_ACTIVE))) {
+		VECCOPY(head, start->tail);
+	}
+	else {
+		VECCOPY(head, start->head);
+	}
+	if ((end->flag & BONE_ROOTSEL) && !(end->flag & (BONE_SELECTED|BONE_ACTIVE))) {
+		VECCOPY(tail, end->head);
+	}
+	else {
+		VECCOPY(tail, end->tail);
+	}
+	newbone= add_points_bone(head, tail);
+	newbone->parent = start->parent;
+	
+	/* step 2a: parent children of in-between bones to newbone */
+	for (chain= chains->first; chain; chain= chain->next) {
+		/* ick: we need to check if parent of each bone in chain is one of the bones in the */
+		for (ebo= chain->data; ebo; ebo= ebo->parent) {
+			short found= 0;
+			
+			/* try to find which bone from the list to be removed, is the parent */
+			for (ebone= end; ebone; ebone= ebone->parent) {
+				if (ebo->parent == ebone) {
+					found= 1;
+					break;
+				}
+			}
+			
+			/* adjust this bone's parent to newbone then */
+			if (found) {
+				ebo->parent= newbone;
+				break;
+			}
+		}
+	}
+	
+	/* step 2b: parent child of end to newbone (child from this chain) */
+	if (endchild)
+		endchild->parent= newbone;
+	
+	/* step 3: delete all bones between and including start and end */
+	for (ebo= end; ebo; ebo= ebone) {
+		ebone= (ebo == start) ? (NULL) : (ebo->parent);
+		BLI_freelinkN(&G.edbo, ebo);
+	}
+}
+
+/* bone merging - has a menu! */
+void merge_armature(void)
+{
+	bArmature *arm= G.obedit->data;
+	short val= 0;
+	
+	/* process a menu to determine how to merge */
+	// TODO: there's room for more modes of merging stuff...
+	val= pupmenu("Merge Selected Bones%t|Within Chains%x1");
+	if (val <= 0) return;
+	
+	if (val == 1) {
+		/* go down chains, merging bones */
+		ListBase chains = {NULL, NULL};
+		LinkData *chain, *nchain;
+		EditBone *ebo;
+		
+		/* get chains (ends on chains) */
+		chains_find_tips(&chains);
+		if (chains.first == NULL) return;
+		
+		/* each 'chain' is the last bone in the chain (with no children) */
+		for (chain= chains.first; chain; chain= nchain) {
+			EditBone *bstart= NULL, *bend= NULL;
+			EditBone *bchild= NULL, *child=NULL;
+			
+			/* temporarily remove chain from list of chains */
+			nchain= chain->next;
+			BLI_remlink(&chains, chain);
+			
+			/* only consider bones that are visible and selected */
+			for (ebo=chain->data; ebo; child=ebo, ebo=ebo->parent) {
+				/* check if visible + selected */
+				if ( (arm->layer & ebo->layer) && !(ebo->flag & BONE_HIDDEN_A) &&
+					 ((ebo->flag & BONE_CONNECTED) || (ebo->parent==NULL)) &&
+					 (ebo->flag & (BONE_SELECTED|BONE_ACTIVE)) )
+				{
+					/* set either end or start (end gets priority, unless it is already set) */
+					if (bend == NULL)  {
+						bend= ebo;
+						bchild= child;
+					}
+					else 
+						bstart= ebo;
+				}
+				else {
+					/* chain is broken... merge any continous segments then clear */
+					if (bstart && bend)
+						bones_merge(bstart, bend, bchild, &chains);
+					
+					bstart = NULL;
+					bend = NULL;
+					bchild = NULL;
+				}
+			}
+			
+			/* merge from bstart to bend if something not merged */
+			if (bstart && bend)
+				bones_merge(bstart, bend, bchild, &chains);
+			
+			/* put back link */
+			BLI_insertlinkbefore(&chains, nchain, chain);
+		}		
+		
+		BLI_freelistN(&chains);
+	}
+	
+	/* undo + updates */
+	countall();
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	BIF_undo_push("Merge Bones");
+}
+
+/* ************** END Add/Remove stuff in editmode ************ */
 /* *************** Tools in editmode *********** */
 
 
@@ -1753,104 +2397,172 @@ void show_all_armature_bones(void)
 	BIF_undo_push("Reveal Bones");
 }
 
+/* check for null, before calling! */
+static void bone_connect_to_existing_parent(EditBone *bone)
+{
+	bone->flag |= BONE_CONNECTED;
+	VECCOPY(bone->head, bone->parent->tail);
+	bone->rad_head = bone->parent->rad_tail;
+}
+
+static void bone_connect_to_new_parent(EditBone *selbone, EditBone *actbone, short mode)
+{
+	EditBone *ebone;
+	float offset[3];
+	
+	if ((selbone->parent) && (selbone->flag & BONE_CONNECTED))
+		selbone->parent->flag &= ~(BONE_TIPSEL);
+	
+	/* make actbone the parent of selbone */
+	selbone->parent= actbone;
+	
+	/* in actbone tree we cannot have a loop */
+	for (ebone= actbone->parent; ebone; ebone= ebone->parent) {
+		if (ebone->parent==selbone) {
+			ebone->parent= NULL;
+			ebone->flag &= ~BONE_CONNECTED;
+		}
+	}
+	
+	if (mode == 1) {	
+		/* Connected: Child bones will be moved to the parent tip */
+		selbone->flag |= BONE_CONNECTED;
+		VecSubf(offset, actbone->tail, selbone->head);
+		
+		VECCOPY(selbone->head, actbone->tail);
+		selbone->rad_head= actbone->rad_tail;
+		
+		VecAddf(selbone->tail, selbone->tail, offset);
+		
+		/* offset for all its children */
+		for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
+			EditBone *par;
+			
+			for (par= ebone->parent; par; par= par->parent) {
+				if (par==selbone) {
+					VecAddf(ebone->head, ebone->head, offset);
+					VecAddf(ebone->tail, ebone->tail, offset);
+					break;
+				}
+			}
+		}
+	}
+	else {
+		/* Offset: Child bones will retain their distance from the parent tip */
+		selbone->flag &= ~BONE_CONNECTED;
+	}
+}
+
 void make_bone_parent(void)
 {
 	bArmature *arm= G.obedit->data;
-	EditBone *ebone;
-	float offset[3];
+	EditBone *actbone, *ebone, *selbone;
+	EditBone *flipbone, *flippar;
+	short allchildbones= 0, foundselbone= 0;
 	short val;
 	
-	val= pupmenu("Make Parent%t|Connected%x1|Keep Offset%x2");
-	
-	if(val<1) return;
-	
-	/* find active */
-	for (ebone = G.edbo.first; ebone; ebone=ebone->next)
-		if(arm->layer & ebone->layer)
-			if(ebone->flag & BONE_ACTIVE) break;
-	
-	if(ebone) {
-		EditBone *actbone= ebone, *selbone= NULL;
-		
-		/* find selected */
-		for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-			if(arm->layer & ebone->layer) {
-				if(ebone->flag & BONE_SELECTED) {
-					if(ebone!=actbone) {
-						if(selbone==NULL) selbone= ebone;
-						else {
-							error("Need one active and one selected bone");
-							return;
-						}
-					}
-				}
-			}
-		}
-		if(selbone==NULL) {
-			/* we make sure bone is connected */
-			if(val==1 && actbone->parent) {
-				actbone->flag |= BONE_CONNECTED;
-				VECCOPY(actbone->head, actbone->parent->tail);
-				actbone->rad_head= actbone->parent->rad_tail;
-				countall(); // checks selection
-				allqueue(REDRAWVIEW3D, 0);
-				BIF_undo_push("Connect to Parent");
-			}
-			else error("Need one active and one selected bone");
-		}
-		else {
-			/* if selbone had a parent we clear parent tip */
-			if(selbone->parent && (selbone->flag & BONE_CONNECTED))
-			   selbone->parent->flag &= ~(BONE_TIPSEL);
-			
-			selbone->parent= actbone;
-			
-			/* in actbone tree we cannot have a loop */
-			for(ebone= actbone->parent; ebone; ebone= ebone->parent) {
-				if(ebone->parent==selbone) {
-					ebone->parent= NULL;
-					ebone->flag &= ~BONE_CONNECTED;
-				}
-			}
-			
-			if(val==1) {	// connected
-				selbone->flag |= BONE_CONNECTED;
-				VecSubf(offset, actbone->tail, selbone->head);
-				
-				VECCOPY(selbone->head, actbone->tail);
-				selbone->rad_head= actbone->rad_tail;
-
-				VecAddf(selbone->tail, selbone->tail, offset);
-				
-				// offset for all its children 
-				for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-					EditBone *par;
-					for(par= ebone->parent; par; par= par->parent) {
-						if(par==selbone) {
-							VecAddf(ebone->head, ebone->head, offset);
-							VecAddf(ebone->tail, ebone->tail, offset);
-							break;
-						}
-					}
-				}
-			}
-			else {
-				selbone->flag &= ~BONE_CONNECTED;
-			}
-			
-			countall(); // checks selection
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWBUTSEDIT, 0);
-			allqueue(REDRAWOOPS, 0);
-			BIF_undo_push("Make Parent");
+	/* find active bone to parent to */
+	for (actbone = G.edbo.first; actbone; actbone=actbone->next) {
+		if (arm->layer & actbone->layer) {
+			if (actbone->flag & BONE_ACTIVE)
+				break;
 		}
 	}
+	if (actbone == NULL) {
+		error("Needs an active bone");
+		return; 
+	}
+
+	/* find selected bones */
+	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
+		if (arm->layer & ebone->layer) {
+			if ((ebone->flag & BONE_SELECTED) && (ebone != actbone)) {
+				foundselbone++;
+				if (ebone->parent != actbone) allchildbones= 1; 
+			}	
+		}
+	}
+	/* abort if no selected bones, and active bone doesn't have a parent to work with instead */
+	if (foundselbone==0 && actbone->parent==NULL) {
+		error("Need selected bone(s)");
+		return;
+	}
+	
+	/* 'Keep Offset' option is only displayed if it's likely to be useful */
+	if (allchildbones)
+		val= pupmenu("Make Parent%t|Connected%x1|Keep Offset%x2");
+	else
+		val= pupmenu("Make Parent%t|Connected%x1");
+	
+	if (val < 1) return;
+
+	if (foundselbone==0 && actbone->parent) {
+		/* When only the active bone is selected, and it has a parent,
+		 * connect it to the parent, as that is the only possible outcome. 
+		 */
+		bone_connect_to_existing_parent(actbone);
+		
+		if (arm->flag & ARM_MIRROR_EDIT) {
+			flipbone = armature_bone_get_mirrored(actbone);
+			if (flipbone)
+				bone_connect_to_existing_parent(flipbone);
+		}
+	}
+	else {
+		/* loop through all editbones, parenting all selected bones to the active bone */
+		for (selbone = G.edbo.first; selbone; selbone=selbone->next) {
+			if (arm->layer & selbone->layer) {
+				if ((selbone->flag & BONE_SELECTED) && (selbone!=actbone)) {
+					/* parent selbone to actbone */
+					bone_connect_to_new_parent(selbone, actbone, val);
+					
+					if (arm->flag & ARM_MIRROR_EDIT) {
+						/* - if there's a mirrored copy of selbone, try to find a mirrored copy of actbone 
+						 *	(i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
+						 *	This is useful for arm-chains, for example parenting lower arm to upper arm
+						 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
+						 *	then just use actbone. Useful when doing upper arm to spine.
+						 */
+						flipbone = armature_bone_get_mirrored(selbone);
+						flippar = armature_bone_get_mirrored(actbone);
+						
+						if (flipbone) {
+							if (flippar)
+								bone_connect_to_new_parent(flipbone, flippar, val);
+							else
+								bone_connect_to_new_parent(flipbone, actbone, val);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	countall(); /* checks selection */
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWOOPS, 0);
+	BIF_undo_push("Make Parent");
+
+	return;
+}
+
+static void editbone_clear_parent(EditBone *ebone, int mode)
+{
+	if (ebone->parent) {
+		/* for nice selection */
+		ebone->parent->flag &= ~(BONE_TIPSEL);
+	}
+	
+	if(mode==1) ebone->parent= NULL;
+	ebone->flag &= ~BONE_CONNECTED;
 }
 
 void clear_bone_parent(void)
 {
 	bArmature *arm= G.obedit->data;
 	EditBone *ebone;
+	EditBone *flipbone = NULL;
 	short val;
 	
 	val= pupmenu("Clear Parent%t|Clear Parent%x1|Disconnect Bone%x2");
@@ -1859,13 +2571,13 @@ void clear_bone_parent(void)
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
 		if(arm->layer & ebone->layer) {
 			if(ebone->flag & BONE_SELECTED) {
-				if(ebone->parent) {
-					/* for nice selection */
-					ebone->parent->flag &= ~(BONE_TIPSEL);
+			
+				if(arm->flag & ARM_MIRROR_EDIT)
+					flipbone = armature_bone_get_mirrored(ebone);
 					
-					if(val==1) ebone->parent= NULL;
-					ebone->flag &= ~BONE_CONNECTED;
-				}
+				if (flipbone)
+					editbone_clear_parent(flipbone, val);
+				editbone_clear_parent(ebone, val);
 			}
 		}
 	}
@@ -2051,53 +2763,77 @@ void extrude_armature(int forked)
 }
 
 /* context; editmode armature */
-void subdivide_armature(void)
+void subdivide_armature(int numcuts)
 {
 	bArmature *arm= G.obedit->data;
 	EditBone *ebone, *newbone, *tbone, *mbone;
-	int a;
+	int a, i;
 	
+	if(numcuts < 1) return;
+
 	for (mbone = G.edbo.last; mbone; mbone= mbone->prev) {
 		if(arm->layer & mbone->layer) {
 			if(mbone->flag & BONE_SELECTED) {
-				
-				/* take care of mirrored stuff */
-				for(a=0; a<2; a++) {
-					if(a==0) ebone= mbone;
-					else {
-						if(arm->flag & ARM_MIRROR_EDIT)
-							ebone= armature_bone_get_mirrored(mbone);
-						else ebone= NULL;
-					}
-					if(ebone) {
-
-						newbone= MEM_mallocN(sizeof(EditBone), "ebone subdiv");
-						*newbone = *ebone;
-						BLI_addtail(&G.edbo, newbone);
+				for(i=numcuts+1; i>1; i--) {
+					/* compute cut ratio first */
+					float cutratio= 1/(float)i;
+					float cutratioI= 1-cutratio;
+					
+					/* take care of mirrored stuff */
+					for(a=0; a<2; a++) {
+						float val1[3];
+						float val2[3];
+						float val3[3];
 						
-						VecMidf(newbone->head, ebone->head, ebone->tail);
-						VECCOPY(newbone->tail, ebone->tail);
-						VECCOPY(ebone->tail, newbone->head);
-						
-						newbone->rad_head= 0.5*(ebone->rad_head+ebone->rad_tail);
-						ebone->rad_tail= newbone->rad_head;
-
-						newbone->flag |= BONE_CONNECTED;
-						
-						unique_editbone_name (&G.edbo, newbone->name);
-						
-						/* correct parent bones */
-						for (tbone = G.edbo.first; tbone; tbone=tbone->next){
-							if(tbone->parent==ebone)
-								tbone->parent= newbone;
+						/* try to find mirrored bone on a != 0 */
+						if(a) {
+							if(arm->flag & ARM_MIRROR_EDIT)
+								ebone= armature_bone_get_mirrored(mbone);
+							else ebone= NULL;
 						}
-						newbone->parent= ebone;
+						else
+							ebone= mbone;
+							
+						if(ebone) {
+							newbone= MEM_mallocN(sizeof(EditBone), "ebone subdiv");
+							*newbone = *ebone;
+							BLI_addtail(&G.edbo, newbone);
+							
+							/* calculate location of newbone->head */
+							VECCOPY(val1, ebone->head);
+							VECCOPY(val2, ebone->tail);
+							VECCOPY(val3, newbone->head);
+							
+							val3[0]= val1[0]*cutratio+val2[0]*cutratioI;
+							val3[1]= val1[1]*cutratio+val2[1]*cutratioI;
+							val3[2]= val1[2]*cutratio+val2[2]*cutratioI;
+							
+							VECCOPY(newbone->head, val3);
+							VECCOPY(newbone->tail, ebone->tail);
+							VECCOPY(ebone->tail, newbone->head);
+							
+							newbone->rad_head= 0.5*(ebone->rad_head+ebone->rad_tail);
+							ebone->rad_tail= newbone->rad_head;
+							
+							newbone->flag |= BONE_CONNECTED;
+							
+							unique_editbone_name (&G.edbo, newbone->name);
+							
+							/* correct parent bones */
+							for (tbone = G.edbo.first; tbone; tbone=tbone->next){
+								if(tbone->parent==ebone)
+									tbone->parent= newbone;
+							}
+							newbone->parent= ebone;
+						}
 					}
 				}
 			}
 		}
 	}
-	BIF_undo_push("Subdivide");
+	
+	if(numcuts==1) BIF_undo_push("Subdivide");
+	else BIF_undo_push("Subdivide multi");
 }
 
 /* ***************** Pose tools ********************* */
@@ -2115,7 +2851,7 @@ void clear_armature(Object *ob, char mode)
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
 			if(arm->layer & pchan->bone->layer) {
-				switch (mode){
+				switch (mode) {
 					case 'r':
 						pchan->quat[1]=pchan->quat[2]=pchan->quat[3]=0.0F; pchan->quat[0]=1.0F;
 						break;
@@ -2127,6 +2863,9 @@ void clear_armature(Object *ob, char mode)
 						break;
 						
 				}
+				
+				/* the current values from IPO's may not be zero, so tag as unkeyed */
+				pchan->bone->flag |= BONE_UNKEYED;
 			}
 		}
 	}
@@ -2157,6 +2896,8 @@ int do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 	nearBone= get_bone_from_selectbuffer(base, buffer, hits, 1);
 
 	if (nearBone) {
+		bArmature *arm= ob->data;
+		
 		/* since we do unified select, we don't shift+select a bone if the armature object was not active yet */
 		if (!(G.qual & LR_SHIFTKEY) || base!=BASACT){
 			deselectall_posearmature(ob, 0, 0);
@@ -2167,9 +2908,7 @@ int do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 			if (nearBone->flag & BONE_SELECTED) {
 				/* if not active, we make it active */
 				if((nearBone->flag & BONE_ACTIVE)==0) {
-					bArmature *arm= ob->data;
 					bone_looper(ob, arm->bonebase.first, NULL, clear_active_flag);
-					
 					nearBone->flag |= BONE_ACTIVE;
 				}
 				else {
@@ -2178,7 +2917,6 @@ int do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 				}
 			}
 			else{
-				bArmature *arm= ob->data;
 				bone_looper(ob, arm->bonebase.first, NULL, clear_active_flag);
 				
 				nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
@@ -2295,7 +3033,7 @@ int bone_looper(Object *ob, Bone *bone, void *data,
 }
 
 
-static int bone_skinnable(Object *ob, Bone *bone, void *data)
+static int bone_skinnable(Object *ob, Bone *bone, void *datap)
 {
     /* Bones that are deforming
      * are regarded to be "skinnable" and are eligible for
@@ -2319,16 +3057,28 @@ static int bone_skinnable(Object *ob, Bone *bone, void *data)
      *      pointers to bones that point to all
      *      skinnable bones.
      */
-    Bone ***hbone;
+	Bone ***hbone;
+	int a, segments;
+	struct { Object *armob; void *list; int heat; } *data = datap;
 
-    if (!(bone->flag & BONE_NO_DEFORM)) {
-		if (data != NULL) {
-			hbone = (Bone ***) data;
-            **hbone = bone;
-            ++*hbone;
-        }
-        return 1;
-    }
+	if(!(G.f & G_WEIGHTPAINT) || !(bone->flag & BONE_HIDDEN_P)) {
+		if (!(bone->flag & BONE_NO_DEFORM)) {
+			if(data->heat && data->armob->pose && get_pose_channel(data->armob->pose, bone->name))
+				segments = bone->segments;
+			else
+				segments = 1;
+
+			if (data->list != NULL) {
+				hbone = (Bone ***) &data->list;
+				
+				for(a=0; a<segments; a++) {
+					**hbone = bone;
+					++*hbone;
+				}
+			}
+			return segments;
+		}
+	}
     return 0;
 }
 
@@ -2347,7 +3097,7 @@ static int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data)
     return 0;
 }
 
-static int dgroup_skinnable(Object *ob, Bone *bone, void *data) 
+static int dgroup_skinnable(Object *ob, Bone *bone, void *datap) 
 {
     /* Bones that are deforming
      * are regarded to be "skinnable" and are eligible for
@@ -2373,156 +3123,257 @@ static int dgroup_skinnable(Object *ob, Bone *bone, void *data)
      *      of skinnable bones.
      */
     bDeformGroup ***hgroup, *defgroup;
+	int a, segments;
+	struct { Object *armob; void *list; int heat; } *data= datap;
 
-   if (!(bone->flag & BONE_NO_DEFORM)) {
-        if ( !(defgroup = get_named_vertexgroup(ob, bone->name)) ) {
-            defgroup = add_defgroup_name(ob, bone->name);
-        }
+	if(!(G.f & G_WEIGHTPAINT) || !(bone->flag & BONE_HIDDEN_P)) {
+	   if (!(bone->flag & BONE_NO_DEFORM)) {
+			if(data->heat && data->armob->pose && get_pose_channel(data->armob->pose, bone->name))
+				segments = bone->segments;
+			else
+				segments = 1;
 
-        if (data != NULL) {
-            hgroup = (bDeformGroup ***) data;
-            **hgroup = defgroup;
-            ++*hgroup;
-        }
-        return 1;
-    }
+			if(!(defgroup = get_named_vertexgroup(ob, bone->name)))
+				defgroup = add_defgroup_name(ob, bone->name);
+
+			if (data->list != NULL) {
+				hgroup = (bDeformGroup ***) &data->list;
+
+				for(a=0; a<segments; a++) {
+					**hgroup = defgroup;
+					++*hgroup;
+				}
+			}
+			return segments;
+		}
+	}
     return 0;
 }
 
-static void add_verts_to_closest_dgroup(Object *ob, Object *par)
+static void add_vgroups__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
-    /* This function implements a crude form of 
-     * auto-skinning: vertices are assigned to the
-     * deformation groups associated with bones based
-     * on thier proximity to a bone. Every vert is
-     * given a weight of 1.0 to the weight group
-     * cooresponding to the bone that it is
-     * closest to. The vertex may also be assigned to
-     * a deformation group associated to a bone
-     * that is within 10% of the mninimum distance
-     * between the bone and the nearest vert -- the
-     * cooresponding weight will fall-off to zero
-     * as the distance approaches the 10% tolerance mark.
-	 * If the mesh has subsurf enabled then the verts
-	 * on the subsurf limit surface is used to generate 
-	 * the weights rather than the verts on the cage
-	 * mesh.
-	 *
-	 * ("Limit surface" = same amount of vertices as mesh, but vertices 
-     *   moved to the subsurfed position, like for 'optimal').
-     */
+	/* DerivedMesh mapFunc for getting final coords in weight paint mode */
 
-    bArmature *arm;
-    Bone **bonelist, **bonehandle, *bone;
-    bDeformGroup **dgrouplist, **dgrouphandle, *defgroup;
-    float *distance;
-    float   root[3];
-    float   tip[3];
-    float real_co[3];
-	float *subverts = NULL;
-    float *subvert;
-    Mesh  *mesh;
-    MVert *vert;
+	float (*verts)[3] = userData;
+	VECCOPY(verts[index], co);
+}
 
-    int numbones, i, j;
+static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], int numbones, Bone **bonelist, bDeformGroup **dgrouplist, bDeformGroup **dgroupflip, float (*root)[3], float (*tip)[3], int *selected, float scale)
+{
+	/* Create vertex group weights from envelopes */
 
-    /* If the parent object is not an armature exit */
-    arm = get_armature(par);
-    if (!arm)
-        return;
+	Bone *bone;
+	bDeformGroup *dgroup;
+	float distance;
+	int i, iflip, j;
 
-    /* count the number of skinnable bones */
-    numbones = bone_looper(ob, arm->bonebase.first, NULL,
-                                  bone_skinnable);
-	
-    /* create an array of pointer to bones that are skinnable
-     * and fill it with all of the skinnable bones
-     */
-    bonelist = MEM_mallocN(numbones*sizeof(Bone *), "bonelist");
-    bonehandle = bonelist;
-    bone_looper(ob, arm->bonebase.first, &bonehandle,
-                       bone_skinnable);
+	/* for each vertex in the mesh */
+	for (i=0; i < mesh->totvert; i++) {
+		iflip = (dgroupflip)? mesh_get_x_mirror_vert(ob, i): 0;
 
-    /* create an array of pointers to the deform groups that
-     * coorespond to the skinnable bones (creating them
-     * as necessary.
-     */
-    dgrouplist = MEM_mallocN(numbones*sizeof(bDeformGroup *), "dgrouplist");
-    dgrouphandle = dgrouplist;
-    bone_looper(ob, arm->bonebase.first, &dgrouphandle,
-                       dgroup_skinnable);
+		/* for each skinnable bone */
+		for (j=0; j < numbones; ++j) {
+			if(!selected[j])
+				continue;
 
-    /* create an array of floats that will be used for each vert
-     * to hold the distance-factor to each bone.
-     */
-    distance = MEM_mallocN(numbones*sizeof(float), "distance");
+			bone = bonelist[j];
+			dgroup = dgrouplist[j];
 
-    mesh = (Mesh*)ob->data;
+			/* store the distance-factor from the vertex to the bone */
+			distance = distfactor_to_bone (verts[i], root[j], tip[j],
+				bone->rad_head * scale, bone->rad_tail * scale, bone->dist * scale);
+			
+			/* add the vert to the deform group if weight!=0.0 */
+			if (distance!=0.0)
+				add_vert_to_defgroup (ob, dgroup, i, distance, WEIGHT_REPLACE);
+			else
+				remove_vert_defgroup (ob, dgroup, i);
 
-	/* Is subsurf on? Lets use the verts on the limit surface then */
-	if (modifiers_findByType(ob, eModifierType_Subsurf)) {
-		subverts = MEM_mallocN(3*mesh->totvert*sizeof(float), "subverts");
-		subsurf_calculate_limit_positions(mesh, (void *)subverts);	/* (ton) made void*, dunno how to cast */
+			/* do same for mirror */
+			if (dgroupflip && dgroupflip[j] && iflip >= 0) {
+				if (distance!=0.0)
+					add_vert_to_defgroup (ob, dgroupflip[j], iflip, distance,
+						WEIGHT_REPLACE);
+				else
+					remove_vert_defgroup (ob, dgroupflip[j], iflip);
+			}
+		}
 	}
+}
 
-    /* for each vertex in the mesh ...
-     */
-    for ( i=0 ; i < mesh->totvert ; ++i ) {
-        /* get the vert in global coords
-         */
-		
-		if (subverts) {
-			subvert = subverts + i*3;
-			VECCOPY (real_co, subvert);
+void add_verts_to_dgroups(Object *ob, Object *par, int heat, int mirror)
+{
+	/* This functions implements the automatic computation of vertex group
+	 * weights, either through envelopes or using a heat equilibrium.
+	 *
+	 * This function can be called both when parenting a mesh to an armature,
+	 * or in weightpaint + posemode. In the latter case selection is taken
+	 * into account and vertex weights can be mirrored.
+	 *
+	 * The mesh vertex positions used are either the final deformed coords
+	 * from the derivedmesh in weightpaint mode, the final subsurf coords
+	 * when parenting, or simply the original mesh coords.
+	 */
+
+	bArmature *arm;
+	Bone **bonelist, *bone;
+	bDeformGroup **dgrouplist, **dgroupflip;
+	bDeformGroup *dgroup, *curdg;
+	bPoseChannel *pchan;
+	Mesh *mesh;
+	Mat4 *bbone = NULL;
+	float (*root)[3], (*tip)[3], (*verts)[3];
+	int *selected;
+	int numbones, vertsfilled = 0, i, j, segments = 0;
+	int wpmode = (G.f & G_WEIGHTPAINT);
+	struct { Object *armob; void *list; int heat; } looper_data;
+
+	/* If the parent object is not an armature exit */
+	arm = get_armature(par);
+	if (!arm)
+		return;
+	
+	looper_data.armob = par;
+	looper_data.heat= heat;
+	looper_data.list= NULL;
+
+	/* count the number of skinnable bones */
+	numbones = bone_looper(ob, arm->bonebase.first, &looper_data, bone_skinnable);
+	
+	if (numbones == 0)
+		return;
+	
+	/* create an array of pointer to bones that are skinnable
+	 * and fill it with all of the skinnable bones */
+	bonelist = MEM_callocN(numbones*sizeof(Bone *), "bonelist");
+	looper_data.list= bonelist;
+	bone_looper(ob, arm->bonebase.first, &looper_data, bone_skinnable);
+
+	/* create an array of pointers to the deform groups that
+	 * coorespond to the skinnable bones (creating them
+	 * as necessary. */
+	dgrouplist = MEM_callocN(numbones*sizeof(bDeformGroup *), "dgrouplist");
+	dgroupflip = MEM_callocN(numbones*sizeof(bDeformGroup *), "dgroupflip");
+
+	looper_data.list= dgrouplist;
+	bone_looper(ob, arm->bonebase.first, &looper_data, dgroup_skinnable);
+
+	/* create an array of root and tip positions transformed into
+	 * global coords */
+	root = MEM_callocN(numbones*sizeof(float)*3, "root");
+	tip = MEM_callocN(numbones*sizeof(float)*3, "tip");
+	selected = MEM_callocN(numbones*sizeof(int), "selected");
+
+	for (j=0; j < numbones; ++j) {
+   		bone = bonelist[j];
+		dgroup = dgrouplist[j];
+
+		/* handle bbone */
+		if(heat) {
+			if(segments == 0) {
+				segments = 1;
+				bbone = NULL;
+
+				if(par->pose && (pchan=get_pose_channel(par->pose, bone->name))) {
+					if(bone->segments > 1) {
+						segments = bone->segments;
+						bbone = b_bone_spline_setup(pchan, 1);
+					}
+				}
+			}
+
+			segments--;
+		}
+
+		/* compute root and tip */
+		if(bbone) {
+			VECCOPY(root[j], bbone[segments].mat[3]);
+			Mat4MulVecfl(bone->arm_mat, root[j]);
+			if(segments+1 < bone->segments) {
+				VECCOPY(tip[j], bbone[segments+1].mat[3])
+				Mat4MulVecfl(bone->arm_mat, tip[j]);
+			}
+			else
+				VECCOPY(tip[j], bone->arm_tail)
 		}
 		else {
-			vert = mesh->mvert + i;
-			VECCOPY (real_co, vert->co);
+			VECCOPY(root[j], bone->arm_head);
+			VECCOPY(tip[j], bone->arm_tail);
 		}
-        Mat4MulVecfl(ob->obmat, real_co);
 
+		Mat4MulVecfl(par->obmat, root[j]);
+		Mat4MulVecfl(par->obmat, tip[j]);
 
-        /* for each skinnable bone ...
-         */
-        for (j=0; j < numbones; ++j) {
-            bone = bonelist[j];
+		/* set selected */
+		if(wpmode) {
+			if ((arm->layer & bone->layer) && (bone->flag & BONE_SELECTED))
+				selected[j] = 1;
+		}
+		else
+			selected[j] = 1;
 
-            /* get the root of the bone in global coords
-             */
-			VECCOPY(root, bone->arm_head);
-			Mat4MulVecfl(par->obmat, root);
+		/* find flipped group */
+		if(mirror) {
+			char name[32];
+			
+			BLI_strncpy(name, dgroup->name, 32);
+			// 0 = don't strip off number extensions
+			bone_flip_name(name, 0);
 
-            /* get the tip of the bone in global coords
-             */
-			VECCOPY(tip, bone->arm_tail);
-            Mat4MulVecfl(par->obmat, tip);
+			for (curdg = ob->defbase.first; curdg; curdg=curdg->next)
+				if (!strcmp(curdg->name, name))
+					break;
 
-            /* store the distance-factor from the vertex to
-             * the bone
-             */
-			distance[j]= distfactor_to_bone (real_co, root, tip, bone->rad_head, bone->rad_tail, bone->dist);
-        }
+			dgroupflip[j] = curdg;
+		}
+	}
 
-        /* for each deform group ...
-         */
-        for (j=0; j < numbones; ++j) {
-            defgroup = dgrouplist[j];
+	/* create verts */
+    mesh = (Mesh*)ob->data;
+	verts = MEM_callocN(mesh->totvert*sizeof(*verts), "closestboneverts");
 
-            /* add the vert to the deform group if weight!=0.0
-             */
-            if (distance[j]!=0.0)
-                add_vert_to_defgroup (ob, defgroup, i, distance[j], WEIGHT_REPLACE);
-            else
-                remove_vert_defgroup (ob, defgroup, i);
-        }
-    }
+	if (wpmode) {
+		/* if in weight paint mode, use final verts from derivedmesh */
+		DerivedMesh *dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
 
-    /* free the memory allocated
-     */
+		if(dm->foreachMappedVert) {
+			dm->foreachMappedVert(dm, add_vgroups__mapFunc, (void*)verts);
+			vertsfilled = 1;
+		}
+
+		dm->release(dm);
+	}
+	else if (modifiers_findByType(ob, eModifierType_Subsurf)) {
+		/* is subsurf on? Lets use the verts on the limit surface then.
+	 	 * = same amount of vertices as mesh, but vertices  moved to the
+		 * subsurfed position, like for 'optimal'. */
+		subsurf_calculate_limit_positions(mesh, verts);
+		vertsfilled = 1;
+	}
+
+	/* transform verts to global space */
+	for (i=0; i < mesh->totvert; i++) {
+		if (!vertsfilled)
+			VECCOPY(verts[i], mesh->mvert[i].co)
+		Mat4MulVecfl(ob->obmat, verts[i]);
+	}
+
+	/* compute the weights based on gathered vertices and bones */
+	if (heat)
+		heat_bone_weighting(ob, mesh, verts, numbones, dgrouplist, dgroupflip,
+			root, tip, selected);
+	else
+		envelope_bone_weighting(ob, mesh, verts, numbones, bonelist, dgrouplist,
+			dgroupflip, root, tip, selected, Mat4ToScalef(par->obmat));
+	
+    /* free the memory allocated */
     MEM_freeN(bonelist);
     MEM_freeN(dgrouplist);
-    MEM_freeN(distance);
-	if (subverts) MEM_freeN(subverts);
+	MEM_freeN(dgroupflip);
+	MEM_freeN(root);
+	MEM_freeN(tip);
+	MEM_freeN(selected);
+	MEM_freeN(verts);
 }
 
 void create_vgroups_from_armature(Object *ob, Object *par)
@@ -2544,7 +3395,8 @@ void create_vgroups_from_armature(Object *ob, Object *par)
     mode= pupmenu("Create Vertex Groups? %t|"
 				  "Don't Create Groups %x1|"
 				  "Name Groups %x2|"
-                  "Create From Closest Bones %x3");
+                  "Create From Envelopes %x3|"
+				  "Create From Bone Heat %x4|");
 	switch (mode){
 	case 2:
 		/* Traverse the bone list, trying to create empty vertex 
@@ -2558,11 +3410,12 @@ void create_vgroups_from_armature(Object *ob, Object *par)
 		break;
 
 	case 3:
+	case 4:
 		/* Traverse the bone list, trying to create vertex groups 
 		 * that are populated with the vertices for which the
 		 * bone is closest.
 		 */
-		add_verts_to_closest_dgroup(ob, par);
+		add_verts_to_dgroups(ob, par, (mode == 4), 0);
 		break;
 
 	}
@@ -2575,7 +3428,7 @@ static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr)
 	if(arm->layer & bone->layer) {
 		if (bone->flag & BONE_SELECTED) {
 			bone->flag |= BONE_HIDDEN_P;
-			bone->flag &= ~BONE_SELECTED;
+			bone->flag &= ~(BONE_SELECTED|BONE_ACTIVE);
 		}
 	}
 	return 0;
@@ -2605,6 +3458,7 @@ static int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr)
 	if(arm->layer & bone->layer) {
 		if (~bone->flag & BONE_SELECTED) {
 			bone->flag |= BONE_HIDDEN_P;
+			bone->flag &= ~BONE_ACTIVE;
 		}
 	}
 	return 0;
@@ -2625,6 +3479,7 @@ void hide_unselected_pose_bones(void)
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWACTION, 0);
 	BIF_undo_push("Hide Unselected Bone");
 }
 
@@ -2657,6 +3512,7 @@ void show_all_pose_bones(void)
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWACTION, 0);
 	BIF_undo_push("Reveal Bones");
 }
 
@@ -2695,13 +3551,25 @@ void unique_bone_name (bArmature *arm, char *name)
 static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldname, char *newname)
 {
 	bConstraint *curcon;
-	char *subtarget;
+	bConstraintTarget *ct;
 	
-	for (curcon = conlist->first; curcon; curcon=curcon->next){
-		subtarget = get_con_subtarget_name(curcon, ob);
-		if (subtarget)
-			if (!strcmp(subtarget, oldname) )
-				BLI_strncpy(subtarget, newname, MAXBONENAME);
+	for (curcon = conlist->first; curcon; curcon=curcon->next) {
+		bConstraintTypeInfo *cti= constraint_get_typeinfo(curcon);
+		ListBase targets = {NULL, NULL};
+		
+		if (cti && cti->get_constraint_targets) {
+			cti->get_constraint_targets(curcon, &targets);
+			
+			for (ct= targets.first; ct; ct= ct->next) {
+				if (ct->tar == ob) {
+					if (!strcmp(ct->subtarget, oldname) )
+						BLI_strncpy(ct->subtarget, newname, MAXBONENAME);
+				}
+			}
+			
+			if (cti->flush_constraint_targets)
+				cti->flush_constraint_targets(curcon, &targets, 0);
+		}	
 	}
 }
 
@@ -2833,13 +3701,37 @@ void armature_flip_names(void)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
-	allqueue (REDRAWACTION, 0);
+	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWOOPS, 0);
 	BIF_undo_push("Flip names");
-	
 }
 
-/* context; editmode armature */
+/* context: edtimode armature */
+void armature_autoside_names(short axis)
+{
+	bArmature *arm= G.obedit->data;
+	EditBone *ebone;
+	char newname[32];
+	
+	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
+		if (arm->layer & ebone->layer) {
+			if (ebone->flag & BONE_SELECTED) {
+				BLI_strncpy(newname, ebone->name, sizeof(newname));
+				bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis]);
+				armature_bone_rename(G.obedit->data, ebone->name, newname);
+			}
+		}
+	}
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWOOPS, 0);
+	BIF_undo_push("Auto-side name");
+}
+
+/* context: editmode armature */
 EditBone *armature_bone_get_mirrored(EditBone *ebo)
 {
 	EditBone *eboflip= NULL;
@@ -2883,6 +3775,7 @@ void transform_armature_mirror_update(void)
 				}
 				if(ebo->flag & BONE_SELECTED) {
 					eboflip->dist= ebo->dist;
+					eboflip->roll= -ebo->roll;
 					eboflip->xwidth= ebo->xwidth;
 					eboflip->zwidth= ebo->zwidth;
 				}
@@ -2891,3 +3784,1109 @@ void transform_armature_mirror_update(void)
 	}
 }
 
+
+/*****************************************************************************************************/
+/*************************************** SKELETON GENERATOR ******************************************/
+/*****************************************************************************************************/
+
+/**************************************** SYMMETRY HANDLING ******************************************/
+
+void markdownSymmetryArc(ReebArc *arc, ReebNode *node, int level);
+
+void mirrorAlongAxis(float v[3], float center[3], float axis[3])
+{
+	float dv[3], pv[3];
+	
+	VecSubf(dv, v, center);
+	Projf(pv, dv, axis);
+	VecMulf(pv, -2);
+	VecAddf(v, v, pv);
+}
+
+/* Helper structure for radial symmetry */
+typedef struct RadialArc
+{
+	ReebArc *arc; 
+	float n[3]; /* normalized vector joining the nodes of the arc */
+} RadialArc;
+
+void reestablishRadialSymmetry(ReebNode *node, int depth, float axis[3])
+{
+	RadialArc *ring = NULL;
+	RadialArc *unit;
+	float limit = G.scene->toolsettings->skgen_symmetry_limit;
+	int symmetric = 1;
+	int count = 0;
+	int i;
+
+	/* count the number of arcs in the symmetry ring */
+	for (i = 0; node->arcs[i] != NULL; i++)
+	{
+		ReebArc *connectedArc = node->arcs[i];
+		
+		/* depth is store as a negative in flag. symmetry level is positive */
+		if (connectedArc->flags == -depth)
+		{
+			count++;
+		}
+	}
+
+	ring = MEM_callocN(sizeof(RadialArc) * count, "radial symmetry ring");
+	unit = ring;
+
+	/* fill in the ring */
+	for (unit = ring, i = 0; node->arcs[i] != NULL; i++)
+	{
+		ReebArc *connectedArc = node->arcs[i];
+		
+		/* depth is store as a negative in flag. symmetry level is positive */
+		if (connectedArc->flags == -depth)
+		{
+			ReebNode *otherNode = OTHER_NODE(connectedArc, node);
+			float vec[3];
+
+			unit->arc = connectedArc;
+
+			/* project the node to node vector on the symmetry plane */
+			VecSubf(unit->n, otherNode->p, node->p);
+			Projf(vec, unit->n, axis);
+			VecSubf(unit->n, unit->n, vec);
+
+			Normalize(unit->n);
+
+			unit++;
+		}
+	}
+
+	/* sort ring */
+	for (i = 0; i < count - 1; i++)
+	{
+		float minAngle = 3; /* arbitrary high value, higher than 2, at least */
+		int minIndex = -1;
+		int j;
+
+		for (j = i + 1; j < count; j++)
+		{
+			float angle = Inpf(ring[i].n, ring[j].n);
+
+			/* map negative values to 1..2 */
+			if (angle < 0)
+			{
+				angle = 1 - angle;
+			}
+
+			if (angle < minAngle)
+			{
+				minIndex = j;
+				minAngle = angle;
+			}
+		}
+
+		/* swap if needed */
+		if (minIndex != i + 1)
+		{
+			RadialArc tmp;
+			tmp = ring[i + 1];
+			ring[i + 1] = ring[minIndex];
+			ring[minIndex] = tmp;
+		}
+	}
+
+	for (i = 0; i < count && symmetric; i++)
+	{
+		ReebNode *node1, *node2;
+		float tangent[3];
+		float normal[3];
+		float p[3];
+		int j = (i + 1) % count; /* next arc in the circular list */
+
+		VecAddf(tangent, ring[i].n, ring[j].n);
+		Crossf(normal, tangent, axis);
+		
+		node1 = OTHER_NODE(ring[i].arc, node);
+		node2 = OTHER_NODE(ring[j].arc, node);
+
+		VECCOPY(p, node2->p);
+		mirrorAlongAxis(p, node->p, normal);
+		
+		/* check if it's within limit before continuing */
+		if (VecLenf(node1->p, p) > limit)
+		{
+			symmetric = 0;
+		}
+
+	}
+
+	if (symmetric)
+	{
+		/* first pass, merge incrementally */
+		for (i = 0; i < count - 1; i++)
+		{
+			ReebNode *node1, *node2;
+			float tangent[3];
+			float normal[3];
+			int j = i + 1;
+	
+			VecAddf(tangent, ring[i].n, ring[j].n);
+			Crossf(normal, tangent, axis);
+			
+			node1 = OTHER_NODE(ring[i].arc, node);
+			node2 = OTHER_NODE(ring[j].arc, node);
+	
+			/* mirror first node and mix with the second */
+			mirrorAlongAxis(node1->p, node->p, normal);
+			VecLerpf(node2->p, node2->p, node1->p, 1.0f / (j + 1));
+			
+			/* Merge buckets
+			 * there shouldn't be any null arcs here, but just to be safe 
+			 * */
+			if (ring[i].arc->bcount > 0 && ring[j].arc->bcount > 0)
+			{
+				ReebArcIterator iter1, iter2;
+				EmbedBucket *bucket1 = NULL, *bucket2 = NULL;
+				
+				initArcIterator(&iter1, ring[i].arc, node);
+				initArcIterator(&iter2, ring[j].arc, node);
+				
+				bucket1 = nextBucket(&iter1);
+				bucket2 = nextBucket(&iter2);
+			
+				/* Make sure they both start at the same value */	
+				while(bucket1 && bucket1->val < bucket2->val)
+				{
+					bucket1 = nextBucket(&iter1);
+				}
+				
+				while(bucket2 && bucket2->val < bucket1->val)
+				{
+					bucket2 = nextBucket(&iter2);
+				}
+		
+		
+				for ( ;bucket1 && bucket2; bucket1 = nextBucket(&iter1), bucket2 = nextBucket(&iter2))
+				{
+					bucket2->nv += bucket1->nv; /* add counts */
+					
+					/* mirror on axis */
+					mirrorAlongAxis(bucket1->p, node->p, normal);
+					/* add bucket2 in bucket1 */
+					VecLerpf(bucket2->p, bucket2->p, bucket1->p, (float)bucket1->nv / (float)(bucket2->nv));
+				}
+			}
+		}
+		
+		/* second pass, mirror back on previous arcs */
+		for (i = count - 1; i > 0; i--)
+		{
+			ReebNode *node1, *node2;
+			float tangent[3];
+			float normal[3];
+			int j = i - 1;
+	
+			VecAddf(tangent, ring[i].n, ring[j].n);
+			Crossf(normal, tangent, axis);
+			
+			node1 = OTHER_NODE(ring[i].arc, node);
+			node2 = OTHER_NODE(ring[j].arc, node);
+	
+			/* copy first node than mirror */
+			VECCOPY(node2->p, node1->p);
+			mirrorAlongAxis(node2->p, node->p, normal);
+			
+			/* Copy buckets
+			 * there shouldn't be any null arcs here, but just to be safe 
+			 * */
+			if (ring[i].arc->bcount > 0 && ring[j].arc->bcount > 0)
+			{
+				ReebArcIterator iter1, iter2;
+				EmbedBucket *bucket1 = NULL, *bucket2 = NULL;
+				
+				initArcIterator(&iter1, ring[i].arc, node);
+				initArcIterator(&iter2, ring[j].arc, node);
+				
+				bucket1 = nextBucket(&iter1);
+				bucket2 = nextBucket(&iter2);
+			
+				/* Make sure they both start at the same value */	
+				while(bucket1 && bucket1->val < bucket2->val)
+				{
+					bucket1 = nextBucket(&iter1);
+				}
+				
+				while(bucket2 && bucket2->val < bucket1->val)
+				{
+					bucket2 = nextBucket(&iter2);
+				}
+		
+		
+				for ( ;bucket1 && bucket2; bucket1 = nextBucket(&iter1), bucket2 = nextBucket(&iter2))
+				{
+					/* copy and mirror back to bucket2 */			
+					bucket2->nv = bucket1->nv;
+					VECCOPY(bucket2->p, bucket1->p);
+					mirrorAlongAxis(bucket2->p, node->p, normal);
+				}
+			}
+		}
+	}
+
+	MEM_freeN(ring);
+}
+
+void reestablishAxialSymmetry(ReebNode *node, int depth, float axis[3])
+{
+	ReebArc *arc1 = NULL;
+	ReebArc *arc2 = NULL;
+	ReebNode *node1 = NULL, *node2 = NULL;
+	float limit = G.scene->toolsettings->skgen_symmetry_limit;
+	float nor[3], vec[3], p[3];
+	int i;
+	
+	for (i = 0; node->arcs[i] != NULL; i++)
+	{
+		ReebArc *connectedArc = node->arcs[i];
+		
+		/* depth is store as a negative in flag. symmetry level is positive */
+		if (connectedArc->flags == -depth)
+		{
+			if (arc1 == NULL)
+			{
+				arc1 = connectedArc;
+				node1 = OTHER_NODE(arc1, node);
+			}
+			else
+			{
+				arc2 = connectedArc;
+				node2 = OTHER_NODE(arc2, node);
+				break; /* Can stop now, the two arcs have been found */
+			}
+		}
+	}
+	
+	/* shouldn't happen, but just to be sure */
+	if (node1 == NULL || node2 == NULL)
+	{
+		return;
+	}
+	
+	VecSubf(p, node1->p, node->p);
+	Crossf(vec, p, axis);
+	Crossf(nor, vec, axis);
+	
+	/* mirror node2 along axis */
+	VECCOPY(p, node2->p);
+	mirrorAlongAxis(p, node->p, nor);
+	
+	/* check if it's within limit before continuing */
+	if (VecLenf(node1->p, p) <= limit)
+	{
+	
+		/* average with node1 */
+		VecAddf(node1->p, node1->p, p);
+		VecMulf(node1->p, 0.5f);
+		
+		/* mirror back on node2 */
+		VECCOPY(node2->p, node1->p);
+		mirrorAlongAxis(node2->p, node->p, nor);
+		
+		/* Merge buckets
+		 * there shouldn't be any null arcs here, but just to be safe 
+		 * */
+		if (arc1->bcount > 0 && arc2->bcount > 0)
+		{
+			ReebArcIterator iter1, iter2;
+			EmbedBucket *bucket1 = NULL, *bucket2 = NULL;
+			
+			initArcIterator(&iter1, arc1, node);
+			initArcIterator(&iter2, arc2, node);
+			
+			bucket1 = nextBucket(&iter1);
+			bucket2 = nextBucket(&iter2);
+		
+			/* Make sure they both start at the same value */	
+			while(bucket1 && bucket1->val < bucket2->val)
+			{
+				bucket1 = nextBucket(&iter1);
+			}
+			
+			while(bucket2 && bucket2->val < bucket1->val)
+			{
+				bucket2 = nextBucket(&iter2);
+			}
+	
+	
+			for ( ;bucket1 && bucket2; bucket1 = nextBucket(&iter1), bucket2 = nextBucket(&iter2))
+			{
+				bucket1->nv += bucket2->nv; /* add counts */
+				
+				/* mirror on axis */
+				mirrorAlongAxis(bucket2->p, node->p, nor);
+				/* add bucket2 in bucket1 */
+				VecLerpf(bucket1->p, bucket1->p, bucket2->p, (float)bucket2->nv / (float)(bucket1->nv));
+	
+				/* copy and mirror back to bucket2 */			
+				bucket2->nv = bucket1->nv;
+				VECCOPY(bucket2->p, bucket1->p);
+				mirrorAlongAxis(bucket2->p, node->p, nor);
+			}
+		}
+	}
+}
+
+void markdownSecondarySymmetry(ReebNode *node, int depth, int level)
+{
+	float axis[3] = {0, 0, 0};
+	int count = 0;
+	int i;
+
+	/* Only reestablish spatial symmetry if needed */
+	if (G.scene->toolsettings->skgen_options & SKGEN_SYMMETRY)
+	{
+		/* count the number of branches in this symmetry group
+		 * and determinte the axis of symmetry
+		 *  */	
+		for (i = 0; node->arcs[i] != NULL; i++)
+		{
+			ReebArc *connectedArc = node->arcs[i];
+			
+			/* depth is store as a negative in flag. symmetry level is positive */
+			if (connectedArc->flags == -depth)
+			{
+				count++;
+			}
+			/* If arc is on the axis */
+			else if (connectedArc->flags == level)
+			{
+				VecAddf(axis, axis, connectedArc->v1->p);
+				VecSubf(axis, axis, connectedArc->v2->p);
+			}
+		}
+	
+		Normalize(axis);
+	
+		/* Split between axial and radial symmetry */
+		if (count == 2)
+		{
+			reestablishAxialSymmetry(node, depth, axis);
+		}
+		else
+		{
+			reestablishRadialSymmetry(node, depth, axis);
+		}
+	}
+
+	/* markdown secondary symetries */	
+	for (i = 0; node->arcs[i] != NULL; i++)
+	{
+		ReebArc *connectedArc = node->arcs[i];
+		
+		if (connectedArc->flags == -depth)
+		{
+			/* markdown symmetry for branches corresponding to the depth */
+			markdownSymmetryArc(connectedArc, node, level + 1);
+		}
+	}
+}
+
+void markdownSymmetryArc(ReebArc *arc, ReebNode *node, int level)
+{
+	int i;
+	arc->flags = level;
+	
+	node = OTHER_NODE(arc, node);
+	
+	for (i = 0; node->arcs[i] != NULL; i++)
+	{
+		ReebArc *connectedArc = node->arcs[i];
+		
+		if (connectedArc != arc)
+		{
+			ReebNode *connectedNode = OTHER_NODE(connectedArc, node);
+			
+			/* symmetry level is positive value, negative values is subtree depth */
+			connectedArc->flags = -subtreeDepth(connectedNode, connectedArc);
+		}
+	}
+
+	arc = NULL;
+
+	for (i = 0; node->arcs[i] != NULL; i++)
+	{
+		int issymmetryAxis = 0;
+		ReebArc *connectedArc = node->arcs[i];
+		
+		/* only arcs not already marked as symetric */
+		if (connectedArc->flags < 0)
+		{
+			int j;
+			
+			/* true by default */
+			issymmetryAxis = 1;
+			
+			for (j = 0; node->arcs[j] != NULL && issymmetryAxis == 1; j++)
+			{
+				ReebArc *otherArc = node->arcs[j];
+				
+				/* different arc, same depth */
+				if (otherArc != connectedArc && otherArc->flags == connectedArc->flags)
+				{
+					/* not on the symmetry axis */
+					issymmetryAxis = 0;
+				} 
+			}
+		}
+		
+		/* arc could be on the symmetry axis */
+		if (issymmetryAxis == 1)
+		{
+			/* no arc as been marked previously, keep this one */
+			if (arc == NULL)
+			{
+				arc = connectedArc;
+			}
+			else
+			{
+				/* there can't be more than one symmetry arc */
+				arc = NULL;
+				break;
+			}
+		}
+	}
+	
+	/* go down the arc continuing the symmetry axis */
+	if (arc)
+	{
+		markdownSymmetryArc(arc, node, level);
+	}
+
+	
+	/* secondary symmetry */
+	for (i = 0; node->arcs[i] != NULL; i++)
+	{
+		ReebArc *connectedArc = node->arcs[i];
+		
+		/* only arcs not already marked as symetric and is not the next arc on the symmetry axis */
+		if (connectedArc->flags < 0)
+		{
+			/* subtree depth is store as a negative value in the flag */
+			markdownSecondarySymmetry(node, -connectedArc->flags, level);
+		}
+	}
+}
+
+void markdownSymmetry(ReebGraph *rg)
+{
+	ReebNode *node;
+	ReebArc *arc;
+	/* only for Acyclic graphs */
+	int cyclic = isGraphCyclic(rg);
+	
+	/* mark down all arcs as non-symetric */
+	for (arc = rg->arcs.first; arc; arc = arc->next)
+	{
+		arc->flags = 0;
+	}
+	
+	/* mark down all nodes as not on the symmetry axis */
+	for (node = rg->nodes.first; node; node = node->next)
+	{
+		node->flags = 0;
+	}
+
+	/* node list is sorted, so lowest node is always the head (by design) */
+	node = rg->nodes.first;
+	
+	/* only work on acyclic graphs and if only one arc is incident on the first node */
+	if (cyclic == 0 && countConnectedArcs(rg, node) == 1)
+	{
+		arc = node->arcs[0];
+		
+		markdownSymmetryArc(arc, node, 1);
+
+		/* mark down non-symetric arcs */
+		for (arc = rg->arcs.first; arc; arc = arc->next)
+		{
+			if (arc->flags < 0)
+			{
+				arc->flags = 0;
+			}
+			else
+			{
+				/* mark down nodes with the lowest level symmetry axis */
+				if (arc->v1->flags == 0 || arc->v1->flags > arc->flags)
+				{
+					arc->v1->flags = arc->flags;
+				}
+				if (arc->v2->flags == 0 || arc->v2->flags > arc->flags)
+				{
+					arc->v2->flags = arc->flags;
+				}
+			}
+		}
+	}
+}
+
+/**************************************** SUBDIVISION ALGOS ******************************************/
+
+EditBone * subdivideByAngle(ReebArc *arc, ReebNode *head, ReebNode *tail)
+{
+	EditBone *lastBone = NULL;
+	if (G.scene->toolsettings->skgen_options & SKGEN_CUT_ANGLE)
+	{
+		ReebArcIterator iter;
+		EmbedBucket *current = NULL;
+		EmbedBucket *previous = NULL;
+		EditBone *child = NULL;
+		EditBone *parent = NULL;
+		EditBone *root = NULL;
+		float angleLimit = (float)cos(G.scene->toolsettings->skgen_angle_limit * M_PI / 180.0f);
+		
+		parent = add_editbone("Bone");
+		parent->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+		VECCOPY(parent->head, head->p);
+		
+		root = parent;
+		
+		for (initArcIterator(&iter, arc, head), previous = nextBucket(&iter), current = nextBucket(&iter);
+			current;
+			previous = current, current = nextBucket(&iter))
+		{
+			float vec1[3], vec2[3];
+			float len1, len2;
+
+			VecSubf(vec1, previous->p, parent->head);
+			VecSubf(vec2, current->p, previous->p);
+
+			len1 = Normalize(vec1);
+			len2 = Normalize(vec2);
+
+			if (len1 > 0.0f && len2 > 0.0f && Inpf(vec1, vec2) < angleLimit)
+			{
+				VECCOPY(parent->tail, previous->p);
+
+				child = add_editbone("Bone");
+				VECCOPY(child->head, parent->tail);
+				child->parent = parent;
+				child->flag |= BONE_CONNECTED|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+				
+				parent = child; /* new child is next parent */
+			}
+		}
+		VECCOPY(parent->tail, tail->p);
+		
+		/* If the bone wasn't subdivided, delete it and return NULL
+		 * to let subsequent subdivision methods do their thing. 
+		 * */
+		if (parent == root)
+		{
+			delete_bone(parent);
+			parent = NULL;
+		}
+		
+		lastBone = parent; /* set last bone in the chain */
+	}
+	
+	return lastBone;
+}
+
+float calcCorrelation(ReebArc *arc, int start, int end, float v0[3], float n[3])
+{
+	int len = 2 + abs(end - start);
+	
+	if (len > 2)
+	{
+		ReebArcIterator iter;
+		EmbedBucket *bucket = NULL;
+		float avg_t = 0.0f;
+		float s_t = 0.0f;
+		float s_xyz = 0.0f;
+		
+		/* First pass, calculate average */
+		for (initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter);
+			bucket;
+			bucket = nextBucket(&iter))
+		{
+			float v[3];
+			
+			VecSubf(v, bucket->p, v0);
+			avg_t += Inpf(v, n);
+		}
+		
+		avg_t /= Inpf(n, n);
+		avg_t += 1.0f; /* adding start (0) and end (1) values */
+		avg_t /= len;
+		
+		/* Second pass, calculate s_xyz and s_t */
+		for (initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter);
+			bucket;
+			bucket = nextBucket(&iter))
+		{
+			float v[3], d[3];
+			float dt;
+			
+			VecSubf(v, bucket->p, v0);
+			Projf(d, v, n);
+			VecSubf(v, v, d);
+			
+			dt = VecLength(d) - avg_t;
+			
+			s_t += dt * dt;
+			s_xyz += Inpf(v, v);
+		}
+		
+		/* adding start(0) and end(1) values to s_t */
+		s_t += (avg_t * avg_t) + (1 - avg_t) * (1 - avg_t);
+		
+		return 1.0f - s_xyz / s_t; 
+	}
+	else
+	{
+		return 1.0f;
+	}
+}
+
+EditBone * subdivideByCorrelation(ReebArc *arc, ReebNode *head, ReebNode *tail)
+{
+	ReebArcIterator iter;
+	float n[3];
+	float CORRELATION_THRESHOLD = G.scene->toolsettings->skgen_correlation_limit;
+	EditBone *lastBone = NULL;
+	
+	/* init iterator to get start and end from head */
+	initArcIterator(&iter, arc, head);
+	
+	/* Calculate overall */
+	VecSubf(n, arc->buckets[iter.end].p, head->p);
+	
+	if (G.scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION && 
+		calcCorrelation(arc, iter.start, iter.end, head->p, n) < CORRELATION_THRESHOLD)
+	{
+		EmbedBucket *bucket = NULL;
+		EmbedBucket *previous = NULL;
+		EditBone *child = NULL;
+		EditBone *parent = NULL;
+		int boneStart = iter.start;
+
+		parent = add_editbone("Bone");
+		parent->flag = BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+		VECCOPY(parent->head, head->p);
+		
+		for (previous = nextBucket(&iter), bucket = nextBucket(&iter);
+			bucket;
+			previous = bucket, bucket = nextBucket(&iter))
+		{
+			/* Calculate normal */
+			VecSubf(n, bucket->p, parent->head);
+
+			if (calcCorrelation(arc, boneStart, iter.index, parent->head, n) < CORRELATION_THRESHOLD)
+			{
+				VECCOPY(parent->tail, previous->p);
+
+				child = add_editbone("Bone");
+				VECCOPY(child->head, parent->tail);
+				child->parent = parent;
+				child->flag |= BONE_CONNECTED|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+				
+				parent = child; // new child is next parent
+				boneStart = iter.index; // start from end
+			}
+		}
+
+		VECCOPY(parent->tail, tail->p);
+		
+		lastBone = parent; /* set last bone in the chain */
+	}
+	
+	return lastBone;
+}
+
+float arcLengthRatio(ReebArc *arc)
+{
+	float arcLength = 0.0f;
+	float embedLength = 0.0f;
+	int i;
+	
+	arcLength = VecLenf(arc->v1->p, arc->v2->p);
+	
+	if (arc->bcount > 0)
+	{
+		/* Add the embedding */
+		for ( i = 1; i < arc->bcount; i++)
+		{
+			embedLength += VecLenf(arc->buckets[i - 1].p, arc->buckets[i].p);
+		}
+		/* Add head and tail -> embedding vectors */
+		embedLength += VecLenf(arc->v1->p, arc->buckets[0].p);
+		embedLength += VecLenf(arc->v2->p, arc->buckets[arc->bcount - 1].p);
+	}
+	else
+	{
+		embedLength = arcLength;
+	}
+	
+	return embedLength / arcLength;	
+}
+
+EditBone * subdivideByLength(ReebArc *arc, ReebNode *head, ReebNode *tail)
+{
+	EditBone *lastBone = NULL;
+	if ((G.scene->toolsettings->skgen_options & SKGEN_CUT_LENGTH) &&
+		arcLengthRatio(arc) >= G.scene->toolsettings->skgen_length_ratio)
+	{
+		ReebArcIterator iter;
+		EmbedBucket *bucket = NULL;
+		EmbedBucket *previous = NULL;
+		EditBone *child = NULL;
+		EditBone *parent = NULL;
+		float lengthLimit = G.scene->toolsettings->skgen_length_limit;
+		int same = 0;
+		
+		parent = add_editbone("Bone");
+		parent->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+		VECCOPY(parent->head, head->p);
+
+		initArcIterator(&iter, arc, head);
+
+		bucket = nextBucket(&iter);
+		
+		while (bucket != NULL)
+		{
+			float *vec0 = NULL;
+			float *vec1 = bucket->p;
+
+			/* first bucket. Previous is head */
+			if (previous == NULL)
+			{
+				vec0 = head->p;
+			}
+			/* Previous is a valid bucket */
+			else
+			{
+				vec0 = previous->p;
+			}
+			
+			/* If lengthLimit hits the current segment */
+			if (VecLenf(vec1, parent->head) > lengthLimit)
+			{
+				if (same == 0)
+				{
+					float dv[3], off[3];
+					float a, b, c, f;
+					
+					/* Solve quadratic distance equation */
+					VecSubf(dv, vec1, vec0);
+					a = Inpf(dv, dv);
+					
+					VecSubf(off, vec0, parent->head);
+					b = 2 * Inpf(dv, off);
+					
+					c = Inpf(off, off) - (lengthLimit * lengthLimit);
+					
+					f = (-b + (float)sqrt(b * b - 4 * a * c)) / (2 * a);
+					
+					//printf("a %f, b %f, c %f, f %f\n", a, b, c, f);
+					
+					if (isnan(f) == 0 && f < 1.0f)
+					{
+						VECCOPY(parent->tail, dv);
+						VecMulf(parent->tail, f);
+						VecAddf(parent->tail, parent->tail, vec0);
+					}
+					else
+					{
+						VECCOPY(parent->tail, vec1);
+					}
+				}
+				else
+				{
+					float dv[3];
+					
+					VecSubf(dv, vec1, vec0);
+					Normalize(dv);
+					 
+					VECCOPY(parent->tail, dv);
+					VecMulf(parent->tail, lengthLimit);
+					VecAddf(parent->tail, parent->tail, parent->head);
+				}
+				
+				child = add_editbone("Bone");
+				VECCOPY(child->head, parent->tail);
+				child->parent = parent;
+				child->flag |= BONE_CONNECTED|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+				
+				parent = child; // new child is next parent
+				
+				same = 1; // mark as same
+			}
+			else
+			{
+				previous = bucket;
+				bucket = nextBucket(&iter);
+				same = 0; // Reset same
+			}
+		}
+		VECCOPY(parent->tail, tail->p);
+		
+		lastBone = parent; /* set last bone in the chain */
+	}
+	
+	return lastBone;
+}
+
+/***************************************** MAIN ALGORITHM ********************************************/
+
+void generateSkeletonFromReebGraph(ReebGraph *rg)
+{
+	GHash *arcBoneMap = NULL;
+	ReebArc *arc = NULL;
+	ReebNode *node = NULL;
+	Object *src = NULL;
+	Object *dst = NULL;
+	
+	src = BASACT->object;
+	
+	if (G.obedit != NULL)
+	{
+		exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); // freedata, and undo
+	}
+
+	setcursor_space(SPACE_VIEW3D, CURSOR_WAIT);
+	
+	dst = add_object(OB_ARMATURE);
+	base_init_from_view3d(BASACT, G.vd);
+	G.obedit= BASACT->object;
+	
+	/* Copy orientation from source */
+	VECCOPY(dst->loc, src->obmat[3]);
+	Mat4ToEul(src->obmat, dst->rot);
+	Mat4ToSize(src->obmat, dst->size);
+	
+	where_is_object(G.obedit);
+	
+	make_editArmature();
+
+	arcBoneMap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	
+	markdownSymmetry(rg);
+	
+	for (arc = rg->arcs.first; arc; arc = arc->next) 
+	{
+		EditBone *lastBone = NULL;
+		ReebNode *head, *tail;
+		int i;
+
+		/* Find out the direction of the arc through simple heuristics (in order of priority) :
+		 * 
+		 * 1- Arcs on primary symmetry axis (flags == 1) point up (head: high weight -> tail: low weight)
+		 * 2- Arcs starting on a primary axis point away from it (head: node on primary axis)
+		 * 3- Arcs point down (head: low weight -> tail: high weight)
+		 *
+		 * Finally, the arc direction is stored in its flags: 1 (low -> high), -1 (high -> low)
+		 */
+
+		/* if arc is a symmetry axis, internal bones go up the tree */		
+		if (arc->flags == 1 && arc->v2->degree != 1)
+		{
+			head = arc->v2;
+			tail = arc->v1;
+			
+			arc->flags = -1; /* mark arc direction */
+		}
+		/* Bones point AWAY from the symmetry axis */
+		else if (arc->v1->flags == 1)
+		{
+			head = arc->v1;
+			tail = arc->v2;
+			
+			arc->flags = 1; /* mark arc direction */
+		}
+		else if (arc->v2->flags == 1)
+		{
+			head = arc->v2;
+			tail = arc->v1;
+			
+			arc->flags = -1; /* mark arc direction */
+		}
+		/* otherwise, always go from low weight to high weight */
+		else
+		{
+			head = arc->v1;
+			tail = arc->v2;
+			
+			arc->flags = 1; /* mark arc direction */
+		}
+		
+		/* Loop over subdivision methods */	
+		for (i = 0; lastBone == NULL && i < SKGEN_SUB_TOTAL; i++)
+		{
+			switch(G.scene->toolsettings->skgen_subdivisions[i])
+			{
+				case SKGEN_SUB_LENGTH:
+					lastBone = subdivideByLength(arc, head, tail);
+					break;
+				case SKGEN_SUB_ANGLE:
+					lastBone = subdivideByAngle(arc, head, tail);
+					break;
+				case SKGEN_SUB_CORRELATION:
+					lastBone = subdivideByCorrelation(arc, head, tail);
+					break;
+			}
+		}
+	
+		if (lastBone == NULL)
+		{
+			EditBone	*bone;
+			bone = add_editbone("Bone");
+			bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+			
+			VECCOPY(bone->head, head->p);
+			VECCOPY(bone->tail, tail->p);
+			
+			/* set first and last bone, since there's only one */
+			lastBone = bone;
+		}
+		
+		BLI_ghash_insert(arcBoneMap, arc, lastBone);
+	}
+
+	/* Second pass, setup parent relationship between arcs */
+	for (node = rg->nodes.first; node; node = node->next)
+	{
+		ReebArc *incomingArc = NULL;
+		int i;
+
+		for (i = 0; node->arcs[i] != NULL; i++)
+		{
+			arc = node->arcs[i];
+
+			/* if arc is incoming into the node */
+			if ((arc->v1 == node && arc->flags == -1) || (arc->v2 == node && arc->flags == 1))
+			{
+				if (incomingArc == NULL)
+				{
+					incomingArc = arc;
+					/* loop further to make sure there's only one incoming arc */
+				}
+				else
+				{
+					/* skip this node if more than one incomingArc */
+					incomingArc = NULL;
+					break; /* No need to look further, we are skipping already */
+				}
+			}
+		}
+
+		if (incomingArc != NULL)
+		{
+			EditBone *parentBone = BLI_ghash_lookup(arcBoneMap, incomingArc);
+
+			/* Look for outgoing arcs and parent their bones */
+			for (i = 0; node->arcs[i] != NULL; i++)
+			{
+				arc = node->arcs[i];
+
+				/* if arc is outgoing from the node */
+				if ((arc->v1 == node && arc->flags == 1) || (arc->v2 == node && arc->flags == -1))
+				{
+					EditBone *childBone = BLI_ghash_lookup(arcBoneMap, arc);
+
+					/* find the root bone */
+					while(childBone->parent != NULL)
+					{
+						childBone = childBone->parent;
+					}
+
+					childBone->parent = parentBone;
+					childBone->flag |= BONE_CONNECTED;
+				}
+			}
+		}
+	}
+	
+	BLI_ghash_free(arcBoneMap, NULL, NULL);
+
+	setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
+	
+	BIF_undo_push("Generate Skeleton");
+}
+
+void generateSkeleton(void)
+{
+	EditMesh *em = G.editMesh;
+	ReebGraph *rg = NULL;
+	int i;
+	
+	if (em == NULL)
+		return;
+
+	setcursor_space(SPACE_VIEW3D, CURSOR_WAIT);
+
+	if (weightFromDistance(em) == 0)
+	{
+		error("No selected vertex\n");
+		return;
+	}
+		
+	renormalizeWeight(em, 1.0f);
+	
+	weightToHarmonic(em);
+	
+#ifdef DEBUG_REEB
+	weightToVCol(em);
+#endif
+	
+	rg = generateReebGraph(em, G.scene->toolsettings->skgen_resolution);
+
+	verifyBuckets(rg);
+	
+	/* Remove arcs without embedding */
+	filterNullReebGraph(rg);
+
+	verifyBuckets(rg);
+
+
+	i = 1;
+	/* filter until there's nothing more to do */
+	while (i == 1)
+	{
+		i = 0; /* no work done yet */
+		
+		if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_EXTERNAL)
+		{
+			i |= filterExternalReebGraph(rg, G.scene->toolsettings->skgen_threshold_external * G.scene->toolsettings->skgen_resolution);
+		}
+	
+		verifyBuckets(rg);
+	
+		if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_INTERNAL)
+		{
+			i |= filterInternalReebGraph(rg, G.scene->toolsettings->skgen_threshold_internal * G.scene->toolsettings->skgen_resolution);
+		}
+	}
+
+	verifyBuckets(rg);
+
+	repositionNodes(rg);
+	
+	verifyBuckets(rg);
+
+	/* Filtering might have created degree 2 nodes, so remove them */
+	removeNormalNodes(rg);
+	
+	verifyBuckets(rg);
+
+	for(i = 0; i <  G.scene->toolsettings->skgen_postpro_passes; i++)
+	{
+		postprocessGraph(rg, G.scene->toolsettings->skgen_postpro);
+	}
+
+	buildAdjacencyList(rg);
+	
+	sortNodes(rg);
+	
+	sortArcs(rg);
+	
+	generateSkeletonFromReebGraph(rg);
+
+	freeGraph(rg);
+}

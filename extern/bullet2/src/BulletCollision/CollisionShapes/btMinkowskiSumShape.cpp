@@ -16,7 +16,7 @@ subject to the following restrictions:
 #include "btMinkowskiSumShape.h"
 
 
-btMinkowskiSumShape::btMinkowskiSumShape(btConvexShape* shapeA,btConvexShape* shapeB)
+btMinkowskiSumShape::btMinkowskiSumShape(const btConvexShape* shapeA,const btConvexShape* shapeB)
 :m_shapeA(shapeA),
 m_shapeB(shapeB)
 {
@@ -43,7 +43,7 @@ void	btMinkowskiSumShape::batchedUnitVectorGetSupportingVertexWithoutMargin(cons
 
 
 
-float	btMinkowskiSumShape::getMargin() const
+btScalar	btMinkowskiSumShape::getMargin() const
 {
 	return m_shapeA->getMargin() + m_shapeB->getMargin();
 }
@@ -51,6 +51,7 @@ float	btMinkowskiSumShape::getMargin() const
 
 void	btMinkowskiSumShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
 {
-	assert(0);
+	(void)mass;
+	btAssert(0);
 	inertia.setValue(0,0,0);
 }

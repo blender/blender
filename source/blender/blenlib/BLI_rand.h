@@ -52,6 +52,9 @@ double		rng_getDouble	(struct RNG* rng);
 float		rng_getFloat	(struct RNG* rng);
 void		rng_shuffleArray(struct RNG *rng, void *data, int elemSize, int numElems);
 
+	/** Note that skipping is as slow as generating n numbers! */
+void		rng_skip		(struct RNG *rng, int n);
+
 	/** Seed the random number generator */
 void	BLI_srand		(unsigned int seed);
 

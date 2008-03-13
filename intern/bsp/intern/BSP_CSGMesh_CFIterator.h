@@ -125,7 +125,8 @@ BSP_CSGMeshVertexIt_Construct(
 	
 	BSP_CSGMesh_VertexIt * v_it = new BSP_CSGMesh_VertexIt;
 	v_it->mesh = mesh;
-	v_it->pos = &mesh->VertexSet()[0];
+	if( output->num_elements > 0 )
+		v_it->pos = &mesh->VertexSet()[0];
 	output->it = v_it;
 };			
 
@@ -257,11 +258,11 @@ BSP_CSGMesh_FaceIt_Construct(
 	
 	BSP_CSGMesh_FaceIt * f_it = new BSP_CSGMesh_FaceIt;
 	f_it->mesh = mesh;
-	f_it->pos = &mesh->FaceSet()[0];
+	if( output->num_elements > 0 )
+		f_it->pos = &mesh->FaceSet()[0];
 	f_it->face_triangle = 0;
 
 	output->it = f_it;
-
 };
 
 

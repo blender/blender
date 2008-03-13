@@ -57,6 +57,7 @@ struct Mesh;
 struct EditMesh;
 struct ModifierData;
 struct MCol;
+struct ColorBand;
 
 /* number of sub-elements each mesh element has (for interpolation) */
 #define SUB_ELEMS_VERT 0
@@ -69,6 +70,7 @@ struct DerivedMesh {
 	CustomData vertData, edgeData, faceData;
 	int numVertData, numEdgeData, numFaceData;
 	int needsFree; /* checked on ->release, is set to 0 for cached results */
+	int deformedOnly; /* set by modifier stack if only deformed from original */
 
 	/* Misc. Queries */
 
@@ -395,6 +397,9 @@ void DM_interp_face_data(struct DerivedMesh *source, struct DerivedMesh *dest,
 
 void DM_swap_face_data(struct DerivedMesh *dm, int index, int *corner_indices);
 
+/* Temporary? A function to give a colorband to derivedmesh for vertexcolor ranges */
+void vDM_ColorBand_store(struct ColorBand *coba);
+
 /* Simple function to get me->totvert amount of vertices/normals,
    correctly deformed and subsurfered. Needed especially when vertexgroups are involved.
    In use now by vertex/weigt paint and particles */
@@ -425,10 +430,33 @@ DerivedMesh *editmesh_get_derived_cage(CustomDataMask dataMask);
 DerivedMesh *editmesh_get_derived_cage_and_final(DerivedMesh **final_r,
                                                  CustomDataMask dataMask);
 
+/* returns an array of deform matrices for crazyspace correction, and the
+   number of modifiers left */
+int editmesh_get_first_deform_matrices(float (**deformmats)[3][3],
+                                       float (**deformcos)[3]);
+
 void weight_to_rgb(float input, float *fr, float *fg, float *fb);
 
 /* determines required DerivedMesh data according to view and edit modes */
 CustomDataMask get_viewedit_datamask();
+
+/*  repeate this pattern
+   X000X000
+   00000000
+   00X000X0
+   00000000 */
+
+#define DM_FACE_STIPPLE \
+{ \
+	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0, \
+	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0, \
+	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0, \
+	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0, \
+	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0, \
+	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0, \
+	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0, \
+	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0 \
+}
 
 #endif
 

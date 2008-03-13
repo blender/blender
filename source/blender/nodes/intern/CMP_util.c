@@ -29,9 +29,6 @@
 
 #include "CMP_util.h"
 
-
-
-
 CompBuf *alloc_compbuf(int sizex, int sizey, int type, int alloc)
 {
 	CompBuf *cbuf= MEM_callocN(sizeof(CompBuf), "compbuf");
@@ -124,6 +121,48 @@ void print_compbuf(char *str, CompBuf *cbuf)
 	printf("Compbuf %s %d %d %p\n", str, cbuf->x, cbuf->y, cbuf->rect);
 	
 }
+
+/* used for disabling node  (similar code in drawnode.c for disable line) */
+void node_compo_pass_on(bNode *node, bNodeStack **nsin, bNodeStack **nsout)
+{
+	CompBuf *valbuf= NULL, *colbuf= NULL, *vecbuf= NULL;
+	bNodeSocket *sock;
+	int a;
+	
+	/* connect the first value buffer in with first value out */
+	/* connect the first RGBA buffer in with first RGBA out */
+	
+	/* test the inputs */
+	for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
+		if(nsin[a]->data) {
+			CompBuf *cbuf= nsin[a]->data;
+			if(cbuf->type==1 && valbuf==NULL) valbuf= cbuf;
+			if(cbuf->type==3 && vecbuf==NULL) vecbuf= cbuf;
+			if(cbuf->type==4 && colbuf==NULL) colbuf= cbuf;
+		}
+	}
+	
+	/* outputs */
+	if(valbuf || colbuf || vecbuf) {
+		for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
+			if(nsout[a]->hasoutput) {
+				if(sock->type==SOCK_VALUE && valbuf) {
+					nsout[a]->data= pass_on_compbuf(valbuf);
+					valbuf= NULL;
+				}
+				if(sock->type==SOCK_VECTOR && vecbuf) {
+					nsout[a]->data= pass_on_compbuf(vecbuf);
+					vecbuf= NULL;
+				}
+				if(sock->type==SOCK_RGBA && colbuf) {
+					nsout[a]->data= pass_on_compbuf(colbuf);
+					colbuf= NULL;
+				}
+			}
+		}
+	}
+}
+
 
 CompBuf *get_cropped_compbuf(rcti *drect, float *rectf, int rectx, int recty, int type)
 {
@@ -577,3 +616,623 @@ void gamma_correct_compbuf(CompBuf *img, int inversed)
       }
    }
 }
+
+void premul_compbuf(CompBuf *img, int inversed)
+{
+   float *drect;
+   int x;
+
+   if(img->type!=CB_RGBA) return;
+
+   drect= img->rect;
+   if(inversed) {
+      for(x=img->x*img->y; x>0; x--, drect+=4) {
+		 if(fabs(drect[3]) < 1e-5f) {
+			 drect[0]= 0.0f;
+			 drect[1]= 0.0f;
+			 drect[2]= 0.0f;
+		 }
+		 else {
+			 drect[0] /= drect[3];
+			 drect[1] /= drect[3];
+			 drect[2] /= drect[3];
+		 }
+      }
+   }
+   else {
+      for(x=img->x*img->y; x>0; x--, drect+=4) {
+		 drect[0] *= drect[3];
+		 drect[1] *= drect[3];
+		 drect[2] *= drect[3];
+      }
+   }
+}
+
+
+
+/*
+ *  2D Fast Hartley Transform, used for convolution
+ */
+
+typedef float fREAL;
+
+// returns next highest power of 2 of x, as well it's log2 in L2
+static unsigned int nextPow2(unsigned int x, unsigned int* L2)
+{
+	unsigned int pw, x_notpow2 = x & (x-1);
+	*L2 = 0;
+	while (x>>=1) ++(*L2);
+	pw = 1 << (*L2);
+	if (x_notpow2) { (*L2)++;  pw<<=1; }
+	return pw;
+}
+
+//------------------------------------------------------------------------------
+
+// from FXT library by Joerg Arndt, faster in order bitreversal
+// use: r = revbin_upd(r, h) where h = N>>1
+static unsigned int revbin_upd(unsigned int r, unsigned int h)
+{
+	while (!((r^=h)&h)) h >>= 1;
+	return r;
+}
+//------------------------------------------------------------------------------
+static void FHT(fREAL* data, unsigned int M, unsigned int inverse)
+{
+	double tt, fc, dc, fs, ds, a = M_PI;
+	fREAL t1, t2;
+	int n2, bd, bl, istep, k, len = 1 << M, n = 1;
+
+	int i, j = 0;
+	unsigned int Nh = len >> 1;
+	for (i=1;i<(len-1);++i) {
+		j = revbin_upd(j, Nh);
+		if (j>i) {
+			t1 = data[i];
+			data[i] = data[j];
+			data[j] = t1;
+		}
+	}
+
+	do {
+		fREAL* data_n = &data[n];
+
+		istep = n << 1;
+		for (k=0; k<len; k+=istep) {
+			t1 = data_n[k];
+			data_n[k] = data[k] - t1;
+			data[k] += t1;
+		}
+
+		n2 = n >> 1;
+		if (n>2) {
+			fc = dc = cos(a);
+			fs = ds = sqrt(1.0 - fc*fc); //sin(a);
+			bd = n-2;
+			for (bl=1; bl<n2; bl++) {
+				fREAL* data_nbd = &data_n[bd];
+				fREAL* data_bd = &data[bd];
+				for (k=bl; k<len; k+=istep) {
+					t1 = fc*data_n[k] + fs*data_nbd[k];
+					t2 = fs*data_n[k] - fc*data_nbd[k];
+					data_n[k] = data[k] - t1;
+					data_nbd[k] = data_bd[k] - t2;
+					data[k] += t1;
+					data_bd[k] += t2;
+				}
+				tt = fc*dc - fs*ds;
+				fs = fs*dc + fc*ds;
+				fc = tt;
+				bd -= 2;
+			}
+		}
+
+		if (n>1) {
+			for (k=n2; k<len; k+=istep) {
+				t1 = data_n[k];
+				data_n[k] = data[k] - t1;
+				data[k] += t1;
+			}
+		}
+
+		n = istep;
+		a *= 0.5;
+	} while (n<len);
+
+	if (inverse) {
+		fREAL sc = (fREAL)1 / (fREAL)len;
+		for (k=0; k<len; ++k)
+			data[k] *= sc;
+	}
+}
+//------------------------------------------------------------------------------
+/* 2D Fast Hartley Transform, Mx/My -> log2 of width/height,
+	nzp -> the row where zero pad data starts,
+	inverse -> see above */
+static void FHT2D(fREAL *data, unsigned int Mx, unsigned int My,
+		unsigned int nzp, unsigned int inverse)
+{
+	unsigned int i, j, Nx, Ny, maxy;
+	fREAL t;
+
+	Nx = 1 << Mx;
+	Ny = 1 << My;
+
+	// rows (forward transform skips 0 pad data)
+	maxy = inverse ? Ny : nzp;
+	for (j=0; j<maxy; ++j)
+		FHT(&data[Nx*j], Mx, inverse);
+
+	// transpose data
+	if (Nx==Ny) {  // square
+		for (j=0; j<Ny; ++j)
+			for (i=j+1; i<Nx; ++i) {
+				unsigned int op = i + (j << Mx), np = j + (i << My);
+				t=data[op], data[op]=data[np], data[np]=t;
+			}
+	}
+	else {  // rectangular
+		unsigned int k, Nym = Ny-1, stm = 1 << (Mx + My);
+		for (i=0; stm>0; i++) {
+			#define pred(k) (((k & Nym) << Mx) + (k >> My))
+			for (j=pred(i); j>i; j=pred(j));
+			if (j < i) continue;
+			for (k=i, j=pred(i); j!=i; k=j, j=pred(j), stm--)
+				{ t=data[j], data[j]=data[k], data[k]=t; }
+			#undef pred
+			stm--;
+		}
+	}
+	// swap Mx/My & Nx/Ny
+	i = Nx, Nx = Ny, Ny = i;
+	i = Mx, Mx = My, My = i;
+
+	// now columns == transposed rows
+	for (j=0; j<Ny; ++j)
+		FHT(&data[Nx*j], Mx, inverse);
+
+	// finalize
+	for (j=0; j<=(Ny >> 1); j++) {
+		unsigned int jm = (Ny - j) & (Ny-1);
+		unsigned int ji = j << Mx;
+		unsigned int jmi = jm << Mx;
+		for (i=0; i<=(Nx >> 1); i++) {
+			unsigned int im = (Nx - i) & (Nx-1);
+			fREAL A = data[ji + i];
+			fREAL B = data[jmi + i];
+			fREAL C = data[ji + im];
+			fREAL D = data[jmi + im];
+			fREAL E = (fREAL)0.5*((A + D) - (B + C));
+			data[ji + i] = A - E;
+			data[jmi + i] = B + E;
+			data[ji + im] = C + E;
+			data[jmi + im] = D - E;
+		}
+	}
+
+}
+
+//------------------------------------------------------------------------------
+
+/* 2D convolution calc, d1 *= d2, M/N - > log2 of width/height */
+static void fht_convolve(fREAL* d1, fREAL* d2, unsigned int M, unsigned int N)
+{
+	fREAL a, b;
+	unsigned int i, j, k, L, mj, mL;
+	unsigned int m = 1 << M, n = 1 << N;
+	unsigned int m2 = 1 << (M-1), n2 = 1 << (N-1);
+	unsigned int mn2 = m << (N-1);
+
+	d1[0] *= d2[0];
+	d1[mn2] *= d2[mn2];
+	d1[m2] *= d2[m2];
+	d1[m2 + mn2] *= d2[m2 + mn2];
+	for (i=1; i<m2; i++) {
+		k = m - i;
+		a = d1[i]*d2[i] - d1[k]*d2[k];
+		b = d1[k]*d2[i] + d1[i]*d2[k];
+		d1[i] = (b + a)*(fREAL)0.5;
+		d1[k] = (b - a)*(fREAL)0.5;
+		a = d1[i + mn2]*d2[i + mn2] - d1[k + mn2]*d2[k + mn2];
+		b = d1[k + mn2]*d2[i + mn2] + d1[i + mn2]*d2[k + mn2];
+		d1[i + mn2] = (b + a)*(fREAL)0.5;
+		d1[k + mn2] = (b - a)*(fREAL)0.5;
+	}
+	for (j=1; j<n2; j++) {
+		L = n - j;
+		mj = j << M;
+		mL = L << M;
+		a = d1[mj]*d2[mj] - d1[mL]*d2[mL];
+		b = d1[mL]*d2[mj] + d1[mj]*d2[mL];
+		d1[mj] = (b + a)*(fREAL)0.5;
+		d1[mL] = (b - a)*(fREAL)0.5;
+		a = d1[m2 + mj]*d2[m2 + mj] - d1[m2 + mL]*d2[m2 + mL];
+		b = d1[m2 + mL]*d2[m2 + mj] + d1[m2 + mj]*d2[m2 + mL];
+		d1[m2 + mj] = (b + a)*(fREAL)0.5;
+		d1[m2 + mL] = (b - a)*(fREAL)0.5;
+	}
+	for (i=1; i<m2; i++) {
+		k = m - i;
+		for (j=1; j<n2; j++) {
+			L = n - j;
+			mj = j << M;
+			mL = L << M;
+			a = d1[i + mj]*d2[i + mj] - d1[k + mL]*d2[k + mL];
+			b = d1[k + mL]*d2[i + mj] + d1[i + mj]*d2[k + mL];
+			d1[i + mj] = (b + a)*(fREAL)0.5;
+			d1[k + mL] = (b - a)*(fREAL)0.5;
+			a = d1[i + mL]*d2[i + mL] - d1[k + mj]*d2[k + mj];
+			b = d1[k + mj]*d2[i + mL] + d1[i + mL]*d2[k + mj];
+			d1[i + mL] = (b + a)*(fREAL)0.5;
+			d1[k + mj] = (b - a)*(fREAL)0.5;
+		}
+	}
+}
+
+//------------------------------------------------------------------------------
+
+void convolve(CompBuf* dst, CompBuf* in1, CompBuf* in2)
+{
+	fREAL *data1, *data2, *fp;
+	unsigned int w2, h2, hw, hh, log2_w, log2_h;
+	fRGB wt, *colp;
+	int x, y, ch;
+	int xbl, ybl, nxb, nyb, xbsz, ybsz;
+	int in2done = 0;
+
+	CompBuf* rdst = alloc_compbuf(in1->x, in1->y, in1->type, 1);
+
+	// convolution result width & height
+	w2 = 2*in2->x - 1;
+	h2 = 2*in2->y - 1;
+	// FFT pow2 required size & log2
+	w2 = nextPow2(w2, &log2_w);
+	h2 = nextPow2(h2, &log2_h);
+
+	// alloc space
+	data1 = (fREAL*)MEM_callocN(3*w2*h2*sizeof(fREAL), "convolve_fast FHT data1");
+	data2 = (fREAL*)MEM_callocN(w2*h2*sizeof(fREAL), "convolve_fast FHT data2");
+
+	// normalize convolutor
+	wt[0] = wt[1] = wt[2] = 0.f;
+	for (y=0; y<in2->y; y++) {
+		colp = (fRGB*)&in2->rect[y*in2->x*in2->type];
+		for (x=0; x<in2->x; x++)
+			fRGB_add(wt, colp[x]);
+	}
+	if (wt[0] != 0.f) wt[0] = 1.f/wt[0];
+	if (wt[1] != 0.f) wt[1] = 1.f/wt[1];
+	if (wt[2] != 0.f) wt[2] = 1.f/wt[2];
+	for (y=0; y<in2->y; y++) {
+		colp = (fRGB*)&in2->rect[y*in2->x*in2->type];
+		for (x=0; x<in2->x; x++)
+			fRGB_colormult(colp[x], wt);
+	}
+
+	// copy image data, unpacking interleaved RGBA into separate channels
+	// only need to calc data1 once
+
+	// block add-overlap
+	hw = in2->x >> 1;
+	hh = in2->y >> 1;
+	xbsz = (w2 + 1) - in2->x;
+	ybsz = (h2 + 1) - in2->y;
+	nxb = in1->x / xbsz;
+	if (in1->x % xbsz) nxb++;
+	nyb = in1->y / ybsz;
+	if (in1->y % ybsz) nyb++;
+	for (ybl=0; ybl<nyb; ybl++) {
+		for (xbl=0; xbl<nxb; xbl++) {
+
+			// each channel one by one
+			for (ch=0; ch<3; ch++) {
+				fREAL* data1ch = &data1[ch*w2*h2];
+
+				// only need to calc fht data from in2 once, can re-use for every block
+				if (!in2done) {
+					// in2, channel ch -> data1
+					for (y=0; y<in2->y; y++) {
+						fp = &data1ch[y*w2];
+						colp = (fRGB*)&in2->rect[y*in2->x*in2->type];
+						for (x=0; x<in2->x; x++)
+							fp[x] = colp[x][ch];
+					}
+				}
+
+				// in1, channel ch -> data2
+				memset(data2, 0, w2*h2*sizeof(fREAL));
+				for (y=0; y<ybsz; y++) {
+					int yy = ybl*ybsz + y;
+					if (yy >= in1->y) continue;
+					fp = &data2[y*w2];
+					colp = (fRGB*)&in1->rect[yy*in1->x*in1->type];
+					for (x=0; x<xbsz; x++) {
+						int xx = xbl*xbsz + x;
+						if (xx >= in1->x) continue;
+						fp[x] = colp[xx][ch];
+					}
+				}
+
+				// forward FHT
+				// zero pad data start is different for each == height+1
+				if (!in2done) FHT2D(data1ch, log2_w, log2_h, in2->y+1, 0);
+				FHT2D(data2, log2_w, log2_h, in2->y+1, 0);
+
+				// FHT2D transposed data, row/col now swapped
+				// convolve & inverse FHT
+				fht_convolve(data2, data1ch, log2_h, log2_w);
+				FHT2D(data2, log2_h, log2_w, 0, 1);
+				// data again transposed, so in order again
+
+				// overlap-add result
+				for (y=0; y<(int)h2; y++) {
+					const int yy = ybl*ybsz + y - hh;
+					if ((yy < 0) || (yy >= in1->y)) continue;
+					fp = &data2[y*w2];
+					colp = (fRGB*)&rdst->rect[yy*in1->x*in1->type];
+					for (x=0; x<(int)w2; x++) {
+						const int xx = xbl*xbsz + x - hw;
+						if ((xx < 0) || (xx >= in1->x)) continue;
+						colp[xx][ch] += fp[x];
+					}
+				}
+
+			}
+			in2done = 1;
+		}
+	}
+
+	MEM_freeN(data2);
+	MEM_freeN(data1);
+	memcpy(dst->rect, rdst->rect, sizeof(float)*dst->x*dst->y*dst->type);
+	free_compbuf(rdst);
+}
+
+
+/*
+ *
+ * Utility functions qd_* should probably be intergrated better with other functions here.
+ *
+ */
+// sets fcol to pixelcolor at (x, y)
+void qd_getPixel(CompBuf* src, int x, int y, float* col)
+{
+	if ((x >= 0) && (x < src->x) && (y >= 0) && (y < src->y)) {
+		float* bc = &src->rect[(x + y*src->x)*src->type];
+		col[0] = bc[0], col[1] = bc[1], col[2] = bc[2];
+	}
+	else col[0] = col[1] = col[2] = 0.f;
+}
+
+// sets pixel (x, y) to color col
+void qd_setPixel(CompBuf* src, int x, int y, float* col)
+{
+	if ((x >= 0) && (x < src->x) && (y >= 0) && (y < src->y)) {
+		float* bc = &src->rect[(x + y*src->x)*src->type];
+		bc[0] = col[0], bc[1] = col[1], bc[2] = col[2];
+	}
+}
+
+// adds fcol to pixelcolor (x, y)
+void qd_addPixel(CompBuf* src, int x, int y, float* col)
+{
+	if ((x >= 0) && (x < src->x) && (y >= 0) && (y < src->y)) {
+		float* bc = &src->rect[(x + y*src->x)*src->type];
+		bc[0] += col[0], bc[1] += col[1], bc[2] += col[2];
+	}
+}
+
+// multiplies pixel by factor value f
+void qd_multPixel(CompBuf* src, int x, int y, float f)
+{
+	if ((x >= 0) && (x < src->x) && (y >= 0) && (y < src->y)) {
+		float* bc = &src->rect[(x + y*src->x)*src->type];
+		bc[0] *= f, bc[1] *= f, bc[2] *= f;
+	}
+}
+
+// bilinear interpolation with wraparound
+void qd_getPixelLerpWrap(CompBuf* src, float u, float v, float* col)
+{
+	const float ufl = floor(u), vfl = floor(v);
+	const int nx = (int)ufl % src->x, ny = (int)vfl % src->y;
+	const int x1 = (nx < 0) ? (nx + src->x) : nx;
+	const int y1 = (ny < 0) ? (ny + src->y) : ny;
+	const int x2 = (x1 + 1) % src->x, y2 = (y1 + 1) % src->y;
+	const float* c00 = &src->rect[(x1 + y1*src->x)*src->type];
+	const float* c10 = &src->rect[(x2 + y1*src->x)*src->type];
+	const float* c01 = &src->rect[(x1 + y2*src->x)*src->type];
+	const float* c11 = &src->rect[(x2 + y2*src->x)*src->type];
+	const float uf = u - ufl, vf = v - vfl;
+	const float w00=(1.f-uf)*(1.f-vf), w10=uf*(1.f-vf), w01=(1.f-uf)*vf, w11=uf*vf;
+	col[0] = w00*c00[0] + w10*c10[0] + w01*c01[0] + w11*c11[0];
+	if (src->type != CB_VAL) {
+		col[1] = w00*c00[1] + w10*c10[1] + w01*c01[1] + w11*c11[1];
+		col[2] = w00*c00[2] + w10*c10[2] + w01*c01[2] + w11*c11[2];
+		col[3] = w00*c00[3] + w10*c10[3] + w01*c01[3] + w11*c11[3];
+	}
+}
+
+// as above, without wrap around
+void qd_getPixelLerp(CompBuf* src, float u, float v, float* col)
+{
+	const float ufl = floor(u), vfl = floor(v);
+	const int x1 = (int)ufl, y1 = (int)vfl;
+	const int x2 = (int)ceil(u), y2 = (int)ceil(v);
+	if ((x2 >= 0) && (y2 >= 0) && (x1 < src->x) && (y1 < src->y)) {
+		const float B[4] = {0,0,0,0};
+		const int ox1 = (x1 < 0), oy1 = (y1 < 0), ox2 = (x2 >= src->x), oy2 = (y2 >= src->y);
+		const float* c00 = (ox1 || oy1) ? B : &src->rect[(x1 + y1*src->x)*src->type];
+		const float* c10 = (ox2 || oy1) ? B : &src->rect[(x2 + y1*src->x)*src->type];
+		const float* c01 = (ox1 || oy2) ? B : &src->rect[(x1 + y2*src->x)*src->type];
+		const float* c11 = (ox2 || oy2) ? B : &src->rect[(x2 + y2*src->x)*src->type];
+		const float uf = u - ufl, vf = v - vfl;
+		const float w00=(1.f-uf)*(1.f-vf), w10=uf*(1.f-vf), w01=(1.f-uf)*vf, w11=uf*vf;
+		col[0] = w00*c00[0] + w10*c10[0] + w01*c01[0] + w11*c11[0];
+		if (src->type != CB_VAL) {
+			col[1] = w00*c00[1] + w10*c10[1] + w01*c01[1] + w11*c11[1];
+			col[2] = w00*c00[2] + w10*c10[2] + w01*c01[2] + w11*c11[2];
+			col[3] = w00*c00[3] + w10*c10[3] + w01*c01[3] + w11*c11[3];
+		}
+	}
+	else col[0] = col[1] = col[2] = col[3] = 0.f;
+}
+
+// as above, sampling only one channel
+void qd_getPixelLerpChan(CompBuf* src, float u, float v, int chan, float* out)
+{
+	const float ufl = floor(u), vfl = floor(v);
+	const int x1 = (int)ufl, y1 = (int)vfl;
+	const int x2 = (int)ceil(u), y2 = (int)ceil(v);
+	if (chan >= src->type) chan = 0;
+	if ((x2 >= 0) && (y2 >= 0) && (x1 < src->x) && (y1 < src->y)) {
+		const float B[4] = {0,0,0,0};
+		const int ox1 = (x1 < 0), oy1 = (y1 < 0), ox2 = (x2 >= src->x), oy2 = (y2 >= src->y);
+		const float* c00 = (ox1 || oy1) ? B : &src->rect[(x1 + y1*src->x)*src->type + chan];
+		const float* c10 = (ox2 || oy1) ? B : &src->rect[(x2 + y1*src->x)*src->type + chan];
+		const float* c01 = (ox1 || oy2) ? B : &src->rect[(x1 + y2*src->x)*src->type + chan];
+		const float* c11 = (ox2 || oy2) ? B : &src->rect[(x2 + y2*src->x)*src->type + chan];
+		const float uf = u - ufl, vf = v - vfl;
+		const float w00=(1.f-uf)*(1.f-vf), w10=uf*(1.f-vf), w01=(1.f-uf)*vf, w11=uf*vf;
+		out[0] = w00*c00[0] + w10*c10[0] + w01*c01[0] + w11*c11[0];
+	}
+	else *out = 0.f;
+}
+
+
+CompBuf* qd_downScaledCopy(CompBuf* src, int scale)
+{
+	CompBuf* fbuf;
+	if (scale <= 1)
+		fbuf = dupalloc_compbuf(src);
+	else {
+		int nw = src->x/scale, nh = src->y/scale;
+		if ((2*(src->x % scale)) > scale) nw++;
+		if ((2*(src->y % scale)) > scale) nh++;
+		fbuf = alloc_compbuf(nw, nh, src->type, 1);
+		{
+			int x, y, xx, yy, sx, sy, mx, my;
+			float colsum[4];
+			float fscale = 1.f/(float)(scale*scale);
+			for (y=0; y<nh; y++) {
+				fRGB* fcolp = (fRGB*)&fbuf->rect[y*fbuf->x*fbuf->type];
+				yy = y*scale;
+				my = yy + scale;
+				if (my > src->y) my = src->y;
+				for (x=0; x<nw; x++) {
+					xx = x*scale;
+					mx = xx + scale;
+					if (mx > src->x) mx = src->x;
+					colsum[0] = colsum[1] = colsum[2] = 0.f;
+					for (sy=yy; sy<my; sy++) {
+						fRGB* scolp = (fRGB*)&src->rect[sy*src->x*src->type];
+						for (sx=xx; sx<mx; sx++)
+							fRGB_add(colsum, scolp[sx]);
+					}
+					fRGB_mult(colsum, fscale);
+					fRGB_copy(fcolp[x], colsum);
+				}
+			}
+		}
+	}
+	return fbuf;
+}
+
+// fast g.blur, per channel
+// xy var. bits 1 & 2 ca be used to blur in x or y direction separately
+void IIR_gauss(CompBuf* src, float sigma, int chan, int xy)
+{
+	double q, q2, sc, cf[4], tsM[9], tsu[3], tsv[3];
+	float *X, *Y, *W;
+	int i, x, y, sz;
+
+	// <0.5 not valid, though can have a possibly useful sort of sharpening effect
+	if (sigma < 0.5) return;
+	
+	if ((xy < 1) || (xy > 3)) xy = 3;
+	
+	// see "Recursive Gabor Filtering" by Young/VanVliet
+	// all factors here in double.prec. Required, because for single.prec it seems to blow up if sigma > ~200
+	if (sigma >= 3.556)
+		q = 0.9804*(sigma - 3.556) + 2.5091;
+	else // sigma >= 0.5
+		q = (0.0561*sigma + 0.5784)*sigma - 0.2568;
+	q2 = q*q;
+	sc = (1.1668 + q)*(3.203729649  + (2.21566 + q)*q);
+	// no gabor filtering here, so no complex multiplies, just the regular coefs.
+	// all negated here, so as not to have to recalc Triggs/Sdika matrix
+	cf[1] = q*(5.788961737 + (6.76492 + 3.0*q)*q)/ sc;
+	cf[2] = -q2*(3.38246 + 3.0*q)/sc;
+	// 0 & 3 unchanged
+	cf[3] = q2*q/sc;
+	cf[0] = 1.0 - cf[1] - cf[2] - cf[3];
+
+	// Triggs/Sdika border corrections,
+	// it seems to work, not entirely sure if it is actually totally correct,
+	// Besides J.M.Geusebroek's anigauss.c (see http://www.science.uva.nl/~mark),
+	// found one other implementation by Cristoph Lampert,
+	// but neither seem to be quite the same, result seems to be ok sofar anyway.
+	// Extra scale factor here to not have to do it in filter,
+	// though maybe this had something to with the precision errors
+	sc = cf[0]/((1.0 + cf[1] - cf[2] + cf[3])*(1.0 - cf[1] - cf[2] - cf[3])*(1.0 + cf[2] + (cf[1] - cf[3])*cf[3]));
+	tsM[0] = sc*(-cf[3]*cf[1] + 1.0 - cf[3]*cf[3] - cf[2]);
+	tsM[1] = sc*((cf[3] + cf[1])*(cf[2] + cf[3]*cf[1]));
+	tsM[2] = sc*(cf[3]*(cf[1] + cf[3]*cf[2]));
+	tsM[3] = sc*(cf[1] + cf[3]*cf[2]);
+	tsM[4] = sc*(-(cf[2] - 1.0)*(cf[2] + cf[3]*cf[1]));
+	tsM[5] = sc*(-(cf[3]*cf[1] + cf[3]*cf[3] + cf[2] - 1.0)*cf[3]);
+	tsM[6] = sc*(cf[3]*cf[1] + cf[2] + cf[1]*cf[1] - cf[2]*cf[2]);
+	tsM[7] = sc*(cf[1]*cf[2] + cf[3]*cf[2]*cf[2] - cf[1]*cf[3]*cf[3] - cf[3]*cf[3]*cf[3] - cf[3]*cf[2] + cf[3]);
+	tsM[8] = sc*(cf[3]*(cf[1] + cf[3]*cf[2]));
+
+#define YVV(L)\
+{\
+	W[0] = cf[0]*X[0] + cf[1]*X[0] + cf[2]*X[0] + cf[3]*X[0];\
+	W[1] = cf[0]*X[1] + cf[1]*W[0] + cf[2]*X[0] + cf[3]*X[0];\
+	W[2] = cf[0]*X[2] + cf[1]*W[1] + cf[2]*W[0] + cf[3]*X[0];\
+	for (i=3; i<L; i++)\
+		W[i] = cf[0]*X[i] + cf[1]*W[i-1] + cf[2]*W[i-2] + cf[3]*W[i-3];\
+	tsu[0] = W[L-1] - X[L-1];\
+	tsu[1] = W[L-2] - X[L-1];\
+	tsu[2] = W[L-3] - X[L-1];\
+	tsv[0] = tsM[0]*tsu[0] + tsM[1]*tsu[1] + tsM[2]*tsu[2] + X[L-1];\
+	tsv[1] = tsM[3]*tsu[0] + tsM[4]*tsu[1] + tsM[5]*tsu[2] + X[L-1];\
+	tsv[2] = tsM[6]*tsu[0] + tsM[7]*tsu[1] + tsM[8]*tsu[2] + X[L-1];\
+	Y[L-1] = cf[0]*W[L-1] + cf[1]*tsv[0] + cf[2]*tsv[1] + cf[3]*tsv[2];\
+	Y[L-2] = cf[0]*W[L-2] + cf[1]*Y[L-1] + cf[2]*tsv[0] + cf[3]*tsv[1];\
+	Y[L-3] = cf[0]*W[L-3] + cf[1]*Y[L-2] + cf[2]*Y[L-1] + cf[3]*tsv[0];\
+	for (i=L-4; i>=0; i--)\
+		Y[i] = cf[0]*W[i] + cf[1]*Y[i+1] + cf[2]*Y[i+2] + cf[3]*Y[i+3];\
+}
+
+	// intermediate buffers
+	sz = MAX2(src->x, src->y);
+	X = MEM_callocN(sz*sizeof(float), "IIR_gauss X buf");
+	Y = MEM_callocN(sz*sizeof(float), "IIR_gauss Y buf");
+	W = MEM_callocN(sz*sizeof(float), "IIR_gauss W buf");
+	if (xy & 1) {	// H
+		for (y=0; y<src->y; ++y) {
+			const int yx = y*src->x;
+			for (x=0; x<src->x; ++x)
+				X[x] = src->rect[(x + yx)*src->type + chan];
+			YVV(src->x);
+			for (x=0; x<src->x; ++x)
+				src->rect[(x + yx)*src->type + chan] = Y[x];
+		}
+	}
+	if (xy & 2) {	// V
+		for (x=0; x<src->x; ++x) {
+			for (y=0; y<src->y; ++y)
+				X[y] = src->rect[(x + y*src->x)*src->type + chan];
+			YVV(src->y);
+			for (y=0; y<src->y; ++y)
+				src->rect[(x + y*src->x)*src->type + chan] = Y[y];
+		}
+	}
+
+	MEM_freeN(X);
+	MEM_freeN(W);
+	MEM_freeN(Y);
+#undef YVV
+}
+

@@ -445,6 +445,9 @@ DNA_makesdna.exe dna.c
 				RelativePath="..\..\..\source\blender\makesdna\DNA_camera_types.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesdna\DNA_cloth_types.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_color_types.h">
 			</File>
 			<File
@@ -524,6 +527,9 @@ DNA_makesdna.exe dna.c
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_packedFile_types.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesdna\DNA_particle_types.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_property_types.h">

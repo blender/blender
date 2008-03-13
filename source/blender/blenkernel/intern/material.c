@@ -90,6 +90,7 @@ void free_material(Material *ma)
 	if(ma->ramp_col) MEM_freeN(ma->ramp_col);
 	if(ma->ramp_spec) MEM_freeN(ma->ramp_spec);
 	
+	BKE_previewimg_free(&ma->preview);
 	BKE_icon_delete((struct ID*)ma);
 	ma->id.icon_id = 0;
 	
@@ -139,6 +140,12 @@ void init_material(Material *ma)
 	ma->tx_falloff= 1.0;
 	ma->shad_alpha= 1.0f;
 	
+	ma->gloss_mir = ma->gloss_tra= 1.0;
+	ma->samp_gloss_mir = ma->samp_gloss_tra= 18;
+	ma->adapt_thresh_mir = ma->adapt_thresh_tra = 0.005;
+	ma->dist_mir = 0.0;
+	ma->fadeto_mir = MA_RAYMIR_FADETOSKY;
+	
 	ma->rampfac_col= 1.0;
 	ma->rampfac_spec= 1.0;
 	ma->pr_lamp= 3;			/* two lamps, is bits */
@@ -159,6 +166,8 @@ void init_material(Material *ma)
 	ma->sss_back= 1.0f;
 
 	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RADIO|MA_RAYBIAS|MA_TANGENT_STR;
+
+	ma->preview = NULL;
 }
 
 Material *add_material(char *name)
@@ -196,6 +205,8 @@ Material *copy_material(Material *ma)
 	if(ma->ramp_col) man->ramp_col= MEM_dupallocN(ma->ramp_col);
 	if(ma->ramp_spec) man->ramp_spec= MEM_dupallocN(ma->ramp_spec);
 	
+	if (ma->preview) man->preview = BKE_previewimg_copy(ma->preview);
+
 	if(ma->nodetree) {
 		man->nodetree= ntreeCopyTree(ma->nodetree, 0);	/* 0 == full new tree */
 	}
@@ -570,6 +581,26 @@ void assign_material(Object *ob, Material *ma, int act)
 	test_object_materials(ob->data);
 }
 
+int find_material_index(Object *ob, Material *ma)
+{
+	Material ***matarar;
+	short a, *totcolp;
+	
+	if(ma==NULL) return 0;
+	
+	totcolp= give_totcolp(ob);
+	matarar= give_matarar(ob);
+	
+	if(totcolp==NULL || matarar==NULL) return 0;
+	
+	for(a=0; a<*totcolp; a++)
+		if((*matarar)[a]==ma)
+		   break;
+	if(a<*totcolp)
+		return a+1;
+	return 0;	   
+}
+
 void new_material_to_objectdata(Object *ob)
 {
 	Material *ma;
@@ -598,7 +629,7 @@ void new_material_to_objectdata(Object *ob)
 static void do_init_render_material(Material *ma, int r_mode, float *amb)
 {
 	MTex *mtex;
-	int a, needuv=0;
+	int a, needuv=0, needtang=0;
 	
 	if(ma->flarec==0) ma->flarec= 1;
 
@@ -622,8 +653,14 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 			if(ma->texco & (TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM|TEXCO_STRAND|TEXCO_STRESS)) needuv= 1;
 			else if(ma->texco & (TEXCO_GLOB|TEXCO_UV|TEXCO_OBJECT|TEXCO_SPEED)) needuv= 1;
 			else if(ma->texco & (TEXCO_LAVECTOR|TEXCO_VIEW|TEXCO_STICKY)) needuv= 1;
+
+			if((ma->mapto & MAP_NORM) && (mtex->normapspace == MTEX_NSPACE_TANGENT))
+				needtang= 1;
 		}
 	}
+
+	if(needtang) ma->mode |= MA_NORMAP_TANG;
+	else ma->mode &= ~MA_NORMAP_TANG;
 	
 	if(r_mode & R_RADIO)
 		if(ma->mode & MA_RADIO) needuv= 1;
@@ -650,6 +687,9 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 	/* will become or-ed result of all node modes */
 	ma->mode_l= ma->mode;
 	ma->mode_l &= ~MA_SHLESS;
+
+	if(ma->strand_surfnor > 0.0f)
+		ma->mode_l |= MA_STR_SURFDIFF;
 }
 
 static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode, float *amb)
@@ -746,9 +786,9 @@ int material_in_material(Material *parmat, Material *mat)
 /* ****************** */
 
 char colname_array[125][20]= {
-"Black","DarkRed","HalveRed","Red","Red",
+"Black","DarkRed","HalfRed","Red","Red",
 "DarkGreen","DarkOlive","Brown","Chocolate","OrangeRed",
-"HalveGreen","GreenOlive","DryOlive","Goldenrod","DarkOrange",
+"HalfGreen","GreenOlive","DryOlive","Goldenrod","DarkOrange",
 "LightGreen","Chartreuse","YellowGreen","Yellow","Gold",
 "Green","LawnGreen","GreenYellow","LightOlive","Yellow",
 "DarkBlue","DarkPurple","HotPink","VioletPink","RedPink",
@@ -756,7 +796,7 @@ char colname_array[125][20]= {
 "SeaGreen","PaleGreen","GreenKhaki","LightBrown","LightSalmon",
 "SpringGreen","PaleGreen","MediumOlive","YellowBrown","LightGold",
 "LightGreen","LightGreen","LightGreen","GreenYellow","PaleYellow",
-"HalveBlue","DarkSky","HalveMagenta","VioletRed","DeepPink",
+"HalfBlue","DarkSky","HalfMagenta","VioletRed","DeepPink",
 "SteelBlue","SkyBlue","Orchid","LightHotPink","HotPink",
 "SeaGreen","SlateGray","MediumGrey","Burlywood","LightPink",
 "SpringGreen","Aquamarine","PaleGreen","Khaki","PaleOrange",

@@ -631,10 +631,10 @@ void KX_KetsjiEngine::Render()
 			RenderFrame(scene, cam);
 		}
 		
-		set<class KX_Camera*>* cameras = scene->GetCameras();
+		list<class KX_Camera*>* cameras = scene->GetCameras();
 		
 		// Draw the scene once for each camera with an enabled viewport
-		set<KX_Camera*>::iterator it = cameras->begin();
+		list<KX_Camera*>::iterator it = cameras->begin();
 		while(it != cameras->end())
 		{
 			if((*it)->GetViewport())
@@ -966,9 +966,17 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	scene->CalculateVisibleMeshes(m_rasterizer,cam);
 
 	scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
+	
+	PostRenderFrame();
 }
 
-
+void KX_KetsjiEngine::PostRenderFrame()
+{
+	m_rendertools->PushMatrix();
+	m_rendertools->Render2DFilters(m_canvas);
+	m_rendertools->MotionBlur(m_rasterizer);
+	m_rendertools->PopMatrix();
+}
 
 void KX_KetsjiEngine::StopEngine()
 {
@@ -985,7 +993,7 @@ void KX_KetsjiEngine::StopEngine()
 		for (sceneit = m_scenes.begin();sceneit != m_scenes.end() ; sceneit++)
 		{
 			KX_Scene* scene = *sceneit;
-			delete scene;
+			m_sceneconverter->RemoveScene(scene);
 		}	
 		m_scenes.clear();
 
@@ -1039,6 +1047,8 @@ void KX_KetsjiEngine::PostProcessScene(KX_Scene* scene)
 		scene->SetActiveCamera(activecam);
 		scene->GetObjectList()->Add(activecam->AddRef());
 		scene->GetRootParentList()->Add(activecam->AddRef());
+		//done with activecam
+		activecam->Release();
 	}
 	
 	scene->UpdateParents(0.0);
@@ -1207,7 +1217,7 @@ void KX_KetsjiEngine::RemoveScheduledScenes()
 				KX_Scene* scene = *sceneit;
 				if (scene->GetName()==scenename)
 				{
-					delete scene;
+					m_sceneconverter->RemoveScene(scene);
 					m_scenes.erase(sceneit);
 					break;
 				}
@@ -1305,7 +1315,7 @@ void KX_KetsjiEngine::ReplaceScheduledScenes()
 				KX_Scene* scene = *sceneit;
 				if (scene->GetName() == oldscenename)
 				{
-					delete scene;
+					m_sceneconverter->RemoveScene(scene);
 					KX_Scene* tmpscene = CreateScene(newscenename);
 					m_scenes[i]=tmpscene;
 					PostProcessScene(tmpscene);
@@ -1462,4 +1472,6 @@ void KX_KetsjiEngine::GetOverrideFrameColor(float& r, float& g, float& b) const
 	g = m_overrideFrameColorG;
 	b = m_overrideFrameColorB;
 }
+
+
 

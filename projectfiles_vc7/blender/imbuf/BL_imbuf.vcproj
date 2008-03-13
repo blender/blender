@@ -21,8 +21,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\..\lib\windows\tiff\include;..\..\..\..\lib\windows\openexr\include;..\..\..\..\lib\windows\openexr\include\Iex;..\..\..\..\lib\windows\openexr\include\Imath;..\..\..\..\lib\windows\openexr\include\IlmImf;..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\imbuf\intern\openexr"
-				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_QUICKTIME;WITH_OPENEXR"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\..\lib\windows\tiff\include;..\..\..\..\lib\windows\openexr\include;..\..\..\..\lib\windows\openexr\include\Iex;..\..\..\..\lib\windows\openexr\include\Imath;..\..\..\..\lib\windows\openexr\include\IlmImf;..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\imbuf\intern\openexr;..\..\..\source\blender\imbuf\intern\dds"
+				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_QUICKTIME;WITH_OPENEXR;WITH_DDS"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
@@ -176,8 +176,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\..\lib\windows\tiff\include;..\..\..\..\lib\windows\openexr\include;..\..\..\..\lib\windows\openexr\include\Iex;..\..\..\..\lib\windows\openexr\include\Imath;..\..\..\..\lib\windows\openexr\include\IlmImf;..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\imbuf\intern\openexr"
-				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_QUICKTIME;WITH_OPENEXR"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\..\lib\windows\tiff\include;..\..\..\..\lib\windows\openexr\include;..\..\..\..\lib\windows\openexr\include\Iex;..\..\..\..\lib\windows\openexr\include\Imath;..\..\..\..\lib\windows\openexr\include\IlmImf;..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\imbuf\intern\openexr;..\..\..\source\blender\imbuf\intern\dds"
+				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_QUICKTIME;WITH_OPENEXR;WITH_DDS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
@@ -228,8 +228,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\..\lib\windows\tiff\include;..\..\..\..\lib\windows\openexr\include;..\..\..\..\lib\windows\openexr\include\Iex;..\..\..\..\lib\windows\openexr\include\Imath;..\..\..\..\lib\windows\openexr\include\IlmImf;..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\imbuf\intern\openexr"
-				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_QUICKTIME"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\..\lib\windows\tiff\include;..\..\..\..\lib\windows\openexr\include;..\..\..\..\lib\windows\openexr\include\Iex;..\..\..\..\lib\windows\openexr\include\Imath;..\..\..\..\lib\windows\openexr\include\IlmImf;..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\imbuf\intern\openexr;..\..\..\source\blender\imbuf\intern\dds"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_QUICKTIME,WITH_DDS"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
@@ -280,8 +280,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\..\lib\windows\tiff\include;..\..\..\..\lib\windows\openexr\include;..\..\..\..\lib\windows\openexr\include\Iex;..\..\..\..\lib\windows\openexr\include\Imath;..\..\..\..\lib\windows\openexr\include\IlmImf;..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\imbuf\intern\openexr"
-				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_QUICKTIME"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\png\include;..\..\..\..\lib\windows\tiff\include;..\..\..\..\lib\windows\openexr\include;..\..\..\..\lib\windows\openexr\include\Iex;..\..\..\..\lib\windows\openexr\include\Imath;..\..\..\..\lib\windows\openexr\include\IlmImf;..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\imbuf\intern\openexr;..\..\..\source\blender\imbuf\intern\dds"
+				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_QUICKTIME;WITH_DDS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
@@ -383,10 +383,16 @@
 				RelativePath="..\..\..\source\blender\imbuf\intern\imageprocess.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\imbuf\intern\imginfo.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\iris.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\jpeg.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\imbuf\intern\md5.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\openexr\openexr_api.cpp">
@@ -417,6 +423,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\targa.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\imbuf\intern\thumbs.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\tiff.c">
@@ -481,6 +490,60 @@
 					</File>
 				</Filter>
 			</Filter>
+			<Filter
+				Name="dds"
+				Filter="">
+				<Filter
+					Name="Source Files"
+					Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+					<File
+						RelativePath="..\..\..\source\blender\imbuf\intern\dds\BlockDXT.cpp">
+					</File>
+					<File
+						RelativePath="..\..\..\source\blender\imbuf\intern\dds\ColorBlock.cpp">
+					</File>
+					<File
+						RelativePath="..\..\..\source\blender\imbuf\intern\dds\dds_api.cpp">
+					</File>
+					<File
+						RelativePath="..\..\..\source\blender\imbuf\intern\dds\DirectDrawSurface.cpp">
+					</File>
+					<File
+						RelativePath="..\..\..\source\blender\imbuf\intern\dds\Image.cpp">
+					</File>
+					<File
+						RelativePath="..\..\..\source\blender\imbuf\intern\dds\Stream.cpp">
+					</File>
+				</Filter>
+				<Filter
+					Name="Header Files"
+					Filter="">
+					<File
+						RelativePath="..\..\..\source\blender\imbuf\intern\dds\BlockDXT.h">
+					</File>
+					<File
+						RelativePath="..\..\..\source\blender\imbuf\intern\dds\Color.h">
+					</File>
+					<File
+						RelativePath="..\..\..\source\blender\imbuf\intern\dds\ColorBlock.h">
+					</File>
+					<File
+						RelativePath="..\..\..\source\blender\imbuf\intern\dds\Common.h">
+					</File>
+					<File
+						RelativePath="..\..\..\source\blender\imbuf\intern\dds\dds_api.h">
+					</File>
+					<File
+						RelativePath="..\..\..\source\blender\imbuf\intern\dds\DirectDrawSurface.h">
+					</File>
+					<File
+						RelativePath="..\..\..\source\blender\imbuf\intern\dds\Image.h">
+					</File>
+					<File
+						RelativePath="..\..\..\source\blender\imbuf\intern\dds\Stream.h">
+					</File>
+				</Filter>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -534,6 +597,9 @@
 				RelativePath="..\..\..\source\blender\imbuf\IMB_imbuf_types.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\imbuf\intern\IMB_imginfo.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\IMB_iris.h">
 			</File>
 			<File
@@ -547,6 +613,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\IMB_targa.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\imbuf\IMB_thumbs.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\IMB_tiff.h">

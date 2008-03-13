@@ -100,9 +100,16 @@ extern "C" {
 	void *MEM_mapallocN(unsigned int len, const char * str);
 
 	/** Print a list of the names and sizes of all allocated memory
+	 * blocks. as a python dict for easy investigation */ 
+	void MEM_printmemlist_pydict(void);
+
+	/** Print a list of the names and sizes of all allocated memory
 	 * blocks. */ 
 	void MEM_printmemlist(void);
 
+	/** Print statistics about memory usage */
+	void MEM_printmemlist_stats(void);
+	
 	/** Set the callback function for error output. */
 	void MEM_set_error_callback(void (*func)(char *));
 

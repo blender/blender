@@ -62,6 +62,7 @@ struct Object;
 struct bSoundListener;
 struct BMF_Font;
 struct EditMesh;
+struct BME_Glob;
 
 typedef struct Global {
 
@@ -111,6 +112,9 @@ typedef struct Global {
 
 	/* Editmode lists */
 	struct EditMesh *editMesh;
+	
+	/* Used for BMesh transformations */
+	struct BME_Glob *editBMesh;
     
 	float textcurs[4][2];
     
@@ -178,21 +182,28 @@ typedef struct Global {
 #define G_DRAWCREASES	(1 << 19)
 #define G_DRAWSEAMS     (1 << 20)
 #define G_HIDDENEDGES   (1 << 21)
-
 /* Measurement info Drawing */
 #define G_DRAW_EDGELEN  (1 << 22) 
 #define G_DRAW_FACEAREA (1 << 23)
 #define G_DRAW_EDGEANG  (1 << 24)
 
-#define G_RECORDKEYS	(1 << 25)
-
+/* #define G_RECORDKEYS	(1 << 25)   also removed */
 /*#ifdef WITH_VERSE*/
 #define G_VERSE_CONNECTED  (1 << 26)
 #define G_DRAW_VERSE_DEBUG (1 << 27)
 /*#endif*/
-
 #define G_DRAWSHARP     (1 << 28) /* draw edges with the sharp flag */
 #define G_SCULPTMODE    (1 << 29)
+#define G_PARTICLEEDIT	(1 << 30)
+
+/* #define G_AUTOMATKEYS	(1 << 30)   also removed */
+#define G_HIDDENHANDLES (1 << 31) /* used for curves only */
+#define G_DRAWBWEIGHTS	(1 << 31)
+
+/* macro for testing face select mode
+ * Texture paint could be removed since selected faces are not used
+ * however hiding faces is useful */
+#define FACESEL_PAINT_TEST ((G.f&G_FACESELECT) && (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) 
 
 /* G.fileflags */
 
@@ -241,9 +252,10 @@ typedef struct Global {
 #define B_ENDIAN	0
 
 /* G.moving, signals drawing in (3d) window to denote transform */
-#define G_TRANSFORM_OBJ		1
-#define G_TRANSFORM_EDIT	2
-#define G_TRANSFORM_MANIP	4
+#define G_TRANSFORM_OBJ			1
+#define G_TRANSFORM_EDIT		2
+#define G_TRANSFORM_MANIP		4
+#define G_TRANSFORM_PARTICLE	8
 
 /* G.special1 */
 

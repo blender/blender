@@ -39,18 +39,20 @@
 
 #include "DNA_ID.h"
 
+/* IPO Data-Block */
 typedef struct Ipo {
 	ID id;
 	
-	ListBase curve;
-	rctf cur;
-	short blocktype, showkey;
-	int pad;
-		
+	ListBase curve;				/* A list of IpoCurve structs in a linked list. */
+	rctf cur;					/* Rect defining extents of keyframes? */
+	
+	short blocktype, showkey;	/* blocktype: self-explanatory; showkey: either 0 or 1 (show vertical yellow lines for editing) */
+	short muteipo, pad;			/* muteipo: either 0 or 1 (whether ipo block is muted) */	
 } Ipo;
 
-/* sometimes used */
+/* NOTE: IpoCurve struct is defined in DNA_curve_types.h, not in here... */
 
+/* sometimes used */
 typedef short IPO_Channel;  
 
 /* defines: are these duped or new? */
@@ -67,8 +69,8 @@ typedef short IPO_Channel;
 
 /* ******************** */
 
-#define OB_TOTIPO	29
-#define OB_TOTNAM	29
+#define OB_TOTIPO	30
+#define OB_TOTNAM	30
 
 #define OB_LOC_X	1
 #define OB_LOC_Y	2
@@ -105,7 +107,10 @@ typedef short IPO_Channel;
 #define OB_PD_SDAMP	27
 #define OB_PD_RDAMP	28
 #define OB_PD_PERM	29
+#define OB_PD_FMAXD	30
 
+/* exception: driver channel, for bone driver only */
+#define OB_ROT_DIFF	100
 
 
 /* ******************** */
@@ -315,10 +320,11 @@ typedef short IPO_Channel;
 #define AC_QUAT_Z	28
 
 /* ******************** */
-#define CO_TOTIPO	1	/* Constraint Ipos */
-#define CO_TOTNAM	1
+#define CO_TOTIPO	2	/* Constraint Ipos */
+#define CO_TOTNAM	2
 
 #define CO_ENFORCE	1
+#define CO_HEADTAIL	2
 /*
 #define	CO_TIME		2
 #define CO_OFFSET_X	3
@@ -348,6 +354,35 @@ typedef short IPO_Channel;
 #define FLUIDSIM_VEL_Z  8
 
 #define FLUIDSIM_ACTIVE 9
+
+/* ******************** */
+/* particle ipos */
+#define PART_TOTIPO		19
+#define PART_TOTNAM		19
+
+#define PART_EMIT_FREQ	1
+#define PART_EMIT_LIFE	2
+#define PART_EMIT_VEL	3
+#define PART_EMIT_AVE	4
+#define PART_EMIT_SIZE	5
+
+#define PART_AVE		6
+#define PART_SIZE		7
+#define PART_DRAG		8
+#define PART_BROWN		9
+#define PART_DAMP		10
+#define PART_LENGTH		11
+#define PART_CLUMP		12
+
+#define PART_GRAV_X		13
+#define PART_GRAV_Y		14
+#define PART_GRAV_Z		15
+
+#define PART_KINK_AMP	16
+#define PART_KINK_FREQ	17
+#define PART_KINK_SHAPE	18
+
+#define PART_BB_TILT	19
 
 
 /* these are IpoCurve specific */
@@ -391,6 +426,9 @@ typedef short IPO_Channel;
 #define IPO_AUTO_HORIZ	16
 #define IPO_ACTIVE		32
 #define IPO_PROTECT		64
+#define IPO_MUTE		128
 
 #endif
+
+
 

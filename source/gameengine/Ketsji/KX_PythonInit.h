@@ -53,6 +53,7 @@ void		exitGamePythonScripting();
 void		dictionaryClearByHand(PyObject *dict);
 
 void PHY_SetActiveScene(class KX_Scene* scene);
+class KX_Scene* PHY_GetActiveScene();
 #include "MT_Vector3.h"
 
 void		KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color);

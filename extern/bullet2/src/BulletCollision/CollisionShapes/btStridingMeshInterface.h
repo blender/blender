@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef STRIDING_MESHINTERFACE_H
 #define STRIDING_MESHINTERFACE_H
 
-#include "LinearMath/btVector3.h"
+#include "../../LinearMath/btVector3.h"
 #include "btTriangleCallback.h"
 
 /// PHY_ScalarType enumerates possible scalar types.
@@ -38,7 +38,7 @@ class  btStridingMeshInterface
 		btVector3 m_scaling;
 
 	public:
-		btStridingMeshInterface() :m_scaling(1.f,1.f,1.f)
+		btStridingMeshInterface() :m_scaling(btScalar(1.),btScalar(1.),btScalar(1.))
 		{
 
 		}
@@ -49,6 +49,8 @@ class  btStridingMeshInterface
 
 		void	InternalProcessAllTriangles(btInternalTriangleIndexCallback* callback,const btVector3& aabbMin,const btVector3& aabbMax) const;
 
+		///brute force method to calculate aabb
+		void	calculateAabbBruteForce(btVector3& aabbMin,btVector3& aabbMax);
 
 		/// get read and write access to a subpart of a triangle mesh
 		/// this subpart has a continuous array of vertices and indices

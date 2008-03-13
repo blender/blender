@@ -199,10 +199,14 @@ def read(filename):
 		obj = obj_spec.load(format_specs[format], file)
 
 	except IOError, (errno, strerror):
-		file.close()
+		try:	file.close()
+		except:	pass
+		
 		return None
 
-	file.close()
+	try:	file.close()
+	except:	pass
+	
 	return (obj_spec, obj);
 
 

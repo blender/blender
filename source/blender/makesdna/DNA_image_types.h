@@ -41,11 +41,6 @@ struct anim;
 struct ImBuf;
 struct RenderResult;
 
-typedef struct PreviewImage {
-	unsigned int w;
-	unsigned int h;
-	unsigned int * rect;
-} PreviewImage;
 
 /* ImageUser is in Texture, in Nodes, Background Image, Image Window, .... */
 /* should be used in conjunction with an ID * to Image. */
@@ -63,11 +58,12 @@ typedef struct ImageUser {
 /* iuser->flag */
 #define	IMA_ANIM_ALWAYS		1
 #define IMA_ANIM_REFRESHED	2
+/* #define IMA_DO_PREMUL	4 */
 
 typedef struct Image {
 	ID id;
 	
-	char name[240];
+	char name[240];			/* file path */
 	
 	ListBase ibufs;			/* not written in file */
 	
@@ -95,6 +91,9 @@ typedef struct Image {
 	
 	short gen_x, gen_y, gen_type;	/* for generated images */
 	
+	/* display aspect - for UV editing images resized for faster openGL display */
+	float aspx, aspy;
+	
 /*#ifdef WITH_VERSE*/
 	void *vnode;		/* pointer at verse bitmap node */
 /*#endif*/
@@ -106,11 +105,12 @@ typedef struct Image {
 /* flag */
 #define IMA_FIELDS		1
 #define IMA_STD_FIELD	2
+#define IMA_DO_PREMUL	4
 
 #define	IMA_REFLECT		16
 #define IMA_NOCOLLECT   32
 #define IMA_ANTIALI		64
-
+#define IMA_OLD_PREMUL	128
 
 /* tpageflag */
 #define IMA_TILES			1

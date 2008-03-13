@@ -47,6 +47,8 @@ typedef struct {
 
 extern PyTypeObject IpoCurve_Type;
 
+#define BPy_IpoCurve_Check(v)  ((v)->ob_type == &IpoCurve_Type)	/* for type checking */
+
 PyObject *IpoCurve_Init( void );
 PyObject *IpoCurve_CreatePyObject( IpoCurve * ipo );
 IpoCurve *IpoCurve_FromPyObject( PyObject * pyobj );

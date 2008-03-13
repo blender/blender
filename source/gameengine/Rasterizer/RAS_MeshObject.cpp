@@ -474,7 +474,9 @@ void RAS_MeshObject::ClearArrayData()
 	{
 		KX_ArrayOptimizer** ao = m_matVertexArrayS.at(i);
 		if (ao)
+		{
 			delete *ao;
+		}
 	}
 }
 

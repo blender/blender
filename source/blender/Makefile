@@ -38,7 +38,7 @@ DIRS += avi imbuf render radiosity blenlib blenkernel blenpluginapi
 DIRS += makesdna src yafray
 DIRS += python nodes
 
-ifeq ($(INTERNATIONAL), true)
+ifeq ($(WITH_FREETYPE2), true)
 	DIRS += ftfont
 endif
 

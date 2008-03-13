@@ -212,6 +212,7 @@ void SCA_KeyboardSensor::AddToTargetProp(int keyIndex)
 					newprop.SetLength(oldlength - 1);
 					CStringValue * newstringprop = new CStringValue(newprop, m_targetprop);
 					GetParent()->SetProperty(m_targetprop, newstringprop);
+					newstringprop->Release();
 				}				
 			} else {
 				/* append */
@@ -219,6 +220,7 @@ void SCA_KeyboardSensor::AddToTargetProp(int keyIndex)
 				STR_String newprop = tprop->GetText() + pchar;
 				CStringValue * newstringprop = new CStringValue(newprop, m_targetprop);			
 				GetParent()->SetProperty(m_targetprop, newstringprop);
+				newstringprop->Release();
 			}
 		} else {
 			if (!IsDelete(keyIndex)) {
@@ -227,6 +229,7 @@ void SCA_KeyboardSensor::AddToTargetProp(int keyIndex)
 				STR_String newprop = pchar;
 				CStringValue * newstringprop = new CStringValue(newprop, m_targetprop);			
 				GetParent()->SetProperty(m_targetprop, newstringprop);
+				newstringprop->Release();
 			}
 		}
 	}

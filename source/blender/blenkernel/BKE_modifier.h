@@ -59,6 +59,12 @@ typedef enum {
 
 	eModifierTypeType_Constructive,
 	eModifierTypeType_Nonconstructive,
+
+	/* both deformVerts & applyModifier are valid calls
+	 * used for particles modifier that doesn't actually modify the object
+	 * unless it's a mesh and can be exploded -> curve can also emit particles
+	 */
+	eModifierTypeType_DeformOrConstruct
 } ModifierTypeType;
 
 typedef enum {
@@ -79,10 +85,14 @@ typedef enum {
 	 * be placed after any non-deformative modifier.
 	 */
 	eModifierTypeFlag_RequiresOriginalData = (1<<5),
+
+	/* For modifiers that support pointcache, so we can check to see if it has files we need to deal with
+	*/
+	eModifierTypeFlag_UsesPointCache = (1<<6),
 } ModifierTypeFlag;
 
-typedef void (*ObjectWalkFunc)(void *userData, Object *ob, Object **obpoin);
-typedef void (*IDWalkFunc)(void *userData, Object *ob, ID **idpoin);
+typedef void (*ObjectWalkFunc)(void *userData, struct Object *ob, struct Object **obpoin);
+typedef void (*IDWalkFunc)(void *userData, struct Object *ob, struct ID **idpoin);
 
 typedef struct ModifierTypeInfo {
 	/* The user visible name for this modifier */
@@ -125,6 +135,11 @@ typedef struct ModifierTypeInfo {
 	            struct EditMesh *editData, struct DerivedMesh *derivedData,
 	            float (*vertexCos)[3], int numVerts);
 
+	/* Set deform matrix per vertex for crazyspace correction */
+	void (*deformMatricesEM)(
+	            struct ModifierData *md, struct Object *ob,
+	            struct EditMesh *editData, struct DerivedMesh *derivedData,
+	            float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
 
 	/********************* Non-deform modifier functions *********************/
 
@@ -257,6 +272,7 @@ void          modifier_copyData(struct ModifierData *md, struct ModifierData *ta
 int           modifier_dependsOnTime(struct ModifierData *md);
 int           modifier_supportsMapping(struct ModifierData *md);
 int           modifier_couldBeCage(struct ModifierData *md);
+int           modifier_isDeformer(struct ModifierData *md);
 void          modifier_setError(struct ModifierData *md, char *format, ...);
 
 void          modifiers_foreachObjectLink(struct Object *ob,
@@ -271,10 +287,16 @@ int           modifiers_getCageIndex(struct Object *ob,
                                      int *lastPossibleCageIndex_r);
 
 int           modifiers_isSoftbodyEnabled(struct Object *ob);
+int           modifiers_isClothEnabled(struct Object *ob);
+int           modifiers_isParticleEnabled(struct Object *ob);
+
 struct Object *modifiers_isDeformedByArmature(struct Object *ob);
 struct Object *modifiers_isDeformedByLattice(struct Object *ob);
 int           modifiers_usesArmature(struct Object *ob, struct bArmature *arm);
 int           modifiers_isDeformed(struct Object *ob);
+void          modifier_freeTemporaryData(struct ModifierData *md);
+
+int           modifiers_indexInObject(struct Object *ob, struct ModifierData *md);
 
 /* Calculates and returns a linked list of CustomDataMasks indicating the
  * data required by each modifier in the stack pointed to by md for correct

@@ -35,6 +35,8 @@
 #ifndef BIF_EDITMESH_H
 #define BIF_EDITMESH_H
 
+#include "BKE_mesh.h"
+
 struct EditMesh;
 struct EditFace;
 struct EditEdge;
@@ -141,7 +143,10 @@ extern void righthandfaces(int select);
 extern void mouse_mesh(void);
 
 extern void deselectall_mesh(void);
-extern void selectconnected_mesh(int qual);
+extern void selectconnected_mesh_all(void);
+extern void selectconnected_mesh(void);
+extern void selectconnected_delimit_mesh(void);
+extern void selectconnected_delimit_mesh_all(void);
 extern void selectswap_mesh(void);
 
 extern void hide_mesh(int swap);
@@ -169,7 +174,9 @@ extern void selectrandom_mesh(void);
 extern void editmesh_select_by_material(int index);
 extern void editmesh_deselect_by_material(int index);
 
+extern void Vertex_Menu(void);
 extern void Edge_Menu(void);
+extern void Face_Menu(void);
 extern void select_mesh_group_menu(void);
 extern void editmesh_mark_seam(int clear);
 extern void loop_multiselect(int looptype);
@@ -199,7 +206,7 @@ extern short sharesFace(struct EditEdge* e1, struct EditEdge* e2);
 #define SUBDIV_SELECT_LOOPCUT 3
 
 extern void convert_to_triface(int direction);
-extern int removedoublesflag(short flag, float limit);
+extern int removedoublesflag(short flag, short automerge, float limit);
 extern void xsortvert_flag(int flag);
 extern void hashvert_flag(int flag);
 
@@ -216,7 +223,13 @@ extern void join_triangles(void);
 extern void edge_flip(void);
 extern void fill_mesh(void);
 extern void bevel_menu();
+void mesh_set_face_flags(short mode);
 extern void mesh_set_smooth_faces(short event);
+extern void mesh_rotate_uvs(void);
+extern void mesh_mirror_uvs(void);
+extern void mesh_rotate_colors(void);
+extern void mesh_mirror_colors(void);
+void mesh_copy_menu(void);
 void edge_rotate_selected(int dir);
 int EdgeSlide(short immediate, float imperc);
 int EdgeLoopDelete(void);
@@ -238,4 +251,15 @@ int merge_target( int target, int uvmerge);
 void pathselect(void);
 void loop_to_region(void);
 void region_to_loop(void);
+
+UvVertMap *make_uv_vert_map_EM(int selected, int do_face_idx_array, float *limit);
+UvMapVert *get_uv_map_vert_EM(UvVertMap *vmap, unsigned int v);
+void free_uv_vert_map_EM(UvVertMap *vmap);
+
+int EM_texFaceCheck(void); /* can we edit UV's for this mesh?*/
+int EM_vertColorCheck(void); /* can we edit colors for this mesh?*/
+
+void EM_set_actFace(struct EditFace *efa);
+struct EditFace * EM_get_actFace(void);
+
 #endif

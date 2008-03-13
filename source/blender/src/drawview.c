@@ -70,7 +70,10 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_object_force.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -100,8 +103,12 @@
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_scene.h"
+#include "BKE_sculpt.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -110,6 +117,7 @@
 #include "BIF_editgroup.h"
 #include "BIF_editarmature.h"
 #include "BIF_editmesh.h"
+#include "BIF_editparticle.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_interface.h"
@@ -117,6 +125,7 @@
 #include "BIF_mywindow.h"
 #include "BIF_poseobject.h"
 #include "BIF_previewrender.h"
+#include "BIF_radialcontrol.h"
 #include "BIF_resources.h"
 #include "BIF_retopo.h"
 #include "BIF_screen.h"
@@ -136,6 +145,7 @@
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_seqaudio.h"
+#include "BSE_sequence.h"
 #include "BSE_trans_types.h"
 #include "BSE_time.h"
 #include "BSE_view.h"
@@ -436,10 +446,13 @@ static void draw_bgpic(void)
 	glPushMatrix();
 	
 	glaDefine2DArea(&curarea->winrct);
+
 	glEnable(GL_BLEND);
-	glPixelTransferf(GL_ALPHA_SCALE, (1.0f-bgpic->blend));
+
 	glPixelZoom(zoomx, zoomy);
-	glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+	glColor4f(1.0, 1.0, 1.0, 1.0-bgpic->blend);
+	glaDrawPixelsTex(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
+	
 	glPixelZoom(1.0, 1.0);
 	glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 
@@ -1017,11 +1030,13 @@ static void drawviewborder(void)
 	BIF_ThemeColor(TH_WIRE);
 	glRectf(x1, y1, x2, y2);
 		
-	/* camera name */
+	/* camera name - draw in highlighted text color */
 	if (ca && (ca->flag & CAM_SHOWNAME)) {
+		BIF_ThemeColor(TH_TEXT_HI);
 		glRasterPos2f(x1, y1-15);
 		
 		BMF_DrawString(G.font, G.vd->camera->id.name+2);
+		BIF_ThemeColor(TH_WIRE);
 	}
 
 
@@ -1075,7 +1090,7 @@ void backdrawview3d(int test)
 	int m;
 #endif
 
-	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT));
+	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT || G.f & G_TEXTUREPAINT);
 	else if(G.obedit && G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT));
 	else {
 		G.vd->flag &= ~V3D_NEEDBACKBUFDRAW;
@@ -1394,6 +1409,11 @@ static void draw_view_axis(void)
 	float dx, dy;
 	float h, s, v;
 	
+	/* thickness of lines is proportional to k */
+	/*	(log(k)-1) gives a more suitable thickness, but fps decreased by about 3 fps */
+	glLineWidth(k / 10);
+	//glLineWidth(log(k)-1); // a bit slow
+	
 	BIF_GetThemeColor3ubv(TH_GRID, (char *)gridcol);
 	
 	/* X */
@@ -1458,6 +1478,9 @@ static void draw_view_axis(void)
 		glRasterPos2i(start + dx + 2, start + dy + ydisp + 2);
 		BMF_DrawString(G.fonts, "z");
 	}
+	
+	/* restore line-width */
+	glLineWidth(1.0);
 }
 
  	
@@ -1481,25 +1504,57 @@ static void draw_view_icon(void)
 static void draw_viewport_name(ScrArea *sa)
 {
 	char *name = NULL;
+	char *printable = NULL;
 	
 	switch(G.vd->view) {
 		case 1:
-			name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back" : "Front";
+			if (G.vd->persp & V3D_PERSP_DO_3D_PERSP)
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Persp" : "Front Persp";
+			else
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Ortho" : "Front Ortho";
 			break;
 		case 3:
-			name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left" : "Right";
+			if (G.vd->persp & V3D_PERSP_DO_3D_PERSP)
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Persp" : "Right Persp";
+			else
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Ortho" : "Right Ortho";
 			break;
 		case 7:
-			name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom" : "Top";
+			if (G.vd->persp & V3D_PERSP_DO_3D_PERSP)
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Persp" : "Top Persp";
+			else
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Ortho" : "Top Ortho";
 			break;
 		default:
-			name = G.vd->persp==V3D_PERSP_USE_THE_CAMERA ? "Camera" : "User";
+			if (G.vd->persp==V3D_PERSP_USE_THE_CAMERA) {
+				if ((G.vd->camera) && (G.vd->camera->type == OB_CAMERA)) {
+					Camera *cam;
+					cam = G.vd->camera->data;
+					name = (cam->type != CAM_ORTHO) ? "Camera Persp" : "Camera Ortho";
+				} else {
+					name = "Object as Camera";
+				}
+			} else { 
+				name = (G.vd->persp & V3D_PERSP_DO_3D_PERSP) ? "User Persp" : "User Ortho";
+			}
+	}
+	
+	if (G.vd->localview) {
+		printable = malloc(strlen(name) + strlen(" (Local)_")); /* '_' gives space for '\0' */
+		strcpy(printable, name);
+		strcat(printable, " (Local)");
+	} else {
+		printable = name;
 	}
 
-	if (name) {
+	if (printable) {
 		BIF_ThemeColor(TH_TEXT_HI);
 		glRasterPos2i(10,  sa->winy-20);
-		BMF_DrawString(G.fonts, name);
+		BMF_DrawString(G.fonts, printable);
+	}
+
+	if (G.vd->localview) {
+		free(printable);
 	}
 }
 
@@ -1536,7 +1591,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	if(ob->type==OB_MESH) {		
 		eve= em->verts.first;
 		while(eve) {
-			if(eve->f & 1) {
+			if(eve->f & SELECT) {
 				evedef= eve;
 				tot++;
 				VecAddf(median, median, eve->co);
@@ -1592,18 +1647,18 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
-					if(bezt->f2 & 1) {
+					if(bezt->f2 & SELECT) {
 						VecAddf(median, median, bezt->vec[1]);
 						tot++;
 						median[4]+= bezt->weight;
 						totweight++;
 					}
 					else {
-						if(bezt->f1 & 1) {
+						if(bezt->f1 & SELECT) {
 							VecAddf(median, median, bezt->vec[0]);
 							tot++;
 						}
-						if(bezt->f3 & 1) {
+						if(bezt->f3 & SELECT) {
 							VecAddf(median, median, bezt->vec[2]);
 							tot++;
 						}
@@ -1615,7 +1670,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 				bp= nu->bp;
 				a= nu->pntsu*nu->pntsv;
 				while(a--) {
-					if(bp->f1 & 1) {
+					if(bp->f1 & SELECT) {
 						VecAddf(median, median, bp->vec);
 						median[3]+= bp->vec[3];
 						totw++;
@@ -1659,17 +1714,15 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 		Mat4MulVecfl(ob->obmat, median);
 	
 	if(block) {	// buttons
-	
+		int but_y;
+		if((ob->parent) && (ob->partype == PARBONE))	but_y = 135;
+		else											but_y = 150;
+		
 		uiBlockBeginAlign(block);
-		if((ob->parent) && (ob->partype == PARBONE)) {
-			uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Global",		160, 135, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
-			uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Local",		230, 135, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
-		}
-		else {
-			uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Global",		160, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
-			uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Local",		230, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
-		}
-
+		uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Global",		160, but_y, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
+		uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Local",		230, but_y, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
+		uiBlockEndAlign(block);
+		
 		memcpy(tfp->ve_median, median, sizeof(tfp->ve_median));
 		
 		uiBlockBeginAlign(block);
@@ -1704,6 +1757,15 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	10, 20, 290, 19, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "Weight is used for SoftBody Goal");
 		}
 		
+		if(ob->type==OB_CURVE && (totw==0)) { /* bez curves have no w */
+			uiBlockBeginAlign(block);
+			uiDefBut(block, BUT,B_SETPT_AUTO,"Auto",	10, 44, 72, 19, 0, 0, 0, 0, 0, "Auto handles (Shift H)");
+			uiDefBut(block, BUT,B_SETPT_VECTOR,"Vector",82, 44, 73, 19, 0, 0, 0, 0, 0, "Vector handles (V)");
+			uiDefBut(block, BUT,B_SETPT_ALIGN,"Align",155, 44, 73, 19, 0, 0, 0, 0, 0, "Align handles (H Toggles)");
+			uiDefBut(block, BUT,B_SETPT_FREE,"Free",	227, 44, 72, 19, 0, 0, 0, 0, 0, "Align handles (H Toggles)");
+			uiBlockEndAlign(block);
+		}
+		
 		if(totedge==1)
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Crease W:",	10, 30, 290, 19, &(tfp->ve_median[3]), 0.0, 1.0, 10, 3, "");
 		else if(totedge>1)
@@ -1725,7 +1787,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			
 			eve= em->verts.first;
 			while(eve) {
-				if(eve->f & 1) {
+				if(eve->f & SELECT) {
 					VecAddf(eve->co, eve->co, median);
 				}
 				eve= eve->next;
@@ -1758,17 +1820,17 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 					bezt= nu->bezt;
 					a= nu->pntsu;
 					while(a--) {
-						if(bezt->f2 & 1) {
+						if(bezt->f2 & SELECT) {
 							VecAddf(bezt->vec[0], bezt->vec[0], median);
 							VecAddf(bezt->vec[1], bezt->vec[1], median);
 							VecAddf(bezt->vec[2], bezt->vec[2], median);
 							bezt->weight+= median[4];
 						}
 						else {
-							if(bezt->f1 & 1) {
+							if(bezt->f1 & SELECT) {
 								VecAddf(bezt->vec[0], bezt->vec[0], median);
 							}
-							if(bezt->f3 & 1) {
+							if(bezt->f3 & SELECT) {
 								VecAddf(bezt->vec[2], bezt->vec[2], median);
 							}
 						}
@@ -1779,7 +1841,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 					bp= nu->bp;
 					a= nu->pntsu*nu->pntsv;
 					while(a--) {
-						if(bp->f1 & 1) {
+						if(bp->f1 & SELECT) {
 							VecAddf(bp->vec, bp->vec, median);
 							bp->vec[3]+= median[3];
 							bp->weight+= median[4];
@@ -1831,7 +1893,6 @@ static void validate_bonebutton_cb(void *bonev, void *namev)
 		allqueue(REDRAWALL, 0);
 	}
 }
-
 
 static void v3d_posearmature_buts(uiBlock *block, Object *ob, float lim)
 {
@@ -1912,20 +1973,20 @@ static void v3d_editarmature_buts(uiBlock *block, Object *ob, float lim)
 	uiButSetFunc(but, validate_editbonebutton_cb, ebone, NULL);
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootX:",	10, 70, 140, 19, ebone->head, -lim, lim, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootY:",	10, 50, 140, 19, ebone->head+1, -lim, lim, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootZ:",	10, 30, 140, 19, ebone->head+2, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "HeadX:",	10, 70, 140, 19, ebone->head, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "HeadY:",	10, 50, 140, 19, ebone->head+1, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "HeadZ:",	10, 30, 140, 19, ebone->head+2, -lim, lim, 10, 3, "");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipX:",	160, 70, 140, 19, ebone->tail, -lim, lim, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipY:",	160, 50, 140, 19, ebone->tail+1, -lim, lim, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipZ:",	160, 30, 140, 19, ebone->tail+2, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TailX:",	160, 70, 140, 19, ebone->tail, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TailY:",	160, 50, 140, 19, ebone->tail+1, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TailZ:",	160, 30, 140, 19, ebone->tail+2, -lim, lim, 10, 3, "");
 	uiBlockEndAlign(block);
+	
 	tfp->ob_eul[0]= 180.0*ebone->roll/M_PI;
 	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Roll:",	10, 100, 140, 19, tfp->ob_eul, -lim, lim, 1000, 3, "");
-	
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipRadius:",	10, 150, 140, 19, &ebone->rad_tail, 0, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TailRadius:",	10, 150, 140, 19, &ebone->rad_tail, 0, lim, 10, 3, "");
 	if (ebone->parent && ebone->flag & BONE_CONNECTED )
 		uiDefButF(block, NUM, B_ARMATUREPANEL1, "HeadRadius:",	10, 130, 140, 19, &ebone->parent->rad_tail, 0, lim, 10, 3, "");
 	else
@@ -2176,7 +2237,81 @@ void do_viewbuts(unsigned short event)
 			allqueue(REDRAWVIEW3D, 1);
 		}
 		break;
+	case B_TRANSFORMSPACEADD:
+		BIF_manageTransformOrientation(1, 0);
+		allqueue(REDRAWVIEW3D, 1);
+		break;
+	case B_TRANSFORMSPACECLEAR:
+		BIF_clearTransformOrientation();
+		allqueue(REDRAWVIEW3D, 1);
 	}
+}
+
+void removeTransformOrientation_func(void *target, void *unused)
+{
+	BIF_removeTransformOrientation((TransformOrientation *) target);
+}
+
+void selectTransformOrientation_func(void *target, void *unused)
+{
+	BIF_selectTransformOrientation((TransformOrientation *) target);
+}
+
+static void view3d_panel_transform_spaces(short cntrl)
+{
+	ListBase *transform_spaces = &G.scene->transform_spaces;
+	TransformOrientation *ts = transform_spaces->first;
+	uiBlock *block;
+	uiBut *but;
+	int xco = 20, yco = 70, height = 140;
+	int index;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_transform", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
+	uiSetPanelHandler(VIEW3D_HANDLER_TRANSFORM);  // for close and esc
+
+	if(uiNewPanel(curarea, block, "Transform Orientations", "View3d", 10, 230, 318, height)==0) return;
+
+	uiNewPanelHeight(block, height);
+
+	uiBlockBeginAlign(block);
+	
+	if (G.obedit)
+		uiDefBut(block, BUT, B_TRANSFORMSPACEADD, "Add", xco,120,80,20, 0, 0, 0, 0, 0, "Add the selected element as a Transform Orientation");
+	else
+		uiDefBut(block, BUT, B_TRANSFORMSPACEADD, "Add", xco,120,80,20, 0, 0, 0, 0, 0, "Add the active object as a Transform Orientation");
+
+	uiDefBut(block, BUT, B_TRANSFORMSPACECLEAR, "Clear", xco + 80,120,80,20, 0, 0, 0, 0, 0, "Removal all Transform Orientations");
+	
+	uiBlockEndAlign(block);
+	
+	uiBlockBeginAlign(block);
+	
+	uiDefButS(block, ROW, REDRAWHEADERS, "Global",	xco, 		90, 40,20, &G.vd->twmode, 5.0, (float)V3D_MANIP_GLOBAL,0, 0, "Global Transform Orientation");
+	uiDefButS(block, ROW, REDRAWHEADERS, "Local",	xco + 40,	90, 40,20, &G.vd->twmode, 5.0, (float)V3D_MANIP_LOCAL, 0, 0, "Local Transform Orientation");
+	uiDefButS(block, ROW, REDRAWHEADERS, "Normal",	xco + 80,	90, 40,20, &G.vd->twmode, 5.0, (float)V3D_MANIP_NORMAL,0, 0, "Normal Transform Orientation");
+	uiDefButS(block, ROW, REDRAWHEADERS, "View",		xco + 120,	90, 40,20, &G.vd->twmode, 5.0, (float)V3D_MANIP_VIEW,	0, 0, "View Transform Orientation");
+	
+	for (index = V3D_MANIP_CUSTOM, ts = transform_spaces->first ; ts ; ts = ts->next, index++) {
+
+		BIF_ThemeColor(TH_BUT_ACTION);
+		if (G.vd->twmode == index) {
+			but = uiDefIconButS(block,ROW, REDRAWHEADERS, ICON_CHECKBOX_HLT, xco,yco,XIC,YIC, &G.vd->twmode, 5.0, (float)index, 0, 0, "Use this Custom Transform Orientation");
+		}
+		else {
+			but = uiDefIconButS(block,ROW, REDRAWHEADERS, ICON_CHECKBOX_DEHLT, xco,yco,XIC,YIC, &G.vd->twmode, 5.0, (float)index, 0, 0, "Use this Custom Transform Orientation");
+		}
+		uiButSetFunc(but, selectTransformOrientation_func, ts, NULL);
+		uiDefBut(block, TEX, 0, "", xco+=XIC, yco,100+XIC,20, &ts->name, 0, 30, 0, 0, "Edits the name of this Transform Orientation");
+		but = uiDefIconBut(block, BUT, REDRAWVIEW3D, ICON_X, xco+=100+XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, "Deletes this Transform Orientation");
+		uiButSetFunc(but, removeTransformOrientation_func, ts, NULL);
+
+		xco = 20;
+		yco -= 25;
+	}
+	uiBlockEndAlign(block);
+	
+	if(yco < 0) uiNewPanelHeight(block, height-yco);
 }
 
 
@@ -2200,12 +2335,20 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_OBJECT);  // for close and esc
 
-	if(!uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 204))
-		return;
+	if((G.f & G_SCULPTMODE) && !G.obedit) {
+		if(!uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 234))
+			return;
+	} else if(G.f & G_PARTICLEEDIT && !G.obedit){
+		if(!uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 234))
+			return;
+	} else {
+		if(!uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 204))
+			return;
+	}
 
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
-	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
+	if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
 		uiBlockSetFlag(block, UI_BLOCK_FRONTBUFFER);	// force old style frontbuffer draw
 	}
 	else {
@@ -2217,13 +2360,17 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		uiButSetFunc(bt, test_idbutton_cb, ob->id.name, NULL);
 #endif
 
-
-		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
-		if((ob->parent) && (ob->partype == PARBONE)) {
-			if (G.f & G_SCULPTMODE)
-				uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 310, 180, 140, 20, ob->parsubstr, 0.0, 32.0, 0, 0, "");
-			else
-				uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 160, 160, 140, 20, ob->parsubstr, 0.0, 32.0, 0, 0, "");
+		if((G.f & G_PARTICLEEDIT)==0) {
+			uiBlockBeginAlign(block);
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
+			if((ob->parent) && (ob->partype == PARBONE)) {
+				bt= uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 160, 160, 140, 20, ob->parsubstr, 0, 30, 0, 0, "");
+				uiButSetCompleteFunc(bt, autocomplete_bone, (void *)ob->parent);
+			}
+			else {
+				strcpy(ob->parsubstr, "");
+			}
+			uiBlockEndAlign(block);
 		}
 	}
 
@@ -2258,6 +2405,9 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	else if(G.f & G_SCULPTMODE) {
 		uiNewPanelTitle(block, "Sculpt Properties");
 		sculptmode_draw_interface_tools(block,10,150);
+	} else if(G.f & G_PARTICLEEDIT){
+		uiNewPanelTitle(block, "Particle Edit Properties");
+		particle_edit_buttons(block);
 	} else {
 		BoundBox *bb = NULL;
 
@@ -2348,7 +2498,7 @@ static void view3d_panel_background(short cntrl)	// VIEW3D_HANDLER_BACKGROUND
 	uiSetPanelHandler(VIEW3D_HANDLER_BACKGROUND);  // for close and esc
 	if(uiNewPanel(curarea, block, "Background Image", "View3d", 340, 10, 318, 204)==0) return;
 
-	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
+	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT || G.f & G_TEXTUREPAINT) {
 		uiBlockSetFlag(block, UI_BLOCK_FRONTBUFFER);	// force old style frontbuffer draw
 	}
 	
@@ -2363,12 +2513,12 @@ static void view3d_panel_background(short cntrl)	// VIEW3D_HANDLER_BACKGROUND
 	}
 	
 	if(!(vd->flag & V3D_DISPBGPIC)) {
-		uiDefButBitS(block, TOG, V3D_DISPBGPIC, B_REDR, "Use Background Image", 10, 180, 150, 20, &vd->flag, 0, 0, 0, 0, "Display an image in the background of the 3D View");
+		uiDefButBitS(block, TOG, V3D_DISPBGPIC, B_REDR, "Use Background Image", 10, 180, 150, 20, &vd->flag, 0, 0, 0, 0, "Display an image in the background of this 3D View");
 		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
 	}
 	else {
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, V3D_DISPBGPIC, B_REDR, "Use", 10, 225, 50, 20, &vd->flag, 0, 0, 0, 0, "Display an image in the background of the 3D View");
+		uiDefButBitS(block, TOG, V3D_DISPBGPIC, B_REDR, "Use", 10, 225, 50, 20, &vd->flag, 0, 0, 0, 0, "Display an image in the background of this 3D View");
 		uiDefButF(block, NUMSLI, B_REDR, "Blend:",	60, 225, 150, 20, &vd->bgpic->blend, 0.0,1.0, 0, 0, "Set the transparency of the background image");
 		uiDefButF(block, NUM, B_REDR, "Size:",		210, 225, 100, 20, &vd->bgpic->size, 0.1, 250.0*vd->grid, 100, 0, "Set the size (width) of the background image");
 
@@ -2403,8 +2553,8 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 	uiDefBut(block, LABEL, 1, "Grid:",					10, 220, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, REDRAWVIEW3D, "Spacing:",		10, 200, 140, 19, &vd->grid, 0.001, 100.0, 10, 0, "Set the distance between grid lines");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "Lines:",		10, 180, 140, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of grid lines");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "Divisions:",		10, 160, 140, 19, &vd->gridsubdiv, 0.0, 100.0, 100, 0, "Set the number of grid lines");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "Lines:",		10, 180, 140, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of grid lines in perspective view");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "Divisions:",		10, 160, 140, 19, &vd->gridsubdiv, 1.0, 100.0, 100, 0, "Set the number of grid lines");
 	uiBlockEndAlign(block);
 
 	uiDefBut(block, LABEL, 1, "3D Display:",							160, 220, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
@@ -2436,11 +2586,12 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 	uiDefButBitS(block, TOG, V3D_SELECT_OUTLINE, REDRAWVIEW3D, "Outline Selected", 10, 30, 140, 19, &vd->flag, 0, 0, 0, 0, "Highlight selected objects with an outline, in Solid, Shaded or Textured viewport shading modes");
 	uiDefButBitS(block, TOG, V3D_DRAW_CENTERS, REDRAWVIEW3D, "All Object Centers", 10, 10, 140, 19, &vd->flag, 0, 0, 0, 0, "Draw the center points on all objects");
 	uiDefButBitS(block, TOGN, V3D_HIDE_HELPLINES, REDRAWVIEW3D, "Relationship Lines", 10, -10, 140, 19, &vd->flag, 0, 0, 0, 0, "Draw dashed lines indicating Parent, Constraint, or Hook relationships");
+	uiDefButBitS(block, TOG, V3D_SOLID_TEX, REDRAWVIEW3D, "Solid Tex", 10, -30, 140, 19, &vd->flag2, 0, 0, 0, 0, "Display textures in Solid draw type (Shift T)");
 	uiBlockEndAlign(block);
 
 	uiDefBut(block, LABEL, 1, "View Locking:",				160, 50, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "Object:", 160, 30, 140, 19, &vd->ob_centre, "Lock view to center always on this Object"); 
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "Object:", 160, 30, 140, 19, &vd->ob_centre, "Lock view to center to this Object"); 
 	uiDefBut(block, TEX, REDRAWVIEW3D, "Bone:",						160, 10, 140, 19, vd->ob_centre_bone, 1, 31, 0, 0, "If view locked to Object, use this Bone to lock to view to");
 
 }
@@ -2498,6 +2649,9 @@ static void view3d_blockhandlers(ScrArea *sa)
 		case VIEW3D_HANDLER_PREVIEW:
 			view3d_panel_preview(sa, v3d->blockhandler[a+1]);
 			break;			
+		case VIEW3D_HANDLER_TRANSFORM:
+			view3d_panel_transform_spaces(v3d->blockhandler[a+1]);
+ 			break;			
 		}
 		/* clear action value for event */
 		v3d->blockhandler[a+1]= 0;
@@ -2590,10 +2744,6 @@ static void draw_dupli_objects_color(View3D *v3d, Base *base, int color)
 	
 	if (base->object->restrictflag & OB_RESTRICT_VIEW) return;
 	
-	/* test if we can do a displist */
-	if(base->object->transflag & OB_DUPLIGROUP)
-		use_displist= 0;
-	
 	tbase.flag= OB_FROMDUPLI|base->flag;
 	lb= object_duplilist(G.scene, base->object);
 
@@ -2622,7 +2772,7 @@ static void draw_dupli_objects_color(View3D *v3d, Base *base, int color)
 			if(use_displist == -1) {
 				
 				/* lamp drawing messes with matrices, could be handled smarter... but this works */
-				if(dob->ob->type==OB_LAMP)
+				if(dob->ob->type==OB_LAMP || dob->type==OB_DUPLIGROUP)
 					use_displist= 0;
 				else {
 					/* disable boundbox check for list creation */
@@ -2707,13 +2857,47 @@ void view3d_update_depths(View3D *v3d)
 	}
 }
 
+/* Enable sculpting in wireframe mode by drawing sculpt object only to the depth buffer */
+static void draw_sculpt_depths(View3D *v3d)
+{
+	Object *ob = OBACT;
+
+	int dt= MIN2(v3d->drawtype, ob->dt);
+	if(v3d->zbuf==0 && dt>OB_WIRE)
+		dt= OB_WIRE;
+	if(dt == OB_WIRE) {
+		GLboolean depth_on;
+		int orig_vdt = v3d->drawtype;
+		int orig_zbuf = v3d->zbuf;
+		int orig_odt = ob->dt;
+
+		glGetBooleanv(GL_DEPTH_TEST, &depth_on);
+		v3d->drawtype = ob->dt = OB_SOLID;
+		v3d->zbuf = 1;
+
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+		glEnable(GL_DEPTH_TEST);
+		draw_object(BASACT, 0);
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		if(!depth_on)
+			glDisable(GL_DEPTH_TEST);
+
+		v3d->drawtype = orig_vdt;
+		v3d->zbuf = orig_zbuf;
+		ob->dt = orig_odt;
+	}
+}
+
+static void draw_viewport_fps(ScrArea *sa);
+
+
 void drawview3dspace(ScrArea *sa, void *spacedata)
 {
 	View3D *v3d= spacedata;
 	Base *base;
 	Object *ob;
 	Scene *sce;
-	char retopo, sculpt;
+	char retopo, sculptparticle;
 	Object *obact = OBACT;
 	
 	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
@@ -2723,6 +2907,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		for(SETLOOPER(G.scene->set, base))
 			object_handle_update(base->object);   // bke_object.h
 	}
+
 	for(base= G.scene->base.first; base; base= base->next)
 		object_handle_update(base->object);   // bke_object.h
 	
@@ -2757,7 +2942,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			BIF_GetThemeColor3fv(TH_BACK, col);
 			glClearColor(col[0], col[1], col[2], 0.0); 
 		}
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 		
 		glLoadIdentity();
 	}
@@ -2765,7 +2950,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		float col[3];
 		BIF_GetThemeColor3fv(TH_BACK, col);
 		glClearColor(col[0], col[1], col[2], 0.0);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	}
 	
 	myloadmatrix(v3d->viewmat);
@@ -2841,7 +3026,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	}
 
 	retopo= retopo_mesh_check() || retopo_curve_check();
-	sculpt= (G.f & G_SCULPTMODE) && !G.obedit;
+	sculptparticle= (G.f & (G_SCULPTMODE|G_PARTICLEEDIT)) && !G.obedit;
 	if(retopo)
 		view3d_update_depths(v3d);
 
@@ -2853,12 +3038,16 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		}
 	}
 
-	if(!retopo && sculpt && !(obact && (obact->dtx & OB_DRAWXRAY)))
+	if(!retopo && sculptparticle && !(obact && (obact->dtx & OB_DRAWXRAY))) {
+		if(G.f & G_SCULPTMODE)
+			draw_sculpt_depths(v3d);
 		view3d_update_depths(v3d);
+	}
 
 	if(G.moving) {
 		BIF_drawConstraint();
-		if(G.obedit) BIF_drawPropCircle();	// only editmode has proportional edit
+		if(G.obedit || (G.f & G_PARTICLEEDIT))
+			BIF_drawPropCircle(); // only editmode and particles have proportional edit
 		BIF_drawSnap();
 	}
 
@@ -2867,9 +3056,12 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	/* Transp and X-ray afterdraw stuff */
 	view3d_draw_xray(v3d, 0);	// clears zbuffer if it is used!
 	view3d_draw_transp(v3d, 0);
-	
-	if(!retopo && sculpt && (obact && (OBACT->dtx & OB_DRAWXRAY)))
+
+	if(!retopo && sculptparticle && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
+		if(G.f & G_SCULPTMODE)
+			draw_sculpt_depths(v3d);
 		view3d_update_depths(v3d);
+	}
 	
 	if(v3d->flag & V3D_CLIPPING)
 		view3d_clr_clipping();
@@ -2885,66 +3077,14 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 	/* Draw Sculpt Mode brush */
 	if(!G.obedit && (G.f & G_SCULPTMODE) && area_is_active_area(v3d->area) && sculpt_session()) {
-		PropsetData *pd= sculpt_session()->propset;
-		short r1=100, r2=100, r3=100;
-		short mouse[2];
-		if(pd) {
-			if(pd->mode == PropsetSize) {
-				r1= sculptmode_brush()->size;
-				r2= pd->origsize;
-				r3= r1;
-			} else if(pd->mode == PropsetStrength) {
-				r1= 200 - sculptmode_brush()->strength * 2;
-				r2= 200;
-				r3= 200;
-			} else if(pd->mode == PropsetTexRot) {
-				r1= r2= 200;
-				r3= 200;
-			}
-		
-			/* Draw brush with texture */
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		RadialControl *rc= sculpt_session()->radialcontrol;
 
-			glBindTexture(GL_TEXTURE_2D, pd->tex);
+		if(sculpt_data()->flags & SCULPT_INPUT_SMOOTH)
+			sculpt_stroke_draw();
 
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-			
-			glPushMatrix();
-			glTranslatef(pd->origloc[0], pd->origloc[1], 0);
-			glRotatef(tex_angle(), 0, 0, 1);
-
-			glEnable(GL_TEXTURE_2D);
-			glBegin(GL_QUADS);
-			glColor4f(0,0,0,1);
-			glTexCoord2f(0,0);
-			glVertex2f(-r3, -r3);
-			glTexCoord2f(1,0);
-			glVertex2f(r3, -r3);
-			glTexCoord2f(1,1);
-			glVertex2f(r3, r3);
-			glTexCoord2f(0,1);
-			glVertex2f(-r3, r3);
-			glEnd();
-			glDisable(GL_TEXTURE_2D);
-			
-			glPopMatrix();
-
-			if(r1 != r2)
-				fdrawXORcirc(pd->origloc[0], pd->origloc[1], r1);
-			fdrawXORcirc(pd->origloc[0], pd->origloc[1], r2);
-			
-			if(pd->mode == PropsetTexRot) {
-				const float ang= pd->origtexrot * (M_PI/180.0f);
-				getmouseco_areawin(mouse);
-				sdrawXORline(pd->origloc[0], pd->origloc[1],
-				             pd->origloc[0]+200*cos(ang), pd->origloc[1]+200*sin(ang));
-				sdrawXORline(pd->origloc[0], pd->origloc[1], mouse[0], mouse[1]);
-			}
-		}
-		else if(sculpt_data()->draw_flag & SCULPTDRAW_BRUSH) {
+		if(rc)
+			radialcontrol_draw(rc);
+		else if(sculpt_data()->flags & SCULPT_DRAW_BRUSH) {
 			short csc[2], car[2];
 			getmouseco_sc(csc);
 			getmouseco_areawin(car);
@@ -2955,7 +3095,22 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				fdrawXORcirc((float)car[0], (float)car[1], sculptmode_brush()->size);
 		}
 	}
+
+	retopo_paint_view_update(v3d);
 	retopo_draw_paint_lines();
+
+	if(!G.obedit && OBACT && G.f&G_PARTICLEEDIT && area_is_active_area(v3d->area)){
+		ParticleSystem *psys = PE_get_current(OBACT);
+		ParticleEditSettings *pset = PE_settings();
+
+		short c[2];
+		if(*PE_radialcontrol())
+			radialcontrol_draw(*PE_radialcontrol());
+		else if(psys && psys->edit && pset->brushtype>=0) {
+			getmouseco_areawin(c);
+			fdrawXORcirc((float)c[0], (float)c[1], (float)pset->brush[pset->brushtype].size);
+		}
+	}
 
 	if(v3d->persp>1) drawviewborder();
 	if(v3d->flag2 & V3D_FLYMODE) drawviewborder_flymode();
@@ -2964,8 +3119,12 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		draw_view_axis();
 	else	
 		draw_view_icon();
-	if(U.uiflag & USER_SHOW_VIEWPORTNAME)
+	
+	if(U.uiflag & USER_SHOW_FPS && G.f & G_PLAYANIM) {
+		draw_viewport_fps(sa);
+	} else if(U.uiflag & USER_SHOW_VIEWPORTNAME) {
 		draw_viewport_name(sa);
+	}
 
 	ob= OBACT;
 	if(ob && (U.uiflag & USER_DRAWVIEWINFO)) 
@@ -2980,7 +3139,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 	sa->win_swap= WIN_BACK_OK;
 	
-	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
+	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT || G.f & G_TEXTUREPAINT) {
 		v3d->flag |= V3D_NEEDBACKBUFDRAW;
 		addafterqueue(sa->win, BACKBUFDRAW, 1);
 	}
@@ -3007,22 +3166,26 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 }
 
 
-void drawview3d_render(struct View3D *v3d, int winx, int winy)
+void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4])
 {
 	Base *base;
 	Scene *sce;
-	float winmat[4][4];
+	float v3dwinmat[4][4];
 	
-	update_for_newframe_muted();	/* first, since camera can be animated */
+	if(!winmat)
+		setwinmatrixview3d(winx, winy, NULL);
 
-	setwinmatrixview3d(winx, winy, NULL);
-	
 	setviewmatrixview3d();
 	myloadmatrix(v3d->viewmat);
+
+	/* when winmat is not NULL, it overrides the regular window matrix */
 	glMatrixMode(GL_PROJECTION);
-	mygetmatrix(winmat);
+	if(winmat)
+		myloadmatrix(winmat);
+	mygetmatrix(v3dwinmat);
 	glMatrixMode(GL_MODELVIEW);
-	Mat4MulMat4(v3d->persmat, v3d->viewmat, winmat);
+
+	Mat4MulMat4(v3d->persmat, v3d->viewmat, v3dwinmat);
 	Mat4Invert(v3d->persinv, v3d->persmat);
 	Mat4Invert(v3d->viewinv, v3d->viewmat);
 
@@ -3130,13 +3293,23 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy)
 
 
 double tottime = 0.0;
+static ScrArea *oldsa;
+static double swaptime;
+static int curmode;
+
+/* used for fps display */
+static double redrawtime;
+static double lredrawtime;
 
 int update_time(void)
 {
 	static double ltime;
 	double time;
 
-	if ((U.mixbufsize)&&(audiostream_pos() != CFRA)&&(G.scene->audio.flag & AUDIO_SYNC)) return 0;
+	if ((audiostream_pos() != CFRA)
+	    && (G.scene->audio.flag & AUDIO_SYNC)) {
+		return 0;
+	}
 
 	time = PIL_check_seconds_timer();
 	
@@ -3145,60 +3318,238 @@ int update_time(void)
 	return (tottime < 0.0);
 }
 
-void inner_play_anim_loop(int init, int mode)
+static void draw_viewport_fps(ScrArea *sa)
+{
+	float fps;
+	char printable[16];
+
+	
+	if (lredrawtime == redrawtime)
+		return;
+	
+	printable[0] = '\0';
+	fps = (float)(1.0/(lredrawtime-redrawtime));
+	
+	/* is this more then half a frame behind? */
+	if (fps+0.5 < FPS) {
+		BIF_ThemeColor(TH_REDALERT);
+		sprintf(printable, "fps: %.2f", (float)fps);
+	} else {
+		BIF_ThemeColor(TH_TEXT_HI);
+		sprintf(printable, "fps: %i", (int)(fps+0.5));
+	}
+	
+	glRasterPos2i(10,  sa->winy-20);
+	BMF_DrawString(G.fonts, printable);
+}
+
+static void inner_play_prefetch_frame(int mode, int cfra)
 {
 	ScrArea *sa;
-	static ScrArea *oldsa;
-	static double swaptime;
-	static int curmode;
+	int oldcfra = CFRA;
+	ScrArea *oldcurarea = curarea;
 
-	/* init */
-	if(init) {
-		oldsa= curarea;
-		swaptime= 1.0/(float)G.scene->r.frs_sec;
-		tottime= 0.0;
-		curmode= mode;
-
+	if (!U.prefetchframes) {
 		return;
 	}
 
-	set_timecursor(CFRA);
-	
-	update_for_newframe_nodraw(1);	/* adds no events in UI */
+	CFRA = cfra;
 
 	sa= G.curscreen->areabase.first;
 	while(sa) {
 		if(sa==oldsa) {
-			scrarea_do_windraw(sa);
+			scrarea_do_winprefetchdraw(sa);
 		}
-		else if(curmode & 1) { /* all view3d and seq spaces */
+		else if(mode & 1) { /* all view3d and seq spaces */
 			if ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_SEQ) {
-				scrarea_do_windraw(sa);
+				scrarea_do_winprefetchdraw(sa);
 			}
 		}
-		else if(curmode & 4) { /* all seq spaces */
+		else if(mode & 4) { /* all seq spaces */
 			if (sa->spacetype == SPACE_SEQ) {
-				scrarea_do_windraw(sa);
+				scrarea_do_winprefetchdraw(sa);
 			}
 		}		
 		
 		sa= sa->next;	
 	}
+
+	CFRA = oldcfra;
+	curarea = oldcurarea;
+}
+
+static void inner_play_prefetch_startup(int mode)
+{
+	int i;
+
+	if (!U.prefetchframes) {
+		return;
+	}
+
+	seq_start_threads();
+
+	for (i = 0; i <= U.prefetchframes; i++) {
+		int cfra = CFRA + i;
+		inner_play_prefetch_frame(mode, cfra);
+	}
+
+	seq_wait_for_prefetch_ready();
+}
+
+static void inner_play_prefetch_shutdown(int mode)
+{
+	if (!U.prefetchframes) {
+		return;
+	}
+	seq_stop_threads();
+}
+
+static int cached_dynamics(int sfra, int efra)
+{
+	Base *base = G.scene->base.first;
+	Object *ob;
+	ModifierData *md;
+	ParticleSystem *psys;
+	int i, stack_index=-1, cached=1;
+
+	while(base && cached) {
+		ob = base->object;
+		if(ob->softflag & OB_SB_ENABLE && ob->soft) {
+			for(i=0, md=ob->modifiers.first; md; i++, md=md->next) {
+				if(md->type == eModifierType_Softbody) {
+					stack_index = i;
+					break;
+				}
+			}
+			for(i=sfra; i<=efra && cached; i++)
+				cached &= BKE_ptcache_id_exist(&ob->id,i,stack_index);
+		}
+
+		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+			stack_index = modifiers_indexInObject(ob,(ModifierData*)psys_get_modifier(ob,psys));
+			if(psys->part->type==PART_HAIR) {
+				if(psys->softflag & OB_SB_ENABLE && psys->soft);
+				else
+					stack_index = -1;
+			}
+
+			if(stack_index >= 0)
+				for(i=sfra; i<=efra && cached; i++)
+					cached &= BKE_ptcache_id_exist(&ob->id,i,stack_index);
+		}
+		
+		base = base->next;
+	}
+
+	return cached;
+}
+void inner_play_anim_loop(int init, int mode)
+{
+	ScrArea *sa;
+	static int last_cfra = -1;
+	static int cached = 0;
+
+	/* init */
+	if(init) {
+		oldsa= curarea;
+		swaptime= 1.0/FPS;
+		tottime= 0.0;
+		curmode= mode;
+		last_cfra = -1;
+		cached = cached_dynamics(PSFRA,PEFRA);
+		
+		redrawtime = 1.0/FPS;
+		lredrawtime = 0.0;
+		return;
+	}
+
+	if (CFRA != last_cfra) {
+		int pf;
+		set_timecursor(CFRA);
 	
+		update_for_newframe_nodraw(1);	/* adds no events in UI */
+
+		sa= G.curscreen->areabase.first;
+		while(sa) {
+			if(sa==oldsa) {
+				scrarea_do_windraw(sa);
+			}
+			else if(curmode & 1) { /* all view3d and seq spaces */
+				if ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_SEQ) {
+					scrarea_do_windraw(sa);
+				}
+			}
+			else if(curmode & 4) { /* all seq spaces */
+				if (sa->spacetype == SPACE_SEQ) {
+					scrarea_do_windraw(sa);
+				}
+			}		
+		
+			sa= sa->next;	
+		}
+
+		if (last_cfra == -1) {
+			last_cfra = CFRA - 1;
+		}
+		
+		if (U.prefetchframes) {
+			pf = last_cfra;
+
+			if (CFRA - last_cfra >= U.prefetchframes || 
+			    CFRA - last_cfra < 0) {
+				pf = CFRA - U.prefetchframes;
+				fprintf(stderr, 
+					"SEQ-THREAD: Lost sync, "
+					"stopping threads, "
+					"back to skip mode...\n");
+				seq_stop_threads();
+			} else {
+				while (pf < CFRA) {
+					int c;
+					pf++;
+					c = pf + U.prefetchframes;
+					if (c >= PEFRA) {
+						c -= PEFRA;
+						c += PSFRA;
+					}
+
+					inner_play_prefetch_frame(curmode, c);
+				}
+			}
+			
+		}
+	}
+
+	last_cfra = CFRA;
+
 	/* make sure that swaptime passed by */
 	tottime -= swaptime;
-	while (update_time()) PIL_sleep_ms(1);
-
-	if(CFRA>=PEFRA) {
-		if (tottime > 0.0) tottime = 0.0;
-		CFRA= PSFRA;
+	while (update_time()) {
+		PIL_sleep_ms(1);
+	}
+	
+	if (CFRA >= PEFRA) {
+		if (tottime > 0.0) {
+			tottime = 0.0;
+		}
+		CFRA = PSFRA;
 		audiostream_stop();
 		audiostream_start( CFRA );
+		cached = cached_dynamics(PSFRA,PEFRA);
+	} else {
+		if (cached
+		    && (G.scene->audio.flag & AUDIO_SYNC)) {
+			CFRA = audiostream_pos();
+		} else {
+			CFRA++;
+		}
+		if (CFRA < last_cfra) {
+			fprintf(stderr, 
+				"SEQ-THREAD: CFRA running backwards: %d\n",
+				CFRA);
+		}
 	}
-	else {
-		if (U.mixbufsize && (G.scene->audio.flag & AUDIO_SYNC)) CFRA = audiostream_pos();
-		else CFRA++;
-	}
+
 }
 
 /* play_anim: 'mode' defines where to play and if repeat is on (now bitfield):
@@ -3211,7 +3562,7 @@ int play_anim(int mode)
 	ScrArea *sa, *oldsa;
 	int cfraont;
 	unsigned short event=0;
-	short val;
+	short val = 0; /* its possible qtest() wont run and val must be initialized */
 
 	/* patch for very very old scenes */
 	if(SFRA==0) SFRA= 1;
@@ -3219,31 +3570,35 @@ int play_anim(int mode)
 
 	if(PSFRA>PEFRA) return 0;
 	
-	update_time();
-
 	/* waitcursor(1); */
 	G.f |= G_PLAYANIM;		/* in sequence.c and view.c this is handled */
 
 	cfraont= CFRA;
 	oldsa= curarea;
 
-	audiostream_start( CFRA );
-	
 	if (curarea && curarea->spacetype == SPACE_SEQ) {
 		SpaceSeq *sseq = curarea->spacedata.first;
 		if (sseq->mainb == 0) mode |= 4;
 	}
+
+	inner_play_prefetch_startup(mode);
+
+	update_time();
 	
 	inner_play_anim_loop(1, mode);	/* 1==init */
+
+	audiostream_start( CFRA );
 	
 	 /* forces all buffers to be OK for current frame (otherwise other windows get redrawn with CFRA+1) */
 	curarea->win_swap= WIN_BACK_OK;
 	screen_swapbuffers();
-	
-	while(TRUE) {
 
+	while(TRUE) {
+		
+		if  (U.uiflag & USER_SHOW_FPS)
+			lredrawtime = PIL_check_seconds_timer();
+		
 		while(qtest()) {
-			
 			/* we test events first because of MKEY event */
 			
 			event= extern_qread(&val);
@@ -3264,17 +3619,23 @@ int play_anim(int mode)
 				if(val) add_marker(CFRA-1);
 			}
 		}
-		if(ELEM3(event, ESCKEY, SPACEKEY, RIGHTMOUSE)) break;
+		if(val && ELEM3(event, ESCKEY, SPACEKEY, RIGHTMOUSE)) break;
 		
 		inner_play_anim_loop(0, 0);
+		 
+		
 		screen_swapbuffers();
-				
+		
+		if (U.uiflag & USER_SHOW_FPS)
+			redrawtime = lredrawtime;
+		
 		if((mode & 2) && CFRA==PEFRA) break; /* no replay */	
 	}
 
 	if(event==SPACEKEY);
 	else CFRA= cfraont;
 	
+	inner_play_prefetch_shutdown(mode);
 	audiostream_stop();
 
 	if(oldsa!=curarea) areawinset(oldsa->win);

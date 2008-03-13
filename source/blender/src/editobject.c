@@ -74,11 +74,13 @@
 #include "DNA_meta_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_fluidsim.h"
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_property_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
@@ -90,6 +92,7 @@
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
+#include "BLI_rand.h"
 
 #include "BKE_action.h"
 #include "BKE_anim.h"
@@ -98,6 +101,7 @@
 #include "BKE_customdata.h"
 #include "BKE_blender.h"
 #include "BKE_booleanops.h"
+#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_depsgraph.h"
@@ -115,8 +119,10 @@
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_property.h"
 #include "BKE_sca.h"
 #include "BKE_scene.h"
@@ -133,6 +139,7 @@
 #include "BIF_editlattice.h"
 #include "BIF_editmesh.h"
 #include "BIF_editoops.h"
+#include "BIF_editparticle.h"
 #include "BIF_editview.h"
 #include "BIF_editarmature.h"
 #include "BIF_gl.h"
@@ -140,6 +147,7 @@
 #include "BIF_interface.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
+#include "BIF_previewrender.h"
 #include "BIF_resources.h"
 #include "BIF_retopo.h"
 #include "BIF_screen.h"
@@ -174,7 +182,6 @@
 
 #include "blendef.h"
 #include "butspace.h"
-#include "multires.h"
 #include "BIF_transform.h"
 
 #include "BIF_poseobject.h"
@@ -182,11 +189,22 @@
 
 /* --------------------------------- */
 
+void exit_paint_modes(void)
+{
+	if(G.f & G_VERTEXPAINT) set_vpaint();
+	if(G.f & G_TEXTUREPAINT) set_texturepaint();
+	if(G.f & G_WEIGHTPAINT) set_wpaint();
+	if(G.f & G_SCULPTMODE) set_sculptmode();
+	if(G.f & G_PARTICLEEDIT) PE_set_particle_edit();
+
+	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE+G_PARTICLEEDIT);
+}
+
 void add_object_draw(int type)	/* for toolbox or menus, only non-editmode stuff */
 {
 	Object *ob;
 	
-	G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE);
+	exit_paint_modes();
 	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 
 	if ELEM3(curarea->spacetype, SPACE_VIEW3D, SPACE_BUTS, SPACE_INFO) {
@@ -261,8 +279,6 @@ void delete_obj(int ok)
 	if(G.obedit) return;
 	if(G.scene->id.lib) return;
 
-	if(G.f & G_SCULPTMODE) set_sculptmode();
-	
 	base= FIRSTBASE;
 	while(base) {
 		Base *nbase= base->next;
@@ -279,6 +295,8 @@ void delete_obj(int ok)
 				}
 			}
 			
+			exit_paint_modes();
+
 			if(base->object->type==OB_LAMP) islamp= 1;
 #ifdef WITH_VERSE
 			if(base->object->vnode) b_verse_delete_object(base->object);
@@ -306,7 +324,6 @@ void delete_obj(int ok)
 	}
 	countall();
 
-	G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT);
 	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 	
 	if(islamp) reshadeall_displist();	/* only frees displist */
@@ -616,13 +633,10 @@ int hook_getIndexArray(int *tot, int **indexar, char *name, float *cent_r)
 	}
 }
 
-void add_hook(void)
+void add_hook_menu(void)
 {
-	ModifierData *md = NULL;
-	HookModifierData *hmd = NULL;
-	Object *ob=NULL;
 	int mode;
-
+	
 	if(G.obedit==NULL) return;
 	
 	if(modifiers_findByType(G.obedit, eModifierType_Hook))
@@ -631,9 +645,25 @@ void add_hook(void)
 		mode= pupmenu("Hooks %t|Add, New Empty %x1|Add, To Selected Object %x2");
 
 	if(mode<1) return;
+		
+	/* do operations */
+	add_hook(mode);
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	
+	BIF_undo_push("Add hook");
+}
+
+void add_hook(int mode)
+{
+	ModifierData *md = NULL;
+	HookModifierData *hmd = NULL;
+	Object *ob=NULL;
+	
+	if(G.obedit==NULL) return;
 	
 	/* preconditions */
-
 	if(mode==2) { /* selected object */
 		Base *base= FIRSTBASE;
 		while(base) {
@@ -690,11 +720,11 @@ void add_hook(void)
 				a++;
 			}
 		}
-
+		
 		hmd = (HookModifierData*) md;
 		ob= hmd->object;
 	}
-
+	
 	/* do it, new hooks or reassign */
 	if(mode==1 || mode==2 || mode==4) {
 		float cent[3];
@@ -702,7 +732,7 @@ void add_hook(void)
 		char name[32];
 		
 		ok = hook_getIndexArray(&tot, &indexar, name, cent);
-
+		
 		if(ok==0) {
 			error("Requires selected vertices or active Vertex Group");
 		}
@@ -710,7 +740,7 @@ void add_hook(void)
 			
 			if(mode==1) {
 				Base *base= BASACT, *newbase;
-
+				
 				ob= add_object(OB_EMPTY);
 				/* set layers OK */
 				newbase= BASACT;
@@ -724,15 +754,15 @@ void add_hook(void)
 				BASACT= base;
 			}
 			/* if mode is 2 or 4, ob has been set */
-									
+			
 			/* new hook */
 			if(mode==1 || mode==2) {
 				ModifierData *md = G.obedit->modifiers.first;
-
+				
 				while (md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform) {
 					md = md->next;
 				}
-
+				
 				hmd = (HookModifierData*) modifier_new(eModifierType_Hook);
 				BLI_insertlinkbefore(&G.obedit->modifiers, md, hmd);
 				sprintf(hmd->modifier.name, "Hook-%s", ob->id.name+2);
@@ -751,7 +781,7 @@ void add_hook(void)
 				/*        (parentinv         )                          */
 				
 				where_is_object(ob);
-		
+				
 				Mat4Invert(ob->imat, ob->obmat);
 				/* apparently this call goes from right to left... */
 				Mat4MulSerie(hmd->parentinv, ob->imat, G.obedit->obmat, NULL, 
@@ -768,18 +798,14 @@ void add_hook(void)
 	}
 	else if(mode==6) { /* clear offset */
 		where_is_object(ob);	/* ob is hook->parent */
-
+		
 		Mat4Invert(ob->imat, ob->obmat);
 		/* this call goes from right to left... */
 		Mat4MulSerie(hmd->parentinv, ob->imat, G.obedit->obmat, NULL, 
 					NULL, NULL, NULL, NULL, NULL);
 	}
 
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
 	DAG_scene_sort(G.scene);
-	
-	BIF_undo_push("Add hook");
 }
 
 void make_track(void)
@@ -999,9 +1025,15 @@ void clear_object(char mode)
 		if TESTBASELIB(base) {
 			ob= base->object;
 			
-			if( (ob->flag & OB_POSEMODE) && ob==OBACT) {
-				clear_armature(ob, mode);
-				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
+			if ((ob->flag & OB_POSEMODE)) {
+				/* only clear pose transforms if:
+				 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
+				 *	- with clearing transform of object being edited at the time
+				 */
+				if ((G.f & G_WEIGHTPAINT) || ob==OBACT) {
+					clear_armature(ob, mode);
+					armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
+				}
 			}
 			else if((G.f & G_WEIGHTPAINT)==0) {
 				
@@ -1075,7 +1107,7 @@ void reset_slowparents(void)
 {
 	/* back to original locations */
 	Base *base;
-	
+
 	base= FIRSTBASE;
 	while(base) {
 		if(base->object->parent) {
@@ -1140,7 +1172,7 @@ void make_vertex_parent(void)
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
-					if(BEZSELECTED(bezt)) {
+					if(BEZSELECTED_HIDDENHANDLES(bezt)) {
 						if(v1==0) v1= nr;
 						else if(v2==0) v2= nr;
 						else if(v3==0) v3= nr;
@@ -1371,9 +1403,6 @@ void make_parent(void)
 		}
 	}
 	else if(par->type == OB_CURVE){
-		bConstraint *con;
-		bFollowPathConstraint *data;
-
 		mode= pupmenu("Make Parent %t|Normal Parent %x1|Follow Path %x2|Curve Deform %x3|Path Constraint %x4");
 		if(mode<=0){
 			return;
@@ -1395,24 +1424,26 @@ void make_parent(void)
 			mode= PARSKEL;
 		}
 		else if(mode==4) {
-
+			bConstraint *con;
+			bFollowPathConstraint *data;
+				
 			base= FIRSTBASE;
 			while(base) {
 				if TESTBASELIB(base) {
 					if(base!=BASACT) {
-						float cmat[4][4], vec[3], size[3];
-
+						float cmat[4][4], vec[3];
+						
 						con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
 						strcpy (con->name, "AutoPath");
-
+						
 						data = con->data;
 						data->tar = BASACT->object;
-
+						
 						add_constraint_to_object(con, base->object);
-
-						get_constraint_target_matrix(con, TARGET_OBJECT, NULL, cmat, size, G.scene->r.cfra - base->object->sf);
+						
+						get_constraint_target_matrix(con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, G.scene->r.cfra - give_timeoffset(base->object));
 						VecSubf(vec, base->object->obmat[3], cmat[3]);
-
+						
 						base->object->loc[0] = vec[0];
 						base->object->loc[1] = vec[1];
 						base->object->loc[2] = vec[2];
@@ -1423,7 +1454,7 @@ void make_parent(void)
 
 			allqueue(REDRAWVIEW3D, 0);
 			DAG_scene_sort(G.scene);
-			BIF_undo_push("make Parent");
+			BIF_undo_push("Make Parent");
 			return;
 		}
 	}
@@ -1602,16 +1633,31 @@ void enter_editmode(int wc)
 	if(ob->type==OB_MESH) {
 		me= get_mesh(ob);
 		if( me==0 ) return;
-		if(me->pv) sculptmode_pmv_off(me);
+		if(me->pv) mesh_pmv_off(ob, me);
 		ok= 1;
 		G.obedit= ob;
 		make_editMesh();
 		allqueue(REDRAWBUTSLOGIC, 0);
-		if(G.f & G_FACESELECT) allqueue(REDRAWIMAGE, 0);
+		/*if(G.f & G_FACESELECT) allqueue(REDRAWIMAGE, 0);*/
+		if (EM_texFaceCheck())
+			allqueue(REDRAWIMAGE, 0);
+		
 	}
 	if (ob->type==OB_ARMATURE){
 		arm= base->object->data;
 		if (!arm) return;
+		/*
+		 * The function object_data_is_libdata make a problem here, the
+		 * check for ob->proxy return 0 and let blender enter to edit mode
+		 * this causa a crash when you try leave the edit mode.
+		 * The problem is that i can't remove the ob->proxy check from
+		 * object_data_is_libdata that prevent the bugfix #6614, so
+		 * i add this little hack here.
+		 */
+		if(arm->id.lib) {
+			error_libdata();
+			return;
+		}
 		ok=1;
 		G.obedit=ob;
 		make_editArmature();
@@ -1670,7 +1716,10 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 
 		/* temporal */
 		countall();
-
+		
+		if(EM_texFaceCheck())
+			allqueue(REDRAWIMAGE, 0);
+		
 		if(retopo_mesh_paint_check())
 			retopo_end_okee();
 
@@ -1681,9 +1730,7 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 		load_editMesh();
 
 		if(freedata) free_editMesh(G.editMesh);
-			
-		if(G.f & G_FACESELECT)
-			allqueue(REDRAWIMAGE, 0);
+		
 		if(G.f & G_WEIGHTPAINT)
 			mesh_octree_table(G.obedit, NULL, 'e');
 	}
@@ -1717,10 +1764,15 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 	/* total remake of softbody data */
 	if(modifiers_isSoftbodyEnabled(ob)) {
 		if (ob->soft && ob->soft->keys) {
-			notice("Erased Baked SoftBody");
+			notice("Erase Baked SoftBody");
 		}
 
 		sbObjectToSoftbody(ob);
+	}
+	
+	if(modifiers_isClothEnabled(ob)) {
+		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+		clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
 	}
 	
 	if(ob->type==OB_MESH && get_mesh(ob)->mr)
@@ -2036,7 +2088,7 @@ void docenter(int centermode)
 	/* Warn if any errors occured */
 	if (tot_lib_error+tot_key_error+tot_multiuser_arm_error) {
 		char err[512];
-		sprintf(err, "Warning %i Object(s) Not Centered, %i Changed%%t", tot_lib_error+tot_key_error+tot_multiuser_arm_error, tot_change);
+		sprintf(err, "Warning %i Object(s) Not Centered, %i Changed:", tot_lib_error+tot_key_error+tot_multiuser_arm_error, tot_change);
 		
 		if (tot_lib_error)
 			sprintf(err+strlen(err), "|%i linked library objects", tot_lib_error);
@@ -2045,7 +2097,7 @@ void docenter(int centermode)
 		if (tot_multiuser_arm_error)
 			sprintf(err+strlen(err), "|%i multiuser armature object(s)", tot_multiuser_arm_error);
 		
-		pupmenu(err);
+		error(err);
 	}
 }
 
@@ -2164,6 +2216,153 @@ void split_font()
 	}
 }
 
+static void helpline(short *mval, int *center2d)
+{
+	
+	/* helpline, copied from transform.c actually */
+	persp(PERSP_WIN);
+	glDrawBuffer(GL_FRONT);
+	
+	BIF_ThemeColor(TH_WIRE);
+	
+	setlinestyle(3);
+	glBegin(GL_LINE_STRIP); 
+	glVertex2sv(mval); 
+	glVertex2iv((GLint *)center2d); 
+	glEnd();
+	setlinestyle(0);
+	
+	persp(PERSP_VIEW);
+	bglFlush(); // flush display for frontbuffer
+	glDrawBuffer(GL_BACK);
+	
+	
+}
+
+/* context: ob = lamp */
+/* code should be replaced with proper (custom) transform handles for lamp properties */
+static void spot_interactive(Object *ob, int mode)
+{
+	Lamp *la= ob->data;
+	float transfac, dx, dy, ratio, origval;
+	int keep_running= 1, center2d[2];
+	short mval[2], mvalo[2];
+	
+	getmouseco_areawin(mval);
+	getmouseco_areawin(mvalo);
+	
+	project_int(ob->obmat[3], center2d);
+	if( center2d[0] > 100000 ) {		/* behind camera */
+		center2d[0]= curarea->winx/2;
+		center2d[1]= curarea->winy/2;
+	}
+
+	helpline(mval, center2d);
+	
+	/* ratio is like scaling */
+	dx = (float)(center2d[0] - mval[0]);
+	dy = (float)(center2d[1] - mval[1]);
+	transfac = (float)sqrt( dx*dx + dy*dy);
+	if(transfac==0.0f) transfac= 1.0f;
+	
+	if(mode==1)	
+		origval= la->spotsize;
+	else if(mode==2)	
+		origval= la->dist;
+	else if(mode==3)	
+		origval= la->clipsta;
+	else	
+		origval= la->clipend;
+	
+	while (keep_running>0) {
+		
+		getmouseco_areawin(mval);
+		
+		/* essential for idling subloop */
+		if(mval[0]==mvalo[0] && mval[1]==mvalo[1]) {
+			PIL_sleep_ms(2);
+		}
+		else {
+			char str[32];
+			
+			dx = (float)(center2d[0] - mval[0]);
+			dy = (float)(center2d[1] - mval[1]);
+			ratio = (float)(sqrt( dx*dx + dy*dy))/transfac;
+			
+			/* do the trick */
+			
+			if(mode==1) {	/* spot */
+				la->spotsize = ratio*origval;
+				CLAMP(la->spotsize, 1.0f, 180.0f);
+				sprintf(str, "Spot size %.2f\n", la->spotsize);
+			}
+			else if(mode==2) {	/* dist */
+				la->dist = ratio*origval;
+				CLAMP(la->dist, 0.01f, 5000.0f);
+				sprintf(str, "Distance %.2f\n", la->dist);
+			}
+			else if(mode==3) {	/* sta */
+				la->clipsta = ratio*origval;
+				CLAMP(la->clipsta, 0.001f, 5000.0f);
+				sprintf(str, "Distance %.2f\n", la->clipsta);
+			}
+			else if(mode==4) {	/* end */
+				la->clipend = ratio*origval;
+				CLAMP(la->clipend, 0.1f, 5000.0f);
+				sprintf(str, "Clip End %.2f\n", la->clipend);
+			}
+
+			/* cleanup */
+			mvalo[0]= mval[0];
+			mvalo[1]= mval[1];
+			
+			/* handle shaded mode */
+			shade_buttons_change_3d();
+
+			/* DRAW */	
+			headerprint(str);
+			force_draw_plus(SPACE_BUTS, 0);
+
+			helpline(mval, center2d);
+		}
+		
+		while( qtest() ) {
+			short val;
+			unsigned short event= extern_qread(&val);
+			
+			switch (event){
+				case ESCKEY:
+				case RIGHTMOUSE:
+					keep_running= 0;
+					break;
+				case LEFTMOUSE:
+				case SPACEKEY:
+				case PADENTER:
+				case RETKEY:
+					if(val)
+						keep_running= -1;
+					break;
+			}
+		}
+	}
+
+	if(keep_running==0) {
+		if(mode==1)	
+			la->spotsize= origval;
+		else if(mode==2)	
+			la->dist= origval;
+		else if(mode==3)	
+			la->clipsta= origval;
+		else	
+			la->clipend= origval;
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSSHADING, 0);
+	BIF_preview_changed(ID_LA);
+}
+
+
 void special_editmenu(void)
 {
 	static short numcuts= 2;
@@ -2179,7 +2378,7 @@ void special_editmenu(void)
 		if(ob->flag & OB_POSEMODE) {
 			pose_special_editmenu();
 		}
-		else if(G.f & G_FACESELECT) {
+		else if(FACESEL_PAINT_TEST) {
 			Mesh *me= get_mesh(ob);
 			MTFace *tface;
 			MFace *mface;
@@ -2245,13 +2444,49 @@ void special_editmenu(void)
 		}
 		else if(G.f & G_WEIGHTPAINT) {
 			Object *par= modifiers_isDeformedByArmature(ob);
+
 			if(par && (par->flag & OB_POSEMODE)) {
-				nr= pupmenu("Specials%t|Apply Bone Envelopes to VertexGroups %x1");
-				if(nr==1) {
-					pose_adds_vgroups(ob);
-					BIF_undo_push("Apply Bone Envelopes to VertexGroups");
-				}
+				nr= pupmenu("Specials%t|Apply Bone Envelopes to Vertex Groups %x1|Apply Bone Heat Weights to Vertex Groups %x2");
+
+				if(nr==1 || nr==2)
+					pose_adds_vgroups(ob, (nr == 2));
 			}
+		}
+		else if(G.f & G_PARTICLEEDIT) {
+			ParticleSystem *psys = PE_get_current(ob);
+			ParticleEditSettings *pset = PE_settings();
+
+			if(!psys)
+				return;
+
+			if(G.scene->selectmode & SCE_SELECT_POINT)
+				nr= pupmenu("Specials%t|Rekey%x1|Subdivide%x2|Select First%x3|Select Last%x4|Remove Doubles%x5");
+			else
+				nr= pupmenu("Specials%t|Rekey%x1|Remove Doubles%x5");
+			
+			switch(nr) {
+			case 1:
+				if(button(&pset->totrekey, 2, 100, "Number of Keys:")==0) return;
+				waitcursor(1);
+				PE_rekey();
+				break;
+			case 2:
+				PE_subdivide();
+				break;
+			case 3:
+				PE_select_root();
+				break;
+			case 4:
+				PE_select_tip();
+				break;
+			case 5:
+				PE_remove_doubles();
+				break;
+			}
+			
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+			
+			if(nr>0) waitcursor(0);
 		}
 		else {
 			Base *base, *base_select= NULL;
@@ -2315,6 +2550,14 @@ void special_editmenu(void)
 
 				allqueue(REDRAWVIEW3D, 0);
 			}
+			else if (ob->type == OB_LAMP) {
+				Lamp *la= ob->data;
+				if(la->type==LA_SPOT) {
+					short nr= pupmenu("Lamp Tools%t|Spot Size%x1|Distance%x2|Clip Start%x3|Clip End%x4");
+					if(nr>0)
+						spot_interactive(ob, nr);
+				}
+			}
 			else if (ob->type == OB_FONT) {
 				/* removed until this gets a decent implementation (ton) */
 /*				nr= pupmenu("Split %t|Characters%x1");
@@ -2328,7 +2571,44 @@ void special_editmenu(void)
 		}
 	}
 	else if(G.obedit->type==OB_MESH) {
-
+		/* This is all that is needed, since all other functionality is in Ctrl+ V/E/F but some users didnt like, so for now have the old/big menu */
+		/*
+		nr= pupmenu("Subdivide Mesh%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Smooth%x4");
+		switch(nr) {
+		case 1:
+			waitcursor(1);
+			esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag, 1, 0);
+			
+			BIF_undo_push("ESubdivide Single");            
+			break;
+		case 2:
+			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
+			waitcursor(1);
+			esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag, numcuts, 0);
+			BIF_undo_push("ESubdivide");
+			break;
+		case 3:
+			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
+			randfac= 10;
+			if(button(&randfac, 1, 100, "Rand fac:")==0) return;
+			waitcursor(1);			
+			fac= -( (float)randfac )/100;
+			esubdivideflag(1, fac, G.scene->toolsettings->editbutflag, numcuts, 0);
+			BIF_undo_push("Subdivide Fractal");
+			break;
+			
+		case 4:
+			fac= 1.0f;
+			if(fbutton(&fac, 0.0f, 5.0f, 10, 10, "Smooth:")==0) return;
+				fac= 0.292f*fac;
+			
+			waitcursor(1);
+			esubdivideflag(1, fac, G.scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
+			BIF_undo_push("Subdivide Smooth");
+			break;		
+		}
+		*/
+		
 		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Smooth%x12|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11|Set Smooth %x14|Set Solid %x15|Blend From Shape%x16|Propagate To All Shapes%x17|Select Vertex Path%x18");
 		
 		switch(nr) {
@@ -2364,12 +2644,12 @@ void special_editmenu(void)
 			esubdivideflag(1, fac, G.scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
 			BIF_undo_push("Subdivide Smooth");
 			break;		
-			
+
 		case 4:
 			mergemenu();
 			break;
 		case 5:
-			notice("Removed %d Vertices", removedoublesflag(1, G.scene->toolsettings->doublimit));
+			notice("Removed %d Vertices", removedoublesflag(1, 0, G.scene->toolsettings->doublimit));
 			BIF_undo_push("Remove Doubles");
 			break;
 		case 6:
@@ -2409,6 +2689,7 @@ void special_editmenu(void)
 			break;
 		}
 		
+		
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		
 		if(nr>0) waitcursor(0);
@@ -2416,7 +2697,7 @@ void special_editmenu(void)
 	}
 	else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 
-		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2|Set Goal Weight %x3|Set Radius %x4");
+		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2|Set Goal Weight %x3|Set Radius %x4|Smooth Radius %x5");
 		
 		switch(nr) {
 		case 1:
@@ -2426,75 +2707,31 @@ void special_editmenu(void)
 			switchdirectionNurb2();
 			break;
 		case 3:
-			{
-				static float weight= 1.0f;
-				extern ListBase editNurb;
-				Nurb *nu;
-				BezTriple *bezt;
-				BPoint *bp;
-				int a;
-				
-				if(fbutton(&weight, 0.0f, 1.0f, 10, 10, "Set Weight")) {
-					for(nu= editNurb.first; nu; nu= nu->next) {
-						if(nu->bezt) {
-							for(bezt=nu->bezt, a=0; a<nu->pntsu; a++, bezt++) {
-								if(bezt->f2 & SELECT)
-									bezt->weight= weight;
-							}
-						}
-						else if(nu->bp) {
-							for(bp=nu->bp, a=0; a<nu->pntsu*nu->pntsv; a++, bp++) {
-								if(bp->f1 & SELECT)
-									bp->weight= weight;
-							}
-						}
-					}	
-				}
-			}
+			setweightNurb();
 			break;
 		case 4:
-			{
-				static float radius= 1.0f;
-				extern ListBase editNurb;
-				Nurb *nu;
-				BezTriple *bezt;
-				BPoint *bp;
-				int a;
-				
-				if(fbutton(&radius, 0.0001f, 10.0f, 10, 10, "Set Radius")) {
-					for(nu= editNurb.first; nu; nu= nu->next) {
-						if(nu->bezt) {
-							for(bezt=nu->bezt, a=0; a<nu->pntsu; a++, bezt++) {
-								if(bezt->f2 & SELECT)
-									bezt->radius= radius;
-							}
-						}
-						else if(nu->bp) {
-							for(bp=nu->bp, a=0; a<nu->pntsu*nu->pntsv; a++, bp++) {
-								if(bp->f1 & SELECT)
-									bp->radius= radius;
-							}
-						}
-					}	
-				}
-				
-				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-				allqueue(REDRAWVIEW3D, 0);
-				allqueue(REDRAWBUTSALL, 0);
-				allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
-				
-			}
+			setradiusNurb();
+			break;
+		case 5:
+			smoothradiusNurb();
 			break;
 		}
-		
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	}
 	else if(G.obedit->type==OB_ARMATURE) {
-		nr= pupmenu("Specials%t|Subdivide %x1|Flip Left-Right Names%x2");
+		nr= pupmenu("Specials%t|Subdivide %x1|Subdivide Multi%x2|Flip Left-Right Names%x3|%l|AutoName Left-Right%x4|AutoName Front-Back%x5|AutoName Top-Bottom%x6");
 		if(nr==1)
-			subdivide_armature();
-		else if(nr==2)
+			subdivide_armature(1);
+		if(nr==2) {
+			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
+			waitcursor(1);
+			subdivide_armature(numcuts);
+		}
+		else if(nr==3)
 			armature_flip_names();
+		else if(ELEM3(nr, 4, 5, 6)) {
+			armature_autoside_names(nr-4);
+		}
 	}
 	else if(G.obedit->type==OB_LATTICE) {
 		static float weight= 1.0f;
@@ -2759,48 +2996,88 @@ void convertmenu(void)
 	DAG_scene_sort(G.scene);
 }
 
-	/* Change subdivision properties of mesh object ob, if
-	 * level==-1 then toggle subsurf, else set to level.
-     * *set allows to toggle multiple selections
-	 */
-static void object_flip_subdivison(Object *ob, int *set, int level, int mode)
+/* Change subdivision or particle properties of mesh object ob, if level==-1
+ * then toggle subsurf, else set to level set allows to toggle multiple
+ * selections */
+
+static void object_has_subdivision_particles(Object *ob, int *havesubdiv, int *havepart, int depth)
+{
+	if(ob->type==OB_MESH) {
+		if(modifiers_findByType(ob, eModifierType_Subsurf))
+			*havesubdiv= 1;
+		if(modifiers_findByType(ob, eModifierType_ParticleSystem))
+			*havepart= 1;
+	}
+
+	if(ob->dup_group && depth <= 4) {
+		GroupObject *go;
+
+		for(go= ob->dup_group->gobject.first; go; go= go->next)
+			object_has_subdivision_particles(go->ob, havesubdiv, havepart, depth+1);
+	}
+}
+
+static void object_flip_subdivison_particles(Object *ob, int *set, int level, int mode, int particles, int depth)
 {
 	ModifierData *md;
 
-	if(ob->type!=OB_MESH)
-		return;
-	
-	md = modifiers_findByType(ob, eModifierType_Subsurf);
-	
-	if (md) {
-		SubsurfModifierData *smd = (SubsurfModifierData*) md;
+	if(ob->type==OB_MESH) {
+		if(particles) {
+			for(md=ob->modifiers.first; md; md=md->next) {
+				if(md->type == eModifierType_ParticleSystem) {
+					ParticleSystemModifierData *psmd = (ParticleSystemModifierData*)md;
 
-		if (level == -1) {
-			if(*set == -1) 
-				*set= smd->modifier.mode&(mode);
-										  
-			if (*set) {
-				smd->modifier.mode &= ~(mode);
-			} else {
-				smd->modifier.mode |= (mode);
+					if(*set == -1)
+						*set= psmd->modifier.mode&(mode);
+
+					if (*set)
+						psmd->modifier.mode &= ~(mode);
+					else
+						psmd->modifier.mode |= (mode);
+				}
 			}
-		} else {
-			smd->levels = level;
 		}
-	} 
-	else if(*set != 0) {
-		SubsurfModifierData *smd = (SubsurfModifierData*) modifier_new(eModifierType_Subsurf);
+		else {
+			md = modifiers_findByType(ob, eModifierType_Subsurf);
 
-		BLI_addtail(&ob->modifiers, smd);
+			if (md) {
+				SubsurfModifierData *smd = (SubsurfModifierData*) md;
 
-		if (level!=-1) {
-			smd->levels = level;
+				if (level == -1) {
+					if(*set == -1) 
+						*set= smd->modifier.mode&(mode);
+
+					if (*set)
+						smd->modifier.mode &= ~(mode);
+					else
+						smd->modifier.mode |= (mode);
+				} else {
+					smd->levels = level;
+				}
+			} 
+			else if(depth == 0 && *set != 0) {
+				SubsurfModifierData *smd = (SubsurfModifierData*) modifier_new(eModifierType_Subsurf);
+
+				BLI_addtail(&ob->modifiers, smd);
+
+				if (level!=-1) {
+					smd->levels = level;
+				}
+				
+				if(*set == -1)
+					*set= 1;
+			}
 		}
-		
-		if(*set == -1)
-			*set= 1;
+
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	}
-	ob->recalc |= OB_RECALC_DATA;
+
+	if(ob->dup_group && depth<=4) {
+		GroupObject *go;
+
+		for(go= ob->dup_group->gobject.first; go; go= go->next)
+			object_flip_subdivison_particles(go->ob, set, level, mode, particles, depth+1);
+	}
 }
 
 /* Change subdivision properties of mesh object ob, if
@@ -2811,23 +3088,34 @@ void flip_subdivison(int level)
 {
 	Base *base;
 	int set= -1;
-	int mode;
+	int mode, pupmode, particles= 0, havesubdiv= 0, havepart= 0;
 	
 	if(G.qual & LR_ALTKEY)
 		mode= eModifierMode_Realtime;
 	else
 		mode= eModifierMode_Render|eModifierMode_Realtime;
 	
-	for(base= G.scene->base.first; base; base= base->next) {
-		if(((level==-1) && (TESTBASE(base))) || (TESTBASELIB(base))) {
-			object_flip_subdivison(base->object, &set, level, mode);
-			if(base->object->dup_group) {
-				GroupObject *go;
-				for(go= base->object->dup_group->gobject.first; go; go= go->next)
-					object_flip_subdivison(go->ob, &set, level, mode);
-			}
-		}
+	if(level == -1) {
+		for(base= G.scene->base.first; base; base= base->next)
+			if(((level==-1) && (TESTBASE(base))) || (TESTBASELIB(base)))
+				object_has_subdivision_particles(base->object, &havesubdiv, &havepart, 0);
 	}
+	else
+		havesubdiv= 1;
+	
+	if(havesubdiv && havepart) {
+		pupmode= pupmenu("Switch%t|Subsurf %x1|Particle Systems %x2");
+		if(pupmode <= 0)
+			return;
+		else if(pupmode == 2)
+			particles= 1;
+	}
+	else if(havepart)
+		particles= 1;
+	
+	for(base= G.scene->base.first; base; base= base->next)
+		if(((level==-1) && (TESTBASE(base))) || (TESTBASELIB(base)))
+			object_flip_subdivison_particles(base->object, &set, level, mode, particles, 0);
 	
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
@@ -2836,7 +3124,10 @@ void flip_subdivison(int level)
 	allqueue(REDRAWBUTSOBJECT, 0);
 	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 	
-	BIF_undo_push("Switch subsurf on/off");
+	if(particles)
+		BIF_undo_push("Switch particles on/off");
+	else
+		BIF_undo_push("Switch subsurf on/off");
 }
  
 static void copymenu_properties(Object *ob)
@@ -2953,7 +3244,7 @@ static void copymenu_modifiers(Object *ob)
 	for (i=eModifierType_None+1; i<NUM_MODIFIER_TYPES; i++) {
 		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
-		if (ELEM(i, eModifierType_Hook, eModifierType_Softbody)) continue;
+		if(ELEM3(i, eModifierType_Hook, eModifierType_Softbody, eModifierType_ParticleInstance)) continue;
 
 		if (	(mti->flags&eModifierTypeFlag_AcceptsCVs) || 
 				(ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
@@ -2983,6 +3274,9 @@ static void copymenu_modifiers(Object *ob)
 								BLI_addtail(&base->object->modifiers, nmd);
 							}
 						}
+
+						copy_object_particlesystems(base->object, ob);
+						copy_object_softbody(base->object, ob);
 					} else {
 						/* copy specific types */
 						ModifierData *md, *mdn;
@@ -3005,6 +3299,15 @@ static void copymenu_modifiers(Object *ob)
 
 								modifier_copyData(md, mdn);
 							}
+						}
+
+						if(event == eModifierType_ParticleSystem) {
+							object_free_particlesystems(base->object);
+							copy_object_particlesystems(base->object, ob);
+						}
+						else if(event == eModifierType_Softbody) {
+							object_free_softbody(base->object);
+							copy_object_softbody(base->object, ob);
 						}
 					}
 				}
@@ -3316,6 +3619,9 @@ void copy_attr(short event)
 				else if(event==29) { /* protected bits */
 					base->object->protectflag= ob->protectflag;
 				}
+				else if(event==30) { /* index object */
+					base->object->index= ob->index;
+				}
 			}
 		}
 		base= base->next;
@@ -3334,101 +3640,60 @@ void copy_attr(short event)
 	BIF_undo_push("Copy Attributes");
 }
 
-void copy_attr_tface(short event)
-{
-	/* Face Select Mode */
-	Object *ob= OBACT;
-	Mesh *me= get_mesh(ob);
-	MTFace *tface;
-	MFace *mface;
-	MCol *activemcol;
-	MTFace *activetf= get_active_tface(&activemcol);
-	int a;
-	
-	if(activetf==NULL) return;
-	
-	tface= me->mtface;
-	mface= me->mface;
-	for(a=0; a<me->totface; a++, tface++, mface++) {
-		if(mface->flag & ME_FACE_SEL) {
-			switch(event) {
-			case 1:
-				tface->tpage = activetf->tpage;
-				tface->tile= activetf->tile;
-				tface->mode |= TF_TEX;
-				break;
-			case 2:
-				memcpy(tface->uv, activetf->uv, sizeof(tface->uv)); break;
-			case 3:
-				if(activemcol)
-					memcpy(&me->mcol[a*4], activemcol, sizeof(MCol)*4); break;
-			case 4:
-				tface->mode = activetf->mode; break;
-			case 5:
-				tface->transp= activetf->transp; break;
-			}
-		}
-	}
-	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
-	BIF_undo_push("Copy texture face");
-}
-
 void copy_attr_menu()
 {
 	Object *ob;
 	short event;
+	char str[512];
 	
 	if(!(ob=OBACT)) return;
 	
-	if ((G.obedit)) return; /* no editmode copy yet */
-	
-	if(G.f & G_FACESELECT) {
-		event= pupmenu("Copy Active Texface%t|Image%x1|UV Coords%x2|Color%x3|Mode%x4|Transp%x5");
-		copy_attr_tface(event);
-	
-	} else { /* Object Mode */
-		
-		/* If you change this menu, don't forget to update the menu in header_view3d.c
-		 * view3d_edit_object_copyattrmenu() and in toolbox.c
-		 */
-		
-		char str[512];
-		
-		strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Drawtype%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
-		
-		strcat (str, "|Object Constraints%x22");
-		strcat (str, "|NLA Strips%x26");
-		
-		if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL) {
-			strcat(str, "|Texture Space%x17");
-		}	
-		
-		if(ob->type == OB_FONT) strcat(str, "|Font Settings%x18|Bevel Settings%x19");
-		if(ob->type == OB_CURVE) strcat(str, "|Bevel Settings%x19|UV Orco%x28");
-		
-		if((ob->type == OB_FONT) || (ob->type == OB_CURVE)) {
-				strcat(str, "|Curve Resolution%x25");
-		}
-
-		if(ob->type==OB_MESH){
-			strcat(str, "|Subsurf Settings%x21|AutoSmooth%x27");
-		}
-
-		if( give_parteff(ob) ) strcat(str, "|Particle Settings%x20");
-
-		if(ob->soft) strcat(str, "|Soft Body Settings%x23");
-		
-		if(ob->type==OB_MESH || ob->type==OB_CURVE || ob->type==OB_LATTICE || ob->type==OB_SURF){
-			strcat(str, "|Modifiers ...%x24");
-		}
-
-		event= pupmenu(str);
-		if(event<= 0) return;
-		
-		copy_attr(event);
+	if (G.obedit) {
+		if (ob->type == OB_MESH)
+			mesh_copy_menu();
+		return;
 	}
+	
+	/* Object Mode */
+	
+	/* If you change this menu, don't forget to update the menu in header_view3d.c
+	 * view3d_edit_object_copyattrmenu() and in toolbox.c
+	 */
+	
+	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Draw Options%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
+	
+	strcat (str, "|Object Constraints%x22");
+	strcat (str, "|NLA Strips%x26");
+	
+	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL) {
+		strcat(str, "|Texture Space%x17");
+	}	
+	
+	if(ob->type == OB_FONT) strcat(str, "|Font Settings%x18|Bevel Settings%x19");
+	if(ob->type == OB_CURVE) strcat(str, "|Bevel Settings%x19|UV Orco%x28");
+	
+	if((ob->type == OB_FONT) || (ob->type == OB_CURVE)) {
+			strcat(str, "|Curve Resolution%x25");
+	}
+
+	if(ob->type==OB_MESH){
+		strcat(str, "|Subsurf Settings%x21|AutoSmooth%x27");
+	}
+
+	if( give_parteff(ob) ) strcat(str, "|Particle Settings%x20");
+
+	if(ob->soft) strcat(str, "|Soft Body Settings%x23");
+	
+	strcat(str, "|Pass Index%x30");
+	
+	if(ob->type==OB_MESH || ob->type==OB_CURVE || ob->type==OB_LATTICE || ob->type==OB_SURF){
+		strcat(str, "|Modifiers ...%x24");
+	}
+
+	event= pupmenu(str);
+	if(event<= 0) return;
+	
+	copy_attr(event);
 }
 
 
@@ -3512,7 +3777,7 @@ void make_links(short event)
 			return;			
 		}
 		else {
-			event= pupmenu(strp);
+			event= pupmenu_col(strp, 20);
 			MEM_freeN(strp);
 		
 			if(event<= 0) return;
@@ -3618,10 +3883,11 @@ void make_links(short event)
 	BIF_undo_push("Create links");
 }
 
-void apply_object()
+void apply_objects_locrot( void )
 {
 	Base *base, *basact;
 	Object *ob;
+	bArmature *arm;
 	Mesh *me;
 	Curve *cu;
 	Nurb *nu;
@@ -3629,49 +3895,59 @@ void apply_object()
 	BezTriple *bezt;
 	MVert *mvert;
 	float mat[3][3];
-	int a;
-
-	if(G.scene->id.lib) return;
-	if(G.obedit) return;
-	basact= BASACT;
+	int a, change = 0;
 	
-	if(G.qual & LR_SHIFTKEY) {
-		ob= OBACT;
-		if(ob==0) return;
-		
-		if(ob->transflag & OB_DUPLI) {
-			make_duplilist_real();
-		}
-		else {
-			if(okee("Apply deformation")) {
-				object_apply_deform(ob);
-				BIF_undo_push("Apply deformation");
-			}
-		}
-		allqueue(REDRAWVIEW3D, 0);
-
-		return;
-	}
-
-	if(okee("Apply scale and rotation")==0) return;
-
-	base= FIRSTBASE;
-	while(base) {
+	/* first check if we can execute */
+	for (base= FIRSTBASE; base; base= base->next) {
 		if TESTBASELIB(base) {
 			ob= base->object;
+			if(ob->type==OB_MESH) {
+				me= ob->data;
+				
+				if(me->id.us>1) {
+					error("Can't apply to a multi user mesh, doing nothing.");
+					return;
+				}
+				if(me->key) {
+					error("Can't apply to a mesh with vertex keys, doing nothing.");
+					return;
+				}
+			}
+			else if (ob->type==OB_ARMATURE) {
+				arm= ob->data;
+				
+				if(arm->id.us>1) {
+					error("Can't apply to a multi user armature, doing nothing.");
+					return;
+				}
+			}
+			else if ELEM(ob->type, OB_CURVE, OB_SURF) {
+				cu= ob->data;
+				
+				if(cu->id.us>1) {
+					error("Can't apply to a multi user curve, doing nothing.");
+					return;
+				}
+				if(cu->key) {
+					error("Can't apply to a curve with vertex keys, doing nothing.");
+					return;
+				}
+			}
+		}
+	}
 	
+	/* now execute */
+	basact= BASACT;
+	base= FIRSTBASE;
+	for (base= FIRSTBASE; base; base= base->next) {
+		if TESTBASELIB(base) {
+			ob= base->object;
+			
 			if(ob->type==OB_MESH) {
 				object_to_mat3(ob, mat);
 				me= ob->data;
 				
-				if(me->id.us>1) {
-					error("Can't apply to a multi user mesh");
-					return;
-				}
-				if(me->key) {
-					error("Can't apply to a mesh with vertex keys");
-					return;
-				}
+				/* see checks above */
 				
 				mvert= me->mvert;
 				for(a=0; a<me->totvert; a++, mvert++) {
@@ -3688,39 +3964,33 @@ void apply_object()
 				enter_editmode(EM_WAITCURSOR);
 				BIF_undo_push("Applied object");	/* editmode undo itself */
 				exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
-				BASACT= basact;				
+				BASACT= basact;
 				
+				change = 1;
 			}
-			else if (ob->type==OB_ARMATURE){
-				bArmature *arm;
-
+			else if (ob->type==OB_ARMATURE) {
 				object_to_mat3(ob, mat);
 				arm= ob->data;
-				if(arm->id.us>1) {
-					error("Can't apply to a multi user armature");
-					return;
-				}
-
-				apply_rot_armature (ob, mat);
+				
+				/* see checks above */
+				apply_rot_armature(ob, mat);
+				
 				/* Reset the object's transforms */
 				ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
 				ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
 				QuatOne(ob->quat);
 				
 				where_is_object(ob);
+				
+				change = 1;
 			}
 			else if ELEM(ob->type, OB_CURVE, OB_SURF) {
+				float scale;
 				object_to_mat3(ob, mat);
+				scale = Mat3ToScalef(mat);
 				cu= ob->data;
 				
-				if(cu->id.us>1) {
-					error("Can't apply to a multi user curve");
-					return;
-				}
-				if(cu->key) {
-					error("Can't apply to a curve with vertex keys");
-					return;
-				}
+				/* see checks above */
 				
 				nu= cu->nurb.first;
 				while(nu) {
@@ -3731,6 +4001,7 @@ void apply_object()
 							Mat3MulVecfl(mat, bezt->vec[0]);
 							Mat3MulVecfl(mat, bezt->vec[1]);
 							Mat3MulVecfl(mat, bezt->vec[2]);
+							bezt->radius *= scale;
 							bezt++;
 						}
 					}
@@ -3757,13 +4028,75 @@ void apply_object()
 				BIF_undo_push("Applied object");	/* editmode undo itself */
 				exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 				BASACT= basact;
+				
+				change = 1;
 			}
 		}
-		base= base->next;
 	}
+	if (change) {
+		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Apply Objects Scale & Rotation");
+	}
+}
+
+void apply_objects_visual_tx( void )
+{
+	Base *base;
+	Object *ob;
+	int change = 0;
 	
-	allqueue(REDRAWVIEW3D, 0);
-	BIF_undo_push("Apply object");
+	for (base= FIRSTBASE; base; base= base->next) {
+		if TESTBASELIB(base) {
+			ob= base->object;
+			where_is_object(ob);
+			VECCOPY(ob->loc, ob->obmat[3]);
+			Mat4ToSize(ob->obmat, ob->size);
+			Mat4ToEul(ob->obmat, ob->rot);
+			
+			where_is_object(ob);
+			
+			change = 1;
+		}
+	}
+	if (change) {
+		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Apply Objects Visual Transform");
+	}
+}
+
+void apply_object( void )
+{
+	Object *ob;
+	int evt;
+	if(G.scene->id.lib) return;
+	if(G.obedit) return;
+	
+	if(G.qual & LR_SHIFTKEY) {
+		ob= OBACT;
+		if(ob==0) return;
+		
+		if(ob->transflag & OB_DUPLI) {
+			make_duplilist_real();
+		}
+		else {
+			if(okee("Apply deformation")) {
+				object_apply_deform(ob);
+				BIF_undo_push("Apply deformation");
+			}
+		}
+		allqueue(REDRAWVIEW3D, 0);
+		
+	} else {
+		
+		evt = pupmenu("Apply Object%t|Scale and Rotation to ObData|Visual Transform to Objects Loc/Scale/Rot");
+		if (evt==-1) return;
+		
+		if (evt==1) {
+			apply_objects_locrot();
+		} else if (evt==2) {
+			apply_objects_visual_tx();
+		}
+	}
 }
 
 
@@ -3907,6 +4240,7 @@ void std_rmouse_transform(void (*xf_func)(int, int))
 	short xo, yo;
 	short timer=0;
 	short mousebut;
+	short context = (U.flag & USER_DRAGIMMEDIATE)?CTX_TWEAK:CTX_NONE;
 	
 	/* check for left mouse select/right mouse select */
 	
@@ -3920,20 +4254,16 @@ void std_rmouse_transform(void (*xf_func)(int, int))
 	getmouseco_areawin(mval);
 	xo= mval[0]; 
 	yo= mval[1];
-	
+	 
 	while(get_mbut() & mousebut) {
 		getmouseco_areawin(mval);
 		if(abs(mval[0]-xo)+abs(mval[1]-yo) > 10) {
 			if(curarea->spacetype==SPACE_VIEW3D) {
-#ifdef TWEAK_MODE
-				initTransform(TFM_TRANSLATION, CTX_TWEAK);
-#else
-				initTransform(TFM_TRANSLATION, CTX_NONE);
-#endif
+				initTransform(TFM_TRANSLATION, context);
 				Transform();
 			}
 			else if(curarea->spacetype==SPACE_IMAGE) {
-				initTransform(TFM_TRANSLATION, CTX_NONE);
+				initTransform(TFM_TRANSLATION, context);
 				Transform();
 			}
 			else if(xf_func)
@@ -4181,6 +4511,28 @@ void single_obdata_users(int flag)
 	}
 }
 
+void single_ipo_users(int flag)
+{
+	Object *ob;
+	Base *base;
+	ID *id;
+	
+	base= FIRSTBASE;
+	while(base) {
+		ob= base->object;
+		if(ob->id.lib==NULL && (flag==0 || (base->flag & SELECT)) ) {
+			ob->recalc= OB_RECALC_DATA;
+			
+			id= (ID *)ob->ipo;
+			if(id && id->us>1 && id->lib==NULL) {
+				ob->ipo= copy_ipo(ob->ipo);
+				id->us--;
+				ipo_idnew(ob->ipo);	/* drivers */
+			}
+		}
+		base= base->next;
+	}
+}
 
 void single_mat_users(int flag)
 {
@@ -4361,7 +4713,7 @@ void single_user(void)
 
 	clear_id_newpoins();
 	
-	nr= pupmenu("Make Single User%t|Object|Object & ObData|Object & ObData & Materials+Tex|Materials+Tex");
+	nr= pupmenu("Make Single User%t|Object|Object & ObData|Object & ObData & Materials+Tex|Materials+Tex|Ipos");
 	if(nr>0) {
 	
 		if(nr==1) single_object_users(1);
@@ -4379,6 +4731,10 @@ void single_user(void)
 		else if(nr==4) {
 			single_mat_users(1);
 		}
+		else if(nr==5) {
+			single_ipo_users(1);
+		}
+		
 		
 		clear_id_newpoins();
 
@@ -4452,8 +4808,8 @@ void make_local(int mode)
 	
 	base= FIRSTBASE;
 	while(base) {
-		ob= base->object;
-		if( (base->flag & SELECT)) {
+		if( TESTBASE(base) ) {
+			ob= base->object;
 			if(ob->id.lib) {
 				make_local_object(ob);
 			}
@@ -4464,8 +4820,8 @@ void make_local(int mode)
 	/* maybe object pointers */
 	base= FIRSTBASE;
 	while(base) {
-		ob= base->object;
-		if( (base->flag & SELECT)) {
+		if( TESTBASE(base) ) {
+			ob= base->object;
 			if(ob->id.lib==NULL) {
 				ID_NEW(ob->parent);
 				ID_NEW(ob->track);
@@ -4476,9 +4832,8 @@ void make_local(int mode)
 
 	base= FIRSTBASE;
 	while(base) {
-		ob= base->object;
-		if( (base->flag & SELECT) ) {
-	
+		if( TESTBASE(base) ) {
+			ob= base->object;
 			id= ob->data;
 			
 			if(id && mode>1) {
@@ -4538,9 +4893,8 @@ void make_local(int mode)
 	if(mode>1) {
 		base= FIRSTBASE;
 		while(base) {
-			ob= base->object;
-			if(base->flag & SELECT ) {
-				
+			if( TESTBASE(base) ) {
+				ob= base->object;
 				if(ob->type==OB_LAMP) {
 					la= ob->data;
 					for(b=0; b<MAX_MTEX; b++) {
@@ -4792,6 +5146,11 @@ void adduplicate(int mode, int dupflag)
 						ID_NEW_US2( obn->data )
 						else {
 							obn->data= copy_mesh(obn->data);
+							
+							if(obn->fluidsimSettings) {
+							obn->fluidsimSettings->orgMesh = (Mesh *)obn->data;
+							}
+							
 							didit= 1;
 						}
 						id->us--;
@@ -4990,7 +5349,7 @@ void selectlinks_menu(void)
 	/* If you modify this menu, please remember to update view3d_select_linksmenu
 	 * in header_view3d.c and the menu in toolbox.c
 	 */
-	nr= pupmenu("Select Linked%t|Object Ipo%x1|ObData%x2|Material%x3|Texture%x4|DupliGroup%x5");
+	nr= pupmenu("Select Linked%t|Object Ipo%x1|ObData%x2|Material%x3|Texture%x4|DupliGroup%x5|ParticleSystem%x6");
 	
 	if (nr <= 0) return;
 	
@@ -5013,6 +5372,7 @@ void selectlinks(int nr)
 	 * Current Material: 3
 	 * Current Texture: 4
 	 * DupliGroup: 5
+	 * PSys: 6
 	 */
 	
 	
@@ -5037,6 +5397,9 @@ void selectlinks(int nr)
 	}
 	else if(nr==5) {
 		if(ob->dup_group==NULL) return;
+	}
+	else if(nr==6) {
+		if(ob->particlesystem.first==NULL) return;
 	}
 	else return;
 	
@@ -5066,6 +5429,7 @@ void selectlinks(int nr)
 								if(tex==mat1->mtex[b]->tex) {
 									base->flag |= SELECT;
 									changed = 1;
+									break;
 								}
 							}
 						}
@@ -5076,6 +5440,25 @@ void selectlinks(int nr)
 				if(base->object->dup_group==ob->dup_group) {
 					 base->flag |= SELECT;
 					 changed = 1;
+				}
+			}
+			else if(nr==6) {
+				/* loop through other, then actives particles*/
+				ParticleSystem *psys;
+				ParticleSystem *psys_act;
+				
+				for(psys=base->object->particlesystem.first; psys; psys=psys->next) {
+					for(psys_act=ob->particlesystem.first; psys_act; psys_act=psys_act->next) {
+						if (psys->part == psys_act->part) {
+							base->flag |= SELECT;
+							changed = 1;
+							break;
+						}
+					}
+					
+					if (base->flag & SELECT) {
+						break;
+					}
 				}
 			}
 			base->object->flag= base->flag;
@@ -5184,18 +5567,17 @@ void set_ob_ipoflags(void)
 			}
 			else {
 				base->object->ipoflag &= ~OB_DRAWKEY;
+				if(base->object->ipo) base->object->ipo->showkey= 0;
 			}
 		}
 		base= base->next;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
-	if(set) {
-		allqueue(REDRAWNLA, 0);
-		allqueue (REDRAWACTION, 0);
-		allspace(REMAKEIPO, 0);
-		allqueue(REDRAWIPO, 0);
-	}
+	allqueue(REDRAWNLA, 0);
+	allqueue (REDRAWACTION, 0);
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWIPO, 0);
 }
 
 void select_select_keys(void)
@@ -5312,6 +5694,57 @@ void auto_timeoffs(void)
 	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
+void ofs_timeoffs(void)
+{
+	Base *base;
+	float offset=0.0f;
+
+	if(BASACT==0 || G.vd==NULL) return;
+	
+	if(fbutton(&offset, -10000.0f, 10000.0f, 10, 10, "Offset")==0) return;
+
+	/* make array of all bases, xco yco (screen) */
+	base= FIRSTBASE;
+	while(base) {
+		if(TESTBASELIB(base)) {
+			base->object->sf += offset;
+			if (base->object->sf < -MAXFRAMEF)		base->object->sf = -MAXFRAMEF;
+			else if (base->object->sf > MAXFRAMEF)	base->object->sf = MAXFRAMEF;
+		}
+		base= base->next;
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+}
+
+
+void rand_timeoffs(void)
+{
+	Base *base;
+	float rand=0.0f;
+
+	if(BASACT==0 || G.vd==NULL) return;
+	
+	if(fbutton(&rand, 0.0f, 10000.0f, 10, 10, "Randomize")==0) return;
+	
+	rand *= 2;
+	
+	base= FIRSTBASE;
+	while(base) {
+		if(TESTBASELIB(base)) {
+			base->object->sf += (BLI_drand()-0.5) * rand;
+			if (base->object->sf < -MAXFRAMEF)		base->object->sf = -MAXFRAMEF;
+			else if (base->object->sf > MAXFRAMEF)	base->object->sf = MAXFRAMEF;
+		}
+		base= base->next;
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+}
+
+
 void texspace_edit(void)
 {
 	Base *base;
@@ -5366,20 +5799,12 @@ void texspace_edit(void)
 
 void mirrormenu(void)
 {
-	short mode = 0;
-
-
-	if (G.obedit==0) {
-		mode=pupmenu("Mirror Axis %t|X Local%x4|Y Local%x5|Z Local%x6|");
-
-		if (mode==-1) return; /* return */
-		Mirror(mode); /* separating functionality from interface | call*/
+	if(G.f & G_PARTICLEEDIT) {
+		PE_mirror_x(0);
 	}
 	else {
-		mode=pupmenu("Mirror Axis %t|X Global%x1|Y Global%x2|Z Global%x3|%l|X Local%x4|Y Local%x5|Z Local%x6|%l|X View%x7|Y View%x8|Z View%x9|");
-
-		if (mode==-1) return; /* return */
-		Mirror(mode); /* separating functionality from interface | call*/
+		initTransform(TFM_MIRROR, CTX_NO_PET);
+		Transform();
 	}
 }
 
@@ -5454,6 +5879,18 @@ void hookmenu(void)
 }
 
 /*
+ * Returns true if the Object is a from an external blend file (libdata)
+ */
+int object_is_libdata(Object *ob)
+{
+	if (!ob) return 0;
+	if (ob->proxy) return 0;
+	if (ob->id.lib) return 1;
+	return 0;
+}
+
+
+/*
  * Returns true if the Object data is a from an external blend file (libdata)
  */
 int object_data_is_libdata(Object *ob)
@@ -5469,14 +5906,17 @@ int object_data_is_libdata(Object *ob)
 void hide_objects(int select)
 {
 	Base *base;
-	int changed = 0;
+	short changed = 0, changed_act = 0;
 	for(base = FIRSTBASE; base; base=base->next){
 		if(TESTBASELIB(base)==select){
 			base->flag &= ~SELECT;
 			base->object->flag = base->flag;
 			base->object->restrictflag |= OB_RESTRICT_VIEW;
 			changed = 1;
-			if (base==BASACT) BASACT= NULL;
+			if (base==BASACT) {
+				BASACT= NULL;
+				changed_act = 1;
+			}
 		}
 	}
 	if (changed) {
@@ -5485,6 +5925,12 @@ void hide_objects(int select)
 		DAG_scene_sort(G.scene);
 		allqueue(REDRAWVIEW3D,0);
 		allqueue(REDRAWOOPS,0);
+		allqueue(REDRAWDATASELECT,0);
+		if (changed_act) { /* these spaces depend on the active object */
+			allqueue(REDRAWBUTSALL,0);
+			allqueue(REDRAWIPO,0);
+			allqueue(REDRAWACTION,0);
+		}
 		countall();
 	}
 }

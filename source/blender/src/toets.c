@@ -73,6 +73,8 @@
 #include "BIF_editseq.h"
 #include "BIF_editsound.h"
 #include "BIF_editmesh.h"
+#include "BIF_imasel.h"
+#include "BIF_editparticle.h"
 #include "BIF_interface.h"
 #include "BKE_object.h"
 #include "BIF_poseobject.h"
@@ -107,6 +109,9 @@
 #include "mydevice.h"
 
 #include "BIF_poseobject.h"
+
+#define VIEW_ZOOM_OUT_FACTOR (1.15f)
+#define VIEW_ZOOM_IN_FACTOR (1.0f/VIEW_ZOOM_OUT_FACTOR)
 
 /* ------------------------------------------------------------------------- */
 
@@ -155,6 +160,7 @@ void persptoetsen(unsigned short event)
 	float phi, si, q1[4], vec[3];
 	static int perspo=1;
 	int preview3d_event= 1;
+	short mouseloc[2];
 	
 	float new_dist, orig_ofs[3];
 	
@@ -243,14 +249,20 @@ void persptoetsen(unsigned short event)
 			if(G.vd->persp==2) {
 				G.vd->camzoom= MAX2(-30, G.vd->camzoom-5);
 			}
-			else if(G.vd->dist<10.0*G.vd->far) G.vd->dist*=1.2f;
+			else if(G.vd->dist<10.0*G.vd->far) {
+				getmouseco_areawin(mouseloc);
+				view_zoom_mouseloc(VIEW_ZOOM_OUT_FACTOR, mouseloc);
+			}
 			if(G.vd->persp!=1) preview3d_event= 0;
 		}
 		else if(event==PADPLUSKEY) {
 			if(G.vd->persp==2) {
 				G.vd->camzoom= MIN2(300, G.vd->camzoom+5);
 			}
-			else if(G.vd->dist> 0.001*G.vd->grid) G.vd->dist*=.83333f;
+			else if(G.vd->dist> 0.001*G.vd->grid) {
+				getmouseco_areawin(mouseloc);
+				view_zoom_mouseloc(VIEW_ZOOM_IN_FACTOR, mouseloc);
+			}
 			if(G.vd->persp!=1) preview3d_event= 0;
 		}
 		else if(event==PAD5) {
@@ -372,7 +384,6 @@ void persptoetsen(unsigned short event)
 
 	if(G.vd->depths) G.vd->depths->damaged= 1;
 	retopo_queue_updates(G.vd);
-	retopo_force_update();
 	
 	if(preview3d_event) 
 		BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
@@ -466,6 +477,10 @@ int blenderqread(unsigned short event, short val)
 			activate_fileselect(FILE_LOADLIB, "Load Library", G.lib, 0);
 			return 0;
 		}
+		else if(G.qual==LR_CTRLKEY) {
+			activate_imageselect(FILE_LOADLIB, "Load Library", G.lib, 0);
+			return 0;
+		}
 		break;
 	case F2KEY:
 		if(G.qual==0) {
@@ -504,6 +519,15 @@ int blenderqread(unsigned short event, short val)
 			if(ob) strcpy(str, ob->id.name);
 
 			activate_fileselect(FILE_MAIN, "Data Select", str, NULL);
+			return 0;
+		}
+		else if(G.qual==LR_CTRLKEY) {
+
+			memset(str, 0, 16);
+			ob= OBACT;
+			if(ob) strcpy(str, ob->id.name);
+
+			activate_imageselect(FILE_MAIN, "Data Select", str, 0);
 			return 0;
 		}
 		else if(G.qual==0) {
@@ -710,25 +734,38 @@ int blenderqread(unsigned short event, short val)
 				}
 				else if(ob->type==OB_MESH) {
 					if(ob==G.obedit) EM_selectmode_menu();
+					else if(G.f & G_PARTICLEEDIT)
+						PE_selectbrush_menu();
 					else if(G.f & G_SCULPTMODE)
 						sculptmode_selectbrush_menu();
 					else set_wpaint();
 				}
 			}
 		}
+		else if(G.qual&LR_CTRLKEY && G.qual&LR_SHIFTKEY){
+			PE_set_particle_edit();
+		}
 		break;
 
 	case BACKSPACEKEY:
 		break;
-
-	case AKEY:
-		if(textediting==0 && textspace==0) {
-			if(G.qual==(LR_SHIFTKEY|LR_ALTKEY)){
+	case SPACEKEY:
+		if (curarea && curarea->spacetype==SPACE_SEQ) {
+			SpaceSeq *sseq= curarea->spacedata.first;
+			if (G.qual==0 && sseq->mainb) {
 				play_anim(1);
 				return 0;
 			}
-			else if(G.qual==LR_ALTKEY) {
+		}
+		break;
+	case AKEY:
+		if(textediting==0 && textspace==0) {
+			if ((G.qual==LR_ALTKEY) && (curarea && curarea->spacetype==SPACE_VIEW3D)) {
 				play_anim(0);
+				return 0;
+			}
+			else if ((G.qual==LR_ALTKEY) || (G.qual==(LR_ALTKEY|LR_SHIFTKEY))){
+				play_anim(1);
 				return 0;
 			}
 		}
@@ -748,6 +785,8 @@ int blenderqread(unsigned short event, short val)
 		break;
 	case IKEY:
 		if(textediting==0 && textspace==0 && !ELEM3(curarea->spacetype, SPACE_FILE, SPACE_IMASEL, SPACE_NODE)) {
+			ob= OBACT;
+
 			if(G.f & G_SCULPTMODE) return 1;
 			else if(G.qual==0) {
 				common_insertkey();
@@ -919,6 +958,11 @@ int blenderqread(unsigned short event, short val)
 			if(G.qual==LR_CTRLKEY) {
 				if(okee("Erase all")) {
 					if( BIF_read_homefile(0)==0) error("No file ~/.B.blend");
+					
+					/* Reset lights
+					 * This isn't done when reading userdef, do it now
+					 *  */
+					default_gl_light(); 
 				}
 				return 0;
 			}

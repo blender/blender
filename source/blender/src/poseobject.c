@@ -27,16 +27,19 @@
  */
 
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_dynstr.h"
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -44,6 +47,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -51,12 +55,12 @@
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_ipo.h"
 
 #include "BIF_editarmature.h"
 #include "BIF_editaction.h"
@@ -66,7 +70,6 @@
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
 #include "BIF_poseobject.h"
-#include "BIF_meshtools.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
 #include "BIF_screen.h"
@@ -79,6 +82,9 @@
 
 #include "mydevice.h"
 #include "blendef.h"
+#include "transform.h"
+
+#include "BIF_transform.h" /* for autokey TFM_TRANSLATION, etc */
 
 void enter_posemode(void)
 {
@@ -115,7 +121,7 @@ void enter_posemode(void)
 	}
 
 	if (G.obedit) exit_editmode(EM_FREEDATA|EM_WAITCURSOR);
-	G.f &= ~(G_VERTEXPAINT | G_FACESELECT | G_TEXTUREPAINT | G_WEIGHTPAINT);
+	G.f &= ~(G_VERTEXPAINT | G_TEXTUREPAINT | G_WEIGHTPAINT);
 }
 
 void set_pose_keys (Object *ob)
@@ -161,6 +167,9 @@ bPoseChannel *get_active_posechannel (Object *ob)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
+	
+	if ELEM(NULL, ob, ob->pose)
+		return NULL;
 	
 	/* find active */
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
@@ -221,7 +230,9 @@ int pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
 
 /* ********************************************** */
 
-/* for the object with pose/action: create path curves for selected bones */
+/* For the object with pose/action: create path curves for selected bones 
+ * This recalculates the WHOLE path within the pchan->pathsf and pchan->pathef range
+ */
 void pose_calculate_path(Object *ob)
 {
 	bArmature *arm;
@@ -231,7 +242,7 @@ void pose_calculate_path(Object *ob)
 	int cfra;
 	int sfra, efra;
 	
-	if(ob==NULL || ob->pose==NULL)
+	if (ob==NULL || ob->pose==NULL)
 		return;
 	arm= ob->data;
 	
@@ -248,38 +259,50 @@ void pose_calculate_path(Object *ob)
 	cfra= CFRA;
 	sfra = arm->pathsf;
 	efra = arm->pathef;
-	if (efra<=sfra) return;
+	if (efra <= sfra) {
+		error("Can't calculate paths when pathlen <= 0");
+		return;
+	}
 	
-	DAG_object_update_flags(G.scene, ob, screen_view3d_layers());
+	waitcursor(1);
+	
+	/* hack: for unsaved files, set OB_RECALC so that paths can get calculated */
+	if ((ob->recalc & OB_RECALC)==0) {
+		ob->recalc |= OB_RECALC;
+		DAG_object_update_flags(G.scene, ob, screen_view3d_layers());
+	}
+	else
+		DAG_object_update_flags(G.scene, ob, screen_view3d_layers());
+	
 	
 	/* malloc the path blocks */
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
-			if(arm->layer & pchan->bone->layer) {
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
+			if (arm->layer & pchan->bone->layer) {
 				pchan->pathlen= efra-sfra+1;
 				pchan->pathsf= sfra;
 				pchan->pathef= efra+1;
-				if(pchan->path)
+				if (pchan->path)
 					MEM_freeN(pchan->path);
 				pchan->path= MEM_callocN(3*pchan->pathlen*sizeof(float), "pchan path");
 			}
 		}
 	}
 	
-	for(CFRA=sfra; CFRA<=efra; CFRA++) {
+	for (CFRA=sfra; CFRA<=efra; CFRA++) {
 		/* do all updates */
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(base->object->recalc) {
+		for (base= FIRSTBASE; base; base= base->next) {
+			if (base->object->recalc) {
 				int temp= base->object->recalc;
 				object_handle_update(base->object);
 				base->object->recalc= temp;
 			}
 		}
 		
-		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
-				if(arm->layer & pchan->bone->layer) {
-					if(pchan->path) {
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
+				if (arm->layer & pchan->bone->layer) {
+					if (pchan->path) {
 						fp= pchan->path+3*(CFRA-sfra);
 						
 						if (arm->pathflag & ARM_PATH_HEADS) { 
@@ -296,25 +319,113 @@ void pose_calculate_path(Object *ob)
 		}
 	}
 	
+	waitcursor(0);
+	
 	CFRA= cfra;
 	allqueue(REDRAWVIEW3D, 0);	/* recalc tags are still there */
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
+/* For the object with pose/action: update paths for those that have got them
+ * This should selectively update paths that exist...
+ */
+void pose_recalculate_paths(Object *ob)
+{
+	bArmature *arm;
+	bPoseChannel *pchan;
+	Base *base;
+	float *fp;
+	int cfra;
+	int sfra, efra;
+	
+	if (ob==NULL || ob->pose==NULL)
+		return;
+	arm= ob->data;
+	
+	/* set frame values */
+	cfra = CFRA;
+	sfra = efra = cfra; 
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
+			if (pchan->path) {
+				/* if the pathsf and pathef aren't initialised, abort! */
+				if (ELEM(0, pchan->pathsf, pchan->pathef))	
+					return;
+				
+				/* try to increase area to do (only as much as needed) */
+				sfra= MIN2(sfra, pchan->pathsf);
+				efra= MAX2(efra, pchan->pathef);
+			}
+		}
+	}
+	if (efra <= sfra) return;
+	
+	waitcursor(1);
+	
+	/* hack: for unsaved files, set OB_RECALC so that paths can get calculated */
+	if ((ob->recalc & OB_RECALC)==0) {
+		ob->recalc |= OB_RECALC;
+		DAG_object_update_flags(G.scene, ob, screen_view3d_layers());
+	}
+	else
+		DAG_object_update_flags(G.scene, ob, screen_view3d_layers());
+	
+	for (CFRA=sfra; CFRA<=efra; CFRA++) {
+		/* do all updates */
+		for (base= FIRSTBASE; base; base= base->next) {
+			if (base->object->recalc) {
+				int temp= base->object->recalc;
+				object_handle_update(base->object);
+				base->object->recalc= temp;
+			}
+		}
+		
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
+				if (pchan->path) {
+					/* only update if:
+					 *	- in range of this pchan's existing path
+					 *	- ... insert evil filtering/optimising conditions here...
+					 */
+					if (IN_RANGE(CFRA, pchan->pathsf, pchan->pathef)) {
+						fp= pchan->path+3*(CFRA-sfra);
+						
+						if (arm->pathflag & ARM_PATH_HEADS) { 
+							VECCOPY(fp, pchan->pose_head);
+						}
+						else {
+							VECCOPY(fp, pchan->pose_tail);
+						}
+						
+						Mat4MulVecfl(ob->obmat, fp);
+					}
+				}
+			}
+		}
+	}
+	
+	waitcursor(0);
+	
+	CFRA= cfra;
+	allqueue(REDRAWVIEW3D, 0);	/* recalc tags are still there */
+	allqueue(REDRAWBUTSEDIT, 0);
+}
 
-/* for the object with pose/action: clear all path curves */
+/* for the object with pose/action: clear path curves for selected bones only */
 void pose_clear_paths(Object *ob)
 {
 	bPoseChannel *pchan;
 	
-	if(ob==NULL || ob->pose==NULL)
+	if (ob==NULL || ob->pose==NULL)
 		return;
 	
 	/* free the path blocks */
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->path) {
-			MEM_freeN(pchan->path);
-			pchan->path= NULL;
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
+			if (pchan->path) {
+				MEM_freeN(pchan->path);
+				pchan->path= NULL;
+			}
 		}
 	}
 	
@@ -331,23 +442,30 @@ void pose_select_constraint_target(void)
 	bConstraint *con;
 	
 	/* paranoia checks */
-	if(!ob && !ob->pose) return;
-	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
+	if (!ob && !ob->pose) return;
+	if (ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(arm->layer & pchan->bone->layer) {
-			if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
-				
-				for(con= pchan->constraints.first; con; con= con->next) {
-					char *subtarget;
-					Object *target= get_constraint_target(con, &subtarget);
+		if (arm->layer & pchan->bone->layer) {
+			if (pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+				for (con= pchan->constraints.first; con; con= con->next) {
+					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+					ListBase targets = {NULL, NULL};
+					bConstraintTarget *ct;
 					
-					if(ob==target) {
-						if(subtarget) {
-							bPoseChannel *pchanc= get_pose_channel(ob->pose, subtarget);
-							if(pchanc)
-								pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+					if (cti && cti->get_constraint_targets) {
+						cti->get_constraint_targets(con, &targets);
+						
+						for (ct= targets.first; ct; ct= ct->next) {
+							if ((ct->tar == ob) && (ct->subtarget[0])) {
+								bPoseChannel *pchanc= get_pose_channel(ob->pose, ct->subtarget);
+								if(pchanc)
+									pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+							}
 						}
+						
+						if (cti->flush_constraint_targets)
+							cti->flush_constraint_targets(con, &targets, 1);
 					}
 				}
 			}
@@ -372,7 +490,7 @@ void pose_special_editmenu(void)
 	if(!ob && !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
-	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names%x2|Calculate Paths%x3|Clear All Paths%x4|Clear User Transform %x5");
+	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names%x2|Calculate Paths%x3|Clear Paths%x4|Clear User Transform %x5|Relax Pose %x6|%l|AutoName Left-Right%x7|AutoName Front-Back%x8|AutoName Top-Bottom%x9");
 	if(nr==1) {
 		pose_select_constraint_target();
 	}
@@ -389,6 +507,12 @@ void pose_special_editmenu(void)
 		rest_pose(ob->pose);
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		BIF_undo_push("Clear User Transform Pose");
+	}
+	else if(nr==6) {
+		pose_relax();
+	}
+	else if(ELEM3(nr, 7, 8, 9)) {
+		pose_autoside_names(nr-7);
 	}
 }
 
@@ -682,7 +806,7 @@ void paste_posebuf (int flip)
 	
 	/* Safely merge all of the channels in this pose into
 	any existing pose */
-	for (chan=g_posebuf->chanbase.first; chan; chan=chan->next){
+	for (chan=g_posebuf->chanbase.first; chan; chan=chan->next) {
 		if (chan->flag & POSE_KEY) {
 			BLI_strncpy(name, chan->name, sizeof(name));
 			if (flip)
@@ -691,7 +815,7 @@ void paste_posebuf (int flip)
 			/* only copy when channel exists, poses are not meant to add random channels to anymore */
 			pchan= get_pose_channel(ob->pose, name);
 			
-			if(pchan) {
+			if (pchan) {
 				/* only loc rot size */
 				/* only copies transform info for the pose */
 				VECCOPY(pchan->loc, chan->loc);
@@ -699,35 +823,44 @@ void paste_posebuf (int flip)
 				QUATCOPY(pchan->quat, chan->quat);
 				pchan->flag= chan->flag;
 				
-				if (flip){
+				if (flip) {
 					pchan->loc[0]*= -1;
-
+					
 					QuatToEul(pchan->quat, eul);
 					eul[1]*= -1;
 					eul[2]*= -1;
 					EulToQuat(eul, pchan->quat);
 				}
-
-				if (G.flags & G_RECORDKEYS){
+				
+				if (autokeyframe_cfra_can_key(ob)) {
 					ID *id= &ob->id;
-
+					
 					/* Set keys on pose */
-					if (chan->flag & POSE_ROT){
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+					if (chan->flag & POSE_ROT) {
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
 					}
-					if (chan->flag & POSE_SIZE){
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
+					if (chan->flag & POSE_SIZE) {
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
 					}
-					if (chan->flag & POSE_LOC){
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+					if (chan->flag & POSE_LOC) {
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
 					}
+					
+					/* clear any unkeyed tags */
+					if (chan->bone)
+						chan->bone->flag &= ~BONE_UNKEYED;
+				}
+				else {
+					/* add unkeyed tags */
+					if (chan->bone)
+						chan->bone->flag |= BONE_UNKEYED;
 				}
 			}
 		}
@@ -736,11 +869,11 @@ void paste_posebuf (int flip)
 	/* Update event for pose and deformation children */
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	
-	if (G.flags & G_RECORDKEYS) {
+	if (IS_AUTOKEY_ON) {
 		remake_action_ipos(ob->action);
-		allqueue (REDRAWIPO, 0);
-		allqueue (REDRAWVIEW3D, 0);
-		allqueue (REDRAWACTION, 0);		
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWACTION, 0);		
 		allqueue(REDRAWNLA, 0);
 	}
 	else {
@@ -754,114 +887,344 @@ void paste_posebuf (int flip)
 
 /* ********************************************** */
 
-struct vgroup_map {
-	float head[3], tail[3];
-	Bone *bone;
-	bDeformGroup *dg, *dgflip;
-	Object *meshobj;
-};
-
-static void pose_adds_vgroups__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
+/* context weightpaint and deformer in posemode */
+void pose_adds_vgroups(Object *meshobj, int heatweights)
 {
-	struct vgroup_map *map= userData;
-	float vec[3], fac;
-	
-	VECCOPY(vec, co);
-	Mat4MulVecfl(map->meshobj->obmat, vec);
-		
-	/* get the distance-factor from the vertex to bone */
-	fac= distfactor_to_bone (vec, map->head, map->tail, map->bone->rad_head, map->bone->rad_tail, map->bone->dist);
-	
-	/* add to vgroup. this call also makes me->dverts */
-	if(fac!=0.0f) 
-		add_vert_to_defgroup (map->meshobj, map->dg, index, fac, WEIGHT_REPLACE);
+	extern VPaint Gwp;         /* from vpaint */
+	Object *poseobj= modifiers_isDeformedByArmature(meshobj);
+
+	if(poseobj==NULL || (poseobj->flag & OB_POSEMODE)==0) {
+		error("The active object must have a deforming armature in pose mode");
+		return;
+	}
+
+	add_verts_to_dgroups(meshobj, poseobj, heatweights, (Gwp.flag & VP_MIRROR_X));
+
+	if(heatweights)
+		BIF_undo_push("Apply Bone Heat Weights to Vertex Groups");
 	else
-		remove_vert_defgroup (map->meshobj, map->dg, index);
+		BIF_undo_push("Apply Bone Envelopes to Vertex Groups");
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 	
-	if(map->dgflip) {
-		int j= mesh_get_x_mirror_vert(map->meshobj, index);
-		if(j>=0) {
-			if(fac!=0.0f) 
-				add_vert_to_defgroup (map->meshobj, map->dgflip, j, fac, WEIGHT_REPLACE);
-			else
-				remove_vert_defgroup (map->meshobj, map->dgflip, j);
+	// and all its relations
+	DAG_object_flush_update(G.scene, meshobj, OB_RECALC_DATA);
+}
+
+/* ********************************************** */
+
+/* adds a new pose-group */
+void pose_add_posegroup ()
+{
+	Object *ob= OBACT;
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bActionGroup *grp;
+	
+	if (ELEM(NULL, ob, ob->pose))
+		return;
+	
+	grp= MEM_callocN(sizeof(bActionGroup), "PoseGroup");
+	strcpy(grp->name, "Group");
+	BLI_addtail(&pose->agroups, grp);
+	BLI_uniquename(&pose->agroups, grp, "Group", offsetof(bActionGroup, name), 32);
+	
+	pose->active_group= BLI_countlist(&pose->agroups);
+	
+	BIF_undo_push("Add Bone Group");
+	
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+/* Remove the active bone-group */
+void pose_remove_posegroup ()
+{
+	Object *ob= OBACT;
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bActionGroup *grp = NULL;
+	bPoseChannel *pchan;
+	
+	/* sanity checks */
+	if (ELEM(NULL, ob, pose))
+		return;
+	if (pose->active_group <= 0)
+		return;
+	
+	/* get group to remove */
+	grp= BLI_findlink(&pose->agroups, pose->active_group-1);
+	if (grp) {
+		/* firstly, make sure nothing references it */
+		for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+			if (pchan->agrp_index == pose->active_group)
+				pchan->agrp_index= 0;
 		}
+		
+		/* now, remove it from the pose */
+		BLI_freelinkN(&pose->agroups, grp);
+		pose->active_group= 0;
+		
+		BIF_undo_push("Remove Bone Group");
+	}
+	
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+char *build_posegroups_menustr (bPose *pose, short for_pupmenu)
+{
+	DynStr *pupds= BLI_dynstr_new();
+	bActionGroup *grp;
+	char *str;
+	char buf[16];
+	int i;
+	
+	/* add title first (and the "none" entry) */
+	BLI_dynstr_append(pupds, "Bone Group%t|");
+	if (for_pupmenu)
+		BLI_dynstr_append(pupds, "Add New%x0|");
+	else
+		BLI_dynstr_append(pupds, "BG: [None]%x0|");
+	
+	/* loop through groups, adding them */
+	for (grp= pose->agroups.first, i=1; grp; grp=grp->next, i++) {
+		if (for_pupmenu == 0)
+			BLI_dynstr_append(pupds, "BG: ");
+		BLI_dynstr_append(pupds, grp->name);
+		
+		sprintf(buf, "%%x%d", i);
+		BLI_dynstr_append(pupds, buf);
+		
+		if (grp->next)
+			BLI_dynstr_append(pupds, "|");
+	}
+	
+	/* convert to normal MEM_malloc'd string */
+	str= BLI_dynstr_get_cstring(pupds);
+	BLI_dynstr_free(pupds);
+	
+	return str;
+}
+
+/* Assign selected pchans to the bone group that the user selects */
+void pose_assign_to_posegroup (short active)
+{
+	Object *ob= OBACT;
+	bArmature *arm= (ob) ? ob->data : NULL;
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bPoseChannel *pchan;
+	char *menustr;
+	int nr;
+	short done= 0;
+	
+	/* sanity checks */
+	if (ELEM3(NULL, ob, pose, arm))
+		return;
+
+	/* get group to affect */
+	if ((active==0) || (pose->active_group <= 0)) {
+		menustr= build_posegroups_menustr(pose, 1);
+		nr= pupmenu_col(menustr, 20);
+		MEM_freeN(menustr);
+		
+		if (nr < 0) 
+			return;
+		else if (nr == 0) {
+			/* add new - note: this does an undo push and sets active group */
+			pose_add_posegroup();
+		}
+		else
+			pose->active_group= nr;
+	}
+	
+	/* add selected bones to group then */
+	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) {
+			pchan->agrp_index= pose->active_group;
+			done= 1;
+		}
+	}
+	
+	if (done)
+		BIF_undo_push("Add Bones To Group");
+		
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+/* Remove selected pchans from their bone groups */
+void pose_remove_from_posegroups ()
+{
+	Object *ob= OBACT;
+	bArmature *arm= (ob) ? ob->data : NULL;
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bPoseChannel *pchan;
+	short done= 0;
+	
+	/* sanity checks */
+	if (ELEM3(NULL, ob, pose, arm))
+		return;
+	
+	/* remove selected bones from their groups */
+	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) {
+			if (pchan->agrp_index) {
+				pchan->agrp_index= 0;
+				done= 1;
+			}
+		}
+	}
+	
+	if (done)
+		BIF_undo_push("Remove Bones From Groups");
+		
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+/* Ctrl-G in 3D-View while in PoseMode */
+void pgroup_operation_with_menu (void)
+{
+	Object *ob= OBACT;
+	bArmature *arm= (ob) ? ob->data : NULL;
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bPoseChannel *pchan= NULL;
+	int mode;
+	
+	/* sanity checks */
+	if (ELEM3(NULL, ob, pose, arm))
+		return;
+	
+	/* check that something is selected */
+	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) 
+			break;
+	}
+	if (pchan == NULL)
+		return;
+	
+	/* get mode of action */
+	if (pchan)
+		mode= pupmenu("Bone Groups%t|Add Selected to Active Group%x1|Add Selected to Group%x2|%|Remove Selected From Groups%x3|Remove Active Group%x4");
+	else
+		mode= pupmenu("Bone Groups%t|Add New Group%x5|Remove Active Group%x4");
+		
+	/* handle mode */
+	switch (mode) {
+		case 1:
+			pose_assign_to_posegroup(1);
+			break;
+		case 2:
+			pose_assign_to_posegroup(0);
+			break;
+		case 5:
+			pose_add_posegroup();
+			break;
+		case 3:
+			pose_remove_from_posegroups();
+			break;
+		case 4:
+			pose_remove_posegroup();
+			break;
 	}
 }
 
-/* context weightpaint and deformer in posemode */
-void pose_adds_vgroups(Object *meshobj)
+/* ********************************************** */
+
+static short pose_select_same_group (Object *ob)
 {
-	extern VPaint Gwp;         /* from vpaint */
-	struct vgroup_map map;
-	DerivedMesh *dm;
-	Object *poseobj= modifiers_isDeformedByArmature(meshobj);
-	bArmature *arm= poseobj->data;
-	bPoseChannel *pchan;
-	Bone *bone;
-	bDeformGroup *dg, *curdef;
+	bPose *pose= (ob)? ob->pose : NULL;
+	bArmature *arm= (ob)? ob->data : NULL;
+	bPoseChannel *pchan, *chan;
+	short changed= 0;
 	
-	if(poseobj==NULL || (poseobj->flag & OB_POSEMODE)==0) return;
+	if (ELEM3(NULL, ob, pose, arm))
+		return 0;
 	
-	dm = mesh_get_derived_final(meshobj, CD_MASK_BAREMESH);
-	
-	map.meshobj= meshobj;
-	
-	for(pchan= poseobj->pose->chanbase.first; pchan; pchan= pchan->next) {
-		bone= pchan->bone;
-		if(arm->layer & pchan->bone->layer) {
-			if(bone->flag & (BONE_SELECTED)) {
+	/* loop in loop... bad and slow! */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (arm->layer & pchan->bone->layer) {
+			if (pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
 				
-				/* check if mesh has vgroups */
-				dg= get_named_vertexgroup(meshobj, bone->name);
-				if(dg==NULL)
-					dg= add_defgroup_name(meshobj, bone->name);
-				
-				/* flipped bone */
-				if(Gwp.flag & VP_MIRROR_X) {
-					char name[32];
-					
-					BLI_strncpy(name, dg->name, 32);
-					bone_flip_name(name, 0);		// 0 = don't strip off number extensions
-					
-					for (curdef = meshobj->defbase.first; curdef; curdef=curdef->next)
-						if (!strcmp(curdef->name, name))
-							break;
-					map.dgflip= curdef;
-				}
-				else map.dgflip= NULL;
-				
-				/* get the root of the bone in global coords */
-				VECCOPY(map.head, bone->arm_head);
-				Mat4MulVecfl(poseobj->obmat, map.head);
-				
-				/* get the tip of the bone in global coords */
-				VECCOPY(map.tail, bone->arm_tail);
-				Mat4MulVecfl(poseobj->obmat, map.tail);
-				
-				/* use the optimal vertices instead of mverts */
-				map.dg= dg;
-				map.bone= bone;
-				if(dm->foreachMappedVert) 
-					dm->foreachMappedVert(dm, pose_adds_vgroups__mapFunc, (void*) &map);
-				else {
-					Mesh *me= meshobj->data;
-					int i;
-					for(i=0; i<me->totvert; i++) 
-						pose_adds_vgroups__mapFunc(&map, i, (me->mvert+i)->co, NULL, NULL);
+				/* only if group matches (and is not selected or current bone) */
+				for (chan= ob->pose->chanbase.first; chan; chan= chan->next) {
+					if (arm->layer & chan->bone->layer) {
+						if (pchan->agrp_index == chan->agrp_index) {
+							chan->bone->flag |= BONE_SELECTED;
+							changed= 1;
+						}
+					}
 				}
 				
 			}
 		}
 	}
 	
-	dm->release(dm);
+	return changed;
+}
 
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
+static short pose_select_same_layer (Object *ob)
+{
+	bPose *pose= (ob)? ob->pose : NULL;
+	bArmature *arm= (ob)? ob->data : NULL;
+	bPoseChannel *pchan;
+	short layers= 0, changed= 0;
 	
-	DAG_object_flush_update(G.scene, meshobj, OB_RECALC_DATA);	// and all its relations
+	if (ELEM3(NULL, ob, pose, arm))
+		return 0;
+	
+	/* figure out what bones are selected */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (arm->layer & pchan->bone->layer) {
+			if (pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+				layers |= pchan->bone->layer;
+			}
+		}
+	}
+	if (layers == 0) 
+		return 0;
+		
+	/* select bones that are on same layers as layers flag */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (arm->layer & pchan->bone->layer) {
+			if (layers & pchan->bone->layer) {
+				pchan->bone->flag |= BONE_SELECTED;
+				changed= 1;
+			}
+		}
+	}
+	
+	return changed;
+}
 
+
+void pose_select_grouped (short nr)
+{
+	short changed = 0;
+	
+	if (nr == 1) 		changed= pose_select_same_group(OBACT);
+	else if (nr == 2)	changed= pose_select_same_layer(OBACT);
+	
+	if (changed) {
+		countall();
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+		allspace(REMAKEIPO, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWACTION, 0);
+		BIF_undo_push("Select Grouped");
+	}
+}
+
+/* Shift-G in 3D-View while in PoseMode */
+void pose_select_grouped_menu (void)
+{
+	short nr;
+	
+	/* here we go */
+	nr= pupmenu("Select Grouped%t|In Same Group%x1|In Same Layer%x2");
+	pose_select_grouped(nr);
 }
 
 /* ********************************************** */
@@ -897,7 +1260,39 @@ void pose_flip_names(void)
 	allqueue (REDRAWACTION, 0);
 	allqueue(REDRAWOOPS, 0);
 	BIF_undo_push("Flip names");
+}
+
+/* context active object */
+void pose_autoside_names(short axis)
+{
+	Object *ob= OBACT;
+	bArmature *arm= ob->data;
+	bPoseChannel *pchan;
+	char newname[32];
 	
+	/* paranoia checks */
+	if (ELEM(NULL, ob, ob->pose)) return;
+	if (ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
+	
+	if (pose_has_protected_selected(ob, 0))
+		return;
+	
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(arm->layer & pchan->bone->layer) {
+			if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+				BLI_strncpy(newname, pchan->name, sizeof(newname));
+				bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis]);
+				armature_bone_rename(ob->data, pchan->name, newname);
+			}
+		}
+	}
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWOOPS, 0);
+	BIF_undo_push("Flip names");
 }
 
 /* context active object, or weightpainted object with armature in posemode */
@@ -950,20 +1345,23 @@ void pose_activate_flipped_bone(void)
 	}
 }
 
-
+/* This function pops up the move-to-layer popup widgets when the user
+ * presses either SHIFT-MKEY or MKEY in PoseMode OR EditMode (for Armatures)
+ */
 void pose_movetolayer(void)
 {
 	Object *ob= OBACT;
 	bArmature *arm;
 	short lay= 0;
 	
-	if(ob==NULL) return;
+	if (ob==NULL) return;
 	arm= ob->data;
 	
-	if(G.qual & LR_SHIFTKEY) {
+	if (G.qual & LR_SHIFTKEY) {
+		/* armature layers */
 		lay= arm->layer;
-		if( movetolayer_short_buts(&lay, "Armature Layers")==0 ) return;
-		if(lay==0) return;
+		if ( movetolayer_short_buts(&lay, "Armature Layers")==0 ) return;
+		if (lay==0) return;
 		arm->layer= lay;
 		if(ob->pose)
 			ob->pose->proxy_layer= lay;
@@ -971,35 +1369,256 @@ void pose_movetolayer(void)
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
-		
 	}
-	else if(ob->flag & OB_POSEMODE) {
+	else if (G.obedit) {
+		/* the check for editbone layer moving needs to occur before posemode one to work */
+		EditBone *ebo;
+		EditBone *flipBone;
+		
+		for (ebo= G.edbo.first; ebo; ebo= ebo->next) {
+			if (arm->layer & ebo->layer) {
+				if (ebo->flag & BONE_SELECTED)
+					lay |= ebo->layer;
+			}
+		}
+		if (lay==0) return;
+		
+		if ( movetolayer_short_buts(&lay, "Bone Layers")==0 ) return;
+		if (lay==0) return;
+		
+		for (ebo= G.edbo.first; ebo; ebo= ebo->next) {
+			if (arm->layer & ebo->layer) {
+				if (ebo->flag & BONE_SELECTED) {
+					ebo->layer= lay;
+					if (arm->flag & ARM_MIRROR_EDIT) {
+						flipBone = armature_bone_get_mirrored(ebo);
+						if (flipBone)
+							flipBone->layer = lay;
+					}
+				}
+			}
+		}
+		
+		BIF_undo_push("Move Bone Layer");
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+	}
+	else if (ob->flag & OB_POSEMODE) {
+		/* pose-channel layers */
 		bPoseChannel *pchan;
 		
-		if(pose_has_protected_selected(ob, 0))
+		if (pose_has_protected_selected(ob, 0))
 			return;
 		
-		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if(arm->layer & pchan->bone->layer) {
-				if(pchan->bone->flag & BONE_SELECTED)
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if (arm->layer & pchan->bone->layer) {
+				if (pchan->bone->flag & BONE_SELECTED)
 					lay |= pchan->bone->layer;
 			}
 		}
-		if(lay==0) return;
+		if (lay==0) return;
 		
-		if( movetolayer_short_buts(&lay, "Bone Layers")==0 ) return;
-		if(lay==0) return;
-
-		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if(arm->layer & pchan->bone->layer) {
-				if(pchan->bone->flag & BONE_SELECTED)
+		if ( movetolayer_short_buts(&lay, "Bone Layers")==0 ) return;
+		if (lay==0) return;
+		
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if (arm->layer & pchan->bone->layer) {
+				if (pchan->bone->flag & BONE_SELECTED)
 					pchan->bone->layer= lay;
 			}
 		}
 		
-		BIF_undo_push("Move Bone layer");
+		BIF_undo_push("Move Bone Layer");
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 	}
 }
+
+
+/* for use with pose_relax only */
+static int pose_relax_icu(struct IpoCurve *icu, float framef, float *val, float *frame_prev, float *frame_next)
+{
+	if (!icu) {
+		return 0;
+	} 
+	else {
+		BezTriple *bezt = icu->bezt;
+		
+		BezTriple *bezt_prev=NULL, *bezt_next=NULL;
+		float w1, w2, wtot;
+		int i;
+		
+		for (i=0; i < icu->totvert; i++, bezt++) {
+			if (bezt->vec[1][0] < framef - 0.5) {
+				bezt_prev = bezt;
+			} else {
+				break;
+			}
+		}
+		
+		if (bezt_prev==NULL) return 0;
+		
+		/* advance to the next, dont need to advance i */
+		bezt = bezt_prev+1;
+		
+		for (; i < icu->totvert; i++, bezt++) {
+			if (bezt->vec[1][0] > framef + 0.5) {
+				bezt_next = bezt;
+						break;
+			}
+		}
+		
+		if (bezt_next==NULL) return 0;
+	
+		if (val) {
+			w1 = framef - bezt_prev->vec[1][0];
+			w2 = bezt_next->vec[1][0] - framef;
+			wtot = w1 + w2;
+			w1=w1/wtot;
+			w2=w2/wtot;
+#if 0
+			val = (bezt_prev->vec[1][1] * w2) + (bezt_next->vec[1][1] * w1);
+#else
+			/* apply the value with a hard coded 6th */
+			*val = (((bezt_prev->vec[1][1] * w2) + (bezt_next->vec[1][1] * w1)) + (*val * 5.0f)) / 6.0f;
+#endif
+		}
+		
+		if (frame_prev)	*frame_prev = bezt_prev->vec[1][0];
+		if (frame_next)	*frame_next = bezt_next->vec[1][0];
+		
+		return 1;
+	}
+}
+
+void pose_relax()
+{
+	Object *ob = OBACT;
+	bPose *pose;
+	bAction *act;
+	bArmature *arm;
+	
+	IpoCurve *icu_w, *icu_x, *icu_y, *icu_z;
+	
+	bPoseChannel *pchan;
+	bActionChannel *achan;
+	float framef = F_CFRA;
+	float frame_prev, frame_next;
+	float quat_prev[4], quat_next[4], quat_interp[4], quat_orig[4];
+	
+	int do_scale = 0;
+	int do_loc = 0;
+	int do_quat = 0;
+	int flag = 0;
+	int do_x, do_y, do_z;
+	
+	if (!ob) return;
+	
+	pose = ob->pose;
+	act = ob->action;
+	arm = (bArmature *)ob->data;
+	
+	if (!pose || !act || !arm) return;
+	
+	for (pchan=pose->chanbase.first; pchan; pchan= pchan->next) {
+		
+		pchan->bone->flag &= ~BONE_TRANSFORM;
+		
+		if (pchan->bone->layer & arm->layer) {
+			if (pchan->bone->flag & BONE_SELECTED) {
+				/* do we have an ipo curve? */
+				achan= get_action_channel(act, pchan->name);
+				
+				if (achan && achan->ipo) {
+					/*calc_ipo(achan->ipo, ctime);*/
+					
+					do_x = pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_X), framef, &pchan->loc[0], NULL, NULL);
+					do_y = pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_Y), framef, &pchan->loc[1], NULL, NULL);
+					do_z = pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_Z), framef, &pchan->loc[2], NULL, NULL);
+					do_loc += do_x + do_y + do_z;
+					
+					do_x = pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_X), framef, &pchan->size[0], NULL, NULL);
+					do_y = pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_Y), framef, &pchan->size[1], NULL, NULL);
+					do_z = pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_Z), framef, &pchan->size[2], NULL, NULL);
+					do_scale += do_x + do_y + do_z;
+						
+					if(	((icu_w = find_ipocurve(achan->ipo, AC_QUAT_W))) &&
+						((icu_x = find_ipocurve(achan->ipo, AC_QUAT_X))) &&
+						((icu_y = find_ipocurve(achan->ipo, AC_QUAT_Y))) &&
+						((icu_z = find_ipocurve(achan->ipo, AC_QUAT_Z))) )
+					{
+						/* use the quatw keyframe as a basis for others */
+						if (pose_relax_icu(icu_w, framef, NULL, &frame_prev, &frame_next)) {
+							/* get 2 quats */
+							quat_prev[0] = eval_icu(icu_w, frame_prev);
+							quat_prev[1] = eval_icu(icu_x, frame_prev);
+							quat_prev[2] = eval_icu(icu_y, frame_prev);
+							quat_prev[3] = eval_icu(icu_z, frame_prev);
+							
+							quat_next[0] = eval_icu(icu_w, frame_next);
+							quat_next[1] = eval_icu(icu_x, frame_next);
+							quat_next[2] = eval_icu(icu_y, frame_next);
+							quat_next[3] = eval_icu(icu_z, frame_next);
+							
+#if 0
+							/* apply the setting, completely smooth */
+							QuatInterpol(pchan->quat, quat_prev, quat_next, (framef-frame_prev) / (frame_next-frame_prev) );
+#else
+							/* tricky interpolation */
+							QuatInterpol(quat_interp, quat_prev, quat_next, (framef-frame_prev) / (frame_next-frame_prev) );
+							QUATCOPY(quat_orig, pchan->quat);
+							QuatInterpol(pchan->quat, quat_orig, quat_interp, 1.0f/6.0f);
+							/* done */
+#endif
+							do_quat++;
+						}
+					}
+					
+					/* apply BONE_TRANSFORM tag so that autokeying will pick it up */
+					pchan->bone->flag |= BONE_TRANSFORM;
+				}
+			}
+		}
+	}
+	
+	ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
+	
+	/* do auto-keying */
+	if (do_loc)		flag |= TFM_TRANSLATION;
+	if (do_scale)	flag |= TFM_RESIZE;
+	if (do_quat)	flag |= TFM_ROTATION;
+	autokeyframe_pose_cb_func(ob, flag, 0);
+	 
+	/* clear BONE_TRANSFORM flags */
+	for (pchan=pose->chanbase.first; pchan; pchan= pchan->next)
+		pchan->bone->flag &= ~ BONE_TRANSFORM;
+	
+	/* do depsgraph flush */
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	BIF_undo_push("Relax Pose");
+}
+
+/* for use in insertkey, ensure rotation goes other way around */
+void pose_flipquats(void)
+{
+	Object *ob = OBACT;
+	bArmature *arm= ob->data;
+	bPoseChannel *pchan;
+	
+	if(ob->pose==NULL)
+		return;
+	
+	/* find sel bones */
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->bone && (pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) {
+			/* quaternions have 720 degree range */
+			pchan->quat[0]= -pchan->quat[0];
+			pchan->quat[1]= -pchan->quat[1];
+			pchan->quat[2]= -pchan->quat[2];
+			pchan->quat[3]= -pchan->quat[3];
+		}
+	}
+			
+}
+

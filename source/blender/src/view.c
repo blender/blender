@@ -66,13 +66,16 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_sculpt.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_transform.h"
+#include "BIF_editparticle.h"
 #include "BIF_gl.h"
-#include "BIF_space.h"
-#include "BIF_mywindow.h"
 #include "BIF_previewrender.h"
+#include "BIF_mywindow.h"
 #include "BIF_retopo.h"
+#include "BIF_space.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
 
@@ -86,6 +89,7 @@
 
 #include "mydevice.h"
 #include "blendef.h"
+#include "transform.h"
 
 #include "PIL_time.h" /* smoothview */
 #include <float.h>
@@ -153,6 +157,11 @@ void initgrabz(float x, float y, float z)
 	 * (accounting for near zero values)
 	 * */
 	if (G.vd->zfac < 1.e-6f && G.vd->zfac > -1.e-6f) G.vd->zfac = 1.0f;
+	
+	/* Negative zfac means x, y, z was behind the camera (in perspective).
+	 * This gives flipped directions, so revert back to ok default case.
+	 */
+	if (G.vd->zfac < 0.0f) G.vd->zfac = 1.0f;
 }
 
 void window_to_3d(float *vec, short mx, short my)
@@ -718,7 +727,7 @@ void viewmove(int mode)
 	float reverse, oldquat[4], q1[4], si, phi, dist0;
 	float ofs[3], obofs[3]= {0.0f, 0.0f, 0.0f};
 	int firsttime=1;
-	short mvalball[2], mval[2], mvalo[2];
+	short mvalball[2], mval[2], mvalo[2], mval_area[2];
 	short use_sel = 0;
 	short preview3d_event= 1;
 	
@@ -754,6 +763,7 @@ void viewmove(int mode)
 	
 	QUATCOPY(oldquat, G.vd->viewquat);
 	
+	getmouseco_areawin(mval_area);	/* for zoom to mouse loc */
 	getmouseco_sc(mvalo);		/* work with screen coordinates because of trackball function */
 	mvalball[0]= mvalo[0];			/* needed for turntable to work */
 	mvalball[1]= mvalo[1];
@@ -926,9 +936,10 @@ void viewmove(int mode)
 				}
 			}
 			else if(mode==2) {
+				float zfac=1.0;
 				if(U.viewzoom==USER_ZOOM_CONT) {
 					// oldstyle zoom
-					G.vd->dist*= 1.0+(float)(mvalo[0]-mval[0]+mvalo[1]-mval[1])/1000.0;
+					zfac = 1.0+(float)(mvalo[0]-mval[0]+mvalo[1]-mval[1])/1000.0;
 				}
 				else if(U.viewzoom==USER_ZOOM_SCALE) {
 					int ctr[2], len1, len2;
@@ -940,14 +951,17 @@ void viewmove(int mode)
 					len1 = (int)sqrt((ctr[0] - mval[0])*(ctr[0] - mval[0]) + (ctr[1] - mval[1])*(ctr[1] - mval[1])) + 5;
 					len2 = (int)sqrt((ctr[0] - mvalo[0])*(ctr[0] - mvalo[0]) + (ctr[1] - mvalo[1])*(ctr[1] - mvalo[1])) + 5;
 					
-					G.vd->dist= dist0 * ((float)len2/len1);
+					zfac = dist0 * ((float)len2/len1) / G.vd->dist;
 				}
 				else {	/* USER_ZOOM_DOLLY */
 					float len1 = (curarea->winrct.ymax - mval[1]) + 5;
 					float len2 = (curarea->winrct.ymax - mvalo[1]) + 5;
-					
-					G.vd->dist= dist0 * (2.0*((len2/len1)-1.0) + 1.0);
+					zfac = dist0 * (2.0*((len2/len1)-1.0) + 1.0) / G.vd->dist;
 				}
+
+				if(zfac != 1.0 && zfac*G.vd->dist > 0.001*G.vd->grid && 
+					zfac*G.vd->dist < 10.0*G.vd->far)
+					view_zoom_mouseloc(zfac, mval_area);
 				
 				/* these limits are in toets.c too */
 				if(G.vd->dist<0.001*G.vd->grid) G.vd->dist= 0.001*G.vd->grid;
@@ -997,7 +1011,49 @@ void viewmove(int mode)
 		BIF_view3d_previewrender_signal(curarea, PR_PROJECTED);
 
 }
+ 
+void view_zoom_mouseloc(float dfac, short *mouseloc)
+{
+	if(U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+		short vb[2];
+		float dvec[3];
+		float tvec[3];
+		float tpos[3];
+		float new_dist;
 
+		/* find the current window width and height */
+		vb[0] = G.vd->area->winx;
+		vb[1] = G.vd->area->winy;
+		
+		tpos[0] = -G.vd->ofs[0];
+		tpos[1] = -G.vd->ofs[1];
+		tpos[2] = -G.vd->ofs[2];
+
+		/* Project cursor position into 3D space */
+		initgrabz(tpos[0], tpos[1], tpos[2]);
+		window_to_3d(dvec, mouseloc[0]-vb[0]/2, mouseloc[1]-vb[1]/2);
+
+		/* Calculate view target position for dolly */
+		tvec[0] = -(tpos[0] + dvec[0]);
+		tvec[1] = -(tpos[1] + dvec[1]);
+		tvec[2] = -(tpos[2] + dvec[2]);
+
+		/* Offset to target position and dolly */
+		new_dist = G.vd->dist * dfac;
+		
+		VECCOPY(G.vd->ofs, tvec);
+		G.vd->dist = new_dist;
+		
+		/* Calculate final offset */
+		dvec[0] = tvec[0] + dvec[0] * dfac;
+		dvec[1] = tvec[1] + dvec[1] * dfac;
+		dvec[2] = tvec[2] + dvec[2] * dfac;
+		
+		VECCOPY(G.vd->ofs, dvec);
+	} else {
+		G.vd->dist *= dfac;
+	}
+}
 
 void viewmoveNDOF(int mode)
 {
@@ -1199,7 +1255,6 @@ void viewmoveNDOF(int mode)
     scrarea_do_windraw(curarea);
     screen_swapbuffers();
 }
-
 
 
 /* Gets the lens and clipping values from a camera of lamp type object */
@@ -1429,18 +1484,10 @@ void obmat_to_viewmat(Object *ob, short smooth)
 /* dont set windows active in in here, is used by renderwin too */
 void setviewmatrixview3d()
 {
-	Camera *cam;
-
 	if(G.vd->persp>=2) {	    /* obs/camera */
 		if(G.vd->camera) {
-			
 			where_is_object(G.vd->camera);	
 			obmat_to_viewmat(G.vd->camera, 0);
-			
-			if(G.vd->camera->type==OB_CAMERA) {
-				cam= G.vd->camera->data;
-				//if(cam->type==CAM_ORTHO) G.vd->viewmat[3][2]*= 100.0;
-			}
 		}
 		else {
 			QuatToMat4(G.vd->viewquat, G.vd->viewmat);
@@ -1655,8 +1702,7 @@ void initlocalview()
 
 	if(G.vd->localvd) return;
 
-	min[0]= min[1]= min[2]= 1.0e10;
-	max[0]= max[1]= max[2]= -1.0e10;
+	INIT_MINMAX(min, max);
 
 	locallay= free_localbit();
 
@@ -1751,9 +1797,7 @@ void centerview()	/* like a localview without local! */
 	float new_ofs[3];
 	float new_dist;
 	
-	
-	min[0]= min[1]= min[2]= 1.0e10;
-	max[0]= max[1]= max[2]= -1.0e10;
+	INIT_MINMAX(min, max);
 
 	if (G.f & G_WEIGHTPAINT) {
 		/* hardcoded exception, we look for the one selected armature */
@@ -1795,8 +1839,11 @@ void centerview()	/* like a localview without local! */
 			}
 		}
 	}
-	else if (G.f & G_FACESELECT) {
+	else if (FACESEL_PAINT_TEST) {
 		ok= minmax_tface(min, max);
+	}
+	else if (G.f & G_PARTICLEEDIT) {
+		ok= PE_minmax(min, max);
 	}
 	else {
 		Base *base= FIRSTBASE;
@@ -1929,8 +1976,7 @@ void view3d_home(int center)
 		max[0]= max[1]= max[2]= 0.0;
 	}
 	else {
-		min[0]= min[1]= min[2]= 1.0e10;
-		max[0]= max[1]= max[2]= -1.0e10;
+		INIT_MINMAX(min, max);
 	}
 	
 	for(base= FIRSTBASE; base; base= base->next) {

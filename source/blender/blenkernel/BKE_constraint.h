@@ -25,7 +25,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): 2007 - Joshua Leung (major recode)
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -34,42 +34,111 @@
 #define BKE_CONSTRAINT_H
 
 struct bConstraint;
-struct Object;
+struct bConstraintTarget;
 struct ListBase;
+struct Object;
 struct bConstraintChannel;
-struct bAction;
-struct bArmature;
+struct bPoseChannel;
 
-/* Function prototypes */
-void unique_constraint_name (struct bConstraint *con, struct ListBase *list);
-void *new_constraint_data (short type);
-void evaluate_constraint (struct bConstraint *constraint, struct Object *ob, short ownertype, void *ownerdata, float targetmat[][4]);
-void free_constraints (struct ListBase *conlist);
-void copy_constraints (struct ListBase *dst, struct ListBase *src);
-void copy_constraint_channels (ListBase *dst, ListBase *src);
-void clone_constraint_channels (struct ListBase *dst, struct ListBase *src);
-void relink_constraints (struct ListBase *list);
-void free_constraint_data (struct bConstraint *con);
+/* ---------------------------------------------------------------------------- */
 
-/* channels */
-struct bConstraintChannel *get_constraint_channel (ListBase *list, const char *name);
-struct bConstraintChannel *verify_constraint_channel (ListBase *list, const char *name);
-void free_constraint_channels (ListBase *chanbase);
+/* special struct for use in constraint evaluation */
+typedef struct bConstraintOb {
+	struct Object *ob;			/* if pchan, then armature that it comes from, otherwise constraint owner */
+	struct bPoseChannel *pchan;	/* pose channel that owns the constraints being evaluated */
+	
+	float matrix[4][4];			/* matrix where constraints are accumulated + solved */
+	float startmat[4][4];		/* original matrix (before constraint solving) */
+	
+	short type;					/* type of owner  */
+} bConstraintOb;
 
-/* Gemeric functions */
-void do_constraint_channels (struct ListBase *conbase, struct ListBase *chanbase, float ctime);
-short get_constraint_target_matrix (struct bConstraint *con, short ownertype, void *ownerdata, float mat[][4], float size[3], float time);
-char constraint_has_target (struct bConstraint *con);
-struct Object *get_constraint_target(struct bConstraint *con, char **subtarget);
-void set_constraint_target(struct bConstraint *con, struct Object *ob, char *subtarget);
+/* ---------------------------------------------------------------------------- */
+
+/* Constraint Type-Info (shorthand in code = cti):
+ *  This struct provides function pointers for runtime, so that functions can be
+ *  written more generally (with fewer/no special exceptions for various constraints).
+ *
+ *  Callers of these functions must check that they actually point to something useful,
+ *  as some constraints don't define some of these.
+ *
+ *  Warning: it is not too advisable to reorder order of members of this struct,
+ *			as you'll have to edit quite a few ($NUM_CONSTRAINT_TYPES) of these
+ *			structs.
+ */
+typedef struct bConstraintTypeInfo {
+	/* admin/ident */
+	short type;				/* CONSTRAINT_TYPE_### */
+	short size;				/* size in bytes of the struct */
+	char name[32]; 			/* name of constraint in interface */
+	char structName[32];	/* name of struct for SDNA */
+	
+	/* data management function pointers - special handling */
+		/* free any data that is allocated separately (optional) */
+	void (*free_data)(struct bConstraint *con);
+		/* adjust pointer to other ID-data using ID_NEW(), but not to targets (optional) */
+	void (*relink_data)(struct bConstraint *con);
+		/* copy any special data that is allocated separately (optional) */
+	void (*copy_data)(struct bConstraint *con, struct bConstraint *src);
+		/* set settings for data that will be used for bConstraint.data (memory already allocated) */
+	void (*new_data)(void *cdata);
+	
+	/* target handling function pointers */
+		/* for multi-target constraints: return that list; otherwise make a temporary list (returns number of targets) */
+	int (*get_constraint_targets)(struct bConstraint *con, struct ListBase *list);
+		/* for single-target constraints only: flush data back to source data, and the free memory used */
+	void (*flush_constraint_targets)(struct bConstraint *con, struct ListBase *list, short nocopy);
+	
+	/* evaluation */
+		/* set the ct->matrix for the given constraint target (at the given ctime) */
+	void (*get_target_matrix)(struct bConstraint *con, struct bConstraintOb *cob, struct bConstraintTarget *ct, float ctime);
+		/* evaluate the constraint for the given time */
+	void (*evaluate_constraint)(struct bConstraint *con, struct bConstraintOb *cob, struct ListBase *targets);
+} bConstraintTypeInfo;
+
+/* Function Prototypes for bConstraintTypeInfo's */
+bConstraintTypeInfo *constraint_get_typeinfo(struct bConstraint *con);
+bConstraintTypeInfo *get_constraint_typeinfo(int type);
+
+/* ---------------------------------------------------------------------------- */
+/* Useful macros for testing various common flag combinations */
+
+/* Constraint Target Macros */
+#define VALID_CONS_TARGET(ct) ((ct) && (ct->tar))
 
 
-/* Constraint target/owner types */
-#define TARGET_OBJECT			1	//	string is ""
-#define TARGET_BONE				2	//	string is bone-name
-#define TARGET_VERT				3	//	string is "VE:#" 
-#define TARGET_FACE				4	//	string is "FA:#" 
-#define TARGET_CV				5	//	string is "CV:#"
+/* ---------------------------------------------------------------------------- */
+
+/* Constraint function prototypes */
+void unique_constraint_name(struct bConstraint *con, struct ListBase *list);
+
+void free_constraints(struct ListBase *conlist);
+void copy_constraints(struct ListBase *dst, struct ListBase *src);
+void relink_constraints(struct ListBase *list);
+void free_constraint_data(struct bConstraint *con);
+
+/* Constraints + Proxies function prototypes */
+void extract_proxylocal_constraints(struct ListBase *dst, struct ListBase *src);
+short proxylocked_constraints_owner(struct Object *ob, struct bPoseChannel *pchan);
+
+/* Constraint Channel function prototypes */
+struct bConstraintChannel *get_constraint_channel(struct ListBase *list, const char *name);
+struct bConstraintChannel *verify_constraint_channel(struct ListBase *list, const char *name);
+void do_constraint_channels(struct ListBase *conbase, struct ListBase *chanbase, float ctime, short onlydrivers);
+void copy_constraint_channels(struct ListBase *dst, struct ListBase *src);
+void clone_constraint_channels(struct ListBase *dst, struct ListBase *src);
+void free_constraint_channels(struct ListBase *chanbase);
+
+
+/* Constraint Evaluation function prototypes */
+struct bConstraintOb *constraints_make_evalob(struct Object *ob, void *subdata, short datatype);
+void constraints_clear_evalob(struct bConstraintOb *cob);
+
+void constraint_mat_convertspace(struct Object *ob, struct bPoseChannel *pchan, float mat[][4], short from, short to);
+
+void get_constraint_target_matrix(struct bConstraint *con, int n, short ownertype, void *ownerdata, float mat[][4], float ctime);
+void solve_constraints(struct ListBase *conlist, struct bConstraintOb *cob, float ctime);
+
 
 #endif
 

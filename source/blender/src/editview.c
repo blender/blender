@@ -64,6 +64,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
+#include "BLI_rand.h" /* random object selection */
 
 #include "BKE_armature.h"
 #include "BKE_depsgraph.h"
@@ -73,11 +74,15 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h" /* fly mode where_is_object to get camera location */
+#include "BKE_particle.h"
 #include "BKE_utildefines.h"
+#include "BKE_customdata.h"
 
+#include "BIF_drawimage.h"
 #include "BIF_butspace.h"
 #include "BIF_editaction.h"
 #include "BIF_editarmature.h"
+#include "BIF_editparticle.h"
 #include "BIF_editgroup.h"
 #include "BIF_editmesh.h"
 #include "BIF_editoops.h"
@@ -246,7 +251,7 @@ static int edge_inside_rect(rcti *rect, short x1, short y1, short x2, short y2)
 #define MOVES_GESTURE 50
 #define MOVES_LASSO 500
 
-static int lasso_inside(short mcords[][2], short moves, short sx, short sy)
+int lasso_inside(short mcords[][2], short moves, short sx, short sy)
 {
 	/* we do the angle rule, define that all added angles should be about zero or 2*PI */
 	float angletot=0.0, len, dot, ang, cross, fp1[2], fp2[2];
@@ -467,20 +472,81 @@ static void do_lasso_select_mesh(short mcords[][2], short moves, short select)
 	EM_selectmode_flush();	
 }
 
+/* this is an exception in that its the only lasso that dosnt use the 3d view (uses space image view) */
+static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	MTFace *tf;
+	int screenUV[2], nverts, i, ok = 1;
+	rcti rect;
+	
+	lasso_select_boundbox(&rect, mcords, moves);
+	
+	if (draw_uvs_face_check()) { /* Face Center Sel */
+		float cent[2];
+		ok = 0;
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			/* assume not touched */
+			efa->tmp.l = 0;
+			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if ((select) != (simaFaceSel_Check(efa, tf))) {
+				tface_center(tf, cent, (void *)efa->v4);
+				uvco_to_areaco_noclip(cent, screenUV);
+				if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
+					efa->tmp.l = ok = 1;
+				}
+			}
+		}
+		/* (de)selects all tagged faces and deals with sticky modes */
+		if (ok)
+			uvface_setsel__internal(select);
+		
+	} else { /* Vert Sel*/
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (simaFaceDraw_Check(efa, tf)) {		
+				nverts= efa->v4? 4: 3;
+				for(i=0; i<nverts; i++) {
+					if ((select) != (simaUVSel_Check(efa, tf, i))) {
+						uvco_to_areaco_noclip(tf->uv[i], screenUV);
+						if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
+							if (select) {
+								simaUVSel_Set(efa, tf, i);
+							} else {
+								simaUVSel_UnSet(efa, tf, i);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	if (ok && G.sima->flag & SI_SYNC_UVSEL) {
+		if (select) EM_select_flush();
+		else		EM_deselect_flush();
+	}
+}
+
 static void do_lasso_select_curve__doSelect(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
 {
 	struct { short (*mcords)[2]; short moves; short select; } *data = userData;
 
 	if (lasso_inside(data->mcords, data->moves, x, y)) {
 		if (bp) {
-			bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+			bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 		} else {
-			if (beztindex==0) {
-				bezt->f1 = data->select?(bezt->f1|1):(bezt->f1&~1);
-			} else if (beztindex==1) {
-				bezt->f2 = data->select?(bezt->f2|1):(bezt->f2&~1);
+			if (G.f & G_HIDDENHANDLES) {
+				/* can only be beztindex==0 here since handles are hidden */
+				bezt->f1 = bezt->f2 = bezt->f3 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
 			} else {
-				bezt->f3 = data->select?(bezt->f3|1):(bezt->f3&~1);
+				if (beztindex==0) {
+					bezt->f1 = data->select?(bezt->f1|SELECT):(bezt->f1&~SELECT);
+				} else if (beztindex==1) {
+					bezt->f2 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
+				} else {
+					bezt->f3 = data->select?(bezt->f3|SELECT):(bezt->f3&~SELECT);
+				}
 			}
 		}
 	}
@@ -501,7 +567,7 @@ static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, int x,
 	struct { short (*mcords)[2]; short moves; short select; } *data = userData;
 
 	if (lasso_inside(data->mcords, data->moves, x, y)) {
-		bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+		bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 	}
 }
 static void do_lasso_select_lattice(short mcords[][2], short moves, short select)
@@ -574,16 +640,22 @@ static void do_lasso_select_facemode(short mcords[][2], short moves, short selec
 static void do_lasso_select(short mcords[][2], short moves, short select)
 {
 	if(G.obedit==NULL) {
-		if(G.f & G_FACESELECT)
+		if(FACESEL_PAINT_TEST)
 			do_lasso_select_facemode(mcords, moves, select);
 		else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))
 			;
+		else if(G.f & G_PARTICLEEDIT)
+			PE_do_lasso_select(mcords, moves, select);
 		else  
 			do_lasso_select_objects(mcords, moves, select);
 	}
-	else if(G.obedit->type==OB_MESH) 
-		do_lasso_select_mesh(mcords, moves, select);
-	else if(G.obedit->type==OB_CURVE || G.obedit->type==OB_SURF) 
+	else if(G.obedit->type==OB_MESH) {
+		if(curarea->spacetype==SPACE_VIEW3D) {
+			do_lasso_select_mesh(mcords, moves, select);
+		} else if (EM_texFaceCheck()){
+			do_lasso_select_mesh_uv(mcords, moves, select);
+		}
+	} else if(G.obedit->type==OB_CURVE || G.obedit->type==OB_SURF) 
 		do_lasso_select_curve(mcords, moves, select);
 	else if(G.obedit->type==OB_LATTICE) 
 		do_lasso_select_lattice(mcords, moves, select);
@@ -591,7 +663,10 @@ static void do_lasso_select(short mcords[][2], short moves, short select)
 		do_lasso_select_armature(mcords, moves, select);
 	
 	BIF_undo_push("Lasso select");
-
+	
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
+	
 	allqueue(REDRAWVIEW3D, 0);
 	countall();
 }
@@ -748,6 +823,10 @@ int gesture(void)
 				if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)) return 0;
 			}
 			lasso= 1;
+		} else if (curarea->spacetype==SPACE_IMAGE) {
+			if(G.obedit) {
+				lasso= 1;
+			}
 		}
 	}
 	
@@ -968,6 +1047,31 @@ void selectswap(void)
 	BIF_undo_push("Select Inverse");
 }
 
+/* inverts object selection */
+void selectrandom(void)
+{
+	Base *base;
+	static short randfac = 50;
+	if(button(&randfac,0, 100,"Percentage:")==0) return;
+	
+	for(base= FIRSTBASE; base; base= base->next) {
+		if(base->lay & G.vd->lay &&
+		  (base->object->restrictflag & OB_RESTRICT_VIEW)==0
+		) {
+			if (!TESTBASE(base) && ( (BLI_frand() * 100) < randfac)) {
+				select_base_v3d(base, BA_SELECT);
+				base->object->flag= base->flag;
+			}
+		}
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWDATASELECT, 0);
+	allqueue(REDRAWNLA, 0);
+	
+	countall();
+	BIF_undo_push("Select Random");
+}
 
 /* selects all objects of a particular type, on currently visible layers */
 void selectall_type(short obtype) 
@@ -1087,22 +1191,8 @@ void set_active_base(Base *base)
 	Base *tbase;
 	
 	/* activating a non-mesh, should end a couple of modes... */
-	if(base) {
-		if(base->object->type!=OB_MESH) {
-			if(G.f & G_SCULPTMODE)
-				set_sculptmode(); /* toggle */
-			if(G.f & G_WEIGHTPAINT)
-				set_wpaint();	/* toggle */
-			if(G.f & G_VERTEXPAINT)
-				set_vpaint();	/* toggle */
-			if(G.f & G_TEXTUREPAINT) 
-				set_texturepaint(); /* Switch off tex paint */
-		}
-		/* always end this */
-		if(G.f & G_FACESELECT) {
-			set_faceselect();	/* toggle */
-		}
-	}
+	if(base && base->object->type!=OB_MESH)
+		exit_paint_modes();
 	
 	/* sets scene->basact */
 	BASACT= base;
@@ -1282,7 +1372,7 @@ static short mixed_bones_object_selectbuffer(unsigned int *buffer, short *mval)
 void mouse_select(void)
 {
 	Base *base, *startbase=NULL, *basact=NULL, *oldbasact=NULL;
-	unsigned int buffer[MAXPICKBUF];
+	unsigned int buffer[4*MAXPICKBUF];
 	int temp, a, dist=100;
 	short hits, mval[2];
 
@@ -1535,14 +1625,19 @@ static void do_nurbs_box_select__doSelect(void *userData, Nurb *nu, BPoint *bp, 
 
 	if (BLI_in_rcti(data->rect, x, y)) {
 		if (bp) {
-			bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+			bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 		} else {
-			if (beztindex==0) {
-				bezt->f1 = data->select?(bezt->f1|1):(bezt->f1&~1);
-			} else if (beztindex==1) {
-				bezt->f2 = data->select?(bezt->f2|1):(bezt->f2&~1);
+			if (G.f & G_HIDDENHANDLES) {
+				/* can only be beztindex==0 here since handles are hidden */
+				bezt->f1 = bezt->f2 = bezt->f3 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
 			} else {
-				bezt->f3 = data->select?(bezt->f3|1):(bezt->f3&~1);
+				if (beztindex==0) {
+					bezt->f1 = data->select?(bezt->f1|SELECT):(bezt->f1&~SELECT);
+				} else if (beztindex==1) {
+					bezt->f2 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
+				} else {
+					bezt->f3 = data->select?(bezt->f3|SELECT):(bezt->f3&~SELECT);
+				}
 			}
 		}
 	}
@@ -1562,7 +1657,7 @@ static void do_lattice_box_select__doSelect(void *userData, BPoint *bp, int x, i
 	struct { rcti *rect; int select; } *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y)) {
-		bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+		bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 	}
 }
 static void do_lattice_box_select(rcti *rect, int select)
@@ -1662,12 +1757,16 @@ void borderselect(void)
 	rcti rect;
 	Base *base;
 	MetaElem *ml;
-	unsigned int buffer[MAXPICKBUF];
+	unsigned int buffer[4*MAXPICKBUF];
 	int a, index;
 	short hits, val;
 
-	if(G.obedit==NULL && (G.f & G_FACESELECT)) {
+	if(G.obedit==NULL && (FACESEL_PAINT_TEST)) {
 		face_borderselect();
+		return;
+	}
+	else if(G.obedit==NULL && (G.f & G_PARTICLEEDIT)) {
+		PE_borderselect();
 		return;
 	}
 
@@ -1679,13 +1778,19 @@ void borderselect(void)
 	val= get_border(&rect, 3);
 	if (!a) setlinestyle(0);
 	
-	if(val==0)
+	if(val==0) {
+		if (EM_texFaceCheck())
+			allqueue(REDRAWIMAGE, 0);
 		return;
+	}
 	
 	if(G.obedit) {
 		if(G.obedit->type==OB_MESH) {
 			do_mesh_box_select(&rect, (val==LEFTMOUSE));
 			allqueue(REDRAWVIEW3D, 0);
+			if (EM_texFaceCheck())
+				allqueue(REDRAWIMAGE, 0);
+			
 		}
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 			do_nurbs_box_select(&rect, val==LEFTMOUSE);
@@ -1912,7 +2017,7 @@ static void mesh_selectionCB(int selecting, Object *editobj, short *mval, float 
 	EditMesh *em = G.editMesh;
 	int bbsel;
 
-	if(!G.obedit && (G.f&G_FACESELECT)) {
+	if(!G.obedit && (FACESEL_PAINT_TEST)) {
 		Mesh *me = get_mesh(OBACT);
 
 		if (me) {
@@ -1972,14 +2077,14 @@ static void nurbscurve_selectionCB__doSelect(void *userData, Nurb *nu, BPoint *b
 
 	if (r<=data->radius) {
 		if (bp) {
-			bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+			bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 		} else {
 			if (beztindex==0) {
-				bezt->f1 = data->select?(bezt->f1|1):(bezt->f1&~1);
+				bezt->f1 = data->select?(bezt->f1|SELECT):(bezt->f1&~SELECT);
 			} else if (beztindex==1) {
-				bezt->f2 = data->select?(bezt->f2|1):(bezt->f2&~1);
+				bezt->f2 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
 			} else {
-				bezt->f3 = data->select?(bezt->f3|1):(bezt->f3&~1);
+				bezt->f3 = data->select?(bezt->f3|SELECT):(bezt->f3&~SELECT);
 			}
 		}
 	}
@@ -2004,7 +2109,7 @@ static void latticecurve_selectionCB__doSelect(void *userData, BPoint *bp, int x
 	float r = sqrt(mx*mx + my*my);
 
 	if (r<=data->radius) {
-		bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+		bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 	}
 }
 static void lattice_selectionCB(int selecting, Object *editobj, short *mval, float rad)
@@ -2057,15 +2162,26 @@ void set_render_border(void)
 		G.scene->r.border.ymin= ((float)rect.ymin-vb.ymin)/(vb.ymax-vb.ymin);
 		G.scene->r.border.xmax= ((float)rect.xmax-vb.xmin)/(vb.xmax-vb.xmin);
 		G.scene->r.border.ymax= ((float)rect.ymax-vb.ymin)/(vb.ymax-vb.ymin);
-		
+				
 		CLAMP(G.scene->r.border.xmin, 0.0, 1.0);
 		CLAMP(G.scene->r.border.ymin, 0.0, 1.0);
 		CLAMP(G.scene->r.border.xmax, 0.0, 1.0);
 		CLAMP(G.scene->r.border.ymax, 0.0, 1.0);
-		
+	
 		allqueue(REDRAWVIEWCAM, 1);
-		/* if it was not set, we do this */
-		G.scene->r.mode |= R_BORDER;
+		
+		/* drawing a border surrounding the entire camera view switches off border rendering
+		 * or the border covers no pixels */
+		if ((G.scene->r.border.xmin <= 0.0 && G.scene->r.border.xmax >= 1.0 &&
+			G.scene->r.border.ymin <= 0.0 && G.scene->r.border.ymax >= 1.0) ||
+		   (G.scene->r.border.xmin == G.scene->r.border.xmax ||
+			G.scene->r.border.ymin == G.scene->r.border.ymax ))
+		{
+			G.scene->r.mode &= ~R_BORDER;
+		} else {
+			G.scene->r.mode |= R_BORDER;
+		}
+		
 		allqueue(REDRAWBUTSSCENE, 1);
 	}
 }
@@ -2546,18 +2662,18 @@ void fly(void)
 				G.vd->persp= 2;
 				
 				/* record the motion */
-				if (G.flags & G_RECORDKEYS && (!playing_anim || cfra != G.scene->r.cfra)) {
+				if (IS_AUTOKEY_MODE(NORMAL) && (!playing_anim || cfra != G.scene->r.cfra)) {
 					cfra = G.scene->r.cfra;
 					
 					if (xlock || zlock || moffset[0] || moffset[1]) {
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_X);
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_Y);
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_Z);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_X, 0);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_Y, 0);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_Z, 0);
 					}
 					if (speed) {
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_X);
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_Y);
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_Z);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_X, 0);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_Y, 0);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_Z, 0);
 					}
 				}
 			}
@@ -2593,7 +2709,7 @@ void fly(void)
 		
 		DAG_object_flush_update(G.scene, G.vd->camera, OB_RECALC_OB);
 		
-		if (G.flags & G_RECORDKEYS) {
+		if (IS_AUTOKEY_MODE(NORMAL)) {
 			allqueue(REDRAWIPO, 0);
 			allspace(REMAKEIPO, 0);
 			allqueue(REDRAWNLA, 0);
@@ -2640,7 +2756,7 @@ void view3d_edit_clipping(View3D *v3d)
 		if(val==0) return;
 		
 		v3d->flag |= V3D_CLIPPING;
-		v3d->clipbb= MEM_mallocN(sizeof(BoundBox), "clipbb");
+		v3d->clipbb= MEM_callocN(sizeof(BoundBox), "clipbb");
 		
 		/* convert border to 3d coordinates */
 		

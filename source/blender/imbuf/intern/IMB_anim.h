@@ -81,6 +81,7 @@
 #ifdef WITH_FFMPEG
 #include <ffmpeg/avformat.h>
 #include <ffmpeg/avcodec.h>
+#include <ffmpeg/swscale.h>
 #endif
 
 #include "IMB_imbuf_types.h"
@@ -181,7 +182,8 @@ struct anim {
 	AVCodecContext *pCodecCtx;
 	AVCodec *pCodec;
 	AVFrame *pFrameRGB;
-	AVFrame *pFrame; 
+	AVFrame *pFrame;
+	struct SwsContext *img_convert_ctx;
 	int videoStream;
 #endif
 

@@ -64,10 +64,13 @@ extern void do_render_panels(unsigned short event);
 extern void anim_panels(void);
 extern void sound_panels(void);
 extern void do_soundbuts(unsigned short event);
+extern void sequencer_panels(void);
+extern void do_sequencer_panels(unsigned short event);
 
 /* object */
 extern void object_panels(void);
 extern void physics_panels(void);
+extern void particle_panels(void);
 extern void do_object_panels(unsigned short event);
 extern void do_constraintbuts(unsigned short event);
 extern void object_panel_constraint(char *context);
@@ -86,8 +89,6 @@ extern int mod_moveDown(void *ob_v, void *md_v);
 extern void const_moveUp(void *ob_v, void *con_v);
 extern void const_moveDown(void *ob_v, void *con_v);
 extern void del_constr_func (void *ob_v, void *con_v);
-extern void get_constraint_typestring(char *str, void *con_v);
-extern void get_constraint_ipo_context(void *ob_v, char *actname);
 
 /* editing */
 extern void editing_panels(void);
@@ -103,6 +104,7 @@ extern void do_cambuts(unsigned short event);
 extern void do_armbuts(unsigned short event);
 extern void do_uvcalculationbuts(unsigned short event);
 extern void weight_paint_buttons(struct uiBlock *);
+extern void particle_edit_buttons(struct uiBlock *);
 
 extern char *get_vertexgroup_menustr(struct Object *ob);	// used in object buttons
 
@@ -168,6 +170,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_ARMATUREPANEL3 	1013
 #define B_OBJECTPANELSCALE 	1014
 #define B_OBJECTPANELDIMS 	1015
+#define B_TRANSFORMSPACEADD	1016
+#define B_TRANSFORMSPACECLEAR	1017
 
 /* *********************** */
 #define B_LAMPBUTS		1200
@@ -180,6 +184,9 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SHADRAY		1106
 #define B_LMTEXPASTE	1107
 #define B_LMTEXCOPY		1108
+#define B_LFALLOFFCHANGED	1109
+#define B_LMTEXMOVEUP		1110
+#define B_LMTEXMOVEDOWN		1111
 
 /* *********************** */
 #define B_MATBUTS		1300
@@ -208,6 +215,14 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_MAT_USENODES		1221
 #define B_MAT_VCOL_PAINT	1222
 #define B_MAT_VCOL_LIGHT	1223
+
+	/* world buttons: buttons-preview update, and redraw 3dview */
+#define B_WORLDPRV2		1224
+
+#define B_MAT_PARTICLE		1225
+
+#define B_MTEXMOVEUP		1226
+#define B_MTEXMOVEDOWN		1227
 
 /* *********************** */
 #define B_TEXBUTS		1400
@@ -277,6 +292,15 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_FLUIDSIM_MAKEPART	    1453
 
 #define B_GROUP_RELINK			1460
+#define B_OBJECT_IPOFLAG		1461
+
+#define B_BAKEABLE_CHANGE		1470
+
+/* Cloth sim button defines */
+#define B_CLOTH_CLEARCACHEALL	1480
+#define B_CLOTH_CLEARCACHEFRAME	1481
+#define B_CLOTH_CHANGEPREROLL	1482
+#define B_CLOTH_RENEW 		1483
 
 /* *********************** */
 #define B_WORLDBUTS		1600
@@ -286,15 +310,18 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_COLZEN		1503
 #define B_WMTEXPASTE	1504
 #define B_WMTEXCOPY		1505
-#define B_AO_DISTANCES	1506
+#define B_AO_FALLOFF	1506
+#define B_WMTEXMOVEUP		1507
+#define B_WMTEXMOVEDOWN		1508
 
 /* *********************** */
-#define B_RENDERBUTS	1700
+#define B_RENDERBUTS	1690
+#define B_SEQUENCERBUTS 1699
 
 #define B_FS_PIC		1601
 #define B_FS_BACKBUF	1602
 
-#define B_FS_FTYPE		1604
+#define B_FS_FTYPE		1604 /* FTYPE is no more */
 #define B_DORENDER		1605
 #define B_DOANIM		1606
 #define B_PLAYANIM		1607
@@ -311,7 +338,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_PR_PANO		1619
 #define B_PR_NTSC		1620
 
-#define B_IS_FTYPE		1622
+#define B_IS_FTYPE		1622 /* FTYPE is nomore */
 #define B_IS_BACKBUF		1623
 #define B_PR_PC			1624
 
@@ -338,6 +365,14 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_ADD_RENDERLAYER	1645
 #define B_SET_PASS			1646
 
+#define B_SEQ_BUT_PLUGIN	1691
+#define B_SEQ_BUT_RELOAD	1692
+#define B_SEQ_BUT_EFFECT	1693
+#define B_SEQ_BUT_RELOAD_ALL    1694
+#define B_SEQ_BUT_TRANSFORM     1695
+#define B_SEQ_BUT_RELOAD_FILE   1696
+#define B_SEQ_BUT_REBUILD_PROXY 1697
+
 /* *********************** */
 #define B_ARMATUREBUTS		1800
 #define	B_POSE			1701
@@ -361,6 +396,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_DOCENTER		2015
 #define B_DOCENTERNEW		2016
 #define B_DOCENTERCURSOR	2017
+#define B_MATASS_BROWSE	2018
 
 	/* 20 values! */
 #define B_OBLAY			2019
@@ -372,6 +408,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_PREVKEY		2045
 #define B_NEXTKEY		2046
 #define B_LOCKKEY		2047
+#define B_MATCOL2		2048
 
 #define B_MESHBUTS		2090
 
@@ -408,6 +445,9 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_JOINTRIA			2081
 #define B_SETTFACE_RND		2082
 #define B_SETMCOL_RND		2083
+#define B_DRAWBWEIGHTS		2084
+
+#define B_GEN_SKELETON		2090
 
 /* *********************** */
 #define B_VGROUPBUTS		2100
@@ -450,6 +490,11 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SETRESOLU		2121
 #define B_SETW4			2122
 #define B_SUBSURFTYPE		2123
+#define B_TILTINTERP		2124
+#define B_SETPT_AUTO	2125
+#define B_SETPT_VECTOR	2126
+#define B_SETPT_ALIGN	2127
+#define B_SETPT_FREE	2128
 
 /* *********************** */
 #define B_FONTBUTS		2300
@@ -482,6 +527,23 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_ARM_STRIDE		2302
 #define B_ARM_CALCPATHS		2303
 #define B_ARM_CLEARPATHS	2304
+
+#define B_POSELIB_VALIDATE		2310
+#define B_POSELIB_ADDPOSE		2311
+#define B_POSELIB_REPLACEP		2312
+#define B_POSELIB_REMOVEP		2313
+#define B_POSELIB_APPLYP		2314
+
+	/* these shouldn't be here... */
+#define B_POSELIB_BROWSE		2320
+#define B_POSELIB_ALONE			2321
+#define B_POSELIB_DELETE		2322
+
+
+#define B_POSEGRP_RECALC	2330
+#define B_POSEGRP_ADD		2331
+#define B_POSEGRP_REMOVE	2332
+#define B_POSEGRP_MCUSTOM	2333
 
 /* *********************** */
 #define B_CAMBUTS		2500
@@ -569,6 +631,14 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 /* Sculptmode */
 #define B_SCULPT_TEXBROWSE      2860
 
+/* Particles */
+#define B_BAKE_OLENGTH		2870
+#define B_BAKE_APPLY_AV		2871
+#define B_BAKE_KEYTIME		2872
+#define B_BAKE_AV_CHANGE	2873
+#define B_BAKE_REDRAWEDIT	2874
+#define B_BAKE_RECACHE		2875
+
 /* *********************** */
 #define B_RADIOBUTS		3000
 
@@ -640,7 +710,7 @@ enum {
 	B_CONSTRAINT_ADD_ACTION,
 	B_CONSTRAINT_ADD_LOCKTRACK,
 	B_CONSTRAINT_ADD_FOLLOWPATH,
-	B_CONSTRAINT_ADD_DISTANCELIMIT,
+	B_CONSTRAINT_ADD_DISTLIMIT,
 	B_CONSTRAINT_ADD_STRETCHTO,
 	B_CONSTRAINT_ADD_LOCLIMIT,
 	B_CONSTRAINT_ADD_ROTLIMIT,
@@ -649,6 +719,7 @@ enum {
 	B_CONSTRAINT_ADD_CHILDOF,
 	B_CONSTRAINT_ADD_PYTHON,
 	B_CONSTRAINT_ADD_CLAMPTO,
+	B_CONSTRAINT_ADD_TRANSFORM,
 	B_CONSTRAINT_INF
 };
 
@@ -675,7 +746,7 @@ enum {
 
 #define B_EFFECTSBUTS		3500
 
-#define B_AUTOTIMEOFS		3403
+#define B_AUTOTIMEOFS		3403 /* see B_OFSTIMEOFS, B_RANDTIMEOFS also */
 #define B_FRAMEMAP		3404
 #define B_NEWEFFECT		3405
 #define B_PREVEFFECT		3406
@@ -690,6 +761,29 @@ enum {
 #define B_FIELD_CHANGE		3415
 #define B_PAF_SET_VG		3416
 #define B_PAF_SET_VG1		3417
+#define	B_PARTBROWSE		3418
+#define B_PARTDELETE		3419
+#define B_PARTALONE			3420
+#define B_PARTLOCAL			3421
+#define B_PARTAUTONAME		3422
+#define B_PART_ALLOC		3423
+#define B_PART_DISTR		3424
+#define B_PART_INIT			3425
+#define B_PART_RECALC		3426
+#define B_PART_REDRAW		3427
+#define B_PARTTYPE			3428
+#define B_PARTACT			3429
+#define B_PARTTARGET		3430
+#define B_PART_ALLOC_CHILD	3431
+#define B_PART_DISTR_CHILD	3432
+#define B_PART_INIT_CHILD	3433
+#define B_PART_RECALC_CHILD	3434
+#define B_PART_EDITABLE		3435
+#define B_PART_REKEY		3436
+#define B_PART_ENABLE		3437
+#define B_OFSTIMEOFS		3438 /* see B_AUTOTIMEOFS too */
+#define B_RANDTIMEOFS		3439
+#define B_PART_REDRAW_DEPS	3440
 
 #define B_MODIFIER_BUTS		3600
 
@@ -700,7 +794,9 @@ enum {
 #define B_NODE_BUTS			4000
 		/* 400 slots reserved, we want an exec event for each node */
 #define B_NODE_LOADIMAGE	3601
-#define B_NODE_TREE_EXEC	3602
+#define B_NODE_SETIMAGE		3602
+#define B_NODE_TREE_EXEC	3603
+
 
 		/* exec should be last in this list */
 #define B_NODE_EXEC			3610

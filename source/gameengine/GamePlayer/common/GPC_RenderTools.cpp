@@ -570,4 +570,37 @@ void GPC_RenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmatrix,in
 	}
 }
 
+void GPC_RenderTools::MotionBlur(RAS_IRasterizer* rasterizer)
+{
+	int state = rasterizer->GetMotionBlurState();
+	float motionblurvalue;
+	if(state)
+	{
+		motionblurvalue = rasterizer->GetMotionBlurValue();
+		if(state==1)
+		{
+			//bugfix:load color buffer into accum buffer for the first time(state=1)
+			glAccum(GL_LOAD, 1.0);
+			rasterizer->SetMotionBlurState(2);
+		}
+		else if(motionblurvalue>=0.0 && motionblurvalue<=1.0)
+		{
+			glAccum(GL_MULT, motionblurvalue);
+			glAccum(GL_ACCUM, 1-motionblurvalue);
+			glAccum(GL_RETURN, 1.0);
+			glFlush();
+		}
+	}
+}
+
+void GPC_RenderTools::Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)
+{
+	m_filtermanager.EnableFilter(filtermode, pass, text);
+}
+
+void GPC_RenderTools::Render2DFilters(RAS_ICanvas* canvas)
+{
+	m_filtermanager.RenderFilters( canvas);
+}
+
 unsigned int GPC_RenderTools::m_numgllights;

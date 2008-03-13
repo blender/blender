@@ -59,6 +59,10 @@
 #include "openexr/openexr_api.h"
 #endif
 
+#ifdef WITH_DDS
+#include "dds/dds_api.h"
+#endif
+
 #ifdef WITH_QUICKTIME
 #if defined(_WIN32) || defined (__APPLE__)
 #include "quicktime_import.h"
@@ -151,6 +155,11 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 
 #ifdef WITH_OPENEXR
 		ibuf = imb_load_openexr((uchar *)mem, size, flags);
+		if (ibuf) return (ibuf);
+#endif
+
+#ifdef WITH_DDS
+		ibuf = imb_load_dds((uchar *)mem, size, flags);
 		if (ibuf) return (ibuf);
 #endif
 		
@@ -259,7 +268,7 @@ struct ImBuf *IMB_loadifffile(int file, int flags) {
 }
 
 
-struct ImBuf *IMB_loadiffname(char *naam, int flags) {
+struct ImBuf *IMB_loadiffname(const char *naam, int flags) {
 	int file;
 	struct ImBuf *ibuf;
 	int buf[1];

@@ -43,37 +43,17 @@ struct uiBlock;
 int multires_test();
 int multires_level1_test();
 
-struct MultiresLevel *multires_level_n(struct Multires *mr, int n);
-
 void multires_draw_interface(struct uiBlock *block, unsigned short cx, unsigned short cy);
-void multires_disp_map(void *, void*);
 
 void multires_make(void *ob, void *me);
 void multires_delete(void *ob, void *me);
-struct Multires *multires_copy(struct Multires *orig);
-void multires_free(struct Multires *mr);
-void multires_free_level(struct MultiresLevel *lvl);
+void multires_level_to_editmesh(struct Object *ob, struct Mesh *me, const int render);
+void multires_finish_mesh_update(struct Object *ob);
+void multires_subdivide(void *ob, void *me);
 void multires_del_lower(void *ob, void *me);
 void multires_del_higher(void *ob, void *me);
-void multires_add_level(void *ob, void *me);
 void multires_set_level_cb(void *ob, void *me);
-void multires_set_level(struct Object *ob, struct Mesh *me, const int render);
-void multires_update_levels(struct Mesh *me, const int render);
-void multires_level_to_mesh(struct Object *ob, struct Mesh *me, const int render);
-void multires_calc_level_maps(struct MultiresLevel *lvl);
-void multires_edge_level_update(void *ob, void *me);
+void multires_edge_level_update_cb(void *ob, void *me);
 int multires_modifier_warning();
-
-/* multires-firstlevel.c */
-/* Generic */
-void multires_update_first_level(struct Mesh *me, struct EditMesh *em);
-void multires_update_customdata(struct MultiresLevel *lvl1, struct CustomData *src,
-                                struct CustomData *dst, const int type);
-void multires_customdata_to_mesh(struct Mesh *me, struct EditMesh *em, struct MultiresLevel *lvl,
-                                 struct CustomData *src, struct CustomData *dst, const int type);
-void multires_del_lower_customdata(struct Multires *mr, struct MultiresLevel *cr_lvl);
-
-void multires_add_layer(struct Mesh *me, struct CustomData *cd, const int type, const int n);
-void multires_delete_layer(struct Mesh *me, struct CustomData *cd, const int type, int n);
 
 #endif

@@ -8,7 +8,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "build_install_all", "build_
 		{B093415D-C0F6-4E76-8F5A-6BC1917BCE9E} = {B093415D-C0F6-4E76-8F5A-6BC1917BCE9E}
 		{E784098D-3ED8-433A-9353-9679415DDDC5} = {E784098D-3ED8-433A-9353-9679415DDDC5}
 		{76D90B92-ECC7-409C-9F98-A8814B90F3C0} = {76D90B92-ECC7-409C-9F98-A8814B90F3C0}
-		{121EC196-8E8A-4937-B0BD-0F114C87D55E} = {121EC196-8E8A-4937-B0BD-0F114C87D55E}
 		{542A9FA1-B7FF-441C-AE15-054DB31D3488} = {542A9FA1-B7FF-441C-AE15-054DB31D3488}
 		{213356A9-3A1F-41DA-9819-1297BCD17DEE} = {213356A9-3A1F-41DA-9819-1297BCD17DEE}
 		{51A348C1-8684-4D67-B980-97B1FC74159B} = {51A348C1-8684-4D67-B980-97B1FC74159B}
@@ -21,10 +20,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "build_install_all", "build_
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MoTo", "..\..\moto\make\msvc_7_0\MoTo.vcproj", "{4B6AFCC5-968C-424A-8F20-76E41B3BEF74}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blenkey", "..\..\keymaker\make\msvc_7_0\blenkey.vcproj", "{121EC196-8E8A-4937-B0BD-0F114C87D55E}"
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
@@ -110,6 +105,8 @@ Global
 		Blender Debug = Blender Debug
 		Blender Release = Blender Release
 	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+	EndGlobalSection
 	GlobalSection(ProjectConfiguration) = postSolution
 		{02110D03-59DB-4571-8787-72B3C03B2F2D}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
 		{02110D03-59DB-4571-8787-72B3C03B2F2D}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
@@ -127,14 +124,6 @@ Global
 		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74}.Blender Debug.Build.0 = Blender Debug|Win32
 		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74}.Blender Release.ActiveCfg = Blender Release|Win32
 		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74}.Blender Release.Build.0 = Blender Release|Win32
-		{121EC196-8E8A-4937-B0BD-0F114C87D55E}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
-		{121EC196-8E8A-4937-B0BD-0F114C87D55E}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
-		{121EC196-8E8A-4937-B0BD-0F114C87D55E}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
-		{121EC196-8E8A-4937-B0BD-0F114C87D55E}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
-		{121EC196-8E8A-4937-B0BD-0F114C87D55E}.Blender Debug.ActiveCfg = Blender Debug|Win32
-		{121EC196-8E8A-4937-B0BD-0F114C87D55E}.Blender Debug.Build.0 = Blender Debug|Win32
-		{121EC196-8E8A-4937-B0BD-0F114C87D55E}.Blender Release.ActiveCfg = Blender Release|Win32
-		{121EC196-8E8A-4937-B0BD-0F114C87D55E}.Blender Release.Build.0 = Blender Release|Win32
 		{E784098D-3ED8-433A-9353-9679415DDDC5}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
 		{E784098D-3ED8-433A-9353-9679415DDDC5}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
 		{E784098D-3ED8-433A-9353-9679415DDDC5}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32

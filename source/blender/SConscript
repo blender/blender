@@ -23,6 +23,9 @@ if env['WITH_BF_YAFRAY'] == 1:
 if env['WITH_BF_INTERNATIONAL'] == 1:
     SConscript (['ftfont/SConscript'])
 
+if env['WITH_BF_DDS'] == 1:
+    SConscript (['imbuf/intern/dds/SConscript'])
+
 if env['WITH_BF_OPENEXR'] == 1:
     SConscript (['imbuf/intern/openexr/SConscript'])
 

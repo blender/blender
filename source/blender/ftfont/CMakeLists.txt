@@ -30,7 +30,7 @@
 FILE(GLOB SRC intern/*.cpp)
 
 SET(INC 
-  . intern ../blenkernel ../blenlib ../makesdna
+  . intern ../blenkernel ../blenlib ../makesdna ../include
   ${FTGL_INC}
   ${FREETYPE_INC}
   ${GETTEXT_INC}

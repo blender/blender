@@ -55,6 +55,7 @@ typedef struct World {
 	short colormodel, totex;
 	short texact, mistype;
 	
+	/* TODO - hork, zenk and ambk are not used, should remove at some point (Campbell) */
 	float horr, horg, horb, hork;
 	float zenr, zeng, zenb, zenk;
 	float ambr, ambg, ambb, ambk;
@@ -102,10 +103,18 @@ typedef struct World {
 	/* ambient occlusion */
 	float aodist, aodistfac, aoenergy, aobias;
 	short aomode, aosamp, aomix, aocolor;
+	float ao_adapt_thresh, ao_adapt_speed_fac;
+	float ao_approx_error, ao_approx_correction;
+	short ao_samp_method, ao_gather_method, ao_approx_passes, pad1;
+	
 	float *aosphere, *aotables;
+	
 	
 	struct Ipo *ipo;
 	struct MTex *mtex[10];
+
+	/* previews */
+	struct PreviewImage *preview;
 
 	ScriptLink scriptlink;
 
@@ -133,14 +142,24 @@ typedef struct World {
 #define WO_AOSUB	1
 #define WO_AOADDSUB	2
 
+/* ao_samp_method - methods for sampling the AO hemi */
+#define WO_AOSAMP_CONSTANT			0
+#define WO_AOSAMP_HALTON			1
+#define WO_AOSAMP_HAMMERSLEY		2
+
 /* aomode (use distances & random sampling modes) */
 #define WO_AODIST		1
 #define WO_AORNDSMP		2
+#define WO_AOCACHE		4
 
 /* aocolor */
 #define WO_AOPLAIN	0
 #define WO_AOSKYCOL	1
 #define WO_AOSKYTEX	2
+
+/* ao_gather_method */
+#define WO_AOGATHER_RAYTRACE	0
+#define WO_AOGATHER_APPROX		1
 
 /* texco (also in DNA_material_types.h) */
 #define TEXCO_ANGMAP	64

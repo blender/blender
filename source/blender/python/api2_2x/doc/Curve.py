@@ -10,7 +10,7 @@ This module provides access to B{Curve Data} objects in Blender.
 
 A Blender Curve Data consists of multiple L{CurNurb}(s). Try converting a Text object to a Curve to see an example of this.   Each curve is of
 type Bezier or Nurb.  The underlying L{CurNurb}(s) can be accessed with
-the [] operator.  Operator [] returns an object of type L{CurNurb}.
+the [] operator.  Operator [] returns an object of type L{CurNurb}. Removing a L{CurNurb} can be done this way too. del curve[0] removes the first curve.
 
 Note that L{CurNurb} can be used to acces a curve of any type (Poly, Bezier or Nurb)
 
@@ -115,9 +115,9 @@ class Curve:
 	@type resolv: int
 	@ivar width: The Curve Data width [0 - 2].
 	@type width: float
-	@ivar ext1: The Curve Data extent1 (for bevels).
+	@ivar ext1: The Curve Data extent1 Called "Extrude" in the user interface (for bevels only).
 	@type ext1: float
-	@ivar ext2: The Curve Data extent2 (for bevels).
+	@ivar ext2: The Curve Data extent2 - Called "Bevel Depth" in the user interface (for bevels only).
 	@type ext2: float
 	@ivar loc: The Curve Data location(from the center).
 	@type loc: list of 3 floats
@@ -543,6 +543,8 @@ class CurNurb:
 	@ivar knotsV: The knot vector in the V direction. The tuple will be empty
 	if the curve isn't a NURB or doesn't have knots in this direction.
 	@type knotsV: tuple of floats
+	@ivar smooth: Set the smoothing for this curve (applies to cuve objects that have a bevel)
+	@type smooth: bool
 	"""
 
 	def __setitem__( n, point ):

@@ -25,6 +25,7 @@
  */
 
 #include <math.h>
+#include <string.h>
 #include "BLI_arithb.h"
 
 /* External modules: */
@@ -130,6 +131,12 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 		
 		if(lar->mode & LA_TEXTURE) {
 			ShadeInput shi;
+			
+			/* Warning, This is not that nice, and possibly a bit slow,
+			however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
+			memset(&shi, 0, sizeof(ShadeInput)); 
+			/* end warning! - Campbell */
+			
 			VECCOPY(shi.co, rco);
 			shi.osatex= 0;
 			do_lamp_tex(lar, lv, &shi, lacol);
@@ -175,7 +182,7 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 					inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
 					if(inp>0.0) {
 						/* testshadowbuf==0.0 : 100% shadow */
-						shadfac = testshadowbuf(lar->shb, rco, dco, dco, inp);
+						shadfac = testshadowbuf(&R, lar->shb, rco, dco, dco, inp, 0.0f);
 						if( shadfac>0.0 ) {
 							shadfac*= inp*soft*lar->energy;
 							ir -= shadfac;
@@ -212,7 +219,7 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 		if(i> -0.41) {			/* heuristic valua! */
 			shadfac= 1.0;
 			if(lar->shb) {
-				shadfac = testshadowbuf(lar->shb, rco, dco, dco, inp);
+				shadfac = testshadowbuf(&R, lar->shb, rco, dco, dco, inp, 0.0f);
 				if(shadfac==0.0) continue;
 				i*= shadfac;
 			}

@@ -452,4 +452,37 @@ RAS_IPolyMaterial* KX_BlenderRenderTools::CreateBlenderPolyMaterial(
 	return NULL;
 }
 
+void KX_BlenderRenderTools::MotionBlur(RAS_IRasterizer* rasterizer)
+{
+	int state = rasterizer->GetMotionBlurState();
+	float motionblurvalue;
+	if(state)
+	{
+		motionblurvalue = rasterizer->GetMotionBlurValue();
+		if(state==1)
+		{
+			//bugfix:load color buffer into accum buffer for the first time(state=1)
+			glAccum(GL_LOAD, 1.0);
+			rasterizer->SetMotionBlurState(2);
+		}
+		else if(motionblurvalue>=0.0 && motionblurvalue<=1.0)
+		{
+			glAccum(GL_MULT, motionblurvalue);
+			glAccum(GL_ACCUM, 1-motionblurvalue);
+			glAccum(GL_RETURN, 1.0);
+			glFlush();
+		}
+	}
+}
+
+void KX_BlenderRenderTools::Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)
+{
+	m_filtermanager.EnableFilter(filtermode, pass, text);
+}
+
+void KX_BlenderRenderTools::Render2DFilters(RAS_ICanvas* canvas)
+{
+	m_filtermanager.RenderFilters(canvas);
+}
+
 unsigned int KX_BlenderRenderTools::m_numgllights;

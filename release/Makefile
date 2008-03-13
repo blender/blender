@@ -31,54 +31,63 @@
 
 include nan_definitions.mk
 
-export VERSION := $(shell cat VERSION)
+export VERSION := $(shell ./getversion.py)
 
-BLENDNAME=blender-$(VERSION)-$(CONFIG_GUESS)$(TYPE)
+BLENDNAME=blender-$(VERSION)-$(CONFIG_GUESS)-py$(NAN_PYTHON_VERSION)$(TYPE)
 export DISTDIR=$(NAN_OBJDIR)/$(BLENDNAME)
 export CONFDIR=$(DISTDIR)/.blender
 
+ifeq ($(OS),beos)
+   TAR="zip"
+   TARFLAGS="-ry9"
+   EXT0=""
+   EXT1=".zip"
+   COMPRESS=""
+   EXT2=""
+   NOPLUGINS?=true
+endif
+
+ifeq ($(OS),$(findstring $(OS), "freebsd irix linux openbsd solaris"))
+   TAR="tar"
+   TARFLAGS="cf"
+   EXT0=""
+   EXT1=".tar"
+   COMPRESS="bzip2"
+   COMPRESSFLAGS="-f"
+   EXT2=".bz2"
+   ifeq ($(OS), solaris)
+     ifeq ($(CPU), i386)
+       NOPLUGINS?=true
+     endif
+   endif
+endif
+
+ifeq ($(OS),windows)
+   TAR="zip"
+   TARFLAGS="-r9"
+   EXT0=".exe"
+   EXT1=".zip"
+   NOPLUGINS?=true
+   NOSTRIP?=true
+endif
+
+ifeq ($(OS),darwin)
+   TAR="tar"
+   TARFLAGS="cf"
+   EXT0=".app"
+   EXT1=".tar"
+   COMPRESS="bzip2"
+   COMPRESSFLAGS="-f"
+   EXT2=".bz2"
+endif
 
 release: all
 
 all:
-    ifeq ($(OS),beos)
-	@$(MAKE) pkg TYPE="" TAR="zip -ry9" EXT1=".zip" NOPLUGINS="true"
-    endif
-    ifeq ($(OS),freebsd)
-	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="bzip2 -f" EXT2=".bz2"
-    endif
-    ifeq ($(OS),irix)
-	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="bzip2 -f" EXT2=".bz2"
-    endif
-    ifeq ($(OS),linux)
-      ifeq ($(CPU),alpha)
-	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="bzip2 -f" EXT2=".bz2"
-      else
-	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="bzip2 -f" EXT2=".bz2"
-	@$(MAKE) pkg TYPE="-static" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="bzip2 -f" EXT2=".bz2"
-      endif
-    endif
-    ifeq ($(OS),openbsd)
-	@$(MAKE) pkg TYPE="-static" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="bzip2 -f" EXT2=".bz2"
-    endif
-    ifeq ($(OS),solaris)
-	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="bzip2 -f" EXT2=".bz2"
-    endif
-    ifeq ($(OS),windows)
-	@$(MAKE) pkg TYPE="" TAR="zip -r9" EXT0=".exe" EXT1=".zip" \
-	    NOPLUGINS="true" NOSTRIP="true"
-    endif
-    ifeq ($(OS),darwin)
-	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT0"=.app" EXT1=".tar" \
-	    COMPRESS="bzip2 -f" EXT2=".bz2"
-    endif
+	@$(MAKE) pkg TYPE=""
+ifeq ($(WITH_BF_STATICOPENGL), true)
+	@$(MAKE) pkg TYPE="-static" 
+endif
 
 # OS independent targets below:
 
@@ -112,8 +121,9 @@ install: package
     ifneq ($(OS), darwin)
 	@[ ! -d $(OCGDIR)/bin/.blender ] || \
 		cp -r $(OCGDIR)/bin/.blender $(DISTDIR)
-	cp $(NANBLENDERHOME)/bin/.blender/.Blanguages $(CONFDIR)
-	cp $(NANBLENDERHOME)/bin/.blender/.bfont.ttf $(CONFDIR)
+	@rm -rf $(DISTDIR)/.svn $(DISTDIR)/*/.svn $(DISTDIR)/*/*/.svn
+	@cp $(NANBLENDERHOME)/bin/.blender/.Blanguages $(CONFDIR)
+	@cp $(NANBLENDERHOME)/bin/.blender/.bfont.ttf $(CONFDIR)
     endif
 	@echo "----> Copy blender$(EXT0) executable"
     ifeq ($(TYPE),-static)
@@ -137,7 +147,7 @@ ifneq ($(NOPLUGINS),true)
 	@cp ../source/blender/blenpluginapi/*.h $(DISTDIR)/plugins/include/
 	@chmod 755 $(DISTDIR)/plugins/bmake
 	@$(MAKE) -C $(DISTDIR)/plugins all  > /dev/null || exit 1;
-	@rm -fr $(DISTDIR)/plugins/CVS $(DISTDIR)/plugins/*/CVS \
+	@rm -fr $(DISTDIR)/plugins/.svn $(DISTDIR)/plugins/*/.svn \
              $(DISTDIR)/plugins/*/*.o
 
 #on OS X the plugins move to the installation directory
@@ -151,7 +161,7 @@ endif
 
 	@echo "----> Copy python infrastructure"
 	@[ ! -d scripts ] || cp -r scripts $(CONFDIR)/scripts
-	@[ ! -d $(CONFDIR)/scripts ] || rm -fr $(CONFDIR)/scripts/CVS
+	@[ ! -d $(CONFDIR)/scripts ] || rm -fr $(CONFDIR)/scripts/.svn $(CONFDIR)/scripts/*/.svn $(CONFDIR)/scripts/*/*/.svn
 
     ifeq ($(OS),darwin)
 	@echo "----> Move .blender to .app/Contents/MacOS/"
@@ -178,12 +188,11 @@ pkg: install
 	@echo "----> Create distribution file $(BLENDNAME)$(EXT1)"
 	@#enable the next sleep if you get 'tar file changed while reading'
 	@#sleep 10
-	@cd $(NAN_OBJDIR) && \
-	rm -f  $(VERSION)/$(BLENDNAME)$(EXT1)* && \
-	$(TAR) $(VERSION)/$(BLENDNAME)$(EXT1) $(BLENDNAME)
+	rm -f  $(NAN_OBJDIR)/$(VERSION)/$(BLENDNAME)$(EXT1)*
+	@cd $(NAN_OBJDIR) && $(TAR) $(TARFLAGS) $(VERSION)/$(BLENDNAME)$(EXT1) $(BLENDNAME)
     ifdef COMPRESS
 	@echo "----> Compressing distribution to $(BLENDNAME)$(EXT1)$(EXT2)"
-	@$(COMPRESS) $(NAN_OBJDIR)/$(VERSION)/$(BLENDNAME)$(EXT1)
+	@$(COMPRESS) $(COMPRESSFLAGS) $(NAN_OBJDIR)/$(VERSION)/$(BLENDNAME)$(EXT1)
     endif
 	@#echo "****> Clean up temporary distribution directory"
 	@rm -fr $(DISTDIR)

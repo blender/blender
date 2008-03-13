@@ -117,14 +117,16 @@ void BLI_ghash_insert(GHash *gh, void *key, void *val) {
 	}
 }
 
-void* BLI_ghash_lookup(GHash *gh, void *key) {
-	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
-	Entry *e;
-	
-	for (e= gh->buckets[hash]; e; e= e->next)
-		if (gh->cmpfp(key, e->key)==0)
-			return e->val;
-	
+void* BLI_ghash_lookup(GHash *gh, void *key) 
+{
+	if(gh) {
+		unsigned int hash= gh->hashfp(key)%gh->nbuckets;
+		Entry *e;
+		
+		for (e= gh->buckets[hash]; e; e= e->next)
+			if (gh->cmpfp(key, e->key)==0)
+				return e->val;
+	}	
 	return NULL;
 }
 

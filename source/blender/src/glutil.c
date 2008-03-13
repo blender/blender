@@ -50,6 +50,11 @@
 #include "BIF_glutil.h"
 #include "BIF_mywindow.h"
 
+#ifndef GL_CLAMP_TO_EDGE
+#define GL_CLAMP_TO_EDGE                        0x812F
+#endif
+
+
 	/* Invert line handling */
 	
 #define glToggle(mode, onoff)	(((onoff)?glEnable:glDisable)(mode))
@@ -263,9 +268,16 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *
 	int nsubparts_x= (img_w+(tex_w-1))/tex_w;
 	int nsubparts_y= (img_h+(tex_h-1))/tex_h;
 
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	/* Specify the color outside this function, and tex will modulate it.
+	 * This is useful for changing alpha without using glPixelTransferf()
+	 */
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, img_w);
 	glBindTexture(GL_TEXTURE_2D, texid);
+
+	 /* don't want nasty border artifacts */
+	 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	for (subpart_y=0; subpart_y<nsubparts_y; subpart_y++) {
 		for (subpart_x=0; subpart_x<nsubparts_x; subpart_x++) {
@@ -278,17 +290,16 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, subpart_w, subpart_h, GL_RGBA, GL_FLOAT, &f_rect[(subpart_y*tex_w)*img_w*4 + (subpart_x*tex_w)*4]);
 			else
 				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, subpart_w, subpart_h, GL_RGBA, GL_UNSIGNED_BYTE, &uc_rect[(subpart_y*tex_w)*img_w*4 + (subpart_x*tex_w)*4]);
-				
-			glColor3ub(255, 255, 255);
+							
 			glEnable(GL_TEXTURE_2D);
 			glBegin(GL_QUADS);
 			glTexCoord2f(0, 0);
 			glVertex2f(rast_x, rast_y);
 
-			glTexCoord2f((float) subpart_w/tex_w, 0);
+			glTexCoord2f((float) (subpart_w-1)/tex_w, 0);
 			glVertex2f(rast_x+subpart_w*xzoom, rast_y);
 
-			glTexCoord2f((float) subpart_w/tex_w, (float) subpart_h/tex_h);
+			glTexCoord2f((float) (subpart_w-1)/tex_w, (float) subpart_h/tex_h);
 			glVertex2f(rast_x+subpart_w*xzoom, rast_y+subpart_h*yzoom);
 
 			glTexCoord2f(0, (float) subpart_h/tex_h);

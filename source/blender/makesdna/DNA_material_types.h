@@ -73,13 +73,25 @@ typedef struct Material {
 	short har;
 	char seed1, seed2;
 	
+	float gloss_mir, gloss_tra;
+	short samp_gloss_mir, samp_gloss_tra;
+	float adapt_thresh_mir, adapt_thresh_tra;
+	float aniso_gloss_mir;
+	float dist_mir;
+	short fadeto_mir;
+	short shade_flag;		/* like Cubic interpolation */
+		
 	int mode, mode_l;		/* mode_l is the or-ed result of all layer modes */
 	short flarec, starc, linec, ringc;
 	float hasize, flaresize, subsize, flareboost;
-	float strand_sta, strand_end, strand_ease;
+	float strand_sta, strand_end, strand_ease, strand_surfnor;
+	float strand_min, strand_widthfade;
+	char strand_uvname[32];
 	
-	float sbias;			/* shadow bias */
-	float shad_alpha, padf;	/* in use for irregular shadowbuffer */
+	float sbias;			/* shadow bias to prevent terminator prob */
+	float lbias;			/* factor to multiply lampbias with (0.0 = no mult) */
+	float shad_alpha;		/* in use for irregular shadowbuffer */
+	float padf;				/* free padding, take me! */
 	
 	/* for buttons and render*/
 	char rgbsel, texact, pr_type, use_nodes;
@@ -105,12 +117,14 @@ typedef struct Material {
 	struct bNodeTree *nodetree;	
 	struct Ipo *ipo;
 	struct Group *group;	/* light group */
-	
+	struct PreviewImage * preview;
+
 	/* dynamic properties */
 	float friction, fh, reflect;
 	float fhdist, xyfrict;
 	short dynamode, pad2;
 
+	/* subsurface scattering */
 	float sss_radius[3], sss_col[3];
 	float sss_error, sss_scale, sss_ior;
 	float sss_colfac, sss_texfac;
@@ -179,8 +193,18 @@ typedef struct Material {
 /* qdn: a bit clumsy this, tangents needed for normal maps separated from shading */
 #define MA_NORMAP_TANG	0x8000000
 #define MA_GROUP_NOLAY	0x10000000
+#define MA_FACETEXTURE_ALPHA	0x20000000
+#define MA_STR_B_UNITS	0x40000000
+#define MA_STR_SURFDIFF 0x80000000
 
-#define	MA_MODE_MASK	0x1fffffff	/* all valid mode bits */
+#define	MA_MODE_MASK	0x6fffffff	/* all valid mode bits */
+
+/* ray mirror fadeout */
+#define MA_RAYMIR_FADETOSKY	0
+#define MA_RAYMIR_FADETOMAT	1
+
+/* shade_flag */
+#define MA_CUBIC			1
 
 /* diff_shader */
 #define MA_DIFF_LAMBERT		0
@@ -259,6 +283,31 @@ typedef struct Material {
 #define MAP_DISPLACE	4096
 #define MAP_WARP		8192
 #define MAP_LAYER		16384
+
+/* mapto for halo */
+//#define MAP_HA_COL		1
+//#define MAP_HA_ALPHA	128
+//#define MAP_HA_HAR		256
+//#define MAP_HA_SIZE		2
+//#define MAP_HA_ADD		64
+
+/* pmapto */
+/* init */
+#define MAP_PA_INIT		31
+#define MAP_PA_TIME		1
+#define MAP_PA_LIFE		2
+#define MAP_PA_DENS		4
+#define MAP_PA_SIZE		8
+#define MAP_PA_LENGTH	16
+/* reset */
+#define MAP_PA_IVEL		32
+/* physics */
+#define MAP_PA_PVEL		64
+/* path cache */
+#define MAP_PA_CACHE	912
+#define MAP_PA_CLUMP	128
+#define MAP_PA_KINK		256
+#define MAP_PA_ROUGH	512
 
 /* pr_type */
 #define MA_FLAT			0

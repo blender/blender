@@ -50,6 +50,7 @@ void snap_sel_to_curs(void);
 void snap_curs_to_grid(void);
 void snap_curs_to_sel(void);
 void snap_to_center(void);
+void snap_curs_to_active(void);
 
 #endif /*  BSE_EDIT_H */
 

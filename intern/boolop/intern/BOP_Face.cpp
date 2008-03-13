@@ -44,6 +44,8 @@ BOP_Face::BOP_Face(MT_Plane3 plane, BOP_Index originalFace)
 	m_plane        = plane;
 	m_tag          = UNCLASSIFIED;
 	m_originalFace = originalFace;
+	m_split        = 0;
+	m_bbox         = NULL;
 }
 
 /**
@@ -197,6 +199,14 @@ bool BOP_Face3::getNextVertex(BOP_Index v, BOP_Index &w)
  */
 void BOP_Face3::replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex)
 {
+	/* if the old index really exists, and new index also exists already,
+	 * don't create an edge with both vertices == newIndex */
+
+	if( (m_indexs[0] == oldIndex || m_indexs[1] == oldIndex || m_indexs[2] == oldIndex) &&
+			(m_indexs[0] == newIndex || m_indexs[1] == newIndex || m_indexs[2] == newIndex) ) {
+		setTAG(BROKEN);
+	}
+
 	if (m_indexs[0] == oldIndex) m_indexs[0] = newIndex;
 	else if (m_indexs[1] == oldIndex) m_indexs[1] = newIndex;
 	else if (m_indexs[2] == oldIndex) m_indexs[2] = newIndex;

@@ -37,6 +37,7 @@
 
 struct PluginSeq;
 struct StripElem;
+struct TStripElem;
 struct Strip;
 struct Sequence;
 struct ListBase;
@@ -44,21 +45,46 @@ struct Editing;
 struct ImBuf;
 struct Scene;
 
-void free_stripdata(int len, struct StripElem *se);
+void free_tstripdata(int len, struct TStripElem *se);
 void free_strip(struct Strip *strip);
-void new_stripdata(struct Sequence *seq);
+void new_tstripdata(struct Sequence *seq);
 void free_sequence(struct Sequence *seq);
 void build_seqar(struct ListBase *seqbase, struct Sequence  ***seqar, int *totseq);
+
+#define BUILD_SEQAR_COUNT_NOTHING  0
+#define BUILD_SEQAR_COUNT_CURRENT  1
+#define BUILD_SEQAR_COUNT_CHILDREN 2
+
+void build_seqar_cb(struct ListBase *seqbase, struct Sequence  ***seqar, 
+		    int *totseq, int (*test_func)(struct Sequence * seq));
 void free_editing(struct Editing *ed);
 void calc_sequence(struct Sequence *seq);
+void calc_sequence_disp(struct Sequence *seq);
+void reload_sequence_new_file(struct Sequence * seq);
+void seq_proxy_rebuild(struct Sequence * seq);
 void sort_seq(void);
 void clear_scene_in_allseqs(struct Scene *sce);
 
+char *give_seqname_by_type(int type);
+char *give_seqname(struct Sequence *seq);
+
 int evaluate_seq_frame(int cfra);
 struct StripElem *give_stripelem(struct Sequence *seq, int cfra);
+struct TStripElem *give_tstripelem(struct Sequence *seq, int cfra);
 void set_meta_stripdata(struct Sequence *seqm);
 struct ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chansel); 
 /* chansel: render this channel. Default=0 (renders end result)*/
+struct ImBuf *give_ibuf_seq_direct(int rectx, int recty, int cfra,
+				   struct Sequence * seq);
+
+/* sequence prefetch API */
+void seq_start_threads();
+void seq_stop_threads();
+void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown);
+void seq_wait_for_prefetch_ready();
+struct ImBuf * give_ibuf_seq_threaded(int rectx, int recty, int cfra, 
+				      int chanshown);
+
 
 void free_imbuf_seq_except(int cfra);
 void free_imbuf_seq_with_ipo(struct Ipo * ipo);

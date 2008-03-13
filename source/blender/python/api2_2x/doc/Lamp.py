@@ -26,6 +26,13 @@ Example::
 	- 'Hemi': 3
 	- 'Area': 4
 	- 'Photon': 5
+@type Falloffs: read-only dictionary
+@var Falloffs: The lamp falloff types.
+	- CONSTANT  - Constant falloff
+	- INVLINEAR - Inverse linear
+	- INVSQUARE - Inverse square
+	- CUSTOM    - Custom curve
+	- LINQUAD   - Lin/Quad weighted
 @type Modes: read-only dictionary
 @var Modes: The lamp modes.  Modes may be ORed together.
 	- 'Shadows'
@@ -152,6 +159,8 @@ class Lamp:
 	@type spotSize:  float
 	@ivar type:  Lamp type.  See L{Types} for values.
 	@type type:  int
+	@ivar falloffType:  Lamp falloff type.  See L{Falloffs} for values.
+	@type falloffType:  int
 
 	@warning: Most member variables assume values in some [Min, Max] interval.
 		When trying to set them, the given parameter will be clamped to lie in

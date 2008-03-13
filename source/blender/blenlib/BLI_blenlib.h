@@ -70,7 +70,6 @@
 #include "DNA_listBase.h" 
 
 #include <stdlib.h>
-
 extern ListBase fillfacebase;
 extern ListBase fillvertbase;
 /**
@@ -78,6 +77,8 @@ extern ListBase fillvertbase;
  */
 extern ListBase filledgebase;
 extern int totblock;
+
+extern char btempdir[]; /* creator.c temp dir used instead of U.tempdir, set with BLI_where_is_temp( btempdir, 1 ); */
 
 struct chardesc;
 struct direntry;
@@ -97,20 +98,24 @@ char *BLI_gethome(void);
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file);
 void BLI_make_exist(char *dir);
 void BLI_make_existing_file(char *name);
-void BLI_split_dirfile(const char *string, char *dir, char *file);
+void BLI_split_dirfile(char *string, char *dir, char *file);
 void BLI_join_dirfile(char *string, const char *dir, const char *file);
 int BLI_testextensie(const char *str, const char *ext);
 void addlisttolist(ListBase *list1, ListBase *list2);
 void BLI_insertlink(struct ListBase *listbase, void *vprevlink, void *vnewlink);
-void * BLI_findlink(struct ListBase *listbase, int number);
+void *BLI_findlink(struct ListBase *listbase, int number);
+int BLI_findindex(struct ListBase *listbase, void *vlink);
 void BLI_freelistN(struct ListBase *listbase);
 void BLI_addtail(struct ListBase *listbase, void *vlink);
 void BLI_remlink(struct ListBase *listbase, void *vlink);
+void BLI_uniquename(struct ListBase *list, void *vlink, char defname[], short name_offs, short len);
 void BLI_newname(char * name, int add);
-int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen);
-void BLI_stringenc(char *string, char *kop, char *staart, unsigned short numlen, int pic);
+int BLI_stringdec(char *string, char *kop, char *start, unsigned short *numlen);
+void BLI_stringenc(char *string, char *kop, char *start, unsigned short numlen, int pic);
 void BLI_addhead(struct ListBase *listbase, void *vlink);
 void BLI_insertlinkbefore(struct ListBase *listbase, void *vnextlink, void *vnewlink);
+void BLI_insertlinkafter(struct ListBase *listbase, void *vprevlink, void *vnewlink);
+void BLI_sortlist(struct ListBase *listbase, int (*cmp)(void *, void *));
 void BLI_freelist(struct ListBase *listbase);
 int BLI_countlist(struct ListBase *listbase);
 void BLI_freelinkN(ListBase *listbase, void *vlink);
@@ -132,7 +137,8 @@ void BLI_dlist_reinit(struct DynamicList *dlist);
 	 * converts it to a regular full path.
 	 * Also removes garbage from directory paths, like /../ or double slashes etc 
 	 */
-void BLI_cleanup_dir(const char *relabase, char *dir);
+void BLI_cleanup_file(const char *relabase, char *dir);
+void BLI_cleanup_dir(const char *relabase, char *dir); /* same as above but adds a trailing slash */
 
 	/**
 	 * Blender's path code replacement function.
@@ -173,7 +179,7 @@ void BLI_clean(char *path);
 	 * @param str The string to be duplicated
 	 * @retval Returns the duplicated string
 	 */
-char* BLI_strdup(char *str);
+char *BLI_strdup(const char *str);
 
 	/**
 	 * Duplicates the first @a len bytes of cstring @a str 
@@ -184,7 +190,7 @@ char* BLI_strdup(char *str);
 	 * @param len The number of bytes to duplicate
 	 * @retval Returns the duplicated string
 	 */
-char* BLI_strdupn(char *str, int len);
+char *BLI_strdupn(const char *str, int len);
 
 	/**
 	 * Like strncpy but ensures dst is always
@@ -196,7 +202,7 @@ char* BLI_strdupn(char *str, int len);
 	 *   the size of dst)
 	 * @retval Returns dst
 	 */
-char* BLI_strncpy(char *dst, const char *src, int maxncpy);
+char *BLI_strncpy(char *dst, const char *src, int maxncpy);
 
 	/* 
 	 * Replacement for snprintf
@@ -216,6 +222,11 @@ int BLI_streq(char *a, char *b);
 	 * @retval True if the strings are equal, false otherwise.
 	 */
 int BLI_strcaseeq(char *a, char *b);
+
+/* in util.c */
+#ifdef WITH_ICONV
+void BLI_string_to_utf8(char *original, char *utf_8, char *code);
+#endif
 
 	/**
 	 * Read a file as ASCII lines. An empty list is
@@ -245,9 +256,20 @@ void BLI_free_file_lines(struct LinkNode *lines);
 	 * @param fullname The full path and full name of the executable
 	 * @param name The name of the executable (usually argv[0]) to be checked
 	 */
-void BLI_where_am_i(char *fullname, char *name);
+void BLI_where_am_i(char *fullname, const char *name);
 
 char *get_install_dir(void);
+	/**
+	 * Gets the temp directory when blender first runs.
+	 * If the default path is not found, use try $TEMP
+	 * 
+	 * Also make sure the temp dir has a trailing slash
+	 *
+	 * @param fullname The full path to the temp directory
+	 */
+void BLI_where_is_temp(char *fullname, int usertemp);
+
+
 	/**
 	 * determines the full path to the application bundle on OS X
 	 *
@@ -258,15 +280,16 @@ char* BLI_getbundle(void);
 #endif
 
 #ifdef WIN32
-int BLI_getInstallationDir( char * str );
+int BLI_getInstallationDir(char *str);
 #endif
 		
 /* BLI_storage.h */
 int    BLI_filesize(int file);
+int    BLI_filepathsize(const char *path);
 double BLI_diskfree(char *dir);
-char * BLI_getwdN(char * dir);
+char *BLI_getwdN(char *dir);
 void BLI_hide_dot_files(int set);
-unsigned int BLI_getdir(char *dirname,  struct direntry **filelist);
+unsigned int BLI_getdir(char *dirname, struct direntry **filelist);
 
 /**
  * @attention Do not confuse with BLI_exists
@@ -288,8 +311,10 @@ int   BLI_rename(char *from, char *to);
 int   BLI_gzip(char *from, char *to);
 int   BLI_delete(char *file, int dir, int recursive);
 int   BLI_move(char *file, char *to);
-int   BLI_touch(char *file);
-char *BLI_last_slash(char *string);
+int   BLI_touch(const char *file);
+char *BLI_last_slash(const char *string);
+void  BLI_add_slash(char *string);
+void  BLI_del_slash(char *string);
 
 /* BLI_rct.c */
 /**
@@ -299,12 +324,12 @@ char *BLI_last_slash(char *string);
  *
  * @return True if @a rect is empty.
  */
-int  BLI_rcti_is_empty(struct rcti * rect);
+int  BLI_rcti_is_empty(struct rcti *rect);
 void BLI_init_rctf(struct rctf *rect, float xmin, float xmax, float ymin, float ymax);
 void BLI_init_rcti(struct rcti *rect, int xmin, int xmax, int ymin, int ymax);
 void BLI_translate_rctf(struct rctf *rect, float x, float y);
 void BLI_translate_rcti(struct rcti *rect, int x, int y);
-int  BLI_in_rcti(struct rcti * rect, int x, int y);
+int  BLI_in_rcti(struct rcti *rect, int x, int y);
 int  BLI_in_rctf(struct rctf *rect, float x, float y);
 int  BLI_isect_rctf(struct rctf *src1, struct rctf *src2, struct rctf *dest);
 int  BLI_isect_rcti(struct rcti *src1, struct rcti *src2, struct rcti *dest);
@@ -361,7 +386,7 @@ void BLI_setInterruptCallBack(int (*f)(void));
 char *BLI_strcasestr(const char *s, const char *find);
 int BLI_strcasecmp(const char *s1, const char *s2);
 int BLI_strncasecmp(const char *s1, const char *s2, int n);
-void BLI_timestr(double time, char *str);
+void BLI_timestr(double _time, char *str); /* time var is global */
 
 /** 
   * Trick to address 32 GB with an int (only for malloced pointers)

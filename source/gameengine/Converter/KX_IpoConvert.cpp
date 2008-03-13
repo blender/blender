@@ -100,9 +100,9 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 
 		ipocontr->GetIPOTransform().SetPosition(
 			MT_Point3(
-			blenderobject->loc[0]+blenderobject->dloc[0],
-			blenderobject->loc[1]+blenderobject->dloc[1],
-			blenderobject->loc[2]+blenderobject->dloc[2]
+			blenderobject->loc[0]/*+blenderobject->dloc[0]*/,
+			blenderobject->loc[1]/*+blenderobject->dloc[1]*/,
+			blenderobject->loc[2]/*+blenderobject->dloc[2]*/
 			)
 		);
 		ipocontr->GetIPOTransform().SetEulerAngles(
@@ -134,7 +134,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetPosition()[0]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyPosition(true);
+			ipocontr->SetIPOChannelActive(OB_LOC_X, true);
 	
 		}
 		
@@ -145,7 +145,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetPosition()[1]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyPosition(true);
+			ipocontr->SetIPOChannelActive(OB_LOC_Y, true);
 		}
 		
 		ipo = ipoList->GetScalarInterpolator(OB_LOC_Z);
@@ -155,7 +155,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetPosition()[2]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyPosition(true);
+			ipocontr->SetIPOChannelActive(OB_LOC_Z, true);
 		}
 		
 		// Master the art of cut & paste programming...
@@ -167,7 +167,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetDeltaPosition()[0]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyPosition(true);
+			ipocontr->SetIPOChannelActive(OB_DLOC_X, true);
 		}
 		
 		ipo = ipoList->GetScalarInterpolator(OB_DLOC_Y);
@@ -177,7 +177,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetDeltaPosition()[1]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyPosition(true);
+			ipocontr->SetIPOChannelActive(OB_DLOC_Y, true);
 		}
 		
 		ipo = ipoList->GetScalarInterpolator(OB_DLOC_Z);
@@ -187,7 +187,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetDeltaPosition()[2]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyPosition(true);
+			ipocontr->SetIPOChannelActive(OB_DLOC_Z, true);
 		}
 		
 		// Explore the finesse of reuse and slight modification
@@ -199,7 +199,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetEulerAngles()[0]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyOrientation(true);
+			ipocontr->SetIPOChannelActive(OB_ROT_X, true);
 		}
 		ipo = ipoList->GetScalarInterpolator(OB_ROT_Y);
 		if (ipo) {
@@ -208,7 +208,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetEulerAngles()[1]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyOrientation(true);
+			ipocontr->SetIPOChannelActive(OB_ROT_Y, true);
 		}
 		ipo = ipoList->GetScalarInterpolator(OB_ROT_Z);
 		if (ipo) {
@@ -217,7 +217,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetEulerAngles()[2]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyOrientation(true);
+			ipocontr->SetIPOChannelActive(OB_ROT_Z, true);
 		}
 
 		// Hmmm, the need for a macro comes to mind... 
@@ -229,7 +229,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetDeltaEulerAngles()[0]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyOrientation(true);
+			ipocontr->SetIPOChannelActive(OB_DROT_X, true);
 		}
 		ipo = ipoList->GetScalarInterpolator(OB_DROT_Y);
 		if (ipo) {
@@ -238,7 +238,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetDeltaEulerAngles()[1]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyOrientation(true);
+			ipocontr->SetIPOChannelActive(OB_DROT_Y, true);
 		}
 		ipo = ipoList->GetScalarInterpolator(OB_DROT_Z);
 		if (ipo) {
@@ -247,7 +247,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetDeltaEulerAngles()[2]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyOrientation(true);
+			ipocontr->SetIPOChannelActive(OB_DROT_Z, true);
 		}
 
 		// Hang on, almost there... 
@@ -259,7 +259,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetScaling()[0]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyScaling(true);
+			ipocontr->SetIPOChannelActive(OB_SIZE_X, true);
 		}
 		ipo = ipoList->GetScalarInterpolator(OB_SIZE_Y);
 		if (ipo) {
@@ -268,7 +268,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetScaling()[1]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyScaling(true);
+			ipocontr->SetIPOChannelActive(OB_SIZE_Y, true);
 		}
 		ipo = ipoList->GetScalarInterpolator(OB_SIZE_Z);
 		if (ipo) {
@@ -277,7 +277,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetScaling()[2]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyScaling(true);
+			ipocontr->SetIPOChannelActive(OB_SIZE_Z, true);
 		}
 
 		// The last few... 
@@ -289,7 +289,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetDeltaScaling()[0]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyScaling(true);
+			ipocontr->SetIPOChannelActive(OB_DSIZE_X, true);
 		}
 		ipo = ipoList->GetScalarInterpolator(OB_DSIZE_Y);
 		if (ipo) {
@@ -298,7 +298,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetDeltaScaling()[1]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyScaling(true);
+			ipocontr->SetIPOChannelActive(OB_DSIZE_Y, true);
 		}
 		ipo = ipoList->GetScalarInterpolator(OB_DSIZE_Z);
 		if (ipo) {
@@ -307,7 +307,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 					&(ipocontr->GetIPOTransform().GetDeltaScaling()[2]),
 					ipo);
 			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyScaling(true);
+			ipocontr->SetIPOChannelActive(OB_DSIZE_Z, true);
 		}
 		
 		{

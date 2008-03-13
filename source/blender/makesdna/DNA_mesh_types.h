@@ -61,23 +61,27 @@ typedef struct Mesh {
 	struct Key *key;
 	struct Material **mat;
 
-	struct MFace *mface;
-	struct MTFace *mtface;
+	struct MFace *mface;	/* array of mesh object mode faces */
+	struct MTFace *mtface;	/* store face UV's and texture here */
 	struct TFace *tface;	/* depecrated, use mtface */
-	struct MVert *mvert;
-	struct MEdge *medge;
+	struct MVert *mvert;	/* array of verts */
+	struct MEdge *medge;	/* array of edges */
 	struct MDeformVert *dvert;	/* __NLA */
-	struct MCol *mcol;
+	struct MCol *mcol;		/* array of colors, this must be the number of faces * 4 */
 	struct MSticky *msticky;
 	struct Mesh *texcomesh;
 	struct MSelect *mselect;
-	
-	struct OcInfo *oc;		/* not written in file */
-	void *sumohandle;
 
 	struct CustomData vdata, edata, fdata;
 
-	int totvert, totedge, totface, totselect, pad2;
+	int totvert, totedge, totface, totselect;
+	
+	/* the last selected vertex/edge/face are used for the active face however
+	 * this means the active face must always be selected, this is to keep track
+	 * of the last selected face and is similar to the old active face flag where
+	 * the face does not need to be selected, -1 is inactive */
+	int act_face; 
+	
 	int texflag;
 	
 	/* texture space, copied as one block in editobject.c */
@@ -91,7 +95,7 @@ typedef struct Mesh {
 
 	short subdiv, subdivr;
 	short totcol;
-	short subsurftype; 
+	short subsurftype;		/* only kept for backwards compat, not used anymore */
 
 	struct Multires *mr;		/* Multiresolution modeling data */
 	struct PartialVisibility *pv;
@@ -103,7 +107,7 @@ typedef struct Mesh {
 
 /* deprecated by MTFace, only here for file reading */
 typedef struct TFace {
-	void *tpage;
+	void *tpage;	/* the faces image for the active UVLayer */
 	float uv[4][2];
 	unsigned int col[4];
 	char flag, transp;

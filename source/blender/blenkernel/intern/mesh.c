@@ -55,14 +55,13 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_ipo_types.h"
 
-#include "BDR_sculptmode.h"
-
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 #include "BKE_subsurf.h"
 #include "BKE_displist.h"
 #include "BKE_library.h"
@@ -82,8 +81,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_arithb.h"
-
-#include "multires.h"
 
 int update_realtime_texture(MTFace *tface, double time)
 {
@@ -454,11 +451,15 @@ void tex_space_mesh(Mesh *me)
 	}
 }
 
-BoundBox *mesh_get_bb(Mesh *me)
+BoundBox *mesh_get_bb(Object *ob)
 {
-	if (!me->bb) {
+	Mesh *me= ob->data;
+
+	if(ob->bb)
+		return ob->bb;
+
+	if (!me->bb)
 		tex_space_mesh(me);
-	}
 
 	return me->bb;
 }
@@ -474,45 +475,23 @@ void mesh_get_texspace(Mesh *me, float *loc_r, float *rot_r, float *size_r)
 	if (size_r) VECCOPY(size_r, me->size);
 }
 
-static float *make_orco_mesh_internal(Object *ob, int render)
+float *get_mesh_orco_verts(Object *ob)
 {
 	Mesh *me = ob->data;
-	float (*orcoData)[3];
 	int a, totvert;
-	float loc[3], size[3];
-	DerivedMesh *dm;
 	float (*vcos)[3] = NULL;
 
-		/* Get appropriate vertex coordinates */
-
+	/* Get appropriate vertex coordinates */
 	if(me->key && me->texcomesh==0 && me->key->refkey) {
-		KeyBlock *kb= me->key->refkey;
-		float *fp= kb->data;
-		totvert= MIN2(kb->totelem, me->totvert);
-		vcos = MEM_callocN(sizeof(*vcos)*me->totvert, "orco mesh");
-
-		for(a=0; a<totvert; a++, fp+=3) {
-			vcos[a][0]= fp[0];
-			vcos[a][1]= fp[1];
-			vcos[a][2]= fp[2];
-		}
+		vcos= mesh_getRefKeyCos(me, &totvert);
 	}
 	else {
-		MultiresLevel *lvl = NULL;
-		MVert *mvert = NULL;
-		
-		if(me->mr) {
-			lvl = multires_level_n(me->mr, me->mr->pinlvl);
-			vcos = MEM_callocN(sizeof(*vcos)*lvl->totvert, "orco mr mesh");
-			mvert = me->mr->verts;
-			totvert = lvl->totvert;
-		}
-		else {
-			Mesh *tme = me->texcomesh?me->texcomesh:me;
-			vcos = MEM_callocN(sizeof(*vcos)*me->totvert, "orco mesh");
-			mvert = tme->mvert;
-			totvert = MIN2(tme->totvert, me->totvert);
-		}
+		MVert *mvert = NULL;		
+		Mesh *tme = me->texcomesh?me->texcomesh:me;
+
+		vcos = MEM_callocN(sizeof(*vcos)*me->totvert, "orco mesh");
+		mvert = tme->mvert;
+		totvert = MIN2(tme->totvert, me->totvert);
 
 		for(a=0; a<totvert; a++, mvert++) {
 			vcos[a][0]= mvert->co[0];
@@ -521,45 +500,37 @@ static float *make_orco_mesh_internal(Object *ob, int render)
 		}
 	}
 
-		/* Apply orco-changing modifiers */
+	return (float*)vcos;
+}
 
-	if (render) {
-		dm = mesh_create_derived_no_deform_render(ob, vcos, CD_MASK_BAREMESH);
-	} else {
-		dm = mesh_create_derived_no_deform(ob, vcos, CD_MASK_BAREMESH);
-	}
-	totvert = dm->getNumVerts(dm);
-
-	orcoData = MEM_mallocN(sizeof(*orcoData)*totvert, "orcoData");
-	dm->getVertCos(dm, orcoData);
-	dm->release(dm);
-	MEM_freeN(vcos);
+void transform_mesh_orco_verts(Mesh *me, float (*orco)[3], int totvert, int invert)
+{
+	float loc[3], size[3];
+	int a;
 
 	mesh_get_texspace(me->texcomesh?me->texcomesh:me, loc, NULL, size);
 
-	for(a=0; a<totvert; a++) {
-		float *co = orcoData[a];
-		co[0] = (co[0]-loc[0])/size[0];
-		co[1] = (co[1]-loc[1])/size[1];
-		co[2] = (co[2]-loc[2])/size[2];
+	if(invert) {
+		for(a=0; a<totvert; a++) {
+			float *co = orco[a];
+			co[0] = co[0]*size[0] + loc[0];
+			co[1] = co[1]*size[1] + loc[1];
+			co[2] = co[2]*size[2] + loc[2];
+		}
 	}
-
-	return (float*) orcoData;
-}
-
-float *mesh_create_orco_render(Object *ob) 
-{
-	return make_orco_mesh_internal(ob, 1);
-}
-
-float *mesh_create_orco(Object *ob)
-{
-	return make_orco_mesh_internal(ob, 0);
+	else {
+		for(a=0; a<totvert; a++) {
+			float *co = orco[a];
+			co[0] = (co[0]-loc[0])/size[0];
+			co[1] = (co[1]-loc[1])/size[1];
+			co[2] = (co[2]-loc[2])/size[2];
+		}
+	}
 }
 
 /* rotates the vertices of a face in case v[2] or v[3] (vertex index) is = 0.
    this is necessary to make the if(mface->v4) check for quads work */
-void test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
+int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 {
 	/* first test if the face is legal */
 	if(mface->v3 && mface->v3==mface->v4) {
@@ -601,6 +572,8 @@ void test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 				CustomData_swap(fdata, mfindex, corner_indices);
 		}
 	}
+
+	return nr;
 }
 
 Mesh *get_mesh(Object *ob)
@@ -797,8 +770,7 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 			mface->v4= index[3];
 			mface->flag= ME_SMOOTH;
 
-			if(mface->v3==mface->v4)
-				mface->v4= 0;
+			test_index_face(mface, NULL, 0, (mface->v3==mface->v4)? 3: 4);
 
 			mface++;
 			index+= 4;
@@ -933,8 +905,8 @@ void nurbs_to_mesh(Object *ob)
 			index= dl->index;
 			while(a--) {
 				mface->v1= startvert+index[0];
-				mface->v2= startvert+index[1];
-				mface->v3= startvert+index[2];
+				mface->v2= startvert+index[2];
+				mface->v3= startvert+index[1];
 				mface->v4= 0;
 				test_index_face(mface, NULL, 0, 3);
 				
@@ -1120,9 +1092,8 @@ float (*mesh_getVertexCos(Mesh *me, int *numVerts_r))[3]
 		float (*cos)[3] = MEM_mallocN(sizeof(*cos)*numVerts, "vertexcos1");
         
 		if (numVerts_r) *numVerts_r = numVerts;
-		for (i=0; i<numVerts; i++) {
+		for (i=0; i<numVerts; i++)
 			VECCOPY(cos[i], me->mvert[i].co);
-		}
         
 		return cos;
 #ifdef WITH_VERSE
@@ -1130,12 +1101,24 @@ float (*mesh_getVertexCos(Mesh *me, int *numVerts_r))[3]
 #endif
 }
 
-/* UvVertMap */
+float (*mesh_getRefKeyCos(Mesh *me, int *numVerts_r))[3]
+{
+	KeyBlock *kb;
+	float (*cos)[3] = NULL;
+	int totvert;
+	
+	if(me->key && me->key->refkey) {
+		if(numVerts_r) *numVerts_r= me->totvert;
+		cos= MEM_mallocN(sizeof(*cos)*me->totvert, "vertexcos1");
 
-struct UvVertMap {
-	struct UvMapVert **vert;
-	struct UvMapVert *buf;
-};
+		kb= me->key->refkey;
+		totvert= MIN2(kb->totelem, me->totvert);
+
+		memcpy(cos, kb->data, sizeof(*cos)*totvert);
+	}
+
+	return cos;
+}
 
 UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned int totface, unsigned int totvert, int selected, float *limit)
 {
@@ -1158,12 +1141,12 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 	if(totuv==0)
 		return NULL;
 	
-	vmap= (UvVertMap*)MEM_mallocN(sizeof(*vmap), "UvVertMap");
+	vmap= (UvVertMap*)MEM_callocN(sizeof(*vmap), "UvVertMap");
 	if (!vmap)
 		return NULL;
 
 	vmap->vert= (UvMapVert**)MEM_callocN(sizeof(*vmap->vert)*totvert, "UvMapVert*");
-	buf= vmap->buf= (UvMapVert*)MEM_mallocN(sizeof(*vmap->buf)*totuv, "UvMapVert");
+	buf= vmap->buf= (UvMapVert*)MEM_callocN(sizeof(*vmap->buf)*totuv, "UvMapVert");
 
 	if (!vmap->vert || !vmap->buf) {
 		free_uv_vert_map(vmap);
@@ -1246,3 +1229,70 @@ void free_uv_vert_map(UvVertMap *vmap)
 	}
 }
 
+/* Partial Mesh Visibility */
+PartialVisibility *mesh_pmv_copy(PartialVisibility *pmv)
+{
+	PartialVisibility *n= MEM_dupallocN(pmv);
+	n->vert_map= MEM_dupallocN(pmv->vert_map);
+	n->edge_map= MEM_dupallocN(pmv->edge_map);
+	n->old_edges= MEM_dupallocN(pmv->old_edges);
+	n->old_faces= MEM_dupallocN(pmv->old_faces);
+	return n;
+}
+
+void mesh_pmv_free(PartialVisibility *pv)
+{
+	MEM_freeN(pv->vert_map);
+	MEM_freeN(pv->edge_map);
+	MEM_freeN(pv->old_faces);
+	MEM_freeN(pv->old_edges);
+	MEM_freeN(pv);
+}
+
+void mesh_pmv_revert(Object *ob, Mesh *me)
+{
+	if(me->pv) {
+		unsigned i;
+		MVert *nve, *old_verts;
+		
+		/* Reorder vertices */
+		nve= me->mvert;
+		old_verts = MEM_mallocN(sizeof(MVert)*me->pv->totvert,"PMV revert verts");
+		for(i=0; i<me->pv->totvert; ++i)
+			old_verts[i]= nve[me->pv->vert_map[i]];
+
+		/* Restore verts, edges and faces */
+		CustomData_free_layer_active(&me->vdata, CD_MVERT, me->totvert);
+		CustomData_free_layer_active(&me->edata, CD_MEDGE, me->totedge);
+		CustomData_free_layer_active(&me->fdata, CD_MFACE, me->totface);
+
+		CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, old_verts, me->pv->totvert);
+		CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, me->pv->old_edges, me->pv->totedge);
+		CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, me->pv->old_faces, me->pv->totface);
+		mesh_update_customdata_pointers(me);
+
+		me->totvert= me->pv->totvert;
+		me->totedge= me->pv->totedge;
+		me->totface= me->pv->totface;
+
+		me->pv->old_edges= NULL;
+		me->pv->old_faces= NULL;
+
+		/* Free maps */
+		MEM_freeN(me->pv->edge_map);
+		me->pv->edge_map= NULL;
+		MEM_freeN(me->pv->vert_map);
+		me->pv->vert_map= NULL;
+
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	}
+}
+
+void mesh_pmv_off(Object *ob, Mesh *me)
+{
+	if(ob && me->pv) {
+		mesh_pmv_revert(ob, me);
+		MEM_freeN(me->pv);
+		me->pv= NULL;
+	}
+}

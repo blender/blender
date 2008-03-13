@@ -50,6 +50,8 @@ btSphereBoxCollisionAlgorithm::~btSphereBoxCollisionAlgorithm()
 
 void btSphereBoxCollisionAlgorithm::processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
 {
+	(void)dispatchInfo;
+	(void)resultOut;
 	if (!m_manifoldPtr)
 		return;
 
@@ -64,7 +66,7 @@ void btSphereBoxCollisionAlgorithm::processCollision (btCollisionObject* body0,b
 	btVector3 sphereCenter = sphereObj->getWorldTransform().getOrigin();
 	btScalar radius = sphere0->getRadius();
 	
-	float dist = getSphereDistance(boxObj,pOnBox,pOnSphere,sphereCenter,radius);
+	btScalar dist = getSphereDistance(boxObj,pOnBox,pOnSphere,sphereCenter,radius);
 
 	if (dist < SIMD_EPSILON)
 	{
@@ -81,10 +83,15 @@ void btSphereBoxCollisionAlgorithm::processCollision (btCollisionObject* body0,b
 
 }
 
-float btSphereBoxCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* col0,btCollisionObject* col1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
+btScalar btSphereBoxCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* col0,btCollisionObject* col1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
 {
+	(void)resultOut;
+	(void)dispatchInfo;
+	(void)col0;
+	(void)col1;
+
 	//not yet
-	return 1.f;
+	return btScalar(1.);
 }
 
 
@@ -117,14 +124,14 @@ btScalar btSphereBoxCollisionAlgorithm::getSphereDistance(btCollisionObject* box
 	/////////////////////////////////////////////////
 
 	btVector3	tmp, prel, n[6], normal, v3P;
-	btScalar   fSep = 10000000.0f, fSepThis;
+	btScalar   fSep = btScalar(10000000.0), fSepThis;
 
-	n[0].setValue( -1.0f,  0.0f,  0.0f );
-	n[1].setValue(  0.0f, -1.0f,  0.0f );
-	n[2].setValue(  0.0f,  0.0f, -1.0f );
-	n[3].setValue(  1.0f,  0.0f,  0.0f );
-	n[4].setValue(  0.0f,  1.0f,  0.0f );
-	n[5].setValue(  0.0f,  0.0f,  1.0f );
+	n[0].setValue( btScalar(-1.0),  btScalar(0.0),  btScalar(0.0) );
+	n[1].setValue(  btScalar(0.0), btScalar(-1.0),  btScalar(0.0) );
+	n[2].setValue(  btScalar(0.0),  btScalar(0.0), btScalar(-1.0) );
+	n[3].setValue(  btScalar(1.0),  btScalar(0.0),  btScalar(0.0) );
+	n[4].setValue(  btScalar(0.0),  btScalar(1.0),  btScalar(0.0) );
+	n[5].setValue(  btScalar(0.0),  btScalar(0.0),  btScalar(1.0) );
 
 	// convert  point in local space
 	prel = m44T.invXform( sphereCenter);
@@ -136,7 +143,7 @@ btScalar btSphereBoxCollisionAlgorithm::getSphereDistance(btCollisionObject* box
 	for (int i=0;i<6;i++)
 	{
 		int j = i<3? 0:1;
-		if ( (fSepThis = ((v3P-bounds[j]) .dot(n[i]))) > 0.0f )
+		if ( (fSepThis = ((v3P-bounds[j]) .dot(n[i]))) > btScalar(0.0) )
 		{
 			v3P = v3P - n[i]*fSepThis;		
 			bFound = true;
@@ -154,9 +161,9 @@ btScalar btSphereBoxCollisionAlgorithm::getSphereDistance(btCollisionObject* box
 		pointOnBox = v3P + normal*margins;
 		v3PointOnSphere = prel - normal*fRadius;
 
-		if ( ((v3PointOnSphere - pointOnBox) .dot (normal)) > 0.0f )
+		if ( ((v3PointOnSphere - pointOnBox) .dot (normal)) > btScalar(0.0) )
 		{
-			return 1.0f;
+			return btScalar(1.0);
 		}
 
 		// transform back in world space
@@ -171,7 +178,7 @@ btScalar btSphereBoxCollisionAlgorithm::getSphereDistance(btCollisionObject* box
 		{
 			fSep = - btSqrt(fSeps2);
 			normal = (pointOnBox-v3PointOnSphere);
-			normal *= 1.f/fSep;
+			normal *= btScalar(1.)/fSep;
 		}
 
 		return fSep;
@@ -185,10 +192,10 @@ btScalar btSphereBoxCollisionAlgorithm::getSphereDistance(btCollisionObject* box
 	bounds[0] = boundsVec[0];
 	bounds[1] = boundsVec[1];
 
-	if ( fPenetration <= 0.0f )
+	if ( fPenetration <= btScalar(0.0) )
 		return (fPenetration-margins);
 	else
-		return 1.0f;
+		return btScalar(1.0);
 }
 
 btScalar btSphereBoxCollisionAlgorithm::getSpherePenetration( btCollisionObject* boxObj,btVector3& pointOnBox, btVector3& v3PointOnSphere, const btVector3& sphereCenter, btScalar fRadius, const btVector3& aabbMin, const btVector3& aabbMax) 
@@ -200,14 +207,14 @@ btScalar btSphereBoxCollisionAlgorithm::getSpherePenetration( btCollisionObject*
 	bounds[1] = aabbMax;
 
 	btVector3	p0, tmp, prel, n[6], normal;
-	btScalar   fSep = -10000000.0f, fSepThis;
+	btScalar   fSep = btScalar(-10000000.0), fSepThis;
 
-	n[0].setValue( -1.0f,  0.0f,  0.0f );
-	n[1].setValue(  0.0f, -1.0f,  0.0f );
-	n[2].setValue(  0.0f,  0.0f, -1.0f );
-	n[3].setValue(  1.0f,  0.0f,  0.0f );
-	n[4].setValue(  0.0f,  1.0f,  0.0f );
-	n[5].setValue(  0.0f,  0.0f,  1.0f );
+	n[0].setValue( btScalar(-1.0),  btScalar(0.0),  btScalar(0.0) );
+	n[1].setValue(  btScalar(0.0), btScalar(-1.0),  btScalar(0.0) );
+	n[2].setValue(  btScalar(0.0),  btScalar(0.0), btScalar(-1.0) );
+	n[3].setValue(  btScalar(1.0),  btScalar(0.0),  btScalar(0.0) );
+	n[4].setValue(  btScalar(0.0),  btScalar(1.0),  btScalar(0.0) );
+	n[5].setValue(  btScalar(0.0),  btScalar(0.0),  btScalar(1.0) );
 
 	const btTransform&	m44T = boxObj->getWorldTransform();
 
@@ -219,7 +226,7 @@ btScalar btSphereBoxCollisionAlgorithm::getSpherePenetration( btCollisionObject*
 	for (int i=0;i<6;i++)
 	{
 		int j = i<3 ? 0:1;
-		if ( (fSepThis = ((prel-bounds[j]) .dot( n[i]))-fRadius) > 0.0f )	return 1.0f;
+		if ( (fSepThis = ((prel-bounds[j]) .dot( n[i]))-fRadius) > btScalar(0.0) )	return btScalar(1.0);
 		if ( fSepThis > fSep )
 		{
 			p0 = bounds[j];	normal = (btVector3&)n[i];

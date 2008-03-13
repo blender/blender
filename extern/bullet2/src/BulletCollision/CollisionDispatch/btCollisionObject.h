@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef COLLISION_OBJECT_H
 #define COLLISION_OBJECT_H
 
-#include "LinearMath/btTransform.h"
+#include "../../LinearMath/btTransform.h"
 
 //island management, m_activationState1
 #define ACTIVE_TAG 1
@@ -27,21 +27,19 @@ subject to the following restrictions:
 
 struct	btBroadphaseProxy;
 class	btCollisionShape;
-#include "LinearMath/btMotionState.h"
+#include "../../LinearMath/btMotionState.h"
 
 
 
 /// btCollisionObject can be used to manage collision detection objects. 
 /// btCollisionObject maintains all information that is needed for a collision detection: Shape, Transform and AABB proxy.
 /// They can be added to the btCollisionWorld.
-class	btCollisionObject
+ATTRIBUTE_ALIGNED16(class)	btCollisionObject
 {
 
 protected:
 
 	btTransform	m_worldTransform;
-	btBroadphaseProxy*	m_broadphaseHandle;
-	btCollisionShape*		m_collisionShape;
 
 	///m_interpolationWorldTransform is used for CCD and interpolation
 	///it can be either previous or future (predicted) transform
@@ -50,12 +48,16 @@ protected:
 	//without destroying the continuous interpolated motion (which uses this interpolation velocities)
 	btVector3	m_interpolationLinearVelocity;
 	btVector3	m_interpolationAngularVelocity;
+	btBroadphaseProxy*		m_broadphaseHandle;
+	btCollisionShape*		m_collisionShape;
 
 	int				m_collisionFlags;
 
 	int				m_islandTag1;
+	int				m_companionId;
+
 	int				m_activationState1;
-	float			m_deactivationTime;
+	btScalar			m_deactivationTime;
 
 	btScalar		m_friction;
 	btScalar		m_restitution;
@@ -67,13 +69,23 @@ protected:
 	void*			m_internalOwner;
 
 	///time of impact calculation
-	float			m_hitFraction; 
+	btScalar		m_hitFraction; 
 	
 	///Swept sphere radius (0.0 by default), see btConvexConvexAlgorithm::
-	float			m_ccdSweptSphereRadius;
+	btScalar		m_ccdSweptSphereRadius;
 
 	/// Don't do continuous collision detection if square motion (in one step) is less then m_ccdSquareMotionThreshold
-	float			m_ccdSquareMotionThreshold;
+	btScalar		m_ccdSquareMotionThreshold;
+	
+	/// If some object should have elaborate collision filtering by sub-classes
+	bool			m_checkCollideWith;
+
+	char	m_pad[7];
+
+	virtual bool	checkCollideWithOverride(btCollisionObject* co)
+	{
+		return true;
+	}
 
 public:
 
@@ -82,7 +94,7 @@ public:
 		CF_STATIC_OBJECT= 1,
 		CF_KINEMATIC_OBJECT= 2,
 		CF_NO_CONTACT_RESPONSE = 4,
-		CF_CUSTOM_MATERIAL_CALLBACK = 8,//this allows per-triangle material (friction/restitution)
+		CF_CUSTOM_MATERIAL_CALLBACK = 8//this allows per-triangle material (friction/restitution)
 	};
 
 
@@ -114,6 +126,7 @@ public:
 	
 	btCollisionObject();
 
+	virtual ~btCollisionObject();
 
 	void	setCollisionShape(btCollisionShape* collisionShape)
 	{
@@ -137,11 +150,11 @@ public:
 	
 	void setActivationState(int newState);
 
-	void	setDeactivationTime(float time)
+	void	setDeactivationTime(btScalar time)
 	{
 		m_deactivationTime = time;
 	}
-	float	getDeactivationTime() const
+	btScalar	getDeactivationTime() const
 	{
 		return m_deactivationTime;
 	}
@@ -155,19 +168,19 @@ public:
 		return ((getActivationState() != ISLAND_SLEEPING) && (getActivationState() != DISABLE_SIMULATION));
 	}
 
-		void	setRestitution(float rest)
+	void	setRestitution(btScalar rest)
 	{
 		m_restitution = rest;
 	}
-	float	getRestitution() const
+	btScalar	getRestitution() const
 	{
 		return m_restitution;
 	}
-	void	setFriction(float frict)
+	void	setFriction(btScalar frict)
 	{
 		m_friction = frict;
 	}
-	float	getFriction() const
+	btScalar	getFriction() const
 	{
 		return m_friction;
 	}
@@ -251,12 +264,22 @@ public:
 		m_islandTag1 = tag;
 	}
 
-	const float			getHitFraction() const
+	const int getCompanionId() const
+	{
+		return	m_companionId;
+	}
+
+	void	setCompanionId(int id)
+	{
+		m_companionId = id;
+	}
+
+	const btScalar			getHitFraction() const
 	{
 		return m_hitFraction; 
 	}
 
-	void	setHitFraction(float hitFraction)
+	void	setHitFraction(btScalar hitFraction)
 	{
 		m_hitFraction = hitFraction;
 	}
@@ -273,25 +296,25 @@ public:
 	}
 	
 	///Swept sphere radius (0.0 by default), see btConvexConvexAlgorithm::
-	float			getCcdSweptSphereRadius() const
+	btScalar			getCcdSweptSphereRadius() const
 	{
 		return m_ccdSweptSphereRadius;
 	}
 
 	///Swept sphere radius (0.0 by default), see btConvexConvexAlgorithm::
-	void	setCcdSweptSphereRadius(float radius)
+	void	setCcdSweptSphereRadius(btScalar radius)
 	{
 		m_ccdSweptSphereRadius = radius;
 	}
 
-	float 	getCcdSquareMotionThreshold() const
+	btScalar 	getCcdSquareMotionThreshold() const
 	{
 		return m_ccdSquareMotionThreshold;
 	}
 
 
 	/// Don't do continuous collision detection if square motion (in one step) is less then m_ccdSquareMotionThreshold
-	void	setCcdSquareMotionThreshold(float ccdSquareMotionThreshold)
+	void	setCcdSquareMotionThreshold(btScalar ccdSquareMotionThreshold)
 	{
 		m_ccdSquareMotionThreshold = ccdSquareMotionThreshold;
 	}
@@ -308,6 +331,16 @@ public:
 		m_userObjectPointer = userPointer;
 	}
 
-};
+	inline bool checkCollideWith(btCollisionObject* co)
+	{
+		if (m_checkCollideWith)
+			return checkCollideWithOverride(co);
+
+		return true;
+	}
+
+
+}
+;
 
 #endif //COLLISION_OBJECT_H

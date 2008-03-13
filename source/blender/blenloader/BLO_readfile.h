@@ -38,12 +38,15 @@ extern "C" {
 #endif
 
 struct SpaceFile;
+struct SpaceImaSel;
+struct FileList;
 struct LinkNode;
 struct Main;
 struct UserDef;
 struct bScreen;
 struct Scene;
 struct MemFile;
+struct direntry;
 
 typedef struct BlendHandle	BlendHandle;
 
@@ -192,6 +195,21 @@ BLO_blendhandle_get_datablock_names(
 	int ofblocktype);
 
 /**
+ * Gets the previews of all the datablocks in a file
+ * of a certain type (ie. All the scene names in
+ * a file).
+ * 
+ * @param bh The blendhandle to access.
+ * @param ofblocktype The type of names to get.
+ * @return A BLI_linklist of PreviewImage. The PreviewImage links
+ * should be freed with malloc.
+ */
+	struct LinkNode*
+BLO_blendhandle_get_previews(
+	BlendHandle *bh, 
+	int ofblocktype);
+
+/**
  * Gets the names of all the datablock groups in a
  * file. (ie. file contains Scene, Mesh, and Lamp
  * datablocks).
@@ -219,6 +237,7 @@ BLO_blendhandle_close(
 char *BLO_gethome(void);
 int BLO_has_bfile_extension(char *str);
 void BLO_library_append(struct SpaceFile *sfile, char *dir, int idcode);
+void BLO_library_append_(BlendHandle **libfiledata, struct direntry* filelist, int totfile, char *dir, char* file, short flag, int idcode);
 void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcode, short flag, struct Scene *scene);
 
 BlendFileData* blo_read_blendafterruntime(int file, int actualsize, BlendReadError *error_r);

@@ -16,6 +16,8 @@ subject to the following restrictions:
 #ifndef _DISPATCHER_H
 #define _DISPATCHER_H
 
+#include "../../LinearMath/btScalar.h"
+
 class btCollisionAlgorithm;
 struct btBroadphaseProxy;
 class btRigidBody;
@@ -34,10 +36,10 @@ struct btDispatcherInfo
 		DISPATCH_CONTINUOUS
 	};
 	btDispatcherInfo()
-		:m_timeStep(0.f),
+		:m_timeStep(btScalar(0.)),
 		m_stepCount(0),
 		m_dispatchFunc(DISPATCH_DISCRETE),
-		m_timeOfImpact(1.f),
+		m_timeOfImpact(btScalar(1.)),
 		m_useContinuous(false),
 		m_debugDraw(0),
 		m_enableSatConvex(false),
@@ -46,10 +48,10 @@ struct btDispatcherInfo
 	{
 
 	}
-	float	m_timeStep;
+	btScalar	m_timeStep;
 	int		m_stepCount;
 	int		m_dispatchFunc;
-	float	m_timeOfImpact;
+	btScalar	m_timeOfImpact;
 	bool	m_useContinuous;
 	class btIDebugDraw*	m_debugDraw;
 	bool	m_enableSatConvex;

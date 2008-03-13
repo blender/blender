@@ -16,7 +16,7 @@ subject to the following restrictions:
 
 #include "btPoint2PointConstraint.h"
 #include "BulletDynamics/Dynamics/btRigidBody.h"
-
+#include <new>
 
 
 
@@ -39,7 +39,7 @@ btPoint2PointConstraint::btPoint2PointConstraint(btRigidBody& rbA,const btVector
 
 void	btPoint2PointConstraint::buildJacobian()
 {
-	m_appliedImpulse = 0.f;
+	m_appliedImpulse = btScalar(0.);
 
 	btVector3	normal(0,0,0);
 
@@ -76,7 +76,7 @@ void	btPoint2PointConstraint::solveConstraint(btScalar	timeStep)
 	for (int i=0;i<3;i++)
 	{		
 		normal[i] = 1;
-		btScalar jacDiagABInv = 1.f / m_jac[i].getDiagonal();
+		btScalar jacDiagABInv = btScalar(1.) / m_jac[i].getDiagonal();
 
 		btVector3 rel_pos1 = pivotAInW - m_rbA.getCenterOfMassPosition(); 
 		btVector3 rel_pos2 = pivotBInW - m_rbB.getCenterOfMassPosition();
@@ -110,6 +110,7 @@ void	btPoint2PointConstraint::solveConstraint(btScalar	timeStep)
 
 void	btPoint2PointConstraint::updateRHS(btScalar	timeStep)
 {
+	(void)timeStep;
 
 }
 

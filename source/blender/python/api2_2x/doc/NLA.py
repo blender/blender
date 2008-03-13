@@ -18,6 +18,7 @@ It is a bitmask and settings are ORed together.
 	- HOLD: continue displaying the last frame past the end of the strip
 	- ACTIVE: action strip is active in NLA window
 	- LOCK_ACTION: action start/end are automatically mapped to strip duration
+	- MUTE: action strip does not contribute to the NLA solution
 
 @type StrideAxes: readonly dictionary
 @var StrideAxes: Constant dict used by the L{ActionStrip.strideAxis} attribute.

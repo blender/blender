@@ -107,6 +107,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "DNA_actuator_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_color_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_controller_types.h"
@@ -132,6 +133,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "DNA_object_force.h"
 #include "DNA_oops_types.h"
 #include "DNA_packedFile_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sdna_types.h"
@@ -154,6 +156,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "BKE_action.h"
 #include "BKE_bad_level_calls.h" // build_seqar (from WHILE_SEQ) free_oops error
 #include "BKE_blender.h"
+#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_constraint.h"
@@ -184,7 +187,10 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 
 #include <errno.h>
 
-/* ********* my write, buffered writing with minimum 50k chunks ************ */
+/* ********* my write, buffered writing with minimum size chunks ************ */
+
+#define MYWRITE_BUFFER_SIZE	100000
+#define MYWRITE_MAX_CHUNK	32768
 
 typedef struct {
 	struct SDNA *sdna;
@@ -213,7 +219,7 @@ static WriteData *writedata_new(int file)
 
 	wd->file= file;
 
-	wd->buf= MEM_mallocN(100000, "wd->buf");
+	wd->buf= MEM_mallocN(MYWRITE_BUFFER_SIZE, "wd->buf");
 
 	return wd;
 }
@@ -253,12 +259,13 @@ int mywfile;
  * @warning Talks to other functions with global parameters
  */
  
-#define MYWRITE_FLUSH	NULL
+#define MYWRITE_FLUSH		NULL
 
 static void mywrite( WriteData *wd, void *adr, int len)
 {
 	if (wd->error) return;
 
+	/* flush helps compression for undo-save */
 	if(adr==MYWRITE_FLUSH) {
 		if(wd->count) {
 			writedata_do_write(wd, wd->buf, wd->count);
@@ -269,21 +276,33 @@ static void mywrite( WriteData *wd, void *adr, int len)
 
 	wd->tot+= len;
 	
-	if(len>50000) {
+	/* if we have a single big chunk, write existing data in
+	 * buffer and write out big chunk in smaller pieces */
+	if(len>MYWRITE_MAX_CHUNK) {
 		if(wd->count) {
 			writedata_do_write(wd, wd->buf, wd->count);
 			wd->count= 0;
 		}
-		writedata_do_write(wd, adr, len);
+
+		do {
+			int writelen= MIN2(len, MYWRITE_MAX_CHUNK);
+			writedata_do_write(wd, adr, writelen);
+			adr = (char*)adr + writelen;
+			len -= writelen;
+		} while(len > 0);
+
 		return;
 	}
-	if(len+wd->count>99999) {
+
+	/* if data would overflow buffer, write out the buffer */
+	if(len+wd->count>MYWRITE_BUFFER_SIZE-1) {
 		writedata_do_write(wd, wd->buf, wd->count);
 		wd->count= 0;
 	}
+
+	/* append data at end of buffer */
 	memcpy(&wd->buf[wd->count], adr, len);
 	wd->count+= len;
-
 }
 
 /**
@@ -449,7 +468,7 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 		writestruct(wd, DATA, "bNode", 1, node);
 
 	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->storage) {
+		if(node->storage && node->type!=NODE_DYNAMIC) {
 			/* could be handlerized at some point, now only 1 exception still */
 			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
 				write_curvemapping(wd, node->storage);
@@ -523,6 +542,50 @@ static void write_effects(WriteData *wd, ListBase *lb)
 		}
 
 		eff= eff->next;
+	}
+}
+
+static void write_particlesettings(WriteData *wd, ListBase *idbase)
+{
+	ParticleSettings *part;
+
+	part= idbase->first;
+	while(part) {
+		if(part->id.us>0 || wd->current) {
+			/* write LibData */
+			writestruct(wd, ID_PA, "ParticleSettings", 1, part);
+			writestruct(wd, DATA, "PartDeflect", 1, part->pd);
+		}
+		part= part->id.next;
+	}
+}
+static void write_particlesystems(WriteData *wd, ListBase *particles)
+{
+	ParticleSystem *psys= particles->first;
+	int a;
+
+	for(; psys; psys=psys->next) {
+		writestruct(wd, DATA, "ParticleSystem", 1, psys);
+
+		if(psys->particles) {
+			writestruct(wd, DATA, "ParticleData", psys->totpart ,psys->particles);
+
+			if(psys->particles->hair) {
+				ParticleData *pa = psys->particles;
+
+				for(a=0; a<psys->totpart; a++, pa++)
+					writestruct(wd, DATA, "HairKey", pa->totkey, pa->hair);
+			}
+			
+			if(psys->particles->keys) {
+				ParticleData *pa = psys->particles;
+
+				for(a=0; a<psys->totpart; a++, pa++)
+					writestruct(wd, DATA, "ParticleKey", pa->totkey, pa->keys);
+			}
+		}
+		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
+		writestruct(wd, DATA, "SoftBody", 1, psys->soft);
 	}
 }
 
@@ -672,6 +735,9 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 		case ACT_VISIBILITY:
 			writestruct(wd, DATA, "bVisibilityActuator", 1, act->data);
 			break;
+		case ACT_2DFILTER:
+			writestruct(wd, DATA, "bTwoDFilterActuator", 1, act->data);
+			break;
 		default:
 			; /* error: don't know how to write this file */
 		}
@@ -698,58 +764,32 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 	bConstraint *con;
 
 	for (con=conlist->first; con; con=con->next) {
+		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+		
 		/* Write the specific data */
-		switch (con->type) {
-		case CONSTRAINT_TYPE_NULL:
-			break;
-		case CONSTRAINT_TYPE_TRACKTO:
-			writestruct(wd, DATA, "bTrackToConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_KINEMATIC:
-			writestruct(wd, DATA, "bKinematicConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_ROTLIKE:
-			writestruct(wd, DATA, "bRotateLikeConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_LOCLIKE:
-			writestruct(wd, DATA, "bLocateLikeConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_SIZELIKE:
-			writestruct(wd, DATA, "bSizeLikeConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_ACTION:
-			writestruct(wd, DATA, "bActionConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_LOCKTRACK:
-			writestruct(wd, DATA, "bLockTrackConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_FOLLOWPATH:
-			writestruct(wd, DATA, "bFollowPathConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_STRETCHTO:
-			writestruct(wd, DATA, "bStretchToConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_MINMAX:
-			writestruct(wd, DATA, "bMinMaxConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_LOCLIMIT:
-			writestruct(wd, DATA, "bLocLimitConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_ROTLIMIT:
-			writestruct(wd, DATA, "bRotLimitConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_SIZELIMIT:
-			writestruct(wd, DATA, "bSizeLimitConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
-			writestruct(wd, DATA, "bRigidBodyJointConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_CLAMPTO:
-			writestruct(wd, DATA, "bClampToConstraint", 1, con->data);
-			break;
-		default:
-			break;
+		if (cti && con->data) {
+			/* firstly, just write the plain con->data struct */
+			writestruct(wd, DATA, cti->structName, 1, con->data);
+			
+			/* do any constraint specific stuff */
+			switch (con->type) {
+				case CONSTRAINT_TYPE_PYTHON:
+				{
+					bPythonConstraint *data = (bPythonConstraint *)con->data;
+					bConstraintTarget *ct;
+					
+					/* write targets */
+					for (ct= data->targets.first; ct; ct= ct->next)
+						writestruct(wd, DATA, "bConstraintTarget", 1, ct);
+					
+					/* Write ID Properties -- and copy this comment EXACTLY for easy finding
+					 of library blocks that implement this.*/
+					IDP_WriteProperty(data->prop, wd);
+				}
+				break;
+			}
 		}
+		
 		/* Write the constraint */
 		writestruct(wd, DATA, "bConstraint", 1, con);
 	}
@@ -757,21 +797,29 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 
 static void write_pose(WriteData *wd, bPose *pose)
 {
-	bPoseChannel	*chan;
+	bPoseChannel *chan;
+	bActionGroup *grp;
 
 	/* Write each channel */
-
 	if (!pose)
 		return;
 
-	// Write channels
+	/* Write channels */
 	for (chan=pose->chanbase.first; chan; chan=chan->next) {
 		write_constraints(wd, &chan->constraints);
-		chan->selectflag= chan->bone->flag & (BONE_SELECTED|BONE_ACTIVE); // gets restored on read, for library armatures
+		
+		/* prevent crashes with autosave, when a bone duplicated in editmode has not yet been assigned to its posechannel */
+		if (chan->bone) 
+			chan->selectflag= chan->bone->flag & (BONE_SELECTED|BONE_ACTIVE); /* gets restored on read, for library armatures */
+		
 		writestruct(wd, DATA, "bPoseChannel", 1, chan);
 	}
+	
+	/* Write groups */
+	for (grp=pose->agroups.first; grp; grp=grp->next) 
+		writestruct(wd, DATA, "bActionGroup", 1, grp);
 
-	// Write this pose
+	/* Write this pose */
 	writestruct(wd, DATA, "bPose", 1, pose);
 }
 
@@ -800,13 +848,43 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 	for (md=modbase->first; md; md= md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 		if (mti == NULL) return;
-
+		
 		writestruct(wd, DATA, mti->structName, 1, md);
-
+			
 		if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
-
+			
 			writedata(wd, DATA, sizeof(int)*hmd->totindex, hmd->indexar);
+		}
+		else if(md->type==eModifierType_Cloth) {
+			ClothModifierData *clmd = (ClothModifierData*) md;
+			
+			writestruct(wd, DATA, "SimulationSettings", 1, clmd->sim_parms);
+			writestruct(wd, DATA, "CollisionSettings", 1, clmd->coll_parms);
+			
+		} 
+		else if (md->type==eModifierType_Collision) {
+			
+			/*
+			CollisionModifierData *collmd = (CollisionModifierData*) md;
+			// TODO: CollisionModifier should use pointcache 
+			// + have proper reset events before enabling this
+			writestruct(wd, DATA, "MVert", collmd->numverts, collmd->x);
+			writestruct(wd, DATA, "MVert", collmd->numverts, collmd->xnew);
+			writestruct(wd, DATA, "MFace", collmd->numfaces, collmd->mfaces);
+			*/
+		}
+		else if (md->type==eModifierType_MeshDeform) {
+			MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+			int size = mmd->dyngridsize;
+
+			writedata(wd, DATA, sizeof(float)*mmd->totvert*mmd->totcagevert,
+				mmd->bindweights);
+			writedata(wd, DATA, sizeof(float)*3*mmd->totcagevert,
+				mmd->bindcos);
+			writestruct(wd, DATA, "MDefCell", size*size*size, mmd->dyngrid);
+			writestruct(wd, DATA, "MDefInfluence", mmd->totinfluence, mmd->dyninfluences);
+			writedata(wd, DATA, sizeof(int)*mmd->totvert, mmd->dynverts);
 		}
 	}
 }
@@ -814,7 +892,6 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 static void write_objects(WriteData *wd, ListBase *idbase)
 {
 	Object *ob;
-	int a;
 	
 	ob= idbase->first;
 	while(ob) {
@@ -850,17 +927,9 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			
 			writestruct(wd, DATA, "PartDeflect", 1, ob->pd);
 			writestruct(wd, DATA, "SoftBody", 1, ob->soft);
-			if(ob->soft) {
-				SoftBody *sb= ob->soft;
-				if(sb->keys) {
-					writedata(wd, DATA, sizeof(void *)*sb->totkey, sb->keys);
-					for(a=0; a<sb->totkey; a++) {
-						writestruct(wd, DATA, "SBVertex", sb->totpoint, sb->keys[a]);
-					}
-				}
-			}
 			writestruct(wd, DATA, "FluidsimSettings", 1, ob->fluidsimSettings); // NT
 			
+			write_particlesystems(wd, &ob->particlesystem);
 			write_modifiers(wd, &ob->modifiers);
 		}
 		ob= ob->id.next;
@@ -1203,11 +1272,36 @@ static void write_lattices(WriteData *wd, ListBase *idbase)
 	}
 }
 
+static void write_previews(WriteData *wd, PreviewImage *prv)
+{
+	if (prv) {
+		short w = prv->w[1];
+		short h = prv->h[1];
+		unsigned int *rect = prv->rect[1];
+		/* don't write out large previews if not requested */
+		if (!(U.flag & USER_SAVE_PREVIEWS) ) {
+			prv->w[1] = 0;
+			prv->h[1] = 0;
+			prv->rect[1] = NULL;
+		}
+		writestruct(wd, DATA, "PreviewImage", 1, prv);
+		if (prv->rect[0]) writedata(wd, DATA, prv->w[0]*prv->h[0]*sizeof(unsigned int), prv->rect[0]);
+		if (prv->rect[1]) writedata(wd, DATA, prv->w[1]*prv->h[1]*sizeof(unsigned int), prv->rect[1]);
+
+		/* restore preview, we still want to keep it in memory even if not saved to file */
+		if (!(U.flag & USER_SAVE_PREVIEWS) ) {
+			prv->w[1] = w;
+			prv->h[1] = h;
+			prv->rect[1] = rect;
+		}
+	}
+}
+
 static void write_images(WriteData *wd, ListBase *idbase)
 {
 	Image *ima;
 	PackedFile * pf;
-	PreviewImage *prv;
+
 
 	ima= idbase->first;
 	while(ima) {
@@ -1222,12 +1316,9 @@ static void write_images(WriteData *wd, ListBase *idbase)
 				writedata(wd, DATA, pf->size, pf->data);
 			}
 
-			if (ima->preview) {
-				prv = ima->preview;
-				writestruct(wd, DATA, "PreviewImage", 1, prv);
-				writedata(wd, DATA, prv->w*prv->h*sizeof(unsigned int), prv->rect);
+			write_previews(wd, ima->preview);
+
 			}
-		}
 		ima= ima->id.next;
 	}
 	/* flush helps the compression for undo-save */
@@ -1249,6 +1340,8 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 			if(tex->plugin) writestruct(wd, DATA, "PluginTex", 1, tex->plugin);
 			if(tex->coba) writestruct(wd, DATA, "ColorBand", 1, tex->coba);
 			if(tex->env) writestruct(wd, DATA, "EnvMap", 1, tex->env);
+			
+			write_previews(wd, tex->preview);
 		}
 		tex= tex->id.next;
 	}
@@ -1288,6 +1381,8 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 				writestruct(wd, DATA, "bNodeTree", 1, ma->nodetree);
 				write_nodetree(wd, ma->nodetree);
 			}
+
+			write_previews(wd, ma->preview);			
 		}
 		ma= ma->id.next;
 	}
@@ -1310,6 +1405,9 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 			}
 
 			write_scriptlink(wd, &wrld->scriptlink);
+
+			write_previews(wd, wrld->preview);
+
 		}
 		wrld= wrld->id.next;
 	}
@@ -1332,7 +1430,13 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 				if(la->mtex[a]) writestruct(wd, DATA, "MTex", 1, la->mtex[a]);
 			}
 
+			if(la->curfalloff)
+				write_curvemapping(wd, la->curfalloff);	
+			
 			write_scriptlink(wd, &la->scriptlink);
+
+			write_previews(wd, la->preview);
+
 		}
 		la= la->id.next;
 	}
@@ -1348,6 +1452,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	MetaStack *ms;
 	Strip *strip;
 	TimeMarker *marker;
+	TransformOrientation *ts;
 	SceneRenderLayer *srl;
 	int a;
 	
@@ -1369,6 +1474,8 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 		for(a=0; a<MAX_MTEX; ++a)
 			writestruct(wd, DATA, "MTex", 1, sce->sculptdata.mtex[a]);
+		if(sce->sculptdata.cumap)
+			write_curvemapping(wd, sce->sculptdata.cumap);
 
 		ed= sce->ed;
 		if(ed) {
@@ -1408,7 +1515,18 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 					strip= seq->strip;
 					writestruct(wd, DATA, "Strip", 1, strip);
-
+					if(seq->flag & SEQ_USE_CROP && strip->crop) {
+						writestruct(wd, DATA, "StripCrop", 1, strip->crop);
+					}
+					if(seq->flag & SEQ_USE_TRANSFORM && strip->transform) {
+						writestruct(wd, DATA, "StripTransform", 1, strip->transform);
+					}
+					if(seq->flag & SEQ_USE_PROXY && strip->proxy) {
+						writestruct(wd, DATA, "StripProxy", 1, strip->proxy);
+					}
+					if(seq->flag & SEQ_USE_COLOR_BALANCE && strip->color_balance) {
+						writestruct(wd, DATA, "StripColorBalance", 1, strip->color_balance);
+					}
 					if(seq->type==SEQ_IMAGE)
 						writestruct(wd, DATA, "StripElem", strip->len, strip->stripdata);
 					else if(seq->type==SEQ_MOVIE || seq->type==SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND)
@@ -1441,6 +1559,10 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		/* writing dynamic list of TimeMarkers to the blend file */
 		for(marker= sce->markers.first; marker; marker= marker->next)
 			writestruct(wd, DATA, "TimeMarker", 1, marker);
+		
+		/* writing dynamic list of TransformOrientations to the blend file */
+		for(ts = sce->transform_spaces.first; ts; ts = ts->next)
+			writestruct(wd, DATA, "TransformOrientation", 1, ts);
 		
 		for(srl= sce->r.layers.first; srl; srl= srl->next)
 			writestruct(wd, DATA, "SceneRenderLayer", 1, srl);
@@ -1563,6 +1685,8 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceText", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_SCRIPT) {
+					SpaceScript *sc = (SpaceScript*)sl;
+					sc->but_refs = NULL;
 					writestruct(wd, DATA, "SpaceScript", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_ACTION) {
@@ -1673,15 +1797,25 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 {
 	bAction			*act;
 	bActionChannel	*chan;
+	bActionGroup 	*grp;
+	TimeMarker *marker;
 	
 	for(act=idbase->first; act; act= act->id.next) {
 		if (act->id.us>0 || wd->current) {
 			writestruct(wd, ID_AC, "bAction", 1, act);
 			if (act->id.properties) IDP_WriteProperty(act->id.properties, wd);
-
+			
 			for (chan=act->chanbase.first; chan; chan=chan->next) {
 				writestruct(wd, DATA, "bActionChannel", 1, chan);
 				write_constraint_channels(wd, &chan->constraintChannels);
+			}
+			
+			for (grp=act->groups.first; grp; grp=grp->next) {
+				writestruct(wd, DATA, "bActionGroup", 1, grp);
+			}
+			
+			for (marker=act->markers.first; marker; marker=marker->next) {
+				writestruct(wd, DATA, "TimeMarker", 1, marker);
 			}
 		}
 	}
@@ -1731,7 +1865,7 @@ static void write_sounds(WriteData *wd, ListBase *idbase)
 
 	// set all samples to unsaved status
 
-	sample = samples->first;
+	sample = samples->first; // samples is a global defined in sound.c
 	while (sample) {
 		sample->flags |= SAMPLE_NEEDS_SAVE;
 		sample = sample->id.next;
@@ -1821,6 +1955,18 @@ static void write_brushes(WriteData *wd, ListBase *idbase)
 	}
 }
 
+static void write_scripts(WriteData *wd, ListBase *idbase)
+{
+	Script *script;
+	
+	for(script=idbase->first; script; script= script->id.next) {
+		if(script->id.us>0 || wd->current) {
+			writestruct(wd, ID_SCRIPT, "Script", 1, script);
+			if (script->id.properties) IDP_WriteProperty(script->id.properties, wd);
+		}
+	}
+}
+
 static void write_global(WriteData *wd)
 {
 	FileGlobal fg;
@@ -1883,8 +2029,10 @@ static int write_file_handle(int handle, MemFile *compare, MemFile *current, int
 	write_materials(wd, &G.main->mat);
 	write_textures (wd, &G.main->tex);
 	write_meshs    (wd, &G.main->mesh);
+	write_particlesettings(wd, &G.main->particle);
 	write_nodetrees(wd, &G.main->nodetree);
 	write_brushes  (wd, &G.main->brush);
+	write_scripts  (wd, &G.main->script);
 	if(current==NULL)	
 		write_libraries(wd,  G.main->next); /* no library save in undo */
 

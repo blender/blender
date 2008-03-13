@@ -79,6 +79,7 @@ void undo_editmode_push(char *name,
 		void (*freedata)(void *), 			// pointer to function freeing data
 		void (*to_editmode)(void *),        // data to editmode conversion
 		void * (*from_editmode)(void))      // editmode to data conversion
+		int  (*validate_undo)(void *))      // check if undo data is still valid
 
 
 Further exported for UI is:
@@ -96,7 +97,8 @@ void undo_editmode_menu(void)				// history menu
  void undo_editmode_clear(void);		// free & clear all data
  void undo_editmode_menu(void);		// history menu
  void undo_editmode_push(char *name, void (*freedata)(void *), 
-						void (*to_editmode)(void *),  void *(*from_editmode)(void)); 
+						void (*to_editmode)(void *),  void *(*from_editmode)(void),
+						int (*validate_undo)(void *)); 
  struct uiBlock *editmode_undohistorymenu(void *arg_unused);
 
 
@@ -112,6 +114,7 @@ typedef struct UndoElem {
 	void (*freedata)(void *);
 	void (*to_editmode)(void *);
 	void * (*from_editmode)(void);
+	int (*validate_undo)(void *);
 } UndoElem;
 
 static ListBase undobase={NULL, NULL};
@@ -133,7 +136,8 @@ static void undo_restore(UndoElem *undo)
 
 /* name can be a dynamic string */
 void undo_editmode_push(char *name, void (*freedata)(void *), 
-		void (*to_editmode)(void *),  void *(*from_editmode)(void)) 
+		void (*to_editmode)(void *),  void *(*from_editmode)(void),
+		int (*validate_undo)(void *))
 {
 	UndoElem *uel;
 	int nr;
@@ -157,6 +161,7 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 	uel->freedata= freedata;
 	uel->to_editmode= to_editmode;
 	uel->from_editmode= from_editmode;
+	uel->validate_undo= validate_undo;
 	
 	/* and limit amount to the maximum */
 	nr= 0;
@@ -197,7 +202,8 @@ static void undo_clean_stack(void)
 		next= uel->next;
 		
 		/* for when objects are converted, renamed, or global undo changes pointers... */
-		if(uel->type==G.obedit->type && strcmp(uel->id.name, G.obedit->id.name)==0) {
+		if(uel->type==G.obedit->type && strcmp(uel->id.name, G.obedit->id.name)==0 &&
+		   (!uel->validate_undo || uel->validate_undo(uel->undodata))) {
 			uel->ob= G.obedit;
 		}
 		else {

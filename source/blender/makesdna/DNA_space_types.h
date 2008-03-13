@@ -52,6 +52,7 @@ struct BlendHandle;
 struct RenderInfo;
 struct bNodeTree;
 struct uiBlock;
+struct FileList;
 
 	/**
 	 * The base structure all the other spaces
@@ -93,7 +94,7 @@ typedef struct SpaceIpo {
 	/* the ipo context we need to store */
 	struct Ipo *ipo;
 	struct ID *from;
-	char actname[32], constname[32];
+	char actname[32], constname[32], bonename[32];
 
 	short totipo, pin;
 	short butofs, channel;
@@ -147,11 +148,11 @@ typedef struct SpaceSeq {
 	View2D v2d;
 	
 	float xof, yof;	/* offset for drawing the image preview */
-	short mainb, zoom;
+	short mainb, pad;
 	short chanshown;
-	short pad2;
+	short zebra;
 	int flag;
-	int pad;
+	float zoom;
 } SpaceSeq;
 
 typedef struct SpaceFile {
@@ -170,8 +171,10 @@ typedef struct SpaceFile {
 	char file[80];
 	
 	short type, ofs, flag, sort;
-	short maxnamelen, collums;
-	
+	short maxnamelen, collums, f_fp, pad1;
+	int pad2;
+	char fp_str[8];
+
 	struct BlendHandle *libfiledata;
 	
 	unsigned short retval;		/* event */
@@ -229,20 +232,23 @@ typedef struct SpaceImage {
 	
 	struct CurveMapping *cumap;
 	short mode, menunr;
-	short imanr, curtile;
+	short imanr;
+	short curtile; /* the currently active tile of the image when tile is enabled, is kept in sync with the active faces tile */
 	int flag;
 	short imtypenr, lock;
-	short showspare, pad2;
+	short pin, pad2;
 	float zoom;
+	char dt_uv; /* UV draw type */
+	char sticky; /* sticky selection type */
+	char dt_uvstretch;
+	char pad[5];
 	
 	float xof, yof;					/* user defined offset, image is centered */
 	float centx, centy;				/* storage for offset while render drawing */
 	
-	char *info_str, *info_spare;	/* info string for render */
-	struct ImBuf *spare;
 } SpaceImage;
 
-typedef struct SpaceNla{
+typedef struct SpaceNla {
 	struct SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
@@ -251,7 +257,8 @@ typedef struct SpaceNla{
 	short blockhandler[8];
 
 	short menunr, lock;
-	int flag;
+	short autosnap;			/* this uses the same settings as autosnap for Action Editor */
+	short flag;
 	
 	View2D v2d;	
 } SpaceNla;
@@ -285,6 +292,24 @@ typedef struct SpaceText {
 
 } SpaceText;
 
+typedef struct Script {
+	ID id;
+
+	void *py_draw;
+	void *py_event;
+	void *py_button;
+	void *py_browsercallback;
+	void *py_globaldict;
+
+	int flags, lastspace;
+	char scriptname[256]; /* store the script file here so we can re-run it on loading blender, if "Enable Scripts" is on */
+	char scriptarg[256];
+} Script;
+#define SCRIPT_SET_NULL(_script) _script->py_draw = _script->py_event = _script->py_button = _script->py_browsercallback = _script->py_globaldict = NULL; _script->flags = 0;
+#define SCRIPT_RUNNING	0x01
+#define SCRIPT_GUI		0x02
+#define SCRIPT_FILESEL	0x04
+
 typedef struct SpaceScript {
 	SpaceLink *next, *prev;
 	int spacetype;
@@ -292,9 +317,10 @@ typedef struct SpaceScript {
 	struct ScrArea *area;
 	struct Script *script;
 
-	int pad2;
 	short flags, menunr;
-
+	int pad1;
+	
+	void *but_refs;
 } SpaceScript;
 
 typedef struct SpaceTime {
@@ -333,89 +359,63 @@ typedef struct SpaceNode {
 #define SNODE_DO_PREVIEW	1
 #define SNODE_BACKDRAW		2
 
-#
-#
-typedef struct OneSelectableIma {
-	int   header;						
-	int   ibuf_type;
-	struct ImBuf *pict;					
-	struct OneSelectableIma *next;		
-	struct OneSelectableIma *prev;		
-	
-	short  cmap, image, draw_me, rt;
-	short  sx, sy, ex, ey, dw, dh;				
-	short  selectable, selected;		
-	int   mtime, disksize;				
-	char   file_name[64];
-	
-	short  orgx, orgy, orgd, anim;		/* same as ibuf->x...*/
-	char   dummy[4];					/* 128 */
-
-	char   pict_rect[3968];				/* 4096   (RECT = 64 * 62) */
-	
-} OneSelectableIma;
-
-#
-#
-typedef struct ImaDir {
-	struct ImaDir *next, *prev;
-	int  selected, hilite; 
-	int  type,  size;
-	int mtime;
-	char name[100];
-} ImaDir;
-
 typedef struct SpaceImaSel {
 	SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
 	struct ScrArea *area;
 	
-	char   title[28];
-	
-	int   fase; 
-	short  mode, subfase;
-	short  mouse_move_redraw, imafase;
-	short  mx, my;
-	
-	short  dirsli, dirsli_lines;
-	short  dirsli_sx, dirsli_ey , dirsli_ex, dirsli_h;
-	short  imasli, fileselmenuitem;
-	short  imasli_sx, imasli_ey , imasli_ex, imasli_h;
-	
-	short  dssx, dssy, dsex, dsey; 
-	short  desx, desy, deex, deey; 
-	short  fssx, fssy, fsex, fsey; 
-	short  dsdh, fsdh; 
-	short  fesx, fesy, feex, feey; 
-	short  infsx, infsy, infex, infey; 
-	short  dnsx, dnsy, dnw, dnh;
-	short  fnsx, fnsy, fnw, fnh;
+	short blockhandler[8];
 
-	
-	char   fole[128], dor[128];
-	char   file[128], dir[128];
-	ImaDir *firstdir, *firstfile;
-	int    topdir,  totaldirs,  hilite; 
-	int    topfile, totalfiles;
-	
-	float  image_slider;
-	float  slider_height;
-	float  slider_space;
-	short  topima,  totalima;
-	short  curimax, curimay;
-	OneSelectableIma *first_sel_ima;
-	OneSelectableIma *hilite_ima;
-	short  total_selected, ima_redraw;
-	int pad2;
-	
-	struct ImBuf  *cmap;
+	View2D v2d;
 
-	/* Also fucked. Needs to change so things compile, but breaks sdna
-	* ... */	
-/*  	void (*returnfunc)(void); */
-	void (*returnfunc)(char*);
-	void *arg1;
+	struct FileList *files;
+
+	/* specific stuff for drawing */
+	char title[24];
+	char dir[160];
+	char file[80];
+
+	short type, menu, flag, sort;
+
+	void *curfont;
+	int	active_file;
+
+	int numtilesx;
+	int numtilesy;
+
+	int selstate;
+
+	struct rcti viewrect;
+	struct rcti bookmarkrect;
+
+	float scrollpos; /* current position of scrollhandle */
+	float scrollheight; /* height of the scrollhandle */
+	float scrollarea; /* scroll region, scrollpos is from 0 to scrollarea */
+
+	float aspect;
+	unsigned short retval;		/* event */
+
+	short ipotype;
+	
+	short filter;
+	short active_bookmark;
+	short pad, pad1;
+
+	/* view settings */
+	short prv_w;
+	short prv_h;
+
+	/* one day we'll add unions to dna */
+	void (*returnfunc)(char *);
+	void (*returnfunc_event)(unsigned short);
+	void (*returnfunc_args)(char *, void *, void *);
+	
+	void *arg1, *arg2;
+	short *menup;	/* pointer to menu result or ID browsing */
+	char *pupmenu;	/* optional menu in header */
+
+	struct ImBuf *img;
 } SpaceImaSel;
 
 
@@ -437,13 +437,14 @@ typedef struct SpaceImaSel {
 
 /* filesel types */
 #define FILE_UNIX			8
-#define FILE_BLENDER		8
+#define FILE_BLENDER		8 /* dont display relative paths */
 #define FILE_SPECIAL		9
 
 #define FILE_LOADLIB		1
 #define FILE_MAIN			2
+#define FILE_LOADFONT		3
 
-/* sfile->flag */
+/* sfile->flag and simasel->flag */
 #define FILE_SHOWSHORT		1
 #define FILE_STRINGCODE		2
 #define FILE_LINK			4
@@ -452,6 +453,8 @@ typedef struct SpaceImaSel {
 #define FILE_ACTIVELAY		32
 #define FILE_ATCURSOR		64
 #define FILE_SYNCPOSE		128
+#define FILE_FILTER			256
+#define FILE_BOOKMARKS		512
 
 /* sfile->sort */
 #define FILE_SORTALPHA		0
@@ -468,6 +471,9 @@ typedef struct SpaceImaSel {
 #define PYSCRIPTFILE		64
 #define FTFONTFILE			128
 #define SOUNDFILE			256
+#define TEXTFILE			512
+#define MOVIEFILE_ICON		1024 /* movie file that preview can't load */
+#define FOLDERFILE			2048 /* represents folders for filtering */
 
 #define SCROLLH	16			/* height scrollbar */
 #define SCROLLB	16			/* width scrollbar */
@@ -476,25 +482,49 @@ typedef struct SpaceImaSel {
 #define SI_TEXTURE		0
 #define SI_SHOW			1
 
+/* SpaceImage->dt_uv */
+#define SI_UVDT_DASH	0
+#define SI_UVDT_BLACK	1
+#define SI_UVDT_WHITE	2
+#define SI_UVDT_OUTLINE	3
+
+/* SpaceImage->dt_uvstretch */
+#define SI_UVDT_STRETCH_ANGLE	0
+#define SI_UVDT_STRETCH_AREA	1
+
+/* SpaceImage->sticky
+ * Note DISABLE should be 0, however would also need to re-arrange icon order,
+ * also, sticky loc is the default mode so this means we dont need to 'do_versons' */
+#define SI_STICKY_LOC		0
+#define SI_STICKY_DISABLE	1
+#define SI_STICKY_VERTEX	2
+
 /* SpaceImage->flag */
-#define SI_BE_SQUARE	1
-#define SI_EDITTILE		2
-#define SI_CLIP_UV		4
-#define SI_DRAWTOOL		8
-#define SI_STICKYUVS    16
-#define SI_DRAWSHADOW   32
-#define SI_SELACTFACE   64
-#define SI_DEPRECATED	128
-#define SI_LOCALSTICKY  256
-#define SI_COORDFLOATS  512
-#define SI_PIXELSNAP	1024
-#define SI_LIVE_UNWRAP	2048
-#define SI_USE_ALPHA	0x1000
-#define SI_SHOW_ALPHA	0x2000
-#define SI_SHOW_ZBUF	0x4000
+#define SI_BE_SQUARE	1<<0
+#define SI_EDITTILE		1<<1
+#define SI_CLIP_UV		1<<2
+#define SI_DRAWTOOL		1<<3
+#define SI_DEPRECATED1  1<<4	/* stick UVs to others in the same location */
+#define SI_DRAWSHADOW   1<<5
+#define SI_SELACTFACE   1<<6
+#define SI_DEPRECATED2	1<<7
+#define SI_DEPRECATED3  1<<8	/* stick UV selection to mesh vertex (UVs wont always be touching) */
+#define SI_COORDFLOATS  1<<9
+#define SI_PIXELSNAP	1<<10
+#define SI_LIVE_UNWRAP	1<<11
+#define SI_USE_ALPHA	1<<12
+#define SI_SHOW_ALPHA	1<<13
+#define SI_SHOW_ZBUF	1<<14
 		/* next two for render window dislay */
-#define SI_PREVSPACE	0x8000
-#define SI_FULLWINDOW	0x10000
+#define SI_PREVSPACE	1<<15
+#define SI_FULLWINDOW	1<<16
+#define SI_SYNC_UVSEL	1<<17
+#define SI_LOCAL_UV		1<<18
+		/* this means that the image is drawn until it reaches the view edge,
+		 * in the image view, its unrelated to the 'tile' mode for texface */
+#define SI_DRAW_TILE	1<<19 
+#define SI_SMOOTH_UV	1<<20
+#define SI_DRAW_STRETCH	1<<21
 
 /* SpaceText flags (moved from DNA_text_types.h) */
 
@@ -527,6 +557,7 @@ typedef struct SpaceImaSel {
 #define OOPS_LI		2048
 #define OOPS_IM		4096
 #define OOPS_AR		8192
+#define OOPS_GR		16384
 
 /* SpaceOops->outlinevis */
 #define SO_ALL_SCENES	0
@@ -584,10 +615,15 @@ typedef struct SpaceImaSel {
 /* nla->flag */
 #define SNLA_ALLKEYED		1
 #define SNLA_ACTIVELAYERS	2
+#define SNLA_DRAWTIME		4
 
 /* time->flag */
+	/* show timing in frames instead of in seconds */
 #define TIME_DRAWFRAMES		1
+	/* temporary flag set when scrubbing time */
 #define TIME_CFRA_NUM		2
+	/* only keyframes from active/selected channels get shown */
+#define TIME_ONLYACTSEL		4
 
 /* time->redraws */
 #define TIME_LEFTMOST_3D_WIN	1
@@ -603,9 +639,13 @@ typedef struct SpaceImaSel {
 #define SEQ_DRAW_IMG_IMBUF        1
 #define SEQ_DRAW_IMG_WAVEFORM     2
 #define SEQ_DRAW_IMG_VECTORSCOPE  3
+#define SEQ_DRAW_IMG_HISTOGRAM    4
 
 /* sseq->flag */
-#define SEQ_DRAWFRAMES  1
+#define SEQ_DRAWFRAMES   1
+#define SEQ_MARKER_TRANS 2
+#define SEQ_DRAW_COLOR_SEPERATED     4
+#define SEQ_DRAW_SAFE_MARGINS        8
 
 /* space types, moved from DNA_screen_types.h */
 enum {
