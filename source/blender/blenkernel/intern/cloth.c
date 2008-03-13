@@ -28,52 +28,22 @@
 * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "MEM_guardedalloc.h"
 
-/* types */
-#include "DNA_curve_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"
+#include "BKE_cloth.h"
+
 #include "DNA_cloth_types.h"
-#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_modifier_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "BLI_editVert.h"
-#include "BLI_edgehash.h"
-#include "BLI_linklist.h"
-
-#include "BKE_curve.h"
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
-#include "BKE_key.h"
-#include "BKE_mesh.h"
 #include "BKE_object.h"
-#include "BKE_cloth.h"
 #include "BKE_modifier.h"
 #include "BKE_utildefines.h"
-#include "BKE_DerivedMesh.h"
-#include "BIF_editdeform.h"
-#include "BIF_editkey.h"
-#include "DNA_screen_types.h"
-#include "BSE_headerbuttons.h"
-#include "BIF_screen.h"
-#include "BIF_space.h"
-#include "mydevice.h"
 
 #include "BKE_pointcache.h"
 
@@ -285,97 +255,6 @@ void bvh_update_from_cloth(ClothModifierData *clmd, int moving)
 	}
 	
 	bvh_update(bvh, moving);
-}
-
-DerivedMesh *CDDM_create_tearing ( ClothModifierData *clmd, DerivedMesh *dm )
-{
-	DerivedMesh *result = NULL;
-	unsigned int i = 0, a = 0, j=0;
-	int numverts = dm->getNumVerts ( dm );
-	int numfaces = dm->getNumFaces ( dm );
-
-	MVert *mvert = CDDM_get_verts ( dm );
-	MFace *mface = CDDM_get_faces ( dm );
-
-	MVert *mvert2;
-	MFace *mface2;
-	EdgeHash *edgehash = NULL;
-	Cloth *cloth = clmd->clothObject;
-	ClothSpring *springs = (ClothSpring *)cloth->springs;
-	unsigned int numsprings = cloth->numsprings;
-
-	// create spring tearing hash
-	edgehash = BLI_edgehash_new();
-
-	for ( i = 0; i < numsprings; i++ )
-	{
-		if ( ( springs[i].flags & CLOTH_SPRING_FLAG_DEACTIVATE )
-		&& ( !BLI_edgehash_haskey ( edgehash, springs[i].ij, springs[i].kl ) ) )
-		{
-			BLI_edgehash_insert ( edgehash, springs[i].ij, springs[i].kl, NULL );
-			BLI_edgehash_insert ( edgehash, springs[i].kl, springs[i].ij, NULL );
-			j++;
-		}
-	}
-
-	// printf("found %d tears\n", j);
-
-	result = CDDM_from_template ( dm, numverts, 0, numfaces );
-
-	if ( !result )
-		return NULL;
-
-	// do verts
-	mvert2 = CDDM_get_verts ( result );
-	for ( a=0; a<numverts; a++ )
-	{
-		MVert *inMV;
-		MVert *mv = &mvert2[a];
-
-		inMV = &mvert[a];
-
-		DM_copy_vert_data ( dm, result, a, a, 1 );
-		*mv = *inMV;
-	}
-
-
-	// do faces
-	mface2 = CDDM_get_faces ( result );
-	for ( a=0, i=0; a<numfaces; a++ )
-	{
-		MFace *mf = &mface2[i];
-		MFace *inMF;
-		inMF = &mface[a];
-
-		/*
-		DM_copy_face_data(dm, result, a, i, 1);
-
-		*mf = *inMF;
-		*/
-
-		if ( ( !BLI_edgehash_haskey ( edgehash, mface[a].v1, mface[a].v2 ) )
-				      && ( !BLI_edgehash_haskey ( edgehash, mface[a].v2, mface[a].v3 ) )
-				      && ( !BLI_edgehash_haskey ( edgehash, mface[a].v3, mface[a].v4 ) )
-				      && ( !BLI_edgehash_haskey ( edgehash, mface[a].v4, mface[a].v1 ) ) )
-		{
-			mf->v1 = mface[a].v1;
-			mf->v2 = mface[a].v2;
-			mf->v3 = mface[a].v3;
-			mf->v4 = mface[a].v4;
-
-			test_index_face ( mf, NULL, 0, 4 );
-
-			i++;
-		}
-	}
-
-	CDDM_lower_num_faces ( result, i );
-	CDDM_calc_edges ( result );
-	CDDM_calc_normals ( result );
-
-	BLI_edgehash_free ( edgehash, NULL );
-
-	return result;
 }
 
 int modifiers_indexInObject(Object *ob, ModifierData *md_seek);

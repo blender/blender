@@ -30,32 +30,17 @@
 * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
 #include "MEM_guardedalloc.h"
-/* types */
-#include "DNA_curve_types.h"
+
+#include "BKE_cloth.h"
+
 #include "DNA_group_types.h"
 #include "DNA_object_types.h"
-#include "DNA_object_force.h"
 #include "DNA_cloth_types.h"	
-#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_modifier_types.h"
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "BLI_edgehash.h"
-#include "BLI_linklist.h"
-#include "BKE_curve.h"
-#include "BKE_deform.h"
+
 #include "BKE_DerivedMesh.h"
-#include "BKE_cdderivedmesh.h"
-#include "BKE_displist.h"
-#include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
@@ -63,10 +48,6 @@
 #include "BKE_modifier.h"
 #include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
-#include "DNA_screen_types.h"
-#include "BSE_headerbuttons.h"
-#include "BIF_screen.h"
-#include "BIF_space.h"
 #include "mydevice.h"
 
 #include "Bullet-C-Api.h"
