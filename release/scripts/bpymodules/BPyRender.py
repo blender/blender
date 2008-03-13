@@ -625,5 +625,5 @@ def bakeToPlane(sce, ob_from, width, height, bakemodes, axis='z', margin=0):
 	sce.objects.unlink(ob_plane)
 	#'''
 	
-	return me_plane_face
+	return images_return
 
