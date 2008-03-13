@@ -2897,7 +2897,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	Base *base;
 	Object *ob;
 	Scene *sce;
-	char retopo, sculpt;
+	char retopo, sculptparticle;
 	Object *obact = OBACT;
 	
 	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
@@ -3026,7 +3026,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	}
 
 	retopo= retopo_mesh_check() || retopo_curve_check();
-	sculpt= (G.f & G_SCULPTMODE) && !G.obedit;
+	sculptparticle= (G.f & (G_SCULPTMODE|G_PARTICLEEDIT)) && !G.obedit;
 	if(retopo)
 		view3d_update_depths(v3d);
 
@@ -3038,8 +3038,9 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		}
 	}
 
-	if(!retopo && sculpt && !(obact && (obact->dtx & OB_DRAWXRAY))) {
-		draw_sculpt_depths(v3d);
+	if(!retopo && sculptparticle && !(obact && (obact->dtx & OB_DRAWXRAY))) {
+		if(G.f & G_SCULPTMODE)
+			draw_sculpt_depths(v3d);
 		view3d_update_depths(v3d);
 	}
 
@@ -3056,8 +3057,9 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	view3d_draw_xray(v3d, 0);	// clears zbuffer if it is used!
 	view3d_draw_transp(v3d, 0);
 
-	if(!retopo && sculpt && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
-		draw_sculpt_depths(v3d);
+	if(!retopo && sculptparticle && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
+		if(G.f & G_SCULPTMODE)
+			draw_sculpt_depths(v3d);
 		view3d_update_depths(v3d);
 	}
 	
