@@ -1578,7 +1578,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	
 	/* AO pass */
 	if(R.wrld.mode & WO_AMB_OCC) {
-		if(passflag & (SCE_PASS_COMBINED|SCE_PASS_AO)) {
+		if(((passflag & SCE_PASS_COMBINED) && (shi->combinedflag & SCE_PASS_AO))
+			|| (passflag & SCE_PASS_AO)) {
 			/* AO was calculated for scanline already */
 			if(shi->depth)
 				ambient_occlusion(shi);
