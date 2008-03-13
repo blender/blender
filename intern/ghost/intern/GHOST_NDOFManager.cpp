@@ -57,19 +57,22 @@ GHOST_NDOFManager::~GHOST_NDOFManager()
 }
 
 
-void
+int
 GHOST_NDOFManager::deviceOpen(GHOST_IWindow* window,
         GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
         GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
         GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen)
 {
+	int Pid;
+	
     ndofLibraryInit = setNdofLibraryInit;
     ndofLibraryShutdown = setNdofLibraryShutdown;
     ndofDeviceOpen = setNdofDeviceOpen;
 
     if (ndofLibraryInit  && ndofDeviceOpen)
     {
-       printf("%i client \n", ndofLibraryInit());
+    	Pid= ndofLibraryInit();
+       	printf("%i client \n", Pid);
 		#if defined(_WIN32) || defined(__APPLE__)
 			m_DeviceHandle = ndofDeviceOpen((void *)&currentNdofValues);    
 		#else
@@ -78,25 +81,12 @@ GHOST_NDOFManager::deviceOpen(GHOST_IWindow* window,
 			void *ndofInfo = sys->prepareNdofInfo(&currentNdofValues);
 			m_DeviceHandle = ndofDeviceOpen(ndofInfo);
 		#endif
-	}
+		 return (Pid > 0) ? 0 : 1;
+			
+	} else
+		return 1;
 }
 
-
-/** original patch only */
-/*  
-GHOST_TEventNDOFData*
-GHOST_NDOFManager::handle(unsigned int message, unsigned int* wParam, unsigned long* lParam)
-{
-    static GHOST_TEventNDOFData sbdata;
-    int handled = 0;
-    if (ndofEventHandler && m_DeviceHandle != 0)
-    {
-        handled = ndofEventHandler(&sbdata.tx, m_DeviceHandle, message, wParam, lParam);
-    }
-    printf("handled %i\n", handled);
-    return handled ? &sbdata : 0;
-}
-*/
 
 bool 
 GHOST_NDOFManager::available() const

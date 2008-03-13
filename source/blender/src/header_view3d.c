@@ -4631,6 +4631,19 @@ static char *around_pup(void)
 	return string;
 }
 
+static char *ndof_pup(void)
+{
+	static char string[512];
+	char *str = string;
+
+	str += sprintf(str, "%s", "ndof mode: %t"); 
+	str += sprintf(str, "%s", "|turntable %x0"); 
+	str += sprintf(str, "%s", "|fly %x1");
+	str += sprintf(str, "%s", "|transform %x2");
+	return string;
+}
+
+
 static char *propfalloff_pup(void)
 {
 	static char string[512];
@@ -4879,7 +4892,10 @@ void do_view3d_buttons(short event)
 			G.vd->twtype= V3D_MANIP_SCALE;
 		allqueue(REDRAWVIEW3D, 1);
 		break;
-		
+	case B_NDOF:
+		allqueue(REDRAWVIEW3D, 1);
+		break;
+	
 	default:
 
 		if(event>=B_LAY && event<B_LAY+31) {
@@ -5158,10 +5174,49 @@ void view3d_buttons(void)
 		uiDefIconButBitS(block, TOG, V3D_ALIGN, B_AROUND, ICON_ALIGN,
 				 xco,0,XIC,YIC,
 				 &G.vd->flag, 0, 0, 0, 0, "Move object centers only");	
-		uiBlockEndAlign(block);
 	
 		xco+= XIC+8;
+		uiBlockEndAlign(block);
 
+	uiBlockBeginAlign(block);
+
+	/* NDOF */
+		if (G.ndofdevice ==0 ) {
+			uiDefIconTextButC(block, ICONTEXTROW,B_NDOF, ICON_NDOF_TURN, ndof_pup(), xco,0,XIC+10,YIC, &(G.vd->ndofmode), 0, 3.0, 0, 0, "Ndof mode");
+	
+			xco+= XIC+10;
+		
+			uiDefIconButC(block, TOG, B_NDOF,  ICON_NDOF_DOM,
+					 xco,0,XIC,YIC,
+					 &G.vd->ndoffilter, 0, 1, 0, 0, "dominant axis");	
+			uiBlockEndAlign(block);
+		
+			xco+= XIC+8;
+		}
+		uiBlockEndAlign(block);
+
+	/*{
+			char tempstring[256];
+			switch (G.vd->ndofmode) {		
+				case 0:
+					sprintf(tempstring,"6dof : %s %s", "turntable",((G.vd->ndoffilter==1) ? "dominant" : ""));
+					break;
+				case 1:
+					sprintf(tempstring,"6dof : %s %s", "fly",((G.vd->ndoffilter==1) ? "dominant" : ""));
+					break;
+				case 2:
+					sprintf(tempstring,"6dof : %s %s", "transform",((G.vd->ndoffilter==1) ? "dominant" : ""));
+					break;
+				default:
+					tempstring[0]=0;
+					break;
+			}
+			uiDefBut(block, LABEL,0,tempstring,
+					 xco+=XIC*2,0,150,YIC, 0, 1.0, 0, 0, 0, 
+					 "");
+			
+		}
+*/
 		/* Transform widget / manipulators */
 		uiBlockBeginAlign(block);
 		uiDefIconButBitS(block, TOG, V3D_USE_MANIPULATOR, B_REDR, ICON_MANIPUL,xco,0,XIC,YIC, &G.vd->twflag, 0, 0, 0, 0, "Use 3d transform manipulator (Ctrl Space)");	
@@ -5259,27 +5314,7 @@ void view3d_buttons(void)
 
 		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE_DEHLT, xco,0,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (hold CTRL for anim)");
 		
-		{
-			char tempstring[256];
-			switch (G.vd->ndofmode) {		
-				case 0:
-					sprintf(tempstring,"6dof : %s %s", "turntable",((G.vd->ndoffilter==1) ? "dominant" : ""));
-					break;
-				case 1:
-					sprintf(tempstring,"6dof : %s %s", "fly",((G.vd->ndoffilter==1) ? "dominant" : ""));
-					break;
-				case 2:
-					sprintf(tempstring,"6dof : %s %s", "transform",((G.vd->ndoffilter==1) ? "dominant" : ""));
-					break;
-				default:
-					tempstring[0]=0;
-					break;
-			}
-			uiDefBut(block, LABEL,0,tempstring,
-					 xco+=XIC*2,0,150,YIC, 0, 1.0, 0, 0, 0, 
-					 "");
-			
-		}
+		
 		if (ob && (ob->flag & OB_POSEMODE)) {
 			xco+= XIC/2;
 			uiBlockBeginAlign(block);

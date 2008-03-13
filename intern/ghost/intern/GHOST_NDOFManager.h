@@ -34,7 +34,7 @@ public:
 	GHOST_NDOFManager();
 	virtual ~GHOST_NDOFManager();
 
-    void deviceOpen(GHOST_IWindow* window,
+    int deviceOpen(GHOST_IWindow* window,
         GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
         GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
         GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen);

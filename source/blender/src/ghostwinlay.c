@@ -935,12 +935,14 @@ void window_open_ndof(Window* win)
 		MEM_freeN(plug_path);
 	
 	if (ndofLib) {
-		GHOST_OpenNDOF(g_system, win->ghostwin, 
+		G.ndofdevice = 0 - GHOST_OpenNDOF(g_system, win->ghostwin, 
 		               PIL_dynlib_find_symbol(ndofLib, "ndofInit"),
 		               PIL_dynlib_find_symbol(ndofLib, "ndofShutdown"),
 		               PIL_dynlib_find_symbol(ndofLib, "ndofOpen"));
+		
 		}
     else {
         GHOST_OpenNDOF(g_system, win->ghostwin, 0, 0, 0);
+        G.ndofdevice = -1;
     }
  }

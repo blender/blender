@@ -302,7 +302,7 @@ public:
    /**
     * Starts the N-degree of freedom device manager
     */
-   virtual void openNDOF(GHOST_IWindow*,
+   virtual int openNDOF(GHOST_IWindow*,
        GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
        GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
        GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen

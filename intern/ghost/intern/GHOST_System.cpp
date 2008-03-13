@@ -240,18 +240,15 @@ GHOST_TSuccess GHOST_System::pushEvent(GHOST_IEvent* event)
 	return success;
 }
 
-void GHOST_System::openNDOF(GHOST_IWindow* w,
+int GHOST_System::openNDOF(GHOST_IWindow* w,
         GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
         GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
         GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen)
-// original patch only
-//        GHOST_NDOFEventHandler_fp setNdofEventHandler)
 {
-    m_ndofManager->deviceOpen(w,
+ return   m_ndofManager->deviceOpen(w,
         setNdofLibraryInit, 
         setNdofLibraryShutdown,
         setNdofDeviceOpen);
- //       setNdofEventHandler);
 }
 
 

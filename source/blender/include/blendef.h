@@ -232,6 +232,7 @@
 #define B_MAN_SCALE		163
 #define B_HEMESHBROWSE	164
 #define B_HEMESHLOCAL	165
+#define B_NDOF			166
 
 /* IPO: 200 */
 #define B_IPOHOME		201
