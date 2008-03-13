@@ -1896,6 +1896,8 @@ static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInpu
 		
 	/* cache for shadow */
 	shi->samplenr= R.shadowsamplenr[shi->thread]++;
+
+	shi->mask= 0xFFFF; /* all samples */
 	
 	shi->u= -u;
 	shi->v= -v;

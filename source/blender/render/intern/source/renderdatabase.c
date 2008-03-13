@@ -441,8 +441,7 @@ VlakRen *RE_vlakren_copy(ObjectRen *obr, VlakRen *vlr)
 
 int RE_vlakren_get_normal(Render *re, ObjectInstanceRen *obi, VlakRen *vlr, float *nor)
 {
-	float xn, yn, zn, v1[3];
-	float (*nmat)[3]= obi->nmat;
+	float v1[3], (*nmat)[3]= obi->nmat;
 	int flipped= 0;
 
 	if(obi->flag & R_TRANSFORMED) {
