@@ -1766,9 +1766,9 @@ static void draw_em_fancy_edges(DerivedMesh *cageDM, short sel_only, EditEdge *e
 	unsigned char wireCol[4], selCol[4], actCol[4];
 
 	/* since this function does transparant... */
-	BIF_GetThemeColor3ubv(TH_EDGE_SELECT, (char *)selCol);
-	BIF_GetThemeColor3ubv(TH_WIRE, (char *)wireCol);
-	BIF_GetThemeColor3ubv(TH_EDITMESH_ACTIVE, (char *)actCol);
+	BIF_GetThemeColor4ubv(TH_EDGE_SELECT, (char *)selCol);
+	BIF_GetThemeColor4ubv(TH_WIRE, (char *)wireCol);
+	BIF_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, (char *)actCol);
 	
 	/* when sel only is used, dont render wire, only selected, this is used for
 	 * textured draw mode when the 'edges' option is disabled */
