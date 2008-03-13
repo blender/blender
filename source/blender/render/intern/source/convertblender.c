@@ -5224,7 +5224,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		for(j=0;j<3;j++) fsvec[j] = vverts[a].co[j];
 		
 		/* (bad) HACK insert average velocity if none is there (see previous comment */
-		if(fsvec[0] == fsvec[1] == fsvec[2] == 0.0)
+		if((fsvec[0] == 0.0) && (fsvec[1] == 0.0) && (fsvec[2] == 0.0))
 		{
 			fsvec[0] = avgvel[0];
 			fsvec[1] = avgvel[1];
