@@ -4704,21 +4704,19 @@ void do_meshbuts(unsigned short event)
 			break;
 
 		case B_NEWTFACE:
-			if(me)
-				layernum= CustomData_number_of_layers(&me->fdata, CD_MTFACE);
-			else
-				layernum= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
-
 			if(me && me->mr) {
+				layernum= CustomData_number_of_layers(&me->fdata, CD_MTFACE);
 				multires_add_layer(me, &me->mr->fdata, CD_MTFACE, layernum);
 				multires_level_to_editmesh(ob, me, 0);
 				multires_finish_mesh_update(ob);
 			}
 			else if(G.obedit) {
+				layernum= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
 				EM_add_data_layer(&em->fdata, CD_MTFACE);
 				CustomData_set_layer_active(&em->fdata, CD_MTFACE, layernum);
 			}
 			else if(me) {
+				layernum= CustomData_number_of_layers(&me->fdata, CD_MTFACE);
 				if(me->mtface)
 					CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DUPLICATE,
 					                     me->mtface, me->totface);
