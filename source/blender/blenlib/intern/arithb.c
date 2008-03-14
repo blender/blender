@@ -57,6 +57,7 @@
 
 #include <stdio.h>
 #include "BLI_arithb.h"
+#include "BLI_memarena.h"
 
 /* A few small defines. Keep'em local! */
 #define SMALL_NUMBER	1.e-8
@@ -4267,4 +4268,76 @@ void LocQuatSizeToMat4(float mat[][4], float loc[3], float quat[4], float size[3
 	mat[3][0] = loc[0];
 	mat[3][1] = loc[1];
 	mat[3][2] = loc[2];
+}
+
+/* Tangents */
+
+/* For normal map tangents we need to detect uv boundaries, and only average
+ * tangents in case the uvs are connected. Alternative would be to store 1 
+ * tangent per face rather than 4 per face vertex, but that's not compatible
+ * with games */
+
+
+/* from BKE_mesh.h */
+#define STD_UV_CONNECT_LIMIT	0.0001f
+
+void sum_or_add_vertex_tangent(void *arena, VertexTangent **vtang, float *tang, float *uv)
+{
+	VertexTangent *vt;
+
+	/* find a tangent with connected uvs */
+	for(vt= *vtang; vt; vt=vt->next) {
+		if(fabs(uv[0]-vt->uv[0]) < STD_UV_CONNECT_LIMIT && fabs(uv[1]-vt->uv[1]) < STD_UV_CONNECT_LIMIT) {
+			VecAddf(vt->tang, vt->tang, tang);
+			return;
+		}
+	}
+
+	/* if not found, append a new one */
+	vt= BLI_memarena_alloc((MemArena *)arena, sizeof(VertexTangent));
+	VecCopyf(vt->tang, tang);
+	vt->uv[0]= uv[0];
+	vt->uv[1]= uv[1];
+
+	if(*vtang)
+		vt->next= *vtang;
+	*vtang= vt;
+}
+
+float *find_vertex_tangent(VertexTangent *vtang, float *uv)
+{
+	VertexTangent *vt;
+	static float nulltang[3] = {0.0f, 0.0f, 0.0f};
+
+	for(vt= vtang; vt; vt=vt->next)
+		if(fabs(uv[0]-vt->uv[0]) < STD_UV_CONNECT_LIMIT && fabs(uv[1]-vt->uv[1]) < STD_UV_CONNECT_LIMIT)
+			return vt->tang;
+
+	return nulltang;	/* shouldn't happen, except for nan or so */
+}
+
+void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2, float *co3, float *n, float *tang)
+{
+	float tangv[3], ct[3], e1[3], e2[3], s1, t1, s2, t2, det;
+
+	s1= uv2[0] - uv1[0];
+	s2= uv3[0] - uv1[0];
+	t1= uv2[1] - uv1[1];
+	t2= uv3[1] - uv1[1];
+	det= 1.0f / (s1 * t2 - s2 * t1);
+	
+	/* normals in render are inversed... */
+	VecSubf(e1, co1, co2);
+	VecSubf(e2, co1, co3);
+	tang[0] = (t2*e1[0] - t1*e2[0])*det;
+	tang[1] = (t2*e1[1] - t1*e2[1])*det;
+	tang[2] = (t2*e1[2] - t1*e2[2])*det;
+	tangv[0] = (s1*e2[0] - s2*e1[0])*det;
+	tangv[1] = (s1*e2[1] - s2*e1[1])*det;
+	tangv[2] = (s1*e2[2] - s2*e1[2])*det;
+	Crossf(ct, tang, tangv);
+
+	/* check flip */
+	if ((ct[0]*n[0] + ct[1]*n[1] + ct[2]*n[2]) < 0.0f)
+		VecMulf(tang, -1.0f);
 }

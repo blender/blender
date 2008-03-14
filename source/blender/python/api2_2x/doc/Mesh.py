@@ -844,6 +844,44 @@ class Mesh:
 		@note: Only returns a valid result for mesh data that has no holes.
 		@note: Bubbles in the mesh work as expect.
 		"""
+	def getTangents():
+		"""
+		Calculates tangents for this mesh, returning a list of tuples,
+		each with 3 or 4 tangent vectors, these are alligned with the meshes faces.
+		
+		Example::
+			# Display the tangents as edges over a the active mesh object
+			from Blender import *
+			sce = Scene.GetCurrent()
+			ob = sce.objects.active
+			
+			me = ob.getData(mesh=1)
+			ts = me.getTangents()
+			me_disp = Mesh.New()
+			
+			verts = []
+			edges = []
+			for i, f in enumerate(me.faces):
+				ft = ts[i]
+				for j, v in enumerate(f):
+					tan = ft[j]
+					print tan
+					co = v.co
+					
+					verts.append(co)
+					verts.append(co+tan)
+					
+					i = len(verts)
+					edges.append((i-1, i-2))
+			
+			me_disp.verts.extend( verts )
+			me_disp.edges.extend( edges )
+			
+			sce.objects.new( me_disp )
+		
+		@note: The tangents are computed using the active UV layer, if there are no UV layers, orco coords are used.
+		"""
+	
 	
 	def transform(matrix, recalc_normals = False, selected_only=False):
 		"""

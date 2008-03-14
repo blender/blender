@@ -75,6 +75,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_memarena.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -7494,6 +7495,177 @@ static PyObject *Mesh_pointInside( BPy_Mesh * self, PyObject * args, PyObject *k
 }
 
 
+/* This is a bit nasty, Blenders tangents are computed for rendering, and this isnt compatible with a normal Mesh
+ * so we have to rewrite parts of it here, make sure these stay in sync */
+
+static PyObject *Mesh_getTangents( BPy_Mesh * self )
+{
+	/* python stuff */
+	PyObject *py_tanlist;
+	PyObject *py_tuple;
+	
+	
+	PyObject *py_vector;
+#if 0	/* BI-TANGENT */
+	PyObject *py_bivector;
+	PyObject *py_pair;
+	
+	float no[3];
+#endif
+	/* mesh vars */
+	Mesh *mesh = self->mesh;
+	MTFace *tf = mesh->mtface;
+	MFace *mf = mesh->mface;
+	MVert *v1, *v2, *v3, *v4;
+	int mf_vi[4];
+	
+	/* See convertblender.c */
+	float *uv1, *uv2, *uv3, *uv4;
+	float fno[3];
+	float tang[3];
+	float uv[4][2];
+	float *vtang;
+	
+	float (*orco)[3] = NULL;
+	
+	MemArena *arena= NULL;
+	VertexTangent **vtangents= NULL;
+	int i, j, len;
+	
+	
+	if(!mesh->mtface) {
+		if (!self->object)
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError, "cannot get tangents when there are not UV's, or the mesh has no link to an object");
+		
+		orco = (float(*)[3])get_mesh_orco_verts(self->object);
+		
+		if (!orco)
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError, "cannot get orco's for this objects tangents");
+	}
+	
+	/* vertex normals */
+	arena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+	BLI_memarena_use_calloc(arena);
+	vtangents= MEM_callocN(sizeof(VertexTangent*)*mesh->totvert, "VertexTangent");
+	
+	for( i = 0, tf = mesh->mtface, mf = mesh->mface; i < mesh->totface; mf++, tf++, i++ ) {
+		v1 = &mesh->mvert[mf->v1];
+		v2 = &mesh->mvert[mf->v2];
+		v3 = &mesh->mvert[mf->v3];
+		if (mf->v4) {
+			v4 = &mesh->mvert[mf->v4];
+			
+			CalcNormFloat4( v1->co, v2->co, v3->co, v4->co, fno );
+		} else {
+			CalcNormFloat( v1->co, v2->co, v3->co, fno );
+		}
+		
+		if(mesh->mtface) {
+			uv1= tf->uv[0];
+			uv2= tf->uv[1];
+			uv3= tf->uv[2];
+			uv4= tf->uv[3];
+		} else {
+			uv1= uv[0]; uv2= uv[1]; uv3= uv[2]; uv4= uv[3];
+			spheremap(orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2], &uv[0][0], &uv[0][1]);
+			spheremap(orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2], &uv[1][0], &uv[1][1]);
+			spheremap(orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2], &uv[2][0], &uv[2][1]);
+			if(v4)
+				spheremap(orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2], &uv[3][0], &uv[3][1]);
+		}
+		
+		tangent_from_uv(uv1, uv2, uv3, v1->co, v2->co, v3->co, fno, tang);
+		sum_or_add_vertex_tangent(arena, &vtangents[mf->v1], tang, uv1);
+		sum_or_add_vertex_tangent(arena, &vtangents[mf->v2], tang, uv2);
+		sum_or_add_vertex_tangent(arena, &vtangents[mf->v3], tang, uv3);
+		
+		if (mf->v4) {
+			v4 = &mesh->mvert[mf->v4];
+			
+			tangent_from_uv(uv1, uv3, uv4, v1->co, v3->co, v4->co, fno, tang);
+			sum_or_add_vertex_tangent(arena, &vtangents[mf->v1], tang, uv1);
+			sum_or_add_vertex_tangent(arena, &vtangents[mf->v3], tang, uv3);
+			sum_or_add_vertex_tangent(arena, &vtangents[mf->v4], tang, uv4);
+		}
+	}
+	
+	
+	py_tanlist = PyList_New(mesh->totface);
+	
+	for( i = 0, tf = mesh->mtface, mf = mesh->mface; i < mesh->totface; mf++, tf++, i++ ) {
+		 
+		len = mf->v4 ? 4 : 3; 
+		
+		if(mesh->mtface) {
+			uv1= tf->uv[0];
+			uv2= tf->uv[1];
+			uv3= tf->uv[2];
+			uv4= tf->uv[3];
+		} else {
+			uv1= uv[0]; uv2= uv[1]; uv3= uv[2]; uv4= uv[3];
+			spheremap(orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2], &uv[0][0], &uv[0][1]);
+			spheremap(orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2], &uv[1][0], &uv[1][1]);
+			spheremap(orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2], &uv[2][0], &uv[2][1]);
+			if(len==4)
+				spheremap(orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2], &uv[3][0], &uv[3][1]);
+		}
+		
+		mf_vi[0] = mf->v1;
+		mf_vi[1] = mf->v2;
+		mf_vi[2] = mf->v3;
+		mf_vi[3] = mf->v4;
+		
+#if 0	/* BI-TANGENT */
+		/* now calculate the bitangent */
+		if (mf->flag & ME_SMOOTH) {
+			no[0] = (float)(mesh->mvert[mf_vi[j]]->no[0] / 32767.0);
+			no[1] = (float)(mesh->mvert[mf_vi[j]]->no[1] / 32767.0);
+			no[2] = (float)(mesh->mvert[mf_vi[j]]->no[2] / 32767.0);
+		} else {
+			/* calc face normal */
+			if (len==4)		CalcNormFloat4( mesh->mvert[0]->co, mesh->mvert[1]->co, mesh->mvert[2]->co, mesh->mvert[3]->co, no );
+			else			CalcNormFloat4( mesh->mvert[0]->co, mesh->mvert[1]->co, mesh->mvert[2]->co, no );
+		}
+#endif
+		
+		py_tuple = PyTuple_New( len );
+		
+		for (j=0; j<len; j++) {
+			vtang= find_vertex_tangent(vtangents[mf_vi[j]], mesh->mtface ? tf->uv[j] : uv[j]);	/* mf_vi[j] == mf->v1,   uv[j] == tf->uv[0] */
+			
+			py_vector = newVectorObject( vtang, 3, Py_NEW );
+			Normalize(((VectorObject *)py_vector)->vec);
+			
+#if 0		/* BI-TANGENT */
+			py_pair = PyTuple_New( 2 );
+			PyTuple_SetItem( py_pair, 0, py_vector );
+			PyTuple_SetItem( py_pair, 1, py_bivector );
+			
+			/* qdn: tangent space */
+			/* copied from texture.c */
+			float B[3], tv[3];
+			Crossf(B, shi->vn, shi->nmaptang);	/* bitangent */
+			/* transform norvec from tangent space to object surface in camera space */
+			tv[0] = texres.nor[0]*shi->nmaptang[0] + texres.nor[1]*B[0] + texres.nor[2]*shi->vn[0];
+			tv[1] = texres.nor[0]*shi->nmaptang[1] + texres.nor[1]*B[1] + texres.nor[2]*shi->vn[1];
+			tv[2] = texres.nor[0]*shi->nmaptang[2] + texres.nor[1]*B[2] + texres.nor[2]*shi->vn[2];
+			shi->vn[0]= facm*shi->vn[0] + fact*tv[0];
+			shi->vn[1]= facm*shi->vn[1] + fact*tv[1];
+			shi->vn[2]= facm*shi->vn[2] + fact*tv[2];				
+			PyTuple_SetItem( py_tuple, j, py_pair );
+#else
+			PyTuple_SetItem( py_tuple, j, py_vector );
+#endif
+		}
+
+		PyList_SetItem( py_tanlist, i, py_tuple );
+	}
+	if (orco)
+		MEM_freeN( orco );
+	
+	return py_tanlist;
+}
+
 /*
  * "__copy__" return a copy of the mesh
  */
@@ -7571,7 +7743,9 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Recalculates inside or outside normals (experimental)"},
 	{"pointInside", (PyCFunction)Mesh_pointInside, METH_VARARGS|METH_KEYWORDS,
 		"Recalculates inside or outside normals (experimental)"},
-	
+	{"getTangents", (PyCFunction)Mesh_getTangents, METH_VARARGS|METH_KEYWORDS,
+		"Return a list of face tangents"},
+		
 	/* mesh custom data layers */
 	{"addUVLayer", (PyCFunction)Mesh_addUVLayer, METH_VARARGS,
 		"adds a UV layer to this mesh"},

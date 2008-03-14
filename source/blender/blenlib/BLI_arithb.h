@@ -400,6 +400,16 @@ void DQuatNormalize(DualQuat *dq, float totweight);
 void DQuatMulVecfl(DualQuat *dq, float *co, float mat[][3]);
 void DQuatCpyDQuat(DualQuat *dq1, DualQuat *dq2);
 			  
+/* Tangent stuff */
+typedef struct VertexTangent {
+	float tang[3], uv[2];
+	struct VertexTangent *next;
+} VertexTangent;
+
+void sum_or_add_vertex_tangent(void *arena, VertexTangent **vtang, float *tang, float *uv);
+float *find_vertex_tangent(VertexTangent *vtang, float *uv);
+void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2, float *co3, float *n, float *tang);
+
 #ifdef __cplusplus
 }
 #endif
