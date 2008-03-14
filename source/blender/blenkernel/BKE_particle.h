@@ -212,7 +212,7 @@ int psys_check_enabled(struct Object *ob, struct ParticleSystem *psys);
 void psys_free_settings(struct ParticleSettings *part);
 void free_child_path_cache(struct ParticleSystem *psys);
 void psys_free_path_cache(struct ParticleSystem *psys);
-void free_hair(struct ParticleSystem *psys);
+void free_hair(struct ParticleSystem *psys, int softbody);
 void free_keyed_keys(struct ParticleSystem *psys);
 void psys_free(struct Object * ob, struct ParticleSystem * psys);
 void psys_free_children(struct ParticleSystem *psys);

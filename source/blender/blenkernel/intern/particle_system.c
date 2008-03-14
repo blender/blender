@@ -4476,7 +4476,7 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 			part->rotfrom = PART_ROT_IINCR;
 		}
 		else
-			free_hair(psys);
+			free_hair(psys, 1);
 
 		psys->softflag= 0;
 		psys->recalc &= ~PSYS_TYPE;
@@ -4656,7 +4656,8 @@ void particle_system_update(Object *ob, ParticleSystem *psys){
 	if(psys->part->type==PART_HAIR && hair_needs_recalc(psys)){
 		float hcfra=0.0f;
 		int i;
-		free_hair(psys);
+
+		free_hair(psys, 0);
 
 		/* first step is negative so particles get killed and reset */
 		psys->cfra=1.0f;
