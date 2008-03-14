@@ -7794,7 +7794,8 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 					 * user.blend, lib.blend and lib_indirect.blend - if user.blend alredy references a "tree" from
 					 * lib_indirect.blend but lib.blend does too, linking in a Scene or Group from lib.blend can result in an
 					 * empty without the dupli group referenced. Once you save and reload the group would appier. - Campbell */
-					oldnewmap_insert(fd->libmap, bhead->old, id, 1);
+					/* This crashes files, must look further into it */
+					/*oldnewmap_insert(fd->libmap, bhead->old, id, 1);*/
 					
 					change_idid_adr_fd(fd, bhead->old, id);
 					if(G.f & G_DEBUG) printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
