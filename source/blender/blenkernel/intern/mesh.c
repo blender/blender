@@ -1109,9 +1109,13 @@ float (*mesh_getRefKeyCos(Mesh *me, int *numVerts_r))[3]
 	
 	if(me->key && me->key->refkey) {
 		if(numVerts_r) *numVerts_r= me->totvert;
-		cos= MEM_mallocN(sizeof(*cos)*me->totvert, "vertexcos1");
-
+		
 		kb= me->key->refkey;
+		
+		/* prevent accessing invalid memory */
+		if (me->totvert > kb->totelem)		cos= MEM_callocN(sizeof(*cos)*me->totvert, "vertexcos1");
+		else								cos= MEM_mallocN(sizeof(*cos)*me->totvert, "vertexcos1");
+		
 		totvert= MIN2(kb->totelem, me->totvert);
 
 		memcpy(cos, kb->data, sizeof(*cos)*totvert);
