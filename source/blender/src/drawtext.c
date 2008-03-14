@@ -194,7 +194,8 @@ void get_format_string(SpaceText *st)
 	char *in_line;
 	char format[2000], check[200], other[2];
 	unsigned char c;
-	int a, b, len, spot, letter, tabs, mem_amount;
+	int spot, letter, tabs, mem_amount;
+	size_t a, b, len;
 	
 	if(!text) return;
 	tmp = text->lines.first;
@@ -2149,7 +2150,8 @@ void convert_tabs (struct SpaceText *st, int tab)
 	Text *text = st->text;
 	TextLine *tmp;
 	char *check_line, *new_line, *format;
-	int a, j, extra, number; //unknown for now
+	int extra, number; //unknown for now
+	size_t a, j;
 	
 	if (!text) return;
 	
@@ -2199,7 +2201,7 @@ void convert_tabs (struct SpaceText *st, int tab)
 			extra = 0;
 			for (a = 0; a < strlen(check_line); a++) {
 				number = 0;
-				for (j = 0; j < st->tabnumber; j++) {
+				for (j = 0; j < (size_t)st->tabnumber; j++) {
 					if ((a+j) <= strlen(check_line)) { //check to make sure we are not pass the end of the line
 						if(check_line[a+j] != ' ') {
 							number = 1;
@@ -2218,7 +2220,7 @@ void convert_tabs (struct SpaceText *st, int tab)
 				extra = 0; //reuse vars
 				for (a = 0; a < strlen(check_line); a++) {
 					number = 0;
-					for (j = 0; j < st->tabnumber; j++) {
+					for (j = 0; j < (size_t)st->tabnumber; j++) {
 						if ((a+j) <= strlen(check_line)) { //check to make sure we are not pass the end of the line
 							if(check_line[a+j] != ' ') {
 								number = 1;
