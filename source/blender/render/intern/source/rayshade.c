@@ -82,6 +82,11 @@ static int vlr_check_intersect(Isect *is, int ob, RayFace *face)
 	ObjectInstanceRen *obi= RAY_OBJECT_GET((Render*)is->userdata, ob);
 	VlakRen *vlr = (VlakRen*)face;
 
+	/* for baking selected to active non-traceable materials might still
+	 * be in the raytree */
+	if(!(vlr->mat->mode & MA_TRACEBLE))
+		return 0;
+
 	/* I know... cpu cycle waste, might do smarter once */
 	if(is->mode==RE_RAY_MIRROR)
 		return !(vlr->mat->mode & MA_ONLYCAST);
@@ -125,7 +130,8 @@ void makeraytree(Render *re)
 		for(v=0;v<obr->totvlak;v++) {
 			if((v & 255)==0) vlr= obr->vlaknodes[v>>8].vlak;
 			else vlr++;
-			if(vlr->mat->mode & MA_TRACEBLE) {	
+			/* baking selected to active needs non-traceable too */
+			if((re->flag & R_BAKE_TRACE) || (vlr->mat->mode & MA_TRACEBLE)) {	
 				if((vlr->mat->mode & MA_WIRE)==0) {	
 					VECCOPY(co1, vlr->v1->co);
 					VECCOPY(co2, vlr->v2->co);
@@ -186,7 +192,7 @@ void makeraytree(Render *re)
 			}
 			else vlr++;
 			
-			if(vlr->mat->mode & MA_TRACEBLE)
+			if((re->flag & R_BAKE_TRACE) || (vlr->mat->mode & MA_TRACEBLE))
 				if((vlr->mat->mode & MA_WIRE)==0)
 					RE_ray_tree_add_face(re->raytree, RAY_OBJECT_SET(re, obi), vlr);
 		}

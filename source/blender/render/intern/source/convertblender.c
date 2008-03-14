@@ -5318,7 +5318,6 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	ListBase oldtable= {NULL, NULL}, newtable= {NULL, NULL};
 	ListBase strandsurface;
 	int step;
-	ModifierData *md = NULL;
 	
 	re->i.infostr= "Calculating previous vectors";
 	re->r.mode |= R_SPEED;
@@ -5453,6 +5452,8 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 	re->excludeob= actob;
 	if(type == RE_BAKE_LIGHT)
 		re->flag |= R_SKIP_MULTIRES;
+	if(actob)
+		re->flag |= R_BAKE_TRACE;
 
 	if(type==RE_BAKE_NORMALS && re->r.bake_normal_space==R_BAKE_SPACE_TANGENT)
 		re->flag |= R_NEED_TANGENT;
