@@ -1356,11 +1356,21 @@ bNode *nodeGetActiveID(bNodeTree *ntree, short idtype)
 	bNode *node;
 	
 	if(ntree==NULL) return NULL;
+
+	/* check for group edit */
+    for(node= ntree->nodes.first; node; node= node->next)
+		if(node->flag & NODE_GROUP_EDIT)
+			break;
+
+	if(node)
+		ntree= (bNodeTree*)node->id;
 	
+	/* now find active node with this id */
 	for(node= ntree->nodes.first; node; node= node->next)
 		if(node->id && GS(node->id->name)==idtype)
 			if(node->flag & NODE_ACTIVE_ID)
 				break;
+
 	return node;
 }
 

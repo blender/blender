@@ -55,6 +55,7 @@
 #include "DNA_image_types.h"
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_node_types.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -75,6 +76,7 @@
 #include "BKE_icons.h"
 #include "BKE_ipo.h"
 #include "BKE_brush.h"
+#include "BKE_node.h"
 
 
 /* ------------------------------------------------------------------------- */
@@ -729,6 +731,7 @@ Tex *give_current_texture(Object *ob, int act)
 	Lamp *la = 0;
 	MTex *mtex = 0;
 	Tex *tex = 0;
+	bNode *node;
 	
 	if(ob==0) return 0;
 	if(ob->totcol==0) return 0;
@@ -739,7 +742,6 @@ Tex *give_current_texture(Object *ob, int act)
 			mtex= la->mtex[(int)(la->texact)];
 			if(mtex) tex= mtex->tex;
 		}
-		else tex= 0;
 	} else {
 		if(act>ob->totcol) act= ob->totcol;
 		else if(act==0) act= 1;
@@ -752,13 +754,25 @@ Tex *give_current_texture(Object *ob, int act)
 			
 			if(matarar && *matarar) ma= (*matarar)[act-1];
 			else ma= 0;
-			
+		}
+
+		if(ma && ma->use_nodes && ma->nodetree) {
+			node= nodeGetActiveID(ma->nodetree, ID_TE);
+
+			if(node) {
+				tex= (Tex *)node->id;
+				ma= NULL;
+			}
+			else {
+				node= nodeGetActiveID(ma->nodetree, ID_MA);
+				if(node)
+					ma= (Material*)node->id;
+			}
 		}
 		if(ma) {
 			mtex= ma->mtex[(int)(ma->texact)];
 			if(mtex) tex= mtex->tex;
 		}
-		else tex= 0;
 	}
 	
 	return tex;
