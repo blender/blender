@@ -50,6 +50,11 @@ else
    CPPFLAGS += -DNO_KETSJI
 endif
 
+ifeq ($(WITH_BF_OPENMP), true)
+    CFLAGS += -fopenmp
+    CCFLAGS += -fopenmp
+endif
+
 ifdef NAN_DEBUG
     CFLAGS += $(NAN_DEBUG)
     CCFLAGS += $(NAN_DEBUG)
