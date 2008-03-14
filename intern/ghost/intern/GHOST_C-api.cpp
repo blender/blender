@@ -268,7 +268,7 @@ int GHOST_OpenNDOF(GHOST_SystemHandle systemhandle, GHOST_WindowHandle windowhan
 {
 	GHOST_ISystem* system = (GHOST_ISystem*) systemhandle;
 
-    system->openNDOF((GHOST_IWindow*) windowhandle,
+    return system->openNDOF((GHOST_IWindow*) windowhandle,
         setNdofLibraryInit, setNdofLibraryShutdown, setNdofDeviceOpen);
 //	original patch
 //        setNdofLibraryInit, setNdofLibraryShutdown, setNdofDeviceOpen, setNdofEventHandler);
