@@ -201,7 +201,7 @@ typedef struct UserDef {
 	short smooth_viewtx;	/* miliseconds to spend spinning the view */
 	short glreslimit;
 	short ndof_pan, ndof_rotate;
-//	short pads[4];
+	short pads[2];
 //	char pad[8];
 	char versemaster[160];
 	char verseuser[160];

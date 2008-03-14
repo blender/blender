@@ -522,6 +522,8 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 			
 		if((pd->flag & PFIELD_USEMAX) && distance>pd->maxdist && pd->forcefield != PFIELD_GUIDE)
 			;	/* don't do anything */
+		else if((pd->flag & PFIELD_USEMIN) && distance<pd->mindist && pd->forcefield != PFIELD_GUIDE)
+			;	/* don't do anything */
 		else if(pd->forcefield == PFIELD_WIND) {
 			VECCOPY(force_vec, ob->obmat[2]);
 			

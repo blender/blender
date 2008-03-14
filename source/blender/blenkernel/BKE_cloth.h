@@ -35,18 +35,22 @@
 #define BKE_CLOTH_H
 
 #include "float.h"
-#include "BLI_editVert.h"
-#include "BLI_linklist.h"
 
-#include "BKE_collision.h"
+#include "BLI_linklist.h"
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
+
+#include "BLI_blenlib.h"
+#include "BLI_arithb.h"
+#include "BLI_edgehash.h"
 
 #include "DNA_cloth_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+
+#include "BKE_collision.h"
 
 struct Object;
 struct Cloth;

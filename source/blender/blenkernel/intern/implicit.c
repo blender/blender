@@ -29,38 +29,19 @@
 *
 * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
-#include "math.h"
-#include "float.h"
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+
 #include "MEM_guardedalloc.h"
-/* types */
-#include "DNA_curve_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"	
+
+#include "BKE_cloth.h"
+
 #include "DNA_cloth_types.h"	
-#include "DNA_key_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_modifier_types.h"
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "BLI_threads.h"
-#include "BKE_curve.h"
-#include "BKE_displist.h"
+
+
 #include "BKE_effect.h"
 #include "BKE_global.h"
-#include "BKE_key.h"
-#include "BKE_object.h"
 #include "BKE_cloth.h"
-#include "BKE_modifier.h"
 #include "BKE_utildefines.h"
-#include "BKE_global.h"
-#include "BIF_editdeform.h"
 
 
 #ifdef _WIN32
@@ -1446,6 +1427,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 				VECADDS(lF[mfaces[i].v1], lF[mfaces[i].v1], wind_normalized, 1.0 / 3.0);
 			}
 			
+			speed[0] = speed[1] = speed[2] = 0.0;
 			pdDoEffectors(effectors, lX[mfaces[i].v2], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 			VECCOPY(wind_normalized, speed);
 			Normalize(wind_normalized);
@@ -1458,7 +1440,8 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 			{
 				VECADDS(lF[mfaces[i].v2], lF[mfaces[i].v2], wind_normalized, 1.0 / 3.0);
 			}
-				
+			
+			speed[0] = speed[1] = speed[2] = 0.0;
 			pdDoEffectors(effectors, lX[mfaces[i].v3], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 			VECCOPY(wind_normalized, speed);
 			Normalize(wind_normalized);
@@ -1472,6 +1455,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 				VECADDS(lF[mfaces[i].v3], lF[mfaces[i].v3], wind_normalized, 1.0 / 3.0);
 			}
 			
+			speed[0] = speed[1] = speed[2] = 0.0;
 			if(mfaces[i].v4)
 			{
 				pdDoEffectors(effectors, lX[i], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);

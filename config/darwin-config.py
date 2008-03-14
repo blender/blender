@@ -4,9 +4,9 @@ LIBDIR = '${LCGDIR}'
 # enable ffmpeg  support
 WITH_BF_FFMPEG = 'true'  # -DWITH_FFMPEG
 BF_FFMPEG = LIBDIR +'/ffmpeg'
-BF_FFMPEG_INC = '${BF_FFMPEG}/include'
-BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
-BF_FFMPEG_LIB = 'avformat.a avcodec.a avutil.a'
+BF_FFMPEG_INC = '#extern/ffmpeg/include'
+#BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
+#BF_FFMPEG_LIB = 'avformat.a avcodec.a avutil.a'
 
 WITH_BF_VERSE = 'false'
 BF_VERSE = "#extern/verse/dist"
