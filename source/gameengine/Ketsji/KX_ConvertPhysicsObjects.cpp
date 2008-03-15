@@ -888,6 +888,10 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	{
 		ci.m_collisionFlags |= btCollisionObject::CF_STATIC_OBJECT;
 	}
+	if (objprop->m_ghost)
+	{
+		ci.m_collisionFlags |= btCollisionObject::CF_NO_CONTACT_RESPONSE;
+	}
 
 	ci.m_MotionState = motionstate;
 	ci.m_gravity = btVector3(0,0,0);
@@ -1141,10 +1145,11 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	if (objprop->m_disableSleeping)
 		rbody->setActivationState(DISABLE_DEACTIVATION);
 	
-	if (objprop->m_ghost)
-	{
-		rbody->setCollisionFlags(rbody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
-	}
+	//Now done directly in ci.m_collisionFlags so that it propagates to replica
+	//if (objprop->m_ghost)
+	//{
+	//	rbody->setCollisionFlags(rbody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+	//}
 	if (objprop->m_dyna && !objprop->m_angular_rigidbody)
 	{
 		/*
