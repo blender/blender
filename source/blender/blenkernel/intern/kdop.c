@@ -476,14 +476,15 @@ static void bvh_div_env_node(BVH *bvh, CollisionTree *tree, CollisionTree **face
 	// Sort along longest axis
 	if(laxis!=lastaxis)
 		bvh_sort_along_axis(face_list, start, end, laxis);
-
+	
+	// maximum is 4 since we have a quad tree
 	max_nodes = MIN2((end-start + 1 ),4);
 
 	for (i = 0; i < max_nodes; i++)
 	{
 		tree->count_nodes++;
 
-		if(end-start > 4)
+		if(end-start+1 > 4)
 		{
 			int quarter = ((float)((float)(end - start + 1) / 4.0f));
 			tstart = start + i * quarter;
