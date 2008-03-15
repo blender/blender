@@ -617,7 +617,8 @@ static void exit_pydraw( SpaceScript * sc, short err )
 	if( err ) {
 		PyErr_Print(  );
 		script->flags = 0;	/* mark script struct for deletion */
-		error( "Python script error: check console" );
+		SCRIPT_SET_NULL(script);
+		error_pyscript();
 		scrarea_queue_redraw( sc->area );
 	}
 
@@ -837,7 +838,7 @@ static void exec_but_callback(void *pyobj, void *data)
 	if (!result) {
 		Py_DECREF(pyvalue);
 		PyErr_Print(  );
-		error( "Python script error: check console" );
+		error_pyscript(  );
 	}
 	Py_XDECREF( result );
 }
@@ -1109,7 +1110,7 @@ static PyObject *Method_UIBlock( PyObject * self, PyObject * args )
 	
 	if (!result) {
 		PyErr_Print(  );
-		error( "Python script error: check console" );
+		error_pyscript(  );
 	} else {
 		/* copied from do_clever_numbuts in toolbox.c */
 		

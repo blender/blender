@@ -284,7 +284,6 @@ void BPY_end_python( void )
 	 * Python is finalized and G.main is freed in exit_usiblender() */
 	for (script = G.main->script.first; script; script = next_script) {
 		next_script = script->id.next;
-		BPY_clear_script(script);
 		free_libblock( &G.main->script, script );
 	}
 
@@ -693,8 +692,7 @@ int BPY_txt_do_python_Text( struct Text *text )
 		BPY_Err_Handle( textname );
 		ReleaseGlobalDictionary( py_dict );
 		script->py_globaldict = NULL;
-		if( G.main->script.first )
-			free_libblock( &G.main->script, script );
+		free_libblock( &G.main->script, script );
 		PyGILState_Release(gilstate);
 		return 0;
 	} else {
@@ -817,8 +815,7 @@ int BPY_run_script(Script *script)
 		fp = fopen( script->scriptname, "rb" );
 		if( !fp ) {
 			printf( "Error loading script: couldn't open file %s\n", script->scriptname );
-			if( G.main->script.first )
-				free_libblock( &G.main->script, script );
+			free_libblock( &G.main->script, script );
 			PyGILState_Release(gilstate);
 			return 0;
 		}
@@ -844,8 +841,7 @@ int BPY_run_script(Script *script)
 
 	if( !setup_armature_weakrefs()){
 		printf("Oops - weakref dict\n");
-		if( G.main->script.first )
-			free_libblock( &G.main->script, script );
+		free_libblock( &G.main->script, script );
 		ReleaseGlobalDictionary( py_dict );
 		MEM_freeN( buffer );
 		PyGILState_Release(gilstate);
@@ -912,9 +908,8 @@ int BPY_run_script(Script *script)
 		BPY_Err_Handle( script->id.name + 2 );
 		ReleaseGlobalDictionary( py_dict );
 		script->py_globaldict = NULL;
-		if( G.main->script.first )
-			free_libblock( &G.main->script, script );
-		error( "Python script error: check console" );
+		free_libblock( &G.main->script, script );
+		error_pyscript(  );
 
 		PyGILState_Release(gilstate);
 		return 0;
@@ -1112,7 +1107,7 @@ void BPY_free_finished_script( Script * script )
 
 	if( PyErr_Occurred(  ) ) {	/* if script ended after filesel */
 		PyErr_Print(  );	/* eventual errors are handled now */
-		error( "Python script error: check console" );
+		error_pyscript(  );
 	}
 
 	PyGILState_Release(gilstate);
@@ -1148,6 +1143,7 @@ static void unlink_script( Script * script )
 	}
 }
 
+/* This is called from free_libblock( &G.main->script, script ); */
 void BPY_clear_script( Script * script )
 {
 	PyObject *dict;
@@ -2962,4 +2958,8 @@ void BPY_scripts_clear_pyobjects( void )
 		Py_XDECREF((PyObject *)script->py_globaldict); 
 		SCRIPT_SET_NULL(script)
 	}
+}
+void error_pyscript( void )
+{
+	error("Python script error: check console");
 }

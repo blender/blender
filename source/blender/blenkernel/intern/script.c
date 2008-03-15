@@ -60,12 +60,5 @@
 void free_script (Script *script)
 {
 	if (!script) return;
-
-	if (script->py_globaldict || script->py_button ||
-			script->py_event || script->py_draw)
-	{
-		BPY_clear_script(script);
-	}
-
-	return;
+	BPY_clear_script(script);
 }

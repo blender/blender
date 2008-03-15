@@ -128,7 +128,9 @@ extern "C" {
 	void BPY_clear_script( struct Script *script );
 	void BPY_free_finished_script( struct Script *script );
 	void BPY_scripts_clear_pyobjects( void );
-
+	
+	void error_pyscript( void );
+	
 /* void BPY_Err_Handle(struct Text *text); */
 /* void BPY_clear_bad_scriptlink(struct ID *id, struct Text *byebye); */
 /* void BPY_clear_bad_scriptlist(struct ListBase *, struct Text *byebye); */

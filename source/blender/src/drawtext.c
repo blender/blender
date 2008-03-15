@@ -1442,7 +1442,7 @@ void run_python_script(SpaceText *st)
 		if (!st->text) return;
 
 		if (!strcmp(py_filename, st->text->id.name+2)) {
-			error("Python script error, check console");
+			error_pyscript(  );
 			if (lineno >= 0) {
 				txt_move_toline(text, lineno-1, 0);
 				txt_sel_line(text);
