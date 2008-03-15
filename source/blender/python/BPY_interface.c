@@ -261,6 +261,7 @@ void BPY_start_python( int argc, char **argv )
 void BPY_end_python( void )
 {
 	Script *script = NULL;
+	Script *next_script = NULL;
 
 	PyGILState_Ensure(); /* finalizing, no need to grab the state */
 
@@ -281,7 +282,8 @@ void BPY_end_python( void )
 
 	/* Freeing all scripts here prevents problems with the order in which
 	 * Python is finalized and G.main is freed in exit_usiblender() */
-	for (script = G.main->script.first; script; script = script->id.next) {
+	for (script = G.main->script.first; script; script = next_script) {
+		next_script = script->id.next;
 		BPY_clear_script(script);
 		free_libblock( &G.main->script, script );
 	}
