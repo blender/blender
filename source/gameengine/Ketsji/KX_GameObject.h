@@ -57,6 +57,7 @@
 struct KX_ClientObjectInfo;
 class RAS_MeshObject;
 class KX_IPhysicsController;
+class PHY_IPhysicsEnvironment;
 
 
 /**
@@ -82,6 +83,11 @@ protected:
 	bool       m_bVisible; 
 
 	KX_IPhysicsController*				m_pPhysicsController1;
+	// used for ray casting
+	PHY_IPhysicsEnvironment*			m_pPhysicsEnvironment;
+	STR_String							m_testPropName;
+	KX_GameObject*						m_pHitObject;
+
 	SG_Node*							m_pSGNode;
 
 	MT_CmMatrix4x4						m_OpenGL_4x4Matrix;
@@ -262,6 +268,19 @@ public:
 
 
 	/**
+	 * @return a pointer to the physics environment in use during the game, for rayCasting
+	 */
+	PHY_IPhysicsEnvironment* GetPhysicsEnvironment()
+	{
+		return m_pPhysicsEnvironment;
+	}
+
+	void SetPhysicsEnvironment(PHY_IPhysicsEnvironment* physicsEnvironment)
+	{
+		m_pPhysicsEnvironment = physicsEnvironment;
+	}
+
+	/**
 	 * @return a pointer to the physics controller owned by this class.
 	 */
 
@@ -341,6 +360,8 @@ public:
 		return m_bDyna; 
 	}
 	
+	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
+
 
 	/**
 	 * @section Physics accessors for this node.
@@ -608,6 +629,7 @@ public:
 	KX_PYMETHOD(KX_GameObject,GetMesh);
 	KX_PYMETHOD(KX_GameObject,GetParent);
 	KX_PYMETHOD(KX_GameObject,GetPhysicsId);
+	KX_PYMETHOD_DOC(KX_GameObject,rayCastTo);
 	KX_PYMETHOD_DOC(KX_GameObject,getDistanceTo);
 private :
 

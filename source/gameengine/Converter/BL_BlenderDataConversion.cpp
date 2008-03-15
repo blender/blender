@@ -1670,7 +1670,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		break;
 	}
 	}
-	
+	gameobj->SetPhysicsEnvironment(kxscene->GetPhysicsEnvironment());
 	return gameobj;
 }
 
