@@ -826,9 +826,9 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 		else {
 			/* qdn: flat faces have tangents too,
 			   could pick either one, using average here */
-			tl= 1.0f;
-			tu= 1.0f/3.0f;
-			tv= 1.0f/3.0f;
+			tl= 1.0f/3.0f;
+			tu= -1.0f/3.0f;
+			tv= -1.0f/3.0f;
 		}
 
 		shi->tang[0]= shi->tang[1]= shi->tang[2]= 0.0f;
