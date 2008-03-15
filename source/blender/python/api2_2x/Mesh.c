@@ -7660,8 +7660,10 @@ static PyObject *Mesh_getTangents( BPy_Mesh * self )
 
 		PyList_SetItem( py_tanlist, i, py_tuple );
 	}
-	if (orco)
-		MEM_freeN( orco );
+	
+	BLI_memarena_free(arena);
+	if (orco) MEM_freeN( orco );
+	MEM_freeN( vtangents );
 	
 	return py_tanlist;
 }
