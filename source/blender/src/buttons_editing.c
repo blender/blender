@@ -2686,7 +2686,7 @@ static void load_buts_vfont(char *name)
 
 static void set_unicode_text_fs(char *file)
 {
-	if (file > 0) paste_unicodeText(file); 
+	if (file) paste_unicodeText(file); 
 }
 
 void do_fontbuts(unsigned short event)

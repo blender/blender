@@ -114,8 +114,8 @@ static const char *check_memlist(MemHead *memh);
 volatile int totblock= 0;
 volatile unsigned long mem_in_use= 0, mmap_in_use= 0;
 
-volatile static struct localListBase _membase;
-volatile static struct localListBase *membase = &_membase;
+static volatile struct localListBase _membase;
+static volatile struct localListBase *membase = &_membase;
 static void (*error_callback)(char *) = NULL;
 static void (*thread_lock_callback)(void) = NULL;
 static void (*thread_unlock_callback)(void) = NULL;
