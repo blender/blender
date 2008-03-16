@@ -2843,23 +2843,56 @@ void clear_armature(Object *ob, char mode)
 	bPoseChannel *pchan;
 	bArmature	*arm;
 
-	arm=get_armature(ob);
-	
-	if (!arm)
+	arm= get_armature(ob);
+	if (arm == NULL)
 		return;
 	
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
-			if(arm->layer & pchan->bone->layer) {
+	/* only clear those channels that are not locked */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
+			if (arm->layer & pchan->bone->layer) {
 				switch (mode) {
 					case 'r':
-						pchan->quat[1]=pchan->quat[2]=pchan->quat[3]=0.0F; pchan->quat[0]=1.0F;
+						if (pchan->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ)) {
+							float eul[3], oldeul[3], quat1[4];
+							
+							QUATCOPY(quat1, pchan->quat);
+							QuatToEul(pchan->quat, oldeul);
+							eul[0]= eul[1]= eul[2]= 0.0f;
+							
+							if (pchan->protectflag & OB_LOCK_ROTX)
+								eul[0]= oldeul[0];
+							if (pchan->protectflag & OB_LOCK_ROTY)
+								eul[1]= oldeul[1];
+							if (pchan->protectflag & OB_LOCK_ROTZ)
+								eul[2]= oldeul[2];
+							
+							EulToQuat(eul, pchan->quat);
+							/* quaternions flip w sign to accumulate rotations correctly */
+							if ((quat1[0]<0.0f && pchan->quat[0]>0.0f) || (quat1[0]>0.0f && pchan->quat[0]<0.0f)) {
+								QuatMulf(pchan->quat, -1.0f);
+							}
+						}						
+						else { 
+							pchan->quat[1]=pchan->quat[2]=pchan->quat[3]=0.0F; 
+							pchan->quat[0]=1.0F;
+						}
 						break;
 					case 'g':
-						pchan->loc[0]=pchan->loc[1]=pchan->loc[2]=0.0F;
+						if ((pchan->protectflag & OB_LOCK_LOCX)==0)
+							pchan->loc[0]= 0.0f;
+						if ((pchan->protectflag & OB_LOCK_LOCY)==0)
+							pchan->loc[1]= 0.0f;
+						if ((pchan->protectflag & OB_LOCK_LOCZ)==0)
+							pchan->loc[2]= 0.0f;
 						break;
 					case 's':
-						pchan->size[0]=pchan->size[1]=pchan->size[2]=1.0F;
+						if ((pchan->protectflag & OB_LOCK_SCALEX)==0)
+							pchan->size[0]= 1.0f;
+						if ((pchan->protectflag & OB_LOCK_SCALEY)==0)
+							pchan->size[1]= 1.0f;
+						if ((pchan->protectflag & OB_LOCK_SCALEZ)==0)
+							pchan->size[2]= 1.0f;
 						break;
 						
 				}
