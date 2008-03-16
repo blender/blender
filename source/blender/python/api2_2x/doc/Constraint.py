@@ -36,12 +36,16 @@ Or to print all the constraints attached to each bone in a pose::
 
 @type Settings: readonly dictionary
 @var Settings: Constant dict used for changing constraint settings.
-	- Used for all constraints
-		- TARGET (Object) (Note: not used by Limit Location (LIMITLOC), 
-			Limit Rotation (LIMITROT), Limit Scale (LIMITSIZE))
-		- BONE (string): name of Bone sub-target (for armature targets) (Note: not
-			used by Stretch To (STRETCHTO), Limit Location (LIMITLOC), Limit Rotation 
-			(LIMITROT), Limit Scale (LIMITSIZE), Follow Path (FOLLOWPATH), Clamp To (CLAMPTO))
+	- Used for all single-target constraints 
+		(TRACKTO, FOLLOWPATH, COPYROT, COPYLOC, COPYSIZE, ACTION, LOCKTRACK, STRETCHTO, FLOOR, CLAMPTO, CHILDOF, TRANSFORM)
+		- TARGET (Object): target object
+		- BONE (string): name of Bone sub-target (for Armature targets), or name of Vertex Group sub-target
+			(for Geometry targets)
+	- Used for all multiple-target constraints
+		(PYTHON)
+		- TARGET (list of Objects): list of target objects, with one list slot = one target slot
+		- BONE (list of strings): list of names of Bone sub-target (for Armature targets) or name of Vertex Group
+			sub-targets (for Geometry targets)
 	- Used by some constraints:
 		- OWNERSPACE (int): for TRACKTO, COPYLOC, COPYROT, COPYSIZE, LIMITLOC, LIMITROT, LIMITSIZE, PYTHON, TRANSFORM
 			If the owner is an object, values are SPACE_WORLD, SPACE_LOCAL
