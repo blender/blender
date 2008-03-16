@@ -513,6 +513,14 @@ static void getSelectedFile( char *name )
 			script = sc->script;
 		}
 	}
+	/* If 'script' is null,
+	 * The script must have had an error and closed,
+	 * but the fileselector was left open, show an error and exit */
+	if (!script) {
+		error("Python script error: script quit, cannot run callback");
+		return;
+	}
+		
 
 	pycallback = script->py_browsercallback;
 
