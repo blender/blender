@@ -2470,18 +2470,24 @@ static uiBlock *add_groupmenu(void *arg_unused)
 {
 	uiBlock *block;
 	Group *group;
-	short yco= 0;
+	short xco=0, yco= 0, index=0;
 	char str[32];
 	
 	block= uiNewBlock(&curarea->uiblocks, "add_constraintmenu", UI_EMBOSSP, UI_HELV, curarea->win);
 	uiBlockSetButmFunc(block, do_add_groupmenu, NULL);
 
 	uiDefBut(block, BUTM, B_NOP, "ADD NEW",		0, 20, 160, 19, NULL, 0.0, 0.0, 1, -1, "");
-	for(group= G.main->group.first; group; group= group->id.next, yco++) {
+	for(group= G.main->group.first; group; group= group->id.next, index++) {
 		if(group->id.lib) strcpy(str, "L  ");
 		else strcpy(str, "   ");
 		strcat(str, group->id.name+2);
-		uiDefBut(block, BUTM, B_NOP, str,	0, -20*yco, 160, 19, NULL, 0.0, 0.0, 1, yco, "");
+		uiDefBut(block, BUTM, B_NOP, str,	xco*160, -20*yco, 160, 19, NULL, 0.0, 0.0, 1, index, "");
+		
+		yco++;
+		if(yco>24) {
+			yco= 0;
+			xco++;
+		}
 	}
 	
 	uiTextBoundsBlock(block, 50);
