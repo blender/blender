@@ -467,7 +467,7 @@ static void viewRedrawPost(TransInfo *t)
 
 void BIF_selectOrientation() {
 	short val;
-	char *str_menu = BIF_menustringTransformOrientation();
+	char *str_menu = BIF_menustringTransformOrientation("Orientation");
 	val= pupmenu(str_menu);
 	MEM_freeN(str_menu);
 	

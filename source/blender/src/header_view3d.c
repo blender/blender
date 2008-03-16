@@ -1787,8 +1787,7 @@ static void do_view3d_transformmenu(void *arg, int event)
 		G.scene->snap_target = SCE_SNAP_TARGET_ACTIVE;
 		break;
 	case 21:
-		initTransform(TFM_ALIGN, CTX_NO_PET|CTX_AUTOCONFIRM);
-		Transform();
+		alignmenu();
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -5603,7 +5602,7 @@ void view3d_buttons(void)
 				xco+= XIC;
 			}
 			
-			str_menu = BIF_menustringTransformOrientation();
+			str_menu = BIF_menustringTransformOrientation("Orientation");
 			uiDefButS(block, MENU, B_MAN_MODE, str_menu,xco,0,70,YIC, &G.vd->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
 			MEM_freeN(str_menu);
 			

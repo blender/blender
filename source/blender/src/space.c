@@ -1744,10 +1744,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 			case AKEY:
 				if (G.obedit == 0 && G.qual == (LR_CTRLKEY|LR_ALTKEY)) {
-					if(okee("Align to Transform Orientation")) {
-						initTransform(TFM_ALIGN, CTX_NO_PET|CTX_AUTOCONFIRM);
-						Transform();
-					}
+					alignmenu();
 				}
 				else if(G.qual & LR_CTRLKEY) { /* also with shift! */
 					apply_object();	
