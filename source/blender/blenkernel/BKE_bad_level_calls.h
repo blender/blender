@@ -89,7 +89,7 @@ int EXPP_dict_set_item_str(struct PyObject *dict, char *key, struct PyObject *va
 void Node_SetStack(struct BPy_Node *self, struct bNodeStack **stack, int type);
 void InitNode(struct BPy_Node *self, struct bNode *node);
 void Node_SetShi(struct BPy_Node *self, struct ShadeInput *shi);
-struct BPy_NodeSockets *Node_CreateSockets(struct bNode *node);
+struct BPy_NodeSockets *Node_CreateSocketLists(struct bNode *node);
 int pytype_is_pynode(struct PyObject *pyob);
 /* writefile.c */
 struct Oops;

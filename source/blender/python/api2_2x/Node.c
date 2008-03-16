@@ -43,6 +43,7 @@
 
 #include "BLI_blenlib.h"
 #include "gen_utils.h"
+#include "vector.h"
 
 static PyObject *Node_repr( BPy_Node * self );
 static int Node_compare(BPy_Node *a, BPy_Node *b);
@@ -50,101 +51,369 @@ static PyObject *ShadeInput_repr( BPy_ShadeInput * self );
 static int ShadeInput_compare(BPy_ShadeInput *a, BPy_ShadeInput *b);
 static BPy_ShadeInput *ShadeInput_CreatePyObject(ShadeInput *shi);
 
+/* node socket type */
+
+static PyObject *NodeSocket_getName(BPy_NodeSocket *self, void *unused)
+{
+	return PyString_FromString(self->name);
+}
+
+static int NodeSocket_setName(BPy_NodeSocket *self, PyObject *value, void *unused)
+{
+	char *name = NULL;
+
+	if (!PyString_Check(value))
+		return EXPP_ReturnIntError( PyExc_TypeError,
+			"expected a string" );
+
+	name = PyString_AsString(value);
+
+	if (!name)
+		return EXPP_ReturnIntError(PyExc_RuntimeError,
+			"couldn't convert value to string!");
+
+	BLI_strncpy(self->name, name, NODE_MAXSTR);
+
+	return 0;
+}
+
+static PyObject *NodeSocket_getVal(BPy_NodeSocket *self, void *unused)
+{
+	PyObject *pyret = NULL;
+
+	if (self->type == SOCK_VALUE) {
+		pyret = PyFloat_FromDouble(self->val[0]);
+	}
+	else { /* VECTOR or RGBA */
+		pyret = newVectorObject(self->val, self->type, Py_NEW);
+
+		if (!pyret)
+			return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+				"couldn't create vector object!");
+	}
+
+	return pyret;
+}
+
+static int NodeSocket_setVal(BPy_NodeSocket *self, PyObject *value, void *unused)
+{
+	int error = 0;
+
+	if (PySequence_Check(value)) {
+		PyObject *item, *fpyval;
+		int i, len;
+
+		len = PySequence_Size(value);
+
+		if (len == 3 || len == 4) {
+			for (i = 0; i < len; i++) {
+				item = PySequence_GetItem(value, i);
+				fpyval = PyNumber_Float(item);
+				if (!fpyval) {
+					Py_DECREF(item);
+					error = 1;
+					break;
+				}
+				self->val[i] = (float)PyFloat_AsDouble(fpyval);
+				Py_DECREF(item);
+				Py_DECREF(fpyval);
+			}
+			if (len == 3)
+				self->type = SOCK_VECTOR;
+			else /* len == 4 */
+				self->type = SOCK_RGBA;
+		}
+		else error = 1;
+	}
+	else if (VectorObject_Check(value)) {
+		VectorObject *vecOb = (VectorObject *)value;
+		short vlen = vecOb->size;
+
+		if (vlen == 3 || vlen == 4) {
+			VECCOPY(self->val, vecOb->vec); /* copies 3 values */
+			if (vlen == 3)
+				self->type = SOCK_VECTOR;
+			else {
+				self->val[3] = vecOb->vec[3];
+				self->type = SOCK_RGBA;
+			}
+		}
+		else error = 1;
+	}
+	else if (PyNumber_Check(value)) {
+		self->val[0] = (float)PyFloat_AsDouble(value);
+		self->type = SOCK_VALUE;
+	}
+	else error = 1;
+
+	if (error)
+		return EXPP_ReturnIntError( PyExc_TypeError,
+			"expected a float or a sequence (or vector) of 3 or 4 floats" );
+	return 0;
+}
+
+static PyObject *NodeSocket_getMin(BPy_NodeSocket *self, void *unused)
+{
+	return PyFloat_FromDouble(self->min);
+}
+
+static int NodeSocket_setMin(BPy_NodeSocket *self, PyObject *value, void *unused)
+{
+	PyObject *pyval = PyNumber_Float(value);
+
+	if (!pyval)
+		return EXPP_ReturnIntError( PyExc_TypeError,
+			"expected a float number" );
+
+	self->min = (float)PyFloat_AsDouble(pyval);
+	Py_DECREF(pyval);
+
+	return 0;
+}
+
+static PyObject *NodeSocket_getMax(BPy_NodeSocket *self, void *unused)
+{
+	return PyFloat_FromDouble(self->max);
+}
+
+static int NodeSocket_setMax(BPy_NodeSocket *self, PyObject *value, void *unused)
+{
+	PyObject *pyval = PyNumber_Float(value);
+
+	if (!pyval)
+		return EXPP_ReturnIntError( PyExc_TypeError,
+			"expected a float number" );
+
+	self->max = (float)PyFloat_AsDouble(pyval);
+	Py_DECREF(pyval);
+
+	return 0;
+}
+
+static PyGetSetDef NodeSocket_getseters[] = {
+	{"name", (getter)NodeSocket_getName, (setter)NodeSocket_setName,
+		"This socket's name", NULL},
+	{"val", (getter)NodeSocket_getVal, (setter)NodeSocket_setVal,
+		"This socket's data value(s)", NULL},
+	{"min", (getter)NodeSocket_getMin, (setter)NodeSocket_setMin,
+		"This socket's min possible value (lower range limit)", NULL},
+	{"max", (getter)NodeSocket_getMax, (setter)NodeSocket_setMax,
+		"This socket's max possible value (upper range limit)", NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
+static void NodeSocket_dealloc(BPy_NodeSocket *self)
+{
+	self->ob_type->tp_free((PyObject *)self);
+}
+
+static PyObject *NodeSocket_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+	PyObject *pysocket = type->tp_alloc(type, 0);
+
+	if (!pysocket)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError, "couldn't create socket type!");
+
+	return pysocket;
+}
+
+static int NodeSocket_init(BPy_NodeSocket *self, PyObject *args, PyObject *kwargs)
+{
+	char *name = NULL;
+	float min = 0.0f, max = 1.0f;
+	PyObject *val = NULL;
+	static char *kwlist[] = {"name", "val", "min", "max", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s|Off", kwlist, &name, &val, &min, &max)){
+		return EXPP_ReturnIntError(PyExc_AttributeError, "expected a string and optionally:\n1) a float or a sequence (or vector) of 3 or 4 floats and\n2) two floats");
+	}
+
+	BLI_strncpy(self->name, name, NODE_MAXSTR);
+
+	self->min = min;
+	self->max = max;
+
+	if (val)
+		return NodeSocket_setVal(self, val, NULL);
+	/* else */
+	self->type = SOCK_VALUE;
+	self->val[0] = 0.0f;
+
+	return 0;
+}
+
+static PyObject *NodeSocket_copy(BPy_NodeSocket *self)
+{
+	BPy_NodeSocket *copied;
+
+	copied = (BPy_NodeSocket*)NodeSocket_new(&NodeSocket_Type, NULL, NULL);
+
+	if (!copied) return NULL; /* error already set in NodeSocket_new */
+
+	BLI_strncpy(copied->name, self->name, NODE_MAXSTR);
+	copied->min = self->min;
+	copied->max = self->max;
+	copied->type = self->type;
+	memcpy(copied->val, self->val, 4*sizeof(float));
+
+	return (PyObject *)copied;
+}
+
+static PyMethodDef BPy_NodeSocket_methods[] = {
+	{"__copy__", ( PyCFunction ) NodeSocket_copy, METH_NOARGS,
+	 "() - Makes a copy of this node socket."},
+	{"copy", ( PyCFunction ) NodeSocket_copy, METH_NOARGS,
+	 "() - Makes a copy of this node socket."},
+	{NULL, NULL, 0, NULL}
+};
+
+PyTypeObject NodeSocket_Type = {
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+	/*  For printing, in format "<module>.<name>" */
+	"Blender.Node.Socket",           /* char *tp_name; */
+	sizeof( BPy_NodeSocket ),       /* int tp_basicsize; */
+	0,                          /* tp_itemsize;  For allocation */
+
+	/* Methods to implement standard operations */
+
+	(destructor)NodeSocket_dealloc,/* destructor tp_dealloc; */
+	NULL,                       /* printfunc tp_print; */
+	NULL,                       /* getattrfunc tp_getattr; */
+	NULL,                       /* setattrfunc tp_setattr; */
+	NULL,                       /* cmpfunc tp_compare; */
+	NULL,                       /* reprfunc tp_repr; */
+
+	/* Method suites for standard classes */
+
+	NULL,      					/* PyNumberMethods *tp_as_number; */
+	NULL,					    /* PySequenceMethods *tp_as_sequence; */
+	NULL,      /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/input buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	0, //( getiterfunc) MVertSeq_getIter, /* getiterfunc tp_iter; */
+	0, //( iternextfunc ) MVertSeq_nextIter, /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	BPy_NodeSocket_methods,     /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	NodeSocket_getseters,       /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	(initproc)NodeSocket_init,  /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NodeSocket_new,				/* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
+};
+
 /**
- * Take the descriptions from list and create sockets for those in socks
+ * Take the descriptions from tuple and create sockets for those in socks
  * socks is a socketstack from a bNodeTypeInfo
  */
-static int list_socks_to_typeinfo(PyObject *tuple, bNodeSocketType **socks, int stage, int limit) {
+static int pysockets_to_blendersockets(PyObject *tuple, bNodeSocketType **socks, int stage, int limit) {
 	int len = 0, a = 0, pos = 0, retval = 0;
-	//wPyObject *key = NULL, *value = NULL;
-	PyObject *item, *arg;
-	bNodeSocketType *newsocks = NULL;
-	char *s_name = NULL;
-	int s_type = SOCK_VALUE;
-	float s_val[4], s_min, s_max;
+	short stype;
+	BPy_NodeSocket *pysock;
+	bNodeSocketType *nsocks = NULL;
 
 	if (BTST2(stage, NODE_DYNAMIC_READY, NODE_DYNAMIC_ADDEXIST))
 		return 0; /* already has sockets */
 
 	len = PyTuple_Size(tuple);
 
-	newsocks = MEM_callocN(sizeof(bNodeSocketType)*(len+1), "bNodeSocketType in Node.c");
+	nsocks = MEM_callocN(sizeof(bNodeSocketType)*(len+1), "bNodeSocketType in Node.c");
 
 	for (pos = 0, a = 0; pos< len; pos++, a++) {
-		/* default socket values: */
-		s_name = NULL;
-		s_type = SOCK_VALUE;
-		s_min = 0.0f;
-		s_max = 1.0f;
-		s_val[0] = s_val[1] = s_val[2] = s_val[3] = 1.0f;
+		pysock = (BPy_NodeSocket *)PyTuple_GetItem(tuple, pos);/*borrowed*/
 
-		item = PyTuple_GetItem(tuple, pos);
-
-		if (!PySequence_Check(item)) {
-			PyErr_SetString(PyExc_AttributeError, "a socket must be a List of Lists or Tuples");
+		if (!BPy_NodeSocket_Check(pysock)) {
+			PyErr_SetString(PyExc_AttributeError, "expected a sequence of node sockets");
 			retval = -1;
 			break;
 		}
 
-		arg = PySequence_Tuple(item);
+		stype = pysock->type;
 
-		if (!PyArg_ParseTuple(arg, "s|iffffff", &s_name, &s_type,
-					&s_min, &s_max,
-					&s_val[0], &s_val[1], &s_val[2], &s_val[3] )) {
-			PyErr_SetString(PyExc_AttributeError, "socket definitions require a string and optionally an int and 6 floats");
-			retval = -1;
-			Py_DECREF(arg);
-			break;
+		nsocks[a].type = stype;
+		nsocks[a].limit = limit;
+
+		nsocks[a].name = BLI_strdupn(pysock->name, NODE_MAXSTR);
+
+		nsocks[a].min = pysock->min;
+		nsocks[a].max = pysock->max;
+
+		if (stype > SOCK_VALUE) {
+			float *vec = pysock->val;
+
+			nsocks[a].val1 = vec[0];
+			nsocks[a].val2 = vec[1];
+			nsocks[a].val3 = vec[2];
+
+			if (stype == SOCK_RGBA)
+				nsocks[a].val4 = vec[3];
 		}
-
-		newsocks[a].name = BLI_strdupn(s_name, NODE_MAXSTR);
-		newsocks[a].type = s_type;
-		newsocks[a].min = s_min;
-		newsocks[a].max = s_max;
-		newsocks[a].val1 = s_val[0];
-		newsocks[a].val2 = s_val[1];
-		newsocks[a].val3 = s_val[2];
-		newsocks[a].val4 = s_val[3];
-		newsocks[a].limit = limit;
-
-		Py_DECREF(arg);
+		else /* SOCK_VALUE */
+			nsocks[a].val1 = pysock->val[0];
 	}
 
-	newsocks[a].type = -1;
+	nsocks[a].type = -1;
 
-	*socks = newsocks;
+	*socks = nsocks;
 
 	return retval;
 }
 
-/* Get number of complying entries in a list.
- *
- */
-/* unused
-static int num_list_sockets(PyObject *list) {
-	int size = 0;
-	int i = 0, count = 0;
-	PyObject *element = NULL;
-
-	size = PyList_Size(list);
-	for(i = 0; i < size; i++) {
-		element = PyList_GetItem(list, i);
-		//wPy_INCREF(element);
-		if(PyList_Check(element) && PyList_Size(element) == 8)
-			count++;
-		//wPy_DECREF(element);
-	}
-	return count;
-}
-*/
-static void NodeSockets_dealloc(BPy_NodeSockets *self)
+static void NodeSocketLists_dealloc(BPy_NodeSocketLists *self)
 {
 	Py_DECREF(self->input);
 	Py_DECREF(self->output);
 	self->ob_type->tp_free((PyObject *)self);
 }
 
-static PyObject *Map_socketdef_getter(BPy_NodeSockets *self, void *closure)
+static PyObject *Map_socketdef_getter(BPy_NodeSocketLists *self, void *closure)
 {
 	PyObject *sockets = NULL;
 
@@ -167,7 +436,7 @@ static PyObject *Map_socketdef_getter(BPy_NodeSockets *self, void *closure)
 	return sockets;
 }
 
-static int Map_socketdef(BPy_NodeSockets *self, PyObject *args, void *closure)
+static int Map_socketdef(BPy_NodeSocketLists *self, PyObject *args, void *closure)
 {
 	bNode *node = NULL;
 	PyObject *tuple = NULL;
@@ -187,7 +456,8 @@ static int Map_socketdef(BPy_NodeSockets *self, PyObject *args, void *closure)
 			if (args) {
 				if(PySequence_Check(args)) {
 					tuple = PySequence_Tuple(args);
-					list_socks_to_typeinfo(tuple, &(node->typeinfo->inputs), node->custom1, 1);
+					pysockets_to_blendersockets(tuple,
+							&(node->typeinfo->inputs), node->custom1, 1);
 					Py_DECREF(self->input);
 					self->input = tuple;
 				} else {
@@ -199,7 +469,8 @@ static int Map_socketdef(BPy_NodeSockets *self, PyObject *args, void *closure)
 			if (args) {
 				if(PyList_Check(args)) {
 					tuple = PySequence_Tuple(args);
-					list_socks_to_typeinfo(tuple, &(node->typeinfo->outputs), node->custom1, 0);
+					pysockets_to_blendersockets(tuple,
+							&(node->typeinfo->outputs), node->custom1, 0);
 					Py_DECREF(self->output);
 					self->output = tuple;
 				} else {
@@ -214,7 +485,7 @@ static int Map_socketdef(BPy_NodeSockets *self, PyObject *args, void *closure)
 	return 0;
 }
 
-static PyGetSetDef NodeSockets_getseters[] = {
+static PyGetSetDef NodeSocketLists_getseters[] = {
 	{"input", (getter)Map_socketdef_getter, (setter)Map_socketdef,
 		"Set this node's input sockets (list of lists or tuples)",
 		(void *)'I'},
@@ -230,17 +501,17 @@ static PyGetSetDef NodeSockets_getseters[] = {
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
-PyTypeObject NodeSockets_Type = {
+PyTypeObject NodeSocketLists_Type = {
 	PyObject_HEAD_INIT( NULL )  /* required py macro */
 	0,                          /* ob_size */
 	/*  For printing, in format "<module>.<name>" */
-	"Blender.Node.Sockets",           /* char *tp_name; */
-	sizeof( BPy_NodeSockets ),       /* int tp_basicsize; */
+	"Blender.Node.SocketLists",           /* char *tp_name; */
+	sizeof( BPy_NodeSocketLists ),       /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 
 	/* Methods to implement standard operations */
 
-	(destructor)NodeSockets_dealloc,/* destructor tp_dealloc; */
+	(destructor)NodeSocketLists_dealloc,/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -290,7 +561,7 @@ PyTypeObject NodeSockets_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	0, //BPy_MVertSeq_methods,       /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	NodeSockets_getseters,      /* struct PyGetSetDef *tp_getset; */
+	NodeSocketLists_getseters,      /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
@@ -312,17 +583,17 @@ PyTypeObject NodeSockets_Type = {
 	NULL
 };
 
-BPy_NodeSockets *Node_CreateSockets(bNode *node) {
-	BPy_NodeSockets *sockets = PyObject_NEW(BPy_NodeSockets, &NodeSockets_Type);
-	sockets->node = node;
-	sockets->input = PyList_New(0);
-	sockets->output = PyList_New(0);
-	return sockets;
+BPy_NodeSocketLists *Node_CreateSocketLists(bNode *node) {
+	BPy_NodeSocketLists *socklists = PyObject_NEW(BPy_NodeSocketLists, &NodeSocketLists_Type);
+	socklists->node = node;
+	socklists->input = PyList_New(0);
+	socklists->output = PyList_New(0);
+	return socklists;
 }
 
 /***************************************/
 
-static int sockinmap_len ( BPy_SockMap * self) {
+static int Sockinmap_len ( BPy_SockMap * self) {
 	bNode *node = self->node;
 	bNodeType *tinfo;
 	int a = 0;
@@ -340,16 +611,14 @@ static int sockinmap_len ( BPy_SockMap * self) {
 	return a;
 }
 
-static int sockinmap_has_key( BPy_SockMap *self, PyObject *key) {
+static int sockinmap_has_key( BPy_SockMap *self, char *strkey) {
 	bNode *node = self->node;
 	bNodeType *tinfo;
-	char *strkey = NULL;
 	int a = 0;
 
-	if (!node) return -1;
+	if (!node || !strkey) return -1;
 
 	tinfo = node->typeinfo;
-	strkey = PyString_AsString(key);
 
 	if(tinfo && tinfo->inputs){
 		while(self->node->typeinfo->inputs[a].type!=-1) {
@@ -362,17 +631,17 @@ static int sockinmap_has_key( BPy_SockMap *self, PyObject *key) {
 	return -1;
 }
 
-PyObject *sockinmap_subscript(BPy_SockMap *self, PyObject *pyidx) {
+PyObject *Sockinmap_subscript(BPy_SockMap *self, PyObject *pyidx) {
 	int idx;
 
 	if (!self->node)
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError, "no access to Blender node data!");
 
 	if (PyString_Check(pyidx)) {
-		idx = sockinmap_has_key(self, pyidx);
+		idx = sockinmap_has_key(self, PyString_AsString(pyidx));
 	}
 	else if(PyInt_Check(pyidx)) {
-		int len = sockinmap_len(self);
+		int len = Sockinmap_len(self);
 		idx = (int)PyInt_AsLong(pyidx);
 		if (idx < 0 || idx >= len)
 			return EXPP_ReturnPyObjError(PyExc_IndexError, "index out of range");
@@ -405,10 +674,37 @@ PyObject *sockinmap_subscript(BPy_SockMap *self, PyObject *pyidx) {
 	Py_RETURN_NONE;
 }
 
+static PyObject *Sockinmap_getAttr(BPy_SockMap *self, char *attr)
+{
+	PyObject *pyob = NULL;
+	int idx;
+
+	idx = sockinmap_has_key(self, attr);
+
+	if (idx < 0)
+		return EXPP_ReturnPyObjError(PyExc_AttributeError, "unknown input socket name");
+
+	switch(self->node->typeinfo->inputs[idx].type) {
+		case SOCK_VALUE:
+			pyob = Py_BuildValue("f", self->stack[idx]->vec[0]);
+			break;
+		case SOCK_VECTOR:
+			pyob = Py_BuildValue("(fff)", self->stack[idx]->vec[0], self->stack[idx]->vec[1], self->stack[idx]->vec[2]);
+			break;
+		case SOCK_RGBA:
+			pyob = Py_BuildValue("(ffff)", self->stack[idx]->vec[0], self->stack[idx]->vec[1], self->stack[idx]->vec[2], self->stack[idx]->vec[3]);
+			break;
+		default:
+			break;
+	}
+
+	return pyob;
+}
+
 /* read only */
-static PyMappingMethods sockinmap_as_mapping = {
-	( inquiry ) sockinmap_len,  /* mp_length */
-	( binaryfunc ) sockinmap_subscript, /* mp_subscript */
+static PyMappingMethods Sockinmap_as_mapping = {
+	( inquiry ) Sockinmap_len,  /* mp_length */
+	( binaryfunc ) Sockinmap_subscript, /* mp_subscript */
 	( objobjargproc ) 0 /* mp_ass_subscript */
 };
 
@@ -424,7 +720,7 @@ PyTypeObject SockInMap_Type = {
 
 	NULL,/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
-	NULL,                       /* getattrfunc tp_getattr; */
+	(getattrfunc) Sockinmap_getAttr,/* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
 	NULL,                       /* cmpfunc tp_compare; */
 	NULL,                       /* reprfunc tp_repr; */
@@ -433,7 +729,7 @@ PyTypeObject SockInMap_Type = {
 
 	NULL,      					/* PyNumberMethods *tp_as_number; */
 	NULL,					    /* PySequenceMethods *tp_as_sequence; */
-	&sockinmap_as_mapping,      /* PyMappingMethods *tp_as_mapping; */
+	&Sockinmap_as_mapping,      /* PyMappingMethods *tp_as_mapping; */
 
 	/* More standard operations (here for binary compatibility) */
 
@@ -494,7 +790,7 @@ PyTypeObject SockInMap_Type = {
 	NULL
 };
 
-static int sockoutmap_len ( BPy_SockMap * self) {
+static int Sockoutmap_len ( BPy_SockMap * self) {
 	bNode *node = self->node;
 	bNodeType *tinfo;
 	int a = 0;
@@ -510,16 +806,14 @@ static int sockoutmap_len ( BPy_SockMap * self) {
 	return a;
 }
 
-static int sockoutmap_has_key( BPy_SockMap *self, PyObject *key) {
+static int sockoutmap_has_key(BPy_SockMap *self, char *strkey) {
 	bNode *node = self->node;
 	bNodeType *tinfo;
 	int a = 0;
-	char *strkey = NULL;
 
 	if (!node) return -1;
 
 	tinfo = node->typeinfo;
-	strkey = PyString_AsString(key);
 
 	if(tinfo && tinfo->outputs){
 		while(self->node->typeinfo->outputs[a].type!=-1) {
@@ -532,8 +826,8 @@ static int sockoutmap_has_key( BPy_SockMap *self, PyObject *key) {
 	return -1;
 }
 
-static int sockoutmap_assign_subscript(BPy_SockMap *self, PyObject *pyidx, PyObject *value) {
-	int i, idx, len, wanted_len = 0, ret = -1;
+static int Sockoutmap_assign_subscript(BPy_SockMap *self, PyObject *pyidx, PyObject *value) {
+	int i, idx, len, type, wanted_len = 0;
 	PyObject *val;
 	PyObject *items[4];
 
@@ -542,11 +836,11 @@ static int sockoutmap_assign_subscript(BPy_SockMap *self, PyObject *pyidx, PyObj
 
 	if (PyInt_Check(pyidx)) {
 		idx = (int)PyInt_AsLong(pyidx);
-		if (idx < 0 || idx >= sockinmap_len(self))
+		if (idx < 0 || idx >= Sockinmap_len(self))
 			return EXPP_ReturnIntError(PyExc_IndexError, "index out of range");
 	}
 	else if (PyString_Check(pyidx)) {
-		idx = sockoutmap_has_key(self, pyidx);
+		idx = sockoutmap_has_key(self, PyString_AsString(pyidx));
 	}
 	else if (PySlice_Check(pyidx)) {
 		return EXPP_ReturnIntError(PyExc_ValueError, "slices not yet implemented");
@@ -557,70 +851,129 @@ static int sockoutmap_assign_subscript(BPy_SockMap *self, PyObject *pyidx, PyObj
 	if (idx < 0)
 		return EXPP_ReturnIntError(PyExc_IndexError, "index must be a positive int or a string");
 
-	val = PySequence_Fast(value, "expected a numeric tuple or list");
-	if (!val) return -1;
+	type = self->node->typeinfo->outputs[idx].type;
 
-	len = PySequence_Fast_GET_SIZE(val);
-
-	if (len == 0) {
+	if (type == SOCK_VALUE) {
+		val = PyNumber_Float(value);
+		if (!val)
+			return EXPP_ReturnIntError(PyExc_AttributeError, "expected a float value");
+		self->stack[idx]->vec[0] = (float)PyFloat_AsDouble(val);
 		Py_DECREF(val);
-		return EXPP_ReturnIntError(PyExc_AttributeError, "expected a non-empty numeric tuple or list");
 	}
+	else {
+		val = PySequence_Fast(value, "expected a numeric tuple or list");
+		if (!val) return -1;
 
-	for (i = 0; i < len; i++) {
-		items[i] = PySequence_Fast_GET_ITEM(val, i); /* borrowed */
-		if (!PyNumber_Check(items[i])) {
-			Py_DECREF(val);
-			return EXPP_ReturnIntError(PyExc_AttributeError, "expected a *numeric* tuple or list");
-		}
-	}
+		len = PySequence_Fast_GET_SIZE(val);
 
-	switch(self->node->typeinfo->outputs[idx].type) {
-		case SOCK_VALUE:
-			wanted_len = 1;
-			if (len == 1) {
-				self->stack[idx]->vec[0] = (float)PyFloat_AsDouble(items[0]);
-				ret = 0;
-			}
-			break;
-		case SOCK_VECTOR:
+		if (type == SOCK_VECTOR) {
 			wanted_len = 3;
-			if (len == 3) {
-				self->stack[idx]->vec[0] = (float)PyFloat_AsDouble(items[0]);
-				self->stack[idx]->vec[1] = (float)PyFloat_AsDouble(items[1]);
-				self->stack[idx]->vec[2] = (float)PyFloat_AsDouble(items[2]);
-				ret = 0;
-			}
-			break;
-		case SOCK_RGBA:
+		} else { /* SOCK_RGBA */
 			wanted_len = 4;
-			if (len == 4) {
-				self->stack[idx]->vec[0] = (float)PyFloat_AsDouble(items[0]);
-				self->stack[idx]->vec[1] = (float)PyFloat_AsDouble(items[1]);
-				self->stack[idx]->vec[2] = (float)PyFloat_AsDouble(items[2]);
-				self->stack[idx]->vec[3] = (float)PyFloat_AsDouble(items[3]);
-				ret = 0;
+		}
+
+		if (len != wanted_len) {
+			Py_DECREF(val);
+			PyErr_SetString(PyExc_AttributeError, "wrong number of items in list or tuple");
+			fprintf(stderr, "\nExpected %d numeric values, got %d.", wanted_len, len);
+			return -1;
+		}
+
+		for (i = 0; i < len; i++) {
+			items[i] = PySequence_Fast_GET_ITEM(val, i); /* borrowed */
+			if (!PyNumber_Check(items[i])) {
+				Py_DECREF(val);
+				return EXPP_ReturnIntError(PyExc_AttributeError, "expected a *numeric* tuple or list");
 			}
-			break;
-		default:
-			break;
+		}
+
+		self->stack[idx]->vec[0] = (float)PyFloat_AsDouble(items[0]);
+		self->stack[idx]->vec[1] = (float)PyFloat_AsDouble(items[1]);
+		self->stack[idx]->vec[2] = (float)PyFloat_AsDouble(items[2]);
+
+		if (type == SOCK_RGBA)
+			self->stack[idx]->vec[3] = (float)PyFloat_AsDouble(items[3]);
+
+		Py_DECREF(val);
 	}
 
-	Py_DECREF(val);
-
-	if (ret == -1) {
-		PyErr_SetString(PyExc_AttributeError, "wrong number of items in list or tuple");
-		fprintf(stderr, "\nExpected %d numeric values, got %d.", wanted_len, len);
-	}
-
-	return ret;
+	return 0;
 }
 
+static int sockoutmap_set_attr(bNodeStack **stack, short type, short idx, PyObject *value)
+{
+	PyObject *val;
+	PyObject *items[4];
+	int i;
+	short len, wanted_len;
+
+	if (type == SOCK_VALUE) {
+		val = PyNumber_Float(value);
+		if (!val)
+			return EXPP_ReturnIntError(PyExc_AttributeError, "expected a float value");
+		stack[idx]->vec[0] = (float)PyFloat_AsDouble(val);
+		Py_DECREF(val);
+	}
+	else {
+		val = PySequence_Fast(value, "expected a numeric tuple or list");
+		if (!val) return -1;
+
+		len = PySequence_Fast_GET_SIZE(val);
+
+		if (type == SOCK_VECTOR) {
+			wanted_len = 3;
+		} else { /* SOCK_RGBA */
+			wanted_len = 4;
+		}
+
+		if (len != wanted_len) {
+			Py_DECREF(val);
+			PyErr_SetString(PyExc_AttributeError, "wrong number of items in list or tuple");
+			fprintf(stderr, "\nExpected %d numeric values, got %d.", wanted_len, len);
+			return -1;
+		}
+
+		for (i = 0; i < len; i++) {
+			items[i] = PySequence_Fast_GET_ITEM(val, i); /* borrowed */
+			if (!PyNumber_Check(items[i])) {
+				Py_DECREF(val);
+				return EXPP_ReturnIntError(PyExc_AttributeError, "expected a *numeric* tuple or list");
+			}
+		}
+
+		stack[idx]->vec[0] = (float)PyFloat_AsDouble(items[0]);
+		stack[idx]->vec[1] = (float)PyFloat_AsDouble(items[1]);
+		stack[idx]->vec[2] = (float)PyFloat_AsDouble(items[2]);
+
+		if (type == SOCK_RGBA)
+			stack[idx]->vec[3] = (float)PyFloat_AsDouble(items[3]);
+
+		Py_DECREF(val);
+	}
+
+	return 0;
+}
+
+static int Sockoutmap_setAttr(BPy_SockMap *self, char *name, PyObject *value) {
+	short idx, type;
+
+	if (!self->node)
+		return EXPP_ReturnIntError(PyExc_RuntimeError, "no access to Blender node data!");
+
+	idx = sockoutmap_has_key(self, name);
+
+	if (idx < 0)
+		return EXPP_ReturnIntError(PyExc_AttributeError, "unknown output socket name");
+
+	type = self->node->typeinfo->outputs[idx].type;
+
+	return sockoutmap_set_attr(self->stack, type, idx, value);
+}
 /* write only */
-static PyMappingMethods sockoutmap_as_mapping = {
-	( inquiry ) sockoutmap_len,  /* mp_length */
+static PyMappingMethods Sockoutmap_as_mapping = {
+	( inquiry ) Sockoutmap_len,  /* mp_length */
 	( binaryfunc ) 0, /* mp_subscript */
-	( objobjargproc ) sockoutmap_assign_subscript /* mp_ass_subscript */
+	( objobjargproc ) Sockoutmap_assign_subscript /* mp_ass_subscript */
 };
 
 PyTypeObject SockOutMap_Type = {
@@ -636,7 +989,7 @@ PyTypeObject SockOutMap_Type = {
 	NULL,/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
-	NULL,                       /* setattrfunc tp_setattr; */
+	(setattrfunc) Sockoutmap_setAttr,/* setattrfunc tp_setattr; */
 	NULL,                       /* cmpfunc tp_compare; */
 	NULL,                       /* reprfunc tp_repr; */
 
@@ -644,7 +997,7 @@ PyTypeObject SockOutMap_Type = {
 
 	NULL,      					/* PyNumberMethods *tp_as_number; */
 	NULL,					    /* PySequenceMethods *tp_as_sequence; */
-	&sockoutmap_as_mapping,      /* PyMappingMethods *tp_as_mapping; */
+	&Sockoutmap_as_mapping,      /* PyMappingMethods *tp_as_mapping; */
 
 	/* More standard operations (here for binary compatibility) */
 
@@ -850,7 +1203,6 @@ static PyObject *Node_GetShi(BPy_Node *self) {
 static PyObject *node_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	PyObject *self;
-	assert(type!=NULL && type->tp_alloc!=NULL);
 	self = type->tp_alloc(type, 1);
 	return self;
 }
@@ -1161,7 +1513,9 @@ PyObject *Node_Init(void)
 		return NULL;
 	if( PyType_Ready( &ShadeInput_Type ) < 0 )
 		return NULL;
-	if( PyType_Ready( &NodeSockets_Type ) < 0 )
+	if( PyType_Ready( &NodeSocket_Type ) < 0 )
+		return NULL;
+	if( PyType_Ready( &NodeSocketLists_Type ) < 0 )
 		return NULL;
 	if( PyType_Ready( &SockInMap_Type ) < 0 )
 		return NULL;
@@ -1173,11 +1527,13 @@ PyObject *Node_Init(void)
 	PyModule_AddIntConstant(submodule, "RGBA", SOCK_RGBA);
 	PyModule_AddIntConstant(submodule, "VECTOR", SOCK_VECTOR);
 
+	Py_INCREF(&NodeSocket_Type);
+	PyModule_AddObject(submodule, "Socket", (PyObject *)&NodeSocket_Type);
+
 	Py_INCREF(&Node_Type);
-	PyModule_AddObject(submodule, "node", (PyObject *)&Node_Type);
+	PyModule_AddObject(submodule, "Scripted", (PyObject *)&Node_Type);
 
 	return submodule;
-
 }
 
 static int Node_compare(BPy_Node *a, BPy_Node *b)
@@ -1189,7 +1545,7 @@ static int Node_compare(BPy_Node *a, BPy_Node *b)
 static PyObject *Node_repr(BPy_Node *self)
 {
 	return PyString_FromFormat( "[Node \"%s\"]",
-			self->node ? self->node->id->name+2 : "empty node");
+		self->node ? self->node->id->name+2 : "empty node");
 }
 
 BPy_Node *Node_CreatePyObject(bNode *node)
