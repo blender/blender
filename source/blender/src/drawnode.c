@@ -356,9 +356,11 @@ static int node_buts_time(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *b
 
 		curvemap_buttons(block, node->storage, 's', B_NODE_EXEC+node->nr, B_REDR, butr);
 		
-		if(cumap) cumap->flag |= CUMA_DRAW_CFRA;
-		if(node->custom1<node->custom2)
-			cumap->sample[0]= (float)(CFRA - node->custom1)/(float)(node->custom2-node->custom1);
+		if(cumap) {
+			cumap->flag |= CUMA_DRAW_CFRA;
+			if(node->custom1<node->custom2)
+				cumap->sample[0]= (float)(CFRA - node->custom1)/(float)(node->custom2-node->custom1);
+		}
 
 		uiBlockBeginAlign(block);
 		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Sta:",

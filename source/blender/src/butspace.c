@@ -319,6 +319,7 @@ static void curvemap_buttons_zoom_out(void *cumap_v, void *unused)
 				d1= cumap->curr.xmin - cumap->clipr.xmin;
 		cumap->curr.xmin-= d1;
 		
+		d1= d;
 		if(cumap->flag & CUMA_DO_CLIP) 
 			if(cumap->curr.xmax+d > cumap->clipr.xmax)
 				d1= -cumap->curr.xmax + cumap->clipr.xmax;
@@ -331,6 +332,7 @@ static void curvemap_buttons_zoom_out(void *cumap_v, void *unused)
 				d1= cumap->curr.ymin - cumap->clipr.ymin;
 		cumap->curr.ymin-= d1;
 		
+		d1= d;
 		if(cumap->flag & CUMA_DO_CLIP) 
 			if(cumap->curr.ymax+d > cumap->clipr.ymax)
 				d1= -cumap->curr.ymax + cumap->clipr.ymax;
