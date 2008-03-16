@@ -534,6 +534,14 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 					break;
 				}
 			}
+
+			/* set socket own_index to zero since it can still have a value
+			 * from being in a group before, otherwise it doesn't get a unique
+			 * index in group_verify_own_indices */
+			for(sock= node->inputs.first; sock; sock= sock->next)
+				sock->own_index= 0;
+			for(sock= node->outputs.first; sock; sock= sock->next)
+				sock->own_index= 0;
 		}
 	}
 
@@ -589,6 +597,10 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 			}
 		}
 	}
+
+	/* update node levels */
+	ntreeSolveOrder(ntree);
+
 	return gnode;
 }
 
