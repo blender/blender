@@ -6747,7 +6747,7 @@ static void meshdeformModifier_do(
                 float (*vertexCos)[3], int numVerts)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
-	float imat[4][4], cagemat[4][4], icagemat[4][4], iobmat[3][3];
+	float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
 	float weight, totweight, fac, co[3], *weights, (*dco)[3], (*bindcos)[3];
 	int a, b, totvert, totcagevert, defgrp_index;
 	DerivedMesh *tmpdm, *cagedm;
@@ -6773,8 +6773,9 @@ static void meshdeformModifier_do(
  	/* compute matrices to go in and out of cage object space */
 	Mat4Invert(imat, mmd->object->obmat);
 	Mat4MulMat4(cagemat, ob->obmat, imat);
-	Mat4Invert(icagemat, cagemat);
-	Mat3CpyMat4(iobmat, icagemat);
+	Mat4MulMat4(cmat, cagemat, mmd->bindmat);
+	Mat4Invert(iobmat, cmat);
+	Mat3CpyMat4(icagemat, iobmat);
 
 	/* bind weights if needed */
 	if(!mmd->bindcos)
@@ -6872,7 +6873,7 @@ static void meshdeformModifier_do(
 
 		if(totweight > 0.0f) {
 			VecMulf(co, fac/totweight);
-			Mat3MulVecfl(iobmat, co);
+			Mat3MulVecfl(icagemat, co);
 			if(G.rt != 527)
 				VECADD(vertexCos[b], vertexCos[b], co)
 			else
