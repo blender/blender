@@ -31,13 +31,13 @@ Or to print all the constraints attached to each bone in a pose::
 @var Type: Constant Constraint dict used by L{Constraints.append()} and 
 	for comparison with L{Constraint.type}.  Values are
 	TRACKTO, IKSOLVER, FOLLOWPATH, COPYROT, COPYLOC, COPYSIZE, ACTION,
-	LOCKTRACK, STRETCHTO, FLOOR, LIMITLOC, LIMITROT, LIMITSIZE, CLAMPTO, 
-	PYTHON, CHILDOF, TRANSFORM, NULL
+	LOCKTRACK, STRETCHTO, FLOOR, LIMITLOC, LIMITROT, LIMITSIZE, LIMITDIST, 
+	CLAMPTO, PYTHON, CHILDOF, TRANSFORM, NULL
 
 @type Settings: readonly dictionary
 @var Settings: Constant dict used for changing constraint settings.
 	- Used for all single-target constraints 
-		(TRACKTO, FOLLOWPATH, COPYROT, COPYLOC, COPYSIZE, ACTION, LOCKTRACK, STRETCHTO, FLOOR, CLAMPTO, CHILDOF, TRANSFORM)
+		(TRACKTO, FOLLOWPATH, COPYROT, COPYLOC, COPYSIZE, ACTION, LOCKTRACK, STRETCHTO, FLOOR, CLAMPTO, CHILDOF, TRANSFORM, LIMITDIST)
 		- TARGET (Object): target object
 		- BONE (string): name of Bone sub-target (for Armature targets), or name of Vertex Group sub-target
 			(for Geometry targets)
@@ -127,6 +127,8 @@ Or to print all the constraints attached to each bone in a pose::
 		- YMAX (float): clamped to [0.0001,1000.0]
 		- ZMIN (float): clamped to [0.0001,1000.0]
 		- ZMAX (float): clamped to [0.0001,1000.0]
+	- Used by Limit Distance (LIMITDIST) constraint:
+		- LIMITMODE (int): any one of LIMIT_INSIDE, LIMIT_OUTSIDE, LIMIT_ONSURFACE
 	- Used by Python Script (PYTHON) constraint:
 		- SCRIPT (Text): script to use
 		- PROPERTIES (IDProperties): ID-Properties of constraint

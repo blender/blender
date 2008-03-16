@@ -114,6 +114,8 @@ enum constraint_constants {
 	EXPP_CONSTR_LIMIT,
 	EXPP_CONSTR_CLAMP,
 	
+	EXPP_CONSTR_MODE,
+	
 	EXPP_CONSTR_LIMXMIN = LIMIT_XMIN,
 	EXPP_CONSTR_LIMXMAX = LIMIT_XMAX,
 	EXPP_CONSTR_LIMYMIN = LIMIT_YMIN,
@@ -899,6 +901,56 @@ static int stretchto_setter( BPy_Constraint *self, int type, PyObject *value )
 		}
 		return status;
 		}
+	default:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+	}
+}
+
+static PyObject *distlimit_getter( BPy_Constraint * self, int type )
+{
+	bDistLimitConstraint *con = (bDistLimitConstraint *)(self->con->data);
+
+	switch( type ) {
+	case EXPP_CONSTR_TARGET:
+		return Object_CreatePyObject( con->tar );
+	case EXPP_CONSTR_BONE:
+		return PyString_FromString( con->subtarget );
+	case EXPP_CONSTR_RESTLENGTH:
+		return PyFloat_FromDouble( (double)con->dist );
+	case EXPP_CONSTR_MODE:
+		return PyInt_FromLong( (long)con->mode );
+	default:
+		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
+	}
+}
+
+static int distlimit_setter( BPy_Constraint *self, int type, PyObject *value )
+{
+	bDistLimitConstraint *con = (bDistLimitConstraint *)(self->con->data);
+
+	switch( type ) {
+	case EXPP_CONSTR_TARGET: {
+		Object *obj = (( BPy_Object * )value)->object;
+		if( !BPy_Object_Check( value ) )
+			return EXPP_ReturnIntError( PyExc_TypeError, 
+					"expected BPy object argument" );
+		con->tar = obj;
+		return 0;
+		}
+	case EXPP_CONSTR_BONE: {
+		char *name = PyString_AsString( value );
+		if( !name )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected string arg" );
+
+		BLI_strncpy( con->subtarget, name, sizeof( con->subtarget ) );
+
+		return 0;
+		}
+	case EXPP_CONSTR_RESTLENGTH:
+		return EXPP_setFloatClamped( value, &con->dist, 0.0, 100.0 );
+	case EXPP_CONSTR_MODE:
+		return EXPP_setIValueRange( value, &con->mode, LIMITDIST_INSIDE, LIMITDIST_ONSURFACE, 'i' );
 	default:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	}
@@ -1883,6 +1935,8 @@ static PyObject *Constraint_getData( BPy_Constraint * self, PyObject * key )
 			return loclimit_getter( self, setting );
 		case CONSTRAINT_TYPE_SIZELIMIT:
 			return sizelimit_getter( self, setting );
+		case CONSTRAINT_TYPE_DISTLIMIT:
+			return distlimit_getter( self, setting );
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			return rigidbody_getter( self, setting );
 		case CONSTRAINT_TYPE_CLAMPTO:
@@ -1959,6 +2013,9 @@ static int Constraint_setData( BPy_Constraint * self, PyObject * key,
 			break;
 		case CONSTRAINT_TYPE_SIZELIMIT:
 			result = sizelimit_setter( self, key_int, arg);
+			break;
+		case CONSTRAINT_TYPE_DISTLIMIT:
+			result = distlimit_setter( self, key_int, arg);
 			break;
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			result = rigidbody_setter( self, key_int, arg);
@@ -2447,6 +2504,8 @@ static PyObject *M_Constraint_TypeDict( void )
 				PyInt_FromLong( CONSTRAINT_TYPE_ROTLIMIT ) );
 		PyConstant_Insert( d, "LIMITSIZE", 
 				PyInt_FromLong( CONSTRAINT_TYPE_SIZELIMIT ) );
+		PyConstant_Insert( d, "LIMITDIST",
+				PyInt_FromLong( CONSTRAINT_TYPE_DISTLIMIT ) );
 		PyConstant_Insert( d, "RIGIDBODYJOINT", 
 				PyInt_FromLong( CONSTRAINT_TYPE_RIGIDBODYJOINT ) );
 		PyConstant_Insert( d, "CLAMPTO", 
@@ -2640,6 +2699,15 @@ static PyObject *M_Constraint_SettingsDict( void )
 
 		PyConstant_Insert( d, "LOCK",
 				PyInt_FromLong( EXPP_CONSTR_LOCK ) );
+				
+		PyConstant_Insert( d, "LIMITMODE",
+				PyInt_FromLong( EXPP_CONSTR_MODE ) );
+		PyConstant_Insert( d, "LIMIT_INSIDE",
+				PyInt_FromLong( LIMITDIST_INSIDE ) );
+		PyConstant_Insert( d, "LIMIT_OUTSIDE",
+				PyInt_FromLong( LIMITDIST_OUTSIDE ) );
+		PyConstant_Insert( d, "LIMIT_ONSURFACE",
+				PyInt_FromLong( LIMITDIST_ONSURFACE ) );
 
 		PyConstant_Insert( d, "COPY",
 				PyInt_FromLong( EXPP_CONSTR_COPY ) );
