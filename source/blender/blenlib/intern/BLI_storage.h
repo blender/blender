@@ -31,9 +31,11 @@
 #ifndef BLI_STORAGE_H
 #define BLI_STORAGE_H
 
+#ifndef __APPLE__
 #ifndef WIN32
 #define _LARGEFILE_SOURCE 1
 #define _FILE_OFFSET_BITS 64
+#endif
 #endif
 
 #include "BLI_storage_types.h"
