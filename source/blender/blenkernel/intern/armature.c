@@ -1389,18 +1389,26 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 	bPoseChannel *pchan, *pchanp, pchanw;
 	bConstraint *con;
 	
-	if(frompose==NULL) return;
+	if (frompose==NULL) return;
 	
 	/* exception, armature local layer should be proxied too */
-	if(pose->proxy_layer)
+	if (pose->proxy_layer)
 		((bArmature *)ob->data)->layer= pose->proxy_layer;
 	
 	/* clear all transformation values from library */
 	rest_pose(frompose);
 	
-	pchan= pose->chanbase.first;
-	for(; pchan; pchan= pchan->next) {
-		if(pchan->bone->layer & layer_protected) {
+	/* copy over all of the proxy's bone groups */
+		/* TODO for later - implement 'local' bone groups as for constraints
+		 *	Note: this isn't trivial, as bones reference groups by index not by pointer, 
+		 *		 so syncing things correctly needs careful attention
+		 */
+	BLI_freelistN(&pose->agroups);
+	duplicatelist(&pose->agroups, &frompose->agroups);
+	pose->active_group= frompose->active_group;
+	
+	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->bone->layer & layer_protected) {
 			ListBase proxylocal_constraints = {NULL, NULL};
 			pchanp= get_pose_channel(frompose, pchan->name);
 			
