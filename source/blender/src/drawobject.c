@@ -1995,7 +1995,7 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 				Mat4MulVecfl(ob->obmat, v1);
 				Mat4MulVecfl(ob->obmat, v2);
 				Mat4MulVecfl(ob->obmat, v3);
-				if (efa->v4) Mat4MulVecfl(ob->obmat, v4);
+				Mat4MulVecfl(ob->obmat, v4);
 			}
 			
 			e1= efa->e1;
