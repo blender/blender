@@ -1015,7 +1015,7 @@ static void do_gammacross_effect_float(float facf0, float facf1,
 		x= xo * 4;
 		while(x--) {
 
-			col= gammaCorrect(
+			*rt= gammaCorrect(
 				fac1*invGammaCorrect(*rt1) 
 				+ fac2*invGammaCorrect(*rt2));
 
