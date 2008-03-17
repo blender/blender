@@ -865,8 +865,15 @@ static PyObject *Blender_Run(PyObject *self, PyObject *value)
 
 	if (script) script->flags |= SCRIPT_RUNNING; /* set */
 
-	if (!is_blender_text) free_libblock(&G.main->text, text);
-
+	if (!is_blender_text) {
+		
+		/* nice to remember the original filename, so the script can run on reload */
+		if (script) {
+			strncpy(script->scriptname, fname, sizeof(script->scriptname));
+			script->scriptarg[0] = '\0';
+		}	
+		free_libblock(&G.main->text, text);
+	}
 	Py_RETURN_NONE;
 }
 

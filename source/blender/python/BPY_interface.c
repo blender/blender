@@ -785,14 +785,23 @@ int BPY_run_script(Script *script)
 		char fname[FILE_MAX];
 		char fpath[FILE_MAX];
 		char ftmp[FILE_MAX];
+		char *bpyhome = bpy_gethome(1);
 		
-		strcpy(ftmp, script->scriptname);
-		BLI_split_dirfile(ftmp, fpath, fname);
-		BLI_make_file_string("/", fpath, bpy_gethome(1), fname);
+		if (bpyhome) {
+			BLI_strncpy(ftmp, script->scriptname, sizeof(ftmp));
+			BLI_split_dirfile(ftmp, fpath, fname); /* get the filename only - fname */
+			BLI_strncpy(fpath, bpy_gethome(1), sizeof(fpath));
+			BLI_add_slash(fpath);
+			strcat(fpath, fname);
 		
-		if (BLI_exists(fpath)) {
-			strncpy(script->scriptname, fpath, sizeof(script->scriptname));
-		} else if (U.pythondir[0]) {
+			if (BLI_exists(fpath)) {
+				strncpy(script->scriptname, fpath, sizeof(script->scriptname));
+			} else {
+				bpyhome = NULL; /* a bit dodgy, this is so the line below runs */
+			}
+		}
+		
+		if (bpyhome == NULL && U.pythondir[0]) {
 			BLI_make_file_string("/", fpath, U.pythondir, fname);
 			if (BLI_exists(fpath)) {
 				strncpy(script->scriptname, fpath, sizeof(script->scriptname));
@@ -812,7 +821,10 @@ int BPY_run_script(Script *script)
 		Py_INCREF( Py_None );
 		pyarg = Py_None;
 	} else {
-		fp = fopen( script->scriptname, "rb" );
+		if (BLI_exists(script->scriptname)) {
+			fp = fopen( script->scriptname, "rb" );
+		}
+		
 		if( !fp ) {
 			printf( "Error loading script: couldn't open file %s\n", script->scriptname );
 			free_libblock( &G.main->script, script );
