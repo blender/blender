@@ -1508,14 +1508,16 @@ void agroup_to_keylist(bActionGroup *agrp, ListBase *keys, ListBase *blocks, Act
 	if (agrp) {
 		/* loop through action channels */
 		for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
-			/* firstly, add keys from action channel's ipo block */
-			if (achan->ipo)
-				ipo_to_keylist(achan->ipo, keys, blocks, aki);
-			
-			/* then, add keys from constraint channels */
-			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
-				if (conchan->ipo)
-					ipo_to_keylist(conchan->ipo, keys, blocks, aki);
+			if(VISIBLE_ACHAN(achan)) {
+				/* firstly, add keys from action channel's ipo block */
+				if (achan->ipo)
+					ipo_to_keylist(achan->ipo, keys, blocks, aki);
+				
+				/* then, add keys from constraint channels */
+				for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
+					if (conchan->ipo)
+						ipo_to_keylist(conchan->ipo, keys, blocks, aki);
+				}
 			}
 		}
 	}
