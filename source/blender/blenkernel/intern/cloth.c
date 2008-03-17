@@ -190,11 +190,6 @@ BVH *bvh_build_from_cloth (ClothModifierData *clmd, float epsilon)
 	
 	// springs = cloth->springs;
 	// numsprings = cloth->numsprings;
-	
-	bvh->flags = 0;
-	bvh->leaf_tree = NULL;
-	bvh->leaf_root = NULL;
-	bvh->tree = NULL;
 
 	bvh->epsilon = epsilon;
 	bvh->numfaces = cloth->numfaces;
@@ -211,20 +206,9 @@ BVH *bvh_build_from_cloth (ClothModifierData *clmd, float epsilon)
 		return NULL;
 	}
 	
-	bvh->current_xold = MEM_callocN ( sizeof ( MVert ) * bvh->numverts, "bvh->current_xold" );
-	
-	if (bvh->current_xold == NULL) 
-	{
-		printf("bvh: Out of memory.\n");
-		MEM_freeN(bvh->current_x);
-		MEM_freeN(bvh);
-		return NULL;
-	}
-	
 	for(i = 0; i < bvh->numverts; i++)
 	{
 		VECCOPY(bvh->current_x[i].co, verts[i].tx);
-		VECCOPY(bvh->current_xold[i].co, verts[i].txold);
 	}
 	
 	bvh_build (bvh);

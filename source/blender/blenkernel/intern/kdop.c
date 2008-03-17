@@ -538,18 +538,32 @@ void bvh_build (BVH *bvh)
 	CollisionTree *tree=NULL;
 	LinkNode *nlink = NULL;
 	
+	bvh->flags = 0;
+	bvh->leaf_tree = NULL;
+	bvh->leaf_root = NULL;
+	bvh->tree = NULL;
+	
+	if(!bvh->current_x)
+	{
+		bvh_free(bvh);
+		return;
+	}
+	
+	bvh->current_xold = MEM_dupallocN(bvh->current_x);
+	
 	tree = (CollisionTree *)MEM_callocN(sizeof(CollisionTree), "CollisionTree");
-	// TODO: check succesfull alloc
-	BLI_linklist_append(&bvh->tree, tree);
-
-	nlink = bvh->tree;
-
+	
 	if (tree == NULL) 
 	{
 		printf("bvh_build: Out of memory for nodes.\n");
 		bvh_free(bvh);
 		return;
 	}
+	
+	BLI_linklist_append(&bvh->tree, tree);
+
+	nlink = bvh->tree;
+
 	bvh->root = bvh->tree->link;
 	bvh->root->isleaf = 0;
 	bvh->root->parent = NULL;

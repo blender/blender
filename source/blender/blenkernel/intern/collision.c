@@ -86,11 +86,6 @@ BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsig
 	// in the moment, return zero if no faces there
 	if(!numfaces)
 		return NULL;
-	
-	bvh->flags = 0;
-	bvh->leaf_tree = NULL;
-	bvh->leaf_root = NULL;
-	bvh->tree = NULL;
 
 	bvh->epsilon = epsilon;
 	bvh->numfaces = numfaces;
@@ -103,8 +98,7 @@ BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsig
 	}
 
 	bvh->numverts = numverts;
-	bvh->current_x = MEM_dupallocN(x);	
-	bvh->current_xold = MEM_dupallocN(x);	
+	bvh->current_x = MEM_dupallocN(x);
 	
 	bvh_build(bvh);
 	
@@ -975,10 +969,13 @@ int cloth_bvh_objcollisions_do(ClothModifierData * clmd, CollisionModifierData *
 	
 	if (collmd->tree) 
 	{
+		/* get pointer to bounding volume hierarchy */
 		BVH *coll_bvh = collmd->tree;
-				
+		
+		/* move object to position (step) in time */
 		collision_move_object(collmd, step + dt, step);
-					
+		
+		/* search for overlapping collision pairs */
 		bvh_traverse((ModifierData *)clmd, (ModifierData *)collmd, cloth_bvh->root, coll_bvh->root, step, cloth_collision_static, 0);
 	}
 	else
