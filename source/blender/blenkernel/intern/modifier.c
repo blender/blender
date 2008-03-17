@@ -5527,6 +5527,7 @@ static void particleSystemModifier_deformVerts(
 
 	/* make new dm */
 	psmd->dm=CDDM_copy(dm);
+	CDDM_apply_vert_coords(psmd->dm, vertexCos);
 	CDDM_calc_normals(psmd->dm);
 
 	if(needsFree){
