@@ -986,7 +986,7 @@ static void do_gammacross_effect_float(float facf0, float facf1,
 				       float *rect1, float *rect2, 
 				       float *out)
 {
-	float fac1, fac2, col;
+	float fac1, fac2;
 	int xo;
 	float *rt1, *rt2, *rt;
 

@@ -535,10 +535,17 @@ static void getSelectedFile( char *name )
 				fprintf(stderr, "BPy error: Callback call failed!\n");
 		}
 		else Py_DECREF(result);
-
+		
+		
+			
 		if (script->py_browsercallback == pycallback) {
-			SCRIPT_SET_NULL(script);
+			if (script->flags & SCRIPT_GUI) {
+				script->py_browsercallback = NULL;
+			} else {
+				SCRIPT_SET_NULL(script);
+			}
 		}
+		
 		/* else another call to selector was made inside pycallback */
 
 		Py_DECREF(pycallback);
