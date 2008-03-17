@@ -1254,9 +1254,9 @@ static void modifiers_convertParticles(void *obv, void *mdv)
 	ParticleCacheKey *key, **cache;
 	Mesh *me;
 	MVert *mvert;
-	MFace *mface;
+	MEdge *medge;
 	int a, k, kmax;
-	int totvert=0, totface=0, cvert=0;
+	int totvert=0, totedge=0, cvert=0;
 	int totpart=0, totchild=0;
 
 	if(md->type != eModifierType_ParticleSystem) return;
@@ -1277,15 +1277,15 @@ static void modifiers_convertParticles(void *obv, void *mdv)
 	cache= psys->pathcache;
 	for(a=0; a<totpart; a++) {
 		key= cache[a];
-		totvert+= (int)(key->col[3])+1;
-		totface+= (int)(key->col[3]);
+		totvert+= key->steps+1;
+		totedge+= key->steps;
 	}
 
 	cache= psys->childcache;
 	for(a=0; a<totchild; a++) {
 		key= cache[a];
-		totvert+= (int)(key->col[3])+1;
-		totface+= (int)(key->col[3]);
+		totvert+= key->steps+1;
+		totedge+= key->steps;
 	}
 
 	if(totvert==0) return;
@@ -1295,25 +1295,27 @@ static void modifiers_convertParticles(void *obv, void *mdv)
 	me= obn->data;
 	
 	me->totvert= totvert;
-	me->totface= totface;
+	me->totedge= totedge;
 	
 	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
-	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, totface);
+	me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
+	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, 0);
 	
 	mvert= me->mvert;
-	mface= me->mface;
+	medge= me->medge;
 
 	/* copy coordinates */
 	cache= psys->pathcache;
-	for(a=0; a<totpart; a++){
+	for(a=0; a<totpart; a++) {
 		key= cache[a];
-		kmax= (int)(key->col[3]);
+		kmax= key->steps;
 		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
 			VECCOPY(mvert->co,key->co);
-			if(k){
-				mface->v1= cvert-1;
-				mface->v2= cvert;
-				mface++;
+			if(k) {
+				medge->v1= cvert-1;
+				medge->v2= cvert;
+				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
+				medge++;
 			}
 		}
 	}
@@ -1321,18 +1323,21 @@ static void modifiers_convertParticles(void *obv, void *mdv)
 	cache=psys->childcache;
 	for(a=0; a<totchild; a++) {
 		key=cache[a];
-		kmax=(int)(key->col[3]);
+		kmax=key->steps;
 		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
 			VECCOPY(mvert->co,key->co);
-			if(k){
-				mface->v1=cvert-1;
-				mface->v2=cvert;
-				mface++;
+			if(k) {
+				medge->v1=cvert-1;
+				medge->v2=cvert;
+				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
+				medge++;
 			}
 		}
 	}
-	make_edges(me, 0);
+
+	DAG_scene_sort(G.scene);
 }
+
 static void modifiers_applyModifier(void *obv, void *mdv)
 {
 	Object *ob = obv;
