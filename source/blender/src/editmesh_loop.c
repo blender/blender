@@ -488,11 +488,11 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 {
 	CutCurve *curve,*temp;
 	EditVert *snapvert;
-	float *scr, mval[2]={0.0,0.0}, lastx=0, lasty=0;
+	float *scr, mval[2]={0.0,0.0}, lastx=0, lasty=0, lockx=0, locky=0;
 	int i=0, j, blocks=1, lasti=0;
 	int dist, tolerance;
 	short event, val, qual, vsnap=0, ldown=0, restart=0, rubberband=0;
-	short mval1[2], lockaxis=0, lockx=0, locky=0, oldmode; 
+	short mval1[2], lockaxis=0, oldmode; 
 	
 	*len=0;
 	tolerance = 75;
