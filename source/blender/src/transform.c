@@ -1247,21 +1247,43 @@ void ManipulatorTransform()
 			}
 			if(val) {
 				switch(event) {
-				case WHEELDOWNMOUSE:
 				case PADPLUSKEY:
-					if(Trans.flag & T_PROP_EDIT) {
+					if(G.qual & LR_ALTKEY && Trans.flag & T_PROP_EDIT) {
 						Trans.propsize*= 1.1f;
 						calculatePropRatio(&Trans);
-						Trans.redraw= 1;
 					}
+					Trans.redraw= 1;
 					break;
-				case WHEELUPMOUSE:
+				case PAGEUPKEY:
+				case WHEELDOWNMOUSE:
+					if (Trans.flag & T_AUTOIK) {
+						transform_autoik_update(&Trans, 1);
+					}
+					else if(Trans.flag & T_PROP_EDIT) {
+						Trans.propsize*= 1.1f;
+						calculatePropRatio(&Trans);
+					}
+					else view_editmove(event);
+					Trans.redraw= 1;
+					break;
 				case PADMINUS:
-					if(Trans.flag & T_PROP_EDIT) {
+					if(G.qual & LR_ALTKEY && Trans.flag & T_PROP_EDIT) {
 						Trans.propsize*= 0.90909090f;
 						calculatePropRatio(&Trans);
-						Trans.redraw= 1;
 					}
+					Trans.redraw= 1;
+					break;
+				case PAGEDOWNKEY:
+				case WHEELUPMOUSE:
+					if (Trans.flag & T_AUTOIK) {
+						transform_autoik_update(&Trans, -1);
+					}
+					else if (Trans.flag & T_PROP_EDIT) {
+						Trans.propsize*= 0.90909090f;
+						calculatePropRatio(&Trans);
+					}
+					else view_editmove(event);
+					Trans.redraw= 1;
 					break;
 				}
 							
