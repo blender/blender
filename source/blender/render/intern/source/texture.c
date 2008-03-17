@@ -2488,21 +2488,29 @@ int externtex(MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *t
 void render_realtime_texture(ShadeInput *shi, Image *ima)
 {
 	TexResult texr;
-	static Tex tex1, tex2;	// threadsafe
+	static Tex imatex[BLENDER_MAX_THREADS];	// threadsafe
 	static int firsttime= 1;
 	Tex *tex;
 	float texvec[3], dx[2], dy[2];
 	ShadeInputUV *suv= &shi->uv[shi->actuv];
+	int a;
 
 	if(firsttime) {
-		firsttime= 0;
-		default_tex(&tex1);
-		default_tex(&tex2);
-		tex1.type= TEX_IMAGE;
-		tex2.type= TEX_IMAGE;
+		BLI_lock_thread(LOCK_IMAGE);
+		if(firsttime) {
+			for(a=0; a<BLENDER_MAX_THREADS; a++) {
+				memset(&imatex[a], 0, sizeof(Tex));
+				default_tex(&imatex[a]);
+				imatex[a].type= TEX_IMAGE;
+			}
+
+			firsttime= 0;
+		}
+		BLI_unlock_thread(LOCK_IMAGE);
 	}
 	
-	if(shi->ys & 1) tex= &tex1; else tex= &tex2;	// threadsafe
+	tex= &imatex[shi->thread];
+	tex->iuser.ok= ima->ok;
 	
 	texvec[0]= 0.5+0.5*suv->uv[0];
 	texvec[1]= 0.5+0.5*suv->uv[1];
@@ -2519,12 +2527,6 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 	if(shi->osatex) imagewraposa(tex, ima, NULL, texvec, dx, dy, &texr); 
 	else imagewrap(tex, ima, NULL, texvec, &texr); 
 
-	if (tex->ima && tex->ima->flag & IMA_DO_PREMUL) {
-		texr.tr *= texr.ta;
-		texr.tg *= texr.ta;
-		texr.tb *= texr.ta;
-	}
-		
 	shi->vcol[0]*= texr.tr;
 	shi->vcol[1]*= texr.tg;
 	shi->vcol[2]*= texr.tb;
