@@ -694,6 +694,10 @@ class SurfNurb:
 	@ivar orderV: The order setting for the V direction.  Values are clamped
 	to the range [2:6] and not greater than the V dimension.
 	@type orderV: int
+	@ivar knotsU: The The knot vector in the U direction
+	@type knotsU: tuple
+	@ivar knotsV: The The knot vector in the V direction
+	@type knotsV: tuple
 	"""
 
 	def __setitem__( n, point ):
