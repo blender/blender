@@ -2025,6 +2025,7 @@ float BPY_pydriver_eval(IpoDriver *driver)
 	}
 
 	result = ( float )PyFloat_AsDouble( retval );
+	Py_DECREF(retval);
 	
 	if (result == -1 && PyErr_Occurred()) {
 		result = pydriver_error(driver);
