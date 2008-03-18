@@ -990,10 +990,12 @@ getClipboard(int flag
 		XNextEvent(m_display, &xevent);
 		if(xevent.type == SelectionNotify) {
 			if(XGetWindowProperty(m_display, m_window, xevent.xselection.property, 0L, 4096L, False, AnyPropertyType, &rtype, &bits, &len, &bytes, &data) == Success) {
-				tmp_data = (unsigned char*) malloc(strlen((char*)data));
-				strcpy((char*)tmp_data, (char*)data);
-				XFree(data);
-				return (GHOST_TUns8*)tmp_data;
+				if (data) {
+					tmp_data = (unsigned char*) malloc(strlen((char*)data));
+					strcpy((char*)tmp_data, (char*)data);
+					XFree(data);
+					return (GHOST_TUns8*)tmp_data;
+				}
 			}
 			return NULL;
 		}
