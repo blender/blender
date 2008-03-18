@@ -1580,7 +1580,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	EditEdge *eed;
 	MDeformVert *dvert=NULL;
 	TransformProperties *tfp= G.vd->properties_storage;
-	float median[5];
+	float median[5], ve_median[5];
 	int tot, totw, totweight, totedge;
 	char defstr[320];
 	
@@ -1773,15 +1773,16 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 		
 	}
 	else {	// apply
+		memcpy(ve_median, tfp->ve_median, sizeof(tfp->ve_median));
 		
 		if(G.vd->flag & V3D_GLOBAL_STATS) {
 			Mat4Invert(ob->imat, ob->obmat);
 			Mat4MulVecfl(ob->imat, median);
-			Mat4MulVecfl(ob->imat, tfp->ve_median);
+			Mat4MulVecfl(ob->imat, ve_median);
 		}
-		VecSubf(median, tfp->ve_median, median);
-		median[3]= tfp->ve_median[3]-median[3];
-		median[4]= tfp->ve_median[4]-median[4];
+		VecSubf(median, ve_median, median);
+		median[3]= ve_median[3]-median[3];
+		median[4]= ve_median[4]-median[4];
 		
 		if(ob->type==OB_MESH) {
 			
@@ -1796,8 +1797,8 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			for(eed= em->edges.first; eed; eed= eed->next) {
 				if(eed->f & SELECT) {
 					/* ensure the median can be set to zero or one */
-					if(tfp->ve_median[3]==0.0f) eed->crease= 0.0f;
-					else if(tfp->ve_median[3]==1.0f) eed->crease= 1.0f;
+					if(ve_median[3]==0.0f) eed->crease= 0.0f;
+					else if(ve_median[3]==1.0f) eed->crease= 1.0f;
 					else {
 						eed->crease+= median[3];
 						CLAMP(eed->crease, 0.0, 1.0);
