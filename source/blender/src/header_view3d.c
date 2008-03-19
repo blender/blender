@@ -934,7 +934,7 @@ static uiBlock *view3d_select_objectmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Inverse",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Inverse|Ctrl I",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Random",							0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	
 	uiDefIconTextBlockBut(block, view3d_select_object_layermenu, NULL, ICON_RIGHTARROW_THIN, "Select All by Layer", 0, yco-=20, 120, 19, "");
