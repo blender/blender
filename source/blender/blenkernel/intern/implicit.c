@@ -1458,11 +1458,11 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 			speed[0] = speed[1] = speed[2] = 0.0;
 			if(mfaces[i].v4)
 			{
-				pdDoEffectors(effectors, lX[i], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+				pdDoEffectors(effectors, lX[mfaces[i].v4], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 				VECCOPY(wind_normalized, speed);
 				Normalize(wind_normalized);
 				VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal) * verts[mfaces[i].v4].mass);
-				VECADDS(lF[i], lF[i], wind_normalized, 0.25);
+				VECADDS(lF[mfaces[i].v4], lF[mfaces[i].v4], wind_normalized, 0.25);
 			}
 			
 		}
