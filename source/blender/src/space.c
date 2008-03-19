@@ -5254,6 +5254,10 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if((G.qual==0))
 					hide_tface_uv(0);		
 				break;
+			case IKEY:
+				if(G.qual==LR_CTRLKEY)
+					select_invert_tface_uv();
+				break;
 			case LKEY:
 				if(G.qual==0)
 					select_linked_tface_uv(0);
