@@ -2107,7 +2107,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 
 	VecMulf(vec, td->factor);
 
-	if (t->flag & T_OBJECT) {
+	if (t->flag & (T_OBJECT|T_POSE)) {
 		Mat3MulVecfl(td->smtx, vec);
 	}
 
