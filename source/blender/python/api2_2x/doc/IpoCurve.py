@@ -11,6 +11,8 @@ This module provides access to the IpoCurve data in Blender.  An Ipo is
 composed of several IpoCurves, and an IpoCurve are composed of several 
 BezTriples.
 
+@warning: Ipo curves store euler rotations as degrees/10.0 so 180.0 would be 18.0
+
 Example::
   import Blender
   ipo = Blender.Ipo.Get('ObIpo')  # retrieves an Ipo object
