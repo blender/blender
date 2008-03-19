@@ -1328,11 +1328,17 @@ class XRef(InterNode):
 		self.props['comment'] = ''
 		self.parse_record()
 
-		xref_filename = self.props['3t200!filename']
+		xref_filename = self.props['3t200!filename'] #I dont even think there is a reason to keep this around...
+		
+		if not os.path.isabs(xref_filename):
+			absname = os.path.join(os.path.dirname(self.header.filename), xref_filename) 
+		else:
+			absname = xref_filename	
+		
 		self.props['id'] = 'X: ' + Blender.sys.splitext(Blender.sys.basename(xref_filename))[0] #this is really wrong as well....
 		
-		if global_prefs['doxrefs'] and os.path.exists(xref_filename) and not self.header.grr.xrefs.has_key(xref_filename):
-			self.xref = Database(xref_filename, self.header.grr, self)
+		if global_prefs['doxrefs'] and os.path.exists(absname) and not self.header.grr.xrefs.has_key(xref_filename):
+			self.xref = Database(absname, self.header.grr, self)
 			self.header.grr.xrefs[xref_filename] = self.xref
 		else:
 			self.xref = None
@@ -1852,6 +1858,9 @@ class Database(InterNode):
 		if global_prefs['verbose'] >= 1:
 			print 'Parsing:', filename
 			print
+		
+		#check to see if filename is a relative path
+		#filename = os.path.abspath(filename)
 		
 		self.fw = flt_filewalker.FltIn(filename)
 		self.filename = filename
