@@ -8578,38 +8578,38 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 /* common routine to append/link something from a library */
 
 static Library* library_append( Scene *scene, char* file, char *dir, int idcode,
-		int totsel, FileData *fd, struct direntry* filelist, int totfile, short flag)
+		int totsel, FileData **fd, struct direntry* filelist, int totfile, short flag)
 {
 	Main *mainl;
 	Library *curlib;
 
 	/* make mains */
-	blo_split_main(&fd->mainlist, G.main);
+	blo_split_main(&(*fd)->mainlist, G.main);
 
 	/* which one do we need? */
-	mainl = blo_find_main(fd, &fd->mainlist, dir, G.sce);
+	mainl = blo_find_main(*fd, &(*fd)->mainlist, dir, G.sce);
 	
-	mainl->versionfile= fd->fileversion;	/* needed for do_version */
+	mainl->versionfile= (*fd)->fileversion;	/* needed for do_version */
 	
 	curlib= mainl->curlib;
 	
 	if(totsel==0) {
-		append_named_part(fd, mainl, scene, file, idcode, flag);
+		append_named_part(*fd, mainl, scene, file, idcode, flag);
 	}
 	else {
 		int a;
 		for(a=0; a<totfile; a++) {
 			if(filelist[a].flags & ACTIVE) {
-				append_named_part(fd, mainl, scene, filelist[a].relname, idcode, flag);
+				append_named_part(*fd, mainl, scene, filelist[a].relname, idcode, flag);
 			}
 		}
 	}
 
 	/* make main consistant */
-	expand_main(fd, mainl);
+	expand_main(*fd, mainl);
 
 	/* do this when expand found other libs */
-	read_libraries(fd, &fd->mainlist);
+	read_libraries(*fd, &(*fd)->mainlist);
 
 	if(flag & FILE_STRINGCODE) {
 
@@ -8620,10 +8620,10 @@ static Library* library_append( Scene *scene, char* file, char *dir, int idcode,
 		BLI_makestringcode(G.sce, mainl->curlib->name);
 	}
 
-	blo_join_main(&fd->mainlist);
-	G.main= fd->mainlist.first;
+	blo_join_main(&(*fd)->mainlist);
+	G.main= (*fd)->mainlist.first;
 
-	lib_link_all(fd, G.main);
+	lib_link_all(*fd, G.main);
 	lib_verify_nodetree(G.main, 0);
 	fix_relpaths_library(G.sce, G.main); /* make all relative paths, relative to the open blend file */
 
@@ -8642,8 +8642,9 @@ static Library* library_append( Scene *scene, char* file, char *dir, int idcode,
 	/* 20041208: put back. It only linked direct, not indirect objects (ton) */
 	
 	/* patch to prevent switch_endian happens twice */
-	if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-		blo_freefiledata( fd );
+	if((*fd)->flags & FD_FLAGS_SWITCH_ENDIAN) {
+		blo_freefiledata( *fd );
+		*fd = NULL;
 	}	
 
 	return curlib;
@@ -8654,11 +8655,11 @@ static Library* library_append( Scene *scene, char* file, char *dir, int idcode,
 /* append to G.scene */
 /* this should probably be moved into the Python code anyway */
 
-void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, 
+void BLO_script_library_append(BlendHandle **bh, char *dir, char *name, 
 		int idcode, short flag, Scene *scene )
 {
 	/* try to append the requested object */
-	library_append( scene, name, dir, idcode, 0, (FileData *)bh, NULL, 0, flag );
+	library_append( scene, name, dir, idcode, 0, (FileData **)bh, NULL, 0, flag );
 
 	/* do we need to do this? */
 	DAG_scene_sort(G.scene);
@@ -8674,6 +8675,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 void BLO_library_append_(BlendHandle** libfiledata, struct direntry* filelist, int totfile, char *dir, char* file, short flag, int idcode)
 {
 	FileData *fd= (FileData*) (*libfiledata);
+	int lastflags = fd->flags;
 	Library *curlib;
 	Base *centerbase;
 	Object *ob;
@@ -8706,12 +8708,7 @@ void BLO_library_append_(BlendHandle** libfiledata, struct direntry* filelist, i
 	
 	if(flag & FILE_AUTOSELECT) scene_deselect_all(G.scene);
 
-	curlib = library_append( G.scene, file, dir, idcode, totsel, fd, filelist, totfile,flag );
-
-	/* patch to prevent switch_endian happens twice */
-	if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-		(*libfiledata)= 0;
-	}	
+	curlib = library_append( G.scene, file, dir, idcode, totsel, (FileData**) libfiledata, filelist, totfile,flag );
 
 	/* when not linking (appending)... */
 	if((flag & FILE_LINK)==0) {

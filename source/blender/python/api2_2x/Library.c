@@ -1,5 +1,5 @@
 /**
- * $Id: Library.c 10943 2007-06-16 12:24:41Z campbellbarton $
+ * $Id$
  *
  * Blender.Library BPython module implementation.
  * This submodule has functions to append data from .blend files.
@@ -175,7 +175,7 @@ static PyObject *M_Library_Open( PyObject * self, PyObject * value )
 	BLI_strncpy(filename, G.sce, sizeof(filename));
 	bpy_openlib = BLO_blendhandle_from_file( fname1 );
 	BLI_strncpy(G.sce, filename, sizeof(filename)); 
-	
+
 	if( !bpy_openlib )
 		return EXPP_ReturnPyObjError( PyExc_IOError, "file not found" );
 
@@ -344,6 +344,7 @@ static PyObject *oldM_Library_Load( PyObject * self, PyObject * args )
 	int blocktype = 0;
 	int linked = 0;
 
+	
 	if( !bpy_openlib ) {
 		return EXPP_ReturnPyObjError( PyExc_IOError,
 					      "no library file: you need to open one, first." );
@@ -359,12 +360,19 @@ static PyObject *oldM_Library_Load( PyObject * self, PyObject * args )
 	if( !blocktype )
 		return EXPP_ReturnPyObjError( PyExc_NameError,
 					      "no such Blender datablock type" );
-	
+
 	if (linked)
-		BLO_script_library_append( bpy_openlib, bpy_openlibname, name, blocktype, FILE_LINK, G.scene);
+		BLO_script_library_append( &bpy_openlib, bpy_openlibname, name, blocktype, FILE_LINK, G.scene);
 	else
-		BLO_script_library_append( bpy_openlib, bpy_openlibname, name, blocktype, 0, G.scene);
-	
+		BLO_script_library_append( &bpy_openlib, bpy_openlibname, name, blocktype, 0, G.scene);
+
+	/*
+		NOTE:  BLO_script_library_append() can close the library if there is
+		an endian issue.  if this happened, reopen for the next call.
+	*/
+	if ( !bpy_openlib )
+		bpy_openlib = BLO_blendhandle_from_file( bpy_openlibname );
+
 	if( update ) {
 		M_Library_Update( self );
 		Py_DECREF( Py_None );	/* incref'ed by above function */
@@ -610,7 +618,7 @@ PyObject *LibraryData_importLibData( BPy_LibraryData *self, char *name,
 	}
 
 	/* import from the libary */
-	BLO_script_library_append( openlib, longFilename, name, self->type, mode,
+	BLO_script_library_append( &openlib, longFilename, name, self->type, mode,
 			scene );
 
 	/*

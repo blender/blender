@@ -238,7 +238,7 @@ char *BLO_gethome(void);
 int BLO_has_bfile_extension(char *str);
 void BLO_library_append(struct SpaceFile *sfile, char *dir, int idcode);
 void BLO_library_append_(BlendHandle **libfiledata, struct direntry* filelist, int totfile, char *dir, char* file, short flag, int idcode);
-void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcode, short flag, struct Scene *scene);
+void BLO_script_library_append(BlendHandle **bh, char *dir, char *name, int idcode, short flag, struct Scene *scene);
 
 BlendFileData* blo_read_blendafterruntime(int file, int actualsize, BlendReadError *error_r);
 
