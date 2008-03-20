@@ -959,7 +959,7 @@ getClipboard(int flag
 		Primary_atom = XInternAtom(m_display, "CLIPBOARD", False);
 		owner = XGetSelectionOwner(m_display, Primary_atom);
 		if (owner == m_window) {
-			data = (unsigned char*) malloc(strlen(txt_cut_buffer));
+			data = (unsigned char*) malloc(strlen(txt_cut_buffer)+1);
 			strcpy((char*)data, txt_cut_buffer);
 			return (GHOST_TUns8*)data;
 		} else if (owner == None) {
@@ -969,7 +969,7 @@ getClipboard(int flag
 		Primary_atom = XInternAtom(m_display, "PRIMARY", False);
 		owner = XGetSelectionOwner(m_display, Primary_atom);
 		if (owner == m_window) {
-			data = (unsigned char*) malloc(strlen(txt_select_buffer));
+			data = (unsigned char*) malloc(strlen(txt_select_buffer)+1);
 			strcpy((char*)data, txt_select_buffer);
 			return (GHOST_TUns8*)data;
 		} else if (owner == None) {
@@ -991,7 +991,7 @@ getClipboard(int flag
 		if(xevent.type == SelectionNotify) {
 			if(XGetWindowProperty(m_display, m_window, xevent.xselection.property, 0L, 4096L, False, AnyPropertyType, &rtype, &bits, &len, &bytes, &data) == Success) {
 				if (data) {
-					tmp_data = (unsigned char*) malloc(strlen((char*)data));
+					tmp_data = (unsigned char*) malloc(strlen((char*)data)+1);
 					strcpy((char*)tmp_data, (char*)data);
 					XFree(data);
 					return (GHOST_TUns8*)tmp_data;
@@ -1016,13 +1016,13 @@ GHOST_TInt8 *buffer, int flag) const
 		Primary_atom = XInternAtom(m_display, "CLIPBOARD", False);
 		if(txt_cut_buffer) { free((void*)txt_cut_buffer); }
 		
-		txt_cut_buffer = (char*) malloc(strlen(buffer));
+		txt_cut_buffer = (char*) malloc(strlen(buffer)+1);
 		strcpy(txt_cut_buffer, buffer);
 	} else {
 		Primary_atom = XInternAtom(m_display, "PRIMARY", False);
 		if(txt_select_buffer) { free((void*)txt_select_buffer); }
 		
-		txt_select_buffer = (char*) malloc(strlen(buffer));
+		txt_select_buffer = (char*) malloc(strlen(buffer)+1);
 		strcpy(txt_select_buffer, buffer);
 	}
 	
