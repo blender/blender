@@ -1432,7 +1432,7 @@ void insertkey_action(void)
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWBUTSOBJ, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
 /* delete selected keyframes */
