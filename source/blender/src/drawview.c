@@ -2889,6 +2889,69 @@ static void draw_sculpt_depths(View3D *v3d)
 	}
 }
 
+void draw_depth(ScrArea *sa, void *spacedata)
+{
+	View3D *v3d= spacedata;
+	Base *base;
+	Scene *sce;
+	short drawtype;
+	
+	/* temp set drawtype to solid */
+	drawtype = v3d->drawtype;
+	v3d->drawtype = OB_SOLID;
+	
+	
+	setwinmatrixview3d(sa->winx, sa->winy, NULL);	/* 0= no pick rect */
+	setviewmatrixview3d();	/* note: calls where_is_object for camera... */
+	
+	Mat4MulMat4(v3d->persmat, v3d->viewmat, sa->winmat);
+	Mat4Invert(v3d->persinv, v3d->persmat);
+	Mat4Invert(v3d->viewinv, v3d->viewmat);
+	
+	glClear(GL_DEPTH_BUFFER_BIT);
+	
+	myloadmatrix(v3d->viewmat);
+	persp(PERSP_STORE);  // store correct view for persp(PERSP_VIEW) calls
+	
+	if(v3d->flag & V3D_CLIPPING) {
+		view3d_set_clipping(v3d);
+	}
+	
+	v3d->zbuf= TRUE;
+	glEnable(GL_DEPTH_TEST);
+	
+	/* draw set first */
+	if(G.scene->set) {
+		for(SETLOOPER(G.scene->set, base)) {
+			
+			if(v3d->lay & base->lay) {
+
+				/*BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);*/ /* not needed for depths */
+
+				draw_object(base, DRAW_CONSTCOLOR);
+
+				if(base->object->transflag & OB_DUPLI) {
+					draw_dupli_objects_color(v3d, base, TH_WIRE);
+				}
+			}
+		}
+	}
+	
+	/* then draw not selected and the duplis, but skip editmode object */
+	for(base= G.scene->base.first; base; base= base->next) {
+		if(v3d->lay & base->lay) {
+			
+			/* dupli drawing */
+			if(base->object->transflag & OB_DUPLI) {
+				draw_dupli_objects(v3d, base);
+			}
+			draw_object(base, 0);
+		}
+	}
+	
+	v3d->drawtype = drawtype;
+}
+
 static void draw_viewport_fps(ScrArea *sa);
 
 
