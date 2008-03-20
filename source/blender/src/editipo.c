@@ -2268,19 +2268,48 @@ void add_vert_ipo(void)
 	BIF_undo_push("Add Ipo vertex");
 }
 
-static void *get_context_ipo_poin(ID *id, int blocktype, char *actname, IpoCurve *icu, int *vartype)
+static void *get_context_ipo_poin(ID *id, int blocktype, char *actname, char *constname, IpoCurve *icu, int *vartype)
 {
-	if(blocktype==ID_PO) {
-		if(GS(id->name)==ID_OB) {
+	if (blocktype==ID_PO) {
+		if (GS(id->name)==ID_OB) {
 			Object *ob= (Object *)id;
 			bPoseChannel *pchan= get_pose_channel(ob->pose, actname);
 			
-			if(pchan) {
+			if (pchan) {
 				*vartype= IPO_FLOAT;
 				return get_pchan_ipo_poin(pchan, icu->adrcode);
 			}
 			else
 				return NULL;
+		}
+		return NULL;
+	}
+	else if (blocktype==ID_CO) {
+		if ((GS(id->name)==ID_OB) && (constname && constname[0])) {
+			Object *ob= (Object *)id;
+			bConstraint *con;
+			
+			/* assume that we only want the influence (as only used for Constraint Channels) */
+			if ((ob->ipoflag & OB_ACTION_OB) && !strcmp(actname, "Object")) {
+				for (con= ob->constraints.first; con; con= con->next) {
+					if (strcmp(constname, con->name)==0) {
+						*vartype= IPO_FLOAT;
+						return &con->enforce;
+					}
+				}
+			}
+			else if (ob->pose) {
+				bPoseChannel *pchan= get_pose_channel(ob->pose, actname);
+				
+				if (pchan) {
+					for (con= pchan->constraints.first; con; con= con->next) {
+						if (strcmp(constname, con->name)==0) {
+							*vartype= IPO_FLOAT;
+							return &con->enforce;
+						}
+					}
+				}
+			}
 		}
 		return NULL;
 	}
@@ -2420,7 +2449,7 @@ static void insertkey_nonrecurs(ID *id, int blocktype, char *actname, char *cons
 		
 		if(icu) {
 			
-			poin= get_context_ipo_poin(id, blocktype, actname, icu, &vartype);
+			poin= get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
 			
 			if(poin) {
 				curval= read_ipo_poin(poin, vartype);
@@ -2641,7 +2670,7 @@ void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcod
 		
 		if(icu) {
 			
-			poin= get_context_ipo_poin(id, blocktype, actname, icu, &vartype);
+			poin= get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
 			
 			if(poin) {
 				curval= read_ipo_poin(poin, vartype);
@@ -2683,7 +2712,7 @@ void insertkey_smarter(ID *id, int blocktype, char *actname, char *constname, in
 	
 	if(icu) {
 		
-		poin= get_context_ipo_poin(id, blocktype, actname, icu, &vartype);
+		poin= get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
 		
 		if(poin) {
 			curval= read_ipo_poin(poin, vartype);
@@ -2735,7 +2764,7 @@ void insertfloatkey(ID *id, int blocktype, char *actname, char *constname, int a
 	
 	if(icu) {
 		
-		poin= get_context_ipo_poin(id, blocktype, actname, icu, &vartype);
+		poin= get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
 		
 		if(poin) {
 			
