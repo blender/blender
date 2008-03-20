@@ -2894,10 +2894,11 @@ void draw_depth(ScrArea *sa, void *spacedata)
 	View3D *v3d= spacedata;
 	Base *base;
 	Scene *sce;
-	short drawtype;
+	short drawtype, zbuf;
 	
 	/* temp set drawtype to solid */
 	drawtype = v3d->drawtype;
+	zbuf = v3d->zbuf;
 	v3d->drawtype = OB_SOLID;
 	
 	
@@ -2923,13 +2924,8 @@ void draw_depth(ScrArea *sa, void *spacedata)
 	/* draw set first */
 	if(G.scene->set) {
 		for(SETLOOPER(G.scene->set, base)) {
-			
 			if(v3d->lay & base->lay) {
-
-				/*BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);*/ /* not needed for depths */
-
-				draw_object(base, DRAW_CONSTCOLOR);
-
+				draw_object(base, 0);
 				if(base->object->transflag & OB_DUPLI) {
 					draw_dupli_objects_color(v3d, base, TH_WIRE);
 				}
@@ -2937,7 +2933,6 @@ void draw_depth(ScrArea *sa, void *spacedata)
 		}
 	}
 	
-	/* then draw not selected and the duplis, but skip editmode object */
 	for(base= G.scene->base.first; base; base= base->next) {
 		if(v3d->lay & base->lay) {
 			
@@ -2949,7 +2944,42 @@ void draw_depth(ScrArea *sa, void *spacedata)
 		}
 	}
 	
+	/* this isnt that nice, draw xray objects as if they are normal */
+	if (v3d->afterdraw.first) {
+		View3DAfter *v3da, *next;
+		int num = 0;
+		v3d->xray= TRUE;
+		
+		glDepthFunc(GL_ALWAYS); /* always write into the depth bufer, overwriting front z values */
+		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
+			next= v3da->next;
+			if(v3da->type==V3D_XRAY) {
+				draw_object(v3da->base, 0);
+				num++;
+			}
+			/* dont remove this time */
+		}
+		v3d->xray= FALSE;
+		
+		glDepthFunc(GL_LEQUAL); /* Now write the depth buffer normally */
+		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
+			next= v3da->next;
+			if(v3da->type==V3D_XRAY) {
+				v3d->xray= TRUE; v3d->transp= FALSE;  
+			} else if (v3da->type==V3D_TRANSP) {
+				v3d->xray= FALSE; v3d->transp= TRUE;
+			}
+			
+			draw_object(v3da->base, 0); /* Draw Xray or Transp objects normally */
+			BLI_remlink(&v3d->afterdraw, v3da);
+			MEM_freeN(v3da);
+		}
+		v3d->xray= FALSE;
+		v3d->transp= FALSE;
+	}
+	
 	v3d->drawtype = drawtype;
+	v3d->zbuf = zbuf;
 }
 
 static void draw_viewport_fps(ScrArea *sa);
