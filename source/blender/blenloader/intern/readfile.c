@@ -3051,11 +3051,14 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			clmd->sim_parms= newdataadr(fd, clmd->sim_parms);
 			clmd->coll_parms= newdataadr(fd, clmd->coll_parms);
 			
-			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_LOADED;
-			clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_EDITMODE;
-			
-			if(clmd->sim_parms->presets > 10)
-				clmd->sim_parms->presets = 0;
+			if(clmd->sim_parms)
+			{
+				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_LOADED;
+				clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_EDITMODE;
+				
+				if(clmd->sim_parms->presets > 10)
+					clmd->sim_parms->presets = 0;
+			}
 			
 		}
 		else if (md->type==eModifierType_Collision) {
@@ -3080,7 +3083,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->current_v = NULL;
 			collmd->time = -1;
 			collmd->numverts = 0;
-			collmd->tree = NULL;
+			collmd->bvh = NULL;
 			collmd->mfaces = NULL;
 			
 		}

@@ -369,8 +369,8 @@ typedef struct ClothModifierData {
    ModifierData		modifier;
 
    struct Cloth *clothObject; /* The internal data structure for cloth. */
-   struct SimulationSettings *sim_parms; /* definition is in DNA_cloth_types.h */
-   struct CollisionSettings *coll_parms; /* definition is in DNA_cloth_types.h */
+   struct ClothSimSettings *sim_parms; /* definition is in DNA_cloth_types.h */
+   struct ClothCollSettings *coll_parms; /* definition is in DNA_cloth_types.h */
 } ClothModifierData;
 
 typedef struct CollisionModifierData {
@@ -381,15 +381,15 @@ typedef struct CollisionModifierData {
 	struct MVert *xold; /* unsued atm, but was discussed during sprint */
 	struct MVert *current_xnew; /* new position at the actual inter-frame step */
 	struct MVert *current_x; /* position at the actual inter-frame step */
-	struct MVert *current_v; /* position at the actual inter-frame step */
+	struct MVert *current_v; /* (xnew - x) at the actual inter-frame step */
 	
 	struct MFace *mfaces; /* object face data */
 	
 	unsigned int numverts;
 	unsigned int numfaces;
 	int pad;
-	float time;
-	struct BVH *tree;	/* collision tree for this cloth object */
+	float time;		/* cfra time of modifier */
+	struct BVH *bvh;	/* bounding volume hierarchy for this cloth object */
 } CollisionModifierData;
 
 typedef enum {

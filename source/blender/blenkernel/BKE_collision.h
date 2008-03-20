@@ -172,7 +172,8 @@ void bvh_free ( BVH * bvh );
 // checks two bounding volume hierarchies for potential collisions and returns some list with those
 
 
-// update bounding volumes, needs updated positions in bvh->x
+// update bounding volumes, needs updated positions in  bvh->current_xold (static) 
+// and also bvh->current_x if moving==1
 void bvh_update_from_mvert(BVH * bvh, MVert *x, unsigned int numverts, MVert *xnew, int moving);
 void bvh_update(BVH * bvh, int moving);
 

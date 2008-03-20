@@ -44,7 +44,8 @@
 * as in stepsPerFrame comapred to the time step in the paper, I've used
 * variables with different names to minimize confusion.
 **/
-typedef struct SimulationSettings
+
+typedef struct ClothSimSettings
 {
 	short	vgroup_mass;	/* optional vertexgroup name for assigning weight.*/
 	short	vgroup_struct;  /* vertex group for scaling structural stiffness */
@@ -87,10 +88,10 @@ typedef struct SimulationSettings
 	short pad;
 	int pad2;
 }
-SimulationSettings;
+ClothSimSettings;
 
 
-typedef struct CollisionSettings
+typedef struct ClothCollSettings
 {
 	float	epsilon;		/* min distance for collisions.		*/
 	float	self_friction;		/* Fiction/damping with self contact.		 	*/
@@ -101,7 +102,7 @@ typedef struct CollisionSettings
 	int	flags;			/* collision flags defined in BKE_cloth.h */
 	float 	selfepsilon; 		/* for selfcollision */
 }
-CollisionSettings;
+ClothCollSettings;
 
 
 /**

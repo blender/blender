@@ -37,12 +37,10 @@
 #include "DNA_cloth_types.h"	
 #include "DNA_scene_types.h"
 
-
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_cloth.h"
 #include "BKE_utildefines.h"
-
 
 #ifdef _WIN32
 #include <windows.h>

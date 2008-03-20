@@ -859,8 +859,8 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 		else if(md->type==eModifierType_Cloth) {
 			ClothModifierData *clmd = (ClothModifierData*) md;
 			
-			writestruct(wd, DATA, "SimulationSettings", 1, clmd->sim_parms);
-			writestruct(wd, DATA, "CollisionSettings", 1, clmd->coll_parms);
+			writestruct(wd, DATA, "ClothSimSettings", 1, clmd->sim_parms);
+			writestruct(wd, DATA, "ClothCollSettings", 1, clmd->coll_parms);
 			
 		} 
 		else if (md->type==eModifierType_Collision) {
