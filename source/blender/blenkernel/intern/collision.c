@@ -69,6 +69,7 @@ void collision_move_object(CollisionModifierData *collmd, float step, float prev
 		VECADDS(collmd->current_xnew[i].co, collmd->x[i].co, tv, step);
 		VECSUB(collmd->current_v[i].co, collmd->current_xnew[i].co, collmd->current_x[i].co);
 	}
+	bvh_update_from_mvert(collmd->tree, collmd->current_x, collmd->numverts, collmd->current_xnew, 1);
 }
 
 /* build bounding volume hierarchy from mverts (see kdop.c for whole BVH code) */
