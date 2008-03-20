@@ -6472,7 +6472,10 @@ void editing_panels()
 			editing_panel_mesh_tools(ob, ob->data);
 			editing_panel_mesh_tools1(ob, ob->data);
 			uiNewPanelTabbed("Mesh Tools 1", "Editing");
-			editing_panel_mesh_skgen(ob, ob->data);
+			
+			if (G.rt == 42) /* hidden for now, no time for docs */
+				editing_panel_mesh_skgen(ob, ob->data);
+			
 			editing_panel_mesh_uvautocalculation();
 			if (EM_texFaceCheck())
 				editing_panel_mesh_texface();
