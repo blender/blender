@@ -168,7 +168,7 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 		for (i=1; i < key->totkey; i++) {
 			make_rvk_slider(block, ob, i, 
 							x, y, SLIDERWIDTH-2, CHANNELHEIGHT-1, "Slider to control Shape Keys");
-
+			
 			y-=CHANNELHEIGHT+CHANNELSKIP;
 			
 			/* see sliderval array in editkey.c */
@@ -176,7 +176,6 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 		}
 	}
 	uiDrawBlock(block);
-
 }
 
 static void icu_slider_func(void *voidicu, void *voidignore) 
@@ -238,7 +237,7 @@ static void make_icu_slider(uiBlock *block, IpoCurve *icu,
 	/* create a slider for the ipo-curve*/
 	uiBut *but;
 	
-	if(icu==NULL) return;
+	if(icu == NULL) return;
 	
 	if (IS_EQ(icu->slide_max, icu->slide_min)) {
 		if (IS_EQ(icu->ymax, icu->ymin)) {
@@ -359,7 +358,7 @@ static void action_icu_buts(SpaceAction *saction)
 						// TODO...
 					}
 						break;
-				}	
+				}
 			}
 			
 			/* adjust y-position for next one */
@@ -905,7 +904,7 @@ void do_actionbuts(unsigned short event)
 	}
 }
 
-
+// currently not used...
 static void action_panel_properties(short cntrl)	// ACTION_HANDLER_PROPERTIES
 {
 	uiBlock *block;
@@ -913,10 +912,10 @@ static void action_panel_properties(short cntrl)	// ACTION_HANDLER_PROPERTIES
 	block= uiNewBlock(&curarea->uiblocks, "action_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(ACTION_HANDLER_PROPERTIES);  // for close and esc
-	if(uiNewPanel(curarea, block, "Transform Properties", "Action", 10, 230, 318, 204)==0) return;
+	if (uiNewPanel(curarea, block, "Transform Properties", "Action", 10, 230, 318, 204)==0) 
+		return;
 
 	uiDefBut(block, LABEL, 0, "test text",		10,180,300,19, 0, 0, 0, 0, 0, "");
-
 }
 
 static void action_blockhandlers(ScrArea *sa)
@@ -924,17 +923,17 @@ static void action_blockhandlers(ScrArea *sa)
 	SpaceAction *sact= sa->spacedata.first;
 	short a;
 	
-	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
+	for (a=0; a<SPACE_MAXHANDLER; a+=2) {
 		switch(sact->blockhandler[a]) {
-
-		case ACTION_HANDLER_PROPERTIES:
-			action_panel_properties(sact->blockhandler[a+1]);
-			break;
-		
+			case ACTION_HANDLER_PROPERTIES:
+				action_panel_properties(sact->blockhandler[a+1]);
+				break;
 		}
+		
 		/* clear action value for event */
 		sact->blockhandler[a+1]= 0;
 	}
+	
 	uiDrawBlocksPanels(sa, 0);
 }
 
@@ -959,7 +958,6 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 
 	/* only try to refresh action that's displayed if not pinned */
 	if (G.saction->pin==0) {
-		/* TODO: allow more than one active action sometime? */
 		if (OBACT)
 			G.saction->action = OBACT->action;
 		else
@@ -1508,7 +1506,7 @@ void agroup_to_keylist(bActionGroup *agrp, ListBase *keys, ListBase *blocks, Act
 	if (agrp) {
 		/* loop through action channels */
 		for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
-			if(VISIBLE_ACHAN(achan)) {
+			if (VISIBLE_ACHAN(achan)) {
 				/* firstly, add keys from action channel's ipo block */
 				if (achan->ipo)
 					ipo_to_keylist(achan->ipo, keys, blocks, aki);
