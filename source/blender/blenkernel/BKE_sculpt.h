@@ -59,9 +59,6 @@ typedef struct SculptSession {
 	
 	struct RadialControl *radialcontrol;
 	
-	/* For rotating around a pivot point */
-	vec3f pivot;
-
 	struct SculptStroke *stroke;
 } SculptSession;
 

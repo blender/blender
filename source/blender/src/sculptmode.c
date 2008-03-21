@@ -1231,7 +1231,7 @@ void init_brushaction(BrushAction *a, short *mouse, short *pr_mouse)
 
 	/* Set the pivot to allow the model to rotate around the center of the brush */
 	if(get_depth(mouse[0],mouse[1]) < 1.0)
-		VecCopyf(&sculpt_session()->pivot.x, a->symm.center_3d);
+		VecCopyf(sd->pivot, a->symm.center_3d);
 
 	/* Now project the Up, Right, and Out normals from view to model coords */
 	unproject(zero_loc, 0, 0, 0);
@@ -1692,7 +1692,7 @@ void sculpt(void)
 			}
 			else {
 				do_symmetrical_brush_actions(a, mouse, mvalo);
-				unproject(&ss->pivot.x, mouse[0], mouse[1], a->depth);
+				unproject(sd->pivot, mouse[0], mouse[1], a->depth);
 			}
 
 			if(modifier_calculations || ob_get_keyblock(ob))

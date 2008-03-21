@@ -468,6 +468,10 @@ typedef struct SculptData
 
 	/* Settings for each brush */
 	BrushData drawbrush, smoothbrush, pinchbrush, inflatebrush, grabbrush, layerbrush, flattenbrush;
+
+	/* For rotating around a pivot point */
+	float pivot[3];
+
 	short brush_type;
 
 	/* For the Brush Shape */
@@ -486,10 +490,10 @@ typedef struct SculptData
 	/* Symmetry is separate from the other BrushData because the same
 	   settings are always used for all brush types */
 	char symm;
-	
+
 	/* Added to store if the 'Rake' setting has been set */
 	char rake;
-	char pad[7];
+	char pad[3];
 } SculptData;
 
 typedef struct Scene {
