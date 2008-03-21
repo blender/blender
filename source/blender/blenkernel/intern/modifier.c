@@ -1010,7 +1010,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		numFaces++;
 
 		/* if the face has fewer than 3 vertices, don't create it */
-		if(mf->v3 == 0) {
+		if(mf->v3 == 0 || (mf->v1 && (mf->v1 == mf->v3 || mf->v1 == mf->v4))) {
 			numFaces--;
 			DM_free_face_data(result, numFaces, 1);
 		}
@@ -1032,7 +1032,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			numFaces++;
 
 			/* if the face has fewer than 3 vertices, don't create it */
-			if(mf2->v3 == 0) {
+			if(mf2->v3 == 0 || (mf->v1 && (mf->v1 == mf->v3 || mf->v1 == mf->v4))) {
 				numFaces--;
 				DM_free_face_data(result, numFaces, 1);
 			}
