@@ -2188,68 +2188,76 @@ void set_render_border(void)
 
 void view3d_border_zoom(void)
 {
+	View3D *v3d = G.vd;
+	
 	/* Zooms in on a border drawn by the user */
 	rcti rect;
 	short val;
 	float dvec[3], vb[2], xscale, yscale, scale;
 	
+	
 	/* SMOOTHVIEW */
 	float new_dist;
 	float new_ofs[3];
 	
-	val = get_border(&rect, 3); //box select input
+	/* ZBuffer depth vars */
+	bglMats mats;
+	float depth, depth_close= MAXFLOAT;
+	int had_depth = 0;
+	double cent[2],  p[3];
+	int xs, ys;
+	
+	/* Get the border input */
+	val = get_border(&rect, 3);
 	if(!val) return;
 	
-	if (G.vd->persp==1) { /* perspective */
-		View3D *v3d = G.vd;
-		bglMats mats;
-		float depth, depth_close= MAXFLOAT;
-		double cent[2],  p[3], p_corner[3];
-		int xs, ys, had_depth = 0;
-		
-		/* convert border to 3d coordinates */
-		bgl_get_mats(&mats);
-		
-		draw_depth(curarea, (void *)v3d);
-		
-		/* force updating */
-		if (v3d->depths) {
-			had_depth = 1;
-			v3d->depths->damaged = 1;
-		}
-		
-		view3d_update_depths(v3d);
-		
-		/* Constrain rect to depth bounds */
-		if (rect.xmin < 0) rect.xmin = 0;
-		if (rect.ymin < 0) rect.ymin = 0;
-		if (rect.xmax >= G.vd->depths->w) rect.xmax = G.vd->depths->w-1;
-		if (rect.ymax >= G.vd->depths->h) rect.ymax = G.vd->depths->h-1;		
-		
-		for (xs=rect.xmin; xs < rect.xmax; xs++) {
-			for (ys=rect.ymin; ys < rect.ymax; ys++) {
-				depth= v3d->depths->depths[ys*v3d->depths->w+xs];
-				if(depth < v3d->depths->depth_range[1] && depth > v3d->depths->depth_range[0]) {
-					if (depth_close > depth) {
-						depth_close = depth;
-					}
+	/* Get Z Depths, needed for perspective, nice for ortho */
+	bgl_get_mats(&mats);
+	draw_depth(curarea, (void *)v3d);
+	
+	/* force updating */
+	if (v3d->depths) {
+		had_depth = 1;
+		v3d->depths->damaged = 1;
+	}
+	
+	view3d_update_depths(v3d);
+	
+	/* Constrain rect to depth bounds */
+	if (rect.xmin < 0) rect.xmin = 0;
+	if (rect.ymin < 0) rect.ymin = 0;
+	if (rect.xmax >= v3d->depths->w) rect.xmax = v3d->depths->w-1;
+	if (rect.ymax >= v3d->depths->h) rect.ymax = v3d->depths->h-1;		
+	
+	/* Find the closest Z pixel */
+	for (xs=rect.xmin; xs < rect.xmax; xs++) {
+		for (ys=rect.ymin; ys < rect.ymax; ys++) {
+			depth= v3d->depths->depths[ys*v3d->depths->w+xs];
+			if(depth < v3d->depths->depth_range[1] && depth > v3d->depths->depth_range[0]) {
+				if (depth_close > depth) {
+					depth_close = depth;
 				}
 			}
 		}
-		
-		if (had_depth==0) {
-			MEM_freeN(v3d->depths->depths);
-			v3d->depths->depths = NULL;
-		}
-		v3d->depths->damaged = 1;
-		
-		/* no depths to use*/
+	}
+	
+	if (had_depth==0) {
+		MEM_freeN(v3d->depths->depths);
+		v3d->depths->depths = NULL;
+	}
+	v3d->depths->damaged = 1;
+	
+	cent[0] = (((double)rect.xmin)+((double)rect.xmax)) / 2;
+	cent[1] = (((double)rect.ymin)+((double)rect.ymax)) / 2;
+	
+	if (v3d->persp==1) { /* perspective */
+		double p_corner[3];
+
+		/* no depths to use, we cant do anything! */
 		if (depth_close==MAXFLOAT) 
 			return;
 		
-		cent[0] = (((double)rect.xmin)+((double)rect.xmax)) / 2;
-		cent[1] = (((double)rect.ymin)+((double)rect.ymax)) / 2;
-		
+		/* convert border to 3d coordinates */
 		if ((	!gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, mats.viewport, &p[0], &p[1], &p[2])) || 
 			(	!gluUnProject((double)rect.xmin, (double)rect.ymin, depth_close, mats.modelview, mats.projection, mats.viewport, &p_corner[0], &p_corner[1], &p_corner[2])))
 			return;
@@ -2259,7 +2267,7 @@ void view3d_border_zoom(void)
 		dvec[2] = p[2]-p_corner[2];
 		
 		new_dist = VecLength(dvec);
-		if(new_dist <= G.vd->near*1.5) new_dist= G.vd->near*1.5; 
+		if(new_dist <= v3d->near*1.5) new_dist= v3d->near*1.5; 
 		
 		new_ofs[0] = -p[0];
 		new_ofs[1] = -p[1];
@@ -2267,21 +2275,28 @@ void view3d_border_zoom(void)
 		
 	} else { /* othographic */
 		/* find the current window width and height */
-		vb[0] = G.vd->area->winx;
-		vb[1] = G.vd->area->winy;
+		vb[0] = v3d->area->winx;
+		vb[1] = v3d->area->winy;
 		
-		new_dist = G.vd->dist;
-		new_ofs[0] = G.vd->ofs[0];
-		new_ofs[1] = G.vd->ofs[1];
-		new_ofs[2] = G.vd->ofs[2];
+		new_dist = v3d->dist;
 		
 		/* convert the drawn rectangle into 3d space */
-		initgrabz(-new_ofs[0], -new_ofs[1], -new_ofs[2]);
-		
-		window_to_3d(dvec, (rect.xmin+rect.xmax-vb[0])/2, (rect.ymin+rect.ymax-vb[1])/2);
-		
-		/* center the view to the center of the rectangle */
-		VecSubf(new_ofs, new_ofs, dvec);
+		if (depth_close!=MAXFLOAT && gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, mats.viewport, &p[0], &p[1], &p[2])) {
+			new_ofs[0] = -p[0];
+			new_ofs[1] = -p[1];
+			new_ofs[2] = -p[2];
+		} else {
+			/* We cant use the depth, fallback to the old way that dosnt set the center depth */
+			new_ofs[0] = v3d->ofs[0];
+			new_ofs[1] = v3d->ofs[1];
+			new_ofs[2] = v3d->ofs[2];
+			
+			initgrabz(-new_ofs[0], -new_ofs[1], -new_ofs[2]);
+			
+			window_to_3d(dvec, (rect.xmin+rect.xmax-vb[0])/2, (rect.ymin+rect.ymax-vb[1])/2);
+			/* center the view to the center of the rectangle */
+			VecSubf(new_ofs, new_ofs, dvec);
+		}
 		
 		/* work out the ratios, so that everything selected fits when we zoom */
 		xscale = ((rect.xmax-rect.xmin)/vb[0]);
@@ -2289,10 +2304,10 @@ void view3d_border_zoom(void)
 		scale = (xscale >= yscale)?xscale:yscale;
 		
 		/* zoom in as required, or as far as we can go */
-		new_dist = ((new_dist*scale) >= 0.001*G.vd->grid)? new_dist*scale:0.001*G.vd->grid;
+		new_dist = ((new_dist*scale) >= 0.001*v3d->grid)? new_dist*scale:0.001*v3d->grid;
 	}
 	
-	smooth_view(G.vd, new_ofs, NULL, &new_dist, NULL);
+	smooth_view(v3d, new_ofs, NULL, &new_dist, NULL);
 }
 
 void fly(void)
