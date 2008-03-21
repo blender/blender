@@ -5606,13 +5606,6 @@ void view3d_buttons(void)
 		
 			xco+= XIC+8;
 	
-			uiDefIconButBitS(block, TOG, V3D_ALIGN, B_AROUND, ICON_ALIGN,
-				 xco,0,XIC,YIC,
-				 &G.vd->flag, 0, 0, 0, 0, "Move object centers only");	
-	
-			xco+= XIC+8;
-			uiBlockEndAlign(block);
-
 			uiBlockBeginAlign(block);
 
 			/* NDOF */
