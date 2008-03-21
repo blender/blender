@@ -5249,10 +5249,10 @@ static void editing_panel_links(Object *ob)
 			std_libbuttons(block, 143, 130, 0, NULL, B_POSELIB_BROWSE, ID_AC, 0, (ID *)act, (ID *)ob, &(G.buts->menunr), B_POSELIB_ALONE, 0, B_POSELIB_DELETE, 0, 0);
 			uiBlockSetCol(block, TH_AUTO);
 			
-			uiDefBut(block, BUT, B_POSELIB_VALIDATE,  "Auto-Sync PoseLib",	xco,110,160,20, 0, 0, 0, 0, 0, "Syncs the current PoseLib with the poses available");
-			
 			/* PoseLib -  Pose editing controls */
 			if (act) {
+				uiDefBut(block, BUT, B_POSELIB_VALIDATE,  "Auto-Sync PoseLib",	xco,110,160,20, 0, 0, 0, 0, 0, "Syncs the current PoseLib with the poses available");
+				
 				uiBlockBeginAlign(block);
 					/* currently 'active' pose */
 					if (act->markers.first) {
