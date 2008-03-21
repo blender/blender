@@ -2374,8 +2374,9 @@ static Sequence * cut_seq(Sequence * seq, int cutframe)
 
 /* like duplicate, but only duplicate and cut overlapping strips,
  * strips to the left of the cutframe are ignored and strips to the right are moved into the new list */
-static void cut_seq_list(ListBase *old, ListBase *new, int cutframe)
+static int cut_seq_list(ListBase *old, ListBase *new, int cutframe)
 {
+	int did_something = FALSE;
 	Sequence *seq, *seq_next;
 	
 	seq= old->first;
@@ -2391,6 +2392,7 @@ static void cut_seq_list(ListBase *old, ListBase *new, int cutframe)
 				if (seqn) {
 					BLI_addtail(new, seqn);
 				}
+				did_something = TRUE;
 			} else if (seq->enddisp <= cutframe) {
 				/* do nothing */
 			} else if (seq->startdisp >= cutframe) {
@@ -2401,6 +2403,7 @@ static void cut_seq_list(ListBase *old, ListBase *new, int cutframe)
 		}
 		seq = seq_next;
 	}
+	return did_something;
 }
 
 void seq_cut(int cutframe)
@@ -2408,14 +2411,16 @@ void seq_cut(int cutframe)
 	Editing *ed;
 	ListBase newlist;
 	char side;
+	int did_something;
+
 	ed= G.scene->ed;
 	if(ed==0) return;
 	
 	newlist.first= newlist.last= NULL;
 	
-	cut_seq_list(ed->seqbasep, &newlist, cutframe);
+	did_something = cut_seq_list(ed->seqbasep, &newlist, cutframe);
 	
-	if (newlist.first) { /* simple check to see if anything was done */
+	if (newlist.first) { /* got new strips ? */
 		Sequence *seq;
 		addlisttolist(ed->seqbasep, &newlist);
 		
@@ -2438,7 +2443,8 @@ void seq_cut(int cutframe)
 		
 		/* as last: */
 		sort_seq();
-		
+	}
+	if (did_something) {
 		allqueue(REDRAWSEQ, 0);
 		BIF_undo_push("Cut Strips, Sequencer");
 	}
