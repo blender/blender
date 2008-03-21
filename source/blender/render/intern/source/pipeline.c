@@ -2156,7 +2156,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 			ntreeCompositTagAnimated(ntree);
 		}
 		
-		if(!(re->r.scemode & R_COMP_RERENDER)) {
+		if(1 || !(re->r.scemode & R_COMP_RERENDER)) {
 			if(ntree && re->r.scemode & R_DOCOMP) {
 				/* checks if there are render-result nodes that need scene */
 				if((re->r.scemode & R_SINGLE_LAYER)==0)
