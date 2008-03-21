@@ -8677,8 +8677,6 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 
 void BLO_library_append_(BlendHandle** libfiledata, struct direntry* filelist, int totfile, char *dir, char* file, short flag, int idcode)
 {
-	FileData *fd= (FileData*) (*libfiledata);
-	int lastflags = fd->flags;
 	Library *curlib;
 	Base *centerbase;
 	Object *ob;

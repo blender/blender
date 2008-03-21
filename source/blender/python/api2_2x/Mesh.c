@@ -7557,6 +7557,7 @@ static PyObject *Mesh_getTangents( BPy_Mesh * self )
 			
 			CalcNormFloat4( v1->co, v2->co, v3->co, v4->co, fno );
 		} else {
+			v4 = NULL;
 			CalcNormFloat( v1->co, v2->co, v3->co, fno );
 		}
 		

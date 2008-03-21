@@ -2041,15 +2041,15 @@ static void render_panel_output(void)
 			uiDefButBitS(block, TOG, 1<<(3*b+a), 800,"",	(short)(10+18*a),(short)(10+14*b),16,12, &G.winpos, 0, 0, 0, 0, "Render window placement on screen");
 
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, R_EXR_TILE_FILE, B_REDR, "Save Buffers", 72, 31, 120, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Save tiles for all RenderLayers and used SceneNodes to files in the temp directory (saves memory, allows Full Sampling)");
+	uiDefButBitI(block, TOG, R_EXR_TILE_FILE, B_REDR, "Save Buffers", 72, 31, 120, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Save tiles for all RenderLayers and used SceneNodes to files in the temp directory (saves memory, allows Full Sampling)");
 	if(G.scene->r.scemode & R_EXR_TILE_FILE)
-		uiDefButBitS(block, TOG, R_FULL_SAMPLE, B_REDR, "FullSample",	 192, 31, 118, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Saves for every OSA sample the entire RenderLayer results (Higher quality sampling but slower)");
+		uiDefButBitI(block, TOG, R_FULL_SAMPLE, B_REDR, "FullSample",	 192, 31, 118, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Saves for every OSA sample the entire RenderLayer results (Higher quality sampling but slower)");
 	uiBlockEndAlign(block);
 	
 	uiDefButS(block, MENU, B_REDR, "Render Display %t|Render Window %x1|Image Editor %x0|Full Screen %x2",	
 					72, 10, 120, 19, &G.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output display");
 
-	uiDefButBitS(block, TOG, R_EXTENSION, B_NOP, "Extensions", 205, 10, 105, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds filetype extensions to the filename when rendering animations");
+	uiDefButBitI(block, TOG, R_EXTENSION, B_NOP, "Extensions", 205, 10, 105, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds filetype extensions to the filename when rendering animations");
 	
 	/* Dither control */
 	uiDefButF(block, NUM,B_DIFF, "Dither:",         10,89,100,19, &G.scene->r.dither_intensity, 0.0, 2.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
@@ -2061,8 +2061,8 @@ static void render_panel_output(void)
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, R_NO_TEX, B_NOP, "Disable Tex", 115, 63, 70, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Disables Textures for render");
-	uiDefButBitS(block, TOG, R_FREE_IMAGE, B_NOP, "Free Tex Images", 205, 63, 100, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Frees all Images used by Textures after each render");
+	uiDefButBitI(block, TOG, R_NO_TEX, B_NOP, "Disable Tex", 115, 63, 70, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Disables Textures for render");
+	uiDefButBitI(block, TOG, R_FREE_IMAGE, B_NOP, "Free Tex Images", 205, 63, 100, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Frees all Images used by Textures after each render");
 	uiBlockEndAlign(block);
 }
 
@@ -2233,8 +2233,8 @@ static void render_panel_anim(void)
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, R_DOSEQ, B_NOP, "Do Sequence",692,114,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Enables sequence output rendering (Default: 3D rendering)");
-	uiDefButBitS(block, TOG, R_DOCOMP, B_NOP, "Do Composite",692,90,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Uses compositing nodes for output rendering");
+	uiDefButBitI(block, TOG, R_DOSEQ, B_NOP, "Do Sequence",692,114,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Enables sequence output rendering (Default: 3D rendering)");
+	uiDefButBitI(block, TOG, R_DOCOMP, B_NOP, "Do Composite",692,90,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Uses compositing nodes for output rendering");
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_AUTO);
@@ -2462,12 +2462,12 @@ static void render_panel_stamp(void)
 			yofs += 30;
 		}
 		
-		uiDefButBitS(block, TOG, R_STAMP_INFO, B_REDR, "Enable Stamp", xofs, yofs, 120, 20, &G.scene->r.scemode, 0, 0, 0, 0, "Disable stamp info in images metadata");
+		uiDefButBitI(block, TOG, R_STAMP_INFO, B_REDR, "Enable Stamp", xofs, yofs, 120, 20, &G.scene->r.scemode, 0, 0, 0, 0, "Disable stamp info in images metadata");
 		uiDefButBitI(block, TOG, R_STAMP_DRAW, B_REDR, "Draw Stamp", xofs+130, yofs, 170, 20, &G.scene->r.stamp, 0, 0, 0, 0, "Draw the stamp info into each frame");
 		yofs += 20;
 	}
 	else {
-		uiDefButBitS(block, TOG, R_STAMP_INFO, B_REDR, "Enable Stamp", xofs, 142, 120, 20, &G.scene->r.scemode, 0, 0, 0, 0, "Enable stamp info to image metadata");
+		uiDefButBitI(block, TOG, R_STAMP_INFO, B_REDR, "Enable Stamp", xofs, 142, 120, 20, &G.scene->r.scemode, 0, 0, 0, 0, "Enable stamp info to image metadata");
 		yofs += 20;
 		uiDefBut(block, LABEL, 0, "", xofs, yofs, 300, 19, 0, 0, 0, 0, 0, "");
 	}
@@ -2830,7 +2830,7 @@ static void render_panel_layers(void)
 	bt= uiDefBut(block, TEX, REDRAWNODE, "",  53,145,172,20, srl->name, 0.0, 20.0, 0, 0, "");
 	uiButSetFunc(bt, rename_scene_layer_func, srl, NULL);
 	
-	uiDefButBitS(block, TOG, R_SINGLE_LAYER, B_NOP, "Single",	230,145,60,20, &G.scene->r.scemode, 0, 0, 0, 0, "Only render this layer");	
+	uiDefButBitI(block, TOG, R_SINGLE_LAYER, B_NOP, "Single",	230,145,60,20, &G.scene->r.scemode, 0, 0, 0, 0, "Only render this layer");	
 	bt=uiDefIconBut(block, BUT, B_NOP, ICON_X,	285, 145, 25, 20, 0, 0, 0, 0, 0, "Deletes current Render Layer");
 	uiButSetFunc(bt, delete_scene_layer_func, srl, (void *)(long)G.scene->r.actlay);
 	uiBlockEndAlign(block);

@@ -657,20 +657,20 @@ PyObject *RenderData_EnableBackbuf( BPy_RenderData * self, PyObject * args )
 
 PyObject *RenderData_EnableExtensions( BPy_RenderData * self, PyObject * args )
 {
-	return M_Render_BitToggleShort( args, R_EXTENSION,
+	return M_Render_BitToggleInt( args, R_EXTENSION,
 					&self->renderContext->scemode );
 }
 
 PyObject *RenderData_EnableSequencer( BPy_RenderData * self, PyObject * args )
 {
-	return M_Render_BitToggleShort( args, R_DOSEQ,
+	return M_Render_BitToggleInt( args, R_DOSEQ,
 					&self->renderContext->scemode );
 }
 
 PyObject *RenderData_EnableRenderDaemon( BPy_RenderData * self,
 					 PyObject * args )
 {
-	return M_Render_BitToggleShort( args, R_BG_RENDER,
+	return M_Render_BitToggleInt( args, R_BG_RENDER,
 					&self->renderContext->scemode );
 }
 
