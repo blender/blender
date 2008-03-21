@@ -794,6 +794,9 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 		//m_active_camera->Release();
 		m_active_camera = NULL;
 	}
+	// in case this is a camera
+	m_cameras.remove((KX_Camera*)newobj);
+
 	if (m_sceneConverter)
 		m_sceneConverter->UnregisterGameObject(newobj);
 	// return value will be 0 if the object is actually deleted (all reference gone)
@@ -941,6 +944,7 @@ void KX_Scene::AddCamera(KX_Camera* cam)
 	if (!FindCamera(cam))
 		m_cameras.push_back(cam);
 }
+
 
 KX_Camera* KX_Scene::GetActiveCamera()
 {	

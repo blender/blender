@@ -617,7 +617,7 @@ void KX_KetsjiEngine::Render()
 		SetWorldSettings(scene->GetWorldInfo());
 
 		// Avoid drawing the scene with the active camera twice when it's viewport is enabled
-		if(!cam->GetViewport())
+		if(cam && !cam->GetViewport())
 		{
 			if (scene->IsClearingZBuffer())
 				m_rasterizer->ClearDepthBuffer();
@@ -853,6 +853,9 @@ void KX_KetsjiEngine::SetupRenderFrame(KX_Scene *scene, KX_Camera* cam)
 	// so that we are using the latest camera position.
 
 	RAS_Rect viewport;
+
+	if (!cam)
+		return;
 
 	if (cam->GetViewport()) {
 		viewport.SetLeft(cam->GetViewportLeft()); 
