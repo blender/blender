@@ -2894,14 +2894,21 @@ void draw_depth(ScrArea *sa, void *spacedata)
 	View3D *v3d= spacedata;
 	Base *base;
 	Scene *sce;
-	short drawtype, zbuf;
-	
+	short drawtype, zbuf, flag;
+	float glalphaclip;
 	/* temp set drawtype to solid */
+	
+	/* Setting these temporarily is not nice */
 	drawtype = v3d->drawtype;
 	zbuf = v3d->zbuf;
-	v3d->drawtype = OB_SOLID;
+	flag = v3d->flag;
+	glalphaclip = U.glalphaclip;
 	
-	
+	U.glalphaclip = 0.5; /* not that nice but means we wont zoom into billboards */
+	v3d->flag &= ~V3D_SELECT_OUTLINE;
+	if ((v3d->drawtype != OB_SOLID) && (v3d->drawtype != OB_TEXTURE)) 
+		v3d->drawtype = OB_SOLID;
+
 	setwinmatrixview3d(sa->winx, sa->winy, NULL);	/* 0= no pick rect */
 	setviewmatrixview3d();	/* note: calls where_is_object for camera... */
 	
@@ -2980,6 +2987,8 @@ void draw_depth(ScrArea *sa, void *spacedata)
 	
 	v3d->drawtype = drawtype;
 	v3d->zbuf = zbuf;
+	U.glalphaclip = glalphaclip;
+	v3d->flag = flag;
 }
 
 static void draw_viewport_fps(ScrArea *sa);
