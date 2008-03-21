@@ -176,7 +176,7 @@ Sequence *get_forground_frame_seq(int frame)
 /* seq funcs's for transforming internally
  notice the difference between start/end and left/right.
  
- left and right are the bounds at which the setuence is rendered,
+ left and right are the bounds at which the sequence is rendered,
 start and end are from the start and fixed length of the sequence.
 */
 int seq_tx_get_start(Sequence *seq) {
@@ -2245,6 +2245,22 @@ static Sequence *dupli_seq(Sequence *seq)
 	return seqn;
 }
 
+static Sequence * deep_dupli_seq(Sequence * seq)
+{
+	Sequence * seqn = dupli_seq(seq);
+	if (seq->type == SEQ_META) {
+		Sequence * s;
+		for(s= seq->seqbase.first; s; s = s->next) {
+			Sequence * n = deep_dupli_seq(s);
+			if (n) { 
+				BLI_addtail(&seqn->seqbase, n);
+			}
+		}
+	}
+	return seqn;
+}
+
+
 static void recurs_dupli_seq(ListBase *old, ListBase *new)
 {
 	Sequence *seq;
@@ -2271,15 +2287,97 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 	}
 }
 
+static Sequence * cut_seq(Sequence * seq, int cutframe)
+{
+	TransSeq ts;
+	Sequence *seqn = 0;
+	int skip_dup = FALSE;
+
+	/* backup values */
+	ts.start= seq->start;
+	ts.machine= seq->machine;
+	ts.startstill= seq->startstill;
+	ts.endstill= seq->endstill;
+	ts.startdisp= seq->startdisp;
+	ts.enddisp= seq->enddisp;
+	ts.startofs= seq->startofs;
+	ts.endofs= seq->endofs;
+	ts.len= seq->len;
+	
+	/* First Strip! */
+	/* strips with extended stillfames before */
+	
+	if ((seq->startstill) && (cutframe <seq->start)) {
+		/* don't do funny things with METAs ... */
+		if (seq->type == SEQ_META) {
+			skip_dup = TRUE;
+			seq->startstill = seq->start - cutframe;
+		} else {
+			seq->start= cutframe -1;
+			seq->startstill= cutframe -seq->startdisp -1;
+			seq->endofs = seq->len - 1;
+			seq->endstill= 0;
+		}
+	}
+	/* normal strip */
+	else if ((cutframe >=seq->start)&&(cutframe <=(seq->start+seq->len))) {
+		seq->endofs = (seq->start+seq->len) - cutframe;
+	}
+	/* strips with extended stillframes after */
+	else if (((seq->start+seq->len) < cutframe) && (seq->endstill)) {
+		seq->endstill -= seq->enddisp - cutframe;
+		/* don't do funny things with METAs ... */
+		if (seq->type == SEQ_META) {
+			skip_dup = TRUE;
+		}
+	}
+	
+	calc_sequence(seq);
+	
+	if (!skip_dup) {
+		/* Duplicate AFTER the first change */
+		seqn = deep_dupli_seq(seq);
+	}
+	
+	if (seqn) { /* should never fail */
+		seqn->flag |= SELECT;
+			
+		/* Second Strip! */
+		/* strips with extended stillframes before */
+		if ((seqn->startstill) && (cutframe == seqn->start + 1)) {
+			seqn->start = ts.start;
+			seqn->startstill= ts.start- cutframe;
+			seqn->endofs = ts.endofs;
+			seqn->endstill = ts.endstill;
+		}
+		
+		/* normal strip */
+		else if ((cutframe>=seqn->start)&&(cutframe<=(seqn->start+seqn->len))) {
+			seqn->startstill = 0;
+			seqn->startofs = cutframe - ts.start;
+			seqn->endofs = ts.endofs;
+			seqn->endstill = ts.endstill;
+		}				
+		
+		/* strips with extended stillframes after */
+		else if (((seqn->start+seqn->len) < cutframe) && (seqn->endstill)) {
+			seqn->start = cutframe - ts.len +1;
+			seqn->startofs = ts.len-1;
+			seqn->endstill = ts.enddisp - cutframe -1;
+			seqn->startstill = 0;
+		}
+		
+		calc_sequence(seqn);
+	}
+	return seqn;
+}
+
 /* like duplicate, but only duplicate and cut overlapping strips,
  * strips to the left of the cutframe are ignored and strips to the right are moved into the new list */
-static void recurs_cut_seq(ListBase *old, ListBase *new, int cutframe)
+static void cut_seq_list(ListBase *old, ListBase *new, int cutframe)
 {
 	Sequence *seq, *seq_next;
-	Sequence *seqn = 0;
 	
-	TransSeq ts;
-
 	seq= old->first;
 	
 	while(seq) {
@@ -2287,86 +2385,11 @@ static void recurs_cut_seq(ListBase *old, ListBase *new, int cutframe)
 		
 		seq->tmp= NULL;
 		if(seq->flag & SELECT) {
-			if(cutframe > seq->startdisp && cutframe < seq->enddisp) {
-				
-				/* backup values */
-				ts.start= seq->start;
-				ts.machine= seq->machine;
-				ts.startstill= seq->startstill;
-				ts.endstill= seq->endstill;
-				ts.startdisp= seq->startdisp;
-				ts.enddisp= seq->enddisp;
-				ts.startofs= seq->startofs;
-				ts.endofs= seq->endofs;
-				ts.len= seq->len;
-				
-				/* First Strip! */
-				/* strips with extended stillfames before */
-				if(seq->type!=SEQ_META) {
-					
-					if ((seq->startstill) && (cutframe <seq->start)) {
-						seq->start= cutframe -1;
-						seq->startstill= cutframe -seq->startdisp -1;
-						seq->len= 1;
-						seq->endstill= 0;
-					}
-				
-					/* normal strip */
-					else if ((cutframe >=seq->start)&&(cutframe <=(seq->start+seq->len))) {
-						seq->endofs = (seq->start+seq->len) - cutframe;
-					}
-				
-					/* strips with extended stillframes after */
-					else if (((seq->start+seq->len) < cutframe) && (seq->endstill)) {
-						seq->endstill -= seq->enddisp - cutframe;
-					}
-					
-					calc_sequence(seq);
-				}
-				
-				/* Duplicate AFTER the first change */
-				seqn = dupli_seq(seq);
-				
-				if (seqn) { /* should never fail */
-					seqn->flag |= SELECT;
-					
-					
+			if(cutframe > seq->startdisp && 
+			   cutframe < seq->enddisp) {
+				Sequence * seqn = cut_seq(seq, cutframe);
+				if (seqn) {
 					BLI_addtail(new, seqn);
-					
-					/* dont transform meta's - just do their children then recalc */
-					if(seq->type==SEQ_META) {
-						recurs_cut_seq(&seq->seqbase,&seqn->seqbase, cutframe);
-					} else {
-						/* Second Strip! */
-						/* strips with extended stillframes before */
-						if ((seqn->startstill) && (cutframe == seqn->start + 1)) {
-							seqn->start = ts.start;
-							seqn->startstill= ts.start- cutframe;
-							seqn->len = ts.len;
-							seqn->endstill = ts.endstill;
-						}
-			
-						/* normal strip */
-						else if ((cutframe>=seqn->start)&&(cutframe<=(seqn->start+seqn->len))) {
-							seqn->startstill = 0;
-							seqn->startofs = cutframe - ts.start;
-							seqn->endofs = ts.endofs;
-							seqn->endstill = ts.endstill;
-						}				
-			
-						/* strips with extended stillframes after */
-						else if (((seqn->start+seqn->len) < cutframe) && (seqn->endstill)) {
-							seqn->start = cutframe - ts.len +1;
-							seqn->startofs = ts.len-1;
-							seqn->endstill = ts.enddisp - cutframe -1;
-							seqn->startstill = 0;
-						}
-					}
-					
-					if(seq->type==SEQ_META) /* account for strips within changing */
-						calc_sequence(seq);
-					
-					calc_sequence(seqn);
 				}
 			} else if (seq->enddisp <= cutframe) {
 				/* do nothing */
@@ -2390,7 +2413,7 @@ void seq_cut(int cutframe)
 	
 	newlist.first= newlist.last= NULL;
 	
-	recurs_cut_seq(ed->seqbasep, &newlist, cutframe);
+	cut_seq_list(ed->seqbasep, &newlist, cutframe);
 	
 	if (newlist.first) { /* simple check to see if anything was done */
 		Sequence *seq;

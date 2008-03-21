@@ -519,9 +519,6 @@ void audiostream_play(Uint32 startframe, Uint32 duration, int mixdown)
    		desired.samples=U.mixbufsize;
    		desired.userdata=0;
 
-		fprintf(stderr, "freq: %d, samples: %d\n",
-			G.scene->audio.mixrate, U.mixbufsize);
-
    		if (audio_init(&desired)==0) {
    			U.mixbufsize = 0;	/* no audio */
    		}
