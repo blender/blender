@@ -3218,12 +3218,12 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	for(i = 0; i < num_projectors; ++i) {
 		float tmpmat[4][4];
 		float offsetmat[4][4];
-
+		Camera *cam = NULL;
 		/* calculate projection matrix */
 		Mat4Invert(projectors[i].projmat, projectors[i].ob->obmat);
 
 		if(projectors[i].ob->type == OB_CAMERA) {
-			Camera *cam = (Camera *)projectors[i].ob->data;
+			cam = (Camera *)projectors[i].ob->data;
 			if(cam->type == CAM_PERSP) {
 				float perspmat[4][4];
 				float xmax; 
@@ -3273,6 +3273,20 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		Mat4One(offsetmat);
 		Mat4MulFloat3(offsetmat[0], 0.5);
 		offsetmat[3][0] = offsetmat[3][1] = offsetmat[3][2] = 0.5;
+		
+		if (cam) {
+			if (umd->aspectx == umd->aspecty) { 
+				offsetmat[3][0] -= cam->shiftx;
+				offsetmat[3][1] -= cam->shifty;
+			} else if (umd->aspectx < umd->aspecty)  {
+				offsetmat[3][0] -=(cam->shiftx * umd->aspecty/umd->aspectx);
+				offsetmat[3][1] -= cam->shifty;
+			} else {
+				offsetmat[3][0] -= cam->shiftx;
+				offsetmat[3][1] -=(cam->shifty * umd->aspectx/umd->aspecty);
+			}
+		}
+		
 		Mat4MulMat4(projectors[i].projmat, tmpmat, offsetmat);
 
 		/* calculate worldspace projector normal (for best projector test) */
