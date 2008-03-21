@@ -2156,30 +2156,30 @@ static void do_render_composite_fields_blur_3d(Render *re)
 			ntreeCompositTagAnimated(ntree);
 		}
 		
-		if(ntree && re->r.scemode & R_DOCOMP) {
-			/* checks if there are render-result nodes that need scene */
-			if((re->r.scemode & R_SINGLE_LAYER)==0)
-				ntree_render_scenes(re);
-			
-			if(!re->test_break()) {
-				ntree->stats_draw= render_composit_stats;
-				ntree->test_break= re->test_break;
-				/* in case it was never initialized */
-				R.stats_draw= re->stats_draw;
+		if(!(re->r.scemode & R_COMP_RERENDER)) {
+			if(ntree && re->r.scemode & R_DOCOMP) {
+				/* checks if there are render-result nodes that need scene */
+				if((re->r.scemode & R_SINGLE_LAYER)==0)
+					ntree_render_scenes(re);
 				
-				if(re->r.scemode & R_FULL_SAMPLE) 
-					do_merge_fullsample(re, ntree);
-				else
-					ntreeCompositExecTree(ntree, &re->r, G.background==0);
-				
-				ntree->stats_draw= NULL;
-				ntree->test_break= NULL;
+				if(!re->test_break()) {
+					ntree->stats_draw= render_composit_stats;
+					ntree->test_break= re->test_break;
+					/* in case it was never initialized */
+					R.stats_draw= re->stats_draw;
+					
+					if(re->r.scemode & R_FULL_SAMPLE) 
+						do_merge_fullsample(re, ntree);
+					else
+						ntreeCompositExecTree(ntree, &re->r, G.background==0);
+					
+					ntree->stats_draw= NULL;
+					ntree->test_break= NULL;
+				}
 			}
-		}
-		else 
-			if(re->r.scemode & R_FULL_SAMPLE) 
+			else if(re->r.scemode & R_FULL_SAMPLE)
 				do_merge_fullsample(re, NULL);
-		
+		}
 	}
 
 	/* weak... the display callback wants an active renderlayer pointer... */

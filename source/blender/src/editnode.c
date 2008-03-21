@@ -256,8 +256,8 @@ static void composite_node_render(SpaceNode *snode, bNode *node)
 	
 	scemode= G.scene->r.scemode;
 	actlay= G.scene->r.actlay;
-	
-	G.scene->r.scemode |= R_SINGLE_LAYER;
+
+	G.scene->r.scemode |= R_SINGLE_LAYER|R_COMP_RERENDER;
 	G.scene->r.actlay= node->custom1;
 	
 	BIF_do_render(0);

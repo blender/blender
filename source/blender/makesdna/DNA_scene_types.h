@@ -225,10 +225,12 @@ typedef struct RenderData {
 	short bufflag;
  	short quality;
 	
+	short rpad;
+
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
 	 */
-	short scemode;
+	int scemode;
 
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
@@ -236,7 +238,7 @@ typedef struct RenderData {
 	int mode;
 
 	/* render engine, octree resolution */
-	short renderer, ocres, rpad[2];
+	short renderer, ocres;
 
 	/**
 	 * What to do with the sky/background. Picks sky/premul/key
@@ -608,7 +610,7 @@ typedef struct Scene {
 #define R_INTERN	0
 #define R_YAFRAY	1
 
-/* scemode */
+/* scemode (int now) */
 #define R_DOSEQ				0x0001
 #define R_BG_RENDER			0x0002
 		/* passepartout is camera option now, keep this for backward compatibility */
@@ -626,6 +628,7 @@ typedef struct Scene {
 #define R_NO_TEX			0x2000
 #define R_STAMP_INFO		0x4000
 #define R_FULL_SAMPLE		0x8000
+#define R_COMP_RERENDER		0x10000
 
 /* r->stamp */
 #define R_STAMP_TIME 	0x0001
