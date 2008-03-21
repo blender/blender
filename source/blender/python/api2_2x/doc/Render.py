@@ -440,6 +440,7 @@ class RenderData:
     @type filename: string 
     @since: 2.40
     @requires: You must have an image currently rendered before calling this method
+    @warning: This wont work in background mode. use renderAnim instead.
     """
 
   def play():

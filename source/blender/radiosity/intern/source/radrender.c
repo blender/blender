@@ -121,6 +121,7 @@ static void findshoot_rr(Render *re, VlakRen **shoot_p, RadFace **shootrf_p)
 		if(maxenergy<RG.convergence) {
 			*shoot_p= NULL;
 			*shootrf_p= NULL;
+			return;
 		}
 		shootrf->flag |= RAD_SHOOT;
 	}

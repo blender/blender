@@ -128,7 +128,7 @@ int EXPP_dict_set_item_str(struct PyObject *dict, char *key, struct PyObject *va
 void Node_SetStack(struct BPy_Node *self, struct bNodeStack **stack, int type){}
 void InitNode(struct BPy_Node *self, struct bNode *node){}
 void Node_SetShi(struct BPy_Node *self, struct ShadeInput *shi){}
-struct BPy_NodeSockets *Node_CreateSockets(struct bNode *node)
+struct BPy_NodeSockets *Node_CreateSocketLists(struct bNode *node)
 {
 	return 0;
 }
@@ -367,3 +367,6 @@ void harmonic_coordinates_bind(struct MeshDeformModifierData *mmd,
 void PE_free_particle_edit(struct ParticleSystem *psys) {}
 void PE_get_colors(char sel[4], char nosel[4]) {}
 void PE_recalc_world_cos(struct Object *ob, struct ParticleSystem *psys) {}
+
+/* text.c */
+void txt_copy_clipboard (struct Text *text){}

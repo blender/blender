@@ -295,7 +295,7 @@ void copy_pose(bPose **dst, bPose *src, int copycon)
 	
 	outPose= MEM_callocN(sizeof(bPose), "pose");
 	
-	duplicatelist (&outPose->chanbase, &src->chanbase);
+	duplicatelist(&outPose->chanbase, &src->chanbase);
 	
 	if (copycon) {
 		for (pchan=outPose->chanbase.first; pchan; pchan=pchan->next) {
@@ -314,11 +314,11 @@ void free_pose_channels(bPose *pose)
 	
 	if (pose->chanbase.first) {
 		for (pchan = pose->chanbase.first; pchan; pchan=pchan->next){
-			if(pchan->path)
+			if (pchan->path)
 				MEM_freeN(pchan->path);
 			free_constraints(&pchan->constraints);
 		}
-		BLI_freelistN (&pose->chanbase);
+		BLI_freelistN(&pose->chanbase);
 	}
 }
 

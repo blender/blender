@@ -534,7 +534,11 @@ PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 	if( !PyArg_ParseTuple( args, "s|i", &name_str, &zbuff ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected a filename (string) and optional int" );
-
+	
+	if (G.background)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"saveRenderedImage does not work in background mode, use renderAnim() instead" );
+	
 	if( strlen(self->renderContext->pic) + strlen(name_str)
 			>= sizeof(filepath) )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,

@@ -6,6 +6,8 @@ Group: 'Import'
 Tip: 'Import OpenFlight (.flt)'
 """
 
+
+
 __author__ = "Greg MacDonald, Campbell Barton, Geoffrey Bantle"
 __version__ = "2.0 11/21/07"
 __url__ = ("blender", "elysiun", "Author's homepage, http://sourceforge.net/projects/blight/")
@@ -952,8 +954,12 @@ class InterNode(Node):
 			except: #horrible...
 				pass
 		
+
 		if self.parent and self.parent.object and (self.header.scene == self.parent.header.scene):
-				self.parent.object.makeParent([self.object])
+				self.parent.object.makeParent([self.object],1)
+
+		if self.matrix:
+			self.object.setMatrix(self.matrix)
 
 		if self.vis == False:
 			self.object.restrictDisplay = True
@@ -979,8 +985,6 @@ class InterNode(Node):
 					min= LODmin(min,lodlist[i])
 				min.vis = True
 				
-		if self.matrix:
-			self.object.setMatrix(self.matrix)
 			
 		Node.blender_import(self) # Attach faces to self.faceLs
 		
@@ -1324,11 +1328,17 @@ class XRef(InterNode):
 		self.props['comment'] = ''
 		self.parse_record()
 
-		xref_filename = self.props['3t200!filename']
+		xref_filename = self.props['3t200!filename'] #I dont even think there is a reason to keep this around...
+		
+		if not os.path.isabs(xref_filename):
+			absname = os.path.join(os.path.dirname(self.header.filename), xref_filename) 
+		else:
+			absname = xref_filename	
+		
 		self.props['id'] = 'X: ' + Blender.sys.splitext(Blender.sys.basename(xref_filename))[0] #this is really wrong as well....
 		
-		if global_prefs['doxrefs'] and os.path.exists(xref_filename) and not self.header.grr.xrefs.has_key(xref_filename):
-			self.xref = Database(xref_filename, self.header.grr, self)
+		if global_prefs['doxrefs'] and os.path.exists(absname) and not self.header.grr.xrefs.has_key(xref_filename):
+			self.xref = Database(absname, self.header.grr, self)
 			self.header.grr.xrefs[xref_filename] = self.xref
 		else:
 			self.xref = None
@@ -1348,8 +1358,15 @@ class XRef(InterNode):
 		except:
 			pass
 			
+
+
+
 		if self.parent and self.parent.object:
-			self.parent.object.makeParent([self.object])
+			self.parent.object.makeParent([self.object],1)
+
+		if self.matrix:
+			self.object.setMatrix(self.matrix)
+
 
 		#id props import
 		self.object.properties['FLT'] = dict()
@@ -1361,8 +1378,7 @@ class XRef(InterNode):
 
 		self.object.Layer = current_layer
 		self.object.sel = 1
-		if self.matrix:
-			self.object.setMatrix(self.matrix)
+
 		Node.blender_import(self)
 		
 		
@@ -1843,6 +1859,9 @@ class Database(InterNode):
 			print 'Parsing:', filename
 			print
 		
+		#check to see if filename is a relative path
+		#filename = os.path.abspath(filename)
+		
 		self.fw = flt_filewalker.FltIn(filename)
 		self.filename = filename
 		self.bname = os.path.splitext(os.path.basename(filename))[0]
@@ -1902,7 +1921,7 @@ def fixscale(root,childhash):
 	for child in childhash[root]:
 		fixscale(child,childhash)
 	location = Blender.Mathutils.Vector(root.getLocation('worldspace'))
-	if location[0] != 0.0 and location[1] != 0.0 and location[2] != 0.0:
+	if location[0] != 0.0 or location[1] != 0.0 or location[2] != 0.0:
 		#direction = Blender.Mathutils.Vector(0-location[0],0-location[1],0-location[2]) #reverse vector
 		smat = Blender.Mathutils.ScaleMatrix(global_prefs['scale'],4)
 		root.setLocation(location * smat)

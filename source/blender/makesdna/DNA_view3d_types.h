@@ -103,7 +103,7 @@ typedef struct View3D {
 	
 	/**
 	 * The drawing mode for the 3d display. Set to OB_WIRE, OB_SOLID,
-	 * OB_SHADED or OB_TEXTURED */
+	 * OB_SHADED or OB_TEXTURE */
 	short drawtype;
 	short localview;
 	int lay, layact;

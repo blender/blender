@@ -114,6 +114,8 @@ enum constraint_constants {
 	EXPP_CONSTR_LIMIT,
 	EXPP_CONSTR_CLAMP,
 	
+	EXPP_CONSTR_MODE,
+	
 	EXPP_CONSTR_LIMXMIN = LIMIT_XMIN,
 	EXPP_CONSTR_LIMXMAX = LIMIT_XMAX,
 	EXPP_CONSTR_LIMYMIN = LIMIT_YMIN,
@@ -904,6 +906,56 @@ static int stretchto_setter( BPy_Constraint *self, int type, PyObject *value )
 	}
 }
 
+static PyObject *distlimit_getter( BPy_Constraint * self, int type )
+{
+	bDistLimitConstraint *con = (bDistLimitConstraint *)(self->con->data);
+
+	switch( type ) {
+	case EXPP_CONSTR_TARGET:
+		return Object_CreatePyObject( con->tar );
+	case EXPP_CONSTR_BONE:
+		return PyString_FromString( con->subtarget );
+	case EXPP_CONSTR_RESTLENGTH:
+		return PyFloat_FromDouble( (double)con->dist );
+	case EXPP_CONSTR_MODE:
+		return PyInt_FromLong( (long)con->mode );
+	default:
+		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
+	}
+}
+
+static int distlimit_setter( BPy_Constraint *self, int type, PyObject *value )
+{
+	bDistLimitConstraint *con = (bDistLimitConstraint *)(self->con->data);
+
+	switch( type ) {
+	case EXPP_CONSTR_TARGET: {
+		Object *obj = (( BPy_Object * )value)->object;
+		if( !BPy_Object_Check( value ) )
+			return EXPP_ReturnIntError( PyExc_TypeError, 
+					"expected BPy object argument" );
+		con->tar = obj;
+		return 0;
+		}
+	case EXPP_CONSTR_BONE: {
+		char *name = PyString_AsString( value );
+		if( !name )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected string arg" );
+
+		BLI_strncpy( con->subtarget, name, sizeof( con->subtarget ) );
+
+		return 0;
+		}
+	case EXPP_CONSTR_RESTLENGTH:
+		return EXPP_setFloatClamped( value, &con->dist, 0.0, 100.0 );
+	case EXPP_CONSTR_MODE:
+		return EXPP_setIValueRange( value, &con->mode, LIMITDIST_INSIDE, LIMITDIST_ONSURFACE, 'i' );
+	default:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+	}
+}
+
 static PyObject *followpath_getter( BPy_Constraint * self, int type )
 {
 	bFollowPathConstraint *con = (bFollowPathConstraint *)(self->con->data);
@@ -1391,11 +1443,40 @@ static PyObject *script_getter( BPy_Constraint * self, int type )
 	bPythonConstraint *con = (bPythonConstraint *)(self->con->data);
 
 	switch( type ) {
-		// FIXME!!!
-	//case EXPP_CONSTR_TARGET:
-	//	return Object_CreatePyObject( con->tar );
-	//case EXPP_CONSTR_BONE:
-	//	return PyString_FromString( con->subtarget );
+	case EXPP_CONSTR_TARGET:
+	case EXPP_CONSTR_BONE:
+		{
+			bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_PYTHON);
+			bConstraintTarget *ct;
+			PyObject *tlist=NULL, *val;
+			
+			if (cti) {
+				/* change space of targets */
+				if (cti->get_constraint_targets) {
+					ListBase targets = {NULL, NULL};
+					int num_tars=0, i=0;
+					
+					/* get targets, and create py-list for use temporarily */
+					num_tars= cti->get_constraint_targets(self->con, &targets);
+					if (num_tars) {
+						tlist= PyList_New(num_tars);
+						
+						for (ct=targets.first; ct; ct=ct->next, i++) {
+							if (type == EXPP_CONSTR_BONE)
+								val= PyString_FromString(ct->subtarget);
+							else
+								val= Object_CreatePyObject(ct->tar);
+							PyList_SET_ITEM(tlist, i, val);
+						}
+					}
+					
+					if (cti->flush_constraint_targets)
+						cti->flush_constraint_targets(self->con, &targets, 1);
+				}
+			}
+			
+			return tlist;
+		}
 	case EXPP_CONSTR_SCRIPT:
 		return Text_CreatePyObject( con->text );
 	case EXPP_CONSTR_PROPS:
@@ -1410,25 +1491,73 @@ static int script_setter( BPy_Constraint *self, int type, PyObject *value )
 	bPythonConstraint *con = (bPythonConstraint *)(self->con->data);
 
 	switch( type ) {
-		// FIXME!!!
-	//case EXPP_CONSTR_TARGET: {
-	//	Object *obj = (( BPy_Object * )value)->object;
-	//	if( !BPy_Object_Check( value ) )
-	//		return EXPP_ReturnIntError( PyExc_TypeError, 
-	//				"expected BPy object argument" );
-	//	con->tar = obj;
-	//	return 0;
-	//	}
-	//case EXPP_CONSTR_BONE: {
-	//	char *name = PyString_AsString( value );
-	//	if( !name )
-	//		return EXPP_ReturnIntError( PyExc_TypeError,
-	//				"expected string arg" );
-	//
-	//	BLI_strncpy( con->subtarget, name, sizeof( con->subtarget ) );
-	//
-	//	return 0;
-	//	}
+	case EXPP_CONSTR_TARGET:
+	case EXPP_CONSTR_BONE:
+		{
+			bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_PYTHON);
+			bConstraintTarget *ct;
+			int ok= 0;
+			
+			if (cti) {
+				/* change space of targets */
+				if (cti->get_constraint_targets) {
+					ListBase targets = {NULL, NULL};
+					int num_tars=0, i=0;
+					
+					/* get targets, and extract values from the given list */
+					num_tars= cti->get_constraint_targets(self->con, &targets);
+					if (num_tars) {
+						if ((PySequence_Check(value) == 0) || (PySequence_Size(value) != num_tars)) {
+							char errorstr[64];
+							sprintf(errorstr, "expected sequence of %d integer(s)", num_tars);
+							return EXPP_ReturnIntError(PyExc_TypeError, errorstr);
+						}
+						
+						for (ct=targets.first; ct; ct=ct->next, i++) {
+							PyObject *val= PySequence_ITEM(value, i);
+								
+							if (type == EXPP_CONSTR_BONE) {
+								char *name = PyString_AsString(val);
+								
+								if (name == NULL) {
+									// hrm... should we break here instead?
+									ok = EXPP_ReturnIntError(PyExc_TypeError, 
+												"expected string arg as member of list");
+									Py_DECREF(val);
+									
+									break;
+								}
+								
+								BLI_strncpy(ct->subtarget, name, sizeof(ct->subtarget));
+							}
+							else {
+								Object *obj = (( BPy_Object * )val)->object;
+								
+								if ( !BPy_Object_Check(value) ) {
+									// hrm... should we break here instead?
+									ok = EXPP_ReturnIntError(PyExc_TypeError, 
+												"expected BPy object argument as member of list");
+									Py_DECREF(val);
+									
+									break;
+								}
+								
+								ct->tar = obj;
+							}
+							
+							Py_DECREF(val);
+						}
+					}
+					
+					/* only flush changes to real constraints if all were successful */
+					if ((cti->flush_constraint_targets) && (ok == 0))
+						cti->flush_constraint_targets(self->con, &targets, 0);
+				}
+			}
+			
+			return ok;
+		}
+			break;
 	case EXPP_CONSTR_SCRIPT: {
 		Text *text = (( BPy_Text * )value)->text;
 		if( !BPy_Object_Check( value ) )
@@ -1806,6 +1935,8 @@ static PyObject *Constraint_getData( BPy_Constraint * self, PyObject * key )
 			return loclimit_getter( self, setting );
 		case CONSTRAINT_TYPE_SIZELIMIT:
 			return sizelimit_getter( self, setting );
+		case CONSTRAINT_TYPE_DISTLIMIT:
+			return distlimit_getter( self, setting );
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			return rigidbody_getter( self, setting );
 		case CONSTRAINT_TYPE_CLAMPTO:
@@ -1882,6 +2013,9 @@ static int Constraint_setData( BPy_Constraint * self, PyObject * key,
 			break;
 		case CONSTRAINT_TYPE_SIZELIMIT:
 			result = sizelimit_setter( self, key_int, arg);
+			break;
+		case CONSTRAINT_TYPE_DISTLIMIT:
+			result = distlimit_setter( self, key_int, arg);
 			break;
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			result = rigidbody_setter( self, key_int, arg);
@@ -2370,6 +2504,8 @@ static PyObject *M_Constraint_TypeDict( void )
 				PyInt_FromLong( CONSTRAINT_TYPE_ROTLIMIT ) );
 		PyConstant_Insert( d, "LIMITSIZE", 
 				PyInt_FromLong( CONSTRAINT_TYPE_SIZELIMIT ) );
+		PyConstant_Insert( d, "LIMITDIST",
+				PyInt_FromLong( CONSTRAINT_TYPE_DISTLIMIT ) );
 		PyConstant_Insert( d, "RIGIDBODYJOINT", 
 				PyInt_FromLong( CONSTRAINT_TYPE_RIGIDBODYJOINT ) );
 		PyConstant_Insert( d, "CLAMPTO", 
@@ -2563,6 +2699,15 @@ static PyObject *M_Constraint_SettingsDict( void )
 
 		PyConstant_Insert( d, "LOCK",
 				PyInt_FromLong( EXPP_CONSTR_LOCK ) );
+				
+		PyConstant_Insert( d, "LIMITMODE",
+				PyInt_FromLong( EXPP_CONSTR_MODE ) );
+		PyConstant_Insert( d, "LIMIT_INSIDE",
+				PyInt_FromLong( LIMITDIST_INSIDE ) );
+		PyConstant_Insert( d, "LIMIT_OUTSIDE",
+				PyInt_FromLong( LIMITDIST_OUTSIDE ) );
+		PyConstant_Insert( d, "LIMIT_ONSURFACE",
+				PyInt_FromLong( LIMITDIST_ONSURFACE ) );
 
 		PyConstant_Insert( d, "COPY",
 				PyInt_FromLong( EXPP_CONSTR_COPY ) );

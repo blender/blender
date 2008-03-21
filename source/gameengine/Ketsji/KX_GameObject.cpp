@@ -61,6 +61,7 @@ typedef unsigned long uint_ptr;
 #include "SG_Controller.h"
 #include "KX_ClientObjectInfo.h"
 #include "RAS_BucketManager.h"
+#include "KX_RayCast.h"
 
 #include "KX_PyMath.h"
 
@@ -80,7 +81,9 @@ KX_GameObject::KX_GameObject(
 	m_bUseObjectColor(false),
 	m_bVisible(true),
 	m_pPhysicsController1(NULL),
-	m_isDeformable(false)
+	m_pPhysicsEnvironment(NULL),
+	m_isDeformable(false),
+	m_pHitObject(NULL)
 {
 	m_ignore_activity_culling = false;
 	m_pClient_info = new KX_ClientObjectInfo(this, KX_ClientObjectInfo::ACTOR);
@@ -657,6 +660,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getMesh", (PyCFunction)KX_GameObject::sPyGetMesh,METH_VARARGS},
 	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_VARARGS},
 	KX_PYMETHODTABLE(KX_GameObject, getDistanceTo),
+	KX_PYMETHODTABLE(KX_GameObject, rayCastTo),
 	{NULL,NULL} //Sentinel
 };
 
@@ -1174,6 +1178,83 @@ KX_PYMETHODDEF_DOC(KX_GameObject, getDistanceTo,
 	}
 	
 	return NULL;
+}
+
+bool KX_GameObject::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data)
+{
+
+	KX_GameObject* hitKXObj = client->m_gameobject;
+	
+	if (client->m_type > KX_ClientObjectInfo::ACTOR)
+	{
+		// false hit
+		return false;
+	}
+
+	if (m_testPropName.Length() == 0 || hitKXObj->GetProperty(m_testPropName) != NULL)
+	{
+		m_pHitObject = hitKXObj;
+		return true;
+	}
+
+	return false;
+	
+}
+
+KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
+"rayCastTo(other,dist,prop): look towards another point/KX_GameObject and return first object hit within dist that match prop\n"
+" prop = property name that object must have; can be omitted => detect any object\n"
+" dist = max distance to look (can be negative => look behind); 0 or omitted => detect up to other\n"
+" other = 3-tuple or object reference")
+{
+	MT_Point3 toPoint;
+	PyObject* pyarg;
+	float dist = 0.0f;
+	char *propName = NULL;
+
+	if (!PyArg_ParseTuple(args,"O|fs", &pyarg, &dist, &propName))
+		return NULL;
+
+	if (!PyVecTo(pyarg, toPoint))
+	{
+		KX_GameObject *other;
+		PyErr_Clear();
+		if (!PyType_IsSubtype(pyarg->ob_type, &KX_GameObject::Type))
+			return NULL;
+		other = static_cast<KX_GameObject*>(pyarg);
+		toPoint = other->NodeGetWorldPosition();
+	}
+	MT_Point3 fromPoint = NodeGetWorldPosition();
+	if (dist != 0.0f)
+	{
+		MT_Vector3 toDir = toPoint-fromPoint;
+		toDir.normalize();
+		toPoint = fromPoint + (dist) * toDir;
+	}
+
+	MT_Point3 resultPoint;
+	MT_Vector3 resultNormal;
+	PHY_IPhysicsEnvironment* pe = GetPhysicsEnvironment();
+	KX_IPhysicsController *spc = GetPhysicsController();
+	KX_GameObject *parent = GetParent();
+	if (!spc && parent)
+		spc = parent->GetPhysicsController();
+	if (parent)
+		parent->Release();
+	
+	m_pHitObject = NULL;
+	if (propName)
+		m_testPropName = propName;
+	else
+		m_testPropName.SetLength(0);
+	KX_RayCast::RayTest(spc, pe, fromPoint, toPoint, resultPoint, resultNormal, KX_RayCast::Callback<KX_GameObject>(this));
+
+    if (m_pHitObject)
+	{
+		m_pHitObject->AddRef();
+		return m_pHitObject;
+	}
+	Py_Return;
 }
 
 /* --------------------------------------------------------------------- 

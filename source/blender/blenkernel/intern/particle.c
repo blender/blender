@@ -275,7 +275,8 @@ void psys_free_settings(ParticleSettings *part)
 	if(part->pd)
 		MEM_freeN(part->pd);
 }
-void free_hair(ParticleSystem *psys)
+
+void free_hair(ParticleSystem *psys, int softbody)
 {
 	ParticleData *pa;
 	int i, totpart=psys->totpart;
@@ -288,7 +289,7 @@ void free_hair(ParticleSystem *psys)
 
 	psys->flag &= ~PSYS_HAIR_DONE;
 
-	if(psys->soft) {
+	if(softbody && psys->soft) {
 		sbFree(psys->soft);
 		psys->soft = NULL;
 	}
@@ -342,7 +343,7 @@ void psys_free(Object *ob, ParticleSystem * psys)
 
 		psys_free_path_cache(psys);
 
-		free_hair(psys);
+		free_hair(psys, 1);
 
 		free_keyed_keys(psys);
 

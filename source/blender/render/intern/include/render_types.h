@@ -497,6 +497,7 @@ typedef struct LampRen {
 #define R_GLOB_NOPUNOFLIP	16
 #define R_NEED_TANGENT	32
 #define R_SKIP_MULTIRES	64
+#define R_BAKE_TRACE	128
 
 /* vlakren->flag (vlak = face in dutch) char!!! */
 #define R_SMOOTH		1

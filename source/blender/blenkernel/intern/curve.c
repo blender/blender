@@ -1976,13 +1976,16 @@ float calc_curve_subdiv_radius(Curve *cu, Nurb *nu, int cursubdiv)
 		if ( ((nu->type & 7)==CU_NURBS) && (nu->flagu & CU_CYCLIC)) {
 			if (bp >= bplast) bp = bpfirst;
 			else bp++;
+		} else if ( bp > bplast ) {
+			/* this can happen in rare cases, refer to bug [#8596] */
+			bp = bplast;
 		}
 		
 		rad = prevrad = bp->radius;
 		
 		if ((bp == bplast) && (nu->flagu & CU_CYCLIC)) { /* loop around */
 			bp= bpfirst;
-		} else if (bp != bplast) {
+		} else if (bp < bplast) {
 			bp++;
 		}
 		nextrad = bp->radius;

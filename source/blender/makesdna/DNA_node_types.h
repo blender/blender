@@ -162,7 +162,8 @@ typedef struct bNodeTree {
 	
 	ListBase nodes, links;
 	
-	bNodeStack **stack;				/* stack is only while executing, no read/write in file */
+	bNodeStack *stack;				/* stack is only while executing, no read/write in file */
+	struct ListBase *threadstack;	/* same as above */
 	
 	int type, init;					/* set init on fileread */
 	int stacksize;					/* amount of elements in stack */

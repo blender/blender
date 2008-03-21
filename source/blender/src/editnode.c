@@ -1138,16 +1138,7 @@ void node_rename(SpaceNode *snode)
 /* used in buttons to check context, also checks for edited groups */
 bNode *editnode_get_active_idnode(bNodeTree *ntree, short id_code)
 {
-	bNode *node;
-	
-	/* check for edited group */
-	for(node= ntree->nodes.first; node; node= node->next)
-		if(node->flag & NODE_GROUP_EDIT)
-			break;
-	if(node)
-		return nodeGetActiveID((bNodeTree *)node->id, id_code);
-	else
-		return nodeGetActiveID(ntree, id_code);
+	return nodeGetActiveID(ntree, id_code);
 }
 
 /* used in buttons to check context, also checks for edited groups */

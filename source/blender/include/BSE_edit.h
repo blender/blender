@@ -40,6 +40,7 @@ int get_border(struct rcti *rect, short col);
 void countall(void);
 void snapmenu(void); 
 void mergemenu(void);
+void alignmenu(void); 
 void delete_context_selected(void);
 void duplicate_context_selected(void);
 void toggle_shading(void);

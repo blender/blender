@@ -1097,15 +1097,17 @@ void objects_bake_render(short event, char **error_msg)
 			if(bkr.ready)
 				break;
 			
-			g_break= blender_test_break();
-			
-			timer++;
-			if(area && timer==20) {
-				Image *ima= RE_bake_shade_get_image();
-				if(ima) ((SpaceImage *)area->spacedata.first)->image= ima;
-				scrarea_do_windraw(area);
-				myswapbuffers();	
-				timer= 0;
+			if (!G.background) {
+				g_break= blender_test_break();
+				
+				timer++;
+				if(area && timer==20) {
+					Image *ima= RE_bake_shade_get_image();
+					if(ima) ((SpaceImage *)area->spacedata.first)->image= ima;
+					scrarea_do_windraw(area);
+					myswapbuffers();	
+					timer= 0;
+				}
 			}
 		}
 		BLI_end_threads(&threads);

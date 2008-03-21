@@ -93,7 +93,7 @@ typedef struct BME_Edge
 	void *data;										/*custom edge data*/
 	int eflag1, eflag2;								/*reserved for use by eulers*/
 	int tflag1, tflag2;								/*reserved for use by tools*/
-	unsigned char flag, h;
+	unsigned short flag, h;
 	float crease, bweight;
 } BME_Edge;
 

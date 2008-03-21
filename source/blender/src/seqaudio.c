@@ -359,37 +359,53 @@ static void audio_fill_hd_sound(Sequence *seq,
 }
 
 static void audio_fill_seq(Sequence * seq, void * mixdown,
-			   Uint8 *sstream, int len)
+			   Uint8 *sstream, int len, int advance_only)
 {
 	while(seq) {
 		if (seq->type == SEQ_META &&
 		    (!(seq->flag & SEQ_MUTE))) {
-			audio_fill_seq(seq->seqbase.first,
-				       mixdown, sstream, len);
+			if (seq->startdisp <= CFRA && seq->enddisp > CFRA) {
+				audio_fill_seq(seq->seqbase.first,
+					       mixdown, sstream, len, 
+					       advance_only);
+			} else {
+				audio_fill_seq(seq->seqbase.first,
+					       mixdown, sstream, len, 
+					       1);
+			}
 		}
 		if ( (seq->type == SEQ_RAM_SOUND) &&
 		     (seq->sound) &&
 		     (!(seq->flag & SEQ_MUTE))) {
-			audio_fill_ram_sound(seq, mixdown, sstream, len);
+			if (advance_only) {
+				seq->curpos += len;
+			} else {
+				audio_fill_ram_sound(
+					seq, mixdown, sstream, len);
+			}
 		}
 		if ( (seq->type == SEQ_HD_SOUND) &&
 		     (!(seq->flag & SEQ_MUTE)))	{
-			if (!seq->hdaudio) {
-				char name[FILE_MAXDIR+FILE_MAXFILE];
+			if (advance_only) {
+				seq->curpos += len;
+			} else {
+				if (!seq->hdaudio) {
+					char name[FILE_MAXDIR+FILE_MAXFILE];
 
-				strncpy(name, seq->strip->dir, 
-					FILE_MAXDIR-1);
-				strncat(name, 
-					seq->strip->stripdata->name, 
-					FILE_MAXFILE-1);
-				BLI_convertstringcode(name, G.sce, 
-						      G.scene->r.cfra);
+					strncpy(name, seq->strip->dir, 
+						FILE_MAXDIR-1);
+					strncat(name, 
+						seq->strip->stripdata->name, 
+						FILE_MAXFILE-1);
+					BLI_convertstringcode(name, G.sce, 
+							      G.scene->r.cfra);
 				
-				seq->hdaudio= sound_open_hdaudio(name);
-			}
-			if (seq->hdaudio) {
-				audio_fill_hd_sound(seq, mixdown, 
-						    sstream, len);
+					seq->hdaudio= sound_open_hdaudio(name);
+				}
+				if (seq->hdaudio) {
+					audio_fill_hd_sound(seq, mixdown, 
+							    sstream, len);
+				}
 			}
 		}
 		seq = seq->next;
@@ -404,7 +420,7 @@ void audio_fill(void *mixdown, Uint8 *sstream, int len)
 	ed = G.scene->ed;
 	if((ed) && (!(G.scene->audio.flag & AUDIO_MUTE))) {
 		seq = ed->seqbasep->first;
-		audio_fill_seq(seq, mixdown, sstream, len);
+		audio_fill_seq(seq, mixdown, sstream, len, 0);
 	}
        
 	audio_pos += len;    
@@ -501,7 +517,8 @@ void audiostream_play(Uint32 startframe, Uint32 duration, int mixdown)
 		desired.format=AUDIO_S16SYS;
    		desired.channels=2;
    		desired.samples=U.mixbufsize;
-   		desired.userdata=0;	
+   		desired.userdata=0;
+
    		if (audio_init(&desired)==0) {
    			U.mixbufsize = 0;	/* no audio */
    		}

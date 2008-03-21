@@ -1088,7 +1088,7 @@ void verify_pchan2achan_grouping (bAction *act, bPose *pose, char name[])
 		return;
 	if (name[0] == 0)
 		return;
-		
+	
 	/* try to get the channels */
 	pchan= get_pose_channel(pose, name);
 	if (pchan == NULL) return;
@@ -1432,6 +1432,7 @@ void insertkey_action(void)
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
 /* delete selected keyframes */
@@ -1529,7 +1530,7 @@ void delete_action_channels (void)
 		bConstraintChannel *conchan, *cnext;
 		next= ale->next;
 		
-		/* release reference to ipo users */
+		/* release references to ipo users */
 		if (achan->ipo)
 			achan->ipo->id.us--;
 			
@@ -1540,12 +1541,16 @@ void delete_action_channels (void)
 				conchan->ipo->id.us--;
 		}
 		
+		/* remove action-channel from group(s) */
+		if (achan->grp)
+			action_groups_removeachan(act, achan);
+		
 		/* free memory */
 		BLI_freelistN(&achan->constraintChannels);
 		BLI_freelinkN(&act->chanbase, achan);
 		BLI_freelinkN(&act_data, ale);
 	}
-		
+	
 	remake_action_ipos(data);
 	
 	BIF_undo_push("Delete Action Channels");
@@ -1867,7 +1872,7 @@ void paste_actdata ()
 				/* check if we have a corresponding action channel */
 				if ((no_name) || (strcmp(achan->name, achant->name)==0)) {
 					actname= achan->name;
-
+					
 					/* check if this is a constraint channel */
 					if (ale->type == ACTTYPE_CONCHAN) {
 						bConstraintChannel *conchant= ale->data;
@@ -1901,12 +1906,12 @@ void paste_actdata ()
 		/* this shouldn't happen, but it might */
 		if (ELEM(NULL, ipo_src, ipo_dst))
 			continue;
-
+		
 		/* loop over curves, pasting keyframes */
 		for (ico= ipo_src->curve.first; ico; ico= ico->next) {
 			icu= verify_ipocurve((ID*)OBACT, ico->blocktype, actname, conname, "", ico->adrcode);
-
-			if(icu) {
+			
+			if (icu) {
 				/* just start pasting, with the the first keyframe on the current frame, and so on */
 				for (i=0, bezt=ico->bezt; i < ico->totvert; i++, bezt++) {						
 					/* temporarily apply offset to src beztriple while copying */
@@ -4233,7 +4238,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				 */
 				if (IN_2D_VERT_SCROLL(mval))
 					selectall_action_keys(mval, 0, select_mode);
-		
+				
 				/* Clicking in the horizontal scrollbar selects
 				 * all of the keys within 0.5 of the nearest integer
 				 * frame

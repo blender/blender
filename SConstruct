@@ -286,7 +286,7 @@ Help(opts.GenerateHelpText(env))
 # default is new quieter output, but if you need to see the 
 # commands, do 'scons BF_QUIET=0'
 bf_quietoutput = B.arguments.get('BF_QUIET', '1')
-if bf_quietoutput=='1':
+if env['BF_QUIET']:
     B.set_quiet_output(env)
 else:
     if toolset=='msvc':

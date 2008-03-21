@@ -1793,10 +1793,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 			case AKEY:
 				if (G.obedit == 0 && G.qual == (LR_CTRLKEY|LR_ALTKEY)) {
-					if(okee("Align to Transform Orientation")) {
-						initTransform(TFM_ALIGN, CTX_NO_PET|CTX_AUTOCONFIRM);
-						Transform();
-					}
+					alignmenu();
 				}
 				else if(G.qual & LR_CTRLKEY) { /* also with shift! */
 					apply_object();	
@@ -2156,18 +2153,17 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
 			case IKEY:
-				if(G.obedit) {
-					if(G.qual==LR_CTRLKEY) 
+				if(G.qual==LR_CTRLKEY) {
+					if(ob && (ob->flag & OB_POSEMODE) && ob->type==OB_ARMATURE)
+						pose_add_IK();
+					else if(ob && G.obedit)
 						selectswap_mesh();
-				} else if(G.qual==LR_CTRLKEY) {
-					if(ob && ob->type==OB_ARMATURE) 
-						if(ob->flag & OB_POSEMODE) 
-							pose_add_IK();
+					else
+						selectswap();
 				}
 				else if(G.qual==LR_ALTKEY) {
-					if(ob && ob->type==OB_ARMATURE) 
-						if(ob->flag & OB_POSEMODE) 
-							pose_clear_IK();
+					if(ob && (ob->flag & OB_POSEMODE) && ob->type==OB_ARMATURE)
+						pose_clear_IK();
 				}
 				break;
 				
@@ -5320,6 +5316,10 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					hide_tface_uv(1);
 				else if((G.qual==0))
 					hide_tface_uv(0);		
+				break;
+			case IKEY:
+				if(G.qual==LR_CTRLKEY)
+					select_invert_tface_uv();
 				break;
 			case LKEY:
 				if(G.qual==0)

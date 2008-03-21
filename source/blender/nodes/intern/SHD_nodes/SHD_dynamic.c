@@ -59,14 +59,6 @@ static PyObject *init_dynamicdict(void) {
 	return newscriptdict;
 }
 
-/* unused for now
-static void free_dynamicdict(PyObject *dict) {
-	if (dict!=NULL) {
-		Py_DECREF(dict);
-	}
-}
-*/
-
 static bNodeType *node_dynamic_find_typeinfo(ListBase *list, ID *id)
 {
 	bNodeType *ntype = list->first;
@@ -309,68 +301,6 @@ int nodeDynamicUnlinkText(ID *txtid) {
 	return 0; /* no pynodes used this text */
 }
 
-/*
-static void node_dynamic_free_all_typeinfos(ListBase *list)
-{
-	bNodeType *ntype, *ntnext;
-
-	ntype = list->first;
-
-	while (ntype) {
-		ntnext = ntype->next;
-		if (ntype->type == NODE_DYNAMIC && ntype->id) {
-			BLI_remlink(list, ntype);
-			node_dynamic_free_typeinfo_sockets(ntype);
-			node_dynamic_free_typeinfo(ntype);
-		}
-		ntype = ntnext;
-	}
-}
-*/
-/* Unload all pynodes: since the Game Engine restarts Python, we need
- * to recreate pynodes dicts and objects. First we get rid of them here: */
-/*
-void nodeDynamicUnloadAll(void)
-{
-	Material *ma;
-	bNode *nd;
-	PyGILState_STATE gilstate = PyGILState_Ensure();
-
-	for (ma= G.main->mat.first; ma; ma= ma->id.next) {
-		if (ma->nodetree) {
-			for (nd= ma->nodetree->nodes.first; nd; nd = nd->next) {
-				if ((nd->type == NODE_DYNAMIC) && nd->id) {
-					node_dynamic_free_storage_cb(nd);
-					nd->typeinfo = NULL;
-					nd->custom1 = 0;
-					nd->custom1 = BSET(nd->custom1, NODE_DYNAMIC_LOADED);
-				}
-			}
-		}
-	}
-
-	node_dynamic_free_all_typeinfos(&node_all_shaders);
-
-	PyGILState_Release(gilstate);
-}
-
-void nodeDynamicReloadAll(void)
-{
-	Material *ma;
-	bNode *nd;
-
-	for (ma= G.main->mat.first; ma; ma= ma->id.next) {
-		if (ma->nodetree) {
-			for (nd= ma->nodetree->nodes.first; nd; nd = nd->next) {
-				if ((nd->type == NODE_DYNAMIC) && nd->id) {
-					node_dynamic_setup(nd);
-				}
-			}
-		}
-	}
-}
-*/
-
 static void node_dynamic_pyerror_print(bNode *node)
 {
 	PyGILState_STATE gilstate = PyGILState_Ensure();
@@ -426,15 +356,17 @@ static int node_dynamic_parse(struct bNode *node)
 
 	while (PyDict_Next( (PyObject *)(nsd->dict), &pos, &key, &value)) {
 		/* look for the node object */
+		if (strcmp("Socket", PyString_AsString(key)) == 0)
+			continue; /* XXX ugly, fix it */
 		if (PyObject_TypeCheck(value, &PyType_Type)==1) {
-			BPy_NodeSockets *sockets = Node_CreateSockets(node);
+			BPy_NodeSocketLists *socklists = Node_CreateSocketLists(node);
 
-			args = Py_BuildValue("(O)", sockets);
+			args = Py_BuildValue("(O)", socklists);
 
 			/* init it to get the input and output sockets */
 			pynode = PyObject_Call(value, args, NULL);
 
-			Py_DECREF(sockets);
+			Py_DECREF(socklists);
 			Py_DECREF(args);
 
 			if (!PyErr_Occurred() && pynode && pytype_is_pynode(pynode)) {
@@ -466,7 +398,7 @@ static int node_dynamic_parse(struct bNode *node)
 				node->custom1 = BSET(node->custom1, NODE_DYNAMIC_READY);
 				break;
 			}
-			break;
+			//break;
 		}
 	}
 

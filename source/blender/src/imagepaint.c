@@ -593,8 +593,10 @@ static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, sho
 
 			if(ibuf && ibuf->rect)
 				texpaint_pick_uv(s->ob, s->me, newfaceindex, mval, newuv);
-			else
+			else {
 				newimage = NULL;
+				newuv[0] = newuv[1] = 0.0f;
+			}
 		}
 		else
 			newuv[0] = newuv[1] = 0.0f;

@@ -69,6 +69,7 @@ void collision_move_object(CollisionModifierData *collmd, float step, float prev
 		VECADDS(collmd->current_xnew[i].co, collmd->x[i].co, tv, step);
 		VECSUB(collmd->current_v[i].co, collmd->current_xnew[i].co, collmd->current_x[i].co);
 	}
+	bvh_update_from_mvert(collmd->bvh, collmd->current_x, collmd->numverts, collmd->current_xnew, 1);
 }
 
 /* build bounding volume hierarchy from mverts (see kdop.c for whole BVH code) */
@@ -86,11 +87,6 @@ BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsig
 	// in the moment, return zero if no faces there
 	if(!numfaces)
 		return NULL;
-	
-	bvh->flags = 0;
-	bvh->leaf_tree = NULL;
-	bvh->leaf_root = NULL;
-	bvh->tree = NULL;
 
 	bvh->epsilon = epsilon;
 	bvh->numfaces = numfaces;
@@ -103,8 +99,7 @@ BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsig
 	}
 
 	bvh->numverts = numverts;
-	bvh->current_x = MEM_dupallocN(x);	
-	bvh->current_xold = MEM_dupallocN(x);	
+	bvh->current_x = MEM_dupallocN(x);
 	
 	bvh_build(bvh);
 	
@@ -432,6 +427,7 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 	float w1, w2, w3, u1, u2, u3;
 	float v1[3], v2[3], relativeVelocity[3];
 	float magrelVel;
+	float epsilon2 = collmd->bvh->epsilon;
 	
 	cloth1 = clmd->clothObject;
 
@@ -515,7 +511,7 @@ int cloth_collision_response_static(ClothModifierData *clmd, CollisionModifierDa
 			
 			// Apply repulse impulse if distance too short
 			// I_r = -min(dt*kd, m(0,1d/dt - v_n))
-			d = clmd->coll_parms->epsilon*8.0/9.0 - collpair->distance;
+			d = clmd->coll_parms->epsilon*8.0/9.0 + epsilon2*8.0/9.0 - collpair->distance;
 			if((magrelVel < 0.1*d*clmd->sim_parms->stepsPerFrame) && (d > ALMOST_ZERO))
 			{
 				repulse = MIN2(d*1.0/clmd->sim_parms->stepsPerFrame, 0.1*d*clmd->sim_parms->stepsPerFrame - magrelVel);
@@ -562,6 +558,7 @@ void cloth_collision_static(ModifierData *md1, ModifierData *md2, CollisionTree 
 	ClothVertex *verts1=NULL;
 	double distance = 0;
 	float epsilon = clmd->coll_parms->epsilon;
+	float epsilon2 = ((CollisionModifierData *)md2)->bvh->epsilon;
 	unsigned int i = 0;
 
 	for(i = 0; i < 4; i++)
@@ -646,9 +643,9 @@ void cloth_collision_static(ModifierData *md1, ModifierData *md2, CollisionTree 
 					verts1[collpair->ap1].txold, verts1[collpair->ap2].txold, verts1[collpair->ap3].txold, collmd->current_x[collpair->bp1].co, collmd->current_x[collpair->bp2].co, collmd->current_x[collpair->bp3].co, collpair->pa,collpair->pb,collpair->vector);
 #else
 			// just be sure that we don't add anything
-			distance = 2.0 * (epsilon + ALMOST_ZERO);
+			distance = 2.0 * (epsilon + epsilon2 + ALMOST_ZERO);
 #endif	
-			if (distance <= (epsilon + ALMOST_ZERO))
+			if (distance <= (epsilon + epsilon2 + ALMOST_ZERO))
 			{
 				// printf("dist: %f\n", (float)distance);
 				
@@ -973,12 +970,15 @@ int cloth_bvh_objcollisions_do(ClothModifierData * clmd, CollisionModifierData *
 	
 	verts = cloth->verts;
 	
-	if (collmd->tree) 
+	if (collmd->bvh) 
 	{
-		BVH *coll_bvh = collmd->tree;
-				
+		/* get pointer to bounding volume hierarchy */
+		BVH *coll_bvh = collmd->bvh;
+		
+		/* move object to position (step) in time */
 		collision_move_object(collmd, step + dt, step);
-					
+		
+		/* search for overlapping collision pairs */
 		bvh_traverse((ModifierData *)clmd, (ModifierData *)collmd, cloth_bvh->root, coll_bvh->root, step, cloth_collision_static, 0);
 	}
 	else
@@ -993,7 +993,7 @@ int cloth_bvh_objcollisions_do(ClothModifierData * clmd, CollisionModifierData *
 	{
 		result = 0;
 				
-		if (collmd->tree) 
+		if (collmd->bvh) 
 			result += cloth_collision_response_static(clmd, collmd);
 				
 				// apply impulses in parallel

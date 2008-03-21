@@ -534,6 +534,14 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 					break;
 				}
 			}
+
+			/* set socket own_index to zero since it can still have a value
+			 * from being in a group before, otherwise it doesn't get a unique
+			 * index in group_verify_own_indices */
+			for(sock= node->inputs.first; sock; sock= sock->next)
+				sock->own_index= 0;
+			for(sock= node->outputs.first; sock; sock= sock->next)
+				sock->own_index= 0;
 		}
 	}
 
@@ -589,6 +597,10 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 			}
 		}
 	}
+
+	/* update node levels */
+	ntreeSolveOrder(ntree);
+
 	return gnode;
 }
 
@@ -1356,11 +1368,21 @@ bNode *nodeGetActiveID(bNodeTree *ntree, short idtype)
 	bNode *node;
 	
 	if(ntree==NULL) return NULL;
+
+	/* check for group edit */
+    for(node= ntree->nodes.first; node; node= node->next)
+		if(node->flag & NODE_GROUP_EDIT)
+			break;
+
+	if(node)
+		ntree= (bNodeTree*)node->id;
 	
+	/* now find active node with this id */
 	for(node= ntree->nodes.first; node; node= node->next)
 		if(node->id && GS(node->id->name)==idtype)
 			if(node->flag & NODE_ACTIVE_ID)
 				break;
+
 	return node;
 }
 
@@ -1781,7 +1803,7 @@ static void composit_begin_exec(bNodeTree *ntree, int is_group)
 		
 		if(is_group==0) {
 			for(sock= node->outputs.first; sock; sock= sock->next) {
-				bNodeStack *ns= ntree->stack[0] + sock->stack_index;
+				bNodeStack *ns= ntree->stack + sock->stack_index;
 				
 				if(sock->ns.data) {
 					ns->data= sock->ns.data;
@@ -1814,7 +1836,7 @@ static void composit_end_exec(bNodeTree *ntree, int is_group)
 			bNodeSocket *sock;
 		
 			for(sock= node->outputs.first; sock; sock= sock->next) {
-				ns= ntree->stack[0] + sock->stack_index;
+				ns= ntree->stack + sock->stack_index;
 				if(ns->data) {
 					sock->ns.data= ns->data;
 					ns->data= NULL;
@@ -1832,7 +1854,7 @@ static void composit_end_exec(bNodeTree *ntree, int is_group)
 	
 	if(is_group==0) {
 		/* internally, group buffers are not stored */
-		for(ns= ntree->stack[0], a=0; a<ntree->stacksize; a++, ns++) {
+		for(ns= ntree->stack, a=0; a<ntree->stacksize; a++, ns++) {
 			if(ns->data) {
 				printf("freed leftover buffer from stack\n");
 				free_compbuf(ns->data);
@@ -1873,15 +1895,47 @@ static void group_tag_used_outputs(bNode *gnode, bNodeStack *stack)
 /* per tree (and per group) unique indices are created */
 /* the index_ext we need to be able to map from groups to the group-node own stack */
 
+typedef struct bNodeThreadStack {
+	struct bNodeThreadStack *next, *prev;
+	bNodeStack *stack;
+	int used;
+} bNodeThreadStack;
+
+static bNodeThreadStack *ntreeGetThreadStack(bNodeTree *ntree, int thread)
+{
+	ListBase *lb= &ntree->threadstack[thread];
+	bNodeThreadStack *nts;
+
+	for(nts=lb->first; nts; nts=nts->next) {
+		if(!nts->used) {
+			nts->used= 1;
+			return nts;
+		}
+	}
+	
+	nts= MEM_callocN(sizeof(bNodeThreadStack), "bNodeThreadStack");
+	nts->stack= MEM_dupallocN(ntree->stack);
+	nts->used= 1;
+	BLI_addtail(lb, nts);
+
+	return nts;
+}
+
+static void ntreeReleaseThreadStack(bNodeThreadStack *nts)
+{
+	nts->used= 0;
+}
+
 void ntreeBeginExecTree(bNodeTree *ntree)
 {
 	/* let's make it sure */
 	if(ntree->init & NTREE_EXEC_INIT)
 		return;
-	
-	/* allocate the stack pointer array */
-	ntree->stack= MEM_callocN(BLENDER_MAX_THREADS*sizeof(void *), "stack array");
-	
+
+	/* allocate the thread stack listbase array */
+	if(ntree->type!=NTREE_COMPOSIT)
+		ntree->threadstack= MEM_callocN(BLENDER_MAX_THREADS*sizeof(ListBase), "thread stack array");
+
 	/* goes recursive over all groups */
 	ntree->stacksize= ntree_begin_exec_tree(ntree);
 
@@ -1891,7 +1945,7 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 		int a;
 		
 		/* allocate the base stack */
-		ns=ntree->stack[0]= MEM_callocN(ntree->stacksize*sizeof(bNodeStack), "node stack");
+		ns=ntree->stack= MEM_callocN(ntree->stacksize*sizeof(bNodeStack), "node stack");
 		
 		/* tag inputs, the get_stack() gives own socket stackdata if not in use */
 		for(a=0; a<ntree->stacksize; a++, ns++) ns->hasinput= 1;
@@ -1901,7 +1955,7 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 			bNodeSocket *sock;
 			for(sock= node->inputs.first; sock; sock= sock->next) {
 				if(sock->link) {
-					ns= ntree->stack[0] + sock->link->fromsock->stack_index;
+					ns= ntree->stack + sock->link->fromsock->stack_index;
 					ns->hasoutput= 1;
 					ns->sockettype= sock->link->fromsock->type;
 				}
@@ -1909,16 +1963,11 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 					sock->ns.sockettype= sock->type;
 			}
 			if(node->type==NODE_GROUP && node->id)
-				group_tag_used_outputs(node, ntree->stack[0]);
+				group_tag_used_outputs(node, ntree->stack);
 		}
 		
-		/* composite does 1 node per thread, so no multiple stacks needed */
 		if(ntree->type==NTREE_COMPOSIT)
 			composit_begin_exec(ntree, 0);
-		else {
-			for(a=1; a<BLENDER_MAX_THREADS; a++)
-				ntree->stack[a]= MEM_dupallocN(ntree->stack[0]);
-		}
 	}
 	
 	ntree->init |= NTREE_EXEC_INIT;
@@ -1928,6 +1977,7 @@ void ntreeEndExecTree(bNodeTree *ntree)
 {
 	
 	if(ntree->init & NTREE_EXEC_INIT) {
+		bNodeThreadStack *nts;
 		int a;
 		
 		/* another callback candidate! */
@@ -1935,12 +1985,19 @@ void ntreeEndExecTree(bNodeTree *ntree)
 			composit_end_exec(ntree, 0);
 		
 		if(ntree->stack) {
-			for(a=0; a<BLENDER_MAX_THREADS; a++)
-				if(ntree->stack[a])
-					MEM_freeN(ntree->stack[a]);
-		
 			MEM_freeN(ntree->stack);
 			ntree->stack= NULL;
+		}
+
+		if(ntree->threadstack) {
+			for(a=0; a<BLENDER_MAX_THREADS; a++) {
+				for(nts=ntree->threadstack[a].first; nts; nts=nts->next)
+					MEM_freeN(nts->stack);
+				BLI_freelistN(&ntree->threadstack[a]);
+			}
+
+			MEM_freeN(ntree->threadstack);
+			ntree->threadstack= NULL;
 		}
 
 		ntree->init &= ~NTREE_EXEC_INIT;
@@ -1971,12 +2028,20 @@ void ntreeExecTree(bNodeTree *ntree, void *callerdata, int thread)
 	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
 	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
 	bNodeStack *stack;
+	bNodeThreadStack *nts = NULL;
 	
 	/* only when initialized */
 	if((ntree->init & NTREE_EXEC_INIT)==0)
 		ntreeBeginExecTree(ntree);
 		
-	stack= ntree->stack[thread];
+	/* composite does 1 node per thread, so no multiple stacks needed */
+	if(ntree->type==NTREE_COMPOSIT) {
+		stack= ntree->stack;
+	}
+	else {
+		nts= ntreeGetThreadStack(ntree, thread);
+		stack= nts->stack;
+	}
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->typeinfo->execfunc) {
@@ -1988,6 +2053,9 @@ void ntreeExecTree(bNodeTree *ntree, void *callerdata, int thread)
 			node_group_execute(stack, callerdata, node, nsin, nsout); 
 		}
 	}
+
+	if(nts)
+		ntreeReleaseThreadStack(nts);
 }
 
 
@@ -2169,7 +2237,7 @@ static void freeExecutableNode(bNodeTree *ntree)
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->exec & NODE_FREEBUFS) {
 			for(sock= node->outputs.first; sock; sock= sock->next) {
-				bNodeStack *ns= ntree->stack[0] + sock->stack_index;
+				bNodeStack *ns= ntree->stack + sock->stack_index;
 				if(ns->data) {
 					free_compbuf(ns->data);
 					ns->data= NULL;
@@ -2223,7 +2291,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	
 	/* setup callerdata for thread callback */
 	thdata.rd= rd;
-	thdata.stack= ntree->stack[0];
+	thdata.stack= ntree->stack;
 	
 	/* fixed seed, for example noise texture */
 	BLI_srandom(rd->cfra);

@@ -777,7 +777,7 @@ void viewmove(int mode)
 		use_sel= 1;
 		VecCopyf(ofs, G.vd->ofs);
 
-		VecCopyf(obofs,&sculpt_session()->pivot.x);
+		VecCopyf(obofs, sculpt_data()->pivot);
 		Mat4MulVecfl(ob->obmat, obofs);
 		obofs[0]= -obofs[0];
 		obofs[1]= -obofs[1];

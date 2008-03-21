@@ -63,7 +63,7 @@ static float avgLogLum(CompBuf *src, float* auto_key, float* Lav, float* Cav)
 }
 
 
-void static tonemap(NodeTonemap* ntm, CompBuf* dst, CompBuf* src)
+static void tonemap(NodeTonemap* ntm, CompBuf* dst, CompBuf* src)
 {
 	int x, y;
 	float dr, dg, db, al, igm = (ntm->gamma==0.f) ? 1 : (1.f / ntm->gamma);

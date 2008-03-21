@@ -107,7 +107,7 @@ int BIF_menuselectTransformOrientation(void);
 void BIF_selectTransformOrientation(struct TransformOrientation *ts);
 void BIF_selectTransformOrientationFromIndex(int index);
 
-char * BIF_menustringTransformOrientation(); /* the returned value was allocated and needs to be freed after use */
+char * BIF_menustringTransformOrientation(char *title); /* the returned value was allocated and needs to be freed after use */
 int BIF_countTransformOrientation();
 
 /* Drawing callbacks */

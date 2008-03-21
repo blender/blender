@@ -5037,8 +5037,8 @@ static void clothModifier_initData(ModifierData *md)
 {
 	ClothModifierData *clmd = (ClothModifierData*) md;
 	
-	clmd->sim_parms = MEM_callocN(sizeof(SimulationSettings), "cloth sim parms");
-	clmd->coll_parms = MEM_callocN(sizeof(CollisionSettings), "cloth coll parms");
+	clmd->sim_parms = MEM_callocN(sizeof(ClothSimSettings), "cloth sim parms");
+	clmd->coll_parms = MEM_callocN(sizeof(ClothCollSettings), "cloth coll parms");
 	
 	/* check for alloc failing */
 	if(!clmd->sim_parms || !clmd->coll_parms)
@@ -5055,7 +5055,12 @@ static DerivedMesh *clothModifier_applyModifier(ModifierData *md, Object *ob,
 	
 	/* check for alloc failing */
 	if(!clmd->sim_parms || !clmd->coll_parms)
-		return derivedData;
+	{
+		clothModifier_initData(md);
+		
+		if(!clmd->sim_parms || !clmd->coll_parms)
+			return derivedData;
+	}
 
 	result = clothModifier_do(clmd, ob, derivedData, useRenderParams, isFinalCalc);
 
@@ -5090,7 +5095,7 @@ static void clothModifier_updateDepgraph(
 				}
 			}
 		}
-	}	
+	}
 }
 
 CustomDataMask clothModifier_requiredDataMask(ModifierData *md)
@@ -5156,7 +5161,7 @@ static void collisionModifier_initData(ModifierData *md)
 	collmd->current_v = NULL;
 	collmd->time = -1;
 	collmd->numverts = 0;
-	collmd->tree = NULL;
+	collmd->bvh = NULL;
 }
 
 static void collisionModifier_freeData(ModifierData *md)
@@ -5165,8 +5170,8 @@ static void collisionModifier_freeData(ModifierData *md)
 	
 	if (collmd) 
 	{
-		if(collmd->tree)
-			bvh_free(collmd->tree);
+		if(collmd->bvh)
+			bvh_free(collmd->bvh);
 		if(collmd->x)
 			MEM_freeN(collmd->x);
 		if(collmd->xnew)
@@ -5188,7 +5193,7 @@ static void collisionModifier_freeData(ModifierData *md)
 		collmd->current_v = NULL;
 		collmd->time = -1;
 		collmd->numverts = 0;
-		collmd->tree = NULL;
+		collmd->bvh = NULL;
 		collmd->mfaces = NULL;
 	}
 }
@@ -5258,7 +5263,7 @@ static void collisionModifier_deformVerts(
 				
 				// TODO: epsilon
 				// create bounding box hierarchy
-				collmd->tree = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sbift);
+				collmd->bvh = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sboft);
 				
 				collmd->time = current_time;
 			}
@@ -5281,14 +5286,14 @@ static void collisionModifier_deformVerts(
 				memcpy(collmd->current_x, collmd->x, numverts*sizeof(MVert));
 				
 				/* happens on file load (ONLY when i decomment changes in readfile.c */
-				if(!collmd->tree)
+				if(!collmd->bvh)
 				{
-					collmd->tree = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sbift);
+					collmd->bvh = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
 				}
 				else
 				{
 					// recalc static bounding boxes
-					bvh_update_from_mvert(collmd->tree, collmd->current_x, numverts, NULL, 0);
+					bvh_update_from_mvert(collmd->bvh, collmd->current_x, numverts, NULL, 0);
 				}
 				
 				collmd->time = current_time;
@@ -5527,6 +5532,7 @@ static void particleSystemModifier_deformVerts(
 
 	/* make new dm */
 	psmd->dm=CDDM_copy(dm);
+	CDDM_apply_vert_coords(psmd->dm, vertexCos);
 	CDDM_calc_normals(psmd->dm);
 
 	if(needsFree){
@@ -6747,7 +6753,7 @@ static void meshdeformModifier_do(
                 float (*vertexCos)[3], int numVerts)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
-	float imat[4][4], cagemat[4][4], icagemat[4][4], iobmat[3][3];
+	float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
 	float weight, totweight, fac, co[3], *weights, (*dco)[3], (*bindcos)[3];
 	int a, b, totvert, totcagevert, defgrp_index;
 	DerivedMesh *tmpdm, *cagedm;
@@ -6773,8 +6779,9 @@ static void meshdeformModifier_do(
  	/* compute matrices to go in and out of cage object space */
 	Mat4Invert(imat, mmd->object->obmat);
 	Mat4MulMat4(cagemat, ob->obmat, imat);
-	Mat4Invert(icagemat, cagemat);
-	Mat3CpyMat4(iobmat, icagemat);
+	Mat4MulMat4(cmat, cagemat, mmd->bindmat);
+	Mat4Invert(iobmat, cmat);
+	Mat3CpyMat4(icagemat, iobmat);
 
 	/* bind weights if needed */
 	if(!mmd->bindcos)
@@ -6872,7 +6879,7 @@ static void meshdeformModifier_do(
 
 		if(totweight > 0.0f) {
 			VecMulf(co, fac/totweight);
-			Mat3MulVecfl(iobmat, co);
+			Mat3MulVecfl(icagemat, co);
 			if(G.rt != 527)
 				VECADD(vertexCos[b], vertexCos[b], co)
 			else

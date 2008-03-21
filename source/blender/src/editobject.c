@@ -1030,18 +1030,31 @@ void clear_object(char mode)
 				 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
 				 *	- with clearing transform of object being edited at the time
 				 */
-				if ((G.f & G_WEIGHTPAINT) || ob==OBACT) {
+				if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
 					clear_armature(ob, mode);
 					armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
 				}
 			}
 			else if((G.f & G_WEIGHTPAINT)==0) {
-				
-				if(mode=='r') {
-					memset(ob->rot, 0, 3*sizeof(float));
-					memset(ob->drot, 0, 3*sizeof(float));
+				/* only clear transforms of 'normal' (not armature) object if:
+				 *	- not in weightpaint mode or editmode
+				 *	- if that object's transform locks are not enabled (this is done on a per-channel basis)
+				 */
+				if (mode=='r') {
+					/* eulers can only get cleared if they are not protected */
+					if ((ob->protectflag & OB_LOCK_ROTX)==0)
+						ob->rot[0]= ob->drot[0]= 0.0f;
+					if ((ob->protectflag & OB_LOCK_ROTY)==0)
+						ob->rot[1]= ob->drot[1]= 0.0f;
+					if ((ob->protectflag & OB_LOCK_ROTZ)==0)
+						ob->rot[2]= ob->drot[2]= 0.0f;
+					
+					/* quats here are not really used anymore anywhere, so it probably doesn't 
+					 * matter to not clear them whether the euler-based rotation is used
+					 */
 					QuatOne(ob->quat);
 					QuatOne(ob->dquat);
+					
 #ifdef WITH_VERSE
 					if(ob->vnode) {
 						struct VNode *vnode = (VNode*)ob->vnode;
@@ -1051,9 +1064,14 @@ void clear_object(char mode)
 #endif
 
 				}
-				else if(mode=='g') {
-					memset(ob->loc, 0, 3*sizeof(float));
-					memset(ob->dloc, 0, 3*sizeof(float));
+				else if (mode=='g') {
+					if ((ob->protectflag & OB_LOCK_LOCX)==0)
+						ob->loc[0]= ob->dloc[0]= 0.0f;
+					if ((ob->protectflag & OB_LOCK_LOCY)==0)
+						ob->loc[1]= ob->dloc[1]= 0.0f;
+					if ((ob->protectflag & OB_LOCK_LOCZ)==0)
+						ob->loc[2]= ob->dloc[2]= 0.0f;
+					
 #ifdef WITH_VERSE
 					if(ob->vnode) {
 						struct VNode *vnode = (VNode*)ob->vnode;
@@ -1063,11 +1081,19 @@ void clear_object(char mode)
 #endif
 
 				}
-				else if(mode=='s') {
-					memset(ob->dsize, 0, 3*sizeof(float));
-					ob->size[0]= 1.0;
-					ob->size[1]= 1.0;
-					ob->size[2]= 1.0;
+				else if (mode=='s') {
+					if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
+						ob->dsize[0]= 0.0f;
+						ob->size[0]= 1.0f;
+					}
+					if ((ob->protectflag & OB_LOCK_SCALEY)==0) {
+						ob->dsize[1]= 0.0f;
+						ob->size[1]= 1.0f;
+					}
+					if ((ob->protectflag & OB_LOCK_SCALEZ)==0) {
+						ob->dsize[2]= 0.0f;
+						ob->size[2]= 1.0f;
+					}
 #ifdef WITH_VERSE
 					if(ob->vnode) {
 						struct VNode *vnode = (VNode*)ob->vnode;

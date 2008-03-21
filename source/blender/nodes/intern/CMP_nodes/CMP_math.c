@@ -142,7 +142,6 @@ static void node_composit_exec_math(void *data, bNode *node, bNodeStack **in, bN
 	CompBuf *stackbuf; 
 
 	/* check for inputs and outputs for early out*/
-	if(in[0]->hasinput==0 && in[1]->hasinput==0) return;
 	if(out[0]->hasoutput==0) return;
 
 	/* no image-color operation */

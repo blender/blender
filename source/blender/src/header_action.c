@@ -1528,7 +1528,7 @@ void action_buttons(void)
 	xco= std_libbuttons(block, xco, 0, B_ACTPIN, &G.saction->pin, 
 						B_ACTIONBROWSE, ID_AC, 0, (ID*)G.saction->action, 
 						from, &(G.saction->actnr), B_ACTALONE, 
-						B_ACTLOCAL, B_ACTIONDELETE, 0, 0);	
+						B_ACTLOCAL, B_ACTIONDELETE, 0, B_KEEPDATA);	
 
 	uiClearButLock();
 

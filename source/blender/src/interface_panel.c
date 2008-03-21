@@ -606,7 +606,9 @@ static int panel_has_tabs(Panel *panel)
 	if(panel==NULL) return 0;
 	
 	while(pa) {
-		if(pa->paneltab==panel) return 1;
+		if(pa->active && pa->paneltab==panel) {
+			return 1;
+		}
 		pa= pa->next;
 	}
 	return 0;

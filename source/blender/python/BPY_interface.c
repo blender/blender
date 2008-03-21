@@ -261,6 +261,7 @@ void BPY_start_python( int argc, char **argv )
 void BPY_end_python( void )
 {
 	Script *script = NULL;
+	Script *next_script = NULL;
 
 	PyGILState_Ensure(); /* finalizing, no need to grab the state */
 
@@ -281,8 +282,8 @@ void BPY_end_python( void )
 
 	/* Freeing all scripts here prevents problems with the order in which
 	 * Python is finalized and G.main is freed in exit_usiblender() */
-	for (script = G.main->script.first; script; script = script->id.next) {
-		BPY_clear_script(script);
+	for (script = G.main->script.first; script; script = next_script) {
+		next_script = script->id.next;
 		free_libblock( &G.main->script, script );
 	}
 
@@ -691,8 +692,7 @@ int BPY_txt_do_python_Text( struct Text *text )
 		BPY_Err_Handle( textname );
 		ReleaseGlobalDictionary( py_dict );
 		script->py_globaldict = NULL;
-		if( G.main->script.first )
-			free_libblock( &G.main->script, script );
+		free_libblock( &G.main->script, script );
 		PyGILState_Release(gilstate);
 		return 0;
 	} else {
@@ -785,14 +785,23 @@ int BPY_run_script(Script *script)
 		char fname[FILE_MAX];
 		char fpath[FILE_MAX];
 		char ftmp[FILE_MAX];
+		char *bpyhome = bpy_gethome(1);
 		
-		strcpy(ftmp, script->scriptname);
-		BLI_split_dirfile(ftmp, fpath, fname);
-		BLI_make_file_string("/", fpath, bpy_gethome(1), fname);
+		if (bpyhome) {
+			BLI_strncpy(ftmp, script->scriptname, sizeof(ftmp));
+			BLI_split_dirfile(ftmp, fpath, fname); /* get the filename only - fname */
+			BLI_strncpy(fpath, bpy_gethome(1), sizeof(fpath));
+			BLI_add_slash(fpath);
+			strcat(fpath, fname);
 		
-		if (BLI_exists(fpath)) {
-			strncpy(script->scriptname, fpath, sizeof(script->scriptname));
-		} else if (U.pythondir[0]) {
+			if (BLI_exists(fpath)) {
+				strncpy(script->scriptname, fpath, sizeof(script->scriptname));
+			} else {
+				bpyhome = NULL; /* a bit dodgy, this is so the line below runs */
+			}
+		}
+		
+		if (bpyhome == NULL && U.pythondir[0]) {
 			BLI_make_file_string("/", fpath, U.pythondir, fname);
 			if (BLI_exists(fpath)) {
 				strncpy(script->scriptname, fpath, sizeof(script->scriptname));
@@ -812,11 +821,13 @@ int BPY_run_script(Script *script)
 		Py_INCREF( Py_None );
 		pyarg = Py_None;
 	} else {
-		fp = fopen( script->scriptname, "rb" );
+		if (BLI_exists(script->scriptname)) {
+			fp = fopen( script->scriptname, "rb" );
+		}
+		
 		if( !fp ) {
 			printf( "Error loading script: couldn't open file %s\n", script->scriptname );
-			if( G.main->script.first )
-				free_libblock( &G.main->script, script );
+			free_libblock( &G.main->script, script );
 			PyGILState_Release(gilstate);
 			return 0;
 		}
@@ -842,8 +853,7 @@ int BPY_run_script(Script *script)
 
 	if( !setup_armature_weakrefs()){
 		printf("Oops - weakref dict\n");
-		if( G.main->script.first )
-			free_libblock( &G.main->script, script );
+		free_libblock( &G.main->script, script );
 		ReleaseGlobalDictionary( py_dict );
 		MEM_freeN( buffer );
 		PyGILState_Release(gilstate);
@@ -910,9 +920,8 @@ int BPY_run_script(Script *script)
 		BPY_Err_Handle( script->id.name + 2 );
 		ReleaseGlobalDictionary( py_dict );
 		script->py_globaldict = NULL;
-		if( G.main->script.first )
-			free_libblock( &G.main->script, script );
-		error( "Python script error: check console" );
+		free_libblock( &G.main->script, script );
+		error_pyscript(  );
 
 		PyGILState_Release(gilstate);
 		return 0;
@@ -1110,7 +1119,7 @@ void BPY_free_finished_script( Script * script )
 
 	if( PyErr_Occurred(  ) ) {	/* if script ended after filesel */
 		PyErr_Print(  );	/* eventual errors are handled now */
-		error( "Python script error: check console" );
+		error_pyscript(  );
 	}
 
 	PyGILState_Release(gilstate);
@@ -1146,6 +1155,7 @@ static void unlink_script( Script * script )
 	}
 }
 
+/* This is called from free_libblock( &G.main->script, script ); */
 void BPY_clear_script( Script * script )
 {
 	PyObject *dict;
@@ -2015,6 +2025,7 @@ float BPY_pydriver_eval(IpoDriver *driver)
 	}
 
 	result = ( float )PyFloat_AsDouble( retval );
+	Py_DECREF(retval);
 	
 	if (result == -1 && PyErr_Occurred()) {
 		result = pydriver_error(driver);
@@ -2960,4 +2971,8 @@ void BPY_scripts_clear_pyobjects( void )
 		Py_XDECREF((PyObject *)script->py_globaldict); 
 		SCRIPT_SET_NULL(script)
 	}
+}
+void error_pyscript( void )
+{
+	error("Python script error: check console");
 }

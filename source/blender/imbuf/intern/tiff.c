@@ -484,7 +484,7 @@ short imb_savetiff(struct ImBuf *ibuf, char *name, int flags)
 
 	/* allocate array for pixel data */
 	npixels = ibuf->x * ibuf->y;
-	if(ibuf->ftype & TIF_16BIT)
+	if(bitspersample == 16)
 		pixels16 = (unsigned short*)libtiff__TIFFmalloc(npixels *
 			samplesperpixel * sizeof(unsigned short));
 	else
@@ -499,7 +499,7 @@ short imb_savetiff(struct ImBuf *ibuf, char *name, int flags)
 	}
 
 	/* setup pointers */
-	if(ibuf->ftype & TIF_16BIT) {
+	if(bitspersample == 16) {
 		fromf = ibuf->rect_float;
 		to16   = pixels16;
 	}

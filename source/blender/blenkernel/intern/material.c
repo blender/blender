@@ -633,9 +633,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 	
 	if(ma->flarec==0) ma->flarec= 1;
 
-	/* add all texcoflags from mtex */
-	ma->texco= 0;
-	ma->mapto= 0;
+	/* add all texcoflags from mtex, texco and mapto were cleared in advance */
 	for(a=0; a<MAX_MTEX; a++) {
 		
 		/* separate tex switching */
@@ -730,6 +728,16 @@ void init_render_materials(int r_mode, float *amb)
 {
 	Material *ma;
 	
+	/* clear these flags before going over materials, to make sure they
+	 * are cleared only once, otherwise node materials contained in other
+	 * node materials can go wrong */
+	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
+		if(ma->id.us) {
+			ma->texco= 0;
+			ma->mapto= 0;
+		}
+	}
+
 	/* two steps, first initialize, then or the flags for layers */
 	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
 		/* is_used flag comes back in convertblender.c */

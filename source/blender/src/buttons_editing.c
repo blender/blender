@@ -1254,9 +1254,9 @@ static void modifiers_convertParticles(void *obv, void *mdv)
 	ParticleCacheKey *key, **cache;
 	Mesh *me;
 	MVert *mvert;
-	MFace *mface;
+	MEdge *medge;
 	int a, k, kmax;
-	int totvert=0, totface=0, cvert=0;
+	int totvert=0, totedge=0, cvert=0;
 	int totpart=0, totchild=0;
 
 	if(md->type != eModifierType_ParticleSystem) return;
@@ -1277,15 +1277,15 @@ static void modifiers_convertParticles(void *obv, void *mdv)
 	cache= psys->pathcache;
 	for(a=0; a<totpart; a++) {
 		key= cache[a];
-		totvert+= (int)(key->col[3])+1;
-		totface+= (int)(key->col[3]);
+		totvert+= key->steps+1;
+		totedge+= key->steps;
 	}
 
 	cache= psys->childcache;
 	for(a=0; a<totchild; a++) {
 		key= cache[a];
-		totvert+= (int)(key->col[3])+1;
-		totface+= (int)(key->col[3]);
+		totvert+= key->steps+1;
+		totedge+= key->steps;
 	}
 
 	if(totvert==0) return;
@@ -1295,25 +1295,27 @@ static void modifiers_convertParticles(void *obv, void *mdv)
 	me= obn->data;
 	
 	me->totvert= totvert;
-	me->totface= totface;
+	me->totedge= totedge;
 	
 	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
-	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, totface);
+	me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
+	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, 0);
 	
 	mvert= me->mvert;
-	mface= me->mface;
+	medge= me->medge;
 
 	/* copy coordinates */
 	cache= psys->pathcache;
-	for(a=0; a<totpart; a++){
+	for(a=0; a<totpart; a++) {
 		key= cache[a];
-		kmax= (int)(key->col[3]);
+		kmax= key->steps;
 		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
 			VECCOPY(mvert->co,key->co);
-			if(k){
-				mface->v1= cvert-1;
-				mface->v2= cvert;
-				mface++;
+			if(k) {
+				medge->v1= cvert-1;
+				medge->v2= cvert;
+				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
+				medge++;
 			}
 		}
 	}
@@ -1321,18 +1323,21 @@ static void modifiers_convertParticles(void *obv, void *mdv)
 	cache=psys->childcache;
 	for(a=0; a<totchild; a++) {
 		key=cache[a];
-		kmax=(int)(key->col[3]);
+		kmax=key->steps;
 		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
 			VECCOPY(mvert->co,key->co);
-			if(k){
-				mface->v1=cvert-1;
-				mface->v2=cvert;
-				mface++;
+			if(k) {
+				medge->v1=cvert-1;
+				medge->v2=cvert;
+				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
+				medge++;
 			}
 		}
 	}
-	make_edges(me, 0);
+
+	DAG_scene_sort(G.scene);
 }
+
 static void modifiers_applyModifier(void *obv, void *mdv)
 {
 	Object *ob = obv;
@@ -2686,7 +2691,7 @@ static void load_buts_vfont(char *name)
 
 static void set_unicode_text_fs(char *file)
 {
-	if (file > 0) paste_unicodeText(file); 
+	if (file) paste_unicodeText(file); 
 }
 
 void do_fontbuts(unsigned short event)
@@ -5244,10 +5249,10 @@ static void editing_panel_links(Object *ob)
 			std_libbuttons(block, 143, 130, 0, NULL, B_POSELIB_BROWSE, ID_AC, 0, (ID *)act, (ID *)ob, &(G.buts->menunr), B_POSELIB_ALONE, 0, B_POSELIB_DELETE, 0, 0);
 			uiBlockSetCol(block, TH_AUTO);
 			
-			uiDefBut(block, BUT, B_POSELIB_VALIDATE,  "Auto-Sync PoseLib",	xco,110,160,20, 0, 0, 0, 0, 0, "Syncs the current PoseLib with the poses available");
-			
 			/* PoseLib -  Pose editing controls */
 			if (act) {
+				uiDefBut(block, BUT, B_POSELIB_VALIDATE,  "Auto-Sync PoseLib",	xco,110,160,20, 0, 0, 0, 0, 0, "Syncs the current PoseLib with the poses available");
+				
 				uiBlockBeginAlign(block);
 					/* currently 'active' pose */
 					if (act->markers.first) {
@@ -6195,6 +6200,9 @@ static void editing_panel_mesh_texface(void)
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Add",		660,80,60,19, &tf->transp, 2.0, (float)TF_ADD,	0, 0, "Render face transparent and add color of face");
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",	720,80,60,19, &tf->transp, 2.0, (float)TF_ALPHA,0, 0, "Render polygon transparent, depending on alpha channel of the texture");
 	}
+	else
+		uiDefBut(block,LABEL,B_NOP, "(No Active Face)", 10,200,150,19,0,0,0,0,0,"");
+
 }
 
 void do_uvcalculationbuts(unsigned short event)
@@ -6464,7 +6472,10 @@ void editing_panels()
 			editing_panel_mesh_tools(ob, ob->data);
 			editing_panel_mesh_tools1(ob, ob->data);
 			uiNewPanelTabbed("Mesh Tools 1", "Editing");
-			editing_panel_mesh_skgen(ob, ob->data);
+			
+			if (G.rt == 42) /* hidden for now, no time for docs */
+				editing_panel_mesh_skgen(ob, ob->data);
+			
 			editing_panel_mesh_uvautocalculation();
 			if (EM_texFaceCheck())
 				editing_panel_mesh_texface();

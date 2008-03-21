@@ -2197,13 +2197,75 @@ void view3d_border_zoom(void)
 	float new_dist;
 	float new_ofs[3];
 	
-	/* doesn't work fine for perspective */
-	if(G.vd->persp==1)
-		return;
-	
 	val = get_border(&rect, 3); //box select input
-	if(val)
-	{
+	if(!val) return;
+	
+	if (G.vd->persp==1) { /* perspective */
+		View3D *v3d = G.vd;
+		bglMats mats;
+		float depth, depth_close= MAXFLOAT;
+		double cent[2],  p[3], p_corner[3];
+		int xs, ys, had_depth = 0;
+		
+		/* convert border to 3d coordinates */
+		bgl_get_mats(&mats);
+		
+		draw_depth(curarea, (void *)v3d);
+		
+		/* force updating */
+		if (v3d->depths) {
+			had_depth = 1;
+			v3d->depths->damaged = 1;
+		}
+		
+		view3d_update_depths(v3d);
+		
+		/* Constrain rect to depth bounds */
+		if (rect.xmin < 0) rect.xmin = 0;
+		if (rect.ymin < 0) rect.ymin = 0;
+		if (rect.xmax >= G.vd->depths->w) rect.xmax = G.vd->depths->w-1;
+		if (rect.ymax >= G.vd->depths->h) rect.ymax = G.vd->depths->h-1;		
+		
+		for (xs=rect.xmin; xs < rect.xmax; xs++) {
+			for (ys=rect.ymin; ys < rect.ymax; ys++) {
+				depth= v3d->depths->depths[ys*v3d->depths->w+xs];
+				if(depth < v3d->depths->depth_range[1] && depth > v3d->depths->depth_range[0]) {
+					if (depth_close > depth) {
+						depth_close = depth;
+					}
+				}
+			}
+		}
+		
+		if (had_depth==0) {
+			MEM_freeN(v3d->depths->depths);
+			v3d->depths->depths = NULL;
+		}
+		v3d->depths->damaged = 1;
+		
+		/* no depths to use*/
+		if (depth_close==MAXFLOAT) 
+			return;
+		
+		cent[0] = (((double)rect.xmin)+((double)rect.xmax)) / 2;
+		cent[1] = (((double)rect.ymin)+((double)rect.ymax)) / 2;
+		
+		if ((	!gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, mats.viewport, &p[0], &p[1], &p[2])) || 
+			(	!gluUnProject((double)rect.xmin, (double)rect.ymin, depth_close, mats.modelview, mats.projection, mats.viewport, &p_corner[0], &p_corner[1], &p_corner[2])))
+			return;
+		
+		dvec[0] = p[0]-p_corner[0];
+		dvec[1] = p[1]-p_corner[1];
+		dvec[2] = p[2]-p_corner[2];
+		
+		new_dist = VecLength(dvec);
+		if(new_dist <= G.vd->near*1.5) new_dist= G.vd->near*1.5; 
+		
+		new_ofs[0] = -p[0];
+		new_ofs[1] = -p[1];
+		new_ofs[2] = -p[2];
+		
+	} else { /* othographic */
 		/* find the current window width and height */
 		vb[0] = G.vd->area->winx;
 		vb[1] = G.vd->area->winy;
@@ -2228,10 +2290,9 @@ void view3d_border_zoom(void)
 		
 		/* zoom in as required, or as far as we can go */
 		new_dist = ((new_dist*scale) >= 0.001*G.vd->grid)? new_dist*scale:0.001*G.vd->grid;
-		
-		smooth_view(G.vd, new_ofs, NULL, &new_dist, NULL);
-		
 	}
+	
+	smooth_view(G.vd, new_ofs, NULL, &new_dist, NULL);
 }
 
 void fly(void)

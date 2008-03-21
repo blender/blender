@@ -1856,6 +1856,22 @@ void snapmenu()
 	}
 }
 
+void alignmenu()
+{
+	short val;
+	char *str_menu = BIF_menustringTransformOrientation("Align");
+	val= pupmenu(str_menu);
+	MEM_freeN(str_menu);
+
+	if (val >= 0)
+	{
+		short old_val = G.vd->twmode; 
+		G.vd->twmode = val;
+		initTransform(TFM_ALIGN, CTX_NO_PET|CTX_AUTOCONFIRM);
+		Transform();
+		G.vd->twmode = old_val;
+	}
+}
 
 #define MERGELIMIT 0.001
 void mergemenu(void)

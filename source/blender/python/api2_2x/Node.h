@@ -40,10 +40,18 @@
 #include "RE_shader_ext.h"		/* <- ShadeInput Shaderesult TexResult */
 
 extern PyTypeObject Node_Type;
+extern PyTypeObject NodeSocket_Type;
+extern PyTypeObject NodeSocketLists_Type;
 extern PyTypeObject ShadeInput_Type;
 
 #define BPy_Node_Check(v) \
     ((v)->ob_type == &Node_Type)
+
+#define BPy_NodeSocket_Check(v) \
+    ((v)->ob_type == &NodeSocket_Type)
+
+#define BPy_NodeSocketLists_Check(v) \
+    ((v)->ob_type == &NodeSocketLists_Type)
 
 #define BPy_ShadeInput_Check(v) \
     ((v)->ob_type == &ShadeInput_Type)
@@ -64,7 +72,7 @@ typedef struct {
 	bNode *node;
 	PyObject *input;
 	PyObject *output;
-} BPy_NodeSockets;
+} BPy_NodeSocketLists;
 
 typedef struct BPy_Node {
 	PyObject_HEAD
@@ -74,10 +82,19 @@ typedef struct BPy_Node {
 	ShadeInput *shi;
 } BPy_Node;
 
+typedef struct BPy_NodeSocket {
+	PyObject_HEAD
+	char name[NODE_MAXSTR];
+	float min;
+	float max;
+	float val[4];
+	short type; /* VALUE, VECTOR or RGBA */
+} BPy_NodeSocket;
+
 extern PyObject *Node_Init(void);
 extern void InitNode(BPy_Node *self, bNode *node);
 extern BPy_Node *Node_CreatePyObject(bNode *node);
-extern BPy_NodeSockets *Node_CreateSockets(bNode *node);
+extern BPy_NodeSocketLists *Node_CreateSocketLists(bNode *node);
 extern void Node_SetStack(BPy_Node *self, bNodeStack **stack, int type);
 extern void Node_SetShi(BPy_Node *self, ShadeInput *shi);
 extern int pytype_is_pynode(PyObject *pyob);

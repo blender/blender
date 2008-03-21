@@ -173,4 +173,8 @@ ifeq ($(INTERNATIONAL),true)
    LLIBS += $(NAN_GETTEXT_LIB)
 endif
 
+ifeq ($(WITH_BF_OPENMP),true)
+   LLIBS += -lgomp
+endif
+
 LLIBS += $(NAN_PYTHON_LIB)

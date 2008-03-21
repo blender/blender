@@ -46,6 +46,8 @@ static int SurfNurb_setPoint( BPy_SurfNurb * self, int index, PyObject * ob );
 static int SurfNurb_length( PyInstanceObject * inst );
 static PyObject *SurfNurb_getIter( BPy_SurfNurb * self );
 static PyObject *SurfNurb_iterNext( BPy_SurfNurb * self );
+static PyObject *SurfNurb_getKnotsU( BPy_SurfNurb * self );
+static PyObject *SurfNurb_getKnotsV( BPy_SurfNurb * self );
 PyObject *SurfNurb_append( BPy_SurfNurb * self, PyObject * args );
 
 char M_SurfNurb_doc[] = "SurfNurb";
@@ -487,6 +489,58 @@ static int SurfNurb_setCyclicV( BPy_SurfNurb * self, PyObject * value )
 	return 0;
 }
 
+/*
+ * SurfNurb_getKnotsU
+ *
+ * Returns surface's knotsU in a tuple. Empty tuple is returned if
+ * surface isn't Nurbs or it doesn't have knots in U
+ */
+
+static PyObject *SurfNurb_getKnotsU( BPy_SurfNurb * self )
+{
+	if(self->nurb->knotsu) {
+		int len = KNOTSU(self->nurb);
+		int i;
+		PyObject *knotsu = PyTuple_New(len);
+		if( !knotsu )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"could not get SurfNurb.knotsU attribute" );
+
+		for(i = 0; i < len; ++i)
+			PyTuple_SetItem(knotsu, i,
+					PyFloat_FromDouble(self->nurb->knotsu[i]));
+
+		return knotsu;
+	}
+	return PyTuple_New(0);
+}
+
+/*
+ * SurfNurb_getKnotsV
+ *
+ * Returns surface's knotsV in a tuple.  Empty tuple is returned if
+ * curve doesn't have knots in V
+ */
+
+static PyObject *SurfNurb_getKnotsV( BPy_SurfNurb * self )
+{
+	if(self->nurb->knotsv) {
+		int len = KNOTSV(self->nurb);
+		int i;
+		PyObject *knotsv = PyTuple_New(len);
+		if( !knotsv )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"could not get SurfNurb.knotsV index" );
+
+		for(i = 0; i < len; ++i)
+			PyTuple_SetItem(knotsv, i,
+					PyFloat_FromDouble(self->nurb->knotsv[i] ));
+	
+		return knotsv;
+	}
+	return PyTuple_New(0);
+}
+
 
 /*
  * SurfNurb_getIter
@@ -723,6 +777,15 @@ static PyGetSetDef BPy_SurfNurb_getseters[] = {
 	{"orderV",
 	 (getter)SurfNurb_getOrderV, (setter)SurfNurb_setOrderV,
 	 "order setting for V direction", NULL},
+	{"knotsU",
+	 (getter)SurfNurb_getKnotsU, (setter)NULL,
+	 "The The knot vector in the U direction",
+	 NULL},
+	{"knotsV",
+	 (getter)SurfNurb_getKnotsV, (setter)NULL,
+	 "The The knot vector in the V direction",
+	 NULL},
+
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 

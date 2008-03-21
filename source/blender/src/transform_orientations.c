@@ -313,18 +313,19 @@ void BIF_selectTransformOrientationFromIndex(int index) {
 	G.vd->twmode = V3D_MANIP_CUSTOM + index;
 }
 
-char * BIF_menustringTransformOrientation() {
-	char menu[] = "Orientation%t|Global%x0|Local%x1|Normal%x2|View%x3";
+char * BIF_menustringTransformOrientation(char *title) {
+	char menu[] = "%t|Global%x0|Local%x1|Normal%x2|View%x3";
 	ListBase *transform_spaces = &G.scene->transform_spaces;
 	TransformOrientation *ts;
 	int i = V3D_MANIP_CUSTOM;
 	char *str_menu, *p;
 	
 	
-	str_menu = MEM_callocN(strlen(menu) + 40 * BIF_countTransformOrientation(), "UserTransSpace from matrix");
+	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 40 * BIF_countTransformOrientation(), "UserTransSpace from matrix");
 	p = str_menu;
 	
-	p += sprintf(str_menu, "%s", menu);
+	p += sprintf(str_menu, "%s", title);
+	p += sprintf(p, "%s", menu);
 	
 	for (ts = transform_spaces->first; ts; ts = ts->next) {
 		p += sprintf(p, "|%s%%x%d", ts->name, i++);

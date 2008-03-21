@@ -1580,7 +1580,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	EditEdge *eed;
 	MDeformVert *dvert=NULL;
 	TransformProperties *tfp= G.vd->properties_storage;
-	float median[5];
+	float median[5], ve_median[5];
 	int tot, totw, totweight, totedge;
 	char defstr[320];
 	
@@ -1773,15 +1773,16 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 		
 	}
 	else {	// apply
+		memcpy(ve_median, tfp->ve_median, sizeof(tfp->ve_median));
 		
 		if(G.vd->flag & V3D_GLOBAL_STATS) {
 			Mat4Invert(ob->imat, ob->obmat);
 			Mat4MulVecfl(ob->imat, median);
-			Mat4MulVecfl(ob->imat, tfp->ve_median);
+			Mat4MulVecfl(ob->imat, ve_median);
 		}
-		VecSubf(median, tfp->ve_median, median);
-		median[3]= tfp->ve_median[3]-median[3];
-		median[4]= tfp->ve_median[4]-median[4];
+		VecSubf(median, ve_median, median);
+		median[3]= ve_median[3]-median[3];
+		median[4]= ve_median[4]-median[4];
 		
 		if(ob->type==OB_MESH) {
 			
@@ -1796,8 +1797,8 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			for(eed= em->edges.first; eed; eed= eed->next) {
 				if(eed->f & SELECT) {
 					/* ensure the median can be set to zero or one */
-					if(tfp->ve_median[3]==0.0f) eed->crease= 0.0f;
-					else if(tfp->ve_median[3]==1.0f) eed->crease= 1.0f;
+					if(ve_median[3]==0.0f) eed->crease= 0.0f;
+					else if(ve_median[3]==1.0f) eed->crease= 1.0f;
 					else {
 						eed->crease+= median[3];
 						CLAMP(eed->crease, 0.0, 1.0);
@@ -2886,6 +2887,108 @@ static void draw_sculpt_depths(View3D *v3d)
 		v3d->zbuf = orig_zbuf;
 		ob->dt = orig_odt;
 	}
+}
+
+void draw_depth(ScrArea *sa, void *spacedata)
+{
+	View3D *v3d= spacedata;
+	Base *base;
+	Scene *sce;
+	short drawtype, zbuf, flag;
+	float glalphaclip;
+	/* temp set drawtype to solid */
+	
+	/* Setting these temporarily is not nice */
+	drawtype = v3d->drawtype;
+	zbuf = v3d->zbuf;
+	flag = v3d->flag;
+	glalphaclip = U.glalphaclip;
+	
+	U.glalphaclip = 0.5; /* not that nice but means we wont zoom into billboards */
+	v3d->flag &= ~V3D_SELECT_OUTLINE;
+	if ((v3d->drawtype != OB_SOLID) && (v3d->drawtype != OB_TEXTURE)) 
+		v3d->drawtype = OB_SOLID;
+
+	setwinmatrixview3d(sa->winx, sa->winy, NULL);	/* 0= no pick rect */
+	setviewmatrixview3d();	/* note: calls where_is_object for camera... */
+	
+	Mat4MulMat4(v3d->persmat, v3d->viewmat, sa->winmat);
+	Mat4Invert(v3d->persinv, v3d->persmat);
+	Mat4Invert(v3d->viewinv, v3d->viewmat);
+	
+	glClear(GL_DEPTH_BUFFER_BIT);
+	
+	myloadmatrix(v3d->viewmat);
+	persp(PERSP_STORE);  // store correct view for persp(PERSP_VIEW) calls
+	
+	if(v3d->flag & V3D_CLIPPING) {
+		view3d_set_clipping(v3d);
+	}
+	
+	v3d->zbuf= TRUE;
+	glEnable(GL_DEPTH_TEST);
+	
+	/* draw set first */
+	if(G.scene->set) {
+		for(SETLOOPER(G.scene->set, base)) {
+			if(v3d->lay & base->lay) {
+				draw_object(base, 0);
+				if(base->object->transflag & OB_DUPLI) {
+					draw_dupli_objects_color(v3d, base, TH_WIRE);
+				}
+			}
+		}
+	}
+	
+	for(base= G.scene->base.first; base; base= base->next) {
+		if(v3d->lay & base->lay) {
+			
+			/* dupli drawing */
+			if(base->object->transflag & OB_DUPLI) {
+				draw_dupli_objects(v3d, base);
+			}
+			draw_object(base, 0);
+		}
+	}
+	
+	/* this isnt that nice, draw xray objects as if they are normal */
+	if (v3d->afterdraw.first) {
+		View3DAfter *v3da, *next;
+		int num = 0;
+		v3d->xray= TRUE;
+		
+		glDepthFunc(GL_ALWAYS); /* always write into the depth bufer, overwriting front z values */
+		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
+			next= v3da->next;
+			if(v3da->type==V3D_XRAY) {
+				draw_object(v3da->base, 0);
+				num++;
+			}
+			/* dont remove this time */
+		}
+		v3d->xray= FALSE;
+		
+		glDepthFunc(GL_LEQUAL); /* Now write the depth buffer normally */
+		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
+			next= v3da->next;
+			if(v3da->type==V3D_XRAY) {
+				v3d->xray= TRUE; v3d->transp= FALSE;  
+			} else if (v3da->type==V3D_TRANSP) {
+				v3d->xray= FALSE; v3d->transp= TRUE;
+			}
+			
+			draw_object(v3da->base, 0); /* Draw Xray or Transp objects normally */
+			BLI_remlink(&v3d->afterdraw, v3da);
+			MEM_freeN(v3da);
+		}
+		v3d->xray= FALSE;
+		v3d->transp= FALSE;
+	}
+	
+	v3d->drawtype = drawtype;
+	v3d->zbuf = zbuf;
+	U.glalphaclip = glalphaclip;
+	v3d->flag = flag;
 }
 
 static void draw_viewport_fps(ScrArea *sa);

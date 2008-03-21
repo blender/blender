@@ -6,7 +6,7 @@ import SCons.Options.BoolOption
 try:
     import subprocess
 except ImportError:
-	pass
+    pass
 import string
 import glob
 import shutil
@@ -59,7 +59,7 @@ def validate_arguments(args, bc):
             'WITHOUT_BF_INSTALL',
             'WITH_BF_OPENMP',
             'WITHOUT_BF_INSTALL',
-            'BF_FANCY',
+            'BF_FANCY', 'BF_QUIET'
             ]
 
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
@@ -251,7 +251,7 @@ def read_opts(cfg, args):
         ('BF_FREETYPE_LIB', 'Freetype library', ''),
         ('BF_FREETYPE_LIBPATH', 'Freetype library path', ''),
 
-	(BoolOption('WITH_BF_OPENMP', 'Use OpenMP if true', 'false')),
+        (BoolOption('WITH_BF_OPENMP', 'Use OpenMP if true', 'false')),
 
         (BoolOption('WITH_BF_QUICKTIME', 'Use QuickTime if true', 'false')),
         ('BF_QUICKTIME', 'QuickTime base path', ''),
@@ -293,7 +293,7 @@ def read_opts(cfg, args):
         ('BF_DEBUG_FLAGS', 'Debug flags', ''),
 
         (BoolOption('BF_BSC', 'Create .bsc files (msvc only)', 'true')),
-        
+
         ('BF_BUILDDIR', 'Build dir', ''),
         ('BF_INSTALLDIR', 'Installation dir', ''),
 
@@ -306,7 +306,8 @@ def read_opts(cfg, args):
         (BoolOption('BF_SPLIT_SRC', 'Split src lib into several chunks if true', 'false')),
         (BoolOption('WITHOUT_BF_INSTALL', 'dont install if true', 'false')),
         (BoolOption('BF_FANCY', 'Enable fancy output if true', 'true')),
-		(BoolOption('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', 'false')),
+        (BoolOption('BF_QUIET', 'Enable silent output if true', 'true')),
+        (BoolOption('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', 'false')),
 
     ) # end of opts.AddOptions()
 

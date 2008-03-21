@@ -2843,23 +2843,56 @@ void clear_armature(Object *ob, char mode)
 	bPoseChannel *pchan;
 	bArmature	*arm;
 
-	arm=get_armature(ob);
-	
-	if (!arm)
+	arm= get_armature(ob);
+	if (arm == NULL)
 		return;
 	
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
-			if(arm->layer & pchan->bone->layer) {
+	/* only clear those channels that are not locked */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
+			if (arm->layer & pchan->bone->layer) {
 				switch (mode) {
 					case 'r':
-						pchan->quat[1]=pchan->quat[2]=pchan->quat[3]=0.0F; pchan->quat[0]=1.0F;
+						if (pchan->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ)) {
+							float eul[3], oldeul[3], quat1[4];
+							
+							QUATCOPY(quat1, pchan->quat);
+							QuatToEul(pchan->quat, oldeul);
+							eul[0]= eul[1]= eul[2]= 0.0f;
+							
+							if (pchan->protectflag & OB_LOCK_ROTX)
+								eul[0]= oldeul[0];
+							if (pchan->protectflag & OB_LOCK_ROTY)
+								eul[1]= oldeul[1];
+							if (pchan->protectflag & OB_LOCK_ROTZ)
+								eul[2]= oldeul[2];
+							
+							EulToQuat(eul, pchan->quat);
+							/* quaternions flip w sign to accumulate rotations correctly */
+							if ((quat1[0]<0.0f && pchan->quat[0]>0.0f) || (quat1[0]>0.0f && pchan->quat[0]<0.0f)) {
+								QuatMulf(pchan->quat, -1.0f);
+							}
+						}						
+						else { 
+							pchan->quat[1]=pchan->quat[2]=pchan->quat[3]=0.0F; 
+							pchan->quat[0]=1.0F;
+						}
 						break;
 					case 'g':
-						pchan->loc[0]=pchan->loc[1]=pchan->loc[2]=0.0F;
+						if ((pchan->protectflag & OB_LOCK_LOCX)==0)
+							pchan->loc[0]= 0.0f;
+						if ((pchan->protectflag & OB_LOCK_LOCY)==0)
+							pchan->loc[1]= 0.0f;
+						if ((pchan->protectflag & OB_LOCK_LOCZ)==0)
+							pchan->loc[2]= 0.0f;
 						break;
 					case 's':
-						pchan->size[0]=pchan->size[1]=pchan->size[2]=1.0F;
+						if ((pchan->protectflag & OB_LOCK_SCALEX)==0)
+							pchan->size[0]= 1.0f;
+						if ((pchan->protectflag & OB_LOCK_SCALEY)==0)
+							pchan->size[1]= 1.0f;
+						if ((pchan->protectflag & OB_LOCK_SCALEZ)==0)
+							pchan->size[2]= 1.0f;
 						break;
 						
 				}
@@ -3003,7 +3036,6 @@ void deselectall_posearmature (Object *ob, int test, int doundo)
 int bone_looper(Object *ob, Bone *bone, void *data,
                         int (*bone_func)(Object *, Bone *, void *)) 
 {
-
     /* We want to apply the function bone_func to every bone 
      * in an armature -- feed bone_looper the first bone and 
      * a pointer to the bone_func and watch it go!. The int count 
@@ -3013,19 +3045,15 @@ int bone_looper(Object *ob, Bone *bone, void *data,
     int count = 0;
 
     if (bone) {
-
-        /* only do bone_func if the bone is non null
-         */
+		/* only do bone_func if the bone is non null */
         count += bone_func(ob, bone, data);
-
-        /* try to execute bone_func for the first child
-         */
-        count += bone_looper(ob, bone->childbase.first, data,
-                                    bone_func);
-
-        /* try to execute bone_func for the next bone at this
-         * depth of the recursion.
-         */
+		
+		/* try to execute bone_func for the first child */
+        count += bone_looper(ob, bone->childbase.first, data, bone_func);
+		
+		/* try to execute bone_func for the next bone at this
+		 * depth of the recursion.
+		 */
         count += bone_looper(ob, bone->next, data, bone_func);
     }
 
@@ -3063,15 +3091,15 @@ static int bone_skinnable(Object *ob, Bone *bone, void *datap)
 
 	if(!(G.f & G_WEIGHTPAINT) || !(bone->flag & BONE_HIDDEN_P)) {
 		if (!(bone->flag & BONE_NO_DEFORM)) {
-			if(data->heat && data->armob->pose && get_pose_channel(data->armob->pose, bone->name))
+			if (data->heat && data->armob->pose && get_pose_channel(data->armob->pose, bone->name))
 				segments = bone->segments;
 			else
 				segments = 1;
-
+			
 			if (data->list != NULL) {
 				hbone = (Bone ***) &data->list;
 				
-				for(a=0; a<segments; a++) {
+				for (a=0; a<segments; a++) {
 					**hbone = bone;
 					++*hbone;
 				}
@@ -3085,9 +3113,9 @@ static int bone_skinnable(Object *ob, Bone *bone, void *datap)
 static int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data) 
 {
     /* This group creates a vertex group to ob that has the
-     * same name as bone (provided the bone is skinnable). 
+      * same name as bone (provided the bone is skinnable). 
 	 * If such a vertex group aleady exist the routine exits.
-     */
+      */
 	if (!(bone->flag & BONE_NO_DEFORM)) {
 		if (!get_named_vertexgroup(ob,bone->name)) {
 			add_defgroup_name(ob, bone->name);
@@ -3126,19 +3154,19 @@ static int dgroup_skinnable(Object *ob, Bone *bone, void *datap)
 	int a, segments;
 	struct { Object *armob; void *list; int heat; } *data= datap;
 
-	if(!(G.f & G_WEIGHTPAINT) || !(bone->flag & BONE_HIDDEN_P)) {
+	if (!(G.f & G_WEIGHTPAINT) || !(bone->flag & BONE_HIDDEN_P)) {
 	   if (!(bone->flag & BONE_NO_DEFORM)) {
-			if(data->heat && data->armob->pose && get_pose_channel(data->armob->pose, bone->name))
+			if (data->heat && data->armob->pose && get_pose_channel(data->armob->pose, bone->name))
 				segments = bone->segments;
 			else
 				segments = 1;
-
-			if(!(defgroup = get_named_vertexgroup(ob, bone->name)))
+			
+			if (!(defgroup = get_named_vertexgroup(ob, bone->name)))
 				defgroup = add_defgroup_name(ob, bone->name);
-
+			
 			if (data->list != NULL) {
 				hgroup = (bDeformGroup ***) &data->list;
-
+			
 				for(a=0; a<segments; a++) {
 					**hgroup = defgroup;
 					++*hgroup;
@@ -3170,15 +3198,15 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 	/* for each vertex in the mesh */
 	for (i=0; i < mesh->totvert; i++) {
 		iflip = (dgroupflip)? mesh_get_x_mirror_vert(ob, i): 0;
-
+		
 		/* for each skinnable bone */
 		for (j=0; j < numbones; ++j) {
 			if(!selected[j])
 				continue;
-
+			
 			bone = bonelist[j];
 			dgroup = dgrouplist[j];
-
+			
 			/* store the distance-factor from the vertex to the bone */
 			distance = distfactor_to_bone (verts[i], root[j], tip[j],
 				bone->rad_head * scale, bone->rad_tail * scale, bone->dist * scale);
@@ -3188,7 +3216,7 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 				add_vert_to_defgroup (ob, dgroup, i, distance, WEIGHT_REPLACE);
 			else
 				remove_vert_defgroup (ob, dgroup, i);
-
+			
 			/* do same for mirror */
 			if (dgroupflip && dgroupflip[j] && iflip >= 0) {
 				if (distance!=0.0)
@@ -3273,7 +3301,7 @@ void add_verts_to_dgroups(Object *ob, Object *par, int heat, int mirror)
 			if(segments == 0) {
 				segments = 1;
 				bbone = NULL;
-
+			
 				if(par->pose && (pchan=get_pose_channel(par->pose, bone->name))) {
 					if(bone->segments > 1) {
 						segments = bone->segments;
@@ -3281,10 +3309,10 @@ void add_verts_to_dgroups(Object *ob, Object *par, int heat, int mirror)
 					}
 				}
 			}
-
+			
 			segments--;
 		}
-
+		
 		/* compute root and tip */
 		if(bbone) {
 			VECCOPY(root[j], bbone[segments].mat[3]);
@@ -3300,10 +3328,10 @@ void add_verts_to_dgroups(Object *ob, Object *par, int heat, int mirror)
 			VECCOPY(root[j], bone->arm_head);
 			VECCOPY(tip[j], bone->arm_tail);
 		}
-
+		
 		Mat4MulVecfl(par->obmat, root[j]);
 		Mat4MulVecfl(par->obmat, tip[j]);
-
+		
 		/* set selected */
 		if(wpmode) {
 			if ((arm->layer & bone->layer) && (bone->flag & BONE_SELECTED))
@@ -3311,7 +3339,7 @@ void add_verts_to_dgroups(Object *ob, Object *par, int heat, int mirror)
 		}
 		else
 			selected[j] = 1;
-
+		
 		/* find flipped group */
 		if(mirror) {
 			char name[32];
@@ -3319,11 +3347,11 @@ void add_verts_to_dgroups(Object *ob, Object *par, int heat, int mirror)
 			BLI_strncpy(name, dgroup->name, 32);
 			// 0 = don't strip off number extensions
 			bone_flip_name(name, 0);
-
+			
 			for (curdg = ob->defbase.first; curdg; curdg=curdg->next)
 				if (!strcmp(curdg->name, name))
 					break;
-
+			
 			dgroupflip[j] = curdg;
 		}
 	}
@@ -3335,12 +3363,12 @@ void add_verts_to_dgroups(Object *ob, Object *par, int heat, int mirror)
 	if (wpmode) {
 		/* if in weight paint mode, use final verts from derivedmesh */
 		DerivedMesh *dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
-
+		
 		if(dm->foreachMappedVert) {
 			dm->foreachMappedVert(dm, add_vgroups__mapFunc, (void*)verts);
 			vertsfilled = 1;
 		}
-
+		
 		dm->release(dm);
 	}
 	else if (modifiers_findByType(ob, eModifierType_Subsurf)) {
@@ -3406,9 +3434,9 @@ void create_vgroups_from_armature(Object *ob, Object *par)
 					add_defgroup_unique_bone);
 		if (ob->type == OB_MESH)
 			create_dverts(ob->data);
-
+		
 		break;
-
+	
 	case 3:
 	case 4:
 		/* Traverse the bone list, trying to create vertex groups 
@@ -3444,7 +3472,7 @@ void hide_selected_pose_bones(void)
 
 	bone_looper(OBACT, arm->bonebase.first, NULL, 
 				hide_selected_pose_bone);
-
+	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWACTION, 0);
