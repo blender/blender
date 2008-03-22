@@ -548,6 +548,9 @@
 				RelativePath="..\..\..\source\blender\src\transform_manipulator.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\transform_ndofinput.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\transform_numinput.c">
 			</File>
 			<File

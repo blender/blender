@@ -52,10 +52,16 @@ SCA_PropertyActuator::SCA_PropertyActuator(SCA_IObject* gameobj,CValue* sourceOb
 	m_exprtxt(expr),
 	m_sourceObj(sourceObj)
 {
+	// protect ourselves against someone else deleting the source object
+	// don't protect against ourselves: it would create a dead lock
+	if (m_sourceObj && m_sourceObj != GetParent())
+		m_sourceObj->AddRef();
 }
 
 SCA_PropertyActuator::~SCA_PropertyActuator()
 {
+	if (m_sourceObj && m_sourceObj != GetParent())
+		m_sourceObj->Release();
 }
 
 bool SCA_PropertyActuator::Update()
