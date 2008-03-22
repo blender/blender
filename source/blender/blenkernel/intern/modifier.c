@@ -5299,6 +5299,17 @@ static void collisionModifier_deformVerts(
 				memcpy(collmd->current_xnew, collmd->x, numverts*sizeof(MVert));
 				memcpy(collmd->current_x, collmd->x, numverts*sizeof(MVert));
 				
+				/* check if GUI setting has changed for bvh */
+				if(collmd->bvh)
+				{
+					if(ob->pd->pdef_sboft != collmd->bvh->epsilon)
+					{
+						bvh_free(collmd->bvh);
+						collmd->bvh = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
+					}
+			
+				}
+				
 				/* happens on file load (ONLY when i decomment changes in readfile.c */
 				if(!collmd->bvh)
 				{

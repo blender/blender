@@ -1673,7 +1673,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	uiBlockSetCol(block, TH_AUTO);
 	
 	/* open/close icon */
-	if (!isVirtual && md->type!=eModifierType_Collision) {
+	if (!isVirtual) {
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, B_MODIFIER_REDRAW, VICON_DISCLOSURE_TRI_RIGHT, x-10, y-2, 20, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
 	}
