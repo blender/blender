@@ -350,33 +350,36 @@ else:
     blenderinstall = env.Install(dir=env['BF_INSTALLDIR'], source=B.program_list)
 
 #-- .blender
+#- dont do .blender and scripts for darwin, it is already in the bundle
 dotblendlist = []
 dottargetlist = []
-for dp, dn, df in os.walk('bin/.blender'):
-    if 'CVS' in dn:
-        dn.remove('CVS')
-    if '.svn' in dn:
-        dn.remove('.svn')
-    for f in df:
-        dotblendlist.append(dp+os.sep+f)
-        dottargetlist.append(env['BF_INSTALLDIR']+dp[3:]+os.sep+f)
-
-dotblenderinstall = []
-for targetdir,srcfile in zip(dottargetlist, dotblendlist):
-    td, tf = os.path.split(targetdir)
-    dotblenderinstall.append(env.Install(dir=td, source=srcfile))
-
-#-- .blender/scripts
 scriptinstall = []
-scriptpath='release/scripts'
-for dp, dn, df in os.walk(scriptpath):
-    if 'CVS' in dn:
-        dn.remove('CVS')
-    if '.svn' in dn:
-        dn.remove('.svn')
-    dir=env['BF_INSTALLDIR']+'/.blender/scripts'+dp[len(scriptpath):]
-    source=[dp+os.sep+f for f in df]
-    scriptinstall.append(env.Install(dir=dir,source=source))
+
+if  env['OURPLATFORM']!='darwin':
+	for dp, dn, df in os.walk('bin/.blender'):
+	    if 'CVS' in dn:
+	        dn.remove('CVS')
+	    if '.svn' in dn:
+	        dn.remove('.svn')
+	    for f in df:
+	        dotblendlist.append(dp+os.sep+f)
+	        dottargetlist.append(env['BF_INSTALLDIR']+dp[3:]+os.sep+f)
+
+	dotblenderinstall = []
+	for targetdir,srcfile in zip(dottargetlist, dotblendlist):
+	    td, tf = os.path.split(targetdir)
+	    dotblenderinstall.append(env.Install(dir=td, source=srcfile))
+	
+	#-- .blender/scripts	
+	scriptpath='release/scripts'
+	for dp, dn, df in os.walk(scriptpath):
+	    if 'CVS' in dn:
+	        dn.remove('CVS')
+	    if '.svn' in dn:
+	        dn.remove('.svn')
+	    dir=env['BF_INSTALLDIR']+'/.blender/scripts'+dp[len(scriptpath):]
+	    source=[dp+os.sep+f for f in df]
+	    scriptinstall.append(env.Install(dir=dir,source=source))
 
 #-- plugins
 pluglist = []
@@ -407,7 +410,10 @@ for tp, tn, tf in os.walk('release/text'):
 
 textinstall = env.Install(dir=env['BF_INSTALLDIR'], source=textlist)
 
-allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall]
+if  env['OURPLATFORM']=='darwin':
+	allinstall = [blenderinstall, plugininstall, textinstall]
+else:
+	allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall]
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
     dllsources = ['${LCGDIR}/gettext/lib/gnu_gettext.dll',

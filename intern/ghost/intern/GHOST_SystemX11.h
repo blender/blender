@@ -196,6 +196,11 @@ public:
 		return m_display;
 	}	
 
+		void *
+	prepareNdofInfo(
+		volatile GHOST_TEventNDOFData *current_values
+	);
+		
 	/**
 	 * Returns unsinged char from CUT_BUFFER0
 	 * @param flag		Flag indicates which buffer to return 0 for clipboard 1 for selection

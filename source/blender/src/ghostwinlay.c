@@ -55,10 +55,15 @@
 #include "BIF_usiblender.h"
 #include "BIF_cursors.h"
 
+#include "PIL_dynlib.h"
+
 #include "mydevice.h"
 #include "blendef.h"
 
 #include "winlay.h"
+
+#include <math.h>
+
 
 #ifdef __APPLE__
 #include <OpenGL/OpenGL.h>
@@ -108,6 +113,12 @@ struct _Window {
 	 * the event number of the last faked button.
 	 */
 	int		faked_mbut;
+
+		/* Last known ndof device state
+         * note that the ghost device manager 
+         * can handle any number of devices, but ghostwinlay can't
+         */
+    float   ndof[7];    /* tx, ty, tz, rx, ry, rz, dt */
 
 	GHOST_TimerTaskHandle	timer;
 	int						timer_event;
@@ -336,6 +347,7 @@ Window *window_open(char *title, int posx, int posy, int sizex, int sizey, int s
 	GHOST_WindowHandle ghostwin;
 	GHOST_TWindowState inital_state;
 	int scr_w, scr_h;
+    int i;
 
 	winlay_get_screensize(&scr_w, &scr_h);
 	posy= (scr_h-posy-sizey);
@@ -368,7 +380,10 @@ Window *window_open(char *title, int posx, int posy, int sizex, int sizey, int s
 			
 			win->lmouse[0]= win->size[0]/2;
 			win->lmouse[1]= win->size[1]/2;
-			
+
+            for (i = 0; i < 7; ++i)
+                win->ndof[i] = 0;
+		
 			
 		} else {
 			GHOST_DisposeWindow(g_system, ghostwin);
@@ -540,6 +555,46 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 		}
 		
 		switch (type) {
+
+        case GHOST_kEventNDOFMotion: {
+            // update ndof device data, and dispatch motion event
+
+            GHOST_TEventNDOFData *sb= data;
+			
+				// no scaling per sfgoros patch
+            win->ndof[0] = sb->tx;
+            win->ndof[1] = sb->ty;
+            win->ndof[2] = sb->tz;
+            win->ndof[3] = sb->rx;
+            win->ndof[4] = sb->ry;
+            win->ndof[5] = sb->rz;
+            win->ndof[6] = sb->delta;
+ //        	printf(" motion capted %f %f %f %f %f %f %f \n", win->ndof[0], win->ndof[1], win->ndof[2],
+ //        							 win->ndof[3], win->ndof[4], win->ndof[5], win->ndof[6]);
+
+
+ //          window_handle(win, NDOFMOTION, win->ndof[6]);
+
+ //       start interaction for larger than teeny-tiny motions
+ //         if (fabs(win->ndof[0] > 0.003f) ||
+ //             fabs(win->ndof[1] > 0.003f) ||
+ //          fabs(win->ndof[2] > 0.003f) ||
+ //               fabs(win->ndof[3] > 0.003f) ||
+ //               fabs(win->ndof[4] > 0.003f) ||
+ //              fabs(win->ndof[5] > 0.003f)) {
+                    window_handle(win, NDOFMOTION, 1);
+ //    printf("ok\n");
+ //    }
+;
+          break;
+        }
+        case GHOST_kEventNDOFButton: {
+			GHOST_TEventNDOFData *sb= data;
+			
+//			printf("this is a button %i\n", sb->buttons);
+			window_handle(win, NDOFBUTTON, sb->buttons);
+			break;
+        }
 		case GHOST_kEventCursorMove: {
 			if(win->active == 1) {
 				GHOST_TEventCursorData *cd= data;
@@ -707,6 +762,13 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 	return 1;
 }
 
+void window_get_ndof(Window* win, float* sbval) {
+    int i;
+    for (i = 0; i < 7; ++i) {
+        *sbval++ = win->ndof[i];
+    }
+}
+
 char *window_get_title(Window *win) {
 	char *title= GHOST_GetTitle(win->ghostwin);
 	char *mem_title= BLI_strdup(title);
@@ -833,6 +895,59 @@ void winlay_get_screensize(int *width_r, int *height_r) {
 Window *winlay_get_active_window(void) {
 	return active_gl_window;
 }
+
+#ifdef _WIN32
+#define PATH_SEP		"\\"
+#else
+#define PATH_SEP		"/"
+#endif
+
+
+void window_open_ndof(Window* win)
+{
+	char *inst_path, *plug_path;
+	const char *plug_dir = "plugins";
+	const char *plug_name = "3DxNdofBlender.plug";
+	PILdynlib *ndofLib;
+	
+	// build the plugin path
+	plug_path = NULL;
+	inst_path = get_install_dir(); // path to main blender exec/bundle
+	if (inst_path) {
+		// assume the ndof plugin is located in the plug-in dir
+		size_t len = strlen(inst_path) + strlen(plug_dir) + strlen(PATH_SEP)*2
+		             + strlen(plug_name) + 1;
+		plug_path = MEM_mallocN(len, "ndofpluginpath");
+		if (plug_path) {
+			strncpy(plug_path, inst_path, len);
+			strcat(plug_path, PATH_SEP);
+			strcat(plug_path, plug_dir);
+			strcat(plug_path, PATH_SEP);
+			strcat(plug_path, plug_name);
+		}
+		MEM_freeN(inst_path);
+	}
+	
+	ndofLib	= PIL_dynlib_open(plug_path);
+#if 0
+	fprintf(stderr, "plugin path=%s; ndofLib=%p\n", plug_path, (void*)ndofLib);
+#endif
+	
+	if (plug_path)
+		MEM_freeN(plug_path);
+	
+	if (ndofLib) {
+		G.ndofdevice = 0 - GHOST_OpenNDOF(g_system, win->ghostwin, 
+		               PIL_dynlib_find_symbol(ndofLib, "ndofInit"),
+		               PIL_dynlib_find_symbol(ndofLib, "ndofShutdown"),
+		               PIL_dynlib_find_symbol(ndofLib, "ndofOpen"));
+		
+		}
+    else {
+        GHOST_OpenNDOF(g_system, win->ghostwin, 0, 0, 0);
+        G.ndofdevice = -1;
+    }
+ }
 
 char *getClipboard(int flag) {
 	return (char*)GHOST_getClipboard(flag);

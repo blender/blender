@@ -57,6 +57,7 @@ void	window_lower		(Window *win);
 short	window_get_qual		(Window *win);
 short	window_get_mbut		(Window *win);
 void	window_get_mouse	(Window *win, short *mval);
+void	window_get_ndof		(Window* win, float* sbval);
 
 float window_get_pressure(Window *win);
 void window_get_tilt(Window *win, float *xtilt, float *ytilt);
@@ -78,6 +79,8 @@ void	window_set_custom_cursor_ex	(Window *win, struct BCursor *cursor, int useBi
 void	window_warp_pointer	(Window *win, int x, int y);
 
 void	window_queue_redraw	(Window *win);
+
+void    window_open_ndof(Window* win);
 
 	/* Global windowing operations */
 

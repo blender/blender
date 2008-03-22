@@ -123,6 +123,9 @@ short get_mbut(void);
 short get_qual(void);
 void getmouse(short *mval);
 
+void getndof(float *sbval);
+void filterNDOFvalues(float *sbval);
+
 float get_pressure(void);
 void get_tilt(float *xtilt, float *ytilt);
 #define DEV_MOUSE	0

@@ -1560,6 +1560,31 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				do_layer_buttons(11); break;
 			case ACCENTGRAVEKEY:
 				do_layer_buttons(-1); break;
+			
+			case NDOFMOTION:		
+				if (G.vd->ndofmode == 0) {
+					viewmoveNDOF(1);
+				} else if (G.vd->ndofmode == 1) {
+					viewmoveNDOFfly(1);
+				} else {
+					if (OBACT) {
+						NDofTransform();
+					}
+				}
+                break;
+				
+            case NDOFBUTTON:
+				if (val == 1) {
+					G.vd->ndofmode +=1;
+					if (G.vd->ndofmode > 2)		/* we have currently 3 modes : 0 original, 1 fly, 2 transform */
+						G.vd->ndofmode = 0;
+				}
+				if (val == 2) {
+					G.vd->ndoffilter =(G.vd->ndoffilter == 1 ? 0 : 1);
+				}
+				allqueue(REDRAWHEADERS, 0);
+                break;
+				
 			}
 			
 			/* Redraw buttons window as well as view 3d (for floating panel) */
@@ -1659,6 +1684,30 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				doredraw= 1;
 				break;
 
+            case NDOFMOTION:		
+				if (G.vd->ndofmode == 0) {
+					viewmoveNDOF(1);
+				} else if (G.vd->ndofmode == 1) {
+					viewmoveNDOFfly(1);
+				} else {
+					if (OBACT) {
+						NDofTransform();
+					}
+				}
+                break;
+
+            case NDOFBUTTON:
+				if (val == 1) {
+					G.vd->ndofmode +=1;
+					if (G.vd->ndofmode > 2)		/* we have currently 3 modes : 0 original, 1 fly, 2 transform */
+						G.vd->ndofmode = 0;
+				}
+				if (val == 2) {
+					G.vd->ndoffilter =(G.vd->ndoffilter == 1 ? 0 : 1);
+				}
+				allqueue(REDRAWHEADERS, 0);
+                break;
+				
 			case ONEKEY:
 				if(G.qual==LR_CTRLKEY) {
 					flip_subdivison(1);
@@ -2809,6 +2858,7 @@ static void initview3d(ScrArea *sa)
 	vd->gridflag &= ~V3D_SHOW_Z;
 
 	vd->depths= NULL;
+	vd->ndofmode=0;
 }
 
 
@@ -3654,7 +3704,9 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+mpref+(2*spref)+(3*midsp)+(mpref/2)),y1,(mpref/2),buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Use selection as the orbiting center");
-		uiBlockEndAlign(block);
+	
+         uiBlockEndAlign(block);
+
 		
 		uiDefBut(block, LABEL,0,"Select with:",
 			(xpos+(2*edgsp)+(3*mpref)+(3*midsp)),y6label,mpref,buth,
@@ -3772,6 +3824,18 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				  &(U.obcenter_dia), 4, 10, 0, 0,
 				  "Diameter in Pixels for Object/Lamp center display");
 		
+		uiDefBut(block, LABEL,0,"6DOF devices speeds :",
+				 (xpos+edgsp+(5*mpref)+(6*midsp)),y2label,mpref,buth,
+				 0, 0, 0, 0, 0, "");		  
+					//FIXME NDOF BAD ETIQUETTES
+		uiDefButS(block, NUM, USER_AUTOPERSP, "ndPan",
+			(xpos+edgsp+(5*mpref)+(6*midsp)),y1,(mpref/2),buth,
+			&(U.ndof_pan), 0, 200, 0, 0,
+			"The overall panning speed of an NDOF device, as percent of standard");
+		uiDefButS(block, NUM, USER_ORBIT_SELECTION, "ndRot",
+			(xpos+edgsp+(5*mpref)+(6*midsp)+(mpref/2)),y1,(mpref/2),buth,
+		&(U.ndof_rotate), 0, 200, 0, 0,
+			"The overall rotation speed of an NDOF device, as percent of standard");
 		
 	} else if (U.userpref == 1) { /* edit methods */
 

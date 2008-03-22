@@ -73,9 +73,11 @@
 #define CTX_NO_MIRROR		16
 #define CTX_AUTOCONFIRM		32
 #define CTX_BMESH			64
+#define CTX_NDOF			128
 
 void initTransform(int mode, int context);
 void Transform(void);
+void NDofTransform();
 
 /* Standalone call to get the transformation center corresponding to the current situation
  * returns 1 if successful, 0 otherwise (usually means there's no selection)

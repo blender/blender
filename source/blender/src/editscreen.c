@@ -2178,6 +2178,25 @@ short get_activedevice(void)
 	return window_get_activedevice(mainwin);
 }
 
+void getndof(float *sbval)
+{
+    winlay_process_events(0);
+    window_get_ndof(mainwin, sbval);
+}
+
+void filterNDOFvalues(float *sbval)
+{
+	int i=0;
+	float max  = 0.0;
+	
+	for (i =0; i<6;i++)
+		if (fabs(sbval[i]) > max)
+			max = fabs(sbval[i]);
+	for (i =0; i<6;i++)
+		if (fabs(sbval[i]) != max )
+			sbval[i]=0.0;
+}
+
 void add_to_mainqueue(Window *win, void *user_data, short evt, short val, char ascii)
 {
 
@@ -2242,6 +2261,7 @@ static bScreen *addscreen(char *name)		/* use setprefsize() if you want somethin
 		}
 		
 		window_set_handler(mainwin, add_to_mainqueue, NULL);
+		window_open_ndof(mainwin); /* needs to occur once the mainwin handler is set */
 		init_mainwin();
 		mywinset(1);
 	

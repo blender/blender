@@ -238,6 +238,7 @@
 #define B_SEL_POINT		167
 #define B_SEL_END		168
 #define B_MAN_MODE		169
+#define B_NDOF			170
 
 /* IPO: 200 */
 #define B_IPOHOME		201

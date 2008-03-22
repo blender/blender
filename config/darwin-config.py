@@ -3,10 +3,10 @@ LIBDIR = '${LCGDIR}'
 
 # enable ffmpeg  support
 WITH_BF_FFMPEG = 'true'  # -DWITH_FFMPEG
-BF_FFMPEG = LIBDIR +'/ffmpeg'
+BF_FFMPEG = "#extern/ffmpeg"
 BF_FFMPEG_INC = '${BF_FFMPEG}/include'
-BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
-BF_FFMPEG_LIB = 'avformat.a avcodec.a avutil.a'
+#BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
+#BF_FFMPEG_LIB = 'avformat.a avcodec.a avutil.a'
 
 WITH_BF_VERSE = 'false'
 BF_VERSE = "#extern/verse/dist"
@@ -15,7 +15,7 @@ BF_VERSE_INCLUDE = BF_VERSE
 BF_VERSE_LIBS = "libverse"
 
 # python.org libs install in /library 
-BF_PYTHON_VERSION = '2.3'
+BF_PYTHON_VERSION = '2.5'
 if BF_PYTHON_VERSION=='2.3':
 	BF_PYTHON = '/System/Library/Frameworks/Python.framework/Versions/'
 else:
@@ -131,11 +131,11 @@ BF_FREETYPE_LIBPATH = '${BF_FREETYPE}/lib'
 
 WITH_BF_QUICKTIME = 'true' # -DWITH_QUICKTIME
 
-WITH_BF_ICONV = 'false'
+WITH_BF_ICONV = 'true'
 BF_ICONV = LIBDIR + "/iconv"
 BF_ICONV_INC = '${BF_ICONV}/include'
 BF_ICONV_LIB = 'iconv'
-BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
+#BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 
 # Mesa Libs should go here if your using them as well....
 WITH_BF_STATICOPENGL = 'true'

@@ -139,7 +139,8 @@ typedef struct View3D {
 	
 	short pad3;
 	
-	short pad2;
+	char ndofmode;	/* mode of transform for 6DOF devices -1 not found, 0 normal, 1 fly, 2 ob transform */
+	char ndoffilter;		/*filter for 6DOF devices 0 normal, 1 dominant */
 	
 	void *properties_storage;	/* Nkey panel stores stuff here, not in file */
 

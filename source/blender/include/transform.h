@@ -48,6 +48,13 @@ struct bPose;
 struct bConstraint;
 
 
+typedef struct NDofInput {
+	int		flag;
+	int		axis;
+	float	fval[7];
+	float	factor[3];
+} NDofInput;
+
 typedef struct NumInput {
     short  idx;
     short  idx_max;
@@ -172,6 +179,7 @@ typedef struct TransInfo {
     TransCon    con;            /* transformed constraint               */
     TransSnap	tsnap;
     NumInput    num;            /* numerical input                      */
+    NDofInput   ndof;           /* ndof input                           */
     char        redraw;         /* redraw flag                          */
 	float		propsize;		/* proportional circle radius           */
 	char		proptext[20];	/* proportional falloff text			*/
@@ -211,6 +219,9 @@ typedef struct TransInfo {
 #define	NUM_NO_ZERO			8
 #define NUM_NO_FRACTION		16
 #define	NUM_AFFECT_ALL		32
+
+/* NDOFINPUT FLAGS */
+#define NDOF_INIT			1
 
 /* transinfo->state */
 #define TRANS_RUNNING	0
@@ -477,6 +488,20 @@ void outputNumInput(NumInput *n, char *str);
 short hasNumInput(NumInput *n);
 void applyNumInput(NumInput *n, float *vec);
 char handleNumInput(NumInput *n, unsigned short event);
+
+/*********************** NDofInput ********************************/
+
+void initNDofInput(NDofInput *n);
+int hasNDofInput(NDofInput *n);
+void applyNDofInput(NDofInput *n, float *vec);
+int handleNDofInput(NDofInput *n, unsigned short event, short val);
+
+/* handleNDofInput return values */
+#define NDOF_REFRESH	1
+#define NDOF_NOMOVE		2
+#define NDOF_CONFIRM	3
+#define NDOF_CANCEL		4
+
 
 /*********************** TransSpace ******************************/
 

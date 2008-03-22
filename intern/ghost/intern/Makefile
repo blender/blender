@@ -39,6 +39,7 @@ CCSRCS += GHOST_EventManager.cpp GHOST_EventPrinter.cpp GHOST_WindowManager.cpp
 CCSRCS += GHOST_ISystem.cpp GHOST_ModifierKeys.cpp GHOST_TimerManager.cpp
 CCSRCS += GHOST_Rect.cpp GHOST_DisplayManager.cpp GHOST_C-api.cpp
 CCSRCS += GHOST_CallbackEventConsumer.cpp
+CCSRCS += GHOST_NDOFManager.cpp
 
 include nan_definitions.mk
 

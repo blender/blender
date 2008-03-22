@@ -92,6 +92,7 @@
 #include "transform.h"
 
 #include "PIL_time.h" /* smoothview */
+#include <float.h>
 
 #define TRACKBALLSIZE  (1.1)
 #define BL_NEAR_CLIP 0.001
@@ -540,6 +541,185 @@ void calctrackballvec(rcti *area, short *mval, float *vec)
 
 }
 
+
+// ndof scaling will be moved to user setting.
+// In the mean time this is just a place holder.
+
+// Note: scaling in the plugin and ghostwinlay.c
+// should be removed. With driver default setting,
+// each axis returns approx. +-200 max deflection.
+
+// The values I selected are based on the older
+// polling i/f. With event i/f, the sensistivity
+// can be increased for improved response from
+// small deflections of the device input.
+
+
+// lukep notes : i disagree on the range.
+// the normal 3Dconnection driver give +/-400
+// on defaut range in other applications
+// and up to +/- 1000 if set to maximum
+// because i remove the scaling by delta,
+// which was a bad idea as it depend of the system
+// speed and os, i changed the scaling values, but 
+// those are still not ok
+
+
+float ndof_axis_scale[6] = {
+	+0.01,	// Tx
+	+0.01,	// Tz
+	+0.01,	// Ty
+	+0.0015,	// Rx
+	+0.0015,	// Rz
+	+0.0015	// Ry
+};
+
+// statics for controlling G.vd->dist corrections.
+// viewmoveNDOF zeros and adjusts G.vd->ofs.
+// viewmove restores based on dz_flag state.
+
+int dz_flag = 0;
+float m_dist;
+
+void viewmoveNDOFfly(int mode)
+{
+    int i;
+    float phi;
+    float dval[7];
+	// static fval[6] for low pass filter; device input vector is dval[6]
+	static float fval[6];
+    float tvec[3],rvec[3];
+    float q1[4];
+	float mat[3][3];
+	float upvec[3];
+
+
+    /*----------------------------------------------------
+	 * sometimes this routine is called from headerbuttons
+     * viewmove needs to refresh the screen
+     */
+	areawinset(curarea->win);
+
+
+	// fetch the current state of the ndof device
+	getndof(dval);
+
+	if (G.vd->ndoffilter)
+		filterNDOFvalues(fval);
+
+//	for(i=0;i<7;i++) printf("%f ",dval[i]);
+//		printf("\n");
+
+
+	// Scale input values
+
+//	if(dval[6] == 0) return; // guard against divide by zero
+
+	for(i=0;i<6;i++) {
+
+		// user scaling
+		dval[i] = dval[i] * ndof_axis_scale[i];
+
+		// non-linear scaling
+		if(dval[i]<0.0f)
+			dval[i] = -1.0f * dval[i] * dval[i];
+		else
+			dval[i] = dval[i] * dval[i];
+	}
+
+
+	// low pass filter with zero crossing reset
+
+	for(i=0;i<6;i++) {
+		if((dval[i] * fval[i]) >= 0)
+			dval[i] = (fval[i] * 15 + dval[i]) / 16;
+		else
+			fval[i] = 0;
+	}
+
+
+	// force perspective mode. This is a hack and is
+	// incomplete. It doesn't actually effect the view
+	// until the first draw and doesn't update the menu
+	// to reflect persp mode.
+
+	G.vd->persp = 1;
+
+
+	// Correct the distance jump if G.vd->dist != 0
+
+	// This is due to a side effect of the original
+	// mouse view rotation code. The rotation point is
+	// set a distance in front of the viewport to
+	// make rotating with the mouse look better.
+	// The distance effect is written at a low level
+	// in the view management instead of the mouse
+	// view function. This means that all other view
+	// movement devices must subtract this from their
+	// view transformations.
+
+	if(G.vd->dist != 0.0) {
+		dz_flag = 1;
+		m_dist = G.vd->dist;
+		upvec[0] = upvec[1] = 0;
+		upvec[2] = G.vd->dist;
+		Mat3CpyMat4(mat, G.vd->viewinv);
+		Mat3MulVecfl(mat, upvec);
+		VecSubf(G.vd->ofs, G.vd->ofs, upvec);
+		G.vd->dist = 0.0;
+	}
+
+
+	// Apply rotation
+
+	rvec[0] = -dval[3];
+	rvec[1] = -dval[4];
+	rvec[2] = dval[5];
+
+	// rotate device x and y by view z
+
+	Mat3CpyMat4(mat, G.vd->viewinv);
+	mat[2][2] = 0.0f;
+	Mat3MulVecfl(mat, rvec);
+
+	// rotate the view
+
+	phi = Normalize(rvec);
+	if(phi != 0) {
+		VecRotToQuat(rvec,phi,q1);
+		QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
+	}
+
+
+	// Apply translation
+
+	tvec[0] = dval[0];
+	tvec[1] = dval[1];
+	tvec[2] = -dval[2];
+
+	// the next three lines rotate the x and y translation coordinates
+	// by the current z axis angle
+
+	Mat3CpyMat4(mat, G.vd->viewinv);
+	mat[2][2] = 0.0f;
+	Mat3MulVecfl(mat, tvec);
+
+	// translate the view
+
+	VecSubf(G.vd->ofs, G.vd->ofs, tvec);
+
+
+	/*----------------------------------------------------
+     * refresh the screen
+     */
+    scrarea_do_windraw(curarea);
+    screen_swapbuffers();
+
+	// update render preview window
+
+	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
+}
+
 void viewmove(int mode)
 {
 	Object *ob = OBACT;
@@ -551,12 +731,30 @@ void viewmove(int mode)
 	short use_sel = 0;
 	short preview3d_event= 1;
 	
-	/* 3D window may not be defined */
+	// locals for dist correction
+	float mat[3][3];
+	float upvec[3];
+
+		/* 3D window may not be defined */
 	if( !G.vd ) {
 		fprintf( stderr, "G.vd == NULL in viewmove()\n" );
 		return;
 	}
+	
+		// dist correction from other movement devices
+		
+	if(dz_flag) {
+		dz_flag = 0;
+		G.vd->dist = m_dist;
+		upvec[0] = upvec[1] = 0;
+		upvec[2] = G.vd->dist;
+		Mat3CpyMat4(mat, G.vd->viewinv);
+		Mat3MulVecfl(mat, upvec);
+		VecAddf(G.vd->ofs, G.vd->ofs, upvec);
+	}
 
+
+		
 	/* sometimes this routine is called from headerbuttons */
 
 	areawinset(curarea->win);
@@ -856,6 +1054,208 @@ void view_zoom_mouseloc(float dfac, short *mouseloc)
 		G.vd->dist *= dfac;
 	}
 }
+
+void viewmoveNDOF(int mode)
+{
+    static double prevTime = 0.0;
+
+    int i;
+    float fval[7];
+    float dvec[3];
+    float sbadjust = 1.0f;
+    float len;
+    double now, frametime;
+	short use_sel = 0;
+	Object *ob = OBACT;
+    float m[3][3];
+    float m_inv[3][3];
+    float xvec[3] = {1,0,0};
+    float yvec[3] = {0,-1,0};
+    float zvec[3] = {0,0,1};
+	float phi, si;
+    float q1[4];
+    float obofs[3];
+    float reverse;
+    float diff[4];
+    float d, curareaX, curareaY;
+
+    /* Sensitivity will control how fast the view rotates.  The value was
+     * obtained experimentally by tweaking until the author didn't get dizzy watching.
+     * Perhaps this should be a configurable user parameter. 
+     */
+    float psens = 0.005f * (float) U.ndof_pan;   /* pan sensitivity */
+    float rsens = 0.005f * (float) U.ndof_rotate;  /* rotate sensitivity */
+    float zsens = 0.3f;   /* zoom sensitivity */
+
+    const float minZoom = -30.0f;
+    const float maxZoom = 300.0f;
+
+	//reset view type
+	G.vd->view = 0;
+//printf("passing here \n");
+//
+	if (G.obedit==NULL && ob && !(ob->flag & OB_POSEMODE)) {
+		use_sel = 1;
+	}
+
+    /*----------------------------------------------------
+	 * sometimes this routine is called from headerbuttons
+     * viewmove needs to refresh the screen
+     */
+	areawinset(curarea->win);
+
+    /*----------------------------------------------------
+     * record how much time has passed. clamp at 10 Hz
+     * pretend the previous frame occured at the clamped time 
+     */
+//    now = PIL_check_seconds_timer();
+ //   frametime = (now - prevTime);
+ //   if (frametime > 0.1f){        /* if more than 1/10s */
+ //       frametime = 1.0f/60.0;      /* clamp at 1/60s so no jumps when starting to move */
+//    }
+//    prevTime = now;
+ //   sbadjust *= 60 * frametime;             /* normalize ndof device adjustments to 100Hz for framerate independence */
+
+    /* fetch the current state of the ndof device */
+    getndof(fval);
+ //           printf(" motion command %f %f %f %f %f %f %f \n", fval[0], fval[1], fval[2],
+ //           							 fval[3], fval[4], fval[5], fval[6]);
+			if (G.vd->ndoffilter)
+				filterNDOFvalues(fval);
+	
+	
+	// put scaling back here, was previously in ghostwinlay
+            fval[0] = fval[0]  * (1.0f/800.0f);
+            fval[1] = fval[1]  * (1.0f/800.0f);
+            fval[2] = fval[2] * (1.0f/800.0f);
+            fval[3] = fval[3]  * 0.00005f;
+            fval[4] = fval[4]  * 0.00005f;
+            fval[5] = fval[5] * 0.00005f;
+            fval[6] = fval[6]  / 1000000.0f;
+			
+	// scale more if not in perspective mode
+			if (G.vd->persp == 0) {
+				fval[0] = fval[0] * 0.05f;
+				fval[1] = fval[1] * 0.05f;
+				fval[2] = fval[2] * 0.05f;
+				fval[3] = fval[3] * 0.9f;
+				fval[4] = fval[4] * 0.9f;
+				fval[5] = fval[5] * 0.9f;
+				zsens *= 8;
+			}
+			
+	
+    /* set object offset */
+	if (ob) {
+		obofs[0] = -ob->obmat[3][0];
+		obofs[1] = -ob->obmat[3][1];
+		obofs[2] = -ob->obmat[3][2];
+	}
+	else {
+		VECCOPY(obofs, G.vd->ofs);
+	}
+
+    /* calc an adjustment based on distance from camera */
+    if (ob) {
+        VecSubf(diff, obofs, G.vd->ofs);
+        d = VecLength(diff);
+    }
+    else {
+        d = 1.0f;
+    }
+    reverse = (G.vd->persmat[2][1] < 0.0f) ? -1.0f : 1.0f;
+
+    /*----------------------------------------------------
+     * ndof device pan 
+     */
+    psens *= 1.0f + d;
+    curareaX = sbadjust * psens * fval[0];
+    curareaY = sbadjust * psens * fval[1];
+    dvec[0] = curareaX * G.vd->persinv[0][0] + curareaY * G.vd->persinv[1][0];
+    dvec[1] = curareaX * G.vd->persinv[0][1] + curareaY * G.vd->persinv[1][1];
+    dvec[2] = curareaX * G.vd->persinv[0][2] + curareaY * G.vd->persinv[1][2];
+    VecAddf(G.vd->ofs, G.vd->ofs, dvec);
+
+    /*----------------------------------------------------
+     * ndof device dolly 
+     */
+    len = zsens * sbadjust * fval[2];
+
+    if (G.vd->persp==2) {
+        if(G.vd->persp==2) {
+            G.vd->camzoom+= 10.0f * -len;
+        }
+        if (G.vd->camzoom < minZoom) G.vd->camzoom = minZoom;
+        else if (G.vd->camzoom > maxZoom) G.vd->camzoom = maxZoom;
+    }
+    else if ((G.vd->dist> 0.001*G.vd->grid) && (G.vd->dist<10.0*G.vd->far)) {
+        G.vd->dist*=(1.0 + len);
+    }
+
+
+    /*----------------------------------------------------
+     * ndof device turntable
+     * derived from the turntable code in viewmove
+     */
+
+    /* Get the 3x3 matrix and its inverse from the quaternion */
+    QuatToMat3(G.vd->viewquat, m);
+    Mat3Inv(m_inv,m);
+
+    /* Determine the direction of the x vector (for rotating up and down) */
+    /* This can likely be compuated directly from the quaternion. */
+    Mat3MulVecfl(m_inv,xvec);
+    Mat3MulVecfl(m_inv,yvec);
+    Mat3MulVecfl(m_inv,zvec);
+
+    /* Perform the up/down rotation */
+    phi = sbadjust * rsens * /*0.5f * */ fval[3]; /* spin vertically half as fast as horizontally */
+    si = sin(phi);
+    q1[0] = cos(phi);
+    q1[1] = si * xvec[0];
+    q1[2] = si * xvec[1];
+    q1[3] = si * xvec[2];
+    QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
+
+    if (use_sel) {
+        QuatConj(q1); /* conj == inv for unit quat */
+        VecSubf(G.vd->ofs, G.vd->ofs, obofs);
+        QuatMulVecf(q1, G.vd->ofs);
+        VecAddf(G.vd->ofs, G.vd->ofs, obofs);
+    }
+
+    /* Perform the orbital rotation */
+    /* Perform the orbital rotation 
+       If the seen Up axis is parallel to the zoom axis, rotation should be
+       achieved with a pure Roll motion (no Spin) on the device. When you start 
+       to tilt, moving from Top to Side view, Spinning will increasingly become 
+       more relevant while the Roll component will decrease. When a full 
+       Side view is reached, rotations around the world's Up axis are achieved
+       with a pure Spin-only motion.  In other words the control of the spinning
+       around the world's Up axis should move from the device's Spin axis to the
+       device's Roll axis depending on the orientation of the world's Up axis 
+       relative to the screen. */
+    //phi = sbadjust * rsens * reverse * fval[4];  /* spin the knob, y axis */
+    phi = sbadjust * rsens * (yvec[2] * fval[4] + zvec[2] * fval[5]);
+    q1[0] = cos(phi);
+    q1[1] = q1[2] = 0.0;
+    q1[3] = sin(phi);
+    QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
+
+    if (use_sel) {
+        QuatConj(q1);
+        VecSubf(G.vd->ofs, G.vd->ofs, obofs);
+        QuatMulVecf(q1, G.vd->ofs);
+        VecAddf(G.vd->ofs, G.vd->ofs, obofs);
+    }
+
+    /*----------------------------------------------------
+     * refresh the screen
+     */
+    scrarea_do_windraw(curarea);
+    screen_swapbuffers();
+}
+
 
 /* Gets the lens and clipping values from a camera of lamp type object */
 void object_view_settings(Object *ob, float *lens, float *clipsta, float *clipend)

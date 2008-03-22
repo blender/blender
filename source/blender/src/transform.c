@@ -852,10 +852,48 @@ static void transformEvent(unsigned short event, short val) {
 			else view_editmove(event);
 			Trans.redraw= 1;
 			break;
+//		case NDOFMOTION:
+//            viewmoveNDOF(1);
+  //         break;
 		}
 		
 		// Numerical input events
 		Trans.redraw |= handleNumInput(&(Trans.num), event);
+		
+		// NDof input events
+		switch(handleNDofInput(&(Trans.ndof), event, val))
+		{
+			case NDOF_CONFIRM:
+				if ((Trans.context & CTX_NDOF) == 0)
+				{
+					/* Confirm on normal transform only */
+					Trans.state = TRANS_CONFIRM;
+				}
+				break;
+			case NDOF_CANCEL:
+				if (Trans.context & CTX_NDOF)
+				{
+					/* Cancel on pure NDOF transform */
+					Trans.state = TRANS_CANCEL; 
+				}
+				else
+				{
+					/* Otherwise, just redraw, NDof input was cancelled */
+					Trans.redraw = 1;
+				}
+				break;
+			case NDOF_NOMOVE:
+				if (Trans.context & CTX_NDOF)
+				{
+					/* Confirm on pure NDOF transform */
+					Trans.state = TRANS_CONFIRM;
+				}
+				break;
+			case NDOF_REFRESH:
+				Trans.redraw = 1;
+				break;
+			
+		}
 		
 		// Snapping events
 		Trans.redraw |= handleSnapping(&Trans, event);
@@ -1244,6 +1282,9 @@ void ManipulatorTransform()
 			case RETKEY:
 				Trans.state = TRANS_CONFIRM;
 				break;
+   //         case NDOFMOTION:
+     //           viewmoveNDOF(1);
+     //           break;
 			}
 			if(val) {
 				switch(event) {
@@ -2295,6 +2336,10 @@ void initRotation(TransInfo *t)
 	t->mode = TFM_ROTATION;
 	t->transform = Rotation;
 	
+	t->ndof.axis = 16;
+	/* Scale down and flip input for rotation */
+	t->ndof.factor[0] = -0.2f;
+	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
@@ -2576,6 +2621,8 @@ int Rotation(TransInfo *t, short mval[2])
 
 	final = t->fac;
 
+	applyNDofInput(&t->ndof, &final);
+	
 	snapGrid(t, &final);
 
 	t->imval[0] = mval[0];
@@ -2634,6 +2681,11 @@ void initTrackball(TransInfo *t)
 {
 	t->mode = TFM_TRACKBALL;
 	t->transform = Trackball;
+	
+	t->ndof.axis = 40;
+	/* Scale down input for rotation */
+	t->ndof.factor[0] = 0.2f;
+	t->ndof.factor[1] = 0.2f;
 
 	t->idx_max = 1;
 	t->num.idx_max = 1;
@@ -2707,6 +2759,8 @@ int Trackball(TransInfo *t, short mval[2])
 	phi[0]= 0.01f*(float)( t->imval[1] - mval[1] );
 	phi[1]= 0.01f*(float)( mval[0] - t->imval[0] );
 		
+	applyNDofInput(&t->ndof, phi);
+	
 	snapGrid(t, phi);
 	
 	if (hasNumInput(&t->num)) {
@@ -2761,6 +2815,7 @@ void initTranslation(TransInfo *t)
 	t->num.flag = 0;
 	t->num.idx_max = t->idx_max;
 	
+	t->ndof.axis = 7;
 
 	if(t->spacetype == SPACE_VIEW3D) {
 		/* initgrabz() defines a factor for perspective depth correction, used in window_to_3d() */
@@ -2909,6 +2964,7 @@ int Translation(TransInfo *t, short mval[2])
 		headerTranslation(t, pvec, str);
 	}
 	else {
+		applyNDofInput(&t->ndof, t->vec);
 		snapGrid(t, t->vec);
 		applyNumInput(&t->num, t->vec);
 		applySnapping(t, t->vec);
@@ -3014,6 +3070,10 @@ void initTilt(TransInfo *t)
 	t->mode = TFM_TILT;
 	t->transform = Tilt;
 
+	t->ndof.axis = 16;
+	/* Scale down and flip input for rotation */
+	t->ndof.factor[0] = -0.2f;
+
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
@@ -3057,6 +3117,8 @@ int Tilt(TransInfo *t, short mval[2])
 	else t->fac += dphi;
 
 	final = t->fac;
+	
+	applyNDofInput(&t->ndof, &final);
 
 	snapGrid(t, &final);
 
@@ -3195,6 +3257,10 @@ void initPushPull(TransInfo *t)
 	t->mode = TFM_PUSHPULL;
 	t->transform = PushPull;
 	
+	t->ndof.axis = 4;
+	/* Flip direction */
+	t->ndof.factor[0] = -1.0f;
+
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
@@ -3212,6 +3278,8 @@ int PushPull(TransInfo *t, short mval[2])
 	TransData *td = t->data;
 
 	distance = InputVerticalAbsolute(t, mval);
+	
+	applyNDofInput(&t->ndof, &distance);
 
 	snapGrid(t, &distance);
 
@@ -4624,4 +4692,50 @@ void BIF_TransformSetUndo(char *str)
 }
 
 
+void NDofTransform()
+{
+    float fval[7];
+    float maxval = 50.0f; // also serves as threshold
+    int axis = -1;
+    int mode = 0;
+    int i;
 
+	getndof(fval);
+
+	for(i = 0; i < 6; i++)
+	{
+		float val = fabs(fval[i]);
+		if (val > maxval)
+		{
+			axis = i;
+			maxval = val;
+		}
+	}
+	
+	switch(axis)
+	{
+		case -1:
+			/* No proper axis found */
+			break;
+		case 0:
+		case 1:
+		case 2:
+			mode = TFM_TRANSLATION;
+			break;
+		case 4:
+			mode = TFM_ROTATION;
+			break;
+		case 3:
+		case 5:
+			mode = TFM_TRACKBALL;
+			break;
+		default:
+			printf("ndof: what we are doing here ?");
+	}
+	
+	if (mode != 0)
+	{
+		initTransform(mode, CTX_NDOF);
+		Transform();
+	}
+}

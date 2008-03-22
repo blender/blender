@@ -51,6 +51,7 @@ class GHOST_Event;
 class GHOST_TimerManager;
 class GHOST_Window;
 class GHOST_WindowManager;
+class GHOST_NDOFManager;
 
 /**
  * Implementation of platform independent functionality of the GHOST_ISystem
@@ -184,6 +185,27 @@ public:
 	 */
 	virtual GHOST_TSuccess addEventConsumer(GHOST_IEventConsumer* consumer);
 
+
+
+	/***************************************************************************************
+	 ** N-degree of freedom devcice management functionality
+	 ***************************************************************************************/
+
+	/** Inherited from GHOST_ISystem
+     *  Opens the N-degree of freedom device manager
+	 * return 0 if device found, 1 otherwise
+     */
+    virtual int openNDOF(GHOST_IWindow* w,        
+        GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
+        GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
+        GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen);
+        
+// original patch only        
+//        GHOST_NDOFEventHandler_fp setNdofEventHandler);
+
+
+
+
 	/***************************************************************************************
 	 ** Cursor management functionality
 	 ***************************************************************************************/
@@ -242,6 +264,12 @@ public:
 	 * @return A pointer to our window manager.
 	 */
 	virtual inline GHOST_WindowManager* getWindowManager() const;
+
+ 	/**
+	 * Returns a pointer to our n-degree of freedeom manager.
+	 * @return A pointer to our n-degree of freedeom manager.
+	 */
+	virtual inline GHOST_NDOFManager* getNDOFManager() const;
 
 	/**
 	 * Returns the state of all modifier keys.
@@ -305,6 +333,9 @@ protected:
 	/** The event manager. */
 	GHOST_EventManager* m_eventManager;
 
+    /** The N-degree of freedom device manager */
+    GHOST_NDOFManager* m_ndofManager;
+
 	/** Prints all the events. */
 #ifdef GHOST_DEBUG
 	GHOST_EventPrinter m_eventPrinter;
@@ -327,6 +358,11 @@ inline GHOST_EventManager* GHOST_System::getEventManager() const
 inline GHOST_WindowManager* GHOST_System::getWindowManager() const
 {
 	return m_windowManager;
+}
+
+inline GHOST_NDOFManager* GHOST_System::getNDOFManager() const
+{
+	return m_ndofManager;
 }
 
 #endif // _GHOST_SYSTEM_H_

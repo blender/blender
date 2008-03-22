@@ -265,6 +265,19 @@ extern GHOST_TSuccess GHOST_AddEventConsumer(GHOST_SystemHandle systemhandle,
 											  GHOST_EventConsumerHandle consumerhandle);
 	
 
+/***************************************************************************************
+ ** N-degree of freedom device management functionality
+ ***************************************************************************************/
+ 
+/**
+* Open N-degree of freedom devices
+ */
+extern int GHOST_OpenNDOF(GHOST_SystemHandle systemhandle, 
+                           GHOST_WindowHandle windowhandle,
+                          GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
+                          GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
+                          GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen
+                          );
 
 /***************************************************************************************
  ** Cursor management functionality

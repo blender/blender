@@ -149,6 +149,9 @@ typedef struct Global {
 	int compat;      /* toggle compatibility mode for edge rendering */
 	int notonlysolid;/* T-> also edge-render transparent faces       */
 	
+	/* ndof device found ? */
+	int ndofdevice;
+	
 	/* confusing... G.f and G.flags */
 	int flags;
 

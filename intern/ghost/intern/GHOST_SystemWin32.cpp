@@ -64,10 +64,12 @@
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventKey.h"
 #include "GHOST_EventWheel.h"
+#include "GHOST_EventNDOF.h"
 #include "GHOST_TimerTask.h"
 #include "GHOST_TimerManager.h"
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowWin32.h"
+#include "GHOST_NDOFManager.h"
 
 // Key code values not found in winuser.h
 #ifndef VK_MINUS
@@ -844,6 +846,28 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 *
 					 * In GHOST, we let DefWindowProc call the timer callback.
 					 */
+					break;
+				case WM_BLND_NDOF_AXIS:
+					{
+						GHOST_TEventNDOFData ndofdata;
+						system->m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
+						system->m_eventManager->
+							pushEvent(new GHOST_EventNDOF(
+								system->getMilliSeconds(), 
+								GHOST_kEventNDOFMotion, 
+								window, ndofdata));
+					}
+					break;
+				case WM_BLND_NDOF_BTN:
+					{
+						GHOST_TEventNDOFData ndofdata;
+						system->m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
+						system->m_eventManager->
+							pushEvent(new GHOST_EventNDOF(
+								system->getMilliSeconds(), 
+								GHOST_kEventNDOFButton, 
+								window, ndofdata));
+					}
 					break;
 			}
 		}

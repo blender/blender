@@ -193,6 +193,13 @@ static void init_userdef_file(void)
 	if(U.pad_rot_angle==0)
 		U.pad_rot_angle= 15;
 	
+   if (U.ndof_pan==0) {
+        U.ndof_pan = 100;
+   }
+    if (U.ndof_rotate==0) {
+        U.ndof_rotate = 100;
+   }
+
 	if(U.flag & USER_CUSTOM_RANGE) 
 		vDM_ColorBand_store(&U.coba_weight); /* signal for derivedmesh to use colorband */
 	
