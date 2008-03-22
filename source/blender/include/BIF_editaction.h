@@ -190,6 +190,7 @@ void actdata_filter(ListBase *act_data, int filter_mode, void *data, short datat
 void *get_action_context(short *datatype);
 
 void remake_action_ipos(struct bAction *act);
+void action_previewrange_set(struct bAction *act);
 
 /* event handling */
 void winqreadactionspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);

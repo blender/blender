@@ -797,6 +797,36 @@ void *get_action_context (short *datatype)
 	}
 }
 
+/* Quick-tool for preview-range functionality in Action Editor for setting Preview-Range  
+ * bounds to extents of Action, when Ctrl-Alt-P is used. Only available for actions.
+ */
+void action_previewrange_set (bAction *act)
+{
+	float start, end;
+	
+	/* sanity check */
+	if (act == NULL)
+		return;
+		
+	/* calculate range + make sure it is adjusted for nla-scaling */
+	calc_action_range(act, &start, &end, 0);
+	if (NLA_ACTION_SCALED) {
+		start= get_action_frame_inv(OBACT, start);
+		end= get_action_frame_inv(OBACT, end);
+	}
+	
+	/* set preview range */
+	G.scene->r.psfra= start;
+	G.scene->r.pefra= end;
+	
+	BIF_undo_push("Set anim-preview range");
+	allqueue(REDRAWTIME, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWBUTSALL, 0);
+}
+
 /* **************************************************** */
 /* ACTION CHANNEL GROUPS */
 
@@ -4454,7 +4484,9 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case PKEY:
-			if (G.qual & LR_CTRLKEY) /* set preview range */
+			if (G.qual == (LR_CTRLKEY|LR_ALTKEY)) /* set preview range to range of action */
+				action_previewrange_set(G.saction->action);
+			else if (G.qual & LR_CTRLKEY) /* set preview range */
 				anim_previewrange_set();
 			else if (G.qual & LR_ALTKEY) /* clear preview range */
 				anim_previewrange_clear();
