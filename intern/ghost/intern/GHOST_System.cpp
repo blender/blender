@@ -44,6 +44,7 @@
 #include "GHOST_System.h"
 
 #include <time.h>
+#include <stdio.h> /* just for printf */
 
 #include "GHOST_DisplayManager.h"
 #include "GHOST_EventManager.h"

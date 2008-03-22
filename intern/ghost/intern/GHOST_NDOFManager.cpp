@@ -20,6 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stdio.h> /* just for printf */
 
 #include "GHOST_NDOFManager.h"
 
