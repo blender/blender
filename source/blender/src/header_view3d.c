@@ -389,14 +389,14 @@ static void do_view3d_view_alignviewmenu(void *arg, int event)
 	case 1:
 	case 2:
 		if ((G.obedit) && (G.obedit->type == OB_MESH)) {
-			editmesh_align_view_to_selected(v3d, event);
+			editmesh_align_view_to_selected(v3d, event + 1);
 		} else if (FACESEL_PAINT_TEST) {
 			Object *obact= OBACT;
 			if (obact && obact->type==OB_MESH) {
 				Mesh *me= obact->data;
 
 				if (me->mtface) {
-					faceselect_align_view_to_selected(v3d, me, event);
+					faceselect_align_view_to_selected(v3d, me, event + 1);
 					addqueue(v3d->area->win, REDRAW, 1);
 				}
 			}
