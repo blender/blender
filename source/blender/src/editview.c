@@ -60,6 +60,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_ipo_types.h" /* for fly mode recording */
+#include "DNA_node_types.h" /* for fly mode recording */
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -107,6 +108,7 @@
 #include "BSE_edit.h"
 #include "BSE_view.h"		/* give_cursor() */
 #include "BSE_editipo.h"
+#include "BSE_drawipo.h"
 #include "BSE_drawview.h"
 
 #include "editmesh.h"	/* borderselect uses it... */
@@ -637,31 +639,64 @@ static void do_lasso_select_facemode(short mcords[][2], short moves, short selec
 	object_tface_flags_changed(OBACT, 0);
 }
 
+static void do_lasso_select_node(short mcords[][2], short moves, short select)
+{
+	SpaceNode *snode = curarea->spacedata.first;
+	
+	bNode *node;
+	rcti rect;
+	short node_cent[2];
+	float node_centf[2];
+	
+	lasso_select_boundbox(&rect, mcords, moves);
+	
+	/* store selection in temp test flag */
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		
+		node_centf[0] = (node->totr.xmin+node->totr.xmax)/2;
+		node_centf[1] = (node->totr.ymin+node->totr.ymax)/2;
+		
+		ipoco_to_areaco_noclip(G.v2d, node_centf, node_cent);
+		if (BLI_in_rcti(&rect, node_cent[0], node_cent[1]) && lasso_inside(mcords, moves, node_cent[0], node_cent[1])) {
+			if (select) {
+				node->flag |= SELECT;
+			} else {
+				node->flag &= ~SELECT;
+			}
+		}
+	}
+	allqueue(REDRAWNODE, 1);
+	BIF_undo_push("Lasso select nodes");
+}
+
 static void do_lasso_select(short mcords[][2], short moves, short select)
 {
-	if(G.obedit==NULL) {
-		if(FACESEL_PAINT_TEST)
-			do_lasso_select_facemode(mcords, moves, select);
-		else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))
-			;
-		else if(G.f & G_PARTICLEEDIT)
-			PE_do_lasso_select(mcords, moves, select);
-		else  
-			do_lasso_select_objects(mcords, moves, select);
-	}
-	else if(G.obedit->type==OB_MESH) {
-		if(curarea->spacetype==SPACE_VIEW3D) {
-			do_lasso_select_mesh(mcords, moves, select);
-		} else if (EM_texFaceCheck()){
-			do_lasso_select_mesh_uv(mcords, moves, select);
+	if(curarea->spacetype==SPACE_NODE) {
+		do_lasso_select_node(mcords, moves, select);
+	} else {
+		if(G.obedit==NULL) {
+			if(FACESEL_PAINT_TEST)
+				do_lasso_select_facemode(mcords, moves, select);
+			else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))
+				;
+			else if(G.f & G_PARTICLEEDIT)
+				PE_do_lasso_select(mcords, moves, select);
+			else  
+				do_lasso_select_objects(mcords, moves, select);
 		}
-	} else if(G.obedit->type==OB_CURVE || G.obedit->type==OB_SURF) 
-		do_lasso_select_curve(mcords, moves, select);
-	else if(G.obedit->type==OB_LATTICE) 
-		do_lasso_select_lattice(mcords, moves, select);
-	else if(G.obedit->type==OB_ARMATURE)
-		do_lasso_select_armature(mcords, moves, select);
-	
+		else if(G.obedit->type==OB_MESH) {
+			if(curarea->spacetype==SPACE_VIEW3D) {
+				do_lasso_select_mesh(mcords, moves, select);
+			} else if (EM_texFaceCheck()){
+				do_lasso_select_mesh_uv(mcords, moves, select);
+			}
+		} else if(G.obedit->type==OB_CURVE || G.obedit->type==OB_SURF) 
+			do_lasso_select_curve(mcords, moves, select);
+		else if(G.obedit->type==OB_LATTICE) 
+			do_lasso_select_lattice(mcords, moves, select);
+		else if(G.obedit->type==OB_ARMATURE)
+			do_lasso_select_armature(mcords, moves, select);
+	}
 	BIF_undo_push("Lasso select");
 	
 	if (EM_texFaceCheck())
@@ -827,6 +862,8 @@ int gesture(void)
 			if(G.obedit) {
 				lasso= 1;
 			}
+		} else if (curarea->spacetype==SPACE_NODE) {
+			lasso= 1;
 		}
 	}
 	
