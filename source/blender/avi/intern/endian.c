@@ -46,7 +46,7 @@
 #include "endian.h"
 #include "avi_intern.h"
 
-#if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__hppa__) || defined (__BIG_ENDIAN__)
 #define WORDS_BIGENDIAN
 #endif
 
