@@ -727,7 +727,7 @@ void viewmove(int mode)
 	float reverse, oldquat[4], q1[4], si, phi, dist0;
 	float ofs[3], obofs[3]= {0.0f, 0.0f, 0.0f};
 	int firsttime=1;
-	short mvalball[2], mval[2], mvalo[2], mval_area[2];
+	short mvalball[2], mval[2], mvalo[2], mval_area[2], mvali[2];
 	short use_sel = 0;
 	short preview3d_event= 1;
 	
@@ -764,9 +764,9 @@ void viewmove(int mode)
 	QUATCOPY(oldquat, G.vd->viewquat);
 	
 	getmouseco_areawin(mval_area);	/* for zoom to mouse loc */
-	getmouseco_sc(mvalo);		/* work with screen coordinates because of trackball function */
-	mvalball[0]= mvalo[0];			/* needed for turntable to work */
-	mvalball[1]= mvalo[1];
+	getmouseco_sc(mvali);		/* work with screen coordinates because of trackball function */
+	mvalball[0]= mvalo[0] = mvali[0];			/* needed for turntable to work */
+	mvalball[1]= mvalo[1] = mvali[1];
 	dist0= G.vd->dist;
 	
 	calctrackballvec(&curarea->winrct, mvalo, firstvec);
@@ -937,6 +937,11 @@ void viewmove(int mode)
 			}
 			else if(mode==2) {
 				float zfac=1.0;
+
+				/* use initial value (do not use mvalo (that is used to detect mouse moviments)) */
+				mvalo[0] = mvali[0];
+				mvalo[1] = mvali[1];
+
 				if(U.viewzoom==USER_ZOOM_CONT) {
 					// oldstyle zoom
 					zfac = 1.0+(float)(mvalo[0]-mval[0]+mvalo[1]-mval[1])/1000.0;
@@ -966,9 +971,6 @@ void viewmove(int mode)
 				/* these limits are in toets.c too */
 				if(G.vd->dist<0.001*G.vd->grid) G.vd->dist= 0.001*G.vd->grid;
 				if(G.vd->dist>10.0*G.vd->far) G.vd->dist=10.0*G.vd->far;
-				
-				mval[1]= mvalo[1]; /* preserve first value */
-				mval[0]= mvalo[0];
 				
 				if(G.vd->persp==0 || G.vd->persp==2) preview3d_event= 0;
 			}
