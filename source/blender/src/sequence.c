@@ -420,7 +420,8 @@ void reload_sequence_new_file(Sequence * seq)
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
 	if (!(seq->type == SEQ_MOVIE || seq->type == SEQ_IMAGE ||
-	      seq->type == SEQ_HD_SOUND || seq->type == SEQ_SCENE)) {
+	      seq->type == SEQ_HD_SOUND || seq->type == SEQ_SCENE ||
+	      seq->type == SEQ_META)) {
 		return;
 	}
 
@@ -430,7 +431,7 @@ void reload_sequence_new_file(Sequence * seq)
 		return;
 	}
 
-	if (seq->type != SEQ_SCENE) {
+	if (seq->type != SEQ_SCENE && seq->type != SEQ_META) {
 		strncpy(str, seq->strip->dir, FILE_MAXDIR-1);
 		strncat(str, seq->strip->stripdata->name, FILE_MAXFILE-1);
 	}
@@ -489,7 +490,6 @@ void reload_sequence_new_file(Sequence * seq)
 		}
 		seq->strip->len = seq->len;
 	}
-
 
 	calc_sequence(seq);
 }
@@ -1627,19 +1627,8 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 		}
 
 		if(!se->ibuf && seq->seqbase.first) {
-			if(cfra < seq->start) {
-				meta_se = do_build_seq_array_recursively(
-					&seq->seqbase, 
-					seq->start, 0);
-			} else if(cfra > seq->start + seq->len - 1) {
-				meta_se = do_build_seq_array_recursively(
-					&seq->seqbase, 
-					seq->start + seq->len - 1, 0);
-			} else {
-				meta_se = do_build_seq_array_recursively(
-					&seq->seqbase, 
-					cfra, 0);
-			}
+			meta_se = do_build_seq_array_recursively(
+				&seq->seqbase, seq->start + se->nr, 0);
 		}
 
 		se->ok = STRIPELEM_OK;
