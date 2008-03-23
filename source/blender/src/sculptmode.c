@@ -418,6 +418,16 @@ void sculpt_clip(const BrushAction *a, float *co, const float val[3])
 	}		
 }
 
+void add_norm_if(const BrushAction *a, float out[3], const short no[3])
+{
+	float fno[3] = {no[0], no[1], no[2]};
+
+	Normalize(fno);
+
+	if(acos(Inpf(((BrushAction*)a)->symm.out, fno)) < M_PI_2)
+		VecAddf(out, out, fno);
+}
+
 /* Currently only for the draw brush; finds average normal for all active
    vertices */
 void calc_area_normal(float out[3], const BrushAction *a, const float *outdir, const ListBase* active_verts)
@@ -429,18 +439,12 @@ void calc_area_normal(float out[3], const BrushAction *a, const float *outdir, c
 	out[0] = out[1] = out[2] = 0;
 
 	if(sculptmode_brush()->flag & SCULPT_BRUSH_ANCHORED) {
-		for(; node; node = node->next) {
-			out[0] += a->orig_norms[node->Index][0];
-			out[1] += a->orig_norms[node->Index][1];
-			out[2] += a->orig_norms[node->Index][2];
-		}
+		for(; node; node = node->next)
+			add_norm_if(a, out, a->orig_norms[node->Index]);
 	}
 	else {
-		for(; node; node = node->next) {
-			out[0] += me->mvert[node->Index].no[0];
-			out[1] += me->mvert[node->Index].no[1];
-			out[2] += me->mvert[node->Index].no[2];
-		}
+		for(; node; node = node->next)
+			add_norm_if(a, out, me->mvert[node->Index].no);
 	}
 
 	Normalize(out);
