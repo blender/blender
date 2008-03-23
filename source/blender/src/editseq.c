@@ -2339,7 +2339,7 @@ static Sequence * cut_seq(Sequence * seq, int cutframe)
 		seqn = deep_dupli_seq(seq);
 	}
 	
-	if (seqn) { /* should never fail */
+	if (seqn) { 
 		seqn->flag |= SELECT;
 			
 		/* Second Strip! */
@@ -2690,8 +2690,6 @@ void make_meta(void)
 	seqm->strip->len= seqm->len;
 	seqm->strip->us= 1;
 
-	set_meta_stripdata(seqm);
-	
 	if( test_overlap_seq(seqm) ) shuffle_seq(seqm);
 	
 	BIF_undo_push("Make Meta Strip, Sequencer");
@@ -2767,9 +2765,6 @@ void exit_meta(void)
 	BLI_remlink(&ed->metastack, ms);
 
 	ed->seqbasep= ms->oldbasep;
-
-	/* recalc entire meta */
-	set_meta_stripdata(ms->parseq);
 
 	/* recalc all: the meta can have effects connected to it */
 	seq= ed->seqbasep->first;

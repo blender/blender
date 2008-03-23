@@ -790,7 +790,8 @@ static void seq_panel_input()
 
 	if (last_seq->type == SEQ_MOVIE 
 	    || last_seq->type == SEQ_IMAGE 
-	    || last_seq->type == SEQ_SCENE) {
+	    || last_seq->type == SEQ_SCENE
+	    || last_seq->type == SEQ_META) {
 		uiDefButBitI(block, TOG, SEQ_USE_CROP,
 			     B_SEQ_BUT_RELOAD, "Use Crop",
 			     10,100,240,19, &last_seq->flag,
@@ -1229,7 +1230,8 @@ void sequencer_panels()
 
 	panels = SEQ_PANEL_EDITING;
 
-	if (type == SEQ_MOVIE || type == SEQ_IMAGE || type == SEQ_SCENE) {
+	if (type == SEQ_MOVIE || type == SEQ_IMAGE || type == SEQ_SCENE
+	    || type == SEQ_META) {
 		panels |= SEQ_PANEL_INPUT | SEQ_PANEL_FILTER | SEQ_PANEL_PROXY;
 	}
 

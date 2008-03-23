@@ -401,8 +401,10 @@ void calc_sequence(Sequence *seq)
 					if(seqm->enddisp > max) max= seqm->enddisp;
 					seqm= seqm->next;
 				}
-				seq->start= min;
-				seq->len= max-min;
+				seq->start= min + seq->anim_startofs;
+				seq->len = max-min;
+				seq->len -= seq->anim_startofs;
+				seq->len -= seq->anim_endofs;
 
 				if(seq->strip && seq->len!=seq->strip->len) {
 					new_tstripdata(seq);
@@ -713,14 +715,9 @@ static void do_effect(int cfra, Sequence *seq, TStripElem * se)
 			return;
 		}
 
-		if(se->se1->ok == STRIPELEM_META) se1= se->se1->se1;
-		else se1= se->se1;
-		
-		if(se->se2->ok == STRIPELEM_META) se2= se->se2->se1;
-		else se2= se->se2;
-		
-		if(se->se3->ok == STRIPELEM_META) se3= se->se3->se1;
-		else se3= se->se3;
+		se1= se->se1;
+		se2= se->se2;
+		se3= se->se3;
 
 		if (   (se1==0 || se2==0 || se3==0)
 		    || (se1->ibuf==0 || se2->ibuf==0 || se3->ibuf==0)) {
@@ -735,8 +732,7 @@ static void do_effect(int cfra, Sequence *seq, TStripElem * se)
 			return;
 		}
 
-		if(se->se1->ok == STRIPELEM_META) se1= se->se1->se1;
-		else se1= se->se1;
+		se1= se->se1;
 
 		if (se1 == 0 || se1->ibuf == 0) {
 			make_black_ibuf(se->ibuf);
@@ -755,8 +751,7 @@ static void do_effect(int cfra, Sequence *seq, TStripElem * se)
 			return;
 		}
 
-		if(se->se2->ok == STRIPELEM_META) se2= se->se2->se1;
-		else se2= se->se2;
+		se2= se->se2;
 
 		if (se2 == 0 || se2->ibuf == 0) {
 			make_black_ibuf(se->ibuf);
@@ -998,43 +993,6 @@ static int get_shown_sequences(
 	return cnt;
 }
  
-static int get_shown_seq_from_metastrip(Sequence * seqm, int cfra,
-					Sequence ** seq_arr_out)
-{
-	return get_shown_sequences(&seqm->seqbase, cfra, 0, seq_arr_out);
-}
-
-void set_meta_stripdata(Sequence *seqm)
-{
-	TStripElem *se;
-	int a, cfra;
-
-	se= seqm->strip->tstripdata;
-
-	if (se == 0 && seqm->len > 0) {
-		int i;
-		se = seqm->strip->tstripdata = MEM_callocN(
-			seqm->len*sizeof(TStripElem), "tstripelems");
-		for (i = 0; i < seqm->len; i++) {
-			se[i].ok = STRIPELEM_META;
-		}
-	}
-
-	/* sets all ->se1 pointers in stripdata, to read the ibuf from it */
-
-	for(a=0; a<seqm->len; a++, se++) {
-		int cnt;
-		Sequence *seq_arr[MAXSEQ+1];
-
-		cfra= a+seqm->start;
-		cnt = get_shown_seq_from_metastrip(seqm, cfra, seq_arr);
-		if (cnt) {
-			se->se1= give_tstripelem(seq_arr[cnt-1], cfra);
-		} else { 
-			se->se1= 0;
-		}
-	}
-}
 
 /* **********************************************************************
    proxy management
@@ -1266,7 +1224,7 @@ static StripColorBalance calc_cb(StripColorBalance * cb_)
 
 	if (!(cb.flag & SEQ_COLOR_BALANCE_INVERSE_GAMMA)) {
 		for (c = 0; c < 3; c++) {
-			if (cb.gain[c] != 0.0) {
+			if (cb.gamma[c] != 0.0) {
 				cb.gamma[c] = 1.0/cb.gamma[c];
 			} else {
 				cb.gamma[c] = 1000000; /* should be enough :) */
@@ -1418,6 +1376,38 @@ static void color_balance(Sequence * seq, TStripElem* se, float mul)
   - Premultiply
 
 */
+
+static int input_have_to_preprocess(Sequence * seq, TStripElem* se, int cfra)
+{
+	float mul;
+
+	if ((seq->flag & SEQ_FILTERY) || 
+	    (seq->flag & SEQ_USE_CROP) ||
+	    (seq->flag & SEQ_USE_TRANSFORM) ||
+	    (seq->flag & SEQ_FLIPX) ||
+	    (seq->flag & SEQ_FLIPY) ||
+	    (seq->flag & SEQ_USE_COLOR_BALANCE) ||
+	    (seq->flag & SEQ_MAKE_PREMUL) ||
+	    (se->ibuf->x != seqrectx || se->ibuf->y != seqrecty)) {
+		return TRUE;
+	}
+
+	mul = seq->mul;
+
+	if(seq->blend_mode == SEQ_BLEND_REPLACE) {
+		if (seq->ipo && seq->ipo->curve.first) {
+			do_seq_ipo(seq, cfra);
+			mul *= seq->facf0;
+		}
+		mul *= seq->blend_opacity / 100.0;
+	}
+
+	if (mul != 1.0) {
+		return TRUE;
+	}
+		
+	return FALSE;
+}
 
 static void input_preprocess(Sequence * seq, TStripElem* se, int cfra)
 {
@@ -1620,40 +1610,62 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 			      int build_proxy_run)
 {
 	char name[FILE_MAXDIR+FILE_MAXFILE];
+	int use_limiter = TRUE;
 
-
-	if (seq->type != SEQ_META) {
-		test_and_auto_discard_ibuf(se);
-		test_and_auto_discard_ibuf_stills(seq->strip);
-	}
+	test_and_auto_discard_ibuf(se);
+	test_and_auto_discard_ibuf_stills(seq->strip);
 
 	if(seq->type == SEQ_META) {
-		if(seq->seqbase.first) {
+		TStripElem * meta_se = 0;
+		use_limiter = FALSE;
+
+		if (!build_proxy_run && se->ibuf == 0) {
+			se->ibuf = seq_proxy_fetch(seq, cfra);
+			if (se->ibuf) {
+				use_limiter = TRUE;
+			}
+		}
+
+		if(!se->ibuf && seq->seqbase.first) {
 			if(cfra < seq->start) {
-				do_build_seq_array_recursively(
+				meta_se = do_build_seq_array_recursively(
 					&seq->seqbase, 
 					seq->start, 0);
 			} else if(cfra > seq->start + seq->len - 1) {
-				do_build_seq_array_recursively(
+				meta_se = do_build_seq_array_recursively(
 					&seq->seqbase, 
 					seq->start + seq->len - 1, 0);
 			} else {
-				do_build_seq_array_recursively(
+				meta_se = do_build_seq_array_recursively(
 					&seq->seqbase, 
 					cfra, 0);
 			}
 		}
 
-		se->ok = STRIPELEM_META;
-		if(se->se1 == 0) set_meta_stripdata(seq);
-		if(se->se1) {
-			if(se->ibuf) {
-				IMB_freeImBuf(se->ibuf);
-			}
-			se->ibuf = se->se1->ibuf_comp;
-			if(se->ibuf) {
+		se->ok = STRIPELEM_OK;
+
+		if(!se->ibuf && meta_se) {
+			se->ibuf = meta_se->ibuf_comp;
+			if(se->ibuf &&
+			   (!input_have_to_preprocess(seq, se, cfra) ||
+			    build_proxy_run)) {
 				IMB_refImBuf(se->ibuf);
+				if (build_proxy_run) {
+					IMB_cache_limiter_unref(se->ibuf);
+				}
+			} else if (se->ibuf) {
+				struct ImBuf * i = IMB_dupImBuf(se->ibuf);
+
+				IMB_cache_limiter_unref(se->ibuf);
+
+				se->ibuf = i;
+
+				use_limiter = TRUE;
 			}
+		}
+
+		if (use_limiter) {
+			input_preprocess(seq, se, cfra);
 		}
 	} else if(seq->type & SEQ_EFFECT) {
 		/* should the effect be recalculated? */
@@ -1818,7 +1830,7 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 		}	
 	}
 	if (!build_proxy_run) {
-		if (se->ibuf && seq->type != SEQ_META) {
+		if (se->ibuf && use_limiter) {
 			IMB_cache_limiter_insert(se->ibuf);
 			IMB_cache_limiter_ref(se->ibuf);
 			IMB_cache_limiter_touch(se->ibuf);

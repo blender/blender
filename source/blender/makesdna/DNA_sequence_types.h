@@ -293,7 +293,6 @@ typedef struct SpeedControlVars {
 
 #define STRIPELEM_FAILED       0
 #define STRIPELEM_OK           1
-#define STRIPELEM_META         2
 
 #define STRIPELEM_PREVIEW_DONE  1
 

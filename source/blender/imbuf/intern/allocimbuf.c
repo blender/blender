@@ -478,6 +478,7 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1)
 	// set malloc flag
 	tbuf.mall		= ibuf2->mall;
 	tbuf.c_handle           = 0;
+	tbuf.refcounter         = 0;
 
 	// for now don't duplicate image info
 	tbuf.img_info = 0;

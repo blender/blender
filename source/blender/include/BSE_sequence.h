@@ -71,7 +71,6 @@ char *give_seqname(struct Sequence *seq);
 int evaluate_seq_frame(int cfra);
 struct StripElem *give_stripelem(struct Sequence *seq, int cfra);
 struct TStripElem *give_tstripelem(struct Sequence *seq, int cfra);
-void set_meta_stripdata(struct Sequence *seqm);
 struct ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chansel); 
 /* chansel: render this channel. Default=0 (renders end result)*/
 struct ImBuf *give_ibuf_seq_direct(int rectx, int recty, int cfra,
