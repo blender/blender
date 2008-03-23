@@ -137,17 +137,22 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 	{
 		bool justactivated = false;
 		bool justreleased = false;
+		bool active = false;
 
 		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i< SCA_IInputDevice::KX_ENDKEY;i++)
 		{
 			const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) i);
-			if (inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED)
-			{
+			switch (inevent.m_status) 
+			{ 
+			case SCA_InputEvent::KX_JUSTACTIVATED:
 				justactivated = true;
-			}
-			if (inevent.m_status == SCA_InputEvent::KX_JUSTRELEASED)
-			{
+				break;
+			case SCA_InputEvent::KX_JUSTRELEASED:
 				justreleased = true;
+				break;
+			case SCA_InputEvent::KX_ACTIVE:
+				active = true;
+				break;
 			}
 		}
 
@@ -159,7 +164,7 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 		{
 			if (justreleased)
 			{
-				m_val=0;
+				m_val=(active)?1:0;
 				result = true;
 			}
 		}

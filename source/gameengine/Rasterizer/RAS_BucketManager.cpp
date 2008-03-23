@@ -156,8 +156,9 @@ void RAS_BucketManager::Renderbuckets(
 	RAS_MaterialBucket::EndFrame();
 }
 
-RAS_MaterialBucket* RAS_BucketManager::RAS_BucketManagerFindBucket(RAS_IPolyMaterial * material)
+RAS_MaterialBucket* RAS_BucketManager::RAS_BucketManagerFindBucket(RAS_IPolyMaterial * material, bool &bucketCreated)
 {
+	bucketCreated = false;
 	BucketList::iterator it;
 	for (it = m_MaterialBuckets.begin(); it != m_MaterialBuckets.end(); it++)
 	{
@@ -172,6 +173,7 @@ RAS_MaterialBucket* RAS_BucketManager::RAS_BucketManagerFindBucket(RAS_IPolyMate
 	}
 	
 	RAS_MaterialBucket *bucket = new RAS_MaterialBucket(material);
+	bucketCreated = true;
 	if (bucket->IsTransparant())
 		m_AlphaBuckets.push_back(bucket);
 	else

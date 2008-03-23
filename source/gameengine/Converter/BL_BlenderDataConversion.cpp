@@ -883,6 +883,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				Material* ma = 0;
 				bool polyvisible = true;
 				RAS_IPolyMaterial* polymat = NULL;
+				BL_Material *bl_mat;
 
 				if(converter->GetMaterials()) 
 				{	
@@ -891,7 +892,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					else 
 						ma = give_current_material(blenderobj, 1);
 
-					BL_Material *bl_mat = ConvertMaterial(mesh, ma, tface, mface, mmcol, lightlayer, blenderobj, layers);
+					bl_mat = ConvertMaterial(mesh, ma, tface, mface, mmcol, lightlayer, blenderobj, layers);
 					// set the index were dealing with
 					bl_mat->material_index =  (int)mface->mat_nr;
 
@@ -899,7 +900,6 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					collider = ((bl_mat->ras_mode & COLLIDER)!=0);
 					
 					polymat = new KX_BlenderMaterial(scene, bl_mat, skinMesh, lightlayer, blenderobj );
-					converter->RegisterBlenderMaterial(bl_mat);
 					
 					unsigned int rgb[4];
 					bl_mat->GetConversionRGB(rgb);
@@ -921,8 +921,6 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 						if (mface->v4)
 							tan3 = tangent[mface->v4];
 					}
-					// this is needed to free up memory afterwards
-					converter->RegisterPolyMaterial(polymat);
 				}
 				else
 				{
@@ -1029,12 +1027,27 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 						polymat->m_specular = MT_Vector3(0.0f,0.0f,0.0f);
 						polymat->m_shininess = 35.0;
 					}
-					// this is needed to free up memory afterwards
-					converter->RegisterPolyMaterial(polymat);
-
 				}
 	
-				RAS_MaterialBucket* bucket = scene->FindBucket(polymat);
+				// see if a bucket was reused or a new one was created
+				// this way only one KX_BlenderMaterial object has to exist per bucket
+				bool bucketCreated; 
+				RAS_MaterialBucket* bucket = scene->FindBucket(polymat, bucketCreated);
+				if (bucketCreated) {
+					// this is needed to free up memory afterwards
+					converter->RegisterPolyMaterial(polymat);
+					if(converter->GetMaterials()) {
+						converter->RegisterBlenderMaterial(bl_mat);
+					}
+				} else {
+					// delete the material objects since they are no longer needed
+					// from now on, use the polygon material from the material bucket
+					delete polymat;
+					if(converter->GetMaterials()) {
+						delete bl_mat;
+					}
+					polymat = bucket->GetPolyMaterial();
+				}
 							 
 				int nverts = mface->v4?4:3;
 				int vtxarray = meshobj->FindVertexArray(nverts,polymat);

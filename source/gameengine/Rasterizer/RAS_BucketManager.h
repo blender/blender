@@ -61,7 +61,7 @@ public:
 							RAS_IRasterizer* rasty,
 							class RAS_IRenderTools* rendertools);
 
-	RAS_MaterialBucket* RAS_BucketManagerFindBucket(RAS_IPolyMaterial * material);
+	RAS_MaterialBucket* RAS_BucketManagerFindBucket(RAS_IPolyMaterial * material, bool &bucketCreated);
 	
 
 private:

@@ -286,7 +286,7 @@ public:
 	~KX_Scene();
 
 	RAS_BucketManager* GetBucketManager();
-	RAS_MaterialBucket*	FindBucket(RAS_IPolyMaterial* polymat);
+	RAS_MaterialBucket*	FindBucket(RAS_IPolyMaterial* polymat, bool &bucketCreated);
 	void RenderBuckets(const MT_Transform& cameratransform,
 						RAS_IRasterizer* rasty,
 						RAS_IRenderTools* rendertools);
