@@ -5551,7 +5551,7 @@ void view3d_buttons(void)
 	xco+= 126+8;
 	
 	/* DRAWTYPE */
-	uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_BBOX, drawtype_pup(), xco,0,XIC+10,YIC, &(G.vd->drawtype), 1.0, 5.0, 0, 0, "Viewport Shading (Hotkeys: Z, Shift Z, Ctrl Z, Alt Z");
+	uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_BBOX, drawtype_pup(), xco,0,XIC+10,YIC, &(G.vd->drawtype), 1.0, 5.0, 0, 0, "Viewport Shading (Hotkeys: Z, Shift Z, Alt Z)");
 
 	/* around */
 	xco+= XIC+18;
@@ -5735,7 +5735,7 @@ void view3d_buttons(void)
 			xco+= 20;
 		}
 
-		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE_DEHLT, xco,0,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (hold CTRL for anim)");
+		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE_DEHLT, xco,0,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (Ctrl Click for anim)");
 		
 		
 		if (ob && (ob->flag & OB_POSEMODE)) {

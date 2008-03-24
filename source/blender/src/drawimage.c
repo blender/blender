@@ -490,25 +490,40 @@ int draw_uvs_face_check(void)
 	return 0;
 }
 
-void tface_center(MTFace *tf, float cent[2], void * isquad)
+void uv_center(float uv[][2], float cent[2], void * isquad)
 {
 
 	if (isquad) {
-		cent[0] = (tf->uv[0][0] + tf->uv[1][0] + tf->uv[2][0] + tf->uv[3][0]) / 4.0;
-		cent[1] = (tf->uv[0][1] + tf->uv[1][1] + tf->uv[2][1] + tf->uv[3][1]) / 4.0;		
+		cent[0] = (uv[0][0] + uv[1][0] + uv[2][0] + uv[3][0]) / 4.0;
+		cent[1] = (uv[0][1] + uv[1][1] + uv[2][1] + uv[3][1]) / 4.0;		
 	} else {
-		cent[0] = (tf->uv[0][0] + tf->uv[1][0] + tf->uv[2][0]) / 3.0;
-		cent[1] = (tf->uv[0][1] + tf->uv[1][1] + tf->uv[2][1]) / 3.0;		
+		cent[0] = (uv[0][0] + uv[1][0] + uv[2][0]) / 3.0;
+		cent[1] = (uv[0][1] + uv[1][1] + uv[2][1]) / 3.0;		
 	}
 }
 
-float tface_area(MTFace *tf, int quad)
+static float uv_area(float uv[][2], int quad)
 {
 	if (quad) {
-		return AreaF2Dfl(tf->uv[0], tf->uv[1], tf->uv[2]) + AreaF2Dfl(tf->uv[0], tf->uv[2], tf->uv[3]); 
+		return AreaF2Dfl(uv[0], uv[1], uv[2]) + AreaF2Dfl(uv[0], uv[2], uv[3]); 
 	} else { 
-		return AreaF2Dfl(tf->uv[0], tf->uv[1], tf->uv[2]); 
+		return AreaF2Dfl(uv[0], uv[1], uv[2]); 
 	}
+}
+
+void uv_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy)
+{
+	uv[0][0] = uv_orig[0][0]*aspx;
+	uv[0][1] = uv_orig[0][1]*aspy;
+	
+	uv[1][0] = uv_orig[1][0]*aspx;
+	uv[1][1] = uv_orig[1][1]*aspy;
+	
+	uv[2][0] = uv_orig[2][0]*aspx;
+	uv[2][1] = uv_orig[2][1]*aspy;
+	
+	uv[3][0] = uv_orig[3][0]*aspx;
+	uv[3][1] = uv_orig[3][1]*aspy;
 }
 
 /* draws uv's in the image space */
@@ -582,6 +597,10 @@ void draw_uvs_sima(void)
 	
 	if (G.sima->flag & SI_DRAW_STRETCH) {
 		float col[3];
+		float aspx, aspy;
+		float tface_uv[4][2];
+		
+		transform_aspect_ratio_tface_uv(&aspx, &aspy);
 		
 		switch (G.sima->dt_uvstretch) {
 			case SI_UVDT_STRETCH_AREA:
@@ -590,9 +609,11 @@ void draw_uvs_sima(void)
 				
 				for (efa= em->faces.first; efa; efa= efa->next) {
 					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					
+					uv_copy_aspect(tface->uv, tface_uv, aspx, aspy);
+
 					totarea += EM_face_area(efa);
-					totuvarea += tface_area(tface, efa->v4!=0);
+					//totuvarea += tface_area(tface, efa->v4!=0);
+					totuvarea += uv_area(tface_uv, efa->v4!=0);
 					
 					if (simaFaceDraw_Check(efa, tface)) {
 						efa->tmp.p = tface;
@@ -617,29 +638,32 @@ void draw_uvs_sima(void)
 							glEnd();
 						}
 					}
-				}
-				
-				for (efa= em->faces.first; efa; efa= efa->next) {
-					if ((tface=(MTFace *)efa->tmp.p)) {
-						area = EM_face_area(efa) / totarea;
-						uvarea = tface_area(tface, efa->v4!=0) / totuvarea;
-						if (area < FLT_EPSILON || uvarea < FLT_EPSILON) {
-							areadiff = 1.0;
-						} else if (area>uvarea) {
-							areadiff = 1.0-(uvarea/area);
-						} else {
-							areadiff = 1.0-(area/uvarea);
+				} else {
+					for (efa= em->faces.first; efa; efa= efa->next) {
+						if ((tface=(MTFace *)efa->tmp.p)) {
+							area = EM_face_area(efa) / totarea;
+							uv_copy_aspect(tface->uv, tface_uv, aspx, aspy);
+							//uvarea = tface_area(tface, efa->v4!=0) / totuvarea;
+							uvarea = uv_area(tface_uv, efa->v4!=0) / totuvarea;
+							
+							if (area < FLT_EPSILON || uvarea < FLT_EPSILON) {
+								areadiff = 1.0;
+							} else if (area>uvarea) {
+								areadiff = 1.0-(uvarea/area);
+							} else {
+								areadiff = 1.0-(area/uvarea);
+							}
+							
+							weight_to_rgb(areadiff, col, col+1, col+2);
+							glColor3fv(col);
+							
+							glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+								glVertex2fv(tface->uv[0]);
+								glVertex2fv(tface->uv[1]);
+								glVertex2fv(tface->uv[2]);
+								if(efa->v4) glVertex2fv(tface->uv[3]);
+							glEnd();
 						}
-						
-						weight_to_rgb(areadiff, col, col+1, col+2);
-						glColor3fv(col);
-						
-						glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
-							glVertex2fv(tface->uv[0]);
-							glVertex2fv(tface->uv[1]);
-							glVertex2fv(tface->uv[2]);
-							if(efa->v4) glVertex2fv(tface->uv[3]);
-						glEnd();
 					}
 				}
 				break;
@@ -660,27 +684,28 @@ void draw_uvs_sima(void)
 					
 					if (simaFaceDraw_Check(efa, tface)) {
 						efa->tmp.p = tface;
+						uv_copy_aspect(tface->uv, tface_uv, aspx, aspy);
 						if (efa->v4) {
 							
 #if 0						/* Simple but slow, better reuse normalized vectors */
-							uvang1 = VecAngle3_2D(tface->uv[3], tface->uv[0], tface->uv[1]);
+							uvang1 = VecAngle3_2D(tface_uv[3], tface_uv[0], tface_uv[1]);
 							ang1 = VecAngle3(efa->v4->co, efa->v1->co, efa->v2->co);
 							
-							uvang2 = VecAngle3_2D(tface->uv[0], tface->uv[1], tface->uv[2]);
+							uvang2 = VecAngle3_2D(tface_uv[0], tface_uv[1], tface_uv[2]);
 							ang2 = VecAngle3(efa->v1->co, efa->v2->co, efa->v3->co);
 							
-							uvang3 = VecAngle3_2D(tface->uv[1], tface->uv[2], tface->uv[3]);
+							uvang3 = VecAngle3_2D(tface_uv[1], tface_uv[2], tface_uv[3]);
 							ang3 = VecAngle3(efa->v2->co, efa->v3->co, efa->v4->co);
 							
-							uvang4 = VecAngle3_2D(tface->uv[2], tface->uv[3], tface->uv[0]);
+							uvang4 = VecAngle3_2D(tface_uv[2], tface_uv[3], tface_uv[0]);
 							ang4 = VecAngle3(efa->v3->co, efa->v4->co, efa->v1->co);
 #endif
 							
 							/* uv angles */
-							VECSUB2D(av1, tface->uv[3], tface->uv[0]); Normalize2(av1);
-							VECSUB2D(av2, tface->uv[0], tface->uv[1]); Normalize2(av2);
-							VECSUB2D(av3, tface->uv[1], tface->uv[2]); Normalize2(av3);
-							VECSUB2D(av4, tface->uv[2], tface->uv[3]); Normalize2(av4);
+							VECSUB2D(av1, tface_uv[3], tface_uv[0]); Normalize2(av1);
+							VECSUB2D(av2, tface_uv[0], tface_uv[1]); Normalize2(av2);
+							VECSUB2D(av3, tface_uv[1], tface_uv[2]); Normalize2(av3);
+							VECSUB2D(av4, tface_uv[2], tface_uv[3]); Normalize2(av4);
 							
 							/* This is the correct angle however we are only comparing angles
 							 * uvang1 = 90-((NormalizedVecAngle2_2D(av1, av2) * 180.0/M_PI)-90);*/
@@ -726,10 +751,10 @@ void draw_uvs_sima(void)
 							
 						} else {
 #if 0						/* Simple but slow, better reuse normalized vectors */
-							uvang1 = VecAngle3_2D(tface->uv[2], tface->uv[0], tface->uv[1]);
+							uvang1 = VecAngle3_2D(tface_uv[2], tface_uv[0], tface_uv[1]);
 							ang1 = VecAngle3(efa->v3->co, efa->v1->co, efa->v2->co);
 							
-							uvang2 = VecAngle3_2D(tface->uv[0], tface->uv[1], tface->uv[2]);
+							uvang2 = VecAngle3_2D(tface_uv[0], tface_uv[1], tface_uv[2]);
 							ang2 = VecAngle3(efa->v1->co, efa->v2->co, efa->v3->co);
 							
 							uvang3 = 180-(uvang1+uvang2);
@@ -737,9 +762,9 @@ void draw_uvs_sima(void)
 #endif						
 							
 							/* uv angles */
-							VECSUB2D(av1, tface->uv[2], tface->uv[0]); Normalize2(av1);
-							VECSUB2D(av2, tface->uv[0], tface->uv[1]); Normalize2(av2);
-							VECSUB2D(av3, tface->uv[1], tface->uv[2]); Normalize2(av3);
+							VECSUB2D(av1, tface_uv[2], tface_uv[0]); Normalize2(av1);
+							VECSUB2D(av2, tface_uv[0], tface_uv[1]); Normalize2(av2);
+							VECSUB2D(av3, tface_uv[1], tface_uv[2]); Normalize2(av3);
 							
 							/* This is the correct angle however we are only comparing angles
 							 * uvang1 = 90-((NormalizedVecAngle2_2D(av1, av2) * 180.0/M_PI)-90); */
@@ -980,7 +1005,7 @@ void draw_uvs_sima(void)
 			/*this is a shortcut to do the same as above but a faster for drawing */
 			if ((tface=(MTFace *)efa->tmp.p)) {
 				if( ! simaFaceSel_Check(efa, tface) ) {
-					tface_center(tface, cent, (void *)efa->v4);
+					uv_center(tface->uv, cent, (void *)efa->v4);
 					bglVertex2fv(cent);
 				}
 			}
@@ -997,7 +1022,7 @@ void draw_uvs_sima(void)
 			/*this is a shortcut to do the same as above but a faster for drawing */
 			if ((tface=(MTFace *)efa->tmp.p)) {
 				if( simaFaceSel_Check(efa, tface) ) {
-					tface_center(tface, cent, (void *)efa->v4);
+					uv_center(tface->uv, cent, (void *)efa->v4);
 					bglVertex2fv(cent);
 				}
 			}

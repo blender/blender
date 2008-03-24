@@ -933,7 +933,7 @@ void borderselect_sima(short whichuvs)
 				efa->tmp.l = 0;
 				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				if (simaFaceDraw_Check(efa, tface)) {
-					tface_center(tface, cent, (void *)efa->v4);
+					uv_center(tface->uv, cent, (void *)efa->v4);
 					if(BLI_in_rctf(&rectf, cent[0], cent[1])) {
 						efa->tmp.l = ok = 1;
 					}

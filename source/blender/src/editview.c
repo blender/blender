@@ -493,7 +493,7 @@ static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select
 			efa->tmp.l = 0;
 			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			if ((select) != (simaFaceSel_Check(efa, tf))) {
-				tface_center(tf, cent, (void *)efa->v4);
+				uv_center(tf->uv, cent, (void *)efa->v4);
 				uvco_to_areaco_noclip(cent, screenUV);
 				if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
 					efa->tmp.l = ok = 1;
