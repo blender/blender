@@ -751,7 +751,9 @@ static void seq_panel_input()
 		      10, 230, 318, 204) == 0) return;
 
 	if (last_seq->type == SEQ_MOVIE 
-	    || last_seq->type == SEQ_IMAGE) {
+	    || last_seq->type == SEQ_IMAGE 
+	    || last_seq->type == SEQ_HD_SOUND 
+	    || last_seq->type == SEQ_RAM_SOUND) {
 		uiDefBut(block, TEX, 
 			 B_SEQ_BUT_RELOAD_FILE, "Dir: ", 
 			 10,140,240,19, last_seq->strip->dir, 
