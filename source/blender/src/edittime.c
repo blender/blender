@@ -602,7 +602,6 @@ static void select_timeline_marker_frame(int frame, unsigned char shift)
 /* set the animation preview range of scene */
 void anim_previewrange_set()
 {
-	extern float get_action_frame(Object *ob, float cframe);
 	rcti rect;
 	rctf rectf;
 	short val, mval[2];

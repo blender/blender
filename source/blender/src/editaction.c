@@ -418,9 +418,15 @@ static void actdata_filter_action (ListBase *act_data, bAction *act, int filter_
 			/* filters here are a bit convoulted...
 			 *	- groups show a "summary" of keyframes beside their name which must accessable for tools which handle keyframes
 			 *	- groups can be collapsed (and those tools which are only interested in channels rely on knowing that group is closed)
+			 *
+			 * cases when we should include action-channels and so-forth inside group:
+			 *	- we don't care about visibility
+			 *	- group is expanded
+			 *	- we're interested in keyframes, but not if they appear in selected channels
 			 */
 			if ( (!(filter_mode & ACTFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || 
-				 (filter_mode & (ACTFILTER_IPOKEYS|ACTFILTER_ONLYICU)) ) 
+				 ( ((filter_mode & ACTFILTER_IPOKEYS) || (filter_mode & ACTFILTER_ONLYICU)) && 
+				  !(filter_mode & ACTFILTER_SEL) ) ) 
 			{
 				if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {					
 					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
