@@ -2458,9 +2458,8 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	}
 	
 	//Set faces f1 to 0 cause we need it later
-	for(ef=em->faces.first;ef;ef = ef->next) {
-		ef->f1 = 0;
-	}
+	for(ef=em->faces.first;ef;ef = ef->next) ef->f1 = 0;
+	for(eve=em->verts.first; eve; eve=eve->next) eve->f1 = eve->f2 = 0;
 	
 	//Flush vertex flags upward to the edges
 	for(eed = em->edges.first;eed;eed = eed->next) {
@@ -2471,9 +2470,8 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 		if(eed->f & flag) {
 			eed->f2	|= EDGEOLD;
 		}
-	}   
-	  	
-
+	}
+	
 	// We store an array of verts for each edge that is subdivided,
 	// we put this array as a value in a ghash which is keyed by the EditEdge*
 
