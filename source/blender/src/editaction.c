@@ -367,7 +367,7 @@ static void actdata_filter_actionchannel (ListBase *act_data, bActionChannel *ac
 				}
 				
 				/* add constraint channels? */
-				if (FILTER_CON_ACHAN(achan) || (filter_mode & ACTFILTER_ONLYICU)) {
+				if (FILTER_CON_ACHAN(achan) || (filter_mode & ACTFILTER_IPOKEYS) || (filter_mode & ACTFILTER_ONLYICU)) {
 					/* loop through constraint channels, checking and adding them */
 					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 						/* only work with this channel and its subchannels if it is editable */
