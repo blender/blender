@@ -420,23 +420,33 @@ void reload_sequence_new_file(Sequence * seq)
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
 	if (!(seq->type == SEQ_MOVIE || seq->type == SEQ_IMAGE ||
-	      seq->type == SEQ_HD_SOUND || seq->type == SEQ_SCENE ||
-	      seq->type == SEQ_META)) {
+	      seq->type == SEQ_HD_SOUND || seq->type == SEQ_RAM_SOUND ||
+	      seq->type == SEQ_SCENE || seq->type == SEQ_META)) {
 		return;
 	}
 
 	new_tstripdata(seq);
 
-	if (seq->type == SEQ_IMAGE) {
-		return;
-	}
-
-	if (seq->type != SEQ_SCENE && seq->type != SEQ_META) {
+	if (seq->type != SEQ_SCENE && seq->type != SEQ_META &&
+	    seq->type != SEQ_IMAGE) {
 		strncpy(str, seq->strip->dir, FILE_MAXDIR-1);
 		strncat(str, seq->strip->stripdata->name, FILE_MAXFILE-1);
+
+		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
 	}
 
-	if (seq->type == SEQ_MOVIE) {
+	if (seq->type == SEQ_IMAGE) {
+		/* Hack? */
+		int olen = MEM_allocN_len(seq->strip->stripdata) 
+			/ sizeof(struct StripElem);
+		seq->len = olen;
+		seq->len -= seq->anim_startofs;
+		seq->len -= seq->anim_endofs;
+		if (seq->len < 0) {
+			seq->len = 0;
+		}
+		seq->strip->len = seq->len;
+	} else if (seq->type == SEQ_MOVIE) {
 		if(seq->anim) IMB_free_anim(seq->anim);
 		seq->anim = openanim(str, IB_rect);
 
@@ -462,8 +472,22 @@ void reload_sequence_new_file(Sequence * seq)
 			return;
 		}
 
-		seq->strip->len = seq->len 
-			= sound_hdaudio_get_duration(seq->hdaudio, FPS);
+		seq->len = sound_hdaudio_get_duration(seq->hdaudio, FPS)
+			- seq->anim_startofs - seq->anim_endofs;
+		if (seq->len < 0) {
+			seq->len = 0;
+		}
+		seq->strip->len = seq->len;
+	} else if (seq->type == SEQ_RAM_SOUND) {
+		seq->len = (int) ( ((float)(seq->sound->streamlen-1)/
+				    ((float)G.scene->audio.mixrate*4.0 ))
+				   * FPS);
+		seq->len -= seq->anim_startofs;
+		seq->len -= seq->anim_endofs;
+		if (seq->len < 0) {
+			seq->len = 0;
+		}
+		seq->strip->len = seq->len;
 	} else if (seq->type == SEQ_SCENE) {
 		Scene * sce = G.main->scene.first;
                 int nr = 1;
@@ -477,6 +501,8 @@ void reload_sequence_new_file(Sequence * seq)
 
 		if (sce) {
 			seq->scene = sce;
+		} else {
+			sce = seq->scene;
 		}
 
 		strncpy(seq->name + 2, sce->id.name + 2, 
@@ -794,7 +820,7 @@ static int give_stripelem_index(Sequence *seq, int cfra)
 	int nr;
 
 	if(seq->startdisp >cfra || seq->enddisp <= cfra) return -1;
-
+	if(seq->len == 0) return -1;
 	if(seq->flag&SEQ_REVERSE_FRAMES) {	
 		/*reverse frame in this sequence */
 		if(cfra <= seq->start) nr= seq->len-1;
@@ -1101,6 +1127,9 @@ static void seq_proxy_build_frame(Sequence * seq, int cfra)
 	}
 
 	se = give_tstripelem(seq, cfra);
+	if (!se) {
+		return;
+	}
 
 	if(se->ibuf) {
 		IMB_freeImBuf(se->ibuf);
@@ -2044,6 +2073,10 @@ static TStripElem* do_build_seq_array_recursively(
 	}
 
 	se = give_tstripelem(seq_arr[count - 1], cfra);
+
+	if (!se) {
+		return 0;
+	}
 
 	test_and_auto_discard_ibuf(se);
 

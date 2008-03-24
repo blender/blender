@@ -2287,7 +2287,99 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 	}
 }
 
-static Sequence * cut_seq(Sequence * seq, int cutframe)
+static Sequence * cut_seq_hard(Sequence * seq, int cutframe)
+{
+	TransSeq ts;
+	Sequence *seqn = 0;
+	int skip_dup = FALSE;
+
+	/* backup values */
+	ts.start= seq->start;
+	ts.machine= seq->machine;
+	ts.startstill= seq->startstill;
+	ts.endstill= seq->endstill;
+	ts.startdisp= seq->startdisp;
+	ts.enddisp= seq->enddisp;
+	ts.startofs= seq->anim_startofs;
+	ts.endofs= seq->anim_endofs;
+	ts.len= seq->len;
+	
+	/* First Strip! */
+	/* strips with extended stillfames before */
+	
+	if ((seq->startstill) && (cutframe <seq->start)) {
+		/* don't do funny things with METAs ... */
+		if (seq->type == SEQ_META) {
+			skip_dup = TRUE;
+			seq->startstill = seq->start - cutframe;
+		} else {
+			seq->start= cutframe -1;
+			seq->startstill= cutframe -seq->startdisp -1;
+			seq->anim_endofs += seq->len - 1;
+			seq->endstill= 0;
+		}
+	}
+	/* normal strip */
+	else if ((cutframe >=seq->start)&&(cutframe <=(seq->start+seq->len))) {
+		seq->endofs = 0;
+		seq->endstill = 0;
+		seq->anim_endofs += (seq->start+seq->len) - cutframe;
+	}
+	/* strips with extended stillframes after */
+	else if (((seq->start+seq->len) < cutframe) && (seq->endstill)) {
+		seq->endstill -= seq->enddisp - cutframe;
+		/* don't do funny things with METAs ... */
+		if (seq->type == SEQ_META) {
+			skip_dup = TRUE;
+		}
+	}
+	
+	reload_sequence_new_file(seq);
+	calc_sequence(seq);
+	
+	if (!skip_dup) {
+		/* Duplicate AFTER the first change */
+		seqn = deep_dupli_seq(seq);
+	}
+	
+	if (seqn) { 
+		seqn->flag |= SELECT;
+			
+		/* Second Strip! */
+		/* strips with extended stillframes before */
+		if ((seqn->startstill) && (cutframe == seqn->start + 1)) {
+			seqn->start = ts.start;
+			seqn->startstill= ts.start- cutframe;
+			seqn->anim_endofs = ts.endofs;
+			seqn->endstill = ts.endstill;
+		}
+		
+		/* normal strip */
+		else if ((cutframe>=seqn->start)&&(cutframe<=(seqn->start+seqn->len))) {
+			seqn->start = cutframe;
+			seqn->startstill = 0;
+			seqn->startofs = 0;
+			seqn->anim_startofs += cutframe - ts.start;
+			seqn->anim_endofs = ts.endofs;
+			seqn->endstill = ts.endstill;
+		}				
+		
+		/* strips with extended stillframes after */
+		else if (((seqn->start+seqn->len) < cutframe) && (seqn->endstill)) {
+			seqn->start = cutframe;
+			seqn->startofs = 0;
+			seqn->anim_startofs += ts.len-1;
+			seqn->endstill = ts.enddisp - cutframe -1;
+			seqn->startstill = 0;
+		}
+		
+		reload_sequence_new_file(seqn);
+		calc_sequence(seqn);
+	}
+	return seqn;
+}
+
+static Sequence * cut_seq_soft(Sequence * seq, int cutframe)
 {
 	TransSeq ts;
 	Sequence *seqn = 0;
@@ -2372,9 +2464,11 @@ static Sequence * cut_seq(Sequence * seq, int cutframe)
 	return seqn;
 }
 
+
 /* like duplicate, but only duplicate and cut overlapping strips,
  * strips to the left of the cutframe are ignored and strips to the right are moved into the new list */
-static int cut_seq_list(ListBase *old, ListBase *new, int cutframe)
+static int cut_seq_list(ListBase *old, ListBase *new, int cutframe,
+			Sequence * (*cut_seq)(Sequence *, int))
 {
 	int did_something = FALSE;
 	Sequence *seq, *seq_next;
@@ -2406,7 +2500,7 @@ static int cut_seq_list(ListBase *old, ListBase *new, int cutframe)
 	return did_something;
 }
 
-void seq_cut(int cutframe)
+void seq_cut(int cutframe, int hard_cut)
 {
 	Editing *ed;
 	ListBase newlist;
@@ -2417,8 +2511,14 @@ void seq_cut(int cutframe)
 	if(ed==0) return;
 	
 	newlist.first= newlist.last= NULL;
-	
-	did_something = cut_seq_list(ed->seqbasep, &newlist, cutframe);
+
+	if (hard_cut) {
+		did_something = cut_seq_list(
+			ed->seqbasep, &newlist, cutframe, cut_seq_hard);
+	} else {
+		did_something = cut_seq_list(
+			ed->seqbasep, &newlist, cutframe, cut_seq_soft);
+	}
 	
 	if (newlist.first) { /* got new strips ? */
 		Sequence *seq;

@@ -1528,7 +1528,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 						writestruct(wd, DATA, "StripColorBalance", 1, strip->color_balance);
 					}
 					if(seq->type==SEQ_IMAGE)
-						writestruct(wd, DATA, "StripElem", strip->len, strip->stripdata);
+						writestruct(wd, DATA, "StripElem", MEM_allocN_len(strip->stripdata) / sizeof(struct StripElem), strip->stripdata);
 					else if(seq->type==SEQ_MOVIE || seq->type==SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND)
 						writestruct(wd, DATA, "StripElem", 1, strip->stripdata);
 

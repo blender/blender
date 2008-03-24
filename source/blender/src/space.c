@@ -4949,15 +4949,17 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				transform_seq('g', 0);
 			}
 			break;
-		case KKEY:
-			if((G.qual==0)) { /* Cut at current frame */
-				seq_cut(CFRA);
+		case KKEY: /* Cut at current frame */
+			if((G.qual == LR_SHIFTKEY)) {
+				seq_cut(CFRA, FALSE); /* soft cut */
+			} else if((G.qual==0)) { 
+				seq_cut(CFRA, TRUE); /* hard cut */
 			}
 			break;
 		case LKEY:
-			if((G.qual==0)) { /* Cut at current frame */
+			if((G.qual==0)) { 
 				select_linked_seq( 0 );
-			} else if((G.qual==LR_CTRLKEY)) { /* Cut at current frame */
+			} else if((G.qual==LR_CTRLKEY)) { 
 				select_linked_seq( 2 );
 			} else if (G.qual==LR_SHIFTKEY) {
 				seq_lock_sel(1);

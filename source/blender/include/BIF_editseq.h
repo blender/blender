@@ -71,7 +71,7 @@ void				seq_remap_paths(void);
 void				transform_seq(int mode, int context);
 void				transform_seq_nomarker(int mode, int context);
 void				un_meta(void);
-void				seq_cut(int cutframe);
+void				seq_cut(int cutframe, int hard_cut);
 void				seq_separate_images(void);
 void				reassign_inputs_seq_effect(void);
 void				select_surrounding_handles(struct Sequence *test);

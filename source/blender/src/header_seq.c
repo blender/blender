@@ -420,7 +420,7 @@ static void do_seq_editmenu(void *arg, int event)
 		seq_snap(event);
 		break;
 	case 13: /* Cut at Current Frame */
-		seq_cut(CFRA);
+		seq_cut(CFRA, 1);
 		break;
 	case 14:
 		reassign_inputs_seq_effect();
@@ -446,6 +446,9 @@ static void do_seq_editmenu(void *arg, int event)
 	case 21:
 		seq_mute_sel(0);
 		break;
+	case 22:
+		seq_cut(CFRA, 0);
+		break;
 	}
 }
 
@@ -467,7 +470,8 @@ static uiBlock *seq_editmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cut at Current Frame|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cut (hard) at Current Frame|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cut (soft) at Current Frame|Shift-K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 22, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Separate Images to Strips|Y", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

@@ -614,7 +614,7 @@ static void seq_panel_editing()
 			  130, 80, 120, 20, &last_seq->machine, 
 			  0.0, MAXSEQ, 0.0, 0.0, "Channel used (Y position)");
 		
-		if (check_single_seq(last_seq)) {
+		if (check_single_seq(last_seq) || last_seq->len == 0) {
 			uiDefButI(block, NUM, 
 				B_SEQ_BUT_TRANSFORM, "End-Still", 
 				130, 60, 120, 19, &last_seq->endstill, 
@@ -858,12 +858,12 @@ static void seq_panel_input()
 		  B_SEQ_BUT_RELOAD_FILE, "A-Start", 
 		  10, 0, 120, 20, &last_seq->anim_startofs, 
 		  0.0, last_seq->len + last_seq->anim_startofs, 0.0, 0.0, 
-		  "Animation start offset in file");
+		  "Animation start offset (trim start)");
 	uiDefButI(block, NUM, 
 		  B_SEQ_BUT_RELOAD_FILE, "A-End", 
 		  130, 0, 120, 20, &last_seq->anim_endofs, 
 		  0.0, last_seq->len + last_seq->anim_endofs, 0.0, 0.0, 
-		  "Animation end offset in file");
+		  "Animation end offset (trim end)");
 
 
 	if (last_seq->type == SEQ_MOVIE) {
@@ -1235,8 +1235,8 @@ void sequencer_panels()
 		panels |= SEQ_PANEL_INPUT | SEQ_PANEL_FILTER | SEQ_PANEL_PROXY;
 	}
 
-	if (type == SEQ_RAM_SOUND) {
-		panels |= SEQ_PANEL_FILTER;
+	if (type == SEQ_RAM_SOUND || type == SEQ_HD_SOUND) {
+		panels |= SEQ_PANEL_FILTER | SEQ_PANEL_INPUT;
 	}
 
 	if (type == SEQ_PLUGIN || type >= SEQ_EFFECT) {

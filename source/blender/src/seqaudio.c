@@ -471,8 +471,11 @@ static int audiostream_play_seq(Sequence * seq, Uint32 startframe)
 		}
 		if ((seq->type == SEQ_RAM_SOUND) && (seq->sound)) {
 			have_sound = 1;
-			seq->curpos = (int)( (FRA2TIME((double) startframe -
-						       (double) seq->start)
+			seq->curpos = (int)( (FRA2TIME(
+						      (double) startframe -
+						      (double) seq->start +
+						      (double) 
+						      seq->anim_startofs)
 					      * ((float)G.scene->audio.mixrate)
 					      * 4 ));
 		}
@@ -486,7 +489,9 @@ static int audiostream_play_seq(Sequence * seq, Uint32 startframe)
 				seq->hdaudio = sound_open_hdaudio(name);
 			}
 			seq->curpos = (int)( (FRA2TIME((double) startframe - 
-						       (double) seq->start)
+						       (double) seq->start +
+						       (double)
+						       seq->anim_startofs)
 					      * ((float)G.scene->audio.mixrate)
 					      * 4 ));
 		}
