@@ -803,7 +803,10 @@ void viewmove(int mode)
 		getmouseco_sc(mval);
 		
 		// if playanim = alt+A, screenhandlers are for animated UI, python, etc
-		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || (G.f & G_PLAYANIM) || do_screenhandlers(G.curscreen)) {
+		if(		(mode==2 && U.viewzoom==USER_ZOOM_CONT) || /* continues zoom always update */
+				mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || /* mouse moved, so update */
+				(G.f & G_PLAYANIM) || do_screenhandlers(G.curscreen)
+			) {
 			
 			if(firsttime) {
 				
