@@ -960,7 +960,7 @@ EDGE GROUP
 
 
 
-int edgegroup_select(short mode)
+static int edgegroup_select__internal(short mode)
 {
 	EditMesh *em = G.editMesh;
 	EditEdge *eed, *base_eed=NULL;
@@ -1155,9 +1155,33 @@ int edgegroup_select(short mode)
 				}
 			}
 		}
-	} 
+	}	
 	return selcount;
 }
+/* wrap the above function but do selection flushing edge to face */
+int edgegroup_select(short mode)
+{
+	int selcount = edgegroup_select__internal(mode);
+	
+	if (selcount) {
+		/* Could run a generic flush function,
+		 * but the problem is only that all edges of a face
+		 * can be selected without the face becoming selected */
+		EditMesh *em = G.editMesh;
+		EditFace *efa;
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if (efa->v4) {
+				if (efa->e1->f&SELECT && efa->e2->f&SELECT && efa->e3->f&SELECT && efa->e4->f&SELECT)
+					efa->f |= SELECT;
+			}  else {
+				if (efa->e1->f&SELECT && efa->e2->f&SELECT && efa->e3->f&SELECT)
+					efa->f |= SELECT;
+			}
+		}
+	}
+	return selcount;
+}
+
 
 
 /*
