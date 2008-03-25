@@ -1336,7 +1336,7 @@ static void backbuf_pic(char *name)
 static void run_playanim(char *file) 
 {
 	extern char bprogname[];	/* usiblender.c */
-	char str[FILE_MAX];
+	char str[FILE_MAX*2]; /* FILE_MAX*2 is a bit arbitary, but this should roughly allow for the args + the max-file-length */
 	int pos[2], size[2];
 
 	/* use current settings for defining position of window. it actually should test image size */

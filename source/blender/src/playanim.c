@@ -202,7 +202,7 @@ static void toscreen(Pict *picture, struct ImBuf *ibuf)
 	pupdate_time();
 
 	if(picture && (qualN & (SHIFT|LMOUSE))) {
-		char str[256];
+		char str[512];
 		cpack(-1);
 		glRasterPos2f(0.02f,  0.03f);
 		sprintf(str, "%s | %.2f frames/s\n", picture->name, 1.0 / swaptime);
@@ -215,12 +215,12 @@ static void toscreen(Pict *picture, struct ImBuf *ibuf)
 static void build_pict_list(char * first, int totframes)
 {
 	int size,pic,file;
-	char *mem, name[256];
+	char *mem, name[512];
 	short val;
 	struct pict * picture = 0;
 	struct ImBuf *ibuf = 0;
 	int count = 0;
-	char str[100];
+	char str[512];
 	struct anim * anim;
 	
 	if (IMB_isanim(first)) {
@@ -338,7 +338,7 @@ void playanim(int argc, char **argv)
 {
 	struct ImBuf *ibuf = 0;
 	struct pict *picture = 0;
-	char name[256];
+	char name[512];
 	short val = 0, go = TRUE, ibufx = 0, ibufy = 0;
 	int event, stopped = FALSE, maxwinx, maxwiny;
 	short /*  c233 = FALSE, */ /*  yuvx = FALSE, */ once = FALSE, sstep = FALSE, wait2 = FALSE, /*  resetmap = FALSE, */ pause = 0;
