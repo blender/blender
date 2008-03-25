@@ -1848,6 +1848,7 @@ static void dag_object_time_update_flags(Object *ob)
 	}
 	else if(modifiers_isSoftbodyEnabled(ob)) ob->recalc |= OB_RECALC_DATA;
 	else if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
+	else if((ob->pose) && (ob->pose->flag & POSE_CONSTRAINTS_TIMEDEPEND)) ob->recalc |= OB_RECALC_DATA;
 	else {
 		Mesh *me;
 		Curve *cu;

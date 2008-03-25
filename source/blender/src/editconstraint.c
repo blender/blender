@@ -661,7 +661,7 @@ static void test_constraints (Object *owner, const char substring[])
 	if (owner==NULL) return;
 	
 	/* Check parents */
-	if (strlen (substring)) {
+	if (strlen(substring)) {
 		switch (owner->type) {
 			case OB_ARMATURE:
 				type = CONSTRAINT_OBTYPE_BONE;

@@ -258,7 +258,9 @@ typedef enum POSE_FLAG {
 		/* prevents any channel from getting overridden by anim from IPO */
 	POSE_LOCKED	= (1<<1),
 		/* clears the POSE_LOCKED flag for the next time the pose is evaluated */
-	POSE_DO_UNLOCK	= (1<<2)
+	POSE_DO_UNLOCK	= (1<<2),
+		/* pose has constraints which depend on time (used when depsgraph updates for a new frame) */
+	POSE_CONSTRAINTS_TIMEDEPEND = (1<<3)
 } POSE_FLAG;
 
 /* PoseChannel (transform) flags */

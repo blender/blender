@@ -353,7 +353,9 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 	}
 }
 
-/* checks for IK constraint, can do more constraints flags later */
+/* checks for IK constraint, and also for Follow-Path constraint.
+ * can do more constraints flags later 
+ */
 /* pose should be entirely OK */
 void update_pose_constraint_flags(bPose *pose)
 {
@@ -361,13 +363,15 @@ void update_pose_constraint_flags(bPose *pose)
 	bConstraint *con;
 	
 	/* clear */
-	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
+	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
 		pchan->constflag= 0;
 	}
+	pose->flag &= ~POSE_CONSTRAINTS_TIMEDEPEND;
+	
 	/* detect */
-	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
-		for(con= pchan->constraints.first; con; con= con->next) {
-			if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+	for (pchan= pose->chanbase.first; pchan; pchan=pchan->next) {
+		for (con= pchan->constraints.first; con; con= con->next) {
+			if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
 				bKinematicConstraint *data = (bKinematicConstraint*)con->data;
 				
 				pchan->constflag |= PCHAN_HAS_IK;
@@ -390,7 +394,20 @@ void update_pose_constraint_flags(bPose *pose)
 					}
 				}
 			}
-			else pchan->constflag |= PCHAN_HAS_CONST;
+			else if (con->type == CONSTRAINT_TYPE_FOLLOWPATH) {
+				bFollowPathConstraint *data= (bFollowPathConstraint *)con->data;
+				
+				/* for drawing constraint colors when color set allows this */
+				pchan->constflag |= PCHAN_HAS_CONST;
+				
+				/* if we have a valid target, make sure that this will get updated on frame-change
+				 * (needed for when there is no anim-data for this pose)
+				 */
+				if ((data->tar) && (data->tar->type==OB_CURVE))
+					pose->flag |= POSE_CONSTRAINTS_TIMEDEPEND;
+			}
+			else 
+				pchan->constflag |= PCHAN_HAS_CONST;
 		}
 	}
 }
