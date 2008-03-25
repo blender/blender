@@ -556,22 +556,23 @@ static void getSelectedFile( char *name )
 	return;
 }
 
-static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args )
+/* Use for file and image selector */
+static PyObject * FileAndImageSelector(PyObject * self, PyObject * args, int type)
 {
-	char *title = "SELECT FILE";
+	char *title = (type==0 ? "SELECT FILE" : "SELECT IMAGE");
 	char *filename = G.sce;
 	SpaceScript *sc;
 	Script *script = NULL;
 	PyObject *pycallback = NULL;
 	int startspace = 0;
-
+	
 	if (during_scriptlink())
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-			"script links can't call the file selector");
+			"script links can't call the file/image selector");
 
 	if (G.background)
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-			"the file selector is not available in background mode");
+			"the file/image selector is not available in background mode");
 
 	if((!PyArg_ParseTuple( args, "O|ss", &pycallback, &title, &filename))
 		|| (!PyCallable_Check(pycallback)))
@@ -621,72 +622,22 @@ static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args )
 		script->scriptname[0] = '\0';
 		script->scriptarg[0] = '\0';
 	}
-	activate_fileselect( FILE_BLENDER, title, filename, getSelectedFile );
+	if (type==0) {
+		activate_fileselect( FILE_BLENDER, title, filename, getSelectedFile );
+	} else {
+		activate_imageselect( FILE_BLENDER, title, filename, getSelectedFile );
+	}
 	Py_RETURN_NONE;
+}
+
+static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args )
+{
+	return FileAndImageSelector( self, args, 0 );
 }
 
 static PyObject *M_Window_ImageSelector( PyObject * self, PyObject * args )
 {
-	char *title = "SELECT IMAGE";
-	char *filename = G.sce;
-	SpaceScript *sc;
-	Script *script = NULL;
-	PyObject *pycallback = NULL;
-	int startspace = 0;
-
-	if (during_scriptlink())
-		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-			"script links can't call the image selector");
-
-	if (G.background)
-		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-			"the image selector is not available in background mode");
-
-	if( !PyArg_ParseTuple( args, "O|ss", &pycallback, &title, &filename ) 
-		|| (!PyCallable_Check(pycallback)))
-		return EXPP_ReturnPyObjError ( PyExc_AttributeError,
-			"\nexpected a callback function (and optionally one or two strings) "
-			"as argument(s)" );
-
-	Py_INCREF(pycallback);
-
-/* trick: we move to a spacescript because then the fileselector will properly
- * unset our SCRIPT_FILESEL flag when the user chooses a file or cancels the
- * selection.  This is necessary because when a user cancels, the
- * getSelectedFile function above doesn't get called and so couldn't unset the
- * flag. */
-	startspace = curarea->spacetype;
-	if( startspace != SPACE_SCRIPT )
-		newspace( curarea, SPACE_SCRIPT );
-
-	sc = curarea->spacedata.first;
-
-	/* let's find the script that called us */
-	script = G.main->script.first;
-	while (script) {
-		if (script->flags & SCRIPT_RUNNING) break;
-		script = script->id.next;
-	}
-
-	if( !script ) {
-		/* if not running, then we were already on a SpaceScript space, executing
-		 * a registered callback -- aka: this script has a gui */
-		script = sc->script;	/* this is the right script */
-	} else {		/* still running, use the trick */
-		script->lastspace = startspace;
-		sc->script = script;
-	}
-
-	script->flags |= SCRIPT_FILESEL;	/* same flag as filesel */
-	/* clear any previous callback (nested calls to selector) */
-	if (script->py_browsercallback) {
-		Py_DECREF((PyObject *)script->py_browsercallback);
-	}
-	script->py_browsercallback = pycallback;
-
-	activate_imageselect( FILE_BLENDER, title, filename, getSelectedFile );
-
-	Py_RETURN_NONE;
+	return FileAndImageSelector( self, args, 1 );
 }
 
 /*****************************************************************************/
