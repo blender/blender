@@ -1519,6 +1519,7 @@ static void texture_panel_colors(Tex *tex)
 	uiNewPanelTabbed("Texture", "Texture");
 	if(uiNewPanel(curarea, block, "Colors", "Texture", 1280, 0, 318, 204)==0) return;
 
+	uiSetButLock(tex->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 
 	/* COLORBAND */
 	uiBlockBeginAlign(block);
@@ -1588,8 +1589,10 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	}
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 
+	uiClearButLock();
+	
 	/* From button: removed */
-
+	
 	/* CHANNELS */
 	if(node==NULL) {
 		uiBlockBeginAlign(block);
@@ -1671,11 +1674,11 @@ static void texture_panel_preview(MTex *mtex, int preview)
 	uiDefButC(block, ROW, B_TEXREDR_PRV, "Brush",	200,100,80,25, &G.buts->texfrom, 3.0, 3.0, 0, 0, "Displays the textures of the selected brush");
 	uiBlockEndAlign(block);
 	
-	if(mtex && mtex->tex)
-		uiDefButBitS(block, TOG, TEX_PRV_ALPHA, B_TEXREDR_PRV, "Alpha", 200,60,80,20, &mtex->tex->flag, 0, 0, 0, 0, "Show alpha in preview");
-	
-	uiDefBut(block, BUT, B_DEFTEXVAR, "Default Vars",200,10,80,20, 0, 0, 0, 0, 0, "Sets all values to defaults");
-
+	if(mtex && mtex->tex) {
+		uiDefButBitS(block, TOG, TEX_PRV_ALPHA, B_TEXREDR_PRV, "Alpha", 200,60,80,20, &mtex->tex->flag, 0, 0, 0, 0, "Show alpha in preview");	
+		uiSetButLock(mtex->tex->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
+		uiDefBut(block, BUT, B_DEFTEXVAR, "Default Vars",200,10,80,20, 0, 0, 0, 0, 0, "Sets all values to defaults");
+	}
 }
 
 
