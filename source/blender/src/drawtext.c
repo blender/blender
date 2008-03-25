@@ -772,7 +772,7 @@ static void calc_text_rcts(SpaceText *st)
 		/* the scrollbar is non-linear sized */
 		if (pix_bardiff > 0) {
 			/* the start of the highlight is in the current viewport */
-			if (lhlstart >= st->top && lhlstart <= st->top + st->viewlines) { 
+			if (ltexth && st->viewlines && lhlstart >= st->top && lhlstart <= st->top + st->viewlines) { 
 				/* speed the progresion of the start of the highlight through the scrollbar */
 				hlstart = ( ( (pix_available - pix_bardiff) * lhlstart) / ltexth) + (pix_bardiff * (lhlstart - st->top) / st->viewlines); 	
 			}
@@ -790,7 +790,7 @@ static void calc_text_rcts(SpaceText *st)
 			}
 
 			/* the end of the highlight is in the current viewport */
-			if (lhlend >= st->top && lhlend <= st->top + st->viewlines) { 
+			if (ltexth && st->viewlines && lhlend >= st->top && lhlend <= st->top + st->viewlines) { 
 				/* speed the progresion of the end of the highlight through the scrollbar */
 				hlend = (((pix_available - pix_bardiff )*lhlend)/ltexth) + (pix_bardiff * (lhlend - st->top)/st->viewlines); 	
 			}
