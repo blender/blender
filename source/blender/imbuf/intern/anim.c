@@ -784,25 +784,28 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 						0, 0, 0 };
 					int i;
 					unsigned char* r;
-
-					sws_scale(anim->img_convert_ctx,
-						  anim->pFrame->data,
-						  anim->pFrame->linesize,
-						  0,
-						  anim->pCodecCtx->height,
-						  dst2,
-						  dstStride2);
-				
-					/* workaround: sws_scale 
-					   sets alpha = 0... */
-				
-					r = (unsigned char*) ibuf->rect;
-
-					for (i = 0; i < ibuf->x * ibuf->y;i++){
-						r[3] = 0xff;
-						r+=4;
+					
+					/* This means the data wasnt read properly, this check stops crashing */
+					if (anim->pFrame->data[0]!=0 || anim->pFrame->data[1]!=0 || anim->pFrame->data[2]!=0 || anim->pFrame->data[3]!=0) {
+						
+						sws_scale(anim->img_convert_ctx,
+							  anim->pFrame->data,
+							  anim->pFrame->linesize,
+							  0,
+							  anim->pCodecCtx->height,
+							  dst2,
+							  dstStride2);
+					
+						/* workaround: sws_scale 
+						   sets alpha = 0... */
+					
+						r = (unsigned char*) ibuf->rect;
+	
+						for (i = 0; i < ibuf->x * ibuf->y;i++){
+							r[3] = 0xff;
+							r+=4;
+						}
 					}
-
 					av_free_packet(&packet);
 					break;
 				}
