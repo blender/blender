@@ -2172,8 +2172,10 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 	}
 	else {
 		Mat4MulMat4(pchan->pose_mat, pchan->chan_mat, bone->arm_mat);
-		/* only rootbones get the cyclic offset */
-		VecAddf(pchan->pose_mat[3], pchan->pose_mat[3], ob->pose->cyclic_offset);
+		
+		/* only rootbones get the cyclic offset (unless user doesn't want that) */
+		if ((bone->flag & BONE_NO_CYCLICOFFSET) == 0)
+			VecAddf(pchan->pose_mat[3], pchan->pose_mat[3], ob->pose->cyclic_offset);
 	}
 	
 	/* do NLA strip modifiers - i.e. curve follow */

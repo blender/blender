@@ -4315,38 +4315,41 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 
 	uiDefBut(block, LABEL, 0, "Selected Bones", 0,by,158,18, 0, 0, 0, 0, 0, "Only show in Armature Editmode");
 	by-=20;
-	for (curBone=G.edbo.first, index=0; curBone; curBone=curBone->next, index++){
+	for (curBone=G.edbo.first, index=0; curBone; curBone=curBone->next, index++) {
 		if ((curBone->flag & BONE_SELECTED) && (curBone->layer & arm->layer)) {
-
 			/*	Bone naming button */
 			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:", -10,by,117,18, curBone->name, 0, 31, 0, 0, "Change the bone name");
 			uiButSetFunc(but, validate_editbonebutton_cb, curBone, NULL);
 			uiButSetCompleteFunc(but, autocomplete_editbone, (void *)OBACT);
-
+			
 			uiDefBut(block, LABEL, 0, "child of", 107,by,73,18, NULL, 0.0, 0.0, 0.0, 0.0, "");
-
+			
 			boneString = MEM_mallocN((BLI_countlist(&G.edbo) * 64)+64, "Bone str");
 			build_bonestring (boneString, curBone);
-
+			
 			curBone->parNr = editbone_to_parnr(curBone->parent);
 			but = uiDefButI(block, MENU,REDRAWVIEW3D, boneString, 180,by,120,18, &curBone->parNr, 0.0, 0.0, 0.0, 0.0, "Parent");
 			/* last arg NULL means button will put old string there */
 			uiButSetFunc(but, parnr_to_editbone_cb, curBone, NULL);
-
+			
 			MEM_freeN(boneString);
-
-			/* Connect to parent flag */
-			if (curBone->parent){
+			
+			if (curBone->parent) {
+				/* Connect to parent flag */
 				but=uiDefButBitI(block, TOG, BONE_CONNECTED, B_ARM_RECALCDATA, "Con", 300,by,32,18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Connect this Bone to Parent");
 				uiButSetFunc(but, attach_bone_to_parent_cb, curBone, NULL);
 			}
-
+			else {
+				/* No cyclic-offset flag */
+				uiDefButBitI(block, TOGN, BONE_NO_CYCLICOFFSET, B_ARM_RECALCDATA, "Offs", 300,by,31,18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Apply cyclic-offset to this Bone");
+			}
+			
 			/* Segment, dist and weight buttons */
 			uiBlockBeginAlign(block);
 			uiDefButS(block, NUM, B_ARM_RECALCDATA, "Segm: ", -10,by-19,117,18, &curBone->segments, 1.0, 32.0, 0.0, 0.0, "Subdivisions for B-bones");
 			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Dist:", 110, by-19, 105, 18, &curBone->dist, 0.0, 1000.0, 10.0, 0.0, "Bone deformation distance");
 			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Weight:", 225, by-19,105, 18, &curBone->weight, 0.0F, 1000.0F, 10.0F, 0.0F, "Bone deformation weight");
-
+			
 			/* bone types */
 			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge",		-10,by-38,80,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
 			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",		70,by-38,20,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");

@@ -84,10 +84,10 @@
 /* ******************* Constraint Channels ********************** */
 /* Constraint Channels exist in one of two places:
  *	- Under Action Channels in an Action  (act->chanbase->achan->constraintChannels)
- *	- Under Object without object-level action yet (ob->constraintChannels)
+ *	- Under Object without Object-level Action yet (ob->constraintChannels)
  * 
- * The main purpose that constraint channels serve is to act as a link
- * between an IPO-block which 
+ * The main purpose that Constraint Channels serve is to act as a link
+ * between an IPO-block (which provides values to interpolate between for some settings)
  */
 
 /* ------------ Data Management ----------- */
@@ -143,7 +143,7 @@ bConstraintChannel *get_constraint_channel (ListBase *list, const char name[])
 {
 	bConstraintChannel *chan;
 
-	if(list) {
+	if (list) {
 		for (chan = list->first; chan; chan=chan->next) {
 			if (!strcmp(name, chan->name)) {
 				return chan;
@@ -183,11 +183,11 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime,
 	for (con=conbase->first; con; con=con->next) {
 		Ipo *ipo= NULL;
 		
-		if(con->flag & CONSTRAINT_OWN_IPO)
+		if (con->flag & CONSTRAINT_OWN_IPO)
 			ipo= con->ipo;
 		else {
 			bConstraintChannel *chan = get_constraint_channel(chanbase, con->name);
-			if(chan) ipo= chan->ipo;
+			if (chan) ipo= chan->ipo;
 		}
 		
 		if (ipo) {
@@ -206,7 +206,24 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime,
 							break;
 						case CO_HEADTAIL:
 						{
-							con->headtail = icu->curval;
+							/* we need to check types of constraints that can get this here, as user
+							 * may have created an IPO-curve for this from IPO-editor but for a constraint
+							 * that cannot support this
+							 */
+							switch (con->type) {
+								/* supported constraints go here... */
+								case CONSTRAINT_TYPE_LOCLIKE:
+								case CONSTRAINT_TYPE_TRACKTO:
+								case CONSTRAINT_TYPE_MINMAX:
+								case CONSTRAINT_TYPE_STRETCHTO:
+								case CONSTRAINT_TYPE_DISTLIMIT:
+									con->headtail = icu->curval;
+									break;
+									
+								default:
+									/* not supported */
+									break;
+							}
 						}
 							break;
 					}
@@ -438,7 +455,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 						/* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */						
 						if (pchan->parent) {
 							float offs_bone[4][4];
-								
+							
 							/* construct offs_bone the same way it is done in armature.c */
 							Mat4CpyMat3(offs_bone, pchan->bone->bone_mat);
 							VECCOPY(offs_bone[3], pchan->bone->head);

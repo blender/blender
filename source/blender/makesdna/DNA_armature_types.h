@@ -143,7 +143,7 @@ typedef enum eBone_Flag {
 	BONE_ROOTSEL				= (1<<1),
 	BONE_TIPSEL					= (1<<2),
 	BONE_TRANSFORM  			= (1<<3),	/* Used instead of BONE_SELECTED during transform */
-	BONE_CONNECTED 				= (1<<4),
+	BONE_CONNECTED 				= (1<<4),	/* when bone has a parent, connect head of bone to parent's tail*/
 	/* 32 used to be quatrot, was always set in files, do not reuse unless you clear it always */	
 	BONE_HIDDEN_P				= (1<<6), 	/* hidden Bones when drawing PoseChannels */	
 	BONE_DONE					= (1<<7),	/* For detecting cyclic dependancies */
@@ -151,12 +151,13 @@ typedef enum eBone_Flag {
 	BONE_HINGE					= (1<<9),	/* No parent rotation or scale */
 	BONE_HIDDEN_A				= (1<<10), 	/* hidden Bones when drawing Armature Editmode */
 	BONE_MULT_VG_ENV 			= (1<<11), 	/* multiplies vgroup with envelope */
-	BONE_NO_DEFORM				= (1<<12),
+	BONE_NO_DEFORM				= (1<<12),	/* bone doesn't deform geometry */
 	BONE_UNKEYED				= (1<<13), 	/* set to prevent destruction of its unkeyframed pose (after transform) */		
 	BONE_HINGE_CHILD_TRANSFORM 	= (1<<14), 	/* set to prevent hinge child bones from influencing the transform center */
 	BONE_NO_SCALE				= (1<<15), 	/* No parent scale */
 	BONE_HIDDEN_PG				= (1<<16),	/* hidden bone when drawing PoseChannels (for ghost drawing) */
-	BONE_DRAWWIRE				= (1<<17)	/* bone should be drawn as OB_WIRE, regardless of draw-types of view+armature */
+	BONE_DRAWWIRE				= (1<<17),	/* bone should be drawn as OB_WIRE, regardless of draw-types of view+armature */
+	BONE_NO_CYCLICOFFSET		= (1<<18)	/* when no parent, bone will not get cyclic offset */
 } eBone_Flag;
 
 #endif
