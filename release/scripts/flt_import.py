@@ -702,7 +702,7 @@ class InterNode(Node):
 		return False
 		
 	def __floatcompare(self, __f1, __f2):
-		epsilon = 0.01
+		epsilon = 0.1
 		if ((__f1 + epsilon) > __f2) and ((__f1 - epsilon) < __f2):
 			return True
 		return False
@@ -717,18 +717,18 @@ class InterNode(Node):
 		__match = 0
 		for __vert in __v1bface.verts:
 			for __vert2 in __v2bface.verts:
-				if (abs(__vert.co[0] - __vert2.co[0]) <= limit) and (abs(__vert.co[1] - __vert2.co[1]) <= limit) and (abs(__vert.co[2] - __vert2.co[2]) <= limit): #this needs to be fixed!
-				#if __vert2 in __weldmesh['Vertex Disk'][__vert] or __vert == __vert2:
+				#if (abs(__vert.co[0] - __vert2.co[0]) <= limit) and (abs(__vert.co[1] - __vert2.co[1]) <= limit) and (abs(__vert.co[2] - __vert2.co[2]) <= limit): #this needs to be fixed!
+				if __vert2 in __weldmesh['Vertex Disk'][__vert] or __vert == __vert2:
 					__match += 1
 					__matchvert = __vert2
 		#avoid faces sharing more than two verts
 		if __match > 2:
 			return False
-	
 
 		#consistent winding for face normals
-		if not self.__faceWinding(__weldmesh, __v1bface, __v2bface):
-			return False
+		if __match == 2:
+			if not self.__faceWinding(__weldmesh, __v1bface, __v2bface):
+				return False
 
 		#second test: Compatible normals.Anything beyond almost exact opposite is 'ok'
 		__v1facenorm = self.__calcFaceNorm(__v1face)
@@ -742,6 +742,15 @@ class InterNode(Node):
 
 		__v1facenorm.normalize()
 		__v2facenorm.normalize()
+
+		if __match == 1:
+			#special case, look for comparison of normals angle
+			__angle = Blender.Mathutils.AngleBetweenVecs(__v1facenorm, __v2facenorm)
+			if __angle > 70.0:
+				return False	
+
+
+
 		__v2facenorm = __v2facenorm.negate()
 
 		if self.__floatcompare(__v1facenorm[0], __v2facenorm[0]) and self.__floatcompare(__v1facenorm[1], __v2facenorm[1]) and self.__floatcompare(__v1facenorm[2], __v2facenorm[2]):
@@ -878,7 +887,6 @@ class InterNode(Node):
 								self.__replaceFaceVert(doubleface, doublevert, vertex)
 						for doublefaceindex in removeFaces:
 							weldmesh['Vertex Faces'][doublevert].remove(doublefaceindex)
-				
 		#old faces first
 		oldindices = list()
 		for face in self.mesh.faces:
@@ -910,6 +918,7 @@ class InterNode(Node):
 				delverts.append(vert)
 		
 		self.mesh.verts.delete(delverts)	
+
 
 	#######################################################
 	##             End Remove Doubles Replacement        ##
@@ -1126,9 +1135,10 @@ class InterNode(Node):
 			Blender.Mesh.Mode(Blender.Mesh.SelectModes['VERTEX'])
 			self.mesh.sel= 1
 			self.header.scene.update(1) #slow!
+			
 			#self.mesh.remDoubles(0.0001)
 			weldmesh = self.buildWeldMesh()
-			self.weldFuseFaces(weldmesh)
+			welded = self.weldFuseFaces(weldmesh)
 			self.mesh.verts.delete(0) # remove the dummy vert
 			
 			edgeHash = dict()
