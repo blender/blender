@@ -733,6 +733,9 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 	EditFace *efa;
 	int i;
 
+	/* always use smooth shading even for flat faces, else vertex colors wont interpolate */
+	glShadeModel(GL_SMOOTH);
+	
 	if (vertexCos) {
 		EditVert *eve;
 
@@ -757,7 +760,8 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 				if (flag==1 && mcol)
 					cp= (unsigned char*)mcol;
 
-				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+				/* we always want smooth here since otherwise vertex colors dont interpolate */
+				/* glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT); */
 
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 				if (!drawSmooth) {
@@ -825,7 +829,8 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 				if (flag==1 && mcol)
 					cp= (unsigned char*)mcol;
 
-				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+				/* we always want smooth here since otherwise vertex colors dont interpolate */
+				/*glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);*/
 
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 				if (!drawSmooth) {
