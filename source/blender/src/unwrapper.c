@@ -298,6 +298,9 @@ void unwrap_lscm(short seamcut)
 		if (!EM_texFaceCheck())
 			return;
 		
+		if (G.sima && G.sima->image) /* this is a bit of a kludge, but assume they want the image on their mesh when UVs are added */
+			image_changed(G.sima, G.sima->image);
+		
 		/* select new UV's */
 		if ((G.sima==0 || G.sima->flag & SI_SYNC_UVSEL)==0) {
 			EditFace *efa;

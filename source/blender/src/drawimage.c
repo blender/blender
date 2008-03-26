@@ -243,11 +243,10 @@ void calc_image_view(SpaceImage *sima, char mode)
 /* check for facelesect, and set active image */
 void what_image(SpaceImage *sima)
 {
-	MTFace *activetf;
-	
 	if(		(sima->mode!=SI_TEXTURE) ||
 			(sima->image && sima->image->source==IMA_SRC_VIEWER) ||
 			(G.obedit != OBACT) ||
+			(G.editMesh==NULL) ||
 			(sima->pin)
 	) {
 		return;
@@ -255,13 +254,16 @@ void what_image(SpaceImage *sima)
 	
 	/* viewer overrides uv editmode */
 	if (EM_texFaceCheck()) {
+		MTFace *activetf;
+		
 		sima->image= NULL;
 		
 		activetf = get_active_mtface(NULL, NULL, 1); /* partially selected face is ok */
 		
 		if(activetf && activetf->mode & TF_TEX) {
-			if (!sima->pin)
-				sima->image= activetf->tpage;
+			/* done need to check for pin here, see above */
+			/*if (!sima->pin)*/
+			sima->image= activetf->tpage;
 			
 			if(sima->flag & SI_EDITTILE);
 			else sima->curtile= activetf->tile;
@@ -2141,6 +2143,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		if(sima->image->type==IMA_TYPE_R_RESULT)
 			show_render= 1;
 	}
+	
 	what_image(sima);
 	
 	aspect_sima(sima, &xuser_asp, &yuser_asp);

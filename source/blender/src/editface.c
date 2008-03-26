@@ -363,6 +363,9 @@ void calculate_uv_map(unsigned short mapmode)
 		if (em && em->faces.first)
 			EM_add_data_layer(&em->fdata, CD_MTFACE);
 		
+		if (G.sima && G.sima->image) /* this is a bit of a kludge, but assume they want the image on their mesh when UVs are added */
+			image_changed(G.sima, G.sima->image);
+		
 		if (!EM_texFaceCheck())
 			return;
 		
@@ -571,10 +574,11 @@ MTFace *get_active_mtface(EditFace **act_efa, MCol **mcol, short sloppy)
 	if(!EM_texFaceCheck())
 		return NULL;
 	
+	if (sloppy)
+		efa = EM_get_actFace();
+	
 	/* first check the active face */
-	if (sloppy && em->act_face) {
-		efa = em->act_face;
-	} else {
+	if ((sloppy && efa)==0) {
 		ese = em->selected.last;
 		for (; ese; ese=ese->prev){
 			if(ese->type == EDITFACE) {

@@ -80,7 +80,7 @@ void EM_set_actFace(EditFace *efa)
 
 EditFace * EM_get_actFace(void)
 {
-	return G.editMesh->act_face;
+	return (G.editMesh->act_face && G.editMesh->act_face->f & SELECT) ? G.editMesh->act_face : NULL ;
 }
 
 /* ********* Selection History ************ */
