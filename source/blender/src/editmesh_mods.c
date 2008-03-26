@@ -3200,7 +3200,7 @@ void deselectall_mesh(void)	 /* this toggles!!!, UI level */
 	}
 }
 
-void select_more(void)
+void EM_select_more(void)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
@@ -3238,6 +3238,11 @@ void select_more(void)
 				EM_select_face(efa, 1);
 		}
 	}
+}
+
+void select_more(void)
+{
+	EM_select_more();
 
 	countall();
 	addqueue(curarea->win,  REDRAW, 0);
@@ -3246,7 +3251,7 @@ void select_more(void)
 	BIF_undo_push("Select More");
 }
 
-void select_less(void)
+void EM_select_less(void)
 {
 	EditMesh *em = G.editMesh;
 	EditEdge *eed;
@@ -3306,6 +3311,11 @@ void select_less(void)
 		EM_selectmode_flush();
 		
 	}
+}
+
+void select_less(void)
+{
+	EM_select_less();
 	
 	countall();
 	BIF_undo_push("Select Less");

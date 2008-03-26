@@ -994,9 +994,10 @@ void delete_mesh(void)
 		erase_vertices(&em->verts);
 	} 
 	else if(event==6) {
-		if(!EdgeLoopDelete()) {
-			BIF_undo();
-		}
+		if(!EdgeLoopDelete())
+			return;
+
+		str= "Erase Edge Loop";
 	}
 	else if(event==4) {
 		str= "Erase Edges & Faces";
@@ -4659,7 +4660,7 @@ int EdgeLoopDelete(void) {
 	if(!EdgeSlide(1, 1)) {
 		return 0;
 	}
-	select_more();
+	EM_select_more();
 	removedoublesflag(1,0, 0.001);
 	EM_select_flush();
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);

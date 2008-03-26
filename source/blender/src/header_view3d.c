@@ -2718,7 +2718,11 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 		EdgeSlide(0,0.0);
 		break;
 	case 13: /* Edge Loop Delete */
-		EdgeLoopDelete();
+		if(EdgeLoopDelete()) {
+			countall();
+			BIF_undo_push("Erase Edge Loop");
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+		}
 		break;
 	case 14: /*Collapse Edges*/
 		collapseEdges();

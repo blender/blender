@@ -181,6 +181,8 @@ extern void select_mesh_group_menu(void);
 extern void editmesh_mark_seam(int clear);
 extern void loop_multiselect(int looptype);
 
+extern void EM_select_more(void);
+extern void EM_select_less(void);
 
 /* ******************* editmesh_loop.c */
 
