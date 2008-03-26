@@ -2582,27 +2582,27 @@ static int mface_from_data( MFace * mf, CustomData *fdata, int findex,
 	nmv = ( BPy_NMVert * ) PyList_GetItem( from->v, 0 );
 	if( BPy_NMVert_Check( nmv ) && nmv->index != -1 )
 		mf->v1 = nmv->index;
-	else
-		mf->v1 = 0;
+	else 
+		return -1;
 
 	nmv = ( BPy_NMVert * ) PyList_GetItem( from->v, 1 );
 	if( BPy_NMVert_Check( nmv ) && nmv->index != -1 )
 		mf->v2 = nmv->index;
 	else
-		mf->v2 = 0;
+		return -1;
 
 	nmv = ( BPy_NMVert * ) PyList_GetItem( from->v, 2 );
 	if( BPy_NMVert_Check( nmv ) && nmv->index != -1 )
 		mf->v3 = nmv->index;
 	else
-		mf->v3 = 0;
+		return -1;
 
 	if( numverts == 4 ) {
 		nmv = ( BPy_NMVert * ) PyList_GetItem( from->v, 3 );
 		if( BPy_NMVert_Check( nmv ) && nmv->index != -1 )
 			mf->v4 = nmv->index;
 		else
-			mf->v4 = 0;
+			return -1;
 	}
 
 	if( tf )
@@ -2966,6 +2966,7 @@ static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh)
 	MVert *newmv;
 	MSticky *newst;
 	int nmeshtotedges;
+	int badfaces;
 	int i, j, ok;
 
 	/* Minor note: we used 'mode' because 'flag' was already used internally
@@ -3054,14 +3055,19 @@ static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh)
 	}
 
 	newmf = mesh->mface;
+	badfaces = 0;
 	for( i = 0; i < mesh->totface; i++ ) {
 		PyObject *mf = PySequence_GetItem( nmesh->faces, i );
 		ok = mface_from_data( newmf, &mesh->fdata, i, ( BPy_NMFace * ) mf );
 		Py_DECREF( mf );
-		if( !ok )
+		if( ok == 0)
 			return 0;
-		newmf++;
+		else if ( ok == -1 )
+			++badfaces;
+		else
+			newmf++;
 	}
+	mesh->totface -= badfaces;
 
 		/* Always do this to ensure no loose edges in faces */
     fill_medge_from_nmesh(mesh, nmesh);

@@ -6483,7 +6483,7 @@ static PyObject *Mesh_assignVertsToGroup( BPy_Mesh * self, PyObject * args )
 	if( !PyArg_ParseTuple ( args, "sO!fi", &groupStr, &PyList_Type,
 			&listObject, &weight, &assignmode) ) {
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected string, list,	float, string arguments" );
+					      "expected string, list, float, int arguments" );
 	}
 
 	pGroup = get_named_vertexgroup( object, groupStr );
