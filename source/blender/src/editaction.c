@@ -3570,6 +3570,8 @@ static void mouse_actionchannels (short mval[])
 					/* select/deselect */
 					select_icu_channel(act, icu, SELECT_INVERT);
 				}
+
+				allspace(REMAKEIPO, 0);
 			}
 			break;
 		case ACTTYPE_CONCHAN:
