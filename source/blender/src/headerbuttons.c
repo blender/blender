@@ -384,10 +384,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 			
 		}
 		if(keepbut) {
-			if(id->flag & LIB_FAKEUSER)
-				uiDefBut(block, BUT, keepbut, "F", xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Don't save this datablock even if it has no users");  
-			else
-				uiDefBut(block, BUT, keepbut, "F", xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Saves this datablock even if it has no users");  
+			uiDefButBitS(block, TOG, LIB_FAKEUSER, keepbut, "F", xco,yco,XIC,YIC, &id->flag, 0, 0, 0, 0, "Saves this datablock even if it has no users");
 			xco+= XIC;
 		}
 	}
@@ -1649,13 +1646,11 @@ void do_global_buttons(unsigned short event)
 			id= (ID *)G.saction->action;
 		}/* similar for other spacetypes ? */
 		if (id) {
-			if( id->flag & LIB_FAKEUSER) {
-				id->flag -= LIB_FAKEUSER;
-				id->us--;
-			} else {
-				id->flag |= LIB_FAKEUSER;
+			/* flag was already toggled, just need to update user count */
+			if(id->flag & LIB_FAKEUSER)
 				id->us++;
-			}
+			else
+				id->us--;
 		}
 		allqueue(REDRAWHEADERS, 0);
 

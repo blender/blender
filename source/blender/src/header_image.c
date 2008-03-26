@@ -296,7 +296,7 @@ void do_image_buttons(unsigned short event)
 		}
 		break;
 	case B_KEEPDATA:
-		brush_toggle_fake_user(settings->imapaint.brush);
+		brush_toggled_fake_user(settings->imapaint.brush);
 		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 		break;

@@ -5915,7 +5915,7 @@ void do_fpaintbuts(unsigned short event)
 		}
 		break;
 	case B_BRUSHKEEPDATA:
-		brush_toggle_fake_user(settings->imapaint.brush);
+		brush_toggled_fake_user(settings->imapaint.brush);
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWIMAGE, 0);
 		break;

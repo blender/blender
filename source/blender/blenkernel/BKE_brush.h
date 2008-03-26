@@ -48,7 +48,7 @@ void free_brush(struct Brush *brush);
 int brush_set_nr(struct Brush **current_brush, int nr);
 int brush_delete(struct Brush **current_brush);
 void brush_check_exists(struct Brush **brush);
-void brush_toggle_fake_user(struct Brush *brush);
+void brush_toggled_fake_user(struct Brush *brush);
 int brush_texture_set_nr(struct Brush *brush, int nr);
 int brush_texture_delete(struct Brush *brush);
 int brush_clone_image_set_nr(struct Brush *brush, int nr);
