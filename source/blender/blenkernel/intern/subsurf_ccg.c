@@ -1910,7 +1910,6 @@ static void ccgDM_drawUVEdges(DerivedMesh *dm)
 }
 
 static void ccgDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors) {
-	GLubyte act_face_stipple[32*32/8] = DM_FACE_STIPPLE;
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
@@ -1935,7 +1934,7 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *u
 			if (draw) {
 				if (draw==2) {
 		  			glEnable(GL_POLYGON_STIPPLE);
-		  			glPolygonStipple(act_face_stipple);
+		  			glPolygonStipple(stipple_quarttone);
 				}
 				
 				for (S=0; S<numVerts; S++) {

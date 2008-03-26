@@ -787,13 +787,11 @@ void draw_uvs_sima(void)
 	}
 	
 	if (activetface) {
-		GLubyte act_face_stipple[32*32/8] = DM_FACE_STIPPLE;
-		
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		BIF_ThemeColor4(TH_EDITMESH_ACTIVE);
 		glEnable(GL_POLYGON_STIPPLE);
-		glPolygonStipple(act_face_stipple);
+		glPolygonStipple(stipple_quarttone);
 		glBegin(efa_act->v4?GL_QUADS:GL_TRIANGLES);
 			glVertex2fv(activetface->uv[0]);
 			glVertex2fv(activetface->uv[1]);

@@ -636,7 +636,6 @@ static void emDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *use
 }
 static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors)
 {
-	GLubyte act_face_stipple[32*32/8] = DM_FACE_STIPPLE;
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditFace *efa;
 	int i, draw;
@@ -653,7 +652,7 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 			if(draw) {
 				if (draw==2) { /* enabled with stipple */
 		  			glEnable(GL_POLYGON_STIPPLE);
-		  			glPolygonStipple(act_face_stipple);
+		  			glPolygonStipple(stipple_quarttone);
 				}
 				
 				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
@@ -690,7 +689,7 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 			if(draw) {
 				if (draw==2) { /* enabled with stipple */
 		  			glEnable(GL_POLYGON_STIPPLE);
-		  			glPolygonStipple(act_face_stipple);
+		  			glPolygonStipple(stipple_quarttone);
 				}
 				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 

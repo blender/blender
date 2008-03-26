@@ -2061,15 +2061,16 @@ static int draw_em_fancy__setFaceOpts(void *userData, int index, int *drawSmooth
 static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, int dt)
 {
 	Mesh *me = ob->data;
-	EditFace *efa_act = NULL;
+	EditFace *efa_act = EM_get_actFace(); /* annoying but active faces is stored differently */
 	EditEdge *eed_act = NULL;
 	EditVert *eve_act = NULL;
 	
 	if (G.editMesh->selected.last) {
 		EditSelection *ese = G.editMesh->selected.last;
-		if ( ese->type == EDITFACE ) {
+		/* face is handeled above */
+		/*if (ese->type == EDITFACE ) {
 			efa_act = (EditFace *)ese->data;
-		} else if ( ese->type == EDITEDGE ) {
+		} else */ if ( ese->type == EDITEDGE ) {
 			eed_act = (EditEdge *)ese->data;
 		} else if ( ese->type == EDITVERT ) {
 			eve_act = (EditVert *)ese->data;

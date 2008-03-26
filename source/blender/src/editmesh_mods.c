@@ -1445,14 +1445,20 @@ void mesh_copy_menu(void)
 	
 	ese = em->selected.last;
 	
-	if (!ese) return;
+	/* Faces can have a NULL ese, so dont return on a NULL ese here */
 	
-	if(ese->type == EDITVERT) {
+	if(ese && ese->type == EDITVERT) {
+		
+		if (!ese) return;
 		/*EditVert *ev, *ev_act = (EditVert*)ese->data;
 		ret= pupmenu("");*/
-	} else if(ese->type == EDITEDGE) {
-		EditEdge *eed, *eed_act = (EditEdge*)ese->data;
+	} else if(ese && ese->type == EDITEDGE) {
+		EditEdge *eed, *eed_act;
 		float vec[3], vec_mid[3], eed_len, eed_len_act;
+		
+		if (!ese) return;
+		
+		eed_act = (EditEdge*)ese->data;
 		
 		ret= pupmenu("Copy Active Edge to Selected%t|Crease%x1|Length%x2");
 		if (ret<1) return;
@@ -1510,25 +1516,37 @@ void mesh_copy_menu(void)
 			break;
 		}
 		
-	} else if(ese->type == EDITFACE) {
-		EditFace *efa, *efa_act = (EditFace*)ese->data;
-		MTFace *tf, *tf_act;
-		MCol *mcol, *mcol_act;
+	} else if(ese==NULL || ese->type == EDITFACE) {
+		EditFace *efa, *efa_act;
+		MTFace *tf, *tf_act = NULL;
+		MCol *mcol, *mcol_act = NULL;
 		
-		ret= pupmenu(
-			"Copy Face Selected%t|"
-			"Active Material%x1|Active Image%x2|Active UV Coords%x3|"
-			"Active Mode%x4|Active Transp%x5|Active Vertex Colors%x6|%l|"
-			
-			"TexFace UVs from layer%x7|"
-			"TexFace Images from layer%x8|"
-			"TexFace All from layer%x9|"
-			"Vertex Colors from layer%x10");
+		efa_act = EM_get_actFace();
 		
-		if (ret<1) return;
-		
-		tf_act =	CustomData_em_get(&em->fdata, efa_act->data, CD_MTFACE);
-		mcol_act =	CustomData_em_get(&em->fdata, efa_act->data, CD_MCOL);
+		if (efa_act) {
+			ret= pupmenu(
+				"Copy Face Selected%t|"
+				"Active Material%x1|Active Image%x2|Active UV Coords%x3|"
+				"Active Mode%x4|Active Transp%x5|Active Vertex Colors%x6|%l|"
+				
+				"TexFace UVs from layer%x7|"
+				"TexFace Images from layer%x8|"
+				"TexFace All from layer%x9|"
+				"Vertex Colors from layer%x10");
+			if (ret<1) return;
+			tf_act =	CustomData_em_get(&em->fdata, efa_act->data, CD_MTFACE);
+			mcol_act =	CustomData_em_get(&em->fdata, efa_act->data, CD_MCOL);
+		} else {
+			ret= pupmenu(
+				"Copy Face Selected%t|"
+				
+				/* Make sure these are always the same as above */
+				"TexFace UVs from layer%x7|"
+				"TexFace Images from layer%x8|"
+				"TexFace All from layer%x9|"
+				"Vertex Colors from layer%x10");
+			if (ret<1) return;
+		}
 		
 		switch (ret) {
 		case 1: /* copy material */
@@ -1637,15 +1655,11 @@ void mesh_copy_menu(void)
 			
 			break;
 		
-		
-		/* copy from layer */
+		/* Copy from layer - Warning! tf_act and mcol_act will be NULL here */
 		case 7:
 		case 8:
 		case 9:
-			if (!tf_act) {
-				error("mesh has no uv/image layers");
-				return;
-			} else if (CustomData_number_of_layers(&em->fdata, CD_MTFACE)<2) {
+			if (CustomData_number_of_layers(&em->fdata, CD_MTFACE)<2) {
 				error("mesh does not have multiple uv/image layers");
 				return;
 			} else {
@@ -1672,10 +1686,7 @@ void mesh_copy_menu(void)
 			break;
 			
 		case 10: /* select vcol layers - make sure this stays in sync with above code */
-			if (!mcol_act) {
-				error("mesh has no color layers");
-				return;
-			} else if (CustomData_number_of_layers(&em->fdata, CD_MCOL)<2) {
+			if (CustomData_number_of_layers(&em->fdata, CD_MCOL)<2) {
 				error("mesh does not have multiple color layers");
 				return;
 			} else {
@@ -1764,9 +1775,10 @@ void mesh_copy_menu(void)
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 		
-		if(ese->type == EDITVERT)		BIF_undo_push("Copy Vert Attribute");
-		else if (ese->type == EDITEDGE)	BIF_undo_push("Copy Edge Attribute");
-		else if (ese->type == EDITFACE)	BIF_undo_push("Copy Face Attribute");
+		if (ese==NULL ||	ese->type == EDITFACE)	BIF_undo_push("Copy Face Attribute");
+		else if (			ese->type == EDITEDGE)	BIF_undo_push("Copy Edge Attribute");
+		else if (			ese->type == EDITVERT)	BIF_undo_push("Copy Vert Attribute");
+		
 	}
 	
 }

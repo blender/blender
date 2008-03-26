@@ -83,5 +83,9 @@
 
 #define lrectwrite(a, b, c, d, rect)	{glRasterPos2i(a,  b);glDrawPixels((c)-(a)+1, (d)-(b)+1, GL_RGBA, GL_UNSIGNED_BYTE,  rect);}
 
+/* glStippleDefines, defined in glutil.c */
+extern GLubyte stipple_halftone[128];
+extern GLubyte stipple_quarttone[128];
+
 #endif /* #ifdef BIF_GL_H */
 
