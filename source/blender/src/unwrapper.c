@@ -288,7 +288,7 @@ void unwrap_lscm(short seamcut)
 	EditMesh *em = G.editMesh;
 	ParamHandle *handle;
 	short abf = G.scene->toolsettings->unwrapper == 1;
-	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
+	short fillholes = G.scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
 	
 	/* add uvs if there not here */
 	if (!EM_texFaceCheck()) {
@@ -318,6 +318,18 @@ void unwrap_lscm(short seamcut)
 	param_lscm_solve(handle);
 	param_lscm_end(handle);
 
+	
+	/* scale before packing */
+	if ((G.scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT)==0) {
+		float aspx, aspy;
+		
+		transform_aspect_ratio_tface_uv(&aspx, &aspy);
+		
+		if (aspx!=aspy) {
+			param_scale(handle, 1.0, aspx/aspy);
+		}
+	}
+	
 	param_pack(handle);
 
 	param_flush(handle);
@@ -340,7 +352,7 @@ void minimize_stretch_tface_uv(void)
 	double lasttime;
 	short doit = 1, escape = 0, val, blend = 0;
 	unsigned short event = 0;
-	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
+	short fillholes = G.scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
 	
 	if(!EM_texFaceCheck()) return;
 
@@ -474,7 +486,7 @@ void unwrap_lscm_live_begin(void)
 {
 	EditMesh *em = G.editMesh;
 	short abf = G.scene->toolsettings->unwrapper == 1;
-	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
+	short fillholes = G.scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
 
 	if(!EM_texFaceCheck()) return;
 

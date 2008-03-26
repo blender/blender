@@ -2632,6 +2632,81 @@ void BIF_image_update_frame(void)
 	}
 }
 
+extern int EM_texFaceCheck(void); /* from editmesh.c */
+/* called to assign images to UV faces */
+void image_changed(SpaceImage *sima, Image *image)
+{
+	MTFace *tface;
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	ImBuf *ibuf = NULL;
+	short change = 0;
+	
+	if(image==NULL) {
+		sima->flag &= ~SI_DRAWTOOL;
+	} else {
+		ibuf = BKE_image_get_ibuf(image, NULL);
+	}
+	
+	if(sima->mode!=SI_TEXTURE)
+		return;
+	
+	/* skip assigning these procedural images... */
+	if(image && (image->type==IMA_TYPE_R_RESULT || image->type==IMA_TYPE_COMPOSITE)) {
+		return;
+	} else if ((G.obedit) &&
+			(G.obedit->type == OB_MESH) &&
+			(G.editMesh) &&
+			(G.editMesh->faces.first)
+		) {
+		
+		/* Add a UV layer if there is none, editmode only */
+		if ( !CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE) ) {
+			EM_add_data_layer(&em->fdata, CD_MTFACE);
+			CustomData_set_layer_active(&em->fdata, CD_MTFACE, 0); /* always zero because we have no other UV layers */
+			change = 1; /* so we update the object, incase no faces are selected */
+			
+			/* BIF_undo_push("New UV Texture"); - undo should be done by whatever changes the image */
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+		}
+		
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (efa->h==0 && efa->f & SELECT) {
+				if (image) {
+					tface->tpage= image;
+					tface->mode |= TF_TEX;
+					
+					if(image->tpageflag & IMA_TILES) tface->mode |= TF_TILES;
+					else tface->mode &= ~TF_TILES;
+					
+					if(image->id.us==0) id_us_plus(&image->id);
+					else id_lib_extern(&image->id);
+					
+					if (tface->transp==TF_ADD) {} /* they obviously know what they are doing! - leave as is */
+					else if (ibuf && ibuf->depth == 32)	tface->transp = TF_ALPHA;
+					else								tface->transp = TF_SOLID;
+					
+				} else {
+					tface->tpage= NULL;
+					tface->mode &= ~TF_TEX;
+					tface->transp = TF_SOLID;
+				}
+				change = 1;
+			}
+		}
+	}
+	/* change the space image after because simaFaceDraw_Check uses the space image
+	 * to check if the face is displayed in UV-localview */
+	sima->image = image;
+	
+	if (change)
+		object_uvs_changed(OBACT);
+	
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
 void aspect_sima(SpaceImage *sima, float *x, float *y)
 {
 	*x = *y = 1.0;

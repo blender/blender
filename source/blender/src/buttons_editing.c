@@ -6232,12 +6232,14 @@ static void editing_panel_mesh_uvautocalculation(void)
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, MENU, REDRAWBUTSEDIT, "Unwrapper%t|Conformal%x0|Angle Based%x1",100,row,200,butH, &G.scene->toolsettings->unwrapper, 0, 0, 0, 0, "Unwrap method");
-	uiDefButBitS(block, TOG, 1, B_NOP, "Fill Holes",100,row-butHB,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Fill holes to prevent internal overlaps");
+	uiDefButBitS(block, TOG, UVCALC_FILLHOLES, B_NOP, "Fill Holes",100,row-butHB,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Fill holes to prevent internal overlaps");
 	uiBlockEndAlign(block);
 	row-= 2*butHB+butS;
 
 	row= 180;
 
+	uiDefButBitS(block, TOGN, UVCALC_NO_ASPECT_CORRECT, B_NOP, "Image Aspect",100,row,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Scale the UV Unwrapping to correct for the current images aspect ratio");
+	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,B_UVAUTO_CUBESIZE ,"Cube Size:",315,row,200,butH, &G.scene->toolsettings->uvcalc_cubesize, 0.0001, 100.0, 10, 3, "Defines the cubemap size for cube mapping");
 	uiBlockEndAlign(block);

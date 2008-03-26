@@ -83,6 +83,7 @@
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_space.h"	/* for allqueue */
+#include "BIF_drawimage.h"	/* for allqueue */
 
 #include "BDR_drawmesh.h"
 #include "BDR_editface.h"
@@ -338,6 +339,48 @@ static void uv_calc_shift_project(float *target, float *shift, float rotmat[][4]
 	}
 }
 
+void correct_uv_aspect( void )
+{
+	float aspx, aspy;
+	
+	transform_aspect_ratio_tface_uv(&aspx, &aspy);
+	
+	if (aspx != aspy) {
+		MTFace *tface;
+		EditMesh *em = G.editMesh;
+		EditFace *efa;
+		float scale;
+		
+		if (aspx > aspy) {
+			scale = aspy/aspx;
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				if (efa->f & SELECT) {
+					tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					tface->uv[0][0] = ((tface->uv[0][0]-0.5)*scale)+0.5;
+					tface->uv[1][0] = ((tface->uv[1][0]-0.5)*scale)+0.5;
+					tface->uv[2][0] = ((tface->uv[2][0]-0.5)*scale)+0.5;
+					if(efa->v4) {
+						tface->uv[3][0] = ((tface->uv[3][0]-0.5)*scale)+0.5;
+					}
+				}
+			}
+		} else {
+			scale = aspx/aspy;
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				if (efa->f & SELECT) {
+					tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					tface->uv[0][1] = ((tface->uv[0][1]-0.5)*scale)+0.5;
+					tface->uv[1][1] = ((tface->uv[1][1]-0.5)*scale)+0.5;
+					tface->uv[2][1] = ((tface->uv[2][1]-0.5)*scale)+0.5;
+					if(efa->v4) {
+						tface->uv[3][1] = ((tface->uv[3][1]-0.5)*scale)+0.5;
+					}
+				}
+			}
+		}
+	}
+}
+
 void calculate_uv_map(unsigned short mapmode)
 {
 	MTFace *tface;
@@ -555,6 +598,13 @@ void calculate_uv_map(unsigned short mapmode)
 		}
 	}
 
+	if (	(mapmode!=B_UVAUTO_BOUNDS) &&
+			(mapmode!=B_UVAUTO_RESET) &&
+			(G.scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT)==0
+		) {
+		correct_uv_aspect();
+	}
+	
 	BIF_undo_push("UV calculation");
 
 	object_uvs_changed(OBACT);

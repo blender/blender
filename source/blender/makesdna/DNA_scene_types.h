@@ -776,6 +776,10 @@ typedef struct Scene {
 #define IMAGEPAINT_DRAW_TOOL			2
 #define IMAGEPAINT_DRAW_TOOL_DRAWING	4
 
+/* toolsettings->uvcalc_flag */
+#define UVCALC_FILLHOLES			1
+#define UVCALC_NO_ASPECT_CORRECT	2	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
+
 /* toolsettings->particle flag */
 #define PE_KEEP_LENGTHS			1
 #define PE_LOCK_FIRST			2

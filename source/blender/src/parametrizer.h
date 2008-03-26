@@ -75,6 +75,10 @@ void param_pack(ParamHandle *handle);
 
 void param_average(ParamHandle *handle);
 
+/* Simple x,y scale */
+
+void param_scale(ParamHandle *handle, float x, float y);
+
 /* Flushing */
 
 void param_flush(ParamHandle *handle);

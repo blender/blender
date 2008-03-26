@@ -42,6 +42,8 @@ struct MTFace;
 
 struct Object;
 
+void image_changed(struct SpaceImage *sima, struct Image *image);
+
 void object_uvs_changed(struct Object *ob);
 void object_tface_flags_changed(struct Object *ob, int updateButtons);
 

@@ -6438,7 +6438,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->toolsettings->uvcalc_cubesize = 1.0f;
 				sce->toolsettings->uvcalc_mapdir = 1;
 				sce->toolsettings->uvcalc_mapalign = 1;
-				sce->toolsettings->uvcalc_flag = 1;
+				sce->toolsettings->uvcalc_flag = UVCALC_FILLHOLES;
 				sce->toolsettings->unwrapper = 1;
 			}
 
