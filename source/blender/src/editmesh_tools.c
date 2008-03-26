@@ -6118,7 +6118,7 @@ static void collapse_edgeuvs(void)
 
 /*End UV Edge collapse code*/
 
-static void collapseuvs(void)
+static void collapseuvs(EditVert *mergevert)
 {
 	EditFace *efa;
 	MTFace *tf;
@@ -6135,22 +6135,22 @@ static void collapseuvs(void)
 	for(efa = G.editMesh->faces.first; efa; efa=efa->next){
 		tf = CustomData_em_get(&G.editMesh->fdata, efa->data, CD_MTFACE);
 
-		if(efa->v1->f1){
+		if(efa->v1->f1 && ELEM(mergevert, NULL, efa->v1)) {
 			uvav[0] += tf->uv[0][0];
 			uvav[1] += tf->uv[0][1];
 			uvcount += 1;
 		}
-		if(efa->v2->f1){
+		if(efa->v2->f1 && ELEM(mergevert, NULL, efa->v2)){
 			uvav[0] += tf->uv[1][0];		
 			uvav[1] += tf->uv[1][1];
 			uvcount += 1;
 		}
-		if(efa->v3->f1){
+		if(efa->v3->f1 && ELEM(mergevert, NULL, efa->v3)){
 			uvav[0] += tf->uv[2][0];
 			uvav[1] += tf->uv[2][1];
 			uvcount += 1;
 		}
-		if(efa->v4 && efa->v4->f1){
+		if(efa->v4 && efa->v4->f1 && ELEM(mergevert, NULL, efa->v4)){
 			uvav[0] += tf->uv[3][0];
 			uvav[1] += tf->uv[3][1];
 			uvcount += 1;
@@ -6287,7 +6287,7 @@ int merge_firstlast(int first, int uvmerge)
 		for(eve=G.editMesh->verts.first; eve; eve=eve->next){
 			if(eve->f&SELECT) eve->f1 = 1;
 		}
-		collapseuvs();
+		collapseuvs(mergevert);
 	}
 	
 	countall();
@@ -6308,7 +6308,7 @@ int merge_target(int target, int uvmerge)
 		for(eve=G.editMesh->verts.first; eve; eve=eve->next){
 				if(eve->f&SELECT) eve->f1 = 1;
 		}
-		collapseuvs();
+		collapseuvs(NULL);
 	}
 	
 	countall();
