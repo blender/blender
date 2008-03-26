@@ -113,8 +113,8 @@ typedef struct ParticleSeam{
 typedef struct ParticleCacheKey{
 	float co[3];
 	float vel[3];
-	float col[3];
 	float rot[4];
+	float col[3];
 	int steps;
 } ParticleCacheKey;
 
