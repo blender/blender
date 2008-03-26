@@ -457,7 +457,10 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tv3d.edge, 	0x0, 0x0, 0x0, 255);
 	SETCOL(btheme->tv3d.edge_select, 0xb0, 0xb0, 0x30, 255);
 	SETCOL(btheme->tv3d.edge_seam, 230, 150, 50, 255);
+	SETCOL(btheme->tv3d.edge_sharp, 255, 32, 32, 255);
 	SETCOL(btheme->tv3d.edge_facesel, 75, 75, 75, 255);
+	SETCOL(btheme->tv3d.editmesh_active, 255, 255, 255, 128);
+	
 	SETCOL(btheme->tv3d.face, 	0, 50, 150, 30);
 	SETCOL(btheme->tv3d.face_select, 200, 100, 200, 60);
 	SETCOL(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
@@ -720,6 +723,9 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE);
 			str += sprintf(str, "Face %%x%d|", TH_FACE);
 			str += sprintf(str, "Face Selected %%x%d", TH_FACE_SELECT);
+			str += sprintf(str, "Face Dot Selected %%x%d|", TH_FACE_DOT);
+			str += sprintf(str, "Face Dot Size %%x%d|", TH_FACEDOT_SIZE);
+			str += sprintf(str, "Active Vert/Edge/Face %%x%d|", TH_EDITMESH_ACTIVE);
 			break;
 		case SPACE_SEQ:
 			str += sprintf(str, "Grid %%x%d|", TH_GRID);
