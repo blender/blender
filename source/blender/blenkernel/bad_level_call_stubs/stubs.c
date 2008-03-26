@@ -370,3 +370,6 @@ void PE_recalc_world_cos(struct Object *ob, struct ParticleSystem *psys) {}
 
 /* text.c */
 void txt_copy_clipboard (struct Text *text){}
+
+char stipple_quarttone[1];
+
