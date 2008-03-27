@@ -280,7 +280,7 @@ static int test_key_depth(float *co, bglMats *mats){
 	float depth;
 	short wco[3], x,y;
 
-	if((G.vd->flag & V3D_ZBUF_SELECT)==0) return 1;
+	if((G.vd->drawtype<=OB_WIRE) || (G.vd->flag & V3D_ZBUF_SELECT)==0) return 1;
 
 	gluProject(co[0],co[1],co[2], mats->modelview, mats->projection,
 			(GLint *)mats->viewport, &ux, &uy, &uz );
@@ -1503,10 +1503,12 @@ void PE_do_lasso_select(short mcords[][2], short moves, short select)
 }
 void PE_hide(int mode)
 {
-	ParticleSystem *psys = PE_get_current(OBACT);
+	Object *ob = OBACT;
+	ParticleSystem *psys = PE_get_current(ob);
 	ParticleEdit *edit;
+	ParticleEditKey *key;
 	ParticleData *pa;
-	int i,totpart;
+	int i, k, totpart;
 
 	if(!PE_can_edit(psys)) return;
 
@@ -1514,21 +1516,40 @@ void PE_hide(int mode)
 	totpart = psys->totpart;
 	
 	if(mode == 0){ /* reveal all particles */
-		LOOP_PARTICLES(i,pa){
-			pa->flag &= ~PARS_HIDE;
+		LOOP_PARTICLES(i, pa){
+			if(pa->flag & PARS_HIDE) {
+				pa->flag &= ~PARS_HIDE;
+				pa->flag |= PARS_EDIT_RECALC;
+
+				LOOP_KEYS(k, key)
+					key->flag |= PEK_SELECT;
+			}
 		}
 	}
 	else if(mode == 1){ /* hide unselected particles */
-		LOOP_PARTICLES(i,pa)
-			if(particle_is_selected(psys, pa))
+		LOOP_PARTICLES(i, pa) {
+			if(!particle_is_selected(psys, pa)) {
 				pa->flag |= PARS_HIDE;
+				pa->flag |= PARS_EDIT_RECALC;
+
+				LOOP_KEYS(k, key)
+					key->flag &= ~PEK_SELECT;
+			}
+		}
 	}
 	else{ /* hide selected particles */
-		LOOP_PARTICLES(i,pa)
-			if(particle_is_selected(psys, pa))
+		LOOP_PARTICLES(i, pa) {
+			if(particle_is_selected(psys, pa)) {
 				pa->flag |= PARS_HIDE;
+				pa->flag |= PARS_EDIT_RECALC;
+
+				LOOP_KEYS(k, key)
+					key->flag &= ~PEK_SELECT;
+			}
+		}
 	}
 
+	PE_update_selection(ob, 1);
 	BIF_undo_push("(Un)hide elements");
 	
 	allqueue(REDRAWVIEW3D, 1);
