@@ -531,7 +531,7 @@ def bakeToPlane(sce, ob_from, width, height, bakemodes, axis='z', margin=0):
 	# New bake settings
 	rend.bakeClear = True
 	rend.bakeMargin = margin
-	BACKUP_bakeToActive = True
+	rend.bakeToActive  = True
 	
 	# Assume a mesh
 	me_from = ob_from.getData(mesh=1)
