@@ -4277,7 +4277,7 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short 
 	if (autosnap == SACTSNAP_FRAME) {
 		short doTime= getAnimEdit_DrawTime(t);
 		double secf= FPS;
-		float val;
+		double val;
 		
 		/* convert frame to nla-action time (if needed) */
 		if (ob) 

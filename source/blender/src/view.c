@@ -1062,14 +1062,10 @@ void view_zoom_mouseloc(float dfac, short *mouseloc)
 
 void viewmoveNDOF(int mode)
 {
-    static double prevTime = 0.0;
-
-    int i;
     float fval[7];
     float dvec[3];
     float sbadjust = 1.0f;
     float len;
-    double now, frametime;
 	short use_sel = 0;
 	Object *ob = OBACT;
     float m[3][3];

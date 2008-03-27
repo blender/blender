@@ -35,6 +35,7 @@ struct EditMesh;
 struct SpaceImage;
 struct EditFace;
 struct MTFace;
+struct Image;
 
 /* id can be from 0 to 3 */
 #define TF_PIN_MASK(id) (TF_PIN1 << id)
