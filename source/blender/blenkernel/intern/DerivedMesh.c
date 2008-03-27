@@ -757,12 +757,16 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 				flag= 1;
 
 			if(flag != 0) { /* flag 0 == the face is hidden or invisible */
-				if (flag==1 && mcol)
-					cp= (unsigned char*)mcol;
-
+				
 				/* we always want smooth here since otherwise vertex colors dont interpolate */
-				/* glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT); */
-
+				if (mcol) {
+					if (flag==1) {
+						cp= (unsigned char*)mcol;
+					}
+				} else {
+					glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+				} 
+				
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 				if (!drawSmooth) {
 					glNormal3fv(emdm->faceNos[i]);
@@ -826,11 +830,14 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 				flag= 1;
 
 			if(flag != 0) { /* flag 0 == the face is hidden or invisible */
-				if (flag==1 && mcol)
-					cp= (unsigned char*)mcol;
-
 				/* we always want smooth here since otherwise vertex colors dont interpolate */
-				/*glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);*/
+				if (mcol) {
+					if (flag==1) {
+						cp= (unsigned char*)mcol;
+					}
+				} else {
+					glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+				} 
 
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 				if (!drawSmooth) {

@@ -191,7 +191,7 @@ static PyMethodDef BPy_Image_methods[] = {
 	 "(int) - Change Image object animation speed (fps)"},
 	{"save", ( PyCFunction ) Image_save, METH_NOARGS,
 	 "() - Write image buffer to file"},
-	{"unpack", ( PyCFunction ) Image_unpack, METH_VARARGS,
+	{"unpack", ( PyCFunction ) Image_unpack, METH_O,
 	 "(int) - Unpack image. Uses the values defined in Blender.UnpackModes."},
 	{"pack", ( PyCFunction ) Image_pack, METH_NOARGS,
 	 "() - Pack the image"},
