@@ -55,6 +55,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h"
@@ -986,6 +987,26 @@ static void free_mesh_orco_hash(Render *re)
 	}
 }
 
+static void flag_render_node_material(Render *re, bNodeTree *ntree)
+{
+	bNode *node;
+
+	for(node=ntree->nodes.first; node; node= node->next) {
+		if(node->id) {
+			if(GS(node->id->name)==ID_MA) {
+				Material *ma= (Material *)node->id;
+
+				if(ma->mode & MA_ZTRA)
+					re->flag |= R_ZTRA;
+
+				ma->flag |= MA_IS_USED;
+			}
+			else if(node->type==NODE_GROUP)
+				flag_render_node_material(re, (bNodeTree *)node->id);
+		}
+	}
+}
+
 static Material *give_render_material(Render *re, Object *ob, int nr)
 {
 	extern Material defmaterial;	/* material.c */
@@ -994,14 +1015,17 @@ static Material *give_render_material(Render *re, Object *ob, int nr)
 	ma= give_current_material(ob, nr);
 	if(ma==NULL) 
 		ma= &defmaterial;
-	else
-		if(ma->mode & MA_ZTRA)
-			re->flag |= R_ZTRA;
 	
 	if(re->r.mode & R_SPEED) ma->texco |= NEED_UV;
 	
+	if(ma->mode & MA_ZTRA)
+		re->flag |= R_ZTRA;
+	
 	/* for light groups */
 	ma->flag |= MA_IS_USED;
+
+	if(ma->nodetree && ma->use_nodes)
+		flag_render_node_material(re, ma->nodetree);
 	
 	return ma;
 }
