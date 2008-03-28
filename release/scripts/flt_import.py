@@ -85,6 +85,14 @@ global_prefs['scale'] = 1.0
 global_prefs['attrib'] = 0
 msg_once = False
 
+reg = Blender.Registry.GetKey('flt_import',1)
+if reg:
+	for key in global_prefs:
+		if reg.has_key(key):
+			global_prefs[key] = reg[key]
+		
+
+
 throw_back_opcodes = [2, 73, 4, 11, 96, 14, 91, 98, 63,111] # Opcodes that indicate its time to return control to parent.
 do_not_report_opcodes = [76, 78, 79, 80, 81, 82, 94, 83, 33, 112, 101, 102, 97, 31, 103, 104, 117, 118, 120, 121, 124, 125]
 
@@ -2390,6 +2398,10 @@ def setimportscale(ID,val):
 	global_prefs['scale'] = val
 def setBpath(fname):
 	global_prefs['fltfile'] = fname
+	d = dict()
+	for key in global_prefs:
+		d[key] = global_prefs[key]
+		Blender.Registry.SetKey('flt_import', d, 1) 
 
 def event(evt,val):
 	pass
@@ -2434,7 +2446,10 @@ def but_event(evt):
 	if evt == 2:
 		Draw.Exit()
 	
-
+	d = dict()
+	for key in global_prefs:
+		d[key] = global_prefs[key]
+		Blender.Registry.SetKey('flt_import', d, 1) 
 	
 
 from Blender.BGL import *
