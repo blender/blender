@@ -1050,6 +1050,8 @@ class InterNode(Node):
 					if props[6]['template billboard'] == 2:
 						f.mode |=  Blender.Mesh.FaceModes["BILLBOARD"]
 					f.mode |= Blender.Mesh.FaceModes["LIGHT"]
+				if props[6]['draw type'] == 1:
+					f.mode |= Blender.Mesh.FaceModes["TWOSIDE"]
 				
 				#f.mat = props[0]
 				f.image = props[1]
@@ -1095,6 +1097,8 @@ class InterNode(Node):
 					if self.uvlayers[mask]:
 						self.mesh.activeUVLayer = self.blayernames[mask]
 						for j, f in enumerate(self.mesh.faces):
+							if props[6]['draw type'] == 1:
+								f.mode |= Blender.Mesh.FaceModes["TWOSIDE"]
 							f.transp |= Blender.Mesh.FaceTranspModes["ALPHA"]
 							f.mode |= Blender.Mesh.FaceModes["LIGHT"]
 							props = new_faces_props[j]
