@@ -1237,7 +1237,7 @@ class InterNode(Node):
 				self.mesh.activeUVLayer = actuvlayer
  		
 	def blender_import(self):
-		if self.vis and self.parent:
+		if self.vis and self.parent.object:
 			self.vis = self.parent.vis
 		name = self.props['id']
 		
@@ -1273,7 +1273,7 @@ class InterNode(Node):
 
 		if self.matrix:
 			self.object.setMatrix(self.matrix)
-
+		
 		if self.vis == False:
 			self.object.restrictDisplay = True
 			self.object.restrictRender = True
@@ -1282,7 +1282,7 @@ class InterNode(Node):
 			lodlist = list()
 			for child in self.children:
 				if child.props.has_key('type') and child.props['type'] == 73:
-					if child.props['5d!switch out'] != 0:
+					if child.props['6d!switch out'] != 0.0:
 						child.vis = False
 					#lodlist.append(child)
 			
@@ -1993,6 +1993,11 @@ class Database(InterNode):
 		
 		self.scene.properties['FLT']['Main'] = 0
 		self.scene.properties['FLT']['Filename'] = self.bname
+		
+		for child in self.children:
+			if child.props.has_key('type') and child.props['type'] == 73:
+				if child.props['6d!switch out'] != 0.0:
+						child.vis = False
 		
 		#import color palette
 		carray = list()
