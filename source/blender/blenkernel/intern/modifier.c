@@ -873,6 +873,9 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			MTC_Mat4MulVecfl(offset, tmp_co);
 
 			for(j = 0; j < maxVerts; j++) {
+				/* if vertex already merged, don't use it */
+				if( indexMap[j].merge != -1 ) continue;
+
 				inMV = &src_mvert[j];
 				/* if this vert is within merge limit, merge */
 				if(VecLenCompare(tmp_co, inMV->co, amd->merge_dist)) {
@@ -1032,7 +1035,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			numFaces++;
 
 			/* if the face has fewer than 3 vertices, don't create it */
-			if(mf2->v3 == 0 || (mf->v1 && (mf->v1 == mf->v3 || mf->v1 == mf->v4))) {
+			if(mf2->v3 == 0 || (mf2->v1 && (mf2->v1 == mf2->v3 || mf2->v1 ==
+mf2->v4))) {
 				numFaces--;
 				DM_free_face_data(result, numFaces, 1);
 			}
