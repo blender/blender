@@ -103,7 +103,7 @@ void ColorBlock::swizzleDXT5n()
 	for(int i = 0; i < 16; i++)
 	{
 		Color32 c = m_color[i];
-		m_color[i] = Color32(0, c.g, 0, c.r);
+		m_color[i] = Color32(0xFF, c.g, 0, c.r);
 	}
 }
 
@@ -125,6 +125,19 @@ void ColorBlock::splatY()
 	}
 }
 
+/// Returns true if the block has a single color.
+bool ColorBlock::isSingleColor() const
+{
+	for(int i = 1; i < 16; i++)
+	{
+		if (m_color[0] != m_color[i])
+		{
+			return false;
+		}
+	}
+	
+	return true;
+}
 
 /// Count number of unique colors in this color block.
 uint ColorBlock::countUniqueColors() const

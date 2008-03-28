@@ -277,7 +277,7 @@ void BlockDXT3::flip2()
 
 void AlphaBlockDXT5::evaluatePalette(uint8 alpha[8]) const
 {
-	if (alpha0 > alpha1) {
+	if (alpha0() > alpha1()) {
 		evaluatePalette8(alpha);
 	}
 	else {
@@ -289,8 +289,8 @@ void AlphaBlockDXT5::evaluatePalette8(uint8 alpha[8]) const
 {
 	// 8-alpha block:  derive the other six alphas.
 	// Bit code 000 = alpha0, 001 = alpha1, others are interpolated.
-	alpha[0] = alpha0;
-	alpha[1] = alpha1;
+	alpha[0] = alpha0();
+	alpha[1] = alpha1();
 	alpha[2] = (6 * alpha[0] + 1 * alpha[1]) / 7;	// bit code 010
 	alpha[3] = (5 * alpha[0] + 2 * alpha[1]) / 7;	// bit code 011
 	alpha[4] = (4 * alpha[0] + 3 * alpha[1]) / 7;	// bit code 100
@@ -303,8 +303,8 @@ void AlphaBlockDXT5::evaluatePalette6(uint8 alpha[8]) const
 {
 	// 6-alpha block.
 	// Bit code 000 = alpha0, 001 = alpha1, others are interpolated.
-	alpha[0] = alpha0;
-	alpha[1] = alpha1;
+	alpha[0] = alpha0();
+	alpha[1] = alpha1();
 	alpha[2] = (4 * alpha[0] + 1 * alpha[1]) / 5;	// Bit code 010
 	alpha[3] = (3 * alpha[0] + 2 * alpha[1]) / 5;	// Bit code 011
 	alpha[4] = (2 * alpha[0] + 3 * alpha[1]) / 5;	// Bit code 100
@@ -315,22 +315,22 @@ void AlphaBlockDXT5::evaluatePalette6(uint8 alpha[8]) const
 
 void AlphaBlockDXT5::indices(uint8 index_array[16]) const
 {
-	index_array[0x0] = bits0;
-	index_array[0x1] = bits1;
-	index_array[0x2] = bits2;
-	index_array[0x3] = bits3;
-	index_array[0x4] = bits4;
-	index_array[0x5] = bits5;
-	index_array[0x6] = bits6;
-	index_array[0x7] = bits7;
-	index_array[0x8] = bits8;
-	index_array[0x9] = bits9;
-	index_array[0xA] = bitsA;
-	index_array[0xB] = bitsB;
-	index_array[0xC] = bitsC;
-	index_array[0xD] = bitsD;
-	index_array[0xE] = bitsE;
-	index_array[0xF] = bitsF;
+	index_array[0x0] = bits0();
+	index_array[0x1] = bits1();
+	index_array[0x2] = bits2();
+	index_array[0x3] = bits3();
+	index_array[0x4] = bits4();
+	index_array[0x5] = bits5();
+	index_array[0x6] = bits6();
+	index_array[0x7] = bits7();
+	index_array[0x8] = bits8();
+	index_array[0x9] = bits9();
+	index_array[0xA] = bitsA();
+	index_array[0xB] = bitsB();
+	index_array[0xC] = bitsC();
+	index_array[0xD] = bitsD();
+	index_array[0xE] = bitsE();
+	index_array[0xF] = bitsF();
 }
 
 uint AlphaBlockDXT5::index(uint index) const

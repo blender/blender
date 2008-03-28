@@ -496,9 +496,9 @@ void DDSHeader::setPixelFormat(uint bitcount, uint rmask, uint gmask, uint bmask
 	}
 
 	// Align to 8.
-	if (bitcount < 8) bitcount = 8;
-	else if (bitcount < 16) bitcount = 16;
-	else if (bitcount < 24) bitcount = 24;
+	if (bitcount <= 8) bitcount = 8;
+	else if (bitcount <= 16) bitcount = 16;
+	else if (bitcount <= 24) bitcount = 24;
 	else bitcount = 32;
 
 	this->pf.fourcc = 0; //findD3D9Format(bitcount, rmask, gmask, bmask, amask);
@@ -606,7 +606,7 @@ bool DirectDrawSurface::isSupported() const
 uint DirectDrawSurface::mipmapCount() const
 {
 	if (header.flags & DDSD_MIPMAPCOUNT) return header.mipmapcount;
-	else return 0;
+	else return 1;
 }
 
 
@@ -770,7 +770,7 @@ static Color32 buildNormal(uint8 x, uint8 y)
 	float nx = 2 * (x / 255.0f) - 1;
 	float ny = 2 * (y / 255.0f) - 1;
 	float nz = 0.0f;
-	if (1 - nx*nx - ny*ny > 0) nz = sqrt(1 - nx*nx - ny*ny);
+	if (1 - nx*nx - ny*ny > 0) nz = sqrtf(1 - nx*nx - ny*ny);
 	uint8 z = clamp(int(255.0f * (nz + 1) / 2.0f), 0, 255);
 	
 	return Color32(x, y, z);
@@ -921,6 +921,11 @@ uint DirectDrawSurface::offset(const uint face, const uint mipmap)
 {
 	uint size = 128; //sizeof(DDSHeader);
 	
+	if (header.hasDX10Header())
+	{
+		size += 20; // sizeof(DDSHeader10);
+	}
+
 	if (face != 0)
 	{
 		size += face * faceSize();
