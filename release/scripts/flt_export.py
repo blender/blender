@@ -391,6 +391,7 @@ class Node:
 				print '\t' * level[0], self.name, self.object.type
 		level[0] += 1
 		
+		self.children.reverse()
 		for child in self.children:
 			child.blender_export()
 			
