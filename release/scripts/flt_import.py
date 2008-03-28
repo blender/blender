@@ -1282,21 +1282,23 @@ class InterNode(Node):
 			lodlist = list()
 			for child in self.children:
 				if child.props.has_key('type') and child.props['type'] == 73:
-					lodlist.append(child)
+					if child.props['5d!switch out'] != 0:
+						child.vis = False
+					#lodlist.append(child)
+			
+			#def LODmin(a,b):
+			#	if a.props['5d!switch in'] < b.props['5d!switch in']:
+			#		return a 
+			#	return b
 		
-			def LODmin(a,b):
-				if a.props['5d!switch in'] < b.props['5d!switch in']:
-					return a 
-				return b
-		
-			min= None
-			if len(lodlist) > 1:
-				for lod in lodlist:
-					lod.vis = False
-				min = lodlist[0]
-				for i in xrange(len(lodlist)):
-					min= LODmin(min,lodlist[i])
-				min.vis = True
+			#min= None
+			#if len(lodlist) > 1:
+			#	for lod in lodlist:
+			#		lod.vis = False
+			#	min = lodlist[0]
+			#	for i in xrange(len(lodlist)):
+			#		min= LODmin(min,lodlist[i])
+			#	min.vis = True
 				
 			
 		Node.blender_import(self) # Attach faces to self.faceLs
