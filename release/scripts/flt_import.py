@@ -86,7 +86,7 @@ global_prefs['attrib'] = 0
 msg_once = False
 
 throw_back_opcodes = [2, 73, 4, 11, 96, 14, 91, 98, 63,111] # Opcodes that indicate its time to return control to parent.
-do_not_report_opcodes = [76, 78, 79, 80, 81, 82, 94, 83, 33, 112, 100, 101, 102, 97, 31, 103, 104, 117, 118, 120, 121, 124, 125]
+do_not_report_opcodes = [76, 78, 79, 80, 81, 82, 94, 83, 33, 112, 101, 102, 97, 31, 103, 104, 117, 118, 120, 121, 124, 125]
 
 #Process FLT record definitions
 for record in FLT_Records:
@@ -488,6 +488,20 @@ class Node:
 		self.props['comment'] = self.header.fw.read_string(self.header.fw.get_length()-4)
 		return True
 	
+	def parse_extension(self):
+		extension = dict()
+		props = records[100]
+		propkeys = props.keys()
+		propkeys.sort()
+		for position in propkeys:
+			(type,length,name) = props[position]
+			extension[name] = read_prop(self.header.fw,type,length)
+		#read extension data.
+		dstring = list()
+		for i in xrange(self.header.fw.get_length()-24):
+			dstring.append(self.header.fw.read_char())
+		extension['data'] = dstring
+		self.extension = extension
 	def parse_record(self):
 		self.props['type'] = self.opcode
 		props = records[self.opcode]
@@ -634,6 +648,7 @@ class InterNode(Node):
 		self.uvlayers = dict()
 		self.blayernames = dict()
 		self.subfacelevel = 0
+		self.extension = None
 		
 		mask = 2147483648
 		for i in xrange(7):
@@ -1222,6 +1237,7 @@ class InterNode(Node):
 			self.vis = self.parent.vis
 		name = self.props['id']
 		
+
 		if self.hasMesh:
 			self.mesh = Blender.Mesh.New()
 			self.mesh.name = 'FLT_FaceList'
@@ -1243,6 +1259,11 @@ class InterNode(Node):
 				pass
 		
 
+		if self.extension:
+			self.object.properties['FLT']['EXT'] = dict()
+			for key in self.extension:
+				self.object.properties['FLT']['EXT'][key] = self.extension[key]
+		
 		if self.parent and self.parent.object and (self.header.scene == self.parent.header.scene):
 				self.parent.object.makeParent([self.object],1)
 
@@ -1511,9 +1532,10 @@ class Object(InterNode):
 		InterNode.__init__(self)
 		
 		self.root_handler.set_handler({33: self.parse_long_id,
-									   31: self.parse_comment,
-									   10: self.parse_push,
-									   49: self.parse_matrix})
+									21: self.parse_push_extension,
+									31: self.parse_comment,
+									10: self.parse_push,
+									49: self.parse_matrix})
 		self.root_handler.set_throw_back_lst(throw_back_opcodes)
 		
 		self.child_handler.set_handler({5: self.parse_face,
@@ -1522,7 +1544,10 @@ class Object(InterNode):
 										111: self.parse_inline_light_point,
 										10: self.parse_push,
 										11: self.parse_pop})
-
+		self.extension_handler.set_handler({22: self.parse_pop_extension,
+								100: self.parse_extension})
+		
+		self.extension = dict()
 		self.props = dict()		
 		self.props['comment'] = ''
 		self.parse_record()
@@ -1535,7 +1560,8 @@ class Group(InterNode):
 		self.root_handler.set_handler({33: self.parse_long_id,
 									   31: self.parse_comment,
 									   10: self.parse_push,
-									   49: self.parse_matrix})
+									   49: self.parse_matrix,
+									   21: self.parse_push_extension})
 		self.root_handler.set_throw_back_lst(throw_back_opcodes)
 		
 		self.child_handler.set_handler({5: self.parse_face,
@@ -1552,6 +1578,10 @@ class Group(InterNode):
 										91: self.parse_unhandled,
 										98: self.parse_unhandled,
 										63: self.parse_xref})
+										
+		self.extension_handler.set_handler({22: self.parse_pop_extension,
+								100: self.parse_extension})
+								
 		self.props = dict.fromkeys(['type', 'id', 'comment', 'priority', 'flags', 'special1',
 									'special2', 'significance', 'layer code', 'loop count',
 									'loop duration', 'last frame duration'])
@@ -1579,7 +1609,8 @@ class DOF(InterNode):
 		self.root_handler.set_handler({33: self.parse_long_id,
 									   31: self.parse_comment,
 									   10: self.parse_push,
-									   49: self.parse_matrix})
+									   49: self.parse_matrix,
+									   21: self.parse_push_extension})
 		self.root_handler.set_throw_back_lst(throw_back_opcodes)
 		
 		self.child_handler.set_handler({#130: self.parse_indexed_light_point,
@@ -1594,6 +1625,8 @@ class DOF(InterNode):
 										91: self.parse_unhandled,
 										98: self.parse_unhandled,
 										63: self.parse_xref})
+		self.extension_handler.set_handler({22: self.parse_pop_extension,
+										100: self.parse_extension})
 		self.props = dict()		
 		self.props['comment'] = ''
 		self.parse_record()
@@ -1683,7 +1716,8 @@ class LOD(InterNode):
 		self.root_handler.set_handler({33: self.parse_long_id,
 									   31: self.parse_comment,
 									   10: self.parse_push,
-									   49: self.parse_matrix})
+									   49: self.parse_matrix,
+									   21: self.parse_push_extension})
 		self.root_handler.set_throw_back_lst(throw_back_opcodes)
 		
 		self.child_handler.set_handler({2: self.parse_group,
@@ -1697,6 +1731,9 @@ class LOD(InterNode):
 										91: self.parse_unhandled, # sound
 										98: self.parse_unhandled, # clip
 										63: self.parse_xref})
+		self.extension_handler.set_handler({22: self.parse_pop_extension,
+								100: self.parse_extension})
+
 
 		self.props = dict()		
 		self.props['comment'] = ''
@@ -1709,13 +1746,16 @@ class InlineLightPoint(InterNode):
 		self.root_handler.set_handler({33: self.parse_long_id,
 									   31: self.parse_comment,
 									   10: self.parse_push,
+									   21: self.parse_push_extension,
 									   49: self.parse_matrix})
 		self.root_handler.set_throw_back_lst(throw_back_opcodes)
 		
 		self.child_handler.set_handler({72: self.parse_vertex_list,
 										10: self.parse_push,
 										11: self.parse_pop})
-
+		self.extension_handler.set_handler({22: self.parse_pop_extension,
+								100: self.parse_extension})
+		
 		self.indices = list()
 		self.props = dict()		
 		self.props['comment'] = ''
@@ -1740,6 +1780,11 @@ class InlineLightPoint(InterNode):
 				self.object.properties['FLT'][key] = self.props[key]
 			except: #horrible...
 				pass
+
+		if self.extension:
+			self.object.properties['FLT']['EXT'] = dict()
+			for key in self.extension:
+				self.object.properties['FLT']['EXT'][key] = self.extension[key]
 
 		if self.parent and self.parent.object and self.header.scene == self.parent.header.scene:
 			self.parent.object.makeParent([self.object])

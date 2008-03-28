@@ -415,14 +415,26 @@ class Node:
 	def write_pop(self):
 		self.header.fw.write_short(11)
 		self.header.fw.write_ushort(4)
-
+		
+	def write_push_extension(self):
+		self.header.fw.write_short(21)
+		self.header.fw.write_ushort(24)
+		self.header.fw.pad(18)
+		self.header.fw.write_ushort(0)
+		
+	def write_pop_extension(self):
+		self.header.fw.write_short(22)
+		self.header.fw.write_ushort(24)
+		self.header.fw.pad(18)
+		self.header.fw.write_ushort(0)
+		
 	def write_longid(self, name):
 		length = len(name)
 		if length >= 8:
 			self.header.fw.write_short(33)              # Long ID opcode
 			self.header.fw.write_ushort(length+5)       # Length of record
 			self.header.fw.write_string(name, length+1) # name + zero terminator
-
+			
 	def write_comment(self,comment):
 		length = len(comment)
 		if length >= 65535:
@@ -473,31 +485,31 @@ class Node:
 		for child in self.child_objects:			
 			if(not child.restrictDisplay):
 				childprops = None
-				type = None
+				ftype = None
 				if not child.properties.has_key('FLT'):
 					if child.type == 'Empty':
 						if child.DupGroup:
 							childprops = FLTXRef.copy()
-							type = 63
+							ftype = 63
 						else:
 							childprops = FLTGroup.copy()
-							type = 2
+							ftype = 2
 					elif child.type == 'Mesh':
 						if self.header.childhash[child.name] or not child.parent:
 							childprops = FLTGroup.copy()
-							type = 2
+							ftype = 2
 						else:
 							childprops = FLTObject.copy()
-							type = 4
+							ftype = 4
 							
 				else:
 					childprops = dict()
 					for prop in child.properties['FLT']:
 						childprops[prop] = child.properties['FLT'][prop]
-					type = child.properties['FLT']['type']
+					ftype = child.properties['FLT']['type']
 				
-				if type in self.childtypes and type in alltypes:
-					Newnode = FLTNode(self,header,child,childprops,type)
+				if ftype in self.childtypes and ftype in alltypes:
+					Newnode = FLTNode(self,header,child,childprops,ftype)
 					if child.type == 'Mesh':
 						self.header.mnodes.append(Newnode)
 class FaceDesc:
@@ -636,11 +648,11 @@ class FLTNode(Node):
 				
 		#now go through the loops and append.
 		for l in loops:
-			(type, loop) = l
+			(ftype, loop) = l
 			face_desc = FaceDesc()
 			for i,vert in enumerate(loop):
 				face_desc.vertex_index_lst.append(self.header.GRR.request_vertex_index(self.object,self.exportmesh,loop,i,0,0))
-				if type  == 'closed':
+				if ftype  == 'closed':
 					face_desc.renderstyle = 2
 				else:
 					face_desc.renderstyle = 3
@@ -1036,12 +1048,26 @@ class FLTNode(Node):
 					pass
 		
 		for key in records[self.opcode]:
-			(type,length,propname) = records[self.opcode][key]
-			write_prop(self.header.fw,type,exportdict[propname],length)
+			(ftype,length,propname) = records[self.opcode][key]
+			write_prop(self.header.fw,ftype,exportdict[propname],length)
 		
 		if self.props.has_key('comment'):
 			self.write_comment(self.props['comment'])
-			
+
+		if self.object and self.object.properties.has_key('FLT') and self.object.properties['FLT'].has_key('EXT'):
+			datalen = len(self.object.properties['FLT']['EXT']['data'])
+			self.write_push_extension()
+			self.header.fw.write_short(100)
+			self.header.fw.write_ushort(24 + datalen)
+			for key in records[100]:
+				(ftype,length,propname) = records[100][key]
+				write_prop(self.header.fw,ftype,self.object.properties['FLT']['EXT'][propname],length)
+			#write extension data
+			for i in xrange(datalen):
+				self.header.fw.write_char(self.object.properties['FLT']['EXT']['data'][i])
+			self.write_pop_extension()
+
+
 		self.write_longid(self.name) #fix this!
 		
 		if options.export_transform or self.opcode == 63:
@@ -1064,8 +1090,8 @@ class FLTNode(Node):
 				#self.write_pop()
 			self.write_pop()
 			
-	def __init__(self, parent, header, object,props,type):
-		self.opcode = type #both these next two lines need to be in the node class....
+	def __init__(self, parent, header, object,props,ftype):
+		self.opcode = ftype #both these next two lines need to be in the node class....
 		self.childtypes = childtypes[self.opcode]
 		Node.__init__(self, parent, header, object,props)
 		self.face_lst = []
@@ -1295,8 +1321,8 @@ def write_attribute_files():
 		fw.write_int(size[0])
 		fw.write_int(size[1])
 		for key in records['Image']:
-			(type,length,propname) = records['Image'][key]
-			write_prop(fw,type,exportdict[propname],length)
+			(ftype,length,propname) = records['Image'][key]
+			write_prop(fw,ftype,exportdict[propname],length)
 		fw.close_file()
 
 #globals used by the scene export function
