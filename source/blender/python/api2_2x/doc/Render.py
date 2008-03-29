@@ -391,8 +391,8 @@ class RenderData:
   @type bakeClear: bool
   @ivar bakeToActive: When enabled, selected objects are baked onto the active object.
   @type bakeToActive: bool
-  @ivar bakeNormalizeAO: Normalize AO bake values.
-  @type bakeNormalizeAO: bool  
+  @ivar bakeNormalize: Normalize AO and displacement to the range of the distance value.
+  @type bakeNormalize: bool  
   @ivar bakeMargin: The pixel distance to extend baked pixels past the boundry (reduces bleeding when mipmapping)
   @type bakeMargin: int
   @ivar bakeDist: The distance in blender units to use when bakeToActive is enabled and geomtry does not overlap.

@@ -496,7 +496,7 @@ def vcol2image(me_s,\
 	
 	return image
 
-def bakeToPlane(sce, ob_from, width, height, bakemodes, axis='z', margin=0):
+def bakeToPlane(sce, ob_from, width, height, bakemodes, axis='z', margin=0, depth=32):
 	'''
 	Bakes terrain onto a plane from one object
 	sce - scene to bake with
@@ -505,7 +505,7 @@ def bakeToPlane(sce, ob_from, width, height, bakemodes, axis='z', margin=0):
 	bakemodes - list of baking modes to use, Blender.Scene.Render.BakeModes.NORMALS, Blender.Scene.Render.BakeModes.AO ... etc
 	axis - axis to allign the plane to.
 	margin - margin setting for baking.
-	
+	depth - bit depth for the images to bake into, (32 or 128 for floating point images)
 	Example:
 		import Blender
 		from Blender import *
@@ -523,6 +523,7 @@ def bakeToPlane(sce, ob_from, width, height, bakemodes, axis='z', margin=0):
 	BACKUP_bakeClear = rend.bakeClear
 	BACKUP_bakeMargin = rend.bakeMargin
 	BACKUP_bakeToActive = rend.bakeToActive
+	BACKUP_bakeNormalize = rend.bakeNormalize
 	
 	# Backup object selection
 	BACKUP_obsel = list(sce.objects.selected)
@@ -532,6 +533,7 @@ def bakeToPlane(sce, ob_from, width, height, bakemodes, axis='z', margin=0):
 	rend.bakeClear = True
 	rend.bakeMargin = margin
 	rend.bakeToActive  = True
+	rend.bakeNormalize = True
 	
 	# Assume a mesh
 	me_from = ob_from.getData(mesh=1)
@@ -554,28 +556,28 @@ def bakeToPlane(sce, ob_from, width, height, bakemodes, axis='z', margin=0):
 		xmin = min(xmin, x)
 		ymin = min(ymin, y)
 		zmin = min(zmin, z)
-
+	
 	if axis=='x':
 		xmed = (xmin+xmax)/2.0
 		co1 = (xmed, ymin, zmin)
 		co2 = (xmed, ymin, zmax)
 		co3 = (xmed, ymax, zmax)
 		co4 = (xmed, ymax, zmin)
-		rend.bakeDist = (xmax-xmin)/2.0
+		rend.bakeDist = ((xmax-xmin)/2.0) + 0.000001 # we need a euler value for this since it 
 	elif axis=='y':
 		ymed = (ymin+ymax)/2.0
 		co1 = (xmin, ymed, zmin)
 		co2 = (xmin, ymed, zmax)
 		co3 = (xmax, ymed, zmax)
 		co4 = (xmax, ymed, zmin)
-		rend.bakeDist = (ymax-ymin)/2.0
+		rend.bakeDist = ((ymax-ymin)/2.0) + 0.000001
 	elif axis=='z':
 		zmed = (zmin+zmax)/2.0
 		co1 = (xmin, ymin, zmed)
 		co2 = (xmin, ymax, zmed)
 		co3 = (xmax, ymax, zmed)
 		co4 = (xmax, ymin, zmed)
-		rend.bakeDist = (zmax-zmin)/2.0
+		rend.bakeDist = ((zmax-zmin)/2.0) + 0.000001
 	else:
 		raise "invalid axis"
 	me_plane = Blender.Mesh.New()
@@ -601,7 +603,7 @@ def bakeToPlane(sce, ob_from, width, height, bakemodes, axis='z', margin=0):
 	images_return = []
 	
 	for mode in bakemodes:
-		img = Blender.Image.New('bake', width, height, 24)
+		img = Blender.Image.New('bake', width, height, depth)
 		
 		me_plane_face.image = img
 		rend.bakeMode = mode
@@ -616,6 +618,8 @@ def bakeToPlane(sce, ob_from, width, height, bakemodes, axis='z', margin=0):
 	rend.bakeClear = BACKUP_bakeClear
 	rend.bakeMargin = BACKUP_bakeMargin
 	rend.bakeToActive = BACKUP_bakeToActive
+	rend.bakeNormalize = BACKUP_bakeNormalize
+	
 	
 	# Restore obsel
 	sce.objects.selected = BACKUP_obsel
