@@ -950,7 +950,7 @@ static void action_groups_addachan (bAction *act, bActionGroup *agrp, bActionCha
 			}
 			else {
 				BLI_insertlinkafter(&act->chanbase, chan, achan);
-					
+				
 				agrp->channels.first= achan;
 				agrp->channels.last= achan;
 				
@@ -1131,7 +1131,7 @@ void verify_pchan2achan_grouping (bAction *act, bPose *pose, char name[])
 	achan= verify_action_channel(act, name);
 	
 	/* check if pchan has a group */
-	if ((pchan->agrp_index) && (achan->grp == NULL)) {
+	if ((pchan->agrp_index > 0) && (achan->grp == NULL)) {
 		bActionGroup *agrp, *grp=NULL;
 		
 		/* get group to try to be like */
