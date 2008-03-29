@@ -3798,7 +3798,7 @@ static PyObject *M_Render_BakeNormalSpaceDict( void )
 		BPy_constant *d = ( BPy_constant * ) M;
 		
 		PyConstant_Insert( d, "CAMERA", PyInt_FromLong( R_BAKE_SPACE_CAMERA ) );
-		PyConstant_Insert( d, "WORLS", PyInt_FromLong( R_BAKE_SPACE_WORLD ) );
+		PyConstant_Insert( d, "WORLD", PyInt_FromLong( R_BAKE_SPACE_WORLD ) );
 		PyConstant_Insert( d, "OBJECT", PyInt_FromLong( R_BAKE_SPACE_OBJECT ) );
 		PyConstant_Insert( d, "TANGENT", PyInt_FromLong( R_BAKE_SPACE_TANGENT ) );
 	}
