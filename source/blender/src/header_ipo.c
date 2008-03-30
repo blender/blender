@@ -210,13 +210,9 @@ void spaceipo_assign_ipo(SpaceIpo *si, Ipo *ipo)
 			{
 				Sequence *seq= (Sequence *)si->from;	/* note, sequence is mimicing Id */
 				
-				if((seq->type & SEQ_EFFECT)
-				   || (seq->type == SEQ_RAM_SOUND)
-				   || (seq->type == SEQ_HD_SOUND)) {
-					if(seq->ipo)
-						seq->ipo->id.us--;
-					seq->ipo= ipo;
-				}
+				if(seq->ipo)
+					seq->ipo->id.us--;
+				seq->ipo= ipo;
 			}
 				break;
 			case ID_CU:
