@@ -3625,7 +3625,7 @@ static void material_panel_tramir(Material *ma)
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_MATPRV, "Gloss: ",
-		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->gloss_tra), 0.0, 1.0, 100, 0, "The clarity of the refraction. Values < 1.0 give diffuse, blurry reflections ");
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->gloss_tra), 0.0, 1.0, 100, 0, "The clarity of the refraction. Values < 1.0 give diffuse, blurry refractions");
 	uiDefButS(block, NUM, B_MATPRV, "Samples:",
 		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->samp_gloss_tra), 0.0, 1024.0, 100, 0, "Number of cone samples averaged for blurry refractions");	
 	uiDefButF(block, NUM, B_MATPRV, "Thresh: ",
