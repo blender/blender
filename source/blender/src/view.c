@@ -722,6 +722,7 @@ void viewmoveNDOFfly(int mode)
 
 void viewmove(int mode)
 {
+	static float lastofs[3] = {0,0,0};
 	Object *ob = OBACT;
 	float firstvec[3], newvec[3], dvec[3];
 	float reverse, oldquat[4], q1[4], si, phi, dist0;
@@ -783,13 +784,15 @@ void viewmove(int mode)
 		obofs[1]= -obofs[1];
 		obofs[2]= -obofs[2];
 	}
-	else if (ob && (U.uiflag & USER_ORBIT_SELECTION)) {
+	else if (U.uiflag & USER_ORBIT_SELECTION) {
 		use_sel = 1;
 		
 		VECCOPY(ofs, G.vd->ofs);
 		
-		/* If there's no selection, obofs is unmodified, so <0,0,0> */
-		calculateTransformCenter(V3D_CENTROID, obofs);
+		/* If there's no selection, lastofs is unmodified and last value since static */
+		calculateTransformCenter(V3D_CENTROID, lastofs);
+		
+		VECCOPY(obofs, lastofs);
 		VecMulf(obofs, -1.0f);
 	}
 	else
