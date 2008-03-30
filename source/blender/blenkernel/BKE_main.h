@@ -47,7 +47,7 @@ struct Library;
 
 typedef struct Main {
 	struct Main *next, *prev;
-	char name[160];
+	char name[240];
 	short versionfile, subversionfile;
 	short minversionfile, minsubversionfile;
 	

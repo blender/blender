@@ -596,7 +596,7 @@ static void outliner_242_patch(void)
 /* only here settings for fullscreen */
 int BIF_read_homefile(int from_memory)
 {
-	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
+	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAX];
 	char *home= BLI_gethome();
 	int success;
 	struct TmpFont *tf;
@@ -617,7 +617,7 @@ int BIF_read_homefile(int from_memory)
 		
 	G.relbase_valid = 0;
 	if (!from_memory) BLI_make_file_string(G.sce, tstr, home, ".B.blend");
-	strcpy(scestr, G.sce);	/* temporal store */
+	BLI_strncpy(scestr, G.sce, FILE_MAX);	/* temporal store */
 	
 	/* prevent loading no UI */
 	G.fileflags &= ~G_FILE_NO_UI;
@@ -913,7 +913,7 @@ void BIF_write_file(char *target)
 	if (BLO_write_file(di, writeflags, &err)) {
 		strcpy(G.sce, di);
 		G.relbase_valid = 1;
-		strcpy(G.main->name, di);	/* is guaranteed current file */
+		BLI_strncpy(G.main->name, di, FILE_MAX);	/* is guaranteed current file */
 
 		mainwindow_set_filename_to_title(G.main->name);
 

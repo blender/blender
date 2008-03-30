@@ -1028,8 +1028,8 @@ void BLI_makestringcode(const char *relfile, char *file)
 int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 {
 	int len, wasrelative;
-	char tmp[FILE_MAXDIR+FILE_MAXFILE];
-	char base[FILE_MAXDIR];
+	char tmp[FILE_MAX];
+	char base[FILE_MAX];
 	char vol[3] = {'\0', '\0', '\0'};
 
 	BLI_strncpy(vol, path, 3);
@@ -1050,13 +1050,13 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 		strcat(tmp, p);
 	}
 	else {
-		strcpy(tmp, path);
+		BLI_strncpy(tmp, path, FILE_MAX);
 	}
 #else
-	strcpy(tmp, path);
+	BLI_strncpy(tmp, path, FILE_MAX);
 #endif
 
-	strcpy(base, basepath);
+	BLI_strncpy(base, basepath, FILE_MAX);
 	
 	/* push slashes into unix mode - strings entering this part are
 	   potentially messed up: having both back- and forward slashes.

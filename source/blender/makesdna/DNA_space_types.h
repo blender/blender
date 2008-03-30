@@ -167,7 +167,7 @@ typedef struct SpaceFile {
 	int totfile;
 	
 	char title[24];
-	char dir[160];
+	char dir[240];
 	char file[80];
 	
 	short type, ofs, flag, sort;
@@ -373,7 +373,7 @@ typedef struct SpaceImaSel {
 
 	/* specific stuff for drawing */
 	char title[24];
-	char dir[160];
+	char dir[240];
 	char file[80];
 
 	short type, menu, flag, sort;

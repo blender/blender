@@ -415,7 +415,7 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	if (G.sce != filename) /* these are the same at times, should never copy to the same location */
 		strcpy(G.sce, filename);
 	
-	strcpy(G.main->name, filename); /* is guaranteed current file */
+	BLI_strncpy(G.main->name, filename, FILE_MAX); /* is guaranteed current file */
 	
 	MEM_freeN(bfd);
 }

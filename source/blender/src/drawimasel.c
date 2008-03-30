@@ -332,7 +332,7 @@ static void draw_imasel_previews(ScrArea *sa, SpaceImaSel *simasel)
 
 	if (!files) return;
 	/* Reload directory */
-	BLI_strncpy(simasel->dir, BIF_filelist_dir(files), FILE_MAXDIR);	
+	BLI_strncpy(simasel->dir, BIF_filelist_dir(files), FILE_MAX);	
 	
 	type = BIF_filelist_gettype(simasel->files);	
 	

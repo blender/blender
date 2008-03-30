@@ -258,7 +258,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
 			if (bfd) BLO_blendfiledata_free(bfd);
 			
-			char basedpath[160];
+			char basedpath[240];
 			// base the actuator filename with respect
 			// to the original file working directory
 			if (exitstring != "")
@@ -271,7 +271,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			if (!bfd)
 			{
 				// just add "//" in front of it
-				char temppath[162];
+				char temppath[242];
 				strcpy(temppath, "//");
 				strcat(temppath, basedpath);
 				

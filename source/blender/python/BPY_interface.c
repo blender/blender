@@ -1004,10 +1004,10 @@ int BPY_menu_do_python( short menutype, int event )
 	}
 
 	if( pym->dir ) { /* script is in U.pythondir */
-		char upythondir[FILE_MAXDIR];
+		char upythondir[FILE_MAX];
 
 		/* dirs in Blender can be "//", which has a special meaning */
-		BLI_strncpy(upythondir, U.pythondir, FILE_MAXDIR);
+		BLI_strncpy(upythondir, U.pythondir, FILE_MAX);
 		BLI_convertstringcode(upythondir, G.sce, 0); /* if so, this expands it */
 		BLI_make_file_string( "/", filestr, upythondir, pym->filename );
 	}

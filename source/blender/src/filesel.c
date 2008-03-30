@@ -1223,6 +1223,7 @@ static void activate_fileselect_(int type, char *title, char *file, short *menup
 	}
 	else if(type==FILE_LOADLIB) {
 		BLI_strncpy(sfile->dir, name, sizeof(sfile->dir));
+		BLI_cleanup_dir(G.sce, sfile->dir);
 		if( is_a_library(sfile, temp, group) ) {
 			/* force a reload of the library-filelist */
 			freefilelist(sfile);
@@ -1413,6 +1414,15 @@ static void filesel_execute(SpaceFile *sfile)
 	struct direntry *files;
 	char name[FILE_MAX];
 	int a;
+	int dirlen, filelen;
+
+	/* check for added length of dir and filename - annoying, but now that dir names can already be FILE_MAX
+	   we need to prevent overwriting. Alternative of shortening the name behind the user's back is greater evil 
+	   - elubie */ 
+	if (strlen(sfile->dir) + strlen(sfile->file) >= FILE_MAX) {
+		okee("File and Directory name together are too long. Please use shorter names.");
+		return;
+	}
 	
 	filesel_prevspace();
 
@@ -1869,7 +1879,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						/* the path is too long and we are not going up! */
 						if (strcmp(sfile->filelist[act].relname, ".") &&
 							strcmp(sfile->filelist[act].relname, "..") &&
-							strlen(sfile->dir) + strlen(sfile->filelist[act].relname) >= FILE_MAXDIR ) 
+							strlen(sfile->dir) + strlen(sfile->filelist[act].relname) >= FILE_MAX ) 
 						{
 							error("Path too long, cannot enter this directory");
 						} else {

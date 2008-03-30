@@ -104,7 +104,7 @@ void imasel_buttons(void)
 	uiBlock *block;
 	short xco, xcotitle;
 	char naam[256];
-	char dir[FILE_MAXDIR], group[32];
+	char dir[FILE_MAX], group[32];
 	short type;
 	int do_filter = 0;
 
