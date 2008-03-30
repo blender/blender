@@ -475,6 +475,9 @@ static void init_userdef_file(void)
 			}
 		}
 	}
+	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 16)) {
+		U.flag |= USER_ADD_VIEWALIGNED|USER_ADD_EDITMODE;
+	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
