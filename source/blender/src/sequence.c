@@ -875,7 +875,8 @@ TStripElem *give_tstripelem(Sequence *seq, int cfra)
 	   alpha over mode...
 	*/
 	if (seq->blend_mode != SEQ_BLEND_REPLACE ||
-	    (seq->ipo && seq->ipo->curve.first && !(seq->type & SEQ_EFFECT))) {
+	    (seq->ipo && seq->ipo->curve.first && (
+		    !(seq->type & SEQ_EFFECT) || !seq->seq1))) {
 		Strip * s = seq->strip;
 		if (cfra < seq->start) {
 			se = s->tstripdata_startstill;

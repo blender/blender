@@ -2572,25 +2572,66 @@ static void do_solid_color(Sequence * seq,int cfra,
 	float *rect_float;
 
 	if (out->rect) {
+		unsigned char col0[3];
+		unsigned char col1[3];
+
+		col0[0] = facf0 * cv->col[0] * 255;
+		col0[1] = facf0 * cv->col[1] * 255;
+		col0[2] = facf0 * cv->col[2] * 255;
+
+		col1[0] = facf1 * cv->col[0] * 255;
+		col1[1] = facf1 * cv->col[1] * 255;
+		col1[2] = facf1 * cv->col[2] * 255;
+
 		rect = (unsigned char *)out->rect;
 		
 		for(y=0; y<out->y; y++) {	
 			for(x=0; x<out->x; x++, rect+=4) {
-				rect[0]= (char)(cv->col[0]*255);
-				rect[1]= (char)(cv->col[1]*255);
-				rect[2]= (char)(cv->col[2]*255);
+				rect[0]= col0[0];
+				rect[1]= col0[1];
+				rect[2]= col0[2];
 				rect[3]= 255;
-			}	
+			}
+			y++;
+			if (y<out->y) {
+				for(x=0; x<out->x; x++, rect+=4) {
+					rect[0]= col1[0];
+					rect[1]= col1[1];
+					rect[2]= col1[2];
+					rect[3]= 255;
+				}	
+			}
 		}
+
 	} else if (out->rect_float) {
+		float col0[3];
+		float col1[3];
+
+		col0[0] = facf0 * cv->col[0];
+		col0[1] = facf0 * cv->col[1];
+		col0[2] = facf0 * cv->col[2];
+
+		col1[0] = facf1 * cv->col[0];
+		col1[1] = facf1 * cv->col[1];
+		col1[2] = facf1 * cv->col[2];
+
 		rect_float = out->rect_float;
 		
 		for(y=0; y<out->y; y++) {	
 			for(x=0; x<out->x; x++, rect_float+=4) {
-				rect_float[0]= cv->col[0];
-				rect_float[1]= cv->col[1];
-				rect_float[2]= cv->col[2];
+				rect_float[0]= col0[0];
+				rect_float[1]= col0[1];
+				rect_float[2]= col0[2];
 				rect_float[3]= 1.0;
+			}
+			y++;
+			if (y<out->y) {
+				for(x=0; x<out->x; x++, rect_float+=4) {
+					rect_float[0]= col1[0];
+					rect_float[1]= col1[1];
+					rect_float[2]= col1[2];
+					rect_float[3]= 1.0;
+				}
 			}
 		}
 	}
