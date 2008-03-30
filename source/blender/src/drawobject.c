@@ -213,9 +213,9 @@ int init_gl_materials(Object *ob, int check_alpha)
 
 		if(a<MAXMATBUF) {
 			if (ma->mode & MA_SHLESS) {
-				matbuf[a][0][0]= 2*ma->r;
-				matbuf[a][0][1]= 2*ma->g;
-				matbuf[a][0][2]= 2*ma->b;
+				matbuf[a][0][0]= ma->r;
+				matbuf[a][0][1]= ma->g;
+				matbuf[a][0][2]= ma->b;
 			} else {
 				matbuf[a][0][0]= (ma->ref+ma->emit)*ma->r;
 				matbuf[a][0][1]= (ma->ref+ma->emit)*ma->g;
