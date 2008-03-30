@@ -218,12 +218,18 @@ void transform_aspect_ratio_tface_uv(float *aspx, float *aspy)
 {
 	int w, h;
 	float xuser_asp, yuser_asp;
-	
-	aspect_sima(G.sima, &xuser_asp, &yuser_asp);
-	
-	transform_width_height_tface_uv(&w, &h);
-	*aspx= (float)w/256.0f * xuser_asp;
-	*aspy= (float)h/256.0f * yuser_asp;
+
+	if(G.sima) {
+		aspect_sima(G.sima, &xuser_asp, &yuser_asp);
+		
+		transform_width_height_tface_uv(&w, &h);
+		*aspx= (float)w/256.0f * xuser_asp;
+		*aspy= (float)h/256.0f * yuser_asp;
+	}
+	else {
+		*aspx= 1.0f;
+		*aspy= 1.0f;
+	}
 }
 
 void transform_width_height_tface_uv(int *width, int *height)
