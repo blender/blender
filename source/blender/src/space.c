@@ -2377,6 +2377,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						clear_bone_parent();
 					else if((G.qual==0) && (G.obedit->type==OB_ARMATURE)) 
 						select_bone_parent();
+					else if((G.qual==(LR_CTRLKEY|LR_SHIFTKEY)) && (G.obedit->type==OB_ARMATURE))
+						separate_armature();
 					else if((G.qual==0) && G.obedit->type==OB_MESH)
 						separatemenu();
 					else if ((G.qual==0) && ELEM(G.obedit->type, OB_CURVE, OB_SURF))

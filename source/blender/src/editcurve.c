@@ -449,7 +449,7 @@ void separate_nurb()
 	
 	G.obedit= 0;	/* displists behave different in edit mode */
 	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);	/* this is the separated one */
-	DAG_object_flush_update(G.scene, oldob, OB_RECALC_DATA);	/* this is the separated one */
+	DAG_object_flush_update(G.scene, oldob, OB_RECALC_DATA);	/* this is the original one */
 	
 	G.obedit= oldob;
 	BASACT= oldbase;

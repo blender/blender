@@ -93,6 +93,7 @@ void	merge_armature(void);
 void	free_editArmature(void);
 
 int		join_armature(void);
+void 	separate_armature(void);
 void	load_editArmature(void);
 
 void	make_bone_parent(void);

@@ -653,6 +653,223 @@ int join_armature(void)
 	return 1;
 }
 
+/* Helper function for armature separating - link fixing */
+static void separated_armature_fix_links(Object *origArm, Object *newArm, ListBase *edbo)
+{
+	Object *ob;
+	bPoseChannel *pchan;
+	bConstraint *con;
+	EditBone *ebo, *ebn;
+	
+	/* let's go through all objects in database */
+	for (ob= G.main->object.first; ob; ob= ob->id.next) {
+		/* do some object-type specific things */
+		if (ob->type == OB_ARMATURE) {
+			for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+				for (con= pchan->constraints.first; con; con= con->next) {
+					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+					ListBase targets = {NULL, NULL};
+					bConstraintTarget *ct;
+					
+					/* constraint targets */
+					if (cti && cti->get_constraint_targets) {
+						cti->get_constraint_targets(con, &targets);
+						
+						for (ct= targets.first; ct; ct= ct->next) {
+							/* any targets which point to original armature are redirected to the new one only if:
+							 *	- the target isn't the original armature itself
+							 *	- the target is one of the bones which were moved into newArm
+							 */
+							if ((ct->tar == origArm) && (ct->subtarget[0] != 0)) {
+								for (ebo=edbo->first, ebn=edbo->last; ebo && ebn; ebo=ebo->next, ebn=ebn->prev) {
+									/* check if either one matches */
+									if ( (strcmp(ebo->name, ct->subtarget)==0) ||
+										 (strcmp(ebn->name, ct->subtarget)==0) )
+									{
+										ct->tar= newArm;
+										printf("arm = '%s' pchan = '%s', ebo = '%s', YES \n", ob->id.name+2, pchan->name, ebo->name);
+										printf("arm = '%s' pchan = '%s', ebn = '%s', YES \n", ob->id.name+2, pchan->name, ebn->name);
+										break;
+									}
+									else {
+										printf("arm = '%s' pchan = '%s', ebo = '%s', NOT\n", ob->id.name+2, pchan->name, ebo->name);
+										printf("arm = '%s' pchan = '%s', ebn = '%s', NOT \n", ob->id.name+2, pchan->name, ebn->name);
+									}
+									
+									/* check if both ends have met (to stop checking) */
+									if (ebo == ebn) break;
+								}
+							}
+						}
+						
+						if (cti->flush_constraint_targets)
+							cti->flush_constraint_targets(con, &targets, 0);
+					}
+				}
+			}
+		}
+			
+		/* fix object-level constraints */
+		if (ob != origArm) {
+			for (con= ob->constraints.first; con; con= con->next) {
+				bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+				ListBase targets = {NULL, NULL};
+				bConstraintTarget *ct;
+				
+				/* constraint targets */
+				if (cti && cti->get_constraint_targets) {
+					cti->get_constraint_targets(con, &targets);
+					
+					for (ct= targets.first; ct; ct= ct->next) {
+						/* any targets which point to original armature are redirected to the new one only if:
+						 *	- the target isn't the original armature itself
+						 *	- the target is one of the bones which were moved into newArm
+						 */
+						if ((ct->tar == origArm) && (ct->subtarget[0] != 0)) {
+							for (ebo=edbo->first, ebn=edbo->last; ebo && ebn; ebo=ebo->next, ebn=ebn->prev) {
+								/* check if either one matches */
+								if ( (strcmp(ebo->name, ct->subtarget)==0) ||
+									 (strcmp(ebn->name, ct->subtarget)==0) )
+								{
+									ct->tar= newArm;
+									break;
+								}
+								
+								/* check if both ends have met (to stop checking) */
+								if (ebo == ebn) break;
+							}
+						}
+					}
+					
+					if (cti->flush_constraint_targets)
+						cti->flush_constraint_targets(con, &targets, 0);
+				}
+			}
+		}
+		
+		/* See if an object is parented to this armature */
+		if ((ob->parent) && (ob->parent == origArm)) {
+			/* Is object parented to a bone of this src armature? */
+			if (ob->partype==PARBONE) {
+				/* bone name in object */
+				for (ebo=edbo->first, ebn=edbo->last; ebo && ebn; ebo=ebo->next, ebn=ebn->prev) {
+					/* check if either one matches */
+					if ( (strcmp(ebo->name, ob->parsubstr)==0) ||
+						 (strcmp(ebn->name, ob->parsubstr)==0) )
+					{
+						ob->parent= newArm;
+						break;
+					}
+					
+					/* check if both ends have met (to stop checking) */
+					if (ebo == ebn) break;
+				}
+			}
+		}
+	}	
+}
+
+void separate_armature (void)
+{
+	EditBone *ebo, *ebn;
+	Object *oldob;
+	Base *base, *oldbase;
+	bArmature *arm;
+	ListBase edbo = {NULL, NULL};
+	
+	// 31Mar08 - Aligorith:
+	//	this tool is currently not ready for production use, as it will still 
+	// 	crash in some cases, and also constraint relinking isn't working yet 
+	// remove the following two lines to test this tool... you have been warned!
+		okee("Not implemented (WIP)");
+		return;
+	
+	if ( G.vd==0 || (G.vd->lay & G.obedit->lay)==0 ) return;
+	if ( okee("Separate")==0 ) return;
+
+	waitcursor(1);
+	
+	arm= G.obedit->data;
+	
+	/* we are going to trick everything as follows:
+	 * 1. duplicate base: this is the new one,  remember old pointer
+	 * 2. set aside all NOT selected bones
+	 * 3. load_editArmature(): this will be the new base
+	 * 4. freelist and restore old armature
+	 */
+	
+	/* only edit-base selected */
+	base= FIRSTBASE;
+	while(base) {
+		if(base->lay & G.vd->lay) {
+			if(base->object==G.obedit) base->flag |= 1;
+			else base->flag &= ~1;
+		}
+		base= base->next;
+	}
+
+	/* set aside: everything that is not selected */
+	for (ebo= G.edbo.first; ebo; ebo= ebn) {
+		ebn= ebo->next;
+		
+		/* remove from original, and move to duplicate if not-selected */
+		if ((ebo->flag & BONE_SELECTED)==0) {
+			EditBone *curbone;
+			
+			/* need to make sure children don't still refer to this only if they are selected
+			 * 	- potentially slow O(n*n) situation here... 
+			 */
+			for (curbone= G.edbo.first; curbone; curbone=curbone->next) {
+				if ((curbone->parent == ebo) && (curbone->flag & BONE_SELECTED)) {
+					curbone->parent= ebo->parent;
+					curbone->flag &= ~BONE_CONNECTED;
+				}
+			}
+			
+			BLI_remlink(&G.edbo, ebo);
+			BLI_addtail(&edbo, ebo); 
+		}
+	}
+
+	oldob= G.obedit;
+	oldbase= BASACT;
+
+	adduplicate(1, 0); /* no transform and zero so do get a linked dupli */
+	
+	G.obedit= BASACT->object;	/* basact is set in adduplicate() */
+	
+	G.obedit->data= copy_armature(arm);
+	/* because new armature is a copy: reduce user count */
+	arm->id.us--;
+	
+	load_editArmature();
+	
+	BASACT->flag &= ~SELECT;
+	
+	/* fix links before depsgraph flushes */ // err... or after?
+	printf("oldob = %p, obact = %p \n", oldob, G.obedit);
+	separated_armature_fix_links(oldob, G.obedit, &G.edbo);
+	
+	if (G.edbo.first) free_editArmature();
+	
+	G.edbo = edbo;
+	
+	G.obedit= 0;	/* displists behave different in edit mode */ // needed?
+	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);	/* this is the separated one */
+	DAG_object_flush_update(G.scene, oldob, OB_RECALC_DATA);	/* this is the original one */
+	
+	G.obedit= oldob;
+	BASACT= oldbase;
+	BASACT->flag |= SELECT;
+	
+	waitcursor(0);
+
+	countall();
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWOOPS, 0);
+}
+
 /* **************** END tools on Editmode Armature **************** */
 /* **************** PoseMode & EditMode *************************** */
 
@@ -1149,17 +1366,17 @@ static EditBone * get_nearest_editbonepoint (int findunsel, int *selmask)
 
 static void delete_bone(EditBone* exBone)
 {
-	EditBone	*curBone;
+	EditBone *curBone;
 	
-	/*	Find any bones that refer to this bone	*/
-	for (curBone=G.edbo.first;curBone;curBone=curBone->next){
-		if (curBone->parent==exBone){
+	/* Find any bones that refer to this bone */
+	for (curBone=G.edbo.first;curBone;curBone=curBone->next) {
+		if (curBone->parent==exBone) {
 			curBone->parent=exBone->parent;
 			curBone->flag &= ~BONE_CONNECTED;
 		}
 	}
 	
-	BLI_freelinkN (&G.edbo,exBone);
+	BLI_freelinkN(&G.edbo,exBone);
 }
 
 /* only editmode! */
