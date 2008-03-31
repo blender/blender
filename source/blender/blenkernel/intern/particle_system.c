@@ -3183,7 +3183,7 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 							global=0;
 					}
 
-				if(ec->vert_cos==0){
+				if(global==1){
 					/* get global coordinates back */
 					VECCOPY(co1,t_co1);
 					VECCOPY(co2,t_co2);
