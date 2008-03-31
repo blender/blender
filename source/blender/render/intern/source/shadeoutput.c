@@ -1661,7 +1661,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		}
 		
 		/* exposure correction */
-		if(R.wrld.exp!=0.0f || R.wrld.range!=1.0f) {
+		if((R.wrld.exp!=0.0f || R.wrld.range!=1.0f) && !R.sss_points) {
 			wrld_exposure_correct(shr->combined);	/* has no spec! */
 			wrld_exposure_correct(shr->spec);
 		}
