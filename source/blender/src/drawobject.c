@@ -3682,7 +3682,7 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 		glDisableClientState(GL_NORMAL_ARRAY);
 		glEnableClientState(GL_COLOR_ARRAY);
 		glDisable(GL_LIGHTING);
-		glPointSize(4.0f);
+		glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
 
 		if(G.scene->selectmode==SCE_SELECT_POINT){
 			float *cd=0,*cdata=0;
@@ -3755,6 +3755,7 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 	glLineWidth(1.0f);
 
 	mymultmatrix(ob->obmat);	// bring back local matrix for dtx
+	glPointSize(1.0);
 }
 
 unsigned int nurbcol[8]= {
