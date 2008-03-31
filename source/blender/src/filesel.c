@@ -1414,7 +1414,6 @@ static void filesel_execute(SpaceFile *sfile)
 	struct direntry *files;
 	char name[FILE_MAX];
 	int a;
-	int dirlen, filelen;
 
 	/* check for added length of dir and filename - annoying, but now that dir names can already be FILE_MAX
 	   we need to prevent overwriting. Alternative of shortening the name behind the user's back is greater evil 
@@ -1891,24 +1890,25 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							do_draw= 1;
 						}
 					} else {
-						if(event==MIDDLEMOUSE && sfile->type) filesel_execute(sfile);
+						if( strcmp(sfile->file, sfile->filelist[act].relname)) {
+							BLI_strncpy(sfile->file, sfile->filelist[act].relname, sizeof(sfile->file));
+							do_draw = 1;
+							
 #ifdef INTERNATIONAL
-						else if (sfile->type==FILE_LOADFONT) {
-							/* Font Preview */
-							if( strcmp(sfile->file, sfile->filelist[act].relname)) {
+							if (sfile->type==FILE_LOADFONT && event!=MIDDLEMOUSE) {
+								/* Font Preview */
 								char tmpstr[240];
-								do_draw= 1;
-								BLI_strncpy(sfile->file, sfile->filelist[act].relname, sizeof(sfile->file));
 								if (sfile->f_fp) {
 									sprintf (tmpstr, "%s%s", sfile->dir, sfile->file);
 									
-									if (!FTF_GetNewFont ((const unsigned char *)tmpstr, 0, U.fontsize))
+									if (!FTF_GetNewFont ((const unsigned char *)tmpstr, 0, U.fontsize)) {
 										error ("No font file");
-									
+									}
 								}
 							}
-						}
 #endif
+						}
+						if(event==MIDDLEMOUSE && sfile->type) filesel_execute(sfile);
 					}
 				}
 			}
