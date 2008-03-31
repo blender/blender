@@ -6623,6 +6623,7 @@ static DerivedMesh * explodeModifier_applyModifier(
 
 		if(psys==0 || psys->totpart==0) return derivedData;
 		if(psys->part==0 || psys->particles==0) return derivedData;
+		if(psmd->dm==0) return derivedData;
 
 		/* 1. find faces to be exploded if needed */
 		if(emd->facepa==0
