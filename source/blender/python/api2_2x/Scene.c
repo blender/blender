@@ -556,6 +556,7 @@ PyObject *Scene_Init( void )
 	PyDict_SetItemString( dict, "Render", Render_Init(  ) );
 	PyDict_SetItemString( dict, "Radio", Radio_Init(  ) );
 	PyDict_SetItemString( dict, "Sequence", Sequence_Init(  ) );
+	PyDict_SetItemString( dict, "TimeLine", TimeLine_Init(  ) );
 	
 	return submodule;
 }
