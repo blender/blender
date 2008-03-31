@@ -2078,6 +2078,10 @@ void clear_particles_from_cache(Object *ob, ParticleSystem *psys, int cfra)
 	int stack_index = modifiers_indexInObject(ob,(ModifierData*)psmd);
 
 	BKE_ptcache_id_clear((ID *)ob, PTCACHE_CLEAR_ALL, cfra, stack_index);
+
+	/* reactors need to initialize particles always since their birth times might have changed */
+	if(psys && psys->part && psys->part->type == PART_REACTOR)
+		psys->recalc |= PSYS_INIT;
 }
 static void write_particles_to_cache(Object *ob, ParticleSystem *psys, int cfra)
 {
