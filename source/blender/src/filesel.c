@@ -1890,22 +1890,25 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							sfile->ofs= 0;
 							do_draw= 1;
 						}
-					}
-					else {
-						if( strcmp(sfile->file, sfile->filelist[act].relname)) {
-							char tmpstr[240];
-							do_draw= 1;
-							BLI_strncpy(sfile->file, sfile->filelist[act].relname, sizeof(sfile->file));
-							if (sfile->f_fp) {
-								sprintf (tmpstr, "%s%s", sfile->dir, sfile->file);
-								/* printf ("%s\n", tmpstr); */
-								#ifdef INTERNATIONAL
-								if (!FTF_GetNewFont ((const unsigned char *)tmpstr, 0, U.fontsize))
-									error ("No font file");
-								#endif
+					} else {
+						if(event==MIDDLEMOUSE && sfile->type) filesel_execute(sfile);
+#ifdef INTERNATIONAL
+						else if (sfile->type==FILE_LOADFONT) {
+							/* Font Preview */
+							if( strcmp(sfile->file, sfile->filelist[act].relname)) {
+								char tmpstr[240];
+								do_draw= 1;
+								BLI_strncpy(sfile->file, sfile->filelist[act].relname, sizeof(sfile->file));
+								if (sfile->f_fp) {
+									sprintf (tmpstr, "%s%s", sfile->dir, sfile->file);
+									
+									if (!FTF_GetNewFont ((const unsigned char *)tmpstr, 0, U.fontsize))
+										error ("No font file");
+									
+								}
 							}
 						}
-						if(event==MIDDLEMOUSE && sfile->type) filesel_execute(sfile);
+#endif
 					}
 				}
 			}
