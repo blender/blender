@@ -3167,7 +3167,7 @@ void do_matbuts(unsigned short event)
 					ob=base->object;
 					for(psys=ob->particlesystem.first; psys; psys=psys->next) {
 						if(psys && ma==give_current_material(ob,psys->part->omat)) {
-							psys->recalc |= PSYS_INIT;
+							psys->recalc |= PSYS_INIT | PSYS_RECALC_HAIR;
 
 							DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 						}
@@ -3193,7 +3193,7 @@ static void particle_recalc_material(void *ma_v, void *arg2)
 			ob=base->object;
 			for(psys=ob->particlesystem.first; psys; psys=psys->next){
 				if(psys && ma==give_current_material(ob,psys->part->omat)){
-					psys->recalc |= PSYS_INIT;
+					psys->recalc |= PSYS_INIT | PSYS_RECALC_HAIR;
 
 					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 				}
@@ -3249,16 +3249,18 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 		uiDefButF(block, NUMSLI, B_MATPRV, "B ",		10,40,135,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	}
 	uiBlockEndAlign(block);
-	
-	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard");
-	
-	/* MAP TO */
-	uiBlockBeginAlign(block);
 
 	/*check if material is being used by particles*/
 	for(psys=ob->particlesystem.first; psys; psys=psys->next)
 		if(psys->part->omat==ob->actcol)
 			psys_mapto=1;
+	
+	but = uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard");
+	if(psys_mapto && mtex->pmapto & MAP_PA_INIT)
+		uiButSetFunc(but, particle_recalc_material, ma, NULL);
+
+	/* MAP TO */
+	uiBlockBeginAlign(block);
 
 	if(psys_mapto && pattr) {
 		but=uiDefButBitS(block, TOG3, MAP_PA_TIME, B_MAT_PARTICLE, "Time",	10,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the emission time of particles");

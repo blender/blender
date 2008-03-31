@@ -3092,6 +3092,7 @@ static void get_cpa_texture(DerivedMesh *dm, Material *ma, int face_index, float
 	if(ma) for(m=0; m<MAX_MTEX; m++){
 		mtex=ma->mtex[m];
 		if(mtex && (ma->septex & (1<<m))==0){
+			float def=mtex->def_var;
 			float var=mtex->varfac;
 			short blend=mtex->blendtype;
 			short neg=mtex->pmaptoneg;
@@ -3126,13 +3127,13 @@ static void get_cpa_texture(DerivedMesh *dm, Material *ma, int face_index, float
 				ptex->time= texture_value_blend(mtex->def_var,ptex->time,value,var,blend,neg & MAP_PA_TIME);
 			}
 			if((event & mtex->pmapto) & MAP_PA_LENGTH)
-				ptex->length= texture_value_blend(value,ptex->length,value,var,blend,neg & MAP_PA_LENGTH);
+				ptex->length= texture_value_blend(def,ptex->length,value,var,blend,neg & MAP_PA_LENGTH);
 			if((event & mtex->pmapto) & MAP_PA_CLUMP)
-				ptex->clump= texture_value_blend(value,ptex->clump,value,var,blend,neg & MAP_PA_CLUMP);
+				ptex->clump= texture_value_blend(def,ptex->clump,value,var,blend,neg & MAP_PA_CLUMP);
 			if((event & mtex->pmapto) & MAP_PA_KINK)
-				ptex->kink= texture_value_blend(value,ptex->kink,value,var,blend,neg & MAP_PA_KINK);
+				ptex->kink= texture_value_blend(def,ptex->kink,value,var,blend,neg & MAP_PA_KINK);
 			if((event & mtex->pmapto) & MAP_PA_ROUGH)
-				ptex->rough= texture_value_blend(value,ptex->rough,value,var,blend,neg & MAP_PA_ROUGH);
+				ptex->rough= texture_value_blend(def,ptex->rough,value,var,blend,neg & MAP_PA_ROUGH);
 		}
 	}
 	if(event & MAP_PA_TIME) { CLAMP(ptex->time,0.0,1.0); }
@@ -3152,6 +3153,7 @@ void psys_get_texture(Object *ob, Material *ma, ParticleSystemModifierData *psmd
 		mtex=ma->mtex[m];
 		if(mtex && (ma->septex & (1<<m))==0){
 			float var=mtex->varfac;
+			float def=mtex->def_var;
 			short blend=mtex->blendtype;
 			short neg=mtex->pmaptoneg;
 
@@ -3192,24 +3194,24 @@ void psys_get_texture(Object *ob, Material *ma, ParticleSystemModifierData *psmd
 					setvars |= MAP_PA_TIME;
 				}
 				else
-					ptex->time= texture_value_blend(mtex->def_var,ptex->time,value,var,blend,neg & MAP_PA_TIME);
+					ptex->time= texture_value_blend(def,ptex->time,value,var,blend,neg & MAP_PA_TIME);
 			}
 			if((event & mtex->pmapto) & MAP_PA_LIFE)
-				ptex->life= texture_value_blend(mtex->def_var,ptex->life,value,var,blend,neg & MAP_PA_LIFE);
+				ptex->life= texture_value_blend(def,ptex->life,value,var,blend,neg & MAP_PA_LIFE);
 			if((event & mtex->pmapto) & MAP_PA_DENS)
-				ptex->exist= texture_value_blend(mtex->def_var,ptex->exist,value,var,blend,neg & MAP_PA_DENS);
+				ptex->exist= texture_value_blend(def,ptex->exist,value,var,blend,neg & MAP_PA_DENS);
 			if((event & mtex->pmapto) & MAP_PA_SIZE)
-				ptex->size= texture_value_blend(mtex->def_var,ptex->size,value,var,blend,neg & MAP_PA_SIZE);
+				ptex->size= texture_value_blend(def,ptex->size,value,var,blend,neg & MAP_PA_SIZE);
 			if((event & mtex->pmapto) & MAP_PA_IVEL)
-				ptex->ivel= texture_value_blend(mtex->def_var,ptex->ivel,value,var,blend,neg & MAP_PA_IVEL);
+				ptex->ivel= texture_value_blend(def,ptex->ivel,value,var,blend,neg & MAP_PA_IVEL);
 			if((event & mtex->pmapto) & MAP_PA_PVEL)
 				texture_rgb_blend(ptex->pvel,rgba,ptex->pvel,value,var,blend);
 			if((event & mtex->pmapto) & MAP_PA_LENGTH)
-				ptex->length= texture_value_blend(mtex->def_var,ptex->length,value,var,blend,neg & MAP_PA_LENGTH);
+				ptex->length= texture_value_blend(def,ptex->length,value,var,blend,neg & MAP_PA_LENGTH);
 			if((event & mtex->pmapto) & MAP_PA_CLUMP)
-				ptex->clump= texture_value_blend(mtex->def_var,ptex->clump,value,var,blend,neg & MAP_PA_CLUMP);
+				ptex->clump= texture_value_blend(def,ptex->clump,value,var,blend,neg & MAP_PA_CLUMP);
 			if((event & mtex->pmapto) & MAP_PA_KINK)
-				ptex->kink= texture_value_blend(mtex->def_var,ptex->kink,value,var,blend,neg & MAP_PA_CLUMP);
+				ptex->kink= texture_value_blend(def,ptex->kink,value,var,blend,neg & MAP_PA_CLUMP);
 		}
 	}
 	if(event & MAP_PA_TIME) { CLAMP(ptex->time,0.0,1.0); }
