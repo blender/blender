@@ -2080,11 +2080,10 @@ int minmax_tface_uv(float *min, float *max)
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 		if (simaFaceDraw_Check(efa, tf)) {
-			if (simaUVSel_Check(efa, tf, 0))				DO_MINMAX2(tf->uv[0], min, max);
-			if (simaUVSel_Check(efa, tf, 1))				DO_MINMAX2(tf->uv[1], min, max);
-			if (simaUVSel_Check(efa, tf, 2))				DO_MINMAX2(tf->uv[2], min, max);
-			if (efa->v4 && (simaUVSel_Check(efa, tf, 3)))	DO_MINMAX2(tf->uv[3], min, max);
-			sel = 1;
+			if (simaUVSel_Check(efa, tf, 0))				{ DO_MINMAX2(tf->uv[0], min, max); sel = 1; }
+			if (simaUVSel_Check(efa, tf, 1))				{ DO_MINMAX2(tf->uv[1], min, max); sel = 1; }
+			if (simaUVSel_Check(efa, tf, 2))				{ DO_MINMAX2(tf->uv[2], min, max); sel = 1; }
+			if (efa->v4 && (simaUVSel_Check(efa, tf, 3)))	{ DO_MINMAX2(tf->uv[3], min, max); sel = 1; }
 		}
 	}
 	return sel;
