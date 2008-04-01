@@ -40,6 +40,8 @@ struct SCA_DebugProp
 {
 	class CValue*	m_obj;
 	STR_String 		m_name;
+	SCA_DebugProp();
+	~SCA_DebugProp();
 };
 
 class SCA_IScene 
