@@ -1714,8 +1714,10 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeSocket *tsock, bNodeL
 					if(nodeCountSocketLinks(snode->edittree, sock) < sock->limit)
 						break;
 			}
-			if(sock)
+			if(sock) {
 				tlink->tosock= sock;
+				sock->flag &= ~SOCK_HIDDEN;
+			}
 			else {
 				nodeRemLink(snode->edittree, tlink);
 			}
