@@ -1727,9 +1727,13 @@ void DQuatToMat4(DualQuat *dq, float mat[][4])
 
 void DQuatAddWeighted(DualQuat *dqsum, DualQuat *dq, float weight)
 {
+	int flipped= 0;
+
 	/* make sure we interpolate quats in the right direction */
-	if (QuatDot(dq->quat, dqsum->quat) < 0)
-		weight = -weight;
+	if (QuatDot(dq->quat, dqsum->quat) < 0) {
+		flipped= 1;
+		weight= -weight;
+	}
 
 	/* interpolate rotation and translation */
 	dqsum->quat[0] += weight*dq->quat[0];
@@ -1745,6 +1749,9 @@ void DQuatAddWeighted(DualQuat *dqsum, DualQuat *dq, float weight)
 	/* interpolate scale - but only if needed */
 	if (dq->scale_weight) {
 		float wmat[4][4];
+
+		if(flipped)	/* we don't want negative weights for scaling */
+			weight= -weight;
 
 		Mat4CpyMat4(wmat, dq->scale);
 		Mat4MulFloat((float*)wmat, weight);
