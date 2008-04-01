@@ -2061,7 +2061,7 @@ static int draw_em_fancy__setFaceOpts(void *userData, int index, int *drawSmooth
 static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, int dt)
 {
 	Mesh *me = ob->data;
-	EditFace *efa_act = EM_get_actFace(); /* annoying but active faces is stored differently */
+	EditFace *efa_act = EM_get_actFace(0); /* annoying but active faces is stored differently */
 	EditEdge *eed_act = NULL;
 	EditVert *eve_act = NULL;
 	

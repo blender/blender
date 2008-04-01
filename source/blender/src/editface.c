@@ -341,14 +341,19 @@ static void uv_calc_shift_project(float *target, float *shift, float rotmat[][4]
 
 void correct_uv_aspect( void )
 {
-	float aspx, aspy;
+	float aspx=1, aspy=1;
+	EditMesh *em = G.editMesh;
+	EditFace *efa = EM_get_actFace(1);
+	MTFace *tface;
 	
-	transform_aspect_ratio_tface_uv(&aspx, &aspy);
+	if (efa) {
+		tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		image_final_aspect(tface->tpage, &aspx, &aspy);
+	}
 	
 	if (aspx != aspy) {
-		MTFace *tface;
+		
 		EditMesh *em = G.editMesh;
-		EditFace *efa;
 		float scale;
 		
 		if (aspx > aspy) {
@@ -569,6 +574,8 @@ void calculate_uv_map(unsigned short mapmode)
 		break;
 		}
 	default:
+		if ((G.scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT)==0)
+			correct_uv_aspect();
 		return;
 	} /* end switch mapmode */
 
@@ -615,37 +622,15 @@ void calculate_uv_map(unsigned short mapmode)
 
 /* last_sel, use em->act_face otherwise get the last selected face in the editselections
  * at the moment, last_sel is mainly useful for gaking sure the space image dosnt flicker */
-MTFace *get_active_mtface(EditFace **act_efa, MCol **mcol, short sloppy)
+MTFace *get_active_mtface(EditFace **act_efa, MCol **mcol, int sloppy)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa = NULL;
-	EditSelection *ese;
 	
 	if(!EM_texFaceCheck())
 		return NULL;
 	
-	if (sloppy)
-		efa = EM_get_actFace();
-	
-	/* first check the active face */
-	if ((sloppy && efa)==0) {
-		ese = em->selected.last;
-		for (; ese; ese=ese->prev){
-			if(ese->type == EDITFACE) {
-				efa = (EditFace *)ese->data;
-				
-				if (efa->h)	efa= NULL;
-				else		break;
-			}
-		}
-	}
-	
-	if (sloppy && !efa) {
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			if (efa->f & SELECT)
-				break;
-		}
-	}
+	efa = EM_get_actFace(sloppy);
 	
 	if (efa) {
 		if (mcol) {

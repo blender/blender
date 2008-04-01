@@ -1521,7 +1521,7 @@ void mesh_copy_menu(void)
 		MTFace *tf, *tf_act = NULL;
 		MCol *mcol, *mcol_act = NULL;
 		
-		efa_act = EM_get_actFace();
+		efa_act = EM_get_actFace(0);
 		
 		if (efa_act) {
 			ret= pupmenu(

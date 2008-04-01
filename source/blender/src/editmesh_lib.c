@@ -78,9 +78,32 @@ void EM_set_actFace(EditFace *efa)
 	G.editMesh->act_face = efa;
 }
 
-EditFace * EM_get_actFace(void)
+EditFace * EM_get_actFace(int sloppy)
 {
-	return (G.editMesh->act_face && G.editMesh->act_face->f & SELECT) ? G.editMesh->act_face : NULL ;
+	if (G.editMesh->act_face && G.editMesh->act_face->f & SELECT) {
+		return G.editMesh->act_face;
+	} else if (sloppy) {
+		EditFace *efa= NULL;
+		EditSelection *ese;
+		
+		ese = G.editMesh->selected.last;
+		for (; ese; ese=ese->prev){
+			if(ese->type == EDITFACE) {
+				efa = (EditFace *)ese->data;
+				
+				if (efa->h)	efa= NULL;
+				else		break;
+			}
+		}
+		if (efa==NULL) {
+			for (efa= G.editMesh->faces.first; efa; efa= efa->next) {
+				if (efa->f & SELECT)
+					break;
+			}
+		}
+		return efa; /* can still be null */
+	}
+	return NULL;
 }
 
 /* ********* Selection History ************ */

@@ -219,8 +219,8 @@ void transform_aspect_ratio_tface_uv(float *aspx, float *aspy)
 	int w, h;
 	float xuser_asp, yuser_asp;
 
-	if(G.sima) {
-		aspect_sima(G.sima, &xuser_asp, &yuser_asp);
+	if(G.sima && G.sima->image) {
+		image_pixel_aspect(G.sima->image, &xuser_asp, &yuser_asp);
 		
 		transform_width_height_tface_uv(&w, &h);
 		*aspx= (float)w/256.0f * xuser_asp;
@@ -2712,23 +2712,44 @@ void image_changed(SpaceImage *sima, Image *image)
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
-void aspect_sima(SpaceImage *sima, float *x, float *y)
+void image_pixel_aspect(Image *image, float *x, float *y)
 {
 	*x = *y = 1.0;
 	
-	if(		(sima->image == 0) ||
-			(sima->image->type == IMA_TYPE_R_RESULT) ||
-			(sima->image->type == IMA_TYPE_COMPOSITE) ||
-			(sima->image->tpageflag & IMA_TILES) ||
-			(sima->image->aspx==0.0 || sima->image->aspy==0.0)
+	if(		(image == NULL) ||
+			(image->type == IMA_TYPE_R_RESULT) ||
+			(image->type == IMA_TYPE_COMPOSITE) ||
+			(image->tpageflag & IMA_TILES) ||
+			(image->aspx==0.0 || image->aspy==0.0)
 	) {
 		return;
 	}
 	
 	/* x is always 1 */
-	*y = sima->image->aspy / sima->image->aspx;
+	*y = image->aspy / image->aspx;
 }
 
+void image_final_aspect(Image *image, float *x, float *y)
+{
+	*x = *y = 1.0;
+	
+	if(		(image == NULL) ||
+			(image->type == IMA_TYPE_R_RESULT) ||
+			(image->type == IMA_TYPE_COMPOSITE) ||
+			(image->tpageflag & IMA_TILES) ||
+			(image->aspx==0.0 || image->aspy==0.0)
+	) {
+		return;
+	} else {
+		ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
+		if (ibuf && ibuf->x && ibuf->y)  {
+			*y = (image->aspy * ibuf->y) / (image->aspx * ibuf->x);
+		} else {
+			/* x is always 1 */
+			*y = image->aspy / image->aspx;
+		}
+	}
+}
 
 /* Face selection tests  - Keep these together */
 

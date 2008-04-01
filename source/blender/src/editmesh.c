@@ -1023,7 +1023,7 @@ void load_editMesh(void)
 	MFace *mface;
 	MSelect *mselect;
 	EditVert *eve;
-	EditFace *efa;
+	EditFace *efa, *efa_act;
 	EditEdge *eed;
 	EditSelection *ese;
 	float *fp, *newkey, *oldkey, nor[3];
@@ -1238,6 +1238,7 @@ void load_editMesh(void)
 	/* the faces */
 	a = 0;
 	efa= em->faces.first;
+	efa_act= EM_get_actFace(0);
 	i = 0;
 	me->act_face = -1;
 	while(efa) {
@@ -1295,7 +1296,7 @@ void load_editMesh(void)
 		/* no index '0' at location 3 or 4 */
 		test_index_face(mface, &me->fdata, i, efa->v4?4:3);
 		
-		if (EM_get_actFace() == efa)
+		if (efa_act == efa)
 			me->act_face = a;
 
 #ifdef WITH_VERSE

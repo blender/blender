@@ -194,7 +194,7 @@ void calc_image_view(SpaceImage *sima, char mode)
 		ImBuf *ibuf= imagewindow_get_ibuf(sima);
 		float xuser_asp, yuser_asp;
 		
-		aspect_sima(sima, &xuser_asp, &yuser_asp);
+		image_pixel_aspect(sima->image, &xuser_asp, &yuser_asp);
 		if(ibuf) {
 			xim= ibuf->x * xuser_asp;
 			yim= ibuf->y * yuser_asp;
@@ -2045,7 +2045,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	unsigned int *rect;
 	float x1, y1;
 	short sx, sy, dx, dy, show_render= 0, show_viewer= 0;
-	float xuser_asp, yuser_asp;
+	float xuser_asp=1, yuser_asp=1;
 		/* If derived data is used then make sure that object
 		 * is up-to-date... might not be the case because updates
 		 * are normally done in drawview and could get here before
@@ -2070,9 +2070,8 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	
 	what_image(sima);
 	
-	aspect_sima(sima, &xuser_asp, &yuser_asp);
-	
 	if(sima->image) {
+		image_pixel_aspect(sima->image, &xuser_asp, &yuser_asp);
 		
 		/* UGLY hack? until now iusers worked fine... but for flipbook viewer we need this */
 		if(sima->image->type==IMA_TYPE_COMPOSITE) {

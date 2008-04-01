@@ -262,6 +262,6 @@ int EM_texFaceCheck(void); /* can we edit UV's for this mesh?*/
 int EM_vertColorCheck(void); /* can we edit colors for this mesh?*/
 
 void EM_set_actFace(struct EditFace *efa);
-struct EditFace * EM_get_actFace(void);
+struct EditFace * EM_get_actFace(int sloppy);
 
 #endif

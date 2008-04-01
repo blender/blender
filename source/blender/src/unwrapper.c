@@ -321,12 +321,15 @@ void unwrap_lscm(short seamcut)
 	
 	/* scale before packing */
 	if ((G.scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT)==0) {
-		float aspx, aspy;
+		EditFace *efa = EM_get_actFace(1);
+		if (efa) {
+			float aspx, aspy;
+			MTFace *tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			image_final_aspect(tface->tpage, &aspx, &aspy);
 		
-		transform_aspect_ratio_tface_uv(&aspx, &aspy);
-		
-		if (aspx!=aspy) {
-			param_scale(handle, 1.0, aspx/aspy);
+			if (aspx!=aspy) {
+				param_scale(handle, 1.0, aspx/aspy);
+			}
 		}
 	}
 	
