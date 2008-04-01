@@ -2688,7 +2688,7 @@ static void object_panel_draw(Object *ob)
 	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	/* LAYERS */
-	xco= 120;
+	xco= 80;
 	dx= 35;
 	dy= 30;
 	
@@ -2708,6 +2708,9 @@ static void object_panel_draw(Object *ob)
 		uiDefButBitI(block, TOG, 1<<(a+10), B_OBLAY+a+10, "",	(short)(xco+a*(dx/2)), 165, (short)(dx/2), (short)(dy/2), (int *)&(BASACT->lay), 0, 0, 0, 0, "");
 	
 	uiBlockEndAlign(block);
+	
+	/* Object Color */
+	uiDefButF(block, COL, REDRAWVIEW3D, "",	270, 165,30, 30, ob->col, 0, 0, 0, 0, "Object color, used when faces have the ObCol mode enabled");
 	
 	uiDefBut(block, LABEL, 0, "Drawtype",						10,120,100,20, NULL, 0, 0, 0, 0, "");
 	
