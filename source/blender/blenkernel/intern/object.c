@@ -53,6 +53,8 @@
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_nla_types.h"
@@ -2287,4 +2289,43 @@ float give_timeoffset(Object *ob) {
 	} else {
 		return ob->sf;
 	}
+}
+
+int give_obdata_texspace(Object *ob, int **texflag, float **loc, float **size, float **rot) {
+	
+	if (ob->data==NULL)
+		return 0;
+	
+	switch (GS(((ID *)ob->data)->name)) {
+	case ID_ME:
+	{
+		Mesh *me= ob->data;
+		if (texflag)	*texflag = &me->texflag;
+		if (loc)		*loc = me->loc;
+		if (size)		*size = me->size;
+		if (rot)		*rot = me->rot;
+		break;
+	}
+	case ID_CU:
+	{
+		Curve *cu= ob->data;
+		if (texflag)	*texflag = &cu->texflag;
+		if (loc)		*loc = cu->loc;
+		if (size)		*size = cu->size;
+		if (rot)		*rot = cu->rot;
+		break;
+	}
+	case ID_MB:
+	{
+		MetaBall *mb= ob->data;
+		if (texflag)	*texflag = &mb->texflag;
+		if (loc)		*loc = mb->loc;
+		if (size)		*size = mb->size;
+		if (rot)		*rot = mb->rot;
+		break;
+	}
+	default:
+		return 0;
+	}
+	return 1;
 }

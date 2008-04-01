@@ -5412,12 +5412,8 @@ static void editing_panel_links(Object *ob)
 	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL);
 	else return;
 	
-	id= ob->data;
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
-	
-	if(ob->type==OB_MESH) poin= &( ((Mesh *)ob->data)->texflag );
-	else if(ob->type==OB_MBALL) poin= &( ((MetaBall *)ob->data)->texflag );
-	else poin= &( ((Curve *)ob->data)->texflag );
+	give_obdata_texspace(ob, &poin, NULL, NULL, NULL);
 	uiDefButBitI(block, TOG, AUTOSPACE, B_AUTOTEX, "AutoTexSpace",	143,15,140,19, poin, 0, 0, 0, 0, "Adjusts active object's texture space automatically when transforming object");
 
 	sprintf(str,"%d Mat ", ob->totcol);

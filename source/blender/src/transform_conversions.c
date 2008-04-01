@@ -284,6 +284,7 @@ static void createTransTexspace(TransInfo *t)
 	TransData *td;
 	Object *ob;
 	ID *id;
+	int *texflag;
 	
 	ob= OBACT;
 	
@@ -311,26 +312,8 @@ static void createTransTexspace(TransInfo *t)
 	Mat3Ortho(td->axismtx);
 	Mat3Inv(td->smtx, td->mtx);
 	
-	if( GS(id->name)==ID_ME) {
-		Mesh *me= ob->data;
-		me->texflag &= ~AUTOSPACE;
-		td->loc= me->loc;
-		td->ext->rot= me->rot;
-		td->ext->size= me->size;
-	}
-	else if( GS(id->name)==ID_CU) {
-		Curve *cu= ob->data;
-		cu->texflag &= ~CU_AUTOSPACE;
-		td->loc= cu->loc;
-		td->ext->rot= cu->rot;
-		td->ext->size= cu->size;
-	}
-	else if( GS(id->name)==ID_MB) {
-		MetaBall *mb= ob->data;
-		mb->texflag &= ~MB_AUTOSPACE;
-		td->loc= mb->loc;
-		td->ext->rot= mb->rot;
-		td->ext->size= mb->size;
+	if (give_obdata_texspace(ob, &texflag, &td->loc, &td->ext->size, &td->ext->rot)) {
+		*texflag &= ~AUTOSPACE;
 	}
 	
 	VECCOPY(td->iloc, td->loc);
