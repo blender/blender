@@ -3117,7 +3117,6 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 	ParticleKey cstate;
 	float imat[4][4];
 	float co1[3],co2[3],def_loc[3],def_nor[3],unit_nor[3],def_tan[3],dvec[3],def_vel[3],dave[3],dvel[3];
-	float t_co1[3]={0.0,0.0,0.0},t_co2[3]={0.0,0.0,0.0};
 	float pa_minmax[6];
 	float min_w[4], zerovec[3]={0.0,0.0,0.0}, ipoint[3];
 	float min_d,dotprod,damp,frict,o_len,d_len,radius=-1.0f;
@@ -3156,9 +3155,6 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 				if(ec->vert_cos==0){
 					/* convert particle coordinates to object coordinates */
 					Mat4Invert(imat,ob->obmat);
-
-					VECCOPY(t_co1,co1);
-					VECCOPY(t_co2,co2);
 					Mat4MulVecfl(imat,co1);
 					Mat4MulVecfl(imat,co2);
 				}
@@ -3177,20 +3173,17 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 					radius=pa->size;
 				}
 
-				if(ec->face_minmax==0 || AabbIntersectAabb(pa_minmax,pa_minmax+3,ec->ob_minmax,ec->ob_minmax+3))
+				if(ec->face_minmax==0 || AabbIntersectAabb(pa_minmax,pa_minmax+3,ec->ob_minmax,ec->ob_minmax+3)) {
 					if(psys_intersect_dm(ob,dm,ec->vert_cos,co1,co2,&min_d,&min_face,min_w,
 						ec->face_minmax,pa_minmax,radius,ipoint)){
+
 						min_ob=ob;
+
 						if(ec->vert_cos)
 							global=1;
 						else
 							global=0;
 					}
-
-				if(global==1){
-					/* get global coordinates back */
-					VECCOPY(co1,t_co1);
-					VECCOPY(co2,t_co2);
 				}
 			}
 		}
@@ -3215,7 +3208,6 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 			mface+=min_face;
 			mvert=dm->getVertDataArray(dm,CD_MVERT);
 
-
 			/* permeability check */
 			if(BLI_frand()<ob->pd->pdef_perm)
 				through=1;
@@ -3224,10 +3216,7 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 
 			if(through==0 && (part->flag & PART_DIE_ON_COL || ob->pd->flag & PDEFLE_KILL_PART)){
 				pa->dietime = cfra-(1.0f-min_d)*dfra;
-				VecLerpf(def_loc,co1,co2,min_d);
-
-				if(global==0)
-					Mat4MulVecfl(ob->obmat,def_loc);
+				VecLerpf(def_loc,def_loc,state->co,min_d);
 
 				VECCOPY(state->co,def_loc);
 				VecLerpf(state->vel,pa->state.vel,state->vel,min_d);
@@ -3245,10 +3234,19 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 				if(part->flag & PART_STICKY){
 					pa->stick_ob=ob;
 					pa->flag |= PARS_STICKY;
-					//stick_particle_to_object(ob,pa,state);
 				}
 			}
 			else{
+				VECCOPY(co1,def_loc);
+				VECCOPY(co2,state->co);
+
+				if(global==0){
+					/* convert particle coordinates to object coordinates */
+					Mat4Invert(imat,ob->obmat);
+					Mat4MulVecfl(imat,co1);
+					Mat4MulVecfl(imat,co2);
+				}
+
 				VecLerpf(def_loc,co1,co2,min_d);
 
 				if(radius>0.0f){
@@ -4380,7 +4378,7 @@ static void cached_step(Object *ob, ParticleSystemModifierData *psmd, ParticleSy
 			pa->loop = 0;
 
 		birthtime = pa->time + pa->loop * pa->lifetime;
-		dietime = birthtime + pa->lifetime;
+		dietime = birthtime + (1 + pa->loop) * (pa->dietime - pa->time);
 
 		/* update alive status and push events */
 		if(pa->time > cfra)
