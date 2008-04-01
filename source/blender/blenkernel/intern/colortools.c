@@ -592,7 +592,8 @@ float curvemap_evaluateF(CurveMap *cuma, float value)
 	fi= (value-cuma->mintable)*cuma->range;
 	i= (int)fi;
 	
-	if(fi<0.0f || fi>cuma->range)
+	/* fi is table float index and should check against table range i.e. [0.0 CM_TABLE] */
+	if(fi<0.0f || fi>CM_TABLE)
 		return curvemap_calc_extend(cuma, value, &cuma->table[0].x, &cuma->table[CM_TABLE].x);
 	else {
 		if(i<0) return cuma->table[0].y;
