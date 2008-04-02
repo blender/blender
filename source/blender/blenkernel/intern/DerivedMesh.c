@@ -2634,7 +2634,8 @@ void multires_render_final(Object *ob, Mesh *me, DerivedMesh **dm, float *vert_c
 			(*dm)->release(*dm);
 			for(i=0; i<me->totvert; ++i)
 				me->mvert[i]= vertdup[i];
-
+			/* Free vertdup after use*/
+			MEM_freeN(vertdup);
 			/* Go to the render level */
 			me->mr->newlvl= me->mr->renderlvl;
 			multires_set_level(ob, me, 1);
