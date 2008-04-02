@@ -700,9 +700,7 @@ void do_flatten_brush(const BrushAction *a, const ListBase *active_verts)
 		VecAddf(val, val, co);
 		
 		sculpt_clip(a, co, val);
-		if (isnan(co[0]) || isnan(co[1]) || isnan(co[2])) {
-			printf("NAN\n");
-		} 
+		
 		node= node->next;
 	}
 }
