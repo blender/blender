@@ -1655,6 +1655,13 @@ void modifiers_explodeFacepa(void *arg1, void *arg2)
 	emd->flag |= eExplodeFlag_CalcFaces;
 }
 
+static int modifier_is_fluid_particles(ModifierData *md) {
+	if(md->type == eModifierType_ParticleSystem) {
+		if(((ParticleSystemModifierData *)md)->psys->part->type == PART_FLUID)
+			return 1;
+	}
+	return 0;
+}
 static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco, int *yco, int index, int cageIndex, int lastCageIndex)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -1732,7 +1739,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		// deletion over the deflection panel
-		if(md->type!=eModifierType_Collision)
+		// fluid particle modifier can't be deleted here
+		if(md->type!=eModifierType_Collision && !modifier_is_fluid_particles(md))
 		{
 			but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_X, x+width-70+40, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Delete modifier");
 			uiButSetFunc(but, modifiers_del, ob, md);

@@ -2307,26 +2307,54 @@ void do_object_panels(unsigned short event)
 		fluidsimBake(ob);
 		break;
 	case B_FLUIDSIM_MAKEPART:
-		{
-			PartEff *paf= NULL;
-			/* prepare fluidsim particle display */
-			// simplified delete effect, create new - recalc some particles...
-			if(ob==NULL || ob->type!=OB_MESH) break;
-			ob->fluidsimSettings->type = 0;
-			// reset type, and init particle system once normally
-			paf= give_parteff(ob); 
-			if( (BLI_countlist(&ob->effect)<MAX_EFFECT) && 
-			    (!paf)) { 
-				// create new entry
-				copy_act_effect(ob); DAG_scene_sort(G.scene); }
-			paf = give_parteff(ob);
-			if(paf) {
-				paf->totpart = 1000; paf->sta = paf->end = 1.0; // generate some particles...
-				build_particle_system(ob);
-				ob->fluidsimSettings->type = OB_FLUIDSIM_PARTICLE;
-			}
+		if(ob==NULL || ob->type!=OB_MESH) break;
+		else {
+			ParticleSettings *part = psys_new_settings("PSys", G.main);
+			ParticleSystem *psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
+			ModifierData *md;
+			ParticleSystemModifierData *psmd;
+
+			part->type = PART_FLUID;
+			psys->part = part;
+			psys->flag |= PSYS_ENABLED;
+
+			ob->fluidsimSettings->type = OB_FLUIDSIM_PARTICLE;
+
+			BLI_addtail(&ob->particlesystem,psys);
+
+			md= modifier_new(eModifierType_ParticleSystem);
+			sprintf(md->name, "FluidParticleSystem", BLI_countlist(&ob->particlesystem));
+			psmd= (ParticleSystemModifierData*) md;
+			psmd->psys=psys;
+			BLI_addtail(&ob->modifiers, md);
 		}
 		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		break;
+	case B_FLUIDSIM_CHANGETYPE:
+		if(ob && ob->particlesystem.first && ob->fluidsimSettings->type!=OB_FLUIDSIM_PARTICLE){
+			ParticleSystem *psys;
+			for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+				if(psys->part->type==PART_FLUID) {
+					/* clear modifier */
+					ParticleSystemModifierData *psmd= psys_get_modifier(ob,psys);
+					BLI_remlink(&ob->modifiers, psmd);
+					modifier_free((ModifierData *)psmd);
+
+					/* clear particle system */
+					BLI_remlink(&ob->particlesystem,psys);
+					psys_free(ob,psys);
+
+					BIF_undo_push("Delete particle system");
+
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+
+					allqueue(REDRAWVIEW3D, 0);
+					allqueue(REDRAWOOPS, 0);
+					break;
+				}
+			}
+		}
 		allqueue(REDRAWBUTSOBJECT, 0);
 		break;
 	case B_FLUIDSIM_SELDIR: 
@@ -2966,6 +2994,7 @@ void do_effects_panels(unsigned short event)
 				nr++;
 				idtest= idtest->next;
 			}
+
 			if(idtest==0) { /* new particle system */
 				if(id){
 					idtest= (ID *)psys_copy_settings((ParticleSettings *)id);
@@ -2975,6 +3004,11 @@ void do_effects_panels(unsigned short event)
 				}
 				idtest->us--;
 			}
+			else if(((ParticleSettings*)idtest)->type==PART_FLUID) {
+				error("Can't select fluid particles");
+				break;
+			}
+
 			if(idtest!=id) {
 				short nr=0;
 				if(id==0){ /* no psys previously -> no modifier -> need to create that also */
@@ -3991,6 +4025,11 @@ static void object_panel_particle_children(Object *ob)
 	if(uiNewPanel(curarea, block, "Children", "Particle", 1300, 0, 318, 204)==0) return;
 	uiNewPanelTabbed("Extras", "Particle");
 
+	if(part->type == PART_FLUID) {
+		uiDefBut(block, LABEL, 0, "No settings for fluid particles",					butx,(buty-=2*buth),2*butw,buth, NULL, 0.0, 0, 0, 0, "");
+		return;
+	}
+
 	uiDefButS(block, MENU, B_PART_ALLOC_CHILD, "Children from:%t|Faces%x2|Particles%x1|None%x0", butx,buty,butw,buth, &part->childtype, 14.0, 0.0, 0, 0, "Create child particles");
 
 	if(part->childtype==0) return;
@@ -4140,6 +4179,11 @@ static void object_panel_particle_extra(Object *ob)
 		
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_extra", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Extras", "Particle", 980, 0, 318, 204)==0) return;
+
+	if(part->type == PART_FLUID) {
+		uiDefBut(block, LABEL, 0, "No settings for fluid particles",					butx,(buty-=2*buth),2*butw,buth, NULL, 0.0, 0, 0, 0, "");
+		return;
+	}
 
 	uiDefBut(block, LABEL, 0, "Effectors:",	butx,buty,butw,buth, NULL, 0.0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
@@ -4432,6 +4476,11 @@ static void object_panel_particle_physics(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_physics", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Physics", "Particle", 320, 0, 318, 204)==0) return;
 	
+	if(part->type == PART_FLUID) {
+		uiDefBut(block, LABEL, 0, "No settings for fluid particles",					butx,(buty-=2*buth),2*butw,buth, NULL, 0.0, 0, 0, 0, "");
+		return;
+	}
+
 	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
 	
 	if(psys->flag & PSYS_EDITED || psys->flag & PSYS_PROTECT_CACHE) {
@@ -4622,10 +4671,12 @@ static void object_panel_particle_system(Object *ob)
 		id=NULL;
 	idfrom=&ob->id;
 
+	if(psys==0 || psys->part->type != PART_FLUID) {
 	/* browse buttons */
-	uiBlockSetCol(block, TH_BUT_SETTING2);
-	butx= std_libbuttons(block, butx, buty, 0, NULL, B_PARTBROWSE, ID_PA, 0, id, idfrom, &(G.buts->menunr), B_PARTALONE, 0, B_PARTDELETE, 0, 0);
-	
+		uiBlockSetCol(block, TH_BUT_SETTING2);
+		butx= std_libbuttons(block, butx, buty, 0, NULL, B_PARTBROWSE, ID_PA, 0, id, idfrom, &(G.buts->menunr), B_PARTALONE, 0, B_PARTDELETE, 0, 0);
+	}
+
 	uiBlockSetCol(block, TH_AUTO);
 	
 	partact=psys_get_current_num(ob)+1;
@@ -4639,12 +4690,19 @@ static void object_panel_particle_system(Object *ob)
 
 	part=psys->part;
 
-	if(part==NULL) return;
+	if(part==NULL)
+		return;
 
 	butx=0;
 	buty-=5;
-	
-	uiDefButBitI(block, TOG, PSYS_ENABLED, B_PART_ENABLE, "Enabled",	 0,(buty-=buth),100,buth, &psys->flag, 0, 0, 0, 0, "Sets particle system to be calculated and shown");
+
+	if(part->type == PART_FLUID) {
+		uiDefButBitI(block, TOG, PSYS_ENABLED, B_PART_ENABLE, "Enabled",	 0, buty+5, 100,buth, &psys->flag, 0, 0, 0, 0, "Sets particle system to be calculated and shown");
+		uiDefBut(block, LABEL, 0, "No settings for fluid particles",					butx,(buty-=2*buth),2*butw,buth, NULL, 0.0, 0, 0, 0, "");
+		return;
+	}
+	else
+		uiDefButBitI(block, TOG, PSYS_ENABLED, B_PART_ENABLE, "Enabled",	 0,(buty-=buth),100,buth, &psys->flag, 0, 0, 0, 0, "Sets particle system to be calculated and shown");
 
 	if(part->type == PART_HAIR){
 		if(psys->flag & PSYS_EDITED)
@@ -4806,13 +4864,13 @@ static void object_panel_fluidsim(Object *ob)
 			}
 			
 			uiBlockBeginAlign(block);
-			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Domain",	    90, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_DOMAIN,  20.0, 1.0, "Bounding box of this object represents the computational domain of the fluid simulation.");
-			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Fluid",	   160, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_FLUID,   20.0, 2.0, "Object represents a volume of fluid in the simulation.");
-			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Obstacle",	 230, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_OBSTACLE,20.0, 3.0, "Object is a fixed obstacle.");
+			uiDefButS(block, ROW, B_FLUIDSIM_CHANGETYPE ,"Domain",	    90, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_DOMAIN,  20.0, 1.0, "Bounding box of this object represents the computational domain of the fluid simulation.");
+			uiDefButS(block, ROW, B_FLUIDSIM_CHANGETYPE ,"Fluid",	   160, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_FLUID,   20.0, 2.0, "Object represents a volume of fluid in the simulation.");
+			uiDefButS(block, ROW, B_FLUIDSIM_CHANGETYPE ,"Obstacle",	 230, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_OBSTACLE,20.0, 3.0, "Object is a fixed obstacle.");
 			yline -= lineHeight;
 
-			uiDefButS(block, ROW, REDRAWBUTSOBJECT    ,"Inflow",	    90, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_INFLOW,  20.0, 4.0, "Object adds fluid to the simulation.");
-			uiDefButS(block, ROW, REDRAWBUTSOBJECT    ,"Outflow",   160, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_OUTFLOW, 20.0, 5.0, "Object removes fluid from the simulation.");
+			uiDefButS(block, ROW, B_FLUIDSIM_CHANGETYPE    ,"Inflow",	    90, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_INFLOW,  20.0, 4.0, "Object adds fluid to the simulation.");
+			uiDefButS(block, ROW, B_FLUIDSIM_CHANGETYPE    ,"Outflow",   160, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_OUTFLOW, 20.0, 5.0, "Object removes fluid from the simulation.");
 			uiDefButS(block, ROW, B_FLUIDSIM_MAKEPART ,"Particle",	 230, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_PARTICLE,20.0, 3.0, "Object is made a particle system to display particles generated by a fluidsim domain object.");
 			uiBlockEndAlign(block);
 			yline -= lineHeight;

@@ -7412,6 +7412,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 
+				if(ob->fluidsimSettings && ob->fluidsimSettings->type == OB_FLUIDSIM_PARTICLE)
+					part->type = PART_FLUID;
+
 				free_effects(&ob->effect);
 
 				printf("Old particle system converted to new system.\n");

@@ -84,6 +84,22 @@
 
 #include "RE_shader_ext.h"
 
+/* fluid sim particle import */
+#ifndef DISABLE_ELBEEM
+#include "DNA_object_fluidsim.h"
+#include "LBM_fluidsim.h"
+#include "elbeem.h"
+#include <zlib.h>
+#include <string.h>
+
+#ifdef WIN32
+#ifndef snprintf
+#define snprintf _snprintf
+#endif
+#endif
+
+#endif // DISABLE_ELBEEM
+
 /************************************************/
 /*			Reacting to system events			*/
 /************************************************/
@@ -1452,7 +1468,7 @@ void initialize_particle(ParticleData *pa, int p, Object *ob, ParticleSystem *ps
 
 	BLI_srandom(psys->seed+p);
 
-	if(part->from!=PART_FROM_PARTICLE){
+	if(part->from!=PART_FROM_PARTICLE && part->type!=PART_FLUID){
 		ma=give_current_material(ob,part->omat);
 
 		/* TODO: needs some work to make most blendtypes generally usefull */
@@ -1544,53 +1560,54 @@ static void initialize_all_particles(Object *ob, ParticleSystem *psys, ParticleS
 	for(p=0, pa=psys->particles; p<totpart; p++, pa++)
 		initialize_particle(pa,p,ob,psys,psmd);
 	
-	/* store the derived mesh face index for each particle */
-	icu=find_ipocurve(psys->part->ipo,PART_EMIT_FREQ);
-	if(icu){
-		float time=psys->part->sta, end=psys->part->end;
-		float v1, v2, a=0.0f, t1,t2, d;
+	if(psys->part->type != PART_FLUID) {
+		icu=find_ipocurve(psys->part->ipo,PART_EMIT_FREQ);
+		if(icu){
+			float time=psys->part->sta, end=psys->part->end;
+			float v1, v2, a=0.0f, t1,t2, d;
 
-		p=0;
-		pa=psys->particles;
+			p=0;
+			pa=psys->particles;
 
-		calc_icu(icu,time);
-		v1=icu->curval;
-		if(v1<0.0f) v1=0.0f;
+			calc_icu(icu,time);
+			v1=icu->curval;
+			if(v1<0.0f) v1=0.0f;
 
-		calc_icu(icu,time+1.0f);
-		v2=icu->curval;
-		if(v2<0.0f) v2=0.0f;
+			calc_icu(icu,time+1.0f);
+			v2=icu->curval;
+			if(v2<0.0f) v2=0.0f;
 
-		for(p=0, pa=psys->particles; p<totpart && time<end; p++, pa++){
-			while(a+0.5f*(v1+v2) < (float)(p+1) && time<end){
-				a+=0.5f*(v1+v2);
-				v1=v2;
-				time++;
-				calc_icu(icu,time+1.0f);
-				v2=icu->curval;
-			}
-			if(time<end){
-				if(v1==v2){
-					pa->time=time+((float)(p+1)-a)/v1;
+			for(p=0, pa=psys->particles; p<totpart && time<end; p++, pa++){
+				while(a+0.5f*(v1+v2) < (float)(p+1) && time<end){
+					a+=0.5f*(v1+v2);
+					v1=v2;
+					time++;
+					calc_icu(icu,time+1.0f);
+					v2=icu->curval;
 				}
-				else{
-					d=(float)sqrt(v1*v1-2.0f*(v2-v1)*(a-(float)(p+1)));
-					t1=(-v1+d)/(v2-v1);
-					t2=(-v1-d)/(v2-v1);
+				if(time<end){
+					if(v1==v2){
+						pa->time=time+((float)(p+1)-a)/v1;
+					}
+					else{
+						d=(float)sqrt(v1*v1-2.0f*(v2-v1)*(a-(float)(p+1)));
+						t1=(-v1+d)/(v2-v1);
+						t2=(-v1-d)/(v2-v1);
 
-					/* the root between 0-1 is the correct one */
-					if(t1>0.0f && t1<=1.0f)
-						pa->time=time+t1;
-					else
-						pa->time=time+t2;
+						/* the root between 0-1 is the correct one */
+						if(t1>0.0f && t1<=1.0f)
+							pa->time=time+t1;
+						else
+							pa->time=time+t2;
+					}
 				}
-			}
 
-			pa->dietime = pa->time+pa->lifetime;
-			pa->flag &= ~PARS_UNEXIST;
-		}
-		for(; p<totpart; p++, pa++){
-			pa->flag |= PARS_UNEXIST;
+				pa->dietime = pa->time+pa->lifetime;
+				pa->flag &= ~PARS_UNEXIST;
+			}
+			for(; p<totpart; p++, pa++){
+				pa->flag |= PARS_UNEXIST;
+			}
 		}
 	}
 }
@@ -4416,6 +4433,105 @@ static void cached_step(Object *ob, ParticleSystemModifierData *psmd, ParticleSy
 		distribute_particles(ob, psys, PART_FROM_CHILD);
 	}
 }
+static void particles_fluid_step(Object *ob, ParticleSystem *psys, int cfra)
+{
+	if(psys->particles){
+		MEM_freeN(psys->particles);
+		psys->particles = 0;
+		psys->totpart = 0;
+	}
+	/* fluid sim particle import handling, actual loading of particles from file */
+	#ifndef DISABLE_ELBEEM
+	if( (1) && (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&  // broken, disabled for now!
+		(ob->fluidsimSettings)) { 
+		ParticleSettings *part = psys->part;
+		ParticleData *pa=0;
+		char *suffix  = "fluidsurface_particles_#";
+		char *suffix2 = ".gz";
+		char filename[256];
+		char debugStrBuffer[256];
+		int  curFrame = G.scene->r.cfra -1; // warning - sync with derived mesh fsmesh loading
+		int  p, j, numFileParts, totpart;
+		int readMask, activeParts = 0, fileParts = 0;
+		gzFile gzf;
+
+		if(ob==G.obedit) // off...
+			return;
+
+		// ok, start loading
+		strcpy(filename, ob->fluidsimSettings->surfdataPath);
+		strcat(filename, suffix);
+		BLI_convertstringcode(filename, G.sce, curFrame); // fixed #frame-no 
+		strcat(filename, suffix2);
+
+		gzf = gzopen(filename, "rb");
+		if (!gzf) {
+			snprintf(debugStrBuffer,256,"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 
+			//elbeemDebugOut(debugStrBuffer);
+			return;
+		}
+
+		gzread(gzf, &totpart, sizeof(totpart));
+		numFileParts = totpart;
+		totpart = (G.rendering)?totpart:(part->disp*totpart)/100;
+		
+		part->totpart= totpart;
+		part->sta=part->end = 1.0f;
+		part->lifetime = G.scene->r.efra + 1;
+
+		/* initialize particles */
+		alloc_particles(ob, psys, part->totpart);
+		initialize_all_particles(ob, psys, 0);
+
+		// set up reading mask
+		readMask = ob->fluidsimSettings->typeFlags;
+		
+		for(p=0, pa=psys->particles; p<totpart; p++, pa++) {
+			int ptype=0;
+			short shsize=0;
+			float convertSize=0.0;
+			gzread(gzf, &ptype, sizeof( ptype )); 
+			if(ptype&readMask) {
+				activeParts++;
+
+				gzread(gzf, &(pa->size), sizeof( float )); 
+
+				pa->size /= 10.0f;
+
+				for(j=0; j<3; j++) {
+					float wrf;
+					gzread(gzf, &wrf, sizeof( wrf )); 
+					pa->state.co[j] = wrf;
+					//fprintf(stderr,"Rj%d ",j);
+				}
+				for(j=0; j<3; j++) {
+					float wrf;
+					gzread(gzf, &wrf, sizeof( wrf )); 
+					pa->state.vel[j] = wrf;
+				}
+
+				pa->state.ave[0] = pa->state.ave[1] = pa->state.ave[2] = 0.0f;
+				pa->state.rot[0] = 1.0;
+				pa->state.rot[1] = pa->state.rot[2] = pa->state.rot[3] = 0.0;
+
+				pa->alive = PARS_ALIVE;
+				//if(a<25) fprintf(stderr,"FSPARTICLE debug set %s , a%d = %f,%f,%f , life=%f \n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
+			} else {
+				// skip...
+				for(j=0; j<2*3+1; j++) {
+					float wrf; gzread(gzf, &wrf, sizeof( wrf )); 
+				}
+			}
+			fileParts++;
+		}
+		gzclose( gzf );
+
+		totpart = psys->totpart = activeParts;
+		snprintf(debugStrBuffer,256,"readFsPartData::done - particles:%d, active:%d, file:%d, mask:%d  \n", psys->totpart,activeParts,fileParts,readMask);
+		elbeemDebugOut(debugStrBuffer);
+	} // fluid sim particles done
+	#endif // DISABLE_ELBEEM
+}
 /* Calculates the next state for all particles of the system */
 /* In particles code most fra-ending are frames, time-ending are fra*timestep (seconds)*/
 static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifierData *psmd, float cfra)
@@ -4435,7 +4551,7 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 		execute_ipo((ID *)part, part->ipo);
 	}
 
-	if(part->from!=PART_FROM_PARTICLE)
+	if(part->from!=PART_FROM_PARTICLE && part->type!=PART_FLUID)
 		vg_size=psys_cache_vgroup(psmd->dm,psys,PSYS_VG_SIZE);
 
 	if(part->type == PART_HAIR) {
@@ -4445,6 +4561,12 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 			psys->recalc = 0;
 			return;
 		}
+	}
+	else if(part->type == PART_FLUID) {
+		particles_fluid_step(ob, psys, (int)cfra);
+		psys->cfra = cfra;
+		psys->recalc = 0;
+		return;
 	}
 	else if(ELEM(part->phystype, PART_PHYS_NO, PART_PHYS_KEYED))
 		; /* cache shouldn't be used for "none" or "keyed" physics */
