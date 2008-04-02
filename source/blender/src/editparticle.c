@@ -294,7 +294,8 @@ static int test_key_depth(float *co, bglMats *mats){
 	y=wco[1];
 
 	if(G.vd->depths && x<G.vd->depths->w && y<G.vd->depths->h){
-		if((float)uz>G.vd->depths->depths[y*G.vd->depths->w+x])
+		/* the 0.0001 is an experimental threshold to make selecting keys right next to a surface work better */
+		if((float)uz - 0.0001 > G.vd->depths->depths[y*G.vd->depths->w+x])
 			return 0;
 		else
 			return 1;
@@ -305,7 +306,7 @@ static int test_key_depth(float *co, bglMats *mats){
 
 		glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
 
-		if((float)uz>depth)
+		if((float)uz - 0.0001 > depth)
 			return 0;
 		else
 			return 1;
@@ -2075,7 +2076,7 @@ static void brush_comb(ParticleSystem *psys, float mat[][4], float imat[][4], in
 }
 static void brush_cut(ParticleSystem *psys, int index, void *userData)
 {
-	struct { short *mval; float rad; rcti* rect; int selected; float cutfac;} *data = userData;
+	struct { short *mval; float rad; rcti* rect; int selected; float cutfac; bglMats mats;} *data = userData;
 	ParticleData *pa= &psys->particles[index];
 	ParticleCacheKey *key = psys->pathcache[index];
 	float rad2, cut_time = 1.0;
@@ -2101,7 +2102,7 @@ static void brush_cut(ParticleSystem *psys, int index, void *userData)
 	xo1 = x1 - o1;
 
 	/* check if root is inside circle */
-	if(xo0*xo0 + xo1*xo1 < rad2) {
+	if(xo0*xo0 + xo1*xo1 < rad2 && test_key_depth(key->co,&(data->mats))) {
 		cut_time = -1.0f;
 		cut = 1;
 	}
@@ -2109,6 +2110,15 @@ static void brush_cut(ParticleSystem *psys, int index, void *userData)
 		/* calculate path time closest to root that was inside the circle */
 		for(k=1, key++; k<=keys; k++, key++){
 			project_short_noclip(key->co, vertco);
+
+			if(test_key_depth(key->co,&(data->mats)) == 0) {
+				x0 = (float)vertco[0];
+				x1 = (float)vertco[1];
+
+				xo0 = x0 - o0;
+				xo1 = x1 - o1;
+				continue;
+			}
 
 			v0 = (float)vertco[0] - x0;
 			v1 = (float)vertco[1] - x1;
@@ -2628,7 +2638,7 @@ int PE_brush_particles(void)
 				}
 				case PE_BRUSH_CUT:
 				{
-					struct { short *mval; float rad; rcti* rect; int selected; float cutfac;} data;
+					struct { short *mval; float rad; rcti* rect; int selected; float cutfac; bglMats mats;} data;
 
 					data.mval = mval;
 					data.rad = (float)brush->size;
@@ -2636,6 +2646,8 @@ int PE_brush_particles(void)
 					data.selected = selected;
 
 					data.cutfac = (float)(brush->strength / 100.0f);
+
+					bgl_get_mats(&(data.mats));
 
 					if(selected)
 						foreach_selected_element(psys, brush_cut, &data);
