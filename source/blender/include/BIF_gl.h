@@ -56,20 +56,22 @@
  #include <OpenGL/gl.h>
  #include <OpenGL/glu.h>
 #else
- #if defined (__sun) || defined (__sun__)
+/*  #if defined (__sun) || defined (__sun__)
   #include <GL/gl.h>
   #include <mesa/glu.h>
  #else
+*/
   #include <GL/gl.h>
   #include <GL/glu.h>
- #endif
+/* #endif */
 #endif
+
+
 	/*
 	 * these should be phased out. cpack should be replaced in
 	 * code with calls to glColor3ub, lrectwrite probably should
 	 * change to a function. - zr
 	 */
-	 
 /* 
  *
  * This define converts a numerical value to the equivalent 24-bit
