@@ -108,14 +108,16 @@ void drawscriptspace(ScrArea *sa, void *spacedata)
 		}
 	}
 	
-	if (script->py_draw) {
-		BPY_spacescript_do_pywin_draw(sc);
+	if (script) {
+		if (script->py_draw) {
+			BPY_spacescript_do_pywin_draw(sc);
+		} else if (!script->flags && !script->py_event && !script->py_button) {
+			/* quick hack for 2.37a for scripts that call the progress bar inside a
+			 * file selector callback, to show previous space after finishing, w/o
+			 * needing an event */
+			addqueue(curarea->win, MOUSEX, 0);
+		}
 	}
-	/* quick hack for 2.37a for scripts that call the progress bar inside a
-	 * file selector callback, to show previous space after finishing, w/o
-	 * needing an event */
-	else if (!script->flags && !script->py_event && !script->py_button)
-		addqueue(curarea->win, MOUSEX, 0); 
 }
 
 void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt)
