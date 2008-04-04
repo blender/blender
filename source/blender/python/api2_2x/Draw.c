@@ -532,10 +532,8 @@ static int Button_setattr( PyObject * self, char *name, PyObject * v )
 				return 0;
 		}
 		else if( but->type == BSTRING_TYPE && PyString_Check(v) ) {
-			char *newstr;
-			unsigned int newlen;
-
-			PyString_AsStringAndSize( v, &newstr, (int *)&newlen );
+			char *newstr = PyString_AsString(v);
+			int newlen = strlen(newstr);
 			
 			if (newlen+1> UI_MAX_DRAW_STR)
 				return EXPP_ReturnIntError( PyExc_ValueError, "Error: button string length exceeded max limit (399 chars).");

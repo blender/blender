@@ -3537,7 +3537,7 @@ def do_pref_clear(e,v):
 		return
 	
 	for ob in objects:
-		try:	del idprop[ID_SLOT_NAME]
+		try:	del ob.properties[ID_SLOT_NAME]
 		except:	pass
 
 def do_tex_check(e,v):
@@ -3989,7 +3989,7 @@ def gui():
 	# ---------- ---------- ---------- ----------
 	
 	Blender.Draw.BeginAlign()
-	Draw.PushButton('Exit',	EVENT_EXIT, xtmp, y, but_width, but_height,	'', do_active_image); xtmp += but_width;
+	Draw.PushButton('Exit',	EVENT_EXIT, xtmp, y, but_width, but_height,	''); xtmp += but_width;
 	Draw.PushButton('Generate from selection',	EVENT_REDRAW, xtmp, y, but_width*3, but_height,	'Generate mesh', do_tree_generate); xtmp += but_width*3;
 	Blender.Draw.EndAlign()
 	y-=but_height+MARGIN
