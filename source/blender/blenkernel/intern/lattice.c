@@ -611,11 +611,16 @@ static int calc_curve_deform(Object *par, float *co, short axis, CurveDeform *cd
 
 void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*vertexCos)[3], int numVerts, char *vgroup, short defaxis)
 {
-	Curve *cu = cuOb->data;
-	int a, flag = cu->flag;
+	Curve *cu;
+	int a, flag;
 	CurveDeform cd;
 	int use_vgroups;
-	
+
+	if(cuOb->type != OB_CURVE)
+		return;
+
+	cu = cuOb->data;
+	flag = cu->flag;
 	cu->flag |= (CU_PATH|CU_FOLLOW); // needed for path & bevlist
 
 	init_curve_deform(cuOb, target, &cd, (cu->flag & CU_STRETCH)==0);
@@ -703,6 +708,11 @@ void curve_deform_vector(Object *cuOb, Object *target, float *orco, float *vec, 
 	CurveDeform cd;
 	float quat[4];
 	
+	if(cuOb->type != OB_CURVE) {
+		Mat3One(mat);
+		return;
+	}
+
 	init_curve_deform(cuOb, target, &cd, 0);	/* 0 no dloc */
 	cd.no_rot_axis= no_rot_axis;				/* option to only rotate for XY, for example */
 	
@@ -729,6 +739,9 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 {
 	int a;
 	int use_vgroups;
+
+	if(laOb->type != OB_LATTICE)
+		return;
 
 	init_latt_deform(laOb, target);
 
