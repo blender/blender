@@ -255,7 +255,7 @@ static void editmesh_apply_to_mirror(TransInfo *t)
 		if (td->flag & TD_SKIP)
 			continue;
 		
-		eve= td->misc.tdmir;
+		eve = td->tdmir;
 		if(eve) {
 			eve->co[0]= -td->loc[0];
 			eve->co[1]= td->loc[1];
@@ -721,7 +721,7 @@ void postTrans (TransInfo *t)
 		/* since ipokeys are optional on objects, we mallocced them per trans-data */
 		for(a=0, td= t->data; a<t->total; a++, td++) {
 			if(td->tdi) MEM_freeN(td->tdi);
-			if (td->flag & TD_BEZTRIPLE) MEM_freeN(td->misc.hdata); 
+			if (td->flag & TD_BEZTRIPLE) MEM_freeN(td->hdata); 
 		}
 		MEM_freeN(t->data);
 	}
@@ -787,8 +787,8 @@ static void restoreElement(TransData *td) {
 	}
 	
 	if (td->flag & TD_BEZTRIPLE) {
-		*(td->misc.hdata->h1) = td->misc.hdata->ih1;
-		*(td->misc.hdata->h2) = td->misc.hdata->ih2;
+		*(td->hdata->h1) = td->hdata->ih1;
+		*(td->hdata->h2) = td->hdata->ih2;
 	}
 	
 	if(td->tdi) {

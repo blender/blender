@@ -1239,7 +1239,7 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 TransDataCurveHandleFlags *initTransDataCurveHandes(TransData *td, struct BezTriple *bezt) {
 	TransDataCurveHandleFlags *hdata;
 	td->flag |= TD_BEZTRIPLE;
-	hdata = td->misc.hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
+	hdata = td->hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
 	hdata->ih1 = bezt->h1;
 	hdata->h1 = &bezt->h1;
 	hdata->ih2 = bezt->h2; /* incase the second is not selected */
@@ -1816,7 +1816,7 @@ static void VertsToTransData(TransData *td, EditVert *eve)
 	td->ext = NULL;
 	td->tdi = NULL;
 	td->val = NULL;
-	td->misc.tdmir= NULL;
+	td->tdmir = NULL;
 	if (BIF_GetTransInfo()->mode == TFM_BWEIGHT) {
 		td->val = &(eve->bweight);
 		td->ival = eve->bweight;
@@ -2169,7 +2169,7 @@ static void createTransEditVerts(TransInfo *t)
 				/* Mirror? */
 				if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
 					EditVert *vmir= editmesh_get_x_mirror_vert(G.obedit, tob->iloc);	/* initializes octree on first call */
-					if(vmir!=eve) tob->misc.tdmir= vmir;
+					if(vmir != eve) tob->tdmir = vmir;
 				}
 				tob++;
 			}

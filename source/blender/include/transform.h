@@ -160,11 +160,8 @@ typedef struct TransData {
 	struct bConstraint *con;	/* for objects/bones, the first constraint in its constraint stack */
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
 	TransDataIpokey *tdi;		/* for objects, ipo keys. per transdata a malloc */
-	union {
-		void *tdmir;		 /* mirrored element pointer, in editmode mesh to EditVert */
-		TransDataCurveHandleFlags *hdata;
-	} misc;
-	
+	TransDataCurveHandleFlags *hdata; /* for curves, stores handle flags for modification/cancel */
+	void *tdmir;		 /* mirrored element pointer, in editmode mesh to EditVert */
     short  flag;         /* Various flags */
 	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
 /*#ifdef WITH_VERSE*/
