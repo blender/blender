@@ -543,9 +543,14 @@ static void filesel_u_pythondir(char *name)
 
 	BLI_cleanup_dir(G.sce, name);
 	BLI_split_dirfile(name, dir, file);
-
+	
 	strcpy(U.pythondir, dir);
 	allqueue(REDRAWALL, 0);
+	
+	/* act on the change */
+	BPyMenu_RemoveAllEntries();
+	BPY_rebuild_syspath();
+	if (BPyMenu_Init(1) == -1) error("Invalid scripts dir: check console");
 }
 
 static void filesel_u_sounddir(char *name)
