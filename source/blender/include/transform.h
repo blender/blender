@@ -46,7 +46,7 @@ struct View3D;
 struct ScrArea;
 struct bPose;
 struct bConstraint;
-
+struct BezTriple;
 
 typedef struct NDofInput {
 	int		flag;
@@ -471,6 +471,8 @@ void initTransModeFlags(TransInfo *t, int mode);
 void postTrans (TransInfo *t);
 
 void drawLine(float *center, float *dir, char axis, short options);
+
+TransDataCurveHandleFlags *initTransDataCurveHandes(TransData *td, struct BezTriple *bezt);
 
 /* DRAWLINE options flags */
 #define DRAWLIGHT	1

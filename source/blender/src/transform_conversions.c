@@ -1235,6 +1235,18 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 	}
 }
 
+/* Utility function for getting the handle data from bezier's */
+TransDataCurveHandleFlags *initTransDataCurveHandes(TransData *td, struct BezTriple *bezt) {
+	TransDataCurveHandleFlags *hdata;
+	td->flag |= TD_BEZTRIPLE;
+	hdata = td->misc.hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
+	hdata->ih1 = bezt->h1;
+	hdata->h1 = &bezt->h1;
+	hdata->ih2 = bezt->h2; /* incase the second is not selected */
+	hdata->h2 = &bezt->h2;
+	return hdata;
+}
+
 static void createTransCurveVerts(TransInfo *t)
 {
 	TransData *td = NULL;
@@ -1309,12 +1321,7 @@ static void createTransCurveVerts(TransInfo *t)
 						td->tdi = NULL;
 						td->val = NULL;
 						
-						td->flag |= TD_BEZTRIPLE;
-						hdata = td->misc.hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
-						hdata->ih1 = bezt->h1;
-						hdata->h1 = &bezt->h1;
-						hdata->ih2 = bezt->h2; /* incase the second is not selected */
-						hdata->h2 = &bezt->h2;
+						hdata = initTransDataCurveHandes(td, bezt);
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -1350,12 +1357,7 @@ static void createTransCurveVerts(TransInfo *t)
 						if ((bezt->f1&SELECT)==0 && (bezt->f3&SELECT)==0)
 						/* If the middle is selected but the sides arnt, this is needed */
 						if (hdata==NULL) { /* if the handle was not saved by the previous handle */
-							td->flag |= TD_BEZTRIPLE;
-							hdata = td->misc.hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
-							hdata->ih1 = bezt->h1;
-							hdata->h1 = &bezt->h1;
-							hdata->ih2 = bezt->h2; /* incase the second is not selected */
-							hdata->h2 = &bezt->h2;
+							hdata = initTransDataCurveHandes(td, bezt);
 						}
 						
 						td++;
@@ -1381,12 +1383,7 @@ static void createTransCurveVerts(TransInfo *t)
 						td->val = NULL;
 
 						if (hdata==NULL) { /* if the handle was not saved by the previous handle */
-							td->flag |= TD_BEZTRIPLE;
-							hdata = td->misc.hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
-							hdata->ih1 = bezt->h1;
-							hdata->h1 = &bezt->h1;
-							hdata->ih2 = bezt->h2; /* incase the second is not selected */
-							hdata->h2 = &bezt->h2;
+							hdata = initTransDataCurveHandes(td, bezt);
 						}
 						
 						Mat3CpyMat3(td->smtx, smtx);
