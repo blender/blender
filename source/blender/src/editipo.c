@@ -5066,7 +5066,7 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, float *loc, flo
 		td2d->loc[2] = 0.0f;
 		td2d->loc2d = loc;
 		
-		td->flag = 0;
+		/*td->flag = 0;*/ /* can be set beforehand, else make sure its set to 0 */
 		td->loc = td2d->loc;
 		VECCOPY(td->center, cent);
 		VECCOPY(td->iloc, td->loc);
@@ -5077,7 +5077,7 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, float *loc, flo
 		td2d->loc[2] = 0.0f;
 		td2d->loc2d = loc;
 		
-		td->flag = 0;
+		/*td->flag = 0;*/ /* can be set beforehand, else make sure its set to 0 */
 		td->loc = td2d->loc;
 		VECCOPY(td->center, cent);
 		VECCOPY(td->iloc, td->loc);
@@ -5168,19 +5168,51 @@ void make_ipo_transdata (TransInfo *t)
 						bezt= ei->icu->bezt;
 						
 						for (b=0; b < ei->icu->totvert; b++, bezt++) {
+							TransDataCurveHandleFlags *hdata = NULL;
 							/* only include handles if selected, and interpolaton mode uses beztriples */
 							if (ei->icu->ipo==IPO_BEZ) {
-								if (bezt->f1 & SELECT)
+								if (bezt->f1 & SELECT) {
+									td->flag |= TD_BEZTRIPLE;
+									hdata = td->misc.hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
+									hdata->ih1 = bezt->h1;
+									hdata->h1 = &bezt->h1;
+									hdata->ih2 = bezt->h2; /* incase the second is not selected */
+									hdata->h2 = &bezt->h2;
+									
 									bezt_to_transdata(td++, td2d++, bezt->vec[0], bezt->vec[1], 1, onlytime);
-								if (bezt->f3 & SELECT)
+								}
+								if (bezt->f3 & SELECT) {
+									if (hdata==NULL) {
+										td->flag |= TD_BEZTRIPLE;
+										hdata = td->misc.hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
+										hdata->ih1 = bezt->h1;
+										hdata->h1 = &bezt->h1;
+										hdata->ih2 = bezt->h2; /* incase the second is not selected */
+										hdata->h2 = &bezt->h2;
+									}
 									bezt_to_transdata(td++, td2d++, bezt->vec[2], bezt->vec[1], 1, onlytime);
+								}
 							}
 							
 							/* only include main vert if selected */
 							if (bezt->f2 & SELECT) {
+								
+								if ((bezt->f1&SELECT)==0 && (bezt->f3&SELECT)==0) {
+									if (hdata==NULL) {
+										td->flag |= TD_BEZTRIPLE;
+										hdata = td->misc.hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
+										hdata->ih1 = bezt->h1;
+										hdata->h1 = &bezt->h1;
+										hdata->ih2 = bezt->h2; /* incase the second is not selected */
+										hdata->h2 = &bezt->h2;
+									}
+								}
+								
 								bezt_to_transdata(td++, td2d++, bezt->vec[1], bezt->vec[1], 1, onlytime);
 							}
 						}
+						/* Sets handles based on the selection */
+						testhandles_ipocurve(ei->icu);
 					}
 				}
 			}

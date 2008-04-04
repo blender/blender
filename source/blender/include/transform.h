@@ -137,6 +137,13 @@ typedef struct TransData2D {
 	float *loc2d;		/* Pointer to real 2d location of data */
 } TransData2D;
 
+/* we need to store 2 handles for each transdata incase the other handle wasnt selected */
+typedef struct TransDataCurveHandleFlags {
+	short ih1, ih2;
+	short *h1, *h2;
+} TransDataCurveHandleFlags;
+
+
 typedef struct TransData {
 	float  dist;         /* Distance needed to affect element (for Proportionnal Editing)                  */
 	float  rdist;        /* Distance to the nearest element (for Proportionnal Editing)                    */
@@ -153,7 +160,11 @@ typedef struct TransData {
 	struct bConstraint *con;	/* for objects/bones, the first constraint in its constraint stack */
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
 	TransDataIpokey *tdi;		/* for objects, ipo keys. per transdata a malloc */
-	void *tdmir;		 /* mirrored element pointer, in editmode mesh to EditVert */
+	union {
+		void *tdmir;		 /* mirrored element pointer, in editmode mesh to EditVert */
+		TransDataCurveHandleFlags *hdata;
+	} misc;
+	
     short  flag;         /* Various flags */
 	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
 /*#ifdef WITH_VERSE*/
@@ -289,6 +300,7 @@ typedef struct TransInfo {
 #define TD_NOCENTER			(1 << 9)
 #define TD_NO_EXT			(1 << 10)	/* ext abused for particle key timing */
 #define TD_SKIP				(1 << 11)	/* don't transform this data */
+#define TD_BEZTRIPLE		(1 << 12)	/* if this is a bez triple, we need to restore the handles, if this is set transdata->misc.hdata needs freeing */
 
 /* transsnap->status */
 #define SNAP_ON			1

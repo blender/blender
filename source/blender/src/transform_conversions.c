@@ -1281,7 +1281,7 @@ static void createTransCurveVerts(TransInfo *t)
 
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
-
+	
     td = t->data;
 	for(nu= editNurb.first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
@@ -1289,6 +1289,7 @@ static void createTransCurveVerts(TransInfo *t)
 			head = tail = td;
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
 				if(bezt->hide==0) {
+					TransDataCurveHandleFlags *hdata = NULL;
 					
 					if(		propmode ||
 							((bezt->f2 & SELECT) && (G.f & G_HIDDENHANDLES)) ||
@@ -1307,6 +1308,13 @@ static void createTransCurveVerts(TransInfo *t)
 						td->ext = NULL;
 						td->tdi = NULL;
 						td->val = NULL;
+						
+						td->flag |= TD_BEZTRIPLE;
+						hdata = td->misc.hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
+						hdata->ih1 = bezt->h1;
+						hdata->h1 = &bezt->h1;
+						hdata->ih2 = bezt->h2; /* incase the second is not selected */
+						hdata->h2 = &bezt->h2;
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -1338,7 +1346,18 @@ static void createTransCurveVerts(TransInfo *t)
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
-
+						
+						if ((bezt->f1&SELECT)==0 && (bezt->f3&SELECT)==0)
+						/* If the middle is selected but the sides arnt, this is needed */
+						if (hdata==NULL) { /* if the handle was not saved by the previous handle */
+							td->flag |= TD_BEZTRIPLE;
+							hdata = td->misc.hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
+							hdata->ih1 = bezt->h1;
+							hdata->h1 = &bezt->h1;
+							hdata->ih2 = bezt->h2; /* incase the second is not selected */
+							hdata->h2 = &bezt->h2;
+						}
+						
 						td++;
 						count++;
 						tail++;
@@ -1361,6 +1380,15 @@ static void createTransCurveVerts(TransInfo *t)
 						td->tdi = NULL;
 						td->val = NULL;
 
+						if (hdata==NULL) { /* if the handle was not saved by the previous handle */
+							td->flag |= TD_BEZTRIPLE;
+							hdata = td->misc.hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
+							hdata->ih1 = bezt->h1;
+							hdata->h1 = &bezt->h1;
+							hdata->ih2 = bezt->h2; /* incase the second is not selected */
+							hdata->h2 = &bezt->h2;
+						}
+						
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
 
@@ -1376,6 +1404,8 @@ static void createTransCurveVerts(TransInfo *t)
 			}
 			if (propmode && head != tail)
 				calc_distanceCurveVerts(head, tail-1);
+			
+			testhandlesNurb(nu); /* sets the handles based on their selection, do this after the data is copied to the TransData */
 		}
 		else {
 			TransData *head, *tail;
@@ -1789,7 +1819,7 @@ static void VertsToTransData(TransData *td, EditVert *eve)
 	td->ext = NULL;
 	td->tdi = NULL;
 	td->val = NULL;
-	td->tdmir= NULL;
+	td->misc.tdmir= NULL;
 	if (BIF_GetTransInfo()->mode == TFM_BWEIGHT) {
 		td->val = &(eve->bweight);
 		td->ival = eve->bweight;
@@ -2142,7 +2172,7 @@ static void createTransEditVerts(TransInfo *t)
 				/* Mirror? */
 				if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
 					EditVert *vmir= editmesh_get_x_mirror_vert(G.obedit, tob->iloc);	/* initializes octree on first call */
-					if(vmir!=eve) tob->tdmir= vmir;
+					if(vmir!=eve) tob->misc.tdmir= vmir;
 				}
 				tob++;
 			}

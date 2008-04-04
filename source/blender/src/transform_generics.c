@@ -255,7 +255,7 @@ static void editmesh_apply_to_mirror(TransInfo *t)
 		if (td->flag & TD_SKIP)
 			continue;
 		
-		eve= td->tdmir;
+		eve= td->misc.tdmir;
 		if(eve) {
 			eve->co[0]= -td->loc[0];
 			eve->co[1]= td->loc[1];
@@ -325,8 +325,11 @@ void recalcData(TransInfo *t)
 			if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
 				
 				/* watch it: if the time is wrong: do not correct handles */
-				if (test_time_ipocurve(ei->icu)) dosort++;
-				else testhandles_ipocurve(ei->icu);
+				if (test_time_ipocurve(ei->icu)) {
+					dosort++;
+				} else {
+					calchandles_ipocurve(ei->icu);
+				}
 			}
 		}
 		
@@ -398,13 +401,20 @@ void recalcData(TransInfo *t)
 			Nurb *nu= editNurb.first;
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
 			
-			while(nu) {
-				test2DNurb(nu);
-				testhandlesNurb(nu); /* test for bezier too */
-				nu= nu->next;
+			if (t->state == TRANS_CANCEL) {
+				while(nu) {
+					calchandlesNurb(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
+					nu= nu->next;
+				}
+			} else {
+				/* Normal updating */
+				while(nu) {
+					test2DNurb(nu);
+					calchandlesNurb(nu);
+					nu= nu->next;
+				}
+				retopo_do_all();
 			}
-
-			retopo_do_all();
 		}
 		else if(G.obedit->type==OB_ARMATURE){   /* no recalc flag, does pose */
 			bArmature *arm= G.obedit->data;
@@ -711,6 +721,7 @@ void postTrans (TransInfo *t)
 		/* since ipokeys are optional on objects, we mallocced them per trans-data */
 		for(a=0, td= t->data; a<t->total; a++, td++) {
 			if(td->tdi) MEM_freeN(td->tdi);
+			if (td->flag & TD_BEZTRIPLE) MEM_freeN(td->misc.hdata); 
 		}
 		MEM_freeN(t->data);
 	}
@@ -774,6 +785,12 @@ static void restoreElement(TransData *td) {
 			}
 		}
 	}
+	
+	if (td->flag & TD_BEZTRIPLE) {
+		*(td->misc.hdata->h1) = td->misc.hdata->ih1;
+		*(td->misc.hdata->h2) = td->misc.hdata->ih2;
+	}
+	
 	if(td->tdi) {
 		TransDataIpokey *tdi= td->tdi;
 		
