@@ -2797,7 +2797,7 @@ static int drawDispList(Base *base, int dt)
 					glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 					drawDispListsolid(lb, ob);
 				}
-				if(ob==G.obedit && cu->bevobj==NULL && cu->taperobj==NULL) {
+				if(ob==G.obedit && cu->bevobj==NULL && cu->taperobj==NULL && cu->ext1 == 0.0 && cu->ext2 == 0.0) {
 					cpack(0);
 					draw_index_wire= 0;
 					drawDispListwire(lb);
