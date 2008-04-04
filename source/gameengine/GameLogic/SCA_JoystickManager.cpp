@@ -43,15 +43,13 @@ SCA_JoystickManager::SCA_JoystickManager(class SCA_LogicManager* logicmgr)
 	: SCA_EventManager(JOY_EVENTMGR),
 	m_logicmgr(logicmgr)
 {
-	m_joystick = new SCA_Joystick();
-	m_joystick->CreateJoystickDevice();
+	m_joystick = SCA_Joystick::GetInstance();
 }
 
 
 SCA_JoystickManager::~SCA_JoystickManager()
 {
-	m_joystick->DestroyJoystickDevice();
-	delete m_joystick;
+	m_joystick->ReleaseInstance();
 }
 
 

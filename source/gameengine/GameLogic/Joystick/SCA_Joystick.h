@@ -71,12 +71,16 @@
 /*
 
  * Basic Joystick class
-
+ * I will make this class a singleton because there should be only one joystick
+ * even if there are more than one scene using it and count how many scene are using it.
+ * The underlying joystick should only be removed when the last scene is removed
  */
 
 class SCA_Joystick
 
 {
+	static SCA_Joystick *m_instance;
+	static int m_refCount;
 
 	class PrivateData;
 
@@ -258,19 +262,21 @@ class SCA_Joystick
 
 	int pGetHat(int direction);
 
-	
-
-public:
-
 	SCA_Joystick();
 
 	~SCA_Joystick();
-
 	
-
 	bool CreateJoystickDevice(void);
 
 	void DestroyJoystickDevice(void);
+
+
+public:
+
+	static SCA_Joystick *GetInstance();
+
+	void ReleaseInstance();
+	
 
 	void HandleEvents();
 

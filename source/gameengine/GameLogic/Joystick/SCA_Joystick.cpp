@@ -55,6 +55,34 @@ SCA_Joystick::~SCA_Joystick()
 	delete m_private;
 }
 
+SCA_Joystick *SCA_Joystick::m_instance = NULL;
+int SCA_Joystick::m_refCount = 0;
+
+SCA_Joystick *SCA_Joystick::GetInstance()
+{
+	if (m_instance == 0) 
+	{
+		m_instance = new SCA_Joystick();
+		m_instance->CreateJoystickDevice();
+		m_refCount = 1;
+	}
+	else
+	{
+		m_refCount++;
+	}
+	return m_instance;
+}
+
+void SCA_Joystick::ReleaseInstance()
+{
+	if (--m_refCount == 0)
+	{
+		DestroyJoystickDevice();
+		delete m_instance;
+		m_instance = NULL;
+	}
+}
+
 
 bool SCA_Joystick::CreateJoystickDevice()
 {
