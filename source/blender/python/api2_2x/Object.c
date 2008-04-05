@@ -459,6 +459,8 @@ static PyObject *Object_insertShapeKey(BPy_Object * self);
 static PyObject *Object_copyNLA( BPy_Object * self, PyObject * args );
 static PyObject *Object_convertActionToStrip( BPy_Object * self );
 static PyObject *Object_copy(BPy_Object * self); /* __copy__ */
+static PyObject *Object_trackAxis(BPy_Object * self);
+static PyObject *Object_upAxis(BPy_Object * self);
 
 /*****************************************************************************/
 /* Python BPy_Object methods table:					   */
@@ -1471,7 +1473,6 @@ static PyObject *Object_getType( BPy_Object * self )
 
 static PyObject *Object_getBoundBox( BPy_Object * self )
 {
-	int i;
 	float *vec = NULL;
 	PyObject *vector, *bbox;
 
@@ -5060,7 +5061,14 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)Object_getRBHalfExtents, (setter)NULL, 
 	 "Rigid body physics bounds object type",
 	 NULL},
-
+	{"trackAxis",
+	 (getter)Object_trackAxis, (setter)NULL, 
+	 "track axis 'x' | 'y' | 'z' | '-x' | '-y' | '-z' (string. readonly)",
+	 NULL},
+ 	{"upAxis",
+	 (getter)Object_upAxis, (setter)NULL, 
+	 "up axis 'x' | 'y' | 'z' (string. readonly)",
+	 NULL},
 	{"restrictDisplay",
 	 (getter)Object_getRestricted, (setter)Object_setRestricted, 
 	 "Toggle object restrictions",
@@ -5171,6 +5179,7 @@ PyTypeObject Object_Type = {
 	NULL,                       /* PyObject *tp_weaklist; */
 	NULL
 };
+
 
 static PyObject *M_Object_DrawModesDict( void )
 {
@@ -5947,4 +5956,66 @@ static PyObject *Object_SetSBStiffQuads( BPy_Object * self, PyObject * args )
 {
 	return EXPP_setterWrapper( (void *)self, args,
 			(setter)Object_setSBStiffQuads );
+}
+
+static PyObject *Object_trackAxis( BPy_Object * self )
+{
+	Object* ob;
+	char ctr[3];
+
+	memset( ctr, 0, sizeof(ctr));
+	ob = self->object;
+
+	switch(ob->trackflag){
+		case(0):
+			ctr[0] = 'X';
+			break;
+		case(1):
+			ctr[0] = 'Y';
+			break;
+		case(2):
+			ctr[0] = 'Z';
+			break;
+		case(3):
+			ctr[0] = '-';
+			ctr[1] = 'X';
+			break;
+		case(4):
+			ctr[0] = '-';
+			ctr[1] = 'Y';
+			break;
+		case(5):
+			ctr[0] = '-';
+			ctr[1] = 'Y';
+			break;
+		default:
+			break;
+	}
+
+	return PyString_FromString(ctr);
+}
+
+static PyObject *Object_upAxis( BPy_Object * self )
+{
+	Object* ob;
+	char cup[2];
+
+	memset( cup, 0, sizeof(cup));
+	ob = self->object;
+
+	switch(ob->upflag){
+		case(0):
+			cup[0] = 'X';
+			break;
+		case(1):
+			cup[0] = 'Y';
+			break;
+		case(2):
+			cup[0] = 'Z';
+			break;
+		default:
+			break;
+	}
+
+	return PyString_FromString(cup);
 }
