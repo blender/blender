@@ -60,11 +60,35 @@ extern "C"{
 #define __NLA_DEFNORMALS
 //#undef __NLA_DEFNORMALS
 
+
+BL_SkinDeformer::BL_SkinDeformer(
+	struct Object *bmeshobj_old,	// Blender object that owns the new mesh
+	struct Object *bmeshobj_new,	// Blender object that owns the original mesh
+	class BL_SkinMeshObject *mesh,
+	bool release_object,
+	BL_ArmatureObject* arma)	:	
+		BL_MeshDeformer(bmeshobj_old, mesh),
+		m_armobj(arma),
+		m_lastUpdate(-1),
+		m_defbase(&bmeshobj_old->defbase),
+		m_releaseobject(release_object)
+	{
+		Mat4CpyMat4(m_obmat, bmeshobj_old->obmat);
+		m_restoremat = true;
+		// this is needed to ensure correct deformation of mesh:
+		// the deformation is done with Blender's armature_deform_verts() function
+		// that takes an object as parameter and not a mesh. The object matrice is used
+		// in the calculation, so we must force the same matrice to simulate a pure replacement of mesh
+		Mat4CpyMat4(bmeshobj_old->obmat, bmeshobj_new->obmat);
+	}
+
 BL_SkinDeformer::~BL_SkinDeformer()
 {
 	if(m_releaseobject && m_armobj)
 		m_armobj->Release();
-};
+	if (m_restoremat)
+		Mat4CpyMat4(m_objMesh->obmat, m_obmat);
+}
 
 /* XXX note, this __NLA_OLDDEFORM define seems to be obsolete */
 

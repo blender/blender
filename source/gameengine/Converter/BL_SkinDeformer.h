@@ -72,7 +72,8 @@ public:
 						m_armobj(arma),
 						m_lastUpdate(-1),
 						m_defbase(&bmeshobj->defbase),
-						m_releaseobject(false)
+						m_releaseobject(false),
+						m_restoremat(false)
 	{
 	};
 
@@ -81,15 +82,7 @@ public:
 					struct Object *bmeshobj_new,
 					class BL_SkinMeshObject *mesh,
 					bool release_object,
-					BL_ArmatureObject* arma = NULL)
-					:	//
-						BL_MeshDeformer(bmeshobj_old, mesh),
-						m_armobj(arma),
-						m_lastUpdate(-1),
-						m_defbase(&bmeshobj_old->defbase),
-						m_releaseobject(release_object)
-	{
-	};
+					BL_ArmatureObject* arma = NULL);
 
 	virtual void ProcessReplica();
 	virtual RAS_Deformer *GetReplica();
@@ -102,6 +95,8 @@ protected:
 	float					m_time;
 	double					m_lastUpdate;
 	ListBase*				m_defbase;
+	float					m_obmat[4][4];	// the original object matrice in case of dynamic mesh replacement
+	bool					m_restoremat;		
 	bool					m_releaseobject;
 
 };
