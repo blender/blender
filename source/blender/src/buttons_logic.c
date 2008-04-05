@@ -1096,18 +1096,13 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 					 (short)(10+xco),(short)(yco-44), (short)(0.7 * (width-20)), 19,
 					 &rs->name, 0, 31, 0, 0,
 					 "Only look for Objects with this property");
-			uiDefButS(block, ROW, 1, "X",
-					 (short)(10+xco+0.7 * (width-20)),(short)(yco-44), (short)(0.1 * (width-22)),19,
-					 &rs->axis, 2.0, 0, 0, 0,
-					 "Cast the cone along the object's positive x-axis");
-			uiDefButS(block, ROW, 1, "Y",
-					 (short)(10+xco+0.8 * (width-20)),(short)(yco-44),(short)(0.1 * (width-22)), 19,
-					 &rs->axis, 2.0, 1, 0, 0,
-					 "Cast the cone along the object's positive y-axis");
-			uiDefButS(block, ROW, 1, "Z",
-					 (short)(10+xco+0.9 * (width-20)), (short)(yco-44), (short)(0.1 * (width-22)), 19,
-					 &rs->axis, 2.0, 2, 0, 0,
-					 "Cast the cone along the object's positive z-axis");
+
+			str = "Type %t|+X axis %x0|+Y axis %x1|+Z axis %x2|-X axis %x3|-Y axis %x4|-Z axis %x5"; 
+			uiDefButS(block, MENU, B_REDR, str,
+				(short)(10+xco+0.7 * (width-20)), (short)(yco-44), (short)(0.3 * (width-22)), 19,
+				&rs->axis, 2.0, 31, 0, 0,
+				"Specify along which axis the radar cone is cast.");
+				
 			uiDefButF(block, NUM, 1, "Ang:",
 					 (short)(10+xco), (short)(yco-68), (short)((width-20)/2), 19,
 					 &rs->angle, 0.0, 179.9, 10, 0,
