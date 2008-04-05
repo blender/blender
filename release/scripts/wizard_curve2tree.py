@@ -46,6 +46,15 @@ from Blender.Noise import randuvec
 GLOBALS = {}
 GLOBALS['non_bez_error'] = 0
 
+'''
+def debugVec(v1,v2):
+	sce = bpy.data.scenes.active
+	me = bpy.data.meshes.new()
+	me.verts.extend( [v1,v2] )
+	me.edges.extend( [(0,1)] )
+	sce.objects.new(me)
+'''
+
 def AngleBetweenVecsSafe(a1, a2):
 	try:
 		return AngleBetweenVecs(a1,a2)
@@ -1487,7 +1496,7 @@ class tree:
 				else:
 					# our roll was set from the branches parent and needs no changing
 					# set it to zero so the following functions know to interpolate.
-					brch.bpoints[0].roll_angle = 45.0
+					brch.bpoints[0].roll_angle = 0.0
 					#brch.bpoints[1].roll_angle = 0.0
 		
 		'''
@@ -2407,6 +2416,7 @@ class bpoint(object):
 		Roll the quad about its normal 
 		use for aurienting the sides of a quad to meet a branch that stems from here...
 		'''
+		# debugVec(self.co, self.co + self.no)
 		
 		mat = RotationMatrix(angle, 3, 'r', self.no)
 		for i in xrange(4):
@@ -2451,7 +2461,7 @@ class bpoint(object):
 	def calcVerts(self):
 		if self.prev == None:
 			if self.branch.parent_pt:
-				cross = CrossVecs(self.no, self.branch.getParentFaceCent() - self.branch.parent_pt.getAbsVec( self.branch.getParentQuadIndex() ))
+				cross = CrossVecs(self.no, self.branch.parent_pt.no) * RotationMatrix(-45, 3, 'r', self.no)
 			else:
 				# parentless branch - for best results get a cross thats not the same as the normal, in rare cases this happens.
 				
