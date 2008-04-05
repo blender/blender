@@ -3985,9 +3985,10 @@ static void object_softbodies(Object *ob)
 				uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		110,50,90,20, softflag, 0, 0, 0, 0, "Adds diagonal springs on 4-gons");
 				uiDefButBitS(block, TOG, OB_SB_EDGECOLL, B_DIFF, "CEdge",		220,50,45,20, softflag, 0, 0, 0, 0, "Edge collide too"); 
 				uiDefButBitS(block, TOG, OB_SB_FACECOLL, B_DIFF, "CFace",		265,50,45,20, softflag, 0, 0, 0, 0, "Faces collide too SLOOOOOW warning "); 
-				uiDefButF(block, NUM, B_DIFF, "E Pull:",	10,30,100,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness when longer than rest length");
-				uiDefButF(block, NUM, B_DIFF, "E Push:",	110,30,100,20, &sb->inpush, 0.0,  0.999, 10, 0, "Edge spring stiffness when shorter than rest length");
-				uiDefButF(block, NUM, B_DIFF, "E Damp:",	210,30,100,20, &sb->infrict, 0.0,  50.0, 10, 0, "Edge spring friction");
+				uiDefButF(block, NUM, B_DIFF, "Pull:",	10,30,75,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness when longer than rest length");
+				uiDefButF(block, NUM, B_DIFF, "Push:",	85,30,75,20, &sb->inpush, 0.0,  0.999, 10, 0, "Edge spring stiffness when shorter than rest length");
+				uiDefButF(block, NUM, B_DIFF, "Damp:",	160,30,70,20, &sb->infrict, 0.0,  50.0, 10, 0, "Edge spring friction");
+			    uiDefButS(block, NUM, B_SOFTBODY_CHANGE, "SL:",250 ,30,60,20, &sb->springpreload, 0.0,  200.0, 10, 0, "Alter spring lenght to shrink/blow up (unit %) 0 to disable ");
 				
 				uiDefButBitS(block, TOG,OB_SB_AERO_ANGLE,B_SOFTBODY_CHANGE, "N",10,10,20,20, softflag, 0, 0, 0, 0, "New aero(uses angle and length)");
 				uiDefButS(block, NUM, B_DIFF, "Aero:",     30,10,60,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");

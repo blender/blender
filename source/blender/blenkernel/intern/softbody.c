@@ -2751,6 +2751,10 @@ static void springs_from_mesh(Object *ob)
 		if (G.rt > 500){
 			scale = (G.rt - 500) / 100.0f;
 		}
+		/* public version shrink to fit */
+		if (sb->springpreload != 0 ){
+			scale = sb->springpreload / 100.0f;
+		}
 		for(a=0; a<sb->totspring; a++) {
 			BodySpring *bs = &sb->bspring[a];
 			bs->len= scale*VecLenf(sb->bpoint[bs->v1].origS, sb->bpoint[bs->v2].origS);
@@ -3268,6 +3272,9 @@ static void softbody_write_cache(Object *ob, float framenr)
 
 	for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++)
 		fwrite(&bp->pos, sizeof(float), 3, fp);
+/*write velocities too */ 
+	for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++)
+		fwrite(&bp->vec, sizeof(float), 3, fp);
 	
 	fclose(fp);
 }
@@ -3281,6 +3288,7 @@ static int softbody_read_cache(Object *ob, float framenr)
 	int a, ret = 1;
 
 	if(sb->totpoint == 0) return 0;
+
 
 	if(sb->particles)
 		stack_index = modifiers_indexInObject(ob,(ModifierData*)psys_get_modifier(ob,sb->particles));
@@ -3302,8 +3310,14 @@ static int softbody_read_cache(Object *ob, float framenr)
 				ret = 0;
 				break;
 			}
-
-		fclose(fp);
+			/*read velocities too !*/
+			for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++){
+				if(fread(&bp->vec, sizeof(float), 3, fp) != 3) {
+					ret = 0;
+					break;
+				}
+			}
+			fclose(fp);
 	}
 
 	return ret;
