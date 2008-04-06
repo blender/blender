@@ -164,3 +164,20 @@ class KX_GameObject:
 		@type other: L{KX_GameObject} or list [x, y, z]
 		@rtype: float
 		"""
+	def rayCastTo(other,dist,prop):
+		"""
+		Look towards another point/object and find first object hit within dist that matches prop.
+
+		The ray is always casted from the center of the object, ignoring the object itself.
+		The ray is casted towards the center of another object or an explicit [x,y,z] point.
+
+		@param other: [x,y,z] or object towards which the ray is casted
+		@type other: L{KX_GameObject} or string
+		@param dist: max distance to look (can be negative => look behind); 0 or omitted => detect up to other
+		@type dist: float
+		@param prop: property name that object must have; can be omitted => detect any object
+		@type prop: string
+		@rtype: L{KX_GameObject}
+		@return: the first object hit or None if no object or object does not match prop
+		"""
+	
