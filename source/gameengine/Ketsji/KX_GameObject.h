@@ -47,6 +47,7 @@
 #include "MT_CmMatrix4x4.h"
 #include "GEN_Map.h"
 #include "GEN_HashedPtr.h"
+#include "KX_Scene.h"
 
 #define KX_FIXED_FRAME_PER_SEC 25.0f
 #define KX_FIXED_SEC_PER_FRAME (1.0f / KX_FIXED_FRAME_PER_SEC)
@@ -134,6 +135,15 @@ public:
 	GetParent(
 	);
 
+	/** 
+	 * Sets the parent of this object to a game object
+	 */			
+	void SetParent(KX_Scene *scene, KX_GameObject *obj);
+
+	/** 
+	 * Removes the parent of this object to a game object
+	 */			
+	void RemoveParent(KX_Scene *scene);
 
 	/**
 	 * Construct a game object. This class also inherits the 
@@ -628,6 +638,8 @@ public:
 	KX_PYMETHOD(KX_GameObject,SetCollisionMargin);
 	KX_PYMETHOD(KX_GameObject,GetMesh);
 	KX_PYMETHOD(KX_GameObject,GetParent);
+	KX_PYMETHOD(KX_GameObject,SetParent);
+	KX_PYMETHOD(KX_GameObject,RemoveParent);
 	KX_PYMETHOD(KX_GameObject,GetPhysicsId);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCastTo);
 	KX_PYMETHOD_DOC(KX_GameObject,getDistanceTo);

@@ -464,6 +464,9 @@ void init_actuator(bActuator *act)
     case ACT_2DFILTER:
         act->data = MEM_callocN(sizeof( bTwoDFilterActuator ), "2d filter act");
         break;
+    case ACT_PARENT:
+        act->data = MEM_callocN(sizeof( bParentActuator ), "parent act");
+        break;
 	default:
 		; /* this is very severe... I cannot make any memory for this        */
 		/* logic brick...                                                    */

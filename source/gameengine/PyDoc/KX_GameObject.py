@@ -135,6 +135,14 @@ class KX_GameObject:
 		@rtype: L{KX_GameObject}
 		@return: this object's parent object, or None if this object has no parent.
 		"""
+	def setParent(parent):
+		"""
+		Sets this object's parent.
+		"""
+	def removeParent():
+		"""
+		Removes this objects parent.
+		"""
 	def getMesh(mesh):
 		"""
 		Gets the mesh object for this object.

@@ -205,6 +205,12 @@ typedef struct bTwoDFilterActuator{
 	struct Text *text;
 }bTwoDFilterActuator;
 
+typedef struct bParentActuator {
+	char pad[4];
+	int type;
+	struct Object *ob;
+} bParentActuator;
+
 typedef struct bActuator {
 	struct bActuator *next, *prev, *mynew;
 	short type;
@@ -274,6 +280,7 @@ typedef struct FreeCamera {
 #define ACT_GAME		17
 #define ACT_VISIBILITY          18
 #define ACT_2DFILTER	19
+#define ACT_PARENT      20
 
 /* actuator flag */
 #define ACT_SHOW		1
@@ -423,6 +430,10 @@ typedef struct FreeCamera {
 #define ACT_2DFILTER_INVERT				11
 #define ACT_2DFILTER_CUSTOMFILTER		12
 #define ACT_2DFILTER_NUMBER_OF_FILTERS	13
+
+/* parentactuator->type */
+#define ACT_PARENT_SET      0
+#define ACT_PARENT_REMOVE   1
 #endif
 
 

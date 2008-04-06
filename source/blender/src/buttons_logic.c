@@ -714,6 +714,8 @@ static char *actuator_name(int type)
 		return "Visibility";
 	case ACT_2DFILTER:
 		return "2D Filter";
+	case ACT_PARENT:
+		return "Parent";
 	}
 	return "unknown";
 }
@@ -729,13 +731,13 @@ static char *actuator_pup(Object *owner)
 		return "Actuators  %t|Action %x15|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
 			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
-			"|Visibility %x18|2D Filter %x19";
+			"|Visibility %x18|2D Filter %x19|Parent %x20";
 		break;
 	default:
 		return "Actuators  %t|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
 			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
-			"|Visibility %x18|2D Filter %x19";
+			"|Visibility %x18|2D Filter %x19|Parent %x20";
 	}
 }
 
@@ -1474,6 +1476,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 	bGameActuator	    *gma     = NULL;
 	bVisibilityActuator *visAct  = NULL;
 	bTwoDFilterActuator	*tdfa	 = NULL;
+	bParentActuator     *parAct  = NULL;
 	
 	float *fp;
 	short ysize = 0, wval;
@@ -2222,6 +2225,29 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 		
 		yco -= ysize;
         break;
+	case ACT_PARENT:
+  		parAct = act->data; 
+
+  		if(parAct->type==ACT_PARENT_SET) { 
+			
+  			ysize= 48; 
+  			glRects(xco, yco-ysize, xco+width, yco); 
+  			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
+	 
+  			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+40, yco-44, (width-80), 19, &(parAct->ob), "Set this object as parent"); 
+  		}
+  		else if(parAct->type==ACT_PARENT_REMOVE) { 
+			
+  			ysize= 28; 
+  			glRects(xco, yco-ysize, xco+width, yco); 
+  			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
+ 		}
+
+		str= "Parent %t|Set Parent %x0|Remove Parent %x1";
+		uiDefButI(block, MENU, B_REDR, str,		xco+40, yco-24, (width-80), 19, &parAct->type, 0.0, 0.0, 0, 0, ""); 
+
+  		yco-= ysize; 
+  		break; 
  	default:
 		ysize= 4;
 

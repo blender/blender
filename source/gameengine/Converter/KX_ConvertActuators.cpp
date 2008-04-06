@@ -49,7 +49,6 @@
 #include "SCA_RandomActuator.h"
 #include "SCA_2DFilterActuator.h"
 
-
 // Ketsji specific logicbricks
 #include "KX_SceneActuator.h"
 #include "KX_IpoActuator.h"
@@ -64,6 +63,7 @@
 #include "KX_SCA_AddObjectActuator.h"
 #include "KX_SCA_EndObjectActuator.h"
 #include "KX_SCA_ReplaceMeshActuator.h"
+#include "KX_ParentActuator.h"
 
 #include "KX_Scene.h"
 #include "KX_KetsjiEngine.h"
@@ -917,6 +917,32 @@ void BL_ConvertActuators(char* maggiename,
 			
 		}
 		break;
+		case ACT_PARENT:
+			{
+				bParentActuator *parAct = (bParentActuator *) bact->data;
+				int mode = KX_ParentActuator::KX_PARENT_NODEF;
+				KX_GameObject *tmpgob;
+
+				switch(parAct->type)
+				{
+					case ACT_PARENT_SET:
+						mode = KX_ParentActuator::KX_PARENT_SET;
+						tmpgob = converter->FindGameObject(parAct->ob);
+						break;
+					case ACT_PARENT_REMOVE:
+						mode = KX_ParentActuator::KX_PARENT_REMOVE;
+						tmpgob = NULL;
+						break;
+				}
+	
+				KX_ParentActuator *tmpparact
+					= new KX_ParentActuator(gameobj,
+					mode,
+					tmpgob);
+				baseact = tmpparact;
+				break;
+			}
+		
 		default:
 			; /* generate some error */
 		}

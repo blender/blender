@@ -2982,6 +2982,10 @@ static void lib_link_object(FileData *fd, Main *main)
 					bTwoDFilterActuator *_2dfa = act->data; 
 					_2dfa->text= newlibadr(fd, ob->id.lib, _2dfa->text);
 				}
+				else if(act->type==ACT_PARENT) {
+					bParentActuator *parenta = act->data; 
+					parenta->ob = newlibadr(fd, ob->id.lib, parenta->ob);
+				}
 				act= act->next;
 			}
 
