@@ -134,8 +134,8 @@ def RGBtoHSV( r, g, b):
 
 def update_state():
 	state = dict()
-	state["activeScene"] = Blender.Scene.getCurrent()
-	state["activeObject"] = state["activeScene"].getActiveObject()
+	state["activeScene"] = Blender.Scene.GetCurrent()
+	state["activeObject"] = state["activeScene"].objects.active
 	if state["activeObject"] and not state["activeObject"].sel:
 		state["activeObject"] = None
 	state["activeMesh"] = None
@@ -290,12 +290,12 @@ def update_all():
 		Blender.Window.EditMode(0)
 		editmode = 1
 	state = update_state()
-	
+	colors = None
 	if state["activeScene"].properties.has_key('FLT'):
 		try:
 			colors = state["activeScene"].properties['FLT']['Color Palette']
 		except:
-			colors = None
+			pass
 	if colors:
 		#update the baked FLT colors for all meshes.
 		for object in state["activeScene"].objects:
@@ -596,7 +596,10 @@ def dfromact():
 			if not dof:
 				dof = object
 			else:
-				return 
+				break
+	
+	if not dof:
+		return
 	
 	if 'FLT' not in dof.properties:
 		dof.properties['FLT'] = dict()	
