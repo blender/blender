@@ -2730,6 +2730,7 @@ Material **nmesh_updateMaterials( BPy_NMesh * nmesh )
 	}
 
 	if( len > 0 ) {
+		if (len>16) len = 16;
 		matlist = EXPP_newMaterialList_fromPyList( nmesh->materials );
 		EXPP_incr_mats_us( matlist, len );
 
