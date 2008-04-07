@@ -279,10 +279,11 @@ static PyObject *M_Library_Datablocks( PyObject * self, PyObject * value )
 			counter++;
 		}
 		BLI_linklist_free( names, free );	/* free linklist *and* each node's data */
-		return list;
+	} else {
+		list = PyList_New( 0 );
 	}
 
-	Py_RETURN_NONE;
+	return list;
 }
 
 /**
