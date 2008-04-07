@@ -5999,7 +5999,7 @@ static PyObject *Object_trackAxis( BPy_Object * self )
 			break;
 		case(5):
 			ctr[0] = '-';
-			ctr[1] = 'Y';
+			ctr[1] = 'Z';
 			break;
 		default:
 			break;
