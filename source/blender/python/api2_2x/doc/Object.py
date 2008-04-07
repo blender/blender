@@ -1178,10 +1178,12 @@ class Object:
 				- 1  - selected
 		"""
 	
-	def getBoundBox():
+	def getBoundBox(worldspace=1):
 		"""
 		Returns the worldspace bounding box of this object.  This works for meshes (out of
 		edit mode) and curves.
+		@type worldspace: int
+		@param worldspace: An optional argument. When zero, the bounding values will be localspace.
 		@rtype: list of 8 (x,y,z) float coordinate vectors (WRAPPED DATA)
 		@return: The coordinates of the 8 corners of the bounding box. Data is wrapped when
 		bounding box is present.

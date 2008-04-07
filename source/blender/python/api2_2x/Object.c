@@ -360,7 +360,8 @@ static PyObject *Object_getSize( BPy_Object * self, PyObject * args );
 static PyObject *Object_getTimeOffset( BPy_Object * self );
 static PyObject *Object_getTracked( BPy_Object * self );
 static PyObject *Object_getType( BPy_Object * self );
-static PyObject *Object_getBoundBox( BPy_Object * self );
+static PyObject *Object_getBoundBox( BPy_Object * self, PyObject *args );
+static PyObject *Object_getBoundBox_noargs( BPy_Object * self );
 static PyObject *Object_getAction( BPy_Object * self );
 static PyObject *Object_getPose( BPy_Object * self );
 static PyObject *Object_evaluatePose( BPy_Object * self, PyObject *args );
@@ -633,7 +634,7 @@ automatic when the script finishes."},
 	 "Returns SB StiffQuads"},
 	{"setSBStiffQuads", ( PyCFunction ) Object_SetSBStiffQuads, METH_VARARGS,
 	 "Sets SB StiffQuads"},
-	{"getBoundBox", ( PyCFunction ) Object_getBoundBox, METH_NOARGS,
+	{"getBoundBox", ( PyCFunction ) Object_getBoundBox, METH_VARARGS,
 	 "Returns the object's bounding box"},
 	{"makeDisplayList", ( PyCFunction ) Object_makeDisplayList, METH_NOARGS,
 	 "Update this object's Display List. Some changes like turning\n\
@@ -1471,10 +1472,15 @@ static PyObject *Object_getType( BPy_Object * self )
 	return PyString_FromString( str );
 }
 
-static PyObject *Object_getBoundBox( BPy_Object * self )
+static PyObject *Object_getBoundBox( BPy_Object * self, PyObject *args )
 {
 	float *vec = NULL;
 	PyObject *vector, *bbox;
+	int worldspace = 1;
+	
+	if( !PyArg_ParseTuple( args, "|i", &worldspace ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected an int or nothing" );
 
 	if( !self->object->data )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
@@ -1524,24 +1530,26 @@ static PyObject *Object_getBoundBox( BPy_Object * self )
 		for( i = 0, from = vec; i < 8; i++, from += 3 ) {
 			memcpy( tmpvec, from, 3 * sizeof( float ) );
 			tmpvec[3] = 1.0f;	/* set w coord */
-			Mat4MulVec4fl( self->object->obmat, tmpvec );
-			/* divide x,y,z by w */
-			tmpvec[0] /= tmpvec[3];
-			tmpvec[1] /= tmpvec[3];
-			tmpvec[2] /= tmpvec[3];
+			
+			if (worldspace) {
+				Mat4MulVec4fl( self->object->obmat, tmpvec );
+				/* divide x,y,z by w */
+				tmpvec[0] /= tmpvec[3];
+				tmpvec[1] /= tmpvec[3];
+				tmpvec[2] /= tmpvec[3];
 
 #if 0
-			{	/* debug print stuff */
-				int i;
-
-				printf( "\nobj bbox transformed\n" );
-				for( i = 0; i < 4; ++i )
-					printf( "%f ", tmpvec[i] );
-
-				printf( "\n" );
-			}
+				{	/* debug print stuff */
+					int i;
+	
+					printf( "\nobj bbox transformed\n" );
+					for( i = 0; i < 4; ++i )
+						printf( "%f ", tmpvec[i] );
+	
+					printf( "\n" );
+				}
 #endif
-
+			}
 			/* because our bounding box is calculated and
 			   does not have its own memory,
 			   we must create vectors that allocate space */
@@ -1554,6 +1562,11 @@ static PyObject *Object_getBoundBox( BPy_Object * self )
 	}
 
 	return bbox;
+}
+
+static PyObject *Object_getBoundBox_noargs( BPy_Object * self )
+{
+	return Object_getBoundBox(self, PyTuple_New(0));
 }
 
 static PyObject *Object_makeDisplayList( BPy_Object * self )
@@ -4818,7 +4831,7 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 "The object's type",
 	 NULL},
 	{"boundingBox",
-	 (getter)Object_getBoundBox, (setter)NULL,
+	 (getter)Object_getBoundBox_noargs, (setter)NULL,
 	 "The bounding box of this object",
 	 NULL},
 	{"action",
