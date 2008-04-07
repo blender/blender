@@ -2323,7 +2323,7 @@ void do_object_panels(unsigned short event)
 			BLI_addtail(&ob->particlesystem,psys);
 
 			md= modifier_new(eModifierType_ParticleSystem);
-			sprintf(md->name, "FluidParticleSystem");
+			sprintf(md->name, "FluidParticleSystem", BLI_countlist(&ob->particlesystem));
 			psmd= (ParticleSystemModifierData*) md;
 			psmd->psys=psys;
 			BLI_addtail(&ob->modifiers, md);
@@ -3633,7 +3633,7 @@ static void object_softbodies_collision(Object *ob)
 		ob->pd->pdef_sboft  = 0.02f;
 	}
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies_collision", UI_EMBOSS, UI_HELV, curarea->win);
-	// uiNewPanelTabbed("Soft Body", "Physics"); /*don't really want it tabbed first */
+	uiNewPanelTabbed("Soft Body", "Physics"); 
 	if(uiNewPanel(curarea, block, "Soft Body Collision", "Physics", 651, 0, 318, 204)==0) return;
 
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
@@ -3733,6 +3733,7 @@ static void object_softbodies_solver(Object *ob)
 	int ob_has_hair=psys_ob_has_hair(ob);
 	if(!_can_softbodies_at_all(ob)) return;
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies_solver", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Soft Body", "Physics"); 
 	if(uiNewPanel(curarea, block, "Soft Body Solver", "Physics", 651, 0, 318, 204)==0) return;
 
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
@@ -3825,7 +3826,7 @@ static void sb_clear_cache(void *ob_v, void *actsoft_v)
 	Object *ob = ob_v;
 	short *actsoft = actsoft_v;
 
-	if(actsoft)
+	if(actsoft >= 0)
 		clear_particles_from_cache(ob, BLI_findlink(&ob->particlesystem, *actsoft), CFRA);
 	else
 		softbody_clear_cache(ob, CFRA);
@@ -3843,6 +3844,7 @@ static void object_softbodies(Object *ob)
 
     if(!_can_softbodies_at_all(ob)) return;
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Soft Body", "Physics"); 
 	if(uiNewPanel(curarea, block, "Soft Body", "Physics", 640, 0, 318, 204)==0) return;
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 

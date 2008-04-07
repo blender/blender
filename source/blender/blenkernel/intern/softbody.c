@@ -2747,10 +2747,6 @@ static void springs_from_mesh(Object *ob)
 			
 		}
 		/* recalculate spring length for meshes here */
-		/* special hidden feature! shrink to fit */
-		if (G.rt > 500){
-			scale = (G.rt - 500) / 100.0f;
-		}
 		/* public version shrink to fit */
 		if (sb->springpreload != 0 ){
 			scale = sb->springpreload / 100.0f;
