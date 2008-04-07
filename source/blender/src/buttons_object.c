@@ -2323,10 +2323,6 @@ void do_object_panels(unsigned short event)
 			BLI_addtail(&ob->particlesystem,psys);
 
 			md= modifier_new(eModifierType_ParticleSystem);
-/*
-fixme - warning: too many arguments for format
-			sprintf(md->name, "FluidParticleSystem", BLI_countlist(&ob->particlesystem));
-*/
 			sprintf(md->name, "FluidParticleSystem");
 			psmd= (ParticleSystemModifierData*) md;
 			psmd->psys=psys;
