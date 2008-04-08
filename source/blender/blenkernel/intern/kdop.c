@@ -88,9 +88,9 @@ LinkNode *BLI_linklist_append_fast(LinkNode **listp, void *ptr) {
 ////////////////////////////////////////////////////////////////////////
 
 static float KDOP_AXES[13][3] =
-{ {1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {1, 1, 1}, {1, -1, 1}, {1, 1, -1},
-{1, -1, -1}, {1, 1, 0}, {1, 0, 1}, {0, 1, 1}, {1, -1, 0}, {1, 0, -1},
-{0, 1, -1}
+{ {1.0, 0, 0}, {0, 1.0, 0}, {0, 0, 1.0}, {1.0, 1.0, 1.0}, {1.0, -1.0, 1.0}, {1.0, 1.0, -1.0},
+{1.0, -1.0, -1.0}, {1.0, 1.0, 0}, {1.0, 0, 1.0}, {0, 1.0, 1.0}, {1.0, -1.0, 0}, {1.0, 0, -1.0},
+{0, 1.0, -1.0}
 };
 
 ///////////// choose bounding volume here! /////////////
@@ -342,19 +342,30 @@ DO_INLINE void bvh_calc_DOP_hull_from_faces(BVH * bvh, CollisionTree **tri, int 
 {
 	float newmin,newmax;
 	int i, j;
+	
+	if(numfaces >0)
+	{
+		// for all Axes.
+		for (i = KDOP_START; i < KDOP_END; i++)
+		{
+			bv[(2 * i)] = (tri [0])->bv[(2 * i)];	
+			bv[(2 * i) + 1] = (tri [0])->bv[(2 * i) + 1];
+		}
+	}
+	
 	for (j = 0; j < numfaces; j++)
 	{
 		// for all Axes.
 		for (i = KDOP_START; i < KDOP_END; i++)
 		{
 			newmin = (tri [j])->bv[(2 * i)];	
-			if ((newmin < bv[(2 * i)]) || (j == 0))
+			if ((newmin < bv[(2 * i)]))
 			{
 				bv[(2 * i)] = newmin;
 			}
 
 			newmax = (tri [j])->bv[(2 * i) + 1];
-			if ((newmax > bv[(2 * i) + 1]) || (j == 0))
+			if ((newmax > bv[(2 * i) + 1]))
 			{
 				bv[(2 * i) + 1] = newmax;
 			}
@@ -401,6 +412,7 @@ DO_INLINE void bvh_calc_DOP_hull_static(BVH * bvh, CollisionTree **tri, int numf
 		
 		/* calculate normal of this face */
 		/* (code copied from cdderivedmesh.c) */
+		/*
 		if(tempMFace->v4)
 			CalcNormFloat4(bvh->current_xold[tempMFace->v1].co, bvh->current_xold[tempMFace->v2].co,
 				       bvh->current_xold[tempMFace->v3].co, bvh->current_xold[tempMFace->v4].co, tree->normal);
@@ -409,8 +421,7 @@ DO_INLINE void bvh_calc_DOP_hull_static(BVH * bvh, CollisionTree **tri, int numf
 				      bvh->current_xold[tempMFace->v3].co, tree->normal);
 		
 		tree->alpha = 0;
-		
-		
+		*/
 	}
 }
 
@@ -772,6 +783,7 @@ void bvh_join(CollisionTree *tree)
 			}
 			
 			/* for selfcollisions */
+			/*
 			if(!i)
 			{
 				tree->alpha = tree->nodes[i]->alpha;
@@ -784,6 +796,7 @@ void bvh_join(CollisionTree *tree)
 				VecMulf(tree->normal, 0.5);
 				max = MAX2(max, tree->nodes[i]->alpha);
 			}
+			*/
 			
 		}
 		else

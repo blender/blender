@@ -423,9 +423,9 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	numverts = result->getNumVerts(result);
 	numedges = result->getNumEdges(result);
 	numfaces = result->getNumFaces(result);
-	mvert = dm->getVertArray(result);
-	medge = dm->getEdgeArray(result);
-	mface = dm->getFaceArray(result);
+	mvert = result->getVertArray(result);
+	medge = result->getEdgeArray(result);
+	mface = result->getFaceArray(result);
 	
 	/* check if cache is active / if file is already saved */
 	/*

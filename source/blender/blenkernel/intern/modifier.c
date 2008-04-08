@@ -58,6 +58,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_sph_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
@@ -90,6 +91,7 @@
 #include "BKE_object.h"
 #include "BKE_mesh.h"
 #include "BKE_softbody.h"
+#include "BKE_sph.h"
 #include "BKE_cloth.h"
 #include "BKE_material.h"
 #include "BKE_particle.h"
@@ -5166,6 +5168,89 @@ static void clothModifier_freeData(ModifierData *md)
 	}
 }
 
+/* Smooth Particly Hydrodynamics */
+
+static void sphModifier_initData(ModifierData *md) 
+{
+	SphModifierData *sphmd = (SphModifierData*) md;
+	
+	sphmd->sim_parms = MEM_callocN(sizeof(SphSimSettings), "SPH sim parms");
+	sphmd->coll_parms = MEM_callocN(sizeof(SphCollSettings), "SPH coll parms");
+	
+	/* check for alloc failing */
+	if(!sphmd->sim_parms || !sphmd->coll_parms)
+		return;
+	
+	sph_init(sphmd);
+}
+
+static DerivedMesh *sphModifier_applyModifier(ModifierData *md, Object *ob,
+		DerivedMesh *derivedData, int useRenderParams, int isFinalCalc)
+{
+	SphModifierData *sphmd = (SphModifierData*) md;
+	DerivedMesh *result=NULL;
+	
+	/* check for alloc failing */
+	if(!sphmd->sim_parms || !sphmd->coll_parms)
+		return derivedData;
+
+	result = sphModifier_do(sphmd, ob, derivedData, useRenderParams, isFinalCalc);
+
+	if(result)
+	{
+		CDDM_calc_normals(result);
+		return result;
+	}
+	
+	return derivedData;
+}
+
+static void sphModifier_updateDepgraph(
+					 ModifierData *md, DagForest *forest, Object *ob,
+      DagNode *obNode)
+{
+	SphModifierData *sphmd = (SphModifierData*) md;
+	
+	Base *base;
+	
+}
+
+CustomDataMask sphModifier_requiredDataMask(ModifierData *md)
+{
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
+}
+
+static void sphModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	
+}
+
+
+static int sphModifier_dependsOnTime(ModifierData *md)
+{
+	return 1;
+}
+
+static void sphModifier_freeData(ModifierData *md)
+{
+	SphModifierData *sphmd = (SphModifierData*) md;
+	
+	if (sphmd) 
+	{	
+		sph_free_modifier(sphmd);
+		
+		if(sphmd->sim_parms)
+			MEM_freeN(sphmd->sim_parms);
+		if(sphmd->coll_parms)
+			MEM_freeN(sphmd->coll_parms);
+	}
+}
+
 /* Collision */
 
 static void collisionModifier_initData(ModifierData *md) 
@@ -7084,6 +7169,18 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->requiredDataMask = bevelModifier_requiredDataMask;
 		mti->applyModifier = bevelModifier_applyModifier;
 		mti->applyModifierEM = bevelModifier_applyModifierEM;
+		
+		mti = INIT_TYPE(Sph);
+		mti->type = eModifierTypeType_Nonconstructive;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_UsesPointCache;
+		mti->initData = sphModifier_initData;
+		mti->copyData = sphModifier_copyData;
+		mti->requiredDataMask = sphModifier_requiredDataMask;
+		mti->applyModifier = sphModifier_applyModifier;
+		mti->dependsOnTime = sphModifier_dependsOnTime;
+		mti->freeData = sphModifier_freeData; 
+		mti->updateDepgraph = sphModifier_updateDepgraph;
 
 		mti = INIT_TYPE(Displace);
 		mti->type = eModifierTypeType_OnlyDeform;
