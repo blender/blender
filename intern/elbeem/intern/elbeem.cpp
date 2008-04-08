@@ -30,6 +30,7 @@ int guiRoiMaxLev=6, guiRoiMinLev=0;
 ntlWorld *gpWorld = NULL;
 
 
+
 // API
 
 // reset elbeemSimulationSettings struct with defaults

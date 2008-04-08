@@ -328,7 +328,10 @@ LbmFsgrSolver::LbmFsgrSolver() :
 	mInit2dYZ(false),
 	mForceTadapRefine(-1), mCutoff(-1)
 {
-  // not much to do here... 
+#if LBM_INCLUDE_CONTROL==1
+	mpControl = new LbmControlData();
+#endif
+
 #if LBM_INCLUDE_TESTSOLVERS==1
 	mpTest = new LbmTestdata();
 	mMpNum = mMpIndex = 0;
@@ -487,6 +490,10 @@ void LbmFsgrSolver::parseAttrList()
 	starttimeskip = mpSifAttrs->readFloat("forcestarttimeskip", starttimeskip, "LbmFsgrSolver","starttimeskip", false );
 	mSimulationTime += starttimeskip;
 	if(starttimeskip>0.) debMsgStd("LbmFsgrSolver::parseStdAttrList",DM_NOTIFY,"Used starttimeskip="<<starttimeskip<<", t="<<mSimulationTime, 1);
+
+#if LBM_INCLUDE_CONTROL==1
+	mpControl->parseControldataAttrList(mpSifAttrs);
+#endif
 
 #if LBM_INCLUDE_TESTSOLVERS==1
 	mUseTestdata = 0;
@@ -703,7 +710,7 @@ bool LbmFsgrSolver::initializeSolverMemory()
 			memBlockAllocProblem = true;
 		}
 #endif // Mac
-		if(sizeof(void *)==4 && memEstFine>maxDefaultMemChunk) {
+		if(sizeof(void*)==4 && memEstFine>maxDefaultMemChunk) {
 			// max memory chunk for 32bit systems 2gig
 			memBlockAllocProblem = true;
 		}
@@ -1264,8 +1271,11 @@ bool LbmFsgrSolver::initializeSolverPostinit() {
   debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Init done ... ",10);
 	mInitDone = 1;
 
-#if LBM_INCLUDE_TESTSOLVERS==1
+#if LBM_INCLUDE_CONTROL==1
 	initCpdata();
+#endif // LBM_INCLUDE_CONTROL==1
+
+#if LBM_INCLUDE_TESTSOLVERS==1
 	initTestdata();
 #endif // ELBEEM_PLUGIN!=1
 	// not inited? dont use...
