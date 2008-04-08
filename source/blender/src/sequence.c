@@ -670,12 +670,11 @@ static void multibuf(ImBuf *ibuf, float fmul)
 	int a, mul, icol;
 
 	mul= (int)(256.0*fmul);
-
-	a= ibuf->x*ibuf->y;
 	rt= (char *)ibuf->rect;
 	rt_float = ibuf->rect_float;
 
 	if (rt) {
+		a= ibuf->x*ibuf->y;
 		while(a--) {
 
 			icol= (mul*rt[0])>>8;
@@ -691,6 +690,7 @@ static void multibuf(ImBuf *ibuf, float fmul)
 		}
 	}
 	if (rt_float) {
+		a= ibuf->x*ibuf->y;
 		while(a--) {
 			rt_float[0] *= fmul;
 			rt_float[1] *= fmul;
