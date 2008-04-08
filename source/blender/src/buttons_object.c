@@ -2323,7 +2323,7 @@ void do_object_panels(unsigned short event)
 			BLI_addtail(&ob->particlesystem,psys);
 
 			md= modifier_new(eModifierType_ParticleSystem);
-			sprintf(md->name, "FluidParticleSystem", BLI_countlist(&ob->particlesystem));
+			sprintf(md->name, "FluidParticleSystem" );
 			psmd= (ParticleSystemModifierData*) md;
 			psmd->psys=psys;
 			BLI_addtail(&ob->modifiers, md);
@@ -3826,7 +3826,7 @@ static void sb_clear_cache(void *ob_v, void *actsoft_v)
 	Object *ob = ob_v;
 	short *actsoft = actsoft_v;
 
-	if(actsoft >= 0)
+	if(actsoft)
 		clear_particles_from_cache(ob, BLI_findlink(&ob->particlesystem, *actsoft), CFRA);
 	else
 		softbody_clear_cache(ob, CFRA);
