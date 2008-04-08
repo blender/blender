@@ -859,7 +859,7 @@ class FLTNode(Node):
 			
 			flipped = self.object.getMatrix('worldspace').determinant()
 			
-			if not options.state['export_transform']:
+			if not options.state['transform']:
 				self.exportmesh.calcNormals()
 			
 
@@ -891,7 +891,7 @@ class FLTNode(Node):
 			self.buildNormFaces()
 			self.buildTexData()
 			
-			if not options.state['export_transform']:
+			if not options.state['transform']:
 				if flipped < 0:
 					for vdesc in self.header.GRR.vertex_lst:
 						vdesc.accum = 0
@@ -1077,7 +1077,7 @@ class FLTNode(Node):
 
 		self.write_longid(self.name) #fix this!
 		
-		if options.state['export_transform'] or self.opcode == 63:
+		if options.state['transform'] or self.opcode == 63:
 			#writing transform matrix....
 			self.write_matrix()
 
@@ -1388,7 +1388,7 @@ def dbexport():
 	Blender.Window.WaitCursor(False)
 	
 	#optional: Copy textures
-	if options.state['copy_textures']:
+	if options.state['copytex']:
 		for imgname in tex_files:
 			#Check to see if texture exists in target directory
 			if not os.path.exists(tex_files[imgname]):
