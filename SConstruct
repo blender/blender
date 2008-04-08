@@ -225,17 +225,18 @@ if env['OURPLATFORM'] == 'linux2' :
             return result
 
         env2 = env.Copy( LIBPATH = env['BF_OPENAL'] ) 
-	sconf_temp = mkdtemp()
+        sconf_temp = mkdtemp()
         conf = Configure( env2, {'CheckFreeAlut' : CheckFreeAlut}, sconf_temp, '/dev/null' )
         if conf.CheckFreeAlut( env2 ):
             env['BF_OPENAL_LIB'] += ' alut'
         del env2
+        root = ''
         for root, dirs, files in os.walk(sconf_temp, topdown=False):
             for name in files:
                 os.remove(os.path.join(root, name))
             for name in dirs:
                 os.rmdir(os.path.join(root, name))
-        os.rmdir(root)
+        if root: os.rmdir(root)
 
 if len(B.quickdebug) > 0 and printdebug != 0:
     print B.bc.OKGREEN + "Buildings these libs with debug symbols:" + B.bc.ENDC
