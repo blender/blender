@@ -39,6 +39,7 @@ import string
 import shutil
 import glob
 import re
+from tempfile import mkdtemp
 
 import tools.Blender
 import tools.btools
@@ -224,11 +225,12 @@ if env['OURPLATFORM'] == 'linux2' :
             return result
 
         env2 = env.Copy( LIBPATH = env['BF_OPENAL'] ) 
-        conf = Configure( env2, {'CheckFreeAlut' : CheckFreeAlut}, '.sconf_temp', '/dev/null' )
+	sconf_temp = mkdtemp()
+        conf = Configure( env2, {'CheckFreeAlut' : CheckFreeAlut}, sconf_temp, '/dev/null' )
         if conf.CheckFreeAlut( env2 ):
             env['BF_OPENAL_LIB'] += ' alut'
         del env2
-        for root, dirs, files in os.walk('.sconf_temp', topdown=False):
+        for root, dirs, files in os.walk(sconf_temp, topdown=False):
             for name in files:
                 os.remove(os.path.join(root, name))
             for name in dirs:
