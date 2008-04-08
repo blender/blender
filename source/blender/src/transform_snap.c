@@ -231,7 +231,8 @@ void initSnapping(TransInfo *t)
 {
 	resetSnapping(t);
 	
-	if (t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) { // Only 3D view or UV
+	if ((t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) && // Only 3D view or UV
+			(t->flag & T_CAMERA) == 0) { // Not with camera selected
 		setSnappingCallback(t);
 
 		/* Edit mode */

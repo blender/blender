@@ -245,7 +245,7 @@ static void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], flo
 		Mat3MulVecfl(t->con.pmtx, out);
 		
 		// With snap, a projection is alright, no need to correct for view alignment
-		if (((t->tsnap.status & SNAP_ON) && (G.qual & LR_CTRLKEY)) == 0 ) {
+		if ((t->tsnap.status & SNAP_ON) == 0) {
 			if (getConstraintSpaceDimension(t) == 2) {
 				if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
 					planeProjection(t, in, out);
