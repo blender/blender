@@ -915,8 +915,8 @@ static void q_scale_float(float* in, float* out, int in_width,
 static int q_scale_linear_interpolation(
 	struct ImBuf *ibuf, int newx, int newy)
 {
-	if ((newx > ibuf->x && newy < ibuf->y) ||
-	    (newx < ibuf->x && newy > ibuf->y)) {
+	if ((newx >= ibuf->x && newy <= ibuf->y) ||
+	    (newx <= ibuf->x && newy >= ibuf->y)) {
 		return FALSE;
 	}
 
