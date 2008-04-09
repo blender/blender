@@ -125,14 +125,14 @@ def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True, cam
 			# camera is wider then image res.
 			# to make the image wider, reduce the aspy
 			asp_diff= asp_image_res/asp_cam_mat
-			min_asp= int(round(asp_diff * 200))
+			min_asp= asp_diff * 200
 			#print 'X', min_asp
 			
 		elif asp_cam_mat < asp_image_res: # asp_cam_mat < asp_image_res
 			# camera is narrower then image res
 			# to make the image narrower, reduce the aspx
 			asp_diff= asp_cam_mat/asp_image_res
-			min_asp= int(round(asp_diff * 200))
+			min_asp= asp_diff * 200
 			#print 'Y', min_asp
 		else:
 			min_asp= 200

@@ -202,14 +202,6 @@ typedef struct RenderData {
 	 */
 	short ysch;
 	/**
-	 * Adjustment factors for the aspect ratio in the x direction
-	 */
-	short xasp;
-	/**
-	 * Adjustment factors for the aspect ratio in the x direction
-	 */
-	short yasp;
-	/**
 	 * The number of part to use in the x direction
 	 */
 	short xparts;
@@ -225,7 +217,7 @@ typedef struct RenderData {
 	short bufflag;
  	short quality;
 	
-	short rpad;
+	short rpad, rpad1, rpad2;
 
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
@@ -260,6 +252,15 @@ typedef struct RenderData {
 	/* information on different layers to be rendered */
 	ListBase layers;
 	short actlay, pad;
+	
+	/**
+	 * Adjustment factors for the aspect ratio in the x direction, was a short in 2.45
+	 */
+	float xasp;
+	/**
+	 * Adjustment factors for the aspect ratio in the x direction, was a short in 2.45
+	 */
+	float yasp;
 
 	float frs_sec_base;
 	

@@ -2497,8 +2497,18 @@ static void render_panel_format(void)
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM,REDRAWVIEWCAM,"SizeX:",	892 ,136,112,27, &G.scene->r.xsch, 4.0, 10000.0, 0, 0, "The image width in pixels");
 	uiDefButS(block, NUM,REDRAWVIEWCAM,"SizeY:",	1007,136,112,27, &G.scene->r.ysch, 4.0,10000.0, 0, 0, "The image height in scanlines");
-	uiDefButS(block, NUM,REDRAWVIEWCAM,"AspX:",	892 ,114,112,20, &G.scene->r.xasp, 1.0,200.0, 0, 0, "The horizontal aspect ratio");
-	uiDefButS(block, NUM,REDRAWVIEWCAM,"AspY:",	1007,114,112,20, &G.scene->r.yasp, 1.0,200.0, 0, 0, "The vertical aspect ratio");
+	
+	uiDefButF(block, NUM, REDRAWVIEWCAM, "AspX:",
+				892 ,114,112,20,
+				&G.scene->r.xasp,
+				1, 200, 100, 2,
+				"Horizontal Aspect Ratio");
+	uiDefButF(block, NUM, REDRAWVIEWCAM, "AspY:",
+			 	1007,114,112,20,
+			 	&G.scene->r.yasp,
+			 	1, 200, 100, 2,
+			 	"Vertical Aspect Ratio");
+	
 	uiBlockEndAlign(block);
 
 	yofs = 54;
