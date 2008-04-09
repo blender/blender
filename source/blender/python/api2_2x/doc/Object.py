@@ -636,6 +636,10 @@ class Object:
 	@ivar rbShapeBoundType: Rigid body shape bound type.  See L{RBShapes}
 		const dict for values.
 	@type rbShapeBoundType: int
+	@ivar trackAxis: Track axis. Return string 'X' | 'Y' | 'Z' | '-X' | '-Y' | '-Z' (readonly)
+	@type trackAxis: string 
+	@ivar upAxis: Up axis. Return string 'Y' | 'Y' | 'Z' (readonly)
+	@type upAxis: string
 	"""
 
 	def buildParts():
