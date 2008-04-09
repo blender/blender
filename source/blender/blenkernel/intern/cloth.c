@@ -135,6 +135,7 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->firstcachedframe = -1.0;
 	clmd->sim_parms->avg_spring_len = 0.0;
 	clmd->sim_parms->presets = 2; /* cotton as start setting */
+	clmd->sim_parms->timescale = 1.0f; /* speed factor, describes how fast cloth moves */
 	
 	clmd->coll_parms->self_friction = 5.0;
 	clmd->coll_parms->friction = 5.0;
@@ -447,7 +448,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	}
 	
 	// unused in the moment, calculated seperately in implicit.c
-	clmd->sim_parms->dt = 1.0f / clmd->sim_parms->stepsPerFrame;
+	clmd->sim_parms->dt = clmd->sim_parms->timescale / clmd->sim_parms->stepsPerFrame;
 	
 	if ( ( clmd->clothObject == NULL ) || (clmd->clothObject && (numverts != clmd->clothObject->numverts )) )
 	{	

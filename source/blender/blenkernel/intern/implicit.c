@@ -1387,7 +1387,9 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 
 	init_lfvector(lF, gravity, numverts);
 	
-	// multiply lF with mass matrix
+	/* multiply lF with mass matrix
+	// force = mass * acceleration (in this case: gravity)
+	*/
 	for(i = 0; i < (long)numverts; i++)
 	{
 		float temp[3];
@@ -1528,7 +1530,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 	Cloth *cloth = clmd->clothObject;
 	ClothVertex *verts = cloth->verts;
 	unsigned int numverts = cloth->numverts;
-	float dt = 1.0f / clmd->sim_parms->stepsPerFrame;
+	float dt = clmd->sim_parms->timescale / clmd->sim_parms->stepsPerFrame;
 	Implicit_Data *id = cloth->implicit;
 	int result = 0;
 	

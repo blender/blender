@@ -85,8 +85,8 @@ typedef struct ClothSimSettings
 	int 	firstcachedframe;
 	float 	avg_spring_len; /* used for normalized springs */
 	short	presets; /* used for presets on GUI */
-	short pad;
-	int pad2;
+	short 	pad;
+	float 	timescale; /* parameter how fast cloth runs */
 }
 ClothSimSettings;
 
