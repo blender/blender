@@ -398,10 +398,9 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 "Cull Out-of-View Keys (Time)|", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_HORIZOPTIMISE, "");
-			
-		// this option may get removed in future... 
+	
 	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_NOTRANSKEYCULL)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
-					 "AfterTrans Delete Dupli-Frames|", 0, yco-=20, 
+					 "AutoMerge Keyframes|", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_TRANSDELDUPS, "");
 			
