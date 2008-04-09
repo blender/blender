@@ -3303,7 +3303,7 @@ static void object_collision__enabletoggle ( void *ob_v, void *arg2 )
 		if(pd && (pd->deflect))
 		{
 			md = modifier_new ( eModifierType_Collision );
-			BLI_addhead ( &ob->modifiers, md );
+			BLI_addtail ( &ob->modifiers, md );
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWVIEW3D, 0);
@@ -5164,7 +5164,7 @@ static void object_cloth__enabletoggle(void *ob_v, void *arg2)
 
 	if (!md) {
 		md = modifier_new(eModifierType_Cloth);
-		BLI_addhead(&ob->modifiers, md);
+		BLI_addtail(&ob->modifiers, md);
 		
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWBUTSEDIT, 0);
