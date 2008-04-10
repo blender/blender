@@ -370,10 +370,10 @@ void psys_free(Object *ob, ParticleSystem * psys)
 			psys->part=0;
 		}
 
-		MEM_freeN(psys);
-
 		if(psys->pointcache)
 			BKE_ptcache_free(psys->pointcache);
+
+		MEM_freeN(psys);
 	}
 }
 
