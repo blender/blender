@@ -393,8 +393,6 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *
 	BKE_ptcache_id_time(&pid, framenr, &startframe, &endframe, &timescale);
 	clmd->sim_parms->timescale= timescale;
 
-	/* TODO: use timescale somewhere! */
-
 	if(!result) {
 		cache->flag &= ~PTCACHE_SIMULATION_VALID;
 		cache->simframe= 0;
@@ -440,9 +438,6 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *
 	else if(framenr > endframe) {
 		framenr= endframe;
 	}
-	
-	/* dt is unused at the moment, calculated seperately in implicit.c */
-	clmd->sim_parms->dt= 1.0f/clmd->sim_parms->stepsPerFrame;
 
 	if(cache->flag & PTCACHE_SIMULATION_VALID)
 		framedelta= framenr - cache->simframe;
