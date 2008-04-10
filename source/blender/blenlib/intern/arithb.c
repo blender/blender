@@ -2116,8 +2116,9 @@ void VecMulf(float *v1, float f)
 
 void VecOrthoBasisf(float *v, float *v1, float *v2)
 {
-	if (v[0] == 0.0f && v[1] == 0.0f)
-	{
+	float f = sqrt(v[0]*v[0] + v[1]*v[1]);
+
+	if (f < 1e-35f) {
 		// degenerate case
 		v1[0] = 0.0f; v1[1] = 1.0f; v1[2] = 0.0f;
 		if (v[2] > 0.0f) {
@@ -2127,9 +2128,8 @@ void VecOrthoBasisf(float *v, float *v1, float *v2)
 			v2[0] = -1.0f; v2[1] = v2[2] = 0.0f;
 		}
 	}
-	else 
-	{
-		float f = 1.0f/sqrt(v[0]*v[0] + v[1]*v[1]);
+	else  {
+		f = 1.0f/f;
 		v1[0] = v[1]*f;
 		v1[1] = -v[0]*f;
 		v1[2] = 0.0f;
