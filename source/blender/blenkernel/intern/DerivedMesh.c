@@ -2012,8 +2012,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 		if((md->mode & required_mode) != required_mode) continue;
 		if(mti->type == eModifierTypeType_OnlyDeform && !useDeform) continue;
 		if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
-			modifier_setError(md, "Internal error, modifier requires "
-			                  "original data (bad stack position).");
+			modifier_setError(md, "Modifier requires original data, bad stack position.");
 			continue;
 		}
 		if(mti->isDisabled && mti->isDisabled(md)) continue;
@@ -2194,8 +2193,7 @@ static int editmesh_modifier_is_enabled(ModifierData *md, DerivedMesh *dm)
 
 	if((md->mode & required_mode) != required_mode) return 0;
 	if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
-		modifier_setError(md, "Internal error, modifier requires"
-		                  "original data (bad stack position).");
+		modifier_setError(md, "Modifier requires original data, bad stack position.");
 		return 0;
 	}
 	if(mti->isDisabled && mti->isDisabled(md)) return 0;

@@ -1347,23 +1347,6 @@ void weight_paint(void)
 	copy_wpaint_prev(&Gwp, NULL, 0);
 
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-	/* this flag is event for softbody to refresh weightpaint values */
-	if(ob->soft) ob->softflag |= OB_SB_REDO;
-	
-	/* same goes for cloth */
-	if(modifiers_isClothEnabled(ob)) {
-		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-		if(clmd)
-		{
-			/* check if we use the edited vertex group at all */
-			if((clmd->sim_parms->vgroup_mass==ob->actdef) || 
-			(clmd->sim_parms->vgroup_struct==ob->actdef)||
-			(clmd->sim_parms->vgroup_bend==ob->actdef))
-			{	
-				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-			}
-		}
-	}	
 
 	/* and particles too */
 	if(ob->particlesystem.first) {

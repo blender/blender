@@ -3507,34 +3507,28 @@ static int cached_dynamics(int sfra, int efra)
 {
 	Base *base = G.scene->base.first;
 	Object *ob;
-	ModifierData *md;
 	ParticleSystem *psys;
-	int i, stack_index=-1, cached=1;
+	int i, cached=1;
+	PTCacheID pid;
 
 	while(base && cached) {
 		ob = base->object;
 		if(ob->softflag & OB_SB_ENABLE && ob->soft) {
-			for(i=0, md=ob->modifiers.first; md; i++, md=md->next) {
-				if(md->type == eModifierType_Softbody) {
-					stack_index = i;
-					break;
-				}
-			}
+			BKE_ptcache_id_from_softbody(&pid, ob, ob->soft);
+
 			for(i=sfra; i<=efra && cached; i++)
-				cached &= BKE_ptcache_id_exist(&ob->id,i,stack_index);
+				cached &= BKE_ptcache_id_exist(&pid, i);
 		}
 
 		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-			stack_index = modifiers_indexInObject(ob,(ModifierData*)psys_get_modifier(ob,psys));
 			if(psys->part->type==PART_HAIR) {
-				if(psys->softflag & OB_SB_ENABLE && psys->soft);
-				else
-					stack_index = -1;
-			}
+				if(psys->softflag & OB_SB_ENABLE && psys->soft) {
+					BKE_ptcache_id_from_softbody(&pid, ob, psys->soft);
 
-			if(stack_index >= 0)
-				for(i=sfra; i<=efra && cached; i++)
-					cached &= BKE_ptcache_id_exist(&ob->id,i,stack_index);
+					for(i=sfra; i<=efra && cached; i++)
+						cached &= BKE_ptcache_id_exist(&pid, i);
+				}
+			}
 		}
 		
 		base = base->next;

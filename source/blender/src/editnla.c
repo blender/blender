@@ -2052,6 +2052,6 @@ void copy_action_modifiers(void)
 	
 	BIF_undo_push("Copy Action Modifiers");
 	allqueue(REDRAWNLA, 0);
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 }
 

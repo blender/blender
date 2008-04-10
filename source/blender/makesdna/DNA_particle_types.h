@@ -206,6 +206,9 @@ typedef struct ParticleSystem{
 
 	/* temporary storage during render */
 	void *renderdata;
+
+	/* point cache */
+	struct PointCache *pointcache;
 }ParticleSystem;
 
 /* general particle maximums */
@@ -387,7 +390,7 @@ typedef struct ParticleSystem{
 //#define PSYS_BAKING			2
 //#define PSYS_BAKE_UI		4
 #define	PSYS_KEYED_TIME		8
-#define PSYS_ENABLED		16
+#define PSYS_ENABLED		16	/* deprecated */
 #define PSYS_FIRST_KEYED	32
 #define PSYS_DRAWING		64
 //#define PSYS_SOFT_BAKE		128
@@ -395,7 +398,8 @@ typedef struct ParticleSystem{
 #define PSYS_HAIR_DONE		512
 #define PSYS_KEYED			1024
 #define PSYS_EDITED			2048
-#define PSYS_PROTECT_CACHE	4096
+//#define PSYS_PROTECT_CACHE	4096
+#define PSYS_DISABLED		8192
 
 /* pars->flag */
 #define PARS_UNEXIST		1

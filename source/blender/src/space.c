@@ -88,6 +88,7 @@
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_node.h"
+#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_sculpt.h"
 #include "BKE_texture.h"
@@ -1841,12 +1842,26 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						view3d_border_zoom();
 				}
 				else if(G.qual==LR_CTRLKEY) {
-					if(okee("Bake all selected")) {
-						extern void softbody_bake(Object *ob);
-						extern void fluidsimBake(Object *ob);
-						softbody_bake(NULL);
-						/* also bake first domain of selected objects... */
-						fluidsimBake(NULL);
+					extern void pointcache_bake(PTCacheID *pid, int startframe);
+					extern void pointcache_free(PTCacheID *pid, int cacheonly);
+					extern void fluidsimBake(Object *ob);
+					extern void fluidsimFreeBake(Object *ob);
+					int pupval;
+
+					pupval= pupmenu("Physics Baking%t|Bake selected %x1|Free bake selected %x2|Free cache selected %x3");
+
+					if(pupval > 0) {
+						if(pupval == 1) {
+							pointcache_bake(NULL, 0);
+							/* also bake first domain of selected objects... */
+							fluidsimBake(NULL);
+						}
+						else if(pupval == 2) {
+							pointcache_free(NULL, 0);
+							fluidsimFreeBake(NULL);
+						}
+						else if(pupval == 3)
+							pointcache_free(NULL, 1);
 					}
 				}
 				else if(G.qual== (LR_ALTKEY|LR_CTRLKEY))

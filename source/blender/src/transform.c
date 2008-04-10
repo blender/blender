@@ -79,12 +79,13 @@
 #include "BIF_editaction.h" 
 
 #include "BKE_action.h" /* get_action_frame */
+#include "BKE_bad_level_calls.h"/* popmenu and error	*/
+#include "BKE_bmesh.h"
 #include "BKE_constraint.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
-#include "BKE_bad_level_calls.h"/* popmenu and error	*/
 #include "BKE_particle.h"
-#include "BKE_bmesh.h"
+#include "BKE_pointcache.h"
+#include "BKE_utildefines.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_editnla_types.h"	/* for NLAWIDTH */
@@ -1133,6 +1134,11 @@ void Transform()
 		while( qtest() ) {
 			event= extern_qread(&val);
 			transformEvent(event, val);
+		}
+
+		if(BKE_ptcache_get_continue_physics()) {
+			do_screenhandlers(G.curscreen);
+			Trans.redraw= 1;
 		}
 	}
 	

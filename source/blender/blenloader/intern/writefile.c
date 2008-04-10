@@ -576,16 +576,11 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 				for(a=0; a<psys->totpart; a++, pa++)
 					writestruct(wd, DATA, "HairKey", pa->totkey, pa->hair);
 			}
-			
-			if(psys->particles->keys) {
-				ParticleData *pa = psys->particles;
-
-				for(a=0; a<psys->totpart; a++, pa++)
-					writestruct(wd, DATA, "ParticleKey", pa->totkey, pa->keys);
-			}
 		}
 		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
 		writestruct(wd, DATA, "SoftBody", 1, psys->soft);
+		if(psys->soft) writestruct(wd, DATA, "PointCache", 1, psys->soft->pointcache);
+		writestruct(wd, DATA, "PointCache", 1, psys->pointcache);
 	}
 }
 
@@ -864,7 +859,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			
 			writestruct(wd, DATA, "ClothSimSettings", 1, clmd->sim_parms);
 			writestruct(wd, DATA, "ClothCollSettings", 1, clmd->coll_parms);
-			
+			writestruct(wd, DATA, "PointCache", 1, clmd->point_cache);
 		} 
 		else if (md->type==eModifierType_Collision) {
 			
@@ -930,6 +925,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			
 			writestruct(wd, DATA, "PartDeflect", 1, ob->pd);
 			writestruct(wd, DATA, "SoftBody", 1, ob->soft);
+			if(ob->soft) writestruct(wd, DATA, "PointCache", 1, ob->soft->pointcache);
 			writestruct(wd, DATA, "FluidsimSettings", 1, ob->fluidsimSettings); // NT
 			
 			write_particlesystems(wd, &ob->particlesystem);

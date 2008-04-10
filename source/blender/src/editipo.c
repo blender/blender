@@ -349,18 +349,6 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		else if(si->blocktype==ID_PA){
-			Object *ob=OBACT;
-			ParticleSystem *psys = ob->particlesystem.first;
-
-			/* find out if we need to initialize particles */
-			for(; psys; psys=psys->next) {
-				if(psys->part->ipo==si->ipo) {
-					ei= si->editipo;
-					for(a=0; a<si->totipo; a++, ei++)
-						if(ei->icu && ELEM3(ei->icu->adrcode,PART_EMIT_FREQ,PART_EMIT_LIFE,PART_EMIT_SIZE))
-							psys_flush_settings(psys->part,PSYS_INIT,1);
-				}
-			}
 			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
@@ -3499,7 +3487,7 @@ void common_insertkey(void)
 		else if(event==13) BIF_undo_push("Insert VisualLocRot Key");
 		else if(event==15) BIF_undo_push("Insert Needed Key");
 		
-		DAG_scene_flush_update(G.scene, screen_view3d_layers());
+		DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 		
 		allspace(REMAKEIPO, 0);
 		allqueue(REDRAWIPO, 0);

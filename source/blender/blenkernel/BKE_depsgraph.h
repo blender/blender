@@ -104,7 +104,7 @@ void	DAG_scene_update_flags(struct Scene *sce, unsigned int lay);
 void	DAG_object_update_flags(struct Scene *sce, struct Object *ob, unsigned int lay);
 
 		/* flushes all recalc flags in objects down the dependency tree */
-void	DAG_scene_flush_update(struct Scene *sce, unsigned int lay);
+void	DAG_scene_flush_update(struct Scene *sce, unsigned int lay, int time);
 		/* flushes all recalc flags for this object down the dependency tree */
 void	DAG_object_flush_update(struct Scene *sce, struct Object *ob, short flag);
 

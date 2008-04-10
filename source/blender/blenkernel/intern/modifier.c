@@ -3453,7 +3453,7 @@ static DerivedMesh *decimateModifier_applyModifier(
 
 	if(numTris<3) {
 		modifier_setError(md,
-				  "There must be more than 3 input faces (triangles).");
+			"Modifier requires more than 3 input faces (triangles).");
 		goto exit;
 	}
 
@@ -5057,9 +5057,10 @@ static void clothModifier_initData(ModifierData *md)
 	
 	clmd->sim_parms = MEM_callocN(sizeof(ClothSimSettings), "cloth sim parms");
 	clmd->coll_parms = MEM_callocN(sizeof(ClothCollSettings), "cloth coll parms");
+	clmd->point_cache = BKE_ptcache_add();
 	
 	/* check for alloc failing */
-	if(!clmd->sim_parms || !clmd->coll_parms)
+	if(!clmd->sim_parms || !clmd->coll_parms || !clmd->point_cache)
 		return;
 	
 	cloth_init (clmd);
@@ -5138,10 +5139,8 @@ static void clothModifier_copyData(ModifierData *md, ModifierData *target)
 	
 	tclmd->sim_parms = MEM_dupallocN(clmd->sim_parms);
 	tclmd->coll_parms = MEM_dupallocN(clmd->coll_parms);
-	
-	tclmd->sim_parms->lastcachedframe = 0;
+	tclmd->point_cache = BKE_ptcache_copy(clmd->point_cache);
 }
-
 
 static int clothModifier_dependsOnTime(ModifierData *md)
 {
@@ -5163,6 +5162,8 @@ static void clothModifier_freeData(ModifierData *md)
 			MEM_freeN(clmd->sim_parms);
 		if(clmd->coll_parms)
 			MEM_freeN(clmd->coll_parms);	
+		if(clmd->point_cache)
+			BKE_ptcache_free(clmd->point_cache);
 	}
 }
 
@@ -5435,7 +5436,6 @@ static void particleSystemModifier_freeData(ModifierData *md)
 		psmd->dm=0;
 	}
 
-	psmd->psys->flag &= ~PSYS_ENABLED;
 	psmd->psys->flag |= PSYS_DELETE;
 }
 static void particleSystemModifier_copyData(ModifierData *md, ModifierData *target)

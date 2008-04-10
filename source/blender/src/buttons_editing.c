@@ -930,7 +930,6 @@ void do_modifier_panels(unsigned short event)
 		break;
 
 	case B_MODIFIER_RECALC:
-		ob->softflag |= OB_SB_RESET;
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIMAGE, 0);
@@ -2230,11 +2229,11 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiButSetFunc(but, modifiers_reassignHook, ob, md);
 			}
 		} else if (md->type==eModifierType_Softbody) {
-			uiDefBut(block, LABEL, 1, "See Softbody panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
+			uiDefBut(block, LABEL, 1, "See Soft Body panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
 		} else if (md->type==eModifierType_Cloth) {
 			uiDefBut(block, LABEL, 1, "See Cloth panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
 		} else if (md->type==eModifierType_Collision) {
-			uiDefBut(block, LABEL, 1, "See Deflection panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
+			uiDefBut(block, LABEL, 1, "See Collision panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
 		} else if (md->type==eModifierType_Boolean) {
 			BooleanModifierData *bmd = (BooleanModifierData*) md;
 			uiDefButI(block, MENU, B_MODIFIER_RECALC, "Operation%t|Intersect%x0|Union%x1|Difference%x2",	lx,(cy-=19),buttonWidth,19, &bmd->operation, 0.0, 1.0, 0, 0, "Boolean operation to perform");
@@ -2444,17 +2443,17 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	}
 
 	if (md->error) {
-		char str[512];
-
-		y -= 20;
+		y -= 6;
 
 		uiBlockSetCol(block, color);
 					/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y, width, 20, NULL, 5.0, 0.0, 15, 40, ""); 
 		uiBlockSetCol(block, TH_AUTO);
 
-		sprintf(str, "Modifier Error: %s", md->error);
-		uiDefBut(block, LABEL, B_NOP, str, x+15, y+15, width-35, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+		uiDefIconBut(block,LABEL,B_NOP,ICON_ERROR, x-9, y,19,19, 0,0,0,0,0, "");
+		uiDefBut(block, LABEL, B_NOP, md->error, x+5, y, width-15, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+
+		y -= 18;
 	}
 
 	uiClearButLock();
@@ -2481,7 +2480,7 @@ static void editing_panel_modifiers(Object *ob)
 	uiDefBlockBut(block, modifiers_add_menu, ob, "Add Modifier", 0, 190, 130, 20, "Add a new modifier");
 
 	sprintf(str, "To: %s", ob->id.name+2);
-	uiDefBut(block, LABEL, 1, str,	140, 190, 150, 20, NULL, 0.0, 0.0, 0, 0, "Object whose modifier stack is being edited");
+	uiDefBut(block, LABEL, 1, str,	140, 190, 160, 20, NULL, 0.0, 0.0, 0, 0, "Object whose modifier stack is being edited");
 
 	xco = 0;
 	yco = 160;
@@ -3708,11 +3707,6 @@ void do_latticebuts(unsigned short event)
 			lt = ob->data;
 			if(ob==G.obedit) resizelattice(editLatt, lt->opntsu, lt->opntsv, lt->opntsw, NULL);
 			else resizelattice(ob->data, lt->opntsu, lt->opntsv, lt->opntsw, NULL);
-			ob->softflag |= OB_SB_REDO;
-			if(modifiers_isClothEnabled(ob)) {
-				ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-			}
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
@@ -3720,11 +3714,6 @@ void do_latticebuts(unsigned short event)
 		if(ob) {
 			lt = ob->data;
 			resizelattice(ob->data, lt->opntsu, lt->opntsv, lt->opntsw, ob);
-			ob->softflag |= OB_SB_REDO;
-			if(modifiers_isClothEnabled(ob)) {
-				ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-			}
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
@@ -5032,7 +5021,7 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_tools1", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Mesh Tools 1", "Editing", 960, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Mesh Tools More", "Editing", 960, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	955, 200,  106, 19, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces (Ctrl+I)");

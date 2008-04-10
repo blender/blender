@@ -876,8 +876,8 @@ static void ui_draw_panel_header(uiBlock *block)
 	Panel *pa, *panel= block->panel;
 	float width;
 	int a, nr= 1, pnl_icons;
-	char *panelname= panel->drawname[0]?panel->drawname:panel->panelname;
-	char *str;
+	char *activename= panel->drawname[0]?panel->drawname:panel->panelname;
+	char *panelname, *str;
 	
 	/* count */
 	pa= curarea->panels.first;
@@ -901,7 +901,7 @@ static void ui_draw_panel_header(uiBlock *block)
 		/* draw text label */
 		BIF_ThemeColor(TH_TEXT_HI);
 		ui_rasterpos_safe(4.0f+block->minx+pnl_icons, block->maxy+5.0f, block->aspect);
-		BIF_DrawString(block->curfont, panelname, (U.transopts & USER_TR_BUTTONS));
+		BIF_DrawString(block->curfont, activename, (U.transopts & USER_TR_BUTTONS));
 		return;
 	}
 	
@@ -915,6 +915,8 @@ static void ui_draw_panel_header(uiBlock *block)
 	pa= curarea->panels.first;
 	while(pa) {
 		panelname= pa->drawname[0]?pa->drawname:pa->panelname;
+		if(a == 0)
+			activename= panelname;
 		
 		if(pa->active==0);
 		else if(pa==panel) {
@@ -928,7 +930,10 @@ static void ui_draw_panel_header(uiBlock *block)
 			/* draw the active text label */
 			BIF_ThemeColor(TH_TEXT);
 			ui_rasterpos_safe(16+pnl_icons+a*width, panel->sizey+4, block->aspect);
-			str= ui_block_cut_str(block, panelname, (short)(width-10));
+			if(panelname != activename && strstr(panelname, activename) == panelname)
+				str= ui_block_cut_str(block, panelname+strlen(activename), (short)(width-10));
+			else
+				str= ui_block_cut_str(block, panelname, (short)(width-10));
 			BIF_DrawString(block->curfont, str, (U.transopts & USER_TR_BUTTONS));
 
 			a++;
@@ -942,7 +947,10 @@ static void ui_draw_panel_header(uiBlock *block)
 			/* draw an inactive tab label */
 			BIF_ThemeColorShade(TH_TEXT_HI, -40);
 			ui_rasterpos_safe(16+pnl_icons+a*width, panel->sizey+4, block->aspect);
-			str= ui_block_cut_str(block, panelname, (short)(width-10));
+			if(panelname != activename && strstr(panelname, activename) == panelname)
+				str= ui_block_cut_str(block, panelname+strlen(activename), (short)(width-10));
+			else
+				str= ui_block_cut_str(block, panelname, (short)(width-10));
 			BIF_DrawString(block->curfont, str, (U.transopts & USER_TR_BUTTONS));
 				
 			a++;

@@ -72,6 +72,13 @@ typedef struct PartDeflect {
 	struct Tex *tex;	/* Texture of the texture effector */
 } PartDeflect;
 
+typedef struct PointCache {
+	int flag;		/* generic flag */
+	int simframe;	/* current frame of simulation (only if SIMULATION_VALID) */
+	int startframe;	/* simulation start frame */
+	int endframe;	/* simulation end frame */
+	int editframe;	/* frame being edited (runtime only) */
+} PointCache;
 
 typedef struct SBVertex {
 	float vec[4];
@@ -84,7 +91,7 @@ typedef struct SoftBody {
 	int totpoint, totspring;
 	struct BodyPoint *bpoint;		/* not saved in file */
 	struct BodySpring *bspring;		/* not saved in file */
-	float ctime;					/* last time calculated */
+	float pad;
 	
 	/* part of UI: */
 	
@@ -137,6 +144,8 @@ typedef struct SoftBody {
 	float shearstiff;
 	float inpush;
 
+	struct PointCache *pointcache;
+
 } SoftBody;
 
 /* pd->forcefield:  Effector Fields types */
@@ -177,21 +186,29 @@ typedef struct SoftBody {
 #define PFIELD_TEX_GRAD	1
 #define PFIELD_TEX_CURL	2
 
+/* pointcache->flag */
+#define PTCACHE_BAKED				1
+#define PTCACHE_OUTDATED			2
+#define PTCACHE_SIMULATION_VALID	4
+#define PTCACHE_BAKING				8
+#define PTCACHE_BAKE_EDIT			16
+#define PTCACHE_BAKE_EDIT_ACTIVE	32
+
 /* ob->softflag */
 #define OB_SB_ENABLE	1
 #define OB_SB_GOAL		2
 #define OB_SB_EDGES		4
 #define OB_SB_QUADS		8
 #define OB_SB_POSTDEF	16
-#define OB_SB_REDO		32
-#define OB_SB_BAKESET	64
-#define OB_SB_BAKEDO	128
-#define OB_SB_RESET		256
+// #define OB_SB_REDO		32
+// #define OB_SB_BAKESET	64
+// #define OB_SB_BAKEDO	128
+// #define OB_SB_RESET		256
 #define OB_SB_SELF		512
 #define OB_SB_FACECOLL  1024
 #define OB_SB_EDGECOLL  2048
 #define OB_SB_COLLFINAL 4096
-#define OB_SB_PROTECT_CACHE	8192
+//#define OB_SB_PROTECT_CACHE	8192
 #define OB_SB_AERO_ANGLE	16384
 
 /* sb->solverflags */

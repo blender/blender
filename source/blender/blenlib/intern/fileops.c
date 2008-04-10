@@ -333,7 +333,7 @@ int BLI_delete(char *file, int dir, int recursive)
 	else {
 		if (recursive) sprintf(str, "/bin/rm -rf \"%s\"", file);
 		else if (dir) sprintf(str, "/bin/rmdir \"%s\"", file);
-		else sprintf(str, "/bin/rm -f \"%s\"", file);
+		else remove(file); //sprintf(str, "/bin/rm -f \"%s\"", file);
 
 		return system(str);
 	}

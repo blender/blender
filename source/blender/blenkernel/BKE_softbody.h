@@ -55,7 +55,8 @@ extern struct SoftBody	*sbNew(void);
 /* frees internal data and softbody itself */
 extern void				sbFree(struct SoftBody *sb);
 
-extern void				softbody_clear_cache(struct Object *ob, float framenr);
+/* frees simulation data to reset simulation */
+extern void				sbFreeSimulation(struct SoftBody *sb);
 
 /* do one simul step, reading and writing vertex locs from given array */
 extern void				sbObjectStep(struct Object *ob, float framnr, float (*vertexCos)[3], int numVerts);
@@ -67,6 +68,8 @@ extern void				sbObjectToSoftbody(struct Object *ob);
 /* pass NULL to unlink again */
 extern void             sbSetInterruptCallBack(int (*f)(void));
 
+/* writing to cache for bake editing */
+extern void 			sbWriteCache(struct Object *ob, int framenr);
 
 #endif
 

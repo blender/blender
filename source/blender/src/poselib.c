@@ -1144,7 +1144,6 @@ static void poselib_preview_init_data (tPoseLib_PreviewData *pld, Object *ob, sh
 /* After previewing poses */
 static void poselib_preview_cleanup (tPoseLib_PreviewData *pld)
 {
-	Base *base;
 	Object *ob= pld->ob;
 	bPose *pose= pld->pose;
 	bArmature *arm= pld->arm;
@@ -1161,17 +1160,8 @@ static void poselib_preview_cleanup (tPoseLib_PreviewData *pld)
 		/* old optimize trick... this enforces to bypass the depgraph 
 		 *	- note: code copied from transform_generics.c -> recalcData()
 		 */
-		if ((arm->flag & ARM_DELAYDEFORM)==0) {
+		if ((arm->flag & ARM_DELAYDEFORM)==0)
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
-			
-			/* bah, softbody exception... recalcdata doesnt reset */
-			for (base= FIRSTBASE; base; base= base->next) {
-				if (base->object->recalc & OB_RECALC_DATA)
-					if (modifiers_isSoftbodyEnabled(base->object)) {
-						base->object->softflag |= OB_SB_REDO;
-				}
-			}
-		}
 		else
 			where_is_pose(ob);
 		
@@ -1222,7 +1212,6 @@ static void poselib_preview_cleanup (tPoseLib_PreviewData *pld)
 void poselib_preview_poses (Object *ob, short apply_active)
 {
 	tPoseLib_PreviewData pld;
-	Base *base;
 	
 	unsigned short event;
 	short val=0;
@@ -1252,17 +1241,8 @@ void poselib_preview_poses (Object *ob, short apply_active)
 				/* old optimize trick... this enforces to bypass the depgraph 
 				 *	- note: code copied from transform_generics.c -> recalcData()
 				 */
-				if ((pld.arm->flag & ARM_DELAYDEFORM)==0) {
+				if ((pld.arm->flag & ARM_DELAYDEFORM)==0)
 					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
-					
-					/* bah, softbody exception... recalcdata doesnt reset */
-					for (base= FIRSTBASE; base; base= base->next) {
-						if (base->object->recalc & OB_RECALC_DATA)
-							if (modifiers_isSoftbodyEnabled(base->object)) {
-								base->object->softflag |= OB_SB_REDO;
-						}
-					}
-				}
 				else
 					where_is_pose(ob);
 			}

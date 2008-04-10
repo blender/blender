@@ -95,6 +95,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
@@ -3104,8 +3105,9 @@ static void set_trans_object_base_flags(TransInfo *t)
 			ob->recalc |= OB_RECALC_OB;
 		}
 	}
+
 	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
-	DAG_scene_flush_update(G.scene, -1);
+	DAG_scene_flush_update(G.scene, -1, 0);
 	
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
@@ -3419,7 +3421,7 @@ static void recalc_all_ipos(void)
 	}
 }
 
-/* inserting keys, refresh ipo-keys, softbody, redraw events... (ton) */
+/* inserting keys, refresh ipo-keys, pointcache, redraw events... (ton) */
 /* note: transdata has been freed already! */
 void special_aftertrans_update(TransInfo *t)
 {
@@ -3569,16 +3571,13 @@ void special_aftertrans_update(TransInfo *t)
 			
 			ob= base->object;
 			
-			if (modifiers_isSoftbodyEnabled(ob)) ob->softflag |= OB_SB_REDO;
-			else if((ob == OBACT) && modifiers_isClothEnabled(ob)) {
-				ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-				if(clmd)
-					clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-			}
-			
-			/* Set autokey if necessary */
-			if ((!cancelled) && (t->mode != TFM_DUMMY) && (base->flag & SELECT)) {
-				autokeyframe_ob_cb_func(ob, t->mode);
+			if(base->flag & SELECT && (t->mode != TFM_DUMMY)) {
+				if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
+					ob->recalc |= OB_RECALC_DATA;
+				
+				/* Set autokey if necessary */
+				if (!cancelled)
+					autokeyframe_ob_cb_func(ob, t->mode);
 			}
 			
 			base= base->next;

@@ -633,6 +633,7 @@ typedef struct SpaceImaSel {
 #define TIME_WITH_SEQ_AUDIO		16
 #define TIME_SEQ				32
 #define TIME_ALL_IMAGE_WIN		64
+#define TIME_CONTINUE_PHYSICS	128
 
 /* sseq->mainb */
 #define SEQ_DRAW_SEQUENCE         0

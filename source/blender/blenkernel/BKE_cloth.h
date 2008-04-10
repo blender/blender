@@ -147,16 +147,18 @@ ClothSpring;
 /* These are the bits used in SimSettings.flags. */
 typedef enum
 {
-	CLOTH_SIMSETTINGS_FLAG_RESET = ( 1 << 1 ),	// The CM object requires a reinitializaiton.
+	//CLOTH_SIMSETTINGS_FLAG_RESET = ( 1 << 1 ),	// The CM object requires a reinitializaiton.
 	CLOTH_SIMSETTINGS_FLAG_COLLOBJ = ( 1 << 2 ),// object is only collision object, no cloth simulation is done
 	CLOTH_SIMSETTINGS_FLAG_GOAL = ( 1 << 3 ), 	// we have goals enabled
 	CLOTH_SIMSETTINGS_FLAG_TEARING = ( 1 << 4 ),// true if tearing is enabled
-	CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT = ( 1 << 5 ), // true if tearing is enabled
-	CLOTH_SIMSETTINGS_FLAG_EDITMODE = ( 1 << 6 ), // are we in editmode? -several things disabled
-	CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE = ( 1 << 7 ), /* force cache freeing */
+	//CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT = ( 1 << 5 ), // true if tearing is enabled
+	//CLOTH_SIMSETTINGS_FLAG_EDITMODE = ( 1 << 6 ), // are we in editmode? -several things disabled
+	//CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE = ( 1 << 7 ), /* force cache freeing */
 	CLOTH_SIMSETTINGS_FLAG_SCALING = ( 1 << 8 ), /* is advanced scaling active? */
-	CLOTH_SIMSETTINGS_FLAG_LOADED = ( 1 << 9 ), /* did we just got load? */
-	CLOTH_SIMSETTINGS_FLAG_AUTOPROTECT = ( 1 << 10 ), /* is autoprotect enabled? */
+	//CLOTH_SIMSETTINGS_FLAG_LOADED = ( 1 << 9 ), /* did we just got load? */
+	//CLOTH_SIMSETTINGS_FLAG_AUTOPROTECT = ( 1 << 10 ), /* is autoprotect enabled? */
+	//CLOTH_SIMSETTINGS_FLAG_CCACHE_OUTDATED = (1 << 11),	/* while protected, did cache get outdated? */
+	CLOTH_SIMSETTINGS_FLAG_CCACHE_EDIT = (1 << 12)	/* edit cache in editmode */
 } CLOTH_SIMSETTINGS_FLAGS;
 
 /* COLLISION FLAGS */

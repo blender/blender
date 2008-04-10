@@ -66,6 +66,8 @@
 #include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
+#include "BKE_object.h"
+#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
@@ -76,7 +78,6 @@
 #include "BIF_imasel.h"
 #include "BIF_editparticle.h"
 #include "BIF_interface.h"
-#include "BKE_object.h"
 #include "BIF_poseobject.h"
 #include "BIF_previewrender.h"
 #include "BIF_renderwin.h"
@@ -701,6 +702,7 @@ int blenderqread(unsigned short event, short val)
 		/* stop playback on ESC always */
 		rem_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM);
 		audiostream_stop();
+		BKE_ptcache_set_continue_physics(0);
 		allqueue(REDRAWALL, 0);
 		
 		break;

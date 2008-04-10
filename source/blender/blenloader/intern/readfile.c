@@ -134,6 +134,7 @@
 #include "BKE_node.h" // for tree type defines
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_property.h" // for get_property
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
@@ -2529,6 +2530,12 @@ static void direct_link_material(FileData *fd, Material *ma)
 
 /* ************ READ PARTICLE SETTINGS ***************** */
 
+static void direct_link_pointcache(FileData *fd, PointCache *cache)
+{
+	cache->flag &= ~(PTCACHE_SIMULATION_VALID|PTCACHE_BAKE_EDIT_ACTIVE);
+	cache->simframe= 0;
+}
+
 static void lib_link_particlesettings(FileData *fd, Main *main)
 {
 	ParticleSettings *part;
@@ -2582,8 +2589,12 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		}
 		if(psys->particles && psys->particles->keys){
 			ParticleData *pa = psys->particles;
-			for(a=0; a<psys->totpart; a++, pa++)
-				pa->keys=newdataadr(fd,pa->keys);
+			for(a=0; a<psys->totpart; a++, pa++) {
+				pa->keys= NULL;
+				pa->totkey= 0;
+			}
+
+			psys->flag &= ~PSYS_KEYED;
 		}
 		psys->child=newdataadr(fd,psys->child);
 		psys->effectors.first=psys->effectors.last=0;
@@ -2595,12 +2606,20 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 			sb->bpoint= NULL;	// init pointers so it gets rebuilt nicely
 			sb->bspring= NULL;
 			sb->scratch= NULL;
+
+			sb->pointcache= newdataadr(fd, sb->pointcache);
+			if(sb->pointcache)
+				direct_link_pointcache(fd, sb->pointcache);
 		}
 
 		psys->edit = 0;
 		psys->pathcache = 0;
 		psys->childcache = 0;
 		psys->reactevents.first = psys->reactevents.last = 0;
+
+		psys->pointcache= newdataadr(fd, psys->pointcache);
+		if(psys->pointcache)
+			direct_link_pointcache(fd, psys->pointcache);
 	}
 	return;
 }
@@ -3009,8 +3028,8 @@ static void lib_link_object(FileData *fd, Main *main)
 }
 
 
-static void direct_link_pose(FileData *fd, bPose *pose) {
-
+static void direct_link_pose(FileData *fd, bPose *pose)
+{
 	bPoseChannel *pchan;
 
 	if (!pose)
@@ -3054,12 +3073,12 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			
 			clmd->sim_parms= newdataadr(fd, clmd->sim_parms);
 			clmd->coll_parms= newdataadr(fd, clmd->coll_parms);
+			clmd->point_cache= newdataadr(fd, clmd->point_cache);
+
+			if(clmd->point_cache)
+				direct_link_pointcache(fd, clmd->point_cache);
 			
-			if(clmd->sim_parms)
-			{
-				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_LOADED;
-				clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_EDITMODE;
-				
+			if(clmd->sim_parms) {
 				if(clmd->sim_parms->presets > 10)
 					clmd->sim_parms->presets = 0;
 			}
@@ -3245,6 +3264,10 @@ static void direct_link_object(FileData *fd, Object *ob)
 				sb->keys[a]= newdataadr(fd, sb->keys[a]);
 			}
 		}
+
+		sb->pointcache= newdataadr(fd, sb->pointcache);
+		if(sb->pointcache)
+			direct_link_pointcache(fd, sb->pointcache);
 	}
 	ob->fluidsimSettings= newdataadr(fd, ob->fluidsimSettings); /* NT */
 	if(ob->fluidsimSettings) {
@@ -6910,6 +6933,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Mesh *me;
 		bNodeTree *ntree;
 		Tex *tex;
+		ModifierData *md;
+		ParticleSystem *psys;
 		
 		/* unless the file was created 2.44.3 but not 2.45, update the constraints */
 		if ( !(main->versionfile==244 && main->subversionfile==3) &&
@@ -7030,6 +7055,27 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						}
 					}
 					sa = sa->next;
+				}
+			}
+		}
+
+		/* add point caches */
+		for(ob=main->object.first; ob; ob=ob->id.next) {
+			if(ob->soft && !ob->soft->pointcache)
+				ob->soft->pointcache= BKE_ptcache_add();
+
+			for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+				if(psys->soft && !psys->soft->pointcache)
+					psys->soft->pointcache= BKE_ptcache_add();
+				if(!psys->pointcache)
+					psys->pointcache= BKE_ptcache_add();
+			}
+
+			for(md=ob->modifiers.first; md; md=md->next) {
+				if(md->type==eModifierType_Cloth) {
+					ClothModifierData *clmd = (ClothModifierData*) md;
+					if(!clmd->point_cache)
+						clmd->point_cache= BKE_ptcache_add();
 				}
 			}
 		}
@@ -7287,7 +7333,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 				sb->keys = NULL;
 				sb->totkey = 0;
-				ob->softflag &= ~OB_SB_BAKESET;
 			}
 		}
 	}
@@ -7311,7 +7356,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 				sb->keys = NULL;
 				sb->totkey = 0;
-				ob->softflag &= ~OB_SB_BAKESET;
 			}
 
 			/* convert old particles to new system */
@@ -7333,7 +7377,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				part->id.flag |= (ob->id.flag & LIB_NEEDLINK);
 				
 				psys->totpart=0;
-				psys->flag=PSYS_ENABLED|PSYS_CURRENT;
+				psys->flag= PSYS_ENABLED|PSYS_CURRENT;
 
 				BLI_addtail(&ob->particlesystem, psys);
 

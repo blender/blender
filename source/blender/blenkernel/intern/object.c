@@ -105,6 +105,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_property.h"
 #include "BKE_sca.h"
 #include "BKE_scene.h"
@@ -295,6 +296,7 @@ void unlink_object(Object *ob)
 	Camera *camera;
 	bConstraint *con;
 	bActionStrip *strip;
+	ModifierData *md;
 	int a;
 	
 	unlink_controllers(&ob->controllers);
@@ -397,6 +399,11 @@ void unlink_object(Object *ob)
 				obt->recalc |= OB_RECALC_DATA;
 			else if(obt->soft)
 				obt->recalc |= OB_RECALC_DATA;
+
+			/* cloth */
+			for(md=obt->modifiers.first; md; md=md->next)
+				if(md->type == eModifierType_Cloth)
+					obt->recalc |= OB_RECALC_DATA;
 		}
 		
 		/* strips */
@@ -1011,12 +1018,14 @@ SoftBody *copy_softbody(SoftBody *sb)
 	sbn->totspring= sbn->totpoint= 0;
 	sbn->bpoint= NULL;
 	sbn->bspring= NULL;
-	sbn->ctime= 0.0f;
 	
 	sbn->keys= NULL;
 	sbn->totkey= sbn->totpointkey= 0;
 	
 	sbn->scratch= NULL;
+
+	sbn->pointcache= BKE_ptcache_copy(sb->pointcache);
+
 	return sbn;
 }
 
@@ -1046,6 +1055,8 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->childcache= NULL;
 	psysn->edit= NULL;
 	psysn->effectors.first= psysn->effectors.last= 0;
+
+	psysn->pointcache= BKE_ptcache_copy(psys->pointcache);
 
 	id_us_plus((ID *)psysn->part);
 
@@ -2180,7 +2191,7 @@ void object_handle_update(Object *ob)
 	if(ob->recalc & OB_RECALC) {
 		
 		if(ob->recalc & OB_RECALC_OB) {
-			
+
 			// printf("recalcob %s\n", ob->id.name+2);
 			
 			/* handle proxy copy for target */

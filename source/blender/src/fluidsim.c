@@ -1129,6 +1129,11 @@ void fluidsimBake(struct Object *ob)
 	}
 }
 
+void fluidsimFreeBake(struct Object *ob)
+{
+	/* not implemented yet */
+}
+
 
 #else /* DISABLE_ELBEEM */
 
@@ -1147,6 +1152,9 @@ FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *fss) {
 
 /* only compile dummy functions */
 void fluidsimBake(struct Object *ob) {
+}
+
+void fluidsimFreeBake(struct Object *ob) {
 }
 
 #endif /* DISABLE_ELBEEM */

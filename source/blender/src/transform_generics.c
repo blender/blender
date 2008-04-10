@@ -308,7 +308,7 @@ void recalcData(TransInfo *t)
 					base->object->ctime= -1234567.0f;	// eveil! 
 			}
 			
-			DAG_scene_flush_update(G.scene, screen_view3d_layers());
+			DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 		}
 	}
 	else if (t->spacetype == SPACE_IPO) {
@@ -370,7 +370,7 @@ void recalcData(TransInfo *t)
 					}
 					base= base->next;
 				}
-				DAG_scene_flush_update(G.scene, screen_view3d_layers());
+				DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 			}
 		}
 	}
@@ -475,21 +475,6 @@ void recalcData(TransInfo *t)
 		/* old optimize trick... this enforces to bypass the depgraph */
 		if (!(arm->flag & ARM_DELAYDEFORM)) {
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
-			
-			/* bah, softbody exception... recalcdata doesnt reset */
-			for(base= FIRSTBASE; base; base= base->next) {
-				if(base->object->recalc & OB_RECALC_DATA)
-				{	
-					if(modifiers_isSoftbodyEnabled(base->object)) {
-						base->object->softflag |= OB_SB_REDO;
-					}
-					else if(modifiers_isClothEnabled(base->object)) {
-						ClothModifierData *clmd = (ClothModifierData *) modifiers_findByType(base->object, eModifierType_Cloth);
-						clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-					}
-					
-				}
-			}
 		}
 		else
 			where_is_pose(ob);
@@ -501,12 +486,12 @@ void recalcData(TransInfo *t)
 		for(base= FIRSTBASE; base; base= base->next) {
 			Object *ob= base->object;
 			
-			/* this flag is from depgraph, was stored in nitialize phase, handled in drawview.c */
+			/* this flag is from depgraph, was stored in initialize phase, handled in drawview.c */
 			if(base->flag & BA_HAS_RECALC_OB)
 				ob->recalc |= OB_RECALC_OB;
 			if(base->flag & BA_HAS_RECALC_DATA)
 				ob->recalc |= OB_RECALC_DATA;
-			
+
 			/* thanks to ob->ctime usage, ipos are not called in where_is_object,
 			   unless we edit ipokeys */
 			if(base->flag & BA_DO_IPO) {
@@ -521,18 +506,6 @@ void recalcData(TransInfo *t)
 						icu= icu->next;
 					}
 				}				
-			}
-			
-			/* softbody & cloth exception */
-			if(ob->recalc & OB_RECALC_DATA)
-			{
-				if(modifiers_isSoftbodyEnabled(ob)) {
-						ob->softflag |= OB_SB_REDO;
-				}
-				else if(modifiers_isClothEnabled(ob)) {
-					ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-					clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-				}
 			}
 			
 			/* proxy exception */
@@ -557,7 +530,6 @@ void recalcData(TransInfo *t)
 	/* update shaded drawmode while transform */
 	if(t->spacetype==SPACE_VIEW3D && G.vd->drawtype == OB_SHADED)
 		reshadeall_displist();
-	
 }
 
 void initTransModeFlags(TransInfo *t, int mode) 

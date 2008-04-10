@@ -32,7 +32,6 @@
 #ifndef DNA_CLOTH_TYPES_H
 #define DNA_CLOTH_TYPES_H
 
-
 /**
 * This struct contains all the global data required to run a simulation.
 * At the time of this writing, this structure contains data appropriate
@@ -61,8 +60,8 @@ typedef struct ClothSimSettings
 	float	structural;	/* Structural spring stiffness.			*/
 	float	shear;		/* Shear spring stiffness.			*/
 	float	bending;	/* Flexion spring stiffness.			*/
-	float	sim_time;
-	int	flags;		/* flags, see CSIMSETT_FLAGS enum above.	*/
+	float	padf;
+	int		flags;		/* flags, see CSIMSETT_FLAGS enum above.	*/
 	short	solver_type; 	/* which solver should be used?		txold	*/
 	short	vgroup_bend;	/* vertex group for scaling bending stiffness */
 	float	maxgoal; 	/* see SB */
@@ -74,21 +73,14 @@ typedef struct ClothSimSettings
 	int	goalfrict;
 	float	goalspring;
 	int	maxspringlen; 	/* in percent!; if tearing enabled, a spring will get cut */
-	int 	lastframe; 	/* frame on which simulation stops */
-	int	firstframe;	/* frame on which simulation starts */
-	int 	lastcachedframe;
-	int 	editedframe; 	/* which frame is in buffer */
-	int 	autoprotect; 	/* starting from this frame, cache gets protected  */
 	float	max_bend; 	/* max bending scaling value, min is "bending" */
 	float	max_struct; 	/* max structural scaling value, min is "structural" */
 	float	max_shear; 	/* max shear scaling value, UNUSED */
-	int 	firstcachedframe;
 	float 	avg_spring_len; /* used for normalized springs */
 	short	presets; /* used for presets on GUI */
 	short 	pad;
 	float 	timescale; /* parameter how fast cloth runs */
-}
-ClothSimSettings;
+} ClothSimSettings;
 
 
 typedef struct ClothCollSettings
@@ -101,9 +93,7 @@ typedef struct ClothCollSettings
 	struct	LinkNode *collision_list; /* e.g. pointer to temp memory for collisions */
 	int	flags;			/* collision flags defined in BKE_cloth.h */
 	float 	selfepsilon; 		/* for selfcollision */
-}
-ClothCollSettings;
-
+} ClothCollSettings;
 
 /**
 * This structure describes a cloth object against which the
@@ -130,7 +120,6 @@ typedef struct Cloth
 	struct Implicit_Data	*implicit; 		/* our implicit solver connects to this pointer */
 	struct Implicit_Data	*implicitEM; 		/* our implicit solver connects to this pointer */
 	struct EdgeHash 	*edgehash; 		/* used for selfcollisions */
-}
-Cloth;
+} Cloth;
 
 #endif

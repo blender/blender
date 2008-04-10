@@ -1126,9 +1126,6 @@ void PE_set_particle_edit(void)
 	}
 	else{
 		G.f &= ~G_PARTICLEEDIT;
-
-		if(psys->soft)
-			psys->softflag |= OB_SB_REDO;
 	}
 
 	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);

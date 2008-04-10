@@ -842,6 +842,11 @@ void countall()
 				G.totobj+=tot;
 				count_object(ob, base->flag & SELECT, tot);
 			}
+			else if((ob->transflag & OB_DUPLIGROUP) && ob->dup_group) {
+				int tot= count_duplilist(ob);
+				G.totobj+=tot;
+				count_object(ob, base->flag & SELECT, tot);
+			}
 			else {
 				count_object(ob, base->flag & SELECT, 1);
 				G.totobj++;
@@ -1301,7 +1306,7 @@ void snap_sel_to_grid()
 
 		base= base->next;
 	}
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -1414,7 +1419,7 @@ void snap_sel_to_curs()
 
 		base= base->next;
 	}
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -1819,7 +1824,7 @@ void snap_to_center()
 		
 		base= base->next;
 	}
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
 

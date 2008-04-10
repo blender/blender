@@ -3219,105 +3219,66 @@ static void softbody_to_object(Object *ob, float (*vertexCos)[3], int numVerts, 
 	}
 }
 
-void softbody_clear_cache(Object *ob, float framenr)
+void sbWriteCache(Object *ob, int framenr)
 {
-	SoftBody *sb = ob->soft;
-	ModifierData *md = ob->modifiers.first;
-	int stack_index = -1;
-	int a;
-
-	if(sb==NULL) return;
-
-	if(sb->particles)
-		stack_index = modifiers_indexInObject(ob,(ModifierData*)psys_get_modifier(ob,sb->particles));
-	else {
-		for(a=0; md; md=md->next, a++) {
-			if(md->type == eModifierType_Softbody) {
-				stack_index = a;
-				break;
-			}
-		}
-	}
-
-	BKE_ptcache_id_clear((ID *)ob, PTCACHE_CLEAR_ALL, framenr, stack_index);
-}
-static void softbody_write_cache(Object *ob, float framenr)
-{
-	FILE *fp = NULL;
-	SoftBody *sb = ob->soft;
+	SoftBody *sb= ob->soft;
 	BodyPoint *bp;
-	ModifierData *md = ob->modifiers.first;
-	int stack_index = -1;
+	PTCacheID pid;
+	PTCacheFile *pf;
 	int a;
 
-	if(sb->totpoint == 0) return;
+	if(sb->totpoint == 0)
+		return;
 
-	if(sb->particles)
-		stack_index = modifiers_indexInObject(ob,(ModifierData*)psys_get_modifier(ob,sb->particles));
-	else {
-		for(a=0; md; md=md->next, a++) {
-			if(md->type == eModifierType_Softbody) {
-				stack_index = a;
-				break;
-			}
-		}
-	}
-
-	fp = BKE_ptcache_id_fopen((ID *)ob, 'w', framenr, stack_index);
-	if(!fp) return;
-
-	for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++)
-		fwrite(&bp->pos, sizeof(float), 3, fp);
-/*write velocities too */ 
-	for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++)
-		fwrite(&bp->vec, sizeof(float), 3, fp);
+	BKE_ptcache_id_from_softbody(&pid, ob, sb);
+	pf= BKE_ptcache_file_open(&pid, PTCACHE_FILE_WRITE, framenr);
+	if(!pf)
+		return;
 	
-	fclose(fp);
+	for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++)
+		BKE_ptcache_file_write_floats(pf, bp->pos, 3);
+
+	for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++)
+		BKE_ptcache_file_write_floats(pf, bp->vec, 3);
+
+	BKE_ptcache_file_close(pf);
 }
+
 static int softbody_read_cache(Object *ob, float framenr)
 {
-	FILE *fp = NULL;
-	SoftBody *sb = ob->soft;
+	SoftBody *sb= ob->soft;
 	BodyPoint *bp;
-	ModifierData *md = ob->modifiers.first;
-	int stack_index = -1;
-	int a, ret = 1;
+	PTCacheID pid;
+	PTCacheFile *pf;
+	int a;
 
-	if(sb->totpoint == 0) return 0;
+	if(sb->totpoint == 0)
+		return 0;
+	
+	BKE_ptcache_id_from_softbody(&pid, ob, sb);
+	pf= BKE_ptcache_file_open(&pid, PTCACHE_FILE_READ, framenr);
+	if(!pf)
+		return 0;
 
-
-	if(sb->particles)
-		stack_index = modifiers_indexInObject(ob,(ModifierData*)psys_get_modifier(ob,sb->particles));
-	else {
-		for(a=0; md; md=md->next, a++) {
-			if(md->type == eModifierType_Softbody) {
-				stack_index = a;
-				break;
-			}
+	for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++) {
+		if(!BKE_ptcache_file_read_floats(pf, bp->pos, 3)) {
+			BKE_ptcache_file_close(pf);
+			return 0;
 		}
 	}
 
-	fp = BKE_ptcache_id_fopen((ID *)ob, 'r', framenr, stack_index);
-	if(!fp)
-		ret = 0;
-	else {
-		for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++)
-			if(fread(&bp->pos, sizeof(float), 3, fp) != 3) {
-				ret = 0;
-				break;
-			}
-			/*read velocities too !*/
-			for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++){
-				if(fread(&bp->vec, sizeof(float), 3, fp) != 3) {
-					ret = 0;
-					break;
-				}
-			}
-			fclose(fp);
+	for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++) {
+		if(!BKE_ptcache_file_read_floats(pf, bp->vec, 3)) {
+			BKE_ptcache_file_close(pf);
+			return 0;
+		}
 	}
 
-	return ret;
+	BKE_ptcache_file_close(pf);
+
+	return 1;
 }
+
 /* +++ ************ maintaining scratch *************** */
 void sb_new_scratch(SoftBody *sb)
 {
@@ -3376,6 +3337,9 @@ SoftBody *sbNew(void)
 	/*todo backward file compat should set sb->shearstiff = 1.0f while reading old files*/
 	sb->shearstiff = 1.0f;
 	sb->solverflags |= SBSO_OLDERR;
+
+	sb->pointcache = BKE_ptcache_add();
+
 	return sb;
 }
 
@@ -3383,14 +3347,19 @@ SoftBody *sbNew(void)
 void sbFree(SoftBody *sb)
 {
 	free_softbody_intern(sb);
+	BKE_ptcache_free(sb->pointcache);
 	MEM_freeN(sb);
 }
 
+void sbFreeSimulation(SoftBody *sb)
+{
+	free_softbody_intern(sb);
+}
 
 /* makes totally fresh start situation */
 void sbObjectToSoftbody(Object *ob)
 {
-	ob->softflag |= OB_SB_REDO;
+	//ob->softflag |= OB_SB_REDO;
 
 	free_softbody_intern(ob->soft);
 }
@@ -3414,323 +3383,406 @@ void sbSetInterruptCallBack(int (*f)(void))
 	SB_localInterruptCallBack = f;
 }
 
-
-/* simulates one step. framenr is in frames */
-void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts)
+static void softbody_update_positions(Object *ob, SoftBody *sb, float (*vertexCos)[3], int numVerts)
 {
-	ParticleSystemModifierData *psmd=0;
-	ParticleData *pa=0;
-	SoftBody *sb;
+	ParticleSystemModifierData *psmd= NULL;
+	ParticleData *pa= NULL;
 	HairKey *key= NULL;
 	BodyPoint *bp;
-	int a;
-	float dtime,ctime,forcetime;
 	float hairmat[4][4];
+	int a;
 
-	/* This part only sets goals and springs, based on original mesh/curve/lattice data.
-	Copying coordinates happens in next chunk by setting softbody flag OB_SB_RESET */
-	/* remake softbody if: */
-	if(		(ob->softflag & OB_SB_REDO) ||		/* signal after weightpainting */
-		(ob->soft==NULL) ||					/* just to be nice we allow full init */
-		(ob->soft->bpoint==NULL) || 		/* after reading new file, or acceptable as signal to refresh */
-		(numVerts!=ob->soft->totpoint) ||	/* should never happen, just to be safe */
-		((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob))) /* happens when in UI edges was set */
-	{
-		if(ob->soft && ob->soft->bpoint) /* don't clear on file load */
-			softbody_clear_cache(ob, framenr);
+	/* update the vertex locations */
+	if(sb->particles) {
+		psmd= psys_get_modifier(ob,sb->particles);
+		pa= sb->particles->particles;
+		key= pa->hair;
 
-		if(ob->soft->particles){
-			particles_to_softbody(ob);
+		psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
+	}
+
+	for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
+		/* store where goals are now */ 
+		VECCOPY(bp->origS, bp->origE);
+		/* copy the position of the goals at desired end time */
+		if(sb->particles) {
+			if(key == pa->hair + pa->totkey) {
+				pa++;
+				key = pa->hair;
+
+				psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
+			}
+			VECCOPY(bp->origE, key->co);
+			Mat4MulVecfl(hairmat,bp->origE);
+
+			key++;
 		}
-		else switch(ob->type) {
+		else{
+			VECCOPY(bp->origE, vertexCos[a]);
+			/* vertexCos came from local world, go global */
+			Mat4MulVecfl(ob->obmat, bp->origE);
+		}
+		/* just to be save give bp->origT a defined value
+		will be calulated in interpolate_exciter()*/
+		VECCOPY(bp->origT, bp->origE); 
+	}
+}
+
+static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int numVerts)
+{
+	ParticleSystemModifierData *psmd= NULL;
+	HairKey *key= NULL;
+	ParticleData *pa= NULL;
+	BodyPoint *bp;
+	float hairmat[4][4];
+	int a;
+
+	if(sb->particles) {
+		psmd= psys_get_modifier(ob, sb->particles);
+		pa= sb->particles->particles;
+		key= pa->hair;
+
+		psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
+	}
+
+	for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
+		if(sb->particles) {
+			if(key == pa->hair + pa->totkey) {
+				pa++;
+				key = pa->hair;
+
+				psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
+			}
+			VECCOPY(bp->pos, key->co);
+			Mat4MulVecfl(hairmat, bp->pos);
+			key++;
+		}
+		else {
+			VECCOPY(bp->pos, vertexCos[a]);
+			Mat4MulVecfl(ob->obmat, bp->pos);  /* yep, sofbody is global coords*/
+		}
+		VECCOPY(bp->origS, bp->pos);
+		VECCOPY(bp->origE, bp->pos);
+		VECCOPY(bp->origT, bp->pos);
+		bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0f;
+
+		/* the bp->prev*'s are for rolling back from a canceled try to propagate in time
+		adaptive step size algo in a nutshell:
+		1.  set sheduled time step to new dtime
+		2.  try to advance the sheduled time step, beeing optimistic execute it
+		3.  check for success
+		3.a we 're fine continue, may be we can increase sheduled time again ?? if so, do so! 
+		3.b we did exceed error limit --> roll back, shorten the sheduled time and try again at 2.
+		4.  check if we did reach dtime 
+		4.a nope we need to do some more at 2.
+		4.b yup we're done
+		*/
+
+		VECCOPY(bp->prevpos, bp->pos);
+		VECCOPY(bp->prevvec, bp->vec);
+		VECCOPY(bp->prevdx, bp->vec);
+		VECCOPY(bp->prevdv, bp->vec);
+	}
+
+	/* make a nice clean scratch struc */
+	free_scratch(sb); /* clear if any */
+	sb_new_scratch(sb); /* make a new */
+	sb->scratch->needstobuildcollider=1; 
+
+	if((sb->particles)==0) {
+		/* copy some info to scratch */
+		switch(ob->type) {
 		case OB_MESH:
-			mesh_to_softbody(ob);
+			if (ob->softflag & OB_SB_FACECOLL) mesh_faces_to_scratch(ob);
 			break;
 		case OB_LATTICE:
-			lattice_to_softbody(ob);
 			break;
 		case OB_CURVE:
 		case OB_SURF:
-			curve_surf_to_softbody(ob);
 			break;
 		default:
-			renew_softbody(ob, numVerts, 0);
 			break;
 		}
+	}
+}
 
-		/* still need to update to correct vertex locations, happens on next step */
-		ob->softflag |= OB_SB_RESET; 
-		ob->softflag &= ~OB_SB_REDO;
+static void softbody_step(Object *ob, SoftBody *sb, float dtime)
+{
+	/* the simulator */
+	float forcetime;
+	double sct,sst=PIL_check_seconds_timer();
+	ccd_update_deflector_hache(ob,sb->scratch->colliderhash);
+
+	if(sb->scratch->needstobuildcollider){
+		if (query_external_colliders(ob)){
+			ccd_build_deflector_hache(ob,sb->scratch->colliderhash);
+		}
+		sb->scratch->needstobuildcollider=0;
 	}
 
-	sb= ob->soft;
+	if (sb->solver_ID < 2) {	
+		/* special case of 2nd order Runge-Kutta type AKA Heun */
+		int mid_flags=0;
+		float err = 0;
+		float forcetimemax = 1.0f;
+		float forcetimemin = 0.001f;
+		float timedone =0.0; /* how far did we get without violating error condition */
+							 /* loops = counter for emergency brake
+							 * we don't want to lock up the system if physics fail
+		*/
+		int loops =0 ; 
+		SoftHeunTol = sb->rklimit; /* humm .. this should be calculated from sb parameters and sizes */
+		if (sb->minloops > 0) forcetimemax = 1.0f / sb->minloops;
+		
+		if (sb->maxloops > 0) forcetimemin = 1.0f / sb->maxloops;
+
+		if(sb->solver_ID>0) mid_flags |= MID_PRESERVE;
+		
+		//forcetime = dtime; /* hope for integrating in one step */
+		forcetime =forcetimemax; /* hope for integrating in one step */
+		while ( (ABS(timedone) < ABS(dtime)) && (loops < 2000) )
+		{
+			/* set goals in time */ 
+			interpolate_exciter(ob,200,(int)(200.0*(timedone/dtime)));
+			
+			sb->scratch->flag &= ~SBF_DOFUZZY;
+			/* do predictive euler step */
+			softbody_calc_forces(ob, forcetime,timedone/dtime,0);
+			softbody_apply_forces(ob, forcetime, 1, NULL,mid_flags);
+
+
+			/* crop new slope values to do averaged slope step */
+			softbody_calc_forces(ob, forcetime,timedone/dtime,0);
+			softbody_apply_forces(ob, forcetime, 2, &err,mid_flags);
+
+			softbody_apply_goalsnap(ob);
+			
+			if (err > SoftHeunTol) { /* error needs to be scaled to some quantity */
+				
+				if (forcetime > forcetimemin){
+					forcetime = MAX2(forcetime / 2.0f,forcetimemin);
+					softbody_restore_prev_step(ob);
+					//printf("down,");
+				}
+				else {
+					timedone += forcetime;
+				}
+			}
+			else {
+				float newtime = forcetime * 1.1f; /* hope for 1.1 times better conditions in next step */
+				
+				if (sb->scratch->flag & SBF_DOFUZZY){
+					//if (err > SoftHeunTol/(2.0f*sb->fuzzyness)) { /* stay with this stepsize unless err really small */
+					newtime = forcetime;
+					//}
+				}
+				else {
+					if (err > SoftHeunTol/2.0f) { /* stay with this stepsize unless err really small */
+						newtime = forcetime;
+					}
+				}
+				timedone += forcetime;
+				newtime=MIN2(forcetimemax,MAX2(newtime,forcetimemin));
+				//if (newtime > forcetime) printf("up,");
+				if (forcetime > 0.0)
+					forcetime = MIN2(dtime - timedone,newtime);
+				else 
+					forcetime = MAX2(dtime - timedone,newtime);
+			}
+			loops++;
+			if(sb->solverflags & SBSO_MONITOR ){
+				sct=PIL_check_seconds_timer();
+				if (sct-sst > 0.5f) printf("%3.0f%% \r",100.0f*timedone);
+			}
+			/* ask for user break */ 
+			if (SB_localInterruptCallBack && SB_localInterruptCallBack()) break;
+
+		}
+		/* move snapped to final position */
+		interpolate_exciter(ob, 2, 2);
+		softbody_apply_goalsnap(ob);
+		
+		//				if(G.f & G_DEBUG){
+		if(sb->solverflags & SBSO_MONITOR ){
+			if (loops > HEUNWARNLIMIT) /* monitor high loop counts */
+				printf("\r       needed %d steps/frame ",loops);
+		}
+		
+	}
+	else if (sb->solver_ID == 2)
+	{/* do semi "fake" implicit euler */
+		//removed
+	}/*SOLVER SELECT*/
+	else if (sb->solver_ID == 4)
+	{
+		/* do semi "fake" implicit euler */
+	}/*SOLVER SELECT*/
+	else if (sb->solver_ID == 3){
+		/* do "stupid" semi "fake" implicit euler */
+		//removed
+
+	}/*SOLVER SELECT*/
+	else{
+		printf("softbody no valid solver ID!");
+	}/*SOLVER SELECT*/
+	if(sb->plastic){ apply_spring_memory(ob);}
+
+	if(sb->solverflags & SBSO_MONITOR ){
+		sct=PIL_check_seconds_timer();
+		if (sct-sst > 0.5f) printf(" solver time %f %s \r",sct-sst,ob->id.name);
+	}
+}
+
+/* simulates one step. framenr is in frames */
+void sbObjectStep(Object *ob, float cfra, float (*vertexCos)[3], int numVerts)
+{
+	ParticleSystemModifierData *psmd=0;
+	ParticleData *pa=0;
+	SoftBody *sb= ob->soft;
+	PointCache *cache;
+	PTCacheID pid;
+	float dtime, timescale;
+	int framedelta, framenr, startframe, endframe;
+
+	cache= sb->pointcache;
+
+	framenr= (int)cfra;
+	framedelta= framenr - cache->simframe;
+
+	BKE_ptcache_id_from_softbody(&pid, ob, sb);
+	BKE_ptcache_id_time(&pid, framenr, &startframe, &endframe, &timescale);
+
+	/* check for changes in mesh, should only happen in case the mesh
+	 * structure changes during an animation */
+	if(sb->bpoint && numVerts != sb->totpoint) {
+		cache->flag &= ~PTCACHE_SIMULATION_VALID;
+		cache->simframe= 0;
+
+		return;
+	}
+
+	/* clamp frame ranges */
+	if(framenr < startframe) {
+		cache->flag &= ~PTCACHE_SIMULATION_VALID;
+		cache->simframe= 0;
+
+		return;
+	}
+	else if(framenr > endframe) {
+		framenr = endframe;
+	}
+
+	/* verify if we need to create the softbody data */
+	if(sb->bpoint == NULL ||
+	   ((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob))) {
+
+		if(sb->particles){
+			particles_to_softbody(ob);
+		}
+		else {
+			switch(ob->type) {
+				case OB_MESH:
+					mesh_to_softbody(ob);
+					break;
+				case OB_LATTICE:
+					lattice_to_softbody(ob);
+					break;
+				case OB_CURVE:
+				case OB_SURF:
+					curve_surf_to_softbody(ob);
+					break;
+				default:
+					renew_softbody(ob, numVerts, 0);
+					break;
+			}
+		}
+
+		softbody_update_positions(ob, sb, vertexCos, numVerts);
+		softbody_reset(ob, sb, vertexCos, numVerts);
+	}
+
+	/* continue physics special case */
+	if(BKE_ptcache_get_continue_physics()) {
+		cache->flag &= ~PTCACHE_SIMULATION_VALID;
+		cache->simframe= 0;
+
+		/* do simulation */
+		dtime = timescale;
+
+		softbody_update_positions(ob, sb, vertexCos, numVerts);
+		softbody_step(ob, sb, dtime);
+
+		if(sb->particles==0)
+			softbody_to_object(ob, vertexCos, numVerts, 0);
+
+		return;
+	}
 
 	/* still no points? go away */
 	if(sb->totpoint==0) return;
 
 	if(sb->particles){
-		psmd=psys_get_modifier(ob,sb->particles);
-		pa=sb->particles->particles;
+		psmd= psys_get_modifier(ob, sb->particles);
+		pa= sb->particles->particles;
 	}
 
-	/* checking time: */
-
-	ctime= bsystem_time(ob, framenr, 0.0);
-
-	if (ob->softflag&OB_SB_RESET) {
-		dtime = 0.0;
-	} else {
-		dtime= ctime - sb->ctime;
-	}
-
+	/* try to read from cache */
 	if(softbody_read_cache(ob, framenr)) {
 		if(sb->particles==0)
 			softbody_to_object(ob, vertexCos, numVerts, sb->local);
-		sb->ctime = ctime;
+
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+		cache->simframe= framenr;
+
+		return;
+	}
+	else if(ob->id.lib || (cache->flag & PTCACHE_BAKED)) {
+		/* if baked and nothing in cache, do nothing */
+		if(cache->flag & PTCACHE_SIMULATION_VALID) {
+			cache->flag &= ~PTCACHE_SIMULATION_VALID;
+			cache->simframe= 0;
+		}
+
 		return;
 	}
 
-	/* the simulator */
+	if(framenr == startframe) {
+		/* first frame, no simulation to do, just set the positions */
+		softbody_update_positions(ob, sb, vertexCos, numVerts);
 
-	/* update the vertex locations */
-	if (dtime!=0.0) {
-		if(sb->particles) {
-			pa=sb->particles->particles;
-			key = pa->hair;
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+		cache->simframe= framenr;
 
-			psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
-		}
+		/* don't write cache on first frame, but on second frame write
+		 * cache for frame 1 and 2 */
+	}
+	else if(framedelta == 1) {
+		/* if on second frame, write cache for first frame */
+		if(framenr == startframe+1)
+			sbWriteCache(ob, startframe);
 
-		for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
-			/* store where goals are now */ 
-			VECCOPY(bp->origS, bp->origE);
-			/* copy the position of the goals at desired end time */
-			if(sb->particles) {
-				if(key == pa->hair + pa->totkey) {
-					pa++;
-					key = pa->hair;
+		softbody_update_positions(ob, sb, vertexCos, numVerts);
 
-					psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
-				}
-				VECCOPY(bp->origE, key->co);
-				Mat4MulVecfl(hairmat,bp->origE);
+		/* do simulation */
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+		cache->simframe= framenr;
 
-				key++;
-			}
-			else{
-				VECCOPY(bp->origE, vertexCos[a]);
-				/* vertexCos came from local world, go global */
-				Mat4MulVecfl(ob->obmat, bp->origE);
-			}
-			/* just to be save give bp->origT a defined value
-			will be calulated in interpolate_exciter()*/
-			VECCOPY(bp->origT, bp->origE); 
+		/* checking time: */
+		dtime = framedelta*timescale;
+
+		softbody_step(ob, sb, dtime);
+
+		if(sb->particles==0)
+			softbody_to_object(ob, vertexCos, numVerts, 0);
+
+		sbWriteCache(ob, framenr);
+	}
+	else {
+		/* time step backwards or too large forward - do nothing */
+		if(cache->flag & PTCACHE_SIMULATION_VALID) {
+			cache->flag &= ~PTCACHE_SIMULATION_VALID;
+			cache->simframe= 0;
 		}
 	}
-
-	if((ob->softflag&OB_SB_RESET) ||	/* got a reset signal */
-		(dtime<0.0) ||					/* back in time */
-		(dtime>=9.9*G.scene->r.framelen) /* too far forward in time --> goals won't be accurate enough */
-		)
-	{
-		if(sb->particles) {
-			pa=sb->particles->particles;
-			key = pa->hair;
-
-			psys_mat_hair_to_global(ob, psmd->dm,  sb->particles->part->from, pa, hairmat);
-		}
-
-		for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
-			if(sb->particles) {
-				if(key == pa->hair + pa->totkey) {
-					pa++;
-					key = pa->hair;
-
-					psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
-				}
-				VECCOPY(bp->pos, key->co);
-				Mat4MulVecfl(hairmat, bp->pos);
-				key++;
-			}
-			else {
-				VECCOPY(bp->pos, vertexCos[a]);
-				Mat4MulVecfl(ob->obmat, bp->pos);  /* yep, sofbody is global coords*/
-			}
-			VECCOPY(bp->origS, bp->pos);
-			VECCOPY(bp->origE, bp->pos);
-			VECCOPY(bp->origT, bp->pos);
-			bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0f;
-
-			/* the bp->prev*'s are for rolling back from a canceled try to propagate in time
-			adaptive step size algo in a nutshell:
-			1.  set sheduled time step to new dtime
-			2.  try to advance the sheduled time step, beeing optimistic execute it
-			3.  check for success
-			3.a we 're fine continue, may be we can increase sheduled time again ?? if so, do so! 
-			3.b we did exceed error limit --> roll back, shorten the sheduled time and try again at 2.
-			4.  check if we did reach dtime 
-			4.a nope we need to do some more at 2.
-			4.b yup we're done
-			*/
-
-			VECCOPY(bp->prevpos, bp->pos);
-			VECCOPY(bp->prevvec, bp->vec);
-			VECCOPY(bp->prevdx, bp->vec);
-			VECCOPY(bp->prevdv, bp->vec);
-		}
-        /* make a nice clean scratch struc */
-		free_scratch(sb); /* clear if any */
-		sb_new_scratch(sb); /* make a new */
-	    sb->scratch->needstobuildcollider=1; 
-
-		if((sb->particles)==0) {
-			/* copy some info to scratch */
-			switch(ob->type) {
-			case OB_MESH:
-				if (ob->softflag & OB_SB_FACECOLL) mesh_faces_to_scratch(ob);
-				break;
-			case OB_LATTICE:
-				break;
-			case OB_CURVE:
-			case OB_SURF:
-				break;
-			default:
-				break;
-			}
-		}
-
-		ob->softflag &= ~OB_SB_RESET;
-	}
-	else if(dtime>0.0) {
-	    double sct,sst=PIL_check_seconds_timer();
-		ccd_update_deflector_hache(ob,sb->scratch->colliderhash);
-
-
-			if(sb->scratch->needstobuildcollider){
-				if (query_external_colliders(ob)){
-					ccd_build_deflector_hache(ob,sb->scratch->colliderhash);
-				}
-				sb->scratch->needstobuildcollider=0;
-			}
-
-
-			if (sb->solver_ID < 2) {	
-				/* special case of 2nd order Runge-Kutta type AKA Heun */
-				int mid_flags=0;
-				float err = 0;
-				float forcetimemax = 1.0f;
-				float forcetimemin = 0.001f;
-				float timedone =0.0; /* how far did we get without violating error condition */
-									 /* loops = counter for emergency brake
-									 * we don't want to lock up the system if physics fail
-				*/
-				int loops =0 ; 
-				SoftHeunTol = sb->rklimit; /* humm .. this should be calculated from sb parameters and sizes */
-				if (sb->minloops > 0) forcetimemax = 1.0f / sb->minloops;
-				
-				if (sb->maxloops > 0) forcetimemin = 1.0f / sb->maxloops;
-
-                if(sb->solver_ID>0) mid_flags |= MID_PRESERVE;
-				
-				//forcetime = dtime; /* hope for integrating in one step */
-				forcetime =forcetimemax; /* hope for integrating in one step */
-				while ( (ABS(timedone) < ABS(dtime)) && (loops < 2000) )
-				{
-					/* set goals in time */ 
-					interpolate_exciter(ob,200,(int)(200.0*(timedone/dtime)));
-					
-					sb->scratch->flag &= ~SBF_DOFUZZY;
-					/* do predictive euler step */
-					softbody_calc_forces(ob, forcetime,timedone/dtime,0);
-					softbody_apply_forces(ob, forcetime, 1, NULL,mid_flags);
-
-
-					/* crop new slope values to do averaged slope step */
-					softbody_calc_forces(ob, forcetime,timedone/dtime,0);
-					softbody_apply_forces(ob, forcetime, 2, &err,mid_flags);
-
-					softbody_apply_goalsnap(ob);
-					
-					if (err > SoftHeunTol) { /* error needs to be scaled to some quantity */
-						
-						if (forcetime > forcetimemin){
-							forcetime = MAX2(forcetime / 2.0f,forcetimemin);
-							softbody_restore_prev_step(ob);
-							//printf("down,");
-						}
-						else {
-							timedone += forcetime;
-						}
-					}
-					else {
-						float newtime = forcetime * 1.1f; /* hope for 1.1 times better conditions in next step */
-						
-						if (sb->scratch->flag & SBF_DOFUZZY){
-							//if (err > SoftHeunTol/(2.0f*sb->fuzzyness)) { /* stay with this stepsize unless err really small */
-							newtime = forcetime;
-							//}
-						}
-						else {
-							if (err > SoftHeunTol/2.0f) { /* stay with this stepsize unless err really small */
-								newtime = forcetime;
-							}
-						}
-						timedone += forcetime;
-						newtime=MIN2(forcetimemax,MAX2(newtime,forcetimemin));
-						//if (newtime > forcetime) printf("up,");
-						if (forcetime > 0.0)
-							forcetime = MIN2(dtime - timedone,newtime);
-						else 
-							forcetime = MAX2(dtime - timedone,newtime);
-					}
-					loops++;
-					if(sb->solverflags & SBSO_MONITOR ){
-						sct=PIL_check_seconds_timer();
-						if (sct-sst > 0.5f) printf("%3.0f%% \r",100.0f*timedone);
-					}
-					/* ask for user break */ 
-					if (SB_localInterruptCallBack && SB_localInterruptCallBack()) break;
-
-				}
-				/* move snapped to final position */
-				interpolate_exciter(ob, 2, 2);
-				softbody_apply_goalsnap(ob);
-				
-				//				if(G.f & G_DEBUG){
-				if(sb->solverflags & SBSO_MONITOR ){
-					if (loops > HEUNWARNLIMIT) /* monitor high loop counts */
-						printf("\r       needed %d steps/frame ",loops);
-				}
-				
-			}
-			else if (sb->solver_ID == 2)
-			{/* do semi "fake" implicit euler */
-				//removed
-			}/*SOLVER SELECT*/
-			else if (sb->solver_ID == 4)
-			{
-				/* do semi "fake" implicit euler */
-			}/*SOLVER SELECT*/
-			else if (sb->solver_ID == 3){
-				/* do "stupid" semi "fake" implicit euler */
-				//removed
-
-			}/*SOLVER SELECT*/
-			else{
-				printf("softbody no valid solver ID!");
-			}/*SOLVER SELECT*/
-			if(sb->plastic){ apply_spring_memory(ob);}
-
-			if(sb->solverflags & SBSO_MONITOR ){
-				sct=PIL_check_seconds_timer();
-				if (sct-sst > 0.5f) printf(" solver time %f %s \r",sct-sst,ob->id.name);
-			}
-	}
-
-	if(sb->particles==0)
-		softbody_to_object(ob, vertexCos, numVerts, 0);
-	sb->ctime= ctime;
-
-	softbody_write_cache(ob, framenr);
 }
 

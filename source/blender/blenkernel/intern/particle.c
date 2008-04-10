@@ -78,6 +78,7 @@
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_pointcache.h"
 
 #include "blendef.h"
 #include "RE_render_ext.h"
@@ -226,14 +227,14 @@ void psys_disable_all(Object *ob)
 	ParticleSystem *psys=ob->particlesystem.first;
 
 	for(; psys; psys=psys->next)
-		psys->flag &= ~PSYS_ENABLED;
+		psys->flag |= PSYS_DISABLED;
 }
 void psys_enable_all(Object *ob)
 {
 	ParticleSystem *psys=ob->particlesystem.first;
 
 	for(; psys; psys=psys->next)
-		psys->flag |= PSYS_ENABLED;
+		psys->flag &= ~PSYS_DISABLED;
 }
 int psys_ob_has_hair(Object *ob)
 {
@@ -253,7 +254,7 @@ int psys_check_enabled(Object *ob, ParticleSystem *psys)
 {
 	ParticleSystemModifierData *psmd;
 
-	if(!(psys->flag & PSYS_ENABLED))
+	if(psys->flag & PSYS_DISABLED)
 		return 0;
 
 	psmd= psys_get_modifier(ob, psys);
@@ -370,6 +371,9 @@ void psys_free(Object *ob, ParticleSystem * psys)
 		}
 
 		MEM_freeN(psys);
+
+		if(psys->pointcache)
+			BKE_ptcache_free(psys->pointcache);
 	}
 }
 
@@ -2251,7 +2255,7 @@ void psys_cache_child_paths(Object *ob, ParticleSystem *psys, float cfra, int ed
 	int i, totchild, totparent, totthread;
 	unsigned long totchildstep;
 
-	pthreads= psys_threads_create(ob, psys, G.scene->r.threads);
+	pthreads= psys_threads_create(ob, psys);
 
 	if(!psys_threads_init_path(pthreads, cfra, editupdate)) {
 		psys_threads_free(pthreads);
@@ -3080,6 +3084,42 @@ void psys_flush_settings(ParticleSettings *part, int event, int hair_recalc)
 		}
 	}
 }
+
+LinkNode *psys_using_settings(ParticleSettings *part, int flush_update)
+{
+	Object *ob, *tob;
+	ParticleSystem *psys, *tpsys;
+	LinkNode *node= NULL;
+	int found;
+
+	/* update all that have same particle settings */
+	for(ob=G.main->object.first; ob; ob=ob->id.next) {
+		found= 0;
+
+		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+			if(psys->part == part) {
+				BLI_linklist_append(&node, psys);
+				found++;
+			}
+			else if(psys->part->type == PART_REACTOR){
+				tob= (psys->target_ob)? psys->target_ob: ob;
+				tpsys= BLI_findlink(&tob->particlesystem, psys->target_psys-1);
+
+				if(tpsys && tpsys->part==part) {
+					BLI_linklist_append(&node, tpsys);
+					found++;
+				}
+			}
+		}
+
+		if(flush_update && found)
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	}
+
+	return node;
+}
+
+
 /************************************************/
 /*			Textures							*/
 /************************************************/

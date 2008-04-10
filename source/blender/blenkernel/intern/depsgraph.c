@@ -74,6 +74,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_utildefines.h"
 #include "BKE_scene.h"
 
@@ -1647,6 +1648,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 	ob= node->ob;
 	if(ob && (ob->recalc & OB_RECALC)) {
 		all_layer= ob->lay;
+
 		/* got an object node that changes, now check relations */
 		for(itA = node->child; itA; itA= itA->next) {
 			all_layer |= itA->lay;
@@ -1720,18 +1722,24 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 }
 
 /* node was checked to have lasttime != curtime , and is of type ID_OB */
-static unsigned int flush_layer_node(DagNode *node, int curtime)
+static unsigned int flush_layer_node(Scene *sce, DagNode *node, int curtime)
 {
+	Base *base;
 	DagAdjList *itA;
 	
 	node->lasttime= curtime;
-	node->lay= ((Object *)node->ob)->lay;
+	node->lay= 0;
+	for(base= sce->base.first; base; base= base->next) {
+		if(node->ob == base->object) {
+			node->lay= ((Object *)node->ob)->lay;
+			break;
+		}
+	}
 	
 	for(itA = node->child; itA; itA= itA->next) {
 		if(itA->node->type==ID_OB) {
 			if(itA->node->lasttime!=curtime) {
-				itA->lay= flush_layer_node(itA->node, curtime);  // lay is only set once for each relation
-				//printf("layer %d for relation %s to %s\n", itA->lay, ((Object *)node->ob)->id.name, ((Object *)itA->node->ob)->id.name);
+				itA->lay= flush_layer_node(sce, itA->node, curtime);  // lay is only set once for each relation
 			}
 			else itA->lay= itA->node->lay;
 			
@@ -1742,11 +1750,32 @@ static unsigned int flush_layer_node(DagNode *node, int curtime)
 	return node->lay;
 }
 
+/* node was checked to have lasttime != curtime , and is of type ID_OB */
+static void flush_pointcache_reset(DagNode *node, int curtime)
+{
+	DagAdjList *itA;
+	Object *ob;
+	
+	node->lasttime= curtime;
+	
+	for(itA = node->child; itA; itA= itA->next) {
+		if(itA->node->type==ID_OB) {
+			if(itA->node->lasttime!=curtime) {
+				ob= (Object*)(node->ob);
+				if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
+					ob->recalc |= OB_RECALC_DATA;
+				flush_pointcache_reset(itA->node, curtime);
+			}
+		}
+	}
+}
+
 /* flushes all recalc flags in objects down the dependency tree */
-void DAG_scene_flush_update(Scene *sce, unsigned int lay)
+void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
 {
 	DagNode *firstnode;
 	DagAdjList *itA;
+	Object *ob;
 	int lasttime;
 	
 	if(sce->theDag==NULL) {
@@ -1755,21 +1784,37 @@ void DAG_scene_flush_update(Scene *sce, unsigned int lay)
 	}
 	
 	firstnode= sce->theDag->DagNode.first;  // always scene node
+
+	for(itA = firstnode->child; itA; itA= itA->next)
+		itA->lay= 0;
 	
 	/* first we flush the layer flags */
 	sce->theDag->time++;	// so we know which nodes were accessed
 	lasttime= sce->theDag->time;
-	for(itA = firstnode->child; itA; itA= itA->next) {
+
+	for(itA = firstnode->child; itA; itA= itA->next)
 		if(itA->node->lasttime!=lasttime && itA->node->type==ID_OB) 
-			flush_layer_node(itA->node, lasttime);
-	}
+			flush_layer_node(sce, itA->node, lasttime);
 	
 	/* then we use the relationships + layer info to flush update events */
 	sce->theDag->time++;	// so we know which nodes were accessed
 	lasttime= sce->theDag->time;
-	for(itA = firstnode->child; itA; itA= itA->next) {
-		if(itA->node->lasttime!=lasttime && itA->node->type==ID_OB) 
+	for(itA = firstnode->child; itA; itA= itA->next)
+		if(itA->node->lasttime!=lasttime && itA->node->type==ID_OB)
 			flush_update_node(itA->node, lay, lasttime);
+
+	/* if update is not due to time change, do pointcache clears */
+	if(!time) {
+		sce->theDag->time++;	// so we know which nodes were accessed
+		lasttime= sce->theDag->time;
+		for(itA = firstnode->child; itA; itA= itA->next) {
+			if(itA->node->lasttime!=lasttime && itA->node->type==ID_OB)  {
+				ob= (Object*)(itA->node->ob);
+				if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
+					ob->recalc |= OB_RECALC_DATA;
+				flush_pointcache_reset(itA->node, lasttime);
+			}
+		}
 	}
 }
 
@@ -1955,7 +2000,7 @@ void DAG_scene_update_flags(Scene *scene, unsigned int lay)
 	}
 	
 	for(sce= scene; sce; sce= sce->set)
-		DAG_scene_flush_update(sce, lay);
+		DAG_scene_flush_update(sce, lay, 1);
 	
 	/* test: set time flag, to disable baked systems to update */
 	for(SETLOOPER(scene, base)) {
@@ -2005,7 +2050,9 @@ void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
 {
 	
 	if(ob==NULL || sce->theDag==NULL) return;
+
 	ob->recalc |= flag;
+	BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH);
 	
 	/* all users of this ob->data should be checked */
 	/* BUT! displists for curves are still only on cu */
@@ -2018,8 +2065,9 @@ void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
 				else {
 					Object *obt;
 					for (obt=G.main->object.first; obt; obt= obt->id.next) {
-						if (obt->data==ob->data) {
+						if (obt != ob && obt->data==ob->data) {
 							obt->recalc |= OB_RECALC_DATA;
+							BKE_ptcache_object_reset(obt, PTCACHE_RESET_DEPSGRAPH);
 						}
 					}
 				}
@@ -2028,9 +2076,9 @@ void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
 	}
 	
 	if(G.curscreen)
-		DAG_scene_flush_update(sce, dag_screen_view3d_layers());
+		DAG_scene_flush_update(sce, dag_screen_view3d_layers(), 0);
 	else
-		DAG_scene_flush_update(sce, sce->lay);
+		DAG_scene_flush_update(sce, sce->lay, 0);
 }
 
 /* recursively descends tree, each node only checked once */
