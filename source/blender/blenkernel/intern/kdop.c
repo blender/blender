@@ -150,7 +150,7 @@ DO_INLINE int floor_lg(int a)
 /*
 * Insertion sort algorithm
 */
-static void bvh_insertionsort(CollisionTree **a, int lo, int hi, int axis)
+void bvh_insertionsort(CollisionTree **a, int lo, int hi, int axis)
 {
 	int i,j;
 	CollisionTree *t;
@@ -247,7 +247,7 @@ static CollisionTree *bvh_medianof3(CollisionTree **a, int lo, int mid, int hi, 
 /*
 * Quicksort algorithm modified for Introsort
 */
-static void bvh_introsort_loop (CollisionTree **a, int lo, int hi, int depth_limit, int axis)
+void bvh_introsort_loop (CollisionTree **a, int lo, int hi, int depth_limit, int axis)
 {
 	int p;
 
