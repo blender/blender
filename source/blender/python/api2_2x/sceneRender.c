@@ -2126,14 +2126,14 @@ static int RenderData_setMode( BPy_RenderData* self, PyObject *arg )
 
 static PyObject *RenderData_getSceModeBits( BPy_RenderData *self, void* type )
 {
-	return EXPP_getBitfield( &self->renderContext->scemode, (int)type, 'h' );
+	return EXPP_getBitfield( &self->renderContext->scemode, (int)type, 'i' );
 }
 
 static int RenderData_setSceModeBits( BPy_RenderData* self, PyObject *value,
 		void* type )
 {
 	return EXPP_setBitfield( value, &self->renderContext->scemode,
-			(int)type, 'h' );
+			(int)type, 'i' );
 }
 
 static PyObject *RenderData_getSceMode( BPy_RenderData *self )
@@ -2154,7 +2154,7 @@ static int RenderData_setSceMode( BPy_RenderData* self, PyObject *arg )
 		return EXPP_ReturnIntError( PyExc_ValueError, 
 				"unexpected bits set in argument" );
 
-	self->renderContext->scemode = (short)value;
+	self->renderContext->scemode = (int)value;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return 0;
