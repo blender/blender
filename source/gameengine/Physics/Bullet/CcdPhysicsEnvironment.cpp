@@ -739,8 +739,8 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 
 
 	PHY_IPhysicsController* nearestHit = 0;
-
-	m_dynamicsWorld->rayTest(rayFrom,rayTo,rayCallback);
+	// don't collision with sensor object
+	m_dynamicsWorld->rayTest(rayFrom,rayTo,rayCallback, CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::SensorFilter);
 	if (rayCallback.HasHit())
 	{
 		nearestHit = static_cast<CcdPhysicsController*>(rayCallback.m_collisionObject->getUserPointer());
