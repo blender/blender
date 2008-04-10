@@ -60,15 +60,15 @@ struct ClothModifierData;
 struct CollisionTree;
 
 // this is needed for inlining behaviour
-#ifndef _WIN32
-#define LINUX
-#ifndef __sgi
-#define DO_INLINE inline
+#if defined _WIN32
+#   define DO_INLINE __inline
+#elif defined (__sgi)
+#   define DO_INLINE
+#elif defined (__sun) || defined (__sun__)
+#   define DO_INLINE
 #else
-#define DO_INLINE  
-#endif
-#else
-#define DO_INLINE __inline
+#   define DO_INLINE inline
+#   define LINUX
 #endif
 
 #define CLOTH_MAX_THREAD 2
