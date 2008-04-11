@@ -1003,7 +1003,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Settings */
 				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tail", *xco, *yco-92, 137, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tail als last element in Chain");
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tail", *xco, *yco-92, 137, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tail also last element in Chain");
 				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "ChainLen:", *xco, *yco-112,137,19, &data->rootbone, 0, 255, 0, 0, "If not zero, the amount of bones in this chain");
 				
 				uiBlockBeginAlign(block);
@@ -1032,16 +1032,16 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->poletar);
 				}
 				else {
-					strcpy (data->polesubtarget, "");
+					strcpy(data->polesubtarget, "");
 				}
-	
-				if(data->poletar) {
+				
+				if (data->poletar) {
 					uiBlockBeginAlign(block);
 #if 0
 					but = uiDefBut(block, BUT, B_CONSTRAINT_TEST, (data->flag & CONSTRAINT_IK_SETANGLE)? "Set Pole Offset": "Clear Pole Offset", *xco, *yco-167, 137, 19, 0, 0.0, 1.0, 0.0, 0.0, "Set the pole rotation offset from the current pose");
 					uiButSetFunc(but, con_kinematic_set_pole_angle, ob, con);
-					if(!(data->flag & CONSTRAINT_IK_SETANGLE))
-#endif
+					if (!(data->flag & CONSTRAINT_IK_SETANGLE))
+#endif					
 						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pole Offset ", *xco, *yco-167, 137, 19, &data->poleangle, -180.0, 180.0, 0, 0, "Pole rotation offset");
 				}
 			}
@@ -1482,7 +1482,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 #endif
 				uiBlockEndAlign(block);
 				
-				uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Limit Mode%t|Inside %x0|Outside %x1|Surface %x2", *xco+((width/2)-50), *yco-104, 100, 18, &data->mode, 0, 24, 0, 0, "Distances in relation to sphere of influence to allow");
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Clamp Region:",*xco+((width/2)-110), *yco-104,100,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Limit Mode%t|Inside %x0|Outside %x1|Surface %x2", *xco+(width/2), *yco-104, 100, 18, &data->mode, 0, 24, 0, 0, "Distances in relation to sphere of influence to allow");
 			}
 			break;
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
