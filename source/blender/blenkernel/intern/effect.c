@@ -1711,7 +1711,7 @@ void build_particle_system(Object *ob)
 	if( (1) && (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&  // broken, disabled for now!
 	    (ob->fluidsimSettings) && 
 		  (ob->fluidsimSettings->type == OB_FLUIDSIM_PARTICLE)) {
-		char *suffix  = "fluidsurface_particles_#";
+		char *suffix  = "fluidsurface_particles_####";
 		char *suffix2 = ".gz";
 		char filename[256];
 		char debugStrBuffer[256];

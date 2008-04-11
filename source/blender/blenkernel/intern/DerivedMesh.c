@@ -3312,9 +3312,9 @@ void loadFluidsimMesh(Object *srcob, int useRenderParams)
 		srcob->data = srcob->fluidsimSettings->orgMesh;
 		return;
 	} else if(displaymode==2) {
-		strcat(targetDir,"fluidsurface_preview_#");
+		strcat(targetDir,"fluidsurface_preview_####");
 	} else { // 3
-		strcat(targetDir,"fluidsurface_final_#");
+		strcat(targetDir,"fluidsurface_final_####");
 	}
 	BLI_convertstringcode(targetDir, G.sce, curFrame); // fixed #frame-no 
 	strcpy(targetFile,targetDir);

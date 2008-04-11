@@ -1059,7 +1059,7 @@ static int seq_proxy_get_fname(Sequence * seq, int cfra, char * name)
 
 		frameno = tse->nr + seq->anim_startofs;
 
-		snprintf(name, PROXY_MAXFILE, "%s/%s/%d/#", dir,
+		snprintf(name, PROXY_MAXFILE, "%s/%s/%d/####", dir,
 			 seq->strip->stripdata->name,
 			 G.scene->r.size);
 	} else {
@@ -1067,7 +1067,7 @@ static int seq_proxy_get_fname(Sequence * seq, int cfra, char * name)
 
 		frameno = tse->nr + seq->anim_startofs;
 
-		snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/#", dir,
+		snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####", dir,
 			 G.scene->r.size);
 	}
 

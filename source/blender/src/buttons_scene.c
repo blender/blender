@@ -1998,9 +1998,9 @@ static void render_panel_output(void)
 	if(uiNewPanel(curarea, block, "Output", "Render", 0, 0, 318, 204)==0) return;
 	
 	uiBlockBeginAlign(block);
-	uiDefIconBut(block, BUT, B_FS_PIC, ICON_FILESEL,	10, 190, 20, 20, 0, 0, 0, 0, 0, "Open Fileselect to get Pics dir/name");
-	uiDefBut(block, TEX,0,"",							31, 190, 279, 20,G.scene->r.pic, 0.0,79.0, 0, 0, "Directory/name to save rendered Pics to");
-	uiDefIconBut(block, BUT,B_FS_BACKBUF, ICON_FILESEL, 10, 168, 20, 20, 0, 0, 0, 0, 0, "Open Fileselect to get Backbuf image");
+	uiDefIconBut(block, BUT, B_FS_PIC, ICON_FILESEL,	10, 190, 20, 20, 0, 0, 0, 0, 0, "Select the directory/name for saving animations");
+	uiDefBut(block, TEX,0,"",							31, 190, 279, 20,G.scene->r.pic, 0.0,79.0, 0, 0, "Directory/name to save animations, # characters defines the position and length of frame numbers");
+	uiDefIconBut(block, BUT,B_FS_BACKBUF, ICON_FILESEL, 10, 168, 20, 20, 0, 0, 0, 0, 0, "Select the directory/name for a Backbuf image");
 	uiDefBut(block, TEX,0,"",							31, 168, 279, 20,G.scene->r.backbuf, 0.0,79.0, 0, 0, "Image to use as background for rendering");
 	uiBlockEndAlign(block);
 	

@@ -4552,7 +4552,7 @@ static void particles_fluid_step(Object *ob, ParticleSystem *psys, int cfra)
 		(ob->fluidsimSettings)) { 
 		ParticleSettings *part = psys->part;
 		ParticleData *pa=0;
-		char *suffix  = "fluidsurface_particles_#";
+		char *suffix  = "fluidsurface_particles_####";
 		char *suffix2 = ".gz";
 		char filename[256];
 		char debugStrBuffer[256];
