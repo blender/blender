@@ -314,12 +314,13 @@ void KX_GameObject::ApplyMovement(const MT_Vector3& dloc,bool local)
 void KX_GameObject::ApplyRotation(const MT_Vector3& drot,bool local)
 {
 	MT_Matrix3x3 rotmat(drot);
-	rotmat.transpose();
-	
-	if (m_pPhysicsController1) // (IsDynamic())
-		m_pPhysicsController1->RelativeRotate(rotmat,local); 
-	// in worldspace
+
 	GetSGNode()->RelativeRotate(rotmat,local);
+
+	if (m_pPhysicsController1) { // (IsDynamic())
+		rotmat.transpose();
+		m_pPhysicsController1->RelativeRotate(rotmat,local); 
+	}
 }
 
 
