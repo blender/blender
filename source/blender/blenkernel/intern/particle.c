@@ -370,6 +370,9 @@ void psys_free(Object *ob, ParticleSystem * psys)
 			psys->part=0;
 		}
 
+		if(psys->reactevents.first)
+			BLI_freelistN(&psys->reactevents);
+
 		if(psys->pointcache)
 			BKE_ptcache_free(psys->pointcache);
 

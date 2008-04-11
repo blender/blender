@@ -331,11 +331,15 @@ int BLI_delete(char *file, int dir, int recursive)
 		printf("Error: not deleted file %s because of quote!\n", file);
 	}
 	else {
-		if (recursive) sprintf(str, "/bin/rm -rf \"%s\"", file);
-		else if (dir) sprintf(str, "/bin/rmdir \"%s\"", file);
+		if (recursive) {
+			sprintf(str, "/bin/rm -rf \"%s\"", file);
+			return system(str);
+		}
+		else if (dir) {
+			sprintf(str, "/bin/rmdir \"%s\"", file);
+			return system(str);
+		}
 		else remove(file); //sprintf(str, "/bin/rm -f \"%s\"", file);
-
-		return system(str);
 	}
 	return -1;
 }

@@ -2204,10 +2204,13 @@ void pointcache_free(PTCacheID *pid, int cacheonly)
 	ListBase pidlist;
 	
 	if(pid) {
-		if(cacheonly)
+		if(cacheonly) {
 			BKE_ptcache_id_reset(pid, PTCACHE_RESET_DEPSGRAPH);
-		else
+		}
+		else {
 			BKE_ptcache_id_reset(pid, PTCACHE_RESET_BAKED);
+			pid->cache->flag &= ~PTCACHE_BAKED;
+		}
 
 		DAG_object_flush_update(G.scene, pid->ob, OB_RECALC_DATA);
 	}
@@ -2217,10 +2220,13 @@ void pointcache_free(PTCacheID *pid, int cacheonly)
 				BKE_ptcache_ids_from_object(&pidlist, base->object);
 
 				for(pid=pidlist.first; pid; pid=pid->next) {
-					if(cacheonly)
+					if(cacheonly) {
 						BKE_ptcache_id_reset(pid, PTCACHE_RESET_DEPSGRAPH);
-					else
+					}
+					else {
 						BKE_ptcache_id_reset(pid, PTCACHE_RESET_BAKED);
+						pid->cache->flag &= ~PTCACHE_BAKED;
+					}
 
 					DAG_object_flush_update(G.scene, pid->ob, OB_RECALC_DATA);
 				}

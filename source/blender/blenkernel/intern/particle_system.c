@@ -143,6 +143,9 @@ void psys_reset(ParticleSystem *psys, int mode)
 			psys->totpart= 0;
 			psys->totkeyed= 0;
 			psys->flag &= ~(PSYS_HAIR_DONE|PSYS_KEYED);
+
+			if(psys->reactevents.first)
+				BLI_freelistN(&psys->reactevents);
 		}
 	}
 
@@ -1701,7 +1704,10 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 		/*TODO: get precise location of particle at birth*/
 
 		state.time=cfra;
-		psys_get_particle_state(tob,tpsys,pa->num,&state,1);
+		if(pa->num == -1)
+			memset(&state, 0, sizeof(state));
+		else
+			psys_get_particle_state(tob,tpsys,pa->num,&state,1);
 		psys_get_from_key(&state,loc,nor,rot,0);
 
 		QuatMulVecf(rot,vtan);
