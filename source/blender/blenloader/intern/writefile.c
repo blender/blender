@@ -2092,7 +2092,7 @@ int BLO_write_file(char *dir, int write_flags, char **error_r)
 			}
 		}
 		else
-		if(BLI_rename(tempname, dir) < 0) {
+		if(BLI_rename(tempname, dir) != 0) {
 			*error_r= "Can't change old file. File saved with @";
 			return 0;
 		}

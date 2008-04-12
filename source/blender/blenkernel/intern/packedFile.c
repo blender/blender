@@ -320,11 +320,11 @@ int writePackedFile(char * filename, PackedFile *pf, int guimode)
 	
 	if (remove_tmp) {
 		if (ret_value == RET_ERROR) {
-			if (BLI_rename(tempname, name) == RET_ERROR) {
+			if (BLI_rename(tempname, name) != 0) {
 				if(guimode) error("Error restoring tempfile. Check files: '%s' '%s'", tempname, name);
 			}
 		} else {
-			if (BLI_delete(tempname, 0, 0) == RET_ERROR) {
+			if (BLI_delete(tempname, 0, 0) != 0) {
 				if(guimode) error("Error deleting '%s' (ignored)");
 			}
 		}

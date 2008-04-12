@@ -2013,8 +2013,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if (sfile->filelist[i].flags & ACTIVE) {			
 					BLI_make_file_string(G.sce, str, sfile->dir, sfile->filelist[i].relname);
 
-					if(event==BKEY) ret= BLI_backup(sfile->filelist[i].relname, sfile->dir, otherdir);
-					else if(event==CKEY) ret= BLI_copy_fileops(str, otherdir);
+					if(event==CKEY) ret= BLI_copy_fileops(str, otherdir);
 					else if(event==LKEY) ret= BLI_link(str, otherdir);
 					else if(event==MKEY) ret= BLI_move(str, otherdir);
 
@@ -2123,7 +2122,12 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				fs_fake_users(sfile);
 			}
 			break;
-				
+		case HKEY:
+			sfile->flag ^= FILE_HIDE_DOT;
+			BLI_hide_dot_files(sfile->flag & FILE_HIDE_DOT);
+			freefilelist(sfile);
+			scrarea_queue_winredraw(curarea);
+			break;
 		case PADPLUSKEY:
 		case EQUALKEY:
 			if (G.qual & LR_CTRLKEY) BLI_newname(sfile->file, +100);

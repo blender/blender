@@ -267,12 +267,6 @@ int BLI_link(char *file, char *to) {
 	return 1;
 }
 
-int BLI_backup(char *file, char *from, char *to) {
-	callLocalErrorCallBack("Backing up files is unsupported on Windows");
-	
-	return 1;
-}
-
 int BLI_exists(char *file) {
 	return (GetFileAttributes(file) != 0xFFFFFFFF);
 }
@@ -360,12 +354,6 @@ int BLI_copy_fileops(char *file, char *to) {
 
 int BLI_link(char *file, char *to) {
 	sprintf(str, "/bin/ln -f \"%s\" \"%s\"", file, to);
-	
-	return system(str);
-}
-
-int BLI_backup(char *file, char *from, char *to) {
-	sprintf(str, "/bin/su root -c 'cd %s; /bin/tar cf - \"%s\" | (/bin/cd %s; /bin/tar xf -)'", from, file, to);
 	
 	return system(str);
 }
