@@ -311,6 +311,7 @@ static void QT_EndCreateMyVideoTrack(void)
 
 static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, int recty)
 {
+	SCTemporalSettings gTemporalSettings;
 	OSErr err = noErr;
 
 	qtexport->ibuf = IMB_allocImBuf (rectx, recty, 32, IB_rect, 0);
@@ -329,7 +330,18 @@ static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, i
 
 	SCDefaultPixMapSettings (qtdata->theComponent, qtexport->thePixMap, true);
 
-	SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
+	// workaround for crash with H.264, which requires an upgrade to
+	// the new callback based api for proper encoding, but that's not
+	// really compatible with rendering out frames sequentially
+	gTemporalSettings = qtdata->gTemporalSettings;
+	if(qtdata->gSpatialSettings.codecType == kH264CodecType) {
+		if(gTemporalSettings.temporalQuality != codecMinQuality) {
+			fprintf(stderr, "Only minimum quality compression supported for QuickTime H.264.\n");
+			gTemporalSettings.temporalQuality = codecMinQuality;
+		}
+	}
+
+	SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&gTemporalSettings);
 	SCSetInfo(qtdata->theComponent, scSpatialSettingsType,	&qtdata->gSpatialSettings);
 	SCSetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);
 
