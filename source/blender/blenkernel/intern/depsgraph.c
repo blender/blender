@@ -610,6 +610,8 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 			if(part->draw_as == PART_DRAW_OB && part->dup_ob) {
 				node2 = dag_get_node(dag, part->dup_ob);
 				dag_add_relation(dag, node, node2, DAG_RL_OB_OB);
+				if(part->dup_ob->type == OB_MBALL)
+					dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA);
 			}
 
 			if(part->draw_as == PART_DRAW_GR && part->dup_group) {

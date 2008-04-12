@@ -426,6 +426,9 @@ int next_object(int val, Base **base, Object **ob)
 							duplilist= object_duplilist(G.scene, (*base)->object);
 							
 							dupob= duplilist->first;
+
+							if(!dupob)
+								free_object_duplilist(duplilist);
 						}
 					}
 				}
