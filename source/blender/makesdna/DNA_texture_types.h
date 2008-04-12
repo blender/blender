@@ -353,6 +353,7 @@ typedef struct TexMapping {
 #define MTEX_ALPHAMIX		8
 #define MTEX_VIEWSPACE		16
 #define MTEX_DUPLI_MAPTO	32
+#define MTEX_OB_DUPLI_ORIG	64
 
 /* blendtype */
 #define MTEX_BLEND		0

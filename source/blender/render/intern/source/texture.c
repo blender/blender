@@ -1468,8 +1468,9 @@ void do_material_tex(ShadeInput *shi)
 					dx= dxt;
 					dy= dyt;
 					VECCOPY(tempvec, shi->co);
-					if(shi->obi && shi->obi->duplitexmat)
-						MTC_Mat4MulVecfl(shi->obi->duplitexmat, tempvec);
+					if(mtex->texflag & MTEX_OB_DUPLI_ORIG)
+						if(shi->obi && shi->obi->duplitexmat)
+							MTC_Mat4MulVecfl(shi->obi->duplitexmat, tempvec);
 					MTC_Mat4MulVecfl(ob->imat, tempvec);
 					if(shi->osatex) {
 						VECCOPY(dxt, shi->dxco);
