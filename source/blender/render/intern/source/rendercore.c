@@ -168,8 +168,9 @@ static int calchalo_z(HaloRen *har, int zz)
 static void halo_pixelstruct(HaloRen *har, RenderLayer **rlpp, int totsample, int od, float dist, float xn, float yn, PixStr *ps)
 {
 	float col[4], accol[4];
-	int amount, amountm, zz, flarec, sample;
+	int amount, amountm, zz, flarec, sample, fullsample, mask=0;
 	
+	fullsample= (totsample > 1);
 	amount= 0;
 	accol[0]=accol[1]=accol[2]=accol[3]= 0.0f;
 	flarec= har->flarec;
@@ -183,35 +184,56 @@ static void halo_pixelstruct(HaloRen *har, RenderLayer **rlpp, int totsample, in
 			float fac;
 			
 			shadeHaloFloat(har, col, zz, dist, xn, yn, flarec);
-			fac= ((float)amountm)/(float)R.osa;
-			accol[0]+= fac*col[0];
-			accol[1]+= fac*col[1];
-			accol[2]+= fac*col[2];
-			accol[3]+= fac*col[3];
 			flarec= 0;
+
+			if(fullsample) {
+				for(sample=0; sample<totsample; sample++)
+					if(ps->mask & (1 << sample))
+						addalphaAddfacFloat(rlpp[sample]->rectf + od*4, col, har->add);
+			}
+			else {
+				fac= ((float)amountm)/(float)R.osa;
+				accol[0]+= fac*col[0];
+				accol[1]+= fac*col[1];
+				accol[2]+= fac*col[2];
+				accol[3]+= fac*col[3];
+			}
 		}
 		
+		mask |= ps->mask;
 		ps= ps->next;
 	}
+
 	/* now do the sky sub-pixels */
 	amount= R.osa-amount;
 	if(amount) {
 		float fac;
 
 		shadeHaloFloat(har, col, 0x7FFFFF, dist, xn, yn, flarec);
-		fac= ((float)amount)/(float)R.osa;
-		accol[0]+= fac*col[0];
-		accol[1]+= fac*col[1];
-		accol[2]+= fac*col[2];
-		accol[3]+= fac*col[3];
+
+		if(!fullsample) {
+			fac= ((float)amount)/(float)R.osa;
+			accol[0]+= fac*col[0];
+			accol[1]+= fac*col[1];
+			accol[2]+= fac*col[2];
+			accol[3]+= fac*col[3];
+		}
 	}
-	col[0]= accol[0];
-	col[1]= accol[1];
-	col[2]= accol[2];
-	col[3]= accol[3];
-	
-	for(sample=0; sample<totsample; sample++)
-		addalphaAddfacFloat(rlpp[sample]->rectf + od*4, col, har->add);
+
+	if(fullsample) {
+		for(sample=0; sample<totsample; sample++)
+			if(!(mask & (1 << sample)))
+				addalphaAddfacFloat(rlpp[sample]->rectf + od*4, col, har->add);
+	}
+	else {
+		col[0]= accol[0];
+		col[1]= accol[1];
+		col[2]= accol[2];
+		col[3]= accol[3];
+		
+		for(sample=0; sample<totsample; sample++)
+			addalphaAddfacFloat(rlpp[sample]->rectf + od*4, col, har->add);
+	}
 }
 
 static void halo_tile(RenderPart *pa, RenderLayer *rl)
