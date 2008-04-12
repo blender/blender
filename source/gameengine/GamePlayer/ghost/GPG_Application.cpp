@@ -845,11 +845,12 @@ bool GPG_Application::handleKey(GHOST_IEvent* event, bool isDown)
 	{
 		GHOST_TEventDataPtr eventData = ((GHOST_IEvent*)event)->getData();
 		GHOST_TEventKeyData* keyData = static_cast<GHOST_TEventKeyData*>(eventData);
-		if (fSystem->getFullScreen()) {
-			if (keyData->key == GHOST_kKeyEsc) {
+		//no need for this test
+		//if (fSystem->getFullScreen()) {
+			if (keyData->key == GHOST_kKeyEsc && !m_keyboard->m_hookesc) {
 				m_exitRequested = KX_EXIT_REQUEST_OUTSIDE;
 			}
-		}
+		//}
 		m_keyboard->ConvertEvent(keyData->key, isDown);
 		handled = true;
 	}
