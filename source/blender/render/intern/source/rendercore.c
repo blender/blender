@@ -1279,7 +1279,7 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 {
 	ShadeInput *shi= ssamp->shi;
 	ShadeResult shr;
-	float texfac, orthoarea, nor[3];
+	float texfac, orthoarea, nor[3], alpha;
 
 	/* cache for shadow */
 	shi->samplenr= R.shadowsamplenr[shi->thread]++;
@@ -1345,15 +1345,18 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 	/* texture blending */
 	texfac= shi->mat->sss_texfac;
 
+	alpha= shr.col[3];
+	*area *= alpha;
+
 	if(texfac == 0.0f) {
-		if(shr.col[0]!=0.0f) color[0] /= shr.col[0];
-		if(shr.col[1]!=0.0f) color[1] /= shr.col[1];
-		if(shr.col[2]!=0.0f) color[2] /= shr.col[2];
+		if(shr.col[0]!=0.0f) color[0] *= alpha/shr.col[0];
+		if(shr.col[1]!=0.0f) color[1] *= alpha/shr.col[1];
+		if(shr.col[2]!=0.0f) color[2] *= alpha/shr.col[2];
 	}
-	else if(texfac != 1.0f) {
-		if(shr.col[0]!=0.0f) color[0] *= pow(shr.col[0], texfac)/shr.col[0];
-		if(shr.col[1]!=0.0f) color[1] *= pow(shr.col[1], texfac)/shr.col[1];
-		if(shr.col[2]!=0.0f) color[2] *= pow(shr.col[2], texfac)/shr.col[2];
+	else if(texfac != 1.0f && (alpha > FLT_EPSILON)) {
+		if(shr.col[0]!=0.0f) color[0] *= alpha*pow(shr.col[0]/alpha, texfac)/shr.col[0];
+		if(shr.col[1]!=0.0f) color[1] *= alpha*pow(shr.col[1]/alpha, texfac)/shr.col[1];
+		if(shr.col[2]!=0.0f) color[2] *= alpha*pow(shr.col[2]/alpha, texfac)/shr.col[2];
 	}
 }
 

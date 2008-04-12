@@ -1620,10 +1620,13 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		if (shr->shad[2] < 0) shr->shad[2] = 0;
 						
 		if(ma->sss_flag & MA_DIFF_SSS) {
-			float sss[3], col[3], texfac= ma->sss_texfac;
+			float sss[3], col[3], alpha, invalpha, texfac= ma->sss_texfac;
 
 			/* this will return false in the preprocess stage */
 			if(sample_sss(&R, ma, shi->co, sss)) {
+				alpha= shr->col[3];
+				invalpha= (alpha > FLT_EPSILON)? 1.0f/alpha: 1.0f;
+
 				if(texfac==0.0f) {
 					VECCOPY(col, shr->col);
 				}
@@ -1631,19 +1634,20 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 					col[0]= col[1]= col[2]= 1.0f;
 				}
 				else {
-					col[0]= pow(shr->col[0], 1.0f-texfac);
-					col[1]= pow(shr->col[1], 1.0f-texfac);
-					col[2]= pow(shr->col[2], 1.0f-texfac);
+					VECCOPY(col, shr->col);
+					col[0]= alpha*pow(col[0]*invalpha, 1.0f-texfac);
+					col[1]= alpha*pow(col[1]*invalpha, 1.0f-texfac);
+					col[2]= alpha*pow(col[2]*invalpha, 1.0f-texfac);
 				}
 
-				shr->diff[0]= sss[0]*col[0];
-				shr->diff[1]= sss[1]*col[1];
-				shr->diff[2]= sss[2]*col[2];
+				shr->diff[0]= sss[0]*col[0]*invalpha;
+				shr->diff[1]= sss[1]*col[1]*invalpha;
+				shr->diff[2]= sss[2]*col[2]*invalpha;
 
 				if(shi->combinedflag & SCE_PASS_SHADOW)	{
-					shr->shad[0]= sss[0]*col[0];
-					shr->shad[1]= sss[1]*col[1];
-					shr->shad[2]= sss[2]*col[2];
+					shr->shad[0]= shr->diff[0];
+					shr->shad[1]= shr->diff[1];
+					shr->shad[2]= shr->diff[2];
 				}
 			}
 		}
