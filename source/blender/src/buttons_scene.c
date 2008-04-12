@@ -2191,8 +2191,7 @@ static void render_panel_render(void)
 	uiDefButS(block, ROW,800,"Key",		456,13,35,20,&G.scene->r.alphamode,3.0,2.0, 0, 0, "Alpha and color values remain unchanged");
 	uiBlockEndAlign(block);
 
-	if(G.scene->r.mode & R_RAYTRACE)
-		uiDefButS(block, MENU, B_DIFF,"Octree resolution %t|64 %x64|128 %x128|256 %x256|512 %x512",	496,13,64,20,&G.scene->r.ocres,0.0,0.0, 0, 0, "Octree resolution for ray tracing");
+	uiDefButS(block, MENU, B_DIFF,"Octree resolution %t|64 %x64|128 %x128|256 %x256|512 %x512",	496,13,64,20,&G.scene->r.ocres,0.0,0.0, 0, 0, "Octree resolution for ray tracing and baking, Use higher values for complex scenes");
 
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, R_SHADOW, B_REDR,"Shadow",	565,172,52,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");

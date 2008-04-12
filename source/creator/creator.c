@@ -230,6 +230,18 @@ static void print_help(void)
 	printf ("  -v\t\tPrint Blender version and exit\n");
 	printf ("  --\t\tEnds option processing.  Following arguments are \n");
 	printf ("    \t\t   passed unchanged.  Access via Python's sys.argv\n");
+	printf ("\nEnironment Variables:\n");
+	printf ("  $HOME\t\t\tStore files such as .blender/ .B.blend .Bfs .Blog here.\n");
+#ifdef WIN32
+	printf ("  $TEMP\t\tStore temporary files here.\n");
+#else
+	printf ("  $TMP or $TMPDIR\tStore temporary files here.\n");
+	printf ("  $SDL_AUDIODRIVER\tLibSDL audio driver - alsa, esd, alsa, dma.\n");
+	printf ("  $BF_TIFF_LIB\t\tUse an alternative libtiff.so for loading tiff image files.\n");
+#endif
+	printf ("  $IMAGEEDITOR\t\tImage editor executable, launch with the IKey from the file selector.\n");
+	printf ("  $WINEDITOR\t\tText editor executable, launch with the EKey from the file selector.\n");
+	printf ("  $PYTHONHOME\t\tPath to the python directory, eg. /usr/lib/python.\n");
 	printf ("\nNote: Arguments must be separated by white space. eg:\n");
 	printf ("    \"blender -ba test.blend\"\n");
 	printf ("  ...will ignore the 'a'\n");
