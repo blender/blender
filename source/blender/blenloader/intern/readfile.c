@@ -7367,6 +7367,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 				/* create new particle system */
 				psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
+				psys->pointcache = BKE_ptcache_add();
 
 				part = psys->part = psys_new_settings("PSys", main);
 				
