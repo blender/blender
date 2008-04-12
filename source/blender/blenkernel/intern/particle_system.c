@@ -1116,7 +1116,8 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 	if(tot==0){
 		no_distr=1;
 		if(children){
-			fprintf(stderr,"Particle child distribution error: Nothing to emit from!\n");
+			if(G.f & G_DEBUG)
+				fprintf(stderr,"Particle child distribution error: Nothing to emit from!\n");
 			for(p=0,cpa=psys->child; p<totpart; p++,cpa++){
 				cpa->fuv[0]=cpa->fuv[1]=cpa->fuv[2]=cpa->fuv[3]= 0.0;
 				cpa->foffset= 0.0f;
@@ -1126,7 +1127,8 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 			}
 		}
 		else {
-			fprintf(stderr,"Particle distribution error: Nothing to emit from!\n");
+			if(G.f & G_DEBUG)
+				fprintf(stderr,"Particle distribution error: Nothing to emit from!\n");
 			for(p=0,pa=psys->particles; p<totpart; p++,pa++){
 				pa->fuv[0]=pa->fuv[1]=pa->fuv[2]= pa->fuv[3]= 0.0;
 				pa->foffset= 0.0f;
@@ -1737,9 +1739,8 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 		/* get possible textural influence */
 		psys_get_texture(ob,give_current_material(ob,part->omat),psmd,psys,pa,&ptex,MAP_PA_IVEL);
 
-		if(vg_vel){
+		if(vg_vel && pa->num != -1)
 			ptex.ivel*=psys_interpolate_value_from_verts(psmd->dm,part->from,pa->num,pa->fuv,vg_vel);
-		}
 
 		/* particles live in global space so	*/
 		/* let's convert:						*/

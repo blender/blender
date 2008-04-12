@@ -1010,7 +1010,7 @@ void psys_interpolate_mcol(MCol *mcol, int quad, float *w, MCol *mc)
 
 float psys_interpolate_value_from_verts(DerivedMesh *dm, short from, int index, float *fw, float *values)
 {
-	if(values==0)
+	if(values==0 || index==-1)
 		return 0.0;
 
 	switch(from){
