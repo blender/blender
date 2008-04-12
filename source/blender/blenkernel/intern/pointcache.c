@@ -187,14 +187,17 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 		if (i > 6)
 			file[i-6] = '\0';
 		
-		sprintf(filename, "//"PTCACHE_PATH"%s/", file); /* add blend file name to pointcache dir */
+		sprintf(filename, "//"PTCACHE_PATH"%s", file); /* add blend file name to pointcache dir */
+		BLI_add_slash(filename);
 		BLI_convertstringcode(filename, blendfilename, 0);
 		return strlen(filename);
 	}
 	
 	/* use the temp path. this is weak but better then not using point cache at all */
 	/* btempdir is assumed to exist and ALWAYS has a trailing slash */
-	return sprintf(filename, "%s"PTCACHE_PATH"%d/", btempdir, abs(getpid()));
+	sprintf(filename, "%s"PTCACHE_PATH"%d", btempdir, abs(getpid()));
+	BLI_add_slash(filename);
+	return strlen(filename);
 }
 
 static int BKE_ptcache_id_filename(PTCacheID *pid, char *filename, int cfra, short do_path, short do_ext)
@@ -497,13 +500,12 @@ void BKE_ptcache_remove(void)
 	
 	ptcache_path(NULL, path);
 
-	if (BLI_exists(path)) {
-	/* TODO, Check with win32, probably needs last slash removed */
+	if (BLI_exist(path)) {
 		/* The pointcache dir exists? - remove all pointcache */
 
 		DIR *dir; 
 		struct dirent *de;
-		
+
 		dir = opendir(path);
 		if (dir==NULL)
 			return;
@@ -518,6 +520,8 @@ void BKE_ptcache_remove(void)
 				rmdir = 0; /* unknown file, dont remove the dir */
 			}
 		}
+
+		closedir(dir);
 	} else { 
 		rmdir = 0; /* path dosnt exist  */
 	}
