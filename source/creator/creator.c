@@ -185,6 +185,10 @@ static void print_help(void)
 	printf ("    -o <path>\tSet the render path and file name.\n");
 	printf ("      Use // at the start of the path to\n");
 	printf ("        render relative to the blend file.\n");
+	printf ("      The # characters are replaced by the frame number, and used to define zero padding.\n");
+	printf ("        ani_##_test.png becomes ani_01_test.png\n");
+	printf ("        test-######.png becomes test-000001.png\n");
+	printf ("        When the filename has no #, The suffix #### is added to the filename\n");
 	printf ("      The frame number will be added at the end of the filename.\n");
 	printf ("      eg: blender -b foobar.blend -o //render_ -F PNG -x 1 -a\n");
 	printf ("\nFormat options:\n");
