@@ -1018,7 +1018,7 @@ static void end_test_break_callback()
 }
 
 #else
-/* all other OS's support signal(SIGVTALRM) */
+/* all other OS's support signal(SIGVTALRM/SIGALRM) */
 
 /* XXX The ESC problem: some unix users reported that ESC doesn't cancel
  * renders anymore. Most complaints came from linux, but it's not
@@ -1029,7 +1029,10 @@ static void end_test_break_callback()
  * fixes the problem, at least while we investigate better.
  *
  * ITIMER_REAL (SIGALRM): timer that counts real system time
- * ITIMER_VIRTUAL (SIGVTALRM): only counts time spent in its owner process */
+ * ITIMER_VIRTUAL (SIGVTALRM): only counts time spent in its owner process
+ *
+ * Addendum: now SIGVTALRM is used on Solaris again, because SIGALRM can
+ * kill the process there! */
 
 /* POSIX: this function goes in the signal() callback */
 static void interruptESC(int sig)
@@ -1038,7 +1041,11 @@ static void interruptESC(int sig)
 	if(G.afbreek==0) G.afbreek= 2;	/* code for read queue */
 
 	/* call again, timer was reset */
+#ifdef __sun
+	signal(SIGVTALRM, interruptESC);
+#else
 	signal(SIGALRM, interruptESC);
+#endif
 }
 
 /* POSIX: initialize timer and signal */
@@ -1053,8 +1060,13 @@ static void init_test_break_callback()
 	tmevalue.it_value.tv_sec = 0;
 	tmevalue.it_value.tv_usec = 10000;
 
+#ifdef __sun
+	signal(SIGVTALRM, interruptESC);
+	setitimer(ITIMER_VIRTUAL, &tmevalue, 0);
+#else
 	signal(SIGALRM, interruptESC);
 	setitimer(ITIMER_REAL, &tmevalue, 0);
+#endif
 }
 
 /* POSIX: stop timer and callback */
@@ -1064,9 +1076,13 @@ static void end_test_break_callback()
 
 	memset(&tmevalue, 0, sizeof(struct itimerval));
 
+#ifdef __sun
+	setitimer(ITIMER_VIRTUAL, &tmevalue, 0);
+	signal(SIGVTALRM, SIG_IGN);
+#else
 	setitimer(ITIMER_REAL, &tmevalue, 0);
 	signal(SIGALRM, SIG_IGN);
-
+#endif
 }
 
 
