@@ -358,7 +358,7 @@ static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, float pixelx, short d
 	float x1, x2, y1, y2;
 	float handsize;
 	float minhandle, maxhandle;
-	char str[120];
+	char str[32];
 	unsigned int whichsel=0;
 	View2D *v2d;
 	
@@ -429,9 +429,9 @@ static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, float pixelx, short d
 			glRasterPos3f(rx1,  y1-0.15, 0.0);
 		} else {
 			sprintf(str, "%d", seq->enddisp - 1);
-			glRasterPos3f((x2-BMF_GetStringWidth(G.font, str)*pixelx),  y2+0.05, 0.0);
+			glRasterPos3f((x2-BMF_GetStringWidth(G.fonts, str)*pixelx),  y2+0.05, 0.0);
 		}
-		BMF_DrawString(G.font, str);
+		BMF_DrawString(G.fonts, str);
 	}	
 }
 

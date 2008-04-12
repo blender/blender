@@ -1753,7 +1753,7 @@ void adduplicateflag(int flag)
 			
 			newfa= addfacelist(v1, v2, v3, v4, efa, efa); 
 			
-			if (act_efa==act_efa) {
+			if (efa==act_efa) {
 				EM_set_actFace(newfa);
 			}
 			
