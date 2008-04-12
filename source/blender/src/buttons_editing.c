@@ -4001,15 +4001,26 @@ static void attach_bone_to_parent_cb(void *bonev, void *arg2_unused)
 {
 	EditBone *ebone= bonev;
 	
-	if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
-		/* Attach this bone to its parent */
-		VECCOPY(ebone->head, ebone->parent->tail);
+	if (ebone->parent) {
+		if(ebone->flag & BONE_CONNECTED) {
+			/* Attach this bone to its parent */
+			VECCOPY(ebone->head, ebone->parent->tail);
+
+			if(ebone->flag & BONE_ROOTSEL)
+				ebone->parent->flag |= BONE_TIPSEL;
+		}
+		else if(!(ebone->parent->flag & BONE_ROOTSEL)) {
+			ebone->parent->flag &= ~BONE_TIPSEL;
+		}
 	}
 }
 
 static void parnr_to_editbone(EditBone *bone)
 {
 	if (bone->parNr == -1){
+		if(bone->parent && !(bone->parent->flag & BONE_ROOTSEL))
+			bone->parent->flag &= ~BONE_TIPSEL;
+
 		bone->parent = NULL;
 		bone->flag &= ~BONE_CONNECTED;
 	}
