@@ -1798,7 +1798,7 @@ static char* ffmpeg_format_pup(void)
        }
        return string;
 #endif
-       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
+       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
        sprintf(string, formatstring,
                "MPEG-1", FFMPEG_MPEG1,
                "MPEG-2", FFMPEG_MPEG2,
@@ -1807,7 +1807,8 @@ static char* ffmpeg_format_pup(void)
                "Quicktime", FFMPEG_MOV,
                "DV", FFMPEG_DV,
 	       "H264", FFMPEG_H264,
-	       "XVid", FFMPEG_XVID);
+	       "XVid", FFMPEG_XVID,
+	       "FLV", FFMPEG_FLV);
        return string;
 }
 
@@ -1830,7 +1831,7 @@ static char* ffmpeg_preset_pup(void)
 static char* ffmpeg_codec_pup(void) {
        static char string[2048];
        char formatstring[2048];
-       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
+       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
        sprintf(string, formatstring,
                "MPEG1", CODEC_ID_MPEG1VIDEO,
                "MPEG2", CODEC_ID_MPEG2VIDEO,
@@ -1838,7 +1839,8 @@ static char* ffmpeg_codec_pup(void) {
                "HuffYUV", CODEC_ID_HUFFYUV,
 	       "DV", CODEC_ID_DVVIDEO,
                "H264", CODEC_ID_H264,
-	       "XVid", CODEC_ID_XVID);
+	       "XVid", CODEC_ID_XVID,
+	       "FlashVideo1", CODEC_ID_FLV1 );
        return string;
 
 }
