@@ -716,7 +716,7 @@ void mouse_select_sima(void)
 			actface= 1;
 			sticky= 0;
 		} else {
-			actface= G.sima->flag & SI_SELACTFACE;
+			actface= G.scene->selectmode & SCE_SELECT_FACE;
 			sticky= 2;
 		}
 	} else {

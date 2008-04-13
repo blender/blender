@@ -5297,18 +5297,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					borderselect_sima(UV_SELECT_ALL);
 				break;
 			case CKEY:
-				if (G.sima->flag & SI_SYNC_UVSEL) {
-					/* operate on the editmesh */
-					if (G.qual==0) {
-						if (G.scene->selectmode != SCE_SELECT_FACE) {
-							G.sima->flag ^= SI_SELACTFACE;
-							scrarea_queue_winredraw(curarea);
-						}
-					} else {
-						error("Sync selection to Edit Mesh disables UV select options");
-					}
-				} else {
-					/* normal operaton */
+				if ((G.sima->flag & SI_SYNC_UVSEL)==0) {
 					if(G.qual==LR_CTRLKEY) {
 						G.sima->sticky = SI_STICKY_VERTEX;
 						scrarea_do_headdraw(curarea);
@@ -5321,6 +5310,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					} else {
 						G.sima->flag ^= SI_SELACTFACE;
 						scrarea_queue_winredraw(curarea);
+						scrarea_queue_headredraw(curarea); /* for the header face buttons */
 					}
 				}
 				break;

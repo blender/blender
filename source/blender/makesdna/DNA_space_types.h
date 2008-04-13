@@ -483,10 +483,10 @@ typedef struct SpaceImaSel {
 #define SI_SHOW			1
 
 /* SpaceImage->dt_uv */
-#define SI_UVDT_DASH	0
-#define SI_UVDT_BLACK	1
-#define SI_UVDT_WHITE	2
-#define SI_UVDT_OUTLINE	3
+#define SI_UVDT_OUTLINE	0
+#define SI_UVDT_DASH	1
+#define SI_UVDT_BLACK	2
+#define SI_UVDT_WHITE	3
 
 /* SpaceImage->dt_uvstretch */
 #define SI_UVDT_STRETCH_ANGLE	0

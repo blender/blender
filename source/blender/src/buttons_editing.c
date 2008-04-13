@@ -5048,7 +5048,7 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, G_DRAWFACES, REDRAWVIEW3D_IMAGE, "Draw Faces",		955,88,150,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades in the 3d view and UV editor");
-	uiDefButBitI(block, TOG, G_DRAWEDGES, REDRAWVIEW3D, "Draw Edges", 955, 66,150,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
+	uiDefButBitI(block, TOG, G_DRAWEDGES, REDRAWVIEW3D_IMAGE, "Draw Edges", 955, 66,150,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights in the 3d view and UV editor");
 	uiDefButBitI(block, TOG, G_DRAWCREASES, REDRAWVIEW3D, "Draw Creases", 955, 42,150,19, &G.f, 0, 0, 0, 0, "Displays creases created for subsurf weighting");
 	uiDefButBitI(block, TOG, G_DRAWBWEIGHTS, REDRAWVIEW3D, "Draw Bevel Weights", 955, 20,150,19, &G.f, 0, 0, 0, 0, "Displays weights created for the Bevel modifier");
 	uiDefButBitI(block, TOG, G_DRAWSEAMS, REDRAWVIEW3D, "Draw Seams", 955, -2,150,19, &G.f, 0, 0, 0, 0, "Displays UV unwrapping seams");
