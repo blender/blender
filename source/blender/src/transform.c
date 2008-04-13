@@ -3366,6 +3366,8 @@ void initBevel(TransInfo *t)
 int handleEventBevel(TransInfo *t, unsigned short event, short val)
 {
 	if (val) {
+		if(!G.editBMesh) return 0;
+
 		switch (event) {
 		case MIDDLEMOUSE:
 			G.editBMesh->options ^= BME_BEVEL_VERT;
