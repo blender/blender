@@ -887,7 +887,7 @@ void draw_uvs_sima(void)
 		}
 		
 		glLineWidth(1);
-		cpack(0xFFFFFF);
+		cpack(0xA8A8A8);
 		for (efa= em->faces.first; efa; efa= efa->next) {
 //			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 //			if (simaFaceDraw_Check(efa, tface)) {

@@ -1,5 +1,5 @@
 /* 
- * $Id: MTex.c 10279 2007-03-16 11:38:02Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -145,6 +145,9 @@ static PyGetSetDef MTex_getseters[] = {
 	{ "correctNor", (getter) MTex_getFlag, (setter) MTex_setFlag,
 		"Correct normal mapping for Texture space and Object space",
 		(void*) MTEX_VIEWSPACE },
+	{ "fromDupli", (getter) MTex_getFlag, (setter) MTex_setFlag,
+		"If object is duplicated by vertices, faces or particles, inherit texture coordinate from parent object",
+		(void*) MTEX_DUPLI_MAPTO },
 	{ "xproj", (getter) MTex_getProjX, (setter) MTex_setProjX,
 		"Projection of X axis to Texture space", NULL },
 	{ "yproj", (getter) MTex_getProjY, (setter) MTex_setProjY,

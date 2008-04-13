@@ -848,7 +848,10 @@ void mouse_select_sima(void)
 								simaUVSel_Set(efa, tf, 3);
 					}
 				}
-				EM_set_actFace(nearestefa);
+				
+				if (actface)
+					EM_set_actFace(nearestefa);
+				
 				flush = 1;
 			}			
 		}

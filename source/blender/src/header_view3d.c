@@ -3884,9 +3884,9 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 
 static void do_view3d_scripts_armaturemenu(void *arg, int event)
 {
-	BPY_menu_do_python(PYMENU_SCRIPTTEMPLATE, event);
+	BPY_menu_do_python(PYMENU_ARMATURE, event);
 	
-	allqueue(REDRAWIMAGE, 0);
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 static uiBlock *view3d_scripts_armaturemenu(void *args_unused)
