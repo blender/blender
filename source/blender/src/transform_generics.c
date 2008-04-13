@@ -621,6 +621,7 @@ void initTrans (TransInfo *t)
 	t->con.imval[1] = t->imval[1];
 
 	t->transform		= NULL;
+	t->handleEvent		= NULL;
 
 	t->total			=
 		t->num.idx		=
