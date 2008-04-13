@@ -17,6 +17,7 @@ if env['WITH_BF_VERSE']:
 
 if env['WITH_BF_FFMPEG'] and env['BF_FFMPEG_LIB'] == '':
     SConscript(['x264/SConscript'])
+    SConscript(['xvidcore/SConscript'])
     SConscript(['ffmpeg/SConscript'])
 
 if env['OURPLATFORM'] == 'linux2':
