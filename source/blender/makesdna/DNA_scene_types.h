@@ -496,7 +496,8 @@ typedef struct SculptData
 
 	/* Added to store if the 'Rake' setting has been set */
 	char rake;
-	char pad[3];
+	char axislock;
+	char pad[2];
 } SculptData;
 
 typedef struct Scene {
@@ -771,6 +772,10 @@ typedef struct Scene {
 #define SYMM_X 1
 #define SYMM_Y 2
 #define SYMM_Z 4
+
+#define AXISLOCK_X 1
+#define AXISLOCK_Y 2
+#define AXISLOCK_Z 4
 
 /* toolsettings->imagepaint_flag */
 #define IMAGEPAINT_DRAWING				1

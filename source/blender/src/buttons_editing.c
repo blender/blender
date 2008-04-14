@@ -5528,11 +5528,24 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	uiDefBut( block,LABEL,B_NOP,"Symmetry",cx,cy,90,19,NULL,0,0,0,0,"");
 	cy-= 20;
 	uiBlockBeginAlign(block);
-	uiDefButBitC(block, TOG, SYMM_X, 0, "X", cx,cy,89,19, &sd->symm, 0,0,0,0, "Mirror brush across X axis");
-	uiDefButBitC(block, TOG, SYMM_Y, 0, "Y", cx+89,cy,89,19, &sd->symm, 0,0,0,0, "Mirror brush across Y axis");
-	uiDefButBitC(block, TOG, SYMM_Z, 0, "Z", cx+178,cy,90,19, &sd->symm, 0,0,0,0, "Mirror brush across Z axis");
+	uiDefButBitC(block, TOG, SYMM_X, 0, "X", cx,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across X axis");
+	uiDefButBitC(block, TOG, SYMM_Y, 0, "Y", cx+40,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across Y axis");
+	uiDefButBitC(block, TOG, SYMM_Z, 0, "Z", cx+80,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across Z axis");
 	uiBlockEndAlign(block);
 
+	
+	cy+= 20;
+	uiBlockBeginAlign(block);
+	uiDefBut( block,LABEL,B_NOP,"LockAxis",cx+140,cy,90,19,NULL,0,0,0,0,"");
+	cy-= 20;
+	uiBlockBeginAlign(block);
+	uiDefButBitC(block, TOG, AXISLOCK_X, 0, "X", cx+140,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain X axis");
+	uiDefButBitC(block, TOG, AXISLOCK_Y, 0, "Y", cx+180,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain Y axis");
+	uiDefButBitC(block, TOG, AXISLOCK_Z, 0, "Z", cx+220,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain Z axis");
+	uiBlockEndAlign(block);
+	
+	
+	
 	cx+= 210;
 }
 
