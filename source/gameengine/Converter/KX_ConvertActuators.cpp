@@ -684,14 +684,10 @@ void BL_ConvertActuators(char* maggiename,
 						break;
 					}
 				case ACT_SCENE_CAMERA:
+					mode = KX_SceneActuator::KX_SCENE_SET_CAMERA;
 					if (sceneact->camera)
 					{
-						mode = KX_SceneActuator::KX_SCENE_SET_CAMERA;
 						cam = (KX_Camera*) converter->FindGameObject(sceneact->camera);
-					}
-					else
-					{
-						// TODO:warn user
 					}
 					break;
 				case ACT_SCENE_RESTART:

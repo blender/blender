@@ -105,6 +105,15 @@ bool KX_SceneActuator::Update()
 		{
 			m_scene->SetActiveCamera(m_camera);
 		}
+		else
+		{
+			// if no camera is set and the parent object is a camera, use it as the camera
+			SCA_IObject* parent = GetParent();
+			if (parent->isA(&KX_Camera::Type))
+			{
+				m_scene->SetActiveCamera((KX_Camera*)parent);
+			}
+		}
 		break;
 	default:
 		break;

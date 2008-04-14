@@ -69,7 +69,22 @@ KX_Camera::~KX_Camera()
 }	
 
 
+CValue*	KX_Camera::GetReplica()
+{
+	KX_Camera* replica = new KX_Camera(*this);
 	
+	// this will copy properties and so on...
+	CValue::AddDataToReplica(replica);
+	ProcessReplica(replica);
+	
+	return replica;
+}
+	
+void KX_Camera::ProcessReplica(KX_Camera* replica)
+{
+	KX_GameObject::ProcessReplica(replica);
+}
+
 MT_Transform KX_Camera::GetWorldToCamera() const
 { 
 	MT_Transform camtrans;

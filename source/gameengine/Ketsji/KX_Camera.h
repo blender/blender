@@ -134,6 +134,24 @@ public:
 	KX_Camera(void* sgReplicationInfo,SG_Callbacks callbacks,const RAS_CameraData& camdata, bool frustum_culling = true, PyTypeObject *T = &Type);
 	virtual ~KX_Camera();
 	
+	/** 
+	 * Inherited from CValue -- return a new copy of this
+	 * instance allocated on the heap. Ownership of the new 
+	 * object belongs with the caller.
+	 */
+	virtual	CValue*				
+	GetReplica(
+	);
+	
+	/**
+	 * Inherited from CValue -- Makes sure any internal 
+	 * data owned by this class is deep copied. Called internally
+	 */
+	virtual	void				
+	ProcessReplica(
+		KX_Camera* replica
+	);
+
 	MT_Transform		GetWorldToCamera() const;
 	MT_Transform		GetCameraToWorld() const;
 
