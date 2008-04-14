@@ -2003,14 +2003,16 @@ static void render_panel_output(void)
 	uiDefIconBut(block, BUT, B_FS_PIC, ICON_FILESEL,	10, 190, 20, 20, 0, 0, 0, 0, 0, "Select the directory/name for saving animations");
 	uiDefBut(block, TEX,0,"",							31, 190, 279, 20,G.scene->r.pic, 0.0,79.0, 0, 0, "Directory/name to save animations, # characters defines the position and length of frame numbers");
 	uiDefIconBut(block, BUT,B_FS_BACKBUF, ICON_FILESEL, 10, 168, 20, 20, 0, 0, 0, 0, 0, "Select the directory/name for a Backbuf image");
-	uiDefBut(block, TEX,0,"",							31, 168, 279, 20,G.scene->r.backbuf, 0.0,79.0, 0, 0, "Image to use as background for rendering");
+	uiDefBut(block, TEX,0,"",							31, 168, 259, 20,G.scene->r.backbuf, 0.0,79.0, 0, 0, "Image to use as background for rendering");
+	uiDefIconButBitS(block, ICONTOG, R_BACKBUF, B_NOP, ICON_CHECKBOX_HLT-1,	290, 168, 20, 20, &G.scene->r.bufflag, 0.0, 0.0, 0, 0, "Enable/Disable use of Backbuf image");
 	uiBlockEndAlign(block);
 	
+	uiDefButBitI(block, TOG, R_EXTENSION, B_NOP, "Extensions", 10, 142, 100, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds filetype extensions to the filename when rendering animations");
+	
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_TOUCH, B_NOP, "Touch",	10, 142, 50, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Create an empty file before rendering each frame, remove if cancelled (and empty)");
-	uiDefButBitI(block, TOG, R_NO_OVERWRITE, B_NOP, "No Overwrite", 60, 142, 90, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Skip rendering frames when the file exists (image output only)");
+	uiDefButBitI(block, TOG, R_TOUCH, B_NOP, "Touch",	170, 142, 50, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Create an empty file before rendering each frame, remove if cancelled (and empty)");
+	uiDefButBitI(block, TOG, R_NO_OVERWRITE, B_NOP, "No Overwrite", 220, 142, 90, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Skip rendering frames when the file exists (image output only)");
 	uiBlockEndAlign(block);
-	uiDefButBitS(block, TOG, R_BACKBUF, B_NOP,"Backbuf",	160, 142, 80, 20, &G.scene->r.bufflag, 0, 0, 0, 0, "Enable/Disable use of Backbuf image");	
 	
 	/* SET BUTTON */
 	uiBlockBeginAlign(block);
@@ -2025,6 +2027,8 @@ static void render_panel_output(void)
 		uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, B_NOP, "",	31, 114, 100, 20, &(G.scene->set), "Name of the Set");
 		uiClearButLock();
 		uiDefIconBut(block, BUT, B_CLEARSET, ICON_X, 		132, 114, 20, 20, 0, 0, 0, 0, 0, "Remove Set link");
+	} else {
+		uiDefBut(block, LABEL, 0, "No Set Scene", 31, 114, 200, 20, 0, 0, 0, 0, 0, "");
 	}
 	uiBlockEndAlign(block);
 
@@ -2054,8 +2058,6 @@ static void render_panel_output(void)
 	
 	uiDefButS(block, MENU, B_REDR, "Render Display %t|Render Window %x1|Image Editor %x0|Full Screen %x2",	
 					72, 10, 120, 19, &G.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output display");
-
-	uiDefButBitI(block, TOG, R_EXTENSION, B_NOP, "Extensions", 205, 10, 105, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds filetype extensions to the filename when rendering animations");
 	
 	/* Dither control */
 	uiDefButF(block, NUM,B_DIFF, "Dither:",         10,89,100,19, &G.scene->r.dither_intensity, 0.0, 2.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
@@ -2067,8 +2069,8 @@ static void render_panel_output(void)
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_NO_TEX, B_NOP, "Disable Tex", 115, 63, 70, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Disables Textures for render");
-	uiDefButBitI(block, TOG, R_FREE_IMAGE, B_NOP, "Free Tex Images", 205, 63, 100, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Frees all Images used by Textures after each render");
+	uiDefButBitI(block, TOG, R_NO_TEX, B_NOP, "Disable Tex", 115, 63, 75, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Disables Textures for render");
+	uiDefButBitI(block, TOG, R_FREE_IMAGE, B_NOP, "Free Tex Images", 210, 63, 100, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Frees all Images used by Textures after each render");
 	uiBlockEndAlign(block);
 }
 
