@@ -3843,7 +3843,9 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 
 	for(sc= newmain->screen.first; sc; sc= sc->id.next) {
 		
-		sc->scene= curscene;
+		sc->scene= restore_pointer_by_name(newmain, (ID *)sc->scene, 1);
+		if(sc->scene==NULL)
+			sc->scene= curscene;
 
 		sa= sc->areabase.first;
 		while(sa) {
