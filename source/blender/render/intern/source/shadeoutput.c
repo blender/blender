@@ -429,10 +429,6 @@ static float area_lamp_energy(float (*area)[3], float *co, float *vn)
 	double cross[4][3];	/* cross products of this */
 	double rad[4];		/* angles between vecs */
 
-	/* extra test for dot */
-	if ( INPR(co, vn) <= 0.0f)
-		return 0.0f;
-	
 	VECSUB(vec[0], co, area[0]);
 	VECSUB(vec[1], co, area[1]);
 	VECSUB(vec[2], co, area[2]);
