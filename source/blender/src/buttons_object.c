@@ -4909,6 +4909,14 @@ static void object_panel_particle_system(Object *ob)
 
 	}
 
+	md= (ModifierData*)psys_get_modifier(ob, psys);
+	if(md) {
+		uiBlockBeginAlign(block);
+		uiDefIconButBitI(block, TOG, eModifierMode_Render, B_PART_RECALC, ICON_SCENE, butx+butw-40, buty, 20, 20,&md->mode, 0, 0, 1, 0, "Enable particle system during rendering");
+		but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_PART_RECALC, VICON_VIEW3D, butx+butw-20, buty, 20, 20,&md->mode, 0, 0, 1, 0, "Enable particle system during interactive display");
+		uiBlockEndAlign(block);
+	}
+
 	if(psys->flag & PSYS_EDITED) {
 		lockmessage= "Hair is edited!";
 		lock= 1;
@@ -4922,14 +4930,6 @@ static void object_panel_particle_system(Object *ob)
 		uiSetButLock(1, lockmessage);
 
 	uiDefButS(block, MENU, B_PARTTYPE, "Type%t|Hair%x2|Reactor%x1|Emitter%x0", butx,buty,butw-45,buth, &part->type, 14.0, 0.0, 0, 0, "Type of particle system");
-
-	md= (ModifierData*)psys_get_modifier(ob, psys);
-	if(md) {
-		uiBlockBeginAlign(block);
-		uiDefIconButBitI(block, TOG, eModifierMode_Render, B_PART_RECALC, ICON_SCENE, butx+butw-40, buty, 20, 20,&md->mode, 0, 0, 1, 0, "Enable particle system during rendering");
-		but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_PART_RECALC, VICON_VIEW3D, butx+butw-20, buty, 20, 20,&md->mode, 0, 0, 1, 0, "Enable particle system during interactive display");
-		uiBlockEndAlign(block);
-	}
 
 	buty-=5;
 	uiDefBut(block, LABEL, 0, "Basic:",					butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
