@@ -3843,14 +3843,15 @@ static void material_panel_shading(Material *ma)
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		
 		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, MA_HALO_FLARE, B_MATPRV, "Flare",245,142,65,28, &(ma->mode), 0, 0, 0, 0, "Renders halo as a lensflare");
-		uiDefButBitI(block, TOG, MA_HALO_RINGS, B_MATPRV, "Rings",		245,123,65, 18, &(ma->mode), 0, 0, 0, 0, "Renders rings over halo");
-		uiDefButBitI(block, TOG, MA_HALO_LINES, B_MATPRV, "Lines",		245,104,65, 18, &(ma->mode), 0, 0, 0, 0, "Renders star shaped lines over halo");
-		uiDefButBitI(block, TOG, MA_STAR, B_MATPRV, "Star",		245,85,65, 18, &(ma->mode), 0, 0, 0, 0, "Renders halo as a star");
-		uiDefButBitI(block, TOG, MA_HALOTEX, B_MATPRV, "HaloTex",	245,66,65, 18, &(ma->mode), 0, 0, 0, 0, "Gives halo a texture");
-		uiDefButBitI(block, TOG, MA_HALOPUNO, B_MATPRV, "HaloPuno",	245,47,65, 18, &(ma->mode), 0, 0, 0, 0, "Uses the vertex normal to specify the dimension of the halo");
-		uiDefButBitI(block, TOG, MA_HALO_XALPHA, B_MATPRV, "X Alpha",	245,28,65, 18, &(ma->mode), 0, 0, 0, 0, "Uses extreme alpha");
-		uiDefButBitI(block, TOG, MA_HALO_SHADE, B_MATPRV, "Shaded",	245,9,65, 18, &(ma->mode), 0, 0, 0, 0, "Lets halo receive light and shadows");
+		uiDefButBitI(block, TOG, MA_HALO_FLARE,  B_MATPRV, "Flare",    245,161,65,28, &(ma->mode), 0, 0, 0, 0, "Renders halo as a lensflare");
+		uiDefButBitI(block, TOG, MA_HALO_RINGS,  B_MATPRV, "Rings",	   245,142,65,18, &(ma->mode), 0, 0, 0, 0, "Renders rings over halo");
+		uiDefButBitI(block, TOG, MA_HALO_LINES,  B_MATPRV, "Lines",	   245,123,65,18, &(ma->mode), 0, 0, 0, 0, "Renders star shaped lines over halo");
+		uiDefButBitI(block, TOG, MA_STAR,        B_MATPRV, "Star",	   245,104,65, 18, &(ma->mode), 0, 0, 0, 0, "Renders halo as a star");
+		uiDefButBitI(block, TOG, MA_HALOTEX,     B_MATPRV, "HaloTex",  245,85,65, 18, &(ma->mode), 0, 0, 0, 0, "Gives halo a texture");
+		uiDefButBitI(block, TOG, MA_HALOPUNO,    B_MATPRV, "HaloPuno", 245,66,65, 18, &(ma->mode), 0, 0, 0, 0, "Uses the vertex normal to specify the dimension of the halo");
+		uiDefButBitI(block, TOG, MA_HALO_XALPHA, B_MATPRV, "X Alpha",  245,47,65, 18, &(ma->mode), 0, 0, 0, 0, "Uses extreme alpha");
+		uiDefButBitI(block, TOG, MA_HALO_SHADE,  B_MATPRV, "Shaded",   245,28,65,  18, &(ma->mode), 0, 0, 0, 0, "Lets halo receive light and shadows");
+		uiDefButBitI(block, TOG, MA_HALO_SOFT,   B_MATPRV, "Soft",	   245,9,65,  18, &(ma->mode), 0, 0, 0, 0, "Softens the halo");
 		uiBlockEndAlign(block);
 	}
 	else {

@@ -165,9 +165,11 @@ static int calchalo_z(HaloRen *har, int zz)
 	return zz;
 }
 
+
+
 static void halo_pixelstruct(HaloRen *har, RenderLayer **rlpp, int totsample, int od, float dist, float xn, float yn, PixStr *ps)
 {
-	float col[4], accol[4];
+	float col[4], accol[4], fac;
 	int amount, amountm, zz, flarec, sample, fullsample, mask=0;
 	
 	fullsample= (totsample > 1);
@@ -180,23 +182,22 @@ static void halo_pixelstruct(HaloRen *har, RenderLayer **rlpp, int totsample, in
 		amount+= amountm;
 		
 		zz= calchalo_z(har, ps->z);
-		if(zz> har->zs) {
-			float fac;
-			
-			shadeHaloFloat(har, col, zz, dist, xn, yn, flarec);
-			flarec= 0;
+		if((zz> har->zs) || (har->mat->mode & MA_HALO_SOFT)) {
+			if(shadeHaloFloat(har, col, zz, dist, xn, yn, flarec)) {
+				flarec= 0;
 
-			if(fullsample) {
-				for(sample=0; sample<totsample; sample++)
-					if(ps->mask & (1 << sample))
-						addalphaAddfacFloat(rlpp[sample]->rectf + od*4, col, har->add);
-			}
-			else {
-				fac= ((float)amountm)/(float)R.osa;
-				accol[0]+= fac*col[0];
-				accol[1]+= fac*col[1];
-				accol[2]+= fac*col[2];
-				accol[3]+= fac*col[3];
+				if(fullsample) {
+					for(sample=0; sample<totsample; sample++)
+						if(ps->mask & (1 << sample))
+							addalphaAddfacFloat(rlpp[sample]->rectf + od*4, col, har->add);
+				}
+				else {
+					fac= ((float)amountm)/(float)R.osa;
+					accol[0]+= fac*col[0];
+					accol[1]+= fac*col[1];
+					accol[2]+= fac*col[2];
+					accol[3]+= fac*col[3];
+				}
 			}
 		}
 		
@@ -207,16 +208,14 @@ static void halo_pixelstruct(HaloRen *har, RenderLayer **rlpp, int totsample, in
 	/* now do the sky sub-pixels */
 	amount= R.osa-amount;
 	if(amount) {
-		float fac;
-
-		shadeHaloFloat(har, col, 0x7FFFFF, dist, xn, yn, flarec);
-
-		if(!fullsample) {
-			fac= ((float)amount)/(float)R.osa;
-			accol[0]+= fac*col[0];
-			accol[1]+= fac*col[1];
-			accol[2]+= fac*col[2];
-			accol[3]+= fac*col[3];
+		if(shadeHaloFloat(har, col, 0x7FFFFF, dist, xn, yn, flarec)) {
+			if(!fullsample) {
+				fac= ((float)amount)/(float)R.osa;
+				accol[0]+= fac*col[0];
+				accol[1]+= fac*col[1];
+				accol[2]+= fac*col[2];
+				accol[3]+= fac*col[3];
+			}
 		}
 	}
 
@@ -301,11 +300,11 @@ static void halo_tile(RenderPart *pa, RenderLayer *rl)
 							}
 							else {
 								zz= calchalo_z(har, *rz);
-								if(zz> har->zs) {
-									shadeHaloFloat(har, col, zz, dist, xn, yn, har->flarec);
-
-									for(sample=0; sample<totsample; sample++)
-										addalphaAddfacFloat(rlpp[sample]->rectf + od*4, col, har->add);
+								if((zz> har->zs) || (har->mat->mode & MA_HALO_SOFT)) {
+									if(shadeHaloFloat(har, col, zz, dist, xn, yn, har->flarec)) {
+										for(sample=0; sample<totsample; sample++)
+											addalphaAddfacFloat(rlpp[sample]->rectf + od*4, col, har->add);
+									}
 								}
 							}
 						}
@@ -1634,8 +1633,8 @@ static void renderhalo_post(RenderResult *rr, float *rectf, HaloRen *har)	/* pos
 					dist= xsq+ysq;
 					if(dist<har->radsq) {
 						
-						shadeHaloFloat(har, colf, 0x7FFFFF, dist, xn, yn, har->flarec);
-						addalphaAddfacFloat(rtf, colf, har->add);
+						if(shadeHaloFloat(har, colf, 0x7FFFFF, dist, xn, yn, har->flarec))
+							addalphaAddfacFloat(rtf, colf, har->add);
 					}
 					rtf+=4;
 				}

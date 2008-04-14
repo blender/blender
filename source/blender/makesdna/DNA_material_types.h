@@ -161,6 +161,7 @@ typedef struct Material {
 #define MA_SHLESS		4
 #define MA_WIRE			8
 #define MA_VERTEXCOL	16
+#define MA_HALO_SOFT	16
 #define MA_HALO			32
 #define MA_ZTRA			64
 #define MA_VERTEXCOLP	128
