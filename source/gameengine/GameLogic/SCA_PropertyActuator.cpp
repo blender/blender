@@ -183,6 +183,14 @@ GetReplica() {
 
 };
 
+void SCA_PropertyActuator::ProcessReplica()
+{
+	// no need to check for self reference like in the constructor:
+	// the replica will always have a different parent
+	if (m_sourceObj)
+		m_sourceObj->AddRef();
+	SCA_IActuator::ProcessReplica();
+}
 
 
 

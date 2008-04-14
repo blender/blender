@@ -77,6 +77,8 @@ public:
 	GetReplica(
 	);
 
+	void ProcessReplica();
+
 	virtual bool 
 	Update();
 
