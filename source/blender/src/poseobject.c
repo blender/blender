@@ -121,7 +121,7 @@ void enter_posemode(void)
 	}
 
 	if (G.obedit) exit_editmode(EM_FREEDATA|EM_WAITCURSOR);
-	G.f &= ~(G_VERTEXPAINT | G_TEXTUREPAINT | G_WEIGHTPAINT);
+	G.f &= ~(G_VERTEXPAINT | G_TEXTUREPAINT | G_WEIGHTPAINT | G_SCULPTMODE);
 }
 
 void set_pose_keys (Object *ob)

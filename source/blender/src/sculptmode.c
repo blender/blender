@@ -422,9 +422,20 @@ void sculpt_axislock(float *co)
 {
 	SculptData *sd = sculpt_data();
 	if (sd->axislock == AXISLOCK_X+AXISLOCK_Y+AXISLOCK_Z) return;
-	if (sd->axislock & AXISLOCK_X) co[0] = 0.0;
-	if (sd->axislock & AXISLOCK_Y) co[1] = 0.0;
-	if (sd->axislock & AXISLOCK_Z) co[2] = 0.0;
+	if (G.vd->twmode == V3D_MANIP_LOCAL) {
+		float mat[3][3], imat[3][3];
+		Mat3CpyMat4(mat, OBACT->obmat);
+		Mat3Inv(imat, mat);
+		Mat3MulVecfl(mat, co);
+		if (sd->axislock & AXISLOCK_X) co[0] = 0.0;
+		if (sd->axislock & AXISLOCK_Y) co[1] = 0.0;
+		if (sd->axislock & AXISLOCK_Z) co[2] = 0.0;		
+		Mat3MulVecfl(imat, co);
+	} else {
+		if (sd->axislock & AXISLOCK_X) co[0] = 0.0;
+		if (sd->axislock & AXISLOCK_Y) co[1] = 0.0;
+		if (sd->axislock & AXISLOCK_Z) co[2] = 0.0;		
+	}
 }
 
 static void add_norm_if(const BrushAction *a, float out[3], float out_flip[3], const short no[3])

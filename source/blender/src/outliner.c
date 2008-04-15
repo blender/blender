@@ -1302,6 +1302,8 @@ static int outliner_open_back(SpaceOops *soops, TreeElement *te)
 	return retval;
 }
 
+/* This is not used anywhere at the moment */
+#if 0
 static void outliner_open_reveal(SpaceOops *soops, ListBase *lb, TreeElement *teFind, int *found)
 {
 	TreeElement *te;
@@ -1324,7 +1326,7 @@ static void outliner_open_reveal(SpaceOops *soops, ListBase *lb, TreeElement *te
 		}
 	}
 }
-
+#endif
 
 void outliner_one_level(struct ScrArea *sa, int add)
 {
@@ -2652,7 +2654,7 @@ static void object_delete_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem
 		if(G.obedit==base->object) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 		
 		if(base==BASACT) {
-			G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT);
+			G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE);
 			setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 		}
 		

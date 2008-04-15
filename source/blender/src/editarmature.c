@@ -1855,7 +1855,7 @@ void add_primitiveArmature(int type)
 	if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_INFO); else return;
 	if (G.vd==NULL) return;
 	
-	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT);
+	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE);
 	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 
 	check_editmode(OB_ARMATURE);
