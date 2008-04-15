@@ -169,7 +169,7 @@ static void curveModifier_updateDepgraph(
 		DagNode *curNode = dag_get_node(forest, cmd->object);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA);
+				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Curve Modifier");
 	}
 }
 
@@ -244,7 +244,7 @@ static void latticeModifier_updateDepgraph(ModifierData *md, DagForest *forest,
 		DagNode *latNode = dag_get_node(forest, lmd->object);
 
 		dag_add_relation(forest, latNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA);
+				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Lattice Modifier");
 	}
 }
 
@@ -644,25 +644,25 @@ static void arrayModifier_updateDepgraph(ModifierData *md, DagForest *forest,
 		DagNode *curNode = dag_get_node(forest, amd->start_cap);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA);
+				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Array Modifier");
 	}
 	if (amd->end_cap) {
 		DagNode *curNode = dag_get_node(forest, amd->end_cap);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA);
+				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Array Modifier");
 	}
 	if (amd->curve_ob) {
 		DagNode *curNode = dag_get_node(forest, amd->curve_ob);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA);
+				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Array Modifier");
 	}
 	if (amd->offset_ob) {
 		DagNode *curNode = dag_get_node(forest, amd->offset_ob);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA);
+				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Array Modifier");
 	}
 }
 
@@ -1298,7 +1298,7 @@ static void mirrorModifier_updateDepgraph(ModifierData *md, DagForest *forest,
 		DagNode *latNode = dag_get_node(forest, mmd->mirror_ob);
 
 		dag_add_relation(forest, latNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA);
+				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Mirror Modifier");
 	}
 }
 
@@ -2842,7 +2842,7 @@ static void displaceModifier_updateDepgraph(
 		DagNode *curNode = dag_get_node(forest, dmd->map_object);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA);
+				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Displace Modifier");
 	}
 }
 
@@ -3164,7 +3164,7 @@ static void uvprojectModifier_updateDepgraph(ModifierData *md,
 			DagNode *curNode = dag_get_node(forest, umd->projectors[i]);
 
 			dag_add_relation(forest, curNode, obNode,
-					 DAG_RL_DATA_DATA | DAG_RL_OB_DATA);
+					 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "UV Project Modifier");
 		}
 	}
 }
@@ -3841,7 +3841,8 @@ static void castModifier_updateDepgraph(
 	if (cmd->object) {
 		DagNode *curNode = dag_get_node(forest, cmd->object);
 
-		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA);
+		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA,
+			"Cast Modifier");
 	}
 }
 
@@ -4427,13 +4428,15 @@ static void waveModifier_updateDepgraph(
 	if(wmd->objectcenter) {
 		DagNode *curNode = dag_get_node(forest, wmd->objectcenter);
 
-		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA);
+		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA,
+			"Wave Modifier");
 	}
 
 	if(wmd->map_object) {
 		DagNode *curNode = dag_get_node(forest, wmd->map_object);
 
-		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA);
+		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA,
+			"Wave Modifer");
 	}
 }
 
@@ -4787,7 +4790,7 @@ static void armatureModifier_updateDepgraph(
 		DagNode *curNode = dag_get_node(forest, amd->object);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA);
+				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Armature Modifier");
 	}
 }
 
@@ -4907,7 +4910,8 @@ static void hookModifier_updateDepgraph(ModifierData *md, DagForest *forest,
 	if (hmd->object) {
 		DagNode *curNode = dag_get_node(forest, hmd->object);
 
-		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA);
+		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA,
+			"Hook Modifier");
 	}
 }
 
@@ -5110,7 +5114,7 @@ static void clothModifier_updateDepgraph(
 				if(coll_clmd)
 				{
 					DagNode *curNode = dag_get_node(forest, ob1);
-					dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+					dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Cloth Collision");
 				}
 			}
 		}
@@ -5390,7 +5394,7 @@ static void booleanModifier_updateDepgraph(
 		DagNode *curNode = dag_get_node(forest, bmd->object);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA);
+				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Boolean Modifier");
 	}
 }
 
@@ -5644,7 +5648,8 @@ static void particleInstanceModifier_updateDepgraph(ModifierData *md, DagForest 
 		DagNode *curNode = dag_get_node(forest, pimd->ob);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA);
+				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA,
+				 "Particle Instance Modifier");
 	}
 }
 
@@ -6722,7 +6727,8 @@ static void meshdeformModifier_updateDepgraph(
 		DagNode *curNode = dag_get_node(forest, mmd->object);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA|DAG_RL_OB_DATA|DAG_RL_DATA_OB|DAG_RL_OB_OB);
+				 DAG_RL_DATA_DATA|DAG_RL_OB_DATA|DAG_RL_DATA_OB|DAG_RL_OB_OB,
+				 "Mesh Deform Modifier");
 	}
 }
 

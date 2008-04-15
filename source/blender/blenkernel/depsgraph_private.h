@@ -54,6 +54,7 @@ typedef struct DagAdjList
 	short type;
 	int count;			// number of identical arcs
 	unsigned int lay;   // for flushing redraw/rebuild events
+	char *name;
 	struct DagAdjList *next;
 } DagAdjList;
 
@@ -117,7 +118,7 @@ DagNode * dag_find_node (DagForest *forest,void * fob);
 DagNode * dag_add_node (DagForest *forest,void * fob);
 DagNode * dag_get_node (DagForest *forest,void * fob);
 DagNode * dag_get_sub_node (DagForest *forest,void * fob);
-void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel);
+void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel, char *name);
 
 void graph_bfs(void);
 

@@ -272,14 +272,14 @@ DagNode * scenenode;
 	
 		if ((ob->data) && (mask&DAG_RL_DATA)) {
 			node2 = dag_get_node(dag,ob->data);
-			dag_add_relation(dag,node,node2,DAG_RL_DATA);
+			dag_add_relation(dag,node,node2,DAG_RL_DATA, "Object-Data Relation");
 			node2->first_ancestor = ob;
 			node2->ancestor_count += 1;
 			
 		} 
 		
 		if (addtoroot == 1 )
-			dag_add_relation(dag,scenenode,node,DAG_RL_SCENE);
+			dag_add_relation(dag,scenenode,node,DAG_RL_SCENE, "Scene Relation");
 		
 		base= base->next;
 	}
