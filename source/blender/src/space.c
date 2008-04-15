@@ -3133,6 +3133,10 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (G.qual==0)
 				set_ipotype();
 			break;
+		case EKEY:
+			if (G.qual==0)
+				set_ipoextend();
+			break;
 		case VKEY:
 			if (G.qual==0)
 				sethandles_ipo(HD_VECT);

@@ -969,6 +969,27 @@ void set_ipotype(void)
 	scrarea_queue_winredraw(curarea);
 }
 
+void set_ipoextend(void)
+{
+	short event= pupmenu("Ipo Extend Mode %t|Constant %x1|Extrapolation %x2|Cyclic %x3|Cyclic Extrapolation %x4");
+	
+	switch(event)
+	{
+	case 0:
+		set_exprap_ipo(IPO_HORIZ);
+		break;
+	case 1:
+		set_exprap_ipo(IPO_DIR);
+		break;
+	case 2:
+		set_exprap_ipo(IPO_CYCL);
+		break;
+	case 3:
+		set_exprap_ipo(IPO_CYCLX);
+		break;
+	}
+}
+
 void borderselect_ipo(void)
 {
 	EditIpo *ei;

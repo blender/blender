@@ -567,10 +567,10 @@ static uiBlock *ipo_editmenu_extendmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "ipo_editmenu_extendmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_ipo_editmenu_extendmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Constant", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extrapolation", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cyclic", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cyclic Extrapolation", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Constant|E, 1", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extrapolation|E, 2", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cyclic|E, 3", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cyclic Extrapolation|E, 4", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
