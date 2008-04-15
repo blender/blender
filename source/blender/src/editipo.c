@@ -982,20 +982,24 @@ static void make_editipo(void)
 	/* sets globals, bad stuff but we need these variables in other parts of code */
 	get_status_editipo();
 	
-	if(G.sipo->ipo) {
-
-		if (G.sipo->flag & SIPO_LOCK_VIEW || G.sipo->pin)
-			 rf= &(G.sipo->v2d.cur);
-		else
-			rf= &(G.sipo->ipo->cur);
-		
-		if(rf->xmin<rf->xmax && rf->ymin<rf->ymax) G.v2d->cur= *rf;
-		else ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
-	}
-	else {
-		ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
-	}
 	
+	if (G.sipo->flag & SIPO_LOCK_VIEW) {
+		rf= &(G.v2d->cur); /* view is locked, dont move it, just to sanity check */
+		if(rf->xmin>=rf->xmax || rf->ymin>=rf->ymax) ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
+	} else {
+		if(G.sipo->ipo) {
+			if (G.sipo->pin)
+				rf= &(G.sipo->v2d.cur);
+			else
+				rf= &(G.sipo->ipo->cur);
+			
+			if(rf->xmin<rf->xmax && rf->ymin<rf->ymax) G.v2d->cur= *rf;
+			else ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
+		}
+		else {
+			ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
+		}
+	}
 	view2d_do_locks(curarea, V2D_LOCK_COPY);
 }
 
