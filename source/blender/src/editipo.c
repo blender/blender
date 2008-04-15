@@ -984,8 +984,8 @@ static void make_editipo(void)
 	
 	if(G.sipo->ipo) {
 
-		if (G.sipo->pin)
-			rf= &(G.sipo->v2d.cur);
+		if (G.sipo->flag & SIPO_LOCK_VIEW || G.sipo->pin)
+			 rf= &(G.sipo->v2d.cur);
 		else
 			rf= &(G.sipo->ipo->cur);
 		
@@ -1202,7 +1202,7 @@ void test_editipo(int doit)
 		if(G.sipo->ipo != ipo) {
 			G.sipo->ipo= ipo;
 			/* if lock we don't copy from ipo, this makes the UI jump around confusingly */
-			if(G.v2d->flag & V2D_VIEWLOCK);
+			if(G.v2d->flag & V2D_VIEWLOCK || G.sipo->flag & SIPO_LOCK_VIEW);
 			else if(ipo) G.v2d->cur= ipo->cur;
 			doit= 1;
 		}

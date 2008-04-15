@@ -526,6 +526,9 @@ typedef struct SpaceImaSel {
 #define SI_SMOOTH_UV	1<<20
 #define SI_DRAW_STRETCH	1<<21
 
+/* SpaceIpo->flag */
+#define SIPO_LOCK_VIEW	1<<0
+
 /* SpaceText flags (moved from DNA_text_types.h) */
 
 #define ST_SCROLL_SELECT        0x0001 // scrollable

@@ -745,6 +745,9 @@ static void do_ipo_viewmenu(void *arg, int event)
 	case 11:
 		do_ipo_buttons(B_IPOVIEWCENTER);
 		break;
+	case 12:	
+		G.sipo->flag ^= SIPO_LOCK_VIEW;
+		break;
 	}
 }
 
@@ -765,7 +768,7 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Show Keys|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	else
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Show Keys|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-
+	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom Out|NumPad -", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
@@ -784,6 +787,11 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center on Current Frame|Shift C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
 					 "Lock Time to Other Windows|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	
+	if (G.sipo->flag & SIPO_LOCK_VIEW)
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Lock View Area", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 12, "");
+	else
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Lock View Area", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 12, "");
 
 	if (ei != NULL && (ei->flag & IPO_EDIT)) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Current Frame to Selected|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
