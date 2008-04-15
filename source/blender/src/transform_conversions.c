@@ -2012,7 +2012,7 @@ static void createTransEditVerts(TransInfo *t)
 	int propmode = t->flag & T_PROP_EDIT;
 	int mirror = 0;
 	
-	if ((t->context & CTX_NO_MIRROR) == 0 || (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
+	if ((t->context & CTX_NO_MIRROR) == 0 && (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
 	{
 		mirror = 1;
 	}
