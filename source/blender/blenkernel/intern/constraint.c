@@ -3178,12 +3178,6 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 			}
 		}
 		
-		/* convert radians<->degrees */
-		if (data->to == 1) {
-			/* if output is rotation, convert to radians from degrees */
-			for (i=0; i<3; i++) 
-				sval[i] = sval[i] / 180 * M_PI;
-		}
 		
 		/* apply transforms */
 		switch (data->to) {
@@ -3195,11 +3189,14 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 				for (i=0; i<3; i++) {
 					float tmin, tmax;
 					
-					/* convert destination min/max ranges from degrees to radians */
-					tmin= data->to_min[i] / M_PI * 180;
-					tmax= data->to_max[i] / M_PI * 180;
+					tmin= data->to_min[i];
+					tmax= data->to_max[i];
 					
+					/* all values here should be in degrees */
 					eul[i]= tmin + (sval[data->map[i]] * (tmax - tmin)); 
+					
+					/* now convert final value back to radians */
+					eul[i] = eul[i] / 180 * M_PI;
 				}
 				break;
 			default: /* location */

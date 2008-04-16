@@ -1645,7 +1645,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockEndAlign(block);
 				
 				/* Extrapolate Ranges? */
-				uiDefButBitC(block, TOG, 1, B_CONSTRAINT_TEST, "Extrapolate", *xco, *yco-42,80,19, &data->expo, 0, 0, 0, 0, "Extrapolate ranges");
+				uiDefButBitC(block, TOG, 1, B_CONSTRAINT_TEST, "Extrapolate", *xco-10, *yco-42,80,19, &data->expo, 0, 0, 0, 0, "Extrapolate ranges");
 				
 				/* Draw options for source motion */
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Source:", *xco-10, *yco-62, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
