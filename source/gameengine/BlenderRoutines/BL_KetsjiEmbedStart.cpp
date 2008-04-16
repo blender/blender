@@ -321,10 +321,10 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{
-			if (v3d->persp != 2)
+			if (v3d->persp != V3D_CAMOB)
 			{
 				ketsjiengine->EnableCameraOverride(startscenename);
-				ketsjiengine->SetCameraOverrideUseOrtho((v3d->persp == 0));
+				ketsjiengine->SetCameraOverrideUseOrtho((v3d->persp == V3D_ORTHO));
 				ketsjiengine->SetCameraOverrideProjectionMatrix(projmat);
 				ketsjiengine->SetCameraOverrideViewMatrix(viewmat);
 			}

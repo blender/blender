@@ -3853,7 +3853,7 @@ void createTransData(TransInfo *t)
 		t->flag |= T_OBJECT;
 	}
 
-	if((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp>1) {
+	if((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp==V3D_CAMOB) {
 		t->flag |= T_CAMERA;
 	}
 	

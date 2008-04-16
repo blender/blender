@@ -251,7 +251,7 @@ int get_border(rcti *rect, short flag)
 					BIF_ThemeColor(TH_BACK);
 					glRecti(10, 25, 250, 40);
 	
-					if(G.vd->persp==0) {
+					if(G.vd->persp==V3D_ORTHO) {
 						window_to_3d(dvec, mvalo[0]-x1, mvalo[1]-y1);
 	
 						sprintf(str, "X %.4f  Y %.4f  Z %.4f  Dia %.4f", dvec[0], dvec[1], dvec[2], sqrt(dvec[0]*dvec[0]+dvec[1]*dvec[1]+dvec[2]*dvec[2]));
@@ -262,7 +262,7 @@ int get_border(rcti *rect, short flag)
 						glRasterPos2i(16,  28);
 						BMF_DrawString(G.fonts, str);
 					}
-					else if(G.vd->persp==2) {
+					else if(G.vd->persp==V3D_CAMOB) {
 						rctf vb;
 	
 						calc_viewborder(G.vd, &vb);

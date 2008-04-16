@@ -295,7 +295,7 @@ void copy_view3d_lock(short val)
 							vd->lay= G.scene->lay;
 							vd->camera= G.scene->camera;
 							
-							if(vd->camera==0 && vd->persp>1) vd->persp= 1;
+							if(vd->camera==0 && vd->persp==V3D_CAMOB) vd->persp= V3D_PERSP;
 							
 							if( (vd->lay & vd->layact) == 0) {
 								bit= 0;
@@ -1411,7 +1411,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					allqueue(REDRAWVIEW3D, 0);
 				}
 				else if(G.qual==0) {
-					if (G.vd->persp==2)
+					if (G.vd->persp==V3D_CAMOB)
 						/* center the camera offset */
 						G.vd->camdx= G.vd->camdy= 0.0;
 					else {
@@ -1438,7 +1438,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(G.qual==LR_ALTKEY)
 					view3d_edit_clipping(v3d);
 				else if(G.qual==LR_SHIFTKEY) {
-					if(G.vd->persp==2)
+					if(G.vd->persp==V3D_CAMOB)
 						set_render_border();
 					else
 						view3d_border_zoom();
@@ -1836,7 +1836,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					view3d_edit_clipping(v3d);
 				else if(G.qual==LR_SHIFTKEY)
 				{
-					if(G.vd->persp==2)
+					if(G.vd->persp==V3D_CAMOB)
 						set_render_border();
 					else
 						view3d_border_zoom();
@@ -1900,7 +1900,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					allqueue(REDRAWVIEW3D, 0);
 				}
 				else if((G.qual==0)){
-					if (G.vd->persp==2)
+					if (G.vd->persp==V3D_CAMOB)
 						/* center the camera offset */
 						G.vd->camdx= G.vd->camdy= 0.0;
 					else {
@@ -2750,7 +2750,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						else
 							obmat_to_viewmat(ob, 1);
 						
-						if(G.vd->persp==2) G.vd->persp= 1;
+						if(G.vd->persp==V3D_CAMOB) G.vd->persp= V3D_PERSP;
 						scrarea_queue_winredraw(curarea);
 					}
 				}
@@ -2852,7 +2852,7 @@ static void initview3d(ScrArea *sa)
 	vd->blockscale= 0.7f;
 	vd->viewquat[0]= 1.0f;
 	vd->viewquat[1]= vd->viewquat[2]= vd->viewquat[3]= 0.0f;
-	vd->persp= 1;
+	vd->persp= V3D_PERSP;
 	vd->drawtype= OB_WIRE;
 	vd->view= 7;
 	vd->dist= 10.0;
@@ -6433,7 +6433,7 @@ void allqueue(unsigned short event, short val)
 			case REDRAWVIEWCAM:
 				if(sa->spacetype==SPACE_VIEW3D) {
 					v3d= sa->spacedata.first;
-					if(v3d->persp>1) scrarea_queue_winredraw(sa);
+					if(v3d->persp==V3D_CAMOB) scrarea_queue_winredraw(sa);
 				}
 				break;
 			case REDRAWINFO:

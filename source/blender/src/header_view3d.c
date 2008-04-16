@@ -220,7 +220,7 @@ static void do_view3d_view_camerasmenu(void *arg, int event)
 				
 				if (event==i) {
 					
-					if (G.vd->camera == base->object && G.vd->persp==2)
+					if (G.vd->camera == base->object && G.vd->persp==V3D_CAMOB)
 						return;
 					
 					if (U.smooth_viewtx) {	
@@ -228,12 +228,12 @@ static void do_view3d_view_camerasmenu(void *arg, int event)
 						float orig_ofs[3], orig_lens = G.vd->lens;
 						VECCOPY(orig_ofs, G.vd->ofs);
 						
-						if (G.vd->camera && G.vd->persp==2)
+						if (G.vd->camera && G.vd->persp==V3D_CAMOB)
 							view_settings_from_ob(G.vd->camera, G.vd->ofs, G.vd->viewquat, &G.vd->dist, &G.vd->lens);
 						
 						G.vd->camera = base->object;
 						handle_view3d_lock();
-						G.vd->persp= 2;
+						G.vd->persp= V3D_CAMOB;
 						G.vd->view= 0;
 						
 						smooth_view_to_camera(G.vd);
@@ -244,7 +244,7 @@ static void do_view3d_view_camerasmenu(void *arg, int event)
 					} else {
 						G.vd->camera= base->object;
 						handle_view3d_lock();
-						G.vd->persp= 2;
+						G.vd->persp= V3D_CAMOB;
 						G.vd->view= 0;
 					}
 					break;
@@ -550,7 +550,7 @@ static void do_view3d_viewmenu(void *arg, int event)
 	switch(event) {
 	case 0: /* User */
 		G.vd->viewbut = 0;
-		G.vd->persp = 1;
+		G.vd->persp = V3D_PERSP;
 		break;
 	case 1: /* Camera */
 		persptoetsen(PAD0);
@@ -565,10 +565,10 @@ static void do_view3d_viewmenu(void *arg, int event)
 		persptoetsen(PAD3);
 		break;
 	case 5: /* Perspective */
-		G.vd->persp=1;
+		G.vd->persp=V3D_PERSP;
 		break;
 	case 6: /* Orthographic */
-		G.vd->persp=0;
+		G.vd->persp=V3D_ORTHO;
 		break;
 	case 7: /* Local View */
 		G.vd->localview= 1;
@@ -625,9 +625,9 @@ static uiBlock *view3d_viewmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if ((G.vd->viewbut == 0) && !(G.vd->persp == 2)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "User",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	if ((G.vd->viewbut == 0) && !(G.vd->persp == V3D_CAMOB)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "User",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "User",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	if (G.vd->persp == 2) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Camera|NumPad 0",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	if (G.vd->persp == V3D_CAMOB) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Camera|NumPad 0",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Camera|NumPad 0",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	if (G.vd->viewbut == 1) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Top|NumPad 7",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Top|NumPad 7",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
@@ -640,9 +640,9 @@ static uiBlock *view3d_viewmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if(G.vd->persp==1) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Perspective|NumPad 5",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	if(G.vd->persp==V3D_PERSP) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Perspective|NumPad 5",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Perspective|NumPad 5",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-	if(G.vd->persp==0) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Orthographic|NumPad 5", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	if(G.vd->persp==V3D_ORTHO) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Orthographic|NumPad 5", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Orthographic|NumPad 5", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -663,7 +663,7 @@ static uiBlock *view3d_viewmenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Clipping Border|Alt B",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 17, "");
 	else
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Clipping Border|Alt B",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 17, "");
-	if (v3d->persp==0) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom Within Border...|Shift B",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 19, "");
+	if (v3d->persp==V3D_ORTHO) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom Within Border...|Shift B",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 19, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View Selected|NumPad .",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 	if(!curarea->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 99, "");
@@ -5144,9 +5144,10 @@ void do_view3d_buttons(short event)
 
 	case B_PERSP:
 	
-		if(G.vd->persp==2) persptoetsen(PAD0);
+		if(G.vd->persp==V3D_CAMOB) persptoetsen(PAD0);
 		else {
-			G.vd->persp= 1-G.vd->persp;
+			if (G.vd->persp==V3D_ORTHO)			G.vd->persp = V3D_PERSP; 
+			else if (G.vd->persp==V3D_PERSP)	G.vd->persp = V3D_ORTHO;
 			persptoetsen(PAD5);
 		}
 		

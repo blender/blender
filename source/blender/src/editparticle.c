@@ -2307,7 +2307,7 @@ static void brush_add(Object *ob, ParticleSystem *psys, short *mval, short numbe
 
 		/* create intersection coordinates in view Z direction at mouse coordinates */
 		/* Thanks to who ever wrote the "Mouse Location 3D Space" tutorial in "Blender 3D: Blending Into Python/Cookbook". */
-		if(G.vd->persp){
+		if(G.vd->persp != V3D_ORTHO){
 			vec[0]= (2.0f*(mx+dmx)/curarea->winx);
 			vec[1]= (2.0f*(my+dmy)/curarea->winy);
 			vec[2]= -1.0f;

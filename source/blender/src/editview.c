@@ -2287,7 +2287,7 @@ void view3d_border_zoom(void)
 	cent[0] = (((double)rect.xmin)+((double)rect.xmax)) / 2;
 	cent[1] = (((double)rect.ymin)+((double)rect.ymax)) / 2;
 	
-	if (v3d->persp==1) { /* perspective */
+	if (v3d->persp==V3D_PERSP) {
 		double p_corner[3];
 
 		/* no depths to use, we cant do anything! */
@@ -2404,7 +2404,7 @@ void fly(void)
 	
 	if(curarea->spacetype!=SPACE_VIEW3D) return;
 		
-	if(G.vd->persp==2 && G.vd->camera->id.lib) {
+	if(G.vd->persp==V3D_CAMOB && G.vd->camera->id.lib) {
 		error("Cannot fly a camera from an external library");
 		return;
 	}
@@ -2425,7 +2425,7 @@ void fly(void)
 	
 	persp_backup= G.vd->persp;
 	dist_backup= G.vd->dist;
-	if (G.vd->persp==2) { /* Camera */
+	if (G.vd->persp==V3D_CAMOB) {
 		if(G.vd->camera->constraints.first) {
 			error("Cannot fly an object with constraints");
 			return;
@@ -2448,8 +2448,8 @@ void fly(void)
 		
 	} else {
 		/* perspective or ortho */
-		if (G.vd->persp==0)
-			G.vd->persp= 1; /*if ortho projection, make perspective */
+		if (G.vd->persp==V3D_ORTHO)
+			G.vd->persp= V3D_PERSP; /*if ortho projection, make perspective */
 		QUATCOPY(rot_backup, G.vd->viewquat);
 		VECCOPY(ofs_backup, G.vd->ofs);
 		G.vd->dist= 0.0;
@@ -2746,7 +2746,7 @@ void fly(void)
 			dvec[2] = dvec_tmp[2]*(1-dvec_lag) + dvec_old[2]*dvec_lag;
 			
 			
-			if (G.vd->persp==2) {
+			if (G.vd->persp==V3D_CAMOB) {
 				if (G.vd->camera->protectflag & OB_LOCK_LOCX)
 					dvec[0] = 0.0;
 				if (G.vd->camera->protectflag & OB_LOCK_LOCY)
@@ -2768,11 +2768,11 @@ void fly(void)
 			do_screenhandlers(G.curscreen); /* advance the next frame */
 			
 			/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera to teh view */
-			if (G.vd->persp==2) {
-				G.vd->persp= 1; /*set this so setviewmatrixview3d uses the ofs and quat instead of the camera */
+			if (G.vd->persp==V3D_CAMOB) {
+				G.vd->persp= V3D_PERSP; /*set this so setviewmatrixview3d uses the ofs and quat instead of the camera */
 				setviewmatrixview3d();
 				setcameratoview3d();
-				G.vd->persp= 2;
+				G.vd->persp= V3D_CAMOB;
 				
 				/* record the motion */
 				if (IS_AUTOKEY_MODE(NORMAL) && (!playing_anim || cfra != G.scene->r.cfra)) {
@@ -2803,7 +2803,7 @@ void fly(void)
 	
 	/* Revert to original view? */ 
 	if (action == 2) { /* action == 2 means the user pressed Esc of RMB, and not to apply view to camera */
-		if (persp_backup==2) { /* a camera view */
+		if (persp_backup==V3D_CAMOB) { /* a camera view */
 			G.vd->viewbut=1;
 			VECCOPY(G.vd->camera->loc, ofs_backup);
 			VECCOPY(G.vd->camera->rot, rot_backup);
@@ -2815,7 +2815,7 @@ void fly(void)
 			G.vd->persp= persp_backup;
 		}
 	}
-	else if (persp_backup==2) {	/* camera */
+	else if (persp_backup==V3D_CAMOB) {	/* camera */
 		float mat3[3][3];
 		Mat3CpyMat4(mat3, G.vd->camera->obmat);
 		Mat3ToCompatibleEul(mat3, G.vd->camera->rot, rot_backup);

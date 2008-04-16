@@ -1508,25 +1508,25 @@ static void draw_viewport_name(ScrArea *sa)
 	
 	switch(G.vd->view) {
 		case 1:
-			if (G.vd->persp & V3D_PERSP_DO_3D_PERSP)
-				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Persp" : "Front Persp";
-			else
+			if (G.vd->persp == V3D_ORTHO)
 				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Ortho" : "Front Ortho";
+			else
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Persp" : "Front Persp";
 			break;
 		case 3:
-			if (G.vd->persp & V3D_PERSP_DO_3D_PERSP)
-				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Persp" : "Right Persp";
-			else
+			if (G.vd->persp == V3D_ORTHO)
 				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Ortho" : "Right Ortho";
+			else
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Persp" : "Right Persp";
 			break;
 		case 7:
-			if (G.vd->persp & V3D_PERSP_DO_3D_PERSP)
-				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Persp" : "Top Persp";
-			else
+			if (G.vd->persp == V3D_ORTHO)
 				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Ortho" : "Top Ortho";
+			else
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Persp" : "Top Persp";
 			break;
 		default:
-			if (G.vd->persp==V3D_PERSP_USE_THE_CAMERA) {
+			if (G.vd->persp==V3D_CAMOB) {
 				if ((G.vd->camera) && (G.vd->camera->type == OB_CAMERA)) {
 					Camera *cam;
 					cam = G.vd->camera->data;
@@ -1535,7 +1535,7 @@ static void draw_viewport_name(ScrArea *sa)
 					name = "Object as Camera";
 				}
 			} else { 
-				name = (G.vd->persp & V3D_PERSP_DO_3D_PERSP) ? "User Persp" : "User Ortho";
+				name = (G.vd->persp == V3D_ORTHO) ? "User Ortho" : "User Persp";
 			}
 	}
 	

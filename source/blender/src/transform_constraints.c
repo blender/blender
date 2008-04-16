@@ -668,7 +668,7 @@ void BIF_drawConstraint(void)
 		return;
 	
 	/* nasty exception for Z constraint in camera view */
-	if((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp>1) 
+	if((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp==V3D_CAMOB) 
 		return;
 
 	if (tc->drawExtra) {

@@ -111,7 +111,7 @@ void set_scene(Scene *sce)		/* also see scene.c: set_scene_bg() */
 						if (!v3d->camera || !object_in_scene(v3d->camera, sce)) {
 							v3d->camera= scene_find_camera(sc->scene);
 							if (sc==G.curscreen) handle_view3d_lock();
-							if (!v3d->camera && v3d->persp>1) v3d->persp= 1;
+							if (!v3d->camera && v3d->persp==V3D_CAMOB) v3d->persp= V3D_PERSP;
 						}
 					}
 					sl= sl->next;

@@ -84,11 +84,6 @@ typedef struct View3D {
 	
 	float viewquat[4], dist, zfac, pad0;	/* zfac is initgrabz() result */
 
-	/**
-	 * 0 - ortho
-	 * 1 - do 3d perspective
-	 * 2 - use the camera
-	 */
 	short persp;
 	short view;
 
@@ -165,7 +160,6 @@ typedef struct View3D {
 #define V3D_CLIPPING		16384
 #define V3D_DRAW_CENTERS	32768
 
-
 /* View3d->flag2 (short) */
 #define V3D_OPP_DIRECTION_NAME	1
 #define V3D_FLYMODE				2
@@ -181,9 +175,9 @@ typedef struct View3D {
 
 
 /* View3d->persp */
-#define V3D_PERSP_ORTHO          0
-#define V3D_PERSP_DO_3D_PERSP    1
-#define V3D_PERSP_USE_THE_CAMERA 2
+#define V3D_ORTHO				0
+#define V3D_PERSP				1
+#define V3D_CAMOB				2
 
 /* View3d->gridflag */
 #define V3D_SHOW_FLOOR			1

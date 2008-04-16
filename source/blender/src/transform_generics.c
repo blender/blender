@@ -120,7 +120,7 @@ void getViewVector(float coord[3], float vec[3])
 {
 	TransInfo *t = BIF_GetTransInfo();
 
-	if (t->persp)
+	if (t->persp != V3D_ORTHO)
 	{
 		float p1[4], p2[4];
 
@@ -962,7 +962,7 @@ void calculateCenter(TransInfo *t)
 
 	/* voor panning from cameraview */
 	if(t->flag & T_OBJECT) {
-		if( G.vd->camera==OBACT && G.vd->persp>1) {
+		if( G.vd->camera==OBACT && G.vd->persp==V3D_CAMOB) {
 			float axis[3];
 			/* persinv is nasty, use viewinv instead, always right */
 			VECCOPY(axis, t->viewinv[2]);
