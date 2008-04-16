@@ -42,7 +42,6 @@
 #  define GL_GLEXT_LEGACY 1
 #  include <OpenGL/gl.h>
 #  include <OpenGL/glu.h>
-#  undef __glext_h_
 
 #else /* UNIX */
 #  define __glext_h_
@@ -52,11 +51,20 @@
 #  undef __glext_h_
 #endif
 
+#ifdef WITH_GLEXT
+#ifdef WIN32
+#  include <GL/glext.h>
+#elif defined(__APPLE__)
+#  include <OpenGL/glext.h>
+#  undef __glext_h_
+# else
+#  include <GL/glext.h>
+# endif
+#endif
+
 #ifdef __sgi
 #  undef GL_ARB_vertex_program
 #endif
-
-#include "glext.h"
 
 #include "EXT_separate_specular_color.h"
 #include "ARB_multitexture.h"

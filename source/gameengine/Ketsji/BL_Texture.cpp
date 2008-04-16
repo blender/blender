@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <map>
+#include <stdlib.h>
 
 #include "BL_Material.h"
 #include "BL_Texture.h"
@@ -360,10 +361,13 @@ unsigned int BL_Texture::GetTextureType() const
 int BL_Texture::GetMaxUnits()
 {
 	GLint unit=0;
-#ifdef GL_ARB_multitexture
-	if(RAS_EXT_support._ARB_multitexture) {
-		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &unit);
-		return (MAXTEX>=unit?unit:MAXTEX);
+
+#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+	if (!getenv("WITHOUT_GLEXT")) {
+		if(RAS_EXT_support._ARB_multitexture) {
+			glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &unit);
+			return (MAXTEX>=unit?unit:MAXTEX);
+		}
 	}
 #endif
 	return 0;
@@ -371,28 +375,33 @@ int BL_Texture::GetMaxUnits()
 
 void BL_Texture::ActivateFirst()
 {
-#ifdef GL_ARB_multitexture
-	if(RAS_EXT_support._ARB_multitexture)
-		bgl::blActiveTextureARB(GL_TEXTURE0_ARB);
+#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+	if (!getenv("WITHOUT_GLEXT")) {
+		if(RAS_EXT_support._ARB_multitexture)
+			bgl::blActiveTextureARB(GL_TEXTURE0_ARB);
+	}
 #endif
 }
 
 void BL_Texture::ActivateUnit(int unit)
 {
-#ifdef GL_ARB_multitexture
-	if(RAS_EXT_support._ARB_multitexture)
-		if(unit <= MAXTEX)
-			bgl::blActiveTextureARB(GL_TEXTURE0_ARB+unit);
+#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+	if (!getenv("WITHOUT_GLEXT")) {
+		if(RAS_EXT_support._ARB_multitexture)
+			if(unit <= MAXTEX)
+				bgl::blActiveTextureARB(GL_TEXTURE0_ARB+unit);
+	}
 #endif
 }
 
 
 void BL_Texture::DisableUnit()
 {
-#ifdef GL_ARB_multitexture
-	if(RAS_EXT_support._ARB_multitexture)
-		bgl::blActiveTextureARB(GL_TEXTURE0_ARB+mUnit);
-
+#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+	if (!getenv("WITHOUT_GLEXT")) {
+		if(RAS_EXT_support._ARB_multitexture)
+			bgl::blActiveTextureARB(GL_TEXTURE0_ARB+mUnit);
+	}
 #endif
 
 
@@ -420,52 +429,54 @@ void BL_Texture::DisableUnit()
 
 void BL_Texture::DisableAllTextures()
 {
-#ifdef GL_ARB_multitexture
-	glDisable(GL_BLEND);
-	for(int i=0; i<MAXTEX; i++) {
+#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+	if (!getenv("WITHOUT_GLEXT")) {
+		glDisable(GL_BLEND);
+		for(int i=0; i<MAXTEX; i++) {
+			if(RAS_EXT_support._ARB_multitexture)
+				bgl::blActiveTextureARB(GL_TEXTURE0_ARB+i);
+
+			glMatrixMode(GL_TEXTURE);
+			glLoadIdentity();
+			glMatrixMode(GL_MODELVIEW);
+			glDisable(GL_TEXTURE_2D);	
+			glDisable(GL_TEXTURE_GEN_S);
+			glDisable(GL_TEXTURE_GEN_T);
+			glDisable(GL_TEXTURE_GEN_R);
+			glDisable(GL_TEXTURE_GEN_Q);
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+		}
 		if(RAS_EXT_support._ARB_multitexture)
-			bgl::blActiveTextureARB(GL_TEXTURE0_ARB+i);
-
-		glMatrixMode(GL_TEXTURE);
-		glLoadIdentity();
-		glMatrixMode(GL_MODELVIEW);
-		glDisable(GL_TEXTURE_2D);	
-		glDisable(GL_TEXTURE_GEN_S);
-		glDisable(GL_TEXTURE_GEN_T);
-		glDisable(GL_TEXTURE_GEN_R);
-		glDisable(GL_TEXTURE_GEN_Q);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+			bgl::blActiveTextureARB(GL_TEXTURE0_ARB);
 	}
-	if(RAS_EXT_support._ARB_multitexture)
-		bgl::blActiveTextureARB(GL_TEXTURE0_ARB);
-
 #endif
 }
 
 
 void BL_Texture::ActivateTexture()
 {
-#ifdef GL_ARB_multitexture
-	if(RAS_EXT_support._ARB_multitexture)
-		bgl::blActiveTextureARB(GL_TEXTURE0_ARB+mUnit);
+#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+	if (!getenv("WITHOUT_GLEXT")) {
+		if(RAS_EXT_support._ARB_multitexture)
+			bgl::blActiveTextureARB(GL_TEXTURE0_ARB+mUnit);
 
 #ifdef GL_ARB_texture_cube_map
-	if (mType == GL_TEXTURE_CUBE_MAP_ARB && RAS_EXT_support._ARB_texture_cube_map)
-	{
-		glBindTexture( GL_TEXTURE_CUBE_MAP_ARB, mTexture );	
-		glEnable(GL_TEXTURE_CUBE_MAP_ARB);
-	}
-	else
+		if (mType == GL_TEXTURE_CUBE_MAP_ARB && RAS_EXT_support._ARB_texture_cube_map)
+		{
+			glBindTexture( GL_TEXTURE_CUBE_MAP_ARB, mTexture );	
+			glEnable(GL_TEXTURE_CUBE_MAP_ARB);
+		} else
 #endif
-	{
+		{
 
-		#ifdef GL_ARB_texture_cube_map
-		if(RAS_EXT_support._ARB_texture_cube_map )
-			glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-		#endif
+			#ifdef GL_ARB_texture_cube_map
+			if(RAS_EXT_support._ARB_texture_cube_map )
+				glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+			#endif
 
-		glBindTexture( GL_TEXTURE_2D, mTexture );	
-		glEnable(GL_TEXTURE_2D);
+			glBindTexture( GL_TEXTURE_2D, mTexture );	
+			glEnable(GL_TEXTURE_2D);
+		}
 	}
 #endif
 }

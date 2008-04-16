@@ -186,28 +186,30 @@ void BL_RenderText(int mode,const char* textstr,int textlen,struct MTFace* tface
 
 void DisableForText()
 {
-	if(glIsEnabled(GL_BLEND))
-		glDisable(GL_BLEND);
+	if(glIsEnabled(GL_BLEND)) glDisable(GL_BLEND);
 
 	if(glIsEnabled(GL_LIGHTING)) {
 		glDisable(GL_LIGHTING);
 		glDisable(GL_COLOR_MATERIAL);
 	}
-#ifdef GL_ARB_multitexture
-	for(int i=0; i<MAXTEX; i++) {
-		if(bgl::RAS_EXT_support._ARB_multitexture)
-			bgl::blActiveTextureARB(GL_TEXTURE0_ARB+i);
+#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+	if (!getenv("WITHOUT_GLEXT")) {
+		for(int i=0; i<MAXTEX; i++) {
+			if(bgl::RAS_EXT_support._ARB_multitexture)
+				bgl::blActiveTextureARB(GL_TEXTURE0_ARB+i);
 #ifdef GL_ARB_texture_cube_map
-	if(bgl::RAS_EXT_support._ARB_texture_cube_map)
-		if(glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
-			glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+		if(bgl::RAS_EXT_support._ARB_texture_cube_map)
+			if(glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
+				glDisable(GL_TEXTURE_CUBE_MAP_ARB);
 #endif
-		if(glIsEnabled(GL_TEXTURE_2D))
-			glDisable(GL_TEXTURE_2D);
+			if(glIsEnabled(GL_TEXTURE_2D)) glDisable(GL_TEXTURE_2D);
+		}
+	} else {
+		if(glIsEnabled(GL_TEXTURE_2D)) glDisable(GL_TEXTURE_2D);
 	}
+
 #else//GL_ARB_multitexture
-	if(glIsEnabled(GL_TEXTURE_2D))
-		glDisable(GL_TEXTURE_2D);
+	if(glIsEnabled(GL_TEXTURE_2D)) glDisable(GL_TEXTURE_2D);
 #endif
 }
 

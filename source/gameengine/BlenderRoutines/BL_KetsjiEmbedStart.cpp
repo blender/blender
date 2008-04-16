@@ -36,6 +36,7 @@
 #endif
 
 #include <signal.h>
+#include <stdlib.h>
 
 #ifdef WIN32
 // don't show stl-warnings
@@ -160,15 +161,17 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
 		bool usemat = false;
 		
-		#ifdef GL_ARB_multitexture
-		if(bgl::RAS_EXT_support._ARB_multitexture && bgl::QueryVersion(1, 1)) {
-			usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 0) != 0);
-			int unitmax=0;
-			glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&unitmax);
-			bgl::max_texture_units = MAXTEX>unitmax?unitmax:MAXTEX;
-			//std::cout << "using(" << bgl::max_texture_units << ") of(" << unitmax << ") texture units." << std::endl;
-		} else {
-			bgl::max_texture_units = 0;
+		#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+		if (!getenv("WITHOUT_GLEXT")) {
+			if(bgl::RAS_EXT_support._ARB_multitexture && bgl::QueryVersion(1, 1)) {
+				usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 0) != 0);
+				int unitmax=0;
+				glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&unitmax);
+				bgl::max_texture_units = MAXTEX>unitmax?unitmax:MAXTEX;
+				//std::cout << "using(" << bgl::max_texture_units << ") of(" << unitmax << ") texture units." << std::endl;
+			} else {
+				bgl::max_texture_units = 0;
+			}
 		}
 		#endif
 

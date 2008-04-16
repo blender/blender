@@ -33,6 +33,7 @@
 #endif
 
 #include "RAS_VAOpenGLRasterizer.h"
+#include <stdlib.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -294,50 +295,51 @@ void RAS_VAOpenGLRasterizer::IndexPrimitivesMulti( const vecVertexArray& vertexa
 
 void RAS_VAOpenGLRasterizer::TexCoordPtr(const RAS_TexVert *tv, int enabled)
 {
-#ifdef GL_ARB_multitexture
-	if(bgl::RAS_EXT_support._ARB_multitexture)
-	{
-		for(int unit=0; unit<enabled; unit++)
+#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+	if (!getenv("WITHOUT_GLEXT")) {
+		if(bgl::RAS_EXT_support._ARB_multitexture)
 		{
-			bgl::blClientActiveTextureARB(GL_TEXTURE0_ARB+unit);
-
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			if( tv->getFlag() & TV_2NDUV && tv->getUnit() == unit ) {
-				glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert), tv->getUV2());
-				continue;
-			}
-			switch(m_texco[unit])
+			for(int unit=0; unit<enabled; unit++)
 			{
-			case RAS_TEXCO_DISABLE:
-			case RAS_TEXCO_OBJECT:
-			case RAS_TEXCO_GEN:
-				glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-				break;
-			case RAS_TEXCO_ORCO:
-			case RAS_TEXCO_GLOB:
-				glTexCoordPointer(3, GL_FLOAT, sizeof(RAS_TexVert),tv->getLocalXYZ());
-				break;
-			case RAS_TEXCO_UV1:
-				glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert),tv->getUV1());
-				break;
-			case RAS_TEXCO_NORM:
-				glTexCoordPointer(3, GL_FLOAT, sizeof(RAS_TexVert),tv->getNormal());
-				break;
-			case RAS_TEXTANGENT:
-				glTexCoordPointer(4, GL_FLOAT, sizeof(RAS_TexVert),tv->getTangent());
-				break;
-			case RAS_TEXCO_UV2:
-				glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert),tv->getUV2());
-				break;
+				bgl::blClientActiveTextureARB(GL_TEXTURE0_ARB+unit);
+
+				glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+				if( tv->getFlag() & TV_2NDUV && tv->getUnit() == unit ) {
+					glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert), tv->getUV2());
+					continue;
+				}
+				switch(m_texco[unit])
+				{
+				case RAS_TEXCO_DISABLE:
+				case RAS_TEXCO_OBJECT:
+				case RAS_TEXCO_GEN:
+					glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+					break;
+				case RAS_TEXCO_ORCO:
+				case RAS_TEXCO_GLOB:
+					glTexCoordPointer(3, GL_FLOAT, sizeof(RAS_TexVert),tv->getLocalXYZ());
+					break;
+				case RAS_TEXCO_UV1:
+					glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert),tv->getUV1());
+					break;
+				case RAS_TEXCO_NORM:
+					glTexCoordPointer(3, GL_FLOAT, sizeof(RAS_TexVert),tv->getNormal());
+					break;
+				case RAS_TEXTANGENT:
+					glTexCoordPointer(4, GL_FLOAT, sizeof(RAS_TexVert),tv->getTangent());
+					break;
+				case RAS_TEXCO_UV2:
+					glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert),tv->getUV2());
+					break;
+				}
 			}
 		}
-	}
 
 #ifdef GL_ARB_vertex_program
-	if(m_useTang && bgl::RAS_EXT_support._ARB_vertex_program)
-		bgl::blVertexAttrib4fvARB(1/*tangent*/, tv->getTangent());
+		if(m_useTang && bgl::RAS_EXT_support._ARB_vertex_program)
+			bgl::blVertexAttrib4fvARB(1/*tangent*/, tv->getTangent());
 #endif
-
+	}
 #endif
 }
 

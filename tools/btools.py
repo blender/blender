@@ -48,6 +48,7 @@ def validate_arguments(args, bc):
             'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC', 'BF_OPENGL_LINKFLAGS',
             'WITH_BF_FTGL', 'BF_FTGL', 'BF_FTGL_INC', 'BF_FTGL_LIB',
             'WITH_BF_PLAYER',
+	    'WITH_BF_GLEXT',
             'WITH_BF_BINRELOC',	
             'CFLAGS', 'CCFLAGS', 'CPPFLAGS', 
             'REL_CFLAGS', 'REL_CCFLAGS',
@@ -272,6 +273,7 @@ def read_opts(cfg, args):
         ('BF_FTGL_INC', 'FTGL include path', ''),
         ('BF_FTGL_LIB', 'FTGL libraries', ''),
 
+        (BoolOption('WITH_BF_GLEXT', 'Enable GL Extenstions', 'true')),
         (BoolOption('WITH_BF_PLAYER', 'Build blenderplayer if true', 'false')),
 
         ('CFLAGS', 'C-compiler flags', ''),

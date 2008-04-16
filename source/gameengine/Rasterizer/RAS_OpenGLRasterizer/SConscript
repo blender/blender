@@ -1,6 +1,9 @@
 #!/usr/bin/python
 Import ('env')
 
+if env['WITH_BF_GLEXT'] == 1:
+        env['CPPFLAGS'].append('-DWITH_GLEXT')
+
 sources = env.Glob('*.cpp') #'RAS_GLExtensionManager.cpp RAS_ListRasterizer.cpp RAS_OpenGLRasterizer.cpp RAS_VAOpenGLRasterizer.cpp'
 
 incs = '. #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/Rasterizer'

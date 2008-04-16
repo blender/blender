@@ -73,5 +73,9 @@ ifeq ($(OS),windows)
     CPPFLAGS += -I../../blender
 endif
 
+ifeq ($(WITH_BF_GLEXT),true)
+	CPPFLAGS += -DWITH_GLEXT
+endif
+
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 

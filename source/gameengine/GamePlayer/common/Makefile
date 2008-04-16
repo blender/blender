@@ -73,6 +73,10 @@ CPPFLAGS += -I../../../gameengine/Rasterizer/RAS_OpenGLRasterizer
 CPPFLAGS += -I../../../gameengine/Physics/Sumo
 CPPFLAGS += -I../../../gameengine/Physics/common
 
+ifeq ($(WITH_BF_GLEXT),true)
+    CPPFLAGS += -DWITH_GLEXT
+endif
+
 ###############################
 
 SOURCEDIR = source/gameengine/GamePlayer/common

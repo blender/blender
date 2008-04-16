@@ -30,6 +30,7 @@
  */
  
 #include <math.h>
+#include <stdlib.h>
  
 #include "RAS_OpenGLRasterizer.h"
 
@@ -1222,37 +1223,36 @@ void RAS_OpenGLRasterizer::SetAttrib(int type)
 
 void RAS_OpenGLRasterizer::TexCoord(const RAS_TexVert &tv, int enabled)
 {
-#ifdef GL_ARB_multitexture
-	if(bgl::RAS_EXT_support._ARB_multitexture)
-	{
-		for(int unit=0; unit<enabled; unit++)
-		{
-			if( tv.getFlag() & TV_2NDUV && tv.getUnit() == unit ) {
-				bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV2());
-				continue;
-			}
-			switch(m_texco[unit])
-			{
-			case RAS_TEXCO_DISABLE:
-			case RAS_TEXCO_OBJECT:
-			case RAS_TEXCO_GEN:
-				break;
-			case RAS_TEXCO_ORCO:
-			case RAS_TEXCO_GLOB:
-				bgl::blMultiTexCoord3fvARB(GL_TEXTURE0_ARB+unit, tv.getLocalXYZ());
-				break;
-			case RAS_TEXCO_UV1:
-				bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV1());
-				break;
-			case RAS_TEXCO_NORM:
-				bgl::blMultiTexCoord3fvARB(GL_TEXTURE0_ARB+unit, tv.getNormal());
-				break;
-			case RAS_TEXTANGENT:
-				bgl::blMultiTexCoord4fvARB(GL_TEXTURE0_ARB+unit, tv.getTangent());
-				break;
-			case RAS_TEXCO_UV2:
-				bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV2());
-				break;
+#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+	if (!getenv("WITHOUT_GLEXT")) {
+		if(bgl::RAS_EXT_support._ARB_multitexture) {
+			for(int unit=0; unit<enabled; unit++) {
+				if( tv.getFlag() & TV_2NDUV && tv.getUnit() == unit ) {
+					bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV2());
+					continue;
+				}
+				switch(m_texco[unit]) {
+				case RAS_TEXCO_DISABLE:
+				case RAS_TEXCO_OBJECT:
+				case RAS_TEXCO_GEN:
+					break;
+				case RAS_TEXCO_ORCO:
+				case RAS_TEXCO_GLOB:
+					bgl::blMultiTexCoord3fvARB(GL_TEXTURE0_ARB+unit, tv.getLocalXYZ());
+					break;
+				case RAS_TEXCO_UV1:
+					bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV1());
+					break;
+				case RAS_TEXCO_NORM:
+					bgl::blMultiTexCoord3fvARB(GL_TEXTURE0_ARB+unit, tv.getNormal());
+					break;
+				case RAS_TEXTANGENT:
+					bgl::blMultiTexCoord4fvARB(GL_TEXTURE0_ARB+unit, tv.getTangent());
+					break;
+				case RAS_TEXCO_UV2:
+					bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV2());
+					break;
+				}
 			}
 		}
 	}
@@ -1269,28 +1269,29 @@ void RAS_OpenGLRasterizer::Tangent(	const RAS_TexVert& v1,
 									const RAS_TexVert& v3,
 									const MT_Vector3 &no)
 {
-#ifdef GL_ARB_multitexture
-	// TODO: set for deformer... 
-	MT_Vector3 x1(v1.getLocalXYZ()), x2(v2.getLocalXYZ()), x3(v3.getLocalXYZ());
-	MT_Vector2 uv1(v1.getUV1()), uv2(v2.getUV1()), uv3(v3.getUV1());
-	MT_Vector3 dx1(x2 - x1), dx2(x3 - x1);
-	MT_Vector2 duv1(uv2 - uv1), duv2(uv3 - uv1);
-	
-	MT_Scalar r = 1.0 / (duv1.x() * duv2.y() - duv2.x() * duv1.y());
-	duv1 *= r;
-	duv2 *= r;
-	MT_Vector3 sdir(duv2.y() * dx1 - duv1.y() * dx2);
-	MT_Vector3 tdir(duv1.x() * dx2 - duv2.x() * dx1);
-	
-	// Gram-Schmidt orthogonalize
-	MT_Vector3 t(sdir - no.cross(no.cross(sdir)));
-	if (!MT_fuzzyZero(t))
-		t /= t.length();
+#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+	if (!getenv("WITHOUT_GLEXT")) {
+		// TODO: set for deformer... 
+		MT_Vector3 x1(v1.getLocalXYZ()), x2(v2.getLocalXYZ()), x3(v3.getLocalXYZ());
+		MT_Vector2 uv1(v1.getUV1()), uv2(v2.getUV1()), uv3(v3.getUV1());
+		MT_Vector3 dx1(x2 - x1), dx2(x3 - x1);
+		MT_Vector2 duv1(uv2 - uv1), duv2(uv3 - uv1);
 
-	float tangent[4];
-	t.getValue(tangent);
-	// Calculate handedness
-	tangent[3] = no.dot(sdir.cross(tdir)) < 0.0 ? -1.0 : 1.0;
+		MT_Scalar r = 1.0 / (duv1.x() * duv2.y() - duv2.x() * duv1.y());
+		duv1 *= r;
+		duv2 *= r;
+		MT_Vector3 sdir(duv2.y() * dx1 - duv1.y() * dx2);
+		MT_Vector3 tdir(duv1.x() * dx2 - duv2.x() * dx1);
+
+		// Gram-Schmidt orthogonalize
+		MT_Vector3 t(sdir - no.cross(no.cross(sdir)));
+		if (!MT_fuzzyZero(t)) t /= t.length();
+
+		float tangent[4];
+		t.getValue(tangent);
+		// Calculate handedness
+		tangent[3] = no.dot(sdir.cross(tdir)) < 0.0 ? -1.0 : 1.0;
+	}
 #endif
 }
 
@@ -1306,195 +1307,195 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 		class KX_ListSlot** slot
 		)
 { 
-#ifdef GL_ARB_multitexture
-
-	GLenum drawmode;
-	switch (mode)
-	{
-	case 0:
-		drawmode = GL_TRIANGLES;
-		break;
-	case 1:
-		drawmode = GL_LINES;
-		break;
-	case 2:
-		drawmode = GL_QUADS;
-		break;
-	default:
-		drawmode = GL_LINES;
-		break;
-	}
-	
-	const RAS_TexVert* vertexarray ;
-	unsigned int numindices,vt;
-
-	for (vt=0;vt<vertexarrays.size();vt++)
-	{
-		vertexarray = &((*vertexarrays[vt]) [0]);
-		const KX_IndexArray & indexarray = (*indexarrays[vt]);
-		numindices = indexarray.size();
-		const unsigned int enabled = polymat->GetEnabled();
-
-		if (!numindices)
-			break;
-		
-		int vindex=0;
+#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+	if (!getenv("WITHOUT_GLEXT")) {
+		GLenum drawmode;
 		switch (mode)
 		{
+		case 0:
+			drawmode = GL_TRIANGLES;
+			break;
 		case 1:
-			{
-				glBegin(GL_LINES);
-				vindex=0;
-				for (unsigned int i=0;i<numindices;i+=2)
-				{
-					glVertex3fv(vertexarray[(indexarray[vindex++])].getLocalXYZ());
-					glVertex3fv(vertexarray[(indexarray[vindex++])].getLocalXYZ());
-				}
-				glEnd();
-			}
+			drawmode = GL_LINES;
 			break;
 		case 2:
-			{
-				glBegin(GL_QUADS);
-				vindex=0;
-				if (useObjectColor)
-				{
-					for (unsigned int i=0;i<numindices;i+=4)
-					{
-
-						glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
-						
-						//
-						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						//
-						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						//
-						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						//
-						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-					}
-				}
-				else
-				{
-					for (unsigned int i=0;i<numindices;i+=4)
-					{
-						// This looks curiously endian unsafe to me.
-						// However it depends on the way the colors are packed into 
-						// the m_rgba field of RAS_TexVert
-						
-						//
-						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
-					
-						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						//
-						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
-						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						//
-						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
-						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						//
-						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
-						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-					}
-				}
-				glEnd();	
-				break;
-			}
-		case 0:
-			{
-				glBegin(GL_TRIANGLES);
-				vindex=0;
-				if (useObjectColor)
-				{
-					for (unsigned int i=0;i<numindices;i+=3)
-					{
-
-						glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
-						//
-						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						//
-						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						//
-						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-					}
-				}
-				else 
-				{
-					for (unsigned int i=0;i<numindices;i+=3)
-					{
-						//
-						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
-						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						//
-						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
-						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						//
-						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
-						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-					}
-				}
-				glEnd();	
-				break;
-			}
+			drawmode = GL_QUADS;
+			break;
 		default:
-			{
-			}
-		} // switch
-	} // for each vertexarray
-#endif// GL_ARB_multitexture
+			drawmode = GL_LINES;
+			break;
+		}
+	
+		const RAS_TexVert* vertexarray ;
+		unsigned int numindices,vt;
 
+		for (vt=0;vt<vertexarrays.size();vt++)
+		{
+			vertexarray = &((*vertexarrays[vt]) [0]);
+			const KX_IndexArray & indexarray = (*indexarrays[vt]);
+			numindices = indexarray.size();
+			const unsigned int enabled = polymat->GetEnabled();
+
+			if (!numindices)
+				break;
+
+			int vindex=0;
+			switch (mode)
+			{
+			case 1:
+				{
+					glBegin(GL_LINES);
+					vindex=0;
+					for (unsigned int i=0;i<numindices;i+=2)
+					{
+						glVertex3fv(vertexarray[(indexarray[vindex++])].getLocalXYZ());
+						glVertex3fv(vertexarray[(indexarray[vindex++])].getLocalXYZ());
+					}
+					glEnd();
+				}
+				break;
+			case 2:
+				{
+					glBegin(GL_QUADS);
+					vindex=0;
+					if (useObjectColor)
+					{
+						for (unsigned int i=0;i<numindices;i+=4)
+						{
+
+							glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
+
+							//
+							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+
+							//
+							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+
+							//
+							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+
+							//
+							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+						}
+					}
+					else
+					{
+						for (unsigned int i=0;i<numindices;i+=4)
+						{
+							// This looks curiously endian unsafe to me.
+							// However it depends on the way the colors are packed into 
+							// the m_rgba field of RAS_TexVert
+					
+							//
+							glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+					
+							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+						
+							//
+							glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+
+							//
+							glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+
+							//
+							glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+						}
+					}
+					glEnd();	
+					break;
+				}
+			case 0:
+				{
+					glBegin(GL_TRIANGLES);
+					vindex=0;
+					if (useObjectColor)
+					{
+						for (unsigned int i=0;i<numindices;i+=3)
+						{
+
+							glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
+							//
+							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+
+							//
+							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+
+							//
+							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+						}
+					}
+					else 
+					{
+						for (unsigned int i=0;i<numindices;i+=3)
+						{
+							//
+							glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+					
+							//
+							glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+
+							//
+							glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+						}
+					}
+					glEnd();	
+					break;
+				}
+			default:
+				{
+				}
+			} // switch
+		} // for each vertexarray
+	}
+#endif// GL_ARB_multitexture
 }
 
 void RAS_OpenGLRasterizer::IndexPrimitivesMulti_Ex(
@@ -1506,272 +1507,274 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti_Ex(
 									bool useObjectColor,
 									const MT_Vector4& rgbacolor)
 { 
-#ifdef GL_ARB_multitexture
-	bool	recalc;
-	GLenum drawmode;
-	switch (mode)
-	{
-	case 0:
-		drawmode = GL_TRIANGLES;
-		break;
-	case 1:
-		drawmode = GL_LINES;
-		break;
-	case 2:
-		drawmode = GL_QUADS;
-		break;
-	default:
-		drawmode = GL_LINES;
-		break;
-	}
-	
-	const RAS_TexVert* vertexarray ;
-	unsigned int numindices,vt;
-
-	for (vt=0;vt<vertexarrays.size();vt++)
-	{
-		vertexarray = &((*vertexarrays[vt]) [0]);
-		const KX_IndexArray & indexarray = (*indexarrays[vt]);
-		numindices = indexarray.size();
-		const unsigned int enabled = polymat->GetEnabled();
-		
-		if (!numindices)
-			continue;
-		
-		int vindex=0;
+#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+	if (!getenv("WITHOUT_GLEXT")) {
+		bool	recalc;
+		GLenum drawmode;
 		switch (mode)
 		{
+		case 0:
+			drawmode = GL_TRIANGLES;
+			break;
 		case 1:
-			{
-				glBegin(GL_LINES);
-				vindex=0;
-				for (unsigned int i=0;i<numindices;i+=2)
-				{
-					glVertex3fv(vertexarray[(indexarray[vindex++])].getLocalXYZ());
-					glVertex3fv(vertexarray[(indexarray[vindex++])].getLocalXYZ());
-				}
-				glEnd();
-			}
+			drawmode = GL_LINES;
 			break;
 		case 2:
-			{
-				glBegin(GL_QUADS);
-				vindex=0;
-				if (useObjectColor)
-				{
-					for (unsigned int i=0;i<numindices;i+=4)
-					{
-						MT_Point3 mv1, mv2, mv3, mv4, fnor;
-						/* Calc a new face normal */
-
-						if (vertexarray[(indexarray[vindex])].getFlag() & TV_CALCFACENORMAL)
-							recalc= true;
-						else
-							recalc=false;
-
-						if (recalc){
-							mv1 = MT_Point3(vertexarray[(indexarray[vindex])].getLocalXYZ());
-							mv2 = MT_Point3(vertexarray[(indexarray[vindex+1])].getLocalXYZ());
-							mv3 = MT_Point3(vertexarray[(indexarray[vindex+2])].getLocalXYZ());
-							mv4 = MT_Point3(vertexarray[(indexarray[vindex+2])].getLocalXYZ());
-							
-							fnor = (((mv2-mv1).cross(mv3-mv2))+((mv4-mv3).cross(mv1-mv4))).safe_normalized();
-
-							glNormal3f(fnor[0], fnor[1], fnor[2]);
-						}
-
-						glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
-
-						if (!recalc)
-							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-					
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						if (!recalc)
-							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-					
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						if (!recalc)
-							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());						
-					
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						if (!recalc)
-							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-					}
-				}
-				else
-				{
-					for (unsigned int i=0;i<numindices;i+=4)
-					{
-						// This looks curiously endian unsafe to me.
-						// However it depends on the way the colors are packed into 
-						// the m_rgba field of RAS_TexVert
-						MT_Point3 mv1, mv2, mv3, mv4, fnor;
-						/* Calc a new face normal */
-
-						if (vertexarray[(indexarray[vindex])].getFlag() & TV_CALCFACENORMAL)
-							recalc= true;
-						else
-							recalc=false;
-
-
-						if (recalc){
-							mv1 = MT_Point3(vertexarray[(indexarray[vindex])].getLocalXYZ());
-							mv2 = MT_Point3(vertexarray[(indexarray[vindex+1])].getLocalXYZ());
-							mv3 = MT_Point3(vertexarray[(indexarray[vindex+2])].getLocalXYZ());
-							mv4 = MT_Point3(vertexarray[(indexarray[vindex+3])].getLocalXYZ());
-							
-							fnor = (((mv2-mv1).cross(mv3-mv2))+((mv4-mv3).cross(mv1-mv4))).safe_normalized();
-
-							glNormal3f(fnor[0], fnor[1], fnor[2]);
-						}
-
-						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
-						if (!recalc)
-							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-					
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
-						if (!recalc)
-							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-					
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
-						if (!recalc)
-							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-					
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
-						if (!recalc)
-							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-					}
-				}
-				glEnd();	
-				break;
-			}
-		case 0:
-			{
-				glBegin(GL_TRIANGLES);
-				vindex=0;
-				if (useObjectColor)
-				{
-					for (unsigned int i=0;i<numindices;i+=3)
-					{
-						MT_Point3 mv1, mv2, mv3, fnor;
-						/* Calc a new face normal */
-
-						if (vertexarray[(indexarray[vindex])].getFlag() & TV_CALCFACENORMAL)
-							recalc= true;
-						else
-							recalc=false;
-
-						if (recalc){
-							mv1 = MT_Point3(vertexarray[(indexarray[vindex])].getLocalXYZ());
-							mv2 = MT_Point3(vertexarray[(indexarray[vindex+1])].getLocalXYZ());
-							mv3 = MT_Point3(vertexarray[(indexarray[vindex+2])].getLocalXYZ());
-							
-							fnor = ((mv2-mv1).cross(mv3-mv2)).safe_normalized();
-							glNormal3f(fnor[0], fnor[1], fnor[2]);
-						}
-
-						glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
-
-						if (!recalc)
-							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						if (!recalc)
-							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						if (!recalc)
-							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-					}
-				}
-				else 
-				{
-					for (unsigned int i=0;i<numindices;i+=3)
-					{
-						MT_Point3 mv1, mv2, mv3, fnor;
-						/* Calc a new face normal */
-
-						if (vertexarray[(indexarray[vindex])].getFlag() & TV_CALCFACENORMAL)
-							recalc= true;
-						else
-							recalc=false;
-
-
-						if (recalc){
-							mv1 = MT_Point3(vertexarray[(indexarray[vindex])].getLocalXYZ());
-							mv2 = MT_Point3(vertexarray[(indexarray[vindex+1])].getLocalXYZ());
-							mv3 = MT_Point3(vertexarray[(indexarray[vindex+2])].getLocalXYZ());
-							
-							fnor = ((mv2-mv1).cross(mv3-mv2)).safe_normalized();
-							glNormal3f(fnor[0], fnor[1], fnor[2]);
-						}
-
-						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
-						if (!recalc)
-							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
-						if (!recalc)
-							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-						
-						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
-						if (!recalc)
-							glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						TexCoord(vertexarray[(indexarray[vindex])],enabled );
-						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
-						vindex++;
-					}
-				}
-				glEnd();	
-				break;
-			}
+			drawmode = GL_QUADS;
+			break;
 		default:
+			drawmode = GL_LINES;
+			break;
+		}
+	
+		const RAS_TexVert* vertexarray ;
+		unsigned int numindices,vt;
+
+		for (vt=0;vt<vertexarrays.size();vt++)
+		{
+			vertexarray = &((*vertexarrays[vt]) [0]);
+			const KX_IndexArray & indexarray = (*indexarrays[vt]);
+			numindices = indexarray.size();
+			const unsigned int enabled = polymat->GetEnabled();
+		
+			if (!numindices)
+				continue;
+		
+			int vindex=0;
+			switch (mode)
 			{
-			}
-			
-		} // switch
-	} // for each vertexarray
+			case 1:
+				{
+					glBegin(GL_LINES);
+					vindex=0;
+					for (unsigned int i=0;i<numindices;i+=2)
+					{
+						glVertex3fv(vertexarray[(indexarray[vindex++])].getLocalXYZ());
+						glVertex3fv(vertexarray[(indexarray[vindex++])].getLocalXYZ());
+					}
+					glEnd();
+				}
+				break;
+			case 2:
+				{
+					glBegin(GL_QUADS);
+					vindex=0;
+					if (useObjectColor)
+					{
+						for (unsigned int i=0;i<numindices;i+=4)
+						{
+							MT_Point3 mv1, mv2, mv3, mv4, fnor;
+							/* Calc a new face normal */
+
+							if (vertexarray[(indexarray[vindex])].getFlag() & TV_CALCFACENORMAL)
+								recalc= true;
+							else
+								recalc=false;
+
+							if (recalc){
+								mv1 = MT_Point3(vertexarray[(indexarray[vindex])].getLocalXYZ());
+								mv2 = MT_Point3(vertexarray[(indexarray[vindex+1])].getLocalXYZ());
+								mv3 = MT_Point3(vertexarray[(indexarray[vindex+2])].getLocalXYZ());
+								mv4 = MT_Point3(vertexarray[(indexarray[vindex+2])].getLocalXYZ());
+						
+								fnor = (((mv2-mv1).cross(mv3-mv2))+((mv4-mv3).cross(mv1-mv4))).safe_normalized();
+
+								glNormal3f(fnor[0], fnor[1], fnor[2]);
+							}
+
+							glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
+
+							if (!recalc)
+								glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+					
+							if (!recalc)
+								glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+						
+							if (!recalc)
+								glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());						
+						
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+					
+							if (!recalc)
+								glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+						}
+					}
+					else
+					{
+						for (unsigned int i=0;i<numindices;i+=4)
+						{
+							// This looks curiously endian unsafe to me.
+							// However it depends on the way the colors are packed into 
+							// the m_rgba field of RAS_TexVert
+							MT_Point3 mv1, mv2, mv3, mv4, fnor;
+							/* Calc a new face normal */
+
+							if (vertexarray[(indexarray[vindex])].getFlag() & TV_CALCFACENORMAL)
+								recalc= true;
+							else
+								recalc=false;
+
+
+							if (recalc){
+								mv1 = MT_Point3(vertexarray[(indexarray[vindex])].getLocalXYZ());
+								mv2 = MT_Point3(vertexarray[(indexarray[vindex+1])].getLocalXYZ());
+								mv3 = MT_Point3(vertexarray[(indexarray[vindex+2])].getLocalXYZ());
+								mv4 = MT_Point3(vertexarray[(indexarray[vindex+3])].getLocalXYZ());
+							
+								fnor = (((mv2-mv1).cross(mv3-mv2))+((mv4-mv3).cross(mv1-mv4))).safe_normalized();
+
+								glNormal3f(fnor[0], fnor[1], fnor[2]);
+							}
+
+							glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+							if (!recalc)
+								glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+						
+							glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+							if (!recalc)
+								glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+					
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+						
+							glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+							if (!recalc)
+								glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+					
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+						
+							glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+							if (!recalc)
+								glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+						}
+					}
+					glEnd();	
+					break;
+				}
+			case 0:
+				{
+					glBegin(GL_TRIANGLES);
+					vindex=0;
+					if (useObjectColor)
+					{
+						for (unsigned int i=0;i<numindices;i+=3)
+						{
+							MT_Point3 mv1, mv2, mv3, fnor;
+							/* Calc a new face normal */
+
+							if (vertexarray[(indexarray[vindex])].getFlag() & TV_CALCFACENORMAL)
+								recalc= true;
+							else
+								recalc=false;
+
+							if (recalc){
+								mv1 = MT_Point3(vertexarray[(indexarray[vindex])].getLocalXYZ());
+								mv2 = MT_Point3(vertexarray[(indexarray[vindex+1])].getLocalXYZ());
+								mv3 = MT_Point3(vertexarray[(indexarray[vindex+2])].getLocalXYZ());
+							
+								fnor = ((mv2-mv1).cross(mv3-mv2)).safe_normalized();
+								glNormal3f(fnor[0], fnor[1], fnor[2]);
+							}
+
+							glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
+
+							if (!recalc)
+								glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+							
+							if (!recalc)
+								glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+						
+							if (!recalc)
+								glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+						}
+					}
+					else 
+					{
+						for (unsigned int i=0;i<numindices;i+=3)
+						{
+							MT_Point3 mv1, mv2, mv3, fnor;
+							/* Calc a new face normal */
+
+							if (vertexarray[(indexarray[vindex])].getFlag() & TV_CALCFACENORMAL)
+								recalc= true;
+							else
+								recalc=false;
+
+
+							if (recalc){
+								mv1 = MT_Point3(vertexarray[(indexarray[vindex])].getLocalXYZ());
+								mv2 = MT_Point3(vertexarray[(indexarray[vindex+1])].getLocalXYZ());
+								mv3 = MT_Point3(vertexarray[(indexarray[vindex+2])].getLocalXYZ());
+							
+								fnor = ((mv2-mv1).cross(mv3-mv2)).safe_normalized();
+								glNormal3f(fnor[0], fnor[1], fnor[2]);
+							}
+
+							glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+							if (!recalc)
+								glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+						
+							glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+							if (!recalc)
+								glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+						
+							glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+							if (!recalc)
+								glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+							TexCoord(vertexarray[(indexarray[vindex])],enabled );
+							glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+							vindex++;
+						}
+					}
+					glEnd();	
+					break;
+				}
+			default:
+				{
+				}
+
+			} // switch
+		} // for each vertexarray
+	}
 #endif
 }
 

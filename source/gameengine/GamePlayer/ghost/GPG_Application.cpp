@@ -57,6 +57,7 @@
 
 #include <iostream>
 #include <MT_assert.h>
+#include <stdlib.h>
 
 /**********************************
  * Begin Blender include block
@@ -509,20 +510,25 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool useVertexArrays = SYS_GetCommandLineInt(syshandle,"vertexarrays",1) != 0;
 		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", G.fileflags & G_FILE_DIAPLAY_LISTS) != 0);
-#ifdef GL_ARB_multitexture
-		int gameflag =(G.fileflags & G_FILE_GAME_MAT);
-		// ----------------------------------
-		if(bgl::RAS_EXT_support._ARB_multitexture && bgl::QueryVersion(1, 1)) {
-			m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", gameflag) != 0);
-			int unitmax=0;
-			glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&unitmax);
-			bgl::max_texture_units = MAXTEX>unitmax?unitmax:MAXTEX;
-			//std::cout << "using(" << bgl::max_texture_units << ") of(" << unitmax << ") texture units." << std::endl;
+
+#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+		if (!getenv("WITHOUT_GLEXT")) {
+			int gameflag =(G.fileflags & G_FILE_GAME_MAT);
+
+			if(bgl::RAS_EXT_support._ARB_multitexture && bgl::QueryVersion(1, 1)) {
+				m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", gameflag) != 0);
+				int unitmax=0;
+				glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&unitmax);
+				bgl::max_texture_units = MAXTEX>unitmax?unitmax:MAXTEX;
+				//std::cout << "using(" << bgl::max_texture_units << ") of(" << unitmax << ") texture units." << std::endl;
+			} else {
+				bgl::max_texture_units = 0;
+			}
 		} else {
-			bgl::max_texture_units = 0;
+			m_blendermat=0;
 		}
 #else
-		m_blendermat=0;
+			m_blendermat=0;
 #endif//GL_ARB_multitexture
 		// ----------------------------------
 	

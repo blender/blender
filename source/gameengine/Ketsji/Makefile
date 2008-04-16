@@ -65,6 +65,11 @@ CPPFLAGS += -I../../blender/makesdna
 CPPFLAGS += -I../../blender/imbuf
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
+ifeq ($(WITH_BF_GLEXT),true)
+    CPPFLAGS += -DWITH_GLEXT
+endif
+
+
 ###########################
 
 SOURCEDIR = source/gameengine/Ketsji

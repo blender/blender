@@ -51,6 +51,8 @@
 /* #endif */
 #endif
 
+#include <stdlib.h>
+
 #ifdef WIN32
 #pragma warning (disable : 4786)
 #endif //WIN32
@@ -335,16 +337,18 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 		pprint("");
 	}
 #endif
-#ifdef GL_ARB_multitexture
-	support = ext._ARB_multitexture;
-	count = 1;
-	pprint(" GL_ARB_multitexture supported?         "<< (support?"yes.":"no."));
-	if(support){
-		pprint(" ----------Details----------");
-		int units=0;
-		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&units);
-		pprint("  Max texture units available.  " << units);
-		pprint("");
+#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+	if (!getenv("WITHOUT_GLEXT")) {
+		support = ext._ARB_multitexture;
+		count = 1;
+		pprint(" GL_ARB_multitexture supported?         "<< (support?"yes.":"no."));
+		if(support){
+			pprint(" ----------Details----------");
+			int units=0;
+			glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&units);
+			pprint("  Max texture units available.  " << units);
+			pprint("");
+		}
 	}
 #endif
 #ifdef GL_ARB_texture_env_combine
