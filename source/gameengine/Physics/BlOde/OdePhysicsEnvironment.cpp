@@ -1,7 +1,7 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * The contents of this file may be used under the terms of either the GNU
  * General Public License Version 2 or later (the "GPL", see
@@ -17,7 +17,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #include "OdePhysicsEnvironment.h"
 #include "PHY_IMotionState.h"

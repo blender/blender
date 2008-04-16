@@ -3,7 +3,7 @@
  *
  * $Id: SCA_ParentActuator.cpp 13932 2008-03-01 19:05:41Z ben2610 $
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "KX_ParentActuator.h"

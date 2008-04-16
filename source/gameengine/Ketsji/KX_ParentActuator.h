@@ -4,7 +4,7 @@
  *
  * $Id: KX_ParentActuator.h 3271 2004-10-16 11:41:50Z kester $
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,7 +30,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef __KX_PARENTACTUATOR
