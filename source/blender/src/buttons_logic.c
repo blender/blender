@@ -1863,7 +1863,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
   			glRects(xco, yco-ysize, xco+width, yco); 
   			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
 	 
-  			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+40, yco-44, (width-80), 19, &(sca->camera), "Set this Camera"); 
+  			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+40, yco-44, (width-80), 19, &(sca->camera), "Set this Camera. Leave empty to refer to self object"); 
   		} 
   		else if(sca->type==ACT_SCENE_SET) { 
 			
