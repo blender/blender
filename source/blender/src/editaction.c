@@ -1150,7 +1150,37 @@ void verify_pchan2achan_grouping (bAction *act, bPose *pose, char name[])
 			grp= MEM_callocN(sizeof(bActionGroup), "bActionGroup");
 			
 			grp->flag |= (AGRP_ACTIVE|AGRP_SELECTED|AGRP_EXPANDED);
+			
+			/* copy name */
 			sprintf(grp->name, agrp->name);
+			
+			/* deal with group-color copying */
+			if (agrp->customCol) {
+				if (agrp->customCol > 0) {
+					/* copy theme colors on-to group's custom color in case user tries to edit color */
+					bTheme *btheme= U.themes.first;
+					ThemeWireColor *col_set= &btheme->tarm[(agrp->customCol - 1)];
+					
+					memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
+				}
+				else {
+					/* init custom colours with a generic multi-colour rgb set, if not initialised already */
+					if (agrp->cs.solid[0] == 0) {
+						/* define for setting colors in theme below */
+						#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
+						
+						SETCOL(grp->cs.solid, 0xff, 0x00, 0x00, 255);
+						SETCOL(grp->cs.select, 0x81, 0xe6, 0x14, 255);
+						SETCOL(grp->cs.active, 0x18, 0xb6, 0xe0, 255);
+						
+						#undef SETCOL
+					}
+					else {
+						/* just copy color set specified */
+						memcpy(&grp->cs, &agrp->cs, sizeof(ThemeWireColor));
+					}
+				}
+			}
 			
 			BLI_addtail(&act->groups, grp);
 		}

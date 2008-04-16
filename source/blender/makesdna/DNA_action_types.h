@@ -233,7 +233,9 @@ typedef enum SACTION_FLAG {
 		/* don't include keyframes that are out of view */
 	SACTION_HORIZOPTIMISEON = (1<<5),
 		/* hack for moving pose-markers (temp flag)  */
-	SACTION_POSEMARKERS_MOVE = (1<<6)
+	SACTION_POSEMARKERS_MOVE = (1<<6),
+		/* draw action channels using group colours (where applicable) */
+	SACTION_DRAWGCOLORS = (1<<7)
 } SACTION_FLAG;	
 
 /* SpaceAction AutoSnap Settings (also used by SpaceNLA) */

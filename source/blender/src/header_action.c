@@ -97,7 +97,8 @@ enum {
 	ACTMENU_VIEW_TIME,
 	ACTMENU_VIEW_NOHIDE,
 	ACTMENU_VIEW_TRANSDELDUPS,
-	ACTMENU_VIEW_HORIZOPTIMISE
+	ACTMENU_VIEW_HORIZOPTIMISE,
+	ACTMENU_VIEW_GCOLORS
 };
 
 enum {
@@ -347,6 +348,9 @@ static void do_action_viewmenu(void *arg, int event)
 		case ACTMENU_VIEW_HORIZOPTIMISE: /* Include keyframes not in view (horizontally) when preparing to draw */
 			G.saction->flag ^= SACTION_HORIZOPTIMISEON;
 			break;
+		case ACTMENU_VIEW_GCOLORS: /* Draw grouped-action channels using its group's color */
+			G.saction->flag ^= SACTION_DRAWGCOLORS;
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -392,6 +396,11 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 "Show Hidden Channels|", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_NOHIDE, "");
+					 
+	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_DRAWGCOLORS)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Use Group Colors|", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+					 ACTMENU_VIEW_GCOLORS, "");
 					 
 		// this option may get removed in future
 	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_HORIZOPTIMISEON)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
