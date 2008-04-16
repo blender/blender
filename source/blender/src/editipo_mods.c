@@ -975,16 +975,16 @@ void set_ipoextend(void)
 	
 	switch(event)
 	{
-	case 0:
+	case 1:
 		set_exprap_ipo(IPO_HORIZ);
 		break;
-	case 1:
+	case 2:
 		set_exprap_ipo(IPO_DIR);
 		break;
-	case 2:
+	case 3:
 		set_exprap_ipo(IPO_CYCL);
 		break;
-	case 3:
+	case 4:
 		set_exprap_ipo(IPO_CYCLX);
 		break;
 	}
