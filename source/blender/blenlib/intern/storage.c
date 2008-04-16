@@ -52,7 +52,7 @@
 
 #if defined (__sun__) || defined (__sun)
 #include <sys/statvfs.h> /* Other modern unix os's should probably use this also */
-#elif !defined(linux) && (defined(__sgi) || defined(__sparc) || defined(__sparc__))
+#elif !defined(__FreeBSD__) && !defined(linux) && (defined(__sgi) || defined(__sparc) || defined(__sparc__))
 #include <sys/statfs.h>
 #endif
 
@@ -209,7 +209,7 @@ double BLI_diskfree(char *dir)
 
 #if defined (__sun__) || defined (__sun)
 	if (statvfs(name, &disk)) return(-1);	
-#elif !defined(linux) && (defined (__sgi) || defined(__sparc) || defined(__sparc__))
+#elif !defined(__FreeBSD__) && !defined(linux) && (defined (__sgi) || defined(__sparc) || defined(__sparc__))
 	/* WARNING - This may not be supported by geeneric unix os's - Campbell */
 	if (statfs(name, &disk, sizeof(struct statfs), 0)) return(-1);
 #endif
