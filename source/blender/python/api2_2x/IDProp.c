@@ -516,7 +516,7 @@ PyObject *BPy_IDGroup_HasKey(BPy_IDProperty *self, PyObject *value)
 PyObject *BPy_IDGroup_Update(BPy_IDProperty *self, PyObject *vars)
 {
 	PyObject *pyob, *pkey, *pval;
-	int i=0;
+	Py_ssize_t i=0;
 	
 	if (PySequence_Size(vars) != 1)
 		return EXPP_ReturnPyObjError( PyExc_TypeError,

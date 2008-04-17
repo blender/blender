@@ -178,7 +178,7 @@ static PyObject *BonesDict_repr(BPy_BonesDict *self)
 {
 	char str[2048];
 	PyObject *key, *value;
-	int pos = 0;
+	Py_ssize_t pos = 0;
 	char *p = str;
 	char *keys, *vals;
 

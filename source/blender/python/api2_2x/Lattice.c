@@ -676,7 +676,7 @@ static PyObject *Lattice_getLatSize(BPy_Lattice * self)
 static PyObject *Lattice_getAxisType(BPy_Lattice * self, void * type)
 {
 	char interp_type = 0;
-	switch ( (int)type ) {
+	switch ( GET_INT_FROM_POINTER(type) ) {
 	case 0:
 		interp_type = self->lattice->typeu;
 		break;

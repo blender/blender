@@ -941,7 +941,7 @@ PyTypeObject LibraryData_Type = {
 
 static PyObject *LibraryData_CreatePyObject( BPy_Library *self, void *mode )
 {
-	return CreatePyObject_LibData( (int)mode, OTHER, NULL, NULL,
+	return CreatePyObject_LibData( GET_INT_FROM_POINTER(mode), OTHER, NULL, NULL,
 			self->filename );
 }
 

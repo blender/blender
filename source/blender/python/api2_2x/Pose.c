@@ -144,7 +144,7 @@ static PyObject *PoseBonesDict_repr(BPy_PoseBonesDict *self)
 {
 	char buffer[128], *str;
 	PyObject *key, *value;
-	int pos = 0;
+	Py_ssize_t pos = 0;
 	
 	/* probably a bit of overkill but better then crashing */
 	str = MEM_mallocN( 64 + ( PyDict_Size( self->bonesMap ) * 128), "PoseBonesDict_repr" );
@@ -1052,7 +1052,7 @@ static int PoseBone_setStretch(BPy_PoseBone *self, PyObject *value, void *closur
 //Gets the pose bones IK stiffness
 static PyObject *PoseBone_getStiff(BPy_PoseBone *self, void *axis)
 {
-	return PyFloat_FromDouble( self->posechannel->stiffness[(int)axis] );
+	return PyFloat_FromDouble( self->posechannel->stiffness[GET_INT_FROM_POINTER(axis)] );
 }
 
 //------------------------PoseBone.stiffX/Y/Z (setter)
@@ -1068,7 +1068,7 @@ static int PoseBone_setStiff(BPy_PoseBone *self, PyObject *value, void *axis)
 	stiff = (float)PyFloat_AsDouble(value);
 	if (stiff<0) stiff = 0;
 	if (stiff>0.990) stiff = 0.990f;
-	self->posechannel->stiffness[(int)axis] = stiff;
+	self->posechannel->stiffness[GET_INT_FROM_POINTER(axis)] = stiff;
 	return 0;
 }
 
@@ -1102,7 +1102,7 @@ static int PoseBone_setFlag(BPy_PoseBone *self, PyObject *value, void *flag)
 //Gets the pose bones ikflag
 static PyObject *PoseBone_getIKFlag(BPy_PoseBone *self, void *flag)
 {
-	if (self->posechannel->ikflag & (int)flag)
+	if (self->posechannel->ikflag & GET_INT_FROM_POINTER(flag))
 		Py_RETURN_TRUE;
 	else
 		Py_RETURN_FALSE;
@@ -1119,9 +1119,9 @@ static int PoseBone_setIKFlag(BPy_PoseBone *self, PyObject *value, void *flag)
 				"expected True/False or 0/1" );
 	
 	if ( param )
-		self->posechannel->ikflag |= (int)flag;
+		self->posechannel->ikflag |= GET_INT_FROM_POINTER(flag);
 	else
-		self->posechannel->ikflag &= ~(int)flag;
+		self->posechannel->ikflag &= ~GET_INT_FROM_POINTER(flag);
 	return 0;
 }
 

@@ -1601,7 +1601,7 @@ static PyObject* Material_getSssScale( BPy_Material * self )
 
 static PyObject* Material_getSssRadius( BPy_Material * self, void * type )
 {
-	return PyFloat_FromDouble( ( double ) (self->material->sss_radius[(int)type]) );
+	return PyFloat_FromDouble( ( double ) (self->material->sss_radius[GET_INT_FROM_POINTER(type)]) );
 }
 
 static PyObject* Material_getSssIOR( BPy_Material * self )
@@ -1813,7 +1813,7 @@ static int Material_setColorComponent( BPy_Material * self, PyObject * value,
 	param = (float)PyFloat_AsDouble( value );
 	param = EXPP_ClampFloat( param, EXPP_MAT_COL_MIN, EXPP_MAT_COL_MAX );
 
-	switch ( (int)closure ) {
+	switch ( GET_INT_FROM_POINTER(closure) ) {
 	case EXPP_MAT_COMP_R:
 		self->material->r = param;
 		return 0;
@@ -2174,7 +2174,7 @@ static int Material_setSssScale( BPy_Material * self, PyObject * value )
 
 static int Material_setSssRadius( BPy_Material * self, PyObject * value, void *type )
 {
-	return EXPP_setFloatClamped ( value, &self->material->sss_radius[(int)type],
+	return EXPP_setFloatClamped ( value, &self->material->sss_radius[GET_INT_FROM_POINTER(type)],
 								EXPP_MAT_SSS_RADIUS_MIN,
 								EXPP_MAT_SSS_RADIUS_MAX);
 }
@@ -2636,7 +2636,7 @@ void EXPP_incr_mats_us( Material ** matlist, int len )
 static PyObject *Material_getColorComponent( BPy_Material * self, 
 							void * closure )
 {
-	switch ( (int)closure ) {
+	switch ( GET_INT_FROM_POINTER(closure) ) {
 	case EXPP_MAT_COMP_R:
 		return PyFloat_FromDouble( ( double ) self->material->r );
 	case EXPP_MAT_COMP_G:

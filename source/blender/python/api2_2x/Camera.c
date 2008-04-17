@@ -33,6 +33,7 @@
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_library.h"
+#include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h" /* for M_PI */
 #include "BSE_editipo.h"
@@ -682,7 +683,7 @@ static PyObject *getFloatAttr( BPy_Camera *self, void *type )
 	float param;
 	struct Camera *cam= self->camera;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_CAM_ATTR_LENS: 
 		param = cam->lens;
 		break;
@@ -735,7 +736,7 @@ static int setFloatAttrClamp( BPy_Camera *self, PyObject *value, void *type )
 	float min, max;
 	int ret;
  
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_CAM_ATTR_LENS:
 		min = 1.0;
 		max = 250.0;
@@ -795,7 +796,7 @@ static int setFloatAttrClamp( BPy_Camera *self, PyObject *value, void *type )
 	ret = EXPP_setFloatClamped( value, param, min, max );
 	
 	if (ret==0) {
-		if ((int)type == EXPP_CAM_ATTR_ANGLE) {
+		if (GET_INT_FROM_POINTER(type) == EXPP_CAM_ATTR_ANGLE) {
 			cam->lens = 16.0f / tan(M_PI*cam->lens/360.0f);
 		}
 	}
@@ -809,7 +810,7 @@ static int setFloatAttrClamp( BPy_Camera *self, PyObject *value, void *type )
 
 static PyObject *getFlagAttr( BPy_Camera *self, void *type )
 {
-	if (self->camera->flag & (int)type)
+	if (self->camera->flag & GET_INT_FROM_POINTER(type))
 		Py_RETURN_TRUE;
 	else
 		Py_RETURN_FALSE;
@@ -827,9 +828,9 @@ static int setFlagAttr( BPy_Camera *self, PyObject *value, void *type )
 				"expected True/False or 0/1" );
 	
 	if (param)
-		self->camera->flag |= (int)type;
+		self->camera->flag |= GET_INT_FROM_POINTER(type);
 	else
-		self->camera->flag &= ~(int)type;
+		self->camera->flag &= ~GET_INT_FROM_POINTER(type);
 	return 0;
 }
 

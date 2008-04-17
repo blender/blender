@@ -31,6 +31,7 @@
 #include "DNA_userdef_types.h"
 #include "../api2_2x/gen_utils.h"
 #include "bpy_config.h"
+#include "BKE_utildefines.h"
 
 enum conf_consts {
 	/*string*/
@@ -88,7 +89,7 @@ static PyObject *getStrAttr( BPy_Config *self, void *type )
 {
 	char *param = NULL;
 	
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_CONF_ATTR_PATH_YF_EXPORT:
 		param = U.yfexportdir;
 		break;
@@ -139,7 +140,7 @@ static int setStrAttr( BPy_Config *self, PyObject *value, void *type )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 			"error, must assign a python string for setStrAttr");
 	
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_CONF_ATTR_PATH_YF_EXPORT:
 		param = U.yfexportdir;
 		break;
@@ -186,7 +187,7 @@ static PyObject *getIntAttr( BPy_Config *self, void *type )
 {
 	int param;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_CONF_ATTR_UNDOSTEPS:
 		param = (int)U.undosteps;
 		break;
@@ -220,7 +221,7 @@ static int setIntAttrClamp( BPy_Config *self, PyObject *value, void *type )
 	void *param;
 	int min, max, size;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_CONF_ATTR_UNDOSTEPS:
 		min = 0;
 		max = 64;

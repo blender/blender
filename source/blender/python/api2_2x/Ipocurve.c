@@ -34,6 +34,7 @@
 #include "BKE_main.h"
 #include "BKE_depsgraph.h"
 #include "BKE_ipo.h"
+#include "BKE_utildefines.h"
 #include "BIF_space.h"
 #include "BSE_editipo.h"
 #include "MEM_guardedalloc.h"
@@ -1017,7 +1018,7 @@ static int IpoCurve_newsetExtend( C_IpoCurve * self, PyObject * value )
 
 static PyObject *IpoCurve_getFlag( C_IpoCurve * self, void *type )
 {
-	if (self->ipocurve->flag & (int)type)
+	if (self->ipocurve->flag & GET_INT_FROM_POINTER(type))
 		Py_RETURN_TRUE;
 	else
 		Py_RETURN_FALSE;
@@ -1031,9 +1032,9 @@ static int IpoCurve_setFlag( C_IpoCurve * self, PyObject *value, void *type )
 				"expected True/False or 0/1" );
 	
 	if (param)
-		self->ipocurve->flag |= (int)type;
+		self->ipocurve->flag |= GET_INT_FROM_POINTER(type);
 	else
-		self->ipocurve->flag &= ~(int)type;
+		self->ipocurve->flag &= ~GET_INT_FROM_POINTER(type);
 	
 	return 0;
 }

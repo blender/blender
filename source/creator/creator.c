@@ -227,7 +227,7 @@ static void print_help(void)
 	printf ("  -v\t\tPrint Blender version and exit\n");
 	printf ("  --\t\tEnds option processing.  Following arguments are \n");
 	printf ("    \t\t   passed unchanged.  Access via Python's sys.argv\n");
-	printf ("\nEnironment Variables:\n");
+	printf ("\nEnvironment Variables:\n");
 	printf ("  $HOME\t\t\tStore files such as .blender/ .B.blend .Bfs .Blog here.\n");
 #ifdef WIN32
 	printf ("  $TEMP\t\tStore temporary files here.\n");
@@ -271,7 +271,6 @@ int main(int argc, char **argv)
 {
 	int a, i, stax=0, stay=0, sizx, sizy, scr_init = 0;
 	SYS_SystemHandle syshandle;
-	Scene *sce;
 
 #if defined(WIN32) || defined (__linux__)
 	int audio = 1;

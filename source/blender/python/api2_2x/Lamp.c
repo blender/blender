@@ -42,6 +42,7 @@
 #include "constant.h"
 #include "gen_utils.h"
 #include "gen_library.h"
+#include "BKE_utildefines.h"
 
 /*****************************************************************************/
 /* Python BPy_Lamp defaults:                                                 */
@@ -1175,7 +1176,7 @@ static int Lamp_setFalloffType( BPy_Lamp * self, PyObject * value )
 
 static PyObject *Lamp_getComponent( BPy_Lamp * self, void * closure )
 {
-	switch ( (int)closure ) {
+	switch ( GET_INT_FROM_POINTER(closure) ) {
 	case EXPP_LAMP_COMP_R:
 		return PyFloat_FromDouble( self->lamp->r );
 	case EXPP_LAMP_COMP_G:
@@ -1200,7 +1201,7 @@ static int Lamp_setComponent( BPy_Lamp * self, PyObject * value,
 	color = (float)PyFloat_AsDouble( value );
 	color = EXPP_ClampFloat( color, EXPP_LAMP_COL_MIN, EXPP_LAMP_COL_MAX );
 
-	switch ( (int)closure ) {
+	switch ( GET_INT_FROM_POINTER(closure) ) {
 	case EXPP_LAMP_COMP_R:
 		self->lamp->r = color;
 		return 0;

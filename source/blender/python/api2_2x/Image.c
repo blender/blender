@@ -1191,7 +1191,7 @@ static PyObject *Image_hasData(BPy_Image *self, void *closure)
 
 static PyObject *Image_getFlag(BPy_Image *self, void *flag)
 {
-	if (self->image->flag & (int)flag)
+	if (self->image->flag & GET_INT_FROM_POINTER(flag))
 		Py_RETURN_TRUE;
 	else
 		Py_RETURN_FALSE;
@@ -1200,7 +1200,7 @@ static PyObject *Image_getFlag(BPy_Image *self, void *flag)
 
 static PyObject *Image_getFlagTpage(BPy_Image *self, void *flag)
 {
-	if (self->image->tpageflag & (int)flag)
+	if (self->image->tpageflag & GET_INT_FROM_POINTER(flag))
 		Py_RETURN_TRUE;
 	else
 		Py_RETURN_FALSE;
@@ -1235,9 +1235,9 @@ static int Image_setFlag(BPy_Image *self, PyObject *value, void *flag)
 				"expected True/False or 0/1" );
 	
 	if ( param )
-		self->image->flag |= (int)flag;
+		self->image->flag |= GET_INT_FROM_POINTER(flag);
 	else
-		self->image->flag &= ~(int)flag;
+		self->image->flag &= ~GET_INT_FROM_POINTER(flag);
 	return 0;
 }
 
@@ -1249,9 +1249,9 @@ static int Image_setFlagTpage(BPy_Image *self, PyObject *value, void *flag)
 				"expected True/False or 0/1" );
 	
 	if ( param )
-		self->image->tpageflag |= (int)flag;
+		self->image->tpageflag |= GET_INT_FROM_POINTER(flag);
 	else
-		self->image->tpageflag &= ~(int)flag;
+		self->image->tpageflag &= ~GET_INT_FROM_POINTER(flag);
 	return 0;
 }
 
@@ -1263,7 +1263,7 @@ static PyObject *getIntAttr( BPy_Image *self, void *type )
 	int param;
 	struct Image *image = self->image;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_IMAGE_ATTR_XREP:
 		param = image->xrep;
 		break;
@@ -1304,7 +1304,7 @@ static int setIntAttrClamp( BPy_Image *self, PyObject *value, void *type )
 	struct Image *image = self->image;
 	int min, max, size;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_IMAGE_ATTR_XREP:
 		min = EXPP_IMAGE_REP_MIN;
 		max = EXPP_IMAGE_REP_MAX;

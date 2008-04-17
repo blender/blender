@@ -34,6 +34,8 @@
 #include "gen_utils.h"
 #include "BezTriple.h"
 
+#include "BKE_utildefines.h"
+
 /* Only for ME_SMOOTH */
 #include "DNA_meshdata_types.h"
 
@@ -430,14 +432,14 @@ static PyObject *CurNurb_getPoints( BPy_CurNurb * self )
 static PyObject *CurNurb_getFlagBits( BPy_CurNurb * self, void *type )
 {
 	return EXPP_getBitfield( (void *)&self->nurb->flag,
-							  (int)type, 'h' );
+							  GET_INT_FROM_POINTER(type), 'h' );
 }
 
 static int CurNurb_setFlagBits( BPy_CurNurb * self, PyObject *value,
 									void *type )
 {
 	return EXPP_setBitfield( value, (void *)&self->nurb->flag,
-							 (int)type, 'h' );
+							 GET_INT_FROM_POINTER(type), 'h' );
 }
 
 /*

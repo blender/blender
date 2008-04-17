@@ -3553,7 +3553,7 @@ static PyObject *getIntAttr( BPy_Object *self, void *type )
 	int param;
 	struct Object *object = self->object;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_OBJ_ATTR_LAYERMASK:
 		param = object->lay;
 		break;
@@ -3609,7 +3609,7 @@ static int setIntAttrClamp( BPy_Object *self, PyObject *value, void *type )
 	struct Object *object = self->object;
 	int min, max, size;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_OBJ_ATTR_DUPON:
 		min = 1;
 		max = 1500;
@@ -3685,7 +3685,7 @@ static int setIntAttrRange( BPy_Object *self, PyObject *value, void *type )
 
 	/* these parameters require clamping */
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_OBJ_ATTR_COLBITS:
 		min = 0;
 		max = 0xffff;
@@ -3710,20 +3710,20 @@ static PyObject *getFloatAttr( BPy_Object *self, void *type )
 	float param;
 	struct Object *object = self->object;
 
-	if( (int)type >= EXPP_OBJ_ATTR_PI_SURFACEDAMP &&
-			(int)type <= EXPP_OBJ_ATTR_PI_SBOFACETHICK ) {
+	if( GET_INT_FROM_POINTER(type) >= EXPP_OBJ_ATTR_PI_SURFACEDAMP &&
+			GET_INT_FROM_POINTER(type) <= EXPP_OBJ_ATTR_PI_SBOFACETHICK ) {
     	if( !self->object->pd && !setupPI(self->object) )
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"particle deflection could not be accessed" );
 	}
-	else if( (int)type >= EXPP_OBJ_ATTR_SB_NODEMASS &&
-			(int)type <= EXPP_OBJ_ATTR_SB_INFRICT ) {
+	else if( GET_INT_FROM_POINTER(type) >= EXPP_OBJ_ATTR_SB_NODEMASS &&
+			GET_INT_FROM_POINTER(type) <= EXPP_OBJ_ATTR_SB_INFRICT ) {
 		if( !self->object->soft && !setupSB(self->object) )
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						"softbody could not be accessed" );    
     }
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_OBJ_ATTR_LOC_X: 
 		param = object->loc[0];
 		break;
@@ -3868,20 +3868,20 @@ static int setFloatAttrClamp( BPy_Object *self, PyObject *value, void *type )
 	struct Object *object = self->object;
 	float min, max;
 
-	if( (int)type >= EXPP_OBJ_ATTR_PI_SURFACEDAMP &&
-			(int)type <= EXPP_OBJ_ATTR_PI_SBOFACETHICK ) {
+	if( GET_INT_FROM_POINTER(type) >= EXPP_OBJ_ATTR_PI_SURFACEDAMP &&
+			GET_INT_FROM_POINTER(type) <= EXPP_OBJ_ATTR_PI_SBOFACETHICK ) {
     	if( !self->object->pd && !setupPI(self->object) )
 			return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"particle deflection could not be accessed" );
 	}
-	else if( (int)type >= EXPP_OBJ_ATTR_SB_NODEMASS &&
-			(int)type <= EXPP_OBJ_ATTR_SB_INFRICT ) {
+	else if( GET_INT_FROM_POINTER(type) >= EXPP_OBJ_ATTR_SB_NODEMASS &&
+			GET_INT_FROM_POINTER(type) <= EXPP_OBJ_ATTR_SB_INFRICT ) {
 		if( !self->object->soft && !setupSB(self->object) )
 			return EXPP_ReturnIntError( PyExc_RuntimeError,
 						"softbody could not be accessed" );    
     }
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_OBJ_ATTR_DRAWSIZE:
 		min = EXPP_OBJECT_DRAWSIZEMIN;
 		max = EXPP_OBJECT_DRAWSIZEMAX;
@@ -4027,7 +4027,7 @@ static int setFloatAttr( BPy_Object *self, PyObject *value, void *type )
 
 	param = (float)PyFloat_AsDouble( value );
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_OBJ_ATTR_LOC_X: 
 		object->loc[0] = param;
 		break;
@@ -4099,7 +4099,7 @@ static PyObject *getFloat3Attr( BPy_Object *self, void *type )
 	float *param;
 	struct Object *object = self->object;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_OBJ_ATTR_LOC: 
 		param = object->loc;
 		break;
@@ -4142,7 +4142,7 @@ static int setFloat3Attr( BPy_Object *self, PyObject *value, void *type )
 	}
 
 	Py_DECREF( value );
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_OBJ_ATTR_LOC: 
 		dst = object->loc;
 		break;
@@ -4176,7 +4176,7 @@ static int setFloat3Attr( BPy_Object *self, PyObject *value, void *type )
 
 static PyObject *Object_getShapeFlag( BPy_Object *self, void *type )
 {
-	if (self->object->shapeflag & (int)type)
+	if (self->object->shapeflag & GET_INT_FROM_POINTER(type))
 		Py_RETURN_TRUE;
 	else
 		Py_RETURN_FALSE;
@@ -4186,9 +4186,9 @@ static int Object_setShapeFlag( BPy_Object *self, PyObject *value,
 		void *type )
 {
 	if (PyObject_IsTrue(value) )
-		self->object->shapeflag |= (int)type;
+		self->object->shapeflag |= GET_INT_FROM_POINTER(type);
 	else
-		self->object->shapeflag &= ~(int)type;
+		self->object->shapeflag &= ~GET_INT_FROM_POINTER(type);
 	
 	self->object->recalc |= OB_RECALC_OB;
 	return 0;
@@ -4196,7 +4196,7 @@ static int Object_setShapeFlag( BPy_Object *self, PyObject *value,
 
 static PyObject *Object_getRestricted( BPy_Object *self, void *type )
 {
-	if (self->object->restrictflag & (int)type)
+	if (self->object->restrictflag & GET_INT_FROM_POINTER(type))
 		Py_RETURN_TRUE;
 	else
 		Py_RETURN_FALSE;
@@ -4211,16 +4211,16 @@ static int Object_setRestricted( BPy_Object *self, PyObject *value,
 				"expected True/False or 0/1" );
 	
 	if ( param )
-		self->object->restrictflag |= (int)type;
+		self->object->restrictflag |= GET_INT_FROM_POINTER(type);
 	else
-		self->object->restrictflag &= ~(int)type;
+		self->object->restrictflag &= ~GET_INT_FROM_POINTER(type);
 	
 	return 0;
 }
 
 static PyObject *Object_getDrawModeBits( BPy_Object *self, void *type )
 {
-	return EXPP_getBitfield( (void *)&self->object->dtx, (int)type, 'b' );
+	return EXPP_getBitfield( (void *)&self->object->dtx, GET_INT_FROM_POINTER(type), 'b' );
 }
 
 static int Object_setDrawModeBits( BPy_Object *self, PyObject *value,
@@ -4228,13 +4228,13 @@ static int Object_setDrawModeBits( BPy_Object *self, PyObject *value,
 {
 	self->object->recalc |= OB_RECALC_OB;  
 	return EXPP_setBitfield( value, (void *)&self->object->dtx,
-			(int)type, 'b' );
+			GET_INT_FROM_POINTER(type), 'b' );
 }
 
 static PyObject *Object_getTransflagBits( BPy_Object *self, void *type )
 {
 	return EXPP_getBitfield( (void *)&self->object->transflag,
-			(int)type, 'h' );
+			GET_INT_FROM_POINTER(type), 'h' );
 }
 
 static int Object_setTransflagBits( BPy_Object *self, PyObject *value,
@@ -4242,7 +4242,7 @@ static int Object_setTransflagBits( BPy_Object *self, PyObject *value,
 {
 	self->object->recalc |= OB_RECALC_OB;  
 	return EXPP_setBitfield( value, (void *)&self->object->transflag,
-			(int)type, 'h' );
+			GET_INT_FROM_POINTER(type), 'h' );
 }
 
 static PyObject *Object_getLayers( BPy_Object * self )

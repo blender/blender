@@ -37,6 +37,7 @@
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_utildefines.h"
 #include "BIF_editfont.h"	/* do_textedit() */
 #include "Curve.h"
 #include "constant.h"
@@ -255,7 +256,7 @@ static PyObject *getFloatAttr( BPy_Text3d *self, void *type )
 	float param;
 	struct Curve *curve= self->curve;
 	
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_T3D_ATTR_FRAME_WIDTH: 
 		param = curve->tb[curve->actbox-1].w;
 		break;
@@ -282,7 +283,7 @@ static int setFloatAttrClamp( BPy_Text3d *self, PyObject *value, void *type )
 	struct Curve *curve= self->curve;
 	float min, max;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_T3D_ATTR_FRAME_WIDTH:
 		min = 0.0;
 		max = 50.0;

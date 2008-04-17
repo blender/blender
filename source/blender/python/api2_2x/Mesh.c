@@ -7039,7 +7039,7 @@ static PyObject *Mesh_getColorLayerNames( BPy_Mesh * self )
 static PyObject *Mesh_getActiveLayer( BPy_Mesh * self, void *type )
 {
 	CustomData *data = &self->mesh->fdata;
-	int layer_type = (int)type;
+	int layer_type = GET_INT_FROM_POINTER(type);
 	int i;
 	if (layer_type < 0) { /* hack, if negative, its the renderlayer.*/
 		layer_type = -layer_type;
@@ -7058,7 +7058,7 @@ static int Mesh_setActiveLayer( BPy_Mesh * self, PyObject * value, void *type )
 {
 	CustomData *data = &self->mesh->fdata;
 	char *name;
-	int i,ok,n,layer_type = (int)type, render=0;
+	int i,ok,n,layer_type = GET_INT_FROM_POINTER(type), render=0;
 	
 	if( !PyString_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_ValueError,
@@ -7112,7 +7112,7 @@ static PyObject *Mesh_getMultires( BPy_Mesh * self, void *type )
 {	
 	int i=0;
 	if (self->mesh->mr) {
-		switch ((int)type) {
+		switch (GET_INT_FROM_POINTER(type)) {
 		case MESH_MULTIRES_LEVEL:
 			i = self->mesh->mr->newlvl;
 			break;
@@ -7156,7 +7156,7 @@ static int Mesh_setMultires( BPy_Mesh * self, PyObject *value, void *type )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					"value out of range" );
 	
-	switch ((int)type) {
+	switch (GET_INT_FROM_POINTER(type)) {
 	case MESH_MULTIRES_LEVEL:
 		self->mesh->mr->newlvl = i;
 		multires_set_level_cb(self->object, self->mesh);

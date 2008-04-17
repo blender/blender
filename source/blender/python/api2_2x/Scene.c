@@ -1238,7 +1238,7 @@ int SceneObSeq_setObjects( BPy_SceneObSeq *self, PyObject *value, void *_mode_)
 	Scene *scene= self->bpyscene->scene;
 	Object *blen_ob;
 	Base *base;
-	int size, mode = (int)_mode_;
+	int size, mode = GET_INT_FROM_POINTER(_mode_);
 	
 	SCENE_DEL_CHECK_INT(self->bpyscene);
 	

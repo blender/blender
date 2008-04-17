@@ -4950,7 +4950,7 @@ static void verify_vertexgroup_name_func(void *datav, void *data2_unused)
 static void skgen_reorder(void *option, void *arg2)
 {
 	char tmp;
-	switch ((int)option)
+	switch (GET_INT_FROM_POINTER(option))
 	{
 		case 0:
 			tmp = G.scene->toolsettings->skgen_subdivisions[0];
