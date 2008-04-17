@@ -182,7 +182,7 @@ static void halo_pixelstruct(HaloRen *har, RenderLayer **rlpp, int totsample, in
 		amount+= amountm;
 		
 		zz= calchalo_z(har, ps->z);
-		if((zz> har->zs) || (har->mat->mode & MA_HALO_SOFT)) {
+		if((zz> har->zs) || (har->mat && (har->mat->mode & MA_HALO_SOFT))) {
 			if(shadeHaloFloat(har, col, zz, dist, xn, yn, flarec)) {
 				flarec= 0;
 
@@ -300,7 +300,7 @@ static void halo_tile(RenderPart *pa, RenderLayer *rl)
 							}
 							else {
 								zz= calchalo_z(har, *rz);
-								if((zz> har->zs) || (har->mat->mode & MA_HALO_SOFT)) {
+								if((zz> har->zs) || (har->mat && (har->mat->mode & MA_HALO_SOFT))) {
 									if(shadeHaloFloat(har, col, zz, dist, xn, yn, har->flarec)) {
 										for(sample=0; sample<totsample; sample++)
 											addalphaAddfacFloat(rlpp[sample]->rectf + od*4, col, har->add);
