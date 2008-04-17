@@ -189,7 +189,6 @@ if env['WITH_BF_OPENMP'] == 1:
 			env['CPPFLAGS'].append('-openmp')
 			env['CXXFLAGS'].append('-openmp')
 		else:
-			env.Append(LINKFLAGS=['-lgomp'])
 			env['CCFLAGS'].append('-fopenmp')
 			env['CPPFLAGS'].append('-fopenmp')
 			env['CXXFLAGS'].append('-fopenmp')
