@@ -182,7 +182,6 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 	unsigned char* ptr;
 	unsigned char* rect;
 	char oriY[80], oriX[80];
-	char buff[STR_MAX];
 
 	if (imb_is_a_hdr((void*)mem))
 	{
@@ -194,8 +193,7 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 			}
 		}
 		if (found) {
-			BLI_strncpy(buff, (char *)&mem[x+1], sizeof(buff));
-			if (sscanf(buff, "%s %d %s %d", (char*)&oriY, &height, 
+			if (sscanf((char *)&mem[x+1], "%80s %d %80s %d", (char*)&oriY, &height, 
 				(char*)&oriX, &width) != 4) return NULL;
 
 			/* find end of this line, data right behind it */
