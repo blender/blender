@@ -273,7 +273,7 @@ def read_opts(cfg, args):
         ('BF_FTGL_INC', 'FTGL include path', ''),
         ('BF_FTGL_LIB', 'FTGL libraries', ''),
 
-        (BoolOption('WITH_BF_GLEXT', 'Enable GL Extenstions', 'true')),
+        (BoolOption('WITH_BF_GLEXT', 'Enable GL Extensions', 'true')),
         (BoolOption('WITH_BF_PLAYER', 'Build blenderplayer if true', 'false')),
 
         ('CFLAGS', 'C-compiler flags', ''),
