@@ -3084,6 +3084,11 @@ void do_matbuts(unsigned short event)
 		break;
 	case B_MTEXMOVEUP:
 		if(ma && (int)ma->texact > 0) {
+			int mtexuse = ma->septex & (1<<((int)ma->texact));
+			ma->septex &= ~(1<<((int)ma->texact));
+			ma->septex |= (ma->septex & (1<<((int)ma->texact-1))) << 1;
+			ma->septex &= ~(1<<((int)ma->texact-1));
+			ma->septex |= mtexuse >> 1;
 			mtexswap = ma->mtex[(int)ma->texact];
 			ma->mtex[(int)ma->texact] = ma->mtex[((int)ma->texact)-1];
 			ma->mtex[((int)ma->texact)-1] = mtexswap;
@@ -3093,6 +3098,11 @@ void do_matbuts(unsigned short event)
 		break;
 	case B_MTEXMOVEDOWN:
 		if(ma && (int)ma->texact < MAX_MTEX-1) {
+			int mtexuse = ma->septex & (1<<((int)ma->texact));
+			ma->septex &= ~(1<<((int)ma->texact));
+			ma->septex |= (ma->septex & (1<<((int)ma->texact+1))) >> 1;
+			ma->septex &= ~(1<<((int)ma->texact+1));
+			ma->septex |= mtexuse << 1;
 			mtexswap = ma->mtex[(int)ma->texact];
 			ma->mtex[(int)ma->texact] = ma->mtex[((int)ma->texact)+1];
 			ma->mtex[((int)ma->texact)+1] = mtexswap;
