@@ -193,7 +193,7 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 			}
 		}
 		if (found) {
-			if (sscanf((char *)&mem[x+1], "%80s %d %80s %d", (char*)&oriY, &height, 
+			if (sscanf((char *)&mem[x+1], "%79s %d %79s %d", (char*)&oriY, &height, 
 				(char*)&oriX, &width) != 4) return NULL;
 
 			/* find end of this line, data right behind it */
