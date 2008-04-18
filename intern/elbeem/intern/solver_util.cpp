@@ -37,10 +37,10 @@ void LbmFsgrSolver::prepareVisualization( void ) {
 	int lev = mMaxRefine;
 	int workSet = mLevel[lev].setCurr;
 
-	int mainGravDir=0;
+	int mainGravDir=6; // if normalizing fails, we asume z-direction gravity
 	LbmFloat mainGravLen = 0.;
 	FORDF1{
-		LbmFloat thisGravLen = dot(LbmVec(dfVecX[l],dfVecY[l],dfVecZ[l]), getNormalized(mLevel[mMaxRefine].gravity) );
+		LbmFloat thisGravLen = dot(LbmVec(dfVecX[l],dfVecY[l],dfVecZ[l]), getNormalized(mLevel[mMaxRefine].gravity) );	
 		if(thisGravLen>mainGravLen) {
 			mainGravLen = thisGravLen;
 			mainGravDir = l;
@@ -113,7 +113,7 @@ void LbmFsgrSolver::prepareVisualization( void ) {
 					if(nbflag&CFInter){ intercnt++; }
 
 					// check all directions otherwise we get bugs with splashes on obstacles
-					// if(l!=mainGravDir) continue; // only check bnd along main grav. dir
+					if(l!=mainGravDir) continue; // only check bnd along main grav. dir
 					//if((nbflag&CFBnd)&&(nbflag&CFBndNoslip)){ noslipbnd=1; }
 					if((nbflag&CFBnd)){ noslipbnd=1; }
 				}
