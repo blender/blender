@@ -5060,7 +5060,10 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, float *loc, flo
 		
 		/*td->flag = 0;*/ /* can be set beforehand, else make sure its set to 0 */
 		td->loc = td2d->loc;
-		VECCOPY(td->center, cent);
+		td->center[0] = get_action_frame_inv(OBACT, cent[0]);
+		td->center[1] = cent[1];
+		td->center[2] = 0.0f;
+		
 		VECCOPY(td->iloc, td->loc);
 	}
 	else {
