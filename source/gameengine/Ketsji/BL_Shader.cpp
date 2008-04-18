@@ -1428,8 +1428,8 @@ KX_PYMETHODDEF_DOC( BL_Shader, setAttrib, "setAttrib(enum)" )
 		bgl::blBindAttribLocationARB(mShader, mAttr, "Tangent");
 		Py_Return;
 	}
-	return NULL;
 #endif
+	return NULL;
 }
 
 
