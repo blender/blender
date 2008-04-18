@@ -36,9 +36,10 @@
 #include "util.h"
 #include "floatpatch.h"
 
-#define B_PLUGIN_VERSION	5
+#define B_PLUGIN_VERSION	6
 
-typedef	int (*TexDoit)(int, void*, float*, float*, float*);
+typedef	int (*TexDoit)(int, void*, float*, float*, float*, float*);
+typedef	int (*TexDoitold)(int, void*, float*, float*, float*);
 typedef void (*SeqDoit)(void*, float, float, int, int, ImBuf*, ImBuf*, ImBuf*, ImBuf*);
 
 typedef struct VarStruct {
@@ -66,9 +67,9 @@ typedef struct _PluginInfo {
 	void (*instance_init)(void *);
 } PluginInfo;
 
-int plugin_tex_getversion(void);
-int plugin_seq_getversion(void);
-void plugin_getinfo(PluginInfo *);
+LIBEXPORT int plugin_tex_getversion(void);
+LIBEXPORT int plugin_seq_getversion(void);
+LIBEXPORT void plugin_getinfo(PluginInfo *);
 
 /* *************** defines for button types ************** */
 
@@ -90,14 +91,14 @@ void plugin_getinfo(PluginInfo *);
 /* *************** API functions ******************** */
 
 	/* derived from the famous Perlin noise */
-LIBEXPORT float hnoise(float noisesize, float x, float y, float z);
+LIBIMPORT float hnoise(float noisesize, float x, float y, float z);
 	/* the original Perlin noise */
-LIBEXPORT float hnoisep(float noisesize, float x, float y, float z);
+LIBIMPORT float hnoisep(float noisesize, float x, float y, float z);
 
 	/* soft turbulence */
-LIBEXPORT float turbulence(float noisesize, float x, float y, float z, int depth);
+LIBIMPORT float turbulence(float noisesize, float x, float y, float z, int depth);
 	/* hard turbulence */
-LIBEXPORT float turbulence1(float noisesize, float x, float y, float z, int depth);
+LIBIMPORT float turbulence1(float noisesize, float x, float y, float z, int depth);
 
 #endif /* PLUGIN_H */
 

@@ -126,7 +126,7 @@ void open_plugin_tex(PluginTex *pit)
 		
 		if (version != 0) {
 			pit->version= version();
-			if (pit->version>=2 && pit->version<=5) {
+			if( pit->version >= 2 && pit->version <=6) {
 				int (*info_func)(PluginInfo *);
 				PluginInfo *info= (PluginInfo*) MEM_mallocN(sizeof(PluginInfo), "plugin_info"); 
 

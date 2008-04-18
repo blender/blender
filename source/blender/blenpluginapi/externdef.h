@@ -33,11 +33,14 @@
 #ifdef WIN32
  #ifdef PLUGIN_INTERN
   #define LIBEXPORT	__declspec(dllexport)
+  #define LIBIMPORT	__declspec(dllexport)
  #else 
-  #define LIBEXPORT	extern __declspec(dllimport)
+  #define LIBEXPORT	__declspec(dllexport)
+  #define LIBIMPORT	extern __declspec(dllimport)
  #endif
 #elif !defined(WIN32)
 	#define LIBEXPORT extern
+	#define LIBIMPORT extern
 #endif
 
 #endif /* _EXTERNDEF_H */

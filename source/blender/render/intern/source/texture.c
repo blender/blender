@@ -721,30 +721,59 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 {
 	PluginTex *pit;
 	int rgbnor=0;
+	float result[ 8 ];
 
 	texres->tin= 0.0;
 
 	pit= tex->plugin;
 	if(pit && pit->doit) {
 		if(texres->nor) {
-			VECCOPY(pit->result+5, texres->nor);
+			if (pit->version < 6) {
+				VECCOPY(pit->result+5, texres->nor);
+			} else {
+				VECCOPY(result+5, texres->nor);
+			}
 		}
-		if(osatex) rgbnor= ((TexDoit)pit->doit)(tex->stype, pit->data, texvec, dxt, dyt);
-		else rgbnor= ((TexDoit)pit->doit)(tex->stype, pit->data, texvec, 0, 0);
+		if (pit->version < 6) {
+			if(osatex) rgbnor= ((TexDoitold)pit->doit)(tex->stype, 
+				pit->data, texvec, dxt, dyt);
+			else rgbnor= ((TexDoitold)pit->doit)(tex->stype, 
+				pit->data, texvec, 0, 0);
+		} else {
+			if(osatex) rgbnor= ((TexDoit)pit->doit)(tex->stype, 
+				pit->data, texvec, dxt, dyt, result);
+			else rgbnor= ((TexDoit)pit->doit)(tex->stype, 
+				pit->data, texvec, 0, 0, result);
+		}
 
-		texres->tin= pit->result[0];
+		if (pit->version < 6) {
+			texres->tin = pit->result[0];
+		} else {
+			texres->tin = result[0];
+		}
 
 		if(rgbnor & TEX_NOR) {
 			if(texres->nor) {
-				VECCOPY(texres->nor, pit->result+5);
+				if (pit->version < 6) {
+					VECCOPY(texres->nor, pit->result+5);
+				} else {
+					VECCOPY(texres->nor, result+5);
+				}
 			}
 		}
 		
 		if(rgbnor & TEX_RGB) {
-			texres->tr= pit->result[1];
-			texres->tg= pit->result[2];
-			texres->tb= pit->result[3];
-			texres->ta= pit->result[4];
+			if (pit->version < 6) {
+				texres->tr = pit->result[1];
+				texres->tg = pit->result[2];
+				texres->tb = pit->result[3];
+				texres->ta = pit->result[4];
+			} else {
+				texres->tr = result[1];
+				texres->tg = result[2];
+				texres->tb = result[3];
+				texres->ta = result[4];
+			}
 
 			BRICONTRGB;
 		}

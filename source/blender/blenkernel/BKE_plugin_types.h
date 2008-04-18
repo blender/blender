@@ -36,7 +36,8 @@
 
 struct ImBuf;
 
-typedef	int (*TexDoit)(int, void*, float*, float*, float*);
+typedef	int (*TexDoitold)(int stype, void *cast, float *texvec, float *dxt, float *dyt);
+typedef	int (*TexDoit)(int stype, void *cast, float *texvec, float *dxt, float *dyt, float *result );
 typedef void (*SeqDoit)(void*, float, float, int, int,
 						struct ImBuf*, struct ImBuf*,
 						struct ImBuf*, struct ImBuf*);
@@ -60,7 +61,7 @@ typedef struct _PluginInfo {
 
 	void (*init)(void);
 	void (*callback)(int);
-	TexDoit tex_doit;
+	void (*tex_doit)(void *);
 	SeqDoit seq_doit;
 	void (*instance_init)(void *);
 } PluginInfo;

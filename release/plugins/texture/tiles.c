@@ -62,7 +62,7 @@ float result[8];
 
 float cfra;
 
-int plugin_tex_doit(int, Cast *, float *, float *, float *);
+int plugin_tex_doit(int, Cast *, float *, float *, float *, float *);
 void plugin_instance_init(Cast*);
 
 /* ******************** Fixed functions ***************** */
@@ -150,7 +150,7 @@ float sample_wave(float freq, float coord, float pixsize)
 	return retval;
 }
 
-int plugin_tex_doit(int stype, Cast *cast, float *texvec, float *dxt, float *dyt)
+int plugin_tex_doit(int stype, Cast *cast, float *texvec, float *dxt, float *dyt, float *result)
 {
 	float xwave, ywave;
 	
