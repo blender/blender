@@ -2337,9 +2337,9 @@ static void world_panel_preview(World *wrld)
 
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, WO_SKYBLEND, B_WORLDPRV,"Blend", 220,175,100,25, &wrld->skytype, 0, 0, 0, 0, "Renders background with natural progression from horizon to zenith");
+	uiDefButBitS(block, TOG,WO_SKYPAPER, B_WORLDPRV,"Paper", 220,150,100,25, &wrld->skytype, 0, 0, 0, 0, "Flattens blend or texture coordinates");
 	if (wrld->skytype & WO_SKYBLEND) {
-		uiDefButBitS(block, TOG, WO_SKYREAL, B_WORLDPRV,"Real", 220,150,50,25, &wrld->skytype, 0, 0, 0, 0, "Renders background with a real horizon");
-		uiDefButBitS(block, TOG,WO_SKYPAPER, B_WORLDPRV,"Paper",270,150,50,25, &wrld->skytype, 0, 0, 0, 0, "Flattens blend or texture coordinates");
+		uiDefButBitS(block, TOG, WO_SKYREAL, B_WORLDPRV,"Real", 220,125,100,25, &wrld->skytype, 0, 0, 0, 0, "Renders background with a real horizon");
 	}
 	uiBlockEndAlign(block);
 
