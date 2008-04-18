@@ -64,6 +64,8 @@
 #include "BKE_main.h"
 #include "BKE_sca.h"
 #include "BKE_property.h"
+#include "BKE_property.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 #include "BIF_resources.h"
@@ -215,7 +217,7 @@ void make_unique_prop_names(char *str)
 static void make_unique_prop_names_cb(void *strv, void *redraw_view3d_flagv)
 {
 	char *str= strv;
-	int redraw_view3d_flag= (int) redraw_view3d_flagv;
+	int redraw_view3d_flag= GET_INT_FROM_POINTER(redraw_view3d_flagv);
 
 	make_unique_prop_names(str);
 	if (redraw_view3d_flag) allqueue(REDRAWVIEW3D, 0);

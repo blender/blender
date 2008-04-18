@@ -897,7 +897,7 @@ void draw_uvs_sima(void)
 		
 		glLineWidth(1);
 		col2[0] = col2[1] = col2[2] = 128; col2[3] = 255;
-		glColor4ubv(col2); 
+		glColor4ubv((unsigned char *)col2); 
 		
 		if (G.f & G_DRAWEDGES) {
 			glShadeModel(GL_SMOOTH);

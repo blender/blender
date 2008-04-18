@@ -908,7 +908,7 @@ static void seam_add_adjacent(Mesh *me, Heap *heap, int mednum, int vertnum, int
 		if (cost[adjnum] > newcost) {
 			cost[adjnum] = newcost;
 			prevedge[adjnum] = mednum;
-			BLI_heap_insert(heap, newcost, (void*)adjnum);
+			BLI_heap_insert(heap, newcost, SET_INT_IN_POINTER(adjnum));
 		}
 	}
 }
@@ -973,11 +973,11 @@ static int seam_shortest_path(Mesh *me, int source, int target)
 
 	/* regular dijkstra shortest path, but over edges instead of vertices */
 	heap = BLI_heap_new();
-	BLI_heap_insert(heap, 0.0f, (void*)source);
+	BLI_heap_insert(heap, 0.0f, SET_INT_IN_POINTER(source));
 	cost[source] = 0.0f;
 
 	while (!BLI_heap_empty(heap)) {
-		mednum = (int)BLI_heap_popmin(heap);
+		mednum = GET_INT_FROM_POINTER(BLI_heap_popmin(heap));
 		med = me->medge + mednum;
 
 		if (mednum == target)

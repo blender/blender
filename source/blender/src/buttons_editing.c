@@ -4161,13 +4161,13 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	for(a=0; a<8; a++) {
 		short dx= 18;
 		but= uiDefButBitS(block, BUT_TOGDUAL, 1<<a, REDRAWVIEW3D, "", 10+a*dx, 115, dx, 15, &arm->layer, 0, 0, 0, 0, "Armature layer (Hold Ctrl for locking in a proxy instance)");
-		uiButSetFunc(but, armature_layer_cb, &arm->layer, (void *)(1<<a));
+		uiButSetFunc(but, armature_layer_cb, &arm->layer, SET_INT_IN_POINTER(1<<a));
 	}
 	uiBlockBeginAlign(block);
 	for(a=8; a<16; a++) {
 		short dx= 18;
 		but= uiDefButBitS(block, BUT_TOGDUAL, 1<<a, REDRAWVIEW3D, "", 18+a*dx, 115, dx, 15, &arm->layer, 0, 0, 0, 0, "Armature layer (Hold Ctrl for locking in a proxy instance)");
-		uiButSetFunc(but, armature_layer_cb, &arm->layer, (void *)(1<<a));
+		uiButSetFunc(but, armature_layer_cb, &arm->layer, SET_INT_IN_POINTER(1<<a));
 	}
 	/* quite bad here, but I don't know a better place for copy... */
 	if(ob->pose)
@@ -4367,13 +4367,13 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			for(a=0; a<8; a++) {
 				short dx= 21;
 				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -10+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Armature layer that bone exists on");
-				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
+				uiButSetFunc(but, armature_layer_cb, &curBone->layer, SET_INT_IN_POINTER(1<<a));
 			}
 			uiBlockBeginAlign(block);
 			for(a=8; a<16; a++) {
 				short dx= 21;
 				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -6+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Armature layer that bone exists on");
-				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
+				uiButSetFunc(but, armature_layer_cb, &curBone->layer, SET_INT_IN_POINTER(1<<a));
 			}
 			
 			uiBlockEndAlign(block);
@@ -4470,13 +4470,13 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			for(a=0; a<8; a++) {
 				short dx= 21;
 				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -10+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Armature layer that bone exists on");
-				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
+				uiButSetFunc(but, armature_layer_cb, &curBone->layer, SET_INT_IN_POINTER(1<<a));
 			}
 			uiBlockBeginAlign(block);
 			for(a=8; a<16; a++) {
 				short dx= 21;
 				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -6+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Armature layer that bone exists on");
-				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
+				uiButSetFunc(but, armature_layer_cb, &curBone->layer, SET_INT_IN_POINTER(1<<a));
 			}
 			uiBlockEndAlign(block);
 			
@@ -4994,7 +4994,7 @@ static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
 		int y = 90 - 20 * i;
 		
 		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_DOWN, 		1025, y, 16, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Change the order the subdivisions algorithm are applied");
-		uiButSetFunc(but, skgen_reorder, (void *)i, NULL);
+		uiButSetFunc(but, skgen_reorder, SET_INT_IN_POINTER(i), NULL);
 		
 		switch(G.scene->toolsettings->skgen_subdivisions[i])
 		{

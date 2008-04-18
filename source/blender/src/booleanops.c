@@ -396,10 +396,10 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 			if (!BLI_ghash_haskey(material_hash, orig_mat)) {
 				mat[*totmat] = orig_mat;
 				mat_nr = mface->mat_nr = (*totmat)++;
-				BLI_ghash_insert(material_hash, orig_mat, (void*)mat_nr);
+				BLI_ghash_insert(material_hash, orig_mat, SET_INT_IN_POINTER(mat_nr));
 			}
 			else
-				mface->mat_nr = (int)BLI_ghash_lookup(material_hash, orig_mat);
+				mface->mat_nr = GET_INT_FROM_POINTER(BLI_ghash_lookup(material_hash, orig_mat));
 		}
 		else
 			mface->mat_nr = 0;
