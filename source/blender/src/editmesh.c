@@ -1010,20 +1010,20 @@ void make_editMesh()
 				/* select and hide face flag */
 				if(mface->flag & ME_HIDE) {
 					efa->h= 1;
-				/* dont allow hidden and selected */
-				} else if(mface->flag & ME_FACE_SEL) {
-					efa->f |= SELECT;
-					
-					/* only allow selected face to be active */
+				} else {
 					if (a==me->act_face) {
 						EM_set_actFace(efa);
 					}
 					
-					if(FACESEL_PAINT_TEST) {
-						EM_select_face(efa, 1); /* flush down */
+					/* dont allow hidden and selected */
+					if(mface->flag & ME_FACE_SEL) {
+						efa->f |= SELECT;
+						
+						if(FACESEL_PAINT_TEST) {
+							EM_select_face(efa, 1); /* flush down */
+						}
 					}
 				}
-				
 			}
 		}
 	}
