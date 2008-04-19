@@ -113,6 +113,8 @@
 
 #include "BPY_extern.h"
 
+#include "blendef.h"
+
 /* Local function protos */
 static void solve_parenting (Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul);
 
@@ -1351,10 +1353,28 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	
 	/* skip constraints, constraintchannels, nla? */
 	
-	
+	/* set object type and link to data */
 	ob->type= target->type;
 	ob->data= target->data;
 	id_us_plus((ID *)ob->data);		/* ensures lib data becomes LIB_EXTERN */
+	
+	/* copy material and index information */
+	ob->actcol= ob->totcol= 0;
+	if(ob->mat) MEM_freeN(ob->mat);
+	ob->mat = NULL;
+	if ((target->totcol) && (target->mat) && OB_SUPPORT_MATERIAL(ob)) {
+		int i;
+		ob->colbits = target->colbits;
+		
+		ob->actcol= target->actcol;
+		ob->totcol= target->totcol;
+		
+		ob->mat = MEM_dupallocN(target->mat);
+		for(i=0; i<target->totcol; i++) {
+			/* dont need to run test_object_materials since we know this object is new and not used elsewhere */
+			id_us_plus(ob->mat[i]); 
+		}
+	}
 	
 	/* type conversions */
 	if(target->type == OB_ARMATURE) {

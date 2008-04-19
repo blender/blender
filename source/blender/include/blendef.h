@@ -101,6 +101,7 @@
 #define LASTBASE		G.scene->base.last
 #define BASACT			(G.scene->basact)
 #define OBACT			(BASACT? BASACT->object: 0)
+#define OB_SUPPORT_MATERIAL(ob) ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)
 #define ID_NEW(a)		if( (a) && (a)->id.newid ) (a)= (void *)(a)->id.newid
 #define ID_NEW_US(a)	if( (a)->id.newid) {(a)= (void *)(a)->id.newid; (a)->id.us++;}
 #define ID_NEW_US2(a)	if( ((ID *)a)->newid) {(a)= ((ID *)a)->newid; ((ID *)a)->us++;}

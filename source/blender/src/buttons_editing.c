@@ -5414,8 +5414,7 @@ static void editing_panel_links(Object *ob)
 	}
 	
 	/* now only objects that can be visible rendered */
-	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL);
-	else return;
+	if (!OB_SUPPORT_MATERIAL(ob)) return;
 	
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	give_obdata_texspace(ob, &poin, NULL, NULL, NULL);
