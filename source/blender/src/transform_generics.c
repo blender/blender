@@ -378,14 +378,14 @@ void recalcData(TransInfo *t)
 				if (G.sima->flag & SI_LIVE_UNWRAP)
 					unwrap_lscm_live_re_solve();
 			} else {
-				/* Only retopo if not snapping, Note, this is the only case of G.qual being used, but we have no T_SHIFT_MOD - Campbell */
-				if ((G.qual & LR_CTRLKEY)==0)
-					retopo_do_all();
-	
 				/* mirror modifier clipping? */
-				if(t->state != TRANS_CANCEL)
+				if(t->state != TRANS_CANCEL) {
+					if ((G.qual & LR_CTRLKEY)==0) {
+						/* Only retopo if not snapping, Note, this is the only case of G.qual being used, but we have no T_SHIFT_MOD - Campbell */
+						retopo_do_all();
+					}
 					clipMirrorModifier(t, G.obedit);
-				
+				}
 				if((t->context & CTX_NO_MIRROR) == 0 && (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
 					editmesh_apply_to_mirror(t);
 				
