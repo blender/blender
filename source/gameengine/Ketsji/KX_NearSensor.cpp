@@ -75,6 +75,21 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 	SynchronizeTransform();
 }
 
+void KX_NearSensor::SynchronizeTransform()
+{
+	// The near and radar sensors are using a different physical object which is 
+	// not linked to the parent object, must synchronize it.
+	if (m_physCtrl)
+	{
+		KX_GameObject* parent = ((KX_GameObject*)GetParent());
+		MT_Vector3 pos = parent->NodeGetWorldPosition();
+		MT_Quaternion orn = parent->NodeGetWorldOrientation().getRotation();
+		m_physCtrl->setPosition(pos.x(),pos.y(),pos.z());
+		m_physCtrl->setOrientation(orn.x(),orn.y(),orn.z(),orn.w());
+		m_physCtrl->calcXform();
+	}
+}
+
 void KX_NearSensor::RegisterSumo(KX_TouchEventManager *touchman)
 {
 	if (m_physCtrl)

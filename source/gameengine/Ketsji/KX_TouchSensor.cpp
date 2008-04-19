@@ -48,18 +48,8 @@
 
 void KX_TouchSensor::SynchronizeTransform()
 {
-
-	if (m_physCtrl)
-	{
-
-		KX_GameObject* parent = ((KX_GameObject*)GetParent());
-		MT_Vector3 pos = parent->NodeGetWorldPosition();
-		MT_Quaternion orn = parent->NodeGetWorldOrientation().getRotation();
-		m_physCtrl->setPosition(pos.x(),pos.y(),pos.z());
-		m_physCtrl->setOrientation(orn.x(),orn.y(),orn.z(),orn.w());
-		m_physCtrl->calcXform();
-	}
-	
+	// the touch sensor does not require any synchronization: it uses
+	// the same physical object which is already synchronized by Blender
 }
 
 

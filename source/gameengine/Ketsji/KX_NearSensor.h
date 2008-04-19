@@ -68,6 +68,7 @@ public:
 			PyTypeObject* T=&Type);
 */
 	virtual ~KX_NearSensor(); 
+	virtual void SynchronizeTransform();
 	virtual CValue* GetReplica();
 	virtual bool Evaluate(CValue* event);
 
