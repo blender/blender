@@ -1565,9 +1565,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				} else if (G.vd->ndofmode == 1) {
 					viewmoveNDOFfly(1);
 				} else {
-					if (OBACT) {
-						NDofTransform();
-					}
+					NDofTransform();
 				}
                 break;
 				
@@ -1688,9 +1686,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				} else if (G.vd->ndofmode == 1) {
 					viewmoveNDOFfly(1);
 				} else {
-					if (OBACT) {
-						NDofTransform();
-					}
+					NDofTransform();
 				}
                 break;
 
