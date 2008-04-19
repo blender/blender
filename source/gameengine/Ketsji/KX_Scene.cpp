@@ -178,7 +178,11 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 
 KX_Scene::~KX_Scene()
 {
-	
+	// The release of debug properties used to be in SCA_IScene::~SCA_IScene
+	// It's still there but we remove all properties here otherwise some
+	// reference might be hanging and causing late release of objects
+	RemoveAllDebugProperties();
+
 	while (GetRootParentList()->GetCount() > 0) 
 	{
 		KX_GameObject* parentobj = (KX_GameObject*) GetRootParentList()->GetValue(0);

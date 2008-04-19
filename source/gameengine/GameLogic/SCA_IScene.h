@@ -59,6 +59,7 @@ public:
 	std::vector<SCA_DebugProp*>& GetDebugProperties();
 	void			AddDebugProperty(class CValue* debugprop,
 									 const STR_String &name);
+	void			RemoveAllDebugProperties();
 };
 
 #endif //__KX_ISCENE_H
