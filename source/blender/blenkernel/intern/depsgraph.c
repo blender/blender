@@ -46,6 +46,7 @@
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
@@ -494,9 +495,18 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 	}
 	if (ob->type==OB_CAMERA) {
 		Camera *cam = (Camera *)ob->data;
+		if (cam->ipo) {
+			dag_add_driver_relation(cam->ipo, dag, node, 1);
+		}
 		if (cam->dof_ob) {
 			node2 = dag_get_node(dag, cam->dof_ob);
 			dag_add_relation(dag,node2,node,DAG_RL_OB_OB, "Camera DoF");
+		}
+	}
+	if (ob->type==OB_LAMP) {
+		Lamp *la = (Lamp *)ob->data;
+		if (la->ipo) {
+			dag_add_driver_relation(la->ipo, dag, node, 1);
 		}
 	}
 	if (ob->transflag & OB_DUPLI) {

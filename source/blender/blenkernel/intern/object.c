@@ -2224,6 +2224,16 @@ void object_handle_update(Object *ob)
 			else if(ob->type==OB_LATTICE) {
 				lattice_calc_modifiers(ob);
 			}
+			else if(ob->type==OB_CAMERA) {
+				Camera *cam = (Camera *)ob->data;
+				calc_ipo(cam->ipo, frame_to_float(G.scene->r.cfra));
+				execute_ipo(&cam->id, cam->ipo);
+			}
+			else if(ob->type==OB_LAMP) {
+				Lamp *la = (Lamp *)ob->data;
+				calc_ipo(la->ipo, frame_to_float(G.scene->r.cfra));
+				execute_ipo(&la->id, la->ipo);
+			}
 			else if(ob->type==OB_ARMATURE) {
 				/* this happens for reading old files and to match library armatures with poses */
 				if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC))
