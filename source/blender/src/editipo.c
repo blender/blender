@@ -4334,6 +4334,7 @@ void del_ipo(int need_check)
 	
 	get_status_editipo();	/* count again */
 	check_active_editipo();
+	editipo_changed(G.sipo, 1);
 	
 	BIF_undo_push("Delete Ipo");
 	allqueue(REDRAWNLA, 0);
