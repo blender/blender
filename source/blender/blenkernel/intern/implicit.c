@@ -1356,7 +1356,7 @@ DO_INLINE void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s,
 
 float calculateVertexWindForce(float wind[3], float vertexnormal[3])  
 {
-	return sqrt(fabs(INPR(wind, vertexnormal)))*2.0*0.1;
+	return fabs(INPR(wind, vertexnormal))*250.0;
 }
 
 void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
@@ -1413,7 +1413,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 			pdDoEffectors(effectors, lX[mfaces[i].v1], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 			VECCOPY(wind_normalized, speed);
 			Normalize(wind_normalized);
-			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal) * verts[mfaces[i].v1].mass);
+			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
 			
 			if(mfaces[i].v4)
 			{
@@ -1428,7 +1428,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 			pdDoEffectors(effectors, lX[mfaces[i].v2], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 			VECCOPY(wind_normalized, speed);
 			Normalize(wind_normalized);
-			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal) * verts[mfaces[i].v2].mass);
+			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
 			if(mfaces[i].v4)
 			{
 				VECADDS(lF[mfaces[i].v2], lF[mfaces[i].v2], wind_normalized, 0.25);
@@ -1442,7 +1442,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 			pdDoEffectors(effectors, lX[mfaces[i].v3], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 			VECCOPY(wind_normalized, speed);
 			Normalize(wind_normalized);
-			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal) * verts[mfaces[i].v3].mass);
+			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
 			if(mfaces[i].v4)
 			{
 				VECADDS(lF[mfaces[i].v3], lF[mfaces[i].v3], wind_normalized, 0.25);
@@ -1458,7 +1458,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 				pdDoEffectors(effectors, lX[mfaces[i].v4], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 				VECCOPY(wind_normalized, speed);
 				Normalize(wind_normalized);
-				VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal) * verts[mfaces[i].v4].mass);
+				VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
 				VECADDS(lF[mfaces[i].v4], lF[mfaces[i].v4], wind_normalized, 0.25);
 			}
 			
