@@ -1356,7 +1356,7 @@ DO_INLINE void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s,
 
 float calculateVertexWindForce(float wind[3], float vertexnormal[3])  
 {
-	return fabs(INPR(wind, vertexnormal))*250.0;
+	return fabs(INPR(wind, vertexnormal));
 }
 
 void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
