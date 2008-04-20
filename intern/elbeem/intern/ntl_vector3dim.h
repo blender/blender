@@ -833,7 +833,7 @@ typedef float gfxReal;
 //#define vecGfx2F(x) (x)
 //#define vecD2Gfx(x) vecD2F(x)
 //#define vecGfx2D(x) vecF2D(x)
-#define VECTOR_EPSILON (1.192092896e-07F)
+#define VECTOR_EPSILON (1e-5f)
 #else
 typedef double gfxReal;
 #define GFX_REAL_MAX __DBL_MAX__
@@ -841,7 +841,7 @@ typedef double gfxReal;
 //#define vecGfx2F(x) vecF2D(x)
 //#define vecD2Gfx(x) (x)
 //#define vecGfx2D(x) (x)
-#define VECTOR_EPSILON (2.2204460492503131e-016)
+#define VECTOR_EPSILON (1e-10)
 #endif
 
 /* fixed double prec. type, for epxlicitly double values */

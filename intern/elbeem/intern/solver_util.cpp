@@ -40,7 +40,7 @@ void LbmFsgrSolver::prepareVisualization( void ) {
 	int mainGravDir=6; // if normalizing fails, we asume z-direction gravity
 	LbmFloat mainGravLen = 0.;
 	FORDF1{
-		LbmFloat thisGravLen = dot(LbmVec(dfVecX[l],dfVecY[l],dfVecZ[l]), getNormalized(mLevel[mMaxRefine].gravity) );	
+		LbmFloat thisGravLen = dot(LbmVec(dfVecX[l],dfVecY[l],dfVecZ[l]), mLevel[mMaxRefine].gravity );	
 		if(thisGravLen>mainGravLen) {
 			mainGravLen = thisGravLen;
 			mainGravDir = l;
