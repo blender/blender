@@ -92,7 +92,7 @@ RAS_2DFilterManager::~RAS_2DFilterManager()
 unsigned int RAS_2DFilterManager::CreateShaderProgram(char* shadersource)
 {
 		GLuint program = 0;	
-#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
 		GLuint fShader = bgl::blCreateShaderObjectARB(GL_FRAGMENT_SHADER);
         GLint success;
 
@@ -162,7 +162,7 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(int filtermode)
 
 void RAS_2DFilterManager::StartShaderProgram(unsigned int shaderprogram)
 {
-#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
 	GLint uniformLoc;
 	bgl::blUseProgramObjectARB(shaderprogram);
 	uniformLoc = bgl::blGetUniformLocationARB(shaderprogram, "bgl_RenderedTexture");
@@ -190,7 +190,7 @@ void RAS_2DFilterManager::StartShaderProgram(unsigned int shaderprogram)
 
 void RAS_2DFilterManager::EndShaderProgram()
 {
-#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
 	bgl::blUseProgramObjectARB(0);
 #endif
 }
@@ -302,7 +302,7 @@ void RAS_2DFilterManager::EnableFilter(RAS_2DFILTER_MODE mode, int pass, STR_Str
 {
 	if(!isshadersupported)
 		return;
-#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
 	if(pass<0 || pass>=MAX_RENDER_PASS)
 		return;
 
