@@ -844,6 +844,11 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		  mvert = CDDM_get_verts(result);
 
 		  for (i = 0; i < maxVerts; i++) {
+			  indexMap[i].merge = -1; /* default to no merge */
+			  indexMap[i].merge_final = 0; /* default to no merge */
+		  }
+
+		  for (i = 0; i < maxVerts; i++) {
 			  MVert *inMV;
 			  MVert *mv = &mvert[numVerts];
 			  MVert *mv2;
@@ -856,8 +861,6 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			  numVerts++;
 
 			  indexMap[i].new = numVerts - 1;
-			  indexMap[i].merge = -1; /* default to no merge */
-			  indexMap[i].merge_final = 0; /* default to no merge */
 
 			  VECCOPY(co, mv->co);
 		
