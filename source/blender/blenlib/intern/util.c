@@ -65,6 +65,14 @@
 #endif
 
 #ifdef WIN32
+
+#ifdef _WIN32_IE
+#undef _WIN32_IE
+#endif
+#define _WIN32_IE 0x0501
+#include <windows.h>
+#include <shlobj.h>
+
 #include "BLI_winstuff.h"
 
 /* for duplicate_defgroup */
@@ -1167,6 +1175,8 @@ char *BLI_gethome(void) {
 	#else /* Windows */
 		char * ret;
 		static char dir[512];
+		static char appdatapath[MAXPATHLEN];
+		HRESULT hResult;
 
 		/* Check for %HOME% env var */
 
@@ -1188,9 +1198,36 @@ char *BLI_gethome(void) {
 
 				
 		/* add user profile support for WIN 2K / NT */
+		hResult = SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appdatapath);
+		
+		if (hResult == S_OK)
+		{
+			if (BLI_exists(appdatapath)) { /* from fop, also below... */
+				sprintf(dir, "%s\\Blender Foundation\\Blender", appdatapath);
+				BLI_recurdir_fileops(dir);
+				if (BLI_exists(dir)) {
+					strcat(dir,"\\.blender");
+					if(BLI_exists(dir)) return(dir);
+				}
+			}
+			hResult = SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, appdatapath);
+			if (hResult == S_OK)
+			{
+				if (BLI_exists(appdatapath)) 
+				{ /* from fop, also below... */
+					sprintf(dir, "%s\\Blender Foundation\\Blender", appdatapath);
+					BLI_recurdir_fileops(dir);
+					if (BLI_exists(dir)) {
+						strcat(dir,"\\.blender");
+						if(BLI_exists(dir)) return(dir);
+					}
+				}
+			}
+		}
+		/*
 		ret = getenv("USERPROFILE");
 		if (ret) {
-			if (BLI_exists(ret)) { /* from fop, also below... */
+			if (BLI_exists(ret)) { /* from fop, also below... 
 				sprintf(dir, "%s\\Application Data\\Blender Foundation\\Blender", ret);
 				BLI_recurdir_fileops(dir);
 				if (BLI_exists(dir)) {
@@ -1199,6 +1236,7 @@ char *BLI_gethome(void) {
 				}
 			}
 		}
+		*/
 
 		/* 
 		   Saving in the Windows dir is less than desirable. 
