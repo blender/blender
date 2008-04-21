@@ -7459,6 +7459,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							ob->transflag &= ~OB_DUPLIVERTS;
 
 							part->draw_as = PART_DRAW_OB;
+
+							/* needed for proper libdata lookup */
+							oldnewmap_insert(fd->libmap, dup, dup, 0);
 						}
 					}
 				}
