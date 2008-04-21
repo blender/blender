@@ -3,15 +3,12 @@
  *
  * $Id: particle.c $
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -78,6 +75,7 @@
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_pointcache.h"
 
 #include "blendef.h"
 #include "RE_render_ext.h"
@@ -226,14 +224,14 @@ void psys_disable_all(Object *ob)
 	ParticleSystem *psys=ob->particlesystem.first;
 
 	for(; psys; psys=psys->next)
-		psys->flag &= ~PSYS_ENABLED;
+		psys->flag |= PSYS_DISABLED;
 }
 void psys_enable_all(Object *ob)
 {
 	ParticleSystem *psys=ob->particlesystem.first;
 
 	for(; psys; psys=psys->next)
-		psys->flag |= PSYS_ENABLED;
+		psys->flag &= ~PSYS_DISABLED;
 }
 int psys_ob_has_hair(Object *ob)
 {
@@ -253,7 +251,7 @@ int psys_check_enabled(Object *ob, ParticleSystem *psys)
 {
 	ParticleSystemModifierData *psmd;
 
-	if(!(psys->flag & PSYS_ENABLED))
+	if(psys->flag & PSYS_DISABLED)
 		return 0;
 
 	psmd= psys_get_modifier(ob, psys);
@@ -368,6 +366,12 @@ void psys_free(Object *ob, ParticleSystem * psys)
 			psys->part->id.us--;		
 			psys->part=0;
 		}
+
+		if(psys->reactevents.first)
+			BLI_freelistN(&psys->reactevents);
+
+		if(psys->pointcache)
+			BKE_ptcache_free(psys->pointcache);
 
 		MEM_freeN(psys);
 	}
@@ -1003,7 +1007,7 @@ void psys_interpolate_mcol(MCol *mcol, int quad, float *w, MCol *mc)
 
 float psys_interpolate_value_from_verts(DerivedMesh *dm, short from, int index, float *fw, float *values)
 {
-	if(values==0)
+	if(values==0 || index==-1)
 		return 0.0;
 
 	switch(from){
@@ -2251,7 +2255,7 @@ void psys_cache_child_paths(Object *ob, ParticleSystem *psys, float cfra, int ed
 	int i, totchild, totparent, totthread;
 	unsigned long totchildstep;
 
-	pthreads= psys_threads_create(ob, psys, G.scene->r.threads);
+	pthreads= psys_threads_create(ob, psys);
 
 	if(!psys_threads_init_path(pthreads, cfra, editupdate)) {
 		psys_threads_free(pthreads);
@@ -3080,6 +3084,42 @@ void psys_flush_settings(ParticleSettings *part, int event, int hair_recalc)
 		}
 	}
 }
+
+LinkNode *psys_using_settings(ParticleSettings *part, int flush_update)
+{
+	Object *ob, *tob;
+	ParticleSystem *psys, *tpsys;
+	LinkNode *node= NULL;
+	int found;
+
+	/* update all that have same particle settings */
+	for(ob=G.main->object.first; ob; ob=ob->id.next) {
+		found= 0;
+
+		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+			if(psys->part == part) {
+				BLI_linklist_append(&node, psys);
+				found++;
+			}
+			else if(psys->part->type == PART_REACTOR){
+				tob= (psys->target_ob)? psys->target_ob: ob;
+				tpsys= BLI_findlink(&tob->particlesystem, psys->target_psys-1);
+
+				if(tpsys && tpsys->part==part) {
+					BLI_linklist_append(&node, tpsys);
+					found++;
+				}
+			}
+		}
+
+		if(flush_update && found)
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	}
+
+	return node;
+}
+
+
 /************************************************/
 /*			Textures							*/
 /************************************************/
@@ -3092,6 +3132,7 @@ static void get_cpa_texture(DerivedMesh *dm, Material *ma, int face_index, float
 	if(ma) for(m=0; m<MAX_MTEX; m++){
 		mtex=ma->mtex[m];
 		if(mtex && (ma->septex & (1<<m))==0){
+			float def=mtex->def_var;
 			float var=mtex->varfac;
 			short blend=mtex->blendtype;
 			short neg=mtex->pmaptoneg;
@@ -3126,13 +3167,13 @@ static void get_cpa_texture(DerivedMesh *dm, Material *ma, int face_index, float
 				ptex->time= texture_value_blend(mtex->def_var,ptex->time,value,var,blend,neg & MAP_PA_TIME);
 			}
 			if((event & mtex->pmapto) & MAP_PA_LENGTH)
-				ptex->length= texture_value_blend(value,ptex->length,value,var,blend,neg & MAP_PA_LENGTH);
+				ptex->length= texture_value_blend(def,ptex->length,value,var,blend,neg & MAP_PA_LENGTH);
 			if((event & mtex->pmapto) & MAP_PA_CLUMP)
-				ptex->clump= texture_value_blend(value,ptex->clump,value,var,blend,neg & MAP_PA_CLUMP);
+				ptex->clump= texture_value_blend(def,ptex->clump,value,var,blend,neg & MAP_PA_CLUMP);
 			if((event & mtex->pmapto) & MAP_PA_KINK)
-				ptex->kink= texture_value_blend(value,ptex->kink,value,var,blend,neg & MAP_PA_KINK);
+				ptex->kink= texture_value_blend(def,ptex->kink,value,var,blend,neg & MAP_PA_KINK);
 			if((event & mtex->pmapto) & MAP_PA_ROUGH)
-				ptex->rough= texture_value_blend(value,ptex->rough,value,var,blend,neg & MAP_PA_ROUGH);
+				ptex->rough= texture_value_blend(def,ptex->rough,value,var,blend,neg & MAP_PA_ROUGH);
 		}
 	}
 	if(event & MAP_PA_TIME) { CLAMP(ptex->time,0.0,1.0); }
@@ -3152,6 +3193,7 @@ void psys_get_texture(Object *ob, Material *ma, ParticleSystemModifierData *psmd
 		mtex=ma->mtex[m];
 		if(mtex && (ma->septex & (1<<m))==0){
 			float var=mtex->varfac;
+			float def=mtex->def_var;
 			short blend=mtex->blendtype;
 			short neg=mtex->pmaptoneg;
 
@@ -3192,24 +3234,24 @@ void psys_get_texture(Object *ob, Material *ma, ParticleSystemModifierData *psmd
 					setvars |= MAP_PA_TIME;
 				}
 				else
-					ptex->time= texture_value_blend(mtex->def_var,ptex->time,value,var,blend,neg & MAP_PA_TIME);
+					ptex->time= texture_value_blend(def,ptex->time,value,var,blend,neg & MAP_PA_TIME);
 			}
 			if((event & mtex->pmapto) & MAP_PA_LIFE)
-				ptex->life= texture_value_blend(mtex->def_var,ptex->life,value,var,blend,neg & MAP_PA_LIFE);
+				ptex->life= texture_value_blend(def,ptex->life,value,var,blend,neg & MAP_PA_LIFE);
 			if((event & mtex->pmapto) & MAP_PA_DENS)
-				ptex->exist= texture_value_blend(mtex->def_var,ptex->exist,value,var,blend,neg & MAP_PA_DENS);
+				ptex->exist= texture_value_blend(def,ptex->exist,value,var,blend,neg & MAP_PA_DENS);
 			if((event & mtex->pmapto) & MAP_PA_SIZE)
-				ptex->size= texture_value_blend(mtex->def_var,ptex->size,value,var,blend,neg & MAP_PA_SIZE);
+				ptex->size= texture_value_blend(def,ptex->size,value,var,blend,neg & MAP_PA_SIZE);
 			if((event & mtex->pmapto) & MAP_PA_IVEL)
-				ptex->ivel= texture_value_blend(mtex->def_var,ptex->ivel,value,var,blend,neg & MAP_PA_IVEL);
+				ptex->ivel= texture_value_blend(def,ptex->ivel,value,var,blend,neg & MAP_PA_IVEL);
 			if((event & mtex->pmapto) & MAP_PA_PVEL)
 				texture_rgb_blend(ptex->pvel,rgba,ptex->pvel,value,var,blend);
 			if((event & mtex->pmapto) & MAP_PA_LENGTH)
-				ptex->length= texture_value_blend(mtex->def_var,ptex->length,value,var,blend,neg & MAP_PA_LENGTH);
+				ptex->length= texture_value_blend(def,ptex->length,value,var,blend,neg & MAP_PA_LENGTH);
 			if((event & mtex->pmapto) & MAP_PA_CLUMP)
-				ptex->clump= texture_value_blend(mtex->def_var,ptex->clump,value,var,blend,neg & MAP_PA_CLUMP);
+				ptex->clump= texture_value_blend(def,ptex->clump,value,var,blend,neg & MAP_PA_CLUMP);
 			if((event & mtex->pmapto) & MAP_PA_KINK)
-				ptex->kink= texture_value_blend(mtex->def_var,ptex->kink,value,var,blend,neg & MAP_PA_CLUMP);
+				ptex->kink= texture_value_blend(def,ptex->kink,value,var,blend,neg & MAP_PA_CLUMP);
 		}
 	}
 	if(event & MAP_PA_TIME) { CLAMP(ptex->time,0.0,1.0); }

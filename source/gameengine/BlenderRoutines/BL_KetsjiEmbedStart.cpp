@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Blender's Ketsji startpoint
  */
 
@@ -36,6 +33,7 @@
 #endif
 
 #include <signal.h>
+#include <stdlib.h>
 
 #ifdef WIN32
 // don't show stl-warnings
@@ -160,15 +158,17 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
 		bool usemat = false;
 		
-		#ifdef GL_ARB_multitexture
-		if(bgl::RAS_EXT_support._ARB_multitexture && bgl::QueryVersion(1, 1)) {
-			usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 0) != 0);
-			int unitmax=0;
-			glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&unitmax);
-			bgl::max_texture_units = MAXTEX>unitmax?unitmax:MAXTEX;
-			//std::cout << "using(" << bgl::max_texture_units << ") of(" << unitmax << ") texture units." << std::endl;
-		} else {
-			bgl::max_texture_units = 0;
+		#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+		if (!getenv("WITHOUT_GLEXT")) {
+			if(bgl::RAS_EXT_support._ARB_multitexture && bgl::QueryVersion(1, 1)) {
+				usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 0) != 0);
+				int unitmax=0;
+				glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&unitmax);
+				bgl::max_texture_units = MAXTEX>unitmax?unitmax:MAXTEX;
+				//std::cout << "using(" << bgl::max_texture_units << ") of(" << unitmax << ") texture units." << std::endl;
+			} else {
+				bgl::max_texture_units = 0;
+			}
 		}
 		#endif
 
@@ -258,7 +258,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
 			if (bfd) BLO_blendfiledata_free(bfd);
 			
-			char basedpath[160];
+			char basedpath[240];
 			// base the actuator filename with respect
 			// to the original file working directory
 			if (exitstring != "")
@@ -271,7 +271,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			if (!bfd)
 			{
 				// just add "//" in front of it
-				char temppath[162];
+				char temppath[242];
 				strcpy(temppath, "//");
 				strcat(temppath, basedpath);
 				
@@ -321,10 +321,10 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{
-			if (v3d->persp != 2)
+			if (v3d->persp != V3D_CAMOB)
 			{
 				ketsjiengine->EnableCameraOverride(startscenename);
-				ketsjiengine->SetCameraOverrideUseOrtho((v3d->persp == 0));
+				ketsjiengine->SetCameraOverrideUseOrtho((v3d->persp == V3D_ORTHO));
 				ketsjiengine->SetCameraOverrideProjectionMatrix(projmat);
 				ketsjiengine->SetCameraOverrideViewMatrix(viewmat);
 			}

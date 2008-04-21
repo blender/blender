@@ -5,15 +5,12 @@
  * and handle user events sent to it.
  * 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +28,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #include <math.h>
@@ -806,7 +803,7 @@ static uiBlock *verse_filemenu(void *unusedargs)
 static void do_info_filemenu(void *arg, int event)
 {
 	ScrArea *sa;
-	char dir[FILE_MAXDIR];
+	char dir[FILE_MAX];
 	
 	if(curarea->spacetype==SPACE_INFO) {
 		sa= closest_bigger_area();
@@ -828,12 +825,12 @@ static void do_info_filemenu(void *arg, int event)
 		activate_fileselect(FILE_LOADLIB, "Load Library", G.lib, 0);
 		break;
 	case 4: /* save */
-		strcpy(dir, G.sce);
+		BLI_strncpy(dir, G.sce, FILE_MAX);
 		untitled(dir);
 		activate_fileselect(FILE_BLENDER, "Save As", dir, BIF_write_file);
 		break;
 	case 5:
-		strcpy(dir, G.sce);
+		BLI_strncpy(dir, G.sce, FILE_MAX);
 		if (untitled(dir)) {
 			activate_fileselect(FILE_BLENDER, "Save As", dir, BIF_write_file);
 		} else {
@@ -866,10 +863,10 @@ static void do_info_filemenu(void *arg, int event)
 		{
 			extern short winqueue_break; /* editscreen.c */
 			int save_over, retval = 0;
-			char str[FILE_MAXDIR+FILE_MAXFILE];
-			char scestr[FILE_MAXDIR+FILE_MAXFILE];
+			char str[FILE_MAX];
+			char scestr[FILE_MAX];
 			
-			strcpy(scestr, G.sce);	/* temporal store */
+			BLI_strncpy(scestr, G.sce, FILE_MAX);	/* temporal store */
 			save_over = G.save_over;
 			BLI_make_file_string("/", str, btempdir, "quit.blend");
 			retval = BKE_read_file(str, NULL);

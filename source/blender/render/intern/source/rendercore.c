@@ -165,11 +165,14 @@ static int calchalo_z(HaloRen *har, int zz)
 	return zz;
 }
 
+
+
 static void halo_pixelstruct(HaloRen *har, RenderLayer **rlpp, int totsample, int od, float dist, float xn, float yn, PixStr *ps)
 {
-	float col[4], accol[4];
-	int amount, amountm, zz, flarec, sample;
+	float col[4], accol[4], fac;
+	int amount, amountm, zz, flarec, sample, fullsample, mask=0;
 	
+	fullsample= (totsample > 1);
 	amount= 0;
 	accol[0]=accol[1]=accol[2]=accol[3]= 0.0f;
 	flarec= har->flarec;
@@ -179,39 +182,57 @@ static void halo_pixelstruct(HaloRen *har, RenderLayer **rlpp, int totsample, in
 		amount+= amountm;
 		
 		zz= calchalo_z(har, ps->z);
-		if(zz> har->zs) {
-			float fac;
-			
-			shadeHaloFloat(har, col, zz, dist, xn, yn, flarec);
-			fac= ((float)amountm)/(float)R.osa;
-			accol[0]+= fac*col[0];
-			accol[1]+= fac*col[1];
-			accol[2]+= fac*col[2];
-			accol[3]+= fac*col[3];
-			flarec= 0;
+		if((zz> har->zs) || (har->mat && (har->mat->mode & MA_HALO_SOFT))) {
+			if(shadeHaloFloat(har, col, zz, dist, xn, yn, flarec)) {
+				flarec= 0;
+
+				if(fullsample) {
+					for(sample=0; sample<totsample; sample++)
+						if(ps->mask & (1 << sample))
+							addalphaAddfacFloat(rlpp[sample]->rectf + od*4, col, har->add);
+				}
+				else {
+					fac= ((float)amountm)/(float)R.osa;
+					accol[0]+= fac*col[0];
+					accol[1]+= fac*col[1];
+					accol[2]+= fac*col[2];
+					accol[3]+= fac*col[3];
+				}
+			}
 		}
 		
+		mask |= ps->mask;
 		ps= ps->next;
 	}
+
 	/* now do the sky sub-pixels */
 	amount= R.osa-amount;
 	if(amount) {
-		float fac;
-
-		shadeHaloFloat(har, col, 0x7FFFFF, dist, xn, yn, flarec);
-		fac= ((float)amount)/(float)R.osa;
-		accol[0]+= fac*col[0];
-		accol[1]+= fac*col[1];
-		accol[2]+= fac*col[2];
-		accol[3]+= fac*col[3];
+		if(shadeHaloFloat(har, col, 0x7FFFFF, dist, xn, yn, flarec)) {
+			if(!fullsample) {
+				fac= ((float)amount)/(float)R.osa;
+				accol[0]+= fac*col[0];
+				accol[1]+= fac*col[1];
+				accol[2]+= fac*col[2];
+				accol[3]+= fac*col[3];
+			}
+		}
 	}
-	col[0]= accol[0];
-	col[1]= accol[1];
-	col[2]= accol[2];
-	col[3]= accol[3];
-	
-	for(sample=0; sample<totsample; sample++)
-		addalphaAddfacFloat(rlpp[sample]->rectf + od*4, col, har->add);
+
+	if(fullsample) {
+		for(sample=0; sample<totsample; sample++)
+			if(!(mask & (1 << sample)))
+				addalphaAddfacFloat(rlpp[sample]->rectf + od*4, col, har->add);
+	}
+	else {
+		col[0]= accol[0];
+		col[1]= accol[1];
+		col[2]= accol[2];
+		col[3]= accol[3];
+		
+		for(sample=0; sample<totsample; sample++)
+			addalphaAddfacFloat(rlpp[sample]->rectf + od*4, col, har->add);
+	}
 }
 
 static void halo_tile(RenderPart *pa, RenderLayer *rl)
@@ -279,11 +300,11 @@ static void halo_tile(RenderPart *pa, RenderLayer *rl)
 							}
 							else {
 								zz= calchalo_z(har, *rz);
-								if(zz> har->zs) {
-									shadeHaloFloat(har, col, zz, dist, xn, yn, har->flarec);
-
-									for(sample=0; sample<totsample; sample++)
-										addalphaAddfacFloat(rlpp[sample]->rectf + od*4, col, har->add);
+								if((zz> har->zs) || (har->mat && (har->mat->mode & MA_HALO_SOFT))) {
+									if(shadeHaloFloat(har, col, zz, dist, xn, yn, har->flarec)) {
+										for(sample=0; sample<totsample; sample++)
+											addalphaAddfacFloat(rlpp[sample]->rectf + od*4, col, har->add);
+									}
 								}
 							}
 						}
@@ -1279,7 +1300,7 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 {
 	ShadeInput *shi= ssamp->shi;
 	ShadeResult shr;
-	float texfac, orthoarea, nor[3];
+	float texfac, orthoarea, nor[3], alpha;
 
 	/* cache for shadow */
 	shi->samplenr= R.shadowsamplenr[shi->thread]++;
@@ -1345,15 +1366,18 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 	/* texture blending */
 	texfac= shi->mat->sss_texfac;
 
+	alpha= shr.col[3];
+	*area *= alpha;
+
 	if(texfac == 0.0f) {
-		if(shr.col[0]!=0.0f) color[0] /= shr.col[0];
-		if(shr.col[1]!=0.0f) color[1] /= shr.col[1];
-		if(shr.col[2]!=0.0f) color[2] /= shr.col[2];
+		if(shr.col[0]!=0.0f) color[0] *= alpha/shr.col[0];
+		if(shr.col[1]!=0.0f) color[1] *= alpha/shr.col[1];
+		if(shr.col[2]!=0.0f) color[2] *= alpha/shr.col[2];
 	}
-	else if(texfac != 1.0f) {
-		if(shr.col[0]!=0.0f) color[0] *= pow(shr.col[0], texfac)/shr.col[0];
-		if(shr.col[1]!=0.0f) color[1] *= pow(shr.col[1], texfac)/shr.col[1];
-		if(shr.col[2]!=0.0f) color[2] *= pow(shr.col[2], texfac)/shr.col[2];
+	else if(texfac != 1.0f && (alpha > FLT_EPSILON)) {
+		if(shr.col[0]!=0.0f) color[0] *= alpha*pow(shr.col[0]/alpha, texfac)/shr.col[0];
+		if(shr.col[1]!=0.0f) color[1] *= alpha*pow(shr.col[1]/alpha, texfac)/shr.col[1];
+		if(shr.col[2]!=0.0f) color[2] *= alpha*pow(shr.col[2]/alpha, texfac)/shr.col[2];
 	}
 }
 
@@ -1423,6 +1447,8 @@ void zbufshade_sss_tile(RenderPart *pa)
 	rl= rr->layers.first;
 	ssamp.shi[0].passflag |= SCE_PASS_RGBA|SCE_PASS_COMBINED;
 	ssamp.shi[0].combinedflag &= ~(SCE_PASS_SPEC);
+	ssamp.shi[0].mat_override= NULL;
+	ssamp.shi[0].light_override= NULL;
 	lay= ssamp.shi[0].lay;
 
 	/* create the pixelstrs to be used later */
@@ -1609,8 +1635,8 @@ static void renderhalo_post(RenderResult *rr, float *rectf, HaloRen *har)	/* pos
 					dist= xsq+ysq;
 					if(dist<har->radsq) {
 						
-						shadeHaloFloat(har, colf, 0x7FFFFF, dist, xn, yn, har->flarec);
-						addalphaAddfacFloat(rtf, colf, har->add);
+						if(shadeHaloFloat(har, colf, 0x7FFFFF, dist, xn, yn, har->flarec))
+							addalphaAddfacFloat(rtf, colf, har->add);
 					}
 					rtf+=4;
 				}
@@ -2217,7 +2243,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 		}
 
 		if (hit && bs->type==RE_BAKE_DISPLACEMENT) {;
-			bake_displacement(handle, shi, (dir==-1)? -mindist:mindist, x, y);
+			bake_displacement(handle, shi, (dir==-1)? mindist:-mindist, x, y);
 			return;
 		}
 

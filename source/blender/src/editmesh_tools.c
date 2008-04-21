@@ -1,15 +1,12 @@
 /**
  * $Id: 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Johnny Matthews, Geoffrey Bantle.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /*
@@ -994,9 +991,10 @@ void delete_mesh(void)
 		erase_vertices(&em->verts);
 	} 
 	else if(event==6) {
-		if(!EdgeLoopDelete()) {
-			BIF_undo();
-		}
+		if(!EdgeLoopDelete())
+			return;
+
+		str= "Erase Edge Loop";
 	}
 	else if(event==4) {
 		str= "Erase Edges & Faces";
@@ -2431,6 +2429,10 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	
 	if(multires_test()) return;
 
+	//Set faces f1 to 0 cause we need it later
+	for(ef=em->faces.first;ef;ef = ef->next) ef->f1 = 0;
+	for(eve=em->verts.first; eve; eve=eve->next) eve->f1 = eve->f2 = 0;
+
 	for (; md; md=md->next) {
 		if (md->type==eModifierType_Mirror) {
 			MirrorModifierData *mmd = (MirrorModifierData*) md;	
@@ -2456,10 +2458,6 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 			}
 		}
 	}
-	
-	//Set faces f1 to 0 cause we need it later
-	for(ef=em->faces.first;ef;ef = ef->next) ef->f1 = 0;
-	for(eve=em->verts.first; eve; eve=eve->next) eve->f1 = eve->f2 = 0;
 	
 	//Flush vertex flags upward to the edges
 	for(eed = em->edges.first;eed;eed = eed->next) {
@@ -4659,7 +4657,7 @@ int EdgeLoopDelete(void) {
 	if(!EdgeSlide(1, 1)) {
 		return 0;
 	}
-	select_more();
+	EM_select_more();
 	removedoublesflag(1,0, 0.001);
 	EM_select_flush();
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
@@ -6117,7 +6115,7 @@ static void collapse_edgeuvs(void)
 
 /*End UV Edge collapse code*/
 
-static void collapseuvs(void)
+static void collapseuvs(EditVert *mergevert)
 {
 	EditFace *efa;
 	MTFace *tf;
@@ -6134,22 +6132,22 @@ static void collapseuvs(void)
 	for(efa = G.editMesh->faces.first; efa; efa=efa->next){
 		tf = CustomData_em_get(&G.editMesh->fdata, efa->data, CD_MTFACE);
 
-		if(efa->v1->f1){
+		if(efa->v1->f1 && ELEM(mergevert, NULL, efa->v1)) {
 			uvav[0] += tf->uv[0][0];
 			uvav[1] += tf->uv[0][1];
 			uvcount += 1;
 		}
-		if(efa->v2->f1){
+		if(efa->v2->f1 && ELEM(mergevert, NULL, efa->v2)){
 			uvav[0] += tf->uv[1][0];		
 			uvav[1] += tf->uv[1][1];
 			uvcount += 1;
 		}
-		if(efa->v3->f1){
+		if(efa->v3->f1 && ELEM(mergevert, NULL, efa->v3)){
 			uvav[0] += tf->uv[2][0];
 			uvav[1] += tf->uv[2][1];
 			uvcount += 1;
 		}
-		if(efa->v4 && efa->v4->f1){
+		if(efa->v4 && efa->v4->f1 && ELEM(mergevert, NULL, efa->v4)){
 			uvav[0] += tf->uv[3][0];
 			uvav[1] += tf->uv[3][1];
 			uvcount += 1;
@@ -6286,7 +6284,7 @@ int merge_firstlast(int first, int uvmerge)
 		for(eve=G.editMesh->verts.first; eve; eve=eve->next){
 			if(eve->f&SELECT) eve->f1 = 1;
 		}
-		collapseuvs();
+		collapseuvs(mergevert);
 	}
 	
 	countall();
@@ -6307,7 +6305,7 @@ int merge_target(int target, int uvmerge)
 		for(eve=G.editMesh->verts.first; eve; eve=eve->next){
 				if(eve->f&SELECT) eve->f1 = 1;
 		}
-		collapseuvs();
+		collapseuvs(NULL);
 	}
 	
 	countall();

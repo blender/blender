@@ -870,7 +870,7 @@ static void read_render_result(Render *re, int sample)
 	
 	printf("read exr tmp file: %s\n", str);
 	
-	if(rectx!=re->result->rectx || recty!=re->result->recty) {
+	if(re->result == NULL || rectx!=re->result->rectx || recty!=re->result->recty) {
 		printf("error in reading render result\n");
 	}
 	else {

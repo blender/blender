@@ -1,15 +1,12 @@
 /**
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_SCENE_TYPES_H
 #define DNA_SCENE_TYPES_H
@@ -202,14 +199,6 @@ typedef struct RenderData {
 	 */
 	short ysch;
 	/**
-	 * Adjustment factors for the aspect ratio in the x direction
-	 */
-	short xasp;
-	/**
-	 * Adjustment factors for the aspect ratio in the x direction
-	 */
-	short yasp;
-	/**
 	 * The number of part to use in the x direction
 	 */
 	short xparts;
@@ -225,7 +214,7 @@ typedef struct RenderData {
 	short bufflag;
  	short quality;
 	
-	short rpad;
+	short rpad, rpad1, rpad2;
 
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
@@ -260,6 +249,15 @@ typedef struct RenderData {
 	/* information on different layers to be rendered */
 	ListBase layers;
 	short actlay, pad;
+	
+	/**
+	 * Adjustment factors for the aspect ratio in the x direction, was a short in 2.45
+	 */
+	float xasp;
+	/**
+	 * Adjustment factors for the aspect ratio in the x direction, was a short in 2.45
+	 */
+	float yasp;
 
 	float frs_sec_base;
 	
@@ -495,7 +493,8 @@ typedef struct SculptData
 
 	/* Added to store if the 'Rake' setting has been set */
 	char rake;
-	char pad[3];
+	char axislock;
+	char pad[2];
 } SculptData;
 
 typedef struct Scene {
@@ -771,10 +770,18 @@ typedef struct Scene {
 #define SYMM_Y 2
 #define SYMM_Z 4
 
+#define AXISLOCK_X 1
+#define AXISLOCK_Y 2
+#define AXISLOCK_Z 4
+
 /* toolsettings->imagepaint_flag */
 #define IMAGEPAINT_DRAWING				1
 #define IMAGEPAINT_DRAW_TOOL			2
 #define IMAGEPAINT_DRAW_TOOL_DRAWING	4
+
+/* toolsettings->uvcalc_flag */
+#define UVCALC_FILLHOLES			1
+#define UVCALC_NO_ASPECT_CORRECT	2	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
 
 /* toolsettings->particle flag */
 #define PE_KEEP_LENGTHS			1

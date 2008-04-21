@@ -95,7 +95,7 @@ typedef struct FileList
 
 	int numfiles;
 	int numfiltered;
-	char dir[FILE_MAXDIR];
+	char dir[FILE_MAX];
 	short type;
 	short ipotype;
 	struct BlendHandle *libfiledata;
@@ -370,7 +370,7 @@ struct FileList*	BIF_filelist_new()
 struct FileList*	BIF_filelist_copy(struct FileList* filelist)
 {
 	FileList* p = BIF_filelist_new();
-	BLI_strncpy(p->dir, filelist->dir, FILE_MAXDIR);
+	BLI_strncpy(p->dir, filelist->dir, FILE_MAX);
 	p->filelist = NULL;
 	p->fidx = NULL;
 	p->type = filelist->type;
@@ -438,7 +438,7 @@ const char * BIF_filelist_dir(struct FileList* filelist)
 
 void BIF_filelist_setdir(struct FileList* filelist, const char *dir)
 {
-	BLI_strncpy(filelist->dir, dir, FILE_MAXDIR);
+	BLI_strncpy(filelist->dir, dir, FILE_MAX);
 }
 
 void BIF_filelist_imgsize(struct FileList* filelist, short w, short h)
@@ -590,7 +590,7 @@ void BIF_filelist_setfilter(struct FileList* filelist, unsigned int filter)
 
 void BIF_filelist_readdir(struct FileList* filelist)
 {
-	char wdir[FILE_MAXDIR];
+	char wdir[FILE_MAX];
 	int finished = 0;
 
 	if (!filelist) return;
@@ -843,7 +843,7 @@ void BIF_filelist_from_library(struct FileList* filelist)
 	struct ImBuf* ima;
 	int ok, i, nnames, idcode;
 	char filename[FILE_MAXDIR+FILE_MAXFILE];
-	char dir[FILE_MAXDIR], group[GROUP_MAX];	
+	char dir[FILE_MAX], group[GROUP_MAX];	
 	
 	filelist->type = FILE_LOADLIB;
 

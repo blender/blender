@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -79,12 +76,13 @@
 #include "BIF_editaction.h" 
 
 #include "BKE_action.h" /* get_action_frame */
+#include "BKE_bad_level_calls.h"/* popmenu and error	*/
+#include "BKE_bmesh.h"
 #include "BKE_constraint.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
-#include "BKE_bad_level_calls.h"/* popmenu and error	*/
 #include "BKE_particle.h"
-#include "BKE_bmesh.h"
+#include "BKE_pointcache.h"
+#include "BKE_utildefines.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_editnla_types.h"	/* for NLAWIDTH */
@@ -261,7 +259,7 @@ void setTransformViewMatrices(TransInfo *t)
 		Mat4One(t->viewinv);
 		Mat4One(t->persmat);
 		Mat4One(t->persinv);
-		t->persp = 0; // ortho
+		t->persp = V3D_ORTHO;
 	}
 	
 	calculateCenter2D(t);
@@ -1133,6 +1131,11 @@ void Transform()
 		while( qtest() ) {
 			event= extern_qread(&val);
 			transformEvent(event, val);
+		}
+
+		if(BKE_ptcache_get_continue_physics()) {
+			do_screenhandlers(G.curscreen);
+			Trans.redraw= 1;
 		}
 	}
 	
@@ -3360,6 +3363,8 @@ void initBevel(TransInfo *t)
 int handleEventBevel(TransInfo *t, unsigned short event, short val)
 {
 	if (val) {
+		if(!G.editBMesh) return 0;
+
 		switch (event) {
 		case MIDDLEMOUSE:
 			G.editBMesh->options ^= BME_BEVEL_VERT;
@@ -4277,7 +4282,7 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short 
 	if (autosnap == SACTSNAP_FRAME) {
 		short doTime= getAnimEdit_DrawTime(t);
 		double secf= FPS;
-		float val;
+		double val;
 		
 		/* convert frame to nla-action time (if needed) */
 		if (ob) 

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Joshua Leung
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Drawing routines for the Action window type
  */
 
@@ -462,6 +459,7 @@ static void draw_channel_names(void)
 		if ( IN_RANGE(yminc, G.v2d->cur.ymin, G.v2d->cur.ymax) ||
 			 IN_RANGE(ymaxc, G.v2d->cur.ymin, G.v2d->cur.ymax) ) 
 		{
+			bActionGroup *grp = NULL;
 			short indent= 0, offset= 0, sel= 0, group=0;
 			int expand= -1, protect = -1, special= -1, mute = -1;
 			char name[32];
@@ -495,6 +493,8 @@ static void draw_channel_names(void)
 					bActionChannel *achan= (bActionChannel *)ale->data;
 					
 					group= (ale->grp) ? 1 : 0;
+					grp= ale->grp;
+					
 					indent = 0;
 					special = -1;
 					
@@ -524,7 +524,9 @@ static void draw_channel_names(void)
 					bConstraintChannel *conchan = (bConstraintChannel *)ale->data;
 					
 					indent = 2;
+					
 					group= (ale->grp) ? 1 : 0;
+					grp= ale->grp;
 					
 					if (EDITABLE_CONCHAN(conchan))
 						protect = ICON_UNLOCKED;
@@ -548,7 +550,9 @@ static void draw_channel_names(void)
 					
 					indent = 2;
 					protect = -1; // for now, until this can be supported by others
+					
 					group= (ale->grp) ? 1 : 0;
+					grp= ale->grp;
 					
 					if (icu->flag & IPO_MUTE)
 						mute = ICON_MUTE_IPO_ON;
@@ -581,7 +585,9 @@ static void draw_channel_names(void)
 					
 					indent = 1;
 					special = geticon_ipo_blocktype(achan->ipo->blocktype);
+					
 					group= (ale->grp) ? 1 : 0;
+					grp= ale->grp;
 					
 					if (FILTER_IPO_ACHAN(achan))	
 						expand = ICON_TRIA_DOWN;
@@ -598,7 +604,9 @@ static void draw_channel_names(void)
 					
 					indent = 1;
 					special = ICON_CONSTRAINT;
+					
 					group= (ale->grp) ? 1 : 0;
+					grp= ale->grp;
 					
 					if (FILTER_CON_ACHAN(achan))	
 						expand = ICON_TRIA_DOWN;
@@ -625,8 +633,28 @@ static void draw_channel_names(void)
 				offset = 0;
 			}
 			else {
-				/* for normal channels */
-				BIF_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));
+				/* for normal channels 
+				 *	- use 3 shades of color group/standard colour for 3 indention level
+				 *	- use standard colour if enabled
+				 */
+				if ((G.saction->flag & SACTION_DRAWGCOLORS) && (grp)) {
+					char cp[3];
+					
+					if (indent == 2) {
+						VECCOPY(cp, grp->cs.solid);
+					}
+					else if (indent == 1) {
+						VECCOPY(cp, grp->cs.select);
+					}
+					else {
+						VECCOPY(cp, grp->cs.active);
+					}
+					
+					glColor3ub(cp[0], cp[1], cp[2]);
+				}
+				else
+					BIF_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));
+				
 				indent += group;
 				offset = 7 * indent;
 				glRectf(x+offset,  yminc, (float)NAMEWIDTH, ymaxc);

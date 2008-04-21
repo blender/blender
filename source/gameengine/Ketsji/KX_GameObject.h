@@ -1,15 +1,12 @@
 /*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * General KX game object.
  */
 
@@ -47,6 +44,7 @@
 #include "MT_CmMatrix4x4.h"
 #include "GEN_Map.h"
 #include "GEN_HashedPtr.h"
+#include "KX_Scene.h"
 
 #define KX_FIXED_FRAME_PER_SEC 25.0f
 #define KX_FIXED_SEC_PER_FRAME (1.0f / KX_FIXED_FRAME_PER_SEC)
@@ -134,6 +132,15 @@ public:
 	GetParent(
 	);
 
+	/** 
+	 * Sets the parent of this object to a game object
+	 */			
+	void SetParent(KX_Scene *scene, KX_GameObject *obj);
+
+	/** 
+	 * Removes the parent of this object to a game object
+	 */			
+	void RemoveParent(KX_Scene *scene);
 
 	/**
 	 * Construct a game object. This class also inherits the 
@@ -628,6 +635,8 @@ public:
 	KX_PYMETHOD(KX_GameObject,SetCollisionMargin);
 	KX_PYMETHOD(KX_GameObject,GetMesh);
 	KX_PYMETHOD(KX_GameObject,GetParent);
+	KX_PYMETHOD(KX_GameObject,SetParent);
+	KX_PYMETHOD(KX_GameObject,RemoveParent);
 	KX_PYMETHOD(KX_GameObject,GetPhysicsId);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCastTo);
 	KX_PYMETHOD_DOC(KX_GameObject,getDistanceTo);

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * os dependent include locations of gl.h
  */
 
@@ -56,20 +53,22 @@
  #include <OpenGL/gl.h>
  #include <OpenGL/glu.h>
 #else
- #if defined (__sun) || defined (__sun__)
+/*  #if defined (__sun) || defined (__sun__)
   #include <GL/gl.h>
   #include <mesa/glu.h>
  #else
+*/
   #include <GL/gl.h>
   #include <GL/glu.h>
- #endif
+/* #endif */
 #endif
+
+
 	/*
 	 * these should be phased out. cpack should be replaced in
 	 * code with calls to glColor3ub, lrectwrite probably should
 	 * change to a function. - zr
 	 */
-	 
 /* 
  *
  * This define converts a numerical value to the equivalent 24-bit
@@ -82,6 +81,10 @@
 #define glLoadMatrixf(x)		glLoadMatrixf( (float *)(x))
 
 #define lrectwrite(a, b, c, d, rect)	{glRasterPos2i(a,  b);glDrawPixels((c)-(a)+1, (d)-(b)+1, GL_RGBA, GL_UNSIGNED_BYTE,  rect);}
+
+/* glStippleDefines, defined in glutil.c */
+extern GLubyte stipple_halftone[128];
+extern GLubyte stipple_quarttone[128];
 
 #endif /* #ifdef BIF_GL_H */
 

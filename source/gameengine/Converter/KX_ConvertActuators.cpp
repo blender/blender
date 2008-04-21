@@ -1,15 +1,12 @@
 /**
 * $Id$
 *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 * Convert Blender actuators for use in the GameEngine
 */
 
@@ -49,7 +46,6 @@
 #include "SCA_RandomActuator.h"
 #include "SCA_2DFilterActuator.h"
 
-
 // Ketsji specific logicbricks
 #include "KX_SceneActuator.h"
 #include "KX_IpoActuator.h"
@@ -64,6 +60,7 @@
 #include "KX_SCA_AddObjectActuator.h"
 #include "KX_SCA_EndObjectActuator.h"
 #include "KX_SCA_ReplaceMeshActuator.h"
+#include "KX_ParentActuator.h"
 
 #include "KX_Scene.h"
 #include "KX_KetsjiEngine.h"
@@ -684,14 +681,10 @@ void BL_ConvertActuators(char* maggiename,
 						break;
 					}
 				case ACT_SCENE_CAMERA:
+					mode = KX_SceneActuator::KX_SCENE_SET_CAMERA;
 					if (sceneact->camera)
 					{
-						mode = KX_SceneActuator::KX_SCENE_SET_CAMERA;
 						cam = (KX_Camera*) converter->FindGameObject(sceneact->camera);
-					}
-					else
-					{
-						// TODO:warn user
 					}
 					break;
 				case ACT_SCENE_RESTART:
@@ -917,6 +910,32 @@ void BL_ConvertActuators(char* maggiename,
 			
 		}
 		break;
+		case ACT_PARENT:
+			{
+				bParentActuator *parAct = (bParentActuator *) bact->data;
+				int mode = KX_ParentActuator::KX_PARENT_NODEF;
+				KX_GameObject *tmpgob;
+
+				switch(parAct->type)
+				{
+					case ACT_PARENT_SET:
+						mode = KX_ParentActuator::KX_PARENT_SET;
+						tmpgob = converter->FindGameObject(parAct->ob);
+						break;
+					case ACT_PARENT_REMOVE:
+						mode = KX_ParentActuator::KX_PARENT_REMOVE;
+						tmpgob = NULL;
+						break;
+				}
+	
+				KX_ParentActuator *tmpparact
+					= new KX_ParentActuator(gameobj,
+					mode,
+					tmpgob);
+				baseact = tmpparact;
+				break;
+			}
+		
 		default:
 			; /* generate some error */
 		}

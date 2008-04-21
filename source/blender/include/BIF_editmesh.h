@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /* External for editmesh_xxxx.c functions */
@@ -181,6 +178,8 @@ extern void select_mesh_group_menu(void);
 extern void editmesh_mark_seam(int clear);
 extern void loop_multiselect(int looptype);
 
+extern void EM_select_more(void);
+extern void EM_select_less(void);
 
 /* ******************* editmesh_loop.c */
 
@@ -260,6 +259,6 @@ int EM_texFaceCheck(void); /* can we edit UV's for this mesh?*/
 int EM_vertColorCheck(void); /* can we edit colors for this mesh?*/
 
 void EM_set_actFace(struct EditFace *efa);
-struct EditFace * EM_get_actFace(void);
+struct EditFace * EM_get_actFace(int sloppy);
 
 #endif

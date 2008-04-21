@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BUTSPACE_H
 #define BUTSPACE_H
@@ -290,17 +287,15 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_FLUIDSIM_SELDIR	      1451
 #define B_FLUIDSIM_FORCEREDRAW	1452
 #define B_FLUIDSIM_MAKEPART	    1453
+#define B_FLUIDSIM_CHANGETYPE   1454
 
 #define B_GROUP_RELINK			1460
 #define B_OBJECT_IPOFLAG		1461
 
-#define B_BAKEABLE_CHANGE		1470
+#define B_BAKE_CACHE_CHANGE		1470
 
 /* Cloth sim button defines */
-#define B_CLOTH_CLEARCACHEALL	1480
-#define B_CLOTH_CLEARCACHEFRAME	1481
-#define B_CLOTH_CHANGEPREROLL	1482
-#define B_CLOTH_RENEW 		1483
+#define B_CLOTH_CHANGEPREROLL	1480
 
 /* *********************** */
 #define B_WORLDBUTS		1600

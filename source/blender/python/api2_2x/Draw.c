@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Willian P. Germano, Campbell Barton, Ken Hughes
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 /* This file is the Blender.Draw part of opy_draw.c, from the old
@@ -532,10 +529,8 @@ static int Button_setattr( PyObject * self, char *name, PyObject * v )
 				return 0;
 		}
 		else if( but->type == BSTRING_TYPE && PyString_Check(v) ) {
-			char *newstr;
-			unsigned int newlen;
-
-			PyString_AsStringAndSize( v, &newstr, (int *)&newlen );
+			char *newstr = PyString_AsString(v);
+			size_t newlen = strlen(newstr);
 			
 			if (newlen+1> UI_MAX_DRAW_STR)
 				return EXPP_ReturnIntError( PyExc_ValueError, "Error: button string length exceeded max limit (399 chars).");

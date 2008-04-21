@@ -1,7 +1,7 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +22,7 @@
  *
  * Contributor(s): Full recode, Ton Roosendaal, Crete 2005
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <ctype.h>
@@ -384,59 +384,88 @@ void bone_autoside_name (char *name, int strip_number, short axis, float head, f
 		/* z-axis - vertical (top/bottom) */
 		if (IS_EQ(head, 0)) {
 			if (tail < 0)
-				strcpy(extension, ".Bot");
+				strcpy(extension, "Bot");
 			else if (tail > 0)
-				strcpy(extension, ".Top");
+				strcpy(extension, "Top");
 		}
 		else {
 			if (head < 0)
-				strcpy(extension, ".Bot");
+				strcpy(extension, "Bot");
 			else
-				strcpy(extension, ".Top");
+				strcpy(extension, "Top");
 		}
 	}
 	else if (axis == 1) {
 		/* y-axis - depth (front/back) */
 		if (IS_EQ(head, 0)) {
 			if (tail < 0)
-				strcpy(extension, ".Fr");
+				strcpy(extension, "Fr");
 			else if (tail > 0)
-				strcpy(extension, ".Bk");
+				strcpy(extension, "Bk");
 		}
 		else {
 			if (head < 0)
-				strcpy(extension, ".Fr");
+				strcpy(extension, "Fr");
 			else
-				strcpy(extension, ".Bk");
+				strcpy(extension, "Bk");
 		}
 	}
 	else {
 		/* x-axis - horizontal (left/right) */
 		if (IS_EQ(head, 0)) {
 			if (tail < 0)
-				strcpy(extension, ".R");
+				strcpy(extension, "R");
 			else if (tail > 0)
-				strcpy(extension, ".L");
+				strcpy(extension, "L");
 		}
 		else {
 			if (head < 0)
-				strcpy(extension, ".R");
+				strcpy(extension, "R");
 			else if (head > 0)
-				strcpy(extension, ".L");
+				strcpy(extension, "L");
 		}
 	}
 
 	/* Simple name truncation 
 	 *	- truncate if there is an extension and it wouldn't be able to fit
-	 *	- otherwise, just append to end (TODO: this should really check if there was already a tag there, and remove it)
+	 *	- otherwise, just append to end
 	 */
 	if (extension[0]) {
-		if ((32 - len) < strlen(extension)) {
+		int change = 1;
+		
+		while (change) { /* remove extensions */
+			change = 0;
+			if (len > 2 && basename[len-2]=='.') {
+				if (basename[len-1]=='L' || basename[len-1] == 'R' ) { /* L R */
+					basename[len-2] = '\0';
+					len-=2;
+					change= 1;
+				}
+			} else if (len > 3 && basename[len-3]=='.') {
+				if (	(basename[len-2]=='F' && basename[len-1] == 'r') ||	/* Fr */
+						(basename[len-2]=='B' && basename[len-1] == 'k')	/* Bk */
+				) {
+					basename[len-3] = '\0';
+					len-=3;
+					change= 1;
+				}
+			} else if (len > 4 && basename[len-4]=='.') {
+				if (	(basename[len-3]=='T' && basename[len-2]=='o' && basename[len-1] == 'p') ||	/* Top */
+						(basename[len-3]=='B' && basename[len-2]=='o' && basename[len-1] == 't')	/* Bot */
+				) {
+					basename[len-4] = '\0';
+					len-=4;
+					change= 1;
+				}
+			}
+		}
+		
+		if ((32 - len) < strlen(extension) + 1) { /* add 1 for the '.' */
 			strncpy(name, basename, len-strlen(extension));
 		}
 	}
 
-	sprintf(name, "%s%s", basename, extension);
+	sprintf(name, "%s.%s", basename, extension);
 }
 
 /* ************* B-Bone support ******************* */

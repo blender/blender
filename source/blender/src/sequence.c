@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): Peter Schlaile <peter [at] schlaile [dot] de> 2005/2006
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -670,12 +667,11 @@ static void multibuf(ImBuf *ibuf, float fmul)
 	int a, mul, icol;
 
 	mul= (int)(256.0*fmul);
-
-	a= ibuf->x*ibuf->y;
 	rt= (char *)ibuf->rect;
 	rt_float = ibuf->rect_float;
 
 	if (rt) {
+		a= ibuf->x*ibuf->y;
 		while(a--) {
 
 			icol= (mul*rt[0])>>8;
@@ -691,6 +687,7 @@ static void multibuf(ImBuf *ibuf, float fmul)
 		}
 	}
 	if (rt_float) {
+		a= ibuf->x*ibuf->y;
 		while(a--) {
 			rt_float[0] *= fmul;
 			rt_float[1] *= fmul;
@@ -875,7 +872,8 @@ TStripElem *give_tstripelem(Sequence *seq, int cfra)
 	   alpha over mode...
 	*/
 	if (seq->blend_mode != SEQ_BLEND_REPLACE ||
-	    (seq->ipo && seq->ipo->curve.first && !(seq->type & SEQ_EFFECT))) {
+	    (seq->ipo && seq->ipo->curve.first && (
+		    !(seq->type & SEQ_EFFECT) || !seq->seq1))) {
 		Strip * s = seq->strip;
 		if (cfra < seq->start) {
 			se = s->tstripdata_startstill;
@@ -1058,7 +1056,7 @@ static int seq_proxy_get_fname(Sequence * seq, int cfra, char * name)
 
 		frameno = tse->nr + seq->anim_startofs;
 
-		snprintf(name, PROXY_MAXFILE, "%s/%s/%d/#", dir,
+		snprintf(name, PROXY_MAXFILE, "%s/%s/%d/####", dir,
 			 seq->strip->stripdata->name,
 			 G.scene->r.size);
 	} else {
@@ -1066,7 +1064,7 @@ static int seq_proxy_get_fname(Sequence * seq, int cfra, char * name)
 
 		frameno = tse->nr + seq->anim_startofs;
 
-		snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/#", dir,
+		snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####", dir,
 			 G.scene->r.size);
 	}
 

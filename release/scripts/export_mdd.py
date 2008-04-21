@@ -45,7 +45,7 @@ try:
 except:
 	pack = None
 
-
+	
 def zero_file(filepath):
 	'''
 	If a file fails, this replaces it with 1 char, better not remove it?
@@ -54,6 +54,18 @@ def zero_file(filepath):
 	file.write('\n') # aparently macosx needs some data in a blank file?
 	file.close()
 
+
+def check_vertcount(mesh,vertcount):
+	'''
+	check and make sure the vertcount is consistent throghout the frame range
+	'''
+	if len(mesh.verts) != vertcount:
+		Blender.Draw.PupMenu('Error%t|Number of verts has changed during animation|cannot export')
+		f.close()
+		zero_file(filepath)
+		return
+	
+	
 def mdd_export(filepath, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
 	
 	Window.EditMode(0)
@@ -84,23 +96,25 @@ def mdd_export(filepath, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
 	f = open(filepath, 'wb') #no Errors yet:Safe to create file
 	
 	# Write the header
-	f.write(pack(">2i", numframes-1, numverts))
+	f.write(pack(">2i", numframes, numverts))
 	
 	# Write the frame times (should we use the time IPO??)
-	f.write( pack(">%df" % (numframes-1), *[frame/PREF_FPS for frame in xrange(numframes-1)]) ) # seconds
+	f.write( pack(">%df" % (numframes), *[frame/PREF_FPS for frame in xrange(numframes)]) ) # seconds
 	
+	#rest frame needed to keep frames in sync
 	Blender.Set('curframe', PREF_STARTFRAME)
+	me_tmp.getFromObject(ob.name)
+	check_vertcount(me_tmp,numverts)
+	me_tmp.transform(ob.matrixWorld * mat_flip)
+	f.write(pack(">%df" % (numverts*3), *[axis for v in me_tmp.verts for axis in v.co]))
+	me_tmp.verts= None
+		
 	for frame in xrange(PREF_STARTFRAME,PREF_ENDFRAME+1):#in order to start at desired frame
 		Blender.Set('curframe', frame)
-		# Blender.Window.RedrawAll() # not needed
+		
 		me_tmp.getFromObject(ob.name)
 		
-		if len(me_tmp.verts) != numverts:
-			Blender.Draw.PupMenu('Error%t|Number of verts has changed during animation|cannot export')
-			Blender.Window.WaitCursor(0)
-			f.close() # should we zero?
-			zero_file(filepath)
-			return
+		check_vertcount(me_tmp,numverts)
 		
 		me_tmp.transform(ob.matrixWorld * mat_flip)
 		

@@ -856,9 +856,13 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			tangent= RE_vlakren_get_nmap_tangent(obr, shi->vlr, 0);
 
 			if(tangent) {
-				s1= &tangent[shi->i1*3];
-				s2= &tangent[shi->i2*3];
-				s3= &tangent[shi->i3*3];
+				int j1= shi->i1, j2= shi->i2, j3= shi->i3;
+
+				vlr_set_uv_indices(shi->vlr, &j1, &j2, &j3);
+
+				s1= &tangent[j1*3];
+				s2= &tangent[j2*3];
+				s3= &tangent[j3*3];
 
 				shi->nmaptang[0]= (tl*s3[0] - tu*s1[0] - tv*s2[0]);
 				shi->nmaptang[1]= (tl*s3[1] - tu*s1[1] - tv*s2[1]);

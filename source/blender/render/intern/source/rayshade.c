@@ -40,8 +40,9 @@
 #include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
-#include "BLI_rand.h"
+#include "BLI_blenlib.h"
 #include "BLI_jitter.h"
+#include "BLI_rand.h"
 
 #include "PIL_time.h"
 
@@ -729,8 +730,8 @@ static void hammersley_create(double *out, int n)
 
 struct QMCSampler *QMC_initSampler(int type, int tot)
 {	
-	QMCSampler *qsa = MEM_mallocN(sizeof(QMCSampler), "qmc sampler");
-	qsa->samp2d = MEM_mallocN(2*sizeof(double)*tot, "qmc sample table");
+	QMCSampler *qsa = MEM_callocN(sizeof(QMCSampler), "qmc sampler");
+	qsa->samp2d = MEM_callocN(2*sizeof(double)*tot, "qmc sample table");
 
 	qsa->tot = tot;
 	qsa->type = type;
@@ -871,27 +872,55 @@ static void QMC_sampleHemiCosine(float *vec, QMCSampler *qsa, int thread, int nu
 #endif
 
 /* called from convertBlenderScene.c */
-/* samples don't change per pixel, so build the samples in advance for efficiency */
-void init_lamp_hammersley(LampRen *lar)
+void init_render_qmcsampler(Render *re)
 {
-	lar->qsa = QMC_initSampler(SAMP_TYPE_HAMMERSLEY, lar->ray_totsamp);
+	re->qmcsamplers= MEM_callocN(sizeof(ListBase)*BLENDER_MAX_THREADS, "QMCListBase");
 }
 
-void init_render_hammersley(Render *re)
+QMCSampler *get_thread_qmcsampler(Render *re, int thread, int type, int tot)
 {
-	re->qsa = QMC_initSampler(SAMP_TYPE_HAMMERSLEY, (re->wrld.aosamp * re->wrld.aosamp));
+	QMCSampler *qsa;
+
+	/* create qmc samplers as needed, since recursion makes it hard to
+	 * predict how many are needed */
+
+	for(qsa=re->qmcsamplers[thread].first; qsa; qsa=qsa->next) {
+		if(qsa->type == type && qsa->tot == tot && !qsa->used) {
+			qsa->used= 1;
+			return qsa;
+		}
+	}
+
+	qsa= QMC_initSampler(type, tot);
+	qsa->used= 1;
+	BLI_addtail(&re->qmcsamplers[thread], qsa);
+
+	return qsa;
 }
 
-void free_lamp_qmcsampler(LampRen *lar)
+void release_thread_qmcsampler(Render *re, int thread, QMCSampler *qsa)
 {
-	QMC_freeSampler(lar->qsa);
-	lar->qsa = NULL;
+	qsa->used= 0;
 }
 
 void free_render_qmcsampler(Render *re)
 {
-	QMC_freeSampler(re->qsa);
-	re->qsa = NULL;
+	QMCSampler *qsa, *next;
+	int a;
+
+	if(re->qmcsamplers) {
+		for(a=0; a<BLENDER_MAX_THREADS; a++) {
+			for(qsa=re->qmcsamplers[a].first; qsa; qsa=next) {
+				next= qsa->next;
+				QMC_freeSampler(qsa);
+			}
+
+			re->qmcsamplers[a].first= re->qmcsamplers[a].last= NULL;
+		}
+
+		MEM_freeN(re->qmcsamplers);
+		re->qmcsamplers= NULL;
+	}
 }
 
 static int adaptive_sample_variance(int samples, float *col, float *colsq, float thresh)
@@ -968,7 +997,7 @@ static void trace_refract(float *col, ShadeInput *shi, ShadeResult *shr)
 		else samp_type = SAMP_TYPE_HAMMERSLEY;
 			
 		/* all samples are generated per pixel */
-		qsa = QMC_initSampler(samp_type, max_samples);
+		qsa = get_thread_qmcsampler(&R, shi->thread, samp_type, max_samples);
 		QMC_initPixel(qsa, shi->thread);
 	} else 
 		max_samples = 1;
@@ -1026,7 +1055,8 @@ static void trace_refract(float *col, ShadeInput *shi, ShadeResult *shr)
 	col[2] /= (float)samples;
 	col[3] /= (float)samples;
 	
-	if (qsa) QMC_freeSampler(qsa);
+	if (qsa)
+		release_thread_qmcsampler(&R, shi->thread, qsa);
 }
 
 static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float fresnelfac)
@@ -1053,7 +1083,7 @@ static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float f
 		else samp_type = SAMP_TYPE_HAMMERSLEY;
 			
 		/* all samples are generated per pixel */
-		qsa = QMC_initSampler(samp_type, max_samples);
+		qsa = get_thread_qmcsampler(&R, shi->thread, samp_type, max_samples);
 		QMC_initPixel(qsa, shi->thread);
 	} else 
 		max_samples = 1;
@@ -1131,7 +1161,8 @@ static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float f
 	col[1] /= (float)samples;
 	col[2] /= (float)samples;
 	
-	if (qsa) QMC_freeSampler(qsa);
+	if (qsa)
+		release_thread_qmcsampler(&R, shi->thread, qsa);
 }
 
 /* extern call from render loop */
@@ -1546,9 +1577,9 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		max_samples /= speedfac;
 		if (max_samples < 5) max_samples = 5;
 		
-		qsa = QMC_initSampler(SAMP_TYPE_HALTON, max_samples);
+		qsa = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HALTON, max_samples);
 	} else if (R.wrld.ao_samp_method==WO_AOSAMP_HAMMERSLEY)
-		qsa = R.qsa;
+		qsa = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HAMMERSLEY, max_samples);
 
 	QMC_initPixel(qsa, shi->thread);
 	
@@ -1621,7 +1652,8 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		shadfac[0]= shadfac[1]= shadfac[2]= 1.0f - fac/(float)samples;
 	}
 	
-	if ((qsa) && (qsa->type == SAMP_TYPE_HALTON)) QMC_freeSampler(qsa);
+	if (qsa)
+		release_thread_qmcsampler(&R, shi->thread, qsa);
 }
 
 /* extern call from shade_lamp_loop, ambient occlusion calculus */
@@ -1787,11 +1819,11 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 
 	/* sampling init */
 	if (lar->ray_samp_method==LA_SAMP_HALTON) {
-		qsa = QMC_initSampler(SAMP_TYPE_HALTON, max_samples);
-		qsa_jit = QMC_initSampler(SAMP_TYPE_HALTON, max_samples);
+		qsa = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HALTON, max_samples);
+		qsa_jit = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HALTON, max_samples);
 	} else if (lar->ray_samp_method==LA_SAMP_HAMMERSLEY) {
-		qsa = lar->qsa;
-		qsa_jit = QMC_initSampler(SAMP_TYPE_HAMMERSLEY, max_samples);
+		qsa = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HAMMERSLEY, max_samples);
+		qsa_jit = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HAMMERSLEY, max_samples);
 	}
 	
 	QMC_initPixel(qsa, shi->thread);
@@ -1921,8 +1953,10 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 	} else
 		shadfac[3]= 1.0f-fac/samples;
 
-	if (qsa_jit) QMC_freeSampler(qsa_jit);
-	if ((qsa) && (qsa->type == SAMP_TYPE_HALTON)) QMC_freeSampler(qsa);
+	if (qsa_jit)
+		release_thread_qmcsampler(&R, shi->thread, qsa_jit);
+	if (qsa)
+		release_thread_qmcsampler(&R, shi->thread, qsa);
 }
 
 static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, float *shadfac, Isect *isec)

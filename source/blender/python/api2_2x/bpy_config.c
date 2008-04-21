@@ -1,15 +1,12 @@
 /* 
- * $Id: bpy_config.c 11123 2007-06-29 08:59:26Z campbellbarton $
+ * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,13 +24,14 @@
  *
  * Contributor(s): Campbell Barton
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 /* python types */
 #include "DNA_userdef_types.h"
 #include "../api2_2x/gen_utils.h"
 #include "bpy_config.h"
+#include "BKE_utildefines.h"
 
 enum conf_consts {
 	/*string*/
@@ -91,7 +89,7 @@ static PyObject *getStrAttr( BPy_Config *self, void *type )
 {
 	char *param = NULL;
 	
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_CONF_ATTR_PATH_YF_EXPORT:
 		param = U.yfexportdir;
 		break;
@@ -142,7 +140,7 @@ static int setStrAttr( BPy_Config *self, PyObject *value, void *type )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 			"error, must assign a python string for setStrAttr");
 	
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_CONF_ATTR_PATH_YF_EXPORT:
 		param = U.yfexportdir;
 		break;
@@ -189,7 +187,7 @@ static PyObject *getIntAttr( BPy_Config *self, void *type )
 {
 	int param;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_CONF_ATTR_UNDOSTEPS:
 		param = (int)U.undosteps;
 		break;
@@ -223,7 +221,7 @@ static int setIntAttrClamp( BPy_Config *self, PyObject *value, void *type )
 	void *param;
 	int min, max, size;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_CONF_ATTR_UNDOSTEPS:
 		min = 0;
 		max = 64;

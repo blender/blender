@@ -1033,8 +1033,11 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval, RayCheckFunc c
 						isect.ob= ob;
 						isect.face= face;
 						if(RE_ray_face_intersection(&isect, oc->transformfunc, oc->coordsfunc)) {
-							if(isect.labda<is->labda) *is= isect;
-							found= 1;
+							if(isect.labda<is->labda) {
+								*is= isect;
+								found= 1;
+							}
+							
 						}
 					}
 					//else rejected++;

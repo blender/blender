@@ -5,15 +5,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +28,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * 
  */
 
@@ -41,6 +38,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <math.h> /* for log10 */
 
 #include "MEM_guardedalloc.h"
 
@@ -67,6 +65,14 @@
 #endif
 
 #ifdef WIN32
+
+#ifdef _WIN32_IE
+#undef _WIN32_IE
+#endif
+#define _WIN32_IE 0x0501
+#include <windows.h>
+#include <shlobj.h>
+
 #include "BLI_winstuff.h"
 
 /* for duplicate_defgroup */
@@ -1027,9 +1033,10 @@ void BLI_makestringcode(const char *relfile, char *file)
 
 int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 {
-	int len, wasrelative;
-	char tmp[FILE_MAXDIR+FILE_MAXFILE];
-	char base[FILE_MAXDIR];
+	int wasrelative;
+	int ch_sta, ch_end;
+	char tmp[FILE_MAX];
+	char base[FILE_MAX];
 	char vol[3] = {'\0', '\0', '\0'};
 
 	BLI_strncpy(vol, path, 3);
@@ -1050,13 +1057,13 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 		strcat(tmp, p);
 	}
 	else {
-		strcpy(tmp, path);
+		BLI_strncpy(tmp, path, FILE_MAX);
 	}
 #else
-	strcpy(tmp, path);
+	BLI_strncpy(tmp, path, FILE_MAX);
 #endif
 
-	strcpy(base, basepath);
+	BLI_strncpy(base, basepath, FILE_MAX);
 	
 	/* push slashes into unix mode - strings entering this part are
 	   potentially messed up: having both back- and forward slashes.
@@ -1082,12 +1089,54 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 		
 		MEM_freeN(filepart);
 	}
-
-	len= strlen(tmp);
-	if(len && tmp[len-1]=='#') {
-		sprintf(tmp+len-1, "%04d", framenum);
+	
+	
+	/* Insert current frame: file### -> file001 */
+	ch_end = 0;
+	for (ch_sta = 0; tmp[ch_sta] != '\0'; ch_sta++) {
+		if (tmp[ch_sta] == '#') {
+			ch_end = ch_sta+1;
+			while (tmp[ch_end] == '#') {
+				ch_end++;
+			}			
+			break;
+		}
 	}
-
+	if (ch_end) { /* warning, ch_end is the last # +1 */
+		/* Add the frame number? */
+		short numlen, hashlen;
+		char format[16]; /* 6 is realistically the maxframe (300000), so 8 should be enough, but 16 to be safe. */
+		
+		numlen = 1 + (int)log10((double)framenum); /* this is the number of chars in the number */
+		hashlen = ch_end - ch_sta;
+		
+		sprintf(format, "%d", framenum);
+		
+		if (numlen==hashlen) { /* simple case */
+			memcpy(tmp+ch_sta, format, numlen);
+		} else if (numlen < hashlen) {
+			memcpy(tmp+ch_sta + (hashlen-numlen), format, numlen); /*dont copy the string terminator */
+			memset(tmp+ch_sta, '0', hashlen-numlen);
+		} else {
+			/* number is longer then number of #'s */
+			if (tmp[ch_end] == '\0') { /* hashes are last, no need to move any string*/
+				/* bad juju - not testing string length here :/ */
+				memcpy(tmp+ch_sta, format, numlen+1); /* add 1 to get the string terminator \0 */
+			} else {
+				/* we need to move the end characters */
+				int i = strlen(tmp); /* +1 to copy the string terminator */
+				int j = i + (numlen-hashlen); /* from/to */
+				while (i >= ch_end) {
+					tmp[j] = tmp[i]; 
+					i--;
+					j--;
+				}
+				memcpy(tmp + ch_sta, format, numlen);
+			}
+		}	
+	}
+	/* done with file### stuff */
+	
 	strcpy(path, tmp);
 #ifdef WIN32
 	/* skip first two chars, which in case of
@@ -1126,6 +1175,8 @@ char *BLI_gethome(void) {
 	#else /* Windows */
 		char * ret;
 		static char dir[512];
+		static char appdatapath[MAXPATHLEN];
+		HRESULT hResult;
 
 		/* Check for %HOME% env var */
 
@@ -1147,9 +1198,36 @@ char *BLI_gethome(void) {
 
 				
 		/* add user profile support for WIN 2K / NT */
+		hResult = SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appdatapath);
+		
+		if (hResult == S_OK)
+		{
+			if (BLI_exists(appdatapath)) { /* from fop, also below... */
+				sprintf(dir, "%s\\Blender Foundation\\Blender", appdatapath);
+				BLI_recurdir_fileops(dir);
+				if (BLI_exists(dir)) {
+					strcat(dir,"\\.blender");
+					if(BLI_exists(dir)) return(dir);
+				}
+			}
+			hResult = SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, appdatapath);
+			if (hResult == S_OK)
+			{
+				if (BLI_exists(appdatapath)) 
+				{ /* from fop, also below... */
+					sprintf(dir, "%s\\Blender Foundation\\Blender", appdatapath);
+					BLI_recurdir_fileops(dir);
+					if (BLI_exists(dir)) {
+						strcat(dir,"\\.blender");
+						if(BLI_exists(dir)) return(dir);
+					}
+				}
+			}
+		}
+		/*
 		ret = getenv("USERPROFILE");
 		if (ret) {
-			if (BLI_exists(ret)) { /* from fop, also below... */
+			if (BLI_exists(ret)) { /* from fop, also below... 
 				sprintf(dir, "%s\\Application Data\\Blender Foundation\\Blender", ret);
 				BLI_recurdir_fileops(dir);
 				if (BLI_exists(dir)) {
@@ -1158,6 +1236,7 @@ char *BLI_gethome(void) {
 				}
 			}
 		}
+		*/
 
 		/* 
 		   Saving in the Windows dir is less than desirable. 

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Willian Padovani Germano.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -108,14 +105,16 @@ void drawscriptspace(ScrArea *sa, void *spacedata)
 		}
 	}
 	
-	if (script->py_draw) {
-		BPY_spacescript_do_pywin_draw(sc);
+	if (script) {
+		if (script->py_draw) {
+			BPY_spacescript_do_pywin_draw(sc);
+		} else if (!script->flags && !script->py_event && !script->py_button) {
+			/* quick hack for 2.37a for scripts that call the progress bar inside a
+			 * file selector callback, to show previous space after finishing, w/o
+			 * needing an event */
+			addqueue(curarea->win, MOUSEX, 0);
+		}
 	}
-	/* quick hack for 2.37a for scripts that call the progress bar inside a
-	 * file selector callback, to show previous space after finishing, w/o
-	 * needing an event */
-	else if (!script->flags && !script->py_event && !script->py_button)
-		addqueue(curarea->win, MOUSEX, 0); 
 }
 
 void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt)

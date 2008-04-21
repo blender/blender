@@ -3,15 +3,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_ACTUATOR_TYPES_H
 #define DNA_ACTUATOR_TYPES_H
@@ -205,6 +202,12 @@ typedef struct bTwoDFilterActuator{
 	struct Text *text;
 }bTwoDFilterActuator;
 
+typedef struct bParentActuator {
+	char pad[4];
+	int type;
+	struct Object *ob;
+} bParentActuator;
+
 typedef struct bActuator {
 	struct bActuator *next, *prev, *mynew;
 	short type;
@@ -274,6 +277,7 @@ typedef struct FreeCamera {
 #define ACT_GAME		17
 #define ACT_VISIBILITY          18
 #define ACT_2DFILTER	19
+#define ACT_PARENT      20
 
 /* actuator flag */
 #define ACT_SHOW		1
@@ -423,6 +427,10 @@ typedef struct FreeCamera {
 #define ACT_2DFILTER_INVERT				11
 #define ACT_2DFILTER_CUSTOMFILTER		12
 #define ACT_2DFILTER_NUMBER_OF_FILTERS	13
+
+/* parentactuator->type */
+#define ACT_PARENT_SET      0
+#define ACT_PARENT_REMOVE   1
 #endif
 
 

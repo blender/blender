@@ -4,15 +4,12 @@
  * Blender.Library BPython module implementation.
  * This submodule has functions to append data from .blend files.
  * 
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +27,7 @@
  *
  * Contributor(s): Willian P. Germano, Campbell Barton, Ken Hughes
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 /************************************************************/
@@ -279,10 +276,11 @@ static PyObject *M_Library_Datablocks( PyObject * self, PyObject * value )
 			counter++;
 		}
 		BLI_linklist_free( names, free );	/* free linklist *and* each node's data */
-		return list;
+	} else {
+		list = PyList_New( 0 );
 	}
 
-	Py_RETURN_NONE;
+	return list;
 }
 
 /**
@@ -943,7 +941,7 @@ PyTypeObject LibraryData_Type = {
 
 static PyObject *LibraryData_CreatePyObject( BPy_Library *self, void *mode )
 {
-	return CreatePyObject_LibData( (int)mode, OTHER, NULL, NULL,
+	return CreatePyObject_LibData( GET_INT_FROM_POINTER(mode), OTHER, NULL, NULL,
 			self->filename );
 }
 

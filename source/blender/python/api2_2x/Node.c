@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Nathan Letwory
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 #include "Node.h"
@@ -417,7 +414,7 @@ static PyObject *Map_socketdef_getter(BPy_NodeSocketLists *self, void *closure)
 {
 	PyObject *sockets = NULL;
 
-	switch ((int)closure) {
+	switch (GET_INT_FROM_POINTER(closure)) {
 		case 'I': /* inputs */
 			Py_INCREF(self->input);
 			sockets = self->input;
@@ -451,7 +448,7 @@ static int Map_socketdef(BPy_NodeSocketLists *self, PyObject *args, void *closur
 	if(BTST2(node->custom1, NODE_DYNAMIC_READY, NODE_DYNAMIC_ADDEXIST))
 		return 0;
 
-	switch((int)closure) {
+	switch(GET_INT_FROM_POINTER(closure)) {
 		case 'I':
 			if (args) {
 				if(PySequence_Check(args)) {
@@ -1099,7 +1096,7 @@ static PyObject *Node_GetInputMap(BPy_Node *self) {
 static PyObject *ShadeInput_getAttribute(BPy_ShadeInput *self, void *type) {
 	PyObject *obj = NULL;
 	if(self->shi) {
-		switch((int)type) {
+		switch(GET_INT_FROM_POINTER(type)) {
 			case SURFACEVIEWVECTOR:
 				obj = Py_BuildValue("(fff)", self->shi->view[0], self->shi->view[1], self->shi->view[2]);
 				break;

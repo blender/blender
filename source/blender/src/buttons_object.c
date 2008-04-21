@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <time.h>
@@ -54,6 +51,7 @@
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -1002,7 +1000,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Settings */
 				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tail", *xco, *yco-92, 137, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tail als last element in Chain");
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tail", *xco, *yco-92, 137, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tail also last element in Chain");
 				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "ChainLen:", *xco, *yco-112,137,19, &data->rootbone, 0, 255, 0, 0, "If not zero, the amount of bones in this chain");
 				
 				uiBlockBeginAlign(block);
@@ -1031,16 +1029,16 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->poletar);
 				}
 				else {
-					strcpy (data->polesubtarget, "");
+					strcpy(data->polesubtarget, "");
 				}
-	
-				if(data->poletar) {
+				
+				if (data->poletar) {
 					uiBlockBeginAlign(block);
 #if 0
 					but = uiDefBut(block, BUT, B_CONSTRAINT_TEST, (data->flag & CONSTRAINT_IK_SETANGLE)? "Set Pole Offset": "Clear Pole Offset", *xco, *yco-167, 137, 19, 0, 0.0, 1.0, 0.0, 0.0, "Set the pole rotation offset from the current pose");
 					uiButSetFunc(but, con_kinematic_set_pole_angle, ob, con);
-					if(!(data->flag & CONSTRAINT_IK_SETANGLE))
-#endif
+					if (!(data->flag & CONSTRAINT_IK_SETANGLE))
+#endif					
 						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pole Offset ", *xco, *yco-167, 137, 19, &data->poleangle, -180.0, 180.0, 0, 0, "Pole rotation offset");
 				}
 			}
@@ -1481,7 +1479,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 #endif
 				uiBlockEndAlign(block);
 				
-				uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Limit Mode%t|Inside %x0|Outside %x1|Surface %x2", *xco+((width/2)-50), *yco-104, 100, 18, &data->mode, 0, 24, 0, 0, "Distances in relation to sphere of influence to allow");
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Clamp Region:",*xco+((width/2)-110), *yco-104,100,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Limit Mode%t|Inside %x0|Outside %x1|Surface %x2", *xco+(width/2), *yco-104, 100, 18, &data->mode, 0, 24, 0, 0, "Distances in relation to sphere of influence to allow");
 			}
 			break;
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
@@ -1643,7 +1642,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockEndAlign(block);
 				
 				/* Extrapolate Ranges? */
-				uiDefButBitC(block, TOG, 1, B_CONSTRAINT_TEST, "Extrapolate", *xco, *yco-42,80,19, &data->expo, 0, 0, 0, 0, "Extrapolate ranges");
+				uiDefButBitC(block, TOG, 1, B_CONSTRAINT_TEST, "Extrapolate", *xco-10, *yco-42,80,19, &data->expo, 0, 0, 0, 0, "Extrapolate ranges");
 				
 				/* Draw options for source motion */
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Source:", *xco-10, *yco-62, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
@@ -2052,72 +2051,133 @@ void do_constraintbuts(unsigned short event)
 	allqueue (REDRAWBUTSOBJECT, 0);
 }
 
-void softbody_bake(Object *ob)
+void pointcache_bake(PTCacheID *pid, int startframe)
 {
 	Base *base;
-	SoftBody *sb;
 	ScrArea *sa;
+    PointCache *cache;
+	ListBase pidlist;
 	float frameleno= G.scene->r.framelen;
-	int cfrao= CFRA, sfra=100000, efra=0, didbreak =0;
-	
+	int cfrao= CFRA, didbreak =0, endframe, cstart, cend;
 	
 	G.scene->r.framelen= 1.0;		// baking has to be in uncorrected time
 	sbSetInterruptCallBack(blender_test_break); // make softbody module ESC aware
 	G.afbreek=0; // init global break system
 	
-	if(ob) {
-		sb= ob->soft;
-		sfra= MIN2(sfra, sb->sfra);
-		efra= MAX2(efra, sb->efra);
-		sbObjectToSoftbody(ob);	// put softbody in restposition, free bake
-		ob->softflag |= OB_SB_BAKEDO;
+	if(pid) {
+	    cache= pid->cache;
+
+		BKE_ptcache_id_time(pid, 0.0f, &cstart, &cend, NULL);
+
+		startframe= startframe;
+		endframe= cend;
+
+		cache->flag |= PTCACHE_BAKING;
+		cache->flag &= ~PTCACHE_BAKED;
 	}
 	else {
+		startframe= MAXFRAME;
+		endframe= 0;
+
 		for(base=G.scene->base.first; base; base= base->next) {
 			if(TESTBASELIB(base)) {
-				if(base->object->soft) {
-					sb= base->object->soft;
-					sfra= MIN2(sfra, sb->sfra);
-					efra= MAX2(efra, sb->efra);
-					sbObjectToSoftbody(base->object);	// put softbody in restposition, free bake
-					base->object->softflag |= OB_SB_BAKEDO;
+				BKE_ptcache_ids_from_object(&pidlist, base->object);
+
+				for(pid=pidlist.first; pid; pid=pid->next) {
+					cache= pid->cache;
+
+					BKE_ptcache_id_time(pid, 0.0f, &cstart, &cend, NULL);
+
+					startframe= MIN2(startframe, cstart);
+					endframe= MAX2(endframe, cend);
+
+					cache->flag |= PTCACHE_BAKING;
+					cache->flag &= ~PTCACHE_BAKED;
 				}
+
+				BLI_freelistN(&pidlist);
 			}
 		}
 	}
 	
-	CFRA= sfra;
+	CFRA= startframe;
 	update_for_newframe_muted();	// put everything on this frame
 	
 	curarea->win_swap= 0;		// clean swapbuffers
 	
-	for(; CFRA <= efra; CFRA++) {
+	for(; CFRA <= endframe; CFRA++) {
 		set_timecursor(CFRA);
 		
 		update_for_newframe_muted();
 		
-		for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
-			if(sa->spacetype == SPACE_VIEW3D) {
+		for(sa= G.curscreen->areabase.first; sa; sa= sa->next)
+			if(sa->spacetype == SPACE_VIEW3D)
 				scrarea_do_windraw(sa);
-			}
-		}
 		screen_swapbuffers();
+
 		//blender_test_break() has a granularity of 10 ms, who cares .. baking the unit cube is kinda boring
-		if (blender_test_break()){ 
+		if(blender_test_break()) {
 			didbreak = 1;
 			break;
 		}
-
 	}
-	if((didbreak)&&(G.qual!=LR_SHIFTKEY)) {
-		if(ob) 
-			sbObjectToSoftbody(ob);	// free bake
+
+	if(didbreak && G.qual!=LR_SHIFTKEY) {
+		/* failed to bake, free the frames we baked */
+		if(pid) {
+			cache= pid->cache;
+
+			BKE_ptcache_id_time(pid, 0.0f, &cstart, &cend, NULL);
+
+			cache->flag &= ~PTCACHE_BAKING;
+			if(startframe == cstart)
+				cache->flag &= ~PTCACHE_BAKED;
+
+			BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, startframe-1);
+		}
 		else {
 			for(base=G.scene->base.first; base; base= base->next) {
 				if(TESTBASELIB(base)) {
-					if(base->object->soft) {
-						sbObjectToSoftbody(base->object);	// free bake
+					BKE_ptcache_ids_from_object(&pidlist, base->object);
+
+					for(pid=pidlist.first; pid; pid=pid->next) {
+						cache= pid->cache;
+
+						BKE_ptcache_id_time(pid, 0.0f, &cstart, &cend, NULL);
+
+						cache->flag &= ~PTCACHE_BAKING;
+						if(startframe == cstart)
+							cache->flag &= ~PTCACHE_BAKED;
+
+						BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, startframe-1);
 					}
+
+					BLI_freelistN(&pidlist);
+				}
+			}
+		}
+	}
+	else {
+		/* succesfully finished baking */
+		if(pid) {
+			cache= pid->cache;
+
+			cache->flag &= ~PTCACHE_BAKING;
+			cache->flag |= PTCACHE_BAKED;
+		}
+		else {
+			for(base=G.scene->base.first; base; base= base->next) {
+				if(TESTBASELIB(base)) {
+					BKE_ptcache_ids_from_object(&pidlist, base->object);
+
+					for(pid=pidlist.first; pid; pid=pid->next) {
+						cache= pid->cache;
+
+						cache->flag &= ~PTCACHE_BAKING;
+						cache->flag |= PTCACHE_BAKED;
+					}
+
+					BLI_freelistN(&pidlist);
 				}
 			}
 		}
@@ -2127,19 +2187,52 @@ void softbody_bake(Object *ob)
 	waitcursor(0);
 	sbSetInterruptCallBack(NULL); // softbody module won't ESC
 	G.afbreek=0; // reset global break system
-	
-	if(ob) 
-		ob->softflag &= ~OB_SB_BAKEDO;
-	else {
-		for(base=G.scene->base.first; base; base= base->next)
-			if(TESTBASELIB(base))
-				if(base->object->soft)
-					base->object->softflag &= ~OB_SB_BAKEDO;
-	}
-	
+
 	CFRA= cfrao;
 	G.scene->r.framelen= frameleno;
 	update_for_newframe_muted();
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+}
+
+void pointcache_free(PTCacheID *pid, int cacheonly)
+{
+	Base *base;
+	ListBase pidlist;
+	
+	if(pid) {
+		if(cacheonly) {
+			BKE_ptcache_id_reset(pid, PTCACHE_RESET_DEPSGRAPH);
+		}
+		else {
+			BKE_ptcache_id_reset(pid, PTCACHE_RESET_BAKED);
+			pid->cache->flag &= ~PTCACHE_BAKED;
+		}
+
+		DAG_object_flush_update(G.scene, pid->ob, OB_RECALC_DATA);
+	}
+	else {
+		for(base=G.scene->base.first; base; base= base->next) {
+			if(TESTBASELIB(base)) {
+				BKE_ptcache_ids_from_object(&pidlist, base->object);
+
+				for(pid=pidlist.first; pid; pid=pid->next) {
+					if(cacheonly) {
+						BKE_ptcache_id_reset(pid, PTCACHE_RESET_DEPSGRAPH);
+					}
+					else {
+						BKE_ptcache_id_reset(pid, PTCACHE_RESET_BAKED);
+						pid->cache->flag &= ~PTCACHE_BAKED;
+					}
+
+					DAG_object_flush_update(G.scene, pid->ob, OB_RECALC_DATA);
+				}
+
+				BLI_freelistN(&pidlist);
+			}
+		}
+	}
+
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 }
@@ -2274,59 +2367,69 @@ void do_object_panels(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	
-	case B_SOFTBODY_CHANGE:
-		ob= OBACT;
-		if(ob) {
-			ParticleSystem *psys = PE_get_current(ob);
-			if(psys)
-				psys->softflag |= OB_SB_REDO;
-			else
-				ob->softflag |= OB_SB_REDO;
-			allqueue(REDRAWBUTSOBJECT, 0);
-			allqueue(REDRAWVIEW3D, 0);
-		}
-		break;
 	case B_SOFTBODY_DEL_VG:
 		if(ob->soft) {
 			ob->soft->vertgroup= 0;
-			ob->softflag |= OB_SB_REDO;
+			//ob->softflag |= OB_SB_REDO;
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
 			allqueue(REDRAWBUTSOBJECT, 0);
 			allqueue(REDRAWVIEW3D, 0);
 		}
-		break;
-	case B_SOFTBODY_BAKE:
-		if(ob->soft) softbody_bake(ob);
-		break;
-	case B_SOFTBODY_BAKE_FREE:
-		if(ob->soft) sbObjectToSoftbody(ob);
-		allqueue(REDRAWBUTSOBJECT, 0);
-		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_FLUIDSIM_BAKE:
 		/* write config files (currently no simulation) */
 		fluidsimBake(ob);
 		break;
 	case B_FLUIDSIM_MAKEPART:
-		{
-			PartEff *paf= NULL;
-			/* prepare fluidsim particle display */
-			// simplified delete effect, create new - recalc some particles...
-			if(ob==NULL || ob->type!=OB_MESH) break;
-			ob->fluidsimSettings->type = 0;
-			// reset type, and init particle system once normally
-			paf= give_parteff(ob); 
-			if( (BLI_countlist(&ob->effect)<MAX_EFFECT) && 
-			    (!paf)) { 
-				// create new entry
-				copy_act_effect(ob); DAG_scene_sort(G.scene); }
-			paf = give_parteff(ob);
-			if(paf) {
-				paf->totpart = 1000; paf->sta = paf->end = 1.0; // generate some particles...
-				build_particle_system(ob);
-				ob->fluidsimSettings->type = OB_FLUIDSIM_PARTICLE;
-			}
+		if(ob==NULL || ob->type!=OB_MESH) break;
+		else {
+			ParticleSettings *part = psys_new_settings("PSys", G.main);
+			ParticleSystem *psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
+			ModifierData *md;
+			ParticleSystemModifierData *psmd;
+
+			part->type = PART_FLUID;
+			psys->part = part;
+			psys->pointcache = BKE_ptcache_add();
+			psys->flag |= PSYS_ENABLED;
+
+			ob->fluidsimSettings->type = OB_FLUIDSIM_PARTICLE;
+
+			BLI_addtail(&ob->particlesystem,psys);
+
+			md= modifier_new(eModifierType_ParticleSystem);
+			sprintf(md->name, "FluidParticleSystem" );
+			psmd= (ParticleSystemModifierData*) md;
+			psmd->psys=psys;
+			BLI_addtail(&ob->modifiers, md);
 		}
 		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		break;
+	case B_FLUIDSIM_CHANGETYPE:
+		if(ob && ob->particlesystem.first && ob->fluidsimSettings->type!=OB_FLUIDSIM_PARTICLE){
+			ParticleSystem *psys;
+			for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+				if(psys->part->type==PART_FLUID) {
+					/* clear modifier */
+					ParticleSystemModifierData *psmd= psys_get_modifier(ob,psys);
+					BLI_remlink(&ob->modifiers, psmd);
+					modifier_free((ModifierData *)psmd);
+
+					/* clear particle system */
+					BLI_remlink(&ob->particlesystem,psys);
+					psys_free(ob,psys);
+
+					BIF_undo_push("Delete particle system");
+
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+
+					allqueue(REDRAWVIEW3D, 0);
+					allqueue(REDRAWOOPS, 0);
+					break;
+				}
+			}
+		}
 		allqueue(REDRAWBUTSOBJECT, 0);
 		break;
 	case B_FLUIDSIM_SELDIR: 
@@ -2347,63 +2450,21 @@ void do_object_panels(unsigned short event)
 		group_relink_nla_objects(ob);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
-	case B_BAKEABLE_CHANGE:
-		allqueue(REDRAWBUTSOBJECT, 0);
-		allqueue(REDRAWVIEW3D, 0);
-		break;
 	case B_OBJECT_IPOFLAG:
 		if(ob->ipo) ob->ipo->showkey= (ob->ipoflag & OB_DRAWKEY)?1:0;
 		allqueue(REDRAWVIEW3D, 0);
 		break;
-	case B_CLOTH_CLEARCACHEALL:
-	{
-		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-		if(clmd)
-		{
-			// do nothing in editmode
-			if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE)
-				break;
-			
-			/* force freeing because user wants */
-			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
-			
-			/*user wants to free all, so free whole cloth, this helps to start sim at later frame */
-			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-			
-			CFRA= 1;
-			update_for_newframe_muted();
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
-			cloth_clear_cache(ob, clmd, 0); 
-			allqueue(REDRAWBUTSOBJECT, 0);
-			allqueue(REDRAWVIEW3D, 0);
-		}	
-	}
-	break;	
-	case B_CLOTH_CLEARCACHEFRAME:
-	{
-		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-		if(clmd)
-		{
-			// do nothing in editmode
-			if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE)
-				break;
-			
-			/* force freeing because user wants */
-			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
-			
-			cloth_clear_cache(ob, clmd, MAX2(0.0,G.scene->r.cfra)); 
-			// MAX2(1.0,G.scene->r.cfra + 1.0)
-			allqueue(REDRAWBUTSOBJECT, 0);
-		}
-	}
-	break;	
 	case B_CLOTH_CHANGEPREROLL:
 	{
 		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 		if(clmd)
 		{
+			PTCacheID pid;
+
+			BKE_ptcache_id_from_cloth(&pid, ob, clmd);
+
 			// do nothing in editmode
-			if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE)
+			if(pid.cache->flag & PTCACHE_BAKE_EDIT_ACTIVE)
 				break;
 			
 			CFRA= 1;
@@ -2414,17 +2475,11 @@ void do_object_panels(unsigned short event)
 		}
 	}
 	break;	
-	case B_CLOTH_RENEW:
+	case B_BAKE_CACHE_CHANGE:
 	{
-		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-	
-		if(clmd)
-		{
-			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
-			allqueue(REDRAWBUTSOBJECT, 0);
-			allqueue(REDRAWVIEW3D, 0);
-		}
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
+		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWVIEW3D, 0);
 	}
 	break;
 		
@@ -2688,7 +2743,7 @@ static void object_panel_draw(Object *ob)
 	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	/* LAYERS */
-	xco= 120;
+	xco= 80;
 	dx= 35;
 	dy= 30;
 	
@@ -2708,6 +2763,9 @@ static void object_panel_draw(Object *ob)
 		uiDefButBitI(block, TOG, 1<<(a+10), B_OBLAY+a+10, "",	(short)(xco+a*(dx/2)), 165, (short)(dx/2), (short)(dy/2), (int *)&(BASACT->lay), 0, 0, 0, 0, "");
 	
 	uiBlockEndAlign(block);
+	
+	/* Object Color */
+	uiDefButF(block, COL, REDRAWVIEW3D, "",	270, 165,30, 30, ob->col, 0, 0, 0, 0, "Object color, used when faces have the ObCol mode enabled");
 	
 	uiDefBut(block, LABEL, 0, "Drawtype",						10,120,100,20, NULL, 0, 0, 0, 0, "");
 	
@@ -2802,6 +2860,7 @@ void do_effects_panels(unsigned short event)
 	ParticleSystemModifierData *psmd;
 	ParticleSystem *psys;
 	ParticleSettings *part;
+	LinkNode *node, *firstnode;
 	ID *id,*idtest;
 	int nr;
 	
@@ -2963,6 +3022,7 @@ void do_effects_panels(unsigned short event)
 				nr++;
 				idtest= idtest->next;
 			}
+
 			if(idtest==0) { /* new particle system */
 				if(id){
 					idtest= (ID *)psys_copy_settings((ParticleSettings *)id);
@@ -2972,10 +3032,17 @@ void do_effects_panels(unsigned short event)
 				}
 				idtest->us--;
 			}
+			else if(((ParticleSettings*)idtest)->type==PART_FLUID) {
+				error("Can't select fluid particles");
+				break;
+			}
+
 			if(idtest!=id) {
 				short nr=0;
 				if(id==0){ /* no psys previously -> no modifier -> need to create that also */
 					psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
+					psys->pointcache = BKE_ptcache_add();
+					psys->flag |= PSYS_ENABLED;
 					BLI_addtail(&ob->particlesystem,psys);
 
 					md= modifier_new(eModifierType_ParticleSystem);
@@ -2988,7 +3055,7 @@ void do_effects_panels(unsigned short event)
 				idtest->us++;
 				psys->part=(ParticleSettings*)idtest;
 				psys->totpart=0;
-				psys->flag=PSYS_ENABLED|PSYS_CURRENT;
+				psys->flag= PSYS_ENABLED|PSYS_CURRENT;
 				psys->cfra=bsystem_time(ob,G.scene->r.cfra+1,0.0);
 
 				/* check need for dupliobjects */
@@ -3057,6 +3124,27 @@ void do_effects_panels(unsigned short event)
 			}
 		}
 		break;
+
+	case B_PART_ALLOC:
+	case B_PART_DISTR:
+	case B_PART_INIT:
+	case B_PART_RECALC:
+	case B_PART_ALLOC_CHILD:
+	case B_PART_DISTR_CHILD:
+	case B_PART_INIT_CHILD:
+	case B_PART_RECALC_CHILD:
+		if(psys) {
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSOBJECT, 0);
+		}
+		break;
+	
+	/* there were separate update events before the pointcache refactor,
+	 * now it only does a flush update which means it is recalculating
+	 * more than strictly needed, but how to restore such partial updates
+	 * i'm not sure - brecht. */
+#if 0
 	case B_PART_ALLOC:
 	case B_PART_ALLOC_CHILD:
 		if(psys){
@@ -3066,6 +3154,7 @@ void do_effects_panels(unsigned short event)
 			allqueue(REDRAWOOPS, 0);
 		}
 		break;
+
 	case B_PART_DISTR:
 	case B_PART_DISTR_CHILD:
 		if(psys){
@@ -3092,13 +3181,8 @@ void do_effects_panels(unsigned short event)
 			allqueue(REDRAWBUTSEDIT, 0);
 		}
 		break;
-	case B_PART_RECALC:
-	case B_PART_RECALC_CHILD:
-		if(psys){
-			psys_flush_settings(psys->part,0,event==B_PART_RECALC);
-			allqueue(REDRAWOOPS, 0);
-		}
 		/* no break! */
+#endif
 	case B_PART_REDRAW_DEPS:
 		if(event == B_PART_REDRAW_DEPS)
 			DAG_scene_sort(G.scene);
@@ -3118,13 +3202,17 @@ void do_effects_panels(unsigned short event)
 		allqueue(REDRAWBUTSOBJECT, 0);
 		break;
 	case B_PARTTYPE:
-		if((psys=psys_get_current(ob))){
-			DAG_scene_sort(G.scene);
+		if(psys) {
+		 	/* 1 = do DAG_object_flush_update */
+			firstnode= psys_using_settings(psys->part, 1);
 
-			psys_flush_settings(psys->part,PSYS_TYPE,1);
+			for(node=firstnode; node; node=node->next)
+				psys_changed_type(node->link);
+			
+			BLI_linklist_free(firstnode, NULL);
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSOBJECT, 0);
 		}
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWBUTSOBJECT, 0);
 		break;
 	case B_PARTACT:
 		allqueue(REDRAWVIEW3D, 0);
@@ -3266,7 +3354,7 @@ static void object_collision__enabletoggle ( void *ob_v, void *arg2 )
 		if(pd && (pd->deflect))
 		{
 			md = modifier_new ( eModifierType_Collision );
-			BLI_addhead ( &ob->modifiers, md );
+			BLI_addtail ( &ob->modifiers, md );
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWVIEW3D, 0);
@@ -3281,15 +3369,16 @@ static void object_collision__enabletoggle ( void *ob_v, void *arg2 )
 }
 
 /* Panels for particle interaction settings */
-static void object_panel_deflection(Object *ob)
+static void object_panel_collision(Object *ob)
 {
 	uiBlock *block;
 	uiBut *but;
 
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_deflection", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Deflection", "Physics", 0, 0, 318, 204)==0) return;
+	uiNewPanelTabbed("Fields", "Physics");
+	if(uiNewPanel(curarea, block, "Collision", "Physics", 0, 0, 318, 204)==0) return;
 
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	/* should become button, option? */
 	if(ob->pd==NULL) {
@@ -3304,27 +3393,33 @@ static void object_panel_deflection(Object *ob)
 	if(ob->pd && ob->type==OB_MESH) {
 		PartDeflect *pd= ob->pd;
 		
-		but = uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",160,160,150,20, &pd->deflect, 0, 0, 0, 0, "Deflects particles based on collision");
+		but = uiDefButBitS(block, TOG, 1, B_REDR, "Collision",10,160,150,20, &pd->deflect, 0, 0, 0, 0, "Enable this objects as a collider for physics systems");
 		uiButSetFunc(but, object_collision__enabletoggle, ob, NULL);
+
+		uiDefBut(block, LABEL, 0, "",160,160,150,2, NULL, 0.0, 0, 0, 0, "");
 		
 		if(pd->deflect) {
-			uiDefBut(block, LABEL, 0, "Particles",			160,140,75,20, NULL, 0.0, 0, 0, 0, "");
-			uiDefButBitS(block, TOG, PDEFLE_KILL_PART, B_DIFF, "Kill",235,140,75,20, &pd->flag, 0, 0, 0, 0, "Kill collided particles");
+			uiDefBut(block, LABEL, 0, "Particle Interaction",			10,135,310,20, NULL, 0.0, 0, 0, 0, "");
 
 			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_DIFF, "Damping: ",		160,120,75,20, &pd->pdef_damp, 0.0, 1.0, 10, 0, "Amount of damping during particle collision");
-			uiDefButF(block, NUM, B_DIFF, "Rnd Damping: ",	235,120,75,20, &pd->pdef_rdamp, 0.0, 1.0, 10, 0, "Random variation of damping");
-			uiDefButF(block, NUM, B_DIFF, "Friction: ",		160,100,75,20, &pd->pdef_frict, 0.0, 1.0, 10, 0, "Amount of friction during particle collision");
-			uiDefButF(block, NUM, B_DIFF, "Rnd Friction: ",	235,100,75,20, &pd->pdef_rfrict, 0.0, 1.0, 10, 0, "Random variation of friction");
-			uiDefButF(block, NUM, B_DIFF, "Permeability: ",	160,80,150,20, &pd->pdef_perm, 0.0, 1.0, 10, 0, "Chance that the particle will pass through the mesh");
+			uiDefButF(block, NUM, B_FIELD_CHANGE, "Damping: ",		10,115,105,20, &pd->pdef_damp, 0.0, 1.0, 10, 2, "Amount of damping during particle collision");
+			uiDefButF(block, NUM, B_FIELD_CHANGE, "Rnd: ",	115,115,75,20, &pd->pdef_rdamp, 0.0, 1.0, 10, 2, "Random variation of damping");
+			uiDefButF(block, NUM, B_FIELD_CHANGE, "Friction: ",		10,95,105,20, &pd->pdef_frict, 0.0, 1.0, 10, 2, "Amount of friction during particle collision");
+			uiDefButF(block, NUM, B_FIELD_CHANGE, "Rnd: ",	115,95,75,20, &pd->pdef_rfrict, 0.0, 1.0, 10, 2, "Random variation of friction");
 			uiBlockEndAlign(block);
+
+			uiDefButBitS(block, TOG, PDEFLE_KILL_PART, B_FIELD_CHANGE, "Kill",200,115,120,20, &pd->flag, 0, 0, 0, 0, "Kill collided particles");
+			uiDefButF(block, NUM, B_FIELD_CHANGE, "Permeability: ",	200,90,120,20, &pd->pdef_perm, 0.0, 1.0, 10, 2, "Chance that the particle will pass through the mesh");
 			
-			uiDefBut(block, LABEL, 0, "Soft Body / Cloth",			160,60,150,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Soft Body and Cloth Interaction",			10,65,310,20, NULL, 0.0, 0, 0, 0, "");
 
 			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_FIELD_CHANGE, "Damping:",	160,40,150,20, &pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
-			uiDefButF(block, NUM, B_FIELD_CHANGE, "Inner:",	160,20,150,20, &pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
-			uiDefButF(block, NUM, B_FIELD_CHANGE, "Outer:",	160, 0,150,20, &pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
+			uiDefButF(block, NUM, B_FIELD_CHANGE, "Damping:",	10,45,150,20, &pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during collision");
+			uiDefButF(block, NUM, B_FIELD_CHANGE, "Inner:",	10,25,150,20, &pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
+			uiDefButF(block, NUM, B_FIELD_CHANGE, "Outer:",	10, 5,150,20, &pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
+			uiBlockEndAlign(block);
+
+			uiDefButBitS(block, TOG, OB_SB_COLLFINAL, B_FIELD_CHANGE, "Ev.M.Stack", 170,45,150,20, &ob->softflag, 0, 0, 0, 0, "Pick collision object from modifier stack (softbody only)");
 		}
 	}
 }
@@ -3336,10 +3431,9 @@ static void object_panel_fields(Object *ob)
 	static short actpsys=-1;
 
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_fields", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Deflection", "Physics");
 	if(uiNewPanel(curarea, block, "Fields", "Physics", 0, 0, 318, 204)==0) return;
 
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	/* should become button, option? */
 	if(ob->pd==NULL) {
@@ -3354,6 +3448,8 @@ static void object_panel_fields(Object *ob)
 		PartDeflect *pd= ob->pd;
 		char *menustr= MEM_mallocN(256, "temp string");
 		char *tipstr="Choose field type";
+
+		uiBlockBeginAlign(block);
 		
 		if(ob->particlesystem.first) {
 			ParticleSystem *psys;
@@ -3406,6 +3502,9 @@ static void object_panel_fields(Object *ob)
 		else
 			uiDefButS(block, MENU, B_FIELD_DEP, menustr,			10,180,140,20, &pd->forcefield, 0.0, 0.0, 0, 0, tipstr);
 
+		uiBlockEndAlign(block);
+		uiDefBut(block, LABEL, 0, "",160,180,150,2, NULL, 0.0, 0, 0, 0, "");
+
 		MEM_freeN(menustr);
 		
 		if(pd->forcefield) {
@@ -3423,10 +3522,12 @@ static void object_panel_fields(Object *ob)
 				uiDefButF(block, NUM, B_FIELD_CHANGE, "Strength: ",	10,140,140,20, &pd->f_strength, -1000, 1000, 10, 3, "Strength of force field");
 				
 				if(pd->forcefield == PFIELD_TEXTURE){
-					uiDefIDPoinBut(block, field_testTexture, ID_TE, B_FIELD_CHANGE, "Texture: ", 10, 120, 140, 20, &pd->tex, "Texture to use as force");
-					uiDefButBitS(block, TOG, PFIELD_TEX_OBJECT, B_FIELD_CHANGE, "Use Object Co",	10,100,140,20, &pd->flag, 0.0, 0, 0, 0, "Use object/global coordinates for texture");
-					uiDefButBitS(block, TOG, PFIELD_TEX_ROOTCO, B_FIELD_CHANGE, "Root TexCo",	10,80,120,20, &pd->flag, 0.0, 0, 0, 0, "Texture coords from root particle locations");
-					uiDefButBitS(block, TOG, PFIELD_TEX_2D, B_FIELD_CHANGE, "2D",	130,80,20,20, &pd->flag, 0.0, 0, 0, 0, "Apply force only in 2d");
+					uiDefIDPoinBut(block, field_testTexture, ID_TE, B_FIELD_CHANGE, "Texture: ", 10,120,140,20, &pd->tex, "Texture to use as force");
+					uiBlockEndAlign(block);
+					uiBlockBeginAlign(block);
+					uiDefButBitS(block, TOG, PFIELD_TEX_OBJECT, B_FIELD_CHANGE, "Use Object Co",	10,95,140,20, &pd->flag, 0.0, 0, 0, 0, "Use object/global coordinates for texture");
+					uiDefButBitS(block, TOG, PFIELD_TEX_ROOTCO, B_FIELD_CHANGE, "Root TexCo",	10,75,100,20, &pd->flag, 0.0, 0, 0, 0, "Texture coords from root particle locations");
+					uiDefButBitS(block, TOG, PFIELD_TEX_2D, B_FIELD_CHANGE, "2D",	120,75,30,20, &pd->flag, 0.0, 0, 0, 0, "Apply force only in 2d");
 				}
 				else if(pd->forcefield == PFIELD_HARMONIC) 
 					uiDefButF(block, NUM, B_FIELD_CHANGE, "Damp: ",	10,120,140,20, &pd->f_damp, 0, 10, 10, 0, "Damping of the harmonic force");	
@@ -3438,13 +3539,13 @@ static void object_panel_fields(Object *ob)
 				uiDefButBitS(block, TOG, PFIELD_GUIDE_PATH_ADD, B_FIELD_CHANGE, "Additive",	10,40,140,20, &pd->flag, 0.0, 0, 0, 0, "Based on distance/falloff it adds a portion of the entire path");
 			}
 			else if(pd->forcefield==PFIELD_TEXTURE){
-				uiDefButS(block, MENU, B_FIELD_CHANGE, "Texture mode%t|RGB%x0|Gradient%x1|Curl%x2",	10,40,140,20, &pd->tex_mode, 0.0, 0.0, 0, 0, "How the texture effect is calculated (RGB & Curl need a RGB texture else Gradient will be used instead)");
+				uiDefButS(block, MENU, B_FIELD_CHANGE, "Texture mode%t|RGB%x0|Gradient%x1|Curl%x2",	10,50,140,20, &pd->tex_mode, 0.0, 0.0, 0, 0, "How the texture effect is calculated (RGB & Curl need a RGB texture else Gradient will be used instead)");
 	
-				uiDefButF(block, NUM, B_FIELD_CHANGE, "Nabla:",	10,20,140,20, &pd->tex_nabla, 0.0001f, 1.0, 1, 0, "Specify the dimension of the area for gradient and curl calculation");
+				uiDefButF(block, NUM, B_FIELD_CHANGE, "Nabla:",	10,30,140,20, &pd->tex_nabla, 0.0001f, 1.0, 1, 0, "Specify the dimension of the area for gradient and curl calculation");
 			}
 			else if(particles==0 && ELEM(pd->forcefield,PFIELD_VORTEX,PFIELD_WIND)==0){
 				//uiDefButF(block, NUM, B_FIELD_CHANGE, "Distance: ",	10,20,140,20, &pd->f_dist, 0, 1000.0, 10, 0, "Falloff power (real gravitational fallof = 2)");
-				uiDefButBitS(block, TOG, PFIELD_PLANAR, B_FIELD_CHANGE, "Planar",	10,0,140,20, &pd->flag, 0.0, 0, 0, 0, "Create planar field");
+				uiDefButBitS(block, TOG, PFIELD_PLANAR, B_FIELD_CHANGE, "Planar",	10,15,140,20, &pd->flag, 0.0, 0, 0, 0, "Create planar field");
 			}
 			uiBlockEndAlign(block);
 			
@@ -3505,30 +3606,159 @@ static void object_panel_fields(Object *ob)
 	}
 }
 
+/* Generic physics baking buttons */
+
+static void object_physics__baketoggle(void *pid_v, void *unused_v)
+{
+	PTCacheID *pid = pid_v;
+	Object *ob = pid->ob;
+	PointCache *cache = pid->cache;
+	ClothModifierData *clmd;
+	int cageIndex, stack_index, startframe, endframe;
+
+	// automatically enable modifier in editmode when we have a protected cache
+	if(!(cache->flag & PTCACHE_BAKED)) {
+		BKE_ptcache_id_time(pid, 0.0f, &startframe, &endframe, NULL);
+		pointcache_bake(pid, startframe);
+
+		if(pid->type == PTCACHE_TYPE_CLOTH) {
+			clmd= (ClothModifierData*)pid->data;
+			cageIndex = modifiers_getCageIndex(ob, NULL );
+			stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
+			if(stack_index >= cageIndex)
+				((ModifierData *)clmd)->mode ^= eModifierMode_OnCage;
+		}
+	}
+	else {
+		if(cache->flag & PTCACHE_BAKE_EDIT_ACTIVE) {
+			notice("Can't free bake in editmode");
+		}
+		else {
+			if(pid->type == PTCACHE_TYPE_CLOTH) {
+				clmd= (ClothModifierData*)pid->data;
+				((ModifierData *)clmd)->mode ^= eModifierMode_OnCage;
+			}
+
+			cache->flag &= ~PTCACHE_BAKED;
+			BKE_ptcache_id_reset(pid, PTCACHE_RESET_OUTDATED);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		}
+	}
+}
+
+static void object_physics__rebake(void *pid_v, void *unused_v)
+{
+	PTCacheID *pid = pid_v;
+	int curframe = (int)G.scene->r.cfra;
+
+	BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, curframe);
+	pointcache_bake(pid, curframe);
+}
+
+static void object_physics__clearcache(void *pid_v, void *unused_v)
+{
+	PTCacheID *pid = pid_v;
+	Object *ob = pid->ob;
+	PointCache *cache = pid->cache;
+
+	if(cache->flag & PTCACHE_BAKE_EDIT_ACTIVE)
+		return;
+
+	BKE_ptcache_id_reset(pid, PTCACHE_RESET_BAKED);
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
+
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static void object_physics_bake_buttons(uiBlock *block, PTCacheID *pid, int y, int libdata)
+{
+	uiBut *but;
+	PointCache *cache;
+	
+	cache= pid->cache;
+
+	if(!libdata && G.obedit)
+		uiSetButLock(1, "Can't change bake settings in editmode");
+
+	if(cache->flag & PTCACHE_BAKED)
+		but = uiDefBut(block, BUT, REDRAWBUTSOBJECT, "Free Bake", 10,y+25,85,20, NULL, 0.0, 0.0, 0, 0, "Free baked simulation");
+	else
+		but = uiDefBut(block, BUT, REDRAWBUTSOBJECT, "Bake", 10,y+25,85,20, NULL, 0.0, 0.0, 0, 0, "Bake specified frame range");
+	uiButSetFunc(but, object_physics__baketoggle, pid, NULL);
+
+	if(!libdata && !G.obedit && (cache->flag & PTCACHE_BAKED))
+		uiSetButLock(1, "Simulation frames are baked");
+
+	uiBlockBeginAlign(block);
+	uiDefButI(block, NUM, B_BAKE_CACHE_CHANGE, "Start:", 100,y+25,105,20, &cache->startframe, 1, MAXFRAME, 1, 0, "Frame on which the simulation starts");
+	uiDefButI(block, NUM, B_BAKE_CACHE_CHANGE, "End:", 205,y+25,105,20, &cache->endframe, 1, MAXFRAME, 1, 0, "Frame on which the simulation stops");
+	uiBlockEndAlign(block);
+			
+	if(cache->flag & PTCACHE_BAKED) {
+		if(pid->type == PTCACHE_TYPE_CLOTH ||
+		   (pid->type == PTCACHE_TYPE_SOFTBODY && !((SoftBody*)pid->data)->particles)) {
+			if(!libdata && !G.obedit)
+				uiClearButLock();
+
+			uiBlockBeginAlign(block);
+			uiDefButBitI(block, TOG, PTCACHE_BAKE_EDIT, REDRAWVIEW3D, "Bake Editing",	10,y,100,20, &cache->flag, 0, 0, 0, 0, "Enable editing of the baked results in editmode.");
+			but= uiDefBut(block, BUT, REDRAWBUTSOBJECT, "Rebake From Current Frame", 110,y,200,20, NULL, 0.0, 0.0, 0, 0, "Bake again from current frame");
+			uiButSetFunc(but, object_physics__rebake, pid, NULL);
+			uiBlockEndAlign(block);
+		}
+
+		if(!libdata)
+			uiClearButLock();
+	}
+	else {
+		char str[512];
+		int exist, startframe, endframe;
+
+		if(!libdata)
+			uiClearButLock();
+		
+		BKE_ptcache_id_time(pid, 0.0f, &startframe, &endframe, NULL);
+		exist= BKE_ptcache_id_exist(pid, startframe);
+
+		sprintf(str, "%simulation frames in disk cache.", (exist)? "S": "No s");
+		uiDefBut(block, LABEL, 0, str, 10,y,200,20, NULL, 0.0, 0, 0, 0, "");
+
+		if(exist) {
+			but= uiDefBut(block, BUT, REDRAWBUTSOBJECT, "Free Cache", 210,y,100,20, NULL, 0.0, 0.0, 0, 0, "Free cached simulation results");
+			uiButSetFunc(but, object_physics__clearcache, pid, NULL);
+		}
+	}
+}
+
 /* Panel for softbodies */
 static void object_softbodies__enable(void *ob_v, void *arg2)
 {
 	Object *ob = ob_v;
 	ModifierData *md = modifiers_findByType(ob, eModifierType_Softbody);
+	PTCacheID pid;
 
-	if (modifiers_isSoftbodyEnabled(ob)) {
-		if (md) {
-			md->mode &= ~(eModifierMode_Render|eModifierMode_Realtime);
-		}
+	if(md) {
+		BLI_remlink(&ob->modifiers, md);
+		modifier_free(md);
+		BIF_undo_push("Del modifier");
+
+		ob->softflag &= ~OB_SB_ENABLE;
 	} else {
-		if (!md) {
-			md = modifier_new(eModifierType_Softbody);
-			BLI_addhead(&ob->modifiers, md);
-		}
-
-		md->mode |= eModifierMode_Render|eModifierMode_Realtime;
+		md = modifier_new(eModifierType_Softbody);
+		BLI_addhead(&ob->modifiers, md);
 
 		if (!ob->soft) {
 			ob->soft= sbNew();
 			ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
-			softbody_clear_cache(ob, CFRA);
+
+			BKE_ptcache_id_from_softbody(&pid, ob, ob->soft);
+			BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_ALL, 0);
 		}
+
+		ob->softflag |= OB_SB_ENABLE;
 	}
+
 	/* needed so that initial state is cached correctly */
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
@@ -3552,7 +3782,7 @@ static void object_softbodies__enable_psys(void *ob_v, void *psys_v)
 	ParticleSystem *psys = psys_v;
 	Object *ob = ob_v;
 
-	if(psys->softflag & OB_SB_ENABLE){
+	if(psys->softflag & OB_SB_ENABLE) {
 		psys->softflag &= ~OB_SB_ENABLE;
 	}
 	else{
@@ -3560,7 +3790,6 @@ static void object_softbodies__enable_psys(void *ob_v, void *psys_v)
 			psys->soft= sbNew();
 			psys->softflag |= OB_SB_GOAL|OB_SB_EDGES;
 			psys->soft->particles=psys;
-			clear_particles_from_cache(ob, psys, CFRA);
 		}
 		psys->softflag |= OB_SB_ENABLE;
 	}
@@ -3583,10 +3812,12 @@ static void object_softbodies_collision(Object *ob)
 {
 	SoftBody *sb=ob->soft;
 	uiBlock *block;
-	uiBut *but = NULL;
 	static int val;
 	short *softflag=&ob->softflag, psys_cur=0;
 	int ob_has_hair=psys_ob_has_hair(ob);
+	static PTCacheID staticpid;
+	int libdata;
+
     if(!_can_softbodies_at_all(ob)) return;
 	/*bah that is ugly! creating missing data members in UI code*/
 	if(ob->pd == NULL){
@@ -3596,10 +3827,11 @@ static void object_softbodies_collision(Object *ob)
 		ob->pd->pdef_sboft  = 0.02f;
 	}
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies_collision", UI_EMBOSS, UI_HELV, curarea->win);
-	// uiNewPanelTabbed("Soft Body", "Physics"); /*don't really want it tabbed first */
+	uiNewPanelTabbed("Soft Body", "Physics"); 
 	if(uiNewPanel(curarea, block, "Soft Body Collision", "Physics", 651, 0, 318, 204)==0) return;
 
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	libdata= object_is_libdata(ob);
+	uiSetButLock(libdata, ERROR_LIBDATA_MESSAGE);
 
 	if(ob_has_hair) {
 		if(PE_get_current_num(ob) >= 0) {
@@ -3625,64 +3857,43 @@ static void object_softbodies_collision(Object *ob)
 		uiDefBut(block, LABEL, 0, "",10,10,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
 		uiBlockBeginAlign(block);
 		if(psys_cur){
-			uiDefBut(block, LABEL, 0, "Hair is not a softbody",10,190,300,20, NULL, 0.0, 0, 0, 0, ""); 
-			uiDefBut(block, LABEL, 0, "However the emitter can deflect a softbody",10,170,300,20, NULL, 0.0, 0, 0, 0, ""); 
+			uiDefBut(block, LABEL, 0, "Hair is not a softbody.",10,190,300,20, NULL, 0.0, 0, 0, 0, ""); 
 		}
 		else {
-			uiDefBut(block, LABEL, 0, "Object is not a softbody",10,190,300,20, NULL, 0.0, 0, 0, 0, ""); 
-			uiDefBut(block, LABEL, 0, "However it can deflect a softbody",10,170,300,20, NULL, 0.0, 0, 0, 0, ""); 
-		}
-		/* OTHER OBJECTS COLLISION STUFF */
-		if (ob->type==OB_MESH){
-			uiBlockBeginAlign(block);
-			but = uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to softbody objects");
-			uiButSetFunc(but, object_collision__enabletoggle, ob, NULL);
-			if(ob->pd->deflect) {
-				uiDefButF(block, NUM, B_FIELD_CHANGE, "Damping:",	160,50,150,20, &ob->pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
-				uiDefButBitS(block, TOG,OB_SB_COLLFINAL , B_DIFF, "Ev.M.Stack",10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Pick collision object from modifier stack");
-				uiDefButF(block, NUM, B_FIELD_CHANGE, "Inner:",	160,30,150,20, &ob->pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
-				uiDefButF(block, NUM, B_FIELD_CHANGE, "Outer:",	160,10,150,20, &ob->pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
-			}
+			uiDefBut(block, LABEL, 0, "Object is not a softbody.",10,190,300,20, NULL, 0.0, 0, 0, 0, ""); 
 		}
 		uiBlockEndAlign(block);
 	}
 	else{
+		BKE_ptcache_id_from_softbody(&staticpid, ob, sb);
+		object_physics_bake_buttons(block, &staticpid, 125, libdata);
+
 		/* SELF COLLISION STUFF */
 		if ((ob->type==OB_MESH)||(ob->type==OB_CURVE) ) {
 			uiBlockBeginAlign(block);
 			if (*softflag & OB_SB_EDGES){
-				uiDefButBitS(block, TOG, OB_SB_SELF, B_SOFTBODY_CHANGE, "Self Collision",		10,170,150,20, softflag, 0, 0, 0, 0, "enable naive vertex ball self collision");
+				uiDefButBitS(block, TOG, OB_SB_SELF, B_BAKE_CACHE_CHANGE, "Self Collision",		10,80,150,20, softflag, 0, 0, 0, 0, "enable naive vertex ball self collision");
 				if(*softflag & OB_SB_SELF){
-					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Ball Size:", 160,170,150,20, &sb->colball, -10.0,  10.0, 10, 0, "Absolute ball size or factor if not manual adjusted");
-					uiDefButS(block, ROW, B_DIFF, "Man",10,150,60,20, &sb->sbc_mode, 4.0,SBC_MODE_MANUAL, 0, 0, "Manual adjust");
-					uiDefButS(block, ROW, B_DIFF, "Av",70,150,60,20, &sb->sbc_mode, 4.0,SBC_MODE_AVG, 0, 0, "Average Spring lenght * Ball Size");
-					uiDefButS(block, ROW, B_DIFF, "Min",130,150,60,20, &sb->sbc_mode, 4.0,SBC_MODE_MIN, 0, 0, "Minimal Spring lenght * Ball Size");
-					uiDefButS(block, ROW, B_DIFF, "Max",190,150,60,20, &sb->sbc_mode, 4.0,SBC_MODE_MAX, 0, 0, "Maximal Spring lenght * Ball Size");
-					uiDefButS(block, ROW, B_DIFF, "AvMiMa",250,150,60,20, &sb->sbc_mode, 4.0,SBC_MODE_AVGMINMAX, 0, 0, "(Min+Max)/2 * Ball Size");
-					uiDefButF(block, NUM, B_DIFF, "B Stiff:", 10,130,150,20, &sb->ballstiff, 0.001,  100.0, 10, 0, "Ball inflating presure");
-					uiDefButF(block, NUM, B_DIFF, "B Damp:", 160,130,150,20, &sb->balldamp,  0.001,  1.0, 10, 0, "Blending to inelastic collision");
+					uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Ball Size:", 160,80,150,20, &sb->colball, -10.0,  10.0, 10, 0, "Absolute ball size or factor if not manual adjusted");
+					uiDefButS(block, ROW, B_BAKE_CACHE_CHANGE, "Man",10,60,60,20, &sb->sbc_mode, 4.0,SBC_MODE_MANUAL, 0, 0, "Manual adjust");
+					uiDefButS(block, ROW, B_BAKE_CACHE_CHANGE, "Av",70,60,60,20, &sb->sbc_mode, 4.0,SBC_MODE_AVG, 0, 0, "Average Spring lenght * Ball Size");
+					uiDefButS(block, ROW, B_BAKE_CACHE_CHANGE, "Min",130,60,60,20, &sb->sbc_mode, 4.0,SBC_MODE_MIN, 0, 0, "Minimal Spring lenght * Ball Size");
+					uiDefButS(block, ROW, B_BAKE_CACHE_CHANGE, "Max",190,60,60,20, &sb->sbc_mode, 4.0,SBC_MODE_MAX, 0, 0, "Maximal Spring lenght * Ball Size");
+					uiDefButS(block, ROW, B_BAKE_CACHE_CHANGE, "AvMiMa",250,60,60,20, &sb->sbc_mode, 4.0,SBC_MODE_AVGMINMAX, 0, 0, "(Min+Max)/2 * Ball Size");
+					uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "B Stiff:", 10,40,150,20, &sb->ballstiff, 0.001,  100.0, 10, 0, "Ball inflating presure");
+					uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "B Damp:", 160,40,150,20, &sb->balldamp,  0.001,  1.0, 10, 0, "Blending to inelastic collision");
 				}
 			}
 			else{
-				uiDefBut(block, LABEL, 0, "<Self Collision> not available because there",10,170,300,20, NULL, 0.0, 0, 0, 0, ""); 
-				uiDefBut(block, LABEL, 0, "are no edges, enable <Use Edges>",10,150,300,20, NULL, 0.0, 0, 0, 0, ""); 
+				uiDefBut(block, LABEL, 0, "<Self Collision> not available because there",10,80,300,20, NULL, 0.0, 0, 0, 0, ""); 
+				uiDefBut(block, LABEL, 0, "are no edges, enable <Use Edges>",10,60,300,20, NULL, 0.0, 0, 0, 0, ""); 
 			}
 
 			uiBlockEndAlign(block);
 			/*SOLVER SETTINGS*/
 			/* done in another panel now*/
 		}
-		/* OTHER OBJECTS COLLISION STUFF */
-		if (ob->type==OB_MESH){
-			but = uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to other softbody objects");
-			uiButSetFunc(but, object_collision__enabletoggle, ob, NULL);
-			if(ob->pd->deflect) {
-				uiDefButF(block, NUM, B_DIFF, "Damping:",	160,50,150,20, &ob->pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
-			    uiDefButBitS(block, TOG,OB_SB_COLLFINAL , B_DIFF, "Ev.M.Stack",10,30,150,20, softflag, 0, 0, 0, 0, "Pick collision object from modifier stack");
-				uiDefButF(block, NUM, B_DIFF, "Inner:",	160,30,150,20, &ob->pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
-				uiDefButF(block, NUM, B_DIFF, "Outer:",	160,10,150,20, &ob->pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
-			}
-		}
+
 		uiDefBut(block, LABEL, 0, "",10,10,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
 	}
 	uiBlockEndAlign(block);
@@ -3696,9 +3907,11 @@ static void object_softbodies_solver(Object *ob)
 	int ob_has_hair=psys_ob_has_hair(ob);
 	if(!_can_softbodies_at_all(ob)) return;
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies_solver", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Soft Body", "Physics"); 
 	if(uiNewPanel(curarea, block, "Soft Body Solver", "Physics", 651, 0, 318, 204)==0) return;
 
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+
 	/* doubt that is really needed here but for now */ 
 	if(ob_has_hair) {
 		if(PE_get_current_num(ob) >= 0) {
@@ -3723,10 +3936,10 @@ static void object_softbodies_solver(Object *ob)
 	if(!val) { 
 		uiDefBut(block, LABEL, 0, "",10,10,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
 		if(psys_cur){
-			uiDefBut(block, LABEL, 0, "Hair is not a softbody",10,190,300,20, NULL, 0.0, 0, 0, 0, ""); 
+			uiDefBut(block, LABEL, 0, "Hair is not a softbody.",10,190,300,20, NULL, 0.0, 0, 0, 0, ""); 
 		}
 		else {
-			uiDefBut(block, LABEL, 0, "Object is not a softbody",10,190,300,20, NULL, 0.0, 0, 0, 0, ""); 
+			uiDefBut(block, LABEL, 0, "Object is not a softbody.",10,190,300,20, NULL, 0.0, 0, 0, 0, ""); 
 		}
 	}
 	else{ 
@@ -3734,7 +3947,7 @@ static void object_softbodies_solver(Object *ob)
 			/*SOLVER SETTINGS*/
 			uiBlockBeginAlign(block);
 			uiDefBut(block, LABEL, 0, "Solver select",10,200,300,20, NULL, 0.0, 0, 0, 0, ""); 
-			uiDefButS(block, MENU, B_SOFTBODY_CHANGE, sbsolvers,10,180,300,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver");
+			uiDefButS(block, MENU, B_BAKE_CACHE_CHANGE, sbsolvers,10,180,300,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver");
 			uiBlockEndAlign(block);
 
 			/*some have adapive step size - some not*/
@@ -3749,31 +3962,31 @@ static void object_softbodies_solver(Object *ob)
 			if(adaptive_mode){
 				uiBlockBeginAlign(block);
 				uiDefBut(block, LABEL, 0, "Step size controls",10,160,300,20, NULL, 0.0, 0, 0, 0, "");
-				uiDefButF(block, NUM, B_DIFF, "Error Lim:",	10,140,280,20, &sb->rklimit , 0.001, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
-				uiDefButBitS(block, TOG, SBSO_OLDERR, B_DIFF,"V", 290,140,20,20, &sb->solverflags,  0,  0, 0, 0, "Use velocities for automagic step sizes");
-				uiDefButS(block, NUM, B_DIFF, "MinS:", 10,120,150,20, &sb->minloops,  0.00,  30000.0, 10, 0, "Minimal # solver steps/frame ");
-				uiDefButS(block, NUM, B_DIFF, "MaxS:", 160,120,150,20, &sb->maxloops,  0.00,  30000.0, 10, 0, "Maximal # solver steps/frame ");
+				uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Error Lim:",	10,140,280,20, &sb->rklimit , 0.001, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
+				uiDefButBitS(block, TOG, SBSO_OLDERR, B_BAKE_CACHE_CHANGE,"V", 290,140,20,20, &sb->solverflags,  0,  0, 0, 0, "Use velocities for automagic step sizes");
+				uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "MinS:", 10,120,150,20, &sb->minloops,  0.00,  30000.0, 10, 0, "Minimal # solver steps/frame ");
+				uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "MaxS:", 160,120,150,20, &sb->maxloops,  0.00,  30000.0, 10, 0, "Maximal # solver steps/frame ");
 				uiBlockEndAlign(block);
 
 				uiBlockBeginAlign(block);
 				uiDefBut(block, LABEL, 0, "Collision helpers",10,100,300,20, NULL, 0.0, 0, 0, 0, "");
-				uiDefButS(block, NUM, B_DIFF, "Choke:", 10,80,150,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
-				uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 160,80,150,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
+				uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Choke:", 10,80,150,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
+				uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Fuzzy:", 160,80,150,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
 				uiBlockEndAlign(block);
 
 				uiBlockBeginAlign(block);
 				uiDefBut(block, LABEL, 0, "Diagnosis",10,60,300,20, NULL, 0.0, 0, 0, 0, "");
-				uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"Print Performance to Console", 10,40,300,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");				
+				uiDefButBitS(block, TOG, SBSO_MONITOR, B_BAKE_CACHE_CHANGE,"Print Performance to Console", 10,40,300,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");				
 				uiBlockEndAlign(block);
 			} 
 			else{
 				uiBlockEndAlign(block);
 				uiBlockBeginAlign(block);
-				uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 210,100,90,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
-				uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"M", 290,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");
+				uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Fuzzy:", 210,100,90,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
+				uiDefButBitS(block, TOG, SBSO_MONITOR, B_BAKE_CACHE_CHANGE,"M", 290,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");
 				uiBlockEndAlign(block);
-				uiDefButS(block, NUM, B_DIFF, "Steps:", 10,80,100,20, &sb->minloops,  1.00,  30000.0, 10, 0, "Solver steps/frame ");
-				uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
+				uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Steps:", 10,80,100,20, &sb->minloops,  1.00,  30000.0, 10, 0, "Solver steps/frame ");
+				uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
 			}
 
 			uiBlockEndAlign(block);
@@ -3783,22 +3996,13 @@ static void object_softbodies_solver(Object *ob)
 	uiBlockEndAlign(block);
 }
 
-static void sb_clear_cache(void *ob_v, void *actsoft_v)
-{
-	Object *ob = ob_v;
-	short *actsoft = actsoft_v;
-
-	if(actsoft >= 0)
-		clear_particles_from_cache(ob, BLI_findlink(&ob->particlesystem, *actsoft), CFRA);
-	else
-		softbody_clear_cache(ob, CFRA);
-}
 static void object_softbodies(Object *ob)
 {
 	SoftBody *sb=ob->soft;
 	ParticleSystem *psys=NULL;
 	uiBlock *block;
 	uiBut *but;
+	ModifierData *md;
 	static int val;
 	short *softflag=&ob->softflag, psys_cur=0;
 	int ob_has_hair = psys_ob_has_hair(ob);
@@ -3806,13 +4010,13 @@ static void object_softbodies(Object *ob)
 
     if(!_can_softbodies_at_all(ob)) return;
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Soft Body", "Physics"); 
 	if(uiNewPanel(curarea, block, "Soft Body", "Physics", 640, 0, 318, 204)==0) return;
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
 	if(ob_has_hair) {
-		char *menustr = psys_menu_string(ob,1);
-
 		psys= psys_get_current(ob);
+
 		if(psys && actsoft >= 0) {
 			actsoft= psys_get_current_num(ob)+1;
 
@@ -3822,52 +4026,56 @@ static void object_softbodies(Object *ob)
 		}
 		else
 			actsoft= -1; /* -1 = object */
+	}
 
-		but=uiDefButS(block, MENU, B_BAKE_REDRAWEDIT, menustr, 10,200,100,20, &actsoft, 14.0, 0.0, 0, 0, "Browse systems");
+	if(psys_cur && psys) {
+		if(*softflag & OB_SB_ENABLE)
+			val = 1;
+		else
+			val = 0;
+
+		but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Soft Body",	10,200,130,20, &val, 0, 0, 0, 0, "Sets hair to become soft body");
+		uiButSetFunc(but, object_softbodies__enable_psys, ob, psys);
+	}
+	else {
+		md = modifiers_findByType(ob, eModifierType_Softbody);
+		val = (md != NULL);
+
+		if(ob_has_hair)
+			but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Soft Body",	10,200,130,20, &val, 0, 0, 0, 0, "Sets object to become soft body");
+		else
+			but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Soft Body",	10,200,130,20, &val, 0, 0, 0, 0, "Sets object to become soft body");
+
+		uiButSetFunc(but, object_softbodies__enable, ob, NULL);
+
+		if(md) {
+			uiBlockBeginAlign(block);
+			uiDefIconButBitI(block, TOG, eModifierMode_Render, B_BAKE_CACHE_CHANGE, ICON_SCENE, 145, 200, 20, 20,&md->mode, 0, 0, 1, 0, "Enable soft body during rendering");
+			but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_BAKE_CACHE_CHANGE, VICON_VIEW3D, 165, 200, 20, 20,&md->mode, 0, 0, 1, 0, "Enable soft body during interactive display");
+			uiBlockEndAlign(block);
+		}
+	}
+
+	if(ob_has_hair) {
+		char *menustr = psys_menu_string(ob,1);
+
+		but=uiDefButS(block, MENU, B_BAKE_REDRAWEDIT, menustr, 210,200,100,20, &actsoft, 14.0, 0.0, 0, 0, "Browse systems");
 		uiButSetFunc(but, PE_change_act, ob, &actsoft);
 		
 		MEM_freeN(menustr);
 	}
 
-	if(psys_cur && psys){
-		if(*softflag & OB_SB_ENABLE)
-			val=1;
-		else
-			val=0;
 
-		but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Soft Body",	110,200,70,20, &val, 0, 0, 0, 0, "Sets hair to become soft body");
-		uiButSetFunc(but, object_softbodies__enable_psys, ob, psys);
-	}
-	else{
-		val = modifiers_isSoftbodyEnabled(ob);
-		if(ob_has_hair)
-			but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Soft Body",	110,200,70,20, &val, 0, 0, 0, 0, "Sets object to become soft body");
-		else
-			but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Soft Body",	10,200,130,20, &val, 0, 0, 0, 0, "Sets object to become soft body");
-
-
-		uiButSetFunc(but, object_softbodies__enable, ob, NULL);
-	}
 	
 	uiDefBut(block, LABEL, 0, "",10,10,300,0, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
 
-	if(val){
+	if(val) {
 		int defCount;
 		char *menustr;
 		static char str[128];
 
-		//uiDefButBitS(block, TOG, OB_SB_BAKESET, REDRAWBUTSOBJECT, "Bake settings",	180,200,130,20, &ob->softflag, 0, 0, 0, 0, "To convert simulation into baked (cached) result");
-
-		//if(sb->keys) uiSetButLock(1, "Soft Body is baked, free it first");
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, OB_SB_PROTECT_CACHE, REDRAWBUTSOBJECT, "Protect",	180,200,50,20, softflag, 0.0, 0.0, 10, 0, "Protect the cache");
-		but=uiDefBut(block, BUT, B_SOFTBODY_CHANGE, "Clear",				230,200,50,20, NULL, 0.0, 0.0, 10, 0, "Clear the cache");
-		if((*softflag & PSYS_PROTECT_CACHE)==0)
-			uiButSetFunc(but, sb_clear_cache, ob, &actsoft);
-
-		uiBlockEndAlign(block);
-
-		if(*softflag & OB_SB_PROTECT_CACHE) uiSetButLock(1, "Cache is protected");
+		if(sb->pointcache->flag & PTCACHE_BAKED)
+			uiSetButLock(1, "Simulation frames are baked");
 
 		//if(ob->softflag & OB_SB_BAKESET) {
 		//	uiBlockBeginAlign(block);
@@ -3900,65 +4108,66 @@ static void object_softbodies(Object *ob)
 			sprintf(str, "Vertex Mass");
 			}
 			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_DIFF, "Friction:", 10, 170,150,20, &sb->mediafrict, 0.0, 50.0, 10, 0, "General media friction for point movements");
-			uiDefButF(block, NUM, B_DIFF, "Mass:",	   160, 170,150,20, &sb->nodemass , 0.001, 50000.0, 10, 0, str);
-			uiDefButF(block, NUM, B_DIFF, "Grav:",	   10,150,150,20, &sb->grav , -10.0, 10.0, 10, 0, "Apply gravitation to point movement");
-			uiDefButF(block, NUM, B_DIFF, "Speed:",	   160,150,150,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
+			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Friction:", 10, 170,150,20, &sb->mediafrict, 0.0, 50.0, 10, 0, "General media friction for point movements");
+			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Mass:",	   160, 170,150,20, &sb->nodemass , 0.001, 50000.0, 10, 0, str);
+			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Grav:",	   10,150,150,20, &sb->grav , -10.0, 10.0, 10, 0, "Apply gravitation to point movement");
+			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Speed:",	   160,150,150,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
 			uiBlockEndAlign(block);
 
 			/* GOAL STUFF */
 			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, OB_SB_GOAL, B_SOFTBODY_CHANGE, "Use Goal",	10,120,130,20, softflag, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+			uiDefButBitS(block, TOG, OB_SB_GOAL, B_BAKE_CACHE_CHANGE, "Use Goal",	10,120,130,20, softflag, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
 			if (*softflag & OB_SB_GOAL){
 				if(ob->type==OB_MESH) {
 					menustr= get_vertexgroup_menustr(ob);
 					defCount=BLI_countlist(&ob->defbase);
 					if(defCount==0) sb->vertgroup= 0;
-					uiDefButS(block, MENU, B_SOFTBODY_CHANGE, menustr,	140,120,20,20, &sb->vertgroup, 0, defCount, 0, 0, "Browses available vertex groups");
+					uiDefButS(block, MENU, B_BAKE_CACHE_CHANGE, menustr,	140,120,20,20, &sb->vertgroup, 0, defCount, 0, 0, "Browses available vertex groups");
 					MEM_freeN (menustr);
 
 					if(sb->vertgroup) {
 						bDeformGroup *defGroup = BLI_findlink(&ob->defbase, sb->vertgroup-1);
 						if(defGroup)
-							uiDefBut(block, BUT, B_DIFF, defGroup->name,	160,120,130,20, NULL, 0.0, 0.0, 0, 0, "Name of current vertex group");
+							uiDefBut(block, BUT, B_BAKE_CACHE_CHANGE, defGroup->name,	160,120,130,20, NULL, 0.0, 0.0, 0, 0, "Name of current vertex group");
 						else
-							uiDefBut(block, BUT, B_DIFF, "(no group)",	160,120,130,20, NULL, 0.0, 0.0, 0, 0, "Vertex Group doesn't exist anymore");
+							uiDefBut(block, BUT, B_BAKE_CACHE_CHANGE, "(no group)",	160,120,130,20, NULL, 0.0, 0.0, 0, 0, "Vertex Group doesn't exist anymore");
 						uiDefIconBut(block, BUT, B_SOFTBODY_DEL_VG, ICON_X, 290,120,20,20, 0, 0, 0, 0, 0, "Disable use of vertex group");
 					}
 					else
-						uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Goal:",	160,120,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
+						uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Goal:",	160,120,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
 				}
 				else {
-					uiDefButS(block, TOG, B_SOFTBODY_CHANGE, "W",			140,120,20,20, &sb->vertgroup, 0, 1, 0, 0, "Use control point weight values");
-					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Goal:",	160,120,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
+					uiDefButS(block, TOG, B_BAKE_CACHE_CHANGE, "W",			140,120,20,20, &sb->vertgroup, 0, 1, 0, 0, "Use control point weight values");
+					uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Goal:",	160,120,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
 				}
 
-				uiDefButF(block, NUM, B_DIFF, "G Stiff:",	10,100,150,20, &sb->goalspring, 0.0, 0.999, 10, 0, "Goal (vertex target position) spring stiffness");
-				uiDefButF(block, NUM, B_DIFF, "G Damp:",	160,100,150,20, &sb->goalfrict  , 0.0, 50.0, 10, 0, "Goal (vertex target position) friction");
-				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "G Min:",		10,80,150,20, &sb->mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
-				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "G Max:",		160,80,150,20, &sb->maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
+				uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Stiff:",	10,100,150,20, &sb->goalspring, 0.0, 0.999, 10, 0, "Goal (vertex target position) spring stiffness");
+				uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Damp:",	160,100,150,20, &sb->goalfrict  , 0.0, 50.0, 10, 0, "Goal (vertex target position) friction");
+				uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Min:",		10,80,150,20, &sb->mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
+				uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Max:",		160,80,150,20, &sb->maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
 			}
 			uiBlockEndAlign(block);
 
 			/* EDGE SPRING STUFF */
 			if(ob->type!=OB_SURF) {
 				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, OB_SB_EDGES, B_SOFTBODY_CHANGE, "Use Edges",		10,50,90,20, softflag, 0, 0, 0, 0, "Use Edges as springs");
+				uiDefButBitS(block, TOG, OB_SB_EDGES, B_BAKE_CACHE_CHANGE, "Use Edges",		10,50,90,20, softflag, 0, 0, 0, 0, "Use Edges as springs");
 			if (*softflag & OB_SB_EDGES){
-				uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		110,50,90,20, softflag, 0, 0, 0, 0, "Adds diagonal springs on 4-gons");
-				uiDefButBitS(block, TOG, OB_SB_EDGECOLL, B_DIFF, "CEdge",		220,50,45,20, softflag, 0, 0, 0, 0, "Edge collide too"); 
-				uiDefButBitS(block, TOG, OB_SB_FACECOLL, B_DIFF, "CFace",		265,50,45,20, softflag, 0, 0, 0, 0, "Faces collide too SLOOOOOW warning "); 
-				uiDefButF(block, NUM, B_DIFF, "E Pull:",	10,30,100,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness when longer than rest length");
-				uiDefButF(block, NUM, B_DIFF, "E Push:",	110,30,100,20, &sb->inpush, 0.0,  0.999, 10, 0, "Edge spring stiffness when shorter than rest length");
-				uiDefButF(block, NUM, B_DIFF, "E Damp:",	210,30,100,20, &sb->infrict, 0.0,  50.0, 10, 0, "Edge spring friction");
+				uiDefButBitS(block, TOG, OB_SB_QUADS, B_BAKE_CACHE_CHANGE, "Stiff Quads",		110,50,90,20, softflag, 0, 0, 0, 0, "Adds diagonal springs on 4-gons");
+				uiDefButBitS(block, TOG, OB_SB_EDGECOLL, B_BAKE_CACHE_CHANGE, "CEdge",		220,50,45,20, softflag, 0, 0, 0, 0, "Edge collide too"); 
+				uiDefButBitS(block, TOG, OB_SB_FACECOLL, B_BAKE_CACHE_CHANGE, "CFace",		265,50,45,20, softflag, 0, 0, 0, 0, "Faces collide too SLOOOOOW warning "); 
+				uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Pull:",	10,30,75,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness when longer than rest length");
+				uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Push:",	85,30,75,20, &sb->inpush, 0.0,  0.999, 10, 0, "Edge spring stiffness when shorter than rest length");
+				uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Damp:",	160,30,70,20, &sb->infrict, 0.0,  50.0, 10, 0, "Edge spring friction");
+			    uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "SL:",250 ,30,60,20, &sb->springpreload, 0.0,  200.0, 10, 0, "Alter spring lenght to shrink/blow up (unit %) 0 to disable ");
 				
-				uiDefButBitS(block, TOG,OB_SB_AERO_ANGLE,B_SOFTBODY_CHANGE, "N",10,10,20,20, softflag, 0, 0, 0, 0, "New aero(uses angle and length)");
-				uiDefButS(block, NUM, B_DIFF, "Aero:",     30,10,60,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");
-			    uiDefButS(block, NUM, B_SOFTBODY_CHANGE, "Plas:", 90,10,60,20, &sb->plastic, 0.0,  100.0, 10, 0, "Permanent deform");
+				uiDefButBitS(block, TOG,OB_SB_AERO_ANGLE,B_BAKE_CACHE_CHANGE, "N",10,10,20,20, softflag, 0, 0, 0, 0, "New aero(uses angle and length)");
+				uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Aero:",     30,10,60,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");
+			    uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Plas:", 90,10,60,20, &sb->plastic, 0.0,  100.0, 10, 0, "Permanent deform");
 				if(ob->type==OB_MESH) {
-					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Be:", 150,10,80,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Bendig Stiffness");
+					uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Be:", 150,10,80,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Bendig Stiffness");
 					if (*softflag & OB_SB_QUADS){ 
-					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Sh:", 230,10,80,20, &sb->shearstiff, 0.0,  1.0, 10, 0, "Shear Stiffness");
+					uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Sh:", 230,10,80,20, &sb->shearstiff, 0.0,  1.0, 10, 0, "Shear Stiffness");
 					}
 				}
 				else sb->secondspring = 0;
@@ -3969,6 +4178,28 @@ static void object_softbodies(Object *ob)
 		//}
 	}
 	uiBlockEndAlign(block);
+}
+
+static void object_panel_particle_bake(Object *ob)
+{
+	uiBlock *block;
+	ParticleSystem *psys= psys_get_current(ob);
+	static PTCacheID staticpid;
+	int libdata;
+
+	if (psys==NULL || psys->part==NULL) return;
+	if (ELEM(psys->part->type, PART_HAIR, PART_FLUID)) return;
+	if (psys->part->phystype == PART_PHYS_KEYED) return;
+	
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_bake", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Particle System", "Particle");
+	if(uiNewPanel(curarea, block, "Bake", "Particle", 320, 0, 318, 204)==0) return;
+	
+	libdata= object_is_libdata(ob);
+	uiSetButLock(libdata, ERROR_LIBDATA_MESSAGE);
+	
+	BKE_ptcache_id_from_particles(&staticpid, ob, psys);
+	object_physics_bake_buttons(block, &staticpid, 10, libdata);
 }
 
  /* Panels for new particles*/
@@ -3985,14 +4216,21 @@ static void object_panel_particle_children(Object *ob)
 	if(part==NULL) return;
 		
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_child", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Children", "Particle", 1300, 0, 318, 204)==0) return;
 	uiNewPanelTabbed("Extras", "Particle");
+	if(uiNewPanel(curarea, block, "Children", "Particle", 1300, 0, 318, 204)==0) return;
+
+	uiSetButLock((part->id.lib != NULL), ERROR_LIBDATA_MESSAGE);
+
+	if(part->type == PART_FLUID) {
+		uiDefBut(block, LABEL, 0, "No settings for fluid particles",					butx,(buty-=2*buth),2*butw,buth, NULL, 0.0, 0, 0, 0, "");
+		return;
+	}
 
 	uiDefButS(block, MENU, B_PART_ALLOC_CHILD, "Children from:%t|Faces%x2|Particles%x1|None%x0", butx,buty,butw,buth, &part->childtype, 14.0, 0.0, 0, 0, "Create child particles");
 
 	if(part->childtype==0) return;
 
-	if(part->childtype==PART_CHILD_FACES && (psys->flag&(PSYS_HAIR_DONE|PSYS_KEYED))==0) {
+	if(part->childtype==PART_CHILD_FACES && !(part->phystype==PART_PHYS_KEYED || part->type==PART_HAIR)) {
 		uiDefBut(block, LABEL, 0, "Hair or keyed",	butx,(buty-=2*buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
 		uiDefBut(block, LABEL, 0, "particles needed!",	butx,(buty-=2*buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
 		return;
@@ -4038,12 +4276,12 @@ static void object_panel_particle_children(Object *ob)
 	butx=160;
 	buty=180;
 
-	if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED))
+	if(part->phystype==PART_PHYS_KEYED || part->type==PART_HAIR)
 		uiDefButBitS(block, TOG, 1, B_PART_REDRAW, "Kink/Branch",	 butx,(buty-=buth),butw,buth, &kink_ui, 0, 0, 0, 0, "Show kink and branch options");
 	else
 		buty-=buth;
 
-	if(kink_ui || (psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED)) == 0) {
+	if(kink_ui || !(part->phystype==PART_PHYS_KEYED || part->type==PART_HAIR)) {
 		buty -= buth/2;
 
 		/* kink */
@@ -4061,7 +4299,7 @@ static void object_panel_particle_children(Object *ob)
 		}
 		uiBlockEndAlign(block);
 
-		if(part->childtype==PART_CHILD_PARTICLES && psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED)) {
+		if(part->childtype==PART_CHILD_PARTICLES && (part->phystype==PART_PHYS_KEYED || part->type==PART_HAIR)) {
 			if(part->flag & PART_BRANCHING) {
 				uiDefButBitI(block, TOG, PART_BRANCHING, B_PART_RECALC_CHILD, "Branching",	butx,(buty-=2*buth),butw,buth, &part->flag, 0, 0, 0, 0, "Branch child paths from eachother");
 				uiDefButBitI(block, TOG, PART_ANIM_BRANCHING, B_PART_RECALC_CHILD, "Animated",	butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Animate branching");
@@ -4137,6 +4375,13 @@ static void object_panel_particle_extra(Object *ob)
 		
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_extra", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Extras", "Particle", 980, 0, 318, 204)==0) return;
+
+	uiSetButLock((part->id.lib != NULL), ERROR_LIBDATA_MESSAGE);
+
+	if(part->type == PART_FLUID) {
+		uiDefBut(block, LABEL, 0, "No settings for fluid particles",					butx,(buty-=2*buth),2*butw,buth, NULL, 0.0, 0, 0, 0, "");
+		return;
+	}
 
 	uiDefBut(block, LABEL, 0, "Effectors:",	butx,buty,butw,buth, NULL, 0.0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
@@ -4313,7 +4558,7 @@ static void object_panel_particle_visual(Object *ob)
 			uiDefButF(block, NUM, B_PART_REDRAW, "Front:", butx,(buty-=buth),butw,buth, &part->draw_line[1], 0.0, 10.0, 0, 0, "Length of the line's head");
 			break;
 		case PART_DRAW_PATH:
-			if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED)) {
+			if(part->phystype==PART_PHYS_KEYED || part->type==PART_HAIR) {
 				uiDefButS(block, NUM, B_PART_RECALC, "Steps:",	butx,(buty+=buth),butw,buth, &part->draw_step, 0.0, 7.0, 0, 0, "How many steps paths are drawn with (power of 2)");
 				uiDefButS(block, NUM, B_PART_REDRAW, "Render:",	butx,(buty-=buth),butw,buth, &part->ren_step, 0.0, 9.0, 0, 0, "How many steps paths are rendered with (power of 2)");
 
@@ -4429,11 +4674,17 @@ static void object_panel_particle_physics(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_physics", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Physics", "Particle", 320, 0, 318, 204)==0) return;
 	
-	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
-	
-	if(psys->flag & PSYS_EDITED || psys->flag & PSYS_PROTECT_CACHE) {
-		uiSetButLock(1, "Hair is edited or cache is protected!");
+	if(part->type == PART_FLUID) {
+		uiDefBut(block, LABEL, 0, "No settings for fluid particles",					butx,(buty-=2*buth),2*butw,buth, NULL, 0.0, 0, 0, 0, "");
+		return;
 	}
+
+	if(ob->id.lib)
+		uiSetButLock(1, "Can't edit library data");
+	else if(psys->flag & PSYS_EDITED)
+		uiSetButLock(1, "Hair is edited!");
+	else if(psys->pointcache->flag & PTCACHE_BAKED)
+		uiSetButLock(1, "Simulation frames are baked!");
 
 	if(part->phystype==PART_PHYS_KEYED){
 		uiBlockBeginAlign(block);
@@ -4586,10 +4837,6 @@ static void object_panel_particle_physics(Object *ob)
 	}
 }
 
-static void psys_clear_cache(void *ob_v, void *psys_v)
-{
-	clear_particles_from_cache((Object *)ob_v, (ParticleSystem *)psys_v, CFRA);
-}
 static void object_panel_particle_system(Object *ob)
 {
 	uiBlock *block;
@@ -4597,10 +4844,11 @@ static void object_panel_particle_system(Object *ob)
 	ParticleSystem *psys=NULL;
 	ParticleSettings *part;
 	ID *id, *idfrom;
+	ModifierData *md;
 	short butx=0, buty=160, butw=150, buth=20;
-	char str[30];
+	char str[30], *lockmessage= NULL;
 	static short partact;
-	short totpart, lock;
+	short totpart, lock= 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_system", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Particle System", "Particle", 0, 0, 318, 204)==0) return;
@@ -4619,16 +4867,18 @@ static void object_panel_particle_system(Object *ob)
 		id=NULL;
 	idfrom=&ob->id;
 
+	if(psys==0 || psys->part->type != PART_FLUID) {
 	/* browse buttons */
-	uiBlockSetCol(block, TH_BUT_SETTING2);
-	butx= std_libbuttons(block, butx, buty, 0, NULL, B_PARTBROWSE, ID_PA, 0, id, idfrom, &(G.buts->menunr), B_PARTALONE, 0, B_PARTDELETE, 0, 0);
-	
+		uiBlockSetCol(block, TH_BUT_SETTING2);
+		butx= std_libbuttons(block, butx, buty, 0, NULL, B_PARTBROWSE, ID_PA, 0, id, idfrom, &(G.buts->menunr), B_PARTALONE, 0, B_PARTDELETE, 0, 0);
+	}
+
 	uiBlockSetCol(block, TH_AUTO);
 	
 	partact=psys_get_current_num(ob)+1;
 	totpart=BLI_countlist(&ob->particlesystem);
 	sprintf(str, "%d Part", totpart);
-	but=uiDefButS(block, NUM, B_PARTACT, str, 224,buty,88,buth, &partact, 1.0, totpart+1, 0, 0, "Shows the number of particle systems in the object and the active particle system");
+	but=uiDefButS(block, NUM, B_PARTACT, str, 230,buty,83,buth, &partact, 1.0, totpart+1, 0, 0, "Shows the number of particle systems in the object and the active particle system");
 	uiButSetFunc(but, PE_change_act, ob, &partact);
 
 	if(psys==NULL)
@@ -4636,35 +4886,47 @@ static void object_panel_particle_system(Object *ob)
 
 	part=psys->part;
 
-	if(part==NULL) return;
+	if(part==NULL)
+		return;
 
 	butx=0;
-	buty-=5;
-	
-	uiDefButBitI(block, TOG, PSYS_ENABLED, B_PART_ENABLE, "Enabled",	 0,(buty-=buth),100,buth, &psys->flag, 0, 0, 0, 0, "Sets particle system to be calculated and shown");
+
+	if(part->type == PART_FLUID) {
+		uiDefBut(block, LABEL, 0, "No settings for fluid particles",					butx,buty,2*butw,buth, NULL, 0.0, 0, 0, 0, "");
+		return;
+	}
+
+	buty -= (buth+5);
 
 	if(part->type == PART_HAIR){
 		if(psys->flag & PSYS_EDITED)
-			uiDefBut(block, BUT, B_PART_EDITABLE, "Free Edit",		105,buty,100,buth, NULL, 0.0, 0.0, 10, 0, "Free editing");
+			uiDefBut(block, BUT, B_PART_EDITABLE, "Free Edit",		butx+butw+10,buty,butw,buth, NULL, 0.0, 0.0, 10, 0, "Free editing");
 		else
-			uiDefBut(block, BUT, B_PART_EDITABLE, "Set Editable",	105,buty,100,buth, NULL, 0.0, 0.0, 10, 0, "Finalize hair to enable editing in particle mode");
+			uiDefBut(block, BUT, B_PART_EDITABLE, "Set Editable",	butx+butw+10,buty,butw,buth, NULL, 0.0, 0.0, 10, 0, "Finalize hair to enable editing in particle mode");
 
 	}
-	else {
-		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, PSYS_PROTECT_CACHE, B_PART_REDRAW, "Protect",		105,buty,50,buth, &psys->flag, 0.0, 0.0, 10, 0, "Protect the cache");
-		but=uiDefBut(block, BUT, B_PART_RECALC, "Clear",		155,buty,50,buth, NULL, 0.0, 0.0, 10, 0, "Clear the cache");
-		if((psys->flag & PSYS_PROTECT_CACHE)==0)
-			uiButSetFunc(but, psys_clear_cache, ob, &partact);
 
+	md= (ModifierData*)psys_get_modifier(ob, psys);
+	if(md) {
+		uiBlockBeginAlign(block);
+		uiDefIconButBitI(block, TOG, eModifierMode_Render, B_PART_RECALC, ICON_SCENE, butx+butw-40, buty, 20, 20,&md->mode, 0, 0, 1, 0, "Enable particle system during rendering");
+		but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_PART_RECALC, VICON_VIEW3D, butx+butw-20, buty, 20, 20,&md->mode, 0, 0, 1, 0, "Enable particle system during interactive display");
 		uiBlockEndAlign(block);
 	}
 
-	lock= (psys->flag & PSYS_EDITED || psys->flag & PSYS_PROTECT_CACHE);
-	if(lock)
-		uiSetButLock(1, "Hair is edited or cache is protected!");
+	if(psys->flag & PSYS_EDITED) {
+		lockmessage= "Hair is edited!";
+		lock= 1;
+	}
+	else if(psys->pointcache->flag & PTCACHE_BAKED) {
+		lockmessage= "Simulation frames are baked!";
+		lock= 1;
+	}
 
-	uiDefButS(block, MENU, B_PARTTYPE, "Type%t|Hair%x2|Reactor%x1|Emitter%x0", 210,buty,100,buth, &part->type, 14.0, 0.0, 0, 0, "Type of particle system");
+	if(lock)
+		uiSetButLock(1, lockmessage);
+
+	uiDefButS(block, MENU, B_PARTTYPE, "Type%t|Hair%x2|Reactor%x1|Emitter%x0", butx,buty,butw-45,buth, &part->type, 14.0, 0.0, 0, 0, "Type of particle system");
 
 	buty-=5;
 	uiDefBut(block, LABEL, 0, "Basic:",					butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
@@ -4711,7 +4973,7 @@ static void object_panel_particle_system(Object *ob)
 
 	if(lock) uiClearButLock();
 	uiDefButBitI(block, TOG, PART_TRAND, B_PART_DISTR, "Random",	butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Emit in random order of elements");
-	if(lock) uiSetButLock(1, "Hair is edited or cache is protected!");
+	if(lock) uiSetButLock(1, lockmessage);
 
 	if(part->type==PART_REACTOR)
 		uiDefButS(block, MENU, B_PART_DISTR, "Particle %x3|Volume %x2|Faces %x1|Verts %x0", butx+butw/2,buty,butw/2,buth, &part->from, 14.0, 0.0, 0, 0, "Where to emit particles from");
@@ -4721,7 +4983,7 @@ static void object_panel_particle_system(Object *ob)
 	if(ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)) {
 		if(lock) uiClearButLock();
 		uiDefButBitI(block, TOG, PART_EDISTR, B_PART_DISTR, "Even",butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Use even distribution from faces based on face areas or edge lengths");
-		if(lock) uiSetButLock(1, "Hair is edited or cache is protected!");
+		if(lock) uiSetButLock(1, lockmessage);
 		uiDefButS(block, MENU, B_PART_DISTR, "Distribution %t|Grid%x2|Random%x1|Jittered%x0", butx+butw/2,buty,butw/2,buth, &part->distr, 14.0, 0.0, 0, 0, "How to distribute particles on selected element");
 		if(part->distr==PART_DISTR_JIT) {
 			uiDefButF(block, NUM, B_PART_DISTR, "Amount:",		butx,(buty-=buth),butw,buth, &part->jitfac, 0, 2.0, 1, 1, "Amount of jitter applied to the sampling");
@@ -4783,9 +5045,9 @@ static void object_panel_fluidsim(Object *ob)
 	char *msg = NULL;
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_fluidsim", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Fluid Simulation", "Physics", 1060, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Fluid", "Physics", 1060, 0, 318, 204)==0) return;
 
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	if(ob->type==OB_MESH) {
 		if(((Mesh *)ob->data)->totvert == 0) {
@@ -4803,13 +5065,13 @@ static void object_panel_fluidsim(Object *ob)
 			}
 			
 			uiBlockBeginAlign(block);
-			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Domain",	    90, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_DOMAIN,  20.0, 1.0, "Bounding box of this object represents the computational domain of the fluid simulation.");
-			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Fluid",	   160, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_FLUID,   20.0, 2.0, "Object represents a volume of fluid in the simulation.");
-			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Obstacle",	 230, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_OBSTACLE,20.0, 3.0, "Object is a fixed obstacle.");
+			uiDefButS(block, ROW, B_FLUIDSIM_CHANGETYPE ,"Domain",	    90, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_DOMAIN,  20.0, 1.0, "Bounding box of this object represents the computational domain of the fluid simulation.");
+			uiDefButS(block, ROW, B_FLUIDSIM_CHANGETYPE ,"Fluid",	   160, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_FLUID,   20.0, 2.0, "Object represents a volume of fluid in the simulation.");
+			uiDefButS(block, ROW, B_FLUIDSIM_CHANGETYPE ,"Obstacle",	 230, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_OBSTACLE,20.0, 3.0, "Object is a fixed obstacle.");
 			yline -= lineHeight;
 
-			uiDefButS(block, ROW, REDRAWBUTSOBJECT    ,"Inflow",	    90, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_INFLOW,  20.0, 4.0, "Object adds fluid to the simulation.");
-			uiDefButS(block, ROW, REDRAWBUTSOBJECT    ,"Outflow",   160, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_OUTFLOW, 20.0, 5.0, "Object removes fluid from the simulation.");
+			uiDefButS(block, ROW, B_FLUIDSIM_CHANGETYPE    ,"Inflow",	    90, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_INFLOW,  20.0, 4.0, "Object adds fluid to the simulation.");
+			uiDefButS(block, ROW, B_FLUIDSIM_CHANGETYPE    ,"Outflow",   160, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_OUTFLOW, 20.0, 5.0, "Object removes fluid from the simulation.");
 			uiDefButS(block, ROW, B_FLUIDSIM_MAKEPART ,"Particle",	 230, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_PARTICLE,20.0, 3.0, "Object is made a particle system to display particles generated by a fluidsim domain object.");
 			uiBlockEndAlign(block);
 			yline -= lineHeight;
@@ -5079,10 +5341,10 @@ static void object_panel_fluidsim(Object *ob)
 			return;
 
 		} else {
-			msg = "Object not enabled for fluid simulation...";
+			msg = "Object not enabled for fluid simulation.";
 		}
 	} else {
-		msg = "Only Mesh Objects can participate.";
+		msg = "Only mesh objects can do fluid simulation.";
 	}
 errMessage:
 	yline -= lineHeight + 5;
@@ -5100,7 +5362,7 @@ static void object_cloth__enabletoggle(void *ob_v, void *arg2)
 
 	if (!md) {
 		md = modifier_new(eModifierType_Cloth);
-		BLI_addhead(&ob->modifiers, md);
+		BLI_addtail(&ob->modifiers, md);
 		
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWBUTSEDIT, 0);
@@ -5119,7 +5381,7 @@ static void object_cloth__enabletoggle(void *ob_v, void *arg2)
 
 		BIF_undo_push("Del modifier");
 		
-		ob->softflag |= OB_SB_RESET;
+		//ob->softflag |= OB_SB_RESET;
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIMAGE, 0);
@@ -5202,10 +5464,15 @@ static void object_panel_cloth(Object *ob)
 	uiBut *but=NULL;
 	static int val, val2;
 	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+	PointCache *cache;
+	ModifierData *md;
+	int libdata = 0;
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_cloth", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Cloth ", "Physics", 640, 0, 318, 204)==0) return;
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+
+	libdata= object_is_libdata(ob);
+	uiSetButLock(libdata, ERROR_LIBDATA_MESSAGE);
 	
 	val = (clmd ? 1:0);
 	
@@ -5217,6 +5484,14 @@ static void object_panel_cloth(Object *ob)
 	{
 		but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Cloth",	10,200,130,20, &val, 0, 0, 0, 0, "Sets object to become cloth");
 		uiButSetFunc(but, object_cloth__enabletoggle, ob, NULL);
+
+		md = (ModifierData*)clmd;
+		if(md) {
+			uiBlockBeginAlign(block);
+			uiDefIconButBitI(block, TOG, eModifierMode_Render, B_BAKE_CACHE_CHANGE, ICON_SCENE, 145, 200, 20, 20,&md->mode, 0, 0, 1, 0, "Enable cloth during rendering");
+			but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_BAKE_CACHE_CHANGE, VICON_VIEW3D, 165, 200, 20, 20,&md->mode, 0, 0, 1, 0, "Enable cloth during interactive display");
+			uiBlockEndAlign(block);
+		}
 	}
 
 	uiDefBut(block, LABEL, 0, "",10,10,300,0, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
@@ -5228,45 +5503,50 @@ static void object_panel_cloth(Object *ob)
 		char clmvg [] = "Vertex Groups%t|";
 
 		val2=0;
+		cache= clmd->point_cache;
 		
 		/* GENERAL STUFF */
-		uiClearButLock();
-		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE) uiSetButLock(1, "Please leave editmode.");
-		else if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT) uiSetButLock(1, "Cache is protected");
+		if(!libdata) {
+			uiClearButLock();
+			if(cache->flag & PTCACHE_BAKE_EDIT_ACTIVE)
+				uiSetButLock(1, "Please leave editmode.");
+			else if(cache->flag & PTCACHE_BAKED)
+				uiSetButLock(1, "Simulation frames are baked");
+		}
 		
 		uiDefBut(block, LABEL, 0, "Material Preset:",  10,170,150,20, NULL, 0.0, 0, 0, 0, "");
-		but=uiDefButS(block, MENU, B_CLOTH_RENEW, "Silk %x1|Cotton %x2|Rubber %x3|Denim %x4|Leather %x5|Custom %x0",
+		but=uiDefButS(block, MENU, B_BAKE_CACHE_CHANGE, "Silk %x1|Cotton %x2|Rubber %x3|Denim %x4|Leather %x5|Custom %x0",
 			     160,170,150,20, &clmd->sim_parms->presets, 0, 0, 0, 0, "");
 		uiButSetFunc(but, cloth_presets_material, ob, NULL);
 		
 		uiBlockBeginAlign(block);
-		but = uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff:", 10,150,150,20, &clmd->sim_parms->structural, 1.0, 10000.0, 100, 0, "Overall stiffness of structure");
+		but = uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "StructStiff:", 10,150,150,20, &clmd->sim_parms->structural, 1.0, 10000.0, 100, 0, "Overall stiffness of structure");
 		uiButSetFunc(but, cloth_presets_custom_material, ob, NULL);
 		
-		but = uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff:", 160,150,150,20, &clmd->sim_parms->bending, 0.0, 10000.0, 1000, 0, "Wrinkle coefficient (higher = less smaller but more big wrinkles)");
+		but = uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "BendStiff:", 160,150,150,20, &clmd->sim_parms->bending, 0.0, 10000.0, 1000, 0, "Wrinkle coefficient (higher = less smaller but more big wrinkles)");
 		uiButSetFunc(but, cloth_presets_custom_material, ob, NULL);
 		
-		but = uiDefButF(block, NUM, B_CLOTH_RENEW, "Spring Damp:", 10,130,150,20, &clmd->sim_parms->Cdis, 0.0, 50.0, 100, 0, "Damping of cloth velocity (higher = more smooth, less jiggling)");
+		but = uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Spring Damp:", 10,130,150,20, &clmd->sim_parms->Cdis, 0.0, 50.0, 100, 0, "Damping of cloth velocity (higher = more smooth, less jiggling)");
 		uiButSetFunc(but, cloth_presets_custom_material, ob, NULL);
 
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "Air Damp:", 160,130,150,20, &clmd->sim_parms->Cvi, 0.0, 10.0, 10, 0, "Air has normaly some thickness which slows falling things down");
+		uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Air Damp:", 160,130,150,20, &clmd->sim_parms->Cvi, 0.0, 10.0, 10, 0, "Air has normaly some thickness which slows falling things down");
 		
-		uiDefButI(block, NUM, B_CLOTH_RENEW, "Quality:", 10,110,150,20, &clmd->sim_parms->stepsPerFrame, 4.0, 80.0, 5, 0, "Quality of the simulation (higher=better=slower)");
+		uiDefButI(block, NUM, B_BAKE_CACHE_CHANGE, "Quality:", 10,110,150,20, &clmd->sim_parms->stepsPerFrame, 4.0, 80.0, 5, 0, "Quality of the simulation (higher=better=slower)");
 		
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "Mass:", 160,110,150,20, &clmd->sim_parms->mass, 0.0, 10.0, 1000, 0, "Mass of cloth material.");
+		uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Mass:", 160,110,150,20, &clmd->sim_parms->mass, 0.0, 10.0, 1000, 0, "Mass of cloth material.");
 		
 		uiDefBut(block, LABEL, 0, "Gravity:",  10,90,60,20, NULL, 0.0, 0, 0, 0, "");
 		
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "X:", 70,90,80,20, &clmd->sim_parms->gravity[0], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "Y:", 150,90,80,20, &clmd->sim_parms->gravity[1], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
-		uiDefButF(block, NUM, B_CLOTH_RENEW, "Z:", 230,90,80,20, &clmd->sim_parms->gravity[2], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+		uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "X:", 70,90,80,20, &clmd->sim_parms->gravity[0], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+		uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Y:", 150,90,80,20, &clmd->sim_parms->gravity[1], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+		uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Z:", 230,90,80,20, &clmd->sim_parms->gravity[2], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
 		uiBlockEndAlign(block);
 		
 		/* GOAL STUFF */
 		uiBlockBeginAlign(block);
 		
 		
-		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_GOAL, B_CLOTH_RENEW, "Pinning of cloth",	10,60,150,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_GOAL, B_BAKE_CACHE_CHANGE, "Pinning of cloth",	10,60,150,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
 		
 		if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (BLI_countlist (&ob->defbase) > 0))
 		{
@@ -5295,18 +5575,18 @@ static void object_panel_cloth(Object *ob)
 							
 				sprintf (clvg2, "%s%s", clmvg, clvg1);
 				
-				uiDefButS(block, MENU, B_CLOTH_RENEW, clvg2, 160,60,150,20, &clmd->sim_parms->vgroup_mass, 0, defCount, 0, 0, "Browses available vertex groups");
+				uiDefButS(block, MENU, B_BAKE_CACHE_CHANGE, clvg2, 160,60,150,20, &clmd->sim_parms->vgroup_mass, 0, defCount, 0, 0, "Browses available vertex groups");
 				MEM_freeN (clvg1);
 				MEM_freeN (clvg2);
 			}
 			
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "Pin Stiff:", 10,40,150,20, &clmd->sim_parms->goalspring, 0.0, 50.0, 50, 0, "Pin (vertex target position) spring stiffness");
+			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Pin Stiff:", 10,40,150,20, &clmd->sim_parms->goalspring, 0.0, 50.0, 50, 0, "Pin (vertex target position) spring stiffness");
 			uiDefBut(block, LABEL, 0, "",160,40,150,20, NULL, 0.0, 0, 0, 0, "");	
-			// uiDefButI(block, NUM, B_CLOTH_RENEW, "Pin Damp:", 160,50,150,20, &clmd->sim_parms->goalfrict, 1.0, 100.0, 10, 0, "Pined damping (higher = doesn't oszilate so much)");
+			// uiDefButI(block, NUM, B_BAKE_CACHE_CHANGE, "Pin Damp:", 160,50,150,20, &clmd->sim_parms->goalfrict, 1.0, 100.0, 10, 0, "Pined damping (higher = doesn't oszilate so much)");
 			/*
 			// nobody is changing these ones anyway
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "G Min:",		10,30,150,20, &clmd->sim_parms->mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "G Max:",		160,30,150,20, &clmd->sim_parms->maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
+			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Min:",		10,30,150,20, &clmd->sim_parms->mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
+			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "G Max:",		160,30,150,20, &clmd->sim_parms->maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
 			*/
 		}
 		else if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
@@ -5336,78 +5616,42 @@ static void object_panel_cloth(Object *ob)
 	uiBlockEndAlign(block);
 }
 
-static void object_cloth__protecttoggle(void *ob_v, void *arg2)
-{
-	Object *ob = ob_v;
-	int cageIndex, stack_index;
-	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-	
-	// automatically enable modifier in editmode when we havee a protected cache
-	if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT)
-	{
-		cageIndex = modifiers_getCageIndex(ob_v, NULL );
-		stack_index = modifiers_indexInObject(ob_v, (ModifierData *)clmd);
-		if( stack_index >= cageIndex )
-			((ModifierData *)clmd)->mode ^= eModifierMode_OnCage;
-	}
-	else
-	{
-		((ModifierData *)clmd)->mode ^= eModifierMode_OnCage;
-	}
-	
-}
-
-
 static void object_panel_cloth_II(Object *ob)
 {
 	uiBlock *block;
-	uiBut *but = NULL;
 	ClothModifierData *clmd = NULL;
+	PointCache *cache;
+	static PTCacheID staticpid;
+	int libdata;
 
 	block= uiNewBlock(&curarea->uiblocks, "object_cloth_II", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Cloth ", "Physics");
-	if(uiNewPanel(curarea, block, "Cloth Cache/Collisions", "Physics", 651, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Cloth Collision", "Physics", 651, 0, 318, 204)==0) return;
 
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	libdata= object_is_libdata(ob);
+	uiSetButLock(libdata, ERROR_LIBDATA_MESSAGE);
 	
 	clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 	
 	if(clmd)
-	{	
-		uiClearButLock();
-		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE) uiSetButLock(1, "Please leave editmode.");
-		else if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT) uiSetButLock(1, "Cache is protected");
-		
-		uiDefButI(block, NUM, B_CLOTH_RENEW, "First Frame:",10,160,150,20, &clmd->sim_parms->firstframe, 0, MAXFRAME, 1, 0, "Frame on which the simulation starts");
-		uiDefButI(block, NUM, B_CLOTH_RENEW, "Last Frame:",160,160,150,20, &clmd->sim_parms->lastframe, 0, MAXFRAME, 1, 0, "Frame on which the simulation stops");
-		
+	{
+		BKE_ptcache_id_from_cloth(&staticpid, ob, clmd);
+		cache= staticpid.cache;
+
+		if(!libdata) {
+			uiClearButLock();
+			if(cache->flag & PTCACHE_BAKE_EDIT_ACTIVE)
+				uiSetButLock(1, "Please leave editmode.");
+		}
+
+		object_physics_bake_buttons(block, &staticpid, 135, libdata);
+
 		uiDefBut(block, LABEL, 0, "",10,140,300,20, NULL, 0.0, 0, 0, 0, "");
-		
-		if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE))
-		{
-			if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT)
-				uiClearButLock();
-		}
-		
-		if (!G.relbase_valid)
-		{
-			uiDefBut(block, LABEL, 0, "Cache deactivated until file is saved.",  10,120,300,20, NULL, 0.0, 0, 0, 0, "");
-			uiDefBut(block, LABEL, 0, " ",  10,100,300,40, NULL, 0.0, 0, 0, 0, "");
-		}
-		else
-		{
-			but = uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT, REDRAWVIEW3D, "Protect Cache & Enable Cache Editing",	10,120,300,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Protect cache from automatic freeing when scene changed. This also enabled the cache beeing edited in editmode.");
-			uiButSetFunc(but, object_cloth__protecttoggle, ob, NULL);
-			uiDefBut(block, LABEL, 0, "Clear cache:",  10,100,90,20, NULL, 0.0, 0, 0, 0, "");
-			uiDefBut(block, BUT, B_CLOTH_CLEARCACHEALL, "All", 100, 100,100,20, NULL, 0.0, 0.0, 10, 0, "Free ALL cloth cache without preroll");
-			uiDefBut(block, BUT, B_CLOTH_CLEARCACHEFRAME, "From next frame", 200, 100,110,20, NULL, 0.0, 0.0, 10, 0, "Free cloth cache starting from next frame");	
-			uiDefBut(block, LABEL, 0, " ",  10,80,300,20, NULL, 0.0, 0, 0, 0, "");
-		}
-		
-		if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE))
-		{
-			if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT) 
-				uiSetButLock(1, "Cache is protected");
+
+		if(!libdata) {
+			if(!(cache->flag & PTCACHE_BAKE_EDIT_ACTIVE))
+				if(cache->flag & PTCACHE_BAKED)
+					uiSetButLock(1, "Simulation frames are baked");
 		}
 		
 		/*
@@ -5418,19 +5662,19 @@ static void object_panel_cloth_II(Object *ob)
 		uiDefBut(block, LABEL, 0, " ",  10,80,145,20, NULL, 0.0, 0, 0, 0, "");
 		*/
 #if WITH_BULLET == 1
-		uiDefButBitI(block, TOG, CLOTH_COLLSETTINGS_FLAG_ENABLED, B_CLOTH_RENEW, "Enable collisions",	10,60,150,20, &clmd->coll_parms->flags, 0, 0, 0, 0, "Enable collisions with this object");
+		uiDefButBitI(block, TOG, CLOTH_COLLSETTINGS_FLAG_ENABLED, B_BAKE_CACHE_CHANGE, "Enable collisions",	10,60,150,20, &clmd->coll_parms->flags, 0, 0, 0, 0, "Enable collisions with this object");
 		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED)
 		{
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "Min Distance:",	   160,60,150,20, &clmd->coll_parms->epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in, can be changed for each frame");
-			uiDefButS(block, NUM, B_CLOTH_RENEW, "Collision Quality:",	   10,40,150,20, &clmd->coll_parms->loop_count, 1.0, 20.0, 1.0, 0, "How many collision iterations should be done. (higher = better = slower)");
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "Friction:",	   160,40,150,20, &clmd->coll_parms->friction, 0.0, 80.0, 1.0, 0, "Friction force if a collision happened (0=movement not changed, 100=no movement left)");
+			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Min Distance:",	   160,60,150,20, &clmd->coll_parms->epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in, can be changed for each frame");
+			uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Collision Quality:",	   10,40,150,20, &clmd->coll_parms->loop_count, 1.0, 20.0, 1.0, 0, "How many collision iterations should be done. (higher = better = slower)");
+			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Friction:",	   160,40,150,20, &clmd->coll_parms->friction, 0.0, 80.0, 1.0, 0, "Friction force if a collision happened (0=movement not changed, 100=no movement left)");
 			
-			uiDefButBitI(block, TOG, CLOTH_COLLSETTINGS_FLAG_SELF, B_CLOTH_RENEW, "Enable selfcollisions",	10,20,150,20, &clmd->coll_parms->flags, 0, 0, 0, 0, "Enable selfcollisions with this object");
+			uiDefButBitI(block, TOG, CLOTH_COLLSETTINGS_FLAG_SELF, B_BAKE_CACHE_CHANGE, "Enable selfcollisions",	10,20,150,20, &clmd->coll_parms->flags, 0, 0, 0, 0, "Enable selfcollisions with this object");
 			if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF)	
 			{
-				uiDefButF(block, NUM, B_CLOTH_RENEW, "Min Distance:",	   160,20,150,20, &clmd->coll_parms->selfepsilon, 0.5f, 1.0, 0.01f, 0, "0.5 means no distance at all, 1.0 is maximum distance");
+				uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Min Distance:",	   160,20,150,20, &clmd->coll_parms->selfepsilon, 0.5f, 1.0, 0.01f, 0, "0.5 means no distance at all, 1.0 is maximum distance");
 				// self_loop_count
-				uiDefButS(block, NUM, B_CLOTH_RENEW, "Selfcoll Quality:",	   10,0,150,20, &clmd->coll_parms->self_loop_count, 1.0, 10.0, 1.0, 0, "How many selfcollision iterations should be done. (higher = better = slower), can be changed for each frame");
+				uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Selfcoll Quality:",	   10,0,150,20, &clmd->coll_parms->self_loop_count, 1.0, 10.0, 1.0, 0, "How many selfcollision iterations should be done. (higher = better = slower), can be changed for each frame");
 			}
 			else
 				uiDefBut(block, LABEL, 0, "",160,20,150,20, NULL, 0.0, 0, 0, 0, "");	
@@ -5450,12 +5694,15 @@ static void object_panel_cloth_III(Object *ob)
 {
 	uiBlock *block;
 	ClothModifierData *clmd = NULL;
+	PointCache *cache;
+	int libdata;
 
 	block= uiNewBlock(&curarea->uiblocks, "object_cloth_III", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Cloth ", "Physics");
 	if(uiNewPanel(curarea, block, "Cloth Advanced", "Physics", 651, 0, 318, 204)==0) return;
 
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	libdata= object_is_libdata(ob);
+	uiSetButLock(libdata, ERROR_LIBDATA_MESSAGE);
 	
 	clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 	
@@ -5465,23 +5712,18 @@ static void object_panel_cloth_III(Object *ob)
 		char *clvg1, *clvg2;
 		char clmvg [] = "Vertex Groups%t|None%x0|";
 		char clmvg2 [] = "Vertex Groups%t|None%x0|";
+
+		cache= clmd->point_cache;
 		
-		uiClearButLock();
-		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE) uiSetButLock(1, "Please leave editmode.");
-		else if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT) uiSetButLock(1, "Cache is protected");
-		
-		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_AUTOPROTECT, REDRAWBUTSOBJECT, "Autoprotect cache",10,160,150,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Enables automatic toggling of the 'Protect cache' button from the 2nd panel.");
-		
-		if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_AUTOPROTECT)
-		{
-			uiDefButI(block, NUM, B_DIFF, "From frame:",160,160,150,20, &clmd->sim_parms->autoprotect, 0.0, MAXFRAME + 1, 1, 0, "Frame on which the 'Protect Cache' button (2nd panel) is toggled automatically (To prevent accidently cleaning it).");
+		if(!libdata) {
+			uiClearButLock();
+			if(cache->flag & PTCACHE_BAKE_EDIT_ACTIVE)
+				uiSetButLock(1, "Please leave editmode.");
+			else if(cache->flag & PTCACHE_BAKED)
+				uiSetButLock(1, "Simulation frames are baked");
 		}
-		else
-		{
-			uiDefBut(block, LABEL, 0, " ",  160,160,150,20, NULL, 0.0, 0, 0, 0, "");
-		}
-				
-		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_SCALING, B_CLOTH_RENEW, "Enable stiffness scaling",10,130,300,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "If enabled, stiffness can be scaled along a weight painted vertex group.");
+		
+		uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_SCALING, B_BAKE_CACHE_CHANGE, "Enable stiffness scaling",10,130,300,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "If enabled, stiffness can be scaled along a weight painted vertex group.");
 		
 		if ((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING)&& (BLI_countlist (&ob->defbase) > 0))
 		{	
@@ -5508,7 +5750,7 @@ static void object_panel_cloth_III(Object *ob)
 						
 			sprintf (clvg2, "%s%s", clmvg, clvg1);
 			
-			uiDefButS(block, MENU, B_CLOTH_RENEW, clvg2,	10,90,150,20, &clmd->sim_parms->vgroup_struct, 0, defCount, 0, 0, "Browses available vertex groups");
+			uiDefButS(block, MENU, B_BAKE_CACHE_CHANGE, clvg2,	10,90,150,20, &clmd->sim_parms->vgroup_struct, 0, defCount, 0, 0, "Browses available vertex groups");
 			MEM_freeN (clvg1);
 			MEM_freeN (clvg2);
 			
@@ -5532,19 +5774,19 @@ static void object_panel_cloth_III(Object *ob)
 						
 			sprintf (clvg2, "%s%s", clmvg2, clvg1);
 			
-			uiDefButS(block, MENU, B_CLOTH_RENEW, clvg2, 160,90,150,20, &clmd->sim_parms->vgroup_bend, 0, defCount, 0, 0, "Browses available vertex groups");
+			uiDefButS(block, MENU, B_BAKE_CACHE_CHANGE, clvg2, 160,90,150,20, &clmd->sim_parms->vgroup_bend, 0, defCount, 0, 0, "Browses available vertex groups");
 			MEM_freeN (clvg1);
 			MEM_freeN (clvg2);
 			
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff Max:",10,70,150,20, &clmd->sim_parms->max_struct, clmd->sim_parms->structural, 10000.0, 0.01f, 0, "Maximum structural stiffness value");
+			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "StructStiff Max:",10,70,150,20, &clmd->sim_parms->max_struct, clmd->sim_parms->structural, 10000.0, 0.01f, 0, "Maximum structural stiffness value");
 			
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff Max:",160,70,150,20, &clmd->sim_parms->max_bend, clmd->sim_parms->bending, 10000.0, 0.01f, 0, "Maximum bending stiffness value");
+			uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "BendStiff Max:",160,70,150,20, &clmd->sim_parms->max_bend, clmd->sim_parms->bending, 10000.0, 0.01f, 0, "Maximum bending stiffness value");
 
 		}
 		else if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING)
 		{
 			uiDefBut(block, LABEL, 0, " ",  10,110,300,20, NULL, 0.0, 0, 0, 0, "");
-			uiDefBut(block, LABEL, 0, "No vertex group for pinning available.",  10,90,300,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "No vertex group for stiffness scaling available.",  10,90,300,20, NULL, 0.0, 0, 0, 0, "");
 		}
 	
 		
@@ -5578,9 +5820,9 @@ void physics_panels()
 	/* check context here */
 	ob= OBACT;
 	if(ob) {
-		if(ob->type==OB_MESH)
-			object_panel_deflection(ob);
 		object_panel_fields(ob);
+		if(ob->type==OB_MESH)
+			object_panel_collision(ob);
 		object_softbodies(ob);
 		object_softbodies_collision(ob);
 		object_softbodies_solver(ob);
@@ -5602,7 +5844,8 @@ void particle_panels()
 
 		psys=psys_get_current(ob);
 
-		if(psys){
+		if(psys ){
+			object_panel_particle_bake(ob);
 			object_panel_particle_physics(ob);
 			object_panel_particle_visual(ob);
 			object_panel_particle_simplification(ob);

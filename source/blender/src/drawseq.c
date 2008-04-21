@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef HAVE_CONFIG_H
@@ -91,24 +88,6 @@
 
 #define SEQ_STRIP_OFSBOTTOM		0.2
 #define SEQ_STRIP_OFSTOP		0.8
-
-static GLubyte halftone[] = {
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55};
 
 /* Note, Dont use WHILE_SEQ while drawing! - it messes up transform, - Campbell */
 
@@ -240,7 +219,7 @@ static void drawmeta_contents(Sequence *seqm, float x1, float y1, float x2, floa
 
 	if (seqm->flag & SEQ_MUTE) {
 		glEnable(GL_POLYGON_STIPPLE);
-		glPolygonStipple(halftone);
+		glPolygonStipple(stipple_halftone);
 		
 		glEnable(GL_LINE_STIPPLE);
 		glLineStipple(1, 0x8888);
@@ -376,7 +355,7 @@ static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, float pixelx, short d
 	float x1, x2, y1, y2;
 	float handsize;
 	float minhandle, maxhandle;
-	char str[120];
+	char str[32];
 	unsigned int whichsel=0;
 	View2D *v2d;
 	
@@ -447,9 +426,9 @@ static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, float pixelx, short d
 			glRasterPos3f(rx1,  y1-0.15, 0.0);
 		} else {
 			sprintf(str, "%d", seq->enddisp - 1);
-			glRasterPos3f((x2-BMF_GetStringWidth(G.font, str)*pixelx),  y2+0.05, 0.0);
+			glRasterPos3f((x2-BMF_GetStringWidth(G.fonts, str)*pixelx),  y2+0.05, 0.0);
 		}
-		BMF_DrawString(G.font, str);
+		BMF_DrawString(G.fonts, str);
 	}	
 }
 
@@ -636,7 +615,7 @@ static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float
 	
 	if (seq->flag & SEQ_MUTE) {
 		glEnable(GL_POLYGON_STIPPLE);
-		glPolygonStipple(halftone);
+		glPolygonStipple(stipple_halftone);
 	}
 	
 	ymid1 = (y2-y1)*0.25 + y1;

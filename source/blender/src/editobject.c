@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /** 
@@ -339,6 +336,7 @@ void delete_obj(int ok)
 	allqueue(REDRAWNLA, 0);
 	
 	DAG_scene_sort(G.scene);
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 
 	BIF_undo_push("Delete object(s)");
 }
@@ -964,7 +962,7 @@ void clear_parent(void)
 	}
 
 	DAG_scene_sort(G.scene);
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	
@@ -1125,7 +1123,7 @@ void clear_object(char mode)
 	
 	allqueue(REDRAWVIEW3D, 0);
 	if(armature_clear==0) /* in this case flush was done */
-		DAG_scene_flush_update(G.scene, screen_view3d_layers());
+		DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 	BIF_undo_push(str);
 }
 
@@ -1625,7 +1623,7 @@ void make_parent(void)
 	allqueue(REDRAWOOPS, 0);
 	
 	DAG_scene_sort(G.scene);
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 	
 	BIF_undo_push("make Parent");
 }
@@ -1787,20 +1785,6 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 	/* for example; displist make is different in editmode */
 	if(freedata) G.obedit= NULL;
 
-	/* total remake of softbody data */
-	if(modifiers_isSoftbodyEnabled(ob)) {
-		if (ob->soft && ob->soft->keys) {
-			notice("Erase Baked SoftBody");
-		}
-
-		sbObjectToSoftbody(ob);
-	}
-	
-	if(modifiers_isClothEnabled(ob)) {
-		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-		clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-	}
-	
 	if(ob->type==OB_MESH && get_mesh(ob)->mr)
 		multires_edge_level_update(ob, get_mesh(ob));
 	
@@ -2106,7 +2090,7 @@ void docenter(int centermode)
 		base= base->next;
 	}
 	if (tot_change) {
-		DAG_scene_flush_update(G.scene, screen_view3d_layers());
+		DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 		allqueue(REDRAWVIEW3D, 0);
 		BIF_undo_push("Do Center");	
 	}
@@ -3148,7 +3132,7 @@ void flip_subdivison(int level)
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 	
 	if(particles)
 		BIF_undo_push("Switch particles on/off");
@@ -3657,7 +3641,7 @@ void copy_attr(short event)
 	if(do_scene_sort)
 		DAG_scene_sort(G.scene);
 
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 
 	if(event==20) {
 		allqueue(REDRAWBUTSOBJECT, 0);
@@ -3691,7 +3675,7 @@ void copy_attr_menu()
 	strcat (str, "|Object Constraints%x22");
 	strcat (str, "|NLA Strips%x26");
 	
-	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL) {
+	if (OB_SUPPORT_MATERIAL(ob)) {
 		strcat(str, "|Texture Space%x17");
 	}	
 	
@@ -3904,7 +3888,7 @@ void make_links(short event)
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSHEAD, 0);
 
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 
 	BIF_undo_push("Create links");
 }
@@ -5292,7 +5276,7 @@ void adduplicate(int mode, int dupflag)
 	copy_object_set_idnew(dupflag);
 
 	DAG_scene_sort(G.scene);
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 
 	countall();
 	if(mode==0) {

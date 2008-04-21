@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can Redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Joseph Gilbert, Dietrich Bollmann
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 struct View3D; /* keep me up here */
 
@@ -919,6 +916,18 @@ PyObject *RenderData_GaussFilterSize( BPy_RenderData * self, PyObject * args )
 					      0.5f, 1.5f );
 }
 
+PyObject *RenderData_AspectRatioX( BPy_RenderData * self, PyObject * args )
+{
+	return M_Render_GetSetAttributeFloat( args, &self->renderContext->xasp,
+					      1.0f, 200.0f );
+}
+
+PyObject *RenderData_AspectRatioY( BPy_RenderData * self, PyObject * args )
+{
+	return M_Render_GetSetAttributeFloat( args, &self->renderContext->yasp,
+					      1.0f, 200.0f );
+}
+
 PyObject *RenderData_StartFrame( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeInt( args, &self->renderContext->sfra,
@@ -947,18 +956,6 @@ PyObject *RenderData_ImageSizeY( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeShort( args, &self->renderContext->ysch,
 					      4, 10000 );
-}
-
-PyObject *RenderData_AspectRatioX( BPy_RenderData * self, PyObject * args )
-{
-	return M_Render_GetSetAttributeShort( args, &self->renderContext->xasp,
-					      1, 200 );
-}
-
-PyObject *RenderData_AspectRatioY( BPy_RenderData * self, PyObject * args )
-{
-	return M_Render_GetSetAttributeShort( args, &self->renderContext->yasp,
-					      1, 200 );
 }
 
 static int RenderData_setRenderer( BPy_RenderData * self, PyObject * value )
@@ -1868,6 +1865,12 @@ static PyObject *RenderData_getFloatAttr( BPy_RenderData *self, void *type )
 	case EXPP_RENDER_ATTR_BAKEBIAS:
 		param = self->renderContext->bake_biasdist;
 		break;
+	case EXPP_RENDER_ATTR_ASPECTX:
+		param = (long)self->renderContext->xasp;
+		break;
+	case EXPP_RENDER_ATTR_ASPECTY:
+		param = (long)self->renderContext->yasp;
+		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"undefined type constant in RenderData_getFloatAttr" );
@@ -1911,6 +1914,16 @@ static int RenderData_setFloatAttrClamp( BPy_RenderData *self, PyObject *value,
 		max = 1000.0f;
 		param = &self->renderContext->bake_biasdist;
 		break;
+	case EXPP_RENDER_ATTR_ASPECTX:
+		min = 1.0f;
+		max = 200.0f;
+		param = &self->renderContext->xasp;
+		break;
+	case EXPP_RENDER_ATTR_ASPECTY:
+		min = 1.0f;
+		max = 200.0f;
+		param = &self->renderContext->yasp;
+		break;
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"undefined type constant in RenderData_setFloatAttrClamp" );
@@ -1932,12 +1945,6 @@ static PyObject *RenderData_getIValueAttr( BPy_RenderData *self, void *type )
 		break;
 	case EXPP_RENDER_ATTR_YPARTS:
 		param = (long)self->renderContext->yparts;
-		break;
-	case EXPP_RENDER_ATTR_ASPECTX:
-		param = (long)self->renderContext->xasp;
-		break;
-	case EXPP_RENDER_ATTR_ASPECTY:
-		param = (long)self->renderContext->yasp;
 		break;
 	case EXPP_RENDER_ATTR_CFRAME:
 		param = (long)self->renderContext->cfra;
@@ -1995,18 +2002,6 @@ static int RenderData_setIValueAttrClamp( BPy_RenderData *self, PyObject *value,
 		max = 64;
 		size = 'h';
 		param = &self->renderContext->yparts;
-		break;
-	case EXPP_RENDER_ATTR_ASPECTX:
-		min = 1;
-		max = 200;
-	   	size = 'h';
-		param = &self->renderContext->xasp;
-		break;
-	case EXPP_RENDER_ATTR_ASPECTY:
-		min = 1;
-		max = 200;
-	   	size = 'h';
-		param = &self->renderContext->yasp;
 		break;
 	case EXPP_RENDER_ATTR_CFRAME:
 		min = 1;
@@ -2128,14 +2123,14 @@ static int RenderData_setMode( BPy_RenderData* self, PyObject *arg )
 
 static PyObject *RenderData_getSceModeBits( BPy_RenderData *self, void* type )
 {
-	return EXPP_getBitfield( &self->renderContext->scemode, (int)type, 'h' );
+	return EXPP_getBitfield( &self->renderContext->scemode, (int)type, 'i' );
 }
 
 static int RenderData_setSceModeBits( BPy_RenderData* self, PyObject *value,
 		void* type )
 {
 	return EXPP_setBitfield( value, &self->renderContext->scemode,
-			(int)type, 'h' );
+			(int)type, 'i' );
 }
 
 static PyObject *RenderData_getSceMode( BPy_RenderData *self )
@@ -2156,7 +2151,7 @@ static int RenderData_setSceMode( BPy_RenderData* self, PyObject *arg )
 		return EXPP_ReturnIntError( PyExc_ValueError, 
 				"unexpected bits set in argument" );
 
-	self->renderContext->scemode = (short)value;
+	self->renderContext->scemode = (int)value;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return 0;
@@ -2726,14 +2721,6 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
 	 "Number of vertical parts for image render",
 	 (void *)EXPP_RENDER_ATTR_YPARTS},
-	{"aspectX",
-	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
-	 "Horizontal aspect ratio",
-	 (void *)EXPP_RENDER_ATTR_ASPECTX},
-	{"aspectY",
-	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
-	 "Vertical aspect ratio",
-	 (void *)EXPP_RENDER_ATTR_ASPECTY},
 	{"cFrame",
 	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
 	 "The current frame for rendering",
@@ -2771,6 +2758,14 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
 	 "Motion blur factor",
 	 (void *)EXPP_RENDER_ATTR_MBLURFACTOR},
+	{"aspectX",
+	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
+	 "Horizontal aspect ratio",
+	 (void *)EXPP_RENDER_ATTR_ASPECTX},
+	{"aspectY",
+	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
+	 "Vertical aspect ratio",
+	 (void *)EXPP_RENDER_ATTR_ASPECTY},
 	{"mapOld",
 	 (getter)RenderData_getMapOld, (setter)RenderData_setMapOld,
 	 "Number of frames the Map Old will last",
@@ -2881,9 +2876,9 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getBakeMode, (setter)RenderData_setBakeMode,
 	 "Bake selection to active",
 	 (void *)R_BAKE_TO_ACTIVE},
-	{"bakeNormalizeAO",
+	{"bakeNormalize",
 	 (getter)RenderData_getBakeMode, (setter)RenderData_setBakeMode,
-	 "Bake selection to active",
+	 "Normalize AO and displacement to the dist range",
 	 (void *)R_BAKE_NORMALIZE},
 	{"bakeMargin",
 	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
@@ -3798,7 +3793,7 @@ static PyObject *M_Render_BakeNormalSpaceDict( void )
 		BPy_constant *d = ( BPy_constant * ) M;
 		
 		PyConstant_Insert( d, "CAMERA", PyInt_FromLong( R_BAKE_SPACE_CAMERA ) );
-		PyConstant_Insert( d, "WORLS", PyInt_FromLong( R_BAKE_SPACE_WORLD ) );
+		PyConstant_Insert( d, "WORLD", PyInt_FromLong( R_BAKE_SPACE_WORLD ) );
 		PyConstant_Insert( d, "OBJECT", PyInt_FromLong( R_BAKE_SPACE_OBJECT ) );
 		PyConstant_Insert( d, "TANGENT", PyInt_FromLong( R_BAKE_SPACE_TANGENT ) );
 	}

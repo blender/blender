@@ -1,15 +1,12 @@
 /*  kdop.c      
 * 
 *
-* ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+* ***** BEGIN GPL LICENSE BLOCK *****
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public License
 * as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version. The Blender
-* Foundation also sells licenses for use in proprietary software under
-* the Blender License.  See http://www.blender.org/BL/ for information
-* about this.
+* of the License, or (at your option) any later version.
 *
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
 *
 * Contributor(s): none yet.
 *
-* ***** END GPL/BL DUAL LICENSE BLOCK *****
+* ***** END GPL LICENSE BLOCK *****
 */
 
 #include "MEM_guardedalloc.h"
@@ -88,9 +85,9 @@ LinkNode *BLI_linklist_append_fast(LinkNode **listp, void *ptr) {
 ////////////////////////////////////////////////////////////////////////
 
 static float KDOP_AXES[13][3] =
-{ {1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {1, 1, 1}, {1, -1, 1}, {1, 1, -1},
-{1, -1, -1}, {1, 1, 0}, {1, 0, 1}, {0, 1, 1}, {1, -1, 0}, {1, 0, -1},
-{0, 1, -1}
+{ {1.0, 0, 0}, {0, 1.0, 0}, {0, 0, 1.0}, {1.0, 1.0, 1.0}, {1.0, -1.0, 1.0}, {1.0, 1.0, -1.0},
+{1.0, -1.0, -1.0}, {1.0, 1.0, 0}, {1.0, 0, 1.0}, {0, 1.0, 1.0}, {1.0, -1.0, 0}, {1.0, 0, -1.0},
+{0, 1.0, -1.0}
 };
 
 ///////////// choose bounding volume here! /////////////
@@ -150,7 +147,7 @@ DO_INLINE int floor_lg(int a)
 /*
 * Insertion sort algorithm
 */
-static void bvh_insertionsort(CollisionTree **a, int lo, int hi, int axis)
+void bvh_insertionsort(CollisionTree **a, int lo, int hi, int axis)
 {
 	int i,j;
 	CollisionTree *t;
@@ -247,7 +244,7 @@ static CollisionTree *bvh_medianof3(CollisionTree **a, int lo, int mid, int hi, 
 /*
 * Quicksort algorithm modified for Introsort
 */
-static void bvh_introsort_loop (CollisionTree **a, int lo, int hi, int depth_limit, int axis)
+void bvh_introsort_loop (CollisionTree **a, int lo, int hi, int depth_limit, int axis)
 {
 	int p;
 
@@ -342,19 +339,30 @@ DO_INLINE void bvh_calc_DOP_hull_from_faces(BVH * bvh, CollisionTree **tri, int 
 {
 	float newmin,newmax;
 	int i, j;
+	
+	if(numfaces >0)
+	{
+		// for all Axes.
+		for (i = KDOP_START; i < KDOP_END; i++)
+		{
+			bv[(2 * i)] = (tri [0])->bv[(2 * i)];	
+			bv[(2 * i) + 1] = (tri [0])->bv[(2 * i) + 1];
+		}
+	}
+	
 	for (j = 0; j < numfaces; j++)
 	{
 		// for all Axes.
 		for (i = KDOP_START; i < KDOP_END; i++)
 		{
 			newmin = (tri [j])->bv[(2 * i)];	
-			if ((newmin < bv[(2 * i)]) || (j == 0))
+			if ((newmin < bv[(2 * i)]))
 			{
 				bv[(2 * i)] = newmin;
 			}
 
 			newmax = (tri [j])->bv[(2 * i) + 1];
-			if ((newmax > bv[(2 * i) + 1]) || (j == 0))
+			if ((newmax > bv[(2 * i) + 1]))
 			{
 				bv[(2 * i) + 1] = newmax;
 			}
@@ -401,6 +409,7 @@ DO_INLINE void bvh_calc_DOP_hull_static(BVH * bvh, CollisionTree **tri, int numf
 		
 		/* calculate normal of this face */
 		/* (code copied from cdderivedmesh.c) */
+		/*
 		if(tempMFace->v4)
 			CalcNormFloat4(bvh->current_xold[tempMFace->v1].co, bvh->current_xold[tempMFace->v2].co,
 				       bvh->current_xold[tempMFace->v3].co, bvh->current_xold[tempMFace->v4].co, tree->normal);
@@ -409,8 +418,7 @@ DO_INLINE void bvh_calc_DOP_hull_static(BVH * bvh, CollisionTree **tri, int numf
 				      bvh->current_xold[tempMFace->v3].co, tree->normal);
 		
 		tree->alpha = 0;
-		
-		
+		*/
 	}
 }
 
@@ -772,6 +780,7 @@ void bvh_join(CollisionTree *tree)
 			}
 			
 			/* for selfcollisions */
+			/*
 			if(!i)
 			{
 				tree->alpha = tree->nodes[i]->alpha;
@@ -784,6 +793,7 @@ void bvh_join(CollisionTree *tree)
 				VecMulf(tree->normal, 0.5);
 				max = MAX2(max, tree->nodes[i]->alpha);
 			}
+			*/
 			
 		}
 		else

@@ -390,7 +390,7 @@ float brush_strength(BrushAction *a)
 	switch(G.scene->sculptdata.brush_type){
 	case DRAW_BRUSH:
 	case LAYER_BRUSH:
-		return b->strength / 5000.0f * dir * pressure * flip * anchored;
+		return b->strength / 5000.0f * dir * pressure * flip * anchored * G.vd->grid;
 	case SMOOTH_BRUSH:
 		return b->strength / 50.0f * pressure * anchored;
 	case PINCH_BRUSH:
@@ -418,14 +418,37 @@ void sculpt_clip(const BrushAction *a, float *co, const float val[3])
 	}		
 }
 
-void add_norm_if(const BrushAction *a, float out[3], const short no[3])
+void sculpt_axislock(float *co)
+{
+	SculptData *sd = sculpt_data();
+	if (sd->axislock == AXISLOCK_X+AXISLOCK_Y+AXISLOCK_Z) return;
+	if (G.vd->twmode == V3D_MANIP_LOCAL) {
+		float mat[3][3], imat[3][3];
+		Mat3CpyMat4(mat, OBACT->obmat);
+		Mat3Inv(imat, mat);
+		Mat3MulVecfl(mat, co);
+		if (sd->axislock & AXISLOCK_X) co[0] = 0.0;
+		if (sd->axislock & AXISLOCK_Y) co[1] = 0.0;
+		if (sd->axislock & AXISLOCK_Z) co[2] = 0.0;		
+		Mat3MulVecfl(imat, co);
+	} else {
+		if (sd->axislock & AXISLOCK_X) co[0] = 0.0;
+		if (sd->axislock & AXISLOCK_Y) co[1] = 0.0;
+		if (sd->axislock & AXISLOCK_Z) co[2] = 0.0;		
+	}
+}
+
+static void add_norm_if(const BrushAction *a, float out[3], float out_flip[3], const short no[3])
 {
 	float fno[3] = {no[0], no[1], no[2]};
 
 	Normalize(fno);
 
-	if(acos(Inpf(((BrushAction*)a)->symm.out, fno)) < M_PI_2)
+	if((Inpf(((BrushAction*)a)->symm.out, fno)) < 0) {
 		VecAddf(out, out, fno);
+	} else if (out[0]==0.0 && out[1]==0.0 && out[2]==0.0) {
+		VecAddf(out_flip, out_flip, fno); /* out_flip is used when out is {0,0,0} */
+	}
 }
 
 /* Currently only for the draw brush; finds average normal for all active
@@ -434,19 +457,25 @@ void calc_area_normal(float out[3], const BrushAction *a, const float *outdir, c
 {
 	Mesh *me = get_mesh(OBACT);
 	ActiveData *node = active_verts->first;
-	const int view = sculpt_data()->brush_type==DRAW_BRUSH ? sculptmode_brush()->view : 0;
-
-	out[0] = out[1] = out[2] = 0;
+	SculptData *sd = sculpt_data();
+	const int view = sd->brush_type==DRAW_BRUSH ? sculptmode_brush()->view : 0;
+	float out_flip[3];
+	
+	out[0]=out[1]=out[2] = out_flip[0]=out_flip[1]=out_flip[2] = 0;
 
 	if(sculptmode_brush()->flag & SCULPT_BRUSH_ANCHORED) {
 		for(; node; node = node->next)
-			add_norm_if(a, out, a->orig_norms[node->Index]);
+			add_norm_if(a, out, out_flip, a->orig_norms[node->Index]);
 	}
 	else {
 		for(; node; node = node->next)
-			add_norm_if(a, out, me->mvert[node->Index].no);
+			add_norm_if(a, out, out_flip, me->mvert[node->Index].no);
 	}
 
+	if (out[0]==0.0 && out[1]==0.0 && out[2]==0.0) {
+		VECCOPY(out, out_flip);
+	}
+	
 	Normalize(out);
 
 	if(outdir) {
@@ -454,7 +483,7 @@ void calc_area_normal(float out[3], const BrushAction *a, const float *outdir, c
 		out[1] = outdir[1] * view + out[1] * (10-view);
 		out[2] = outdir[2] * view + out[2] * (10-view);
 	}
-
+	
 	Normalize(out);
 }
 
@@ -465,7 +494,9 @@ void do_draw_brush(const BrushAction *a, const ListBase* active_verts)
 	ActiveData *node= active_verts->first;
 
 	calc_area_normal(area_normal, a, a->symm.out, active_verts);
-
+	
+	sculpt_axislock(area_normal);
+	
 	while(node){
 		float *co= me->mvert[node->Index].co;
 		
@@ -565,17 +596,22 @@ void do_grab_brush(BrushAction *a)
 	Mesh *me= get_mesh(OBACT);
 	ActiveData *node= a->grab_active_verts[a->symm.index].first;
 	float add[3];
-
+	float grab_delta[3];
+	
+	VecCopyf(grab_delta, a->symm.grab_delta);
+	sculpt_axislock(grab_delta);
+	
 	while(node) {
 		float *co= me->mvert[node->Index].co;
 		
-		VecCopyf(add, a->symm.grab_delta);
+		VecCopyf(add, grab_delta);
 		VecMulf(add, node->Fade);
 		VecAddf(add, add, co);
 		sculpt_clip(a, co, add);
 
 		node= node->next;
 	}
+	
 }
 
 void do_layer_brush(BrushAction *a, const ListBase *active_verts)
@@ -690,7 +726,7 @@ void do_flatten_brush(const BrushAction *a, const ListBase *active_verts)
 		VecSubf(val, intr, co);
 		VecMulf(val, node->Fade);
 		VecAddf(val, val, co);
-		                     
+		
 		sculpt_clip(a, co, val);
 		
 		node= node->next;

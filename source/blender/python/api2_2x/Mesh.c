@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Ken Hughes
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "Mesh.h" /*This must come first*/
@@ -6483,7 +6480,7 @@ static PyObject *Mesh_assignVertsToGroup( BPy_Mesh * self, PyObject * args )
 	if( !PyArg_ParseTuple ( args, "sO!fi", &groupStr, &PyList_Type,
 			&listObject, &weight, &assignmode) ) {
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected string, list,	float, string arguments" );
+					      "expected string, list, float, int arguments" );
 	}
 
 	pGroup = get_named_vertexgroup( object, groupStr );
@@ -7042,7 +7039,7 @@ static PyObject *Mesh_getColorLayerNames( BPy_Mesh * self )
 static PyObject *Mesh_getActiveLayer( BPy_Mesh * self, void *type )
 {
 	CustomData *data = &self->mesh->fdata;
-	int layer_type = (int)type;
+	int layer_type = GET_INT_FROM_POINTER(type);
 	int i;
 	if (layer_type < 0) { /* hack, if negative, its the renderlayer.*/
 		layer_type = -layer_type;
@@ -7061,7 +7058,7 @@ static int Mesh_setActiveLayer( BPy_Mesh * self, PyObject * value, void *type )
 {
 	CustomData *data = &self->mesh->fdata;
 	char *name;
-	int i,ok,n,layer_type = (int)type, render=0;
+	int i,ok,n,layer_type = GET_INT_FROM_POINTER(type), render=0;
 	
 	if( !PyString_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_ValueError,
@@ -7115,7 +7112,7 @@ static PyObject *Mesh_getMultires( BPy_Mesh * self, void *type )
 {	
 	int i=0;
 	if (self->mesh->mr) {
-		switch ((int)type) {
+		switch (GET_INT_FROM_POINTER(type)) {
 		case MESH_MULTIRES_LEVEL:
 			i = self->mesh->mr->newlvl;
 			break;
@@ -7159,7 +7156,7 @@ static int Mesh_setMultires( BPy_Mesh * self, PyObject *value, void *type )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					"value out of range" );
 	
-	switch ((int)type) {
+	switch (GET_INT_FROM_POINTER(type)) {
 	case MESH_MULTIRES_LEVEL:
 		self->mesh->mr->newlvl = i;
 		multires_set_level_cb(self->object, self->mesh);

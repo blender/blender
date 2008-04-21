@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,13 +23,14 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #include "RAS_VAOpenGLRasterizer.h"
+#include <stdlib.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -294,50 +292,51 @@ void RAS_VAOpenGLRasterizer::IndexPrimitivesMulti( const vecVertexArray& vertexa
 
 void RAS_VAOpenGLRasterizer::TexCoordPtr(const RAS_TexVert *tv, int enabled)
 {
-#ifdef GL_ARB_multitexture
-	if(bgl::RAS_EXT_support._ARB_multitexture)
-	{
-		for(int unit=0; unit<enabled; unit++)
+#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+	if (!getenv("WITHOUT_GLEXT")) {
+		if(bgl::RAS_EXT_support._ARB_multitexture)
 		{
-			bgl::blClientActiveTextureARB(GL_TEXTURE0_ARB+unit);
-
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			if( tv->getFlag() & TV_2NDUV && tv->getUnit() == unit ) {
-				glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert), tv->getUV2());
-				continue;
-			}
-			switch(m_texco[unit])
+			for(int unit=0; unit<enabled; unit++)
 			{
-			case RAS_TEXCO_DISABLE:
-			case RAS_TEXCO_OBJECT:
-			case RAS_TEXCO_GEN:
-				glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-				break;
-			case RAS_TEXCO_ORCO:
-			case RAS_TEXCO_GLOB:
-				glTexCoordPointer(3, GL_FLOAT, sizeof(RAS_TexVert),tv->getLocalXYZ());
-				break;
-			case RAS_TEXCO_UV1:
-				glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert),tv->getUV1());
-				break;
-			case RAS_TEXCO_NORM:
-				glTexCoordPointer(3, GL_FLOAT, sizeof(RAS_TexVert),tv->getNormal());
-				break;
-			case RAS_TEXTANGENT:
-				glTexCoordPointer(4, GL_FLOAT, sizeof(RAS_TexVert),tv->getTangent());
-				break;
-			case RAS_TEXCO_UV2:
-				glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert),tv->getUV2());
-				break;
+				bgl::blClientActiveTextureARB(GL_TEXTURE0_ARB+unit);
+
+				glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+				if( tv->getFlag() & TV_2NDUV && tv->getUnit() == unit ) {
+					glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert), tv->getUV2());
+					continue;
+				}
+				switch(m_texco[unit])
+				{
+				case RAS_TEXCO_DISABLE:
+				case RAS_TEXCO_OBJECT:
+				case RAS_TEXCO_GEN:
+					glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+					break;
+				case RAS_TEXCO_ORCO:
+				case RAS_TEXCO_GLOB:
+					glTexCoordPointer(3, GL_FLOAT, sizeof(RAS_TexVert),tv->getLocalXYZ());
+					break;
+				case RAS_TEXCO_UV1:
+					glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert),tv->getUV1());
+					break;
+				case RAS_TEXCO_NORM:
+					glTexCoordPointer(3, GL_FLOAT, sizeof(RAS_TexVert),tv->getNormal());
+					break;
+				case RAS_TEXTANGENT:
+					glTexCoordPointer(4, GL_FLOAT, sizeof(RAS_TexVert),tv->getTangent());
+					break;
+				case RAS_TEXCO_UV2:
+					glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert),tv->getUV2());
+					break;
+				}
 			}
 		}
-	}
 
 #ifdef GL_ARB_vertex_program
-	if(m_useTang && bgl::RAS_EXT_support._ARB_vertex_program)
-		bgl::blVertexAttrib4fvARB(1/*tangent*/, tv->getTangent());
+		if(m_useTang && bgl::RAS_EXT_support._ARB_vertex_program)
+			bgl::blVertexAttrib4fvARB(1/*tangent*/, tv->getTangent());
 #endif
-
+	}
 #endif
 }
 

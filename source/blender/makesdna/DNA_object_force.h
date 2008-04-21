@@ -2,15 +2,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_OBJECT_FORCE_H
 #define DNA_OBJECT_FORCE_H
@@ -72,6 +69,13 @@ typedef struct PartDeflect {
 	struct Tex *tex;	/* Texture of the texture effector */
 } PartDeflect;
 
+typedef struct PointCache {
+	int flag;		/* generic flag */
+	int simframe;	/* current frame of simulation (only if SIMULATION_VALID) */
+	int startframe;	/* simulation start frame */
+	int endframe;	/* simulation end frame */
+	int editframe;	/* frame being edited (runtime only) */
+} PointCache;
 
 typedef struct SBVertex {
 	float vec[4];
@@ -84,7 +88,7 @@ typedef struct SoftBody {
 	int totpoint, totspring;
 	struct BodyPoint *bpoint;		/* not saved in file */
 	struct BodySpring *bspring;		/* not saved in file */
-	float ctime;					/* last time calculated */
+	float pad;
 	
 	/* part of UI: */
 	
@@ -130,12 +134,14 @@ typedef struct SoftBody {
 		maxloops,
 		choke,
 		solver_ID,
-		plastic,pad5
+		plastic,springpreload
 		;   
 
 	struct SBScratch *scratch;	/* scratch pad/cache on live time not saved in file */
 	float shearstiff;
 	float inpush;
+
+	struct PointCache *pointcache;
 
 } SoftBody;
 
@@ -177,21 +183,29 @@ typedef struct SoftBody {
 #define PFIELD_TEX_GRAD	1
 #define PFIELD_TEX_CURL	2
 
+/* pointcache->flag */
+#define PTCACHE_BAKED				1
+#define PTCACHE_OUTDATED			2
+#define PTCACHE_SIMULATION_VALID	4
+#define PTCACHE_BAKING				8
+#define PTCACHE_BAKE_EDIT			16
+#define PTCACHE_BAKE_EDIT_ACTIVE	32
+
 /* ob->softflag */
 #define OB_SB_ENABLE	1
 #define OB_SB_GOAL		2
 #define OB_SB_EDGES		4
 #define OB_SB_QUADS		8
 #define OB_SB_POSTDEF	16
-#define OB_SB_REDO		32
-#define OB_SB_BAKESET	64
-#define OB_SB_BAKEDO	128
-#define OB_SB_RESET		256
+// #define OB_SB_REDO		32
+// #define OB_SB_BAKESET	64
+// #define OB_SB_BAKEDO	128
+// #define OB_SB_RESET		256
 #define OB_SB_SELF		512
 #define OB_SB_FACECOLL  1024
 #define OB_SB_EDGECOLL  2048
 #define OB_SB_COLLFINAL 4096
-#define OB_SB_PROTECT_CACHE	8192
+//#define OB_SB_PROTECT_CACHE	8192
 #define OB_SB_AERO_ANGLE	16384
 
 /* sb->solverflags */

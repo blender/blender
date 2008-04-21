@@ -1,15 +1,12 @@
 /**
  * $Id: 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /*
@@ -960,7 +957,7 @@ EDGE GROUP
 
 
 
-int edgegroup_select(short mode)
+static int edgegroup_select__internal(short mode)
 {
 	EditMesh *em = G.editMesh;
 	EditEdge *eed, *base_eed=NULL;
@@ -1155,9 +1152,33 @@ int edgegroup_select(short mode)
 				}
 			}
 		}
-	} 
+	}	
 	return selcount;
 }
+/* wrap the above function but do selection flushing edge to face */
+int edgegroup_select(short mode)
+{
+	int selcount = edgegroup_select__internal(mode);
+	
+	if (selcount) {
+		/* Could run a generic flush function,
+		 * but the problem is only that all edges of a face
+		 * can be selected without the face becoming selected */
+		EditMesh *em = G.editMesh;
+		EditFace *efa;
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if (efa->v4) {
+				if (efa->e1->f&SELECT && efa->e2->f&SELECT && efa->e3->f&SELECT && efa->e4->f&SELECT)
+					efa->f |= SELECT;
+			}  else {
+				if (efa->e1->f&SELECT && efa->e2->f&SELECT && efa->e3->f&SELECT)
+					efa->f |= SELECT;
+			}
+		}
+	}
+	return selcount;
+}
+
 
 
 /*
@@ -1421,14 +1442,20 @@ void mesh_copy_menu(void)
 	
 	ese = em->selected.last;
 	
-	if (!ese) return;
+	/* Faces can have a NULL ese, so dont return on a NULL ese here */
 	
-	if(ese->type == EDITVERT) {
+	if(ese && ese->type == EDITVERT) {
+		
+		if (!ese) return;
 		/*EditVert *ev, *ev_act = (EditVert*)ese->data;
 		ret= pupmenu("");*/
-	} else if(ese->type == EDITEDGE) {
-		EditEdge *eed, *eed_act = (EditEdge*)ese->data;
+	} else if(ese && ese->type == EDITEDGE) {
+		EditEdge *eed, *eed_act;
 		float vec[3], vec_mid[3], eed_len, eed_len_act;
+		
+		if (!ese) return;
+		
+		eed_act = (EditEdge*)ese->data;
 		
 		ret= pupmenu("Copy Active Edge to Selected%t|Crease%x1|Length%x2");
 		if (ret<1) return;
@@ -1486,25 +1513,37 @@ void mesh_copy_menu(void)
 			break;
 		}
 		
-	} else if(ese->type == EDITFACE) {
-		EditFace *efa, *efa_act = (EditFace*)ese->data;
-		MTFace *tf, *tf_act;
-		MCol *mcol, *mcol_act;
+	} else if(ese==NULL || ese->type == EDITFACE) {
+		EditFace *efa, *efa_act;
+		MTFace *tf, *tf_act = NULL;
+		MCol *mcol, *mcol_act = NULL;
 		
-		ret= pupmenu(
-			"Copy Face Selected%t|"
-			"Active Material%x1|Active Image%x2|Active UV Coords%x3|"
-			"Active Mode%x4|Active Transp%x5|Active Vertex Colors%x6|%l|"
-			
-			"TexFace UVs from layer%x7|"
-			"TexFace Images from layer%x8|"
-			"TexFace All from layer%x9|"
-			"Vertex Colors from layer%x10");
+		efa_act = EM_get_actFace(0);
 		
-		if (ret<1) return;
-		
-		tf_act =	CustomData_em_get(&em->fdata, efa_act->data, CD_MTFACE);
-		mcol_act =	CustomData_em_get(&em->fdata, efa_act->data, CD_MCOL);
+		if (efa_act) {
+			ret= pupmenu(
+				"Copy Face Selected%t|"
+				"Active Material%x1|Active Image%x2|Active UV Coords%x3|"
+				"Active Mode%x4|Active Transp%x5|Active Vertex Colors%x6|%l|"
+				
+				"TexFace UVs from layer%x7|"
+				"TexFace Images from layer%x8|"
+				"TexFace All from layer%x9|"
+				"Vertex Colors from layer%x10");
+			if (ret<1) return;
+			tf_act =	CustomData_em_get(&em->fdata, efa_act->data, CD_MTFACE);
+			mcol_act =	CustomData_em_get(&em->fdata, efa_act->data, CD_MCOL);
+		} else {
+			ret= pupmenu(
+				"Copy Face Selected%t|"
+				
+				/* Make sure these are always the same as above */
+				"TexFace UVs from layer%x7|"
+				"TexFace Images from layer%x8|"
+				"TexFace All from layer%x9|"
+				"Vertex Colors from layer%x10");
+			if (ret<1) return;
+		}
 		
 		switch (ret) {
 		case 1: /* copy material */
@@ -1613,15 +1652,11 @@ void mesh_copy_menu(void)
 			
 			break;
 		
-		
-		/* copy from layer */
+		/* Copy from layer - Warning! tf_act and mcol_act will be NULL here */
 		case 7:
 		case 8:
 		case 9:
-			if (!tf_act) {
-				error("mesh has no uv/image layers");
-				return;
-			} else if (CustomData_number_of_layers(&em->fdata, CD_MTFACE)<2) {
+			if (CustomData_number_of_layers(&em->fdata, CD_MTFACE)<2) {
 				error("mesh does not have multiple uv/image layers");
 				return;
 			} else {
@@ -1648,10 +1683,7 @@ void mesh_copy_menu(void)
 			break;
 			
 		case 10: /* select vcol layers - make sure this stays in sync with above code */
-			if (!mcol_act) {
-				error("mesh has no color layers");
-				return;
-			} else if (CustomData_number_of_layers(&em->fdata, CD_MCOL)<2) {
+			if (CustomData_number_of_layers(&em->fdata, CD_MCOL)<2) {
 				error("mesh does not have multiple color layers");
 				return;
 			} else {
@@ -1740,9 +1772,10 @@ void mesh_copy_menu(void)
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 		
-		if(ese->type == EDITVERT)		BIF_undo_push("Copy Vert Attribute");
-		else if (ese->type == EDITEDGE)	BIF_undo_push("Copy Edge Attribute");
-		else if (ese->type == EDITFACE)	BIF_undo_push("Copy Face Attribute");
+		if (ese==NULL ||	ese->type == EDITFACE)	BIF_undo_push("Copy Face Attribute");
+		else if (			ese->type == EDITEDGE)	BIF_undo_push("Copy Edge Attribute");
+		else if (			ese->type == EDITVERT)	BIF_undo_push("Copy Vert Attribute");
+		
 	}
 	
 }
@@ -3164,7 +3197,7 @@ void deselectall_mesh(void)	 /* this toggles!!!, UI level */
 	}
 }
 
-void select_more(void)
+void EM_select_more(void)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
@@ -3202,6 +3235,11 @@ void select_more(void)
 				EM_select_face(efa, 1);
 		}
 	}
+}
+
+void select_more(void)
+{
+	EM_select_more();
 
 	countall();
 	addqueue(curarea->win,  REDRAW, 0);
@@ -3210,7 +3248,7 @@ void select_more(void)
 	BIF_undo_push("Select More");
 }
 
-void select_less(void)
+void EM_select_less(void)
 {
 	EditMesh *em = G.editMesh;
 	EditEdge *eed;
@@ -3270,6 +3308,11 @@ void select_less(void)
 		EM_selectmode_flush();
 		
 	}
+}
+
+void select_less(void)
+{
+	EM_select_less();
 	
 	countall();
 	BIF_undo_push("Select Less");

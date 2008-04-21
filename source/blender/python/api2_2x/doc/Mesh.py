@@ -987,7 +987,7 @@ class Mesh:
 		@param group: the name of a vertex group.
 		"""
 
-	def assignVertsToGroup(group, vertList, weight, assignmode = AssignModes['REPLACE']):
+	def assignVertsToGroup(group, vertList, weight, assignmode):
 		"""
 		Adds an array (a Python list) of vertex points to a named vertex group
 		associated with a mesh. The vertex list is a list of vertex indices from

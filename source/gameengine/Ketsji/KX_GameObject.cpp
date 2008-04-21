@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Game object wrapper
  */
 
@@ -62,7 +59,7 @@ typedef unsigned long uint_ptr;
 #include "KX_ClientObjectInfo.h"
 #include "RAS_BucketManager.h"
 #include "KX_RayCast.h"
-
+#include "KX_PythonInit.h"
 #include "KX_PyMath.h"
 
 // This file defines relationships between parents and children
@@ -88,7 +85,7 @@ KX_GameObject::KX_GameObject(
 	m_ignore_activity_culling = false;
 	m_pClient_info = new KX_ClientObjectInfo(this, KX_ClientObjectInfo::ACTOR);
 	m_pSGNode = new SG_Node(this,sgReplicationInfo,callbacks);
-	
+
 	// define the relationship between this node and it's parent.
 	
 	KX_NormalParentRelation * parent_relation = 
@@ -204,7 +201,62 @@ KX_GameObject* KX_GameObject::GetParent()
 	
 }
 
+void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
+{
+	if (obj && GetSGNode()->GetSGParent() != obj->GetSGNode())
+	{
+		// Make sure the objects have some scale
+		MT_Vector3 scale1 = NodeGetWorldScaling();
+		MT_Vector3 scale2 = obj->NodeGetWorldScaling();
+		if (fabs(scale2[0]) < FLT_EPSILON || 
+			fabs(scale2[1]) < FLT_EPSILON || 
+			fabs(scale2[2]) < FLT_EPSILON || 
+			fabs(scale1[0]) < FLT_EPSILON || 
+			fabs(scale1[1]) < FLT_EPSILON || 
+			fabs(scale1[2]) < FLT_EPSILON) { return; }
 
+		// Remove us from our old parent and set our new parent
+		RemoveParent(scene);
+		obj->GetSGNode()->AddChild(GetSGNode());
+
+		// Set us to our new scale, position, and orientation
+		scale1[0] = scale1[0]/scale2[0];
+		scale1[1] = scale1[1]/scale2[1];
+		scale1[2] = scale1[2]/scale2[2];
+		MT_Matrix3x3 invori = obj->NodeGetWorldOrientation().inverse();
+		MT_Vector3 newpos = invori*(NodeGetWorldPosition()-obj->NodeGetWorldPosition())*scale1;
+
+		NodeSetLocalScale(scale1);
+		NodeSetLocalPosition(MT_Point3(newpos[0],newpos[1],newpos[2]));
+		NodeSetLocalOrientation(NodeGetWorldOrientation()*invori);
+		NodeUpdateGS(0.f,true);
+		// object will now be a child, it must be removed from the parent list
+		CListValue* rootlist = scene->GetRootParentList();
+		if (rootlist->RemoveValue(this))
+			// the object was in parent list, decrement ref count as it's now removed
+			Release();
+	}
+}
+
+void KX_GameObject::RemoveParent(KX_Scene *scene)
+{
+	if (GetSGNode()->GetSGParent())
+	{
+		// Set us to the right spot 
+		GetSGNode()->SetLocalScale(GetSGNode()->GetWorldScaling());
+		GetSGNode()->SetLocalOrientation(GetSGNode()->GetWorldOrientation());
+		GetSGNode()->SetLocalPosition(GetSGNode()->GetWorldPosition());
+
+		// Remove us from our parent
+		GetSGNode()->DisconnectFromParent();
+		NodeUpdateGS(0.f,true);
+		// the object is now a root object, add it to the parentlist
+		CListValue* rootlist = scene->GetRootParentList();
+		if (!rootlist->SearchValue(this))
+			// object was not in root list, add it now and increment ref count
+			rootlist->Add(AddRef());
+	}
+}
 
 void KX_GameObject::ProcessReplica(KX_GameObject* replica)
 {
@@ -259,12 +311,13 @@ void KX_GameObject::ApplyMovement(const MT_Vector3& dloc,bool local)
 void KX_GameObject::ApplyRotation(const MT_Vector3& drot,bool local)
 {
 	MT_Matrix3x3 rotmat(drot);
-	rotmat.transpose();
-	
-	if (m_pPhysicsController1) // (IsDynamic())
-		m_pPhysicsController1->RelativeRotate(rotmat,local); 
-	// in worldspace
+
 	GetSGNode()->RelativeRotate(rotmat,local);
+
+	if (m_pPhysicsController1) { // (IsDynamic())
+		rotmat.transpose();
+		m_pPhysicsController1->RelativeRotate(rotmat,local); 
+	}
 }
 
 
@@ -657,6 +710,8 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"enableRigidBody", (PyCFunction)KX_GameObject::sPyEnableRigidBody,METH_VARARGS},
 	{"disableRigidBody", (PyCFunction)KX_GameObject::sPyDisableRigidBody,METH_VARARGS},
 	{"getParent", (PyCFunction)KX_GameObject::sPyGetParent,METH_VARARGS},
+	{"setParent", (PyCFunction)KX_GameObject::sPySetParent,METH_VARARGS},
+	{"removeParent", (PyCFunction)KX_GameObject::sPyRemoveParent,METH_VARARGS},
 	{"getMesh", (PyCFunction)KX_GameObject::sPyGetMesh,METH_VARARGS},
 	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_VARARGS},
 	KX_PYMETHODTABLE(KX_GameObject, getDistanceTo),
@@ -797,6 +852,7 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 				if (PyMatTo(value, rot))
 				{
 					NodeSetLocalOrientation(rot);
+					NodeUpdateGS(0.f,true);
 					return 0;
 				}
 				return 1;
@@ -809,6 +865,7 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 				{
 					rot.setRotation(qrot);
 					NodeSetLocalOrientation(rot);
+					NodeUpdateGS(0.f,true);
 					return 0;
 				}
 				return 1;
@@ -821,6 +878,7 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 				{
 					rot.setEuler(erot);
 					NodeSetLocalOrientation(rot);
+					NodeUpdateGS(0.f,true);
 					return 0;
 				}
 				return 1;
@@ -835,6 +893,7 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 			if (PyVecTo(value, pos))
 			{
 				NodeSetLocalPosition(pos);
+				NodeUpdateGS(0.f,true);
 				return 0;
 			}
 			return 1;
@@ -846,6 +905,7 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 			if (PyVecTo(value, scale))
 			{
 				NodeSetLocalScale(scale);
+				NodeUpdateGS(0.f,true);
 				return 0;
 			}
 			return 1;
@@ -860,6 +920,8 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 			return 0;
 		}
 	}
+	
+	/* Need to have parent settable here too */
 	
 	return SCA_IObject::_setattr(attr, value);
 }
@@ -985,7 +1047,31 @@ PyObject* KX_GameObject::PyGetParent(PyObject* self,
 	Py_Return;
 }
 
+PyObject* KX_GameObject::PySetParent(PyObject* self, 
+									 PyObject* args, 
+									 PyObject* kwds)
+{
+	PyObject* gameobj;
+	if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &gameobj))
+	{
+		// The object we want to set as parent
+		CValue *m_ob = (CValue*)gameobj;
+		KX_GameObject *obj = ((KX_GameObject*)m_ob);
+		KX_Scene *scene = PHY_GetActiveScene();
+		
+		this->SetParent(scene, obj);
+	}
+	Py_Return;
+}
 
+PyObject* KX_GameObject::PyRemoveParent(PyObject* self, 
+									 PyObject* args, 
+									 PyObject* kwds)
+{
+	KX_Scene *scene = PHY_GetActiveScene();
+	this->RemoveParent(scene);
+	Py_Return;
+}
 
 PyObject* KX_GameObject::PyGetMesh(PyObject* self, 
 								   PyObject* args, 
@@ -1116,6 +1202,7 @@ PyObject* KX_GameObject::PySetOrientation(PyObject* self,
 		if (PyObject_IsMT_Matrix(pylist, 3) && PyMatTo(pylist, matrix))
 		{
 			NodeSetLocalOrientation(matrix);
+			NodeUpdateGS(0.f,true);
 			Py_Return;
 		}
 	
@@ -1124,6 +1211,7 @@ PyObject* KX_GameObject::PySetOrientation(PyObject* self,
 		{
 			matrix.setRotation(quat);
 			NodeSetLocalOrientation(matrix);
+			NodeUpdateGS(0.f,true);
 			Py_Return;
 		}
 	}

@@ -46,6 +46,15 @@ from Blender.Noise import randuvec
 GLOBALS = {}
 GLOBALS['non_bez_error'] = 0
 
+'''
+def debugVec(v1,v2):
+	sce = bpy.data.scenes.active
+	me = bpy.data.meshes.new()
+	me.verts.extend( [v1,v2] )
+	me.edges.extend( [(0,1)] )
+	sce.objects.new(me)
+'''
+
 def AngleBetweenVecsSafe(a1, a2):
 	try:
 		return AngleBetweenVecs(a1,a2)
@@ -360,7 +369,12 @@ class tree:
 						pt_best_j, dist = brch_j.findClosest(brch_i.bpoints[0].co)
 						
 						# Check its in range, allow for a bit out - hense the sloppy
-						if dist < pt_best_j.radius * sloppy:
+						# The second check in the following IF was added incase the point is close enough to the line but the midpoint is further away
+						# ...in this case the the resulting mesh will be adjusted to fit the join so its best to make it.
+						if 	(dist <											pt_best_j.radius * sloppy)  or \
+							((brch_i.bpoints[0].co - pt_best_j.co).length <	pt_best_j.radius * sloppy):
+							
+							
 							brch_i.parent_pt = pt_best_j
 							pt_best_j.childCount += 1 # dont remove me
 							
@@ -1487,7 +1501,7 @@ class tree:
 				else:
 					# our roll was set from the branches parent and needs no changing
 					# set it to zero so the following functions know to interpolate.
-					brch.bpoints[0].roll_angle = 45.0
+					brch.bpoints[0].roll_angle = 0.0
 					#brch.bpoints[1].roll_angle = 0.0
 		
 		'''
@@ -2407,6 +2421,7 @@ class bpoint(object):
 		Roll the quad about its normal 
 		use for aurienting the sides of a quad to meet a branch that stems from here...
 		'''
+		# debugVec(self.co, self.co + self.no)
 		
 		mat = RotationMatrix(angle, 3, 'r', self.no)
 		for i in xrange(4):
@@ -2451,7 +2466,7 @@ class bpoint(object):
 	def calcVerts(self):
 		if self.prev == None:
 			if self.branch.parent_pt:
-				cross = CrossVecs(self.no, self.branch.getParentFaceCent() - self.branch.parent_pt.getAbsVec( self.branch.getParentQuadIndex() ))
+				cross = CrossVecs(self.no, self.branch.parent_pt.no) * RotationMatrix(-45, 3, 'r', self.no)
 			else:
 				# parentless branch - for best results get a cross thats not the same as the normal, in rare cases this happens.
 				
@@ -2666,6 +2681,7 @@ class branch:
 				co_on_line, fac = ClosestPointOnLine(co, pt.co, pt.next.co)
 				print fac
 				if fac >= 0.0 and fac <= 1.0:
+					
 					return pt, (co-co_on_line).length
 		
 		return best, best_dist
@@ -3041,7 +3057,7 @@ EVENT_REDRAW = 3
 
 # Prefs for each tree
 PREFS = {}
-PREFS['connect_sloppy'] = Draw.Create(1.0)
+PREFS['connect_sloppy'] = Draw.Create(1.5)
 PREFS['connect_base_trim'] = Draw.Create(1.0)
 PREFS['seg_density'] = Draw.Create(0.5)
 PREFS['seg_density_angle'] = Draw.Create(20.0)
@@ -3537,7 +3553,7 @@ def do_pref_clear(e,v):
 		return
 	
 	for ob in objects:
-		try:	del idprop[ID_SLOT_NAME]
+		try:	del ob.properties[ID_SLOT_NAME]
 		except:	pass
 
 def do_tex_check(e,v):
@@ -3620,8 +3636,18 @@ def do_tree_generate(e,v):
 		Blender.Draw.PupMenu('Error%t|Nurbs and Poly curve types cant be used!')
 		GLOBALS['non_bez_error'] = 0
 		
+def do_tree_help(e,v):
+	url = 'http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx'
+	print 'Trying to open web browser with documentation at this address...'
+	print '\t' + url
 	
-	
+	try:
+		import webbrowser
+		webbrowser.open(url)
+	except:
+		print '...could not open a browser window.'
+
+
 def evt(e,val):
 	pass
 
@@ -3957,7 +3983,7 @@ def gui():
 	xtmp = x
 	# ---------- ---------- ---------- ----------
 	
-	PREFS['connect_sloppy'] =	Draw.Number('Connect Limit',EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['connect_sloppy'].val,	0.1, 2.0,	'Strictness when connecting branches'); xtmp += but_width*2;
+	PREFS['connect_sloppy'] =	Draw.Number('Connect Limit',EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['connect_sloppy'].val,	0.1, 3.0,	'Strictness when connecting branches'); xtmp += but_width*2;
 	PREFS['connect_base_trim'] =	Draw.Number('Joint Bevel',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['connect_base_trim'].val,	0.0, 2.0,	'low value for a tight join, hi for a smoother bevel'); xtmp += but_width*2;
 	Blender.Draw.EndAlign()
 	y-=but_height+MARGIN
@@ -3989,8 +4015,9 @@ def gui():
 	# ---------- ---------- ---------- ----------
 	
 	Blender.Draw.BeginAlign()
-	Draw.PushButton('Exit',	EVENT_EXIT, xtmp, y, but_width, but_height,	'', do_active_image); xtmp += but_width;
-	Draw.PushButton('Generate from selection',	EVENT_REDRAW, xtmp, y, but_width*3, but_height,	'Generate mesh', do_tree_generate); xtmp += but_width*3;
+	Draw.PushButton('Exit',	EVENT_EXIT, xtmp, y, but_width, but_height,	''); xtmp += but_width;
+	Draw.PushButton('Help',	EVENT_NONE, xtmp, y, but_width, but_height,	'', do_tree_help); xtmp += but_width;
+	Draw.PushButton('Generate from selection',	EVENT_REDRAW, xtmp, y, but_width*2, but_height,	'Generate mesh', do_tree_generate); xtmp += but_width*3;
 	Blender.Draw.EndAlign()
 	y-=but_height+MARGIN
 	xtmp = x

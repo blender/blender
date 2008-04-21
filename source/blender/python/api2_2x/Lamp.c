@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  * Contributor(s): Willian P. Germano, Nathan Letwory, Stephen Swaney,
  * Ken Hughes
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 #include "Lamp.h" /*This must come first*/
@@ -45,6 +42,7 @@
 #include "constant.h"
 #include "gen_utils.h"
 #include "gen_library.h"
+#include "BKE_utildefines.h"
 
 /*****************************************************************************/
 /* Python BPy_Lamp defaults:                                                 */
@@ -1178,7 +1176,7 @@ static int Lamp_setFalloffType( BPy_Lamp * self, PyObject * value )
 
 static PyObject *Lamp_getComponent( BPy_Lamp * self, void * closure )
 {
-	switch ( (int)closure ) {
+	switch ( GET_INT_FROM_POINTER(closure) ) {
 	case EXPP_LAMP_COMP_R:
 		return PyFloat_FromDouble( self->lamp->r );
 	case EXPP_LAMP_COMP_G:
@@ -1203,7 +1201,7 @@ static int Lamp_setComponent( BPy_Lamp * self, PyObject * value,
 	color = (float)PyFloat_AsDouble( value );
 	color = EXPP_ClampFloat( color, EXPP_LAMP_COL_MIN, EXPP_LAMP_COL_MAX );
 
-	switch ( (int)closure ) {
+	switch ( GET_INT_FROM_POINTER(closure) ) {
 	case EXPP_LAMP_COMP_R:
 		self->lamp->r = color;
 		return 0;

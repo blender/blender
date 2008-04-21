@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -1223,6 +1220,7 @@ static void activate_fileselect_(int type, char *title, char *file, short *menup
 	}
 	else if(type==FILE_LOADLIB) {
 		BLI_strncpy(sfile->dir, name, sizeof(sfile->dir));
+		BLI_cleanup_dir(G.sce, sfile->dir);
 		if( is_a_library(sfile, temp, group) ) {
 			/* force a reload of the library-filelist */
 			freefilelist(sfile);
@@ -1413,6 +1411,14 @@ static void filesel_execute(SpaceFile *sfile)
 	struct direntry *files;
 	char name[FILE_MAX];
 	int a;
+
+	/* check for added length of dir and filename - annoying, but now that dir names can already be FILE_MAX
+	   we need to prevent overwriting. Alternative of shortening the name behind the user's back is greater evil 
+	   - elubie */ 
+	if (strlen(sfile->dir) + strlen(sfile->file) >= FILE_MAX) {
+		okee("File and Directory name together are too long. Please use shorter names.");
+		return;
+	}
 	
 	filesel_prevspace();
 
@@ -1869,7 +1875,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						/* the path is too long and we are not going up! */
 						if (strcmp(sfile->filelist[act].relname, ".") &&
 							strcmp(sfile->filelist[act].relname, "..") &&
-							strlen(sfile->dir) + strlen(sfile->filelist[act].relname) >= FILE_MAXDIR ) 
+							strlen(sfile->dir) + strlen(sfile->filelist[act].relname) >= FILE_MAX ) 
 						{
 							error("Path too long, cannot enter this directory");
 						} else {
@@ -1880,20 +1886,24 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							sfile->ofs= 0;
 							do_draw= 1;
 						}
-					}
-					else {
+					} else {
 						if( strcmp(sfile->file, sfile->filelist[act].relname)) {
-							char tmpstr[240];
-							do_draw= 1;
 							BLI_strncpy(sfile->file, sfile->filelist[act].relname, sizeof(sfile->file));
-							if (sfile->f_fp) {
-								sprintf (tmpstr, "%s%s", sfile->dir, sfile->file);
-								/* printf ("%s\n", tmpstr); */
-								#ifdef INTERNATIONAL
-								if (!FTF_GetNewFont ((const unsigned char *)tmpstr, 0, U.fontsize))
-									error ("No font file");
-								#endif
+							do_draw = 1;
+							
+#ifdef INTERNATIONAL
+							if (sfile->type==FILE_LOADFONT && event!=MIDDLEMOUSE) {
+								/* Font Preview */
+								char tmpstr[240];
+								if (sfile->f_fp) {
+									sprintf (tmpstr, "%s%s", sfile->dir, sfile->file);
+									
+									if (!FTF_GetNewFont ((const unsigned char *)tmpstr, 0, U.fontsize)) {
+										error ("No font file");
+									}
+								}
 							}
+#endif
 						}
 						if(event==MIDDLEMOUSE && sfile->type) filesel_execute(sfile);
 					}
@@ -2000,8 +2010,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if (sfile->filelist[i].flags & ACTIVE) {			
 					BLI_make_file_string(G.sce, str, sfile->dir, sfile->filelist[i].relname);
 
-					if(event==BKEY) ret= BLI_backup(sfile->filelist[i].relname, sfile->dir, otherdir);
-					else if(event==CKEY) ret= BLI_copy_fileops(str, otherdir);
+					if(event==CKEY) ret= BLI_copy_fileops(str, otherdir);
 					else if(event==LKEY) ret= BLI_link(str, otherdir);
 					else if(event==MKEY) ret= BLI_move(str, otherdir);
 
@@ -2110,7 +2119,12 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				fs_fake_users(sfile);
 			}
 			break;
-				
+		case HKEY:
+			sfile->flag ^= FILE_HIDE_DOT;
+			BLI_hide_dot_files(sfile->flag & FILE_HIDE_DOT);
+			freefilelist(sfile);
+			scrarea_queue_winredraw(curarea);
+			break;
 		case PADPLUSKEY:
 		case EQUALKEY:
 			if (G.qual & LR_CTRLKEY) BLI_newname(sfile->file, +100);

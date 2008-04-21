@@ -3,15 +3,12 @@
  *
  * $Id: BKE_cloth.h,v 1.1 2007/08/01 02:07:27 daniel Exp $
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_CLOTH_H
 #define BKE_CLOTH_H
@@ -60,15 +57,15 @@ struct ClothModifierData;
 struct CollisionTree;
 
 // this is needed for inlining behaviour
-#ifndef _WIN32
-#define LINUX
-#ifndef __sgi
-#define DO_INLINE inline
+#if defined _WIN32
+#   define DO_INLINE __inline
+#elif defined (__sgi)
+#   define DO_INLINE
+#elif defined (__sun) || defined (__sun__)
+#   define DO_INLINE
 #else
-#define DO_INLINE  
-#endif
-#else
-#define DO_INLINE __inline
+#   define DO_INLINE inline
+#   define LINUX
 #endif
 
 #define CLOTH_MAX_THREAD 2
@@ -147,16 +144,18 @@ ClothSpring;
 /* These are the bits used in SimSettings.flags. */
 typedef enum
 {
-	CLOTH_SIMSETTINGS_FLAG_RESET = ( 1 << 1 ),	// The CM object requires a reinitializaiton.
+	//CLOTH_SIMSETTINGS_FLAG_RESET = ( 1 << 1 ),	// The CM object requires a reinitializaiton.
 	CLOTH_SIMSETTINGS_FLAG_COLLOBJ = ( 1 << 2 ),// object is only collision object, no cloth simulation is done
 	CLOTH_SIMSETTINGS_FLAG_GOAL = ( 1 << 3 ), 	// we have goals enabled
 	CLOTH_SIMSETTINGS_FLAG_TEARING = ( 1 << 4 ),// true if tearing is enabled
-	CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT = ( 1 << 5 ), // true if tearing is enabled
-	CLOTH_SIMSETTINGS_FLAG_EDITMODE = ( 1 << 6 ), // are we in editmode? -several things disabled
-	CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE = ( 1 << 7 ), /* force cache freeing */
+	//CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT = ( 1 << 5 ), // true if tearing is enabled
+	//CLOTH_SIMSETTINGS_FLAG_EDITMODE = ( 1 << 6 ), // are we in editmode? -several things disabled
+	//CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE = ( 1 << 7 ), /* force cache freeing */
 	CLOTH_SIMSETTINGS_FLAG_SCALING = ( 1 << 8 ), /* is advanced scaling active? */
-	CLOTH_SIMSETTINGS_FLAG_LOADED = ( 1 << 9 ), /* did we just got load? */
-	CLOTH_SIMSETTINGS_FLAG_AUTOPROTECT = ( 1 << 10 ), /* is autoprotect enabled? */
+	//CLOTH_SIMSETTINGS_FLAG_LOADED = ( 1 << 9 ), /* did we just got load? */
+	//CLOTH_SIMSETTINGS_FLAG_AUTOPROTECT = ( 1 << 10 ), /* is autoprotect enabled? */
+	//CLOTH_SIMSETTINGS_FLAG_CCACHE_OUTDATED = (1 << 11),	/* while protected, did cache get outdated? */
+	CLOTH_SIMSETTINGS_FLAG_CCACHE_EDIT = (1 << 12)	/* edit cache in editmode */
 } CLOTH_SIMSETTINGS_FLAGS;
 
 /* COLLISION FLAGS */

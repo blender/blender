@@ -194,7 +194,7 @@ void calc_image_view(SpaceImage *sima, char mode)
 		ImBuf *ibuf= imagewindow_get_ibuf(sima);
 		float xuser_asp, yuser_asp;
 		
-		aspect_sima(sima, &xuser_asp, &yuser_asp);
+		image_pixel_aspect(sima->image, &xuser_asp, &yuser_asp);
 		if(ibuf) {
 			xim= ibuf->x * xuser_asp;
 			yim= ibuf->y * yuser_asp;
@@ -243,11 +243,10 @@ void calc_image_view(SpaceImage *sima, char mode)
 /* check for facelesect, and set active image */
 void what_image(SpaceImage *sima)
 {
-	MTFace *activetf;
-	
 	if(		(sima->mode!=SI_TEXTURE) ||
 			(sima->image && sima->image->source==IMA_SRC_VIEWER) ||
 			(G.obedit != OBACT) ||
+			(G.editMesh==NULL) ||
 			(sima->pin)
 	) {
 		return;
@@ -255,13 +254,16 @@ void what_image(SpaceImage *sima)
 	
 	/* viewer overrides uv editmode */
 	if (EM_texFaceCheck()) {
+		MTFace *activetf;
+		
 		sima->image= NULL;
 		
 		activetf = get_active_mtface(NULL, NULL, 1); /* partially selected face is ok */
 		
 		if(activetf && activetf->mode & TF_TEX) {
-			if (!sima->pin)
-				sima->image= activetf->tpage;
+			/* done need to check for pin here, see above */
+			/*if (!sima->pin)*/
+			sima->image= activetf->tpage;
 			
 			if(sima->flag & SI_EDITTILE);
 			else sima->curtile= activetf->tile;
@@ -288,80 +290,6 @@ ImBuf *imagewindow_get_ibuf(SpaceImage *sima)
 	return NULL;
 }
 
-extern int EM_texFaceCheck(void); /* from editmesh.c */
-/* called to assign images to UV faces */
-void image_changed(SpaceImage *sima, Image *image)
-{
-	MTFace *tface;
-	EditMesh *em = G.editMesh;
-	EditFace *efa;
-	ImBuf *ibuf = NULL;
-	short change = 0;
-	
-	if(image==NULL) {
-		sima->flag &= ~SI_DRAWTOOL;
-	} else {
-		ibuf = BKE_image_get_ibuf(image, NULL);
-	}
-	
-	if(sima->mode!=SI_TEXTURE)
-		return;
-	
-	/* skip assigning these procedural images... */
-	if(image && (image->type==IMA_TYPE_R_RESULT || image->type==IMA_TYPE_COMPOSITE)) {
-		return;
-	} else if ((G.obedit) &&
-			(G.obedit->type == OB_MESH) &&
-			(G.editMesh) &&
-			(G.editMesh->faces.first)
-		) {
-		
-		/* Add a UV layer if there is none, editmode only */
-		if ( !CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE) ) {
-			EM_add_data_layer(&em->fdata, CD_MTFACE);
-			CustomData_set_layer_active(&em->fdata, CD_MTFACE, 0); /* always zero because we have no other UV layers */
-			change = 1; /* so we update the object, incase no faces are selected */
-			
-			/* BIF_undo_push("New UV Texture"); - undo should be done by whatever changes the image */
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWBUTSEDIT, 0);
-		}
-		
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (efa->h==0 && efa->f & SELECT) {
-				if (image) {
-					tface->tpage= image;
-					tface->mode |= TF_TEX;
-					
-					if(image->tpageflag & IMA_TILES) tface->mode |= TF_TILES;
-					else tface->mode &= ~TF_TILES;
-					
-					if(image->id.us==0) id_us_plus(&image->id);
-					else id_lib_extern(&image->id);
-					
-					if (tface->transp==TF_ADD) {} /* they obviously know what they are doing! - leave as is */
-					else if (ibuf && ibuf->depth == 32)	tface->transp = TF_ALPHA;
-					else								tface->transp = TF_SOLID;
-					
-				} else {
-					tface->tpage= NULL;
-					tface->mode &= ~TF_TEX;
-					tface->transp = TF_SOLID;
-				}
-				change = 1;
-			}
-		}
-	}
-	/* change the space image after because simaFaceDraw_Check uses the space image
-	 * to check if the face is displayed in UV-localview */
-	sima->image = image;
-	
-	if (change)
-		object_uvs_changed(OBACT);
-	
-	allqueue(REDRAWBUTSEDIT, 0);
-}
 /*
  * dotile -	1, set the tile flag (from the space image)
  * 			2, set the tile index for the faces. 
@@ -481,12 +409,20 @@ static void drawcursor_sima(float xuser_asp, float yuser_asp)
 // checks if we are selecting only faces
 int draw_uvs_face_check(void)
 {
-	if (G.sima==NULL)
+	if (G.sima==NULL) {
 		return 0;
-	if (G.sima->flag & SI_SYNC_UVSEL && G.scene->selectmode == SCE_SELECT_FACE)
-		return 2;
-	if (G.sima->flag & SI_SELACTFACE)
-		return 1;
+	}
+	if (G.sima->flag & SI_SYNC_UVSEL) {
+		if (G.scene->selectmode == SCE_SELECT_FACE) {
+			return 2;
+		} else if (G.scene->selectmode & SCE_SELECT_FACE) {
+			return 1;
+		} 
+	} else {
+		if (G.sima->flag & SI_SELACTFACE) {
+			return 1;
+		}
+	}
 	return 0;
 }
 
@@ -536,6 +472,7 @@ void draw_uvs_sima(void)
 	char col1[4], col2[4];
 	float pointsize;
 	int drawface;
+	int lastsel, sel;
  	
 	if (!G.obedit || !CustomData_has_layer(&em->fdata, CD_MTFACE))
 		return;
@@ -859,13 +796,11 @@ void draw_uvs_sima(void)
 	}
 	
 	if (activetface) {
-		GLubyte act_face_stipple[32*32/8] = DM_FACE_STIPPLE;
-		
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		BIF_ThemeColor4(TH_EDITMESH_ACTIVE);
 		glEnable(GL_POLYGON_STIPPLE);
-		glPolygonStipple(act_face_stipple);
+		glPolygonStipple(stipple_quarttone);
 		glBegin(efa_act->v4?GL_QUADS:GL_TRIANGLES);
 			glVertex2fv(activetface->uv[0]);
 			glVertex2fv(activetface->uv[1]);
@@ -961,22 +896,64 @@ void draw_uvs_sima(void)
 		}
 		
 		glLineWidth(1);
-		cpack(0xFFFFFF);
-		for (efa= em->faces.first; efa; efa= efa->next) {
-//			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-//			if (simaFaceDraw_Check(efa, tface)) {
-			
-			/*this is a shortcut to do the same as above but a faster for drawing */
-			if ((tface=(MTFace *)efa->tmp.p)) {
+		col2[0] = col2[1] = col2[2] = 128; col2[3] = 255;
+		glColor4ubv((unsigned char *)col2); 
+		
+		if (G.f & G_DRAWEDGES) {
+			glShadeModel(GL_SMOOTH);
+			BIF_GetThemeColor4ubv(TH_VERTEX_SELECT, col1);
+			lastsel = sel = 0;
+
+			for (efa= em->faces.first; efa; efa= efa->next) {
+	//			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+	//			if (simaFaceDraw_Check(efa, tface)) {
 				
-				glBegin(GL_LINE_LOOP);
+				/*this is a shortcut to do the same as above but a faster for drawing */
+				if ((tface=(MTFace *)efa->tmp.p)) {
+					
+					glBegin(GL_LINE_LOOP);
+					sel = (simaUVSel_Check(efa, tface, 0) ? 1 : 0);
+					if (sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
+					glVertex2fv(tface->uv[0]);
+					
+					sel = simaUVSel_Check(efa, tface, 1) ? 1 : 0;
+					if (sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
+					glVertex2fv(tface->uv[1]);
+					
+					sel = simaUVSel_Check(efa, tface, 2) ? 1 : 0;
+					if (sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
+					glVertex2fv(tface->uv[2]);
+					
+					if(efa->v4) {
+						sel = simaUVSel_Check(efa, tface, 3) ? 1 : 0;
+						if (sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
+						glVertex2fv(tface->uv[3]);
+					}
+					
+					glEnd();
+				}
+			}
+			glShadeModel(GL_FLAT);
+		} else { /* No nice edges */
+			
+			for (efa= em->faces.first; efa; efa= efa->next) {
+	//			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+	//			if (simaFaceDraw_Check(efa, tface)) {
+				
+				/*this is a shortcut to do the same as above but a faster for drawing */
+				if ((tface=(MTFace *)efa->tmp.p)) {
+					
+					glBegin(GL_LINE_LOOP);
 					glVertex2fv(tface->uv[0]);
 					glVertex2fv(tface->uv[1]);
 					glVertex2fv(tface->uv[2]);
-					if(efa->v4) glVertex2fv(tface->uv[3]);
-				glEnd();
+					if(efa->v4)
+						glVertex2fv(tface->uv[3]);
+					glEnd();
+				}
 			}
 		}
+		
 		break;
 	}
 
@@ -1151,31 +1128,6 @@ static void draw_image_transform(ImBuf *ibuf, float xuser_asp, float yuser_asp)
 
 		glPopMatrix();
 	}
-}
-
-static void draw_image_view_icon(void)
-{
-	float xPos = 5.0;
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
-	
-	
-	if (G.sima->flag & SI_SYNC_UVSEL) {
-		/* take settings from the editmesh */
-		if (G.scene->selectmode == SCE_SELECT_FACE || G.sima->flag & SI_SELACTFACE) {
-			BIF_icon_draw_aspect(xPos, 5.0, ICON_FACESEL_HLT, 1.0f);
-		}
-		
-	} else {
-		/* use the flags for UV mode - normal operation */
-		if(G.sima->flag & SI_SELACTFACE) {
-			BIF_icon_draw_aspect(xPos, 5.0, ICON_FACESEL_HLT, 1.0f);
-		}
-	}
-	
-	glBlendFunc(GL_ONE,  GL_ZERO); 
-	glDisable(GL_BLEND);
 }
 
 static void draw_image_view_tool(void)
@@ -1470,19 +1422,6 @@ static void image_panel_game_properties(short cntrl)	// IMAGE_HANDLER_GAME_PROPE
 	}
 }
 
-//static void image_panel_transform_properties(short cntrl)	// IMAGE_HANDLER_TRANSFORM_PROPERTIES
-//{
-//	uiBlock *block;
-//
-//	block= uiNewBlock(&curarea->uiblocks, "image_transform_properties", UI_EMBOSS, UI_HELV, curarea->win);
-//	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
-//	uiSetPanelHandler(IMAGE_HANDLER_TRANSFORM_PROPERTIES);  // for close and esc
-//	if(uiNewPanel(curarea, block, "Transform Properties", "Image", 10, 10, 318, 204)==0)
-//		return;
-//	
-//	image_editvertex_buts(block);
-//}
-
 static void image_panel_view_properties(short cntrl)	// IMAGE_HANDLER_VIEW_PROPERTIES
 {
 	uiBlock *block;
@@ -1508,21 +1447,29 @@ static void image_panel_view_properties(short cntrl)	// IMAGE_HANDLER_VIEW_PROPE
 	
 	
 	if (EM_texFaceCheck()) {
-		uiDefBut(block, LABEL, B_NOP, "Draw Type:",		10, 60,120,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, B_NOP, "Draw Type:",		10, 80,120,19, 0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
-		uiDefButC(block,  ROW, B_REDR, "Dash",			10, 40,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_DASH, 0, 0, "Dashed Wire UV drawtype");
-		uiDefButC(block,  ROW, B_REDR, "Black",			68, 40,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_BLACK, 0, 0, "Black Wire UV drawtype");
-		uiDefButC(block,  ROW, B_REDR, "White",			126,40,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_WHITE, 0, 0, "White Wire UV drawtype");
-		uiDefButC(block,  ROW, B_REDR, "Outline",		184,40,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_OUTLINE, 0, 0, "Outline Wire UV drawtype");
+		uiDefButC(block,  ROW, B_REDR, "Outline",		10,60,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_OUTLINE, 0, 0, "Outline Wire UV drawtype");
+		uiDefButC(block,  ROW, B_REDR, "Dash",			68, 60,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_DASH, 0, 0, "Dashed Wire UV drawtype");
+		uiDefButC(block,  ROW, B_REDR, "Black",			126, 60,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_BLACK, 0, 0, "Black Wire UV drawtype");
+		uiDefButC(block,  ROW, B_REDR, "White",			184,60,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_WHITE, 0, 0, "White Wire UV drawtype");
+		
 		uiBlockEndAlign(block);
-		uiDefButBitI(block, TOG, SI_SMOOTH_UV, B_REDR, "Smooth",	250,40,60,19,  &G.sima->flag, 0, 0, 0, 0, "Display smooth lines in the UV view");
+		uiDefButBitI(block, TOG, SI_SMOOTH_UV, B_REDR, "Smooth",	250,60,60,19,  &G.sima->flag, 0, 0, 0, 0, "Display smooth lines in the UV view");
+		
+		
+		uiDefButBitI(block, TOG, G_DRAWFACES, B_REDR, "Faces",		10,30,60,19,  &G.f, 0, 0, 0, 0, "Displays all faces as shades in the 3d view and UV editor");
+		uiDefButBitI(block, TOG, G_DRAWEDGES, B_REDR, "Edges", 70, 30,60,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights and UV editor");
+		
+		uiDefButBitI(block, TOG, SI_DRAWSHADOW, B_REDR, "Final Shadow", 130, 30,110,19, &G.sima->flag, 0, 0, 0, 0, "Draw the final result from the objects modifiers");
 		
 		uiDefButBitI(block, TOG, SI_DRAW_STRETCH, B_REDR, "UV Stretch",	10,0,100,19,  &G.sima->flag, 0, 0, 0, 0, "Difference between UV's and the 3D coords (blue for low distortion, red is high)");
-		
-		uiBlockBeginAlign(block);
-		uiDefButC(block,  ROW, B_REDR, "Area",			120,0,60,19, &G.sima->dt_uvstretch, 0.0, SI_UVDT_STRETCH_AREA, 0, 0, "Area distortion between UV's and 3D coords");
-		uiDefButC(block,  ROW, B_REDR, "Angle",		180,0,60,19, &G.sima->dt_uvstretch, 0.0, SI_UVDT_STRETCH_ANGLE, 0, 0, "Angle distortion between UV's and 3D coords");
-		uiBlockEndAlign(block);
+		if (G.sima->flag & SI_DRAW_STRETCH) {
+			uiBlockBeginAlign(block);
+			uiDefButC(block,  ROW, B_REDR, "Area",			120,0,60,19, &G.sima->dt_uvstretch, 0.0, SI_UVDT_STRETCH_AREA, 0, 0, "Area distortion between UV's and 3D coords");
+			uiDefButC(block,  ROW, B_REDR, "Angle",		180,0,60,19, &G.sima->dt_uvstretch, 0.0, SI_UVDT_STRETCH_ANGLE, 0, 0, "Angle distortion between UV's and 3D coords");
+			uiBlockEndAlign(block);
+		}
 		
 	}
 	image_editcursor_buts(block);
@@ -1841,10 +1788,6 @@ static void image_blockhandlers(ScrArea *sa)
 		case IMAGE_HANDLER_GAME_PROPERTIES:
 			image_panel_game_properties(sima->blockhandler[a+1]);
 			break;
-//		case IMAGE_HANDLER_TRANSFORM_PROPERTIES:
-//			if (EM_texFaceCheck())
-//				image_panel_transform_properties(sima->blockhandler[a+1]);
-//			break;
 		case IMAGE_HANDLER_VIEW_PROPERTIES:
 			image_panel_view_properties(sima->blockhandler[a+1]);
 			break;
@@ -2119,7 +2062,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	unsigned int *rect;
 	float x1, y1;
 	short sx, sy, dx, dy, show_render= 0, show_viewer= 0;
-	float xuser_asp, yuser_asp;
+	float xuser_asp=1, yuser_asp=1;
 		/* If derived data is used then make sure that object
 		 * is up-to-date... might not be the case because updates
 		 * are normally done in drawview and could get here before
@@ -2141,11 +2084,11 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		if(sima->image->type==IMA_TYPE_R_RESULT)
 			show_render= 1;
 	}
+	
 	what_image(sima);
 	
-	aspect_sima(sima, &xuser_asp, &yuser_asp);
-	
 	if(sima->image) {
+		image_pixel_aspect(sima->image, &xuser_asp, &yuser_asp);
 		
 		/* UGLY hack? until now iusers worked fine... but for flipbook viewer we need this */
 		if(sima->image->type==IMA_TYPE_COMPOSITE) {
@@ -2395,7 +2338,6 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 
 	if(G.rendering==0) {
 		draw_image_view_tool();
-		draw_image_view_icon();
 	}
 	draw_area_emboss(sa);
 

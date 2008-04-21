@@ -3,15 +3,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_SPACE_TYPES_H
 #define DNA_SPACE_TYPES_H
@@ -167,7 +164,7 @@ typedef struct SpaceFile {
 	int totfile;
 	
 	char title[24];
-	char dir[160];
+	char dir[240];
 	char file[80];
 	
 	short type, ofs, flag, sort;
@@ -373,7 +370,7 @@ typedef struct SpaceImaSel {
 
 	/* specific stuff for drawing */
 	char title[24];
-	char dir[160];
+	char dir[240];
 	char file[80];
 
 	short type, menu, flag, sort;
@@ -483,10 +480,10 @@ typedef struct SpaceImaSel {
 #define SI_SHOW			1
 
 /* SpaceImage->dt_uv */
-#define SI_UVDT_DASH	0
-#define SI_UVDT_BLACK	1
-#define SI_UVDT_WHITE	2
-#define SI_UVDT_OUTLINE	3
+#define SI_UVDT_OUTLINE	0
+#define SI_UVDT_DASH	1
+#define SI_UVDT_BLACK	2
+#define SI_UVDT_WHITE	3
 
 /* SpaceImage->dt_uvstretch */
 #define SI_UVDT_STRETCH_ANGLE	0
@@ -525,6 +522,9 @@ typedef struct SpaceImaSel {
 #define SI_DRAW_TILE	1<<19 
 #define SI_SMOOTH_UV	1<<20
 #define SI_DRAW_STRETCH	1<<21
+
+/* SpaceIpo->flag */
+#define SIPO_LOCK_VIEW	1<<0
 
 /* SpaceText flags (moved from DNA_text_types.h) */
 
@@ -633,6 +633,7 @@ typedef struct SpaceImaSel {
 #define TIME_WITH_SEQ_AUDIO		16
 #define TIME_SEQ				32
 #define TIME_ALL_IMAGE_WIN		64
+#define TIME_CONTINUE_PHYSICS	128
 
 /* sseq->mainb */
 #define SEQ_DRAW_SEQUENCE         0

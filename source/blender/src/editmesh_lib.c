@@ -1,15 +1,12 @@
 /**
  * $Id: 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /*
@@ -78,9 +75,32 @@ void EM_set_actFace(EditFace *efa)
 	G.editMesh->act_face = efa;
 }
 
-EditFace * EM_get_actFace(void)
+EditFace * EM_get_actFace(int sloppy)
 {
-	return G.editMesh->act_face;
+	if (G.editMesh->act_face) {
+		return G.editMesh->act_face;
+	} else if (sloppy) {
+		EditFace *efa= NULL;
+		EditSelection *ese;
+		
+		ese = G.editMesh->selected.last;
+		for (; ese; ese=ese->prev){
+			if(ese->type == EDITFACE) {
+				efa = (EditFace *)ese->data;
+				
+				if (efa->h)	efa= NULL;
+				else		break;
+			}
+		}
+		if (efa==NULL) {
+			for (efa= G.editMesh->faces.first; efa; efa= efa->next) {
+				if (efa->f & SELECT)
+					break;
+			}
+		}
+		return efa; /* can still be null */
+	}
+	return NULL;
 }
 
 /* ********* Selection History ************ */
@@ -1077,7 +1097,7 @@ static short extrudeflag_edge(short flag, float *nor)
 	EditMesh *em = G.editMesh;
 	EditVert *eve, *nextve;
 	EditEdge *eed, *nexted;
-	EditFace *efa, *nextfa;
+	EditFace *efa, *nextfa, *efan;
 	short del_old= 0;
 	ModifierData *md;
 	
@@ -1231,27 +1251,32 @@ static short extrudeflag_edge(short flag, float *nor)
 			
 			if(del_old==0) {	// keep old faces means flipping normal
 				if(efa->v4)
-					addfacelist(efa->v4->tmp.v, efa->v3->tmp.v, 
+					efan = addfacelist(efa->v4->tmp.v, efa->v3->tmp.v, 
 								efa->v2->tmp.v, efa->v1->tmp.v, efa, efa);
 				else
-					addfacelist(efa->v3->tmp.v, efa->v2->tmp.v, 
+					efan = addfacelist(efa->v3->tmp.v, efa->v2->tmp.v, 
 								efa->v1->tmp.v, NULL, efa, efa);
 			}
 			else {
 				if(efa->v4)
-					addfacelist(efa->v1->tmp.v, efa->v2->tmp.v, 
+					efan = addfacelist(efa->v1->tmp.v, efa->v2->tmp.v, 
 								efa->v3->tmp.v, efa->v4->tmp.v, efa, efa);
 				else
-					addfacelist(efa->v1->tmp.v, efa->v2->tmp.v, 
+					efan = addfacelist(efa->v1->tmp.v, efa->v2->tmp.v, 
 								efa->v3->tmp.v, NULL, efa, efa);
 			}
-	
+			
+			if (G.editMesh->act_face == efa) {
+				G.editMesh->act_face = efan; 
+			}
+			
 			/* for transform */
 			add_normal_aligned(nor, efa->n);
 		}
 	}
 	
 	if(del_old) {
+		
 		/* step 4: remove old faces, if del_old */
 		efa= em->faces.first;
 		while(efa) {
@@ -1262,7 +1287,8 @@ static short extrudeflag_edge(short flag, float *nor)
 			}
 			efa= nextfa;
 		}
-	
+		
+		
 		/* step 5: remove selected unused edges */
 		/* start tagging again */
 		for(eed= em->edges.first; eed; eed= eed->next) eed->f1=0;
@@ -1677,7 +1703,7 @@ void adduplicateflag(int flag)
 	EditMesh *em = G.editMesh;
 	EditVert *eve, *v1, *v2, *v3, *v4;
 	EditEdge *eed, *newed;
-	EditFace *efa, *newfa;
+	EditFace *efa, *newfa, *act_efa = EM_get_actFace(0);
 
 	EM_clear_flag_all(128);
 	EM_selectmode_set();	// paranoia check, selection now is consistant
@@ -1723,6 +1749,10 @@ void adduplicateflag(int flag)
 			else v4= NULL;
 			
 			newfa= addfacelist(v1, v2, v3, v4, efa, efa); 
+			
+			if (efa==act_efa) {
+				EM_set_actFace(newfa);
+			}
 			
 			newfa->f= efa->f;
 			efa->f -= flag;

@@ -4,15 +4,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +27,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /*
@@ -576,16 +573,11 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 				for(a=0; a<psys->totpart; a++, pa++)
 					writestruct(wd, DATA, "HairKey", pa->totkey, pa->hair);
 			}
-			
-			if(psys->particles->keys) {
-				ParticleData *pa = psys->particles;
-
-				for(a=0; a<psys->totpart; a++, pa++)
-					writestruct(wd, DATA, "ParticleKey", pa->totkey, pa->keys);
-			}
 		}
 		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
 		writestruct(wd, DATA, "SoftBody", 1, psys->soft);
+		if(psys->soft) writestruct(wd, DATA, "PointCache", 1, psys->soft->pointcache);
+		writestruct(wd, DATA, "PointCache", 1, psys->pointcache);
 	}
 }
 
@@ -738,6 +730,9 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 		case ACT_2DFILTER:
 			writestruct(wd, DATA, "bTwoDFilterActuator", 1, act->data);
 			break;
+		case ACT_PARENT:
+			writestruct(wd, DATA, "bParentActuator", 1, act->data);
+			break;
 		default:
 			; /* error: don't know how to write this file */
 		}
@@ -861,7 +856,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			
 			writestruct(wd, DATA, "ClothSimSettings", 1, clmd->sim_parms);
 			writestruct(wd, DATA, "ClothCollSettings", 1, clmd->coll_parms);
-			
+			writestruct(wd, DATA, "PointCache", 1, clmd->point_cache);
 		} 
 		else if (md->type==eModifierType_Collision) {
 			
@@ -927,6 +922,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			
 			writestruct(wd, DATA, "PartDeflect", 1, ob->pd);
 			writestruct(wd, DATA, "SoftBody", 1, ob->soft);
+			if(ob->soft) writestruct(wd, DATA, "PointCache", 1, ob->soft->pointcache);
 			writestruct(wd, DATA, "FluidsimSettings", 1, ob->fluidsimSettings); // NT
 			
 			write_particlesystems(wd, &ob->particlesystem);
@@ -2093,7 +2089,7 @@ int BLO_write_file(char *dir, int write_flags, char **error_r)
 			}
 		}
 		else
-		if(BLI_rename(tempname, dir) < 0) {
+		if(BLI_rename(tempname, dir) != 0) {
 			*error_r= "Can't change old file. File saved with @";
 			return 0;
 		}

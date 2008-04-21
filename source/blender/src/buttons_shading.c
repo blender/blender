@@ -1519,6 +1519,7 @@ static void texture_panel_colors(Tex *tex)
 	uiNewPanelTabbed("Texture", "Texture");
 	if(uiNewPanel(curarea, block, "Colors", "Texture", 1280, 0, 318, 204)==0) return;
 
+	uiSetButLock(tex->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 
 	/* COLORBAND */
 	uiBlockBeginAlign(block);
@@ -1588,8 +1589,10 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	}
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 
+	uiClearButLock();
+	
 	/* From button: removed */
-
+	
 	/* CHANNELS */
 	if(node==NULL) {
 		uiBlockBeginAlign(block);
@@ -1671,11 +1674,11 @@ static void texture_panel_preview(MTex *mtex, int preview)
 	uiDefButC(block, ROW, B_TEXREDR_PRV, "Brush",	200,100,80,25, &G.buts->texfrom, 3.0, 3.0, 0, 0, "Displays the textures of the selected brush");
 	uiBlockEndAlign(block);
 	
-	if(mtex && mtex->tex)
-		uiDefButBitS(block, TOG, TEX_PRV_ALPHA, B_TEXREDR_PRV, "Alpha", 200,60,80,20, &mtex->tex->flag, 0, 0, 0, 0, "Show alpha in preview");
-	
-	uiDefBut(block, BUT, B_DEFTEXVAR, "Default Vars",200,10,80,20, 0, 0, 0, 0, 0, "Sets all values to defaults");
-
+	if(mtex && mtex->tex) {
+		uiDefButBitS(block, TOG, TEX_PRV_ALPHA, B_TEXREDR_PRV, "Alpha", 200,60,80,20, &mtex->tex->flag, 0, 0, 0, 0, "Show alpha in preview");	
+		uiSetButLock(mtex->tex->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
+		uiDefBut(block, BUT, B_DEFTEXVAR, "Default Vars",200,10,80,20, 0, 0, 0, 0, 0, "Sets all values to defaults");
+	}
 }
 
 
@@ -2333,9 +2336,11 @@ static void world_panel_preview(World *wrld)
 	uiDefBut(block, LABEL, 0, " ",	20,20,10,10, 0, 0, 0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, WO_SKYREAL, B_WORLDPRV,"Real",	200,175,80,25, &wrld->skytype, 0, 0, 0, 0, "Renders background with a real horizon");
-	uiDefButBitS(block, TOG, WO_SKYBLEND, B_WORLDPRV,"Blend",200,150,80,25, &wrld->skytype, 0, 0, 0, 0, "Renders background with natural progression from horizon to zenith");
-	uiDefButBitS(block, TOG,WO_SKYPAPER, B_WORLDPRV,"Paper",200,125,80,25, &wrld->skytype, 0, 0, 0, 0, "Flattens blend or texture coordinates");
+	uiDefButBitS(block, TOG, WO_SKYBLEND, B_WORLDPRV,"Blend", 220,175,100,25, &wrld->skytype, 0, 0, 0, 0, "Renders background with natural progression from horizon to zenith");
+	uiDefButBitS(block, TOG,WO_SKYPAPER, B_WORLDPRV,"Paper", 220,150,100,25, &wrld->skytype, 0, 0, 0, 0, "Flattens blend or texture coordinates");
+	if (wrld->skytype & WO_SKYBLEND) {
+		uiDefButBitS(block, TOG, WO_SKYREAL, B_WORLDPRV,"Real", 220,125,100,25, &wrld->skytype, 0, 0, 0, 0, "Renders background with a real horizon");
+	}
 	uiBlockEndAlign(block);
 
 }
@@ -3079,6 +3084,11 @@ void do_matbuts(unsigned short event)
 		break;
 	case B_MTEXMOVEUP:
 		if(ma && (int)ma->texact > 0) {
+			int mtexuse = ma->septex & (1<<((int)ma->texact));
+			ma->septex &= ~(1<<((int)ma->texact));
+			ma->septex |= (ma->septex & (1<<((int)ma->texact-1))) << 1;
+			ma->septex &= ~(1<<((int)ma->texact-1));
+			ma->septex |= mtexuse >> 1;
 			mtexswap = ma->mtex[(int)ma->texact];
 			ma->mtex[(int)ma->texact] = ma->mtex[((int)ma->texact)-1];
 			ma->mtex[((int)ma->texact)-1] = mtexswap;
@@ -3088,6 +3098,11 @@ void do_matbuts(unsigned short event)
 		break;
 	case B_MTEXMOVEDOWN:
 		if(ma && (int)ma->texact < MAX_MTEX-1) {
+			int mtexuse = ma->septex & (1<<((int)ma->texact));
+			ma->septex &= ~(1<<((int)ma->texact));
+			ma->septex |= (ma->septex & (1<<((int)ma->texact+1))) >> 1;
+			ma->septex &= ~(1<<((int)ma->texact+1));
+			ma->septex |= mtexuse << 1;
 			mtexswap = ma->mtex[(int)ma->texact];
 			ma->mtex[(int)ma->texact] = ma->mtex[((int)ma->texact)+1];
 			ma->mtex[((int)ma->texact)+1] = mtexswap;
@@ -3164,7 +3179,7 @@ void do_matbuts(unsigned short event)
 					ob=base->object;
 					for(psys=ob->particlesystem.first; psys; psys=psys->next) {
 						if(psys && ma==give_current_material(ob,psys->part->omat)) {
-							psys->recalc |= PSYS_INIT;
+							psys->recalc |= PSYS_INIT | PSYS_RECALC_HAIR;
 
 							DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 						}
@@ -3190,7 +3205,7 @@ static void particle_recalc_material(void *ma_v, void *arg2)
 			ob=base->object;
 			for(psys=ob->particlesystem.first; psys; psys=psys->next){
 				if(psys && ma==give_current_material(ob,psys->part->omat)){
-					psys->recalc |= PSYS_INIT;
+					psys->recalc |= PSYS_INIT | PSYS_RECALC_HAIR;
 
 					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 				}
@@ -3246,16 +3261,18 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 		uiDefButF(block, NUMSLI, B_MATPRV, "B ",		10,40,135,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	}
 	uiBlockEndAlign(block);
-	
-	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard");
-	
-	/* MAP TO */
-	uiBlockBeginAlign(block);
 
 	/*check if material is being used by particles*/
 	for(psys=ob->particlesystem.first; psys; psys=psys->next)
 		if(psys->part->omat==ob->actcol)
 			psys_mapto=1;
+	
+	but = uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard");
+	if(psys_mapto && mtex->pmapto & MAP_PA_INIT)
+		uiButSetFunc(but, particle_recalc_material, ma, NULL);
+
+	/* MAP TO */
+	uiBlockBeginAlign(block);
 
 	if(psys_mapto && pattr) {
 		but=uiDefButBitS(block, TOG3, MAP_PA_TIME, B_MAT_PARTICLE, "Time",	10,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the emission time of particles");
@@ -3424,6 +3441,9 @@ static void material_panel_map_input(Object *ob, Material *ma)
 
 	if(ELEM(mtex->texco, TEXCO_UV, TEXCO_ORCO))
 		uiDefButBitS(block, TOG, MTEX_DUPLI_MAPTO, B_MATPRV, "From Dupli",	820,140,88,18, &(mtex->texflag), 0, 0, 0, 0, "If object is duplicated by vertices, faces or particles, inherit texture coordinate from parent object");
+	else if(mtex->texco == TEXCO_OBJECT)
+		uiDefButBitS(block, TOG, MTEX_OB_DUPLI_ORIG, B_MATPRV, "From Original",	820,140,88,18, &(mtex->texflag), 0, 0, 0, 0, "If object is duplicated, use object coordinates as if the object was in its original position");
+
 
 	/* COORDS */
 	uiBlockBeginAlign(block);
@@ -3622,7 +3642,7 @@ static void material_panel_tramir(Material *ma)
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_MATPRV, "Gloss: ",
-		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->gloss_tra), 0.0, 1.0, 100, 0, "The clarity of the refraction. Values < 1.0 give diffuse, blurry reflections ");
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->gloss_tra), 0.0, 1.0, 100, 0, "The clarity of the refraction. Values < 1.0 give diffuse, blurry refractions");
 	uiDefButS(block, NUM, B_MATPRV, "Samples:",
 		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->samp_gloss_tra), 0.0, 1024.0, 100, 0, "Number of cone samples averaged for blurry refractions");	
 	uiDefButF(block, NUM, B_MATPRV, "Thresh: ",
@@ -3835,14 +3855,15 @@ static void material_panel_shading(Material *ma)
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		
 		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, MA_HALO_FLARE, B_MATPRV, "Flare",245,142,65,28, &(ma->mode), 0, 0, 0, 0, "Renders halo as a lensflare");
-		uiDefButBitI(block, TOG, MA_HALO_RINGS, B_MATPRV, "Rings",		245,123,65, 18, &(ma->mode), 0, 0, 0, 0, "Renders rings over halo");
-		uiDefButBitI(block, TOG, MA_HALO_LINES, B_MATPRV, "Lines",		245,104,65, 18, &(ma->mode), 0, 0, 0, 0, "Renders star shaped lines over halo");
-		uiDefButBitI(block, TOG, MA_STAR, B_MATPRV, "Star",		245,85,65, 18, &(ma->mode), 0, 0, 0, 0, "Renders halo as a star");
-		uiDefButBitI(block, TOG, MA_HALOTEX, B_MATPRV, "HaloTex",	245,66,65, 18, &(ma->mode), 0, 0, 0, 0, "Gives halo a texture");
-		uiDefButBitI(block, TOG, MA_HALOPUNO, B_MATPRV, "HaloPuno",	245,47,65, 18, &(ma->mode), 0, 0, 0, 0, "Uses the vertex normal to specify the dimension of the halo");
-		uiDefButBitI(block, TOG, MA_HALO_XALPHA, B_MATPRV, "X Alpha",	245,28,65, 18, &(ma->mode), 0, 0, 0, 0, "Uses extreme alpha");
-		uiDefButBitI(block, TOG, MA_HALO_SHADE, B_MATPRV, "Shaded",	245,9,65, 18, &(ma->mode), 0, 0, 0, 0, "Lets halo receive light and shadows");
+		uiDefButBitI(block, TOG, MA_HALO_FLARE,  B_MATPRV, "Flare",    245,161,65,28, &(ma->mode), 0, 0, 0, 0, "Renders halo as a lensflare");
+		uiDefButBitI(block, TOG, MA_HALO_RINGS,  B_MATPRV, "Rings",	   245,142,65,18, &(ma->mode), 0, 0, 0, 0, "Renders rings over halo");
+		uiDefButBitI(block, TOG, MA_HALO_LINES,  B_MATPRV, "Lines",	   245,123,65,18, &(ma->mode), 0, 0, 0, 0, "Renders star shaped lines over halo");
+		uiDefButBitI(block, TOG, MA_STAR,        B_MATPRV, "Star",	   245,104,65, 18, &(ma->mode), 0, 0, 0, 0, "Renders halo as a star");
+		uiDefButBitI(block, TOG, MA_HALOTEX,     B_MATPRV, "HaloTex",  245,85,65, 18, &(ma->mode), 0, 0, 0, 0, "Gives halo a texture");
+		uiDefButBitI(block, TOG, MA_HALOPUNO,    B_MATPRV, "HaloPuno", 245,66,65, 18, &(ma->mode), 0, 0, 0, 0, "Uses the vertex normal to specify the dimension of the halo");
+		uiDefButBitI(block, TOG, MA_HALO_XALPHA, B_MATPRV, "X Alpha",  245,47,65, 18, &(ma->mode), 0, 0, 0, 0, "Uses extreme alpha");
+		uiDefButBitI(block, TOG, MA_HALO_SHADE,  B_MATPRV, "Shaded",   245,28,65,  18, &(ma->mode), 0, 0, 0, 0, "Lets halo receive light and shadows");
+		uiDefButBitI(block, TOG, MA_HALO_SOFT,   B_MATPRV, "Soft",	   245,9,65,  18, &(ma->mode), 0, 0, 0, 0, "Softens the halo");
 		uiBlockEndAlign(block);
 	}
 	else {

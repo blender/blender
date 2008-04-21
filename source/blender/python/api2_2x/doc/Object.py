@@ -417,7 +417,7 @@ class Object:
 				empty_ob.setMatrix(dupe_matrix)
 			Blender.Redraw()
 	@type DupObjects: list of tuples containing (object, matrix)
-	@ivar enableNLAOverride: Whether the object uses NLA or active Action for animation.
+	@ivar enableNLAOverride: Whether the object uses NLA or active Action for animation. When True the NLA is used.
 	@type enableNLAOverride: boolean
 	@ivar enableDupVerts: The DupliVerts status of the object.
 		Does not indicate that this object has any dupliVerts,
@@ -636,6 +636,10 @@ class Object:
 	@ivar rbShapeBoundType: Rigid body shape bound type.  See L{RBShapes}
 		const dict for values.
 	@type rbShapeBoundType: int
+	@ivar trackAxis: Track axis. Return string 'X' | 'Y' | 'Z' | '-X' | '-Y' | '-Z' (readonly)
+	@type trackAxis: string 
+	@ivar upAxis: Up axis. Return string 'Y' | 'Y' | 'Z' (readonly)
+	@type upAxis: string
 	"""
 
 	def buildParts():
@@ -1178,10 +1182,12 @@ class Object:
 				- 1  - selected
 		"""
 	
-	def getBoundBox():
+	def getBoundBox(worldspace=1):
 		"""
 		Returns the worldspace bounding box of this object.  This works for meshes (out of
 		edit mode) and curves.
+		@type worldspace: int
+		@param worldspace: An optional argument. When zero, the bounding values will be localspace.
 		@rtype: list of 8 (x,y,z) float coordinate vectors (WRAPPED DATA)
 		@return: The coordinates of the 8 corners of the bounding box. Data is wrapped when
 		bounding box is present.

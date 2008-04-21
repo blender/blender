@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BSE_EDITIPO_H
@@ -113,6 +110,7 @@ void sethandles_ipo(int code);
 void select_ipo_bezier_keys(struct Ipo *ipo, int selectmode);
 void select_icu_bezier_keys(struct IpoCurve *icu, int selectmode);
 void set_ipotype(void);
+void set_ipoextend(void);
 void borderselect_ipo(void);
 void del_ipo(int need_check);
 void del_ipoCurve ( struct IpoCurve * icu );

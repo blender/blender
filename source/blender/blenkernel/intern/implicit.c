@@ -1,15 +1,12 @@
 /*  implicit.c      
 * 
 *
-* ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+* ***** BEGIN GPL LICENSE BLOCK *****
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public License
 * as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version. The Blender
-* Foundation also sells licenses for use in proprietary software under
-* the Blender License.  See http://www.blender.org/BL/ for information
-* about this.
+* of the License, or (at your option) any later version.
 *
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
 *
 * Contributor(s): none yet.
 *
-* ***** END GPL/BL DUAL LICENSE BLOCK *****
+* ***** END GPL LICENSE BLOCK *****
 */
 
 #include "MEM_guardedalloc.h"
@@ -1359,7 +1356,7 @@ DO_INLINE void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s,
 
 float calculateVertexWindForce(float wind[3], float vertexnormal[3])  
 {
-	return sqrt(fabs(INPR(wind, vertexnormal)))*2.0*0.1;
+	return fabs(INPR(wind, vertexnormal));
 }
 
 void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
@@ -1387,7 +1384,9 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 
 	init_lfvector(lF, gravity, numverts);
 	
-	// multiply lF with mass matrix
+	/* multiply lF with mass matrix
+	// force = mass * acceleration (in this case: gravity)
+	*/
 	for(i = 0; i < (long)numverts; i++)
 	{
 		float temp[3];
@@ -1414,7 +1413,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 			pdDoEffectors(effectors, lX[mfaces[i].v1], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 			VECCOPY(wind_normalized, speed);
 			Normalize(wind_normalized);
-			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal) * verts[mfaces[i].v1].mass);
+			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
 			
 			if(mfaces[i].v4)
 			{
@@ -1429,7 +1428,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 			pdDoEffectors(effectors, lX[mfaces[i].v2], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 			VECCOPY(wind_normalized, speed);
 			Normalize(wind_normalized);
-			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal) * verts[mfaces[i].v2].mass);
+			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
 			if(mfaces[i].v4)
 			{
 				VECADDS(lF[mfaces[i].v2], lF[mfaces[i].v2], wind_normalized, 0.25);
@@ -1443,7 +1442,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 			pdDoEffectors(effectors, lX[mfaces[i].v3], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 			VECCOPY(wind_normalized, speed);
 			Normalize(wind_normalized);
-			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal) * verts[mfaces[i].v3].mass);
+			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
 			if(mfaces[i].v4)
 			{
 				VECADDS(lF[mfaces[i].v3], lF[mfaces[i].v3], wind_normalized, 0.25);
@@ -1459,7 +1458,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 				pdDoEffectors(effectors, lX[mfaces[i].v4], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 				VECCOPY(wind_normalized, speed);
 				Normalize(wind_normalized);
-				VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal) * verts[mfaces[i].v4].mass);
+				VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
 				VECADDS(lF[mfaces[i].v4], lF[mfaces[i].v4], wind_normalized, 0.25);
 			}
 			
@@ -1524,11 +1523,11 @@ void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVecto
 int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
 { 	 	
 	unsigned int i=0;
-	float step=0.0f, tf=1.0f;
+	float step=0.0f, tf=clmd->sim_parms->timescale;
 	Cloth *cloth = clmd->clothObject;
 	ClothVertex *verts = cloth->verts;
 	unsigned int numverts = cloth->numverts;
-	float dt = 1.0f / clmd->sim_parms->stepsPerFrame;
+	float dt = clmd->sim_parms->timescale / clmd->sim_parms->stepsPerFrame;
 	Implicit_Data *id = cloth->implicit;
 	int result = 0;
 	

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef WIN32
@@ -60,11 +57,35 @@ extern "C"{
 #define __NLA_DEFNORMALS
 //#undef __NLA_DEFNORMALS
 
+
+BL_SkinDeformer::BL_SkinDeformer(
+	struct Object *bmeshobj_old,	// Blender object that owns the new mesh
+	struct Object *bmeshobj_new,	// Blender object that owns the original mesh
+	class BL_SkinMeshObject *mesh,
+	bool release_object,
+	BL_ArmatureObject* arma)	:	
+		BL_MeshDeformer(bmeshobj_old, mesh),
+		m_armobj(arma),
+		m_lastUpdate(-1),
+		m_defbase(&bmeshobj_old->defbase),
+		m_releaseobject(release_object)
+	{
+		Mat4CpyMat4(m_obmat, bmeshobj_old->obmat);
+		m_restoremat = true;
+		// this is needed to ensure correct deformation of mesh:
+		// the deformation is done with Blender's armature_deform_verts() function
+		// that takes an object as parameter and not a mesh. The object matrice is used
+		// in the calculation, so we must force the same matrice to simulate a pure replacement of mesh
+		Mat4CpyMat4(bmeshobj_old->obmat, bmeshobj_new->obmat);
+	}
+
 BL_SkinDeformer::~BL_SkinDeformer()
 {
 	if(m_releaseobject && m_armobj)
 		m_armobj->Release();
-};
+	if (m_restoremat)
+		Mat4CpyMat4(m_objMesh->obmat, m_obmat);
+}
 
 /* XXX note, this __NLA_OLDDEFORM define seems to be obsolete */
 

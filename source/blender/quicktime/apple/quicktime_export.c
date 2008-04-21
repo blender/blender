@@ -5,14 +5,11 @@
  *
  * Code to create QuickTime Movies with Blender
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  *
  * Contributor(s): Stefan Gartner (sgefant)
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef WITH_QUICKTIME
@@ -311,6 +308,7 @@ static void QT_EndCreateMyVideoTrack(void)
 
 static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, int recty)
 {
+	SCTemporalSettings gTemporalSettings;
 	OSErr err = noErr;
 
 	qtexport->ibuf = IMB_allocImBuf (rectx, recty, 32, IB_rect, 0);
@@ -329,7 +327,18 @@ static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, i
 
 	SCDefaultPixMapSettings (qtdata->theComponent, qtexport->thePixMap, true);
 
-	SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
+	// workaround for crash with H.264, which requires an upgrade to
+	// the new callback based api for proper encoding, but that's not
+	// really compatible with rendering out frames sequentially
+	gTemporalSettings = qtdata->gTemporalSettings;
+	if(qtdata->gSpatialSettings.codecType == kH264CodecType) {
+		if(gTemporalSettings.temporalQuality != codecMinQuality) {
+			fprintf(stderr, "Only minimum quality compression supported for QuickTime H.264.\n");
+			gTemporalSettings.temporalQuality = codecMinQuality;
+		}
+	}
+
+	SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&gTemporalSettings);
 	SCSetInfo(qtdata->theComponent, scSpatialSettingsType,	&qtdata->gSpatialSettings);
 	SCSetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);
 

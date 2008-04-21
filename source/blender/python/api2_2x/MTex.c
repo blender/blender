@@ -1,15 +1,12 @@
 /* 
- * $Id: MTex.c 10279 2007-03-16 11:38:02Z campbellbarton $
+ * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Alex Mole, Yehoshua Sapir
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 #include "MTex.h" /*This must come first*/
 
@@ -145,6 +142,9 @@ static PyGetSetDef MTex_getseters[] = {
 	{ "correctNor", (getter) MTex_getFlag, (setter) MTex_setFlag,
 		"Correct normal mapping for Texture space and Object space",
 		(void*) MTEX_VIEWSPACE },
+	{ "fromDupli", (getter) MTex_getFlag, (setter) MTex_setFlag,
+		"If object is duplicated by vertices, faces or particles, inherit texture coordinate from parent object",
+		(void*) MTEX_DUPLI_MAPTO },
 	{ "xproj", (getter) MTex_getProjX, (setter) MTex_setProjX,
 		"Projection of X axis to Texture space", NULL },
 	{ "yproj", (getter) MTex_getProjY, (setter) MTex_setProjY,

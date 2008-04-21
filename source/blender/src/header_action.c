@@ -6,15 +6,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,7 +29,7 @@
  *
  * Contributor(s): 2007, Joshua Leung (Action Editor recode) 
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -97,7 +94,8 @@ enum {
 	ACTMENU_VIEW_TIME,
 	ACTMENU_VIEW_NOHIDE,
 	ACTMENU_VIEW_TRANSDELDUPS,
-	ACTMENU_VIEW_HORIZOPTIMISE
+	ACTMENU_VIEW_HORIZOPTIMISE,
+	ACTMENU_VIEW_GCOLORS
 };
 
 enum {
@@ -347,6 +345,9 @@ static void do_action_viewmenu(void *arg, int event)
 		case ACTMENU_VIEW_HORIZOPTIMISE: /* Include keyframes not in view (horizontally) when preparing to draw */
 			G.saction->flag ^= SACTION_HORIZOPTIMISEON;
 			break;
+		case ACTMENU_VIEW_GCOLORS: /* Draw grouped-action channels using its group's color */
+			G.saction->flag ^= SACTION_DRAWGCOLORS;
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -393,15 +394,19 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_NOHIDE, "");
 					 
+	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_DRAWGCOLORS)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Use Group Colors|", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+					 ACTMENU_VIEW_GCOLORS, "");
+					 
 		// this option may get removed in future
 	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_HORIZOPTIMISEON)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
 					 "Cull Out-of-View Keys (Time)|", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_HORIZOPTIMISE, "");
-			
-		// this option may get removed in future... 
+	
 	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_NOTRANSKEYCULL)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
-					 "AfterTrans Delete Dupli-Frames|", 0, yco-=20, 
+					 "AutoMerge Keyframes|", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_TRANSDELDUPS, "");
 			

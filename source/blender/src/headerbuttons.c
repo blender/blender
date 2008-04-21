@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -384,10 +381,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 			
 		}
 		if(keepbut) {
-			if(id->flag & LIB_FAKEUSER)
-				uiDefBut(block, BUT, keepbut, "F", xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Don't save this datablock even if it has no users");  
-			else
-				uiDefBut(block, BUT, keepbut, "F", xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Saves this datablock even if it has no users");  
+			uiDefButBitS(block, TOG, LIB_FAKEUSER, keepbut, "F", xco,yco,XIC,YIC, &id->flag, 0, 0, 0, 0, "Saves this datablock even if it has no users");
 			xco+= XIC;
 		}
 	}
@@ -546,9 +540,14 @@ static void filesel_u_pythondir(char *name)
 
 	BLI_cleanup_dir(G.sce, name);
 	BLI_split_dirfile(name, dir, file);
-
+	
 	strcpy(U.pythondir, dir);
 	allqueue(REDRAWALL, 0);
+	
+	/* act on the change */
+	BPyMenu_RemoveAllEntries();
+	BPY_rebuild_syspath();
+	if (BPyMenu_Init(1) == -1) error("Invalid scripts dir: check console");
 }
 
 static void filesel_u_sounddir(char *name)
@@ -1649,13 +1648,11 @@ void do_global_buttons(unsigned short event)
 			id= (ID *)G.saction->action;
 		}/* similar for other spacetypes ? */
 		if (id) {
-			if( id->flag & LIB_FAKEUSER) {
-				id->flag -= LIB_FAKEUSER;
-				id->us--;
-			} else {
-				id->flag |= LIB_FAKEUSER;
+			/* flag was already toggled, just need to update user count */
+			if(id->flag & LIB_FAKEUSER)
 				id->us++;
-			}
+			else
+				id->us--;
 		}
 		allqueue(REDRAWHEADERS, 0);
 

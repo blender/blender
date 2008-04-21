@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 //#define NAN_LINEAR_PHYSICS
@@ -1508,25 +1505,25 @@ static void draw_viewport_name(ScrArea *sa)
 	
 	switch(G.vd->view) {
 		case 1:
-			if (G.vd->persp & V3D_PERSP_DO_3D_PERSP)
-				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Persp" : "Front Persp";
-			else
+			if (G.vd->persp == V3D_ORTHO)
 				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Ortho" : "Front Ortho";
+			else
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Persp" : "Front Persp";
 			break;
 		case 3:
-			if (G.vd->persp & V3D_PERSP_DO_3D_PERSP)
-				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Persp" : "Right Persp";
-			else
+			if (G.vd->persp == V3D_ORTHO)
 				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Ortho" : "Right Ortho";
+			else
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Persp" : "Right Persp";
 			break;
 		case 7:
-			if (G.vd->persp & V3D_PERSP_DO_3D_PERSP)
-				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Persp" : "Top Persp";
-			else
+			if (G.vd->persp == V3D_ORTHO)
 				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Ortho" : "Top Ortho";
+			else
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Persp" : "Top Persp";
 			break;
 		default:
-			if (G.vd->persp==V3D_PERSP_USE_THE_CAMERA) {
+			if (G.vd->persp==V3D_CAMOB) {
 				if ((G.vd->camera) && (G.vd->camera->type == OB_CAMERA)) {
 					Camera *cam;
 					cam = G.vd->camera->data;
@@ -1535,7 +1532,7 @@ static void draw_viewport_name(ScrArea *sa)
 					name = "Object as Camera";
 				}
 			} else { 
-				name = (G.vd->persp & V3D_PERSP_DO_3D_PERSP) ? "User Persp" : "User Ortho";
+				name = (G.vd->persp == V3D_ORTHO) ? "User Ortho" : "User Persp";
 			}
 	}
 	
@@ -3507,34 +3504,28 @@ static int cached_dynamics(int sfra, int efra)
 {
 	Base *base = G.scene->base.first;
 	Object *ob;
-	ModifierData *md;
 	ParticleSystem *psys;
-	int i, stack_index=-1, cached=1;
+	int i, cached=1;
+	PTCacheID pid;
 
 	while(base && cached) {
 		ob = base->object;
 		if(ob->softflag & OB_SB_ENABLE && ob->soft) {
-			for(i=0, md=ob->modifiers.first; md; i++, md=md->next) {
-				if(md->type == eModifierType_Softbody) {
-					stack_index = i;
-					break;
-				}
-			}
+			BKE_ptcache_id_from_softbody(&pid, ob, ob->soft);
+
 			for(i=sfra; i<=efra && cached; i++)
-				cached &= BKE_ptcache_id_exist(&ob->id,i,stack_index);
+				cached &= BKE_ptcache_id_exist(&pid, i);
 		}
 
 		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-			stack_index = modifiers_indexInObject(ob,(ModifierData*)psys_get_modifier(ob,psys));
 			if(psys->part->type==PART_HAIR) {
-				if(psys->softflag & OB_SB_ENABLE && psys->soft);
-				else
-					stack_index = -1;
-			}
+				if(psys->softflag & OB_SB_ENABLE && psys->soft) {
+					BKE_ptcache_id_from_softbody(&pid, ob, psys->soft);
 
-			if(stack_index >= 0)
-				for(i=sfra; i<=efra && cached; i++)
-					cached &= BKE_ptcache_id_exist(&ob->id,i,stack_index);
+					for(i=sfra; i<=efra && cached; i++)
+						cached &= BKE_ptcache_id_exist(&pid, i);
+				}
+			}
 		}
 		
 		base = base->next;

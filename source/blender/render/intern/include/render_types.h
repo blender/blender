@@ -64,8 +64,10 @@ typedef struct SampleTables
 
 typedef struct QMCSampler
 {
+	struct QMCSampler *next, *prev;
 	int type;
 	int tot;
+	int used;
 	double *samp2d;
 	double offs[BLENDER_MAX_THREADS][2];
 } QMCSampler;
@@ -150,7 +152,7 @@ struct Render
 	/* samples */
 	SampleTables *samples;
 	float jit[32][2];
-	QMCSampler *qsa;
+	ListBase *qmcsamplers;
 	
 	/* shadow counter, detect shadow-reuse for shaders */
 	int shadowsamplenr[BLENDER_MAX_THREADS];
@@ -455,7 +457,6 @@ typedef struct LampRen {
 
 	struct ShadBuf *shb;
 	float *jitter;
-	QMCSampler *qsa;
 	
 	float imat[3][3];
 	float spottexfac;

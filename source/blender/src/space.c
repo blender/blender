@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  *
  *
  * - here initialize and free and handling SPACE data
@@ -88,6 +85,7 @@
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_node.h"
+#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_sculpt.h"
 #include "BKE_texture.h"
@@ -294,7 +292,7 @@ void copy_view3d_lock(short val)
 							vd->lay= G.scene->lay;
 							vd->camera= G.scene->camera;
 							
-							if(vd->camera==0 && vd->persp>1) vd->persp= 1;
+							if(vd->camera==0 && vd->persp==V3D_CAMOB) vd->persp= V3D_PERSP;
 							
 							if( (vd->lay & vd->layact) == 0) {
 								bit= 0;
@@ -1410,7 +1408,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					allqueue(REDRAWVIEW3D, 0);
 				}
 				else if(G.qual==0) {
-					if (G.vd->persp==2)
+					if (G.vd->persp==V3D_CAMOB)
 						/* center the camera offset */
 						G.vd->camdx= G.vd->camdy= 0.0;
 					else {
@@ -1437,7 +1435,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(G.qual==LR_ALTKEY)
 					view3d_edit_clipping(v3d);
 				else if(G.qual==LR_SHIFTKEY) {
-					if(G.vd->persp==2)
+					if(G.vd->persp==V3D_CAMOB)
 						set_render_border();
 					else
 						view3d_border_zoom();
@@ -1567,9 +1565,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				} else if (G.vd->ndofmode == 1) {
 					viewmoveNDOFfly(1);
 				} else {
-					if (OBACT) {
-						NDofTransform();
-					}
+					NDofTransform();
 				}
                 break;
 				
@@ -1690,9 +1686,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				} else if (G.vd->ndofmode == 1) {
 					viewmoveNDOFfly(1);
 				} else {
-					if (OBACT) {
-						NDofTransform();
-					}
+					NDofTransform();
 				}
                 break;
 
@@ -1835,18 +1829,32 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					view3d_edit_clipping(v3d);
 				else if(G.qual==LR_SHIFTKEY)
 				{
-					if(G.vd->persp==2)
+					if(G.vd->persp==V3D_CAMOB)
 						set_render_border();
 					else
 						view3d_border_zoom();
 				}
 				else if(G.qual==LR_CTRLKEY) {
-					if(okee("Bake all selected")) {
-						extern void softbody_bake(Object *ob);
-						extern void fluidsimBake(Object *ob);
-						softbody_bake(NULL);
-						/* also bake first domain of selected objects... */
-						fluidsimBake(NULL);
+					extern void pointcache_bake(PTCacheID *pid, int startframe);
+					extern void pointcache_free(PTCacheID *pid, int cacheonly);
+					extern void fluidsimBake(Object *ob);
+					extern void fluidsimFreeBake(Object *ob);
+					int pupval;
+
+					pupval= pupmenu("Physics Baking%t|Bake selected %x1|Free bake selected %x2|Free cache selected %x3");
+
+					if(pupval > 0) {
+						if(pupval == 1) {
+							pointcache_bake(NULL, 0);
+							/* also bake first domain of selected objects... */
+							fluidsimBake(NULL);
+						}
+						else if(pupval == 2) {
+							pointcache_free(NULL, 0);
+							fluidsimFreeBake(NULL);
+						}
+						else if(pupval == 3)
+							pointcache_free(NULL, 1);
 					}
 				}
 				else if(G.qual== (LR_ALTKEY|LR_CTRLKEY))
@@ -1885,7 +1893,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					allqueue(REDRAWVIEW3D, 0);
 				}
 				else if((G.qual==0)){
-					if (G.vd->persp==2)
+					if (G.vd->persp==V3D_CAMOB)
 						/* center the camera offset */
 						G.vd->camdx= G.vd->camdy= 0.0;
 					else {
@@ -2377,6 +2385,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						clear_bone_parent();
 					else if((G.qual==0) && (G.obedit->type==OB_ARMATURE)) 
 						select_bone_parent();
+					else if((G.qual==(LR_CTRLKEY|LR_SHIFTKEY)) && (G.obedit->type==OB_ARMATURE))
+						separate_armature();
 					else if((G.qual==0) && G.obedit->type==OB_MESH)
 						separatemenu();
 					else if ((G.qual==0) && ELEM(G.obedit->type, OB_CURVE, OB_SURF))
@@ -2733,7 +2743,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						else
 							obmat_to_viewmat(ob, 1);
 						
-						if(G.vd->persp==2) G.vd->persp= 1;
+						if(G.vd->persp==V3D_CAMOB) G.vd->persp= V3D_PERSP;
 						scrarea_queue_winredraw(curarea);
 					}
 				}
@@ -2835,7 +2845,7 @@ static void initview3d(ScrArea *sa)
 	vd->blockscale= 0.7f;
 	vd->viewquat[0]= 1.0f;
 	vd->viewquat[1]= vd->viewquat[2]= vd->viewquat[3]= 0.0f;
-	vd->persp= 1;
+	vd->persp= V3D_PERSP;
 	vd->drawtype= OB_WIRE;
 	vd->view= 7;
 	vd->dist= 10.0;
@@ -3115,6 +3125,10 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case TKEY:
 			if (G.qual==0)
 				set_ipotype();
+			break;
+		case EKEY:
+			if (G.qual==0)
+				set_ipoextend();
 			break;
 		case VKEY:
 			if (G.qual==0)
@@ -5280,18 +5294,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					borderselect_sima(UV_SELECT_ALL);
 				break;
 			case CKEY:
-				if (G.sima->flag & SI_SYNC_UVSEL) {
-					/* operate on the editmesh */
-					if (G.qual==0) {
-						if (G.scene->selectmode != SCE_SELECT_FACE) {
-							G.sima->flag ^= SI_SELACTFACE;
-							scrarea_queue_winredraw(curarea);
-						}
-					} else {
-						error("Sync selection to Edit Mesh disables UV select options");
-					}
-				} else {
-					/* normal operaton */
+				if ((G.sima->flag & SI_SYNC_UVSEL)==0) {
 					if(G.qual==LR_CTRLKEY) {
 						G.sima->sticky = SI_STICKY_VERTEX;
 						scrarea_do_headdraw(curarea);
@@ -5304,6 +5307,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					} else {
 						G.sima->flag ^= SI_SELACTFACE;
 						scrarea_queue_winredraw(curarea);
+						scrarea_queue_headredraw(curarea); /* for the header face buttons */
 					}
 				}
 				break;
@@ -6422,7 +6426,7 @@ void allqueue(unsigned short event, short val)
 			case REDRAWVIEWCAM:
 				if(sa->spacetype==SPACE_VIEW3D) {
 					v3d= sa->spacedata.first;
-					if(v3d->persp>1) scrarea_queue_winredraw(sa);
+					if(v3d->persp==V3D_CAMOB) scrarea_queue_winredraw(sa);
 				}
 				break;
 			case REDRAWINFO:

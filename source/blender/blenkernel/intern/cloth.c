@@ -1,15 +1,12 @@
 /*  cloth.c
 *
 *
-* ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+* ***** BEGIN GPL LICENSE BLOCK *****
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public License
 * as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version. The Blender
-* Foundation also sells licenses for use in proprietary software under
-* the Blender License.  See http://www.blender.org/BL/ for information
-* about this.
+* of the License, or (at your option) any later version.
 *
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
 *
 * Contributor(s): Daniel Genrich
 *
-* ***** END GPL/BL DUAL LICENSE BLOCK *****
+* ***** END GPL LICENSE BLOCK *****
 */
 
 #include "MEM_guardedalloc.h"
@@ -34,6 +31,7 @@
 
 #include "DNA_cloth_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_deform.h"
@@ -92,7 +90,7 @@ static CM_SOLVER_DEF	solvers [] =
 */
 static void cloth_to_object (Object *ob,  ClothModifierData *clmd, DerivedMesh *dm);
 static void cloth_from_mesh ( Object *ob, ClothModifierData *clmd, DerivedMesh *dm );
-static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr);
+static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr, int first);
 int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm );
 static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm );
 
@@ -121,20 +119,14 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->Cvi = 1.0;
 	clmd->sim_parms->mass = 0.3f;
 	clmd->sim_parms->stepsPerFrame = 5;
-	clmd->sim_parms->sim_time = 1.0;
-	clmd->sim_parms->flags = CLOTH_SIMSETTINGS_FLAG_AUTOPROTECT;
+	clmd->sim_parms->flags = 0;
 	clmd->sim_parms->solver_type = 0;
 	clmd->sim_parms->preroll = 0;
 	clmd->sim_parms->maxspringlen = 10;
-	clmd->sim_parms->firstframe = 1;
-	clmd->sim_parms->lastframe = 250;
 	clmd->sim_parms->vgroup_mass = 0;
-	clmd->sim_parms->lastcachedframe = 0;
-	clmd->sim_parms->editedframe = 0;
-	clmd->sim_parms->autoprotect = 25;
-	clmd->sim_parms->firstcachedframe = -1.0;
 	clmd->sim_parms->avg_spring_len = 0.0;
 	clmd->sim_parms->presets = 2; /* cotton as start setting */
+	clmd->sim_parms->timescale = 1.0f; /* speed factor, describes how fast cloth moves */
 	
 	clmd->coll_parms->self_friction = 5.0;
 	clmd->coll_parms->friction = 5.0;
@@ -245,395 +237,261 @@ int modifiers_indexInObject(Object *ob, ModifierData *md_seek);
 
 int cloth_read_cache(Object *ob, ClothModifierData *clmd, float framenr)
 {
-	FILE *fp = NULL;
-	int stack_index = -1;
-	unsigned int a, ret = 1;
+	PTCacheID pid;
+	PTCacheFile *pf;
 	Cloth *cloth = clmd->clothObject;
+	unsigned int a, ret = 1;
 	
 	if(!cloth)
 		return 0;
 	
-	stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
-	
-	fp = BKE_ptcache_id_fopen((ID *)ob, 'r', framenr, stack_index);
-	if(!fp)
-		ret = 0;
-	else {
-		for(a = 0; a < cloth->numverts; a++)
-		{
-			if(fread(&cloth->verts[a].x, sizeof(float), 3, fp) != 3) 
-			{
+	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
+	pf = BKE_ptcache_file_open(&pid, PTCACHE_FILE_READ, framenr);
+	if(pf) {
+		for(a = 0; a < cloth->numverts; a++) {
+			if(!BKE_ptcache_file_read_floats(pf, cloth->verts[a].x, 3)) {
 				ret = 0;
 				break;
 			}
-			if(fread(&cloth->verts[a].xconst, sizeof(float), 3, fp) != 3) 
-			{
+			if(!BKE_ptcache_file_read_floats(pf, cloth->verts[a].xconst, 3)) {
 				ret = 0;
 				break;
 			}
-			if(fread(&cloth->verts[a].v, sizeof(float), 3, fp) != 3) 
-			{
+			if(!BKE_ptcache_file_read_floats(pf, cloth->verts[a].v, 3)) {
 				ret = 0;
 				break;
 			}
 		}
 		
-		fclose(fp);
-		
-		if(clmd->sim_parms->lastcachedframe < framenr)
-		{
-			if(G.rt > 0)
-				printf("cloth_read_cache problem: lnex - f#: %f, lastCF: %d\n", framenr, clmd->sim_parms->lastcachedframe);
-		}
-		
-		if(G.rt > 0)
-			printf("cloth_read_cache: %f successfully \n", framenr);
+		BKE_ptcache_file_close(pf);
 	}
-	
-	if(G.rt > 0)
-		printf("cloth_read_cache: %f\n", framenr);
+	else
+		ret = 0;
 	
 	return ret;
 }
 
 void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr)
 {
-	int stack_index = -1;
+	PTCacheID pid;
 	
+	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
+
 	// don't do anything as long as we're in editmode!
-	if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_EDITMODE)
-	{
-		/* delete cache free request */
-		clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
-		
+	if(pid.cache->flag & PTCACHE_BAKE_EDIT_ACTIVE)
 		return;
-	}
 	
-	/* clear cache if specific frame cleaning requested or cache is not protected */
-	if((!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT)) || (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE))
-	{
-		stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
-		
-		BKE_ptcache_id_clear((ID *)ob, PTCACHE_CLEAR_AFTER, framenr, stack_index);
-		
-		/* update last cached frame # */
-		clmd->sim_parms->lastcachedframe = framenr;
-		
-		/* update first cached frame # */
-		if((framenr < clmd->sim_parms->firstcachedframe) && (clmd->sim_parms->firstcachedframe >=0.0))
-			clmd->sim_parms->firstcachedframe = -1.0;
-		
-		if(G.rt > 0)
-			printf("cloth_clear_cache: %f\n", framenr);
-	}
-	
-	/* delete cache free request */
-	clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
-	
-	
+	BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_AFTER, framenr);
 }
+
 void cloth_write_cache(Object *ob, ClothModifierData *clmd, float framenr)
 {
-	FILE *fp = NULL;
-	int stack_index = -1;
-	unsigned int a;
 	Cloth *cloth = clmd->clothObject;
-	
-	if(G.rt > 0)
-		printf("cloth_write_cache: %f\n", framenr);
+	PTCacheID pid;
+	PTCacheFile *pf;
+	unsigned int a;
 	
 	if(!cloth)
-	{
-		if(G.rt > 0)
-			printf("cloth_write_cache: no cloth\n");
 		return;
-	}
 	
-	stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
-	
-	fp = BKE_ptcache_id_fopen((ID *)ob, 'w', framenr, stack_index);
-	if(!fp)
-	{
-		if(G.rt > 0)
-			printf("cloth_write_cache: no fp\n");
+	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
+	pf = BKE_ptcache_file_open(&pid, PTCACHE_FILE_WRITE, framenr);
+	if(!pf)
 		return;
+	
+	for(a = 0; a < cloth->numverts; a++) {
+		BKE_ptcache_file_write_floats(pf, cloth->verts[a].x, 3);
+		BKE_ptcache_file_write_floats(pf, cloth->verts[a].xconst, 3);
+		BKE_ptcache_file_write_floats(pf, cloth->verts[a].v, 3);
 	}
 	
-	for(a = 0; a < cloth->numverts; a++)
-	{
-		fwrite(&cloth->verts[a].x, sizeof(float),3,fp);
-		fwrite(&cloth->verts[a].xconst, sizeof(float),3,fp);
-		fwrite(&cloth->verts[a].v, sizeof(float),3,fp);
-	}
-	
-	/* update last cached frame # */
-	clmd->sim_parms->lastcachedframe = MAX2(clmd->sim_parms->lastcachedframe, framenr);
-	
-	/* update first cached frame # */
-	if((clmd->sim_parms->firstcachedframe < 0.0) || ((framenr < clmd->sim_parms->firstcachedframe) && (clmd->sim_parms->firstcachedframe > 0.0)))
-		clmd->sim_parms->firstcachedframe = framenr;
-	
-	if(G.rt > 0)
-		printf("lcf: %d, framenr: %f\n", clmd->sim_parms->lastcachedframe, framenr);
+	BKE_ptcache_file_close(pf);
+}
 
-	fclose(fp);
+static int do_init_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *result, int framenr)
+{
+	PointCache *cache;
+
+	cache= clmd->point_cache;
+
+	/* initialize simulation data if it didn't exist already */
+	if(clmd->clothObject == NULL) {	
+		if(!cloth_from_object(ob, clmd, result, framenr, 1)) {
+			cache->flag &= ~PTCACHE_SIMULATION_VALID;
+			cache->simframe= 0;
+			return 0;
+		}
+	
+		if(clmd->clothObject == NULL) {
+			cache->flag &= ~PTCACHE_SIMULATION_VALID;
+			cache->simframe= 0;
+			return 0;
+		}
+	
+		implicit_set_positions(clmd);
+	}
+
+	return 1;
+}
+
+static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *result, int framenr)
+{
+	ClothVertex *verts = NULL;
+	Cloth *cloth;
+	ListBase *effectors = NULL;
+	MVert *mvert;
+	int i, ret = 0;
+
+	/* simulate 1 frame forward */
+	cloth = clmd->clothObject;
+	verts = cloth->verts;
+	mvert = result->getVertArray(result);
+
+	/* force any pinned verts to their constrained location. */
+	for(i = 0; i < clmd->clothObject->numverts; i++, verts++) {
+		/* save the previous position. */
+		VECCOPY(verts->xold, verts->xconst);
+		VECCOPY(verts->txold, verts->x);
+
+		/* Get the current position. */
+		VECCOPY(verts->xconst, mvert[i].co);
+		Mat4MulVecfl(ob->obmat, verts->xconst);
+	}
+	
+	tstart();
+
+	/* call the solver. */
+	if(solvers [clmd->sim_parms->solver_type].solver)
+		ret = solvers[clmd->sim_parms->solver_type].solver(ob, framenr, clmd, effectors);
+
+	tend();
+
+	/* printf ( "Cloth simulation time: %f\n", ( float ) tval() ); */
+	
+	return ret;
 }
 
 /************************************************
  * clothModifier_do - main simulation function
 ************************************************/
-DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
-
+DerivedMesh *clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
 {
-	unsigned int i;
-	Cloth *cloth = clmd->clothObject;
-	float framenr = G.scene->r.cfra;
-	float current_time = bsystem_time ( ob, ( float ) G.scene->r.cfra, 0.0 );
-	ListBase *effectors = NULL;
-	ClothVertex *verts = NULL;
-	float deltaTime = current_time - clmd->sim_parms->sim_time;
-	unsigned int numverts = -1;
-	unsigned int numedges = -1;
-	unsigned int numfaces = -1;
-	MVert *mvert = NULL;
-	MEdge *medge = NULL;
-	MFace *mface = NULL;
-	DerivedMesh *result = NULL;
-	int ret = 0;
-	
-	if(G.rt > 0)
-		printf("clothModifier_do start\n");
-	
-	/* we're getting called two times during file load,
-	resulting in a not valid G.relbase on the first time (cache makes problems)
-	--> just return back */
-	if((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_LOADED) && (!G.relbase_valid)) 
-	{
-		clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_LOADED;
-		return dm;
-	}
-	
+	DerivedMesh *result;
+	PointCache *cache;
+	PTCacheID pid;
+	float timescale;
+	int framedelta, framenr, startframe, endframe;
+
+	framenr= (int)G.scene->r.cfra;
+	cache= clmd->point_cache;
 	result = CDDM_copy(dm);
-	
-	if(!result)
-	{
+
+	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
+	BKE_ptcache_id_time(&pid, framenr, &startframe, &endframe, &timescale);
+	clmd->sim_parms->timescale= timescale;
+
+	if(!result) {
+		cache->flag &= ~PTCACHE_SIMULATION_VALID;
+		cache->simframe= 0;
 		return dm;
 	}
 	
-	numverts = result->getNumVerts(result);
-	numedges = result->getNumEdges(result);
-	numfaces = result->getNumFaces(result);
-	mvert = dm->getVertArray(result);
-	medge = dm->getEdgeArray(result);
-	mface = dm->getFaceArray(result);
-	
-	/* check if cache is active / if file is already saved */
-	/*
-	if ((!G.relbase_valid) && ( deltaTime != 1.0f ))
-	{
-	clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-}
-	*/
-	
-	if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_RESET)
-	{	
-		cloth_free_modifier (ob, clmd);
-		if(G.rt > 0)
-			printf("clothModifier_do CLOTH_SIMSETTINGS_FLAG_RESET\n");
-		
-		// prevent rebuilding of cloth each time you move backward 
-		if(deltaTime < 0.0)
+	/* verify we still have the same number of vertices, if not do nothing.
+	 * note that this should only happen if the number of vertices changes
+	 * during an animation due to a preceding modifier, this should not
+	 * happen because of object changes! */
+	if(clmd->clothObject) {
+		if(result->getNumVerts(result) != clmd->clothObject->numverts) {
+			cache->flag &= ~PTCACHE_SIMULATION_VALID;
+			cache->simframe= 0;
 			return result;
+		}
 	}
 	
 	// unused in the moment, calculated seperately in implicit.c
-	clmd->sim_parms->dt = 1.0f / clmd->sim_parms->stepsPerFrame;
-	
-	if ( ( clmd->clothObject == NULL ) || (clmd->clothObject && (numverts != clmd->clothObject->numverts )) )
-	{	
-		/* only force free the cache if we have a different number of verts */
-		if(clmd->clothObject && (numverts != clmd->clothObject->numverts ))
-		{
-			if(G.rt > 0)
-				printf("Force Freeing: numverts != clmd->clothObject->numverts\n");
-			
-			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
-			cloth_free_modifier ( ob, clmd );
-		}
-		
-		cloth_clear_cache(ob, clmd, 0);
-				
-		if ( !cloth_from_object ( ob, clmd, result, framenr ) )
+	clmd->sim_parms->dt = clmd->sim_parms->timescale / clmd->sim_parms->stepsPerFrame;
+
+	/* handle continuous simulation with the play button */
+	if(BKE_ptcache_get_continue_physics()) {
+		cache->flag &= ~PTCACHE_SIMULATION_VALID;
+		cache->simframe= 0;
+
+		/* do simulation */
+		if(!do_init_cloth(ob, clmd, result, framenr))
 			return result;
-	
-		if ( clmd->clothObject == NULL )
-			return result;
-	
-		cloth = clmd->clothObject;
-		
-		if(!cloth_read_cache(ob, clmd, framenr))
-		{
-			/* save first frame in case we have a reseted object 
-			and we move one frame forward.
-			In that case we would only start with the SECOND frame
-			if we don't save the current state before 
-			TODO PROBLEM: IMHO we can't track external movement from the
-			first frame in this case! */
-			/*
-			if ( deltaTime == 1.0f )
-			cloth_write_cache(ob, clmd, framenr-1.0);
-			*/
-			if(G.rt > 0)
-				printf("cloth_from_object NO cloth_read_cache cloth_write_cache\n");
-		}
-		else
-		{
-			if(G.rt > 0)
-				printf("cloth_from_object cloth_read_cache\n");
-			
-			implicit_set_positions(clmd);
-		}
-		
-		clmd->sim_parms->sim_time = current_time;
-	}
-	
-	// only be active during a specific period:
-	// that's "first frame" and "last frame" on GUI
-	if ( current_time < clmd->sim_parms->firstframe )
-	{
-		if(G.rt > 0)
-			printf("current_time < clmd->sim_parms->firstframe\n");
+
+		do_step_cloth(ob, clmd, result, framenr);
+		cloth_to_object(ob, clmd, result);
+
 		return result;
 	}
-	else if ( current_time > clmd->sim_parms->lastframe )
-	{
-		int stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
-			
-		if(G.rt > 0)
-			printf("current_time > clmd->sim_parms->lastframe\n");
-		
-		if(BKE_ptcache_id_exist((ID *)ob, clmd->sim_parms->lastcachedframe, stack_index))
-		{
-			if(cloth_read_cache(ob, clmd, clmd->sim_parms->lastcachedframe))
-			{
-				implicit_set_positions(clmd);
-				
-				// Copy the result back to the object.
-				cloth_to_object (ob, clmd, result);
-			}
-		}
+
+	/* simulation is only active during a specific period */
+	if(framenr < startframe) {
+		cache->flag &= ~PTCACHE_SIMULATION_VALID;
+		cache->simframe= 0;
 		return result;
 	}
-	
-	// check for autoprotection, but only if cache active
-	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_AUTOPROTECT)
-	{
-		if((framenr >= clmd->sim_parms->autoprotect) && (G.relbase_valid))
-		{
-			if(G.rt > 0)
-				printf("fr#: %f, auto: %d\n", framenr, clmd->sim_parms->autoprotect);
-			
-			clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT;
-		}
+	else if(framenr > endframe) {
+		framenr= endframe;
 	}
-	
-	/* nice moving one frame forward */
-	if ( deltaTime == 1.0f )
-	{
-		clmd->sim_parms->sim_time = current_time;
-			
-		if(G.rt > 0)
-			printf("clothModifier_do deltaTime=1\n");
-		
-		if(!cloth_read_cache(ob, clmd, framenr))
-		{
-			verts = cloth->verts;
 
-			// Force any pinned verts to their constrained location.
-			for ( i = 0; i < clmd->clothObject->numverts; i++, verts++ )
-			{
-				// Save the previous position.
-				VECCOPY ( verts->xold, verts->xconst );
-				VECCOPY ( verts->txold, verts->x );
+	if(cache->flag & PTCACHE_SIMULATION_VALID)
+		framedelta= framenr - cache->simframe;
+	else
+		framedelta= -1;
 
-				// Get the current position.
-				VECCOPY ( verts->xconst, mvert[i].co );
-				Mat4MulVecfl ( ob->obmat, verts->xconst );
-			}
-			
-			tstart();
+	/* initialize simulation data if it didn't exist already */
+	if(!do_init_cloth(ob, clmd, result, framenr))
+		return result;
 
-			// Call the solver.
-			if ( solvers [clmd->sim_parms->solver_type].solver )
-			{
-				ret = solvers [clmd->sim_parms->solver_type].solver ( ob, framenr, clmd, effectors );
-			}
+	/* try to read from cache */
+	if(cloth_read_cache(ob, clmd, framenr)) {
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+		cache->simframe= framenr;
 
-			tend();
-			// printf ( "Cloth simulation time: %f\n", ( float ) tval() );
-			
-			if(ret)
-				cloth_write_cache(ob, clmd, framenr);
-			else
-				clmd->sim_parms->sim_time--;
+		implicit_set_positions(clmd);
+		cloth_to_object (ob, clmd, result);
+
+		return result;
+	}
+	else if(ob->id.lib || (cache->flag & PTCACHE_BAKED)) {
+		/* if baked and nothing in cache, do nothing */
+		cache->flag &= ~PTCACHE_SIMULATION_VALID;
+		cache->simframe= 0;
+		return result;
+	}
+
+	if(framenr == startframe) {
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+		cache->simframe= framenr;
+
+		/* don't write cache on first frame, but on second frame write
+		 * cache for frame 1 and 2 */
+	}
+	else if(framedelta == 1) {
+		/* if on second frame, write cache for first frame */
+		if(framenr == startframe+1)
+			cloth_write_cache(ob, clmd, startframe);
+
+		/* do simulation */
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+		cache->simframe= framenr;
+
+		if(!do_step_cloth(ob, clmd, result, framenr)) {
+			cache->flag &= ~PTCACHE_SIMULATION_VALID;
+			cache->simframe= 0;
 		}
 		else
-		{
-			if(G.rt > 0)
-				printf("clothModifier_do deltaTime=1 cacheread\n");
-			implicit_set_positions(clmd);
-		}
-		
-		// Copy the result back to the object.
+			cloth_write_cache(ob, clmd, framenr);
+
 		cloth_to_object (ob, clmd, result);
 	}
-	else if(deltaTime == 0.0f) 
-	{	
-		if(G.rt > 0)
-			printf("dt = 0, %f\n", framenr);
-		if(cloth_read_cache(ob, clmd, framenr))
-		{
-			cloth_to_object (ob, clmd, result);
-			implicit_set_positions(clmd);
-		}
-		else /* same cache parts are missing */
-		{
-			/* jump to a non-existing frame makes sim reset if cache is not protected */
-			if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
-			{	
-				/* prevent freeing when used with vectorblur */
-				if(!useRenderParams)
-				{
-					clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE;
-					cloth_clear_cache(ob, clmd, 0);
-					
-					cloth_write_cache(ob, clmd, framenr);
-				}
-			}
-		}
+	else {
+		cache->flag &= ~PTCACHE_SIMULATION_VALID;
+		cache->simframe= 0;
 	}
-	else
-	{	
-		if(G.rt > 0)
-			printf("dt > 1.0 || dt < 0.0, %f, st: %f, ct: %f\n", framenr, clmd->sim_parms->sim_time, current_time);
-		if(cloth_read_cache(ob, clmd, framenr))
-		{
-			cloth_to_object (ob, clmd, result);
-			implicit_set_positions(clmd);
-		}
-		else
-		{
-			/* jump to a non-existing frame makes sim reset if cache is not protected */
-			if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
-			{
-				/* prevent freeing when used with vectorblur */
-				if(!useRenderParams)
-					clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-			}
-		}
-		clmd->sim_parms->sim_time = current_time;
-	}
-	
+
 	return result;
 }
 
@@ -701,7 +559,6 @@ void cloth_free_modifier ( Object *ob, ClothModifierData *clmd )
 		MEM_freeN ( cloth );
 		clmd->clothObject = NULL;
 	}
-	clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_RESET;
 }
 
 /* frees all */
@@ -887,13 +744,12 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 	}
 }
 
-static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr)
+static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr, int first)
 {
 	unsigned int i = 0;
 	MVert *mvert = NULL;
 	ClothVertex *verts = NULL;
 	float tnull[3] = {0,0,0};
-	int cache_there = 0;
 	Cloth *cloth = NULL;
 
 	// If we have a clothObject, free it. 
@@ -925,21 +781,6 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 
 	cloth_from_mesh ( ob, clmd, dm );
 
-	if((clmd->sim_parms->firstcachedframe < 0.0) || ((clmd->sim_parms->firstcachedframe >= 0.0) && (!cloth_read_cache(ob, clmd, clmd->sim_parms->firstcachedframe))))
-	{
-		// no cache there
-		cache_there = 0;
-		if(G.rt > 0)
-			printf("cache_there = 0\n");
-	}
-	else
-	{
-		// we have a cache
-		cache_there = 1;
-		if(G.rt > 0)
-			printf("cache_there = 1, fcf: %d\n", clmd->sim_parms->firstcachedframe);
-	}
-	
 	// create springs 
 	clmd->clothObject->springs = NULL;
 	clmd->clothObject->numsprings = -1;
@@ -950,7 +791,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	// set initial values
 	for ( i = 0; i < dm->getNumVerts(dm); i++, verts++ )
 	{
-		if(!cache_there)
+		if(first)
 		{
 			VECCOPY ( verts->x, mvert[i].co );
 			Mat4MulVecfl ( ob->obmat, verts->x );
@@ -997,10 +838,11 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	}
 	
 	// init our solver
-	if ( solvers [clmd->sim_parms->solver_type].init )
+	if ( solvers [clmd->sim_parms->solver_type].init ) {
 		solvers [clmd->sim_parms->solver_type].init ( ob, clmd );
+	}
 	
-	if(cache_there)
+	if(!first)
 		implicit_set_positions(clmd);
 
 	clmd->clothObject->tree = bvh_build_from_cloth ( clmd, clmd->coll_parms->epsilon );

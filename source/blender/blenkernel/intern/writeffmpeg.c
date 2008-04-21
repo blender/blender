@@ -220,6 +220,10 @@ static const char** get_file_extensions(int format)
 		static const char * rv[] = { ".avi", NULL };
 		return rv;
 	}
+	case FFMPEG_FLV: {
+		static const char * rv[] = { ".flv", NULL };
+		return rv;
+	}
 	default:
 		return NULL;
 	}
@@ -598,6 +602,9 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 		break;
 	case FFMPEG_XVID:
 		fmt->video_codec = CODEC_ID_XVID;
+		break;
+	case FFMPEG_FLV:
+		fmt->video_codec = CODEC_ID_FLV1;
 		break;
 	case FFMPEG_MPEG4:
 	default:

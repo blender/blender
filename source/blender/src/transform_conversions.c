@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef HAVE_CONFIG_H
@@ -95,6 +92,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
@@ -284,6 +282,7 @@ static void createTransTexspace(TransInfo *t)
 	TransData *td;
 	Object *ob;
 	ID *id;
+	int *texflag;
 	
 	ob= OBACT;
 	
@@ -311,26 +310,8 @@ static void createTransTexspace(TransInfo *t)
 	Mat3Ortho(td->axismtx);
 	Mat3Inv(td->smtx, td->mtx);
 	
-	if( GS(id->name)==ID_ME) {
-		Mesh *me= ob->data;
-		me->texflag &= ~AUTOSPACE;
-		td->loc= me->loc;
-		td->ext->rot= me->rot;
-		td->ext->size= me->size;
-	}
-	else if( GS(id->name)==ID_CU) {
-		Curve *cu= ob->data;
-		cu->texflag &= ~CU_AUTOSPACE;
-		td->loc= cu->loc;
-		td->ext->rot= cu->rot;
-		td->ext->size= cu->size;
-	}
-	else if( GS(id->name)==ID_MB) {
-		MetaBall *mb= ob->data;
-		mb->texflag &= ~MB_AUTOSPACE;
-		td->loc= mb->loc;
-		td->ext->rot= mb->rot;
-		td->ext->size= mb->size;
+	if (give_obdata_texspace(ob, &texflag, &td->loc, &td->ext->size, &td->ext->rot)) {
+		*texflag &= ~AUTOSPACE;
 	}
 	
 	VECCOPY(td->iloc, td->loc);
@@ -1252,6 +1233,18 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 	}
 }
 
+/* Utility function for getting the handle data from bezier's */
+TransDataCurveHandleFlags *initTransDataCurveHandes(TransData *td, struct BezTriple *bezt) {
+	TransDataCurveHandleFlags *hdata;
+	td->flag |= TD_BEZTRIPLE;
+	hdata = td->hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
+	hdata->ih1 = bezt->h1;
+	hdata->h1 = &bezt->h1;
+	hdata->ih2 = bezt->h2; /* incase the second is not selected */
+	hdata->h2 = &bezt->h2;
+	return hdata;
+}
+
 static void createTransCurveVerts(TransInfo *t)
 {
 	TransData *td = NULL;
@@ -1298,7 +1291,7 @@ static void createTransCurveVerts(TransInfo *t)
 
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
-
+	
     td = t->data;
 	for(nu= editNurb.first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
@@ -1306,6 +1299,7 @@ static void createTransCurveVerts(TransInfo *t)
 			head = tail = td;
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
 				if(bezt->hide==0) {
+					TransDataCurveHandleFlags *hdata = NULL;
 					
 					if(		propmode ||
 							((bezt->f2 & SELECT) && (G.f & G_HIDDENHANDLES)) ||
@@ -1324,6 +1318,8 @@ static void createTransCurveVerts(TransInfo *t)
 						td->ext = NULL;
 						td->tdi = NULL;
 						td->val = NULL;
+						
+						hdata = initTransDataCurveHandes(td, bezt);
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -1355,7 +1351,13 @@ static void createTransCurveVerts(TransInfo *t)
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
-
+						
+						if ((bezt->f1&SELECT)==0 && (bezt->f3&SELECT)==0)
+						/* If the middle is selected but the sides arnt, this is needed */
+						if (hdata==NULL) { /* if the handle was not saved by the previous handle */
+							hdata = initTransDataCurveHandes(td, bezt);
+						}
+						
 						td++;
 						count++;
 						tail++;
@@ -1378,6 +1380,10 @@ static void createTransCurveVerts(TransInfo *t)
 						td->tdi = NULL;
 						td->val = NULL;
 
+						if (hdata==NULL) { /* if the handle was not saved by the previous handle */
+							hdata = initTransDataCurveHandes(td, bezt);
+						}
+						
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
 
@@ -1393,6 +1399,8 @@ static void createTransCurveVerts(TransInfo *t)
 			}
 			if (propmode && head != tail)
 				calc_distanceCurveVerts(head, tail-1);
+			
+			testhandlesNurb(nu); /* sets the handles based on their selection, do this after the data is copied to the TransData */
 		}
 		else {
 			TransData *head, *tail;
@@ -1806,7 +1814,7 @@ static void VertsToTransData(TransData *td, EditVert *eve)
 	td->ext = NULL;
 	td->tdi = NULL;
 	td->val = NULL;
-	td->tdmir= NULL;
+	td->tdmir = NULL;
 	if (BIF_GetTransInfo()->mode == TFM_BWEIGHT) {
 		td->val = &(eve->bweight);
 		td->ival = eve->bweight;
@@ -2001,7 +2009,7 @@ static void createTransEditVerts(TransInfo *t)
 	int propmode = t->flag & T_PROP_EDIT;
 	int mirror = 0;
 	
-	if ((t->context & CTX_NO_MIRROR) == 0 || (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
+	if ((t->context & CTX_NO_MIRROR) == 0 && (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
 	{
 		mirror = 1;
 	}
@@ -2159,7 +2167,7 @@ static void createTransEditVerts(TransInfo *t)
 				/* Mirror? */
 				if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
 					EditVert *vmir= editmesh_get_x_mirror_vert(G.obedit, tob->iloc);	/* initializes octree on first call */
-					if(vmir!=eve) tob->tdmir= vmir;
+					if(vmir != eve) tob->tdmir = vmir;
 				}
 				tob++;
 			}
@@ -3094,8 +3102,9 @@ static void set_trans_object_base_flags(TransInfo *t)
 			ob->recalc |= OB_RECALC_OB;
 		}
 	}
+
 	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
-	DAG_scene_flush_update(G.scene, -1);
+	DAG_scene_flush_update(G.scene, -1, 0);
 	
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
@@ -3409,7 +3418,7 @@ static void recalc_all_ipos(void)
 	}
 }
 
-/* inserting keys, refresh ipo-keys, softbody, redraw events... (ton) */
+/* inserting keys, refresh ipo-keys, pointcache, redraw events... (ton) */
 /* note: transdata has been freed already! */
 void special_aftertrans_update(TransInfo *t)
 {
@@ -3419,10 +3428,14 @@ void special_aftertrans_update(TransInfo *t)
 	int cancelled= (t->state == TRANS_CANCEL);
 	
 	if (t->spacetype==SPACE_VIEW3D) {
-		EM_automerge(1);
-		/* when snapping, delay retopo until after automerge */
-		if (G.qual & LR_CTRLKEY) {
-			retopo_do_all();
+		if (G.obedit) {
+			if (cancelled==0) {
+				EM_automerge(1);
+				/* when snapping, delay retopo until after automerge */
+				if (G.qual & LR_CTRLKEY) {
+					retopo_do_all();
+				}
+			}
 		}
 	}
 	if (t->spacetype == SPACE_ACTION) {
@@ -3559,16 +3572,13 @@ void special_aftertrans_update(TransInfo *t)
 			
 			ob= base->object;
 			
-			if (modifiers_isSoftbodyEnabled(ob)) ob->softflag |= OB_SB_REDO;
-			else if((ob == OBACT) && modifiers_isClothEnabled(ob)) {
-				ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-				if(clmd)
-					clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-			}
-			
-			/* Set autokey if necessary */
-			if ((!cancelled) && (t->mode != TFM_DUMMY) && (base->flag & SELECT)) {
-				autokeyframe_ob_cb_func(ob, t->mode);
+			if(base->flag & SELECT && (t->mode != TFM_DUMMY)) {
+				if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
+					ob->recalc |= OB_RECALC_DATA;
+				
+				/* Set autokey if necessary */
+				if (!cancelled)
+					autokeyframe_ob_cb_func(ob, t->mode);
 			}
 			
 			base= base->next;
@@ -3844,7 +3854,7 @@ void createTransData(TransInfo *t)
 		t->flag |= T_OBJECT;
 	}
 
-	if((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp>1) {
+	if((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp==V3D_CAMOB) {
 		t->flag |= T_CAMERA;
 	}
 	

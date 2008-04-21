@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): 2007, Joshua Leung, major recode
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h> 
@@ -3178,12 +3175,6 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 			}
 		}
 		
-		/* convert radians<->degrees */
-		if (data->to == 1) {
-			/* if output is rotation, convert to radians from degrees */
-			for (i=0; i<3; i++) 
-				sval[i] = sval[i] / 180 * M_PI;
-		}
 		
 		/* apply transforms */
 		switch (data->to) {
@@ -3195,11 +3186,14 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 				for (i=0; i<3; i++) {
 					float tmin, tmax;
 					
-					/* convert destination min/max ranges from degrees to radians */
-					tmin= data->to_min[i] / M_PI * 180;
-					tmax= data->to_max[i] / M_PI * 180;
+					tmin= data->to_min[i];
+					tmax= data->to_max[i];
 					
+					/* all values here should be in degrees */
 					eul[i]= tmin + (sval[data->map[i]] * (tmax - tmin)); 
+					
+					/* now convert final value back to radians */
+					eul[i] = eul[i] / 180 * M_PI;
 				}
 				break;
 			default: /* location */

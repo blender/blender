@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "KX_NearSensor.h"
@@ -76,6 +73,21 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 		m_physCtrl->setNewClientInfo(m_client_info);
 	}
 	SynchronizeTransform();
+}
+
+void KX_NearSensor::SynchronizeTransform()
+{
+	// The near and radar sensors are using a different physical object which is 
+	// not linked to the parent object, must synchronize it.
+	if (m_physCtrl)
+	{
+		KX_GameObject* parent = ((KX_GameObject*)GetParent());
+		MT_Vector3 pos = parent->NodeGetWorldPosition();
+		MT_Quaternion orn = parent->NodeGetWorldOrientation().getRotation();
+		m_physCtrl->setPosition(pos.x(),pos.y(),pos.z());
+		m_physCtrl->setOrientation(orn.x(),orn.y(),orn.z(),orn.w());
+		m_physCtrl->calcXform();
+	}
 }
 
 void KX_NearSensor::RegisterSumo(KX_TouchEventManager *touchman)

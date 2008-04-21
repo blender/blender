@@ -61,6 +61,7 @@
 #define BLU 2
 #define EXP 3
 #define COLXS 128
+#define STR_MAX 540
 typedef unsigned char RGBE[4];
 typedef float fCOLOR[3];
 /* copy source -> dest */
@@ -192,7 +193,8 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 			}
 		}
 		if (found) {
-			sscanf((char*)&mem[x+1], "%s %d %s %d", (char*)&oriY, &height, (char*)&oriX, &width);
+			if (sscanf((char *)&mem[x+1], "%79s %d %79s %d", (char*)&oriY, &height, 
+				(char*)&oriX, &width) != 4) return NULL;
 
 			/* find end of this line, data right behind it */
 			ptr = (unsigned char *)strchr((char*)&mem[x+1], '\n');

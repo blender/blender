@@ -650,7 +650,7 @@ static void strand_render(Render *re, StrandSegment *sseg, float winmat[][4], St
 			do_scanconvert_strand(re, spart, zspan, t, dt, p1->zco2, p1->zco1, p2->zco1, p2->zco2, 0);
 	}
 	else {
-		float hoco1[4], hoco2[3];
+		float hoco1[4], hoco2[4];
 		int a, obi, index;
   
 		obi= sseg->obi - re->objectinstance;

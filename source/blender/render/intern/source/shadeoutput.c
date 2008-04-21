@@ -429,10 +429,6 @@ static float area_lamp_energy(float (*area)[3], float *co, float *vn)
 	double cross[4][3];	/* cross products of this */
 	double rad[4];		/* angles between vecs */
 
-	/* extra test for dot */
-	if ( INPR(co, vn) <= 0.0f)
-		return 0.0f;
-	
 	VECSUB(vec[0], co, area[0]);
 	VECSUB(vec[1], co, area[1]);
 	VECSUB(vec[2], co, area[2]);
@@ -1307,7 +1303,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	}
 	
 	/* 'is' is diffuse */
-	if((ma->shade_flag & MA_CUBIC) && is>0.0f)
+	if((ma->shade_flag & MA_CUBIC) && is>0.0f && is<1.0f)
 		is= 3.0*is*is - 2.0*is*is*is;	// nicer termination of shades
 
 	i= is*phongcorr;
@@ -1620,10 +1616,13 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		if (shr->shad[2] < 0) shr->shad[2] = 0;
 						
 		if(ma->sss_flag & MA_DIFF_SSS) {
-			float sss[3], col[3], texfac= ma->sss_texfac;
+			float sss[3], col[3], alpha, invalpha, texfac= ma->sss_texfac;
 
 			/* this will return false in the preprocess stage */
 			if(sample_sss(&R, ma, shi->co, sss)) {
+				alpha= shr->col[3];
+				invalpha= (alpha > FLT_EPSILON)? 1.0f/alpha: 1.0f;
+
 				if(texfac==0.0f) {
 					VECCOPY(col, shr->col);
 				}
@@ -1631,19 +1630,20 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 					col[0]= col[1]= col[2]= 1.0f;
 				}
 				else {
-					col[0]= pow(shr->col[0], 1.0f-texfac);
-					col[1]= pow(shr->col[1], 1.0f-texfac);
-					col[2]= pow(shr->col[2], 1.0f-texfac);
+					VECCOPY(col, shr->col);
+					col[0]= alpha*pow(col[0]*invalpha, 1.0f-texfac);
+					col[1]= alpha*pow(col[1]*invalpha, 1.0f-texfac);
+					col[2]= alpha*pow(col[2]*invalpha, 1.0f-texfac);
 				}
 
-				shr->diff[0]= sss[0]*col[0];
-				shr->diff[1]= sss[1]*col[1];
-				shr->diff[2]= sss[2]*col[2];
+				shr->diff[0]= sss[0]*col[0]*invalpha;
+				shr->diff[1]= sss[1]*col[1]*invalpha;
+				shr->diff[2]= sss[2]*col[2]*invalpha;
 
 				if(shi->combinedflag & SCE_PASS_SHADOW)	{
-					shr->shad[0]= sss[0]*col[0];
-					shr->shad[1]= sss[1]*col[1];
-					shr->shad[2]= sss[2]*col[2];
+					shr->shad[0]= shr->diff[0];
+					shr->shad[1]= shr->diff[1];
+					shr->shad[2]= shr->diff[2];
 				}
 			}
 		}
@@ -1661,7 +1661,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		}
 		
 		/* exposure correction */
-		if(R.wrld.exp!=0.0f || R.wrld.range!=1.0f) {
+		if((R.wrld.exp!=0.0f || R.wrld.range!=1.0f) && !R.sss_points) {
 			wrld_exposure_correct(shr->combined);	/* has no spec! */
 			wrld_exposure_correct(shr->spec);
 		}

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #define PY_TOOLBOX 1
@@ -294,13 +291,14 @@ short button(short *var, short min, short max, char *str)
 	return 0;
 }
 
-short sbutton(char *var, float min, float max, char *str)
+short sbutton(char *var, short min, short max, char *str)
 {
 	uiBlock *block;
 	ListBase listb={0, 0};
 	short x1,y1;
 	short mval[2], ret=0;
-
+	char *editvar = NULL; /* dont edit the original text, incase we cancel the popup */
+	
 	if(min>max) min= max;
 
 	getmouseco_sc(mval);
@@ -316,7 +314,10 @@ short sbutton(char *var, float min, float max, char *str)
 	x1=mval[0]-250; 
 	y1=mval[1]-20; 
 	
-	uiDefButC(block, TEX, 32766, str,	x1+5,y1+10,225,20, var,(float)min,(float)max, 0, 0, "");
+	editvar = MEM_callocN(max, "sbutton");
+	BLI_strncpy(editvar, var, max);
+	
+	uiDefButC(block, TEX, 32766, str,	x1+5,y1+10,225,20, editvar,(float)min,(float)max, 0, 0, "");
 	uiDefBut(block, BUT, 32767, "OK",	x1+236,y1+10,25,20, NULL, 0, 0, 0, 0, "");
 
 	uiBoundsBlock(block, 5);
@@ -324,7 +325,12 @@ short sbutton(char *var, float min, float max, char *str)
 	mainqenter_ext(BUT_ACTIVATE, 32766, 0);	/* note, button id '32766' is asking for errors some day! */
 	ret= uiDoBlocks(&listb, 0, 0);
 
-	if(ret==UI_RETURN_OK) return 1;
+	if(ret==UI_RETURN_OK) {
+		BLI_strncpy(var, editvar, max);
+		MEM_freeN(editvar);
+		return 1;
+	}
+	MEM_freeN(editvar);
 	return 0;
 	
 }

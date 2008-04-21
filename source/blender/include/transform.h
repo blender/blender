@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef TRANSFORM_H
@@ -46,7 +43,7 @@ struct View3D;
 struct ScrArea;
 struct bPose;
 struct bConstraint;
-
+struct BezTriple;
 
 typedef struct NDofInput {
 	int		flag;
@@ -137,6 +134,13 @@ typedef struct TransData2D {
 	float *loc2d;		/* Pointer to real 2d location of data */
 } TransData2D;
 
+/* we need to store 2 handles for each transdata incase the other handle wasnt selected */
+typedef struct TransDataCurveHandleFlags {
+	short ih1, ih2;
+	short *h1, *h2;
+} TransDataCurveHandleFlags;
+
+
 typedef struct TransData {
 	float  dist;         /* Distance needed to affect element (for Proportionnal Editing)                  */
 	float  rdist;        /* Distance to the nearest element (for Proportionnal Editing)                    */
@@ -153,6 +157,7 @@ typedef struct TransData {
 	struct bConstraint *con;	/* for objects/bones, the first constraint in its constraint stack */
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
 	TransDataIpokey *tdi;		/* for objects, ipo keys. per transdata a malloc */
+	TransDataCurveHandleFlags *hdata; /* for curves, stores handle flags for modification/cancel */
 	void *tdmir;		 /* mirrored element pointer, in editmode mesh to EditVert */
     short  flag;         /* Various flags */
 	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
@@ -289,6 +294,7 @@ typedef struct TransInfo {
 #define TD_NOCENTER			(1 << 9)
 #define TD_NO_EXT			(1 << 10)	/* ext abused for particle key timing */
 #define TD_SKIP				(1 << 11)	/* don't transform this data */
+#define TD_BEZTRIPLE		(1 << 12)	/* if this is a bez triple, we need to restore the handles, if this is set transdata->misc.hdata needs freeing */
 
 /* transsnap->status */
 #define SNAP_ON			1
@@ -459,6 +465,8 @@ void initTransModeFlags(TransInfo *t, int mode);
 void postTrans (TransInfo *t);
 
 void drawLine(float *center, float *dir, char axis, short options);
+
+TransDataCurveHandleFlags *initTransDataCurveHandes(TransData *td, struct BezTriple *bezt);
 
 /* DRAWLINE options flags */
 #define DRAWLIGHT	1

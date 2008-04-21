@@ -227,6 +227,14 @@ def read_prop(fw,type,length):
 		rval = fw.read_string(length)
 	return rval
 	
+	
+FLTExt = {
+	'3t8!id' : 'Ext',
+	'4t8!sid' : '',
+	'5c!reserved': 0,
+	'6c!revision' : 0,
+	'7S!recordcode' : 0
+}
 FLTGroup = {
 	'3t8!id' : 'G',
 	'4s!priority' : 0, 
@@ -280,7 +288,7 @@ FLTInlineLP = {
 	'7C!back color: b' : 255,
 	'8C!back color: g' : 255,
 	'9C!back color: r' : 255,
-	'10i!display mode' : 255,
+	'10i!display mode' : 0,
 	'11f!intensity' : 1.0,
 	'12f!back intensity' : 0.0,
 	'13f!minimum defocus' : 0.0,
@@ -305,15 +313,15 @@ FLTInlineLP = {
 	'32f!lobe roll angle' : 0.0,
 	'33f!dir falloff exponent' : 1.0,
 	'34f!dir ambient intensity' : 0.1,
-	'35f!anim period' : 0,
+	'35f!anim period' : 2,
 	'36f!anim phase' : 0,
-	'37f!anim enabled' : 0,
+	'37f!anim enabled' : 1.0,
 	'38f!significance' : 0.0,
 	'39i!draw order' : 0,
-	'40I!flags' : 813875616, 
+	'40I!flags' : 277004288, 
 	'41f!roti' : 0,
 	'42f!rotj' : 0,
-	'43f!rotk' : 0
+	'43f!rotk' : 1.0
 }
 
 FLTInlineLPDisplay = [35,36,37,41,42,43]
@@ -587,6 +595,7 @@ FLT_Records = {
 		14 : FLTDOF,
 		1 : FLTHeader,
 		111 : FLTInlineLP,
+		100 : FLTExt,
 		'Image'	: FLTImage
 }
 

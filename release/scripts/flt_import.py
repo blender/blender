@@ -85,8 +85,16 @@ global_prefs['scale'] = 1.0
 global_prefs['attrib'] = 0
 msg_once = False
 
+reg = Blender.Registry.GetKey('flt_import',1)
+if reg:
+	for key in global_prefs:
+		if reg.has_key(key):
+			global_prefs[key] = reg[key]
+		
+
+
 throw_back_opcodes = [2, 73, 4, 11, 96, 14, 91, 98, 63,111] # Opcodes that indicate its time to return control to parent.
-do_not_report_opcodes = [76, 78, 79, 80, 81, 82, 94, 83, 33, 112, 100, 101, 102, 97, 31, 103, 104, 117, 118, 120, 121, 124, 125]
+do_not_report_opcodes = [76, 78, 79, 80, 81, 82, 94, 83, 33, 112, 101, 102, 97, 31, 103, 104, 117, 118, 120, 121, 124, 125]
 
 #Process FLT record definitions
 for record in FLT_Records:
@@ -488,6 +496,20 @@ class Node:
 		self.props['comment'] = self.header.fw.read_string(self.header.fw.get_length()-4)
 		return True
 	
+	def parse_extension(self):
+		extension = dict()
+		props = records[100]
+		propkeys = props.keys()
+		propkeys.sort()
+		for position in propkeys:
+			(type,length,name) = props[position]
+			extension[name] = read_prop(self.header.fw,type,length)
+		#read extension data.
+		dstring = list()
+		for i in xrange(self.header.fw.get_length()-24):
+			dstring.append(self.header.fw.read_char())
+		extension['data'] = dstring
+		self.extension = extension
 	def parse_record(self):
 		self.props['type'] = self.opcode
 		props = records[self.opcode]
@@ -620,10 +642,12 @@ class VertexPalette(Node):
 	def parse(self): # Run once per import
 		Node.parse(self)
 
+
 class InterNode(Node):
 	def __init__(self):
 		self.object = None
 		self.mesh = None
+		self.swapmesh = None
 		self.hasMesh = False
 		self.faceLs= []
 		self.matrix = None
@@ -632,12 +656,296 @@ class InterNode(Node):
 		self.uvlayers = dict()
 		self.blayernames = dict()
 		self.subfacelevel = 0
+		self.extension = None
 		
 		mask = 2147483648
 		for i in xrange(7):
 			self.uvlayers[mask] = False
 			mask = mask / 2
 		
+	#######################################################
+	##              Begin Remove Doubles Replacement     ##
+	#######################################################
+	def __xvertsort(self,__a,__b):
+		(__vert, __x1) = __a
+		(__vert2,__x2) = __b
+		
+		if __x1 > __x2:
+			return 1
+		elif __x1 < __x2:
+			return -1
+		return 0	
+	def __calcFaceNorm(self,__face):
+		if len(__face) == 3:
+			return Blender.Mathutils.TriangleNormal(__face[0].co, __face[1].co, __face[2].co)
+		elif len(__face) == 4:
+			return Blender.Mathutils.QuadNormal(__face[0].co, __face[1].co, __face[2].co, __face[3].co)
+			
+	def __replaceFaceVert(self,__weldface, __oldvert, __newvert):
+		__index = None
+		for __i, __v in enumerate(__weldface):
+			if __v == __oldvert:
+				__index = __i
+				break
+		__weldface[__index] = __newvert
+	
+	def __matchEdge(self,__weldmesh, __edge1, __edge2):
+		if __edge1[0] in __weldmesh['Vertex Disk'][__edge2[1]] and __edge1[1] in __weldmesh['Vertex Disk'][__edge2[0]]:
+			return True
+		return False
+	#have to compare original faces!
+	def __faceWinding(self, __weldmesh, __face1, __face2):
+		
+		__f1edges = list()
+		__f2edges = list()
+		
+		__f1edges.append((__face1.verts[0], __face1.verts[1]))
+		__f1edges.append((__face1.verts[1], __face1.verts[2]))
+		if len(__face1.verts) == 3:
+			__f1edges.append((__face1.verts[2], __face1.verts[0]))
+		else:
+			__f1edges.append((__face1.verts[2], __face1.verts[3]))
+			__f1edges.append((__face1.verts[3], __face1.verts[0]))
+
+		__f2edges.append((__face2.verts[0], __face2.verts[1]))
+		__f2edges.append((__face2.verts[1], __face2.verts[2]))
+		if len(__face2.verts) == 3:
+			__f2edges.append((__face2.verts[2], __face2.verts[0]))
+		else:
+			__f2edges.append((__face2.verts[2], __face2.verts[3]))
+			__f2edges.append((__face2.verts[3], __face2.verts[0]))
+
+			
+		#find a matching edge
+		for __edge1 in __f1edges:
+			for __edge2 in __f2edges:
+				if self.__matchEdge(__weldmesh, __edge1, __edge2): #no more tests nessecary
+					return True
+		
+		return False
+		
+	def __floatcompare(self, __f1, __f2):
+		epsilon = 0.1
+		if ((__f1 + epsilon) > __f2) and ((__f1 - epsilon) < __f2):
+			return True
+		return False
+	def __testFace(self,__weldmesh,__v1face, __v2face, __v1bface, __v2bface):
+		limit = 0.01
+		__matchvert = None
+		#frst test (for real this time!). Are the faces the same face?
+		if __v1face == __v2face:
+			return False
+		
+		#first test: Do the faces possibly geometrically share more than two vertices? we should be comparing original faces for this? - Yes.....
+		__match = 0
+		for __vert in __v1bface.verts:
+			for __vert2 in __v2bface.verts:
+				#if (abs(__vert.co[0] - __vert2.co[0]) <= limit) and (abs(__vert.co[1] - __vert2.co[1]) <= limit) and (abs(__vert.co[2] - __vert2.co[2]) <= limit): #this needs to be fixed!
+				if __vert2 in __weldmesh['Vertex Disk'][__vert] or __vert == __vert2:
+					__match += 1
+					__matchvert = __vert2
+		#avoid faces sharing more than two verts
+		if __match > 2:
+			return False
+
+		#consistent winding for face normals
+		if __match == 2:
+			if not self.__faceWinding(__weldmesh, __v1bface, __v2bface):
+				return False
+
+		#second test: Compatible normals.Anything beyond almost exact opposite is 'ok'
+		__v1facenorm = self.__calcFaceNorm(__v1face)
+		__v2facenorm = self.__calcFaceNorm(__v2face)
+
+		#dont even mess with zero length faces
+		if __v1facenorm.length < limit:
+			return False
+		if __v2facenorm.length < limit:
+			return False
+
+		__v1facenorm.normalize()
+		__v2facenorm.normalize()
+
+		if __match == 1:
+			#special case, look for comparison of normals angle
+			__angle = Blender.Mathutils.AngleBetweenVecs(__v1facenorm, __v2facenorm)
+			if __angle > 70.0:
+				return False	
+
+
+
+		__v2facenorm = __v2facenorm.negate()
+
+		if self.__floatcompare(__v1facenorm[0], __v2facenorm[0]) and self.__floatcompare(__v1facenorm[1], __v2facenorm[1]) and self.__floatcompare(__v1facenorm[2], __v2facenorm[2]):
+			return False
+
+		#next test: dont weld a subface to a non-subface!
+		if __v1bface.getProperty("FLT_SFLEVEL") != __v2bface.getProperty("FLT_SFLEVEL"):
+			return False	
+			
+		#final test: edge test - We dont want to create a non-manifold edge through our weld operation	
+	
+		return True
+
+	def __copyFaceData(self, __source, __target):
+		#copy vcolor layers.
+		__actColLayer = self.mesh.activeColorLayer
+		for __colorlayer in self.mesh.getColorLayerNames():
+			self.mesh.activeColorLayer = __colorlayer
+			for __i, __col in enumerate(__source.col):
+				__target.col[__i].r = __col.r
+				__target.col[__i].g = __col.g
+				__target.col[__i].b = __col.b			
+			
+		self.mesh.activeColorLayer = __actColLayer
+		#copy uv layers.
+		__actUVLayer = self.mesh.activeUVLayer
+		for __uvlayer in self.mesh.getUVLayerNames():
+			self.mesh.activeUVLayer = __uvlayer
+			__target.image = __source.image
+			__target.mode = __source.mode
+			__target.smooth = __source.smooth
+			__target.transp = __source.transp
+			for __i, __uv in enumerate(__source.uv):
+				__target.uv[__i][0] = __uv[0]
+				__target.uv[__i][1] = __uv[1]
+			
+		self.mesh.activeUVLayer = __actUVLayer
+		#copy property layers
+		for __property in self.mesh.faces.properties:
+			__target.setProperty(__property, __source.getProperty(__property))	
+
+	def findDoubles(self):
+		limit = 0.01
+		sortblock = list()
+		double = dict()
+		for vert in self.mesh.verts:
+			double[vert] = None
+			sortblock.append((vert, vert.co[0] + vert.co[1] + vert.co[2]))
+		sortblock.sort(self.__xvertsort)
+		
+		a = 0
+		while a < len(self.mesh.verts):
+			(vert,xsort) = sortblock[a]
+			b = a+1
+			if not double[vert]:
+				while b < len(self.mesh.verts):
+					(vert2, xsort2) = sortblock[b]
+					if not double[vert2]:
+						#first test, simple distance
+						if (xsort2 - xsort) > limit: 
+							break
+						#second test, more expensive
+						if (abs(vert.co[0] - vert2.co[0]) <= limit) and (abs(vert.co[1] - vert2.co[1]) <= limit) and (abs(vert.co[2] - vert2.co[2]) <= limit):
+							double[vert2] = vert
+					b+=1				
+			a+=1
+	
+		return double
+
+	def buildWeldMesh(self):
+		
+		weldmesh = dict()
+		weldmesh['Vertex Disk'] = dict() #this is geometric adjacency
+		weldmesh['Vertex Faces'] = dict() #topological adjacency
+		
+		#find the doubles for this mesh
+		double = self.findDoubles()
+		
+		for vert in self.mesh.verts:
+			weldmesh['Vertex Faces'][vert] = list()
+	
+		#create weld faces	
+		weldfaces = list()
+		originalfaces = list()
+		for face in self.mesh.faces:
+			weldface = list()
+			for vert in face.verts:
+				weldface.append(vert)
+			weldfaces.append(weldface)
+			originalfaces.append(face)
+		for i, weldface in enumerate(weldfaces):
+			for vert in weldface:
+				weldmesh['Vertex Faces'][vert].append(i)
+		weldmesh['Weld Faces'] = weldfaces
+		weldmesh['Original Faces'] = originalfaces
+		
+		#Now we need to build the vertex disk data. first we do just the 'target' vertices
+		for vert in self.mesh.verts:
+			if not double[vert]: #its a target
+				weldmesh['Vertex Disk'][vert] = list()
+		for vert in self.mesh.verts:
+			if double[vert]: #its a double
+				weldmesh['Vertex Disk'][double[vert]].append(vert)
+				
+		#Now we need to create the disk information for the remaining vertices
+		targets = weldmesh['Vertex Disk'].keys()
+		for target in targets:
+			for doublevert in weldmesh['Vertex Disk'][target]:
+				weldmesh['Vertex Disk'][doublevert] = [target]
+				for othervert in weldmesh['Vertex Disk'][target]:
+					if othervert != doublevert:
+						weldmesh['Vertex Disk'][doublevert].append(othervert) 		
+		
+		return weldmesh 		
+
+	def weldFuseFaces(self,weldmesh):
+		#slight modification here: we need to walk around the mesh as many times as it takes to have no more matches
+		done = 0
+		while not done:
+			done = 1
+			for windex, weldface in enumerate(weldmesh['Weld Faces']):
+				for vertex in weldface:
+					#we walk around the faces of the doubles of this vertex and if possible, we weld them.
+					for doublevert in weldmesh['Vertex Disk'][vertex]:
+						removeFaces = list() #list of faces to remove from doubleverts face list
+						for doublefaceindex in weldmesh['Vertex Faces'][doublevert]:
+							doubleface = weldmesh['Weld Faces'][doublefaceindex]
+							oface1 = self.mesh.faces[windex]
+							oface2 = self.mesh.faces[doublefaceindex]
+							ok = self.__testFace(weldmesh, weldface, doubleface, oface1, oface2)
+							if ok:
+								done = 0
+								removeFaces.append(doublefaceindex)
+								self.__replaceFaceVert(doubleface, doublevert, vertex)
+						for doublefaceindex in removeFaces:
+							weldmesh['Vertex Faces'][doublevert].remove(doublefaceindex)
+		#old faces first
+		oldindices = list()
+		for face in self.mesh.faces:
+			oldindices.append(face.index)
+		#make our new faces.
+		newfaces = list()
+		for weldface in weldmesh['Weld Faces']:
+			newfaces.append(weldface)
+		newindices = self.mesh.faces.extend(newfaces, indexList=True, ignoreDups=True)
+		#copy custom data over
+		for i, newindex in enumerate(newindices):
+			try:
+				self.__copyFaceData(self.mesh.faces[oldindices[i]], self.mesh.faces[newindex])
+			except:
+				print "warning, could not copy face data!"
+		#delete the old faces
+		self.mesh.faces.delete(1, oldindices)
+		
+		#Clean up stray vertices
+		vertuse = dict()
+		for vert in self.mesh.verts:
+			vertuse[vert] = 0
+		for face in self.mesh.faces:
+			for vert in face.verts:
+				vertuse[vert] += 1
+		delverts = list()
+		for vert in self.mesh.verts:
+			if not vertuse[vert] and vert.index != 0:
+				delverts.append(vert)
+		
+		self.mesh.verts.delete(delverts)	
+
+
+	#######################################################
+	##             End Remove Doubles Replacement        ##
+	#######################################################
 
 	def blender_import_my_faces(self):
 
@@ -750,6 +1058,8 @@ class InterNode(Node):
 					if props[6]['template billboard'] == 2:
 						f.mode |=  Blender.Mesh.FaceModes["BILLBOARD"]
 					f.mode |= Blender.Mesh.FaceModes["LIGHT"]
+				if props[6]['draw type'] == 1:
+					f.mode |= Blender.Mesh.FaceModes["TWOSIDE"]
 				
 				#f.mat = props[0]
 				f.image = props[1]
@@ -795,6 +1105,8 @@ class InterNode(Node):
 					if self.uvlayers[mask]:
 						self.mesh.activeUVLayer = self.blayernames[mask]
 						for j, f in enumerate(self.mesh.faces):
+							if props[6]['draw type'] == 1:
+								f.mode |= Blender.Mesh.FaceModes["TWOSIDE"]
 							f.transp |= Blender.Mesh.FaceTranspModes["ALPHA"]
 							f.mode |= Blender.Mesh.FaceModes["LIGHT"]
 							props = new_faces_props[j]
@@ -848,10 +1160,13 @@ class InterNode(Node):
 				
 			#Finally, go through, remove dummy vertex, remove doubles and add edgesplit modifier.
 			Blender.Mesh.Mode(Blender.Mesh.SelectModes['VERTEX'])
-			self.mesh.verts.delete(0) # remove the dummy vert
 			self.mesh.sel= 1
 			self.header.scene.update(1) #slow!
-			self.mesh.remDoubles(0.0001)
+			
+			#self.mesh.remDoubles(0.0001)
+			weldmesh = self.buildWeldMesh()
+			welded = self.weldFuseFaces(weldmesh)
+			self.mesh.verts.delete(0) # remove the dummy vert
 			
 			edgeHash = dict()
 
@@ -930,10 +1245,11 @@ class InterNode(Node):
 				self.mesh.activeUVLayer = actuvlayer
  		
 	def blender_import(self):
-		if self.vis and self.parent:
+		if self.vis and self.parent.object:
 			self.vis = self.parent.vis
 		name = self.props['id']
 		
+
 		if self.hasMesh:
 			self.mesh = Blender.Mesh.New()
 			self.mesh.name = 'FLT_FaceList'
@@ -955,12 +1271,17 @@ class InterNode(Node):
 				pass
 		
 
+		if self.extension:
+			self.object.properties['FLT']['EXT'] = dict()
+			for key in self.extension:
+				self.object.properties['FLT']['EXT'][key] = self.extension[key]
+		
 		if self.parent and self.parent.object and (self.header.scene == self.parent.header.scene):
 				self.parent.object.makeParent([self.object],1)
 
 		if self.matrix:
 			self.object.setMatrix(self.matrix)
-
+		
 		if self.vis == False:
 			self.object.restrictDisplay = True
 			self.object.restrictRender = True
@@ -969,21 +1290,23 @@ class InterNode(Node):
 			lodlist = list()
 			for child in self.children:
 				if child.props.has_key('type') and child.props['type'] == 73:
-					lodlist.append(child)
+					if child.props['6d!switch out'] != 0.0:
+						child.vis = False
+					#lodlist.append(child)
+			
+			#def LODmin(a,b):
+			#	if a.props['5d!switch in'] < b.props['5d!switch in']:
+			#		return a 
+			#	return b
 		
-			def LODmin(a,b):
-				if a.props['5d!switch in'] < b.props['5d!switch in']:
-					return a 
-				return b
-		
-			min= None
-			if len(lodlist) > 1:
-				for lod in lodlist:
-					lod.vis = False
-				min = lodlist[0]
-				for i in xrange(len(lodlist)):
-					min= LODmin(min,lodlist[i])
-				min.vis = True
+			#min= None
+			#if len(lodlist) > 1:
+			#	for lod in lodlist:
+			#		lod.vis = False
+			#	min = lodlist[0]
+			#	for i in xrange(len(lodlist)):
+			#		min= LODmin(min,lodlist[i])
+			#	min.vis = True
 				
 			
 		Node.blender_import(self) # Attach faces to self.faceLs
@@ -1223,9 +1546,10 @@ class Object(InterNode):
 		InterNode.__init__(self)
 		
 		self.root_handler.set_handler({33: self.parse_long_id,
-									   31: self.parse_comment,
-									   10: self.parse_push,
-									   49: self.parse_matrix})
+									21: self.parse_push_extension,
+									31: self.parse_comment,
+									10: self.parse_push,
+									49: self.parse_matrix})
 		self.root_handler.set_throw_back_lst(throw_back_opcodes)
 		
 		self.child_handler.set_handler({5: self.parse_face,
@@ -1234,7 +1558,10 @@ class Object(InterNode):
 										111: self.parse_inline_light_point,
 										10: self.parse_push,
 										11: self.parse_pop})
-
+		self.extension_handler.set_handler({22: self.parse_pop_extension,
+								100: self.parse_extension})
+		
+		self.extension = dict()
 		self.props = dict()		
 		self.props['comment'] = ''
 		self.parse_record()
@@ -1247,7 +1574,8 @@ class Group(InterNode):
 		self.root_handler.set_handler({33: self.parse_long_id,
 									   31: self.parse_comment,
 									   10: self.parse_push,
-									   49: self.parse_matrix})
+									   49: self.parse_matrix,
+									   21: self.parse_push_extension})
 		self.root_handler.set_throw_back_lst(throw_back_opcodes)
 		
 		self.child_handler.set_handler({5: self.parse_face,
@@ -1264,6 +1592,10 @@ class Group(InterNode):
 										91: self.parse_unhandled,
 										98: self.parse_unhandled,
 										63: self.parse_xref})
+										
+		self.extension_handler.set_handler({22: self.parse_pop_extension,
+								100: self.parse_extension})
+								
 		self.props = dict.fromkeys(['type', 'id', 'comment', 'priority', 'flags', 'special1',
 									'special2', 'significance', 'layer code', 'loop count',
 									'loop duration', 'last frame duration'])
@@ -1291,7 +1623,8 @@ class DOF(InterNode):
 		self.root_handler.set_handler({33: self.parse_long_id,
 									   31: self.parse_comment,
 									   10: self.parse_push,
-									   49: self.parse_matrix})
+									   49: self.parse_matrix,
+									   21: self.parse_push_extension})
 		self.root_handler.set_throw_back_lst(throw_back_opcodes)
 		
 		self.child_handler.set_handler({#130: self.parse_indexed_light_point,
@@ -1306,6 +1639,8 @@ class DOF(InterNode):
 										91: self.parse_unhandled,
 										98: self.parse_unhandled,
 										63: self.parse_xref})
+		self.extension_handler.set_handler({22: self.parse_pop_extension,
+										100: self.parse_extension})
 		self.props = dict()		
 		self.props['comment'] = ''
 		self.parse_record()
@@ -1395,7 +1730,8 @@ class LOD(InterNode):
 		self.root_handler.set_handler({33: self.parse_long_id,
 									   31: self.parse_comment,
 									   10: self.parse_push,
-									   49: self.parse_matrix})
+									   49: self.parse_matrix,
+									   21: self.parse_push_extension})
 		self.root_handler.set_throw_back_lst(throw_back_opcodes)
 		
 		self.child_handler.set_handler({2: self.parse_group,
@@ -1409,6 +1745,9 @@ class LOD(InterNode):
 										91: self.parse_unhandled, # sound
 										98: self.parse_unhandled, # clip
 										63: self.parse_xref})
+		self.extension_handler.set_handler({22: self.parse_pop_extension,
+								100: self.parse_extension})
+
 
 		self.props = dict()		
 		self.props['comment'] = ''
@@ -1421,13 +1760,16 @@ class InlineLightPoint(InterNode):
 		self.root_handler.set_handler({33: self.parse_long_id,
 									   31: self.parse_comment,
 									   10: self.parse_push,
+									   21: self.parse_push_extension,
 									   49: self.parse_matrix})
 		self.root_handler.set_throw_back_lst(throw_back_opcodes)
 		
 		self.child_handler.set_handler({72: self.parse_vertex_list,
 										10: self.parse_push,
 										11: self.parse_pop})
-
+		self.extension_handler.set_handler({22: self.parse_pop_extension,
+								100: self.parse_extension})
+		
 		self.indices = list()
 		self.props = dict()		
 		self.props['comment'] = ''
@@ -1452,6 +1794,11 @@ class InlineLightPoint(InterNode):
 				self.object.properties['FLT'][key] = self.props[key]
 			except: #horrible...
 				pass
+
+		if self.extension:
+			self.object.properties['FLT']['EXT'] = dict()
+			for key in self.extension:
+				self.object.properties['FLT']['EXT'][key] = self.extension[key]
 
 		if self.parent and self.parent.object and self.header.scene == self.parent.header.scene:
 			self.parent.object.makeParent([self.object])
@@ -1654,6 +2001,11 @@ class Database(InterNode):
 		
 		self.scene.properties['FLT']['Main'] = 0
 		self.scene.properties['FLT']['Filename'] = self.bname
+		
+		for child in self.children:
+			if child.props.has_key('type') and child.props['type'] == 73:
+				if child.props['6d!switch out'] != 0.0:
+						child.vis = False
 		
 		#import color palette
 		carray = list()
@@ -2046,6 +2398,10 @@ def setimportscale(ID,val):
 	global_prefs['scale'] = val
 def setBpath(fname):
 	global_prefs['fltfile'] = fname
+	d = dict()
+	for key in global_prefs:
+		d[key] = global_prefs[key]
+		Blender.Registry.SetKey('flt_import', d, 1) 
 
 def event(evt,val):
 	pass
@@ -2090,7 +2446,10 @@ def but_event(evt):
 	if evt == 2:
 		Draw.Exit()
 	
-
+	d = dict()
+	for key in global_prefs:
+		d[key] = global_prefs[key]
+		Blender.Registry.SetKey('flt_import', d, 1) 
 	
 
 from Blender.BGL import *

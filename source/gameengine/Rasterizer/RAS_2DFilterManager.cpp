@@ -1,5 +1,5 @@
 /**
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +25,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #define STRINGIFY(A)  #A
@@ -91,7 +91,8 @@ RAS_2DFilterManager::~RAS_2DFilterManager()
 
 unsigned int RAS_2DFilterManager::CreateShaderProgram(char* shadersource)
 {
-		GLuint program;	
+		GLuint program = 0;	
+#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
 		GLuint fShader = bgl::blCreateShaderObjectARB(GL_FRAGMENT_SHADER);
         GLint success;
 
@@ -127,6 +128,7 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(char* shadersource)
 			std::cout << "2dFilters - Shader program validation error" << std::endl;
 			return 0;
 		}
+#endif
 		return program;
 }
 
@@ -160,7 +162,8 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(int filtermode)
 
 void RAS_2DFilterManager::StartShaderProgram(unsigned int shaderprogram)
 {
-    GLint uniformLoc;
+#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
+	GLint uniformLoc;
 	bgl::blUseProgramObjectARB(shaderprogram);
 	uniformLoc = bgl::blGetUniformLocationARB(shaderprogram, "bgl_RenderedTexture");
     if (uniformLoc != -1)
@@ -182,12 +185,14 @@ void RAS_2DFilterManager::StartShaderProgram(unsigned int shaderprogram)
     {
 		bgl::blUniform1fARB(uniformLoc,textureheight);
     }
-
+#endif
 }
 
 void RAS_2DFilterManager::EndShaderProgram()
 {
+#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
 	bgl::blUseProgramObjectARB(0);
+#endif
 }
 
 void RAS_2DFilterManager::SetupTexture()
@@ -297,6 +302,7 @@ void RAS_2DFilterManager::EnableFilter(RAS_2DFILTER_MODE mode, int pass, STR_Str
 {
 	if(!isshadersupported)
 		return;
+#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
 	if(pass<0 || pass>=MAX_RENDER_PASS)
 		return;
 
@@ -337,4 +343,5 @@ void RAS_2DFilterManager::EnableFilter(RAS_2DFILTER_MODE mode, int pass, STR_Str
 		m_filters[pass] = CreateShaderProgram(mode);
 		m_enabled[pass] = 1;
 	}
+#endif
 }

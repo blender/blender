@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>
@@ -251,7 +248,7 @@ int get_border(rcti *rect, short flag)
 					BIF_ThemeColor(TH_BACK);
 					glRecti(10, 25, 250, 40);
 	
-					if(G.vd->persp==0) {
+					if(G.vd->persp==V3D_ORTHO) {
 						window_to_3d(dvec, mvalo[0]-x1, mvalo[1]-y1);
 	
 						sprintf(str, "X %.4f  Y %.4f  Z %.4f  Dia %.4f", dvec[0], dvec[1], dvec[2], sqrt(dvec[0]*dvec[0]+dvec[1]*dvec[1]+dvec[2]*dvec[2]));
@@ -262,7 +259,7 @@ int get_border(rcti *rect, short flag)
 						glRasterPos2i(16,  28);
 						BMF_DrawString(G.fonts, str);
 					}
-					else if(G.vd->persp==2) {
+					else if(G.vd->persp==V3D_CAMOB) {
 						rctf vb;
 	
 						calc_viewborder(G.vd, &vb);
@@ -842,6 +839,11 @@ void countall()
 				G.totobj+=tot;
 				count_object(ob, base->flag & SELECT, tot);
 			}
+			else if((ob->transflag & OB_DUPLIGROUP) && ob->dup_group) {
+				int tot= count_duplilist(ob);
+				G.totobj+=tot;
+				count_object(ob, base->flag & SELECT, tot);
+			}
 			else {
 				count_object(ob, base->flag & SELECT, 1);
 				G.totobj++;
@@ -1301,7 +1303,7 @@ void snap_sel_to_grid()
 
 		base= base->next;
 	}
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -1414,7 +1416,7 @@ void snap_sel_to_curs()
 
 		base= base->next;
 	}
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -1819,7 +1821,7 @@ void snap_to_center()
 		
 		base= base->next;
 	}
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
 

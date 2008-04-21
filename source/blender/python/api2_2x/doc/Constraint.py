@@ -3,7 +3,7 @@
 """
 The Blender.Constraint submodule
 
-B{New}: 
+B{New}:
 	-  provides access to Blender's constraint stack
 
 This module provides access to the Constraint Data in Blender.
@@ -38,11 +38,10 @@ Or to print all the constraints attached to each bone in a pose::
 @var Settings: Constant dict used for changing constraint settings.
 	- Used for all single-target constraints 
 		(TRACKTO, FOLLOWPATH, COPYROT, COPYLOC, COPYSIZE, ACTION, LOCKTRACK, STRETCHTO, FLOOR, CLAMPTO, CHILDOF, TRANSFORM, LIMITDIST)
-		- TARGET (Object): target object
-		- BONE (string): name of Bone sub-target (for Armature targets), or name of Vertex Group sub-target
+	- TARGET (Object): target object
+	- BONE (string): name of Bone sub-target (for Armature targets), or name of Vertex Group sub-target
 			(for Geometry targets)
-	- Used for all multiple-target constraints
-		(PYTHON)
+	- Used for all multiple-target constraints (PYTHON)
 		- TARGET (list of Objects): list of target objects, with one list slot = one target slot
 		- BONE (list of strings): list of names of Bone sub-target (for Armature targets) or name of Vertex Group
 			sub-targets (for Geometry targets)

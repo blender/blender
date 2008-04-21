@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -636,7 +633,6 @@ static void emDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *use
 }
 static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors)
 {
-	GLubyte act_face_stipple[32*32/8] = DM_FACE_STIPPLE;
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditFace *efa;
 	int i, draw;
@@ -653,7 +649,7 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 			if(draw) {
 				if (draw==2) { /* enabled with stipple */
 		  			glEnable(GL_POLYGON_STIPPLE);
-		  			glPolygonStipple(act_face_stipple);
+		  			glPolygonStipple(stipple_quarttone);
 				}
 				
 				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
@@ -690,7 +686,7 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 			if(draw) {
 				if (draw==2) { /* enabled with stipple */
 		  			glEnable(GL_POLYGON_STIPPLE);
-		  			glPolygonStipple(act_face_stipple);
+		  			glPolygonStipple(stipple_quarttone);
 				}
 				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 
@@ -734,6 +730,9 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 	EditFace *efa;
 	int i;
 
+	/* always use smooth shading even for flat faces, else vertex colors wont interpolate */
+	glShadeModel(GL_SMOOTH);
+	
 	if (vertexCos) {
 		EditVert *eve;
 
@@ -755,11 +754,16 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 				flag= 1;
 
 			if(flag != 0) { /* flag 0 == the face is hidden or invisible */
-				if (flag==1 && mcol)
-					cp= (unsigned char*)mcol;
-
-				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
-
+				
+				/* we always want smooth here since otherwise vertex colors dont interpolate */
+				if (mcol) {
+					if (flag==1) {
+						cp= (unsigned char*)mcol;
+					}
+				} else {
+					glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+				} 
+				
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 				if (!drawSmooth) {
 					glNormal3fv(emdm->faceNos[i]);
@@ -823,10 +827,14 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 				flag= 1;
 
 			if(flag != 0) { /* flag 0 == the face is hidden or invisible */
-				if (flag==1 && mcol)
-					cp= (unsigned char*)mcol;
-
-				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+				/* we always want smooth here since otherwise vertex colors dont interpolate */
+				if (mcol) {
+					if (flag==1) {
+						cp= (unsigned char*)mcol;
+					}
+				} else {
+					glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+				} 
 
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 				if (!drawSmooth) {
@@ -2001,8 +2009,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 		if((md->mode & required_mode) != required_mode) continue;
 		if(mti->type == eModifierTypeType_OnlyDeform && !useDeform) continue;
 		if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
-			modifier_setError(md, "Internal error, modifier requires "
-			                  "original data (bad stack position).");
+			modifier_setError(md, "Modifier requires original data, bad stack position.");
 			continue;
 		}
 		if(mti->isDisabled && mti->isDisabled(md)) continue;
@@ -2183,8 +2190,7 @@ static int editmesh_modifier_is_enabled(ModifierData *md, DerivedMesh *dm)
 
 	if((md->mode & required_mode) != required_mode) return 0;
 	if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
-		modifier_setError(md, "Internal error, modifier requires"
-		                  "original data (bad stack position).");
+		modifier_setError(md, "Modifier requires original data, bad stack position.");
 		return 0;
 	}
 	if(mti->isDisabled && mti->isDisabled(md)) return 0;
@@ -2623,7 +2629,8 @@ void multires_render_final(Object *ob, Mesh *me, DerivedMesh **dm, float *vert_c
 			(*dm)->release(*dm);
 			for(i=0; i<me->totvert; ++i)
 				me->mvert[i]= vertdup[i];
-
+			/* Free vertdup after use*/
+			MEM_freeN(vertdup);
 			/* Go to the render level */
 			me->mr->newlvl= me->mr->renderlvl;
 			multires_set_level(ob, me, 1);
@@ -3302,9 +3309,9 @@ void loadFluidsimMesh(Object *srcob, int useRenderParams)
 		srcob->data = srcob->fluidsimSettings->orgMesh;
 		return;
 	} else if(displaymode==2) {
-		strcat(targetDir,"fluidsurface_preview_#");
+		strcat(targetDir,"fluidsurface_preview_####");
 	} else { // 3
-		strcat(targetDir,"fluidsurface_final_#");
+		strcat(targetDir,"fluidsurface_final_####");
 	}
 	BLI_convertstringcode(targetDir, G.sce, curFrame); // fixed #frame-no 
 	strcpy(targetFile,targetDir);

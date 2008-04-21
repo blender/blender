@@ -1,14 +1,11 @@
 /**
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 
  *
  *
@@ -66,6 +63,8 @@
 #include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
+#include "BKE_object.h"
+#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
@@ -76,7 +75,6 @@
 #include "BIF_imasel.h"
 #include "BIF_editparticle.h"
 #include "BIF_interface.h"
-#include "BKE_object.h"
 #include "BIF_poseobject.h"
 #include "BIF_previewrender.h"
 #include "BIF_renderwin.h"
@@ -133,21 +131,21 @@ static void axis_set_view(float q1, float q2, float q3, float q4, short view, in
 	new_quat[2]= q3; new_quat[3]= q4;
 	G.vd->view=0;
 	
-	if (G.vd->persp==2 && G.vd->camera) {
+	if (G.vd->persp==V3D_CAMOB && G.vd->camera) {
 		/* Is this switching from a camera view ? */
 		float orig_ofs[3];
 		float orig_lens= G.vd->lens;
 		VECCOPY(orig_ofs, G.vd->ofs);
 		view_settings_from_ob(G.vd->camera, G.vd->ofs, G.vd->viewquat, &G.vd->dist, &G.vd->lens);
 		
-		if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 0;
-		else if(G.vd->persp>=2) G.vd->persp= perspo;
+		if (U.uiflag & USER_AUTOPERSP) G.vd->persp= V3D_ORTHO;
+		else if(G.vd->persp==V3D_CAMOB) G.vd->persp= perspo;
 		
 		smooth_view(G.vd, orig_ofs, new_quat, NULL, &orig_lens);
 	} else {
 		
-		if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 0;
-		else if(G.vd->persp>=2) G.vd->persp= perspo;
+		if (U.uiflag & USER_AUTOPERSP) G.vd->persp= V3D_ORTHO;
+		else if(G.vd->persp==V3D_CAMOB) G.vd->persp= perspo;
 		
 		smooth_view(G.vd, NULL, new_quat, NULL, NULL);
 	}
@@ -158,7 +156,7 @@ void persptoetsen(unsigned short event)
 {
 	static Object *oldcamera=0;
 	float phi, si, q1[4], vec[3];
-	static int perspo=1;
+	static int perspo=V3D_PERSP;
 	int preview3d_event= 1;
 	short mouseloc[2];
 	
@@ -166,14 +164,14 @@ void persptoetsen(unsigned short event)
 	
 	/* Use this to test if we started out with a camera */
 	Object *act_cam_orig=NULL;
-	if (G.vd->persp == 2)
+	if (G.vd->persp == V3D_CAMOB)
 		act_cam_orig = G.vd->camera;
 	
 	if(event==PADENTER) {
 		if (G.qual == LR_SHIFTKEY) {
 			view3d_set_1_to_1_viewborder(G.vd);
 		} else {
-			if (G.vd->persp==2) {
+			if (G.vd->persp==V3D_CAMOB) {
 				G.vd->camzoom= 0;
 			} else {
 				new_dist = 10.0;
@@ -202,14 +200,14 @@ void persptoetsen(unsigned short event)
 		}
 		else if(event==PADMINUS) {
 			/* this min and max is also in viewmove() */
-			if(G.vd->persp==2) {
+			if(G.vd->persp==V3D_CAMOB) {
 				G.vd->camzoom-= 10;
 				if(G.vd->camzoom<-30) G.vd->camzoom= -30;
 			}
 			else if(G.vd->dist<10.0*G.vd->far) G.vd->dist*=1.2f;
 		}
 		else if(event==PADPLUSKEY) {
-			if(G.vd->persp==2) {
+			if(G.vd->persp==V3D_CAMOB) {
 				G.vd->camzoom+= 10;
 				if(G.vd->camzoom>300) G.vd->camzoom= 300;
 			}
@@ -246,35 +244,35 @@ void persptoetsen(unsigned short event)
 		}
 		else if(event==PADMINUS) {
 			/* this min and max is also in viewmove() */
-			if(G.vd->persp==2) {
+			if(G.vd->persp==V3D_CAMOB) {
 				G.vd->camzoom= MAX2(-30, G.vd->camzoom-5);
 			}
 			else if(G.vd->dist<10.0*G.vd->far) {
 				getmouseco_areawin(mouseloc);
 				view_zoom_mouseloc(VIEW_ZOOM_OUT_FACTOR, mouseloc);
 			}
-			if(G.vd->persp!=1) preview3d_event= 0;
+			if(G.vd->persp!=V3D_PERSP) preview3d_event= 0;
 		}
 		else if(event==PADPLUSKEY) {
-			if(G.vd->persp==2) {
+			if(G.vd->persp==V3D_CAMOB) {
 				G.vd->camzoom= MIN2(300, G.vd->camzoom+5);
 			}
 			else if(G.vd->dist> 0.001*G.vd->grid) {
 				getmouseco_areawin(mouseloc);
 				view_zoom_mouseloc(VIEW_ZOOM_IN_FACTOR, mouseloc);
 			}
-			if(G.vd->persp!=1) preview3d_event= 0;
+			if(G.vd->persp!=V3D_PERSP) preview3d_event= 0;
 		}
 		else if(event==PAD5) {
 			if (U.smooth_viewtx) {
-				if(G.vd->persp==1) { G.vd->persp=0;
+				if(G.vd->persp==V3D_PERSP) { G.vd->persp=V3D_ORTHO;
 				} else if (act_cam_orig) {
 					/* were from a camera view */
 					float orig_dist= G.vd->dist;
 					float orig_lens= G.vd->lens;
 					VECCOPY(orig_ofs, G.vd->ofs);
 
-					G.vd->persp=1;
+					G.vd->persp=V3D_PERSP;
 					G.vd->dist= 0.0;
 
 					view_settings_from_ob(act_cam_orig, G.vd->ofs, NULL, NULL, &G.vd->lens);
@@ -282,11 +280,11 @@ void persptoetsen(unsigned short event)
 					smooth_view(G.vd, orig_ofs, NULL, &orig_dist, &orig_lens);
 					
 				} else {
-					G.vd->persp=1;
+					G.vd->persp=V3D_PERSP;
 				}
 			} else {
-				if(G.vd->persp==1) G.vd->persp=0;
-				else G.vd->persp=1;
+				if(G.vd->persp==V3D_PERSP) G.vd->persp=V3D_ORTHO;
+				else G.vd->persp=V3D_PERSP;
 			}
 		}
 		else if(event==PAD0) {
@@ -318,7 +316,7 @@ void persptoetsen(unsigned short event)
 			}
 			
 			if(G.vd->camera && (G.vd->camera != act_cam_orig)) {
-				G.vd->persp= 2;
+				G.vd->persp= V3D_CAMOB;
 				G.vd->view= 0;
 				
 				if(((G.qual & LR_CTRLKEY) && (G.qual & LR_ALTKEY)) || (G.qual & LR_SHIFTKEY)) {
@@ -350,7 +348,7 @@ void persptoetsen(unsigned short event)
 			
 			reset_slowparents();	/* editobject.c */
 		}
-		else if(G.vd->persp<2) {
+		else if(G.vd->persp != V3D_CAMOB) {
 			if(event==PAD4 || event==PAD6) {
 				/* z-axis */
 				phi= (float)(M_PI/360.0)*U.pad_rot_angle;
@@ -379,7 +377,7 @@ void persptoetsen(unsigned short event)
 			}
 		}
 
-		if(G.vd->persp<2) perspo= G.vd->persp;
+		if(G.vd->persp != V3D_CAMOB) perspo= G.vd->persp;
 	}
 
 	if(G.vd->depths) G.vd->depths->damaged= 1;
@@ -701,6 +699,7 @@ int blenderqread(unsigned short event, short val)
 		/* stop playback on ESC always */
 		rem_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM);
 		audiostream_stop();
+		BKE_ptcache_set_continue_physics(0);
 		allqueue(REDRAWALL, 0);
 		
 		break;

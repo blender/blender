@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -213,9 +210,9 @@ int init_gl_materials(Object *ob, int check_alpha)
 
 		if(a<MAXMATBUF) {
 			if (ma->mode & MA_SHLESS) {
-				matbuf[a][0][0]= 2*ma->r;
-				matbuf[a][0][1]= 2*ma->g;
-				matbuf[a][0][2]= 2*ma->b;
+				matbuf[a][0][0]= ma->r;
+				matbuf[a][0][1]= ma->g;
+				matbuf[a][0][2]= ma->b;
 			} else {
 				matbuf[a][0][0]= (ma->ref+ma->emit)*ma->r;
 				matbuf[a][0][1]= (ma->ref+ma->emit)*ma->g;
@@ -2061,15 +2058,16 @@ static int draw_em_fancy__setFaceOpts(void *userData, int index, int *drawSmooth
 static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, int dt)
 {
 	Mesh *me = ob->data;
-	EditFace *efa_act = NULL;
+	EditFace *efa_act = EM_get_actFace(0); /* annoying but active faces is stored differently */
 	EditEdge *eed_act = NULL;
 	EditVert *eve_act = NULL;
 	
 	if (G.editMesh->selected.last) {
 		EditSelection *ese = G.editMesh->selected.last;
-		if ( ese->type == EDITFACE ) {
+		/* face is handeled above */
+		/*if (ese->type == EDITFACE ) {
 			efa_act = (EditFace *)ese->data;
-		} else if ( ese->type == EDITEDGE ) {
+		} else */ if ( ese->type == EDITEDGE ) {
 			eed_act = (EditEdge *)ese->data;
 		} else if ( ese->type == EDITVERT ) {
 			eve_act = (EditVert *)ese->data;
@@ -2796,7 +2794,7 @@ static int drawDispList(Base *base, int dt)
 					glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 					drawDispListsolid(lb, ob);
 				}
-				if(ob==G.obedit && cu->bevobj==NULL && cu->taperobj==NULL) {
+				if(ob==G.obedit && cu->bevobj==NULL && cu->taperobj==NULL && cu->ext1 == 0.0 && cu->ext2 == 0.0) {
 					cpack(0);
 					draw_index_wire= 0;
 					drawDispListwire(lb);
@@ -3081,6 +3079,8 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 		totchild=psys->totchild*part->disp/100;
 	
 	ma= give_current_material(ob,part->omat);
+
+	if(G.vd->zbuf) glDepthMask(1);
 
 	if(select)
 		cpack(0xFFFFFF);
@@ -3571,9 +3571,6 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 	glDisable(GL_LIGHTING);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
-#if 0 /* If this is needed, it cant be enabled in wire mode, since it messes up the view - Campbell */
-	glEnable(GL_DEPTH_TEST);
-#endif
 
 	if(states)
 		MEM_freeN(states);
@@ -3681,7 +3678,7 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 		glDisableClientState(GL_NORMAL_ARRAY);
 		glEnableClientState(GL_COLOR_ARRAY);
 		glDisable(GL_LIGHTING);
-		glPointSize(4.0f);
+		glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
 
 		if(G.scene->selectmode==SCE_SELECT_POINT){
 			float *cd=0,*cdata=0;
@@ -3754,6 +3751,7 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 	glLineWidth(1.0f);
 
 	mymultmatrix(ob->obmat);	// bring back local matrix for dtx
+	glPointSize(1.0);
 }
 
 unsigned int nurbcol[8]= {

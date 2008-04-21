@@ -67,6 +67,7 @@
 #include "BIF_resources.h"
 #include "BIF_renderwin.h"
 #include "BIF_space.h"
+#include "BIF_scrarea.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
 
@@ -76,8 +77,9 @@
 #include "BSE_headerbuttons.h"
 #include "BSE_node.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+#include "BLI_storage_types.h"
 
 #include "BDR_editobject.h"
 
@@ -188,11 +190,82 @@ static void shader_node_event(SpaceNode *snode, short event)
 	}
 }
 
+static int image_detect_file_sequence(int *start_p, int *frames_p, char *str)
+{
+	SpaceFile *sfile;
+	char name[FILE_MAX], head[FILE_MAX], tail[FILE_MAX], filename[FILE_MAX];
+	int a, frame, totframe, found, minframe;
+	unsigned short numlen;
+
+	sfile= scrarea_find_space_of_type(curarea, SPACE_FILE);
+	if(sfile==0)
+		return 0;
+
+	/* find first frame */
+	found= 0;
+	minframe= 0;
+
+	for(a=0; a<sfile->totfile; a++) {
+		if(sfile->filelist[a].flags & ACTIVE) {
+			BLI_strncpy(name, sfile->filelist[a].relname, sizeof(name));
+			frame= BLI_stringdec(name, head, tail, &numlen);
+
+			if(!found || frame < minframe) {
+				BLI_strncpy(filename, name, sizeof(name));
+				minframe= frame;
+				found= 1;
+			}
+		}
+	}
+
+	/* not one frame found */
+	if(!found)
+		return 0;
+
+	/* counter number of following frames */
+	found= 1;
+	totframe= 0;
+
+	for(frame=minframe; found; frame++) {
+		found= 0;
+		BLI_strncpy(name, filename, sizeof(name));
+		BLI_stringenc(name, head, tail, numlen, frame);
+
+		for(a=0; a<sfile->totfile; a++) {
+			if(sfile->filelist[a].flags & ACTIVE) {
+				if(strcmp(sfile->filelist[a].relname, name) == 0) {
+					found= 1;
+					totframe++;
+					break;
+				}
+			}
+		}
+	}
+
+	if(totframe > 1) {
+		BLI_strncpy(str, sfile->dir, sizeof(name));
+		strcat(str, filename);
+
+		*start_p= minframe;
+		*frames_p= totframe;
+		return 1;
+	}
+
+	return 0;
+}
+
 static void load_node_image(char *str)	/* called from fileselect */
 {
 	SpaceNode *snode= curarea->spacedata.first;
 	bNode *node= nodeGetActive(snode->edittree);
 	Image *ima= NULL;
+	ImageUser *iuser= node->storage;
+	char filename[FILE_MAX];
+	int start=0, frames=0, sequence;
+
+	sequence= image_detect_file_sequence(&start, &frames, filename);
+	if(sequence)
+		str= filename;
 	
 	ima= BKE_add_image_file(str);
 	if(ima) {
@@ -203,6 +276,12 @@ static void load_node_image(char *str)	/* called from fileselect */
 		id_us_plus(node->id);
 
 		BLI_strncpy(node->name, node->id->name+2, 21);
+
+		if(sequence) {
+			ima->source= IMA_SRC_SEQUENCE;
+			iuser->frames= frames;
+			iuser->offset= start-1;
+		}
 				   
 		BKE_image_signal(ima, node->storage, IMA_SIGNAL_RELOAD);
 		
@@ -1714,8 +1793,10 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeSocket *tsock, bNodeL
 					if(nodeCountSocketLinks(snode->edittree, sock) < sock->limit)
 						break;
 			}
-			if(sock)
+			if(sock) {
 				tlink->tosock= sock;
+				sock->flag &= ~SOCK_HIDDEN;
+			}
 			else {
 				nodeRemLink(snode->edittree, tlink);
 			}

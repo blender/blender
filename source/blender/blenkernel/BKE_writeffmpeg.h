@@ -1,13 +1,10 @@
 /**
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BKE_WRITEFFMPEG_H
@@ -45,6 +42,7 @@ extern "C" {
 #define FFMPEG_DV	5
 #define FFMPEG_H264     6
 #define FFMPEG_XVID     7
+#define FFMPEG_FLV      8
 
 #define FFMPEG_CODEC_MPEG1 0
 #define FFMPEG_CODEC_MPEG2 1
@@ -53,6 +51,7 @@ extern "C" {
 #define FFMPEG_CODEC_DV 4
 #define FFMPEG_CODEC_H264 5
 #define FFMPEG_CODEC_XVID 6
+#define FFMPEG_CODEC_FLV1 7
 
 #define FFMPEG_PRESET_NONE 0
 #define FFMPEG_PRESET_DVD  1

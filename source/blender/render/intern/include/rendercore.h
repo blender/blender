@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef RENDERCORE_H
@@ -104,9 +101,7 @@ extern void ray_trace(ShadeInput *, ShadeResult *);
 extern void ray_ao(ShadeInput *, float *);
 extern void init_jitter_plane(LampRen *lar);
 extern void init_ao_sphere(struct World *wrld);
-extern void init_lamp_hammersley(LampRen *lar);
-extern void free_lamp_qmcsampler(LampRen *lar);
-extern void init_render_hammersley(Render *re);
+extern void init_render_qmcsampler(Render *re);
 extern void free_render_qmcsampler(Render *re);
 
 #endif /* RENDER_EXT_H */

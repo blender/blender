@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>  
@@ -409,7 +406,7 @@ static void free_imasel_spec(char *dir)
 static void do_library_append(SpaceImaSel *simasel)
 {
 	Library *lib;
-	char dir[FILE_MAXDIR], group[32];
+	char dir[FILE_MAX], group[32];
 	
 	if ( BIF_filelist_islibrary(simasel->files, dir, group)==0 ) {
 		error("Not a library");
@@ -956,16 +953,24 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					file = BIF_filelist_file(simasel->files, simasel->active_file);
 					
 					if(file && S_ISDIR(file->type)) {
-						strcat(simasel->dir, file->relname);						
-						strcat(simasel->dir,"/");
-						simasel->file[0] = '\0';
-						BLI_cleanup_dir(G.sce, simasel->dir);
-						BIF_filelist_setdir(simasel->files, simasel->dir);
-						BIF_filelist_free(simasel->files);
-						simasel->active_file = -1;
-						simasel->scrollpos = 0;
-						do_draw = 1;
-						do_headdraw = 1;						
+						/* the path is too long and we are not going up! */
+						if (strcmp(file->relname, ".") &&
+							strcmp(file->relname, "..") &&
+							strlen(simasel->dir) + strlen(file->relname) >= FILE_MAX ) 
+						{
+							error("Path too long, cannot enter this directory");
+						} else {
+							strcat(simasel->dir, file->relname);
+							strcat(simasel->dir,"/");
+							simasel->file[0] = '\0';
+							BLI_cleanup_dir(G.sce, simasel->dir);
+							BIF_filelist_setdir(simasel->files, simasel->dir);
+							BIF_filelist_free(simasel->files);
+							simasel->active_file = -1;
+							simasel->scrollpos = 0;
+							do_draw = 1;
+							do_headdraw = 1;
+						}
 					}
 					else if (file)
 					{

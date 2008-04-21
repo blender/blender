@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): 2007, Joshua Leung (major rewrite of Action Editor)
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -950,7 +947,7 @@ static void action_groups_addachan (bAction *act, bActionGroup *agrp, bActionCha
 			}
 			else {
 				BLI_insertlinkafter(&act->chanbase, chan, achan);
-					
+				
 				agrp->channels.first= achan;
 				agrp->channels.last= achan;
 				
@@ -1131,7 +1128,7 @@ void verify_pchan2achan_grouping (bAction *act, bPose *pose, char name[])
 	achan= verify_action_channel(act, name);
 	
 	/* check if pchan has a group */
-	if ((pchan->agrp_index) && (achan->grp == NULL)) {
+	if ((pchan->agrp_index > 0) && (achan->grp == NULL)) {
 		bActionGroup *agrp, *grp=NULL;
 		
 		/* get group to try to be like */
@@ -1150,7 +1147,37 @@ void verify_pchan2achan_grouping (bAction *act, bPose *pose, char name[])
 			grp= MEM_callocN(sizeof(bActionGroup), "bActionGroup");
 			
 			grp->flag |= (AGRP_ACTIVE|AGRP_SELECTED|AGRP_EXPANDED);
+			
+			/* copy name */
 			sprintf(grp->name, agrp->name);
+			
+			/* deal with group-color copying */
+			if (agrp->customCol) {
+				if (agrp->customCol > 0) {
+					/* copy theme colors on-to group's custom color in case user tries to edit color */
+					bTheme *btheme= U.themes.first;
+					ThemeWireColor *col_set= &btheme->tarm[(agrp->customCol - 1)];
+					
+					memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
+				}
+				else {
+					/* init custom colours with a generic multi-colour rgb set, if not initialised already */
+					if (agrp->cs.solid[0] == 0) {
+						/* define for setting colors in theme below */
+						#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
+						
+						SETCOL(grp->cs.solid, 0xff, 0x00, 0x00, 255);
+						SETCOL(grp->cs.select, 0x81, 0xe6, 0x14, 255);
+						SETCOL(grp->cs.active, 0x18, 0xb6, 0xe0, 255);
+						
+						#undef SETCOL
+					}
+					else {
+						/* just copy color set specified */
+						memcpy(&grp->cs, &agrp->cs, sizeof(ThemeWireColor));
+					}
+				}
+			}
 			
 			BLI_addtail(&act->groups, grp);
 		}
@@ -3570,6 +3597,8 @@ static void mouse_actionchannels (short mval[])
 					/* select/deselect */
 					select_icu_channel(act, icu, SELECT_INVERT);
 				}
+
+				allspace(REMAKEIPO, 0);
 			}
 			break;
 		case ACTTYPE_CONCHAN:

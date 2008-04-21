@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>
@@ -643,7 +640,7 @@ void viewmoveNDOFfly(int mode)
 	// until the first draw and doesn't update the menu
 	// to reflect persp mode.
 
-	G.vd->persp = 1;
+	G.vd->persp = V3D_PERSP;
 
 
 	// Correct the distance jump if G.vd->dist != 0
@@ -722,6 +719,7 @@ void viewmoveNDOFfly(int mode)
 
 void viewmove(int mode)
 {
+	static float lastofs[3] = {0,0,0};
 	Object *ob = OBACT;
 	float firstvec[3], newvec[3], dvec[3];
 	float reverse, oldquat[4], q1[4], si, phi, dist0;
@@ -783,13 +781,15 @@ void viewmove(int mode)
 		obofs[1]= -obofs[1];
 		obofs[2]= -obofs[2];
 	}
-	else if (ob && (U.uiflag & USER_ORBIT_SELECTION)) {
+	else if (U.uiflag & USER_ORBIT_SELECTION) {
 		use_sel = 1;
 		
 		VECCOPY(ofs, G.vd->ofs);
 		
-		/* If there's no selection, obofs is unmodified, so <0,0,0> */
-		calculateTransformCenter(V3D_CENTROID, obofs);
+		/* If there's no selection, lastofs is unmodified and last value since static */
+		calculateTransformCenter(V3D_CENTROID, lastofs);
+		
+		VECCOPY(obofs, lastofs);
 		VecMulf(obofs, -1.0f);
 	}
 	else
@@ -816,15 +816,15 @@ void viewmove(int mode)
 					if(G.vd->view!=0) scrarea_queue_headredraw(curarea);	/*for button */
 					G.vd->view= 0;
 				}
-				if(G.vd->persp==2 && mode!=1 && G.vd->camera) {
-					G.vd->persp= 1;
+				if(G.vd->persp==V3D_CAMOB && mode!=1 && G.vd->camera) {
+					G.vd->persp= V3D_PERSP;
 					scrarea_do_windraw(curarea);
 					scrarea_queue_headredraw(curarea);
 				}
 			}
 
 			if(mode==0) {	/* view rotate */
-				if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 1;
+				if (U.uiflag & USER_AUTOPERSP) G.vd->persp= V3D_PERSP;
 
 				if (U.flag & USER_TRACKBALL) mvalball[0]= mval[0];
 				mvalball[1]= mval[1];
@@ -924,7 +924,7 @@ void viewmove(int mode)
 				}
 			}
 			else if(mode==1) {	/* translate */
-				if(G.vd->persp==2) {
+				if(G.vd->persp==V3D_CAMOB) {
 					float max= (float)MAX2(curarea->winx, curarea->winy);
 
 					G.vd->camdx += (mvalo[0]-mval[0])/(max);
@@ -944,7 +944,7 @@ void viewmove(int mode)
 				/* use initial value (do not use mvalo (that is used to detect mouse moviments)) */
 				mvalo[0] = mvali[0];
 				mvalo[1] = mvali[1];
-
+				
 				if(U.viewzoom==USER_ZOOM_CONT) {
 					// oldstyle zoom
 					zfac = 1.0+(float)(mvalo[0]-mval[0]+mvalo[1]-mval[1])/1000.0;
@@ -974,9 +974,9 @@ void viewmove(int mode)
 				/* these limits are in toets.c too */
 				if(G.vd->dist<0.001*G.vd->grid) G.vd->dist= 0.001*G.vd->grid;
 				if(G.vd->dist>10.0*G.vd->far) G.vd->dist=10.0*G.vd->far;
-				
-				if(G.vd->persp==0 || G.vd->persp==2) preview3d_event= 0;
 			}
+			if(G.vd->persp==V3D_ORTHO || G.vd->persp==V3D_CAMOB) preview3d_event= 0;
+			
 			
 			mvalo[0]= mval[0];
 			mvalo[1]= mval[1];
@@ -1062,14 +1062,10 @@ void view_zoom_mouseloc(float dfac, short *mouseloc)
 
 void viewmoveNDOF(int mode)
 {
-    static double prevTime = 0.0;
-
-    int i;
     float fval[7];
     float dvec[3];
     float sbadjust = 1.0f;
     float len;
-    double now, frametime;
 	short use_sel = 0;
 	Object *ob = OBACT;
     float m[3][3];
@@ -1139,7 +1135,7 @@ void viewmoveNDOF(int mode)
             fval[6] = fval[6]  / 1000000.0f;
 			
 	// scale more if not in perspective mode
-			if (G.vd->persp == 0) {
+			if (G.vd->persp == V3D_ORTHO) {
 				fval[0] = fval[0] * 0.05f;
 				fval[1] = fval[1] * 0.05f;
 				fval[2] = fval[2] * 0.05f;
@@ -1186,8 +1182,8 @@ void viewmoveNDOF(int mode)
      */
     len = zsens * sbadjust * fval[2];
 
-    if (G.vd->persp==2) {
-        if(G.vd->persp==2) {
+    if (G.vd->persp==V3D_CAMOB) {
+        if(G.vd->persp==V3D_CAMOB) { /* This is stupid, please fix - TODO */
             G.vd->camzoom+= 10.0f * -len;
         }
         if (G.vd->camzoom < minZoom) G.vd->camzoom = minZoom;
@@ -1301,10 +1297,10 @@ int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, 
 
 /*	
  * Cant use this since we need the fac and x1 values set
- * if(G.vd->persp==2)
+ * if(G.vd->persp==V3D_CAMOB)
 		object_view_settings(G.vd->camera, &lens, &(*clipsta), &(*clipend));*/
 	
-	if(G.vd->persp==2) {
+	if(G.vd->persp==V3D_CAMOB) {
 		if(G.vd->camera) {
 			if(G.vd->camera->type==OB_LAMP ) {
 				Lamp *la;
@@ -1327,7 +1323,7 @@ int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, 
 		}
 	}
 	
-	if(G.vd->persp==0) {
+	if(G.vd->persp==V3D_ORTHO) {
 		if(winx>winy) x1= -G.vd->dist;
 		else x1= -winx*G.vd->dist/winy;
 		x2= -x1;
@@ -1342,7 +1338,7 @@ int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, 
 	}
 	else {
 		/* fac for zoom, also used for camdx */
-		if(G.vd->persp==2) {
+		if(G.vd->persp==V3D_CAMOB) {
 			fac= (1.41421+( (float)G.vd->camzoom )/50.0);
 			fac*= fac;
 		}
@@ -1458,7 +1454,7 @@ void obmat_to_viewmat(Object *ob, short smooth)
 	Mat3CpyMat4(tmat, G.vd->viewmat);
 	if (smooth) {
 		float new_quat[4];
-		if (G.vd->persp==2 && G.vd->camera) {
+		if (G.vd->persp==V3D_CAMOB && G.vd->camera) {
 			/* were from a camera view */
 			
 			float orig_ofs[3];
@@ -1469,13 +1465,13 @@ void obmat_to_viewmat(Object *ob, short smooth)
 			/* Switch from camera view */
 			Mat3ToQuat(tmat, new_quat);
 			
-			G.vd->persp=1;
+			G.vd->persp=V3D_PERSP;
 			G.vd->dist= 0.0;
 			
 			view_settings_from_ob(G.vd->camera, G.vd->ofs, NULL, NULL, &G.vd->lens);
 			smooth_view(G.vd, orig_ofs, new_quat, &orig_dist, &orig_lens);
 			
-			G.vd->persp=2; /* just to be polite, not needed */
+			G.vd->persp=V3D_CAMOB; /* just to be polite, not needed */
 			
 		} else {
 			Mat3ToQuat(tmat, new_quat);
@@ -1489,7 +1485,7 @@ void obmat_to_viewmat(Object *ob, short smooth)
 /* dont set windows active in in here, is used by renderwin too */
 void setviewmatrixview3d()
 {
-	if(G.vd->persp>=2) {	    /* obs/camera */
+	if(G.vd->persp==V3D_CAMOB) {	    /* obs/camera */
 		if(G.vd->camera) {
 			where_is_object(G.vd->camera);	
 			obmat_to_viewmat(G.vd->camera, 0);
@@ -1502,7 +1498,7 @@ void setviewmatrixview3d()
 	else {
 		
 		QuatToMat4(G.vd->viewquat, G.vd->viewmat);
-		if(G.vd->persp==1) G.vd->viewmat[3][2]-= G.vd->dist;
+		if(G.vd->persp==V3D_PERSP) G.vd->viewmat[3][2]-= G.vd->dist;
 		if(G.vd->ob_centre) {
 			Object *ob= G.vd->ob_centre;
 			float vec[3];
@@ -1761,7 +1757,7 @@ void initlocalview()
 			G.vd->dist*= size;
 		}
 		
-		if (G.vd->persp>1) G.vd->persp= 1;
+		if (G.vd->persp==V3D_CAMOB) G.vd->persp= V3D_PERSP;
 		if (G.vd->near> 0.1) G.vd->near= 0.1;
 		
 		G.vd->cursor[0]= -G.vd->ofs[0];
@@ -1890,16 +1886,16 @@ void centerview()	/* like a localview without local! */
 	G.vd->cursor[1]= -new_ofs[1];
 	G.vd->cursor[2]= -new_ofs[2];
 	
-	if (G.vd->persp==2 && G.vd->camera) {
+	if (G.vd->persp==V3D_CAMOB && G.vd->camera) {
 		float orig_lens= G.vd->lens;
 		
-		G.vd->persp=1;
+		G.vd->persp=V3D_PERSP;
 		G.vd->dist= 0.0;
 		view_settings_from_ob(G.vd->camera, G.vd->ofs, NULL, NULL, &G.vd->lens);
 		smooth_view(G.vd, new_ofs, NULL, &new_dist, &orig_lens);
 	} else {
-		if(G.vd->persp>=2)
-			G.vd->persp= 1;
+		if(G.vd->persp==V3D_CAMOB)
+			G.vd->persp= V3D_PERSP;
 		
 		smooth_view(G.vd, new_ofs, NULL, &new_dist, NULL);
 	}
@@ -2014,17 +2010,17 @@ void view3d_home(int center)
 			new_dist*= size;
 		}
 		
-		if (G.vd->persp==2 && G.vd->camera) {
+		if (G.vd->persp==V3D_CAMOB && G.vd->camera) {
 			/* switch out of camera view */
 			float orig_lens= G.vd->lens;
 			
-			G.vd->persp=1;
+			G.vd->persp= V3D_PERSP;
 			G.vd->dist= 0.0;
 			view_settings_from_ob(G.vd->camera, G.vd->ofs, NULL, NULL, &G.vd->lens);
 			smooth_view(G.vd, new_ofs, NULL, &new_dist, &orig_lens);
 			
 		} else {
-			if(G.vd->persp>=2) G.vd->persp= 1;
+			if(G.vd->persp==V3D_CAMOB) G.vd->persp= V3D_PERSP;
 			smooth_view(G.vd, new_ofs, NULL, &new_dist, NULL);
 		}
 		scrarea_queue_winredraw(curarea);
@@ -2051,19 +2047,19 @@ void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3])
 
 	v3d->view= 0;
 	
-	if (v3d->persp==2 && v3d->camera) {
+	if (v3d->persp==V3D_CAMOB && v3d->camera) {
 		/* switch out of camera view */
 		float orig_ofs[3];
 		float orig_dist= v3d->dist;
 		float orig_lens= v3d->lens;
 
 		VECCOPY(orig_ofs, v3d->ofs);
-		G.vd->persp=1;
+		G.vd->persp= V3D_PERSP;
 		G.vd->dist= 0.0;
 		view_settings_from_ob(v3d->camera, v3d->ofs, NULL, NULL, &v3d->lens);
 		smooth_view(G.vd, orig_ofs, new_quat, &orig_dist, &orig_lens);
 	} else {
-		if (v3d->persp>=2) v3d->persp= 1; /* switch out of camera mode */
+		if (v3d->persp==V3D_CAMOB) v3d->persp= V3D_PERSP; /* switch out of camera mode */
 		smooth_view(v3d, NULL, new_quat, NULL, NULL);
 	}
 }
@@ -2238,7 +2234,7 @@ void view_settings_from_ob(Object *ob, float *ofs, float *quat, float *dist, flo
  * */
 void smooth_view_to_camera(View3D *v3d)
 {
-	if (!U.smooth_viewtx || !v3d->camera || G.vd->persp != 2) {
+	if (!U.smooth_viewtx || !v3d->camera || G.vd->persp != V3D_CAMOB) {
 		return;
 	} else {
 		Object *ob = v3d->camera;
@@ -2255,13 +2251,13 @@ void smooth_view_to_camera(View3D *v3d)
 		
 		view_settings_from_ob(ob, new_ofs, new_quat, NULL, &new_lens);
 		
-		G.vd->persp=1;
+		G.vd->persp= V3D_PERSP;
 		smooth_view(v3d, new_ofs, new_quat, &new_dist, &new_lens);
 		VECCOPY(v3d->ofs, orig_ofs);
 		v3d->lens= orig_lens;
 		v3d->dist = orig_dist; /* restore the dist */
 		
 		v3d->camera = ob;
-		v3d->persp=2;
+		v3d->persp= V3D_CAMOB;
 	}
 }

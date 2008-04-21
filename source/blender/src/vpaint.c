@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>
@@ -1347,23 +1344,6 @@ void weight_paint(void)
 	copy_wpaint_prev(&Gwp, NULL, 0);
 
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-	/* this flag is event for softbody to refresh weightpaint values */
-	if(ob->soft) ob->softflag |= OB_SB_REDO;
-	
-	/* same goes for cloth */
-	if(modifiers_isClothEnabled(ob)) {
-		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-		if(clmd)
-		{
-			/* check if we use the edited vertex group at all */
-			if((clmd->sim_parms->vgroup_mass==ob->actdef) || 
-			(clmd->sim_parms->vgroup_struct==ob->actdef)||
-			(clmd->sim_parms->vgroup_bend==ob->actdef))
-			{	
-				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-			}
-		}
-	}	
 
 	/* and particles too */
 	if(ob->particlesystem.first) {

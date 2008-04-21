@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -218,12 +215,18 @@ void transform_aspect_ratio_tface_uv(float *aspx, float *aspy)
 {
 	int w, h;
 	float xuser_asp, yuser_asp;
-	
-	aspect_sima(G.sima, &xuser_asp, &yuser_asp);
-	
-	transform_width_height_tface_uv(&w, &h);
-	*aspx= (float)w/256.0f * xuser_asp;
-	*aspy= (float)h/256.0f * yuser_asp;
+
+	if(G.sima && G.sima->image) {
+		image_pixel_aspect(G.sima->image, &xuser_asp, &yuser_asp);
+		
+		transform_width_height_tface_uv(&w, &h);
+		*aspx= (float)w/256.0f * xuser_asp;
+		*aspy= (float)h/256.0f * yuser_asp;
+	}
+	else {
+		*aspx= 1.0f;
+		*aspy= 1.0f;
+	}
 }
 
 void transform_width_height_tface_uv(int *width, int *height)
@@ -710,7 +713,7 @@ void mouse_select_sima(void)
 			actface= 1;
 			sticky= 0;
 		} else {
-			actface= G.sima->flag & SI_SELACTFACE;
+			actface= G.scene->selectmode & SCE_SELECT_FACE;
 			sticky= 2;
 		}
 	} else {
@@ -842,7 +845,10 @@ void mouse_select_sima(void)
 								simaUVSel_Set(efa, tf, 3);
 					}
 				}
-				EM_set_actFace(nearestefa);
+				
+				if (actface)
+					EM_set_actFace(nearestefa);
+				
 				flush = 1;
 			}			
 		}
@@ -2074,11 +2080,10 @@ int minmax_tface_uv(float *min, float *max)
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 		if (simaFaceDraw_Check(efa, tf)) {
-			if (simaUVSel_Check(efa, tf, 0))				DO_MINMAX2(tf->uv[0], min, max);
-			if (simaUVSel_Check(efa, tf, 1))				DO_MINMAX2(tf->uv[1], min, max);
-			if (simaUVSel_Check(efa, tf, 2))				DO_MINMAX2(tf->uv[2], min, max);
-			if (efa->v4 && (simaUVSel_Check(efa, tf, 3)))	DO_MINMAX2(tf->uv[3], min, max);
-			sel = 1;
+			if (simaUVSel_Check(efa, tf, 0))				{ DO_MINMAX2(tf->uv[0], min, max); sel = 1; }
+			if (simaUVSel_Check(efa, tf, 1))				{ DO_MINMAX2(tf->uv[1], min, max); sel = 1; }
+			if (simaUVSel_Check(efa, tf, 2))				{ DO_MINMAX2(tf->uv[2], min, max); sel = 1; }
+			if (efa->v4 && (simaUVSel_Check(efa, tf, 3)))	{ DO_MINMAX2(tf->uv[3], min, max); sel = 1; }
 		}
 	}
 	return sel;
@@ -2632,23 +2637,119 @@ void BIF_image_update_frame(void)
 	}
 }
 
-void aspect_sima(SpaceImage *sima, float *x, float *y)
+extern int EM_texFaceCheck(void); /* from editmesh.c */
+/* called to assign images to UV faces */
+void image_changed(SpaceImage *sima, Image *image)
+{
+	MTFace *tface;
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	ImBuf *ibuf = NULL;
+	short change = 0;
+	
+	if(image==NULL) {
+		sima->flag &= ~SI_DRAWTOOL;
+	} else {
+		ibuf = BKE_image_get_ibuf(image, NULL);
+	}
+	
+	if(sima->mode!=SI_TEXTURE)
+		return;
+	
+	/* skip assigning these procedural images... */
+	if(image && (image->type==IMA_TYPE_R_RESULT || image->type==IMA_TYPE_COMPOSITE)) {
+		return;
+	} else if ((G.obedit) &&
+			(G.obedit->type == OB_MESH) &&
+			(G.editMesh) &&
+			(G.editMesh->faces.first)
+		) {
+		
+		/* Add a UV layer if there is none, editmode only */
+		if ( !CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE) ) {
+			EM_add_data_layer(&em->fdata, CD_MTFACE);
+			CustomData_set_layer_active(&em->fdata, CD_MTFACE, 0); /* always zero because we have no other UV layers */
+			change = 1; /* so we update the object, incase no faces are selected */
+			
+			/* BIF_undo_push("New UV Texture"); - undo should be done by whatever changes the image */
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+		}
+		
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (efa->h==0 && efa->f & SELECT) {
+				if (image) {
+					tface->tpage= image;
+					tface->mode |= TF_TEX;
+					
+					if(image->tpageflag & IMA_TILES) tface->mode |= TF_TILES;
+					else tface->mode &= ~TF_TILES;
+					
+					if(image->id.us==0) id_us_plus(&image->id);
+					else id_lib_extern(&image->id);
+					
+					if (tface->transp==TF_ADD) {} /* they obviously know what they are doing! - leave as is */
+					else if (ibuf && ibuf->depth == 32)	tface->transp = TF_ALPHA;
+					else								tface->transp = TF_SOLID;
+					
+				} else {
+					tface->tpage= NULL;
+					tface->mode &= ~TF_TEX;
+					tface->transp = TF_SOLID;
+				}
+				change = 1;
+			}
+		}
+	}
+	/* change the space image after because simaFaceDraw_Check uses the space image
+	 * to check if the face is displayed in UV-localview */
+	sima->image = image;
+	
+	if (change)
+		object_uvs_changed(OBACT);
+	
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
+void image_pixel_aspect(Image *image, float *x, float *y)
 {
 	*x = *y = 1.0;
 	
-	if(		(sima->image == 0) ||
-			(sima->image->type == IMA_TYPE_R_RESULT) ||
-			(sima->image->type == IMA_TYPE_COMPOSITE) ||
-			(sima->image->tpageflag & IMA_TILES) ||
-			(sima->image->aspx==0.0 || sima->image->aspy==0.0)
+	if(		(image == NULL) ||
+			(image->type == IMA_TYPE_R_RESULT) ||
+			(image->type == IMA_TYPE_COMPOSITE) ||
+			(image->tpageflag & IMA_TILES) ||
+			(image->aspx==0.0 || image->aspy==0.0)
 	) {
 		return;
 	}
 	
 	/* x is always 1 */
-	*y = sima->image->aspy / sima->image->aspx;
+	*y = image->aspy / image->aspx;
 }
 
+void image_final_aspect(Image *image, float *x, float *y)
+{
+	*x = *y = 1.0;
+	
+	if(		(image == NULL) ||
+			(image->type == IMA_TYPE_R_RESULT) ||
+			(image->type == IMA_TYPE_COMPOSITE) ||
+			(image->tpageflag & IMA_TILES) ||
+			(image->aspx==0.0 || image->aspy==0.0)
+	) {
+		return;
+	} else {
+		ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
+		if (ibuf && ibuf->x && ibuf->y)  {
+			*y = (image->aspy * ibuf->y) / (image->aspx * ibuf->x);
+		} else {
+			/* x is always 1 */
+			*y = image->aspy / image->aspx;
+		}
+	}
+}
 
 /* Face selection tests  - Keep these together */
 

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -288,7 +285,7 @@ void unwrap_lscm(short seamcut)
 	EditMesh *em = G.editMesh;
 	ParamHandle *handle;
 	short abf = G.scene->toolsettings->unwrapper == 1;
-	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
+	short fillholes = G.scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
 	
 	/* add uvs if there not here */
 	if (!EM_texFaceCheck()) {
@@ -297,6 +294,9 @@ void unwrap_lscm(short seamcut)
 		
 		if (!EM_texFaceCheck())
 			return;
+		
+		if (G.sima && G.sima->image) /* this is a bit of a kludge, but assume they want the image on their mesh when UVs are added */
+			image_changed(G.sima, G.sima->image);
 		
 		/* select new UV's */
 		if ((G.sima==0 || G.sima->flag & SI_SYNC_UVSEL)==0) {
@@ -315,6 +315,21 @@ void unwrap_lscm(short seamcut)
 	param_lscm_solve(handle);
 	param_lscm_end(handle);
 
+	
+	/* scale before packing */
+	if ((G.scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT)==0) {
+		EditFace *efa = EM_get_actFace(1);
+		if (efa) {
+			float aspx, aspy;
+			MTFace *tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			image_final_aspect(tface->tpage, &aspx, &aspy);
+		
+			if (aspx!=aspy) {
+				param_scale(handle, 1.0, aspx/aspy);
+			}
+		}
+	}
+	
 	param_pack(handle);
 
 	param_flush(handle);
@@ -337,7 +352,7 @@ void minimize_stretch_tface_uv(void)
 	double lasttime;
 	short doit = 1, escape = 0, val, blend = 0;
 	unsigned short event = 0;
-	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
+	short fillholes = G.scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
 	
 	if(!EM_texFaceCheck()) return;
 
@@ -471,7 +486,7 @@ void unwrap_lscm_live_begin(void)
 {
 	EditMesh *em = G.editMesh;
 	short abf = G.scene->toolsettings->unwrapper == 1;
-	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
+	short fillholes = G.scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES;
 
 	if(!EM_texFaceCheck()) return;
 

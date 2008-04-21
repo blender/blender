@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Reorganised mar-01 nzc
  * Some really low-level file thingies.
  */
@@ -52,7 +49,7 @@
 
 #if defined (__sun__) || defined (__sun)
 #include <sys/statvfs.h> /* Other modern unix os's should probably use this also */
-#elif !defined(linux) && (defined(__sgi) || defined(__sparc) || defined(__sparc__))
+#elif !defined(__FreeBSD__) && !defined(linux) && (defined(__sgi) || defined(__sparc) || defined(__sparc__))
 #include <sys/statfs.h>
 #endif
 
@@ -209,7 +206,7 @@ double BLI_diskfree(char *dir)
 
 #if defined (__sun__) || defined (__sun)
 	if (statvfs(name, &disk)) return(-1);	
-#elif !defined(linux) && (defined (__sgi) || defined(__sparc) || defined(__sparc__))
+#elif !defined(__FreeBSD__) && !defined(linux) && (defined (__sgi) || defined(__sparc) || defined(__sparc__))
 	/* WARNING - This may not be supported by geeneric unix os's - Campbell */
 	if (statfs(name, &disk, sizeof(struct statfs), 0)) return(-1);
 #endif

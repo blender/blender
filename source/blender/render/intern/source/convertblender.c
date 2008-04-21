@@ -55,6 +55,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h"
@@ -986,6 +987,26 @@ static void free_mesh_orco_hash(Render *re)
 	}
 }
 
+static void flag_render_node_material(Render *re, bNodeTree *ntree)
+{
+	bNode *node;
+
+	for(node=ntree->nodes.first; node; node= node->next) {
+		if(node->id) {
+			if(GS(node->id->name)==ID_MA) {
+				Material *ma= (Material *)node->id;
+
+				if(ma->mode & MA_ZTRA)
+					re->flag |= R_ZTRA;
+
+				ma->flag |= MA_IS_USED;
+			}
+			else if(node->type==NODE_GROUP)
+				flag_render_node_material(re, (bNodeTree *)node->id);
+		}
+	}
+}
+
 static Material *give_render_material(Render *re, Object *ob, int nr)
 {
 	extern Material defmaterial;	/* material.c */
@@ -994,14 +1015,17 @@ static Material *give_render_material(Render *re, Object *ob, int nr)
 	ma= give_current_material(ob, nr);
 	if(ma==NULL) 
 		ma= &defmaterial;
-	else
-		if(ma->mode & MA_ZTRA)
-			re->flag |= R_ZTRA;
 	
 	if(re->r.mode & R_SPEED) ma->texco |= NEED_UV;
 	
+	if(ma->mode & MA_ZTRA)
+		re->flag |= R_ZTRA;
+	
 	/* for light groups */
 	ma->flag |= MA_IS_USED;
+
+	if(ma->nodetree && ma->use_nodes)
+		flag_render_node_material(re, ma->nodetree);
 	
 	return ma;
 }
@@ -3660,9 +3684,6 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 
 		if(re->r.mode & R_SHADOW) {
 			
-			if ((lar->mode & LA_SHAD_RAY) && (lar->ray_samp_method == LA_SAMP_HAMMERSLEY)) {
-				init_lamp_hammersley(lar);
-			}
 			if(la->type==LA_AREA && (lar->mode & LA_SHAD_RAY) && (lar->ray_samp_method == LA_SAMP_CONSTANT)) {
 				init_jitter_plane(lar);
 			}
@@ -4348,7 +4369,6 @@ void RE_Database_Free(Render *re)
 		freeshadowbuf(lar);
 		if(lar->jitter) MEM_freeN(lar->jitter);
 		if(lar->shadsamp) MEM_freeN(lar->shadsamp);
-		if(lar->qsa) free_lamp_qmcsampler(lar);
 		curvemapping_free(lar->curfalloff);
 	}
 	
@@ -4386,8 +4406,7 @@ void RE_Database_Free(Render *re)
 		re->wrld.aotables= NULL;
 		re->scene->world->aotables= NULL;
 	}
-	if((re->r.mode & R_RAYTRACE) && (re->wrld.mode & WO_AMB_OCC) &&
-	    (re->wrld.ao_samp_method == WO_AOSAMP_HAMMERSLEY) && (re->qsa))
+	if(re->r.mode & R_RAYTRACE)
 		free_render_qmcsampler(re);
 	
 	if(re->r.mode & R_RAYTRACE) freeraytree(re);
@@ -4762,11 +4781,12 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	}
 	
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
-	if((re->r.mode & R_RAYTRACE) && (re->wrld.mode & WO_AMB_OCC)) {
-		if (re->wrld.ao_samp_method == WO_AOSAMP_HAMMERSLEY)
-			init_render_hammersley(re);
-		else if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
-			init_ao_sphere(&re->wrld);
+	if(re->r.mode & R_RAYTRACE) {
+		init_render_qmcsampler(re);
+
+		if(re->wrld.mode & WO_AMB_OCC)
+			if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
+				init_ao_sphere(&re->wrld);
 	}
 	
 	/* still bad... doing all */
@@ -5415,11 +5435,12 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 	}
 	
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
-	if((re->r.mode & R_RAYTRACE) && (re->wrld.mode & WO_AMB_OCC)) {
-		if (re->wrld.ao_samp_method == WO_AOSAMP_HAMMERSLEY)
-			init_render_hammersley(re);
-		else if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
-			init_ao_sphere(&re->wrld);
+	if(re->r.mode & R_RAYTRACE) {
+		init_render_qmcsampler(re);
+		
+		if(re->wrld.mode & WO_AMB_OCC)
+			if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
+				init_ao_sphere(&re->wrld);
 	}
 	
 	/* still bad... doing all */

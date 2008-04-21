@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -120,7 +117,7 @@ void getViewVector(float coord[3], float vec[3])
 {
 	TransInfo *t = BIF_GetTransInfo();
 
-	if (t->persp)
+	if (t->persp != V3D_ORTHO)
 	{
 		float p1[4], p2[4];
 
@@ -255,7 +252,7 @@ static void editmesh_apply_to_mirror(TransInfo *t)
 		if (td->flag & TD_SKIP)
 			continue;
 		
-		eve= td->tdmir;
+		eve = td->tdmir;
 		if(eve) {
 			eve->co[0]= -td->loc[0];
 			eve->co[1]= td->loc[1];
@@ -308,7 +305,7 @@ void recalcData(TransInfo *t)
 					base->object->ctime= -1234567.0f;	// eveil! 
 			}
 			
-			DAG_scene_flush_update(G.scene, screen_view3d_layers());
+			DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 		}
 	}
 	else if (t->spacetype == SPACE_IPO) {
@@ -325,8 +322,11 @@ void recalcData(TransInfo *t)
 			if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
 				
 				/* watch it: if the time is wrong: do not correct handles */
-				if (test_time_ipocurve(ei->icu)) dosort++;
-				else testhandles_ipocurve(ei->icu);
+				if (test_time_ipocurve(ei->icu)) {
+					dosort++;
+				} else {
+					calchandles_ipocurve(ei->icu);
+				}
 			}
 		}
 		
@@ -367,7 +367,7 @@ void recalcData(TransInfo *t)
 					}
 					base= base->next;
 				}
-				DAG_scene_flush_update(G.scene, screen_view3d_layers());
+				DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 			}
 		}
 	}
@@ -378,14 +378,14 @@ void recalcData(TransInfo *t)
 				if (G.sima->flag & SI_LIVE_UNWRAP)
 					unwrap_lscm_live_re_solve();
 			} else {
-				/* Only retopo if not snapping, Note, this is the only case of G.qual being used, but we have no T_SHIFT_MOD - Campbell */
-				if ((G.qual & LR_CTRLKEY)==0)
-					retopo_do_all();
-	
 				/* mirror modifier clipping? */
-				if(t->state != TRANS_CANCEL)
+				if(t->state != TRANS_CANCEL) {
+					if ((G.qual & LR_CTRLKEY)==0) {
+						/* Only retopo if not snapping, Note, this is the only case of G.qual being used, but we have no T_SHIFT_MOD - Campbell */
+						retopo_do_all();
+					}
 					clipMirrorModifier(t, G.obedit);
-				
+				}
 				if((t->context & CTX_NO_MIRROR) == 0 && (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
 					editmesh_apply_to_mirror(t);
 				
@@ -398,13 +398,20 @@ void recalcData(TransInfo *t)
 			Nurb *nu= editNurb.first;
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
 			
-			while(nu) {
-				test2DNurb(nu);
-				testhandlesNurb(nu); /* test for bezier too */
-				nu= nu->next;
+			if (t->state == TRANS_CANCEL) {
+				while(nu) {
+					calchandlesNurb(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
+					nu= nu->next;
+				}
+			} else {
+				/* Normal updating */
+				while(nu) {
+					test2DNurb(nu);
+					calchandlesNurb(nu);
+					nu= nu->next;
+				}
+				retopo_do_all();
 			}
-
-			retopo_do_all();
 		}
 		else if(G.obedit->type==OB_ARMATURE){   /* no recalc flag, does pose */
 			bArmature *arm= G.obedit->data;
@@ -465,21 +472,6 @@ void recalcData(TransInfo *t)
 		/* old optimize trick... this enforces to bypass the depgraph */
 		if (!(arm->flag & ARM_DELAYDEFORM)) {
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
-			
-			/* bah, softbody exception... recalcdata doesnt reset */
-			for(base= FIRSTBASE; base; base= base->next) {
-				if(base->object->recalc & OB_RECALC_DATA)
-				{	
-					if(modifiers_isSoftbodyEnabled(base->object)) {
-						base->object->softflag |= OB_SB_REDO;
-					}
-					else if(modifiers_isClothEnabled(base->object)) {
-						ClothModifierData *clmd = (ClothModifierData *) modifiers_findByType(base->object, eModifierType_Cloth);
-						clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-					}
-					
-				}
-			}
 		}
 		else
 			where_is_pose(ob);
@@ -491,12 +483,12 @@ void recalcData(TransInfo *t)
 		for(base= FIRSTBASE; base; base= base->next) {
 			Object *ob= base->object;
 			
-			/* this flag is from depgraph, was stored in nitialize phase, handled in drawview.c */
+			/* this flag is from depgraph, was stored in initialize phase, handled in drawview.c */
 			if(base->flag & BA_HAS_RECALC_OB)
 				ob->recalc |= OB_RECALC_OB;
 			if(base->flag & BA_HAS_RECALC_DATA)
 				ob->recalc |= OB_RECALC_DATA;
-			
+
 			/* thanks to ob->ctime usage, ipos are not called in where_is_object,
 			   unless we edit ipokeys */
 			if(base->flag & BA_DO_IPO) {
@@ -511,18 +503,6 @@ void recalcData(TransInfo *t)
 						icu= icu->next;
 					}
 				}				
-			}
-			
-			/* softbody & cloth exception */
-			if(ob->recalc & OB_RECALC_DATA)
-			{
-				if(modifiers_isSoftbodyEnabled(ob)) {
-						ob->softflag |= OB_SB_REDO;
-				}
-				else if(modifiers_isClothEnabled(ob)) {
-					ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-					clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-				}
 			}
 			
 			/* proxy exception */
@@ -547,7 +527,6 @@ void recalcData(TransInfo *t)
 	/* update shaded drawmode while transform */
 	if(t->spacetype==SPACE_VIEW3D && G.vd->drawtype == OB_SHADED)
 		reshadeall_displist();
-	
 }
 
 void initTransModeFlags(TransInfo *t, int mode) 
@@ -639,6 +618,7 @@ void initTrans (TransInfo *t)
 	t->con.imval[1] = t->imval[1];
 
 	t->transform		= NULL;
+	t->handleEvent		= NULL;
 
 	t->total			=
 		t->num.idx		=
@@ -711,6 +691,7 @@ void postTrans (TransInfo *t)
 		/* since ipokeys are optional on objects, we mallocced them per trans-data */
 		for(a=0, td= t->data; a<t->total; a++, td++) {
 			if(td->tdi) MEM_freeN(td->tdi);
+			if (td->flag & TD_BEZTRIPLE) MEM_freeN(td->hdata); 
 		}
 		MEM_freeN(t->data);
 	}
@@ -774,6 +755,12 @@ static void restoreElement(TransData *td) {
 			}
 		}
 	}
+	
+	if (td->flag & TD_BEZTRIPLE) {
+		*(td->hdata->h1) = td->hdata->ih1;
+		*(td->hdata->h2) = td->hdata->ih2;
+	}
+	
 	if(td->tdi) {
 		TransDataIpokey *tdi= td->tdi;
 		
@@ -972,7 +959,7 @@ void calculateCenter(TransInfo *t)
 
 	/* voor panning from cameraview */
 	if(t->flag & T_OBJECT) {
-		if( G.vd->camera==OBACT && G.vd->persp>1) {
+		if( G.vd->camera==OBACT && G.vd->persp==V3D_CAMOB) {
 			float axis[3];
 			/* persinv is nasty, use viewinv instead, always right */
 			VECCOPY(axis, t->viewinv[2]);

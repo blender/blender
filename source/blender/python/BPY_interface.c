@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  * Contributor(s): Michel Selten, Willian P. Germano, Stephen Swaney,
  * Chris Keith, Chris Want, Ken Hughes
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 #include <Python.h>
@@ -1004,10 +1001,10 @@ int BPY_menu_do_python( short menutype, int event )
 	}
 
 	if( pym->dir ) { /* script is in U.pythondir */
-		char upythondir[FILE_MAXDIR];
+		char upythondir[FILE_MAX];
 
 		/* dirs in Blender can be "//", which has a special meaning */
-		BLI_strncpy(upythondir, U.pythondir, FILE_MAXDIR);
+		BLI_strncpy(upythondir, U.pythondir, FILE_MAX);
 		BLI_convertstringcode(upythondir, G.sce, 0); /* if so, this expands it */
 		BLI_make_file_string( "/", filestr, upythondir, pym->filename );
 	}

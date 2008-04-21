@@ -1475,7 +1475,7 @@ static void sample_occ_surface(ShadeInput *shi)
 	int *face, *index = RE_strandren_get_face(shi->obr, strand, 0);
 	float w[4], *co1, *co2, *co3, *co4;
 
-	if(mesh && index) {
+	if(mesh && mesh->face && mesh->co && mesh->col && index) {
 		face= mesh->face[*index];
 
 		co1= mesh->co[face[0]];
@@ -1555,6 +1555,9 @@ void make_occ_tree(Render *re)
 			occ_compute_passes(re, re->occlusiontree, re->wrld.ao_approx_passes);
 
 		for(mesh=re->strandsurface.first; mesh; mesh=mesh->next) {
+			if(!mesh->face || !mesh->co || !mesh->col)
+				continue;
+
 			count= MEM_callocN(sizeof(int)*mesh->totvert, "OcclusionCount");
 			facecol= MEM_callocN(sizeof(float)*3*mesh->totface, "StrandSurfFaceCol");
 

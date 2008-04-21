@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,7 +19,7 @@
  *
  * Contributors: Amorilia (amorilia@gamebox.net)
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /*
@@ -103,7 +100,7 @@ void ColorBlock::swizzleDXT5n()
 	for(int i = 0; i < 16; i++)
 	{
 		Color32 c = m_color[i];
-		m_color[i] = Color32(0, c.g, 0, c.r);
+		m_color[i] = Color32(0xFF, c.g, 0, c.r);
 	}
 }
 
@@ -125,6 +122,19 @@ void ColorBlock::splatY()
 	}
 }
 
+/// Returns true if the block has a single color.
+bool ColorBlock::isSingleColor() const
+{
+	for(int i = 1; i < 16; i++)
+	{
+		if (m_color[0] != m_color[i])
+		{
+			return false;
+		}
+	}
+	
+	return true;
+}
 
 /// Count number of unique colors in this color block.
 uint ColorBlock::countUniqueColors() const

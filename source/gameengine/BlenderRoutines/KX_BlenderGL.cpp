@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "KX_BlenderGL.h"
@@ -186,28 +183,30 @@ void BL_RenderText(int mode,const char* textstr,int textlen,struct MTFace* tface
 
 void DisableForText()
 {
-	if(glIsEnabled(GL_BLEND))
-		glDisable(GL_BLEND);
+	if(glIsEnabled(GL_BLEND)) glDisable(GL_BLEND);
 
 	if(glIsEnabled(GL_LIGHTING)) {
 		glDisable(GL_LIGHTING);
 		glDisable(GL_COLOR_MATERIAL);
 	}
-#ifdef GL_ARB_multitexture
-	for(int i=0; i<MAXTEX; i++) {
-		if(bgl::RAS_EXT_support._ARB_multitexture)
-			bgl::blActiveTextureARB(GL_TEXTURE0_ARB+i);
+#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+	if (!getenv("WITHOUT_GLEXT")) {
+		for(int i=0; i<MAXTEX; i++) {
+			if(bgl::RAS_EXT_support._ARB_multitexture)
+				bgl::blActiveTextureARB(GL_TEXTURE0_ARB+i);
 #ifdef GL_ARB_texture_cube_map
-	if(bgl::RAS_EXT_support._ARB_texture_cube_map)
-		if(glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
-			glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+		if(bgl::RAS_EXT_support._ARB_texture_cube_map)
+			if(glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
+				glDisable(GL_TEXTURE_CUBE_MAP_ARB);
 #endif
-		if(glIsEnabled(GL_TEXTURE_2D))
-			glDisable(GL_TEXTURE_2D);
+			if(glIsEnabled(GL_TEXTURE_2D)) glDisable(GL_TEXTURE_2D);
+		}
+	} else {
+		if(glIsEnabled(GL_TEXTURE_2D)) glDisable(GL_TEXTURE_2D);
 	}
+
 #else//GL_ARB_multitexture
-	if(glIsEnabled(GL_TEXTURE_2D))
-		glDisable(GL_TEXTURE_2D);
+	if(glIsEnabled(GL_TEXTURE_2D)) glDisable(GL_TEXTURE_2D);
 #endif
 }
 

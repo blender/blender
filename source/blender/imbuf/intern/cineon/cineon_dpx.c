@@ -135,7 +135,13 @@ static int imb_save_dpx_cineon(ImBuf *buf, char *filename, int use_cineon, int f
 	height = buf->y;
 	depth = 3;
 	
-	if (!buf->rect_float) return 0;
+	
+	if (!buf->rect_float) {
+		IMB_float_from_rect(buf);
+		if (!buf->rect_float) { /* in the unlikely event that converting to a float buffer fails */
+			return 0;
+		}
+	}
 	
 	logImageSetVerbose(0);
 	logImage = logImageCreate(filename, use_cineon, width, height, depth);

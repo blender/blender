@@ -108,6 +108,7 @@ typedef struct CompBuf {
 	
 	void (*rect_procedural)(struct CompBuf *, float *, float, float);
 	float procedural_size[3], procedural_offset[3];
+	int procedural_type;
 	bNode *node;		/* only in use for procedural bufs */
 	
 	struct CompBuf *next, *prev;	/* for pass-on, works nicer than reference counting */
@@ -138,6 +139,7 @@ void node_compo_pass_on(struct bNode *node, struct bNodeStack **nsin, struct bNo
 CompBuf *get_cropped_compbuf(rcti *drect, float *rectf, int rectx, int recty, int type);
 CompBuf *scalefast_compbuf(CompBuf *inbuf, int newx, int newy);
 CompBuf *typecheck_compbuf(CompBuf *inbuf, int type);
+void typecheck_compbuf_color(float *out, float *in, int outtype, int intype);
 float *compbuf_get_pixel(CompBuf *cbuf, float *rectf, int x, int y, int xrad, int yrad);
 
 /* **************************************************** */

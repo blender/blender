@@ -1236,23 +1236,15 @@ int BKE_write_ibuf(ImBuf *ibuf, char *name, int imtype, int subimtype, int quali
 
 void BKE_makepicstring(char *string, char *base, int frame, int imtype)
 {
-	short i, len, digits= 4;	/* digits in G.scene? */
-	char num[10];
-
 	if (string==NULL) return;
 
 	BLI_strncpy(string, base, FILE_MAX - 10);	/* weak assumption */
+	
+	/* if we dont have any #'s to insert numbers into, use 4 numbers by default */
+	if (strchr(string, '#')==NULL)
+		strcat(string, "####"); /* 4 numbers */
+	
 	BLI_convertstringcode(string, G.sce, frame);
-
-	len= strlen(string);
-			
-	i= digits - sprintf(num, "%d", frame);
-	for(; i>0; i--){
-		string[len]= '0';
-		len++;
-	}
-	string[len]= 0;
-	strcat(string, num);
 
 	if(G.scene->r.scemode & R_EXTENSION) 
 		BKE_add_image_extension(string, imtype);

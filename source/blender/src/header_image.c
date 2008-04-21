@@ -6,15 +6,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,7 +29,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -296,7 +293,7 @@ void do_image_buttons(unsigned short event)
 		}
 		break;
 	case B_KEEPDATA:
-		brush_toggle_fake_user(settings->imapaint.brush);
+		brush_toggled_fake_user(settings->imapaint.brush);
 		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 		break;
@@ -357,26 +354,6 @@ static void do_image_buttons_set_uvlayer_callback(void *act, void *data)
 	CustomData_set_layer_active(&G.editMesh->fdata, CD_MTFACE, *((int *)act));
 	
 	BIF_undo_push("Set Active UV Texture");
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWIMAGE, 0);
-}
-
-static void do_image_buttons_set_selection_mode_callback(void *mode, void *dummy2)
-{
-	int selectmode = *((int *)mode);
-	if (selectmode==0) {
-		if (G.scene->selectmode == SCE_SELECT_VERTEX) return;
-		G.scene->selectmode = SCE_SELECT_VERTEX;
-	} else {
-		if (G.scene->selectmode == SCE_SELECT_FACE) return;
-		G.scene->selectmode = SCE_SELECT_FACE;
-	}
-	
-	EM_selectmode_set();
-	countall(); 
-	
-	BIF_undo_push("Set Selection Mode");
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWIMAGE, 0);
@@ -460,14 +437,6 @@ static void do_image_viewmenu(void *arg, int event)
 	case 4: /* Realtime Panel... */
 		add_blockhandler(curarea, IMAGE_HANDLER_VIEW_PROPERTIES, UI_PNL_UNSTOW);
 		break;
-	case 5: /* Draw Shadow Mesh */
-		G.sima->flag ^= SI_DRAWSHADOW;
-		allqueue(REDRAWIMAGE, 0);
-		break;
-	case 6: /* Draw Faces */
-		G.f ^= G_DRAWFACES;
-		allqueue(REDRAWIMAGE, 0);
-		break;
 	case 7: /* Properties  Panel */
 		add_blockhandler(curarea, IMAGE_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
 		break;
@@ -476,9 +445,6 @@ static void do_image_viewmenu(void *arg, int event)
 		break;
 	case 9:
 		image_viewcenter();
-	case 10: /* Display Normalized Coordinates */
-		G.sima->flag ^= SI_COORDFLOATS;
-		allqueue(REDRAWIMAGE, 0);
 		break;
 	case 11: /* Curves Panel... */
 		add_blockhandler(curarea, IMAGE_HANDLER_CURVES, UI_PNL_UNSTOW);
@@ -513,15 +479,6 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Paint Tool...|C",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Curves Tool...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Composite Preview...|Shift P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 12, "");
-
-	if(G.sima->flag & SI_COORDFLOATS) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Display Normalized Coordinates|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Display Normalized Coordinates|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
-	if(G.f & G_DRAWFACES) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Draw Faces", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Draw Faces|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
-	if(G.sima->flag & SI_DRAWSHADOW) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Draw Shadow Mesh", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Draw Shadow Mesh|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	if(G.sima->flag & SI_LOCAL_UV) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "UV Local View|NumPad /",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "UV Local View|NumPad /", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
@@ -1233,20 +1190,30 @@ void image_buttons(void)
 				"Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period)");
 		xco+= XIC + 18;
 		
-		uiBlockBeginAlign(block);
+		
 		uiDefIconButBitI(block, TOG, SI_SYNC_UVSEL, B_REDR, ICON_EDIT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Sync UV and Mesh Selection");
-		xco+= XIC;
+		xco+= XIC+8;
 		if (G.sima->flag & SI_SYNC_UVSEL) {
-			static int selectmode;
-			/* would use these if const's could go in strings 
-			 * SCE_SELECT_VERTEX, SCE_SELECT_FACE */
-			ubut = uiDefIconTextButI(block, ICONTEXTROW, B_REDR, ICON_VERTEXSEL,
-					"Selection Mode: %t|Vertex%x0|Face%x2",
-					xco,0,XIC+10,YIC, &selectmode, 0, 3.0, 0, 0,
-					"Change mesh selection mode");
-			uiButSetFunc(ubut, do_image_buttons_set_selection_mode_callback, &selectmode, NULL);
+			uiBlockBeginAlign(block);
+			
+			/* B_SEL_VERT & B_SEL_FACE are not defined here which is a bit bad, BUT it works even if image editor is fullscreen */
+			uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode (Ctrl Tab 1)");
+			xco+= XIC;
+			/* no edge */
+			/*uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Edge select mode (Ctrl Tab 2)");
+			xco+= XIC; */
+			uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Face select mode (Ctrl Tab 3)");
+			xco+= XIC+8;
+			uiBlockEndAlign(block);
 			
 		} else {
+			uiBlockBeginAlign(block);
+			uiDefIconButBitI(block, TOGN, SI_SELACTFACE, B_REDR, ICON_VERTEXSEL, xco,0,XIC,YIC, &G.sima->flag, 1.0, 0.0, 0, 0, "UV Vertex select mode)");
+			xco+= XIC;
+			uiDefIconButBitI(block, TOG, SI_SELACTFACE, B_REDR, ICON_FACESEL, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "UV Face select mode");
+			xco+= XIC+8;
+			uiBlockEndAlign(block);
+			
 			/* would use these if const's could go in strings 
 			 * SI_STICKY_LOC SI_STICKY_DISABLE SI_STICKY_VERTEX */
 			ubut = uiDefIconTextButC(block, ICONTEXTROW, B_REDR, ICON_STICKY_UVS_LOC,
@@ -1256,7 +1223,6 @@ void image_buttons(void)
 			
 		}
 		xco+= XIC + 16;
-		uiBlockEndAlign(block);
 		
 		/* Snap copied right out of view3d header */
 			uiBlockBeginAlign(block);

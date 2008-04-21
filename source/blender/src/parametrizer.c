@@ -256,6 +256,16 @@ static void p_chart_uv_scale(PChart *chart, float scale)
 	}
 }
 
+static void p_chart_uv_scale_xy(PChart *chart, float x, float y)
+{
+	PVert *v;
+
+	for (v=chart->verts; v; v=v->nextlink) {
+		v->uv[0] *= x;
+		v->uv[1] *= y;
+	}
+}
+
 static void p_chart_uv_translate(PChart *chart, float trans[2])
 {
 	PVert *v;
@@ -4217,6 +4227,18 @@ void param_average(ParamHandle *handle)
 			trans[1] = -trans[1];
 			p_chart_uv_translate(chart, trans);
 		}
+	}
+}
+
+void param_scale(ParamHandle *handle, float x, float y)
+{
+	PHandle *phandle = (PHandle*)handle;
+	PChart *chart;
+	int i;
+
+	for (i = 0; i < phandle->ncharts; i++) {
+		chart = phandle->charts[i];
+		p_chart_uv_scale_xy(chart, x, y);
 	}
 }
 

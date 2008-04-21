@@ -8,7 +8,7 @@ Tooltip: 'Export to Quake file format (.md2).'
 """
 
 __author__ = 'Bob Holcomb'
-__version__ = '0.18.1'
+__version__ = '0.18.1 patch 1'
 __url__ = ["Bob's site, http://bane.servebeer.com",
      "Support forum, http://bane.servebeer.com", "blender", "elysiun"]
 __email__ = ["Bob Holcomb, bob_holcomb:hotmail*com", "scripts"]
@@ -18,6 +18,12 @@ This script Exports a Quake 2 file (MD2).
  Additional help from: Shadwolf, Skandal, Rojo, Cambo<br>
  Thanks Guys!
 """
+
+# This is a PATCHED VERSION, fixing the bug due to which animations would
+# (almost) never work.  It is now also possible to output a MD2 model without
+# texture.
+# On: 23 january 2008
+# By: Boris van Schooten (schooten@cs.utwente.nl)
 
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -105,13 +111,13 @@ def draw_gui():
 	g_filename = String("MD2 file to save: ", EVENT_NOEVENT, 10, 75, 210, 18,
                             g_filename.val, 255, "MD2 file to save")
 	########## MD2 File Search Button
-	Button("Search",EVENT_CHOOSE_FILENAME,220,75,80,18)
+	Button("Browse",EVENT_CHOOSE_FILENAME,220,75,80,18)
 
 	##########  MD2 Frame List Text entry
 	g_frame_filename = String("Frame List file to load: ", EVENT_NOEVENT, 10, 55, 210, 18,
                                 g_frame_filename.val, 255, "Frame List to load-overrides MD2 defaults")
 	########## Frame List Search Button
-	Button("Search",EVENT_CHOOSE_FRAME,220,55,80,18)
+	Button("Browse",EVENT_CHOOSE_FRAME,220,55,80,18)
 	
 	##########  Texture path to append
 	g_texture_path=String("Texture Path: ", EVENT_NOEVENT, 10,35,210,18,
@@ -143,14 +149,9 @@ def bevent(evt):
 	elif (evt==EVENT_CHOOSE_FRAME):
 		FileSelector(frame_callback, "Frame Selection")
 	elif (evt==EVENT_SAVE_MD2):
-		if (g_filename.val == "model"):
-			save_md2("blender.md2")
-			Blender.Draw.Exit()
-			return
-		else:
-			save_md2(g_filename.val)
-			Blender.Draw.Exit()
-			return
+		save_md2(g_filename.val)
+		Blender.Draw.Exit()
+		return
 
 Register(draw_gui, event, bevent)
 
@@ -616,21 +617,24 @@ def validation(object):
 
 	#move the object to the origin if it's not already there
 	if object.getLocation('worldspace')!=(0.0, 0.0, 0.0):
-		object.setLocation(0.0,0.0,0.0)
-		print "Model not centered at origin-Centering"
-		result=Blender.Draw.PupMenu("Model not centered at origin-Centering for you")
+		print "Model not centered at origin"
+		result=Blender.Draw.PupMenu("Model not centered at origin%t|Center (will not work with animations!)|Do not center")
+		if result==1:
+			object.setLocation(0.0,0.0,0.0)
 
 	#resize the object in case it is not the right size
 	if object.getSize('worldspace')!=(1.0,1.0,1.0):
-		object.setSize(1.0,1.0,1.0)
 		print "Object is scaled-You should scale the mesh verts, not the object"
-		result=Blender.Draw.PupMenu("Object is scaled-You should scale the mesh verts, not the object-fixing for you")
+		result=Blender.Draw.PupMenu("Object is scaled-You should scale the mesh verts, not the object%t|Fix scale (will not work with animations!)|Do not scale")
+		if result==1:
+			object.setSize(1.0,1.0,1.0)
 		
 	if object.getEuler('worldspace')!=Blender.Mathutils.Euler(0.0,0.0,0.0):
 		print "object.rot: ", object.getEuler('worldspace')
-		object.setEuler([0.0,0.0,0.0])
 		print "Object is rotated-You should rotate the mesh verts, not the object"
-		result=Blender.Draw.PupMenu("Object is rotated-You should rotate the mesh verts, not the object-fixing for you")
+		result=Blender.Draw.PupMenu("Object is rotated-You should rotate the mesh verts, not the object%t|Fix rotation (will not work with animations!)|Do not rotate")
+		if result==1:
+			object.setEuler([0.0,0.0,0.0])
 	
 	#get access to the mesh data
 	mesh=object.getData(False, True) #get the object (not just name) and the Mesh, not NMesh
@@ -643,7 +647,7 @@ def validation(object):
 			face.sel=1
 			if result==0:  #first time we have this problem, don't pop-up a window every time it finds a quad
 			  print "Model not made entirely of triangles"
-			  result=Blender.Draw.PupMenu("Model not made entirely out of Triangles-Convert?%t|YES|NO")
+			  result=Blender.Draw.PupMenu("Model not made entirely out of Triangles-Convert?%t|YES|Quit")
 	
 	#triangulate or quit
 	if result==1:
@@ -672,36 +676,34 @@ def validation(object):
 	
 	else:
 		print "Model does not have UV (face or vertex)"
-		result=Blender.Draw.PupMenu("Model does not have UV (face or vertex)%t|Quit")
-		return False
+		result=Blender.Draw.PupMenu("Model does not have UV (face or vertex)%t|Output (0,0) as UV coordinates and do not generate GL commands|Quit")
+		if result==2:
+			return False
 
 	#check it has an associated texture map
 	last_face=""
-	last_face=mesh.faces[0].image
-	if last_face=="":
-		print "Model does not have a texture Map"
-		result=Blender.Draw.PupMenu("Model does not have a texture Map%t|Quit")
-		return False
+	if mesh.faceUV:
+		last_face=mesh.faces[0].image
+		#check if each face uses the same texture map (only one allowed)
+		for face in mesh.faces:
+			mesh_image=face.image
+			if not mesh_image:
+				print "Model has a face without a texture Map"
+				result=Blender.Draw.PupMenu("Model has a face without a texture Map%t|This should never happen!")
+				#return False
+			if mesh_image!=last_face:
+				print "Model has more than 1 texture map assigned"
+				result=Blender.Draw.PupMenu("Model has more than 1 texture map assigned%t|Quit")
+				#return False
+		if mesh_image:
+			size=mesh_image.getSize()
+			#is this really what the user wants
+			if (size[0]!=256 or size[1]!=256):
+				print "Texture map size is non-standard (not 256x256), it is: ",size[0],"x",size[1]
+				result=Blender.Draw.PupMenu("Texture map size is non-standard (not 256x256), it is: "+str(size[0])+"x"+str(size[1])+": Continue?%t|YES|NO")
+				if(result==2):
+					return False
 
-	#check if each face uses the same texture map (only one allowed)
-	for face in mesh.faces:
-		mesh_image=face.image
-		if not mesh_image:
-			print "Model has a face without a texture Map"
-			result=Blender.Draw.PupMenu("Model has a face without a texture Map%t|Quit")
-			return False
-		if mesh_image!=last_face:
-			print "Model has more than 1 texture map assigned"
-			result=Blender.Draw.PupMenu("Model has more than 1 texture map assigned%t|Quit")
-			return False
-		
-	size=mesh_image.getSize()
-	#is this really what the user wants
-	if (size[0]!=256 or size[1]!=256):
-		print "Texture map size is non-standard (not 256x256), it is: ",size[0],"x",size[1]
-		result=Blender.Draw.PupMenu("Texture map size is non-standard (not 256x256), it is: "+str(size[0])+"x"+str(size[1])+": Continue?%t|YES|NO")
-		if(result==2):
-			return False
 
 	#verify frame list data
 	user_frame_list=get_frame_list()	
@@ -743,7 +745,8 @@ def fill_md2(md2, object):
 	
 	#get a Mesh, not NMesh
 	mesh=object.getData(False, True)	
-	
+	#don't forget to copy the data! -- Boris van Schooten
+	mesh=mesh.__copy__();
 	#load up some intermediate data structures
 	tex_list={}
 	tex_count=0
@@ -758,31 +761,35 @@ def fill_md2(md2, object):
 
 	#get the skin information
 	#use the first faces' image for the texture information
-	mesh_image=mesh.faces[0].image
-	size=mesh_image.getSize()
-	md2.skin_width=size[0]
-	md2.skin_height=size[1]
-	md2.num_skins=1
-	#add a skin node to the md2 data structure
-	md2.skins.append(md2_skin())
-	md2.skins[0].name=g_texture_path.val+Blender.sys.basename(mesh_image.getFilename())
-	if len(md2.skins[0].name)>64:
-		print "Texture Path and name is more than 64 characters"
-		result=Blender.Draw.PupMenu("Texture path and name is more than 64 characters-Quitting")
-		return False
+	if mesh.faceUV:
+		mesh_image=mesh.faces[0].image
+		size=mesh_image.getSize()
+		md2.skin_width=size[0]
+		md2.skin_height=size[1]
+		md2.num_skins=1
+		#add a skin node to the md2 data structure
+		md2.skins.append(md2_skin())
+		md2.skins[0].name=g_texture_path.val+Blender.sys.basename(mesh_image.getFilename())
+		if len(md2.skins[0].name)>64:
+			print "Texture Path and name is more than 64 characters"
+			result=Blender.Draw.PupMenu("Texture path and name is more than 64 characters-Quitting")
+			return False
 
 	#put texture information in the md2 structure
 	#build UV coord dictionary (prevents double entries-saves space)
 	for face in mesh.faces:
-		for i in range(0,3):
-			t=(face.uv[i])
+		for i in xrange(0,3):
+			if mesh.faceUV:
+				t=(face.uv[i])
+			else:
+				t=(0,0)
 			tex_key=(t[0],t[1])
 			if not tex_list.has_key(tex_key):
 				tex_list[tex_key]=tex_count
 				tex_count+=1
 	md2.num_tex_coords=tex_count #each vert has its own UV coord
 
-	for this_tex in range (0, md2.num_tex_coords):
+	for this_tex in xrange (0, md2.num_tex_coords):
 		md2.tex_coords.append(md2_tex_coord())
 	for coord, index in tex_list.iteritems():
 		#md2.tex_coords.append(md2_tex_coord())
@@ -791,13 +798,16 @@ def fill_md2(md2, object):
 
 	#put faces in the md2 structure
 	#for each face in the model
-	for this_face in range(0, md2.num_faces):
+	for this_face in xrange(0, md2.num_faces):
 		md2.faces.append(md2_face())
-		for i in range(0,3):
+		for i in xrange(0,3):
 			#blender uses indexed vertexes so this works very well
 			md2.faces[this_face].vertex_index[i]=mesh.faces[this_face].verts[i].index
 			#lookup texture index in dictionary
-			uv_coord=(mesh.faces[this_face].uv[i])
+			if mesh.faceUV:
+				uv_coord=(mesh.faces[this_face].uv[i])
+			else:
+				uv_coord=(0,0)
 			tex_key=(uv_coord[0],uv_coord[1])
 			tex_index=tex_list[tex_key]
 			md2.faces[this_face].texture_index[i]=tex_index
@@ -824,7 +834,7 @@ def fill_md2(md2, object):
 	progressIncrement=0.25/md2.num_frames
 
 	#fill in each frame with frame info and all the vertex data for that frame
-	for frame_counter in range(0,md2.num_frames):
+	for frame_counter in xrange(0,md2.num_frames):
 		
 		progress+=progressIncrement
 		Blender.Window.DrawProgressBar(progress, "Calculating Frame: "+str(frame_counter))
@@ -865,6 +875,10 @@ def fill_md2(md2, object):
 		frame_scale_y=(frame_max_y-frame_min_y)/255
 		frame_scale_z=(frame_max_z-frame_min_z)/255
 		
+		if frame_scale_x == 0: frame_scale_x = 1.0
+		if frame_scale_y == 0: frame_scale_y = 1.0
+		if frame_scale_z == 0: frame_scale_z = 1.0
+		
 		#translate value of the mesh to center it on the origin
 		frame_trans_x=frame_min_x
 		frame_trans_y=frame_min_y
@@ -875,7 +889,7 @@ def fill_md2(md2, object):
 		md2.frames[frame_counter].translate=(-frame_trans_x, frame_trans_y, frame_trans_z)
 		
 		#now for the vertices
-		for vert_counter in range(0, md2.num_vertices):
+		for vert_counter in xrange(0, md2.num_vertices):
 			#add a vertex to the md2 structure
 			md2.frames[frame_counter].vertices.append(md2_point())
 			#figure out the new coords based on scale and transform
@@ -893,12 +907,12 @@ def fill_md2(md2, object):
 			maxdotindex = -1;
 
 			
-			for j in range(0,162):
+			#swap y and x for difference in axis orientation 
+			x1=-mesh.verts[vert_counter].no[1]
+			y1=mesh.verts[vert_counter].no[0]
+			z1=mesh.verts[vert_counter].no[2]
+			for j in xrange(0,162):
 				#dot = (x[0]*y[0]+x[1]*y[1]+x[2]*y[2])
-				#swap y and x for difference in axis orientation 
-				x1=-mesh.verts[vert_counter].no[1]
-				y1=mesh.verts[vert_counter].no[0]
-				z1=mesh.verts[vert_counter].no[2]
 				dot = (x1*MD2_NORMALS[j][0]+
 				       y1*MD2_NORMALS[j][1]+
 							 z1*MD2_NORMALS[j][2]);
@@ -916,7 +930,7 @@ def fill_md2(md2, object):
 			
 	#output all the frame names-user_frame_list is loaded during the validation
 	for frame_set in user_frame_list:
-		for counter in range(frame_set[1]-1, frame_set[2]):
+		for counter in xrange(frame_set[1]-1, frame_set[2]):
 			md2.frames[counter].name=frame_set[0]+"_"+str(counter-frame_set[1]+2)
 
 	#compute these after everthing is loaded into a md2 structure
@@ -954,14 +968,14 @@ def get_frame_list():
 			file.close()
 
 			#check header (first line)
-			if lines[0].stip()<>"# MD2 Frame Name List":
+			if lines[0].strip() != "# MD2 Frame Name List":
 				print "its not a valid file"
 				result=Blender.Draw.PupMenu("This is not a valid frame definition file-using default%t|OK")
 				return MD2_FRAME_NAME_LIST
 			else:
 				#read in the data
 				num_frames=0
-				for counter in range(1, len(lines)):
+				for counter in xrange(1, len(lines)):
 					current_line=lines[counter].strip()
 					if current_line[0]=="#":
 						#found a comment
@@ -1025,7 +1039,7 @@ def find_strip_length(mesh, start_tri, edge_key):
 				pass
 			else:
 				#find non-shared vert
-				for vert_counter in range(0,3):
+				for vert_counter in xrange(0,3):
 					if (face.verts[vert_counter].index!=edge_key[0] and face.verts[vert_counter].index!=edge_key[1]):
 						next_vert=vert_counter
 						
@@ -1089,11 +1103,11 @@ def stripify_tri_list(mesh, edge_key):
 	#print "strip tris: ", strip_tris
 	#print "strip_tri length: ", len(strip_tris)
 		
-	for tri_counter in range(0, len(strip_tris)):
+	for tri_counter in xrange(0, len(strip_tris)):
 		face=mesh.faces[strip_tris[tri_counter]]
 		if (tri_counter==0): #first one only 
 			#find non-edge vert
-			for vert_counter in range(0,3):
+			for vert_counter in xrange(0,3):
 				if (face.verts[vert_counter].index!=edge_key[0] and face.verts[vert_counter].index!=edge_key[1]):
 					start_vert=vert_counter
 			strip_verts.append(face.verts[start_vert].index)
@@ -1105,7 +1119,7 @@ def stripify_tri_list(mesh, edge_key):
 			strip_verts.append(face.verts[(start_vert+1)%3].index)
 			strip_st.append(face.uv[(start_vert+1)%3])
 		else:
-			for vert_counter in range(0,3):
+			for vert_counter in xrange(0,3):
 				if(face.verts[vert_counter].index!=strip_verts[-1] and face.verts[vert_counter].index!=strip_verts[-2]):
 					strip_verts.append(face.verts[vert_counter].index)
 					strip_st.append(face.uv[vert_counter])
@@ -1117,8 +1131,13 @@ def stripify_tri_list(mesh, edge_key):
 # Build GL command List
 ######################################################
 def build_GL_commands(md2, mesh):
+	# we can't output gl command structure without uv
+	if not mesh.faceUV:
+		print "No UV: not building GL Commands"
+		return 0
+
 	print "Building GL Commands"
-	
+
 	global used_tris
 	global edge_dict
 	global strip_verts
@@ -1138,7 +1157,7 @@ def build_GL_commands(md2, mesh):
 	
 	#print "edge Dict: ", edge_dict
 
-	for tri_counter in range(0,len(mesh.faces)):
+	for tri_counter in xrange(0,len(mesh.faces)):
 		if used_tris[tri_counter]!=0: 
 			#print "Found a used triangle: ", tri_counter
 			pass
@@ -1156,7 +1175,7 @@ def build_GL_commands(md2, mesh):
 			strip_length=find_strip_length(mesh, tri_counter, mesh.faces[tri_counter].edge_keys[0])
 
 			#mark tris as used
-			for used_counter in range(0,strip_length):
+			for used_counter in xrange(0,strip_length):
 				used_tris[strip_tris[used_counter]]=1
 				
 			stripify_tri_list(mesh, mesh.faces[tri_counter].edge_keys[0])
@@ -1169,7 +1188,7 @@ def build_GL_commands(md2, mesh):
 			num_commands+=1
 			
 			#add s,t,vert for this command list
-			for command_counter in range(0, len(strip_tris)+2):
+			for command_counter in xrange(0, len(strip_tris)+2):
 				cmd=md2_GL_command()
 				cmd.s=strip_st[command_counter][0]
 				cmd.t=1.0-strip_st[command_counter][1] #flip upside down
@@ -1245,3 +1264,4 @@ def save_md2(filename):
 	md2=0
 	
 	print "Closed the file"
+

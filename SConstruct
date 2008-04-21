@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 # $Id$
-# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+# ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. The Blender
-# Foundation also sells licenses for use in proprietary software under
-# the Blender License.  See http://www.blender.org/BL/ for information
-# about this.
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
 #
 # Contributor(s): Nathan Letwory.
 #
-# ***** END GPL/BL DUAL LICENSE BLOCK *****
+# ***** END GPL LICENSE BLOCK *****
 #
 # Main entry-point for the SCons building system
 # Set up some custom actions and target/argument handling
@@ -39,6 +36,7 @@ import string
 import shutil
 import glob
 import re
+from tempfile import mkdtemp
 
 import tools.Blender
 import tools.btools
@@ -191,7 +189,6 @@ if env['WITH_BF_OPENMP'] == 1:
 			env['CPPFLAGS'].append('-openmp')
 			env['CXXFLAGS'].append('-openmp')
 		else:
-			env.Append(LINKFLAGS=['-lgomp'])
 			env['CCFLAGS'].append('-fopenmp')
 			env['CPPFLAGS'].append('-fopenmp')
 			env['CXXFLAGS'].append('-fopenmp')
@@ -224,16 +221,18 @@ if env['OURPLATFORM'] == 'linux2' :
             return result
 
         env2 = env.Copy( LIBPATH = env['BF_OPENAL'] ) 
-        conf = Configure( env2, {'CheckFreeAlut' : CheckFreeAlut}, '.sconf_temp', '/dev/null' )
+        sconf_temp = mkdtemp()
+        conf = Configure( env2, {'CheckFreeAlut' : CheckFreeAlut}, sconf_temp, '/dev/null' )
         if conf.CheckFreeAlut( env2 ):
             env['BF_OPENAL_LIB'] += ' alut'
         del env2
-        for root, dirs, files in os.walk('.sconf_temp', topdown=False):
+        root = ''
+        for root, dirs, files in os.walk(sconf_temp, topdown=False):
             for name in files:
                 os.remove(os.path.join(root, name))
             for name in dirs:
                 os.rmdir(os.path.join(root, name))
-        os.rmdir(root)
+        if root: os.rmdir(root)
 
 if len(B.quickdebug) > 0 and printdebug != 0:
     print B.bc.OKGREEN + "Buildings these libs with debug symbols:" + B.bc.ENDC

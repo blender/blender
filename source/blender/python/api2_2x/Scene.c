@@ -2,15 +2,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  * Contributor(s): Willian P. Germano, Jacques Guignot, Joseph Gilbert,
  * Campbell Barton, Ken Hughes
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 struct View3D;
 
@@ -556,6 +553,7 @@ PyObject *Scene_Init( void )
 	PyDict_SetItemString( dict, "Render", Render_Init(  ) );
 	PyDict_SetItemString( dict, "Radio", Radio_Init(  ) );
 	PyDict_SetItemString( dict, "Sequence", Sequence_Init(  ) );
+	PyDict_SetItemString( dict, "TimeLine", TimeLine_Init(  ) );
 	
 	return submodule;
 }
@@ -1240,7 +1238,7 @@ int SceneObSeq_setObjects( BPy_SceneObSeq *self, PyObject *value, void *_mode_)
 	Scene *scene= self->bpyscene->scene;
 	Object *blen_ob;
 	Base *base;
-	int size, mode = (int)_mode_;
+	int size, mode = GET_INT_FROM_POINTER(_mode_);
 	
 	SCENE_DEL_CHECK_INT(self->bpyscene);
 	

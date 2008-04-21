@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "SCA_ISensor.h"
@@ -160,8 +157,6 @@ PyMethodDef SCA_ISensor::Methods[] = {
 	 METH_VARARGS, GetInvert_doc},
 	{"setInvert", (PyCFunction) SCA_ISensor::sPySetInvert, 
 	 METH_VARARGS, SetInvert_doc},
-	{"evaluate", (PyCFunction) SCA_ISensor::sPyEvaluate, 
-	 METH_VARARGS, Evaluate_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -333,14 +328,4 @@ PyObject* SCA_ISensor::PySetUseNegPulseMode(PyObject* self, PyObject* args, PyOb
 	Py_Return;
 }
 
-char SCA_ISensor::Evaluate_doc[] = 
-"evaluate()\n"
-"\tRe-evaluate the sensor so that isPositive() and other methods are up to date\n"
-"\twith current game conditions. BGE does it automatically on each frame so it's\n"
-"\tnot usually needed.\n"
-"\tReturns True or False if the sensor evaluates positively or negatively\n";
-PyObject* SCA_ISensor::PyEvaluate(PyObject* self, PyObject* args, PyObject* kwds)
-{
-	return BoolToPyArg(Evaluate(NULL));
-}
 /* eof */

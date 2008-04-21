@@ -349,18 +349,6 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		else if(si->blocktype==ID_PA){
-			Object *ob=OBACT;
-			ParticleSystem *psys = ob->particlesystem.first;
-
-			/* find out if we need to initialize particles */
-			for(; psys; psys=psys->next) {
-				if(psys->part->ipo==si->ipo) {
-					ei= si->editipo;
-					for(a=0; a<si->totipo; a++, ei++)
-						if(ei->icu && ELEM3(ei->icu->adrcode,PART_EMIT_FREQ,PART_EMIT_LIFE,PART_EMIT_SIZE))
-							psys_flush_settings(psys->part,PSYS_INIT,1);
-				}
-			}
 			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
@@ -994,20 +982,24 @@ static void make_editipo(void)
 	/* sets globals, bad stuff but we need these variables in other parts of code */
 	get_status_editipo();
 	
-	if(G.sipo->ipo) {
-
-		if (G.sipo->pin)
-			rf= &(G.sipo->v2d.cur);
-		else
-			rf= &(G.sipo->ipo->cur);
-		
-		if(rf->xmin<rf->xmax && rf->ymin<rf->ymax) G.v2d->cur= *rf;
-		else ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
-	}
-	else {
-		ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
-	}
 	
+	if (G.sipo->flag & SIPO_LOCK_VIEW) {
+		rf= &(G.v2d->cur); /* view is locked, dont move it, just to sanity check */
+		if(rf->xmin>=rf->xmax || rf->ymin>=rf->ymax) ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
+	} else {
+		if(G.sipo->ipo) {
+			if (G.sipo->pin)
+				rf= &(G.sipo->v2d.cur);
+			else
+				rf= &(G.sipo->ipo->cur);
+			
+			if(rf->xmin<rf->xmax && rf->ymin<rf->ymax) G.v2d->cur= *rf;
+			else ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
+		}
+		else {
+			ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
+		}
+	}
 	view2d_do_locks(curarea, V2D_LOCK_COPY);
 }
 
@@ -1214,7 +1206,7 @@ void test_editipo(int doit)
 		if(G.sipo->ipo != ipo) {
 			G.sipo->ipo= ipo;
 			/* if lock we don't copy from ipo, this makes the UI jump around confusingly */
-			if(G.v2d->flag & V2D_VIEWLOCK);
+			if(G.v2d->flag & V2D_VIEWLOCK || G.sipo->flag & SIPO_LOCK_VIEW);
 			else if(ipo) G.v2d->cur= ipo->cur;
 			doit= 1;
 		}
@@ -3499,7 +3491,7 @@ void common_insertkey(void)
 		else if(event==13) BIF_undo_push("Insert VisualLocRot Key");
 		else if(event==15) BIF_undo_push("Insert Needed Key");
 		
-		DAG_scene_flush_update(G.scene, screen_view3d_layers());
+		DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 		
 		allspace(REMAKEIPO, 0);
 		allqueue(REDRAWIPO, 0);
@@ -4342,6 +4334,7 @@ void del_ipo(int need_check)
 	
 	get_status_editipo();	/* count again */
 	check_active_editipo();
+	editipo_changed(G.sipo, 1);
 	
 	BIF_undo_push("Delete Ipo");
 	allqueue(REDRAWNLA, 0);
@@ -5066,9 +5059,12 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, float *loc, flo
 		td2d->loc[2] = 0.0f;
 		td2d->loc2d = loc;
 		
-		td->flag = 0;
+		/*td->flag = 0;*/ /* can be set beforehand, else make sure its set to 0 */
 		td->loc = td2d->loc;
-		VECCOPY(td->center, cent);
+		td->center[0] = get_action_frame_inv(OBACT, cent[0]);
+		td->center[1] = cent[1];
+		td->center[2] = 0.0f;
+		
 		VECCOPY(td->iloc, td->loc);
 	}
 	else {
@@ -5077,7 +5073,7 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, float *loc, flo
 		td2d->loc[2] = 0.0f;
 		td2d->loc2d = loc;
 		
-		td->flag = 0;
+		/*td->flag = 0;*/ /* can be set beforehand, else make sure its set to 0 */
 		td->loc = td2d->loc;
 		VECCOPY(td->center, cent);
 		VECCOPY(td->iloc, td->loc);
@@ -5168,19 +5164,35 @@ void make_ipo_transdata (TransInfo *t)
 						bezt= ei->icu->bezt;
 						
 						for (b=0; b < ei->icu->totvert; b++, bezt++) {
+							TransDataCurveHandleFlags *hdata = NULL;
 							/* only include handles if selected, and interpolaton mode uses beztriples */
 							if (ei->icu->ipo==IPO_BEZ) {
-								if (bezt->f1 & SELECT)
+								if (bezt->f1 & SELECT) {
+									hdata = initTransDataCurveHandes(td, bezt);
 									bezt_to_transdata(td++, td2d++, bezt->vec[0], bezt->vec[1], 1, onlytime);
-								if (bezt->f3 & SELECT)
+								}
+								if (bezt->f3 & SELECT) {
+									if (hdata==NULL) {
+										hdata = initTransDataCurveHandes(td, bezt);
+									}
 									bezt_to_transdata(td++, td2d++, bezt->vec[2], bezt->vec[1], 1, onlytime);
+								}
 							}
 							
 							/* only include main vert if selected */
 							if (bezt->f2 & SELECT) {
+								
+								if ((bezt->f1&SELECT)==0 && (bezt->f3&SELECT)==0) {
+									if (hdata==NULL) {
+										hdata = initTransDataCurveHandes(td, bezt);
+									}
+								}
+								
 								bezt_to_transdata(td++, td2d++, bezt->vec[1], bezt->vec[1], 1, onlytime);
 							}
 						}
+						/* Sets handles based on the selection */
+						testhandles_ipocurve(ei->icu);
 					}
 				}
 			}

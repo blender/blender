@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  * Contributor(s): Willian P. Germano, Campbell Barton, Joilnen B. Leite,
  * Austin Benesh
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 #include "Image.h"		/*This must come first */
 
@@ -191,7 +188,7 @@ static PyMethodDef BPy_Image_methods[] = {
 	 "(int) - Change Image object animation speed (fps)"},
 	{"save", ( PyCFunction ) Image_save, METH_NOARGS,
 	 "() - Write image buffer to file"},
-	{"unpack", ( PyCFunction ) Image_unpack, METH_VARARGS,
+	{"unpack", ( PyCFunction ) Image_unpack, METH_O,
 	 "(int) - Unpack image. Uses the values defined in Blender.UnpackModes."},
 	{"pack", ( PyCFunction ) Image_pack, METH_NOARGS,
 	 "() - Pack the image"},
@@ -1194,7 +1191,7 @@ static PyObject *Image_hasData(BPy_Image *self, void *closure)
 
 static PyObject *Image_getFlag(BPy_Image *self, void *flag)
 {
-	if (self->image->flag & (int)flag)
+	if (self->image->flag & GET_INT_FROM_POINTER(flag))
 		Py_RETURN_TRUE;
 	else
 		Py_RETURN_FALSE;
@@ -1203,7 +1200,7 @@ static PyObject *Image_getFlag(BPy_Image *self, void *flag)
 
 static PyObject *Image_getFlagTpage(BPy_Image *self, void *flag)
 {
-	if (self->image->tpageflag & (int)flag)
+	if (self->image->tpageflag & GET_INT_FROM_POINTER(flag))
 		Py_RETURN_TRUE;
 	else
 		Py_RETURN_FALSE;
@@ -1238,9 +1235,9 @@ static int Image_setFlag(BPy_Image *self, PyObject *value, void *flag)
 				"expected True/False or 0/1" );
 	
 	if ( param )
-		self->image->flag |= (int)flag;
+		self->image->flag |= GET_INT_FROM_POINTER(flag);
 	else
-		self->image->flag &= ~(int)flag;
+		self->image->flag &= ~GET_INT_FROM_POINTER(flag);
 	return 0;
 }
 
@@ -1252,9 +1249,9 @@ static int Image_setFlagTpage(BPy_Image *self, PyObject *value, void *flag)
 				"expected True/False or 0/1" );
 	
 	if ( param )
-		self->image->tpageflag |= (int)flag;
+		self->image->tpageflag |= GET_INT_FROM_POINTER(flag);
 	else
-		self->image->tpageflag &= ~(int)flag;
+		self->image->tpageflag &= ~GET_INT_FROM_POINTER(flag);
 	return 0;
 }
 
@@ -1266,7 +1263,7 @@ static PyObject *getIntAttr( BPy_Image *self, void *type )
 	int param;
 	struct Image *image = self->image;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_IMAGE_ATTR_XREP:
 		param = image->xrep;
 		break;
@@ -1307,7 +1304,7 @@ static int setIntAttrClamp( BPy_Image *self, PyObject *value, void *type )
 	struct Image *image = self->image;
 	int min, max, size;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_IMAGE_ATTR_XREP:
 		min = EXPP_IMAGE_REP_MIN;
 		max = EXPP_IMAGE_REP_MAX;

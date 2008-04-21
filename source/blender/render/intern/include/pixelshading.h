@@ -45,7 +45,7 @@
  * mask is pixel coverage in bits
  * @return pointer to the object
  */
-void shadeHaloFloat(HaloRen *har, 
+int shadeHaloFloat(HaloRen *har, 
 					float *col, int zz, 
 					float dist, float xn, 
 					float yn, short flarec);

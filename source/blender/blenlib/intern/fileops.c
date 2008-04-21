@@ -7,15 +7,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -33,7 +30,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -267,12 +264,6 @@ int BLI_link(char *file, char *to) {
 	return 1;
 }
 
-int BLI_backup(char *file, char *from, char *to) {
-	callLocalErrorCallBack("Backing up files is unsupported on Windows");
-	
-	return 1;
-}
-
 int BLI_exists(char *file) {
 	return (GetFileAttributes(file) != 0xFFFFFFFF);
 }
@@ -331,11 +322,17 @@ int BLI_delete(char *file, int dir, int recursive)
 		printf("Error: not deleted file %s because of quote!\n", file);
 	}
 	else {
-		if (recursive) sprintf(str, "/bin/rm -rf \"%s\"", file);
-		else if (dir) sprintf(str, "/bin/rmdir \"%s\"", file);
-		else sprintf(str, "/bin/rm -f \"%s\"", file);
-
-		return system(str);
+		if (recursive) {
+			sprintf(str, "/bin/rm -rf \"%s\"", file);
+			return system(str);
+		}
+		else if (dir) {
+			sprintf(str, "/bin/rmdir \"%s\"", file);
+			return system(str);
+		}
+		else {
+			return remove(file); //sprintf(str, "/bin/rm -f \"%s\"", file);
+		}
 	}
 	return -1;
 }
@@ -354,12 +351,6 @@ int BLI_copy_fileops(char *file, char *to) {
 
 int BLI_link(char *file, char *to) {
 	sprintf(str, "/bin/ln -f \"%s\" \"%s\"", file, to);
-	
-	return system(str);
-}
-
-int BLI_backup(char *file, char *from, char *to) {
-	sprintf(str, "/bin/su root -c 'cd %s; /bin/tar cf - \"%s\" | (/bin/cd %s; /bin/tar xf -)'", from, file, to);
 	
 	return system(str);
 }

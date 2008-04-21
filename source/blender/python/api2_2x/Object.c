@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,7 +29,7 @@
  * Joseph Gilbert, Stephen Swaney, Bala Gi, Campbell Barton, Johnny Matthews,
  * Ken Hughes, Alex Mole, Jean-Michel Soler
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 struct SpaceIpo;
@@ -360,7 +357,8 @@ static PyObject *Object_getSize( BPy_Object * self, PyObject * args );
 static PyObject *Object_getTimeOffset( BPy_Object * self );
 static PyObject *Object_getTracked( BPy_Object * self );
 static PyObject *Object_getType( BPy_Object * self );
-static PyObject *Object_getBoundBox( BPy_Object * self );
+static PyObject *Object_getBoundBox( BPy_Object * self, PyObject *args );
+static PyObject *Object_getBoundBox_noargs( BPy_Object * self );
 static PyObject *Object_getAction( BPy_Object * self );
 static PyObject *Object_getPose( BPy_Object * self );
 static PyObject *Object_evaluatePose( BPy_Object * self, PyObject *args );
@@ -459,6 +457,8 @@ static PyObject *Object_insertShapeKey(BPy_Object * self);
 static PyObject *Object_copyNLA( BPy_Object * self, PyObject * args );
 static PyObject *Object_convertActionToStrip( BPy_Object * self );
 static PyObject *Object_copy(BPy_Object * self); /* __copy__ */
+static PyObject *Object_trackAxis(BPy_Object * self);
+static PyObject *Object_upAxis(BPy_Object * self);
 
 /*****************************************************************************/
 /* Python BPy_Object methods table:					   */
@@ -631,7 +631,7 @@ automatic when the script finishes."},
 	 "Returns SB StiffQuads"},
 	{"setSBStiffQuads", ( PyCFunction ) Object_SetSBStiffQuads, METH_VARARGS,
 	 "Sets SB StiffQuads"},
-	{"getBoundBox", ( PyCFunction ) Object_getBoundBox, METH_NOARGS,
+	{"getBoundBox", ( PyCFunction ) Object_getBoundBox, METH_VARARGS,
 	 "Returns the object's bounding box"},
 	{"makeDisplayList", ( PyCFunction ) Object_makeDisplayList, METH_NOARGS,
 	 "Update this object's Display List. Some changes like turning\n\
@@ -1469,11 +1469,15 @@ static PyObject *Object_getType( BPy_Object * self )
 	return PyString_FromString( str );
 }
 
-static PyObject *Object_getBoundBox( BPy_Object * self )
+static PyObject *Object_getBoundBox( BPy_Object * self, PyObject *args )
 {
-	int i;
 	float *vec = NULL;
 	PyObject *vector, *bbox;
+	int worldspace = 1;
+	
+	if( !PyArg_ParseTuple( args, "|i", &worldspace ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected an int or nothing" );
 
 	if( !self->object->data )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
@@ -1498,27 +1502,33 @@ static PyObject *Object_getBoundBox( BPy_Object * self )
 		default:
 			Py_RETURN_NONE;
 		}
+	} else {		/* the ob bbox exists */
+		vec = ( float * ) self->object->bb->vec;
+	}
 
-		{		/* transform our obdata bbox by the obmat.
-				   the obmat is 4x4 homogeneous coords matrix.
-				   each bbox coord is xyz, so we make it homogenous
-				   by padding it with w=1.0 and doing the matrix mult.
-				   afterwards we divide by w to get back to xyz.
-				 */
-			/* printmatrix4( "obmat", self->object->obmat); */
 
-			float tmpvec[4];	/* tmp vector for homogenous coords math */
-			int i;
-			float *from;
+	{	/* transform our obdata bbox by the obmat.
+		   the obmat is 4x4 homogeneous coords matrix.
+		   each bbox coord is xyz, so we make it homogenous
+		   by padding it with w=1.0 and doing the matrix mult.
+		   afterwards we divide by w to get back to xyz.
+		 */
+		/* printmatrix4( "obmat", self->object->obmat); */
 
-			bbox = PyList_New( 8 );
-			if( !bbox )
-				return EXPP_ReturnPyObjError
-					( PyExc_MemoryError,
-					  "couldn't create pylist" );
-			for( i = 0, from = vec; i < 8; i++, from += 3 ) {
-				memcpy( tmpvec, from, 3 * sizeof( float ) );
-				tmpvec[3] = 1.0f;	/* set w coord */
+		float tmpvec[4];	/* tmp vector for homogenous coords math */
+		int i;
+		float *from;
+
+		bbox = PyList_New( 8 );
+		if( !bbox )
+			return EXPP_ReturnPyObjError
+				( PyExc_MemoryError,
+				  "couldn't create pylist" );
+		for( i = 0, from = vec; i < 8; i++, from += 3 ) {
+			memcpy( tmpvec, from, 3 * sizeof( float ) );
+			tmpvec[3] = 1.0f;	/* set w coord */
+			
+			if (worldspace) {
 				Mat4MulVec4fl( self->object->obmat, tmpvec );
 				/* divide x,y,z by w */
 				tmpvec[0] /= tmpvec[3];
@@ -1528,47 +1538,32 @@ static PyObject *Object_getBoundBox( BPy_Object * self )
 #if 0
 				{	/* debug print stuff */
 					int i;
-
+	
 					printf( "\nobj bbox transformed\n" );
 					for( i = 0; i < 4; ++i )
 						printf( "%f ", tmpvec[i] );
-
+	
 					printf( "\n" );
 				}
 #endif
-
-				/* because our bounding box is calculated and
-				   does not have its own memory,
-				   we must create vectors that allocate space */
-
-				vector = newVectorObject( NULL, 3, Py_NEW);
-				memcpy( ( ( VectorObject * ) vector )->vec,
-					tmpvec, 3 * sizeof( float ) );
-				PyList_SET_ITEM( bbox, i, vector );
 			}
-		}
-	} else {		/* the ob bbox exists */
-		vec = ( float * ) self->object->bb->vec;
+			/* because our bounding box is calculated and
+			   does not have its own memory,
+			   we must create vectors that allocate space */
 
-		if( !vec )
-			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						      "couldn't retrieve bounding box data" );
-
-		bbox = PyList_New( 8 );
-
-		if( !bbox )
-			return EXPP_ReturnPyObjError( PyExc_MemoryError,
-						      "couldn't create pylist" );
-
-		/* create vectors referencing object bounding box coords */
-		for( i = 0; i < 8; i++ ) {
-			vector = newVectorObject( vec, 3, Py_WRAP );
+			vector = newVectorObject( NULL, 3, Py_NEW);
+			memcpy( ( ( VectorObject * ) vector )->vec,
+				tmpvec, 3 * sizeof( float ) );
 			PyList_SET_ITEM( bbox, i, vector );
-			vec += 3;
 		}
 	}
 
 	return bbox;
+}
+
+static PyObject *Object_getBoundBox_noargs( BPy_Object * self )
+{
+	return Object_getBoundBox(self, PyTuple_New(0));
 }
 
 static PyObject *Object_makeDisplayList( BPy_Object * self )
@@ -3558,7 +3553,7 @@ static PyObject *getIntAttr( BPy_Object *self, void *type )
 	int param;
 	struct Object *object = self->object;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_OBJ_ATTR_LAYERMASK:
 		param = object->lay;
 		break;
@@ -3614,7 +3609,7 @@ static int setIntAttrClamp( BPy_Object *self, PyObject *value, void *type )
 	struct Object *object = self->object;
 	int min, max, size;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_OBJ_ATTR_DUPON:
 		min = 1;
 		max = 1500;
@@ -3690,7 +3685,7 @@ static int setIntAttrRange( BPy_Object *self, PyObject *value, void *type )
 
 	/* these parameters require clamping */
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_OBJ_ATTR_COLBITS:
 		min = 0;
 		max = 0xffff;
@@ -3715,20 +3710,20 @@ static PyObject *getFloatAttr( BPy_Object *self, void *type )
 	float param;
 	struct Object *object = self->object;
 
-	if( (int)type >= EXPP_OBJ_ATTR_PI_SURFACEDAMP &&
-			(int)type <= EXPP_OBJ_ATTR_PI_SBOFACETHICK ) {
+	if( GET_INT_FROM_POINTER(type) >= EXPP_OBJ_ATTR_PI_SURFACEDAMP &&
+			GET_INT_FROM_POINTER(type) <= EXPP_OBJ_ATTR_PI_SBOFACETHICK ) {
     	if( !self->object->pd && !setupPI(self->object) )
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"particle deflection could not be accessed" );
 	}
-	else if( (int)type >= EXPP_OBJ_ATTR_SB_NODEMASS &&
-			(int)type <= EXPP_OBJ_ATTR_SB_INFRICT ) {
+	else if( GET_INT_FROM_POINTER(type) >= EXPP_OBJ_ATTR_SB_NODEMASS &&
+			GET_INT_FROM_POINTER(type) <= EXPP_OBJ_ATTR_SB_INFRICT ) {
 		if( !self->object->soft && !setupSB(self->object) )
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						"softbody could not be accessed" );    
     }
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_OBJ_ATTR_LOC_X: 
 		param = object->loc[0];
 		break;
@@ -3873,20 +3868,20 @@ static int setFloatAttrClamp( BPy_Object *self, PyObject *value, void *type )
 	struct Object *object = self->object;
 	float min, max;
 
-	if( (int)type >= EXPP_OBJ_ATTR_PI_SURFACEDAMP &&
-			(int)type <= EXPP_OBJ_ATTR_PI_SBOFACETHICK ) {
+	if( GET_INT_FROM_POINTER(type) >= EXPP_OBJ_ATTR_PI_SURFACEDAMP &&
+			GET_INT_FROM_POINTER(type) <= EXPP_OBJ_ATTR_PI_SBOFACETHICK ) {
     	if( !self->object->pd && !setupPI(self->object) )
 			return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"particle deflection could not be accessed" );
 	}
-	else if( (int)type >= EXPP_OBJ_ATTR_SB_NODEMASS &&
-			(int)type <= EXPP_OBJ_ATTR_SB_INFRICT ) {
+	else if( GET_INT_FROM_POINTER(type) >= EXPP_OBJ_ATTR_SB_NODEMASS &&
+			GET_INT_FROM_POINTER(type) <= EXPP_OBJ_ATTR_SB_INFRICT ) {
 		if( !self->object->soft && !setupSB(self->object) )
 			return EXPP_ReturnIntError( PyExc_RuntimeError,
 						"softbody could not be accessed" );    
     }
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_OBJ_ATTR_DRAWSIZE:
 		min = EXPP_OBJECT_DRAWSIZEMIN;
 		max = EXPP_OBJECT_DRAWSIZEMAX;
@@ -4032,7 +4027,7 @@ static int setFloatAttr( BPy_Object *self, PyObject *value, void *type )
 
 	param = (float)PyFloat_AsDouble( value );
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_OBJ_ATTR_LOC_X: 
 		object->loc[0] = param;
 		break;
@@ -4104,7 +4099,7 @@ static PyObject *getFloat3Attr( BPy_Object *self, void *type )
 	float *param;
 	struct Object *object = self->object;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_OBJ_ATTR_LOC: 
 		param = object->loc;
 		break;
@@ -4147,7 +4142,7 @@ static int setFloat3Attr( BPy_Object *self, PyObject *value, void *type )
 	}
 
 	Py_DECREF( value );
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_OBJ_ATTR_LOC: 
 		dst = object->loc;
 		break;
@@ -4181,7 +4176,7 @@ static int setFloat3Attr( BPy_Object *self, PyObject *value, void *type )
 
 static PyObject *Object_getShapeFlag( BPy_Object *self, void *type )
 {
-	if (self->object->shapeflag & (int)type)
+	if (self->object->shapeflag & GET_INT_FROM_POINTER(type))
 		Py_RETURN_TRUE;
 	else
 		Py_RETURN_FALSE;
@@ -4191,9 +4186,9 @@ static int Object_setShapeFlag( BPy_Object *self, PyObject *value,
 		void *type )
 {
 	if (PyObject_IsTrue(value) )
-		self->object->shapeflag |= (int)type;
+		self->object->shapeflag |= GET_INT_FROM_POINTER(type);
 	else
-		self->object->shapeflag &= ~(int)type;
+		self->object->shapeflag &= ~GET_INT_FROM_POINTER(type);
 	
 	self->object->recalc |= OB_RECALC_OB;
 	return 0;
@@ -4201,7 +4196,7 @@ static int Object_setShapeFlag( BPy_Object *self, PyObject *value,
 
 static PyObject *Object_getRestricted( BPy_Object *self, void *type )
 {
-	if (self->object->restrictflag & (int)type)
+	if (self->object->restrictflag & GET_INT_FROM_POINTER(type))
 		Py_RETURN_TRUE;
 	else
 		Py_RETURN_FALSE;
@@ -4216,16 +4211,16 @@ static int Object_setRestricted( BPy_Object *self, PyObject *value,
 				"expected True/False or 0/1" );
 	
 	if ( param )
-		self->object->restrictflag |= (int)type;
+		self->object->restrictflag |= GET_INT_FROM_POINTER(type);
 	else
-		self->object->restrictflag &= ~(int)type;
+		self->object->restrictflag &= ~GET_INT_FROM_POINTER(type);
 	
 	return 0;
 }
 
 static PyObject *Object_getDrawModeBits( BPy_Object *self, void *type )
 {
-	return EXPP_getBitfield( (void *)&self->object->dtx, (int)type, 'b' );
+	return EXPP_getBitfield( (void *)&self->object->dtx, GET_INT_FROM_POINTER(type), 'b' );
 }
 
 static int Object_setDrawModeBits( BPy_Object *self, PyObject *value,
@@ -4233,13 +4228,13 @@ static int Object_setDrawModeBits( BPy_Object *self, PyObject *value,
 {
 	self->object->recalc |= OB_RECALC_OB;  
 	return EXPP_setBitfield( value, (void *)&self->object->dtx,
-			(int)type, 'b' );
+			GET_INT_FROM_POINTER(type), 'b' );
 }
 
 static PyObject *Object_getTransflagBits( BPy_Object *self, void *type )
 {
 	return EXPP_getBitfield( (void *)&self->object->transflag,
-			(int)type, 'h' );
+			GET_INT_FROM_POINTER(type), 'h' );
 }
 
 static int Object_setTransflagBits( BPy_Object *self, PyObject *value,
@@ -4247,7 +4242,7 @@ static int Object_setTransflagBits( BPy_Object *self, PyObject *value,
 {
 	self->object->recalc |= OB_RECALC_OB;  
 	return EXPP_setBitfield( value, (void *)&self->object->transflag,
-			(int)type, 'h' );
+			GET_INT_FROM_POINTER(type), 'h' );
 }
 
 static PyObject *Object_getLayers( BPy_Object * self )
@@ -4833,7 +4828,7 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 "The object's type",
 	 NULL},
 	{"boundingBox",
-	 (getter)Object_getBoundBox, (setter)NULL,
+	 (getter)Object_getBoundBox_noargs, (setter)NULL,
 	 "The bounding box of this object",
 	 NULL},
 	{"action",
@@ -5076,7 +5071,14 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)Object_getRBHalfExtents, (setter)NULL, 
 	 "Rigid body physics bounds object type",
 	 NULL},
-
+	{"trackAxis",
+	 (getter)Object_trackAxis, (setter)NULL, 
+	 "track axis 'x' | 'y' | 'z' | '-x' | '-y' | '-z' (string. readonly)",
+	 NULL},
+ 	{"upAxis",
+	 (getter)Object_upAxis, (setter)NULL, 
+	 "up axis 'x' | 'y' | 'z' (string. readonly)",
+	 NULL},
 	{"restrictDisplay",
 	 (getter)Object_getRestricted, (setter)Object_setRestricted, 
 	 "Toggle object restrictions",
@@ -5187,6 +5189,7 @@ PyTypeObject Object_Type = {
 	NULL,                       /* PyObject *tp_weaklist; */
 	NULL
 };
+
 
 static PyObject *M_Object_DrawModesDict( void )
 {
@@ -5963,4 +5966,66 @@ static PyObject *Object_SetSBStiffQuads( BPy_Object * self, PyObject * args )
 {
 	return EXPP_setterWrapper( (void *)self, args,
 			(setter)Object_setSBStiffQuads );
+}
+
+static PyObject *Object_trackAxis( BPy_Object * self )
+{
+	Object* ob;
+	char ctr[3];
+
+	memset( ctr, 0, sizeof(ctr));
+	ob = self->object;
+
+	switch(ob->trackflag){
+		case(0):
+			ctr[0] = 'X';
+			break;
+		case(1):
+			ctr[0] = 'Y';
+			break;
+		case(2):
+			ctr[0] = 'Z';
+			break;
+		case(3):
+			ctr[0] = '-';
+			ctr[1] = 'X';
+			break;
+		case(4):
+			ctr[0] = '-';
+			ctr[1] = 'Y';
+			break;
+		case(5):
+			ctr[0] = '-';
+			ctr[1] = 'Z';
+			break;
+		default:
+			break;
+	}
+
+	return PyString_FromString(ctr);
+}
+
+static PyObject *Object_upAxis( BPy_Object * self )
+{
+	Object* ob;
+	char cup[2];
+
+	memset( cup, 0, sizeof(cup));
+	ob = self->object;
+
+	switch(ob->upflag){
+		case(0):
+			cup[0] = 'X';
+			break;
+		case(1):
+			cup[0] = 'Y';
+			break;
+		case(2):
+			cup[0] = 'Z';
+			break;
+		default:
+			break;
+	}
+
+	return PyString_FromString(cup);
 }

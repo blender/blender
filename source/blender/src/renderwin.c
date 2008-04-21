@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #ifdef WIN32
@@ -1018,7 +1015,7 @@ static void end_test_break_callback()
 }
 
 #else
-/* all other OS's support signal(SIGVTALRM) */
+/* all other OS's support signal(SIGVTALRM/SIGALRM) */
 
 /* XXX The ESC problem: some unix users reported that ESC doesn't cancel
  * renders anymore. Most complaints came from linux, but it's not
@@ -1029,7 +1026,10 @@ static void end_test_break_callback()
  * fixes the problem, at least while we investigate better.
  *
  * ITIMER_REAL (SIGALRM): timer that counts real system time
- * ITIMER_VIRTUAL (SIGVTALRM): only counts time spent in its owner process */
+ * ITIMER_VIRTUAL (SIGVTALRM): only counts time spent in its owner process
+ *
+ * Addendum: now SIGVTALRM is used on Solaris again, because SIGALRM can
+ * kill the process there! */
 
 /* POSIX: this function goes in the signal() callback */
 static void interruptESC(int sig)
@@ -1038,7 +1038,11 @@ static void interruptESC(int sig)
 	if(G.afbreek==0) G.afbreek= 2;	/* code for read queue */
 
 	/* call again, timer was reset */
+#ifdef __sun
+	signal(SIGVTALRM, interruptESC);
+#else
 	signal(SIGALRM, interruptESC);
+#endif
 }
 
 /* POSIX: initialize timer and signal */
@@ -1053,8 +1057,13 @@ static void init_test_break_callback()
 	tmevalue.it_value.tv_sec = 0;
 	tmevalue.it_value.tv_usec = 10000;
 
+#ifdef __sun
+	signal(SIGVTALRM, interruptESC);
+	setitimer(ITIMER_VIRTUAL, &tmevalue, 0);
+#else
 	signal(SIGALRM, interruptESC);
 	setitimer(ITIMER_REAL, &tmevalue, 0);
+#endif
 }
 
 /* POSIX: stop timer and callback */
@@ -1064,9 +1073,13 @@ static void end_test_break_callback()
 
 	memset(&tmevalue, 0, sizeof(struct itimerval));
 
+#ifdef __sun
+	setitimer(ITIMER_VIRTUAL, &tmevalue, 0);
+	signal(SIGVTALRM, SIG_IGN);
+#else
 	setitimer(ITIMER_REAL, &tmevalue, 0);
 	signal(SIGALRM, SIG_IGN);
-
+#endif
 }
 
 
@@ -1288,7 +1301,7 @@ void do_ogl_view3d_render(Render *re, View3D *v3d, int winx, int winy)
 
 	update_for_newframe_muted();	/* here, since camera can be animated */
 
-	if(v3d->persp==2 && v3d->camera) {
+	if(v3d->persp==V3D_CAMOB && v3d->camera) {
 		/* in camera view, use actual render winmat */
 		RE_GetCameraWindow(re, v3d->camera, CFRA, winmat);
 		drawview3d_render(v3d, winx, winy, winmat);

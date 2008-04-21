@@ -31,24 +31,84 @@
 
 #include "DNA_ID.h"
 
-/* options for clearing pointcache - used for BKE_ptcache_id_clear
- Before and after are non inclusive (they wont remove the cfra) */
+/* Point cache clearing option, for BKE_ptcache_id_clear, before
+ * and after are non inclusive (they wont remove the cfra) */
 #define PTCACHE_CLEAR_ALL		0
 #define PTCACHE_CLEAR_FRAME		1
 #define PTCACHE_CLEAR_BEFORE	2
 #define PTCACHE_CLEAR_AFTER		3
 
+/* Point cache reset options */
+#define PTCACHE_RESET_DEPSGRAPH		0
+#define PTCACHE_RESET_BAKED			1
+#define PTCACHE_RESET_OUTDATED		2
+
 /* Add the blendfile name after blendcache_ */
 #define PTCACHE_EXT ".bphys"
 #define PTCACHE_PATH "blendcache_"
 
+/* File open options, for BKE_ptcache_file_open */
+#define PTCACHE_FILE_READ	0
+#define PTCACHE_FILE_WRITE	1
+
+/* PTCacheID types */
+#define PTCACHE_TYPE_SOFTBODY	0
+#define PTCACHE_TYPE_PARTICLES	1
+#define PTCACHE_TYPE_CLOTH		2
+
+/* Structs */
+struct Object;
+struct SoftBody;
+struct ParticleSystem;
+struct ClothModifierData;
+struct PointCache;
+struct ListBase;
+
+typedef struct PTCacheFile {
+	FILE *fp;
+} PTCacheFile;
+
+typedef struct PTCacheID {
+	struct PTCacheID *next, *prev;
+
+	struct Object *ob;
+	void *data;
+	int type;
+	int stack_index;
+
+	struct PointCache *cache;
+} PTCacheID;
+
+/* Creating ID's */
+void BKE_ptcache_id_from_softbody(PTCacheID *pid, struct Object *ob, struct SoftBody *sb);
+void BKE_ptcache_id_from_particles(PTCacheID *pid, struct Object *ob, struct ParticleSystem *psys);
+void BKE_ptcache_id_from_cloth(PTCacheID *pid, struct Object *ob, struct ClothModifierData *clmd);
+
+void BKE_ptcache_ids_from_object(struct ListBase *lb, struct Object *ob);
+
 /* Global funcs */
 void BKE_ptcache_remove(void);
 
-/* Object spesific funcs */
-int		BKE_ptcache_id_filename(struct ID *id, char *filename, int cfra, int stack_index, short do_path, short do_ext);
-FILE *	BKE_ptcache_id_fopen(struct ID *id, char mode, int cfra, int stack_index);
-void	BKE_ptcache_id_clear(struct ID *id, char mode, int cfra, int stack_index);
-int		BKE_ptcache_id_exist(struct ID *id, int cfra, int stack_index);
+/* ID specific functions */
+void	BKE_ptcache_id_clear(PTCacheID *id, int mode, int cfra);
+int		BKE_ptcache_id_exist(PTCacheID *id, int cfra);
+int		BKE_ptcache_id_reset(PTCacheID *id, int mode);
+void	BKE_ptcache_id_time(PTCacheID *pid, float cfra, int *startframe, int *endframe, float *timescale);
+int		BKE_ptcache_object_reset(struct Object *ob, int mode);
+
+/* File reading/writing */
+PTCacheFile	*BKE_ptcache_file_open(PTCacheID *id, int mode, int cfra);
+void         BKE_ptcache_file_close(PTCacheFile *pf);
+int          BKE_ptcache_file_read_floats(PTCacheFile *pf, float *f, int tot);
+int          BKE_ptcache_file_write_floats(PTCacheFile *pf, float *f, int tot);
+
+/* Continue physics */
+void BKE_ptcache_set_continue_physics(int enable);
+int BKE_ptcache_get_continue_physics(void);
+
+/* Point Cache */
+struct PointCache *BKE_ptcache_add(void);
+void BKE_ptcache_free(struct PointCache *cache);
+struct PointCache *BKE_ptcache_copy(struct PointCache *cache);
 
 #endif

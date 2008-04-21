@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  * Contributor(s): Willian P. Germano, Michel Selten, Alex Mole,
  * Alexander Szakaly, Campbell Barton, Ken Hughes
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 #include "Material.h" /*This must come first*/
@@ -1604,7 +1601,7 @@ static PyObject* Material_getSssScale( BPy_Material * self )
 
 static PyObject* Material_getSssRadius( BPy_Material * self, void * type )
 {
-	return PyFloat_FromDouble( ( double ) (self->material->sss_radius[(int)type]) );
+	return PyFloat_FromDouble( ( double ) (self->material->sss_radius[GET_INT_FROM_POINTER(type)]) );
 }
 
 static PyObject* Material_getSssIOR( BPy_Material * self )
@@ -1816,7 +1813,7 @@ static int Material_setColorComponent( BPy_Material * self, PyObject * value,
 	param = (float)PyFloat_AsDouble( value );
 	param = EXPP_ClampFloat( param, EXPP_MAT_COL_MIN, EXPP_MAT_COL_MAX );
 
-	switch ( (int)closure ) {
+	switch ( GET_INT_FROM_POINTER(closure) ) {
 	case EXPP_MAT_COMP_R:
 		self->material->r = param;
 		return 0;
@@ -2177,7 +2174,7 @@ static int Material_setSssScale( BPy_Material * self, PyObject * value )
 
 static int Material_setSssRadius( BPy_Material * self, PyObject * value, void *type )
 {
-	return EXPP_setFloatClamped ( value, &self->material->sss_radius[(int)type],
+	return EXPP_setFloatClamped ( value, &self->material->sss_radius[GET_INT_FROM_POINTER(type)],
 								EXPP_MAT_SSS_RADIUS_MIN,
 								EXPP_MAT_SSS_RADIUS_MAX);
 }
@@ -2639,7 +2636,7 @@ void EXPP_incr_mats_us( Material ** matlist, int len )
 static PyObject *Material_getColorComponent( BPy_Material * self, 
 							void * closure )
 {
-	switch ( (int)closure ) {
+	switch ( GET_INT_FROM_POINTER(closure) ) {
 	case EXPP_MAT_COMP_R:
 		return PyFloat_FromDouble( ( double ) self->material->r );
 	case EXPP_MAT_COMP_G:

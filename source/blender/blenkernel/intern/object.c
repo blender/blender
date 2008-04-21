@@ -3,15 +3,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -53,6 +50,8 @@
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_nla_types.h"
@@ -103,6 +102,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_property.h"
 #include "BKE_sca.h"
 #include "BKE_scene.h"
@@ -112,6 +112,8 @@
 #include "LBM_fluidsim.h"
 
 #include "BPY_extern.h"
+
+#include "blendef.h"
 
 /* Local function protos */
 static void solve_parenting (Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul);
@@ -293,6 +295,7 @@ void unlink_object(Object *ob)
 	Camera *camera;
 	bConstraint *con;
 	bActionStrip *strip;
+	ModifierData *md;
 	int a;
 	
 	unlink_controllers(&ob->controllers);
@@ -395,6 +398,11 @@ void unlink_object(Object *ob)
 				obt->recalc |= OB_RECALC_DATA;
 			else if(obt->soft)
 				obt->recalc |= OB_RECALC_DATA;
+
+			/* cloth */
+			for(md=obt->modifiers.first; md; md=md->next)
+				if(md->type == eModifierType_Cloth)
+					obt->recalc |= OB_RECALC_DATA;
 		}
 		
 		/* strips */
@@ -530,11 +538,11 @@ void unlink_object(Object *ob)
 
 					if(v3d->camera==ob) {
 						v3d->camera= NULL;
-						if(v3d->persp>1) v3d->persp= 1;
+						if(v3d->persp==V3D_CAMOB) v3d->persp= V3D_PERSP;
 					}
 					if(v3d->localvd && v3d->localvd->camera==ob ) {
 						v3d->localvd->camera= NULL;
-						if(v3d->localvd->persp>1) v3d->localvd->persp= 1;
+						if(v3d->localvd->persp==V3D_CAMOB) v3d->localvd->persp= V3D_PERSP;
 					}
 				}
 				else if(sl->spacetype==SPACE_IPO) {
@@ -1009,12 +1017,14 @@ SoftBody *copy_softbody(SoftBody *sb)
 	sbn->totspring= sbn->totpoint= 0;
 	sbn->bpoint= NULL;
 	sbn->bspring= NULL;
-	sbn->ctime= 0.0f;
 	
 	sbn->keys= NULL;
 	sbn->totkey= sbn->totpointkey= 0;
 	
 	sbn->scratch= NULL;
+
+	sbn->pointcache= BKE_ptcache_copy(sb->pointcache);
+
 	return sbn;
 }
 
@@ -1044,6 +1054,8 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->childcache= NULL;
 	psysn->edit= NULL;
 	psysn->effectors.first= psysn->effectors.last= 0;
+
+	psysn->pointcache= BKE_ptcache_copy(psys->pointcache);
 
 	id_us_plus((ID *)psysn->part);
 
@@ -1341,10 +1353,28 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	
 	/* skip constraints, constraintchannels, nla? */
 	
-	
+	/* set object type and link to data */
 	ob->type= target->type;
 	ob->data= target->data;
 	id_us_plus((ID *)ob->data);		/* ensures lib data becomes LIB_EXTERN */
+	
+	/* copy material and index information */
+	ob->actcol= ob->totcol= 0;
+	if(ob->mat) MEM_freeN(ob->mat);
+	ob->mat = NULL;
+	if ((target->totcol) && (target->mat) && OB_SUPPORT_MATERIAL(ob)) {
+		int i;
+		ob->colbits = target->colbits;
+		
+		ob->actcol= target->actcol;
+		ob->totcol= target->totcol;
+		
+		ob->mat = MEM_dupallocN(target->mat);
+		for(i=0; i<target->totcol; i++) {
+			/* dont need to run test_object_materials since we know this object is new and not used elsewhere */
+			id_us_plus(ob->mat[i]); 
+		}
+	}
 	
 	/* type conversions */
 	if(target->type == OB_ARMATURE) {
@@ -2178,7 +2208,7 @@ void object_handle_update(Object *ob)
 	if(ob->recalc & OB_RECALC) {
 		
 		if(ob->recalc & OB_RECALC_OB) {
-			
+
 			// printf("recalcob %s\n", ob->id.name+2);
 			
 			/* handle proxy copy for target */
@@ -2213,6 +2243,16 @@ void object_handle_update(Object *ob)
 			}
 			else if(ob->type==OB_LATTICE) {
 				lattice_calc_modifiers(ob);
+			}
+			else if(ob->type==OB_CAMERA) {
+				Camera *cam = (Camera *)ob->data;
+				calc_ipo(cam->ipo, frame_to_float(G.scene->r.cfra));
+				execute_ipo(&cam->id, cam->ipo);
+			}
+			else if(ob->type==OB_LAMP) {
+				Lamp *la = (Lamp *)ob->data;
+				calc_ipo(la->ipo, frame_to_float(G.scene->r.cfra));
+				execute_ipo(&la->id, la->ipo);
 			}
 			else if(ob->type==OB_ARMATURE) {
 				/* this happens for reading old files and to match library armatures with poses */
@@ -2287,4 +2327,43 @@ float give_timeoffset(Object *ob) {
 	} else {
 		return ob->sf;
 	}
+}
+
+int give_obdata_texspace(Object *ob, int **texflag, float **loc, float **size, float **rot) {
+	
+	if (ob->data==NULL)
+		return 0;
+	
+	switch (GS(((ID *)ob->data)->name)) {
+	case ID_ME:
+	{
+		Mesh *me= ob->data;
+		if (texflag)	*texflag = &me->texflag;
+		if (loc)		*loc = me->loc;
+		if (size)		*size = me->size;
+		if (rot)		*rot = me->rot;
+		break;
+	}
+	case ID_CU:
+	{
+		Curve *cu= ob->data;
+		if (texflag)	*texflag = &cu->texflag;
+		if (loc)		*loc = cu->loc;
+		if (size)		*size = cu->size;
+		if (rot)		*rot = cu->rot;
+		break;
+	}
+	case ID_MB:
+	{
+		MetaBall *mb= ob->data;
+		if (texflag)	*texflag = &mb->texflag;
+		if (loc)		*loc = mb->loc;
+		if (size)		*size = mb->size;
+		if (rot)		*rot = mb->rot;
+		break;
+	}
+	default:
+		return 0;
+	}
+	return 1;
 }

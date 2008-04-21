@@ -1,15 +1,12 @@
 /*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #include <stdlib.h>
 #include <string.h>
@@ -185,6 +182,10 @@ static void print_help(void)
 	printf ("    -o <path>\tSet the render path and file name.\n");
 	printf ("      Use // at the start of the path to\n");
 	printf ("        render relative to the blend file.\n");
+	printf ("      The # characters are replaced by the frame number, and used to define zero padding.\n");
+	printf ("        ani_##_test.png becomes ani_01_test.png\n");
+	printf ("        test-######.png becomes test-000001.png\n");
+	printf ("        When the filename has no #, The suffix #### is added to the filename\n");
 	printf ("      The frame number will be added at the end of the filename.\n");
 	printf ("      eg: blender -b foobar.blend -o //render_ -F PNG -x 1 -a\n");
 	printf ("\nFormat options:\n");
@@ -226,6 +227,18 @@ static void print_help(void)
 	printf ("  -v\t\tPrint Blender version and exit\n");
 	printf ("  --\t\tEnds option processing.  Following arguments are \n");
 	printf ("    \t\t   passed unchanged.  Access via Python's sys.argv\n");
+	printf ("\nEnvironment Variables:\n");
+	printf ("  $HOME\t\t\tStore files such as .blender/ .B.blend .Bfs .Blog here.\n");
+#ifdef WIN32
+	printf ("  $TEMP\t\tStore temporary files here.\n");
+#else
+	printf ("  $TMP or $TMPDIR\tStore temporary files here.\n");
+	printf ("  $SDL_AUDIODRIVER\tLibSDL audio driver - alsa, esd, alsa, dma.\n");
+	printf ("  $BF_TIFF_LIB\t\tUse an alternative libtiff.so for loading tiff image files.\n");
+#endif
+	printf ("  $IMAGEEDITOR\t\tImage editor executable, launch with the IKey from the file selector.\n");
+	printf ("  $WINEDITOR\t\tText editor executable, launch with the EKey from the file selector.\n");
+	printf ("  $PYTHONHOME\t\tPath to the python directory, eg. /usr/lib/python.\n");
 	printf ("\nNote: Arguments must be separated by white space. eg:\n");
 	printf ("    \"blender -ba test.blend\"\n");
 	printf ("  ...will ignore the 'a'\n");
@@ -243,11 +256,21 @@ static void print_help(void)
 double PIL_check_seconds_timer(void);
 extern void winlay_get_screensize(int *width_r, int *height_r);
 
+static void main_init_screen( void )
+{
+	setscreen(G.curscreen);
+	
+	if(G.main->scene.first==0) {
+		set_scene( add_scene("1") );
+	}
+
+	screenmain();
+}
+
 int main(int argc, char **argv)
 {
-	int a, i, stax=0, stay=0, sizx, sizy;
+	int a, i, stax=0, stay=0, sizx, sizy, scr_init = 0;
 	SYS_SystemHandle syshandle;
-	Scene *sce;
 
 #if defined(WIN32) || defined (__linux__)
 	int audio = 1;
@@ -636,7 +659,14 @@ int main(int argc, char **argv)
 				break;
 			case 'P':
 				a++;
-				if (a < argc) BPY_run_python_script (argv[a]);
+				if (a < argc) {
+					/* If we're not running in background mode, then give python a valid screen */
+					if ((G.background==0) && (scr_init==0)) {
+						main_init_screen();
+						scr_init = 1;
+					}
+					BPY_run_python_script (argv[a]);
+				}
 				else printf("\nError: you must specify a Python script after '-P '.\n");
 				break;
 			case 'o':
@@ -781,15 +811,10 @@ int main(int argc, char **argv)
 		/* actually incorrect, but works for now (ton) */
 		exit_usiblender();
 	}
-
-	setscreen(G.curscreen);
-
-	if(G.main->scene.first==0) {
-		sce= add_scene("1");
-		set_scene(sce);
+	
+	if (scr_init==0) {
+		main_init_screen();
 	}
-
-	screenmain();
 
 	return 0;
 } /* end of int main(argc,argv)	*/

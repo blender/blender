@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>
@@ -73,7 +70,8 @@ Brush *add_brush(char *name)
 	brush->clone.alpha= 0.5;
 
 	/* enable fake user by default */
-	brush_toggle_fake_user(brush);
+	brush->id.flag |= LIB_FAKEUSER;
+	brush_toggled_fake_user(brush);
 	
 	return brush;	
 }
@@ -95,8 +93,10 @@ Brush *copy_brush(Brush *brush)
 	}
 
 	/* enable fake user by default */
-	if (!(brushn->id.flag & LIB_FAKEUSER))
-		brush_toggle_fake_user(brushn);
+	if (!(brushn->id.flag & LIB_FAKEUSER)) {
+		brushn->id.flag |= LIB_FAKEUSER;
+		brush_toggled_fake_user(brushn);
+	}
 	
 	return brushn;
 }
@@ -148,8 +148,10 @@ void make_local_brush(Brush *brush)
 		new_id(0, (ID *)brush, 0);
 
 		/* enable fake user by default */
-		if (!(brush->id.flag & LIB_FAKEUSER))
-			brush_toggle_fake_user(brush);
+		if (!(brush->id.flag & LIB_FAKEUSER)) {
+			brush->id.flag |= LIB_FAKEUSER;
+			brush_toggled_fake_user(brush);
+		}
 	}
 	else if(local && lib) {
 		brushn= copy_brush(brush);
@@ -203,16 +205,14 @@ int brush_delete(Brush **current_brush)
 	return 0;
 }
 
-void brush_toggle_fake_user(Brush *brush)
+void brush_toggled_fake_user(Brush *brush)
 {
 	ID *id= (ID*)brush;
 	if(id) {
 		if(id->flag & LIB_FAKEUSER) {
-			id->flag -= LIB_FAKEUSER;
-			id->us--;
-		} else {
-			id->flag |= LIB_FAKEUSER;
 			id_us_plus(id);
+		} else {
+			id->us--;
 		}
 	}
 }
