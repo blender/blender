@@ -5657,7 +5657,7 @@ static void object_panel_cloth_II(Object *ob)
 		else
 		uiDefBut(block, LABEL, 0, " ",  10,80,145,20, NULL, 0.0, 0, 0, 0, "");
 		*/
-#if WITH_BULLET == 1
+#ifdef WITH_BULLET
 		uiDefButBitI(block, TOG, CLOTH_COLLSETTINGS_FLAG_ENABLED, B_BAKE_CACHE_CHANGE, "Enable collisions",	10,60,150,20, &clmd->coll_parms->flags, 0, 0, 0, 0, "Enable collisions with this object");
 		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED)
 		{

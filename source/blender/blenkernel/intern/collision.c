@@ -639,7 +639,7 @@ void cloth_collision_static ( ModifierData *md1, ModifierData *md2, CollisionTre
 		if ( i < 4 )
 		{
 			// calc distance + normal
-#if WITH_BULLET == 1
+#ifdef WITH_BULLET
 			distance = plNearestPoints (
 			               verts1[collpair->ap1].txold, verts1[collpair->ap2].txold, verts1[collpair->ap3].txold, collmd->current_x[collpair->bp1].co, collmd->current_x[collpair->bp2].co, collmd->current_x[collpair->bp3].co, collpair->pa,collpair->pb,collpair->vector );
 #else
