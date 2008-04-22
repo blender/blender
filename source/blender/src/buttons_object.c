@@ -2130,10 +2130,8 @@ void pointcache_bake(PTCacheID *pid, int startframe)
 			BKE_ptcache_id_time(pid, 0.0f, &cstart, &cend, NULL);
 
 			cache->flag &= ~PTCACHE_BAKING;
-			if(startframe == cstart)
-				cache->flag &= ~PTCACHE_BAKED;
 
-			BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, startframe-1);
+			BKE_ptcache_id_reset(pid, PTCACHE_RESET_OUTDATED);
 		}
 		else {
 			for(base=G.scene->base.first; base; base= base->next) {
@@ -2146,10 +2144,8 @@ void pointcache_bake(PTCacheID *pid, int startframe)
 						BKE_ptcache_id_time(pid, 0.0f, &cstart, &cend, NULL);
 
 						cache->flag &= ~PTCACHE_BAKING;
-						if(startframe == cstart)
-							cache->flag &= ~PTCACHE_BAKED;
 
-						BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, startframe-1);
+						BKE_ptcache_id_reset(pid, PTCACHE_RESET_OUTDATED);
 					}
 
 					BLI_freelistN(&pidlist);
