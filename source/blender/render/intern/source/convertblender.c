@@ -1884,14 +1884,24 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					}
 				}
 				else if(ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)){
-					for(i=0; i<totuv; i++){
-						ParticleData *parent = psys->particles+cpa->parent;
-						MFace *mface=psmd->dm->getFaceData(psmd->dm,parent->num,CD_MFACE);
+					ParticleData *parent = psys->particles + cpa->parent;
+					num= parent->num_dmcache;
 
-						mtface=(MTFace*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MTFACE,i);
-						mtface+=parent->num;
-						
-						psys_interpolate_uvs(mtface,mface->v4,parent->fuv,uvco+2*i);
+					if(num == DMCACHE_NOTFOUND)
+						if(parent->num < psmd->dm->getNumFaces(psmd->dm))
+							num= parent->num;
+
+					for(i=0; i<totuv; i++) {
+						if(num != DMCACHE_NOTFOUND) {
+							MFace *mface=psmd->dm->getFaceData(psmd->dm,num,CD_MFACE);
+							mtface=(MTFace*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MTFACE,i);
+							mtface+=num;
+							psys_interpolate_uvs(mtface,mface->v4,parent->fuv,uvco+2*i);
+						}
+						else {
+							uvco[2*i]= 0.0f;
+							uvco[2*i + 1]= 0.0f;
+						}
 					}
 				}
 			}
@@ -1911,13 +1921,23 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					}
 				}
 				else if(ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)){
+					ParticleData *parent = psys->particles + cpa->parent;
+					num= parent->num_dmcache;
+
+					if(num == DMCACHE_NOTFOUND)
+						if(parent->num < psmd->dm->getNumFaces(psmd->dm))
+							num= parent->num;
+
 					for(i=0; i<totcol; i++){
-						ParticleData *parent = psys->particles+cpa->parent;
-						MFace *mface=psmd->dm->getFaceData(psmd->dm,parent->num,CD_MFACE);
-						MCol *mc=(MCol*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MCOL,i);
-						mc+=parent->num*4;
-						
-						psys_interpolate_mcol(mc,mface->v4,parent->fuv,mcol+i);
+						if(num != DMCACHE_NOTFOUND) {
+							MFace *mface=psmd->dm->getFaceData(psmd->dm,num,CD_MFACE);
+							MCol *mc=(MCol*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MCOL,i);
+							mc+=num*4;
+							
+							psys_interpolate_mcol(mc,mface->v4,parent->fuv,mcol+i);
+						}
+						else
+							memset(&mcol[i], 0, sizeof(MCol));
 					}
 				}
 			}
