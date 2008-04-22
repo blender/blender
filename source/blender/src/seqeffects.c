@@ -101,7 +101,7 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 
 		if (version != 0) {
 			pis->version= version();
-			if (pis->version >= 2 && pis->version <= 5) {
+			if (pis->version >= 2 && pis->version <= 6) {
 				int (*info_func)(PluginInfo *);
 				PluginInfo *info= (PluginInfo*) MEM_mallocN(sizeof(PluginInfo), "plugin_info");
 
