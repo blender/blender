@@ -6970,6 +6970,17 @@ static void meshdeformModifier_deformVertsEM(
 		dm->release(dm);
 }
 
+
+/* Shrinkwrap */
+
+static DerivedMesh *shrinkwrapModifier_applyModifier(
+		ModifierData *md, Object *ob, DerivedMesh *derivedData,
+  int useRenderParams, int isFinalCalc)
+{
+	return derivedData;
+}
+
+
 /***/
 
 static ModifierTypeInfo typeArr[NUM_MODIFIER_TYPES];
@@ -7289,6 +7300,12 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->dependsOnTime = explodeModifier_dependsOnTime;
 		mti->requiredDataMask = explodeModifier_requiredDataMask;
 		mti->applyModifier = explodeModifier_applyModifier;
+
+		mti = INIT_TYPE(Shrinkwrap);
+		mti->type = eModifierTypeType_Constructive;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_SupportsMapping;
+		mti->applyModifier = shrinkwrapModifier_applyModifier;
 
 		typeArrInit = 0;
 #undef INIT_TYPE

@@ -1820,6 +1820,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 94;
 		} else if (md->type==eModifierType_Explode) {
 			height = 94;
+		} else if (md->type==eModifierType_Shrinkwrap) {
+			height = 48;
 		}
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 40, ""); 
@@ -2432,6 +2434,14 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButBitS(block, TOG, eExplodeFlag_Unborn, B_MODIFIER_RECALC, "Unborn",	lx, (cy-=19), buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are unborn");
 			uiDefButBitS(block, TOG, eExplodeFlag_Alive, B_MODIFIER_RECALC, "Alive",	lx+buttonWidth/3, cy, buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are alive");
 			uiDefButBitS(block, TOG, eExplodeFlag_Dead, B_MODIFIER_RECALC, "Dead",	lx+buttonWidth*2/3, cy, buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are dead");
+		} else if (md->type==eModifierType_Shrinkwrap) {
+			ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
+
+			char shrinktypemenu[]="Shrinkwrap type%t|nearest point %x0|normal projection %x1";
+			uiDefButS(block, MENU, B_MODIFIER_RECALC, shrinktypemenu, lx,(cy-=19),buttonWidth,19, &smd->shrinkType, 0, 0, 0, 0, "Selects type of shrinkwrap algorithm for target position.");
+
+			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->name, 0.0, 31.0, 0, 0, "Vertex Group name");
+			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
 		}
 
 		uiBlockEndAlign(block);

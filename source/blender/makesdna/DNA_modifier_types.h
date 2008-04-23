@@ -35,6 +35,7 @@ typedef enum ModifierType {
 	eModifierType_Cloth,
 	eModifierType_Collision,
 	eModifierType_Bevel,
+	eModifierType_Shrinkwrap,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -487,5 +488,18 @@ typedef struct ExplodeModifierData {
 	short flag, vgroup;
 	float protect;
 } ExplodeModifierData;
+
+typedef struct ShrinkwrapModifierData {
+	ModifierData modifier;
+
+	char name[32];			/* optional vertexgroup name */
+	short shrinkType;		/* shrink type projection */
+	short pad[3];
+} ShrinkwrapModifierData;
+
+/* Shrinkwrap->shrinkType */
+#define MOD_SHRINKWRAP_NEAREST	0
+#define MOD_SHRINKWRAP_NORMAL	1
+
 
 #endif
