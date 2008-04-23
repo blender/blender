@@ -351,8 +351,8 @@ Introduction:
       expected format for each url entry is e.g.
       "Author's site, http://www.somewhere.com".  The first part, before the
       comma (','), is used as the button's tooltip.  There are two preset
-      options: "blender" and "elysiun", which link to the Python forums at
-      blender.org and elysiun.com, respectively.
+      options: "blender" and "blenderartists.org", which link to the Python forums at
+      blender.org and blenderartists.org, respectively.
 
   - __email__ (optional, type: string or list of strings):
     - Equivalent to __url__, but opens the user's default email client.  You
@@ -369,7 +369,7 @@ Introduction:
    __author__ = 'Mr. Author'
    __version__ = '1.0 2005/01/01'
    __url__ = ["Author's site, http://somewhere.com",
-       "Support forum, http://somewhere.com/forum/", "blender", "elysiun"]
+       "Support forum, http://somewhere.com/forum/", "blender", "blenderartists.org"]
    __email__ = ["Mr. Author, mrauthor:somewhere*com", "scripts"]
    __bpydoc__ = \"\"\"\\
    This script does this and that.

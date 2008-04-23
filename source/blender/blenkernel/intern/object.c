@@ -1372,7 +1372,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		ob->mat = MEM_dupallocN(target->mat);
 		for(i=0; i<target->totcol; i++) {
 			/* dont need to run test_object_materials since we know this object is new and not used elsewhere */
-			id_us_plus(ob->mat[i]); 
+			id_us_plus((ID *)ob->mat[i]); 
 		}
 	}
 	

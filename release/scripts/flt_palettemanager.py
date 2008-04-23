@@ -10,7 +10,7 @@ Tooltip: 'Manage FLT colors'
 __author__ = "Geoffrey Bantle"
 __version__ = "1.0 11/21/2007"
 __email__ = ('scripts', 'Author, ')
-__url__ = ('blender', 'elysiun')
+__url__ = ('blender', 'blenderartists.org')
 
 __bpydoc__ ="""\
 

@@ -7,7 +7,7 @@
 # Tooltip: 'Export to DirectX text file format format for XNA Animation Component Library.'
 """
 __author__ = "minahito (original:Arben (Ben) Omari)"
-__url__ = ("blender", "elysiun", "Adjuster's site http://sunday-lab.blogspot.com/, Author's site http://www.omariben.too.it")
+__url__ = ("blender", "blenderartists.org", "Adjuster's site http://sunday-lab.blogspot.com/, Author's site http://www.omariben.too.it")
 __version__ = "3.0"
 
 __bpydoc__ = """\

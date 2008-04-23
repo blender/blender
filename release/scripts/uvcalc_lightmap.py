@@ -5,8 +5,8 @@ Blender: 242
 Group: 'UVCalculation'
 Tooltip: 'Give each face non overlapping space on a texture.'
 """
-__author__ = "Campbell Barton"
-__url__ = ("blender", "elysiun")
+__author__ = "Campbell Barton aka ideasman42"
+__url__ = ("blender", "blenderartists.org")
 __version__ = "1.0 2006/02/07"
 
 __bpydoc__ = """\

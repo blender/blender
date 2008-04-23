@@ -7,7 +7,7 @@ Tooltip: 'Open in an application for editing. (hold Shift to configure)'
 """
 
 __author__ = "Campbell Barton"
-__url__ = ["blender", "elysiun"]
+__url__ = ["blender", "blenderartists.org"]
 __version__ = "1.0"
 
 __bpydoc__ = """\

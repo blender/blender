@@ -1,14 +1,14 @@
 #!BPY
 
 """
-Name: 'Interactive Console'
-Blender: 237
+Name: 'Interactive Python Console'
+Blender: 245
 Group: 'System'
 Tooltip: 'Interactive Python Console'
 """
 
-__author__ = "Campbell Barton AKA Ideasman"
-__url__ = ["Author's homepage, http://members.iinet.net.au/~cpbarton/ideasman/", "blender", "elysiun", "Official Python site, http://www.python.org"]
+__author__ = "Campbell Barton aka ideasman42"
+__url__ = ["www.blender.org", "blenderartists.org", "www.python.org"]
 __bpydoc__ = """\
 This is an interactive console, similar to Python's own command line interpreter.  Since it is embedded in Blender, it has access to all Blender Python modules.
 
@@ -26,8 +26,6 @@ Usage:<br>
   - Ctrl + Enter: auto compleate based on variable names and modules loaded -- multiple choices popup a menu;<br>
   - Shift + Enter: multiline functions -- delays executing code until only Enter is pressed.
 """
-__author__ = "Campbell Barton AKA Ideasman"
-__url__ = ["http://members.iinet.net.au/~cpbarton/ideasman/", "blender", "elysiun"]
 
 # -------------------------------------------------------------------------- 
 # ***** BEGIN GPL LICENSE BLOCK ***** 

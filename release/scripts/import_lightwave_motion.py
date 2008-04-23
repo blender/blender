@@ -8,7 +8,7 @@ Tip: 'Import Loc Rot Size chanels from a Lightwave .mot file'
 """
 
 __author__ = "Daniel Salazar (ZanQdo)"
-__url__ = ("blender", "elysiun",
+__url__ = ("blender", "blenderartists.org",
 "e-mail: zanqdo@gmail.com")
 __version__ = "16/04/08"
 

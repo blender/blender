@@ -10,7 +10,7 @@ Tooltip: 'Export to VRML97 file (.wrl)'
 """
 
 __author__ = ("Rick Kimball", "Ken Miller", "Steve Matthews", "Bart")
-__url__ = ["blender", "elysiun",
+__url__ = ["blender", "blenderartists.org",
 "Author's (Rick) homepage, http://kimballsoftware.com/blender",
 "Author's (Bart) homepage, http://www.neeneenee.de/vrml"]
 __email__ = ["Bart, bart:neeneenee*de"]

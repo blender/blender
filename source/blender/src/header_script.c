@@ -112,9 +112,9 @@ static void do_script_scriptsmenu(void *arg, int event)
 	/* these are no defines, easier this way, the codes are in the function below */
 	switch(event) {
 	case 0: /* update menus */
-		BPyMenu_RemoveAllEntries();
-		BPY_rebuild_syspath();
-		if (BPyMenu_Init(1) == -1) error("Invalid scripts dir: check console");
+		if (BPY_path_update()==0) { 
+			error("Invalid scripts dir: check console");
+		}
 		break;
 	}
 

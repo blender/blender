@@ -8,7 +8,7 @@ Tip: 'Copy data from active object to other selected ones.'
 """
 
 __author__ = "Jean-Michel Soler (jms), Campbell Barton (Ideasman42)"
-__url__ = ("blender", "elysiun",
+__url__ = ("blender", "blenderartists.org",
 "Script's homepage, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_lampdatacopier.htm",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
 __version__ = "0.1.2"
