@@ -1093,91 +1093,153 @@ static PyObject *Node_GetInputMap(BPy_Node *self) {
 #define REFRACT_D			36
 #define STRAND_D			37
 
-static PyObject *ShadeInput_getAttribute(BPy_ShadeInput *self, void *type) {
-	PyObject *obj = NULL;
-	if(self->shi) {
-		switch(GET_INT_FROM_POINTER(type)) {
-			case SURFACEVIEWVECTOR:
-				obj = Py_BuildValue("(fff)", self->shi->view[0], self->shi->view[1], self->shi->view[2]);
-				break;
-			case VIEWNORMAL:
-				obj = Py_BuildValue("(fff)", self->shi->vn[0], self->shi->vn[1], self->shi->vn[2]);
-				break;
-			case SURFACENORMAL:
-				obj = Py_BuildValue("(fff)", self->shi->facenor[0], self->shi->facenor[1], self->shi->facenor[2]);
-				break;
-			case GLOBALTEXTURE:
-				obj = Py_BuildValue("(fff)", self->shi->gl[0], self->shi->gl[1], self->shi->gl[2]);
-				break;
-			case TEXTURE:
-				obj = Py_BuildValue("(fff)", self->shi->lo[0], self->shi->lo[1], self->shi->lo[2]);
-				break;
-			case PIXEL:
-				obj = Py_BuildValue("(ii)", self->shi->xs, self->shi->ys);
-				break;
-			case COLOR:
-				obj = Py_BuildValue("(fff)", self->shi->r, self->shi->g, self->shi->b);
-				break;
-			case SPECULAR_COLOR:
-				obj = Py_BuildValue("(fff)", self->shi->specr, self->shi->specg, self->shi->specb);
-				break;
-			case MIRROR_COLOR:
-				obj = Py_BuildValue("(fff)", self->shi->mirr, self->shi->mirg, self->shi->mirb);
-				break;
-			case AMBIENT_COLOR:
-				obj = Py_BuildValue("(fff)", self->shi->ambr, self->shi->ambg, self->shi->ambb);
-				break;
-			case AMBIENT:
-				obj = PyFloat_FromDouble((double)(self->shi->amb));
-				break;
-			case EMIT:
-				obj = PyFloat_FromDouble((double)(self->shi->emit));
-				break;
-			case DISPLACE:
-				obj = Py_BuildValue("(fff)", self->shi->displace[0], self->shi->displace[1], self->shi->displace[2]);
-				break;
-			case STRAND:
-				obj = PyFloat_FromDouble((double)(self->shi->strandco));
-				break;
-			case STRESS:
-				obj = PyFloat_FromDouble((double)(self->shi->stress));
-				break;
-			case TANGENT:
-				obj = Py_BuildValue("(fff)", self->shi->tang[0], self->shi->tang[1], self->shi->tang[2]);
-				break;
-			case SURFACE_D:
-				obj = Py_BuildValue("(fff)(fff)", self->shi->dxco[0], self->shi->dxco[1], self->shi->dxco[2], self->shi->dyco[0], self->shi->dyco[1], self->shi->dyco[2]);
-				break;
-			case TEXTURE_D:
-				obj = Py_BuildValue("(fff)(fff)", self->shi->dxlo[0], self->shi->dxlo[1], self->shi->dxlo[2], self->shi->dylo[0], self->shi->dylo[1], self->shi->dylo[2]);
-				break;
-			case GLOBALTEXTURE_D:
-				obj = Py_BuildValue("(fff)(fff)", self->shi->dxgl[0], self->shi->dxgl[1], self->shi->dxgl[2], self->shi->dygl[0], self->shi->dygl[1], self->shi->dygl[2]);
-				break;
-			case REFLECTION_D:
-				obj = Py_BuildValue("(fff)(fff)", self->shi->dxref[0], self->shi->dxref[1], self->shi->dxref[2], self->shi->dyref[0], self->shi->dyref[1], self->shi->dyref[2]);
-				break;
-			case NORMAL_D:
-				obj = Py_BuildValue("(fff)(fff)", self->shi->dxno[0], self->shi->dxno[1], self->shi->dxno[2], self->shi->dyno[0], self->shi->dyno[1], self->shi->dyno[2]);
-				break;
-			case STICKY_D:
-				obj = Py_BuildValue("(fff)(fff)", self->shi->dxsticky[0], self->shi->dxsticky[1], self->shi->dxsticky[2], self->shi->dysticky[0], self->shi->dysticky[1], self->shi->dysticky[2]);
-				break;
-			case REFRACT_D:
-				obj = Py_BuildValue("(fff)(fff)", self->shi->dxrefract[0], self->shi->dxrefract[1], self->shi->dxrefract[2], self->shi->dyrefract[0], self->shi->dyrefract[1], self->shi->dyrefract[2]);
-				break;
-			case STRAND_D:
-				obj = Py_BuildValue("(ff)", self->shi->dxstrand, self->shi->dystrand);
-				break;
-			default:
-				break;
-		}
-	}
+/* MACRO time: defining shi getters */
 
-	if(!obj) {
-		Py_RETURN_NONE;
-	}
-	return obj;
+/* a couple checks that we can redefine to nothing for a tiny performance
+ * gain */
+
+#define SHI_CHECK_SHI\
+	if (!self->shi)\
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,\
+				"no shade input data!");
+
+#define SHI_CHECK_OB\
+	if (!ob)\
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,\
+				"couldn't create vector object!");
+
+/* for shi getters: */
+
+#define SHI_GETATTR_f(name, var)\
+static PyObject *ShadeInput_get##name(BPy_ShadeInput *self, void *unused)\
+{\
+	PyObject *ob = NULL;\
+\
+	SHI_CHECK_SHI\
+\
+	ob = PyFloat_FromDouble((double)(self->shi->var));\
+\
+	SHI_CHECK_OB\
+\
+	return ob;\
+}
+
+#define SHI_GETATTR_fvec(name, var, len)\
+static PyObject *ShadeInput_get##name(BPy_ShadeInput *self, void *unused)\
+{\
+	PyObject *ob = NULL;\
+\
+	SHI_CHECK_SHI\
+\
+	ob = newVectorObject(self->shi->var, len, Py_NEW);\
+\
+	SHI_CHECK_OB\
+\
+	return ob;\
+}
+
+#define SHI_GETATTR_2fvec(name, v1, v2, len)\
+static PyObject *ShadeInput_get##name(BPy_ShadeInput *self, void *unused)\
+{\
+	PyObject *ob = NULL;\
+	PyObject *tuple = NULL;\
+\
+	SHI_CHECK_SHI\
+\
+	tuple = PyTuple_New(2);\
+\
+	ob = newVectorObject(self->shi->v1, len, Py_NEW);\
+	PyTuple_SET_ITEM(tuple, 0, ob);\
+\
+	ob = newVectorObject(self->shi->v2, len, Py_NEW);\
+	PyTuple_SET_ITEM(tuple, 1, ob);\
+\
+	return tuple;\
+}
+
+#define SHI_GETATTR_3f(name, v1, v2, v3)\
+static PyObject *ShadeInput_get##name(BPy_ShadeInput *self, void *unused)\
+{\
+	PyObject *ob = NULL;\
+	float vec[3];\
+\
+	SHI_CHECK_SHI\
+\
+	vec[0] = self->shi->v1;\
+	vec[1] = self->shi->v2;\
+	vec[2] = self->shi->v3;\
+\
+	ob = newVectorObject(vec, 3, Py_NEW);\
+\
+	SHI_CHECK_OB\
+\
+	return ob;\
+}
+
+/* float */
+
+SHI_GETATTR_f(Ambient, amb);
+SHI_GETATTR_f(Emit, emit);
+SHI_GETATTR_f(Strand, strandco);
+SHI_GETATTR_f(Stress, stress);
+
+/* 3 float vars */
+
+SHI_GETATTR_3f(Color, r, g, b)
+SHI_GETATTR_3f(ColorSpecular, specr, specg, specb)
+SHI_GETATTR_3f(ColorMirror, mirr, mirg, mirb)
+SHI_GETATTR_3f(ColorAmbient, ambr, ambg, ambb)
+
+/* float vector */
+
+SHI_GETATTR_fvec(SurfaceViewVector, view, 3)
+SHI_GETATTR_fvec(SurfaceNormal, facenor, 3)
+SHI_GETATTR_fvec(ViewNormal, vn, 3)
+SHI_GETATTR_fvec(TextureGlobal, gl, 3)
+SHI_GETATTR_fvec(Texture, lo, 3)
+SHI_GETATTR_fvec(Displace, displace, 3)
+SHI_GETATTR_fvec(Tangent, tang, 3)
+
+/* two float vectors */
+
+SHI_GETATTR_2fvec(SurfaceD, dxco, dyco, 3)
+SHI_GETATTR_2fvec(TextureD, dxlo, dylo, 3)
+SHI_GETATTR_2fvec(TextureGlobalD, dxgl, dygl, 3)
+SHI_GETATTR_2fvec(ReflectionD, dxref, dyref, 3)
+SHI_GETATTR_2fvec(NormalD, dxno, dyno, 3)
+SHI_GETATTR_2fvec(StickyD, dxsticky, dysticky, 3)
+SHI_GETATTR_2fvec(RefractD, dxrefract, dyrefract, 3)
+
+/* single cases (for now), not macros: */
+
+static PyObject *ShadeInput_getPixel(BPy_ShadeInput *self, void *unused)
+{
+	PyObject *ob = NULL;
+
+	SHI_CHECK_SHI
+
+	ob = Py_BuildValue("(ii)", self->shi->xs, self->shi->ys);
+
+	SHI_CHECK_OB
+
+	return ob;
+}
+
+static PyObject *ShadeInput_getStrandD(BPy_ShadeInput *self, void *unused)
+{
+	PyObject *ob = NULL;
+	float vec[2];
+
+	SHI_CHECK_SHI
+
+	vec[0] = self->shi->dxstrand;
+	vec[1] = self->shi->dystrand;
+
+	ob = newVectorObject(vec, 2, Py_NEW);
+
+	SHI_CHECK_OB
+
+	return ob;
 }
 
 static BPy_SockMap *Node_CreateOutputMap(bNode *node, bNodeStack **stack) {
@@ -1239,101 +1301,77 @@ static PyGetSetDef BPy_Node_getseters[] = {
 
 static PyGetSetDef BPy_ShadeInput_getseters[] = {
 	{"texture",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the current texture coordinate (tuple)",
-	  (void*)TEXTURE},
+	  (getter)ShadeInput_getTexture, (setter)NULL,
+	  "Get the current texture coordinate (3-vector)", NULL},
 	{"textureGlobal",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the current global texture coordinate (tuple)",
-	  (void*)GLOBALTEXTURE},
+	  (getter)ShadeInput_getTextureGlobal, (setter)NULL,
+	  "Get the current global texture coordinate (3-vector)", NULL},
 	{"surfaceNormal",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the current surface normal (tuple)",
-	  (void*)SURFACENORMAL},
+	  (getter)ShadeInput_getSurfaceNormal, (setter)NULL,
+	  "Get the current surface normal (3-vector)", NULL},
 	{"viewNormal",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the current view normal (tuple)",
-	  (void*)VIEWNORMAL},
+	  (getter)ShadeInput_getViewNormal, (setter)NULL,
+	  "Get the current view normal (3-vector)", NULL},
 	{"surfaceViewVector",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the vector pointing to the viewpoint from the point being shaded (tuple)",
-	  (void*)SURFACEVIEWVECTOR},
+	  (getter)ShadeInput_getSurfaceViewVector, (setter)NULL,
+	  "Get the vector pointing to the viewpoint from the point being shaded (3-vector)", NULL},
 	{"pixel",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the x,y-coordinate for the pixel rendered (tuple)",
-	  (void*)PIXEL},
+	  (getter)ShadeInput_getPixel, (setter)NULL,
+	  "Get the x,y-coordinate for the pixel rendered (3-vector)", NULL},
 	{"color",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the color for the point being shaded (tuple)",
-	  (void*)COLOR},
+	  (getter)ShadeInput_getColor, (setter)NULL,
+	  "Get the color for the point being shaded (3-vector)", NULL},
 	{"specularColor",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the specular color for the point being shaded (tuple)",
-	  (void*)SPECULAR_COLOR},
+	  (getter)ShadeInput_getColorSpecular, (setter)NULL,
+	  "Get the specular color for the point being shaded (3-vector)", NULL},
 	{"mirrorColor",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the mirror color for the point being shaded (tuple)",
-	  (void*)MIRROR_COLOR},
+	  (getter)ShadeInput_getColorMirror, (setter)NULL,
+	  "Get the mirror color for the point being shaded (3-vector)", NULL},
 	{"ambientColor",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the ambient color for the point being shaded (tuple)",
-	  (void*)AMBIENT_COLOR},
+	  (getter)ShadeInput_getColorAmbient, (setter)NULL,
+	  "Get the ambient color for the point being shaded (3-vector)", NULL},
 	{"ambient",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the ambient factor for the point being shaded (float)",
-	  (void*)AMBIENT},
+	  (getter)ShadeInput_getAmbient, (setter)NULL,
+	  "Get the ambient factor for the point being shaded (float)", NULL},
 	{"emit",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the emit factor for the point being shaded (float)",
-	  (void*)EMIT},
+	  (getter)ShadeInput_getEmit, (setter)NULL,
+	  "Get the emit factor for the point being shaded (float)", NULL},
 	{"displace",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the displace vector for the point being shaded (tuple)",
-	  (void*)DISPLACE},
+	  (getter)ShadeInput_getDisplace, (setter)NULL,
+	  "Get the displace vector for the point being shaded (3-vector)", NULL},
 	{"strand",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the strand factor(float)",
-	  (void*)STRAND},
+	  (getter)ShadeInput_getStrand, (setter)NULL,
+	  "Get the strand factor(float)", NULL},
 	{"stress",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the stress factor(float)",
-	  (void*)STRESS},
+	  (getter)ShadeInput_getStress, (setter)NULL,
+	  "Get the stress factor(float)", NULL},
 	{"tangent",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the tangent vector (tuple)",
-	  (void*)TANGENT},
+	  (getter)ShadeInput_getTangent, (setter)NULL,
+	  "Get the tangent vector (3-vector)", NULL},
 	{"surfaceD",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the surface d (tuple of tuples)",
-	  (void*)SURFACE_D},
+	  (getter)ShadeInput_getSurfaceD, (setter)NULL,
+	  "Get the surface d (tuple with pair of 3-vectors)", NULL},
 	{"textureD",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the texture d (tuple of tuples)",
-	  (void*)TEXTURE_D},
+	  (getter)ShadeInput_getTextureD, (setter)NULL,
+	  "Get the texture d (tuple with pair of 3-vectors)", NULL},
 	{"textureGlobalD",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the global texture d (tuple of tuples)",
-	  (void*)GLOBALTEXTURE_D},
+	  (getter)ShadeInput_getTextureGlobalD, (setter)NULL,
+	  "Get the global texture d (tuple with pair of 3-vectors)", NULL},
 	{"reflectionD",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the reflection d (tuple of tuples)",
-	  (void*)REFLECTION_D},
+	  (getter)ShadeInput_getReflectionD, (setter)NULL,
+	  "Get the reflection d (tuple with pair of 3-vectors)", NULL},
 	{"normalD",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the normal d (tuple of tuples)",
-	  (void*)NORMAL_D},
+	  (getter)ShadeInput_getNormalD, (setter)NULL,
+	  "Get the normal d (tuple with pair of 3-vectors)", NULL},
 	{"stickyD",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the sticky d (tuple of tuples)",
-	  (void*)STICKY_D},
+	  (getter)ShadeInput_getStickyD, (setter)NULL,
+	  "Get the sticky d (tuple with pair of 3-vectors)", NULL},
 	{"refractD",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the refract d (tuple of tuples)",
-	  (void*)REFRACT_D},
+	  (getter)ShadeInput_getRefractD, (setter)NULL,
+	  "Get the refract d (tuple with pair of 3-vectors)", NULL},
 	{"strandD",
-	  (getter)ShadeInput_getAttribute, (setter)NULL,
-	  "Get the strand d (tuple)",
-	  (void*)STRAND_D},
+	  (getter)ShadeInput_getStrandD, (setter)NULL,
+	  "Get the strand d (2-vector)", NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -1479,7 +1517,7 @@ PyTypeObject ShadeInput_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	NULL, /*BPy_Node_methods,*/          /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	BPy_ShadeInput_getseters,        /* struct PyGetSetDef *tp_getset; */
+	BPy_ShadeInput_getseters,   /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
