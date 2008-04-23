@@ -3180,9 +3180,10 @@ short autokeyframe_cfra_can_key(Object *ob)
 void autokeyframe_ob_cb_func(Object *ob, int tmode)
 {
 	IpoCurve *icu;
-	char *actname="";
 	
-	if (autokeyframe_cfra_can_key(ob)) {		
+	if (autokeyframe_cfra_can_key(ob)) {
+		char *actname = NULL;
+		
 		if (ob->ipoflag & OB_ACTION_OB)
 			actname= "Object";
 		
@@ -3260,14 +3261,14 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 			}
 		}
 		else {
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_X, 0);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Y, 0);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Z, 0);
-			
 			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_X, 0);
 			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Y, 0);
 			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Z, 0);
 			
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_X, 0);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Y, 0);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Z, 0);
+						
 			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_X, 0);
 			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Y, 0);
 			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Z, 0);
@@ -3275,6 +3276,7 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 		
 		remake_object_ipos(ob);
 		allqueue(REDRAWMARKER, 0);
+		allqueue(REDRAWOOPS, 0);
 	}
 }
 
@@ -3307,7 +3309,7 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 					bActionChannel *achan; 
 					
 					for (achan = act->chanbase.first; achan; achan=achan->next) {
-						if (achan->ipo && !strcmp (achan->name, pchan->name)) {
+						if ((achan->ipo) && !strcmp(achan->name, pchan->name)) {
 							for (icu = achan->ipo->curve.first; icu; icu=icu->next) {
 								/* only insert keyframe if needed? */
 								if (IS_AUTOKEY_FLAG(INSERTNEEDED))
@@ -3380,8 +3382,9 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 			}
 		}
 		
-		remake_action_ipos (act);
+		remake_action_ipos(act);
 		allqueue(REDRAWMARKER, 0);
+		allqueue(REDRAWOOPS, 0);
 		
 		/* locking can be disabled */
 		ob->pose->flag &= ~(POSE_DO_UNLOCK|POSE_LOCKED);
