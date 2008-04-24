@@ -1224,10 +1224,10 @@ char *BLI_gethome(void) {
 				}
 			}
 		}
-		/*
+#if 0
 		ret = getenv("USERPROFILE");
 		if (ret) {
-			if (BLI_exists(ret)) { /* from fop, also below... 
+			if (BLI_exists(ret)) { /* from fop, also below...  */
 				sprintf(dir, "%s\\Application Data\\Blender Foundation\\Blender", ret);
 				BLI_recurdir_fileops(dir);
 				if (BLI_exists(dir)) {
@@ -1236,7 +1236,7 @@ char *BLI_gethome(void) {
 				}
 			}
 		}
-		*/
+#endif
 
 		/* 
 		   Saving in the Windows dir is less than desirable. 
