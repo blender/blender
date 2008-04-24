@@ -172,18 +172,14 @@ IF(WIN32)
       POST_BUILD
       MAIN_DEPENDENCY blender
       COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avcodec-51.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avformat-51.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avformat-52.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avdevice-52.dll\" \"$\(TargetDir\)\\\"
       COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avutil-49.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libdts.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libfaac.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libfaad.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libgsm.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libfaac-0.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libfaad-0.dll\" \"$\(TargetDir\)\\\"
       COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libmp3lame-0.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libogg-0.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libvorbis-0.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libvorbisenc-2.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libx264-54.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\postproc-51.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libx264-59.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\swscale-0.dll\" \"$\(TargetDir\)\\\"
       COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\xvidcore.dll\" \"$\(TargetDir\)\\\"
     )
   ENDIF(WITH_FFMPEG)
