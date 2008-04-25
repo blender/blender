@@ -492,7 +492,8 @@ typedef struct ExplodeModifierData {
 typedef struct ShrinkwrapModifierData {
 	ModifierData modifier;
 
-	char name[32];			/* optional vertexgroup name */
+	struct Object *target;	/* shrink target */
+	char vgroup_name[32];	/* optional vertexgroup name */
 	short shrinkType;		/* shrink type projection */
 	short pad[3];
 } ShrinkwrapModifierData;

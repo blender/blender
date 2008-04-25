@@ -97,6 +97,7 @@
 #include "BKE_utildefines.h"
 #include "depsgraph_private.h"
 #include "BKE_bmesh.h"
+#include "BKE_shrinkwrap.h"
 
 #include "LOD_DependKludge.h"
 #include "LOD_decimation.h"
@@ -6973,11 +6974,39 @@ static void meshdeformModifier_deformVertsEM(
 
 /* Shrinkwrap */
 
-static DerivedMesh *shrinkwrapModifier_applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+static void shrinkwrapModifier_initData(ModifierData *md)
 {
-	return derivedData;
+	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
+	smd->shrinkType = MOD_SHRINKWRAP_NEAREST;
+}
+
+static void shrinkwrapModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	memcpy(target, md, sizeof(MeshDeformModifierData));
+}
+
+static void shrinkwrapModifier_foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
+{
+	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
+
+	walk(userData, ob, &smd->target);
+}
+
+static DerivedMesh *shrinkwrapModifier_applyModifier(ModifierData *md, Object *ob, DerivedMesh *derivedData, int useRenderParams, int isFinalCalc)
+{
+	return shrinkwrapModifier_do((ShrinkwrapModifierData*)md,ob,derivedData,useRenderParams,isFinalCalc);
+}
+
+static void shrinkwrapModifier_updateDepgraph(ModifierData *md, DagForest *forest, Object *ob, DagNode *obNode)
+{
+	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
+
+	if (smd->target) {
+		DagNode *curNode = dag_get_node(forest, smd->target);
+
+		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA,
+			"Shrinkwrap Modifier");
+	}
 }
 
 
@@ -7302,10 +7331,14 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->applyModifier = explodeModifier_applyModifier;
 
 		mti = INIT_TYPE(Shrinkwrap);
-		mti->type = eModifierTypeType_Constructive;
-		mti->flags = eModifierTypeFlag_AcceptsMesh
-				| eModifierTypeFlag_SupportsMapping;
+		mti->type = eModifierTypeType_Nonconstructive;
+		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		/*| eModifierTypeFlag_SupportsMapping; Not yet X'D */
+		mti->initData = shrinkwrapModifier_initData;
+		mti->copyData = shrinkwrapModifier_copyData;
+		mti->foreachObjectLink = shrinkwrapModifier_foreachObjectLink;
 		mti->applyModifier = shrinkwrapModifier_applyModifier;
+		mti->updateDepgraph = shrinkwrapModifier_updateDepgraph;
 
 		typeArrInit = 0;
 #undef INIT_TYPE

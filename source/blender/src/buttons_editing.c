@@ -1821,7 +1821,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Explode) {
 			height = 94;
 		} else if (md->type==eModifierType_Shrinkwrap) {
-			height = 48;
+			height = 48+19;
 		}
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 40, ""); 
@@ -2440,8 +2440,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			char shrinktypemenu[]="Shrinkwrap type%t|nearest point %x0|normal projection %x1";
 			uiDefButS(block, MENU, B_MODIFIER_RECALC, shrinktypemenu, lx,(cy-=19),buttonWidth,19, &smd->shrinkType, 0, 0, 0, 0, "Selects type of shrinkwrap algorithm for target position.");
 
-			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->name, 0.0, 31.0, 0, 0, "Vertex Group name");
+			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->vgroup_name, 0.0, 31.0, 0, 0, "Vertex Group name");
 			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+
+			uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &smd->target, "Target to shrink to");
 		}
 
 		uiBlockEndAlign(block);
