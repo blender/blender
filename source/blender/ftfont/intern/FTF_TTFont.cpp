@@ -32,6 +32,10 @@
 #include "libintl.h"
 #include "BLI_blenlib.h"
 
+extern "C" {
+#include "BKE_font.h"
+}
+
 #include "../FTF_Settings.h"
 
 #include "FTF_TTFont.h"
@@ -47,63 +51,6 @@
 //#define FONT_PATH_DEFAULT ".bfont.ttf"
 
 #define FTF_MAX_STR_SIZE 512
-
-/* Converts Unicode to wchar
-
-According to RFC 3629 "UTF-8, a transformation format of ISO 10646"
-(http://tools.ietf.org/html/rfc3629), the valid UTF-8 encoding are:
-
-  Char. number range  |        UTF-8 octet sequence
-      (hexadecimal)    |              (binary)
-   --------------------+---------------------------------------------
-   0000 0000-0000 007F | 0xxxxxxx
-   0000 0080-0000 07FF | 110xxxxx 10xxxxxx
-   0000 0800-0000 FFFF | 1110xxxx 10xxxxxx 10xxxxxx
-   0001 0000-0010 FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-
-If the encoding incidated by the first character is incorrect (because the
-1 to 3 following characters do not match 10xxxxxx), the output is a '?' and
-only a single input character is consumed.
-
-*/
-
-int utf8towchar(wchar_t *w, char *c)
-{
-	int len=0;
-
-	if(w==NULL || c==NULL) return(0);
-
-	while(*c) {
-		if ((*c & 0xe0) == 0xc0) {
-			if((c[1] & 0x80) && (c[1] & 0x40) == 0x00) {
-				*w=(c[0] &0x1f)<<6 | c[1]&0x3f;
-				c++;
-			} else {
-				*w = '?';
-			}
-		} else if ((*c & 0xf0) == 0xe0) {
-			if((c[1] & c[2] & 0x80) && ((c[1] | c[2]) & 0x40) == 0x00) {
-				*w=(c[0] & 0x0f)<<12 | (c[1]&0x3f)<<6 | (c[2]&0x3f);
-				c += 2;
-			} else {
-				*w = '?';
-			}
-		} else if ((*c & 0xf8) == 0xf0) {
-			if((c[1] & c[2] & c[3] & 0x80) && ((c[1] | c[2] | c[3]) & 0x40) == 0x00) {
-				*w=(c[0] & 0x07)<<18 | (c[1]&0x1f)<<12 | (c[2]&0x3f)<<6 | (c[3]&0x3f);
-				c += 3;
-			} else {
-				*w = '?';
-			}
-		} else
-		    *w=(c[0] & 0x7f);
-
-		c++;
-		w++;
-		len++;
-	}
-	return len;
-}
 
 FTF_TTFont::FTF_TTFont(void)
 {	
@@ -345,9 +292,9 @@ float FTF_TTFont::DrawString(char* str, unsigned int flag)
 	/* note; this utf8towchar() function I totally don't understand... without using translations it 
 	   removes special characters completely. So, for now we just skip that then. (ton) */
 	if (FTF_USE_GETTEXT & flag) 
-		utf8towchar(wstr, gettext(str));
+		utf8towchar_(wstr, gettext(str));
 	else if (FTF_INPUT_UTF8 & flag) 
-		utf8towchar(wstr, str);
+		utf8towchar_(wstr, str);
 
 	glGetFloatv(GL_CURRENT_COLOR, color);
 	
@@ -404,7 +351,7 @@ float FTF_TTFont::GetStringWidth(char* str, unsigned int flag)
 		removes special characters completely. So, for now we just skip that then. (ton) */
 
 	if (FTF_USE_GETTEXT & flag) {
-		len=utf8towchar(wstr, gettext(str));
+		len=utf8towchar_(wstr, gettext(str));
 
 		if(mode == FTF_PIXMAPFONT) {
 			return font->Advance(wstr);
@@ -430,9 +377,9 @@ void FTF_TTFont::GetBoundingBox(char* str, float *llx, float *lly, float *llz, f
 	int len=0;
   
 	if (FTF_USE_GETTEXT & flag) 
-		len=utf8towchar(wstr,gettext(str));
+		len=utf8towchar_(wstr,gettext(str));
 	else 
-		len=utf8towchar(wstr,str);
+		len=utf8towchar_(wstr,str);
 
 	font->BBox(wstr, *llx, *lly, *llz, *urx, *ury, *urz);
 }
