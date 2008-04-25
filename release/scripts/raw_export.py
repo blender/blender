@@ -8,7 +8,7 @@ Tooltip: 'Export selected mesh to Raw Triangle Format (.raw)'
 """
 
 __author__ = "Anthony D'Agostino (Scorpius)"
-__url__ = ("blender", "elysiun",
+__url__ = ("blender", "blenderartists.org",
 "Author's homepage, http://www.redrival.com/scorpius")
 __version__ = "Part of IOSuite 0.5"
 

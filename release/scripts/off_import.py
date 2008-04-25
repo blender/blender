@@ -8,7 +8,7 @@ Tooltip: 'Import DEC Object File Format (*.off)'
 """
 
 __author__ = "Anthony D'Agostino (Scorpius), Campbell Barton (Ideasman)"
-__url__ = ("blender", "elysiun",
+__url__ = ("blender", "blenderartists.org",
 "Author's homepage, http://www.redrival.com/scorpius")
 __version__ = "Part of IOSuite 0.5"
 

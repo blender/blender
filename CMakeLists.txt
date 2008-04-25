@@ -258,7 +258,7 @@ IF(WIN32)
 
   SET(FFMPEG ${LIBDIR}/ffmpeg)
   SET(FFMPEG_INC ${FFMPEG}/include)
-  SET(FFMPEG_LIB avcodec-51 avformat-51 avutil-49)
+  SET(FFMPEG_LIB avcodec-51 avformat-52 avdevice-52 avutil-49 swscale-0)
   SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
 
   SET(LLIBS kernel32 user32 gdi32 comdlg32 advapi32 shell32 ole32 oleaut32 uuid ws2_32 vfw32 winmm)
@@ -299,7 +299,7 @@ IF(WIN32)
   SET(WINTAB_INC ${LIBDIR}/wintab/include) 
 
   SET(PLATFORM_LINKFLAGS "/NODEFAULTLIB:libc.lib")
-  SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:libcmt.lib ")
+  SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:libcmt.lib;libc.lib ")
 ENDIF(WIN32)
 
 IF(APPLE)

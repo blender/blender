@@ -315,7 +315,6 @@ void KX_GameObject::ApplyRotation(const MT_Vector3& drot,bool local)
 	GetSGNode()->RelativeRotate(rotmat,local);
 
 	if (m_pPhysicsController1) { // (IsDynamic())
-		rotmat.transpose();
 		m_pPhysicsController1->RelativeRotate(rotmat,local); 
 	}
 }

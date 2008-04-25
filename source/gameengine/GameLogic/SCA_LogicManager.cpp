@@ -174,6 +174,14 @@ void SCA_LogicManager::RemoveSensor(SCA_ISensor* sensor)
 	}
 }
 
+void SCA_LogicManager::RemoveController(SCA_IController* controller)
+{
+	std::map<SCA_ISensor*,controllerlist>::iterator sit;
+	for (sit = m_sensorcontrollermapje.begin();!(sit==m_sensorcontrollermapje.end());++sit)
+	{
+		(*sit).second.remove(controller);
+	}
+}
 
 
 void SCA_LogicManager::RemoveDestroyedActuator(SCA_IActuator* actuator)

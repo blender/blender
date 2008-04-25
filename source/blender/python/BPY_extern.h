@@ -84,7 +84,8 @@ extern "C" {
 	void init_syspath( int first_time );
 	void syspath_append( char *dir );
 	void BPY_rebuild_syspath( void );
-
+	int BPY_path_update( void );
+	
 	int BPY_Err_getLinenumber( void );
 	const char *BPY_Err_getFilename( void );
 

@@ -462,6 +462,16 @@ void BPY_rebuild_syspath( void )
 	PyGILState_Release(gilstate);
 }
 
+int BPY_path_update( void )
+{
+	BPyMenu_RemoveAllEntries(); /* free old data */
+	BPY_rebuild_syspath();
+	if (BPyMenu_Init(1) == -1) { /* re-eval scripts registration in menus */
+		return 0;
+	}
+	return 1;
+}
+
 /****************************************************************************
 * Description: This function finishes Python initialization in Blender.	 
 

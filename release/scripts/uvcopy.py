@@ -7,9 +7,7 @@ Tip: 'Copy UV coords from a mesh to another that has same vertex indices'
 """
 
 __author__ = "Toni Alatalo, Martin Poirier et. al."
-__url__ = ("blender", "elysiun",
-"Script's homepage, http://www.elysiun.com/forum/viewtopic.php?t=14897", 
-"Communicate problems and errors, http://www.elysiun.com/forum/viewtopic.php?t=14897")
+__url__ = ("blender", "blenderartists.org")
 __version__ = "0.2 01/2006"
 
 __bpydoc__ = """\

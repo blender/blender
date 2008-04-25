@@ -1030,7 +1030,8 @@ int txt_find_string(Text *text, char *findstr)
 
 void txt_cut_sel (Text *text)
 {
-	txt_copy_clipboard(text);
+	if (!G.background) /* Python uses txt_cut_sel, which it should not, working around for now  */
+		txt_copy_clipboard(text);
 	
 	txt_delete_sel(text);
 	txt_make_dirty(text);

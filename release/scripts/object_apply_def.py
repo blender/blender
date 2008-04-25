@@ -12,7 +12,7 @@ __author__ = "Martin Poirier (theeth), Jean-Michel Soler (jms), Campbell Barton 
 # Martin Poirier's Apply_Def.py and
 # Jean-Michel Soler's Fix From Everything
 
-__url__ = ("http://www.blender.org", "http://blenderartists.org", "http://members.iinet.net.au/~cpbarton/ideasman/", "http://jmsoler.free.fr")
+__url__ = ("http://www.blender.org", "http://blenderartists.org", "http://jmsoler.free.fr")
 __version__ = "1.6 07/07/2006"
 
 __bpydoc__ = """\

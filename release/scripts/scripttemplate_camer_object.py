@@ -98,7 +98,7 @@ SceneCheck()
 
 '''
 
-new_text = bpy.data.texts.new('pyconstraint_template.py')
+new_text = bpy.data.texts.new('camobject_template.py')
 new_text.write(script_data)
 bpy.data.texts.active = new_text
 Window.RedrawAll()

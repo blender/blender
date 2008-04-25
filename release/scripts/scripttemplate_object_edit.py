@@ -13,7 +13,7 @@ script_data = \
 '''#!BPY
 """
 Name: 'My Object Script'
-Blender: 244
+Blender: 245
 Group: 'Object'
 Tooltip: 'Put some useful info here'
 """

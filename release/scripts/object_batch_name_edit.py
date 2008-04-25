@@ -6,7 +6,7 @@ Group: 'Object'
 Tooltip: 'Apply the chosen rule to rename all selected objects at once.'
 """
 __author__ = "Campbell Barton"
-__url__ = ("blender", "elysiun")
+__url__ = ("blender", "blenderartists.org")
 __version__ = "1.0"
 
 __bpydoc__ = """\
