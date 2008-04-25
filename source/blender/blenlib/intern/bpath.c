@@ -259,15 +259,22 @@ void seq_setpath(struct BPathIterator *bpi, char *path) {
 	
 	if (SEQ_HAS_PATH(seq)) {
 		if (seq->type == SEQ_IMAGE || seq->type == SEQ_MOVIE) {
-			char file[FILE_MAX];
-			BLI_split_dirfile(path, seq->strip->dir, file);
-			BLI_add_slash(seq->strip->dir); /* incase its missing */
 			
-			/* now append the filename */
-			if (seq->strip->stripdata) { /* should always be true! */
-				BLI_strncpy(seq->strip->stripdata->name, file, sizeof(seq->strip->stripdata->name));
+			int lslash, i = 0;
+			for (i=0; path[i]!='\0'; i++) {
+				if (path[i]=='\\' || path[i]=='/')
+					lslash = i+1;
 			}
 			
+			if (lslash) {
+				BLI_strncpy( seq->strip->dir, path, lslash+1); /* +1 to include the slash and the last char */
+			} else {
+				path[0] = '\0';
+			}
+			
+			if (seq->strip->stripdata) { /* should always be true! */
+				BLI_strncpy( seq->strip->stripdata->name, path+lslash, sizeof(seq->strip->stripdata->name));
+			}
 		} else {
 			/* simple case */
 			BLI_strncpy(seq->strip->dir, path, sizeof(seq->strip->dir));
