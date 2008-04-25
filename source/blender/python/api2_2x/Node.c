@@ -1379,7 +1379,7 @@ PyTypeObject Node_Type = {
 	PyObject_HEAD_INIT( NULL )  /* required py macro */
 	0,                          /* ob_size */
 	/*  For printing, in format "<module>.<name>" */
-	"Blender.Node.node",             /* char *tp_name; */
+	"Blender.Node.Scripted",    /* char *tp_name; */
 	sizeof( BPy_Node ),         /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 
