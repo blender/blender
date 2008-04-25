@@ -179,7 +179,7 @@ only a single input character is consumed.
 
 */
 
-int utf8towchar_(wchar_t *w, char *c)
+int utf8towchar(wchar_t *w, char *c)
 {
 	int len=0;
 
@@ -661,7 +661,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	utf8len = utf8slen(cu->str);
 	tmp = mem = MEM_callocN(((utf8len + 1) * sizeof(wchar_t)), "convertedmem");
 	
-	utf8towchar_(mem, cu->str);
+	utf8towchar(mem, cu->str);
 
 	// Count the wchar_t string length
 	slen = wcslen(mem);

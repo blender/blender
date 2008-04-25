@@ -31,10 +31,7 @@
 #include <locale.h>
 #include "libintl.h"
 #include "BLI_blenlib.h"
-
-extern "C" {
 #include "BKE_font.h"
-}
 
 #include "../FTF_Settings.h"
 
@@ -292,9 +289,9 @@ float FTF_TTFont::DrawString(char* str, unsigned int flag)
 	/* note; this utf8towchar() function I totally don't understand... without using translations it 
 	   removes special characters completely. So, for now we just skip that then. (ton) */
 	if (FTF_USE_GETTEXT & flag) 
-		utf8towchar_(wstr, gettext(str));
+		utf8towchar(wstr, gettext(str));
 	else if (FTF_INPUT_UTF8 & flag) 
-		utf8towchar_(wstr, str);
+		utf8towchar(wstr, str);
 
 	glGetFloatv(GL_CURRENT_COLOR, color);
 	
@@ -351,7 +348,7 @@ float FTF_TTFont::GetStringWidth(char* str, unsigned int flag)
 		removes special characters completely. So, for now we just skip that then. (ton) */
 
 	if (FTF_USE_GETTEXT & flag) {
-		len=utf8towchar_(wstr, gettext(str));
+		len=utf8towchar(wstr, gettext(str));
 
 		if(mode == FTF_PIXMAPFONT) {
 			return font->Advance(wstr);
@@ -377,9 +374,9 @@ void FTF_TTFont::GetBoundingBox(char* str, float *llx, float *lly, float *llz, f
 	int len=0;
   
 	if (FTF_USE_GETTEXT & flag) 
-		len=utf8towchar_(wstr,gettext(str));
+		len=utf8towchar(wstr,gettext(str));
 	else 
-		len=utf8towchar_(wstr,str);
+		len=utf8towchar(wstr,str);
 
 	font->BBox(wstr, *llx, *lly, *llz, *urx, *ury, *urz);
 }
