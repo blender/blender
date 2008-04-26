@@ -55,6 +55,7 @@ protected:
 	SCA_SensorList         m_sensors;
 	SCA_ControllerList     m_controllers;
 	SCA_ActuatorList       m_actuators;
+	SCA_ActuatorList       m_registeredActuators;	// actuators that use a pointer to this object
 	static class MT_Point3 m_sDummy;
 
 	/**
@@ -79,6 +80,8 @@ public:
 	void AddSensor(SCA_ISensor* act);
 	void AddController(SCA_IController* act);
 	void AddActuator(SCA_IActuator* act);
+	void RegisterActuator(SCA_IActuator* act);
+	void UnregisterActuator(SCA_IActuator* act);
 	
 	SCA_ISensor* FindSensor(const STR_String& sensorname);
 	SCA_IActuator* FindActuator(const STR_String& actuatorname);

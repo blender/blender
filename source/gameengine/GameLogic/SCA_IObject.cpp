@@ -62,6 +62,10 @@ SCA_IObject::~SCA_IObject()
 		((CValue*)(*itc))->Release();
 	}
 	SCA_ActuatorList::iterator ita;
+	for (ita = m_registeredActuators.begin(); !(ita==m_registeredActuators.end()); ++ita)
+	{
+		(*ita)->UnlinkObject(this);
+	}
 	for (ita = m_actuators.begin(); !(ita==m_actuators.end()); ++ita)
 	{
 		((CValue*)(*ita))->Release();
@@ -118,7 +122,24 @@ void SCA_IObject::AddActuator(SCA_IActuator* act)
 	m_actuators.push_back(act);
 }
 
+void SCA_IObject::RegisterActuator(SCA_IActuator* act)
+{
+	// don't increase ref count, it would create dead lock
+	m_registeredActuators.push_back(act);
+}
 
+void SCA_IObject::UnregisterActuator(SCA_IActuator* act)
+{
+	SCA_ActuatorList::iterator ita;
+	for (ita = m_registeredActuators.begin(); ita != m_registeredActuators.end(); ita++)
+	{
+		if ((*ita) == act) {
+			(*ita) = m_registeredActuators.back();
+			m_registeredActuators.pop_back();
+			break;
+		}
+	}
+}
 
 void SCA_IObject::SetIgnoreActivityCulling(bool b)
 {
@@ -168,6 +189,8 @@ void SCA_IObject::ReParentLogic()
 		newactuator->SetActive(false);
 		oldactuators[act++] = newactuator;
 	}
+	// a new object cannot be client of any actuator
+	m_registeredActuators.clear();
 		
 }
 
