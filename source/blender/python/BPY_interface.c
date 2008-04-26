@@ -796,7 +796,7 @@ int BPY_run_script(Script *script)
 		
 		if (bpyhome) {
 			BLI_strncpy(ftmp, script->scriptname, sizeof(ftmp));
-			BLI_split_dirfile(ftmp, fpath, fname); /* get the filename only - fname */
+			BLI_split_dirfile_basic(ftmp, NULL, fname); /* get the filename only - fname */
 			BLI_strncpy(fpath, bpy_gethome(1), sizeof(fpath));
 			BLI_add_slash(fpath);
 			strcat(fpath, fname);

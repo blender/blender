@@ -96,6 +96,7 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 void BLI_make_exist(char *dir);
 void BLI_make_existing_file(char *name);
 void BLI_split_dirfile(char *string, char *dir, char *file);
+void BLI_split_dirfile_basic(const char *string, char *dir, char *file);
 void BLI_join_dirfile(char *string, const char *dir, const char *file);
 int BLI_testextensie(const char *str, const char *ext);
 void addlisttolist(ListBase *list1, ListBase *list2);

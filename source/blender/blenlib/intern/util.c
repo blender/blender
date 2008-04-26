@@ -1426,8 +1426,41 @@ int BLI_testextensie(const char *str, const char *ext)
 	return (retval);
 }
 
+/*
+ * This is a simple version of BLI_split_dirfile that has the following advantages...
+ * 
+ * Converts "/foo/bar.txt" to "/foo/" and "bar.txt"
+ * - wont change 'string'
+ * - wont create any directories
+ * - dosnt use CWD, or deal with relative paths.
+ * - Only fill's in *dir and *file when they are non NULL
+ * */
+void BLI_split_dirfile_basic(const char *string, char *dir, char *file)
+{
+	int lslash=0, i = 0;
+	for (i=0; string[i]!='\0'; i++) {
+		if (string[i]=='\\' || string[i]=='/')
+			lslash = i+1;
+	}
+	if (dir) {
+		if (lslash) {
+			BLI_strncpy( dir, string, lslash+1); /* +1 to include the slash and the last char */
+		} else {
+			dir[0] = '\0';
+		}
+	}
+	
+	if (file) {
+		strcpy( file, string+lslash);
+	}
+}
 
-/* warning, can modify 'string' */
+
+/* Warning,
+ * - May modify 'string' variable
+ * - May create the directory if it dosnt exist
+ * if this is not needed use BLI_split_dirfile_basic(...)
+ */
 void BLI_split_dirfile(char *string, char *dir, char *file)
 {
 	int a;

@@ -177,7 +177,7 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 
 		blendfilename= (lib)? lib->filename: G.sce;
 
-		BLI_split_dirfile(blendfilename, dir, file);
+		BLI_split_dirfile_basic(blendfilename, NULL, file);
 		i = strlen(file);
 		
 		/* remove .blend */

@@ -786,7 +786,7 @@ static void readBlog(void)
 	fsmenu_append_separator();
 	
 	/* add last saved file */
-	BLI_split_dirfile(G.sce, name, filename); /* G.sce shouldn't be relative */
+	BLI_split_dirfile_basic(G.sce, name, filename); /* G.sce shouldn't be relative */
 	
 	fsmenu_insert_entry(name, 0, 0);
 	
