@@ -295,6 +295,8 @@ void set_scene_bg(Scene *sce)
 	GroupObject *go;
 	int flag;
 	
+	set_last_seq(NULL);
+	
 	G.scene= sce;
 	
 	/* check for cyclic sets, for reading old files but also for definite security (py?) */

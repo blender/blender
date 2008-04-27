@@ -95,6 +95,7 @@ void BLI_bpathIterator_init( struct BPathIterator *bpi ) {
 	bpi->seqdata.totseq = 0;
 	bpi->seqdata.seq = 0;
 	bpi->seqdata.seqar = NULL;
+	bpi->seqdata.scene = NULL;
 	
 	BLI_bpathIterator_step(bpi);
 }
@@ -103,6 +104,7 @@ void BLI_bpathIterator_free( struct BPathIterator *bpi ) {
 	if (bpi->seqdata.seqar)
 		MEM_freeN((void *)bpi->seqdata.seqar);
 	bpi->seqdata.seqar = NULL;
+	bpi->seqdata.scene = NULL;
 }
 
 void BLI_bpathIterator_getPath( struct BPathIterator *bpi, char *path) {
@@ -202,34 +204,52 @@ static struct bSound *snd_stepdata__internal(struct bSound *snd, int step_next) 
 static struct Sequence *seq_stepdata__internal(struct BPathIterator *bpi, int step_next) {
 	Sequence *seq;
 	
-	if (G.scene->ed==NULL) {
-		return NULL;
-	}
-	
-	if (bpi->seqdata.seqar == NULL) {
-		/* allocate the sequencer array */
-		build_seqar( &(((Editing *)G.scene->ed)->seqbase), &bpi->seqdata.seqar, &bpi->seqdata.totseq);		
-		bpi->seqdata.seq = 0;
+	/* Initializing */
+	if (bpi->seqdata.scene==NULL) {
+		bpi->seqdata.scene= G.main->scene.first;
 	}
 	
 	if (step_next) {
 		bpi->seqdata.seq++;
 	}
 	
-	if (bpi->seqdata.seq >= bpi->seqdata.totseq) {
-		seq = NULL;
-	} else {
-		seq = bpi->seqdata.seqar[bpi->seqdata.seq];
-		while (!SEQ_HAS_PATH(seq)) {
-			bpi->seqdata.seq++;
+	while (bpi->seqdata.scene) {
+		
+		if (bpi->seqdata.scene->ed) {
+			if (bpi->seqdata.seqar == NULL) {
+				/* allocate the sequencer array */
+				build_seqar( &(((Editing *)bpi->seqdata.scene->ed)->seqbase), &bpi->seqdata.seqar, &bpi->seqdata.totseq);		
+				bpi->seqdata.seq = 0;
+			}
+			
 			if (bpi->seqdata.seq >= bpi->seqdata.totseq) {
 				seq = NULL;
-				break;
+			} else {
+				seq = bpi->seqdata.seqar[bpi->seqdata.seq];
+				while (!SEQ_HAS_PATH(seq)) {
+					bpi->seqdata.seq++;
+					if (bpi->seqdata.seq >= bpi->seqdata.totseq) {
+						seq = NULL;
+						break;
+					}
+					seq = bpi->seqdata.seqar[bpi->seqdata.seq];
+				}
 			}
-			seq = bpi->seqdata.seqar[bpi->seqdata.seq];
+			if (seq) {
+				return seq;
+			} else {
+				/* keep looking through the next scene, reallocate seq array */
+				MEM_freeN((void *)bpi->seqdata.seqar);
+				bpi->seqdata.seqar = NULL;
+				bpi->seqdata.scene = bpi->seqdata.scene->id.next;
+			}
+		} else {
+			/* no seq data in this scene, next */
+			bpi->seqdata.scene = bpi->seqdata.scene->id.next;
 		}
 	}
-	return seq ;
+	
+	return NULL;
 }
 
 void seq_getpath(struct BPathIterator *bpi, char *path) {
@@ -638,7 +658,7 @@ void findMissingFiles(char *str) {
 	char filepath[FILE_MAX], *libpath;
 	int filesize, recur_depth;
 	
-	char dirname[FILE_MAX], filename[FILE_MAX], filename_new[FILE_MAX], dummyname[FILE_MAX];
+	char dirname[FILE_MAX], filename[FILE_MAX], filename_new[FILE_MAX];
 	
 	waitcursor( 1 );
 	

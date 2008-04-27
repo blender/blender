@@ -73,6 +73,8 @@ void set_scene(Scene *sce)		/* also see scene.c: set_scene_bg() */
 	
 	exit_paint_modes();
 	
+	set_last_seq(NULL);
+	
 	G.scene= sce;
 
 	sc= G.main->screen.first;

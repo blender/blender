@@ -41,6 +41,7 @@
 #include "DNA_object_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_particle_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -77,11 +78,25 @@ void unlink_group(Group *group)
 {
 	Material *ma;
 	Object *ob;
+	Scene *sce;
+	SceneRenderLayer *srl;
+	ParticleSystem *psys;
 	
 	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
 		if(ma->group==group)
 			ma->group= NULL;
 	}
+	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
+		if(ma->group==group)
+			ma->group= NULL;
+	}
+	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
+		for(srl= sce->r.layers.first; srl; srl= srl->next) {
+			if (srl->light_override==group)
+				srl->light_override= NULL;
+		}
+	}
+	
 	for(ob= G.main->object.first; ob; ob= ob->id.next) {
 		bActionStrip *strip;
 		
@@ -94,9 +109,13 @@ void unlink_group(Group *group)
 					strip->object= NULL;
 			}
 		}
-		/* TODO - psys groups */
-		/* TODO - lamp groups */
-		/* TODO - render groups */
+		
+		for(psys=ob->particlesystem.first; psys; psys=psys->next){
+			if(psys->part->dup_group==group)
+				psys->part->dup_group= NULL;
+			if(psys->part->eff_group==group)
+				psys->part->eff_group= NULL;
+		}
 	}
 	group->id.us= 0;
 }
