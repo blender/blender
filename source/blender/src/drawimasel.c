@@ -217,17 +217,40 @@ static void draw_file(SpaceImaSel *simasel, short sx, short sy, struct direntry 
 	short soffs;
 	char fname[FILE_MAXFILE];
 	float sw;
+	float x,y;
 
 	BLI_strncpy(fname,file->relname, FILE_MAXFILE);
 	sw = shorten_string(simasel, fname, simasel->prv_w );
 	soffs = (simasel->prv_w + TILE_BORDER_X*4 - sw) / 2;	
-	
-	ui_rasterpos_safe(sx+soffs, sy - simasel->prv_h - TILE_BORDER_Y*2 - U.fontsize, simasel->aspect);
+	x = (float)(sx+soffs);
+	y = (float)(sy - simasel->prv_h - TILE_BORDER_Y*2 - U.fontsize);
+
+	ui_rasterpos_safe(x, y, simasel->aspect);
+	/* handling of international fonts.
+	    TODO: proper support for utf8 in languages different from ja_JP abd zh_CH
+	    needs update of iconv in lib/windows to support getting the system language string
+	*/
+	#ifdef WITH_ICONV
+		{
+			struct LANGMenuEntry *lme;
+       		lme = find_language(U.language);
+
+			if ((lme !=NULL) && (!strcmp(lme->code, "ja_JP") || 
+				!strcmp(lme->code, "zh_CN")))
+			{
+				BIF_RasterPos(x, y);
 #ifdef WIN32
-	BIF_DrawString(simasel->curfont, fname, ((U.transopts & USER_TR_MENUS) | CONVERT_TO_UTF8));
+				BIF_DrawString(simasel->curfont, fname, ((U.transopts & USER_TR_MENUS) | CONVERT_TO_UTF8));
 #else
-	BIF_DrawString(simasel->curfont, fname, (U.transopts & USER_TR_MENUS));
+				BIF_DrawString(simasel->curfont, fname, (U.transopts & USER_TR_MENUS));
 #endif
+			} else {
+				BMF_DrawString(simasel->curfont, fname);
+			}
+		}
+#else
+			BMF_DrawString(simasel->curfont, fname);
+#endif /* WITH_ICONV */
 }
 
 static void draw_imasel_bookmarks(ScrArea *sa, SpaceImaSel *simasel)
