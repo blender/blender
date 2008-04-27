@@ -41,7 +41,7 @@ struct ListBase;
 struct MemFile;
 
 #define BLENDER_VERSION			245
-#define BLENDER_SUBVERSION		16
+#define BLENDER_SUBVERSION		17
 
 #define BLENDER_MINVERSION		240
 #define BLENDER_MINSUBVERSION	0
