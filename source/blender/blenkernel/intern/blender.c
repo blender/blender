@@ -330,6 +330,7 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 		extern void lib_link_screen_restore(Main *, Scene *);
 		
 		SWAP(ListBase, G.main->screen, bfd->main->screen);
+		SWAP(ListBase, G.main->script, bfd->main->script);
 		
 		/* we re-use current screen */
 		curscreen= G.curscreen;
