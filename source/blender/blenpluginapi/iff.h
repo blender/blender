@@ -151,7 +151,7 @@ typedef struct ImBuf {
 	int	userflags;			/**< Used to set imbuf to Dirty and other stuff */
 	int	*zbuf;				/**< z buffer data, original zbuffer */
 	float *zbuf_float;		/**< z buffer data, camera coordinates */
-	void *userdata;	
+	void *userdata;			/**< temporary storage, only used by baking at the moment */
 	unsigned char *encodedbuffer;     /**< Compressed image only used with png currently */
 	unsigned int   encodedsize;       /**< Size of data written to encodedbuffer */
 	unsigned int   encodedbuffersize; /**< Size of encodedbuffer */
@@ -161,6 +161,7 @@ typedef struct ImBuf {
 	float dither;			/**< random dither value, for conversion from float -> byte rect */
 	
 	struct MEM_CacheLimiterHandle_s * c_handle; /**< handle for cache limiter */
+	struct ImgInfo * img_info;
 	int refcounter;			/**< Refcounter for multiple users */
 	int index;				/**< reference index for ImBuf lists */
 	

@@ -125,7 +125,7 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 	
 	seq = alloc_sequence(seqbase, start, machine); /* warning, this sets last */
 	
-	if (PyTuple_Check(py_data)) {
+	if (PyTuple_Check(py_data) && PyTuple_GET_SIZE(py_data) == 2) {
 		/* Image */
 		PyObject *list;
 		char *name;
@@ -155,6 +155,32 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 			strncpy(se->name, name, FILE_MAXFILE-1);
 			se++;
 		}		
+	} else if (PyTuple_Check(py_data) && PyTuple_GET_SIZE(py_data) == 3) {
+		float r,g,b;
+		SolidColorVars *colvars;
+		seq->effectdata = MEM_callocN(sizeof(struct SolidColorVars), "solidcolor");
+		colvars = (SolidColorVars *)seq->effectdata;
+		
+		if (!PyArg_ParseTuple( py_data, "fff", &r, &g, &b)) {
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"color needs to be a tuple of 3 floats - (r,g,b)" );
+		}
+		
+		seq->type= SEQ_COLOR;
+		
+		CLAMP(r,0,1);
+		CLAMP(g,0,1);
+		CLAMP(b,0,1);
+		
+		colvars->col[0] = r;
+		colvars->col[1] = b;
+		colvars->col[2] = g;
+		
+		/* basic defaults */
+		seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+		strip->len = seq->len = 1;
+		strip->us= 1;
+		strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 		
 	} else if (BPy_Sound_Check(py_data)) {
 		/* sound */
@@ -358,6 +384,7 @@ static PyObject *SceneSeq_nextIter( BPy_Sequence * self )
 
 
 
+
 static PyObject *Sequence_getName( BPy_Sequence * self )
 {
 	return PyString_FromString( self->seq->name+2 );
@@ -373,6 +400,32 @@ static int Sequence_setName( BPy_Sequence * self, PyObject * value )
 					      "expected string argument" );
 
 	strncpy(self->seq->name+2, name, 21);
+	return 0;
+}
+
+static PyObject *Sequence_getProxyDir( BPy_Sequence * self )
+{
+	return PyString_FromString( self->seq->strip->proxy ? self->seq->strip->proxy->dir : "" );
+}
+
+static int Sequence_setProxyDir( BPy_Sequence * self, PyObject * value )
+{
+	char *name = NULL;
+	
+	name = PyString_AsString ( value );
+	if( !name ) {
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					      "expected string argument" );
+	}
+	
+	if (strlen(name) == 0) {
+		if (self->seq->strip->proxy) {
+			MEM_freeN(self->seq->strip->proxy); 
+		}
+	} else {
+		self->seq->strip->proxy = MEM_callocN(sizeof(struct StripProxy), "StripProxy");
+		strncpy(self->seq->strip->proxy->dir, name, sizeof(struct StripProxy));
+	}
 	return 0;
 }
 
@@ -578,7 +631,7 @@ static PyObject *getIntAttr( BPy_Sequence *self, void *type )
 	struct Sequence *seq= self->seq;
 	
 	/*printf("%i %i %i %i %i %i %i %i %i\n", seq->len, seq->start, seq->startofs, seq->endofs, seq->startstill, seq->endstill, seq->startdisp, seq->enddisp, seq->depth );*/
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_SEQ_ATTR_TYPE: 
 		param = seq->type;
 		break;
@@ -632,17 +685,18 @@ void intern_recursive_pos_update(Sequence * seq, int offset) {
 static int setIntAttrClamp( BPy_Sequence *self, PyObject *value, void *type )
 {
 	struct Sequence *seq= self->seq;
-	int number, origval=0;
+	int number, origval=0, regen_data;
 
 	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, "expected an int value" );
 	
 	number = PyInt_AS_LONG( value );
 		
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_SEQ_ATTR_CHAN:
 		CLAMP(number, 1, 1024);
 		seq->machine = number;
+		regen_data = 0;
 		break;
 	case EXPP_SEQ_ATTR_START:
 		if (self->seq->type == SEQ_EFFECT)
@@ -651,6 +705,7 @@ static int setIntAttrClamp( BPy_Sequence *self, PyObject *value, void *type )
 		CLAMP(number, -MAXFRAME, MAXFRAME);
 		origval = seq->start;
 		seq->start = number;
+		regen_data = 0;
 		break;
 	
 	case EXPP_SEQ_ATTR_STARTOFS:
@@ -658,28 +713,36 @@ static int setIntAttrClamp( BPy_Sequence *self, PyObject *value, void *type )
 			return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"This property dosnt apply to an effect" );
 		CLAMP(number, 0, seq->len - seq->endofs);
+		origval = seq->startofs;
 		seq->startofs = number;
+		regen_data = 1;
 		break;
 	case EXPP_SEQ_ATTR_ENDOFS:
 		if (self->seq->type == SEQ_EFFECT)
 			return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"This property dosnt apply to an effect" );
 		CLAMP(number, 0, seq->len - seq->startofs);
+		origval = seq->endofs;
 		seq->endofs = number;
+		regen_data = 1;
 		break;
 	case EXPP_SEQ_ATTR_STARTSTILL:
 		if (self->seq->type == SEQ_EFFECT)
 			return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"This property dosnt apply to an effect" );
 		CLAMP(number, 1, MAXFRAME);
+		origval = seq->startstill;
 		seq->startstill = number;
+		regen_data = 1;
 		break;
 	case EXPP_SEQ_ATTR_ENDSTILL:
 		if (self->seq->type == SEQ_EFFECT)
 			return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"This property dosnt apply to an effect" );
 		CLAMP(number, seq->startstill+1, MAXFRAME);
+		origval = seq->endstill;
 		seq->endstill = number;
+		regen_data = 1;
 		break;
 	case EXPP_SEQ_ATTR_LENGTH:
 		if (self->seq->type == SEQ_EFFECT)
@@ -687,25 +750,31 @@ static int setIntAttrClamp( BPy_Sequence *self, PyObject *value, void *type )
 				"cannot set the length of an effect directly" );
 		CLAMP(number, 1, MAXFRAME);
 		origval = seq->len;
-		seq->start = number;
+		seq->len = number;
+		regen_data = 1;
 		break;
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"undefined type in setFloatAttrClamp" );
 	}
-	
-	intern_pos_update(seq);
-	
-	if ((int)type == EXPP_SEQ_ATTR_START && number != origval )
-		intern_recursive_pos_update(seq, origval - seq->start);
-	
+
+	if (number != origval) {
+		intern_pos_update(seq);
+		
+		if (GET_INT_FROM_POINTER(type) == EXPP_SEQ_ATTR_START)
+			intern_recursive_pos_update(seq, origval - seq->start);
+		
+		if (regen_data) {
+			new_tstripdata(seq);
+		}
+	}
 	return 0;
 }
 
 
 static PyObject *getFlagAttr( BPy_Sequence *self, void *type )
 {
-	if (self->seq->flag & (int)type)
+	if (self->seq->flag & GET_INT_FROM_POINTER(type))
 		Py_RETURN_TRUE;
 	else
 		Py_RETURN_FALSE;
@@ -718,7 +787,7 @@ static PyObject *getFlagAttr( BPy_Sequence *self, void *type )
 
 static int setFlagAttr( BPy_Sequence *self, PyObject *value, void *type )
 {
-	int t = (int)type;
+	int t = GET_INT_FROM_POINTER(type);
 	int param = PyObject_IsTrue( value );
 	
 	if( param == -1 )
@@ -745,6 +814,10 @@ static PyGetSetDef BPy_Sequence_getseters[] = {
 	{"name",
 	 (getter)Sequence_getName, (setter)Sequence_setName,
 	 "Sequence name",
+	  NULL},
+	{"proxyDir",
+	 (getter)Sequence_getProxyDir, (setter)Sequence_setProxyDir,
+	 "Sequence proxy directory",
 	  NULL},
 	{"ipo",
 	 (getter)Sequence_getIpo, (setter)Sequence_setIpo,
@@ -814,10 +887,30 @@ static PyGetSetDef BPy_Sequence_getseters[] = {
 	 (getter)getFlagAttr, (setter)setFlagAttr,
 	 "",
 	 (void *)SEQ_FILTERY},
+	{"flipX",
+	 (getter)getFlagAttr, (setter)setFlagAttr,
+	 "",
+	 (void *)SEQ_FLIPX},
+	{"flipY",
+	 (getter)getFlagAttr, (setter)setFlagAttr,
+	 "",
+	 (void *)SEQ_FLIPY},
 	{"mute",
 	 (getter)getFlagAttr, (setter)setFlagAttr,
 	 "",
 	 (void *)SEQ_MUTE},
+	{"floatBuffer",
+	 (getter)getFlagAttr, (setter)setFlagAttr,
+	 "",
+	 (void *)SEQ_MAKE_FLOAT},
+	{"lock",
+	 (getter)getFlagAttr, (setter)setFlagAttr,
+	 "",
+	 (void *)SEQ_LOCK},
+	{"useProxy",
+	 (getter)getFlagAttr, (setter)setFlagAttr,
+	 "",
+	 (void *)SEQ_USE_PROXY},
 	{"premul",
 	 (getter)getFlagAttr, (setter)setFlagAttr,
 	 "",
@@ -826,10 +919,6 @@ static PyGetSetDef BPy_Sequence_getseters[] = {
 	 (getter)getFlagAttr, (setter)setFlagAttr,
 	 "",
 	 (void *)SEQ_REVERSE_FRAMES},
-	{"ipoLocked",
-	 (getter)getFlagAttr, (setter)setFlagAttr,
-	 "",
-	 (void *)SEQ_IPO_FRAME_LOCKED},
 	{"ipoLocked",
 	 (getter)getFlagAttr, (setter)setFlagAttr,
 	 "",

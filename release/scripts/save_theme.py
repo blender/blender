@@ -8,7 +8,7 @@ Tooltip: 'Save current theme as a BPython script'
 """
 
 __author__ = "Willian P. Germano"
-__url__ = ("blender", "elysiun")
+__url__ = ("blender", "blenderartists.org")
 __version__ = "2.43 2006/12/30"
 
 __bpydoc__ = """\

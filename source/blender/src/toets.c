@@ -742,6 +742,8 @@ int blenderqread(unsigned short event, short val)
 			}
 		}
 		else if(G.qual&LR_CTRLKEY && G.qual&LR_SHIFTKEY){
+			if(!(G.f & G_PARTICLEEDIT))
+				exit_paint_modes();
 			PE_set_particle_edit();
 		}
 		break;

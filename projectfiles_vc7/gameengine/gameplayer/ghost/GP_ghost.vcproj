@@ -40,12 +40,12 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386
 "
-				AdditionalDependencies="libguardedalloc.lib libstring.lib libghost.lib odelib.lib fmodvc.lib libbmfont.lib ws2_32.lib vfw32.lib odbc32.lib odbccp32.lib opengl32.lib glu32.lib openal_static.lib libjpeg.lib dxguid.lib libeay32.lib libpng.lib libz.lib libmoto.lib libSoundSystem.lib qtmlClient.lib libDummySoundSystem.lib libOpenALSoundSystem.lib SDL.lib solid.lib freetype2ST.lib Bullet.lib libdecimation.lib python25_d.lib pthreadVSE2.lib pthreadVC2.lib verse.lib libopennl.lib"
+				AdditionalDependencies="libguardedalloc.lib libstring.lib libghost.lib odelib.lib fmodvc.lib libbmfont.lib ws2_32.lib vfw32.lib odbc32.lib odbccp32.lib opengl32.lib glu32.lib openal_static.lib libjpeg.lib dxguid.lib libeay32.lib libpng.lib libz.lib libmoto.lib libSoundSystem.lib qtmlClient.lib libDummySoundSystem.lib libOpenALSoundSystem.lib SDL.lib solid.lib freetype2ST.lib Bullet.lib libdecimation.lib python25_d.lib pthreadVSE2.lib pthreadVC2.lib verse.lib libopennl.lib avcodec-51.lib avformat-52.lib avutil-49.lib swscale-0.lib"
 				ShowProgress="0"
 				OutputFile="..\..\..\..\bin\debug\blenderplayer.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\..\lib\windows\sdl\lib;..\..\..\..\..\lib\windows\zlib\lib;..\..\..\..\..\lib\windows\ode\lib;..\..\..\..\..\lib\windows\png\lib;..\..\..\..\..\lib\windows\jpeg\lib;..\..\..\..\..\lib\windows\fmod\lib;..\..\..\..\..\lib\windows\openal\lib;..\..\..\..\..\lib\windows\freetype\lib;..\..\..\..\..\lib\windows\python\lib;..\..\..\..\..\lib\windows\openssl\lib;..\..\..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\..\..\build\msvc_7\libs\intern\debug;..\..\..\..\..\build\msvc_7\libs\extern\debug;..\..\..\..\..\lib\windows\pthreads\lib"
+				AdditionalLibraryDirectories="..\..\..\..\..\lib\windows\sdl\lib;..\..\..\..\..\lib\windows\zlib\lib;..\..\..\..\..\lib\windows\ode\lib;..\..\..\..\..\lib\windows\png\lib;..\..\..\..\..\lib\windows\jpeg\lib;..\..\..\..\..\lib\windows\fmod\lib;..\..\..\..\..\lib\windows\openal\lib;..\..\..\..\..\lib\windows\freetype\lib;..\..\..\..\..\lib\windows\python\lib;..\..\..\..\..\lib\windows\openssl\lib;..\..\..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\..\..\build\msvc_7\libs\intern\debug;..\..\..\..\..\build\msvc_7\libs\extern\debug;..\..\..\..\..\lib\windows\pthreads\lib;..\..\..\..\..\lib\windows\ffmpeg\lib"
 				IgnoreDefaultLibraryNames="libc.lib;libcmt.lib;msvcrt.lib;libcd.lib;msvcrtd.lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="..\..\..\..\..\build\msvc_7\libs\debug\blenderplayer.pdb"
@@ -64,6 +64,7 @@ XCOPY /Y ..\..\..\..\..\lib\windows\python\lib\python25_d.dll ..\..\..\..\bin\de
 XCOPY /Y ..\..\..\..\..\lib\windows\sdl\lib\SDL.dll ..\..\..\..\bin\debug
 XCOPY /Y ..\..\..\..\..\lib\windows\png\lib\libpng.dll ..\..\..\..\bin\debug
 XCOPY /Y ..\..\..\..\..\lib\windows\zlib\lib\zlib.dll ..\..\..\..\bin\debug
+XCOPY /Y ..\..\..\..\..\lib\windows\ffmpeg\lib\*.dll ..\..\..\..\bin\debug
 XCOPY /Y ..\..\..\..\..\lib\windows\CRTL\lib\msvcrtd.dll ..\..\..\..\bin\debug
 ECHO Done
 "/>
@@ -116,11 +117,11 @@ ECHO Done
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="libguardedalloc.lib libstring.lib libghost.lib odelib.lib fmodvc.lib libbmfont.lib ws2_32.lib vfw32.lib odbc32.lib odbccp32.lib opengl32.lib glu32.lib openal_static.lib libjpeg.lib dxguid.lib libeay32.lib libpng.lib libz.lib libmoto.lib libSoundSystem.lib qtmlClient.lib libDummySoundSystem.lib libOpenALSoundSystem.lib SDL.lib solid.lib freetype2ST.lib Bullet.lib libdecimation.lib python25.lib pthreadVSE2.lib pthreadVC2.lib verse.lib libopennl.lib"
+				AdditionalDependencies="libguardedalloc.lib libstring.lib libghost.lib odelib.lib fmodvc.lib libbmfont.lib ws2_32.lib vfw32.lib odbc32.lib odbccp32.lib opengl32.lib glu32.lib openal_static.lib libjpeg.lib dxguid.lib libeay32.lib libpng.lib libz.lib libmoto.lib libSoundSystem.lib qtmlClient.lib libDummySoundSystem.lib libOpenALSoundSystem.lib SDL.lib solid.lib freetype2ST.lib Bullet.lib libdecimation.lib python25.lib pthreadVSE2.lib pthreadVC2.lib verse.lib libopennl.lib avcodec-51.lib avformat-52.lib avutil-49.lib swscale-0.lib"
 				OutputFile="..\..\..\..\bin\blenderplayer.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\..\..\lib\windows\sdl\lib;..\..\..\..\..\lib\windows\zlib\lib;..\..\..\..\..\lib\windows\ode\lib;..\..\..\..\..\lib\windows\png\lib;..\..\..\..\..\lib\windows\jpeg\lib;..\..\..\..\..\lib\windows\fmod\lib;..\..\..\..\..\lib\windows\openal\lib;..\..\..\..\..\lib\windows\freetype\lib;..\..\..\..\..\lib\windows\python\lib;..\..\..\..\..\lib\windows\openssl\lib;..\..\..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\..\..\build\msvc_7\libs\intern;..\..\..\..\..\build\msvc_7\libs\extern;..\..\..\..\..\lib\windows\pthreads\lib"
+				AdditionalLibraryDirectories="..\..\..\..\..\lib\windows\sdl\lib;..\..\..\..\..\lib\windows\zlib\lib;..\..\..\..\..\lib\windows\ode\lib;..\..\..\..\..\lib\windows\png\lib;..\..\..\..\..\lib\windows\jpeg\lib;..\..\..\..\..\lib\windows\fmod\lib;..\..\..\..\..\lib\windows\openal\lib;..\..\..\..\..\lib\windows\freetype\lib;..\..\..\..\..\lib\windows\python\lib;..\..\..\..\..\lib\windows\openssl\lib;..\..\..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\..\..\build\msvc_7\libs\intern;..\..\..\..\..\build\msvc_7\libs\extern;..\..\..\..\..\lib\windows\pthreads\lib;..\..\..\..\..\lib\windows\ffmpeg\lib"
 				IgnoreDefaultLibraryNames="libc.lib, msvcrt.lib, libcd.lib, libcmtd.lib, msvcrtd.lib"
 				ProgramDatabaseFile="..\..\..\..\..\build\msvc_7\libs\blenderplayer.pdb"
 				SubSystem="1"/>
@@ -137,6 +138,7 @@ XCOPY /Y ..\..\..\..\..\lib\windows\python\lib\python25.dll ..\..\..\..\bin
 XCOPY /Y ..\..\..\..\..\lib\windows\sdl\lib\SDL.dll ..\..\..\..\bin
 XCOPY /Y ..\..\..\..\..\lib\windows\png\lib\libpng.dll ..\..\..\..\bin
 XCOPY /Y ..\..\..\..\..\lib\windows\zlib\lib\zlib.dll ..\..\..\..\bin
+XCOPY /Y ..\..\..\..\..\lib\windows\ffmpeg\lib\*.dll ..\..\..\..\bin
 ECHO Done
 "/>
 			<Tool

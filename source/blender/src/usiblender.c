@@ -641,6 +641,10 @@ int BIF_read_homefile(int from_memory)
 	BKE_reset_undo();
 	BKE_write_undo("original");	/* save current state */
 	
+	/* if from memory, need to refresh python scripts */
+	if (from_memory) {
+		BPY_path_update();
+	}
 	return success;
 }
 
@@ -782,7 +786,7 @@ static void readBlog(void)
 	fsmenu_append_separator();
 	
 	/* add last saved file */
-	BLI_split_dirfile(G.sce, name, filename); /* G.sce shouldn't be relative */
+	BLI_split_dirfile_basic(G.sce, name, filename); /* G.sce shouldn't be relative */
 	
 	fsmenu_insert_entry(name, 0, 0);
 	

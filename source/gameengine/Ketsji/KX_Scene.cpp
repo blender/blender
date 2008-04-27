@@ -754,6 +754,7 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	{
 		(*itc)->UnlinkAllSensors();
 		(*itc)->UnlinkAllActuators();
+		m_logicmgr->RemoveController(*itc);
 	}
 
 	SCA_ActuatorList& actuators = newobj->GetActuators();

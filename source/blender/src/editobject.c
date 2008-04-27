@@ -3896,7 +3896,7 @@ void make_links(short event)
 void apply_objects_locrot( void )
 {
 	Base *base, *basact;
-	Object *ob;
+	Object *ob, *ob_child;
 	bArmature *arm;
 	Mesh *me;
 	Curve *cu;
@@ -3906,6 +3906,7 @@ void apply_objects_locrot( void )
 	MVert *mvert;
 	float mat[3][3];
 	int a, change = 0;
+	
 	
 	/* first check if we can execute */
 	for (base= FIRSTBASE; base; base= base->next) {
@@ -4040,6 +4041,17 @@ void apply_objects_locrot( void )
 				BASACT= basact;
 				
 				change = 1;
+			} else {
+				continue;
+			}
+			
+			/* a change was made, adjust the children to compensate */
+			for (ob_child=G.main->object.first; ob_child; ob_child=ob_child->id.next) {
+				if (ob_child->parent == ob) {
+					apply_obmat(ob_child);
+					what_does_parent(ob_child);
+					Mat4Invert(ob_child->parentinv, workob.obmat);
+				}
 			}
 		}
 	}

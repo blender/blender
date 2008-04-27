@@ -631,6 +631,9 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 			return;
 		}
 	}
+	
+	fmt->audio_codec = ffmpeg_audio_codec;
+
 	if (ffmpeg_type == FFMPEG_DV) {
 		fmt->audio_codec = CODEC_ID_PCM_S16LE;
 		if (ffmpeg_multiplex_audio 

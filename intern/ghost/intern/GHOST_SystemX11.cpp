@@ -46,6 +46,7 @@
 
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
+#include <X11/XKBlib.h> /* allow detectable autorepeate */
 
 #ifdef __sgi
 
@@ -111,6 +112,18 @@ GHOST_SystemX11(
 	}
 
 	m_start_time = GHOST_TUns64(tv.tv_sec*1000 + tv.tv_usec/1000);
+	
+	
+	/* use detectable autorepeate, mac and windows also do this */
+	int use_xkb;
+	int xkb_opcode, xkb_event, xkb_error;
+	int xkb_major = XkbMajorVersion, xkb_minor = XkbMinorVersion;
+	
+	use_xkb = XkbQueryExtension(m_display, &xkb_opcode, &xkb_event, &xkb_error, &xkb_major, &xkb_minor);
+	if (use_xkb) {
+		XkbSetDetectableAutoRepeat(m_display, true, NULL);
+	}
+	
 }
 
 	GHOST_TSuccess 

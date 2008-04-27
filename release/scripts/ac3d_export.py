@@ -8,7 +8,7 @@ Tip: 'Export selected meshes to AC3D (.ac) format'
 """
 
 __author__ = "Willian P. Germano"
-__url__ = ("blender", "elysiun", "AC3D's homepage, http://www.ac3d.org",
+__url__ = ("blender", "blenderartists.org", "AC3D's homepage, http://www.ac3d.org",
 	"PLib 3d gaming lib, http://plib.sf.net")
 __version__ = "2.44 2007-05-05"
 

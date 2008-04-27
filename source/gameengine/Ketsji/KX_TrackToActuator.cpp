@@ -70,6 +70,7 @@ KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj,
 	m_parentobj = 0;
 	
 	if (m_object){
+		m_object->RegisterActuator(this);
 		KX_GameObject* curobj = (KX_GameObject*) GetParent();
 
 		m_parentobj = curobj->GetParent(); // check if the object is parented 
@@ -176,11 +177,30 @@ MT_Matrix3x3 matrix3x3_interpol(MT_Matrix3x3 oldmat, MT_Matrix3x3 mat, int m_tim
 
 
 KX_TrackToActuator::~KX_TrackToActuator()
-{ 
-	// there's nothing to be done here, really....
+{
+	if (m_object)
+		m_object->UnregisterActuator(this);
 } /* end of destructor */
 
+void KX_TrackToActuator::ProcessReplica()
+{
+	// the replica is tracking the same object => register it
+	if (m_object)
+		m_object->RegisterActuator(this);
+	SCA_IActuator::ProcessReplica();
+}
 
+
+bool KX_TrackToActuator::UnlinkObject(SCA_IObject* clientobj)
+{
+	if (clientobj == m_object)
+	{
+		// this object is being deleted, we cannot continue to track it.
+		m_object = NULL;
+		return true;
+	}
+	return false;
+}
 
 bool KX_TrackToActuator::Update(double curtime, bool frame)
 {
@@ -430,8 +450,11 @@ PyObject* KX_TrackToActuator::PySetObject(PyObject* self, PyObject* args, PyObje
 	PyObject* gameobj;
 	if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &gameobj))
 	{
+		if (m_object != NULL)
+			m_object->UnregisterActuator(this);
 		m_object = (SCA_IObject*)gameobj;
-
+		if (m_object)
+			m_object->RegisterActuator(this);
 		Py_Return;
 	}
 	PyErr_Clear();
@@ -439,8 +462,11 @@ PyObject* KX_TrackToActuator::PySetObject(PyObject* self, PyObject* args, PyObje
 	char* objectname;
 	if (PyArg_ParseTuple(args, "s", &objectname))
 	{
+		if (m_object != NULL)
+			m_object->UnregisterActuator(this);
 		m_object= static_cast<SCA_IObject*>(SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String(objectname)));
-		
+		if (m_object)
+			m_object->RegisterActuator(this);
 		Py_Return;
 	}
 	

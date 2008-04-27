@@ -10,7 +10,7 @@ Tooltip: 'Export to a SoftImage XSI file'
 
 __author__ = ("Elira")
 __url__ = ["Author's site, http://www.creative-realms.net/~elira/blender.html",
-"SoftImage's site, www.softimage.com", "elysiun"]
+"SoftImage's site, www.softimage.com", "blenderartists.org"]
 __email__ = ["scripts"]
 __version__ = "2005/11/01"
 

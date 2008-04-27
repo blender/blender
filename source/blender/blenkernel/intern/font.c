@@ -159,41 +159,61 @@ utf8slen(char *src)
 	return size;
 }
 
-int utf8towchar_(wchar_t *w, char *c)
+
+/* Converts Unicode to wchar
+
+According to RFC 3629 "UTF-8, a transformation format of ISO 10646"
+(http://tools.ietf.org/html/rfc3629), the valid UTF-8 encoding are:
+
+  Char. number range  |        UTF-8 octet sequence
+      (hexadecimal)    |              (binary)
+   --------------------+---------------------------------------------
+   0000 0000-0000 007F | 0xxxxxxx
+   0000 0080-0000 07FF | 110xxxxx 10xxxxxx
+   0000 0800-0000 FFFF | 1110xxxx 10xxxxxx 10xxxxxx
+   0001 0000-0010 FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+
+If the encoding incidated by the first character is incorrect (because the
+1 to 3 following characters do not match 10xxxxxx), the output is a '?' and
+only a single input character is consumed.
+
+*/
+
+int utf8towchar(wchar_t *w, char *c)
 {
 	int len=0;
+
 	if(w==NULL || c==NULL) return(0);
-	//printf("%s\n",c);
-	while(*c)
-	{
-		if(*c & 0x80)
-		{
-			if(*c & 0x40)
-			{
-				if(*c & 0x20)
-				{
-					if(*c & 0x10)
-					{
-						*w=(c[0] & 0x0f)<<18 | (c[1]&0x1f)<<12 | (c[2]&0x3f)<<6 | (c[3]&0x7f);
-						c++;
-					}
-					else
-						*w=(c[0] & 0x1f)<<12 | (c[1]&0x3f)<<6 | (c[2]&0x7f);
-					c++;
-				}
-				else
-					*w=(((c[0] &0x3f)<<6) | (c[1]&0x7f));
+
+	while(*c) {
+		if ((*c & 0xe0) == 0xc0) {
+			if((c[1] & 0x80) && (c[1] & 0x40) == 0x00) {
+				*w=((c[0] &0x1f)<<6) | (c[1]&0x3f);
 				c++;
+			} else {
+				*w = '?';
 			}
-			else
-				*w=(c[0] & 0x7f);
+		} else if ((*c & 0xf0) == 0xe0) {
+			if((c[1] & c[2] & 0x80) && ((c[1] | c[2]) & 0x40) == 0x00) {
+				*w=((c[0] & 0x0f)<<12) | ((c[1]&0x3f)<<6) | (c[2]&0x3f);
+				c += 2;
+			} else {
+				*w = '?';
 			}
-			else
-				*w=(c[0] & 0x7f);
-			c++;
-			w++;
-			len++;
-		}
+		} else if ((*c & 0xf8) == 0xf0) {
+			if((c[1] & c[2] & c[3] & 0x80) && ((c[1] | c[2] | c[3]) & 0x40) == 0x00) {
+				*w=((c[0] & 0x07)<<18) | ((c[1]&0x1f)<<12) | ((c[2]&0x3f)<<6) | (c[3]&0x3f);
+				c += 3;
+			} else {
+				*w = '?';
+			}
+		} else
+		    *w=(c[0] & 0x7f);
+
+		c++;
+		w++;
+		len++;
+	}
 	return len;
 }
 
@@ -641,7 +661,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	utf8len = utf8slen(cu->str);
 	tmp = mem = MEM_callocN(((utf8len + 1) * sizeof(wchar_t)), "convertedmem");
 	
-	utf8towchar_(mem, cu->str);
+	utf8towchar(mem, cu->str);
 
 	// Count the wchar_t string length
 	slen = wcslen(mem);

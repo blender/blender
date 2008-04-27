@@ -31,6 +31,10 @@
 #ifndef BKE_VFONT_H
 #define BKE_VFONT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <wchar.h>
 
 struct VFont;
@@ -65,7 +69,11 @@ int getselection(int *start, int *end);
 void chtoutf8(unsigned long c, char *o);
 void wcs2utf8s(char *dst, wchar_t *src);
 int wcsleninu8(wchar_t *src);
-int utf8towchar_(wchar_t *w, char *c);
+int utf8towchar(wchar_t *w, char *c);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

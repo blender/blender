@@ -21,8 +21,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\img;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\SoundSystem"
-				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\img;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\SoundSystem"
+				PreprocessorDefinitions="_DEBUG,WIN32,_LIB;WITH_FFMPEG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DisableLanguageExtensions="FALSE"
@@ -75,7 +75,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\img;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\SoundSystem"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\img;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\SoundSystem;..\..\..\..\lib\windows\ffmpeg\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"

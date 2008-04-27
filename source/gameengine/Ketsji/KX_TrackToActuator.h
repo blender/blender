@@ -66,6 +66,8 @@ class KX_TrackToActuator : public SCA_IActuator
 		return replica;
 	};
 
+	virtual void ProcessReplica();
+	virtual bool UnlinkObject(SCA_IObject* clientobj);
 	virtual bool Update(double curtime, bool frame);
 
 	/* Python part */

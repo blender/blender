@@ -319,7 +319,7 @@ void load_3dtext_fs(char *file)
 	{
 		int tmplen;
 		wchar_t *mem = MEM_callocN((sizeof(wchar_t)*filelen)+(4*sizeof(wchar_t)), "temporary");
-		tmplen = utf8towchar_(mem, strp);
+		tmplen = utf8towchar(mem, strp);
 		wcscat(textbuf, mem);
 		MEM_freeN(mem);
 		cu->len += tmplen;
@@ -686,7 +686,7 @@ void do_textedit(unsigned short event, short val, unsigned long _ascii)
 						if(cu->len+filelen<MAXTEXT) {
 							int tmplen;
 							wchar_t *mem = MEM_callocN((sizeof(wchar_t)*filelen)+(4*sizeof(wchar_t)), "temporary");
-							tmplen = utf8towchar_(mem, strp);
+							tmplen = utf8towchar(mem, strp);
 							wcscat(textbuf, mem);
 							MEM_freeN(mem);
 							cu->len += tmplen;
@@ -969,7 +969,7 @@ void paste_unicodeText(char *filename)
 		{
 			int tmplen;
 			wchar_t *mem = MEM_callocN((sizeof(wchar_t)*filelen)+(4*sizeof(wchar_t)), "temporary");
-			tmplen = utf8towchar_(mem, strp);
+			tmplen = utf8towchar(mem, strp);
 //			mem =utf8s2wc(strp);
 			wcscat(textbuf, mem);
 			MEM_freeN(mem);
@@ -1033,7 +1033,7 @@ void paste_editText(void)
 		if(cu->len+filelen<MAXTEXT) {
 			int tmplen;
 			wchar_t *mem = MEM_callocN((sizeof(wchar_t) * filelen) + (4 * sizeof(wchar_t)), "temporary");
-			tmplen = utf8towchar_(mem, strp);
+			tmplen = utf8towchar(mem, strp);
 			wcscat(textbuf, mem);
 			MEM_freeN(mem);
 			cu->len += tmplen;
@@ -1064,7 +1064,7 @@ void make_editText(void)
 	if(oldstr==NULL) oldstr= MEM_callocN((MAXTEXT+4)*sizeof(wchar_t), "oldstrbuf");
 	
 	// Convert the original text to wchar_t
-	utf8towchar_(textbuf, cu->str);
+	utf8towchar(textbuf, cu->str);
 	wcscpy(oldstr, textbuf);
 		
 	cu->len= wcslen(textbuf);

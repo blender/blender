@@ -5142,11 +5142,14 @@ static void clothModifier_copyData(ModifierData *md, ModifierData *target)
 	if(tclmd->sim_parms)
 		MEM_freeN(tclmd->sim_parms);
 	if(tclmd->coll_parms)
-		MEM_freeN(tclmd->coll_parms);	
+		MEM_freeN(tclmd->coll_parms);
+	if(tclmd->point_cache)
+		BKE_ptcache_free(tclmd->point_cache);
 	
 	tclmd->sim_parms = MEM_dupallocN(clmd->sim_parms);
 	tclmd->coll_parms = MEM_dupallocN(clmd->coll_parms);
 	tclmd->point_cache = BKE_ptcache_copy(clmd->point_cache);
+	tclmd->clothObject = NULL;
 }
 
 static int clothModifier_dependsOnTime(ModifierData *md)

@@ -1818,7 +1818,7 @@ static unsigned int flush_layer_node(Scene *sce, DagNode *node, int curtime)
 }
 
 /* node was checked to have lasttime != curtime , and is of type ID_OB */
-static void flush_pointcache_reset(DagNode *node, int curtime)
+static void flush_pointcache_reset(DagNode *node, int curtime, int reset)
 {
 	DagAdjList *itA;
 	Object *ob;
@@ -1829,9 +1829,15 @@ static void flush_pointcache_reset(DagNode *node, int curtime)
 		if(itA->node->type==ID_OB) {
 			if(itA->node->lasttime!=curtime) {
 				ob= (Object*)(node->ob);
-				if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
-					ob->recalc |= OB_RECALC_DATA;
-				flush_pointcache_reset(itA->node, curtime);
+
+				if(reset || (ob->recalc & OB_RECALC)) {
+					if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
+						ob->recalc |= OB_RECALC_DATA;
+
+					flush_pointcache_reset(itA->node, curtime, 1);
+				}
+				else
+					flush_pointcache_reset(itA->node, curtime, 0);
 			}
 		}
 	}
@@ -1877,9 +1883,15 @@ void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
 		for(itA = firstnode->child; itA; itA= itA->next) {
 			if(itA->node->lasttime!=lasttime && itA->node->type==ID_OB)  {
 				ob= (Object*)(itA->node->ob);
-				if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
-					ob->recalc |= OB_RECALC_DATA;
-				flush_pointcache_reset(itA->node, lasttime);
+
+				if(ob->recalc & OB_RECALC) {
+					if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
+						ob->recalc |= OB_RECALC_DATA;
+
+					flush_pointcache_reset(itA->node, lasttime, 1);
+				}
+				else
+					flush_pointcache_reset(itA->node, lasttime, 0);
 			}
 		}
 	}

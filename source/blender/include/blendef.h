@@ -96,6 +96,10 @@
 
 #define TESTBASE(base)	( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0) )
 #define TESTBASELIB(base)	( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
+
+/* This is a TESTBASELIB that can work without a 3D view */
+#define TESTBASELIB_BGMODE(base)	( ((base)->flag & SELECT) && ((base)->lay & (G.vd ? G.vd->lay : G.scene->lay)) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
+
 #define BASE_SELECTABLE(base)	 ((base->lay & G.vd->lay) && (base->object->restrictflag & (OB_RESTRICT_SELECT|OB_RESTRICT_VIEW))==0)
 #define FIRSTBASE		G.scene->base.first
 #define LASTBASE		G.scene->base.last

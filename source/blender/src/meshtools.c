@@ -164,7 +164,7 @@ int join_mesh(void)
 	/* count & check */
 	base= FIRSTBASE;
 	while(base) {
-		if TESTBASELIB(base) {
+		if TESTBASELIB_BGMODE(base) { /* BGMODE since python can access */
 			if(base->object->type==OB_MESH) {
 				me= base->object->data;
 				totvert+= me->totvert;
@@ -200,7 +200,7 @@ int join_mesh(void)
 
 	/* if needed add edges to other meshes */
 	for(base= FIRSTBASE; base; base= base->next) {
-		if TESTBASELIB(base) {
+		if TESTBASELIB_BGMODE(base) {
 			if(base->object->type==OB_MESH) {
 				me= base->object->data;
 				totedge += me->totedge;
@@ -221,7 +221,7 @@ int join_mesh(void)
 	
 	base= FIRSTBASE;
 	while(base) {
-		if TESTBASELIB(base) {
+		if TESTBASELIB_BGMODE(base) {
 			if(ob!=base->object && base->object->type==OB_MESH) {
 				me= base->object->data;
 
@@ -288,7 +288,7 @@ int join_mesh(void)
 	base= FIRSTBASE;
 	while(base) {
 		nextb= base->next;
-		if TESTBASELIB(base) {
+		if TESTBASELIB_BGMODE(base) {
 			if(base->object->type==OB_MESH) {
 				
 				me= base->object->data;
