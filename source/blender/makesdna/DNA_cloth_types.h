@@ -43,80 +43,53 @@
 
 typedef struct ClothSimSettings
 {
-	short	vgroup_mass;	/* optional vertexgroup name for assigning weight.*/
-	short	vgroup_struct;  /* vertex group for scaling structural stiffness */
+	struct	LinkNode *cache; /* UNUSED atm */	
 	float 	mingoal; 	/* see SB */
-	int	preroll;	/* How many frames of simulation to do before we start.	*/
 	float	Cdis;		/* Mechanical damping of springs.		*/
 	float	Cvi;		/* Viscous/fluid damping.			*/
-	int 	stepsPerFrame;	/* Number of time steps per frame.		*/
 	float	gravity [3];	/* Gravity/external force vector.		*/
-	float	ufluid [3];	/* Velocity vector of the fluid.		*/
 	float	dt;		/* This is the duration of our time step, computed.	*/
 	float	mass;		/* The mass of the entire cloth.		*/
 	float	structural;	/* Structural spring stiffness.			*/
 	float	shear;		/* Shear spring stiffness.			*/
 	float	bending;	/* Flexion spring stiffness.			*/
-	float	padf;
-	int		flags;		/* flags, see CSIMSETT_FLAGS enum above.	*/
-	short	solver_type; 	/* which solver should be used?		txold	*/
-	short	vgroup_bend;	/* vertex group for scaling bending stiffness */
-	float	maxgoal; 	/* see SB */
-	float	eff_force_scale;/* Scaling of effector forces (see softbody_calc_forces).*/
-	float	eff_wind_scale;	/* Scaling of effector wind (see softbody_calc_forces).	*/
-	float 	sim_time_old;
-	struct	LinkNode *cache; /* UNUSED atm */
-	float	defgoal;
-	int	goalfrict;
-	float	goalspring;
-	int	maxspringlen; 	/* in percent!; if tearing enabled, a spring will get cut */
 	float	max_bend; 	/* max bending scaling value, min is "bending" */
 	float	max_struct; 	/* max structural scaling value, min is "structural" */
 	float	max_shear; 	/* max shear scaling value, UNUSED */
 	float 	avg_spring_len; /* used for normalized springs */
+	float 	timescale; /* parameter how fast cloth runs */
+	float	maxgoal; 	/* see SB */
+	float	eff_force_scale;/* Scaling of effector forces (see softbody_calc_forces).*/
+	float	eff_wind_scale;	/* Scaling of effector wind (see softbody_calc_forces).	*/
+	float 	sim_time_old;
+	float	defgoal;
+	float	goalspring;
+	float	goalfrict;
+	int 	stepsPerFrame;	/* Number of time steps per frame.		*/
+	int	flags;		/* flags, see CSIMSETT_FLAGS enum above.	*/
+	int	preroll;	/* How many frames of simulation to do before we start.	*/
+	int	maxspringlen; 	/* in percent!; if tearing enabled, a spring will get cut */
+	short	solver_type; 	/* which solver should be used?		txold	*/
+	short	vgroup_bend;	/* vertex group for scaling bending stiffness */
+	short	vgroup_mass;	/* optional vertexgroup name for assigning weight.*/
+	short	vgroup_struct;  /* vertex group for scaling structural stiffness */
 	short	presets; /* used for presets on GUI */
 	short 	pad;
-	float 	timescale; /* parameter how fast cloth runs */
+	int 	pad2;
 } ClothSimSettings;
 
 
 typedef struct ClothCollSettings
 {
+	struct	LinkNode *collision_list; /* e.g. pointer to temp memory for collisions */
 	float	epsilon;		/* min distance for collisions.		*/
 	float	self_friction;		/* Fiction/damping with self contact.		 	*/
 	float	friction;		/* Friction/damping applied on contact with other object.*/
+	float 	selfepsilon; 		/* for selfcollision */
+	int	flags;			/* collision flags defined in BKE_cloth.h */
 	short	self_loop_count;	/* How many iterations for the selfcollision loop	*/
 	short	loop_count;		/* How many iterations for the collision loop.		*/
-	struct	LinkNode *collision_list; /* e.g. pointer to temp memory for collisions */
-	int	flags;			/* collision flags defined in BKE_cloth.h */
-	float 	selfepsilon; 		/* for selfcollision */
 } ClothCollSettings;
 
-/**
-* This structure describes a cloth object against which the
-* simulation can run.
-*
-* The m and n members of this structure represent the assumed
-* rectangular ordered grid for which the original paper is written.
-* At some point they need to disappear and we need to determine out
-* own connectivity of the mesh based on the actual edges in the mesh.
-*
-**/
-typedef struct Cloth
-{
-	struct ClothVertex	*verts;			/* The vertices that represent this cloth. */
-	struct	LinkNode	*springs;		/* The springs connecting the mesh. */
-	unsigned int		numverts;		/* The number of verts == m * n. */
-	unsigned int		numsprings;		/* The count of springs. */
-	unsigned int		numfaces;
-	unsigned char 		old_solver_type;	/* unused, only 1 solver here */
-	unsigned char 		pad2;
-	short 			pad3;
-	struct BVH		*tree;			/* collision tree for this cloth object */
-	struct MFace 		*mfaces;
-	struct Implicit_Data	*implicit; 		/* our implicit solver connects to this pointer */
-	struct Implicit_Data	*implicitEM; 		/* our implicit solver connects to this pointer */
-	struct EdgeHash 	*edgehash; 		/* used for selfcollisions */
-} Cloth;
 
 #endif
