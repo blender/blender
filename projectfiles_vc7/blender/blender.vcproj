@@ -41,12 +41,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib Bullet.lib python25.lib libelbeem.lib libboolop.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib broad.lib complex.lib convex.lib memutil.lib verse.lib Half.lib Iex.lib IlmImf.lib Imath.lib IlmThread.lib"
+				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib Bullet.lib python25.lib libelbeem.lib libboolop.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib broad.lib complex.lib convex.lib memutil.lib verse.lib Half.lib Iex.lib IlmImf.lib Imath.lib IlmThread.lib avcodec-51.lib avformat-52.lib avutil-49.lib swscale-0.lib"
 				ShowProgress="0"
 				OutputFile="..\..\bin\blender.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\zlib\lib;..\..\..\lib\windows\png\lib;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\python\lib;..\..\..\lib\windows\freetype\lib;..\..\..\lib\windows\tiff\lib;..\..\..\lib\windows\pthreads\lib;..\..\..\lib\windows\openal\lib;..\..\..\lib\windows\openexr\lib;..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\build\msvc_7\libs\intern;..\..\..\build\msvc_7\libs\extern"
+				AdditionalLibraryDirectories="..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\zlib\lib;..\..\..\lib\windows\png\lib;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\python\lib;..\..\..\lib\windows\freetype\lib;..\..\..\lib\windows\tiff\lib;..\..\..\lib\windows\pthreads\lib;..\..\..\lib\windows\openal\lib;..\..\..\lib\windows\openexr\lib;..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\build\msvc_7\libs\intern;..\..\..\build\msvc_7\libs\extern;..\..\..\lib\windows\ffmpeg\lib"
 				IgnoreAllDefaultLibraries="FALSE"
 				IgnoreDefaultLibraryNames="msvcprt.lib;glut32.lib;libc.lib;libcd.lib;libcpd.lib;libcp.lib;libcmtd.lib;odbc32.lib;odbccp32.lib"
 				ProgramDatabaseFile="..\..\..\build\msvc_7\libs\blender.pdb"
@@ -65,6 +65,7 @@ XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\sdl\lib\*.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\tiff\lib\*.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\pthreads\lib\pthreadVSE2.dll ..\..\bin
+XCOPY /Y ..\..\..\lib\windows\ffmpeg\lib\*.dll ..\..\bin
 ECHO Copying language folder
 ECHO Copying python scripts
 IF NOT EXIST ..\..\bin\.blender\scripts MKDIR ..\..\bin\.blender\scripts
@@ -123,12 +124,12 @@ ECHO Done
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386
 "
-				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib Bullet.lib python25_d.lib libelbeem.lib libboolop.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib broad.lib complex.lib convex.lib memutil.lib verse.lib Half.lib Iex.lib Imath.lib IlmImf.lib IlmThread.lib"
+				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib Bullet.lib python25_d.lib libelbeem.lib libboolop.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib broad.lib complex.lib convex.lib memutil.lib verse.lib Half.lib Iex.lib Imath.lib IlmImf.lib IlmThread.lib avcodec-51.lib avformat-52.lib avutil-49.lib swscale-0.lib"
 				ShowProgress="0"
 				OutputFile="..\..\bin\debug\blender.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\zlib\lib;..\..\..\lib\windows\png\lib;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\pthreads\lib;..\..\..\lib\windows\tiff\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\freetype\lib;..\..\..\lib\windows\python\lib;..\..\..\lib\windows\openal\lib;..\..\..\lib\windows\openexr\lib;..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\build\msvc_7\libs\intern\debug;..\..\..\build\msvc_7\libs\extern\debug"
+				AdditionalLibraryDirectories="..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\zlib\lib;..\..\..\lib\windows\png\lib;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\pthreads\lib;..\..\..\lib\windows\tiff\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\freetype\lib;..\..\..\lib\windows\python\lib;..\..\..\lib\windows\openal\lib;..\..\..\lib\windows\openexr\lib;..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\lib\windows\ffmpeg\lib;..\..\..\build\msvc_7\libs\intern\debug;..\..\..\build\msvc_7\libs\extern\debug"
 				IgnoreDefaultLibraryNames="libc.lib, libcmt.lib, msvcrt.lib, libcd.lib, odbc32.lib, odbccp32.lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="..\..\..\build\msvc_7\libs\debug\blender.pdb"
@@ -149,6 +150,7 @@ XCOPY /Y ..\..\..\lib\windows\python\lib\python25_d.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\CRTL\lib\msvcrtd.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\tiff\lib\*.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\pthreads\lib\pthreadVSE2.dll ..\..\bin\debug
+XCOPY /Y ..\..\..\lib\windows\ffmpeg\lib\*.dll ..\..\bin\debug
 ECHO Copying language folder
 IF NOT EXIST ..\..\bin\debug\.blender MKDIR ..\..\bin\debug\.blender
 XCOPY /Y ..\..\bin\.blender ..\..\bin\debug\.blender /E
