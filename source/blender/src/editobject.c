@@ -907,15 +907,15 @@ void apply_obmat(Object *ob)
 	Mat3CpyMat4(mat, ob->obmat);
 	
 	VECCOPY(ob->loc, ob->obmat[3]);
-	
-	if(ob->transflag & OB_QUAT) {
+	/* Quats arnt used yet */
+	/*if(ob->transflag & OB_QUAT) {
 		Mat3ToQuat(mat, ob->quat);
 		QuatToMat3(ob->quat, tmat);
 	}
-	else {
+	else {*/
 		Mat3ToEul(mat, ob->rot);
 		EulToMat3(ob->rot, tmat);
-	}
+	/*}*/
 	Mat3Inv(imat, tmat);
 	
 	Mat3MulMat3(tmat, imat, mat);
@@ -1050,8 +1050,8 @@ void clear_object(char mode)
 					/* quats here are not really used anymore anywhere, so it probably doesn't 
 					 * matter to not clear them whether the euler-based rotation is used
 					 */
-					QuatOne(ob->quat);
-					QuatOne(ob->dquat);
+					/*QuatOne(ob->quat);
+					QuatOne(ob->dquat);*/
 					
 #ifdef WITH_VERSE
 					if(ob->vnode) {
@@ -3422,8 +3422,9 @@ void copy_attr(short event)
 				else if(event==2) {  /* rot */
 					VECCOPY(base->object->rot, ob->rot);
 					VECCOPY(base->object->drot, ob->drot);
-					VECCOPY(base->object->quat, ob->quat);
-					VECCOPY(base->object->dquat, ob->dquat);
+					/* Quats arnt used yet */
+					/*VECCOPY(base->object->quat, ob->quat);
+					VECCOPY(base->object->dquat, ob->dquat);*/
 				}
 				else if(event==3) {  /* size */
 					VECCOPY(base->object->size, ob->size);
@@ -3532,32 +3533,6 @@ void copy_attr(short event)
 						}
 						
 						base->object->recalc |= OB_RECALC_DATA;
-					}
-				}
-				else if(event==20) {	/* particle settings */
-					PartEff *pa1, *pa2;
-					char *p1, *p2;
-					
-					pa1= give_parteff(ob);
-					pa2= give_parteff(base->object);
-
-					if(pa1==0 && pa2) {
-						BLI_remlink( &(base->object->effect), pa2);
-						free_effect( (Effect *) pa2);
-					}
-					else if(pa1 && pa2==0) {
-						free_effects(&(base->object->effect));
-						copy_effects(&(base->object->effect), &ob->effect);
-						build_particle_system(base->object);
-					}
-					else if(pa1 && pa2) {
-						if(pa2->keys) MEM_freeN(pa2->keys);
-						
-						p1= (char *)pa1; p2= (char *)pa2;
-						memcpy( p2+8, p1+8, sizeof(PartEff) - 8);
-						pa2->keys= 0;
-						
-						build_particle_system(base->object);
 					}
 				}
 				else if(event==21){
@@ -3689,8 +3664,6 @@ void copy_attr_menu()
 	if(ob->type==OB_MESH){
 		strcat(str, "|Subsurf Settings%x21|AutoSmooth%x27");
 	}
-
-	if( give_parteff(ob) ) strcat(str, "|Particle Settings%x20");
 
 	if(ob->soft) strcat(str, "|Soft Body Settings%x23");
 	
@@ -3966,7 +3939,7 @@ void apply_objects_locrot( void )
 				}
 				ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
 				ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
-				QuatOne(ob->quat);
+				/*QuatOne(ob->quat);*/ /* Quats arnt used yet */
 				
 				where_is_object(ob);
 				
@@ -3989,7 +3962,7 @@ void apply_objects_locrot( void )
 				/* Reset the object's transforms */
 				ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
 				ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
-				QuatOne(ob->quat);
+				/*QuatOne(ob->quat); (not used anymore)*/
 				
 				where_is_object(ob);
 				
@@ -4029,7 +4002,7 @@ void apply_objects_locrot( void )
 			
 				ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
 				ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
-				QuatOne(ob->quat);
+				/*QuatOne(ob->quat); (quats arnt used anymore)*/
 				
 				where_is_object(ob);
 				

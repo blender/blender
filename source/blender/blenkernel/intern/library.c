@@ -991,7 +991,7 @@ static void lib_indirect_test_id(ID *id)
 		Object *ob= (Object *)id;
 		bActionStrip *strip;
 		Mesh *me;
-		PartEff *paf;
+
 		int a;
 
 		for (strip=ob->nlastrips.first; strip; strip=strip->next){
@@ -1003,10 +1003,6 @@ static void lib_indirect_test_id(ID *id)
 		for(a=0; a<ob->totcol; a++) {
 			LIBTAG(ob->mat[a]);
 		}
-		
-		paf = give_parteff(ob);
-		if (paf) 
-			LIBTAG(paf->group);
 	
 		LIBTAG(ob->dup_group);
 		LIBTAG(ob->proxy);

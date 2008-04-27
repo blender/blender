@@ -561,34 +561,9 @@ struct PyMethodDef M_Effect_methods[] = {
 /*****************************************************************************/
 PyObject *M_Effect_New( PyObject * self, PyObject * args )
 {
-	Effect *bleffect = 0;
-	Object *ob;
-	char *name = NULL;
-
-	if( !PyArg_ParseTuple( args, "s", &name ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected string argument" );
-
-	for( ob = G.main->object.first; ob; ob = ob->id.next )
-		if( !strcmp( name, ob->id.name + 2 ) )
-			break;
-
-	if( !ob )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError, 
-				"object does not exist" );
-
-	if( ob->type != OB_MESH )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError, 
-				"object is not a mesh" );
-
-	bleffect = add_effect( EFF_PARTICLE );
-	if( !bleffect )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't create Effect Data in Blender" );
-
-	BLI_addtail( &ob->effect, bleffect );
-
-	return EffectCreatePyObject( bleffect, ob );
+	printf("warning, static particles api removed\n");
+	Py_INCREF( Py_None );
+	return Py_None;
 }
 
 /*****************************************************************************/
@@ -597,86 +572,7 @@ PyObject *M_Effect_New( PyObject * self, PyObject * args )
 /*****************************************************************************/
 PyObject *M_Effect_Get( PyObject * self, PyObject * args )
 {
-	/*arguments : string object name
-	   int : position of effect in the obj's effect list  */
-	char *name = NULL;
-	Object *object_iter;
-	Effect *eff;
-	int num = -1, i;
-
-	if( !PyArg_ParseTuple( args, "|si", &name, &num ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected string int argument" ) );
-
-	object_iter = G.main->object.first;
-
-	if( !object_iter )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"Scene contains no object" ) );
-
-	if( name ) { /* (name, num = -1) - try to find the given object */
-
-		while( object_iter ) {
-
-			if( !strcmp( name, object_iter->id.name + 2 ) ) {
-
-				eff = object_iter->effect.first; /*can be NULL: None will be returned*/
-
-				if (num >= 0) { /* return effect in given num position if available */
-
-					for( i = 0; i < num; i++ ) {
-						if (!eff) break;
-						eff = eff->next;
-					}
-
-					if (eff) {
-						return EffectCreatePyObject( eff, object_iter );
-					} else { /* didn't find any effect in the given position */
-						Py_RETURN_NONE;
-					}
-				}
-
-				else {/*return a list with all effects linked to the given object*/
-							/* this was pointed by Stephen Swaney */
-					PyObject *effectlist = PyList_New( 0 );
-
-					while (eff) {
-						PyObject *found_eff = EffectCreatePyObject( eff,
-								object_iter );
-						PyList_Append( effectlist, found_eff );
-						Py_DECREF( found_eff ); /* PyList_Append incref'ed it */
-						eff = eff->next;
-					}
-					return effectlist;
-				}
-			}
-			
-			object_iter = object_iter->id.next;
-		}
-
-		if (!object_iter)
-			return EXPP_ReturnPyObjError (PyExc_AttributeError,
-				"no such object");
-	}
-	
-	else { /* () - return a list with all effects currently in Blender */
-		PyObject *effectlist = PyList_New( 0 );
-
-		while( object_iter ) {
-			if( object_iter->effect.first != NULL ) {
-				eff = object_iter->effect.first;
-				while( eff ) {
-					PyObject *found_eff = EffectCreatePyObject( eff,
-							object_iter );
-					PyList_Append( effectlist, found_eff );
-					Py_DECREF( found_eff );
-					eff = eff->next;
-				}
-			}
-			object_iter = object_iter->id.next;
-		}
-		return effectlist;
-	}
+	printf("warning, static particles api removed\n");
 	Py_INCREF( Py_None );
 	return Py_None;
 }
@@ -689,29 +585,7 @@ static PyObject *Effect_FlagsDict( void )
 
 	if( Flags ) {
 		BPy_constant *c = ( BPy_constant * ) Flags;
-
-		PyConstant_Insert( c, "SELECTED",
-				 PyInt_FromLong( EFF_SELECT ) );
-		PyConstant_Insert( c, "BSPLINE",
-				 PyInt_FromLong( PAF_BSPLINE ) );
-		PyConstant_Insert( c, "STATIC",
-				 PyInt_FromLong( PAF_STATIC ) );
-		PyConstant_Insert( c, "FACES",
-				 PyInt_FromLong( PAF_FACE ) );
-		PyConstant_Insert( c, "ANIMATED",
-				 PyInt_FromLong( PAF_ANIMATED ) );
-		PyConstant_Insert( c, "UNBORN",
-				 PyInt_FromLong( PAF_UNBORN ) );
-		PyConstant_Insert( c, "VERTS",
-				 PyInt_FromLong( PAF_OFACE ) );
-		PyConstant_Insert( c, "EMESH",
-				 PyInt_FromLong( PAF_SHOWE ) );
-		PyConstant_Insert( c, "TRUERAND",
-				 PyInt_FromLong( PAF_TRAND ) );
-		PyConstant_Insert( c, "EVENDIST",
-				 PyInt_FromLong( PAF_EDISTR ) );
-		PyConstant_Insert( c, "DIED",
-				 PyInt_FromLong( PAF_DIED ) );
+		/* removed */
 	}
 	return Flags;
 }
@@ -1290,134 +1164,7 @@ static int Effect_setStaticStep( BPy_Effect * self , PyObject * args )
 /*****************************************************************************/
 static PyObject *Effect_getParticlesLoc( BPy_Effect * self )
 {
-	Object *ob;
-	Effect *eff;
-	PartEff *paf;
-	Particle *pa=0;
-	PyObject  *list, *strand_list, *pyvec, *pyvec2;
-	float p_time, c_time, vec[3], vec1[3], cfra, m_time, s_time;
-	int a;
-	short disp=100 ;
-	
-	cfra=frame_to_float( G.scene->r.cfra );
-	
-	/* as we need to update the particles system we try to retrieve
-	the object to which the effect is connected */
-	eff =(Effect *) self->effect;
-	
-	ob= self->object;
-	if(!ob)
-		return ( EXPP_ReturnPyObjError (PyExc_AttributeError,
-							   "Effect has no object" ) );
-	/*get the particles data */
-	paf= (PartEff *)eff;
-
-	/* particles->disp reduce the  display  number of particles */
-	/* as we want the complete  list ... we backup the disp value and restore later */ 
-	if (paf->disp<100)
-		disp= paf->disp; paf->disp=100;
-	
-	
-	build_particle_system(ob);
-	pa= paf->keys;
-
-	if(!pa)
-		return ( EXPP_ReturnPyObjError (PyExc_AttributeError,
-							   "Particles Location : no Keys" ) );
-
-	/* if object is in motion */
-	if( ob->ipoflag & OB_OFFS_PARTICLE )
-		p_time= give_timeoffset(ob);
-	else
-		p_time= 0.0;
-
-	list = PyList_New( 0 );
-	if( !list )
-		return EXPP_ReturnPyObjError( PyExc_MemoryError, "PyList() failed" );
-
-	c_time= bsystem_time( ob, cfra, p_time );
-
-	for( a=0; a < paf->totpart; a++, pa += paf->totkey ) {
-		
-		if(paf->flag & PAF_STATIC ) {
-			strand_list = PyList_New( 0 );
-			m_time= pa->time+pa->lifetime+paf->staticstep-1;
-			for(c_time= pa->time; c_time<m_time; c_time+=paf->staticstep) {
-				where_is_particle(paf, pa, c_time, vec);
-				MTC_Mat4MulVecfl(ob->obmat, vec); /* make worldspace like the others */
-				pyvec = newVectorObject(vec, 3, Py_NEW);
-				if( PyList_Append( strand_list, pyvec) < 0 ) {
-					Py_DECREF( list );
-					Py_DECREF( strand_list );
-					Py_XDECREF( pyvec );
-					
-					return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-							"Couldn't append item to PyList" );
-				}
-				Py_DECREF( pyvec );
-				
-			}
-			
-			if( PyList_Append( list, strand_list) < 0 ) {
-					Py_DECREF( list );
-					Py_DECREF( strand_list );
-					return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-							"Couldn't append item to PyList" );
-			}
-			Py_DECREF( strand_list );
-		} else {
-			if(c_time > pa->time && c_time < pa->time+pa->lifetime ) {
-				/* vector particles are a tuple of 2 vectors */
-				if( paf->stype==PAF_VECT ) {
-					s_time= c_time;
-					p_time= c_time+1.0f;
-					if(c_time < pa->time) {
-						if(paf->flag & PAF_UNBORN)
-							p_time= pa->time+1.0f;
-						else
-							continue;
-					}
-					if(c_time > pa->time+pa->lifetime) {
-						if(paf->flag & PAF_DIED)
-							s_time= pa->time+pa->lifetime-1.0f;
-						else
-							continue;
-					}
-					where_is_particle(paf, pa, s_time, vec);
-					where_is_particle(paf, pa, p_time, vec1);
-					pyvec  = newVectorObject(vec, 3, Py_NEW);
-					pyvec2 = newVectorObject(vec1, 3, Py_NEW);
-					if( PyList_Append( list, Py_BuildValue("[OO]", pyvec, pyvec2)) < 0 ) {
-						Py_DECREF( list );
-						Py_XDECREF( pyvec );
-						Py_XDECREF( pyvec2 );
-						return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-								"Couldn't append item to PyList" );
-					}
-					Py_DECREF( pyvec );
-					Py_DECREF( pyvec2 );
-				} else { /* not a vector */
-					where_is_particle(paf, pa, c_time, vec);
-					pyvec = newVectorObject(vec, 3, Py_NEW);
-					if( PyList_Append( list, pyvec) < 0 ) {
-						Py_DECREF( list );
-						Py_XDECREF( pyvec );
-						return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-								"Couldn't append item to PyList" );
-					}
-					Py_DECREF( pyvec );
-				}
-			}
-		}
-	}
-
-	/* restore the real disp value */
-	if (disp<100){
-		paf->disp=disp;	
-		build_particle_system(ob);
-	}
-	
-	return list;	
+	return PyList_New( 0 );	
 }
 
 /*****************************************************************************/

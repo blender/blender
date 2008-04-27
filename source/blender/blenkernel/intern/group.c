@@ -84,7 +84,6 @@ void unlink_group(Group *group)
 	}
 	for(ob= G.main->object.first; ob; ob= ob->id.next) {
 		bActionStrip *strip;
-		PartEff *paf;
 		
 		if(ob->dup_group==group) {
 			ob->dup_group= NULL;
@@ -95,12 +94,9 @@ void unlink_group(Group *group)
 					strip->object= NULL;
 			}
 		}
-		for(paf= ob->effect.first; paf; paf= paf->next) {
-			if(paf->type==EFF_PARTICLE) {
-				if(paf->group)
-					paf->group= NULL;
-			}
-		}
+		/* TODO - psys groups */
+		/* TODO - lamp groups */
+		/* TODO - render groups */
 	}
 	group->id.us= 0;
 }

@@ -121,7 +121,7 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
-#include "BKE_effect.h" // for give_parteff
+#include "BKE_effect.h" /* give_parteff */
 #include "BKE_global.h" // for G
 #include "BKE_group.h"
 #include "BKE_image.h"
@@ -5093,7 +5093,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		while(ob) {
 			ob->mass= 1.0f;
 			ob->damping= 0.1f;
-			ob->quat[1]= 1.0f;
+			/*ob->quat[1]= 1.0f;*/ /* quats arnt used yet */
 			ob= ob->id.next;
 		}
 

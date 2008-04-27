@@ -420,7 +420,6 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 	dofluidsim = ((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&
 	              (ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN)&&
 	              (ob->fluidsimSettings->meshSurface) &&
-	              (1) && (!give_parteff(ob)) && // doesnt work together with particle systems!
 	              (me->totvert == ((Mesh *)(ob->fluidsimSettings->meshSurface))->totvert));
 
 	if (vertCos && !dofluidsim)
@@ -1916,8 +1915,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	 * domain objects
 	 */
 	if((G.obedit!=ob) && !needMapping) {
-		if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&
-		   (1) && (!give_parteff(ob)) ) { // doesnt work together with particle systems!
+		if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE)) {
 			if(ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN) {
 				loadFluidsimMesh(ob,useRenderParams);
 				fluidsimMeshUsed = 1;
@@ -2550,14 +2548,7 @@ void makeDerivedMesh(Object *ob, CustomDataMask dataMask)
 	if (ob==G.obedit) {
 		editmesh_build_data(dataMask);
 	} else {
-		PartEff *paf= give_parteff(ob);
-		
 		mesh_build_data(ob, dataMask);
-		
-		if(paf) {
-			if((paf->flag & PAF_STATIC) || (ob->recalc & OB_RECALC_TIME)==0)
-				build_particle_system(ob);
-		}
 	}
 }
 

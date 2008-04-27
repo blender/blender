@@ -961,11 +961,7 @@ static float nla_time(float cfra, float unit)
 	
 	/* global time */
 	cfra*= G.scene->r.framelen;	
-
-
-	/* decide later... */
-//	if(no_speed_curve==0) if(ob && ob->ipo) cfra= calc_ipo_time(ob->ipo, cfra);
-
+	
 	return cfra;
 }
 

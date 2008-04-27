@@ -97,7 +97,7 @@ typedef struct Object {
 	float loc[3], dloc[3], orig[3];
 	float size[3], dsize[3];
 	float rot[3], drot[3];
-	float quat[4], dquat[4];
+	/* float quat[4], dquat[4]; (not used yet) */
 	float obmat[4][4];
 	float parentinv[4][4]; /* inverse result of parent, so that object doesn't 'stick' to parent */
 	float constinv[4][4]; /* inverse result of constraints. doesn't include effect of parent or object local transform */
@@ -148,10 +148,6 @@ typedef struct Object {
 	ListBase sensors;
 	ListBase controllers;
 	ListBase actuators;
-
-	/* now used to store cache particles,
-	 * should be renamed see effect.c (Campbell) */
-    void *sumohandle;		
     
 	float bbsize[3];
 	short index;			/* custom index, for renderpasses */
