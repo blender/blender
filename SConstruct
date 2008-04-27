@@ -435,8 +435,12 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
     if env['WITH_BF_FFMPEG']:
         dllsources += ['${LCGDIR}/ffmpeg/lib/avcodec-51.dll',
                         '${LCGDIR}/ffmpeg/lib/avformat-52.dll',
+                        '${LCGDIR}/ffmpeg/lib/avdevice-52.dll',
+                        '${LCGDIR}/ffmpeg/lib/avutil-49.dll',
                         '${LCGDIR}/ffmpeg/lib/libfaad-0.dll',
+                        '${LCGDIR}/ffmpeg/lib/libfaac-0.dll',
                         '${LCGDIR}/ffmpeg/lib/libmp3lame-0.dll',
+                        '${LCGDIR}/ffmpeg/lib/libx264-59.dll',
                         '${LCGDIR}/ffmpeg/lib/xvidcore.dll',
                         '${LCGDIR}/ffmpeg/lib/swscale-0.dll']
     windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
