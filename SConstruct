@@ -143,7 +143,7 @@ if crossbuild and platform!='win32':
 
 env['OURPLATFORM'] = platform
 
-configfile = B.arguments.get('BF_CONFIG', 'config'+os.sep+platform+'-config.py')
+configfile = 'config'+os.sep+platform+'-config.py'
 
 if os.path.exists(configfile):
     print B.bc.OKGREEN + "Using config file: " + B.bc.ENDC + configfile
@@ -157,13 +157,14 @@ if crossbuild and env['PLATFORM'] != 'win32':
     # Needed for gui programs, console programs should do without it
     env.Append(LINKFLAGS=['-mwindows'])
 
+userconfig = B.arguments.get('BF_CONFIG', 'user-config.py')
 # first read platform config. B.arguments will override
 optfiles = [configfile]
-if os.path.exists('user-config.py'):
-    print B.bc.OKGREEN + "Using config file: " + B.bc.ENDC + 'user-config.py'
-    optfiles += ['user-config.py']
+if os.path.exists(userconfig):
+    print B.bc.OKGREEN + "Using user-config file: " + B.bc.ENDC + userconfig
+    optfiles += [userconfig]
 else:
-    print B.bc.WARNING + 'user-config.py' + " not found, no user overrides" + B.bc.ENDC
+    print B.bc.WARNING + userconfig + " not found, no user overrides" + B.bc.ENDC
 
 opts = btools.read_opts(optfiles, B.arguments)
 opts.Update(env)
