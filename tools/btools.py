@@ -31,7 +31,7 @@ def validate_arguments(args, bc):
             'WITH_BF_FMOD',
             'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH',
             'WITH_BF_DDS',
-            'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB', 'BF_FFMPEG',  'BF_FFMPEG_INC',
+            'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB','BF_FFMPEG_EXTRA', 'BF_FFMPEG',  'BF_FFMPEG_INC',
             'WITH_BF_JPEG', 'BF_JPEG', 'BF_JPEG_INC', 'BF_JPEG_LIB', 'BF_JPEG_LIBPATH',
             'WITH_BF_PNG', 'BF_PNG', 'BF_PNG_INC', 'BF_PNG_LIB', 'BF_PNG_LIBPATH',
             'BF_TIFF', 'BF_TIFF_INC',
@@ -174,6 +174,7 @@ def read_opts(cfg, args):
         (BoolOption('WITH_BF_FFMPEG', 'Use FFMPEG if true', 'false')),
         ('BF_FFMPEG', 'FFMPEG base path', ''),
         ('BF_FFMPEG_LIB', 'FFMPEG library', ''),
+        ('BF_FFMPEG_EXTRA', 'FFMPEG flags that must be preserved', ''),
 
         ('BF_FFMPEG_INC', 'FFMPEG includes', ''),
         ('BF_FFMPEG_LIBPATH', 'FFMPEG library path', ''),
