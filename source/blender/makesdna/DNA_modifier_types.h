@@ -499,8 +499,9 @@ typedef struct ShrinkwrapModifierData {
 } ShrinkwrapModifierData;
 
 /* Shrinkwrap->shrinkType */
-#define MOD_SHRINKWRAP_NEAREST	0
-#define MOD_SHRINKWRAP_NORMAL	1
+#define MOD_SHRINKWRAP_NEAREST_SURFACE	0
+#define MOD_SHRINKWRAP_NORMAL			1
+#define MOD_SHRINKWRAP_NEAREST_VERTEX	2
 
 
 #endif

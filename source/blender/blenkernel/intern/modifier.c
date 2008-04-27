@@ -6977,12 +6977,23 @@ static void meshdeformModifier_deformVertsEM(
 static void shrinkwrapModifier_initData(ModifierData *md)
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
-	smd->shrinkType = MOD_SHRINKWRAP_NEAREST;
+	smd->shrinkType = MOD_SHRINKWRAP_NEAREST_SURFACE;
 }
 
 static void shrinkwrapModifier_copyData(ModifierData *md, ModifierData *target)
 {
 	memcpy(target, md, sizeof(MeshDeformModifierData));
+}
+
+CustomDataMask shrinkwrapModifier_requiredDataMask(ModifierData *md)
+{
+	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if(smd->vgroup_name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
 }
 
 static void shrinkwrapModifier_foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
@@ -7333,9 +7344,9 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(Shrinkwrap);
 		mti->type = eModifierTypeType_Nonconstructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh;
-		/*| eModifierTypeFlag_SupportsMapping; Not yet X'D */
 		mti->initData = shrinkwrapModifier_initData;
 		mti->copyData = shrinkwrapModifier_copyData;
+		mti->requiredDataMask = shrinkwrapModifier_requiredDataMask;
 		mti->foreachObjectLink = shrinkwrapModifier_foreachObjectLink;
 		mti->applyModifier = shrinkwrapModifier_applyModifier;
 		mti->updateDepgraph = shrinkwrapModifier_updateDepgraph;

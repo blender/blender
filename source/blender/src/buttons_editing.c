@@ -2437,7 +2437,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Shrinkwrap) {
 			ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
 
-			char shrinktypemenu[]="Shrinkwrap type%t|nearest point %x0|normal projection %x1";
+			char shrinktypemenu[]="Shrinkwrap type%t|nearest surface point %x0|normal projection %x1|nearest vertex %x2";
 			uiDefButS(block, MENU, B_MODIFIER_RECALC, shrinktypemenu, lx,(cy-=19),buttonWidth,19, &smd->shrinkType, 0, 0, 0, 0, "Selects type of shrinkwrap algorithm for target position.");
 
 			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->vgroup_name, 0.0, 31.0, 0, 0, "Vertex Group name");
