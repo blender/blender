@@ -74,7 +74,11 @@ if MAC_CUR_VER=='10.3' or  MAC_CUR_VER=='10.4':
 BF_QUIET = '1'
 WITH_BF_OPENMP = '0'
 
-WITH_BF_OPENAL = 'true'
+# Note : should be true, but openal simply dont work on intel
+if MAC_PROC == 'i386':
+	WITH_BF_OPENAL = 'false'
+else:
+	WITH_BF_OPENAL = 'true'
 #different lib must be used  following version of gcc
 # for gcc 3.3
 #BF_OPENAL = LIBDIR + '/openal'
@@ -193,11 +197,11 @@ BF_OPENGL_LIB = 'GL GLU'
 BF_OPENGL_LIBPATH = '/System/Library/Frameworks/OpenGL.framework/Libraries'
 BF_OPENGL_LINKFLAGS = '-framework OpenGL'
 
-CFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
+CFLAGS = ['-pipe','-fPIC','-funsigned-char']
 
 CPPFLAGS = ['-fpascal-strings']
-CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing', '-fpascal-strings']
-CXXFLAGS = [ '-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing', '-fpascal-strings']
+CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fpascal-strings']
+CXXFLAGS = [ '-pipe','-fPIC','-funsigned-char', '-fpascal-strings']
 PLATFORM_LINKFLAGS = '-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime'
 
 #note to build succesfully on 10.3.9 SDK you need to patch  10.3.9 by adding the SystemStubs.a lib from 10.4
@@ -220,6 +224,10 @@ if MAC_PROC == 'i386':
 	REL_CFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mssse3']
 	REL_CCFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mssse3']
 else:
+	CFLAGS = CFLAGS+['-fno-strict-aliasing']
+	CCFLAGS =  CCFLAGS+['-fno-strict-aliasing']
+	CXXFLAGS = CXXFLAGS+['-fno-strict-aliasing']
+	
 	REL_CFLAGS = ['-O2']
 	REL_CCFLAGS = ['-O2']
 
