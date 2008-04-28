@@ -281,15 +281,19 @@ static Image *image_alloc(const char *name, short source, short type)
 /* get the ibuf from an image cache, local use here only */
 static ImBuf *image_get_ibuf(Image *ima, int index, int frame)
 {
+	/* this function is intended to be thread safe. with IMA_NO_INDEX this
+	 * should be OK, but when iterating over the list this is more tricky
+	 * */
 	if(index==IMA_NO_INDEX)
 		return ima->ibufs.first;
 	else {
 		ImBuf *ibuf;
-		
+
 		index= IMA_MAKE_INDEX(frame, index);
 		for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next)
 			if(ibuf->index==index)
 				return ibuf;
+
 		return NULL;
 	}
 }
@@ -317,19 +321,16 @@ static void image_assign_ibuf(Image *ima, ImBuf *ibuf, int index, int frame)
 		for(link= ima->ibufs.first; link; link= link->next)
 			if(link->index>=index)
 				break;
-		/* now we don't want copies? */
-		if(link && ibuf->index==link->index) {
-			ImBuf *prev= ibuf->prev;
-			image_remove_ibuf(ima, link);
-			link= prev;
-		}
-		
+
+		ibuf->index= index;
+
 		/* this function accepts link==NULL */
 		BLI_insertlinkbefore(&ima->ibufs, link, ibuf);
-		
-		ibuf->index= index;
+
+		/* now we don't want copies? */
+		if(link && ibuf->index==link->index)
+			image_remove_ibuf(ima, link);
 	}
-	
 }
 
 /* checks if image was already loaded, then returns same image */
@@ -1496,12 +1497,12 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 			ibuf= NULL;
 		}
 		else {
-			image_assign_ibuf(ima, ibuf, 0, frame);
 			image_initialize_after_load(ima, ibuf);
+			image_assign_ibuf(ima, ibuf, 0, frame);
 		}
 #else
-		image_assign_ibuf(ima, ibuf, 0, frame);
 		image_initialize_after_load(ima, ibuf);
+		image_assign_ibuf(ima, ibuf, 0, frame);
 #endif
 	}
 	else
@@ -1537,8 +1538,9 @@ static ImBuf *image_load_sequence_multilayer(Image *ima, ImageUser *iuser, int f
 			// if(oldrr) printf("freed previous result %p\n", oldrr);
 			if(oldrr) RE_FreeRenderResult(oldrr);
 		}
-		else
+		else {
 			ima->rr= oldrr;
+		}
 
 	}
 	if(ima->rr) {
@@ -1553,8 +1555,8 @@ static ImBuf *image_load_sequence_multilayer(Image *ima, ImageUser *iuser, int f
 			ibuf->mall= IB_rectfloat;
 			ibuf->channels= rpass->channels;
 			
-			image_assign_ibuf(ima, ibuf, iuser->multi_index, frame);
 			image_initialize_after_load(ima, ibuf);
+			image_assign_ibuf(ima, ibuf, iuser->multi_index, frame);
 			
 		}
 		// else printf("pass not found\n");
@@ -1600,8 +1602,8 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 		ibuf = IMB_anim_absolute(ima->anim, fra);
 		
 		if(ibuf) {
-			image_assign_ibuf(ima, ibuf, 0, frame);
 			image_initialize_after_load(ima, ibuf);
+			image_assign_ibuf(ima, ibuf, 0, frame);
 		}
 		else
 			ima->ok= 0;
@@ -1620,6 +1622,7 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 {
 	struct ImBuf *ibuf;
 	char str[FILE_MAX];
+	int assign = 0;
 	
 	/* always ensure clean ima */
 	image_free_buffers(ima);
@@ -1650,8 +1653,8 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 			ibuf= NULL;
 		}
 		else {
-			image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 			image_initialize_after_load(ima, ibuf);
+			assign= 1;
 
 			/* check if the image is a font image... */
 			detectBitmapFont(ibuf);
@@ -1667,6 +1670,9 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 	else
 		ima->ok= 0;
 	
+	if(assign)
+		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
+
 	if(iuser)
 		iuser->ok= ima->ok;
 	
@@ -1690,12 +1696,13 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 		if(rpass) {
 			ibuf= IMB_allocImBuf(ima->rr->rectx, ima->rr->recty, 32, 0, 0);
 			
-			image_assign_ibuf(ima, ibuf, iuser?iuser->multi_index:IMA_NO_INDEX, 0);
 			image_initialize_after_load(ima, ibuf);
 			
 			ibuf->rect_float= rpass->rect;
 			ibuf->flags |= IB_rectfloat;
 			ibuf->channels= rpass->channels;
+
+			image_assign_ibuf(ima, ibuf, iuser?iuser->multi_index:IMA_NO_INDEX, 0);
 		}
 	}
 	
@@ -1774,12 +1781,71 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 	return NULL;
 }
 
+static ImBuf *image_get_ibuf_threadsafe(Image *ima, ImageUser *iuser, int *frame_r, int *index_r)
+{
+	ImBuf *ibuf = NULL;
+	int frame = 0, index = 0;
+
+	/* see if we already have an appropriate ibuf, with image source and type */
+	if(ima->source==IMA_SRC_MOVIE) {
+		frame= iuser?iuser->framenr:ima->lastframe;
+		ibuf= image_get_ibuf(ima, 0, frame);
+	}
+	else if(ima->source==IMA_SRC_SEQUENCE) {
+		if(ima->type==IMA_TYPE_IMAGE) {
+			frame= iuser?iuser->framenr:ima->lastframe;
+			ibuf= image_get_ibuf(ima, 0, frame);
+		}
+		else if(ima->type==IMA_TYPE_MULTILAYER) {
+			frame= iuser?iuser->framenr:ima->lastframe;
+			index= iuser?iuser->multi_index:IMA_NO_INDEX;
+			ibuf= image_get_ibuf(ima, index, frame);
+		}
+	}
+	else if(ima->source==IMA_SRC_FILE) {
+		if(ima->type==IMA_TYPE_IMAGE)
+			ibuf= image_get_ibuf(ima, IMA_NO_INDEX, 0);
+		else if(ima->type==IMA_TYPE_MULTILAYER)
+			ibuf= image_get_ibuf(ima, iuser?iuser->multi_index:IMA_NO_INDEX, 0);
+	}
+	else if(ima->source == IMA_SRC_GENERATED) {
+		ibuf= image_get_ibuf(ima, IMA_NO_INDEX, 0);
+	}
+	else if(ima->source == IMA_SRC_VIEWER) {
+		if(ima->type==IMA_TYPE_R_RESULT) {
+			/* always verify entirely, not that this shouldn't happen
+			 * during render anyway */
+		}
+		else if(ima->type==IMA_TYPE_COMPOSITE) {
+			frame= iuser?iuser->framenr:0;
+			ibuf= image_get_ibuf(ima, 0, frame);
+		}
+	}
+
+	*frame_r = frame;
+	*index_r = index;
+
+	return ibuf;
+}
+
 /* Checks optional ImageUser and verifies/creates ImBuf. */
 /* returns ibuf */
 ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 {
 	ImBuf *ibuf= NULL;
 	float color[] = {0, 0, 0, 1};
+	int frame= 0, index= 0;
+
+	/* This function is intended to be thread-safe. It postpones the mutex lock
+	 * until it needs to load the image, if the image is already there it
+	 * should just get the pointer and return. The reason is that a lot of mutex
+	 * locks appears to be very slow on certain multicore macs, causing a render
+	 * with image textures to actually slow down as more threads are used.
+	 *
+	 * Note that all the image loading functions should also make sure they do
+	 * things in a threadsafe way for image_get_ibuf_threadsafe to work correct.
+	 * That means, the last two steps must be, 1) add the ibuf to the list and
+	 * 2) set ima/iuser->ok to 0 to IMA_OK_LOADED */
 
 	/* quick reject tests */
 	if(ima==NULL) 
@@ -1791,100 +1857,94 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 	else if(ima->ok==0)
 		return NULL;
 	
-	BLI_lock_thread(LOCK_IMAGE);
-	
-	/* handle image source and types */
-	if(ima->source==IMA_SRC_MOVIE) {
-		/* source is from single file, use flipbook to store ibuf */
-		int frame= iuser?iuser->framenr:ima->lastframe;
-		
-		ibuf= image_get_ibuf(ima, 0, frame);
-		if(ibuf==NULL)
-			ibuf= image_load_movie_file(ima, iuser, frame);
-	}
-	else if(ima->source==IMA_SRC_SEQUENCE) {
-		
-		if(ima->type==IMA_TYPE_IMAGE) {
-			/* regular files, ibufs in flipbook, allows saving */
-			int frame= iuser?iuser->framenr:ima->lastframe;
-			
-			ibuf= image_get_ibuf(ima, 0, frame);
-			if(ibuf==NULL)
-				ibuf= image_load_sequence_file(ima, iuser, frame);
-			else
-				BLI_strncpy(ima->name, ibuf->name, sizeof(ima->name));
+	/* try to get the ibuf without locking */
+	ibuf= image_get_ibuf_threadsafe(ima, iuser, &frame, &index);
+
+	if(ibuf == NULL) {
+		/* couldn't get ibuf and image is not ok, so let's lock and try to
+		 * load the image */
+		BLI_lock_thread(LOCK_IMAGE);
+
+		/* need to check ok flag and loading ibuf again, because the situation
+		 * might have changed in the meantime */
+		if(iuser) {
+			if(iuser->ok==0) {
+				BLI_unlock_thread(LOCK_IMAGE);
+				return NULL;
+			}
 		}
-		/* no else; on load the ima type can change */
-		if(ima->type==IMA_TYPE_MULTILAYER) {
-			/* only 1 layer/pass stored in imbufs, no exrhandle anim storage, no saving */
-			int frame= iuser?iuser->framenr:ima->lastframe;
-			int index= iuser?iuser->multi_index:IMA_NO_INDEX;
-			
-			ibuf= image_get_ibuf(ima, index, frame);
-			if(G.rt) printf("seq multi fra %d id %d ibuf %p %s\n", frame, index, ibuf, ima->id.name);
-			if(ibuf==NULL)
-				ibuf= image_load_sequence_multilayer(ima, iuser, frame);
-			else
-				BLI_strncpy(ima->name, ibuf->name, sizeof(ima->name));
+		else if(ima->ok==0) {
+			BLI_unlock_thread(LOCK_IMAGE);
+			return NULL;
 		}
 
-	}
-	else if(ima->source==IMA_SRC_FILE) {
-		
-		if(ima->type==IMA_TYPE_IMAGE) {
-			ibuf= image_get_ibuf(ima, IMA_NO_INDEX, 0);
-			if(ibuf==NULL)
-				ibuf= image_load_image_file(ima, iuser, G.scene->r.cfra);	/* cfra only for '#', this global is OK */
-		}
-		/* no else; on load the ima type can change */
-		if(ima->type==IMA_TYPE_MULTILAYER) {
-			/* keeps render result, stores ibufs in listbase, allows saving */
-			ibuf= image_get_ibuf(ima, iuser?iuser->multi_index:IMA_NO_INDEX, 0);
-			if(ibuf==NULL)
-				ibuf= image_get_ibuf_multilayer(ima, iuser);
-		}
-			
-	}
-	else if(ima->source == IMA_SRC_GENERATED) {
-		/* generated is: ibuf is allocated dynamically */
-		ibuf= image_get_ibuf(ima, IMA_NO_INDEX, 0);
-		
-		if(ibuf==NULL) {
-			if(ima->type==IMA_TYPE_VERSE) {
-				/* todo */
+		ibuf= image_get_ibuf_threadsafe(ima, iuser, &frame, &index);
+
+		if(ibuf == NULL) {
+			/* we are sure we have to load the ibuf, using source and type */
+			if(ima->source==IMA_SRC_MOVIE) {
+				/* source is from single file, use flipbook to store ibuf */
+				ibuf= image_load_movie_file(ima, iuser, frame);
 			}
-			else { /* always fall back to IMA_TYPE_UV_TEST */
-				/* UV testgrid or black or solid etc */
-				if(ima->gen_x==0) ima->gen_x= 256;
-				if(ima->gen_y==0) ima->gen_y= 256;
-				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 0, ima->gen_type, color);
-				image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
-				ima->ok= IMA_OK_LOADED;
+			else if(ima->source==IMA_SRC_SEQUENCE) {
+				if(ima->type==IMA_TYPE_IMAGE) {
+					/* regular files, ibufs in flipbook, allows saving */
+					ibuf= image_load_sequence_file(ima, iuser, frame);
+				}
+				/* no else; on load the ima type can change */
+				if(ima->type==IMA_TYPE_MULTILAYER) {
+					/* only 1 layer/pass stored in imbufs, no exrhandle anim storage, no saving */
+					ibuf= image_load_sequence_multilayer(ima, iuser, frame);
+				}
+
+				if(ibuf)
+					BLI_strncpy(ima->name, ibuf->name, sizeof(ima->name));
+			}
+			else if(ima->source==IMA_SRC_FILE) {
+				
+				if(ima->type==IMA_TYPE_IMAGE)
+					ibuf= image_load_image_file(ima, iuser, G.scene->r.cfra);	/* cfra only for '#', this global is OK */
+				/* no else; on load the ima type can change */
+				if(ima->type==IMA_TYPE_MULTILAYER)
+					/* keeps render result, stores ibufs in listbase, allows saving */
+					ibuf= image_get_ibuf_multilayer(ima, iuser);
+					
+			}
+			else if(ima->source == IMA_SRC_GENERATED) {
+				/* generated is: ibuf is allocated dynamically */
+				if(ima->type==IMA_TYPE_VERSE) {
+					/* todo */
+				}
+				else { /* always fall back to IMA_TYPE_UV_TEST */
+					/* UV testgrid or black or solid etc */
+					if(ima->gen_x==0) ima->gen_x= 256;
+					if(ima->gen_y==0) ima->gen_y= 256;
+					ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 0, ima->gen_type, color);
+					image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
+					ima->ok= IMA_OK_LOADED;
+				}
+			}
+			else if(ima->source == IMA_SRC_VIEWER) {
+				if(ima->type==IMA_TYPE_R_RESULT) {
+					/* always verify entirely */
+					ibuf= image_get_render_result(ima, iuser);
+				}
+				else if(ima->type==IMA_TYPE_COMPOSITE) {
+					/* Composite Viewer, all handled in compositor */
+					/* fake ibuf, will be filled in compositor */
+					ibuf= IMB_allocImBuf(256, 256, 32, IB_rect, 0);
+					image_assign_ibuf(ima, ibuf, 0, frame);
+				}
 			}
 		}
-	}
-	else if(ima->source == IMA_SRC_VIEWER) {
-		if(ima->type==IMA_TYPE_R_RESULT) {
-			/* always verify entirely */
-			ibuf= image_get_render_result(ima, iuser);
-		}
-		else if(ima->type==IMA_TYPE_COMPOSITE) {
-			int frame= iuser?iuser->framenr:0;
-			
-			/* Composite Viewer, all handled in compositor */
-			ibuf= image_get_ibuf(ima, 0, frame);
-			if(ibuf==NULL) {
-				/* fake ibuf, will be filled in compositor */
-				ibuf= IMB_allocImBuf(256, 256, 32, IB_rect, 0);
-				image_assign_ibuf(ima, ibuf, 0, frame);
-			}
-		}
+
+		BLI_unlock_thread(LOCK_IMAGE);
 	}
 
+	/* we assuming that if it is not rendering, it's also not multithreaded
+	 * (a somewhat weak assumption) */
 	if(G.rendering==0)
 		tag_image_time(ima);
-
-	BLI_unlock_thread(LOCK_IMAGE);
 
 	return ibuf;
 }
