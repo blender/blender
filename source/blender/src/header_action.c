@@ -100,6 +100,7 @@ enum {
 
 enum {
 	ACTMENU_SEL_BORDER = 0,
+	ACTMENU_SEL_BORDERC,
 	ACTMENU_SEL_BORDERM,
 	ACTMENU_SEL_ALL_KEYS,
 	ACTMENU_SEL_ALL_CHAN,
@@ -550,10 +551,14 @@ static void do_action_selectmenu(void *arg, int event)
 			borderselect_action();
 			break;
 			
+		case ACTMENU_SEL_BORDERC: /* Border Select */
+			borderselect_actionchannels();
+			break;
+			
 		case ACTMENU_SEL_BORDERM: /* Border Select */
 			borderselect_markers();
 			break;
-
+			
 		case ACTMENU_SEL_ALL_KEYS: /* Select/Deselect All Keys */
 			deselect_action_keys(1, 1);
 			BIF_undo_push("(De)Select Keys");
@@ -561,7 +566,7 @@ static void do_action_selectmenu(void *arg, int event)
 			allqueue(REDRAWNLA, 0);
 			allqueue(REDRAWIPO, 0);
 			break;
-
+			
 		case ACTMENU_SEL_ALL_CHAN: /* Select/Deselect All Channels */
 			deselect_action_channels(1);
 			BIF_undo_push("(De)Select Action Channels");
@@ -623,6 +628,10 @@ static uiBlock *action_selectmenu(void *arg_unused)
 					 "Border Select Keys|B", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_BORDER, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Border Select Channels|B", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_SEL_BORDERC, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "Border Select Markers|Ctrl B", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 

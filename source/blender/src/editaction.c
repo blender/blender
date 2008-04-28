@@ -3207,6 +3207,106 @@ void column_select_action_keys (int mode)
 	BLI_freelistN(&elems);
 }
 
+/* borderselect: for action-channels */
+void borderselect_actionchannels (void)
+{
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+	
+	rcti rect;
+	rctf rectf;
+	int val, selectmode;
+	short mval[2];
+	float ymin, ymax;
+	
+	/* determine what type of data we are operating on */
+	data = get_action_context(&datatype);
+	if (data == NULL) return;
+	if (datatype != ACTCONT_ACTION) return;
+	
+	/* draw and handle the borderselect stuff (ui) and get the select rect */
+	if ( (val = get_border(&rect, 3)) ) {
+		selectmode= ((val==LEFTMOUSE) ? SELECT_ADD : SELECT_SUBTRACT);
+		
+		mval[0]= rect.xmin;
+		mval[1]= rect.ymin+2;
+		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
+		mval[0]= rect.xmax;
+		mval[1]= rect.ymax-2;
+		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
+		
+		ymax = CHANNELHEIGHT/2;
+		
+		/* filter data */
+		filter= (ACTFILTER_VISIBLE | ACTFILTER_CHANNELS);
+		actdata_filter(&act_data, filter, data, datatype);
+		
+		/* loop over data, doing border select */
+		for (ale= act_data.first; ale; ale= ale->next) {
+			ymin=ymax-(CHANNELHEIGHT+CHANNELSKIP);
+			
+			/* if channel is within border-select region, alter it */
+			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
+				/* only the following types can be selected */
+				switch (ale->type) {
+					case ACTTYPE_GROUP: /* action group */
+					{
+						bActionGroup *agrp= (bActionGroup *)ale->data;
+						
+						if (selectmode == SELECT_ADD)
+							agrp->flag |= AGRP_SELECTED;
+						else
+							agrp->flag &= ~AGRP_SELECTED;
+					}
+						break;
+					case ACTTYPE_ACHAN: /* action channel */
+					{
+						bActionChannel *achan= (bActionChannel *)ale->data;
+						
+						if (selectmode == SELECT_ADD)
+							achan->flag |= ACHAN_SELECTED;
+						else
+							achan->flag &= ~ACHAN_SELECTED;
+					}
+						break;
+					case ACTTYPE_CONCHAN: /* constraint channel */
+					{
+						bConstraintChannel *conchan = (bConstraintChannel *)ale->data;
+						
+						if (selectmode == SELECT_ADD)
+							conchan->flag |= CONSTRAINT_CHANNEL_SELECT;
+						else
+							conchan->flag &= ~CONSTRAINT_CHANNEL_SELECT;
+					}
+						break;
+					case ACTTYPE_ICU: /* ipo-curve channel */
+					{
+						IpoCurve *icu = (IpoCurve *)ale->data;
+						
+						if (selectmode == SELECT_ADD)
+							icu->flag |= IPO_SELECT;
+						else
+							icu->flag &= ~IPO_SELECT;
+					}
+						break;
+				}
+			}
+			
+			ymax=ymin;
+		}
+		
+		/* cleanup */
+		BLI_freelistN(&act_data);
+		
+		BIF_undo_push("Border Select Action");
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWNLA, 0);
+	}
+}
 
 /* some quick defines for borderselect modes */
 enum {
@@ -4410,7 +4510,9 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				borderselect_markers();
 			}
 			else {
-				if (mval[0] >= ACTWIDTH)
+				if (mval[0] <= ACTWIDTH)
+					borderselect_actionchannels();
+				else
 					borderselect_action();
 			}
 			break;

@@ -160,6 +160,7 @@ void action_set_ipo_flags(short mode, short event);
 
 /* Select */
 void borderselect_action(void);
+void borderselect_actionchannels(void);
 void deselect_action_keys(short test, short sel);
 void deselect_action_channels(short mode);
 void deselect_actionchannels(struct bAction *act, short mode);
