@@ -1286,7 +1286,7 @@ void image_buttons(void)
 		}
 		if(ibuf) {
 			if(ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels==1)) {
-				uiDefIconButBitI(block, TOG, SI_SHOW_ZBUF, B_SIMA_SHOW_ZBUF, ICON_SOLID, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws zbuffer values");
+				uiDefIconButBitI(block, TOG, SI_SHOW_ZBUF, B_SIMA_SHOW_ZBUF, ICON_SOLID, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws zbuffer values (mapped from camera clip start to end)");
 				xco+= XIC;
 			}
 		}		

@@ -2238,7 +2238,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 							else if(ibuf->rect_float && ibuf->channels==4)
 								sima_draw_alpha_pixelsf(x1_rep, y1_rep, ibuf->x, ibuf->y, ibuf->rect_float);
 						}
-						else if(sima->flag & SI_SHOW_ZBUF && ((ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels==1)) == 0)) {
+						else if(sima->flag & SI_SHOW_ZBUF && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels==1))) {
 							if(ibuf->zbuf)
 								sima_draw_zbuf_pixels(x1_rep, y1_rep, ibuf->x, ibuf->y, ibuf->zbuf);
 							else if(ibuf->zbuf_float)
