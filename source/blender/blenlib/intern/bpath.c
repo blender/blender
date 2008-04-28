@@ -239,8 +239,10 @@ static struct Sequence *seq_stepdata__internal(struct BPathIterator *bpi, int st
 				return seq;
 			} else {
 				/* keep looking through the next scene, reallocate seq array */
-				MEM_freeN((void *)bpi->seqdata.seqar);
-				bpi->seqdata.seqar = NULL;
+				if (bpi->seqdata.seqar) {
+					MEM_freeN((void *)bpi->seqdata.seqar);
+					bpi->seqdata.seqar = NULL;
+				}
 				bpi->seqdata.scene = bpi->seqdata.scene->id.next;
 			}
 		} else {

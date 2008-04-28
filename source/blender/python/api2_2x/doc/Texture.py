@@ -515,7 +515,8 @@ class MTex:
 	@ivar neg: Negate texture values mode
 	@ivar noRGB: Convert texture RGB values to intensity values
 	@ivar correctNor: Correct normal mapping for Texture space and Object space
-	@ivar fromDupli: If object is duplicated by vertices, faces or particles, inherit texture coordinate from parent object
+	@ivar fromDupli: Dupli's instanced from verts, faces or particles, inherit texture coordinate from their parent
+	@ivar fromOrig: Dupli's derive their object coordinates from the original objects transformation
 	@ivar xproj: Projection of X axis to Texture space. L{Proj}
 	@ivar yproj: Projection of Y axis to Texture space. L{Proj}
 	@ivar zproj: Projection of Z axis to Texture space. L{Proj}
