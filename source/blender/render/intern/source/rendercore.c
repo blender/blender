@@ -2242,8 +2242,11 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 			}
 		}
 
-		if (hit && bs->type==RE_BAKE_DISPLACEMENT) {;
-			bake_displacement(handle, shi, (dir==-1)? mindist:-mindist, x, y);
+		if (bs->type==RE_BAKE_DISPLACEMENT) {
+			if(hit)
+				bake_displacement(handle, shi, (dir==-1)? mindist:-mindist, x, y);
+			else
+				bake_displacement(handle, shi, 0.0f, x, y);
 			return;
 		}
 

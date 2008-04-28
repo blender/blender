@@ -1629,9 +1629,12 @@ static void give_parvert(Object *par, int nr, float *vec)
 					}
 				}
 
-				if(count > 0) {
+				if (count==0) {
+					/* keep as 0,0,0 */
+				} else if(count > 0) {
 					VecMulf(vec, 1.0f / count);
 				} else {
+					/* use first index if its out of range */
 					dm->getVertCo(dm, 0, vec);
 				}
 			}

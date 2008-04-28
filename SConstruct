@@ -273,6 +273,14 @@ if not quickie and do_clean:
             if os.path.exists(confile):
                 print "clean file %s"%confile
                 os.remove(confile)
+
+        if platform in ('win32-vc', 'win32-mingw'):
+            makesdnafile = B.root_build_dir+'makesdna.exe'
+        else:
+            makesdnafile = B.root_build_dir+'makesdna'
+        if os.path.exists(makesdnafile):
+            print "removing", makesdnafile
+            os.remove(makesdnafile)
         print B.bc.OKGREEN+'...done'+B.bc.ENDC
     else:
         print B.bc.HEADER+'Already Clean, nothing to do.'+B.bc.ENDC

@@ -63,14 +63,17 @@ def validate_arguments(args, bc):
             'WITHOUT_BF_INSTALL',
             'WITH_BF_OPENMP',
             'WITHOUT_BF_INSTALL',
-            'BF_FANCY', 'BF_QUIET'
+            'BF_FANCY', 'BF_QUIET',
+            'BF_X264_CONFIG',
+            'BF_XVIDCORE_CONFIG',
             ]
 
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
             'BF_INSTALLDIR', 'BF_TOOLSET', 'BF_BINNAME',
             'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE',
             'BF_DEBUG_FLAGS', 'BF_BSC', 'BF_CONFIG',
-            'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', "BF_QUICKDEBUG", "BF_LISTDEBUG", 'LCGDIR']
+            'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', 'BF_QUICKDEBUG',
+            'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG']
 
     all_list = opts_list + arg_list
     okdict = {}
@@ -314,6 +317,9 @@ def read_opts(cfg, args):
         (BoolOption('BF_FANCY', 'Enable fancy output if true', 'true')),
         (BoolOption('BF_QUIET', 'Enable silent output if true', 'true')),
         (BoolOption('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', 'false')),
+
+        ('BF_X264_CONFIG', 'configuration flags for x264', ''),
+        ('BF_XVIDCORE_CONFIG', 'configuration flags for xvidcore', ''),
 
     ) # end of opts.AddOptions()
 
