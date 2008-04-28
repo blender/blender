@@ -90,7 +90,6 @@
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
-#include "BKE_effect.h"
 #include "BKE_group.h"
 #include "BKE_icons.h"
 #include "BKE_ipo.h"
@@ -249,7 +248,6 @@ void free_object(Object *ob)
 		BLI_freelistN(&ob->defbase);
 	if(ob->pose)
 		free_pose(ob->pose);
-	free_effects(&ob->effect);
 	free_properties(&ob->prop);
 	object_free_modifiers(ob);
 	
@@ -394,9 +392,7 @@ void unlink_object(Object *ob)
 		
 		/* object is deflector or field */
 		if(ob->pd) {
-			if(give_parteff(obt))
-				obt->recalc |= OB_RECALC_DATA;
-			else if(obt->soft)
+			if(obt->soft)
 				obt->recalc |= OB_RECALC_DATA;
 
 			/* cloth */
@@ -906,8 +902,10 @@ Object *add_only_object(int type, char *name)
 	ob->type= type;
 	/* ob->transflag= OB_QUAT; */
 
+#if 0 /* not used yet */
 	QuatOne(ob->quat);
 	QuatOne(ob->dquat);
+#endif 
 
 	ob->col[0]= ob->col[1]= ob->col[2]= 0.0;
 	ob->col[3]= 1.0;
@@ -998,11 +996,13 @@ void base_init_from_view3d(Base *base, View3D *v3d)
 
 	if (U.flag & USER_ADD_VIEWALIGNED) {
 		v3d->viewquat[0]= -v3d->viewquat[0];
-		if (ob->transflag & OB_QUAT) {
+
+		/* Quats arnt used yet */
+		/*if (ob->transflag & OB_QUAT) {
 			QUATCOPY(ob->quat, v3d->viewquat);
-		} else {
+		} else {*/
 			QuatToEul(v3d->viewquat, ob->rot);
-		}
+		/*}*/
 		v3d->viewquat[0]= -v3d->viewquat[0];
 	}
 }
@@ -1146,7 +1146,6 @@ Object *copy_object(Object *ob)
 	obn->path= NULL;
 	obn->flag &= ~OB_FROMGROUP;
 	
-	copy_effects(&obn->effect, &ob->effect);
 	obn->modifiers.first = obn->modifiers.last= NULL;
 	
 	for (md=ob->modifiers.first; md; md=md->next) {
@@ -1422,7 +1421,7 @@ float bsystem_time(Object *ob, float cfra, float ofs)
 	cfra*= G.scene->r.framelen;	
 	
 	if (ob) {
-		if (no_speed_curve==0 && ob->ipo) 
+		if (no_speed_curve==0 && ob->ipo)
 			cfra= calc_ipo_time(ob->ipo, cfra);
 		
 		/* ofset frames */
@@ -1439,7 +1438,7 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 {
 	float smat[3][3], vec[3];
 	float rmat[3][3];
-	float q1[4];
+	/*float q1[4];*/
 	
 	/* size */
 	if(ob->ipo) {
@@ -1453,7 +1452,8 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 	}
 
 	/* rot */
-	if(ob->transflag & OB_QUAT) {
+	/* Quats arnt used yet */
+	/*if(ob->transflag & OB_QUAT) {
 		if(ob->ipo) {
 			QuatMul(q1, ob->quat, ob->dquat);
 			QuatToMat3(q1, rmat);
@@ -1462,7 +1462,7 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 			QuatToMat3(ob->quat, rmat);
 		}
 	}
-	else {
+	else {*/
 		if(ob->ipo) {
 			vec[0]= ob->rot[0]+ob->drot[0];
 			vec[1]= ob->rot[1]+ob->drot[1];
@@ -1472,7 +1472,7 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 		else {
 			EulToMat3(ob->rot, rmat);
 		}
-	}
+	/*}*/
 	Mat3MulMat3(mat, rmat, smat);
 }
 

@@ -635,9 +635,11 @@ static void draw_channel_names(void)
 			else {
 				/* for normal channels 
 				 *	- use 3 shades of color group/standard colour for 3 indention level
-				 *	- use standard colour if enabled
+				 *	- only use group colors if allowed to, and if actually feasible
 				 */
-				if ((G.saction->flag & SACTION_DRAWGCOLORS) && (grp)) {
+				if ( !(G.saction->flag & SACTION_NODRAWGCOLORS) && 
+					 (grp) && (grp->customCol) ) 
+				{
 					char cp[3];
 					
 					if (indent == 2) {

@@ -1081,6 +1081,10 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, int winx, int winy
 		re->ok= 0;
 	}
 	else {
+#ifndef WITH_OPENEXR
+		/* can't do this without openexr support */
+		re->r.scemode &= ~R_EXR_TILE_FILE;
+#endif
 		
 		if(!(re->r.scemode & R_EXR_TILE_FILE))
 			re->r.scemode &= ~R_FULL_SAMPLE;	/* clear, so we can use this flag for test both */

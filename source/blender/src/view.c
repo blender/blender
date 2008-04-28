@@ -1529,11 +1529,12 @@ void setcameratoview3d(void)
 	VECCOPY(ob->loc, dvec);
 	VecSubf(ob->loc, ob->loc, G.vd->ofs);
 	G.vd->viewquat[0]= -G.vd->viewquat[0];
-	if (ob->transflag & OB_QUAT) {
+	/*  */
+	/*if (ob->transflag & OB_QUAT) {
 		QUATCOPY(ob->quat, G.vd->viewquat);
-	} else {
+	} else {*/
 		QuatToEul(G.vd->viewquat, ob->rot);
-	}
+	/*}*/
 	G.vd->viewquat[0]= -G.vd->viewquat[0];
 }
 

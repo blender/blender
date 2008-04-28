@@ -961,11 +961,7 @@ static float nla_time(float cfra, float unit)
 	
 	/* global time */
 	cfra*= G.scene->r.framelen;	
-
-
-	/* decide later... */
-//	if(no_speed_curve==0) if(ob && ob->ipo) cfra= calc_ipo_time(ob->ipo, cfra);
-
+	
 	return cfra;
 }
 
@@ -1143,12 +1139,13 @@ void what_does_obaction (Object *ob, bAction *act, float cframe)
 	workob.constraints.first = ob->constraints.first;
 	workob.constraints.last = ob->constraints.last;
 
-	strcpy(workob.parsubstr, ob->parsubstr); 
+	strcpy(workob.parsubstr, ob->parsubstr);
+	strcpy(workob.id.name, ob->id.name);
 	
 	/* extract_ipochannels_from_action needs id's! */
 	workob.action= act;
 	
-	extract_ipochannels_from_action(&tchanbase, &ob->id, act, "Object", bsystem_time(&workob, cframe, 0.0));
+	extract_ipochannels_from_action(&tchanbase, &workob.id, act, "Object", bsystem_time(&workob, cframe, 0.0));
 	
 	if (tchanbase.first) {
 		execute_ipochannels(&tchanbase);

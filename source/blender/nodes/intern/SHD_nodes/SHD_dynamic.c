@@ -160,11 +160,11 @@ static void node_dynamic_free_storage_cb(bNode *node)
 }
 
 /* Disable pynode when its script fails */
-static void node_dynamic_disable(bNode *node)
+/*static void node_dynamic_disable(bNode *node)
 {
 	node->custom1 = 0;
 	node->custom1 = BSET(node->custom1, NODE_DYNAMIC_ERROR);
-}
+}*/
 
 /* Disable all pynodes using the given text (script) id */
 static void node_dynamic_disable_all_by_id(ID *id)
@@ -211,6 +211,8 @@ static void node_dynamic_rem_all_links(bNodeType *tinfo)
 	in = tinfo->inputs ? 1 : 0;
 	out = tinfo->outputs ? 1 : 0;
 
+	if (!in && !out) return;
+
 	for (ma= G.main->mat.first; ma; ma= ma->id.next) {
 		if (ma->nodetree) {
 			bNode *nd;
@@ -248,6 +250,7 @@ static void node_dynamic_reset(bNode *node, int unlink_text)
 				if (nd->typeinfo == tinfo) {
 					node_dynamic_free_storage_cb(nd);
 					node_dynamic_free_sockets(nd);
+					//node_dynamic_update_socket_links(nd, ma->nodetree);
 					nd->typeinfo = tinfo_default;
 					if (unlink_text) {
 						nd->id = NULL;
@@ -312,17 +315,69 @@ static void node_dynamic_pyerror_print(bNode *node)
 	PyGILState_Release(gilstate);
 }
 
+static void node_dynamic_register_type(bNode *node)
+{
+	nodeRegisterType(&node_all_shaders, node->typeinfo);
+	/* nodeRegisterType copied it to a new one, so we
+	 * free the typeinfo itself, but not what it
+	 * points to: */
+	MEM_freeN(node->typeinfo);
+	node->typeinfo = node_dynamic_find_typeinfo(&node_all_shaders, node->id);
+	MEM_freeN(node->typeinfo->name);
+	node->typeinfo->name = BLI_strdup(node->name);
+}
+
+/* node_dynamic_get_pynode:
+ * Find the pynode definition from the script */
+static PyObject *node_dynamic_get_pynode(PyObject *dict)
+{
+	PyObject *key= NULL;
+	Py_ssize_t pos = 0;
+	PyObject *value = NULL;
+
+	/* script writer specified a node? */
+	value = PyDict_GetItemString(dict, "__node__");
+
+	if (value) {
+		if (PyObject_TypeCheck(value, &PyType_Type)) {
+			Py_INCREF(value);
+			return value;
+		}
+		else {
+			PyErr_SetString(PyExc_TypeError,
+				"expected class object derived from Scripted node");
+			return NULL;
+		}
+	}
+
+	/* case not, search for it in the script's global dictionary */
+	while (PyDict_Next(dict, &pos, &key, &value)) {
+		/* skip names we know belong to other available objects */
+		if (strcmp("Socket", PyString_AsString(key)) == 0)
+			continue;
+		else if (strcmp("Scripted", PyString_AsString(key)) == 0)
+			continue;
+		/* naive: we grab the first ob of type 'type': */
+		else if (PyObject_TypeCheck(value, &PyType_Type)) {
+			Py_INCREF(value);
+			return value;
+		}
+	}
+
+	PyErr_SetString(PyExc_TypeError,
+		"no PyNode definition found in the script!");
+	return NULL;
+}
+
 static int node_dynamic_parse(struct bNode *node)
 {
 	PyObject *dict= NULL;
-	PyObject *key= NULL;
-	PyObject *value= NULL;
+	PyObject *pynode_data= NULL;
 	PyObject *pynode= NULL;
 	PyObject *args= NULL;
 	NodeScriptDict *nsd = NULL;
 	PyObject *pyresult = NULL;
 	char *buf = NULL;
-	Py_ssize_t pos = 0;
 	int is_valid_script = 0;
 	PyGILState_STATE gilstate;
 
@@ -346,7 +401,7 @@ static int node_dynamic_parse(struct bNode *node)
 	MEM_freeN(buf);
 
 	if (!pyresult) {
-		node_dynamic_disable(node);
+		node_dynamic_disable_all_by_id(node->id);
 		node_dynamic_pyerror_print(node);
 		PyGILState_Release(gilstate);
 		return -1;
@@ -354,58 +409,46 @@ static int node_dynamic_parse(struct bNode *node)
 
 	Py_DECREF(pyresult);
 
-	while (PyDict_Next( (PyObject *)(nsd->dict), &pos, &key, &value)) {
-		/* look for the node object */
-		if (strcmp("Socket", PyString_AsString(key)) == 0)
-			continue; /* XXX ugly, fix it */
-		if (PyObject_TypeCheck(value, &PyType_Type)==1) {
-			BPy_NodeSocketLists *socklists = Node_CreateSocketLists(node);
+	pynode_data = node_dynamic_get_pynode(dict);
 
-			args = Py_BuildValue("(O)", socklists);
+	if (pynode_data) {
+		BPy_NodeSocketLists *socklists = Node_CreateSocketLists(node);
 
-			/* init it to get the input and output sockets */
-			pynode = PyObject_Call(value, args, NULL);
+		args = Py_BuildValue("(O)", socklists);
 
-			Py_DECREF(socklists);
-			Py_DECREF(args);
+		/* init it to get the input and output sockets */
+		pynode = PyObject_Call(pynode_data, args, NULL);
 
-			if (!PyErr_Occurred() && pynode && pytype_is_pynode(pynode)) {
-				InitNode((BPy_Node *)(pynode), node);
-				nsd->node = pynode;
-				node->typeinfo->execfunc = node_dynamic_exec_cb;
-				is_valid_script = 1;
+		Py_DECREF(pynode_data);
+		Py_DECREF(socklists);
+		Py_DECREF(args);
 
-				/* for NEW, LOADED, REPARSE */
-				if (BNTST(node->custom1, NODE_DYNAMIC_ADDEXIST)) {
-					node->typeinfo->pydict = dict;
-					node->typeinfo->pynode = pynode;
-					node->typeinfo->id = node->id;
-					if (BNTST(node->custom1, NODE_DYNAMIC_LOADED))
-						nodeAddSockets(node, node->typeinfo);
-					if (BNTST(node->custom1, NODE_DYNAMIC_REPARSE)) {
-						nodeRegisterType(&node_all_shaders, node->typeinfo);
-						/* nodeRegisterType copied it to a new one, so we
-						 * free the typeinfo itself, but not what it
-						 * points to: */
-						MEM_freeN(node->typeinfo);
-						node->typeinfo = node_dynamic_find_typeinfo(&node_all_shaders, node->id);
-						MEM_freeN(node->typeinfo->name);
-						node->typeinfo->name = BLI_strdup(node->name);
-					}
-				}
+		if (!PyErr_Occurred() && pynode && pytype_is_pynode(pynode)) {
+			InitNode((BPy_Node *)(pynode), node);
+			nsd->node = pynode;
+			node->typeinfo->execfunc = node_dynamic_exec_cb;
+			is_valid_script = 1;
 
-				node->custom1 = 0;
-				node->custom1 = BSET(node->custom1, NODE_DYNAMIC_READY);
-				break;
+			/* for NEW, LOADED, REPARSE */
+			if (BNTST(node->custom1, NODE_DYNAMIC_ADDEXIST)) {
+				node->typeinfo->pydict = dict;
+				node->typeinfo->pynode = pynode;
+				node->typeinfo->id = node->id;
+				if (BNTST(node->custom1, NODE_DYNAMIC_LOADED))
+					nodeAddSockets(node, node->typeinfo);
+				if (BNTST(node->custom1, NODE_DYNAMIC_REPARSE))
+					node_dynamic_register_type(node);
 			}
-			//break;
+
+			node->custom1 = 0;
+			node->custom1 = BSET(node->custom1, NODE_DYNAMIC_READY);
 		}
 	}
 
 	PyGILState_Release(gilstate);
 
 	if (!is_valid_script) { /* not a valid pynode script */
-		node_dynamic_disable(node);
+		node_dynamic_disable_all_by_id(node->id);
 		node_dynamic_pyerror_print(node);
 		return -1;
 	}
@@ -470,6 +513,7 @@ static void node_dynamic_setup(bNode *node)
 			else { nodeMakeDynamicType(node); }
 
 		} else {
+			node_dynamic_rem_all_links(node->typeinfo);
 			node_dynamic_free_typeinfo_sockets(node->typeinfo);
 			node_dynamic_update_socket_links(node, NULL);
 			node_dynamic_free_storage_cb(node);

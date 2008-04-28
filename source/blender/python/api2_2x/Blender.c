@@ -927,7 +927,7 @@ static PyObject *Blender_CountPackedFiles( PyObject * self )
 static PyObject *Blender_GetPaths( PyObject * self, PyObject *args, PyObject *keywds )
 {
 	struct BPathIterator bpi;
-	PyObject *list = PyList_New(0), *st;
+	PyObject *list = PyList_New(0), *st; /* stupidly big string to be safe */
 	/* be sure there is low chance of the path being too short */
 	char filepath_expanded[FILE_MAXDIR*2]; 
 	
@@ -944,18 +944,18 @@ static PyObject *Blender_GetPaths( PyObject * self, PyObject *args, PyObject *ke
 		
 		/* build the list */
 		if (absolute) {
-			BLI_bpathIterator_copyPathExpanded( &bpi, filepath_expanded );
-			st = PyString_FromString(filepath_expanded);
+			BLI_bpathIterator_getPathExpanded( &bpi, filepath_expanded );
 		} else {
-			st = PyString_FromString(BLI_bpathIterator_getPath(&bpi));
+			BLI_bpathIterator_getPathExpanded( &bpi, filepath_expanded );
 		}
+		st = PyString_FromString(filepath_expanded);
 		
 		PyList_Append(list, st);
 		Py_DECREF(st);
 		
 		BLI_bpathIterator_step(&bpi);
 	}
-	
+	BLI_bpathIterator_free(&bpi);
 	return list;
 }
 

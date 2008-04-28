@@ -2290,7 +2290,6 @@ void fluidsimFilesel(char *selection)
 void do_object_panels(unsigned short event)
 {
 	Object *ob;
-	Effect *eff;
 	
 	ob= OBACT;
 	if(ob==NULL)
@@ -2478,21 +2477,6 @@ void do_object_panels(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 	}
 	break;
-		
-	default:
-		if(event>=B_SELEFFECT && event<B_SELEFFECT+MAX_EFFECT) {
-			int a=B_SELEFFECT;
-			
-			eff= ob->effect.first;
-			while(eff) {
-				if(event==a) eff->flag |= SELECT;
-				else eff->flag &= ~SELECT;
-				
-				a++;
-				eff= eff->next;
-			}
-			allqueue(REDRAWBUTSOBJECT, 0);
-		}
 	}
 
 }
@@ -2849,9 +2833,6 @@ void object_panel_constraint(char *context)
 void do_effects_panels(unsigned short event)
 {
 	Object *ob;
-	Base *base;
-	Effect *eff, *effn;
-	PartEff *paf;
 	ModifierData *md;
 	ParticleSystemModifierData *psmd;
 	ParticleSystem *psys;
@@ -2879,114 +2860,6 @@ void do_effects_panels(unsigned short event)
 		G.scene->r.framelen= G.scene->r.framapto;
 		G.scene->r.framelen/= G.scene->r.images;
 		allqueue(REDRAWALL, 0);
-		break;
-	case B_NEWEFFECT:
-		if(ob) {
-			if(ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) { 
-				// NT particles and fluid meshes currently dont work together -> switch off beforehand
-				if(ob->fluidsimSettings->type == OB_FLUIDSIM_DOMAIN) {
-					pupmenu("Fluidsim Particle Error%t|Please disable the fluidsim domain before activating particles.%x0");
-					break;
-					//ob->fluidsimFlag = 0; ob->fluidsimSettings->type = 0; allqueue(REDRAWVIEW3D, 0); 
-				}
-			}
-			if (BLI_countlist(&ob->effect)==MAX_EFFECT)
-				error("Unable to add: effect limit reached");
-			else
-				copy_act_effect(ob);
-		}
-		DAG_scene_sort(G.scene);
-		BIF_undo_push("New effect");
-		allqueue(REDRAWBUTSOBJECT, 0);
-		break;
-	case B_DELEFFECT:
-		if(ob==NULL || ob->type!=OB_MESH) break;
-		eff= ob->effect.first;
-		while(eff) {
-			effn= eff->next;
-			if(eff->flag & SELECT) {
-				BLI_remlink(&ob->effect, eff);
-				free_effect(eff);
-				break;
-			}
-			eff= effn;
-		}
-		BIF_undo_push("Delete effect");
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWBUTSOBJECT, 0);
-		break;
-	case B_NEXTEFFECT:
-		if(ob==0 || ob->type!=OB_MESH) break;
-		eff= ob->effect.first;
-		while(eff) {
-			if(eff->flag & SELECT) {
-				if(eff->next) {
-					eff->flag &= ~SELECT;
-					eff->next->flag |= SELECT;
-				}
-				break;
-			}
-			eff= eff->next;
-		}
-		allqueue(REDRAWBUTSOBJECT, 0);
-		break;
-	case B_PREVEFFECT:
-		if(ob==0 || ob->type!=OB_MESH) break;
-		eff= ob->effect.first;
-		while(eff) {
-			if(eff->flag & SELECT) {
-				if(eff->prev) {
-					eff->flag &= ~SELECT;
-					eff->prev->flag |= SELECT;
-				}
-				break;
-			}
-			eff= eff->next;
-		}
-		allqueue(REDRAWBUTSOBJECT, 0);
-		break;
-	case B_EFFECT_DEP:
-		DAG_scene_sort(G.scene);
-		/* no break, pass on */
-	case B_CALCEFFECT:
-		if(ob==NULL || ob->type!=OB_MESH) break;
-		eff= ob->effect.first;
-		while(eff) {
-			if(eff->flag & SELECT) {
-				if(eff->type==EFF_PARTICLE) build_particle_system(ob);
-			}
-			eff= eff->next;
-		}
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWBUTSOBJECT, 0);
-		break;
-	case B_PAF_SET_VG:
-		
-		paf= give_parteff(ob);
-		if(paf) {
-			bDeformGroup *dg= get_named_vertexgroup(ob, paf->vgroupname);
-			if(dg)
-				paf->vertgroup= get_defgroup_num(ob, dg)+1;
-			else
-				paf->vertgroup= 0;
-			
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			allqueue(REDRAWVIEW3D, 0);
-		}
-		break;
-	case B_PAF_SET_VG1:
-		
-		paf= give_parteff(ob);
-		if(paf) {
-			bDeformGroup *dg= get_named_vertexgroup(ob, paf->vgroupname_v);
-			if(dg)
-				paf->vertgroup_v= get_defgroup_num(ob, dg)+1;
-			else
-				paf->vertgroup_v= 0;
-			
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			allqueue(REDRAWVIEW3D, 0);
-		}
 		break;
 	case B_PARTBROWSE:
 		if(G.buts->menunr== -2) {
@@ -3281,43 +3154,6 @@ void do_effects_panels(unsigned short event)
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
-	case B_RECALCAL:
-		if (G.vd==NULL)
-			break;
-		
-		base= FIRSTBASE;
-		while(base) {
-			if(base->lay & G.vd->lay) {
-				ob= base->object;
-				eff= ob->effect.first;
-				while(eff) {
-					if(eff->flag & SELECT) {
-						if(eff->type==EFF_PARTICLE) build_particle_system(ob);
-					}
-					eff= eff->next;
-				}
-			}
-			base= base->next;
-		}
-		allqueue(REDRAWVIEW3D, 0);
-		break;
-	default:
-		if(event>=B_SELEFFECT && event<B_SELEFFECT+MAX_EFFECT) {
-			ob= OBACT;
-			if(ob) {
-				int a=B_SELEFFECT;
-				
-				eff= ob->effect.first;
-				while(eff) {
-					if(event==a) eff->flag |= SELECT;
-					else eff->flag &= ~SELECT;
-					
-					a++;
-					eff= eff->next;
-				}
-				allqueue(REDRAWBUTSOBJECT, 0);
-			}
-		}
 	}
 
 }

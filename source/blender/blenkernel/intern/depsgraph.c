@@ -568,36 +568,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 			dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Texture On Curve");
 		}
 	}
-	else if(ob->type==OB_MESH) {
-		PartEff *paf= give_parteff(ob);
-		if(paf) {
-			ListBase *listb;
-			pEffectorCache *ec;
-			
-			/* ob location depends on itself */
-			if((paf->flag & PAF_STATIC)==0)
-				dag_add_relation(dag, node, node, DAG_RL_OB_DATA, "Particle-Object Relation");
-			
-			listb= pdInitEffectors(ob, paf->group);		/* note, makes copy... */
-			if(listb) {
-				for(ec= listb->first; ec; ec= ec->next) {
-					Object *ob1= ec->ob;
-					PartDeflect *pd= ob1->pd;
-						
-					if(pd->forcefield) {
-						node2 = dag_get_node(dag, ob1);
-						if(pd->forcefield==PFIELD_GUIDE)
-							dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Field");
-						else
-							dag_add_relation(dag, node2, node, DAG_RL_OB_DATA, "Particle Field");
-					}
-				}
-				
-				pdEndEffectors(listb);	/* restores copy... */
-			}
-		}
-	}
-
+	
 	psys= ob->particlesystem.first;
 	if(psys) {
 		ParticleEffectorCache *nec;
@@ -1986,15 +1957,6 @@ static void dag_object_time_update_flags(Object *ob)
 						ob->recalc |= OB_RECALC_DATA;
 						ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
 					}
-				}
-				else if(ob->effect.first) {
-					Effect *eff= ob->effect.first;
-					PartEff *paf= give_parteff(ob);
-					
-					if(eff->type==EFF_WAVE) 
-						ob->recalc |= OB_RECALC_DATA;
-					else if(paf && paf->keys==NULL)
-						ob->recalc |= OB_RECALC_DATA;
 				}
 				if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (ob->fluidsimSettings)) {
 					// fluidsimSettings might not be initialized during load...

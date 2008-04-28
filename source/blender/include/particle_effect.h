@@ -31,14 +31,5 @@
 #ifndef PARTICLE_EFFECT_H
 #define PARTICLE_EFFECT_H
 
-/* effect.c */
-extern Effect *add_effect(int type);
-extern PartEff *give_parteff(Object *ob);
-extern void where_is_particle(PartEff *paf, Particle *pa, float ctime, float *vec);
-extern void free_effect(Effect *eff);
-extern void free_effects(ListBase *lb);
-extern void copy_effects(ListBase *lbn, ListBase *lb);
-extern void build_particle_system(Object *ob);
-
 #endif
 

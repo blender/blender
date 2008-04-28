@@ -246,7 +246,6 @@ static void image_free_buffers(Image *ima)
 /* called by library too, do not free ima itself */
 void free_image(Image *ima)
 {
-
 	image_free_buffers(ima);
 	if (ima->packedfile) {
 		freePackedFile(ima->packedfile);
@@ -257,7 +256,6 @@ void free_image(Image *ima)
 	if (ima->preview) {
 		BKE_previewimg_free(&ima->preview);
 	}
-	
 }
 
 /* only image block itself */
