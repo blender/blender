@@ -347,7 +347,7 @@ static void do_action_viewmenu(void *arg, int event)
 			G.saction->flag ^= SACTION_HORIZOPTIMISEON;
 			break;
 		case ACTMENU_VIEW_GCOLORS: /* Draw grouped-action channels using its group's color */
-			G.saction->flag ^= SACTION_DRAWGCOLORS;
+			G.saction->flag ^= SACTION_NODRAWGCOLORS;
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -395,7 +395,7 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_NOHIDE, "");
 					 
-	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_DRAWGCOLORS)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_NODRAWGCOLORS)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
 					 "Use Group Colors|", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_GCOLORS, "");

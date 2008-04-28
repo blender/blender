@@ -637,7 +637,7 @@ static void draw_channel_names(void)
 				 *	- use 3 shades of color group/standard colour for 3 indention level
 				 *	- only use group colors if allowed to, and if actually feasible
 				 */
-				if ( (G.saction->flag & SACTION_DRAWGCOLORS) && 
+				if ( !(G.saction->flag & SACTION_NODRAWGCOLORS) && 
 					 (grp) && (grp->customCol) ) 
 				{
 					char cp[3];
