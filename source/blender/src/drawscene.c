@@ -50,6 +50,7 @@
 
 #include "BIF_space.h"
 #include "BIF_drawscene.h"
+#include "BIF_editseq.h"
 #include "BIF_poseobject.h"
 
 #include "BSE_view.h"

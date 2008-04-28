@@ -53,6 +53,7 @@
 #include "BLI_winstuff.h"
 #endif
 
+#include "BMF_Api.h"
 
 #include "BKE_global.h"
 #include "BKE_library.h"

@@ -2053,7 +2053,7 @@ static int binarysearch_bezt_index (BezTriple array[], BezTriple *item, int arra
 		/* check whether to add before/after/on */
 		float framenum;
 		
-		/* 'First' Keyframe	*/
+		/* 'First' Keyframe (when only one keyframe, this case is used) */
 		framenum= array[0].vec[1][0];
 		if (IS_EQT(frame, framenum, BEZT_INSERT_THRESH))
 			return -1;

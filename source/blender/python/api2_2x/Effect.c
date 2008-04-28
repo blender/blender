@@ -584,7 +584,7 @@ static PyObject *Effect_FlagsDict( void )
 	PyObject *Flags = PyConstant_New(  );
 
 	if( Flags ) {
-		BPy_constant *c = ( BPy_constant * ) Flags;
+		//BPy_constant *c = ( BPy_constant * ) Flags;
 		/* removed */
 	}
 	return Flags;
