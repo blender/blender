@@ -8,6 +8,7 @@ defines = []
 root_build_dir=env['BF_BUILDDIR']
 
 source_files = ['makesdna.c']
+header_files = env.Glob('../*.h')
 
 makesdna_tool = env.Copy()
 dna = env.Copy()
@@ -36,6 +37,7 @@ else:
 
 dna_dict = dna.Dictionary()
 dna.Depends ('dna.c', makesdna)
+dna.Depends ('dna.c', header_files)
 if env['OURPLATFORM'] != 'linuxcross':
     dna.Command ('dna.c', '', root_build_dir+os.sep+"makesdna $TARGET")
 else:
