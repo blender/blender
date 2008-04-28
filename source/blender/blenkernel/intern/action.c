@@ -1139,12 +1139,13 @@ void what_does_obaction (Object *ob, bAction *act, float cframe)
 	workob.constraints.first = ob->constraints.first;
 	workob.constraints.last = ob->constraints.last;
 
-	strcpy(workob.parsubstr, ob->parsubstr); 
+	strcpy(workob.parsubstr, ob->parsubstr);
+	strcpy(workob.id.name, ob->id.name);
 	
 	/* extract_ipochannels_from_action needs id's! */
 	workob.action= act;
 	
-	extract_ipochannels_from_action(&tchanbase, &ob->id, act, "Object", bsystem_time(&workob, cframe, 0.0));
+	extract_ipochannels_from_action(&tchanbase, &workob.id, act, "Object", bsystem_time(&workob, cframe, 0.0));
 	
 	if (tchanbase.first) {
 		execute_ipochannels(&tchanbase);
