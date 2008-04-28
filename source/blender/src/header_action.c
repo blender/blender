@@ -136,7 +136,8 @@ enum {
 enum {
 	ACTMENU_CHANNELS_GROUP_ADD_TOACTIVE	= 0,
 	ACTMENU_CHANNELS_GROUP_ADD_TONEW,
-	ACTMENU_CHANNELS_GROUP_REMOVE
+	ACTMENU_CHANNELS_GROUP_REMOVE,
+	ACTMENU_CHANNELS_GROUP_SYNCPOSE
 };
 
 enum {
@@ -762,6 +763,9 @@ static void do_action_channelmenu_groupmenu(void *arg, int event)
 		case ACTMENU_CHANNELS_GROUP_REMOVE:
 			action_groups_ungroup();
 			break;
+		case ACTMENU_CHANNELS_GROUP_SYNCPOSE: /* Syncronise Pose-data and Action-data */
+			sync_pchan2achan_grouping();
+			break;
 	}
 }
 
@@ -782,7 +786,7 @@ static uiBlock *action_channelmenu_groupmenu(void *arg_unused)
 					 "Add to New Group|Ctrl Shift G", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_CHANNELS_GROUP_ADD_TONEW, "");
-	
+		
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 					
@@ -790,6 +794,14 @@ static uiBlock *action_channelmenu_groupmenu(void *arg_unused)
 					 "Remove From Group|Alt G", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_CHANNELS_GROUP_REMOVE, "");
+					 
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+					
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Synchronise with Armature", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_GROUP_SYNCPOSE, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);

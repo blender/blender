@@ -141,7 +141,8 @@ void paste_actdata(void);
 /* Group/Channel Operations */
 struct bActionGroup *get_active_actiongroup(struct bAction *act);
 void set_active_actiongroup(struct bAction *act, struct bActionGroup *agrp, short select);
-void verify_pchan2achan_grouping(struct bAction *act, struct bPose *pose, char name[]); 
+void verify_pchan2achan_grouping(struct bAction *act, struct bPose *pose, char name[]);
+void sync_pchan2achan_grouping(void); 
 void action_groups_group(short add_group);
 void action_groups_ungroup(void);
 

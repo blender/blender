@@ -1178,6 +1178,7 @@ void verify_pchan2achan_grouping (bAction *act, bPose *pose, char name[])
 					}
 				}
 			}
+			grp->customCol= agrp->customCol;
 			
 			BLI_addtail(&act->groups, grp);
 		}
@@ -1186,6 +1187,50 @@ void verify_pchan2achan_grouping (bAction *act, bPose *pose, char name[])
 		action_groups_removeachan(act, achan);
 		action_groups_addachan(act, grp, achan);
 	}
+}
+
+/* This function is used when the user specifically requests to sync changes of pchans + bone groups
+ * to achans + action groups. All achans are detached from their groups, and all groups are destroyed.
+ * They are then recreated when the achans are reassigned to groups. 
+ *
+ * Note: This doesn't preserve hand-created groups, and will operate on ALL action-channels regardless of
+ *		whether they were selected or active. More specific filtering can be added later. 
+ */
+void sync_pchan2achan_grouping ()
+{
+	void *data;
+	short datatype;
+	bAction *act;
+	bActionChannel *achan, *next, *last;
+	bPose *pose;
+	
+	/* determine what type of data we are operating on */
+	data = get_action_context(&datatype);
+	if ((datatype != ACTCONT_ACTION) || (data==NULL)) return;
+	if ((G.saction->pin) || (OBACT==NULL) || (OBACT->type != OB_ARMATURE)) {
+		error("Action doesn't belong to active armature");
+		return;
+	}
+	
+	/* get data */
+	act= (bAction *)data;
+	pose= OBACT->pose;
+	
+	/* remove achan->group links, then delete all groups */
+	for (achan= act->chanbase.first; achan; achan= achan->next)
+		achan->grp = NULL;
+	BLI_freelistN(&act->groups);
+	
+	/* loop through all achans, reassigning them to groups (colours are resyncronised) */
+	last= act->chanbase.last;
+	for (achan= act->chanbase.first; achan && achan!=last; achan= next) {
+		next= achan->next;
+		verify_pchan2achan_grouping(act, pose, achan->name);
+	}
+	
+	/* undo and redraw */
+	BIF_undo_push("Sync Armature-Data and Action");
+	allqueue(REDRAWACTION, 0);
 }
 
 /* **************************************************** */
