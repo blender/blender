@@ -264,23 +264,18 @@ if not quickie and do_clean:
     if os.path.exists(B.root_build_dir):
         print B.bc.HEADER+'Cleaning...'+B.bc.ENDC
         dirs = os.listdir(B.root_build_dir)
-        for dir in dirs:
-            if os.path.isdir(B.root_build_dir + dir) == 1:
-                print "clean dir %s"%(B.root_build_dir+dir)
-                shutil.rmtree(B.root_build_dir+dir)
+        for entry in dirs:
+            if os.path.isdir(B.root_build_dir + entry) == 1:
+                print "clean dir %s"%(B.root_build_dir+entry)
+                shutil.rmtree(B.root_build_dir+entry)
+            else: # remove file
+                print "remove file %s"%(B.root_build_dir+entry)
+                os.remove(B.root_build_dir+entry)
         for confile in ['extern/ffmpeg/config.mak', 'extern/x264/config.mak',
                 'extern/xvidcore/build/generic/platform.inc']:
             if os.path.exists(confile):
                 print "clean file %s"%confile
                 os.remove(confile)
-
-        if platform in ('win32-vc', 'win32-mingw'):
-            makesdnafile = B.root_build_dir+'makesdna.exe'
-        else:
-            makesdnafile = B.root_build_dir+'makesdna'
-        if os.path.exists(makesdnafile):
-            print "removing", makesdnafile
-            os.remove(makesdnafile)
         print B.bc.OKGREEN+'...done'+B.bc.ENDC
     else:
         print B.bc.HEADER+'Already Clean, nothing to do.'+B.bc.ENDC
