@@ -1236,6 +1236,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 		else {
 			Crossf(cross, lv, vn);
 			Crossf(vnor, cross, vn);
+			Normalize(vnor);
 		}
 
 		if(ma->strand_surfnor > 0.0f) {
@@ -1253,6 +1254,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 		float cross[3];
 		Crossf(cross, lv, shi->tang);
 		Crossf(vnor, cross, shi->tang);
+		Normalize(vnor);
 		vnor[0]= -vnor[0];vnor[1]= -vnor[1];vnor[2]= -vnor[2];
 		vn= vnor;
 	}
