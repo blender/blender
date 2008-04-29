@@ -35,7 +35,6 @@
 #  include <GL/gl.h>
 
 #elif defined(__APPLE__)
-#  define __glext_h_
 #  define GL_GLEXT_LEGACY 1
 #  include <OpenGL/gl.h>
 #  include <OpenGL/glu.h>
@@ -52,8 +51,8 @@
 #ifdef WIN32
 #  include <GL/glext.h>
 #elif defined(__APPLE__)
+#  include "mac_compat_glext.h"
 #  include <OpenGL/glext.h>
-#  undef __glext_h_
 # else
 #  include <GL/glext.h>
 # endif
