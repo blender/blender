@@ -720,7 +720,7 @@ BHead *blo_firstbhead(FileData *fd)
 
 BHead *blo_prevbhead(FileData *fd, BHead *thisblock)
 {
-	BHeadN *bheadn= (BHeadN *) (((char *) thisblock) - (int) (&((BHeadN*)0)->bhead));
+	BHeadN *bheadn= (BHeadN *) (((char *) thisblock) - GET_INT_FROM_POINTER( &((BHeadN*)0)->bhead) );
 	BHeadN *prev= bheadn->prev;
 
 	return prev?&prev->bhead:NULL;
@@ -734,7 +734,7 @@ BHead *blo_nextbhead(FileData *fd, BHead *thisblock)
 	if (thisblock) {
 		// bhead is actually a sub part of BHeadN
 		// We calculate the BHeadN pointer from the BHead pointer below
-		new_bhead = (BHeadN *) (((char *) thisblock) - (int) (&((BHeadN*)0)->bhead));
+		new_bhead = (BHeadN *) (((char *) thisblock) - GET_INT_FROM_POINTER( &((BHeadN*)0)->bhead) );
 
 		// get the next BHeadN. If it doesn't exist we read in the next one
 		new_bhead = new_bhead->next;
