@@ -1,0 +1,6 @@
+The following is an incomplete list of people that have contributed to this 
+project in some way or another, in no particular order...
+
+* Thomas Netter (lib3ds fix)
+* Gilles Debunne, creator and maintainer of the great libQGLViewer.
+* Mark Rose, for his work on the SWIG director feature, and his help.

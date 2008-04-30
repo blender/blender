@@ -1,0 +1,9 @@
+sgrabli:
+--------
+
+* Update help and make it display correctly
+* Recode the ViewMap building - the Y junctions are not detected for smooth objects right now.
+* Check the strokes strippification code. It seems some parts are inverted.
+* Fix the pbuffer so that ATI cards are supported
+
+* Merge Chain and Stroke classes (to Stroke) and improve the base of operators (select, chain, split, shade) consquently (also think about a way to easily specify the pipeline synchronization mode).

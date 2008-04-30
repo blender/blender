@@ -1,0 +1,6 @@
+Authors
+-------
+Frédo Durand		<fredo@mit.edu>
+Stéphane Grabli		<stephane.grabli@imag.fr>
+François Sillion	<francois.sillion@imag.fr>
+Emmanuel Turquin	<emmanuel.turquin@imag.fr>

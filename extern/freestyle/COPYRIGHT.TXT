@@ -1,0 +1,9 @@
+Freestyle
+
+Copyright (c) 2001-2007 by the following:
+
+
+Frédo Durand		<fredo@mit.edu>
+Stéphane Grabli		<stephane.grabli@gmail.com>
+François Sillion	<francois.sillion@imag.fr>
+Emmanuel Turquin	<emmanuel.turquin@imag.fr>

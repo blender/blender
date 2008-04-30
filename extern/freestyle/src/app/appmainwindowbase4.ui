@@ -1,0 +1,237 @@
+<ui version="4.0" >
+ <class>AppMainWindowBase</class>
+ <widget class="QMainWindow" name="AppMainWindowBase" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>510</width>
+    <height>523</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Freestyle</string>
+  </property>
+  <widget class="QWidget" name="centralwidget" >
+   <layout class="QGridLayout" >
+    <property name="margin" >
+     <number>9</number>
+    </property>
+    <property name="spacing" >
+     <number>6</number>
+    </property>
+    <item row="0" column="0" >
+     <layout class="QGridLayout" >
+      <property name="margin" >
+       <number>0</number>
+      </property>
+      <property name="spacing" >
+       <number>6</number>
+      </property>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar" >
+   <property name="geometry" >
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>510</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuHelp" >
+    <property name="title" >
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="actionHelp" />
+    <addaction name="actionControlBindings" />
+    <addaction name="separator" />
+    <addaction name="actionAbout" />
+   </widget>
+   <widget class="QMenu" name="menuFile" >
+    <property name="title" >
+     <string>&amp;File</string>
+    </property>
+    <addaction name="actionOpen" />
+    <addaction name="actionSave" />
+    <addaction name="actionClose" />
+    <addaction name="separator" />
+    <addaction name="actionLoadCamera" />
+    <addaction name="separator" />
+    <addaction name="actionSaveSnapshot" />
+    <addaction name="actionSavePSSnapshot" />
+    <addaction name="actionSaveTextSnapshot" />
+    <addaction name="actionCaptureMovie" />
+    <addaction name="separator" />
+    <addaction name="actionQuit" />
+   </widget>
+   <widget class="QMenu" name="menuWindows" >
+    <property name="title" >
+     <string>&amp;Windows</string>
+    </property>
+    <addaction name="actionStyleModelerWindow" />
+    <addaction name="actionOptionsWindow" />
+   </widget>
+   <widget class="QMenu" name="menuTools" >
+    <property name="title" >
+     <string>&amp;Tools</string>
+    </property>
+    <addaction name="actionComputeViewMap" />
+    <addaction name="actionSaveDirectionalViewMapImages" />
+    <addaction name="actionComputeStrokes" />
+    <addaction name="separator" />
+    <addaction name="actionResetInterpreter" />
+   </widget>
+   <addaction name="menuFile" />
+   <addaction name="menuTools" />
+   <addaction name="menuWindows" />
+   <addaction name="menuHelp" />
+  </widget>
+  <widget class="QStatusBar" name="statusbar" />
+  <action name="actionOpen" >
+   <property name="text" >
+    <string>&amp;Open</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionSave" >
+   <property name="text" >
+    <string>&amp;Save</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionClose" >
+   <property name="text" >
+    <string>&amp;Close</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="actionLoadCamera" >
+   <property name="text" >
+    <string>Load Camera</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="actionSavePSSnapshot" >
+   <property name="text" >
+    <string>Save PS Snapshot...</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="actionSaveSnapshot" >
+   <property name="text" >
+    <string>Save Snapshot</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="actionSaveTextSnapshot" >
+   <property name="text" >
+    <string>Save Text Snapshot</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+T</string>
+   </property>
+  </action>
+  <action name="actionCaptureMovie" >
+   <property name="text" >
+    <string>Capture Movie</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+M</string>
+   </property>
+  </action>
+  <action name="actionQuit" >
+   <property name="text" >
+    <string>&amp;Quit</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionComputeViewMap" >
+   <property name="text" >
+    <string>Compute View Map</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+B</string>
+   </property>
+  </action>
+  <action name="actionSaveDirectionalViewMapImages" >
+   <property name="text" >
+    <string>Save Directional ViewMap Images</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+Shift+B</string>
+   </property>
+  </action>
+  <action name="actionComputeStrokes" >
+   <property name="text" >
+    <string>Compute Strokes</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="actionResetInterpreter" >
+   <property name="text" >
+    <string>Reset Interpreter</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionStyleModelerWindow" >
+   <property name="text" >
+    <string>Style Modeler Window</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="actionOptionsWindow" >
+   <property name="text" >
+    <string>Options Window</string>
+   </property>
+   <property name="shortcut" >
+    <string>Alt+O</string>
+   </property>
+  </action>
+  <action name="actionHelp" >
+   <property name="text" >
+    <string>&amp;Help</string>
+   </property>
+   <property name="shortcut" >
+    <string>Ctrl+H</string>
+   </property>
+  </action>
+  <action name="actionControlBindings" >
+   <property name="text" >
+    <string>Control Bindings</string>
+   </property>
+   <property name="shortcut" >
+    <string>H</string>
+   </property>
+  </action>
+  <action name="actionAbout" >
+   <property name="text" >
+    <string>About</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

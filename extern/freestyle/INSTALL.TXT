@@ -1,0 +1,79 @@
+Install
+-------
+
+* UNIX/LINUX
+
+(for a more detailed description, see doc/linuxinstall.html)
+
+  This is quite straightforward, provided that you have all the
+needed libraries properly installed (see Requirements section in
+the README.TXT file). 
+First, set the FREESTYLE-DIR environment variable to your 
+freestyle directory and then, simply type:
+
+$> cd "$FREESTYLE_DIR"/src
+$> qmake
+$> make
+
+Note: The SWIG wrapper hasn't been included in the qmake build
+cycle yet and thus has to be compiled separately, by hand:
+
+$> cd "$FREESTYLE_DIR"/src/swig
+$> make
+
+And to run the app:
+
+$> export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:./lib"
+$> cd "$FREESTYLE_DIR"/build/linux-g++/release/
+$> ./Freestyle
+
+
+* WINDOWS
+
+ - If you downloaded the binary version:
+
+1) unzip the package
+2) run vcredist_x86.exe
+3) run Freestyle.exe
+
+- Compilation Instructions:
+
+(for a more detailed description, including the cygwin
+compilation instructions, see doc/wininstall.html)
+
+1) launch 'makedsp.vcnet.debug.bat' in the 'src' subdir of your FREESTYLE_DIR to generate
+  a .vcproj file for each sub-project
+2) open 'src/Freestyle-vc8-debug.sln' with Visual Studio (tested with VC++ 8 express edition)
+3) compile the whole project using 'build solution' in the 'build' menu 
+4) run the app and enjoy ;)
+
+* MAC OS X
+
+(for a more detailed description, see doc/macosxinstall.html)
+
+  This is quite straightforward, provided that you have all the
+needed libraries properly installed (see Requirements section in
+the README.TXT file). 
+First, set the FREESTYLE-DIR environment variable to your 
+freestyle directory and then, simply type:
+
+$> cd "$FREESTYLE_DIR"/src
+$> qmake
+$> make
+
+Note: The SWIG wrapper hasn't been included in the qmake build
+cycle yet and thus has to be compiled separately, by hand:
+
+$> cd "$FREESTYLE_DIR"/src/swig
+$> make
+
+And to run the app:
+
+$> build_bundle.macosx.py
+$> cd "$FREESTYLE_DIR"/
+$> open Freestyle.App
+
+
+* IRIX
+
+Not tested yet...

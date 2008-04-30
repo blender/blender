@@ -1,0 +1,11 @@
+* Application doesn't exit properly (eg style window still hangs out)
+* macosx: Window bar is unaccessible.
+* macosx: Build leds to an application that is half-bundle (for the executable) half UNIX-style (for libraries).
+* Strokes Strips are sometimes incorrect
+* TVertex sometimes points towards NULL ViewEdges
+* Some points are found to be outside of the grid. (for big models and mostly in release mode). Probably due to precision problems.
+* Operators::recursiveChains() and ViewEdgeIterator change ViewEdgeIterator so that it supports the copy of specialized types in a transparent way. It works here only because we're never copying it and because it is passed as a reference.
+* Functions0D takes a Interface0DIterator& insted of a const Interface0DIterator& as argument. dangerous.
+* crashes on big models
+
+ 

@@ -1,0 +1,23 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource prefix="/icons" >
+        <file>icons/add.png</file>
+        <file>icons/arrow_down.png</file>
+        <file>icons/arrow_left.png</file>
+        <file>icons/arrow_right.png</file>
+        <file>icons/arrow_up.png</file>
+        <file>icons/clear.png</file>
+        <file>icons/close.png</file>
+        <file>icons/edit.png</file>
+        <file>icons/eye0.png</file>
+        <file>icons/eye1.png</file>
+        <file>icons/folder.png</file>
+        <file>icons/home.png</file>
+        <file>icons/mod0.png</file>
+        <file>icons/mod1.png</file>
+        <file>icons/ok.png</file>
+        <file>icons/reload.png</file>
+        <file>icons/remove.png</file>
+        <file>icons/save.png</file>
+        <file>icons/save_as.png</file>
+    </qresource>
+</RCC>

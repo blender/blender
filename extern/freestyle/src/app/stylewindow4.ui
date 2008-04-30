@@ -1,0 +1,182 @@
+<ui version="4.0" >
+ <class>StyleWindow</class>
+ <widget class="QDialog" name="StyleWindow" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>571</width>
+    <height>421</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Style Modules</string>
+  </property>
+  <layout class="QVBoxLayout" >
+   <property name="margin" >
+    <number>9</number>
+   </property>
+   <property name="spacing" >
+    <number>6</number>
+   </property>
+   <item>
+    <widget class="QTableWidget" name="PlayList" >
+     <property name="dragEnabled" >
+      <bool>false</bool>
+     </property>
+     <property name="rowCount" >
+      <number>0</number>
+     </property>
+     <property name="columnCount" >
+      <number>3</number>
+     </property>
+     <column/>
+     <column/>
+     <column/>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" >
+     <property name="margin" >
+      <number>0</number>
+     </property>
+     <property name="spacing" >
+      <number>6</number>
+     </property>
+     <item>
+      <widget class="QPushButton" name="addButton" >
+       <property name="toolTip" >
+        <string>Add a Style Module</string>
+       </property>
+       <property name="text" >
+        <string/>
+       </property>
+       <property name="icon" >
+        <iconset resource="freestyle.qrc" >:/icons/icons/add.png</iconset>
+       </property>
+       <property name="shortcut" >
+        <string>Ctrl+A</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="removeButton" >
+       <property name="toolTip" >
+        <string>Remove a Style Module</string>
+       </property>
+       <property name="text" >
+        <string/>
+       </property>
+       <property name="icon" >
+        <iconset resource="freestyle.qrc" >:/icons/icons/remove.png</iconset>
+       </property>
+       <property name="shortcut" >
+        <string>Ctrl+R</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="moveUpButton" >
+       <property name="toolTip" >
+        <string>Move up</string>
+       </property>
+       <property name="text" >
+        <string/>
+       </property>
+       <property name="icon" >
+        <iconset resource="freestyle.qrc" >:/icons/icons/arrow_up.png</iconset>
+       </property>
+       <property name="shortcut" >
+        <string>Ctrl+U</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="moveDownButton" >
+       <property name="toolTip" >
+        <string>Move down</string>
+       </property>
+       <property name="text" >
+        <string/>
+       </property>
+       <property name="icon" >
+        <iconset resource="freestyle.qrc" >:/icons/icons/arrow_down.png</iconset>
+       </property>
+       <property name="shortcut" >
+        <string>Ctrl+D</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="editButton" >
+       <property name="toolTip" >
+        <string>Edit Style Module</string>
+       </property>
+       <property name="text" >
+        <string/>
+       </property>
+       <property name="icon" >
+        <iconset resource="freestyle.qrc" >:/icons/icons/edit.png</iconset>
+       </property>
+       <property name="shortcut" >
+        <string>Ctrl+E</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="saveButton" >
+       <property name="toolTip" >
+        <string>Save Modules list</string>
+       </property>
+       <property name="text" >
+        <string/>
+       </property>
+       <property name="icon" >
+        <iconset resource="freestyle.qrc" >:/icons/icons/save.png</iconset>
+       </property>
+       <property name="shortcut" >
+        <string>Ctrl+S</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="clearButton" >
+       <property name="toolTip" >
+        <string>Clear Modules list</string>
+       </property>
+       <property name="text" >
+        <string/>
+       </property>
+       <property name="icon" >
+        <iconset resource="freestyle.qrc" >:/icons/icons/clear.png</iconset>
+       </property>
+       <property name="shortcut" >
+        <string>Ctrl+X</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="closeButton" >
+       <property name="toolTip" >
+        <string>Close window</string>
+       </property>
+       <property name="text" >
+        <string/>
+       </property>
+       <property name="icon" >
+        <iconset resource="freestyle.qrc" >:/icons/icons/close.png</iconset>
+       </property>
+       <property name="shortcut" >
+        <string>Ctrl+C</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="freestyle.qrc" />
+ </resources>
+ <connections/>
+</ui>
