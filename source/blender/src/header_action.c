@@ -100,6 +100,7 @@ enum {
 
 enum {
 	ACTMENU_SEL_BORDER = 0,
+	ACTMENU_SEL_BORDERC,
 	ACTMENU_SEL_BORDERM,
 	ACTMENU_SEL_ALL_KEYS,
 	ACTMENU_SEL_ALL_CHAN,
@@ -136,7 +137,8 @@ enum {
 enum {
 	ACTMENU_CHANNELS_GROUP_ADD_TOACTIVE	= 0,
 	ACTMENU_CHANNELS_GROUP_ADD_TONEW,
-	ACTMENU_CHANNELS_GROUP_REMOVE
+	ACTMENU_CHANNELS_GROUP_REMOVE,
+	ACTMENU_CHANNELS_GROUP_SYNCPOSE
 };
 
 enum {
@@ -346,7 +348,7 @@ static void do_action_viewmenu(void *arg, int event)
 			G.saction->flag ^= SACTION_HORIZOPTIMISEON;
 			break;
 		case ACTMENU_VIEW_GCOLORS: /* Draw grouped-action channels using its group's color */
-			G.saction->flag ^= SACTION_DRAWGCOLORS;
+			G.saction->flag ^= SACTION_NODRAWGCOLORS;
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -394,7 +396,7 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_NOHIDE, "");
 					 
-	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_DRAWGCOLORS)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_NODRAWGCOLORS)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
 					 "Use Group Colors|", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_GCOLORS, "");
@@ -549,10 +551,14 @@ static void do_action_selectmenu(void *arg, int event)
 			borderselect_action();
 			break;
 			
+		case ACTMENU_SEL_BORDERC: /* Border Select */
+			borderselect_actionchannels();
+			break;
+			
 		case ACTMENU_SEL_BORDERM: /* Border Select */
 			borderselect_markers();
 			break;
-
+			
 		case ACTMENU_SEL_ALL_KEYS: /* Select/Deselect All Keys */
 			deselect_action_keys(1, 1);
 			BIF_undo_push("(De)Select Keys");
@@ -560,7 +566,7 @@ static void do_action_selectmenu(void *arg, int event)
 			allqueue(REDRAWNLA, 0);
 			allqueue(REDRAWIPO, 0);
 			break;
-
+			
 		case ACTMENU_SEL_ALL_CHAN: /* Select/Deselect All Channels */
 			deselect_action_channels(1);
 			BIF_undo_push("(De)Select Action Channels");
@@ -622,6 +628,10 @@ static uiBlock *action_selectmenu(void *arg_unused)
 					 "Border Select Keys|B", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_BORDER, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Border Select Channels|B", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_SEL_BORDERC, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "Border Select Markers|Ctrl B", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
@@ -762,6 +772,9 @@ static void do_action_channelmenu_groupmenu(void *arg, int event)
 		case ACTMENU_CHANNELS_GROUP_REMOVE:
 			action_groups_ungroup();
 			break;
+		case ACTMENU_CHANNELS_GROUP_SYNCPOSE: /* Syncronise Pose-data and Action-data */
+			sync_pchan2achan_grouping();
+			break;
 	}
 }
 
@@ -782,7 +795,7 @@ static uiBlock *action_channelmenu_groupmenu(void *arg_unused)
 					 "Add to New Group|Ctrl Shift G", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_CHANNELS_GROUP_ADD_TONEW, "");
-	
+		
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 					
@@ -790,6 +803,14 @@ static uiBlock *action_channelmenu_groupmenu(void *arg_unused)
 					 "Remove From Group|Alt G", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_CHANNELS_GROUP_REMOVE, "");
+					 
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+					
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Synchronise with Armature", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_CHANNELS_GROUP_SYNCPOSE, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);

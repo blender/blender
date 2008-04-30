@@ -229,6 +229,7 @@ static int isqtime (char *name) {
 #endif
 
 #ifdef WITH_FFMPEG
+extern void do_init_ffmpeg();
 void do_init_ffmpeg()
 {
 	static int ffmpeg_init = 0;

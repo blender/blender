@@ -373,7 +373,7 @@ void multires_create(Object *ob, Mesh *me)
 	/* Load vertices and vdata (MDeformVerts) */
 	lvl->totvert= em ? BLI_countlist(&em->verts) : me->totvert;
 	me->mr->verts= MEM_callocN(sizeof(MVert)*lvl->totvert,"multires verts");
-	multires_update_customdata(me->mr->levels.first, em ? &em->vdata : &me->vdata,
+	multires_update_customdata(me->mr->levels.first, em, em ? &em->vdata : &me->vdata,
 	                           &me->mr->vdata, CD_MDEFORMVERT);
 	if(em) eve= em->verts.first;
 	for(i=0; i<lvl->totvert; ++i) {
@@ -384,7 +384,7 @@ void multires_create(Object *ob, Mesh *me)
 	/* Load faces and fdata (MTFaces) */
 	lvl->totface= em ? BLI_countlist(&em->faces) : me->totface;
 	lvl->faces= MEM_callocN(sizeof(MultiresFace)*lvl->totface,"multires faces");
-	multires_update_customdata(me->mr->levels.first, em ? &em->fdata : &me->fdata,
+	multires_update_customdata(me->mr->levels.first, em, em ? &em->fdata : &me->fdata,
 	                           &me->mr->fdata, CD_MTFACE);
 	if(em) efa= em->faces.first;
 	for(i=0; i<lvl->totface; ++i) {

@@ -121,7 +121,7 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
-#include "BKE_effect.h" // for give_parteff
+#include "BKE_effect.h" /* give_parteff */
 #include "BKE_global.h" // for G
 #include "BKE_group.h"
 #include "BKE_image.h"
@@ -720,7 +720,7 @@ BHead *blo_firstbhead(FileData *fd)
 
 BHead *blo_prevbhead(FileData *fd, BHead *thisblock)
 {
-	BHeadN *bheadn= (BHeadN *) (((char *) thisblock) - (int) (&((BHeadN*)0)->bhead));
+	BHeadN *bheadn= (BHeadN *) (((char *) thisblock) - GET_INT_FROM_POINTER( &((BHeadN*)0)->bhead) );
 	BHeadN *prev= bheadn->prev;
 
 	return prev?&prev->bhead:NULL;
@@ -734,7 +734,7 @@ BHead *blo_nextbhead(FileData *fd, BHead *thisblock)
 	if (thisblock) {
 		// bhead is actually a sub part of BHeadN
 		// We calculate the BHeadN pointer from the BHead pointer below
-		new_bhead = (BHeadN *) (((char *) thisblock) - (int) (&((BHeadN*)0)->bhead));
+		new_bhead = (BHeadN *) (((char *) thisblock) - GET_INT_FROM_POINTER( &((BHeadN*)0)->bhead) );
 
 		// get the next BHeadN. If it doesn't exist we read in the next one
 		new_bhead = new_bhead->next;
@@ -5093,7 +5093,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		while(ob) {
 			ob->mass= 1.0f;
 			ob->damping= 0.1f;
-			ob->quat[1]= 1.0f;
+			/*ob->quat[1]= 1.0f;*/ /* quats arnt used yet */
 			ob= ob->id.next;
 		}
 
@@ -7592,6 +7592,31 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		idproperties_fix_group_lengths(main->nodetree);
 		idproperties_fix_group_lengths(main->brush);
 		idproperties_fix_group_lengths(main->particle);		
+	}
+	
+	/* only needed until old bad svn/RC1,2 files are saved with a > 17 version -dg */
+	if(main->versionfile == 245 && main->subversionfile < 17) {
+		ModifierData *md;
+		Object *ob;
+		
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			for(md=ob->modifiers.first; md; ) {
+				if(md->type==eModifierType_Cloth) {
+					ModifierData *next;
+					MEM_freeN(((ClothModifierData *)md)->sim_parms);
+					MEM_freeN(((ClothModifierData *)md)->coll_parms);
+					MEM_freeN(((ClothModifierData *)md)->point_cache);
+					((ClothModifierData *)md)->sim_parms = NULL;
+					((ClothModifierData *)md)->coll_parms = NULL;
+					((ClothModifierData *)md)->point_cache = NULL;
+					next=md->next;
+					BLI_remlink(&ob->modifiers, md);
+					md = next;
+				}
+				else
+					md = md->next;
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

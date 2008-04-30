@@ -3188,7 +3188,7 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 			actname= "Object";
 		
 		if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
-			if (ob->ipo || ob->action) {
+			if ((ob->ipo) || (ob->action)) {
 				ID *id= (ID *)(ob);
 				
 				if (ob->ipo) {
@@ -3215,6 +3215,7 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 			}
 		}
 		else if (IS_AUTOKEY_FLAG(INSERTNEEDED)) {
+			ID *id= (ID *)(ob);
 			short doLoc=0, doRot=0, doScale=0;
 			
 			/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
@@ -3245,33 +3246,35 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 			}
 			
 			if (doLoc) {
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_LOC_X);
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_LOC_Y);
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_LOC_Z);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_LOC_X);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_LOC_Y);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_LOC_Z);
 			}
 			if (doRot) {
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_ROT_X);
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_ROT_Y);
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_ROT_Z);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_ROT_X);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_ROT_Y);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_ROT_Z);
 			}
 			if (doScale) {
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_SIZE_X);
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_SIZE_Y);
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_SIZE_Z);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_SIZE_X);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_SIZE_Y);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_SIZE_Z);
 			}
 		}
 		else {
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_X, 0);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Y, 0);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Z, 0);
+			ID *id= (ID *)(ob);
 			
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_X, 0);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Y, 0);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Z, 0);
-						
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_X, 0);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Y, 0);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Z, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_LOC_X, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_LOC_Y, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_LOC_Z, 0);
+			
+			insertkey(id, ID_OB, actname, NULL, OB_ROT_X, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_ROT_Y, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_ROT_Z, 0);
+			
+			insertkey(id, ID_OB, actname, NULL, OB_SIZE_X, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_SIZE_Y, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_SIZE_Z, 0);
 		}
 		
 		remake_object_ipos(ob);
@@ -3286,6 +3289,7 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
  */
 void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 {
+	ID *id= (ID *)(ob);
 	bArmature *arm= ob->data;
 	bAction	*act;
 	bPose	*pose;
@@ -3348,36 +3352,36 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 					}
 					
 					if (doLoc) {
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_LOC_X);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
 					}
 					if (doRot) {
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
 					}
 					if (doScale) {
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_SIZE_X);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
 					}
 				}
 				/* insert keyframe in any channel that's appropriate */
 				else {
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
 					
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
 					
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
 				}
 			}
 		}

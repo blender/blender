@@ -2,7 +2,10 @@
 import os
 import os.path
 import SCons.Options
-import SCons.Options.BoolOption
+try:
+    import SCons.Options.BoolOption
+except ImportError:
+    pass
 try:
     import subprocess
 except ImportError:
@@ -31,7 +34,7 @@ def validate_arguments(args, bc):
             'WITH_BF_FMOD',
             'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH',
             'WITH_BF_DDS',
-            'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB', 'BF_FFMPEG',  'BF_FFMPEG_INC',
+            'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB','BF_FFMPEG_EXTRA', 'BF_FFMPEG',  'BF_FFMPEG_INC',
             'WITH_BF_JPEG', 'BF_JPEG', 'BF_JPEG_INC', 'BF_JPEG_LIB', 'BF_JPEG_LIBPATH',
             'WITH_BF_PNG', 'BF_PNG', 'BF_PNG_INC', 'BF_PNG_LIB', 'BF_PNG_LIBPATH',
             'BF_TIFF', 'BF_TIFF_INC',
@@ -60,14 +63,17 @@ def validate_arguments(args, bc):
             'WITHOUT_BF_INSTALL',
             'WITH_BF_OPENMP',
             'WITHOUT_BF_INSTALL',
-            'BF_FANCY', 'BF_QUIET'
+            'BF_FANCY', 'BF_QUIET',
+            'BF_X264_CONFIG',
+            'BF_XVIDCORE_CONFIG',
             ]
 
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
             'BF_INSTALLDIR', 'BF_TOOLSET', 'BF_BINNAME',
             'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE',
-            'BF_DEBUG_FLAGS', 'BF_BSC',
-            'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', "BF_QUICKDEBUG", "BF_LISTDEBUG", 'LCGDIR']
+            'BF_DEBUG_FLAGS', 'BF_BSC', 'BF_CONFIG',
+            'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', 'BF_QUICKDEBUG',
+            'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG']
 
     all_list = opts_list + arg_list
     okdict = {}
@@ -174,6 +180,7 @@ def read_opts(cfg, args):
         (BoolOption('WITH_BF_FFMPEG', 'Use FFMPEG if true', 'false')),
         ('BF_FFMPEG', 'FFMPEG base path', ''),
         ('BF_FFMPEG_LIB', 'FFMPEG library', ''),
+        ('BF_FFMPEG_EXTRA', 'FFMPEG flags that must be preserved', ''),
 
         ('BF_FFMPEG_INC', 'FFMPEG includes', ''),
         ('BF_FFMPEG_LIBPATH', 'FFMPEG library path', ''),
@@ -310,6 +317,9 @@ def read_opts(cfg, args):
         (BoolOption('BF_FANCY', 'Enable fancy output if true', 'true')),
         (BoolOption('BF_QUIET', 'Enable silent output if true', 'true')),
         (BoolOption('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', 'false')),
+
+        ('BF_X264_CONFIG', 'configuration flags for x264', ''),
+        ('BF_XVIDCORE_CONFIG', 'configuration flags for xvidcore', ''),
 
     ) # end of opts.AddOptions()
 

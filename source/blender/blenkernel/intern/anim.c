@@ -733,7 +733,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 	ParticleSystemModifierData *psmd;
 	float ctime, pa_time, scale = 1.0f;
 	float tmat[4][4], mat[4][4], obrotmat[4][4], pamat[4][4], size=0.0;
-	float obmat[4][4], (*obmatlist)[4][4]=0;
+	float (*obmat)[4];
 	float xvec[3] = {-1.0, 0.0, 0.0}, q[4];
 	int lay, a, b, k, step_nbr = 0, counter, hair = 0;
 	int totpart, totchild, totgroup=0, pa_num;
@@ -788,17 +788,12 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 			}
 
 			oblist= MEM_callocN(totgroup*sizeof(Object *), "dupgroup object list");
-			obmatlist= MEM_callocN(totgroup*sizeof(float)*4*4, "dupgroup obmat list");
 			go= part->dup_group->gobject.first;
-			for(a=0; a<totgroup; a++, go=go->next) {
+			for(a=0; a<totgroup; a++, go=go->next)
 				oblist[a]=go->ob;
-				Mat4CpyMat4(obmatlist[a], go->ob->obmat);
-			}
 		}
-		else {
+		else
 			ob = part->dup_ob;
-			Mat4CpyMat4(obmat, ob->obmat);
-		}
 
 		if(totchild==0 || part->draw & PART_DRAW_PARENT)
 			a=0;
@@ -834,8 +829,10 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 					b= a % totgroup;
 
 				ob = oblist[b];
-				Mat4CpyMat4(obmat, obmatlist[b]);
+				obmat= oblist[b]->obmat;
 			}
+			else
+				obmat= ob->obmat;
 
 			for(k=0; k<=step_nbr; k++, counter++) {
 				if(hair) {
@@ -871,7 +868,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 				if(part->draw_as==PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
 					for(go= part->dup_group->gobject.first, b=0; go; go= go->next, b++) {
 
-						Mat4MulMat4(tmat, obmatlist[b], pamat);
+						Mat4MulMat4(tmat, obmat, pamat);
 						Mat4MulFloat3((float *)tmat, size*scale);
 						if(par_space_mat)
 							Mat4MulMat4(mat, tmat, par_space_mat);
@@ -912,8 +909,6 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 	}
 	if(oblist)
 		MEM_freeN(oblist);
-	if(obmatlist)
-		MEM_freeN(obmatlist);
 
 	if(psys->lattice) {
 		end_latt_deform();

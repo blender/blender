@@ -6,7 +6,7 @@ if env['WITH_BF_GLEXT'] == 1:
 
 sources = env.Glob('*.cpp') #'RAS_GLExtensionManager.cpp RAS_ListRasterizer.cpp RAS_OpenGLRasterizer.cpp RAS_VAOpenGLRasterizer.cpp'
 
-incs = '. #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/Rasterizer'
+incs = '. #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/Rasterizer #source/gameengine/BlenderRoutines'
 incs += ' ' + env['BF_OPENGL_INC']
 
 env.BlenderLib ( 'bf_oglrasterizer', Split(sources), Split(incs), [], libtype=['game','player'], priority=[40, 120] )

@@ -263,8 +263,6 @@ static void main_init_screen( void )
 	if(G.main->scene.first==0) {
 		set_scene( add_scene("1") );
 	}
-
-	screenmain();
 }
 
 int main(int argc, char **argv)
@@ -815,6 +813,8 @@ int main(int argc, char **argv)
 	if (scr_init==0) {
 		main_init_screen();
 	}
+	
+	screenmain(); /* main display loop */
 
 	return 0;
 } /* end of int main(argc,argv)	*/

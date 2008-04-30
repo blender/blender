@@ -212,7 +212,6 @@ int reopen_text(Text *text)
 	int i, llen, len;
 	unsigned char *buffer;
 	TextLine *tmp;
-	char sdir[FILE_MAXDIR];
 	char sfile[FILE_MAXFILE];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
@@ -220,7 +219,7 @@ int reopen_text(Text *text)
 	
 	BLI_strncpy(str, text->name, FILE_MAXDIR+FILE_MAXFILE);
 	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
-	BLI_split_dirfile(str, sdir, sfile);
+	BLI_split_dirfile_basic(str, NULL, sfile);
 	
 	fp= fopen(str, "r");
 	if(fp==NULL) return 0;
@@ -312,14 +311,13 @@ Text *add_text(char *file)
 	unsigned char *buffer;
 	TextLine *tmp;
 	Text *ta;
-	char sdir[FILE_MAXDIR];
 	char sfile[FILE_MAXFILE];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
 	BLI_strncpy(str, file, FILE_MAXDIR+FILE_MAXFILE);
 	if (G.scene) /* can be NULL (bg mode) */
 		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
-	BLI_split_dirfile(str, sdir, sfile);
+	BLI_split_dirfile_basic(str, NULL, sfile);
 	
 	fp= fopen(str, "r");
 	if(fp==NULL) return NULL;

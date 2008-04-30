@@ -1368,7 +1368,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	float 		gravity[3];
 	float 		tm2[3][3] 	= {{-spring_air,0,0}, {0,-spring_air,0},{0,0,-spring_air}};
 	MFace 		*mfaces 	= cloth->mfaces;
-	ClothVertex 	*verts		= cloth->verts;
+	//ClothVertex 	*verts		= cloth->verts;
 	float wind_normalized[3];
 	unsigned int numverts = cloth->numverts;
 	LinkNode *search = cloth->springs;

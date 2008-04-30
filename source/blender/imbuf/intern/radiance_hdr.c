@@ -251,7 +251,7 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 }
 
 /* ImBuf write */
-static int fwritecolrs(FILE* file, int width, unsigned char* ibufscan, float* fpscan)
+static int fwritecolrs(FILE* file, int width, int channels, unsigned char* ibufscan, float* fpscan)
 {
 	int x, i, j, beg, c2, cnt=0;
 	fCOLOR fcol;
@@ -266,16 +266,16 @@ static int fwritecolrs(FILE* file, int width, unsigned char* ibufscan, float* fp
 	for (i=0;i<width;i++) {
 		if (fpscan) {
 			fcol[RED] = fpscan[j];
-			fcol[GRN] = fpscan[j+1];
-			fcol[BLU] = fpscan[j+2];
+			fcol[GRN] = (channels >= 2)? fpscan[j+1]: fpscan[j];
+			fcol[BLU] = (channels >= 3)? fpscan[j+2]: fpscan[j];
 		} else {
 			fcol[RED] = (float)ibufscan[j] / 255.f;
-			fcol[GRN] = (float)ibufscan[j+1] / 255.f;
-			fcol[BLU] = (float)ibufscan[j+2] /255.f;
+			fcol[GRN] = (float)((channels >= 2)? ibufscan[j+1]: ibufscan[j]) / 255.f;
+			fcol[BLU] = (float)((channels >= 3)? ibufscan[j+2]: ibufscan[j]) / 255.f;
 		}
 		FLOAT2RGBE(fcol, rgbe);
 		copy_rgbe(rgbe, rgbe_scan[i]);
-		j+=4;
+		j+=channels;
 	}
 
 	if ((width < MINELEN) | (width > MAXELEN)) {	/* OOBs, write out flat */
@@ -348,18 +348,18 @@ short imb_savehdr(struct ImBuf *ibuf, char *name, int flags)
 	writeHeader(file, width, height);
 
 	if(ibuf->rect)
-		cp= (unsigned char *)(ibuf->rect + (height-1)*width);
+		cp= (unsigned char *)ibuf->rect + ibuf->channels*(height-1)*width;
 	if(ibuf->rect_float)
-		fp= ibuf->rect_float + 4*(height-1)*width;
+		fp= ibuf->rect_float + ibuf->channels*(height-1)*width;
 	
 	for (y=height-1;y>=0;y--) {
-		if (fwritecolrs(file, width, cp, fp) < 0) {
+		if (fwritecolrs(file, width, ibuf->channels, cp, fp) < 0) {
 			fclose(file);
 			printf("HDR write error\n");
 			return 0;
 		}
-		if(cp) cp-= 4*width;
-		if(fp) fp-= 4*width;
+		if(cp) cp-= ibuf->channels*width;
+		if(fp) fp-= ibuf->channels*width;
 	}
 
 	fclose(file);

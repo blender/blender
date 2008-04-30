@@ -2988,7 +2988,7 @@ ParticleSettings *psys_copy_settings(ParticleSettings *part)
 	return partn;
 }
 
-void psys_make_local_settings(ParticleSettings *part)
+void make_local_particlesettings(ParticleSettings *part)
 {
 	Object *ob;
 	ParticleSettings *par;

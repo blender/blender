@@ -143,7 +143,7 @@ if crossbuild and platform!='win32':
 
 env['OURPLATFORM'] = platform
 
-configfile = B.arguments.get('BF_CONFIG', 'config'+os.sep+platform+'-config.py')
+configfile = 'config'+os.sep+platform+'-config.py'
 
 if os.path.exists(configfile):
     print B.bc.OKGREEN + "Using config file: " + B.bc.ENDC + configfile
@@ -157,13 +157,14 @@ if crossbuild and env['PLATFORM'] != 'win32':
     # Needed for gui programs, console programs should do without it
     env.Append(LINKFLAGS=['-mwindows'])
 
+userconfig = B.arguments.get('BF_CONFIG', 'user-config.py')
 # first read platform config. B.arguments will override
 optfiles = [configfile]
-if os.path.exists('user-config.py'):
-    print B.bc.OKGREEN + "Using config file: " + B.bc.ENDC + 'user-config.py'
-    optfiles += ['user-config.py']
+if os.path.exists(userconfig):
+    print B.bc.OKGREEN + "Using user-config file: " + B.bc.ENDC + userconfig
+    optfiles += [userconfig]
 else:
-    print B.bc.WARNING + 'user-config.py' + " not found, no user overrides" + B.bc.ENDC
+    print B.bc.WARNING + userconfig + " not found, no user overrides" + B.bc.ENDC
 
 opts = btools.read_opts(optfiles, B.arguments)
 opts.Update(env)
@@ -178,20 +179,20 @@ if env['BF_NO_ELBEEM'] == 1:
     env['CCFLAGS'].append('-DDISABLE_ELBEEM')
 
 if env['WITH_BF_OPENMP'] == 1:
-	if env['OURPLATFORM']=='win32-vc':
-		env['CCFLAGS'].append('/openmp')
-		env['CPPFLAGS'].append('/openmp')
-		env['CXXFLAGS'].append('/openmp')
-	else:
-		if env['CC'] == 'icc':
-			env.Append(LINKFLAGS=['-openmp', '-static-intel'])
-			env['CCFLAGS'].append('-openmp')
-			env['CPPFLAGS'].append('-openmp')
-			env['CXXFLAGS'].append('-openmp')
-		else:
-			env['CCFLAGS'].append('-fopenmp')
-			env['CPPFLAGS'].append('-fopenmp')
-			env['CXXFLAGS'].append('-fopenmp')
+        if env['OURPLATFORM']=='win32-vc':
+                env['CCFLAGS'].append('/openmp')
+                env['CPPFLAGS'].append('/openmp')
+                env['CXXFLAGS'].append('/openmp')
+        else:
+            if env['CC'] == 'icc':
+                env.Append(LINKFLAGS=['-openmp', '-static-intel'])
+                env['CCFLAGS'].append('-openmp')
+                env['CPPFLAGS'].append('-openmp')
+                env['CXXFLAGS'].append('-openmp')
+            else:
+                env['CCFLAGS'].append('-fopenmp')
+                env['CPPFLAGS'].append('-fopenmp')
+                env['CXXFLAGS'].append('-fopenmp')
 
 #check for additional debug libnames
 
@@ -263,10 +264,18 @@ if not quickie and do_clean:
     if os.path.exists(B.root_build_dir):
         print B.bc.HEADER+'Cleaning...'+B.bc.ENDC
         dirs = os.listdir(B.root_build_dir)
-        for dir in dirs:
-            if os.path.isdir(B.root_build_dir + dir) == 1:
-                print "clean dir %s"%(B.root_build_dir+dir)
-                shutil.rmtree(B.root_build_dir+dir)
+        for entry in dirs:
+            if os.path.isdir(B.root_build_dir + entry) == 1:
+                print "clean dir %s"%(B.root_build_dir+entry)
+                shutil.rmtree(B.root_build_dir+entry)
+            else: # remove file
+                print "remove file %s"%(B.root_build_dir+entry)
+                os.remove(B.root_build_dir+entry)
+        for confile in ['extern/ffmpeg/config.mak', 'extern/x264/config.mak',
+                'extern/xvidcore/build/generic/platform.inc']:
+            if os.path.exists(confile):
+                print "clean file %s"%confile
+                os.remove(confile)
         print B.bc.OKGREEN+'...done'+B.bc.ENDC
     else:
         print B.bc.HEADER+'Already Clean, nothing to do.'+B.bc.ENDC
@@ -355,30 +364,30 @@ dottargetlist = []
 scriptinstall = []
 
 if  env['OURPLATFORM']!='darwin':
-	for dp, dn, df in os.walk('bin/.blender'):
-	    if 'CVS' in dn:
-	        dn.remove('CVS')
-	    if '.svn' in dn:
-	        dn.remove('.svn')
-	    for f in df:
-	        dotblendlist.append(dp+os.sep+f)
-	        dottargetlist.append(env['BF_INSTALLDIR']+dp[3:]+os.sep+f)
+        for dp, dn, df in os.walk('bin/.blender'):
+            if 'CVS' in dn:
+                dn.remove('CVS')
+            if '.svn' in dn:
+                dn.remove('.svn')
+            for f in df:
+                dotblendlist.append(dp+os.sep+f)
+                dottargetlist.append(env['BF_INSTALLDIR']+dp[3:]+os.sep+f)
 
-	dotblenderinstall = []
-	for targetdir,srcfile in zip(dottargetlist, dotblendlist):
-	    td, tf = os.path.split(targetdir)
-	    dotblenderinstall.append(env.Install(dir=td, source=srcfile))
-	
-	#-- .blender/scripts	
-	scriptpath='release/scripts'
-	for dp, dn, df in os.walk(scriptpath):
-	    if 'CVS' in dn:
-	        dn.remove('CVS')
-	    if '.svn' in dn:
-	        dn.remove('.svn')
-	    dir=env['BF_INSTALLDIR']+'/.blender/scripts'+dp[len(scriptpath):]
-	    source=[dp+os.sep+f for f in df]
-	    scriptinstall.append(env.Install(dir=dir,source=source))
+        dotblenderinstall = []
+        for targetdir,srcfile in zip(dottargetlist, dotblendlist):
+            td, tf = os.path.split(targetdir)
+            dotblenderinstall.append(env.Install(dir=td, source=srcfile))
+        
+        #-- .blender/scripts    
+        scriptpath='release/scripts'
+        for dp, dn, df in os.walk(scriptpath):
+            if 'CVS' in dn:
+                dn.remove('CVS')
+            if '.svn' in dn:
+                dn.remove('.svn')
+            dir=env['BF_INSTALLDIR']+'/.blender/scripts'+dp[len(scriptpath):]
+            source=[dp+os.sep+f for f in df]
+            scriptinstall.append(env.Install(dir=dir,source=source))
 
 #-- plugins
 pluglist = []
@@ -410,9 +419,9 @@ for tp, tn, tf in os.walk('release/text'):
 textinstall = env.Install(dir=env['BF_INSTALLDIR'], source=textlist)
 
 if  env['OURPLATFORM']=='darwin':
-	allinstall = [blenderinstall, plugininstall, textinstall]
+        allinstall = [blenderinstall, plugininstall, textinstall]
 else:
-	allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall]
+        allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall]
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
     dllsources = ['${LCGDIR}/gettext/lib/gnu_gettext.dll',
@@ -432,10 +441,17 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
         dllsources += ['${LCGDIR}/pthreads/lib/pthreadVC2.dll']
     if env['WITH_BF_ICONV']:
         dllsources += ['${LCGDIR}/iconv/lib/iconv.dll']
-#    if env['WITH_BF_FFMPEG']:
-#        dllsources += ['${LCGDIR}/ffmpeg/lib/avcodec-51.dll',
-#                        '${LCGDIR}/ffmpeg/lib/avformat-51.dll',
-#                        '${LCGDIR}/ffmpeg/lib/avutil-49.dll']
+    if env['WITH_BF_FFMPEG']:
+        dllsources += ['${LCGDIR}/ffmpeg/lib/avcodec-51.dll',
+                        '${LCGDIR}/ffmpeg/lib/avformat-52.dll',
+                        '${LCGDIR}/ffmpeg/lib/avdevice-52.dll',
+                        '${LCGDIR}/ffmpeg/lib/avutil-49.dll',
+                        '${LCGDIR}/ffmpeg/lib/libfaad-0.dll',
+                        '${LCGDIR}/ffmpeg/lib/libfaac-0.dll',
+                        '${LCGDIR}/ffmpeg/lib/libmp3lame-0.dll',
+                        '${LCGDIR}/ffmpeg/lib/libx264-59.dll',
+                        '${LCGDIR}/ffmpeg/lib/xvidcore.dll',
+                        '${LCGDIR}/ffmpeg/lib/swscale-0.dll']
     windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
     allinstall += windlls
 
@@ -459,7 +475,7 @@ Depends(nsiscmd, allinstall)
 Default(B.program_list)
 
 if not env['WITHOUT_BF_INSTALL']:
-	Default(installtarget)
+        Default(installtarget)
 
 #------------ RELEASE
 # TODO: zipup the installation

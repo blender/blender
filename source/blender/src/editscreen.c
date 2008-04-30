@@ -1589,7 +1589,7 @@ void mainwindow_set_filename_to_title(char *filename)
 	char dir[FILE_MAXDIR];
 	char file[FILE_MAXFILE];
 
-	BLI_split_dirfile(filename, dir, file);
+	BLI_split_dirfile_basic(filename, dir, file);
 
 	if(BLI_streq(file, ".B.blend") || filename[0] =='\0')
 		sprintf(str, "Blender");

@@ -47,6 +47,15 @@ public:
 				  PyTypeObject* T =&Type); 
 
 	/**
+	 * UnlinkObject(...)
+	 * Certain actuator use gameobject pointers (like TractTo actuator)
+	 * This function can be called when an object is removed to make
+	 * sure that the actuator will not use it anymore.
+	 */
+
+	virtual bool UnlinkObject(SCA_IObject* clientobj) { return false; }
+
+	/**
 	 * Update(...)
 	 * Update the actuator based upon the events received since 
 	 * the last call to Update, the current time and deltatime the

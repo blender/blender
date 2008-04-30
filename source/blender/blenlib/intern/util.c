@@ -858,6 +858,8 @@ int BLI_strcaseeq(char *a, char *b) {
  * take the dir name, make it absolute, and clean it up, replacing
  * excess file entry stuff (like /tmp/../tmp/../)
  * note that dir isn't protected for max string names... 
+ * 
+ * If relbase is NULL then its ignored
  */
 
 void BLI_cleanup_dir(const char *relabase, char *dir)
@@ -874,9 +876,9 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 {
 	short a;
 	char *start, *eind;
-	
-	BLI_convertstringcode(dir, relabase, 0);
-	
+	if (relabase) {
+		BLI_convertstringcode(dir, relabase, 0);
+	}
 #ifdef WIN32
 	if(dir[0]=='.') {	/* happens for example in FILE_MAIN */
 	   get_default_root(dir);
@@ -954,7 +956,7 @@ void BLI_makestringcode(const char *relfile, char *file)
 	char * lslash;
 	char temp[FILE_MAXDIR+FILE_MAXFILE];
 	char res[FILE_MAXDIR+FILE_MAXFILE];
-
+	
 	/* if file is already relative, bail out */
 	if(file[0]=='/' && file[1]=='/') return;
 	
@@ -986,7 +988,11 @@ void BLI_makestringcode(const char *relfile, char *file)
 
 	BLI_char_switch(temp, '\\', '/');
 	BLI_char_switch(file, '\\', '/');
-
+	
+	/* remove /./ which confuse the following slash counting... */
+	BLI_cleanup_file(NULL, file);
+	BLI_cleanup_file(NULL, temp);
+	
 	/* the last slash in the file indicates where the path part ends */
 	lslash = BLI_last_slash(temp);
 
@@ -1064,6 +1070,8 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 #endif
 
 	BLI_strncpy(base, basepath, FILE_MAX);
+	
+	BLI_cleanup_file(NULL, base);
 	
 	/* push slashes into unix mode - strings entering this part are
 	   potentially messed up: having both back- and forward slashes.
@@ -1147,7 +1155,7 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 	*/
 	BLI_char_switch(path+2, '/', '\\');
 #endif
-
+	
 	return wasrelative;
 }
 
@@ -1426,8 +1434,41 @@ int BLI_testextensie(const char *str, const char *ext)
 	return (retval);
 }
 
+/*
+ * This is a simple version of BLI_split_dirfile that has the following advantages...
+ * 
+ * Converts "/foo/bar.txt" to "/foo/" and "bar.txt"
+ * - wont change 'string'
+ * - wont create any directories
+ * - dosnt use CWD, or deal with relative paths.
+ * - Only fill's in *dir and *file when they are non NULL
+ * */
+void BLI_split_dirfile_basic(const char *string, char *dir, char *file)
+{
+	int lslash=0, i = 0;
+	for (i=0; string[i]!='\0'; i++) {
+		if (string[i]=='\\' || string[i]=='/')
+			lslash = i+1;
+	}
+	if (dir) {
+		if (lslash) {
+			BLI_strncpy( dir, string, lslash+1); /* +1 to include the slash and the last char */
+		} else {
+			dir[0] = '\0';
+		}
+	}
+	
+	if (file) {
+		strcpy( file, string+lslash);
+	}
+}
 
-/* warning, can modify 'string' */
+
+/* Warning,
+ * - May modify 'string' variable
+ * - May create the directory if it dosnt exist
+ * if this is not needed use BLI_split_dirfile_basic(...)
+ */
 void BLI_split_dirfile(char *string, char *dir, char *file)
 {
 	int a;

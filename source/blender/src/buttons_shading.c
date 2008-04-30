@@ -3440,9 +3440,9 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	uiBlockEndAlign(block);
 
 	if(ELEM(mtex->texco, TEXCO_UV, TEXCO_ORCO))
-		uiDefButBitS(block, TOG, MTEX_DUPLI_MAPTO, B_MATPRV, "From Dupli",	820,140,88,18, &(mtex->texflag), 0, 0, 0, 0, "If object is duplicated by vertices, faces or particles, inherit texture coordinate from parent object");
+		uiDefButBitS(block, TOG, MTEX_DUPLI_MAPTO, B_MATPRV, "From Dupli",	820,140,88,18, &(mtex->texflag), 0, 0, 0, 0, "Dupli's instanced from verts, faces or particles, inherit texture coordinate from their parent");
 	else if(mtex->texco == TEXCO_OBJECT)
-		uiDefButBitS(block, TOG, MTEX_OB_DUPLI_ORIG, B_MATPRV, "From Original",	820,140,88,18, &(mtex->texflag), 0, 0, 0, 0, "If object is duplicated, use object coordinates as if the object was in its original position");
+		uiDefButBitS(block, TOG, MTEX_OB_DUPLI_ORIG, B_MATPRV, "From Original",	820,140,88,18, &(mtex->texflag), 0, 0, 0, 0, "Dupli's derive their object coordinates from the original objects transformation");
 
 
 	/* COORDS */

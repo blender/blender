@@ -110,7 +110,8 @@ void RegisterBlendExtension(char * str);
 DIR *opendir (const char *path);
 struct dirent *readdir(DIR *dp);
 int closedir (DIR *dp);
-void get_default_root(char* root);
+void get_default_root(char *root);
+int check_file_chars(char *filename);
 
 #endif /* __WINSTUFF_H__ */
 

@@ -523,25 +523,6 @@ static void write_userdef(WriteData *wd)
 	}
 }
 
-static void write_effects(WriteData *wd, ListBase *lb)
-{
-	Effect *eff;
-
-	eff= lb->first;
-	while(eff) {
-
-		switch(eff->type) {
-		case EFF_PARTICLE:
-			writestruct(wd, DATA, "PartEff", 1, eff);
-			break;
-		default:
-			writedata(wd, DATA, MEM_allocN_len(eff), eff);
-		}
-
-		eff= eff->next;
-	}
-}
-
 static void write_particlesettings(WriteData *wd, ListBase *idbase)
 {
 	ParticleSettings *part;
@@ -908,7 +889,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 
 			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*ob->totcol, ob->mat);
-			write_effects(wd, &ob->effect);
+			/* write_effects(wd, &ob->effect); */ /* not used anymore */
 			write_properties(wd, &ob->prop);
 			write_sensors(wd, &ob->sensors);
 			write_controllers(wd, &ob->controllers);

@@ -1420,6 +1420,16 @@ static void filesel_execute(SpaceFile *sfile)
 		return;
 	}
 	
+#ifdef WIN32
+	if ( (sfile->type!=FILE_LOADLIB) && (sfile->type!=FILE_MAIN) ) {
+		if (!check_file_chars(sfile->file)) {
+			error("You have illegal characters in the filename. Check console for more info.");
+			printf("Characters '*?:|\"<>\\/' are illegal in a filename.\n");
+			return;
+		}
+	}
+#endif
+
 	filesel_prevspace();
 
 	if(sfile->type==FILE_LOADLIB) {

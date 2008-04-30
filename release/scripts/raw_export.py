@@ -2,9 +2,9 @@
 
 """
 Name: 'Raw Faces (.raw)...'
-Blender: 242
+Blender: 245
 Group: 'Export'
-Tooltip: 'Export selected mesh to Raw Triangle Format (.raw)'
+Tooltip: 'Export selected mesh to Raw Format (.raw)'
 """
 
 __author__ = "Anthony D'Agostino (Scorpius)"
@@ -13,10 +13,10 @@ __url__ = ("blender", "blenderartists.org",
 __version__ = "Part of IOSuite 0.5"
 
 __bpydoc__ = """\
-This script exports meshes to Raw Triangle file format.
+This script exports meshes to Raw file format.
 
 The raw triangle format is very simple; it has no verts or faces lists.
-It's just a simple ascii text file with the vertices of each triangle
+It's just a simple ascii text file with the vertices of each triangle or quad
 listed on each line. There were some very old utilities (when the PovRay
 forum was in existence on CompuServe) that preformed operations on these
 files.
@@ -65,24 +65,24 @@ def write(filename):
 		filename += '.raw'
 	
 	scn= Blender.Scene.GetCurrent()
-	object= scn.getActiveObject()
-	if not object:
+	ob= scn.objects.active
+	if not ob:
 		Blender.Draw.PupMenu('Error%t|Select 1 active object')
 		return
 	
 	file = open(filename, 'wb')
 	
-	mesh = BPyMesh.getMeshFromObject(object, None, True, False, scn)
+	mesh = BPyMesh.getMeshFromObject(ob, None, True, False, scn)
 	if not mesh:
 		Blender.Draw.PupMenu('Error%t|Could not get mesh data from active object')
 		return
 	
-	mesh.transform(object.matrixWorld)
+	mesh.transform(ob.matrixWorld)
 	
 	
 	file = open(filename, "wb")
 	for f in mesh.faces:
-		for v in f.v:
+		for v in f:
 			file.write('%.6f %.6f %.6f ' % tuple(v.co))
 		file.write('\n')
 	file.close()
