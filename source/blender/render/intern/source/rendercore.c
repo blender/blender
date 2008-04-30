@@ -319,22 +319,27 @@ static void halo_tile(RenderPart *pa, RenderLayer *rl)
 
 static void lamphalo_tile(RenderPart *pa, RenderLayer *rl)
 {
+	RenderLayer *rlpp[RE_MAX_OSA];
 	ShadeInput shi;
-	float *pass= rl->rectf;
-	float fac;
+	float *pass;
+	float fac, col[4];
 	long *rd= pa->rectdaps;
-	int x, y, *rz= pa->rectz;
+	int *rz= pa->rectz;
+	int x, y, sample, totsample, fullsample, od;
 	
+	totsample= get_sample_layers(pa, rl, rlpp);
+	fullsample= (totsample > 1);
+
 	shade_input_initialize(&shi, pa, rl, 0); /* this zero's ShadeInput for us */
 	
-	for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
-		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, rz++, pass+=4) {
+	for(od=0, y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
+		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, rz++, od++) {
 			
 			calc_view_vector(shi.view, x, y);
 			
 			if(rd && *rd) {
 				PixStr *ps= (PixStr *)*rd;
-				int samp, totsamp= 0;
+				int count, totsamp= 0, mask= 0;
 				
 				while(ps) {
 					if(R.r.mode & R_ORTHO)
@@ -342,15 +347,64 @@ static void lamphalo_tile(RenderPart *pa, RenderLayer *rl)
 					else
 						calc_renderco_zbuf(shi.co, shi.view, ps->z);
 					
-					totsamp+= samp= count_mask(ps->mask);
-					fac= ((float)samp)/(float)R.osa;
-					renderspothalo(&shi, pass, fac);
+					totsamp+= count= count_mask(ps->mask);
+					mask |= ps->mask;
+
+					col[0]= col[1]= col[2]= col[3]= 0.0f;
+					renderspothalo(&shi, col, 1.0f);
+
+					if(fullsample) {
+						for(sample=0; sample<totsample; sample++) {
+							if(ps->mask & (1 << sample)) {
+								pass= rlpp[sample]->rectf + od*4;
+								pass[0]+= col[0];
+								pass[1]+= col[1];
+								pass[2]+= col[2];
+								pass[3]+= col[3];
+								if(pass[3]>1.0f) pass[3]= 1.0f;
+							}
+						}
+					}
+					else {
+						fac= ((float)count)/(float)R.osa;
+						pass= rl->rectf + od*4;
+						pass[0]+= fac*col[0];
+						pass[1]+= fac*col[1];
+						pass[2]+= fac*col[2];
+						pass[3]+= fac*col[3];
+						if(pass[3]>1.0f) pass[3]= 1.0f;
+					}
+
 					ps= ps->next;
 				}
+
 				if(totsamp<R.osa) {
-					fac= ((float)R.osa-totsamp)/(float)R.osa;
 					shi.co[2]= 0.0f;
-					renderspothalo(&shi, pass, fac);
+
+					col[0]= col[1]= col[2]= col[3]= 0.0f;
+					renderspothalo(&shi, col, 1.0f);
+
+					if(fullsample) {
+						for(sample=0; sample<totsample; sample++) {
+							if(!(mask & (1 << sample))) {
+								pass= rlpp[sample]->rectf + od*4;
+								pass[0]+= col[0];
+								pass[1]+= col[1];
+								pass[2]+= col[2];
+								pass[3]+= col[3];
+								if(pass[3]>1.0f) pass[3]= 1.0f;
+							}
+						}
+					}
+					else {
+						fac= ((float)R.osa-totsamp)/(float)R.osa;
+						pass= rl->rectf + od*4;
+						pass[0]+= fac*col[0];
+						pass[1]+= fac*col[1];
+						pass[2]+= fac*col[2];
+						pass[3]+= fac*col[3];
+						if(pass[3]>1.0f) pass[3]= 1.0f;
+					}
 				}
 			}
 			else {
@@ -359,7 +413,17 @@ static void lamphalo_tile(RenderPart *pa, RenderLayer *rl)
 				else
 					calc_renderco_zbuf(shi.co, shi.view, *rz);
 				
-				renderspothalo(&shi, pass, 1.0f);
+				col[0]= col[1]= col[2]= col[3]= 0.0f;
+				renderspothalo(&shi, col, 1.0f);
+
+				for(sample=0; sample<totsample; sample++) {
+					pass= rlpp[sample]->rectf + od*4;
+					pass[0]+= col[0];
+					pass[1]+= col[1];
+					pass[2]+= col[2];
+					pass[3]+= col[3];
+					if(pass[3]>1.0f) pass[3]= 1.0f;
+				}
 			}
 			
 			if(rd) rd++;
@@ -1366,19 +1430,8 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 	/* texture blending */
 	texfac= shi->mat->sss_texfac;
 
-	alpha= shr.col[3];
+	alpha= shr.combined[3];
 	*area *= alpha;
-
-	if(texfac == 0.0f) {
-		if(shr.col[0]!=0.0f) color[0] *= alpha/shr.col[0];
-		if(shr.col[1]!=0.0f) color[1] *= alpha/shr.col[1];
-		if(shr.col[2]!=0.0f) color[2] *= alpha/shr.col[2];
-	}
-	else if(texfac != 1.0f && (alpha > FLT_EPSILON)) {
-		if(shr.col[0]!=0.0f) color[0] *= alpha*pow(shr.col[0]/alpha, texfac)/shr.col[0];
-		if(shr.col[1]!=0.0f) color[1] *= alpha*pow(shr.col[1]/alpha, texfac)/shr.col[1];
-		if(shr.col[2]!=0.0f) color[2] *= alpha*pow(shr.col[2]/alpha, texfac)/shr.col[2];
-	}
 }
 
 static void zbufshade_sss_free(RenderPart *pa)
@@ -2242,8 +2295,11 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 			}
 		}
 
-		if (hit && bs->type==RE_BAKE_DISPLACEMENT) {;
-			bake_displacement(handle, shi, (dir==-1)? mindist:-mindist, x, y);
+		if (bs->type==RE_BAKE_DISPLACEMENT) {
+			if(hit)
+				bake_displacement(handle, shi, (dir==-1)? mindist:-mindist, x, y);
+			else
+				bake_displacement(handle, shi, 0.0f, x, y);
 			return;
 		}
 

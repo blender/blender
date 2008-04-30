@@ -374,8 +374,9 @@ void poselib_add_current_pose (Object *ob, int val)
 		/* check if available */
 		if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
 			if (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) {
-				/* make action-channel if needed */
+				/* make action-channel if needed (action groups are also created) */
 				achan= verify_action_channel(act, pchan->name);
+				verify_pchan2achan_grouping(act, pose, pchan->name);
 				
 				/* make ipo if needed... */
 				if (achan->ipo == NULL)

@@ -639,11 +639,13 @@ int BPY_txt_do_python_Text( struct Text *text )
 		if( !strcmp( script->id.name + 2, text->id.name + 2 ) ) {
 			/* if this text is already a running script, 
 			 * just move to it: */
-			SpaceScript *sc;
-			newspace( curarea, SPACE_SCRIPT );
-			sc = curarea->spacedata.first;
-			sc->script = script;
-			return 1;
+			if (!G.background) {
+				SpaceScript *sc;
+				newspace( curarea, SPACE_SCRIPT );
+				sc = curarea->spacedata.first;
+				sc->script = script;
+				return 1;
+			}
 		}
 		script = script->id.next;
 	}
@@ -943,10 +945,12 @@ int BPY_run_script(Script *script)
 
 			/* special case: called from the menu in the Scripts window
 			 * we have to change sc->script pointer, since it'll be freed here.*/
-			if( curarea->spacetype == SPACE_SCRIPT ) {
-				SpaceScript *sc = curarea->spacedata.first;
-				sc->script = G.main->script.first;	/* can be null, which is ok ... */
-				/* ... meaning no other script is running right now. */
+			if (!G.background) {
+				if( curarea->spacetype == SPACE_SCRIPT ) {
+					SpaceScript *sc = curarea->spacedata.first;
+					sc->script = G.main->script.first;	/* can be null, which is ok ... */
+					/* ... meaning no other script is running right now. */
+				}
 			}
 
 		}

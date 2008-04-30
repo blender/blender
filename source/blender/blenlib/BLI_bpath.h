@@ -33,6 +33,7 @@ struct BPathIteratorSeqData {
 	int totseq;
 	int seq;
 	struct Sequence **seqar; /* Sequence */
+	struct Scene *scene;			/* Current scene */
 };
 
 struct BPathIterator {

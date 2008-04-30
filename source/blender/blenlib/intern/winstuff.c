@@ -196,6 +196,27 @@ void get_default_root(char* root) {
 	}
 }
 
+int check_file_chars(char *filename)
+{
+	char *p = filename;
+	while (*p) {
+		switch (*p) {
+			case ':':
+			case '?':
+			case '*':
+			case '|':
+			case '\\':
+			case '/':
+			case '\"':
+				return 0;
+				break;
+		}
+
+		p++;
+	}
+	return 1;
+}
+
 #else
 
 static void BLI_WINSTUFF_C_IS_EMPTY_FOR_UNIX(void) 

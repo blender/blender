@@ -180,7 +180,7 @@ static void openexr_header_compression(Header *header, int compression)
 
 static short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 {
-	
+	int channels = ibuf->channels;
 	int width = ibuf->x;
 	int height = ibuf->y;
 	int write_zbuf = (flags & IB_zbuffloat) && ibuf->zbuf_float != NULL;   // summarize
@@ -194,7 +194,7 @@ static short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 		header.channels().insert ("R", Channel (HALF));
 		header.channels().insert ("G", Channel (HALF));
 		header.channels().insert ("B", Channel (HALF));
-		if (ibuf->depth==32)
+		if (ibuf->depth==32 && channels >= 4)
 			header.channels().insert ("A", Channel (HALF));
 		if (write_zbuf)		// z we do as float always
 			header.channels().insert ("Z", Channel (FLOAT));
@@ -207,29 +207,29 @@ static short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 		RGBAZ *to = pixels;
 		int xstride= sizeof (RGBAZ);
 		int ystride= xstride*width;
-		
+
 		/* indicate used buffers */
 		frameBuffer.insert ("R", Slice (HALF,  (char *) &pixels[0].r, xstride, ystride));	
 		frameBuffer.insert ("G", Slice (HALF,  (char *) &pixels[0].g, xstride, ystride));
 		frameBuffer.insert ("B", Slice (HALF,  (char *) &pixels[0].b, xstride, ystride));
-		if (ibuf->depth==32)
+		if (ibuf->depth==32 && channels >= 4)
 			frameBuffer.insert ("A", Slice (HALF, (char *) &pixels[0].a, xstride, ystride));
 		if (write_zbuf)
-			frameBuffer.insert ("Z", Slice (FLOAT, (char *) ibuf->zbuf_float + 4*(height-1)*width,
+			frameBuffer.insert ("Z", Slice (FLOAT, (char *)(ibuf->zbuf_float + (height-1)*width),
 											sizeof(float), sizeof(float) * -width));
 		if(ibuf->rect_float) {
 			float *from;
 			
 			for (int i = ibuf->y-1; i >= 0; i--) 
 			{
-				from= ibuf->rect_float + 4*i*width;
+				from= ibuf->rect_float + channels*i*width;
 				
 				for (int j = ibuf->x; j > 0; j--) 
 				{
 					to->r = from[0];
-					to->g = from[1];
-					to->b = from[2];
-					to->a = from[3];
+					to->g = (channels >= 2)? from[1]: from[0];
+					to->b = (channels >= 3)? from[2]: from[0];
+					to->a = (channels >= 4)? from[3]: from[0];
 					to++; from += 4;
 				}
 			}
@@ -239,14 +239,14 @@ static short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 			
 			for (int i = ibuf->y-1; i >= 0; i--) 
 			{
-				from= (unsigned char *)(ibuf->rect + i*width);
+				from= (unsigned char *)ibuf->rect + channels*i*width;
 				
 				for (int j = ibuf->x; j > 0; j--) 
 				{
 					to->r = (float)(from[0])/255.0;
-					to->g = (float)(from[1])/255.0;
-					to->b = (float)(from[2])/255.0;
-					to->a = (float)(from[3])/255.0;
+					to->g = (float)((channels >= 2)? from[1]: from[0])/255.0;
+					to->b = (float)((channels >= 3)? from[2]: from[0])/255.0;
+					to->a = (float)((channels >= 4)? from[3]: from[0])/255.0;
 					to++; from += 4;
 				}
 			}
@@ -272,7 +272,7 @@ static short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 
 static short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 {
-	
+	int channels = ibuf->channels;
 	int width = ibuf->x;
 	int height = ibuf->y;
 	int write_zbuf = (flags & IB_zbuffloat) && ibuf->zbuf_float != NULL;   // summarize
@@ -286,24 +286,29 @@ static short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 		header.channels().insert ("R", Channel (FLOAT));
 		header.channels().insert ("G", Channel (FLOAT));
 		header.channels().insert ("B", Channel (FLOAT));
-		if (ibuf->depth==32)
+		if (ibuf->depth==32 && channels >= 4)
 			header.channels().insert ("A", Channel (FLOAT));
 		if (write_zbuf)
 			header.channels().insert ("Z", Channel (FLOAT));
 		
 		FrameBuffer frameBuffer;			
 		OutputFile *file = new OutputFile(name, header);			
-		float *first= ibuf->rect_float + 4*(height-1)*width;
-		int xstride = sizeof(float) * 4;
+		int xstride = sizeof(float) * channels;
 		int ystride = - xstride*width;
+		float *rect[4] = {NULL, NULL, NULL, NULL};
 
-		frameBuffer.insert ("R", Slice (FLOAT,  (char *) first, xstride, ystride));
-		frameBuffer.insert ("G", Slice (FLOAT,  (char *) (first+1), xstride, ystride));
-		frameBuffer.insert ("B", Slice (FLOAT,  (char *) (first+2), xstride, ystride));
-		if (ibuf->depth==32)
-			frameBuffer.insert ("A", Slice (FLOAT,  (char *) (first+3), xstride, ystride));
+		rect[0]= ibuf->rect_float + channels*(height-1)*width;
+		rect[1]= (channels >= 2)? rect[0]+1: rect[0];
+		rect[2]= (channels >= 3)? rect[0]+2: rect[0];
+		rect[3]= (channels >= 4)? rect[0]+3: rect[0];
+
+		frameBuffer.insert ("R", Slice (FLOAT,  (char *)rect[0], xstride, ystride));
+		frameBuffer.insert ("G", Slice (FLOAT,  (char *)rect[1], xstride, ystride));
+		frameBuffer.insert ("B", Slice (FLOAT,  (char *)rect[2], xstride, ystride));
+		if (ibuf->depth==32 && channels >= 4)
+			frameBuffer.insert ("A", Slice (FLOAT,  (char *)rect[3], xstride, ystride));
 		if (write_zbuf)
-			frameBuffer.insert ("Z", Slice (FLOAT, (char *) ibuf->zbuf_float + 4*(height-1)*width,
+			frameBuffer.insert ("Z", Slice (FLOAT, (char *) (ibuf->zbuf_float + (height-1)*width),
 											sizeof(float), sizeof(float) * -width));
 		file->setFrameBuffer (frameBuffer);				  
 		file->writePixels (height);					  

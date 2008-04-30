@@ -79,6 +79,7 @@
 #include "BKE_utildefines.h"
 
 #include "BIF_previewrender.h"
+#include "BIF_editseq.h"
 
 #include "BPY_extern.h"
 #include "BLI_arithb.h"
@@ -294,6 +295,9 @@ void set_scene_bg(Scene *sce)
 	Group *group;
 	GroupObject *go;
 	int flag;
+	
+	// Note: this here is defined in editseq.c (BIF_editseq.h), NOT in blenkernel! 
+	set_last_seq(NULL);
 	
 	G.scene= sce;
 	

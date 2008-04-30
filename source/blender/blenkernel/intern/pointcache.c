@@ -172,7 +172,7 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 	lib= (pid)? pid->ob->id.lib: NULL;
 
 	if (G.relbase_valid || lib) {
-		char dir[FILE_MAX], file[FILE_MAX]; /* we dont want the dir, only the file */
+		char file[FILE_MAX]; /* we dont want the dir, only the file */
 		char *blendfilename;
 
 		blendfilename= (lib)? lib->filename: G.sce;

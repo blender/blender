@@ -466,7 +466,7 @@ static PyObject *Object_upAxis(BPy_Object * self);
 static PyMethodDef BPy_Object_methods[] = {
 	/* name, method, flags, doc */
 	{"buildParts", ( PyCFunction ) Object_buildParts, METH_NOARGS,
-	 "Recalcs particle system (if any) "},
+	 "Recalcs particle system (if any), (depricated, will always return an empty list in version 2.46)"},
 	{"getIpo", ( PyCFunction ) Object_getIpo, METH_NOARGS,
 	 "Returns the ipo of this object (if any) "},
 	{"clrParent", ( PyCFunction ) Object_clrParent, METH_VARARGS,
@@ -1028,7 +1028,7 @@ static PyObject *M_Object_Duplicate( PyObject * self_unused,
 
 static PyObject *Object_buildParts( BPy_Object * self )
 {
-	build_particle_system( self->object );
+	/* This is now handles by modifiers */
 	Py_RETURN_NONE;
 }
 
@@ -2986,12 +2986,7 @@ static PyObject *Object_getDupliObjects( BPy_Object * self )
 	
 	if(ob->transflag & OB_DUPLI) {
 		/* before make duplis, update particle for current frame */
-		if(ob->transflag & OB_DUPLIVERTS) {
-			PartEff *paf= give_parteff(ob);
-			if(paf) {
-				if(paf->flag & PAF_ANIMATED) build_particle_system(ob);
-			}
-		}
+		/* TODO, build particles for particle dupli's */
 		if(ob->type!=OB_MBALL) {
 			PyObject *list;
 			DupliObject *dupob;
@@ -3035,23 +3030,7 @@ static int Object_setDupliGroup( BPy_Object * self, PyObject * value )
 
 static PyObject *Object_getEffects( BPy_Object * self )
 {
-	PyObject *effect_list, *pyval;
-	Effect *eff;
-
-	effect_list = PyList_New( 0 );
-	if( !effect_list )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"PyList_New() failed" );
-
-	eff = self->object->effect.first;
-
-	while( eff ) {
-		pyval = EffectCreatePyObject( eff, self->object );
-		PyList_Append( effect_list, pyval );
-		Py_DECREF(pyval);
-		eff = eff->next;
-	}
-	return effect_list;
+	return PyList_New( 0 );
 }
 
 static PyObject *Object_getActionStrips( BPy_Object * self )
@@ -5028,7 +5007,7 @@ static PyGetSetDef BPy_Object_getseters[] = {
 
 	{"effects",
 	 (getter)Object_getEffects, (setter)NULL, 
-	 "The list of particle effects associated with the object",
+	 "The list of particle effects associated with the object, (depricated, will always return an empty list in version 2.46)",
 	 NULL},
 	{"actionStrips",
 	 (getter)Object_getActionStrips, (setter)NULL, 

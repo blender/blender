@@ -2032,14 +2032,16 @@ IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constn
 #define BEZT_INSERT_THRESH 	0.00001
 
 /* Binary search algorithm for finding where to insert BezTriple. (for use by insert_bezt_icu)
- * Returns the index to insert before, OR the -(index + 1) to replace. 
- * Caller will need to decrement index if > 0 to add to right place (and avoid segfaults)
+ * Returns the index to insert at (data already at that index will be offset if replace is 0)
  */
-static int binarysearch_bezt_index (BezTriple array[], BezTriple *item, int arraylen)
+static int binarysearch_bezt_index (BezTriple array[], BezTriple *item, int arraylen, short *replace)
 {
 	int start=0, end=arraylen;
 	int loopbreaker= 0, maxloop= arraylen * 2;
 	const float frame= (item)? item->vec[1][0] : 0.0f;
+	
+	/* initialise replace-flag first */
+	*replace= 0;
 	
 	/* sneaky optimisations (don't go through searching process if...):
 	 *	- keyframe to be added is to be added out of current bounds
@@ -2053,17 +2055,21 @@ static int binarysearch_bezt_index (BezTriple array[], BezTriple *item, int arra
 		/* check whether to add before/after/on */
 		float framenum;
 		
-		/* 'First' Keyframe	*/
+		/* 'First' Keyframe (when only one keyframe, this case is used) */
 		framenum= array[0].vec[1][0];
-		if (IS_EQT(frame, framenum, BEZT_INSERT_THRESH))
-			return -1;
+		if (IS_EQT(frame, framenum, BEZT_INSERT_THRESH)) {
+			*replace = 1;
+			return 0;
+		}
 		else if (frame < framenum)
 			return 0;
 			
 		/* 'Last' Keyframe */
 		framenum= array[(arraylen-1)].vec[1][0];
-		if (IS_EQT(frame, framenum, BEZT_INSERT_THRESH))
-			return -(arraylen);
+		if (IS_EQT(frame, framenum, BEZT_INSERT_THRESH)) {
+			*replace= 1;
+			return (arraylen - 1);
+		}
 		else if (frame > framenum)
 			return arraylen;
 	}
@@ -2078,8 +2084,10 @@ static int binarysearch_bezt_index (BezTriple array[], BezTriple *item, int arra
 		float midfra= array[mid].vec[1][0];
 		
 		/* check if exactly equal to midpoint */
-		if (IS_EQT(frame, midfra, BEZT_INSERT_THRESH))
-			return -(mid + 1);
+		if (IS_EQT(frame, midfra, BEZT_INSERT_THRESH)) {
+			*replace = 1;
+			return mid;
+		}
 		
 		/* repeat in upper/lower half */
 		if (frame > midfra)
@@ -2118,19 +2126,17 @@ int insert_bezt_icu (IpoCurve *icu, BezTriple *bezt)
 		icu->totvert= 1;
 	}
 	else {
-		i = binarysearch_bezt_index(icu->bezt, bezt, icu->totvert);
+		short replace = -1;
+		i = binarysearch_bezt_index(icu->bezt, bezt, icu->totvert, &replace);
 		
-		if (i < 0) {
-			/* replace existing item (need to 'invert' i first and decremement by 1) */
-			i = -i - 1;
-			
+		if (replace) {			
 			/* sanity check: 'i' may in rare cases exceed arraylen */
-			if (i < icu->totvert)
+			if ((i >= 0) && (i < icu->totvert))
 				*(icu->bezt + i) = *bezt;
 		}
 		else {
 			/* add new */
-			newb= MEM_callocN( (icu->totvert+1)*sizeof(BezTriple), "beztriple");
+			newb= MEM_callocN((icu->totvert+1)*sizeof(BezTriple), "beztriple");
 			
 			/* add the beztriples that should occur before the beztriple to be pasted (originally in ei->icu) */
 			if (i > 0)

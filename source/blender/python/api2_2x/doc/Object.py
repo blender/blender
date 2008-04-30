@@ -383,7 +383,7 @@ class Object:
 	@ivar sel: The selection state of the object in the current scene. 
 		True is selected, False is unselected. Setting makes the object active.
 	@type sel: boolean
-	@ivar effects: The list of particle effects associated with the object.
+	@ivar effects: The list of particle effects associated with the object. (depricated, will always return an empty list)
 		Read-only.
 	@type effects: list of Effect objects
 	@ivar parentbonename: The string name of the parent bone (if defined).
@@ -645,7 +645,7 @@ class Object:
 	def buildParts():
 		"""
 		Recomputes the particle system. This method only applies to an Object of
-		the type Effect.
+		the type Effect. (depricated, does nothing now, use makeDisplayList instead to update the modifier stack)
 		"""
 
 	def insertShapeKey():
@@ -1195,12 +1195,9 @@ class Object:
 
 	def makeDisplayList():
 		"""
-		Updates this object's display list.  Blender uses display lists to store
-		already transformed data (like a mesh with its vertices already modified
-		by coordinate transformations and armature deformation).  If the object
-		isn't modified, there's no need to recalculate this data.  This method is
-		here for the *few cases* where a script may need it, like when toggling
-		the "SubSurf" mode for a mesh:
+		Forces an update to the objects display data. If the object isn't modified,
+		there's no need to recalculate this data.
+		This method is here for the *few cases* where it is needed.
 
 		Example::
 			import Blender

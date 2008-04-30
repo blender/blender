@@ -1851,10 +1851,16 @@ static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float m
 
 void do_ipobuts(unsigned short event)
 {
-	Object *ob= OBACT;
+	Object *ob;
 	EditIpo *ei;
 	
 	if(G.sipo->from==NULL) return;
+	
+	/* use G.sipo->from (which should be an object) so that pinning ipo's will still work ok */
+	if(GS(G.sipo->from->name) == ID_OB)
+		ob= (Object *)(G.sipo->from);
+	else
+		ob= OBACT;
 	
 	switch(event) {
 	case B_IPO_REDR:

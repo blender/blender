@@ -31,6 +31,9 @@
 
 #ifdef WIN32
 #include <io.h>
+#include <stddef.h>
+#include <sys/types.h>
+#include "mmap_win.h"
 #endif
 
 #include "BLI_blenlib.h"
@@ -229,7 +232,7 @@ struct ImBuf *IMB_loadifffile(int file, int flags) {
 
 	size = BLI_filesize(file);
 
-#if defined(AMIGA) || defined(__BeOS) || defined(WIN32)
+#if defined(AMIGA) || defined(__BeOS)
 	mem= (int *)malloc(size);
 	if (mem==0) {
 		printf("Out of mem\n");

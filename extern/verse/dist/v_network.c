@@ -32,7 +32,7 @@ typedef unsigned short uint16;
 typedef short int16;
 typedef unsigned char uint8;
 typedef char int8;
-typedef char boolean;
+typedef unsigned char boolean;
 
 #include "v_cmd_gen.h"
 #include "v_network.h"

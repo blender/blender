@@ -50,7 +50,7 @@
 #include "BKE_collision.h"
 
 struct Object;
-struct Cloth;
+
 struct MFace;
 struct DerivedMesh;
 struct ClothModifierData;
@@ -81,6 +81,33 @@ struct CollisionTree;
 #define CLOTH_VERT_FLAG_PINNED 1
 #define CLOTH_VERT_FLAG_COLLISION 2
 #define CLOTH_VERT_FLAG_PINNED_EM 3
+
+/**
+* This structure describes a cloth object against which the
+* simulation can run.
+*
+* The m and n members of this structure represent the assumed
+* rectangular ordered grid for which the original paper is written.
+* At some point they need to disappear and we need to determine out
+* own connectivity of the mesh based on the actual edges in the mesh.
+*
+**/
+typedef struct Cloth
+{
+	struct ClothVertex	*verts;			/* The vertices that represent this cloth. */
+	struct	LinkNode	*springs;		/* The springs connecting the mesh. */
+	unsigned int		numverts;		/* The number of verts == m * n. */
+	unsigned int		numsprings;		/* The count of springs. */
+	unsigned int		numfaces;
+	unsigned char 		old_solver_type;	/* unused, only 1 solver here */
+	unsigned char 		pad2;
+	short 			pad3;
+	struct BVH		*tree;			/* collision tree for this cloth object */
+	struct MFace 		*mfaces;
+	struct Implicit_Data	*implicit; 		/* our implicit solver connects to this pointer */
+	struct Implicit_Data	*implicitEM; 		/* our implicit solver connects to this pointer */
+	struct EdgeHash 	*edgehash; 		/* used for selfcollisions */
+} Cloth;
 
 /**
  * The definition of a cloth vertex.

@@ -50,6 +50,7 @@
 
 #include "BIF_space.h"
 #include "BIF_drawscene.h"
+#include "BIF_editseq.h"
 #include "BIF_poseobject.h"
 
 #include "BSE_view.h"
@@ -72,6 +73,8 @@ void set_scene(Scene *sce)		/* also see scene.c: set_scene_bg() */
 		exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 	
 	exit_paint_modes();
+	
+	set_last_seq(NULL);
 	
 	G.scene= sce;
 

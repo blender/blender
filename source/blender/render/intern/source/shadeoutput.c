@@ -1236,6 +1236,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 		else {
 			Crossf(cross, lv, vn);
 			Crossf(vnor, cross, vn);
+			Normalize(vnor);
 		}
 
 		if(ma->strand_surfnor > 0.0f) {
@@ -1253,6 +1254,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 		float cross[3];
 		Crossf(cross, lv, shi->tang);
 		Crossf(vnor, cross, shi->tang);
+		Normalize(vnor);
 		vnor[0]= -vnor[0];vnor[1]= -vnor[1];vnor[2]= -vnor[2];
 		vn= vnor;
 	}
@@ -1550,6 +1552,24 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		shr->col[1]= shi->g*shi->alpha;
 		shr->col[2]= shi->b*shi->alpha;
 		shr->col[3]= shi->alpha;
+
+		if((ma->sss_flag & MA_DIFF_SSS) && !has_sss_tree(&R, ma)) {
+			if(ma->sss_texfac == 0.0f) {
+				shi->r= shi->g= shi->b= shi->alpha= 1.0f;
+				shr->col[0]= shr->col[1]= shr->col[2]= shr->col[3]= 1.0f;
+			}
+			else {
+				shi->r= pow(shi->r, ma->sss_texfac);
+				shi->g= pow(shi->g, ma->sss_texfac);
+				shi->b= pow(shi->b, ma->sss_texfac);
+				shi->alpha= pow(shi->alpha, ma->sss_texfac);
+				
+				shr->col[0]= pow(shr->col[0], ma->sss_texfac);
+				shr->col[1]= pow(shr->col[1], ma->sss_texfac);
+				shr->col[2]= pow(shr->col[2], ma->sss_texfac);
+				shr->col[3]= pow(shr->col[3], ma->sss_texfac);
+			}
+		}
 	}
 	
 	if(ma->mode & MA_SHLESS) {
@@ -1616,29 +1636,31 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		if (shr->shad[2] < 0) shr->shad[2] = 0;
 						
 		if(ma->sss_flag & MA_DIFF_SSS) {
-			float sss[3], col[3], alpha, invalpha, texfac= ma->sss_texfac;
+			float sss[3], col[3], invalpha, texfac= ma->sss_texfac;
 
 			/* this will return false in the preprocess stage */
 			if(sample_sss(&R, ma, shi->co, sss)) {
-				alpha= shr->col[3];
-				invalpha= (alpha > FLT_EPSILON)? 1.0f/alpha: 1.0f;
+				invalpha= (shr->col[3] > FLT_EPSILON)? 1.0f/shr->col[3]: 1.0f;
 
 				if(texfac==0.0f) {
 					VECCOPY(col, shr->col);
+					VecMulf(col, invalpha);
 				}
 				else if(texfac==1.0f) {
 					col[0]= col[1]= col[2]= 1.0f;
+					VecMulf(col, invalpha);
 				}
 				else {
 					VECCOPY(col, shr->col);
-					col[0]= alpha*pow(col[0]*invalpha, 1.0f-texfac);
-					col[1]= alpha*pow(col[1]*invalpha, 1.0f-texfac);
-					col[2]= alpha*pow(col[2]*invalpha, 1.0f-texfac);
+					VecMulf(col, invalpha);
+					col[0]= pow(col[0], 1.0f-texfac);
+					col[1]= pow(col[1], 1.0f-texfac);
+					col[2]= pow(col[2], 1.0f-texfac);
 				}
 
-				shr->diff[0]= sss[0]*col[0]*invalpha;
-				shr->diff[1]= sss[1]*col[1]*invalpha;
-				shr->diff[2]= sss[2]*col[2]*invalpha;
+				shr->diff[0]= sss[0]*col[0];
+				shr->diff[1]= sss[1]*col[1];
+				shr->diff[2]= sss[2]*col[2];
 
 				if(shi->combinedflag & SCE_PASS_SHADOW)	{
 					shr->shad[0]= shr->diff[0];

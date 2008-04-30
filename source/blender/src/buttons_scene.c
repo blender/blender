@@ -2043,12 +2043,15 @@ static void render_panel_output(void)
 	for(b=2; b>=0; b--)
 		for(a=0; a<3; a++)
 			uiDefButBitS(block, TOG, 1<<(3*b+a), 800,"",	(short)(10+18*a),(short)(10+14*b),16,12, &G.winpos, 0, 0, 0, 0, "Render window placement on screen");
+	uiBlockEndAlign(block);
 
+#ifdef WITH_OPENEXR
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, R_EXR_TILE_FILE, B_REDR, "Save Buffers", 72, 31, 120, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Save tiles for all RenderLayers and used SceneNodes to files in the temp directory (saves memory, allows Full Sampling)");
 	if(G.scene->r.scemode & R_EXR_TILE_FILE)
 		uiDefButBitI(block, TOG, R_FULL_SAMPLE, B_REDR, "FullSample",	 192, 31, 118, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Saves for every OSA sample the entire RenderLayer results (Higher quality sampling but slower)");
 	uiBlockEndAlign(block);
+#endif
 	
 	uiDefButS(block, MENU, B_REDR, "Render Display %t|Render Window %x1|Image Editor %x0|Full Screen %x2",	
 					72, 10, 120, 19, &G.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output display");
