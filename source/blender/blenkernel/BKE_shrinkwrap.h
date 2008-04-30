@@ -33,6 +33,30 @@ struct Object;
 struct DerivedMesh;
 struct ShrinkwrapModifierData;
 
+
+typedef struct ShrinkwrapCalcData
+{
+	ShrinkwrapModifierData *smd;	//shrinkwrap modifier data
+
+	struct Object *ob;				//object we are applying shrinkwrap to
+	struct DerivedMesh *original;	//mesh before shrinkwrap
+	struct DerivedMesh *final;		//initially a copy of original mesh.. mesh thats going to be shrinkwrapped
+
+	struct DerivedMesh *target;		//mesh we are shrinking to
+	
+	//matrixs for local<->target space transform
+	float local2target[4][4];		
+	float target2local[4][4];
+
+	//float *weights;				//weights of vertexs
+	unsigned char *moved;			//boolean indicating if vertex has moved (TODO use bitmaps)
+
+} ShrinkwrapCalcData;
+
+void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *data);
+void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *data);
+void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *data);
+
 struct DerivedMesh *shrinkwrapModifier_do(struct ShrinkwrapModifierData *smd, struct Object *ob, struct DerivedMesh *dm, int useRenderParams, int isFinalCalc);
 
 #endif

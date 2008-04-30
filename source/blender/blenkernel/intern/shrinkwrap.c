@@ -46,7 +46,10 @@
 
 #include "BLI_arithb.h"
 
+
 #define CONST
+typedef void ( *Shrinkwrap_ForeachVertexCallback) (DerivedMesh *target, float *co, float *normal);
+
 
 static void normal_short2float(CONST short *ns, float *nf)
 {
@@ -54,6 +57,7 @@ static void normal_short2float(CONST short *ns, float *nf)
 	nf[1] = ns[1] / 32767.0f;
 	nf[2] = ns[2] / 32767.0f;
 }
+
 
 /*
  * This calculates the distance (in dir units) that the ray must travel to intersect plane
@@ -134,7 +138,7 @@ static float nearest_point_in_tri_surface(CONST float *co, CONST float *v0, CONS
 /*
  * Shrink to nearest surface point on target mesh
  */
-static void shrinkwrap_calc_nearest_surface_point(DerivedMesh *target, float *co, float *unused)
+static void bruteforce_shrinkwrap_calc_nearest_surface_point(DerivedMesh *target, float *co, float *unused)
 {
 	//TODO: this should use raycast code probably existent in blender
 	float minDist = FLT_MAX;
@@ -179,7 +183,7 @@ static void shrinkwrap_calc_nearest_surface_point(DerivedMesh *target, float *co
 /*
  * Projects the vertex on the normal direction over the target mesh
  */
-static void shrinkwrap_calc_normal_projection(DerivedMesh *target, float *co, float *vnormal)
+static void bruteforce_shrinkwrap_calc_normal_projection(DerivedMesh *target, float *co, float *vnormal)
 {
 	//TODO: this should use raycast code probably existent in blender
 	float minDist = FLT_MAX;
@@ -230,7 +234,7 @@ static void shrinkwrap_calc_normal_projection(DerivedMesh *target, float *co, fl
 /*
  * Shrink to nearest vertex on target mesh
  */
-static void shrinkwrap_calc_nearest_vertex(DerivedMesh *target, float *co, float *unused)
+static void bruteforce_shrinkwrap_calc_nearest_vertex(DerivedMesh *target, float *co, float *unused)
 {
 	float minDist = FLT_MAX;
 	float orig_co[3];
@@ -255,104 +259,123 @@ static void shrinkwrap_calc_nearest_vertex(DerivedMesh *target, float *co, float
 	}
 }
 
+
+static void shrinkwrap_calc_foreach_vertex(ShrinkwrapCalcData *calc, Shrinkwrap_ForeachVertexCallback callback)
+{
+	int i, j;
+	int vgroup		= get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
+	int	numVerts	= 0;
+
+	MDeformVert *dvert = NULL;
+	MVert		*vert  = NULL;
+
+	numVerts = calc->final->getNumVerts(calc->final);
+	dvert = calc->final->getVertDataArray(calc->final, CD_MDEFORMVERT);
+	vert  = calc->final->getVertDataArray(calc->final, CD_MVERT);
+
+	//Shrink (calculate each vertex final position)
+	for(i = 0; i<numVerts; i++)
+	{
+		float weight;
+
+		float orig[3], final[3]; //Coords relative to target
+		float normal[3];
+
+		if(dvert && vgroup >= 0)
+		{
+			weight = 0.0f;
+			for(j = 0; j < dvert[i].totweight; j++)
+				if(dvert[i].dw[j].def_nr == vgroup)
+				{
+					weight = dvert[i].dw[j].weight;
+					break;
+				}
+		}
+		else weight = 1.0f;
+
+		if(weight == 0.0f) continue;	//Skip vertexs where we have no influence
+
+		VecMat4MulVecfl(orig, calc->local2target, vert[i].co);
+		VECCOPY(final, orig);
+
+		//We also need to apply the rotation to normal
+		if(calc->smd->shrinkType == MOD_SHRINKWRAP_NORMAL)
+		{
+			normal_short2float(vert[i].no, normal);
+			Mat4Mul3Vecfl(calc->local2target, normal);
+			Normalize(normal);	//Watch out for scaling (TODO: do we really needed a unit-len normal?)
+		}
+		(callback)(calc->target, final, normal);
+
+		VecLerpf(final, orig, final, weight);	//linear interpolation
+
+		VecMat4MulVecfl(vert[i].co, calc->target2local, final);
+	}
+}
+
 /* Main shrinkwrap function */
 DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
 {
 
-	DerivedMesh *result = CDDM_copy(dm);
+	ShrinkwrapCalcData calc;
 
-	//Projecting target defined - lets work!
+
+	//Init Shrinkwrap calc data
+	calc.smd = smd;
+
+	calc.original = dm;
+	calc.final = CDDM_copy(calc.original);
+
 	if(smd->target)
 	{
-		int i, j;
+		calc.target = (DerivedMesh *)smd->target->derivedFinal;
 
-		int vgroup		= get_named_vertexgroup_num(ob, smd->vgroup_name);
-		int	numVerts	= 0;
-
-		MDeformVert *dvert = NULL;
-		MVert		*vert  = NULL;
-		DerivedMesh *target_dm = NULL;
-
-		float local2target[4][4], target2local[4][4];
-
-		numVerts = result->getNumVerts(result);
-		dvert = result->getVertDataArray(result, CD_MDEFORMVERT);
-		vert  = result->getVertDataArray(result, CD_MVERT);
-
-		target_dm = (DerivedMesh *)smd->target->derivedFinal;
-		if(!target_dm)
+		if(!calc.target)
 		{
 			printf("Target derived mesh is null! :S\n");
 		}
 
-
 		//TODO should we reduce the number of matrix mults? by choosing applying matrixs to target or to derived mesh?
 		//Calculate matrixs for local <-> target
 		Mat4Invert (smd->target->imat, smd->target->obmat);	//inverse is outdated
-
-		Mat4MulSerie(local2target, smd->target->imat, ob->obmat, 0, 0, 0, 0, 0, 0);
-		Mat4Invert(target2local, local2target);
-
-
-		//Shrink (calculate each vertex final position)
-		for(i = 0; i<numVerts; i++)
-		{
-			float weight;
-
-			float orig[3], final[3]; //Coords relative to target_dm
-			float normal[3];
-
-			if(dvert && vgroup >= 0)
-			{
-				weight = 0.0f;
-				for(j = 0; j < dvert[i].totweight; j++)
-					if(dvert[i].dw[j].def_nr == vgroup)
-					{
-						weight = dvert[i].dw[j].weight;
-						break;
-					}
-			}
-			else weight = 1.0f;
-
-			if(weight == 0.0f) continue;	//Skip vertexs where we have no influence
-
-			VecMat4MulVecfl(orig, local2target, vert[i].co);
-			VECCOPY(final, orig);
-
-			//We also need to apply the rotation to normal
-			if(smd->shrinkType == MOD_SHRINKWRAP_NORMAL)
-			{
-				normal_short2float(vert[i].no, normal);
-				Mat4Mul3Vecfl(local2target, normal);
-				Normalize(normal);	//Watch out for scaling (TODO: do we really needed a unit-len normal?)
-			}
-
-
-			switch(smd->shrinkType)
-			{
-				case MOD_SHRINKWRAP_NEAREST_SURFACE:
-					shrinkwrap_calc_nearest_surface_point(target_dm, final, normal);
-				break;
-
-				case MOD_SHRINKWRAP_NORMAL:
-					shrinkwrap_calc_normal_projection(target_dm, final, normal);
-				break;
-
-				case MOD_SHRINKWRAP_NEAREST_VERTEX:
-					shrinkwrap_calc_nearest_vertex(target_dm, final, normal);
-				break;
-			}
-
-			VecLerpf(final, orig, final, weight);	//linear interpolation
-
-			VecMat4MulVecfl(vert[i].co, target2local, final);
-		}
-
-		//Destroy faces, edges and stuff
-		//Since we aren't yet constructing/destructing geom nothing todo for now
-		CDDM_calc_normals(result);	
+		Mat4MulSerie(calc.local2target, smd->target->imat, ob->obmat, 0, 0, 0, 0, 0, 0);
+		Mat4Invert(calc.target2local, calc.local2target);
 
 	}
-	return result;
+
+	calc.moved = NULL;
+
+
+	//Projecting target defined - lets work!
+	if(calc.target)
+	{
+		switch(smd->shrinkType)
+		{
+			case MOD_SHRINKWRAP_NEAREST_SURFACE:
+//				shrinkwrap_calc_nearest_vertex(&calc);
+				shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_nearest_surface_point);
+			break;
+
+			case MOD_SHRINKWRAP_NORMAL:
+				shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_nearest_surface_point);
+			break;
+
+			case MOD_SHRINKWRAP_NEAREST_VERTEX:
+				shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_nearest_vertex);
+			break;
+		}
+
+	}
+
+	//Destroy faces, edges and stuff
+	if(calc.moved)
+	{
+		//TODO
+	}
+
+	CDDM_calc_normals(calc.final);	
+
+	return calc.final;
 }
+
 
