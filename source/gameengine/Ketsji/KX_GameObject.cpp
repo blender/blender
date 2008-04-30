@@ -74,6 +74,7 @@ KX_GameObject::KX_GameObject(
 ) : 
 	SCA_IObject(T),
 	m_bDyna(false),
+	m_layer(0),
 	m_bSuspendDynamics(false),
 	m_bUseObjectColor(false),
 	m_bVisible(true),
@@ -477,6 +478,22 @@ KX_GameObject::SetVisible(
 	)
 {
 	m_bVisible = v;
+}
+
+void
+KX_GameObject::SetLayer(
+	int l
+	)
+{
+	m_layer = l;
+}
+
+int
+KX_GameObject::GetLayer(
+	void
+	)
+{
+	return m_layer;
 }
 
 // used by Python, and the actuatorshould _not_ be misused by the
