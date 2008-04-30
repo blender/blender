@@ -768,7 +768,7 @@ void v_bignum_square_half(VBigDig *x)
 		for(j = i + 1; j < t; j++)
 		{
 /*			printf("computing uv=%X+2*%X*%X+%X\n", w[i + j], x[1 + j], x[1 + i], c);*/
-			uv = x[1 + j] * x[1 + i];
+			uv = ((VBigDigs)x[1 + j]) * ((VBigDigs)x[1 + i]);
 			high = (uv & 0x80000000) != 0;
 			uv *= 2;
 			ouv = uv;	/* Addition below might wrap and generate high bit. */
