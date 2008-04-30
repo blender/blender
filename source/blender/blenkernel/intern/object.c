@@ -1215,6 +1215,7 @@ Object *copy_object(Object *ob)
 void expand_local_object(Object *ob)
 {
 	bActionStrip *strip;
+	ParticleSystem *psys;
 	int a;
 	
 	id_lib_extern((ID *)ob->action);
@@ -1228,7 +1229,8 @@ void expand_local_object(Object *ob)
 	for (strip=ob->nlastrips.first; strip; strip=strip->next) {
 		id_lib_extern((ID *)strip->act);
 	}
-
+	for(psys=ob->particlesystem.first; psys; psys=psys->next)
+		id_lib_extern((ID *)psys->part);
 }
 
 void make_local_object(Object *ob)

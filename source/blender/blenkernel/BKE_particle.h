@@ -231,6 +231,7 @@ struct ParticleSystemModifierData *psys_get_modifier(struct Object *ob, struct P
 struct ParticleSettings *psys_new_settings(char *name, struct Main *main);
 struct ParticleSettings *psys_copy_settings(struct ParticleSettings *part);
 void psys_flush_settings(struct ParticleSettings *part, int event, int hair_recalc);
+void make_local_particlesettings(struct ParticleSettings *part);
 
 struct LinkNode *psys_using_settings(struct ParticleSettings *part, int flush_update);
 void psys_changed_type(struct ParticleSystem *psys);
