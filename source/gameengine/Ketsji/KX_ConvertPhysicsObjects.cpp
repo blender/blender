@@ -1123,7 +1123,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	ci.m_inertiaFactor = shapeprops->m_inertia/0.4f;//defaults to 0.4, don't want to change behaviour
 	ci.m_collisionFilterGroup = (isbulletdyna) ? short(CcdConstructionInfo::DefaultFilter) : short(CcdConstructionInfo::StaticFilter);
 	ci.m_collisionFilterMask = (isbulletdyna) ? short(CcdConstructionInfo::AllFilter) : short(CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::StaticFilter);
-
+	ci.m_bRigid = objprop->m_dyna && objprop->m_angular_rigidbody;
 	KX_BulletPhysicsController* physicscontroller = new KX_BulletPhysicsController(ci,isbulletdyna);
 	//remember that we created a shape so that we can delete it when the scene is removed (bullet will not delete it) 
 	kxscene->AddShape(bm);
@@ -1147,6 +1147,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	//{
 	//	rbody->setCollisionFlags(rbody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
 	//}
+	
 	if (objprop->m_dyna && !objprop->m_angular_rigidbody)
 	{
 		/*
@@ -1161,8 +1162,10 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		*/
 
 		//env->createConstraint(physicscontroller,0,PHY_ANGULAR_CONSTRAINT,0,0,0,0,0,1);
-		physicscontroller->GetRigidBody()->setAngularFactor(0.f);
-
+	
+		//Now done directly in ci.m_bRigid so that it propagates to replica
+		//physicscontroller->GetRigidBody()->setAngularFactor(0.f);
+		;
 	}
 
 	bool isActor = objprop->m_isactor;

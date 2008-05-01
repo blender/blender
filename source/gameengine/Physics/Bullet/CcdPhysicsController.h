@@ -60,6 +60,7 @@ struct CcdConstructionInfo
 		m_linearDamping(0.1f),
 		m_angularDamping(0.1f),
 		m_collisionFlags(0),
+		m_bRigid(false),
 		m_collisionFilterGroup(DefaultFilter),
 		m_collisionFilterMask(AllFilter),
 		m_collisionShape(0),
@@ -78,6 +79,7 @@ struct CcdConstructionInfo
 	btScalar	m_linearDamping;
 	btScalar	m_angularDamping;
 	int			m_collisionFlags;
+	bool		m_bRigid;
 
 	///optional use of collision group/mask:
 	///only collision with object goups that match the collision mask.
