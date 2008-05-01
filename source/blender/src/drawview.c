@@ -3394,8 +3394,12 @@ static double swaptime;
 static int curmode;
 
 /* used for fps display */
+#define REDRAW_FRAME_AVERAGE 8
 static double redrawtime;
 static double lredrawtime;
+static float redrawtimes_fps[REDRAW_FRAME_AVERAGE];
+static short redrawtime_index;
+
 
 int update_time(void)
 {
@@ -3418,13 +3422,32 @@ static void draw_viewport_fps(ScrArea *sa)
 {
 	float fps;
 	char printable[16];
-
+	int i, tot;
 	
 	if (lredrawtime == redrawtime)
 		return;
 	
 	printable[0] = '\0';
-	fps = (float)(1.0/(lredrawtime-redrawtime));
+	
+#if 0
+	/* this is too simple, better do an average */
+	fps = (float)(1.0/(lredrawtime-redrawtime))
+#else
+	redrawtimes_fps[redrawtime_index] = (float)(1.0/(lredrawtime-redrawtime));
+	
+	for (i=0, tot=0, fps=0.0f ; i < REDRAW_FRAME_AVERAGE ; i++) {
+		if (redrawtimes_fps[i]) {
+			fps += redrawtimes_fps[i];
+			tot++;
+		}
+	}
+	
+	redrawtime_index++;
+	if (redrawtime_index >= REDRAW_FRAME_AVERAGE)
+		redrawtime_index = 0;
+	
+	fps = fps / tot;
+#endif
 	
 	/* is this more then half a frame behind? */
 	if (fps+0.5 < FPS) {
@@ -3549,6 +3572,12 @@ void inner_play_anim_loop(int init, int mode)
 		cached = cached_dynamics(PSFRA,PEFRA);
 		
 		redrawtime = 1.0/FPS;
+		
+		redrawtime_index = REDRAW_FRAME_AVERAGE;
+		while(redrawtime_index--) {
+			redrawtimes_fps[redrawtime_index] = 0.0;
+		}
+		
 		lredrawtime = 0.0;
 		return;
 	}
