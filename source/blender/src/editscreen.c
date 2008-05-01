@@ -1396,7 +1396,7 @@ void screenmain(void)
 		else if (event==QKEY) {
 			/* Temp place to print mem debugging info ctrl+alt+shift + qkey */
 			if ( G.qual == (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
-				MEM_printmemlist_pydict();
+				MEM_printmemlist_stats();
 			}
 			
 			else if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT);
