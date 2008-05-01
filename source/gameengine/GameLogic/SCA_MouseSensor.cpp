@@ -158,6 +158,23 @@ bool SCA_MouseSensor::Evaluate(CValue* event)
 				{
 					m_val = 0;
 					result = true;
+				} else
+				{
+					if (event.m_status == SCA_InputEvent::KX_ACTIVE)
+					{
+						if (m_val == 0)
+						{
+							m_val = 1;
+							result = true;
+						}
+					} else
+					{
+						if (m_val == 1)
+						{
+							m_val = 0;
+							result = true;
+						}
+					}
 				}
 			}
 			break;
@@ -183,6 +200,13 @@ bool SCA_MouseSensor::Evaluate(CValue* event)
 				{
 					m_val = 0;
 					result = true;
+				} else
+				{
+					if (m_val == 1)
+					{
+						m_val = 0;
+						result = true;
+					}
 				}
 			}
 			break;

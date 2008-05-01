@@ -163,6 +163,23 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 			{
 				m_val=(active)?1:0;
 				result = true;
+			} else
+			{
+				if (active)
+				{
+					if (m_val == 0)
+					{
+						m_val = 1;
+						result = true;
+					}
+				} else
+				{
+					if (m_val == 1)
+					{
+						m_val = 0;
+						result = true;
+					}
+				}
 			}
 		}
 
@@ -178,6 +195,13 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 
 		if (inevent.m_status == SCA_InputEvent::KX_NO_INPUTSTATUS)
 		{
+			if (m_val == 1)
+			{
+				// this situation may occur after a scene suspend: the keyboard release 
+				// event was not captured, produce now the event off
+				m_val = 0;
+				result = true;
+			}
 		} else
 		{
 			if (inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED)
@@ -190,6 +214,18 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 				{
 					m_val = 0;
 					result = true;
+				} else 
+				{
+					if (inevent.m_status == SCA_InputEvent::KX_ACTIVE)
+					{
+						if (m_val == 0)
+						{
+							// this may occur during a scene suspend, the keyboard
+							// press was not captured, do it now
+							m_val = 1;
+							result = true;
+						}
+					}
 				}
 			}
 		}
