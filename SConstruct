@@ -415,7 +415,7 @@ pluglist.append('source/blender/blenpluginapi/plugin.h')
 plugtargetlist.append(env['BF_INSTALLDIR'] + os.sep + 'plugins' + os.sep + 'include' + os.sep +'plugin.h')
 pluglist.append('source/blender/blenpluginapi/util.h')
 plugtargetlist.append(env['BF_INSTALLDIR'] + os.sep + 'plugins' + os.sep + 'include' + os.sep +'util.h')
-pluglist.append('source/blender/blenpluginapi/plugin.def')
+pluglist.append('source/blender/blenpluginapi/plugin.DEF')
 plugtargetlist.append(env['BF_INSTALLDIR'] + os.sep + 'plugins' + os.sep + 'include' + os.sep + 'plugin.def')
 
 plugininstall = []
