@@ -30,6 +30,7 @@
 #include <float.h>
 #include <math.h>
 #include <stdio.h>
+#include <time.h>
 #include <assert.h>
 //TODO: its late and I don't fill like adding ifs() printfs (I'll remove them on end)
 
@@ -45,7 +46,40 @@
 #include "BKE_global.h"
 
 #include "BLI_arithb.h"
+#include "BLI_kdtree.h"
 
+
+#define TO_STR(a)	#a
+#define JOIN(a,b)	a##b
+
+#define OUT_OF_MEMORY()	((void)puts("Shrinkwrap: Out of memory"))
+
+/* Benchmark macros */
+#if 1
+
+#define BENCH(a)	\
+	do {			\
+		clock_t _clock_init = clock();	\
+		(a);							\
+		printf("%s: %fms\n", #a, (float)(clock()-_clock_init)*1000/CLOCKS_PER_SEC);	\
+	} while(0)
+
+#define BENCH_VAR(name)		clock_t JOIN(_bench_step,name) = 0, JOIN(_bench_total,name) = 0
+#define BENCH_BEGIN(name)	JOIN(_bench_step, name) = clock()
+#define BENCH_END(name)		JOIN(_bench_total,name) += clock() - JOIN(_bench_step,name)
+#define BENCH_RESET(name)	JOIN(_bench_total, name) = 0
+#define BENCH_REPORT(name)	printf("%s: %fms\n", TO_STR(name), JOIN(_bench_total,name)*1000.0f/CLOCKS_PER_SEC)
+
+#else
+
+#define BENCH(a)	(a)
+#define BENCH_VAR(name)
+#define BENCH_BEGIN(name)
+#define BENCH_END(name)
+#define BENCH_RESET(name)
+#define BENCH_REPORT(name)
+
+#endif
 
 #define CONST
 typedef void ( *Shrinkwrap_ForeachVertexCallback) (DerivedMesh *target, float *co, float *normal);
@@ -317,14 +351,21 @@ static void shrinkwrap_calc_foreach_vertex(ShrinkwrapCalcData *calc, Shrinkwrap_
 DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
 {
 
-	ShrinkwrapCalcData calc;
+	ShrinkwrapCalcData calc = {};
 
 
 	//Init Shrinkwrap calc data
 	calc.smd = smd;
 
+	calc.ob = ob;
 	calc.original = dm;
 	calc.final = CDDM_copy(calc.original);
+
+	if(!calc.final)
+	{
+		OUT_OF_MEMORY();
+		return dm;
+	}
 
 	if(smd->target)
 	{
@@ -349,19 +390,24 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 	//Projecting target defined - lets work!
 	if(calc.target)
 	{
+		printf("Shrinkwrap (%s)%d over (%s)%d\n",
+			calc.ob->id.name,			calc.final->getNumVerts(calc.final),
+			calc.smd->target->id.name,	calc.target->getNumVerts(calc.target)
+		);
+
 		switch(smd->shrinkType)
 		{
 			case MOD_SHRINKWRAP_NEAREST_SURFACE:
-//				shrinkwrap_calc_nearest_vertex(&calc);
-				shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_nearest_surface_point);
+				BENCH(shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_nearest_surface_point));
 			break;
 
 			case MOD_SHRINKWRAP_NORMAL:
-				shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_nearest_surface_point);
+				BENCH(shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_normal_projection));
 			break;
 
 			case MOD_SHRINKWRAP_NEAREST_VERTEX:
-				shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_nearest_vertex);
+				BENCH(shrinkwrap_calc_nearest_vertex(&calc));
+//				BENCH(shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_nearest_vertex));
 			break;
 		}
 
@@ -378,4 +424,65 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 	return calc.final;
 }
 
+void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
+{
+	int i;
+	KDTree* target = NULL;
+	KDTreeNearest nearest;
+	float tmp_co[3];
+
+	BENCH_VAR(build);
+	BENCH_VAR(query);
+
+	int	numVerts;
+	MVert *vert = NULL;
+
+	//Generate kd-tree with target vertexs
+	BENCH_BEGIN(build);
+
+	target = BLI_kdtree_new(calc->target->getNumVerts(calc->target));
+	if(target == NULL) return OUT_OF_MEMORY();
+
+	numVerts= calc->target->getNumVerts(calc->target);
+	vert	= calc->target->getVertDataArray(calc->target, CD_MVERT);	
+
+	for( ;numVerts--; vert++)
+		BLI_kdtree_insert(target, 0, vert->co, NULL);
+
+	BLI_kdtree_balance(target);
+
+	BENCH_END(build);
+
+	//Find the nearest vertex 
+	numVerts= calc->final->getNumVerts(calc->final);
+	vert	= calc->final->getVertDataArray(calc->final, CD_MVERT);	
+	for(i=0; i<numVerts; i++)
+	{
+		int t;
+		VecMat4MulVecfl(tmp_co, calc->local2target, vert[i].co);
+
+		BENCH_BEGIN(query);
+		t = BLI_kdtree_find_nearest(target, tmp_co, 0, &nearest);
+		BENCH_END(query);
+
+		if(t != -1)
+		{
+			float weight = 1.0f;
+
+			VecMat4MulVecfl(nearest.co, calc->target2local, nearest.co);
+			VecLerpf(vert[i].co, vert[i].co, nearest.co, weight);	//linear interpolation
+
+			if(calc->moved)
+				calc->moved[i] = TRUE;
+		}
+	}
+
+	BENCH_BEGIN(build);
+	BLI_kdtree_free(target);
+	BENCH_END(build);
+
+
+	BENCH_REPORT(build);
+	BENCH_REPORT(query);
+}
 
