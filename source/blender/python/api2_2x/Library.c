@@ -977,6 +977,39 @@ static int Library_setFilename( BPy_Library * self, PyObject * args )
 	return 0;
 }
 
+/*
+ * Return the library's name.  The format depends on whether the library is 
+ * accessed as relative or absolute.
+ */
+
+static PyObject *Library_getName( BPy_Library * self )
+{
+	Library *lib;
+	BlendHandle *openlib;
+	char longFilename[FILE_MAX];
+
+	/* try to open the library */
+	openlib = open_library( self->filename, longFilename );
+	if( openlib ) {
+		BLO_blendhandle_close( openlib );
+		/* remove any /../ or /./ junk */
+		BLI_cleanup_file(NULL, longFilename); 
+
+		/* search the loaded libraries for a match */
+		for( lib = G.main->library.first; lib; lib = lib->id.next )
+			if( strcmp( longFilename, lib->filename ) == 0) {
+				return PyString_FromString( lib->name );
+			}
+
+		/* library not found in memory */
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"library not loaded" );
+	}
+	/* could not load library */
+	return EXPP_ReturnPyObjError( PyExc_IOError, "library not found" );
+}
+
+
 /************************************************************************
  * Python Library_type attributes get/set structure
  ************************************************************************/
@@ -985,6 +1018,10 @@ static PyGetSetDef Library_getseters[] = {
 	{"filename",
 	 (getter)Library_getFilename, (setter)Library_setFilename,
 	 "library filename",
+	 NULL},
+	{"name",
+	 (getter)Library_getName, (setter)NULL,
+	 "library name (as used by Blender)",
 	 NULL},
 	{"objects",
 	 (getter)LibraryData_CreatePyObject, (setter)NULL,
