@@ -217,19 +217,25 @@ void duplicate_defgroup ( Object *ob )
 	dg = BLI_findlink (&ob->defbase, (ob->actdef-1));
 	if (!dg)
 		return;
-
-	BLI_snprintf (name, 32, "%s_copy", dg->name);
-	while (get_named_vertexgroup (ob, name)) {
-		if ((strlen (name) + 6) > 32) {
-			error ("Error: the name for the new group is > 32 characters");
-			return;
+	
+	if (strstr(dg->name, "_copy")) {
+		BLI_strncpy (name, dg->name, 32); /* will be renamed _copy.001... etc */
+	} else {
+		BLI_snprintf (name, 32, "%s_copy", dg->name);
+		while (get_named_vertexgroup (ob, name)) {
+			if ((strlen (name) + 6) > 32) {
+				error ("Error: the name for the new group is > 32 characters");
+				return;
+			}
+			strcpy (s, name);
+			BLI_snprintf (name, 32, "%s_copy", s);
 		}
-		strcpy (s, name);
-		BLI_snprintf (name, 32, "%s_copy", s);
-	}
+	}		
 
 	cdg = copy_defgroup (dg);
 	strcpy (cdg->name, name);
+	unique_vertexgroup_name(cdg, ob);
+	
 	BLI_addtail (&ob->defbase, cdg);
 
 	idg = (ob->actdef-1);
