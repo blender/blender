@@ -1155,7 +1155,6 @@ GHOST_TUns8* GHOST_SystemCarbon::getClipboard(int flag) const
 void GHOST_SystemCarbon::putClipboard(GHOST_TInt8 *buffer, int flag) const
 {
 	if(flag == 1) {return;} //If Flag is 1 means the selection and is used on X11
-	printf("flag %i string is %s \n",flag,buffer);
 
 	PasteboardRef inPasteboard;
 	CFDataRef textData = NULL;
