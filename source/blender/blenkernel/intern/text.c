@@ -2037,6 +2037,7 @@ void txt_delete_char (Text *text)
 
 	if (txt_has_sel(text)) { /* deleting a selection */
 	  txt_delete_sel(text);
+	  return;
 	}
 	else if (text->curc== text->curl->len) { /* Appending two lines */
 		if (text->curl->next) {
@@ -2071,6 +2072,7 @@ void txt_backspace_char (Text *text)
 	
 	if (txt_has_sel(text)) { /* deleting a selection */
 	  txt_delete_sel(text);
+	  return;
 	}
 	else if (text->curc==0) { /* Appending two lines */
 	    if (text->curl->prev) {
