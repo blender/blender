@@ -169,8 +169,10 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 				{
 					if (m_val == 0)
 					{
-						m_val = 1;
-						result = true;
+						//see comment below
+						//m_val = 1;
+						//result = true;
+						;
 					}
 				} else
 				{
@@ -220,10 +222,15 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 					{
 						if (m_val == 0)
 						{
-							// this may occur during a scene suspend, the keyboard
-							// press was not captured, do it now
-							m_val = 1;
-							result = true;
+							//hmm, this abnormal situation may occur in the following cases:
+							//- the key was pressed while the scene was suspended
+							//- this is a new scene and the key is active from the start
+							//In the second case, it's dangerous to activate the sensor
+							//(think of a key to go to next scene)
+							//What we really need is a edge/level flag in the key sensor
+							//m_val = 1;
+							//result = true;
+							;
 						}
 					}
 				}

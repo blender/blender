@@ -164,8 +164,10 @@ bool SCA_MouseSensor::Evaluate(CValue* event)
 					{
 						if (m_val == 0)
 						{
-							m_val = 1;
-							result = true;
+							//dangerous
+							//m_val = 1;
+							//result = true;
+							;
 						}
 					} else
 					{
