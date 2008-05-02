@@ -48,11 +48,12 @@
 #include "BLI_arithb.h"
 #include "BLI_kdtree.h"
 
+#include "RE_raytrace.h"
 
 #define TO_STR(a)	#a
 #define JOIN(a,b)	a##b
 
-#define OUT_OF_MEMORY()	((void)puts("Shrinkwrap: Out of memory"))
+#define OUT_OF_MEMORY()	((void)printf("Shrinkwrap: Out of memory\n"))
 
 /* Benchmark macros */
 #if 1
@@ -85,13 +86,127 @@
 typedef void ( *Shrinkwrap_ForeachVertexCallback) (DerivedMesh *target, float *co, float *normal);
 
 
-static void normal_short2float(CONST short *ns, float *nf)
+static void normal_short2float(const short *ns, float *nf)
 {
 	nf[0] = ns[0] / 32767.0f;
 	nf[1] = ns[1] / 32767.0f;
 	nf[2] = ns[2] / 32767.0f;
 }
 
+static float vertexgroup_get_weight(MDeformVert *dvert, int index, int vgroup)
+{
+	if(dvert && vgroup >= 0)
+	{
+		int j;
+		for(j = 0; j < dvert[index].totweight; j++)
+			if(dvert[index].dw[j].def_nr == vgroup)
+				return dvert[index].dw[j].weight;
+	}
+	return -1;
+}
+
+/*
+ * Raytree from mesh
+ */
+static MVert *raytree_from_mesh_verts = NULL;
+static float raytree_from_mesh_start[3] = { 1e10f, 1e10f, 1e10f }; 
+static int raytree_check_always(Isect *is, int ob, RayFace *face)
+{
+	return TRUE;
+}
+
+static void raytree_from_mesh_get_coords(RayFace *face, float **v1, float **v2, float **v3, float **v4)
+{
+	MFace *mface= (MFace*)face;
+
+	if(mface == NULL)
+	{
+		*v1 = raytree_from_mesh_start;
+		*v2 = raytree_from_mesh_start;
+		*v3 = raytree_from_mesh_start;
+		*v4 = NULL;
+		return;
+	}
+
+	*v1= raytree_from_mesh_verts[mface->v1].co;
+	*v2= raytree_from_mesh_verts[mface->v2].co;
+	*v3= raytree_from_mesh_verts[mface->v3].co;
+	*v4= (mface->v4)? raytree_from_mesh_verts[mface->v4].co: NULL;
+}
+
+/*
+ * Creates a raytree from the given mesh
+ * No copy of the mesh is done, so it must exist and remain
+ * imutable as long the tree is intended to be used
+ *
+ * No more than 1 raytree can exist.. since this code uses a static variable
+ * to pass data to raytree_from_mesh_get_coords
+ */
+static RayTree* raytree_create_from_mesh(DerivedMesh *mesh)
+{
+	int i;
+	float min[3], max[3];
+
+	RayTree*tree= NULL;
+
+	int numFaces= mesh->getNumFaces(mesh);
+	MFace *face = mesh->getFaceDataArray(mesh, CD_MFACE);
+	int numVerts= mesh->getNumVerts(mesh);
+	raytree_from_mesh_verts = mesh->getVertDataArray(mesh, CD_MVERT);
+
+
+	//calculate bounding box
+	INIT_MINMAX(min, max);
+
+	for(i=0; i<numVerts; i++)
+		DO_MINMAX(raytree_from_mesh_verts[i].co, min, max);
+	
+	tree = RE_ray_tree_create(64, numFaces, min, max, raytree_from_mesh_get_coords, raytree_check_always, NULL, NULL);
+	if(tree == NULL)
+		return NULL;
+
+	//Add faces to the RayTree
+	for(i=0; i<numFaces; i++)
+		RE_ray_tree_add_face(tree, 0, (RayFace*)(face+i));
+
+	RE_ray_tree_done(tree);
+
+	return tree;
+}
+
+static void free_raytree_from_mesh(RayTree *tree)
+{
+	raytree_from_mesh_verts = NULL;
+	RE_ray_tree_free(tree);
+}
+
+/*
+ * Cast a ray on the specified direction
+ * Returns the distance the ray must travel until intersect something
+ * Returns FLT_MAX in case of nothing intersection
+ */
+static float raytree_cast_ray(RayTree *tree, const float *coord, const float *direction)
+{
+	Isect isec = {};
+
+	//Setup intersection
+	isec.mode		= RE_RAY_MIRROR; //We want closest intersection
+	isec.lay		= -1;
+	isec.face_last	= NULL;
+	isec.faceorig	= NULL;
+	isec.labda		= 1e10f;
+
+	VECCOPY(isec.start, coord);
+	VECCOPY(isec.vec, direction);
+	VECADDFAC(isec.end, isec.start, isec.vec, isec.labda);
+
+	if(!RE_ray_tree_intersect(tree, &isec))
+		return FLT_MAX;
+
+	isec.labda = ABS(isec.labda);
+	VECADDFAC(isec.end, isec.start, isec.vec, isec.labda);
+	return VecLenf(coord, isec.end);
+}
 
 /*
  * This calculates the distance (in dir units) that the ray must travel to intersect plane
@@ -296,7 +411,7 @@ static void bruteforce_shrinkwrap_calc_nearest_vertex(DerivedMesh *target, float
 
 static void shrinkwrap_calc_foreach_vertex(ShrinkwrapCalcData *calc, Shrinkwrap_ForeachVertexCallback callback)
 {
-	int i, j;
+	int i;
 	int vgroup		= get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
 	int	numVerts	= 0;
 
@@ -310,22 +425,10 @@ static void shrinkwrap_calc_foreach_vertex(ShrinkwrapCalcData *calc, Shrinkwrap_
 	//Shrink (calculate each vertex final position)
 	for(i = 0; i<numVerts; i++)
 	{
-		float weight;
+		float weight = vertexgroup_get_weight(dvert, i, vgroup);
 
 		float orig[3], final[3]; //Coords relative to target
 		float normal[3];
-
-		if(dvert && vgroup >= 0)
-		{
-			weight = 0.0f;
-			for(j = 0; j < dvert[i].totweight; j++)
-				if(dvert[i].dw[j].def_nr == vgroup)
-				{
-					weight = dvert[i].dw[j].weight;
-					break;
-				}
-		}
-		else weight = 1.0f;
 
 		if(weight == 0.0f) continue;	//Skip vertexs where we have no influence
 
@@ -402,7 +505,8 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 			break;
 
 			case MOD_SHRINKWRAP_NORMAL:
-				BENCH(shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_normal_projection));
+				BENCH(shrinkwrap_calc_normal_projection(&calc));
+//				BENCH(shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_normal_projection));
 			break;
 
 			case MOD_SHRINKWRAP_NEAREST_VERTEX:
@@ -424,9 +528,18 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 	return calc.final;
 }
 
+
+/*
+ * Shrinkwrap to the nearest vertex
+ *
+ * it builds a kdtree of vertexs we can attach to and then
+ * for each vertex on performs a nearest vertex search on the tree
+ */
 void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 {
 	int i;
+	int vgroup		= get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
+
 	KDTree* target = NULL;
 	KDTreeNearest nearest;
 	float tmp_co[3];
@@ -436,6 +549,7 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 
 	int	numVerts;
 	MVert *vert = NULL;
+	MDeformVert *dvert = NULL;
 
 	//Generate kd-tree with target vertexs
 	BENCH_BEGIN(build);
@@ -446,6 +560,7 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	numVerts= calc->target->getNumVerts(calc->target);
 	vert	= calc->target->getVertDataArray(calc->target, CD_MVERT);	
 
+
 	for( ;numVerts--; vert++)
 		BLI_kdtree_insert(target, 0, vert->co, NULL);
 
@@ -453,12 +568,18 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 
 	BENCH_END(build);
 
+
 	//Find the nearest vertex 
 	numVerts= calc->final->getNumVerts(calc->final);
 	vert	= calc->final->getVertDataArray(calc->final, CD_MVERT);	
+	dvert	= calc->final->getVertDataArray(calc->final, CD_MDEFORMVERT);
+
 	for(i=0; i<numVerts; i++)
 	{
 		int t;
+		float weight = vertexgroup_get_weight(dvert, i, vgroup);
+		if(weight == 0.0f) continue;
+
 		VecMat4MulVecfl(tmp_co, calc->local2target, vert[i].co);
 
 		BENCH_BEGIN(query);
@@ -485,4 +606,91 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	BENCH_REPORT(build);
 	BENCH_REPORT(query);
 }
+
+/*
+ * Shrinkwrap projecting vertexs allong their normals over the target
+ *
+ * it builds a RayTree from the target mesh and then performs a
+ * raycast for each vertex (ray direction = normal)
+ */
+void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
+{
+	int i;
+	int vgroup		= get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
+	char use_normal = calc->smd->shrinkOpts;
+	RayTree *target = NULL;
+
+	int	numVerts;
+	MVert *vert = NULL;
+	MDeformVert *dvert = NULL;
+	float tmp_co[3], tmp_no[3];
+
+	if( (use_normal & (MOD_SHRINKWRAP_ALLOW_INVERTED_NORMAL | MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL)) == 0)
+		return;	//Nothing todo
+
+	//setup raytracing
+	target = raytree_create_from_mesh(calc->target);
+	if(target == NULL) return OUT_OF_MEMORY();
+
+
+
+	//Project each vertex along normal
+	numVerts= calc->final->getNumVerts(calc->final);
+	vert	= calc->final->getVertDataArray(calc->final, CD_MVERT);	
+	dvert	= calc->final->getVertDataArray(calc->final, CD_MDEFORMVERT);
+
+	for(i=0; i<numVerts; i++)
+	{
+		float dist = FLT_MAX;
+		float weight = vertexgroup_get_weight(dvert, i, vgroup);
+//		if(weight == 0.0f) continue;
+		weight = 1.0;
+
+		//Transform coordinates local->target
+		VecMat4MulVecfl(tmp_co, calc->local2target, vert[i].co);
+
+		normal_short2float(vert[i].no, tmp_no);
+		Mat4Mul3Vecfl(calc->local2target, tmp_no);	//Watch out for scaling on normal
+		Normalize(tmp_no);							//(TODO: do we really needed a unit-len normal? and we could know the scale factor before hand?)
+
+
+		if(use_normal & MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL)
+		{
+			dist = raytree_cast_ray(target, tmp_co, tmp_no);
+		}
+
+		normal_short2float(vert[i].no, tmp_no);
+		Mat4Mul3Vecfl(calc->local2target, tmp_no);	//Watch out for scaling on normal
+		Normalize(tmp_no);							//(TODO: do we really needed a unit-len normal? and we could know the scale factor before hand?)
+
+		if(use_normal & MOD_SHRINKWRAP_ALLOW_INVERTED_NORMAL)
+		{
+			float inv[3]; // = {-tmp_no[0], -tmp_no[1], -tmp_no[2]};
+			float tdist;
+
+			inv[0] = -tmp_no[0];
+			inv[1] = -tmp_no[1];
+			inv[2] = -tmp_no[2];
+
+			tdist = raytree_cast_ray(target, tmp_co, inv);
+
+			if(ABS(tdist) < ABS(dist))
+				dist = -tdist;
+		}
+
+		if(ABS(dist) != FLT_MAX)
+		{
+			VECADDFAC(tmp_co, tmp_co, tmp_no, dist);
+			VecMat4MulVecfl(tmp_co, calc->target2local, tmp_co);
+			VecLerpf(vert[i].co, vert[i].co, tmp_co, weight);	//linear interpolation
+
+			if(calc->moved)
+				calc->moved[i] = TRUE;
+		}
+
+	}
+
+	free_raytree_from_mesh(target);
+}
+
 

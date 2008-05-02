@@ -495,7 +495,8 @@ typedef struct ShrinkwrapModifierData {
 	struct Object *target;	/* shrink target */
 	char vgroup_name[32];	/* optional vertexgroup name */
 	short shrinkType;		/* shrink type projection */
-	short pad[3];
+	short shrinkOpts;		/* shrink options */
+	short pad[2];
 } ShrinkwrapModifierData;
 
 /* Shrinkwrap->shrinkType */
@@ -503,5 +504,8 @@ typedef struct ShrinkwrapModifierData {
 #define MOD_SHRINKWRAP_NORMAL			1
 #define MOD_SHRINKWRAP_NEAREST_VERTEX	2
 
+/* Shrinkwrap->shrinkOpts */
+#define MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL		(1<<0)
+#define MOD_SHRINKWRAP_ALLOW_INVERTED_NORMAL	(1<<1)
 
 #endif
