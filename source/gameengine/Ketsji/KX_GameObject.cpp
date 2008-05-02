@@ -229,7 +229,7 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 
 		NodeSetLocalScale(scale1);
 		NodeSetLocalPosition(MT_Point3(newpos[0],newpos[1],newpos[2]));
-		NodeSetLocalOrientation(NodeGetWorldOrientation()*invori);
+		NodeSetLocalOrientation(invori*NodeGetWorldOrientation());
 		NodeUpdateGS(0.f,true);
 		// object will now be a child, it must be removed from the parent list
 		CListValue* rootlist = scene->GetRootParentList();
