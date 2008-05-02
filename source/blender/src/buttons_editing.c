@@ -1822,7 +1822,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 94;
 		} else if (md->type==eModifierType_Shrinkwrap) {
 			ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
-			height = 67;
+			height = 86;
 			if (smd->shrinkType == MOD_SHRINKWRAP_NORMAL)
 				height += 19*2;
 		}
@@ -2452,6 +2452,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
 
 			uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &smd->target, "Target to shrink to");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Offset:",	lx,(cy-=19),buttonWidth,19, &smd->keptDist, 0.0f, 100.0f, 1.0f, 0, "Specify distance to kept from the target");
 		}
 
 		uiBlockEndAlign(block);

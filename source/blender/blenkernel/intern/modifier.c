@@ -6978,6 +6978,8 @@ static void shrinkwrapModifier_initData(ModifierData *md)
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
 	smd->shrinkType = MOD_SHRINKWRAP_NEAREST_SURFACE;
+	smd->shrinkOpts = MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL;
+	smd->keptDist	= 0.0f;
 }
 
 static void shrinkwrapModifier_copyData(ModifierData *md, ModifierData *target)

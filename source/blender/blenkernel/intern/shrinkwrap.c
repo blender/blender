@@ -102,14 +102,15 @@ static float vertexgroup_get_weight(MDeformVert *dvert, int index, int vgroup)
 			if(dvert[index].dw[j].def_nr == vgroup)
 				return dvert[index].dw[j].weight;
 	}
-	return -1;
+	return 1.0;
 }
 
 /*
  * Raytree from mesh
  */
 static MVert *raytree_from_mesh_verts = NULL;
-static float raytree_from_mesh_start[3] = { 1e10f, 1e10f, 1e10f }; 
+static MFace *raytree_from_mesh_faces = NULL;
+//static float raytree_from_mesh_start[3] = { 0.0f, 0.0f, 0.0f }; 
 static int raytree_check_always(Isect *is, int ob, RayFace *face)
 {
 	return TRUE;
@@ -117,21 +118,33 @@ static int raytree_check_always(Isect *is, int ob, RayFace *face)
 
 static void raytree_from_mesh_get_coords(RayFace *face, float **v1, float **v2, float **v3, float **v4)
 {
-	MFace *mface= (MFace*)face;
+	MFace *mface= raytree_from_mesh_faces + (int)face/2 - 1 ;
 
-	if(mface == NULL)
+	if(face == (RayFace*)(-1))
 	{
-		*v1 = raytree_from_mesh_start;
-		*v2 = raytree_from_mesh_start;
-		*v3 = raytree_from_mesh_start;
+		*v1 = NULL; //raytree_from_mesh_start;
+		*v2 = NULL; //raytree_from_mesh_start;
+		*v3 = NULL; //raytree_from_mesh_start;
 		*v4 = NULL;
 		return;
 	}
 
-	*v1= raytree_from_mesh_verts[mface->v1].co;
-	*v2= raytree_from_mesh_verts[mface->v2].co;
-	*v3= raytree_from_mesh_verts[mface->v3].co;
-	*v4= (mface->v4)? raytree_from_mesh_verts[mface->v4].co: NULL;
+	//Nasty quad splitting
+	if(((int)face) & 1)	//we want the 2 triangle of the quad
+	{
+		assert(mface->v4);
+		*v1= raytree_from_mesh_verts[mface->v1].co;
+		*v2= raytree_from_mesh_verts[mface->v4].co;
+		*v3= raytree_from_mesh_verts[mface->v3].co;
+		*v4= NULL;
+	}
+	else
+	{
+		*v1= raytree_from_mesh_verts[mface->v1].co;
+		*v2= raytree_from_mesh_verts[mface->v2].co;
+		*v3= raytree_from_mesh_verts[mface->v3].co;
+		*v4= NULL;
+	}
 }
 
 /*
@@ -152,7 +165,10 @@ static RayTree* raytree_create_from_mesh(DerivedMesh *mesh)
 	int numFaces= mesh->getNumFaces(mesh);
 	MFace *face = mesh->getFaceDataArray(mesh, CD_MFACE);
 	int numVerts= mesh->getNumVerts(mesh);
+
+	//Initialize static vars
 	raytree_from_mesh_verts = mesh->getVertDataArray(mesh, CD_MVERT);
+	raytree_from_mesh_faces = face;
 
 
 	//calculate bounding box
@@ -165,9 +181,16 @@ static RayTree* raytree_create_from_mesh(DerivedMesh *mesh)
 	if(tree == NULL)
 		return NULL;
 
-	//Add faces to the RayTree
-	for(i=0; i<numFaces; i++)
-		RE_ray_tree_add_face(tree, 0, (RayFace*)(face+i));
+	//Add faces to the RayTree (RayTree uses face=0, with some special value to setup things)
+	for(i=1; i<=numFaces; i++)
+	{
+		RE_ray_tree_add_face(tree, 0, (RayFace*)(i*2) );
+
+		//Theres some nasty thing with non-coplanar quads (that I can't find the issue)
+		//so we split quads (an odd numbered face represents the second triangle of the quad)
+		if(face[i-1].v4)
+			RE_ray_tree_add_face(tree, 0, i*2+1);
+	}
 
 	RE_ray_tree_done(tree);
 
@@ -193,7 +216,7 @@ static float raytree_cast_ray(RayTree *tree, const float *coord, const float *di
 	isec.mode		= RE_RAY_MIRROR; //We want closest intersection
 	isec.lay		= -1;
 	isec.face_last	= NULL;
-	isec.faceorig	= NULL;
+	isec.faceorig	= (RayFace*)(-1);
 	isec.labda		= 1e10f;
 
 	VECCOPY(isec.start, coord);
@@ -429,6 +452,7 @@ static void shrinkwrap_calc_foreach_vertex(ShrinkwrapCalcData *calc, Shrinkwrap_
 
 		float orig[3], final[3]; //Coords relative to target
 		float normal[3];
+		float dist;
 
 		if(weight == 0.0f) continue;	//Skip vertexs where we have no influence
 
@@ -444,9 +468,11 @@ static void shrinkwrap_calc_foreach_vertex(ShrinkwrapCalcData *calc, Shrinkwrap_
 		}
 		(callback)(calc->target, final, normal);
 
-		VecLerpf(final, orig, final, weight);	//linear interpolation
+		VecMat4MulVecfl(final, calc->target2local, final);
 
-		VecMat4MulVecfl(vert[i].co, calc->target2local, final);
+		dist = VecLenf(vert[i].co, final);
+		if(dist > 1e-5) weight *= (dist - calc->keptDist)/dist;
+		VecLerpf(vert[i].co, vert[i].co, final, weight);	//linear interpolation
 	}
 }
 
@@ -484,7 +510,8 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 		Mat4Invert (smd->target->imat, smd->target->obmat);	//inverse is outdated
 		Mat4MulSerie(calc.local2target, smd->target->imat, ob->obmat, 0, 0, 0, 0, 0, 0);
 		Mat4Invert(calc.target2local, calc.local2target);
-
+	
+		calc.keptDist = smd->keptDist;	//TODO: smd->keptDist is in global units.. must change to local
 	}
 
 	calc.moved = NULL;
@@ -588,9 +615,11 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 
 		if(t != -1)
 		{
-			float weight = 1.0f;
+			float dist;
 
 			VecMat4MulVecfl(nearest.co, calc->target2local, nearest.co);
+			dist = VecLenf(vert[i].co, tmp_co);
+			if(dist > 1e-5) weight *= (dist - calc->keptDist)/dist;
 			VecLerpf(vert[i].co, vert[i].co, nearest.co, weight);	//linear interpolation
 
 			if(calc->moved)
@@ -643,8 +672,7 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	{
 		float dist = FLT_MAX;
 		float weight = vertexgroup_get_weight(dvert, i, vgroup);
-//		if(weight == 0.0f) continue;
-		weight = 1.0;
+		if(weight == 0.0f) continue;
 
 		//Transform coordinates local->target
 		VecMat4MulVecfl(tmp_co, calc->local2target, vert[i].co);
@@ -680,8 +708,13 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 		if(ABS(dist) != FLT_MAX)
 		{
+			float dist_t;
+
 			VECADDFAC(tmp_co, tmp_co, tmp_no, dist);
 			VecMat4MulVecfl(tmp_co, calc->target2local, tmp_co);
+
+			dist_t = VecLenf(vert[i].co, tmp_co);
+			if(dist_t > 1e-5) weight *= (dist_t - calc->keptDist)/dist_t;
 			VecLerpf(vert[i].co, vert[i].co, tmp_co, weight);	//linear interpolation
 
 			if(calc->moved)

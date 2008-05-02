@@ -494,9 +494,9 @@ typedef struct ShrinkwrapModifierData {
 
 	struct Object *target;	/* shrink target */
 	char vgroup_name[32];	/* optional vertexgroup name */
+	float keptDist;			/* distance offset from mesh/projection point */
 	short shrinkType;		/* shrink type projection */
 	short shrinkOpts;		/* shrink options */
-	short pad[2];
 } ShrinkwrapModifierData;
 
 /* Shrinkwrap->shrinkType */

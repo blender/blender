@@ -48,6 +48,7 @@ typedef struct ShrinkwrapCalcData
 	float local2target[4][4];		
 	float target2local[4][4];
 
+	float keptDist;					//Distance to kept from target (units are in local space)
 	//float *weights;				//weights of vertexs
 	unsigned char *moved;			//boolean indicating if vertex has moved (TODO use bitmaps)
 
