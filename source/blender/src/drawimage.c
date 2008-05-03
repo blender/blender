@@ -533,7 +533,7 @@ void draw_uvs_sima(void)
 		
 	
 	if (G.sima->flag & SI_DRAW_STRETCH) {
-		float col[3];
+		float col[4];
 		float aspx, aspy;
 		float tface_uv[4][2];
 		
