@@ -221,9 +221,10 @@ if USE_SDK=='true':
 	CCFLAGS=SDK_FLAGS+CCFLAGS
 	CXXFLAGS=SDK_FLAGS+CXXFLAGS
 	
+# you can add -mssse3 if gcc >= 4.2
 if MAC_PROC == 'i386':
-	REL_CFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mssse3']
-	REL_CCFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mssse3']
+	REL_CFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3']
+	REL_CCFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3']
 else:
 	CFLAGS = CFLAGS+['-fno-strict-aliasing']
 	CCFLAGS =  CCFLAGS+['-fno-strict-aliasing']
