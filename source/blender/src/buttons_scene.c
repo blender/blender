@@ -1175,9 +1175,14 @@ static void seq_panel_proxy()
 	}
 
 	if (last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
+		uiDefIconBut(block, BUT, B_SEQ_SEL_PROXY_DIR, 
+			     ICON_FILESEL, 10, 120, 20, 20, 0, 0, 0, 0, 0, 
+			     "Select the directory/name for "
+			     "the proxy storage");
+
 		uiDefBut(block, TEX, 
 			 B_SEQ_BUT_RELOAD, "Dir: ", 
-			 10,120,240,19, last_seq->strip->proxy->dir, 
+			 30,120,220,20, last_seq->strip->proxy->dir, 
 			 0.0, 160.0, 100, 0, "");
 	}
 
@@ -1264,10 +1269,20 @@ void sequencer_panels()
 	}
 }
 
+static void sel_proxy_dir(char *name)
+{
+	Sequence *last_seq = get_last_seq();
+	strcpy(last_seq->strip->proxy->dir, name);
+
+	allqueue(REDRAWBUTSSCENE, 0);
+
+	BIF_undo_push("Change proxy directory");
+}
 
 void do_sequencer_panels(unsigned short event)
 {
 	Sequence *last_seq = get_last_seq();
+	ScrArea * sa;
 
 	switch(event) {
 	case B_SEQ_BUT_PLUGIN:
@@ -1279,6 +1294,13 @@ void do_sequencer_panels(unsigned short event)
 		break;
 	case B_SEQ_BUT_REBUILD_PROXY:
 		seq_proxy_rebuild(last_seq);
+		break;
+	case B_SEQ_SEL_PROXY_DIR:
+		sa= closest_bigger_area();
+		areawinset(sa->win);
+		activate_fileselect(FILE_SPECIAL, "SELECT PROXY DIR", 
+				    last_seq->strip->proxy->dir, 
+				    sel_proxy_dir);
 		break;
 	case B_SEQ_BUT_RELOAD:
 	case B_SEQ_BUT_RELOAD_ALL:
