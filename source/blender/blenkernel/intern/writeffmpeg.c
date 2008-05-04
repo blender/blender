@@ -695,7 +695,8 @@ void makeffmpegstring(char* string) {
 	if (!string || !exts) return;
 
 	strcpy(string, G.scene->r.pic);
-	BLI_convertstringcode(string, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(string, G.sce);
+	BLI_convertstringframe(string, G.scene->r.cfra);
 
 	BLI_make_existing_file(string);
 
