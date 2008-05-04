@@ -351,7 +351,7 @@ void BL_ConvertActuators(char* maggiename,
 							else
 							{
 								/* but we need to convert the samplename into absolute pathname first */
-								BLI_convertstringcode(soundact->sound->name, maggiename, 0);
+								BLI_convertstringcode(soundact->sound->name, maggiename);
 								samplename = soundact->sound->name;
 								
 								/* and now we can load it */
