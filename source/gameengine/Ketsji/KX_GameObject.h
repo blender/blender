@@ -70,6 +70,7 @@ protected:
 	KX_ClientObjectInfo*				m_pClient_info;
 	STR_String							m_name;
 	STR_String							m_text;
+	int									m_layer;
 	std::vector<RAS_MeshObject*>		m_meshes;
 	
 	bool								m_bSuspendDynamics;
@@ -571,6 +572,22 @@ public:
 		bool b
 	);
 
+	/**
+	 * Change the layer of the object (when it is added in another layer
+	 * than the original layer)
+	 */
+		void
+	SetLayer(
+		int l
+	);
+
+	/**
+	 * Get the object layer
+	 */
+		int
+	GetLayer(
+		void
+	);
 		
 	/**
 	 * @section Logic bubbling methods.

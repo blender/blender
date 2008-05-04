@@ -3405,7 +3405,7 @@ def buildTree(ob_curve, single=False):
 		if leaf_object:
 			ob_leaf_dupliface.enableDupFaces = True
 			ob_leaf_dupliface.enableDupFacesScale = True
-			ob_leaf_dupliface.makeParent([leaf_object])
+			ob_leaf_dupliface.makeParent([leaf_object], 1)
 		else:
 			ob_leaf_dupliface.enableDupFaces = False
 	
@@ -3637,7 +3637,7 @@ def do_tree_generate(e,v):
 		GLOBALS['non_bez_error'] = 0
 		
 def do_tree_help(e,v):
-	url = 'http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx'
+	url = 'http://wiki.blender.org/index.php/Scripts/Manual/Wizards/TreeFromCurves'
 	print 'Trying to open web browser with documentation at this address...'
 	print '\t' + url
 	

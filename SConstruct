@@ -398,8 +398,25 @@ for tp, tn, tf in os.walk('release/plugins'):
     if '.svn' in tn:
         tn.remove('.svn')
     for f in tf:
+        print ">>>", env['BF_INSTALLDIR'], tp, f
         pluglist.append(tp+os.sep+f)
         plugtargetlist.append(env['BF_INSTALLDIR']+tp[7:]+os.sep+f)
+
+# header files for plugins
+pluglist.append('source/blender/blenpluginapi/documentation.h')
+plugtargetlist.append(env['BF_INSTALLDIR'] + os.sep + 'plugins' + os.sep + 'include' + os.sep +'documentation.h')
+pluglist.append('source/blender/blenpluginapi/externdef.h')
+plugtargetlist.append(env['BF_INSTALLDIR'] + os.sep + 'plugins' + os.sep + 'include' + os.sep +'externdef.h')
+pluglist.append('source/blender/blenpluginapi/floatpatch.h')
+plugtargetlist.append(env['BF_INSTALLDIR'] + os.sep + 'plugins' + os.sep + 'include' + os.sep +'floatpatch.h')
+pluglist.append('source/blender/blenpluginapi/iff.h')
+plugtargetlist.append(env['BF_INSTALLDIR'] + os.sep + 'plugins' + os.sep + 'include' + os.sep +'iff.h')
+pluglist.append('source/blender/blenpluginapi/plugin.h')
+plugtargetlist.append(env['BF_INSTALLDIR'] + os.sep + 'plugins' + os.sep + 'include' + os.sep +'plugin.h')
+pluglist.append('source/blender/blenpluginapi/util.h')
+plugtargetlist.append(env['BF_INSTALLDIR'] + os.sep + 'plugins' + os.sep + 'include' + os.sep +'util.h')
+pluglist.append('source/blender/blenpluginapi/plugin.DEF')
+plugtargetlist.append(env['BF_INSTALLDIR'] + os.sep + 'plugins' + os.sep + 'include' + os.sep + 'plugin.def')
 
 plugininstall = []
 for targetdir,srcfile in zip(plugtargetlist, pluglist):

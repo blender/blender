@@ -189,7 +189,7 @@ bool RAS_MaterialBucket::ActivateMaterial(const MT_Transform& cameratrans, RAS_I
 	}
 	else
 	{
-		rendertools->ProcessLighting(m_material->GetLightLayer());
+		rendertools->ProcessLighting(RAS_IRenderTools::RAS_LIGHT_OBJECT_LAYER/*m_material->GetLightLayer()*/);
 	}
 
 	drawmode = (rasty->GetDrawingMode()  < RAS_IRasterizer::KX_SOLID ? 	
@@ -204,7 +204,6 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 	if (!ms.m_bVisible)
 		return;
 	
-	rendertools->SetClientObject(ms.m_clientObj);
 	m_material->ActivateMeshSlot(ms, rasty);
 
 	/* __NLA Do the deformation */
@@ -317,15 +316,12 @@ void RAS_MaterialBucket::Render(const MT_Transform& cameratrans,
 
 	//rasty->SetMaterial(*m_material);
 	
-	if (m_meshSlots.size() >0)
-	{
-		rendertools->SetClientObject((*m_meshSlots.begin()).m_clientObj);
-	}
 	
 	int drawmode;
 	for (T_MeshSlotList::const_iterator it = m_meshSlots.begin();
 	! (it == m_meshSlots.end()); ++it)
 	{
+		rendertools->SetClientObject((*it).m_clientObj);
 		while (ActivateMaterial(cameratrans, rasty, rendertools, drawmode))
 			RenderMeshSlot(cameratrans, rasty, rendertools, *it, drawmode);
 	}

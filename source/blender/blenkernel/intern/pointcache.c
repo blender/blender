@@ -186,7 +186,7 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 		
 		sprintf(filename, "//"PTCACHE_PATH"%s", file); /* add blend file name to pointcache dir */
 		BLI_add_slash(filename);
-		BLI_convertstringcode(filename, blendfilename, 0);
+		BLI_convertstringcode(filename, blendfilename);
 		return strlen(filename);
 	}
 	

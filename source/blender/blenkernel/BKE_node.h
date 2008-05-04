@@ -33,7 +33,8 @@
 #ifndef BKE_NODE_H
 #define BKE_NODE_H
 
-
+/* not very important, but the stack solver likes to know a maximum */
+#define MAX_SOCKET	64
 
 struct ID;
 struct bNodeTree;

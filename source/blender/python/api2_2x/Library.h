@@ -42,6 +42,7 @@
 typedef struct {
 	PyObject_HEAD 
 	char filename[FILE_MAXDIR + FILE_MAXFILE];
+	int rel;
 } BPy_Library;
 
 typedef struct {
@@ -50,6 +51,7 @@ typedef struct {
 	int type;
 	char filename[FILE_MAXDIR + FILE_MAXFILE];
 	char *name;
+	int rel;
 	enum {
 		OBJECT_IS_LINK,
 		OBJECT_IS_APPEND,

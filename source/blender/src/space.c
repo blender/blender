@@ -1005,6 +1005,8 @@ void BIF_undo_push(char *str)
 			undo_push_armature(str);
 	}
 	else if(G.f & G_PARTICLEEDIT) {
+		if (U.undosteps == 0) return;
+
 		PE_undo_push(str);
 	}
 	else {

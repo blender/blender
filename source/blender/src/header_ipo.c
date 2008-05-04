@@ -745,6 +745,12 @@ static void do_ipo_viewmenu(void *arg, int event)
 	case 12:	
 		G.sipo->flag ^= SIPO_LOCK_VIEW;
 		break;
+	case 13: /* Set Preview Range */
+		anim_previewrange_set();
+		break;
+	case 14: /* Clear Preview Range */
+		anim_previewrange_clear();
+		break;
 	}
 }
 
@@ -775,9 +781,16 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Animation|Alt A", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Animation in 3D View|Alt Shift A", 0, yco-=20,
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	//uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Animation in 3D View|Alt Shift A", 0, yco-=20,
+	//				 menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Preview Range|Ctrl P", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Preview Range|Alt P", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
+	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 

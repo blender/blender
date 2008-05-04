@@ -130,9 +130,9 @@ void BLI_bpathIterator_getPathExpanded( struct BPathIterator *bpi, char *path_ex
 	libpath = BLI_bpathIterator_getLib(bpi);
 	
 	if (libpath) { /* check the files location relative to its library path */
-		BLI_convertstringcode(path_expanded, libpath, G.scene->r.cfra);
+		BLI_convertstringcode(path_expanded, libpath);
 	} else { /* local data, use the blend files path */
-		BLI_convertstringcode(path_expanded, G.sce, G.scene->r.cfra);
+		BLI_convertstringcode(path_expanded, G.sce);
 	}
 }
 char* BLI_bpathIterator_getLib( struct BPathIterator *bpi) {

@@ -612,8 +612,8 @@ PyObject *RenderData_Play( BPy_RenderData * self )
 	{
 
 		strcpy( file, self->renderContext->pic );
-		BLI_convertstringcode( file, G.sce,
-				       self->renderContext->cfra );
+		BLI_convertstringcode( file, G.sce );
+		
 		BLI_make_existing_file( file );
 		if( BLI_strcasecmp( file + strlen( file ) - 4, ".avi" ) ) {
 			sprintf( txt, "%04d_%04d.avi",

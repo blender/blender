@@ -264,7 +264,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			if (exitstring != "")
 				strcpy(basedpath, exitstring.Ptr());
 
-			BLI_convertstringcode(basedpath, pathname, 0);
+			BLI_convertstringcode(basedpath, pathname);
 			bfd = load_game_data(basedpath);
 			
 			// if it wasn't loaded, try it forced relative
@@ -275,7 +275,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				strcpy(temppath, "//");
 				strcat(temppath, basedpath);
 				
-				BLI_convertstringcode(temppath, pathname, 0);
+				BLI_convertstringcode(temppath, pathname);
 				bfd = load_game_data(temppath);
 			}
 			

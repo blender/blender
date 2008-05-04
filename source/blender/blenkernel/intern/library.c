@@ -974,7 +974,7 @@ static void image_fix_relative_path(Image *ima)
 {
 	if(ima->id.lib==NULL) return;
 	if(strncmp(ima->name, "//", 2)==0) {
-		BLI_convertstringcode(ima->name, ima->id.lib->filename, 0);
+		BLI_convertstringcode(ima->name, ima->id.lib->filename);
 		BLI_makestringcode(G.sce, ima->name);
 	}
 }

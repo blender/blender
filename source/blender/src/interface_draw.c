@@ -1839,7 +1839,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 			int err;
 
 			strcpy(tmpStr, G.selfont->name);
-			BLI_convertstringcode(tmpStr, G.sce, 0);
+			BLI_convertstringcode(tmpStr, G.sce);
 			err = FTF_SetFont((unsigned char *)tmpStr, 0, 14.0);
 		}
 	}

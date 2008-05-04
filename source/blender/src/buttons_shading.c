@@ -238,7 +238,7 @@ static void save_env(char *name)
 	char str[FILE_MAX];
 	
 	strcpy(str, name);
-	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(str, G.sce);
 	tex= G.buts->lockpoin;
 	
 	if(tex && GS(tex->id.name)==ID_TE) {

@@ -3539,7 +3539,7 @@ static void namebutton_cb(void *tep, void *oldnamep)
 			if (te->idcode == ID_LI) {
 				char expanded[FILE_MAXDIR + FILE_MAXFILE];
 				BLI_strncpy(expanded, ((Library *)tselem->id)->name, FILE_MAXDIR + FILE_MAXFILE);
-				BLI_convertstringcode(expanded, G.sce, G.scene->r.cfra);
+				BLI_convertstringcode(expanded, G.sce);
 				if (!BLI_exists(expanded)) {
 					error("This path does not exist, correct this before saving");
 				}

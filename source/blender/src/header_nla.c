@@ -122,6 +122,12 @@ static void do_nla_viewmenu(void *arg, int event)
 	case 7:	/* Show timing in Frames or Seconds */
 		G.snla->flag ^= SNLA_DRAWTIME;
 		break;
+	case 8: /* Set Preview Range */
+		anim_previewrange_set();
+		break;
+	case 9: /* Clear Preview Range */
+		anim_previewrange_clear();
+		break;
 	}
 }
 
@@ -154,7 +160,12 @@ static uiBlock *nla_viewmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation|Alt A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation in 3D View|Alt Shift A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	//uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation in 3D View|Alt Shift A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Preview Range|Ctrl P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Preview Range|Alt P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
