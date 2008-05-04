@@ -351,7 +351,8 @@ Image *BKE_add_image_file(const char *name)
 	}
 	
 	BLI_strncpy(str, name, sizeof(str));
-	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(str, G.sce);
+	BLI_convertstringframe(str, G.scene->r.cfra); /* TODO - should this realy be here? */
 	
 	/* exists? */
 	file= open(str, O_BINARY|O_RDONLY);
@@ -362,7 +363,8 @@ Image *BKE_add_image_file(const char *name)
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		if(ima->source!=IMA_SRC_VIEWER && ima->source!=IMA_SRC_GENERATED) {
 			BLI_strncpy(strtest, ima->name, sizeof(ima->name));
-			BLI_convertstringcode(strtest, G.sce, G.scene->r.cfra);
+			BLI_convertstringcode(strtest, G.sce);
+			BLI_convertstringframe(strtest, G.scene->r.cfra); /* TODO - should this be here? */
 			
 			if( strcmp(strtest, str)==0 ) {
 				if(ima->anim==NULL || ima->id.us==0) {
@@ -1243,7 +1245,8 @@ void BKE_makepicstring(char *string, char *base, int frame, int imtype)
 	if (strchr(string, '#')==NULL)
 		strcat(string, "####"); /* 4 numbers */
 	
-	BLI_convertstringcode(string, G.sce, frame);
+	BLI_convertstringcode(string, G.sce);
+	BLI_convertstringframe(string, frame);
 
 	if(G.scene->r.scemode & R_EXTENSION) 
 		BKE_add_image_extension(string, imtype);
@@ -1479,9 +1482,11 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 	BLI_strncpy(name, ima->name, sizeof(name));
 	
 	if(ima->id.lib)
-		BLI_convertstringcode(name, ima->id.lib->filename, frame);
+		BLI_convertstringcode(name, ima->id.lib->filename);
 	else
-		BLI_convertstringcode(name, G.sce, frame);
+		BLI_convertstringcode(name, G.sce);
+	
+	BLI_convertstringframe(name, frame); /* TODO - should this be here? */
 	
 	/* read ibuf */
 	ibuf = IMB_loadiffname(name, IB_rect|IB_multilayer);
@@ -1582,9 +1587,9 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 		
 		BLI_strncpy(str, ima->name, FILE_MAX);
 		if(ima->id.lib)
-			BLI_convertstringcode(str, ima->id.lib->filename, 0);
+			BLI_convertstringcode(str, ima->id.lib->filename);
 		else
-			BLI_convertstringcode(str, G.sce, 0);
+			BLI_convertstringcode(str, G.sce);
 		
 		ima->anim = openanim(str, IB_cmap | IB_rect);
 		
@@ -1636,9 +1641,11 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 		/* get the right string */
 		BLI_strncpy(str, ima->name, sizeof(str));
 		if(ima->id.lib)
-			BLI_convertstringcode(str, ima->id.lib->filename, cfra);
+			BLI_convertstringcode(str, ima->id.lib->filename);
 		else
-			BLI_convertstringcode(str, G.sce, cfra);
+			BLI_convertstringcode(str, G.sce);
+		
+		BLI_convertstringframe(str, cfra);
 		
 		/* read ibuf */
 		ibuf = IMB_loadiffname(str, IB_rect|IB_multilayer|IB_imginfo);

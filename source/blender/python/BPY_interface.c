@@ -444,7 +444,7 @@ void BPY_rebuild_syspath( void )
 		}
 
 		BLI_strncpy(dirpath, U.pythondir, FILE_MAX);
-		BLI_convertstringcode(dirpath, G.sce, 0);
+		BLI_convertstringcode(dirpath, G.sce);
 		syspath_append(dirpath);	/* append to module search path */
 
 		BLI_make_file_string("/", modpath, dirpath, "bpymodules");
@@ -1019,7 +1019,7 @@ int BPY_menu_do_python( short menutype, int event )
 
 		/* dirs in Blender can be "//", which has a special meaning */
 		BLI_strncpy(upythondir, U.pythondir, FILE_MAX);
-		BLI_convertstringcode(upythondir, G.sce, 0); /* if so, this expands it */
+		BLI_convertstringcode(upythondir, G.sce); /* if so, this expands it */
 		BLI_make_file_string( "/", filestr, upythondir, pym->filename );
 	}
 	else { /* script is in default scripts dir */

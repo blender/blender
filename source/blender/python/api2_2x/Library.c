@@ -166,7 +166,7 @@ static PyObject *M_Library_Open( PyObject * self, PyObject * value )
 	
 	/* copy the name to make it absolute so BLO_blendhandle_from_file doesn't complain */
 	BLI_strncpy(fname1, fname, sizeof(fname1)); 
-	BLI_convertstringcode(fname1, G.sce, 0); /* make absolute */
+	BLI_convertstringcode(fname1, G.sce); /* make absolute */
 	
    	/* G.sce = last file loaded, save for UI and restore after opening file */
 	BLI_strncpy(filename, G.sce, sizeof(filename));
@@ -483,7 +483,7 @@ static BlendHandle *open_library( char *filename, char *longFilename )
 
 	/* get complete file name if necessary */
 	BLI_strncpy( longFilename, filename, FILE_MAX ); 
-	BLI_convertstringcode( longFilename, G.sce, 0 );
+	BLI_convertstringcode( longFilename, G.sce );
 
 	/* throw exceptions for wrong file type, cyclic reference */
 	if( !BLO_has_bfile_extension(longFilename) ) {

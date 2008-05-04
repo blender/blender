@@ -890,12 +890,6 @@ int afterqtest(short win, unsigned short evt)
 
 
 static char ext_load_str[256]= {0, 0};
-void add_readfile_event(char *filename)
-{	
-	mainqenter(LOAD_FILE, 1);
-	strcpy(ext_load_str, filename);
-	BLI_convertstringcode(ext_load_str, G.sce, G.scene->r.cfra);
-}
 
 static short ext_reshape= 0, ext_redraw=0, ext_inputchange=0, ext_mousemove=0, ext_undopush=0;
 

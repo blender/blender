@@ -218,7 +218,7 @@ int reopen_text(Text *text)
 	if (!text || !text->name) return 0;
 	
 	BLI_strncpy(str, text->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(str, G.sce);
 	BLI_split_dirfile_basic(str, NULL, sfile);
 	
 	fp= fopen(str, "r");
@@ -316,7 +316,7 @@ Text *add_text(char *file)
 
 	BLI_strncpy(str, file, FILE_MAXDIR+FILE_MAXFILE);
 	if (G.scene) /* can be NULL (bg mode) */
-		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+		BLI_convertstringcode(str, G.sce);
 	BLI_split_dirfile_basic(str, NULL, sfile);
 	
 	fp= fopen(str, "r");
