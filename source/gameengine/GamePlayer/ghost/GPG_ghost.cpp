@@ -579,7 +579,7 @@ int main(int argc, char** argv)
 						// base the actuator filename with respect
 						// to the original file working directory
 						strcpy(basedpath, exitstring.Ptr());
-						BLI_convertstringcode(basedpath, pathname, 0);
+						BLI_convertstringcode(basedpath, pathname);
 						
 						bfd = load_game_data(basedpath);
 					}
