@@ -1273,8 +1273,8 @@ static void make_cb_table_byte(float lift, float gain, float gamma,
 
 	for (y = 0; y < 256; y++) {
 	        float v = 1.0 * y / 255;
-		v += lift; 
 		v *= gain;
+		v += lift; 
 		v = pow(v, gamma);
 		v *= mul;
 		if ( v > 1.0) {
@@ -1294,8 +1294,8 @@ static void make_cb_table_float(float lift, float gain, float gamma,
 
 	for (y = 0; y < 256; y++) {
 	        float v = (float) y * 1.0 / 255.0;
-		v += lift;
 		v *= gain;
+		v += lift;
 		v = pow(v, gamma);
 		v *= mul;
 		table[y] = v;
@@ -1371,7 +1371,7 @@ static void color_balance_float_float(Sequence * seq, TStripElem* se,
 	while (p < e) {
 		int c;
 		for (c = 0; c < 3; c++) {
-			p[c] = pow((p[c] + cb.lift[c]) * cb.gain[c], 
+			p[c] = pow(p[c] * cb.gain[c] + cb.lift[c], 
 				   cb.gamma[c]) * mul;
 		}
 		p += 4;
