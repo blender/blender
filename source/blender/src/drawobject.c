@@ -3474,6 +3474,8 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 		PE_hide_keys_time(psys,CFRA);
 		psys_cache_paths(ob,psys,CFRA,0);
 	}
+	if(psys->pathcache==0)
+		return;
 
 	if(pset->flag & PE_SHOW_CHILD && psys->part->draw_as == PART_DRAW_PATH) {
 		if(psys->childcache==0)

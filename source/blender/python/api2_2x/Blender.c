@@ -371,7 +371,7 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 			char upydir[FILE_MAX];
 
 			BLI_strncpy(upydir, U.pythondir, FILE_MAX);
-			BLI_convertstringcode(upydir, G.sce, 0);
+			BLI_convertstringcode(upydir, G.sce);
 
 			if (BLI_exists(upydir)) {
 				char udatadir[FILE_MAXDIR];
@@ -397,7 +397,7 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 			char upydir[FILE_MAX];
 
 			BLI_strncpy(upydir, U.pythondir, FILE_MAX);
-			BLI_convertstringcode(upydir, G.sce, 0);
+			BLI_convertstringcode(upydir, G.sce);
 
 			if( BLI_exists( upydir ) )
 				ret = PyString_FromString( upydir );
@@ -410,7 +410,7 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 			char yfexportdir[FILE_MAX];
 
 			BLI_strncpy(yfexportdir, U.yfexportdir, FILE_MAX);
-			BLI_convertstringcode(yfexportdir, G.sce, 0);
+			BLI_convertstringcode(yfexportdir, G.sce);
 
 			if( BLI_exists( yfexportdir ) )
 				ret = PyString_FromString( yfexportdir );
@@ -423,7 +423,7 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 			char fontdir[FILE_MAX];
 
 			BLI_strncpy(fontdir, U.fontdir, FILE_MAX);
-			BLI_convertstringcode(fontdir, G.sce, 0);
+			BLI_convertstringcode(fontdir, G.sce);
 
 			if( BLI_exists( fontdir ) )
 				ret = PyString_FromString( fontdir );
@@ -436,7 +436,7 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 			char textudir[FILE_MAX];
 
 			BLI_strncpy(textudir, U.textudir, FILE_MAX);
-			BLI_convertstringcode(textudir, G.sce, 0);
+			BLI_convertstringcode(textudir, G.sce);
 
 			if( BLI_exists( textudir ) )
 				ret = PyString_FromString( textudir );
@@ -449,7 +449,7 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 			char plugtexdir[FILE_MAX];
 
 			BLI_strncpy(plugtexdir, U.plugtexdir, FILE_MAX);
-			BLI_convertstringcode(plugtexdir, G.sce, 0);
+			BLI_convertstringcode(plugtexdir, G.sce);
 
 			if( BLI_exists( plugtexdir ) )
 				ret = PyString_FromString( plugtexdir );
@@ -462,7 +462,7 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 			char plugseqdir[FILE_MAX];
 
 			BLI_strncpy(plugseqdir, U.plugseqdir, FILE_MAX);
-			BLI_convertstringcode(plugseqdir, G.sce, 0);
+			BLI_convertstringcode(plugseqdir, G.sce);
 
 			if( BLI_exists( plugseqdir ) )
 				ret = PyString_FromString( plugseqdir );
@@ -475,7 +475,7 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 			char renderdir[FILE_MAX];
 
 			BLI_strncpy(renderdir, U.renderdir, FILE_MAX);
-			BLI_convertstringcode(renderdir, G.sce, 0);
+			BLI_convertstringcode(renderdir, G.sce);
 
 			if( BLI_exists( renderdir ) )
 				ret = PyString_FromString( renderdir );
@@ -488,7 +488,7 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 			char sounddir[FILE_MAX];
 
 			BLI_strncpy(sounddir, U.sounddir, FILE_MAX);
-			BLI_convertstringcode(sounddir, G.sce, 0);
+			BLI_convertstringcode(sounddir, G.sce);
 
 			if( BLI_exists( sounddir ) )
 				ret = PyString_FromString( sounddir );
@@ -501,7 +501,7 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 			char tempdir[FILE_MAX];
 
 			BLI_strncpy(tempdir, U.tempdir, FILE_MAX);
-			BLI_convertstringcode(tempdir, G.sce, 0);
+			BLI_convertstringcode(tempdir, G.sce);
 
 			if( BLI_exists( tempdir ) )
 				ret = PyString_FromString( tempdir );
@@ -776,7 +776,7 @@ static PyObject *Blender_ShowHelp(PyObject *self, PyObject *script)
 			char upydir[FILE_MAX];
 
 			BLI_strncpy(upydir, U.pythondir, FILE_MAX);
-			BLI_convertstringcode(upydir, G.sce, 0);
+			BLI_convertstringcode(upydir, G.sce);
 			BLI_make_file_string("/", hspath, upydir, "help_browser.py");
 
 			if (!BLI_exists(hspath))

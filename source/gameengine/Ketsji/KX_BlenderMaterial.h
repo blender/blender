@@ -93,6 +93,7 @@ private:
 	bool			mUserDefBlend;
 	unsigned int	mBlendFunc[2];
 	bool			mModified;
+	bool			mConstructed;			// if false, don't clean on exit
 
 	void ActivatGLMaterials( RAS_IRasterizer* rasty )const;
 	void ActivateTexGen( RAS_IRasterizer *ras ) const;

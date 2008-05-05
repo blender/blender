@@ -106,7 +106,7 @@ void makewavstring (char *string)
 	if (string==0) return;
 
 	strcpy(string, G.scene->r.pic);
-	BLI_convertstringcode(string, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(string, G.sce);
 
 	BLI_make_existing_file(string);
 
@@ -394,8 +394,7 @@ static void audio_fill_seq(Sequence * seq, void * mixdown,
 					strncat(name, 
 						seq->strip->stripdata->name, 
 						FILE_MAXFILE-1);
-					BLI_convertstringcode(name, G.sce, 
-							      G.scene->r.cfra);
+					BLI_convertstringcode(name, G.sce);
 				
 					seq->hdaudio= sound_open_hdaudio(name);
 				}

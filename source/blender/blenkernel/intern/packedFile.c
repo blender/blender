@@ -185,7 +185,7 @@ PackedFile * newPackedFile(char * filename)
 	// convert relative filenames to absolute filenames
 	
 	strcpy(name, filename);
-	BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(name, G.sce);
 	
 	// open the file
 	// and create a PackedFile structure
@@ -286,7 +286,7 @@ int writePackedFile(char * filename, PackedFile *pf, int guimode)
 	if (guimode) waitcursor(1);
 	
 	strcpy(name, filename);
-	BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(name, G.sce);
 	
 	if (BLI_exists(name)) {
 		for (number = 1; number <= 999; number++) {
@@ -351,7 +351,7 @@ int checkPackedFile(char * filename, PackedFile * pf)
 	char name[FILE_MAXDIR + FILE_MAXFILE];
 	
 	strcpy(name, filename);
-	BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(name, G.sce);
 	
 	if (stat(name, &st)) {
 		ret_val = PF_NOFILE;

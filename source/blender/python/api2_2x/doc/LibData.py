@@ -26,13 +26,15 @@ Example::
 	me.materials[0] = mat                             # assign linked material to mesh
 """
 
-def load(filename):
+def load(filename,relative=False):
   """
   Select an existing .blend file for use as a library.  Unlike the 
   Library module, multiple libraries can be defined at the same time.  
   
   @type filename: string
   @param filename: The filename of a Blender file. Filenames starting with "//" will be loaded relative to the blend file's location.
+  @type relative: boolean
+  @param relative: Convert relative paths to absolute paths (default).  Setting this parameter to True will leave paths relative.
   @rtype: Library
   @return: return a L{Library} object.
   """
@@ -46,8 +48,10 @@ class Libraries:
 	It provides access to scenes, objects, meshes, curves, metaballs,
 	materials, textures, images, lattices, lamps, cameras, ipos, worlds,
 	fonts, texts, sounds, groups, armatures, and actions.
-	@ivar filename: The path to the library
+	@ivar filename: The filename of the library, as supplied by user.
 	@type filename: string
+	@ivar name: The path to the library, as used by Blender.  If the filename supplied by the user is relative, but the relative option to L{library.load()<load>} is False, the name will be the absolute path.
+	@type name: string
 	@ivar scenes: library L{scene<Scene.Scene>} data
 	@type scenes: L{LibData}
 	@ivar objects: library L{object<Object.Object>} data

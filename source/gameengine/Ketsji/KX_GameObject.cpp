@@ -74,6 +74,7 @@ KX_GameObject::KX_GameObject(
 ) : 
 	SCA_IObject(T),
 	m_bDyna(false),
+	m_layer(0),
 	m_bSuspendDynamics(false),
 	m_bUseObjectColor(false),
 	m_bVisible(true),
@@ -228,7 +229,7 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 
 		NodeSetLocalScale(scale1);
 		NodeSetLocalPosition(MT_Point3(newpos[0],newpos[1],newpos[2]));
-		NodeSetLocalOrientation(NodeGetWorldOrientation()*invori);
+		NodeSetLocalOrientation(invori*NodeGetWorldOrientation());
 		NodeUpdateGS(0.f,true);
 		// object will now be a child, it must be removed from the parent list
 		CListValue* rootlist = scene->GetRootParentList();
@@ -477,6 +478,22 @@ KX_GameObject::SetVisible(
 	)
 {
 	m_bVisible = v;
+}
+
+void
+KX_GameObject::SetLayer(
+	int l
+	)
+{
+	m_layer = l;
+}
+
+int
+KX_GameObject::GetLayer(
+	void
+	)
+{
+	return m_layer;
 }
 
 // used by Python, and the actuatorshould _not_ be misused by the

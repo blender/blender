@@ -361,6 +361,15 @@ static int pysockets_to_blendersockets(PyObject *tuple, bNodeSocketType **socks,
 
 	len = PyTuple_Size(tuple);
 
+	if (len >= MAX_SOCKET) {
+		char error_msg[70];
+		PyOS_snprintf(error_msg, sizeof(error_msg),
+			"limit exceeded: each node can't have more than %d i/o sockets", MAX_SOCKET - 1);
+		PyErr_SetString(PyExc_AttributeError, error_msg);
+		len = 0;
+		retval = -1;
+	}
+
 	nsocks = MEM_callocN(sizeof(bNodeSocketType)*(len+1), "bNodeSocketType in Node.c");
 
 	for (pos = 0, a = 0; pos< len; pos++, a++) {
@@ -437,6 +446,7 @@ static int Map_socketdef(BPy_NodeSocketLists *self, PyObject *args, void *closur
 {
 	bNode *node = NULL;
 	PyObject *tuple = NULL;
+	int ret = 0;
 
 	node = self->node;
 
@@ -453,7 +463,7 @@ static int Map_socketdef(BPy_NodeSocketLists *self, PyObject *args, void *closur
 			if (args) {
 				if(PySequence_Check(args)) {
 					tuple = PySequence_Tuple(args);
-					pysockets_to_blendersockets(tuple,
+					ret = pysockets_to_blendersockets(tuple,
 							&(node->typeinfo->inputs), node->custom1, 1);
 					Py_DECREF(self->input);
 					self->input = tuple;
@@ -466,7 +476,7 @@ static int Map_socketdef(BPy_NodeSocketLists *self, PyObject *args, void *closur
 			if (args) {
 				if(PyList_Check(args)) {
 					tuple = PySequence_Tuple(args);
-					pysockets_to_blendersockets(tuple,
+					ret = pysockets_to_blendersockets(tuple,
 							&(node->typeinfo->outputs), node->custom1, 0);
 					Py_DECREF(self->output);
 					self->output = tuple;
@@ -479,6 +489,11 @@ static int Map_socketdef(BPy_NodeSocketLists *self, PyObject *args, void *closur
 			fprintf(stderr,"DEBUG pynodes: got no list in Map_socketdef\n");
 			break;
 	}
+
+	if (ret == -1) {
+		node->custom1 = BSET(node->custom1, NODE_DYNAMIC_ERROR);
+	}
+
 	return 0;
 }
 

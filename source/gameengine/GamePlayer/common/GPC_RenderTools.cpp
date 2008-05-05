@@ -137,6 +137,10 @@ int GPC_RenderTools::ProcessLighting(int layer)
 	{
 		if (m_clientobject)
 		{	
+			if (layer == RAS_LIGHT_OBJECT_LAYER)
+			{
+				layer = static_cast<KX_GameObject*>(m_clientobject)->GetLayer();
+			}
 			if (applyLights(layer))
 			{
 				EnableOpenGLLights();

@@ -82,7 +82,6 @@ void winqdelete(struct ScrArea *sa);
 void winqclear(struct ScrArea *sa);
 void addqueue(short win, unsigned short event, short val);
 void addafterqueue(short win, unsigned short event, short val);
-void add_readfile_event(char *filename);
 short ext_qtest(void);
 unsigned short extern_qread(short *val);
 unsigned short extern_qread_ext(short *val, char *ascii);

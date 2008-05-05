@@ -163,6 +163,25 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 			{
 				m_val=(active)?1:0;
 				result = true;
+			} else
+			{
+				if (active)
+				{
+					if (m_val == 0)
+					{
+						//see comment below
+						//m_val = 1;
+						//result = true;
+						;
+					}
+				} else
+				{
+					if (m_val == 1)
+					{
+						m_val = 0;
+						result = true;
+					}
+				}
 			}
 		}
 
@@ -178,6 +197,13 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 
 		if (inevent.m_status == SCA_InputEvent::KX_NO_INPUTSTATUS)
 		{
+			if (m_val == 1)
+			{
+				// this situation may occur after a scene suspend: the keyboard release 
+				// event was not captured, produce now the event off
+				m_val = 0;
+				result = true;
+			}
 		} else
 		{
 			if (inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED)
@@ -190,6 +216,23 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 				{
 					m_val = 0;
 					result = true;
+				} else 
+				{
+					if (inevent.m_status == SCA_InputEvent::KX_ACTIVE)
+					{
+						if (m_val == 0)
+						{
+							//hmm, this abnormal situation may occur in the following cases:
+							//- the key was pressed while the scene was suspended
+							//- this is a new scene and the key is active from the start
+							//In the second case, it's dangerous to activate the sensor
+							//(think of a key to go to next scene)
+							//What we really need is a edge/level flag in the key sensor
+							//m_val = 1;
+							//result = true;
+							;
+						}
+					}
 				}
 			}
 		}

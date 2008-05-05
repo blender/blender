@@ -391,7 +391,8 @@ static PyObject *M_sys_expandpath( PyObject * self, PyObject * value )
 			"expected string argument" );
 	
 	BLI_strncpy(expanded, path, FILE_MAXDIR + FILE_MAXFILE);
-	BLI_convertstringcode(expanded, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(expanded, G.sce);
+	BLI_convertstringframe(expanded, G.scene->r.cfra);
 
 	return PyString_FromString(expanded);
 }

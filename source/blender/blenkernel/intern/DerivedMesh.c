@@ -3304,7 +3304,9 @@ void loadFluidsimMesh(Object *srcob, int useRenderParams)
 	} else { // 3
 		strcat(targetDir,"fluidsurface_final_####");
 	}
-	BLI_convertstringcode(targetDir, G.sce, curFrame); // fixed #frame-no 
+	BLI_convertstringcode(targetDir, G.sce);
+	BLI_convertstringframe(targetDir, curFrame); // fixed #frame-no 
+	
 	strcpy(targetFile,targetDir);
 	strcat(targetFile, ".bobj.gz");
 

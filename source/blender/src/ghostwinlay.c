@@ -927,6 +927,42 @@ void window_open_ndof(Window* win)
 	}
 	
 	ndofLib	= PIL_dynlib_open(plug_path);
+	
+	/* On systems where blender is installed in /usr/bin/blender, ~/.blender/plugins/ is a better place to look */
+	if (ndofLib==NULL) {
+		
+		if (plug_path) {
+			MEM_freeN(plug_path);
+		}
+		
+		inst_path = BLI_gethome();
+		if (inst_path) {
+			size_t len = strlen(inst_path) + strlen(plug_dir) + strlen(PATH_SEP)*2
+					 + strlen(plug_name) + 1;
+			
+			if (!strstr(inst_path, ".blender")) {
+				len += strlen(".blender") + strlen(PATH_SEP);
+			}
+			
+			plug_path = MEM_mallocN(len, "ndofpluginpath");
+			if (plug_path) {
+				strncpy(plug_path, inst_path, len);
+				strcat(plug_path, PATH_SEP);
+				if (!strstr(inst_path, ".blender")) {
+					strcat(plug_path, ".blender");
+					strcat(plug_path, PATH_SEP);
+				}
+				strcat(plug_path, plug_dir);
+				strcat(plug_path, PATH_SEP);
+				strcat(plug_path, plug_name);
+			}
+		}
+		
+		ndofLib	= PIL_dynlib_open(plug_path);
+	}
+	
+	
+	
 #if 0
 	fprintf(stderr, "plugin path=%s; ndofLib=%p\n", plug_path, (void*)ndofLib);
 #endif

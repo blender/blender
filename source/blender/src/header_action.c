@@ -95,7 +95,10 @@ enum {
 	ACTMENU_VIEW_NOHIDE,
 	ACTMENU_VIEW_TRANSDELDUPS,
 	ACTMENU_VIEW_HORIZOPTIMISE,
-	ACTMENU_VIEW_GCOLORS
+	ACTMENU_VIEW_GCOLORS,
+	ACTMENU_VIEW_PREVRANGESET,
+	ACTMENU_VIEW_PREVRANGECLEAR,
+	ACTMENU_VIEW_PREVRANGEAUTO
 };
 
 enum {
@@ -350,6 +353,15 @@ static void do_action_viewmenu(void *arg, int event)
 		case ACTMENU_VIEW_GCOLORS: /* Draw grouped-action channels using its group's color */
 			G.saction->flag ^= SACTION_NODRAWGCOLORS;
 			break;
+		case ACTMENU_VIEW_PREVRANGESET: /* Set preview range */
+			anim_previewrange_set();
+			break;
+		case ACTMENU_VIEW_PREVRANGECLEAR: /* Clear preview range */
+			anim_previewrange_clear();
+			break;
+		case ACTMENU_VIEW_PREVRANGEAUTO: /* Auto preview-range length */
+			action_previewrange_set(G.saction->action);
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -447,11 +459,30 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 "Play Back Animation|Alt A", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_PLAY3D, "");
+	//uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+	//				 "Play Back Animation in 3D View|Alt Shift A", 0, yco-=20,
+	//				 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+	//				 ACTMENU_VIEW_PLAYALL, "");
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Play Back Animation in 3D View|Alt Shift A", 0, yco-=20,
+					 "Set Preview Range|Ctrl P", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
-					 ACTMENU_VIEW_PLAYALL, "");
-
+					 ACTMENU_VIEW_PREVRANGESET, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Clear Preview Range|Alt P", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+					 ACTMENU_VIEW_PREVRANGECLEAR, "");
+		
+	if (G.saction->action) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Preview Range from Action Length|Ctrl Alt P", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+					 ACTMENU_VIEW_PREVRANGEAUTO, "");
+	}
+		
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	

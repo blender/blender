@@ -238,7 +238,7 @@ static void save_env(char *name)
 	char str[FILE_MAX];
 	
 	strcpy(str, name);
-	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(str, G.sce);
 	tex= G.buts->lockpoin;
 	
 	if(tex && GS(tex->id.name)==ID_TE) {
@@ -2338,9 +2338,9 @@ static void world_panel_preview(World *wrld)
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, WO_SKYBLEND, B_WORLDPRV,"Blend", 220,175,100,25, &wrld->skytype, 0, 0, 0, 0, "Renders background with natural progression from horizon to zenith");
 	uiDefButBitS(block, TOG,WO_SKYPAPER, B_WORLDPRV,"Paper", 220,150,100,25, &wrld->skytype, 0, 0, 0, 0, "Flattens blend or texture coordinates");
-	if (wrld->skytype & WO_SKYBLEND) {
+	/*if (wrld->skytype & WO_SKYBLEND) {*/ /* In some (rare?) cases its possible to use this, leave this out for now */
 		uiDefButBitS(block, TOG, WO_SKYREAL, B_WORLDPRV,"Real", 220,125,100,25, &wrld->skytype, 0, 0, 0, 0, "Renders background with a real horizon");
-	}
+	/*}*/
 	uiBlockEndAlign(block);
 
 }

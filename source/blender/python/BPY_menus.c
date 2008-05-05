@@ -492,7 +492,7 @@ static int bpymenu_CreateFromFile( void )
 	fscanf( fp, "# User defined scripts dir: %[^\n]\n", w1 );
 
 		BLI_strncpy(upythondir, U.pythondir, FILE_MAX);
-		BLI_convertstringcode(upythondir, G.sce, 0);
+		BLI_convertstringcode(upythondir, G.sce);
 
 		if( strcmp( w1, upythondir ) != 0 )
 			return -1;
@@ -604,7 +604,7 @@ static void bpymenu_WriteDataFile( void )
 		char upythondir[FILE_MAX];
 
 		BLI_strncpy(upythondir, U.pythondir, FILE_MAX);
-		BLI_convertstringcode(upythondir, G.sce, 0);
+		BLI_convertstringcode(upythondir, G.sce);
 		fprintf( fp, "# User defined scripts dir: %s\n", upythondir );
 	}
 
@@ -1003,7 +1003,7 @@ int BPyMenu_Init( int usedir )
 	}
 	else {
 		BLI_strncpy(upythondir, upydir, FILE_MAX);
-		BLI_convertstringcode(upythondir, G.sce, 0);
+		BLI_convertstringcode(upythondir, G.sce);
 	}
 
 	sdir = bpy_gethome(1);
@@ -1096,7 +1096,7 @@ the user defined Python scripts dir.\n", dirname );
 		}
 		if( stat_dir2 == 0 ) {
 			BLI_strncpy(dirname, U.pythondir, FILE_MAX);
-			BLI_convertstringcode(dirname, G.sce, 0);
+			BLI_convertstringcode(dirname, G.sce);
 			i = bpymenu_ParseDir( dirname, NULL, 1 );
 			if (i == -1 && DEBUG)
 				fprintf(stderr, "User defined scripts dir does not seem valid.\n\n");

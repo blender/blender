@@ -126,7 +126,7 @@ static void adjustPath(string &path)
 	// if relative, expand to full path
 	char cpath[MAXPATHLEN];
 	strcpy(cpath, path.c_str());
-	BLI_convertstringcode(cpath, G.sce, 0);
+	BLI_convertstringcode(cpath, G.sce);
 	path = cpath;
 #ifdef WIN32
 	// add drive char if not there

@@ -170,7 +170,6 @@ PLATFORM_LINKFLAGS = '''
                         /NODEFAULTLIB:"libcd.lib"
                         /NODEFAULTLIB:"libcpd.lib" 
                         /NODEFAULTLIB:"libcp.lib" 
-                        /NODEFAULTLIB:"libcmtd.lib"
                     '''
                         
 BF_BUILDDIR = '..\\build\\win32-vc'

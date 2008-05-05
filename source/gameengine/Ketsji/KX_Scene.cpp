@@ -650,6 +650,8 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
 	{
 		(*git)->Relink(&m_map_gameobject_to_replica);
+		// add the object in the layer of the parent
+		(*git)->SetLayer(parentobj->GetLayer());
 	}
 
 	// now replicate logic
