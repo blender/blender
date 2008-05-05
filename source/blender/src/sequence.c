@@ -1709,7 +1709,7 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 			StripElem * s_elem = give_stripelem(seq, cfra);
 			
 			strncpy(name, seq->strip->dir, FILE_MAXDIR-1);
-			strncat(name, s_elem->name, FILE_MAXFILE);
+			strncat(name, s_elem->name, FILE_MAXFILE-1);
 			BLI_convertstringcode(name, G.sce);
 			BLI_convertstringframe(name, G.scene->r.cfra);
 			if (!build_proxy_run) {
