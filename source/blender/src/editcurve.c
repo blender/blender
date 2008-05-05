@@ -4316,8 +4316,10 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			makeknots(nu, 1, nu->flagu>>1);
 
 			BLI_addtail(&editNurb, nu); /* temporal for spin */
-			if(newname) spin_nurb(0, 2);
-			else spin_nurb(0, 0);
+			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0)
+				spin_nurb(0, 2);
+			else
+				spin_nurb(0, 0);
 
 			makeknots(nu, 2, nu->flagv>>1);
 
@@ -4344,8 +4346,10 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			nu->resolv= 32;
 			nu->flag= CU_SMOOTH;
 			BLI_addtail(&editNurb, nu); /* temporal for extrude and translate */
-			if(newname) spin_nurb(0, 2);
-			else spin_nurb(0, 0);
+			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0)
+				spin_nurb(0, 2);
+			else
+				spin_nurb(0, 0);
 
 			BLI_remlink(&editNurb, nu);
 

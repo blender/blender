@@ -367,7 +367,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SEQ_BUT_TRANSFORM     1695
 #define B_SEQ_BUT_RELOAD_FILE   1696
 #define B_SEQ_BUT_REBUILD_PROXY 1697
-
+#define B_SEQ_SEL_PROXY_DIR     1698
 /* *********************** */
 #define B_ARMATUREBUTS		1800
 #define	B_POSE			1701

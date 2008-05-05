@@ -166,7 +166,7 @@ static PyObject *M_Library_Open( PyObject * self, PyObject * value )
 	
 	/* copy the name to make it absolute so BLO_blendhandle_from_file doesn't complain */
 	BLI_strncpy(fname1, fname, sizeof(fname1)); 
-	BLI_convertstringcode(fname1, G.sce, 0); /* make absolute */
+	BLI_convertstringcode(fname1, G.sce); /* make absolute */
 	
    	/* G.sce = last file loaded, save for UI and restore after opening file */
 	BLI_strncpy(filename, G.sce, sizeof(filename));
@@ -483,7 +483,7 @@ static BlendHandle *open_library( char *filename, char *longFilename )
 
 	/* get complete file name if necessary */
 	BLI_strncpy( longFilename, filename, FILE_MAX ); 
-	BLI_convertstringcode( longFilename, G.sce, 0 );
+	BLI_convertstringcode( longFilename, G.sce );
 
 	/* throw exceptions for wrong file type, cyclic reference */
 	if( !BLO_has_bfile_extension(longFilename) ) {
@@ -515,11 +515,12 @@ static BlendHandle *open_library( char *filename, char *longFilename )
  */
 
 static PyObject *CreatePyObject_LibData( int idtype, int kind,
-		void *name, void *iter, char *filename )
+		void *name, void *iter, char *filename, int rel )
 {
 	BPy_LibraryData *seq = PyObject_NEW( BPy_LibraryData, &LibraryData_Type);
 	seq->iter = iter;		/* the name list (for iterators) */
 	seq->type = idtype;		/* the Blender ID type */
+	seq->rel =  rel;		/* relative or absolute library */
 	seq->kind = kind;		/* used by Blender Objects */
 	seq->name = name; 		/* object name, iterator name list, or NULL */
 							/* save the library name */
@@ -560,7 +561,8 @@ static PyObject *lib_link_or_append( BPy_LibraryData *self, PyObject * value,
 		/* otherwise, create a pseudo object ready for appending or linking */
 
 		return CreatePyObject_LibData( ID_OB, mode, 
-				BLI_strdupn( name, strlen( name ) ), NULL, self->filename );
+				BLI_strdupn( name, strlen( name ) ), NULL, self->filename,
+				self->rel );
 	}
 }
 
@@ -585,6 +587,9 @@ PyObject *LibraryData_importLibData( BPy_LibraryData *self, char *name,
 	openlib = open_library( self->filename, longFilename );
 	if( !openlib )
 		return NULL;
+
+	/* fix any /foo/../foo/ */
+	BLI_cleanup_file(NULL, longFilename); 
 
 	/* find all datablocks for the specified type */
 	names = BLO_blendhandle_get_datablock_names ( openlib, self->type ); 
@@ -616,15 +621,15 @@ PyObject *LibraryData_importLibData( BPy_LibraryData *self, char *name,
 	}
 
 	/* import from the libary */
-	BLO_script_library_append( &openlib, longFilename, name, self->type, mode,
-			scene );
+	BLO_script_library_append( &openlib, longFilename, name, self->type, 
+			mode | self->rel, scene );
 
 	/*
 	 * locate the library.  If this is an append, make the data local.  If it
 	 * is link, we need the library for later
 	 */
 	for( lib = G.main->library.first; lib; lib = lib->id.next )
-		if( strcmp( longFilename, lib->name ) == 0 ) {
+		if( strcmp( longFilename, lib->filename ) == 0) {
 			if( mode != FILE_LINK ) {
 				all_local( lib, 1 );
 				/* important we unset, otherwise these object wont
@@ -717,7 +722,7 @@ static PyObject *LibraryData_getIter( BPy_LibraryData * self )
 
 	/* build an iterator object for the name list */
 	return CreatePyObject_LibData( self->type, OTHER, names,
-			names, self->filename );
+			names, self->filename, self->rel );
 }
 
 /* Return next name. */
@@ -942,7 +947,7 @@ PyTypeObject LibraryData_Type = {
 static PyObject *LibraryData_CreatePyObject( BPy_Library *self, void *mode )
 {
 	return CreatePyObject_LibData( GET_INT_FROM_POINTER(mode), OTHER, NULL, NULL,
-			self->filename );
+			self->filename, self->rel);
 }
 
 /************************************************************
@@ -972,6 +977,39 @@ static int Library_setFilename( BPy_Library * self, PyObject * args )
 	return 0;
 }
 
+/*
+ * Return the library's name.  The format depends on whether the library is 
+ * accessed as relative or absolute.
+ */
+
+static PyObject *Library_getName( BPy_Library * self )
+{
+	Library *lib;
+	BlendHandle *openlib;
+	char longFilename[FILE_MAX];
+
+	/* try to open the library */
+	openlib = open_library( self->filename, longFilename );
+	if( openlib ) {
+		BLO_blendhandle_close( openlib );
+		/* remove any /../ or /./ junk */
+		BLI_cleanup_file(NULL, longFilename); 
+
+		/* search the loaded libraries for a match */
+		for( lib = G.main->library.first; lib; lib = lib->id.next )
+			if( strcmp( longFilename, lib->filename ) == 0) {
+				return PyString_FromString( lib->name );
+			}
+
+		/* library not found in memory */
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"library not loaded" );
+	}
+	/* could not load library */
+	return EXPP_ReturnPyObjError( PyExc_IOError, "library not found" );
+}
+
+
 /************************************************************************
  * Python Library_type attributes get/set structure
  ************************************************************************/
@@ -980,6 +1018,10 @@ static PyGetSetDef Library_getseters[] = {
 	{"filename",
 	 (getter)Library_getFilename, (setter)Library_setFilename,
 	 "library filename",
+	 NULL},
+	{"name",
+	 (getter)Library_getName, (setter)NULL,
+	 "library name (as used by Blender)",
 	 NULL},
 	{"objects",
 	 (getter)LibraryData_CreatePyObject, (setter)NULL,
@@ -1066,19 +1108,26 @@ static PyGetSetDef Library_getseters[] = {
  * actually accessed later. 
  */
 
-static PyObject *M_Library_Load(PyObject *self, PyObject * value)
+static PyObject *M_Library_Load(PyObject *self, PyObject * args)
 {
-	char *filename = PyString_AsString(value);
+	char *filename = NULL;
+	PyObject *relative = NULL;
 	BPy_Library *lib;
 
-	if( !filename )
+	if( !PyArg_ParseTuple( args, "s|O", &filename, &relative ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-			"expected a string" );
+			"expected strings and optional bool as arguments." );
 
 	/* try to create a new object */
 	lib = (BPy_Library *)PyObject_NEW( BPy_Library, &Library_Type );
 	if( !lib )
 		return NULL;
+
+	/* save relative flag value */
+	if( relative && PyObject_IsTrue(relative) )
+		lib->rel = FILE_STRINGCODE;
+	else
+		lib->rel = 0;
 
 	/* assign the library filename for future use, then return */
 	BLI_strncpy( lib->filename, filename, sizeof(lib->filename) );
@@ -1087,7 +1136,7 @@ static PyObject *M_Library_Load(PyObject *self, PyObject * value)
 }
 
 static struct PyMethodDef M_Library_methods[] = {
-	{"load", (PyCFunction)M_Library_Load, METH_O,
+	{"load", (PyCFunction)M_Library_Load, METH_VARARGS,
 	"(string) - declare a .blend file for use as a library"},
 	{NULL, NULL, 0, NULL}
 };

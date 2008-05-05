@@ -150,7 +150,8 @@ void BLI_cleanup_dir(const char *relabase, char *dir); /* same as above but adds
 	 * @a framenum The framenumber to replace the frame code with.
 	 * @retval Returns true if the path was relative (started with "//").
 	 */
-int BLI_convertstringcode(char *path, const char *basepath, int framenum);
+int BLI_convertstringcode(char *path, const char *basepath);
+int BLI_convertstringframe(char *path, int frame);
 
 void BLI_makestringcode(const char *relfile, char *file);
 

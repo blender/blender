@@ -22,7 +22,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\source\kernel\gen_system"
-				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
+				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_GLEXT"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"

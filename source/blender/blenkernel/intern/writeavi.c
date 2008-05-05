@@ -120,7 +120,7 @@ void makeavistring (RenderData *rd, char *string)
 	if (string==0) return;
 
 	strcpy(string, rd->pic);
-	BLI_convertstringcode(string, G.sce, rd->cfra);
+	BLI_convertstringcode(string, G.sce);
 
 	BLI_make_existing_file(string);
 

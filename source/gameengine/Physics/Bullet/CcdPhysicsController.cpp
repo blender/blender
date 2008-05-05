@@ -137,6 +137,10 @@ void CcdPhysicsController::CreateRigidbody()
 	m_body->setGravity( m_cci.m_gravity);
 	m_body->setDamping(m_cci.m_linearDamping, m_cci.m_angularDamping);
 
+	if (!m_cci.m_bRigid)
+	{
+		m_body->setAngularFactor(0.f);
+	}
 }
 
 CcdPhysicsController::~CcdPhysicsController()

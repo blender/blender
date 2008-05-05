@@ -121,6 +121,9 @@ def setup_staticlibs(lenv):
         ]
     libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
     libincs += Split(lenv['BF_FFMPEG_LIBPATH'])
+	
+    if lenv['WITH_BF_FREESTYLE']:
+        libincs += Split(lenv['BF_LIB3DS_LIBPATH'])	
 
     if lenv['WITH_BF_INTERNATIONAL']:
         libincs += Split(lenv['BF_GETTEXT_LIBPATH'])
@@ -160,12 +163,14 @@ def setup_syslibs(lenv):
         syslibs += Split(lenv['BF_OPENEXR_LIB'])
     if lenv['WITH_BF_FFMPEG']:
         syslibs += Split(lenv['BF_FFMPEG_LIB'])
+	if lenv['WITH_BF_FREESTYLE']:
+        syslibs += Split(lenv['BF_LIB3DS_LIB'])
     syslibs += Split(lenv['BF_SDL_LIB'])
     if not lenv['WITH_BF_STATICOPENGL']:
         syslibs += Split(lenv['BF_OPENGL_LIB'])
     if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw','linuxcross'):
         syslibs += Split(lenv['BF_PTHREADS_LIB'])
-
+		
     syslibs += Split(lenv['LLIBS'])
 
     return syslibs

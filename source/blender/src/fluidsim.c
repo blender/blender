@@ -622,7 +622,7 @@ void fluidsimBake(struct Object *ob)
 	// prepare names...
 	strncpy(targetDir, domainSettings->surfdataPath, FILE_MAXDIR);
 	strncpy(newSurfdataPath, domainSettings->surfdataPath, FILE_MAXDIR);
-	BLI_convertstringcode(targetDir, G.sce, 0); // fixed #frame-no 
+	BLI_convertstringcode(targetDir, G.sce); // fixed #frame-no 
 
 	strcpy(targetFile, targetDir);
 	strcat(targetFile, suffixConfig);
@@ -674,7 +674,7 @@ void fluidsimBake(struct Object *ob)
 		if(selection<1) return; // 0 from menu, or -1 aborted
 		strcpy(targetDir, newSurfdataPath);
 		strncpy(domainSettings->surfdataPath, newSurfdataPath, FILE_MAXDIR);
-		BLI_convertstringcode(targetDir, G.sce, 0); // fixed #frame-no 
+		BLI_convertstringcode(targetDir, G.sce); // fixed #frame-no 
 	}
 	
 	// --------------------------------------------------------------------------------------------

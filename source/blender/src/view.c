@@ -974,8 +974,10 @@ void viewmove(int mode)
 				/* these limits are in toets.c too */
 				if(G.vd->dist<0.001*G.vd->grid) G.vd->dist= 0.001*G.vd->grid;
 				if(G.vd->dist>10.0*G.vd->far) G.vd->dist=10.0*G.vd->far;
+				
+				if(G.vd->persp==V3D_ORTHO || G.vd->persp==V3D_CAMOB) preview3d_event= 0;
 			}
-			if(G.vd->persp==V3D_ORTHO || G.vd->persp==V3D_CAMOB) preview3d_event= 0;
+			
 			
 			
 			mvalo[0]= mval[0];

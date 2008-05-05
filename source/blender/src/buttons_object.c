@@ -3123,9 +3123,13 @@ void do_effects_panels(unsigned short event)
 				}
 			}
 			else {
-				psys->flag |= PSYS_EDITED;
-				if(G.f & G_PARTICLEEDIT)
-					PE_create_particle_edit(ob, psys);
+				if(psys_check_enabled(ob, psys)) {
+					psys->flag |= PSYS_EDITED;
+					if(G.f & G_PARTICLEEDIT)
+						PE_create_particle_edit(ob, psys);
+				}
+				else
+					error("Particle system not enabled, skipping set editable");
 			}
 		}
 	case B_FIELD_DEP:

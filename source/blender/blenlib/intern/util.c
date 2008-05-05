@@ -874,9 +874,11 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 {
 	short a;
 	char *start, *eind;
-	
-	BLI_convertstringcode(dir, relabase, 0);
-	
+
+	if (relabase) {
+		BLI_convertstringcode(dir, relabase);
+	}
+
 #ifdef WIN32
 	if(dir[0]=='.') {	/* happens for example in FILE_MAIN */
 	   get_default_root(dir);
@@ -1031,10 +1033,78 @@ void BLI_makestringcode(const char *relfile, char *file)
 	}
 }
 
-int BLI_convertstringcode(char *path, const char *basepath, int framenum)
+
+int BLI_convertstringframe(char *path, int frame)
+{
+	int ch_sta, ch_end, i;
+	/* Insert current frame: file### -> file001 */
+	ch_sta = ch_end = 0;
+	for (i = 0; path[i] != '\0'; i++) {
+		if (path[i] == '\\' || path[i] == '/') {
+			ch_end = 0; /* this is a directory name, dont use any hashes we found */
+		} else if (path[i] == '#') {
+			ch_sta = i;
+			ch_end = ch_sta+1;
+			while (path[ch_end] == '#') {
+				ch_end++;
+			}
+			i = ch_end-1; /* keep searching */
+			
+			/* dont break, there may be a slash after this that invalidates the previous #'s */
+		}
+	}
+	if (ch_end) { /* warning, ch_end is the last # +1 */
+		/* Add the frame number? */
+		short numlen, hashlen;
+		char tmp[FILE_MAX];
+		
+		char format[16]; /* 6 is realistically the maxframe (300000), so 8 should be enough, but 16 to be safe. */
+		if (((ch_end-1)-ch_sta) >= 16) {
+			ch_end = ch_sta+15; /* disallow values longer then 'format' can hold */
+		}
+		
+		strcpy(tmp, path);
+		
+		numlen = 1 + (int)log10((double)frame); /* this is the number of chars in the number */
+		hashlen = ch_end - ch_sta;
+		
+		sprintf(format, "%d", frame);
+		
+		if (numlen==hashlen) { /* simple case */
+			memcpy(tmp+ch_sta, format, numlen);
+		} else if (numlen < hashlen) {
+			memcpy(tmp+ch_sta + (hashlen-numlen), format, numlen); /*dont copy the string terminator */
+			memset(tmp+ch_sta, '0', hashlen-numlen);
+		} else {
+			/* number is longer then number of #'s */
+			if (tmp[ch_end] == '\0') { /* hashes are last, no need to move any string*/
+				/* bad juju - not testing string length here :/ */
+				memcpy(tmp+ch_sta, format, numlen+1); /* add 1 to get the string terminator \0 */
+			} else {
+				/* we need to move the end characters, reuse i */
+				int j;
+				
+				i = strlen(tmp); /* +1 to copy the string terminator */
+				j = i + (numlen-hashlen); /* from/to */
+				
+				while (i >= ch_end) {
+					tmp[j] = tmp[i]; 
+					i--;
+					j--;
+				}
+				memcpy(tmp + ch_sta, format, numlen);
+			}
+		}	
+		strcpy(path, tmp);
+		return 1;
+	}
+	return 0;
+}
+
+
+int BLI_convertstringcode(char *path, const char *basepath)
 {
 	int wasrelative;
-	int ch_sta, ch_end;
 	char tmp[FILE_MAX];
 	char base[FILE_MAX];
 	char vol[3] = {'\0', '\0', '\0'};
@@ -1090,54 +1160,8 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 		MEM_freeN(filepart);
 	}
 	
-	
-	/* Insert current frame: file### -> file001 */
-	ch_end = 0;
-	for (ch_sta = 0; tmp[ch_sta] != '\0'; ch_sta++) {
-		if (tmp[ch_sta] == '#') {
-			ch_end = ch_sta+1;
-			while (tmp[ch_end] == '#') {
-				ch_end++;
-			}			
-			break;
-		}
-	}
-	if (ch_end) { /* warning, ch_end is the last # +1 */
-		/* Add the frame number? */
-		short numlen, hashlen;
-		char format[16]; /* 6 is realistically the maxframe (300000), so 8 should be enough, but 16 to be safe. */
-		
-		numlen = 1 + (int)log10((double)framenum); /* this is the number of chars in the number */
-		hashlen = ch_end - ch_sta;
-		
-		sprintf(format, "%d", framenum);
-		
-		if (numlen==hashlen) { /* simple case */
-			memcpy(tmp+ch_sta, format, numlen);
-		} else if (numlen < hashlen) {
-			memcpy(tmp+ch_sta + (hashlen-numlen), format, numlen); /*dont copy the string terminator */
-			memset(tmp+ch_sta, '0', hashlen-numlen);
-		} else {
-			/* number is longer then number of #'s */
-			if (tmp[ch_end] == '\0') { /* hashes are last, no need to move any string*/
-				/* bad juju - not testing string length here :/ */
-				memcpy(tmp+ch_sta, format, numlen+1); /* add 1 to get the string terminator \0 */
-			} else {
-				/* we need to move the end characters */
-				int i = strlen(tmp); /* +1 to copy the string terminator */
-				int j = i + (numlen-hashlen); /* from/to */
-				while (i >= ch_end) {
-					tmp[j] = tmp[i]; 
-					i--;
-					j--;
-				}
-				memcpy(tmp + ch_sta, format, numlen);
-			}
-		}	
-	}
-	/* done with file### stuff */
-	
 	strcpy(path, tmp);
+	
 #ifdef WIN32
 	/* skip first two chars, which in case of
 	   absolute path will be drive:/blabla and

@@ -2288,7 +2288,9 @@ static void save_image_doit(char *name)
 	if (ibuf) {
 		BLI_strncpy(str, name, sizeof(str));
 
-		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+		BLI_convertstringcode(str, G.sce);
+		BLI_convertstringframe(str, G.scene->r.cfra);
+		
 		
 		if(G.scene->r.scemode & R_EXTENSION)  {
 			BKE_add_image_extension(str, G.sima->imtypenr);
@@ -2499,7 +2501,7 @@ void save_image_sequence_sima(void)
 				char name[FILE_MAX];
 				BLI_strncpy(name, ibuf->name, sizeof(name));
 				
-				BLI_convertstringcode(name, G.sce, 0);
+				BLI_convertstringcode(name, G.sce);
 
 				if(0 == IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)) {
 					error("Could not write image", name);

@@ -160,6 +160,21 @@ BF_SOLID_LIB = 'extern_solid'
 
 WITH_BF_YAFRAY = 'true'
 
+WITH_BF_FREESTYLE = 'true'
+BF_FREESTYLE = '#extern/freestyle'
+BF_FREESTYLE_SRC = '${BF_FREESTYLE}/src'
+BF_SWIG = '${BF_FREESTYLE}/swig'
+BF_LIB3DS = '${BF_FREESTYLE}/lib3ds'
+BF_LIB3DS_LIB = 'extern_lib3ds'
+BF_LIB3DS_LIBPATH = '${BF_LIB3DS}/lib3ds/.libs'
+BF_LIB3DS_INC = '${BF_LIB3DS}/lib3ds'
+
+# WITH_BF_OPENEXR = 'true'
+# BF_OPENEXR = '${LCGDIR}/openexr'
+# BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/OpenEXR'
+# BF_OPENEXR_LIB = ' Iex Half IlmImf Imath IlmThread'
+# BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
+
 #WITH_BF_NSPR = 'true'
 #BF_NSPR = $(LIBDIR)/nspr
 #BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr
@@ -220,9 +235,10 @@ if USE_SDK=='true':
 	CCFLAGS=SDK_FLAGS+CCFLAGS
 	CXXFLAGS=SDK_FLAGS+CXXFLAGS
 	
+# you can add -mssse3 if gcc >= 4.2
 if MAC_PROC == 'i386':
-	REL_CFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mssse3']
-	REL_CCFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mssse3']
+	REL_CFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3']
+	REL_CCFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3']
 else:
 	CFLAGS = CFLAGS+['-fno-strict-aliasing']
 	CCFLAGS =  CCFLAGS+['-fno-strict-aliasing']

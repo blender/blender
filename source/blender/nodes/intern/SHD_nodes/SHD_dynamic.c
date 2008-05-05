@@ -160,11 +160,11 @@ static void node_dynamic_free_storage_cb(bNode *node)
 }
 
 /* Disable pynode when its script fails */
-/*static void node_dynamic_disable(bNode *node)
+static void node_dynamic_disable(bNode *node)
 {
 	node->custom1 = 0;
 	node->custom1 = BSET(node->custom1, NODE_DYNAMIC_ERROR);
-}*/
+}
 
 /* Disable all pynodes using the given text (script) id */
 static void node_dynamic_disable_all_by_id(ID *id)
@@ -401,7 +401,11 @@ static int node_dynamic_parse(struct bNode *node)
 	MEM_freeN(buf);
 
 	if (!pyresult) {
+		if (BTST(node->custom1, NODE_DYNAMIC_LOADED)) {
+			node_dynamic_disable(node);
+		} else {
 		node_dynamic_disable_all_by_id(node->id);
+		}
 		node_dynamic_pyerror_print(node);
 		PyGILState_Release(gilstate);
 		return -1;

@@ -69,7 +69,8 @@ void write_screendump(char *name)
 	if(dumprect) {
 
 		strcpy(G.ima, name);
-		BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
+		BLI_convertstringcode(name, G.sce);
+		BLI_convertstringframe(name, G.scene->r.cfra); /* TODO - is this ever used? */
 		
 		/* BKE_add_image_extension() checks for if extension was already set */
 		if(G.scene->r.scemode & R_EXTENSION) 

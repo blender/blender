@@ -31,3 +31,6 @@ if env['WITH_BF_OPENEXR'] == 1:
 
 if env['WITH_BF_QUICKTIME'] == 1:
     SConscript (['quicktime/SConscript'])
+
+if env['WITH_BF_FREESTYLE'] == 1:
+       SConscript(['freestyle/SConscript'])

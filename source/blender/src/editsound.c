@@ -713,7 +713,7 @@ bSound *sound_new_sound(char *name)
 	if (!G.scene->audio.mixrate) G.scene->audio.mixrate = 44100;
 	/* convert the name to absolute path */
 	strcpy(str, name);
-	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(str, G.sce);
 
 	/* check if the sample on disk can be opened */
 	file = open(str, O_BINARY|O_RDONLY);
@@ -825,7 +825,7 @@ bSample *sound_new_sample(bSound *sound)
 		/* TODO: increase sound->name, sample->name and strip->name to FILE_MAX, to avoid
 		   cutting off sample name here - elubie */
 		BLI_strncpy(samplename, sound->name, FILE_MAX);		
-		BLI_convertstringcode(samplename, G.sce, G.scene->r.cfra);
+		BLI_convertstringcode(samplename, G.sce);
 		BLI_strncpy(sample->name, samplename, FILE_MAXDIR);
 
 		/* connect the pf to the sample */
@@ -849,13 +849,13 @@ bSample *sound_find_sample(bSound *sound)
 	
 	// convert sound->name to abolute filename
 	strcpy(name, sound->name);
-	BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(name, G.sce);
 	
 	/* search through the list of loaded samples */
 	sample = samples->first;
 	while (sample) {
 		strcpy(samplename, sample->name);
-		BLI_convertstringcode(samplename, G.sce, G.scene->r.cfra);
+		BLI_convertstringcode(samplename, G.sce);
 		
 		if (strcmp(name, samplename) == 0)	{
 			break;

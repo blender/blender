@@ -429,7 +429,9 @@ void reload_sequence_new_file(Sequence * seq)
 		strncpy(str, seq->strip->dir, FILE_MAXDIR-1);
 		strncat(str, seq->strip->stripdata->name, FILE_MAXFILE-1);
 
-		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+		BLI_convertstringcode(str, G.sce);
+		BLI_convertstringframe(str, G.scene->r.cfra); /* TODO - is this needed? */
+		
 	}
 
 	if (seq->type == SEQ_IMAGE) {
@@ -1068,7 +1070,9 @@ static int seq_proxy_get_fname(Sequence * seq, int cfra, char * name)
 			 G.scene->r.size);
 	}
 
-	BLI_convertstringcode(name, G.sce, frameno);
+	BLI_convertstringcode(name, G.sce);
+	BLI_convertstringframe(name, frameno);
+	
 
 	strcat(name, ".jpg");
 
@@ -1269,8 +1273,8 @@ static void make_cb_table_byte(float lift, float gain, float gamma,
 
 	for (y = 0; y < 256; y++) {
 	        float v = 1.0 * y / 255;
-		v += lift; 
 		v *= gain;
+		v += lift; 
 		v = pow(v, gamma);
 		v *= mul;
 		if ( v > 1.0) {
@@ -1290,8 +1294,8 @@ static void make_cb_table_float(float lift, float gain, float gamma,
 
 	for (y = 0; y < 256; y++) {
 	        float v = (float) y * 1.0 / 255.0;
-		v += lift;
 		v *= gain;
+		v += lift;
 		v = pow(v, gamma);
 		v *= mul;
 		table[y] = v;
@@ -1367,7 +1371,7 @@ static void color_balance_float_float(Sequence * seq, TStripElem* se,
 	while (p < e) {
 		int c;
 		for (c = 0; c < 3; c++) {
-			p[c] = pow((p[c] + cb.lift[c]) * cb.gain[c], 
+			p[c] = pow(p[c] * cb.gain[c] + cb.lift[c], 
 				   cb.gamma[c]) * mul;
 		}
 		p += 4;
@@ -1705,8 +1709,9 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 			StripElem * s_elem = give_stripelem(seq, cfra);
 			
 			strncpy(name, seq->strip->dir, FILE_MAXDIR-1);
-			strncat(name, s_elem->name, FILE_MAXFILE);
-			BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
+			strncat(name, s_elem->name, FILE_MAXFILE-1);
+			BLI_convertstringcode(name, G.sce);
+			BLI_convertstringframe(name, G.scene->r.cfra);
 			if (!build_proxy_run) {
 				se->ibuf = seq_proxy_fetch(seq, cfra);
 			}
@@ -1735,7 +1740,8 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 				if(seq->anim==0) {
 					strncpy(name, seq->strip->dir, FILE_MAXDIR-1);
 					strncat(name, seq->strip->stripdata->name, FILE_MAXFILE-1);
-					BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
+					BLI_convertstringcode(name, G.sce);
+					BLI_convertstringframe(name, G.scene->r.cfra);
 				
 					seq->anim = openanim(name, IB_rect);
 				}

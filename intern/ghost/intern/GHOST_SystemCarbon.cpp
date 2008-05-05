@@ -34,10 +34,9 @@
  * @date	May 7, 2001
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
+#include <Carbon/Carbon.h>
+#include <ApplicationServices/ApplicationServices.h>
 #include "GHOST_SystemCarbon.h"
 
 #include "GHOST_DisplayManagerCarbon.h"
@@ -52,6 +51,7 @@
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowCarbon.h"
 #include "GHOST_NDOFManager.h"
+#include "AssertMacros.h"
 
 #define GHOST_KEY_SWITCH(mac, ghost) { case (mac): ghostKey = (ghost); break; }
 
@@ -1121,12 +1121,15 @@ GHOST_TUns8* GHOST_SystemCarbon::getClipboard(int flag) const
 	OSStatus err = noErr;
 	GHOST_TUns8 * temp_buff;
 	CFRange range;
+	OSStatus syncFlags;
 	
 	err = PasteboardCreate(kPasteboardClipboard, &inPasteboard);
 	if(err != noErr) { return NULL;}
 
-	err = PasteboardSynchronize( inPasteboard );
-	if(err != noErr) { return NULL;}
+	syncFlags = PasteboardSynchronize( inPasteboard );
+		/* as we always get in a new string, we can safely ignore sync flags if not an error*/
+	if(syncFlags <0) { return NULL;}
+
 
 	err = PasteboardGetItemIdentifier( inPasteboard, 1, &itemID );
 	if(err != noErr) { return NULL;}
@@ -1152,15 +1155,18 @@ GHOST_TUns8* GHOST_SystemCarbon::getClipboard(int flag) const
 void GHOST_SystemCarbon::putClipboard(GHOST_TInt8 *buffer, int flag) const
 {
 	if(flag == 1) {return;} //If Flag is 1 means the selection and is used on X11
+
 	PasteboardRef inPasteboard;
 	CFDataRef textData = NULL;
 	OSStatus err = noErr; /*For error checking*/
+	OSStatus syncFlags;
 	
 	err = PasteboardCreate(kPasteboardClipboard, &inPasteboard);
 	if(err != noErr) { return;}
 	
-	err = PasteboardSynchronize( inPasteboard ); 
-	if(err != noErr) { return;}
+	syncFlags = PasteboardSynchronize( inPasteboard ); 
+	/* as we always put in a new string, we can safely ignore sync flags */
+	if(syncFlags <0) { return;}
 	
 	err = PasteboardClear( inPasteboard );
 	if(err != noErr) { return;}

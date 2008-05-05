@@ -113,6 +113,7 @@ void RAS_BucketManager::RenderAlphaBuckets(
 	std::multiset< alphamesh, backtofront>::iterator msit = alphameshset.begin();
 	for (; msit != alphameshset.end(); ++msit)
 	{
+		rendertools->SetClientObject((*(*msit).m_ms).m_clientObj);
 		while ((*msit).m_bucket->ActivateMaterial(cameratrans, rasty, rendertools, drawingmode))
 			(*msit).m_bucket->RenderMeshSlot(cameratrans, rasty, rendertools, *(*msit).m_ms, drawingmode);
 	}

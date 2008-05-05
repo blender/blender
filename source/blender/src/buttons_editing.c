@@ -4585,16 +4585,21 @@ void do_vgroupbuts(unsigned short event)
 	switch(event) {
 		case B_NEWVGROUP:
 			add_defgroup (ob);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			scrarea_queue_winredraw(curarea);
 			allqueue(REDRAWOOPS, 0);
+			
 			break;
 		case B_DELVGROUP:
-			if ((G.obedit) && (G.obedit == ob))
+			if ((G.obedit) && (G.obedit == ob)) {
 				del_defgroup (ob);
-			else
+			} else {
 				del_defgroup_in_object_mode (ob);
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			}
 			allqueue (REDRAWVIEW3D, 1);
 			allqueue(REDRAWOOPS, 0);
+			allqueue(REDRAWBUTSEDIT, 1);
 			BIF_undo_push("Delete vertex group");
 			break;
 		case B_ASSIGNVGROUP:
@@ -4616,6 +4621,7 @@ void do_vgroupbuts(unsigned short event)
 			break;
 		case B_DESELVGROUP:
 			sel_verts_defgroup(0);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue (REDRAWVIEW3D, 1);
 			allqueue(REDRAWOOPS, 0);
 			countall();

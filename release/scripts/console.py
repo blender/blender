@@ -63,7 +63,7 @@ __LINE_HISTORY__ = 500
 
 global __FONT_SIZE__
 
-__FONT_SIZES__ = ( ('tiny', 10), ('small', 12), ('normal', 14), ('large', 16) )
+__FONT_SIZES__ = ( ('tiny', 10), ('small', 12), ('normalfix', 14), ('large', 16) )
 __FONT_SIZE__ = 2 # index for the list above, normal default.
 
 global __CONSOLE_LINE_OFFSET__
@@ -422,9 +422,13 @@ def handle_event(evt, val):
 		global histIndex, cmdBuffer
 		if abs(histIndex)+1 >= len(cmdBuffer):
 			histIndex = -1
+		histIndex_orig = histIndex
 		histIndex -= 1
-		while cmdBuffer[histIndex].type != 0 and abs(histIndex) < len(cmdBuffer):
+		
+		while	(cmdBuffer[histIndex].type != 0 and abs(histIndex) < len(cmdBuffer)) or \
+				( cmdBuffer[histIndex].cmd == cmdBuffer[histIndex_orig].cmd):
 			histIndex -= 1
+			
 		if cmdBuffer[histIndex].type == 0: # we found one
 			cmdBuffer[-1].cmd = cmdBuffer[histIndex].cmd			
 	
@@ -432,9 +436,13 @@ def handle_event(evt, val):
 		global histIndex, cmdBuffer
 		if histIndex >= -2:
 			histIndex = -len(cmdBuffer)
+		histIndex_orig = histIndex
 		histIndex += 1
-		while cmdBuffer[histIndex].type != 0 and histIndex != -2:
+		while	(cmdBuffer[histIndex].type != 0 and histIndex != -2) or \
+				( cmdBuffer[histIndex].cmd == cmdBuffer[histIndex_orig].cmd):
+			
 			histIndex += 1
+			
 		if cmdBuffer[histIndex].type == 0: # we found one
 			cmdBuffer[-1].cmd = cmdBuffer[histIndex].cmd
 	
