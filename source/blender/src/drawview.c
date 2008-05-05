@@ -3441,12 +3441,13 @@ static void draw_viewport_fps(ScrArea *sa)
 			tot++;
 		}
 	}
-	
-	redrawtime_index++;
-	if (redrawtime_index >= REDRAW_FRAME_AVERAGE)
-		redrawtime_index = 0;
-	
-	fps = fps / tot;
+	if (tot) {
+		redrawtime_index++;
+		if (redrawtime_index >= REDRAW_FRAME_AVERAGE)
+			redrawtime_index = 0;
+		
+		fps = fps / tot;
+	}
 #endif
 	
 	/* is this more then half a frame behind? */
@@ -3577,7 +3578,7 @@ void inner_play_anim_loop(int init, int mode)
 		while(redrawtime_index--) {
 			redrawtimes_fps[redrawtime_index] = 0.0;
 		}
-		
+		redrawtime_index = 0;
 		lredrawtime = 0.0;
 		return;
 	}
