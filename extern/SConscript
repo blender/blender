@@ -9,6 +9,9 @@ if env['WITH_BF_GAMEENGINE']:
 if env['WITH_BF_BULLET']:
     SConscript(['bullet2/src/SConscript'])
 
+if env['WITH_BF_FREESTYLE']:
+    SConscript(['freestyle/lib3ds/SConscript'])
+
 if env['WITH_BF_INTERNATIONAL']:
     SConscript(['bFTGL/SConscript'])
 

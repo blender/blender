@@ -162,7 +162,7 @@ WITH_BF_YAFRAY = 'true'
 
 WITH_BF_FREESTYLE = 'true'
 BF_FREESTYLE = '#extern/freestyle'
-BF_FREESTYLE_SRC = '${BF_FREESTYLE}/src'
+BF_FREESTYLE_SRC = '#source/blender/freestyle/src'
 BF_SWIG = '${BF_FREESTYLE}/swig'
 BF_LIB3DS = '${BF_FREESTYLE}/lib3ds'
 BF_LIB3DS_LIB = 'extern_lib3ds'

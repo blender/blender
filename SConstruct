@@ -269,7 +269,7 @@ if not quickie and do_clean:
                 print "clean dir %s"%(B.root_build_dir+dir)
                 shutil.rmtree(B.root_build_dir+dir)
         for confile in ['extern/ffmpeg/config.mak', 'extern/x264/config.mak',
-                'extern/xvidcore/build/generic/platform.inc']:
+                'extern/xvidcore/build/generic/platform.inc','extern/freestyle/lib3ds/Makefile']:
             if os.path.exists(confile):
                 print "clean file %s"%confile
                 os.remove(confile)
