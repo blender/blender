@@ -3010,6 +3010,16 @@ void do_effects_panels(unsigned short event)
 	case B_PART_INIT_CHILD:
 	case B_PART_RECALC_CHILD:
 		if(psys) {
+			nr=0;
+			for(psys=ob->particlesystem.first; psys; psys=psys->next){
+				if(ELEM(psys->part->draw_as,PART_DRAW_OB,PART_DRAW_GR))
+					nr++;
+			}
+			if(nr)
+				ob->transflag |= OB_DUPLIPARTS;
+			else
+				ob->transflag &= ~OB_DUPLIPARTS;
+
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWBUTSOBJECT, 0);
