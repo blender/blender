@@ -1299,6 +1299,27 @@ void activate_databrowse_args(struct ID *id, int idcode, int fromcode, short *me
 	sfile->ipotype= fromcode;
 }
 
+/* resets a previous file space type */
+/* is used when opening a filebrowser directly from windowtype_pupmenu,
+   since in that case we don't want any load/save/append/link action
+*/
+void reset_filespace(ScrArea *sa)
+{
+	if (sa->spacetype == SPACE_FILE) {
+		SpaceFile *sfile= sa->spacedata.first;
+			
+		if(sfile->type==FILE_MAIN) {
+			freefilelist(sfile);
+		} else {
+			sfile->type= FILE_UNIX;
+		}
+		
+		sfile->returnfunc= NULL;
+		sfile->title[0]= 0;
+		if(sfile->filelist) test_flags_file(sfile);
+	}
+}
+
 void filesel_prevspace()
 {
 	SpaceFile *sfile= curarea->spacedata.first;

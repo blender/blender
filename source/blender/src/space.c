@@ -5611,6 +5611,7 @@ static void init_imaselspace(ScrArea *sa)
 	simasel->files = BIF_filelist_new();
 }
 
+
 /* ******************** SPACE: OOPS ********************** */
 
 extern void drawoopsspace(ScrArea *sa, void *spacedata);
@@ -6155,39 +6156,7 @@ void newspace(ScrArea *sa, int type)
 		}
 	}
 
-		
-	/* exception: filespace */
-	if(sa->spacetype==SPACE_FILE) {
-		SpaceFile *sfile= sa->spacedata.first;
-		
-		if(sfile->type==FILE_MAIN) {
-			freefilelist(sfile);
-		} else {
-			sfile->type= FILE_UNIX;
-		}
-		
-		sfile->returnfunc= NULL;
-		sfile->title[0]= 0;
-		if(sfile->filelist) test_flags_file(sfile);
-	}
-	/* exception: imasel space */
-	else if(sa->spacetype==SPACE_IMASEL) {
-		SpaceImaSel *simasel= sa->spacedata.first;
-		if(simasel->type==FILE_MAIN) {
-			if (simasel->files) {
-				BIF_filelist_free(simasel->files);
-				BIF_filelist_settype(simasel->files, FILE_MAIN);
-			}
-		} else {
-			if (simasel->files) {
-				simasel->type= FILE_UNIX;
-				BIF_filelist_settype(simasel->files, simasel->type);
-			}
-		}
-		simasel->returnfunc= NULL;
-		simasel->title[0]= 0;
-	}
-	else if(sa->spacetype==SPACE_OOPS) {
+	if(sa->spacetype==SPACE_OOPS) {
 		SpaceOops *so= sa->spacedata.first;
 		if(xtra && so->type!=SO_OUTLINER) {
 			so->type= SO_OUTLINER;
