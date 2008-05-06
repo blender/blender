@@ -40,6 +40,7 @@ CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I../../../kernel/gen_system
+CPPFLAGS += -I../../BlenderRoutines
 CPPFLAGS += -I..
 ifeq ($(OS),darwin)
 	CPPFLAGS += -fpascal-strings
