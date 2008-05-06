@@ -2328,6 +2328,7 @@ static int ui_do_but_ICONROW(uiBut *but)
 	ListBase listb= {NULL, NULL};
 	uiBlock *block;
 	int a;
+	short event;
 	
 	but->flag |= UI_SELECT;
 	ui_draw_but(but);
@@ -2348,13 +2349,17 @@ static int ui_do_but_ICONROW(uiBut *but)
 	   this is needs better implementation */
 	block->win= G.curscreen->mainwin;
 	
-	uiDoBlocks(&listb, 0, 1);
+	event= uiDoBlocks(&listb, 0, 1);
 
 	but->flag &= ~UI_SELECT;
 	ui_check_but(but);
 	ui_draw_but(but);	
-	
-	return but->retval;
+
+	if (event & UI_RETURN_OK) {
+		return but->retval;
+	} else {
+		return 0;
+	}
 }
 
 static int ui_do_but_ICONTEXTROW(uiBut *but)
@@ -2363,7 +2368,7 @@ static int ui_do_but_ICONTEXTROW(uiBut *but)
 	ListBase listb={NULL, NULL};
 	int width, a, xmax, ypos;
 	MenuData *md;
-
+	short event;
 	but->flag |= UI_SELECT;
 	ui_draw_but(but);
 	ui_block_flush_back(but->block);	// flush because this button creates own blocks loop
@@ -2421,7 +2426,7 @@ static int ui_do_but_ICONTEXTROW(uiBut *but)
 
 	uiBoundsBlock(block, 3);
 
-	uiDoBlocks(&listb, 0, 1);
+	event = uiDoBlocks(&listb, 0, 1);
 	
 	menudata_free(md);
 
@@ -2429,10 +2434,12 @@ static int ui_do_but_ICONTEXTROW(uiBut *but)
 	ui_check_but(but);
 	ui_draw_but(but);
 
-	uibut_do_func(but);
-
-	return but->retval;
-
+	if (event & UI_RETURN_OK) {
+		uibut_do_func(but);
+		return but->retval;
+	} else {
+		return 0;
+	}
 }
 
 static int ui_do_but_IDPOIN(uiBut *but)
