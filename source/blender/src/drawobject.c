@@ -2485,7 +2485,7 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 	}
 	
 	/* init_gl_materials did the proper checking if this is needed */
-	if(has_alpha) add_view3d_after(G.vd, base, V3D_TRANSP);
+	if(has_alpha) add_view3d_after(G.vd, base, V3D_TRANSP, flag);
 	
 	return retval;
 }
@@ -4663,7 +4663,7 @@ void draw_object(Base *base, int flag)
 		if(!(G.f & G_PARTICLEEDIT)) {
 			/* xray and transp are set when it is drawing the 2nd/3rd pass */
 			if(!G.vd->xray && !G.vd->transp && (ob->dtx & OB_DRAWXRAY)) {
-				add_view3d_after(G.vd, base, V3D_XRAY);
+				add_view3d_after(G.vd, base, V3D_XRAY, flag);
 				return;
 			}
 		}

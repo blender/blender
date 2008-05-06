@@ -2663,21 +2663,22 @@ static void view3d_blockhandlers(ScrArea *sa)
 typedef struct View3DAfter {
 	struct View3DAfter *next, *prev;
 	struct Base *base;
-	int type;
+	int type, flag;
 } View3DAfter;
 
 /* temp storage of Objects that need to be drawn as last */
-void add_view3d_after(View3D *v3d, Base *base, int type)
+void add_view3d_after(View3D *v3d, Base *base, int type, int flag)
 {
 	View3DAfter *v3da= MEM_callocN(sizeof(View3DAfter), "View 3d after");
 
 	BLI_addtail(&v3d->afterdraw, v3da);
 	v3da->base= base;
 	v3da->type= type;
+	v3da->flag= flag;
 }
 
 /* clears zbuffer and draws it over */
-static void view3d_draw_xray(View3D *v3d, int flag)
+static void view3d_draw_xray(View3D *v3d)
 {
 	View3DAfter *v3da, *next;
 	int doit= 0;
@@ -2692,7 +2693,7 @@ static void view3d_draw_xray(View3D *v3d, int flag)
 		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
 			next= v3da->next;
 			if(v3da->type==V3D_XRAY) {
-				draw_object(v3da->base, flag);
+				draw_object(v3da->base, v3da->flag);
 				BLI_remlink(&v3d->afterdraw, v3da);
 				MEM_freeN(v3da);
 			}
@@ -2702,7 +2703,7 @@ static void view3d_draw_xray(View3D *v3d, int flag)
 }
 
 /* disables write in zbuffer and draws it over */
-static void view3d_draw_transp(View3D *v3d, int flag)
+static void view3d_draw_transp(View3D *v3d)
 {
 	View3DAfter *v3da, *next;
 
@@ -2712,7 +2713,7 @@ static void view3d_draw_transp(View3D *v3d, int flag)
 	for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
 		next= v3da->next;
 		if(v3da->type==V3D_TRANSP) {
-			draw_object(v3da->base, flag);
+			draw_object(v3da->base, v3da->flag);
 			BLI_remlink(&v3d->afterdraw, v3da);
 			MEM_freeN(v3da);
 		}
@@ -3102,9 +3103,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			}
 		}
 
-		/* Transp and X-ray afterdraw stuff */
-		view3d_draw_xray(v3d, DRAW_CONSTCOLOR);	// clears zbuffer if it is used!
-		view3d_draw_transp(v3d, DRAW_CONSTCOLOR);
+		/* Transp and X-ray afterdraw stuff for sets is done later */
 	}
 	
 	/* then draw not selected and the duplis, but skip editmode object */
@@ -3150,8 +3149,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 	
 	/* Transp and X-ray afterdraw stuff */
-	view3d_draw_xray(v3d, 0);	// clears zbuffer if it is used!
-	view3d_draw_transp(v3d, 0);
+	view3d_draw_xray(v3d);	// clears zbuffer if it is used!
+	view3d_draw_transp(v3d);
 
 	if(!retopo && sculptparticle && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
 		if(G.f & G_SCULPTMODE)
@@ -3327,9 +3326,7 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4]
 			}
 		}
 		
-		/* Transp and X-ray afterdraw stuff */
-		view3d_draw_xray(v3d, DRAW_CONSTCOLOR);	// clears zbuffer if it is used!
-		view3d_draw_transp(v3d, DRAW_CONSTCOLOR);
+		/* Transp and X-ray afterdraw stuff for sets is done later */
 	}
 
 	/* first not selected and duplis */
@@ -3367,8 +3364,8 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4]
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 
 	/* Transp and X-ray afterdraw stuff */
-	view3d_draw_xray(v3d, 0);	// clears zbuffer if it is used!
-	view3d_draw_transp(v3d, 0);
+	view3d_draw_xray(v3d);	// clears zbuffer if it is used!
+	view3d_draw_transp(v3d);
 	
 	if(v3d->flag & V3D_CLIPPING)
 		view3d_clr_clipping();
