@@ -1506,7 +1506,8 @@ static DerivedMesh *mirrorModifier_applyModifier(
 
 	result = mirrorModifier__doMirror(mmd, ob, derivedData, 0);
 
-	CDDM_calc_normals(result);
+	if(result != derivedData)
+		CDDM_calc_normals(result);
 	
 	return result;
 }
