@@ -80,6 +80,16 @@ BF_SOLID_LIB = 'extern_solid'
 
 WITH_BF_YAFRAY = 'true'
 
+WITH_BF_FREESTYLE = 'true'
+BF_FREESTYLE = '#extern/freestyle'
+BF_FREESTYLE_SRC = '#source/blender/freestyle/src'
+BF_SWIG = '${BF_FREESTYLE}/swig'
+BF_SWIG_LIB = 'extern_swig'
+BF_LIB3DS = '${BF_FREESTYLE}/lib3ds'
+BF_LIB3DS_LIB = 'extern_lib3ds'
+BF_LIB3DS_LIBPATH = '${BF_LIB3DS}/lib3ds/.libs'
+BF_LIB3DS_INC = '${BF_LIB3DS}/lib3ds'
+
 #WITH_BF_NSPR = 'true'
 #BF_NSPR = $(LIBDIR)/nspr
 #BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr

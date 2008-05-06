@@ -269,7 +269,7 @@ if not quickie and do_clean:
                 print "clean dir %s"%(B.root_build_dir+dir)
                 shutil.rmtree(B.root_build_dir+dir)
         for confile in ['extern/ffmpeg/config.mak', 'extern/x264/config.mak',
-                'extern/xvidcore/build/generic/platform.inc','extern/freestyle/lib3ds/Makefile']:
+                'extern/xvidcore/build/generic/platform.inc','extern/freestyle/lib3ds/Makefile','extern/freestyle/swig/Makefile']:
             if os.path.exists(confile):
                 print "clean file %s"%confile
                 os.remove(confile)
@@ -340,12 +340,15 @@ if env['WITH_BF_PLAYER']:
     playerlist = B.create_blender_liblist(env, 'player')
     env.BlenderProg(B.root_build_dir, "blenderplayer", dobj + playerlist + thestatlibs, [], thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
 
+
+
 ##### Now define some targets
 
 
 #------------ INSTALL
 
 #-- binaries
+
 blenderinstall = []
 if  env['OURPLATFORM']=='darwin':
     for prg in B.program_list:

@@ -6,6 +6,18 @@ BF_VERSE_INCLUDE = "#extern/verse/dist"
 
 WITH_BF_YAFRAY = 'true'
 
+WITH_BF_FREESTYLE = 'true'
+BF_FREESTYLE = '#extern/freestyle'
+BF_FREESTYLE_SRC = '#source/blender/freestyle/src'
+BF_SWIG = '${BF_FREESTYLE}/swig'
+BF_SWIG_LIB = 'extern_swig'
+BF_LIB3DS = '${BF_FREESTYLE}/lib3ds'
+BF_LIB3DS_LIB = 'extern_lib3ds'
+BF_LIB3DS_LIBPATH = '${BF_LIB3DS}/lib3ds/.libs'
+BF_LIB3DS_INC = '${BF_LIB3DS}/lib3ds'
+
+###########################
+
 BF_PYTHON = LIBDIR + '/python'
 BF_PYTHON_VERSION = '2.5'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'

@@ -66,7 +66,7 @@ def validate_arguments(args, bc):
             'BF_FANCY', 'BF_QUIET',
             'BF_X264_CONFIG',
             'BF_XVIDCORE_CONFIG',
-			'BF_WITH_BF_FREESTYLE', 'BF_FREESTYLE', 'BF_FREESTYLE_SRC', 'BF_SWIG', 'BF_LIB3DS', 'BF_LIB3DS_LIB', 'BF_LIB3DS_LIBPATH', 'BF_LIB3DS_INC'
+			'BF_WITH_BF_FREESTYLE', 'BF_FREESTYLE', 'BF_FREESTYLE_SRC', 'BF_SWIG', 'BF_SWIG_LIB', 'BF_LIB3DS', 'BF_LIB3DS_LIB', 'BF_LIB3DS_LIBPATH', 'BF_LIB3DS_INC'
             ]
 
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
@@ -242,7 +242,8 @@ def read_opts(cfg, args):
         ('BF_FREESTYLE', 'Freestyle base path', ''),
         ('BF_FREESTYLE_SRC', 'Freestyle source path', ''),
         ('BF_SWIG', 'SWIG base path', ''),
-        ('BF_LIB3DS', 'SWIG base path', ''),
+        ('BF_SWIG_LIB', 'SWIG library', ''),
+        ('BF_LIB3DS', 'lib3ds base path', ''),
         ('BF_LIB3DS_LIB', 'lib3ds library', ''),
         ('BF_LIB3DS_LIBPATH', 'lib3ds library path', ''),
 		('BF_LIB3DS_INC', 'lib3ds include path', ''),

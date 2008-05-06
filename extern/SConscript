@@ -11,6 +11,7 @@ if env['WITH_BF_BULLET']:
 
 if env['WITH_BF_FREESTYLE']:
     SConscript(['freestyle/lib3ds/SConscript'])
+    SConscript(['freestyle/swig/SConscript'])
 
 if env['WITH_BF_INTERNATIONAL']:
     SConscript(['bFTGL/SConscript'])
