@@ -490,39 +490,42 @@ void do_nlabuts(unsigned short event)
 		allqueue (REDRAWNLA, 0);
 		allqueue (REDRAWVIEW3D, 0);
 		break;
-	case B_NLA_SCALE:
+	case B_NLA_SCALE: /* adjust end-frame when scale is changed */
 		{
 			float actlen= strip->actend - strip->actstart;
 			float mapping= strip->scale * strip->repeat;
 			
-			strip->end = (actlen * mapping) + strip->start; 
+			if (mapping != 0.0f)
+				strip->end = (actlen * mapping) + strip->start; 
+			else
+				printf("NLA Scale Error: Scale = %0.4f, Repeat = %0.4f \n", strip->scale, strip->repeat);
 			
-			allqueue (REDRAWNLA, 0);
-			allqueue (REDRAWIPO, 0);
-			allqueue (REDRAWACTION, 0);
-			allqueue (REDRAWVIEW3D, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 		break;
-	case B_NLA_SCALE2:
+	case B_NLA_SCALE2: /* adjust scale when end-frame is changed */
 		{
 			float actlen= strip->actend - strip->actstart;
 			float len= strip->end - strip->start;
 			
 			strip->scale= len / (actlen * strip->repeat);
 			
-			allqueue (REDRAWNLA, 0);
-			allqueue (REDRAWIPO, 0);
-			allqueue (REDRAWACTION, 0);
-			allqueue (REDRAWVIEW3D, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 		break;
 	case B_NLA_LOCK:
 		synchronize_action_strips();
 		
-		allqueue (REDRAWNLA, 0);
-		allqueue (REDRAWIPO, 0);
-		allqueue (REDRAWACTION, 0);
-		allqueue (REDRAWVIEW3D, 0);
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWVIEW3D, 0);
 		break;
 		
 	case B_NLA_MOD_ADD:

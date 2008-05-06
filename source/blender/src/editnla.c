@@ -188,11 +188,16 @@ void shift_nlastrips_down(void) {
 void synchronize_action_strips(void)
 {
 	Base *base;
+	Object *ob;
 	bActionStrip *strip;
 	
 	for (base=G.scene->base.first; base; base=base->next) {
+		/* get object first */
+		ob= base->object;
+		
 		/* step 1: adjust strip-lengths */
-		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
+		//	FIXME: this seems very buggy
+		for (strip = ob->nlastrips.last; strip; strip=strip->prev) {
 			if (strip->flag & ACTSTRIP_LOCK_ACTION) {
 				float actstart, actend;
 				
@@ -212,7 +217,7 @@ void synchronize_action_strips(void)
 		}
 		
 		/* step 2: adjust blendin/out values for each strip if option is turned on */
-		for (strip= base->object->nlastrips.first; strip; strip=strip->next) {
+		for (strip= ob->nlastrips.first; strip; strip=strip->next) {
 			if (strip->flag & ACTSTRIP_AUTO_BLENDS) {
 				bActionStrip *prev= strip->prev;
 				bActionStrip *next= strip->next;
