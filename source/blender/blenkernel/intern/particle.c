@@ -250,9 +250,16 @@ int psys_in_edit_mode(ParticleSystem *psys)
 int psys_check_enabled(Object *ob, ParticleSystem *psys)
 {
 	ParticleSystemModifierData *psmd;
+	Mesh *me;
 
 	if(psys->flag & PSYS_DISABLED)
 		return 0;
+
+	if(ob->type == OB_MESH) {
+		me= (Mesh*)ob->data;
+		if(me->mr && me->mr->current != 1)
+			return 0;
+	}
 
 	psmd= psys_get_modifier(ob, psys);
 	if(psys->renderdata) {
