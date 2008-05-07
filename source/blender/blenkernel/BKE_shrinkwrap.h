@@ -1,5 +1,5 @@
 /**
- * shrinkwrap.c
+ * BKE_shrinkwrap.h
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,9 +29,22 @@
 #ifndef BKE_SHRINKWRAP_H
 #define BKE_SHRINKWRAP_H
 
+/* bitset stuff */
+//TODO: should move this to other generic lib files?
+typedef char* BitSet;
+#define bitset_memsize(size)		(sizeof(char)*((size+7)>>3))
+
+#define bitset_new(size,name)		((BitSet)MEM_callocN( bitset_memsize(size) , name))
+#define bitset_free(set)			(MEM_freeN((void*)set))
+
+#define bitset_get(set,index)	((set)[(index)>>3] & (1 << ((index)&0x7)))
+#define bitset_set(set,index)	((set)[(index)>>3] |= (1 << ((index)&0x7)))
+
+
 struct Object;
 struct DerivedMesh;
 struct ShrinkwrapModifierData;
+
 
 
 typedef struct ShrinkwrapCalcData
@@ -50,7 +63,7 @@ typedef struct ShrinkwrapCalcData
 
 	float keptDist;					//Distance to kept from target (units are in local space)
 	//float *weights;				//weights of vertexs
-	unsigned char *moved;			//boolean indicating if vertex has moved (TODO use bitmaps)
+	BitSet moved;					//BitSet indicating if vertex has moved
 
 } ShrinkwrapCalcData;
 

@@ -507,5 +507,6 @@ typedef struct ShrinkwrapModifierData {
 /* Shrinkwrap->shrinkOpts */
 #define MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL		(1<<0)
 #define MOD_SHRINKWRAP_ALLOW_INVERTED_NORMAL	(1<<1)
+#define MOD_SHRINKWRAP_REMOVE_UNPROJECTED_FACES	(1<<2)
 
 #endif

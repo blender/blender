@@ -1824,7 +1824,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
 			height = 86;
 			if (smd->shrinkType == MOD_SHRINKWRAP_NORMAL)
-				height += 19*2;
+				height += 19*3;
 		}
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 40, ""); 
@@ -2446,6 +2446,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			if (smd->shrinkType == MOD_SHRINKWRAP_NORMAL){
 				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL, B_MODIFIER_RECALC, "Default normal",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Allows vertices to move in the normal direction");
 				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_ALLOW_INVERTED_NORMAL, B_MODIFIER_RECALC, "Invert normal",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Allows vertices to move in the inverse direction of their normal");
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_REMOVE_UNPROJECTED_FACES, B_MODIFIER_RECALC, "Remove faces",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Remove faces where all vertices haven't been projected");
 			}
 
 			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->vgroup_name, 0.0, 31.0, 0, 0, "Vertex Group name");
