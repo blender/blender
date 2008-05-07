@@ -297,6 +297,10 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 /* Cloth sim button defines */
 #define B_CLOTH_CHANGEPREROLL	1480
 
+/* SPH sim button defines */
+#define B_SPH_BAKE 		1490
+
+
 /* *********************** */
 #define B_WORLDBUTS		1600
 

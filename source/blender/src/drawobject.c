@@ -1883,11 +1883,13 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 {
 	EditEdge *eed;
 	EditFace *efa;
+	EditVert *eve;
 	float v1[3], v2[3], v3[3], v4[3];
 	float fvec[3];
 	char val[32]; /* Stores the measurement display text here */
 	char conv_float[5]; /* Use a float conversion matching the grid size */
 	float area, col[3]; /* area of the face,  color of the text to draw */
+	int i = 0;
 	
 	/* make the precission of the pronted value proportionate to the gridsize */
 	if ((G.vd->grid) < 0.01)
@@ -1941,7 +1943,7 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 		if(col[1]> 0.5) {col[0]*=0.7; col[2]*= 0.7;}
 		else col[1]= col[1]*0.7 + 0.3;
 		glColor3fv(col);
-		
+		/*
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			if((efa->f & SELECT) || (G.moving && faceselectedOR(efa, SELECT)) ) {
 				VECCOPY(v1, efa->v1->co);
@@ -1966,6 +1968,24 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 				glRasterPos3fv(efa->cent);
 				BMF_DrawString( G.fonts, val);
 			}
+		}*/
+		
+		/* draw IDs of mesh vertexes */
+		for(eve = em->verts.first; eve; eve = eve->next) {
+			char val[32];
+			float fvec[3];
+			VecLerpf(fvec, ob->loc, eve->co, 1.1);
+			glRasterPos3f(fvec[0], fvec[1], fvec[2]);
+
+			sprintf(val, "%d", eve->keyindex);
+			BMF_DrawString(G.fonts, val);
+		}
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			char val[32];
+			sprintf(val, "%d", i);
+			glRasterPos3fv(efa->cent);
+			BMF_DrawString( G.fonts, val);
+			i++;
 		}
 	}
 

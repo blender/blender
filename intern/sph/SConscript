@@ -1,0 +1,11 @@
+#!/usr/bin/python
+import sys
+import os
+Import('env')
+
+sources = env.Glob('intern/*.cpp')
+
+incs = ' . extern intern' 
+defs = ''
+
+env.BlenderLib ('bf_sph', sources, Split(incs), Split(defs), libtype='blender', priority=0 )

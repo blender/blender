@@ -35,6 +35,7 @@ typedef enum ModifierType {
 	eModifierType_Cloth,
 	eModifierType_Collision,
 	eModifierType_Bevel,
+	eModifierType_Sph,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -374,6 +375,14 @@ typedef struct ClothModifierData {
    struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
 } ClothModifierData;
 
+typedef struct SphModifierData {
+	ModifierData		modifier;
+	
+	struct SPH *sph; /* pointer to cpp sph sim */
+	struct SphSimSettings *sim_parms; /* definition is in DNA_sph_types.h */
+	struct SphCollSettings *coll_parms; /* definition is in DNA_sph_types.h */
+} SphModifierData;
+
 typedef struct CollisionModifierData {
 	ModifierData	modifier;
 	
@@ -390,7 +399,7 @@ typedef struct CollisionModifierData {
 	unsigned int numfaces;
 	int pad;
 	float time;		/* cfra time of modifier */
-	struct BVH *bvh;	/* bounding volume hierarchy for this cloth object */
+	struct BVHTree *bvhtree; /* bounding volume hierarchy for this cloth object */
 } CollisionModifierData;
 
 typedef enum {

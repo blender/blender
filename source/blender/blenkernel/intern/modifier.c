@@ -58,6 +58,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_sph_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
@@ -90,6 +91,7 @@
 #include "BKE_object.h"
 #include "BKE_mesh.h"
 #include "BKE_softbody.h"
+#include "BKE_sph.h"
 #include "BKE_cloth.h"
 #include "BKE_material.h"
 #include "BKE_particle.h"
@@ -5178,6 +5180,89 @@ static void clothModifier_freeData(ModifierData *md)
 	}
 }
 
+/* Smooth Particly Hydrodynamics */
+
+static void sphModifier_initData(ModifierData *md) 
+{
+	SphModifierData *sphmd = (SphModifierData*) md;
+	
+	sphmd->sim_parms = MEM_callocN(sizeof(SphSimSettings), "SPH sim parms");
+	sphmd->coll_parms = MEM_callocN(sizeof(SphCollSettings), "SPH coll parms");
+	
+	/* check for alloc failing */
+	if(!sphmd->sim_parms || !sphmd->coll_parms)
+		return;
+	
+	sph_init(sphmd);
+}
+
+static DerivedMesh *sphModifier_applyModifier(ModifierData *md, Object *ob,
+					      DerivedMesh *derivedData, int useRenderParams, int isFinalCalc)
+{
+	SphModifierData *sphmd = (SphModifierData*) md;
+	DerivedMesh *result=NULL;
+	
+	/* check for alloc failing */
+	if(!sphmd->sim_parms || !sphmd->coll_parms)
+		return derivedData;
+
+	result = sphModifier_do(sphmd, ob, derivedData, useRenderParams, isFinalCalc);
+
+	if(result)
+	{
+		CDDM_calc_normals(result);
+		return result;
+	}
+	
+	return derivedData;
+}
+
+static void sphModifier_updateDepgraph(
+				       ModifierData *md, DagForest *forest, Object *ob,
+	   DagNode *obNode)
+{
+	SphModifierData *sphmd = (SphModifierData*) md;
+	
+	Base *base;
+	
+}
+
+CustomDataMask sphModifier_requiredDataMask(ModifierData *md)
+{
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
+}
+
+static void sphModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	
+}
+
+
+static int sphModifier_dependsOnTime(ModifierData *md)
+{
+	return 1;
+}
+
+static void sphModifier_freeData(ModifierData *md)
+{
+	SphModifierData *sphmd = (SphModifierData*) md;
+	
+	if (sphmd) 
+	{	
+		sph_free_modifier(sphmd);
+		
+		if(sphmd->sim_parms)
+			MEM_freeN(sphmd->sim_parms);
+		if(sphmd->coll_parms)
+			MEM_freeN(sphmd->coll_parms);
+	}
+}
+
 /* Collision */
 
 static void collisionModifier_initData(ModifierData *md) 
@@ -5191,7 +5276,7 @@ static void collisionModifier_initData(ModifierData *md)
 	collmd->current_v = NULL;
 	collmd->time = -1;
 	collmd->numverts = 0;
-	collmd->bvh = NULL;
+	collmd->bvhtree = NULL;
 }
 
 static void collisionModifier_freeData(ModifierData *md)
@@ -5200,8 +5285,8 @@ static void collisionModifier_freeData(ModifierData *md)
 	
 	if (collmd) 
 	{
-		if(collmd->bvh)
-			bvh_free(collmd->bvh);
+		if(collmd->bvhtree)
+			BLI_bvhtree_free(collmd->bvhtree);
 		if(collmd->x)
 			MEM_freeN(collmd->x);
 		if(collmd->xnew)
@@ -5212,7 +5297,6 @@ static void collisionModifier_freeData(ModifierData *md)
 			MEM_freeN(collmd->current_xnew);
 		if(collmd->current_v)
 			MEM_freeN(collmd->current_v);
-		
 		if(collmd->mfaces)
 			MEM_freeN(collmd->mfaces);
 		
@@ -5223,7 +5307,7 @@ static void collisionModifier_freeData(ModifierData *md)
 		collmd->current_v = NULL;
 		collmd->time = -1;
 		collmd->numverts = 0;
-		collmd->bvh = NULL;
+		collmd->bvhtree = NULL;
 		collmd->mfaces = NULL;
 	}
 }
@@ -5291,9 +5375,8 @@ static void collisionModifier_deformVerts(
 				collmd->mfaces = dm->dupFaceArray(dm);
 				collmd->numfaces = dm->getNumFaces(dm);
 				
-				// TODO: epsilon
 				// create bounding box hierarchy
-				collmd->bvh = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sboft);
+				collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sboft);
 				
 				collmd->time = current_time;
 			}
@@ -5316,25 +5399,25 @@ static void collisionModifier_deformVerts(
 				memcpy(collmd->current_x, collmd->x, numverts*sizeof(MVert));
 				
 				/* check if GUI setting has changed for bvh */
-				if(collmd->bvh)
+				if(collmd->bvhtree) 
 				{
-					if(ob->pd->pdef_sboft != collmd->bvh->epsilon)
+					if(ob->pd->pdef_sboft != BLI_bvhtree_getepsilon(collmd->bvhtree))
 					{
-						bvh_free(collmd->bvh);
-						collmd->bvh = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
+						BLI_bvhtree_free(collmd->bvhtree);
+						collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
 					}
 			
 				}
 				
-				/* happens on file load (ONLY when i decomment changes in readfile.c */
-				if(!collmd->bvh)
+				/* happens on file load (ONLY when i decomment changes in readfile.c) */
+				if(!collmd->bvhtree)
 				{
-					collmd->bvh = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
+					collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
 				}
 				else
 				{
 					// recalc static bounding boxes
-					bvh_update_from_mvert(collmd->bvh, collmd->current_x, numverts, NULL, 0);
+					bvhtree_update_from_mvert ( collmd->bvhtree, collmd->mfaces, collmd->numfaces, collmd->current_x, NULL, collmd->numverts, 0 );
 				}
 				
 				collmd->time = current_time;
@@ -7106,6 +7189,18 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->requiredDataMask = bevelModifier_requiredDataMask;
 		mti->applyModifier = bevelModifier_applyModifier;
 		mti->applyModifierEM = bevelModifier_applyModifierEM;
+		
+		mti = INIT_TYPE(Sph);
+		mti->type = eModifierTypeType_Nonconstructive;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_UsesPointCache;
+		mti->initData = sphModifier_initData;
+		mti->copyData = sphModifier_copyData;
+		mti->requiredDataMask = sphModifier_requiredDataMask;
+		mti->applyModifier = sphModifier_applyModifier;
+		mti->dependsOnTime = sphModifier_dependsOnTime;
+		mti->freeData = sphModifier_freeData; 
+		mti->updateDepgraph = sphModifier_updateDepgraph;
 
 		mti = INIT_TYPE(Displace);
 		mti->type = eModifierTypeType_OnlyDeform;

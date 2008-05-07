@@ -32,7 +32,7 @@
 #define BKE_COLLISIONS_H
 
 #include <math.h>
-#include "float.h"
+#include <float.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -46,6 +46,8 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+
+#include "BLI_kdopbvh.h"
 
 struct Object;
 struct Cloth;
@@ -102,9 +104,15 @@ BVH;
 typedef void ( *CM_COLLISION_RESPONSE ) ( ModifierData *md1, ModifierData *md2, CollisionTree *tree1, CollisionTree *tree2 );
 
 // needed for collision.c
-int bvh_traverse ( ModifierData * md1, ModifierData * md2, CollisionTree * tree1, CollisionTree * tree2, float step, CM_COLLISION_RESPONSE collision_response, int selfcollision);
+int bvh_traverse ( ModifierData * md1, ModifierData * md2, CollisionTree * tree1, CollisionTree * tree2, float step, CM_COLLISION_RESPONSE collision_response, int selfcollision );
 
 ////////////////////////////////////////
+
+/* COLLISION FLAGS */
+typedef enum
+{
+	COLLISION_IN_FUTURE = ( 1 << 1 ),
+} COLLISION_FLAGS;
 
 
 ////////////////////////////////////////
@@ -119,10 +127,10 @@ typedef struct CollPair
 	float normal[3];
 	float vector[3]; // unnormalized collision vector: p2-p1
 	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2
-	int lastsign; // indicates if the distance sign has changed, unused itm
+	int flag;
 	float time; // collision time, from 0 up to 1
-	unsigned int ap1, ap2, ap3, bp1, bp2, bp3;
-	unsigned int pointsb[4];
+	int ap1, ap2, ap3, bp1, bp2, bp3;
+	int pointsb[4];
 }
 CollPair;
 
@@ -160,8 +168,9 @@ FaceCollPair;
 // NOTICE: mvert-routines for building + update the BVH are the most native ones
 
 // builds bounding volume hierarchy
-void bvh_build (BVH *bvh);
-BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int numverts, float epsilon);
+void bvh_build ( BVH *bvh );
+BVH *bvh_build_from_mvert ( MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int numverts, float epsilon );
+BVHTree *bvhtree_build_from_mvert ( MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int numverts, float epsilon );
 
 // frees the same
 void bvh_free ( BVH * bvh );
@@ -169,20 +178,21 @@ void bvh_free ( BVH * bvh );
 // checks two bounding volume hierarchies for potential collisions and returns some list with those
 
 
-// update bounding volumes, needs updated positions in  bvh->current_xold (static) 
+// update bounding volumes, needs updated positions in  bvh->current_xold (static)
 // and also bvh->current_x if moving==1
-void bvh_update_from_mvert(BVH * bvh, MVert *x, unsigned int numverts, MVert *xnew, int moving);
-void bvh_update(BVH * bvh, int moving);
+void bvh_update_from_mvert ( BVH * bvh, MVert *x, unsigned int numverts, MVert *xnew, int moving );
+void bvh_update ( BVH * bvh, int moving );
+void bvhtree_update_from_mvert ( BVHTree * bvhtree, MFace *faces, int numfaces, MVert *x, MVert *xnew, int numverts, int moving );
 
 LinkNode *BLI_linklist_append_fast ( LinkNode **listp, void *ptr );
 
 // move Collision modifier object inter-frame with step = [0,1]
 // defined in collisions.c
-void collision_move_object(CollisionModifierData *collmd, float step, float prevstep);
+void collision_move_object ( CollisionModifierData *collmd, float step, float prevstep );
 
 // interface for collision functions
-void collisions_compute_barycentric (float pv[3], float p1[3], float p2[3], float p3[3], float *w1, float *w2, float *w3);
-void interpolateOnTriangle(float to[3], float v1[3], float v2[3], float v3[3], double w1, double w2, double w3);
+void collisions_compute_barycentric ( float pv[3], float p1[3], float p2[3], float p3[3], float *w1, float *w2, float *w3 );
+void interpolateOnTriangle ( float to[3], float v1[3], float v2[3], float v3[3], double w1, double w2, double w3 );
 
 /////////////////////////////////////////////////
 

@@ -985,7 +985,7 @@ static uiBlock *modifiers_add_menu(void *ob_v)
 		/* Only allow adding through appropriate other interfaces */
 		if(ELEM3(i, eModifierType_Softbody, eModifierType_Hook, eModifierType_ParticleSystem)) continue;
 		
-		if(ELEM(i, eModifierType_Cloth, eModifierType_Collision)) continue;
+		if(ELEM3(i, eModifierType_Cloth, eModifierType_Collision, eModifierType_Sph)) continue;
 
 		if((mti->flags&eModifierTypeFlag_AcceptsCVs) ||
 		   (ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
@@ -1807,6 +1807,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 31;
 		} else if (md->type==eModifierType_Collision) {
 			height = 31;
+		} else if (md->type==eModifierType_Sph) {
+			height = 31;
 		} else if (md->type==eModifierType_Boolean) {
 			height = 48;
 		} else if (md->type==eModifierType_Array) {
@@ -1837,7 +1839,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiButSetFunc(but, modifiers_applyModifier, ob, md);
 			}
 			
-			if (md->type!=eModifierType_Softbody && md->type!=eModifierType_ParticleSystem && (md->type!=eModifierType_Cloth)) {
+			if (md->type!=eModifierType_Softbody && md->type!=eModifierType_ParticleSystem && (md->type!=eModifierType_Cloth) && (md->type!=eModifierType_Sph)) {
 				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Copy",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Duplicate the current modifier at the same position in the stack");
 				uiButSetFunc(but, modifiers_copyModifier, ob, md);
 			}
@@ -2229,6 +2231,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefBut(block, LABEL, 1, "See Soft Body panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
 		} else if (md->type==eModifierType_Cloth) {
 			uiDefBut(block, LABEL, 1, "See Cloth panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
+		} else if (md->type==eModifierType_Sph) {
+			uiDefBut(block, LABEL, 1, "See Sph panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
 		} else if (md->type==eModifierType_Collision) {
 			uiDefBut(block, LABEL, 1, "See Collision panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
 		} else if (md->type==eModifierType_Boolean) {

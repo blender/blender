@@ -52,6 +52,8 @@
 #include "BKE_utildefines.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
+#include "BKE_sph.h"
+
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -107,6 +109,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_radio_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_sph_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
@@ -135,6 +138,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_sound.h"
+#include "BKE_sph.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
@@ -2474,6 +2478,27 @@ void do_object_panels(unsigned short event)
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
 		allqueue(REDRAWBUTSOBJECT, 0);
 		allqueue(REDRAWVIEW3D, 0);
+	}
+	break;
+	case B_SPH_BAKE:
+	{
+		SphModifierData *sphmd = (SphModifierData *)modifiers_findByType(ob, eModifierType_Sph);
+		int i = 0;
+		
+		if(sphmd && sphmd->sim_parms)
+		{
+			sphmd->sim_parms->flags |= SPH_SIMSETTINGS_FLAG_BAKING;
+			
+			// call baking function
+			for(i = 0; i < 1; i++)
+			{
+				CFRA++;
+				update_for_newframe();
+			}
+			
+			sphmd->sim_parms->flags &= ~SPH_SIMSETTINGS_FLAG_BAKING;
+			
+		}
 	}
 	break;
 	}
@@ -5650,6 +5675,116 @@ static void object_panel_cloth_III(Object *ob)
 	
 }
 
+static void object_sph__enabletoggle(void *ob_v, void *arg2)
+{
+	Object *ob = ob_v;
+	ModifierData *md = modifiers_findByType(ob, eModifierType_Sph);
+
+	if (!md) {
+		// create particle modifier
+		ParticleSettings *part = psys_new_settings("PSys", G.main);
+		ParticleSystem *psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
+		ParticleSystemModifierData *psmd;
+		
+		md = modifier_new(eModifierType_Sph);
+		BLI_addtail(&ob->modifiers, md);
+
+		part->type = PART_FLUID;
+		psys->part = part;
+		psys->pointcache = BKE_ptcache_add();
+		psys->flag |= PSYS_ENABLED;
+		BLI_addtail(&ob->particlesystem,psys);
+		md= modifier_new(eModifierType_ParticleSystem);
+		sprintf(md->name, "SphParticleSystem" );
+		psmd= (ParticleSystemModifierData*) md;
+		psmd->psys=psys;
+		BLI_addtail(&ob->modifiers, md);
+		
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWVIEW3D, 0);
+	}
+	else {
+		Object *ob = ob_v;
+		ModifierData *md = modifiers_findByType(ob, eModifierType_Sph);
+	
+		if (!md)
+			return;
+
+		BLI_remlink(&ob->modifiers, md);
+
+		modifier_free(md);
+
+		BIF_undo_push("Del modifier");
+		
+		// ob->softflag |= OB_SB_RESET;
+		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWIMAGE, 0);
+		allqueue(REDRAWOOPS, 0);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		object_handle_update(ob);
+		countall();
+	}
+}
+
+static void object_panel_sph(Object *ob)
+{
+	uiBlock *block=NULL;
+	uiBut *but=NULL;
+	static int val;
+	SphModifierData *sphmd = (SphModifierData *)modifiers_findByType(ob, eModifierType_Sph);
+	
+	block= uiNewBlock(&curarea->uiblocks, "object_sph", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Sph ", "Physics", 640, 0, 318, 204)==0) return;
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	
+	val = (sphmd ? 1:0);
+	
+
+	but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Sph",	10,200,130,20, &val, 0, 0, 0, 0, "Sets object to become Sph");
+	uiButSetFunc(but, object_sph__enabletoggle, ob, NULL);
+
+
+	uiDefBut(block, LABEL, 0, "",10,10,300,0, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
+	
+	if(sphmd)
+	{
+		if(sphmd->sim_parms && (sphmd->sim_parms->flags & SPH_SIMSETTINGS_FLAG_DOMAIN))
+		{
+			uiDefBut(block, BUT, B_SPH_BAKE, "BAKE",10, 180,300,20, NULL, 0.0, 0.0, 10, 0, "Perform simulation and output and surface&preview meshes for each frame.");
+		}
+		
+		uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Domain", 10, 160, 100, 20, (short *)&sphmd->sim_parms->flags, 15.0, SPH_SIMSETTINGS_FLAG_DOMAIN,   0.0, 0.0, " ");
+		uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Fluid", 110, 160, 100, 20, (short *)&sphmd->sim_parms->flags, 15.0, SPH_SIMSETTINGS_FLAG_FLUID,   0.0, 0.0, " ");
+		uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Obstacle", 210, 160, 100, 20, (short *)&sphmd->sim_parms->flags, 15.0, SPH_SIMSETTINGS_FLAG_OBSTACLE,   0.0, 0.0, " ");
+		
+		if(sphmd->sim_parms && (sphmd->sim_parms->flags & SPH_SIMSETTINGS_FLAG_DOMAIN))
+		{
+			uiDefButBitI(block, TOG, SPH_SIMSETTINGS_FLAG_GHOSTS, REDRAWBUTSOBJECT, "Ghosts",10,140,100,20, &sphmd->sim_parms->flags, 0, 0, 0, 0, " ");
+			uiDefButBitI(block, TOG, SPH_SIMSETTINGS_FLAG_MULTIRES, REDRAWBUTSOBJECT, "Multires",110,140,100,20, &sphmd->sim_parms->flags, 0, 0, 0, 0, " ");
+			uiDefButBitI(block, TOG, SPH_SIMSETTINGS_FLAG_VORTICITY, REDRAWBUTSOBJECT, "Vorticity",210,140,100,20, &sphmd->sim_parms->flags, 0, 0, 0, 0, " ");
+			
+			// timestep
+			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Timestep:",10,120,100,20, &sphmd->sim_parms->timestep, 0.0, 1.0, 0.0001f, 0, " ");
+			// totaltime
+			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Totaltime:",110,120,100,20, &sphmd->sim_parms->totaltime, 0.0, 10000.0, 0.001f, 0, " ");
+			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Sampling distance:",210,120,100,20, &sphmd->sim_parms->samplingdistance, 0.0, 1.0, 0.0001f, 0, " ");
+			uiDefButF(block, NUM, REDRAWBUTSOBJECT, "Smoothing Length:",10,100,100,20, &sphmd->sim_parms->smoothinglength, 0.0, 10.0, 0.1f, 0, " ");
+			
+			uiDefButI(block, NUM, REDRAWBUTSOBJECT, "Surface:",110,100,100,20, &sphmd->sim_parms->computesurfaceevery, 0.0, 1000.0, 1.0, 0, " ");
+			uiDefButI(block, NUM, REDRAWBUTSOBJECT, "Fast Marching:",210,100,100,20, &sphmd->sim_parms->fastmarchingevery, 0.0, 1000.0, 1.0, 0, " ");
+		}
+		else if(sphmd->sim_parms && (sphmd->sim_parms->flags & SPH_SIMSETTINGS_FLAG_FLUID))
+		{
+			uiDefButI(block, NUM, REDRAWBUTSOBJECT, "Resolution:",10,120,100,20, &sphmd->sim_parms->resolution, 1.0, 1000.0, 1.0f, 0, " ");
+		}
+	}
+	
+	
+	uiBlockEndAlign(block);
+}
+
 void object_panels()
 {
 	Object *ob;
@@ -5682,6 +5817,7 @@ void physics_panels()
 		object_panel_cloth(ob);
 		object_panel_cloth_II(ob);
 		object_panel_cloth_III(ob);
+		object_panel_sph(ob);
 		object_panel_fluidsim(ob);
 	}
 }

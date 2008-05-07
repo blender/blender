@@ -3073,6 +3073,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			
 			clmd->sim_parms= newdataadr(fd, clmd->sim_parms);
 			clmd->coll_parms= newdataadr(fd, clmd->coll_parms);
+
 			clmd->point_cache= newdataadr(fd, clmd->point_cache);
 
 			if(clmd->point_cache)
@@ -3082,22 +3083,16 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				if(clmd->sim_parms->presets > 10)
 					clmd->sim_parms->presets = 0;
 			}
+			else
+			{
+				/* Collision modifier without parameters?? */
+				
+			}
 			
 		}
 		else if (md->type==eModifierType_Collision) {
 			
 			CollisionModifierData *collmd = (CollisionModifierData*) md;
-			/*
-			// TODO: CollisionModifier should use pointcache 
-			// + have proper reset events before enabling this
-			collmd->x = newdataadr(fd, collmd->x);
-			collmd->xnew = newdataadr(fd, collmd->xnew);
-			collmd->mfaces = newdataadr(fd, collmd->mfaces);
-			
-			collmd->current_x = MEM_callocN(sizeof(MVert)*collmd->numverts,"current_x");
-			collmd->current_xnew = MEM_callocN(sizeof(MVert)*collmd->numverts,"current_xnew");
-			collmd->current_v = MEM_callocN(sizeof(MVert)*collmd->numverts,"current_v");
-			*/
 			
 			collmd->x = NULL;
 			collmd->xnew = NULL;
@@ -3106,9 +3101,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->current_v = NULL;
 			collmd->time = -1;
 			collmd->numverts = 0;
-			collmd->bvh = NULL;
+			collmd->bvhtree = NULL;
 			collmd->mfaces = NULL;
-			
 		}
 		else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
