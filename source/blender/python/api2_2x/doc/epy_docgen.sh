@@ -7,6 +7,5 @@
 # set posix locale so regex works properly for [A-Z]*.py
 LC_ALL=POSIX
 
-epydoc  -o BPY_API --url "http://www.blender.org" --top API_intro.py \
- --name "Blender" --no-private --no-frames \
-$( ls [A-Z]*.py )
+epydoc -v  -o BPY_API --url "http://www.blender.org" --top API_intro \
+ --name "Blender" --no-private --no-frames [A-Z]*.py 
