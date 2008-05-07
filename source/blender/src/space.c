@@ -4158,9 +4158,9 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(1*midsp)+(1*mpref)),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiDefButBitI(block, TOG, G_DOSCRIPTLINKS, REDRAWBUTSSCRIPT, "Enabled by Default",
+		uiDefButBitI(block, TOGN, USER_DONT_DOSCRIPTLINKS, REDRAWBUTSSCRIPT, "Enabled by Default",
 			(xpos+edgsp+(1*mpref)+(1*midsp)),y5,mpref,buth,
-			&(G.f), 0, 0, 0, 0, "Allow any .blend file to run scripts automatically (unsafe with blend files from an untrusted source)");
+			&(U.flag), 0, 0, 0, 0, "Allow any .blend file to run scripts automatically (unsafe with blend files from an untrusted source)");
 		
 		uiDefBut(block, LABEL,0,"Keyboard:",
 			(xpos+edgsp+(3*midsp)+(3*mpref)),y2label,mpref,buth,

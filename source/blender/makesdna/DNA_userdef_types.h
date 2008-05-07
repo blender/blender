@@ -224,7 +224,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_DUPLILINK			(1 << 6)
 #define USER_FSCOLLUM			(1 << 7)
 #define USER_MAT_ON_OB			(1 << 8)
-#define USER_NO_CAPSLOCK		(1 << 9)
+/*#define USER_NO_CAPSLOCK		(1 << 9)*/ /* not used anywhere */
 #define USER_VIEWMOVE			(1 << 10)
 #define USER_TOOLTIPS			(1 << 11)
 #define USER_TWOBUTTONMOUSE		(1 << 12)
@@ -236,7 +236,8 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_ADD_EDITMODE		(1 << 18)
 #define USER_ADD_VIEWALIGNED	(1 << 19)
 #define USER_RELPATHS			(1 << 20)
-#define USER_DRAGIMMEDIATE			(1 << 21)
+#define USER_DRAGIMMEDIATE		(1 << 21)
+#define USER_DONT_DOSCRIPTLINKS	(1 << 22)
 
 /* viewzom */
 #define USER_ZOOM_CONT			0
