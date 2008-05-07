@@ -2425,19 +2425,23 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 	if (draw_wire) {
 			/* If drawing wire and drawtype is not OB_WIRE then we are
 				* overlaying the wires.
+				*
+				* UPDATE bug #10290 - With this wire-only objects can draw
+				* behind other objects depending on their order in the scene. 2x if 0's below. undo'ing zr's commit: r4059
 				*/
-
+#if 0
 		if (dt!=OB_WIRE) {
 			bglPolygonOffset(1.0);
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 		}
-
+#endif
 		dm->drawEdges(dm, (dt==OB_WIRE || totface==0));
-
+#if 0
 		if (dt!=OB_WIRE) {
 			glDepthMask(1);
 			bglPolygonOffset(0.0);
 		}
+#endif
 	}
 
 	dm->release(dm);
