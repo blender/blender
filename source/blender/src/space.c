@@ -1745,25 +1745,42 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if ( (G.obedit) && (G.obedit->type==OB_MESH) )
 						select_faces_by_numverts(5);
 				}
+				
+				else if(G.qual==LR_CTRLKEY) {}
 				else do_layer_buttons(4);
 				break;
 
 			case SIXKEY:
-				do_layer_buttons(5); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(5);
+				break;
 			case SEVENKEY:
-				do_layer_buttons(6); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(6);
+				break;
 			case EIGHTKEY:
-				do_layer_buttons(7); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(7);
+				break;
 			case NINEKEY:
-				do_layer_buttons(8); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(8);
+				break;
 			case ZEROKEY:
-				do_layer_buttons(9); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(9);
+				break;
 			case MINUSKEY:
-				do_layer_buttons(10); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(10);
+				break;
 			case EQUALKEY:
-				do_layer_buttons(11); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(11);
+				break;
 			case ACCENTGRAVEKEY:
-				do_layer_buttons(-1); break;
+				do_layer_buttons(-1);
+				break;
 			
 			case SPACEKEY:
 				if(G.qual == LR_CTRLKEY) {
