@@ -1,14 +1,11 @@
 /*
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): Stephen Swaney, Campbell Barton, Ken Hughes
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "CurNurb.h" /*This must come first */
@@ -36,6 +33,8 @@
 #include "MEM_guardedalloc.h"
 #include "gen_utils.h"
 #include "BezTriple.h"
+
+#include "BKE_utildefines.h"
 
 /* Only for ME_SMOOTH */
 #include "DNA_meshdata_types.h"
@@ -433,14 +432,14 @@ static PyObject *CurNurb_getPoints( BPy_CurNurb * self )
 static PyObject *CurNurb_getFlagBits( BPy_CurNurb * self, void *type )
 {
 	return EXPP_getBitfield( (void *)&self->nurb->flag,
-							  (int)type, 'h' );
+							  GET_INT_FROM_POINTER(type), 'h' );
 }
 
 static int CurNurb_setFlagBits( BPy_CurNurb * self, PyObject *value,
 									void *type )
 {
 	return EXPP_setBitfield( value, (void *)&self->nurb->flag,
-							 (int)type, 'h' );
+							 GET_INT_FROM_POINTER(type), 'h' );
 }
 
 /*

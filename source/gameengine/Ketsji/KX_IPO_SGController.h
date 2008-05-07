@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef __IPO_SGCONTROLLER_H
 #define __IPO_SGCONTROLLER_H
@@ -38,26 +35,39 @@
 #include "KX_IPOTransform.h"
 #include "KX_IInterpolator.h"
 
+#define KX_MAX_IPO_CHANNELS 19	//note- [0] is not used
+
 class KX_IpoSGController : public SG_Controller
 {
 	KX_IPOTransform     m_ipo_xform;
 	T_InterpolatorList  m_interpolators;
-	/* Why not bools? */
-	short               m_modify_position	 : 1;
-	short               m_modify_orientation : 1;
-	short               m_modify_scaling     : 1;
+
+	/** Flag for each IPO channel that can be applied to a game object */
+	bool				m_ipo_channels_active[KX_MAX_IPO_CHANNELS];
 
 	/** Interpret the ipo as a force rather than a displacement? */
 	bool                m_ipo_as_force;
 
 	/** Ipo-as-force acts in local rather than in global coordinates? */
 	bool                m_force_ipo_acts_local;
-
+	
 	/** Were settings altered since the last update? */
 	bool				m_modified;
 
 	/** Local time of this ipo.*/
 	double		        m_ipotime;
+
+	/** Location of the object when the IPO is first fired (for local transformations) */
+	class MT_Point3		m_ipo_start_point;
+
+	/** Orientation of the object when the IPO is first fired (for local transformations) */
+	class MT_Matrix3x3	m_ipo_start_orient;
+
+	/** Scale of the object when the IPO is first fired (for local transformations) */
+	class MT_Vector3	m_ipo_start_scale;
+
+	/** if IPO initial position has been set for local normal IPO */
+	bool				m_ipo_start_initialized;
 
 	/** A reference to the original game object. */
 	class KX_GameObject* m_game_object;
@@ -80,15 +90,11 @@ public:
 	/** Set reference to the corresponding game object. */
 	void SetGameObject(class KX_GameObject*);
 
-	void	SetModifyPosition(bool modifypos) {	
-		m_modify_position=modifypos;
+	void SetIPOChannelActive(int index, bool value) {
+		//indexes found in makesdna\DNA_ipo_types.h
+		m_ipo_channels_active[index] = value;
 	}
-	void	SetModifyOrientation(bool modifyorient) {	
-		m_modify_orientation=modifyorient;
-	}
-	void	SetModifyScaling(bool modifyscale) {	
-		m_modify_scaling=modifyscale;
-	}
+	
 	
 	KX_IPOTransform& GetIPOTransform()
 	{
@@ -104,4 +110,5 @@ public:
 };
 
 #endif //__IPO_SGCONTROLLER_H
+
 

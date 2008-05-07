@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Willian Padovani Germano.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -58,7 +55,6 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "BPI_script.h"
 #include "BPY_extern.h"
 
 #include "BIF_gl.h"
@@ -95,14 +91,30 @@ void drawscriptspace(ScrArea *sa, void *spacedata)
 
 	script = sc->script;
 
-	if (script->py_draw) {
-		BPY_spacescript_do_pywin_draw(sc);
+	/* Is this script loaded from a file and it needs running??? */
+	if (	(G.f & G_DOSCRIPTLINKS) &&
+				script->scriptname[0] != '\0' &&
+				(script->flags == 0 &&
+				script->py_event == NULL &&
+				script->py_button == NULL &&
+				script->py_draw ==	NULL )
+		) {
+		if (!BPY_run_script(script)) {
+			/* if this fails, script will be free'd */
+			script = NULL;
+		}
 	}
-	/* quick hack for 2.37a for scripts that call the progress bar inside a
-	 * file selector callback, to show previous space after finishing, w/o
-	 * needing an event */
-	else if (!script->flags && !script->py_event && !script->py_button)
-		addqueue(curarea->win, MOUSEX, 0); 
+	
+	if (script) {
+		if (script->py_draw) {
+			BPY_spacescript_do_pywin_draw(sc);
+		} else if (!script->flags && !script->py_event && !script->py_button) {
+			/* quick hack for 2.37a for scripts that call the progress bar inside a
+			 * file selector callback, to show previous space after finishing, w/o
+			 * needing an event */
+			addqueue(curarea->win, MOUSEX, 0);
+		}
+	}
 }
 
 void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt)
@@ -113,6 +125,22 @@ void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *
 	SpaceScript *sc = curarea->spacedata.first;
 	Script *script = sc->script;
 
+	if (script) {
+		/* Is this script loaded from a file and it needs running??? */
+		if (	(G.f & G_DOSCRIPTLINKS) &&
+				 script->scriptname[0] != '\0' &&
+					(script->flags == 0 &&
+				 script->py_event == NULL &&
+				 script->py_button == NULL &&
+				 script->py_draw ==	NULL )
+		   ) {
+			if (!BPY_run_script(script)) {
+				/* if this fails, script will be free'd */
+				script = NULL;
+			}
+		}
+	}
+	
 	if (script) {
 		if (script->py_event || script->py_button)
 			BPY_spacescript_do_pywin_event(sc, event, val, ascii);

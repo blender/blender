@@ -58,15 +58,16 @@ class KX_GameObject:
 		@rtype: 3x3 rotation matrix
 		@return: The game object's rotation matrix
 		"""
-	def getLinearVelocity():
+	def getLinearVelocity(local):
 		"""
 		Gets the game object's linear velocity.
 		
 		This method returns the game object's velocity through it's centre of mass,
 		ie no angular velocity component.
 		
-		cf getVelocity()
-		
+		@type local: boolean
+		@param local: - False: you get the "global" velocity ie: relative to world orientation.
+		              - True: you get the "local" velocity ie: relative to object orientation.
 		@rtype: list [vx, vy, vz]
 		@return: the object's linear velocity.
 		"""
@@ -135,6 +136,17 @@ class KX_GameObject:
 		@rtype: L{KX_GameObject}
 		@return: this object's parent object, or None if this object has no parent.
 		"""
+	def setParent(parent):
+		"""
+		Sets this object's parent.
+		
+		@type parent: L{KX_GameObject}
+		@param parent: new parent object.
+		"""
+	def removeParent():
+		"""
+		Removes this objects parent.
+		"""
 	def getMesh(mesh):
 		"""
 		Gets the mesh object for this object.
@@ -156,3 +168,20 @@ class KX_GameObject:
 		@type other: L{KX_GameObject} or list [x, y, z]
 		@rtype: float
 		"""
+	def rayCastTo(other,dist,prop):
+		"""
+		Look towards another point/object and find first object hit within dist that matches prop.
+
+		The ray is always casted from the center of the object, ignoring the object itself.
+		The ray is casted towards the center of another object or an explicit [x,y,z] point.
+
+		@param other: [x,y,z] or object towards which the ray is casted
+		@type other: L{KX_GameObject} or string
+		@param dist: max distance to look (can be negative => look behind); 0 or omitted => detect up to other
+		@type dist: float
+		@param prop: property name that object must have; can be omitted => detect any object
+		@type prop: string
+		@rtype: L{KX_GameObject}
+		@return: the first object hit or None if no object or object does not match prop
+		"""
+	

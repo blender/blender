@@ -1,15 +1,12 @@
 /**
  * $Id: idprop.c
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): Joseph Eagar
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #include "DNA_listBase.h"
@@ -212,7 +209,8 @@ void IDP_UnlinkID(IDProperty *prop)
 IDProperty *IDP_CopyGroup(IDProperty *prop)
 {
 	IDProperty *newp = idp_generic_copy(prop), *link;
-
+	newp->len = prop->len;
+	
 	for (link=prop->data.group.first; link; link=link->next) {
 		BLI_addtail(&newp->data.group, IDP_CopyProperty(link));
 	}
@@ -227,10 +225,11 @@ void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 		if (BSTR_EQ(loop->name, prop->name)) {
 			if (loop->next) BLI_insertlinkbefore(&group->data.group, loop->next, prop);
 			else BLI_addtail(&group->data.group, prop);
+			
 			BLI_remlink(&group->data.group, loop);
 			IDP_FreeProperty(loop);
 			MEM_freeN(loop);
-			group->len++;
+			
 			return;
 		}
 	}

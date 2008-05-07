@@ -3,15 +3,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -53,6 +50,8 @@
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_nla_types.h"
@@ -91,7 +90,6 @@
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
-#include "BKE_effect.h"
 #include "BKE_group.h"
 #include "BKE_icons.h"
 #include "BKE_ipo.h"
@@ -103,6 +101,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_property.h"
 #include "BKE_sca.h"
 #include "BKE_scene.h"
@@ -112,6 +111,8 @@
 #include "LBM_fluidsim.h"
 
 #include "BPY_extern.h"
+
+#include "blendef.h"
 
 /* Local function protos */
 static void solve_parenting (Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul);
@@ -157,6 +158,25 @@ void update_base_layer(Object *ob)
 	}
 }
 
+void object_free_particlesystems(Object *ob)
+{
+	while(ob->particlesystem.first){
+		ParticleSystem *psys = ob->particlesystem.first;
+
+		BLI_remlink(&ob->particlesystem,psys);
+
+		psys_free(ob,psys);
+	}
+}
+
+void object_free_softbody(Object *ob)
+{
+	if(ob->soft) {
+		sbFree(ob->soft);
+		ob->soft= NULL;
+	}
+}
+
 void object_free_modifiers(Object *ob)
 {
 	while (ob->modifiers.first) {
@@ -168,13 +188,10 @@ void object_free_modifiers(Object *ob)
 	}
 
 	/* particle modifiers were freed, so free the particlesystems as well */
-	while(ob->particlesystem.first){
-		ParticleSystem *psys = ob->particlesystem.first;
+	object_free_particlesystems(ob);
 
-		BLI_remlink(&ob->particlesystem,psys);
-
-		psys_free(ob,psys);
-	}
+	/* same for softbody */
+	object_free_softbody(ob);
 }
 
 /* here we will collect all local displist stuff */
@@ -231,7 +248,6 @@ void free_object(Object *ob)
 		BLI_freelistN(&ob->defbase);
 	if(ob->pose)
 		free_pose(ob->pose);
-	free_effects(&ob->effect);
 	free_properties(&ob->prop);
 	object_free_modifiers(ob);
 	
@@ -277,6 +293,7 @@ void unlink_object(Object *ob)
 	Camera *camera;
 	bConstraint *con;
 	bActionStrip *strip;
+	ModifierData *md;
 	int a;
 	
 	unlink_controllers(&ob->controllers);
@@ -375,10 +392,13 @@ void unlink_object(Object *ob)
 		
 		/* object is deflector or field */
 		if(ob->pd) {
-			if(give_parteff(obt))
+			if(obt->soft)
 				obt->recalc |= OB_RECALC_DATA;
-			else if(obt->soft)
-				obt->recalc |= OB_RECALC_DATA;
+
+			/* cloth */
+			for(md=obt->modifiers.first; md; md=md->next)
+				if(md->type == eModifierType_Cloth)
+					obt->recalc |= OB_RECALC_DATA;
 		}
 		
 		/* strips */
@@ -514,11 +534,11 @@ void unlink_object(Object *ob)
 
 					if(v3d->camera==ob) {
 						v3d->camera= NULL;
-						if(v3d->persp>1) v3d->persp= 1;
+						if(v3d->persp==V3D_CAMOB) v3d->persp= V3D_PERSP;
 					}
 					if(v3d->localvd && v3d->localvd->camera==ob ) {
 						v3d->localvd->camera= NULL;
-						if(v3d->localvd->persp>1) v3d->localvd->persp= 1;
+						if(v3d->localvd->persp==V3D_CAMOB) v3d->localvd->persp= V3D_PERSP;
 					}
 				}
 				else if(sl->spacetype==SPACE_IPO) {
@@ -882,8 +902,10 @@ Object *add_only_object(int type, char *name)
 	ob->type= type;
 	/* ob->transflag= OB_QUAT; */
 
+#if 0 /* not used yet */
 	QuatOne(ob->quat);
 	QuatOne(ob->dquat);
+#endif 
 
 	ob->col[0]= ob->col[1]= ob->col[2]= 0.0;
 	ob->col[3]= 1.0;
@@ -974,11 +996,13 @@ void base_init_from_view3d(Base *base, View3D *v3d)
 
 	if (U.flag & USER_ADD_VIEWALIGNED) {
 		v3d->viewquat[0]= -v3d->viewquat[0];
-		if (ob->transflag & OB_QUAT) {
+
+		/* Quats arnt used yet */
+		/*if (ob->transflag & OB_QUAT) {
 			QUATCOPY(ob->quat, v3d->viewquat);
-		} else {
+		} else {*/
 			QuatToEul(v3d->viewquat, ob->rot);
-		}
+		/*}*/
 		v3d->viewquat[0]= -v3d->viewquat[0];
 	}
 }
@@ -993,12 +1017,14 @@ SoftBody *copy_softbody(SoftBody *sb)
 	sbn->totspring= sbn->totpoint= 0;
 	sbn->bpoint= NULL;
 	sbn->bspring= NULL;
-	sbn->ctime= 0.0f;
 	
 	sbn->keys= NULL;
 	sbn->totkey= sbn->totpointkey= 0;
 	
 	sbn->scratch= NULL;
+
+	sbn->pointcache= BKE_ptcache_copy(sb->pointcache);
+
 	return sbn;
 }
 
@@ -1019,17 +1045,50 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 			pa->keys= MEM_dupallocN(pa->keys);
 	}
 
-	if(psys->soft)
+	if(psys->soft) {
 		psysn->soft= copy_softbody(psys->soft);
+		psysn->soft->particles = psysn;
+	}
 	
 	psysn->pathcache= NULL;
 	psysn->childcache= NULL;
 	psysn->edit= NULL;
 	psysn->effectors.first= psysn->effectors.last= 0;
 
+	psysn->pointcache= BKE_ptcache_copy(psys->pointcache);
+
 	id_us_plus((ID *)psysn->part);
 
 	return psysn;
+}
+
+void copy_object_particlesystems(Object *obn, Object *ob)
+{
+	ParticleSystemModifierData *psmd;
+	ParticleSystem *psys, *npsys;
+	ModifierData *md;
+
+	obn->particlesystem.first= obn->particlesystem.last= NULL;
+	for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+		npsys= copy_particlesystem(psys);
+
+		BLI_addtail(&obn->particlesystem, npsys);
+
+		/* need to update particle modifiers too */
+		for(md=obn->modifiers.first; md; md=md->next) {
+			if(md->type==eModifierType_ParticleSystem) {
+				psmd= (ParticleSystemModifierData*)md;
+				if(psmd->psys==psys)
+					psmd->psys= npsys;
+			}
+		}
+	}
+}
+
+void copy_object_softbody(Object *obn, Object *ob)
+{
+	if(ob->soft)
+		obn->soft= copy_softbody(ob->soft);
 }
 
 static void copy_object_pose(Object *obn, Object *ob)
@@ -1075,7 +1134,6 @@ Object *copy_object(Object *ob)
 {
 	Object *obn;
 	ModifierData *md;
-	ParticleSystem *psys;
 	int a;
 
 	obn= copy_libblock(ob);
@@ -1088,7 +1146,6 @@ Object *copy_object(Object *ob)
 	obn->path= NULL;
 	obn->flag &= ~OB_FROMGROUP;
 	
-	copy_effects(&obn->effect, &ob->effect);
 	obn->modifiers.first = obn->modifiers.last= NULL;
 	
 	for (md=ob->modifiers.first; md; md=md->next) {
@@ -1142,22 +1199,7 @@ Object *copy_object(Object *ob)
 		}
 	}
 
-	obn->particlesystem.first= obn->particlesystem.last= NULL;
-	for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-		ParticleSystemModifierData *psmd;
-		ParticleSystem *npsys= copy_particlesystem(psys);
-
-		BLI_addtail(&obn->particlesystem, npsys);
-
-		/* need to update particle modifiers too */
-		for(md=obn->modifiers.first; md; md=md->next) {
-			if(md->type==eModifierType_ParticleSystem) {
-				psmd= (ParticleSystemModifierData*)md;
-				if(psmd->psys==psys)
-					psmd->psys= npsys;
-			}
-		}
-	}
+	copy_object_particlesystems(obn, ob);
 	
 	obn->derivedDeform = NULL;
 	obn->derivedFinal = NULL;
@@ -1173,11 +1215,13 @@ Object *copy_object(Object *ob)
 void expand_local_object(Object *ob)
 {
 	bActionStrip *strip;
+	ParticleSystem *psys;
 	int a;
 	
 	id_lib_extern((ID *)ob->action);
 	id_lib_extern((ID *)ob->ipo);
 	id_lib_extern((ID *)ob->data);
+	id_lib_extern((ID *)ob->dup_group);
 	
 	for(a=0; a<ob->totcol; a++) {
 		id_lib_extern((ID *)ob->mat[a]);
@@ -1185,7 +1229,8 @@ void expand_local_object(Object *ob)
 	for (strip=ob->nlastrips.first; strip; strip=strip->next) {
 		id_lib_extern((ID *)strip->act);
 	}
-
+	for(psys=ob->particlesystem.first; psys; psys=psys->next)
+		id_lib_extern((ID *)psys->part);
 }
 
 void make_local_object(Object *ob)
@@ -1309,10 +1354,28 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	
 	/* skip constraints, constraintchannels, nla? */
 	
-	
+	/* set object type and link to data */
 	ob->type= target->type;
 	ob->data= target->data;
 	id_us_plus((ID *)ob->data);		/* ensures lib data becomes LIB_EXTERN */
+	
+	/* copy material and index information */
+	ob->actcol= ob->totcol= 0;
+	if(ob->mat) MEM_freeN(ob->mat);
+	ob->mat = NULL;
+	if ((target->totcol) && (target->mat) && OB_SUPPORT_MATERIAL(ob)) {
+		int i;
+		ob->colbits = target->colbits;
+		
+		ob->actcol= target->actcol;
+		ob->totcol= target->totcol;
+		
+		ob->mat = MEM_dupallocN(target->mat);
+		for(i=0; i<target->totcol; i++) {
+			/* dont need to run test_object_materials since we know this object is new and not used elsewhere */
+			id_us_plus((ID *)ob->mat[i]); 
+		}
+	}
 	
 	/* type conversions */
 	if(target->type == OB_ARMATURE) {
@@ -1360,7 +1423,7 @@ float bsystem_time(Object *ob, float cfra, float ofs)
 	cfra*= G.scene->r.framelen;	
 	
 	if (ob) {
-		if (no_speed_curve==0 && ob->ipo) 
+		if (no_speed_curve==0 && ob->ipo)
 			cfra= calc_ipo_time(ob->ipo, cfra);
 		
 		/* ofset frames */
@@ -1377,7 +1440,7 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 {
 	float smat[3][3], vec[3];
 	float rmat[3][3];
-	float q1[4];
+	/*float q1[4];*/
 	
 	/* size */
 	if(ob->ipo) {
@@ -1391,7 +1454,8 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 	}
 
 	/* rot */
-	if(ob->transflag & OB_QUAT) {
+	/* Quats arnt used yet */
+	/*if(ob->transflag & OB_QUAT) {
 		if(ob->ipo) {
 			QuatMul(q1, ob->quat, ob->dquat);
 			QuatToMat3(q1, rmat);
@@ -1400,7 +1464,7 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 			QuatToMat3(ob->quat, rmat);
 		}
 	}
-	else {
+	else {*/
 		if(ob->ipo) {
 			vec[0]= ob->rot[0]+ob->drot[0];
 			vec[1]= ob->rot[1]+ob->drot[1];
@@ -1410,7 +1474,7 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 		else {
 			EulToMat3(ob->rot, rmat);
 		}
-	}
+	/*}*/
 	Mat3MulMat3(mat, rmat, smat);
 }
 
@@ -1435,7 +1499,7 @@ int enable_cu_speed= 1;
 static void ob_parcurve(Object *ob, Object *par, float mat[][4])
 {
 	Curve *cu;
-	float q[4], vec[4], dir[3], *quat, x1, ctime;
+	float q[4], vec[4], dir[3], quat[4], x1, ctime;
 	float timeoffs = 0.0, sf_orig = 0.0;
 	
 	Mat4One(mat);
@@ -1484,7 +1548,7 @@ static void ob_parcurve(Object *ob, Object *par, float mat[][4])
  	if( where_on_path(par, ctime, vec, dir) ) {
 
 		if(cu->flag & CU_FOLLOW) {
-			quat= vectoquat(dir, ob->trackflag, ob->upflag);
+			vectoquat(dir, ob->trackflag, ob->upflag, quat);
 			
 			/* the tilt */
 			Normalize(dir);
@@ -1567,9 +1631,12 @@ static void give_parvert(Object *par, int nr, float *vec)
 					}
 				}
 
-				if(count > 0) {
+				if (count==0) {
+					/* keep as 0,0,0 */
+				} else if(count > 0) {
 					VecMulf(vec, 1.0f / count);
 				} else {
+					/* use first index if its out of range */
 					dm->getVertCo(dm, 0, vec);
 				}
 			}
@@ -1884,13 +1951,13 @@ static void solve_parenting (Object *ob, Object *par, float obmat[][4], float sl
 }
 void solve_tracking (Object *ob, float targetmat[][4])
 {
-	float *quat;
+	float quat[4];
 	float vec[3];
 	float totmat[3][3];
 	float tmat[4][4];
 	
 	VecSubf(vec, ob->obmat[3], targetmat[3]);
-	quat= vectoquat(vec, ob->trackflag, ob->upflag);
+	vectoquat(vec, ob->trackflag, ob->upflag, quat);
 	QuatToMat3(quat, totmat);
 	
 	if(ob->parent && (ob->transflag & OB_POWERTRACK)) {
@@ -2146,7 +2213,7 @@ void object_handle_update(Object *ob)
 	if(ob->recalc & OB_RECALC) {
 		
 		if(ob->recalc & OB_RECALC_OB) {
-			
+
 			// printf("recalcob %s\n", ob->id.name+2);
 			
 			/* handle proxy copy for target */
@@ -2162,6 +2229,7 @@ void object_handle_update(Object *ob)
 			}
 			else
 				where_is_object(ob);
+			if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript((ID *)ob, SCRIPT_OBJECTUPDATE);
 		}
 		
 		if(ob->recalc & OB_RECALC_DATA) {
@@ -2180,6 +2248,16 @@ void object_handle_update(Object *ob)
 			}
 			else if(ob->type==OB_LATTICE) {
 				lattice_calc_modifiers(ob);
+			}
+			else if(ob->type==OB_CAMERA) {
+				Camera *cam = (Camera *)ob->data;
+				calc_ipo(cam->ipo, frame_to_float(G.scene->r.cfra));
+				execute_ipo(&cam->id, cam->ipo);
+			}
+			else if(ob->type==OB_LAMP) {
+				Lamp *la = (Lamp *)ob->data;
+				calc_ipo(la->ipo, frame_to_float(G.scene->r.cfra));
+				execute_ipo(&la->id, la->ipo);
 			}
 			else if(ob->type==OB_ARMATURE) {
 				/* this happens for reading old files and to match library armatures with poses */
@@ -2227,6 +2305,7 @@ void object_handle_update(Object *ob)
 						psys_get_modifier(ob, psys)->flag &= ~eParticleSystemFlag_psys_updated;
 				}
 			}
+			if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript((ID *)ob, SCRIPT_OBDATAUPDATE);
 		}
 
 		/* the no-group proxy case, we call update */
@@ -2253,4 +2332,43 @@ float give_timeoffset(Object *ob) {
 	} else {
 		return ob->sf;
 	}
+}
+
+int give_obdata_texspace(Object *ob, int **texflag, float **loc, float **size, float **rot) {
+	
+	if (ob->data==NULL)
+		return 0;
+	
+	switch (GS(((ID *)ob->data)->name)) {
+	case ID_ME:
+	{
+		Mesh *me= ob->data;
+		if (texflag)	*texflag = &me->texflag;
+		if (loc)		*loc = me->loc;
+		if (size)		*size = me->size;
+		if (rot)		*rot = me->rot;
+		break;
+	}
+	case ID_CU:
+	{
+		Curve *cu= ob->data;
+		if (texflag)	*texflag = &cu->texflag;
+		if (loc)		*loc = cu->loc;
+		if (size)		*size = cu->size;
+		if (rot)		*rot = cu->rot;
+		break;
+	}
+	case ID_MB:
+	{
+		MetaBall *mb= ob->data;
+		if (texflag)	*texflag = &mb->texflag;
+		if (loc)		*loc = mb->loc;
+		if (size)		*size = mb->size;
+		if (rot)		*rot = mb->rot;
+		break;
+	}
+	default:
+		return 0;
+	}
+	return 1;
 }

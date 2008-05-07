@@ -3,15 +3,12 @@
  *
  *	$Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 #ifndef DNA_USERDEF_TYPES_H
@@ -200,6 +197,9 @@ typedef struct UserDef {
 	short recent_files;		/* maximum number of recently used files to remember  */
 	short smooth_viewtx;	/* miliseconds to spend spinning the view */
 	short glreslimit;
+	short ndof_pan, ndof_rotate;
+	short pads[2];
+//	char pad[8];
 	char versemaster[160];
 	char verseuser[160];
 	float glalphaclip;
@@ -236,6 +236,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_ADD_EDITMODE		(1 << 18)
 #define USER_ADD_VIEWALIGNED	(1 << 19)
 #define USER_RELPATHS			(1 << 20)
+#define USER_DRAGIMMEDIATE			(1 << 21)
 
 /* viewzom */
 #define USER_ZOOM_CONT			0
@@ -265,7 +266,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 // old flag for #define USER_KEYINSERTNEED		(1 << 19)
 #define USER_ZOOM_TO_MOUSEPOS	(1 << 20)
 #define USER_SHOW_FPS			(1 << 21)
-#define USER_UNDOSAVE  	(1 << 22) // flag to signal a write_undo() call after a save (save on exit needed then)  
+#define USER_MMB_PASTE			(1 << 22)
 
 /* Auto-Keying mode */
 	/* AUTOKEY_ON is a bitflag */

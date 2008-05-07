@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Sensor for keyboard input
  */
 #include "SCA_KeyboardSensor.h"
@@ -137,17 +134,22 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 	{
 		bool justactivated = false;
 		bool justreleased = false;
+		bool active = false;
 
 		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i< SCA_IInputDevice::KX_ENDKEY;i++)
 		{
 			const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) i);
-			if (inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED)
-			{
+			switch (inevent.m_status) 
+			{ 
+			case SCA_InputEvent::KX_JUSTACTIVATED:
 				justactivated = true;
-			}
-			if (inevent.m_status == SCA_InputEvent::KX_JUSTRELEASED)
-			{
+				break;
+			case SCA_InputEvent::KX_JUSTRELEASED:
 				justreleased = true;
+				break;
+			case SCA_InputEvent::KX_ACTIVE:
+				active = true;
+				break;
 			}
 		}
 
@@ -159,8 +161,27 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 		{
 			if (justreleased)
 			{
-				m_val=0;
+				m_val=(active)?1:0;
 				result = true;
+			} else
+			{
+				if (active)
+				{
+					if (m_val == 0)
+					{
+						//see comment below
+						//m_val = 1;
+						//result = true;
+						;
+					}
+				} else
+				{
+					if (m_val == 1)
+					{
+						m_val = 0;
+						result = true;
+					}
+				}
 			}
 		}
 
@@ -176,6 +197,13 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 
 		if (inevent.m_status == SCA_InputEvent::KX_NO_INPUTSTATUS)
 		{
+			if (m_val == 1)
+			{
+				// this situation may occur after a scene suspend: the keyboard release 
+				// event was not captured, produce now the event off
+				m_val = 0;
+				result = true;
+			}
 		} else
 		{
 			if (inevent.m_status == SCA_InputEvent::KX_JUSTACTIVATED)
@@ -188,6 +216,23 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 				{
 					m_val = 0;
 					result = true;
+				} else 
+				{
+					if (inevent.m_status == SCA_InputEvent::KX_ACTIVE)
+					{
+						if (m_val == 0)
+						{
+							//hmm, this abnormal situation may occur in the following cases:
+							//- the key was pressed while the scene was suspended
+							//- this is a new scene and the key is active from the start
+							//In the second case, it's dangerous to activate the sensor
+							//(think of a key to go to next scene)
+							//What we really need is a edge/level flag in the key sensor
+							//m_val = 1;
+							//result = true;
+							;
+						}
+					}
 				}
 			}
 		}
@@ -212,6 +257,7 @@ void SCA_KeyboardSensor::AddToTargetProp(int keyIndex)
 					newprop.SetLength(oldlength - 1);
 					CStringValue * newstringprop = new CStringValue(newprop, m_targetprop);
 					GetParent()->SetProperty(m_targetprop, newstringprop);
+					newstringprop->Release();
 				}				
 			} else {
 				/* append */
@@ -219,6 +265,7 @@ void SCA_KeyboardSensor::AddToTargetProp(int keyIndex)
 				STR_String newprop = tprop->GetText() + pchar;
 				CStringValue * newstringprop = new CStringValue(newprop, m_targetprop);			
 				GetParent()->SetProperty(m_targetprop, newstringprop);
+				newstringprop->Release();
 			}
 		} else {
 			if (!IsDelete(keyIndex)) {
@@ -227,6 +274,7 @@ void SCA_KeyboardSensor::AddToTargetProp(int keyIndex)
 				STR_String newprop = pchar;
 				CStringValue * newstringprop = new CStringValue(newprop, m_targetprop);			
 				GetParent()->SetProperty(m_targetprop, newstringprop);
+				newstringprop->Release();
 			}
 		}
 	}

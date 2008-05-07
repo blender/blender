@@ -6,15 +6,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,7 +29,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -210,13 +207,9 @@ void spaceipo_assign_ipo(SpaceIpo *si, Ipo *ipo)
 			{
 				Sequence *seq= (Sequence *)si->from;	/* note, sequence is mimicing Id */
 				
-				if((seq->type & SEQ_EFFECT)
-				   || (seq->type == SEQ_RAM_SOUND)
-				   || (seq->type == SEQ_HD_SOUND)) {
-					if(seq->ipo)
-						seq->ipo->id.us--;
-					seq->ipo= ipo;
-				}
+				if(seq->ipo)
+					seq->ipo->id.us--;
+				seq->ipo= ipo;
 			}
 				break;
 			case ID_CU:
@@ -571,10 +564,10 @@ static uiBlock *ipo_editmenu_extendmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "ipo_editmenu_extendmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_ipo_editmenu_extendmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Constant", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extrapolation", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cyclic", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cyclic Extrapolation", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Constant|E, 1", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extrapolation|E, 2", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cyclic|E, 3", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cyclic Extrapolation|E, 4", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -749,6 +742,15 @@ static void do_ipo_viewmenu(void *arg, int event)
 	case 11:
 		do_ipo_buttons(B_IPOVIEWCENTER);
 		break;
+	case 12:	
+		G.sipo->flag ^= SIPO_LOCK_VIEW;
+		break;
+	case 13: /* Set Preview Range */
+		anim_previewrange_set();
+		break;
+	case 14: /* Clear Preview Range */
+		anim_previewrange_clear();
+		break;
 	}
 }
 
@@ -769,7 +771,7 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Show Keys|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	else
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Show Keys|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-
+	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom Out|NumPad -", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
@@ -779,15 +781,27 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Animation|Alt A", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Animation in 3D View|Alt Shift A", 0, yco-=20,
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	//uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Animation in 3D View|Alt Shift A", 0, yco-=20,
+	//				 menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Preview Range|Ctrl P", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Preview Range|Alt P", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
+	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center on Current Frame|Shift C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
 					 "Lock Time to Other Windows|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	
+	if (G.sipo->flag & SIPO_LOCK_VIEW)
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Lock View Area", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 12, "");
+	else
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Lock View Area", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 12, "");
 
 	if (ei != NULL && (ei->flag & IPO_EDIT)) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Current Frame to Selected|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");

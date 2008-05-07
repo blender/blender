@@ -1,15 +1,12 @@
 /*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  *
  * @mainpage BLI - Blender LIbrary external interface
  *
@@ -70,7 +67,6 @@
 #include "DNA_listBase.h" 
 
 #include <stdlib.h>
-
 extern ListBase fillfacebase;
 extern ListBase fillvertbase;
 /**
@@ -78,6 +74,8 @@ extern ListBase fillvertbase;
  */
 extern ListBase filledgebase;
 extern int totblock;
+
+extern char btempdir[]; /* creator.c temp dir used instead of U.tempdir, set with BLI_where_is_temp( btempdir, 1 ); */
 
 struct chardesc;
 struct direntry;
@@ -97,7 +95,8 @@ char *BLI_gethome(void);
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file);
 void BLI_make_exist(char *dir);
 void BLI_make_existing_file(char *name);
-void BLI_split_dirfile(const char *string, char *dir, char *file);
+void BLI_split_dirfile(char *string, char *dir, char *file);
+void BLI_split_dirfile_basic(const char *string, char *dir, char *file);
 void BLI_join_dirfile(char *string, const char *dir, const char *file);
 int BLI_testextensie(const char *str, const char *ext);
 void addlisttolist(ListBase *list1, ListBase *list2);
@@ -151,7 +150,8 @@ void BLI_cleanup_dir(const char *relabase, char *dir); /* same as above but adds
 	 * @a framenum The framenumber to replace the frame code with.
 	 * @retval Returns true if the path was relative (started with "//").
 	 */
-int BLI_convertstringcode(char *path, const char *basepath, int framenum);
+int BLI_convertstringcode(char *path, const char *basepath);
+int BLI_convertstringframe(char *path, int frame);
 
 void BLI_makestringcode(const char *relfile, char *file);
 
@@ -257,6 +257,18 @@ void BLI_free_file_lines(struct LinkNode *lines);
 	 */
 void BLI_where_am_i(char *fullname, const char *name);
 
+char *get_install_dir(void);
+	/**
+	 * Gets the temp directory when blender first runs.
+	 * If the default path is not found, use try $TEMP
+	 * 
+	 * Also make sure the temp dir has a trailing slash
+	 *
+	 * @param fullname The full path to the temp directory
+	 */
+void BLI_where_is_temp(char *fullname, int usertemp);
+
+
 	/**
 	 * determines the full path to the application bundle on OS X
 	 *
@@ -286,7 +298,6 @@ int    BLI_exist(char *name);
 /* BLI_fileops.h */
 void  BLI_recurdir_fileops(char *dirname);
 int BLI_link(char *file, char *to);
-int BLI_backup(char *file, char *from, char *to);
 int BLI_is_writable(char *filename);
 
 /**
@@ -300,6 +311,8 @@ int   BLI_delete(char *file, int dir, int recursive);
 int   BLI_move(char *file, char *to);
 int   BLI_touch(const char *file);
 char *BLI_last_slash(const char *string);
+void  BLI_add_slash(char *string);
+void  BLI_del_slash(char *string);
 
 /* BLI_rct.c */
 /**

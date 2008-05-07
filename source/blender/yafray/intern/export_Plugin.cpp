@@ -1,6 +1,9 @@
 #include "export_Plugin.h"
 
 #include <math.h>
+
+#include <cstring>
+
 using namespace std;
 
 
@@ -98,6 +101,9 @@ static string YafrayPath()
 	static char *alternative[]=
 	{
 		"/usr/local/lib/",
+#ifdef __x86_64__
+		"/usr/lib64/",
+#endif
 		"/usr/lib/",
 		NULL
 	};
@@ -121,6 +127,9 @@ static string YafrayPluginPath()
 	static char *alternative[]=
 	{
 		"/usr/local/lib/yafray",
+#ifdef __x86_64__
+		"/usr/lib64/yafray",
+#endif
 		"/usr/lib/yafray",
 		NULL
 	};
@@ -183,7 +192,7 @@ bool yafrayPluginRender_t::initExport()
 			cerr << "Error loading yafray plugin: " << PIL_dynlib_get_error_as_string(handle) << endl;
 			return false;
 		}
-		yafrayGate = constructor(re->r.YF_numprocs, YafrayPluginPath());
+		yafrayGate = constructor(re->r.threads, YafrayPluginPath());
 		
 		cout << "YafRay plugin loaded" << endl;
 		plugin_loaded = true;
@@ -243,7 +252,7 @@ bool yafrayPluginRender_t::writeRender()
 	params["bias"] = yafray::parameter_t(re->r.YF_raybias);
 	params["clamp_rgb"] = yafray::parameter_t((re->r.YF_clamprgb==0) ? "on" : "off");
 	// lynx request
-	params["threads"] = yafray::parameter_t((int)re->r.YF_numprocs);
+	params["threads"] = yafray::parameter_t((int)re->r.threads);
 	blenderYafrayOutput_t output(re);
 	yafrayGate->render(params, output);
 	cout << "render finished" << endl;
@@ -269,7 +278,7 @@ static void adjustPath(string &path)
 	// if relative, expand to full path
 	char cpath[MAXPATHLEN];
 	strcpy(cpath, path.c_str());
-	BLI_convertstringcode(cpath, G.sce, 0);
+	BLI_convertstringcode(cpath, G.sce);
 	path = cpath;
 #ifdef WIN32
 	// add drive char if not there

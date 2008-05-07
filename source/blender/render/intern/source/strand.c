@@ -214,6 +214,8 @@ void interpolate_shade_result(ShadeResult *shr1, ShadeResult *shr2, float t, Sha
 	}
 	/* optim... */
 	if(addpassflag & ~(SCE_PASS_VECTOR)) {
+		if(addpassflag & SCE_PASS_Z)
+			interpolate_vec1(&shr1->z, &shr2->z, t, negt, &shr->z);
 		if(addpassflag & SCE_PASS_RGBA)
 			interpolate_vec4(shr1->col, shr2->col, t, negt, shr->col);
 		if(addpassflag & SCE_PASS_NORMAL) {
@@ -273,7 +275,7 @@ void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *sseg, Str
 	shi->obr= sseg->obi->obr;
 
 	/* cache for shadow */
-	shi->samplenr= ssamp->samplenr++;
+	shi->samplenr= re->shadowsamplenr[shi->thread]++;
 
 	shade_input_set_strand(shi, sseg->strand, spoint);
 	shade_input_set_strand_texco(shi, sseg->strand, sseg->v[1], spoint);
@@ -411,7 +413,9 @@ typedef struct StrandPart {
 	ZSpan *zspan;
 
 	APixstrand *apixbuf;
+	int *totapixbuf;
 	int *rectz;
+	int *rectmask;
 	long *rectdaps;
 	int rectx, recty;
 	int sample;
@@ -433,7 +437,7 @@ static int compare_strand_segment(const void *poin1, const void *poin2)
 	const StrandSortSegment *seg1= (const StrandSortSegment*)poin1;
 	const StrandSortSegment *seg2= (const StrandSortSegment*)poin2;
 
-	if(seg1->z > seg2->z)
+	if(seg1->z < seg2->z)
 		return -1;
 	else if(seg1->z == seg2->z)
 		return 0;
@@ -483,6 +487,8 @@ static APixstrand *addpsAstrand(ZSpan *zspan)
 	return zspan->curpstrand;
 }
 
+#define MAX_ZROW	2000
+
 static void do_strand_fillac(void *handle, int x, int y, float u, float v, float z)
 {
 	StrandPart *spart= (StrandPart*)handle;
@@ -490,7 +496,7 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 	StrandSegment *sseg= spart->segment;
 	APixstrand *apn, *apnew;
 	float t, s;
-	int offset, mask, obi, strnr, seg, zverg, bufferz;
+	int offset, mask, obi, strnr, seg, zverg, bufferz, maskz=0;
 
 	offset = y*spart->rectx + x;
 	obi= sseg->obi - spart->re->objectinstance;
@@ -507,18 +513,24 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 		long *rd= spart->rectdaps + offset;
 		
 		bufferz= 0x7FFFFFFF;
+		if(spart->rectmask) maskz= 0x7FFFFFFF;
 		
 		if(*rd) {	
 			for(ps= (PixStr *)(*rd); ps; ps= ps->next) {
 				if(mask & ps->mask) {
 					bufferz= ps->z;
+					if(spart->rectmask)
+						maskz= ps->maskz;
 					break;
 				}
 			}
 		}
 	}
-	else
+	else {
 		bufferz= spart->rectz[offset];
+		if(spart->rectmask)
+			maskz= spart->rectmask[offset];
+	}
 
 #define CHECK_ADD(n) \
 	if(apn->p[n]==strnr && apn->obi[n]==obi && apn->seg[n]==seg) \
@@ -528,29 +540,32 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 	{apn->obi[n]= obi; apn->p[n]= strnr; apn->z[n]= zverg; apn->mask[n]= mask; apn->v[n]= t; apn->u[n]= s; apn->seg[n]= seg; break; }
 
 	/* add to pixel list */
-	if(zverg < bufferz) {
-		t = u*spart->t[0] + v*spart->t[1] + (1.0f-u-v)*spart->t[2];
-		s = fabs(u*spart->s[0] + v*spart->s[1] + (1.0f-u-v)*spart->s[2]);
+	if(zverg < bufferz && (spart->totapixbuf[offset] < MAX_ZROW)) {
+		if(!spart->rectmask || zverg > maskz) {
+			t = u*spart->t[0] + v*spart->t[1] + (1.0f-u-v)*spart->t[2];
+			s = fabs(u*spart->s[0] + v*spart->s[1] + (1.0f-u-v)*spart->s[2]);
 
-		apn= spart->apixbuf + offset;
-		while(apn) {
-			CHECK_ADD(0);
-			CHECK_ADD(1);
-			CHECK_ADD(2);
-			CHECK_ADD(3);
-			CHECK_ASSIGN(0);
-			CHECK_ASSIGN(1);
-			CHECK_ASSIGN(2);
-			CHECK_ASSIGN(3);
+			apn= spart->apixbuf + offset;
+			while(apn) {
+				CHECK_ADD(0);
+				CHECK_ADD(1);
+				CHECK_ADD(2);
+				CHECK_ADD(3);
+				CHECK_ASSIGN(0);
+				CHECK_ASSIGN(1);
+				CHECK_ASSIGN(2);
+				CHECK_ASSIGN(3);
 
-			apnew= addpsAstrand(spart->zspan);
-			SWAP(APixstrand, *apnew, *apn);
-			apn->next= apnew;
-			CHECK_ASSIGN(0);
+				apnew= addpsAstrand(spart->zspan);
+				SWAP(APixstrand, *apnew, *apn);
+				apn->next= apnew;
+				CHECK_ASSIGN(0);
+			}
+
+			strand_shade_refcount(cache, sseg->v[1]);
+			strand_shade_refcount(cache, sseg->v[2]);
+			spart->totapixbuf[offset]++;
 		}
-
-		strand_shade_refcount(cache, sseg->v[1]);
-		strand_shade_refcount(cache, sseg->v[2]);
 	}
 }
 
@@ -635,7 +650,7 @@ static void strand_render(Render *re, StrandSegment *sseg, float winmat[][4], St
 			do_scanconvert_strand(re, spart, zspan, t, dt, p1->zco2, p1->zco1, p2->zco1, p2->zco2, 0);
 	}
 	else {
-		float hoco1[4], hoco2[3];
+		float hoco1[4], hoco2[4];
 		int a, obi, index;
   
 		obi= sseg->obi - re->objectinstance;
@@ -773,6 +788,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 	spart.zspan= &zspan;
 	spart.rectdaps= pa->rectdaps;
 	spart.rectz= pa->rectz;
+	spart.rectmask= pa->rectmask;
 	spart.cache= cache;
 
 	zbuf_alloc_span(&zspan, pa->rectx, pa->recty, re->clipcrop);
@@ -875,6 +891,8 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 
 	BLI_memarena_free(memarena);
 
+	spart.totapixbuf= MEM_callocN(sizeof(int)*pa->rectx*pa->recty, "totapixbuf");
+
 	if(!re->test_break()) {
 		/* render segments in sorted order */
 		sortseg= sortsegments;
@@ -907,6 +925,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, RenderLayer *rl, APixstrand
 
 	if(sortsegments)
 		MEM_freeN(sortsegments);
+	MEM_freeN(spart.totapixbuf);
 	
 	zbuf_free_span(&zspan);
 

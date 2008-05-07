@@ -825,7 +825,7 @@ template<class T> inline ntlColor vec2Col(T v) { return ntlColor(v[0],v[1],v[2])
 #endif
 #endif
 #endif
-
+		
 #if GFX_PRECISION==1
 typedef float gfxReal;
 #define GFX_REAL_MAX __FLT_MAX__

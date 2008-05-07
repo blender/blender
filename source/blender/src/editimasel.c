@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>  
@@ -88,8 +85,6 @@
 #include "BIF_toolbox.h"
 
 #include "BLO_readfile.h"
-
-#include "BPI_script.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_drawimasel.h"
@@ -171,6 +166,7 @@ static void activate_imageselect_(int type, char *title, char *file, short *menu
 
 	name[2]= 0;
 	BLI_strncpy(name, file, sizeof(name));
+	BLI_convertstringcode(name, G.sce);
 	
 	simasel= curarea->spacedata.first;
 
@@ -409,7 +405,7 @@ static void free_imasel_spec(char *dir)
 static void do_library_append(SpaceImaSel *simasel)
 {
 	Library *lib;
-	char dir[FILE_MAXDIR], group[32];
+	char dir[FILE_MAX], group[32];
 	
 	if ( BIF_filelist_islibrary(simasel->files, dir, group)==0 ) {
 		error("Not a library");
@@ -592,7 +588,21 @@ static void do_imasel_buttons(short event, SpaceImaSel *simasel)
 		}
 	}
 	else if(event== B_FS_DIRNAME) {
-		/* reuse the butname variable */
+		
+		/* convienence shortcut '~' -> $HOME
+		 * If the first char is ~ then this is invalid on all OS's so its safe to replace with home */
+		if ( simasel->dir[0] == '~' ) {
+			if (simasel->dir[1] == '\0') {
+				BLI_strncpy(simasel->dir, BLI_gethome(), sizeof(simasel->dir) );
+			} else {
+				/* replace ~ with home */
+				char tmpstr[FILE_MAX];
+				BLI_join_dirfile(tmpstr, BLI_gethome(), simasel->dir+1);
+				BLI_strncpy(simasel->dir, tmpstr, sizeof(simasel->dir));
+			}
+		}
+		
+		/* reuse the butname vsariable */
 		BLI_cleanup_dir(G.sce, simasel->dir);
 
 		BLI_make_file_string(G.sce, butname, simasel->dir, "");
@@ -633,7 +643,6 @@ static void do_imasel_buttons(short event, SpaceImaSel *simasel)
 		/* which string */
 		if (selected) {
 			BLI_strncpy(simasel->dir, selected, sizeof(simasel->dir));
-			BLI_make_exist(simasel->dir);
 			BLI_cleanup_dir(G.sce, simasel->dir);
 			BIF_filelist_free(simasel->files);	
 			BIF_filelist_setdir(simasel->files, simasel->dir);
@@ -943,16 +952,24 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					file = BIF_filelist_file(simasel->files, simasel->active_file);
 					
 					if(file && S_ISDIR(file->type)) {
-						strcat(simasel->dir, file->relname);						
-						strcat(simasel->dir,"/");
-						simasel->file[0] = '\0';
-						BLI_cleanup_dir(G.sce, simasel->dir);
-						BIF_filelist_setdir(simasel->files, simasel->dir);
-						BIF_filelist_free(simasel->files);
-						simasel->active_file = -1;
-						simasel->scrollpos = 0;
-						do_draw = 1;
-						do_headdraw = 1;						
+						/* the path is too long and we are not going up! */
+						if (strcmp(file->relname, ".") &&
+							strcmp(file->relname, "..") &&
+							strlen(simasel->dir) + strlen(file->relname) >= FILE_MAX ) 
+						{
+							error("Path too long, cannot enter this directory");
+						} else {
+							strcat(simasel->dir, file->relname);
+							strcat(simasel->dir,"/");
+							simasel->file[0] = '\0';
+							BLI_cleanup_dir(G.sce, simasel->dir);
+							BIF_filelist_setdir(simasel->files, simasel->dir);
+							BIF_filelist_free(simasel->files);
+							simasel->active_file = -1;
+							simasel->scrollpos = 0;
+							do_draw = 1;
+							do_headdraw = 1;
+						}
 					}
 					else if (file)
 					{
@@ -986,7 +1003,6 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							/* which string */
 							if (selected) {
 								BLI_strncpy(simasel->dir, selected, sizeof(simasel->dir));
-								BLI_make_exist(simasel->dir);
 								BLI_cleanup_dir(G.sce, simasel->dir);
 								BIF_filelist_free(simasel->files);	
 								BIF_filelist_setdir(simasel->files, simasel->dir);

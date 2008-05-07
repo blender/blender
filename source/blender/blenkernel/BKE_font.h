@@ -3,15 +3,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,10 +26,14 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_VFONT_H
 #define BKE_VFONT_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <wchar.h>
 
@@ -68,7 +69,11 @@ int getselection(int *start, int *end);
 void chtoutf8(unsigned long c, char *o);
 void wcs2utf8s(char *dst, wchar_t *src);
 int wcsleninu8(wchar_t *src);
-int utf8towchar_(wchar_t *w, char *c);
+int utf8towchar(wchar_t *w, char *c);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

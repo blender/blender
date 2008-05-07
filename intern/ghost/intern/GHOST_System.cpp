@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /**
@@ -44,16 +41,18 @@
 #include "GHOST_System.h"
 
 #include <time.h>
+#include <stdio.h> /* just for printf */
 
 #include "GHOST_DisplayManager.h"
 #include "GHOST_EventManager.h"
+#include "GHOST_NDOFManager.h"
 #include "GHOST_TimerTask.h"
 #include "GHOST_TimerManager.h"
 #include "GHOST_WindowManager.h"
 
 
 GHOST_System::GHOST_System()
-: m_displayManager(0), m_timerManager(0), m_windowManager(0), m_eventManager(0)
+: m_displayManager(0), m_timerManager(0), m_windowManager(0), m_eventManager(0), m_ndofManager(0)
 {
 }
 
@@ -239,6 +238,17 @@ GHOST_TSuccess GHOST_System::pushEvent(GHOST_IEvent* event)
 	return success;
 }
 
+int GHOST_System::openNDOF(GHOST_IWindow* w,
+        GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
+        GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
+        GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen)
+{
+ return   m_ndofManager->deviceOpen(w,
+        setNdofLibraryInit, 
+        setNdofLibraryShutdown,
+        setNdofDeviceOpen);
+}
+
 
 GHOST_TSuccess GHOST_System::getModifierKeyState(GHOST_TModifierKeyMask mask, bool& isDown) const
 {
@@ -271,6 +281,11 @@ GHOST_TSuccess GHOST_System::init()
 	m_timerManager = new GHOST_TimerManager ();
 	m_windowManager = new GHOST_WindowManager ();
 	m_eventManager = new GHOST_EventManager ();
+    m_ndofManager = new GHOST_NDOFManager();
+
+	if(m_ndofManager)
+		printf("ndof manager \n");
+
 #ifdef GHOST_DEBUG
 	if (m_eventManager) {
 		m_eventManager->addConsumer(&m_eventPrinter);
@@ -306,6 +321,10 @@ GHOST_TSuccess GHOST_System::exit()
 		delete m_eventManager;
 		m_eventManager = 0;
 	}
+    if (m_ndofManager) {
+        delete m_ndofManager;
+        m_ndofManager = 0;
+    }
 	return GHOST_kSuccess;
 }
 

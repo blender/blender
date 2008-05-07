@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "SCA_PropertyActuator.h"
@@ -52,10 +49,16 @@ SCA_PropertyActuator::SCA_PropertyActuator(SCA_IObject* gameobj,CValue* sourceOb
 	m_exprtxt(expr),
 	m_sourceObj(sourceObj)
 {
+	// protect ourselves against someone else deleting the source object
+	// don't protect against ourselves: it would create a dead lock
+	if (m_sourceObj && m_sourceObj != GetParent())
+		m_sourceObj->AddRef();
 }
 
 SCA_PropertyActuator::~SCA_PropertyActuator()
 {
+	if (m_sourceObj && m_sourceObj != GetParent())
+		m_sourceObj->Release();
 }
 
 bool SCA_PropertyActuator::Update()
@@ -90,12 +93,11 @@ bool SCA_PropertyActuator::Update()
 				if (oldprop)
 				{
 					oldprop->SetValue(newval);
-					newval->Release();
 				} else
 				{
 					propowner->SetProperty(m_propname,newval);
 				}
-
+				newval->Release();
 				break;
 			}
 		case KX_ACT_PROP_ADD:
@@ -123,9 +125,11 @@ bool SCA_PropertyActuator::Update()
 					CValue* copyprop = m_sourceObj->GetProperty(m_exprtxt);
 					if (copyprop)
 					{
+						CValue *val = copyprop->GetReplica();
 						GetParent()->SetProperty(
 							 m_propname,
-							copyprop->GetReplica());
+							 val);
+						val->Release();
 
 					}
 				}
@@ -176,6 +180,14 @@ GetReplica() {
 
 };
 
+void SCA_PropertyActuator::ProcessReplica()
+{
+	// no need to check for self reference like in the constructor:
+	// the replica will always have a different parent
+	if (m_sourceObj)
+		m_sourceObj->AddRef();
+	SCA_IActuator::ProcessReplica();
+}
 
 
 
@@ -239,11 +251,12 @@ PyObject* SCA_PropertyActuator::PySetProperty(PyObject* self, PyObject* args, Py
 
 	CValue* prop = GetParent()->FindIdentifier(nameArg);
 
-	if (prop) {
+	if (!prop->IsError()) {
 		m_propname = nameArg;
 	} else {
 		; /* not found ... */
 	}
+	prop->Release();
 	
 	Py_Return;
 }

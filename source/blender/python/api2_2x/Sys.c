@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Willian P. Germano, Campbell Barton
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 #include "Sys.h" /*This must come first*/
@@ -61,6 +58,7 @@ static PyObject *M_sys_exists( PyObject * self, PyObject * value );
 static PyObject *M_sys_time( PyObject * self );
 static PyObject *M_sys_sleep( PyObject * self, PyObject * args );
 static PyObject *M_sys_expandpath( PyObject *self, PyObject *value);
+static PyObject *M_sys_cleanpath( PyObject *self, PyObject *value);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -123,9 +121,12 @@ static char M_sys_expandpath_doc[] =
 (path) - the string path to convert.\n\n\
 Note: internally Blender paths can contain two special character sequences:\n\
 - '//' (at start) for base path directory (the current .blend's dir path);\n\
-- '#' (at ending) for current frame number.\n\n\
+- '#' characters in the filename will be replaced by the frame number.\n\n\
 This function expands these to their actual content, returning a valid path.\n\
 If the special chars are not found in the given path, it is simply returned.";
+
+static char M_sys_cleanpath_doc[] =
+"(path) - Removes parts of a path that are not needed paths such as '../foo/../bar/' and '//./././'";
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.sys module:                */
@@ -142,6 +143,7 @@ struct PyMethodDef M_sys_methods[] = {
 	{"sleep", M_sys_sleep, METH_VARARGS, M_sys_sleep_doc},
 	{"time", ( PyCFunction ) M_sys_time, METH_NOARGS, M_sys_time_doc},
 	{"expandpath", M_sys_expandpath, METH_O, M_sys_expandpath_doc},
+	{"cleanpath", M_sys_cleanpath, METH_O, M_sys_cleanpath_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -394,7 +396,29 @@ static PyObject *M_sys_expandpath( PyObject * self, PyObject * value )
 			"expected string argument" );
 	
 	BLI_strncpy(expanded, path, FILE_MAXDIR + FILE_MAXFILE);
-	BLI_convertstringcode(expanded, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(expanded, G.sce);
+	BLI_convertstringframe(expanded, G.scene->r.cfra);
 
 	return PyString_FromString(expanded);
+}
+
+static PyObject *M_sys_cleanpath( PyObject * self, PyObject * value )
+{
+	char *path = PyString_AsString(value);
+	char cleaned[FILE_MAXDIR + FILE_MAXFILE];
+	int trailing_slash = 0;
+	if (!path)
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"expected string argument" );
+	if (strstr(path, "/") || strstr(path, "\\")) {
+		trailing_slash = 1;
+	}
+	BLI_strncpy(cleaned, path, FILE_MAXDIR + FILE_MAXFILE);
+	BLI_cleanup_file(NULL, cleaned);
+	
+	if (trailing_slash) {
+		BLI_add_slash(cleaned);
+	}
+	
+	return PyString_FromString(cleaned);
 }

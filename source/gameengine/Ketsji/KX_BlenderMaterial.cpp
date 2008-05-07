@@ -15,11 +15,12 @@
 #include <OpenGL/glu.h>
 #else
 #include <GL/gl.h>
-#if defined(__sun__) && !defined(__sparc__)
+/* #if defined(__sun__) && !defined(__sparc__)
 #include <mesa/glu.h>
 #else
+*/
 #include <GL/glu.h>
-#endif
+/* #endif */
 #endif
 
 #include "KX_BlenderMaterial.h"
@@ -83,6 +84,7 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 	mScene(scene),
 	mUserDefBlend(0),
 	mModified(0),
+	mConstructed(false),
 	mPass(0)
 
 {
@@ -118,7 +120,9 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 KX_BlenderMaterial::~KX_BlenderMaterial()
 {
 	// cleanup work
-	OnExit();
+	if (mConstructed)
+		// clean only if material was actually used
+		OnExit();
 }
 
 
@@ -137,6 +141,10 @@ unsigned int* KX_BlenderMaterial::GetMCol(void) const
 
 void KX_BlenderMaterial::OnConstruction()
 {
+	if (mConstructed)
+		// when material are reused between objects
+		return;
+
 	// for each unique material...
 	int i;
 	for(i=0; i<mMaterial->num_enabled; i++) {
@@ -147,19 +155,20 @@ void KX_BlenderMaterial::OnConstruction()
 			}
 			if(!mTextures[i].InitCubeMap(i, mMaterial->cubemap[i] ) )
 				spit("unable to initialize image("<<i<<") in "<< 
-						mMaterial->matname<< ", image will not be available");
+						 mMaterial->matname<< ", image will not be available");
 		} 
 	
 		else {
 			if( mMaterial->img[i] ) {
 				if( ! mTextures[i].InitFromImage(i, mMaterial->img[i], (mMaterial->flag[i] &MIPMAP)!=0 ))
 					spit("unable to initialize image("<<i<<") in "<< 
-						 mMaterial->matname<< ", image will not be available");
+						mMaterial->matname<< ", image will not be available");
 			}
 		}
 	}
 	mBlendFunc[0] =0;
 	mBlendFunc[1] =0;
+	mConstructed = true;
 }
 
 void KX_BlenderMaterial::OnExit()

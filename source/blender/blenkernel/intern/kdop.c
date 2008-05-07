@@ -1,15 +1,12 @@
 /*  kdop.c      
 * 
 *
-* ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+* ***** BEGIN GPL LICENSE BLOCK *****
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public License
 * as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version. The Blender
-* Foundation also sells licenses for use in proprietary software under
-* the Blender License.  See http://www.blender.org/BL/ for information
-* about this.
+* of the License, or (at your option) any later version.
 *
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,49 +24,29 @@
 *
 * Contributor(s): none yet.
 *
-* ***** END GPL/BL DUAL LICENSE BLOCK *****
+* ***** END GPL LICENSE BLOCK *****
 */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
 #include "MEM_guardedalloc.h"
-/* types */
-#include "DNA_curve_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"
-#include "DNA_cloth_types.h"	
-#include "DNA_key_types.h"
+
+#include "BKE_cloth.h"
+
+#include "DNA_cloth_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_modifier_types.h"
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "BLI_edgehash.h"
-#include "BLI_linklist.h"
-#include "BKE_curve.h"
+
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
-#include "BKE_key.h"
-#include "BKE_mesh.h"
 #include "BKE_object.h"
-#include "BKE_cloth.h"
 #include "BKE_modifier.h"
 #include "BKE_utildefines.h"
-#include "BKE_DerivedMesh.h"
-#include "BIF_editdeform.h"
-#include "BIF_editkey.h"
-#include "DNA_screen_types.h"
-#include "BSE_headerbuttons.h"
-#include "BIF_screen.h"
-#include "BIF_space.h"
-#include "mydevice.h"
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -108,22 +85,14 @@ LinkNode *BLI_linklist_append_fast(LinkNode **listp, void *ptr) {
 ////////////////////////////////////////////////////////////////////////
 
 static float KDOP_AXES[13][3] =
-{ {1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {1, 1, 1}, {1, -1, 1}, {1, 1, -1},
-{1, -1, -1}, {1, 1, 0}, {1, 0, 1}, {0, 1, 1}, {1, -1, 0}, {1, 0, -1},
-{0, 1, -1}
+{ {1.0, 0, 0}, {0, 1.0, 0}, {0, 0, 1.0}, {1.0, 1.0, 1.0}, {1.0, -1.0, 1.0}, {1.0, 1.0, -1.0},
+{1.0, -1.0, -1.0}, {1.0, 1.0, 0}, {1.0, 0, 1.0}, {0, 1.0, 1.0}, {1.0, -1.0, 0}, {1.0, 0, -1.0},
+{0, 1.0, -1.0}
 };
 
 ///////////// choose bounding volume here! /////////////
 
-// #define KDOP_26
-
-// #define KDOP_14
-
-// AABB:
-// #define KDOP_8
-
-// OBB: 
-#define KDOP_6
+#define KDOP_26
 
 
 
@@ -132,10 +101,9 @@ static float KDOP_AXES[13][3] =
 #define KDOP_START 0
 #endif
 
-// I didn't test this one!
 #ifdef KDOP_18
-#define KDOP_END 7
-#define KDOP_START 13
+#define KDOP_END 13
+#define KDOP_START 7
 #endif
 
 #ifdef KDOP_14
@@ -179,7 +147,7 @@ DO_INLINE int floor_lg(int a)
 /*
 * Insertion sort algorithm
 */
-static void bvh_insertionsort(CollisionTree **a, int lo, int hi, int axis)
+void bvh_insertionsort(CollisionTree **a, int lo, int hi, int axis)
 {
 	int i,j;
 	CollisionTree *t;
@@ -276,7 +244,7 @@ static CollisionTree *bvh_medianof3(CollisionTree **a, int lo, int mid, int hi, 
 /*
 * Quicksort algorithm modified for Introsort
 */
-static void bvh_introsort_loop (CollisionTree **a, int lo, int hi, int depth_limit, int axis)
+void bvh_introsort_loop (CollisionTree **a, int lo, int hi, int depth_limit, int axis)
 {
 	int p;
 
@@ -371,19 +339,30 @@ DO_INLINE void bvh_calc_DOP_hull_from_faces(BVH * bvh, CollisionTree **tri, int 
 {
 	float newmin,newmax;
 	int i, j;
+	
+	if(numfaces >0)
+	{
+		// for all Axes.
+		for (i = KDOP_START; i < KDOP_END; i++)
+		{
+			bv[(2 * i)] = (tri [0])->bv[(2 * i)];	
+			bv[(2 * i) + 1] = (tri [0])->bv[(2 * i) + 1];
+		}
+	}
+	
 	for (j = 0; j < numfaces; j++)
 	{
 		// for all Axes.
 		for (i = KDOP_START; i < KDOP_END; i++)
 		{
 			newmin = (tri [j])->bv[(2 * i)];	
-			if ((newmin < bv[(2 * i)]) || (j == 0))
+			if ((newmin < bv[(2 * i)]))
 			{
 				bv[(2 * i)] = newmin;
 			}
 
 			newmax = (tri [j])->bv[(2 * i) + 1];
-			if ((newmax > bv[(2 * i) + 1]) || (j == 0))
+			if ((newmax > bv[(2 * i) + 1]))
 			{
 				bv[(2 * i) + 1] = newmax;
 			}
@@ -391,12 +370,13 @@ DO_INLINE void bvh_calc_DOP_hull_from_faces(BVH * bvh, CollisionTree **tri, int 
 	}
 }
 
-DO_INLINE void bvh_calc_DOP_hull_static(BVH * bvh, CollisionTree **tri, int numfaces, float *bv)
+DO_INLINE void bvh_calc_DOP_hull_static(BVH * bvh, CollisionTree **tri, int numfaces, float *bv, CollisionTree *tree)
 {
 	MFace *tempMFace = bvh->mfaces;
 	float *tempBV = bv;
 	float newminmax;
 	int i, j, k;
+	
 	for (j = 0; j < numfaces; j++)
 	{
 		tempMFace = bvh->mfaces + (tri [j])->tri_index;
@@ -426,15 +406,31 @@ DO_INLINE void bvh_calc_DOP_hull_static(BVH * bvh, CollisionTree **tri, int numf
 					tempBV[(2 * i) + 1] = newminmax;
 			}
 		}
+		
+		/* calculate normal of this face */
+		/* (code copied from cdderivedmesh.c) */
+		/*
+		if(tempMFace->v4)
+			CalcNormFloat4(bvh->current_xold[tempMFace->v1].co, bvh->current_xold[tempMFace->v2].co,
+				       bvh->current_xold[tempMFace->v3].co, bvh->current_xold[tempMFace->v4].co, tree->normal);
+		else
+			CalcNormFloat(bvh->current_xold[tempMFace->v1].co, bvh->current_xold[tempMFace->v2].co,
+				      bvh->current_xold[tempMFace->v3].co, tree->normal);
+		
+		tree->alpha = 0;
+		*/
 	}
 }
 
-DO_INLINE void bvh_calc_DOP_hull_moving(BVH * bvh, CollisionTree **tri, int numfaces, float *bv)
+DO_INLINE void bvh_calc_DOP_hull_moving(BVH * bvh, CollisionTree **tri, int numfaces, float *bv, CollisionTree *tree)
 {
 	MFace *tempMFace = bvh->mfaces;
 	float *tempBV = bv;
 	float newminmax;
 	int i, j, k;
+	
+	/* TODO: calculate normals */
+	
 	for (j = 0; j < numfaces; j++)
 	{
 		tempMFace = bvh->mfaces + (tri [j])->tri_index;
@@ -488,14 +484,15 @@ static void bvh_div_env_node(BVH *bvh, CollisionTree *tree, CollisionTree **face
 	// Sort along longest axis
 	if(laxis!=lastaxis)
 		bvh_sort_along_axis(face_list, start, end, laxis);
-
+	
+	// maximum is 4 since we have a quad tree
 	max_nodes = MIN2((end-start + 1 ),4);
 
 	for (i = 0; i < max_nodes; i++)
 	{
 		tree->count_nodes++;
 
-		if(end-start > 4)
+		if(end-start+1 > 4)
 		{
 			int quarter = ((float)((float)(end - start + 1) / 4.0f));
 			tstart = start + i * quarter;
@@ -549,18 +546,32 @@ void bvh_build (BVH *bvh)
 	CollisionTree *tree=NULL;
 	LinkNode *nlink = NULL;
 	
+	bvh->flags = 0;
+	bvh->leaf_tree = NULL;
+	bvh->leaf_root = NULL;
+	bvh->tree = NULL;
+	
+	if(!bvh->current_x)
+	{
+		bvh_free(bvh);
+		return;
+	}
+	
+	bvh->current_xold = MEM_dupallocN(bvh->current_x);
+	
 	tree = (CollisionTree *)MEM_callocN(sizeof(CollisionTree), "CollisionTree");
-	// TODO: check succesfull alloc
-	BLI_linklist_append(&bvh->tree, tree);
-
-	nlink = bvh->tree;
-
+	
 	if (tree == NULL) 
 	{
 		printf("bvh_build: Out of memory for nodes.\n");
 		bvh_free(bvh);
 		return;
 	}
+	
+	BLI_linklist_append(&bvh->tree, tree);
+
+	nlink = bvh->tree;
+
 	bvh->root = bvh->tree->link;
 	bvh->root->isleaf = 0;
 	bvh->root->parent = NULL;
@@ -618,7 +629,7 @@ void bvh_build (BVH *bvh)
 
 			tree->nodes[0] = tree->nodes[1] = tree->nodes[2] = tree->nodes[3] = NULL;		
 
-			bvh_calc_DOP_hull_static(bvh, &face_list[i], 1, tree->bv);
+			bvh_calc_DOP_hull_static(bvh, &face_list[i], 1, tree->bv, tree);
 
 			// inflate the bv with some epsilon
 			for (j = KDOP_START; j < KDOP_END; j++)
@@ -663,6 +674,19 @@ DO_INLINE int bvh_overlap(float *bv1, float *bv2)
 	return 1;
 }
 
+// bvh_overlap_self - is it possbile for 2 bv's to selfcollide ?
+DO_INLINE int bvh_overlap_self(CollisionTree * tree1, CollisionTree * tree2)
+{
+	// printf("overlap: %f, q: %f\n", (saacos(INPR(tree1->normal, tree2->normal)) / 2.0)+MAX2(tree1->alpha, tree2->alpha), saacos(INPR(tree1->normal, tree2->normal)));
+	
+	if((saacos(INPR(tree1->normal, tree2->normal)) / 2.0)+MAX2(tree1->alpha, tree2->alpha) > M_PI)
+	{
+		return 1;
+	}
+	else
+		return 0;
+}
+
 /**
  * bvh_traverse - traverse two bvh trees looking for potential collisions.
  *
@@ -670,9 +694,9 @@ DO_INLINE int bvh_overlap(float *bv1, float *bv2)
  * every other triangle that doesn't require any realloc, but uses
  * much memory
  */
-int bvh_traverse ( ClothModifierData * clmd, CollisionModifierData * collmd, CollisionTree * tree1, CollisionTree * tree2, float step, CM_COLLISION_RESPONSE collision_response)
+int bvh_traverse ( ModifierData * md1, ModifierData * md2, CollisionTree * tree1, CollisionTree * tree2, float step, CM_COLLISION_RESPONSE collision_response, int selfcollision)
 {
-	int i = 0, ret=0;
+	int i = 0, ret=0, overlap = 0;
 	
 	/*
 	// Shouldn't be possible
@@ -680,9 +704,15 @@ int bvh_traverse ( ClothModifierData * clmd, CollisionModifierData * collmd, Col
 	{
 	printf("Error: no tree there\n");
 	return 0;
-	}
+}
 	*/	
-	if (bvh_overlap(tree1->bv, tree2->bv)) 
+	
+	if(selfcollision)
+		overlap = bvh_overlap_self(tree1, tree2);
+	else
+		overlap = bvh_overlap(tree1->bv, tree2->bv);
+	
+	if (overlap) 
 	{		
 		// Check if this node in the first tree is a leaf
 		if (tree1->isleaf) 
@@ -693,7 +723,7 @@ int bvh_traverse ( ClothModifierData * clmd, CollisionModifierData * collmd, Col
 				// Provide the collision response.
 				
 				if(collision_response)
-					collision_response (clmd, collmd, tree1, tree2);
+					collision_response (md1, md2, tree1, tree2);
 				return 1;
 			}
 			else 
@@ -702,7 +732,7 @@ int bvh_traverse ( ClothModifierData * clmd, CollisionModifierData * collmd, Col
 				for (i = 0; i < 4; i++)
 				{
 					// Only traverse nodes that exist.
-					if (tree2->nodes[i] && bvh_traverse (clmd, collmd, tree1, tree2->nodes[i], step, collision_response))
+					if (tree2->nodes[i] && bvh_traverse (md1, md2, tree1, tree2->nodes[i], step, collision_response, selfcollision))
 						ret = 1;
 				}
 			}
@@ -713,7 +743,7 @@ int bvh_traverse ( ClothModifierData * clmd, CollisionModifierData * collmd, Col
 			for (i = 0; i < 4; i++)
 			{
 				// Only traverse nodes that exist.
-				if (tree1->nodes [i] && bvh_traverse (clmd, collmd, tree1->nodes[i], tree2, step, collision_response))
+				if (tree1->nodes [i] && bvh_traverse (md1, md2, tree1->nodes[i], tree2, step, collision_response, selfcollision))
 					ret = 1;
 			}
 		}
@@ -721,12 +751,13 @@ int bvh_traverse ( ClothModifierData * clmd, CollisionModifierData * collmd, Col
 
 	return ret;
 }
-
 // bottom up update of bvh tree:
 // join the 4 children here
-void bvh_join(CollisionTree * tree)
+void bvh_join(CollisionTree *tree)
 {
 	int	i = 0, j = 0;
+	float max = 0;
+	
 	if (!tree)
 		return;
 	
@@ -747,10 +778,29 @@ void bvh_join(CollisionTree * tree)
 					tree->bv[(2 * j) + 1] = tree->nodes[i]->bv[(2 * j) + 1];
 				}
 			}
+			
+			/* for selfcollisions */
+			/*
+			if(!i)
+			{
+				tree->alpha = tree->nodes[i]->alpha;
+				VECCOPY(tree->normal, tree->nodes[i]->normal);
+			}
+			else
+			{
+				tree->alpha += saacos(INPR(tree->normal, tree->nodes[i]->normal)) / 2.0;
+				VECADD(tree->normal, tree->normal, tree->nodes[i]->normal);
+				VecMulf(tree->normal, 0.5);
+				max = MAX2(max, tree->nodes[i]->alpha);
+			}
+			*/
+			
 		}
 		else
 			break;
 	}
+	
+	tree->alpha += max;
 }
 
 // update static bvh
@@ -769,9 +819,9 @@ void bvh_update(BVH * bvh, int moving)
 			leaf->parent->traversed = 0;
 		}
 		if(!moving)
-			bvh_calc_DOP_hull_static(bvh, &leaf, 1, leaf->bv);
+			bvh_calc_DOP_hull_static(bvh, &leaf, 1, leaf->bv, leaf);
 		else
-			bvh_calc_DOP_hull_moving(bvh, &leaf, 1, leaf->bv);
+			bvh_calc_DOP_hull_moving(bvh, &leaf, 1, leaf->bv, leaf);
 
 		// inflate the bv with some epsilon
 		for (j = KDOP_START; j < KDOP_END; j++)

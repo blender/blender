@@ -1,13 +1,10 @@
 # $Id: CMakeLists.txt 12480 2007-11-05 16:46:48Z sirdude $
-# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+# ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. The Blender
-# Foundation also sells licenses for use in proprietary software under
-# the Blender License.  See http://www.blender.org/BL/ for information
-# about this.
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
 #
 # Contributor(s): Jacques Beaurain.
 #
-# ***** END GPL/BL DUAL LICENSE BLOCK *****
+# ***** END GPL LICENSE BLOCK *****
 
 #-----------------------------------------------------------------------------
 # We don't allow in-source builds. This causes no end of troubles because 
@@ -63,7 +60,7 @@ OPTION(WITH_INTERNATIONAL	"Enable I18N   (International fonts and text)"		ON)
 OPTION(WITH_VERSE		"Enable Verse  (http://verse.blender.org)"		OFF)
 OPTION(WITH_ELBEEM		"Enable Elbeem (Fluid Simulation)"			ON)
 OPTION(WITH_QUICKTIME		"Enable Quicktime Support"				OFF)
-OPTION(WITH_OPENEXR		"Enable OpenEXR Support (http://www.openexr.com)"	OFF)
+OPTION(WITH_OPENEXR		"Enable OpenEXR Support (http://www.openexr.com)"	ON)
 OPTION(WITH_FFMPEG		"Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)"	OFF)
 OPTION(WITH_OPENAL		"Enable OpenAL Support (http://www.openal.org)"		ON)
 OPTION(YESIAMSTUPID		"Enable execution on 64-bit platforms"			OFF)
@@ -253,6 +250,10 @@ IF(WIN32)
   ELSE (MSVC80)
   SET(OPENEXR_LIBPATH ${OPENEXR}/lib_msvc)
   ENDIF(MSVC80)
+  IF (MSVC90)
+  SET(OPENEXR_LIBPATH ${OPENEXR}/lib_vs2008)
+  ENDIF(MSVC90)
+
   
   SET(QUICKTIME ${LIBDIR}/QTDevWin)
   SET(QUICKTIME_INC ${QUICKTIME}/CIncludes)
@@ -261,7 +262,7 @@ IF(WIN32)
 
   SET(FFMPEG ${LIBDIR}/ffmpeg)
   SET(FFMPEG_INC ${FFMPEG}/include)
-  SET(FFMPEG_LIB avcodec-51 avformat-51 avutil-49)
+  SET(FFMPEG_LIB avcodec-51 avformat-52 avdevice-52 avutil-49 swscale-0)
   SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
 
   SET(LLIBS kernel32 user32 gdi32 comdlg32 advapi32 shell32 ole32 oleaut32 uuid ws2_32 vfw32 winmm)
@@ -302,7 +303,7 @@ IF(WIN32)
   SET(WINTAB_INC ${LIBDIR}/wintab/include) 
 
   SET(PLATFORM_LINKFLAGS "/NODEFAULTLIB:libc.lib")
-  SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:libcmt.lib ")
+  SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:libcmt.lib;libc.lib ")
 ENDIF(WIN32)
 
 IF(APPLE)
@@ -408,6 +409,9 @@ INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
 IF(WITH_GAMEENGINE)
   SET(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -DGAMEBLENDER ")
 ENDIF(WITH_GAMEENGINE)
+IF(WITH_BULLET)
+  SET(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -DWITH_BULLET ")
+ENDIF(WITH_BULLET)
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ")
 

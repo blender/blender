@@ -1,15 +1,12 @@
 /**
  * $Id: 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Martin Poirier
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #include <stdlib.h>
@@ -78,6 +75,7 @@ void setSnappingCallback(TransInfo *t);
 
 void ApplySnapTranslation(TransInfo *t, float vec[3]);
 void ApplySnapRotation(TransInfo *t, float *vec);
+void ApplySnapResize(TransInfo *t, float *vec);
 
 void CalcSnapGrid(TransInfo *t, float *vec);
 void CalcSnapGeometry(TransInfo *t, float *vec);
@@ -89,6 +87,7 @@ void TargetSnapActive(TransInfo *t);
 
 float RotationBetween(TransInfo *t, float p1[3], float p2[3]);
 float TranslationBetween(TransInfo *t, float p1[3], float p2[3]);
+float ResizeBetween(TransInfo *t, float p1[3], float p2[3]);
 
 /* Modes */
 #define NOT_SELECTED 0
@@ -124,7 +123,7 @@ void drawSnapping(TransInfo *t)
 			
 			glDisable(GL_DEPTH_TEST);
 	
-			size = get_drawsize(G.vd);
+			size = get_drawsize(G.vd, t->tsnap.snapPoint);
 			
 			size *= 0.5f * BIF_GetThemeValuef(TH_VERTEX_SIZE);
 			
@@ -229,7 +228,8 @@ void initSnapping(TransInfo *t)
 {
 	resetSnapping(t);
 	
-	if (t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) { // Only 3D view or UV
+	if ((t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) && // Only 3D view or UV
+			(t->flag & T_CAMERA) == 0) { // Not with camera selected
 		setSnappingCallback(t);
 
 		/* Edit mode */
@@ -303,6 +303,16 @@ void setSnappingCallback(TransInfo *t)
 			t->tsnap.targetSnap = TargetSnapMedian;
 		}
 		break;
+	case TFM_RESIZE:
+		t->tsnap.applySnap = ApplySnapResize;
+		t->tsnap.distance = ResizeBetween;
+		
+		// Can't do TARGET_CENTER with resize, use TARGET_MEDIAN instead
+		if (G.scene->snap_target == SCE_SNAP_TARGET_CENTER) {
+			t->tsnap.modeTarget = SNAP_MEDIAN;
+			t->tsnap.targetSnap = TargetSnapMedian;
+		}
+		break;
 	default:
 		t->tsnap.applySnap = NULL;
 		break;
@@ -326,6 +336,15 @@ void ApplySnapRotation(TransInfo *t, float *vec)
 	}
 }
 
+void ApplySnapResize(TransInfo *t, float vec[3])
+{
+	if (t->tsnap.modeTarget == SNAP_CLOSEST) {
+		vec[0] = vec[1] = vec[2] = t->tsnap.dist;
+	}
+	else {
+		vec[0] = vec[1] = vec[2] = ResizeBetween(t, t->tsnap.snapTarget, t->tsnap.snapPoint);
+	}
+}
 
 /********************** DISTANCE **************************/
 
@@ -388,6 +407,27 @@ float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 	}
 	
 	return angle;
+}
+
+float ResizeBetween(TransInfo *t, float p1[3], float p2[3])
+{
+	float d1[3], d2[3], center[3];
+	
+	VECCOPY(center, t->center);	
+	if(t->flag & (T_EDIT|T_POSE)) {
+		Object *ob= G.obedit?G.obedit:t->poseobj;
+		Mat4MulVecfl(ob->obmat, center);
+	}
+
+	VecSubf(d1, p1, center);
+	VecSubf(d2, p2, center);
+	
+	if (t->con.applyRot != NULL && (t->con.mode & CON_APPLY)) {
+		Mat3MulVecfl(t->con.pmtx, d1);
+		Mat3MulVecfl(t->con.pmtx, d2);
+	}
+	
+	return VecLength(d2) / VecLength(d1);
 }
 
 /********************** CALC **************************/
@@ -460,13 +500,19 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 		else if (t->spacetype == SPACE_IMAGE)
 		{	/* same as above but for UV's */
 			MTFace *nearesttf=NULL;
+			float aspx, aspy;
 			int face_corner;
 			
 			find_nearest_uv(&nearesttf, NULL, NULL, &face_corner);
-			
+
 			if (nearesttf != NULL)
 			{
 				VECCOPY2D(t->tsnap.snapPoint, nearesttf->uv[face_corner]);
+
+				transform_aspect_ratio_tface_uv(&aspx, &aspy);
+				t->tsnap.snapPoint[0] *= aspx;
+				t->tsnap.snapPoint[1] *= aspy;
+
 				//Mat4MulVecfl(G.obedit->obmat, t->tsnap.snapPoint);
 				
 				t->tsnap.status |=  POINT_INIT;

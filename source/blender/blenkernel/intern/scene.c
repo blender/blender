@@ -3,15 +3,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h>
@@ -82,6 +79,7 @@
 #include "BKE_utildefines.h"
 
 #include "BIF_previewrender.h"
+#include "BIF_editseq.h"
 
 #include "BPY_extern.h"
 #include "BLI_arithb.h"
@@ -220,6 +218,15 @@ Scene *add_scene(char *name)
 	
 	sce->r.stereomode = 1;  // no stereo
 
+	sce->r.simplify_subsurf= 6;
+	sce->r.simplify_particles= 1.0f;
+	sce->r.simplify_shadowsamples= 16;
+	sce->r.simplify_aosss= 1.0f;
+
+	sce->r.cineonblack= 95;
+	sce->r.cineonwhite= 685;
+	sce->r.cineongamma= 1.7f;
+	
 	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");
 	sce->toolsettings->cornertype=1;
 	sce->toolsettings->degr = 90; 
@@ -262,7 +269,7 @@ Scene *add_scene(char *name)
 	sce->r.osa= 8;
 
 	sculptdata_init(sce);
-	
+
 	/* note; in header_info.c the scene copy happens..., if you add more to renderdata it has to be checked there */
 	scene_add_render_layer(sce);
 	
@@ -288,6 +295,9 @@ void set_scene_bg(Scene *sce)
 	Group *group;
 	GroupObject *go;
 	int flag;
+	
+	// Note: this here is defined in editseq.c (BIF_editseq.h), NOT in blenkernel! 
+	set_last_seq(NULL);
 	
 	G.scene= sce;
 	
@@ -417,6 +427,9 @@ int next_object(int val, Base **base, Object **ob)
 							duplilist= object_duplilist(G.scene, (*base)->object);
 							
 							dupob= duplilist->first;
+
+							if(!dupob)
+								free_object_duplilist(duplilist);
 						}
 					}
 				}
@@ -498,27 +511,23 @@ void scene_select_base(Scene *sce, Base *selbase)
 int scene_check_setscene(Scene *sce)
 {
 	Scene *scene;
+	int a, totscene;
 	
 	if(sce->set==NULL) return 1;
 	
-	/* LIB_DOIT is the free flag to tag library data */
+	totscene= 0;
 	for(scene= G.main->scene.first; scene; scene= scene->id.next)
-		scene->id.flag &= ~LIB_DOIT;
+		totscene++;
 	
-	scene= sce;
-	while(scene->set) {
-		scene->id.flag |= LIB_DOIT;
-		/* when set has flag set, we got a cycle */
-		if(scene->set->id.flag & LIB_DOIT)
-			break;
-		scene= scene->set;
+	for(a=0, scene=sce; scene->set; scene=scene->set, a++) {
+		/* more iterations than scenes means we have a cycle */
+		if(a > totscene) {
+			/* the tested scene gets zero'ed, that's typically current scene */
+			sce->set= NULL;
+			return 0;
+		}
 	}
-	
-	if(scene->set) {
-		/* the tested scene gets zero'ed, that's typically current scene */
-		sce->set= NULL;
-		return 0;
-	}
+
 	return 1;
 }
 
@@ -591,8 +600,10 @@ void sculptdata_init(Scene *sce)
 
 	sd= &sce->sculptdata;
 
-	if(sd->cumap)
+	if(sd->cumap) {
 		curvemapping_free(sd->cumap);
+		sd->cumap = NULL;
+	}
 
 	memset(sd, 0, sizeof(SculptData));
 
@@ -604,9 +615,9 @@ void sculptdata_init(Scene *sce)
 		sd->grabbrush.strength = sd->layerbrush.strength =
 		sd->flattenbrush.strength = 25;
 	sd->drawbrush.dir = sd->pinchbrush.dir = sd->inflatebrush.dir = sd->layerbrush.dir= 1;
-	sd->drawbrush.airbrush = sd->smoothbrush.airbrush =
-		sd->pinchbrush.airbrush = sd->inflatebrush.airbrush =
-		sd->layerbrush.airbrush = sd->flattenbrush.airbrush = 0;
+	sd->drawbrush.flag = sd->smoothbrush.flag =
+		sd->pinchbrush.flag = sd->inflatebrush.flag =
+		sd->layerbrush.flag = sd->flattenbrush.flag = 0;
 	sd->drawbrush.view= 0;
 	sd->brush_type= DRAW_BRUSH;
 	sd->texact= -1;
@@ -701,3 +712,38 @@ void sculpt_reset_curve(SculptData *sd)
 
 	curvemapping_changed(sd->cumap, 0);
 }
+
+/* render simplification */
+
+int get_render_subsurf_level(RenderData *r, int lvl)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+		return MIN2(r->simplify_subsurf, lvl);
+	else
+		return lvl;
+}
+
+int get_render_child_particle_number(RenderData *r, int num)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+		return (int)(r->simplify_particles*num);
+	else
+		return num;
+}
+
+int get_render_shadow_samples(RenderData *r, int samples)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY) && samples > 0)
+		return MIN2(r->simplify_shadowsamples, samples);
+	else
+		return samples;
+}
+
+float get_render_aosss_error(RenderData *r, float error)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+		return ((1.0f-r->simplify_aosss)*10.0f + 1.0f)*error;
+	else
+		return error;
+}
+

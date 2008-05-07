@@ -4,15 +4,12 @@
  *  
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +27,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>  // floor
@@ -1788,13 +1785,13 @@ void makeBevelList(Object *ob)
 			bevp2->cosa= bevp1->cosa;
 
 			if(cu->flag & CU_3D) {	/* 3D */
-				float *quat, q[4];
+				float quat[4], q[4];
 			
 				vec[0]= bevp1->x - bevp2->x;
 				vec[1]= bevp1->y - bevp2->y;
 				vec[2]= bevp1->z - bevp2->z;
 				
-				quat= vectoquat(vec, 5, 1);
+				vectoquat(vec, 5, 1, quat);
 				
 				Normalize(vec);
 				q[0]= (float)cos(0.5*bevp1->alfa);
@@ -1820,7 +1817,7 @@ void makeBevelList(Object *ob)
 			while(nr--) {
 	
 				if(cu->flag & CU_3D) {	/* 3D */
-					float *quat, q[4];
+					float quat[4], q[4];
 				
 					vec[0]= bevp2->x - bevp0->x;
 					vec[1]= bevp2->y - bevp0->y;
@@ -1828,7 +1825,7 @@ void makeBevelList(Object *ob)
 					
 					Normalize(vec);
 
-					quat= vectoquat(vec, 5, 1);
+					vectoquat(vec, 5, 1, quat);
 					
 					q[0]= (float)cos(0.5*bevp1->alfa);
 					x1= (float)sin(0.5*bevp1->alfa);
@@ -1976,13 +1973,16 @@ float calc_curve_subdiv_radius(Curve *cu, Nurb *nu, int cursubdiv)
 		if ( ((nu->type & 7)==CU_NURBS) && (nu->flagu & CU_CYCLIC)) {
 			if (bp >= bplast) bp = bpfirst;
 			else bp++;
+		} else if ( bp > bplast ) {
+			/* this can happen in rare cases, refer to bug [#8596] */
+			bp = bplast;
 		}
 		
 		rad = prevrad = bp->radius;
 		
 		if ((bp == bplast) && (nu->flagu & CU_CYCLIC)) { /* loop around */
 			bp= bpfirst;
-		} else if (bp != bplast) {
+		} else if (bp < bplast) {
 			bp++;
 		}
 		nextrad = bp->radius;

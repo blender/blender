@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef __RAS_GLEXTENSIONMANAGER_H__
@@ -38,11 +35,9 @@
 #  include <GL/gl.h>
 
 #elif defined(__APPLE__)
-#  define __glext_h_
 #  define GL_GLEXT_LEGACY 1
 #  include <OpenGL/gl.h>
 #  include <OpenGL/glu.h>
-#  undef __glext_h_
 
 #else /* UNIX */
 #  define __glext_h_
@@ -52,11 +47,20 @@
 #  undef __glext_h_
 #endif
 
+#ifdef WITH_GLEXT
+#ifdef WIN32
+#  include <GL/glext.h>
+#elif defined(__APPLE__)
+#  include "mac_compat_glext.h"
+#  include <OpenGL/glext.h>
+# else
+#  include <GL/glext.h>
+# endif
+#endif
+
 #ifdef __sgi
 #  undef GL_ARB_vertex_program
 #endif
-
-#include "glext.h"
 
 #include "EXT_separate_specular_color.h"
 #include "ARB_multitexture.h"

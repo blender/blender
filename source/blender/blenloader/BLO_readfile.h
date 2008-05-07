@@ -1,15 +1,12 @@
 /*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * external readfile function prototypes
  */
 #ifndef BLO_READFILE_H
@@ -238,7 +235,7 @@ char *BLO_gethome(void);
 int BLO_has_bfile_extension(char *str);
 void BLO_library_append(struct SpaceFile *sfile, char *dir, int idcode);
 void BLO_library_append_(BlendHandle **libfiledata, struct direntry* filelist, int totfile, char *dir, char* file, short flag, int idcode);
-void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcode, short flag, struct Scene *scene);
+void BLO_script_library_append(BlendHandle **bh, char *dir, char *name, int idcode, short flag, struct Scene *scene);
 
 BlendFileData* blo_read_blendafterruntime(int file, int actualsize, BlendReadError *error_r);
 

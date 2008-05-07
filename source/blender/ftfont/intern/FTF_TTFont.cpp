@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h>
@@ -34,6 +31,7 @@
 #include <locale.h>
 #include "libintl.h"
 #include "BLI_blenlib.h"
+#include "BKE_font.h"
 
 #include "../FTF_Settings.h"
 
@@ -50,49 +48,6 @@
 //#define FONT_PATH_DEFAULT ".bfont.ttf"
 
 #define FTF_MAX_STR_SIZE 512
-
-
-int utf8towchar(wchar_t *w, char *c)
-{
-  int len=0;
-  if(w==NULL || c==NULL) return(0);
-  //printf("%s\n",c);
-  while(*c)
-  {
-    //Converts Unicode to wchar:
-
-    if(*c & 0x80)
-    {
-      if(*c & 0x40)
-      {
-        if(*c & 0x20)
-        {
-          if(*c & 0x10)
-          {
-            *w=(c[0] & 0x0f)<<18 | (c[1]&0x1f)<<12 | (c[2]&0x3f)<<6 | (c[3]&0x7f);
-            c++;
-          }
-          else
-            *w=(c[0] & 0x1f)<<12 | (c[1]&0x3f)<<6 | (c[2]&0x7f);
-          c++;
-        }
-        else
-          *w=(c[0] &0x3f)<<6 | c[1]&0x7f;
-        c++;
-      }
-      else
-        *w=(c[0] & 0x7f);
-    }
-    else
-      *w=(c[0] & 0x7f);
-
-    c++;
-    w++;
-    len++;
-  }
-  return len;
-}
-
 
 FTF_TTFont::FTF_TTFont(void)
 {	

@@ -1,14 +1,11 @@
 /**
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * filter.c
  *
  * $Id$
@@ -206,29 +203,46 @@ void imb_filterx(struct ImBuf *ibuf)
 void IMB_filterN(ImBuf *out, ImBuf *in)
 {
 	register char *row1, *row2, *row3;
-	register char *cp;
+	register char *cp, *r11, *r13, *r21, *r23, *r31, *r33;
 	int rowlen, x, y;
 	
 	rowlen= in->x;
 	
-	for(y=2; y<in->y; y++) {
+	for(y=0; y<in->y; y++) {
 		/* setup rows */
-		row1= (char *)(in->rect + (y-2)*rowlen);
-		row2= row1 + 4*rowlen;
-		row3= row2 + 4*rowlen;
+		row2= (char*)(in->rect + y*rowlen);
+		row1= (y == 0)? row2: row2 - 4*rowlen;
+		row3= (y == in->y-1)? row2: row2 + 4*rowlen;
 		
-		cp= (char *)(out->rect + (y-1)*rowlen);
-		cp[0]= row2[0];
-		cp[1]= row2[1];
-		cp[2]= row2[2];
-		cp[3]= row2[3];
-		cp+= 4;
+		cp= (char *)(out->rect + y*rowlen);
 		
-		for(x=2; x<rowlen; x++) {
-			cp[0]= (row1[0] + 2*row1[4] + row1[8] + 2*row2[0] + 4*row2[4] + 2*row2[8] + row3[0] + 2*row3[4] + row3[8])>>4;
-			cp[1]= (row1[1] + 2*row1[5] + row1[9] + 2*row2[1] + 4*row2[5] + 2*row2[9] + row3[1] + 2*row3[5] + row3[9])>>4;
-			cp[2]= (row1[2] + 2*row1[6] + row1[10] + 2*row2[2] + 4*row2[6] + 2*row2[10] + row3[2] + 2*row3[6] + row3[10])>>4;
-			cp[3]= (row1[3] + 2*row1[7] + row1[11] + 2*row2[3] + 4*row2[7] + 2*row2[11] + row3[3] + 2*row3[7] + row3[11])>>4;
+		for(x=0; x<rowlen; x++) {
+			if(x == 0) {
+				r11 = row1;
+				r21 = row1;
+				r31 = row1;
+			}
+			else {
+				r11 = row1-4;
+				r21 = row1-4;
+				r31 = row1-4;
+			}
+
+			if(x == rowlen-1) {
+				r13 = row1;
+				r23 = row1;
+				r33 = row1;
+			}
+			else {
+				r13 = row1+4;
+				r23 = row1+4;
+				r33 = row1+4;
+			}
+
+			cp[0]= (r11[0] + 2*row1[0] + r13[0] + 2*r21[0] + 4*row2[0] + 2*r23[0] + r31[0] + 2*row3[0] + r33[0])>>4;
+			cp[1]= (r11[1] + 2*row1[1] + r13[1] + 2*r21[1] + 4*row2[1] + 2*r23[1] + r31[1] + 2*row3[1] + r33[1])>>4;
+			cp[2]= (r11[2] + 2*row1[2] + r13[2] + 2*r21[2] + 4*row2[2] + 2*r23[2] + r31[2] + 2*row3[2] + r33[2])>>4;
+			cp[3]= (r11[3] + 2*row1[3] + r13[3] + 2*r21[3] + 4*row2[3] + 2*r23[3] + r31[3] + 2*row3[3] + r33[3])>>4;
 			cp+=4; row1+=4; row2+=4; row3+=4;
 		}
 	}
@@ -240,13 +254,16 @@ void IMB_filter(struct ImBuf *ibuf)
 	imb_filterx(ibuf);
 }
 
-#define EXTEND_PIXEL(a, w)	if((a)[3]) {r+= w*(a)[0]; g+= w*(a)[1]; b+= w*(a)[2]; tot+=w;}
+#define EXTEND_PIXEL(color, w) if((color)[3]) {r+= w*(color)[0]; g+= w*(color)[1]; b+= w*(color)[2]; a+= w*(color)[3]; tot+=w;}
 
-/* if alpha is zero, it checks surrounding pixels and averages color. sets new alphas to 1.0 */
-void IMB_filter_extend(struct ImBuf *ibuf)
+/* if alpha is zero, it checks surrounding pixels and averages color. sets new alphas to 1.0
+ * 
+ * When a mask is given, only effect pixels with a mask value of 1, defined as BAKE_MASK_MARGIN in rendercore.c
+ * */
+void IMB_filter_extend(struct ImBuf *ibuf, char *mask)
 {
 	register char *row1, *row2, *row3;
-	register char *cp;
+	register char *cp; 
 	int rowlen, x, y;
 	
 	rowlen= ibuf->x;
@@ -256,7 +273,6 @@ void IMB_filter_extend(struct ImBuf *ibuf)
 		float *temprect;
 		float *row1f, *row2f, *row3f;
 		float *fp;
-		int pixlen = 4;
 		temprect= MEM_dupallocN(ibuf->rect_float);
 		
 		for(y=1; y<=ibuf->y; y++) {
@@ -270,11 +286,11 @@ void IMB_filter_extend(struct ImBuf *ibuf)
 				row3f= row2f;
 			
 			fp= (float *)(ibuf->rect_float + (y-1)*rowlen*4);
-			
+				
 			for(x=0; x<rowlen; x++) {
-				if(fp[3]==0.0f) {
+				if((mask==NULL && fp[3]==0.0f) || (mask && mask[((y-1)*rowlen)+x]==1)) {
 					int tot= 0;
-					float r=0.0f, g=0.0f, b=0.0f;
+					float r=0.0f, g=0.0f, b=0.0f, a=0.0f;
 					
 					EXTEND_PIXEL(row1f, 1);
 					EXTEND_PIXEL(row2f, 2);
@@ -290,7 +306,7 @@ void IMB_filter_extend(struct ImBuf *ibuf)
 						fp[0]= r/tot;
 						fp[1]= g/tot;
 						fp[2]= b/tot;
-						fp[3]= 1.0;
+						fp[3]= a/tot;
 					}
 				}
 				fp+=4; 
@@ -300,6 +316,8 @@ void IMB_filter_extend(struct ImBuf *ibuf)
 				}
 			}
 		}
+
+		MEM_freeN(temprect);
 	}
 	else if(ibuf->rect) {
 		int *temprect;
@@ -320,8 +338,9 @@ void IMB_filter_extend(struct ImBuf *ibuf)
 			cp= (char *)(ibuf->rect + (y-1)*rowlen);
 			
 			for(x=0; x<rowlen; x++) {
-				if(cp[3]==0) {
-					int tot= 0, r=0, g=0, b=0;
+				/*if(cp[3]==0) {*/
+				if((mask==NULL && cp[3]==0) || (mask && mask[((y-1)*rowlen)+x]==1)) {
+					int tot= 0, r=0, g=0, b=0, a=0;
 					
 					EXTEND_PIXEL(row1, 1);
 					EXTEND_PIXEL(row2, 2);
@@ -337,10 +356,10 @@ void IMB_filter_extend(struct ImBuf *ibuf)
 						cp[0]= r/tot;
 						cp[1]= g/tot;
 						cp[2]= b/tot;
-						cp[3]= 255;
+						cp[3]= a/tot;
 					}
 				}
-				cp+=4; 
+				cp+=4;
 				
 				if(x!=0) {
 					row1+=4; row2+=4; row3+=4;

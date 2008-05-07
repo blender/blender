@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): 2007, Joshua Leung, Action Editor Recode
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BIF_EDITACTION_H
@@ -46,6 +43,7 @@ enum {
 	ACTTYPE_GROUP,
 	ACTTYPE_ACHAN,
 	ACTTYPE_CONCHAN,
+	ACTTYPE_CONCHAN2,
 	ACTTYPE_ICU,
 	ACTTYPE_FILLIPO,
 	ACTTYPE_FILLCON,
@@ -143,7 +141,8 @@ void paste_actdata(void);
 /* Group/Channel Operations */
 struct bActionGroup *get_active_actiongroup(struct bAction *act);
 void set_active_actiongroup(struct bAction *act, struct bActionGroup *agrp, short select);
-void verify_pchan2achan_grouping(struct bAction *act, struct bPose *pose, char name[]); 
+void verify_pchan2achan_grouping(struct bAction *act, struct bPose *pose, char name[]);
+void sync_pchan2achan_grouping(void); 
 void action_groups_group(short add_group);
 void action_groups_ungroup(void);
 
@@ -151,7 +150,9 @@ void action_groups_ungroup(void);
 void rearrange_action_channels(short mode);
 
 void expand_all_action(void);
+void expand_obscuregroups_action(void);
 void openclose_level_action(short mode);
+void setflag_action_channels(short mode);
 
 /* IPO/Handle Types  */
 void sethandles_action_keys(int code);
@@ -159,9 +160,10 @@ void action_set_ipo_flags(short mode, short event);
 
 /* Select */
 void borderselect_action(void);
+void borderselect_actionchannels(void);
 void deselect_action_keys(short test, short sel);
-void deselect_action_channels(short test);
-void deselect_actionchannels(struct bAction *act, short test);
+void deselect_action_channels(short mode);
+void deselect_actionchannels(struct bAction *act, short mode);
 int select_channel(struct bAction *act, struct bActionChannel *achan, int selectmode);
 void select_actionchannel_by_name(struct bAction *act, char *name, int select);
 void selectkeys_leftright (short leftright, short select_mode);
@@ -187,6 +189,7 @@ void actdata_filter(ListBase *act_data, int filter_mode, void *data, short datat
 void *get_action_context(short *datatype);
 
 void remake_action_ipos(struct bAction *act);
+void action_previewrange_set(struct bAction *act);
 
 /* event handling */
 void winqreadactionspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);

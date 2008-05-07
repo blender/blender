@@ -6,15 +6,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,7 +29,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -140,10 +137,6 @@ void do_text_buttons(unsigned short event)
 		
 	case B_TEXTDELETE:
 		{
-			Object *obt;
-			bConstraint *con;
-			int update;
-			
 			text= st->text;
 			if (!text) return;
 			
@@ -156,36 +149,8 @@ void do_text_buttons(unsigned short event)
 				pop_space_text(st);
 			}
 			
-			/*check all pyconstraints*/
-			for (obt=G.main->object.first; obt; obt=obt->id.next) {
-				update = 0;
-				if(obt->type==OB_ARMATURE && obt->pose) {
-					bPoseChannel *pchan;
-					for(pchan= obt->pose->chanbase.first; pchan; pchan= pchan->next) {
-						for (con = pchan->constraints.first; con; con=con->next) {
-							if (con->type==CONSTRAINT_TYPE_PYTHON) {
-								bPythonConstraint *data = con->data;
-								if (data->text==text) data->text = NULL;
-								update = 1;
-								
-							}
-						}
-					}
-				}
-				for (con = obt->constraints.first; con; con=con->next) {
-					if (con->type==CONSTRAINT_TYPE_PYTHON) {
-						bPythonConstraint *data = con->data;
-						if (data->text==text) data->text = NULL;
-						update = 1;
-					}
-				}
-				
-				if (update) {
-					DAG_object_flush_update(G.scene, obt, OB_RECALC_DATA);
-				}
-			}
-			
 			BPY_clear_bad_scriptlinks(text);
+			BPY_free_pyconstraint_links(text);
 			free_text_controllers(text);
 			
 			unlink_text(text);
@@ -380,14 +345,16 @@ static void do_text_editmenu(void *arg, int event)
 		txt_do_redo(text);
 		break;
 	case 3:
+		txt_copy_clipboard(text);
 		txt_cut_sel(text);
 		pop_space_text(st);
 		break;
 	case 4:
-		txt_copy_sel(text);
+		//txt_copy_sel(text);
+		txt_copy_clipboard(text);
 		break;
 	case 5:
-		txt_paste(text);
+		txt_paste_clipboard(text);
 		if (st->showsyntax) get_format_string(st);
 		break;
 	case 6:

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #define PY_TOOLBOX 1
@@ -169,28 +166,6 @@ void asciitoraw(int ch, unsigned short *event, unsigned short *qual)
 
 /* this va_ stuff allows printf() style codes in these menus */
 
-static int vconfirm_choice(char *title, char *itemfmt, va_list ap)
-{
-	char *s, buf[512];
-
-	s= buf;
-	if (title) s+= sprintf(s, "%s%%t|", title);
-	vsprintf(s, itemfmt, ap);
-	
-	return (pupmenu(buf));
-}
-int confirm_choice(char *title, char *itemfmt, ...)
-{
-	va_list ap;
-	int ret;
-	
-	va_start(ap, itemfmt);
-	ret= vconfirm_choice(title, itemfmt, ap);
-	va_end(ap);
-	
-	return ret;
-}
-
 static int vconfirm(char *title, char *itemfmt, va_list ap)
 {
 	char *s, buf[512];
@@ -316,13 +291,14 @@ short button(short *var, short min, short max, char *str)
 	return 0;
 }
 
-short sbutton(char *var, float min, float max, char *str)
+short sbutton(char *var, short min, short max, char *str)
 {
 	uiBlock *block;
 	ListBase listb={0, 0};
 	short x1,y1;
 	short mval[2], ret=0;
-
+	char *editvar = NULL; /* dont edit the original text, incase we cancel the popup */
+	
 	if(min>max) min= max;
 
 	getmouseco_sc(mval);
@@ -338,7 +314,10 @@ short sbutton(char *var, float min, float max, char *str)
 	x1=mval[0]-250; 
 	y1=mval[1]-20; 
 	
-	uiDefButC(block, TEX, 32766, str,	x1+5,y1+10,225,20, var,(float)min,(float)max, 0, 0, "");
+	editvar = MEM_callocN(max, "sbutton");
+	BLI_strncpy(editvar, var, max);
+	
+	uiDefButC(block, TEX, 32766, str,	x1+5,y1+10,225,20, editvar,(float)min,(float)max, 0, 0, "");
 	uiDefBut(block, BUT, 32767, "OK",	x1+236,y1+10,25,20, NULL, 0, 0, 0, 0, "");
 
 	uiBoundsBlock(block, 5);
@@ -346,7 +325,12 @@ short sbutton(char *var, float min, float max, char *str)
 	mainqenter_ext(BUT_ACTIVATE, 32766, 0);	/* note, button id '32766' is asking for errors some day! */
 	ret= uiDoBlocks(&listb, 0, 0);
 
-	if(ret==UI_RETURN_OK) return 1;
+	if(ret==UI_RETURN_OK) {
+		BLI_strncpy(var, editvar, max);
+		MEM_freeN(editvar);
+		return 1;
+	}
+	MEM_freeN(editvar);
 	return 0;
 	
 }
@@ -785,13 +769,6 @@ ListBase tb_listb= {NULL, NULL};
 #define TB_CTRL	1024
 #define TB_PAD	2048
 #define TB_SHIFT 4096
-
-typedef struct TBitem {
-	int icon;
-	char *name;
-	int retval;
-	void *poin;
-} TBitem;
 
 static void tb_do_hotkey(void *arg, int event)
 {
@@ -1324,9 +1301,10 @@ static TBitem tb_transform_clearapply[]= {
 static TBitem tb_transform_snap[]= {
 {	0, "Selection -> Grid|Shift S, 1", 		1, NULL},
 {	0, "Selection -> Cursor|Shift S, 2", 	2, NULL},
-{	0, "Cursor -> Grid|Shift S, 3", 		3, NULL},
+{	0, "Selection -> Center|Shift S, 3", 3, NULL},
 {	0, "Cursor -> Selection|Shift S, 4", 4, NULL},
-{	0, "Selection -> Center|Shift S, 5", 5, NULL},
+{	0, "Cursor -> Grid|Shift S, 5", 		5, NULL},
+{	0, "Cursor -> Active|Shift S, 6", 		6, NULL},
 {  -1, "", 			0, do_view3d_edit_snapmenu}};
 
 static void tb_do_transform(void *arg, int event)
@@ -1592,6 +1570,7 @@ static TBitem tb_node_addsh[]= {
 	{	0, "Vector",		4, NULL},
 	{	0, "Convertor",	5, NULL},
 	{	0, "Group",		6, NULL},
+	{	0, "Dynamic",	7, NULL},
 	{  -1, "", 			0, NULL}};
 
 static TBitem tb_node_addcomp[]= {
@@ -1604,6 +1583,7 @@ static TBitem tb_node_addcomp[]= {
 	{ 	0, "Matte",		7, NULL},
 	{	0, "Distort",	8, NULL},
 	{	0, "Group",		9, NULL},
+	{	0, "Dynamic",	10, NULL},
 	{  	-1, "", 		0, NULL}};
 
 /* do_node_addmenu() in header_node.c, prototype in BSE_headerbuttons.h */
@@ -1652,11 +1632,21 @@ static TBitem *node_add_sublevel(ListBase *storage, bNodeTree *ntree, int nodecl
 		}
 	}
 	else {
-		bNodeType *ntype= ntree->alltypes.first;
-		for(a=0; ntype; ntype= ntype->next) {
-			if( ntype->nclass == nodeclass ) {
-				addmenu[a].name= ntype->name;
-				addmenu[a].retval= ntype->type;
+		bNodeType *type= ntree->alltypes.first;
+		int script=0;
+		for(a=0; type; type= type->next) {
+			if( type->nclass == nodeclass ) {
+				if(type->type == NODE_DYNAMIC) {
+					if(type->id)
+						addmenu[a].name= type->id->name+2;
+					else
+						addmenu[a].name= type->name;
+					addmenu[a].retval= NODE_DYNAMIC_MENU+script;
+					script++;
+				} else {
+					addmenu[a].name= type->name;
+					addmenu[a].retval= type->type;
+				}
 				a++;
 			}
 		}
@@ -1994,6 +1984,9 @@ void toolbox_n(void)
 		}
 	}
 	
+	/* save present mouse position */
+	toolbox_mousepos(mval, 1);
+
 	mywinset(G.curscreen->mainwin); // we go to screenspace
 	
 	block= uiNewBlock(&tb_listb, "toolbox", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
@@ -2152,6 +2145,7 @@ void toolbox_n(void)
 			menu1[3].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_VECTOR);
 			menu1[4].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_CONVERTOR);
 			menu1[5].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_GROUP);
+			menu1[6].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_DYNAMIC);
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
 			menu1[0].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_INPUT);
@@ -2163,6 +2157,7 @@ void toolbox_n(void)
 			menu1[6].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_MATTE);
 			menu1[7].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_DISTORT);
 			menu1[8].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_GROUP);
+			menu1[9].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_DYNAMIC);
 
 		}
 		
@@ -2273,5 +2268,76 @@ void reset_toolbox(void)
 	} else {
 		tb_mainx= 0;
 		tb_mainy= -5;
+	}
+}
+
+/* general toolbox for python access */
+void toolbox_generic( TBitem *generic_menu )
+{
+	uiBlock *block;
+	uiBut *but;
+	TBitem *menu;
+	int dx=96;
+	short event, mval[2];
+	long ypos = -5;
+	
+	tb_mainx= -32;
+	tb_mainy= -5;
+	
+	mywinset(G.curscreen->mainwin); // we go to screenspace
+	
+	block= uiNewBlock(&tb_listb, "toolbox", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
+	uiBlockSetCol(block, TH_MENU_ITEM);
+	
+	getmouseco_sc(mval);
+	
+	menu= generic_menu;
+	while(menu->icon != -1) menu++;
+	uiBlockSetButmFunc(block, menu->poin, NULL);
+	
+	/* Add the menu */
+	for (menu = generic_menu; menu->icon != -1; menu++) {
+		if (menu->poin) {
+			but=uiDefIconTextBlockBut(block, tb_makemenu, menu->poin, ICON_RIGHTARROW_THIN, menu->name, mval[0]+tb_mainx,mval[1]+tb_mainy+ypos+5, dx, 19, "");
+			uiButSetFlag(but, UI_MAKE_RIGHT);
+			
+			uiButSetFunc(but, store_main, (void *)+32, (void *)ypos);
+		} else {
+			/* TODO - add icon support */
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, menu->name, mval[0]+tb_mainx,mval[1]+tb_mainy+ypos+5, dx, 19, NULL, 0.0, 0.0, 0, menu->retval, "");
+		}
+		ypos-=20;
+	}
+	
+	uiBlockSetButmFunc(block, menu->poin, NULL);
+	
+	uiBoundsBlock(block, 2);
+	event= uiDoBlocks(&tb_listb, 0, 1);
+	
+	mywinset(curarea->win);
+	
+	reset_toolbox();
+}
+
+/* save or restore mouse position when entering/exiting menus */
+void toolbox_mousepos( short *mpos, int save )
+{
+	static short initpos[2];
+	static int tog;
+	
+	if (save) {
+		getmouseco_areawin(mpos);
+		initpos[0]= mpos[0];
+		initpos[1]= mpos[1];
+		tog=1;
+	} else {
+		if (tog) {
+			mpos[0]= initpos[0];
+			mpos[1]= initpos[1];
+		} else {
+			getmouseco_areawin(mpos);
+		}
+		tog= 0;
 	}
 }

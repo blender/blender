@@ -1,15 +1,12 @@
 /*  
  *  $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Alex Mole, Nathan Letwory, Joilnen B. Leite, Ken Hughes
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 #include "Texture.h" /*This must come first*/
 
@@ -1563,16 +1560,23 @@ static int Texture_setImage( BPy_Texture * self, PyObject * value )
 {
 	Image *blimg = NULL;
 
-	if( !BPy_Image_Check (value) )
+	if ( value != Py_None && !BPy_Image_Check (value) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-					      "expected an Image" );
-	blimg = Image_FromPyObject( value );
+					      "expected an Image or None" );
+
 
 	if( self->texture->ima ) {
 		self->texture->ima->id.us--;
+		self->texture->ima = NULL;
 	}
 
+	if ( value == Py_None )
+		return 0;
+
+	blimg = Image_FromPyObject( value );
+
 	self->texture->ima = blimg;
+	self->texture->type = TEX_IMAGE;
 	BKE_image_signal(blimg, &self->texture->iuser, IMA_SIGNAL_RELOAD );
 	id_us_plus( &blimg->id );
 
@@ -1589,10 +1593,10 @@ static int Texture_setImageFlags( BPy_Texture * self, PyObject * value,
 	 * so set/clear the bit in the bitfield based on the type
 	 */
 
-	if( (int)type ) {
+	if( GET_INT_FROM_POINTER(type) ) {
 		int err;
 		param = self->texture->imaflag;
-		err = EXPP_setBitfield( value, &param, (int)type, 'h' );
+		err = EXPP_setBitfield( value, &param, GET_INT_FROM_POINTER(type), 'h' );
 		if( err )
 			return err;
 
@@ -1636,9 +1640,9 @@ static int Texture_setIUserFlags( BPy_Texture * self, PyObject * value,
 				"expected True/False or 0/1" );
 	
 	if( param )
-		self->texture->iuser.flag |= (int)flag;
+		self->texture->iuser.flag |= GET_INT_FROM_POINTER(flag);
 	else
-		self->texture->iuser.flag &= ~(int)flag;
+		self->texture->iuser.flag &= ~GET_INT_FROM_POINTER(flag);
 	return 0;
 }
 
@@ -1710,7 +1714,7 @@ static int Texture_setNoiseBasis2( BPy_Texture * self, PyObject * value,
 	 * attribute, so check the range and set the whole value
 	 */
 
-	if( (int)type == EXPP_TEX_NOISEBASIS2 ) {
+	if( GET_INT_FROM_POINTER(type) == EXPP_TEX_NOISEBASIS2 ) {
     	int param;
 		if( !PyInt_Check( value ) )
 			return EXPP_ReturnIntError( PyExc_TypeError, 
@@ -1740,7 +1744,7 @@ static int Texture_setNoiseBasis2( BPy_Texture * self, PyObject * value,
 			return EXPP_ReturnIntError( PyExc_ValueError,
 							  "expected int value of 1" );
 
-		self->texture->noisebasis2 = (short)(int)type;
+		self->texture->noisebasis2 = (short)GET_INT_FROM_POINTER(type);
 	}
 	return 0;
 }
@@ -2100,15 +2104,15 @@ static PyObject *Texture_getImageFlags( BPy_Texture *self, void *type )
 	 * other types means attribute "mipmap", "calcAlpha", etc
 	 */
 
-	if( (int)type )
-		return EXPP_getBitfield( &self->texture->imaflag, (int)type, 'h' );
+	if( GET_INT_FROM_POINTER(type) )
+		return EXPP_getBitfield( &self->texture->imaflag, GET_INT_FROM_POINTER(type), 'h' );
 	else
 		return PyInt_FromLong( self->texture->imaflag );
 }
 
 static PyObject *Texture_getIUserFlags( BPy_Texture *self, void *flag )
 {
-	if( self->texture->iuser.flag & (int)flag )
+	if( self->texture->iuser.flag & GET_INT_FROM_POINTER(flag) )
 		Py_RETURN_TRUE;
 	else
 		Py_RETURN_FALSE;
@@ -2135,10 +2139,10 @@ static PyObject *Texture_getNoiseBasis2( BPy_Texture *self, void *type )
 	 * other types means attribute "sine", "saw", or "tri" attribute
 	 */
 
-	if( (int)type == EXPP_TEX_NOISEBASIS2 )
+	if( GET_INT_FROM_POINTER(type) == EXPP_TEX_NOISEBASIS2 )
 		return PyInt_FromLong( self->texture->noisebasis2 );
 	else
-		return PyInt_FromLong( ( self->texture->noisebasis2 == (int)type ) ? 1 : 0 );
+		return PyInt_FromLong( ( self->texture->noisebasis2 == GET_INT_FROM_POINTER(type) ) ? 1 : 0 );
 }
 
 static PyObject *Texture_getNoiseDepth( BPy_Texture *self )

@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #if defined (__sgi)
@@ -211,12 +208,6 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 			(*i)->Release();
 		}
 		m_events.clear();
-	
-		if (m_type != KX_ACT_IPO_PLAY)
-		{
-			if (bNegativeEvent)
-				RemoveAllEvents();
-		}
 	}
 	
 	double  start_smaller_then_end = ( m_startframe < m_endframe ? 1.0 : -1.0);
@@ -226,6 +217,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	{
 		if (m_starttime < -2.0*start_smaller_then_end*(m_endframe - m_startframe))
 		{
+			// start for all Ipo, initial start for LOOP_STOP
 			m_starttime = curtime - KX_KetsjiEngine::GetSuspendedDelta();
 			m_bIpoPlaying = true;
 		}
@@ -238,17 +230,10 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	{
 		// Check if playing forwards.  result = ! finished
 		
-		if (!bNegativeEvent)
-		{
-			if (start_smaller_then_end > 0.0)
-				result = (m_localtime < m_endframe && !(m_localtime == m_startframe && bNegativeEvent));
-			else
-				result = (m_localtime > m_endframe && !(m_localtime == m_startframe && bNegativeEvent));
-		}
+		if (start_smaller_then_end > 0.0)
+			result = (m_localtime < m_endframe && m_bIpoPlaying);
 		else
-		{
-			result = (m_bIpoPlaying && (m_localtime < m_endframe));
-		}
+			result = (m_localtime > m_endframe && m_bIpoPlaying);
 		
 		if (result)
 		{
@@ -267,7 +252,6 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 		} else
 		{
 			m_localtime=m_startframe;
-			SetStartTime(curtime);
 			m_direction=1;
 		}
 		break;
@@ -275,7 +259,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	case KX_ACT_IPO_PINGPONG:
 	{
 		result = true;
-		if (bNegativeEvent && ((m_localtime == m_startframe )|| (m_localtime == m_endframe)))
+		if (bNegativeEvent && !m_bIpoPlaying)
 			result = false;
 		else
 			SetLocalTime(curtime);
@@ -297,14 +281,18 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	}
 	case KX_ACT_IPO_FLIPPER:
 	{
-		result = !(bNegativeEvent && (m_localtime == m_startframe));
+		if (bNegativeEvent && !m_bIpoPlaying)
+			result = false;
 		if (numevents)
 		{
+			float oldDirection = m_direction;
 			if (bNegativeEvent)
 				m_direction = -1;
 			else
 				m_direction = 1;
-			SetStartTime(curtime);
+			if (m_direction != oldDirection)
+				// changing direction, reset start time
+				SetStartTime(curtime);
 		}
 		
 		SetLocalTime(curtime);
@@ -332,18 +320,26 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 				m_bNegativeEvent = false;
 				numevents = 0;
 			}
-			SetStartTime(curtime);
+			if (!m_bIpoPlaying)
+			{
+				// Ipo was stopped, make sure we will restart from where it stopped
+				SetStartTime(curtime);
+				if (!bNegativeEvent)
+					// positive signal will restart the Ipo
+					m_bIpoPlaying = true;
+			}
+
 		} // fall through to loopend, and quit the ipo animation immediatly 
 	}
 	case KX_ACT_IPO_LOOPEND:
 	{
 		if (numevents){
-			if (bNegativeEvent){
+			if (bNegativeEvent && m_bIpoPlaying){
 				m_bNegativeEvent = true;
 			}
 		}
 		
-		if (bNegativeEvent && m_localtime == m_startframe){
+		if (bNegativeEvent && !m_bIpoPlaying){
 			result = false;
 		} 
 		else
@@ -414,8 +410,12 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 		result = false;
 	}
 	
-	if (!result && m_type != KX_ACT_IPO_LOOPSTOP)
-		m_starttime = -2.0*start_smaller_then_end*(m_endframe - m_startframe) - 1.0;
+	if (!result)
+	{
+		if (m_type != KX_ACT_IPO_LOOPSTOP)
+			m_starttime = -2.0*start_smaller_then_end*(m_endframe - m_startframe) - 1.0;
+		m_bIpoPlaying = false;
+	}
 
 	return result;
 }

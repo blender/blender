@@ -1,14 +1,14 @@
 #!BPY
 
 """
-Name: 'Interactive Console'
-Blender: 237
+Name: 'Interactive Python Console'
+Blender: 245
 Group: 'System'
 Tooltip: 'Interactive Python Console'
 """
 
-__author__ = "Campbell Barton AKA Ideasman"
-__url__ = ["Author's homepage, http://members.iinet.net.au/~cpbarton/ideasman/", "blender", "elysiun", "Official Python site, http://www.python.org"]
+__author__ = "Campbell Barton aka ideasman42"
+__url__ = ["www.blender.org", "blenderartists.org", "www.python.org"]
 __bpydoc__ = """\
 This is an interactive console, similar to Python's own command line interpreter.  Since it is embedded in Blender, it has access to all Blender Python modules.
 
@@ -26,8 +26,6 @@ Usage:<br>
   - Ctrl + Enter: auto compleate based on variable names and modules loaded -- multiple choices popup a menu;<br>
   - Shift + Enter: multiline functions -- delays executing code until only Enter is pressed.
 """
-__author__ = "Campbell Barton AKA Ideasman"
-__url__ = ["http://members.iinet.net.au/~cpbarton/ideasman/", "blender", "elysiun"]
 
 # -------------------------------------------------------------------------- 
 # ***** BEGIN GPL LICENSE BLOCK ***** 
@@ -63,7 +61,7 @@ __LINE_HISTORY__ = 500
 
 global __FONT_SIZE__
 
-__FONT_SIZES__ = ( ('tiny', 10), ('small', 12), ('normal', 14), ('large', 16) )
+__FONT_SIZES__ = ( ('tiny', 10), ('small', 12), ('normalfix', 14), ('large', 16) )
 __FONT_SIZE__ = 2 # index for the list above, normal default.
 
 global __CONSOLE_LINE_OFFSET__
@@ -422,9 +420,13 @@ def handle_event(evt, val):
 		global histIndex, cmdBuffer
 		if abs(histIndex)+1 >= len(cmdBuffer):
 			histIndex = -1
+		histIndex_orig = histIndex
 		histIndex -= 1
-		while cmdBuffer[histIndex].type != 0 and abs(histIndex) < len(cmdBuffer):
+		
+		while	(cmdBuffer[histIndex].type != 0 and abs(histIndex) < len(cmdBuffer)) or \
+				( cmdBuffer[histIndex].cmd == cmdBuffer[histIndex_orig].cmd):
 			histIndex -= 1
+			
 		if cmdBuffer[histIndex].type == 0: # we found one
 			cmdBuffer[-1].cmd = cmdBuffer[histIndex].cmd			
 	
@@ -432,9 +434,13 @@ def handle_event(evt, val):
 		global histIndex, cmdBuffer
 		if histIndex >= -2:
 			histIndex = -len(cmdBuffer)
+		histIndex_orig = histIndex
 		histIndex += 1
-		while cmdBuffer[histIndex].type != 0 and histIndex != -2:
+		while	(cmdBuffer[histIndex].type != 0 and histIndex != -2) or \
+				( cmdBuffer[histIndex].cmd == cmdBuffer[histIndex_orig].cmd):
+			
 			histIndex += 1
+			
 		if cmdBuffer[histIndex].type == 0: # we found one
 			cmdBuffer[-1].cmd = cmdBuffer[histIndex].cmd
 	

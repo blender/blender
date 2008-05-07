@@ -97,11 +97,16 @@ static void layerCopy_mdeformvert(const void *source, void *dest,
 
 	for(i = 0; i < count; ++i) {
 		MDeformVert *dvert = (MDeformVert *)((char *)dest + i * size);
-		MDeformWeight *dw = MEM_callocN(dvert->totweight * sizeof(*dw),
-		                                "layerCopy_mdeformvert dw");
 
-		memcpy(dw, dvert->dw, dvert->totweight * sizeof(*dw));
-		dvert->dw = dw;
+		if(dvert->totweight) {
+			MDeformWeight *dw = MEM_callocN(dvert->totweight * sizeof(*dw),
+											"layerCopy_mdeformvert dw");
+
+			memcpy(dw, dvert->dw, dvert->totweight * sizeof(*dw));
+			dvert->dw = dw;
+		}
+		else
+			dvert->dw = NULL;
 	}
 }
 

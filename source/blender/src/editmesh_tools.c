@@ -1,15 +1,12 @@
 /**
  * $Id: 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Johnny Matthews, Geoffrey Bantle.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /*
@@ -73,6 +70,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_bmesh.h"
 
 #ifdef WITH_VERSE
 #include "BKE_verse.h"
@@ -90,6 +88,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BIF_resources.h"
 #include "BIF_toolbox.h"
 #include "BIF_transform.h"
+#include "transform.h"
 
 #ifdef WITH_VERSE
 #include "BIF_verse.h"
@@ -325,8 +324,12 @@ int removedoublesflag(short flag, short automerge, float limit)		/* return amoun
 				if(eed->v1->f & 128) eed->v1 = eed->v1->tmp.v;
 				if(eed->v2->f & 128) eed->v2 = eed->v2->tmp.v;
 				e1= addedgelist(eed->v1, eed->v2, eed);
-				
-				if(e1) e1->f2= 1;
+
+				if(e1) {
+					e1->f2= 1;
+					if(eed->f & SELECT)
+						e1->f |= SELECT;
+				}
 				if(e1!=eed) free_editedge(eed);
 			}
 		}
@@ -988,9 +991,10 @@ void delete_mesh(void)
 		erase_vertices(&em->verts);
 	} 
 	else if(event==6) {
-		if(!EdgeLoopDelete()) {
-			BIF_undo();
-		}
+		if(!EdgeLoopDelete())
+			return;
+
+		str= "Erase Edge Loop";
 	}
 	else if(event==4) {
 		str= "Erase Edges & Faces";
@@ -2425,6 +2429,10 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	
 	if(multires_test()) return;
 
+	//Set faces f1 to 0 cause we need it later
+	for(ef=em->faces.first;ef;ef = ef->next) ef->f1 = 0;
+	for(eve=em->verts.first; eve; eve=eve->next) eve->f1 = eve->f2 = 0;
+
 	for (; md; md=md->next) {
 		if (md->type==eModifierType_Mirror) {
 			MirrorModifierData *mmd = (MirrorModifierData*) md;	
@@ -2451,11 +2459,6 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 		}
 	}
 	
-	//Set faces f1 to 0 cause we need it later
-	for(ef=em->faces.first;ef;ef = ef->next) {
-		ef->f1 = 0;
-	}
-	
 	//Flush vertex flags upward to the edges
 	for(eed = em->edges.first;eed;eed = eed->next) {
 		//if(eed->f & flag && eed->v1->f == eed->v2->f) {
@@ -2465,9 +2468,8 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 		if(eed->f & flag) {
 			eed->f2	|= EDGEOLD;
 		}
-	}   
-	  	
-
+	}
+	
 	// We store an array of verts for each edge that is subdivided,
 	// we put this array as a value in a ghash which is keyed by the EditEdge*
 
@@ -3707,6 +3709,7 @@ static void edge_rotate(EditEdge *eed,int dir)
 			srchedge->dir = eed->dir;
 			srchedge->seam = eed->seam;
 			srchedge->crease = eed->crease;
+			srchedge->bweight = eed->bweight;
 		}
 	}
 	
@@ -4476,7 +4479,53 @@ static void bevel_mesh_recurs(float bsize, short recurs, int allfaces)
 	}
 }
 
-void bevel_menu()
+void bevel_menu() {
+	BME_Mesh *bm;
+	BME_TransData_Head *td;
+	TransInfo *t;
+	int options, res, gbm_free = 0;
+
+	t = BIF_GetTransInfo();
+	if (!G.editBMesh) {
+		G.editBMesh = MEM_callocN(sizeof(*(G.editBMesh)),"bevel_menu() G.editBMesh");
+		gbm_free = 1;
+	}
+
+	G.editBMesh->options = BME_BEVEL_RUNNING | BME_BEVEL_SELECT;
+	G.editBMesh->res = 1;
+
+	while(G.editBMesh->options & BME_BEVEL_RUNNING) {
+		options = G.editBMesh->options;
+		res = G.editBMesh->res;
+		bm = BME_make_mesh();
+		bm = BME_editmesh_to_bmesh(G.editMesh, bm);
+		BIF_undo_push("Pre-Bevel");
+		free_editMesh(G.editMesh);
+		BME_bevel(bm,0.1f,res,options,0,0,&td);
+		BME_bmesh_to_editmesh(bm, td);
+		EM_selectmode_flush();
+		G.editBMesh->bm = bm;
+		G.editBMesh->td = td;
+		initTransform(TFM_BEVEL,CTX_BMESH);
+		Transform();
+		BME_free_transdata(td);
+		BME_free_mesh(bm);
+		if (t->state != TRANS_CONFIRM) {
+			BIF_undo();
+		}
+		if (options == G.editBMesh->options) {
+			G.editBMesh->options &= ~BME_BEVEL_RUNNING;
+		}
+	}
+
+	if (gbm_free) {
+		MEM_freeN(G.editBMesh);
+		G.editBMesh = NULL;
+	}
+}
+
+
+void bevel_menu_old()
 {
 	char Finished = 0, Canceled = 0, str[100], Recalc = 0;
 	short mval[2], oval[2], curval[2], event = 0, recurs = 1, nr;
@@ -4608,7 +4657,7 @@ int EdgeLoopDelete(void) {
 	if(!EdgeSlide(1, 1)) {
 		return 0;
 	}
-	select_more();
+	EM_select_more();
 	removedoublesflag(1,0, 0.001);
 	EM_select_flush();
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
@@ -4874,34 +4923,35 @@ int EdgeSlide(short immediate, float imperc)
 	nearest = NULL;
 	vertdist = -1;  
 	while(look) {	
+		tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
+		
+		if(!tempsv->up || !tempsv->down) {
+			error("Missing rails");
+			BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
+			BLI_linklist_free(vertlist,NULL); 
+			BLI_linklist_free(edgelist,NULL); 
+			return 0;
+		}
+
+		if(G.f & G_DRAW_EDGELEN) {
+			if(!(tempsv->up->f & SELECT)) {
+				tempsv->up->f |= SELECT;
+				tempsv->up->f2 |= 16;
+			} else {
+				tempsv->up->f2 |= ~16;
+			}
+			if(!(tempsv->down->f & SELECT)) {
+				tempsv->down->f |= SELECT;
+				tempsv->down->f2 |= 16;
+			} else {
+				tempsv->down->f2 |= ~16;
+			}
+		}
+
 		if(look->next != NULL) {
 			SlideVert *sv;
 
-			tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
-			sv		= BLI_ghash_lookup(vertgh,(EditVert*)look->next->link);
-			
-			if(!tempsv->up || !tempsv->down) {
-				error("Missing rails");
-				BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
-				BLI_linklist_free(vertlist,NULL); 
-				BLI_linklist_free(edgelist,NULL); 
-				return 0;
-			}
-
-			if(G.f & G_DRAW_EDGELEN) {
-				if(!(tempsv->up->f & SELECT)) {
-					tempsv->up->f |= SELECT;
-					tempsv->up->f2 |= 16;
-				} else {
-					tempsv->up->f2 |= ~16;
-				}
-				if(!(tempsv->down->f & SELECT)) {
-					tempsv->down->f |= SELECT;
-					tempsv->down->f2 |= 16;
-				} else {
-					tempsv->down->f2 |= ~16;
-				}
-			}
+			sv = BLI_ghash_lookup(vertgh,(EditVert*)look->next->link);
 
 			if(sv) {
 				float tempdist, co[2];
@@ -5158,7 +5208,8 @@ int EdgeSlide(short immediate, float imperc)
 	
 	force_draw(0);
 	
-	EM_automerge(0);
+	if(!immediate)
+		EM_automerge(0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	scrarea_queue_winredraw(curarea);		 
 	
@@ -6064,7 +6115,7 @@ static void collapse_edgeuvs(void)
 
 /*End UV Edge collapse code*/
 
-static void collapseuvs(void)
+static void collapseuvs(EditVert *mergevert)
 {
 	EditFace *efa;
 	MTFace *tf;
@@ -6081,22 +6132,22 @@ static void collapseuvs(void)
 	for(efa = G.editMesh->faces.first; efa; efa=efa->next){
 		tf = CustomData_em_get(&G.editMesh->fdata, efa->data, CD_MTFACE);
 
-		if(efa->v1->f1){
+		if(efa->v1->f1 && ELEM(mergevert, NULL, efa->v1)) {
 			uvav[0] += tf->uv[0][0];
 			uvav[1] += tf->uv[0][1];
 			uvcount += 1;
 		}
-		if(efa->v2->f1){
+		if(efa->v2->f1 && ELEM(mergevert, NULL, efa->v2)){
 			uvav[0] += tf->uv[1][0];		
 			uvav[1] += tf->uv[1][1];
 			uvcount += 1;
 		}
-		if(efa->v3->f1){
+		if(efa->v3->f1 && ELEM(mergevert, NULL, efa->v3)){
 			uvav[0] += tf->uv[2][0];
 			uvav[1] += tf->uv[2][1];
 			uvcount += 1;
 		}
-		if(efa->v4 && efa->v4->f1){
+		if(efa->v4 && efa->v4->f1 && ELEM(mergevert, NULL, efa->v4)){
 			uvav[0] += tf->uv[3][0];
 			uvav[1] += tf->uv[3][1];
 			uvcount += 1;
@@ -6233,7 +6284,7 @@ int merge_firstlast(int first, int uvmerge)
 		for(eve=G.editMesh->verts.first; eve; eve=eve->next){
 			if(eve->f&SELECT) eve->f1 = 1;
 		}
-		collapseuvs();
+		collapseuvs(mergevert);
 	}
 	
 	countall();
@@ -6254,7 +6305,7 @@ int merge_target(int target, int uvmerge)
 		for(eve=G.editMesh->verts.first; eve; eve=eve->next){
 				if(eve->f&SELECT) eve->f1 = 1;
 		}
-		collapseuvs();
+		collapseuvs(NULL);
 	}
 	
 	countall();
@@ -6387,11 +6438,11 @@ void pathselect(void)
 			
 			pnindex = ((PathNode*)s->tmp.p)->u;
 			cost[pnindex] = 0;
-			BLI_heap_insert(heap,  0.0f, (void*)pnindex);
+			BLI_heap_insert(heap,  0.0f, SET_INT_IN_POINTER(pnindex));
 						
 			while( !BLI_heap_empty(heap) ){
 				
-				pnindex = (int)BLI_heap_popmin(heap);
+				pnindex = GET_INT_FROM_POINTER(BLI_heap_popmin(heap));
 				currpn = &(Q[pnindex]);
 				
 				if(currpn == (PathNode*)t->tmp.p) /*target has been reached....*/
@@ -6403,7 +6454,7 @@ void pathselect(void)
 							cost[currpe->v] = cost[currpn->u] + currpe->w;
 							previous[currpe->v] = currpn->u;
 							Q[currpe->v].visited = 1;
-							BLI_heap_insert(heap, cost[currpe->v], (void*)currpe->v);
+							BLI_heap_insert(heap, cost[currpe->v], SET_INT_IN_POINTER(currpe->v));
 						}
 					}
 				}

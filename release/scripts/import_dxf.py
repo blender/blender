@@ -7,7 +7,7 @@ Group: 'Import'
 Tooltip: 'Import for DXF geometry data (Drawing eXchange Format).'
 """
 __author__ = 'Kitsu(Ed Blake) & migius(Remigiusz Fiedler)'
-__version__ = '1.0.12 - 2008.01.17 by migius'
+__version__ = '1.0.12 - 2008.02.08 by migius'
 __url__ = ["http://blenderartists.org/forum/showthread.php?t=84319",
 	 "http://wiki.blender.org/index.php/Scripts/Manual/Import/DXF-3D"]
 __email__ = ["Kitsune_e(at)yahoo.com", "migius(at)4d-vectors.de"]
@@ -110,9 +110,11 @@ History:
  -- bug: "oneMesh" produces sometimes errors
  -- bug: Registry recall from hd_cache ?? only win32 bug??
 
- v1.0.12: 2008.01.17 by migius
+ v1.0.12: 2008.02.08 by migius
  -- support DXF-definitions of scene, lights and cameras
  -- support ortho mode for VIEWs and VPORTs as cameras 
+ a9 bugfix by non-existing tables views, vports, layers (Kai reported)
+ v1.0.12: 2008.01.17 by migius
  a8 lately used INI-dir/filename persistently stored in Registry
  a8 lately used DXF-dir/filename persistently stored in Registry
  a7 fix missing layersmap{} for dxf-files without "section:layer"
@@ -3835,6 +3837,7 @@ class Settings:  #--------------------------------------------------------------
 		layersmap, layernamesmap = {}, {}
 		if 'tables' in sections.keys():
 			self.write("found section:tables")
+			views, vports, layers = False, False, False
 			for table in drawing.tables.data:
 				if table.name == 'layer':
 					self.write("found table:layers")
@@ -4000,6 +4003,7 @@ def	analyzeDXF(dxfFile): #---------------------------------------
 	vportsmap_str = '#File contains no table:vports!'
 	if 'tables' in sections.keys():
 		print "found section:tables"
+		views, vports, layers = False, False, False
 		for table in drawing.tables.data:
 			if table.name == 'layer':
 				print "found table:layers"

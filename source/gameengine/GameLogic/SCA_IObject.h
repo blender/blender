@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * An abstract object that has some logic, python scripting and
  * reference counting Note: transformation stuff has been moved to
  * SceneGraph
@@ -58,6 +55,7 @@ protected:
 	SCA_SensorList         m_sensors;
 	SCA_ControllerList     m_controllers;
 	SCA_ActuatorList       m_actuators;
+	SCA_ActuatorList       m_registeredActuators;	// actuators that use a pointer to this object
 	static class MT_Point3 m_sDummy;
 
 	/**
@@ -82,6 +80,8 @@ public:
 	void AddSensor(SCA_ISensor* act);
 	void AddController(SCA_IController* act);
 	void AddActuator(SCA_IActuator* act);
+	void RegisterActuator(SCA_IActuator* act);
+	void UnregisterActuator(SCA_IActuator* act);
 	
 	SCA_ISensor* FindSensor(const STR_String& sensorname);
 	SCA_IActuator* FindActuator(const STR_String& actuatorname);

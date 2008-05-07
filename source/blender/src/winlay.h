@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /* Abstract window operations */
@@ -57,6 +54,7 @@ void	window_lower		(Window *win);
 short	window_get_qual		(Window *win);
 short	window_get_mbut		(Window *win);
 void	window_get_mouse	(Window *win, short *mval);
+void	window_get_ndof		(Window* win, float* sbval);
 
 float window_get_pressure(Window *win);
 void window_get_tilt(Window *win, float *xtilt, float *ytilt);
@@ -79,6 +77,8 @@ void	window_warp_pointer	(Window *win, int x, int y);
 
 void	window_queue_redraw	(Window *win);
 
+void    window_open_ndof(Window* win);
+
 	/* Global windowing operations */
 
 Window*	winlay_get_active_window(void);
@@ -86,3 +86,9 @@ Window*	winlay_get_active_window(void);
 void	winlay_process_events	(int wait_for_event);
 
 void	winlay_get_screensize	(int *width_r, int *height_r);
+
+	/* Copy and paste functions in ghostwinlay.c */
+
+char *getClipboard(int flag);
+
+void putClipboard(char *buffer, int flag);

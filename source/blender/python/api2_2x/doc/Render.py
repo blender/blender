@@ -74,6 +74,24 @@ attribute.  One of the following modes can be active:
     horizontally or vertically
   - SCALE: Stretch or squeeze the viewport to fill the display window.
 
+@type BakeModes: readonly dictionary
+@var BakeModes: Constant dict used for with L{RenderData.bakeMode}
+attribute.  One of the following modes can be active:
+  - LIGHT: Bake lighting only.
+  - ALL: Bake all render lighting.
+  - AO: Bake ambient occlusion.
+  - NORMALS: Bake a normal map.
+  - TEXTURE: Bake textures.
+  - DISPLACEMENT: Bake displacement.
+
+@type BakeNormalSpaceModes: readonly dictionary
+@var BakeNormalSpaceModes: Constant dict used for with L{RenderData.bakeNormalSpace}
+attribute.  One of the following modes can be active:
+  - CAMERA: Bake normals relative to the camera.
+  - WORLD: Bake normals in worldspace.
+  - OBJECT: Bake normals relative to the object.
+  - TANGENT: Bake tangent space normals.
+
 @var INTERNAL: The internal rendering engine. Use with setRenderer()
 @var YAFRAY: Yafray rendering engine. Use with setRenderer()
 
@@ -92,6 +110,7 @@ attribute.  One of the following modes can be active:
 @var IRISZ: Output format. Use with renderdata.imageType / setImageType()
 @var FTYPE: Output format. Use with renderdata.imageType / setImageType()
 @var OPENEXR: Output format. Use with renderdata.imageType / setImageType()
+@var MULTILAYER: Output format. Use with renderdata.imageType / setImageType()
 @var TIFF: Output format. Use with renderdata.imageType / setImageType()
 @var FFMPEG: Output format. Use with renderdata.imageType / setImageType()
 @var CINEON: Output format. Use with renderdata.imageType / setImageType()
@@ -350,8 +369,6 @@ class RenderData:
   @type yafrayAntiAliasingPixelSize: float [1.0, 2.0]
   @ivar yafrayAntiAliasingThreshold: Anti-aliasing threshold.
   @type yafrayAntiAliasingThreshold: float [0.05, 1.0]
-  @ivar yafrayNumberOfProcessors: Number of processors to use.
-  @type yafrayNumberOfProcessors: int [1, 8]
   @ivar yafrayGICache: Cache occlusion/irradiance samples (faster).
   @type yafrayGICache: boolean
   @ivar yafrayGICacheBumpNormals: Enable/disable bumpnormals for cache.
@@ -366,6 +383,22 @@ class RenderData:
   @type yafrayGIPhotons: boolean
   @ivar yafrayGITunePhotons: If true the photonmap is shown directly in the render for tuning.
   @type yafrayGITunePhotons: boolean
+  @ivar bakeMode: The method used when baking, see L{BakeModes}.
+  @type bakeMode: int
+  @ivar bakeNormalSpace: The method used when baking, see L{BakeNormalSpaceModes}.
+  @type bakeNormalSpace: int
+  @ivar bakeClear: When enabled, baking clears the image first.
+  @type bakeClear: bool
+  @ivar bakeToActive: When enabled, selected objects are baked onto the active object.
+  @type bakeToActive: bool
+  @ivar bakeNormalize: Normalize AO and displacement to the range of the distance value.
+  @type bakeNormalize: bool  
+  @ivar bakeMargin: The pixel distance to extend baked pixels past the boundry (reduces bleeding when mipmapping)
+  @type bakeMargin: int
+  @ivar bakeDist: The distance in blender units to use when bakeToActive is enabled and geomtry does not overlap.
+  @type bakeDist: float
+  @ivar bakeBias: The distance in blender units to bias faces further away from the object.
+  @type bakeBias: float
   """
   
   def currentFrame(frame = None):
@@ -380,6 +413,11 @@ class RenderData:
   def render():
     """
     Render the scene.
+    """
+
+  def bake():
+    """
+    Bake selected objects in the scene.
     """
 
   def renderAnim():
@@ -402,6 +440,7 @@ class RenderData:
     @type filename: string 
     @since: 2.40
     @requires: You must have an image currently rendered before calling this method
+    @warning: This wont work in background mode. use renderAnim instead.
     """
 
   def play():
@@ -436,7 +475,7 @@ class RenderData:
     """
     Get the filename used for the remdered image.
     @type frame: int
-    @param path: the frame to use in the filename, if no argument given, use the current frame.
+    @param frame: the frame to use in the filename, if no argument given, use the current frame.
     @rtype: string
     @return: Returns the filename that blender would render to, taking into account output path, extension and frame number.
     """
@@ -1080,15 +1119,6 @@ class RenderData:
     @param expose: must be between 0 - 10.0
     @rtype: float (if prototype is empty)
     @return: Current exposure adjustment for the scene.
-    """
-
-  def yafrayProcessorCount(count = None):
-    """
-    Get/set number of processors to use.
-    @type count: int (optional)
-    @param count: must be between 1 - 8
-    @rtype: int (if prototype is empty)
-    @return: Current number of processors for the scene.
     """
 
   def enableGameFrameStretch():

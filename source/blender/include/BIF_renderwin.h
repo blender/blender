@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,18 +24,28 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 struct Render;
 struct ScrArea;
 struct RenderStats;
+struct ImBuf;
 
 void calc_renderwin_rectangle(int rectx, int recty, int posmask, int renderpos_r[2], int rendersize_r[2]);
 
 void BIF_close_render_display(void);
 
 void BIF_do_render(int anim);
+
+/* render text */
+void BIF_make_render_text(struct RenderStats *rs);
+char *BIF_render_text(void);
+
+/* render spare buffer */
+int BIF_show_render_spare(void);
+struct ImBuf *BIF_render_spare_imbuf(void);
+void BIF_free_render_spare(void);
 
 /**
  * @param v3d The View3D space to render.

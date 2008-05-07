@@ -2,15 +2,12 @@
 	$Id$
 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 #ifndef BKE_UTILDEFINES_H
@@ -111,6 +108,7 @@
 
 #define VECADD(v1,v2,v3) 	{*(v1)= *(v2) + *(v3); *(v1+1)= *(v2+1) + *(v3+1); *(v1+2)= *(v2+2) + *(v3+2);}
 #define VECSUB(v1,v2,v3) 	{*(v1)= *(v2) - *(v3); *(v1+1)= *(v2+1) - *(v3+1); *(v1+2)= *(v2+2) - *(v3+2);}
+#define VECSUB2D(v1,v2,v3) 	{*(v1)= *(v2) - *(v3); *(v1+1)= *(v2+1) - *(v3+1);}
 #define VECADDFAC(v1,v2,v3,fac) {*(v1)= *(v2) + *(v3)*(fac); *(v1+1)= *(v2+1) + *(v3+1)*(fac); *(v1+2)= *(v2+2) + *(v3+2)*(fac);}
 #define QUATADDFAC(v1,v2,v3,fac) {*(v1)= *(v2) + *(v3)*(fac); *(v1+1)= *(v2+1) + *(v3+1)*(fac); *(v1+2)= *(v2+2) + *(v3+2)*(fac); *(v1+3)= *(v2+3) + *(v3+3)*(fac);}
 
@@ -135,7 +133,7 @@
 #endif
 
 /* INTEGER CODES */
-#if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__hppa__) || defined (__BIG_ENDIAN__)
 	/* Big Endian */
 #define MAKE_ID(a,b,c,d) ( (int)(a)<<24 | (int)(b)<<16 | (c)<<8 | (d) )
 #else
@@ -171,20 +169,22 @@
 
 /* This one rotates the bytes in an int */
 #define SWITCH_INT(a) { \
-    char s_i, *p_i; \
-    p_i= (char *)&(a); \
-    s_i=p_i[0]; p_i[0]=p_i[3]; p_i[3]=s_i; \
-    s_i=p_i[1]; p_i[1]=p_i[2]; p_i[2]=s_i; }
+	char s_i, *p_i; \
+	p_i= (char *)&(a); \
+	s_i=p_i[0]; p_i[0]=p_i[3]; p_i[3]=s_i; \
+	s_i=p_i[1]; p_i[1]=p_i[2]; p_i[2]=s_i; }
 
 #define SWITCH_SHORT(a)	{ \
-    char s_i, *p_i; \
-		p_i= (char *)&(a); \
-			s_i=p_i[0]; p_i[0]=p_i[1]; p_i[1]=s_i; }
+	char s_i, *p_i; \
+	p_i= (char *)&(a); \
+	s_i=p_i[0]; p_i[0]=p_i[1]; p_i[1]=s_i; }
 
 
 /* Bit operations */
-#define BTST(a,b)     ( ( (a) & 1<<(b) )!=0 )   
-#define BSET(a,b)     ( (a) | 1<<(b) )
+#define BTST(a,b)	( ( (a) & 1<<(b) )!=0 )   
+#define BNTST(a,b)	( ( (a) & 1<<(b) )==0 )
+#define BTST2(a,b,c)	( BTST( (a), (b) ) || BTST( (a), (c) ) )
+#define BSET(a,b)	( (a) | 1<<(b) )
 #define BCLR(a,b)	( (a) & ~(1<<(b)) )
 /* bit-row */
 #define BROW(min, max)	(((max)>=31? 0xFFFFFFFF: (1<<(max+1))-1) - ((min)? ((1<<(min))-1):0) )
@@ -194,6 +194,11 @@
 #undef GS
 #endif
 #define GS(a)	(*((short *)(a)))
+
+/* Warning-free macros for storing ints in pointers. Use these _only_
+ * for storing an int in a pointer, not a pointer in an int (64bit)! */
+#define SET_INT_IN_POINTER(i) ((void*)(long)(i))
+#define GET_INT_FROM_POINTER(i) ((int)(long)(i))
 
 #endif
 

@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  * Contributor(s): Willian P. Germano, Tom Musgrove, Michael Reimpell,
  * Yann Vernier, Ken Hughes
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 #include <Python.h>
@@ -38,7 +35,6 @@
 #include "BKE_main.h"
 #include "BKE_object.h"		/* for during_script() and during_scriptlink() */
 #include "BKE_scene.h"		/* scene_find_camera() */
-#include "BPI_script.h"
 #include "BIF_mywindow.h"
 #include "BIF_imasel.h"
 #include "BSE_headerbuttons.h"
@@ -48,6 +44,7 @@
 #include "BIF_space.h"
 #include "BIF_drawtext.h"
 #include "BIF_poseobject.h"
+#include "BIF_toolbox.h"	/* for error() */
 #include "DNA_view3d_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -107,6 +104,7 @@ static PyObject *M_Window_QTest( PyObject * self );
 static PyObject *M_Window_QRead( PyObject * self );
 static PyObject *M_Window_QAdd( PyObject * self, PyObject * args );
 static PyObject *M_Window_QHandle( PyObject * self, PyObject * args );
+static PyObject *M_Window_TestBreak( PyObject * self );
 static PyObject *M_Window_GetMouseCoords( PyObject * self );
 static PyObject *M_Window_SetMouseCoords( PyObject * self, PyObject * args );
 static PyObject *M_Window_GetMouseButtons( PyObject * self );
@@ -251,6 +249,9 @@ static char M_Window_QHandle_doc[] =
 (win) - int: the window id, see Blender.Window.GetScreenInfo().\n\n\
 See Blender.Window.QAdd() for how to send events to a particular window.";
 
+static char M_Window_TestBreak_doc[] =
+	"() - Returns true if the user has pressed escape.";
+
 static char M_Window_GetMouseCoords_doc[] =
 	"() - Get mouse pointer's current screen coordinates.";
 
@@ -374,6 +375,8 @@ struct PyMethodDef M_Window_methods[] = {
 	 M_Window_QAdd_doc},
 	{"QHandle", ( PyCFunction ) M_Window_QHandle, METH_VARARGS,
 	 M_Window_QHandle_doc},
+	{"TestBreak", ( PyCFunction ) M_Window_TestBreak, METH_NOARGS,
+	 M_Window_TestBreak_doc},
 	{"GetMouseCoords", ( PyCFunction ) M_Window_GetMouseCoords,
 	 METH_NOARGS,
 	 M_Window_GetMouseCoords_doc},
@@ -508,10 +511,20 @@ static void getSelectedFile( char *name )
 			script = sc->script;
 		}
 	}
+	/* If 'script' is null,
+	 * The script must have had an error and closed,
+	 * but the fileselector was left open, show an error and exit */
+	if (!script) {
+		error("Python script error: script quit, cannot run callback");
+		return;
+	}
+		
 
 	pycallback = script->py_browsercallback;
 
 	if (pycallback) {
+		PyGILState_STATE gilstate = PyGILState_Ensure();
+
 		result = PyObject_CallFunction( pycallback, "s", name );
 
 		if (!result) {
@@ -519,33 +532,44 @@ static void getSelectedFile( char *name )
 				fprintf(stderr, "BPy error: Callback call failed!\n");
 		}
 		else Py_DECREF(result);
-
-		if (script->py_browsercallback == pycallback)
-			script->py_browsercallback = NULL;
+		
+		
+			
+		if (script->py_browsercallback == pycallback) {
+			if (script->flags & SCRIPT_GUI) {
+				script->py_browsercallback = NULL;
+			} else {
+				SCRIPT_SET_NULL(script);
+			}
+		}
+		
 		/* else another call to selector was made inside pycallback */
 
 		Py_DECREF(pycallback);
+
+		PyGILState_Release(gilstate);
 	}
 
 	return;
 }
 
-static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args )
+/* Use for file and image selector */
+static PyObject * FileAndImageSelector(PyObject * self, PyObject * args, int type)
 {
-	char *title = "SELECT FILE";
+	char *title = (type==0 ? "SELECT FILE" : "SELECT IMAGE");
 	char *filename = G.sce;
 	SpaceScript *sc;
 	Script *script = NULL;
 	PyObject *pycallback = NULL;
 	int startspace = 0;
-
+	
 	if (during_scriptlink())
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-			"script links can't call the file selector");
+			"script links can't call the file/image selector");
 
 	if (G.background)
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-			"the file selector is not available in background mode");
+			"the file/image selector is not available in background mode");
 
 	if((!PyArg_ParseTuple( args, "O|ss", &pycallback, &title, &filename))
 		|| (!PyCallable_Check(pycallback)))
@@ -590,73 +614,27 @@ static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args )
 	}
 	script->py_browsercallback = pycallback;
 
-	activate_fileselect( FILE_BLENDER, title, filename, getSelectedFile );
-
+	/* if were not running a script GUI here alredy, then dont make this script persistant */
+	if ((script->flags & SCRIPT_GUI)==0) {
+		script->scriptname[0] = '\0';
+		script->scriptarg[0] = '\0';
+	}
+	if (type==0) {
+		activate_fileselect( FILE_BLENDER, title, filename, getSelectedFile );
+	} else {
+		activate_imageselect( FILE_BLENDER, title, filename, getSelectedFile );
+	}
 	Py_RETURN_NONE;
+}
+
+static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args )
+{
+	return FileAndImageSelector( self, args, 0 );
 }
 
 static PyObject *M_Window_ImageSelector( PyObject * self, PyObject * args )
 {
-	char *title = "SELECT IMAGE";
-	char *filename = G.sce;
-	SpaceScript *sc;
-	Script *script = NULL;
-	PyObject *pycallback = NULL;
-	int startspace = 0;
-
-	if (during_scriptlink())
-		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-			"script links can't call the image selector");
-
-	if (G.background)
-		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-			"the image selector is not available in background mode");
-
-	if( !PyArg_ParseTuple( args, "O|ss", &pycallback, &title, &filename ) 
-		|| (!PyCallable_Check(pycallback)))
-		return EXPP_ReturnPyObjError ( PyExc_AttributeError,
-			"\nexpected a callback function (and optionally one or two strings) "
-			"as argument(s)" );
-
-	Py_INCREF(pycallback);
-
-/* trick: we move to a spacescript because then the fileselector will properly
- * unset our SCRIPT_FILESEL flag when the user chooses a file or cancels the
- * selection.  This is necessary because when a user cancels, the
- * getSelectedFile function above doesn't get called and so couldn't unset the
- * flag. */
-	startspace = curarea->spacetype;
-	if( startspace != SPACE_SCRIPT )
-		newspace( curarea, SPACE_SCRIPT );
-
-	sc = curarea->spacedata.first;
-
-	/* let's find the script that called us */
-	script = G.main->script.first;
-	while (script) {
-		if (script->flags & SCRIPT_RUNNING) break;
-		script = script->id.next;
-	}
-
-	if( !script ) {
-		/* if not running, then we were already on a SpaceScript space, executing
-		 * a registered callback -- aka: this script has a gui */
-		script = sc->script;	/* this is the right script */
-	} else {		/* still running, use the trick */
-		script->lastspace = startspace;
-		sc->script = script;
-	}
-
-	script->flags |= SCRIPT_FILESEL;	/* same flag as filesel */
-	/* clear any previous callback (nested calls to selector) */
-	if (script->py_browsercallback) {
-		Py_DECREF((PyObject *)script->py_browsercallback);
-	}
-	script->py_browsercallback = pycallback;
-
-	activate_imageselect( FILE_BLENDER, title, filename, getSelectedFile );
-
-	Py_RETURN_NONE;
+	return FileAndImageSelector( self, args, 1 );
 }
 
 /*****************************************************************************/
@@ -1259,6 +1237,15 @@ static PyObject *M_Window_QHandle( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
+static PyObject *M_Window_TestBreak( PyObject * self )
+{
+	if (blender_test_break()) {
+		Py_RETURN_TRUE;
+	} else {
+		Py_RETURN_FALSE;
+	}
+}
+		
 static PyObject *M_Window_GetMouseCoords( PyObject * self )
 {
 	short mval[2];

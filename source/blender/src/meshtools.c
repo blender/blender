@@ -1,15 +1,12 @@
 /**
  * $Id: 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /*
@@ -167,7 +164,7 @@ int join_mesh(void)
 	/* count & check */
 	base= FIRSTBASE;
 	while(base) {
-		if TESTBASELIB(base) {
+		if TESTBASELIB_BGMODE(base) { /* BGMODE since python can access */
 			if(base->object->type==OB_MESH) {
 				me= base->object->data;
 				totvert+= me->totvert;
@@ -203,7 +200,7 @@ int join_mesh(void)
 
 	/* if needed add edges to other meshes */
 	for(base= FIRSTBASE; base; base= base->next) {
-		if TESTBASELIB(base) {
+		if TESTBASELIB_BGMODE(base) {
 			if(base->object->type==OB_MESH) {
 				me= base->object->data;
 				totedge += me->totedge;
@@ -224,7 +221,7 @@ int join_mesh(void)
 	
 	base= FIRSTBASE;
 	while(base) {
-		if TESTBASELIB(base) {
+		if TESTBASELIB_BGMODE(base) {
 			if(ob!=base->object && base->object->type==OB_MESH) {
 				me= base->object->data;
 
@@ -291,7 +288,7 @@ int join_mesh(void)
 	base= FIRSTBASE;
 	while(base) {
 		nextb= base->next;
-		if TESTBASELIB(base) {
+		if TESTBASELIB_BGMODE(base) {
 			if(base->object->type==OB_MESH) {
 				
 				me= base->object->data;
@@ -650,6 +647,13 @@ static void mesh_octree_add_nodes(MocNode **basetable, float *co, float *offs, f
 	float fx, fy, fz;
 	int vx, vy, vz;
 	
+	if (isnan(co[0]) || !finite(co[0]) ||
+		isnan(co[1]) || !finite(co[1]) ||
+		isnan(co[2]) || !finite(co[2])
+	) {
+		return;
+	}
+	
 	fx= (co[0]-offs[0])/div[0];
 	fy= (co[1]-offs[1])/div[1];
 	fz= (co[2]-offs[2])/div[2];
@@ -799,7 +803,7 @@ long mesh_octree_table(Object *ob, float *co, char mode)
 		
 		if(ob==G.obedit) {
 			EditVert *eve;
-			
+
 			for(eve= G.editMesh->verts.first; eve; eve= eve->next) {
 				mesh_octree_add_nodes(MeshOctree.table, eve->co, MeshOctree.offs, MeshOctree.div, (long)(eve));
 			}
@@ -860,6 +864,13 @@ EditVert *editmesh_get_x_mirror_vert(Object *ob, float *co)
 {
 	float vec[3];
 	long poinval;
+	
+	/* ignore nan verts */
+	if (isnan(co[0]) || !finite(co[0]) ||
+		isnan(co[1]) || !finite(co[1]) ||
+		isnan(co[2]) || !finite(co[2])
+	   )
+		return NULL;
 	
 	vec[0]= -co[0];
 	vec[1]= co[1];
@@ -1010,12 +1021,11 @@ void objects_bake_render_menu(void)
 	short event;
 
 	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4|Displacement %x5");
-	
-	objects_bake_render(event);
+	if (event < 1) return;
+	objects_bake_render_ui(event);
 }
 
-/* all selected meshes with UV maps are rendered for current scene visibility */
-void objects_bake_render(short event)
+void objects_bake_render(short event, char **error_msg)
 {
 	Object *actob= OBACT;
 	int active= G.scene->r.bake_flag & R_BAKE_TO_ACTIVE;
@@ -1024,13 +1034,15 @@ void objects_bake_render(short event)
 	if(event==0) event= G.scene->r.bake_mode;
 	
 	if(G.scene->r.renderer!=R_INTERN) {	 
-		error("Bake only supported for Internal Renderer");	 
-		return;	 
+		*error_msg = "Bake only supported for Internal Renderer";
+		return;
 	}	 
 	
-	if(active && !actob)
+	if(active && !actob) {
+		*error_msg = "No active object";
 		return;
-		
+	}
+	
 	if(event>0) {
 		Render *re= RE_NewRender("_Bake View_");
 		ScrArea *area= biggest_image_area();
@@ -1048,7 +1060,7 @@ void objects_bake_render(short event)
 
 		if(event==RE_BAKE_AO) {
 			if(G.scene->world==NULL) {
-				error("No world set up");
+				*error_msg = "No world set up";
 				return;
 			}
 
@@ -1082,15 +1094,17 @@ void objects_bake_render(short event)
 			if(bkr.ready)
 				break;
 			
-			g_break= blender_test_break();
-			
-			timer++;
-			if(area && timer==20) {
-				Image *ima= RE_bake_shade_get_image();
-				if(ima) ((SpaceImage *)area->spacedata.first)->image= ima;
-				scrarea_do_windraw(area);
-				myswapbuffers();	
-				timer= 0;
+			if (!G.background) {
+				g_break= blender_test_break();
+				
+				timer++;
+				if(area && timer==20) {
+					Image *ima= RE_bake_shade_get_image();
+					if(ima) ((SpaceImage *)area->spacedata.first)->image= ima;
+					scrarea_do_windraw(area);
+					myswapbuffers();	
+					timer= 0;
+				}
 			}
 		}
 		BLI_end_threads(&threads);
@@ -1099,7 +1113,7 @@ void objects_bake_render(short event)
 		RE_Database_Free(re);
 		waitcursor(0);
 		
-		if(tot==0) error("No Images found to bake to");
+		if(tot==0) *error_msg = "No Images found to bake to";
 		else {
 			Image *ima;
 			/* force OpenGL reload and mipmap recalc */
@@ -1129,5 +1143,22 @@ void objects_bake_render(short event)
 		if(sculptmode) set_sculptmode();
 		
 	}
+}
+
+/* all selected meshes with UV maps are rendered for current scene visibility */
+void objects_bake_render_ui(short event)
+{
+	char *error_msg = NULL;
+	int is_editmode = (G.obedit!=NULL);
+	
+	/* Deal with editmode, this is a bit clunky but since UV's are in editmode, users are likely to bake from their */
+	if (is_editmode) exit_editmode(0);
+	
+	objects_bake_render(event, &error_msg);
+	
+	if (is_editmode) enter_editmode(0);
+	
+	if (error_msg)
+		error(error_msg);
 }
 

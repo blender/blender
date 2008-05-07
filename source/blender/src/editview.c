@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * cursor/gestures/selecteren
  */
 
@@ -60,6 +57,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_ipo_types.h" /* for fly mode recording */
+#include "DNA_node_types.h" /* for fly mode recording */
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -107,6 +105,7 @@
 #include "BSE_edit.h"
 #include "BSE_view.h"		/* give_cursor() */
 #include "BSE_editipo.h"
+#include "BSE_drawipo.h"
 #include "BSE_drawview.h"
 
 #include "editmesh.h"	/* borderselect uses it... */
@@ -491,7 +490,7 @@ static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select
 			efa->tmp.l = 0;
 			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			if ((select) != (simaFaceSel_Check(efa, tf))) {
-				tface_center(tf, cent, (void *)efa->v4);
+				uv_center(tf->uv, cent, (void *)efa->v4);
 				uvco_to_areaco_noclip(cent, screenUV);
 				if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
 					efa->tmp.l = ok = 1;
@@ -637,31 +636,64 @@ static void do_lasso_select_facemode(short mcords[][2], short moves, short selec
 	object_tface_flags_changed(OBACT, 0);
 }
 
+static void do_lasso_select_node(short mcords[][2], short moves, short select)
+{
+	SpaceNode *snode = curarea->spacedata.first;
+	
+	bNode *node;
+	rcti rect;
+	short node_cent[2];
+	float node_centf[2];
+	
+	lasso_select_boundbox(&rect, mcords, moves);
+	
+	/* store selection in temp test flag */
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		
+		node_centf[0] = (node->totr.xmin+node->totr.xmax)/2;
+		node_centf[1] = (node->totr.ymin+node->totr.ymax)/2;
+		
+		ipoco_to_areaco_noclip(G.v2d, node_centf, node_cent);
+		if (BLI_in_rcti(&rect, node_cent[0], node_cent[1]) && lasso_inside(mcords, moves, node_cent[0], node_cent[1])) {
+			if (select) {
+				node->flag |= SELECT;
+			} else {
+				node->flag &= ~SELECT;
+			}
+		}
+	}
+	allqueue(REDRAWNODE, 1);
+	BIF_undo_push("Lasso select nodes");
+}
+
 static void do_lasso_select(short mcords[][2], short moves, short select)
 {
-	if(G.obedit==NULL) {
-		if(FACESEL_PAINT_TEST)
-			do_lasso_select_facemode(mcords, moves, select);
-		else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))
-			;
-		else if(G.f & G_PARTICLEEDIT)
-			PE_do_lasso_select(mcords, moves, select);
-		else  
-			do_lasso_select_objects(mcords, moves, select);
-	}
-	else if(G.obedit->type==OB_MESH) {
-		if(curarea->spacetype==SPACE_VIEW3D) {
-			do_lasso_select_mesh(mcords, moves, select);
-		} else if (EM_texFaceCheck()){
-			do_lasso_select_mesh_uv(mcords, moves, select);
+	if(curarea->spacetype==SPACE_NODE) {
+		do_lasso_select_node(mcords, moves, select);
+	} else {
+		if(G.obedit==NULL) {
+			if(FACESEL_PAINT_TEST)
+				do_lasso_select_facemode(mcords, moves, select);
+			else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))
+				;
+			else if(G.f & G_PARTICLEEDIT)
+				PE_do_lasso_select(mcords, moves, select);
+			else  
+				do_lasso_select_objects(mcords, moves, select);
 		}
-	} else if(G.obedit->type==OB_CURVE || G.obedit->type==OB_SURF) 
-		do_lasso_select_curve(mcords, moves, select);
-	else if(G.obedit->type==OB_LATTICE) 
-		do_lasso_select_lattice(mcords, moves, select);
-	else if(G.obedit->type==OB_ARMATURE)
-		do_lasso_select_armature(mcords, moves, select);
-	
+		else if(G.obedit->type==OB_MESH) {
+			if(curarea->spacetype==SPACE_VIEW3D) {
+				do_lasso_select_mesh(mcords, moves, select);
+			} else if (EM_texFaceCheck()){
+				do_lasso_select_mesh_uv(mcords, moves, select);
+			}
+		} else if(G.obedit->type==OB_CURVE || G.obedit->type==OB_SURF) 
+			do_lasso_select_curve(mcords, moves, select);
+		else if(G.obedit->type==OB_LATTICE) 
+			do_lasso_select_lattice(mcords, moves, select);
+		else if(G.obedit->type==OB_ARMATURE)
+			do_lasso_select_armature(mcords, moves, select);
+	}
 	BIF_undo_push("Lasso select");
 	
 	if (EM_texFaceCheck())
@@ -827,6 +859,8 @@ int gesture(void)
 			if(G.obedit) {
 				lasso= 1;
 			}
+		} else if (curarea->spacetype==SPACE_NODE) {
+			lasso= 1;
 		}
 	}
 	
@@ -1372,7 +1406,7 @@ static short mixed_bones_object_selectbuffer(unsigned int *buffer, short *mval)
 void mouse_select(void)
 {
 	Base *base, *startbase=NULL, *basact=NULL, *oldbasact=NULL;
-	unsigned int buffer[MAXPICKBUF];
+	unsigned int buffer[4*MAXPICKBUF];
 	int temp, a, dist=100;
 	short hits, mval[2];
 
@@ -1757,7 +1791,7 @@ void borderselect(void)
 	rcti rect;
 	Base *base;
 	MetaElem *ml;
-	unsigned int buffer[MAXPICKBUF];
+	unsigned int buffer[4*MAXPICKBUF];
 	int a, index;
 	short hits, val;
 
@@ -2188,38 +2222,115 @@ void set_render_border(void)
 
 void view3d_border_zoom(void)
 {
+	View3D *v3d = G.vd;
+	
 	/* Zooms in on a border drawn by the user */
 	rcti rect;
 	short val;
 	float dvec[3], vb[2], xscale, yscale, scale;
 	
+	
 	/* SMOOTHVIEW */
 	float new_dist;
 	float new_ofs[3];
 	
-	/* doesn't work fine for perspective */
-	if(G.vd->persp==1)
-		return;
+	/* ZBuffer depth vars */
+	bglMats mats;
+	float depth, depth_close= MAXFLOAT;
+	int had_depth = 0;
+	double cent[2],  p[3];
+	int xs, ys;
 	
-	val = get_border(&rect, 3); //box select input
-	if(val)
-	{
-		/* find the current window width and height */
-		vb[0] = G.vd->area->winx;
-		vb[1] = G.vd->area->winy;
+	/* Get the border input */
+	val = get_border(&rect, 3);
+	if(!val) return;
+	
+	/* Get Z Depths, needed for perspective, nice for ortho */
+	bgl_get_mats(&mats);
+	draw_depth(curarea, (void *)v3d);
+	
+	/* force updating */
+	if (v3d->depths) {
+		had_depth = 1;
+		v3d->depths->damaged = 1;
+	}
+	
+	view3d_update_depths(v3d);
+	
+	/* Constrain rect to depth bounds */
+	if (rect.xmin < 0) rect.xmin = 0;
+	if (rect.ymin < 0) rect.ymin = 0;
+	if (rect.xmax >= v3d->depths->w) rect.xmax = v3d->depths->w-1;
+	if (rect.ymax >= v3d->depths->h) rect.ymax = v3d->depths->h-1;		
+	
+	/* Find the closest Z pixel */
+	for (xs=rect.xmin; xs < rect.xmax; xs++) {
+		for (ys=rect.ymin; ys < rect.ymax; ys++) {
+			depth= v3d->depths->depths[ys*v3d->depths->w+xs];
+			if(depth < v3d->depths->depth_range[1] && depth > v3d->depths->depth_range[0]) {
+				if (depth_close > depth) {
+					depth_close = depth;
+				}
+			}
+		}
+	}
+	
+	if (had_depth==0) {
+		MEM_freeN(v3d->depths->depths);
+		v3d->depths->depths = NULL;
+	}
+	v3d->depths->damaged = 1;
+	
+	cent[0] = (((double)rect.xmin)+((double)rect.xmax)) / 2;
+	cent[1] = (((double)rect.ymin)+((double)rect.ymax)) / 2;
+	
+	if (v3d->persp==V3D_PERSP) {
+		double p_corner[3];
+
+		/* no depths to use, we cant do anything! */
+		if (depth_close==MAXFLOAT) 
+			return;
 		
-		new_dist = G.vd->dist;
-		new_ofs[0] = G.vd->ofs[0];
-		new_ofs[1] = G.vd->ofs[1];
-		new_ofs[2] = G.vd->ofs[2];
+		/* convert border to 3d coordinates */
+		if ((	!gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, mats.viewport, &p[0], &p[1], &p[2])) || 
+			(	!gluUnProject((double)rect.xmin, (double)rect.ymin, depth_close, mats.modelview, mats.projection, mats.viewport, &p_corner[0], &p_corner[1], &p_corner[2])))
+			return;
+		
+		dvec[0] = p[0]-p_corner[0];
+		dvec[1] = p[1]-p_corner[1];
+		dvec[2] = p[2]-p_corner[2];
+		
+		new_dist = VecLength(dvec);
+		if(new_dist <= v3d->near*1.5) new_dist= v3d->near*1.5; 
+		
+		new_ofs[0] = -p[0];
+		new_ofs[1] = -p[1];
+		new_ofs[2] = -p[2];
+		
+	} else { /* othographic */
+		/* find the current window width and height */
+		vb[0] = v3d->area->winx;
+		vb[1] = v3d->area->winy;
+		
+		new_dist = v3d->dist;
 		
 		/* convert the drawn rectangle into 3d space */
-		initgrabz(-new_ofs[0], -new_ofs[1], -new_ofs[2]);
-		
-		window_to_3d(dvec, (rect.xmin+rect.xmax-vb[0])/2, (rect.ymin+rect.ymax-vb[1])/2);
-		
-		/* center the view to the center of the rectangle */
-		VecSubf(new_ofs, new_ofs, dvec);
+		if (depth_close!=MAXFLOAT && gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, mats.viewport, &p[0], &p[1], &p[2])) {
+			new_ofs[0] = -p[0];
+			new_ofs[1] = -p[1];
+			new_ofs[2] = -p[2];
+		} else {
+			/* We cant use the depth, fallback to the old way that dosnt set the center depth */
+			new_ofs[0] = v3d->ofs[0];
+			new_ofs[1] = v3d->ofs[1];
+			new_ofs[2] = v3d->ofs[2];
+			
+			initgrabz(-new_ofs[0], -new_ofs[1], -new_ofs[2]);
+			
+			window_to_3d(dvec, (rect.xmin+rect.xmax-vb[0])/2, (rect.ymin+rect.ymax-vb[1])/2);
+			/* center the view to the center of the rectangle */
+			VecSubf(new_ofs, new_ofs, dvec);
+		}
 		
 		/* work out the ratios, so that everything selected fits when we zoom */
 		xscale = ((rect.xmax-rect.xmin)/vb[0]);
@@ -2227,11 +2338,10 @@ void view3d_border_zoom(void)
 		scale = (xscale >= yscale)?xscale:yscale;
 		
 		/* zoom in as required, or as far as we can go */
-		new_dist = ((new_dist*scale) >= 0.001*G.vd->grid)? new_dist*scale:0.001*G.vd->grid;
-		
-		smooth_view(G.vd, new_ofs, NULL, &new_dist, NULL);
-		
+		new_dist = ((new_dist*scale) >= 0.001*v3d->grid)? new_dist*scale:0.001*v3d->grid;
 	}
+	
+	smooth_view(v3d, new_ofs, NULL, &new_dist, NULL);
 }
 
 void fly(void)
@@ -2291,7 +2401,7 @@ void fly(void)
 	
 	if(curarea->spacetype!=SPACE_VIEW3D) return;
 		
-	if(G.vd->persp==2 && G.vd->camera->id.lib) {
+	if(G.vd->persp==V3D_CAMOB && G.vd->camera->id.lib) {
 		error("Cannot fly a camera from an external library");
 		return;
 	}
@@ -2312,7 +2422,7 @@ void fly(void)
 	
 	persp_backup= G.vd->persp;
 	dist_backup= G.vd->dist;
-	if (G.vd->persp==2) { /* Camera */
+	if (G.vd->persp==V3D_CAMOB) {
 		if(G.vd->camera->constraints.first) {
 			error("Cannot fly an object with constraints");
 			return;
@@ -2335,8 +2445,8 @@ void fly(void)
 		
 	} else {
 		/* perspective or ortho */
-		if (G.vd->persp==0)
-			G.vd->persp= 1; /*if ortho projection, make perspective */
+		if (G.vd->persp==V3D_ORTHO)
+			G.vd->persp= V3D_PERSP; /*if ortho projection, make perspective */
 		QUATCOPY(rot_backup, G.vd->viewquat);
 		VECCOPY(ofs_backup, G.vd->ofs);
 		G.vd->dist= 0.0;
@@ -2633,7 +2743,7 @@ void fly(void)
 			dvec[2] = dvec_tmp[2]*(1-dvec_lag) + dvec_old[2]*dvec_lag;
 			
 			
-			if (G.vd->persp==2) {
+			if (G.vd->persp==V3D_CAMOB) {
 				if (G.vd->camera->protectflag & OB_LOCK_LOCX)
 					dvec[0] = 0.0;
 				if (G.vd->camera->protectflag & OB_LOCK_LOCY)
@@ -2655,11 +2765,11 @@ void fly(void)
 			do_screenhandlers(G.curscreen); /* advance the next frame */
 			
 			/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera to teh view */
-			if (G.vd->persp==2) {
-				G.vd->persp= 1; /*set this so setviewmatrixview3d uses the ofs and quat instead of the camera */
+			if (G.vd->persp==V3D_CAMOB) {
+				G.vd->persp= V3D_PERSP; /*set this so setviewmatrixview3d uses the ofs and quat instead of the camera */
 				setviewmatrixview3d();
 				setcameratoview3d();
-				G.vd->persp= 2;
+				G.vd->persp= V3D_CAMOB;
 				
 				/* record the motion */
 				if (IS_AUTOKEY_MODE(NORMAL) && (!playing_anim || cfra != G.scene->r.cfra)) {
@@ -2690,7 +2800,7 @@ void fly(void)
 	
 	/* Revert to original view? */ 
 	if (action == 2) { /* action == 2 means the user pressed Esc of RMB, and not to apply view to camera */
-		if (persp_backup==2) { /* a camera view */
+		if (persp_backup==V3D_CAMOB) { /* a camera view */
 			G.vd->viewbut=1;
 			VECCOPY(G.vd->camera->loc, ofs_backup);
 			VECCOPY(G.vd->camera->rot, rot_backup);
@@ -2702,7 +2812,7 @@ void fly(void)
 			G.vd->persp= persp_backup;
 		}
 	}
-	else if (persp_backup==2) {	/* camera */
+	else if (persp_backup==V3D_CAMOB) {	/* camera */
 		float mat3[3][3];
 		Mat3CpyMat4(mat3, G.vd->camera->obmat);
 		Mat3ToCompatibleEul(mat3, G.vd->camera->rot, rot_backup);

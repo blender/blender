@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): 2007, Joshua Leung, major recode
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h> 
@@ -84,10 +81,10 @@
 /* ******************* Constraint Channels ********************** */
 /* Constraint Channels exist in one of two places:
  *	- Under Action Channels in an Action  (act->chanbase->achan->constraintChannels)
- *	- Under Object without object-level action yet (ob->constraintChannels)
+ *	- Under Object without Object-level Action yet (ob->constraintChannels)
  * 
- * The main purpose that constraint channels serve is to act as a link
- * between an IPO-block which 
+ * The main purpose that Constraint Channels serve is to act as a link
+ * between an IPO-block (which provides values to interpolate between for some settings)
  */
 
 /* ------------ Data Management ----------- */
@@ -143,7 +140,7 @@ bConstraintChannel *get_constraint_channel (ListBase *list, const char name[])
 {
 	bConstraintChannel *chan;
 
-	if(list) {
+	if (list) {
 		for (chan = list->first; chan; chan=chan->next) {
 			if (!strcmp(name, chan->name)) {
 				return chan;
@@ -183,11 +180,11 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime,
 	for (con=conbase->first; con; con=con->next) {
 		Ipo *ipo= NULL;
 		
-		if(con->flag & CONSTRAINT_OWN_IPO)
+		if (con->flag & CONSTRAINT_OWN_IPO)
 			ipo= con->ipo;
 		else {
 			bConstraintChannel *chan = get_constraint_channel(chanbase, con->name);
-			if(chan) ipo= chan->ipo;
+			if (chan) ipo= chan->ipo;
 		}
 		
 		if (ipo) {
@@ -206,7 +203,24 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime,
 							break;
 						case CO_HEADTAIL:
 						{
-							con->headtail = icu->curval;
+							/* we need to check types of constraints that can get this here, as user
+							 * may have created an IPO-curve for this from IPO-editor but for a constraint
+							 * that cannot support this
+							 */
+							switch (con->type) {
+								/* supported constraints go here... */
+								case CONSTRAINT_TYPE_LOCLIKE:
+								case CONSTRAINT_TYPE_TRACKTO:
+								case CONSTRAINT_TYPE_MINMAX:
+								case CONSTRAINT_TYPE_STRETCHTO:
+								case CONSTRAINT_TYPE_DISTLIMIT:
+									con->headtail = icu->curval;
+									break;
+									
+								default:
+									/* not supported */
+									break;
+							}
 						}
 							break;
 					}
@@ -438,7 +452,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 						/* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */						
 						if (pchan->parent) {
 							float offs_bone[4][4];
-								
+							
 							/* construct offs_bone the same way it is done in armature.c */
 							Mat4CpyMat3(offs_bone, pchan->bone->bone_mat);
 							VECCOPY(offs_bone[3], pchan->bone->head);
@@ -878,7 +892,7 @@ static void childof_new_data (void *cdata)
 	Mat4One(data->invmat);
 }
 
-static void childof_get_tars (bConstraint *con, ListBase *list)
+static int childof_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bChildOfConstraint *data= con->data;
@@ -886,7 +900,11 @@ static void childof_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void childof_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -976,7 +994,7 @@ static void trackto_new_data (void *cdata)
 	data->reserved2 = UP_Z;
 }	
 
-static void trackto_get_tars (bConstraint *con, ListBase *list)
+static int trackto_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bTrackToConstraint *data= con->data;
@@ -984,7 +1002,11 @@ static void trackto_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void trackto_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -1082,9 +1104,9 @@ static void vectomat (float *vec, float *target_up, short axis, short upflag, sh
 	/* identity matrix - don't do anything if the two axes are the same */
 	else {
 		m[0][0]= m[1][1]= m[2][2]= 1.0;
-		m[0][1]= m[0][2]= m[0][3]= 0.0;
-		m[1][0]= m[1][2]= m[1][3]= 0.0;
-		m[2][0]= m[2][1]= m[2][3]= 0.0;
+		m[0][1]= m[0][2]= 0.0;
+		m[1][0]= m[1][2]= 0.0;
+		m[2][0]= m[2][1]= 0.0;
 	}
 }
 
@@ -1153,16 +1175,20 @@ static void kinematic_new_data (void *cdata)
 	data->flag= CONSTRAINT_IK_TIP|CONSTRAINT_IK_STRETCH|CONSTRAINT_IK_POS;
 }
 
-static void kinematic_get_tars (bConstraint *con, ListBase *list)
+static int kinematic_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bKinematicConstraint *data= con->data;
 		bConstraintTarget *ct;
 		
-		/* standard target-getting macro for single-target constraints */
+		/* standard target-getting macro for single-target constraints is used twice here */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
 		SINGLETARGET_GET_TARS(con, data->poletar, data->polesubtarget, ct, list)
+		
+		return 2;
 	}
+	
+	return 0;
 }
 
 static void kinematic_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -1231,7 +1257,7 @@ static void followpath_new_data (void *cdata)
 	data->followflag = 0;
 }
 
-static void followpath_get_tars (bConstraint *con, ListBase *list)
+static int followpath_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bFollowPathConstraint *data= con->data;
@@ -1239,7 +1265,11 @@ static void followpath_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints without subtargets */
 		SINGLETARGETNS_GET_TARS(con, data->tar, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void followpath_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -1259,7 +1289,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 	
 	if (VALID_CONS_TARGET(ct)) {
 		Curve *cu= ct->tar->data;
-		float q[4], vec[4], dir[3], *quat, x1;
+		float q[4], vec[4], dir[3], quat[4], x1;
 		float totmat[4][4];
 		float curvetime;
 		
@@ -1284,7 +1314,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 			
 			if ( where_on_path(ct->tar, curvetime, vec, dir) ) {
 				if (data->followflag) {
-					quat= vectoquat(dir, (short) data->trackflag, (short) data->upflag);
+					vectoquat(dir, (short) data->trackflag, (short) data->upflag, quat);
 					
 					Normalize(dir);
 					q[0]= (float)cos(0.5*vec[3]);
@@ -1532,7 +1562,7 @@ static void loclike_new_data (void *cdata)
 	data->flag = LOCLIKE_X|LOCLIKE_Y|LOCLIKE_Z;
 }
 
-static void loclike_get_tars (bConstraint *con, ListBase *list)
+static int loclike_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bLocateLikeConstraint *data= con->data;
@@ -1540,7 +1570,11 @@ static void loclike_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void loclike_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -1610,7 +1644,7 @@ static void rotlike_new_data (void *cdata)
 	data->flag = ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z;
 }
 
-static void rotlike_get_tars (bConstraint *con, ListBase *list)
+static int rotlike_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bRotateLikeConstraint *data= con->data;
@@ -1618,7 +1652,11 @@ static void rotlike_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void rotlike_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -1707,7 +1745,7 @@ static void sizelike_new_data (void *cdata)
 	data->flag = SIZELIKE_X|SIZELIKE_Y|SIZELIKE_Z;
 }
 
-static void sizelike_get_tars (bConstraint *con, ListBase *list)
+static int sizelike_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bSizeLikeConstraint *data= con->data;
@@ -1715,7 +1753,11 @@ static void sizelike_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void sizelike_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -1821,14 +1863,18 @@ static void pycon_new_data (void *cdata)
 	data->prop->type = IDP_GROUP;
 }
 
-static void pycon_get_tars (bConstraint *con, ListBase *list)
+static int pycon_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bPythonConstraint *data= con->data;
 		
 		list->first = data->targets.first;
 		list->last = data->targets.last;
+		
+		return data->tarnum;
 	}
+	
+	return 0;
 }
 
 /* Whether this approach is maintained remains to be seen (aligorith) */
@@ -1904,7 +1950,7 @@ static void actcon_new_data (void *cdata)
 	data->type = 20;
 }
 
-static void actcon_get_tars (bConstraint *con, ListBase *list)
+static int actcon_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bActionConstraint *data= con->data;
@@ -1912,7 +1958,11 @@ static void actcon_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void actcon_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -2043,7 +2093,7 @@ static void locktrack_new_data (void *cdata)
 	data->lockflag = LOCK_Z;
 }	
 
-static void locktrack_get_tars (bConstraint *con, ListBase *list)
+static int locktrack_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bLockTrackConstraint *data= con->data;
@@ -2051,7 +2101,11 @@ static void locktrack_get_tars (bConstraint *con, ListBase *list)
 		
 		/* the following macro is used for all standard single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void locktrack_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -2391,7 +2445,7 @@ static void distlimit_new_data (void *cdata)
 	data->dist= 0.0;
 }
 
-static void distlimit_get_tars (bConstraint *con, ListBase *list)
+static int distlimit_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bDistLimitConstraint *data= con->data;
@@ -2399,7 +2453,11 @@ static void distlimit_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void distlimit_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -2506,7 +2564,7 @@ static void stretchto_new_data (void *cdata)
 	data->bulge = 1.0;
 }
 
-static void stretchto_get_tars (bConstraint *con, ListBase *list)
+static int stretchto_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bStretchToConstraint *data= con->data;
@@ -2514,7 +2572,11 @@ static void stretchto_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void stretchto_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -2682,7 +2744,7 @@ static void minmax_new_data (void *cdata)
 	data->flag = 0;
 }
 
-static void minmax_get_tars (bConstraint *con, ListBase *list)
+static int minmax_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bMinMaxConstraint *data= con->data;
@@ -2690,7 +2752,11 @@ static void minmax_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void minmax_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -2812,7 +2878,7 @@ static void rbj_new_data (void *cdata)
     data->type=1;
 }
 
-static void rbj_get_tars (bConstraint *con, ListBase *list)
+static int rbj_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bRigidBodyJointConstraint *data= con->data;
@@ -2820,7 +2886,11 @@ static void rbj_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints without subtargets */
 		SINGLETARGETNS_GET_TARS(con, data->tar, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void rbj_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -2851,7 +2921,7 @@ static bConstraintTypeInfo CTI_RIGIDBODYJOINT = {
 
 /* -------- Clamp To ---------- */
 
-static void clampto_get_tars (bConstraint *con, ListBase *list)
+static int clampto_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bClampToConstraint *data= con->data;
@@ -2859,7 +2929,11 @@ static void clampto_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints without subtargets */
 		SINGLETARGETNS_GET_TARS(con, data->tar, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void clampto_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -3024,7 +3098,7 @@ static void transform_new_data (void *cdata)
 	data->map[2]= 2;
 }
 
-static void transform_get_tars (bConstraint *con, ListBase *list)
+static int transform_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bTransformConstraint *data= con->data;
@@ -3032,7 +3106,11 @@ static void transform_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void transform_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -3059,11 +3137,13 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		
 		/* obtain target effect */
 		switch (data->from) {
-			case 2:	/* scale */
+			case 2: /* scale */
 				Mat4ToSize(ct->matrix, dvec);
 				break;
-			case 1: /* rotation */
+			case 1: /* rotation (convert to degrees first) */
 				Mat4ToEul(ct->matrix, dvec);
+				for (i=0; i<3; i++)
+					dvec[i] = dvec[i] / M_PI * 180;
 				break;
 			default: /* location */
 				VecCopyf(dvec, ct->matrix[3]);
@@ -3073,7 +3153,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		/* extract components of owner's matrix */
 		VECCOPY(loc, cob->matrix[3]);
 		Mat4ToEul(cob->matrix, eul);
-		Mat4ToSize(cob->matrix, size);
+		Mat4ToSize(cob->matrix, size);	
 		
 		/* determine where in range current transforms lie */
 		if (data->expo) {
@@ -3095,17 +3175,6 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 			}
 		}
 		
-		/* convert radian<->degree */
-		if (data->from==1 && data->to==0) {
-			/* from radians to degrees */
-			for (i=0; i<3; i++) 
-				sval[i] = sval[i] / M_PI * 180;
-		}
-		else if (data->from==0 && data->to==1) {
-			/* from degrees to radians */
-			for (i=0; i<3; i++) 
-				sval[i] = sval[i] / 180 * M_PI;
-		}
 		
 		/* apply transforms */
 		switch (data->to) {
@@ -3117,11 +3186,14 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 				for (i=0; i<3; i++) {
 					float tmin, tmax;
 					
-					/* convert destination min/max ranges from degrees to radians */
-					tmin= data->to_min[i] / M_PI * 180;
-					tmax= data->to_max[i] / M_PI * 180;
+					tmin= data->to_min[i];
+					tmax= data->to_max[i];
 					
+					/* all values here should be in degrees */
 					eul[i]= tmin + (sval[data->map[i]] * (tmax - tmin)); 
+					
+					/* now convert final value back to radians */
+					eul[i] = eul[i] / 180 * M_PI;
 				}
 				break;
 			default: /* location */

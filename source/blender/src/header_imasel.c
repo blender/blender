@@ -6,15 +6,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,7 +29,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -104,7 +101,7 @@ void imasel_buttons(void)
 	uiBlock *block;
 	short xco, xcotitle;
 	char naam[256];
-	char dir[FILE_MAXDIR], group[32];
+	char dir[FILE_MAX], group[32];
 	short type;
 	int do_filter = 0;
 
@@ -139,9 +136,13 @@ void imasel_buttons(void)
 
 	cpack(0x0);
 	xco+=XIC+10;
-	uiDefIconButBitS(block, TOG, FILE_BOOKMARKS, B_RELOADIMASELDIR, ICON_BOOKMARKS,xco+=XIC,0,XIC,YIC, &simasel->flag, 0, 0, 0, 0, "Toggles Bookmarks on/off");
-	xco+=XIC+10;
 
+	type = simasel->type;
+
+	if (type != FILE_MAIN) {
+		uiDefIconButBitS(block, TOG, FILE_BOOKMARKS, B_RELOADIMASELDIR, ICON_BOOKMARKS,xco+=XIC,0,XIC,YIC, &simasel->flag, 0, 0, 0, 0, "Toggles Bookmarks on/off");
+		xco+=XIC+10;
+	} 
 	xcotitle= xco;
 	xco+= BIF_GetStringWidth(G.font, simasel->title, (U.transopts & USER_TR_BUTTONS));
 	
@@ -153,8 +154,6 @@ void imasel_buttons(void)
 	uiDefIconButBitS(block, TOG, FILE_HIDE_DOT, B_RELOADIMASELDIR, ICON_GHOST,xco+=XIC,0,XIC,YIC, &simasel->flag, 0, 0, 0, 0, "Hides dot files");		
 	uiBlockEndAlign(block);
 	xco+=20;
-	
-	type = simasel->type;
 	
 	if(!simasel->files) {
 		simasel->files = BIF_filelist_new();

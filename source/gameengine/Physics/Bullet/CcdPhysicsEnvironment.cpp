@@ -251,6 +251,22 @@ public:
 };
 #endif //NEW_BULLET_VEHICLE_SUPPORT
 
+class CcdOverlapFilterCallBack : public btOverlapFilterCallback
+{
+private:
+	class CcdPhysicsEnvironment* m_physEnv;
+public:
+	CcdOverlapFilterCallBack(CcdPhysicsEnvironment* env) : 
+		m_physEnv(env)
+	{
+	}
+	virtual ~CcdOverlapFilterCallBack()
+	{
+	}
+	// return true when pairs need collision
+	virtual bool	needBroadphaseCollision(btBroadphaseProxy* proxy0,btBroadphaseProxy* proxy1) const;
+};
+
 
 void CcdPhysicsEnvironment::setDebugDrawer(btIDebugDraw* debugDrawer)
 {
@@ -295,39 +311,48 @@ static void DrawAabb(btIDebugDraw* debugDrawer,const btVector3& from,const btVec
 
 
 
-CcdPhysicsEnvironment::CcdPhysicsEnvironment(btDispatcher* dispatcher,btBroadphaseInterface* broadphase)
+CcdPhysicsEnvironment::CcdPhysicsEnvironment(btDispatcher* dispatcher,btOverlappingPairCache* pairCache)
 :m_scalingPropagated(false),
 m_numIterations(10),
 m_numTimeSubSteps(1),
 m_ccdMode(0),
 m_solverType(-1),
 m_profileTimings(0),
-m_enableSatCollisionDetection(false)
-{	
+m_enableSatCollisionDetection(false),
+m_solver(NULL),
+m_ownPairCache(NULL),
+m_ownDispatcher(NULL),
+m_filterCallback(NULL)
+{
+
 	for (int i=0;i<PHY_NUM_RESPONSE;i++)
 	{
 		m_triggerCallbacks[i] = 0;
 	}
 	if (!dispatcher)
-		dispatcher = new btCollisionDispatcher(new btDefaultCollisionConfiguration());
+	{
+		dispatcher = new btCollisionDispatcher();
+		m_ownDispatcher = dispatcher;
+	}
 
-
-	if(!broadphase)
+	if(!pairCache)
 	{
 
 		//todo: calculate/let user specify this world sizes
 		btVector3 worldMin(-10000,-10000,-10000);
 		btVector3 worldMax(10000,10000,10000);
-		
-		broadphase = new btAxisSweep3(worldMin,worldMax);
-		
+
+		pairCache = new btAxisSweep3(worldMin,worldMax);
+		// remember that this was allocated by us so that we can release it
+		m_ownPairCache = pairCache;
 		//broadphase = new btSimpleBroadphase();
 	}
 
+	m_filterCallback = new CcdOverlapFilterCallBack(this);
+	pairCache->setOverlapFilterCallback(m_filterCallback);
 
 	setSolverType(1);//issues with quickstep and memory allocations
-
-	m_dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,broadphase,new btSequentialImpulseConstraintSolver(),new btDefaultCollisionConfiguration());
+	m_dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,pairCache,m_solver);
 	m_debugDrawer = 0;
 	m_gravity = btVector3(0.f,-10.f,0.f);
 	m_dynamicsWorld->setGravity(m_gravity);
@@ -345,7 +370,8 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 	body->setGravity( m_gravity );
 	m_controllers.push_back(ctrl);
 
-	m_dynamicsWorld->addRigidBody(body);
+	//use explicit group/filter for finer control over collision in bullet => near/radar sensor
+	m_dynamicsWorld->addRigidBody(body, ctrl->GetCollisionFilterGroup(), ctrl->GetCollisionFilterMask());
 	if (body->isStaticOrKinematicObject())
 	{
 		body->setActivationState(ISLAND_SLEEPING);
@@ -555,7 +581,7 @@ void		CcdPhysicsEnvironment::setSolverType(int solverType)
 			{
 
 				m_solver = new btSequentialImpulseConstraintSolver();
-
+				((btSequentialImpulseConstraintSolver*)m_solver)->setSolverMode(btSequentialImpulseConstraintSolver::SOLVER_USE_WARMSTARTING | btSequentialImpulseConstraintSolver::SOLVER_RANDMIZE_ORDER);
 				break;
 			}
 		}
@@ -619,7 +645,7 @@ int			CcdPhysicsEnvironment::createUniversalD6Constraint(
 
 		genericConstraint = new btGeneric6DofConstraint(
 			*rb0,*rb1,
-			frameInA,frameInB, 1);
+			frameInA,frameInB);
 		genericConstraint->setLinearLowerLimit(linearMinLimits);
 		genericConstraint->setLinearUpperLimit(linearMaxLimits);
 		genericConstraint->setAngularLowerLimit(angularMinLimits);
@@ -686,8 +712,8 @@ struct	FilterClosestRayResultCallback : public btCollisionWorld::ClosestRayResul
 		//ignore client...
 		if (curHit != m_ignoreClient)
 		{		
-			//if valid; also return normal in world space
-			return ClosestRayResultCallback::AddSingleResult(rayResult, 1);
+			//if valid
+			return ClosestRayResultCallback::AddSingleResult(rayResult);
 		}
 		return m_closestHitFraction;
 	}
@@ -713,8 +739,8 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 
 
 	PHY_IPhysicsController* nearestHit = 0;
-
-	m_dynamicsWorld->rayTest(rayFrom,rayTo,rayCallback);
+	// don't collision with sensor object
+	m_dynamicsWorld->rayTest(rayFrom,rayTo,rayCallback, CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::SensorFilter);
 	if (rayCallback.HasHit())
 	{
 		nearestHit = static_cast<CcdPhysicsController*>(rayCallback.m_collisionObject->getUserPointer());
@@ -777,7 +803,20 @@ CcdPhysicsEnvironment::~CcdPhysicsEnvironment()
 	delete m_dynamicsWorld;
 	
 
+	if (NULL != m_ownPairCache)
+		delete m_ownPairCache;
 
+	if (NULL != m_ownDispatcher)
+		delete m_ownDispatcher;
+
+	if (NULL != m_solver)
+		delete m_solver;
+
+	if (NULL != m_debugDrawer)
+		delete m_debugDrawer;
+
+	if (NULL != m_filterCallback)
+		delete m_filterCallback;
 }
 
 
@@ -804,7 +843,7 @@ void	CcdPhysicsEnvironment::setConstraintParam(int constraintId,int param,float 
 		{
 			//param = 1..12, min0,max0,min1,max1...min6,max6
 			btGeneric6DofConstraint* genCons = (btGeneric6DofConstraint*)typedConstraint;
-			genCons->setLimit(param,value0,value1);
+			genCons->SetLimit(param,value0,value1);
 			break;
 		};
 	default:
@@ -840,9 +879,10 @@ void CcdPhysicsEnvironment::addSensor(PHY_IPhysicsController* ctrl)
 	{
 		addCcdPhysicsController(ctrl1);
 	}
+	//Collision filter/mask is now set at the time of the creation of the controller 
 	//force collision detection with everything, including static objects (might hurt performance!)
-	ctrl1->GetRigidBody()->getBroadphaseHandle()->m_collisionFilterMask = btBroadphaseProxy::AllFilter;
-	ctrl1->GetRigidBody()->getBroadphaseHandle()->m_collisionFilterGroup = btBroadphaseProxy::AllFilter;
+	//ctrl1->GetRigidBody()->getBroadphaseHandle()->m_collisionFilterMask = btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::SensorTrigger;
+	//ctrl1->GetRigidBody()->getBroadphaseHandle()->m_collisionFilterGroup = btBroadphaseProxy::SensorTrigger;
 	//todo: make this 'sensor'!
 
 	requestCollisionCallback(ctrl);
@@ -961,9 +1001,47 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 
 }
 
+// This call back is called before a pair is added in the cache
+// Handy to remove objects that must be ignored by sensors
+bool CcdOverlapFilterCallBack::needBroadphaseCollision(btBroadphaseProxy* proxy0,btBroadphaseProxy* proxy1) const
+{
+	btCollisionObject *colObj0, *colObj1;
+	CcdPhysicsController *sensorCtrl, *objCtrl;
+	bool collides;
+	// first check the filters
+	collides = (proxy0->m_collisionFilterGroup & proxy1->m_collisionFilterMask) != 0;
+	collides = collides && (proxy1->m_collisionFilterGroup & proxy0->m_collisionFilterMask);
+	if (!collides)
+		return false;
 
-
-
+	// additional check for sensor object
+	if (proxy0->m_collisionFilterGroup & btBroadphaseProxy::SensorTrigger)
+	{
+		// this is a sensor object, the other one can't be a sensor object because 
+		// they exclude each other in the above test
+		assert(!(proxy1->m_collisionFilterGroup & btBroadphaseProxy::SensorTrigger));
+		colObj0 = (btCollisionObject*)proxy0->m_clientObject;
+		colObj1 = (btCollisionObject*)proxy1->m_clientObject;
+	}
+	else if (proxy1->m_collisionFilterGroup & btBroadphaseProxy::SensorTrigger)
+	{
+		colObj0 = (btCollisionObject*)proxy1->m_clientObject;
+		colObj1 = (btCollisionObject*)proxy0->m_clientObject;
+	}
+	else
+	{
+		return true;
+	}
+	if (!colObj0 || !colObj1)
+		return false;
+	sensorCtrl = static_cast<CcdPhysicsController*>(colObj0->getUserPointer());
+	objCtrl = static_cast<CcdPhysicsController*>(colObj1->getUserPointer());
+	if (m_physEnv->m_triggerCallbacks[PHY_BROADPH_RESPONSE])
+	{
+		return m_physEnv->m_triggerCallbacks[PHY_BROADPH_RESPONSE](m_physEnv->m_triggerCallbacksUserPtrs[PHY_BROADPH_RESPONSE], sensorCtrl, objCtrl, 0);
+	}
+	return true;
+}
 
 
 #ifdef NEW_BULLET_VEHICLE_SUPPORT
@@ -997,12 +1075,19 @@ PHY_IPhysicsController*	CcdPhysicsEnvironment::CreateSphereController(float radi
 {
 	
 	CcdConstructionInfo	cinfo;
+	// memory leak! The shape is not deleted by Bullet and we cannot add it to the KX_Scene.m_shapes list
 	cinfo.m_collisionShape = new btSphereShape(radius);
 	cinfo.m_MotionState = 0;
 	cinfo.m_physicsEnv = this;
-	cinfo.m_collisionFlags |= btCollisionObject::CF_NO_CONTACT_RESPONSE | btCollisionObject::CF_KINEMATIC_OBJECT;
+	// declare this object as Dyamic rather then static!!
+	// The reason as it is designed to detect all type of object, including static object
+	// It would cause static-static message to be printed on the console otherwise
+	cinfo.m_collisionFlags |= btCollisionObject::CF_NO_CONTACT_RESPONSE/* | btCollisionObject::CF_KINEMATIC_OBJECT*/;
 	DefaultMotionState* motionState = new DefaultMotionState();
 	cinfo.m_MotionState = motionState;
+	// we will add later the possibility to select the filter from option
+	cinfo.m_collisionFilterMask = CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::SensorFilter;
+	cinfo.m_collisionFilterGroup = CcdConstructionInfo::SensorFilter;
 	motionState->m_worldTransform.setIdentity();
 	motionState->m_worldTransform.setOrigin(btVector3(position[0],position[1],position[2]));
 
@@ -1098,7 +1183,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 				
 				genericConstraint = new btGeneric6DofConstraint(
 					*rb0,*rb1,
-					frameInA,frameInB, 1);
+					frameInA,frameInB);
 
 
 			} else
@@ -1121,7 +1206,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 
 				genericConstraint = new btGeneric6DofConstraint(
 					*rb0,s_fixedObject2,
-					frameInA,frameInB, 1);
+					frameInA,frameInB);
 			}
 			
 			if (genericConstraint)
@@ -1274,12 +1359,18 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 PHY_IPhysicsController* CcdPhysicsEnvironment::CreateConeController(float coneradius,float coneheight)
 {
 	CcdConstructionInfo	cinfo;
+	//This is a memory leak: Bullet does not delete the shape and it cannot be added to 
+	//the KX_Scene.m_shapes list -- too bad but that's not a lot of data
 	cinfo.m_collisionShape = new btConeShape(coneradius,coneheight);
 	cinfo.m_MotionState = 0;
 	cinfo.m_physicsEnv = this;
 	cinfo.m_collisionFlags |= btCollisionObject::CF_NO_CONTACT_RESPONSE;
 	DefaultMotionState* motionState = new DefaultMotionState();
 	cinfo.m_MotionState = motionState;
+	
+	// we will add later the possibility to select the filter from option
+	cinfo.m_collisionFilterMask = CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::SensorFilter;
+	cinfo.m_collisionFilterGroup = CcdConstructionInfo::SensorFilter;
 	motionState->m_worldTransform.setIdentity();
 //	motionState->m_worldTransform.setOrigin(btVector3(position[0],position[1],position[2]));
 

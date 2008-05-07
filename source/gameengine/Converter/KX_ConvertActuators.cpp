@@ -1,15 +1,12 @@
 /**
 * $Id$
 *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 * Convert Blender actuators for use in the GameEngine
 */
 
@@ -37,6 +34,8 @@
 
 #define BLENDER_HACK_DTIME 0.02
 
+#include "MEM_guardedalloc.h"
+
 #include "KX_BlenderSceneConverter.h"
 #include "KX_ConvertActuators.h"
 
@@ -45,7 +44,7 @@
 #include "SCA_PropertyActuator.h"
 #include "SCA_LogicManager.h"
 #include "SCA_RandomActuator.h"
-
+#include "SCA_2DFilterActuator.h"
 
 // Ketsji specific logicbricks
 #include "KX_SceneActuator.h"
@@ -61,6 +60,7 @@
 #include "KX_SCA_AddObjectActuator.h"
 #include "KX_SCA_EndObjectActuator.h"
 #include "KX_SCA_ReplaceMeshActuator.h"
+#include "KX_ParentActuator.h"
 
 #include "KX_Scene.h"
 #include "KX_KetsjiEngine.h"
@@ -69,7 +69,7 @@
 #include "KX_GameObject.h"
 
 /* This little block needed for linking to Blender... */
-
+#include "BKE_text.h"
 #include "BLI_blenlib.h"
 
 #include "KX_NetworkMessageActuator.h"
@@ -351,7 +351,7 @@ void BL_ConvertActuators(char* maggiename,
 							else
 							{
 								/* but we need to convert the samplename into absolute pathname first */
-								BLI_convertstringcode(soundact->sound->name, maggiename, 0);
+								BLI_convertstringcode(soundact->sound->name, maggiename);
 								samplename = soundact->sound->name;
 								
 								/* and now we can load it */
@@ -681,14 +681,10 @@ void BL_ConvertActuators(char* maggiename,
 						break;
 					}
 				case ACT_SCENE_CAMERA:
+					mode = KX_SceneActuator::KX_SCENE_SET_CAMERA;
 					if (sceneact->camera)
 					{
-						mode = KX_SceneActuator::KX_SCENE_SET_CAMERA;
 						cam = (KX_Camera*) converter->FindGameObject(sceneact->camera);
-					}
-					else
-					{
-						// TODO:warn user
 					}
 					break;
 				case ACT_SCENE_RESTART:
@@ -836,7 +832,110 @@ void BL_ConvertActuators(char* maggiename,
 			baseact = tmp_vis_act;
 		}
 		break;
+		
+		case ACT_2DFILTER:
+		{
+			bTwoDFilterActuator *_2dfilter = (bTwoDFilterActuator*) bact->data;
+            SCA_2DFilterActuator *tmp = NULL;
 
+			RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode;
+			switch(_2dfilter->type)
+			{
+				case ACT_2DFILTER_MOTIONBLUR:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_MOTIONBLUR;
+					break;
+				case ACT_2DFILTER_BLUR:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_BLUR;
+					break;
+				case ACT_2DFILTER_SHARPEN:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_SHARPEN;
+					break;
+				case ACT_2DFILTER_DILATION:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_DILATION;
+					break;
+				case ACT_2DFILTER_EROSION:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_EROSION;
+					break;
+				case ACT_2DFILTER_LAPLACIAN:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_LAPLACIAN;
+					break;
+				case ACT_2DFILTER_SOBEL:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_SOBEL;
+					break;
+				case ACT_2DFILTER_PREWITT:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_PREWITT;
+					break;
+				case ACT_2DFILTER_GRAYSCALE:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_GRAYSCALE;
+					break;
+				case ACT_2DFILTER_SEPIA:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_SEPIA;
+					break;
+				case ACT_2DFILTER_INVERT:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_INVERT;
+					break;
+				case ACT_2DFILTER_CUSTOMFILTER:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_CUSTOMFILTER;
+					break;
+				case ACT_2DFILTER_NOFILTER:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_NOFILTER;
+					break;
+				case ACT_2DFILTER_DISABLED:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_DISABLED;
+					break;
+				case ACT_2DFILTER_ENABLED:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_ENABLED;
+					break;
+				default:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_NOFILTER;
+					break;
+			}
+            
+			tmp = new SCA_2DFilterActuator(gameobj, filtermode, _2dfilter->flag,
+				_2dfilter->float_arg,_2dfilter->int_arg,ketsjiEngine->GetRasterizer(),rendertools);
+
+			if (_2dfilter->text)
+			{
+				char *buf;
+				// this is some blender specific code
+				buf = txt_to_buf(_2dfilter->text);
+				if (buf)
+				{
+					tmp->SetShaderText(STR_String(buf));
+					MEM_freeN(buf);
+				}
+			}
+
+            baseact = tmp;
+			
+		}
+		break;
+		case ACT_PARENT:
+			{
+				bParentActuator *parAct = (bParentActuator *) bact->data;
+				int mode = KX_ParentActuator::KX_PARENT_NODEF;
+				KX_GameObject *tmpgob;
+
+				switch(parAct->type)
+				{
+					case ACT_PARENT_SET:
+						mode = KX_ParentActuator::KX_PARENT_SET;
+						tmpgob = converter->FindGameObject(parAct->ob);
+						break;
+					case ACT_PARENT_REMOVE:
+						mode = KX_ParentActuator::KX_PARENT_REMOVE;
+						tmpgob = NULL;
+						break;
+				}
+	
+				KX_ParentActuator *tmpparact
+					= new KX_ParentActuator(gameobj,
+					mode,
+					tmpgob);
+				baseact = tmpparact;
+				break;
+			}
+		
 		default:
 			; /* generate some error */
 		}
@@ -854,9 +953,12 @@ void BL_ConvertActuators(char* maggiename,
 			gameobj->AddActuator(baseact);
 			
 			converter->RegisterGameActuator(baseact, bact);
+			// done with baseact, release it
+			baseact->Release();
 		}
 		
 		bact = bact->next;
 	}
 }
+
 

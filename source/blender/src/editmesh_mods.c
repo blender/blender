@@ -1,15 +1,12 @@
 /**
  * $Id: 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /*
@@ -134,14 +131,15 @@ void EM_select_mirrored(void)
 
 void EM_automerge(int update) {
 	int len;
-	if  (G.scene->automerge) {
-		if (G.obedit && G.obedit->type==OB_MESH) {
-			len = removedoublesflag(1, 1, G.scene->toolsettings->doublimit);
-			if (len) {
-				G.totvert -= len; /* saves doing a countall */
-				if (update) {
-					DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
-				}
+	if ((G.scene->automerge) &&
+		(G.obedit && G.obedit->type==OB_MESH) &&
+		(((Mesh*)G.obedit->data)->mr==NULL)
+	  ) {
+		len = removedoublesflag(1, 1, G.scene->toolsettings->doublimit);
+		if (len) {
+			G.totvert -= len; /* saves doing a countall */
+			if (update) {
+				DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			}
 		}
 	}
@@ -959,7 +957,7 @@ EDGE GROUP
 
 
 
-int edgegroup_select(short mode)
+static int edgegroup_select__internal(short mode)
 {
 	EditMesh *em = G.editMesh;
 	EditEdge *eed, *base_eed=NULL;
@@ -1154,9 +1152,33 @@ int edgegroup_select(short mode)
 				}
 			}
 		}
-	} 
+	}	
 	return selcount;
 }
+/* wrap the above function but do selection flushing edge to face */
+int edgegroup_select(short mode)
+{
+	int selcount = edgegroup_select__internal(mode);
+	
+	if (selcount) {
+		/* Could run a generic flush function,
+		 * but the problem is only that all edges of a face
+		 * can be selected without the face becoming selected */
+		EditMesh *em = G.editMesh;
+		EditFace *efa;
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if (efa->v4) {
+				if (efa->e1->f&SELECT && efa->e2->f&SELECT && efa->e3->f&SELECT && efa->e4->f&SELECT)
+					efa->f |= SELECT;
+			}  else {
+				if (efa->e1->f&SELECT && efa->e2->f&SELECT && efa->e3->f&SELECT)
+					efa->f |= SELECT;
+			}
+		}
+	}
+	return selcount;
+}
+
 
 
 /*
@@ -1420,14 +1442,20 @@ void mesh_copy_menu(void)
 	
 	ese = em->selected.last;
 	
-	if (!ese) return;
+	/* Faces can have a NULL ese, so dont return on a NULL ese here */
 	
-	if(ese->type == EDITVERT) {
+	if(ese && ese->type == EDITVERT) {
+		
+		if (!ese) return;
 		/*EditVert *ev, *ev_act = (EditVert*)ese->data;
 		ret= pupmenu("");*/
-	} else if(ese->type == EDITEDGE) {
-		EditEdge *eed, *eed_act = (EditEdge*)ese->data;
+	} else if(ese && ese->type == EDITEDGE) {
+		EditEdge *eed, *eed_act;
 		float vec[3], vec_mid[3], eed_len, eed_len_act;
+		
+		if (!ese) return;
+		
+		eed_act = (EditEdge*)ese->data;
 		
 		ret= pupmenu("Copy Active Edge to Selected%t|Crease%x1|Length%x2");
 		if (ret<1) return;
@@ -1485,25 +1513,37 @@ void mesh_copy_menu(void)
 			break;
 		}
 		
-	} else if(ese->type == EDITFACE) {
-		EditFace *efa, *efa_act = (EditFace*)ese->data;
-		MTFace *tf, *tf_act;
-		MCol *mcol, *mcol_act;
+	} else if(ese==NULL || ese->type == EDITFACE) {
+		EditFace *efa, *efa_act;
+		MTFace *tf, *tf_act = NULL;
+		MCol *mcol, *mcol_act = NULL;
 		
-		ret= pupmenu(
-			"Copy Face Selected%t|"
-			"Active Material%x1|Active Image%x2|Active UV Coords%x3|"
-			"Active Mode%x4|Active Transp%x5|Active Vertex Colors%x6|%l|"
-			
-			"TexFace UVs from layer%x7|"
-			"TexFace Images from layer%x8|"
-			"TexFace All from layer%x9|"
-			"Vertex Colors from layer%x10");
+		efa_act = EM_get_actFace(0);
 		
-		if (ret<1) return;
-		
-		tf_act =	CustomData_em_get(&em->fdata, efa_act->data, CD_MTFACE);
-		mcol_act =	CustomData_em_get(&em->fdata, efa_act->data, CD_MCOL);
+		if (efa_act) {
+			ret= pupmenu(
+				"Copy Face Selected%t|"
+				"Active Material%x1|Active Image%x2|Active UV Coords%x3|"
+				"Active Mode%x4|Active Transp%x5|Active Vertex Colors%x6|%l|"
+				
+				"TexFace UVs from layer%x7|"
+				"TexFace Images from layer%x8|"
+				"TexFace All from layer%x9|"
+				"Vertex Colors from layer%x10");
+			if (ret<1) return;
+			tf_act =	CustomData_em_get(&em->fdata, efa_act->data, CD_MTFACE);
+			mcol_act =	CustomData_em_get(&em->fdata, efa_act->data, CD_MCOL);
+		} else {
+			ret= pupmenu(
+				"Copy Face Selected%t|"
+				
+				/* Make sure these are always the same as above */
+				"TexFace UVs from layer%x7|"
+				"TexFace Images from layer%x8|"
+				"TexFace All from layer%x9|"
+				"Vertex Colors from layer%x10");
+			if (ret<1) return;
+		}
 		
 		switch (ret) {
 		case 1: /* copy material */
@@ -1612,15 +1652,11 @@ void mesh_copy_menu(void)
 			
 			break;
 		
-		
-		/* copy from layer */
+		/* Copy from layer - Warning! tf_act and mcol_act will be NULL here */
 		case 7:
 		case 8:
 		case 9:
-			if (!tf_act) {
-				error("mesh has no uv/image layers");
-				return;
-			} else if (CustomData_number_of_layers(&em->fdata, CD_MTFACE)<2) {
+			if (CustomData_number_of_layers(&em->fdata, CD_MTFACE)<2) {
 				error("mesh does not have multiple uv/image layers");
 				return;
 			} else {
@@ -1647,10 +1683,7 @@ void mesh_copy_menu(void)
 			break;
 			
 		case 10: /* select vcol layers - make sure this stays in sync with above code */
-			if (!mcol_act) {
-				error("mesh has no color layers");
-				return;
-			} else if (CustomData_number_of_layers(&em->fdata, CD_MCOL)<2) {
+			if (CustomData_number_of_layers(&em->fdata, CD_MCOL)<2) {
 				error("mesh does not have multiple color layers");
 				return;
 			} else {
@@ -1739,9 +1772,10 @@ void mesh_copy_menu(void)
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 		
-		if(ese->type == EDITVERT)		BIF_undo_push("Copy Vert Attribute");
-		else if (ese->type == EDITEDGE)	BIF_undo_push("Copy Edge Attribute");
-		else if (ese->type == EDITFACE)	BIF_undo_push("Copy Face Attribute");
+		if (ese==NULL ||	ese->type == EDITFACE)	BIF_undo_push("Copy Face Attribute");
+		else if (			ese->type == EDITEDGE)	BIF_undo_push("Copy Edge Attribute");
+		else if (			ese->type == EDITVERT)	BIF_undo_push("Copy Vert Attribute");
+		
 	}
 	
 }
@@ -2516,7 +2550,6 @@ void reveal_mesh(void)
 	BIF_undo_push("Reveal");
 }
 
-/* TODO - improve this with sync sel and selection flushing */
 void hide_tface_uv(int swap)
 {
 	EditMesh *em = G.editMesh;
@@ -2535,11 +2568,39 @@ void hide_tface_uv(int swap)
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			if(efa->f & SELECT) {
 				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				if((tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3))==0) {
-					if(!efa->v4)
-						EM_select_face(efa, 0);
-					else if(!(tface->flag & TF_SEL4))
-						EM_select_face(efa, 0);
+				if (G.sima->flag & SI_SELACTFACE) {
+					/* Pretend face mode */
+					if ((	(efa->v4==NULL && 
+							(	tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) ==			(TF_SEL1|TF_SEL2|TF_SEL3) )			 ||
+							(	tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)) ==	(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)	) == 0) {
+						
+						if (G.scene->selectmode == SCE_SELECT_FACE) {
+							efa->f &= ~SELECT;
+							/* must re-select after */
+							efa->e1->f &= ~SELECT;
+							efa->e2->f &= ~SELECT;
+							efa->e3->f &= ~SELECT;
+							if(efa->e4) efa->e4->f &= ~SELECT;
+						} else {
+							EM_select_face(efa, 0);
+						}
+					}
+					tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+				} else if (G.scene->selectmode == SCE_SELECT_FACE) {
+					if((tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3))==0) {
+						if(!efa->v4)
+							EM_select_face(efa, 0);
+						else if(!(tface->flag & TF_SEL4))
+							EM_select_face(efa, 0);
+						tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+					}
+				} else {
+					/* EM_deselect_flush will deselect the face */
+					if((tface->flag & TF_SEL1)==0)				efa->v1->f &= ~SELECT;
+					if((tface->flag & TF_SEL2)==0)				efa->v2->f &= ~SELECT;
+					if((tface->flag & TF_SEL3)==0)				efa->v3->f &= ~SELECT;
+					if((efa->v4) && (tface->flag & TF_SEL4)==0)	efa->v4->f &= ~SELECT;			
+					tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 				}
 			}
 		}
@@ -2547,16 +2608,57 @@ void hide_tface_uv(int swap)
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			if(efa->f & SELECT) {
 				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				if(tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
-					EM_select_face(efa, 0);
-				else if(efa->v4 && tface->flag & TF_SEL4)
-					EM_select_face(efa, 0);
+				if (G.sima->flag & SI_SELACTFACE) {
+					if (	(efa->v4==NULL && 
+							(	tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) ==			(TF_SEL1|TF_SEL2|TF_SEL3) )			 ||
+							(	tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)) ==	(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)	) {
+						
+						if (G.scene->selectmode == SCE_SELECT_FACE) {
+							efa->f &= ~SELECT;
+							/* must re-select after */
+							efa->e1->f &= ~SELECT;
+							efa->e2->f &= ~SELECT;
+							efa->e3->f &= ~SELECT;
+							if(efa->e4) efa->e4->f &= ~SELECT;
+						} else {
+							EM_select_face(efa, 0);
+						}
+					}
+					tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+				} else if (G.scene->selectmode == SCE_SELECT_FACE) {
+					if(tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
+						EM_select_face(efa, 0);
+					else if(efa->v4 && tface->flag & TF_SEL4)
+						EM_select_face(efa, 0);
+					tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+				} else {
+					/* EM_deselect_flush will deselect the face */
+					if(tface->flag & TF_SEL1)				efa->v1->f &= ~SELECT;
+					if(tface->flag & TF_SEL2)				efa->v2->f &= ~SELECT;
+					if(tface->flag & TF_SEL3)				efa->v3->f &= ~SELECT;
+					if((efa->v4) && tface->flag & TF_SEL4)	efa->v4->f &= ~SELECT;
+					tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+				}
 			}
 		}
 	}
 	
+	
 	/*deselects too many but ok for now*/
-	EM_deselect_flush();
+	if(G.scene->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_VERTEX)) {
+		EM_deselect_flush();
+	}
+	
+	if (G.scene->selectmode==SCE_SELECT_FACE) {
+		/* de-selected all edges from faces that were de-selected.
+		 * now make sure all faces that are selected also have selected edges */
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if (efa->f & SELECT) {
+				EM_select_face(efa, 1);
+			}
+		}
+	}
+	
 	EM_validate_selections();
 	
 	BIF_undo_push("Hide UV");
@@ -2578,17 +2680,92 @@ void reveal_tface_uv(void)
 		return;
 	}
 	
-	for (efa= em->faces.first; efa; efa= efa->next) {
-		if (!(efa->h)) {
-			if (!(efa->f & SELECT)) {
-				EM_select_face(efa, 1);
+	if (G.sima->flag & SI_SELACTFACE) {
+		if (G.scene->selectmode == SCE_SELECT_FACE) {
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				if (!(efa->h) && !(efa->f & SELECT)) {
+					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					efa->f |= SELECT;
+					tface->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;
+				}
+			}
+		} else {
+			/* enable adjacent faces to have disconnected UV selections if sticky is disabled */
+			if (G.sima->sticky == SI_STICKY_DISABLE) {
+				for (efa= em->faces.first; efa; efa= efa->next) {
+					if (!(efa->h) && !(efa->f & SELECT)) {
+						/* All verts must be unselected for the face to be selected in the UV view */
+						if ((efa->v1->f&SELECT)==0 && (efa->v2->f&SELECT)==0 && (efa->v3->f&SELECT)==0 && (efa->v4==0 || (efa->v4->f&SELECT)==0)) {
+							tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+							tface->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;
+							/* Cant use EM_select_face here because it unselects the verts
+							 * and we cant tell if the face was totally unselected or not */
+							/*EM_select_face(efa, 1);
+							 * 
+							 * See Loop with EM_select_face() below... */
+							efa->f |= SELECT;
+						}
+					}
+				}
+			} else {
+				for (efa= em->faces.first; efa; efa= efa->next) {
+					if (!(efa->h) && !(efa->f & SELECT)) {
+						tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+						if ((efa->v1->f & SELECT)==0)				{tface->flag |= TF_SEL1;}
+						if ((efa->v2->f & SELECT)==0)				{tface->flag |= TF_SEL2;}
+						if ((efa->v3->f & SELECT)==0)				{tface->flag |= TF_SEL3;}
+						if ((efa->v4 && (efa->v4->f & SELECT)==0))	{tface->flag |= TF_SEL4;}
+						efa->f |= SELECT;
+					}
+				}
+			}
+			
+			/* Select all edges and verts now */
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				/* we only selected the face flags, and didnt changes edges or verts, fix this now */
+				if (!(efa->h) && (efa->f & SELECT)) {
+					EM_select_face(efa, 1);
+				}
+			}
+			EM_select_flush();
+		}
+	} else if (G.scene->selectmode == SCE_SELECT_FACE) {
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if (!(efa->h) && !(efa->f & SELECT)) {
 				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				tface->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+				efa->f |= SELECT;
+				tface->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;
+			}
+		}
+		
+		/* Select all edges and verts now */
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			/* we only selected the face flags, and didnt changes edges or verts, fix this now */
+			if (!(efa->h) && (efa->f & SELECT)) {
+				EM_select_face(efa, 1);
+			}
+		}
+		
+	} else {
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if (!(efa->h) && !(efa->f & SELECT)) {
+				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if ((efa->v1->f & SELECT)==0)				{tface->flag |= TF_SEL1;}
+				if ((efa->v2->f & SELECT)==0)				{tface->flag |= TF_SEL2;}
+				if ((efa->v3->f & SELECT)==0)				{tface->flag |= TF_SEL3;}
+				if ((efa->v4 && (efa->v4->f & SELECT)==0))	{tface->flag |= TF_SEL4;}
+				efa->f |= SELECT;
+			}
+		}
+		
+		/* Select all edges and verts now */
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			/* we only selected the face flags, and didnt changes edges or verts, fix this now */
+			if (!(efa->h) && (efa->f & SELECT)) {
+				EM_select_face(efa, 1);
 			}
 		}
 	}
-	
-	EM_selectmode_flush();
 	
 	BIF_undo_push("Reveal UV");
 	
@@ -3020,7 +3197,7 @@ void deselectall_mesh(void)	 /* this toggles!!!, UI level */
 	}
 }
 
-void select_more(void)
+void EM_select_more(void)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
@@ -3058,6 +3235,11 @@ void select_more(void)
 				EM_select_face(efa, 1);
 		}
 	}
+}
+
+void select_more(void)
+{
+	EM_select_more();
 
 	countall();
 	addqueue(curarea->win,  REDRAW, 0);
@@ -3066,7 +3248,7 @@ void select_more(void)
 	BIF_undo_push("Select More");
 }
 
-void select_less(void)
+void EM_select_less(void)
 {
 	EditMesh *em = G.editMesh;
 	EditEdge *eed;
@@ -3126,6 +3308,11 @@ void select_less(void)
 		EM_selectmode_flush();
 		
 	}
+}
+
+void select_less(void)
+{
+	EM_select_less();
 	
 	countall();
 	BIF_undo_push("Select Less");

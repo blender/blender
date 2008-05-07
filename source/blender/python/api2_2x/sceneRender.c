@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can Redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Joseph Gilbert, Dietrich Bollmann
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 struct View3D; /* keep me up here */
 
@@ -47,6 +44,7 @@ struct View3D; /* keep me up here */
 #include "BIF_drawscene.h"
 #include "BIF_renderwin.h"
 #include "BIF_writeimage.h"
+#include "BIF_meshtools.h"
 
 #include "BLI_blenlib.h"
 
@@ -86,6 +84,11 @@ enum rend_constants {
 	EXPP_RENDER_ATTR_SIZEY,
 	EXPP_RENDER_ATTR_GAUSSFILTER,
 	EXPP_RENDER_ATTR_MBLURFACTOR,
+	EXPP_RENDER_ATTR_BAKEMARGIN,
+	EXPP_RENDER_ATTR_BAKEMODE,
+ 	EXPP_RENDER_ATTR_BAKEDIST,
+	EXPP_RENDER_ATTR_BAKENORMALSPACE,
+	EXPP_RENDER_ATTR_BAKEBIAS
 };
 
 #define EXPP_RENDER_ATTR_CFRA                 2
@@ -133,6 +136,7 @@ static PyObject *RenderData_SetRenderer( BPy_RenderData * self,
 static PyObject *RenderData_SetImageType( BPy_RenderData * self,
 		PyObject * args );
 static PyObject *RenderData_Render( BPy_RenderData * self );
+static PyObject *RenderData_Bake( BPy_RenderData * self );
 
 /* BPy_RenderData Internal Protocols */
 
@@ -492,6 +496,28 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 	Py_RETURN_NONE;
 }
 
+/***************************************************************************/
+/* BPy_Bake Function Definitions                                           */
+/***************************************************************************/
+
+PyObject *RenderData_Bake( BPy_RenderData * self )
+{
+	char *error_msg = NULL;
+	Scene *oldsce;
+
+	oldsce = G.scene;
+	set_scene( self->scene );
+	
+	objects_bake_render(0, &error_msg);
+	
+	set_scene( oldsce );
+	
+	if (error_msg)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError, error_msg );
+	
+	Py_RETURN_NONE;
+}
+
 /* 
  * This will save the rendered image to an output file path already defined.
  */
@@ -505,7 +531,11 @@ PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 	if( !PyArg_ParseTuple( args, "s|i", &name_str, &zbuff ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected a filename (string) and optional int" );
-
+	
+	if (G.background)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"saveRenderedImage does not work in background mode, use renderAnim() instead" );
+	
 	if( strlen(self->renderContext->pic) + strlen(name_str)
 			>= sizeof(filepath) )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
@@ -568,8 +598,7 @@ PyObject *RenderData_Play( BPy_RenderData * self )
 	if( self->renderContext->imtype == R_QUICKTIME ) {
 
 		strcpy( file, self->renderContext->pic );
-		BLI_convertstringcode( file, (char *) self->scene,
-				       self->renderContext->cfra );
+		BLI_convertstringcode( file, G.sce );
 		BLI_make_existing_file( file );
 		if( BLI_strcasecmp( file + strlen( file ) - 4, ".mov" ) ) {
 			sprintf( txt, "%04d_%04d.mov",
@@ -582,8 +611,8 @@ PyObject *RenderData_Play( BPy_RenderData * self )
 	{
 
 		strcpy( file, self->renderContext->pic );
-		BLI_convertstringcode( file, G.sce,
-				       self->renderContext->cfra );
+		BLI_convertstringcode( file, G.sce );
+		
 		BLI_make_existing_file( file );
 		if( BLI_strcasecmp( file + strlen( file ) - 4, ".avi" ) ) {
 			sprintf( txt, "%04d_%04d.avi",
@@ -624,20 +653,20 @@ PyObject *RenderData_EnableBackbuf( BPy_RenderData * self, PyObject * args )
 
 PyObject *RenderData_EnableExtensions( BPy_RenderData * self, PyObject * args )
 {
-	return M_Render_BitToggleShort( args, R_EXTENSION,
+	return M_Render_BitToggleInt( args, R_EXTENSION,
 					&self->renderContext->scemode );
 }
 
 PyObject *RenderData_EnableSequencer( BPy_RenderData * self, PyObject * args )
 {
-	return M_Render_BitToggleShort( args, R_DOSEQ,
+	return M_Render_BitToggleInt( args, R_DOSEQ,
 					&self->renderContext->scemode );
 }
 
 PyObject *RenderData_EnableRenderDaemon( BPy_RenderData * self,
 					 PyObject * args )
 {
-	return M_Render_BitToggleShort( args, R_BG_RENDER,
+	return M_Render_BitToggleInt( args, R_BG_RENDER,
 					&self->renderContext->scemode );
 }
 
@@ -886,6 +915,18 @@ PyObject *RenderData_GaussFilterSize( BPy_RenderData * self, PyObject * args )
 					      0.5f, 1.5f );
 }
 
+PyObject *RenderData_AspectRatioX( BPy_RenderData * self, PyObject * args )
+{
+	return M_Render_GetSetAttributeFloat( args, &self->renderContext->xasp,
+					      1.0f, 200.0f );
+}
+
+PyObject *RenderData_AspectRatioY( BPy_RenderData * self, PyObject * args )
+{
+	return M_Render_GetSetAttributeFloat( args, &self->renderContext->yasp,
+					      1.0f, 200.0f );
+}
+
 PyObject *RenderData_StartFrame( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeInt( args, &self->renderContext->sfra,
@@ -914,18 +955,6 @@ PyObject *RenderData_ImageSizeY( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeShort( args, &self->renderContext->ysch,
 					      4, 10000 );
-}
-
-PyObject *RenderData_AspectRatioX( BPy_RenderData * self, PyObject * args )
-{
-	return M_Render_GetSetAttributeShort( args, &self->renderContext->xasp,
-					      1, 200 );
-}
-
-PyObject *RenderData_AspectRatioY( BPy_RenderData * self, PyObject * args )
-{
-	return M_Render_GetSetAttributeShort( args, &self->renderContext->yasp,
-					      1, 200 );
 }
 
 static int RenderData_setRenderer( BPy_RenderData * self, PyObject * value )
@@ -994,6 +1023,7 @@ static int RenderData_setImageType( BPy_RenderData *self, PyObject *value )
 #endif
 #ifdef WITH_OPENEXR
 	case R_OPENEXR :
+	case R_MULTILAYER :
 #endif
 #ifdef WITH_FFMPEG
 	case R_FFMPEG :
@@ -1349,18 +1379,6 @@ static PyObject *RenderData_getYafrayAntiAliasingThreshold( BPy_RenderData * sel
 	return M_Render_getFloat( self, self->renderContext->YF_AAthreshold );
 }
 
-/** YafRay - Number of processors to use */
-
-static int RenderData_setYafrayNumberOfProcessors( BPy_RenderData * self, PyObject * value )
-{
-	return M_Render_setInt( self, value, &self->renderContext->YF_numprocs, 1, 8 );
-}
-
-static PyObject *RenderData_getYafrayNumberOfProcessors( BPy_RenderData * self )
-{
-	return M_Render_getInt( self, self->renderContext->YF_numprocs );
-}
-
 /* YafRay - Cache occlusion/irradiance samples (faster) */
 
 static int RenderData_setYafrayGICache( BPy_RenderData * self, PyObject * value )
@@ -1637,14 +1655,6 @@ PyObject *RenderData_YafrayExposure( BPy_RenderData * self, PyObject * args )
 					      YF_exposure, 0.0f, 10.0f );
 }
 
-PyObject *RenderData_YafrayProcessorCount( BPy_RenderData * self,
-					   PyObject * args )
-{
-	return M_Render_GetSetAttributeInt( args,
-					    &self->renderContext->YF_numprocs,
-					    1, 8 );
-}
-
 PyObject *RenderData_EnableGameFrameStretch( BPy_RenderData * self )
 {
 	self->scene->framing.type = SCE_GAMEFRAMING_SCALE;
@@ -1817,6 +1827,7 @@ PyObject *RenderData_removeRenderLayer(BPy_RenderData * self, BPy_RenderLayer *v
 	}
 	
 	value->renderLayer = NULL;
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_addRenderLayer(BPy_RenderData * self ) {
@@ -1846,6 +1857,18 @@ static PyObject *RenderData_getFloatAttr( BPy_RenderData *self, void *type )
 		break;
 	case EXPP_RENDER_ATTR_FPS_BASE:
 		param = self->renderContext->frs_sec_base;
+		break;
+	case EXPP_RENDER_ATTR_BAKEDIST:
+		param = self->renderContext->bake_maxdist;
+		break;
+	case EXPP_RENDER_ATTR_BAKEBIAS:
+		param = self->renderContext->bake_biasdist;
+		break;
+	case EXPP_RENDER_ATTR_ASPECTX:
+		param = (long)self->renderContext->xasp;
+		break;
+	case EXPP_RENDER_ATTR_ASPECTY:
+		param = (long)self->renderContext->yasp;
 		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -1880,6 +1903,26 @@ static int RenderData_setFloatAttrClamp( BPy_RenderData *self, PyObject *value,
 		max = 120.0f;
 		param = &self->renderContext->frs_sec_base;
 		break;
+	case EXPP_RENDER_ATTR_BAKEDIST:
+		min = 0.0f;
+		max = 1000.0f;
+		param = &self->renderContext->bake_maxdist;
+		break;
+	case EXPP_RENDER_ATTR_BAKEBIAS:
+		min = 0.0f;
+		max = 1000.0f;
+		param = &self->renderContext->bake_biasdist;
+		break;
+	case EXPP_RENDER_ATTR_ASPECTX:
+		min = 1.0f;
+		max = 200.0f;
+		param = &self->renderContext->xasp;
+		break;
+	case EXPP_RENDER_ATTR_ASPECTY:
+		min = 1.0f;
+		max = 200.0f;
+		param = &self->renderContext->yasp;
+		break;
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"undefined type constant in RenderData_setFloatAttrClamp" );
@@ -1902,12 +1945,6 @@ static PyObject *RenderData_getIValueAttr( BPy_RenderData *self, void *type )
 	case EXPP_RENDER_ATTR_YPARTS:
 		param = (long)self->renderContext->yparts;
 		break;
-	case EXPP_RENDER_ATTR_ASPECTX:
-		param = (long)self->renderContext->xasp;
-		break;
-	case EXPP_RENDER_ATTR_ASPECTY:
-		param = (long)self->renderContext->yasp;
-		break;
 	case EXPP_RENDER_ATTR_CFRAME:
 		param = (long)self->renderContext->cfra;
 		break;
@@ -1925,6 +1962,15 @@ static PyObject *RenderData_getIValueAttr( BPy_RenderData *self, void *type )
 		break;
 	case EXPP_RENDER_ATTR_SIZEY:
 		param = self->renderContext->ysch;
+		break;
+	case EXPP_RENDER_ATTR_BAKEMARGIN:
+		param = self->renderContext->bake_filter;
+		break;
+	case EXPP_RENDER_ATTR_BAKEMODE:
+		param = self->renderContext->bake_mode;
+		break;
+	case EXPP_RENDER_ATTR_BAKENORMALSPACE:
+		param = self->renderContext->bake_normal_space;
 		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -1955,18 +2001,6 @@ static int RenderData_setIValueAttrClamp( BPy_RenderData *self, PyObject *value,
 		max = 64;
 		size = 'h';
 		param = &self->renderContext->yparts;
-		break;
-	case EXPP_RENDER_ATTR_ASPECTX:
-		min = 1;
-		max = 200;
-	   	size = 'h';
-		param = &self->renderContext->xasp;
-		break;
-	case EXPP_RENDER_ATTR_ASPECTY:
-		min = 1;
-		max = 200;
-	   	size = 'h';
-		param = &self->renderContext->yasp;
 		break;
 	case EXPP_RENDER_ATTR_CFRAME:
 		min = 1;
@@ -2003,6 +2037,24 @@ static int RenderData_setIValueAttrClamp( BPy_RenderData *self, PyObject *value,
 		max = 10000;
 		size = 'h';
 		param = &self->renderContext->ysch;
+		break;
+	case EXPP_RENDER_ATTR_BAKEMARGIN:
+		min = 0;
+		max = 32;
+		size = 'h';
+		param = &self->renderContext->bake_filter;
+		break;
+	case EXPP_RENDER_ATTR_BAKEMODE:
+		min = RE_BAKE_LIGHT;
+		max = RE_BAKE_DISPLACEMENT;
+		size = 'h';
+		param = &self->renderContext->bake_mode;
+		break;
+	case EXPP_RENDER_ATTR_BAKENORMALSPACE:
+		min = R_BAKE_SPACE_CAMERA;
+		max = R_BAKE_SPACE_TANGENT;
+		size = 'h';
+		param = &self->renderContext->bake_normal_space;
 		break;
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
@@ -2042,7 +2094,7 @@ static int RenderData_setModeBit( BPy_RenderData* self, PyObject *value,
 
 #define MODE_MASK ( R_OSA | R_SHADOW | R_GAMMA | R_ENVMAP | R_EDGE | \
 	R_FIELDS | R_FIELDSTILL | R_RADIO | R_BORDER | R_PANORAMA | R_CROP | \
-	R_ODDFIELD | R_MBLUR | R_RAYTRACE | R_THREADS )
+	R_ODDFIELD | R_MBLUR | R_RAYTRACE | R_FIXED_THREADS )
 
 static PyObject *RenderData_getMode( BPy_RenderData *self )
 {
@@ -2070,14 +2122,14 @@ static int RenderData_setMode( BPy_RenderData* self, PyObject *arg )
 
 static PyObject *RenderData_getSceModeBits( BPy_RenderData *self, void* type )
 {
-	return EXPP_getBitfield( &self->renderContext->scemode, (int)type, 'h' );
+	return EXPP_getBitfield( &self->renderContext->scemode, (int)type, 'i' );
 }
 
 static int RenderData_setSceModeBits( BPy_RenderData* self, PyObject *value,
 		void* type )
 {
 	return EXPP_setBitfield( value, &self->renderContext->scemode,
-			(int)type, 'h' );
+			(int)type, 'i' );
 }
 
 static PyObject *RenderData_getSceMode( BPy_RenderData *self )
@@ -2098,7 +2150,7 @@ static int RenderData_setSceMode( BPy_RenderData* self, PyObject *arg )
 		return EXPP_ReturnIntError( PyExc_ValueError, 
 				"unexpected bits set in argument" );
 
-	self->renderContext->scemode = (short)value;
+	self->renderContext->scemode = (int)value;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return 0;
@@ -2449,6 +2501,32 @@ static int RenderData_setActiveLayer( BPy_RenderData *self, PyObject *value )
 	return 0;
 }
 
+static int RenderData_setBakeMode( BPy_RenderData *self, PyObject *value,
+		void *type )
+{
+	/* use negative numbers to flip truth */
+	int param = PyObject_IsTrue( value );
+	
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if (param) {
+		self->renderContext->bake_flag |= (int)type;
+	} else {
+		self->renderContext->bake_flag &= ~(int)type;
+	}
+	return 0;
+}
+
+static PyObject *RenderData_getBakeMode( BPy_RenderData *self, void *type )
+{
+	int itype = (int)type;
+	/* use negative numbers to flip truth */
+	if (self->renderContext->bake_flag & itype)	Py_RETURN_TRUE;
+	else										Py_RETURN_FALSE;
+}
+
 /***************************************************************************/
 /* BPy_RenderData attribute def                                            */
 /***************************************************************************/
@@ -2520,10 +2598,12 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getModeBit, (setter)RenderData_setModeBit,
 	 "Skip rendering existing image files",
 	 (void *)R_NO_OVERWRITE},
-	  
+	{"fixedThreads",
+	 (getter)RenderData_getModeBit, (setter)RenderData_setModeBit,
+	 "Use the number of threads defined by the blend file",
+	 (void *)R_FIXED_THREADS},
 /* R_GAUSS unused */
 /* R_FBUF unused */
-/* R_THREADS unused */
 	{"threads",
 	 (getter)RenderData_getThreads, (setter)RenderData_setThreads,
 	 "Number of threads used to render",
@@ -2640,14 +2720,6 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
 	 "Number of vertical parts for image render",
 	 (void *)EXPP_RENDER_ATTR_YPARTS},
-	{"aspectX",
-	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
-	 "Horizontal aspect ratio",
-	 (void *)EXPP_RENDER_ATTR_ASPECTX},
-	{"aspectY",
-	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
-	 "Vertical aspect ratio",
-	 (void *)EXPP_RENDER_ATTR_ASPECTY},
 	{"cFrame",
 	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
 	 "The current frame for rendering",
@@ -2685,6 +2757,14 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
 	 "Motion blur factor",
 	 (void *)EXPP_RENDER_ATTR_MBLURFACTOR},
+	{"aspectX",
+	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
+	 "Horizontal aspect ratio",
+	 (void *)EXPP_RENDER_ATTR_ASPECTX},
+	{"aspectY",
+	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
+	 "Vertical aspect ratio",
+	 (void *)EXPP_RENDER_ATTR_ASPECTY},
 	{"mapOld",
 	 (getter)RenderData_getMapOld, (setter)RenderData_setMapOld,
 	 "Number of frames the Map Old will last",
@@ -2757,10 +2837,6 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getYafrayAntiAliasingThreshold, (setter)RenderData_setYafrayAntiAliasingThreshold,
 	 "Anti-aliasing threshold",
 	 NULL},
-	{"yafrayNumberOfProcessors",
-	 (getter)RenderData_getYafrayNumberOfProcessors, (setter)RenderData_setYafrayNumberOfProcessors,
-	 "Number of processors to use",
-	 NULL},
 	{"yafrayGICache",
 	 (getter)RenderData_getYafrayGICache, (setter)RenderData_setYafrayGICache,
 	 "Cache occlusion/irradiance samples (faster)",
@@ -2789,7 +2865,40 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getYafrayGITunePhotons, (setter)RenderData_setYafrayGITunePhotons,
 	 "If true the photonmap is shown directly in the render for tuning",
 	 NULL},
-
+  
+	/* Bake stuff */
+	{"bakeClear",
+	 (getter)RenderData_getBakeMode, (setter)RenderData_setBakeMode,
+	 "Clear the image before baking",
+	 (void *)R_BAKE_CLEAR},
+	{"bakeToActive",
+	 (getter)RenderData_getBakeMode, (setter)RenderData_setBakeMode,
+	 "Bake selection to active",
+	 (void *)R_BAKE_TO_ACTIVE},
+	{"bakeNormalize",
+	 (getter)RenderData_getBakeMode, (setter)RenderData_setBakeMode,
+	 "Normalize AO and displacement to the dist range",
+	 (void *)R_BAKE_NORMALIZE},
+	{"bakeMargin",
+	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
+	 "number of pixels to use as a margin for the edges of the image",
+	 (void *)EXPP_RENDER_ATTR_BAKEMARGIN},
+	{"bakeMode",
+	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
+	 "The mode for baking, see Blender.Scene.Render.BakeModes",
+	 (void *)EXPP_RENDER_ATTR_BAKEMODE},
+	{"bakeNormalSpace",
+	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
+	 "The mode for baking, see Blender.Scene.Render.BakeNormalSpaceModes",
+	 (void *)EXPP_RENDER_ATTR_BAKENORMALSPACE},
+	{"bakeDist",
+	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
+	 "Distance (in blender units)",
+	 (void *)EXPP_RENDER_ATTR_BAKEDIST},
+	{"bakeBias",
+	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
+	 "Bias towards faces further away from the object (in blender units)",
+	 (void *)EXPP_RENDER_ATTR_BAKEDIST},
 	{NULL,NULL,NULL,NULL,NULL}
 };
 
@@ -2799,6 +2908,8 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 static PyMethodDef BPy_RenderData_methods[] = {
 	{"render", ( PyCFunction ) RenderData_Render, METH_NOARGS,
 	 "() - render the scene"},
+	{"bake", ( PyCFunction ) RenderData_Bake, METH_NOARGS,
+	 "() - bake current selection"},
 	{"saveRenderedImage", (PyCFunction)RenderData_SaveRenderedImage, METH_VARARGS,
 	 "(filename) - save an image generated by a call to render() (set output path first)"},
 	{"renderAnim", ( PyCFunction ) RenderData_RenderAnim, METH_NOARGS,
@@ -3005,9 +3116,6 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	{"yafrayExposure", ( PyCFunction ) RenderData_YafrayExposure,
 	 METH_VARARGS,
 	 "(float) - get/set exposure adjustment, 0 is off"},
-	{"yafrayProcessorCount",
-	 ( PyCFunction ) RenderData_YafrayProcessorCount, METH_VARARGS,
-	 "(int) - get/set number of processors to use"},
 	{"enableGameFrameStretch",
 	 ( PyCFunction ) RenderData_EnableGameFrameStretch, METH_NOARGS,
 	 "(l) - enble stretch or squeeze the viewport to fill the display window"},
@@ -3625,7 +3733,7 @@ static PyObject *M_Render_ModesDict( void )
 		PyConstant_Insert( d, "ODDFIELD", PyInt_FromLong( R_ODDFIELD ) );
 		PyConstant_Insert( d, "MBLUR", PyInt_FromLong( R_MBLUR ) );
 		PyConstant_Insert( d, "RAYTRACING", PyInt_FromLong( R_RAYTRACE ) );
-		PyConstant_Insert( d, "THREADS", PyInt_FromLong( R_THREADS ) );
+		PyConstant_Insert( d, "FIXEDTHREADS", PyInt_FromLong( R_FIXED_THREADS ) );
 	}
 	return M;
 }
@@ -3658,6 +3766,39 @@ static PyObject *M_Render_GameFramingDict( void )
 	return M;
 }
 
+static PyObject *M_Render_BakeModesDict( void )
+{
+	PyObject *M = PyConstant_New(  );
+
+	if( M ) {
+		BPy_constant *d = ( BPy_constant * ) M;
+		
+		PyConstant_Insert( d, "LIGHT", PyInt_FromLong( RE_BAKE_LIGHT ) );
+		PyConstant_Insert( d, "ALL", PyInt_FromLong( RE_BAKE_ALL ) );
+		PyConstant_Insert( d, "AO", PyInt_FromLong( RE_BAKE_AO ) );
+		PyConstant_Insert( d, "NORMALS", PyInt_FromLong( RE_BAKE_NORMALS ) );
+		PyConstant_Insert( d, "TEXTURE", PyInt_FromLong( RE_BAKE_TEXTURE ) );
+		PyConstant_Insert( d, "DISPLACEMENT", PyInt_FromLong( RE_BAKE_DISPLACEMENT ) );
+	}
+	return M;
+}
+
+
+static PyObject *M_Render_BakeNormalSpaceDict( void )
+{
+	PyObject *M = PyConstant_New(  );
+
+	if( M ) {
+		BPy_constant *d = ( BPy_constant * ) M;
+		
+		PyConstant_Insert( d, "CAMERA", PyInt_FromLong( R_BAKE_SPACE_CAMERA ) );
+		PyConstant_Insert( d, "WORLD", PyInt_FromLong( R_BAKE_SPACE_WORLD ) );
+		PyConstant_Insert( d, "OBJECT", PyInt_FromLong( R_BAKE_SPACE_OBJECT ) );
+		PyConstant_Insert( d, "TANGENT", PyInt_FromLong( R_BAKE_SPACE_TANGENT ) );
+	}
+	return M;
+}
+
 /***************************************************************************/
 /* Render Module Init                                                      */
 /***************************************************************************/
@@ -3667,7 +3808,9 @@ PyObject *Render_Init( void )
 	PyObject *ModesDict = M_Render_ModesDict( );
 	PyObject *SceModesDict = M_Render_SceModesDict( );
 	PyObject *GFramingDict = M_Render_GameFramingDict( );
-
+	PyObject *BakeModesDict = M_Render_BakeModesDict( );
+	PyObject *BakeNormalSpaceDict = M_Render_BakeNormalSpaceDict( );
+	
 	if( PyType_Ready( &RenderData_Type ) < 0 )
 		return NULL;
 
@@ -3683,7 +3826,11 @@ PyObject *Render_Init( void )
 		PyModule_AddObject( submodule, "SceModes", SceModesDict );
 	if( GFramingDict )
 		PyModule_AddObject( submodule, "FramingModes", GFramingDict );
-
+	if( BakeModesDict )
+		PyModule_AddObject( submodule, "BakeModes", BakeModesDict );
+	if( BakeNormalSpaceDict )
+		PyModule_AddObject( submodule, "BakeNormalSpaceModes", BakeNormalSpaceDict );
+	
 	/* ugh: why aren't these in a constant dict? */
 
 	PyModule_AddIntConstant( submodule, "INTERNAL", R_INTERN );
@@ -3719,6 +3866,7 @@ PyObject *Render_Init( void )
 	PyModule_AddIntConstant( submodule, "SKYDOME", PY_SKYDOME );
 	PyModule_AddIntConstant( submodule, "GIFULL", PY_FULL );
 	PyModule_AddIntConstant( submodule, "OPENEXR", R_OPENEXR );
+	PyModule_AddIntConstant( submodule, "MULTILAYER", R_MULTILAYER );
 	PyModule_AddIntConstant( submodule, "TIFF", R_TIFF );
 	PyModule_AddIntConstant( submodule, "FFMPEG", R_FFMPEG );
 	PyModule_AddIntConstant( submodule, "CINEON", R_CINEON );

@@ -2,15 +2,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /* 
@@ -1842,7 +1839,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 			int err;
 
 			strcpy(tmpStr, G.selfont->name);
-			BLI_convertstringcode(tmpStr, G.sce, 0);
+			BLI_convertstringcode(tmpStr, G.sce);
 			err = FTF_SetFont((unsigned char *)tmpStr, 0, 14.0);
 		}
 	}
@@ -1970,7 +1967,7 @@ static void ui_draw_but_COLORBAND(uiBut *but)
 	ColorBand *coba= (ColorBand *)but->poin;
 	CBData *cbd;
 	float x1, y1, sizex, sizey;
-	float dx, v3[2], v1[2], v2[2];
+	float dx, v3[2], v1[2], v2[2], v1a[2], v2a[2];
 	int a;
 		
 	if(coba==NULL) return;
@@ -2038,39 +2035,55 @@ static void ui_draw_but_COLORBAND(uiBut *but)
 	/* help lines */
 	v1[0]= v2[0]=v3[0]= x1;
 	v1[1]= y1;
+	v1a[1]= y1+0.25*sizey;
 	v2[1]= y1+0.5*sizey;
+	v2a[1]= y1+0.75*sizey;
 	v3[1]= y1+sizey;
+	
 	
 	cbd= coba->data;
 	glBegin(GL_LINES);
 	for(a=0; a<coba->tot; a++, cbd++) {
-		v1[0]=v2[0]=v3[0]= x1+ cbd->pos*sizex;
-		
-		glColor3ub(0, 0, 0);
-		glVertex2fv(v1);
-		glVertex2fv(v2);
+		v1[0]=v2[0]=v3[0]=v1a[0]=v2a[0]= x1+ cbd->pos*sizex;
 		
 		if(a==coba->cur) {
-			glVertex2f(v1[0]-1, v1[1]);
-			glVertex2f(v2[0]-1, v2[1]);
-			glVertex2f(v1[0]+1, v1[1]);
-			glVertex2f(v2[0]+1, v2[1]);
+			glColor3ub(0, 0, 0);
+			glVertex2fv(v1);
+			glVertex2fv(v3);
+			glEnd();
+			
+			setlinestyle(2);
+			glBegin(GL_LINES);
+			glColor3ub(255, 255, 255);
+			glVertex2fv(v1);
+			glVertex2fv(v3);
+			glEnd();
+			setlinestyle(0);
+			glBegin(GL_LINES);
+			
+			/* glColor3ub(0, 0, 0);
+			glVertex2fv(v1);
+			glVertex2fv(v1a);
+			glColor3ub(255, 255, 255);
+			glVertex2fv(v1a);
+			glVertex2fv(v2);
+			glColor3ub(0, 0, 0);
+			glVertex2fv(v2);
+			glVertex2fv(v2a);
+			glColor3ub(255, 255, 255);
+			glVertex2fv(v2a);
+			glVertex2fv(v3);
+			*/
 		}
-		
-		glColor3ub(255, 255, 255);
-		glVertex2fv(v2);
-		glVertex2fv(v3);
-		
-		if(a==coba->cur) {
-			if(cbd->pos>0.01) {
-				glVertex2f(v2[0]-1, v2[1]);
-				glVertex2f(v3[0]-1, v3[1]);
-			}
-			if(cbd->pos<0.99) {
-				glVertex2f(v2[0]+1, v2[1]);
-				glVertex2f(v3[0]+1, v3[1]);
-			}
-		}
+		else {
+			glColor3ub(0, 0, 0);
+			glVertex2fv(v1);
+			glVertex2fv(v2);
+			
+			glColor3ub(255, 255, 255);
+			glVertex2fv(v2);
+			glVertex2fv(v3);
+		}	
 	}
 	glEnd();
 }

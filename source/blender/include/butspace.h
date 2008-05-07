@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BUTSPACE_H
 #define BUTSPACE_H
@@ -185,6 +182,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_LMTEXPASTE	1107
 #define B_LMTEXCOPY		1108
 #define B_LFALLOFFCHANGED	1109
+#define B_LMTEXMOVEUP		1110
+#define B_LMTEXMOVEDOWN		1111
 
 /* *********************** */
 #define B_MATBUTS		1300
@@ -218,6 +217,9 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_WORLDPRV2		1224
 
 #define B_MAT_PARTICLE		1225
+
+#define B_MTEXMOVEUP		1226
+#define B_MTEXMOVEDOWN		1227
 
 /* *********************** */
 #define B_TEXBUTS		1400
@@ -285,17 +287,15 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_FLUIDSIM_SELDIR	      1451
 #define B_FLUIDSIM_FORCEREDRAW	1452
 #define B_FLUIDSIM_MAKEPART	    1453
+#define B_FLUIDSIM_CHANGETYPE   1454
 
 #define B_GROUP_RELINK			1460
 #define B_OBJECT_IPOFLAG		1461
 
-#define B_BAKEABLE_CHANGE		1470
+#define B_BAKE_CACHE_CHANGE		1470
 
 /* Cloth sim button defines */
-#define B_CLOTH_CLEARCACHEALL	1480
-#define B_CLOTH_CLEARCACHEFRAME	1481
-#define B_CLOTH_CHANGEPREROLL	1482
-#define B_CLOTH_RENEW 		1483
+#define B_CLOTH_CHANGEPREROLL	1480
 
 /* *********************** */
 #define B_WORLDBUTS		1600
@@ -306,6 +306,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_WMTEXPASTE	1504
 #define B_WMTEXCOPY		1505
 #define B_AO_FALLOFF	1506
+#define B_WMTEXMOVEUP		1507
+#define B_WMTEXMOVEDOWN		1508
 
 /* *********************** */
 #define B_RENDERBUTS	1690
@@ -364,7 +366,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SEQ_BUT_RELOAD_ALL    1694
 #define B_SEQ_BUT_TRANSFORM     1695
 #define B_SEQ_BUT_RELOAD_FILE   1696
-
+#define B_SEQ_BUT_REBUILD_PROXY 1697
+#define B_SEQ_SEL_PROXY_DIR     1698
 /* *********************** */
 #define B_ARMATUREBUTS		1800
 #define	B_POSE			1701
@@ -437,6 +440,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_JOINTRIA			2081
 #define B_SETTFACE_RND		2082
 #define B_SETMCOL_RND		2083
+#define B_DRAWBWEIGHTS		2084
 
 #define B_GEN_SKELETON		2090
 
@@ -534,6 +538,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_POSEGRP_RECALC	2330
 #define B_POSEGRP_ADD		2331
 #define B_POSEGRP_REMOVE	2332
+#define B_POSEGRP_MCUSTOM	2333
 
 /* *********************** */
 #define B_CAMBUTS		2500
@@ -738,19 +743,12 @@ enum {
 
 #define B_AUTOTIMEOFS		3403 /* see B_OFSTIMEOFS, B_RANDTIMEOFS also */
 #define B_FRAMEMAP		3404
-#define B_NEWEFFECT		3405
 #define B_PREVEFFECT		3406
-#define B_NEXTEFFECT		3407
 #define B_CHANGEEFFECT		3408
-#define B_CALCEFFECT		3409
-#define B_DELEFFECT		3410
 #define B_RECALCAL		3411
 #define B_RECALC_DEFL		3412
-#define B_EFFECT_DEP		3413
 #define B_FIELD_DEP		3414
 #define B_FIELD_CHANGE		3415
-#define B_PAF_SET_VG		3416
-#define B_PAF_SET_VG1		3417
 #define	B_PARTBROWSE		3418
 #define B_PARTDELETE		3419
 #define B_PARTALONE			3420
@@ -773,6 +771,7 @@ enum {
 #define B_PART_ENABLE		3437
 #define B_OFSTIMEOFS		3438 /* see B_AUTOTIMEOFS too */
 #define B_RANDTIMEOFS		3439
+#define B_PART_REDRAW_DEPS	3440
 
 #define B_MODIFIER_BUTS		3600
 
@@ -783,7 +782,9 @@ enum {
 #define B_NODE_BUTS			4000
 		/* 400 slots reserved, we want an exec event for each node */
 #define B_NODE_LOADIMAGE	3601
-#define B_NODE_TREE_EXEC	3602
+#define B_NODE_SETIMAGE		3602
+#define B_NODE_TREE_EXEC	3603
+
 
 		/* exec should be last in this list */
 #define B_NODE_EXEC			3610

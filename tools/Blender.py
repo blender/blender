@@ -143,7 +143,7 @@ def setup_syslibs(lenv):
         lenv['BF_PNG_LIB'],
         lenv['BF_ZLIB_LIB']
         ]
-    if lenv['BF_DEBUG']==1 and lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
+    if lenv['BF_DEBUG']==1 and lenv['OURPLATFORM'] in ('win32-vc'):
         syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
     else:
         syslibs.append(lenv['BF_PYTHON_LIB'])
@@ -152,6 +152,8 @@ def setup_syslibs(lenv):
         syslibs += Split(lenv['BF_GETTEXT_LIB'])
     if lenv['WITH_BF_OPENAL']:
        syslibs += Split(lenv['BF_OPENAL_LIB'])
+    if lenv['WITH_BF_OPENMP'] and lenv['CC'] != 'icc':
+        syslibs += ['gomp']
     if lenv['WITH_BF_ICONV']:
         syslibs += Split(lenv['BF_ICONV_LIB'])
     if lenv['WITH_BF_OPENEXR']:
@@ -392,6 +394,8 @@ class BlenderEnvironment(SConsEnvironment):
             lenv.Append(CPPDEFINES=defines)
             if lenv['WITH_BF_GAMEENGINE']:
                     lenv.Append(CPPDEFINES=['GAMEBLENDER=1'])
+            if lenv['WITH_BF_BULLET']:
+                    lenv.Append(CPPDEFINES=['WITH_BULLET=1'])
             # debug or not
             # CXXFLAGS defaults to CCFLAGS, therefore
             #  we Replace() rather than Append() to CXXFLAGS the first time

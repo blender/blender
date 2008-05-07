@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>
@@ -449,7 +446,7 @@ void separate_nurb()
 	
 	G.obedit= 0;	/* displists behave different in edit mode */
 	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);	/* this is the separated one */
-	DAG_object_flush_update(G.scene, oldob, OB_RECALC_DATA);	/* this is the separated one */
+	DAG_object_flush_update(G.scene, oldob, OB_RECALC_DATA);	/* this is the original one */
 	
 	G.obedit= oldob;
 	BASACT= oldbase;
@@ -4319,8 +4316,10 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			makeknots(nu, 1, nu->flagu>>1);
 
 			BLI_addtail(&editNurb, nu); /* temporal for spin */
-			if(newname) spin_nurb(0, 2);
-			else spin_nurb(0, 0);
+			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0)
+				spin_nurb(0, 2);
+			else
+				spin_nurb(0, 0);
 
 			makeknots(nu, 2, nu->flagv>>1);
 
@@ -4347,8 +4346,10 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			nu->resolv= 32;
 			nu->flag= CU_SMOOTH;
 			BLI_addtail(&editNurb, nu); /* temporal for extrude and translate */
-			if(newname) spin_nurb(0, 2);
-			else spin_nurb(0, 0);
+			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0)
+				spin_nurb(0, 2);
+			else
+				spin_nurb(0, 0);
 
 			BLI_remlink(&editNurb, nu);
 
@@ -4624,7 +4625,7 @@ static void free_undoCurve(void *lbv)
 /* and this is all the undo system needs to know */
 void undo_push_curve(char *name)
 {
-	undo_editmode_push(name, free_undoCurve, undoCurve_to_editCurve, editCurve_to_undoCurve);
+	undo_editmode_push(name, free_undoCurve, undoCurve_to_editCurve, editCurve_to_undoCurve, NULL);
 }
 
 

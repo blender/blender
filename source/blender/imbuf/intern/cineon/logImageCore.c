@@ -93,6 +93,35 @@ setupLut(LogImageFile *logImage) {
 	}
 }
 
+/* set up the 10 bit to 16 bit and 16 bit to 10 bit tables */
+void
+setupLut16(LogImageFile *logImage) {
+
+	int i;
+	double f_black;
+	double scale;
+
+	f_black = convertTo(logImage->params.blackPoint, logImage->params.whitePoint, logImage->params.gamma);
+	scale = 65535.0 / (1.0 - f_black);
+
+	for (i = 0; i <= logImage->params.blackPoint; ++i) {
+		logImage->lut10_16[i] = 0;
+	}
+	for (; i < logImage->params.whitePoint; ++i) {
+		double f_i;
+		f_i = convertTo(i, logImage->params.whitePoint, logImage->params.gamma);
+		logImage->lut10_16[i] = (int)rint(scale * (f_i - f_black));
+	}
+	for (; i < 1024; ++i) {
+		logImage->lut10_16[i] = 65535;
+	}
+
+	for (i = 0; i < 65536; ++i) {
+		double f_i = f_black + (i / 65535.0) * (1.0 - f_black);
+		logImage->lut16_16[i] = convertFrom(f_i, logImage->params.whitePoint, logImage->params.gamma);
+	}
+}
+
 /* how many longwords to hold this many pixels? */
 int
 pixelsToLongs(int numPixels) {

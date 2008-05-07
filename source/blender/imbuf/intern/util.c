@@ -1,14 +1,11 @@
 /**
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * util.c
  *
  * $Id$
@@ -232,6 +229,7 @@ static int isqtime (char *name) {
 #endif
 
 #ifdef WITH_FFMPEG
+extern void do_init_ffmpeg();
 void do_init_ffmpeg()
 {
 	static int ffmpeg_init = 0;
@@ -289,8 +287,9 @@ static int isffmpeg (char *filename) {
         /* Find the first video stream */
 	videoStream=-1;
 	for(i=0; i<pFormatCtx->nb_streams; i++)
-		if(get_codec_from_stream(pFormatCtx->streams[i])
-		   ->codec_type==CODEC_TYPE_VIDEO)
+		if(pFormatCtx->streams[i] &&
+		   get_codec_from_stream(pFormatCtx->streams[i]) && 
+		  (get_codec_from_stream(pFormatCtx->streams[i])->codec_type==CODEC_TYPE_VIDEO))
 		{
 			videoStream=i;
 			break;
@@ -306,13 +305,11 @@ static int isffmpeg (char *filename) {
         /* Find the decoder for the video stream */
 	pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
 	if(pCodec==NULL) {
-		avcodec_close(pCodecCtx);
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}
 
 	if(avcodec_open(pCodecCtx, pCodec)<0) {
-		avcodec_close(pCodecCtx);
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}

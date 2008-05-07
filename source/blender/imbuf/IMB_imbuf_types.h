@@ -13,15 +13,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -39,7 +36,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 /**
  * \file IMB_imbuf_types.h
@@ -95,7 +92,7 @@ typedef struct ImBuf {
 	int	userflags;			/**< Used to set imbuf to Dirty and other stuff */
 	int	*zbuf;				/**< z buffer data, original zbuffer */
 	float *zbuf_float;		/**< z buffer data, camera coordinates */
-	void *userdata;	
+	void *userdata;			/**< temporary storage, only used by baking at the moment */
 	unsigned char *encodedbuffer;     /**< Compressed image only used with png currently */
 	unsigned int   encodedsize;       /**< Size of data written to encodedbuffer */
 	unsigned int   encodedbuffersize; /**< Size of encodedbuffer */
@@ -170,6 +167,7 @@ typedef enum {
 
 #define RADHDR			(1 << 24)
 #define TIF				(1 << 23)
+#define TIF_16BIT		(1 << 8 )
 
 #define OPENEXR			(1 << 22)
 #define OPENEXR_HALF	(1 << 8 )

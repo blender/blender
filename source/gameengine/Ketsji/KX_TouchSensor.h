@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef __KX_TOUCHSENSOR
@@ -57,8 +54,6 @@ protected:
 	class SCA_EventManager*	m_eventmgr;
 	
 	class PHY_IPhysicsController*	m_physCtrl;
-	class PHY_ResponseTable*		m_responstTable;
-	class PHY_PhysicsController*	m_responsObject;
 
 	bool					m_bCollision;
 	bool					m_bTriggered;
@@ -86,7 +81,11 @@ public:
 
 	virtual bool	NewHandleCollision(void*obj1,void*obj2,const PHY_CollData* colldata);
 
-	PHY_PhysicsController*	GetPhysicsController() { return m_responsObject;}
+	// Allows to do pre-filtering and save computation time
+	// obj1 = sensor physical controller, obj2 = physical controller of second object
+	// return value = true if collision should be checked on pair of object
+	virtual bool	BroadPhaseFilterCollision(void*obj1,void*obj2) { return true; }
+
   
 
 	virtual bool IsPositiveTrigger() {

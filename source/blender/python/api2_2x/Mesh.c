@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Ken Hughes
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "Mesh.h" /*This must come first*/
@@ -75,6 +72,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_memarena.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -6482,7 +6480,7 @@ static PyObject *Mesh_assignVertsToGroup( BPy_Mesh * self, PyObject * args )
 	if( !PyArg_ParseTuple ( args, "sO!fi", &groupStr, &PyList_Type,
 			&listObject, &weight, &assignmode) ) {
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected string, list,	float, string arguments" );
+					      "expected string, list, float, int arguments" );
 	}
 
 	pGroup = get_named_vertexgroup( object, groupStr );
@@ -7041,7 +7039,7 @@ static PyObject *Mesh_getColorLayerNames( BPy_Mesh * self )
 static PyObject *Mesh_getActiveLayer( BPy_Mesh * self, void *type )
 {
 	CustomData *data = &self->mesh->fdata;
-	int layer_type = (int)type;
+	int layer_type = GET_INT_FROM_POINTER(type);
 	int i;
 	if (layer_type < 0) { /* hack, if negative, its the renderlayer.*/
 		layer_type = -layer_type;
@@ -7060,7 +7058,7 @@ static int Mesh_setActiveLayer( BPy_Mesh * self, PyObject * value, void *type )
 {
 	CustomData *data = &self->mesh->fdata;
 	char *name;
-	int i,ok,n,layer_type = (int)type, render=0;
+	int i,ok,n,layer_type = GET_INT_FROM_POINTER(type), render=0;
 	
 	if( !PyString_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_ValueError,
@@ -7114,7 +7112,7 @@ static PyObject *Mesh_getMultires( BPy_Mesh * self, void *type )
 {	
 	int i=0;
 	if (self->mesh->mr) {
-		switch ((int)type) {
+		switch (GET_INT_FROM_POINTER(type)) {
 		case MESH_MULTIRES_LEVEL:
 			i = self->mesh->mr->newlvl;
 			break;
@@ -7158,7 +7156,7 @@ static int Mesh_setMultires( BPy_Mesh * self, PyObject *value, void *type )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					"value out of range" );
 	
-	switch ((int)type) {
+	switch (GET_INT_FROM_POINTER(type)) {
 	case MESH_MULTIRES_LEVEL:
 		self->mesh->mr->newlvl = i;
 		multires_set_level_cb(self->object, self->mesh);
@@ -7176,6 +7174,36 @@ static int Mesh_setMultires( BPy_Mesh * self, PyObject *value, void *type )
 	}
 	
 	return 0;
+}
+
+static PyObject *Mesh_addMultiresLevel( BPy_Mesh * self, PyObject * args )
+{
+	char typenum;
+	int i, levels = 1;
+	char *type = NULL;
+	if( G.obedit )
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+					"can't add multires level while in edit mode" );
+	if( !PyArg_ParseTuple( args, "|is", &levels, &type ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected nothing or an int and optionally a string as arguments" );
+	if( !type || !strcmp( type, "catmull-clark" ) )
+		typenum = 0;
+	else if( !strcmp( type, "simple" ) )
+		typenum = 1;
+	else
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "if given, type should be 'catmull-clark' or 'simple'" );
+	if (!self->mesh->mr)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"the mesh has no multires data" );
+	for( i = 0; i < levels; i++ ) {
+		multires_add_level(self->object, self->mesh, typenum);
+	};
+	multires_update_levels(self->mesh, 0);
+	multires_level_to_editmesh(self->object, self->mesh, 0);	
+	multires_finish_mesh_update(self->object);
+	Py_RETURN_NONE;
 }
 
 /* end multires */
@@ -7464,6 +7492,180 @@ static PyObject *Mesh_pointInside( BPy_Mesh * self, PyObject * args, PyObject *k
 }
 
 
+/* This is a bit nasty, Blenders tangents are computed for rendering, and this isnt compatible with a normal Mesh
+ * so we have to rewrite parts of it here, make sure these stay in sync */
+
+static PyObject *Mesh_getTangents( BPy_Mesh * self )
+{
+	/* python stuff */
+	PyObject *py_tanlist;
+	PyObject *py_tuple;
+	
+	
+	PyObject *py_vector;
+#if 0	/* BI-TANGENT */
+	PyObject *py_bivector;
+	PyObject *py_pair;
+	
+	float no[3];
+#endif
+	/* mesh vars */
+	Mesh *mesh = self->mesh;
+	MTFace *tf = mesh->mtface;
+	MFace *mf = mesh->mface;
+	MVert *v1, *v2, *v3, *v4;
+	int mf_vi[4];
+	
+	/* See convertblender.c */
+	float *uv1, *uv2, *uv3, *uv4;
+	float fno[3];
+	float tang[3];
+	float uv[4][2];
+	float *vtang;
+	
+	float (*orco)[3] = NULL;
+	
+	MemArena *arena= NULL;
+	VertexTangent **vtangents= NULL;
+	int i, j, len;
+	
+	
+	if(!mesh->mtface) {
+		if (!self->object)
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError, "cannot get tangents when there are not UV's, or the mesh has no link to an object");
+		
+		orco = (float(*)[3])get_mesh_orco_verts(self->object);
+		
+		if (!orco)
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError, "cannot get orco's for this objects tangents");
+	}
+	
+	/* vertex normals */
+	arena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+	BLI_memarena_use_calloc(arena);
+	vtangents= MEM_callocN(sizeof(VertexTangent*)*mesh->totvert, "VertexTangent");
+	
+	for( i = 0, tf = mesh->mtface, mf = mesh->mface; i < mesh->totface; mf++, tf++, i++ ) {
+		v1 = &mesh->mvert[mf->v1];
+		v2 = &mesh->mvert[mf->v2];
+		v3 = &mesh->mvert[mf->v3];
+		if (mf->v4) {
+			v4 = &mesh->mvert[mf->v4];
+			
+			CalcNormFloat4( v1->co, v2->co, v3->co, v4->co, fno );
+		} else {
+			v4 = NULL;
+			CalcNormFloat( v1->co, v2->co, v3->co, fno );
+		}
+		
+		if(mesh->mtface) {
+			uv1= tf->uv[0];
+			uv2= tf->uv[1];
+			uv3= tf->uv[2];
+			uv4= tf->uv[3];
+		} else {
+			uv1= uv[0]; uv2= uv[1]; uv3= uv[2]; uv4= uv[3];
+			spheremap(orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2], &uv[0][0], &uv[0][1]);
+			spheremap(orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2], &uv[1][0], &uv[1][1]);
+			spheremap(orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2], &uv[2][0], &uv[2][1]);
+			if(v4)
+				spheremap(orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2], &uv[3][0], &uv[3][1]);
+		}
+		
+		tangent_from_uv(uv1, uv2, uv3, v1->co, v2->co, v3->co, fno, tang);
+		sum_or_add_vertex_tangent(arena, &vtangents[mf->v1], tang, uv1);
+		sum_or_add_vertex_tangent(arena, &vtangents[mf->v2], tang, uv2);
+		sum_or_add_vertex_tangent(arena, &vtangents[mf->v3], tang, uv3);
+		
+		if (mf->v4) {
+			v4 = &mesh->mvert[mf->v4];
+			
+			tangent_from_uv(uv1, uv3, uv4, v1->co, v3->co, v4->co, fno, tang);
+			sum_or_add_vertex_tangent(arena, &vtangents[mf->v1], tang, uv1);
+			sum_or_add_vertex_tangent(arena, &vtangents[mf->v3], tang, uv3);
+			sum_or_add_vertex_tangent(arena, &vtangents[mf->v4], tang, uv4);
+		}
+	}
+	
+	
+	py_tanlist = PyList_New(mesh->totface);
+	
+	for( i = 0, tf = mesh->mtface, mf = mesh->mface; i < mesh->totface; mf++, tf++, i++ ) {
+		 
+		len = mf->v4 ? 4 : 3; 
+		
+		if(mesh->mtface) {
+			uv1= tf->uv[0];
+			uv2= tf->uv[1];
+			uv3= tf->uv[2];
+			uv4= tf->uv[3];
+		} else {
+			uv1= uv[0]; uv2= uv[1]; uv3= uv[2]; uv4= uv[3];
+			spheremap(orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2], &uv[0][0], &uv[0][1]);
+			spheremap(orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2], &uv[1][0], &uv[1][1]);
+			spheremap(orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2], &uv[2][0], &uv[2][1]);
+			if(len==4)
+				spheremap(orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2], &uv[3][0], &uv[3][1]);
+		}
+		
+		mf_vi[0] = mf->v1;
+		mf_vi[1] = mf->v2;
+		mf_vi[2] = mf->v3;
+		mf_vi[3] = mf->v4;
+		
+#if 0	/* BI-TANGENT */
+		/* now calculate the bitangent */
+		if (mf->flag & ME_SMOOTH) {
+			no[0] = (float)(mesh->mvert[mf_vi[j]]->no[0] / 32767.0);
+			no[1] = (float)(mesh->mvert[mf_vi[j]]->no[1] / 32767.0);
+			no[2] = (float)(mesh->mvert[mf_vi[j]]->no[2] / 32767.0);
+		} else {
+			/* calc face normal */
+			if (len==4)		CalcNormFloat4( mesh->mvert[0]->co, mesh->mvert[1]->co, mesh->mvert[2]->co, mesh->mvert[3]->co, no );
+			else			CalcNormFloat4( mesh->mvert[0]->co, mesh->mvert[1]->co, mesh->mvert[2]->co, no );
+		}
+#endif
+		
+		py_tuple = PyTuple_New( len );
+		
+		for (j=0; j<len; j++) {
+			vtang= find_vertex_tangent(vtangents[mf_vi[j]], mesh->mtface ? tf->uv[j] : uv[j]);	/* mf_vi[j] == mf->v1,   uv[j] == tf->uv[0] */
+			
+			py_vector = newVectorObject( vtang, 3, Py_NEW );
+			Normalize(((VectorObject *)py_vector)->vec);
+			
+#if 0		/* BI-TANGENT */
+			py_pair = PyTuple_New( 2 );
+			PyTuple_SetItem( py_pair, 0, py_vector );
+			PyTuple_SetItem( py_pair, 1, py_bivector );
+			
+			/* qdn: tangent space */
+			/* copied from texture.c */
+			float B[3], tv[3];
+			Crossf(B, shi->vn, shi->nmaptang);	/* bitangent */
+			/* transform norvec from tangent space to object surface in camera space */
+			tv[0] = texres.nor[0]*shi->nmaptang[0] + texres.nor[1]*B[0] + texres.nor[2]*shi->vn[0];
+			tv[1] = texres.nor[0]*shi->nmaptang[1] + texres.nor[1]*B[1] + texres.nor[2]*shi->vn[1];
+			tv[2] = texres.nor[0]*shi->nmaptang[2] + texres.nor[1]*B[2] + texres.nor[2]*shi->vn[2];
+			shi->vn[0]= facm*shi->vn[0] + fact*tv[0];
+			shi->vn[1]= facm*shi->vn[1] + fact*tv[1];
+			shi->vn[2]= facm*shi->vn[2] + fact*tv[2];				
+			PyTuple_SetItem( py_tuple, j, py_pair );
+#else
+			PyTuple_SetItem( py_tuple, j, py_vector );
+#endif
+		}
+
+		PyList_SetItem( py_tanlist, i, py_tuple );
+	}
+	
+	BLI_memarena_free(arena);
+	if (orco) MEM_freeN( orco );
+	MEM_freeN( vtangents );
+	
+	return py_tanlist;
+}
+
 /*
  * "__copy__" return a copy of the mesh
  */
@@ -7541,7 +7743,9 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Recalculates inside or outside normals (experimental)"},
 	{"pointInside", (PyCFunction)Mesh_pointInside, METH_VARARGS|METH_KEYWORDS,
 		"Recalculates inside or outside normals (experimental)"},
-	
+	{"getTangents", (PyCFunction)Mesh_getTangents, METH_VARARGS|METH_KEYWORDS,
+		"Return a list of face tangents"},
+		
 	/* mesh custom data layers */
 	{"addUVLayer", (PyCFunction)Mesh_addUVLayer, METH_VARARGS,
 		"adds a UV layer to this mesh"},
@@ -7559,6 +7763,9 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Rename a UV Layer"},
 	{"renameColorLayer", (PyCFunction)Mesh_renameColorLayer, METH_VARARGS,
 		"Rename a Color Layer"},
+	/* mesh multires */
+	{"addMultiresLevel", (PyCFunction)Mesh_addMultiresLevel, METH_VARARGS,
+		"(levels=1, type='catmull-clark') - adds multires levels of given type"},
 		
 	/* python standard class functions */
 	{"__copy__", (PyCFunction)Mesh_copy, METH_NOARGS,

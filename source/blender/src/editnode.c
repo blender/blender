@@ -67,6 +67,7 @@
 #include "BIF_resources.h"
 #include "BIF_renderwin.h"
 #include "BIF_space.h"
+#include "BIF_scrarea.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
 
@@ -76,8 +77,9 @@
 #include "BSE_headerbuttons.h"
 #include "BSE_node.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+#include "BLI_storage_types.h"
 
 #include "BDR_editobject.h"
 
@@ -188,11 +190,82 @@ static void shader_node_event(SpaceNode *snode, short event)
 	}
 }
 
+static int image_detect_file_sequence(int *start_p, int *frames_p, char *str)
+{
+	SpaceFile *sfile;
+	char name[FILE_MAX], head[FILE_MAX], tail[FILE_MAX], filename[FILE_MAX];
+	int a, frame, totframe, found, minframe;
+	unsigned short numlen;
+
+	sfile= scrarea_find_space_of_type(curarea, SPACE_FILE);
+	if(sfile==0)
+		return 0;
+
+	/* find first frame */
+	found= 0;
+	minframe= 0;
+
+	for(a=0; a<sfile->totfile; a++) {
+		if(sfile->filelist[a].flags & ACTIVE) {
+			BLI_strncpy(name, sfile->filelist[a].relname, sizeof(name));
+			frame= BLI_stringdec(name, head, tail, &numlen);
+
+			if(!found || frame < minframe) {
+				BLI_strncpy(filename, name, sizeof(name));
+				minframe= frame;
+				found= 1;
+			}
+		}
+	}
+
+	/* not one frame found */
+	if(!found)
+		return 0;
+
+	/* counter number of following frames */
+	found= 1;
+	totframe= 0;
+
+	for(frame=minframe; found; frame++) {
+		found= 0;
+		BLI_strncpy(name, filename, sizeof(name));
+		BLI_stringenc(name, head, tail, numlen, frame);
+
+		for(a=0; a<sfile->totfile; a++) {
+			if(sfile->filelist[a].flags & ACTIVE) {
+				if(strcmp(sfile->filelist[a].relname, name) == 0) {
+					found= 1;
+					totframe++;
+					break;
+				}
+			}
+		}
+	}
+
+	if(totframe > 1) {
+		BLI_strncpy(str, sfile->dir, sizeof(name));
+		strcat(str, filename);
+
+		*start_p= minframe;
+		*frames_p= totframe;
+		return 1;
+	}
+
+	return 0;
+}
+
 static void load_node_image(char *str)	/* called from fileselect */
 {
 	SpaceNode *snode= curarea->spacedata.first;
 	bNode *node= nodeGetActive(snode->edittree);
 	Image *ima= NULL;
+	ImageUser *iuser= node->storage;
+	char filename[FILE_MAX];
+	int start=0, frames=0, sequence;
+
+	sequence= image_detect_file_sequence(&start, &frames, filename);
+	if(sequence)
+		str= filename;
 	
 	ima= BKE_add_image_file(str);
 	if(ima) {
@@ -203,6 +276,12 @@ static void load_node_image(char *str)	/* called from fileselect */
 		id_us_plus(node->id);
 
 		BLI_strncpy(node->name, node->id->name+2, 21);
+
+		if(sequence) {
+			ima->source= IMA_SRC_SEQUENCE;
+			iuser->frames= frames;
+			iuser->offset= start-1;
+		}
 				   
 		BKE_image_signal(ima, node->storage, IMA_SIGNAL_RELOAD);
 		
@@ -210,6 +289,13 @@ static void load_node_image(char *str)	/* called from fileselect */
 		snode_handle_recalc(snode);
 		allqueue(REDRAWNODE, 0); 
 	}
+}
+
+static void set_node_imagepath(char *str)	/* called from fileselect */
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	bNode *node= nodeGetActive(snode->edittree);
+	BLI_strncpy(((NodeImageFile *)node->storage)->name, str, sizeof( ((NodeImageFile *)node->storage)->name ));
 }
 
 static bNode *snode_get_editgroup(SpaceNode *snode)
@@ -244,12 +330,13 @@ static void composite_node_render(SpaceNode *snode, bNode *node)
 		G.scene->r.mode &= ~(R_BORDER|R_DOCOMP);
 		G.scene->r.mode |= scene->r.mode & R_BORDER;
 		G.scene->r.border= scene->r.border;
+		G.scene->r.cfra= scene->r.cfra;
 	}
 	
 	scemode= G.scene->r.scemode;
 	actlay= G.scene->r.actlay;
-	
-	G.scene->r.scemode |= R_SINGLE_LAYER;
+
+	G.scene->r.scemode |= R_SINGLE_LAYER|R_COMP_RERENDER;
 	G.scene->r.actlay= node->custom1;
 	
 	BIF_do_render(0);
@@ -287,6 +374,19 @@ static void composit_node_event(SpaceNode *snode, short event)
 			}
 			break;
 		}
+		case B_NODE_SETIMAGE:
+		{
+			bNode *node= nodeGetActive(snode->edittree);
+			char name[FILE_MAXDIR+FILE_MAXFILE];
+			
+			strcpy(name, ((NodeImageFile *)node->storage)->name);
+			if (G.qual & LR_CTRLKEY) {
+				activate_imageselect(FILE_SPECIAL, "SELECT OUTPUT DIR", name, set_node_imagepath);
+			} else {
+				activate_fileselect(FILE_SPECIAL, "SELECT OUTPUT DIR", name, set_node_imagepath);
+			}
+			break;
+		}
 		case B_NODE_TREE_EXEC:
 			snode_handle_recalc(snode);
 			break;		
@@ -296,7 +396,7 @@ static void composit_node_event(SpaceNode *snode, short event)
 			bNode *node= BLI_findlink(&snode->edittree->nodes, event-B_NODE_EXEC);
 			if(node) {
 				NodeTagChanged(snode->edittree, node);
-				NodeTagIDChanged(snode->nodetree, node->id);	/* Scene-layer nodes, texture nodes, image nodes, all can be used many times */
+				/* don't use NodeTagIDChanged, it gives far too many recomposites for image, scene layers, ... */
 				
 				/* not the best implementation of the world... but we need it to work now :) */
 				if(node->type==CMP_NODE_R_LAYERS && node->custom2) {
@@ -304,6 +404,7 @@ static void composit_node_event(SpaceNode *snode, short event)
 					addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
 					
 					composite_node_render(snode, node);
+					snode_handle_recalc(snode);
 					
 					/* add another event, a render can go fullscreen and open new window */
 					addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
@@ -336,10 +437,10 @@ void node_shader_default(Material *ma)
 	
 	ma->nodetree= ntreeAddTree(NTREE_SHADER);
 	
-	out= nodeAddNodeType(ma->nodetree, SH_NODE_OUTPUT, NULL);
+	out= nodeAddNodeType(ma->nodetree, SH_NODE_OUTPUT, NULL, NULL);
 	out->locx= 300.0f; out->locy= 300.0f;
 	
-	in= nodeAddNodeType(ma->nodetree, SH_NODE_MATERIAL, NULL);
+	in= nodeAddNodeType(ma->nodetree, SH_NODE_MATERIAL, NULL, NULL);
 	in->locx= 10.0f; in->locy= 300.0f;
 	nodeSetActive(ma->nodetree, in);
 	
@@ -366,10 +467,10 @@ void node_composit_default(Scene *sce)
 	
 	sce->nodetree= ntreeAddTree(NTREE_COMPOSIT);
 	
-	out= nodeAddNodeType(sce->nodetree, CMP_NODE_COMPOSITE, NULL);
+	out= nodeAddNodeType(sce->nodetree, CMP_NODE_COMPOSITE, NULL, NULL);
 	out->locx= 300.0f; out->locy= 400.0f;
 	
-	in= nodeAddNodeType(sce->nodetree, CMP_NODE_R_LAYERS, NULL);
+	in= nodeAddNodeType(sce->nodetree, CMP_NODE_R_LAYERS, NULL, NULL);
 	in->locx= 10.0f; in->locy= 400.0f;
 	nodeSetActive(sce->nodetree, in);
 	
@@ -624,7 +725,7 @@ static void node_addgroup(SpaceNode *snode)
 	if(val>=0) {
 		ngroup= BLI_findlink(&G.main->nodetree, val);
 		if(ngroup) {
-			bNode *node= nodeAddNodeType(snode->edittree, NODE_GROUP, ngroup);
+			bNode *node= nodeAddNodeType(snode->edittree, NODE_GROUP, ngroup, NULL);
 			
 			/* generics */
 			if(node) {
@@ -1116,16 +1217,7 @@ void node_rename(SpaceNode *snode)
 /* used in buttons to check context, also checks for edited groups */
 bNode *editnode_get_active_idnode(bNodeTree *ntree, short id_code)
 {
-	bNode *node;
-	
-	/* check for edited group */
-	for(node= ntree->nodes.first; node; node= node->next)
-		if(node->flag & NODE_GROUP_EDIT)
-			break;
-	if(node)
-		return nodeGetActiveID((bNodeTree *)node->id, id_code);
-	else
-		return nodeGetActiveID(ntree, id_code);
+	return nodeGetActiveID(ntree, id_code);
 }
 
 /* used in buttons to check context, also checks for edited groups */
@@ -1314,6 +1406,47 @@ static int do_header_hidden_node(SpaceNode *snode, bNode *node, float mx, float 
 	return 0;
 }
 
+static void node_link_viewer(SpaceNode *snode, bNode *tonode)
+{
+	bNode *node;
+
+	/* context check */
+	if(tonode==NULL || tonode->outputs.first==NULL)
+		return;
+	if( ELEM(tonode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) 
+		return;
+	
+	/* get viewer */
+	for(node= snode->edittree->nodes.first; node; node= node->next)
+		if( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) 
+			if(node->flag & NODE_DO_OUTPUT)
+				break;
+		
+	if(node) {
+		bNodeLink *link;
+		
+		/* get link to viewer */
+		for(link= snode->edittree->links.first; link; link= link->next)
+			if(link->tonode==node)
+				break;
+
+		if(link) {
+			link->fromnode= tonode;
+			link->fromsock= tonode->outputs.first;
+			NodeTagChanged(snode->edittree, node);
+			
+			snode_handle_recalc(snode);
+		}
+	}
+}
+
+
+void node_active_link_viewer(SpaceNode *snode)
+{
+	bNode *node= editnode_get_active(snode->edittree);
+	if(node)
+		node_link_viewer(snode, node);
+}
 
 /* return 0: nothing done */
 static int node_mouse_select(SpaceNode *snode, unsigned short event)
@@ -1355,6 +1488,10 @@ static int node_mouse_select(SpaceNode *snode, unsigned short event)
 			node->flag |= SELECT;
 		
 		node_set_active(snode, node);
+		
+		/* viewer linking */
+		if(G.qual & LR_CTRLKEY)
+			node_link_viewer(snode, node);
 		
 		/* not so nice (no event), but function below delays redraw otherwise */
 		force_draw(0);
@@ -1523,7 +1660,10 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 	
 	node_deselectall(snode, 0);
 	
-	if(type>=NODE_GROUP_MENU) {
+	if(type>=NODE_DYNAMIC_MENU) {
+		node= nodeAddNodeType(snode->edittree, type, NULL, NULL);
+	}
+	else if(type>=NODE_GROUP_MENU) {
 		if(snode->edittree!=snode->nodetree) {
 			error("Can not add a Group in a Group");
 			return NULL;
@@ -1531,11 +1671,11 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 		else {
 			bNodeTree *ngroup= BLI_findlink(&G.main->nodetree, type-NODE_GROUP_MENU);
 			if(ngroup)
-				node= nodeAddNodeType(snode->edittree, NODE_GROUP, ngroup);
+				node= nodeAddNodeType(snode->edittree, NODE_GROUP, ngroup, NULL);
 		}
 	}
 	else
-		node= nodeAddNodeType(snode->edittree, type, NULL);
+		node= nodeAddNodeType(snode->edittree, type, NULL, NULL);
 	
 	/* generics */
 	if(node) {
@@ -1561,6 +1701,30 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 		NodeTagChanged(snode->edittree, node);
 	}
 	return node;
+}
+
+void node_mute(SpaceNode *snode)
+{
+	bNode *node;
+
+	/* no disabling inside of groups */
+	if(snode_get_editgroup(snode))
+		return;
+	
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		if(node->flag & SELECT) {
+			if(node->inputs.first && node->outputs.first) {
+				if(node->flag & NODE_MUTED)
+					node->flag &= ~NODE_MUTED;
+				else
+					node->flag |= NODE_MUTED;
+			}
+		}
+	}
+	
+	allqueue(REDRAWNODE, 0);
+	BIF_undo_push("Enable/Disable nodes");
+
 }
 
 void node_adduplicate(SpaceNode *snode)
@@ -1629,8 +1793,10 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeSocket *tsock, bNodeL
 					if(nodeCountSocketLinks(snode->edittree, sock) < sock->limit)
 						break;
 			}
-			if(sock)
+			if(sock) {
 				tlink->tosock= sock;
+				sock->flag &= ~SOCK_HIDDEN;
+			}
 			else {
 				nodeRemLink(snode->edittree, tlink);
 			}
@@ -2005,7 +2171,27 @@ void node_read_renderlayers(SpaceNode *snode)
 		}
 	}
 	
+	/* own render result should be read/allocated */
+	if(G.scene->id.flag & LIB_DOIT)
+		RE_ReadRenderResult(G.scene, G.scene);
+	
 	snode_handle_recalc(snode);
+}
+
+void node_read_fullsamplelayers(SpaceNode *snode)
+{
+	Render *re= RE_NewRender(G.scene->id.name);
+
+	waitcursor(1);
+
+	BIF_init_render_callbacks(re, 1);
+	RE_MergeFullSample(re, G.scene, snode->nodetree);
+	BIF_end_render_callbacks();
+	
+	allqueue(REDRAWNODE, 1);
+	allqueue(REDRAWIMAGE, 1);
+	
+	waitcursor(0);
 }
 
 /* called from header_info, when deleting a scene
@@ -2194,10 +2380,15 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					node_mouse_select(snode, event);
 			}
 			else {
-				if(node_add_link(snode)==0)
-					if(node_mouse_groupheader(snode)==0)
-						if(node_mouse_select(snode, event)==0)
-							node_border_link_delete(snode);
+				
+				if(G.qual &  LR_CTRLKEY) {
+					gesture();
+				} else {
+					if(node_add_link(snode)==0)
+						if(node_mouse_groupheader(snode)==0)
+							if(node_mouse_select(snode, event)==0)
+								node_border_link_delete(snode);
+				}
 			}
 			break;
 			
@@ -2229,7 +2420,8 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 			break;
 		case MIDDLEMOUSE:
-			if (G.qual==LR_SHIFTKEY) {
+			if((snode->flag & SNODE_BACKDRAW) && (snode->treetype==NTREE_COMPOSIT)
+			   && (G.qual==LR_SHIFTKEY)) {
 				snode_bg_viewmove(snode);
 			} else {
 				view2dmove(event);
@@ -2330,10 +2522,18 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case LKEY:
 			node_select_linked(snode, G.qual==LR_SHIFTKEY);
 			break;
+		case MKEY:
+			node_mute(snode);
+			break;
 		case RKEY:
 			if(G.qual==LR_CTRLKEY) {
 				node_rename(snode);
-			} else{
+			} 
+			else if(G.qual==LR_SHIFTKEY) {
+				if(okee("Read saved Full Sample Layers"))
+					node_read_fullsamplelayers(snode);
+			}
+			else {
 				if(okee("Read saved Render Layers"))
 					node_read_renderlayers(snode);
 			}

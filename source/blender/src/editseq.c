@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -176,7 +173,7 @@ Sequence *get_forground_frame_seq(int frame)
 /* seq funcs's for transforming internally
  notice the difference between start/end and left/right.
  
- left and right are the bounds at which the setuence is rendered,
+ left and right are the bounds at which the sequence is rendered,
 start and end are from the start and fixed length of the sequence.
 */
 int seq_tx_get_start(Sequence *seq) {
@@ -896,8 +893,7 @@ void mouse_select_seq(void)
 
 			recurs_sel_seq(seq);
 		}
-		allqueue(REDRAWBUTSSCENE, 0);
-		force_draw(0);
+		force_draw_plus(SPACE_BUTS, 0);
 
 		if(get_last_seq()) allqueue(REDRAWIPO, 0);
 		BIF_undo_push("Select Strips, Sequencer");
@@ -1641,8 +1637,8 @@ static int seq_effect_find_selected(Editing *ed, Sequence *activeseq, int type, 
 
 	switch(get_sequence_effect_num_inputs(type)) {
 	case 0:
-		seq1 = seq2 = seq3 = 0;
-		break;
+		*selseq1 = *selseq2 = *selseq3 = 0;
+		return 1;
 	case 1:
 		if(seq2==0)  {
 			error("Need at least one selected sequence strip");
@@ -1657,7 +1653,9 @@ static int seq_effect_find_selected(Editing *ed, Sequence *activeseq, int type, 
 		}
 		if(seq3==0) seq3= seq2;
 	}
-
+	
+	if (seq1==NULL && seq2==NULL && seq3==NULL) return 0;
+	
 	*selseq1= seq1;
 	*selseq2= seq2;
 	*selseq3= seq3;
@@ -2178,6 +2176,8 @@ static Sequence *dupli_seq(Sequence *seq)
 	seqn->strip->tstripdata = 0;
 	seqn->strip->tstripdata_startstill = 0;
 	seqn->strip->tstripdata_endstill = 0;
+	seqn->strip->ibuf_startstill = 0;
+	seqn->strip->ibuf_endstill = 0;
 
 	if (seq->strip->crop) {
 		seqn->strip->crop = MEM_dupallocN(seq->strip->crop);
@@ -2189,6 +2189,11 @@ static Sequence *dupli_seq(Sequence *seq)
 
 	if (seq->strip->proxy) {
 		seqn->strip->proxy = MEM_dupallocN(seq->strip->proxy);
+	}
+
+	if (seq->strip->color_balance) {
+		seqn->strip->color_balance 
+			= MEM_dupallocN(seq->strip->color_balance);
 	}
 	
 	if(seq->type==SEQ_META) {
@@ -2237,6 +2242,22 @@ static Sequence *dupli_seq(Sequence *seq)
 	return seqn;
 }
 
+static Sequence * deep_dupli_seq(Sequence * seq)
+{
+	Sequence * seqn = dupli_seq(seq);
+	if (seq->type == SEQ_META) {
+		Sequence * s;
+		for(s= seq->seqbase.first; s; s = s->next) {
+			Sequence * n = deep_dupli_seq(s);
+			if (n) { 
+				BLI_addtail(&seqn->seqbase, n);
+			}
+		}
+	}
+	return seqn;
+}
+
+
 static void recurs_dupli_seq(ListBase *old, ListBase *new)
 {
 	Sequence *seq;
@@ -2263,15 +2284,192 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 	}
 }
 
+static Sequence * cut_seq_hard(Sequence * seq, int cutframe)
+{
+	TransSeq ts;
+	Sequence *seqn = 0;
+	int skip_dup = FALSE;
+
+	/* backup values */
+	ts.start= seq->start;
+	ts.machine= seq->machine;
+	ts.startstill= seq->startstill;
+	ts.endstill= seq->endstill;
+	ts.startdisp= seq->startdisp;
+	ts.enddisp= seq->enddisp;
+	ts.startofs= seq->anim_startofs;
+	ts.endofs= seq->anim_endofs;
+	ts.len= seq->len;
+	
+	/* First Strip! */
+	/* strips with extended stillfames before */
+	
+	if ((seq->startstill) && (cutframe <seq->start)) {
+		/* don't do funny things with METAs ... */
+		if (seq->type == SEQ_META) {
+			skip_dup = TRUE;
+			seq->startstill = seq->start - cutframe;
+		} else {
+			seq->start= cutframe -1;
+			seq->startstill= cutframe -seq->startdisp -1;
+			seq->anim_endofs += seq->len - 1;
+			seq->endstill= 0;
+		}
+	}
+	/* normal strip */
+	else if ((cutframe >=seq->start)&&(cutframe <=(seq->start+seq->len))) {
+		seq->endofs = 0;
+		seq->endstill = 0;
+		seq->anim_endofs += (seq->start+seq->len) - cutframe;
+	}
+	/* strips with extended stillframes after */
+	else if (((seq->start+seq->len) < cutframe) && (seq->endstill)) {
+		seq->endstill -= seq->enddisp - cutframe;
+		/* don't do funny things with METAs ... */
+		if (seq->type == SEQ_META) {
+			skip_dup = TRUE;
+		}
+	}
+	
+	reload_sequence_new_file(seq);
+	calc_sequence(seq);
+	
+	if (!skip_dup) {
+		/* Duplicate AFTER the first change */
+		seqn = deep_dupli_seq(seq);
+	}
+	
+	if (seqn) { 
+		seqn->flag |= SELECT;
+			
+		/* Second Strip! */
+		/* strips with extended stillframes before */
+		if ((seqn->startstill) && (cutframe == seqn->start + 1)) {
+			seqn->start = ts.start;
+			seqn->startstill= ts.start- cutframe;
+			seqn->anim_endofs = ts.endofs;
+			seqn->endstill = ts.endstill;
+		}
+		
+		/* normal strip */
+		else if ((cutframe>=seqn->start)&&(cutframe<=(seqn->start+seqn->len))) {
+			seqn->start = cutframe;
+			seqn->startstill = 0;
+			seqn->startofs = 0;
+			seqn->anim_startofs += cutframe - ts.start;
+			seqn->anim_endofs = ts.endofs;
+			seqn->endstill = ts.endstill;
+		}				
+		
+		/* strips with extended stillframes after */
+		else if (((seqn->start+seqn->len) < cutframe) && (seqn->endstill)) {
+			seqn->start = cutframe;
+			seqn->startofs = 0;
+			seqn->anim_startofs += ts.len-1;
+			seqn->endstill = ts.enddisp - cutframe -1;
+			seqn->startstill = 0;
+		}
+		
+		reload_sequence_new_file(seqn);
+		calc_sequence(seqn);
+	}
+	return seqn;
+}
+
+static Sequence * cut_seq_soft(Sequence * seq, int cutframe)
+{
+	TransSeq ts;
+	Sequence *seqn = 0;
+	int skip_dup = FALSE;
+
+	/* backup values */
+	ts.start= seq->start;
+	ts.machine= seq->machine;
+	ts.startstill= seq->startstill;
+	ts.endstill= seq->endstill;
+	ts.startdisp= seq->startdisp;
+	ts.enddisp= seq->enddisp;
+	ts.startofs= seq->startofs;
+	ts.endofs= seq->endofs;
+	ts.len= seq->len;
+	
+	/* First Strip! */
+	/* strips with extended stillfames before */
+	
+	if ((seq->startstill) && (cutframe <seq->start)) {
+		/* don't do funny things with METAs ... */
+		if (seq->type == SEQ_META) {
+			skip_dup = TRUE;
+			seq->startstill = seq->start - cutframe;
+		} else {
+			seq->start= cutframe -1;
+			seq->startstill= cutframe -seq->startdisp -1;
+			seq->endofs = seq->len - 1;
+			seq->endstill= 0;
+		}
+	}
+	/* normal strip */
+	else if ((cutframe >=seq->start)&&(cutframe <=(seq->start+seq->len))) {
+		seq->endofs = (seq->start+seq->len) - cutframe;
+	}
+	/* strips with extended stillframes after */
+	else if (((seq->start+seq->len) < cutframe) && (seq->endstill)) {
+		seq->endstill -= seq->enddisp - cutframe;
+		/* don't do funny things with METAs ... */
+		if (seq->type == SEQ_META) {
+			skip_dup = TRUE;
+		}
+	}
+	
+	calc_sequence(seq);
+	
+	if (!skip_dup) {
+		/* Duplicate AFTER the first change */
+		seqn = deep_dupli_seq(seq);
+	}
+	
+	if (seqn) { 
+		seqn->flag |= SELECT;
+			
+		/* Second Strip! */
+		/* strips with extended stillframes before */
+		if ((seqn->startstill) && (cutframe == seqn->start + 1)) {
+			seqn->start = ts.start;
+			seqn->startstill= ts.start- cutframe;
+			seqn->endofs = ts.endofs;
+			seqn->endstill = ts.endstill;
+		}
+		
+		/* normal strip */
+		else if ((cutframe>=seqn->start)&&(cutframe<=(seqn->start+seqn->len))) {
+			seqn->startstill = 0;
+			seqn->startofs = cutframe - ts.start;
+			seqn->endofs = ts.endofs;
+			seqn->endstill = ts.endstill;
+		}				
+		
+		/* strips with extended stillframes after */
+		else if (((seqn->start+seqn->len) < cutframe) && (seqn->endstill)) {
+			seqn->start = cutframe - ts.len +1;
+			seqn->startofs = ts.len-1;
+			seqn->endstill = ts.enddisp - cutframe -1;
+			seqn->startstill = 0;
+		}
+		
+		calc_sequence(seqn);
+	}
+	return seqn;
+}
+
+
 /* like duplicate, but only duplicate and cut overlapping strips,
  * strips to the left of the cutframe are ignored and strips to the right are moved into the new list */
-static void recurs_cut_seq(ListBase *old, ListBase *new, int cutframe)
+static int cut_seq_list(ListBase *old, ListBase *new, int cutframe,
+			Sequence * (*cut_seq)(Sequence *, int))
 {
+	int did_something = FALSE;
 	Sequence *seq, *seq_next;
-	Sequence *seqn = 0;
 	
-	TransSeq ts;
-
 	seq= old->first;
 	
 	while(seq) {
@@ -2279,87 +2477,13 @@ static void recurs_cut_seq(ListBase *old, ListBase *new, int cutframe)
 		
 		seq->tmp= NULL;
 		if(seq->flag & SELECT) {
-			if(cutframe > seq->startdisp && cutframe < seq->enddisp) {
-				
-				/* backup values */
-				ts.start= seq->start;
-				ts.machine= seq->machine;
-				ts.startstill= seq->startstill;
-				ts.endstill= seq->endstill;
-				ts.startdisp= seq->startdisp;
-				ts.enddisp= seq->enddisp;
-				ts.startofs= seq->startofs;
-				ts.endofs= seq->endofs;
-				ts.len= seq->len;
-				
-				/* First Strip! */
-				/* strips with extended stillfames before */
-				if(seq->type!=SEQ_META) {
-					
-					if ((seq->startstill) && (cutframe <seq->start)) {
-						seq->start= cutframe -1;
-						seq->startstill= cutframe -seq->startdisp -1;
-						seq->len= 1;
-						seq->endstill= 0;
-					}
-				
-					/* normal strip */
-					else if ((cutframe >=seq->start)&&(cutframe <=(seq->start+seq->len))) {
-						seq->endofs = (seq->start+seq->len) - cutframe;
-					}
-				
-					/* strips with extended stillframes after */
-					else if (((seq->start+seq->len) < cutframe) && (seq->endstill)) {
-						seq->endstill -= seq->enddisp - cutframe;
-					}
-					
-					calc_sequence(seq);
-				}
-				
-				/* Duplicate AFTER the first change */
-				seqn = dupli_seq(seq);
-				
-				if (seqn) { /* should never fail */
-					seqn->flag |= SELECT;
-					
-					
+			if(cutframe > seq->startdisp && 
+			   cutframe < seq->enddisp) {
+				Sequence * seqn = cut_seq(seq, cutframe);
+				if (seqn) {
 					BLI_addtail(new, seqn);
-					
-					/* dont transform meta's - just do their children then recalc */
-					if(seq->type==SEQ_META) {
-						recurs_cut_seq(&seq->seqbase,&seqn->seqbase, cutframe);
-					} else {
-						/* Second Strip! */
-						/* strips with extended stillframes before */
-						if ((seqn->startstill) && (cutframe == seqn->start + 1)) {
-							seqn->start = ts.start;
-							seqn->startstill= ts.start- cutframe;
-							seqn->len = ts.len;
-							seqn->endstill = ts.endstill;
-						}
-			
-						/* normal strip */
-						else if ((cutframe>=seqn->start)&&(cutframe<=(seqn->start+seqn->len))) {
-							seqn->startstill = 0;
-							seqn->startofs = cutframe - ts.start;
-							seqn->endofs = ts.endofs;
-							seqn->endstill = ts.endstill;
-						}				
-			
-						/* strips with extended stillframes after */
-						else if (((seqn->start+seqn->len) < cutframe) && (seqn->endstill)) {
-							seqn->start = cutframe - ts.len +1;
-							seqn->startofs = ts.len-1;
-							seqn->endstill = ts.enddisp - cutframe -1;
-							seqn->startstill = 0;
-						}
-					}
-					
-					if(seq->type==SEQ_META) /* account for strips within changing */
-						calc_sequence(seq);
-					
-					calc_sequence(seqn);
 				}
+				did_something = TRUE;
 			} else if (seq->enddisp <= cutframe) {
 				/* do nothing */
 			} else if (seq->startdisp >= cutframe) {
@@ -2370,21 +2494,30 @@ static void recurs_cut_seq(ListBase *old, ListBase *new, int cutframe)
 		}
 		seq = seq_next;
 	}
+	return did_something;
 }
 
-void seq_cut(int cutframe)
+void seq_cut(int cutframe, int hard_cut)
 {
 	Editing *ed;
 	ListBase newlist;
 	char side;
+	int did_something;
+
 	ed= G.scene->ed;
 	if(ed==0) return;
 	
 	newlist.first= newlist.last= NULL;
+
+	if (hard_cut) {
+		did_something = cut_seq_list(
+			ed->seqbasep, &newlist, cutframe, cut_seq_hard);
+	} else {
+		did_something = cut_seq_list(
+			ed->seqbasep, &newlist, cutframe, cut_seq_soft);
+	}
 	
-	recurs_cut_seq(ed->seqbasep, &newlist, cutframe);
-	
-	if (newlist.first) { /* simple check to see if anything was done */
+	if (newlist.first) { /* got new strips ? */
 		Sequence *seq;
 		addlisttolist(ed->seqbasep, &newlist);
 		
@@ -2407,7 +2540,8 @@ void seq_cut(int cutframe)
 		
 		/* as last: */
 		sort_seq();
-		
+	}
+	if (did_something) {
 		allqueue(REDRAWSEQ, 0);
 		BIF_undo_push("Cut Strips, Sequencer");
 	}
@@ -2653,8 +2787,6 @@ void make_meta(void)
 	seqm->strip->len= seqm->len;
 	seqm->strip->us= 1;
 
-	set_meta_stripdata(seqm);
-	
 	if( test_overlap_seq(seqm) ) shuffle_seq(seqm);
 	
 	BIF_undo_push("Make Meta Strip, Sequencer");
@@ -2730,9 +2862,6 @@ void exit_meta(void)
 	BLI_remlink(&ed->metastack, ms);
 
 	ed->seqbasep= ms->oldbasep;
-
-	/* recalc entire meta */
-	set_meta_stripdata(ms->parseq);
 
 	/* recalc all: the meta can have effects connected to it */
 	seq= ed->seqbasep->first;
@@ -3291,7 +3420,7 @@ void transform_seq(int mode, int context)
 			/* warning, drawing should NEVER use WHILE_SEQ,
 			if it does the seq->depth value will be messed up and
 			overlap checks with metastrips will give incorrect results */
-			force_draw(0);
+			force_draw_plus(SPACE_BUTS, 0);
 			
 		}
 		else BIF_wait_for_statechange();
@@ -3306,6 +3435,24 @@ void transform_seq(int mode, int context)
 				case SPACEKEY:
 				case RETKEY:
 					afbreek= 1;
+					break;
+				case XKEY:
+					if(!(midtog && (proj == 0))) {
+						midtog= ~midtog;
+					}
+					if(midtog) {
+						proj= 1;
+						firsttime= 1;
+					}
+					break;
+				case YKEY:
+					if(!(midtog && (proj == 1))) {
+						midtog= ~midtog;
+					}
+					if(midtog) {
+						proj= 0;
+						firsttime= 1;
+					}
 					break;
 				case MIDDLEMOUSE:
 					midtog= ~midtog;
@@ -3668,6 +3815,23 @@ void seq_mute_sel(int mute) {
 		}
 	}
 	BIF_undo_push(mute?"Mute Strips, Sequencer":"UnMute Strips, Sequencer");
+	allqueue(REDRAWSEQ, 0);
+}
+
+void seq_lock_sel(int lock) {
+	Editing *ed;
+	Sequence *seq;
+	
+	ed= G.scene->ed;
+	if(!ed) return;
+	
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+		if ((seq->flag & SELECT)) {
+			if (lock) seq->flag |= SEQ_LOCK;
+			else seq->flag &= ~SEQ_LOCK;
+		}
+	}
+	BIF_undo_push(lock?"Lock Strips, Sequencer":"Unlock Strips, Sequencer");
 	allqueue(REDRAWSEQ, 0);
 }
 

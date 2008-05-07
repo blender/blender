@@ -1,14 +1,11 @@
 /**
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,11 +23,18 @@
  *
  * Contributor(s): Campbell Barton
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /* Based on ghash, difference is ghash is not a fixed size,
  * so for BPath we dont need to malloc  */
+
+struct BPathIteratorSeqData {
+	int totseq;
+	int seq;
+	struct Sequence **seqar; /* Sequence */
+	struct Scene *scene;			/* Current scene */
+};
 
 struct BPathIterator {
 	char*	path;
@@ -39,17 +43,25 @@ struct BPathIterator {
 	void*	data;
 	int		len;
 	int		type;
+	
+	void (*setpath_callback)(struct BPathIterator *, char *);
+	void (*getpath_callback)(struct BPathIterator *, char *);
+	
+	/* only for seq data */
+	struct BPathIteratorSeqData seqdata;
 };
 
-void			BLI_bpathIterator_init		(struct BPathIterator *bpi);
-char*			BLI_bpathIterator_getPath	(struct BPathIterator *bpi);
-char*			BLI_bpathIterator_getLib	(struct BPathIterator *bpi);
-char*			BLI_bpathIterator_getName	(struct BPathIterator *bpi);
-int				BLI_bpathIterator_getType	(struct BPathIterator *bpi);
-int				BLI_bpathIterator_getPathMaxLen(struct BPathIterator *bpi);
-void			BLI_bpathIterator_step		(struct BPathIterator *bpi);
-int				BLI_bpathIterator_isDone	(struct BPathIterator *bpi);
-void			BLI_bpathIterator_copyPathExpanded( struct BPathIterator *bpi, char *path_expanded);
+void			BLI_bpathIterator_init				(struct BPathIterator *bpi);
+void			BLI_bpathIterator_free				(struct BPathIterator *bpi);
+char*			BLI_bpathIterator_getLib			(struct BPathIterator *bpi);
+char*			BLI_bpathIterator_getName			(struct BPathIterator *bpi);
+int				BLI_bpathIterator_getType			(struct BPathIterator *bpi);
+int				BLI_bpathIterator_getPathMaxLen		(struct BPathIterator *bpi);
+void			BLI_bpathIterator_step				(struct BPathIterator *bpi);
+int				BLI_bpathIterator_isDone			(struct BPathIterator *bpi);
+void			BLI_bpathIterator_getPath			(struct BPathIterator *bpi, char *path);
+void			BLI_bpathIterator_getPathExpanded	(struct BPathIterator *bpi, char *path_expanded);
+void			BLI_bpathIterator_setPath			(struct BPathIterator *bpi, char *path);
 
 /* high level funcs */
 

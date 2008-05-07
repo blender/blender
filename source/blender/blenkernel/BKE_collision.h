@@ -3,15 +3,12 @@
  *
  * $Id: BKE_cloth.h,v 1.1 2007/08/01 02:07:27 daniel Exp $
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,12 +26,13 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_COLLISIONS_H
 #define BKE_COLLISIONS_H
 
 #include <math.h>
+#include "float.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -72,6 +70,8 @@ typedef struct CollisionTree
 	int	count_nodes; // how many nodes are used
 	int	traversed;  // how many nodes already traversed until this level?
 	int	isleaf;
+	float alpha; /* for selfcollision */
+	float normal[3]; /* for selfcollision */
 }
 CollisionTree;
 
@@ -93,6 +93,20 @@ BVH;
 ////////////////////////////////////////
 
 
+
+////////////////////////////////////////
+// kdop.c
+////////////////////////////////////////
+
+// needed for collision.c
+typedef void ( *CM_COLLISION_RESPONSE ) ( ModifierData *md1, ModifierData *md2, CollisionTree *tree1, CollisionTree *tree2 );
+
+// needed for collision.c
+int bvh_traverse ( ModifierData * md1, ModifierData * md2, CollisionTree * tree1, CollisionTree * tree2, float step, CM_COLLISION_RESPONSE collision_response, int selfcollision);
+
+////////////////////////////////////////
+
+
 ////////////////////////////////////////
 // used for collisions in kdop.c and also collision.c
 ////////////////////////////////////////
@@ -107,7 +121,7 @@ typedef struct CollPair
 	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2
 	int lastsign; // indicates if the distance sign has changed, unused itm
 	float time; // collision time, from 0 up to 1
-	unsigned int ap1, ap2, ap3, bp1, bp2, bp3, bp4;
+	unsigned int ap1, ap2, ap3, bp1, bp2, bp3;
 	unsigned int pointsb[4];
 }
 CollPair;
@@ -155,7 +169,8 @@ void bvh_free ( BVH * bvh );
 // checks two bounding volume hierarchies for potential collisions and returns some list with those
 
 
-// update bounding volumes, needs updated positions in bvh->x
+// update bounding volumes, needs updated positions in  bvh->current_xold (static) 
+// and also bvh->current_x if moving==1
 void bvh_update_from_mvert(BVH * bvh, MVert *x, unsigned int numverts, MVert *xnew, int moving);
 void bvh_update(BVH * bvh, int moving);
 

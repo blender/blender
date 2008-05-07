@@ -5,15 +5,12 @@
  * and handle user events sent to it.
  * 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +28,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #include <math.h>
@@ -78,11 +75,13 @@
 #include "BIF_usiblender.h"
 #include "BIF_writeimage.h"
 #include "BIF_drawscene.h"
+
 #ifdef WITH_VERSE
 #include "BIF_verse.h"
 #endif
 
 #include "BKE_blender.h"
+#include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
 #include "BKE_exotic.h"
 #include "BKE_global.h"
@@ -110,6 +109,7 @@
 #include "BSE_node.h"
 #include "BSE_sequence.h"
 #include "BSE_edit.h"
+#include "BSE_time.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -281,46 +281,90 @@ int buttons_do_unpack()
 
 Scene *copy_scene(Scene *sce, int level)
 {
-	/* level 0: al objects shared
-	 * level 1: al object-data shared
-	 * level 2: full copy
+	/* 
+	 * level 0: empty, only copy minimal stuff
+	 * level 1: all objects shared
+	 * level 2: all object-data shared
+	 * level 3: full copy
 	 */
+	
 	Scene *scen;
 	Base *base, *obase;
-
-	/* level 0 */
-	scen= copy_libblock(sce);
-	duplicatelist(&(scen->base), &(sce->base));
 	
-	clear_id_newpoins();
+	if (level==0) { /* Add Empty, minimal copy */
+		ListBase lb;
+		scen= add_scene(sce->id.name+2);
+		
+		lb= scen->r.layers;
+		scen->r= sce->r;
+		scen->r.layers= lb;
+		
+	} else {
+		/* level 1+, but not level 0 */
+		scen= copy_libblock(sce);
+		duplicatelist(&(scen->base), &(sce->base));
+		
+		clear_id_newpoins();
+		
+		id_us_plus((ID *)scen->world);
+		id_us_plus((ID *)scen->set);
 	
-	id_us_plus((ID *)scen->world);
-	id_us_plus((ID *)scen->set);
-
-	scen->ed= NULL;
-	scen->radio= NULL;
-	scen->theDag= NULL;
-	scen->toolsettings= MEM_dupallocN(sce->toolsettings);
-
-	duplicatelist(&(scen->markers), &(sce->markers));
-	duplicatelist(&(scen->transform_spaces), &(sce->transform_spaces));
-	duplicatelist(&(scen->r.layers), &(sce->r.layers));
+		scen->ed= NULL;
+		scen->radio= NULL;
+		scen->theDag= NULL;
+		scen->toolsettings= MEM_dupallocN(sce->toolsettings);
 	
-	scen->nodetree= ntreeCopyTree(sce->nodetree, 0);
+		duplicatelist(&(scen->markers), &(sce->markers));
+		duplicatelist(&(scen->transform_spaces), &(sce->transform_spaces));
+		duplicatelist(&(scen->r.layers), &(sce->r.layers));
+		
+		scen->nodetree= ntreeCopyTree(sce->nodetree, 0);
+		
+		obase= sce->base.first;
+		base= scen->base.first;
+		while(base) {
+			id_us_plus(&base->object->id);
+			if(obase==sce->basact) scen->basact= base;
 	
-	obase= sce->base.first;
-	base= scen->base.first;
-	while(base) {
-		id_us_plus(&base->object->id);
-		if(obase==sce->basact) scen->basact= base;
-
-		obase= obase->next;
-		base= base->next;
+			obase= obase->next;
+			base= base->next;
+		}
+		BPY_copy_scriptlink(&sce->scriptlink);
+		
+		/* sculpt data */
+		sce->sculptdata.session = NULL;
+		if (sce->sculptdata.cumap) {
+			int a;
+			scen->sculptdata.cumap = curvemapping_copy(sce->sculptdata.cumap);
+			scen->sculptdata.session = NULL; /* this is only for temp data storage anyway */
+			for(a=0; a<MAX_MTEX; ++a) {
+				if (sce->sculptdata.mtex[a]) {
+					scen->sculptdata.mtex[a]= MEM_dupallocN(sce->sculptdata.mtex[a]);
+				}
+			}
+		}
 	}
+	
+	// make a private copy of the avicodecdata
+	
+	if (sce->r.avicodecdata) {
+	
+		scen->r.avicodecdata = MEM_dupallocN(sce->r.avicodecdata);
+		scen->r.avicodecdata->lpFormat = MEM_dupallocN(scen->r.avicodecdata->lpFormat);
+		scen->r.avicodecdata->lpParms = MEM_dupallocN(scen->r.avicodecdata->lpParms);
+	}
+	
+	// make a private copy of the qtcodecdata
+	
+	if (sce->r.qtcodecdata) {
+		scen->r.qtcodecdata = MEM_dupallocN(sce->r.qtcodecdata);
+		scen->r.qtcodecdata->cdParms = MEM_dupallocN(scen->r.qtcodecdata->cdParms);
+	}
+	
+	
+	if(level==0 || level==1) return scen;
 
-	if(level==0) return scen;
-
-	/* level 1 */
+	/* level 2 */
 	G.scene= scen;
 	
 	single_object_users(0);
@@ -328,8 +372,8 @@ Scene *copy_scene(Scene *sce, int level)
 	/*	camera */
 	ID_NEW(G.scene->camera);
 
-	/* level 2 */
-	if(level>=2) {
+	/* level 3 */
+	if(level>=3) {
 		if(scen->world) {
 			id_us_plus(&scen->world->id);
 			scen->world= copy_world(scen->world);
@@ -343,24 +387,6 @@ Scene *copy_scene(Scene *sce, int level)
 	}
 
 	clear_id_newpoins();
-
-	BPY_copy_scriptlink(&sce->scriptlink);
-	// make a private copy of the avicodecdata
-
-	if (sce->r.avicodecdata) {
-
-		scen->r.avicodecdata = MEM_dupallocN(sce->r.avicodecdata);
-		scen->r.avicodecdata->lpFormat = MEM_dupallocN(scen->r.avicodecdata->lpFormat);
-		scen->r.avicodecdata->lpParms = MEM_dupallocN(scen->r.avicodecdata->lpParms);
-	}
-
-	// make a private copy of the qtcodecdata
-
-	if (sce->r.qtcodecdata) {
-		scen->r.qtcodecdata = MEM_dupallocN(sce->r.qtcodecdata);
-		scen->r.qtcodecdata->cdParms = MEM_dupallocN(scen->r.qtcodecdata->cdParms);
-	}
-
 	return scen;
 }
 
@@ -446,32 +472,9 @@ void do_info_buttons(unsigned short event)
 		}
 		/* last item: NEW SCENE */
 		if(sce==0) {
-			nr= pupmenu("Add scene%t|Empty|Link Objects|Link ObData|Full Copy");
-			if(nr<= 0) return;
-			if(nr==1) {
-				ListBase lb;
-				
-				sce= add_scene(G.scene->id.name+2);
-				/* pretty bad ass copying here. we should use copy_scene to do all (ton) */
-				lb= sce->r.layers;
-				sce->r= G.scene->r;
-				sce->r.layers= lb;
-#ifdef _WIN32
-				if (sce->r.avicodecdata) {
-					sce->r.avicodecdata = MEM_dupallocN(G.scene->r.avicodecdata);
-					sce->r.avicodecdata->lpFormat = MEM_dupallocN(G.scene->r.avicodecdata->lpFormat);
-					sce->r.avicodecdata->lpParms = MEM_dupallocN(G.scene->r.avicodecdata->lpParms);
-				}
-#endif
-#ifdef WITH_QUICKTIME
-				if (sce->r.qtcodecdata) {
-					sce->r.qtcodecdata = MEM_dupallocN(G.scene->r.qtcodecdata);
-					sce->r.qtcodecdata->cdParms = MEM_dupallocN(G.scene->r.qtcodecdata->cdParms);
-				}
-#endif
-			}
-			else sce= copy_scene(G.scene, nr-2);
-
+			nr= pupmenu("Add scene%t|Empty%x0|Link Objects%x1|Link ObData%x2|Full Copy%x3");
+			if(nr<0) return;
+			sce= copy_scene(G.scene, nr);
 			set_scene(sce);
 		}
 		countall();
@@ -800,7 +803,7 @@ static uiBlock *verse_filemenu(void *unusedargs)
 static void do_info_filemenu(void *arg, int event)
 {
 	ScrArea *sa;
-	char dir[FILE_MAXDIR];
+	char dir[FILE_MAX];
 	
 	if(curarea->spacetype==SPACE_INFO) {
 		sa= closest_bigger_area();
@@ -822,17 +825,15 @@ static void do_info_filemenu(void *arg, int event)
 		activate_fileselect(FILE_LOADLIB, "Load Library", G.lib, 0);
 		break;
 	case 4: /* save */
-		strcpy(dir, G.sce);
+		BLI_strncpy(dir, G.sce, FILE_MAX);
 		untitled(dir);
 		activate_fileselect(FILE_BLENDER, "Save As", dir, BIF_write_file);
 		break;
 	case 5:
-		strcpy(dir, G.sce);
+		BLI_strncpy(dir, G.sce, FILE_MAX);
 		if (untitled(dir)) {
 			activate_fileselect(FILE_BLENDER, "Save As", dir, BIF_write_file);
 		} else {
-			/* do NOT ask everytime for overwriting... */
-			G.save_over = 1;
 			BIF_write_file(dir);
 			free_filesel_spec(dir);
 		}
@@ -861,14 +862,19 @@ static void do_info_filemenu(void *arg, int event)
 	case 15:	/* recover previous session */
 		{
 			extern short winqueue_break; /* editscreen.c */
-			int save_over;
-			char str[FILE_MAXDIR+FILE_MAXFILE];
-			char scestr[FILE_MAXDIR+FILE_MAXFILE];
+			int save_over, retval = 0;
+			char str[FILE_MAX];
+			char scestr[FILE_MAX];
 			
-			strcpy(scestr, G.sce);	/* temporal store */
+			BLI_strncpy(scestr, G.sce, FILE_MAX);	/* temporal store */
 			save_over = G.save_over;
-			BLI_make_file_string("/", str, U.tempdir, "quit.blend");
-			BKE_read_file(str, NULL);
+			BLI_make_file_string("/", str, btempdir, "quit.blend");
+			retval = BKE_read_file(str, NULL);
+			
+			/*we successfully loaded a blend file, get sure that
+			pointcache works */
+			if (retval!=0) G.relbase_valid = 1;
+			
 			G.save_over = save_over;
 			strcpy(G.sce, scestr);
 
@@ -1444,44 +1450,48 @@ static uiBlock *info_add_groupmenu(void *arg_unused)
 
 void do_info_addmenu(void *arg, int event)
 {
-	switch(event) {		
-		case 0:
-			/* Mesh */
-			break;
-		case 1:
-			/* Curve */
-			break;
-		case 2:
-			/* Surface */
-			break;
-		case 3:
-			/* Metaball */
-			break;
-		case 4:
-			/* Text (argument is discarded) */
-			add_primitiveFont(event);
-			break;
-		case 5:
-			/* Empty */
-			add_object_draw(OB_EMPTY);
-			break;
-		case 6:
-			/* Camera */
-			add_object_draw(OB_CAMERA);
-			break;
-		case 8:
-			/* Armature */
-			add_primitiveArmature(OB_ARMATURE);
-			break;
-		case 9:
-			/* Lattice */
-			add_object_draw(OB_LATTICE);
-			break;
-		case 10:
-			/* group instance not yet */
-			break;
-		default:
-			break;
+	if (event>=20) {
+		BPY_menu_do_python(PYMENU_ADD, event - 20);
+	} else {
+		switch(event) {		
+			case 0:
+				/* Mesh */
+				break;
+			case 1:
+				/* Curve */
+				break;
+			case 2:
+				/* Surface */
+				break;
+			case 3:
+				/* Metaball */
+				break;
+			case 4:
+				/* Text (argument is discarded) */
+				add_primitiveFont(event);
+				break;
+			case 5:
+				/* Empty */
+				add_object_draw(OB_EMPTY);
+				break;
+			case 6:
+				/* Camera */
+				add_object_draw(OB_CAMERA);
+				break;
+			case 8:
+				/* Armature */
+				add_primitiveArmature(OB_ARMATURE);
+				break;
+			case 9:
+				/* Lattice */
+				add_object_draw(OB_LATTICE);
+				break;
+			case 10:
+				/* group instance not yet */
+				break;
+			default:
+				break;
+		}
 	}
 	allqueue(REDRAWINFO, 0);
 }
@@ -1491,6 +1501,8 @@ static uiBlock *info_addmenu(void *arg_unused)
 {
 /*		static short tog=0; */
 	uiBlock *block;
+	BPyMenu *pym;
+	int i=0;
 	short yco= 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "addmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
@@ -1516,6 +1528,15 @@ static uiBlock *info_addmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Armature",			0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lattice",			0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 9, "");
+
+	pym = BPyMenuTable[PYMENU_ADD];
+	if (pym) {
+		uiDefIconTextBut(block, SEPR, 0, ICON_BLANK1, "",					0, yco-=6,	1620, 6,  NULL, 0.0, 0.0, 0, 0, "");
+		
+		for (; pym; pym = pym->next, i++) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, i+20, pym->tooltip?pym->tooltip:pym->filename);
+		}
+	}
 
 	uiBlockSetDirection(block, UI_DOWN);
 	uiTextBoundsBlock(block, 80);
@@ -1640,23 +1661,23 @@ static void do_info_timelinemenu(void *arg, int event)
 		if (!ob) error("Select an object before showing and selecting its keyframes");
 		else select_select_keys();
 			break;
-		case 3:
+	case 3:
 		/* select next keyframe */
 		if (!ob) error("Select an object before selecting its next keyframe");
 		else nextkey_obipo(1);
 			break;
-		case 4:
+	case 4:
 		/* select previous keyframe */
 		if (!ob) error("Select an object before selecting its previous keyframe");
 		else nextkey_obipo(-1);
 		break;
 		case 5:
-		/* next keyframe */
+	/* next keyframe */
 		if (!ob) error("Select an object before going to its next keyframe");
 		else movekey_obipo(1);
 			break;
 		case 6:
-		/* previous keyframe */
+	/* previous keyframe */
 		if (!ob) error("Select an object before going to its previous keyframe");
 		else movekey_obipo(-1);
 		break;
@@ -1692,6 +1713,14 @@ static void do_info_timelinemenu(void *arg, int event)
 		CFRA= SFRA;
 		update_for_newframe();
 		break;
+	case 13: 
+		/* previous keyframe */
+		nextprev_timeline_key(-1);
+		break;
+	case 14:
+		/* next keyframe */
+		nextprev_timeline_key(1);
+		break;
 	}
 	allqueue(REDRAWINFO, 0);
 }
@@ -1714,9 +1743,12 @@ static uiBlock *info_timelinemenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Next Keyframe|Ctrl PageUp",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Previous Keyframe|Ctrl PageDown",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Next Ob-Keyframe|Shift PageUp",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Previous Ob-Keyframe|Shift PageDown",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Next Keyframe|Ctrl PageUp",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Previous Keyframe|Ctrl PageDown",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
+	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Next Frame|RightArrow",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
@@ -1743,11 +1775,11 @@ static uiBlock *info_timelinemenu(void *arg_unused)
 void do_info_render_bakemenu(void *arg, int event)
 {
 	switch (event) {
-	case R_BAKE_TO_ACTIVE:
+	case 6:
 		G.scene->r.bake_flag ^= event;
 		break;
 	default:
-		objects_bake_render(event);
+		objects_bake_render_ui(event);
 	}	
 	
 	allqueue(REDRAWINFO, 0);
@@ -1762,9 +1794,9 @@ static uiBlock *info_render_bakemenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_info_render_bakemenu, NULL);
 	
 	if(G.scene->r.bake_flag & R_BAKE_TO_ACTIVE) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Selected to Active",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, R_BAKE_TO_ACTIVE, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Selected to Active",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	} else {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Selected to Active",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, R_BAKE_TO_ACTIVE, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Selected to Active",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	}
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

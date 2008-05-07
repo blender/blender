@@ -1,15 +1,12 @@
 /*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Jacques Guignot, Jean-Michel Soler 
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "Particle.h" /*This must come first */
@@ -265,43 +262,9 @@ struct PyMethodDef M_Particle_methods[] = {
 /*****************************************************************************/
 PyObject *M_Particle_New( PyObject * self, PyObject * args )
 {
-	BPy_Effect *pyeffect;
-	Effect *bleffect = 0;
-	Object *ob;
-	char *name = NULL;
-
-	if( !PyArg_ParseTuple( args, "s", &name ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected string argument" );
-
-	for( ob = G.main->object.first; ob; ob = ob->id.next )
-		if( !strcmp( name, ob->id.name + 2 ) )
-			break;
-
-	if( !ob )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError, 
-				"object does not exist" );
-
-	if( ob->type != OB_MESH )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError, 
-				"object is not a mesh" );
-
-	pyeffect = ( BPy_Effect * ) PyObject_NEW( BPy_Effect, &Effect_Type );
-	if( !pyeffect )
-		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-				"couldn't create Effect Data object" );
-
-	bleffect = add_effect( EFF_PARTICLE );
-	if( !bleffect ) {
-		Py_DECREF( pyeffect );
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"couldn't create Effect Data in Blender" );
-	}
-
-	pyeffect->effect = (PartEff *)bleffect;
-	BLI_addtail( &ob->effect, bleffect );
-
-	return ( PyObject * ) pyeffect;
+	printf("warning, static particles api removed\n");
+	Py_INCREF( Py_None );
+	return Py_None;
 }
 
 /*****************************************************************************/
@@ -310,48 +273,7 @@ PyObject *M_Particle_New( PyObject * self, PyObject * args )
 /*****************************************************************************/
 PyObject *M_Particle_Get( PyObject * self, PyObject * args )
 {
-	/*arguments : string object name
-	   int : position of effect in the obj's effect list  */
-	char *name = 0;
-	Object *object_iter;
-	Effect *eff;
-	BPy_Particle *wanted_eff;
-	int num, i;
-
-	if( !PyArg_ParseTuple( args, "si", &name, &num ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected string int argument" ) );
-
-	object_iter = G.main->object.first;
-	if( !object_iter )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"Scene contains no object" );
-
-	while( object_iter ) {
-		if( strcmp( name, object_iter->id.name + 2 ) ) {
-			object_iter = object_iter->id.next;
-			continue;
-		}
-
-		if( object_iter->effect.first != NULL ) {
-			eff = object_iter->effect.first;
-			for( i = 0; i < num; i++ ) {
-				if( eff->type != EFF_PARTICLE )
-					continue;
-				eff = eff->next;
-				if( !eff )
-					return ( EXPP_ReturnPyObjError
-						 ( PyExc_AttributeError,
-						   "Object" ) );
-			}
-			wanted_eff =
-				( BPy_Particle * ) PyObject_NEW( BPy_Particle,
-								 &Particle_Type );
-			wanted_eff->particle = eff;
-			return ( PyObject * ) wanted_eff;
-		}
-		object_iter = object_iter->id.next;
-	}
+	printf("warning, static particles api removed\n");
 	Py_INCREF( Py_None );
 	return Py_None;
 }

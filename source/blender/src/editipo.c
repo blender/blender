@@ -349,18 +349,6 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		else if(si->blocktype==ID_PA){
-			Object *ob=OBACT;
-			ParticleSystem *psys = ob->particlesystem.first;
-
-			/* find out if we need to initialize particles */
-			for(; psys; psys=psys->next) {
-				if(psys->part->ipo==si->ipo) {
-					ei= si->editipo;
-					for(a=0; a<si->totipo; a++, ei++)
-						if(ei->icu && ELEM3(ei->icu->adrcode,PART_EMIT_FREQ,PART_EMIT_LIFE,PART_EMIT_SIZE))
-							psys_flush_settings(psys->part,PSYS_INIT,1);
-				}
-			}
 			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
@@ -994,20 +982,24 @@ static void make_editipo(void)
 	/* sets globals, bad stuff but we need these variables in other parts of code */
 	get_status_editipo();
 	
-	if(G.sipo->ipo) {
-
-		if (G.sipo->pin)
-			rf= &(G.sipo->v2d.cur);
-		else
-			rf= &(G.sipo->ipo->cur);
-		
-		if(rf->xmin<rf->xmax && rf->ymin<rf->ymax) G.v2d->cur= *rf;
-		else ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
-	}
-	else {
-		ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
-	}
 	
+	if (G.sipo->flag & SIPO_LOCK_VIEW) {
+		rf= &(G.v2d->cur); /* view is locked, dont move it, just to sanity check */
+		if(rf->xmin>=rf->xmax || rf->ymin>=rf->ymax) ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
+	} else {
+		if(G.sipo->ipo) {
+			if (G.sipo->pin)
+				rf= &(G.sipo->v2d.cur);
+			else
+				rf= &(G.sipo->ipo->cur);
+			
+			if(rf->xmin<rf->xmax && rf->ymin<rf->ymax) G.v2d->cur= *rf;
+			else ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
+		}
+		else {
+			ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
+		}
+	}
 	view2d_do_locks(curarea, V2D_LOCK_COPY);
 }
 
@@ -1050,16 +1042,25 @@ static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname
 					}
 					
 					/* set actname if in posemode */
-					if(ob->action) {
-						if(ob->flag & OB_POSEMODE) {
+					if (ob->action) {
+						if (ob->flag & OB_POSEMODE) {
 							bPoseChannel *pchan= get_active_posechannel(ob);
-							if(pchan) {
+							if (pchan) {
 								BLI_strncpy(actname, pchan->name, 32);
 								BLI_strncpy(bonename, pchan->name, 32);
 							}
 						}
-						else if(ob->ipoflag & OB_ACTION_OB)
+						else if (ob->ipoflag & OB_ACTION_OB)
 							strcpy(actname, "Object");
+					}
+					else {
+						if (ob->flag & OB_POSEMODE) {
+							bPoseChannel *pchan= get_active_posechannel(ob);
+							if (pchan) {
+								BLI_strncpy(actname, pchan->name, 32);
+								BLI_strncpy(bonename, pchan->name, 32);
+							}
+						}
 					}
 				}
 			}
@@ -1205,7 +1206,7 @@ void test_editipo(int doit)
 		if(G.sipo->ipo != ipo) {
 			G.sipo->ipo= ipo;
 			/* if lock we don't copy from ipo, this makes the UI jump around confusingly */
-			if(G.v2d->flag & V2D_VIEWLOCK);
+			if(G.v2d->flag & V2D_VIEWLOCK || G.sipo->flag & SIPO_LOCK_VIEW);
 			else if(ipo) G.v2d->cur= ipo->cur;
 			doit= 1;
 		}
@@ -1806,7 +1807,7 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname, char 
 		if(achan) {
 			/* automatically assign achan to act-group based on pchan's grouping */
 			if (blocktype == ID_PO)
-			verify_pchan2achan_grouping(ob->action, ob->pose, actname);
+				verify_pchan2achan_grouping(ob->action, ob->pose, actname);
 			
 			/* constraint exception */
 			if(blocktype==ID_CO) {
@@ -2001,7 +2002,7 @@ IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constn
 		}
 		if(icu==NULL) {
 			icu= MEM_callocN(sizeof(IpoCurve), "ipocurve");
-
+			
 			icu->flag |= IPO_VISIBLE|IPO_AUTO_HORIZ;
 			if(ipo->curve.first==NULL) icu->flag |= IPO_ACTIVE;	/* first one added active */
 			
@@ -2009,21 +2010,102 @@ IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constn
 			icu->adrcode= adrcode;
 			
 			set_icu_vars(icu);
-
+			
 			BLI_addtail( &(ipo->curve), icu);
-
+			
 			switch (GS(from->name)) {
-			case ID_SEQ: {
-				Sequence *seq= (Sequence *)from;
-
-				update_seq_icu_rects(seq);
-				break;
-			}
+				case ID_SEQ: {
+					Sequence *seq= (Sequence *)from;
+					
+					update_seq_icu_rects(seq);
+					break;
+				}
 			}
 		}
 	}
 
 	return icu;
+}
+
+
+/* threshold for inserting keyframes - threshold here should be good enough for now, but should become userpref */
+#define BEZT_INSERT_THRESH 	0.00001
+
+/* Binary search algorithm for finding where to insert BezTriple. (for use by insert_bezt_icu)
+ * Returns the index to insert at (data already at that index will be offset if replace is 0)
+ */
+static int binarysearch_bezt_index (BezTriple array[], BezTriple *item, int arraylen, short *replace)
+{
+	int start=0, end=arraylen;
+	int loopbreaker= 0, maxloop= arraylen * 2;
+	const float frame= (item)? item->vec[1][0] : 0.0f;
+	
+	/* initialise replace-flag first */
+	*replace= 0;
+	
+	/* sneaky optimisations (don't go through searching process if...):
+	 *	- keyframe to be added is to be added out of current bounds
+	 *	- keyframe to be added would replace one of the existing ones on bounds
+	 */
+	if ((arraylen <= 0) || ELEM(NULL, array, item)) {
+		printf("Warning: binarysearch_bezt_index encountered invalid array \n");
+		return 0;
+	}
+	else {
+		/* check whether to add before/after/on */
+		float framenum;
+		
+		/* 'First' Keyframe (when only one keyframe, this case is used) */
+		framenum= array[0].vec[1][0];
+		if (IS_EQT(frame, framenum, BEZT_INSERT_THRESH)) {
+			*replace = 1;
+			return 0;
+		}
+		else if (frame < framenum)
+			return 0;
+			
+		/* 'Last' Keyframe */
+		framenum= array[(arraylen-1)].vec[1][0];
+		if (IS_EQT(frame, framenum, BEZT_INSERT_THRESH)) {
+			*replace= 1;
+			return (arraylen - 1);
+		}
+		else if (frame > framenum)
+			return arraylen;
+	}
+	
+	
+	/* most of the time, this loop is just to find where to put it
+	 * 'loopbreaker' is just here to prevent infinite loops 
+	 */
+	for (loopbreaker=0; (start <= end) && (loopbreaker < maxloop); loopbreaker++) {
+		/* compute and get midpoint */
+		int mid = (start + end) / 2;
+		float midfra= array[mid].vec[1][0];
+		
+		/* check if exactly equal to midpoint */
+		if (IS_EQT(frame, midfra, BEZT_INSERT_THRESH)) {
+			*replace = 1;
+			return mid;
+		}
+		
+		/* repeat in upper/lower half */
+		if (frame > midfra)
+			start= mid + 1;
+		else if (frame < midfra)
+			end= mid - 1;
+	}
+	
+	/* print error if loop-limit exceeded */
+	if (loopbreaker == (maxloop-1)) {
+		printf("Error: binarysearch_bezt_index was taking too long \n");
+		
+		// include debug info 
+		printf("\tround = %d: start = %d, end = %d, arraylen = %d \n", loopbreaker, start, end, arraylen);
+	}
+	
+	/* not found, so return where to place it */
+	return start;
 }
 
 /* This function adds a given BezTriple to an IPO-Curve. It will allocate 
@@ -2035,7 +2117,7 @@ IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constn
  */
 int insert_bezt_icu (IpoCurve *icu, BezTriple *bezt)
 {
-	BezTriple *newb, *beztd;
+	BezTriple *newb;
 	int i= 0;
 	
 	if (icu->bezt == NULL) {
@@ -2044,34 +2126,34 @@ int insert_bezt_icu (IpoCurve *icu, BezTriple *bezt)
 		icu->totvert= 1;
 	}
 	else {
-		beztd= icu->bezt;
-		for (i = 0; i <= icu->totvert; i++, beztd++) {
-			/* no double points - threshold to determine this should be good enough */
-			if ((i < icu->totvert) && IS_EQT(beztd->vec[1][0], bezt->vec[1][0], 0.00001)) {
-				*(beztd)= *bezt;
-				break;
-			}
-			/* if we've reached the end of the icu array, or bezt is to be pasted before current */
-			if (i==icu->totvert || beztd->vec[1][0] > bezt->vec[1][0]) {
-				newb= MEM_callocN( (icu->totvert+1)*sizeof(BezTriple), "beztriple");
-				
-				/* add the beztriples that should occur before the beztriple to be pasted (originally in ei->icu) */
-				if (i > 0) 
-					memcpy(newb, icu->bezt, i*sizeof(BezTriple));
-				
-				/* add beztriple to paste at index j */
-				*(newb+i)= *bezt;
-				
-				/* add the beztriples that occur after the beztriple to be pasted (originally in icu) */
-				if (i < icu->totvert) 
-					memcpy(newb+i+1, icu->bezt+i, (icu->totvert-i)*sizeof(BezTriple));
-				
-				MEM_freeN(icu->bezt);
-				icu->bezt= newb;
-				
-				icu->totvert++;
-				break;
-			}
+		short replace = -1;
+		i = binarysearch_bezt_index(icu->bezt, bezt, icu->totvert, &replace);
+		
+		if (replace) {			
+			/* sanity check: 'i' may in rare cases exceed arraylen */
+			if ((i >= 0) && (i < icu->totvert))
+				*(icu->bezt + i) = *bezt;
+		}
+		else {
+			/* add new */
+			newb= MEM_callocN((icu->totvert+1)*sizeof(BezTriple), "beztriple");
+			
+			/* add the beztriples that should occur before the beztriple to be pasted (originally in ei->icu) */
+			if (i > 0)
+				memcpy(newb, icu->bezt, i*sizeof(BezTriple));
+			
+			/* add beztriple to paste at index i */
+			*(newb + i)= *bezt;
+			
+			/* add the beztriples that occur after the beztriple to be pasted (originally in icu) */
+			if (i < icu->totvert) 
+				memcpy(newb+i+1, icu->bezt+i, (icu->totvert-i)*sizeof(BezTriple));
+			
+			/* replace (+ free) old with new */
+			MEM_freeN(icu->bezt);
+			icu->bezt= newb;
+			
+			icu->totvert++;
 		}
 	}
 	
@@ -2184,15 +2266,48 @@ void add_vert_ipo(void)
 	BIF_undo_push("Add Ipo vertex");
 }
 
-static void *get_context_ipo_poin(ID *id, int blocktype, char *actname, IpoCurve *icu, int *vartype)
+static void *get_context_ipo_poin(ID *id, int blocktype, char *actname, char *constname, IpoCurve *icu, int *vartype)
 {
-	if(blocktype==ID_PO) {
-		if(GS(id->name)==ID_OB) {
+	if (blocktype==ID_PO) {
+		if (GS(id->name)==ID_OB) {
 			Object *ob= (Object *)id;
 			bPoseChannel *pchan= get_pose_channel(ob->pose, actname);
 			
-			*vartype= IPO_FLOAT;
-			return get_pchan_ipo_poin(pchan, icu->adrcode);
+			if (pchan) {
+				*vartype= IPO_FLOAT;
+				return get_pchan_ipo_poin(pchan, icu->adrcode);
+			}
+			else
+				return NULL;
+		}
+		return NULL;
+	}
+	else if (blocktype==ID_CO) {
+		if ((GS(id->name)==ID_OB) && (constname && constname[0])) {
+			Object *ob= (Object *)id;
+			bConstraint *con;
+			
+			/* assume that we only want the influence (as only used for Constraint Channels) */
+			if ((ob->ipoflag & OB_ACTION_OB) && !strcmp(actname, "Object")) {
+				for (con= ob->constraints.first; con; con= con->next) {
+					if (strcmp(constname, con->name)==0) {
+						*vartype= IPO_FLOAT;
+						return &con->enforce;
+					}
+				}
+			}
+			else if (ob->pose) {
+				bPoseChannel *pchan= get_pose_channel(ob->pose, actname);
+				
+				if (pchan) {
+					for (con= pchan->constraints.first; con; con= con->next) {
+						if (strcmp(constname, con->name)==0) {
+							*vartype= IPO_FLOAT;
+							return &con->enforce;
+						}
+					}
+				}
+			}
 		}
 		return NULL;
 	}
@@ -2332,7 +2447,7 @@ static void insertkey_nonrecurs(ID *id, int blocktype, char *actname, char *cons
 		
 		if(icu) {
 			
-			poin= get_context_ipo_poin(id, blocktype, actname, icu, &vartype);
+			poin= get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
 			
 			if(poin) {
 				curval= read_ipo_poin(poin, vartype);
@@ -2553,7 +2668,7 @@ void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcod
 		
 		if(icu) {
 			
-			poin= get_context_ipo_poin(id, blocktype, actname, icu, &vartype);
+			poin= get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
 			
 			if(poin) {
 				curval= read_ipo_poin(poin, vartype);
@@ -2595,7 +2710,7 @@ void insertkey_smarter(ID *id, int blocktype, char *actname, char *constname, in
 	
 	if(icu) {
 		
-		poin= get_context_ipo_poin(id, blocktype, actname, icu, &vartype);
+		poin= get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
 		
 		if(poin) {
 			curval= read_ipo_poin(poin, vartype);
@@ -2647,7 +2762,7 @@ void insertfloatkey(ID *id, int blocktype, char *actname, char *constname, int a
 	
 	if(icu) {
 		
-		poin= get_context_ipo_poin(id, blocktype, actname, icu, &vartype);
+		poin= get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
 		
 		if(poin) {
 			
@@ -3382,7 +3497,7 @@ void common_insertkey(void)
 		else if(event==13) BIF_undo_push("Insert VisualLocRot Key");
 		else if(event==15) BIF_undo_push("Insert Needed Key");
 		
-		DAG_scene_flush_update(G.scene, screen_view3d_layers());
+		DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 		
 		allspace(REMAKEIPO, 0);
 		allqueue(REDRAWIPO, 0);
@@ -3678,6 +3793,12 @@ void clean_ipo_curve(IpoCurve *icu)
 		MEM_freeN(old_bezts);
 }
 
+
+/* temp struct used for smooth_ipo */
+typedef struct tSmooth_Bezt {
+	float *h1, *h2, *h3;	/* bezt->vec[0,1,2][1] */
+} tSmooth_Bezt;
+
 void smooth_ipo(void)
 {
 	EditIpo *ei;
@@ -3689,7 +3810,6 @@ void smooth_ipo(void)
 	ei= G.sipo->editipo;
 	for(b=0; b<G.sipo->totipo; b++, ei++) {
 		if (ISPOIN3(ei, flag & IPO_VISIBLE, icu, icu->bezt)) {
-		
 			ok= 0;
 			if(G.sipo->showkey) ok= 1;
 			else if(totipo_vert && (ei->flag & IPO_EDIT)) ok= 2;
@@ -3698,52 +3818,94 @@ void smooth_ipo(void)
 			if(ok) {
 				IpoCurve *icu= ei->icu;
 				BezTriple *bezt;
-				float meanValSum = 0.0f, meanVal;
-				float valDiff;
-				int i, totSel = 0;
+				int i, x, totSel = 0;
 				
 				/* check if enough points */
 				if (icu->totvert >= 3) {
-					/* first loop through - obtain average value */
+					/* first loop through - count how many verts are selected, and fix up handles */
 					bezt= icu->bezt;
-					for (i=1; i < icu->totvert; i++, bezt++) {						
+					for (i=0; i < icu->totvert; i++, bezt++) {						
 						if (BEZSELECTED(bezt)) {							
 							/* line point's handles up with point's vertical position */
 							bezt->vec[0][1]= bezt->vec[2][1]= bezt->vec[1][1];
-							if(bezt->h1==HD_AUTO || bezt->h1==HD_VECT) bezt->h1= HD_ALIGN;
-							if(bezt->h2==HD_AUTO || bezt->h2==HD_VECT) bezt->h2= HD_ALIGN;
+							if ((bezt->h1==HD_AUTO) || (bezt->h1==HD_VECT)) bezt->h1= HD_ALIGN;
+							if ((bezt->h2==HD_AUTO) || (bezt->h2==HD_VECT)) bezt->h2= HD_ALIGN;
 							
 							/* add value to total */
-							meanValSum += bezt->vec[1][1];
 							totSel++;
 						}
 					}
 					
-					/* calculate mean value */
-					meanVal= meanValSum / totSel;
-					
-					/* second loop through - update point positions */
-					bezt= icu->bezt;
-					for (i=0; i < icu->totvert; i++, bezt++) {						
-						if (BEZSELECTED(bezt)) {
-							/* 1. calculate difference between the points 
-							 * 2. move point half-way along that distance 
-							 */
-							if (bezt->vec[1][1] > meanVal) {
-								/* bezt val above mean */
-								valDiff= bezt->vec[1][1] - meanVal;
-								bezt->vec[1][1]= meanVal + (valDiff / 2);
-							}
-							else {
-								/* bezt val below mean */
-								valDiff= meanVal - bezt->vec[1][1];
-								bezt->vec[1][1] = bezt->vec[1][1] + (valDiff / 2);								
+					/* if any points were selected, allocate tSmooth_Bezt points to work on */
+					if (totSel >= 3) {
+						tSmooth_Bezt *tarray, *tsb;
+						
+						/* allocate memory in one go */
+						tsb= tarray= MEM_callocN(totSel*sizeof(tSmooth_Bezt), "tSmooth_Bezt Array");
+						
+						/* populate tarray with data of selected points */
+						bezt= icu->bezt;
+						for (i=0, x=0; (i < icu->totvert) && (x < totSel); i++, bezt++) {
+							if (BEZSELECTED(bezt)) {
+								/* tsb simply needs pointer to vec, and index */
+								tsb->h1 = &bezt->vec[0][1];
+								tsb->h2 = &bezt->vec[1][1];
+								tsb->h3 = &bezt->vec[2][1];
+								
+								/* advance to the next tsb to populate */
+								if (x < totSel- 1) 
+									tsb++;
+								else
+									break;
 							}
 						}
+						
+						/* calculate the new smoothed ipo's with weighted averages:
+						 *	- this is done with two passes
+						 *	- uses 5 points for each operation (which stores in the relevant handles)
+						 *	-	previous: w/a ratio = 3:5:2:1:1
+						 *	- 	next: w/a ratio = 1:1:2:5:3
+						 */
+						
+						/* round 1: calculate previous and next */ 
+						tsb= tarray;
+						for (i=0; i < totSel; i++, tsb++) {
+							/* don't touch end points (otherwise, curves slowly explode) */
+							if (ELEM(i, 0, (totSel-1)) == 0) {
+								tSmooth_Bezt *tP1 = tsb - 1;
+								tSmooth_Bezt *tP2 = (i-2 > 0) ? (tsb - 2) : (NULL);
+								tSmooth_Bezt *tN1 = tsb + 1;
+								tSmooth_Bezt *tN2 = (i+2 < totSel) ? (tsb + 2) : (NULL);
+								
+								float p1 = *tP1->h2;
+								float p2 = (tP2) ? (*tP2->h2) : (*tP1->h2);
+								float c1 = *tsb->h2;
+								float n1 = *tN1->h2;
+								float n2 = (tN2) ? (*tN2->h2) : (*tN1->h2);
+								
+								/* calculate previous and next */
+								*tsb->h1= (3*p2 + 5*p1 + 2*c1 + n1 + n2) / 12;
+								*tsb->h3= (p2 + p1 + 2*c1 + 5*n1 + 3*n2) / 12;
+							}
+						}
+						
+						/* round 2: calculate new values and reset handles */
+						tsb= tarray;
+						for (i=0; i < totSel; i++, tsb++) {
+							/* calculate new position by averaging handles */
+							*tsb->h2 = (*tsb->h1 + *tsb->h3) / 2;
+							
+							/* reset handles now */
+							*tsb->h1 = *tsb->h2;
+							*tsb->h3 = *tsb->h2;
+						}
+						
+						/* free memory required for tarray */
+						MEM_freeN(tarray);
 					}
 				}
-			
-				/* recalc handles */
+				
+				/* recalculate handles */
 				calchandles_ipocurve(icu);
 			}
 		}
@@ -4199,7 +4361,7 @@ void del_ipo(int need_check)
 					bezt= ei->icu->bezt;
 					for(a=0; a<ei->icu->totvert; a++) {
 						if( BEZSELECTED(bezt) ) {
-							memcpy(bezt, bezt+1, (ei->icu->totvert-a-1)*sizeof(BezTriple));
+							memmove(bezt, bezt+1, (ei->icu->totvert-a-1)*sizeof(BezTriple));
 							ei->icu->totvert--;
 							a--;
 							event= 1;
@@ -4225,6 +4387,7 @@ void del_ipo(int need_check)
 	
 	get_status_editipo();	/* count again */
 	check_active_editipo();
+	editipo_changed(G.sipo, 1);
 	
 	BIF_undo_push("Delete Ipo");
 	allqueue(REDRAWNLA, 0);
@@ -4949,9 +5112,12 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, float *loc, flo
 		td2d->loc[2] = 0.0f;
 		td2d->loc2d = loc;
 		
-		td->flag = 0;
+		/*td->flag = 0;*/ /* can be set beforehand, else make sure its set to 0 */
 		td->loc = td2d->loc;
-		VECCOPY(td->center, cent);
+		td->center[0] = get_action_frame_inv(OBACT, cent[0]);
+		td->center[1] = cent[1];
+		td->center[2] = 0.0f;
+		
 		VECCOPY(td->iloc, td->loc);
 	}
 	else {
@@ -4960,7 +5126,7 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, float *loc, flo
 		td2d->loc[2] = 0.0f;
 		td2d->loc2d = loc;
 		
-		td->flag = 0;
+		/*td->flag = 0;*/ /* can be set beforehand, else make sure its set to 0 */
 		td->loc = td2d->loc;
 		VECCOPY(td->center, cent);
 		VECCOPY(td->iloc, td->loc);
@@ -5051,19 +5217,35 @@ void make_ipo_transdata (TransInfo *t)
 						bezt= ei->icu->bezt;
 						
 						for (b=0; b < ei->icu->totvert; b++, bezt++) {
+							TransDataCurveHandleFlags *hdata = NULL;
 							/* only include handles if selected, and interpolaton mode uses beztriples */
 							if (ei->icu->ipo==IPO_BEZ) {
-								if (bezt->f1 & SELECT)
+								if (bezt->f1 & SELECT) {
+									hdata = initTransDataCurveHandes(td, bezt);
 									bezt_to_transdata(td++, td2d++, bezt->vec[0], bezt->vec[1], 1, onlytime);
-								if (bezt->f3 & SELECT)
+								}
+								if (bezt->f3 & SELECT) {
+									if (hdata==NULL) {
+										hdata = initTransDataCurveHandes(td, bezt);
+									}
 									bezt_to_transdata(td++, td2d++, bezt->vec[2], bezt->vec[1], 1, onlytime);
+								}
 							}
 							
 							/* only include main vert if selected */
 							if (bezt->f2 & SELECT) {
+								
+								if ((bezt->f1&SELECT)==0 && (bezt->f3&SELECT)==0) {
+									if (hdata==NULL) {
+										hdata = initTransDataCurveHandes(td, bezt);
+									}
+								}
+								
 								bezt_to_transdata(td++, td2d++, bezt->vec[1], bezt->vec[1], 1, onlytime);
 							}
 						}
+						/* Sets handles based on the selection */
+						testhandles_ipocurve(ei->icu);
 					}
 				}
 			}
@@ -5307,6 +5489,7 @@ void remake_ipo_transdata (TransInfo *t)
 void transform_ipo (int mode)
 {
 	short tmode;
+	short context = (U.flag & USER_DRAGIMMEDIATE)?CTX_TWEAK:CTX_NONE;
 	
 	/* data-validation */
 	if (G.sipo->ipo && G.sipo->ipo->id.lib) return;
@@ -5332,12 +5515,12 @@ void transform_ipo (int mode)
 	get_status_editipo();
 	if (totipo_vertsel) {
 		/* we're probably in editmode, so only selected verts - transform system */
-		initTransform(tmode, CTX_NONE);
+		initTransform(tmode, context);
 		Transform();
 	}
 	else if (totipo_edit==0 && totipo_sel!=0) {
 		/* we're not in editmode, so entire curves get moved - transform system*/
-		initTransform(tmode, CTX_NONE);
+		initTransform(tmode, context);
 		Transform();
 	}
 	else {
@@ -5655,7 +5838,7 @@ void delete_icu_key(IpoCurve *icu, int index, short do_recalc)
 		return;
 	
 	/*	Delete this key */
-	memcpy(&icu->bezt[index], &icu->bezt[index+1], sizeof(BezTriple)*(icu->totvert-index-1));
+	memmove(&icu->bezt[index], &icu->bezt[index+1], sizeof(BezTriple)*(icu->totvert-index-1));
 	icu->totvert--;
 	
 	/* recalc handles - only if it won't cause problems */
@@ -5677,7 +5860,7 @@ void delete_ipo_keys(Ipo *ipo)
 		/* Delete selected BezTriples */
 		for (i=0; i<icu->totvert; i++) {
 			if (icu->bezt[i].f2 & SELECT) {
-				memcpy(&icu->bezt[i], &icu->bezt[i+1], sizeof(BezTriple)*(icu->totvert-i-1));
+				memmove(&icu->bezt[i], &icu->bezt[i+1], sizeof(BezTriple)*(icu->totvert-i-1));
 				icu->totvert--;
 				i--;
 			}

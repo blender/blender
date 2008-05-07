@@ -36,13 +36,13 @@ NUM_TARGETS = 1
 					constraint instance's idproperties
 '''
 def doConstraint(obmatrix, targetmatrices, idprop):
-	# Separate out the tranformation components for easy access.
+	# Separate out the transformation components for easy access.
 	obloc = obmatrix.translationPart()	# Translation
 	obrot = obmatrix.toEuler()			# Rotation
 	obsca = obmatrix.scalePart()		# Scale
 
-	# Define user-settable parameters.\
-	# Must also be defined in getSettings().
+	# Define user-settable parameters
+	# 	Must also be defined in getSettings().
 	if not idprop.has_key('user_toggle'): idprop['user_toggle'] = 1
 	if not idprop.has_key('user_slider'): idprop['user_slider'] = 1.0
 	
@@ -51,7 +51,7 @@ def doConstraint(obmatrix, targetmatrices, idprop):
 
 	
 	# Convert back into a matrix for loc, scale, rotation,
-	mtxloc = Mathutils.TranslationMatrix( obloc )
+	mtxloc = Mathutils.TranslationMatrix(obloc)
 	mtxrot = obrot.toMatrix().resize4x4()
 	mtxsca = Mathutils.Matrix([obsca[0],0,0,0], [0,obsca[1],0,0], [0,0,obsca[2],0], [0,0,0,1])
 	

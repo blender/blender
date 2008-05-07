@@ -1,15 +1,12 @@
 /**
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -67,6 +64,8 @@
 #include "BKE_main.h"
 #include "BKE_sca.h"
 #include "BKE_property.h"
+#include "BKE_property.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 #include "BIF_resources.h"
@@ -218,7 +217,7 @@ void make_unique_prop_names(char *str)
 static void make_unique_prop_names_cb(void *strv, void *redraw_view3d_flagv)
 {
 	char *str= strv;
-	int redraw_view3d_flag= (int) redraw_view3d_flagv;
+	int redraw_view3d_flag= GET_INT_FROM_POINTER(redraw_view3d_flagv);
 
 	make_unique_prop_names(str);
 	if (redraw_view3d_flag) allqueue(REDRAWVIEW3D, 0);
@@ -712,6 +711,10 @@ static char *actuator_name(int type)
 		return "Game";
 	case ACT_VISIBILITY:
 		return "Visibility";
+	case ACT_2DFILTER:
+		return "2D Filter";
+	case ACT_PARENT:
+		return "Parent";
 	}
 	return "unknown";
 }
@@ -727,13 +730,13 @@ static char *actuator_pup(Object *owner)
 		return "Actuators  %t|Action %x15|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
 			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
-			"|Visibility %x18";
+			"|Visibility %x18|2D Filter %x19|Parent %x20";
 		break;
 	default:
 		return "Actuators  %t|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
 			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
-			"|Visibility %x18";
+			"|Visibility %x18|2D Filter %x19|Parent %x20";
 	}
 }
 
@@ -1094,18 +1097,13 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 					 (short)(10+xco),(short)(yco-44), (short)(0.7 * (width-20)), 19,
 					 &rs->name, 0, 31, 0, 0,
 					 "Only look for Objects with this property");
-			uiDefButS(block, ROW, 1, "X",
-					 (short)(10+xco+0.7 * (width-20)),(short)(yco-44), (short)(0.1 * (width-22)),19,
-					 &rs->axis, 2.0, 0, 0, 0,
-					 "Cast the cone along the object's positive x-axis");
-			uiDefButS(block, ROW, 1, "Y",
-					 (short)(10+xco+0.8 * (width-20)),(short)(yco-44),(short)(0.1 * (width-22)), 19,
-					 &rs->axis, 2.0, 1, 0, 0,
-					 "Cast the cone along the object's positive y-axis");
-			uiDefButS(block, ROW, 1, "Z",
-					 (short)(10+xco+0.9 * (width-20)), (short)(yco-44), (short)(0.1 * (width-22)), 19,
-					 &rs->axis, 2.0, 2, 0, 0,
-					 "Cast the cone along the object's positive z-axis");
+
+			str = "Type %t|+X axis %x0|+Y axis %x1|+Z axis %x2|-X axis %x3|-Y axis %x4|-Z axis %x5"; 
+			uiDefButS(block, MENU, B_REDR, str,
+				(short)(10+xco+0.7 * (width-20)), (short)(yco-44), (short)(0.3 * (width-22)), 19,
+				&rs->axis, 2.0, 31, 0, 0,
+				"Specify along which axis the radar cone is cast.");
+				
 			uiDefButF(block, NUM, 1, "Ang:",
 					 (short)(10+xco), (short)(yco-68), (short)((width-20)/2), 19,
 					 &rs->angle, 0.0, 179.9, 10, 0,
@@ -1476,6 +1474,8 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 	bActionActuator	    *aa	     = NULL;
 	bGameActuator	    *gma     = NULL;
 	bVisibilityActuator *visAct  = NULL;
+	bTwoDFilterActuator	*tdfa	 = NULL;
+	bParentActuator     *parAct  = NULL;
 	
 	float *fp;
 	short ysize = 0, wval;
@@ -1862,7 +1862,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
   			glRects(xco, yco-ysize, xco+width, yco); 
   			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
 	 
-  			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+40, yco-44, (width-80), 19, &(sca->camera), "Set this Camera"); 
+  			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+40, yco-44, (width-80), 19, &(sca->camera), "Set this Camera. Leave empty to refer to self object"); 
   		} 
   		else if(sca->type==ACT_SCENE_SET) { 
 			
@@ -2172,6 +2172,81 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 		
 		yco -= ysize;
 		break;
+	case ACT_2DFILTER:
+		tdfa = act->data;
+
+		ysize = 50;
+		if(tdfa->type == ACT_2DFILTER_CUSTOMFILTER)
+		{
+			ysize +=20;
+		}
+        glRects( xco, yco-ysize, xco+width, yco ); 
+		uiEmboss( (float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1 );
+
+		switch(tdfa->type)
+		{
+			case ACT_2DFILTER_MOTIONBLUR:
+				if(!tdfa->flag)
+				{
+					uiDefButS(block, TOG, B_REDR, "D",	xco+30,yco-44,19, 19, &tdfa->flag, 0.0, 0.0, 0.0, 0.0, "Disable Motion Blur");
+					uiDefButF(block, NUM, B_REDR, "Value:", xco+52,yco-44,width-82,19,&tdfa->float_arg,0.0,1.0,0.0,0.0,"Set motion blur value");
+				}
+				else
+				{
+					uiDefButS(block, TOG, B_REDR, "Disabled",	xco+30,yco-44,width-60, 19, &tdfa->flag, 0.0, 0.0, 0.0, 0.0, "Enable Motion Blur");
+				}
+				break;
+			case ACT_2DFILTER_BLUR:
+			case ACT_2DFILTER_SHARPEN:
+			case ACT_2DFILTER_DILATION:
+			case ACT_2DFILTER_EROSION:
+			case ACT_2DFILTER_LAPLACIAN:
+			case ACT_2DFILTER_SOBEL:
+			case ACT_2DFILTER_PREWITT:
+			case ACT_2DFILTER_GRAYSCALE:
+			case ACT_2DFILTER_SEPIA:
+			case ACT_2DFILTER_INVERT:
+			case ACT_2DFILTER_NOFILTER:
+			case ACT_2DFILTER_DISABLED:
+			case ACT_2DFILTER_ENABLED:
+				uiDefButI(block, NUM, B_REDR, "Pass Number:", xco+30,yco-44,width-60,19,&tdfa->int_arg,0.0,MAX_RENDER_PASS-1,0.0,0.0,"Set motion blur value");
+				break;
+			case ACT_2DFILTER_CUSTOMFILTER:
+				uiDefButI(block, NUM, B_REDR, "Pass Number:", xco+30,yco-44,width-60,19,&tdfa->int_arg,0.0,MAX_RENDER_PASS-1,0.0,0.0,"Set motion blur value");
+				uiDefIDPoinBut(block, test_scriptpoin_but, ID_SCRIPT, 1, "Script: ", xco+30,yco-64,width-60, 19, &tdfa->text, "");
+				break;
+		}
+		
+		str= "2D Filter   %t|Motion Blur   %x1|Blur %x2|Sharpen %x3|Dilation %x4|Erosion %x5|"
+				"Laplacian %x6|Sobel %x7|Prewitt %x8|Gray Scale %x9|Sepia %x10|Invert %x11|Custom Filter %x12|"
+				"Enable Filter %x-2|Disable Filter %x-1|Remove Filter %x0|";
+		uiDefButS(block, MENU, B_REDR, str,	xco+30,yco-24,width-60, 19, &tdfa->type, 0.0, 0.0, 0.0, 0.0, "2D filter type");
+		
+		yco -= ysize;
+        break;
+	case ACT_PARENT:
+  		parAct = act->data; 
+
+  		if(parAct->type==ACT_PARENT_SET) { 
+			
+  			ysize= 48; 
+  			glRects(xco, yco-ysize, xco+width, yco); 
+  			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
+	 
+  			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+40, yco-44, (width-80), 19, &(parAct->ob), "Set this object as parent"); 
+  		}
+  		else if(parAct->type==ACT_PARENT_REMOVE) { 
+			
+  			ysize= 28; 
+  			glRects(xco, yco-ysize, xco+width, yco); 
+  			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
+ 		}
+
+		str= "Parent %t|Set Parent %x0|Remove Parent %x1";
+		uiDefButI(block, MENU, B_REDR, str,		xco+40, yco-24, (width-80), 19, &parAct->type, 0.0, 0.0, 0, 0, ""); 
+
+  		yco-= ysize; 
+  		break; 
  	default:
 		ysize= 4;
 
@@ -2536,7 +2611,7 @@ void logic_buts(void)
 	ob= OBACT;
 
 	if(ob==0) return;
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
 	sprintf(name, "buttonswin %d", curarea->win);
 	block= uiNewBlock(&curarea->uiblocks, name, UI_EMBOSS, UI_HELV, curarea->win);
@@ -2616,7 +2691,7 @@ void logic_buts(void)
 	for(a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		uiClearButLock();
-		uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+		uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 		
 		if( (ob->scavisflag & OB_VIS_SENS) == 0) continue;
 		
@@ -2687,7 +2762,7 @@ void logic_buts(void)
 	for(a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		uiClearButLock();
-		uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+		uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 		if( (ob->scavisflag & OB_VIS_CONT) == 0) continue;
 
 		/* presume it is only objects for now */
@@ -2755,7 +2830,7 @@ void logic_buts(void)
 	for(a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		uiClearButLock();
-		uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+		uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 		if( (ob->scavisflag & OB_VIS_ACT) == 0) continue;
 
 		/* presume it is only objects for now */
@@ -2811,4 +2886,5 @@ void logic_buts(void)
 
 	if(idar) MEM_freeN(idar);
 }
+
 

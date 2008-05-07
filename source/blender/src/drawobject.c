@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -78,7 +75,6 @@
 #include "BLI_rand.h"
 
 #include "BKE_utildefines.h"
-#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_constraint.h" // for the get_constraint_target function
 #include "BKE_DerivedMesh.h"
@@ -214,9 +210,9 @@ int init_gl_materials(Object *ob, int check_alpha)
 
 		if(a<MAXMATBUF) {
 			if (ma->mode & MA_SHLESS) {
-				matbuf[a][0][0]= 2*ma->r;
-				matbuf[a][0][1]= 2*ma->g;
-				matbuf[a][0][2]= 2*ma->b;
+				matbuf[a][0][0]= ma->r;
+				matbuf[a][0][1]= ma->g;
+				matbuf[a][0][2]= ma->b;
 			} else {
 				matbuf[a][0][0]= (ma->ref+ma->emit)*ma->r;
 				matbuf[a][0][1]= (ma->ref+ma->emit)*ma->g;
@@ -1492,7 +1488,7 @@ static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *
 			bglVertex3fv(co);
 			bglEnd();
 			
-			BIF_ThemeColor4(TH_VERTEX_SELECT);
+			BIF_ThemeColor4(data->sel?TH_VERTEX_SELECT:TH_VERTEX);
 			glPointSize(size);
 			bglBegin(GL_POINTS);
 		} else {
@@ -1661,6 +1657,41 @@ static void draw_dm_creases(DerivedMesh *dm)
 	glLineWidth(1.0);
 }
 
+static int draw_dm_bweights__setDrawOptions(void *userData, int index)
+{
+	EditEdge *eed = EM_get_edge_for_index(index);
+
+	if (eed->h==0 && eed->bweight!=0.0) {
+		BIF_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, eed->bweight);
+		return 1;
+	} else {
+		return 0;
+	}
+}
+static void draw_dm_bweights__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
+{
+	EditVert *eve = EM_get_vert_for_index(index);
+
+	if (eve->h==0 && eve->bweight!=0.0) {
+		BIF_ThemeColorBlend(TH_VERTEX, TH_VERTEX_SELECT, eve->bweight);
+		bglVertex3fv(co);
+	}
+}
+static void draw_dm_bweights(DerivedMesh *dm)
+{
+	if (G.scene->selectmode & SCE_SELECT_VERTEX) {
+		glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE) + 2);
+		bglBegin(GL_POINTS);
+		dm->foreachMappedVert(dm, draw_dm_bweights__mapFunc, NULL);
+		bglEnd();
+	}
+	else {
+		glLineWidth(3.0);
+		dm->drawMappedEdges(dm, draw_dm_bweights__setDrawOptions, NULL);
+		glLineWidth(1.0);
+	}
+}
+
 /* Second section of routines: Combine first sets to form fancy
  * drawing routines (for example rendering twice to get overlays).
  *
@@ -1732,9 +1763,9 @@ static void draw_em_fancy_edges(DerivedMesh *cageDM, short sel_only, EditEdge *e
 	unsigned char wireCol[4], selCol[4], actCol[4];
 
 	/* since this function does transparant... */
-	BIF_GetThemeColor3ubv(TH_EDGE_SELECT, (char *)selCol);
-	BIF_GetThemeColor3ubv(TH_WIRE, (char *)wireCol);
-	BIF_GetThemeColor3ubv(TH_EDITMESH_ACTIVE, (char *)actCol);
+	BIF_GetThemeColor4ubv(TH_EDGE_SELECT, (char *)selCol);
+	BIF_GetThemeColor4ubv(TH_WIRE, (char *)wireCol);
+	BIF_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, (char *)actCol);
 	
 	/* when sel only is used, dont render wire, only selected, this is used for
 	 * textured draw mode when the 'edges' option is disabled */
@@ -1961,7 +1992,7 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 				Mat4MulVecfl(ob->obmat, v1);
 				Mat4MulVecfl(ob->obmat, v2);
 				Mat4MulVecfl(ob->obmat, v3);
-				if (efa->v4) Mat4MulVecfl(ob->obmat, v4);
+				Mat4MulVecfl(ob->obmat, v4);
 			}
 			
 			e1= efa->e1;
@@ -2027,15 +2058,16 @@ static int draw_em_fancy__setFaceOpts(void *userData, int index, int *drawSmooth
 static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, int dt)
 {
 	Mesh *me = ob->data;
-	EditFace *efa_act = NULL;
+	EditFace *efa_act = EM_get_actFace(0); /* annoying but active faces is stored differently */
 	EditEdge *eed_act = NULL;
 	EditVert *eve_act = NULL;
 	
 	if (G.editMesh->selected.last) {
 		EditSelection *ese = G.editMesh->selected.last;
-		if ( ese->type == EDITFACE ) {
+		/* face is handeled above */
+		/*if (ese->type == EDITFACE ) {
 			efa_act = (EditFace *)ese->data;
-		} else if ( ese->type == EDITEDGE ) {
+		} else */ if ( ese->type == EDITEDGE ) {
 			eed_act = (EditEdge *)ese->data;
 		} else if ( ese->type == EDITVERT ) {
 			eve_act = (EditVert *)ese->data;
@@ -2140,6 +2172,9 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 		if(G.f & G_DRAWCREASES) {
 			draw_dm_creases(cageDM);
 		}
+		if(G.f & G_DRAWBWEIGHTS) {
+			draw_dm_bweights(cageDM);
+		}
 	
 		draw_em_fancy_edges(cageDM, 0, eed_act);
 	}
@@ -2174,285 +2209,6 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 }
 
 /* Mesh drawing routines */
-
-
-
-#define AMBIENT 50
-#define DECAY 0.04f
-#define ALMOST_EQUAL(a, b) ((fabs(a-b)<0.00001f)?1:0)
-
-	// cube vertices
-GLfloat cv[][3] = {
-	{1.0f, 1.0f, 1.0f}, {-1.0f, 1.0f, 1.0f}, {-1.0f, -1.0f, 1.0f}, {1.0f, -1.0f, 1.0f},
- {1.0f, 1.0f, -1.0f}, {-1.0f, 1.0f, -1.0f}, {-1.0f, -1.0f, -1.0f}, {1.0f, -1.0f, -1.0f}
-};
-
-	// edges have the form edges[n][0][xyz] + t*edges[n][1][xyz]
-float edges[12][2][3] = {
-	{{1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
- {{-1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
- {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
- {{1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
-
- {{1.0f, -1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
- {{-1.0f, -1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
- {{-1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},
- {{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},
-
- {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
- {{-1.0f, -1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
- {{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}},
- {{-1.0f, 1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}}
-};
-
-void light_ray(unsigned char* _texture_data, int _ray_templ[4096][3], int x, int y, int z, int n, float decay)
-{
-	int xx = x, yy = y, zz = z, i = 0;
-	int offset;
-
-	int l = 255;
-	float d;
-
-	do {
-		offset = ((((zz*n) + yy)*n + xx) << 2);
-		if (_texture_data[offset + 2] > 0)
-			_texture_data[offset + 2] = (unsigned char) ((_texture_data[offset + 2] + l)*0.5f);
-		else
-			_texture_data[offset + 2] = (unsigned char) l;
-		d = _texture_data[offset+1];
-		if (l > AMBIENT) {
-			l -= d*decay;
-			if (l < AMBIENT)
-				l = AMBIENT;
-		}
-
-		i++;
-		xx = x + _ray_templ[i][0];
-		yy = y + _ray_templ[i][1];
-		zz = z + _ray_templ[i][2];
-		
-	} while ((xx>=0)&&(xx<n)&&(yy>=0)&&(yy<n)&&(zz>=0)&&(zz<n));
-}
-
-void cast_light(unsigned char* _texture_data, int _ray_templ[4096][3], float *_light_dir, int n /*edgelen*/)
-{
-	int i,j;
-	int sx = (_light_dir[0]>0) ? 0 : n-1;
-	int sy = (_light_dir[1]>0) ? 0 : n-1;
-	int sz = (_light_dir[2]>0) ? 0 : n-1;
-
-	float decay = 1.0f/(n*DECAY);
-
-	for (i=0; i<n; i++)
-		for (j=0; j<n; j++) {
-		if (!ALMOST_EQUAL(_light_dir[0], 0))
-			light_ray(_texture_data, _ray_templ, sx,i,j,n,decay);
-		if (!ALMOST_EQUAL(_light_dir[1], 0))
-			light_ray(_texture_data, _ray_templ, i,sy,j,n,decay);
-		if (!ALMOST_EQUAL(_light_dir[2], 0))
-			light_ray(_texture_data, _ray_templ, i,j,sz,n,decay);
-		}
-}
-
-void gen_ray_templ(int _ray_templ[4096][3], float *_light_dir, int edgelen)
-{
-	float fx = 0.0f, fy = 0.0f, fz = 0.0f;
-	int x = 0, y = 0, z = 0;
-	float lx = _light_dir[0] + 0.000001f, ly = _light_dir[1] + 0.000001f, lz = _light_dir[2] + 0.000001f;
-	int xinc = (lx > 0) ? 1 : -1;
-	int yinc = (ly > 0) ? 1 : -1;
-	int zinc = (lz > 0) ? 1 : -1;
-	float tx, ty, tz;
-	int i = 1;
-	int len = 0;
-	int maxlen = 3*edgelen*edgelen;
-	_ray_templ[0][0] = _ray_templ[0][2] = _ray_templ[0][2] = 0;
-	
-	while (len <= maxlen)
-	{
-		// fx + t*lx = (x+1)   ->   t = (x+1-fx)/lx
-		tx = (x+xinc-fx)/lx;
-		ty = (y+yinc-fy)/ly;
-		tz = (z+zinc-fz)/lz;
-
-		if ((tx<=ty)&&(tx<=tz)) {
-			_ray_templ[i][0] = _ray_templ[i-1][0] + xinc;
-			x =+ xinc;
-			fx = x;
-
-			if (ALMOST_EQUAL(ty,tx)) {
-				_ray_templ[i][1] = _ray_templ[i-1][1] + yinc;
-				y += yinc;
-				fy = y;
-			} else {
-				_ray_templ[i][1] = _ray_templ[i-1][1];
-				fy += tx*ly;
-			}
-
-			if (ALMOST_EQUAL(tz,tx)) {
-				_ray_templ[i][2] = _ray_templ[i-1][2] + zinc;
-				z += zinc;
-				fz = z;
-			} else {
-				_ray_templ[i][2] = _ray_templ[i-1][2];
-				fz += tx*lz;
-			}
-		} else if ((ty<tx)&&(ty<=tz)) {
-			_ray_templ[i][0] = _ray_templ[i-1][0];
-			fx += ty*lx;
-
-			_ray_templ[i][1] = _ray_templ[i-1][1] + yinc;
-			y += yinc;
-			fy = y;
-
-			if (ALMOST_EQUAL(tz,ty)) {
-				_ray_templ[i][2] = _ray_templ[i-1][2] + zinc;
-				z += zinc;
-				fz = z;
-			} else {
-				_ray_templ[i][2] = _ray_templ[i-1][2];
-				fz += ty*lz;
-			}
-		} else {
-			// assert((tz<tx)&&(tz<ty));
-			if((tz<tx)&&(tz<ty))
-				break;
-			
-			_ray_templ[i][0] = _ray_templ[i-1][0];
-			fx += tz*lx;
-			_ray_templ[i][1] = _ray_templ[i-1][1];
-			fy += tz*ly;
-			_ray_templ[i][2] = _ray_templ[i-1][2] + zinc;
-			z += zinc;
-			fz = z;
-		}
-
-		len = _ray_templ[i][0]*_ray_templ[i][0]
-				+ _ray_templ[i][1]*_ray_templ[i][1]
-				+ _ray_templ[i][2]*_ray_templ[i][2];
-		i++;
-	}
-}
-
-int intersect_edges(float ret[12][3], float a, float b, float c, float d)
-{
-	int i;
-	float t;
-	int num = 0;
-
-	for (i=0; i<12; i++) {
-		t = -(a*edges[i][0][0] + b*edges[i][0][1] + c*edges[i][0][2] + d)
-			/ (a*edges[i][1][0] + b*edges[i][1][1] + c*edges[i][1][2]);
-		if ((t>0)&&(t<2)) {
-			ret[num][0] = edges[i][0][0] + edges[i][1][0]*t;
-			ret[num][1] = edges[i][0][1] + edges[i][1][1]*t;
-			ret[num][2] = edges[i][0][2] + edges[i][1][2]*t;
-			num++;
-		}
-	}
-
-	return num;
-}
-
-void draw_slices ( float m[][4] )
-{
-	int i;
-
-	float viewdir[3];
-	float d0;
-	float dd;
-	int n;
-	float d;
-	
-	viewdir[0] = m[0][2];
-	viewdir[1] = m[1][2];
-	viewdir[2] = m[2][2];
-	Normalize(viewdir);
-	
-	// find cube vertex that is closest to the viewer
-	for ( i=0; i<8; i++ )
-	{
-		float x = cv[i][0] + viewdir[0];
-		float y = cv[i][1] + viewdir[1];
-		float z = cv[i][2] + viewdir[2];
-		if ( ( x>=-1.0f ) && ( x<=1.0f )
-		        && ( y>=-1.0f ) && ( y<=1.0f )
-		        && ( z>=-1.0f ) && ( z<=1.0f ) )
-		{
-			break;
-		}
-	}
-	if ( i != 8 ) return;
-
-	glBlendFunc ( GL_SRC_ALPHA, GL_ONE );
-	glDisable ( GL_DEPTH_TEST );
-	// our slices are defined by the plane equation a*x + b*y +c*z + d = 0
-	// (a,b,c), the plane normal, are given by viewdir
-	// d is the parameter along the view direction. the first d is given by
-	// inserting previously found vertex into the plane equation
-	d0 = - ( viewdir[0]*cv[i][0] + viewdir[1]*cv[i][1] + viewdir[2]*cv[i][2] );
-	dd = 2*d0/64.0f;
-	n = 0;
-	
-	for ( d = -d0; d < d0; d += dd )
-	{
-		// intersect_edges returns the intersection points of all cube edges with
-		// the given plane that lie within the cube
-		float pt[12][3];
-		int num = intersect_edges ( pt, viewdir[0], viewdir[1], viewdir[2], d );
-
-		if ( num > 2 )
-		{
-			// sort points to get a convex polygon
-			// std::sort(pt.begin()+1, pt.end(), Convexcomp(pt[0], viewdir));
-			int shuffled = 1;
-
-			while ( shuffled )
-			{
-				int j;
-				shuffled = 0;
-
-				for ( j = 0; j < num-1; j++ )
-				{
-					// Vec3 va = a-p0, vb = b-p0;
-					// return dot(up, cross(va, vb)) >= 0;
-					float va[3], vb[3], vc[3];
-
-					VECSUB ( va, pt[j], pt[0] );
-					VECSUB ( vb, pt[j+1], pt[0] );
-					Crossf ( vc, va, vb );
-
-					if ( INPR ( viewdir, vc ) >= 0 )
-					{
-						float temp[3];
-
-						VECCOPY ( temp, pt[j] );
-						VECCOPY ( pt[j], pt[j+1] );
-						VECCOPY ( pt[j+1], temp );
-
-						shuffled = 1;
-					}
-				}
-			}
-/*
-			glEnable ( GL_TEXTURE_3D );
-			glEnable ( GL_FRAGMENT_PROGRAM_ARB );
-			glBindProgramARB ( GL_FRAGMENT_PROGRAM_ARB, _prog[0] );
-			glActiveTextureARB ( GL_TEXTURE0_ARB );
-			glBindTexture ( GL_TEXTURE_3D, _txt[0] );
-			glBegin ( GL_POLYGON );
-			for ( i=0; i<num; i++ )
-			{
-				glColor3f ( 1.0, 1.0, 1.0 );
-				glTexCoord3d ( ( pt[i][0]+1.0 ) /2.0, ( -pt[i][1]+1 ) /2.0, ( pt[i][2]+1.0 ) /2.0 );
-				glVertex3f ( pt[i][0], pt[i][1], pt[i][2] );
-			}
-			glEnd();
-			*/
-		}
-		n++;
-	}
-}
 
 static void draw_mesh_object_outline(Object *ob, DerivedMesh *dm)
 {
@@ -2669,19 +2425,23 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 	if (draw_wire) {
 			/* If drawing wire and drawtype is not OB_WIRE then we are
 				* overlaying the wires.
+				*
+				* UPDATE bug #10290 - With this wire-only objects can draw
+				* behind other objects depending on their order in the scene. 2x if 0's below. undo'ing zr's commit: r4059
 				*/
-
+#if 0
 		if (dt!=OB_WIRE) {
 			bglPolygonOffset(1.0);
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 		}
-
+#endif
 		dm->drawEdges(dm, (dt==OB_WIRE || totface==0));
-
+#if 0
 		if (dt!=OB_WIRE) {
 			glDepthMask(1);
 			bglPolygonOffset(0.0);
 		}
+#endif
 	}
 
 	dm->release(dm);
@@ -2729,7 +2489,7 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 	}
 	
 	/* init_gl_materials did the proper checking if this is needed */
-	if(has_alpha) add_view3d_after(G.vd, base, V3D_TRANSP);
+	if(has_alpha) add_view3d_after(G.vd, base, V3D_TRANSP, flag);
 	
 	return retval;
 }
@@ -3038,7 +2798,7 @@ static int drawDispList(Base *base, int dt)
 					glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 					drawDispListsolid(lb, ob);
 				}
-				if(ob==G.obedit && cu->bevobj==NULL && cu->taperobj==NULL) {
+				if(ob==G.obedit && cu->bevobj==NULL && cu->taperobj==NULL && cu->ext1 == 0.0 && cu->ext2 == 0.0) {
 					cpack(0);
 					draw_index_wire= 0;
 					drawDispListwire(lb);
@@ -3108,143 +2868,6 @@ static int drawDispList(Base *base, int dt)
 	}
 	
 	return retval;
-}
-
-/* ******************************** */
-
-
-static void draw_particle_system(Base *base, PartEff *paf)
-{
-	Object *ob= base->object;
-	Particle *pa;
-	float ptime, ctime, vec[3], vec1[3], mat[4][4];
-	int a, totpart;
-	
-	pa= paf->keys;
-	// FSPARTICLE always rebuild fluid particle system upon change...
-	if( (pa==NULL) 
-	    || ( (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (ob->fluidsimSettings) && (ob->fluidsimSettings->type == OB_FLUIDSIM_PARTICLE)) 
-			) {
-		build_particle_system(ob);
-		pa= paf->keys;
-		if(pa==NULL) return;
-	}
-	
-	myloadmatrix(G.vd->viewmat);
-	/* flag abuse... but I need working code too now. This feature doesnt work for per frame animated objects */
-	if( (base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP) ) {
-		Mat4MulMat4(mat, paf->imat, ob->obmat);
-		mymultmatrix(mat);
-	}
-	
-	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= give_timeoffset(ob);
-	else ptime= 0.0;
-	ctime= bsystem_time(ob, (float)(G.scene->r.cfra), ptime);
-
-	glPointSize(1.0);
-	
-	if(paf->stype==PAF_VECT) glBegin(GL_LINES);
-	else glBegin(GL_POINTS);
-
-	totpart= (paf->disp*paf->totpart)/100;
-	for(a=0; a<totpart; a++, pa+=paf->totkey) {
-		
-		if(ctime > pa->time) {
-			if(ctime < pa->time+pa->lifetime) {
-			
-				if(paf->stype==PAF_VECT) {
-					where_is_particle(paf, pa, ctime, vec);
-					where_is_particle(paf, pa, ctime+1.0, vec1);
-		
-					glVertex3fv(vec);
-					glVertex3fv(vec1);
-				}
-				else {
-					where_is_particle(paf, pa, ctime, vec);
-					
-					glVertex3fv(vec);
-				}
-			}
-		}
-	}
-	glEnd();
-	
-	myloadmatrix(G.vd->viewmat);
-	mymultmatrix(ob->obmat);	// bring back local matrix for dtx
-}
-
-static void draw_static_particle_system(Object *ob, PartEff *paf, int dt)
-{
-	Particle *pa;
-	float ctime, mtime, vec[3], veco[3];
-	int a, use_norm=0, totpart;
-	
-	pa= paf->keys;
-	// FSPARTICLE always rebuild upon change...
-	if( (pa==NULL) 
-	    || ( (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (ob->fluidsimSettings) && (ob->fluidsimSettings->type == OB_FLUIDSIM_PARTICLE)) 
-			) {
-		build_particle_system(ob);
-		pa= paf->keys;
-		if(pa==NULL) return;
-	}
-	
-	if(paf->stype==PAF_VECT) {
-		if(dt>OB_WIRE) {
-			
-			/* shaded/texture mode: we still draw solid, so have to set materials */
-			if(dt>OB_SOLID) init_gl_materials(ob, 0);
-
-			glEnable(GL_LIGHTING);
-			set_gl_material(paf->omat);
-			use_norm= 1;
-		}
-	}
-	else {
-		glPointSize(1.0);
-		glBegin(GL_POINTS);
-	}
-	
-	totpart= (paf->disp*paf->totpart)/100;
-	for(a=0; a<totpart; a++, pa+=paf->totkey) {
-		
-		if(paf->stype==PAF_VECT) {
-			
-			glBegin(GL_LINE_STRIP);
-			where_is_particle(paf, pa, pa->time, veco);
-
-			mtime= pa->time+pa->lifetime+paf->staticstep;
-			for(ctime= pa->time+paf->staticstep; ctime<mtime; ctime+=paf->staticstep) {
-				
-				where_is_particle(paf, pa, ctime, vec);
-				
-				if(use_norm) {
-					float no[3];
-					VECSUB(no, vec, veco);
-					glNormal3fv(no);
-				}
-				glVertex3fv(veco);
-				VECCOPY(veco, vec);
-			}
-			
-			glVertex3fv(veco);
-			glEnd();
-		}
-		else {
-			mtime= pa->time+pa->lifetime+paf->staticstep-1;
-			for(ctime= pa->time; ctime<mtime; ctime+=paf->staticstep) {
-				where_is_particle(paf, pa, ctime, vec);
-				glVertex3fv(vec);
-			}
-		}
-	}
-	if(paf->stype==PAF_VECT) {
-		glDisable(GL_LIGHTING);
-	}
-	else {
-		glEnd();
-	}
-	
 }
 
 /* unified drawing of all new particle systems draw types except dupli ob & group	*/
@@ -3324,9 +2947,11 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 	
 	ma= give_current_material(ob,part->omat);
 
+	if(G.vd->zbuf) glDepthMask(1);
+
 	if(select)
 		cpack(0xFFFFFF);
-	else if(part->draw&PART_DRAW_MAT_COL)
+	else if((ma) && (part->draw&PART_DRAW_MAT_COL))
 		glColor3f(ma->r,ma->g,ma->b);
 	else
 		cpack(0);
@@ -3707,11 +3332,11 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 				glEnableClientState(GL_NORMAL_ARRAY);
 				glEnable(GL_LIGHTING);
 
-				if(part->draw&PART_DRAW_MAT_COL) {
+				glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+				glEnable(GL_COLOR_MATERIAL);
+
+				if(part->draw&PART_DRAW_MAT_COL)
 					glEnableClientState(GL_COLOR_ARRAY);
-					glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-					glEnable(GL_COLOR_MATERIAL);
-				}
 
 				if(totchild && (part->draw&PART_DRAW_PARENT)==0)
 					totpart=0;
@@ -3736,10 +3361,9 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 					glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
 				}
 
-				if(part->draw&PART_DRAW_MAT_COL) {
+				if(part->draw&PART_DRAW_MAT_COL)
 					glDisable(GL_COLOR_ARRAY);
-					glDisable(GL_COLOR_MATERIAL);
-				}
+				glDisable(GL_COLOR_MATERIAL);
 
 				if(cdata2)
 					MEM_freeN(cdata2);
@@ -3814,9 +3438,6 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 	glDisable(GL_LIGHTING);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
-#if 0 /* If this is needed, it cant be enabled in wire mode, since it messes up the view - Campbell */
-	glEnable(GL_DEPTH_TEST);
-#endif
 
 	if(states)
 		MEM_freeN(states);
@@ -3857,6 +3478,8 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 		PE_hide_keys_time(psys,CFRA);
 		psys_cache_paths(ob,psys,CFRA,0);
 	}
+	if(psys->pathcache==0)
+		return;
 
 	if(pset->flag & PE_SHOW_CHILD && psys->part->draw_as == PART_DRAW_PATH) {
 		if(psys->childcache==0)
@@ -3924,7 +3547,7 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 		glDisableClientState(GL_NORMAL_ARRAY);
 		glEnableClientState(GL_COLOR_ARRAY);
 		glDisable(GL_LIGHTING);
-		glPointSize(4.0f);
+		glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
 
 		if(G.scene->selectmode==SCE_SELECT_POINT){
 			float *cd=0,*cdata=0;
@@ -3997,6 +3620,7 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 	glLineWidth(1.0f);
 
 	mymultmatrix(ob->obmat);	// bring back local matrix for dtx
+	glPointSize(1.0);
 }
 
 unsigned int nurbcol[8]= {
@@ -5043,7 +4667,7 @@ void draw_object(Base *base, int flag)
 		if(!(G.f & G_PARTICLEEDIT)) {
 			/* xray and transp are set when it is drawing the 2nd/3rd pass */
 			if(!G.vd->xray && !G.vd->transp && (ob->dtx & OB_DRAWXRAY)) {
-				add_view3d_after(G.vd, base, V3D_XRAY);
+				add_view3d_after(G.vd, base, V3D_XRAY, flag);
 				return;
 			}
 		}
@@ -5184,17 +4808,16 @@ void draw_object(Base *base, int flag)
 
 			if(ob==G.obedit);
 			else {
-				dt= OB_SHADED;
+				if(dt<OB_SOLID)
+					zbufoff= 1;
 
-				glClearDepth(1.0); glClear(GL_DEPTH_BUFFER_BIT);
+				dt= OB_SHADED;
 				glEnable(GL_DEPTH_TEST);
-				if(dt<OB_SOLID) zbufoff= 1;
 			}
 		}
 		else {
 			if(dt<OB_SOLID) {
 				dt= OB_SOLID;
-				glClearDepth(1.); glClear(GL_DEPTH_BUFFER_BIT);
 				glEnable(GL_DEPTH_TEST);
 				zbufoff= 1;
 			}
@@ -5229,17 +4852,6 @@ void draw_object(Base *base, int flag)
 			if (!(base->flag&OB_RADIO)) {
 				empty_object= draw_mesh_object(base, dt, flag);
 				if(flag!=DRAW_CONSTCOLOR) dtx &= ~OB_DRAWWIRE; // mesh draws wire itself
-
-				if(G.obedit!=ob && warning_recursive==0) {
-					PartEff *paf = give_parteff(ob);
-
-					if(paf) {
-						if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
-						if(paf->flag & PAF_STATIC) draw_static_particle_system(ob, paf, dt);
-						else if((flag & DRAW_PICKING) == 0) draw_particle_system(base, paf);	// selection errors happen to easy
-						if(col) cpack(col);
-					}
-				}
 			}
 
 			break;
@@ -5383,119 +4995,25 @@ void draw_object(Base *base, int flag)
 	if(ob->pd && ob->pd->forcefield) draw_forcefield(ob);
 
 	/* code for new particle system */
-	if(warning_recursive==0 && (flag & DRAW_PICKING)==0 && ob!=G.obedit){
-		glDepthMask(GL_FALSE);
+	if(		(warning_recursive==0) &&
+			(ob->particlesystem.first) &&
+			(flag & DRAW_PICKING)==0 &&
+			(ob!=G.obedit)	
+	  ) {
+		ParticleSystem *psys;
 		if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
-		if(ob->particlesystem.first) {
-			ParticleSystem *psys;
-
-			for(psys=ob->particlesystem.first; psys; psys=psys->next)
-				draw_new_particle_system(base, psys);
-			
-			if(G.f & G_PARTICLEEDIT && ob==OBACT) {
-				psys= PE_get_current(ob);
-				if(psys && !G.obedit && psys_in_edit_mode(psys))
-					draw_particle_edit(ob, psys);
-			}
+		glDepthMask(GL_FALSE);
+		
+		for(psys=ob->particlesystem.first; psys; psys=psys->next)
+			draw_new_particle_system(base, psys);
+		
+		if(G.f & G_PARTICLEEDIT && ob==OBACT) {
+			psys= PE_get_current(ob);
+			if(psys && !G.obedit && psys_in_edit_mode(psys))
+				draw_particle_edit(ob, psys);
 		}
-		if(col) cpack(col);
 		glDepthMask(GL_TRUE); 
-	}
-	
-	/* code for drawing pinned cloth verts */
-	if(modifiers_isClothEnabled(ob))
-	{
-		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-		Cloth *cloth = clmd->clothObject;
-		ClothVertex *verts;
-		float col[3];
-		col[0] = 0.53;
-		col[1] = 0.04;
-		col[2] = 0.0;
-		glColor3fv(col);
-		
-		/* inverse matrix is not uptodate... */
-		Mat4Invert ( ob->imat, ob->obmat );
-		
-		if(cloth)
-		{
-			/* don't paint anything if cloth has RESET status */
-			if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_RESET))
-			{	
-				verts = cloth->verts;
-				/*
-				// this makes the screen pink
-				glEnable(GL_LIGHTING);
-				glEnable(GL_COLOR_MATERIAL);
-				glShadeModel(GL_SMOOTH);
-				*/
-					
-				for(i = 0; i < cloth->numverts; i++)
-				{
-					if(verts[i].flags & CLOTH_VERT_FLAG_PINNED)
-					{
-						float size[3], cent[3];
-						GLUquadricObj *qobj = gluNewQuadric(); 
-						
-						gluQuadricDrawStyle(qobj, GLU_FILL); 
-		
-						size[0]= clmd->coll_parms->avg_spring_len / 3.0;
-						size[1]= clmd->coll_parms->avg_spring_len / 3.0;
-						size[2]= clmd->coll_parms->avg_spring_len / 3.0;
-						
-						VECCOPY ( cent, verts[i].x );
-						Mat4MulVecfl ( ob->imat, cent );
-						
-						glPushMatrix();
-						glTranslatef(cent[0], cent[1], cent[2]);
-						glScalef(size[0], size[1], size[2]);
-						
-						// gluSphere(qobj, 1.0, 8, 5);
-						
-						glTranslatef(0, 0, 1.0);
-						gluDisk(qobj, 0, 0.25, 8,  5);
-						
-						glTranslatef(0, 0, -1.0);
-						
-						glTranslatef(0, 0, 0.875);
-						gluCylinder(qobj, 0.15, 0.25,  0.125, 8, 5);
-						
-						glTranslatef(0, 0, -0.25);
-						gluCylinder(qobj, 0.15, 0.15,  0.25, 8, 5);
-						
-						glTranslatef(0, 0, -0.125);
-						gluCylinder(qobj, 0.25, 0.15,  0.125, 8, 5);
-						
-						// gluDisk(qobj, 0, 0.5, 8,  5);
-						
-						/*
-						glTranslatef(0, 0, 1.0);
-						gluDisk(qobj, 0, 0.4, 8,  5);
-						*/
-						/*
-						col[0] = 0.53;
-						col[1] = 0.54;
-						col[2] = 0.0;
-						glColor3fv(col);
-						*/
-						glTranslatef(0, 0, -0.5);
-						gluCylinder(qobj, 0.0, 0.05,  0.5, 8, 5);
-						
-						glTranslatef(0, 0, 0.5);
-						gluDisk(qobj, 0, 0.25, 8,  5);
-						
-						glPopMatrix();
-		
-						gluDeleteQuadric(qobj); 
-					}
-				}
-				/*
-				glShadeModel(GL_FLAT);
-				glDisable(GL_COLOR_MATERIAL);
-				glDisable(GL_LIGHTING);
-				*/
-			}
-		}
+		if(col) cpack(col);
 	}
 
 	{

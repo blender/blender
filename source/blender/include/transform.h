@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef TRANSFORM_H
@@ -46,7 +43,14 @@ struct View3D;
 struct ScrArea;
 struct bPose;
 struct bConstraint;
+struct BezTriple;
 
+typedef struct NDofInput {
+	int		flag;
+	int		axis;
+	float	fval[7];
+	float	factor[3];
+} NDofInput;
 
 typedef struct NumInput {
     short  idx;
@@ -130,6 +134,13 @@ typedef struct TransData2D {
 	float *loc2d;		/* Pointer to real 2d location of data */
 } TransData2D;
 
+/* we need to store 2 handles for each transdata incase the other handle wasnt selected */
+typedef struct TransDataCurveHandleFlags {
+	short ih1, ih2;
+	short *h1, *h2;
+} TransDataCurveHandleFlags;
+
+
 typedef struct TransData {
 	float  dist;         /* Distance needed to affect element (for Proportionnal Editing)                  */
 	float  rdist;        /* Distance to the nearest element (for Proportionnal Editing)                    */
@@ -146,6 +157,7 @@ typedef struct TransData {
 	struct bConstraint *con;	/* for objects/bones, the first constraint in its constraint stack */
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
 	TransDataIpokey *tdi;		/* for objects, ipo keys. per transdata a malloc */
+	TransDataCurveHandleFlags *hdata; /* for curves, stores handle flags for modification/cancel */
 	void *tdmir;		 /* mirrored element pointer, in editmode mesh to EditVert */
     short  flag;         /* Various flags */
 	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
@@ -172,6 +184,7 @@ typedef struct TransInfo {
     TransCon    con;            /* transformed constraint               */
     TransSnap	tsnap;
     NumInput    num;            /* numerical input                      */
+    NDofInput   ndof;           /* ndof input                           */
     char        redraw;         /* redraw flag                          */
 	float		propsize;		/* proportional circle radius           */
 	char		proptext[20];	/* proportional falloff text			*/
@@ -211,6 +224,9 @@ typedef struct TransInfo {
 #define	NUM_NO_ZERO			8
 #define NUM_NO_FRACTION		16
 #define	NUM_AFFECT_ALL		32
+
+/* NDOFINPUT FLAGS */
+#define NDOF_INIT			1
 
 /* transinfo->state */
 #define TRANS_RUNNING	0
@@ -278,6 +294,7 @@ typedef struct TransInfo {
 #define TD_NOCENTER			(1 << 9)
 #define TD_NO_EXT			(1 << 10)	/* ext abused for particle key timing */
 #define TD_SKIP				(1 << 11)	/* don't transform this data */
+#define TD_BEZTRIPLE		(1 << 12)	/* if this is a bez triple, we need to restore the handles, if this is set transdata->misc.hdata needs freeing */
 
 /* transsnap->status */
 #define SNAP_ON			1
@@ -339,6 +356,13 @@ int Trackball(TransInfo *t, short mval[2]);
 void initPushPull(TransInfo *t);
 int PushPull(TransInfo *t, short mval[2]);
 
+void initBevel(TransInfo *t);
+int handleEventBevel(TransInfo *t, unsigned short evenl, short val);
+int Bevel(TransInfo *t, short mval[2]);
+
+void initBevelWeight(TransInfo *t);
+int BevelWeight(TransInfo *t, short mval[2]);
+
 void initCrease(TransInfo *t);
 int Crease(TransInfo *t, short mval[2]);
 
@@ -366,6 +390,9 @@ int BakeTime(TransInfo *t, short mval[2]);
 void initMirror(TransInfo *t);
 int Mirror(TransInfo *t, short mval[2]);
 
+void initAlign(TransInfo *t);
+int Align(TransInfo *t, short mval[2]);
+
 /*********************** transform_conversions.c ********** */
 struct ListBase;
 void flushTransIpoData(TransInfo *t);
@@ -376,7 +403,7 @@ int clipUVTransform(TransInfo *t, float *vec, int resize);
 /*********************** exported from transform_manipulator.c ********** */
 void draw_manipulator_ext(struct ScrArea *sa, int type, char axis, int col, float vec[3], float mat[][3]);
 int calc_manipulator_stats(struct ScrArea *sa);
-float get_drawsize(struct View3D *v3d);
+float get_drawsize(struct View3D *v3d, float *co);
 
 /*********************** TransData Creation and General Handling *********** */
 void createTransData(TransInfo *t);
@@ -439,6 +466,8 @@ void postTrans (TransInfo *t);
 
 void drawLine(float *center, float *dir, char axis, short options);
 
+TransDataCurveHandleFlags *initTransDataCurveHandes(TransData *td, struct BezTriple *bezt);
+
 /* DRAWLINE options flags */
 #define DRAWLIGHT	1
 #define DRAWDASHED	2
@@ -468,6 +497,20 @@ short hasNumInput(NumInput *n);
 void applyNumInput(NumInput *n, float *vec);
 char handleNumInput(NumInput *n, unsigned short event);
 
+/*********************** NDofInput ********************************/
+
+void initNDofInput(NDofInput *n);
+int hasNDofInput(NDofInput *n);
+void applyNDofInput(NDofInput *n, float *vec);
+int handleNDofInput(NDofInput *n, unsigned short event, short val);
+
+/* handleNDofInput return values */
+#define NDOF_REFRESH	1
+#define NDOF_NOMOVE		2
+#define NDOF_CONFIRM	3
+#define NDOF_CANCEL		4
+
+
 /*********************** TransSpace ******************************/
 
 int manageObjectSpace(int confirm, int set);
@@ -480,6 +523,17 @@ int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3])
 int addMatrixSpace(float mat[3][3], char name[]);
 int addObjectSpace(struct Object *ob);
 void applyTransformOrientation(void);
+
+
+#define ORIENTATION_NONE	0
+#define ORIENTATION_NORMAL	1
+#define ORIENTATION_VERT	2
+#define ORIENTATION_EDGE	3
+#define ORIENTATION_FACE	4
+
+int getTransformOrientation(float normal[3], float plane[3], int activeOnly);
+int createSpaceNormal(float mat[3][3], float normal[3]);
+int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
 
 #endif
 

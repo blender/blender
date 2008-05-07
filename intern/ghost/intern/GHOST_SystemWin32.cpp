@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /**
@@ -64,10 +61,12 @@
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventKey.h"
 #include "GHOST_EventWheel.h"
+#include "GHOST_EventNDOF.h"
 #include "GHOST_TimerTask.h"
 #include "GHOST_TimerManager.h"
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowWin32.h"
+#include "GHOST_NDOFManager.h"
 
 // Key code values not found in winuser.h
 #ifndef VK_MINUS
@@ -845,6 +844,28 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * In GHOST, we let DefWindowProc call the timer callback.
 					 */
 					break;
+				case WM_BLND_NDOF_AXIS:
+					{
+						GHOST_TEventNDOFData ndofdata;
+						system->m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
+						system->m_eventManager->
+							pushEvent(new GHOST_EventNDOF(
+								system->getMilliSeconds(), 
+								GHOST_kEventNDOFMotion, 
+								window, ndofdata));
+					}
+					break;
+				case WM_BLND_NDOF_BTN:
+					{
+						GHOST_TEventNDOFData ndofdata;
+						system->m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
+						system->m_eventManager->
+							pushEvent(new GHOST_EventNDOF(
+								system->getMilliSeconds(), 
+								GHOST_kEventNDOFButton, 
+								window, ndofdata));
+					}
+					break;
 			}
 		}
 		else {
@@ -873,3 +894,54 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 	}
 	return lResult;
 }
+
+GHOST_TUns8* GHOST_SystemWin32::getClipboard(int flag) const 
+{
+	char *buffer;
+	char *temp_buff;
+	
+	if ( OpenClipboard(NULL) ) {
+		HANDLE hData = GetClipboardData( CF_TEXT );
+		buffer = (char*)GlobalLock( hData );
+		
+		temp_buff = (char*) malloc(strlen(buffer)+1);
+		strcpy(temp_buff, buffer);
+		
+		GlobalUnlock( hData );
+		CloseClipboard();
+		
+		temp_buff[strlen(buffer)] = '\0';
+		if (buffer) {
+			return (GHOST_TUns8*)temp_buff;
+		} else {
+			return NULL;
+		}
+	} else {
+		return NULL;
+	}
+}
+
+void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, int flag) const
+{
+	if(flag == 1) {return;} //If Flag is 1 means the selection and is used on X11
+	if (OpenClipboard(NULL)) {
+		HLOCAL clipbuffer;
+		char *data;
+		
+		if (buffer) {
+			EmptyClipboard();
+			
+			clipbuffer = LocalAlloc(LMEM_FIXED,((strlen(buffer)+1)));
+			data = (char*)GlobalLock(clipbuffer);
+
+			strcpy(data, (char*)buffer);
+			data[strlen(buffer)] = '\0';
+			LocalUnlock(clipbuffer);
+			SetClipboardData(CF_TEXT,clipbuffer);
+		}
+		CloseClipboard();
+	} else {
+		return;
+	}
+}
+

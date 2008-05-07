@@ -3,15 +3,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_SPACE_TYPES_H
 #define DNA_SPACE_TYPES_H
@@ -148,11 +145,11 @@ typedef struct SpaceSeq {
 	View2D v2d;
 	
 	float xof, yof;	/* offset for drawing the image preview */
-	short mainb, zoom;
+	short mainb, pad;
 	short chanshown;
-	short pad2;
+	short zebra;
 	int flag;
-	int pad;
+	float zoom;
 } SpaceSeq;
 
 typedef struct SpaceFile {
@@ -167,7 +164,7 @@ typedef struct SpaceFile {
 	int totfile;
 	
 	char title[24];
-	char dir[160];
+	char dir[240];
 	char file[80];
 	
 	short type, ofs, flag, sort;
@@ -236,17 +233,15 @@ typedef struct SpaceImage {
 	short curtile; /* the currently active tile of the image when tile is enabled, is kept in sync with the active faces tile */
 	int flag;
 	short imtypenr, lock;
-	short showspare, pin;
+	short pin, pad2;
 	float zoom;
 	char dt_uv; /* UV draw type */
-	char sticky; /* sticky selection type */ 
-	char pad[6]; 
+	char sticky; /* sticky selection type */
+	char dt_uvstretch;
+	char pad[5];
 	
 	float xof, yof;					/* user defined offset, image is centered */
 	float centx, centy;				/* storage for offset while render drawing */
-	
-	char *info_str, *info_spare;	/* info string for render */
-	struct ImBuf *spare;
 	
 } SpaceImage;
 
@@ -293,6 +288,24 @@ typedef struct SpaceText {
 	struct rcti txtscroll, txtbar;
 
 } SpaceText;
+
+typedef struct Script {
+	ID id;
+
+	void *py_draw;
+	void *py_event;
+	void *py_button;
+	void *py_browsercallback;
+	void *py_globaldict;
+
+	int flags, lastspace;
+	char scriptname[256]; /* store the script file here so we can re-run it on loading blender, if "Enable Scripts" is on */
+	char scriptarg[256];
+} Script;
+#define SCRIPT_SET_NULL(_script) _script->py_draw = _script->py_event = _script->py_button = _script->py_browsercallback = _script->py_globaldict = NULL; _script->flags = 0;
+#define SCRIPT_RUNNING	0x01
+#define SCRIPT_GUI		0x02
+#define SCRIPT_FILESEL	0x04
 
 typedef struct SpaceScript {
 	SpaceLink *next, *prev;
@@ -357,7 +370,7 @@ typedef struct SpaceImaSel {
 
 	/* specific stuff for drawing */
 	char title[24];
-	char dir[160];
+	char dir[240];
 	char file[80];
 
 	short type, menu, flag, sort;
@@ -467,10 +480,14 @@ typedef struct SpaceImaSel {
 #define SI_SHOW			1
 
 /* SpaceImage->dt_uv */
-#define SI_UVDT_DASH	0
-#define SI_UVDT_BLACK	1
-#define SI_UVDT_WHITE	2
-#define SI_UVDT_OUTLINE	3
+#define SI_UVDT_OUTLINE	0
+#define SI_UVDT_DASH	1
+#define SI_UVDT_BLACK	2
+#define SI_UVDT_WHITE	3
+
+/* SpaceImage->dt_uvstretch */
+#define SI_UVDT_STRETCH_ANGLE	0
+#define SI_UVDT_STRETCH_AREA	1
 
 /* SpaceImage->sticky
  * Note DISABLE should be 0, however would also need to re-arrange icon order,
@@ -503,7 +520,11 @@ typedef struct SpaceImaSel {
 		/* this means that the image is drawn until it reaches the view edge,
 		 * in the image view, its unrelated to the 'tile' mode for texface */
 #define SI_DRAW_TILE	1<<19 
-#define SI_SMOOTH_UV	1<<20 
+#define SI_SMOOTH_UV	1<<20
+#define SI_DRAW_STRETCH	1<<21
+
+/* SpaceIpo->flag */
+#define SIPO_LOCK_VIEW	1<<0
 
 /* SpaceText flags (moved from DNA_text_types.h) */
 
@@ -612,16 +633,20 @@ typedef struct SpaceImaSel {
 #define TIME_WITH_SEQ_AUDIO		16
 #define TIME_SEQ				32
 #define TIME_ALL_IMAGE_WIN		64
+#define TIME_CONTINUE_PHYSICS	128
 
 /* sseq->mainb */
 #define SEQ_DRAW_SEQUENCE         0
 #define SEQ_DRAW_IMG_IMBUF        1
 #define SEQ_DRAW_IMG_WAVEFORM     2
 #define SEQ_DRAW_IMG_VECTORSCOPE  3
+#define SEQ_DRAW_IMG_HISTOGRAM    4
 
 /* sseq->flag */
-#define SEQ_DRAWFRAMES  1
+#define SEQ_DRAWFRAMES   1
 #define SEQ_MARKER_TRANS 2
+#define SEQ_DRAW_COLOR_SEPERATED     4
+#define SEQ_DRAW_SAFE_MARGINS        8
 
 /* space types, moved from DNA_screen_types.h */
 enum {

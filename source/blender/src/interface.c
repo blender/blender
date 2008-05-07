@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /* 
@@ -637,7 +634,7 @@ void uiBoundsBlock(uiBlock *block, int addval)
 			if(bt->x1 < block->minx) block->minx= bt->x1;
 			if(bt->y1 < block->miny) block->miny= bt->y1;
 	
-			if(bt->x2 > block->maxx) block->maxx= bt->x2;
+  			if(bt->x2 > block->maxx) block->maxx= bt->x2;
 			if(bt->y2 > block->maxy) block->maxy= bt->y2;
 			
 			bt= bt->next;
@@ -2331,6 +2328,7 @@ static int ui_do_but_ICONROW(uiBut *but)
 	ListBase listb= {NULL, NULL};
 	uiBlock *block;
 	int a;
+	short event;
 	
 	but->flag |= UI_SELECT;
 	ui_draw_but(but);
@@ -2351,13 +2349,17 @@ static int ui_do_but_ICONROW(uiBut *but)
 	   this is needs better implementation */
 	block->win= G.curscreen->mainwin;
 	
-	uiDoBlocks(&listb, 0, 1);
+	event= uiDoBlocks(&listb, 0, 1);
 
 	but->flag &= ~UI_SELECT;
 	ui_check_but(but);
 	ui_draw_but(but);	
-	
-	return but->retval;
+
+	if (event & UI_RETURN_OK) {
+		return but->retval;
+	} else {
+		return 0;
+	}
 }
 
 static int ui_do_but_ICONTEXTROW(uiBut *but)
@@ -2366,7 +2368,7 @@ static int ui_do_but_ICONTEXTROW(uiBut *but)
 	ListBase listb={NULL, NULL};
 	int width, a, xmax, ypos;
 	MenuData *md;
-
+	short event;
 	but->flag |= UI_SELECT;
 	ui_draw_but(but);
 	ui_block_flush_back(but->block);	// flush because this button creates own blocks loop
@@ -2424,7 +2426,7 @@ static int ui_do_but_ICONTEXTROW(uiBut *but)
 
 	uiBoundsBlock(block, 3);
 
-	uiDoBlocks(&listb, 0, 1);
+	event = uiDoBlocks(&listb, 0, 1);
 	
 	menudata_free(md);
 
@@ -2432,10 +2434,12 @@ static int ui_do_but_ICONTEXTROW(uiBut *but)
 	ui_check_but(but);
 	ui_draw_but(but);
 
-	uibut_do_func(but);
-
-	return but->retval;
-
+	if (event & UI_RETURN_OK) {
+		uibut_do_func(but);
+		return but->retval;
+	} else {
+		return 0;
+	}
 }
 
 static int ui_do_but_IDPOIN(uiBut *but)
@@ -2687,12 +2691,36 @@ static uiBlock *ui_do_but_BLOCK(uiBut *but, int event)
 
 static int ui_do_but_BUTM(uiBut *but)
 {
-
+	/* draw 'pushing-in' when clicked on for use as a normal button in a panel */
+	do {
+		int oflag= but->flag;
+		short mval[2];
+			
+		uiGetMouse(mywinget(), mval);
+		
+		if (uibut_contains_pt(but, mval))
+			but->flag |= UI_SELECT;
+		else
+			but->flag &= ~UI_SELECT;
+		
+		if (but->flag != oflag) {
+			ui_draw_but(but);
+			ui_block_flush_back(but->block);
+		}
+		
+		PIL_sleep_ms(10);
+	} while (get_mbut() & L_MOUSE);
+	
 	ui_set_but_val(but, but->min);
 	UIafterfunc_butm= but->butm_func;
 	UIafterfunc_arg1= but->butm_func_arg;
 	UIafterval= but->a2;
 	
+	uibut_do_func(but);
+	
+	but->flag &= ~UI_SELECT;
+	ui_draw_but(but);
+
 	return but->retval;
 }
 
@@ -4448,21 +4476,13 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent, int movemouse_quit)
 		}
 		break;
 	
-	case PAD8: case PAD2:
 	case UPARROWKEY:
 	case DOWNARROWKEY:
 		if(inside || (block->flag & UI_BLOCK_LOOP)) {
 			/* arrowkeys: only handle for block_loop blocks */
 			event= 0;
-			if(block->flag & UI_BLOCK_LOOP) {
+			if(block->flag & UI_BLOCK_LOOP)
 				event= uevent->event;
-				if(event==PAD8) event= UPARROWKEY;
-				if(event==PAD2) event= DOWNARROWKEY;
-			}
-			else {
-				if(uevent->event==PAD8) event= UPARROWKEY;
-				if(uevent->event==PAD2) event= DOWNARROWKEY;
-			}
 			if(event && uevent->val) {
 	
 				for(but= block->buttons.first; but; but= but->next) {
@@ -4491,7 +4511,6 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent, int movemouse_quit)
 	
 				/* nothing done */
 				if(but==NULL) {
-				
 					if(event==UPARROWKEY) {
 						if(block->direction & UI_TOP) but= ui_but_first(block);
 						else but= ui_but_last(block);
@@ -4510,16 +4529,26 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent, int movemouse_quit)
 		}
 		break;
 	
-	case ONEKEY: act= 1;
-	case TWOKEY: if(act==0) act= 2;
-	case THREEKEY: if(act==0) act= 3;
-	case FOURKEY: if(act==0) act= 4;
-	case FIVEKEY: if(act==0) act= 5;
-	case SIXKEY: if(act==0) act= 6;
-	case SEVENKEY: if(act==0) act= 7;
-	case EIGHTKEY: if(act==0) act= 8;
-	case NINEKEY: if(act==0) act= 9;
-	case ZEROKEY: if(act==0) act= 10;
+	case ONEKEY: 	case PAD1: 
+		act= 1;
+	case TWOKEY: 	case PAD2: 
+		if(act==0) act= 2;
+	case THREEKEY: 	case PAD3: 
+		if(act==0) act= 3;
+	case FOURKEY: 	case PAD4: 
+		if(act==0) act= 4;
+	case FIVEKEY: 	case PAD5: 
+		if(act==0) act= 5;
+	case SIXKEY: 	case PAD6: 
+		if(act==0) act= 6;
+	case SEVENKEY: 	case PAD7: 
+		if(act==0) act= 7;
+	case EIGHTKEY: 	case PAD8: 
+		if(act==0) act= 8;
+	case NINEKEY: 	case PAD9: 
+		if(act==0) act= 9;
+	case ZEROKEY: 	case PAD0: 
+		if(act==0) act= 10;
 	
 		if( block->flag & UI_BLOCK_NUMSELECT ) {
 			
@@ -4729,15 +4758,14 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent, int movemouse_quit)
 			if(uevent->val || (block->flag & UI_BLOCK_RET_1)==0) {
 				if ELEM6(uevent->event, LEFTMOUSE, PADENTER, RETKEY, BUT_ACTIVATE, BUT_NEXT, BUT_PREV) {
 					/* when mouse outside, don't do button */
-					if(inside || uevent->event!=LEFTMOUSE) {
-						
+					if(inside || uevent->event!=LEFTMOUSE) {						
 						if ELEM(uevent->event, BUT_NEXT, BUT_PREV) {
 							butevent= ui_act_as_text_but(but);
 							uibut_do_func(but);
 						}
 						else
 							butevent= ui_do_button(block, but, uevent);
-
+						
 						/* add undo pushes if... */
 						if( !(block->flag & UI_BLOCK_LOOP)) {
 							if(!G.obedit) {
@@ -4751,12 +4779,12 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent, int movemouse_quit)
 								}
 							}
 						}
-				
+						
 						if(butevent) addqueue(block->winq, UI_BUT_EVENT, (short)butevent);
-
+						
 						/* i doubt about the next line! */
 						/* if(but->func) mywinset(block->win); */
-			
+						
 						if( (block->flag & UI_BLOCK_LOOP) && but->type==BLOCK);
 						else	
 							if (butevent) retval= UI_RETURN_OK;
@@ -6277,7 +6305,7 @@ int uiButGetRetVal(uiBut *but)
 	return but->retval;
 }
 
-
+/* Call this function BEFORE adding buttons to the block */
 void uiBlockSetButmFunc(uiBlock *block, void (*menufunc)(void *arg, int event), void *arg)
 {
 	block->butm_func= menufunc;

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -322,7 +319,7 @@ void load_3dtext_fs(char *file)
 	{
 		int tmplen;
 		wchar_t *mem = MEM_callocN((sizeof(wchar_t)*filelen)+(4*sizeof(wchar_t)), "temporary");
-		tmplen = utf8towchar_(mem, strp);
+		tmplen = utf8towchar(mem, strp);
 		wcscat(textbuf, mem);
 		MEM_freeN(mem);
 		cu->len += tmplen;
@@ -689,7 +686,7 @@ void do_textedit(unsigned short event, short val, unsigned long _ascii)
 						if(cu->len+filelen<MAXTEXT) {
 							int tmplen;
 							wchar_t *mem = MEM_callocN((sizeof(wchar_t)*filelen)+(4*sizeof(wchar_t)), "temporary");
-							tmplen = utf8towchar_(mem, strp);
+							tmplen = utf8towchar(mem, strp);
 							wcscat(textbuf, mem);
 							MEM_freeN(mem);
 							cu->len += tmplen;
@@ -972,7 +969,7 @@ void paste_unicodeText(char *filename)
 		{
 			int tmplen;
 			wchar_t *mem = MEM_callocN((sizeof(wchar_t)*filelen)+(4*sizeof(wchar_t)), "temporary");
-			tmplen = utf8towchar_(mem, strp);
+			tmplen = utf8towchar(mem, strp);
 //			mem =utf8s2wc(strp);
 			wcscat(textbuf, mem);
 			MEM_freeN(mem);
@@ -1036,7 +1033,7 @@ void paste_editText(void)
 		if(cu->len+filelen<MAXTEXT) {
 			int tmplen;
 			wchar_t *mem = MEM_callocN((sizeof(wchar_t) * filelen) + (4 * sizeof(wchar_t)), "temporary");
-			tmplen = utf8towchar_(mem, strp);
+			tmplen = utf8towchar(mem, strp);
 			wcscat(textbuf, mem);
 			MEM_freeN(mem);
 			cu->len += tmplen;
@@ -1067,7 +1064,7 @@ void make_editText(void)
 	if(oldstr==NULL) oldstr= MEM_callocN((MAXTEXT+4)*sizeof(wchar_t), "oldstrbuf");
 	
 	// Convert the original text to wchar_t
-	utf8towchar_(textbuf, cu->str);
+	utf8towchar(textbuf, cu->str);
 	wcscpy(oldstr, textbuf);
 		
 	cu->len= wcslen(textbuf);
@@ -1283,7 +1280,7 @@ static void free_undoFont(void *strv)
 /* and this is all the undo system needs to know */
 void undo_push_font(char *name)
 {
-	undo_editmode_push(name, free_undoFont, undoFont_to_editFont, editFont_to_undoFont);
+	undo_editmode_push(name, free_undoFont, undoFont_to_editFont, editFont_to_undoFont, NULL);
 }
 
 

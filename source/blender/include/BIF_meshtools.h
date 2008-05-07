@@ -1,15 +1,12 @@
 /**
  * $Id: 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BIF_MESHTOOLS_H
@@ -40,7 +37,8 @@ extern int join_mesh(void);
 
 extern void sort_faces(void);
 extern void objects_bake_render_menu(void);
-extern void objects_bake_render(short event);
+extern void objects_bake_render_ui(short event);
+extern void objects_bake_render(short event, char **error_msg);
 
 extern long mesh_octree_table(struct Object *ob, float *co, char mode);
 extern int mesh_get_x_mirror_vert(struct Object *ob, int index);

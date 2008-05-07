@@ -107,6 +107,8 @@ typedef struct CompBuf {
 	int xof, yof;		/* relative to center of target image */
 	
 	void (*rect_procedural)(struct CompBuf *, float *, float, float);
+	float procedural_size[3], procedural_offset[3];
+	int procedural_type;
 	bNode *node;		/* only in use for procedural bufs */
 	
 	struct CompBuf *next, *prev;	/* for pass-on, works nicer than reference counting */
@@ -132,10 +134,12 @@ CompBuf *dupalloc_compbuf(CompBuf *cbuf);
 CompBuf *pass_on_compbuf(CompBuf *cbuf);
 void free_compbuf(CompBuf *cbuf);
 void print_compbuf(char *str, CompBuf *cbuf);
+void node_compo_pass_on(struct bNode *node, struct bNodeStack **nsin, struct bNodeStack **nsout);
 
 CompBuf *get_cropped_compbuf(rcti *drect, float *rectf, int rectx, int recty, int type);
 CompBuf *scalefast_compbuf(CompBuf *inbuf, int newx, int newy);
 CompBuf *typecheck_compbuf(CompBuf *inbuf, int type);
+void typecheck_compbuf_color(float *out, float *in, int outtype, int intype);
 float *compbuf_get_pixel(CompBuf *cbuf, float *rectf, int x, int y, int xrad, int yrad);
 
 /* **************************************************** */
@@ -176,6 +180,7 @@ void do_hsva_to_rgba(bNode *node, float *out, float *in);
 void do_ycca_to_rgba(bNode *node, float *out, float *in);
 
 void gamma_correct_compbuf(CompBuf *img, int inversed);
+void premul_compbuf(CompBuf *img, int inversed);
 void convolve(CompBuf* dst, CompBuf* in1, CompBuf* in2);
 
 extern void node_ID_title_cb(void *node_v, void *unused_v);

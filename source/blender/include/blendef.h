@@ -1,14 +1,11 @@
 /* $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BLENDEF_H
 #define BLENDEF_H
@@ -73,7 +70,7 @@
 #define RET_YES (1 == 1)
 #define RET_NO (1 == 0)
 
-#if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__hppa__) || defined (__BIG_ENDIAN__)
 /* big endian */
 #define MAKE_ID2(c, d)		( (c)<<8 | (d) )
 #define MOST_SIG_BYTE				0
@@ -99,11 +96,16 @@
 
 #define TESTBASE(base)	( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0) )
 #define TESTBASELIB(base)	( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
+
+/* This is a TESTBASELIB that can work without a 3D view */
+#define TESTBASELIB_BGMODE(base)	( ((base)->flag & SELECT) && ((base)->lay & (G.vd ? G.vd->lay : G.scene->lay)) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
+
 #define BASE_SELECTABLE(base)	 ((base->lay & G.vd->lay) && (base->object->restrictflag & (OB_RESTRICT_SELECT|OB_RESTRICT_VIEW))==0)
 #define FIRSTBASE		G.scene->base.first
 #define LASTBASE		G.scene->base.last
 #define BASACT			(G.scene->basact)
 #define OBACT			(BASACT? BASACT->object: 0)
+#define OB_SUPPORT_MATERIAL(ob) ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)
 #define ID_NEW(a)		if( (a) && (a)->id.newid ) (a)= (void *)(a)->id.newid
 #define ID_NEW_US(a)	if( (a)->id.newid) {(a)= (void *)(a)->id.newid; (a)->id.us++;}
 #define ID_NEW_US2(a)	if( ((ID *)a)->newid) {(a)= ((ID *)a)->newid; ((ID *)a)->us++;}
@@ -238,6 +240,7 @@
 #define B_SEL_POINT		167
 #define B_SEL_END		168
 #define B_MAN_MODE		169
+#define B_NDOF			170
 
 /* IPO: 200 */
 #define B_IPOHOME		201
@@ -462,5 +465,6 @@
 /* Error messages */
 #define ERROR_LIBDATA_MESSAGE "Can't edit external libdata"
 
+#define MAX_RENDER_PASS	100
 
 #endif

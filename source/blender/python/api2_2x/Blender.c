@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  * Contributor(s): Michel Selten, Willian P. Germano, Joseph Gilbert,
  * Campbell Barton
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 struct ID; /*keep me up here */
 
@@ -53,7 +50,8 @@ struct ID; /*keep me up here */
 #include "BKE_ipo.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BPI_script.h"
+#include "BIF_space.h"
+#include "DNA_space_types.h"		/* script struct */
 #include "BSE_headerbuttons.h"
 #include "DNA_screen_types.h"	/* for SPACE_VIEW3D */
 #include "DNA_userdef_types.h"
@@ -85,6 +83,7 @@ struct ID; /*keep me up here */
 #include "Metaball.h"
 #include "Modifier.h"
 #include "NMesh.h"
+#include "Node.h"
 #include "Object.h"
 #include "Group.h"
 #include "Registry.h"
@@ -114,6 +113,7 @@ static PyObject *Blender_PackAll( PyObject * self);
 static PyObject *Blender_UnpackAll( PyObject * self, PyObject * value);
 static PyObject *Blender_CountPackedFiles( PyObject * self );
 static PyObject *Blender_GetPaths( PyObject * self, PyObject *args, PyObject *keywds );
+static PyObject *Blender_SaveUndoState( PyObject * self, PyObject *args );
 extern PyObject *Text3d_Init( void ); /* missing in some include */
 
 /*****************************************************************************/
@@ -200,6 +200,9 @@ static char Blender_CountPackedFiles_doc[] =
 static char Blender_GetPaths_doc[] =
 "() - Returns a list of paths used in this blend file.";
 
+static char Blender_SaveUndoState_doc[] =
+"(s) - Push an undo with blenders current state.";
+
 /*****************************************************************************/
 /* Python method structure definition.		 */
 /*****************************************************************************/
@@ -216,8 +219,8 @@ static struct PyMethodDef Blender_methods[] = {
 	{"GetPaths", ( PyCFunction ) Blender_GetPaths, METH_VARARGS|METH_KEYWORDS, Blender_GetPaths_doc},
 	{"PackAll", ( PyCFunction ) Blender_PackAll, METH_NOARGS, Blender_PackAll_doc},
 	{"UnpackAll", Blender_UnpackAll, METH_O, Blender_UnpackAll_doc},
-	{"UpdateMenus", ( PyCFunction ) Blender_UpdateMenus, METH_NOARGS,
-	 Blender_UpdateMenus_doc},
+	{"UpdateMenus", ( PyCFunction ) Blender_UpdateMenus, METH_NOARGS, Blender_UpdateMenus_doc},
+	{"SaveUndoState", Blender_SaveUndoState, METH_VARARGS, Blender_SaveUndoState_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -243,7 +246,8 @@ static PyObject *Blender_Set( PyObject * self, PyObject * args )
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 					"expected an integer" );
 
-		G.scene->r.cfra = (short)PyInt_AsLong( arg ) ;
+		G.scene->r.cfra = (int)PyInt_AsLong( arg ) ;
+		CLAMP(G.scene->r.cfra, 1, MAXFRAME);
 
 		/*	update all objects, so python scripts can export all objects
 		 in a scene without worrying about the view layers */
@@ -285,6 +289,7 @@ static PyObject *Blender_Set( PyObject * self, PyObject * args )
 		if ( !PyArg_Parse( arg , "s" , &dir ))
 			return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a string" );
 		BLI_strncpy(U.tempdir, dir, FILE_MAXDIR);
+		BLI_where_is_temp( btempdir, 1 );
 	} else if (StringEqual( name , "compressfile" ) ) {
 		int value = PyObject_IsTrue( arg );
 		
@@ -339,10 +344,10 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 	else if( StringEqual( str, "endframe" ) )
 		ret = PyInt_FromLong( G.scene->r.efra );
 	else if( StringEqual( str, "filename" ) ) {
-		if ( strstr(G.main->name, ".B.blend") != 0)
+		if (!G.relbase_valid)
 			ret = PyString_FromString("");
 		else
-			ret = PyString_FromString(G.main->name);
+			ret = PyString_FromString(G.sce);
 	}
 	else if( StringEqual( str, "homedir" ) ) {
 		char *hdir = bpy_gethome(0);
@@ -364,10 +369,10 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 	}
 	else if(StringEqual(str, "udatadir")) {
 		if (U.pythondir[0] != '\0') {
-			char upydir[FILE_MAXDIR];
+			char upydir[FILE_MAX];
 
-			BLI_strncpy(upydir, U.pythondir, FILE_MAXDIR);
-			BLI_convertstringcode(upydir, G.sce, 0);
+			BLI_strncpy(upydir, U.pythondir, FILE_MAX);
+			BLI_convertstringcode(upydir, G.sce);
 
 			if (BLI_exists(upydir)) {
 				char udatadir[FILE_MAXDIR];
@@ -390,10 +395,10 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 	}
 	else if( StringEqual( str, "uscriptsdir" ) ) {
 		if (U.pythondir[0] != '\0') {
-			char upydir[FILE_MAXDIR];
+			char upydir[FILE_MAX];
 
-			BLI_strncpy(upydir, U.pythondir, FILE_MAXDIR);
-			BLI_convertstringcode(upydir, G.sce, 0);
+			BLI_strncpy(upydir, U.pythondir, FILE_MAX);
+			BLI_convertstringcode(upydir, G.sce);
 
 			if( BLI_exists( upydir ) )
 				ret = PyString_FromString( upydir );
@@ -403,10 +408,10 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 	/* USER PREFS: */
 	else if( StringEqual( str, "yfexportdir" ) ) {
 		if (U.yfexportdir[0] != '\0') {
-			char yfexportdir[FILE_MAXDIR];
+			char yfexportdir[FILE_MAX];
 
-			BLI_strncpy(yfexportdir, U.yfexportdir, FILE_MAXDIR);
-			BLI_convertstringcode(yfexportdir, G.sce, 0);
+			BLI_strncpy(yfexportdir, U.yfexportdir, FILE_MAX);
+			BLI_convertstringcode(yfexportdir, G.sce);
 
 			if( BLI_exists( yfexportdir ) )
 				ret = PyString_FromString( yfexportdir );
@@ -416,10 +421,10 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 	/* fontsdir */
 	else if( StringEqual( str, "fontsdir" ) ) {
 		if (U.fontdir[0] != '\0') {
-			char fontdir[FILE_MAXDIR];
+			char fontdir[FILE_MAX];
 
-			BLI_strncpy(fontdir, U.fontdir, FILE_MAXDIR);
-			BLI_convertstringcode(fontdir, G.sce, 0);
+			BLI_strncpy(fontdir, U.fontdir, FILE_MAX);
+			BLI_convertstringcode(fontdir, G.sce);
 
 			if( BLI_exists( fontdir ) )
 				ret = PyString_FromString( fontdir );
@@ -429,10 +434,10 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 	/* texturesdir */
 	else if( StringEqual( str, "texturesdir" ) ) {
 		if (U.textudir[0] != '\0') {
-			char textudir[FILE_MAXDIR];
+			char textudir[FILE_MAX];
 
-			BLI_strncpy(textudir, U.textudir, FILE_MAXDIR);
-			BLI_convertstringcode(textudir, G.sce, 0);
+			BLI_strncpy(textudir, U.textudir, FILE_MAX);
+			BLI_convertstringcode(textudir, G.sce);
 
 			if( BLI_exists( textudir ) )
 				ret = PyString_FromString( textudir );
@@ -442,10 +447,10 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 	/* texpluginsdir */
 	else if( StringEqual( str, "texpluginsdir" ) ) {
 		if (U.plugtexdir[0] != '\0') {
-			char plugtexdir[FILE_MAXDIR];
+			char plugtexdir[FILE_MAX];
 
-			BLI_strncpy(plugtexdir, U.plugtexdir, FILE_MAXDIR);
-			BLI_convertstringcode(plugtexdir, G.sce, 0);
+			BLI_strncpy(plugtexdir, U.plugtexdir, FILE_MAX);
+			BLI_convertstringcode(plugtexdir, G.sce);
 
 			if( BLI_exists( plugtexdir ) )
 				ret = PyString_FromString( plugtexdir );
@@ -455,10 +460,10 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 	/* seqpluginsdir */
 	else if( StringEqual( str, "seqpluginsdir" ) ) {
 		if (U.plugseqdir[0] != '\0') {
-			char plugseqdir[FILE_MAXDIR];
+			char plugseqdir[FILE_MAX];
 
-			BLI_strncpy(plugseqdir, U.plugseqdir, FILE_MAXDIR);
-			BLI_convertstringcode(plugseqdir, G.sce, 0);
+			BLI_strncpy(plugseqdir, U.plugseqdir, FILE_MAX);
+			BLI_convertstringcode(plugseqdir, G.sce);
 
 			if( BLI_exists( plugseqdir ) )
 				ret = PyString_FromString( plugseqdir );
@@ -468,10 +473,10 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 	/* renderdir */
 	else if( StringEqual( str, "renderdir" ) ) {
 		if (U.renderdir[0] != '\0') {
-			char renderdir[FILE_MAXDIR];
+			char renderdir[FILE_MAX];
 
-			BLI_strncpy(renderdir, U.renderdir, FILE_MAXDIR);
-			BLI_convertstringcode(renderdir, G.sce, 0);
+			BLI_strncpy(renderdir, U.renderdir, FILE_MAX);
+			BLI_convertstringcode(renderdir, G.sce);
 
 			if( BLI_exists( renderdir ) )
 				ret = PyString_FromString( renderdir );
@@ -481,10 +486,10 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 	/* soundsdir */
 	else if( StringEqual( str, "soundsdir" ) ) {
 		if (U.sounddir[0] != '\0') {
-			char sounddir[FILE_MAXDIR];
+			char sounddir[FILE_MAX];
 
-			BLI_strncpy(sounddir, U.sounddir, FILE_MAXDIR);
-			BLI_convertstringcode(sounddir, G.sce, 0);
+			BLI_strncpy(sounddir, U.sounddir, FILE_MAX);
+			BLI_convertstringcode(sounddir, G.sce);
 
 			if( BLI_exists( sounddir ) )
 				ret = PyString_FromString( sounddir );
@@ -494,10 +499,10 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 	/* tempdir */
 	else if( StringEqual( str, "tempdir" ) ) {
 		if (U.tempdir[0] != '\0') {
-			char tempdir[FILE_MAXDIR];
+			char tempdir[FILE_MAX];
 
-			BLI_strncpy(tempdir, U.tempdir, FILE_MAXDIR);
-			BLI_convertstringcode(tempdir, G.sce, 0);
+			BLI_strncpy(tempdir, U.tempdir, FILE_MAX);
+			BLI_convertstringcode(tempdir, G.sce);
 
 			if( BLI_exists( tempdir ) )
 				ret = PyString_FromString( tempdir );
@@ -541,8 +546,12 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 	else if(StringEqual( str, "compressfile" ))
 		ret = PyInt_FromLong( (U.flag & USER_FILECOMPRESS) >> 15  );
 	else if(StringEqual( str, "mipmap" ))
-		ret = PyInt_FromLong( (U.gameflags & USER_DISABLE_MIPMAP) == 0  );
-	else
+		ret = PyInt_FromLong( (U.gameflags & USER_DISABLE_MIPMAP)!=0  );
+	else if(StringEqual( str, "add_view_align" ))
+		ret = PyInt_FromLong( ((U.flag & USER_ADD_VIEWALIGNED)!=0)  );
+	else if(StringEqual( str, "add_editmode" ))
+		ret = PyInt_FromLong( ((U.flag & USER_ADD_EDITMODE)!=0)  );
+	else 
 		return EXPP_ReturnPyObjError( PyExc_AttributeError, "unknown attribute" );
 
 	if (ret) return ret;
@@ -769,10 +778,10 @@ static PyObject *Blender_ShowHelp(PyObject *self, PyObject *script)
 	if (sdir) BLI_make_file_string("/", hspath, sdir, "help_browser.py");
 
 	if (!sdir || (!BLI_exists(hspath) && (U.pythondir[0] != '\0'))) {
-			char upydir[FILE_MAXDIR];
+			char upydir[FILE_MAX];
 
-			BLI_strncpy(upydir, U.pythondir, FILE_MAXDIR);
-			BLI_convertstringcode(upydir, G.sce, 0);
+			BLI_strncpy(upydir, U.pythondir, FILE_MAX);
+			BLI_convertstringcode(upydir, G.sce);
 			BLI_make_file_string("/", hspath, upydir, "help_browser.py");
 
 			if (!BLI_exists(hspath))
@@ -793,7 +802,7 @@ static PyObject *Blender_ShowHelp(PyObject *self, PyObject *script)
 
 	EXPP_dict_set_item_str(bpy_registryDict, "__help_browser", rkeyd);
 
-	arglist = Py_BuildValue("(s)", hspath);
+	arglist = Py_BuildValue("s", hspath);
 	Blender_Run(self, arglist);
 	Py_DECREF(arglist);
 
@@ -858,8 +867,15 @@ static PyObject *Blender_Run(PyObject *self, PyObject *value)
 
 	if (script) script->flags |= SCRIPT_RUNNING; /* set */
 
-	if (!is_blender_text) free_libblock(&G.main->text, text);
-
+	if (!is_blender_text) {
+		
+		/* nice to remember the original filename, so the script can run on reload */
+		if (script) {
+			strncpy(script->scriptname, fname, sizeof(script->scriptname));
+			script->scriptarg[0] = '\0';
+		}	
+		free_libblock(&G.main->text, text);
+	}
 	Py_RETURN_NONE;
 }
 
@@ -916,7 +932,7 @@ static PyObject *Blender_CountPackedFiles( PyObject * self )
 static PyObject *Blender_GetPaths( PyObject * self, PyObject *args, PyObject *keywds )
 {
 	struct BPathIterator bpi;
-	PyObject *list = PyList_New(0), *st;
+	PyObject *list = PyList_New(0), *st; /* stupidly big string to be safe */
 	/* be sure there is low chance of the path being too short */
 	char filepath_expanded[FILE_MAXDIR*2]; 
 	
@@ -933,21 +949,29 @@ static PyObject *Blender_GetPaths( PyObject * self, PyObject *args, PyObject *ke
 		
 		/* build the list */
 		if (absolute) {
-			BLI_bpathIterator_copyPathExpanded( &bpi, filepath_expanded );
-			st = PyString_FromString(filepath_expanded);
+			BLI_bpathIterator_getPathExpanded( &bpi, filepath_expanded );
 		} else {
-			st = PyString_FromString(BLI_bpathIterator_getPath(&bpi));
+			BLI_bpathIterator_getPathExpanded( &bpi, filepath_expanded );
 		}
+		st = PyString_FromString(filepath_expanded);
 		
 		PyList_Append(list, st);
 		Py_DECREF(st);
 		
 		BLI_bpathIterator_step(&bpi);
 	}
-	
+	BLI_bpathIterator_free(&bpi);
 	return list;
 }
 
+static PyObject *Blender_SaveUndoState( PyObject * self, PyObject *args )
+{
+	char *str;
+	if ( !PyArg_ParseTuple( args , "s" , &str ))	
+		return EXPP_ReturnPyObjError( PyExc_TypeError, "expected a string" );
+	BIF_undo_push(str);
+	Py_RETURN_NONE;
+}
 
 static PyObject *Blender_UnpackModesDict( void )
 {
@@ -1047,6 +1071,7 @@ void M_Blender_Init(void)
 	PyDict_SetItemString(dict, "Geometry", Geometry_Init());
 	PyDict_SetItemString(dict, "Modifier", Modifier_Init());
 	PyDict_SetItemString(dict, "NMesh", NMesh_Init());
+	PyDict_SetItemString(dict, "Node", Node_Init());
 	PyDict_SetItemString(dict, "Noise", Noise_Init());
 	PyDict_SetItemString(dict, "Object", Object_Init());
 	PyDict_SetItemString(dict, "Group", Group_Init());

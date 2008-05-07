@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 /**
  * @file	GHOST_SystemCarbon.h
@@ -60,12 +57,12 @@ public:
     /**
      * Constructor.
      */
-    GHOST_SystemCarbon::GHOST_SystemCarbon();
+    GHOST_SystemCarbon();
     
     /** 
      * Destructor.
      */
-    GHOST_SystemCarbon::~GHOST_SystemCarbon();
+    ~GHOST_SystemCarbon();
     
 	/***************************************************************************************
 	 ** Time(r) functionality
@@ -168,6 +165,20 @@ public:
 	 */
 	virtual GHOST_TSuccess getButtons(GHOST_Buttons& buttons) const;
 
+	/**
+	 * Returns Clipboard data
+	 * @param flag		Indicate which buffer to return
+	 * @return		Returns the selected buffer
+	 */
+	virtual GHOST_TUns8* getClipboard(int flag) const;
+	
+	/**
+	 * Puts buffer to system clipboard
+	 * @param buffer	The buffer to be copied
+	 * @param flag		Indicates which buffer to copy too Only used on X11
+	 */
+	virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const;
+
 protected:
 	/**
 	 * Initializes the system.
@@ -224,6 +235,10 @@ protected:
      */
     bool handleMenuCommand(GHOST_TInt32 menuResult);
     
+    /* callback for blender generated events */
+//	static OSStatus blendEventHandlerProc(EventHandlerCallRef handler, EventRef event, void* userData);
+
+
     /**
      * Callback for Carbon when it has events.
      */

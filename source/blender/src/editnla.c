@@ -188,11 +188,16 @@ void shift_nlastrips_down(void) {
 void synchronize_action_strips(void)
 {
 	Base *base;
+	Object *ob;
 	bActionStrip *strip;
 	
 	for (base=G.scene->base.first; base; base=base->next) {
+		/* get object first */
+		ob= base->object;
+		
 		/* step 1: adjust strip-lengths */
-		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
+		//	FIXME: this seems very buggy
+		for (strip = ob->nlastrips.last; strip; strip=strip->prev) {
 			if (strip->flag & ACTSTRIP_LOCK_ACTION) {
 				float actstart, actend;
 				
@@ -212,7 +217,7 @@ void synchronize_action_strips(void)
 		}
 		
 		/* step 2: adjust blendin/out values for each strip if option is turned on */
-		for (strip= base->object->nlastrips.first; strip; strip=strip->next) {
+		for (strip= ob->nlastrips.first; strip; strip=strip->next) {
 			if (strip->flag & ACTSTRIP_AUTO_BLENDS) {
 				bActionStrip *prev= strip->prev;
 				bActionStrip *next= strip->next;
@@ -1010,22 +1015,24 @@ static void recalc_all_ipos(void)
 
 void transform_nlachannel_keys(int mode, int dummy)
 {
+	short context = (U.flag & USER_DRAGIMMEDIATE)?CTX_TWEAK:CTX_NONE;
+
 	switch (mode) {
 		case 'g':
 		{
-			initTransform(TFM_TIME_TRANSLATE, CTX_NONE);
+			initTransform(TFM_TIME_TRANSLATE, context);
 			Transform();
 		}
 			break;
 		case 's':
 		{
-			initTransform(TFM_TIME_SCALE, CTX_NONE);
+			initTransform(TFM_TIME_SCALE, context);
 			Transform();
 		}
 			break;
 		case 'e':
 		{
-			initTransform(TFM_TIME_EXTEND, CTX_NONE);
+			initTransform(TFM_TIME_EXTEND, context);
 			Transform();
 		}
 			break;
@@ -1936,7 +1943,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						
 						areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
 						
-						cfra= (int)dx;
+						cfra= (int)(dx+0.5f);
 						if(cfra< 1) cfra= 1;
 						
 						if( cfra!=CFRA ) {
@@ -2050,6 +2057,6 @@ void copy_action_modifiers(void)
 	
 	BIF_undo_push("Copy Action Modifiers");
 	allqueue(REDRAWNLA, 0);
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 }
 

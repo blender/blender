@@ -1,15 +1,12 @@
 /*  implicit.c      
 * 
 *
-* ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+* ***** BEGIN GPL LICENSE BLOCK *****
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public License
 * as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version. The Blender
-* Foundation also sells licenses for use in proprietary software under
-* the Blender License.  See http://www.blender.org/BL/ for information
-* about this.
+* of the License, or (at your option) any later version.
 *
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,40 +24,20 @@
 *
 * Contributor(s): none yet.
 *
-* ***** END GPL/BL DUAL LICENSE BLOCK *****
+* ***** END GPL LICENSE BLOCK *****
 */
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+
 #include "MEM_guardedalloc.h"
-/* types */
-#include "DNA_curve_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"	
+
+#include "BKE_cloth.h"
+
 #include "DNA_cloth_types.h"	
-#include "DNA_key_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_modifier_types.h"
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "BLI_threads.h"
-#include "BKE_curve.h"
-#include "BKE_displist.h"
+
 #include "BKE_effect.h"
 #include "BKE_global.h"
-#include "BKE_key.h"
-#include "BKE_object.h"
 #include "BKE_cloth.h"
-#include "BKE_modifier.h"
 #include "BKE_utildefines.h"
-#include "BKE_global.h"
-#include  "BIF_editdeform.h"
-
 
 #ifdef _WIN32
 #include <windows.h>
@@ -109,6 +86,10 @@ double itval()
 	return t2-t1;
 }
 #endif
+
+static float I[3][3] = {{1,0,0},{0,1,0},{0,0,1}};
+static float ZERO[3][3] = {{0,0,0}, {0,0,0}, {0,0,0}};
+
 /*
 #define C99
 #ifdef C99
@@ -126,7 +107,7 @@ struct Cloth;
 /* DEFINITIONS */
 typedef float lfVector[3];
 typedef struct fmatrix3x3 {
-	float m[3][3]; /* 4x4 matrix */
+	float m[3][3]; /* 3x3 matrix */
 	unsigned int c,r; /* column and row number */
 	int pinned; /* is this vertex allowed to move? */
 	float n1,n2,n3; /* three normal vectors for collision constrains */
@@ -164,11 +145,14 @@ DO_INLINE void mul_fvectorT_fvector(float to[3][3], float vectorA[3], float vect
 /* simple v^T * v product with scalar ("outer product") */
 /* STATUS: HAS TO BE verified (*should* work) */
 DO_INLINE void mul_fvectorT_fvectorS(float to[3][3], float vectorA[3], float vectorB[3], float aS)
-{
-	mul_fvector_S(to[0], vectorB, vectorA[0]* aS);
-	mul_fvector_S(to[1], vectorB, vectorA[1]* aS);
-	mul_fvector_S(to[2], vectorB, vectorA[2]* aS);
+{	
+	mul_fvectorT_fvector(to, vectorA, vectorB);
+	
+	mul_fvector_S(to[0], to[0], aS);
+	mul_fvector_S(to[1], to[1], aS);
+	mul_fvector_S(to[2], to[2], aS);
 }
+
 
 /* printf vector[3] on console: for debug output */
 void print_fvector(float m3[3])
@@ -246,11 +230,11 @@ DO_INLINE void submul_lfvectorS(float (*to)[3], float (*fLongVector)[3], float s
 /* dot product for big vector */
 DO_INLINE float dot_lfvector(float (*fLongVectorA)[3], float (*fLongVectorB)[3], unsigned int verts)
 {
-	unsigned int i = 0;
+	long i = 0;
 	float temp = 0.0;
 // schedule(guided, 2)
 #pragma omp parallel for reduction(+: temp)
-	for(i = 0; i < verts; i++)
+	for(i = 0; i < (long)verts; i++)
 	{
 		temp += INPR(fLongVectorA[i], fLongVectorB[i]);
 	}
@@ -310,16 +294,17 @@ DO_INLINE void sub_lfvector_lfvector(float (*to)[3], float (*fLongVectorA)[3], f
 
 }
 ///////////////////////////
-// 4x4 matrix
+// 3x3 matrix
 ///////////////////////////
-/* printf 4x4 matrix on console: for debug output */
+/* printf 3x3 matrix on console: for debug output */
 void print_fmatrix(float m3[3][3])
 {
 	printf("%f\t%f\t%f\n",m3[0][0],m3[0][1],m3[0][2]);
 	printf("%f\t%f\t%f\n",m3[1][0],m3[1][1],m3[1][2]);
 	printf("%f\t%f\t%f\n\n",m3[2][0],m3[2][1],m3[2][2]);
 }
-/* copy 4x4 matrix */
+
+/* copy 3x3 matrix */
 DO_INLINE void cp_fmatrix(float to[3][3], float from[3][3])
 {
 	// memcpy(to, from, sizeof (float) * 9);
@@ -327,12 +312,24 @@ DO_INLINE void cp_fmatrix(float to[3][3], float from[3][3])
 	VECCOPY(to[1], from[1]);
 	VECCOPY(to[2], from[2]);
 }
-/* calculate determinant of 4x4 matrix */
+
+/* copy 3x3 matrix */
+DO_INLINE void initdiag_fmatrixS(float to[3][3], float aS)
+{
+	cp_fmatrix(to, ZERO);
+	
+	to[0][0] = aS;
+	to[1][1] = aS;
+	to[2][2] = aS;
+}
+
+/* calculate determinant of 3x3 matrix */
 DO_INLINE float det_fmatrix(float m[3][3])
 {
 	return  m[0][0]*m[1][1]*m[2][2] + m[1][0]*m[2][1]*m[0][2] + m[0][1]*m[1][2]*m[2][0] 
 			-m[0][0]*m[1][2]*m[2][1] - m[0][1]*m[1][0]*m[2][2] - m[2][0]*m[1][1]*m[0][2];
 }
+
 DO_INLINE void inverse_fmatrix(float to[3][3], float from[3][3])
 {
 	unsigned int i, j;
@@ -364,7 +361,7 @@ DO_INLINE void inverse_fmatrix(float to[3][3], float from[3][3])
 
 }
 
-/* 4x4 matrix multiplied by a scalar */
+/* 3x3 matrix multiplied by a scalar */
 /* STATUS: verified */
 DO_INLINE void mul_fmatrix_S(float matrix[3][3], float scalar)
 {
@@ -373,7 +370,7 @@ DO_INLINE void mul_fmatrix_S(float matrix[3][3], float scalar)
 	mul_fvector_S(matrix[2], matrix[2],scalar);
 }
 
-/* a vector multiplied by a 4x4 matrix */
+/* a vector multiplied by a 3x3 matrix */
 /* STATUS: verified */
 DO_INLINE void mul_fvector_fmatrix(float *to, float *from, float matrix[3][3])
 {
@@ -382,7 +379,7 @@ DO_INLINE void mul_fvector_fmatrix(float *to, float *from, float matrix[3][3])
 	to[2] = matrix[0][2]*from[0] + matrix[1][2]*from[1] + matrix[2][2]*from[2];
 }
 
-/* 4x4 matrix multiplied by a vector */
+/* 3x3 matrix multiplied by a vector */
 /* STATUS: verified */
 DO_INLINE void mul_fmatrix_fvector(float *to, float matrix[3][3], float *from)
 {
@@ -390,7 +387,7 @@ DO_INLINE void mul_fmatrix_fvector(float *to, float matrix[3][3], float *from)
 	to[1] = INPR(matrix[1],from);
 	to[2] = INPR(matrix[2],from);
 }
-/* 4x4 matrix multiplied by a 4x4 matrix */
+/* 3x3 matrix multiplied by a 3x3 matrix */
 /* STATUS: verified */
 DO_INLINE void mul_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float matrixB[3][3])
 {
@@ -398,49 +395,49 @@ DO_INLINE void mul_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float ma
 	mul_fvector_fmatrix(to[1], matrixA[1],matrixB);
 	mul_fvector_fmatrix(to[2], matrixA[2],matrixB);
 }
-/* 4x4 matrix addition with 4x4 matrix */
+/* 3x3 matrix addition with 3x3 matrix */
 DO_INLINE void add_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float matrixB[3][3])
 {
 	VECADD(to[0], matrixA[0], matrixB[0]);
 	VECADD(to[1], matrixA[1], matrixB[1]);
 	VECADD(to[2], matrixA[2], matrixB[2]);
 }
-/* 4x4 matrix add-addition with 4x4 matrix */
+/* 3x3 matrix add-addition with 3x3 matrix */
 DO_INLINE void addadd_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float matrixB[3][3])
 {
 	VECADDADD(to[0], matrixA[0], matrixB[0]);
 	VECADDADD(to[1], matrixA[1], matrixB[1]);
 	VECADDADD(to[2], matrixA[2], matrixB[2]);
 }
-/* 4x4 matrix sub-addition with 4x4 matrix */
+/* 3x3 matrix sub-addition with 3x3 matrix */
 DO_INLINE void addsub_fmatrixS_fmatrixS(float to[3][3], float matrixA[3][3], float aS, float matrixB[3][3], float bS)
 {
 	VECADDSUBSS(to[0], matrixA[0], aS, matrixB[0], bS);
 	VECADDSUBSS(to[1], matrixA[1], aS, matrixB[1], bS);
 	VECADDSUBSS(to[2], matrixA[2], aS, matrixB[2], bS);
 }
-/* A -= B + C (4x4 matrix sub-addition with 4x4 matrix) */
+/* A -= B + C (3x3 matrix sub-addition with 3x3 matrix) */
 DO_INLINE void subadd_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float matrixB[3][3])
 {
 	VECSUBADD(to[0], matrixA[0], matrixB[0]);
 	VECSUBADD(to[1], matrixA[1], matrixB[1]);
 	VECSUBADD(to[2], matrixA[2], matrixB[2]);
 }
-/* A -= B*x + C*y (4x4 matrix sub-addition with 4x4 matrix) */
+/* A -= B*x + C*y (3x3 matrix sub-addition with 3x3 matrix) */
 DO_INLINE void subadd_fmatrixS_fmatrixS(float to[3][3], float matrixA[3][3], float aS, float matrixB[3][3], float bS)
 {
 	VECSUBADDSS(to[0], matrixA[0], aS, matrixB[0], bS);
 	VECSUBADDSS(to[1], matrixA[1], aS, matrixB[1], bS);
 	VECSUBADDSS(to[2], matrixA[2], aS, matrixB[2], bS);
 }
-/* A = B - C (4x4 matrix subtraction with 4x4 matrix) */
+/* A = B - C (3x3 matrix subtraction with 3x3 matrix) */
 DO_INLINE void sub_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float matrixB[3][3])
 {
 	VECSUB(to[0], matrixA[0], matrixB[0]);
 	VECSUB(to[1], matrixA[1], matrixB[1]);
 	VECSUB(to[2], matrixA[2], matrixB[2]);
 }
-/* A += B - C (4x4 matrix add-subtraction with 4x4 matrix) */
+/* A += B - C (3x3 matrix add-subtraction with 3x3 matrix) */
 DO_INLINE void addsub_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float matrixB[3][3])
 {
 	VECADDSUB(to[0], matrixA[0], matrixB[0]);
@@ -450,35 +447,35 @@ DO_INLINE void addsub_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float
 /////////////////////////////////////////////////////////////////
 // special functions
 /////////////////////////////////////////////////////////////////
-/* a vector multiplied and added to/by a 4x4 matrix */
+/* a vector multiplied and added to/by a 3x3 matrix */
 DO_INLINE void muladd_fvector_fmatrix(float to[3], float from[3], float matrix[3][3])
 {
 	to[0] += matrix[0][0]*from[0] + matrix[1][0]*from[1] + matrix[2][0]*from[2];
 	to[1] += matrix[0][1]*from[0] + matrix[1][1]*from[1] + matrix[2][1]*from[2];
 	to[2] += matrix[0][2]*from[0] + matrix[1][2]*from[1] + matrix[2][2]*from[2];
 }
-/* 4x4 matrix multiplied and added  to/by a 4x4 matrix  and added to another 4x4 matrix */
+/* 3x3 matrix multiplied and added  to/by a 3x3 matrix  and added to another 3x3 matrix */
 DO_INLINE void muladd_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float matrixB[3][3])
 {
 	muladd_fvector_fmatrix(to[0], matrixA[0],matrixB);
 	muladd_fvector_fmatrix(to[1], matrixA[1],matrixB);
 	muladd_fvector_fmatrix(to[2], matrixA[2],matrixB);
 }
-/* a vector multiplied and sub'd to/by a 4x4 matrix */
+/* a vector multiplied and sub'd to/by a 3x3 matrix */
 DO_INLINE void mulsub_fvector_fmatrix(float to[3], float from[3], float matrix[3][3])
 {
 	to[0] -= matrix[0][0]*from[0] + matrix[1][0]*from[1] + matrix[2][0]*from[2];
 	to[1] -= matrix[0][1]*from[0] + matrix[1][1]*from[1] + matrix[2][1]*from[2];
 	to[2] -= matrix[0][2]*from[0] + matrix[1][2]*from[1] + matrix[2][2]*from[2];
 }
-/* 4x4 matrix multiplied and sub'd  to/by a 4x4 matrix  and added to another 4x4 matrix */
+/* 3x3 matrix multiplied and sub'd  to/by a 3x3 matrix  and added to another 3x3 matrix */
 DO_INLINE void mulsub_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float matrixB[3][3])
 {
 	mulsub_fvector_fmatrix(to[0], matrixA[0],matrixB);
 	mulsub_fvector_fmatrix(to[1], matrixA[1],matrixB);
 	mulsub_fvector_fmatrix(to[2], matrixA[2],matrixB);
 }
-/* 4x4 matrix multiplied+added by a vector */
+/* 3x3 matrix multiplied+added by a vector */
 /* STATUS: verified */
 DO_INLINE void muladd_fmatrix_fvector(float to[3], float matrix[3][3], float from[3])
 {
@@ -486,7 +483,7 @@ DO_INLINE void muladd_fmatrix_fvector(float to[3], float matrix[3][3], float fro
 	to[1] += INPR(matrix[1],from);
 	to[2] += INPR(matrix[2],from);	
 }
-/* 4x4 matrix multiplied+sub'ed by a vector */
+/* 3x3 matrix multiplied+sub'ed by a vector */
 DO_INLINE void mulsub_fmatrix_fvector(float to[3], float matrix[3][3], float from[3])
 {
 	to[0] -= INPR(matrix[0],from);
@@ -496,7 +493,7 @@ DO_INLINE void mulsub_fmatrix_fvector(float to[3], float matrix[3][3], float fro
 /////////////////////////////////////////////////////////////////
 
 ///////////////////////////
-// SPARSE SYMMETRIC big matrix with 4x4 matrix entries
+// SPARSE SYMMETRIC big matrix with 3x3 matrix entries
 ///////////////////////////
 /* printf a big matrix on console: for debug output */
 void print_bfmatrix(fmatrix3x3 *m3)
@@ -525,12 +522,26 @@ DO_INLINE void del_bfmatrix(fmatrix3x3 *matrix)
 		MEM_freeN (matrix);
 	}
 }
+
 /* copy big matrix */
 DO_INLINE void cp_bfmatrix(fmatrix3x3 *to, fmatrix3x3 *from)
 {	
 	// TODO bounds checking	
 	memcpy(to, from, sizeof(fmatrix3x3) * (from[0].vcount+from[0].scount) );
 }
+
+/* init big matrix */
+// slow in parallel
+DO_INLINE void init_bfmatrix(fmatrix3x3 *matrix, float m3[3][3])
+{
+	unsigned int i;
+
+	for(i = 0; i < matrix[0].vcount+matrix[0].scount; i++)
+	{		
+		cp_fmatrix(matrix[i].m, m3); 
+	}
+}
+
 /* init the diagonal of big matrix */
 // slow in parallel
 DO_INLINE void initdiag_bfmatrix(fmatrix3x3 *matrix, float m3[3][3])
@@ -547,16 +558,7 @@ DO_INLINE void initdiag_bfmatrix(fmatrix3x3 *matrix, float m3[3][3])
 		cp_fmatrix(matrix[j].m, tmatrix); 
 	}
 }
-/* init big matrix */
-DO_INLINE void init_bfmatrix(fmatrix3x3 *matrix, float m3[3][3])
-{
-	unsigned int i;
 
-	for(i = 0; i < matrix[0].vcount+matrix[0].scount; i++)
-	{
-		cp_fmatrix(matrix[i].m, m3); 
-	}
-}
 /* multiply big matrix with scalar*/
 DO_INLINE void mul_bfmatrix_S(fmatrix3x3 *matrix, float scalar)
 {
@@ -702,12 +704,10 @@ DO_INLINE void subadd_bfmatrixS_bfmatrixS( fmatrix3x3 *to, fmatrix3x3 *from, flo
 ///////////////////////////////////////////////////////////////////
 // simulator start
 ///////////////////////////////////////////////////////////////////
-static float I[3][3] = {{1,0,0},{0,1,0},{0,0,1}};
-static float ZERO[3][3] = {{0,0,0}, {0,0,0}, {0,0,0}};
 typedef struct Implicit_Data 
 {
 	lfVector *X, *V, *Xnew, *Vnew, *olddV, *F, *B, *dV, *z;
-	fmatrix3x3 *A, *dFdV, *dFdX, *S, *P, *Pinv, *bigI; 
+	fmatrix3x3 *A, *dFdV, *dFdX, *S, *P, *Pinv, *bigI, *M; 
 } Implicit_Data;
 
 int implicit_init (Object *ob, ClothModifierData *clmd)
@@ -721,7 +721,7 @@ int implicit_init (Object *ob, ClothModifierData *clmd)
 	LinkNode *search = NULL;
 	
 	if(G.rt > 0)
-	printf("implicit_init\n");
+		printf("implicit_init\n");
 
 	// init memory guard
 	// MEMORY_BASE.first = MEMORY_BASE.last = NULL;
@@ -741,6 +741,7 @@ int implicit_init (Object *ob, ClothModifierData *clmd)
 	id->Pinv = create_bfmatrix(cloth->numverts, cloth->numsprings);
 	id->P = create_bfmatrix(cloth->numverts, cloth->numsprings);
 	id->bigI = create_bfmatrix(cloth->numverts, cloth->numsprings); // TODO 0 springs
+	id->M = create_bfmatrix(cloth->numverts, cloth->numsprings);
 	id->X = create_lfvector(cloth->numverts);
 	id->Xnew = create_lfvector(cloth->numverts);
 	id->V = create_lfvector(cloth->numverts);
@@ -754,20 +755,22 @@ int implicit_init (Object *ob, ClothModifierData *clmd)
 	
 	for(i=0;i<cloth->numverts;i++) 
 	{
-		id->A[i].r = id->A[i].c = id->dFdV[i].r = id->dFdV[i].c = id->dFdX[i].r = id->dFdX[i].c = id->P[i].c = id->P[i].r = id->Pinv[i].c = id->Pinv[i].r = id->bigI[i].c = id->bigI[i].r = i;
+		id->A[i].r = id->A[i].c = id->dFdV[i].r = id->dFdV[i].c = id->dFdX[i].r = id->dFdX[i].c = id->P[i].c = id->P[i].r = id->Pinv[i].c = id->Pinv[i].r = id->bigI[i].c = id->bigI[i].r = id->M[i].r = id->M[i].c = i;
 
-		if(verts [i].goal >= SOFTGOALSNAP)
+		if(verts [i].flags & CLOTH_VERT_FLAG_PINNED)
 		{
 			id->S[pinned].pinned = 1;
 			id->S[pinned].c = id->S[pinned].r = i;
 			pinned++;
 		}
+		
+		initdiag_fmatrixS(id->M[i].m, verts[i].mass);
 	}
 
 	// S is special and needs specific vcount and scount
 	id->S[0].vcount = pinned; id->S[0].scount = 0;
 
-	// init springs */
+	// init springs 
 	search = cloth->springs;
 	for(i=0;i<cloth->numsprings;i++) 
 	{
@@ -775,16 +778,18 @@ int implicit_init (Object *ob, ClothModifierData *clmd)
 		
 		// dFdV_start[i].r = big_I[i].r = big_zero[i].r = 
 		id->A[i+cloth->numverts].r = id->dFdV[i+cloth->numverts].r = id->dFdX[i+cloth->numverts].r = 
-				id->P[i+cloth->numverts].r = id->Pinv[i+cloth->numverts].r = id->bigI[i+cloth->numverts].r = spring->ij;
+				id->P[i+cloth->numverts].r = id->Pinv[i+cloth->numverts].r = id->bigI[i+cloth->numverts].r = id->M[i+cloth->numverts].r = spring->ij;
 
 		// dFdV_start[i].c = big_I[i].c = big_zero[i].c = 
 		id->A[i+cloth->numverts].c = id->dFdV[i+cloth->numverts].c = id->dFdX[i+cloth->numverts].c = 
-				id->P[i+cloth->numverts].c = id->Pinv[i+cloth->numverts].c = id->bigI[i+cloth->numverts].c = spring->kl;
+				id->P[i+cloth->numverts].c = id->Pinv[i+cloth->numverts].c = id->bigI[i+cloth->numverts].c = id->M[i+cloth->numverts].c = spring->kl;
 
 		spring->matrix_index = i + cloth->numverts;
 		
 		search = search->next;
 	}
+	
+	initdiag_bfmatrix(id->bigI, I);
 
 	for(i = 0; i < cloth->numverts; i++)
 	{		
@@ -812,6 +817,7 @@ int	implicit_free (ClothModifierData *clmd)
 			del_bfmatrix(id->P);
 			del_bfmatrix(id->Pinv);
 			del_bfmatrix(id->bigI);
+			del_bfmatrix(id->M);
 
 			del_lfvector(id->X);
 			del_lfvector(id->Xnew);
@@ -848,7 +854,7 @@ DO_INLINE float fbstar(float length, float L, float kb, float cb)
 	float tempfb = kb * fb(length, L);
 
 	float fbstar = cb * (length - L);
-
+	
 	if(tempfb < fbstar)
 		return fbstar;
 	else
@@ -962,7 +968,7 @@ DO_INLINE void BuildPPinv(fmatrix3x3 *lA, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 		
 	}
 }
-
+/*
 // version 1.3
 int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 {
@@ -1030,21 +1036,135 @@ int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fma
 	
 	return iterations<conjgrad_looplimit;
 }
+*/
+// version 1.4
+int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv, fmatrix3x3 *bigI)
+{
+	unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit=100;
+	float delta0 = 0, deltaNew = 0, deltaOld = 0, alpha = 0, tol = 0;
+	lfVector *r = create_lfvector(numverts);
+	lfVector *p = create_lfvector(numverts);
+	lfVector *s = create_lfvector(numverts);
+	lfVector *h = create_lfvector(numverts);
+	lfVector *bhat = create_lfvector(numverts);
+	lfVector *btemp = create_lfvector(numverts);
+	
+	BuildPPinv(lA, P, Pinv);
+	
+	initdiag_bfmatrix(bigI, I);
+	sub_bfmatrix_Smatrix(bigI, bigI, S);
+	
+	// x = Sx_0+(I-S)z
+	filter(dv, S);
+	add_lfvector_lfvector(dv, dv, z, numverts);
+	
+	// b_hat = S(b-A(I-S)z)
+	mul_bfmatrix_lfvector(r, lA, z);
+	mul_bfmatrix_lfvector(bhat, bigI, r);
+	sub_lfvector_lfvector(bhat, lB, bhat, numverts);
+	
+	// r = S(b-Ax)
+	mul_bfmatrix_lfvector(r, lA, dv);
+	sub_lfvector_lfvector(r, lB, r, numverts);
+	filter(r, S);
+	
+	// p = SP^-1r
+	mul_prevfmatrix_lfvector(p, Pinv, r);
+	filter(p, S);
+	
+	// delta0 = bhat^TP^-1bhat
+	mul_prevfmatrix_lfvector(btemp, Pinv, bhat);
+	delta0 = dot_lfvector(bhat, btemp, numverts);
+	
+	// deltaNew = r^TP
+	deltaNew = dot_lfvector(r, p, numverts);
+	
+	/*
+	filter(dv, S);
+	add_lfvector_lfvector(dv, dv, z, numverts);
+	
+	mul_bfmatrix_lfvector(r, lA, dv);
+	sub_lfvector_lfvector(r, lB, r, numverts);
+	filter(r, S);
+	
+	mul_prevfmatrix_lfvector(p, Pinv, r);
+	filter(p, S);
+	
+	deltaNew = dot_lfvector(r, p, numverts);
+	
+	delta0 = deltaNew * sqrt(conjgrad_epsilon);
+	*/
+	
+	// itstart();
+	
+	tol = (0.01*0.2);
+	
+	while ((deltaNew > delta0*tol*tol) && (iterations < conjgrad_looplimit))
+	{
+		iterations++;
+		
+		mul_bfmatrix_lfvector(s, lA, p);
+		filter(s, S);
+		
+		alpha = deltaNew / dot_lfvector(p, s, numverts);
+		
+		add_lfvector_lfvectorS(dv, dv, p, alpha, numverts);
+		
+		add_lfvector_lfvectorS(r, r, s, -alpha, numverts);
+		
+		mul_prevfmatrix_lfvector(h, Pinv, r);
+		filter(h, S);
+		
+		deltaOld = deltaNew;
+		
+		deltaNew = dot_lfvector(r, h, numverts);
+		
+		add_lfvector_lfvectorS(p, h, p, deltaNew / deltaOld, numverts);
+		
+		filter(p, S);
+		
+	}
+	
+	// itend();
+	// printf("cg_filtered_pre time: %f\n", (float)itval());
+	
+	del_lfvector(btemp);
+	del_lfvector(bhat);
+	del_lfvector(h);
+	del_lfvector(s);
+	del_lfvector(p);
+	del_lfvector(r);
+	
+	// printf("iterations: %d\n", iterations);
+	
+	return iterations<conjgrad_looplimit;
+}
 
 // outer product is NOT cross product!!!
-DO_INLINE void dfdx_spring_type1(float to[3][3], float dir[3],float length,float L,float k)
+DO_INLINE void dfdx_spring_type1(float to[3][3], float extent[3], float length, float L, float dot, float k)
 {
 	// dir is unit length direction, rest is spring's restlength, k is spring constant.
 	// return  (outerprod(dir,dir)*k + (I - outerprod(dir,dir))*(k - ((k*L)/length)));
 	float temp[3][3];
+	float temp1 = k*(1.0 - (L/length));	
+	
+	mul_fvectorT_fvectorS(temp, extent, extent, 1.0 / dot);
+	sub_fmatrix_fmatrix(to, I, temp);
+	mul_fmatrix_S(to, temp1);
+	
+	mul_fvectorT_fvectorS(temp, extent, extent, k/ dot);
+	add_fmatrix_fmatrix(to, to, temp);
+	
+	/*
 	mul_fvectorT_fvector(temp, dir, dir);
 	sub_fmatrix_fmatrix(to, I, temp);
 	mul_fmatrix_S(to, k* (1.0f-(L/length)));
 	mul_fmatrix_S(temp, k);
 	add_fmatrix_fmatrix(to, temp, to);
+	*/
 }
 
-DO_INLINE void dfdx_spring_type2(float to[3][3], float dir[3],float length,float L,float k, float cb)
+DO_INLINE void dfdx_spring_type2(float to[3][3], float dir[3], float length, float L, float k, float cb)
 {
 	// return  outerprod(dir,dir)*fbstar_jacobi(length, L, k, cb);
 	mul_fvectorT_fvectorS(to, dir, dir, fbstar_jacobi(length, L, k, cb));
@@ -1053,8 +1173,8 @@ DO_INLINE void dfdx_spring_type2(float to[3][3], float dir[3],float length,float
 DO_INLINE void dfdv_damp(float to[3][3], float dir[3], float damping)
 {
 	// derivative of force wrt velocity.  
-	// return outerprod(dir,dir) * damping;
 	mul_fvectorT_fvectorS(to, dir, dir, damping);
+	
 }
 
 DO_INLINE void dfdx_spring(float to[3][3],  float dir[3],float length,float L,float k)
@@ -1068,6 +1188,7 @@ DO_INLINE void dfdx_spring(float to[3][3],  float dir[3],float length,float L,fl
 	mul_fmatrix_S(to, -k);
 }
 
+// unused atm
 DO_INLINE void dfdx_damp(float to[3][3],  float dir[3],float length,const float vel[3],float rest,float damping)
 {
 	// inner spring damping   vel is the relative velocity  of the endpoints.  
@@ -1078,10 +1199,12 @@ DO_INLINE void dfdx_damp(float to[3][3],  float dir[3],float length,const float 
 
 }
 
-DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, lfVector *lF, lfVector *X, lfVector *V, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX)
+DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, lfVector *lF, lfVector *X, lfVector *V, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float time)
 {
+	Cloth *cloth = clmd->clothObject;
+	ClothVertex *verts = cloth->verts;
 	float extent[3];
-	float length = 0;
+	float length = 0, dot = 0;
 	float dir[3] = {0,0,0};
 	float vel[3];
 	float k = 0.0f;
@@ -1103,11 +1226,12 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	// calculate elonglation
 	VECSUB(extent, X[s->kl], X[s->ij]);
 	VECSUB(vel, V[s->kl], V[s->ij]);
-	length = sqrt(INPR(extent, extent));
+	dot = INPR(extent, extent);
+	length = sqrt(dot);
 	
 	s->flags &= ~CLOTH_SPRING_FLAG_NEEDED;
 	
-	if(length > ABS(ALMOST_ZERO))
+	if(length > ALMOST_ZERO)
 	{
 		/*
 		if(length>L)
@@ -1128,7 +1252,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	}
 	
 	// calculate force of structural + shear springs
-	if(s->type != CLOTH_SPRING_TYPE_BENDING)
+	if((s->type & CLOTH_SPRING_TYPE_STRUCTURAL) || (s->type & CLOTH_SPRING_TYPE_SHEAR))
 	{
 		if(length > L) // only on elonglation
 		{
@@ -1137,30 +1261,57 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			k = clmd->sim_parms->structural;
 				
 			scaling = k + s->stiffness * ABS(clmd->sim_parms->max_struct-k);
-			k = scaling;
 			
-			// printf("scaling: %f, stiffness: %f\n", k, s->stiffness);
-			/*
-			if((s->ij == 109) || (s->kl == 109))
-			{
-				printf("length-L: %f, f: %f, len: %f, L: %f\n", length-L, (k*(length-L)), length, L);
-				printf("kl X-x: %f, f-y: %f, f-z: %f\n", X[s->kl][0], X[s->kl][1], X[s->kl][2]);
-				printf("ij X-x: %f, f-y: %f, f-z: %f\n\n", X[s->ij][0], X[s->ij][1], X[s->ij][2]);
-			}
-			*/
-
-			mul_fvector_S(stretch_force, dir, (k*(length-L))); 
+			k = scaling / (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
+			
+			// TODO: verify, half verified (couldn't see error)
+			mul_fvector_S(stretch_force, dir, k*(length-L)); 
 
 			VECADD(s->f, s->f, stretch_force);
 
 			// Ascher & Boxman, p.21: Damping only during elonglation
-			mul_fvector_S(damping_force, extent, clmd->sim_parms->Cdis * ((INPR(vel,extent)/length))); 
+			// something wrong with it...
+			mul_fvector_S(damping_force, dir, clmd->sim_parms->Cdis * INPR(vel,dir));
 			VECADD(s->f, s->f, damping_force);
-
-			dfdx_spring_type1(s->dfdx, dir,length,L,k);
-
-			dfdv_damp(s->dfdv, dir,clmd->sim_parms->Cdis);
+			
+			/* VERIFIED */
+			dfdx_spring(s->dfdx, dir, length, L, k);
+			
+			/* VERIFIED */
+			dfdv_damp(s->dfdv, dir, clmd->sim_parms->Cdis);
+			
 		}
+	}
+	else if(s->type & CLOTH_SPRING_TYPE_GOAL)
+	{
+		float tvect[3];
+		
+		s->flags |= CLOTH_SPRING_FLAG_NEEDED;
+		
+		// current_position = xold + t * (newposition - xold)
+		VECSUB(tvect, verts[s->ij].xconst, verts[s->ij].xold);
+		mul_fvector_S(tvect, tvect, time);
+		VECADD(tvect, tvect, verts[s->ij].xold);
+
+		VECSUB(extent, X[s->ij], tvect);
+		
+		dot = INPR(extent, extent);
+		length = sqrt(dot);
+		
+		k = clmd->sim_parms->goalspring;
+		
+		scaling = k + s->stiffness * ABS(clmd->sim_parms->max_struct-k);
+			
+		k = verts [s->ij].goal * scaling / (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
+		
+		VECADDS(s->f, s->f, extent, -k);
+		
+		mul_fvector_S(damping_force, dir, clmd->sim_parms->goalfrict * 0.01 * INPR(vel,dir));
+		VECADD(s->f, s->f, damping_force);
+		
+		// HERE IS THE PROBLEM!!!!
+		// dfdx_spring(s->dfdx, dir, length, 0.0, k);
+		// dfdv_damp(s->dfdv, dir, MIN2(1.0, (clmd->sim_parms->goalfrict/100.0)));
 	}
 	else // calculate force of bending springs
 	{
@@ -1170,28 +1321,22 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			
 			k = clmd->sim_parms->bending;	
 			
-			scaling = k + s->stiffness * ABS(clmd->sim_parms->max_bend-k);
-			cb = k = scaling;
+			scaling = k + s->stiffness * ABS(clmd->sim_parms->max_bend-k);			
+			cb = k = scaling / (20.0*(clmd->sim_parms->avg_spring_len + FLT_EPSILON));
 
 			mul_fvector_S(bending_force, dir, fbstar(length, L, k, cb));
 			VECADD(s->f, s->f, bending_force);
 
-			dfdx_spring_type2(s->dfdx, dir,length,L,k, cb);
+			dfdx_spring_type2(s->dfdx, dir, length,L, k, cb);
 		}
 	}
-	/*
-	if((s->ij == 109) || (s->kl == 109))
-	{
-	printf("type: %d, f-x: %f, f-y: %f, f-z: %f\n", s->type, s->f[0], s->f[1], s->f[2]);
-}
-	*/
 }
 
 DO_INLINE void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s, lfVector *lF, lfVector *X, lfVector *V, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX)
 {
 	if(s->flags & CLOTH_SPRING_FLAG_NEEDED)
 	{
-		if(s->type != CLOTH_SPRING_TYPE_BENDING)
+		if(!(s->type & CLOTH_SPRING_TYPE_BENDING))
 		{
 			sub_fmatrix_fmatrix(dFdV[s->ij].m, dFdV[s->ij].m, s->dfdv);
 			sub_fmatrix_fmatrix(dFdV[s->kl].m, dFdV[s->kl].m, s->dfdv);
@@ -1199,70 +1344,33 @@ DO_INLINE void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s,
 		}
 
 		VECADD(lF[s->ij], lF[s->ij], s->f);
-		VECSUB(lF[s->kl], lF[s->kl], s->f);
-
-		sub_fmatrix_fmatrix(dFdX[s->ij].m, dFdX[s->ij].m, s->dfdx);
+		
+		if(!(s->type & CLOTH_SPRING_TYPE_GOAL))
+			VECSUB(lF[s->kl], lF[s->kl], s->f);
+		
 		sub_fmatrix_fmatrix(dFdX[s->kl].m, dFdX[s->kl].m, s->dfdx);
-
+		sub_fmatrix_fmatrix(dFdX[s->ij].m, dFdX[s->ij].m, s->dfdx);
 		add_fmatrix_fmatrix(dFdX[s->matrix_index].m, dFdX[s->matrix_index].m, s->dfdx);
 	}	
 }
 
-DO_INLINE void calculateTriangleNormal(float to[3], lfVector *X, MFace mface)
-{
-	float v1[3], v2[3];
-
-	VECSUB(v1, X[mface.v2], X[mface.v1]);
-	VECSUB(v2, X[mface.v3], X[mface.v1]);
-	cross_fvector(to, v1, v2);
-}
-
-DO_INLINE void calculatQuadNormal(float to[3], lfVector *X, MFace mface)
-{
-	float temp = CalcNormFloat4(X[mface.v1],X[mface.v2],X[mface.v3],X[mface.v4],to);
-	mul_fvector_S(to, to, temp);
-}
-
-void calculateWeightedVertexNormal(ClothModifierData *clmd, MFace *mfaces, float to[3], int index, lfVector *X)
-{
-	float temp[3]; 
-	int i;
-	Cloth *cloth = clmd->clothObject;
-
-	for(i = 0; i < cloth->numfaces; i++)
-	{
-		// check if this triangle contains the selected vertex
-		if(mfaces[i].v1 == index || mfaces[i].v2 == index || mfaces[i].v3 == index || mfaces[i].v4 == index)
-		{
-			calculatQuadNormal(temp, X, mfaces[i]);
-			VECADD(to, to, temp);
-		}
-	}
-}
 float calculateVertexWindForce(float wind[3], float vertexnormal[3])  
 {
-	return fabs(INPR(wind, vertexnormal) * 0.5f);
+	return fabs(INPR(wind, vertexnormal));
 }
 
-DO_INLINE void calc_triangle_force(ClothModifierData *clmd, MFace mface, lfVector *F, lfVector *X, lfVector *V, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors)
-{	
-
-}
-
-void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time)
+void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
 {
 	/* Collect forces and derivatives:  F,dFdX,dFdV */
 	Cloth 		*cloth 		= clmd->clothObject;
-	unsigned int 	i 		= 0;
+	long		i 		= 0;
 	float 		spring_air 	= clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
 	float 		gravity[3];
 	float 		tm2[3][3] 	= {{-spring_air,0,0}, {0,-spring_air,0},{0,0,-spring_air}};
-	ClothVertex *verts = cloth->verts;
 	MFace 		*mfaces 	= cloth->mfaces;
+	//ClothVertex 	*verts		= cloth->verts;
 	float wind_normalized[3];
 	unsigned int numverts = cloth->numverts;
-	float auxvect[3], velgoal[3], tvect[3];
-	float kd, ks;
 	LinkNode *search = cloth->springs;
 
 
@@ -1275,58 +1383,85 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	initdiag_bfmatrix(dFdV, tm2);
 
 	init_lfvector(lF, gravity, numverts);
+	
+	/* multiply lF with mass matrix
+	// force = mass * acceleration (in this case: gravity)
+	*/
+	for(i = 0; i < (long)numverts; i++)
+	{
+		float temp[3];
+		VECCOPY(temp, lF[i]);
+		mul_fmatrix_fvector(lF[i], M[i].m, temp);
+	}
 
 	submul_lfvectorS(lF, lV, spring_air, numverts);
-		
-	/* do goal stuff */
-	if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) 
-	{	
-		for(i = 0; i < numverts; i++)
-		{			
-			if(verts [i].goal < SOFTGOALSNAP)
-			{			
-				// current_position = xold + t * (newposition - xold)
-				VECSUB(tvect, verts[i].xconst, verts[i].xold);
-				mul_fvector_S(tvect, tvect, time);
-				VECADD(tvect, tvect, verts[i].xold);
-
-				VECSUB(auxvect, tvect, lX[i]);
-				ks  = 1.0f/(1.0f- verts [i].goal*clmd->sim_parms->goalspring)-1.0f ;
-				VECADDS(lF[i], lF[i], auxvect, -ks);
-
-				// calulate damping forces generated by goals
-				
-				VECSUB(velgoal,verts[i].xold, verts[i].xconst);
-				kd =  clmd->sim_parms->goalfrict * 0.01f; // friction force scale taken from SB
-				VECSUBADDSS(lF[i], velgoal, kd, lV[i], kd);
-				
-				
-			}
-		}	
-	}
 	
 	/* handle external forces like wind */
 	if(effectors)
-	{
-		float speed[3] = {0.0f, 0.0f,0.0f};
-		float force[3]= {0.0f, 0.0f, 0.0f};
-		
-#pragma omp parallel for private (i) shared(lF)
-		for(i = 0; i < cloth->numverts; i++)
+	{	
+		for(i = 0; i < cloth->numfaces; i++)
 		{
 			float vertexnormal[3]={0,0,0};
-			float fieldfactor = 1000.0f; // windfactor  = 250.0f; // from sb
+			float speed[3] = {0.0f, 0.0f,0.0f};
+			float force[3]= {0.0f, 0.0f, 0.0f};
 			
-			pdDoEffectors(effectors, lX[i], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);		
+			if(mfaces[i].v4)
+				CalcNormFloat4(lX[mfaces[i].v1],lX[mfaces[i].v2],lX[mfaces[i].v3],lX[mfaces[i].v4],vertexnormal);
+			else
+				CalcNormFloat(lX[mfaces[i].v1],lX[mfaces[i].v2],lX[mfaces[i].v3],vertexnormal);
 			
-			// TODO apply forcefields here
-			VECADDS(lF[i], lF[i], force, fieldfactor*0.01f);
-
+			pdDoEffectors(effectors, lX[mfaces[i].v1], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 			VECCOPY(wind_normalized, speed);
 			Normalize(wind_normalized);
+			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
 			
-			calculateWeightedVertexNormal(clmd, mfaces, vertexnormal, i, lX);
-			VECADDS(lF[i], lF[i], wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
+			if(mfaces[i].v4)
+			{
+				VECADDS(lF[mfaces[i].v1], lF[mfaces[i].v1], wind_normalized, 0.25);
+			}
+			else
+			{
+				VECADDS(lF[mfaces[i].v1], lF[mfaces[i].v1], wind_normalized, 1.0 / 3.0);
+			}
+			
+			speed[0] = speed[1] = speed[2] = 0.0;
+			pdDoEffectors(effectors, lX[mfaces[i].v2], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+			VECCOPY(wind_normalized, speed);
+			Normalize(wind_normalized);
+			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
+			if(mfaces[i].v4)
+			{
+				VECADDS(lF[mfaces[i].v2], lF[mfaces[i].v2], wind_normalized, 0.25);
+			}
+			else
+			{
+				VECADDS(lF[mfaces[i].v2], lF[mfaces[i].v2], wind_normalized, 1.0 / 3.0);
+			}
+			
+			speed[0] = speed[1] = speed[2] = 0.0;
+			pdDoEffectors(effectors, lX[mfaces[i].v3], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+			VECCOPY(wind_normalized, speed);
+			Normalize(wind_normalized);
+			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
+			if(mfaces[i].v4)
+			{
+				VECADDS(lF[mfaces[i].v3], lF[mfaces[i].v3], wind_normalized, 0.25);
+			}
+			else
+			{
+				VECADDS(lF[mfaces[i].v3], lF[mfaces[i].v3], wind_normalized, 1.0 / 3.0);
+			}
+			
+			speed[0] = speed[1] = speed[2] = 0.0;
+			if(mfaces[i].v4)
+			{
+				pdDoEffectors(effectors, lX[mfaces[i].v4], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+				VECCOPY(wind_normalized, speed);
+				Normalize(wind_normalized);
+				VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
+				VECADDS(lF[mfaces[i].v4], lF[mfaces[i].v4], wind_normalized, 0.25);
+			}
+			
 		}
 	}
 		
@@ -1336,7 +1471,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	{
 		// only handle active springs
 		// if(((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED)){}
-		cloth_calc_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX);
+		cloth_calc_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX, time);
 
 		search = search->next;
 	}
@@ -1353,14 +1488,15 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	// printf("\n");
 }
 
-void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVector *lF, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float dt, fmatrix3x3 *A, lfVector *B, lfVector *dV, fmatrix3x3 *S, lfVector *z, lfVector *olddV, fmatrix3x3 *P, fmatrix3x3 *Pinv)
+void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVector *lF, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float dt, fmatrix3x3 *A, lfVector *B, lfVector *dV, fmatrix3x3 *S, lfVector *z, lfVector *olddV, fmatrix3x3 *P, fmatrix3x3 *Pinv, fmatrix3x3 *M, fmatrix3x3 *bigI)
 {
 	unsigned int numverts = dFdV[0].vcount;
 
 	lfVector *dFdXmV = create_lfvector(numverts);
-	initdiag_bfmatrix(A, I);
 	zero_lfvector(dV, numverts);
-
+	
+	cp_bfmatrix(A, M);
+	
 	subadd_bfmatrixS_bfmatrixS(A, dFdV, dt, dFdX, (dt*dt));
 
 	mul_bfmatrix_lfvector(dFdXmV, dFdX, lV);
@@ -1370,7 +1506,7 @@ void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVecto
 	itstart();
 	
 	cg_filtered(dV, A, B, z, S); /* conjugate gradient algorithm to solve Ax=b */
-	// cg_filtered_pre(dV, A, B, z, olddV, P, Pinv, dt);
+	// cg_filtered_pre(dV, A, B, z, S, P, Pinv, bigI);
 	
 	itend();
 	// printf("cg_filtered calc time: %f\n", (float)itval());
@@ -1387,11 +1523,11 @@ void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVecto
 int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
 { 	 	
 	unsigned int i=0;
-	float step=0.0f, tf=1.0f;
+	float step=0.0f, tf=clmd->sim_parms->timescale;
 	Cloth *cloth = clmd->clothObject;
 	ClothVertex *verts = cloth->verts;
 	unsigned int numverts = cloth->numverts;
-	float dt = 1.0f / clmd->sim_parms->stepsPerFrame;
+	float dt = clmd->sim_parms->timescale / clmd->sim_parms->stepsPerFrame;
 	Implicit_Data *id = cloth->implicit;
 	int result = 0;
 	
@@ -1400,35 +1536,44 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 		for(i = 0; i < numverts; i++)
 		{			
 			// update velocities with constrained velocities from pinned verts
-			if(verts [i].goal >= SOFTGOALSNAP)
+			if(verts [i].flags & CLOTH_VERT_FLAG_PINNED)
 			{			
 				VECSUB(id->V[i], verts[i].xconst, verts[i].xold);
-				// VecMulf(id->V[i], 1.0 / dt);
+				// VecMulf(id->V[i], clmd->sim_parms->stepsPerFrame);
 			}
 		}	
 	}
-
+	
 	while(step < tf)
-	{ 		
+	{	
+		// calculate forces
 		effectors= pdInitEffectors(ob,NULL);
+		cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step, id->M);
+		if(effectors) pdEndEffectors(effectors);
 		
-		// calculate 
-		cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step );
+		// calculate new velocity
+		simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv, id->M, id->bigI);
 		
-		// printf("F -> x: %f, y: %f; z: %f\n\n", id->F[109][0], id->F[109][1], id->F[109][2]);
-			
-		simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv);
-		
+		// advance positions
 		add_lfvector_lfvectorS(id->Xnew, id->X, id->Vnew, dt, numverts);
 		
-		/*
-		printf("dt: %f\n", dt);
-		printf("Xnew -> x: %f, y: %f; z: %f\n", id->Xnew[109][0], id->Xnew[109][1], id->Xnew[109][2]);
-		printf("X    -> x: %f, y: %f; z: %f\n", id->X[109][0], id->X[109][1], id->X[109][2]);
-		printf("Vnew -> x: %f, y: %f; z: %f\n\n", id->Vnew[109][0], id->Vnew[109][1], id->Vnew[109][2]);
-		*/
-		
-		// clmd->coll_parms->flags &= ~CLOTH_COLLSETTINGS_FLAG_ENABLED;
+		/* move pinned verts to correct position */
+		for(i = 0; i < numverts; i++)
+		{	
+			if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) 
+			{			
+				if(verts [i].flags & CLOTH_VERT_FLAG_PINNED)
+				{			
+					float tvect[3] = {.0,.0,.0};
+					VECSUB(tvect, verts[i].xconst, verts[i].xold);
+					mul_fvector_S(tvect, tvect, step+dt);
+					VECADD(tvect, tvect, verts[i].xold);
+					VECCOPY(id->Xnew[i], tvect);
+				}	
+			}
+			
+			VECCOPY(verts[i].txold, id->X[i]);
+		}
 		
 		if(clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED)
 		{
@@ -1437,21 +1582,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 			
 			// update verts to current positions
 			for(i = 0; i < numverts; i++)
-			{		
-				
-				if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) 
-				{			
-					if(verts [i].goal >= SOFTGOALSNAP)
-					{			
-						float tvect[3] = {.0,.0,.0};
-						// VECSUB(tvect, id->Xnew[i], verts[i].xold);
-						mul_fvector_S(tvect, id->V[i], step+dt);
-						VECADD(tvect, tvect, verts[i].xold);
-						VECCOPY(id->Xnew[i], tvect);
-					}
-						
-				}
-				
+			{	
 				VECCOPY(verts[i].tx, id->Xnew[i]);
 				
 				VECSUB(verts[i].tv, verts[i].tx, verts[i].txold);
@@ -1467,27 +1598,12 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 				if(result)
 				{
 					
-					if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) 
-					{			
-						if(verts [i].goal >= SOFTGOALSNAP)
-						{
-							continue;
-						}
-					}
-					
-						
-					// VECADD(verts[i].tx, verts[i].txold, verts[i].tv);
-					
-					VECCOPY(verts[i].txold, verts[i].tx);
+					if((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (verts [i].flags & CLOTH_VERT_FLAG_PINNED))
+						continue;
 					
 					VECCOPY(id->Xnew[i], verts[i].tx);
-					
 					VECCOPY(id->Vnew[i], verts[i].tv);
-					VecMulf(id->Vnew[i], 1.0f / dt);
-				}
-				else
-				{
-					VECCOPY(verts[i].txold, id->Xnew[i]);
+					VecMulf(id->Vnew[i], clmd->sim_parms->stepsPerFrame);
 				}
 			}
 			
@@ -1495,15 +1611,20 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 			cp_lfvector(id->X, id->Xnew, numverts);
 			
 			// if there were collisions, advance the velocity from v_n+1/2 to v_n+1
+			
 			if(result)
 			{
 				// V = Vnew;
 				cp_lfvector(id->V, id->Vnew, numverts);
 				
 				// calculate 
-				cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step);	
-				simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv);
+				effectors= pdInitEffectors(ob,NULL);
+				cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step+dt, id->M);	
+				if(effectors) pdEndEffectors(effectors);
+				
+				simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv, id->M, id->bigI);
 			}
+			
 		}
 		else
 		{
@@ -1516,28 +1637,18 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 		
 		// V = Vnew;
 		cp_lfvector(id->V, id->Vnew, numverts);
-
+		
 		step += dt;
-
-		if(effectors) pdEndEffectors(effectors);
+		
 	}
 
 	for(i = 0; i < numverts; i++)
 	{				
-		if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
+		if((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (verts [i].flags & CLOTH_VERT_FLAG_PINNED))
 		{
-			if(verts [i].goal < SOFTGOALSNAP)
-			{
-				VECCOPY(verts[i].txold, id->X[i]);
-				VECCOPY(verts[i].x, id->X[i]);
-				VECCOPY(verts[i].v, id->V[i]);
-			}
-			else
-			{
-				VECCOPY(verts[i].txold, verts[i].xconst);
-				VECCOPY(verts[i].x, verts[i].xconst);
-				VECCOPY(verts[i].v, id->V[i]);
-			}
+			VECCOPY(verts[i].txold, verts[i].xconst); // TODO: test --> should be .x 
+			VECCOPY(verts[i].x, verts[i].xconst);
+			VECCOPY(verts[i].v, id->V[i]);
 		}
 		else
 		{
@@ -1546,6 +1657,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 			VECCOPY(verts[i].v, id->V[i]);
 		}
 	}
+	
 	return 1;
 }
 
@@ -1562,5 +1674,6 @@ void implicit_set_positions (ClothModifierData *clmd)
 		VECCOPY(id->V[i], verts[i].v);
 	}
 	if(G.rt > 0)
-	printf("implicit_set_positions\n");	
+		printf("implicit_set_positions\n");	
 }
+

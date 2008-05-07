@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h>
@@ -188,7 +185,7 @@ PackedFile * newPackedFile(char * filename)
 	// convert relative filenames to absolute filenames
 	
 	strcpy(name, filename);
-	BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(name, G.sce);
 	
 	// open the file
 	// and create a PackedFile structure
@@ -289,7 +286,7 @@ int writePackedFile(char * filename, PackedFile *pf, int guimode)
 	if (guimode) waitcursor(1);
 	
 	strcpy(name, filename);
-	BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(name, G.sce);
 	
 	if (BLI_exists(name)) {
 		for (number = 1; number <= 999; number++) {
@@ -320,11 +317,11 @@ int writePackedFile(char * filename, PackedFile *pf, int guimode)
 	
 	if (remove_tmp) {
 		if (ret_value == RET_ERROR) {
-			if (BLI_rename(tempname, name) == RET_ERROR) {
+			if (BLI_rename(tempname, name) != 0) {
 				if(guimode) error("Error restoring tempfile. Check files: '%s' '%s'", tempname, name);
 			}
 		} else {
-			if (BLI_delete(tempname, 0, 0) == RET_ERROR) {
+			if (BLI_delete(tempname, 0, 0) != 0) {
 				if(guimode) error("Error deleting '%s' (ignored)");
 			}
 		}
@@ -354,7 +351,7 @@ int checkPackedFile(char * filename, PackedFile * pf)
 	char name[FILE_MAXDIR + FILE_MAXFILE];
 	
 	strcpy(name, filename);
-	BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(name, G.sce);
 	
 	if (stat(name, &st)) {
 		ret_val = PF_NOFILE;

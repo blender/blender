@@ -1,6 +1,6 @@
 /**
  *
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -38,6 +38,15 @@
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 
+/* for checking system threads - BLI_system_thread_count */
+#ifdef WIN32
+#include "Windows.h"
+#elif defined(__APPLE__)
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#else
+#include <unistd.h> 
+#endif
 
 /* ********** basic thread control API ************ 
 
@@ -222,6 +231,38 @@ void BLI_unlock_thread(int type)
 		pthread_mutex_unlock(&_image_lock);
 	else if(type==LOCK_CUSTOM1)
 		pthread_mutex_unlock(&_custom1_lock);
+}
+
+/* how many threads are native on this system? */
+int BLI_system_thread_count( void )
+{
+	int t;
+#ifdef WIN32
+	SYSTEM_INFO info;
+	GetSystemInfo(&info);
+	t = (int) info.dwNumberOfProcessors;
+#else 
+#	ifdef __APPLE__
+	int mib[2];
+	size_t len;
+	
+	mib[0] = CTL_HW;
+	mib[1] = HW_NCPU;
+	len = sizeof(t);
+	sysctl(mib, 2, &t, &len, NULL, 0);
+#	elif defined(__sgi)
+	t = sysconf(_SC_NPROC_ONLN);
+#	else
+	t = (int)sysconf(_SC_NPROCESSORS_ONLN);
+#	endif
+#endif
+	
+	if (t>RE_MAX_THREAD)
+		return RE_MAX_THREAD;
+	if (t<1)
+		return 1;
+	
+	return t;
 }
 
 /* eof */

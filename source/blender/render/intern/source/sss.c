@@ -59,6 +59,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 /* this module */
@@ -847,7 +848,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 {
 	SSSPoints *p;
 	RenderResult *rr;
-	ListBase layers, points;
+	ListBase points;
 	float (*co)[3] = NULL, (*color)[3] = NULL, *area = NULL;
 	int totpoint = 0, osa, osaflag, partsdone;
 
@@ -861,12 +862,10 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 
 	/* do SSS preprocessing render */
 	rr= re->result;
-	layers= rr->layers;
 	osa= re->osa;
 	osaflag= re->r.mode & R_OSA;
 	partsdone= re->i.partsdone;
 
-	rr->layers.first= rr->layers.last= NULL;
 	re->osa= 0;
 	re->r.mode &= ~R_OSA;
 	re->sss_points= &points;
@@ -881,7 +880,6 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	re->i.partsdone= partsdone;
 	re->sss_mat= NULL;
 	re->sss_points= NULL;
-	rr->layers= layers;
 	re->osa= osa;
 	if (osaflag) re->r.mode |= R_OSA;
 
@@ -921,7 +919,8 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 		float *col= mat->sss_col, *radius= mat->sss_radius;
 		float fw= mat->sss_front, bw= mat->sss_back;
 		float error = mat->sss_error;
-		
+
+		error= get_render_aosss_error(&re->r, error);
 		if((re->r.scemode & R_PREVIEWBUTS) && error < 0.5f)
 			error= 0.5f;
 
@@ -985,7 +984,7 @@ void make_sss_tree(Render *re)
 	re->stats_draw(&re->i);
 	
 	for(mat= G.main->mat.first; mat; mat= mat->id.next)
-		if(mat->id.us && (mat->sss_flag & MA_DIFF_SSS))
+		if(mat->id.us && (mat->flag & MA_IS_USED) && (mat->sss_flag & MA_DIFF_SSS))
 			sss_create_tree_mat(re, mat);
 }
 

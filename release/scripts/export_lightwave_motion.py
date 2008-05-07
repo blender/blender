@@ -8,13 +8,13 @@ Tip: 'Export Loc Rot Size chanels to a Lightwave .mot file'
 """
 
 __author__ = "Daniel Salazar (ZanQdo)"
-__url__ = ("blender", "elysiun",
+__url__ = ("blender", "blenderartists.org",
 "e-mail: zanqdo@gmail.com")
-__version__ = "24/03/06"
+__version__ = "16/04/08"
 
 __bpydoc__ = """\
-This script exports the selected object's motion channels to a Lightwave
-motion file (.mot).
+This script exports the selected object's motion channels to Lightwave
+motion files (.mot).
 
 Usage:
 Run the script with one or more objects selected (any kind), frames exported
@@ -45,6 +45,7 @@ are between Start and End frames in Render buttons.
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 import Blender as B
+import math as M
 #------------------------------------
 #Declarados:
 TotalCanales = 9
@@ -116,11 +117,11 @@ def FuncionPrincipal (Dir):
 				elif NumCanal == 2:
 					Val = mat.translationPart().y
 				elif NumCanal == 3:
-					Val = -mat.toEuler().z
+					Val = M.radians (-mat.toEuler().z)
 				elif NumCanal == 4:
-					Val = -mat.toEuler().x
+					Val = M.radians (-mat.toEuler().x)
 				elif NumCanal == 5:
-					Val = -mat.toEuler().y
+					Val = M.radians (-mat.toEuler().y)
 				elif NumCanal == 6:
 					Val = mat.scalePart().x
 				elif NumCanal == 7:

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -423,7 +420,6 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 	dofluidsim = ((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&
 	              (ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN)&&
 	              (ob->fluidsimSettings->meshSurface) &&
-	              (1) && (!give_parteff(ob)) && // doesnt work together with particle systems!
 	              (me->totvert == ((Mesh *)(ob->fluidsimSettings->meshSurface))->totvert));
 
 	if (vertCos && !dofluidsim)
@@ -636,7 +632,6 @@ static void emDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *use
 }
 static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors)
 {
-	GLubyte act_face_stipple[32*32/8] = DM_FACE_STIPPLE;
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditFace *efa;
 	int i, draw;
@@ -653,7 +648,7 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 			if(draw) {
 				if (draw==2) { /* enabled with stipple */
 		  			glEnable(GL_POLYGON_STIPPLE);
-		  			glPolygonStipple(act_face_stipple);
+		  			glPolygonStipple(stipple_quarttone);
 				}
 				
 				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
@@ -690,7 +685,7 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 			if(draw) {
 				if (draw==2) { /* enabled with stipple */
 		  			glEnable(GL_POLYGON_STIPPLE);
-		  			glPolygonStipple(act_face_stipple);
+		  			glPolygonStipple(stipple_quarttone);
 				}
 				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 
@@ -734,6 +729,9 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 	EditFace *efa;
 	int i;
 
+	/* always use smooth shading even for flat faces, else vertex colors wont interpolate */
+	glShadeModel(GL_SMOOTH);
+	
 	if (vertexCos) {
 		EditVert *eve;
 
@@ -755,11 +753,16 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 				flag= 1;
 
 			if(flag != 0) { /* flag 0 == the face is hidden or invisible */
-				if (flag==1 && mcol)
-					cp= (unsigned char*)mcol;
-
-				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
-
+				
+				/* we always want smooth here since otherwise vertex colors dont interpolate */
+				if (mcol) {
+					if (flag==1) {
+						cp= (unsigned char*)mcol;
+					}
+				} else {
+					glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+				} 
+				
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 				if (!drawSmooth) {
 					glNormal3fv(emdm->faceNos[i]);
@@ -823,10 +826,14 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 				flag= 1;
 
 			if(flag != 0) { /* flag 0 == the face is hidden or invisible */
-				if (flag==1 && mcol)
-					cp= (unsigned char*)mcol;
-
-				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+				/* we always want smooth here since otherwise vertex colors dont interpolate */
+				if (mcol) {
+					if (flag==1) {
+						cp= (unsigned char*)mcol;
+					}
+				} else {
+					glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+				} 
 
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 				if (!drawSmooth) {
@@ -942,6 +949,7 @@ void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 
 	/* TODO what to do with vert_r->flag and vert_r->mat_nr? */
 	vert_r->mat_nr = 0;
+	vert_r->bweight = (unsigned char) (ev->bweight*255.0f);
 }
 
 void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
@@ -954,6 +962,7 @@ void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 	for(i = 0; i < index; ++i) ee = ee->next;
 
 	edge_r->crease = (unsigned char) (ee->crease*255.0f);
+	edge_r->bweight = (unsigned char) (ee->bweight*255.0f);
 	/* TODO what to do with edge_r->flag? */
 	edge_r->flag = ME_EDGEDRAW|ME_EDGERENDER;
 	if (ee->seam) edge_r->flag |= ME_SEAM;
@@ -1034,6 +1043,7 @@ void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 		/* TODO what to do with vert_r->flag and vert_r->mat_nr? */
 		vert_r->mat_nr = 0;
 		vert_r->flag = 0;
+		vert_r->bweight = (unsigned char) (ev->bweight*255.0f);
 	}
 }
 
@@ -1050,6 +1060,7 @@ void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 
 	for( ; ee; ee = ee->next, ++edge_r) {
 		edge_r->crease = (unsigned char) (ee->crease*255.0f);
+		edge_r->bweight = (unsigned char) (ee->bweight*255.0f);
 		/* TODO what to do with edge_r->flag? */
 		edge_r->flag = ME_EDGEDRAW|ME_EDGERENDER;
 		if (ee->seam) edge_r->flag |= ME_SEAM;
@@ -1318,6 +1329,7 @@ void vDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 				/* not supported yet */
 				edge_r->flag = 0;
 				edge_r->crease = 0;
+				edge_r->bweight = 0;
 				break;
 			}
 		}
@@ -1424,6 +1436,7 @@ void vDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 			/* not supported yet */
 			edge_r->flag = 0;
 			edge_r->crease = 0;
+			edge_r->bweight = 0;
 		}
 	}
 }
@@ -1902,8 +1915,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	 * domain objects
 	 */
 	if((G.obedit!=ob) && !needMapping) {
-		if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&
-		   (1) && (!give_parteff(ob)) ) { // doesnt work together with particle systems!
+		if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE)) {
 			if(ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN) {
 				loadFluidsimMesh(ob,useRenderParams);
 				fluidsimMeshUsed = 1;
@@ -1995,8 +2007,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 		if((md->mode & required_mode) != required_mode) continue;
 		if(mti->type == eModifierTypeType_OnlyDeform && !useDeform) continue;
 		if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
-			modifier_setError(md, "Internal error, modifier requires "
-			                  "original data (bad stack position).");
+			modifier_setError(md, "Modifier requires original data, bad stack position.");
 			continue;
 		}
 		if(mti->isDisabled && mti->isDisabled(md)) continue;
@@ -2177,8 +2188,7 @@ static int editmesh_modifier_is_enabled(ModifierData *md, DerivedMesh *dm)
 
 	if((md->mode & required_mode) != required_mode) return 0;
 	if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
-		modifier_setError(md, "Internal error, modifier requires"
-		                  "original data (bad stack position).");
+		modifier_setError(md, "Modifier requires original data, bad stack position.");
 		return 0;
 	}
 	if(mti->isDisabled && mti->isDisabled(md)) return 0;
@@ -2538,14 +2548,7 @@ void makeDerivedMesh(Object *ob, CustomDataMask dataMask)
 	if (ob==G.obedit) {
 		editmesh_build_data(dataMask);
 	} else {
-		PartEff *paf= give_parteff(ob);
-		
 		mesh_build_data(ob, dataMask);
-		
-		if(paf) {
-			if((paf->flag & PAF_STATIC) || (ob->recalc & OB_RECALC_TIME)==0)
-				build_particle_system(ob);
-		}
 	}
 }
 
@@ -2578,7 +2581,7 @@ float *multires_render_pin(Object *ob, Mesh *me, int *orig_lvl)
 {
 	float *vert_copy= NULL;
 
-	if(me->mr) {
+	if(me->mr && !(me->mr->flag & MULTIRES_NO_RENDER)) {
 		MultiresLevel *lvl= NULL;
 		int i;
 		
@@ -2604,16 +2607,22 @@ float *multires_render_pin(Object *ob, Mesh *me, int *orig_lvl)
 void multires_render_final(Object *ob, Mesh *me, DerivedMesh **dm, float *vert_copy,
 			   const int orig_lvl, CustomDataMask dataMask)
 {
-	if(me->mr) {
+	if(me->mr && !(me->mr->flag & MULTIRES_NO_RENDER)) {
 		if((*dm)->getNumVerts(*dm) == me->totvert &&
 		   (*dm)->getNumFaces(*dm) == me->totface) {
 			MultiresLevel *lvl= multires_level_n(me->mr, BLI_countlist(&me->mr->levels));
 			DerivedMesh *old= NULL;
+			MVert *vertdup= NULL;
 			int i;
 
-			(*dm)->copyVertArray(*dm, me->mvert);
+			/* Copy the verts into the mesh */
+			vertdup= (*dm)->dupVertArray(*dm);
 			(*dm)->release(*dm);
-
+			for(i=0; i<me->totvert; ++i)
+				me->mvert[i]= vertdup[i];
+			/* Free vertdup after use*/
+			MEM_freeN(vertdup);
+			/* Go to the render level */
 			me->mr->newlvl= me->mr->renderlvl;
 			multires_set_level(ob, me, 1);
 			(*dm)= getMeshDerivedMesh(me, ob, NULL);
@@ -3291,11 +3300,13 @@ void loadFluidsimMesh(Object *srcob, int useRenderParams)
 		srcob->data = srcob->fluidsimSettings->orgMesh;
 		return;
 	} else if(displaymode==2) {
-		strcat(targetDir,"fluidsurface_preview_#");
+		strcat(targetDir,"fluidsurface_preview_####");
 	} else { // 3
-		strcat(targetDir,"fluidsurface_final_#");
+		strcat(targetDir,"fluidsurface_final_####");
 	}
-	BLI_convertstringcode(targetDir, G.sce, curFrame); // fixed #frame-no 
+	BLI_convertstringcode(targetDir, G.sce);
+	BLI_convertstringframe(targetDir, curFrame); // fixed #frame-no 
+	
 	strcpy(targetFile,targetDir);
 	strcat(targetFile, ".bobj.gz");
 

@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 /**
  * @file	GHOST_ISystem.h
@@ -295,6 +292,22 @@ public:
 	 */
 	virtual GHOST_TSuccess addEventConsumer(GHOST_IEventConsumer* consumer) = 0;
 	
+	 /***************************************************************************************
+	 ** N-degree of freedom device management functionality
+	 ***************************************************************************************/
+
+   /**
+    * Starts the N-degree of freedom device manager
+    */
+   virtual int openNDOF(GHOST_IWindow*,
+       GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
+       GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
+       GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen
+       // original patch only
+      // GHOST_NDOFEventHandler_fp setNdofEventHandler
+       ) = 0;
+
+
 	/***************************************************************************************
 	 ** Cursor management functionality
 	 ***************************************************************************************/
@@ -335,6 +348,18 @@ public:
 	 * @return			Indication of success.
 	 */
 	virtual GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const = 0;
+
+	/**
+	 * Returns the selection buffer
+	 * @return Returns "unsinged char" from X11 XA_CUT_BUFFER0 buffer
+	 *
+	 */
+	 virtual GHOST_TUns8* getClipboard(int flag) const = 0;
+
+	/**
+	 * Put data to the Clipboard
+	 */
+	virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const = 0;
 
 protected:
 	/**

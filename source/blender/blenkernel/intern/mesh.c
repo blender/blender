@@ -5,15 +5,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +28,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef HAVE_CONFIG_H
@@ -530,7 +527,7 @@ void transform_mesh_orco_verts(Mesh *me, float (*orco)[3], int totvert, int inve
 
 /* rotates the vertices of a face in case v[2] or v[3] (vertex index) is = 0.
    this is necessary to make the if(mface->v4) check for quads work */
-void test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
+int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 {
 	/* first test if the face is legal */
 	if(mface->v3 && mface->v3==mface->v4) {
@@ -572,6 +569,8 @@ void test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 				CustomData_swap(fdata, mfindex, corner_indices);
 		}
 	}
+
+	return nr;
 }
 
 Mesh *get_mesh(Object *ob)
@@ -768,8 +767,7 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 			mface->v4= index[3];
 			mface->flag= ME_SMOOTH;
 
-			if(mface->v3==mface->v4)
-				mface->v4= 0;
+			test_index_face(mface, NULL, 0, (mface->v3==mface->v4)? 3: 4);
 
 			mface++;
 			index+= 4;
@@ -1108,9 +1106,13 @@ float (*mesh_getRefKeyCos(Mesh *me, int *numVerts_r))[3]
 	
 	if(me->key && me->key->refkey) {
 		if(numVerts_r) *numVerts_r= me->totvert;
-		cos= MEM_mallocN(sizeof(*cos)*me->totvert, "vertexcos1");
-
+		
 		kb= me->key->refkey;
+		
+		/* prevent accessing invalid memory */
+		if (me->totvert > kb->totelem)		cos= MEM_callocN(sizeof(*cos)*me->totvert, "vertexcos1");
+		else								cos= MEM_mallocN(sizeof(*cos)*me->totvert, "vertexcos1");
+		
 		totvert= MIN2(kb->totelem, me->totvert);
 
 		memcpy(cos, kb->data, sizeof(*cos)*totvert);
@@ -1140,12 +1142,12 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 	if(totuv==0)
 		return NULL;
 	
-	vmap= (UvVertMap*)MEM_mallocN(sizeof(*vmap), "UvVertMap");
+	vmap= (UvVertMap*)MEM_callocN(sizeof(*vmap), "UvVertMap");
 	if (!vmap)
 		return NULL;
 
 	vmap->vert= (UvMapVert**)MEM_callocN(sizeof(*vmap->vert)*totvert, "UvMapVert*");
-	buf= vmap->buf= (UvMapVert*)MEM_mallocN(sizeof(*vmap->buf)*totuv, "UvMapVert");
+	buf= vmap->buf= (UvMapVert*)MEM_callocN(sizeof(*vmap->buf)*totuv, "UvMapVert");
 
 	if (!vmap->vert || !vmap->buf) {
 		free_uv_vert_map(vmap);

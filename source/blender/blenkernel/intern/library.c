@@ -1,15 +1,12 @@
 /** 
  * $Id$
  * 
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /*
@@ -114,7 +111,7 @@
 #include "BKE_brush.h"
 #include "BKE_idprop.h"
 
-#include "BPI_script.h"
+#include "DNA_space_types.h"
 
 #define MAX_IDPUP		60	/* was 24 */
 
@@ -977,7 +974,7 @@ static void image_fix_relative_path(Image *ima)
 {
 	if(ima->id.lib==NULL) return;
 	if(strncmp(ima->name, "//", 2)==0) {
-		BLI_convertstringcode(ima->name, ima->id.lib->filename, 0);
+		BLI_convertstringcode(ima->name, ima->id.lib->filename);
 		BLI_makestringcode(G.sce, ima->name);
 	}
 }
@@ -994,7 +991,7 @@ static void lib_indirect_test_id(ID *id)
 		Object *ob= (Object *)id;
 		bActionStrip *strip;
 		Mesh *me;
-		PartEff *paf;
+
 		int a;
 
 		for (strip=ob->nlastrips.first; strip; strip=strip->next){
@@ -1006,10 +1003,6 @@ static void lib_indirect_test_id(ID *id)
 		for(a=0; a<ob->totcol; a++) {
 			LIBTAG(ob->mat[a]);
 		}
-		
-		paf = give_parteff(ob);
-		if (paf) 
-			LIBTAG(paf->group);
 	
 		LIBTAG(ob->dup_group);
 		LIBTAG(ob->proxy);

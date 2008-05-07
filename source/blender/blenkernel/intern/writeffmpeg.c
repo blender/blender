@@ -41,6 +41,12 @@
 #define FFMPEG_CODEC_TIME_BASE  1
 #endif
 
+#if LIBAVFORMAT_VERSION_INT >= (52 << 16)
+#define OUTFILE_PB (outfile->pb)
+#else
+#define OUTFILE_PB (&outfile->pb)
+#endif
+
 #if defined(WIN32) && (!(defined snprintf))
 #define snprintf _snprintf
 #endif
@@ -212,6 +218,10 @@ static const char** get_file_extensions(int format)
 	case FFMPEG_XVID: {
 		/* FIXME: avi for now... */
 		static const char * rv[] = { ".avi", NULL };
+		return rv;
+	}
+	case FFMPEG_FLV: {
+		static const char * rv[] = { ".flv", NULL };
 		return rv;
 	}
 	default:
@@ -593,6 +603,9 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 	case FFMPEG_XVID:
 		fmt->video_codec = CODEC_ID_XVID;
 		break;
+	case FFMPEG_FLV:
+		fmt->video_codec = CODEC_ID_FLV1;
+		break;
 	case FFMPEG_MPEG4:
 	default:
 		fmt->video_codec = CODEC_ID_MPEG4;
@@ -618,6 +631,9 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 			return;
 		}
 	}
+	
+	fmt->audio_codec = ffmpeg_audio_codec;
+
 	if (ffmpeg_type == FFMPEG_DV) {
 		fmt->audio_codec = CODEC_ID_PCM_S16LE;
 		if (ffmpeg_multiplex_audio 
@@ -679,7 +695,8 @@ void makeffmpegstring(char* string) {
 	if (!string || !exts) return;
 
 	strcpy(string, G.scene->r.pic);
-	BLI_convertstringcode(string, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(string, G.sce);
+	BLI_convertstringframe(string, G.scene->r.cfra);
 
 	BLI_make_existing_file(string);
 
@@ -751,7 +768,7 @@ void append_ffmpeg(int frame, int *pixels, int rectx, int recty)
 	write_video_frame(generate_video_frame((unsigned char*) pixels));
 
 	if (ffmpeg_autosplit) {
-		if (url_ftell(&outfile->pb) > FFMPEG_AUTOSPLIT_SIZE) {
+		if (url_ftell(OUTFILE_PB) > FFMPEG_AUTOSPLIT_SIZE) {
 			end_ffmpeg();
 			ffmpeg_autosplit_count++;
 			start_ffmpeg_impl(ffmpeg_renderdata,
@@ -798,7 +815,7 @@ void end_ffmpeg(void)
 	}
 	if (outfile && outfile->oformat) {
 		if (!(outfile->oformat->flags & AVFMT_NOFILE)) {
-			url_fclose(&outfile->pb);
+			url_fclose(OUTFILE_PB);
 		}
 	}
 	if (outfile) {

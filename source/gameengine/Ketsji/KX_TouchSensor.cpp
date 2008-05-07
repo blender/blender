@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "KX_TouchSensor.h"
@@ -51,18 +48,8 @@
 
 void KX_TouchSensor::SynchronizeTransform()
 {
-
-	if (m_physCtrl)
-	{
-
-		KX_GameObject* parent = ((KX_GameObject*)GetParent());
-		MT_Vector3 pos = parent->NodeGetWorldPosition();
-		MT_Quaternion orn = parent->NodeGetWorldOrientation().getRotation();
-		m_physCtrl->setPosition(pos.x(),pos.y(),pos.z());
-		m_physCtrl->setOrientation(orn.x(),orn.y(),orn.z(),orn.w());
-		m_physCtrl->calcXform();
-	}
-	
+	// the touch sensor does not require any synchronization: it uses
+	// the same physical object which is already synchronized by Blender
 }
 
 
@@ -274,10 +261,10 @@ PyObject* KX_TouchSensor::PySetProperty(PyObject* self,
 
 	if (!prop->IsError()) {
 		m_touchedpropname = nameArg;
-		prop->Release();
 	} else {
 		; /* not found ... */
 	}
+	prop->Release();
 	
 	Py_Return;
 }
@@ -351,8 +338,8 @@ PyObject* KX_TouchSensor::PyGetHitObjectList(PyObject* self,
 				CValue* val = m_colliders->GetValue(i)->FindIdentifier(m_touchedpropname);
 				if (!val->IsError()) {
 					newList->Add(m_colliders->GetValue(i)->AddRef());
-					val->Release();
 				}
+				val->Release();
 			}
 			
 			i++;

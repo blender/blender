@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Regulates the top-level logic behaviour for one scene.
  */
 #include "Value.h"
@@ -51,6 +48,10 @@ SCA_LogicManager::SCA_LogicManager()
 
 SCA_LogicManager::~SCA_LogicManager()
 {
+	/* AddRef() is not used when the objects are added to m_mapStringToGameObjects
+	   so Release() should not be used either. The memory leak big is fixed
+	   in BL_ConvertBlenderObjects()
+
 	int numgameobj = m_mapStringToGameObjects.size();
 	for (int i = 0; i < numgameobj; i++)
 	{
@@ -58,8 +59,9 @@ SCA_LogicManager::~SCA_LogicManager()
 		assert(gameobjptr);
 		if (gameobjptr)
 			(*gameobjptr)->Release();
-
+    
 	}
+	*/
 	/*for (int i=0;i<m_sensorcontrollermap.size();i++)
 	{
 		vector<SCA_IController*>* controllerarray = *(m_sensorcontrollermap[i]);
@@ -72,6 +74,8 @@ SCA_LogicManager::~SCA_LogicManager()
 	}
 	m_eventmanagers.clear();
 	m_sensorcontrollermapje.clear();
+	m_removedActuators.clear();
+	m_activeActuators.clear();
 }
 
 
@@ -170,6 +174,14 @@ void SCA_LogicManager::RemoveSensor(SCA_ISensor* sensor)
 	}
 }
 
+void SCA_LogicManager::RemoveController(SCA_IController* controller)
+{
+	std::map<SCA_ISensor*,controllerlist>::iterator sit;
+	for (sit = m_sensorcontrollermapje.begin();!(sit==m_sensorcontrollermapje.end());++sit)
+	{
+		(*sit).second.remove(controller);
+	}
+}
 
 
 void SCA_LogicManager::RemoveDestroyedActuator(SCA_IActuator* actuator)

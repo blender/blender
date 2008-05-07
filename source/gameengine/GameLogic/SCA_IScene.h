@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef __KX_ISCENE_H
 #define __KX_ISCENE_H
@@ -40,6 +37,8 @@ struct SCA_DebugProp
 {
 	class CValue*	m_obj;
 	STR_String 		m_name;
+	SCA_DebugProp();
+	~SCA_DebugProp();
 };
 
 class SCA_IScene 
@@ -60,6 +59,7 @@ public:
 	std::vector<SCA_DebugProp*>& GetDebugProperties();
 	void			AddDebugProperty(class CValue* debugprop,
 									 const STR_String &name);
+	void			RemoveAllDebugProperties();
 };
 
 #endif //__KX_ISCENE_H

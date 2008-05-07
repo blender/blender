@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /*
@@ -146,6 +143,26 @@ public:
 				 cj * sh, sj * ss + cc, sj * cs - sc, 
 	       			 -sj,      cj * si,      cj * ci);
 	}
+
+	void getEuler(MT_Scalar& yaw, MT_Scalar& pitch, MT_Scalar& roll) const
+		{			
+			if (m_el[2][0] != -1.0 && m_el[2][0] != 1.0) {
+				pitch = MT_Scalar(-asin(m_el[2][0]));
+				yaw = MT_Scalar(atan2(m_el[2][1] / cos(pitch), m_el[2][2] / cos(pitch)));
+				roll = MT_Scalar(atan2(m_el[1][0] / cos(pitch), m_el[0][0] / cos(pitch)));				
+			}
+			else {
+				roll = MT_Scalar(0);
+				if (m_el[2][0] == -1.0) {
+					pitch = MT_PI / 2.0;
+					yaw = MT_Scalar(atan2(m_el[0][1], m_el[0][2]));
+				}
+				else {
+					pitch = - MT_PI / 2.0;
+					yaw = MT_Scalar(atan2(m_el[0][1], m_el[0][2]));
+				}
+			}
+		}
 
     void scale(MT_Scalar x, MT_Scalar y, MT_Scalar z) {
         m_el[0][0] *= x; m_el[0][1] *= y; m_el[0][2] *= z;

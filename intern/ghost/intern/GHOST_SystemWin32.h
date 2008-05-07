@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 /**
  * @file	GHOST_SystemWin32.h
@@ -170,6 +167,20 @@ public:
 	 */
 	virtual GHOST_TSuccess getButtons(GHOST_Buttons& buttons) const;
 
+	/**
+	 * Returns unsinged char from CUT_BUFFER0
+	 * @param flag		Flag is not used on win32 on used on X11
+	 * @return		Returns the Clipboard
+	 */
+	virtual GHOST_TUns8* getClipboard(int flag) const;
+	
+	/**
+	 * Puts buffer to system clipboard
+	 * @param flag		Flag is not used on win32 on used on X11
+	 * @return		No return
+	 */
+	virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const;
+	 
 protected:
 	/**
 	 * Initializes the system.

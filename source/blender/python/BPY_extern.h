@@ -1,15 +1,12 @@
 /*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,13 +24,14 @@
  *
  * Contributor(s): Michel Selten, Willian P. Germano, Chris Keith
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BPY_EXTERN_H
 #define BPY_EXTERN_H
 
 extern char bprogname[];	/* holds a copy of argv[0], from creator.c */
+extern char btempdir[];		/* use this to store a valid temp directory */
 
 struct Text; /* defined in DNA_text_types.h */
 struct ID; /* DNA_ID.h */
@@ -43,13 +41,13 @@ struct ScriptLink; /* DNA_scriptlink_types.h */
 struct ListBase; /* DNA_listBase.h */
 struct SpaceText; /* DNA_space_types.h */
 struct SpaceScript; /* DNA_space_types.h */
-struct Script; /* BPI_script.h */
 struct ScrArea; /* DNA_screen_types.h */
 struct bScreen; /* DNA_screen_types.h */
 struct bConstraint; /* DNA_constraint_types.h */
 struct bPythonConstraint; /* DNA_constraint_types.h */
 struct bConstraintOb; /* DNA_constraint_types.h */
 struct bConstraintTarget; /* DNA_constraint_types.h*/
+struct Script;				/* DNA_screen_types.h */
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -78,19 +76,23 @@ extern "C" {
 	void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct);
 	void BPY_pyconstraint_update(struct Object *owner, struct bConstraint *con);
 	int BPY_is_pyconstraint(struct Text *text);
+	void BPY_free_pyconstraint_links(struct Text *text);
 	
 	void BPY_start_python( int argc, char **argv );
 	void BPY_end_python( void );
 	void BPY_post_start_python( void );
 	void init_syspath( int first_time );
 	void syspath_append( char *dir );
-
+	void BPY_rebuild_syspath( void );
+	int BPY_path_update( void );
+	
 	int BPY_Err_getLinenumber( void );
 	const char *BPY_Err_getFilename( void );
 
 	int BPY_txt_do_python_Text( struct Text *text );
 	int BPY_menu_do_python( short menutype, int event );
 	void BPY_run_python_script( char *filename );
+	int BPY_run_script(struct Script *script);
 	void BPY_free_compiled_text( struct Text *text );
 
 	void BPY_clear_bad_scriptlinks( struct Text *byebye );
@@ -123,7 +125,10 @@ extern "C" {
 					     unsigned short event, short val, char ascii );
 	void BPY_clear_script( struct Script *script );
 	void BPY_free_finished_script( struct Script *script );
-
+	void BPY_scripts_clear_pyobjects( void );
+	
+	void error_pyscript( void );
+	
 /* void BPY_Err_Handle(struct Text *text); */
 /* void BPY_clear_bad_scriptlink(struct ID *id, struct Text *byebye); */
 /* void BPY_clear_bad_scriptlist(struct ListBase *, struct Text *byebye); */

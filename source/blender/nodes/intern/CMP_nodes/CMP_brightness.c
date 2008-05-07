@@ -35,8 +35,8 @@
 
 static bNodeSocketType cmp_node_brightcontrast_in[]= {
 	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 1, "bright",		0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f},
-	{	SOCK_VALUE, 1, "contrast",		0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f},
+	{	SOCK_VALUE, 1, "Bright",		0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f},
+	{	SOCK_VALUE, 1, "Contrast",		0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f},
 	{	-1, 0, ""	}
 };
 static bNodeSocketType cmp_node_brightcontrast_out[]= {

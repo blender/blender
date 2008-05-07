@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #include <iostream>
 
@@ -55,7 +52,9 @@ SCA_IObject::~SCA_IObject()
 	SCA_SensorList::iterator its;
 	for (its = m_sensors.begin(); !(its == m_sensors.end()); ++its)
 	{
-		((CValue*)(*its))->Release();
+		//Use Delete for sensor to ensure proper cleaning
+		(*its)->Delete();
+		//((CValue*)(*its))->Release();
 	}
 	SCA_ControllerList::iterator itc; 
 	for (itc = m_controllers.begin(); !(itc == m_controllers.end()); ++itc)
@@ -63,6 +62,10 @@ SCA_IObject::~SCA_IObject()
 		((CValue*)(*itc))->Release();
 	}
 	SCA_ActuatorList::iterator ita;
+	for (ita = m_registeredActuators.begin(); !(ita==m_registeredActuators.end()); ++ita)
+	{
+		(*ita)->UnlinkObject(this);
+	}
 	for (ita = m_actuators.begin(); !(ita==m_actuators.end()); ++ita)
 	{
 		((CValue*)(*ita))->Release();
@@ -99,6 +102,7 @@ SCA_ActuatorList& SCA_IObject::GetActuators()
 
 void SCA_IObject::AddSensor(SCA_ISensor* act)
 {
+	act->AddRef();
 	m_sensors.push_back(act);
 }
 
@@ -106,6 +110,7 @@ void SCA_IObject::AddSensor(SCA_ISensor* act)
 
 void SCA_IObject::AddController(SCA_IController* act)
 {
+	act->AddRef();
 	m_controllers.push_back(act);
 }
 
@@ -113,10 +118,28 @@ void SCA_IObject::AddController(SCA_IController* act)
 
 void SCA_IObject::AddActuator(SCA_IActuator* act)
 {
+	act->AddRef();
 	m_actuators.push_back(act);
 }
 
+void SCA_IObject::RegisterActuator(SCA_IActuator* act)
+{
+	// don't increase ref count, it would create dead lock
+	m_registeredActuators.push_back(act);
+}
 
+void SCA_IObject::UnregisterActuator(SCA_IActuator* act)
+{
+	SCA_ActuatorList::iterator ita;
+	for (ita = m_registeredActuators.begin(); ita != m_registeredActuators.end(); ita++)
+	{
+		if ((*ita) == act) {
+			(*ita) = m_registeredActuators.back();
+			m_registeredActuators.pop_back();
+			break;
+		}
+	}
+}
 
 void SCA_IObject::SetIgnoreActivityCulling(bool b)
 {
@@ -166,6 +189,8 @@ void SCA_IObject::ReParentLogic()
 		newactuator->SetActive(false);
 		oldactuators[act++] = newactuator;
 	}
+	// a new object cannot be client of any actuator
+	m_registeredActuators.clear();
 		
 }
 

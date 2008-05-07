@@ -1,15 +1,12 @@
 /*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #include <stdlib.h>
 #include <string.h>
@@ -128,7 +125,7 @@ extern void	winlay_process_events(int wait_for_event);
 extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 
 char bprogname[FILE_MAXDIR+FILE_MAXFILE]; /* from blenpluginapi:pluginapi.c */
-
+char btempdir[FILE_MAXDIR+FILE_MAXFILE];
 
 /* Initialise callbacks for the modules that need them */
 void setCallbacks(void); 
@@ -174,23 +171,21 @@ static void print_version(void)
 static void print_help(void)
 {
 	printf ("Blender %d.%02d (sub %d) Build\n", G.version/100, G.version%100, BLENDER_SUBVERSION);
-	printf ("Usage: blender [options ...] [file]\n");
-	printf ("Note: Arguments are executed in the order they are given. eg.\n");
-	printf ("    blender -b test.blend -f 1 -o /tmp\n");
-	printf ("  ...may not render to /tmp because '-f 1' renders before the output path is set\n");
-	printf ("    blender -b -o /tmp test.blend -f 1\n");
-	printf ("  ...may not render to /tmp because loading the blend file overwrites the output path that was set\n");
-	printf ("    \"blender -b test.blend -o /tmp -f 1\" works as expected.\n");
+	printf ("Usage: blender [args ...] [file] [args ...]\n");
 	printf ("\nRender options:\n");
-	printf ("  -b <file>\tRender <file> in background\n");
+	printf ("  -b <file>\tRender <file> in background (doesn't load the user defaults .B.blend file)\n");
 	printf ("    -a render frames from start to end (inclusive), only works when used after -b\n");
 	printf ("    -S <name>\tSet scene <name>\n");
 	printf ("    -f <frame>\tRender frame <frame> and save it\n");				
-	printf ("    -s <frame>\tSet start to frame <frame> (use with -a)\n");
-	printf ("    -e <frame>\tSet end to frame (use with -a)<frame>\n");
+	printf ("    -s <frame>\tSet start to frame <frame> (use before the -a argument)\n");
+	printf ("    -e <frame>\tSet end to frame <frame> (use before the -a argument)\n");
 	printf ("    -o <path>\tSet the render path and file name.\n");
 	printf ("      Use // at the start of the path to\n");
 	printf ("        render relative to the blend file.\n");
+	printf ("      The # characters are replaced by the frame number, and used to define zero padding.\n");
+	printf ("        ani_##_test.png becomes ani_01_test.png\n");
+	printf ("        test-######.png becomes test-000001.png\n");
+	printf ("        When the filename has no #, The suffix #### is added to the filename\n");
 	printf ("      The frame number will be added at the end of the filename.\n");
 	printf ("      eg: blender -b foobar.blend -o //render_ -F PNG -x 1 -a\n");
 	printf ("\nFormat options:\n");
@@ -198,17 +193,10 @@ static void print_help(void)
 	printf ("    \tTGA IRIS HAMX JPEG MOVIE IRIZ RAWTGA\n");
 	printf ("    \tAVIRAW AVIJPEG PNG BMP FRAMESERVER\n");
 	printf ("    (formats that can be compiled into blender, not available on all systems)\n");
-	printf ("    \tHDR TIFF EXR MPEG AVICODEC QUICKTIME CINEON DPX DDS\n");
+	printf ("    \tHDR TIFF EXR MULTILAYER MPEG AVICODEC QUICKTIME CINEON DPX DDS\n");
 	printf ("    -x <bool>\tSet option to add the file extension to the end of the file.\n");
-	printf ("    -t <threads>\tUse amount of <threads> for rendering\n");
-	/*Add these later - Campbell*/
-	/*
-	printf ("    -colorchannel <type>\tColors to save, valid types are: BW RGB RGBA \n");
-	printf ("    -compression <type>\t Use with EXR format, valid types are..\n");
-	printf ("    \tZIP Pxr24 PIZ RLE\n");
-	printf ("    -zbuf <bool>\tUse with EXR format, set the zbuf save option\n");
-	printf ("    -halffloat <bool>\tUse with EXR format, set the half float option\n");
-	printf ("    -preview <bool>\tUse with EXR format, save a jpeg for viewing as well as the EXR\n");*/
+	printf ("    -t <threads>\tUse amount of <threads> for rendering.\n");
+	printf ("      [1-8], 0 for systems processor count.\n");
 	printf ("\nAnimation playback options:\n");
 	printf ("  -a <file(s)>\tPlayback <file(s)>, only operates this way when -b is not used.\n");
 	printf ("    -p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>\n");
@@ -239,17 +227,48 @@ static void print_help(void)
 	printf ("  -v\t\tPrint Blender version and exit\n");
 	printf ("  --\t\tEnds option processing.  Following arguments are \n");
 	printf ("    \t\t   passed unchanged.  Access via Python's sys.argv\n");
+	printf ("\nEnvironment Variables:\n");
+	printf ("  $HOME\t\t\tStore files such as .blender/ .B.blend .Bfs .Blog here.\n");
+#ifdef WIN32
+	printf ("  $TEMP\t\tStore temporary files here.\n");
+#else
+	printf ("  $TMP or $TMPDIR\tStore temporary files here.\n");
+	printf ("  $SDL_AUDIODRIVER\tLibSDL audio driver - alsa, esd, alsa, dma.\n");
+	printf ("  $BF_TIFF_LIB\t\tUse an alternative libtiff.so for loading tiff image files.\n");
+#endif
+	printf ("  $IMAGEEDITOR\t\tImage editor executable, launch with the IKey from the file selector.\n");
+	printf ("  $WINEDITOR\t\tText editor executable, launch with the EKey from the file selector.\n");
+	printf ("  $PYTHONHOME\t\tPath to the python directory, eg. /usr/lib/python.\n");
+	printf ("\nNote: Arguments must be separated by white space. eg:\n");
+	printf ("    \"blender -ba test.blend\"\n");
+	printf ("  ...will ignore the 'a'\n");
+	printf ("    \"blender -b test.blend -f8\"\n");
+	printf ("  ...will ignore 8 because there is no space between the -f and the frame value\n");
+	printf ("Note: Arguments are executed in the order they are given. eg:\n");
+	printf ("    \"blender -b test.blend -f 1 -o /tmp\"\n");
+	printf ("  ...may not render to /tmp because '-f 1' renders before the output path is set\n");
+	printf ("    \"blender -b -o /tmp test.blend -f 1\"\n");
+	printf ("  ...may not render to /tmp because loading the blend file overwrites the output path that was set\n");
+	printf ("    \"blender -b test.blend -o /tmp -f 1\" works as expected.\n\n");
 }
 
 
 double PIL_check_seconds_timer(void);
 extern void winlay_get_screensize(int *width_r, int *height_r);
 
+static void main_init_screen( void )
+{
+	setscreen(G.curscreen);
+	
+	if(G.main->scene.first==0) {
+		set_scene( add_scene("1") );
+	}
+}
+
 int main(int argc, char **argv)
 {
-	int a, i, stax, stay, sizx, sizy;
+	int a, i, stax=0, stay=0, sizx, sizy, scr_init = 0;
 	SYS_SystemHandle syshandle;
-	Scene *sce;
 
 #if defined(WIN32) || defined (__linux__)
 	int audio = 1;
@@ -305,7 +324,7 @@ int main(int argc, char **argv)
 	signal (SIGFPE, fpe_handler);
     #else
 	if ( getenv("SDL_AUDIODRIVER") == NULL) {
-		setenv("SDL_AUDIODRIVER", "dma", 1);
+		setenv("SDL_AUDIODRIVER", "alsa", 1);
 	}
     #endif
 #endif
@@ -317,7 +336,7 @@ int main(int argc, char **argv)
 	// need this.
 
 	BLI_where_am_i(bprogname, argv[0]);
-
+	
 		/* Hack - force inclusion of the plugin api functions,
 		 * see blenpluginapi:pluginapi.c
 		 */
@@ -411,6 +430,10 @@ int main(int argc, char **argv)
 	
 	init_def_material();
 
+	winlay_get_screensize(&sizx, &sizy);
+	stax=0;
+	stay=0;
+
 	if(G.background==0) {
 		for(a=1; a<argc; a++) {
 			if(argv[a][0] == '-') {
@@ -428,8 +451,8 @@ int main(int argc, char **argv)
 					sizx= atoi(argv[a]);
 					a++;
 					sizy= atoi(argv[a]);
+					G.windowstate = G_WINDOWSTATE_BORDER;
 
-					setprefsize(stax, stay, sizx, sizy, 0);
 					break;
 				case 'd':
 					G.f |= G_DEBUG;		/* std output printf's */ 
@@ -445,18 +468,10 @@ int main(int argc, char **argv)
 					break;
             
 				case 'w':
-					/* XXX, fixme zr, with borders */
-					/* there probably is a better way to do
-					 * this, right now do as if blender was
-					 * called with "-p 0 0 xres yres" -- sgefant
-					 */ 
-					winlay_get_screensize(&sizx, &sizy);
-					setprefsize(0, 0, sizx, sizy, 1);
 					G.windowstate = G_WINDOWSTATE_BORDER;
 					break;
 				case 'W':
-					/* XXX, fixme zr, borderless on win32 */
-					/* now on all platforms as of 20070411 - DJC */
+					/* XXX, fixme mein, borderless on OSX */
 					G.windowstate = G_WINDOWSTATE_FULLSCREEN;
 					break;
 				case 'R':
@@ -482,6 +497,9 @@ int main(int argc, char **argv)
 			}
 		}
 
+		if ( (G.windowstate == G_WINDOWSTATE_BORDER) || (G.windowstate == G_WINDOWSTATE_FULLSCREEN)) 
+			setprefsize(stax, stay, sizx, sizy, 0);
+		
 		BPY_start_python(argc, argv);
 		
 		/**
@@ -490,11 +508,15 @@ int main(int argc, char **argv)
 		 * added note (ton): i removed it altogether
 		 */
 
-		BIF_init();
+		BIF_init(); /* loads .B.blend */
+		
+		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
 
 	}
 	else {
 		BPY_start_python(argc, argv);
+		
+		BLI_where_is_temp( btempdir, 0 ); /* call after loading the .B.blend so we can read U.tempdir */
 		
 		// (ton) Commented out. I have no idea whats thisfor... will mail around!
 		// SYS_WriteCommandLineInt(syshandle,"noaudio",1);
@@ -636,7 +658,14 @@ int main(int argc, char **argv)
 				break;
 			case 'P':
 				a++;
-				if (a < argc) BPY_run_python_script (argv[a]);
+				if (a < argc) {
+					/* If we're not running in background mode, then give python a valid screen */
+					if ((G.background==0) && (scr_init==0)) {
+						main_init_screen();
+						scr_init = 1;
+					}
+					BPY_run_python_script (argv[a]);
+				}
 				else printf("\nError: you must specify a Python script after '-P '.\n");
 				break;
 			case 'o':
@@ -674,9 +703,10 @@ int main(int argc, char **argv)
 						else if (!strcmp(argv[a],"QUICKTIME")) G.scene->r.imtype = R_QUICKTIME;
 						else if (!strcmp(argv[a],"BMP")) G.scene->r.imtype = R_BMP;
 						else if (!strcmp(argv[a],"HDR")) G.scene->r.imtype = R_RADHDR;
-						else if (!strcmp(argv[a],"TIFF")) G.scene->r.imtype = R_IRIS;
+						else if (!strcmp(argv[a],"TIFF")) G.scene->r.imtype = R_TIFF;
 #ifdef WITH_OPENEXR
 						else if (!strcmp(argv[a],"EXR")) G.scene->r.imtype = R_OPENEXR;
+						else if (!strcmp(argv[a],"MULTILAYER")) G.scene->r.imtype = R_MULTILAYER;
 #endif
 						else if (!strcmp(argv[a],"MPEG")) G.scene->r.imtype = R_FFMPEG;
 						else if (!strcmp(argv[a],"FRAMESERVER")) G.scene->r.imtype = R_FRAMESERVER;
@@ -758,8 +788,12 @@ int main(int argc, char **argv)
 			}
 			
 			if (G.background) {
-				BKE_read_file(filename, NULL);
+				int retval = BKE_read_file(filename, NULL);
 				sound_initialize_sounds();
+				
+				/*we successfully loaded a blend file, get sure that
+				pointcache works */
+				if (retval!=0) G.relbase_valid = 1;
 
 				/* happens for the UI on file reading too */
 				BKE_reset_undo();
@@ -776,15 +810,12 @@ int main(int argc, char **argv)
 		/* actually incorrect, but works for now (ton) */
 		exit_usiblender();
 	}
-
-	setscreen(G.curscreen);
-
-	if(G.main->scene.first==0) {
-		sce= add_scene("1");
-		set_scene(sce);
+	
+	if (scr_init==0) {
+		main_init_screen();
 	}
-
-	screenmain();
+	
+	screenmain(); /* main display loop */
 
 	return 0;
 } /* end of int main(argc,argv)	*/

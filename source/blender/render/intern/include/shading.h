@@ -47,8 +47,6 @@ typedef struct ShadeSample {
 	/* could be malloced once */
 	ShadeInput shi[RE_MAX_OSA];
 	ShadeResult shr[RE_MAX_OSA];
-	
-	int samplenr;			/* counter, detect shadow-reuse for shaders */
 } ShadeSample;
 
 

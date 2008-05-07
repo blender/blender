@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 	/* placed up here because of crappy
@@ -84,6 +81,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_pointcache.h"
 
 #ifdef WITH_VERSE
 #include "BKE_verse.h"
@@ -110,7 +108,6 @@
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
-#include "BIF_toets.h"
 #include "BIF_toolbox.h"
 #include "BIF_cursors.h"
 
@@ -178,9 +175,7 @@ static void init_userdef_file(void)
 	}
 	if(U.mixbufsize==0) U.mixbufsize= 2048;
 	if (BLI_streq(U.tempdir, "/")) {
-		char *tmp= getenv("TEMP");
-		
-		strcpy(U.tempdir, tmp?tmp:"/tmp/");
+		BLI_where_is_temp(U.tempdir, 0);
 	}
 	if (U.savetime <= 0) {
 		U.savetime = 1;
@@ -195,6 +190,13 @@ static void init_userdef_file(void)
 	if(U.pad_rot_angle==0)
 		U.pad_rot_angle= 15;
 	
+   if (U.ndof_pan==0) {
+        U.ndof_pan = 100;
+   }
+    if (U.ndof_rotate==0) {
+        U.ndof_rotate = 100;
+   }
+
 	if(U.flag & USER_CUSTOM_RANGE) 
 		vDM_ColorBand_store(&U.coba_weight); /* signal for derivedmesh to use colorband */
 	
@@ -403,7 +405,75 @@ static void init_userdef_file(void)
 			/* action channel groups (recolour anyway) */
 			SETCOL(btheme->tact.group, 0x39, 0x7d, 0x1b, 255);
 			SETCOL(btheme->tact.group_active, 0x7d, 0xe9, 0x60, 255);
+			
+			/* bone custom-color sets */
+			// FIXME: this check for initialised colors is bad
+			if (btheme->tarm[0].solid[3] == 0) {
+					/* set 1 */
+				SETCOL(btheme->tarm[0].solid, 0x9a, 0x00, 0x00, 255);
+				SETCOL(btheme->tarm[0].select, 0xbd, 0x11, 0x11, 255);
+				SETCOL(btheme->tarm[0].active, 0xf7, 0x0a, 0x0a, 255);
+					/* set 2 */
+				SETCOL(btheme->tarm[1].solid, 0xf7, 0x40, 0x18, 255);
+				SETCOL(btheme->tarm[1].select, 0xf6, 0x69, 0x13, 255);
+				SETCOL(btheme->tarm[1].active, 0xfa, 0x99, 0x00, 255);
+					/* set 3 */
+				SETCOL(btheme->tarm[2].solid, 0x1e, 0x91, 0x09, 255);
+				SETCOL(btheme->tarm[2].select, 0x59, 0xb7, 0x0b, 255);
+				SETCOL(btheme->tarm[2].active, 0x83, 0xef, 0x1d, 255);
+					/* set 4 */
+				SETCOL(btheme->tarm[3].solid, 0x0a, 0x36, 0x94, 255);
+				SETCOL(btheme->tarm[3].select, 0x36, 0x67, 0xdf, 255);
+				SETCOL(btheme->tarm[3].active, 0x5e, 0xc1, 0xef, 255);
+					/* set 5 */
+				SETCOL(btheme->tarm[4].solid, 0xa9, 0x29, 0x4e, 255);
+				SETCOL(btheme->tarm[4].select, 0xc1, 0x41, 0x6a, 255);
+				SETCOL(btheme->tarm[4].active, 0xf0, 0x5d, 0x91, 255);
+					/* set 6 */
+				SETCOL(btheme->tarm[5].solid, 0x43, 0x0c, 0x78, 255);
+				SETCOL(btheme->tarm[5].select, 0x54, 0x3a, 0xa3, 255);
+				SETCOL(btheme->tarm[5].active, 0x87, 0x64, 0xd5, 255);
+					/* set 7 */
+				SETCOL(btheme->tarm[6].solid, 0x24, 0x78, 0x5a, 255);
+				SETCOL(btheme->tarm[6].select, 0x3c, 0x95, 0x79, 255);
+				SETCOL(btheme->tarm[6].active, 0x6f, 0xb6, 0xab, 255);
+					/* set 8 */
+				SETCOL(btheme->tarm[7].solid, 0x4b, 0x70, 0x7c, 255);
+				SETCOL(btheme->tarm[7].select, 0x6a, 0x86, 0x91, 255);
+				SETCOL(btheme->tarm[7].active, 0x9b, 0xc2, 0xcd, 255);
+					/* set 9 */
+				SETCOL(btheme->tarm[8].solid, 0xf4, 0xc9, 0x0c, 255);
+				SETCOL(btheme->tarm[8].select, 0xee, 0xc2, 0x36, 255);
+				SETCOL(btheme->tarm[8].active, 0xf3, 0xff, 0x00, 255);
+					/* set 10 */
+				SETCOL(btheme->tarm[9].solid, 0x1e, 0x20, 0x24, 255);
+				SETCOL(btheme->tarm[9].select, 0x48, 0x4c, 0x56, 255);
+				SETCOL(btheme->tarm[9].active, 0xff, 0xff, 0xff, 255);
+					/* set 11 */
+				SETCOL(btheme->tarm[10].solid, 0x6f, 0x2f, 0x6a, 255);
+				SETCOL(btheme->tarm[10].select, 0x98, 0x45, 0xbe, 255);
+				SETCOL(btheme->tarm[10].active, 0xd3, 0x30, 0xd6, 255);
+					/* set 12 */
+				SETCOL(btheme->tarm[11].solid, 0x6c, 0x8e, 0x22, 255);
+				SETCOL(btheme->tarm[11].select, 0x7f, 0xb0, 0x22, 255);
+				SETCOL(btheme->tarm[11].active, 0xbb, 0xef, 0x5b, 255);
+					/* set 13 */
+				SETCOL(btheme->tarm[12].solid, 0x8d, 0x8d, 0x8d, 255);
+				SETCOL(btheme->tarm[12].select, 0xb0, 0xb0, 0xb0, 255);
+				SETCOL(btheme->tarm[12].active, 0xde, 0xde, 0xde, 255);
+					/* set 14 */
+				SETCOL(btheme->tarm[13].solid, 0x83, 0x43, 0x26, 255);
+				SETCOL(btheme->tarm[13].select, 0x8b, 0x58, 0x11, 255);
+				SETCOL(btheme->tarm[13].active, 0xbd, 0x6a, 0x11, 255);
+					/* set 15 */
+				SETCOL(btheme->tarm[14].solid, 0x08, 0x31, 0x0e, 255);
+				SETCOL(btheme->tarm[14].select, 0x1c, 0x43, 0x0b, 255);
+				SETCOL(btheme->tarm[14].active, 0x34, 0x62, 0x2b, 255);
+			}
 		}
+	}
+	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 16)) {
+		U.flag |= USER_ADD_VIEWALIGNED|USER_ADD_EDITMODE;
 	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
@@ -479,6 +549,8 @@ void BIF_read_file(char *name)
 	retval= BKE_read_exotic(name);
 	
 	if (retval== 0) {
+		BIF_clear_tempfiles();
+		
 		/* we didn't succeed, now try to read Blender file */
 		retval= BKE_read_file(name, NULL);
 
@@ -524,10 +596,12 @@ static void outliner_242_patch(void)
 /* only here settings for fullscreen */
 int BIF_read_homefile(int from_memory)
 {
-	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
+	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAX];
 	char *home= BLI_gethome();
 	int success;
 	struct TmpFont *tf;
+	
+	BIF_clear_tempfiles();
 	
 	BLI_clean(home);
 
@@ -543,7 +617,7 @@ int BIF_read_homefile(int from_memory)
 		
 	G.relbase_valid = 0;
 	if (!from_memory) BLI_make_file_string(G.sce, tstr, home, ".B.blend");
-	strcpy(scestr, G.sce);	/* temporal store */
+	BLI_strncpy(scestr, G.sce, FILE_MAX);	/* temporal store */
 	
 	/* prevent loading no UI */
 	G.fileflags &= ~G_FILE_NO_UI;
@@ -567,6 +641,10 @@ int BIF_read_homefile(int from_memory)
 	BKE_reset_undo();
 	BKE_write_undo("original");	/* save current state */
 	
+	/* if from memory, need to refresh python scripts */
+	if (from_memory) {
+		BPY_path_update();
+	}
 	return success;
 }
 
@@ -582,7 +660,7 @@ static void get_autosave_location(char buf[FILE_MAXDIR+FILE_MAXFILE])
 	sprintf(pidstr, "%d.blend", abs(getpid()));
 	
 #ifdef WIN32
-	if (!BLI_exists(U.tempdir)) {
+	if (!BLI_exists(btempdir)) {
 		BLI_strncpy(subdir, "autosave", sizeof(subdir));
 		BLI_make_file_string("/", savedir, BLI_gethome(), subdir);
 		
@@ -595,7 +673,7 @@ static void get_autosave_location(char buf[FILE_MAXDIR+FILE_MAXFILE])
 	}
 #endif
 	
-	BLI_make_file_string("/", buf, U.tempdir, pidstr);
+	BLI_make_file_string("/", buf, btempdir, pidstr);
 }
 
 void BIF_read_autosavefile(void)
@@ -708,7 +786,7 @@ static void readBlog(void)
 	fsmenu_append_separator();
 	
 	/* add last saved file */
-	BLI_split_dirfile(G.sce, name, filename); /* G.sce shouldn't be relative */
+	BLI_split_dirfile_basic(G.sce, name, filename); /* G.sce shouldn't be relative */
 	
 	fsmenu_insert_entry(name, 0, 0);
 	
@@ -815,7 +893,7 @@ void BIF_write_file(char *target)
 		strcpy(di, target);
 	}
 
-	if (BLI_exists(di) && !G.save_over) {
+	if (BLI_exists(di)) {
 		if(!saveover(di))
 			return; 
 	}
@@ -839,20 +917,16 @@ void BIF_write_file(char *target)
 	if (BLO_write_file(di, writeflags, &err)) {
 		strcpy(G.sce, di);
 		G.relbase_valid = 1;
-		strcpy(G.main->name, di);	/* is guaranteed current file */
+		BLI_strncpy(G.main->name, di, FILE_MAX);	/* is guaranteed current file */
 
 		mainwindow_set_filename_to_title(G.main->name);
 
 		G.save_over = 1;
 
 		writeBlog();
-		
 	} else {
 		error("%s", err);
 	}
-	
-	/* CLEARS signal: "file needs save" on exit */
-	U.uiflag &= ~USER_UNDOSAVE;
 
 	waitcursor(0);
 }
@@ -881,6 +955,16 @@ void BIF_write_autosave(void)
 	BLO_write_file(tstr, write_flags, &err);
 }
 
+/* remove temp files assosiated with this blend file when quitting, loading or saving in a new path */
+void BIF_clear_tempfiles( void )
+{
+	/* TODO - remove exr files from the temp dir */
+	
+	if (!G.relbase_valid) { /* We could have pointcache saved in tyhe temp dir, if its there */
+		BKE_ptcache_remove();
+	}
+}
+
 /* if global undo; remove tempsave, otherwise rename */
 static void delete_autosave(void)
 {
@@ -890,7 +974,7 @@ static void delete_autosave(void)
 
 	if (BLI_exists(tstr)) {
 		char str[FILE_MAXDIR+FILE_MAXFILE];
-		BLI_make_file_string("/", str, U.tempdir, "quit.blend");
+		BLI_make_file_string("/", str, btempdir, "quit.blend");
 
 		if(U.uiflag & USER_GLOBALUNDO) BLI_delete(tstr, 0, 0);
 		else BLI_rename(tstr, str);
@@ -953,41 +1037,6 @@ void BIF_init(void)
 	BLI_strncpy(G.lib, G.sce, FILE_MAX);
 }
 
-int exit_save_question(void)
-{
-	char dir[FILE_MAXDIR];
-	int ret = 0;
-	
-	/* just go on if no undo there */
-	/* better check necessary --> some flag */
-	if(!(U.uiflag & USER_UNDOSAVE))
-		return 1;
-	
-	/* do sweet question here */
-	ret = confirm_choice("Warning: Unsaved changes", "Do you want to save your changes before exit?");
-	
-	if(ret==1)
-	{
-		/* copyied from header_info.c */
-		strcpy(dir, G.sce);
-		if (untitled(dir)) {
-			activate_fileselect(FILE_BLENDER, "Save As", dir, BIF_write_file);
-		} else {
-			/* do NOT ask everytime for overwriting... */
-			G.save_over = 1;
-			BIF_write_file(dir);
-			free_filesel_spec(dir);
-		}
-		return 1;
-	}
-	else
-	{
-		/* cancel, ok, continue button available */
-	}
-	
-	return 1;
-}
-
 /***/
 
 extern ListBase editNurb;
@@ -995,14 +1044,9 @@ extern ListBase editelems;
 
 void exit_usiblender(void)
 {
-	struct TmpFont *tf;	
+	struct TmpFont *tf;
 	
-	/* ask for save before exit */
-	if(!exit_save_question())
-	{
-		/* user pressed 'cancel' */
-		return;
-	}
+	BIF_clear_tempfiles();
 	
 	tf= G.ttfdata.first;
 	while(tf)
@@ -1071,11 +1115,18 @@ void exit_usiblender(void)
 	quicktime_exit();
 #endif
 
+	/* undo free stuff */
+	undo_editmode_clear();
+	
+	BKE_undo_save_quit();	// saves quit.blend if global undo is on
+	BKE_reset_undo(); 
+	
 	if (!G.background) {
 		BIF_resources_free();
 		
 		BIF_filelist_free_icons();
 
+		BIF_free_render_spare();
 		BIF_close_render_display();
 		mainwindow_close();
 	}
@@ -1087,12 +1138,7 @@ void exit_usiblender(void)
 	if (copybuf) MEM_freeN(copybuf);
 	if (copybufinfo) MEM_freeN(copybufinfo);
 
-	/* undo free stuff */
-	undo_editmode_clear();
-	
-	BKE_undo_save_quit();	// saves quit.blend if global undo is on
-	BKE_reset_undo(); 
-	
+// 	
 	BLI_freelistN(&U.themes);
 	BIF_preview_free_dbase();
 	

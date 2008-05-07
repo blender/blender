@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,10 +24,9 @@
  *
  * Contributor(s): Nathan Letwory
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
-#ifdef USE_PYNODES /* note: won't work without patch */
 #ifndef __NODE_H__
 #define __NODE_H__
 
@@ -41,10 +37,18 @@
 #include "RE_shader_ext.h"		/* <- ShadeInput Shaderesult TexResult */
 
 extern PyTypeObject Node_Type;
+extern PyTypeObject NodeSocket_Type;
+extern PyTypeObject NodeSocketLists_Type;
 extern PyTypeObject ShadeInput_Type;
 
 #define BPy_Node_Check(v) \
     ((v)->ob_type == &Node_Type)
+
+#define BPy_NodeSocket_Check(v) \
+    ((v)->ob_type == &NodeSocket_Type)
+
+#define BPy_NodeSocketLists_Check(v) \
+    ((v)->ob_type == &NodeSocketLists_Type)
 
 #define BPy_ShadeInput_Check(v) \
     ((v)->ob_type == &ShadeInput_Type)
@@ -56,14 +60,16 @@ typedef struct BPy_ShadeInput {
 
 typedef struct {
 	PyObject_VAR_HEAD
-	bNodeType *typeinfo;
+	bNode* node;
 	bNodeStack **stack;
 } BPy_SockMap;
 
 typedef struct {
 	PyObject_HEAD
 	bNode *node;
-} BPy_DefinitionMap;
+	PyObject *input;
+	PyObject *output;
+} BPy_NodeSocketLists;
 
 typedef struct BPy_Node {
 	PyObject_HEAD
@@ -73,19 +79,25 @@ typedef struct BPy_Node {
 	ShadeInput *shi;
 } BPy_Node;
 
+typedef struct BPy_NodeSocket {
+	PyObject_HEAD
+	char name[NODE_MAXSTR];
+	float min;
+	float max;
+	float val[4];
+	short type; /* VALUE, VECTOR or RGBA */
+} BPy_NodeSocket;
+
 extern PyObject *Node_Init(void);
 extern void InitNode(BPy_Node *self, bNode *node);
 extern BPy_Node *Node_CreatePyObject(bNode *node);
-extern BPy_DefinitionMap *Node_CreateOutputDefMap(bNode *node);
-extern BPy_DefinitionMap *Node_CreateInputDefMap(bNode *node);
+extern BPy_NodeSocketLists *Node_CreateSocketLists(bNode *node);
 extern void Node_SetStack(BPy_Node *self, bNodeStack **stack, int type);
 extern void Node_SetShi(BPy_Node *self, ShadeInput *shi);
-extern BPy_ShadeInput *ShadeInput_CreatePyObject(ShadeInput *shi);
-extern void Node_dealloc(BPy_Node *self);
-extern void ShadeInput_dealloc(BPy_ShadeInput *self);
+extern int pytype_is_pynode(PyObject *pyob);
 
 #define NODE_INPUTSTACK		0
 #define NODE_OUTPUTSTACK	1
 
 #endif /* __NODE_H__*/
-#endif /* USE_PYNODES */
+

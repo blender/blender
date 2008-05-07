@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "KX_NearSensor.h"
@@ -76,6 +73,21 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 		m_physCtrl->setNewClientInfo(m_client_info);
 	}
 	SynchronizeTransform();
+}
+
+void KX_NearSensor::SynchronizeTransform()
+{
+	// The near and radar sensors are using a different physical object which is 
+	// not linked to the parent object, must synchronize it.
+	if (m_physCtrl)
+	{
+		KX_GameObject* parent = ((KX_GameObject*)GetParent());
+		MT_Vector3 pos = parent->NodeGetWorldPosition();
+		MT_Quaternion orn = parent->NodeGetWorldOrientation().getRotation();
+		m_physCtrl->setPosition(pos.x(),pos.y(),pos.z());
+		m_physCtrl->setOrientation(orn.x(),orn.y(),orn.z(),orn.w());
+		m_physCtrl->calcXform();
+	}
 }
 
 void KX_NearSensor::RegisterSumo(KX_TouchEventManager *touchman)
@@ -191,7 +203,36 @@ bool KX_NearSensor::Evaluate(CValue* event)
 	return result;
 }
 
+// this function is called at broad phase stage to check if the two controller
+// need to interact at all. It is used for Near/Radar sensor that don't need to
+// check collision with object not included in filter
+bool	KX_NearSensor::BroadPhaseFilterCollision(void*obj1,void*obj2)
+{
+	KX_GameObject* parent = static_cast<KX_GameObject*>(GetParent());
+	
+	// need the mapping from PHY_IPhysicsController to gameobjects now
+	assert(obj1==m_physCtrl && obj2);
+	KX_ClientObjectInfo* client_info = static_cast<KX_ClientObjectInfo*>((static_cast<PHY_IPhysicsController*>(obj2))->getNewClientInfo());
 
+	KX_GameObject* gameobj = ( client_info ? 
+			client_info->m_gameobject :
+			NULL);
+	
+	if (gameobj && (gameobj != parent))
+	{
+		// only take valid colliders
+		if (client_info->m_type == KX_ClientObjectInfo::ACTOR)
+		{
+			if ((m_touchedpropname.Length() == 0) || 
+				(gameobj->GetProperty(m_touchedpropname)))
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
 
 bool	KX_NearSensor::NewHandleCollision(void* obj1,void* obj2,const PHY_CollData * coll_data)
 {
@@ -208,20 +249,22 @@ bool	KX_NearSensor::NewHandleCollision(void* obj1,void* obj2,const PHY_CollData 
 			client_info->m_gameobject :
 			NULL);
 	
-	if (gameobj && (gameobj != parent))
+	// these checks are done already in BroadPhaseFilterCollision()
+	if (gameobj /*&& (gameobj != parent)*/)
 	{
 		if (!m_colliders->SearchValue(gameobj))
 			m_colliders->Add(gameobj->AddRef());
 		// only take valid colliders
-		if (client_info->m_type == KX_ClientObjectInfo::ACTOR)
-		{
-			if ((m_touchedpropname.Length() == 0) || 
-				(gameobj->GetProperty(m_touchedpropname)))
-			{
+		// These checks are done already in BroadPhaseFilterCollision()
+		//if (client_info->m_type == KX_ClientObjectInfo::ACTOR)
+		//{
+		//	if ((m_touchedpropname.Length() == 0) || 
+		//		(gameobj->GetProperty(m_touchedpropname)))
+		//	{
 				m_bTriggered = true;
 				m_hitObject = gameobj;
-			}
-		}
+		//	}
+		//}
 	}
 	
 	return DT_CONTINUE;

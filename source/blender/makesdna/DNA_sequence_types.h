@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_SEQUENCE_TYPES_H
 #define DNA_SEQUENCE_TYPES_H
@@ -53,7 +50,7 @@ typedef struct TStripElem {
 	struct ImBuf *ibuf_comp;
 	struct TStripElem *se1, *se2, *se3;
 	short ok;
-	short pad;
+	short flag;
 	int nr;
 } TStripElem;
 
@@ -69,11 +66,18 @@ typedef struct StripTransform {
 	int yofs;
 } StripTransform;
 
+typedef struct StripColorBalance {
+	float lift[3];
+	float gamma[3];
+	float gain[3];
+	int flag;
+	int pad;
+	float exposure;
+	float saturation;
+} StripColorBalance;
+
 typedef struct StripProxy {
 	char dir[160];
-	int format;
-	int width;
-	int height;
 } StripProxy;
 
 typedef struct Strip {
@@ -83,12 +87,15 @@ typedef struct Strip {
 	StripElem *stripdata;
 	char dir[160];
 	int orx, ory;
+	StripProxy *proxy;
 	StripCrop *crop;
 	StripTransform *transform;
-	StripProxy *proxy;
+	StripColorBalance *color_balance;
 	TStripElem *tstripdata;
 	TStripElem *tstripdata_startstill;
 	TStripElem *tstripdata_endstill;
+	struct ImBuf *ibuf_startstill;
+	struct ImBuf *ibuf_endstill;
 } Strip;
 
 
@@ -248,7 +255,12 @@ typedef struct SpeedControlVars {
 #define SEQ_USE_PROXY                           32768
 #define SEQ_USE_TRANSFORM                       65536
 #define SEQ_USE_CROP                           131072
+#define SEQ_USE_COLOR_BALANCE                  262144
+#define SEQ_USE_PROXY_CUSTOM_DIR               524288
 
+#define SEQ_COLOR_BALANCE_INVERSE_GAIN 1
+#define SEQ_COLOR_BALANCE_INVERSE_GAMMA 2
+#define SEQ_COLOR_BALANCE_INVERSE_LIFT 4
 
 /* seq->type WATCH IT: SEQ_EFFECT BIT is used to determine if this is an effect strip!!! */
 #define SEQ_IMAGE		0
@@ -278,7 +290,8 @@ typedef struct SpeedControlVars {
 
 #define STRIPELEM_FAILED       0
 #define STRIPELEM_OK           1
-#define STRIPELEM_META         2
+
+#define STRIPELEM_PREVIEW_DONE  1
 
 #define SEQ_BLEND_REPLACE      0
 /* all other BLEND_MODEs are simple SEQ_EFFECT ids and therefore identical

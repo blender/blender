@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /* global includes */
@@ -264,8 +261,6 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 	
 	sce= pr_main->scene.first;
 	if(sce) {
-		
-		// sce->r.mode |= G.scene->r.mode & R_THREADS;
 		/* this flag tells render to not execute depsgraph or ipos etc */
 		sce->r.scemode |= R_PREVIEWBUTS;
 		/* set world always back, is used now */
@@ -463,7 +458,7 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 		}
 		
 		/* allocates render result */
-		RE_InitState(re, &sce->r, ri->pr_rectx, ri->pr_recty, NULL);
+		RE_InitState(re, NULL, &sce->r, ri->pr_rectx, ri->pr_recty, NULL);
 		
 		/* enforce preview image clear */
 		if(GS(id->name)==ID_MA) {
@@ -780,7 +775,7 @@ void BIF_view3d_previewrender(ScrArea *sa)
 		rdata.layers.first= rdata.layers.last= NULL;
 		rdata.renderer= R_INTERN;
 		 
-		RE_InitState(re, &rdata, sa->winx, sa->winy, &ri->disprect);
+		RE_InitState(re, NULL, &rdata, sa->winx, sa->winy, &ri->disprect);
 	
 		if(orth)
 			RE_SetOrtho(re, &viewplane, clipsta, clipend);

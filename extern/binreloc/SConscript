@@ -9,5 +9,5 @@ cflags = []
 sources = ['binreloc.c']
 incs = 'include'
 
-env.BlenderLib ( 'extern_binreloc', sources, Split(incs), Split(defs), libtype=['intern','player'], priority=[36, 114], compileflags = cflags)
+env.BlenderLib ( 'extern_binreloc', sources, Split(incs), Split(defs), libtype=['intern','player'], priority=[36, 226], compileflags = cflags)
 

@@ -64,8 +64,10 @@ typedef struct SampleTables
 
 typedef struct QMCSampler
 {
+	struct QMCSampler *next, *prev;
 	int type;
 	int tot;
+	int used;
 	double *samp2d;
 	double offs[BLENDER_MAX_THREADS][2];
 } QMCSampler;
@@ -85,6 +87,7 @@ typedef struct RenderPart
 	int *recto;						/* object table for objects */
 	int *rectp;						/* polygon index table */
 	int *rectz;						/* zbuffer */
+	int *rectmask;					/* negative zmask */
 	long *rectdaps;					/* delta acum buffer for pixel structs */
 	int *rectbacko;					/* object table for backside sss */
 	int *rectbackp;					/* polygon index table for backside sss */
@@ -149,7 +152,10 @@ struct Render
 	/* samples */
 	SampleTables *samples;
 	float jit[32][2];
-	QMCSampler *qsa;
+	ListBase *qmcsamplers;
+	
+	/* shadow counter, detect shadow-reuse for shaders */
+	int shadowsamplenr[BLENDER_MAX_THREADS];
 	
 	/* scene, and its full copy of renderdata and world */
 	Scene *scene;
@@ -269,12 +275,13 @@ typedef struct ObjectInstanceRen {
 
 	ObjectRen *obr;
 	Object *ob, *par;
-	int index, psysindex;
+	int index, psysindex, lay;
 
-	float mat[4][4], imat[3][3];
+	float mat[4][4], nmat[3][3]; /* nmat is inverse mat tranposed */
 	short flag;
 
 	float dupliorco[3], dupliuv[2];
+	float (*duplitexmat)[4];
 
 	float *vectors;
 	int totvector;
@@ -450,7 +457,6 @@ typedef struct LampRen {
 
 	struct ShadBuf *shb;
 	float *jitter;
-	QMCSampler *qsa;
 	
 	float imat[3][3];
 	float spottexfac;
@@ -491,6 +497,8 @@ typedef struct LampRen {
 #define R_LAMPHALO		8
 #define R_GLOB_NOPUNOFLIP	16
 #define R_NEED_TANGENT	32
+#define R_SKIP_MULTIRES	64
+#define R_BAKE_TRACE	128
 
 /* vlakren->flag (vlak = face in dutch) char!!! */
 #define R_SMOOTH		1
@@ -516,6 +524,7 @@ typedef struct LampRen {
 #define R_DUPLI_TRANSFORMED	1
 #define R_ENV_TRANSFORMED	2
 #define R_TRANSFORMED		(1|2)
+#define R_NEED_VECTORS		4
 
 #endif /* RENDER_TYPES_H */
 

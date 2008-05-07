@@ -1,15 +1,12 @@
 /*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -24,7 +21,7 @@
  *
  * Contributor(s): Ken Hughes, Campbell Barton
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /* TODO, accessing a modifier sequence of a deleted object will crash blender at the moment, not sure how to fix this. */
@@ -44,6 +41,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "MEM_guardedalloc.h"
+#include "BDR_editobject.h"
 #include "butspace.h"
 #include "blendef.h"
 #include "mydevice.h"
@@ -1352,6 +1350,18 @@ static PyObject *ModSeq_moveDown( BPy_ModSeq * self, BPy_Modifier *value )
 	Py_RETURN_NONE;
 }
 
+
+/* quick hack for ZanQdo: add new hook modifier for selected verts */
+static PyObject *ModSeq_ZanQdoHack(BPy_ModSeq *self)
+{
+	/* this should add the hook (assumes that modifier stack is on same ob!) */
+	if ((self) && (G.obedit) && (self->object==G.obedit)) {
+		add_hook(1);
+	}
+	
+	Py_RETURN_NONE;
+}
+
 /*****************************************************************************/
 /* Python BPy_ModSeq methods table:                                       */
 /*****************************************************************************/
@@ -1365,6 +1375,8 @@ static PyMethodDef BPy_ModSeq_methods[] = {
 	 "(modifier) - Move a modifier up in stack"},
 	{"moveDown", ( PyCFunction ) ModSeq_moveDown, METH_O,
 	 "(modifier) - Move a modifier down in stack"},
+	{"ZanQdoHack", (PyCFunction)ModSeq_ZanQdoHack, METH_NOARGS,
+	 "while in editmode, adds a hook for the selected verts (adds new modifier, and deselects object)"},
 	{NULL, NULL, 0, NULL}
 };
 

@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h>
@@ -55,6 +52,7 @@
 #include "DNA_image_types.h"
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_node_types.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -75,6 +73,7 @@
 #include "BKE_icons.h"
 #include "BKE_ipo.h"
 #include "BKE_brush.h"
+#include "BKE_node.h"
 
 
 /* ------------------------------------------------------------------------- */
@@ -107,6 +106,7 @@ void open_plugin_tex(PluginTex *pit)
 	pit->result= 0;
 	pit->cfra= 0;
 	pit->version= 0;
+	pit->instance_init= 0;
 	
 	/* clear the error list */
 	PIL_dynlib_get_error_as_string(NULL);
@@ -126,7 +126,7 @@ void open_plugin_tex(PluginTex *pit)
 		
 		if (version != 0) {
 			pit->version= version();
-			if (pit->version>=2 && pit->version<=5) {
+			if( pit->version >= 2 && pit->version <=6) {
 				int (*info_func)(PluginInfo *);
 				PluginInfo *info= (PluginInfo*) MEM_mallocN(sizeof(PluginInfo), "plugin_info"); 
 
@@ -728,6 +728,7 @@ Tex *give_current_texture(Object *ob, int act)
 	Lamp *la = 0;
 	MTex *mtex = 0;
 	Tex *tex = 0;
+	bNode *node;
 	
 	if(ob==0) return 0;
 	if(ob->totcol==0) return 0;
@@ -738,7 +739,6 @@ Tex *give_current_texture(Object *ob, int act)
 			mtex= la->mtex[(int)(la->texact)];
 			if(mtex) tex= mtex->tex;
 		}
-		else tex= 0;
 	} else {
 		if(act>ob->totcol) act= ob->totcol;
 		else if(act==0) act= 1;
@@ -751,13 +751,25 @@ Tex *give_current_texture(Object *ob, int act)
 			
 			if(matarar && *matarar) ma= (*matarar)[act-1];
 			else ma= 0;
-			
+		}
+
+		if(ma && ma->use_nodes && ma->nodetree) {
+			node= nodeGetActiveID(ma->nodetree, ID_TE);
+
+			if(node) {
+				tex= (Tex *)node->id;
+				ma= NULL;
+			}
+			else {
+				node= nodeGetActiveID(ma->nodetree, ID_MA);
+				if(node)
+					ma= (Material*)node->id;
+			}
 		}
 		if(ma) {
 			mtex= ma->mtex[(int)(ma->texact)];
 			if(mtex) tex= mtex->tex;
 		}
-		else tex= 0;
 	}
 	
 	return tex;

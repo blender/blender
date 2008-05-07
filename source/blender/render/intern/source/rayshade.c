@@ -40,8 +40,9 @@
 #include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
-#include "BLI_rand.h"
+#include "BLI_blenlib.h"
 #include "BLI_jitter.h"
+#include "BLI_rand.h"
 
 #include "PIL_time.h"
 
@@ -82,11 +83,16 @@ static int vlr_check_intersect(Isect *is, int ob, RayFace *face)
 	ObjectInstanceRen *obi= RAY_OBJECT_GET((Render*)is->userdata, ob);
 	VlakRen *vlr = (VlakRen*)face;
 
+	/* for baking selected to active non-traceable materials might still
+	 * be in the raytree */
+	if(!(vlr->mat->mode & MA_TRACEBLE))
+		return 0;
+
 	/* I know... cpu cycle waste, might do smarter once */
 	if(is->mode==RE_RAY_MIRROR)
 		return !(vlr->mat->mode & MA_ONLYCAST);
 	else
-		return (is->lay & obi->obr->lay);
+		return (is->lay & obi->lay);
 }
 
 static float *vlr_get_transform(void *userdata, int i)
@@ -111,7 +117,7 @@ void makeraytree(Render *re)
 	VlakRen *vlr= NULL;
 	float min[3], max[3], co1[3], co2[3], co3[3], co4[3];
 	double lasttime= PIL_check_seconds_timer();
-	int v, totface = 0;
+	int v, totv = 0, totface = 0;
 
 	INIT_MINMAX(min, max);
 
@@ -125,7 +131,8 @@ void makeraytree(Render *re)
 		for(v=0;v<obr->totvlak;v++) {
 			if((v & 255)==0) vlr= obr->vlaknodes[v>>8].vlak;
 			else vlr++;
-			if(vlr->mat->mode & MA_TRACEBLE) {	
+			/* baking selected to active needs non-traceable too */
+			if((re->flag & R_BAKE_TRACE) || (vlr->mat->mode & MA_TRACEBLE)) {	
 				if((vlr->mat->mode & MA_WIRE)==0) {	
 					VECCOPY(co1, vlr->v1->co);
 					VECCOPY(co2, vlr->v2->co);
@@ -168,7 +175,7 @@ void makeraytree(Render *re)
 		if(re->excludeob && obr->ob == re->excludeob)
 			continue;
 
-		for(v=0; v<obr->totvlak; v++) {
+		for(v=0; v<obr->totvlak; v++, totv++) {
 			if((v & 255)==0) {
 				double time= PIL_check_seconds_timer();
 
@@ -177,7 +184,7 @@ void makeraytree(Render *re)
 					break;
 				if(time-lasttime>1.0f) {
 					char str[32];
-					sprintf(str, "Filling Octree: %d", v);
+					sprintf(str, "Filling Octree: %d", totv);
 					re->i.infostr= str;
 					re->stats_draw(&re->i);
 					re->i.infostr= NULL;
@@ -186,7 +193,7 @@ void makeraytree(Render *re)
 			}
 			else vlr++;
 			
-			if(vlr->mat->mode & MA_TRACEBLE)
+			if((re->flag & R_BAKE_TRACE) || (vlr->mat->mode & MA_TRACEBLE))
 				if((vlr->mat->mode & MA_WIRE)==0)
 					RE_ray_tree_add_face(re->raytree, RAY_OBJECT_SET(re, obi), vlr);
 		}
@@ -723,8 +730,8 @@ static void hammersley_create(double *out, int n)
 
 struct QMCSampler *QMC_initSampler(int type, int tot)
 {	
-	QMCSampler *qsa = MEM_mallocN(sizeof(QMCSampler), "qmc sampler");
-	qsa->samp2d = MEM_mallocN(2*sizeof(double)*tot, "qmc sample table");
+	QMCSampler *qsa = MEM_callocN(sizeof(QMCSampler), "qmc sampler");
+	qsa->samp2d = MEM_callocN(2*sizeof(double)*tot, "qmc sample table");
 
 	qsa->tot = tot;
 	qsa->type = type;
@@ -865,27 +872,55 @@ static void QMC_sampleHemiCosine(float *vec, QMCSampler *qsa, int thread, int nu
 #endif
 
 /* called from convertBlenderScene.c */
-/* samples don't change per pixel, so build the samples in advance for efficiency */
-void init_lamp_hammersley(LampRen *lar)
+void init_render_qmcsampler(Render *re)
 {
-	lar->qsa = QMC_initSampler(SAMP_TYPE_HAMMERSLEY, lar->ray_totsamp);
+	re->qmcsamplers= MEM_callocN(sizeof(ListBase)*BLENDER_MAX_THREADS, "QMCListBase");
 }
 
-void init_render_hammersley(Render *re)
+QMCSampler *get_thread_qmcsampler(Render *re, int thread, int type, int tot)
 {
-	re->qsa = QMC_initSampler(SAMP_TYPE_HAMMERSLEY, (re->wrld.aosamp * re->wrld.aosamp));
+	QMCSampler *qsa;
+
+	/* create qmc samplers as needed, since recursion makes it hard to
+	 * predict how many are needed */
+
+	for(qsa=re->qmcsamplers[thread].first; qsa; qsa=qsa->next) {
+		if(qsa->type == type && qsa->tot == tot && !qsa->used) {
+			qsa->used= 1;
+			return qsa;
+		}
+	}
+
+	qsa= QMC_initSampler(type, tot);
+	qsa->used= 1;
+	BLI_addtail(&re->qmcsamplers[thread], qsa);
+
+	return qsa;
 }
 
-void free_lamp_qmcsampler(LampRen *lar)
+void release_thread_qmcsampler(Render *re, int thread, QMCSampler *qsa)
 {
-	QMC_freeSampler(lar->qsa);
-	lar->qsa = NULL;
+	qsa->used= 0;
 }
 
 void free_render_qmcsampler(Render *re)
 {
-	QMC_freeSampler(re->qsa);
-	re->qsa = NULL;
+	QMCSampler *qsa, *next;
+	int a;
+
+	if(re->qmcsamplers) {
+		for(a=0; a<BLENDER_MAX_THREADS; a++) {
+			for(qsa=re->qmcsamplers[a].first; qsa; qsa=next) {
+				next= qsa->next;
+				QMC_freeSampler(qsa);
+			}
+
+			re->qmcsamplers[a].first= re->qmcsamplers[a].last= NULL;
+		}
+
+		MEM_freeN(re->qmcsamplers);
+		re->qmcsamplers= NULL;
+	}
 }
 
 static int adaptive_sample_variance(int samples, float *col, float *colsq, float thresh)
@@ -962,7 +997,7 @@ static void trace_refract(float *col, ShadeInput *shi, ShadeResult *shr)
 		else samp_type = SAMP_TYPE_HAMMERSLEY;
 			
 		/* all samples are generated per pixel */
-		qsa = QMC_initSampler(samp_type, max_samples);
+		qsa = get_thread_qmcsampler(&R, shi->thread, samp_type, max_samples);
 		QMC_initPixel(qsa, shi->thread);
 	} else 
 		max_samples = 1;
@@ -1020,7 +1055,8 @@ static void trace_refract(float *col, ShadeInput *shi, ShadeResult *shr)
 	col[2] /= (float)samples;
 	col[3] /= (float)samples;
 	
-	if (qsa) QMC_freeSampler(qsa);
+	if (qsa)
+		release_thread_qmcsampler(&R, shi->thread, qsa);
 }
 
 static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float fresnelfac)
@@ -1047,7 +1083,7 @@ static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float f
 		else samp_type = SAMP_TYPE_HAMMERSLEY;
 			
 		/* all samples are generated per pixel */
-		qsa = QMC_initSampler(samp_type, max_samples);
+		qsa = get_thread_qmcsampler(&R, shi->thread, samp_type, max_samples);
 		QMC_initPixel(qsa, shi->thread);
 	} else 
 		max_samples = 1;
@@ -1125,7 +1161,8 @@ static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float f
 	col[1] /= (float)samples;
 	col[2] /= (float)samples;
 	
-	if (qsa) QMC_freeSampler(qsa);
+	if (qsa)
+		release_thread_qmcsampler(&R, shi->thread, qsa);
 }
 
 /* extern call from render loop */
@@ -1505,7 +1542,6 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	isec.ob_last= 0;
 	isec.mode= (R.wrld.aomode & WO_AODIST)?RE_RAY_SHADOW_TRA:RE_RAY_SHADOW;
 	isec.lay= -1;
-	VECCOPY(isec.start, shi->co);
 	
 	shadfac[0]= shadfac[1]= shadfac[2]= 0.0f;
 	
@@ -1541,9 +1577,9 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		max_samples /= speedfac;
 		if (max_samples < 5) max_samples = 5;
 		
-		qsa = QMC_initSampler(SAMP_TYPE_HALTON, max_samples);
+		qsa = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HALTON, max_samples);
 	} else if (R.wrld.ao_samp_method==WO_AOSAMP_HAMMERSLEY)
-		qsa = R.qsa;
+		qsa = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HAMMERSLEY, max_samples);
 
 	QMC_initPixel(qsa, shi->thread);
 	
@@ -1558,6 +1594,7 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		
 		Normalize(dir);
 			
+		VECCOPY(isec.start, shi->co);
 		isec.end[0] = shi->co[0] - maxdist*dir[0];
 		isec.end[1] = shi->co[1] - maxdist*dir[1];
 		isec.end[2] = shi->co[2] - maxdist*dir[2];
@@ -1615,7 +1652,8 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		shadfac[0]= shadfac[1]= shadfac[2]= 1.0f - fac/(float)samples;
 	}
 	
-	if ((qsa) && (qsa->type == SAMP_TYPE_HALTON)) QMC_freeSampler(qsa);
+	if (qsa)
+		release_thread_qmcsampler(&R, shi->thread, qsa);
 }
 
 /* extern call from shade_lamp_loop, ambient occlusion calculus */
@@ -1750,7 +1788,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 	QMCSampler *qsa=NULL;
 	QMCSampler *qsa_jit=NULL;
 	int samples=0;
-	float samp3d[3], jit[3];
+	float samp3d[3], jit[3], jitbias= 0.0f;
 
 	float fac=0.0f, vec[3];
 	float colsq[4];
@@ -1775,14 +1813,17 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		if (do_soft) max_samples = lar->ray_totsamp;
 		else max_samples = (R.osa > 4)?R.osa:5;
 	}
-	
+
+	if(shi->vlr && ((shi->vlr->flag & R_FULL_OSA) == 0))
+		jitbias= 0.5f*(VecLength(shi->dxco) + VecLength(shi->dyco));
+
 	/* sampling init */
 	if (lar->ray_samp_method==LA_SAMP_HALTON) {
-		qsa = QMC_initSampler(SAMP_TYPE_HALTON, max_samples);
-		qsa_jit = QMC_initSampler(SAMP_TYPE_HALTON, max_samples);
+		qsa = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HALTON, max_samples);
+		qsa_jit = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HALTON, max_samples);
 	} else if (lar->ray_samp_method==LA_SAMP_HAMMERSLEY) {
-		qsa = lar->qsa;
-		qsa_jit = QMC_initSampler(SAMP_TYPE_HAMMERSLEY, max_samples);
+		qsa = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HAMMERSLEY, max_samples);
+		qsa_jit = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HAMMERSLEY, max_samples);
 	}
 	
 	QMC_initPixel(qsa, shi->thread);
@@ -1828,6 +1869,13 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 				s[2] = samp3d[0]*ru[2] + samp3d[1]*rv[2];
 				
 				VECCOPY(samp3d, s);
+
+				if(jitbias != 0.0f) {
+					/* bias away somewhat to avoid self intersection */
+					pos[0] -= jitbias*v[0];
+					pos[1] -= jitbias*v[1];
+					pos[2] -= jitbias*v[2];
+				}
 			}
 			else {
 				/* sampling, returns quasi-random vector in [sizex,sizey]^2 plane */
@@ -1842,6 +1890,19 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		} else {
 			VECCOPY(isec->end, vec);
 		}
+
+		if(jitbias != 0.0f && !(do_soft && lar->type==LA_LOCAL)) {
+			/* bias away somewhat to avoid self intersection */
+			float v[3];
+
+			VECSUB(v, pos, isec->end);
+			Normalize(v);
+
+			pos[0] -= jitbias*v[0];
+			pos[1] -= jitbias*v[1];
+			pos[2] -= jitbias*v[2];
+		}
+
 		VECCOPY(isec->start, pos);
 		
 		
@@ -1892,8 +1953,10 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 	} else
 		shadfac[3]= 1.0f-fac/samples;
 
-	if (qsa_jit) QMC_freeSampler(qsa_jit);
-	if ((qsa) && (qsa->type == SAMP_TYPE_HALTON)) QMC_freeSampler(qsa);
+	if (qsa_jit)
+		release_thread_qmcsampler(&R, shi->thread, qsa_jit);
+	if (qsa)
+		release_thread_qmcsampler(&R, shi->thread, qsa);
 }
 
 static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, float *shadfac, Isect *isec)

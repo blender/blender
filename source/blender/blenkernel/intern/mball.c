@@ -8,15 +8,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,7 +29,7 @@
  *
  * Contributor(s): Jiri Hnidek <jiri.hnidek@vslib.cz>.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h>
@@ -233,14 +230,14 @@ void tex_space_mball(Object *ob)
 	boundbox_set_from_min_max(bb, min, max);
 }
 
-void make_orco_mball(Object *ob)
+float *make_orco_mball(Object *ob)
 {
 	BoundBox *bb;
 	DispList *dl;
-	float *data;
+	float *data, *orco, *orcodata;
 	float loc[3], size[3];
 	int a;
-	
+
 	/* restore size and loc */
 	bb= ob->bb;
 	loc[0]= (bb->vec[0][0]+bb->vec[4][0])/2.0f;
@@ -251,15 +248,21 @@ void make_orco_mball(Object *ob)
 	size[2]= bb->vec[1][2]-loc[2];
 
 	dl= ob->disp.first;
+	orcodata= MEM_mallocN(sizeof(float)*3*dl->nr, "MballOrco");
+
 	data= dl->verts;
+	orco= orcodata;
 	a= dl->nr;
 	while(a--) {
-		data[0]= (data[0]-loc[0])/size[0];
-		data[1]= (data[1]-loc[1])/size[1];
-		data[2]= (data[2]-loc[2])/size[2];
+		orco[0]= (data[0]-loc[0])/size[0];
+		orco[1]= (data[1]-loc[1])/size[1];
+		orco[2]= (data[2]-loc[2])/size[2];
 
 		data+= 3;
+		orco+= 3;
 	}
+
+	return orcodata;
 }
 /** \brief Test, if Object *ob is basic MetaBall.
  *
@@ -1211,8 +1214,8 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 		p->y = neg.y;
 		p->z = neg.z;
 		while (1) {
-			p->x = 0.5f*(pos.x + neg.x);
 			if (i++ == RES) return;
+			p->x = 0.5f*(pos.x + neg.x);
 			if ((function(p->x,p->y,p->z)) > 0.0)	pos.x = p->x; else neg.x = p->x; 
 		}
 	}
@@ -1221,8 +1224,8 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 		p->x = neg.x;
 		p->z = neg.z;
 		while (1) {
-			p->y = 0.5f*(pos.y + neg.y);
 			if (i++ == RES) return;
+			p->y = 0.5f*(pos.y + neg.y);
 			if ((function(p->x,p->y,p->z)) > 0.0)	pos.y = p->y; else neg.y = p->y;
 		}
   	}
@@ -1231,8 +1234,8 @@ void converge (MB_POINT *p1, MB_POINT *p2, float v1, float v2,
 		p->x = neg.x;
 		p->y = neg.y;
 		while (1) {
-			p->z = 0.5f*(pos.z + neg.z);
 			if (i++ == RES) return;
+			p->z = 0.5f*(pos.z + neg.z);
 			if ((function(p->x,p->y,p->z)) > 0.0)	pos.z = p->z; else neg.z = p->z;
 		}
 	}
@@ -1297,6 +1300,8 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 	int index[3]={1,0,-1};
 	float f =0.0f;
 	float in_v, out_v;
+	MB_POINT workp;
+	float tmp_v, workp_v, max_len, len, dx, dy, dz, nx, ny, nz, MAXN;
 
 	ml = mainb[a];
 
@@ -1357,23 +1362,49 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 
 					out_v = mbproc->function(out.x, out.y, out.z);
 
-					/* find "first point" on Implicit Surface of MetaElemnt ml */
-					converge(&in, &out, in_v, out_v, mbproc->function, &mbproc->start, mb, 0);
-	
-					/* indexes of CUBE, which includes "first point" */
-					c_i= (int)floor(mbproc->start.x/mbproc->size );
-					c_j= (int)floor(mbproc->start.y/mbproc->size );
-					c_k= (int)floor(mbproc->start.z/mbproc->size );
-		
-					mbproc->start.x= mbproc->start.y= mbproc->start.z= 0.0;
+					/* find "first points" on Implicit Surface of MetaElemnt ml */
+					//converge(&in, &out, in_v, out_v, mbproc->function, &mbproc->start, mb, 0);
+					workp = in;
+					workp_v = in_v;
+					max_len = sqrt((out.x-in.x)*(out.x-in.x) + (out.y-in.y)*(out.y-in.y) + (out.z-in.z)*(out.z-in.z));
 
-					/* add CUBE (with indexes c_i, c_j, c_k) to the stack,
-					 * this cube includes found point of Implicit Surface */
-					if (ml->flag & MB_NEGATIVE)
-						add_cube(mbproc, c_i, c_j, c_k, 2);
-					else
-						add_cube(mbproc, c_i, c_j, c_k, 1);
+					nx = abs((out.x - in.x)/mbproc->size);
+					ny = abs((out.y - in.y)/mbproc->size);
+					nz = abs((out.z - in.z)/mbproc->size);
+					
+					MAXN = MAX3(nx,ny,nz);
+
+					dx = (out.x - in.x)/MAXN;
+					dy = (out.y - in.y)/MAXN;
+					dz = (out.z - in.z)/MAXN;
+
+					len = 0.0;
+					while(len<=max_len) {
+						workp.x += dx;
+						workp.y += dy;
+						workp.z += dz;
+						/* compute value of implicite function */
+						tmp_v = mbproc->function(workp.x, workp.y, workp.z);
+						/* add cube to the stack, when value of implicite function crosses zero value */
+						if((tmp_v<0.0 && workp_v>=0.0)||(tmp_v>0.0 && workp_v<=0.0)) {
+
+							/* indexes of CUBE, which includes "first point" */
+							c_i= (int)floor(workp.x/mbproc->size);
+							c_j= (int)floor(workp.y/mbproc->size);
+							c_k= (int)floor(workp.z/mbproc->size);
+
+							/* add CUBE (with indexes c_i, c_j, c_k) to the stack,
+							 * this cube includes found point of Implicit Surface */
+							if (ml->flag & MB_NEGATIVE)
+								add_cube(mbproc, c_i, c_j, c_k, 2);
+							else
+								add_cube(mbproc, c_i, c_j, c_k, 1);
+						}
+						len = sqrt((workp.x-in.x)*(workp.x-in.x) + (workp.y-in.y)*(workp.y-in.y) + (workp.z-in.z)*(workp.z-in.z));
+						workp_v = tmp_v;
+					}
 						
+					mbproc->start.x= mbproc->start.y= mbproc->start.z= 0.0;
 					
 				}
 			}

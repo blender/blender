@@ -1,13 +1,13 @@
 #!BPY
 """
 Name: 'Clean Meshes'
-Blender: 242
+Blender: 245
 Group: 'Mesh'
 Tooltip: 'Clean unused data from all selected mesh objects.'
 """
 
-__author__ = ["Campbell Barton"]
-__url__ = ("blender", "elysiun", "http://members.iinet.net.au/~cpbarton/ideasman/")
+__author__ = "Campbell Barton aka ideasman42"
+__url__ = ["www.blender.org", "blenderartists.org", "www.python.org"]
 __version__ = "0.1"
 __bpydoc__ = """\
 Clean Meshes

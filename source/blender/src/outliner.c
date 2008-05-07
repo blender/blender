@@ -29,6 +29,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stddef.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -138,6 +139,8 @@ extern ListBase server_list;
 
 /* ******************** PROTOTYPES ***************** */
 static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int startx, int *starty);
+static void outliner_do_object_operation(SpaceOops *soops, ListBase *lb, 
+										 void (*operation_cb)(TreeElement *, TreeStoreElem *, TreeStoreElem *));
 
 
 /* ******************** PERSISTANT DATA ***************** */
@@ -640,6 +643,21 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 							if(pchan->next) pchan->next->prev= pchan;
 						}
 					}
+					
+					/* Pose Groups */
+					if(ob->pose->agroups.first) {
+						bActionGroup *agrp;
+						TreeElement *ten;
+						TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_POSEGRP_BASE, 0);
+						int a= 0;
+						
+						tenla->name= "Bone Groups";
+						for (agrp=ob->pose->agroups.first; agrp; agrp=agrp->next, a++) {
+							ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_POSEGRP, a);
+							ten->name= agrp->name;
+							ten->directdata= agrp;
+						}
+					}
 				}
 				
 				outliner_add_element(soops, &te->subtree, ob->ipo, te, 0, 0);
@@ -812,15 +830,16 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				IpoCurve *icu;
 				Object *lastadded= NULL;
 				
-				for(icu= ipo->curve.first; icu; icu= icu->next) {
-					if(icu->driver && icu->driver->ob) {
-						if(lastadded!=icu->driver->ob) {
+				for (icu= ipo->curve.first; icu; icu= icu->next) {
+					if (icu->driver && icu->driver->ob) {
+						if (lastadded != icu->driver->ob) {
 							outliner_add_element(soops, &te->subtree, icu->driver->ob, te, TSE_LINKED_OB, 0);
 							lastadded= icu->driver->ob;
 						}
 					}
 				}
 			}
+			break;
 		case ID_AC:
 			{
 				bAction *act= (bAction *)id;
@@ -959,7 +978,7 @@ static void outliner_build_tree(SpaceOops *soops)
 	   
 	outliner_free_tree(&soops->tree);
 	outliner_storage_cleanup(soops);
-						   
+	
 	/* clear ob id.new flags */
 	for(ob= G.main->object.first; ob; ob= ob->id.next) ob->id.newid= NULL;
 	
@@ -1152,6 +1171,75 @@ static void outliner_set_flag(SpaceOops *soops, ListBase *lb, short flag, short 
 	}
 }
 
+void object_toggle_visibility_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
+{
+	Base *base= (Base *)te->directdata;
+	
+	if(base==NULL) base= object_in_scene((Object *)tselem->id, G.scene);
+	if(base) {
+		base->object->restrictflag^=OB_RESTRICT_VIEW;
+	}
+}
+
+void outliner_toggle_visibility(struct ScrArea *sa)
+{
+	SpaceOops *soops= sa->spacedata.first;
+
+	outliner_do_object_operation(soops, &soops->tree, object_toggle_visibility_cb);
+	
+	BIF_undo_push("Outliner toggle selectability");
+
+	allqueue(REDRAWVIEW3D, 1);
+	allqueue(REDRAWOOPS, 0);
+	allqueue(REDRAWINFO, 1);
+}
+
+static void object_toggle_selectability_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
+{
+	Base *base= (Base *)te->directdata;
+	
+	if(base==NULL) base= object_in_scene((Object *)tselem->id, G.scene);
+	if(base) {
+		base->object->restrictflag^=OB_RESTRICT_SELECT;
+	}
+}
+
+void outliner_toggle_selectability(struct ScrArea *sa)
+{
+	SpaceOops *soops= sa->spacedata.first;
+	
+	outliner_do_object_operation(soops, &soops->tree, object_toggle_selectability_cb);
+	
+	BIF_undo_push("Outliner toggle selectability");
+
+	allqueue(REDRAWVIEW3D, 1);
+	allqueue(REDRAWOOPS, 0);
+	allqueue(REDRAWINFO, 1);
+}
+
+void object_toggle_renderability_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
+{
+	Base *base= (Base *)te->directdata;
+	
+	if(base==NULL) base= object_in_scene((Object *)tselem->id, G.scene);
+	if(base) {
+		base->object->restrictflag^=OB_RESTRICT_RENDER;
+	}
+}
+
+void outliner_toggle_renderability(struct ScrArea *sa)
+{
+	SpaceOops *soops= sa->spacedata.first;
+
+	outliner_do_object_operation(soops, &soops->tree, object_toggle_renderability_cb);
+	
+	BIF_undo_push("Outliner toggle renderability");
+
+	allqueue(REDRAWVIEW3D, 1);
+	allqueue(REDRAWOOPS, 0);
+	allqueue(REDRAWINFO, 1);
+}
+
 void outliner_toggle_visible(struct ScrArea *sa)
 {
 	SpaceOops *soops= sa->spacedata.first;
@@ -1215,6 +1303,8 @@ static int outliner_open_back(SpaceOops *soops, TreeElement *te)
 	return retval;
 }
 
+/* This is not used anywhere at the moment */
+#if 0
 static void outliner_open_reveal(SpaceOops *soops, ListBase *lb, TreeElement *teFind, int *found)
 {
 	TreeElement *te;
@@ -1237,7 +1327,7 @@ static void outliner_open_reveal(SpaceOops *soops, ListBase *lb, TreeElement *te
 		}
 	}
 }
-
+#endif
 
 void outliner_one_level(struct ScrArea *sa, int add)
 {
@@ -1620,6 +1710,24 @@ static int tree_element_active_nla_action(TreeElement *te, TreeStoreElem *tselem
 	return 0;
 }
 
+static int tree_element_active_posegroup(TreeElement *te, TreeStoreElem *tselem, int set)
+{
+	Object *ob= (Object *)tselem->id;
+	
+	if(set) {
+		if (ob->pose) {
+			ob->pose->active_group= te->index+1;
+			allqueue(REDRAWBUTSEDIT, 0);
+		}
+	}
+	else {
+		if(ob==OBACT && ob->pose) {
+			if (ob->pose->active_group== te->index+1) return 1;
+		}
+	}
+	return 0;
+}
+
 static int tree_element_active_posechannel(TreeElement *te, TreeStoreElem *tselem, int set)
 {
 	Object *ob= (Object *)tselem->id;
@@ -1801,6 +1909,8 @@ static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStore
 			return tree_element_active_constraint(te, tselem, set);
 		case TSE_R_LAYER:
 			return tree_element_active_renderlayer(te, tselem, set);
+		case TSE_POSEGRP:
+			return tree_element_active_posegroup(te, tselem, set);
 	}
 	return 0;
 }
@@ -1920,7 +2030,7 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 			if(event==LEFTMOUSE) {
 			
 				if (G.qual == LR_CTRLKEY) {
-					if(ELEM8(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE, TSE_POSE_BASE, TSE_R_LAYER_BASE, TSE_R_PASS)) 
+					if(ELEM9(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE, TSE_POSE_BASE, TSE_POSEGRP_BASE, TSE_R_LAYER_BASE, TSE_R_PASS)) 
 						error("Cannot edit builtin name");
 					else if(tselem->id->lib) {
 						error_libdata();
@@ -2545,7 +2655,7 @@ static void object_delete_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem
 		if(G.obedit==base->object) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 		
 		if(base==BASACT) {
-			G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT);
+			G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE);
 			setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 		}
 		
@@ -2576,7 +2686,6 @@ static void group_linkobs2scene_cb(TreeElement *te, TreeStoreElem *tsep, TreeSto
 			base->object->flag |= SELECT;
 			base->flag |= SELECT;
 		} else {
-				
 			/* link to scene */
 			base= MEM_callocN( sizeof(Base), "add_base");
 			BLI_addhead(&G.scene->base, base);
@@ -2584,6 +2693,7 @@ static void group_linkobs2scene_cb(TreeElement *te, TreeStoreElem *tsep, TreeSto
 			gob->ob->flag |= SELECT;
 			base->flag = gob->ob->flag;
 			base->object= gob->ob;
+			id_lib_extern((ID *)gob->ob); /* incase these are from a linked group */
 		}
 	}
 }
@@ -2712,7 +2822,7 @@ void outliner_operation_menu(ScrArea *sa)
 		//else pupmenu("Scene Operations%t|Delete");
 	}
 	else if(objectlevel) {
-		short event= pupmenu("Select%x1|Deselect%x2|Delete%x4");	/* make local: does not work... it doesn't set lib_extern flags... so data gets lost */
+		short event= pupmenu("Select%x1|Deselect%x2|Delete%x4|Toggle Visible%x6|Toggle Selectable%x7|Toggle Renderable%x8");	/* make local: does not work... it doesn't set lib_extern flags... so data gets lost */
 		if(event>0) {
 			char *str="";
 			
@@ -2736,7 +2846,18 @@ void outliner_operation_menu(ScrArea *sa)
 				outliner_do_object_operation(soops, &soops->tree, id_local_cb);
 				str= "Localized Objects";
 			}
-			
+			else if(event==6) {
+				outliner_do_object_operation(soops, &soops->tree, object_toggle_visibility_cb);
+				str= "Toggle Visibility";
+			}
+			else if(event==7) {
+				outliner_do_object_operation(soops, &soops->tree, object_toggle_selectability_cb);
+				str= "Toggle Selectability";
+			}
+			else if(event==8) {
+				outliner_do_object_operation(soops, &soops->tree, object_toggle_renderability_cb);
+				str= "Toggle Renderability";
+			}
 			countall();
 			
 			BIF_undo_push(str);
@@ -2895,6 +3016,8 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				BIF_icon_draw(x, y, ICON_LAMP_DEHLT); break;
 			case TSE_LINKED_MAT:
 				BIF_icon_draw(x, y, ICON_MATERIAL_DEHLT); break;
+			case TSE_POSEGRP_BASE:
+				BIF_icon_draw(x, y, ICON_VERTEXSEL); break;
 				
 #ifdef WITH_VERSE
 			case ID_VS:
@@ -3416,7 +3539,7 @@ static void namebutton_cb(void *tep, void *oldnamep)
 			if (te->idcode == ID_LI) {
 				char expanded[FILE_MAXDIR + FILE_MAXFILE];
 				BLI_strncpy(expanded, ((Library *)tselem->id)->name, FILE_MAXDIR + FILE_MAXFILE);
-				BLI_convertstringcode(expanded, G.sce, G.scene->r.cfra);
+				BLI_convertstringcode(expanded, G.sce);
 				if (!BLI_exists(expanded)) {
 					error("This path does not exist, correct this before saving");
 				}
@@ -3483,6 +3606,15 @@ static void namebutton_cb(void *tep, void *oldnamep)
 				allqueue(REDRAWOOPS, 0);
 				allqueue(REDRAWVIEW3D, 1);
 				allqueue(REDRAWBUTSEDIT, 0);
+				break;
+			case TSE_POSEGRP:
+				{
+					Object *ob= (Object *)tselem->id; // id = object
+					bActionGroup *grp= te->directdata;
+					
+					BLI_uniquename(&ob->pose->agroups, grp, "Group", offsetof(bActionGroup, name), 32);
+					allqueue(REDRAWBUTSEDIT, 0);
+				}
 				break;
 			case TSE_R_LAYER:
 				allqueue(REDRAWOOPS, 0);

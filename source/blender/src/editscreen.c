@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * All screen functions that are related to the interface
  * handling and drawing. Might be split up as well later...
  */
@@ -893,12 +890,6 @@ int afterqtest(short win, unsigned short evt)
 
 
 static char ext_load_str[256]= {0, 0};
-void add_readfile_event(char *filename)
-{	
-	mainqenter(LOAD_FILE, 1);
-	strcpy(ext_load_str, filename);
-	BLI_convertstringcode(ext_load_str, G.sce, G.scene->r.cfra);
-}
 
 static short ext_reshape= 0, ext_redraw=0, ext_inputchange=0, ext_mousemove=0, ext_undopush=0;
 
@@ -1399,7 +1390,7 @@ void screenmain(void)
 		else if (event==QKEY) {
 			/* Temp place to print mem debugging info ctrl+alt+shift + qkey */
 			if ( G.qual == (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
-				MEM_printmemlist_pydict();
+				MEM_printmemlist_stats();
 			}
 			
 			else if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT);
@@ -1592,7 +1583,7 @@ void mainwindow_set_filename_to_title(char *filename)
 	char dir[FILE_MAXDIR];
 	char file[FILE_MAXFILE];
 
-	BLI_split_dirfile(filename, dir, file);
+	BLI_split_dirfile_basic(filename, dir, file);
 
 	if(BLI_streq(file, ".B.blend") || filename[0] =='\0')
 		sprintf(str, "Blender");
@@ -2178,6 +2169,25 @@ short get_activedevice(void)
 	return window_get_activedevice(mainwin);
 }
 
+void getndof(float *sbval)
+{
+    winlay_process_events(0);
+    window_get_ndof(mainwin, sbval);
+}
+
+void filterNDOFvalues(float *sbval)
+{
+	int i=0;
+	float max  = 0.0;
+	
+	for (i =0; i<6;i++)
+		if (fabs(sbval[i]) > max)
+			max = fabs(sbval[i]);
+	for (i =0; i<6;i++)
+		if (fabs(sbval[i]) != max )
+			sbval[i]=0.0;
+}
+
 void add_to_mainqueue(Window *win, void *user_data, short evt, short val, char ascii)
 {
 
@@ -2242,6 +2252,7 @@ static bScreen *addscreen(char *name)		/* use setprefsize() if you want somethin
 		}
 		
 		window_set_handler(mainwin, add_to_mainqueue, NULL);
+		window_open_ndof(mainwin); /* needs to occur once the mainwin handler is set */
 		init_mainwin();
 		mywinset(1);
 	

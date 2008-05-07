@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -102,7 +99,6 @@
 #include "BDR_editcurve.h"
 #include "BDR_editobject.h"
 
-#include "BPI_script.h"
 #include "BSE_filesel.h"
 #include "BSE_view.h"
 
@@ -638,7 +634,7 @@ void swapselect_file(SpaceFile *sfile)
 
 static int find_active_file(SpaceFile *sfile, short x, short y)
 {
-	int ofs;
+	int ofs, act;
 	
 	if(y > textrct.ymax) y= textrct.ymax;
 	if(y <= textrct.ymin) y= textrct.ymin+1;
@@ -647,8 +643,12 @@ static int find_active_file(SpaceFile *sfile, short x, short y)
 	if(ofs<0) ofs= 0;
 	ofs*= (textrct.ymax-textrct.ymin);
 
-	return sfile->ofs+ (ofs+textrct.ymax-y)/FILESEL_DY;
+	act= sfile->ofs+ (ofs+textrct.ymax-y)/FILESEL_DY;
 	
+	if(act<0 || act>=sfile->totfile)
+		act= -1;
+	
+	return act;
 }
 
 
@@ -1042,7 +1042,7 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	else loadbutton= 0;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, TEX, B_FS_DIRNAME,"",	textrct.xmin + (strp?20:0), filebuty2, textrct.xmax-textrct.xmin-loadbutton - (strp?20:0), 21, sfile->dir, 0.0, (float)FILE_MAXDIR-1, 0, 0, "Directory, enter a directory and press enter to create it"); /* Directory input */
+	uiDefBut(block, TEX, B_FS_DIRNAME,"",	textrct.xmin + (strp?20:0), filebuty2, textrct.xmax-textrct.xmin-loadbutton - (strp?20:0), 21, sfile->dir, 0.0, (float)FILE_MAXDIR-1, 0, 0, "Directory, enter a directory and press enter to create it, Substitute ~ for home"); /* Directory input */
 	if(loadbutton) {
 		uiSetCurFont(block, UI_HELV);
 		uiDefBut(block, BUT, B_FS_LOAD, sfile->title,	textrct.xmax-loadbutton, filebuty2, loadbutton, 21, sfile->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
@@ -1172,6 +1172,7 @@ static void activate_fileselect_(int type, char *title, char *file, short *menup
 
 	name[2]= 0;
 	BLI_strncpy(name, file, sizeof(name));
+	BLI_convertstringcode(name, G.sce);
 	
 	sfile= curarea->spacedata.first;
 
@@ -1219,6 +1220,7 @@ static void activate_fileselect_(int type, char *title, char *file, short *menup
 	}
 	else if(type==FILE_LOADLIB) {
 		BLI_strncpy(sfile->dir, name, sizeof(sfile->dir));
+		BLI_cleanup_dir(G.sce, sfile->dir);
 		if( is_a_library(sfile, temp, group) ) {
 			/* force a reload of the library-filelist */
 			freefilelist(sfile);
@@ -1295,6 +1297,27 @@ void activate_databrowse_args(struct ID *id, int idcode, int fromcode, short *me
 	
 	sfile= curarea->spacedata.first;
 	sfile->ipotype= fromcode;
+}
+
+/* resets a previous file space type */
+/* is used when opening a filebrowser directly from windowtype_pupmenu,
+   since in that case we don't want any load/save/append/link action
+*/
+void reset_filespace(ScrArea *sa)
+{
+	if (sa->spacetype == SPACE_FILE) {
+		SpaceFile *sfile= sa->spacedata.first;
+			
+		if(sfile->type==FILE_MAIN) {
+			freefilelist(sfile);
+		} else {
+			sfile->type= FILE_UNIX;
+		}
+		
+		sfile->returnfunc= NULL;
+		sfile->title[0]= 0;
+		if(sfile->filelist) test_flags_file(sfile);
+	}
 }
 
 void filesel_prevspace()
@@ -1409,7 +1432,25 @@ static void filesel_execute(SpaceFile *sfile)
 	struct direntry *files;
 	char name[FILE_MAX];
 	int a;
+
+	/* check for added length of dir and filename - annoying, but now that dir names can already be FILE_MAX
+	   we need to prevent overwriting. Alternative of shortening the name behind the user's back is greater evil 
+	   - elubie */ 
+	if (strlen(sfile->dir) + strlen(sfile->file) >= FILE_MAX) {
+		okee("File and Directory name together are too long. Please use shorter names.");
+		return;
+	}
 	
+#ifdef WIN32
+	if ( (sfile->type!=FILE_LOADLIB) && (sfile->type!=FILE_MAIN) ) {
+		if (!check_file_chars(sfile->file)) {
+			error("You have illegal characters in the filename. Check console for more info.");
+			printf("Characters '*?:|\"<>\\/' are illegal in a filename.\n");
+			return;
+		}
+	}
+#endif
+
 	filesel_prevspace();
 
 	if(sfile->type==FILE_LOADLIB) {
@@ -1453,7 +1494,7 @@ static void filesel_execute(SpaceFile *sfile)
 
 				*sfile->menup= -1;
 
-				if(sfile->act>=0) {
+				if(sfile->act>=0 && sfile->act<sfile->totfile) {
 					if(sfile->filelist) {
 						files= sfile->filelist+sfile->act;
 						if ( strcmp(files->relname, sfile->file)==0) {
@@ -1527,6 +1568,20 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 	}
 	else if(event== B_FS_DIRNAME) {
 		/* reuse the butname variable */
+		
+		/* convienence shortcut '~' -> $HOME
+		 * If the first char is ~ then this is invalid on all OS's so its safe to replace with home */
+		if ( sfile->dir[0] == '~' ) {
+			if (sfile->dir[1] == '\0') {
+				BLI_strncpy(sfile->dir, BLI_gethome(), sizeof(sfile->dir) );
+			} else {
+				/* replace ~ with home */
+				char tmpstr[FILE_MAX];
+				BLI_join_dirfile(tmpstr, BLI_gethome(), sfile->dir+1);
+				BLI_strncpy(sfile->dir, tmpstr, sizeof(sfile->dir));
+			}
+		}
+		
 		BLI_cleanup_dir(G.sce, sfile->dir);
 
 		BLI_make_file_string(G.sce, butname, sfile->dir, "");
@@ -1851,7 +1906,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						/* the path is too long and we are not going up! */
 						if (strcmp(sfile->filelist[act].relname, ".") &&
 							strcmp(sfile->filelist[act].relname, "..") &&
-							strlen(sfile->dir) + strlen(sfile->filelist[act].relname) >= FILE_MAXDIR ) 
+							strlen(sfile->dir) + strlen(sfile->filelist[act].relname) >= FILE_MAX ) 
 						{
 							error("Path too long, cannot enter this directory");
 						} else {
@@ -1862,20 +1917,24 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							sfile->ofs= 0;
 							do_draw= 1;
 						}
-					}
-					else {
+					} else {
 						if( strcmp(sfile->file, sfile->filelist[act].relname)) {
-							char tmpstr[240];
-							do_draw= 1;
 							BLI_strncpy(sfile->file, sfile->filelist[act].relname, sizeof(sfile->file));
-							if (sfile->f_fp) {
-								sprintf (tmpstr, "%s%s", sfile->dir, sfile->file);
-								/* printf ("%s\n", tmpstr); */
-								#ifdef INTERNATIONAL
-								if (!FTF_GetNewFont ((const unsigned char *)tmpstr, 0, U.fontsize))
-									error ("No font file");
-								#endif
+							do_draw = 1;
+							
+#ifdef INTERNATIONAL
+							if (sfile->type==FILE_LOADFONT && event!=MIDDLEMOUSE) {
+								/* Font Preview */
+								char tmpstr[240];
+								if (sfile->f_fp) {
+									sprintf (tmpstr, "%s%s", sfile->dir, sfile->file);
+									
+									if (!FTF_GetNewFont ((const unsigned char *)tmpstr, 0, U.fontsize)) {
+										error ("No font file");
+									}
+								}
 							}
+#endif
 						}
 						if(event==MIDDLEMOUSE && sfile->type) filesel_execute(sfile);
 					}
@@ -1982,8 +2041,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if (sfile->filelist[i].flags & ACTIVE) {			
 					BLI_make_file_string(G.sce, str, sfile->dir, sfile->filelist[i].relname);
 
-					if(event==BKEY) ret= BLI_backup(sfile->filelist[i].relname, sfile->dir, otherdir);
-					else if(event==CKEY) ret= BLI_copy_fileops(str, otherdir);
+					if(event==CKEY) ret= BLI_copy_fileops(str, otherdir);
 					else if(event==LKEY) ret= BLI_link(str, otherdir);
 					else if(event==MKEY) ret= BLI_move(str, otherdir);
 
@@ -2092,7 +2150,12 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				fs_fake_users(sfile);
 			}
 			break;
-				
+		case HKEY:
+			sfile->flag ^= FILE_HIDE_DOT;
+			BLI_hide_dot_files(sfile->flag & FILE_HIDE_DOT);
+			freefilelist(sfile);
+			scrarea_queue_winredraw(curarea);
+			break;
 		case PADPLUSKEY:
 		case EQUALKEY:
 			if (G.qual & LR_CTRLKEY) BLI_newname(sfile->file, +100);
@@ -2388,7 +2451,7 @@ static void active_file_object(SpaceFile *sfile)
 	if(filesel_has_func(sfile)) return;
 	
 	if( strcmp(sfile->dir, "Object/")==0 ) {
-		if(sfile->act >= 0) {
+		if(sfile->act >= 0 && sfile->act < sfile->totfile) {
 			
 			ob= (Object *)sfile->filelist[sfile->act].poin;
 			

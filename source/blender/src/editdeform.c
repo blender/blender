@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Creator-specific support for vertex deformation groups
  * Added: apply deform function (ton)
  */
@@ -220,19 +217,25 @@ void duplicate_defgroup ( Object *ob )
 	dg = BLI_findlink (&ob->defbase, (ob->actdef-1));
 	if (!dg)
 		return;
-
-	BLI_snprintf (name, 32, "%s_copy", dg->name);
-	while (get_named_vertexgroup (ob, name)) {
-		if ((strlen (name) + 6) > 32) {
-			error ("Error: the name for the new group is > 32 characters");
-			return;
+	
+	if (strstr(dg->name, "_copy")) {
+		BLI_strncpy (name, dg->name, 32); /* will be renamed _copy.001... etc */
+	} else {
+		BLI_snprintf (name, 32, "%s_copy", dg->name);
+		while (get_named_vertexgroup (ob, name)) {
+			if ((strlen (name) + 6) > 32) {
+				error ("Error: the name for the new group is > 32 characters");
+				return;
+			}
+			strcpy (s, name);
+			BLI_snprintf (name, 32, "%s_copy", s);
 		}
-		strcpy (s, name);
-		BLI_snprintf (name, 32, "%s_copy", s);
-	}
+	}		
 
 	cdg = copy_defgroup (dg);
 	strcpy (cdg->name, name);
+	unique_vertexgroup_name(cdg, ob);
+	
 	BLI_addtail (&ob->defbase, cdg);
 
 	idg = (ob->actdef-1);

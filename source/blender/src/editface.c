@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 
@@ -83,6 +80,7 @@
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_space.h"	/* for allqueue */
+#include "BIF_drawimage.h"	/* for allqueue */
 
 #include "BDR_drawmesh.h"
 #include "BDR_editface.h"
@@ -338,6 +336,53 @@ static void uv_calc_shift_project(float *target, float *shift, float rotmat[][4]
 	}
 }
 
+void correct_uv_aspect( void )
+{
+	float aspx=1, aspy=1;
+	EditMesh *em = G.editMesh;
+	EditFace *efa = EM_get_actFace(1);
+	MTFace *tface;
+	
+	if (efa) {
+		tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		image_final_aspect(tface->tpage, &aspx, &aspy);
+	}
+	
+	if (aspx != aspy) {
+		
+		EditMesh *em = G.editMesh;
+		float scale;
+		
+		if (aspx > aspy) {
+			scale = aspy/aspx;
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				if (efa->f & SELECT) {
+					tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					tface->uv[0][0] = ((tface->uv[0][0]-0.5)*scale)+0.5;
+					tface->uv[1][0] = ((tface->uv[1][0]-0.5)*scale)+0.5;
+					tface->uv[2][0] = ((tface->uv[2][0]-0.5)*scale)+0.5;
+					if(efa->v4) {
+						tface->uv[3][0] = ((tface->uv[3][0]-0.5)*scale)+0.5;
+					}
+				}
+			}
+		} else {
+			scale = aspx/aspy;
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				if (efa->f & SELECT) {
+					tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					tface->uv[0][1] = ((tface->uv[0][1]-0.5)*scale)+0.5;
+					tface->uv[1][1] = ((tface->uv[1][1]-0.5)*scale)+0.5;
+					tface->uv[2][1] = ((tface->uv[2][1]-0.5)*scale)+0.5;
+					if(efa->v4) {
+						tface->uv[3][1] = ((tface->uv[3][1]-0.5)*scale)+0.5;
+					}
+				}
+			}
+		}
+	}
+}
+
 void calculate_uv_map(unsigned short mapmode)
 {
 	MTFace *tface;
@@ -362,6 +407,9 @@ void calculate_uv_map(unsigned short mapmode)
 	if (!EM_texFaceCheck()) {
 		if (em && em->faces.first)
 			EM_add_data_layer(&em->fdata, CD_MTFACE);
+		
+		if (G.sima && G.sima->image) /* this is a bit of a kludge, but assume they want the image on their mesh when UVs are added */
+			image_changed(G.sima, G.sima->image);
 		
 		if (!EM_texFaceCheck())
 			return;
@@ -523,6 +571,8 @@ void calculate_uv_map(unsigned short mapmode)
 		break;
 		}
 	default:
+		if ((G.scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT)==0)
+			correct_uv_aspect();
 		return;
 	} /* end switch mapmode */
 
@@ -552,6 +602,13 @@ void calculate_uv_map(unsigned short mapmode)
 		}
 	}
 
+	if (	(mapmode!=B_UVAUTO_BOUNDS) &&
+			(mapmode!=B_UVAUTO_RESET) &&
+			(G.scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT)==0
+		) {
+		correct_uv_aspect();
+	}
+	
 	BIF_undo_push("UV calculation");
 
 	object_uvs_changed(OBACT);
@@ -562,36 +619,15 @@ void calculate_uv_map(unsigned short mapmode)
 
 /* last_sel, use em->act_face otherwise get the last selected face in the editselections
  * at the moment, last_sel is mainly useful for gaking sure the space image dosnt flicker */
-MTFace *get_active_mtface(EditFace **act_efa, MCol **mcol, short sloppy)
+MTFace *get_active_mtface(EditFace **act_efa, MCol **mcol, int sloppy)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa = NULL;
-	EditSelection *ese;
 	
 	if(!EM_texFaceCheck())
 		return NULL;
 	
-	/* first check the active face */
-	if (sloppy && em->act_face) {
-		efa = em->act_face;
-	} else {
-		ese = em->selected.last;
-		for (; ese; ese=ese->prev){
-			if(ese->type == EDITFACE) {
-				efa = (EditFace *)ese->data;
-				
-				if (efa->h)	efa= NULL;
-				else		break;
-			}
-		}
-	}
-	
-	if (sloppy && !efa) {
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			if (efa->f & SELECT)
-				break;
-		}
-	}
+	efa = EM_get_actFace(sloppy);
 	
 	if (efa) {
 		if (mcol) {
@@ -872,7 +908,7 @@ static void seam_add_adjacent(Mesh *me, Heap *heap, int mednum, int vertnum, int
 		if (cost[adjnum] > newcost) {
 			cost[adjnum] = newcost;
 			prevedge[adjnum] = mednum;
-			BLI_heap_insert(heap, newcost, (void*)adjnum);
+			BLI_heap_insert(heap, newcost, SET_INT_IN_POINTER(adjnum));
 		}
 	}
 }
@@ -937,11 +973,11 @@ static int seam_shortest_path(Mesh *me, int source, int target)
 
 	/* regular dijkstra shortest path, but over edges instead of vertices */
 	heap = BLI_heap_new();
-	BLI_heap_insert(heap, 0.0f, (void*)source);
+	BLI_heap_insert(heap, 0.0f, SET_INT_IN_POINTER(source));
 	cost[source] = 0.0f;
 
 	while (!BLI_heap_empty(heap)) {
-		mednum = (int)BLI_heap_popmin(heap);
+		mednum = GET_INT_FROM_POINTER(BLI_heap_popmin(heap));
 		med = me->medge + mednum;
 
 		if (mednum == target)

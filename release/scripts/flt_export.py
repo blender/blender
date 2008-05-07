@@ -8,7 +8,7 @@ Tip: 'Export to OpenFlight v16.0 (.flt)'
 
 __author__ = "Greg MacDonald, Geoffrey Bantle"
 __version__ = "2.0 11/21/07"
-__url__ = ("blender", "elysiun", "Author's homepage, http://sourceforge.net/projects/blight/")
+__url__ = ("blender", "blenderartists.org", "Author's homepage, http://sourceforge.net/projects/blight/")
 __bpydoc__ = """\
 This script exports v16.0 OpenFlight files.  OpenFlight is a
 registered trademark of MultiGen-Paradigm, Inc.
@@ -47,45 +47,51 @@ import shutil
 
 FF = FileFinder()
 records = process_recordDefs()
-
+		
 class ExporterOptions:
+	
+	def read_state(self):
+		reg = Blender.Registry.GetKey('flt_export',1)
+		if reg:
+			for key in self.state:
+				if reg.has_key(key):
+					self.state[key] = reg[key]
+	
+	def write_state(self):
+		d = dict()
+		for key in self.state:
+			d[key] = self.state[key]
+			Blender.Registry.SetKey('flt_export', d, 1) 
 	def __init__(self):
 		self.verbose = 1
 		self.tolerance = 0.001
 		self.writevcol = True
 		
-		#new stuff
-		self.export_shading = 0
-		self.shading_default = 45.0
-		self.basepath = os.path.dirname(Blender.Get('filename'))
-		self.scale = 1.0
-		
-		#set externals path
-		if(os.path.exists(os.path.join(self.basepath,'externals'))):
-			self.externalspath = os.path.join(self.basepath,'externals')
+		self.state = {'export_shading' : 0, 
+				'shading_default' : 45, 
+				'basepath' : os.path.dirname(Blender.Get('filename')),
+				'scale': 1.0,
+				'doxrefs' : 1,
+				'attrib' : 0,
+				'copytex' : 0,
+				'transform' : 0,
+				'xapp' : 1}
+				
+		#default externals path
+		if(os.path.exists(os.path.join(self.state['basepath'],'externals'))):
+			self.state['externalspath'] = os.path.join(self.state['basepath'],'externals')
 		else:
-			self.externalspath = self.basepath 
+			self.state['externalspath'] = self.state['basepath'] 
 		
-		self.doxrefs = 1
-		
-		#texture options
-		if(os.path.exists(os.path.join(self.basepath,'textures'))):
-			self.texturespath = os.path.join(self.basepath,'textures')
+		if(os.path.exists(os.path.join(self.state['basepath'],'textures'))):
+			self.state['texturespath'] = os.path.join(self.state['basepath'],'textures')
 		else:
-			self.texturespath = self.basepath
+			self.state['texturespath'] = self.state['basepath']
+
+		self.state['xappath'] = ''
+		self.read_state() #read from registry
 		
-		#misc
-		self.write_attrib_files = 0
-		self.copy_textures = 0
-		self.export_transform = 0
-		self.flattenmesh = False
 		
-		self.xapp = 1
-		reg = Blender.Registry.GetKey('flt_export',1)
-		if(reg and 'xappath' in reg.keys()):
-			self.xappath = reg['xappath']
-		else:
-			self.xappath = ''
 options = ExporterOptions()
 tex_files = dict() #a list of (possibly) modified texture path names
 
@@ -100,7 +106,7 @@ FLOAT_TOLERANCE = options.tolerance
 
 #need to move all this stuff to flt_properties.py.
 identity_matrix = [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
-alltypes = [2,4,11,73,63,111]
+alltypes = [2,4,14,11,73,63,111]
 childtypes = { 
 	2 : [111,2,73,4,14,63],
 	4 : [111],
@@ -196,11 +202,14 @@ class GlobalResourceRepository:
 	def request_vertex_index(self, object, mesh, face, vfindex, uvok,cindex):
 
 		flatShadeNorm = None
+		vno = None
+
 		
 		if type(face) is list:
 			vertex = face[vfindex]
 		elif str(type(face)) == "<type " + "'Blender MVert'>": 
 			vertex = face
+			vno = Blender.Mathutils.Vector(0.0,0.0,1.0)
 		elif str(type(face)) == "<type " + "'Blender MEdge'>":
 			if vfindex == 1:
 				vertex = face.v1
@@ -218,12 +227,15 @@ class GlobalResourceRepository:
 		indexhash = self.namehash[object.name]
 		
 		#export in global space? THIS HAS BEEN MADE REDUNDANT... REMOVE ME
-		if not options.export_transform:
+		if not options.state['transform']:
 			vertex = shadowVert(vertex,object,True,flatShadeNorm)
 		else:
                         vertex = shadowVert(vertex,object,False,flatShadeNorm)
+		
+		if vno:
+			vertex.no = vno        
         
-                
+     
 		#Check to see if this vertex has been visited before. If not, add
 		if not indexhash.has_key(vertex.index):
 			if uvok:
@@ -385,6 +397,7 @@ class Node:
 				print '\t' * level[0], self.name, self.object.type
 		level[0] += 1
 		
+		self.children.reverse()
 		for child in self.children:
 			child.blender_export()
 			
@@ -409,14 +422,26 @@ class Node:
 	def write_pop(self):
 		self.header.fw.write_short(11)
 		self.header.fw.write_ushort(4)
-
+		
+	def write_push_extension(self):
+		self.header.fw.write_short(21)
+		self.header.fw.write_ushort(24)
+		self.header.fw.pad(18)
+		self.header.fw.write_ushort(0)
+		
+	def write_pop_extension(self):
+		self.header.fw.write_short(22)
+		self.header.fw.write_ushort(24)
+		self.header.fw.pad(18)
+		self.header.fw.write_ushort(0)
+		
 	def write_longid(self, name):
 		length = len(name)
 		if length >= 8:
 			self.header.fw.write_short(33)              # Long ID opcode
 			self.header.fw.write_ushort(length+5)       # Length of record
 			self.header.fw.write_string(name, length+1) # name + zero terminator
-
+			
 	def write_comment(self,comment):
 		length = len(comment)
 		if length >= 65535:
@@ -444,9 +469,9 @@ class Node:
 		self.object = object
 		if object:
 			self.name = self.object.name
-			if not options.export_transform:
+			if not options.state['transform']:
 				oloc = Blender.Mathutils.Vector(object.getLocation('worldspace'))
-				vec = Blender.Mathutils.Vector(oloc[0] * options.scale, oloc[1] * options.scale, oloc[2] * options.scale) #scale
+				vec = Blender.Mathutils.Vector(oloc[0] * options.state['scale'], oloc[1] * options.state['scale'], oloc[2] * options.state['scale']) #scale
 				self.matrix =  self.object.getMatrix('worldspace') *  Blender.Mathutils.TranslationMatrix(vec - oloc)			
 			else:
 				self.matrix = self.object.getMatrix('localspace') #do matrix mult here.
@@ -467,31 +492,31 @@ class Node:
 		for child in self.child_objects:			
 			if(not child.restrictDisplay):
 				childprops = None
-				type = None
+				ftype = None
 				if not child.properties.has_key('FLT'):
 					if child.type == 'Empty':
 						if child.DupGroup:
 							childprops = FLTXRef.copy()
-							type = 63
+							ftype = 63
 						else:
 							childprops = FLTGroup.copy()
-							type = 2
+							ftype = 2
 					elif child.type == 'Mesh':
 						if self.header.childhash[child.name] or not child.parent:
 							childprops = FLTGroup.copy()
-							type = 2
+							ftype = 2
 						else:
 							childprops = FLTObject.copy()
-							type = 4
+							ftype = 4
 							
 				else:
 					childprops = dict()
 					for prop in child.properties['FLT']:
 						childprops[prop] = child.properties['FLT'][prop]
-					type = child.properties['FLT']['type']
+					ftype = child.properties['FLT']['type']
 				
-				if type in self.childtypes and type in alltypes:
-					Newnode = FLTNode(self,header,child,childprops,type)
+				if ftype in self.childtypes and ftype in alltypes:
+					Newnode = FLTNode(self,header,child,childprops,ftype)
 					if child.type == 'Mesh':
 						self.header.mnodes.append(Newnode)
 class FaceDesc:
@@ -630,11 +655,11 @@ class FLTNode(Node):
 				
 		#now go through the loops and append.
 		for l in loops:
-			(type, loop) = l
+			(ftype, loop) = l
 			face_desc = FaceDesc()
 			for i,vert in enumerate(loop):
 				face_desc.vertex_index_lst.append(self.header.GRR.request_vertex_index(self.object,self.exportmesh,loop,i,0,0))
-				if type  == 'closed':
+				if ftype  == 'closed':
 					face_desc.renderstyle = 2
 				else:
 					face_desc.renderstyle = 3
@@ -783,13 +808,13 @@ class FLTNode(Node):
 			self.exportmesh.getFromObject(self.object.name)			
 
 			for vert in self.exportmesh.verts:
-				if not options.export_transform:
+				if not options.state['transform']:
 					vec = vert.co
-					vec = Blender.Mathutils.Vector(vec[0] * options.scale, vec[1] * options.scale, vec[2] * options.scale) #scale
+					vec = Blender.Mathutils.Vector(vec[0] * options.state['scale'], vec[1] * options.state['scale'], vec[2] * options.state['scale']) #scale
 					vert.co =  Blender.Mathutils.TranslationMatrix(vec) * (vert.co * self.object.getMatrix('worldspace'))						
 				
-				if options.scale != 1.0:
-					vert.co = vert.co * options.scale
+				if options.state['scale'] != 1.0:
+					vert.co = vert.co * options.state['scale']
 
 			if("FLT_VCOL") in self.mesh.verts.properties:
 				for v in self.exportmesh.verts:
@@ -806,7 +831,7 @@ class FLTNode(Node):
 			default = None
 
 
-			if options.export_shading:
+			if options.state['export_shading']:
 				mods = self.object.modifiers
 				hasedsplit = False
 				for mod in mods:
@@ -815,7 +840,7 @@ class FLTNode(Node):
 						break
 				if not hasedsplit:
 					default = mods.append(Modifier.Types.EDGESPLIT)
-					default[Modifier.Settings.EDGESPLIT_ANGLE] = options.shading_default
+					default[Modifier.Settings.EDGESPLIT_ANGLE] = options.state['shading_default']
 					default[Modifier.Settings.EDGESPLIT_FROM_ANGLE] = True
 					default[Modifier.Settings.EDGESPLIT_FROM_SHARP] = False
 					self.object.makeDisplayList()
@@ -824,17 +849,17 @@ class FLTNode(Node):
 
 			#recalculate vertex positions
 			for vert in self.exportmesh.verts:
-				if not options.export_transform:
+				if not options.state['transform']:
 					vec = vert.co
-					vec = Blender.Mathutils.Vector(vec[0] * options.scale, vec[1] * options.scale, vec[2] * options.scale) #scale
+					vec = Blender.Mathutils.Vector(vec[0] * options.state['scale'], vec[1] * options.state['scale'], vec[2] * options.state['scale']) #scale
 					vert.co =  Blender.Mathutils.TranslationMatrix(vec) * (vert.co * self.object.getMatrix('worldspace'))						
 				
-				if options.scale != 1.0:
-					vert.co = vert.co * options.scale			
+				if options.state['scale'] != 1.0:
+					vert.co = vert.co * options.state['scale']			
 			
 			flipped = self.object.getMatrix('worldspace').determinant()
 			
-			if not options.export_transform:
+			if not options.state['transform']:
 				self.exportmesh.calcNormals()
 			
 
@@ -866,7 +891,7 @@ class FLTNode(Node):
 			self.buildNormFaces()
 			self.buildTexData()
 			
-			if not options.export_transform:
+			if not options.state['transform']:
 				if flipped < 0:
 					for vdesc in self.header.GRR.vertex_lst:
 						vdesc.accum = 0
@@ -1016,27 +1041,43 @@ class FLTNode(Node):
 		self.header.fw.write_short(self.opcode)
 		self.header.fw.write_ushort(recordlen[self.opcode])
 		exportdict = FLT_Records[self.opcode].copy()
+		if self.object:
+			self.props['3t8!id'] = self.object.name[:7]
 		for key in exportdict.keys():
 			if self.props.has_key(key):
 				exportdict[key] = self.props[key]
 
-                if self.opcode == 63 and options.externalspath:
+                if self.opcode == 63 and options.state['externalspath']:
 				try:
-					exportdict['3t200!filename'] = os.path.join(options.externalspath,self.object.DupGroup.name+'.flt')
+					exportdict['3t200!filename'] = os.path.join(options.state['externalspath'],self.object.DupGroup.name+'.flt')
 					self.header.xrefnames.append(self.object.DupGroup.name)
 				except:
 					pass
 		
 		for key in records[self.opcode]:
-			(type,length,propname) = records[self.opcode][key]
-			write_prop(self.header.fw,type,exportdict[propname],length)
+			(ftype,length,propname) = records[self.opcode][key]
+			write_prop(self.header.fw,ftype,exportdict[propname],length)
 		
 		if self.props.has_key('comment'):
 			self.write_comment(self.props['comment'])
-			
+
+		if self.object and self.object.properties.has_key('FLT') and self.object.properties['FLT'].has_key('EXT'):
+			datalen = len(self.object.properties['FLT']['EXT']['data'])
+			self.write_push_extension()
+			self.header.fw.write_short(100)
+			self.header.fw.write_ushort(24 + datalen)
+			for key in records[100]:
+				(ftype,length,propname) = records[100][key]
+				write_prop(self.header.fw,ftype,self.object.properties['FLT']['EXT'][propname],length)
+			#write extension data
+			for i in xrange(datalen):
+				self.header.fw.write_char(self.object.properties['FLT']['EXT']['data'][i])
+			self.write_pop_extension()
+
+
 		self.write_longid(self.name) #fix this!
 		
-		if options.export_transform or self.opcode == 63:
+		if options.state['transform'] or self.opcode == 63:
 			#writing transform matrix....
 			self.write_matrix()
 
@@ -1056,8 +1097,8 @@ class FLTNode(Node):
 				#self.write_pop()
 			self.write_pop()
 			
-	def __init__(self, parent, header, object,props,type):
-		self.opcode = type #both these next two lines need to be in the node class....
+	def __init__(self, parent, header, object,props,ftype):
+		self.opcode = ftype #both these next two lines need to be in the node class....
 		self.childtypes = childtypes[self.opcode]
 		Node.__init__(self, parent, header, object,props)
 		self.face_lst = []
@@ -1199,21 +1240,16 @@ class Database(Node):
 
 		self.write_push()
 		
-		if options.flattenmesh:
-			self.mnodes.reverse()
-			for mnode in self.mnodes:
-				mnode.write_faces()
-		else:
-			for child in self.children:
-				child.write()
+		for child in self.children:
+			child.write()
 		self.write_pop()
 	
 	def export_textures(self,texturepath):
 		for i in xrange(self.GRR.texture_count()):
 			texture = self.GRR.texture_lst[i]
 			
-			if options.copy_textures:
-				filename = os.path.normpath(os.path.join(options.texturespath, os.path.basename(self.GRR.request_texture_filename(i))))
+			if options.state['copytex']:
+				filename = os.path.normpath(os.path.join(options.state['texturespath'], os.path.basename(self.GRR.request_texture_filename(i))))
 			else:
 				filename = os.path.normpath(self.GRR.request_texture_filename(i))
 			
@@ -1287,8 +1323,8 @@ def write_attribute_files():
 		fw.write_int(size[0])
 		fw.write_int(size[1])
 		for key in records['Image']:
-			(type,length,propname) = records['Image'][key]
-			write_prop(fw,type,exportdict[propname],length)
+			(ftype,length,propname) = records['Image'][key]
+			write_prop(fw,ftype,exportdict[propname],length)
 		fw.close_file()
 
 #globals used by the scene export function
@@ -1300,10 +1336,10 @@ def dbexport_internal(scene):
 	global xrefsdone
 	global options
 
-	if exportlevel == 0 or not options.externalspath:
-		fname = os.path.join(options.basepath,scene.name + '.flt')
+	if exportlevel == 0 or not options.state['externalspath']:
+		fname = os.path.join(options.state['basepath'],scene.name + '.flt')
 	else:
-		fname = os.path.join(options.externalspath,scene.name + '.flt')
+		fname = os.path.join(options.state['externalspath'],scene.name + '.flt')
 	
 	fw = FltOut(fname)
 	db = Database(scene,fw)
@@ -1317,7 +1353,7 @@ def dbexport_internal(scene):
 	db.write()
 	fw.close_file()
 	
-	if options.doxrefs:
+	if options.state['doxrefs']:
 		for xname in xreflist:
 			try:
 				xrefscene = Blender.Scene.Get(xname)
@@ -1352,7 +1388,7 @@ def dbexport():
 	Blender.Window.WaitCursor(False)
 	
 	#optional: Copy textures
-	if options.copy_textures:
+	if options.state['copytex']:
 		for imgname in tex_files:
 			#Check to see if texture exists in target directory
 			if not os.path.exists(tex_files[imgname]):
@@ -1363,11 +1399,11 @@ def dbexport():
 					shutil.copyfile(origpath,tex_files[imgname])
 	
 	#optional: Write attribute files
-	if options.write_attrib_files:
+	if options.state['attrib']:
 		write_attribute_files()
 
-	if options.xapp:
-		cmd= options.xappath + " " + fname 
+	if options.state['xapp']:
+		cmd= options.state['xappath'] + " " + fname 
 		status = os.system(cmd)
 	
 
@@ -1407,31 +1443,28 @@ FLTAttrib = None
 
 def setshadingangle(ID,val):
 	global options
-	options.shading_default = val
+	options.state['shading_default'] = val
 def setBpath(fname):
 	global options
-	options.basepath = os.path.dirname(fname)
+	options.state['basepath'] = os.path.dirname(fname)
 	#update xref and textures path too....
-	if(os.path.exists(os.path.join(options.basepath,'externals'))):
-		options.externalspath = os.path.join(options.basepath,'externals')
-	if(os.path.exists(os.path.join(options.texturespath,'textures'))):
-		options.texturespath = os.path.join(options.basepath,'textures')
+	if(os.path.exists(os.path.join(options.state['basepath'],'externals'))):
+		options.state['externalspath'] = os.path.join(options.state['basepath'],'externals')
+	if(os.path.exists(os.path.join(options.state['basepath'],'textures'))):
+		options.state['texturespath'] = os.path.join(options.state['basepath'],'textures')
 def setexportscale(ID,val):
 	global options
-	options.scale = val
+	options.state['scale'] = val
 
 def setTpath(fname):
 	global options
-	options.texturespath = os.path.dirname(fname)
+	options.state['texturespath'] = os.path.dirname(fname)
 def setXpath(fname):
 	global options
-	options.externalspath = os.path.dirname(fname)
+	options.state['externalspath'] = os.path.dirname(fname)
 def setXApath(fname):
 	global options
-	options.xappath = fname
-	d = dict()
-	d['xappath'] = options.xappath
-	Blender.Registry.SetKey('flt_export', d, 1) 
+	options.state['xappath'] = fname
 def event(evt, val):
 	x = 1
 def but_event(evt):
@@ -1471,39 +1504,37 @@ def but_event(evt):
 
 	global FLTAttrib
 	
-	
-	
 	#choose base path for export
 	if evt == 4:
-		Blender.Window.FileSelector(setBpath, "DB Root", options.basepath)
+		Blender.Window.FileSelector(setBpath, "DB Root", options.state['basepath'])
 		
 	#choose XREF path
 	if evt == 6:
-		Blender.Window.FileSelector(setXpath,"DB Externals",options.externalspath)
+		Blender.Window.FileSelector(setXpath,"DB Externals",options.state['externalspath'])
 
 	#choose texture path
 	if evt == 8:
-		Blender.Window.FileSelector(setTpath,"DB Textures",options.texturespath)
+		Blender.Window.FileSelector(setTpath,"DB Textures",options.state['texturespath'])
 
 	#export shading toggle
 	if evt == 9:
-		options.export_shading = FLTShadeExport.val
+		options.state['export_shading'] = FLTShadeExport.val
 	#export Textures
 	if evt == 11:
-		options.copy_textures = FLTCopyTex.val
+		options.state['copytex']= FLTCopyTex.val
 	#export XRefs
 	if evt == 13:
-		options.doxrefs = FLTDoXRef.val
+		options.state['doxrefs'] = FLTDoXRef.val
 	#export Transforms
 	if evt == 12:
-		options.export_transform = FLTGlobal.val
+		options.state['transform'] = FLTGlobal.val
 		
 	if evt == 14:
-		options.xapp = FLTXAPP.val
+		options.state['xapp'] = FLTXAPP.val
 	if evt == 16:
-		Blender.Window.FileSelector(setXApath,"External Application",options.xappath)
+		Blender.Window.FileSelector(setXApath,"External Application",options.state['xappath'])
 	if evt == 20:
-		options.write_attrib_files = FLTAttrib.val
+		options.state['attrib'] = FLTAttrib.val
 	
 	#Export DB
 	if evt == 1:
@@ -1512,6 +1543,8 @@ def but_event(evt):
 	#exit
 	if evt == 2:
 		Draw.Exit()
+
+	options.write_state()
 
 from Blender.BGL import *
 from Blender import Draw
@@ -1573,47 +1606,46 @@ def gui():
 	#FLTLabel = Draw.Text("FLT Exporter V2.0",'large')
 	cy = height - 80
 	
-	#base path
 	FLTBaseLabel = Draw.Label("Base Path:",cx,cy,100,20)
-	FLTBaseString = Draw.String("",3,cx+100,cy,300,20,options.basepath,255,"Folder to export to")
+	FLTBaseString = Draw.String("",3,cx+100,cy,300,20,options.state['basepath'],255,"Folder to export to")
 	FLTBaseChooser = Draw.PushButton("...",4,cx+400,cy,20,20,"Choose Folder")
 	
 	cy = cy-40
 	
 	#externals path
 	FLTXRefLabel = Draw.Label("XRefs:",cx,cy,100,20)
-	FLTXRefString = Draw.String("",5,cx+100,cy,300,20,options.externalspath,255,"Folder for external references")
+	FLTXRefString = Draw.String("",5,cx+100,cy,300,20,options.state['externalspath'],255,"Folder for external references")
 	FLTXRefChooser = Draw.PushButton("...",6,cx+400,cy,20,20,"Choose Folder")
 	cy = cy-40
 	#Textures path
 	FLTTextureLabel = Draw.Label("Textures:",cx,cy,100,20)
-	FLTTextureString = Draw.String("",7,cx+100,cy,300,20,options.texturespath,255,"Folder for texture files")
+	FLTTextureString = Draw.String("",7,cx+100,cy,300,20,options.state['texturespath'],255,"Folder for texture files")
 	FLTTextureChooser = Draw.PushButton("...",8,cx+400,cy,20,20,"Choose Folder")
 	cy=cy-40
 	#External application path
 	FLTXAPPLabel = Draw.Label("XApp:",cx,cy,100,20)
-	FLTXAPPString = Draw.String("",15,cx+100,cy,300,20,options.xappath,255,"External application to launch when done")
+	FLTXAPPString = Draw.String("",15,cx+100,cy,300,20,options.state['xappath'],255,"External application to launch when done")
 	FLTXAPPChooser = Draw.PushButton("...",16,cx+400, cy,20,20,"Choose Folder")
 	
 	cy = cy-60
 	#Shading Options
-	FLTShadeExport = Draw.Toggle("Default Shading",9,cx,cy,100,20,options.export_shading,"Turn on export of custom shading")
-	FLTShadDefault = Draw.Number("",10,cx + 120,cy,100,20,options.shading_default,0.0,180.0,"Default shading angle for objects with no custom shading assigned",setshadingangle)
+	FLTShadeExport = Draw.Toggle("Default Shading",9,cx,cy,100,20,options.state['export_shading'],"Turn on export of custom shading")
+	FLTShadDefault = Draw.Number("",10,cx + 120,cy,100,20,options.state['shading_default'],0.0,180.0,"Default shading angle for objects with no custom shading assigned",setshadingangle)
 	
 	cy = cy-40
-	FLTScale = Draw.Number("Export Scale",14,cx,cy,220,20,options.scale,0.0,100.0,"Export scaling factor",setexportscale)
+	FLTScale = Draw.Number("Export Scale",14,cx,cy,220,20,options.state['scale'],0.0,100.0,"Export scaling factor",setexportscale)
 	
 	cy = cy-40
 	#misc Options
-	FLTCopyTex = Draw.Toggle("Copy Textures",11,cx,cy,220,20,options.copy_textures,"Copy textures to folder indicated above")
+	FLTCopyTex = Draw.Toggle("Copy Textures",11,cx,cy,220,20,options.state['copytex'],"Copy textures to folder indicated above")
 	cy = cy-40
-	FLTGlobal = Draw.Toggle("Export Transforms",12,cx,cy,220,20,options.export_transform,"If unchecked, Global coordinates are used (recommended)")
+	FLTGlobal = Draw.Toggle("Export Transforms",12,cx,cy,220,20,options.state['transform'],"If unchecked, Global coordinates are used (recommended)")
 	cy = cy-40
-	FLTDoXRef = Draw.Toggle("Export XRefs", 13,cx,cy,220,20,options.doxrefs,"Export External references (only those below current scene!)")
+	FLTDoXRef = Draw.Toggle("Export XRefs", 13,cx,cy,220,20,options.state['doxrefs'],"Export External references (only those below current scene!)")
 	cy = cy-40
-	FLTXAPP = Draw.Toggle("Launch External App", 14, cx,cy,220,20,options.xapp,"Launch External Application on export")
+	FLTXAPP = Draw.Toggle("Launch External App", 14, cx,cy,220,20,options.state['xapp'],"Launch External Application on export")
 	cy = cy-40
-	FLTAttrib = Draw.Toggle("Write Attribute Files", 20, cx, cy, 220,20,options.write_attrib_files, "Write Texture Attribute files")
+	FLTAttrib = Draw.Toggle("Write Attribute Files", 20, cx, cy, 220,20,options.state['attrib'], "Write Texture Attribute files")
 	#FLTXAPPATH = Draw.String("",15,cx,cy,300,20,options.xappath,255,"External application path")
 	
 

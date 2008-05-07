@@ -4,15 +4,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +27,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>
@@ -545,26 +542,26 @@ static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 			case IPO_FLOAT:
 				
 				if(weights) {
-					memcpy(poin, kref, 4*cp[0]);
+					memcpy(poin, kref, sizeof(float)*cp[0]);
 					if(*weights!=0.0f)
 						rel_flerp(cp[0], (float *)poin, (float *)kref, (float *)k1, *weights);
 					weights++;
 				}
 				else 
-					memcpy(poin, k1, 4*cp[0]);
+					memcpy(poin, k1, sizeof(float)*cp[0]);
 
 				poin+= ofsp[0];
 
 				break;
 			case IPO_BPOINT:
-				memcpy(poin, k1, 3*4);
-				memcpy(poin+16, k1+12, 4);
+				memcpy(poin, k1, 3*sizeof(float));
+				memcpy(poin+4*sizeof(float), k1+3*sizeof(float), sizeof(float));
 				
 				poin+= ofsp[0];				
 
 				break;
 			case IPO_BEZTRIPLE:
-				memcpy(poin, k1, 4*12);
+				memcpy(poin, k1, sizeof(float)*10);
 				poin+= ofsp[0];	
 
 				break;

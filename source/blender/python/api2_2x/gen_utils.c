@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  * Contributor(s): Michel Selten, Willian P. Germano, Alex Mole, Ken Hughes,
  * Campbell Barton
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 #include "gen_utils.h" /*This must come first*/
@@ -238,6 +235,10 @@ char *event_to_name( short event )
 	switch ( event ) {
 	case SCRIPT_FRAMECHANGED:
 		return "FrameChanged";
+	case SCRIPT_OBJECTUPDATE:
+		return "ObjectUpdate";
+	case SCRIPT_OBDATAUPDATE:
+		return "ObDataUpdate";
 	case SCRIPT_ONLOAD:
 		return "OnLoad";
 	case SCRIPT_ONSAVE:
@@ -406,6 +407,10 @@ PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * value,
 	
 	if( !strcmp( eventname, "FrameChanged" ) )
 		event = SCRIPT_FRAMECHANGED;
+	else if( !strcmp( eventname, "ObjectUpdate" ) )
+		event = SCRIPT_OBJECTUPDATE;
+	else if( !strcmp( eventname, "ObDataUpdate" ) )
+		event = SCRIPT_OBDATAUPDATE;
 	else if( !strcmp( eventname, "Redraw" ) )
 		event = SCRIPT_REDRAW;
 	else if( !strcmp( eventname, "Render" ) )
@@ -562,6 +567,10 @@ PyObject *EXPP_addScriptLink(ScriptLink *slink, PyObject *args, int is_scene)
 
 	if( !strcmp( eventname, "FrameChanged" ) )
 		event = SCRIPT_FRAMECHANGED;
+	else if( !strcmp( eventname, "ObjectUpdate" ) )
+		event = SCRIPT_OBJECTUPDATE;
+	else if( !strcmp( eventname, "ObDataUpdate" ) )
+		event = SCRIPT_OBDATAUPDATE;
 	else if( !strcmp( eventname, "Redraw" ) )
 		event = SCRIPT_REDRAW;
 	else if( !strcmp( eventname, "Render" ) )

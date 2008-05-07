@@ -3,15 +3,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_VIEW3D_TYPES_H
 #define DNA_VIEW3D_TYPES_H
@@ -84,11 +81,6 @@ typedef struct View3D {
 	
 	float viewquat[4], dist, zfac, pad0;	/* zfac is initgrabz() result */
 
-	/**
-	 * 0 - ortho
-	 * 1 - do 3d perspective
-	 * 2 - use the camera
-	 */
 	short persp;
 	short view;
 
@@ -103,7 +95,7 @@ typedef struct View3D {
 	
 	/**
 	 * The drawing mode for the 3d display. Set to OB_WIRE, OB_SOLID,
-	 * OB_SHADED or OB_TEXTURED */
+	 * OB_SHADED or OB_TEXTURE */
 	short drawtype;
 	short localview;
 	int lay, layact;
@@ -139,7 +131,8 @@ typedef struct View3D {
 	
 	short pad3;
 	
-	short pad2;
+	char ndofmode;	/* mode of transform for 6DOF devices -1 not found, 0 normal, 1 fly, 2 ob transform */
+	char ndoffilter;		/*filter for 6DOF devices 0 normal, 1 dominant */
 	
 	void *properties_storage;	/* Nkey panel stores stuff here, not in file */
 
@@ -164,7 +157,6 @@ typedef struct View3D {
 #define V3D_CLIPPING		16384
 #define V3D_DRAW_CENTERS	32768
 
-
 /* View3d->flag2 (short) */
 #define V3D_OPP_DIRECTION_NAME	1
 #define V3D_FLYMODE				2
@@ -180,9 +172,9 @@ typedef struct View3D {
 
 
 /* View3d->persp */
-#define V3D_PERSP_ORTHO          0
-#define V3D_PERSP_DO_3D_PERSP    1
-#define V3D_PERSP_USE_THE_CAMERA 2
+#define V3D_ORTHO				0
+#define V3D_PERSP				1
+#define V3D_CAMOB				2
 
 /* View3d->gridflag */
 #define V3D_SHOW_FLOOR			1

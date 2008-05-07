@@ -1,15 +1,12 @@
 /**
  * $Id: IDProp.c
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): Joseph Eagar
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #include "DNA_ID.h"
@@ -433,7 +430,7 @@ PyObject *BPy_IDGroup_GetKeys(BPy_IDProperty *self)
 {
 	PyObject *seq = PyList_New(self->prop->len);
 	IDProperty *loop;
-	int i;
+	int i, j;
 
 	if (!seq) 
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -442,6 +439,25 @@ PyObject *BPy_IDGroup_GetKeys(BPy_IDProperty *self)
 	for (i=0, loop=self->prop->data.group.first; loop; loop=loop->next, i++)
 		PyList_SetItem(seq, i, PyString_FromString(loop->name));
 	
+	if (i != self->prop->len) {
+		printf("ID Property Error found and corrected in BPy_IDGroup_GetKeys!\n");
+		
+		/*fill rest of list with valid references to None*/
+		for (j=i; j<self->prop->len; j++) {
+			Py_INCREF(Py_None);
+			PyList_SetItem(seq, j, Py_None);
+		}
+		
+		/*set correct group length*/
+		self->prop->len = i;
+		
+		/*free the old list*/
+		Py_DECREF(seq);
+		
+		/*call self again*/
+		return BPy_IDGroup_GetKeys(self);		
+	}
+	
 	return seq;
 }
 
@@ -449,7 +465,7 @@ PyObject *BPy_IDGroup_GetValues(BPy_IDProperty *self)
 {
 	PyObject *seq = PyList_New(self->prop->len);
 	IDProperty *loop;
-	int i;
+	int i, j;
 
 	if (!seq) 
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -458,7 +474,26 @@ PyObject *BPy_IDGroup_GetValues(BPy_IDProperty *self)
 	for (i=0, loop=self->prop->data.group.first; loop; loop=loop->next, i++) {
 		PyList_SetItem(seq, i, BPy_IDGroup_WrapData(self->id, loop));
 	}
-	
+
+	if (i != self->prop->len) {
+		printf("ID Property Error found and corrected in BPy_IDGroup_GetValues!\n");
+		
+		/*fill rest of list with valid references to None*/
+		for (j=i; j<self->prop->len; j++) {
+			Py_INCREF(Py_None);
+			PyList_SetItem(seq, j, Py_None);
+		}
+		
+		/*set correct group length*/
+		self->prop->len = i;
+		
+		/*free the old list*/
+		Py_DECREF(seq);
+		
+		/*call self again*/
+		return BPy_IDGroup_GetValues(self);		
+	}
+		
 	return seq;
 }
 
@@ -481,7 +516,7 @@ PyObject *BPy_IDGroup_HasKey(BPy_IDProperty *self, PyObject *value)
 PyObject *BPy_IDGroup_Update(BPy_IDProperty *self, PyObject *vars)
 {
 	PyObject *pyob, *pkey, *pval;
-	int i=0;
+	Py_ssize_t i=0;
 	
 	if (PySequence_Size(vars) != 1)
 		return EXPP_ReturnPyObjError( PyExc_TypeError,

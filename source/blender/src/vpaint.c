@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>
@@ -57,6 +54,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -1346,14 +1344,24 @@ void weight_paint(void)
 	copy_wpaint_prev(&Gwp, NULL, 0);
 
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-	/* this flag is event for softbody to refresh weightpaint values */
-	if(ob->soft) ob->softflag |= OB_SB_REDO;
-	
-	// same goes for cloth
-	if(modifiers_isClothEnabled(ob)) {
-		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-		clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-	}	
+
+	/* and particles too */
+	if(ob->particlesystem.first) {
+		ParticleSystem *psys;
+		int i;
+
+		psys= ob->particlesystem.first;
+		while(psys) {
+			for(i=0; i<PSYS_TOT_VG; i++) {
+				if(psys->vgroup[i]==ob->actdef) {
+					psys->recalc |= PSYS_RECALC_HAIR;
+					break;
+				}
+			}
+
+			psys= psys->next;
+		}
+	}
 	
 	BIF_undo_push("Weight Paint");
 	allqueue(REDRAWVIEW3D, 0);
@@ -1380,7 +1388,7 @@ void vertex_paint()
 	if(me==NULL || me->totface==0) return;
 	if(ob->lay & G.vd->lay); else error("Active object is not in this layer");
 	
-	if(me->mcol==NULL) make_vertexcol(1);
+	if(me->mcol==NULL) make_vertexcol(0);
 
 	if(me->mcol==NULL) return;
 	
@@ -1601,7 +1609,7 @@ void set_vpaint(void)		/* toggle */
 		return;
 	}
 	
-	if(me && me->mcol==NULL) make_vertexcol(1);
+	if(me && me->mcol==NULL) make_vertexcol(0);
 	
 	if(G.f & G_VERTEXPAINT){
 		G.f &= ~G_VERTEXPAINT;

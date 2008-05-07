@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Joshua Leung
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Drawing routines for the Action window type
  */
 
@@ -168,7 +165,7 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 		for (i=1; i < key->totkey; i++) {
 			make_rvk_slider(block, ob, i, 
 							x, y, SLIDERWIDTH-2, CHANNELHEIGHT-1, "Slider to control Shape Keys");
-
+			
 			y-=CHANNELHEIGHT+CHANNELSKIP;
 			
 			/* see sliderval array in editkey.c */
@@ -176,7 +173,6 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 		}
 	}
 	uiDrawBlock(block);
-
 }
 
 static void icu_slider_func(void *voidicu, void *voidignore) 
@@ -238,7 +234,7 @@ static void make_icu_slider(uiBlock *block, IpoCurve *icu,
 	/* create a slider for the ipo-curve*/
 	uiBut *but;
 	
-	if(icu==NULL) return;
+	if(icu == NULL) return;
 	
 	if (IS_EQ(icu->slide_max, icu->slide_min)) {
 		if (IS_EQ(icu->ymax, icu->ymin)) {
@@ -275,10 +271,12 @@ static void make_icu_slider(uiBlock *block, IpoCurve *icu,
 /* sliders for ipo-curves of active action-channel */
 static void action_icu_buts(SpaceAction *saction)
 {
-	bAction *act= saction->action;
-	bActionChannel *achan;
-	bConstraintChannel *conchan;
-	IpoCurve *icu;
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+	
 	char          str[64];
 	float	        x, y;
 	uiBlock       *block;
@@ -303,51 +301,69 @@ static void action_icu_buts(SpaceAction *saction)
 	if (G.saction->flag & SACTION_SLIDERS) {
 		/* sliders are open so draw them */
 		
+		/* get editor data */
+		data= get_action_context(&datatype);
+		if (data == NULL) return;
+		
+		/* build list of channels to draw */
+		filter= (ACTFILTER_FORDRAWING|ACTFILTER_VISIBLE|ACTFILTER_CHANNELS);
+		actdata_filter(&act_data, filter, data, datatype);
+		
 		/* draw backdrop first */
 		BIF_ThemeColor(TH_FACE); // change this color... it's ugly
 		glRects(NAMEWIDTH,  G.v2d->cur.ymin,  NAMEWIDTH+SLIDERWIDTH,  G.v2d->cur.ymax);
 		
 		uiBlockSetEmboss(block, UI_EMBOSS);
-		for (achan=act->chanbase.first; achan; achan= achan->next) {
-			if(VISIBLE_ACHAN(achan)) {
-				y-=CHANNELHEIGHT+CHANNELSKIP;
-				
-				if (EXPANDED_ACHAN(achan)) {					
-					if (achan->ipo) {
-						y-=CHANNELHEIGHT+CHANNELSKIP;
+		for (ale= act_data.first; ale; ale= ale->next) {
+			const float yminc= y-CHANNELHEIGHT/2;
+			const float ymaxc= y+CHANNELHEIGHT/2;
+			
+			/* check if visible */
+			if ( IN_RANGE(yminc, G.v2d->cur.ymin, G.v2d->cur.ymax) ||
+				 IN_RANGE(ymaxc, G.v2d->cur.ymin, G.v2d->cur.ymax) ) 
+			{
+				/* determine what needs to be drawn */
+				switch (ale->type) {
+					case ACTTYPE_CONCHAN: /* constraint channel */
+					{
+						bActionChannel *achan = (bActionChannel *)ale->owner;
+						IpoCurve *icu = (IpoCurve *)ale->key_data;
 						
-						if (FILTER_IPO_ACHAN(achan)) {
-							for (icu= achan->ipo->curve.first; icu; icu=icu->next) {
-								if (achan->flag & ACHAN_HILIGHTED) {
-									make_icu_slider(block, icu,
-													x, y, SLIDERWIDTH-2, CHANNELHEIGHT-2, 
-													"Slider to control current value of IPO-Curve");
-								}
-								
-								y-=CHANNELHEIGHT+CHANNELSKIP;
-							}
+						/* only show if action channel is selected */
+						if (SEL_ACHAN(achan)) {
+							make_icu_slider(block, icu,
+											x, y, SLIDERWIDTH-2, CHANNELHEIGHT-2, 
+											"Slider to control current value of Constraint Influence");
 						}
 					}
-					
-					if (achan->constraintChannels.first) {
-						y-=CHANNELHEIGHT+CHANNELSKIP;
+						break;
+					case ACTTYPE_ICU: /* ipo-curve channel */
+					{
+						bActionChannel *achan = (bActionChannel *)ale->owner;
+						IpoCurve *icu = (IpoCurve *)ale->key_data;
 						
-						if (FILTER_CON_ACHAN(achan)) {
-							for (conchan= achan->constraintChannels.first; conchan; conchan=conchan->next) {
-								if ((achan->flag & ACHAN_HILIGHTED) && EDITABLE_CONCHAN(conchan)) {
-									icu= (IpoCurve *)conchan->ipo->curve.first;
-									make_icu_slider(block, icu,
-													x, y, SLIDERWIDTH-2, CHANNELHEIGHT-2, 
-													"Slider to control current value of Constraint Channel");
-								}
-								
-								y-=CHANNELHEIGHT+CHANNELSKIP;
-							}
+						/* only show if action channel is selected */
+						if (SEL_ACHAN(achan)) {
+							make_icu_slider(block, icu,
+											x, y, SLIDERWIDTH-2, CHANNELHEIGHT-2, 
+											"Slider to control current value of IPO-Curve");
 						}
 					}
+						break;
+					case ACTTYPE_SHAPEKEY: /* shapekey channel */
+					{
+						// TODO...
+					}
+						break;
 				}
 			}
+			
+			/* adjust y-position for next one */
+			y-=CHANNELHEIGHT+CHANNELSKIP;
 		}
+		
+		/* free tempolary channels */
+		BLI_freelistN(&act_data);
 	}
 	uiDrawBlock(block);
 }
@@ -430,219 +446,260 @@ static void draw_channel_names(void)
 	/* build list of channels to draw */
 	filter= (ACTFILTER_FORDRAWING|ACTFILTER_VISIBLE|ACTFILTER_CHANNELS);
 	actdata_filter(&act_data, filter, data, datatype);
-		
+	
 	/* loop through channels, and set up drawing depending on their type  */
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	for (ale= act_data.first; ale; ale= ale->next) {
-		short indent= 0, offset= 0, sel= 0, group=0;
-		int expand= -1, protect = -1, special= -1, mute = -1;
-		char name[32];
+		const float yminc= y-CHANNELHEIGHT/2;
+		const float ymaxc= y+CHANNELHEIGHT/2;
 		
-		/* determine what needs to be drawn */
-		switch (ale->type) {
-			case ACTTYPE_GROUP: /* action group */
-			{
-				bActionGroup *agrp= (bActionGroup *)ale->data;
-				
-				group= 2;
-				indent= 0;
-				special= -1;
-				
-				if (EXPANDED_AGRP(agrp))
-					expand = ICON_TRIA_DOWN;
-				else
-					expand = ICON_TRIA_RIGHT;
+		/* check if visible */
+		if ( IN_RANGE(yminc, G.v2d->cur.ymin, G.v2d->cur.ymax) ||
+			 IN_RANGE(ymaxc, G.v2d->cur.ymin, G.v2d->cur.ymax) ) 
+		{
+			bActionGroup *grp = NULL;
+			short indent= 0, offset= 0, sel= 0, group=0;
+			int expand= -1, protect = -1, special= -1, mute = -1;
+			char name[32];
+			
+			/* determine what needs to be drawn */
+			switch (ale->type) {
+				case ACTTYPE_GROUP: /* action group */
+				{
+					bActionGroup *agrp= (bActionGroup *)ale->data;
 					
-				if (EDITABLE_AGRP(agrp))
-					protect = ICON_UNLOCKED;
-				else
-					protect = ICON_LOCKED;
+					group= 2;
+					indent= 0;
+					special= -1;
 					
-				sel = SEL_AGRP(agrp);
-				sprintf(name, agrp->name);
-			}
-				break;
-			case ACTTYPE_ACHAN: /* action channel */
-			{
-				bActionChannel *achan= (bActionChannel *)ale->data;
-				
-				group= (ale->grp) ? 1 : 0;
-				indent = 0;
-				special = -1;
-				
-				if (EXPANDED_ACHAN(achan))
-					expand = ICON_TRIA_DOWN;
-				else
-					expand = ICON_TRIA_RIGHT;
-					
-				if (EDITABLE_ACHAN(achan))
-					protect = ICON_UNLOCKED;
-				else
-					protect = ICON_LOCKED;
-					
-				if (achan->ipo) {
-					if (achan->ipo->muteipo)
-						mute = ICON_MUTE_IPO_ON;
+					if (EXPANDED_AGRP(agrp))
+						expand = ICON_TRIA_DOWN;
 					else
-						mute = ICON_MUTE_IPO_OFF;
-				}
-				
-				sel = SEL_ACHAN(achan);
-				sprintf(name, achan->name);
-			}
-				break;
-			case ACTTYPE_CONCHAN: /* constraint channel */
-			{
-				bConstraintChannel *conchan = (bConstraintChannel *)ale->data;
-				
-				indent = 2;
-				group= (ale->grp) ? 1 : 0;
-				
-				if (EDITABLE_CONCHAN(conchan))
-					protect = ICON_UNLOCKED;
-				else
-					protect = ICON_LOCKED;
-					
-				if (conchan->ipo) {
-					if (conchan->ipo->muteipo)
-						mute = ICON_MUTE_IPO_ON;
+						expand = ICON_TRIA_RIGHT;
+						
+					if (EDITABLE_AGRP(agrp))
+						protect = ICON_UNLOCKED;
 					else
-						mute = ICON_MUTE_IPO_OFF;
+						protect = ICON_LOCKED;
+						
+					sel = SEL_AGRP(agrp);
+					sprintf(name, agrp->name);
 				}
-				
-				sel = SEL_CONCHAN(conchan);
-				sprintf(name, conchan->name);
-			}
-				break;
-			case ACTTYPE_ICU: /* ipo-curve channel */
-			{
-				IpoCurve *icu = (IpoCurve *)ale->data;
-				
-				indent = 2;
-				protect = -1; // for now, until this can be supported by others
-				group= (ale->grp) ? 1 : 0;
-				
-				if (icu->flag & IPO_MUTE)
-					mute = ICON_MUTE_IPO_ON;
-				else	
-					mute = ICON_MUTE_IPO_OFF;
-				
-				sel = SEL_ICU(icu);
-				if (G.saction->pin)
-					sprintf(name, getname_ipocurve(icu, NULL));
-				else
-					sprintf(name, getname_ipocurve(icu, OBACT));
-			}
-				break;
-			case ACTTYPE_SHAPEKEY: /* shapekey channel */
-			{
-				KeyBlock *kb = (KeyBlock *)ale->data;
-				
-				indent = 0;
-				special = -1;
-				
-				if (kb->name[0] == '\0')
-					sprintf(name, "Key %d", ale->index);
-				else
-					sprintf(name, kb->name);
-			}
-				break;
-			case ACTTYPE_FILLIPO: /* ipo expand widget */
-			{
-				bActionChannel *achan = (bActionChannel *)ale->data;
-				
-				indent = 1;
-				special = geticon_ipo_blocktype(achan->ipo->blocktype);
-				group= (ale->grp) ? 1 : 0;
-				
-				if (FILTER_IPO_ACHAN(achan))	
-					expand = ICON_TRIA_DOWN;
-				else
-					expand = ICON_TRIA_RIGHT;
-				
-				sel = SEL_ACHAN(achan);
-				sprintf(name, "IPO Curves");
-			}
-				break;
-			case ACTTYPE_FILLCON: /* constraint expand widget */
-			{
-				bActionChannel *achan = (bActionChannel *)ale->data;
-				
-				indent = 1;
-				special = ICON_CONSTRAINT;
-				group= (ale->grp) ? 1 : 0;
-				
-				if (FILTER_CON_ACHAN(achan))	
-					expand = ICON_TRIA_DOWN;
-				else
-					expand = ICON_TRIA_RIGHT;
+					break;
+				case ACTTYPE_ACHAN: /* action channel */
+				{
+					bActionChannel *achan= (bActionChannel *)ale->data;
 					
-				sel = SEL_ACHAN(achan);
-				sprintf(name, "Constraint");
-			}
-				break;
-		}	
+					group= (ale->grp) ? 1 : 0;
+					grp= ale->grp;
+					
+					indent = 0;
+					special = -1;
+					
+					if (EXPANDED_ACHAN(achan))
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+						
+					if (EDITABLE_ACHAN(achan))
+						protect = ICON_UNLOCKED;
+					else
+						protect = ICON_LOCKED;
+						
+					if (achan->ipo) {
+						if (achan->ipo->muteipo)
+							mute = ICON_MUTE_IPO_ON;
+						else
+							mute = ICON_MUTE_IPO_OFF;
+					}
+					
+					sel = SEL_ACHAN(achan);
+					sprintf(name, achan->name);
+				}
+					break;
+				case ACTTYPE_CONCHAN: /* constraint channel */
+				{
+					bConstraintChannel *conchan = (bConstraintChannel *)ale->data;
+					
+					indent = 2;
+					
+					group= (ale->grp) ? 1 : 0;
+					grp= ale->grp;
+					
+					if (EDITABLE_CONCHAN(conchan))
+						protect = ICON_UNLOCKED;
+					else
+						protect = ICON_LOCKED;
+						
+					if (conchan->ipo) {
+						if (conchan->ipo->muteipo)
+							mute = ICON_MUTE_IPO_ON;
+						else
+							mute = ICON_MUTE_IPO_OFF;
+					}
+					
+					sel = SEL_CONCHAN(conchan);
+					sprintf(name, conchan->name);
+				}
+					break;
+				case ACTTYPE_ICU: /* ipo-curve channel */
+				{
+					IpoCurve *icu = (IpoCurve *)ale->data;
+					
+					indent = 2;
+					protect = -1; // for now, until this can be supported by others
+					
+					group= (ale->grp) ? 1 : 0;
+					grp= ale->grp;
+					
+					if (icu->flag & IPO_MUTE)
+						mute = ICON_MUTE_IPO_ON;
+					else	
+						mute = ICON_MUTE_IPO_OFF;
+					
+					sel = SEL_ICU(icu);
+					if (G.saction->pin)
+						sprintf(name, getname_ipocurve(icu, NULL));
+					else
+						sprintf(name, getname_ipocurve(icu, OBACT));
+				}
+					break;
+				case ACTTYPE_SHAPEKEY: /* shapekey channel */
+				{
+					KeyBlock *kb = (KeyBlock *)ale->data;
+					
+					indent = 0;
+					special = -1;
+					
+					if (kb->name[0] == '\0')
+						sprintf(name, "Key %d", ale->index);
+					else
+						sprintf(name, kb->name);
+				}
+					break;
+				case ACTTYPE_FILLIPO: /* ipo expand widget */
+				{
+					bActionChannel *achan = (bActionChannel *)ale->data;
+					
+					indent = 1;
+					special = geticon_ipo_blocktype(achan->ipo->blocktype);
+					
+					group= (ale->grp) ? 1 : 0;
+					grp= ale->grp;
+					
+					if (FILTER_IPO_ACHAN(achan))	
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+					
+					sel = SEL_ACHAN(achan);
+					sprintf(name, "IPO Curves");
+				}
+					break;
+				case ACTTYPE_FILLCON: /* constraint expand widget */
+				{
+					bActionChannel *achan = (bActionChannel *)ale->data;
+					
+					indent = 1;
+					special = ICON_CONSTRAINT;
+					
+					group= (ale->grp) ? 1 : 0;
+					grp= ale->grp;
+					
+					if (FILTER_CON_ACHAN(achan))	
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+						
+					sel = SEL_ACHAN(achan);
+					sprintf(name, "Constraint");
+				}
+					break;
+			}	
 
-		/* now, start drawing based on this information */
-		/* draw backing strip behind channel name */
-		if (group == 2) {
-			/* only for group-channels */
-			if (ale->flag & AGRP_ACTIVE)
-				BIF_ThemeColorShade(TH_GROUP_ACTIVE, 10);
+			/* now, start drawing based on this information */
+			/* draw backing strip behind channel name */
+			if (group == 2) {
+				/* only for group-channels */
+				if (ale->flag & AGRP_ACTIVE)
+					BIF_ThemeColorShade(TH_GROUP_ACTIVE, 10);
+				else
+					BIF_ThemeColorShade(TH_GROUP, 20);
+				uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
+				gl_round_box(GL_POLYGON, x,  yminc, (float)NAMEWIDTH, ymaxc, 8);
+				
+				offset = 0;
+			}
+			else {
+				/* for normal channels 
+				 *	- use 3 shades of color group/standard colour for 3 indention level
+				 *	- only use group colors if allowed to, and if actually feasible
+				 */
+				if ( !(G.saction->flag & SACTION_NODRAWGCOLORS) && 
+					 (grp) && (grp->customCol) ) 
+				{
+					char cp[3];
+					
+					if (indent == 2) {
+						VECCOPY(cp, grp->cs.solid);
+					}
+					else if (indent == 1) {
+						VECCOPY(cp, grp->cs.select);
+					}
+					else {
+						VECCOPY(cp, grp->cs.active);
+					}
+					
+					glColor3ub(cp[0], cp[1], cp[2]);
+				}
+				else
+					BIF_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));
+				
+				indent += group;
+				offset = 7 * indent;
+				glRectf(x+offset,  yminc, (float)NAMEWIDTH, ymaxc);
+			}
+			
+			/* draw expand/collapse triangle */
+			if (expand > 0) {
+				BIF_icon_draw(x+offset, yminc, expand);
+				offset += 17;
+			}
+			
+			/* draw special icon indicating type of ipo-blocktype? 
+			 * 	only for expand widgets for Ipo and Constraint Channels 
+			 */
+			if (special > 0) {
+				offset = (group) ? 29 : 24;
+				BIF_icon_draw(x+offset, yminc, special);
+				offset += 17;
+			}
+				
+			/* draw name */
+			if (sel)
+				BIF_ThemeColor(TH_TEXT_HI);
 			else
-				BIF_ThemeColorShade(TH_GROUP, 20);
-			uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
-			gl_round_box(GL_POLYGON, x,  y-CHANNELHEIGHT/2, (float)NAMEWIDTH, y+CHANNELHEIGHT/2, 8);
+				BIF_ThemeColor(TH_TEXT);
+			offset += 3;
+			glRasterPos2f(x+offset, y-4);
+			BMF_DrawString(G.font, name);
 			
+			/* reset offset - for RHS of panel */
 			offset = 0;
-		}
-		else {
-			/* for normal channels */
-			BIF_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));
-			indent += group;
-			offset = 7 * indent;
-			glRectf(x+offset,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
-		}
-		
-		/* draw expand/collapse triangle */
-		if (expand > 0) {
-			BIF_icon_draw(x+offset, y-CHANNELHEIGHT/2, expand);
-			offset += 17;
-		}
-		
-		/* draw special icon indicating type of ipo-blocktype? 
-		 * 	only for expand widgets for Ipo and Constraint Channels 
-		 */
-		if (special > 0) {
-			offset = (group) ? 29 : 24;
-			BIF_icon_draw(x+offset, y-CHANNELHEIGHT/2, special);
-			offset += 17;
-		}
 			
-		/* draw name */
-		if (sel)
-			BIF_ThemeColor(TH_TEXT_HI);
-		else
-			BIF_ThemeColor(TH_TEXT);
-		offset += 3;
-		glRasterPos2f(x+offset, y-4);
-		BMF_DrawString(G.font, name);
-		
-		/* reset offset - for RHS of panel */
-		offset = 0;
-		
-		/* draw protect 'lock' */
-		if (protect > 0) {
-			offset = 16;
-			BIF_icon_draw(NAMEWIDTH-offset, y-CHANNELHEIGHT/2, protect);
-		}
-		
-		/* draw mute 'eye' */
-		if (mute > 0) {
-			offset += 16;
-			BIF_icon_draw(NAMEWIDTH-offset, y-CHANNELHEIGHT/2, mute);
+			/* draw protect 'lock' */
+			if (protect > 0) {
+				offset = 16;
+				BIF_icon_draw(NAMEWIDTH-offset, yminc, protect);
+			}
+			
+			/* draw mute 'eye' */
+			if (mute > 0) {
+				offset += 16;
+				BIF_icon_draw(NAMEWIDTH-offset, yminc, mute);
+			}
 		}
 		
 		/* adjust y-position for next one */
@@ -820,8 +877,8 @@ static void draw_channel_strips(void)
 	 */
 	y = 0.0;
 	for (ale= act_data.first; ale; ale= ale->next) {
-		float yminc= y-CHANNELHEIGHT/2;
-		float ymaxc= y+CHANNELHEIGHT/2;
+		const float yminc= y-CHANNELHEIGHT/2;
+		const float ymaxc= y+CHANNELHEIGHT/2;
 		
 		/* check if visible */
 		if ( IN_RANGE(yminc, G.v2d->cur.ymin, G.v2d->cur.ymax) ||
@@ -877,7 +934,7 @@ void do_actionbuts(unsigned short event)
 	}
 }
 
-
+// currently not used...
 static void action_panel_properties(short cntrl)	// ACTION_HANDLER_PROPERTIES
 {
 	uiBlock *block;
@@ -885,10 +942,10 @@ static void action_panel_properties(short cntrl)	// ACTION_HANDLER_PROPERTIES
 	block= uiNewBlock(&curarea->uiblocks, "action_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(ACTION_HANDLER_PROPERTIES);  // for close and esc
-	if(uiNewPanel(curarea, block, "Transform Properties", "Action", 10, 230, 318, 204)==0) return;
+	if (uiNewPanel(curarea, block, "Transform Properties", "Action", 10, 230, 318, 204)==0) 
+		return;
 
 	uiDefBut(block, LABEL, 0, "test text",		10,180,300,19, 0, 0, 0, 0, 0, "");
-
 }
 
 static void action_blockhandlers(ScrArea *sa)
@@ -896,17 +953,17 @@ static void action_blockhandlers(ScrArea *sa)
 	SpaceAction *sact= sa->spacedata.first;
 	short a;
 	
-	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
+	for (a=0; a<SPACE_MAXHANDLER; a+=2) {
 		switch(sact->blockhandler[a]) {
-
-		case ACTION_HANDLER_PROPERTIES:
-			action_panel_properties(sact->blockhandler[a+1]);
-			break;
-		
+			case ACTION_HANDLER_PROPERTIES:
+				action_panel_properties(sact->blockhandler[a+1]);
+				break;
 		}
+		
 		/* clear action value for event */
 		sact->blockhandler[a+1]= 0;
 	}
+	
 	uiDrawBlocksPanels(sa, 0);
 }
 
@@ -931,7 +988,6 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 
 	/* only try to refresh action that's displayed if not pinned */
 	if (G.saction->pin==0) {
-		/* TODO: allow more than one active action sometime? */
 		if (OBACT)
 			G.saction->action = OBACT->action;
 		else
@@ -1064,10 +1120,10 @@ static void add_bezt_to_keycolumnslist(ListBase *keys, BezTriple *bezt)
 	 */
 	ActKeyColumn *ak, *akn;
 	
-	if (!(keys) || !(bezt)) return;
+	if (ELEM(NULL, keys, bezt)) return;
 	
-	/* try to find a keyblock that starts on the previous beztriple */
-	for (ak= keys->first; ak; ak= ak->next) {
+	/* try to any existing key to replace, or where to insert after */
+	for (ak= keys->last; ak; ak= ak->prev) {
 		/* do because of double keys */
 		if (ak->cfra == bezt->vec[1][0]) {			
 			/* set selection status and 'touched' status */
@@ -1076,12 +1132,12 @@ static void add_bezt_to_keycolumnslist(ListBase *keys, BezTriple *bezt)
 			
 			return;
 		}
-		else if (ak->cfra > bezt->vec[1][0]) break;
+		else if (ak->cfra < bezt->vec[1][0]) break;
 	}
 	
 	/* add new block */
 	akn= MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumn");
-	if (ak) BLI_insertlinkbefore(keys, ak, akn);
+	if (ak) BLI_insertlinkafter(keys, ak, akn);
 	else BLI_addtail(keys, akn);
 	
 	akn->cfra= bezt->vec[1][0];
@@ -1110,6 +1166,7 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 	/* get beztriples */
 	beztn= (icu->bezt + index);
 	
+	/* we need to go through all beztriples, as they may not be in order (i.e. during transform) */
 	for (v=0, bezt=icu->bezt; v<icu->totvert; v++, bezt++) {
 		/* skip if beztriple is current */
 		if (v != index) {
@@ -1137,7 +1194,7 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 	if (IS_EQ(prev->vec[1][1], prev->vec[2][1])==0) return;
 	
 	/* try to find a keyblock that starts on the previous beztriple */
-	for (ab= blocks->first; ab; ab= ab->next) {
+	for (ab= blocks->last; ab; ab= ab->prev) {
 		/* check if alter existing block or add new block */
 		if (ab->start == prev->vec[1][0]) {			
 			/* set selection status and 'touched' status */
@@ -1146,12 +1203,12 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 			
 			return;
 		}
-		else if (ab->start > prev->vec[1][0]) break;
+		else if (ab->start < prev->vec[1][0]) break;
 	}
 	
 	/* add new block */
 	abn= MEM_callocN(sizeof(ActKeyBlock), "ActKeyBlock");
-	if (ab) BLI_insertlinkbefore(blocks, ab, abn);
+	if (ab) BLI_insertlinkafter(blocks, ab, abn);
 	else BLI_addtail(blocks, abn);
 	
 	abn->start= prev->vec[1][0];
@@ -1168,18 +1225,58 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 /* helper function - find actkeycolumn that occurs on cframe */
 static ActKeyColumn *cfra_find_actkeycolumn (ListBase *keys, float cframe)
 {
-	ActKeyColumn *ak;
+	ActKeyColumn *ak, *ak2;
 	
 	if (keys==NULL) 
 		return NULL;
 	 
-	for (ak= keys->first; ak; ak= ak->next) {
+	/* search from both ends at the same time, and stop if we find match or if both ends meet */ 
+	for (ak=keys->first, ak2=keys->last; ak && ak2; ak=ak->next, ak2=ak2->prev) {
+		/* return whichever end encounters the frame */
 		if (ak->cfra == cframe)
 			return ak;
+		if (ak2->cfra == cframe)
+			return ak2;
+		
+		/* no matches on either end, so return NULL */
+		if (ak == ak2)
+			return NULL;
 	}
 	
 	return NULL;
 }
+
+#if 0  // disabled, as some intel cards have problems with this
+/* Draw a simple diamond shape with a filled in center (in screen space) */
+static void draw_key_but(int x, int y, short w, short h, int sel)
+{
+	int xmin= x, ymin= y;
+	int xmax= x+w-1, ymax= y+h-1;
+	int xc= (xmin+xmax)/2, yc= (ymin+ymax)/2;
+	
+	/* interior - hardcoded colours (for selected and unselected only) */
+	if (sel) glColor3ub(0xF1, 0xCA, 0x13);
+	else glColor3ub(0xE9, 0xE9, 0xE9);
+	
+	glBegin(GL_QUADS);
+	glVertex2i(xc, ymin);
+	glVertex2i(xmax, yc);
+	glVertex2i(xc, ymax);
+	glVertex2i(xmin, yc);
+	glEnd();
+	
+	
+	/* outline */
+	glColor3ub(0, 0, 0);
+	
+	glBegin(GL_LINE_LOOP);
+	glVertex2i(xc, ymin);
+	glVertex2i(xmax, yc);
+	glVertex2i(xc, ymax);
+	glVertex2i(xmin, yc);
+	glEnd();
+}
+#endif
 
 static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, float ypos)
 {
@@ -1232,8 +1329,13 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 			/* get co-ordinate to draw at */
 			gla2DDrawTranslatePt(di, ak->cfra, ypos, &sc_x, &sc_y);
 			
-			if(ak->sel & 1) BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE2, 1.0f);
+			/* draw using icons - old way which is slower but more proven */
+			if(ak->sel & SELECT) BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE2, 1.0f);
 			else BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE3, 1.0f);
+			
+			/* draw using OpenGL - slightly uglier but faster */
+			// 	NOTE: disabled for now, as some intel cards seem to have problems with this
+			//draw_key_but(sc_x-5, sc_y-4, 11, 11, (ak->sel & SELECT));
 		}	
 	}
 	
@@ -1256,8 +1358,8 @@ static ActKeysInc *init_aki_data()
 	aki.start= G.v2d->cur.xmin - 10;
 	aki.end= G.v2d->cur.xmax + 10;
 	
-	/* only pass pointer for Action Editor (for now) */
-	if (curarea->spacetype == SPACE_ACTION)
+	/* only pass pointer for Action Editor if enabled (for now) */
+	if ((curarea->spacetype == SPACE_ACTION) && (G.saction->flag & SACTION_HORIZOPTIMISEON))
 		return &aki;
 	else	
 		return NULL;
@@ -1337,7 +1439,7 @@ void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki
 		
 		/* Add constraint keyframes */
 		for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next) {
-			if(conchan->ipo)
+			if (conchan->ipo)
 				ipo_to_keylist(conchan->ipo, keys, blocks, aki);		
 		}
 			
@@ -1366,8 +1468,8 @@ static short bezt_in_aki_range (ActKeysInc *aki, BezTriple *bezt)
 void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
 {
 	BezTriple *bezt;
-	ActKeyColumn *ak;
-	ActKeyBlock *ab;
+	ActKeyColumn *ak, *ak2;
+	ActKeyBlock *ab, *ab2;
 	int v;
 	
 	if (icu && icu->totvert) {
@@ -1384,19 +1486,33 @@ void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks, ActKeysInc 
 		
 		/* update the number of curves that elements have appeared in  */
 		if (keys) {
-			for (ak= keys->first; ak; ak= ak->next) {
+			for (ak=keys->first, ak2=keys->last; ak && ak2; ak=ak->next, ak2=ak2->prev) {
 				if (ak->modified) {
 					ak->modified = 0;
 					ak->totcurve += 1;
 				}
+				if (ak2->modified) {
+					ak2->modified = 0;
+					ak2->totcurve += 1;
+				}
+				
+				if (ak == ak2)
+					break;
 			}
 		}
 		if (blocks) {
-			for (ab= blocks->first; ab; ab= ab->next) {
+			for (ab=blocks->first, ab2=blocks->last; ab && ab2; ab=ab->next, ab2=ab2->prev) {
 				if (ab->modified) {
 					ab->modified = 0;
 					ab->totcurve += 1;
 				}
+				if (ab2->modified) {
+					ab2->modified = 0;
+					ab2->totcurve += 1;
+				}
+				
+				if (ab == ab2)
+					break;
 			}
 		}
 	}
@@ -1419,15 +1535,17 @@ void agroup_to_keylist(bActionGroup *agrp, ListBase *keys, ListBase *blocks, Act
 
 	if (agrp) {
 		/* loop through action channels */
-		for (achan= agrp->channels.first; achan && achan!=agrp->channels.last; achan= achan->next) {
-			/* firstly, add keys from action channel's ipo block */
-			if (achan->ipo)
-				ipo_to_keylist(achan->ipo, keys, blocks, aki);
-			
-			/* then, add keys from constraint channels */
-			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
-				if (conchan->ipo)
-					ipo_to_keylist(conchan->ipo, keys, blocks, aki);
+		for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
+			if (VISIBLE_ACHAN(achan)) {
+				/* firstly, add keys from action channel's ipo block */
+				if (achan->ipo)
+					ipo_to_keylist(achan->ipo, keys, blocks, aki);
+				
+				/* then, add keys from constraint channels */
+				for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
+					if (conchan->ipo)
+						ipo_to_keylist(conchan->ipo, keys, blocks, aki);
+				}
 			}
 		}
 	}

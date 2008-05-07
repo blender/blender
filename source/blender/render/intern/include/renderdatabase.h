@@ -64,6 +64,7 @@ typedef struct VlakTableNode {
 	struct MCol *mcol;
 	int totmtface, totmcol;
 	float *surfnor;
+	float *tangent;
 	struct RadFace **radface;
 } VlakTableNode;
 
@@ -98,7 +99,7 @@ struct HaloRen *RE_inithalo_particle(struct Render *re, struct ObjectRen *obr, s
 struct StrandBuffer *RE_addStrandBuffer(struct ObjectRen *obr, int totvert);
 
 struct ObjectRen *RE_addRenderObject(struct Render *re, struct Object *ob, struct Object *par, int index, int psysindex, int lay);
-struct ObjectInstanceRen *RE_addRenderInstance(struct Render *re, struct ObjectRen *obr, struct Object *ob, struct Object *par, int index, int psysindex, float mat[][4]);
+struct ObjectInstanceRen *RE_addRenderInstance(struct Render *re, struct ObjectRen *obr, struct Object *ob, struct Object *par, int index, int psysindex, float mat[][4], int lay);
 void RE_makeRenderInstances(struct Render *re);
 void RE_instanceTransformNormal(struct ObjectInstanceRen *obi, float *nor, float *tnor);
 
@@ -112,6 +113,7 @@ float *RE_vertren_get_winspeed(struct ObjectInstanceRen *obi, struct VertRen *ve
 struct MTFace *RE_vlakren_get_tface(struct ObjectRen *obr, VlakRen *ren, int n, char **name, int verify);
 struct MCol *RE_vlakren_get_mcol(struct ObjectRen *obr, VlakRen *ren, int n, char **name, int verify);
 float *RE_vlakren_get_surfnor(struct ObjectRen *obr, VlakRen *ren, int verify);
+float *RE_vlakren_get_nmap_tangent(struct ObjectRen *obr, VlakRen *ren, int verify);
 RadFace **RE_vlakren_get_radface(struct ObjectRen *obr, VlakRen *ren, int verify);
 int RE_vlakren_get_normal(struct Render *re, struct ObjectInstanceRen *obi, struct VlakRen *vlr, float *nor);
 

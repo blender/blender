@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h> /* strstr */
@@ -215,15 +212,14 @@ int reopen_text(Text *text)
 	int i, llen, len;
 	unsigned char *buffer;
 	TextLine *tmp;
-	char sdir[FILE_MAXDIR];
 	char sfile[FILE_MAXFILE];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
 	if (!text || !text->name) return 0;
 	
 	BLI_strncpy(str, text->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
-	BLI_split_dirfile(str, sdir, sfile);
+	BLI_convertstringcode(str, G.sce);
+	BLI_split_dirfile_basic(str, NULL, sfile);
 	
 	fp= fopen(str, "r");
 	if(fp==NULL) return 0;
@@ -315,14 +311,13 @@ Text *add_text(char *file)
 	unsigned char *buffer;
 	TextLine *tmp;
 	Text *ta;
-	char sdir[FILE_MAXDIR];
 	char sfile[FILE_MAXFILE];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
 	BLI_strncpy(str, file, FILE_MAXDIR+FILE_MAXFILE);
 	if (G.scene) /* can be NULL (bg mode) */
-		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
-	BLI_split_dirfile(str, sdir, sfile);
+		BLI_convertstringcode(str, G.sce);
+	BLI_split_dirfile_basic(str, NULL, sfile);
 	
 	fp= fopen(str, "r");
 	if(fp==NULL) return NULL;
@@ -1033,7 +1028,8 @@ int txt_find_string(Text *text, char *findstr)
 
 void txt_cut_sel (Text *text)
 {
-	txt_copy_sel(text);
+	if (!G.background) /* Python uses txt_cut_sel, which it should not, working around for now  */
+		txt_copy_clipboard(text);
 	
 	txt_delete_sel(text);
 	txt_make_dirty(text);
@@ -2041,6 +2037,7 @@ void txt_delete_char (Text *text)
 
 	if (txt_has_sel(text)) { /* deleting a selection */
 	  txt_delete_sel(text);
+	  return;
 	}
 	else if (text->curc== text->curl->len) { /* Appending two lines */
 		if (text->curl->next) {
@@ -2075,6 +2072,7 @@ void txt_backspace_char (Text *text)
 	
 	if (txt_has_sel(text)) { /* deleting a selection */
 	  txt_delete_sel(text);
+	  return;
 	}
 	else if (text->curc==0) { /* Appending two lines */
 	    if (text->curl->prev) {
@@ -2352,7 +2350,7 @@ int setcurr_tab (Text *text)
 	int test = 0;
 	char *word = ":";
 	char *comm = "#";
-	char back_words[3][7] = {"return", "break", "pass"};
+	char back_words[4][7] = {"return", "break", "pass", "yield"};
 	if (!text) return 0;
 	if (!text->curl) return 0;
 	
@@ -2369,16 +2367,25 @@ int setcurr_tab (Text *text)
 	if(strstr(text->curl->line, word))
 	{
 		//if we find a : then add a tab but not if it is in a comment
-		if(strcspn(text->curl->line, word) < strcspn(text->curl->line, comm))
+		int a, indent = 0;
+		for(a=0; text->curl->line[a] != '\0'; a++)
 		{
+			if (text->curl->line[a]=='#') {
+				break;
+			} else if (text->curl->line[a]==':') {
+				indent = 1;
+			} else if (text->curl->line[a]==']') {
+				indent = 0;
+			}
+		}
+		if (indent) {
 			i++;
-
 		}
 	}
 
-	while(test < 3)
+	for(test=0; test < 4; test++)
 	{
-		//if there are these 3 key words then remove a tab because we are done with the block
+		//if there are these 4 key words then remove a tab because we are done with the block
 		if(strstr(text->curl->line, back_words[test]) && i > 0)
 		{
 			if(strcspn(text->curl->line, back_words[test]) < strcspn(text->curl->line, comm))
@@ -2386,7 +2393,6 @@ int setcurr_tab (Text *text)
 				i--;
 			}
 		}
-		test++;
 	}
 	return i;
 }

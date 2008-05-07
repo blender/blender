@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Wrappers for the plugin api. This api is up for removal.
  */
 
@@ -56,6 +53,7 @@
 #include "BLI_blenlib.h"  /* util and noise functions */
 #include "BLI_threads.h"  /* For threadsfe guardedalloc malloc/calloc/free */
 #include "IMB_imbuf.h"    /* image buffer stuff       */
+#define GET_INT_FROM_POINTER(i) ((int)(long)(i)) /* should use BKE_utildefines.h */
 
 /* -------------------------------------------------------------------------- */
 /* stuff from util.h                                                          */ 
@@ -324,42 +322,43 @@ int pluginapi_force_ref(void);
 
 int pluginapi_force_ref(void) 
 {
-	return (int) mallocN +
-		(int) callocN +
-		(int) freeN +
-		(int) mallocT +
-		(int) callocT +
-		(int) freeT +
-		(int) allocImBuf +
-		(int) dupImBuf +
-		(int) freeImBuf +
-		(int) converttocmap +
-		(int) saveiff +
-		(int) loadiffmem +
-		(int) loadifffile +
-		(int) loadiffname +
-		(int) testiffname +
-		(int) onehalf +
-		(int) onethird +
-		(int) halflace +
-		(int) half_x +
-		(int) half_y +
-		(int) double_x +
-		(int) double_y +
-		(int) double_fast_x +
-		(int) double_fast_y +
-		(int) ispic +
-		(int) dit2 +
-		(int) dit0 +
-		(int) scaleImBuf +
-		(int) scalefastImBuf +
-		(int) scalefieldImBuf +
-		(int) scalefastfieldImBuf +
-		(int) hnoise +
-		(int) hnoisep +
-		(int) turbulence +
-		(int) turbulence1 +
-		(int) de_interlace +
-		(int) interlace +
-		(int) gamwarp;
+	return 
+		GET_INT_FROM_POINTER( mallocN ) +
+		GET_INT_FROM_POINTER( callocN ) +
+		GET_INT_FROM_POINTER( freeN ) +
+		GET_INT_FROM_POINTER( mallocT ) +
+		GET_INT_FROM_POINTER( callocT ) +
+		GET_INT_FROM_POINTER( freeT ) +
+		GET_INT_FROM_POINTER( allocImBuf ) +
+		GET_INT_FROM_POINTER( dupImBuf ) +
+		GET_INT_FROM_POINTER( freeImBuf ) +
+		GET_INT_FROM_POINTER( converttocmap ) +
+		GET_INT_FROM_POINTER( saveiff ) +
+		GET_INT_FROM_POINTER( loadiffmem ) +
+		GET_INT_FROM_POINTER( loadifffile ) +
+		GET_INT_FROM_POINTER( loadiffname ) +
+		GET_INT_FROM_POINTER( testiffname ) +
+		GET_INT_FROM_POINTER( onehalf ) +
+		GET_INT_FROM_POINTER( onethird ) +
+		GET_INT_FROM_POINTER( halflace ) +
+		GET_INT_FROM_POINTER( half_x ) +
+		GET_INT_FROM_POINTER( half_y ) +
+		GET_INT_FROM_POINTER( double_x ) +
+		GET_INT_FROM_POINTER( double_y ) +
+		GET_INT_FROM_POINTER( double_fast_x ) +
+		GET_INT_FROM_POINTER( double_fast_y ) +
+		GET_INT_FROM_POINTER( ispic ) +
+		GET_INT_FROM_POINTER( dit2 ) +
+		GET_INT_FROM_POINTER( dit0 ) +
+		GET_INT_FROM_POINTER( scaleImBuf ) +
+		GET_INT_FROM_POINTER( scalefastImBuf ) +
+		GET_INT_FROM_POINTER( scalefieldImBuf ) +
+		GET_INT_FROM_POINTER( scalefastfieldImBuf ) +
+		GET_INT_FROM_POINTER( hnoise ) +
+		GET_INT_FROM_POINTER( hnoisep ) +
+		GET_INT_FROM_POINTER( turbulence ) +
+		GET_INT_FROM_POINTER( turbulence1 ) +
+		GET_INT_FROM_POINTER( de_interlace ) +
+		GET_INT_FROM_POINTER( interlace ) +
+		GET_INT_FROM_POINTER( gamwarp );
 }

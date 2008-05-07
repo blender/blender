@@ -89,6 +89,7 @@ logImageGetByteConversionDefaults(LogImageByteConversionParameters* params) {
 	params->gamma = DEFAULT_GAMMA;
 	params->blackPoint = DEFAULT_BLACK_POINT;
 	params->whitePoint = DEFAULT_WHITE_POINT;
+	params->doLogarithm = 0;
 	return 0;
 }
 
@@ -97,6 +98,7 @@ logImageGetByteConversion(const LogImageFile* logImage, LogImageByteConversionPa
 	params->gamma = logImage->params.gamma;
 	params->blackPoint = logImage->params.blackPoint;
 	params->whitePoint = logImage->params.whitePoint;
+	params->doLogarithm = 0;
 	return 0;
 }
 
@@ -110,7 +112,8 @@ logImageSetByteConversion(LogImageFile* logImage, const LogImageByteConversionPa
 		logImage->params.gamma = params->gamma;
 		logImage->params.blackPoint = params->blackPoint;
 		logImage->params.whitePoint = params->whitePoint;
-		setupLut(logImage);
+		logImage->params.doLogarithm = params->doLogarithm;
+		setupLut16(logImage);
 		return 0;
 	}
 	return 1;

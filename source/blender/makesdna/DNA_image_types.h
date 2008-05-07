@@ -3,15 +3,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_IMAGE_TYPES_H
 #define DNA_IMAGE_TYPES_H
@@ -58,6 +55,7 @@ typedef struct ImageUser {
 /* iuser->flag */
 #define	IMA_ANIM_ALWAYS		1
 #define IMA_ANIM_REFRESHED	2
+/* #define IMA_DO_PREMUL	4 */
 
 typedef struct Image {
 	ID id;
@@ -104,11 +102,12 @@ typedef struct Image {
 /* flag */
 #define IMA_FIELDS		1
 #define IMA_STD_FIELD	2
+#define IMA_DO_PREMUL	4
 
 #define	IMA_REFLECT		16
 #define IMA_NOCOLLECT   32
 #define IMA_ANTIALI		64
-#define IMA_DO_PREMUL	128
+#define IMA_OLD_PREMUL	128
 
 /* tpageflag */
 #define IMA_TILES			1

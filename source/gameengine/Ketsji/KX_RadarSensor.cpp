@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "KX_RadarSensor.h"
@@ -127,25 +124,46 @@ void KX_RadarSensor::SynchronizeTransform()
 	// depends on the radar 'axis'
 	switch (m_axis)
 	{
-	case 0: // X Axis
+	case 0: // +X Axis
 		{
 			MT_Quaternion rotquatje(MT_Vector3(0,0,1),MT_radians(90));
 			trans.rotate(rotquatje);
 			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
 			break;
 		};
-	case 1: // Y Axis
+	case 1: // +Y Axis
 		{
 			MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(-180));
 			trans.rotate(rotquatje);
 			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
 			break;
 		};
-	case 2: // Z Axis
+	case 2: // +Z Axis
 		{
 			MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(-90));
 			trans.rotate(rotquatje);
 			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
+			break;
+		};
+	case 3: // -X Axis
+		{
+			MT_Quaternion rotquatje(MT_Vector3(0,0,1),MT_radians(90));
+			trans.rotate(rotquatje);
+			trans.translate(MT_Vector3 (0, m_coneheight/2.0 ,0));
+			break;
+		};
+	case 4: // -Y Axis
+		{
+			MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(-180));
+			trans.rotate(rotquatje);
+			trans.translate(MT_Vector3 (0, m_coneheight/2.0 ,0));
+			break;
+		};
+	case 5: // -Z Axis
+		{
+			MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(-90));
+			trans.rotate(rotquatje);
+			trans.translate(MT_Vector3 (0, m_coneheight/2.0 ,0));
 			break;
 		};
 	default:

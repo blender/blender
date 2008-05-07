@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,38 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
- */
-
-/**
- * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
- *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef HAVE_CONFIG_H
@@ -72,12 +38,15 @@
 #include "GHOST_EventKey.h"
 #include "GHOST_EventButton.h"
 #include "GHOST_EventWheel.h"
+#include "GHOST_EventNDOF.h"
+#include "GHOST_NDOFManager.h"
 #include "GHOST_DisplayManagerX11.h"
 
 #include "GHOST_Debug.h"
 
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
+#include <X11/XKBlib.h> /* allow detectable autorepeate */
 
 #ifdef __sgi
 
@@ -95,6 +64,24 @@
 #include <unistd.h>
 
 #include <vector>
+#include <stdio.h> // for fprintf only
+
+typedef struct NDOFPlatformInfo {
+	Display *display;
+	Window window;
+	volatile GHOST_TEventNDOFData *currValues;
+	Atom cmdAtom;
+	Atom motionAtom;
+	Atom btnPressAtom;
+	Atom btnRelAtom;
+} NDOFPlatformInfo;
+
+static NDOFPlatformInfo sNdofInfo = {NULL, 0, NULL, 0, 0, 0, 0};
+
+
+//these are for copy and select copy
+static char *txt_cut_buffer= NULL;
+static char *txt_select_buffer= NULL;
 
 using namespace std;
 
@@ -125,6 +112,18 @@ GHOST_SystemX11(
 	}
 
 	m_start_time = GHOST_TUns64(tv.tv_sec*1000 + tv.tv_usec/1000);
+	
+	
+	/* use detectable autorepeate, mac and windows also do this */
+	int use_xkb;
+	int xkb_opcode, xkb_event, xkb_error;
+	int xkb_major = XkbMajorVersion, xkb_minor = XkbMinorVersion;
+	
+	use_xkb = XkbQueryExtension(m_display, &xkb_opcode, &xkb_event, &xkb_error, &xkb_major, &xkb_minor);
+	if (use_xkb) {
+		XkbSetDetectableAutoRepeat(m_display, true, NULL);
+	}
+	
 }
 
 	GHOST_TSuccess 
@@ -145,8 +144,6 @@ init(
 
 	return GHOST_kFailure;
 }
-	
-
 
 	GHOST_TUns64
 GHOST_SystemX11::
@@ -235,7 +232,6 @@ createWindow(
 		}
 	}
 	return window;
-
 }
 
 	GHOST_WindowX11 * 
@@ -336,7 +332,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 	if (!window) {
 		return;
 	}
-
+	
 	switch (xe->type) {
 		case Expose:
 		{
@@ -483,10 +479,36 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					GHOST_kEventWindowClose,
 					window
 				);
+			} else 
+#endif
+			if (sNdofInfo.currValues) {
+				static GHOST_TEventNDOFData data = {0,0,0,0,0,0,0,0,0,0,0};
+				if (xcme.message_type == sNdofInfo.motionAtom)
+				{
+					data.changed = 1;
+					data.delta = xcme.data.s[8] - data.time;
+					data.time = xcme.data.s[8];
+					data.tx = xcme.data.s[2];
+					data.ty = xcme.data.s[3];
+					data.tz = xcme.data.s[4];
+					data.rx = xcme.data.s[5];
+					data.ry = xcme.data.s[6];
+					data.rz = xcme.data.s[7];
+					g_event = new GHOST_EventNDOF(getMilliSeconds(),
+					                              GHOST_kEventNDOFMotion,
+					                              window, data);
+				} else if (xcme.message_type == sNdofInfo.btnPressAtom) {
+					data.changed = 2;
+					data.delta = xcme.data.s[8] - data.time;
+					data.time = xcme.data.s[8];
+					data.buttons = xcme.data.s[2];
+					g_event = new GHOST_EventNDOF(getMilliSeconds(),
+					                              GHOST_kEventNDOFButton,
+					                              window, data);
+				}
 			} else {
 				/* Unknown client message, ignore */
 			}
-#endif
 			break;
 		}
 			
@@ -504,8 +526,57 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		case MappingNotify:
 		case ReparentNotify:
 			break;
-
-      	default: {
+		case SelectionRequest:
+		{
+			XEvent nxe;
+			Atom target, string, compound_text, c_string;
+			XSelectionRequestEvent *xse = &xe->xselectionrequest;
+			
+			target = XInternAtom(m_display, "TARGETS", False);
+			string = XInternAtom(m_display, "STRING", False);
+			compound_text = XInternAtom(m_display, "COMPOUND_TEXT", False);
+			c_string = XInternAtom(m_display, "C_STRING", False);
+			
+			/* support obsolete clients */
+			if (xse->property == None) {
+				xse->property = xse->target;
+			}
+			
+			nxe.xselection.type = SelectionNotify;
+			nxe.xselection.requestor = xse->requestor;
+			nxe.xselection.property = xse->property;
+			nxe.xselection.display = xse->display;
+			nxe.xselection.selection = xse->selection;
+			nxe.xselection.target = xse->target;
+			nxe.xselection.time = xse->time;
+			
+			/*Check to see if the requestor is asking for String*/
+			if(xse->target == string || xse->target == compound_text || xse->target == c_string) {
+				if (xse->selection == XInternAtom(m_display, "PRIMARY", False)) {
+					XChangeProperty(m_display, xse->requestor, xse->property, xse->target, 8, PropModeReplace, (unsigned char*)txt_select_buffer, strlen(txt_select_buffer));
+				} else if (xse->selection == XInternAtom(m_display, "CLIPBOARD", False)) {
+					XChangeProperty(m_display, xse->requestor, xse->property, xse->target, 8, PropModeReplace, (unsigned char*)txt_cut_buffer, strlen(txt_cut_buffer));
+				}
+			} else if (xse->target == target) {
+				Atom alist[4];
+				alist[0] = target;
+				alist[1] = string;
+				alist[2] = compound_text;
+				alist[3] = c_string;
+				XChangeProperty(m_display, xse->requestor, xse->property, xse->target, 32, PropModeReplace, (unsigned char*)alist, 4);
+				XFlush(m_display);
+			} else  {
+				//Change property to None because we do not support anything but STRING
+				nxe.xselection.property = None;
+			}
+			
+			//Send the event to the client 0 0 == False, SelectionNotify
+			XSendEvent(m_display, xse->requestor, 0, 0, &nxe);
+			XFlush(m_display);
+			break;
+		}
+		
+		default: {
 			if(xe->type == window->GetXTablet().MotionEvent) 
 			{
 				XDeviceMotionEvent* data = (XDeviceMotionEvent*)xe;
@@ -539,6 +610,17 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 	}
 }
 
+	void *
+GHOST_SystemX11::
+prepareNdofInfo(volatile GHOST_TEventNDOFData *currentNdofValues)
+{
+	const vector<GHOST_IWindow*>& v(m_windowManager->getWindows());
+	if (v.size() > 0)
+		sNdofInfo.window = static_cast<GHOST_WindowX11*>(v[0])->getXWindow();
+	sNdofInfo.display = m_display;
+	sNdofInfo.currValues = currentNdofValues;
+	return (void*)&sNdofInfo;
+}
 
 	GHOST_TSuccess 
 GHOST_SystemX11::
@@ -876,3 +958,115 @@ convertXKey(
 }
 
 #undef GXMAP
+
+	GHOST_TUns8*
+GHOST_SystemX11::
+getClipboard(int flag
+) const {
+	//Flag 
+	//0 = Regular clipboard 1 = selection
+	static Atom Primary_atom, clip_String, compound_text;
+	Atom rtype;
+	Window m_window, owner;
+	unsigned char *data, *tmp_data;
+	int bits;
+	unsigned long len, bytes;
+	XEvent xevent;
+	
+	vector<GHOST_IWindow *> & win_vec = m_windowManager->getWindows();
+	vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
+	GHOST_WindowX11 * window = static_cast<GHOST_WindowX11 *>(*win_it);
+	m_window = window->getXWindow();
+
+	clip_String = XInternAtom(m_display, "_BLENDER_STRING", False);
+	compound_text = XInternAtom(m_display, "COMPOUND_TEXT", False);
+
+	//lets check the owner and if it is us then return the static buffer
+	if(flag == 0) {
+		Primary_atom = XInternAtom(m_display, "CLIPBOARD", False);
+		owner = XGetSelectionOwner(m_display, Primary_atom);
+		if (owner == m_window) {
+			data = (unsigned char*) malloc(strlen(txt_cut_buffer)+1);
+			strcpy((char*)data, txt_cut_buffer);
+			return (GHOST_TUns8*)data;
+		} else if (owner == None) {
+			return NULL;
+		}
+	} else {
+		Primary_atom = XInternAtom(m_display, "PRIMARY", False);
+		owner = XGetSelectionOwner(m_display, Primary_atom);
+		if (owner == m_window) {
+			data = (unsigned char*) malloc(strlen(txt_select_buffer)+1);
+			strcpy((char*)data, txt_select_buffer);
+			return (GHOST_TUns8*)data;
+		} else if (owner == None) {
+			return NULL;
+		}
+	}
+
+	if(!Primary_atom) {
+		return NULL;
+	}
+	
+	XDeleteProperty(m_display, m_window, Primary_atom);
+	XConvertSelection(m_display, Primary_atom, compound_text, clip_String, m_window, CurrentTime); //XA_STRING
+	XFlush(m_display);
+
+	//This needs to change so we do not wait for ever or check owner first
+	while(1) {
+		XNextEvent(m_display, &xevent);
+		if(xevent.type == SelectionNotify) {
+			if(XGetWindowProperty(m_display, m_window, xevent.xselection.property, 0L, 4096L, False, AnyPropertyType, &rtype, &bits, &len, &bytes, &data) == Success) {
+				if (data) {
+					tmp_data = (unsigned char*) malloc(strlen((char*)data)+1);
+					strcpy((char*)tmp_data, (char*)data);
+					XFree(data);
+					return (GHOST_TUns8*)tmp_data;
+				}
+			}
+			return NULL;
+		}
+	}
+}
+
+	void
+GHOST_SystemX11::
+putClipboard(
+GHOST_TInt8 *buffer, int flag) const
+{
+	static Atom Primary_atom;
+	Window m_window, owner;
+	
+	if(!buffer) {return;}
+	
+	if(flag == 0) {
+		Primary_atom = XInternAtom(m_display, "CLIPBOARD", False);
+		if(txt_cut_buffer) { free((void*)txt_cut_buffer); }
+		
+		txt_cut_buffer = (char*) malloc(strlen(buffer)+1);
+		strcpy(txt_cut_buffer, buffer);
+	} else {
+		Primary_atom = XInternAtom(m_display, "PRIMARY", False);
+		if(txt_select_buffer) { free((void*)txt_select_buffer); }
+		
+		txt_select_buffer = (char*) malloc(strlen(buffer)+1);
+		strcpy(txt_select_buffer, buffer);
+	}
+	
+	vector<GHOST_IWindow *> & win_vec = m_windowManager->getWindows();
+	vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
+	GHOST_WindowX11 * window = static_cast<GHOST_WindowX11 *>(*win_it);
+	m_window = window->getXWindow();
+
+	if(!Primary_atom) {
+		return;
+	}
+	
+	XSetSelectionOwner(m_display, Primary_atom, m_window, CurrentTime);
+	owner = XGetSelectionOwner(m_display, Primary_atom);
+	if (owner != m_window)
+		fprintf(stderr, "failed to own primary\n");
+	
+	return;
+}
+

@@ -353,6 +353,23 @@ def PupMenu(name, maxrow = None):
 	@return: the chosen entry number or -1 if none was chosen.
 	"""
 
+def PupTreeMenu( menu ):
+	"""
+	Create a popup menu tree.
+	
+	Each item in the list is a menu item - (str, event), separator - None or submenu - (str, [...]).
+	
+	Submenus list uses the same syntax as the menu list.
+
+	Example::
+		result = Draw.PupTreeMenu( [ ("Menu Item 1", 10), ("Menu Item 2", 12), ("SubMenu", [("Menu Item 3", 100), ("MenuItem4", 101) ]  ) ] )
+	
+	@type menu: string
+	@param menu: A menu list
+	@rtype: int
+	@return: the chosen entry number or -1 if none was chosen.
+	"""
+
 def PupIntInput(text, default, min, max):
 	"""
 	Create an integer number input pop-up.
@@ -769,7 +786,7 @@ def GetStringWidth(string, fontsize = 'normal'):
 	@type string: string
 	@param string: A string.
 	@type fontsize: string
-	@param fontsize: The size of the font: 'large', 'normal', 'small' or 'tiny'.
+	@param fontsize: The size of the font: 'large', 'normal', 'normalfix', 'small' or 'tiny'.
 	@rtype: int
 	@return: The width of I{string} with the chosen I{fontsize}.
 	"""
@@ -786,7 +803,7 @@ def Text(string, fontsize = 'normal'):
 	@type string: string
 	@param string: The text string to draw.
 	@type fontsize: string
-	@param fontsize: The size of the font: 'large', 'normal', 'small' or 'tiny'.
+	@param fontsize: The size of the font: 'large', 'normal', 'normalfix', 'small' or 'tiny'.
 	@rtype: int
 	@return: The width of I{string} drawn with the chosen I{fontsize}.
 	@note: For drawing text in the 3d view see the workaround in L{BGL.glRasterPos}

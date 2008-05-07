@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <sys/types.h>
@@ -202,7 +199,7 @@ static void toscreen(Pict *picture, struct ImBuf *ibuf)
 	pupdate_time();
 
 	if(picture && (qualN & (SHIFT|LMOUSE))) {
-		char str[256];
+		char str[512];
 		cpack(-1);
 		glRasterPos2f(0.02f,  0.03f);
 		sprintf(str, "%s | %.2f frames/s\n", picture->name, 1.0 / swaptime);
@@ -212,15 +209,15 @@ static void toscreen(Pict *picture, struct ImBuf *ibuf)
 	window_swap_buffers(g_window);
 }
 
-static void build_pict_list(char * first)
+static void build_pict_list(char * first, int totframes)
 {
 	int size,pic,file;
-	char *mem, name[256];
+	char *mem, name[512];
 	short val;
 	struct pict * picture = 0;
 	struct ImBuf *ibuf = 0;
 	int count = 0;
-	char str[100];
+	char str[512];
 	struct anim * anim;
 	
 	if (IMB_isanim(first)) {
@@ -261,7 +258,8 @@ static void build_pict_list(char * first)
             O_DIRECT is a Silicon Graphics extension and is only supported on
             local EFS and XFS file systems.
 */
-		while(IMB_ispic(name)){
+		
+		while(IMB_ispic(name) && totframes){
 			file = open(name, O_BINARY|O_RDONLY, 0);
 			if (file < 0) return;
 			picture = (struct pict*)MEM_callocN(sizeof(struct pict), "picture");
@@ -327,6 +325,7 @@ static void build_pict_list(char * first)
 					break;
 				}
 			}
+			totframes--;
 		}
 	}
 	return;
@@ -336,7 +335,7 @@ void playanim(int argc, char **argv)
 {
 	struct ImBuf *ibuf = 0;
 	struct pict *picture = 0;
-	char name[256];
+	char name[512];
 	short val = 0, go = TRUE, ibufx = 0, ibufy = 0;
 	int event, stopped = FALSE, maxwinx, maxwiny;
 	short /*  c233 = FALSE, */ /*  yuvx = FALSE, */ once = FALSE, sstep = FALSE, wait2 = FALSE, /*  resetmap = FALSE, */ pause = 0;
@@ -344,8 +343,10 @@ void playanim(int argc, char **argv)
 	int sizex, sizey, ofsx, ofsy, i;
 	/* This was done to disambiguate the name for use under c++. */
 	struct anim * anim = 0;
-	int start_x= 0, start_y= 0;
-
+ 	int start_x= 0, start_y= 0;
+	int sfra= -1;
+	int efra= -1;
+	
 	while (argc > 1) {
 		if (argv[1][0] == '-'){
 			switch(argv[1][1]) {
@@ -362,7 +363,7 @@ void playanim(int argc, char **argv)
 						printf("too few arguments for -p (need 2): skipping\n");
 					}
 					break;
-			        case 'f':
+				case 'f':
 					if (argc>3) {
 						double fps = atof(argv[2]);
 						double fps_base= atof(argv[3]);
@@ -377,6 +378,16 @@ void playanim(int argc, char **argv)
 					} else {
 						printf("too few arguments for -f (need 2): skipping\n");
 					}
+					break;
+				case 's':
+					sfra= MIN2(MAXFRAME, MAX2(1, atoi(argv[2]) ));
+					argc--;
+					argv++;
+					break;
+				case 'e':
+					efra= MIN2(MAXFRAME, MAX2(1, atoi(argv[2]) ));
+					argc--;
+					argv++;
 					break;
 				default:
 					printf("unknown option '%c': skipping\n", argv[1][1]);
@@ -462,11 +473,17 @@ void playanim(int argc, char **argv)
 	
 	window_swap_buffers(g_window);
 	
-	build_pict_list(name);
+	if (sfra == -1 || efra == -1) {
+		/* one of the frames was invalid, just use all images */
+		sfra = 1;
+		efra = MAXFRAME;
+	}
+	
+	build_pict_list(name, (efra - sfra) + 1);
 	
 	for (i = 2; i < argc; i++){
 		strcpy(name, argv[i]);
-		build_pict_list(name);
+		build_pict_list(name, (efra - sfra) + 1);
 	}
 
 	IMB_freeImBuf(ibuf); 

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef HAVE_CONFIG_H
@@ -493,39 +490,42 @@ void do_nlabuts(unsigned short event)
 		allqueue (REDRAWNLA, 0);
 		allqueue (REDRAWVIEW3D, 0);
 		break;
-	case B_NLA_SCALE:
+	case B_NLA_SCALE: /* adjust end-frame when scale is changed */
 		{
 			float actlen= strip->actend - strip->actstart;
 			float mapping= strip->scale * strip->repeat;
 			
-			strip->end = (actlen * mapping) + strip->start; 
+			if (mapping != 0.0f)
+				strip->end = (actlen * mapping) + strip->start; 
+			else
+				printf("NLA Scale Error: Scale = %0.4f, Repeat = %0.4f \n", strip->scale, strip->repeat);
 			
-			allqueue (REDRAWNLA, 0);
-			allqueue (REDRAWIPO, 0);
-			allqueue (REDRAWACTION, 0);
-			allqueue (REDRAWVIEW3D, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 		break;
-	case B_NLA_SCALE2:
+	case B_NLA_SCALE2: /* adjust scale when end-frame is changed */
 		{
 			float actlen= strip->actend - strip->actstart;
 			float len= strip->end - strip->start;
 			
 			strip->scale= len / (actlen * strip->repeat);
 			
-			allqueue (REDRAWNLA, 0);
-			allqueue (REDRAWIPO, 0);
-			allqueue (REDRAWACTION, 0);
-			allqueue (REDRAWVIEW3D, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 		break;
 	case B_NLA_LOCK:
 		synchronize_action_strips();
 		
-		allqueue (REDRAWNLA, 0);
-		allqueue (REDRAWIPO, 0);
-		allqueue (REDRAWACTION, 0);
-		allqueue (REDRAWVIEW3D, 0);
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWVIEW3D, 0);
 		break;
 		
 	case B_NLA_MOD_ADD:

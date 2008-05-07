@@ -1,15 +1,12 @@
 /*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *                 Johnny Matthews
  *                 Campbell BArton
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "Text3d.h" /*This must come first*/
@@ -40,6 +37,7 @@
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_utildefines.h"
 #include "BIF_editfont.h"	/* do_textedit() */
 #include "Curve.h"
 #include "constant.h"
@@ -258,7 +256,7 @@ static PyObject *getFloatAttr( BPy_Text3d *self, void *type )
 	float param;
 	struct Curve *curve= self->curve;
 	
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_T3D_ATTR_FRAME_WIDTH: 
 		param = curve->tb[curve->actbox-1].w;
 		break;
@@ -285,7 +283,7 @@ static int setFloatAttrClamp( BPy_Text3d *self, PyObject *value, void *type )
 	struct Curve *curve= self->curve;
 	float min, max;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_T3D_ATTR_FRAME_WIDTH:
 		min = 0.0;
 		max = 50.0;

@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "BoolValue.h"
@@ -61,6 +58,7 @@ SCA_RandomActuator::SCA_RandomActuator(SCA_IObject *gameobj,
 	  m_parameter2(para2),
 	  m_distribution(mode)
 {
+	// m_base is never deleted, probably a memory leak!
 	m_base = new SCA_RandomNumberGenerator(seed);
 	m_counter = 0;
 	enforceConstraints();
@@ -78,6 +76,7 @@ SCA_RandomActuator::~SCA_RandomActuator()
 CValue* SCA_RandomActuator::GetReplica()
 {
 	SCA_RandomActuator* replica = new SCA_RandomActuator(*this);
+	// replication just copy the m_base pointer => common random generator
 	replica->ProcessReplica();
 	CValue::AddDataToReplica(replica);
 
@@ -432,12 +431,12 @@ PyObject* SCA_RandomActuator::PySetProperty(PyObject* self, PyObject* args, PyOb
 
 	CValue* prop = GetParent()->FindIdentifier(nameArg);
 
-	if (prop) {
+	if (!prop->IsError()) {
 		m_propname = nameArg;
-		prop->Release();
 	} else {
 		; /* not found ... */
 	}
+	prop->Release();
 	
 	Py_Return;
 }

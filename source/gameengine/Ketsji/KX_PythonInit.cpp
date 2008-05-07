@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Initialize Python thingies.
  */
 
@@ -44,12 +41,14 @@
 #include <OpenGL/glu.h>
 #else
 #include <GL/gl.h>
-#if defined(__sun__) && !defined(__sparc__)
+/* #if defined(__sun__) && !defined(__sparc__)
 #include <mesa/glu.h>
-#else
+#else */
 #include <GL/glu.h>
+/* #endif */
 #endif
-#endif
+
+#include <stdlib.h>
 
 #ifdef WIN32
 #pragma warning (disable : 4786)
@@ -335,16 +334,18 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 		pprint("");
 	}
 #endif
-#ifdef GL_ARB_multitexture
-	support = ext._ARB_multitexture;
-	count = 1;
-	pprint(" GL_ARB_multitexture supported?         "<< (support?"yes.":"no."));
-	if(support){
-		pprint(" ----------Details----------");
-		int units=0;
-		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&units);
-		pprint("  Max texture units available.  " << units);
-		pprint("");
+#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
+	if (!getenv("WITHOUT_GLEXT")) {
+		support = ext._ARB_multitexture;
+		count = 1;
+		pprint(" GL_ARB_multitexture supported?         "<< (support?"yes.":"no."));
+		if(support){
+			pprint(" ----------Details----------");
+			int units=0;
+			glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&units);
+			pprint("  Max texture units available.  " << units);
+			pprint("");
+		}
 	}
 #endif
 #ifdef GL_ARB_texture_env_combine
@@ -1158,4 +1159,9 @@ PyObject* initGameKeys()
 void PHY_SetActiveScene(class KX_Scene* scene)
 {
 	gp_KetsjiScene = scene;
+}
+
+class KX_Scene* PHY_GetActiveScene()
+{
+	return gp_KetsjiScene;
 }

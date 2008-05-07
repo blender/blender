@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): Peter Schlaile <peter [at] schlaile [dot] de> 2005/2006
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -104,7 +101,7 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 
 		if (version != 0) {
 			pis->version= version();
-			if (pis->version >= 2 && pis->version <= 5) {
+			if (pis->version >= 2 && pis->version <= 6) {
 				int (*info_func)(PluginInfo *);
 				PluginInfo *info= (PluginInfo*) MEM_mallocN(sizeof(PluginInfo), "plugin_info");
 
@@ -986,7 +983,7 @@ static void do_gammacross_effect_float(float facf0, float facf1,
 				       float *rect1, float *rect2, 
 				       float *out)
 {
-	float fac1, fac2, col;
+	float fac1, fac2;
 	int xo;
 	float *rt1, *rt2, *rt;
 
@@ -1015,7 +1012,7 @@ static void do_gammacross_effect_float(float facf0, float facf1,
 		x= xo * 4;
 		while(x--) {
 
-			col= gammaCorrect(
+			*rt= gammaCorrect(
 				fac1*invGammaCorrect(*rt1) 
 				+ fac2*invGammaCorrect(*rt2));
 
@@ -1501,12 +1498,38 @@ static void do_mul_effect(Sequence * seq,int cfra,
    WIPE
    ********************************************************************** */
 
+typedef struct WipeZone {
+	float angle;
+	int flip;
+	int xo, yo;
+	int width;
+	float invwidth;
+	float pythangle;
+} WipeZone;
+
+static void precalc_wipe_zone(WipeZone *wipezone, WipeVars *wipe, int xo, int yo)
+{
+	wipezone->flip = (wipe->angle < 0);
+	wipezone->angle = pow(fabs(wipe->angle)/45.0f, log(xo)/log(2.0f));
+	wipezone->xo = xo;
+	wipezone->yo = yo;
+	wipezone->width = (int)(wipe->edgeWidth*((xo+yo)/2.0f));
+	wipezone->pythangle = 1.0f/sqrt(wipe->angle*wipe->angle + 1.0f);
+
+	if(wipe->wipetype == DO_SINGLE_WIPE)
+		wipezone->invwidth = 1.0f/wipezone->width;
+	else
+		wipezone->invwidth = 1.0f/(0.5f*wipezone->width);
+}
+
 // This function calculates the blur band for the wipe effects
-static float in_band(float width,float dist, float perc,int side,int dir){
-	
+static float in_band(WipeZone *wipezone,float width,float dist,float perc,int side,int dir)
+{
 	float t1,t2,alpha,percwidth;
+
 	if(width == 0)
 		return (float)side;
+
 	if(side == 1)
 		percwidth = width * perc;
 	else
@@ -1515,8 +1538,8 @@ static float in_band(float width,float dist, float perc,int side,int dir){
 	if(width < dist)
 		return side;
 	
-	t1 = dist / width;  //percentange of width that is
-	t2 = 1 / width;  //amount of alpha per % point
+	t1 = dist * wipezone->invwidth;  //percentange of width that is
+	t2 = wipezone->invwidth;  //amount of alpha per % point
 	
 	if(side == 1)
 		alpha = (t1*t2*100) + (1-perc); // add point's alpha contrib to current position in wipe
@@ -1525,31 +1548,31 @@ static float in_band(float width,float dist, float perc,int side,int dir){
 	
 	if(dir == 0)
 		alpha = 1-alpha;
+
 	return alpha;
 }
 
-static float check_zone(int x, int y, int xo, int yo, 
-			Sequence *seq, float facf0) 
+static float check_zone(WipeZone *wipezone, int x, int y,
+	Sequence *seq, float facf0) 
 {
 	float posx, posy,hyp,hyp2,angle,hwidth,b1,b2,b3,pointdist;
 /*some future stuff
 float hyp3,hyp4,b4,b5	   
 */
 	float temp1,temp2,temp3,temp4; //some placeholder variables
-	float halfx = xo/2;
-	float halfy = yo/2;
+	int xo = wipezone->xo;
+	int yo = wipezone->yo;
+	float halfx = xo*0.5f;
+	float halfy = yo*0.5f;
 	float widthf,output=0;
 	WipeVars *wipe = (WipeVars *)seq->effectdata;
 	int width;
 
- 	angle = wipe->angle;
- 	if(angle < 0){
- 		x = xo-x;
- 		//y = yo-y
- 		}
- 	angle = pow(fabs(angle)/45,log(xo)/log(2));
+	if(wipezone->flip) x = xo - x;
+	angle = wipezone->angle;
 
 	posy = facf0 * yo;
+
 	if(wipe->forward){
 		posx = facf0 * xo;
 		posy = facf0 * yo;
@@ -1557,64 +1580,83 @@ float hyp3,hyp4,b4,b5
 		posx = xo - facf0 * xo;
 		posy = yo - facf0 * yo;
 	}
+
 	switch (wipe->wipetype) {
 		case DO_SINGLE_WIPE:
-			width = (int)(wipe->edgeWidth*((xo+yo)/2.0));
-			hwidth = (float)width/2.0;
+			width = wipezone->width;
+			hwidth = width*0.5f;
 
-			if (angle == 0.0)angle = 0.000001;
-			b1 = posy - (-angle)*posx;
-			b2 = y - (-angle)*x;
-			hyp = fabs(angle*x+y+(-posy-angle*posx))/sqrt(angle*angle+1);
-			if(angle < 0){
+			if(angle == 0.0f) {
+				b1 = posy;
+				b2 = y;
+				hyp = fabs(y - posy);
+			}
+			else {
+				b1 = posy - (-angle)*posx;
+				b2 = y - (-angle)*x;
+				hyp = fabs(angle*x+y+(-posy-angle*posx))*wipezone->pythangle;
+			}
+
+			if(angle < 0) {
 				temp1 = b1;
 				b1 = b2;
 				b2 = temp1;
 			}
-			if(wipe->forward){	 
+
+			if(wipe->forward) {
 				if(b1 < b2)
-					output = in_band(width,hyp,facf0,1,1);
+					output = in_band(wipezone,width,hyp,facf0,1,1);
 				else
-					output = in_band(width,hyp,facf0,0,1);
-		 	} else{	 
+					output = in_band(wipezone,width,hyp,facf0,0,1);
+		 	}
+			else {
 				if(b1 < b2)
-					output = in_band(width,hyp,facf0,0,1);
+					output = in_band(wipezone,width,hyp,facf0,0,1);
 				else
-					output = in_band(width,hyp,facf0,1,1);
+					output = in_band(wipezone,width,hyp,facf0,1,1);
 		 	}
 		break;
 	 
-	 
 		case DO_DOUBLE_WIPE:
-			if(!wipe->forward)facf0 = 1-facf0;   // Go the other direction
+			if(!wipe->forward)
+				facf0 = 1.0f-facf0;   // Go the other direction
 
-			width = (int)(wipe->edgeWidth*((xo+yo)/2.0));  // calculate the blur width
-			hwidth = (float)width/2.0;
-			if (angle == 0)angle = 0.000001;
-			b1 = posy/2 - (-angle)*posx/2;
-			b3 = (yo-posy/2) - (-angle)*(xo-posx/2);
-			b2 = y - (-angle)*x;
+			width = wipezone->width;  // calculate the blur width
+			hwidth = width*0.5f;
+			if (angle == 0) {
+				b1 = posy*0.5f;
+				b3 = yo-posy*0.5f;
+				b2 = y;
 
-			hyp = abs(angle*x+y+(-posy/2-angle*posx/2))/sqrt(angle*angle+1);
-			hyp2 = abs(angle*x+y+(-(yo-posy/2)-angle*(xo-posx/2)))/sqrt(angle*angle+1);
+				hyp = abs(y - posy*0.5f);
+				hyp2 = abs(y - (yo-posy*0.5f));
+			}
+			else {
+				b1 = posy*0.5f - (-angle)*posx*0.5f;
+				b3 = (yo-posy*0.5f) - (-angle)*(xo-posx*0.5f);
+				b2 = y - (-angle)*x;
 
-			temp1 = xo*(1-facf0/2)-xo*facf0/2;
-			temp2 = yo*(1-facf0/2)-yo*facf0/2;
+				hyp = abs(angle*x+y+(-posy*0.5f-angle*posx*0.5f))*wipezone->pythangle;
+				hyp2 = abs(angle*x+y+(-(yo-posy*0.5f)-angle*(xo-posx*0.5f)))*wipezone->pythangle;
+			}
+
+			temp1 = xo*(1-facf0*0.5f)-xo*facf0*0.5f;
+			temp2 = yo*(1-facf0*0.5f)-yo*facf0*0.5f;
 			pointdist = sqrt(temp1*temp1 + temp2*temp2);
 
 			if(b2 < b1 && b2 < b3 ){
 				if(hwidth < pointdist)
-					output = in_band(hwidth,hyp,facf0,0,1);
+					output = in_band(wipezone,hwidth,hyp,facf0,0,1);
 			} else if(b2 > b1 && b2 > b3 ){
 				if(hwidth < pointdist)
-					output = in_band(hwidth,hyp2,facf0,0,1);	
+					output = in_band(wipezone,hwidth,hyp2,facf0,0,1);	
 			} else {
 				if(  hyp < hwidth && hyp2 > hwidth )
-					output = in_band(hwidth,hyp,facf0,1,1);
+					output = in_band(wipezone,hwidth,hyp,facf0,1,1);
 				else if( hyp > hwidth && hyp2 < hwidth )
-				 	 output = in_band(hwidth,hyp2,facf0,1,1);
+				 	 output = in_band(wipezone,hwidth,hyp2,facf0,1,1);
 				else
-				 	 output = in_band(hwidth,hyp2,facf0,1,1) * in_band(hwidth,hyp,facf0,1,1);
+				 	 output = in_band(wipezone,hwidth,hyp2,facf0,1,1) * in_band(wipezone,hwidth,hyp,facf0,1,1);
 			}
 			if(!wipe->forward)output = 1-output;
 	 	break;
@@ -1625,31 +1667,31 @@ float hyp3,hyp4,b4,b5
 	 	 		temp3: angle of low side of blur
 	 	 		temp4: angle of high side of blur
 	 	 	*/
-		 	output = 1-facf0;
-	 		widthf = wipe->edgeWidth*2*3.14159;
- 	 		temp1 = 2 * 3.14159 * facf0;
+		 	output = 1.0f - facf0;
+	 		widthf = wipe->edgeWidth*2.0f*(float)M_PI;
+ 	 		temp1 = 2.0f * (float)M_PI * facf0;
 	 	 	
  			if(wipe->forward){
- 				temp1 = 2*3.14159-temp1;
+ 				temp1 = 2.0f*(float)M_PI - temp1;
  			}
  	 		
  	 		x = x - halfx;
  	 		y = y - halfy;
 
  	 		temp2 = asin(abs(y)/sqrt(x*x + y*y));
- 	 		if(x <= 0 && y >= 0) temp2 = 3.14159 - temp2;
- 	 		else if(x<=0 && y <= 0) temp2 += 3.14159;
- 	 		else if(x >= 0 && y <= 0) temp2 = 2*3.14159 - temp2;
+ 	 		if(x <= 0 && y >= 0) temp2 = (float)M_PI - temp2;
+ 	 		else if(x<=0 && y <= 0) temp2 += (float)M_PI;
+ 	 		else if(x >= 0 && y <= 0) temp2 = 2.0f*(float)M_PI - temp2;
 
  	 		if(wipe->forward){
-	 	 		temp3 = temp1-(widthf/2)*facf0;
-	 	 		temp4 = temp1+(widthf/2)*(1-facf0);
+	 	 		temp3 = temp1-(widthf*0.5f)*facf0;
+	 	 		temp4 = temp1+(widthf*0.5f)*(1-facf0);
  	 		} else{
-	 	 		temp3 = temp1-(widthf/2)*(1-facf0);
-	 	 		temp4 = temp1+(widthf/2)*facf0;
+	 	 		temp3 = temp1-(widthf*0.5f)*(1-facf0);
+	 	 		temp4 = temp1+(widthf*0.5f)*facf0;
 			}
  	 		if (temp3 < 0) temp3 = 0;
- 	 		if (temp4 > 2*3.14159) temp4 = 2*3.14159;
+ 	 		if (temp4 > 2.0f*(float)M_PI) temp4 = 2.0f*(float)M_PI;
  	 		
  	 		
  	 		if(temp2 < temp3) output = 0;
@@ -1673,8 +1715,8 @@ float hyp3,hyp4,b4,b5
 			b3 = (yo-posy/2) - (-angle)*(xo-posx/2);
 			b2 = y - (-angle)*x;
 
-			hyp = abs(angle*x+y+(-posy/2-angle*posx/2))/sqrt(angle*angle+1);
-			hyp2 = abs(angle*x+y+(-(yo-posy/2)-angle*(xo-posx/2)))/sqrt(angle*angle+1);
+			hyp = abs(angle*x+y+(-posy/2-angle*posx/2))*wipezone->pythangle;
+			hyp2 = abs(angle*x+y+(-(yo-posy/2)-angle*(xo-posx/2)))*wipezone->pythangle;
 
 			temp1 = xo*(1-facf0/2)-xo*facf0/2;
 			temp2 = yo*(1-facf0/2)-yo*facf0/2;
@@ -1682,17 +1724,17 @@ float hyp3,hyp4,b4,b5
 
 			if(b2 < b1 && b2 < b3 ){
 				if(hwidth < pointdist)
-					output = in_band(hwidth,hyp,facf0,0,1);
+					output = in_band(wipezone,hwidth,hyp,facf0,0,1);
 			} else if(b2 > b1 && b2 > b3 ){
 				if(hwidth < pointdist)
-					output = in_band(hwidth,hyp2,facf0,0,1);	
+					output = in_band(wipezone,hwidth,hyp2,facf0,0,1);	
 			} else {
 				if( hyp < hwidth && hyp2 > hwidth )
-					output = in_band(hwidth,hyp,facf0,1,1);
+					output = in_band(wipezone,hwidth,hyp,facf0,1,1);
 				else if( hyp > hwidth && hyp2 < hwidth )
-				 	output = in_band(hwidth,hyp2,facf0,1,1);
+				 	output = in_band(wipezone,hwidth,hyp2,facf0,1,1);
 				else
-				 	output = in_band(hwidth,hyp2,facf0,1,1) * in_band(hwidth,hyp,facf0,1,1);
+				 	output = in_band(wipezone,hwidth,hyp2,facf0,1,1) * in_band(wipezone,hwidth,hyp,facf0,1,1);
 			}
 
 			if(invert)facf0 = 1-facf0;
@@ -1701,22 +1743,22 @@ float hyp3,hyp4,b4,b5
 			b3 = (yo-posy/2) - (-angle)*(xo-posx/2);
 			b2 = y - (-angle)*x;
 
-			hyp = abs(angle*x+y+(-posy/2-angle*posx/2))/sqrt(angle*angle+1);
-			hyp2 = abs(angle*x+y+(-(yo-posy/2)-angle*(xo-posx/2)))/sqrt(angle*angle+1);
+			hyp = abs(angle*x+y+(-posy/2-angle*posx/2))*wipezone->pythangle;
+			hyp2 = abs(angle*x+y+(-(yo-posy/2)-angle*(xo-posx/2)))*wipezone->pythangle;
 
 			if(b2 < b1 && b2 < b3 ){
 				if(hwidth < pointdist)
-					output *= in_band(hwidth,hyp,facf0,0,1);
+					output *= in_band(wipezone,hwidth,hyp,facf0,0,1);
 			} else if(b2 > b1 && b2 > b3 ){
 				if(hwidth < pointdist)
-					output *= in_band(hwidth,hyp2,facf0,0,1);	
+					output *= in_band(wipezone,hwidth,hyp2,facf0,0,1);	
 			} else {
 				if( hyp < hwidth && hyp2 > hwidth )
-					output *= in_band(hwidth,hyp,facf0,1,1);
+					output *= in_band(wipezone,hwidth,hyp,facf0,1,1);
 				else if( hyp > hwidth && hyp2 < hwidth )
-					output *= in_band(hwidth,hyp2,facf0,1,1);
+					output *= in_band(wipezone,hwidth,hyp2,facf0,1,1);
 				else
-					output *= in_band(hwidth,hyp2,facf0,1,1) * in_band(hwidth,hyp,facf0,1,1);
+					output *= in_band(wipezone,hwidth,hyp2,facf0,1,1) * in_band(wipezone,hwidth,hyp,facf0,1,1);
 			}
 
 		break;
@@ -1727,15 +1769,15 @@ float hyp3,hyp4,b4,b5
 
 			if(!wipe->forward) facf0 = 1-facf0;
 
-			width = (int)(wipe->edgeWidth*((xo+yo)/2.0));
-			hwidth = (float)width/2.0; 
+			width = wipezone->width;
+			hwidth = width*0.5f;
 
 			temp1 = (halfx-(halfx)*facf0);
 		 	pointdist = sqrt(temp1*temp1 + temp1*temp1);
 		 
 		 	temp2 = sqrt((halfx-x)*(halfx-x) + (halfy-y)*(halfy-y));
-		 	if(temp2 > pointdist) output = in_band(hwidth,fabs(temp2-pointdist),facf0,0,1);
-		 	else output = in_band(hwidth,fabs(temp2-pointdist),facf0,1,1);
+		 	if(temp2 > pointdist) output = in_band(wipezone,hwidth,fabs(temp2-pointdist),facf0,0,1);
+		 	else output = in_band(wipezone,hwidth,fabs(temp2-pointdist),facf0,1,1);
 		 
 			if(!wipe->forward) output = 1-output;
 			
@@ -1773,8 +1815,13 @@ static void do_wipe_effect_byte(Sequence *seq, float facf0, float facf1,
 				unsigned char *rect1, 
 				unsigned char *rect2, unsigned char *out)
 {
+	WipeZone wipezone;
+	WipeVars *wipe = (WipeVars *)seq->effectdata;
 	int xo, yo;
 	char *rt1, *rt2, *rt;
+
+	precalc_wipe_zone(&wipezone, wipe, x, y);
+
 	rt1 = (char *)rect1;
 	rt2 = (char *)rect2;
 	rt = (char *)out;
@@ -1783,7 +1830,7 @@ static void do_wipe_effect_byte(Sequence *seq, float facf0, float facf1,
 	yo = y;
 	for(y=0;y<yo;y++) {
 		for(x=0;x<xo;x++) {
-			float check = check_zone(x,y,xo,yo,seq,facf0);
+			float check = check_zone(&wipezone,x,y,seq,facf0);
 			if (check) {
 				if (rt1) {
 					rt[0] = (int)(rt1[0]*check)+ (int)(rt2[0]*(1-check));
@@ -1826,8 +1873,13 @@ static void do_wipe_effect_float(Sequence *seq, float facf0, float facf1,
 				 float *rect1, 
 				 float *rect2, float *out)
 {
+	WipeZone wipezone;
+	WipeVars *wipe = (WipeVars *)seq->effectdata;
 	int xo, yo;
 	float *rt1, *rt2, *rt;
+
+	precalc_wipe_zone(&wipezone, wipe, x, y);
+
 	rt1 = rect1;
 	rt2 = rect2;
 	rt = out;
@@ -1836,7 +1888,7 @@ static void do_wipe_effect_float(Sequence *seq, float facf0, float facf1,
 	yo = y;
 	for(y=0;y<yo;y++) {
 		for(x=0;x<xo;x++) {
-			float check = check_zone(x,y,xo,yo,seq,facf0);
+			float check = check_zone(&wipezone,x,y,seq,facf0);
 			if (check) {
 				if (rt1) {
 					rt[0] = rt1[0]*check+ rt2[0]*(1-check);
@@ -2485,7 +2537,7 @@ static void do_glow_effect_byte(Sequence *seq, float facf0, float facf1,
 	GlowVars *glow = (GlowVars *)seq->effectdata;
 	struct RenderData *rd = &G.scene->r;
 
-	RVIsolateHighlights_byte(inbuf, outbuf , x, y, glow->fMini*765, glow->fBoost, glow->fClamp);
+	RVIsolateHighlights_byte(inbuf, outbuf , x, y, glow->fMini*765, glow->fBoost * facf0, glow->fClamp);
 	RVBlurBitmap2_byte (outbuf, x, y, glow->dDist * (rd->size / 100.0f),glow->dQuality);
 	if (!glow->bNoComp)
 		RVAddBitmaps_byte (inbuf , outbuf, outbuf, x, y);
@@ -2500,7 +2552,7 @@ static void do_glow_effect_float(Sequence *seq, float facf0, float facf1,
 	GlowVars *glow = (GlowVars *)seq->effectdata;
 	struct RenderData *rd = &G.scene->r;
 
-	RVIsolateHighlights_float(inbuf, outbuf , x, y, glow->fMini*3.0f, glow->fBoost, glow->fClamp);
+	RVIsolateHighlights_float(inbuf, outbuf , x, y, glow->fMini*3.0f, glow->fBoost * facf0, glow->fClamp);
 	RVBlurBitmap2_float (outbuf, x, y, glow->dDist * (rd->size / 100.0f),glow->dQuality);
 	if (!glow->bNoComp)
 		RVAddBitmaps_float (inbuf , outbuf, outbuf, x, y);
@@ -2572,25 +2624,66 @@ static void do_solid_color(Sequence * seq,int cfra,
 	float *rect_float;
 
 	if (out->rect) {
+		unsigned char col0[3];
+		unsigned char col1[3];
+
+		col0[0] = facf0 * cv->col[0] * 255;
+		col0[1] = facf0 * cv->col[1] * 255;
+		col0[2] = facf0 * cv->col[2] * 255;
+
+		col1[0] = facf1 * cv->col[0] * 255;
+		col1[1] = facf1 * cv->col[1] * 255;
+		col1[2] = facf1 * cv->col[2] * 255;
+
 		rect = (unsigned char *)out->rect;
 		
 		for(y=0; y<out->y; y++) {	
 			for(x=0; x<out->x; x++, rect+=4) {
-				rect[0]= (char)(cv->col[0]*255);
-				rect[1]= (char)(cv->col[1]*255);
-				rect[2]= (char)(cv->col[2]*255);
+				rect[0]= col0[0];
+				rect[1]= col0[1];
+				rect[2]= col0[2];
 				rect[3]= 255;
-			}	
+			}
+			y++;
+			if (y<out->y) {
+				for(x=0; x<out->x; x++, rect+=4) {
+					rect[0]= col1[0];
+					rect[1]= col1[1];
+					rect[2]= col1[2];
+					rect[3]= 255;
+				}	
+			}
 		}
+
 	} else if (out->rect_float) {
+		float col0[3];
+		float col1[3];
+
+		col0[0] = facf0 * cv->col[0];
+		col0[1] = facf0 * cv->col[1];
+		col0[2] = facf0 * cv->col[2];
+
+		col1[0] = facf1 * cv->col[0];
+		col1[1] = facf1 * cv->col[1];
+		col1[2] = facf1 * cv->col[2];
+
 		rect_float = out->rect_float;
 		
 		for(y=0; y<out->y; y++) {	
 			for(x=0; x<out->x; x++, rect_float+=4) {
-				rect_float[0]= cv->col[0];
-				rect_float[1]= cv->col[1];
-				rect_float[2]= cv->col[2];
+				rect_float[0]= col0[0];
+				rect_float[1]= col0[1];
+				rect_float[2]= col0[2];
 				rect_float[3]= 1.0;
+			}
+			y++;
+			if (y<out->y) {
+				for(x=0; x<out->x; x++, rect_float+=4) {
+					rect_float[0]= col1[0];
+					rect_float[1]= col1[1];
+					rect_float[2]= col1[2];
+					rect_float[3]= 1.0;
+				}
 			}
 		}
 	}
@@ -3004,13 +3097,14 @@ struct SeqEffectHandle get_sequence_effect(Sequence * seq)
 {
 	struct SeqEffectHandle rval;
 
+	memset(&rval, 0, sizeof(struct SeqEffectHandle));
+
 	if (seq->type & SEQ_EFFECT) {
 		rval = get_sequence_effect_impl(seq->type);
-	}
-
-	if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
-		rval.load(seq);
-		seq->flag &= ~SEQ_EFFECT_NOT_LOADED;
+		if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
+			rval.load(seq);
+			seq->flag &= ~SEQ_EFFECT_NOT_LOADED;
+		}
 	}
 
 	return rval;
@@ -3020,13 +3114,14 @@ struct SeqEffectHandle get_sequence_blend(Sequence * seq)
 {
 	struct SeqEffectHandle rval;
 
+	memset(&rval, 0, sizeof(struct SeqEffectHandle));
+
 	if (seq->blend_mode != 0) {
 		rval = get_sequence_effect_impl(seq->blend_mode);
-	}
-
-	if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
-		rval.load(seq);
-		seq->flag &= ~SEQ_EFFECT_NOT_LOADED;
+		if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
+			rval.load(seq);
+			seq->flag &= ~SEQ_EFFECT_NOT_LOADED;
+		}
 	}
 
 	return rval;

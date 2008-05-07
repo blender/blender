@@ -216,7 +216,7 @@ void do_node_addmenu(void *arg, int event)
 		else node->flag &= ~NODE_TEST;
 	}
 	
-	getmouseco_areawin(mval);
+	toolbox_mousepos(mval, 0 ); /* get initial mouse position */
 	areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
 	node= node_add_node(snode, event, locx, locy);
 	
@@ -273,11 +273,17 @@ static void node_make_addmenu(SpaceNode *snode, int nodeclass, uiBlock *block)
 		}
 		else {
 			bNodeType *type;
+			int script=0;
 			for(a=0, type= ntree->alltypes.first; type; type=type->next) {
 				if( type->nclass == nodeclass ) {
-					printf("node %s\n", type->name);
+					if(type->type == NODE_DYNAMIC) {
+						uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, type->name, 0, 
+							yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, NODE_DYNAMIC_MENU+script, "");
+						script++;
+					} else {
 					uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, type->name, 0, 
 						yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, type->type, "");
+					}
 					a++;
 				}
 			}
@@ -424,6 +430,22 @@ static uiBlock *node_add_groupmenu(void *arg_unused)
 	return block;
 }
 
+static uiBlock *node_add_dynamicmenu(void *arg_unused)
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "node_add_dynamicmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
+	
+	node_make_addmenu(snode, NODE_CLASS_OP_DYNAMIC, block);
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+
 static uiBlock *node_addmenu(void *arg_unused)
 {
 	SpaceNode *snode= curarea->spacedata.first;
@@ -441,6 +463,7 @@ static uiBlock *node_addmenu(void *arg_unused)
 		uiDefIconTextBlockBut(block, node_add_vectormenu, NULL, ICON_RIGHTARROW_THIN, "Vector", 0, yco-=20, 120, 19, "");
 		uiDefIconTextBlockBut(block, node_add_convertermenu, NULL, ICON_RIGHTARROW_THIN, "Convertor", 0, yco-=20, 120, 19, "");
 		uiDefIconTextBlockBut(block, node_add_groupmenu, NULL, ICON_RIGHTARROW_THIN, "Group", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_dynamicmenu, NULL, ICON_RIGHTARROW_THIN, "Dynamic", 0, yco-=20, 120, 19, "");
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
 		uiDefIconTextBlockBut(block, node_add_inputmenu, NULL, ICON_RIGHTARROW_THIN, "Input", 0, yco-=20, 120, 19, "");
@@ -519,6 +542,13 @@ static void do_node_nodemenu(void *arg, int event)
 		case 12: /* rename */
 			node_rename(snode);
 			break;
+		case 13: /* read saved full sample layers */
+			node_read_fullsamplelayers(snode);
+			break;
+		case 14: /* connect viewer */
+			node_active_link_viewer(snode);
+			break;
+			
 	}
 	
 	if(fromlib==-1) error_libdata();
@@ -562,6 +592,13 @@ static uiBlock *node_nodemenu(void *arg_unused)
 	if(snode->treetype==NTREE_COMPOSIT) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Execute Composite|E", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Read Saved Render Results|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Read Saved Full Sample Results|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+		
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Connect Node to Viewer|Ctrl LMB", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
+		
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	}
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Cyclic Dependencies|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 	
@@ -671,7 +708,7 @@ void node_buttons(ScrArea *sa)
 	else if(snode->treetype==NTREE_COMPOSIT) {
 		uiDefButS(block, TOG, B_NODE_USESCENE, "Use Nodes", xco+5,0,70,19, &G.scene->use_nodes, 0.0f, 0.0f, 0, 0, "Indicate this Scene will use Nodes and execute them while editing");
 		xco+= 80;
-		uiDefButBitS(block, TOG, R_COMP_FREE, B_NOP, "Free Unused", xco+5,0,80,19, &G.scene->r.scemode, 0.0f, 0.0f, 0, 0, "Free Nodes that are not used while composite");
+		uiDefButBitI(block, TOG, R_COMP_FREE, B_NOP, "Free Unused", xco+5,0,80,19, &G.scene->r.scemode, 0.0f, 0.0f, 0, 0, "Free Nodes that are not used while composite");
 		xco+= 80;
 		uiDefButBitS(block, TOG, SNODE_BACKDRAW, REDRAWNODE, "Backdrop", xco+5,0,80,19, &snode->flag, 0.0f, 0.0f, 0, 0, "Use active Viewer Node output as backdrop");
 		xco+= 80;

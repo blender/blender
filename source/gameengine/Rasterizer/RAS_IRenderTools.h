@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,19 +24,21 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef __RAS_IRENDERTOOLS
 #define __RAS_IRENDERTOOLS
 
 #include "MT_Transform.h"
 #include "RAS_IRasterizer.h"
+#include "RAS_2DFilterManager.h"
 
 #include <vector>
 #include <algorithm>
 
 class		RAS_IPolyMaterial;
 struct		RAS_LightObject;
+
 
 class RAS_IRenderTools
 {
@@ -52,7 +51,8 @@ protected:
 	bool	m_modified;
 	
 	std::vector<struct	RAS_LightObject*> m_lights;
-
+	
+	RAS_2DFilterManager m_filtermanager;
 
 public:
 	enum RAS_TEXT_RENDER_MODE {
@@ -61,7 +61,11 @@ public:
 		RAS_TEXT_PADDED,
 		RAS_TEXT_MAX
 	};
-	
+	enum RAS_LIGHT_MODE {
+		RAS_LIGHT_NONE = -1,
+		RAS_LIGHT_OBJECT_LAYER = 0
+	};
+
 	RAS_IRenderTools(
 	) :
 		m_clientobject(NULL),
@@ -178,6 +182,14 @@ public:
 		void
 	MotionBlur(RAS_IRasterizer* rasterizer)=0;
 
+	virtual
+		void
+		Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)=0;
+
+	virtual
+		void
+		Render2DFilters(RAS_ICanvas* canvas)=0;
+
 	virtual 
 		class RAS_IPolyMaterial*	
 	CreateBlenderPolyMaterial(
@@ -198,5 +210,6 @@ public:
 };
 
 #endif //__RAS_IRENDERTOOLS
+
 
 

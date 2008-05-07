@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  * Contributor(s): Michel Selten, Willian P. Germano, Stephen Swaney,
  * Chris Keith, Chris Want, Ken Hughes
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 #include <Python.h>
@@ -57,10 +54,11 @@
 #include "MEM_guardedalloc.h"
 #include "BPY_extern.h"
 #include "BPY_menus.h"
-#include "BPI_script.h"
+#include "DNA_space_types.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_armature.h"
+#include "BKE_depsgraph.h"
 #include "api2_2x/EXPP_interface.h"
 #include "api2_2x/constant.h"
 #include "api2_2x/gen_utils.h"
@@ -95,6 +93,7 @@
 
 /* for pydrivers (ipo drivers defined by one-line Python expressions) */
 PyObject *bpy_pydriver_Dict = NULL;
+PyObject *bpy_orig_syspath_List = NULL;
 
 /*
  * set up a weakref list for Armatures
@@ -181,6 +180,7 @@ PyObject *traceback_getFilename( PyObject * tb );
 ****************************************************************************/
 void BPY_start_python( int argc, char **argv )
 {
+	PyThreadState *py_tstate = NULL;
 	static int argc_copy = 0;
 	static char **argv_copy = NULL;
 	int first_time = argc;
@@ -226,6 +226,16 @@ void BPY_start_python( int argc, char **argv )
 	Py_Initialize(  );
 	PySys_SetArgv( argc_copy, argv_copy );
 
+	/* Initialize thread support (also acquires lock) */
+	PyEval_InitThreads();
+
+	/* Don't allow the Python Interpreter to release the GIL on
+	 * its own, to guarantee PyNodes work properly. For Blender this
+	 * is currently the best default behavior.
+	 * The following code in C is equivalent in Python to:
+	 * "import sys; sys.setcheckinterval(sys.maxint)" */
+	_Py_CheckInterval = PyInt_GetMax();
+
 	//Overrides __import__
 	init_ourImport(  );
 	init_ourReload(  );
@@ -236,6 +246,9 @@ void BPY_start_python( int argc, char **argv )
 	//Look for a python installation
 	init_syspath( first_time ); /* not first_time: some msgs are suppressed */
 
+	py_tstate = PyGILState_GetThisThreadState();
+	PyEval_ReleaseThread(py_tstate);
+
 	return;
 }
 
@@ -245,6 +258,9 @@ void BPY_start_python( int argc, char **argv )
 void BPY_end_python( void )
 {
 	Script *script = NULL;
+	Script *next_script = NULL;
+
+	PyGILState_Ensure(); /* finalizing, no need to grab the state */
 
 	if( bpy_registryDict ) {
 		Py_DECREF( bpy_registryDict );
@@ -255,11 +271,16 @@ void BPY_end_python( void )
 		Py_DECREF( bpy_pydriver_Dict );
 		bpy_pydriver_Dict = NULL;
 	}
+	
+	if( bpy_orig_syspath_List ) {
+		Py_DECREF( bpy_orig_syspath_List );
+		bpy_orig_syspath_List = NULL;
+	}
 
 	/* Freeing all scripts here prevents problems with the order in which
 	 * Python is finalized and G.main is freed in exit_usiblender() */
-	for (script = G.main->script.first; script; script = script->id.next) {
-		BPY_clear_script(script);
+	for (script = G.main->script.first; script; script = next_script) {
+		next_script = script->id.next;
 		free_libblock( &G.main->script, script );
 	}
 
@@ -293,13 +314,14 @@ void syspath_append( char *dirname )
 		/* cant get the sys module */
 		ok = 0;
 	}
-
-	if (ok && PyList_Append( path, dir ) != 0)
-		ok = 0; /* append failed */
-
-	if( (ok==0) || PyErr_Occurred(  ) )
-		Py_FatalError( "could import or build sys.path, can't continue" );
-
+	
+	if (PySequence_Contains(path, dir)==0) { /* Only add if we need to */
+		if (ok && PyList_Append( path, dir ) != 0)
+			ok = 0; /* append failed */
+	
+		if( (ok==0) || PyErr_Occurred(  ) )
+			Py_FatalError( "could import or build sys.path, can't continue" );
+	}
 	Py_XDECREF( mod_sys );
 }
 
@@ -311,7 +333,8 @@ void init_syspath( int first_time )
 	char execdir[FILE_MAXDIR];	/*defines from DNA_space_types.h */
 
 	int n;
-
+	
+	
 	path = Py_BuildValue( "s", bprogname );
 
 	mod = PyImport_ImportModule( "Blender.sys" );
@@ -333,9 +356,10 @@ void init_syspath( int first_time )
 		execdir[n] = '\0';
 
 		syspath_append( execdir );	/* append to module search path */
-	} else
+	} else {
 		printf( "Warning: could not determine argv[0] path\n" );
-
+	}
+	
 	/* 
 	   attempt to import 'site' module as a check for valid
 	   python install found.
@@ -366,12 +390,86 @@ void init_syspath( int first_time )
 
 	if( mod ) {
 		d = PyModule_GetDict( mod );	/* borrowed ref */
-		EXPP_dict_set_item_str( d, "executable",
-				      Py_BuildValue( "s", bprogname ) );
+		EXPP_dict_set_item_str( d, "executable", Py_BuildValue( "s", bprogname ) );
+		
+		if (bpy_orig_syspath_List == NULL) {
+			/* backup the original sys.path to rebuild later */	
+			PyObject *syspath = PyDict_GetItemString( d, "path" );	/* borrowed ref */
+			if (bpy_orig_syspath_List) { /* This should never happen but just incase, be nice */
+				Py_DECREF(bpy_orig_syspath_List);
+			}
+			bpy_orig_syspath_List = PyList_GetSlice(syspath, 0, PyList_Size(syspath));
+		}
+		
 		Py_DECREF( mod );
 	} else{
 		printf("import of sys module failed\n");
 	}
+}
+
+void BPY_rebuild_syspath( void )
+{
+	PyObject *mod, *dict, *syspath;
+	char dirpath[FILE_MAX];
+	char *sdir = NULL;
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+
+	mod = PyImport_ImportModule( "sys" );	
+	if (!mod) {
+		printf("error: could not import python sys module. some modules may not import.\n");
+		return;
+	}
+	
+	if (!bpy_orig_syspath_List) { /* should never happen */
+		printf("error refershing python path\n");
+		Py_DECREF(mod);
+		return;
+	}
+	
+	dict = PyModule_GetDict( mod );	/* borrowed ref */
+	
+	/* Reset sys.path */	
+	syspath = PyDict_GetItemString( dict, "path" );	/* borrowed ref */
+	PyList_SetSlice(syspath, 0, PyList_Size(syspath), bpy_orig_syspath_List);
+	
+	if(U.pythondir[0] != '\0' ) {
+		char modpath[FILE_MAX];
+		int upyslen = strlen(U.pythondir);
+
+		/* check if user pydir ends with a slash and, if so, remove the slash
+		 * (for eventual implementations of c library's stat function that might
+		 * not like it) */
+		if (upyslen > 2) { /* avoids doing anything if dir == '//' */
+			BLI_add_slash(U.pythondir);
+		}
+
+		BLI_strncpy(dirpath, U.pythondir, FILE_MAX);
+		BLI_convertstringcode(dirpath, G.sce);
+		syspath_append(dirpath);	/* append to module search path */
+
+		BLI_make_file_string("/", modpath, dirpath, "bpymodules");
+		if (BLI_exists(modpath)) syspath_append(modpath);
+	}
+	
+	sdir = bpy_gethome(1);
+	if (sdir) {
+		syspath_append(sdir);
+		BLI_make_file_string("/", dirpath, sdir, "bpymodules");
+		if (BLI_exists(dirpath)) syspath_append(dirpath);
+	}
+	
+	Py_DECREF(mod);
+	PyGILState_Release(gilstate);
+}
+
+int BPY_path_update( void )
+{
+	BPyMenu_RemoveAllEntries(); /* free old data */
+	BPY_rebuild_syspath();
+	if (BPyMenu_Init(1) == -1) { /* re-eval scripts registration in menus */
+		return 0;
+	}
+	return 1;
 }
 
 /****************************************************************************
@@ -385,43 +483,12 @@ that dir info is available.
 ****************************************************************************/
 void BPY_post_start_python( void )
 {
-	char dirpath[FILE_MAX];
-	char *sdir = NULL;
+	PyGILState_STATE gilstate = PyGILState_Ensure();
 
-	if(U.pythondir[0] != '\0' ) {
-		char modpath[FILE_MAX];
-		int upyslen = strlen(U.pythondir);
-
-		/* check if user pydir ends with a slash and, if so, remove the slash
-		 * (for eventual implementations of c library's stat function that might
-		 * not like it) */
-		if (upyslen > 2) { /* avoids doing anything if dir == '//' */
-			char ending = U.pythondir[upyslen - 1];
-
-			if (ending == '/' || ending == '\\')
-				U.pythondir[upyslen - 1] = '\0';
-		}
-
-		BLI_strncpy(dirpath, U.pythondir, FILE_MAX);
-		BLI_convertstringcode(dirpath, G.sce, 0);
-		syspath_append(dirpath);	/* append to module search path */
-
-		BLI_make_file_string("/", modpath, dirpath, "bpymodules");
-		if (BLI_exists(modpath)) syspath_append(modpath);
-	}
-
-	sdir = bpy_gethome(1);
-	if (sdir) {
-
-		syspath_append(sdir);
-
-		BLI_make_file_string("/", dirpath, sdir, "bpymodules");
-		if (BLI_exists(dirpath)) syspath_append(dirpath);
-	}
-
+	BPY_rebuild_syspath();
 	BPyMenu_Init( 0 );	/* get dynamic menus (registered scripts) data */
 
-	return;
+	PyGILState_Release(gilstate);
 }
 
 /****************************************************************************
@@ -562,6 +629,7 @@ int BPY_txt_do_python_Text( struct Text *text )
 	BPy_constant *info;
 	char textname[24];
 	Script *script = G.main->script.first;
+	PyGILState_STATE gilstate;
 
 	if( !text )
 		return 0;
@@ -571,11 +639,13 @@ int BPY_txt_do_python_Text( struct Text *text )
 		if( !strcmp( script->id.name + 2, text->id.name + 2 ) ) {
 			/* if this text is already a running script, 
 			 * just move to it: */
-			SpaceScript *sc;
-			newspace( curarea, SPACE_SCRIPT );
-			sc = curarea->spacedata.first;
-			sc->script = script;
-			return 1;
+			if (!G.background) {
+				SpaceScript *sc;
+				newspace( curarea, SPACE_SCRIPT );
+				sc = curarea->spacedata.first;
+				sc->script = script;
+				return 1;
+			}
 		}
 		script = script->id.next;
 	}
@@ -601,11 +671,14 @@ int BPY_txt_do_python_Text( struct Text *text )
 	script->py_event = NULL;
 	script->py_button = NULL;
 	script->py_browsercallback = NULL;
+	strncpy(script->scriptname, text->id.name+2, sizeof(script->scriptname));
+	gilstate = PyGILState_Ensure();
 
 	py_dict = CreateGlobalDictionary(  );
 
 	if( !setup_armature_weakrefs()){
 		printf("Oops - weakref dict\n");
+		PyGILState_Release(gilstate);
 		return 0;
 	}
 
@@ -628,9 +701,8 @@ int BPY_txt_do_python_Text( struct Text *text )
 		BPY_Err_Handle( textname );
 		ReleaseGlobalDictionary( py_dict );
 		script->py_globaldict = NULL;
-		if( G.main->script.first )
-			free_libblock( &G.main->script, script );
-
+		free_libblock( &G.main->script, script );
+		PyGILState_Release(gilstate);
 		return 0;
 	} else {
 		Py_DECREF( py_result );
@@ -641,6 +713,8 @@ int BPY_txt_do_python_Text( struct Text *text )
 			free_libblock( &G.main->script, script );
 		}
 	}
+
+	PyGILState_Release(gilstate);
 
 	return 1;		/* normal return */
 }
@@ -703,6 +777,189 @@ void BPY_run_python_script( char *fn )
 	}
 }
 
+int BPY_run_script(Script *script)
+{
+	PyObject *py_dict, *py_res, *pyarg;
+	Text *text = NULL;
+	BPy_constant *info;
+	int len;
+	char *buffer=NULL, *s;
+	
+	FILE *fp = NULL;
+	
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+	
+	if (!BLI_exists(script->scriptname)) {
+		/* The file dosnt exist, maybe this blend file was made on some other persons computer? */
+		char fname[FILE_MAX];
+		char fpath[FILE_MAX];
+		char ftmp[FILE_MAX];
+		char *bpyhome = bpy_gethome(1);
+		
+		if (bpyhome) {
+			BLI_strncpy(ftmp, script->scriptname, sizeof(ftmp));
+			BLI_split_dirfile_basic(ftmp, NULL, fname); /* get the filename only - fname */
+			BLI_strncpy(fpath, bpy_gethome(1), sizeof(fpath));
+			BLI_add_slash(fpath);
+			strcat(fpath, fname);
+		
+			if (BLI_exists(fpath)) {
+				strncpy(script->scriptname, fpath, sizeof(script->scriptname));
+			} else {
+				bpyhome = NULL; /* a bit dodgy, this is so the line below runs */
+			}
+		}
+		
+		if (bpyhome == NULL && U.pythondir[0]) {
+			BLI_make_file_string("/", fpath, U.pythondir, fname);
+			if (BLI_exists(fpath)) {
+				strncpy(script->scriptname, fpath, sizeof(script->scriptname));
+			}
+		}
+		
+		/* cant find the file?, fallback to text block */
+		if (!BLI_exists(script->scriptname)) {
+			for (text=G.main->text.first; text; text=text->id.next) {
+				if (strcmp(script->scriptname, text->id.name+2)==0) {
+					break;
+				}
+			}
+		}
+	}
+	if (text) {
+		Py_INCREF( Py_None );
+		pyarg = Py_None;
+	} else {
+		if (BLI_exists(script->scriptname)) {
+			fp = fopen( script->scriptname, "rb" );
+		}
+		
+		if( !fp ) {
+			printf( "Error loading script: couldn't open file %s\n", script->scriptname );
+			free_libblock( &G.main->script, script );
+			PyGILState_Release(gilstate);
+			return 0;
+		}
+		
+		if( script->scriptarg[0] == '\0' ) { /* no submenus */
+			Py_INCREF( Py_None );
+			pyarg = Py_None;
+		} else {
+			pyarg = PyString_FromString( script->scriptarg );
+		}
+	}
+	
+	script->id.us = 1;
+	script->flags = SCRIPT_RUNNING;
+	script->py_draw = NULL;
+	script->py_event = NULL;
+	script->py_button = NULL;
+	script->py_browsercallback = NULL;
+	
+	py_dict = CreateGlobalDictionary(  );
+
+	script->py_globaldict = py_dict;
+
+	if( !setup_armature_weakrefs()){
+		printf("Oops - weakref dict\n");
+		free_libblock( &G.main->script, script );
+		ReleaseGlobalDictionary( py_dict );
+		MEM_freeN( buffer );
+		PyGILState_Release(gilstate);
+		return 0;
+	}
+	
+	info = ( BPy_constant * ) PyConstant_New(  );
+	if( info ) {
+		PyConstant_Insert( info, "name",
+				 PyString_FromString( script->id.name + 2 ) );
+		PyConstant_Insert( info, "arg", pyarg );
+		EXPP_dict_set_item_str( py_dict, "__script__",
+				      ( PyObject * ) info );
+	}
+	
+	if (text) {
+		py_res = RunPython( text, py_dict );
+	} else {
+		/* Previously we used PyRun_File to run directly the code on a FILE 
+		* object, but as written in the Python/C API Ref Manual, chapter 2,
+		* 'FILE structs for different C libraries can be different and 
+		* incompatible'.
+		* So now we load the script file data to a buffer */
+	
+		fseek( fp, 0L, SEEK_END );
+		len = ftell( fp );
+		fseek( fp, 0L, SEEK_SET );
+	
+		buffer = MEM_mallocN( len + 2, "pyfilebuf" );	/* len+2 to add '\n\0' */
+		len = fread( buffer, 1, len, fp );
+	
+		buffer[len] = '\n';	/* fix syntax error in files w/o eol */
+		buffer[len + 1] = '\0';
+	
+		/* fast clean-up of dos cr/lf line endings: change '\r' to space */
+	
+		/* we also have to check for line splitters: '\\' */
+		/* to avoid possible syntax errors on dos files on win */
+		/**/
+			/* but first make sure we won't disturb memory below &buffer[0]: */
+			if( *buffer == '\r' )
+			*buffer = ' ';
+	
+		/* now handle the whole buffer */
+		for( s = buffer + 1; *s != '\0'; s++ ) {
+			if( *s == '\r' ) {
+				if( *( s - 1 ) == '\\' ) {	/* special case: long lines split with '\': */
+					*( s - 1 ) = ' ';	/* we write ' \', because '\ ' is a syntax error */
+					*s = '\\';
+				} else
+					*s = ' ';	/* not a split line, just replace '\r' with ' ' */
+			}
+		}
+	
+		fclose( fp );
+		
+		
+		py_res = PyRun_String( buffer, Py_file_input, py_dict, py_dict );
+		MEM_freeN( buffer );
+	}
+
+	if( !py_res ) {		/* Failed execution of the script */
+
+		BPY_Err_Handle( script->id.name + 2 );
+		ReleaseGlobalDictionary( py_dict );
+		script->py_globaldict = NULL;
+		free_libblock( &G.main->script, script );
+		error_pyscript(  );
+
+		PyGILState_Release(gilstate);
+		return 0;
+	} else {
+		Py_DECREF( py_res );
+		script->flags &= ~SCRIPT_RUNNING;
+
+		if( !script->flags ) {
+			ReleaseGlobalDictionary( py_dict );
+			script->py_globaldict = NULL;
+			free_libblock( &G.main->script, script );
+
+			/* special case: called from the menu in the Scripts window
+			 * we have to change sc->script pointer, since it'll be freed here.*/
+			if (!G.background) {
+				if( curarea->spacetype == SPACE_SCRIPT ) {
+					SpaceScript *sc = curarea->spacedata.first;
+					sc->script = G.main->script.first;	/* can be null, which is ok ... */
+					/* ... meaning no other script is running right now. */
+				}
+			}
+
+		}
+	}
+	
+	PyGILState_Release(gilstate);
+	return 1;
+}
+	
 /****************************************************************************
 * Description: This function executes the script chosen from a menu.
 * Notes:	It is called by the ui code in src/header_???.c when a user  
@@ -712,21 +969,21 @@ void BPY_run_python_script( char *fn )
 *****************************************************************************/
 int BPY_menu_do_python( short menutype, int event )
 {
-	PyObject *py_dict, *py_res, *pyarg = NULL;
-	BPy_constant *info;
+	char *argstr = NULL;
 	BPyMenu *pym;
 	BPySubMenu *pysm;
-	FILE *fp = NULL;
-	char *buffer, *s;
-	char filestr[FILE_MAXDIR + FILE_MAXFILE];
 	char scriptname[21];
 	Script *script = NULL;
-	int len;
+	int ret, len;
+	PyGILState_STATE gilstate;
+	char filestr[FILE_MAX];
 
 	pym = BPyMenu_GetEntry( menutype, ( short ) event );
 
 	if( !pym )
 		return 0;
+
+	gilstate = PyGILState_Ensure();
 
 	if( pym->version > G.version )
 		notice( "Version mismatch: script was written for Blender %d. "
@@ -749,23 +1006,20 @@ int BPY_menu_do_python( short menutype, int event )
 			if( arg >= 0 ) {
 				while( arg-- )
 					pysm = pysm->next;
-				pyarg = PyString_FromString( pysm->arg );
-			} else
+				argstr = pysm->arg;
+			} else {
+				PyGILState_Release(gilstate);
 				return 0;
+			}
 		}
 	}
 
-	if( !pyarg ) { /* no submenus */
-		Py_INCREF( Py_None );
-		pyarg = Py_None;
-	}
-
 	if( pym->dir ) { /* script is in U.pythondir */
-		char upythondir[FILE_MAXDIR];
+		char upythondir[FILE_MAX];
 
 		/* dirs in Blender can be "//", which has a special meaning */
-		BLI_strncpy(upythondir, U.pythondir, FILE_MAXDIR);
-		BLI_convertstringcode(upythondir, G.sce, 0); /* if so, this expands it */
+		BLI_strncpy(upythondir, U.pythondir, FILE_MAX);
+		BLI_convertstringcode(upythondir, G.sce); /* if so, this expands it */
 		BLI_make_file_string( "/", filestr, upythondir, pym->filename );
 	}
 	else { /* script is in default scripts dir */
@@ -773,17 +1027,11 @@ int BPY_menu_do_python( short menutype, int event )
 
 		if (!scriptsdir) {
 			printf("Error loading script: can't find default scripts dir!");
+			PyGILState_Release(gilstate);
 			return 0;
 		}
 
 		BLI_make_file_string( "/", filestr, scriptsdir, pym->filename );
-	}
-
-	fp = fopen( filestr, "rb" );
-	if( !fp ) {
-		printf( "Error loading script: couldn't open file %s\n",
-			filestr );
-		return 0;
 	}
 
 	BLI_strncpy(scriptname, pym->name, 21);
@@ -800,7 +1048,7 @@ int BPY_menu_do_python( short menutype, int event )
 
 	if( !script ) {
 		printf( "couldn't allocate memory for Script struct!" );
-		fclose( fp );
+		PyGILState_Release(gilstate);
 		return 0;
 	}
 
@@ -844,107 +1092,12 @@ int BPY_menu_do_python( short menutype, int event )
 		}
 		break;
 	}
-
-	script->id.us = 1;
-	script->flags = SCRIPT_RUNNING;
-	script->py_draw = NULL;
-	script->py_event = NULL;
-	script->py_button = NULL;
-	script->py_browsercallback = NULL;
-
-	py_dict = CreateGlobalDictionary(  );
-
-	script->py_globaldict = py_dict;
-
-	info = ( BPy_constant * ) PyConstant_New(  );
-	if( info ) {
-		PyConstant_Insert( info, "name",
-				 PyString_FromString( script->id.name + 2 ) );
-		PyConstant_Insert( info, "arg", pyarg );
-		EXPP_dict_set_item_str( py_dict, "__script__",
-				      ( PyObject * ) info );
-	}
-
-	/* Previously we used PyRun_File to run directly the code on a FILE 
-	 * object, but as written in the Python/C API Ref Manual, chapter 2,
-	 * 'FILE structs for different C libraries can be different and 
-	 * incompatible'.
-	 * So now we load the script file data to a buffer */
-
-	fseek( fp, 0L, SEEK_END );
-	len = ftell( fp );
-	fseek( fp, 0L, SEEK_SET );
-
-	buffer = MEM_mallocN( len + 2, "pyfilebuf" );	/* len+2 to add '\n\0' */
-	len = fread( buffer, 1, len, fp );
-
-	buffer[len] = '\n';	/* fix syntax error in files w/o eol */
-	buffer[len + 1] = '\0';
-
-	/* fast clean-up of dos cr/lf line endings: change '\r' to space */
-
-	/* we also have to check for line splitters: '\\' */
-	/* to avoid possible syntax errors on dos files on win */
-	 /**/
-		/* but first make sure we won't disturb memory below &buffer[0]: */
-		if( *buffer == '\r' )
-		*buffer = ' ';
-
-	/* now handle the whole buffer */
-	for( s = buffer + 1; *s != '\0'; s++ ) {
-		if( *s == '\r' ) {
-			if( *( s - 1 ) == '\\' ) {	/* special case: long lines split with '\': */
-				*( s - 1 ) = ' ';	/* we write ' \', because '\ ' is a syntax error */
-				*s = '\\';
-			} else
-				*s = ' ';	/* not a split line, just replace '\r' with ' ' */
-		}
-	}
-
-	fclose( fp );
-
-
-	if( !setup_armature_weakrefs()){
-		printf("Oops - weakref dict\n");
-		MEM_freeN( buffer );
-		return 0;
-	}
-
-	/* run the string buffer */
-
-	py_res = PyRun_String( buffer, Py_file_input, py_dict, py_dict );
-
-	MEM_freeN( buffer );
-
-	if( !py_res ) {		/* Failed execution of the script */
-
-		BPY_Err_Handle( script->id.name + 2 );
-		ReleaseGlobalDictionary( py_dict );
-		script->py_globaldict = NULL;
-		if( G.main->script.first )
-			free_libblock( &G.main->script, script );
-		error( "Python script error: check console" );
-
-		return 0;
-	} else {
-		Py_DECREF( py_res );
-		script->flags &= ~SCRIPT_RUNNING;
-
-		if( !script->flags ) {
-			ReleaseGlobalDictionary( py_dict );
-			script->py_globaldict = NULL;
-			free_libblock( &G.main->script, script );
-
-			/* special case: called from the menu in the Scripts window
-			 * we have to change sc->script pointer, since it'll be freed here.*/
-			if( curarea->spacetype == SPACE_SCRIPT ) {
-				SpaceScript *sc = curarea->spacedata.first;
-				sc->script = G.main->script.first;	/* can be null, which is ok ... */
-				/* ... meaning no other script is running right now. */
-			}
-
-		}
-	}
+	
+	strncpy(script->scriptname, filestr, sizeof(script->scriptname));
+	if (argstr!=NULL && argstr[0] != '\0')
+		strncpy(script->scriptarg, argstr, sizeof(script->scriptarg));
+	
+	ret = BPY_run_script(script);
 
 	return 1;		/* normal return */
 }
@@ -968,13 +1121,19 @@ void BPY_free_compiled_text( struct Text *text )
 *****************************************************************************/
 void BPY_free_finished_script( Script * script )
 {
+	PyGILState_STATE gilstate;
+
 	if( !script )
 		return;
 
+	gilstate = PyGILState_Ensure();
+
 	if( PyErr_Occurred(  ) ) {	/* if script ended after filesel */
 		PyErr_Print(  );	/* eventual errors are handled now */
-		error( "Python script error: check console" );
+		error_pyscript(  );
 	}
+
+	PyGILState_Release(gilstate);
 
 	free_libblock( &G.main->script, script );
 	return;
@@ -1007,16 +1166,21 @@ static void unlink_script( Script * script )
 	}
 }
 
+/* This is called from free_libblock( &G.main->script, script ); */
 void BPY_clear_script( Script * script )
 {
 	PyObject *dict;
+	PyGILState_STATE gilstate;
 
 	if( !script )
 		return;
 
+	gilstate = PyGILState_Ensure();
+
 	if (!Py_IsInitialized()) {
 		printf("\nError: trying to free script data after finalizing Python!");
 		printf("\nScript name: %s\n", script->id.name+2);
+		PyGILState_Release(gilstate);
 		return;
 	}
 
@@ -1028,7 +1192,9 @@ void BPY_clear_script( Script * script )
 	script->py_event = NULL;
 	script->py_button = NULL;
 	script->py_browsercallback = NULL;
-
+	script->scriptname[0] = '\0';
+	script->scriptarg[0] = '\0';
+	
 	dict = script->py_globaldict;
 
 	if( dict ) {
@@ -1036,6 +1202,8 @@ void BPY_clear_script( Script * script )
 		Py_DECREF( dict );	/* Release dictionary. */
 		script->py_globaldict = NULL;
 	}
+
+	PyGILState_Release(gilstate);
 
 	unlink_script( script );
 }
@@ -1180,6 +1348,45 @@ int BPY_is_pyconstraint(Text *text)
 	return 0;
 }
 
+/* This function frees links from pyconstraints to a given text-buffer.
+ * Used when a text-buffer is unlinked!
+ */
+void BPY_free_pyconstraint_links(Text *text)
+{
+	Object *ob;
+	bConstraint *con;
+	short update;
+	
+	/*check all pyconstraints*/
+	for (ob=G.main->object.first; ob; ob=ob->id.next) {
+		update = 0;
+		if(ob->type==OB_ARMATURE && ob->pose) {
+			bPoseChannel *pchan;
+			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+				for (con = pchan->constraints.first; con; con=con->next) {
+					if (con->type==CONSTRAINT_TYPE_PYTHON) {
+						bPythonConstraint *data = con->data;
+						if (data->text==text) data->text = NULL;
+						update = 1;
+						
+					}
+				}
+			}
+		}
+		for (con = ob->constraints.first; con; con=con->next) {
+			if (con->type==CONSTRAINT_TYPE_PYTHON) {
+				bPythonConstraint *data = con->data;
+				if (data->text==text) data->text = NULL;
+				update = 1;
+			}
+		}
+		
+		if (update) {
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		}
+	}
+}
+
 /* This function is called to update PyConstraint data so that it is compatible with the script. 
  * Some of the allocating/freeing of memory for constraint targets occurs here, espcially
  * if the number of targets changes.
@@ -1192,11 +1399,14 @@ void BPY_pyconstraint_update(Object *owner, bConstraint *con)
 		/* script does exist. it is assumed that this is a valid pyconstraint script */
 		PyObject *globals;
 		PyObject *retval, *gval;
+		PyGILState_STATE gilstate;
 		int num, i;
 		
 		/* clear the relevant flags first */
 		data->flag = 0;
-				
+
+		gilstate = PyGILState_Ensure();
+
 		/* populate globals dictionary */
 		globals = CreateGlobalDictionary();
 		retval = RunPython(data->text, globals);
@@ -1205,6 +1415,7 @@ void BPY_pyconstraint_update(Object *owner, bConstraint *con)
 			BPY_Err_Handle(data->text->id.name);
 			ReleaseGlobalDictionary(globals);
 			data->flag |= PYCON_SCRIPTERROR;
+			PyGILState_Release(gilstate);
 			return;
 		}
 		
@@ -1260,6 +1471,10 @@ void BPY_pyconstraint_update(Object *owner, bConstraint *con)
 			
 			/* clear globals */
 			ReleaseGlobalDictionary(globals);
+
+			PyGILState_Release(gilstate);
+
+			return;
 		}
 		else {
 			/* NUM_TARGETS is not defined or equals 0 */
@@ -1270,6 +1485,8 @@ void BPY_pyconstraint_update(Object *owner, bConstraint *con)
 			data->tarnum = 0;
 			data->flag &= ~PYCON_USETARGETS;
 			
+			PyGILState_Release(gilstate);
+
 			return;
 		}
 	}
@@ -1298,10 +1515,13 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 	bConstraintTarget *ct;
 	MatrixObject *retmat;
 	int row, col, index;
-	
+	PyGILState_STATE gilstate;
+
 	if (!con->text) return;
 	if (con->flag & PYCON_SCRIPTERROR) return;
-	
+
+	gilstate = PyGILState_Ensure();
+
 	globals = CreateGlobalDictionary();
 	
 	/* wrap blender-data as PyObjects for evaluation 
@@ -1318,14 +1538,12 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		PyList_SET_ITEM(tarmats, index, tarmat);
 	}
 	
-	
-/*  since I can't remember what the armature weakrefs do, I'll just leave this here
-    commented out.  This function was based on pydrivers, and it might still be relevent.
-	if( !setup_armature_weakrefs()){
-		fprintf( stderr, "Oops - weakref dict setup\n");
-		return result;
+	if (!setup_armature_weakrefs()) {
+		fprintf(stderr, "Oops - weakref dict setup\n");
+		PyGILState_Release(gilstate);
+
+		return;
 	}
-*/
 	
 	retval = RunPython(con->text, globals);
 	
@@ -1339,7 +1557,9 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		Py_XDECREF(tarmats);
 		
 		ReleaseGlobalDictionary(globals);
-		
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 
@@ -1356,7 +1576,9 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		Py_XDECREF(tarmats);
 		
 		ReleaseGlobalDictionary(globals);
-		
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1375,7 +1597,9 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		Py_XDECREF(tarmats);
 		
 		ReleaseGlobalDictionary(globals);
-		
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1389,7 +1613,9 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		Py_XDECREF(tarmats);
 		
 		ReleaseGlobalDictionary(globals);
-		
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1404,7 +1630,9 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		Py_XDECREF(retval);
 		
 		ReleaseGlobalDictionary(globals);
-		
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1419,7 +1647,9 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 		Py_XDECREF(retval);
 		
 		ReleaseGlobalDictionary(globals);
-		
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}	
 
@@ -1438,6 +1668,8 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 	
 	/* clear globals */
 	ReleaseGlobalDictionary(globals);
+
+	PyGILState_Release(gilstate);
 }
 
 /* This evaluates the target matrix for each target the PyConstraint uses.
@@ -1452,11 +1684,14 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 	PyObject *pyargs, *retval;
 	MatrixObject *retmat;
 	int row, col;
-	
+	PyGILState_STATE gilstate;
+
 	if (!con->text) return;
 	if (con->flag & PYCON_SCRIPTERROR) return;
 	if (!ct) return;
 	
+	gilstate = PyGILState_Ensure();
+
 	globals = CreateGlobalDictionary();
 	
 	tar = Object_CreatePyObject(ct->tar);
@@ -1471,13 +1706,12 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 	tarmat = newMatrixObject((float *)ct->matrix, 4, 4, Py_NEW);
 	idprop = BPy_Wrap_IDProperty( NULL, con->prop, NULL);
 	
-/*  since I can't remember what the armature weakrefs do, I'll just leave this here
-    commented out.  This function was based on pydrivers, and it might still be relevent.
-	if( !setup_armature_weakrefs()){
-		fprintf( stderr, "Oops - weakref dict setup\n");
-		return result;
+	if (!setup_armature_weakrefs()) {
+		fprintf(stderr, "Oops - weakref dict setup\n");
+		PyGILState_Release(gilstate);
+		return;
 	}
-*/
+	
 	retval = RunPython(con->text, globals);
 
 	if (retval == NULL) {
@@ -1491,7 +1725,9 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 		Py_XDECREF(tarmat);
 		
 		ReleaseGlobalDictionary(globals);
-		
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 
@@ -1508,7 +1744,9 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 		Py_XDECREF(tarmat);
 		
 		ReleaseGlobalDictionary(globals);
-		
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1528,6 +1766,9 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 		Py_XDECREF(tarmat);
 		
 		ReleaseGlobalDictionary(globals);
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1543,6 +1784,9 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 		Py_XDECREF(tarmat);
 		
 		ReleaseGlobalDictionary(globals);
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1556,6 +1800,9 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 		Py_XDECREF(retval);
 		
 		ReleaseGlobalDictionary(globals);
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1571,6 +1818,9 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 		Py_XDECREF(retval);
 		
 		ReleaseGlobalDictionary(globals);
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}	
 
@@ -1590,6 +1840,8 @@ void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 	
 	/* clear globals */
 	ReleaseGlobalDictionary(globals);
+
+	PyGILState_Release(gilstate);
 }
 
 /* This draws+handles the user-defined interface for editing pyconstraints idprops */
@@ -1600,9 +1852,12 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 	PyObject *globals;
 	PyObject *gval;
 	PyObject *retval;
+	PyGILState_STATE gilstate;
 	
 	if (!con->text) return;
 	if (con->flag & PYCON_SCRIPTERROR) return;
+	
+	gilstate = PyGILState_Ensure();
 	
 	globals = CreateGlobalDictionary();
 	
@@ -1614,9 +1869,12 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		BPY_Err_Handle(con->text->id.name);
 		ReleaseGlobalDictionary(globals);
 		con->flag |= PYCON_SCRIPTERROR;
-	
+		
 		/* free temp objects */
 		Py_XDECREF(idprop);
+		
+		PyGILState_Release(gilstate);
+		
 		return;
 	}
 
@@ -1630,6 +1888,9 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		/* free temp objects */
 		ReleaseGlobalDictionary( globals );
 		Py_XDECREF(idprop);
+
+		PyGILState_Release(gilstate);
+
 		return;
 	}
 	
@@ -1642,6 +1903,9 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		ReleaseGlobalDictionary( globals );
 		
 		Py_XDECREF(idprop);
+		
+		PyGILState_Release(gilstate);
+		
 		return;
 	}
 	
@@ -1652,6 +1916,9 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		/* free temp objects */
 		ReleaseGlobalDictionary(globals);
 		Py_XDECREF(idprop);
+		
+		PyGILState_Release(gilstate);
+		
 		return;
 	}
 	else {
@@ -1661,6 +1928,9 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		/* free temp objects */
 		Py_XDECREF(idprop);
 		Py_DECREF(retval);
+		
+		PyGILState_Release(gilstate);
+		
 		return;
 	}
 }
@@ -1671,11 +1941,15 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
  * updates in it reach pydriver evaluation. */
 void BPY_pydriver_update(void)
 {
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+
 	if (bpy_pydriver_Dict) { /* free the global dict used by pydrivers */
 		PyDict_Clear(bpy_pydriver_Dict);
 		Py_DECREF(bpy_pydriver_Dict);
 		bpy_pydriver_Dict = NULL;
 	}
+
+	PyGILState_Release(gilstate);
 
 	return;
 }
@@ -1719,15 +1993,19 @@ float BPY_pydriver_eval(IpoDriver *driver)
 	PyObject *retval, *bpy_ob = NULL;
 	float result = 0.0f; /* default return */
 	int setitem_retval;
+	PyGILState_STATE gilstate;
 
 	if (!driver) return result;
 
 	expr = driver->name; /* the py expression to be evaluated */
 	if (!expr || expr[0]=='\0') return result;
 
+	gilstate = PyGILState_Ensure();
+
 	if (!bpy_pydriver_Dict) {
 		if (bpy_pydriver_create_dict() != 0) {
 			fprintf(stderr, "Pydriver error: couldn't create Python dictionary");
+			PyGILState_Release(gilstate);
 			return result;
 		}
 	}
@@ -1744,6 +2022,7 @@ float BPY_pydriver_eval(IpoDriver *driver)
 
 	if( !setup_armature_weakrefs()){
 		fprintf( stderr, "Oops - weakref dict setup\n");
+		PyGILState_Release(gilstate);
 		return result;
 	}
 
@@ -1751,19 +2030,27 @@ float BPY_pydriver_eval(IpoDriver *driver)
 		bpy_pydriver_Dict);
 
 	if (retval == NULL) {
-		return pydriver_error(driver);
+		result = pydriver_error(driver);
+		PyGILState_Release(gilstate);
+		return result;
 	}
 
 	result = ( float )PyFloat_AsDouble( retval );
+	Py_DECREF(retval);
 	
-	if (result == -1 && PyErr_Occurred()) 
-		return pydriver_error(driver);
+	if (result == -1 && PyErr_Occurred()) {
+		result = pydriver_error(driver);
+		PyGILState_Release(gilstate);
+		return result;
+	}
 
 	/* remove 'self', since this dict is also used by py buttons */
 	if (setitem_retval == 0) PyDict_DelItemString(bpy_pydriver_Dict, "self");
 
 	/* all fine, make sure the "invalid expression" flag is cleared */
 	driver->flag &= ~IPO_DRIVER_FLAG_INVALID;
+
+	PyGILState_Release(gilstate);
 
 	return result;
 }
@@ -1801,15 +2088,20 @@ static int bpy_button_eval_error(char *expr) {
 int BPY_button_eval(char *expr, double *value)
 {
 	PyObject *retval, *floatval;
+	PyGILState_STATE gilstate;
+	int ret;
 
 	if (!value || !expr || expr[0]=='\0') return -1;
 
 	*value = 0.0; /* default value */
 
+	gilstate = PyGILState_Ensure();
+
 	if (!bpy_pydriver_Dict) {
 		if (bpy_pydriver_create_dict() != 0) {
 			fprintf(stderr,
 				"Button Python Eval error: couldn't create Python dictionary");
+			PyGILState_Release(gilstate);
 			return -1;
 		}
 	}
@@ -1817,6 +2109,7 @@ int BPY_button_eval(char *expr, double *value)
 
 	if( !setup_armature_weakrefs()){
 		fprintf(stderr, "Oops - weakref dict\n");
+		PyGILState_Release(gilstate);
 		return -1;
 	}
 
@@ -1824,19 +2117,25 @@ int BPY_button_eval(char *expr, double *value)
 		bpy_pydriver_Dict);
 
 	if (retval == NULL) {
-		return bpy_button_eval_error(expr);
+		ret = bpy_button_eval_error(expr);
+		PyGILState_Release(gilstate);
+		return ret;
 	}
 	else {
 		floatval = PyNumber_Float(retval);
 		Py_DECREF(retval);
 	}
 
-	if (floatval == NULL) 
-		return bpy_button_eval_error(expr);
-	else {
+	if (floatval == NULL) {
+		ret = bpy_button_eval_error(expr);
+		PyGILState_Release(gilstate);
+		return ret;
+	} else {
 		*value = (float)PyFloat_AsDouble(floatval);
 		Py_DECREF(floatval);
 	}
+
+	PyGILState_Release(gilstate);
 
 	return 0; /* successful exit */
 }
@@ -1942,19 +2241,24 @@ void BPY_do_pyscript( ID * id, short event )
 		PyObject *dict;
 		PyObject *ret;
 		int index, during_slink = during_scriptlink(  );
+		PyGILState_STATE gilstate;
 
 		/* invalid scriptlinks (new .blend was just loaded), return */
 		if( during_slink < 0 )
 			return;
-		
+
+		gilstate = PyGILState_Ensure();
+
 		if( !setup_armature_weakrefs()){
 			printf("Oops - weakref dict, this is a bug\n");
+			PyGILState_Release(gilstate);
 			return;
 		}
 		
 		value = GetPyObjectFromID( id );
 		if( !value){
 			printf("Oops - could not get a valid python object for Blender.link, this is a bug\n");
+			PyGILState_Release(gilstate);
 			return;
 		}
 		
@@ -2008,6 +2312,8 @@ void BPY_do_pyscript( ID * id, short event )
 		PyDict_SetItemString(g_blenderdict, "bylink", Py_False);
 		PyDict_SetItemString( g_blenderdict, "link", Py_None );
 		EXPP_dict_set_item_str( g_blenderdict, "event", PyString_FromString( "" ) );
+
+		PyGILState_Release(gilstate);
 	}
 }
 
@@ -2159,6 +2465,7 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 {
 	ScriptLink *scriptlink;
 	int retval = 0;
+	PyGILState_STATE gilstate;
 	
 	if (!sa || !(G.f & G_DOSCRIPTLINKS)) return 0;
 	
@@ -2181,9 +2488,12 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 			during_slink++;
 			disable_where_scriptlink( (short)during_slink );
 		}
-
+		
+		gilstate = PyGILState_Ensure();
+		
 		if( !setup_armature_weakrefs()){
 			printf("Oops - weakref dict, this is a bug\n");
+			PyGILState_Release(gilstate);
 			return 0;
 		}
 		
@@ -2195,7 +2505,7 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 		EXPP_dict_set_item_str(g_blenderdict, "event", PyInt_FromLong(event));
 		/* now run all assigned space handlers for this space and space_event */
 		for( index = 0; index < scriptlink->totscript; index++ ) {
-
+			
 			/* for DRAW handlers: */
 			if (event == 0) {
 				glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -2204,7 +2514,7 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 				glMatrixMode(GL_MODELVIEW);
 				glPushMatrix();
 			}
-
+			
 			if( ( scriptlink->flag[index] == space_event ) &&
 			    ( scriptlink->scripts[index] != NULL ) ) {
 				dict = CreateGlobalDictionary();
@@ -2224,7 +2534,7 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 					if (event && (PyDict_GetItemString(g_blenderdict,"event") == Py_None))
 						retval = 1; /* event was swallowed */
 				}
-
+				
 				/* If a scriptlink has just loaded a new .blend file, the
 				 * scriptlink pointer became invalid (see api2_2x/Blender.c),
 				 * so we stop here. */
@@ -2234,7 +2544,7 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 					break;
 				}
 			}
-
+			
 			/* for DRAW handlers: */
 			if (event == 0) {
 				glMatrixMode(GL_PROJECTION);
@@ -2244,12 +2554,14 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 				glPopAttrib();
 				disable_where_scriptlink( (short)(during_slink - 1) );
 			}
-
+		
 		}
-
+		
 		PyDict_SetItemString(g_blenderdict, "bylink", Py_False);
 		PyDict_SetItemString(g_blenderdict, "link", Py_None );
 		EXPP_dict_set_item_str(g_blenderdict, "event", PyString_FromString(""));
+		
+		PyGILState_Release(gilstate);
 	}
 	
 	/* retval:
@@ -2656,4 +2968,22 @@ void init_ourReload( void )
 	m = PyImport_AddModule( "__builtin__" );
 	d = PyModule_GetDict( m );
 	EXPP_dict_set_item_str( d, "reload", reload );
+}
+
+
+void BPY_scripts_clear_pyobjects( void )
+{
+	Script *script;
+	for (script=G.main->script.first; script; script=script->id.next) {
+		Py_XDECREF((PyObject *)script->py_draw);
+		Py_XDECREF((PyObject *)script->py_event);
+		Py_XDECREF((PyObject *)script->py_button);
+		Py_XDECREF((PyObject *)script->py_browsercallback);
+		Py_XDECREF((PyObject *)script->py_globaldict); 
+		SCRIPT_SET_NULL(script)
+	}
+}
+void error_pyscript( void )
+{
+	error("Python script error: check console");
 }

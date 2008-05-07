@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <time.h>
@@ -51,6 +48,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_color_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
@@ -79,6 +77,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_brush.h"
+#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_colortools.h"
@@ -94,6 +93,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
+#include "BKE_bmesh.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -927,7 +927,6 @@ void do_modifier_panels(unsigned short event)
 		break;
 
 	case B_MODIFIER_RECALC:
-		ob->softflag |= OB_SB_RESET;
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIMAGE, 0);
@@ -1251,9 +1250,9 @@ static void modifiers_convertParticles(void *obv, void *mdv)
 	ParticleCacheKey *key, **cache;
 	Mesh *me;
 	MVert *mvert;
-	MFace *mface;
+	MEdge *medge;
 	int a, k, kmax;
-	int totvert=0, totface=0, cvert=0;
+	int totvert=0, totedge=0, cvert=0;
 	int totpart=0, totchild=0;
 
 	if(md->type != eModifierType_ParticleSystem) return;
@@ -1274,15 +1273,15 @@ static void modifiers_convertParticles(void *obv, void *mdv)
 	cache= psys->pathcache;
 	for(a=0; a<totpart; a++) {
 		key= cache[a];
-		totvert+= (int)(key->col[3])+1;
-		totface+= (int)(key->col[3]);
+		totvert+= key->steps+1;
+		totedge+= key->steps;
 	}
 
 	cache= psys->childcache;
 	for(a=0; a<totchild; a++) {
 		key= cache[a];
-		totvert+= (int)(key->col[3])+1;
-		totface+= (int)(key->col[3]);
+		totvert+= key->steps+1;
+		totedge+= key->steps;
 	}
 
 	if(totvert==0) return;
@@ -1292,25 +1291,27 @@ static void modifiers_convertParticles(void *obv, void *mdv)
 	me= obn->data;
 	
 	me->totvert= totvert;
-	me->totface= totface;
+	me->totedge= totedge;
 	
 	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
-	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, totface);
+	me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
+	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, 0);
 	
 	mvert= me->mvert;
-	mface= me->mface;
+	medge= me->medge;
 
 	/* copy coordinates */
 	cache= psys->pathcache;
-	for(a=0; a<totpart; a++){
+	for(a=0; a<totpart; a++) {
 		key= cache[a];
-		kmax= (int)(key->col[3]);
+		kmax= key->steps;
 		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
 			VECCOPY(mvert->co,key->co);
-			if(k){
-				mface->v1= cvert-1;
-				mface->v2= cvert;
-				mface++;
+			if(k) {
+				medge->v1= cvert-1;
+				medge->v2= cvert;
+				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
+				medge++;
 			}
 		}
 	}
@@ -1318,18 +1319,21 @@ static void modifiers_convertParticles(void *obv, void *mdv)
 	cache=psys->childcache;
 	for(a=0; a<totchild; a++) {
 		key=cache[a];
-		kmax=(int)(key->col[3]);
+		kmax=key->steps;
 		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
 			VECCOPY(mvert->co,key->co);
-			if(k){
-				mface->v1=cvert-1;
-				mface->v2=cvert;
-				mface++;
+			if(k) {
+				medge->v1=cvert-1;
+				medge->v2=cvert;
+				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
+				medge++;
 			}
 		}
 	}
-	make_edges(me, 0);
+
+	DAG_scene_sort(G.scene);
 }
+
 static void modifiers_applyModifier(void *obv, void *mdv)
 {
 	Object *ob = obv;
@@ -1647,6 +1651,13 @@ void modifiers_explodeFacepa(void *arg1, void *arg2)
 	emd->flag |= eExplodeFlag_CalcFaces;
 }
 
+static int modifier_is_fluid_particles(ModifierData *md) {
+	if(md->type == eModifierType_ParticleSystem) {
+		if(((ParticleSystemModifierData *)md)->psys->part->type == PART_FLUID)
+			return 1;
+	}
+	return 0;
+}
 static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco, int *yco, int index, int cageIndex, int lastCageIndex)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -1665,7 +1676,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	uiBlockSetCol(block, TH_AUTO);
 	
 	/* open/close icon */
-	if (!isVirtual && md->type!=eModifierType_Collision) {
+	if (!isVirtual) {
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, B_MODIFIER_REDRAW, VICON_DISCLOSURE_TRI_RIGHT, x-10, y-2, 20, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
 	}
@@ -1724,7 +1735,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		// deletion over the deflection panel
-		if(md->type!=eModifierType_Collision)
+		// fluid particle modifier can't be deleted here
+		if(md->type!=eModifierType_Collision && !modifier_is_fluid_particles(md))
 		{
 			but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_X, x+width-70+40, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Delete modifier");
 			uiButSetFunc(but, modifiers_del, ob, md);
@@ -1750,6 +1762,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 86;
 		} else if (md->type==eModifierType_Mirror) {
 			height = 86;
+		} else if (md->type==eModifierType_Bevel) {
+			BevelModifierData *bmd = (BevelModifierData*) md;
+			height = 105; /* height = 124; */
+			if ((bmd->lim_flags & BME_BEVEL_ANGLE) || ((bmd->lim_flags & BME_BEVEL_WEIGHT) && !(bmd->flags & BME_BEVEL_VERT))) height += 19;
 		} else if (md->type==eModifierType_EdgeSplit) {
 			EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
 			height = 48;
@@ -1790,7 +1806,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Cloth) {
 			height = 31;
 		} else if (md->type==eModifierType_Collision) {
-			height = 19;
+			height = 31;
 		} else if (md->type==eModifierType_Boolean) {
 			height = 48;
 		} else if (md->type==eModifierType_Array) {
@@ -1893,7 +1909,66 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			               "Ob: ", lx, (cy -= 19), buttonWidth, 19,
 			               &mmd->mirror_ob,
 			               "Object to use as mirror");
-
+		} else if (md->type==eModifierType_Bevel) {
+			BevelModifierData *bmd = (BevelModifierData*) md;
+			/*uiDefButS(block, ROW, B_MODIFIER_RECALC, "Distance",
+					  lx, (cy -= 19), (buttonWidth/2), 19, &bmd->val_flags,
+					  11.0, 0, 0, 0,
+					  "Interpret bevel value as a constant distance from each edge");
+			uiDefButS(block, ROW, B_MODIFIER_RECALC, "Radius",
+					  (lx+buttonWidth/2), cy, (buttonWidth - buttonWidth/2), 19, &bmd->val_flags,
+					  11.0, BME_BEVEL_RADIUS, 0, 0,
+					  "Interpret bevel value as a radius - smaller angles will be beveled more");*/
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Width: ",
+					  lx, (cy -= 19), buttonWidth, 19, &bmd->value,
+					  0.0, 0.5, 5, 2,
+					  "Bevel value/amount");
+			/*uiDefButI(block, NUM, B_MODIFIER_RECALC, "Recurs",
+					  lx, (cy -= 19), buttonWidth, 19, &bmd->res,
+					  1, 4, 5, 2,
+					  "Number of times to bevel");*/
+			uiDefButBitS(block, TOG, BME_BEVEL_VERT,
+					  B_MODIFIER_RECALC, "Only Vertices",
+					  lx, (cy -= 19), buttonWidth, 19,
+					  &bmd->flags, 0, 0, 0, 0,
+					  "Bevel only verts/corners; not edges");
+			uiBlockEndAlign(block);
+					  
+			uiDefBut(block, LABEL, 1, "Limit using:",	lx, (cy-=25), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
+			uiBlockBeginAlign(block);
+			uiDefButS(block, ROW, B_MODIFIER_RECALC, "None",
+					  lx, (cy -= 19), (buttonWidth/3), 19, &bmd->lim_flags,
+					  12.0, 0, 0, 0,
+					  "Bevel the entire mesh by a constant amount");
+			uiDefButS(block, ROW, B_MODIFIER_RECALC, "Angle",
+					  (lx+buttonWidth/3), cy, (buttonWidth/3), 19, &bmd->lim_flags,
+					  12.0, BME_BEVEL_ANGLE, 0, 0,
+					  "Only bevel edges with sharp enough angles between faces");
+			uiDefButS(block, ROW, B_MODIFIER_RECALC, "BevWeight",
+					  lx+(2*buttonWidth/3), cy, buttonWidth-2*(buttonWidth/3), 19, &bmd->lim_flags,
+					  12.0, BME_BEVEL_WEIGHT, 0, 0,
+					  "Use bevel weights to determine how much bevel is applied; apply them separately in vert/edge select mode");
+			if ((bmd->lim_flags & BME_BEVEL_WEIGHT) && !(bmd->flags & BME_BEVEL_VERT)) {
+				uiDefButS(block, ROW, B_MODIFIER_RECALC, "Min",
+					  lx, (cy -= 19), (buttonWidth/3), 19, &bmd->e_flags,
+					  13.0, BME_BEVEL_EMIN, 0, 0,
+					  "The sharpest edge's weight is used when weighting a vert");
+				uiDefButS(block, ROW, B_MODIFIER_RECALC, "Average",
+					  (lx+buttonWidth/3), cy, (buttonWidth/3), 19, &bmd->e_flags,
+					  13.0, 0, 0, 0,
+					  "The edge weights are averaged when weighting a vert");
+				uiDefButS(block, ROW, B_MODIFIER_RECALC, "Max",
+					  (lx+2*(buttonWidth/3)), cy, buttonWidth-2*(buttonWidth/3), 19, &bmd->e_flags,
+					  13.0, BME_BEVEL_EMAX, 0, 0,
+					  "The largest edge's wieght is used when weighting a vert");
+			}
+			else if (bmd->lim_flags & BME_BEVEL_ANGLE) {
+				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Angle:",
+					  lx, (cy -= 19), buttonWidth, 19, &bmd->bevel_angle,
+					  0.0, 180.0, 100, 2,
+					  "Angle above which to bevel edges");
+			}
 		} else if (md->type==eModifierType_EdgeSplit) {
 			EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
 			uiDefButBitI(block, TOG, MOD_EDGESPLIT_FROMANGLE,
@@ -2151,7 +2226,11 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiButSetFunc(but, modifiers_reassignHook, ob, md);
 			}
 		} else if (md->type==eModifierType_Softbody) {
-			uiDefBut(block, LABEL, 1, "See Softbody panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
+			uiDefBut(block, LABEL, 1, "See Soft Body panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
+		} else if (md->type==eModifierType_Cloth) {
+			uiDefBut(block, LABEL, 1, "See Cloth panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
+		} else if (md->type==eModifierType_Collision) {
+			uiDefBut(block, LABEL, 1, "See Collision panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
 		} else if (md->type==eModifierType_Boolean) {
 			BooleanModifierData *bmd = (BooleanModifierData*) md;
 			uiDefButI(block, MENU, B_MODIFIER_RECALC, "Operation%t|Intersect%x0|Union%x1|Difference%x2",	lx,(cy-=19),buttonWidth,19, &bmd->operation, 0.0, 1.0, 0, 0, "Boolean operation to perform");
@@ -2361,17 +2440,17 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	}
 
 	if (md->error) {
-		char str[512];
-
-		y -= 20;
+		y -= 6;
 
 		uiBlockSetCol(block, color);
 					/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y, width, 20, NULL, 5.0, 0.0, 15, 40, ""); 
 		uiBlockSetCol(block, TH_AUTO);
 
-		sprintf(str, "Modifier Error: %s", md->error);
-		uiDefBut(block, LABEL, B_NOP, str, x+15, y+15, width-35, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+		uiDefIconBut(block,LABEL,B_NOP,ICON_ERROR, x-9, y,19,19, 0,0,0,0,0, "");
+		uiDefBut(block, LABEL, B_NOP, md->error, x+5, y, width-15, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+
+		y -= 18;
 	}
 
 	uiClearButLock();
@@ -2398,7 +2477,7 @@ static void editing_panel_modifiers(Object *ob)
 	uiDefBlockBut(block, modifiers_add_menu, ob, "Add Modifier", 0, 190, 130, 20, "Add a new modifier");
 
 	sprintf(str, "To: %s", ob->id.name+2);
-	uiDefBut(block, LABEL, 1, str,	140, 190, 150, 20, NULL, 0.0, 0.0, 0, 0, "Object whose modifier stack is being edited");
+	uiDefBut(block, LABEL, 1, str,	140, 190, 160, 20, NULL, 0.0, 0.0, 0, 0, "Object whose modifier stack is being edited");
 
 	xco = 0;
 	yco = 160;
@@ -2616,7 +2695,7 @@ static void load_buts_vfont(char *name)
 
 static void set_unicode_text_fs(char *file)
 {
-	if (file > 0) paste_unicodeText(file); 
+	if (file) paste_unicodeText(file); 
 }
 
 void do_fontbuts(unsigned short event)
@@ -3625,10 +3704,6 @@ void do_latticebuts(unsigned short event)
 			lt = ob->data;
 			if(ob==G.obedit) resizelattice(editLatt, lt->opntsu, lt->opntsv, lt->opntsw, NULL);
 			else resizelattice(ob->data, lt->opntsu, lt->opntsv, lt->opntsw, NULL);
-			ob->softflag |= OB_SB_REDO;
-			if(modifiers_isClothEnabled(ob)) {
-				cloth_free_modifier(modifiers_isClothEnabled(ob));
-			}
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
@@ -3636,10 +3711,6 @@ void do_latticebuts(unsigned short event)
 		if(ob) {
 			lt = ob->data;
 			resizelattice(ob->data, lt->opntsu, lt->opntsv, lt->opntsw, ob);
-			ob->softflag |= OB_SB_REDO;
-			if(modifiers_isClothEnabled(ob)) {
-				cloth_free_modifier(modifiers_isClothEnabled(ob));
-			}
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
@@ -3881,6 +3952,17 @@ void do_armbuts(unsigned short event)
 		if (ob && ob->pose)
 			pose_remove_posegroup();
 		break;
+	case B_POSEGRP_MCUSTOM:
+		if (ob && ob->pose) {
+			if (ob->pose->active_group) {
+				bActionGroup *grp= (bActionGroup *)BLI_findlink(&ob->pose->agroups, ob->pose->active_group-1);
+				grp->customCol= -1;
+			}
+			
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+		}
+		break;
 	}
 }
 
@@ -3916,15 +3998,26 @@ static void attach_bone_to_parent_cb(void *bonev, void *arg2_unused)
 {
 	EditBone *ebone= bonev;
 	
-	if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
-		/* Attach this bone to its parent */
-		VECCOPY(ebone->head, ebone->parent->tail);
+	if (ebone->parent) {
+		if(ebone->flag & BONE_CONNECTED) {
+			/* Attach this bone to its parent */
+			VECCOPY(ebone->head, ebone->parent->tail);
+
+			if(ebone->flag & BONE_ROOTSEL)
+				ebone->parent->flag |= BONE_TIPSEL;
+		}
+		else if(!(ebone->parent->flag & BONE_ROOTSEL)) {
+			ebone->parent->flag &= ~BONE_TIPSEL;
+		}
 	}
 }
 
 static void parnr_to_editbone(EditBone *bone)
 {
 	if (bone->parNr == -1){
+		if(bone->parent && !(bone->parent->flag & BONE_ROOTSEL))
+			bone->parent->flag &= ~BONE_TIPSEL;
+
 		bone->parent = NULL;
 		bone->flag &= ~BONE_CONNECTED;
 	}
@@ -4068,13 +4161,13 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	for(a=0; a<8; a++) {
 		short dx= 18;
 		but= uiDefButBitS(block, BUT_TOGDUAL, 1<<a, REDRAWVIEW3D, "", 10+a*dx, 115, dx, 15, &arm->layer, 0, 0, 0, 0, "Armature layer (Hold Ctrl for locking in a proxy instance)");
-		uiButSetFunc(but, armature_layer_cb, &arm->layer, (void *)(1<<a));
+		uiButSetFunc(but, armature_layer_cb, &arm->layer, SET_INT_IN_POINTER(1<<a));
 	}
 	uiBlockBeginAlign(block);
 	for(a=8; a<16; a++) {
 		short dx= 18;
 		but= uiDefButBitS(block, BUT_TOGDUAL, 1<<a, REDRAWVIEW3D, "", 18+a*dx, 115, dx, 15, &arm->layer, 0, 0, 0, 0, "Armature layer (Hold Ctrl for locking in a proxy instance)");
-		uiButSetFunc(but, armature_layer_cb, &arm->layer, (void *)(1<<a));
+		uiButSetFunc(but, armature_layer_cb, &arm->layer, SET_INT_IN_POINTER(1<<a));
 	}
 	/* quite bad here, but I don't know a better place for copy... */
 	if(ob->pose)
@@ -4227,38 +4320,41 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 
 	uiDefBut(block, LABEL, 0, "Selected Bones", 0,by,158,18, 0, 0, 0, 0, 0, "Only show in Armature Editmode");
 	by-=20;
-	for (curBone=G.edbo.first, index=0; curBone; curBone=curBone->next, index++){
+	for (curBone=G.edbo.first, index=0; curBone; curBone=curBone->next, index++) {
 		if ((curBone->flag & BONE_SELECTED) && (curBone->layer & arm->layer)) {
-
 			/*	Bone naming button */
 			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:", -10,by,117,18, curBone->name, 0, 31, 0, 0, "Change the bone name");
 			uiButSetFunc(but, validate_editbonebutton_cb, curBone, NULL);
 			uiButSetCompleteFunc(but, autocomplete_editbone, (void *)OBACT);
-
+			
 			uiDefBut(block, LABEL, 0, "child of", 107,by,73,18, NULL, 0.0, 0.0, 0.0, 0.0, "");
-
+			
 			boneString = MEM_mallocN((BLI_countlist(&G.edbo) * 64)+64, "Bone str");
 			build_bonestring (boneString, curBone);
-
+			
 			curBone->parNr = editbone_to_parnr(curBone->parent);
 			but = uiDefButI(block, MENU,REDRAWVIEW3D, boneString, 180,by,120,18, &curBone->parNr, 0.0, 0.0, 0.0, 0.0, "Parent");
 			/* last arg NULL means button will put old string there */
 			uiButSetFunc(but, parnr_to_editbone_cb, curBone, NULL);
-
+			
 			MEM_freeN(boneString);
-
-			/* Connect to parent flag */
-			if (curBone->parent){
+			
+			if (curBone->parent) {
+				/* Connect to parent flag */
 				but=uiDefButBitI(block, TOG, BONE_CONNECTED, B_ARM_RECALCDATA, "Con", 300,by,32,18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Connect this Bone to Parent");
 				uiButSetFunc(but, attach_bone_to_parent_cb, curBone, NULL);
 			}
-
+			else {
+				/* No cyclic-offset flag */
+				uiDefButBitI(block, TOGN, BONE_NO_CYCLICOFFSET, B_ARM_RECALCDATA, "Offs", 300,by,31,18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Apply cyclic-offset to this Bone");
+			}
+			
 			/* Segment, dist and weight buttons */
 			uiBlockBeginAlign(block);
 			uiDefButS(block, NUM, B_ARM_RECALCDATA, "Segm: ", -10,by-19,117,18, &curBone->segments, 1.0, 32.0, 0.0, 0.0, "Subdivisions for B-bones");
 			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Dist:", 110, by-19, 105, 18, &curBone->dist, 0.0, 1000.0, 10.0, 0.0, "Bone deformation distance");
 			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Weight:", 225, by-19,105, 18, &curBone->weight, 0.0F, 1000.0F, 10.0F, 0.0F, "Bone deformation weight");
-
+			
 			/* bone types */
 			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge",		-10,by-38,80,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
 			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",		70,by-38,20,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
@@ -4271,13 +4367,13 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			for(a=0; a<8; a++) {
 				short dx= 21;
 				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -10+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Armature layer that bone exists on");
-				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
+				uiButSetFunc(but, armature_layer_cb, &curBone->layer, SET_INT_IN_POINTER(1<<a));
 			}
 			uiBlockBeginAlign(block);
 			for(a=8; a<16; a++) {
 				short dx= 21;
 				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -6+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Armature layer that bone exists on");
-				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
+				uiButSetFunc(but, armature_layer_cb, &curBone->layer, SET_INT_IN_POINTER(1<<a));
 			}
 			
 			uiBlockEndAlign(block);
@@ -4351,8 +4447,10 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			MEM_freeN(menustr);
 			
 			ob_arm_bone_pchan_lock(ob, arm, curBone, pchan);
-			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "OB:",		220,by,110,19, &pchan->custom, "Object that defines custom draw type for this Bone");
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "OB:",		220,by,90,19, &pchan->custom, "Object that defines custom draw type for this Bone");
 			ob_arm_bone_pchan_lock(ob, arm, curBone, NULL);
+			
+			uiDefButBitI(block, TOG, BONE_DRAWWIRE, B_ARM_RECALCDATA, "W",			309,by,21,19, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Custom shape of this Bone should always be drawn as a wireframe");
 			
 			/* Segment, ease in/out buttons */
 			uiBlockBeginAlign(block);
@@ -4372,13 +4470,13 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			for(a=0; a<8; a++) {
 				short dx= 21;
 				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -10+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Armature layer that bone exists on");
-				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
+				uiButSetFunc(but, armature_layer_cb, &curBone->layer, SET_INT_IN_POINTER(1<<a));
 			}
 			uiBlockBeginAlign(block);
 			for(a=8; a<16; a++) {
 				short dx= 21;
 				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -6+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Armature layer that bone exists on");
-				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
+				uiButSetFunc(but, armature_layer_cb, &curBone->layer, SET_INT_IN_POINTER(1<<a));
 			}
 			uiBlockEndAlign(block);
 			
@@ -4487,16 +4585,21 @@ void do_vgroupbuts(unsigned short event)
 	switch(event) {
 		case B_NEWVGROUP:
 			add_defgroup (ob);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			scrarea_queue_winredraw(curarea);
 			allqueue(REDRAWOOPS, 0);
+			
 			break;
 		case B_DELVGROUP:
-			if ((G.obedit) && (G.obedit == ob))
+			if ((G.obedit) && (G.obedit == ob)) {
 				del_defgroup (ob);
-			else
+			} else {
 				del_defgroup_in_object_mode (ob);
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			}
 			allqueue (REDRAWVIEW3D, 1);
 			allqueue(REDRAWOOPS, 0);
+			allqueue(REDRAWBUTSEDIT, 1);
 			BIF_undo_push("Delete vertex group");
 			break;
 		case B_ASSIGNVGROUP:
@@ -4518,6 +4621,7 @@ void do_vgroupbuts(unsigned short event)
 			break;
 		case B_DESELVGROUP:
 			sel_verts_defgroup(0);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue (REDRAWVIEW3D, 1);
 			allqueue(REDRAWOOPS, 0);
 			countall();
@@ -4619,21 +4723,19 @@ void do_meshbuts(unsigned short event)
 			break;
 
 		case B_NEWTFACE:
-			if(me)
-				layernum= CustomData_number_of_layers(&me->fdata, CD_MTFACE);
-			else
-				layernum= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
-
 			if(me && me->mr) {
+				layernum= CustomData_number_of_layers(&me->fdata, CD_MTFACE);
 				multires_add_layer(me, &me->mr->fdata, CD_MTFACE, layernum);
 				multires_level_to_editmesh(ob, me, 0);
 				multires_finish_mesh_update(ob);
 			}
 			else if(G.obedit) {
+				layernum= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
 				EM_add_data_layer(&em->fdata, CD_MTFACE);
 				CustomData_set_layer_active(&em->fdata, CD_MTFACE, layernum);
 			}
 			else if(me) {
+				layernum= CustomData_number_of_layers(&me->fdata, CD_MTFACE);
 				if(me->mtface)
 					CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DUPLICATE,
 					                     me->mtface, me->totface);
@@ -4767,6 +4869,10 @@ void do_meshbuts(unsigned short event)
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
+	//~ case B_DRAWBWEIGHTS:
+		//~ allqueue(REDRAWBUTSEDIT, 0);
+		//~ allqueue(REDRAWVIEW3D, 0);
+		//~ break;
 	case B_JOINTRIA:
 		join_triangles();
 		break;
@@ -4850,7 +4956,7 @@ static void verify_vertexgroup_name_func(void *datav, void *data2_unused)
 static void skgen_reorder(void *option, void *arg2)
 {
 	char tmp;
-	switch ((int)option)
+	switch (GET_INT_FROM_POINTER(option))
 	{
 		case 0:
 			tmp = G.scene->toolsettings->skgen_subdivisions[0];
@@ -4894,7 +5000,7 @@ static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
 		int y = 90 - 20 * i;
 		
 		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_DOWN, 		1025, y, 16, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Change the order the subdivisions algorithm are applied");
-		uiButSetFunc(but, skgen_reorder, (void *)i, NULL);
+		uiButSetFunc(but, skgen_reorder, SET_INT_IN_POINTER(i), NULL);
 		
 		switch(G.scene->toolsettings->skgen_subdivisions[i])
 		{
@@ -4929,7 +5035,7 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_tools1", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Mesh Tools 1", "Editing", 960, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Mesh Tools More", "Editing", 960, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	955, 200,  106, 19, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces (Ctrl+I)");
@@ -4945,10 +5051,11 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, G_DRAWFACES, REDRAWVIEW3D_IMAGE, "Draw Faces",		955,88,150,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades in the 3d view and UV editor");
-	uiDefButBitI(block, TOG, G_DRAWEDGES, REDRAWVIEW3D, "Draw Edges", 	955,66,150,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
-	uiDefButBitI(block, TOG, G_DRAWCREASES, REDRAWVIEW3D, "Draw Creases",	955,44,150,19, &G.f, 0, 0, 0, 0, "Displays creases created for subsurf weighting");
-	uiDefButBitI(block, TOG, G_DRAWSEAMS, REDRAWVIEW3D, "Draw Seams",	955,22,150,19, &G.f, 0, 0, 0, 0, "Displays UV unwrapping seams");
-	uiDefButBitI(block, TOG, G_DRAWSHARP, REDRAWVIEW3D, "Draw Sharp",	955,0,150,19, &G.f, 0, 0, 0, 0, "Displays sharp edges, used with the EdgeSplit modifier");
+	uiDefButBitI(block, TOG, G_DRAWEDGES, REDRAWVIEW3D_IMAGE, "Draw Edges", 955, 66,150,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights in the 3d view and UV editor");
+	uiDefButBitI(block, TOG, G_DRAWCREASES, REDRAWVIEW3D, "Draw Creases", 955, 42,150,19, &G.f, 0, 0, 0, 0, "Displays creases created for subsurf weighting");
+	uiDefButBitI(block, TOG, G_DRAWBWEIGHTS, REDRAWVIEW3D, "Draw Bevel Weights", 955, 20,150,19, &G.f, 0, 0, 0, 0, "Displays weights created for the Bevel modifier");
+	uiDefButBitI(block, TOG, G_DRAWSEAMS, REDRAWVIEW3D, "Draw Seams", 955, -2,150,19, &G.f, 0, 0, 0, 0, "Displays UV unwrapping seams");
+	uiDefButBitI(block, TOG, G_DRAWSHARP, REDRAWVIEW3D, "Draw Sharp", 955,  -24,150,19, &G.f, 0, 0, 0, 0, "Displays sharp edges, used with the EdgeSplit modifier");
 	uiBlockEndAlign(block);
 	
 	/* Measurement drawing options */
@@ -5027,6 +5134,32 @@ static void verify_posegroup_groupname(void *arg1, void *arg2)
 	bActionGroup *grp= (bActionGroup *)arg2;
 	
 	BLI_uniquename(&pose->agroups, grp, "Group", offsetof(bActionGroup, name), 32);
+}
+
+static char *build_colorsets_menustr ()
+{
+	DynStr *pupds= BLI_dynstr_new();
+	char *str;
+	char buf[48];
+	int i;
+	
+	/* add title first (and the "default" entry) */
+	BLI_dynstr_append(pupds, "Bone Color Set%t|Default Colors%x0|");
+	
+	/* loop through set indices, adding them */
+	for (i=1; i<21; i++) {
+		sprintf(buf, "%d - Theme Color Set%%x%d|", i, i);
+		BLI_dynstr_append(pupds, buf);
+	}
+	
+	/* add the 'custom' entry */
+	BLI_dynstr_append(pupds, "Custom Set %x-1");
+	
+	/* convert to normal MEM_malloc'd string */
+	str= BLI_dynstr_get_cstring(pupds);
+	BLI_dynstr_free(pupds);
+	
+	return str;
 }
 
 static void editing_panel_links(Object *ob)
@@ -5116,6 +5249,7 @@ static void editing_panel_links(Object *ob)
 		if ((ob->pose) && (ob->flag & OB_POSEMODE) && (G.obedit != ob)) {
 			bAction *act= ob->poselib;
 			bPose *pose= ob->pose;
+			bActionGroup *grp= NULL;
 			int count;
 			char *menustr;
 			
@@ -5129,10 +5263,10 @@ static void editing_panel_links(Object *ob)
 			std_libbuttons(block, 143, 130, 0, NULL, B_POSELIB_BROWSE, ID_AC, 0, (ID *)act, (ID *)ob, &(G.buts->menunr), B_POSELIB_ALONE, 0, B_POSELIB_DELETE, 0, 0);
 			uiBlockSetCol(block, TH_AUTO);
 			
-			uiDefBut(block, BUT, B_POSELIB_VALIDATE,  "Auto-Sync PoseLib",	xco,110,160,20, 0, 0, 0, 0, 0, "Syncs the current PoseLib with the poses available");
-			
 			/* PoseLib -  Pose editing controls */
 			if (act) {
+				uiDefBut(block, BUT, B_POSELIB_VALIDATE,  "Auto-Sync PoseLib",	xco,110,160,20, 0, 0, 0, 0, 0, "Syncs the current PoseLib with the poses available");
+				
 				uiBlockBeginAlign(block);
 					/* currently 'active' pose */
 					if (act->markers.first) {
@@ -5157,45 +5291,69 @@ static void editing_panel_links(Object *ob)
 			}
 			
 			
-			/* Action Groups settings for armature reside on the right */
+			/* Bone Groups settings for armature reside on the right */
 			xco= 315;
 			
 			uiDefBut(block, LABEL,0, "Bone Groups:", xco, 154, 140, 20, 0, 0, 0, 0, 0, "");
 			
-			/* add new group */
-			uiDefBut(block, BUT, B_POSEGRP_ADD, "Add Group",	xco,130,140,20, 0, 0, 0, 0, 0, "Add a new Pose Group for the Pose");
-			
-			if (pose->agroups.first) {
-				uiBlockBeginAlign(block);
+			uiBlockBeginAlign(block);
+				if (pose->agroups.first) {
 					/* currently 'active' group - browse groups */
 					count= BLI_countlist(&pose->agroups);
 					menustr= build_posegroups_menustr(pose, 0);
-					uiDefButI(block, MENU, B_POSEGRP_RECALC, menustr, xco, 85,18,20, &pose->active_group, 1, count, 0, 0, "Browses Pose Groups available for Armature. Click to change.");
+					uiDefButI(block, MENU, B_POSEGRP_RECALC, menustr, xco, 130,18,20, &pose->active_group, 1, count, 0, 0, "Browses Bone Groups available for Armature. Click to change.");
 					MEM_freeN(menustr);
 					
-					
+					/* currently 'active' group - change name */
 					if (pose->active_group) {
-						bActionGroup *grp= (bActionGroup *)BLI_findlink(&pose->agroups, pose->active_group-1);
+						grp= (bActionGroup *)BLI_findlink(&pose->agroups, pose->active_group-1);
 						
 						/* active group */
-						but= uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		xco+18,85,140-18-20,20, grp->name, 0, 31, 0, 0, "Displays current Pose Group name. Click to change.");
+						but= uiDefBut(block, TEX, REDRAWBUTSEDIT,"", xco+18,130,140-18-20,20, grp->name, 0, 31, 0, 0, "Displays current Bone Group name. Click to change.");
 						uiButSetFunc(but, verify_posegroup_groupname, pose, grp); 
-						uiDefIconBut(block, BUT, B_POSEGRP_REMOVE, VICON_X, xco+140-20, 85, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this Pose Group");
-						
-						/* set custom color set */
-						uiDefButI(block, NUM,B_POSEGRP_RECALC, "GroupColor: ", xco,65,110,19, &grp->customCol, 0, 20, 0.0, 0.0, "Index of set of Custom Colors to shade Group's bones with. 0 = Use Default Color Scheme");						
-						if (grp->customCol) {
+						uiDefIconBut(block, BUT, B_POSEGRP_REMOVE, VICON_X, xco+140-20, 130, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this Bone Group");
+					}
+				}
+				
+				uiDefBut(block, BUT, B_POSEGRP_ADD, "Add Group",	xco,110,140,20, 0, 21, 0, 0, 0, "Add a new Bone Group for the Pose");
+			uiBlockEndAlign(block);
+			
+			/* colour set for 'active' group */
+			if (pose->active_group && grp) {
+				uiBlockBeginAlign(block);
+					menustr= build_colorsets_menustr();
+					uiDefButI(block, MENU,B_POSEGRP_RECALC, menustr, xco,85,140,19, &grp->customCol, -1, 20, 0.0, 0.0, "Index of set of Custom Colors to shade Group's bones with. 0 = Use Default Color Scheme, -1 = Use Custom Color Scheme");						
+					MEM_freeN(menustr);
+					
+					/* show color-selection/preview */
+					if (grp->customCol) {
+						if (grp->customCol > 0) {
+							/* copy theme colors on-to group's custom color in case user tries to edit color */
 							bTheme *btheme= U.themes.first;
 							ThemeWireColor *col_set= &btheme->tarm[(grp->customCol - 1)];
 							
-							uiSetButLock(1, "To change these colors, see Themes -> Bone Color Sets");
-							
-							uiDefButC(block, COL, B_POSEGRP_RECALC, "",		xco+110, 65, 10, 19, col_set->solid, 0, 0, 0, 0, "Color to use for surface of bones. See current theme in Info Window.");
-							uiDefButC(block, COL, B_POSEGRP_RECALC, "",		xco+120, 65, 10, 19, col_set->select, 0, 0, 0, 0, "Color to use for 'selected' bones. See current theme in Info Window.");
-							uiDefButC(block, COL, B_POSEGRP_RECALC, "",		xco+130, 65, 10, 19, col_set->active, 0, 0, 0, 0, "Color to use for 'active' bones. See current theme in Info Window.");
-							
-							uiClearButLock();
+							memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
 						}
+						else {
+							/* init custom colours with a generic multi-colour rgb set, if not initialised already */
+							if (grp->cs.solid[0] == 0) {
+								/* define for setting colors in theme below */
+								#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
+								
+								SETCOL(grp->cs.solid, 0xff, 0x00, 0x00, 255);
+								SETCOL(grp->cs.select, 0x81, 0xe6, 0x14, 255);
+								SETCOL(grp->cs.active, 0x18, 0xb6, 0xe0, 255);
+								
+								#undef SETCOL
+							}
+						}
+						
+						/* color changing */
+						uiDefButC(block, COL, B_POSEGRP_MCUSTOM, "",		xco, 65, 30, 19, grp->cs.solid, 0, 0, 0, 0, "Color to use for surface of bones");
+						uiDefButC(block, COL, B_POSEGRP_MCUSTOM, "",		xco+30, 65, 30, 19, grp->cs.select, 0, 0, 0, 0, "Color to use for 'selected' bones");
+						uiDefButC(block, COL, B_POSEGRP_MCUSTOM, "",		xco+60, 65, 30, 19, grp->cs.active, 0, 0, 0, 0, "Color to use for 'active' bones");
+						
+						uiDefButBitS(block, TOG, TH_WIRECOLOR_CONSTCOLS, B_POSEGRP_MCUSTOM, "ConstCols",  xco+90,65,50,20, &grp->cs.flag, 0, 0, 0, 0, "Allow the use of colors indicating constraints/keyed status");
 					}
 				uiBlockEndAlign(block);
 			}
@@ -5262,15 +5420,10 @@ static void editing_panel_links(Object *ob)
 	}
 	
 	/* now only objects that can be visible rendered */
-	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL);
-	else return;
+	if (!OB_SUPPORT_MATERIAL(ob)) return;
 	
-	id= ob->data;
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
-	
-	if(ob->type==OB_MESH) poin= &( ((Mesh *)ob->data)->texflag );
-	else if(ob->type==OB_MBALL) poin= &( ((MetaBall *)ob->data)->texflag );
-	else poin= &( ((Curve *)ob->data)->texflag );
+	give_obdata_texspace(ob, &poin, NULL, NULL, NULL);
 	uiDefButBitI(block, TOG, AUTOSPACE, B_AUTOTEX, "AutoTexSpace",	143,15,140,19, poin, 0, 0, 0, 0, "Adjusts active object's texture space automatically when transforming object");
 
 	sprintf(str,"%d Mat ", ob->totcol);
@@ -5364,7 +5517,7 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 		uiDefButC(block,ROW,B_NOP,"Sub",cx+89,cy,89,19,&sculptmode_brush()->dir,15.0,2.0,0, 0,"Subtract depth from model [Shift]");
 	}
 	if(sd->brush_type!=GRAB_BRUSH)
-		uiDefButC(block,TOG,B_NOP,"Airbrush",cx+178,cy,89,19,&sculptmode_brush()->airbrush,0,0,0,0,"Brush makes changes without waiting for the mouse to move");
+		uiDefButBitC(block, TOG, SCULPT_BRUSH_AIRBRUSH, 0, "Airbrush", cx+178,cy,89,19, &sculptmode_brush()->flag,0,0,0,0, "Brush makes changes without waiting for the mouse to move");
 	cy-= 20;
 	uiDefButS(block,NUMSLI,B_NOP,"Size: ",cx,cy,268,19,&sculptmode_brush()->size,1.0,200.0,0,0,"Set brush radius in pixels");
 	cy-= 20;
@@ -5377,11 +5530,24 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	uiDefBut( block,LABEL,B_NOP,"Symmetry",cx,cy,90,19,NULL,0,0,0,0,"");
 	cy-= 20;
 	uiBlockBeginAlign(block);
-	uiDefButBitC(block, TOG, SYMM_X, 0, "X", cx,cy,89,19, &sd->symm, 0,0,0,0, "Mirror brush across X axis");
-	uiDefButBitC(block, TOG, SYMM_Y, 0, "Y", cx+89,cy,89,19, &sd->symm, 0,0,0,0, "Mirror brush across Y axis");
-	uiDefButBitC(block, TOG, SYMM_Z, 0, "Z", cx+178,cy,90,19, &sd->symm, 0,0,0,0, "Mirror brush across Z axis");
+	uiDefButBitC(block, TOG, SYMM_X, 0, "X", cx,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across X axis");
+	uiDefButBitC(block, TOG, SYMM_Y, 0, "Y", cx+40,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across Y axis");
+	uiDefButBitC(block, TOG, SYMM_Z, 0, "Z", cx+80,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across Z axis");
 	uiBlockEndAlign(block);
 
+	
+	cy+= 20;
+	uiBlockBeginAlign(block);
+	uiDefBut( block,LABEL,B_NOP,"LockAxis",cx+140,cy,90,19,NULL,0,0,0,0,"");
+	cy-= 20;
+	uiBlockBeginAlign(block);
+	uiDefButBitC(block, TOG, AXISLOCK_X, 0, "X", cx+140,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain X axis");
+	uiDefButBitC(block, TOG, AXISLOCK_Y, 0, "Y", cx+180,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain Y axis");
+	uiDefButBitC(block, TOG, AXISLOCK_Z, 0, "Z", cx+220,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain Z axis");
+	uiBlockEndAlign(block);
+	
+	
+	
 	cx+= 210;
 }
 
@@ -5413,6 +5579,8 @@ void sculptmode_draw_interface_brush(uiBlock *block, unsigned short cx, unsigned
 	cy-= 20;
 	if(sd->brush_type == DRAW_BRUSH)
 		uiDefButC(block,NUM,B_NOP, "View", cx,cy,80,19, &sculptmode_brush()->view, 0,10,20,0,"Pulls brush direction towards view");
+	cy-= 20;
+	uiDefButBitC(block, TOG, SCULPT_BRUSH_ANCHORED, 0, "Anchored", cx,cy,80,19, &sculptmode_brush()->flag, 0,0,0,0, "Keep the brush center anchored to the initial location");
 	uiBlockEndAlign(block);
 
 	/* Draw curve */
@@ -5766,7 +5934,7 @@ void do_fpaintbuts(unsigned short event)
 		}
 		break;
 	case B_BRUSHKEEPDATA:
-		brush_toggle_fake_user(settings->imapaint.brush);
+		brush_toggled_fake_user(settings->imapaint.brush);
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWIMAGE, 0);
 		break;
@@ -6054,6 +6222,9 @@ static void editing_panel_mesh_texface(void)
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Add",		660,80,60,19, &tf->transp, 2.0, (float)TF_ADD,	0, 0, "Render face transparent and add color of face");
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",	720,80,60,19, &tf->transp, 2.0, (float)TF_ALPHA,0, 0, "Render polygon transparent, depending on alpha channel of the texture");
 	}
+	else
+		uiDefBut(block,LABEL,B_NOP, "(No Active Face)", 10,200,150,19,0,0,0,0,0,"");
+
 }
 
 void do_uvcalculationbuts(unsigned short event)
@@ -6080,12 +6251,14 @@ static void editing_panel_mesh_uvautocalculation(void)
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, MENU, REDRAWBUTSEDIT, "Unwrapper%t|Conformal%x0|Angle Based%x1",100,row,200,butH, &G.scene->toolsettings->unwrapper, 0, 0, 0, 0, "Unwrap method");
-	uiDefButBitS(block, TOG, 1, B_NOP, "Fill Holes",100,row-butHB,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Fill holes to prevent internal overlaps");
+	uiDefButBitS(block, TOG, UVCALC_FILLHOLES, B_NOP, "Fill Holes",100,row-butHB,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Fill holes to prevent internal overlaps");
 	uiBlockEndAlign(block);
 	row-= 2*butHB+butS;
 
 	row= 180;
 
+	uiDefButBitS(block, TOGN, UVCALC_NO_ASPECT_CORRECT, B_NOP, "Image Aspect",100,row,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Scale the UV Unwrapping to correct for the current images aspect ratio");
+	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,B_UVAUTO_CUBESIZE ,"Cube Size:",315,row,200,butH, &G.scene->toolsettings->uvcalc_cubesize, 0.0001, 100.0, 10, 3, "Defines the cubemap size for cube mapping");
 	uiBlockEndAlign(block);
@@ -6123,7 +6296,7 @@ void editing_panel_mesh_multires()
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	if(!me->mr) {
-		but= uiDefBut(block,BUT,B_NOP,"Add Multires", cx,cy,268,19,0,0,0,0,0,"");
+		but= uiDefBut(block,BUT,B_NOP,"Add Multires", cx,cy,268,19,0,0,0,0,0,"Allow editing of the mesh at multiple subdivision levels (disables distructive mesh editing)");
 		uiButSetFunc(but,multires_make,ob,me);
 	} else {
 		char subsurfmenu[]= "Subsurf Type%t|Catmull-Clark%x0|Simple Subdiv.%x1";
@@ -6201,18 +6374,17 @@ void particle_edit_buttons(uiBlock *block)
 	if(psys->edit) {
 		edit= psys->edit;
 
-		/* brushes */
-		//uiDefBut(block, LABEL, 0, "Brush",	butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+		/* brushes (the update evend needs to be B_BAKE_RECACHE so that path colors are updated properly) */
 		uiBlockBeginAlign(block);	
-		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"None",butx,buty,75,19,&pset->brushtype,14.0,PE_BRUSH_NONE,0,0,"Disable brush");
-		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Comb",butx+75,buty,75,19,&pset->brushtype,14.0,PE_BRUSH_COMB,0,0,"Comb hairs");
-		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Smooth",butx+150,buty,75,19,&pset->brushtype,14.0,PE_BRUSH_SMOOTH,0,0,"Smooth hairs");
-		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Weight",butx+225,buty,75,19,&pset->brushtype,14,PE_BRUSH_WEIGHT,0,0,"Weight hairs");
+		uiDefButS(block,ROW,B_BAKE_RECACHE,"None",butx,buty,75,19,&pset->brushtype,14.0,PE_BRUSH_NONE,0,0,"Disable brush");
+		uiDefButS(block,ROW,B_BAKE_RECACHE,"Comb",butx+75,buty,75,19,&pset->brushtype,14.0,PE_BRUSH_COMB,0,0,"Comb hairs");
+		uiDefButS(block,ROW,B_BAKE_RECACHE,"Smooth",butx+150,buty,75,19,&pset->brushtype,14.0,PE_BRUSH_SMOOTH,0,0,"Smooth hairs");
+		uiDefButS(block,ROW,B_BAKE_RECACHE,"Weight",butx+225,buty,75,19,&pset->brushtype,14,PE_BRUSH_WEIGHT,0,0,"Weight hairs");
 		buty-= buth;
-		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Add", butx,buty,75,19,&pset->brushtype,14,PE_BRUSH_ADD,0,0,"Add hairs");
-		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Length", butx+75,buty,75,19,&pset->brushtype,14, PE_BRUSH_LENGTH,0,0,"Make hairs longer or shorter");
-		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Puff", butx+150,buty,75,19,&pset->brushtype,14, PE_BRUSH_PUFF,0,0,"Make hairs stand up");
-		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Cut", butx+225,buty,75,19,&pset->brushtype,14, PE_BRUSH_CUT,0,0,"Cut hairs");
+		uiDefButS(block,ROW,B_BAKE_RECACHE,"Add", butx,buty,75,19,&pset->brushtype,14,PE_BRUSH_ADD,0,0,"Add hairs");
+		uiDefButS(block,ROW,B_BAKE_RECACHE,"Length", butx+75,buty,75,19,&pset->brushtype,14, PE_BRUSH_LENGTH,0,0,"Make hairs longer or shorter");
+		uiDefButS(block,ROW,B_BAKE_RECACHE,"Puff", butx+150,buty,75,19,&pset->brushtype,14, PE_BRUSH_PUFF,0,0,"Make hairs stand up");
+		uiDefButS(block,ROW,B_BAKE_RECACHE,"Cut", butx+225,buty,75,19,&pset->brushtype,14, PE_BRUSH_CUT,0,0,"Cut hairs");
 		uiBlockEndAlign(block);
 
 		buty-= 10;
@@ -6324,7 +6496,10 @@ void editing_panels()
 			editing_panel_mesh_tools(ob, ob->data);
 			editing_panel_mesh_tools1(ob, ob->data);
 			uiNewPanelTabbed("Mesh Tools 1", "Editing");
-			editing_panel_mesh_skgen(ob, ob->data);
+			
+			if (G.rt == 42) /* hidden for now, no time for docs */
+				editing_panel_mesh_skgen(ob, ob->data);
+			
 			editing_panel_mesh_uvautocalculation();
 			if (EM_texFaceCheck())
 				editing_panel_mesh_texface();

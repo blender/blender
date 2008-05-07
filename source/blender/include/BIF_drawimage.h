@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BIF_DRAWIMAGE_H
@@ -44,9 +41,8 @@ struct MTFace;
 void do_imagebuts(unsigned short event);
 void calc_image_view(struct SpaceImage *sima, char mode);
 void drawimagespace(struct ScrArea *sa, void *spacedata);
-void image_changed(struct SpaceImage *sima, struct Image *image);
 int draw_uvs_face_check(void);
-void tface_center(struct MTFace *tf, float cent[2], void * isquad);
+void uv_center(float uv[][2], float cent[2], void * isquad);
 void draw_uvs_sima(void);
 void image_set_tile(struct SpaceImage *sima, int dotile);
 void image_home(void);
@@ -63,8 +59,6 @@ void imagespace_composite_flipbook(struct ScrArea *sa);
 
 void imagewindow_render_callbacks(struct Render *re);
 void imagewindow_toggle_render(void);
-void imagewindow_swap_render_rects(void);
-void imagewin_store_spare(void);
 struct ImBuf *imagewindow_get_ibuf(struct SpaceImage *sima);
 
 void image_editvertex_buts(struct uiBlock *block);

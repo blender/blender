@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): 2007 - Joshua Leung (major recode)
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BKE_CONSTRAINT_H
@@ -70,7 +67,7 @@ typedef struct bConstraintTypeInfo {
 	/* admin/ident */
 	short type;				/* CONSTRAINT_TYPE_### */
 	short size;				/* size in bytes of the struct */
-	char name[32]; 			/* name constraint in interface */
+	char name[32]; 			/* name of constraint in interface */
 	char structName[32];	/* name of struct for SDNA */
 	
 	/* data management function pointers - special handling */
@@ -84,8 +81,8 @@ typedef struct bConstraintTypeInfo {
 	void (*new_data)(void *cdata);
 	
 	/* target handling function pointers */
-		/* for multi-target constraints: return that list; otherwise make a temporary list */
-	void (*get_constraint_targets)(struct bConstraint *con, struct ListBase *list);
+		/* for multi-target constraints: return that list; otherwise make a temporary list (returns number of targets) */
+	int (*get_constraint_targets)(struct bConstraint *con, struct ListBase *list);
 		/* for single-target constraints only: flush data back to source data, and the free memory used */
 	void (*flush_constraint_targets)(struct bConstraint *con, struct ListBase *list, short nocopy);
 	

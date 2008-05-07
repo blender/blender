@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef _GHOST_TYPES_H_
@@ -38,6 +35,11 @@ typedef short				GHOST_TInt16;
 typedef unsigned short		GHOST_TUns16;
 typedef	int					GHOST_TInt32;
 typedef	unsigned int		GHOST_TUns32;
+
+#ifdef WIN32
+#define WM_BLND_NDOF_AXIS	WM_USER + 1
+#define WM_BLND_NDOF_BTN 	WM_USER + 2
+#endif
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 typedef __int64				GHOST_TInt64;
@@ -132,6 +134,9 @@ typedef enum {
 	GHOST_kEventButtonDown,		/// Mouse button event
 	GHOST_kEventButtonUp,		/// Mouse button event
 	GHOST_kEventWheel,			/// Mouse wheel event
+
+	GHOST_kEventNDOFMotion,		/// N degree of freedom device motion event
+	GHOST_kEventNDOFButton,		/// N degree of freedom device button event
 
 	GHOST_kEventKeyDown,
 	GHOST_kEventKeyUp,
@@ -335,6 +340,38 @@ typedef struct {
 	/** Displacement of a mouse wheel. */
 	GHOST_TInt32 z;	
 } GHOST_TEventWheelData;
+
+
+/* original patch used floats, but the driver return ints and uns. We will calibrate in view, no sense on doing conversions twice */
+/* as all USB device controls are likely to use ints, this is also more future proof */
+//typedef struct {
+//   /** N-degree of freedom device data */
+//   float tx, ty, tz;   /** -x left, +y up, +z forward */
+//   float rx, ry, rz;
+//   float dt;
+//} GHOST_TEventNDOFData;
+
+typedef struct {
+   /** N-degree of freedom device data v2*/
+   int changed;
+   GHOST_TUns64 client;
+   GHOST_TUns64 address;
+   GHOST_TInt16 tx, ty, tz;   /** -x left, +y up, +z forward */
+   GHOST_TInt16 rx, ry, rz;
+   GHOST_TInt16 buttons;
+   GHOST_TUns64 time;
+   GHOST_TUns64 delta;
+} GHOST_TEventNDOFData;
+
+typedef int     (*GHOST_NDOFLibraryInit_fp)();
+typedef void    (*GHOST_NDOFLibraryShutdown_fp)(void* deviceHandle);
+typedef void*   (*GHOST_NDOFDeviceOpen_fp)(void* platformData);
+
+// original patch windows callback. In mac os X version the callback is internal to the plug-in and post an event to main thead.
+// not necessary faster, but better integration with other events. 
+
+//typedef int     (*GHOST_NDOFEventHandler_fp)(float* result7, void* deviceHandle, unsigned int message, unsigned int* wParam, unsigned long* lParam);
+//typedef void     (*GHOST_NDOFCallBack_fp)(GHOST_TEventNDOFDataV2 *VolDatas);
 
 typedef struct {
 	/** The key code. */

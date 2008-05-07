@@ -197,7 +197,7 @@ static void rot_line(const short o[2], const float ang)
 
 void radialcontrol_draw(RadialControl *rc)
 {
-	short r1, r2, r3;
+	short r1=200, r2=200, r3=200;
 	float angle = 0;
 
 	if(rc && rc->mode) {

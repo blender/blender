@@ -4,15 +4,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +27,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "SCA_MouseSensor.h"
@@ -161,6 +158,25 @@ bool SCA_MouseSensor::Evaluate(CValue* event)
 				{
 					m_val = 0;
 					result = true;
+				} else
+				{
+					if (event.m_status == SCA_InputEvent::KX_ACTIVE)
+					{
+						if (m_val == 0)
+						{
+							//dangerous
+							//m_val = 1;
+							//result = true;
+							;
+						}
+					} else
+					{
+						if (m_val == 1)
+						{
+							m_val = 0;
+							result = true;
+						}
+					}
 				}
 			}
 			break;
@@ -186,6 +202,13 @@ bool SCA_MouseSensor::Evaluate(CValue* event)
 				{
 					m_val = 0;
 					result = true;
+				} else
+				{
+					if (m_val == 1)
+					{
+						m_val = 0;
+						result = true;
+					}
 				}
 			}
 			break;

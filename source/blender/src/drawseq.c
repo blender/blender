@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef HAVE_CONFIG_H
@@ -91,24 +88,6 @@
 
 #define SEQ_STRIP_OFSBOTTOM		0.2
 #define SEQ_STRIP_OFSTOP		0.8
-
-static GLubyte halftone[] = {
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55, 
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-			0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55};
 
 /* Note, Dont use WHILE_SEQ while drawing! - it messes up transform, - Campbell */
 
@@ -240,7 +219,7 @@ static void drawmeta_contents(Sequence *seqm, float x1, float y1, float x2, floa
 
 	if (seqm->flag & SEQ_MUTE) {
 		glEnable(GL_POLYGON_STIPPLE);
-		glPolygonStipple(halftone);
+		glPolygonStipple(stipple_halftone);
 		
 		glEnable(GL_LINE_STIPPLE);
 		glLineStipple(1, 0x8888);
@@ -308,8 +287,8 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, i
 	
 	if (seq->flag & SEQ_MUTE) glColor3ub(0x70, 0x80, 0x80); else glColor3ub(0x70, 0xc0, 0xc0);
 	
-	sofs = ((int)( FRA2TIME(seq->startdisp-seq->start)*(float)G.scene->audio.mixrate*4.0 )) & (~3);
-	eofs = ((int)( FRA2TIME(seq->enddisp-seq->start)*(float)G.scene->audio.mixrate*4.0 )) & (~3);
+	sofs = ((int)( FRA2TIME(seq->startdisp-seq->start+seq->anim_startofs)*(float)G.scene->audio.mixrate*4.0 )) & (~3);
+	eofs = ((int)( FRA2TIME(seq->enddisp-seq->start+seq->anim_startofs)*(float)G.scene->audio.mixrate*4.0 )) & (~3);
 	
 	/* clip the drawing area to the screen bounds to save time */
 	sample_step= (G.v2d->cur.xmax - G.v2d->cur.xmin)/winx;
@@ -376,7 +355,7 @@ static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, float pixelx, short d
 	float x1, x2, y1, y2;
 	float handsize;
 	float minhandle, maxhandle;
-	char str[120];
+	char str[32];
 	unsigned int whichsel=0;
 	View2D *v2d;
 	
@@ -447,9 +426,9 @@ static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, float pixelx, short d
 			glRasterPos3f(rx1,  y1-0.15, 0.0);
 		} else {
 			sprintf(str, "%d", seq->enddisp - 1);
-			glRasterPos3f((x2-BMF_GetStringWidth(G.font, str)*pixelx),  y2+0.05, 0.0);
+			glRasterPos3f((x2-BMF_GetStringWidth(G.fonts, str)*pixelx),  y2+0.05, 0.0);
 		}
-		BMF_DrawString(G.font, str);
+		BMF_DrawString(G.fonts, str);
 	}	
 }
 
@@ -636,7 +615,7 @@ static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float
 	
 	if (seq->flag & SEQ_MUTE) {
 		glEnable(GL_POLYGON_STIPPLE);
-		glPolygonStipple(halftone);
+		glPolygonStipple(stipple_halftone);
 	}
 	
 	ymid1 = (y2-y1)*0.25 + y1;
@@ -793,6 +772,7 @@ static void draw_image_seq(ScrArea *sa)
 	int free_ibuf = 0;
 	static int recursive= 0;
 	float zoom;
+	float zoomx, zoomy;
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -837,18 +817,37 @@ static void draw_image_seq(ScrArea *sa)
 	
 	if(ibuf==NULL) 
 		return;
-	if(ibuf->rect_float && ibuf->rect==NULL)
-		IMB_rect_from_float(ibuf);
-	if(ibuf->rect==NULL) 
+
+	if(ibuf->rect==NULL && ibuf->rect_float == NULL) 
 		return;
 
-	if (sseq->mainb == SEQ_DRAW_IMG_WAVEFORM) {
-		ibuf = make_waveform_view_from_ibuf(ibuf);
+	switch(sseq->mainb) {
+	case SEQ_DRAW_IMG_IMBUF:
+		if (sseq->zebra != 0) {
+			ibuf = make_zebra_view_from_ibuf(ibuf, sseq->zebra);
+			free_ibuf = 1;
+		}
+		break;
+	case SEQ_DRAW_IMG_WAVEFORM:
+		if ((sseq->flag & SEQ_DRAW_COLOR_SEPERATED) != 0) {
+			ibuf = make_sep_waveform_view_from_ibuf(ibuf);
+		} else {
+			ibuf = make_waveform_view_from_ibuf(ibuf);
+		}
 		free_ibuf = 1;
-	} else if (sseq->mainb == SEQ_DRAW_IMG_VECTORSCOPE) {
+		break;
+	case SEQ_DRAW_IMG_VECTORSCOPE:
 		ibuf = make_vectorscope_view_from_ibuf(ibuf);
 		free_ibuf = 1;
+		break;
+	case SEQ_DRAW_IMG_HISTOGRAM:
+		ibuf = make_histogram_view_from_ibuf(ibuf);
+		free_ibuf = 1;
+		break;
 	}
+
+	if(ibuf->rect_float && ibuf->rect==NULL)
+		IMB_rect_from_float(ibuf);
 
 	if (sseq->zoom > 0) {
 		zoom = sseq->zoom;
@@ -864,12 +863,43 @@ static void draw_image_seq(ScrArea *sa)
 
 	/* needed for gla draw */
 	glaDefine2DArea(&curarea->winrct);
+
+	zoomx = zoom * ((float)G.scene->r.xasp / (float)G.scene->r.yasp);
+	zoomy = zoom;
 	
-	glPixelZoom(zoom * ((float)G.scene->r.xasp / (float)G.scene->r.yasp), zoom);
+	glPixelZoom(zoomx, zoomy);
 	
 	glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 	
 	glPixelZoom(1.0, 1.0);
+
+	/* safety border */
+	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && 
+	    (sseq->flag & SEQ_DRAW_SAFE_MARGINS) != 0) {
+		float fac= 0.1;
+		float x2 = x1 + ibuf->x * zoomx;
+		float y2 = y1 + ibuf->y * zoomy;
+		
+		float a= fac*(x2-x1);
+		x1+= a; 
+		x2-= a;
+	
+		a= fac*(y2-y1);
+		y1+= a;
+		y2-= a;
+	
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
+		setlinestyle(3);
+
+		BIF_ThemeColorBlendShade(TH_WIRE, TH_BACK, 1.0, 0);
+		
+		uiSetRoundBox(15);
+		gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+
+		setlinestyle(0);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+
 
 	if (free_ibuf) {
 		IMB_freeImBuf(ibuf);

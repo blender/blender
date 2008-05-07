@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -245,8 +242,7 @@ static void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], flo
 		Mat3MulVecfl(t->con.pmtx, out);
 		
 		// With snap, a projection is alright, no need to correct for view alignment
-		if ((t->tsnap.status & SNAP_ON) == 0)
-			{
+		if ((t->tsnap.status & SNAP_ON) == 0) {
 			if (getConstraintSpaceDimension(t) == 2) {
 				if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
 					planeProjection(t, in, out);
@@ -669,7 +665,7 @@ void BIF_drawConstraint(void)
 		return;
 	
 	/* nasty exception for Z constraint in camera view */
-	if((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp>1) 
+	if((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp==V3D_CAMOB) 
 		return;
 
 	if (tc->drawExtra) {
@@ -723,7 +719,8 @@ void BIF_drawPropCircle()
 		BIF_ThemeColor(TH_GRID);
 		
 		/* if editmode we need to go into object space */
-		if(G.obedit) mymultmatrix(G.obedit->obmat);
+		if(G.obedit && t->spacetype == SPACE_VIEW3D)
+			mymultmatrix(G.obedit->obmat);
 		
 		mygetmatrix(tmat);
 		Mat4Invert(imat, tmat);
@@ -733,7 +730,8 @@ void BIF_drawPropCircle()
 		set_inverted_drawing(0);
 		
 		/* if editmode we restore */
-		if(G.obedit) myloadmatrix(G.vd->viewmat);
+		if(G.obedit && t->spacetype == SPACE_VIEW3D)
+			myloadmatrix(G.vd->viewmat);
 	}
 }
 

@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 /**
  * @file	GHOST_System.h
@@ -51,6 +48,7 @@ class GHOST_Event;
 class GHOST_TimerManager;
 class GHOST_Window;
 class GHOST_WindowManager;
+class GHOST_NDOFManager;
 
 /**
  * Implementation of platform independent functionality of the GHOST_ISystem
@@ -184,6 +182,27 @@ public:
 	 */
 	virtual GHOST_TSuccess addEventConsumer(GHOST_IEventConsumer* consumer);
 
+
+
+	/***************************************************************************************
+	 ** N-degree of freedom devcice management functionality
+	 ***************************************************************************************/
+
+	/** Inherited from GHOST_ISystem
+     *  Opens the N-degree of freedom device manager
+	 * return 0 if device found, 1 otherwise
+     */
+    virtual int openNDOF(GHOST_IWindow* w,        
+        GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
+        GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
+        GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen);
+        
+// original patch only        
+//        GHOST_NDOFEventHandler_fp setNdofEventHandler);
+
+
+
+
 	/***************************************************************************************
 	 ** Cursor management functionality
 	 ***************************************************************************************/
@@ -243,6 +262,12 @@ public:
 	 */
 	virtual inline GHOST_WindowManager* getWindowManager() const;
 
+ 	/**
+	 * Returns a pointer to our n-degree of freedeom manager.
+	 * @return A pointer to our n-degree of freedeom manager.
+	 */
+	virtual inline GHOST_NDOFManager* getNDOFManager() const;
+
 	/**
 	 * Returns the state of all modifier keys.
 	 * @param keys	The state of all modifier keys (true == pressed).
@@ -256,6 +281,21 @@ public:
 	 * @return			Indication of success.
 	 */
 	virtual GHOST_TSuccess getButtons(GHOST_Buttons& buttons) const = 0;
+
+	/**
+	 * Returns the selection buffer
+	 * @param flag		Only used on X11
+	 * @return 		Returns the clipboard data
+	 *
+	 */
+	 virtual GHOST_TUns8* getClipboard(int flag) const = 0;
+	  
+	  /**
+	   * Put data to the Clipboard
+	   * @param buffer	The buffer to copy to the clipboard
+	   * @param flag	The clipboard to copy too only used on X11
+	   */
+	  virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const = 0;
 
 protected:
 	/**
@@ -290,6 +330,9 @@ protected:
 	/** The event manager. */
 	GHOST_EventManager* m_eventManager;
 
+    /** The N-degree of freedom device manager */
+    GHOST_NDOFManager* m_ndofManager;
+
 	/** Prints all the events. */
 #ifdef GHOST_DEBUG
 	GHOST_EventPrinter m_eventPrinter;
@@ -312,6 +355,11 @@ inline GHOST_EventManager* GHOST_System::getEventManager() const
 inline GHOST_WindowManager* GHOST_System::getWindowManager() const
 {
 	return m_windowManager;
+}
+
+inline GHOST_NDOFManager* GHOST_System::getNDOFManager() const
+{
+	return m_ndofManager;
 }
 
 #endif // _GHOST_SYSTEM_H_

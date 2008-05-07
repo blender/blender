@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -147,8 +144,6 @@
 #include "BIF_previewrender.h"
 #include "BIF_writeimage.h"
 #include "BIF_butspace.h"
-
-#include "BPI_script.h"
 
 #include "BSE_edit.h"
 #include "BSE_filesel.h"
@@ -366,14 +361,13 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 		}
 		
 		if(del) {
-
 			uiSetButLock (pin && *pinpoin, "Can't unlink pinned data");
 			if(parid && parid->lib);
 			else {
 				uiDefIconBut(block, BUT, del, ICON_X, xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Deletes link to this Datablock");
 				xco+= XIC;
 			}
-
+			
 			uiClearButLock();
 		}
 
@@ -387,12 +381,13 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 			
 		}
 		if(keepbut) {
-			uiDefBut(block, BUT, keepbut, "F", xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Saves this datablock even if it has no users");  
+			uiDefButBitS(block, TOG, LIB_FAKEUSER, keepbut, "F", xco,yco,XIC,YIC, &id->flag, 0, 0, 0, 0, "Saves this datablock even if it has no users");
 			xco+= XIC;
 		}
 	}
 	else if(add_addbutton) {	/* "add new" button */
 		uiBlockSetCol(block, oldcol);
+		if(parid) uiSetButLock(parid->lib!=0, ERROR_LIBDATA_MESSAGE);
 		uiDefButS(block, TOG, browse, "Add New" ,xco, yco, 110, YIC, menupoin, (float)*menupoin, 32767.0, 0, 0, "Add new data block");
 		xco+= 110;
 	}
@@ -545,9 +540,14 @@ static void filesel_u_pythondir(char *name)
 
 	BLI_cleanup_dir(G.sce, name);
 	BLI_split_dirfile(name, dir, file);
-
+	
 	strcpy(U.pythondir, dir);
 	allqueue(REDRAWALL, 0);
+	
+	/* act on the change */
+	if (BPY_path_update()==0) {
+		error("Invalid scripts dir: check console");
+	}
 }
 
 static void filesel_u_sounddir(char *name)
@@ -569,6 +569,8 @@ static void filesel_u_tempdir(char *name)
 	BLI_split_dirfile(name, dir, file);
 
 	strcpy(U.tempdir, dir);
+	BLI_where_is_temp( btempdir, 1 );
+	
 	allqueue(REDRAWALL, 0);
 }
 
@@ -917,23 +919,30 @@ void do_global_buttons(unsigned short event)
 		}
 		break;
 	case B_ACTIONDELETE:
-		act=ob->action;
-		
-		if (act)
-			act->id.us--;
-		ob->action=NULL;
-		if(ob->pose) {		// clear flag, also used for draw colors
-			bPoseChannel *pchan;
-			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
-				pchan->flag= 0;
+		/* only available when not pinned */
+		if (G.saction->pin == 0) {
+			act= ob->action;
+			
+			/* decrement user-count of action (as ob no longer uses it) */
+			if (act)
+				act->id.us--;
+			
+			/* make sure object doesn't hold reference to it anymore */	
+			ob->action=NULL;
+			if (ob->pose) {		/* clear flag (POSE_LOC/ROT/SIZE), also used for draw colors */
+				bPoseChannel *pchan;
+				for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
+					pchan->flag= 0;
+			}
+			
+			BIF_undo_push("Unlink Action");
+			
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
 		}
-		BIF_undo_push("Unlink Action");
-		
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWBUTSEDIT, 0);
 		break;
 	case B_ACTIONBROWSE:
 		if (!ob)
@@ -946,18 +955,16 @@ void do_global_buttons(unsigned short event)
 			return;
 		}
 		
-		if(G.saction->actnr < 0) break;
+		if (G.saction->actnr < 0) break;
 		
 		/*	See if we have selected a valid action */
 		for (idtest= G.main->action.first; idtest; idtest= idtest->next) {
-				if(nr==G.saction->actnr) {
-					break;
-				}
-				nr++;
-			
+			if (nr==G.saction->actnr)
+				break;
+			nr++;
 		}
 
-		if(G.saction->pin) {
+		if (G.saction->pin) {
 			if (idtest == NULL) {
 				/* assign new/copy of pinned action only - messy as it doesn't assign to any obj's */
 				if (G.saction->action)
@@ -971,9 +978,8 @@ void do_global_buttons(unsigned short event)
 			allqueue(REDRAWACTION, 0);
 		}
 		else {
-
 			/* Store current action */
-			if (!idtest) {
+			if (idtest == NULL) {
 				/* 'Add New' option: 
 				 * 	- make a copy of an exisiting action
 				 *	- or make a new empty action if no existing action
@@ -982,10 +988,37 @@ void do_global_buttons(unsigned short event)
 					idtest= (ID *)copy_action(act);
 				} 
 				else { 
-					if (ID_OB==ob->type) {
-						/* for empties */
-						idtest=(ID *)add_empty_action("ObAction");
-					} 
+					if ((ob->ipo) && (ob->ipoflag & OB_ACTION_OB)==0) {
+						/* object ipo - like if B_IPO_ACTION_OB is triggered */
+						bActionChannel *achan;
+						
+						if (has_ipo_code(ob->ipo, OB_LAY))
+							notice("Note: Layer Ipo doesn't work in Actions");
+						
+						ob->ipoflag |= OB_ACTION_OB;
+						
+						act = add_empty_action("ObAction");
+						idtest=(ID *)act;
+						
+						
+						achan= verify_action_channel(act, "Object");
+						achan->flag = (ACHAN_HILIGHTED|ACHAN_SELECTED|ACHAN_EXPANDED|ACHAN_SHOWIPO);
+						
+						if (achan->ipo==NULL) {
+							achan->ipo= ob->ipo;
+							ob->ipo= NULL;
+							
+							allqueue(REDRAWIPO, 0);
+							allqueue(REDRAWOOPS, 0);
+						}
+						
+						/* object constraints */
+						if (ob->constraintChannels.first) {
+							free_constraint_channels(&achan->constraintChannels);
+							achan->constraintChannels= ob->constraintChannels;
+							ob->constraintChannels.first= ob->constraintChannels.last= NULL;
+						}
+					}
 					else if (ELEM(ob->type, OB_MESH, OB_LATTICE) && ob_get_key(ob)) {
 						/* shapekey - like if B_IPO_ACTION_KEY is triggered */
 						bActionChannel *achan;
@@ -999,11 +1032,10 @@ void do_global_buttons(unsigned short event)
 						achan= verify_action_channel(act, "Shape");
 						achan->flag = (ACHAN_HILIGHTED|ACHAN_SELECTED|ACHAN_EXPANDED|ACHAN_SHOWIPO);
 						
-						if(achan->ipo==NULL && key->ipo) {
+						if ((achan->ipo==NULL) && (key->ipo)) {
 							achan->ipo= key->ipo;
 							key->ipo= NULL;
 							
-							allqueue(REDRAWVIEW3D, 0);
 							allqueue(REDRAWIPO, 0);
 							allqueue(REDRAWOOPS, 0);
 						}
@@ -1017,15 +1049,15 @@ void do_global_buttons(unsigned short event)
 			}
 			
 			
-			if(idtest!=id && ob) {
+			if ((idtest!=id) && (ob)) {
 				act= (bAction *)idtest;
 				
 				ob->action= act;
 				id_us_plus(idtest);
 				
-				if(id) id->us--;
+				if (id) id->us--;
 				
-				// Update everything
+				/* Update everything */
 				BIF_undo_push("Browse Action");
 				do_global_buttons (B_NEWFRAME);
 				allqueue(REDRAWVIEW3D, 0);
@@ -1095,7 +1127,7 @@ void do_global_buttons(unsigned short event)
 			}
 			if(idtest!=id && from) {
 				spaceipo_assign_ipo(G.sipo, (Ipo *)idtest);
-									
+				
 				BIF_undo_push("Browse Ipo");
 			}
 		}
@@ -1402,6 +1434,8 @@ void do_global_buttons(unsigned short event)
 		break;
 	case B_NEWSPACE:
 		newspace(curarea, curarea->butspacetype);
+		reset_filespace(curarea);
+		reset_imaselspace(curarea);
 		break;
 	case B_LOADTEMP:	/* is button from space.c */
 		BIF_read_autosavefile();
@@ -1493,8 +1527,7 @@ void do_global_buttons(unsigned short event)
 
 	case B_PYMENUEVAL: /* is button from space.c *info* */
 		waitcursor( 1 ); /* can take some time */
-		BPyMenu_RemoveAllEntries(); /* free old data */
-		if (BPyMenu_Init(1) == -1) { /* re-eval scripts registration in menus */
+		if (BPY_path_update() == 0) { /* re-eval scripts registration in menus */
 			waitcursor( 0 );
 			error("Invalid scripts dir: check console");
 		}
@@ -1611,15 +1644,15 @@ void do_global_buttons(unsigned short event)
 			id = (ID *)G.sipo->ipo;
 		} else if(curarea->spacetype==SPACE_NODE) {
 			id = ((SpaceNode *)curarea->spacedata.first)->id;
-		} /* similar for other spacetypes ? */
+		} else if(curarea->spacetype==SPACE_ACTION) {
+			id= (ID *)G.saction->action;
+		}/* similar for other spacetypes ? */
 		if (id) {
-			if( id->flag & LIB_FAKEUSER) {
-				id->flag -= LIB_FAKEUSER;
-				id->us--;
-			} else {
-				id->flag |= LIB_FAKEUSER;
+			/* flag was already toggled, just need to update user count */
+			if(id->flag & LIB_FAKEUSER)
 				id->us++;
-			}
+			else
+				id->us--;
 		}
 		allqueue(REDRAWHEADERS, 0);
 

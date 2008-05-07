@@ -75,7 +75,7 @@ char type_ok(const int type)
 }
 
 /* Copy vdata or fdata from Mesh or EditMesh to Multires. */
-void multires_update_customdata(MultiresLevel *lvl1, CustomData *src, CustomData *dst, const int type)
+void multires_update_customdata(MultiresLevel *lvl1, EditMesh *em, CustomData *src, CustomData *dst, const int type)
 {
 	if(src && dst && type_ok(type)) {
 		const int tot= (type == CD_MDEFORMVERT ? lvl1->totvert : lvl1->totface);
@@ -84,7 +84,7 @@ void multires_update_customdata(MultiresLevel *lvl1, CustomData *src, CustomData
 		CustomData_free(dst, tot);
 		
 		if(CustomData_has_layer(src, type)) {
-			if(G.obedit) {
+			if(em) {
 				EditVert *eve= G.editMesh->verts.first;
 				EditFace *efa= G.editMesh->faces.first;
 				CustomData_copy(src, dst, cdmask(type), CD_CALLOC, tot);
@@ -227,9 +227,9 @@ void multires_del_lower_customdata(Multires *mr, MultiresLevel *cr_lvl)
 void multires_update_first_level(Mesh *me, EditMesh *em)
 {
 	if(me && me->mr && me->mr->current == 1) {
-		multires_update_customdata(me->mr->levels.first, em ? &em->vdata : &me->vdata,
+		multires_update_customdata(me->mr->levels.first, em, em ? &em->vdata : &me->vdata,
 		                           &me->mr->vdata, CD_MDEFORMVERT);
-		multires_update_customdata(me->mr->levels.first, em ? &em->fdata : &me->fdata,
+		multires_update_customdata(me->mr->levels.first, em, em ? &em->fdata : &me->fdata,
 		                           &me->mr->fdata, CD_MTFACE);
 		multires_update_edge_flags(me, em);
 	}

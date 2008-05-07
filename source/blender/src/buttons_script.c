@@ -1,15 +1,12 @@
 /**
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <time.h>
@@ -268,7 +265,7 @@ void do_scriptbuts(unsigned short event)
 	allqueue(REDRAWOOPS, 0);
 }
 
-void draw_scriptlink(uiBlock *block, ScriptLink *script, int sx, int sy, int scene) 
+void draw_scriptlink(uiBlock *block, ScriptLink *script, int sx, int sy, int idcode) 
 {
 	char str[256];
 
@@ -276,10 +273,13 @@ void draw_scriptlink(uiBlock *block, ScriptLink *script, int sx, int sy, int sce
 		strcpy(str, "FrameChanged%x 1|");
 		strcat(str, "Redraw%x 4|");
 		strcat(str, "Render%x 16|");
-		if (scene) {
+		if (idcode==ID_SCE) {
 			strcat(str, "OnLoad%x 2|");
 			strcat(str, "OnSave%x 8");
-		}
+		} else {
+			strcat(str, "ObjectUpdate%x 64|");
+			strcat(str, "ObDataUpdate%x 128");
+ 		}
 		uiBlockBeginAlign(block);
 		uiDefButS(block, MENU, 1, str, (short)sx, (short)sy, 140, 19, &script->flag[script->actscript-1], 0, 0, 0, 0, "Script links for this event");
 
@@ -291,7 +291,7 @@ void draw_scriptlink(uiBlock *block, ScriptLink *script, int sx, int sy, int sce
 	
 	uiDefButS(block, NUM, REDRAWBUTSSCRIPT, str, (short)(sx+140), (short)sy-20,60,19, &script->actscript, 1, script->totscript, 0, 0, "Total / Active Script link (LeftMouse + Drag to change)");
 
-	if (scene) {
+	if (idcode==ID_SCE) {
 		
 		if (script->totscript<32767) 
 			uiDefBut(block, BUT, B_SSCRIPT_ADD, "New", (short)(sx+240), (short)sy-20, 40, 19, 0, 0, 0, 0, 0, "Add a new Script link");
@@ -368,9 +368,9 @@ static void  script_panel_scriptlink(void)
 				script= &(G.scene->world->scriptlink);
 		}
 
-		if (script) draw_scriptlink(block, script, 10, 140, 0);			
+		if (script) draw_scriptlink(block, script, 10, 140, 0);
 
-		draw_scriptlink(block, &G.scene->scriptlink, 10, 80, 1);
+		draw_scriptlink(block, &G.scene->scriptlink, 10, 80, ID_SCE);
 	}
 }
 

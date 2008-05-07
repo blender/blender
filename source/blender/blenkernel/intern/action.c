@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): Full recode, Ton Roosendaal, Crete 2005
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef HAVE_CONFIG_H
@@ -295,7 +292,7 @@ void copy_pose(bPose **dst, bPose *src, int copycon)
 	
 	outPose= MEM_callocN(sizeof(bPose), "pose");
 	
-	duplicatelist (&outPose->chanbase, &src->chanbase);
+	duplicatelist(&outPose->chanbase, &src->chanbase);
 	
 	if (copycon) {
 		for (pchan=outPose->chanbase.first; pchan; pchan=pchan->next) {
@@ -314,11 +311,11 @@ void free_pose_channels(bPose *pose)
 	
 	if (pose->chanbase.first) {
 		for (pchan = pose->chanbase.first; pchan; pchan=pchan->next){
-			if(pchan->path)
+			if (pchan->path)
 				MEM_freeN(pchan->path);
 			free_constraints(&pchan->constraints);
 		}
-		BLI_freelistN (&pose->chanbase);
+		BLI_freelistN(&pose->chanbase);
 	}
 }
 
@@ -353,7 +350,9 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 	}
 }
 
-/* checks for IK constraint, can do more constraints flags later */
+/* checks for IK constraint, and also for Follow-Path constraint.
+ * can do more constraints flags later 
+ */
 /* pose should be entirely OK */
 void update_pose_constraint_flags(bPose *pose)
 {
@@ -361,13 +360,15 @@ void update_pose_constraint_flags(bPose *pose)
 	bConstraint *con;
 	
 	/* clear */
-	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
+	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
 		pchan->constflag= 0;
 	}
+	pose->flag &= ~POSE_CONSTRAINTS_TIMEDEPEND;
+	
 	/* detect */
-	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
-		for(con= pchan->constraints.first; con; con= con->next) {
-			if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+	for (pchan= pose->chanbase.first; pchan; pchan=pchan->next) {
+		for (con= pchan->constraints.first; con; con= con->next) {
+			if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
 				bKinematicConstraint *data = (bKinematicConstraint*)con->data;
 				
 				pchan->constflag |= PCHAN_HAS_IK;
@@ -390,7 +391,20 @@ void update_pose_constraint_flags(bPose *pose)
 					}
 				}
 			}
-			else pchan->constflag |= PCHAN_HAS_CONST;
+			else if (con->type == CONSTRAINT_TYPE_FOLLOWPATH) {
+				bFollowPathConstraint *data= (bFollowPathConstraint *)con->data;
+				
+				/* for drawing constraint colors when color set allows this */
+				pchan->constflag |= PCHAN_HAS_CONST;
+				
+				/* if we have a valid target, make sure that this will get updated on frame-change
+				 * (needed for when there is no anim-data for this pose)
+				 */
+				if ((data->tar) && (data->tar->type==OB_CURVE))
+					pose->flag |= POSE_CONSTRAINTS_TIMEDEPEND;
+			}
+			else 
+				pchan->constflag |= PCHAN_HAS_CONST;
 		}
 	}
 }
@@ -475,10 +489,11 @@ static float get_actionstrip_frame(bActionStrip *strip, float cframe, int invert
 {
 	float length, actlength, repeat, scale;
 	
+	if (strip->repeat == 0.0f) strip->repeat = 1.0f;
 	repeat = (strip->flag & ACTSTRIP_USESTRIDE) ? (1.0f) : (strip->repeat);
-	if(strip->scale == 0.0f) strip->scale= 1.0f;
 	
-	scale = abs(strip->scale); /* scale must be positive (for now) */
+	if (strip->scale == 0.0f) strip->scale= 1.0f;
+	scale = fabs(strip->scale); /* scale must be positive (for now) */
 	
 	actlength = strip->actend-strip->actstart;
 	if (actlength == 0.0f) actlength = 1.0f;
@@ -946,11 +961,7 @@ static float nla_time(float cfra, float unit)
 	
 	/* global time */
 	cfra*= G.scene->r.framelen;	
-
-
-	/* decide later... */
-//	if(no_speed_curve==0) if(ob && ob->ipo) cfra= calc_ipo_time(ob->ipo, cfra);
-
+	
 	return cfra;
 }
 
@@ -1128,12 +1139,13 @@ void what_does_obaction (Object *ob, bAction *act, float cframe)
 	workob.constraints.first = ob->constraints.first;
 	workob.constraints.last = ob->constraints.last;
 
-	strcpy(workob.parsubstr, ob->parsubstr); 
+	strcpy(workob.parsubstr, ob->parsubstr);
+	strcpy(workob.id.name, ob->id.name);
 	
 	/* extract_ipochannels_from_action needs id's! */
 	workob.action= act;
 	
-	extract_ipochannels_from_action(&tchanbase, &ob->id, act, "Object", bsystem_time(&workob, cframe, 0.0));
+	extract_ipochannels_from_action(&tchanbase, &workob.id, act, "Object", bsystem_time(&workob, cframe, 0.0));
 	
 	if (tchanbase.first) {
 		execute_ipochannels(&tchanbase);

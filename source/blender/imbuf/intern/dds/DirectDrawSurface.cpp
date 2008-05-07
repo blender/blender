@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,7 +19,7 @@
  *
  * Contributors: Amorilia (amorilia@gamebox.net)
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /*
@@ -496,9 +493,9 @@ void DDSHeader::setPixelFormat(uint bitcount, uint rmask, uint gmask, uint bmask
 	}
 
 	// Align to 8.
-	if (bitcount < 8) bitcount = 8;
-	else if (bitcount < 16) bitcount = 16;
-	else if (bitcount < 24) bitcount = 24;
+	if (bitcount <= 8) bitcount = 8;
+	else if (bitcount <= 16) bitcount = 16;
+	else if (bitcount <= 24) bitcount = 24;
 	else bitcount = 32;
 
 	this->pf.fourcc = 0; //findD3D9Format(bitcount, rmask, gmask, bmask, amask);
@@ -606,7 +603,7 @@ bool DirectDrawSurface::isSupported() const
 uint DirectDrawSurface::mipmapCount() const
 {
 	if (header.flags & DDSD_MIPMAPCOUNT) return header.mipmapcount;
-	else return 0;
+	else return 1;
 }
 
 
@@ -921,6 +918,11 @@ uint DirectDrawSurface::offset(const uint face, const uint mipmap)
 {
 	uint size = 128; //sizeof(DDSHeader);
 	
+	if (header.hasDX10Header())
+	{
+		size += 20; // sizeof(DDSHeader10);
+	}
+
 	if (face != 0)
 	{
 		size += face * faceSize();

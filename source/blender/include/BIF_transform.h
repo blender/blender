@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BIF_TRANSFORM_H
@@ -60,6 +57,9 @@
 #define	TFM_TIME_SCALE		21
 #define TFM_TIME_EXTEND		22
 #define TFM_BAKE_TIME		23
+#define TFM_BEVEL			24
+#define TFM_BWEIGHT			25
+#define TFM_ALIGN			26
 
 /* TRANSFORM CONTEXTS */
 #define CTX_NONE			0
@@ -69,9 +69,12 @@
 #define CTX_TWEAK			8
 #define CTX_NO_MIRROR		16
 #define CTX_AUTOCONFIRM		32
+#define CTX_BMESH			64
+#define CTX_NDOF			128
 
 void initTransform(int mode, int context);
 void Transform(void);
+void NDofTransform();
 
 /* Standalone call to get the transformation center corresponding to the current situation
  * returns 1 if successful, 0 otherwise (usually means there's no selection)
@@ -101,7 +104,7 @@ int BIF_menuselectTransformOrientation(void);
 void BIF_selectTransformOrientation(struct TransformOrientation *ts);
 void BIF_selectTransformOrientationFromIndex(int index);
 
-char * BIF_menustringTransformOrientation(); /* the returned value was allocated and needs to be freed after use */
+char * BIF_menustringTransformOrientation(char *title); /* the returned value was allocated and needs to be freed after use */
 int BIF_countTransformOrientation();
 
 /* Drawing callbacks */

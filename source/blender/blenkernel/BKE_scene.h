@@ -3,15 +3,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_SCENE_H
 #define BKE_SCENE_H
@@ -41,6 +38,7 @@ struct Base;
 struct AviCodecData;
 struct QuicktimeCodecData;
 struct SculptData;
+struct RenderData;
 
 /* sequence related defines */
 #define WHILE_SEQ(base)	{											\
@@ -81,6 +79,12 @@ int scene_check_setscene(struct Scene *sce);
 void scene_update_for_newframe(struct Scene *sce, unsigned int lay);
 
 void scene_add_render_layer(struct Scene *sce);
+
+/* render profile */
+int get_render_subsurf_level(struct RenderData *r, int level);
+int get_render_child_particle_number(struct RenderData *r, int num);
+int get_render_shadow_samples(struct RenderData *r, int samples);
+float get_render_aosss_error(struct RenderData *r, float error);
 
 #endif
 

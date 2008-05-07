@@ -11,6 +11,7 @@ incs += ' #/extern/bullet2/src'
 incs += ' #/intern/bmfont'
 incs += ' #/intern/opennl/extern'
 
+incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_OPENGL_INC']
 incs += ' ' + env['BF_ZLIB_INC']
 incs += ' ' + env['BF_SDL_INC']

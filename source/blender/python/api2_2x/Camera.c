@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Willian P. Germano, Johnny Matthews, Ken Hughes
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 #include "Camera.h" /*This must come first */
@@ -36,6 +33,7 @@
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_library.h"
+#include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h" /* for M_PI */
 #include "BSE_editipo.h"
@@ -478,7 +476,7 @@ static PyObject *Camera_oldsetLens( BPy_Camera * self, PyObject * value )
 {
 	float param = PyFloat_AsDouble(value);
 
-	if( !PyFloat_Check(value) )
+	if (PyErr_Occurred())
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected float argument" );
 
@@ -493,7 +491,7 @@ static PyObject *Camera_oldsetScale( BPy_Camera * self, PyObject * value )
 {
 	float param = PyFloat_AsDouble(value);
 
-	if( !PyFloat_Check(value) )
+	if (PyErr_Occurred())
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected float argument" );
 
@@ -508,7 +506,7 @@ static PyObject *Camera_oldsetClipStart( BPy_Camera * self, PyObject * value )
 {
 	float param = PyFloat_AsDouble(value);
 
-	if( !PyFloat_Check(value) )
+	if (PyErr_Occurred())
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected float argument" );
 
@@ -523,7 +521,7 @@ static PyObject *Camera_oldsetClipEnd( BPy_Camera * self, PyObject * value )
 {
 	float param = PyFloat_AsDouble(value);
 
-	if( !PyFloat_Check(value) )
+	if (PyErr_Occurred())
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected float argument" );
 
@@ -538,7 +536,7 @@ static PyObject *Camera_oldsetDrawSize( BPy_Camera * self, PyObject * value )
 {
 	float param = PyFloat_AsDouble(value);
 
-	if( !PyFloat_Check(value) )
+	if (PyErr_Occurred())
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected float argument" );
 
@@ -685,7 +683,7 @@ static PyObject *getFloatAttr( BPy_Camera *self, void *type )
 	float param;
 	struct Camera *cam= self->camera;
 
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_CAM_ATTR_LENS: 
 		param = cam->lens;
 		break;
@@ -738,7 +736,7 @@ static int setFloatAttrClamp( BPy_Camera *self, PyObject *value, void *type )
 	float min, max;
 	int ret;
  
-	switch( (int)type ) {
+	switch( GET_INT_FROM_POINTER(type) ) {
 	case EXPP_CAM_ATTR_LENS:
 		min = 1.0;
 		max = 250.0;
@@ -798,7 +796,7 @@ static int setFloatAttrClamp( BPy_Camera *self, PyObject *value, void *type )
 	ret = EXPP_setFloatClamped( value, param, min, max );
 	
 	if (ret==0) {
-		if ((int)type == EXPP_CAM_ATTR_ANGLE) {
+		if (GET_INT_FROM_POINTER(type) == EXPP_CAM_ATTR_ANGLE) {
 			cam->lens = 16.0f / tan(M_PI*cam->lens/360.0f);
 		}
 	}
@@ -812,7 +810,7 @@ static int setFloatAttrClamp( BPy_Camera *self, PyObject *value, void *type )
 
 static PyObject *getFlagAttr( BPy_Camera *self, void *type )
 {
-	if (self->camera->flag & (int)type)
+	if (self->camera->flag & GET_INT_FROM_POINTER(type))
 		Py_RETURN_TRUE;
 	else
 		Py_RETURN_FALSE;
@@ -830,9 +828,9 @@ static int setFlagAttr( BPy_Camera *self, PyObject *value, void *type )
 				"expected True/False or 0/1" );
 	
 	if (param)
-		self->camera->flag |= (int)type;
+		self->camera->flag |= GET_INT_FROM_POINTER(type);
 	else
-		self->camera->flag &= ~(int)type;
+		self->camera->flag &= ~GET_INT_FROM_POINTER(type);
 	return 0;
 }
 

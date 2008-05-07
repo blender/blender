@@ -117,7 +117,7 @@ static struct ListBase RenderList= {NULL, NULL};
 Render R;
 
 /* commandline thread override */
-static int commandline_threads= 0;
+static int commandline_threads= -1;
 
 /* ********* alloc and free ******** */
 
@@ -142,26 +142,23 @@ static void stats_background(RenderStats *rs)
 	float megs_used_memory= mem_in_use/(1024.0*1024.0);
 	char str[400], *spos= str;
 	
-	if(rs->convertdone) {
-		
-		spos+= sprintf(spos, "Fra:%d Mem:%.2fM ", G.scene->r.cfra, megs_used_memory);
-		
-		if(rs->curfield)
-			spos+= sprintf(spos, "Field %d ", rs->curfield);
-		if(rs->curblur)
-			spos+= sprintf(spos, "Blur %d ", rs->curblur);
-		
-		if(rs->infostr) {
-			spos+= sprintf(spos, "| %s", rs->infostr);
-		}
-		else {
-			if(rs->tothalo)
-				spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d Ha:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
-			else 
-				spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->totlamp);
-		}
-		printf(str); printf("\n");
-	}	
+	spos+= sprintf(spos, "Fra:%d Mem:%.2fM ", G.scene->r.cfra, megs_used_memory);
+	
+	if(rs->curfield)
+		spos+= sprintf(spos, "Field %d ", rs->curfield);
+	if(rs->curblur)
+		spos+= sprintf(spos, "Blur %d ", rs->curblur);
+	
+	if(rs->infostr) {
+		spos+= sprintf(spos, "| %s", rs->infostr);
+	}
+	else {
+		if(rs->tothalo)
+			spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d Ha:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
+		else 
+			spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->totlamp);
+	}
+	printf(str); printf("\n");
 }
 
 void RE_FreeRenderResult(RenderResult *res)
@@ -406,8 +403,6 @@ static int passtype_from_name(char *str)
 	return 0;
 }
 
-
-
 static void render_unique_exr_name(Render *re, char *str, int sample)
 {
 	char di[FILE_MAX], name[FILE_MAXFILE], fi[FILE_MAXFILE];
@@ -420,11 +415,7 @@ static void render_unique_exr_name(Render *re, char *str, int sample)
 	else
 		sprintf(name, "%s_%s%d.exr", fi, re->scene->id.name+2, sample);
 
-	if(G.background)
-		BLI_make_file_string("/", str, "/tmp/", name);
-	else
-		BLI_make_file_string("/", str, U.tempdir, name);
-		
+	BLI_make_file_string("/", str, btempdir, name);
 }
 
 static void render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int channels, int passtype)
@@ -562,23 +553,16 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_DIFFUSE);
 		if(srl->passflag  & SCE_PASS_SPEC)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_SPEC);
-		if(re->r.mode & R_SHADOW)
-			if(srl->passflag  & SCE_PASS_SHADOW)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_SHADOW);
-		if(re->r.mode & R_RAYTRACE) {
-			if(srl->passflag  & SCE_PASS_AO)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_AO);
-			if(srl->passflag  & SCE_PASS_REFLECT)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_REFLECT);
-			if(srl->passflag  & SCE_PASS_REFRACT)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_REFRACT);
-		}
-		else if(re->wrld.mode & WO_AMB_OCC)
-			if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_AO);
-		if(re->r.mode & R_RADIO)
-			if(srl->passflag  & SCE_PASS_RADIO)
-				render_layer_add_pass(rr, rl, 3, SCE_PASS_RADIO);
+		if(srl->passflag  & SCE_PASS_AO)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_AO);
+		if(srl->passflag  & SCE_PASS_SHADOW)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_SHADOW);
+		if(srl->passflag  & SCE_PASS_REFLECT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_REFLECT);
+		if(srl->passflag  & SCE_PASS_REFRACT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_REFRACT);
+		if(srl->passflag  & SCE_PASS_RADIO)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_RADIO);
 		if(srl->passflag  & SCE_PASS_INDEXOB)
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXOB);
 		if(srl->passflag  & SCE_PASS_MIST)
@@ -617,14 +601,13 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 
 static int render_scene_needs_vector(Render *re)
 {
-	if((re->r.scemode & R_DOCOMP) || re->r.imtype==R_MULTILAYER) {
-		SceneRenderLayer *srl;
+	SceneRenderLayer *srl;
 	
-		for(srl= re->scene->r.layers.first; srl; srl= srl->next)
-			if(!(srl->layflag & SCE_LAY_DISABLE))
-				if(srl->passflag & SCE_PASS_VECTOR)
-					return 1;
-	}
+	for(srl= re->scene->r.layers.first; srl; srl= srl->next)
+		if(!(srl->layflag & SCE_LAY_DISABLE))
+			if(srl->passflag & SCE_PASS_VECTOR)
+				return 1;
+
 	return 0;
 }
 
@@ -719,7 +702,7 @@ static void save_render_result_tile(RenderResult *rr, RenderResult *rrpart)
 
 	party= rrpart->tilerect.ymin + rrpart->crop;
 	partx= rrpart->tilerect.xmin + rrpart->crop;
-	IMB_exrtile_write_channels(rr->exrhandle, partx, party);
+	IMB_exrtile_write_channels(rr->exrhandle, partx, party, 0);
 
 	BLI_unlock_thread(LOCK_IMAGE);
 
@@ -737,7 +720,7 @@ static void save_empty_result_tiles(Render *re)
 			if(pa->ready==0) {
 				int party= pa->disprect.ymin - re->disprect.ymin + pa->crop;
 				int partx= pa->disprect.xmin - re->disprect.xmin + pa->crop;
-				IMB_exrtile_write_channels(rr->exrhandle, partx, party);
+				IMB_exrtile_write_channels(rr->exrhandle, partx, party, 0);
 			}
 		}
 	}
@@ -766,6 +749,8 @@ void RE_WriteRenderResult(RenderResult *rr, char *filename, int compress)
 	RenderLayer *rl;
 	RenderPass *rpass;
 	void *exrhandle= IMB_exr_get_handle();
+
+	BLI_make_existing_file(filename);
 	
 	/* composite result */
 	if(rr->rectf) {
@@ -885,7 +870,7 @@ static void read_render_result(Render *re, int sample)
 	
 	printf("read exr tmp file: %s\n", str);
 	
-	if(rectx!=re->result->rectx || recty!=re->result->recty) {
+	if(re->result == NULL || rectx!=re->result->rectx || recty!=re->result->recty) {
 		printf("error in reading render result\n");
 	}
 	else {
@@ -1068,7 +1053,7 @@ void RE_FreeAllRender(void)
 
 /* what doesn't change during entire render sequence */
 /* disprect is optional, if NULL it assumes full window render */
-void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect)
+void RE_InitState(Render *re, Render *source, RenderData *rd, int winx, int winy, rcti *disprect)
 {
 	re->ok= TRUE;	/* maybe flag */
 	
@@ -1096,13 +1081,31 @@ void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect
 		re->ok= 0;
 	}
 	else {
-		/* check state variables, osa? */
-		if(re->r.mode & (R_OSA)) {
-			re->osa= re->r.osa;
-			if(re->osa>16) re->osa= 16;
-		}
-		else re->osa= 0;
+#ifndef WITH_OPENEXR
+		/* can't do this without openexr support */
+		re->r.scemode &= ~R_EXR_TILE_FILE;
+#endif
 		
+		if(!(re->r.scemode & R_EXR_TILE_FILE))
+			re->r.scemode &= ~R_FULL_SAMPLE;	/* clear, so we can use this flag for test both */
+		
+		/* fullsample wants uniform osa levels */
+		if(source && (re->r.scemode & R_FULL_SAMPLE)) {
+			/* but, if source has no full sample we disable it */
+			if((source->r.scemode & R_FULL_SAMPLE)==0)
+				re->r.scemode &= ~R_FULL_SAMPLE;
+			else
+				re->r.osa= re->osa= source->osa;
+		}
+		else {
+			/* check state variables, osa? */
+			if(re->r.mode & (R_OSA)) {
+				re->osa= re->r.osa;
+				if(re->osa>16) re->osa= 16;
+			}
+			else re->osa= 0;
+		}
+
 		/* always call, checks for gamma, gamma tables and jitter too */
 		make_sample_tables(re);	
 		
@@ -1115,8 +1118,11 @@ void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect
 		/* we clip faces with a minimum of 2 pixel boundary outside of image border. see zbuf.c */
 		re->clipcrop= 1.0f + 2.0f/(float)(re->winx>re->winy?re->winy:re->winx);
 		
-		if(commandline_threads>0 && commandline_threads<=BLENDER_MAX_THREADS)
+		if ((rd->mode & R_FIXED_THREADS)==0 || commandline_threads == 0) { /* Automatic threads */
+			re->r.threads = BLI_system_thread_count();
+		} else if(commandline_threads >= 1 && commandline_threads<=BLENDER_MAX_THREADS) {
 			re->r.threads= commandline_threads;
+		}
 	}
 }
 
@@ -1247,7 +1253,7 @@ static void *do_part_thread(void *pa_v)
 	/* need to return nicely all parts on esc */
 	if(R.test_break()==0) {
 		
-		if(R.r.scemode & R_FULL_SAMPLE)
+		if(!R.sss_points && (R.r.scemode & R_FULL_SAMPLE))
 			pa->result= new_full_sample_buffers(&R, &pa->fullresult, &pa->disprect, pa->crop);
 		else
 			pa->result= new_render_result(&R, &pa->disprect, pa->crop, RR_USEMEM);
@@ -1464,7 +1470,9 @@ static void threaded_tile_processor(Render *re)
 	/* first step; free the entire render result, make new, and/or prepare exr buffer saving */
 	RE_FreeRenderResult(re->result);
 	
-	if(re->r.scemode & R_FULL_SAMPLE)
+	if(re->sss_points)
+		re->result= new_render_result(re, &re->disprect, 0, 0);
+	else if(re->r.scemode & R_FULL_SAMPLE)
 		re->result= new_full_sample_buffers_exr(re);
 	else
 		re->result= new_render_result(re, &re->disprect, 0, re->r.scemode & R_EXR_TILE_FILE);
@@ -1484,7 +1492,7 @@ static void threaded_tile_processor(Render *re)
 			render_unique_exr_name(re, str, rr->sample_nr);
 		
 			printf("write exr tmp file, %dx%d, %s\n", rr->rectx, rr->recty, str);
-			IMB_exrtile_begin_write(rr->exrhandle, str, rr->rectx, rr->recty, rr->rectx/re->xparts, rr->recty/re->yparts);
+			IMB_exrtile_begin_write(rr->exrhandle, str, 0, rr->rectx, rr->recty, re->partx, re->party);
 		}
 	}
 	
@@ -1595,14 +1603,16 @@ void RE_TileProcessor(Render *re, int firsttile, int threaded)
 	
 	re->i.partsdone= firsttile;
 
-	re->i.starttime= PIL_check_seconds_timer();
+	if(!re->sss_points)
+		re->i.starttime= PIL_check_seconds_timer();
 
 	if(threaded)
 		threaded_tile_processor(re);
 	else
 		render_tile_processor(re, firsttile);
 		
-	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
+	if(!re->sss_points)
+		re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
 	re->stats_draw(&re->i);
 }
 
@@ -1825,7 +1835,8 @@ static void load_backbuffer(Render *re)
 		char name[256];
 		
 		strcpy(name, re->r.backbuf);
-		BLI_convertstringcode(name, G.sce, re->r.cfra);
+		BLI_convertstringcode(name, G.sce);
+		BLI_convertstringframe(name, re->r.cfra);
 		
 		if(re->backbuf) {
 			re->backbuf->id.us--;
@@ -1921,10 +1932,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	}
 	
 	/* initial setup */
-	RE_InitState(resc, &sce->r, winx, winy, &re->disprect);
-	
-	/* this to enable this scene to create speed vectors */
-	resc->r.scemode |= R_DOCOMP;
+	RE_InitState(resc, re, &sce->r, winx, winy, &re->disprect);
 	
 	/* still unsure entity this... */
 	resc->scene= sce;
@@ -1932,10 +1940,6 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	/* ensure scene has depsgraph, base flags etc OK. Warning... also sets G.scene */
 	set_scene_bg(sce);
 
-	/* fullsample wants uniform osa levels */
-	if(resc->r.scemode & R_FULL_SAMPLE)
-		resc->r.osa= resc->osa= re->osa;
-	
 	/* copy callbacks */
 	resc->display_draw= re->display_draw;
 	resc->test_break= re->test_break;
@@ -1944,10 +1948,15 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	do_render_fields_blur_3d(resc);
 }
 
-static void ntree_render_scenes(Render *re)
+static void tag_scenes_for_render(Render *re)
 {
 	bNode *node;
-	int cfra= re->scene->r.cfra;
+	Scene *sce;
+	
+	for(sce= G.main->scene.first; sce; sce= sce->id.next)
+		sce->id.flag &= ~LIB_DOIT;
+	
+	re->scene->id.flag |= LIB_DOIT;
 	
 	if(re->scene->nodetree==NULL) return;
 	
@@ -1957,11 +1966,20 @@ static void ntree_render_scenes(Render *re)
 			if(node->id) {
 				if(node->id != (ID *)re->scene)
 					node->id->flag |= LIB_DOIT;
-				else
-					node->id->flag &= ~LIB_DOIT;
 			}
 		}
 	}
+	
+}
+
+static void ntree_render_scenes(Render *re)
+{
+	bNode *node;
+	int cfra= re->scene->r.cfra;
+	
+	if(re->scene->nodetree==NULL) return;
+	
+	tag_scenes_for_render(re);
 	
 	/* now foreach render-result node tagged we do a full render */
 	/* results are stored in a way compisitor will find it */
@@ -2008,25 +2026,33 @@ static void render_composit_stats(char *str)
 	R.i.infostr= NULL;
 }
 
+
 /* reads all buffers, calls optional composite, merges in first result->rectf */
 static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 {
-	float *rectf;
+	float *rectf, filt[3][3];
 	int sample;
+	
+	/* filtmask needs it */
+	R= *re;
 	
 	/* we accumulate in here */
 	rectf= MEM_mapallocN(re->rectx*re->recty*sizeof(float)*4, "fullsample rgba");
 	
-	for(sample=0; sample<re->osa; sample++) {
+	for(sample=0; sample<re->r.osa; sample++) {
 		RenderResult rres;
 		int x, y, mask;
 		
 		/* set all involved renders on the samplebuffers (first was done by render itself) */
+		/* also function below assumes this */
 		if(sample) {
 			Render *re1;
+			
+			tag_scenes_for_render(re);
 			for(re1= RenderList.first; re1; re1= re1->next) {
-				if(re1->r.scemode & R_FULL_SAMPLE)
-					read_render_result(re1, sample);
+				if(re1->scene->id.flag & LIB_DOIT)
+					if(re1->r.scemode & R_FULL_SAMPLE)
+						read_render_result(re1, sample);
 			}
 		}
 
@@ -2043,16 +2069,18 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 		
 		/* accumulate with filter, and clip */
 		mask= (1<<sample);
-		for(y=1; y<re->recty-1; y++) {
-			float *rf= rectf + 4*y*re->rectx + 4;
-			float *col= rres.rectf + 4*y*re->rectx + 4;
+		mask_array(mask, filt);
+
+		for(y=0; y<re->recty; y++) {
+			float *rf= rectf + 4*y*re->rectx;
+			float *col= rres.rectf + 4*y*re->rectx;
 				
-			for(x=1; x<re->rectx-1; x++, rf+=4, col+=4) {
+			for(x=0; x<re->rectx; x++, rf+=4, col+=4) {
 				if(col[0]<0.0f) col[0]=0.0f; else if(col[0] > 1.0f) col[0]= 1.0f;
 				if(col[1]<0.0f) col[1]=0.0f; else if(col[1] > 1.0f) col[1]= 1.0f;
 				if(col[2]<0.0f) col[2]=0.0f; else if(col[2] > 1.0f) col[2]= 1.0f;
 				
-				add_filt_fmask(mask, col, rf, re->rectx);
+				add_filt_fmask_coord(filt, col, rf, re->rectx, re->recty, x, y);
 			}
 		}
 		
@@ -2072,7 +2100,40 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 	re->result->rectf= rectf;
 }
 
-
+void RE_MergeFullSample(Render *re, Scene *sce, bNodeTree *ntree)
+{
+	Scene *scene;
+	bNode *node;
+	
+	/* first call RE_ReadRenderResult on every renderlayer scene. this creates Render structs */
+	
+	/* tag scenes unread */
+	for(scene= G.main->scene.first; scene; scene= scene->id.next) 
+		scene->id.flag |= LIB_DOIT;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type==CMP_NODE_R_LAYERS) {
+			Scene *nodescene= (Scene *)node->id;
+			
+			if(nodescene==NULL) nodescene= sce;
+			if(nodescene->id.flag & LIB_DOIT) {
+				nodescene->r.mode |= R_OSA;	/* render struct needs tables */
+				RE_ReadRenderResult(sce, nodescene);
+				nodescene->id.flag &= ~LIB_DOIT;
+			}
+		}
+	}
+	
+	/* own render result should be read/allocated */
+	if(G.scene->id.flag & LIB_DOIT)
+		RE_ReadRenderResult(G.scene, G.scene);
+	
+	/* and now we can draw (result is there) */
+	re->display_init(re->result);
+	re->display_clear(re->result);
+	
+	do_merge_fullsample(re, ntree);
+}
 
 /* returns fully composited render-result on given time step (in RenderData) */
 static void do_render_composite_fields_blur_3d(Render *re)
@@ -2100,30 +2161,30 @@ static void do_render_composite_fields_blur_3d(Render *re)
 			ntreeCompositTagAnimated(ntree);
 		}
 		
-		if(re->r.scemode & R_DOCOMP) {
-			/* checks if there are render-result nodes that need scene */
-			if((re->r.scemode & R_SINGLE_LAYER)==0)
-				ntree_render_scenes(re);
-			
-			if(!re->test_break()) {
-				ntree->stats_draw= render_composit_stats;
-				ntree->test_break= re->test_break;
-				/* in case it was never initialized */
-				R.stats_draw= re->stats_draw;
+		if(1 || !(re->r.scemode & R_COMP_RERENDER)) {
+			if(ntree && re->r.scemode & R_DOCOMP) {
+				/* checks if there are render-result nodes that need scene */
+				if((re->r.scemode & R_SINGLE_LAYER)==0)
+					ntree_render_scenes(re);
 				
-				if(re->r.scemode & R_FULL_SAMPLE) 
-					do_merge_fullsample(re, ntree);
-				else
-					ntreeCompositExecTree(ntree, &re->r, G.background==0);
-				
-				ntree->stats_draw= NULL;
-				ntree->test_break= NULL;
+				if(!re->test_break()) {
+					ntree->stats_draw= render_composit_stats;
+					ntree->test_break= re->test_break;
+					/* in case it was never initialized */
+					R.stats_draw= re->stats_draw;
+					
+					if(re->r.scemode & R_FULL_SAMPLE) 
+						do_merge_fullsample(re, ntree);
+					else
+						ntreeCompositExecTree(ntree, &re->r, G.background==0);
+					
+					ntree->stats_draw= NULL;
+					ntree->test_break= NULL;
+				}
 			}
-		}
-		else 
-			if(re->r.scemode & R_FULL_SAMPLE) 
+			else if(re->r.scemode & R_FULL_SAMPLE)
 				do_merge_fullsample(re, NULL);
-		
+		}
 	}
 
 	/* weak... the display callback wants an active renderlayer pointer... */
@@ -2375,31 +2436,21 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 		disprect.ymax= winy;
 	}
 	
-	if(scene->r.scemode & R_EXR_TILE_FILE) {
-		int partx= winx/scene->r.xparts, party= winy/scene->r.yparts;
-		
-		/* stupid exr tiles dont like different sizes */
-		if(winx != partx*scene->r.xparts || winy != party*scene->r.yparts) {
-			re->error("Sorry... exr tile saving only allowed with equally sized parts");
-			return 0;
-		}
-		if((scene->r.mode & R_FIELDS) && (party & 1)) {
-			re->error("Sorry... exr tile saving only allowed with equally sized parts");
-			return 0;
-		}
-	}
+	re->scene= scene;
+	
+	/* check all scenes involved */
+	tag_scenes_for_render(re);
 	
 	if(scene->r.scemode & R_SINGLE_LAYER)
 		push_render_result(re);
 	
-	RE_InitState(re, &scene->r, winx, winy, &disprect);
+	RE_InitState(re, NULL, &scene->r, winx, winy, &disprect);
 	if(!re->ok)  /* if an error was printed, abort */
 		return 0;
 	
 	/* initstate makes new result, have to send changed tags around */
 	ntreeCompositTagRender(re->scene);
 	
-	re->scene= scene;
 	if(!is_rendering_allowed(re))
 		return 0;
 	
@@ -2604,8 +2655,11 @@ void RE_ReadRenderResult(Scene *scene, Scene *scenode)
 	if(scenode)
 		scene= scenode;
 	
-	re= RE_NewRender(scene->id.name);
-	RE_InitState(re, &scene->r, winx, winy, &disprect);
+	/* get render: it can be called from UI with draw callbacks */
+	re= RE_GetRender(scene->id.name);
+	if(re==NULL)
+		re= RE_NewRender(scene->id.name);
+	RE_InitState(re, NULL, &scene->r, winx, winy, &disprect);
 	re->scene= scene;
 	
 	read_render_result(re, 0);
@@ -2613,8 +2667,11 @@ void RE_ReadRenderResult(Scene *scene, Scene *scenode)
 
 void RE_set_max_threads(int threads)
 {
-	if(threads>0 && threads<=BLENDER_MAX_THREADS)
+	if (threads==0) {
+		commandline_threads = BLI_system_thread_count();
+	} else if(threads>=1 && threads<=BLENDER_MAX_THREADS) {
 		commandline_threads= threads;
-	else
+	} else {
 		printf("Error, threads has to be in range 1-%d\n", BLENDER_MAX_THREADS);
+	}
 }

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * CSG operations. 
  */
 
@@ -399,10 +396,10 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 			if (!BLI_ghash_haskey(material_hash, orig_mat)) {
 				mat[*totmat] = orig_mat;
 				mat_nr = mface->mat_nr = (*totmat)++;
-				BLI_ghash_insert(material_hash, orig_mat, (void*)mat_nr);
+				BLI_ghash_insert(material_hash, orig_mat, SET_INT_IN_POINTER(mat_nr));
 			}
 			else
-				mface->mat_nr = (int)BLI_ghash_lookup(material_hash, orig_mat);
+				mface->mat_nr = GET_INT_FROM_POINTER(BLI_ghash_lookup(material_hash, orig_mat));
 		}
 		else
 			mface->mat_nr = 0;
@@ -531,6 +528,13 @@ int NewBooleanMesh(Base *base, Base *base_select, int int_op_type)
 
 	maxmat= ob->totcol + ob_select->totcol;
 	mat= (Material**)MEM_mallocN(sizeof(Material*)*maxmat, "NewBooleanMeshMat");
+	
+	/* put some checks in for nice user feedback */
+	if((!(get_mesh(ob)->totface)) || (!(get_mesh(ob_select)->totface)))
+	{
+		MEM_freeN(mat);
+		return -1;
+	}
 	
 	dm= NewBooleanDerivedMesh_intern(ob, ob_select, int_op_type, mat, &totmat);
 

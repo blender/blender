@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BDR_UNWRAPPER_H
@@ -41,6 +38,7 @@ void select_linked_tfaces_with_seams(int mode, struct Mesh *me, unsigned int ind
 void unwrap_lscm(short seamcut); /* unwrap faces selected in 3d view */
 void minimize_stretch_tface_uv(void); /* optimize faces selected in uv editor */
 void pack_charts_tface_uv(void);
+void average_charts_tface_uv(void);
 
 /* for live mode: no undo pushes, caching for quicky re-unwrap */
 void unwrap_lscm_live_begin(void);

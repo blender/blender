@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h>
@@ -65,7 +62,7 @@ int main(int argc, char**argv) {
 		if (argv[1][i]=='.') argv[1][i]='_';
 
 	sprintf(sizest, "%d", (int)size);
-	printf ("Input filesize is %d, Output size should be %d\n", size, ((int)size)*4 + strlen("/* DataToC output of file <> */\n\n") + strlen("char datatoc_[]= {\"") + strlen ("\"};\n") + (strlen(argv[1])*3) + strlen(sizest) + strlen("int datatoc__size= ;\n") +(((int)(size/256)+1)*5));
+	printf ("Input filesize is %ld, Output size should be %ld\n", size, ((int)size)*4 + strlen("/* DataToC output of file <> */\n\n") + strlen("char datatoc_[]= {\"") + strlen ("\"};\n") + (strlen(argv[1])*3) + strlen(sizest) + strlen("int datatoc__size= ;\n") +(((int)(size/256)+1)*5));
 	
 	fpout= fopen(cname, "w");
 	if (!fpout) {
@@ -96,8 +93,8 @@ int main(int argc, char**argv) {
 		/* fprintf (fpout, "\\x%02x", getc(fpin)); */
 		fprintf (fpout, "%3d,", getc(fpin));
 	}
-	
-	fprintf (fpout, "\n};\n\n");
+	/* null terminate for the case it is a string */
+	fprintf (fpout, "\n  0};\n\n");
 	
 	fclose(fpin);
 	fclose(fpout);

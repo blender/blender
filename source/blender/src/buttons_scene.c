@@ -1,15 +1,12 @@
 /**
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <time.h>
@@ -592,7 +589,7 @@ static void seq_panel_editing()
 		     "Mute the current strip.");
 
 	uiDefButBitI(block, TOG, SEQ_LOCK,
-		     B_NOP, "Lock",
+		     B_REDR, "Lock",
 		     70,100,60,19, &last_seq->flag,
 		     0.0, 1.0, 0, 0,
 		     "Lock strip, so that it can't be transformed.");
@@ -608,13 +605,13 @@ static void seq_panel_editing()
 		uiDefButI(block, NUM, 
 			  B_SEQ_BUT_TRANSFORM, "Start", 
 			  10, 80, 120, 20, &last_seq->start, 
-			  0.0, MAXFRAMEF, 0.0, 0.0, "Start of strip");
+			  -MAXFRAMEF, MAXFRAMEF, 0.0, 0.0, "Start of strip");
 		uiDefButI(block, NUM, 
 			  B_SEQ_BUT_TRANSFORM, "Chan", 
 			  130, 80, 120, 20, &last_seq->machine, 
 			  0.0, MAXSEQ, 0.0, 0.0, "Channel used (Y position)");
 		
-		if (check_single_seq(last_seq)) {
+		if (check_single_seq(last_seq) || last_seq->len == 0) {
 			uiDefButI(block, NUM, 
 				B_SEQ_BUT_TRANSFORM, "End-Still", 
 				130, 60, 120, 19, &last_seq->endstill, 
@@ -685,11 +682,24 @@ static void seq_panel_editing()
 		sprintf(str, "First: %d at %d\nLast: %d at %d\nCur: %d\n",
 			sta, last_seq->startdisp, end, last_seq->enddisp-1,  
 			(G.scene->r.cfra)-last_seq->startdisp);
+
+		str += strlen(str);
+		/* orig size */
+		if(last_seq->strip) {
+			sprintf(str, "OrigSize: %d x %d\n", 
+				last_seq->strip->orx, last_seq->strip->ory);
+		}
 	}
 	else if(last_seq->type==SEQ_SCENE) {
 		TStripElem * se= give_tstripelem(last_seq,  (G.scene->r.cfra));
 		if(se && last_seq->scene) {
 			sprintf(str, "First: %d\nLast: %d\nCur: %d\n", last_seq->sfra+se->nr, last_seq->sfra, last_seq->sfra+last_seq->len-1); 
+		}
+		str += strlen(str);
+		/* orig size */
+		if(last_seq->strip) {
+			sprintf(str, "OrigSize: %d x %d\n", 
+				last_seq->strip->orx, last_seq->strip->ory);
 		}
 	}
 	else if(last_seq->type==SEQ_RAM_SOUND
@@ -737,8 +747,7 @@ static void seq_panel_input()
 	if(uiNewPanel(curarea, block, "Input", "Sequencer", 
 		      10, 230, 318, 204) == 0) return;
 
-	if (last_seq->type == SEQ_MOVIE 
-	    || last_seq->type == SEQ_IMAGE) {
+	if (SEQ_HAS_PATH(last_seq)) {
 		uiDefBut(block, TEX, 
 			 B_SEQ_BUT_RELOAD_FILE, "Dir: ", 
 			 10,140,240,19, last_seq->strip->dir, 
@@ -777,7 +786,8 @@ static void seq_panel_input()
 
 	if (last_seq->type == SEQ_MOVIE 
 	    || last_seq->type == SEQ_IMAGE 
-	    || last_seq->type == SEQ_SCENE) {
+	    || last_seq->type == SEQ_SCENE
+	    || last_seq->type == SEQ_META) {
 		uiDefButBitI(block, TOG, SEQ_USE_CROP,
 			     B_SEQ_BUT_RELOAD, "Use Crop",
 			     10,100,240,19, &last_seq->flag,
@@ -831,12 +841,12 @@ static void seq_panel_input()
 				  B_SEQ_BUT_RELOAD, "X-Ofs", 
 				  10, 20, 120, 20, 
 				  &last_seq->strip->transform->xofs, 
-				  0.0, 4096, 0.0, 0.0, "X Offset");
+				  -4096.0, 4096, 0.0, 0.0, "X Offset");
 			uiDefButI(block, NUM, 
 				  B_SEQ_BUT_RELOAD, "Y-Ofs", 
 				  130, 20, 120, 20, 
 				  &last_seq->strip->transform->yofs, 
-				  0.0, 4096, 0.0, 0.0, "Y Offset");
+				  -4096.0, 4096, 0.0, 0.0, "Y Offset");
 		}
 	}
 
@@ -844,12 +854,12 @@ static void seq_panel_input()
 		  B_SEQ_BUT_RELOAD_FILE, "A-Start", 
 		  10, 0, 120, 20, &last_seq->anim_startofs, 
 		  0.0, last_seq->len + last_seq->anim_startofs, 0.0, 0.0, 
-		  "Animation start offset in file");
+		  "Animation start offset (trim start)");
 	uiDefButI(block, NUM, 
 		  B_SEQ_BUT_RELOAD_FILE, "A-End", 
 		  130, 0, 120, 20, &last_seq->anim_endofs, 
 		  0.0, last_seq->len + last_seq->anim_endofs, 0.0, 0.0, 
-		  "Animation end offset in file");
+		  "Animation end offset (trim end)");
 
 
 	if (last_seq->type == SEQ_MOVIE) {
@@ -876,49 +886,112 @@ static void seq_panel_filter_video()
 
 
 	uiDefButBitI(block, TOG, SEQ_MAKE_PREMUL, 
-		     B_SEQ_BUT_RELOAD, "Convert to Premul", 
-		     10,110,150,19, &last_seq->flag, 
+		     B_SEQ_BUT_RELOAD, "Premul", 
+		     10,110,80,19, &last_seq->flag, 
 		     0.0, 21.0, 100, 0, 
 		     "Converts RGB values to become premultiplied with Alpha");
 
+	uiDefButBitI(block, TOG, SEQ_MAKE_FLOAT, 
+		     B_SEQ_BUT_RELOAD, "Float",	
+		     90,110,80,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Convert input to float data");
+
 	uiDefButBitI(block, TOG, SEQ_FILTERY, 
 		     B_SEQ_BUT_RELOAD, "FilterY",	
-		     10,90,75,19, &last_seq->flag, 
+		     170,110,80,19, &last_seq->flag, 
 		     0.0, 21.0, 100, 0, 
 		     "For video movies to remove fields");
 
-	uiDefButBitI(block, TOG, SEQ_MAKE_FLOAT, 
-		     B_SEQ_BUT_RELOAD, "Make Float",	
-		     85,90,75,19, &last_seq->flag, 
-		     0.0, 21.0, 100, 0, 
-		     "Convert input to float data");
-		
 	uiDefButBitI(block, TOG, SEQ_FLIPX, 
 		     B_SEQ_BUT_RELOAD, "FlipX",	
-		     10,70,75,19, &last_seq->flag, 
+		     10,90,80,19, &last_seq->flag, 
 		     0.0, 21.0, 100, 0, 
 		     "Flip on the X axis");
 	uiDefButBitI(block, TOG, SEQ_FLIPY, 
 		     B_SEQ_BUT_RELOAD, "FlipY",	
-		     85,70,75,19, &last_seq->flag, 
+		     90,90,80,19, &last_seq->flag, 
 		     0.0, 21.0, 100, 0, 
 		     "Flip on the Y axis");
-		
-	uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Mul:",
-		  10,50,150,19, &last_seq->mul, 
-		  0.001, 5.0, 100, 0, 
-		  "Multiply colors");
 
 	uiDefButBitI(block, TOG, SEQ_REVERSE_FRAMES,
-		     B_SEQ_BUT_RELOAD, "Reverse Frames", 
-		     10,30,150,19, &last_seq->flag, 
+		     B_SEQ_BUT_RELOAD, "Flip Time", 
+		     170,90,80,19, &last_seq->flag, 
 		     0.0, 21.0, 100, 0, 
 		     "Reverse frame order");
+		
+	uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Mul:",
+		  10,70,120,19, &last_seq->mul, 
+		  0.001, 20.0, 0.1, 0, 
+		  "Multiply colors");
 
 	uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Strobe:",
-		  10,10,150,19, &last_seq->strobe, 
+		  130,70,120,19, &last_seq->strobe, 
 		  1.0, 30.0, 100, 0, 
 		  "Only display every nth frame");
+
+	uiDefButBitI(block, TOG, SEQ_USE_COLOR_BALANCE,
+		     B_SEQ_BUT_RELOAD, "Use Color Balance", 
+		     10,50,240,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Activate Color Balance "
+		     "(3-Way color correction) on input");
+
+
+	if (last_seq->flag & SEQ_USE_COLOR_BALANCE) {
+		if (!last_seq->strip->color_balance) {
+			int c;
+			StripColorBalance * cb 
+				= last_seq->strip->color_balance 
+				= MEM_callocN(
+					sizeof(struct StripColorBalance), 
+					"StripColorBalance");
+			for (c = 0; c < 3; c++) {
+				cb->lift[c] = 1.0;
+				cb->gamma[c] = 1.0;
+				cb->gain[c] = 1.0;
+			}
+		}
+
+		uiDefBut(block, LABEL, 0, "Lift",
+			 10,30,80,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Gamma",
+			 90,30,80,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Gain",
+			 170,30,80,19, 0, 0, 0, 0, 0, "");
+
+		uiDefButF(block, COL, B_SEQ_BUT_RELOAD, "Lift",
+			  10,10,80,19, last_seq->strip->color_balance->lift, 
+			  0, 0, 0, 0, "Lift (shadows)");
+
+		uiDefButF(block, COL, B_SEQ_BUT_RELOAD, "Gamma",
+			  90,10,80,19, last_seq->strip->color_balance->gamma, 
+			  0, 0, 0, 0, "Gamma (midtones)");
+
+		uiDefButF(block, COL, B_SEQ_BUT_RELOAD, "Gain",
+			  170,10,80,19, last_seq->strip->color_balance->gain, 
+			  0, 0, 0, 0, "Gain (highlights)");
+
+		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_INVERSE_LIFT,
+			     B_SEQ_BUT_RELOAD, "Inv Lift", 
+			     10,-10,80,19, 
+			     &last_seq->strip->color_balance->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Inverse Lift");
+		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_INVERSE_GAMMA,
+			     B_SEQ_BUT_RELOAD, "Inv Gamma", 
+			     90,-10,80,19, 
+			     &last_seq->strip->color_balance->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Inverse Gamma");
+		uiDefButBitI(block, TOG, SEQ_COLOR_BALANCE_INVERSE_GAIN,
+			     B_SEQ_BUT_RELOAD, "Inv Gain", 
+			     170,-10,80,19, 
+			     &last_seq->strip->color_balance->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Inverse Gain");
+	}
+
 
 	uiBlockEndAlign(block);
 
@@ -1083,13 +1156,61 @@ static void seq_panel_proxy()
 
 	uiDefButBitI(block, TOG, SEQ_USE_PROXY, 
 		     B_SEQ_BUT_RELOAD, "Use Proxy", 
-		     10,140,150,19, &last_seq->flag, 
+		     10,140,120,19, &last_seq->flag, 
 		     0.0, 21.0, 100, 0, 
 		     "Use a preview proxy for this strip");
-	
+
 	if (last_seq->flag & SEQ_USE_PROXY) {
+		if (!last_seq->strip->proxy) {
+			last_seq->strip->proxy = 
+				MEM_callocN(sizeof(struct StripProxy),
+					    "StripProxy");
+		}
 
+		uiDefButBitI(block, TOG, SEQ_USE_PROXY_CUSTOM_DIR, 
+			     B_SEQ_BUT_RELOAD, "Custom Dir", 
+			     130,140,120,19, &last_seq->flag, 
+			     0.0, 21.0, 100, 0, 
+			     "Use a custom directory to store data");
+	}
 
+	if (last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
+		uiDefIconBut(block, BUT, B_SEQ_SEL_PROXY_DIR, 
+			     ICON_FILESEL, 10, 120, 20, 20, 0, 0, 0, 0, 0, 
+			     "Select the directory/name for "
+			     "the proxy storage");
+
+		uiDefBut(block, TEX, 
+			 B_SEQ_BUT_RELOAD, "Dir: ", 
+			 30,120,220,20, last_seq->strip->proxy->dir, 
+			 0.0, 160.0, 100, 0, "");
+	}
+
+	if (last_seq->flag & SEQ_USE_PROXY) {
+		if (G.scene->r.size == 100) {
+			uiDefBut(block, LABEL, 0, 
+				 "Full render size selected, ",
+				 10,100,240,19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, 
+				 "so no proxy enabled!",
+				 10,80,240,19, 0, 0, 0, 0, 0, "");
+		} else if (last_seq->type != SEQ_MOVIE 
+			   && last_seq->type != SEQ_IMAGE
+			   && !(last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
+			uiDefBut(block, LABEL, 0, 
+				 "Cannot proxy this strip without ",
+				 10,100,240,19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, 
+				 "custom directory selection!",
+				 10,80,240,19, 0, 0, 0, 0, 0, "");
+
+		} else {
+			uiDefBut(block, BUT, B_SEQ_BUT_REBUILD_PROXY, 
+				 "Rebuild proxy",
+				 10,100,240,19, 0, 0, 0, 0, 0, 
+				 "Rebuild proxy for the "
+				 "currently selected strip.");
+		}
 	}
 
 	uiBlockEndAlign(block);
@@ -1111,12 +1232,12 @@ void sequencer_panels()
 	panels = SEQ_PANEL_EDITING;
 
 	if (type == SEQ_MOVIE || type == SEQ_IMAGE || type == SEQ_SCENE
-	    || type == SEQ_HD_SOUND) {
+	    || type == SEQ_META) {
 		panels |= SEQ_PANEL_INPUT | SEQ_PANEL_FILTER | SEQ_PANEL_PROXY;
 	}
 
-	if (type == SEQ_RAM_SOUND) {
-		panels |= SEQ_PANEL_FILTER;
+	if (type == SEQ_RAM_SOUND || type == SEQ_HD_SOUND) {
+		panels |= SEQ_PANEL_FILTER | SEQ_PANEL_INPUT;
 	}
 
 	if (type == SEQ_PLUGIN || type >= SEQ_EFFECT) {
@@ -1148,10 +1269,20 @@ void sequencer_panels()
 	}
 }
 
+static void sel_proxy_dir(char *name)
+{
+	Sequence *last_seq = get_last_seq();
+	strcpy(last_seq->strip->proxy->dir, name);
+
+	allqueue(REDRAWBUTSSCENE, 0);
+
+	BIF_undo_push("Change proxy directory");
+}
 
 void do_sequencer_panels(unsigned short event)
 {
 	Sequence *last_seq = get_last_seq();
+	ScrArea * sa;
 
 	switch(event) {
 	case B_SEQ_BUT_PLUGIN:
@@ -1160,6 +1291,16 @@ void do_sequencer_panels(unsigned short event)
 		break;
 	case B_SEQ_BUT_RELOAD_FILE:
 		reload_sequence_new_file(last_seq);
+		break;
+	case B_SEQ_BUT_REBUILD_PROXY:
+		seq_proxy_rebuild(last_seq);
+		break;
+	case B_SEQ_SEL_PROXY_DIR:
+		sa= closest_bigger_area();
+		areawinset(sa->win);
+		activate_fileselect(FILE_SPECIAL, "SELECT PROXY DIR", 
+				    last_seq->strip->proxy->dir, 
+				    sel_proxy_dir);
 		break;
 	case B_SEQ_BUT_RELOAD:
 	case B_SEQ_BUT_RELOAD_ALL:
@@ -1211,16 +1352,16 @@ static void backbuf_pic(char *name)
 static void run_playanim(char *file) 
 {
 	extern char bprogname[];	/* usiblender.c */
-	char str[FILE_MAX];
+	char str[FILE_MAX*2]; /* FILE_MAX*2 is a bit arbitary, but this should roughly allow for the args + the max-file-length */
 	int pos[2], size[2];
 
 	/* use current settings for defining position of window. it actually should test image size */
 	calc_renderwin_rectangle((G.scene->r.xsch*G.scene->r.size)/100, 
 							 (G.scene->r.ysch*G.scene->r.size)/100, G.winpos, pos, size);
 #ifdef WIN32
-	sprintf(str, "%s -a -p %d %d -f %d %g \"%s\"", bprogname, pos[0], pos[1], G.scene->r.frs_sec, G.scene->r.frs_sec_base, file);
+	sprintf(str, "%s -a -s %d -e %d -p %d %d -f %d %g \"%s\"", bprogname, G.scene->r.sfra, G.scene->r.efra, pos[0], pos[1], G.scene->r.frs_sec, G.scene->r.frs_sec_base, file);
 #else
-	sprintf(str, "\"%s\" -a -p %d %d -f %d %g \"%s\"", bprogname, pos[0], pos[1], G.scene->r.frs_sec, G.scene->r.frs_sec_base, file);
+	sprintf(str, "\"%s\" -a -s %d -e %d  -p %d %d -f %d %g \"%s\"", bprogname, G.scene->r.sfra, G.scene->r.efra, pos[0], pos[1], G.scene->r.frs_sec, G.scene->r.frs_sec_base, file);
 #endif
 	system(str);
 }
@@ -1453,7 +1594,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.xasp= 54;
 		G.scene->r.yasp= 51;
 		G.scene->r.size= 100;
-		G.scene->r.mode= R_OSA+R_SHADOW+R_FIELDS;
+		G.scene->r.mode= R_OSA+R_SHADOW+R_FIELDS+R_SSS;
 		G.scene->r.imtype= R_TARGA;
 		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
@@ -1673,7 +1814,7 @@ static char* ffmpeg_format_pup(void)
        }
        return string;
 #endif
-       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
+       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
        sprintf(string, formatstring,
                "MPEG-1", FFMPEG_MPEG1,
                "MPEG-2", FFMPEG_MPEG2,
@@ -1682,7 +1823,8 @@ static char* ffmpeg_format_pup(void)
                "Quicktime", FFMPEG_MOV,
                "DV", FFMPEG_DV,
 	       "H264", FFMPEG_H264,
-	       "XVid", FFMPEG_XVID);
+	       "XVid", FFMPEG_XVID,
+	       "FLV", FFMPEG_FLV);
        return string;
 }
 
@@ -1705,7 +1847,7 @@ static char* ffmpeg_preset_pup(void)
 static char* ffmpeg_codec_pup(void) {
        static char string[2048];
        char formatstring[2048];
-       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
+       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
        sprintf(string, formatstring,
                "MPEG1", CODEC_ID_MPEG1VIDEO,
                "MPEG2", CODEC_ID_MPEG2VIDEO,
@@ -1713,7 +1855,8 @@ static char* ffmpeg_codec_pup(void) {
                "HuffYUV", CODEC_ID_HUFFYUV,
 	       "DV", CODEC_ID_DVVIDEO,
                "H264", CODEC_ID_H264,
-	       "XVid", CODEC_ID_XVID);
+	       "XVid", CODEC_ID_XVID,
+	       "FlashVideo1", CODEC_ID_FLV1 );
        return string;
 
 }
@@ -1818,9 +1961,9 @@ static char *imagetype_pup(void)
 			"Targa",          R_TARGA,
 			"Targa Raw",      R_RAWTGA,
 			"PNG",            R_PNG,
-#ifdef WITH_DDS
+/*#ifdef WITH_DDS
 			"DDS",            R_DDS,
-#endif
+#endif*/
 			"BMP",            R_BMP,
 			"Jpeg",           R_JPEG90,
 			"HamX",           R_HAMX,
@@ -1873,17 +2016,19 @@ static void render_panel_output(void)
 	if(uiNewPanel(curarea, block, "Output", "Render", 0, 0, 318, 204)==0) return;
 	
 	uiBlockBeginAlign(block);
-	uiDefIconBut(block, BUT, B_FS_PIC, ICON_FILESEL,	10, 190, 20, 20, 0, 0, 0, 0, 0, "Open Fileselect to get Pics dir/name");
-	uiDefBut(block, TEX,0,"",							31, 190, 279, 20,G.scene->r.pic, 0.0,79.0, 0, 0, "Directory/name to save rendered Pics to");
-	uiDefIconBut(block, BUT,B_FS_BACKBUF, ICON_FILESEL, 10, 168, 20, 20, 0, 0, 0, 0, 0, "Open Fileselect to get Backbuf image");
-	uiDefBut(block, TEX,0,"",							31, 168, 279, 20,G.scene->r.backbuf, 0.0,79.0, 0, 0, "Image to use as background for rendering");
+	uiDefIconBut(block, BUT, B_FS_PIC, ICON_FILESEL,	10, 190, 20, 20, 0, 0, 0, 0, 0, "Select the directory/name for saving animations");
+	uiDefBut(block, TEX,0,"",							31, 190, 279, 20,G.scene->r.pic, 0.0,79.0, 0, 0, "Directory/name to save animations, # characters defines the position and length of frame numbers");
+	uiDefIconBut(block, BUT,B_FS_BACKBUF, ICON_FILESEL, 10, 168, 20, 20, 0, 0, 0, 0, 0, "Select the directory/name for a Backbuf image");
+	uiDefBut(block, TEX,0,"",							31, 168, 259, 20,G.scene->r.backbuf, 0.0,79.0, 0, 0, "Image to use as background for rendering");
+	uiDefIconButBitS(block, ICONTOG, R_BACKBUF, B_NOP, ICON_CHECKBOX_HLT-1,	290, 168, 20, 20, &G.scene->r.bufflag, 0.0, 0.0, 0, 0, "Enable/Disable use of Backbuf image");
 	uiBlockEndAlign(block);
 	
+	uiDefButBitI(block, TOG, R_EXTENSION, B_NOP, "Extensions", 10, 142, 100, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds filetype extensions to the filename when rendering animations");
+	
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_TOUCH, B_NOP, "Touch",	10, 142, 50, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Create an empty file before rendering each frame, remove if cancelled (and empty)");
-	uiDefButBitI(block, TOG, R_NO_OVERWRITE, B_NOP, "No Overwrite", 60, 142, 90, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Skip rendering frames when the file exists (image output only)");
+	uiDefButBitI(block, TOG, R_TOUCH, B_NOP, "Touch",	170, 142, 50, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Create an empty file before rendering each frame, remove if cancelled (and empty)");
+	uiDefButBitI(block, TOG, R_NO_OVERWRITE, B_NOP, "No Overwrite", 220, 142, 90, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Skip rendering frames when the file exists (image output only)");
 	uiBlockEndAlign(block);
-	uiDefButBitS(block, TOG, R_BACKBUF, B_NOP,"Backbuf",	160, 142, 80, 20, &G.scene->r.bufflag, 0, 0, 0, 0, "Enable/Disable use of Backbuf image");	
 	
 	/* SET BUTTON */
 	uiBlockBeginAlign(block);
@@ -1898,27 +2043,40 @@ static void render_panel_output(void)
 		uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, B_NOP, "",	31, 114, 100, 20, &(G.scene->set), "Name of the Set");
 		uiClearButLock();
 		uiDefIconBut(block, BUT, B_CLEARSET, ICON_X, 		132, 114, 20, 20, 0, 0, 0, 0, 0, "Remove Set link");
+	} else {
+		uiDefBut(block, LABEL, 0, "No Set Scene", 31, 114, 200, 20, 0, 0, 0, 0, 0, "");
 	}
 	uiBlockEndAlign(block);
 
-	uiDefButS(block, NUM, B_NOP, "Threads:",				10, 63, 100, 20, &G.scene->r.threads, 1, BLENDER_MAX_THREADS, 0, 0, "Amount of threads for render (takes advantage of multi-core and multi-processor computers)");
+	uiBlockBeginAlign(block);
+	uiDefIconButBitI(block, TOGN, R_FIXED_THREADS, B_REDR, ICON_AUTO,	10, 63, 20, 20, &G.scene->r.mode, 0.0, 0.0, 0, 0, "Automatically set the threads to the number of processors on the system");
+	if ((G.scene->r.mode & R_FIXED_THREADS)==0) {
+		char thread_str[16];
+		sprintf(thread_str, " Threads: %d", BLI_system_thread_count());
+		uiDefBut(block, LABEL, 0, thread_str, 30, 63,80,20, 0, 0, 0, 0, 0, "");
+	} else {
+		uiDefButS(block, NUM, B_NOP, "Threads:", 30, 63, 80, 20, &G.scene->r.threads, 1, BLENDER_MAX_THREADS, 0, 0, "Amount of threads for render (takes advantage of multi-core and multi-processor computers)");
+	}
+	uiBlockEndAlign(block);
+	
 	uiBlockSetCol(block, TH_AUTO);
 		
 	uiBlockBeginAlign(block);
 	for(b=2; b>=0; b--)
 		for(a=0; a<3; a++)
 			uiDefButBitS(block, TOG, 1<<(3*b+a), 800,"",	(short)(10+18*a),(short)(10+14*b),16,12, &G.winpos, 0, 0, 0, 0, "Render window placement on screen");
-
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, R_EXR_TILE_FILE, B_REDR, "Save Buffers", 72, 31, 120, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Save the tiles for all RenderLayers and used SceneNodes to files, to save memory");
-	if(G.scene->r.scemode & R_EXR_TILE_FILE)
-		uiDefButBitS(block, TOG, R_FULL_SAMPLE, B_REDR, "FullSample",	 192, 31, 118, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Saves for every OSA sample the entire RenderLayer results");
 	uiBlockEndAlign(block);
+
+#ifdef WITH_OPENEXR
+	uiBlockBeginAlign(block);
+	uiDefButBitI(block, TOG, R_EXR_TILE_FILE, B_REDR, "Save Buffers", 72, 31, 120, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Save tiles for all RenderLayers and used SceneNodes to files in the temp directory (saves memory, allows Full Sampling)");
+	if(G.scene->r.scemode & R_EXR_TILE_FILE)
+		uiDefButBitI(block, TOG, R_FULL_SAMPLE, B_REDR, "FullSample",	 192, 31, 118, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Saves for every OSA sample the entire RenderLayer results (Higher quality sampling but slower)");
+	uiBlockEndAlign(block);
+#endif
 	
 	uiDefButS(block, MENU, B_REDR, "Render Display %t|Render Window %x1|Image Editor %x0|Full Screen %x2",	
 					72, 10, 120, 19, &G.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output display");
-
-	uiDefButBitS(block, TOG, R_EXTENSION, B_NOP, "Extensions", 205, 10, 105, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds filetype extensions to the filename when rendering animations");
 	
 	/* Dither control */
 	uiDefButF(block, NUM,B_DIFF, "Dither:",         10,89,100,19, &G.scene->r.dither_intensity, 0.0, 2.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
@@ -1930,14 +2088,14 @@ static void render_panel_output(void)
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, R_NO_TEX, B_NOP, "Disable Tex", 115, 63, 70, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Disables Textures for render");
-	uiDefButBitS(block, TOG, R_FREE_IMAGE, B_NOP, "Free Tex Images", 205, 63, 100, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Frees all Images used by Textures after each render");
+	uiDefButBitI(block, TOG, R_NO_TEX, B_NOP, "Disable Tex", 115, 63, 75, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Disables Textures for render");
+	uiDefButBitI(block, TOG, R_FREE_IMAGE, B_NOP, "Free Tex Images", 210, 63, 100, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Frees all Images used by Textures after each render");
 	uiBlockEndAlign(block);
 }
 
 static void do_bake_func(void *unused_v, void *unused_p)
 {
-	objects_bake_render(0);
+	objects_bake_render_ui(0);
 }
 
 static void render_panel_bake(void)
@@ -1954,13 +2112,20 @@ static void render_panel_bake(void)
 
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, R_BAKE_TO_ACTIVE, B_DIFF, "Selected to Active", 10,120,190,20,&G.scene->r.bake_flag, 0.0, 0, 0, 0, "Bake shading on the surface of selected objects to the active object");
-	uiDefButF(block, NUM, B_DIFF, "Dist:", 10,100,(G.scene->r.bake_mode == RE_BAKE_NORMALS)? 95: 190,20,&G.scene->r.bake_maxdist, 0.0, 10.0, 1, 0, "Maximum distance from active object to other object");
+	uiDefButF(block, NUM, B_DIFF, "Dist:", 10,100,95,20,&G.scene->r.bake_maxdist, 0.0, 1000.0, 1, 0, "Maximum distance from active object to other object (in blender units)");
+	uiDefButF(block, NUM, B_DIFF, "Bias:", 105,100,95,20,&G.scene->r.bake_biasdist, 0.0, 1000.0, 1, 0, "Bias towards faces further away from the object (in blender units)");
+	uiBlockEndAlign(block);
 
 	if(G.scene->r.bake_mode == RE_BAKE_NORMALS)
 		uiDefButS(block, MENU, B_DIFF, "Normal Space %t|Camera %x0|World %x1|Object %x2|Tangent %x3", 
-			105,100,95,20, &G.scene->r.bake_normal_space, 0, 0, 0, 0, "Choose normal space for baking");
-	uiBlockEndAlign(block);
-
+			10,70,190,20, &G.scene->r.bake_normal_space, 0, 0, 0, 0, "Choose normal space for baking");
+	else if(G.scene->r.bake_mode == RE_BAKE_AO || G.scene->r.bake_mode == RE_BAKE_DISPLACEMENT) {
+		uiDefButBitS(block, TOG, R_BAKE_NORMALIZE, B_DIFF, "Normalized", 10,70,190,20, &G.scene->r.bake_flag, 0.0, 0, 0, 0,
+				G.scene->r.bake_mode == RE_BAKE_AO ?
+				 "Bake ambient occlusion normalized, without taking into acount material settings":
+				 "Normalized displacement value to fit the 'Dist' range"
+		);
+	}
 #if 0	
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, R_BAKE_OSA, B_DIFF, "OSA",		10,120,190,20, &G.scene->r.bake_flag, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
@@ -1980,6 +2145,27 @@ static void render_panel_bake(void)
 	uiDefButBitS(block, TOG, R_BAKE_CLEAR, B_DIFF, "Clear",		210,60,120,20,&G.scene->r.bake_flag, 0.0, 0, 0, 0, "Clear Images before baking");
 	
 	uiDefButS(block, NUM, B_DIFF,"Margin:",				210,30,120,20,&G.scene->r.bake_filter, 0.0, 32.0, 0, 0, "Amount of pixels to extend the baked result with, as post process filter");
+}
+
+static void render_panel_simplify(void)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "render_panel_simplify", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Render", "Render");
+	if(uiNewPanel(curarea, block, "Simplifcation", "Render", 320, 0, 318, 204)==0) return;
+
+	uiDefButBitI(block, TOG, R_SIMPLIFY, B_DIFF,"Render Simplification",	10,150,190,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable simplification of scene");
+
+	uiBlockBeginAlign(block);
+	uiDefButI(block, NUM,B_DIFF, "Subsurf:",	10,120,190,20, &G.scene->r.simplify_subsurf, 0.0, 6.0, 0, 0, "Global maximum subsurf level percentage");
+	uiDefButF(block, NUM,B_DIFF, "Child Particles:",	10,100,190,20, &G.scene->r.simplify_particles, 0.0, 1.0, 0, 0, "Global child particle percentage");
+	uiBlockEndAlign(block);
+
+	uiBlockBeginAlign(block);
+	uiDefButI(block, NUM,B_DIFF, "Shadow Samples:",	10,70,190,20, &G.scene->r.simplify_shadowsamples, 1.0, 16.0, 0, 0, "Global maximum shadow map samples");
+	uiDefButF(block, NUM,B_DIFF, "AO and SSS:",	10,50,190,20, &G.scene->r.simplify_aosss, 0.0, 1.0, 0, 0, "Global approximate AO and SSS quality factor");
+	uiBlockEndAlign(block);
 }
 
 static void render_panel_render(void)
@@ -2028,15 +2214,15 @@ static void render_panel_render(void)
 	uiDefButS(block, ROW,800,"Key",		456,13,35,20,&G.scene->r.alphamode,3.0,2.0, 0, 0, "Alpha and color values remain unchanged");
 	uiBlockEndAlign(block);
 
-	if(G.scene->r.mode & R_RAYTRACE)
-		uiDefButS(block, MENU, B_DIFF,"Octree resolution %t|64 %x64|128 %x128|256 %x256|512 %x512",	496,13,64,20,&G.scene->r.ocres,0.0,0.0, 0, 0, "Octree resolution for ray tracing");
+	uiDefButS(block, MENU, B_DIFF,"Octree resolution %t|64 %x64|128 %x128|256 %x256|512 %x512",	496,13,64,20,&G.scene->r.ocres,0.0,0.0, 0, 0, "Octree resolution for ray tracing and baking, Use higher values for complex scenes");
 
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_SHADOW, B_REDR,"Shadow",	565,172,60,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
-	uiDefButBitI(block, TOG, R_ENVMAP, B_REDR,"EnvMap",	627,172,60,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map rendering");
-	uiDefButBitI(block, TOG, R_PANORAMA, B_REDR,"Pano",	565,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
-	uiDefButBitI(block, TOG, R_RAYTRACE, B_REDR,"Ray",606,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable ray tracing");
-	uiDefButBitI(block, TOG, R_RADIO, B_REDR,"Radio",	647,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
+	uiDefButBitI(block, TOG, R_SHADOW, B_REDR,"Shadow",	565,172,52,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
+	uiDefButBitI(block, TOG, R_SSS, B_REDR,"SSS",	617,172,32,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable subsurface scattering map rendering");
+	uiDefButBitI(block, TOG, R_PANORAMA, B_REDR,"Pano",	649,172,38,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
+	uiDefButBitI(block, TOG, R_ENVMAP, B_REDR,"EnvMap",	565,142,52,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map rendering");
+	uiDefButBitI(block, TOG, R_RAYTRACE, B_REDR,"Ray",617,142,32,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable ray tracing");
+	uiDefButBitI(block, TOG, R_RADIO, B_REDR,"Radio",	649,142,38,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
@@ -2069,12 +2255,12 @@ static void render_panel_anim(void)
 	if(uiNewPanel(curarea, block, "Anim", "Render", 640, 0, 318, 204)==0) return;
 
 
-	uiDefBut(block, BUT,B_DOANIM,"ANIM",		692,142,192,47, 0, 0, 0, 0, 0, "Render the animation to disk (start to end frame)");
+	uiDefBut(block, BUT,B_DOANIM,"ANIM",		692,142,192,47, 0, 0, 0, 0, 0, "Render the animation to disk from start to end frame, (Ctrl+F12)");
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, R_DOSEQ, B_NOP, "Do Sequence",692,114,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Enables sequence output rendering (Default: 3D rendering)");
-	uiDefButBitS(block, TOG, R_DOCOMP, B_NOP, "Do Composite",692,90,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Uses compositing nodes for output rendering");
+	uiDefButBitI(block, TOG, R_DOSEQ, B_NOP, "Do Sequence",692,114,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Enables sequence output rendering (Default: 3D rendering)");
+	uiDefButBitI(block, TOG, R_DOCOMP, B_NOP, "Do Composite",692,90,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Uses compositing nodes for output rendering");
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_AUTO);
@@ -2302,12 +2488,12 @@ static void render_panel_stamp(void)
 			yofs += 30;
 		}
 		
-		uiDefButBitS(block, TOG, R_STAMP_INFO, B_REDR, "Enable Stamp", xofs, yofs, 120, 20, &G.scene->r.scemode, 0, 0, 0, 0, "Disable stamp info in images metadata");
+		uiDefButBitI(block, TOG, R_STAMP_INFO, B_REDR, "Enable Stamp", xofs, yofs, 120, 20, &G.scene->r.scemode, 0, 0, 0, 0, "Disable stamp info in images metadata");
 		uiDefButBitI(block, TOG, R_STAMP_DRAW, B_REDR, "Draw Stamp", xofs+130, yofs, 170, 20, &G.scene->r.stamp, 0, 0, 0, 0, "Draw the stamp info into each frame");
 		yofs += 20;
 	}
 	else {
-		uiDefButBitS(block, TOG, R_STAMP_INFO, B_REDR, "Enable Stamp", xofs, 142, 120, 20, &G.scene->r.scemode, 0, 0, 0, 0, "Enable stamp info to image metadata");
+		uiDefButBitI(block, TOG, R_STAMP_INFO, B_REDR, "Enable Stamp", xofs, 142, 120, 20, &G.scene->r.scemode, 0, 0, 0, 0, "Enable stamp info to image metadata");
 		yofs += 20;
 		uiDefBut(block, LABEL, 0, "", xofs, yofs, 300, 19, 0, 0, 0, 0, 0, "");
 	}
@@ -2333,8 +2519,18 @@ static void render_panel_format(void)
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM,REDRAWVIEWCAM,"SizeX:",	892 ,136,112,27, &G.scene->r.xsch, 4.0, 10000.0, 0, 0, "The image width in pixels");
 	uiDefButS(block, NUM,REDRAWVIEWCAM,"SizeY:",	1007,136,112,27, &G.scene->r.ysch, 4.0,10000.0, 0, 0, "The image height in scanlines");
-	uiDefButS(block, NUM,REDRAWVIEWCAM,"AspX:",	892 ,114,112,20, &G.scene->r.xasp, 1.0,200.0, 0, 0, "The horizontal aspect ratio");
-	uiDefButS(block, NUM,REDRAWVIEWCAM,"AspY:",	1007,114,112,20, &G.scene->r.yasp, 1.0,200.0, 0, 0, "The vertical aspect ratio");
+	
+	uiDefButF(block, NUM, REDRAWVIEWCAM, "AspX:",
+				892 ,114,112,20,
+				&G.scene->r.xasp,
+				1, 200, 100, 2,
+				"Horizontal Aspect Ratio");
+	uiDefButF(block, NUM, REDRAWVIEWCAM, "AspY:",
+			 	1007,114,112,20,
+			 	&G.scene->r.yasp,
+			 	1, 200, 100, 2,
+			 	"Vertical Aspect Ratio");
+	
 	uiBlockEndAlign(block);
 
 	yofs = 54;
@@ -2392,6 +2588,18 @@ static void render_panel_format(void)
 															892,yofs,74,20, &G.scene->r.quality, 0, 0, 0, 0, "Set codec settings for OpenEXR");
 		
 #endif
+	} else if (G.scene->r.imtype == R_DPX || G.scene->r.imtype == R_CINEON) {
+		uiDefButBitS(block, TOG, R_CINEON_LOG, B_REDR, "Log",           892,yofs,74,20, &G.scene->r.subimtype, 0, 0, 0, 0, "Convert to log color space");
+
+		if(G.scene->r.subimtype & R_CINEON_LOG) {
+			uiBlockBeginAlign(block);
+			uiDefButS(block, NUM, B_NOP, "B",	892,yofs+44,80,20, &G.scene->r.cineonblack, 0, 1024, 0, 0, "Log conversion reference black");
+			uiDefButS(block, NUM, B_NOP, "W",	972,yofs+44,80,20, &G.scene->r.cineonwhite, 0, 1024, 0, 0, "Log conversion reference white");
+			uiDefButF(block, NUM, B_NOP, "G",	1052,yofs+44,70,20, &G.scene->r.cineongamma, 0.0f, 10.0f, 1, 2, "Log conversion gamma");
+			uiBlockEndAlign(block);
+		}
+	} else if (G.scene->r.imtype == R_TIFF) {
+		uiDefButBitS(block, TOG, R_TIFF_16BIT, B_REDR, "16 Bit",           892,yofs,74,20, &G.scene->r.subimtype, 0, 0, 0, 0, "Save 16 bit per channel TIFF");
 	} else {
 		if(G.scene->r.quality < 5) G.scene->r.quality = 90;	/* restore from openexr */
 		
@@ -2509,8 +2717,6 @@ static void render_panel_yafrayGlobal()
 	uiDefButF(block, NUMSLI, B_DIFF, "Gam ", 5,10,150,20, &G.scene->r.YF_gamma, 0.001, 5.0, 0, 0, "Gamma correction, 1 is off");
 	uiDefButF(block, NUMSLI, B_DIFF, "Exp ", 160,10,150,20,&G.scene->r.YF_exposure, 0.0, 10.0, 0, 0, "Exposure adjustment, 0 is off");
         
-	uiDefButI(block, NUM, B_DIFF, "Processors:", 160,60,150,20, &G.scene->r.YF_numprocs, 1.0, 8.0, 10, 10, "Number of processors to use");
-
 	/*AA Settings*/
 	uiDefButBitS(block, TOGN, 1, B_REDR, "Auto AA", 5,140,150,20, &G.scene->r.YF_AA, 
 					0, 0, 0, 0, "Set AA using OSA and GI quality, disable for manual control");
@@ -2527,7 +2733,7 @@ static void render_panel_yafrayGlobal()
 static void layer_copy_func(void *lay_v, void *lay_p)
 {
 	unsigned int *lay= lay_p;
-	int laybit= (int)lay_v;
+	int laybit= GET_INT_FROM_POINTER(lay_v);
 
 	if(G.qual & (LR_SHIFTKEY|LR_CTRLKEY)) {
 		if(*lay==0) *lay= 1<<laybit;
@@ -2660,7 +2866,7 @@ static void render_panel_layers(void)
 	bt= uiDefBut(block, TEX, REDRAWNODE, "",  53,145,172,20, srl->name, 0.0, 20.0, 0, 0, "");
 	uiButSetFunc(bt, rename_scene_layer_func, srl, NULL);
 	
-	uiDefButBitS(block, TOG, R_SINGLE_LAYER, B_NOP, "Single",	230,145,60,20, &G.scene->r.scemode, 0, 0, 0, 0, "Only render this layer");	
+	uiDefButBitI(block, TOG, R_SINGLE_LAYER, B_NOP, "Single",	230,145,60,20, &G.scene->r.scemode, 0, 0, 0, 0, "Only render this layer");	
 	bt=uiDefIconBut(block, BUT, B_NOP, ICON_X,	285, 145, 25, 20, 0, 0, 0, 0, 0, "Deletes current Render Layer");
 	uiButSetFunc(bt, delete_scene_layer_func, srl, (void *)(long)G.scene->r.actlay);
 	uiBlockEndAlign(block);
@@ -2670,8 +2876,11 @@ static void render_panel_layers(void)
 	draw_3d_layer_buttons(block, BUT_TOGDUAL, &srl->lay,		130,110, 35, 30, "Scene-layers included in this render-layer (Hold CTRL for Z-mask)");
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, SCE_LAY_ALL_Z, B_NOP,"AllZ",	10, 85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Fill in Z values for solid faces in invisible layers, for masking");	
-	uiDefButBitI(block, TOG, SCE_LAY_ZMASK, B_NOP,"Zmask",	10, 65, 40, 20, &srl->layflag, 0, 0, 0, 0, "Only render what's in front of the solid z values");	
+	uiDefButBitI(block, TOG, SCE_LAY_ZMASK, B_REDR,"Zmask",	10, 85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Only render what's in front of the solid z values");	
+	if(srl->layflag & SCE_LAY_ZMASK)
+		uiDefButBitI(block, TOG, SCE_LAY_NEG_ZMASK, B_NOP,"Neg",	10, 65, 40, 20, &srl->layflag, 0, 0, 0, 0, "For Zmask, only render what is behind solid z values instead of in front");
+	else
+		uiDefButBitI(block, TOG, SCE_LAY_ALL_Z, B_NOP,"AllZ",	10, 65, 40, 20, &srl->layflag, 0, 0, 0, 0, "Fill in Z values for solid faces in invisible layers, for masking");	
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, SCE_LAY_SOLID, B_NOP,"Solid",	50,  85, 45, 20, &srl->layflag, 0, 0, 0, 0, "Render Solid faces in this Layer");	
 	uiDefButBitI(block, TOG, SCE_LAY_HALO, B_NOP,"Halo",	95,  85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Halos in this Layer (on top of Solid)");	
@@ -2709,6 +2918,7 @@ void render_panels()
 	render_panel_output();
 	render_panel_layers();
 	render_panel_render();
+	if(G.rt == 1) render_panel_simplify();
 	render_panel_anim();
 	render_panel_bake();
 

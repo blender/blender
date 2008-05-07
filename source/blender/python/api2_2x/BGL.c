@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Willian P. Germano
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 /* This file is the Blender.BGL part of opy_draw.c, from the old
@@ -1099,7 +1096,7 @@ PyObject *BGL_Init(void)
 	if( PyType_Ready( &buffer_Type) < 0)
 		Py_RETURN_NONE;
 
-#define EXPP_ADDCONST(x) EXPP_dict_set_item_str(dict, #x, PyInt_FromLong(x))
+#define EXPP_ADDCONST(x) EXPP_dict_set_item_str(dict, #x, PyInt_FromLong((int)x))
 
 /* So, for example:
  * EXPP_ADDCONST(GL_CURRENT_BIT) becomes
@@ -1126,7 +1123,8 @@ PyObject *BGL_Init(void)
 	EXPP_ADDCONST(GL_TEXTURE_BIT);
 	EXPP_ADDCONST(GL_SCISSOR_BIT);
 	EXPP_ADDCONST(GL_ALL_ATTRIB_BITS);
-
+	EXPP_ADDCONST(GL_CLIENT_ALL_ATTRIB_BITS);
+	
 	EXPP_ADDCONST(GL_FALSE);
 	EXPP_ADDCONST(GL_TRUE);
 

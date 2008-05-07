@@ -383,7 +383,7 @@ class Object:
 	@ivar sel: The selection state of the object in the current scene. 
 		True is selected, False is unselected. Setting makes the object active.
 	@type sel: boolean
-	@ivar effects: The list of particle effects associated with the object.
+	@ivar effects: The list of particle effects associated with the object. (depricated, will always return an empty list)
 		Read-only.
 	@type effects: list of Effect objects
 	@ivar parentbonename: The string name of the parent bone (if defined).
@@ -417,7 +417,7 @@ class Object:
 				empty_ob.setMatrix(dupe_matrix)
 			Blender.Redraw()
 	@type DupObjects: list of tuples containing (object, matrix)
-	@ivar enableNLAOverride: Whether the object uses NLA or active Action for animation.
+	@ivar enableNLAOverride: Whether the object uses NLA or active Action for animation. When True the NLA is used.
 	@type enableNLAOverride: boolean
 	@ivar enableDupVerts: The DupliVerts status of the object.
 		Does not indicate that this object has any dupliVerts,
@@ -636,12 +636,16 @@ class Object:
 	@ivar rbShapeBoundType: Rigid body shape bound type.  See L{RBShapes}
 		const dict for values.
 	@type rbShapeBoundType: int
+	@ivar trackAxis: Track axis. Return string 'X' | 'Y' | 'Z' | '-X' | '-Y' | '-Z' (readonly)
+	@type trackAxis: string 
+	@ivar upAxis: Up axis. Return string 'Y' | 'Y' | 'Z' (readonly)
+	@type upAxis: string
 	"""
 
 	def buildParts():
 		"""
 		Recomputes the particle system. This method only applies to an Object of
-		the type Effect.
+		the type Effect. (depricated, does nothing now, use makeDisplayList instead to update the modifier stack)
 		"""
 
 	def insertShapeKey():
@@ -1178,10 +1182,12 @@ class Object:
 				- 1  - selected
 		"""
 	
-	def getBoundBox():
+	def getBoundBox(worldspace=1):
 		"""
 		Returns the worldspace bounding box of this object.  This works for meshes (out of
 		edit mode) and curves.
+		@type worldspace: int
+		@param worldspace: An optional argument. When zero, the bounding values will be localspace.
 		@rtype: list of 8 (x,y,z) float coordinate vectors (WRAPPED DATA)
 		@return: The coordinates of the 8 corners of the bounding box. Data is wrapped when
 		bounding box is present.
@@ -1189,12 +1195,9 @@ class Object:
 
 	def makeDisplayList():
 		"""
-		Updates this object's display list.  Blender uses display lists to store
-		already transformed data (like a mesh with its vertices already modified
-		by coordinate transformations and armature deformation).  If the object
-		isn't modified, there's no need to recalculate this data.  This method is
-		here for the *few cases* where a script may need it, like when toggling
-		the "SubSurf" mode for a mesh:
+		Forces an update to the objects display data. If the object isn't modified,
+		there's no need to recalculate this data.
+		This method is here for the *few cases* where it is needed.
 
 		Example::
 			import Blender

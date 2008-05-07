@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /** 
@@ -147,6 +144,7 @@
 #include "BIF_interface.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
+#include "BIF_previewrender.h"
 #include "BIF_resources.h"
 #include "BIF_retopo.h"
 #include "BIF_screen.h"
@@ -338,6 +336,7 @@ void delete_obj(int ok)
 	allqueue(REDRAWNLA, 0);
 	
 	DAG_scene_sort(G.scene);
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 
 	BIF_undo_push("Delete object(s)");
 }
@@ -556,6 +555,20 @@ static int return_editcurve_indexar(int *tot, int **indexar, float *cent)
 	return totvert;
 }
 
+/* use this when the loc/size/rot of the parent has changed but the children should stay in the same place
+ * apply-size-rot or object center for eg */
+static void ignore_parent_tx( Object *ob ) {
+	Object *ob_child;
+	/* a change was made, adjust the children to compensate */
+	for (ob_child=G.main->object.first; ob_child; ob_child=ob_child->id.next) {
+		if (ob_child->parent == ob) {
+			apply_obmat(ob_child);
+			what_does_parent(ob_child);
+			Mat4Invert(ob_child->parentinv, workob.obmat);
+		}
+	}
+}
+
 static void select_editcurve_hook(HookModifierData *hmd)
 {
 	extern ListBase editNurb;
@@ -632,13 +645,10 @@ int hook_getIndexArray(int *tot, int **indexar, char *name, float *cent_r)
 	}
 }
 
-void add_hook(void)
+void add_hook_menu(void)
 {
-	ModifierData *md = NULL;
-	HookModifierData *hmd = NULL;
-	Object *ob=NULL;
 	int mode;
-
+	
 	if(G.obedit==NULL) return;
 	
 	if(modifiers_findByType(G.obedit, eModifierType_Hook))
@@ -647,9 +657,25 @@ void add_hook(void)
 		mode= pupmenu("Hooks %t|Add, New Empty %x1|Add, To Selected Object %x2");
 
 	if(mode<1) return;
+		
+	/* do operations */
+	add_hook(mode);
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	
+	BIF_undo_push("Add hook");
+}
+
+void add_hook(int mode)
+{
+	ModifierData *md = NULL;
+	HookModifierData *hmd = NULL;
+	Object *ob=NULL;
+	
+	if(G.obedit==NULL) return;
 	
 	/* preconditions */
-
 	if(mode==2) { /* selected object */
 		Base *base= FIRSTBASE;
 		while(base) {
@@ -706,11 +732,11 @@ void add_hook(void)
 				a++;
 			}
 		}
-
+		
 		hmd = (HookModifierData*) md;
 		ob= hmd->object;
 	}
-
+	
 	/* do it, new hooks or reassign */
 	if(mode==1 || mode==2 || mode==4) {
 		float cent[3];
@@ -718,7 +744,7 @@ void add_hook(void)
 		char name[32];
 		
 		ok = hook_getIndexArray(&tot, &indexar, name, cent);
-
+		
 		if(ok==0) {
 			error("Requires selected vertices or active Vertex Group");
 		}
@@ -726,7 +752,7 @@ void add_hook(void)
 			
 			if(mode==1) {
 				Base *base= BASACT, *newbase;
-
+				
 				ob= add_object(OB_EMPTY);
 				/* set layers OK */
 				newbase= BASACT;
@@ -740,15 +766,15 @@ void add_hook(void)
 				BASACT= base;
 			}
 			/* if mode is 2 or 4, ob has been set */
-									
+			
 			/* new hook */
 			if(mode==1 || mode==2) {
 				ModifierData *md = G.obedit->modifiers.first;
-
+				
 				while (md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform) {
 					md = md->next;
 				}
-
+				
 				hmd = (HookModifierData*) modifier_new(eModifierType_Hook);
 				BLI_insertlinkbefore(&G.obedit->modifiers, md, hmd);
 				sprintf(hmd->modifier.name, "Hook-%s", ob->id.name+2);
@@ -767,7 +793,7 @@ void add_hook(void)
 				/*        (parentinv         )                          */
 				
 				where_is_object(ob);
-		
+				
 				Mat4Invert(ob->imat, ob->obmat);
 				/* apparently this call goes from right to left... */
 				Mat4MulSerie(hmd->parentinv, ob->imat, G.obedit->obmat, NULL, 
@@ -784,18 +810,14 @@ void add_hook(void)
 	}
 	else if(mode==6) { /* clear offset */
 		where_is_object(ob);	/* ob is hook->parent */
-
+		
 		Mat4Invert(ob->imat, ob->obmat);
 		/* this call goes from right to left... */
 		Mat4MulSerie(hmd->parentinv, ob->imat, G.obedit->obmat, NULL, 
 					NULL, NULL, NULL, NULL, NULL);
 	}
 
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
 	DAG_scene_sort(G.scene);
-	
-	BIF_undo_push("Add hook");
 }
 
 void make_track(void)
@@ -899,15 +921,15 @@ void apply_obmat(Object *ob)
 	Mat3CpyMat4(mat, ob->obmat);
 	
 	VECCOPY(ob->loc, ob->obmat[3]);
-	
-	if(ob->transflag & OB_QUAT) {
+	/* Quats arnt used yet */
+	/*if(ob->transflag & OB_QUAT) {
 		Mat3ToQuat(mat, ob->quat);
 		QuatToMat3(ob->quat, tmat);
 	}
-	else {
+	else {*/
 		Mat3ToEul(mat, ob->rot);
 		EulToMat3(ob->rot, tmat);
-	}
+	/*}*/
 	Mat3Inv(imat, tmat);
 	
 	Mat3MulMat3(tmat, imat, mat);
@@ -954,7 +976,7 @@ void clear_parent(void)
 	}
 
 	DAG_scene_sort(G.scene);
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	
@@ -1020,18 +1042,31 @@ void clear_object(char mode)
 				 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
 				 *	- with clearing transform of object being edited at the time
 				 */
-				if ((G.f & G_WEIGHTPAINT) || ob==OBACT) {
+				if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
 					clear_armature(ob, mode);
 					armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
 				}
 			}
 			else if((G.f & G_WEIGHTPAINT)==0) {
-				
-				if(mode=='r') {
-					memset(ob->rot, 0, 3*sizeof(float));
-					memset(ob->drot, 0, 3*sizeof(float));
-					QuatOne(ob->quat);
-					QuatOne(ob->dquat);
+				/* only clear transforms of 'normal' (not armature) object if:
+				 *	- not in weightpaint mode or editmode
+				 *	- if that object's transform locks are not enabled (this is done on a per-channel basis)
+				 */
+				if (mode=='r') {
+					/* eulers can only get cleared if they are not protected */
+					if ((ob->protectflag & OB_LOCK_ROTX)==0)
+						ob->rot[0]= ob->drot[0]= 0.0f;
+					if ((ob->protectflag & OB_LOCK_ROTY)==0)
+						ob->rot[1]= ob->drot[1]= 0.0f;
+					if ((ob->protectflag & OB_LOCK_ROTZ)==0)
+						ob->rot[2]= ob->drot[2]= 0.0f;
+					
+					/* quats here are not really used anymore anywhere, so it probably doesn't 
+					 * matter to not clear them whether the euler-based rotation is used
+					 */
+					/*QuatOne(ob->quat);
+					QuatOne(ob->dquat);*/
+					
 #ifdef WITH_VERSE
 					if(ob->vnode) {
 						struct VNode *vnode = (VNode*)ob->vnode;
@@ -1041,9 +1076,14 @@ void clear_object(char mode)
 #endif
 
 				}
-				else if(mode=='g') {
-					memset(ob->loc, 0, 3*sizeof(float));
-					memset(ob->dloc, 0, 3*sizeof(float));
+				else if (mode=='g') {
+					if ((ob->protectflag & OB_LOCK_LOCX)==0)
+						ob->loc[0]= ob->dloc[0]= 0.0f;
+					if ((ob->protectflag & OB_LOCK_LOCY)==0)
+						ob->loc[1]= ob->dloc[1]= 0.0f;
+					if ((ob->protectflag & OB_LOCK_LOCZ)==0)
+						ob->loc[2]= ob->dloc[2]= 0.0f;
+					
 #ifdef WITH_VERSE
 					if(ob->vnode) {
 						struct VNode *vnode = (VNode*)ob->vnode;
@@ -1053,11 +1093,19 @@ void clear_object(char mode)
 #endif
 
 				}
-				else if(mode=='s') {
-					memset(ob->dsize, 0, 3*sizeof(float));
-					ob->size[0]= 1.0;
-					ob->size[1]= 1.0;
-					ob->size[2]= 1.0;
+				else if (mode=='s') {
+					if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
+						ob->dsize[0]= 0.0f;
+						ob->size[0]= 1.0f;
+					}
+					if ((ob->protectflag & OB_LOCK_SCALEY)==0) {
+						ob->dsize[1]= 0.0f;
+						ob->size[1]= 1.0f;
+					}
+					if ((ob->protectflag & OB_LOCK_SCALEZ)==0) {
+						ob->dsize[2]= 0.0f;
+						ob->size[2]= 1.0f;
+					}
 #ifdef WITH_VERSE
 					if(ob->vnode) {
 						struct VNode *vnode = (VNode*)ob->vnode;
@@ -1089,7 +1137,7 @@ void clear_object(char mode)
 	
 	allqueue(REDRAWVIEW3D, 0);
 	if(armature_clear==0) /* in this case flush was done */
-		DAG_scene_flush_update(G.scene, screen_view3d_layers());
+		DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 	BIF_undo_push(str);
 }
 
@@ -1589,7 +1637,7 @@ void make_parent(void)
 	allqueue(REDRAWOOPS, 0);
 	
 	DAG_scene_sort(G.scene);
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 	
 	BIF_undo_push("make Parent");
 }
@@ -1751,20 +1799,6 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 	/* for example; displist make is different in editmode */
 	if(freedata) G.obedit= NULL;
 
-	/* total remake of softbody data */
-	if(modifiers_isSoftbodyEnabled(ob)) {
-		if (ob->soft && ob->soft->keys) {
-			notice("Erase Baked SoftBody");
-		}
-
-		sbObjectToSoftbody(ob);
-	}
-	
-	if(modifiers_isClothEnabled(ob)) {
-		ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-		clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-	}
-	
 	if(ob->type==OB_MESH && get_mesh(ob)->mr)
 		multires_edge_level_update(ob, get_mesh(ob));
 	
@@ -1916,6 +1950,9 @@ void docenter(int centermode)
 							base->object->loc[1]+= centn[1];
 							base->object->loc[2]+= centn[2];
 							
+							where_is_object(base->object);
+							ignore_parent_tx(base->object);
+							
 							/* other users? */
 							ob= G.main->object.first;
 							while(ob) {
@@ -1933,6 +1970,9 @@ void docenter(int centermode)
 										ob->loc[0]+= centn[0];
 										ob->loc[1]+= centn[1];
 										ob->loc[2]+= centn[2];
+										
+										where_is_object(ob);
+										ignore_parent_tx(ob);
 										
 										if(tme && (tme->flag & ME_ISDONE)==0) {
 											mvert= tme->mvert;
@@ -2013,6 +2053,9 @@ void docenter(int centermode)
 							base->object->loc[0]+= cent[0];
 							base->object->loc[1]+= cent[1];
 							base->object->loc[2]+= cent[2];
+							
+							where_is_object(base->object);
+							ignore_parent_tx(base->object);
 						}
 						
 						tot_change++;
@@ -2060,6 +2103,10 @@ void docenter(int centermode)
 						 */
 						docenter_armature(base->object, centermode);
 						tot_change++;
+						
+						where_is_object(base->object);
+						ignore_parent_tx(base->object);
+						
 						if(G.obedit) 
 							break;
 					}
@@ -2070,7 +2117,7 @@ void docenter(int centermode)
 		base= base->next;
 	}
 	if (tot_change) {
-		DAG_scene_flush_update(G.scene, screen_view3d_layers());
+		DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 		allqueue(REDRAWVIEW3D, 0);
 		BIF_undo_push("Do Center");	
 	}
@@ -2205,6 +2252,153 @@ void split_font()
 		set_active_base(oldbase);		
 	}
 }
+
+static void helpline(short *mval, int *center2d)
+{
+	
+	/* helpline, copied from transform.c actually */
+	persp(PERSP_WIN);
+	glDrawBuffer(GL_FRONT);
+	
+	BIF_ThemeColor(TH_WIRE);
+	
+	setlinestyle(3);
+	glBegin(GL_LINE_STRIP); 
+	glVertex2sv(mval); 
+	glVertex2iv((GLint *)center2d); 
+	glEnd();
+	setlinestyle(0);
+	
+	persp(PERSP_VIEW);
+	bglFlush(); // flush display for frontbuffer
+	glDrawBuffer(GL_BACK);
+	
+	
+}
+
+/* context: ob = lamp */
+/* code should be replaced with proper (custom) transform handles for lamp properties */
+static void spot_interactive(Object *ob, int mode)
+{
+	Lamp *la= ob->data;
+	float transfac, dx, dy, ratio, origval;
+	int keep_running= 1, center2d[2];
+	short mval[2], mvalo[2];
+	
+	getmouseco_areawin(mval);
+	getmouseco_areawin(mvalo);
+	
+	project_int(ob->obmat[3], center2d);
+	if( center2d[0] > 100000 ) {		/* behind camera */
+		center2d[0]= curarea->winx/2;
+		center2d[1]= curarea->winy/2;
+	}
+
+	helpline(mval, center2d);
+	
+	/* ratio is like scaling */
+	dx = (float)(center2d[0] - mval[0]);
+	dy = (float)(center2d[1] - mval[1]);
+	transfac = (float)sqrt( dx*dx + dy*dy);
+	if(transfac==0.0f) transfac= 1.0f;
+	
+	if(mode==1)	
+		origval= la->spotsize;
+	else if(mode==2)	
+		origval= la->dist;
+	else if(mode==3)	
+		origval= la->clipsta;
+	else	
+		origval= la->clipend;
+	
+	while (keep_running>0) {
+		
+		getmouseco_areawin(mval);
+		
+		/* essential for idling subloop */
+		if(mval[0]==mvalo[0] && mval[1]==mvalo[1]) {
+			PIL_sleep_ms(2);
+		}
+		else {
+			char str[32];
+			
+			dx = (float)(center2d[0] - mval[0]);
+			dy = (float)(center2d[1] - mval[1]);
+			ratio = (float)(sqrt( dx*dx + dy*dy))/transfac;
+			
+			/* do the trick */
+			
+			if(mode==1) {	/* spot */
+				la->spotsize = ratio*origval;
+				CLAMP(la->spotsize, 1.0f, 180.0f);
+				sprintf(str, "Spot size %.2f\n", la->spotsize);
+			}
+			else if(mode==2) {	/* dist */
+				la->dist = ratio*origval;
+				CLAMP(la->dist, 0.01f, 5000.0f);
+				sprintf(str, "Distance %.2f\n", la->dist);
+			}
+			else if(mode==3) {	/* sta */
+				la->clipsta = ratio*origval;
+				CLAMP(la->clipsta, 0.001f, 5000.0f);
+				sprintf(str, "Distance %.2f\n", la->clipsta);
+			}
+			else if(mode==4) {	/* end */
+				la->clipend = ratio*origval;
+				CLAMP(la->clipend, 0.1f, 5000.0f);
+				sprintf(str, "Clip End %.2f\n", la->clipend);
+			}
+
+			/* cleanup */
+			mvalo[0]= mval[0];
+			mvalo[1]= mval[1];
+			
+			/* handle shaded mode */
+			shade_buttons_change_3d();
+
+			/* DRAW */	
+			headerprint(str);
+			force_draw_plus(SPACE_BUTS, 0);
+
+			helpline(mval, center2d);
+		}
+		
+		while( qtest() ) {
+			short val;
+			unsigned short event= extern_qread(&val);
+			
+			switch (event){
+				case ESCKEY:
+				case RIGHTMOUSE:
+					keep_running= 0;
+					break;
+				case LEFTMOUSE:
+				case SPACEKEY:
+				case PADENTER:
+				case RETKEY:
+					if(val)
+						keep_running= -1;
+					break;
+			}
+		}
+	}
+
+	if(keep_running==0) {
+		if(mode==1)	
+			la->spotsize= origval;
+		else if(mode==2)	
+			la->dist= origval;
+		else if(mode==3)	
+			la->clipsta= origval;
+		else	
+			la->clipend= origval;
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSSHADING, 0);
+	BIF_preview_changed(ID_LA);
+}
+
 
 void special_editmenu(void)
 {
@@ -2392,6 +2586,14 @@ void special_editmenu(void)
 				}
 
 				allqueue(REDRAWVIEW3D, 0);
+			}
+			else if (ob->type == OB_LAMP) {
+				Lamp *la= ob->data;
+				if(la->type==LA_SPOT) {
+					short nr= pupmenu("Lamp Tools%t|Spot Size%x1|Distance%x2|Clip Start%x3|Clip End%x4");
+					if(nr>0)
+						spot_interactive(ob, nr);
+				}
 			}
 			else if (ob->type == OB_FONT) {
 				/* removed until this gets a decent implementation (ton) */
@@ -2957,7 +3159,7 @@ void flip_subdivison(int level)
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 	
 	if(particles)
 		BIF_undo_push("Switch particles on/off");
@@ -3079,7 +3281,7 @@ static void copymenu_modifiers(Object *ob)
 	for (i=eModifierType_None+1; i<NUM_MODIFIER_TYPES; i++) {
 		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
-		if (ELEM(i, eModifierType_Hook, eModifierType_Softbody)) continue;
+		if(ELEM3(i, eModifierType_Hook, eModifierType_Softbody, eModifierType_ParticleInstance)) continue;
 
 		if (	(mti->flags&eModifierTypeFlag_AcceptsCVs) || 
 				(ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
@@ -3109,6 +3311,9 @@ static void copymenu_modifiers(Object *ob)
 								BLI_addtail(&base->object->modifiers, nmd);
 							}
 						}
+
+						copy_object_particlesystems(base->object, ob);
+						copy_object_softbody(base->object, ob);
 					} else {
 						/* copy specific types */
 						ModifierData *md, *mdn;
@@ -3131,6 +3336,15 @@ static void copymenu_modifiers(Object *ob)
 
 								modifier_copyData(md, mdn);
 							}
+						}
+
+						if(event == eModifierType_ParticleSystem) {
+							object_free_particlesystems(base->object);
+							copy_object_particlesystems(base->object, ob);
+						}
+						else if(event == eModifierType_Softbody) {
+							object_free_softbody(base->object);
+							copy_object_softbody(base->object, ob);
 						}
 					}
 				}
@@ -3235,8 +3449,9 @@ void copy_attr(short event)
 				else if(event==2) {  /* rot */
 					VECCOPY(base->object->rot, ob->rot);
 					VECCOPY(base->object->drot, ob->drot);
-					VECCOPY(base->object->quat, ob->quat);
-					VECCOPY(base->object->dquat, ob->dquat);
+					/* Quats arnt used yet */
+					/*VECCOPY(base->object->quat, ob->quat);
+					VECCOPY(base->object->dquat, ob->dquat);*/
 				}
 				else if(event==3) {  /* size */
 					VECCOPY(base->object->size, ob->size);
@@ -3347,32 +3562,6 @@ void copy_attr(short event)
 						base->object->recalc |= OB_RECALC_DATA;
 					}
 				}
-				else if(event==20) {	/* particle settings */
-					PartEff *pa1, *pa2;
-					char *p1, *p2;
-					
-					pa1= give_parteff(ob);
-					pa2= give_parteff(base->object);
-
-					if(pa1==0 && pa2) {
-						BLI_remlink( &(base->object->effect), pa2);
-						free_effect( (Effect *) pa2);
-					}
-					else if(pa1 && pa2==0) {
-						free_effects(&(base->object->effect));
-						copy_effects(&(base->object->effect), &ob->effect);
-						build_particle_system(base->object);
-					}
-					else if(pa1 && pa2) {
-						if(pa2->keys) MEM_freeN(pa2->keys);
-						
-						p1= (char *)pa1; p2= (char *)pa2;
-						memcpy( p2+8, p1+8, sizeof(PartEff) - 8);
-						pa2->keys= 0;
-						
-						build_particle_system(base->object);
-					}
-				}
 				else if(event==21){
 					if (base->object->type==OB_MESH) {
 						ModifierData *md = modifiers_findByType(ob, eModifierType_Subsurf);
@@ -3454,7 +3643,7 @@ void copy_attr(short event)
 	if(do_scene_sort)
 		DAG_scene_sort(G.scene);
 
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 
 	if(event==20) {
 		allqueue(REDRAWBUTSOBJECT, 0);
@@ -3488,7 +3677,7 @@ void copy_attr_menu()
 	strcat (str, "|Object Constraints%x22");
 	strcat (str, "|NLA Strips%x26");
 	
-	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL) {
+	if (OB_SUPPORT_MATERIAL(ob)) {
 		strcat(str, "|Texture Space%x17");
 	}	
 	
@@ -3502,8 +3691,6 @@ void copy_attr_menu()
 	if(ob->type==OB_MESH){
 		strcat(str, "|Subsurf Settings%x21|AutoSmooth%x27");
 	}
-
-	if( give_parteff(ob) ) strcat(str, "|Particle Settings%x20");
 
 	if(ob->soft) strcat(str, "|Soft Body Settings%x23");
 	
@@ -3701,7 +3888,7 @@ void make_links(short event)
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSHEAD, 0);
 
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 
 	BIF_undo_push("Create links");
 }
@@ -3719,6 +3906,7 @@ void apply_objects_locrot( void )
 	MVert *mvert;
 	float mat[3][3];
 	int a, change = 0;
+	
 	
 	/* first check if we can execute */
 	for (base= FIRSTBASE; base; base= base->next) {
@@ -3778,7 +3966,7 @@ void apply_objects_locrot( void )
 				}
 				ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
 				ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
-				QuatOne(ob->quat);
+				/*QuatOne(ob->quat);*/ /* Quats arnt used yet */
 				
 				where_is_object(ob);
 				
@@ -3801,7 +3989,7 @@ void apply_objects_locrot( void )
 				/* Reset the object's transforms */
 				ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
 				ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
-				QuatOne(ob->quat);
+				/*QuatOne(ob->quat); (not used anymore)*/
 				
 				where_is_object(ob);
 				
@@ -3841,7 +4029,7 @@ void apply_objects_locrot( void )
 			
 				ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
 				ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
-				QuatOne(ob->quat);
+				/*QuatOne(ob->quat); (quats arnt used anymore)*/
 				
 				where_is_object(ob);
 				
@@ -3853,7 +4041,11 @@ void apply_objects_locrot( void )
 				BASACT= basact;
 				
 				change = 1;
+			} else {
+				continue;
 			}
+			
+			ignore_parent_tx(ob);
 		}
 	}
 	if (change) {
@@ -4063,6 +4255,7 @@ void std_rmouse_transform(void (*xf_func)(int, int))
 	short xo, yo;
 	short timer=0;
 	short mousebut;
+	short context = (U.flag & USER_DRAGIMMEDIATE)?CTX_TWEAK:CTX_NONE;
 	
 	/* check for left mouse select/right mouse select */
 	
@@ -4076,20 +4269,16 @@ void std_rmouse_transform(void (*xf_func)(int, int))
 	getmouseco_areawin(mval);
 	xo= mval[0]; 
 	yo= mval[1];
-	
+	 
 	while(get_mbut() & mousebut) {
 		getmouseco_areawin(mval);
 		if(abs(mval[0]-xo)+abs(mval[1]-yo) > 10) {
 			if(curarea->spacetype==SPACE_VIEW3D) {
-#ifdef TWEAK_MODE
-				initTransform(TFM_TRANSLATION, CTX_TWEAK);
-#else
-				initTransform(TFM_TRANSLATION, CTX_NONE);
-#endif
+				initTransform(TFM_TRANSLATION, context);
 				Transform();
 			}
 			else if(curarea->spacetype==SPACE_IMAGE) {
-				initTransform(TFM_TRANSLATION, CTX_NONE);
+				initTransform(TFM_TRANSLATION, context);
 				Transform();
 			}
 			else if(xf_func)
@@ -4337,6 +4526,28 @@ void single_obdata_users(int flag)
 	}
 }
 
+void single_ipo_users(int flag)
+{
+	Object *ob;
+	Base *base;
+	ID *id;
+	
+	base= FIRSTBASE;
+	while(base) {
+		ob= base->object;
+		if(ob->id.lib==NULL && (flag==0 || (base->flag & SELECT)) ) {
+			ob->recalc= OB_RECALC_DATA;
+			
+			id= (ID *)ob->ipo;
+			if(id && id->us>1 && id->lib==NULL) {
+				ob->ipo= copy_ipo(ob->ipo);
+				id->us--;
+				ipo_idnew(ob->ipo);	/* drivers */
+			}
+		}
+		base= base->next;
+	}
+}
 
 void single_mat_users(int flag)
 {
@@ -4517,7 +4728,7 @@ void single_user(void)
 
 	clear_id_newpoins();
 	
-	nr= pupmenu("Make Single User%t|Object|Object & ObData|Object & ObData & Materials+Tex|Materials+Tex");
+	nr= pupmenu("Make Single User%t|Object|Object & ObData|Object & ObData & Materials+Tex|Materials+Tex|Ipos");
 	if(nr>0) {
 	
 		if(nr==1) single_object_users(1);
@@ -4535,6 +4746,10 @@ void single_user(void)
 		else if(nr==4) {
 			single_mat_users(1);
 		}
+		else if(nr==5) {
+			single_ipo_users(1);
+		}
+		
 		
 		clear_id_newpoins();
 
@@ -4588,6 +4803,7 @@ void make_local(int mode)
 	Base *base;
 	Object *ob;
 	bActionStrip *strip;
+	ParticleSystem *psys;
 	Material *ma, ***matarar;
 	Lamp *la;
 	Curve *cu;
@@ -4608,8 +4824,8 @@ void make_local(int mode)
 	
 	base= FIRSTBASE;
 	while(base) {
-		ob= base->object;
-		if( (base->flag & SELECT)) {
+		if( TESTBASE(base) ) {
+			ob= base->object;
 			if(ob->id.lib) {
 				make_local_object(ob);
 			}
@@ -4620,8 +4836,8 @@ void make_local(int mode)
 	/* maybe object pointers */
 	base= FIRSTBASE;
 	while(base) {
-		ob= base->object;
-		if( (base->flag & SELECT)) {
+		if( TESTBASE(base) ) {
+			ob= base->object;
 			if(ob->id.lib==NULL) {
 				ID_NEW(ob->parent);
 				ID_NEW(ob->track);
@@ -4632,9 +4848,8 @@ void make_local(int mode)
 
 	base= FIRSTBASE;
 	while(base) {
-		ob= base->object;
-		if( (base->flag & SELECT) ) {
-	
+		if( TESTBASE(base) ) {
+			ob= base->object;
 			id= ob->data;
 			
 			if(id && mode>1) {
@@ -4675,6 +4890,9 @@ void make_local(int mode)
 					make_local_armature ((bArmature *)id);
 					break;
 				}
+
+				for(psys=ob->particlesystem.first; psys; psys=psys->next)
+					make_local_particlesettings(psys->part);
 			}
 			id= (ID *)ob->ipo;
 			if(id && id->lib) make_local_ipo(ob->ipo);
@@ -4682,11 +4900,10 @@ void make_local(int mode)
 			id= (ID *)ob->action;
 			if(id && id->lib) make_local_action(ob->action);
 			
-			for (strip=ob->nlastrips.first; strip; strip=strip->next) {
+			for(strip=ob->nlastrips.first; strip; strip=strip->next) {
 				if(strip->act && strip->act->id.lib)
 					make_local_action(strip->act);
 			}
-			
 		}
 		base= base->next;		
 	}
@@ -4694,9 +4911,8 @@ void make_local(int mode)
 	if(mode>1) {
 		base= FIRSTBASE;
 		while(base) {
-			ob= base->object;
-			if(base->flag & SELECT ) {
-				
+			if( TESTBASE(base) ) {
+				ob= base->object;
 				if(ob->type==OB_LAMP) {
 					la= ob->data;
 					for(b=0; b<MAX_MTEX; b++) {
@@ -5068,7 +5284,7 @@ void adduplicate(int mode, int dupflag)
 	copy_object_set_idnew(dupflag);
 
 	DAG_scene_sort(G.scene);
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 
 	countall();
 	if(mode==0) {
@@ -5601,9 +5817,6 @@ void texspace_edit(void)
 
 void mirrormenu(void)
 {
-	short mode = 0;
-
-
 	if(G.f & G_PARTICLEEDIT) {
 		PE_mirror_x(0);
 	}

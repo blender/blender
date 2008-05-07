@@ -3,15 +3,12 @@
  *	
  * $Id: BKE_softbody.h 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_SOFTBODY_H
 #define BKE_SOFTBODY_H
@@ -43,7 +40,7 @@ typedef struct BodyPoint {
 	float prevpos[3], prevvec[3], prevdx[3], prevdv[3]; /* used for Heun integration */
     float impdv[3],impdx[3];
     int nofsprings; int *springs;
-	float choke;
+	float choke,choke2,frozen;
 	float colball;
 	short flag;
 	char octantflag;
@@ -55,7 +52,8 @@ extern struct SoftBody	*sbNew(void);
 /* frees internal data and softbody itself */
 extern void				sbFree(struct SoftBody *sb);
 
-extern void				softbody_clear_cache(struct Object *ob, float framenr);
+/* frees simulation data to reset simulation */
+extern void				sbFreeSimulation(struct SoftBody *sb);
 
 /* do one simul step, reading and writing vertex locs from given array */
 extern void				sbObjectStep(struct Object *ob, float framnr, float (*vertexCos)[3], int numVerts);
@@ -67,6 +65,8 @@ extern void				sbObjectToSoftbody(struct Object *ob);
 /* pass NULL to unlink again */
 extern void             sbSetInterruptCallBack(int (*f)(void));
 
+/* writing to cache for bake editing */
+extern void 			sbWriteCache(struct Object *ob, int framenr);
 
 #endif
 

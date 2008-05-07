@@ -350,8 +350,10 @@ cineonGetRowBytes(CineonFile* cineon, unsigned short* row, int y) {
 
 	/* extract required pixels */
 	for (pixelIndex = 0; pixelIndex < numPixels; ++pixelIndex) {
-		/* row[pixelIndex] = cineon->lut10[cineon->pixelBuffer[pixelIndex]]; */
-		row[pixelIndex] = cineon->pixelBuffer[pixelIndex] << 6;
+		if(cineon->params.doLogarithm)
+			row[pixelIndex] = cineon->lut10_16[cineon->pixelBuffer[pixelIndex]];
+		else
+			row[pixelIndex] = cineon->pixelBuffer[pixelIndex] << 6;
 	}
 
 	return 0;
@@ -367,8 +369,10 @@ cineonSetRowBytes(CineonFile* cineon, const unsigned short* row, int y) {
 
 	/* put new pixels into pixelBuffer */
 	for (pixelIndex = 0; pixelIndex < numPixels; ++pixelIndex) {
-		/* cineon->pixelBuffer[pixelIndex] = cineon->lut8[row[pixelIndex]]; */
-		cineon->pixelBuffer[pixelIndex] = row[pixelIndex] >> 6;
+		if(cineon->params.doLogarithm)
+			cineon->pixelBuffer[pixelIndex] = cineon->lut16_16[row[pixelIndex]];
+		else
+			cineon->pixelBuffer[pixelIndex] = row[pixelIndex] >> 6;
 	}
 
 	/* pack into longwords */

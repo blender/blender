@@ -3,7 +3,8 @@
 """
 The Blender.Effect submodule
 
-B{new}: now L{Get}('objname') (without specifying second parameter: 'position') returns a list of all effects linked to object "objname".
+B{Deprecated}:
+This module is now maintained but not actively developed.
 
 Effect
 ======

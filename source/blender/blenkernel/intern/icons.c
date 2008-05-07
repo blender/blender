@@ -48,6 +48,7 @@
 #include "BLI_ghash.h"
 
 #include "BKE_icons.h"
+#include "BKE_utildefines.h"
 
 #define GS(a)	(*((short *)(a)))
 
@@ -87,7 +88,7 @@ static int get_next_free_id()
 		return gNextIconId++;
 	
 	/* now we try to find the smallest icon id not stored in the gIcons hash */
-	while (BLI_ghash_lookup(gIcons, (void *)startId) && startId>=gFirstIconId) 
+	while (BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(startId)) && startId>=gFirstIconId) 
 		startId++;
 
 	/* if we found a suitable one that isnt used yet, return it */
@@ -216,7 +217,7 @@ void BKE_icon_changed(int id)
 	
 	if (!id) return;
 
-	icon = BLI_ghash_lookup(gIcons, (void *)id);
+	icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(id));
 	
 	if (icon)
 	{
@@ -258,7 +259,7 @@ int BKE_icon_getid(struct ID* id)
 	new_icon->drawinfo = 0;
 	new_icon->drawinfo_free = 0;
 
-	BLI_ghash_insert(gIcons, (void *)id->icon_id, new_icon);
+	BLI_ghash_insert(gIcons, SET_INT_IN_POINTER(id->icon_id), new_icon);
 	
 	return id->icon_id;
 }
@@ -267,7 +268,7 @@ Icon* BKE_icon_get(int icon_id)
 {
 	Icon* icon = 0;
 
-	icon = BLI_ghash_lookup(gIcons, (void*)icon_id);
+	icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(icon_id));
 	
 	if (!icon) {
 		printf("BKE_icon_get: Internal error, no icon for icon ID: %d\n", icon_id);
@@ -281,7 +282,7 @@ void BKE_icon_set(int icon_id, struct Icon* icon)
 {
 	Icon* old_icon = 0;
 
-	old_icon = BLI_ghash_lookup(gIcons, (void*)icon_id);
+	old_icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(icon_id));
 
 	if (old_icon)
 	{
@@ -289,7 +290,7 @@ void BKE_icon_set(int icon_id, struct Icon* icon)
 		return;
 	}
 
-	BLI_ghash_insert(gIcons, (void *)icon_id, icon);
+	BLI_ghash_insert(gIcons, SET_INT_IN_POINTER(icon_id), icon);
 }
 
 void BKE_icon_delete(struct ID* id)
@@ -297,6 +298,6 @@ void BKE_icon_delete(struct ID* id)
 
 	if (!id->icon_id) return; /* no icon defined for library object */
 
-	BLI_ghash_remove(gIcons, (void*)id->icon_id, 0, icon_free);
+	BLI_ghash_remove(gIcons, SET_INT_IN_POINTER(id->icon_id), 0, icon_free);
 	id->icon_id = 0;
 }

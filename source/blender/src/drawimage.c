@@ -191,10 +191,10 @@ void calc_image_view(SpaceImage *sima, char mode)
 	
 	if(image_preview_active(curarea, &xim, &yim));
 	else if(sima->image) {
-		ImBuf *ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+		ImBuf *ibuf= imagewindow_get_ibuf(sima);
 		float xuser_asp, yuser_asp;
 		
-		aspect_sima(sima, &xuser_asp, &yuser_asp);
+		image_pixel_aspect(sima->image, &xuser_asp, &yuser_asp);
 		if(ibuf) {
 			xim= ibuf->x * xuser_asp;
 			yim= ibuf->y * yuser_asp;
@@ -243,11 +243,10 @@ void calc_image_view(SpaceImage *sima, char mode)
 /* check for facelesect, and set active image */
 void what_image(SpaceImage *sima)
 {
-	MTFace *activetf;
-	
 	if(		(sima->mode!=SI_TEXTURE) ||
 			(sima->image && sima->image->source==IMA_SRC_VIEWER) ||
 			(G.obedit != OBACT) ||
+			(G.editMesh==NULL) ||
 			(sima->pin)
 	) {
 		return;
@@ -255,13 +254,16 @@ void what_image(SpaceImage *sima)
 	
 	/* viewer overrides uv editmode */
 	if (EM_texFaceCheck()) {
+		MTFace *activetf;
+		
 		sima->image= NULL;
 		
 		activetf = get_active_mtface(NULL, NULL, 1); /* partially selected face is ok */
 		
 		if(activetf && activetf->mode & TF_TEX) {
-			if (!sima->pin)
-				sima->image= activetf->tpage;
+			/* done need to check for pin here, see above */
+			/*if (!sima->pin)*/
+			sima->image= activetf->tpage;
 			
 			if(sima->flag & SI_EDITTILE);
 			else sima->curtile= activetf->tile;
@@ -278,91 +280,16 @@ void what_image(SpaceImage *sima)
 /* after a what_image(), this call will give ibufs, includes the spare image */
 ImBuf *imagewindow_get_ibuf(SpaceImage *sima)
 {
-	
 	if(G.sima->image) {
 		/* check for spare */
-		if(sima->image->type==IMA_TYPE_R_RESULT && sima->showspare)
-			return sima->spare;
+		if(sima->image->type==IMA_TYPE_R_RESULT && BIF_show_render_spare())
+			return BIF_render_spare_imbuf();
 		else
 			return BKE_image_get_ibuf(sima->image, &sima->iuser);
 	}
 	return NULL;
 }
 
-extern int EM_texFaceCheck(void); /* from editmesh.c */
-/* called to assign images to UV faces */
-void image_changed(SpaceImage *sima, Image *image)
-{
-	MTFace *tface;
-	EditMesh *em = G.editMesh;
-	EditFace *efa;
-	ImBuf *ibuf = NULL;
-	short change = 0;
-	
-	if(image==NULL) {
-		sima->flag &= ~SI_DRAWTOOL;
-	} else {
-		ibuf = BKE_image_get_ibuf(image, NULL);
-	}
-	
-	if(sima->mode!=SI_TEXTURE)
-		return;
-	
-	/* skip assigning these procedural images... */
-	if(image && (image->type==IMA_TYPE_R_RESULT || image->type==IMA_TYPE_COMPOSITE)) {
-		return;
-	} else if ((G.obedit) &&
-			(G.obedit->type == OB_MESH) &&
-			(G.editMesh) &&
-			(G.editMesh->faces.first)
-		) {
-		
-		/* Add a UV layer if there is none, editmode only */
-		if ( !CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE) ) {
-			EM_add_data_layer(&em->fdata, CD_MTFACE);
-			CustomData_set_layer_active(&em->fdata, CD_MTFACE, 0); /* always zero because we have no other UV layers */
-			change = 1; /* so we update the object, incase no faces are selected */
-			
-			/* BIF_undo_push("New UV Texture"); - undo should be done by whatever changes the image */
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWBUTSEDIT, 0);
-		}
-		
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (efa->h==0 && efa->f & SELECT) {
-				if (image) {
-					tface->tpage= image;
-					tface->mode |= TF_TEX;
-					
-					if(image->tpageflag & IMA_TILES) tface->mode |= TF_TILES;
-					else tface->mode &= ~TF_TILES;
-					
-					if(image->id.us==0) id_us_plus(&image->id);
-					else id_lib_extern(&image->id);
-					
-					if (tface->transp==TF_ADD) {} /* they obviously know what they are doing! - leave as is */
-					else if (ibuf && ibuf->depth == 32)	tface->transp = TF_ALPHA;
-					else								tface->transp = TF_SOLID;
-					
-				} else {
-					tface->tpage= NULL;
-					tface->mode &= ~TF_TEX;
-					tface->transp = TF_SOLID;
-				}
-				change = 1;
-			}
-		}
-	}
-	/* change the space image after because simaFaceDraw_Check uses the space image
-	 * to check if the face is displayed in UV-localview */
-	sima->image = image;
-	
-	if (change)
-		object_uvs_changed(OBACT);
-	
-	allqueue(REDRAWBUTSEDIT, 0);
-}
 /*
  * dotile -	1, set the tile flag (from the space image)
  * 			2, set the tile index for the faces. 
@@ -482,25 +409,57 @@ static void drawcursor_sima(float xuser_asp, float yuser_asp)
 // checks if we are selecting only faces
 int draw_uvs_face_check(void)
 {
-	if (G.sima==NULL)
+	if (G.sima==NULL) {
 		return 0;
-	if (G.sima->flag & SI_SYNC_UVSEL && G.scene->selectmode == SCE_SELECT_FACE)
-		return 2;
-	if (G.sima->flag & SI_SELACTFACE)
-		return 1;
+	}
+	if (G.sima->flag & SI_SYNC_UVSEL) {
+		if (G.scene->selectmode == SCE_SELECT_FACE) {
+			return 2;
+		} else if (G.scene->selectmode & SCE_SELECT_FACE) {
+			return 1;
+		} 
+	} else {
+		if (G.sima->flag & SI_SELACTFACE) {
+			return 1;
+		}
+	}
 	return 0;
 }
 
-void tface_center(MTFace *tf, float cent[2], void * isquad)
+void uv_center(float uv[][2], float cent[2], void * isquad)
 {
 
 	if (isquad) {
-		cent[0] = (tf->uv[0][0] + tf->uv[1][0] + tf->uv[2][0] + tf->uv[3][0]) / 4.0;
-		cent[1] = (tf->uv[0][1] + tf->uv[1][1] + tf->uv[2][1] + tf->uv[3][1]) / 4.0;		
+		cent[0] = (uv[0][0] + uv[1][0] + uv[2][0] + uv[3][0]) / 4.0;
+		cent[1] = (uv[0][1] + uv[1][1] + uv[2][1] + uv[3][1]) / 4.0;		
 	} else {
-		cent[0] = (tf->uv[0][0] + tf->uv[1][0] + tf->uv[2][0]) / 3.0;
-		cent[1] = (tf->uv[0][1] + tf->uv[1][1] + tf->uv[2][1]) / 3.0;		
+		cent[0] = (uv[0][0] + uv[1][0] + uv[2][0]) / 3.0;
+		cent[1] = (uv[0][1] + uv[1][1] + uv[2][1]) / 3.0;		
 	}
+}
+
+static float uv_area(float uv[][2], int quad)
+{
+	if (quad) {
+		return AreaF2Dfl(uv[0], uv[1], uv[2]) + AreaF2Dfl(uv[0], uv[2], uv[3]); 
+	} else { 
+		return AreaF2Dfl(uv[0], uv[1], uv[2]); 
+	}
+}
+
+void uv_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy)
+{
+	uv[0][0] = uv_orig[0][0]*aspx;
+	uv[0][1] = uv_orig[0][1]*aspy;
+	
+	uv[1][0] = uv_orig[1][0]*aspx;
+	uv[1][1] = uv_orig[1][1]*aspy;
+	
+	uv[2][0] = uv_orig[2][0]*aspx;
+	uv[2][1] = uv_orig[2][1]*aspy;
+	
+	uv[3][0] = uv_orig[3][0]*aspx;
+	uv[3][1] = uv_orig[3][1]*aspy;
 }
 
 /* draws uv's in the image space */
@@ -513,6 +472,7 @@ void draw_uvs_sima(void)
 	char col1[4], col2[4];
 	float pointsize;
 	int drawface;
+	int lastsel, sel;
  	
 	if (!G.obedit || !CustomData_has_layer(&em->fdata, CD_MTFACE))
 		return;
@@ -571,8 +531,224 @@ void draw_uvs_sima(void)
 	
 	activetface = get_active_mtface(&efa_act, NULL, 0); /* will be set to NULL if hidden */
 		
-	/* draw transparent faces */
-	if(G.f & G_DRAWFACES) {
+	
+	if (G.sima->flag & SI_DRAW_STRETCH) {
+		float col[4];
+		float aspx, aspy;
+		float tface_uv[4][2];
+		
+		transform_aspect_ratio_tface_uv(&aspx, &aspy);
+		
+		switch (G.sima->dt_uvstretch) {
+			case SI_UVDT_STRETCH_AREA:
+			{
+				float totarea=0.0f, totuvarea=0.0f, areadiff, uvarea, area;
+				
+				for (efa= em->faces.first; efa; efa= efa->next) {
+					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					uv_copy_aspect(tface->uv, tface_uv, aspx, aspy);
+
+					totarea += EM_face_area(efa);
+					//totuvarea += tface_area(tface, efa->v4!=0);
+					totuvarea += uv_area(tface_uv, efa->v4!=0);
+					
+					if (simaFaceDraw_Check(efa, tface)) {
+						efa->tmp.p = tface;
+					} else {
+						if (tface == activetface)
+							activetface= NULL;
+						efa->tmp.p = NULL;
+					}
+				}
+				
+				if (totarea < FLT_EPSILON || totuvarea < FLT_EPSILON) {
+					col[0] = 1.0;
+					col[1] = col[2] = 0.0;
+					glColor3fv(col);
+					for (efa= em->faces.first; efa; efa= efa->next) {
+						if ((tface=(MTFace *)efa->tmp.p)) {
+							glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+								glVertex2fv(tface->uv[0]);
+								glVertex2fv(tface->uv[1]);
+								glVertex2fv(tface->uv[2]);
+								if(efa->v4) glVertex2fv(tface->uv[3]);
+							glEnd();
+						}
+					}
+				} else {
+					for (efa= em->faces.first; efa; efa= efa->next) {
+						if ((tface=(MTFace *)efa->tmp.p)) {
+							area = EM_face_area(efa) / totarea;
+							uv_copy_aspect(tface->uv, tface_uv, aspx, aspy);
+							//uvarea = tface_area(tface, efa->v4!=0) / totuvarea;
+							uvarea = uv_area(tface_uv, efa->v4!=0) / totuvarea;
+							
+							if (area < FLT_EPSILON || uvarea < FLT_EPSILON) {
+								areadiff = 1.0;
+							} else if (area>uvarea) {
+								areadiff = 1.0-(uvarea/area);
+							} else {
+								areadiff = 1.0-(area/uvarea);
+							}
+							
+							weight_to_rgb(areadiff, col, col+1, col+2);
+							glColor3fv(col);
+							
+							glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+								glVertex2fv(tface->uv[0]);
+								glVertex2fv(tface->uv[1]);
+								glVertex2fv(tface->uv[2]);
+								if(efa->v4) glVertex2fv(tface->uv[3]);
+							glEnd();
+						}
+					}
+				}
+				break;
+			}
+			case SI_UVDT_STRETCH_ANGLE:
+			{
+				float uvang1,uvang2,uvang3,uvang4;
+				float ang1,ang2,ang3,ang4;
+				float av1[3], av2[3], av3[3], av4[3]; /* use for 2d and 3d  angle vectors */
+				float a;
+				
+				col[3] = 0.5; /* hard coded alpha, not that nice */
+				
+				glShadeModel(GL_SMOOTH);
+				
+				for (efa= em->faces.first; efa; efa= efa->next) {
+					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					
+					if (simaFaceDraw_Check(efa, tface)) {
+						efa->tmp.p = tface;
+						uv_copy_aspect(tface->uv, tface_uv, aspx, aspy);
+						if (efa->v4) {
+							
+#if 0						/* Simple but slow, better reuse normalized vectors */
+							uvang1 = VecAngle3_2D(tface_uv[3], tface_uv[0], tface_uv[1]);
+							ang1 = VecAngle3(efa->v4->co, efa->v1->co, efa->v2->co);
+							
+							uvang2 = VecAngle3_2D(tface_uv[0], tface_uv[1], tface_uv[2]);
+							ang2 = VecAngle3(efa->v1->co, efa->v2->co, efa->v3->co);
+							
+							uvang3 = VecAngle3_2D(tface_uv[1], tface_uv[2], tface_uv[3]);
+							ang3 = VecAngle3(efa->v2->co, efa->v3->co, efa->v4->co);
+							
+							uvang4 = VecAngle3_2D(tface_uv[2], tface_uv[3], tface_uv[0]);
+							ang4 = VecAngle3(efa->v3->co, efa->v4->co, efa->v1->co);
+#endif
+							
+							/* uv angles */
+							VECSUB2D(av1, tface_uv[3], tface_uv[0]); Normalize2(av1);
+							VECSUB2D(av2, tface_uv[0], tface_uv[1]); Normalize2(av2);
+							VECSUB2D(av3, tface_uv[1], tface_uv[2]); Normalize2(av3);
+							VECSUB2D(av4, tface_uv[2], tface_uv[3]); Normalize2(av4);
+							
+							/* This is the correct angle however we are only comparing angles
+							 * uvang1 = 90-((NormalizedVecAngle2_2D(av1, av2) * 180.0/M_PI)-90);*/
+							uvang1 = NormalizedVecAngle2_2D(av1, av2)*180.0/M_PI;
+							uvang2 = NormalizedVecAngle2_2D(av2, av3)*180.0/M_PI;
+							uvang3 = NormalizedVecAngle2_2D(av3, av4)*180.0/M_PI;
+							uvang4 = NormalizedVecAngle2_2D(av4, av1)*180.0/M_PI;
+							
+							/* 3d angles */
+							VECSUB(av1, efa->v4->co, efa->v1->co); Normalize(av1);
+							VECSUB(av2, efa->v1->co, efa->v2->co); Normalize(av2);
+							VECSUB(av3, efa->v2->co, efa->v3->co); Normalize(av3);
+							VECSUB(av4, efa->v3->co, efa->v4->co); Normalize(av4);
+							
+							/* This is the correct angle however we are only comparing angles
+							 * ang1 = 90-((NormalizedVecAngle2(av1, av2) * 180.0/M_PI)-90);*/
+							ang1 = NormalizedVecAngle2(av1, av2)*180.0/M_PI;
+							ang2 = NormalizedVecAngle2(av2, av3)*180.0/M_PI;
+							ang3 = NormalizedVecAngle2(av3, av4)*180.0/M_PI;
+							ang4 = NormalizedVecAngle2(av4, av1)*180.0/M_PI;
+							
+							glBegin(GL_QUADS);
+							
+							/* This simple makes the angles display worse then they really are ;)
+							 * 1.0-pow((1.0-a), 2) */
+							
+							a = fabs(uvang1-ang1)/180.0;
+							weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
+							glColor3fv(col);
+							glVertex2fv(tface->uv[0]);
+							a = fabs(uvang2-ang2)/180.0;
+							weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
+							glColor3fv(col);
+							glVertex2fv(tface->uv[1]);
+							a = fabs(uvang3-ang3)/180.0;
+							weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
+							glColor3fv(col);
+							glVertex2fv(tface->uv[2]);
+							a = fabs(uvang4-ang4)/180.0;
+							weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
+							glColor3fv(col);
+							glVertex2fv(tface->uv[3]);
+							
+						} else {
+#if 0						/* Simple but slow, better reuse normalized vectors */
+							uvang1 = VecAngle3_2D(tface_uv[2], tface_uv[0], tface_uv[1]);
+							ang1 = VecAngle3(efa->v3->co, efa->v1->co, efa->v2->co);
+							
+							uvang2 = VecAngle3_2D(tface_uv[0], tface_uv[1], tface_uv[2]);
+							ang2 = VecAngle3(efa->v1->co, efa->v2->co, efa->v3->co);
+							
+							uvang3 = 180-(uvang1+uvang2);
+							ang3 = 180-(ang1+ang2);
+#endif						
+							
+							/* uv angles */
+							VECSUB2D(av1, tface_uv[2], tface_uv[0]); Normalize2(av1);
+							VECSUB2D(av2, tface_uv[0], tface_uv[1]); Normalize2(av2);
+							VECSUB2D(av3, tface_uv[1], tface_uv[2]); Normalize2(av3);
+							
+							/* This is the correct angle however we are only comparing angles
+							 * uvang1 = 90-((NormalizedVecAngle2_2D(av1, av2) * 180.0/M_PI)-90); */
+							uvang1 = NormalizedVecAngle2_2D(av1, av2)*180.0/M_PI;
+							uvang2 = NormalizedVecAngle2_2D(av2, av3)*180.0/M_PI;
+							uvang3 = NormalizedVecAngle2_2D(av3, av1)*180.0/M_PI;
+							
+							/* 3d angles */
+							VECSUB(av1, efa->v3->co, efa->v1->co); Normalize(av1);
+							VECSUB(av2, efa->v1->co, efa->v2->co); Normalize(av2);
+							VECSUB(av3, efa->v2->co, efa->v3->co); Normalize(av3);
+							/* This is the correct angle however we are only comparing angles
+							 * ang1 = 90-((NormalizedVecAngle2(av1, av2) * 180.0/M_PI)-90); */
+							ang1 = NormalizedVecAngle2(av1, av2)*180.0/M_PI;
+							ang2 = NormalizedVecAngle2(av2, av3)*180.0/M_PI;
+							ang3 = NormalizedVecAngle2(av3, av1)*180.0/M_PI;
+							
+							/* This simple makes the angles display worse then they really are ;)
+							 * 1.0-pow((1.0-a), 2) */
+							
+							glBegin(GL_TRIANGLES);
+							a = fabs(uvang1-ang1)/180.0;
+							weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
+							glColor3fv(col);
+							glVertex2fv(tface->uv[0]);
+							a = fabs(uvang2-ang2)/180.0;
+							weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
+							glColor3fv(col);
+							glVertex2fv(tface->uv[1]);
+							a = fabs(uvang3-ang3)/180.0;
+							weight_to_rgb(1.0-pow((1.0-a), 2), col, col+1, col+2);
+							glColor3fv(col);
+							glVertex2fv(tface->uv[2]);
+						}
+						glEnd();
+					} else {
+						if (tface == activetface)
+							activetface= NULL;
+						efa->tmp.p = NULL;
+					}
+				}
+				glShadeModel(GL_FLAT);
+				break;
+			}
+		}
+	} else if(G.f & G_DRAWFACES) {
+		/* draw transparent faces */
 		BIF_GetThemeColor4ubv(TH_FACE, col1);
 		BIF_GetThemeColor4ubv(TH_FACE_SELECT, col2);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -584,10 +760,11 @@ void draw_uvs_sima(void)
 			if (simaFaceDraw_Check(efa, tface)) {
 				efa->tmp.p = tface;
 				if (tface==activetface) continue; /* important the temp pointer is set above */
-				if( simaFaceSel_Check(efa, tface) )
+				if( simaFaceSel_Check(efa, tface)) {
 					glColor4ubv((GLubyte *)col2);
-				else
+				} else {
 					glColor4ubv((GLubyte *)col1);
+				}
 					
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 					glVertex2fv(tface->uv[0]);
@@ -602,6 +779,7 @@ void draw_uvs_sima(void)
 				efa->tmp.p = NULL;
 			}
 		}
+		glDisable(GL_BLEND);
 	} else {
 		/* would be nice to do this within a draw loop but most below are optional, so it would involve too many checks */
 		for (efa= em->faces.first; efa; efa= efa->next) {
@@ -614,17 +792,15 @@ void draw_uvs_sima(void)
 				efa->tmp.p = NULL;
 			}
 		}
-		glDisable(GL_BLEND);
+		
 	}
 	
 	if (activetface) {
-		GLubyte act_face_stipple[32*32/8] = DM_FACE_STIPPLE;
-		
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		BIF_ThemeColor4(TH_EDITMESH_ACTIVE);
 		glEnable(GL_POLYGON_STIPPLE);
-		glPolygonStipple(act_face_stipple);
+		glPolygonStipple(stipple_quarttone);
 		glBegin(efa_act->v4?GL_QUADS:GL_TRIANGLES);
 			glVertex2fv(activetface->uv[0]);
 			glVertex2fv(activetface->uv[1]);
@@ -720,22 +896,64 @@ void draw_uvs_sima(void)
 		}
 		
 		glLineWidth(1);
-		cpack(0xFFFFFF);
-		for (efa= em->faces.first; efa; efa= efa->next) {
-//			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-//			if (simaFaceDraw_Check(efa, tface)) {
-			
-			/*this is a shortcut to do the same as above but a faster for drawing */
-			if ((tface=(MTFace *)efa->tmp.p)) {
+		col2[0] = col2[1] = col2[2] = 128; col2[3] = 255;
+		glColor4ubv((unsigned char *)col2); 
+		
+		if (G.f & G_DRAWEDGES) {
+			glShadeModel(GL_SMOOTH);
+			BIF_GetThemeColor4ubv(TH_VERTEX_SELECT, col1);
+			lastsel = sel = 0;
+
+			for (efa= em->faces.first; efa; efa= efa->next) {
+	//			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+	//			if (simaFaceDraw_Check(efa, tface)) {
 				
-				glBegin(GL_LINE_LOOP);
+				/*this is a shortcut to do the same as above but a faster for drawing */
+				if ((tface=(MTFace *)efa->tmp.p)) {
+					
+					glBegin(GL_LINE_LOOP);
+					sel = (simaUVSel_Check(efa, tface, 0) ? 1 : 0);
+					if (sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
+					glVertex2fv(tface->uv[0]);
+					
+					sel = simaUVSel_Check(efa, tface, 1) ? 1 : 0;
+					if (sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
+					glVertex2fv(tface->uv[1]);
+					
+					sel = simaUVSel_Check(efa, tface, 2) ? 1 : 0;
+					if (sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
+					glVertex2fv(tface->uv[2]);
+					
+					if(efa->v4) {
+						sel = simaUVSel_Check(efa, tface, 3) ? 1 : 0;
+						if (sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
+						glVertex2fv(tface->uv[3]);
+					}
+					
+					glEnd();
+				}
+			}
+			glShadeModel(GL_FLAT);
+		} else { /* No nice edges */
+			
+			for (efa= em->faces.first; efa; efa= efa->next) {
+	//			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+	//			if (simaFaceDraw_Check(efa, tface)) {
+				
+				/*this is a shortcut to do the same as above but a faster for drawing */
+				if ((tface=(MTFace *)efa->tmp.p)) {
+					
+					glBegin(GL_LINE_LOOP);
 					glVertex2fv(tface->uv[0]);
 					glVertex2fv(tface->uv[1]);
 					glVertex2fv(tface->uv[2]);
-					if(efa->v4) glVertex2fv(tface->uv[3]);
-				glEnd();
+					if(efa->v4)
+						glVertex2fv(tface->uv[3]);
+					glEnd();
+				}
 			}
 		}
+		
 		break;
 	}
 
@@ -764,7 +982,7 @@ void draw_uvs_sima(void)
 			/*this is a shortcut to do the same as above but a faster for drawing */
 			if ((tface=(MTFace *)efa->tmp.p)) {
 				if( ! simaFaceSel_Check(efa, tface) ) {
-					tface_center(tface, cent, (void *)efa->v4);
+					uv_center(tface->uv, cent, (void *)efa->v4);
 					bglVertex2fv(cent);
 				}
 			}
@@ -781,7 +999,7 @@ void draw_uvs_sima(void)
 			/*this is a shortcut to do the same as above but a faster for drawing */
 			if ((tface=(MTFace *)efa->tmp.p)) {
 				if( simaFaceSel_Check(efa, tface) ) {
-					tface_center(tface, cent, (void *)efa->v4);
+					uv_center(tface->uv, cent, (void *)efa->v4);
 					bglVertex2fv(cent);
 				}
 			}
@@ -910,31 +1128,6 @@ static void draw_image_transform(ImBuf *ibuf, float xuser_asp, float yuser_asp)
 
 		glPopMatrix();
 	}
-}
-
-static void draw_image_view_icon(void)
-{
-	float xPos = 5.0;
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
-	
-	
-	if (G.sima->flag & SI_SYNC_UVSEL) {
-		/* take settings from the editmesh */
-		if (G.scene->selectmode == SCE_SELECT_FACE || G.sima->flag & SI_SELACTFACE) {
-			BIF_icon_draw_aspect(xPos, 5.0, ICON_FACESEL_HLT, 1.0f);
-		}
-		
-	} else {
-		/* use the flags for UV mode - normal operation */
-		if(G.sima->flag & SI_SELACTFACE) {
-			BIF_icon_draw_aspect(xPos, 5.0, ICON_FACESEL_HLT, 1.0f);
-		}
-	}
-	
-	glBlendFunc(GL_ONE,  GL_ZERO); 
-	glDisable(GL_BLEND);
 }
 
 static void draw_image_view_tool(void)
@@ -1229,19 +1422,6 @@ static void image_panel_game_properties(short cntrl)	// IMAGE_HANDLER_GAME_PROPE
 	}
 }
 
-//static void image_panel_transform_properties(short cntrl)	// IMAGE_HANDLER_TRANSFORM_PROPERTIES
-//{
-//	uiBlock *block;
-//
-//	block= uiNewBlock(&curarea->uiblocks, "image_transform_properties", UI_EMBOSS, UI_HELV, curarea->win);
-//	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
-//	uiSetPanelHandler(IMAGE_HANDLER_TRANSFORM_PROPERTIES);  // for close and esc
-//	if(uiNewPanel(curarea, block, "Transform Properties", "Image", 10, 10, 318, 204)==0)
-//		return;
-//	
-//	image_editvertex_buts(block);
-//}
-
 static void image_panel_view_properties(short cntrl)	// IMAGE_HANDLER_VIEW_PROPERTIES
 {
 	uiBlock *block;
@@ -1267,14 +1447,30 @@ static void image_panel_view_properties(short cntrl)	// IMAGE_HANDLER_VIEW_PROPE
 	
 	
 	if (EM_texFaceCheck()) {
-		uiDefBut(block, LABEL, B_NOP, "Draw Type:",		10, 20,120,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, B_NOP, "Draw Type:",		10, 80,120,19, 0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
-		uiDefButC(block,  ROW, B_REDR, "Dash",			10, 0,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_DASH, 0, 0, "Dashed Wire UV drawtype");
-		uiDefButC(block,  ROW, B_REDR, "Black",			68, 0,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_BLACK, 0, 0, "Black Wire UV drawtype");
-		uiDefButC(block,  ROW, B_REDR, "White",			126,0,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_WHITE, 0, 0, "White Wire UV drawtype");
-		uiDefButC(block,  ROW, B_REDR, "Outline",		184,0,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_OUTLINE, 0, 0, "Outline Wire UV drawtype");
-		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, SI_SMOOTH_UV, B_REDR, "Smooth",	250,0,60,19,  &G.sima->flag, 0, 0, 0, 0, "Display smooth lines in the UV view");
+		uiDefButC(block,  ROW, B_REDR, "Outline",		10,60,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_OUTLINE, 0, 0, "Outline Wire UV drawtype");
+		uiDefButC(block,  ROW, B_REDR, "Dash",			68, 60,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_DASH, 0, 0, "Dashed Wire UV drawtype");
+		uiDefButC(block,  ROW, B_REDR, "Black",			126, 60,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_BLACK, 0, 0, "Black Wire UV drawtype");
+		uiDefButC(block,  ROW, B_REDR, "White",			184,60,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_WHITE, 0, 0, "White Wire UV drawtype");
+		
+		uiBlockEndAlign(block);
+		uiDefButBitI(block, TOG, SI_SMOOTH_UV, B_REDR, "Smooth",	250,60,60,19,  &G.sima->flag, 0, 0, 0, 0, "Display smooth lines in the UV view");
+		
+		
+		uiDefButBitI(block, TOG, G_DRAWFACES, B_REDR, "Faces",		10,30,60,19,  &G.f, 0, 0, 0, 0, "Displays all faces as shades in the 3d view and UV editor");
+		uiDefButBitI(block, TOG, G_DRAWEDGES, B_REDR, "Edges", 70, 30,60,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights and UV editor");
+		
+		uiDefButBitI(block, TOG, SI_DRAWSHADOW, B_REDR, "Final Shadow", 130, 30,110,19, &G.sima->flag, 0, 0, 0, 0, "Draw the final result from the objects modifiers");
+		
+		uiDefButBitI(block, TOG, SI_DRAW_STRETCH, B_REDR, "UV Stretch",	10,0,100,19,  &G.sima->flag, 0, 0, 0, 0, "Difference between UV's and the 3D coords (blue for low distortion, red is high)");
+		if (G.sima->flag & SI_DRAW_STRETCH) {
+			uiBlockBeginAlign(block);
+			uiDefButC(block,  ROW, B_REDR, "Area",			120,0,60,19, &G.sima->dt_uvstretch, 0.0, SI_UVDT_STRETCH_AREA, 0, 0, "Area distortion between UV's and 3D coords");
+			uiDefButC(block,  ROW, B_REDR, "Angle",		180,0,60,19, &G.sima->dt_uvstretch, 0.0, SI_UVDT_STRETCH_ANGLE, 0, 0, "Angle distortion between UV's and 3D coords");
+			uiBlockEndAlign(block);
+		}
+		
 	}
 	image_editcursor_buts(block);
 }
@@ -1592,10 +1788,6 @@ static void image_blockhandlers(ScrArea *sa)
 		case IMAGE_HANDLER_GAME_PROPERTIES:
 			image_panel_game_properties(sima->blockhandler[a+1]);
 			break;
-//		case IMAGE_HANDLER_TRANSFORM_PROPERTIES:
-//			if (EM_texFaceCheck())
-//				image_panel_transform_properties(sima->blockhandler[a+1]);
-//			break;
 		case IMAGE_HANDLER_VIEW_PROPERTIES:
 			image_panel_view_properties(sima->blockhandler[a+1]);
 			break;
@@ -1737,13 +1929,11 @@ static void sima_draw_alpha_backdrop(SpaceImage *sima, float x1, float y1, float
 	glColor3ub(100, 100, 100);
 	glRectf(x1, y1, x1 + sima->zoom*xsize, y1 + sima->zoom*ysize);
 	glColor3ub(160, 160, 160);
-	
+
 	glEnable(GL_POLYGON_STIPPLE);
 	glPolygonStipple(checker_stipple);
 	glRectf(x1, y1, x1 + sima->zoom*xsize, y1 + sima->zoom*ysize);
-	glEnd();
 	glDisable(GL_POLYGON_STIPPLE);
-	return;
 }
 
 static void sima_draw_alpha_pixels(float x1, float y1, int rectx, int recty, unsigned int *recti)
@@ -1836,10 +2026,10 @@ static void sima_draw_zbuffloat_pixels(float x1, float y1, int rectx, int recty,
 
 static void imagewindow_draw_renderinfo(ScrArea *sa)
 {
-	SpaceImage *sima= sa->spacedata.first;
 	rcti rect;
 	float colf[3];
-	char *str= sima->showspare?sima->info_spare:sima->info_str;
+	int showspare= BIF_show_render_spare();
+	char *str= BIF_render_text();
 	
 	if(str==NULL)
 		return;
@@ -1856,7 +2046,7 @@ static void imagewindow_draw_renderinfo(ScrArea *sa)
 	
 	BIF_ThemeColor(TH_TEXT_HI);
 	glRasterPos2i(12, 5);
-	if(sima->showspare) {
+	if(showspare) {
 		BMF_DrawString(G.fonts, "(Previous)");
 		glRasterPos2i(72, 5);
 	}		
@@ -1872,7 +2062,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	unsigned int *rect;
 	float x1, y1;
 	short sx, sy, dx, dy, show_render= 0, show_viewer= 0;
-	float xuser_asp, yuser_asp;
+	float xuser_asp=1, yuser_asp=1;
 		/* If derived data is used then make sure that object
 		 * is up-to-date... might not be the case because updates
 		 * are normally done in drawview and could get here before
@@ -1894,11 +2084,11 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		if(sima->image->type==IMA_TYPE_R_RESULT)
 			show_render= 1;
 	}
+	
 	what_image(sima);
 	
-	aspect_sima(sima, &xuser_asp, &yuser_asp);
-	
 	if(sima->image) {
+		image_pixel_aspect(sima->image, &xuser_asp, &yuser_asp);
 		
 		/* UGLY hack? until now iusers worked fine... but for flipbook viewer we need this */
 		if(sima->image->type==IMA_TYPE_COMPOSITE) {
@@ -2048,7 +2238,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 							else if(ibuf->rect_float && ibuf->channels==4)
 								sima_draw_alpha_pixelsf(x1_rep, y1_rep, ibuf->x, ibuf->y, ibuf->rect_float);
 						}
-						else if(sima->flag & SI_SHOW_ZBUF && ((ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels==1)) == 0)) {
+						else if(sima->flag & SI_SHOW_ZBUF && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels==1))) {
 							if(ibuf->zbuf)
 								sima_draw_zbuf_pixels(x1_rep, y1_rep, ibuf->x, ibuf->y, ibuf->zbuf);
 							else if(ibuf->zbuf_float)
@@ -2058,7 +2248,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 						}
 						else {
 							if(sima->flag & SI_USE_ALPHA) {
-								sima_draw_alpha_backdrop(sima, x1_rep, y1_rep, (float)ibuf->x, (float)ibuf->y);
+								sima_draw_alpha_backdrop(sima, x1_rep, y1_rep, ibuf->x*xuser_asp, ibuf->y*yuser_asp);
 								glEnable(GL_BLEND);
 								glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 							}
@@ -2148,7 +2338,6 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 
 	if(G.rendering==0) {
 		draw_image_view_tool();
-		draw_image_view_icon();
 	}
 	draw_area_emboss(sa);
 
@@ -2344,7 +2533,7 @@ void image_home(void)
 
 void image_viewcenter(void)
 {
-	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+	ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 	float size, min[2], max[2], d[2], xim=256.0f, yim=256.0f;
 
 	if( is_uv_tface_editing_allowed()==0 ) return;
@@ -2598,9 +2787,6 @@ static void imagewindow_init_display_cb(RenderResult *rr)
 		
 		areawinset(image_area->win);
 		
-		if(sima->info_str==NULL)
-			sima->info_str= MEM_callocN(RW_MAXTEXT, "info str imagewin");
-		
 		/* calc location using original size (tiles don't tell) */
 		sima->centx= (image_area->winx - sima->zoom*(float)rr->rectx)/2.0f;
 		sima->centy= (image_area->winy - sima->zoom*(float)rr->recty)/2.0f;
@@ -2648,10 +2834,7 @@ static void imagewindow_renderinfo_cb(RenderStats *rs)
 {
 	
 	if(image_area) {
-		SpaceImage *sima= image_area->spacedata.first;
-		
-		if(rs)
-			make_renderinfo_string(rs, sima->info_str);
+		BIF_make_render_text(rs);
 
 		imagewindow_draw_renderinfo(image_area);
 		
@@ -2666,56 +2849,5 @@ void imagewindow_render_callbacks(Render *re)
 	RE_display_draw_cb(re, imagewindow_progress_display_cb);
 	RE_display_clear_cb(re, imagewindow_clear_display_cb);
 	RE_stats_draw_cb(re, imagewindow_renderinfo_cb);	
-}
-
-void imagewin_store_spare(void)
-{
-	ScrArea *sa= find_area_showing_r_result();
-
-	if(sa) {
-		ImBuf *ibuf;
-		SpaceImage *sima= sa->spacedata.first;
-		
-		if(sima->spare==NULL)
-			return;
-		
-		/* only store when it does not show spare */
-		if(sima->showspare==0)
-			return;
-		sima->showspare= 0;
-		
-		/* free spare */
-		IMB_freeImBuf(sima->spare);
-		
-		/* make a copy of render result */
-		ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
-		sima->spare= IMB_dupImBuf(ibuf);
-		
-		if(sima->info_str)
-			BLI_strncpy(sima->info_spare, sima->info_str, RW_MAXTEXT);
-
-	}
-}
-
-/* context: in current image window? */
-void imagewindow_swap_render_rects(void)
-{
-	ScrArea *sa= find_area_showing_r_result();
-					
-	if(sa) {
-		SpaceImage *sima= sa->spacedata.first;
-		ImBuf *ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
-		if(ibuf) {
-			
-			sima->showspare ^= 1;
-			
-			if(sima->spare==NULL)
-				sima->spare= IMB_allocImBuf(ibuf->x, ibuf->y, 32, 0, 0);
-			if(sima->info_spare==NULL)
-				sima->info_spare= MEM_callocN(RW_MAXTEXT, "info str imagewin");
-			
-			allqueue(REDRAWIMAGE, 0);
-		}
-	}
 }
 

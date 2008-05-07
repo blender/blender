@@ -2,15 +2,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  * Contributor(s): Willian P. Germano, Jacques Guignot, Joseph Gilbert,
  * Campbell Barton, Ken Hughes
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 struct View3D;
 
@@ -42,6 +39,7 @@ struct View3D;
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h" /* U.userdefs */
 #include "DNA_object_types.h" /* SceneObSeq_new */
+#include "BKE_armature.h"
 #include "BKE_depsgraph.h"
 #include "BKE_library.h"
 #include "BKE_object.h"
@@ -555,6 +553,7 @@ PyObject *Scene_Init( void )
 	PyDict_SetItemString( dict, "Render", Render_Init(  ) );
 	PyDict_SetItemString( dict, "Radio", Radio_Init(  ) );
 	PyDict_SetItemString( dict, "Sequence", Sequence_Init(  ) );
+	PyDict_SetItemString( dict, "TimeLine", TimeLine_Init(  ) );
 	
 	return submodule;
 }
@@ -774,16 +773,16 @@ static PyObject *Scene_oldsetLayers( BPy_Scene * self, PyObject * args )
 /*-----------------------Scene.copy()------------------------------------*/
 static PyObject *Scene_copy( BPy_Scene * self, PyObject * args )
 {
-	short dup_objs = 1;
+	short dup_objs = 2;
 	Scene *scene = self->scene;
 
 	SCENE_DEL_CHECK_PY(self);
 
-	if( !PyArg_ParseTuple( args, "|h", &dup_objs ) )
+	if( !PyArg_ParseTuple( args, "|h", &dup_objs ) || dup_objs < 0 || dup_objs > 2)
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected int in [0,2] or nothing as argument" );
-
-	return Scene_CreatePyObject( copy_scene( scene, dup_objs ) );
+	
+	return Scene_CreatePyObject( copy_scene( scene, dup_objs+1 ) );
 }
 
 /*-----------------------Scene.makeCurrent()-----------------------------*/
@@ -1092,10 +1091,7 @@ static PyObject *Scene_getRadiosityContext( BPy_Scene * self )
 static PyObject *Scene_getSequence( BPy_Scene * self )
 {
 	SCENE_DEL_CHECK_PY(self);
-	if (self->scene->ed) /* we should create this if its not there :/ */
-		return SceneSeq_CreatePyObject( self->scene, NULL );
-	else
-		Py_RETURN_NONE;
+	return SceneSeq_CreatePyObject( self->scene, NULL );
 }
 
 /* scene.addScriptLink */
@@ -1242,7 +1238,7 @@ int SceneObSeq_setObjects( BPy_SceneObSeq *self, PyObject *value, void *_mode_)
 	Scene *scene= self->bpyscene->scene;
 	Object *blen_ob;
 	Base *base;
-	int size, mode = (int)_mode_;
+	int size, mode = GET_INT_FROM_POINTER(_mode_);
 	
 	SCENE_DEL_CHECK_INT(self->bpyscene);
 	
@@ -1565,8 +1561,11 @@ typeError:
 	object->flag = SELECT;
 	
 	/* creates the curve for the text object */
-	if (type == OB_FONT) 
+	if (type == OB_FONT) {
 		text_to_curve(object, 0);
+	} else if (object->type == OB_ARMATURE) {
+		armature_rebuild_pose(object, (bArmature *)data);
+	}
 	
 	/* link to scene */
 	base = MEM_callocN( sizeof( Base ), "pynewbase" );

@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Campbell Barton
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 #include "bpy_data.h"
@@ -394,7 +391,7 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 {
 	ID *id = NULL;
 	char *name=NULL, *filename=NULL, *data_type=NULL;
-	int img_width=256, img_height=256;
+	int img_width=256, img_height=256, img_depth=32;
 	float color[] = {0, 0, 0, 1};
 	short data_code = 0;
 	int user_count = 0;
@@ -456,8 +453,8 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 	
 	/* New Data */
 	if (self->type == ID_IM) {
-		/* Image, accepts width and height*/
-		if( !PyArg_ParseTuple( args, "|sii", &name, &img_width, &img_height ) )
+		/* Image, accepts width and height, depth */
+		if( !PyArg_ParseTuple( args, "|siii", &name, &img_width, &img_height, &img_depth ) )
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"one string and two ints expected as arguments" );
 		CLAMP(img_width,  4, 5000);
@@ -538,7 +535,7 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 		break;
 	case ID_IM: 
 	{
-		id = (ID *)BKE_add_image_size(img_width, img_height, name?name:"Image", 0, 0, color);
+		id = (ID *)BKE_add_image_size(img_width, img_height, name?name:"Image", img_depth==128 ? 1:0, 0, color);
 		if( !id )
 			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 				"couldn't create PyObject Image_Type" ) );
@@ -562,14 +559,14 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 		break;
 	case ID_VF:
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-			"Cannot create new fonts, use the load() function to load from a file" );
+			"Cannot create new fonts, use the new(name, filename) function to load from a file" );
 	case ID_TXT:
 		id = (ID *)add_empty_text( name?name:"Text" );
 		user_count = 1;
 		break;
 	case ID_SO:
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-			"Cannot create new sounds, use the load() function to load from a file" );
+			"Cannot create new sounds, use the new(name, filename) function to load from a file" );
 	case ID_GR:	
 		id = (ID *)add_group( name?name:"Group" );
 		user_count = 1;
@@ -621,7 +618,7 @@ PyObject *LibBlockSeq_unlink(BPy_LibBlockSeq *self, PyObject * value)
 			
 			if (!data)
 				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						"This Group has been removed alredy" );
+						"This Group has been removed already" );
 			
 			/* Run the removal code */
 			free_group(data);
@@ -642,10 +639,11 @@ PyObject *LibBlockSeq_unlink(BPy_LibBlockSeq *self, PyObject * value)
 			
 			if (!data)
 				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						"This Group has been removed alredy" );
+						"This Group has been removed already" );
 			
 			/* Run the removal code */
 			BPY_clear_bad_scriptlinks( data );
+			BPY_free_pyconstraint_links( data );
 			free_text_controllers( data );
 			unlink_text( data );
 			free_libblock( &G.main->text, data );

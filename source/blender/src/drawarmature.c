@@ -109,6 +109,7 @@ static void set_pchan_colorset (Object *ob, bPoseChannel *pchan)
 {
 	bPose *pose= (ob) ? ob->pose : NULL;
 	bArmature *arm= (ob) ? ob->data : NULL;
+	bActionGroup *grp= NULL;
 	short color_index= 0;
 	
 	/* sanity check */
@@ -123,7 +124,7 @@ static void set_pchan_colorset (Object *ob, bPoseChannel *pchan)
 		 * has been set to use one
 		 */
 		if (pchan->agrp_index) {
-			bActionGroup *grp= (bActionGroup *)BLI_findlink(&pose->agroups, (pchan->agrp_index - 1));
+			grp= (bActionGroup *)BLI_findlink(&pose->agroups, (pchan->agrp_index - 1));
 			if (grp)
 				color_index= grp->customCol;
 		}
@@ -132,9 +133,13 @@ static void set_pchan_colorset (Object *ob, bPoseChannel *pchan)
 	/* bcolor is a pointer to the color set to use. If NULL, then the default
 	 * color set (based on the theme colors for 3d-view) is used. 
 	 */
-	if (color_index) {
+	if (color_index > 0) {
 		bTheme *btheme= U.themes.first;
 		bcolor= &btheme->tarm[(color_index - 1)];
+	}
+	else if (color_index == -1) {
+		/* use the group's own custom color set */
+		bcolor= (grp)? &grp->cs : NULL;
 	}
 	else 
 		bcolor= NULL;
@@ -1290,7 +1295,7 @@ static void draw_custom_bone(Object *ob, int dt, int armflag, int boneflag, unsi
 }
 
 
-static void pchan_draw_IK_root_lines(bPoseChannel *pchan)
+static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 {
 	bConstraint *con;
 	bPoseChannel *parchan;
@@ -1299,6 +1304,10 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan)
 		if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
 			bKinematicConstraint *data = (bKinematicConstraint*)con->data;
 			int segcount= 0;
+			
+			/* if only_temp, only draw if it is a temporary ik-chain */
+			if ((only_temp) && !(data->flag & CONSTRAINT_IK_TEMP))
+				continue;
 			
 			setlinestyle(3);
 			glBegin(GL_LINES);
@@ -1521,13 +1530,13 @@ static void draw_pose_channels(Base *base, int dt)
 	GLfloat tmp;
 	float smat[4][4], imat[4][4];
 	int index= -1;
-	int do_dashed= 1;
+	short do_dashed= 3, draw_wire= 0;
 	short flag, constflag;
 	
 	/* hacky... prevent outline select from drawing dashed helplines */
 	glGetFloatv(GL_LINE_WIDTH, &tmp);
-	if (tmp > 1.1) do_dashed= 0;
-	if (G.vd->flag & V3D_HIDE_HELPLINES) do_dashed= 0;
+	if (tmp > 1.1) do_dashed &= ~1;
+	if (G.vd->flag & V3D_HIDE_HELPLINES) do_dashed &= ~2;
 	
 	/* precalc inverse matrix for drawing screen aligned */
 	if (arm->drawtype==ARM_ENVELOPE) {
@@ -1584,8 +1593,13 @@ static void draw_pose_channels(Base *base, int dt)
 					/* set color-set to use */
 					set_pchan_colorset(ob, pchan);
 					
-					if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM))
-						draw_custom_bone(pchan->custom, OB_SOLID, arm->flag, flag, index, bone->length);
+					if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
+						/* if drawwire, don't try to draw in solid */
+						if (pchan->bone->flag & BONE_DRAWWIRE) 
+							draw_wire= 1;
+						else
+							draw_custom_bone(pchan->custom, OB_SOLID, arm->flag, flag, index, bone->length);
+					}
 					else if (arm->drawtype==ARM_LINE)
 						;	/* nothing in solid */
 					else if (arm->drawtype==ARM_ENVELOPE)
@@ -1603,8 +1617,66 @@ static void draw_pose_channels(Base *base, int dt)
 				index+= 0x10000;	// pose bones count in higher 2 bytes only
 		}
 		
-		/* very very confusing... but in object mode, solid draw, we cannot do glLoadName yet, stick bones are drawn in next loop */
-		if (arm->drawtype != ARM_LINE) {
+		/* very very confusing... but in object mode, solid draw, we cannot do glLoadName yet,
+		 * stick bones and/or wire custom-shpaes are drawn in next loop 
+		 */
+		if ((arm->drawtype != ARM_LINE) && (draw_wire == 0)) {
+			/* object tag, for bordersel optim */
+			glLoadName(index & 0xFFFF);	
+			index= -1;
+		}
+	}
+	
+	/* draw custom bone shapes as wireframes */
+	if ( !(arm->flag & ARM_NO_CUSTOM) &&
+		 ((draw_wire) || (dt <= OB_WIRE)) ) 
+	{
+		if (arm->flag & ARM_POSEMODE)
+			index= base->selcol;
+			
+		/* only draw custom bone shapes that need to be drawn as wires */
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			bone= pchan->bone;
+			
+			if ((bone) && !(bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))) {
+				if (bone->layer & arm->layer) {
+					if (pchan->custom) {
+						if ((dt < OB_SOLID) || (bone->flag & BONE_DRAWWIRE)) {
+							glPushMatrix();
+							glMultMatrixf(pchan->pose_mat);
+							
+							/* prepare colours */
+							if (arm->flag & ARM_POSEMODE)	
+								set_pchan_colorset(ob, pchan);
+							else {
+								if ((G.scene->basact)==base) {
+									if (base->flag & (SELECT+BA_WAS_SEL)) BIF_ThemeColor(TH_ACTIVE);
+									else BIF_ThemeColor(TH_WIRE);
+								}
+								else {
+									if (base->flag & (SELECT+BA_WAS_SEL)) BIF_ThemeColor(TH_SELECT);
+									else BIF_ThemeColor(TH_WIRE);
+								}
+							}
+								
+							/* catch exception for bone with hidden parent */
+							flag= bone->flag;
+							if ((bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)))
+								flag &= ~BONE_CONNECTED;
+							
+							draw_custom_bone(pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
+							
+							glPopMatrix();
+						}
+					}
+				}
+			}
+			
+			if (index != -1) 
+				index+= 0x10000;	// pose bones count in higher 2 bytes only
+		}
+		
+		if (draw_wire) {
 			/* object tag, for bordersel optim */
 			glLoadName(index & 0xFFFF);	
 			index= -1;
@@ -1633,9 +1705,11 @@ static void draw_pose_channels(Base *base, int dt)
 			
 			if ((bone) && !(bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))) {
 				if (bone->layer & arm->layer) {
-					if (do_dashed && bone->parent) {
-						/*	Draw a line from our root to the parent's tip */
-						if ((bone->flag & BONE_CONNECTED)==0) {
+					if ((do_dashed & 1) && (bone->parent)) {
+						/* Draw a line from our root to the parent's tip 
+						 *	- only if V3D_HIDE_HELPLINES is enabled...
+						 */
+						if ( (do_dashed & 2) && ((bone->flag & BONE_CONNECTED)==0) ) {
 							if (arm->flag & ARM_POSEMODE) {
 								glLoadName(index & 0xFFFF);	// object tag, for bordersel optim
 								BIF_ThemeColor(TH_WIRE);
@@ -1648,8 +1722,9 @@ static void draw_pose_channels(Base *base, int dt)
 							setlinestyle(0);
 						}
 						
-						/*	Draw a line to IK root bone */ 
-						//		TODO: make this draw with do_dashed off (V3D_HIDE_HELPLINES)
+						/* Draw a line to IK root bone 
+						 * 	- only if temporary chain (i.e. "autoik")
+						 */
 						if (arm->flag & ARM_POSEMODE) {
 							if (pchan->constflag & PCHAN_HAS_IK) {
 								if (bone->flag & BONE_SELECTED) {
@@ -1657,7 +1732,7 @@ static void draw_pose_channels(Base *base, int dt)
 									else glColor3ub(200, 200, 50);	// add theme!
 									
 									glLoadName(index & 0xFFFF);
-									pchan_draw_IK_root_lines(pchan);
+									pchan_draw_IK_root_lines(pchan, !(do_dashed & 2));
 								}
 							}
 						}
@@ -1674,18 +1749,16 @@ static void draw_pose_channels(Base *base, int dt)
 					
 					/* extra draw service for pose mode */
 					constflag= pchan->constflag;
-					if(pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))
+					if (pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))
 						constflag |= PCHAN_HAS_ACTION;
-					if(pchan->flag & POSE_STRIDE)
+					if (pchan->flag & POSE_STRIDE)
 						constflag |= PCHAN_HAS_STRIDE;
 						
 					/* set color-set to use */
 					set_pchan_colorset(ob, pchan);
-
-					if (pchan->custom && !(arm->flag & ARM_NO_CUSTOM)) {
-						if (dt < OB_SOLID)
-							draw_custom_bone(pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
-					}
+					
+					if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM))
+						; // custom bone shapes should not be drawn here!
 					else if (arm->drawtype==ARM_ENVELOPE) {
 						if (dt < OB_SOLID)
 							draw_sphere_bone_wire(smat, imat, arm->flag, flag, constflag, index, pchan, NULL);
@@ -1706,7 +1779,7 @@ static void draw_pose_channels(Base *base, int dt)
 				index+= 0x10000;	
 		}
 		/* restore things */
-		if ((arm->drawtype!=ARM_LINE) && (dt>OB_WIRE) && (arm->flag & ARM_POSEMODE))
+		if ((arm->drawtype!=ARM_LINE)&& (dt>OB_WIRE) && (arm->flag & ARM_POSEMODE))
 			bglPolygonOffset(0.0);
 	}	
 	

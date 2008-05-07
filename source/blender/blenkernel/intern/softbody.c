@@ -2,15 +2,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /*
@@ -87,7 +84,7 @@ variables on the UI for now
 #include  "BIF_editdeform.h"
 #include  "BIF_graphics.h"
 #include  "PIL_time.h"
-#include  "ONL_opennl.h"
+// #include  "ONL_opennl.h" remove linking to ONL for now
 
 /* callbacks for errors and interrupts and some goo */
 static int (*SB_localInterruptCallBack)(void) = NULL;
@@ -106,7 +103,7 @@ typedef struct BodySpring {
 
 typedef struct BodyFace {
 	int v1, v2, v3 ,v4;
-	float ext_force[3]; /* edges colliding and sailing */
+	float ext_force[3]; /* faces colliding */
 	short flag;
 } BodyFace;
 
@@ -135,7 +132,9 @@ typedef struct SBScratch {
 
 #define BSF_INTERSECT   1 /* edge intersects collider face */
 #define SBF_DOFUZZY     1 /* edge intersects collider face */
-#define BFF_INTERSECT   1 /* edge intersects collider face */
+
+#define BFF_INTERSECT   1 /* collider edge   intrudes face */
+#define BFF_CLOSEVERT   2 /* collider vertex repulses face */
 
 
 float SoftHeunTol = 1.0f; /* humm .. this should be calculated from sb parameters and sizes */
@@ -786,7 +785,7 @@ static void calculate_collision_balls(Object *ob)
 			bs = sb->bspring + bp->springs[b-1];
 			if (bs->order == 1){
 			akku += bs->len;
-			akku_count++;
+			akku_count++,
 			min = MIN2(bs->len,min);
 			max = MAX2(bs->len,max);
 			}
@@ -813,50 +812,6 @@ static void calculate_collision_balls(Object *ob)
 	}/*for bp*/		
 }
 
-
-char set_octant_flags(float *ce, float *pos, float ball)
-{ 
-	float x,y,z;
-	char res = 0;
-	int a;
-	
-	for (a=0;a<7;a++){
-		switch(a){
-		case 0: x=pos[0];      y=pos[1];      z=pos[2]; break;
-		case 1: x=pos[0]+ball; y=pos[1];      z=pos[2]; break;
-		case 2: x=pos[0]-ball; y=pos[1];      z=pos[2]; break;
-		case 3: x=pos[0];      y=pos[1]+ball; z=pos[2]; break;
-		case 4: x=pos[0];      y=pos[1]-ball; z=pos[2]; break;
-		case 5: x=pos[0];      y=pos[1];      z=pos[2]+ball; break;
-		case 6: x=pos[0];      y=pos[1];      z=pos[2]-ball; break;
-		}
-
-		x=pos[0]; y=pos[1]; z=pos[2];
-		
-		if (x > ce[0]){
-			if (y > ce[1]){
-				if (z > ce[2])  res|= 1;
-				else res|= 2;
-			}
-			else{
-				if (z > ce[2])  res|= 4;
-				else res|= 8;
-			}
-		}
-		
-		else{
-			if (y > ce[1]){
-				if (z > ce[2])  res|= 16;
-				else res|= 32;
-			}
-			else{
-				if (z > ce[2])  res|= 64;
-				else res|= 128;
-			}
-		}
-	}
-	return res;
-}
 
 /* creates new softbody if didn't exist yet, makes new points and springs arrays */
 static void renew_softbody(Object *ob, int totpoint, int totspring)  
@@ -892,6 +847,8 @@ static void renew_softbody(Object *ob, int totpoint, int totspring)
 			bp->nofsprings= 0;
 			bp->springs= NULL;
 			bp->choke = 0.0f;
+			bp->choke2 = 0.0f;
+			bp->frozen = 1.0f;
 			bp->colball = 0.0f;
 			bp->flag = 0;
 
@@ -996,6 +953,7 @@ static void Vec3PlusStVec(float *v, float s, float *v1)
 }
 
 /* +++ dependancy information functions*/
+
 static int are_there_deflectors(unsigned int layer)
 {
 	Base *base;
@@ -1013,37 +971,8 @@ static int query_external_colliders(Object *me)
 {
 	return(are_there_deflectors(me->lay));
 }
-
-#if 0
-static int query_external_forces(Object *me)
-{
-/* silly but true: we need to create effector cache to see if anything is in it */
-	ListBase *ec = pdInitEffectors(me,NULL);
-	int result = 0;
-	if (ec){
-		result = 1;
-		pdEndEffectors(ec); /* sorry ec, yes i'm an idiot, but i needed to know if you were there */
-	}
-	return result;
-}
-
-/* 
-any of that external objects may have an IPO or something alike ..
-so unless we can ask them if they are moving we have to assume they do
-*/
-static int query_external_time(Object *me)
-{
-	if (query_external_colliders(me)) return 1;
-	if (query_external_forces(me)) return 1;
-	return 0;
-}
-static int query_internal_time(Object *me)
-{
-	if (me->softflag & OB_SB_GOAL) return 1;
-	return 0;
-}
-#endif
 /* --- dependancy information functions*/
+
 
 /* +++ the aabb "force" section*/
 int sb_detect_aabb_collisionCached(	float force[3], unsigned int par_layer,struct Object *vertexowner,float time)
@@ -1110,6 +1039,103 @@ int sb_detect_aabb_collisionCached(	float force[3], unsigned int par_layer,struc
 
 
 /* +++ the face external section*/
+int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float face_v3[3],float *damp,						
+								   float force[3], unsigned int par_layer,struct Object *vertexowner,float time)
+								   {
+	Object *ob;
+	GHash *hash;
+	GHashIterator *ihash;
+	float nv1[3], edge1[3], edge2[3], d_nvect[3], aabbmin[3],aabbmax[3];
+	float facedist,outerfacethickness,tune = 10.f;
+	int a, deflected=0;
+
+	aabbmin[0] = MIN3(face_v1[0],face_v2[0],face_v3[0]);
+	aabbmin[1] = MIN3(face_v1[1],face_v2[1],face_v3[1]);
+	aabbmin[2] = MIN3(face_v1[2],face_v2[2],face_v3[2]);
+	aabbmax[0] = MAX3(face_v1[0],face_v2[0],face_v3[0]);
+	aabbmax[1] = MAX3(face_v1[1],face_v2[1],face_v3[1]);
+	aabbmax[2] = MAX3(face_v1[2],face_v2[2],face_v3[2]);
+
+	/* calculate face normal once again SIGH */
+	VECSUB(edge1, face_v1, face_v2);
+	VECSUB(edge2, face_v3, face_v2);
+	Crossf(d_nvect, edge2, edge1);
+	Normalize(d_nvect);
+
+
+	hash  = vertexowner->soft->scratch->colliderhash;
+	ihash =	BLI_ghashIterator_new(hash);
+    while (!BLI_ghashIterator_isDone(ihash) ) {
+
+		ccd_Mesh *ccdm = BLI_ghashIterator_getValue	(ihash);
+		ob             = BLI_ghashIterator_getKey	(ihash);
+			/* only with deflecting set */
+			if(ob->pd && ob->pd->deflect) {
+				MVert *mvert= NULL;
+				MVert *mprevvert= NULL;
+				if(ccdm){
+					mvert= ccdm->mvert;
+					a    = ccdm->totvert; 
+					mprevvert= ccdm->mprevvert;				
+					outerfacethickness =ob->pd->pdef_sboft;
+					if ((aabbmax[0] < ccdm->bbmin[0]) || 
+						(aabbmax[1] < ccdm->bbmin[1]) ||
+						(aabbmax[2] < ccdm->bbmin[2]) ||
+						(aabbmin[0] > ccdm->bbmax[0]) || 
+						(aabbmin[1] > ccdm->bbmax[1]) || 
+						(aabbmin[2] > ccdm->bbmax[2]) ) {
+						/* boxes dont intersect */ 
+						BLI_ghashIterator_step(ihash);
+						continue;				
+					}					
+
+				}
+				else{
+					/*aye that should be cached*/
+					printf("missing cache error \n");
+					BLI_ghashIterator_step(ihash);
+					continue;				
+				}
+
+
+				/* use mesh*/
+				if (mvert) {
+					while(a){
+						VECCOPY(nv1,mvert[a-1].co);						
+						if(mprevvert){
+							VecMulf(nv1,time);
+							Vec3PlusStVec(nv1,(1.0f-time),mprevvert[a-1].co);
+						}
+						/* origin to face_v2*/
+						VECSUB(nv1, nv1, face_v2);
+						facedist = Inpf(nv1,d_nvect);
+						if (ABS(facedist)<outerfacethickness){
+							if (point_in_tri_prism(nv1, face_v1,face_v2,face_v3) ){
+								float df;
+								if (facedist > 0){
+									df = (outerfacethickness-facedist)/outerfacethickness;
+								}
+								else {
+									df = (outerfacethickness+facedist)/outerfacethickness;
+								}
+
+								*damp=df*tune*ob->pd->pdef_sbdamp;
+
+								df = 0.01f*exp(- 100.0f*df);
+								Vec3PlusStVec(force,-df,d_nvect);
+								deflected = 3;
+							}
+						}
+						a--;
+					}/* while(a)*/
+				} /* if (mvert) */
+			} /* if(ob->pd && ob->pd->deflect) */
+			BLI_ghashIterator_step(ihash);
+	} /* while () */
+	BLI_ghashIterator_free(ihash);
+	return deflected;	
+}
+
 
 int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_v3[3],float *damp,						
 								   float force[3], unsigned int par_layer,struct Object *vertexowner,float time)
@@ -1118,7 +1144,7 @@ int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_
 	GHash *hash;
 	GHashIterator *ihash;
 	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3], d_nvect[3], aabbmin[3],aabbmax[3];
-	float t;
+	float t,tune = 10.0f;
 	int a, deflected=0;
 
 	aabbmin[0] = MIN3(face_v1[0],face_v2[0],face_v3[0]);
@@ -1217,8 +1243,8 @@ int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_
 						LineIntersectsTriangle(nv1, nv2, face_v1, face_v2, face_v3, &t, NULL) ||
 						LineIntersectsTriangle(nv2, nv3, face_v1, face_v2, face_v3, &t, NULL) ||
 						LineIntersectsTriangle(nv3, nv1, face_v1, face_v2, face_v3, &t, NULL) ){
-						Vec3PlusStVec(force,-1.0f,d_nvect);
-						*damp=ob->pd->pdef_sbdamp;
+						Vec3PlusStVec(force,-0.5f,d_nvect);
+						*damp=tune*ob->pd->pdef_sbdamp;
 						deflected = 2;
 					}
 					if (mface->v4){ /* quad */
@@ -1228,11 +1254,12 @@ int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_
 						Crossf(d_nvect, edge2, edge1);
 						Normalize(d_nvect);	
 						if ( 
-							LineIntersectsTriangle(nv1, nv3, face_v1, face_v2, face_v3, &t, NULL) ||
+							/* LineIntersectsTriangle(nv1, nv3, face_v1, face_v2, face_v3, &t, NULL) ||
+							 we did that edge allready */
 							LineIntersectsTriangle(nv3, nv4, face_v1, face_v2, face_v3, &t, NULL) ||
 							LineIntersectsTriangle(nv4, nv1, face_v1, face_v2, face_v3, &t, NULL) ){
-							Vec3PlusStVec(force,-1.0f,d_nvect);
-							*damp=ob->pd->pdef_sbdamp;
+							Vec3PlusStVec(force,-0.5f,d_nvect);
+							*damp=tune*ob->pd->pdef_sbdamp;
 							deflected = 2;
 						}
 					}
@@ -1253,7 +1280,7 @@ void scan_for_ext_face_forces(Object *ob,float timenow)
 	SoftBody *sb = ob->soft;
 	BodyFace *bf;
 	int a;
-	float damp; 
+	float damp=0.0f,choke=1.0f; 
 	float tune = -10.0f;
 	float feedback[3];
 	
@@ -1263,43 +1290,71 @@ void scan_for_ext_face_forces(Object *ob,float timenow)
 		bf = sb->scratch->bodyface;
 		for(a=0; a<sb->scratch->totface; a++, bf++) {
 			bf->ext_force[0]=bf->ext_force[1]=bf->ext_force[2]=0.0f; 
+/*+++edges intruding*/
+			bf->flag &= ~BFF_INTERSECT;		
 			feedback[0]=feedback[1]=feedback[2]=0.0f;
-			bf->flag &= ~BFF_INTERSECT;
-			
 			if (sb_detect_face_collisionCached(sb->bpoint[bf->v1].pos,sb->bpoint[bf->v2].pos, sb->bpoint[bf->v3].pos, 
 				&damp,	feedback, ob->lay ,ob , timenow)){
-				Vec3PlusStVec(bf->ext_force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v1].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v2].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v3].force,tune,feedback);
+//				Vec3PlusStVec(bf->ext_force,tune,feedback);
 				bf->flag |= BFF_INTERSECT;
+				choke = MIN2(MAX2(damp,choke),1.0f);
 			}
 
 			feedback[0]=feedback[1]=feedback[2]=0.0f;
 			if ((bf->v4) && (sb_detect_face_collisionCached(sb->bpoint[bf->v1].pos,sb->bpoint[bf->v3].pos, sb->bpoint[bf->v4].pos, 
 				&damp,	feedback, ob->lay ,ob , timenow))){
-				Vec3PlusStVec(bf->ext_force,tune,feedback);
-				bf->flag |= BFF_INTERSECT;	
+				Vec3PlusStVec(sb->bpoint[bf->v1].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v3].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v4].force,tune,feedback);
+//				Vec3PlusStVec(bf->ext_force,tune,feedback);
+				bf->flag |= BFF_INTERSECT;
+				choke = MIN2(MAX2(damp,choke),1.0f);
 			}
-		}
+/*---edges intruding*/
 
-		
-		
-		bf = sb->scratch->bodyface;
-		for(a=0; a<sb->scratch->totface; a++, bf++) {
-			if ( bf->flag & BFF_INTERSECT)
-			{
-				VECADD(sb->bpoint[bf->v1].force,sb->bpoint[bf->v1].force,bf->ext_force); 
-				VECADD(sb->bpoint[bf->v2].force,sb->bpoint[bf->v2].force,bf->ext_force);
-				VECADD(sb->bpoint[bf->v3].force,sb->bpoint[bf->v3].force,bf->ext_force); 
-				if (bf->v4){
-				VECADD(sb->bpoint[bf->v4].force,sb->bpoint[bf->v4].force,bf->ext_force);
+/*+++ close vertices*/
+			if  (( bf->flag & BFF_INTERSECT)==0){
+				bf->flag &= ~BFF_CLOSEVERT;
+				tune = -1.0f;
+				feedback[0]=feedback[1]=feedback[2]=0.0f;
+				if (sb_detect_face_pointCached(sb->bpoint[bf->v1].pos,sb->bpoint[bf->v2].pos, sb->bpoint[bf->v3].pos, 
+					&damp,	feedback, ob->lay ,ob , timenow)){
+				Vec3PlusStVec(sb->bpoint[bf->v1].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v2].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v3].force,tune,feedback);
+//						Vec3PlusStVec(bf->ext_force,tune,feedback);
+						bf->flag |= BFF_CLOSEVERT;
+						choke = MIN2(MAX2(damp,choke),1.0f);
 				}
 
+				feedback[0]=feedback[1]=feedback[2]=0.0f;
+				if ((bf->v4) && (sb_detect_face_pointCached(sb->bpoint[bf->v1].pos,sb->bpoint[bf->v3].pos, sb->bpoint[bf->v4].pos, 
+					&damp,	feedback, ob->lay ,ob , timenow))){
+				Vec3PlusStVec(sb->bpoint[bf->v1].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v3].force,tune,feedback);
+				Vec3PlusStVec(sb->bpoint[bf->v4].force,tune,feedback);
+//						Vec3PlusStVec(bf->ext_force,tune,feedback);
+						bf->flag |= BFF_CLOSEVERT;
+						choke = MIN2(MAX2(damp,choke),1.0f);
+				}
 			}
-			
+/*--- close vertices*/
 		}
-
-
-
-
+		bf = sb->scratch->bodyface;
+		for(a=0; a<sb->scratch->totface; a++, bf++) {
+			if (( bf->flag & BFF_INTERSECT) || ( bf->flag & BFF_CLOSEVERT))
+			{
+                sb->bpoint[bf->v1].choke2=MAX2(sb->bpoint[bf->v1].choke2,choke);
+                sb->bpoint[bf->v2].choke2=MAX2(sb->bpoint[bf->v2].choke2,choke);
+                sb->bpoint[bf->v3].choke2=MAX2(sb->bpoint[bf->v3].choke2,choke);
+				if (bf->v4){
+                sb->bpoint[bf->v2].choke2=MAX2(sb->bpoint[bf->v2].choke2,choke);
+				}
+			}	
+		}
 	}
 }
 
@@ -1851,253 +1906,6 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 	return deflected;	
 }
 
-/* not complete yet ..
-   try to find a pos resolving all inside collisions 
-*/
-#if 0 //mute it for now 
-int sb_detect_vertex_collisionCachedEx(float opco[3], float facenormal[3], float *damp,
-									 float force[3], unsigned int par_layer,struct Object *vertexowner,
-									 float time,float vel[3], float *intrusion)
-{
-	Object *ob;
-	GHash *hash;
-	GHashIterator *ihash;
-	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3],d_nvect[3], dv1[3],ve[3],avel[3],
-    vv1[3], vv2[3], vv3[3], vv4[3],
-		facedist,n_mag,force_mag_norm,minx,miny,minz,maxx,maxy,maxz,
-		innerfacethickness,outerfacethickness,
-		closestinside,
-		ee = 5.0f, ff = 0.1f, fa;
-	int a, deflected=0, cavel=0;
-/* init */
-	*intrusion = 0.0f;
-	hash  = vertexowner->soft->scratch->colliderhash;
-	ihash =	BLI_ghashIterator_new(hash);
-/* go */
-    while (!BLI_ghashIterator_isDone(ihash) ) {
-
-		ccd_Mesh *ccdm = BLI_ghashIterator_getValue	(ihash);
-		ob             = BLI_ghashIterator_getKey	(ihash);
-			/* only with deflecting set */
-			if(ob->pd && ob->pd->deflect) {
-				MFace *mface= NULL;
-				MVert *mvert= NULL;
-				MVert *mprevvert= NULL;
-				ccdf_minmax *mima= NULL;
-
-				if(ccdm){
-					mface= ccdm->mface;
-					mvert= ccdm->mvert;
-					mprevvert= ccdm->mprevvert;
-					mima= ccdm->mima;
-					a = ccdm->totface;
-
-					minx =ccdm->bbmin[0]; 
-					miny =ccdm->bbmin[1]; 
-					minz =ccdm->bbmin[2];
-
-					maxx =ccdm->bbmax[0]; 
-					maxy =ccdm->bbmax[1]; 
-					maxz =ccdm->bbmax[2]; 
-
-					if ((opco[0] < minx) || 
-						(opco[1] < miny) ||
-						(opco[2] < minz) ||
-						(opco[0] > maxx) || 
-						(opco[1] > maxy) || 
-						(opco[2] > maxz) ) {
-							/* outside the padded boundbox --> collision object is too far away */ 
-												BLI_ghashIterator_step(ihash);
-							continue;				
-					}					
-				}
-				else{
-					/*aye that should be cached*/
-					printf("missing cache error \n");
-						BLI_ghashIterator_step(ihash);
-					continue;				
-				}
-
-				/* do object level stuff */
-				/* need to have user control for that since it depends on model scale */
-				innerfacethickness =-ob->pd->pdef_sbift;
-				outerfacethickness =ob->pd->pdef_sboft;
-				closestinside = innerfacethickness;
-				fa = (ff*outerfacethickness-outerfacethickness);
-				fa *= fa;
-				fa = 1.0f/fa;
-                avel[0]=avel[1]=avel[2]=0.0f;
-				/* use mesh*/
-				while (a--) {
-					if (
-						(opco[0] < mima->minx) || 
-						(opco[0] > mima->maxx) || 
-						(opco[1] < mima->miny) ||
-						(opco[1] > mima->maxy) || 
-						(opco[2] < mima->minz) ||
-						(opco[2] > mima->maxz) 
-						) {
-							mface++;
-							mima++;
-							continue;
-					}
-
-					if (mvert){
-
-						VECCOPY(nv1,mvert[mface->v1].co);						
-						VECCOPY(nv2,mvert[mface->v2].co);
-						VECCOPY(nv3,mvert[mface->v3].co);
-						if (mface->v4){
-							VECCOPY(nv4,mvert[mface->v4].co);
-						}
-
-						if (mprevvert){
-							/* grab the average speed of the collider vertices
-							before we spoil nvX 
-							humm could be done once a SB steps but then we' need to store that too
-							since the AABB reduced propabitlty to get here drasticallly
-							it might be a nice tradeof CPU <--> memory
-							*/
-							VECSUB(vv1,nv1,mprevvert[mface->v1].co);
-							VECSUB(vv2,nv2,mprevvert[mface->v2].co);
-							VECSUB(vv3,nv3,mprevvert[mface->v3].co);
-							if (mface->v4){
-								VECSUB(vv4,nv4,mprevvert[mface->v4].co);
-							}
-
-							VecMulf(nv1,time);
-							Vec3PlusStVec(nv1,(1.0f-time),mprevvert[mface->v1].co);
-
-							VecMulf(nv2,time);
-							Vec3PlusStVec(nv2,(1.0f-time),mprevvert[mface->v2].co);
-
-							VecMulf(nv3,time);
-							Vec3PlusStVec(nv3,(1.0f-time),mprevvert[mface->v3].co);
-
-							if (mface->v4){
-								VecMulf(nv4,time);
-								Vec3PlusStVec(nv4,(1.0f-time),mprevvert[mface->v4].co);
-							}
-						}	
-					}
-					
-					/* switch origin to be nv2*/
-					VECSUB(edge1, nv1, nv2);
-					VECSUB(edge2, nv3, nv2);
-					VECSUB(dv1,opco,nv2); /* abuse dv1 to have vertex in question at *origin* of triangle */
-
-					Crossf(d_nvect, edge2, edge1);
-					n_mag = Normalize(d_nvect);
-					facedist = Inpf(dv1,d_nvect);
-
-					if ((facedist > closestinside) && (facedist < outerfacethickness)){		
-//					if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){		
-						if (point_in_tri_prism(opco, nv1, nv2, nv3) ){
-							force_mag_norm =(float)exp(-ee*facedist);
-							if (facedist > outerfacethickness*ff)
-								force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
-							    *damp=ob->pd->pdef_sbdamp;
-
-								if (facedist > 0.0f){
-									*damp *= (1.0f - facedist/outerfacethickness);								
-									Vec3PlusStVec(force,force_mag_norm,d_nvect);
-									if (deflected < 2){
-										deflected = 1;
-										if ((mprevvert) && (*damp > 0.0f)){
-											choose_winner(ve,opco,nv1,nv2,nv3,vv1,vv2,vv3);
-											VECADD(avel,avel,ve);
-											cavel ++;
-										}
-									}
-									
-								}
-								else{
-									Vec3PlusStVec(force,force_mag_norm,d_nvect);
-									VECCOPY(facenormal,d_nvect);
-									if ((mprevvert) && (*damp > 0.0f)){
-										choose_winner(avel,opco,nv1,nv2,nv3,vv1,vv2,vv3);
-										cavel = 1;
-										deflected = 2;
-										closestinside = facedist;
-									}
-								}
-							*intrusion = facedist;
-						}
-					}		
-					if (mface->v4){ /* quad */
-						/* switch origin to be nv4 */
-						VECSUB(edge1, nv3, nv4);
-						VECSUB(edge2, nv1, nv4);
-						VECSUB(dv1,opco,nv4); /* abuse dv1 to have vertex in question at *origin* of triangle */
-
-						Crossf(d_nvect, edge2, edge1);
-						n_mag = Normalize(d_nvect);
-						facedist = Inpf(dv1,d_nvect);
-
-						if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){
-							if (point_in_tri_prism(opco, nv1, nv3, nv4) ){
-								force_mag_norm =(float)exp(-ee*facedist);
-								if (facedist > outerfacethickness*ff)
-									force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
-								Vec3PlusStVec(force,force_mag_norm,d_nvect);
-								*damp=ob->pd->pdef_sbdamp;
-
-								if (facedist > 0.0f){
-									*damp *= (1.0f - facedist/outerfacethickness);								
-									Vec3PlusStVec(force,force_mag_norm,d_nvect);
-									if (deflected < 2){
-										deflected = 1;
-										if ((mprevvert) && (*damp > 0.0f)){
-											choose_winner(ve,opco,nv1,nv3,nv4,vv1,vv3,vv4);
-											VECADD(avel,avel,ve);
-											cavel ++;
-										}
-									}
-									
-								}
-								else{
-									Vec3PlusStVec(force,force_mag_norm,d_nvect);
-									VECCOPY(facenormal,d_nvect);
-									if ((mprevvert) && (*damp > 0.0f)){
-										choose_winner(avel,opco,nv1,nv3,nv4,vv1,vv3,vv4);
-										cavel = 1;
-										deflected = 2;
-										closestinside = facedist;
-									}
-								}
-
-
-
-							    *intrusion = facedist;
-							}
-
-						}
-					}
-					mface++;
-					mima++;					
-				}/* while a */		
-			} /* if(ob->pd && ob->pd->deflect) */
-			BLI_ghashIterator_step(ihash);
-	} /* while () */
-	BLI_ghashIterator_free(ihash);
-	if (cavel) VecMulf(avel,1.0f/(float)cavel);
-	VECCOPY(vel,avel);
-
-    /* we  did stay "outside" but have some close to contact forces
-	   just to be complete fake a face normal
-	*/
-	if (deflected ==1){ 
-		VECCOPY(facenormal,force);
-		Normalize(facenormal);
-	} 
-	else{
-		facenormal[0] = facenormal[1] = facenormal[2] = 0.0f;
-	}
-	return deflected;	
-}
-#endif
-
-
 
 /* sandbox to plug in various deflection algos */
 static int sb_deflect_face(Object *ob,float *actpos,float *facenormal,float *force,float *cf,float time,float *vel,float *intrusion)
@@ -2110,6 +1918,7 @@ static int sb_deflect_face(Object *ob,float *actpos,float *facenormal,float *for
 	return(deflected);
 }
 
+/* hiding this for now .. but the jacobian may pop up on other tasks .. so i'd like to keep it
 static void dfdx_spring(int ia, int ic, int op, float dir[3],float L,float len,float factor)
 { 
 	float m,delta_ij;
@@ -2143,6 +1952,7 @@ static void dfdv_goal(int ia, int ic,float factor)
 	int i;
 	for(i=0;i<3;i++) nlMatrixAdd(ia+i,ic+i,factor);
 }
+*/
 static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float forcetime,int nl_flags)
 {
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
@@ -2196,18 +2006,18 @@ static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float fo
 
 	/* do jacobian stuff if needed */
 	if(nl_flags & NLF_BUILD){
-		int op =3*sb->totpoint;
-		float mvel = -forcetime*kd;
-		float mpos = -forcetime*forcefactor;
+		//int op =3*sb->totpoint;
+		//float mvel = -forcetime*kd;
+		//float mpos = -forcetime*forcefactor;
 		/* depending on my pos */ 
-		dfdx_spring(ia,ia,op,dir,bs->len,distance,-mpos);
+		// dfdx_spring(ia,ia,op,dir,bs->len,distance,-mpos);
 		/* depending on my vel */
-		dfdv_goal(ia,ia,mvel); // well that ignores geometie
+		// dfdv_goal(ia,ia,mvel); // well that ignores geometie
 		if(bp2->goal < SOFTGOALSNAP){ /* ommit this bp when it snaps */
 			/* depending on other pos */ 
-			dfdx_spring(ia,ic,op,dir,bs->len,distance,mpos);
+			// dfdx_spring(ia,ic,op,dir,bs->len,distance,mpos);
 			/* depending on other vel */
-			dfdv_goal(ia,ia,-mvel); // well that ignores geometie
+			// dfdv_goal(ia,ia,-mvel); // well that ignores geometie
 		}
 	}
 }
@@ -2229,14 +2039,14 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 	int a, b,  do_deflector,do_selfcollision,do_springcollision,do_aero;
 
 
-
+/* jacobian
 	NLboolean success;
 
 	if(nl_flags){
 		nlBegin(NL_SYSTEM);
 		nlBegin(NL_MATRIX);
 	}
-
+*/
 	
 	
 	gravity = sb->grav * sb_grav_force_scale(ob);	
@@ -2263,17 +2073,14 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 		/* clear forces  accumulator */
 		bp->force[0]= bp->force[1]= bp->force[2]= 0.0;
 		if(nl_flags & NLF_BUILD){
-			int ia =3*(sb->totpoint-a);
-			int op =3*sb->totpoint;
+			//int ia =3*(sb->totpoint-a);
+			//int op =3*sb->totpoint;
 			/* dF/dV = v */ 
-			
+			/* jacobioan
 			nlMatrixAdd(op+ia,ia,-forcetime);
 			nlMatrixAdd(op+ia+1,ia+1,-forcetime);
 			nlMatrixAdd(op+ia+2,ia+2,-forcetime);
-            
-
-            /* we need [unit - h* dF/dy]^-1 */ 
-			
+     		
 			nlMatrixAdd(ia,ia,1);
 			nlMatrixAdd(ia+1,ia+1,1);
 			nlMatrixAdd(ia+2,ia+2,1);
@@ -2281,7 +2088,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 			nlMatrixAdd(op+ia,op+ia,1);
 			nlMatrixAdd(op+ia+1,op+ia+1,1);
 			nlMatrixAdd(op+ia+2,op+ia+2,1);
-			
+			*/
 
 
 		}
@@ -2328,17 +2135,17 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 							Vec3PlusStVec(bp->force,sb->balldamp,dvel);
 
 							if(nl_flags & NLF_BUILD){
-								int ia =3*(sb->totpoint-a);
-								int ic =3*(sb->totpoint-c);
-								int op =3*sb->totpoint;
-								float mvel = forcetime*sb->nodemass*sb->balldamp;
-								float mpos = forcetime*tune*(1.0f-sb->balldamp);
+								//int ia =3*(sb->totpoint-a);
+								//int ic =3*(sb->totpoint-c);
+								//int op =3*sb->totpoint;
+								//float mvel = forcetime*sb->nodemass*sb->balldamp;
+								//float mpos = forcetime*tune*(1.0f-sb->balldamp);
 								/*some quick and dirty entries to the jacobian*/
-								dfdx_goal(ia,ia,op,mpos);
-								dfdv_goal(ia,ia,mvel);
+								//dfdx_goal(ia,ia,op,mpos);
+								//dfdv_goal(ia,ia,mvel);
 								/* exploit force(a,b) == -force(b,a) part1/2 */
-								dfdx_goal(ic,ic,op,mpos);
-								dfdv_goal(ic,ic,mvel);
+								//dfdx_goal(ic,ic,op,mpos);
+								//dfdv_goal(ic,ic,mvel);
 								
 								
 								/*TODO sit down an X-out the true jacobian entries*/
@@ -2368,7 +2175,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 		if(bp->goal < SOFTGOALSNAP){ /* ommit this bp when it snaps */
 			float auxvect[3];  
 			float velgoal[3];
-			float absvel =0, projvel= 0;
+
 			/* do goal stuff */
 			if(ob->softflag & OB_SB_GOAL) {
 				/* true elastic goal */
@@ -2379,10 +2186,10 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 				bp->force[2]+= -ks*(auxvect[2]);
 
 				if(nl_flags & NLF_BUILD){
-					int ia =3*(sb->totpoint-a);
-					int op =3*(sb->totpoint);
+					//int ia =3*(sb->totpoint-a);
+					//int op =3*(sb->totpoint);
 					/* depending on my pos */ 
-					dfdx_goal(ia,ia,op,ks*forcetime);
+					//dfdx_goal(ia,ia,op,ks*forcetime);
 				}
 
 
@@ -2396,10 +2203,10 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 					bp->force[1]-= kd * (auxvect[1]);
 					bp->force[2]-= kd * (auxvect[2]);
 					if(nl_flags & NLF_BUILD){
-						int ia =3*(sb->totpoint-a);
+						//int ia =3*(sb->totpoint-a);
 						Normalize(auxvect);
 						/* depending on my vel */ 
-						dfdv_goal(ia,ia,kd*forcetime);
+						//dfdv_goal(ia,ia,kd*forcetime);
 					}
 
 				}
@@ -2446,18 +2253,18 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 				bp->force[2]-= bp->vec[2]*kd;
 				/* friction in media done */
 				if(nl_flags & NLF_BUILD){
-					int ia =3*(sb->totpoint-a);
-					int op =3*sb->totpoint;
+					//int ia =3*(sb->totpoint-a);
 					/* da/dv =  */ 
 
-					nlMatrixAdd(ia,ia,forcetime*kd);
-					nlMatrixAdd(ia+1,ia+1,forcetime*kd);
-					nlMatrixAdd(ia+2,ia+2,forcetime*kd);
+//					nlMatrixAdd(ia,ia,forcetime*kd);
+//					nlMatrixAdd(ia+1,ia+1,forcetime*kd);
+//					nlMatrixAdd(ia+2,ia+2,forcetime*kd);
 				}
 
 			}
 			/* +++cached collision targets */
 			bp->choke = 0.0f;
+			bp->choke2 = 0.0f;
 			bp->flag &= ~SBF_DOFUZZY;
 			if(do_deflector) {
 				float cfforce[3],defforce[3] ={0.0f,0.0f,0.0f}, vel[3] = {0.0f,0.0f,0.0f}, facenormal[3], cf = 1.0f,intrusion;
@@ -2484,8 +2291,8 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 					}
 					Vec3PlusStVec(bp->force,kd,defforce);
 					if (nl_flags & NLF_BUILD){
-						int ia =3*(sb->totpoint-a);
-						int op =3*sb->totpoint;
+						// int ia =3*(sb->totpoint-a);
+						// int op =3*sb->totpoint;
 						//dfdx_goal(ia,ia,op,mpos); // don't do unless you know
 						//dfdv_goal(ia,ia,-cf);
 
@@ -2521,6 +2328,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 	if (ob->softflag & OB_SB_FACECOLL) scan_for_ext_face_forces(ob,timenow);
 	
 	/* finish matrix and solve */
+#if (0) // remove onl linking for now .. still i am not sure .. the jacobian can be usefull .. so keep that BM
 	if(nl_flags & NLF_SOLVE){
 		//double sct,sst=PIL_check_seconds_timer();
 		for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
@@ -2588,135 +2396,9 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 		//if (sct-sst > 0.01f) printf(" implicit solver time %f %s \r",sct-sst,ob->id.name);
 	}
 	/* cleanup */
-
+#endif
 	if(do_effector) pdEndEffectors(do_effector);
 }
-
-
-static void softbody_apply_fake_implicit_forces(Object *ob, float forcetime, float *err, float *err_ref_pos,float *err_ref_vel)
-{
-	/* time evolution */
-	/* do semi implicit euler */
-	SoftBody *sb= ob->soft;	/* is supposed to be there */
-	BodyPoint *bp;
-	float *perp,*perv;
-	float erp[3],erv[3],dx[3],dv[3],aabbmin[3],aabbmax[3],cm[3]={0.0f,0.0f,0.0f};
-	float timeovermass;
-	float maxerrpos= 0.0f,maxerrvel = 0.0f,maxerrvel2 = 0.0f;
-	int a,fuzzy=0;
-
-    forcetime *= sb_time_scale(ob);
-    
-    aabbmin[0]=aabbmin[1]=aabbmin[2] = 1e20f;
-    aabbmax[0]=aabbmax[1]=aabbmax[2] = -1e20f;
-
-	/* claim a minimum mass for vertex */
-	if (sb->nodemass > 0.009999f) timeovermass = forcetime/sb->nodemass;
-	else timeovermass = forcetime/0.009999f;
-    /* step along error reference vector */
-	perp =err_ref_pos;
-	perv =err_ref_vel;
-
-	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-		/* step along error reference vector */
-		if(perp) {VECCOPY(erp,perp);perp +=3;}
-		if(perv) {VECCOPY(erv,perv);perv +=3;}
-		if(bp->goal < SOFTGOALSNAP){
-			
-			/* so here is (v)' = a(cceleration) = sum(F_springs)/m + gravitation + some friction forces  + more forces*/
-			/* the ( ... )' operator denotes derivate respective time */
-			/* the "implicit" euler step for velocity then becomes */
-			/* v(t + dt) = v(t) + O * X(t) * dt */ 
-			/* O = [1-dt*dA/d(X)]^1       */
-			/* with X = (a[n],v[n])       */
-			/*             da/dv | da/dx  */
-			/* dA/d(X) = ( ------------- )*/
-			/*             dv/dv | dv/dx  */
-			/* note!! we did not solve any implicit system but looking forward more or less smart 
-			   what a implicit solution may look like by means of taylor expansion */
-			VECCOPY(dx,bp->vec);			
-
-			bp->force[0]= timeovermass * bp->impdv[0]; /* individual mass of node here */ 
-			bp->force[1]= timeovermass * bp->impdv[1];
-			bp->force[2]= timeovermass * bp->impdv[2];
-			VECCOPY(dv,bp->force); 
-			if(perv){
-				maxerrvel = MAX2(maxerrvel,ABS(dv[0] - erv[0]));
-				maxerrvel = MAX2(maxerrvel,ABS(dv[1] - erv[1]));
-				maxerrvel = MAX2(maxerrvel,ABS(dv[2] - erv[2]));
-			}
-
-				maxerrvel2 = MAX2(maxerrvel2,ABS(dv[0]));
-				maxerrvel2 = MAX2(maxerrvel2,ABS(dv[1]));
-				maxerrvel2 = MAX2(maxerrvel2,ABS(dv[2]));
-
-			VECADD(bp->vec, bp->vec, dv);
-
-			/* so here is (x)'= v(elocity) */
-			/* the euler step for location then becomes */
-			/* x(t + dt) = x(t) + v(t) * dt */ 
-
-//			VECCOPY(dx,bp->vec);			
-			
-			dx[0]*=forcetime; 
-			dx[1]*=forcetime; 
-			dx[2]*=forcetime; 
-
-	/* bp->choke is set when we need to pull a vertex or edge out of the collider. 
-   the collider object signals to get out by pushing hard. on the other hand 
-   we don't want to end up in deep space so we add some <viscosity> 
-   to balance that out */
-				if (bp->choke > 0.0f){
-					dx[0]*=(1.0f - bp->choke);
-					dx[1]*=(1.0f - bp->choke);
-					dx[2]*=(1.0f - bp->choke);
-				}
-
-			
-			/* should be possible to get more out of the matrix inversion
-			   but not verified yet
-			dx[0]*=forcetime*forcetime*bp->impdx[0]; 
-			dx[1]*=forcetime*forcetime*bp->impdx[1]; 
-			dx[2]*=forcetime*forcetime*bp->impdx[2]; 
-            */
-			VECADD(bp->pos, bp->pos, dx);
-			if (perp){
-			maxerrpos = MAX2(maxerrpos,ABS(bp->pos[0]-erp[0]));
-			maxerrpos = MAX2(maxerrpos,ABS(bp->pos[1]-erp[1]));
-			maxerrpos = MAX2(maxerrpos,ABS(bp->pos[2]-erp[2]));
-			}
-
-
-		}/*snap*/
-		/* so while we are looping BPs anyway do statistics on the fly */
-		aabbmin[0] = MIN2(aabbmin[0],bp->pos[0]);
-		aabbmin[1] = MIN2(aabbmin[1],bp->pos[1]);
-		aabbmin[2] = MIN2(aabbmin[2],bp->pos[2]);
-		aabbmax[0] = MAX2(aabbmax[0],bp->pos[0]);
-		aabbmax[1] = MAX2(aabbmax[1],bp->pos[1]);
-		aabbmax[2] = MAX2(aabbmax[2],bp->pos[2]);
-		if (bp->flag & SBF_DOFUZZY) fuzzy =1;
-	} /*for*/
-
-	if (sb->totpoint) VecMulf(cm,1.0f/sb->totpoint);
-	if (sb->scratch){
-		VECCOPY(sb->scratch->aabbmin,aabbmin);
-		VECCOPY(sb->scratch->aabbmax,aabbmax);
-	}
-	
-	if (err){ /* so step size will be controlled by biggest difference in slope */
-		if (sb->solverflags & SBSO_OLDERR)
-		*err = MAX2(maxerrpos,maxerrvel);
-		else
-			if (perp) *err = maxerrpos;
-			else *err = maxerrvel2;
-		//printf("EP %f EV %f \n",maxerrpos,maxerrvel);
-		if (fuzzy){
-			*err /= sb->fuzzyness;
-		}
-	}
-}
-
 static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *err, int mid_flags)
 {
 	/* time evolution */
@@ -2725,7 +2407,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint *bp;
 	float dx[3],dv[3],aabbmin[3],aabbmax[3],cm[3]={0.0f,0.0f,0.0f};
-	float timeovermass;
+	float timeovermass/*,freezeloc=0.00001f,freezeforce=0.00000000001f*/;
 	float maxerrpos= 0.0f,maxerrvel = 0.0f;
 	int a,fuzzy=0;
 
@@ -2740,15 +2422,14 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 		if(bp->goal < SOFTGOALSNAP){
-            if(mid_flags & MID_PRESERVE) VECCOPY(dx,bp->vec);
+            /* this makes t~ = t */
+			if(mid_flags & MID_PRESERVE) VECCOPY(dx,bp->vec);
 			
 			/* so here is (v)' = a(cceleration) = sum(F_springs)/m + gravitation + some friction forces  + more forces*/
 			/* the ( ... )' operator denotes derivate respective time */
 			/* the euler step for velocity then becomes */
 			/* v(t + dt) = v(t) + a(t) * dt */ 
-			bp->force[0]*= timeovermass; /* individual mass of node here */ 
-			bp->force[1]*= timeovermass;
-			bp->force[2]*= timeovermass;
+			VecMulf(bp->force,timeovermass);/* individual mass of node here */
 			/* some nasty if's to have heun in here too */
 			VECCOPY(dv,bp->force); 
 
@@ -2769,13 +2450,24 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 			}
 			else {VECADD(bp->vec, bp->vec, bp->force);}
 
+            /* this makes t~ = t+dt */
+			if(!(mid_flags & MID_PRESERVE)) VECCOPY(dx,bp->vec);
+
 			/* so here is (x)'= v(elocity) */
 			/* the euler step for location then becomes */
-			/* x(t + dt) = x(t) + v(t) * dt */ 
-			if(!(mid_flags & MID_PRESERVE)) VECCOPY(dx,bp->vec);
-			dx[0]*=forcetime; 
-			dx[1]*=forcetime; 
-			dx[2]*=forcetime; 
+			/* x(t + dt) = x(t) + v(t~) * dt */ 
+			VecMulf(dx,forcetime);
+
+			/* the freezer */
+			/*
+			if  ((Inpf(dx,dx)<freezeloc )&&(Inpf(bp->force,bp->force)<freezeforce )){
+				bp->frozen /=2;
+			}
+			else{
+				bp->frozen =MIN2(bp->frozen*1.05f,1.0f);
+			}
+			VecMulf(dx,bp->frozen);
+            */
 			/* again some nasty if's to have heun in here too */
 			if (mode ==1){
 				VECCOPY(bp->prevpos,bp->pos);
@@ -2785,7 +2477,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 			if (mode ==2){
 				bp->pos[0] = bp->prevpos[0] + 0.5f * ( dx[0] + bp->prevdx[0]);
 				bp->pos[1] = bp->prevpos[1] + 0.5f * ( dx[1] + bp->prevdx[1]);
-				bp->pos[2] = bp->prevpos[2] + 0.5f* ( dx[2] + bp->prevdx[2]);
+				bp->pos[2] = bp->prevpos[2] + 0.5f * ( dx[2] + bp->prevdx[2]);
 				maxerrpos = MAX2(maxerrpos,ABS(dx[0] - bp->prevdx[0]));
 				maxerrpos = MAX2(maxerrpos,ABS(dx[1] - bp->prevdx[1]));
 				maxerrpos = MAX2(maxerrpos,ABS(dx[2] - bp->prevdx[2]));
@@ -2794,10 +2486,11 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
    the collider object signals to get out by pushing hard. on the other hand 
    we don't want to end up in deep space so we add some <viscosity> 
    to balance that out */
+				if (bp->choke2 > 0.0f){
+					VecMulf(bp->vec,(1.0f - bp->choke2));
+				}
 				if (bp->choke > 0.0f){
-					bp->vec[0] = bp->vec[0]*(1.0f - bp->choke);
-					bp->vec[1] = bp->vec[1]*(1.0f - bp->choke);
-					bp->vec[2] = bp->vec[2]*(1.0f - bp->choke);
+					VecMulf(bp->vec,(1.0f - bp->choke));
 				}
 
 			}
@@ -2844,6 +2537,7 @@ static void softbody_restore_prev_step(Object *ob)
 	}
 }
 
+#if 0
 static void softbody_store_step(Object *ob)
 {
 	SoftBody *sb= ob->soft;	/* is supposed to be there*/
@@ -2915,6 +2609,7 @@ static void softbody_swap_state(Object *ob,float *ppos,float *pvel)
 		pp+=3;
 	}
 }
+#endif
 
 
 /* care for bodypoints taken out of the 'ordinary' solver step
@@ -2934,6 +2629,30 @@ static void softbody_apply_goalsnap(Object *ob)
 			VECCOPY(bp->prevpos,bp->pos);
 			VECCOPY(bp->pos,bp->origT);
 		}		
+	}
+}
+
+
+void apply_spring_memory(Object *ob)
+{
+	SoftBody *sb = ob->soft;
+	BodySpring *bs;
+	BodyPoint *bp1, *bp2;
+	int a;
+	float b,l,r;
+
+    b = sb->plastic;
+	if (sb && sb->totspring){
+		for(a=0; a<sb->totspring; a++) {
+			bs  = &sb->bspring[a];
+			bp1 =&sb->bpoint[bs->v1];
+			bp2 =&sb->bpoint[bs->v2];
+			l = VecLenf(bp1->pos,bp2->pos);
+			r = bs->len/l;
+			if (( r > 1.05f) || (r < 0.95)){
+			bs->len = ((100.0f - b) * bs->len  + b*l)/100.0f;
+			}
+		}
 	}
 }
 
@@ -3025,9 +2744,9 @@ static void springs_from_mesh(Object *ob)
 			
 		}
 		/* recalculate spring length for meshes here */
-		/* special hidden feature! shrink to fit */
-		if (G.rt > 500){
-			scale = (G.rt - 500) / 100.0f;
+		/* public version shrink to fit */
+		if (sb->springpreload != 0 ){
+			scale = sb->springpreload / 100.0f;
 		}
 		for(a=0; a<sb->totspring; a++) {
 			BodySpring *bs = &sb->bspring[a];
@@ -3430,9 +3149,12 @@ static void particles_to_softbody(Object *ob)
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
 	renew_softbody(ob, totpoint, totedge);
 
-	psys->particles->bpi = 0;
-	for(a=1, pa=psys->particles+1; a<psys->totpart; a++, pa++)
-		pa->bpi = (pa-1)->bpi + pa->totkey;
+	/* find first BodyPoint index for each particle */
+	if(psys->totpart > 0) {
+		psys->particles->bpi = 0;
+		for(a=1, pa=psys->particles+1; a<psys->totpart; a++, pa++)
+			pa->bpi = (pa-1)->bpi + (pa-1)->totkey;
+	}
 
 	/* we always make body points */
 	sb= ob->soft;	
@@ -3494,95 +3216,66 @@ static void softbody_to_object(Object *ob, float (*vertexCos)[3], int numVerts, 
 	}
 }
 
-void softbody_clear_cache(Object *ob, float framenr)
+void sbWriteCache(Object *ob, int framenr)
 {
-	SoftBody *sb = ob->soft;
-	ModifierData *md = ob->modifiers.first;
-	int stack_index = -1;
-	int a;
-
-	if(sb==NULL) return;
-
-	if(sb->particles)
-		stack_index = modifiers_indexInObject(ob,(ModifierData*)psys_get_modifier(ob,sb->particles));
-	else {
-		for(a=0; md; md=md->next, a++) {
-			if(md->type == eModifierType_Softbody) {
-				stack_index = a;
-				break;
-			}
-		}
-	}
-
-	BKE_ptcache_id_clear((ID *)ob, PTCACHE_CLEAR_ALL, framenr, stack_index);
-}
-static void softbody_write_cache(Object *ob, float framenr)
-{
-	FILE *fp = NULL;
-	SoftBody *sb = ob->soft;
+	SoftBody *sb= ob->soft;
 	BodyPoint *bp;
-	ModifierData *md = ob->modifiers.first;
-	int stack_index = -1;
+	PTCacheID pid;
+	PTCacheFile *pf;
 	int a;
 
-	if(sb->totpoint == 0) return;
+	if(sb->totpoint == 0)
+		return;
 
-	if(sb->particles)
-		stack_index = modifiers_indexInObject(ob,(ModifierData*)psys_get_modifier(ob,sb->particles));
-	else {
-		for(a=0; md; md=md->next, a++) {
-			if(md->type == eModifierType_Softbody) {
-				stack_index = a;
-				break;
-			}
-		}
-	}
-
-	fp = BKE_ptcache_id_fopen((ID *)ob, 'w', framenr, stack_index);
-	if(!fp) return;
+	BKE_ptcache_id_from_softbody(&pid, ob, sb);
+	pf= BKE_ptcache_file_open(&pid, PTCACHE_FILE_WRITE, framenr);
+	if(!pf)
+		return;
+	
+	for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++)
+		BKE_ptcache_file_write_floats(pf, bp->pos, 3);
 
 	for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++)
-		fwrite(&bp->pos, sizeof(float), 3, fp);
-	
-	fclose(fp);
+		BKE_ptcache_file_write_floats(pf, bp->vec, 3);
+
+	BKE_ptcache_file_close(pf);
 }
+
 static int softbody_read_cache(Object *ob, float framenr)
 {
-	FILE *fp = NULL;
-	SoftBody *sb = ob->soft;
+	SoftBody *sb= ob->soft;
 	BodyPoint *bp;
-	ModifierData *md = ob->modifiers.first;
-	int stack_index = -1;
-	int a, ret = 1;
+	PTCacheID pid;
+	PTCacheFile *pf;
+	int a;
 
-	if(sb->totpoint == 0) return 0;
+	if(sb->totpoint == 0)
+		return 0;
+	
+	BKE_ptcache_id_from_softbody(&pid, ob, sb);
+	pf= BKE_ptcache_file_open(&pid, PTCACHE_FILE_READ, framenr);
+	if(!pf)
+		return 0;
 
-	if(sb->particles)
-		stack_index = modifiers_indexInObject(ob,(ModifierData*)psys_get_modifier(ob,sb->particles));
-	else {
-		for(a=0; md; md=md->next, a++) {
-			if(md->type == eModifierType_Softbody) {
-				stack_index = a;
-				break;
-			}
+	for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++) {
+		if(!BKE_ptcache_file_read_floats(pf, bp->pos, 3)) {
+			BKE_ptcache_file_close(pf);
+			return 0;
 		}
 	}
 
-	fp = BKE_ptcache_id_fopen((ID *)ob, 'r', framenr, stack_index);
-	if(!fp)
-		ret = 0;
-	else {
-		for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++)
-			if(fread(&bp->pos, sizeof(float), 3, fp) != 3) {
-				ret = 0;
-				break;
-			}
-
-		fclose(fp);
+	for(a=0, bp=sb->bpoint; a<sb->totpoint; a++, bp++) {
+		if(!BKE_ptcache_file_read_floats(pf, bp->vec, 3)) {
+			BKE_ptcache_file_close(pf);
+			return 0;
+		}
 	}
 
-	return ret;
+	BKE_ptcache_file_close(pf);
+
+	return 1;
 }
+
 /* +++ ************ maintaining scratch *************** */
 void sb_new_scratch(SoftBody *sb)
 {
@@ -3641,6 +3334,9 @@ SoftBody *sbNew(void)
 	/*todo backward file compat should set sb->shearstiff = 1.0f while reading old files*/
 	sb->shearstiff = 1.0f;
 	sb->solverflags |= SBSO_OLDERR;
+
+	sb->pointcache = BKE_ptcache_add();
+
 	return sb;
 }
 
@@ -3648,14 +3344,19 @@ SoftBody *sbNew(void)
 void sbFree(SoftBody *sb)
 {
 	free_softbody_intern(sb);
+	BKE_ptcache_free(sb->pointcache);
 	MEM_freeN(sb);
 }
 
+void sbFreeSimulation(SoftBody *sb)
+{
+	free_softbody_intern(sb);
+}
 
 /* makes totally fresh start situation */
 void sbObjectToSoftbody(Object *ob)
 {
-	ob->softflag |= OB_SB_REDO;
+	//ob->softflag |= OB_SB_REDO;
 
 	free_softbody_intern(ob->soft);
 }
@@ -3679,562 +3380,406 @@ void sbSetInterruptCallBack(int (*f)(void))
 	SB_localInterruptCallBack = f;
 }
 
-
-/* simulates one step. framenr is in frames */
-void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts)
+static void softbody_update_positions(Object *ob, SoftBody *sb, float (*vertexCos)[3], int numVerts)
 {
-	ParticleSystemModifierData *psmd=0;
-	ParticleData *pa=0;
-	SoftBody *sb;
+	ParticleSystemModifierData *psmd= NULL;
+	ParticleData *pa= NULL;
 	HairKey *key= NULL;
 	BodyPoint *bp;
-	int a;
-	float dtime,ctime,forcetime;
 	float hairmat[4][4];
+	int a;
 
-	/* This part only sets goals and springs, based on original mesh/curve/lattice data.
-	Copying coordinates happens in next chunk by setting softbody flag OB_SB_RESET */
-	/* remake softbody if: */
-	if(		(ob->softflag & OB_SB_REDO) ||		/* signal after weightpainting */
-		(ob->soft==NULL) ||					/* just to be nice we allow full init */
-		(ob->soft->bpoint==NULL) || 		/* after reading new file, or acceptable as signal to refresh */
-		(numVerts!=ob->soft->totpoint) ||	/* should never happen, just to be safe */
-		((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob))) /* happens when in UI edges was set */
-	{
-		if(ob->soft && ob->soft->bpoint) /* don't clear on file load */
-			softbody_clear_cache(ob, framenr);
+	/* update the vertex locations */
+	if(sb->particles) {
+		psmd= psys_get_modifier(ob,sb->particles);
+		pa= sb->particles->particles;
+		key= pa->hair;
 
-		if(ob->soft->particles){
-			particles_to_softbody(ob);
+		psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
+	}
+
+	for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
+		/* store where goals are now */ 
+		VECCOPY(bp->origS, bp->origE);
+		/* copy the position of the goals at desired end time */
+		if(sb->particles) {
+			if(key == pa->hair + pa->totkey) {
+				pa++;
+				key = pa->hair;
+
+				psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
+			}
+			VECCOPY(bp->origE, key->co);
+			Mat4MulVecfl(hairmat,bp->origE);
+
+			key++;
 		}
-		else switch(ob->type) {
+		else{
+			VECCOPY(bp->origE, vertexCos[a]);
+			/* vertexCos came from local world, go global */
+			Mat4MulVecfl(ob->obmat, bp->origE);
+		}
+		/* just to be save give bp->origT a defined value
+		will be calulated in interpolate_exciter()*/
+		VECCOPY(bp->origT, bp->origE); 
+	}
+}
+
+static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int numVerts)
+{
+	ParticleSystemModifierData *psmd= NULL;
+	HairKey *key= NULL;
+	ParticleData *pa= NULL;
+	BodyPoint *bp;
+	float hairmat[4][4];
+	int a;
+
+	if(sb->particles) {
+		psmd= psys_get_modifier(ob, sb->particles);
+		pa= sb->particles->particles;
+		key= pa->hair;
+
+		psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
+	}
+
+	for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
+		if(sb->particles) {
+			if(key == pa->hair + pa->totkey) {
+				pa++;
+				key = pa->hair;
+
+				psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
+			}
+			VECCOPY(bp->pos, key->co);
+			Mat4MulVecfl(hairmat, bp->pos);
+			key++;
+		}
+		else {
+			VECCOPY(bp->pos, vertexCos[a]);
+			Mat4MulVecfl(ob->obmat, bp->pos);  /* yep, sofbody is global coords*/
+		}
+		VECCOPY(bp->origS, bp->pos);
+		VECCOPY(bp->origE, bp->pos);
+		VECCOPY(bp->origT, bp->pos);
+		bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0f;
+
+		/* the bp->prev*'s are for rolling back from a canceled try to propagate in time
+		adaptive step size algo in a nutshell:
+		1.  set sheduled time step to new dtime
+		2.  try to advance the sheduled time step, beeing optimistic execute it
+		3.  check for success
+		3.a we 're fine continue, may be we can increase sheduled time again ?? if so, do so! 
+		3.b we did exceed error limit --> roll back, shorten the sheduled time and try again at 2.
+		4.  check if we did reach dtime 
+		4.a nope we need to do some more at 2.
+		4.b yup we're done
+		*/
+
+		VECCOPY(bp->prevpos, bp->pos);
+		VECCOPY(bp->prevvec, bp->vec);
+		VECCOPY(bp->prevdx, bp->vec);
+		VECCOPY(bp->prevdv, bp->vec);
+	}
+
+	/* make a nice clean scratch struc */
+	free_scratch(sb); /* clear if any */
+	sb_new_scratch(sb); /* make a new */
+	sb->scratch->needstobuildcollider=1; 
+
+	if((sb->particles)==0) {
+		/* copy some info to scratch */
+		switch(ob->type) {
 		case OB_MESH:
-			mesh_to_softbody(ob);
+			if (ob->softflag & OB_SB_FACECOLL) mesh_faces_to_scratch(ob);
 			break;
 		case OB_LATTICE:
-			lattice_to_softbody(ob);
 			break;
 		case OB_CURVE:
 		case OB_SURF:
-			curve_surf_to_softbody(ob);
 			break;
 		default:
-			renew_softbody(ob, numVerts, 0);
 			break;
 		}
+	}
+}
 
-		/* still need to update to correct vertex locations, happens on next step */
-		ob->softflag |= OB_SB_RESET; 
-		ob->softflag &= ~OB_SB_REDO;
+static void softbody_step(Object *ob, SoftBody *sb, float dtime)
+{
+	/* the simulator */
+	float forcetime;
+	double sct,sst=PIL_check_seconds_timer();
+	ccd_update_deflector_hache(ob,sb->scratch->colliderhash);
+
+	if(sb->scratch->needstobuildcollider){
+		if (query_external_colliders(ob)){
+			ccd_build_deflector_hache(ob,sb->scratch->colliderhash);
+		}
+		sb->scratch->needstobuildcollider=0;
 	}
 
-	sb= ob->soft;
+	if (sb->solver_ID < 2) {	
+		/* special case of 2nd order Runge-Kutta type AKA Heun */
+		int mid_flags=0;
+		float err = 0;
+		float forcetimemax = 1.0f;
+		float forcetimemin = 0.001f;
+		float timedone =0.0; /* how far did we get without violating error condition */
+							 /* loops = counter for emergency brake
+							 * we don't want to lock up the system if physics fail
+		*/
+		int loops =0 ; 
+		SoftHeunTol = sb->rklimit; /* humm .. this should be calculated from sb parameters and sizes */
+		if (sb->minloops > 0) forcetimemax = 1.0f / sb->minloops;
+		
+		if (sb->maxloops > 0) forcetimemin = 1.0f / sb->maxloops;
+
+		if(sb->solver_ID>0) mid_flags |= MID_PRESERVE;
+		
+		//forcetime = dtime; /* hope for integrating in one step */
+		forcetime =forcetimemax; /* hope for integrating in one step */
+		while ( (ABS(timedone) < ABS(dtime)) && (loops < 2000) )
+		{
+			/* set goals in time */ 
+			interpolate_exciter(ob,200,(int)(200.0*(timedone/dtime)));
+			
+			sb->scratch->flag &= ~SBF_DOFUZZY;
+			/* do predictive euler step */
+			softbody_calc_forces(ob, forcetime,timedone/dtime,0);
+			softbody_apply_forces(ob, forcetime, 1, NULL,mid_flags);
+
+
+			/* crop new slope values to do averaged slope step */
+			softbody_calc_forces(ob, forcetime,timedone/dtime,0);
+			softbody_apply_forces(ob, forcetime, 2, &err,mid_flags);
+
+			softbody_apply_goalsnap(ob);
+			
+			if (err > SoftHeunTol) { /* error needs to be scaled to some quantity */
+				
+				if (forcetime > forcetimemin){
+					forcetime = MAX2(forcetime / 2.0f,forcetimemin);
+					softbody_restore_prev_step(ob);
+					//printf("down,");
+				}
+				else {
+					timedone += forcetime;
+				}
+			}
+			else {
+				float newtime = forcetime * 1.1f; /* hope for 1.1 times better conditions in next step */
+				
+				if (sb->scratch->flag & SBF_DOFUZZY){
+					//if (err > SoftHeunTol/(2.0f*sb->fuzzyness)) { /* stay with this stepsize unless err really small */
+					newtime = forcetime;
+					//}
+				}
+				else {
+					if (err > SoftHeunTol/2.0f) { /* stay with this stepsize unless err really small */
+						newtime = forcetime;
+					}
+				}
+				timedone += forcetime;
+				newtime=MIN2(forcetimemax,MAX2(newtime,forcetimemin));
+				//if (newtime > forcetime) printf("up,");
+				if (forcetime > 0.0)
+					forcetime = MIN2(dtime - timedone,newtime);
+				else 
+					forcetime = MAX2(dtime - timedone,newtime);
+			}
+			loops++;
+			if(sb->solverflags & SBSO_MONITOR ){
+				sct=PIL_check_seconds_timer();
+				if (sct-sst > 0.5f) printf("%3.0f%% \r",100.0f*timedone);
+			}
+			/* ask for user break */ 
+			if (SB_localInterruptCallBack && SB_localInterruptCallBack()) break;
+
+		}
+		/* move snapped to final position */
+		interpolate_exciter(ob, 2, 2);
+		softbody_apply_goalsnap(ob);
+		
+		//				if(G.f & G_DEBUG){
+		if(sb->solverflags & SBSO_MONITOR ){
+			if (loops > HEUNWARNLIMIT) /* monitor high loop counts */
+				printf("\r       needed %d steps/frame ",loops);
+		}
+		
+	}
+	else if (sb->solver_ID == 2)
+	{/* do semi "fake" implicit euler */
+		//removed
+	}/*SOLVER SELECT*/
+	else if (sb->solver_ID == 4)
+	{
+		/* do semi "fake" implicit euler */
+	}/*SOLVER SELECT*/
+	else if (sb->solver_ID == 3){
+		/* do "stupid" semi "fake" implicit euler */
+		//removed
+
+	}/*SOLVER SELECT*/
+	else{
+		printf("softbody no valid solver ID!");
+	}/*SOLVER SELECT*/
+	if(sb->plastic){ apply_spring_memory(ob);}
+
+	if(sb->solverflags & SBSO_MONITOR ){
+		sct=PIL_check_seconds_timer();
+		if (sct-sst > 0.5f) printf(" solver time %f %s \r",sct-sst,ob->id.name);
+	}
+}
+
+/* simulates one step. framenr is in frames */
+void sbObjectStep(Object *ob, float cfra, float (*vertexCos)[3], int numVerts)
+{
+	ParticleSystemModifierData *psmd=0;
+	ParticleData *pa=0;
+	SoftBody *sb= ob->soft;
+	PointCache *cache;
+	PTCacheID pid;
+	float dtime, timescale;
+	int framedelta, framenr, startframe, endframe;
+
+	cache= sb->pointcache;
+
+	framenr= (int)cfra;
+	framedelta= framenr - cache->simframe;
+
+	BKE_ptcache_id_from_softbody(&pid, ob, sb);
+	BKE_ptcache_id_time(&pid, framenr, &startframe, &endframe, &timescale);
+
+	/* check for changes in mesh, should only happen in case the mesh
+	 * structure changes during an animation */
+	if(sb->bpoint && numVerts != sb->totpoint) {
+		cache->flag &= ~PTCACHE_SIMULATION_VALID;
+		cache->simframe= 0;
+
+		return;
+	}
+
+	/* clamp frame ranges */
+	if(framenr < startframe) {
+		cache->flag &= ~PTCACHE_SIMULATION_VALID;
+		cache->simframe= 0;
+
+		return;
+	}
+	else if(framenr > endframe) {
+		framenr = endframe;
+	}
+
+	/* verify if we need to create the softbody data */
+	if(sb->bpoint == NULL ||
+	   ((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob))) {
+
+		if(sb->particles){
+			particles_to_softbody(ob);
+		}
+		else {
+			switch(ob->type) {
+				case OB_MESH:
+					mesh_to_softbody(ob);
+					break;
+				case OB_LATTICE:
+					lattice_to_softbody(ob);
+					break;
+				case OB_CURVE:
+				case OB_SURF:
+					curve_surf_to_softbody(ob);
+					break;
+				default:
+					renew_softbody(ob, numVerts, 0);
+					break;
+			}
+		}
+
+		softbody_update_positions(ob, sb, vertexCos, numVerts);
+		softbody_reset(ob, sb, vertexCos, numVerts);
+	}
+
+	/* continue physics special case */
+	if(BKE_ptcache_get_continue_physics()) {
+		cache->flag &= ~PTCACHE_SIMULATION_VALID;
+		cache->simframe= 0;
+
+		/* do simulation */
+		dtime = timescale;
+
+		softbody_update_positions(ob, sb, vertexCos, numVerts);
+		softbody_step(ob, sb, dtime);
+
+		if(sb->particles==0)
+			softbody_to_object(ob, vertexCos, numVerts, 0);
+
+		return;
+	}
 
 	/* still no points? go away */
 	if(sb->totpoint==0) return;
 
 	if(sb->particles){
-		psmd=psys_get_modifier(ob,sb->particles);
-		pa=sb->particles->particles;
+		psmd= psys_get_modifier(ob, sb->particles);
+		pa= sb->particles->particles;
 	}
 
-	/* checking time: */
-
-	ctime= bsystem_time(ob, framenr, 0.0);
-
-	if (ob->softflag&OB_SB_RESET) {
-		dtime = 0.0;
-	} else {
-		dtime= ctime - sb->ctime;
-	}
-
+	/* try to read from cache */
 	if(softbody_read_cache(ob, framenr)) {
 		if(sb->particles==0)
 			softbody_to_object(ob, vertexCos, numVerts, sb->local);
-		sb->ctime = ctime;
+
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+		cache->simframe= framenr;
+
+		return;
+	}
+	else if(ob->id.lib || (cache->flag & PTCACHE_BAKED)) {
+		/* if baked and nothing in cache, do nothing */
+		if(cache->flag & PTCACHE_SIMULATION_VALID) {
+			cache->flag &= ~PTCACHE_SIMULATION_VALID;
+			cache->simframe= 0;
+		}
+
 		return;
 	}
 
-	/* the simulator */
+	if(framenr == startframe) {
+		/* first frame, no simulation to do, just set the positions */
+		softbody_update_positions(ob, sb, vertexCos, numVerts);
 
-	/* update the vertex locations */
-	if (dtime!=0.0) {
-		if(sb->particles) {
-			pa=sb->particles->particles;
-			key = pa->hair;
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+		cache->simframe= framenr;
 
-			psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
-		}
+		/* don't write cache on first frame, but on second frame write
+		 * cache for frame 1 and 2 */
+	}
+	else if(framedelta == 1) {
+		/* if on second frame, write cache for first frame */
+		if(framenr == startframe+1)
+			sbWriteCache(ob, startframe);
 
-		for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
-			/* store where goals are now */ 
-			VECCOPY(bp->origS, bp->origE);
-			/* copy the position of the goals at desired end time */
-			if(sb->particles) {
-				if(key == pa->hair + pa->totkey) {
-					pa++;
-					key = pa->hair;
+		softbody_update_positions(ob, sb, vertexCos, numVerts);
 
-					psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
-				}
-				VECCOPY(bp->origE, key->co);
-				Mat4MulVecfl(hairmat,bp->origE);
+		/* do simulation */
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+		cache->simframe= framenr;
 
-				key++;
-			}
-			else{
-				VECCOPY(bp->origE, vertexCos[a]);
-				/* vertexCos came from local world, go global */
-				Mat4MulVecfl(ob->obmat, bp->origE);
-			}
-			/* just to be save give bp->origT a defined value
-			will be calulated in interpolate_exciter()*/
-			VECCOPY(bp->origT, bp->origE); 
+		/* checking time: */
+		dtime = framedelta*timescale;
+
+		softbody_step(ob, sb, dtime);
+
+		if(sb->particles==0)
+			softbody_to_object(ob, vertexCos, numVerts, 0);
+
+		sbWriteCache(ob, framenr);
+	}
+	else {
+		/* time step backwards or too large forward - do nothing */
+		if(cache->flag & PTCACHE_SIMULATION_VALID) {
+			cache->flag &= ~PTCACHE_SIMULATION_VALID;
+			cache->simframe= 0;
 		}
 	}
-
-	if((ob->softflag&OB_SB_RESET) ||	/* got a reset signal */
-		(dtime<0.0) ||					/* back in time */
-		(dtime>=9.9*G.scene->r.framelen) /* too far forward in time --> goals won't be accurate enough */
-		)
-	{
-		if(sb->particles) {
-			pa=sb->particles->particles;
-			key = pa->hair;
-
-			psys_mat_hair_to_global(ob, psmd->dm,  sb->particles->part->from, pa, hairmat);
-		}
-
-		for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
-			if(sb->particles) {
-				if(key == pa->hair + pa->totkey) {
-					pa++;
-					key = pa->hair;
-
-					psys_mat_hair_to_global(ob, psmd->dm, sb->particles->part->from, pa, hairmat);
-				}
-				VECCOPY(bp->pos, key->co);
-				Mat4MulVecfl(hairmat, bp->pos);
-				key++;
-			}
-			else {
-				VECCOPY(bp->pos, vertexCos[a]);
-				Mat4MulVecfl(ob->obmat, bp->pos);  /* yep, sofbody is global coords*/
-			}
-			VECCOPY(bp->origS, bp->pos);
-			VECCOPY(bp->origE, bp->pos);
-			VECCOPY(bp->origT, bp->pos);
-			bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0f;
-
-			/* the bp->prev*'s are for rolling back from a canceled try to propagate in time
-			adaptive step size algo in a nutshell:
-			1.  set sheduled time step to new dtime
-			2.  try to advance the sheduled time step, beeing optimistic execute it
-			3.  check for success
-			3.a we 're fine continue, may be we can increase sheduled time again ?? if so, do so! 
-			3.b we did exceed error limit --> roll back, shorten the sheduled time and try again at 2.
-			4.  check if we did reach dtime 
-			4.a nope we need to do some more at 2.
-			4.b yup we're done
-			*/
-
-			VECCOPY(bp->prevpos, bp->pos);
-			VECCOPY(bp->prevvec, bp->vec);
-			VECCOPY(bp->prevdx, bp->vec);
-			VECCOPY(bp->prevdv, bp->vec);
-		}
-        /* make a nice clean scratch struc */
-		free_scratch(sb); /* clear if any */
-		sb_new_scratch(sb); /* make a new */
-	    sb->scratch->needstobuildcollider=1; 
-
-		if((sb->particles)==0) {
-			/* copy some info to scratch */
-			switch(ob->type) {
-			case OB_MESH:
-				if (ob->softflag & OB_SB_FACECOLL) mesh_faces_to_scratch(ob);
-				break;
-			case OB_LATTICE:
-				break;
-			case OB_CURVE:
-			case OB_SURF:
-				break;
-			default:
-				break;
-			}
-		}
-
-		ob->softflag &= ~OB_SB_RESET;
-	}
-	else if(dtime>0.0) {
-	    double sct,sst=PIL_check_seconds_timer();
-		ccd_update_deflector_hache(ob,sb->scratch->colliderhash);
-
-
-			if(sb->scratch->needstobuildcollider){
-				if (query_external_colliders(ob)){
-					ccd_build_deflector_hache(ob,sb->scratch->colliderhash);
-				}
-				sb->scratch->needstobuildcollider=0;
-			}
-
-
-			if (sb->solver_ID < 2) {	
-				/* special case of 2nd order Runge-Kutta type AKA Heun */
-				int mid_flags=0;
-				float err = 0;
-				float forcetimemax = 1.0f;
-				float forcetimemin = 0.001f;
-				float timedone =0.0; /* how far did we get without violating error condition */
-									 /* loops = counter for emergency brake
-									 * we don't want to lock up the system if physics fail
-				*/
-				int loops =0 ; 
-				SoftHeunTol = sb->rklimit; /* humm .. this should be calculated from sb parameters and sizes */
-				if (sb->minloops > 0) forcetimemax = 1.0f / sb->minloops;
-				
-				if (sb->maxloops > 0) forcetimemin = 1.0f / sb->maxloops;
-
-                if(sb->solver_ID>0) mid_flags |= MID_PRESERVE;
-				
-				//forcetime = dtime; /* hope for integrating in one step */
-				forcetime =forcetimemax; /* hope for integrating in one step */
-				while ( (ABS(timedone) < ABS(dtime)) && (loops < 2000) )
-				{
-					/* set goals in time */ 
-					interpolate_exciter(ob,200,(int)(200.0*(timedone/dtime)));
-					
-					sb->scratch->flag &= ~SBF_DOFUZZY;
-					/* do predictive euler step */
-					softbody_calc_forces(ob, forcetime,timedone/dtime,0);
-					softbody_apply_forces(ob, forcetime, 1, NULL,mid_flags);
-
-
-					/* crop new slope values to do averaged slope step */
-					softbody_calc_forces(ob, forcetime,timedone/dtime,0);
-					softbody_apply_forces(ob, forcetime, 2, &err,mid_flags);
-
-					softbody_apply_goalsnap(ob);
-					
-					if (err > SoftHeunTol) { /* error needs to be scaled to some quantity */
-						
-						if (forcetime > forcetimemin){
-							forcetime = MAX2(forcetime / 2.0f,forcetimemin);
-							softbody_restore_prev_step(ob);
-							//printf("down,");
-						}
-						else {
-							timedone += forcetime;
-						}
-					}
-					else {
-						float newtime = forcetime * 1.1f; /* hope for 1.1 times better conditions in next step */
-						
-						if (sb->scratch->flag & SBF_DOFUZZY){
-							//if (err > SoftHeunTol/(2.0f*sb->fuzzyness)) { /* stay with this stepsize unless err really small */
-							newtime = forcetime;
-							//}
-						}
-						else {
-							if (err > SoftHeunTol/2.0f) { /* stay with this stepsize unless err really small */
-								newtime = forcetime;
-							}
-						}
-						timedone += forcetime;
-						newtime=MIN2(forcetimemax,MAX2(newtime,forcetimemin));
-						//if (newtime > forcetime) printf("up,");
-						if (forcetime > 0.0)
-							forcetime = MIN2(dtime - timedone,newtime);
-						else 
-							forcetime = MAX2(dtime - timedone,newtime);
-					}
-					loops++;
-					if(sb->solverflags & SBSO_MONITOR ){
-						sct=PIL_check_seconds_timer();
-						if (sct-sst > 0.5f) printf("%3.0f%% \r",100.0f*timedone);
-					}
-					/* ask for user break */ 
-					if (SB_localInterruptCallBack && SB_localInterruptCallBack()) break;
-
-				}
-				/* move snapped to final position */
-				interpolate_exciter(ob, 2, 2);
-				softbody_apply_goalsnap(ob);
-				
-				//				if(G.f & G_DEBUG){
-				if(sb->solverflags & SBSO_MONITOR ){
-					if (loops > HEUNWARNLIMIT) /* monitor high loop counts */
-						printf("\r       needed %d steps/frame ",loops);
-				}
-				
-			}
-			else if (sb->solver_ID == 2)
-			{
-				/* do semi "fake" implicit euler */
-				float *predict_vel=NULL,*predict_pos=NULL; /* for BDF style stepping */
- 			    NLContext *sb_nlc  = NULL;
-				int npredict=0,predict_mem_size;
-	            int nvar = 3*2*sb->totpoint;
-				int loops =0 ;
-				float forcetimemax = 1.0f; // this one needs 5 steps as a minimum
-				float forcetimemin = 0.001f;
-				float timedone =0.0; /* how far did we get without violating error condition */
-									 /* loops = counter for emergency brake
-									 * we don't want to lock up the system if physics fail
-				*/
-				SoftHeunTol = sb->rklimit; /* humm .. this should be calculated from sb parameters and sizes */
-				if (sb->minloops > 0) forcetimemax = 1.0f / sb->minloops;
-				if (sb->maxloops > 0) forcetimemin = 1.0f / sb->maxloops;
-				
-
-                forcetime =forcetimemax; /* hope for integrating as fast as possible */
-
-				//allocate predictor buffers
-                npredict =1;
-                predict_mem_size =3*sizeof(float)*npredict*sb->totpoint;
-				predict_pos = MEM_mallocN(predict_mem_size,"SB_predict_pos");
-				predict_vel = MEM_mallocN(predict_mem_size,"SB_predict_vel");
-
-
-				while ( (ABS(timedone) < ABS(dtime)) && (loops < 2000) ){
-					float loss_of_accuracy=0;
-					// create new solver context for this loop
-					sb_nlc = (NLContext*)nlNewContext();
-				    /* hum it smells like threading trouble */
-				    nlSolverParameteri(NL_NB_VARIABLES, nvar);
-				    nlSolverParameteri(NL_LEAST_SQUARES, NL_FALSE);
-
-				    interpolate_exciter(ob,200,(int)(200.0*(timedone/dtime)));
-					softbody_store_step(ob); /* used for rolling back step guessing */
-					softbody_store_state(ob,predict_pos,predict_vel);
-					softbody_calc_forces(ob, forcetime,timedone/dtime,NLF_BUILD|NLF_SOLVE);
-					// go full step 
-					softbody_apply_fake_implicit_forces(ob, forcetime, NULL,NULL,NULL);
-
-					// restore old situation and store 1rst solution to predictors 
-					softbody_swap_state(ob,predict_pos,predict_vel);
-					// the following is to find out how good we were 
-					// may be we can do smarter
-					// so now using the forces and jacobian we calculated before
-					// go only 1/2
-					softbody_apply_fake_implicit_forces(ob, forcetime/2.0f, NULL,NULL,NULL);
-					// explore situation here without redoing the jacobian 
-					softbody_calc_forces(ob, forcetime,timedone/dtime,NLF_SOLVE);
-					// go next 1/2
-					softbody_apply_fake_implicit_forces(ob, forcetime/2.0f,&loss_of_accuracy,predict_pos,predict_vel );
-					// now we have "loss_of_accuracy"
-
-					softbody_apply_goalsnap(ob);
-
-					if (loss_of_accuracy > SoftHeunTol) { /* error needs to be scaled to some quantity */
-						
-						if (forcetime > forcetimemin){
-							forcetime = MAX2(forcetime / 2.0f,forcetimemin);
-							softbody_restore_prev_step(ob);
-							//printf("down,");
-						}
-						else {
-							timedone += forcetime;
-						}
-					}
-					else {
-						float newtime = forcetime * 1.5f; /* hope for 1.1 times better conditions in next step */
-                        // all that 1/2 stepping was useless ... hum we know now ..
-						softbody_swap_state(ob,predict_pos,predict_vel);
-						if (0){//(sb->scratch->flag & SBF_DOFUZZY){
-							//if (err > SoftHeunTol/(2.0f*sb->fuzzyness)) { /* stay with this stepsize unless err really small */
-							newtime = forcetime;
-							//}
-						}
-						else {
-							if (loss_of_accuracy > SoftHeunTol/1.1f) { /* stay with this stepsize unless err really small */
-								newtime = forcetime;
-							}
-						}
-
-						timedone += forcetime;
-						newtime=MIN2(forcetimemax,MAX2(newtime,forcetimemin));
-						//if (newtime > forcetime) printf("up,");
-						if (forcetime > 0.0)
-							forcetime = MIN2(dtime - timedone,newtime);
-						else 
-							forcetime = MAX2(dtime - timedone,newtime);
-					}
-					loops++;
-					// give away solver context within loop
-					if (sb_nlc)
-					{
-						if (sb_nlc != nlGetCurrent())printf("Aye NL context mismatch! in softbody.c !\n");
-						nlDeleteContext(sb_nlc);
-						sb_nlc = NULL;
-					}
-
-					if(sb->solverflags & SBSO_MONITOR ){
-						sct=PIL_check_seconds_timer();
-						if (sct-sst > 0.5f) printf("%3.0f%% \r",100.0f*timedone);
-					}					
-
-					/* ask for user break */ 
-					if (SB_localInterruptCallBack && SB_localInterruptCallBack()) break;
-				}
-
-				// give away buffers
-				if (predict_pos) MEM_freeN(predict_pos);
-				if (predict_vel) MEM_freeN(predict_vel);
-
-				if(sb->solverflags & SBSO_MONITOR ){
-					if (loops > HEUNWARNLIMIT) /* monitor high loop counts */
-						printf("\r       needed %d steps/frame ",loops);
-				}
-
-
-			}/*SOLVER SELECT*/
-			else if (sb->solver_ID == 4)
-			{
-				/* do semi "fake" implicit euler */
- 			    NLContext *sb_nlc  = NULL;
-	            int nvar = 3*2*sb->totpoint;
-				int loops =0 ;
-				float forcetimemax = 1.0f; // this one needs 5 steps as a minimum
-				float forcetimemin = 0.001f;
-				float timedone =0.0; /* how far did we get without violating error condition */
-									 /* loops = counter for emergency brake
-									 * we don't want to lock up the system if physics fail
-				*/
-				SoftHeunTol = sb->rklimit; /* humm .. this should be calculated from sb parameters and sizes */
-				if (sb->minloops > 0) forcetimemax = 1.0f / sb->minloops;
-				if (sb->maxloops > 0) forcetimemin = 1.0f / sb->maxloops;
-				
-
-                forcetime =forcetimemax; /* hope for integrating as fast as possible */
-				while ( (ABS(timedone) < ABS(dtime)) && (loops < 2000) ){
-					float loss_of_accuracy=0;
-					// create new solver context for this loop
-					sb_nlc = (NLContext*)nlNewContext();
-				    /* hum it smells like threading trouble */
-				    nlSolverParameteri(NL_NB_VARIABLES, nvar);
-				    nlSolverParameteri(NL_LEAST_SQUARES, NL_FALSE);
-
-                    
-				    interpolate_exciter(ob,200,(int)(200.0*(timedone/dtime)));
-					softbody_store_step(ob); /* used for rolling back step guessing */
-					softbody_calc_forces(ob, forcetime,timedone/dtime,NLF_BUILD|NLF_SOLVE); 
-					softbody_apply_fake_implicit_forces(ob, forcetime,&loss_of_accuracy,NULL,NULL);
-					softbody_apply_goalsnap(ob);
-
-					if (loss_of_accuracy > SoftHeunTol) { /* error needs to be scaled to some quantity */
-						
-						if (forcetime > forcetimemin){
-							forcetime = MAX2(forcetime / 2.0f,forcetimemin);
-							softbody_restore_prev_step(ob);
-							//printf("down,");
-						}
-						else {
-							timedone += forcetime;
-						}
-					}
-					else {
-						float newtime = forcetime * 1.1f; /* hope for 1.1 times better conditions in next step */
-						if (0){//(sb->scratch->flag & SBF_DOFUZZY){
-							//if (err > SoftHeunTol/(2.0f*sb->fuzzyness)) { /* stay with this stepsize unless err really small */
-							newtime = forcetime;
-							//}
-						}
-						else {
-							if (loss_of_accuracy > SoftHeunTol/2.0f) { /* stay with this stepsize unless err really small */
-								newtime = forcetime;
-							}
-						}
-
-						timedone += forcetime;
-						newtime=MIN2(forcetimemax,MAX2(newtime,forcetimemin));
-						//if (newtime > forcetime) printf("up,");
-						if (forcetime > 0.0)
-							forcetime = MIN2(dtime - timedone,newtime);
-						else 
-							forcetime = MAX2(dtime - timedone,newtime);
-					}
-					loops++;
-					// give away solver context within loop
-					if (sb_nlc)
-					{
-						if (sb_nlc != nlGetCurrent())printf("Aye NL context mismatch! in softbody.c !\n");
-						nlDeleteContext(sb_nlc);
-						sb_nlc = NULL;
-					}
-
-					if(sb->solverflags & SBSO_MONITOR ){
-						sct=PIL_check_seconds_timer();
-						if (sct-sst > 0.5f) printf("%3.0f%% \r",100.0f*timedone);
-					}					
-
-					/* ask for user break */ 
-					if (SB_localInterruptCallBack && SB_localInterruptCallBack()) break;
-				}
-
-
-				if(sb->solverflags & SBSO_MONITOR ){
-					if (loops > HEUNWARNLIMIT) /* monitor high loop counts */
-						printf("\r       needed %d steps/frame ",loops);
-				}
-
-
-			}/*SOLVER SELECT*/
-			else if (sb->solver_ID == 3){
-				/* do "stupid" semi "fake" implicit euler */
- 			    NLContext *sb_nlc  = NULL;
-	            int nvar = 3*2*sb->totpoint;
-				int loops =0 ;
-				float forcetimemax = 1.0f; // this one needs 5 steps as a minimum
-				float timedone =0.0; /* how far did we get without violating error condition */
-									 /* loops = counter for emergency brake
-									 * we don't want to lock up the system if physics fail
-				*/
-				if (sb->minloops > 0) forcetimemax = 1.0f / sb->minloops;
-				
-
-                forcetime =forcetimemax; /* hope for integrating as fast as possible */
-
-				while ( (ABS(timedone) < ABS(dtime)) && (loops < 2000) ){
-
-					sb_nlc = (NLContext*)nlNewContext();
-					/* hum it smells like threading trouble */
-					nlSolverParameteri(NL_NB_VARIABLES, nvar);
-					nlSolverParameteri(NL_LEAST_SQUARES, NL_FALSE);
-
-					interpolate_exciter(ob,200,(int)(200.0*(timedone/dtime)));
-					softbody_calc_forces(ob, forcetime,timedone/dtime,NLF_BUILD|NLF_SOLVE);
-					softbody_apply_fake_implicit_forces(ob, forcetime, NULL,NULL,NULL);
-					softbody_apply_goalsnap(ob);
-					timedone += forcetime;
-					loops++;
-					if (sb_nlc)
-					{
-						if (sb_nlc != nlGetCurrent())printf("Aye NL context mismatch! in softbody.c !\n");
-						nlDeleteContext(sb_nlc);
-						sb_nlc = NULL;
-					}
-					/* ask for user break */ 
-					if (SB_localInterruptCallBack && SB_localInterruptCallBack()) break;
-				}
-
-
-
-			}/*SOLVER SELECT*/
-			else{
-				printf("softbody no valid solver ID!");
-			}/*SOLVER SELECT*/
-
-			if(sb->solverflags & SBSO_MONITOR ){
-				sct=PIL_check_seconds_timer();
-				if (sct-sst > 0.5f) printf(" solver time %f %s \r",sct-sst,ob->id.name);
-			}
-	}
-
-	if(sb->particles==0)
-		softbody_to_object(ob, vertexCos, numVerts, 0);
-	sb->ctime= ctime;
-
-	softbody_write_cache(ob, framenr);
 }
 

@@ -1293,7 +1293,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			VertDataMulN(nCo, 1.0f/numEdges);
 		}
 
-		if ((sharpCount>1 && v->numFaces) || seam) {
+		if (sharpCount>1 || seam) {
 			VertDataZero(q);
 
 			if (seam) {

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Convert blender data to ketsji
  */
 
@@ -883,6 +880,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				Material* ma = 0;
 				bool polyvisible = true;
 				RAS_IPolyMaterial* polymat = NULL;
+				BL_Material *bl_mat;
 
 				if(converter->GetMaterials()) 
 				{	
@@ -891,7 +889,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					else 
 						ma = give_current_material(blenderobj, 1);
 
-					BL_Material *bl_mat = ConvertMaterial(mesh, ma, tface, mface, mmcol, lightlayer, blenderobj, layers);
+					bl_mat = ConvertMaterial(mesh, ma, tface, mface, mmcol, lightlayer, blenderobj, layers);
 					// set the index were dealing with
 					bl_mat->material_index =  (int)mface->mat_nr;
 
@@ -899,7 +897,6 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					collider = ((bl_mat->ras_mode & COLLIDER)!=0);
 					
 					polymat = new KX_BlenderMaterial(scene, bl_mat, skinMesh, lightlayer, blenderobj );
-					converter->RegisterBlenderMaterial(bl_mat);
 					
 					unsigned int rgb[4];
 					bl_mat->GetConversionRGB(rgb);
@@ -921,8 +918,6 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 						if (mface->v4)
 							tan3 = tangent[mface->v4];
 					}
-					// this is needed to free up memory afterwards
-					converter->RegisterPolyMaterial(polymat);
 				}
 				else
 				{
@@ -1029,12 +1024,27 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 						polymat->m_specular = MT_Vector3(0.0f,0.0f,0.0f);
 						polymat->m_shininess = 35.0;
 					}
-					// this is needed to free up memory afterwards
-					converter->RegisterPolyMaterial(polymat);
-
 				}
 	
-				RAS_MaterialBucket* bucket = scene->FindBucket(polymat);
+				// see if a bucket was reused or a new one was created
+				// this way only one KX_BlenderMaterial object has to exist per bucket
+				bool bucketCreated; 
+				RAS_MaterialBucket* bucket = scene->FindBucket(polymat, bucketCreated);
+				if (bucketCreated) {
+					// this is needed to free up memory afterwards
+					converter->RegisterPolyMaterial(polymat);
+					if(converter->GetMaterials()) {
+						converter->RegisterBlenderMaterial(bl_mat);
+					}
+				} else {
+					// delete the material objects since they are no longer needed
+					// from now on, use the polygon material from the material bucket
+					delete polymat;
+					if(converter->GetMaterials()) {
+						delete bl_mat;
+					}
+					polymat = bucket->GetPolyMaterial();
+				}
 							 
 				int nverts = mface->v4?4:3;
 				int vtxarray = meshobj->FindVertexArray(nverts,polymat);
@@ -1514,7 +1524,8 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 		default:
 			break;
 	}
-
+	delete shapeprops;
+	delete smmaterial;
 }
 
 
@@ -1599,7 +1610,8 @@ static KX_GameObject *gameobject_from_blenderobject(
 		KX_Camera* gamecamera = gamecamera_from_bcamera(static_cast<Camera*>(ob->data), kxscene, converter);
 		gameobj = gamecamera;
 		
-		gamecamera->AddRef();
+		//don't add a reference: the camera list in kxscene->m_cameras is not released at the end
+		//gamecamera->AddRef();
 		kxscene->AddCamera(gamecamera);
 		
 		break;
@@ -1668,7 +1680,11 @@ static KX_GameObject *gameobject_from_blenderobject(
 		break;
 	}
 	}
-	
+	if (gameobj) 
+	{
+		gameobj->SetPhysicsEnvironment(kxscene->GetPhysicsEnvironment());
+		gameobj->SetLayer(ob->lay);
+	}
 	return gameobj;
 }
 
@@ -1845,6 +1861,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	vector<parentChildLink> vec_parent_child;
 	
 	CListValue* objectlist = kxscene->GetObjectList();
+	CListValue* inactivelist = kxscene->GetInactiveList();
 	CListValue* parentlist = kxscene->GetRootParentList();
 	
 	SCA_LogicManager* logicmgr = kxscene->GetLogicManager();
@@ -1852,7 +1869,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	
 	CListValue* logicbrick_conversionlist = new CListValue();
 	
-	SG_TreeFactory tf;
+	//SG_TreeFactory tf;
 	
 	// Convert actions to actionmap
 	bAction *curAct;
@@ -1990,11 +2007,17 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			if (isInActiveLayer)
 			{
 				objectlist->Add(gameobj->AddRef());
-				tf.Add(gameobj->GetSGNode());
+				//tf.Add(gameobj->GetSGNode());
 				
 				gameobj->NodeUpdateGS(0,true);
 				gameobj->Bucketize();
 				
+			}
+			else
+			{
+				//we must store this object otherwise it will be deleted 
+				//at the end of this function if it is not a root object
+				inactivelist->Add(gameobj->AddRef());
 			}
 			if (converter->addInitFromFrame){
 				gameobj->NodeSetLocalPosition(posPrev);
@@ -2002,7 +2025,17 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			}
 						
 		}
-			
+		/* Note about memory leak issues:
+		   When a CValue derived class is created, m_refcount is initialized to 1
+		   so the class must be released after being used to make sure that it won't 
+		   hang in memory. If the object needs to be stored for a long time, 
+		   use AddRef() so that this Release() does not free the object.
+		   Make sure that for any AddRef() there is a Release()!!!! 
+		   Do the same for any object derived from CValue, CExpression and NG_NetworkMessage
+		 */
+		if (gameobj)
+			gameobj->Release();
+
 		base = base->next;
 	}
 
@@ -2143,70 +2176,71 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	{
 		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
 		struct Object* blenderobject = converter->FindBlenderObject(gameobj);
-		int nummeshes = gameobj->GetMeshCount();
-		RAS_MeshObject* meshobj = 0;
-        ListBase *conlist;
-        bConstraint *curcon;
-        conlist = get_active_constraints2(blenderobject);
-        if (conlist) {
-            for (curcon = (bConstraint *)conlist->first; curcon; curcon=(bConstraint *)curcon->next) {
-                if (curcon->type==CONSTRAINT_TYPE_RIGIDBODYJOINT){
-                    bRigidBodyJointConstraint *dat=(bRigidBodyJointConstraint *)curcon->data;
-                    //if (dat->tar)
-                        if (!dat->child){
-							PHY_IPhysicsController* physctr2 = 0;
-							if (dat->tar)
-							{
-								KX_GameObject *gotar=getGameOb(dat->tar->id.name,sumolist);
-								if (gotar && gotar->GetPhysicsController())
-									physctr2 = (PHY_IPhysicsController*) gotar->GetPhysicsController()->GetUserData();
-							}
+		ListBase *conlist;
+		bConstraint *curcon;
+		conlist = get_active_constraints2(blenderobject);
 
-							if (gameobj->GetPhysicsController())
-							{
-								float radsPerDeg = 6.283185307179586232f / 360.f;
+		if (conlist) {
+			for (curcon = (bConstraint *)conlist->first; curcon; curcon=(bConstraint *)curcon->next) {
+				if (curcon->type==CONSTRAINT_TYPE_RIGIDBODYJOINT){
 
-								PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) gameobj->GetPhysicsController()->GetUserData();
-								//we need to pass a full constraint frame, not just axis
+					bRigidBodyJointConstraint *dat=(bRigidBodyJointConstraint *)curcon->data;
+
+					if (!dat->child){
+
+						PHY_IPhysicsController* physctr2 = 0;
+
+						if (dat->tar)
+						{
+							KX_GameObject *gotar=getGameOb(dat->tar->id.name,sumolist);
+							if (gotar && gotar->GetPhysicsController())
+								physctr2 = (PHY_IPhysicsController*) gotar->GetPhysicsController()->GetUserData();
+						}
+
+						if (gameobj->GetPhysicsController())
+						{
+							float radsPerDeg = 6.283185307179586232f / 360.f;
+
+							PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) gameobj->GetPhysicsController()->GetUserData();
+							//we need to pass a full constraint frame, not just axis
 	                            
-								//localConstraintFrameBasis
-								MT_Matrix3x3 localCFrame(MT_Vector3(radsPerDeg*dat->axX,radsPerDeg*dat->axY,radsPerDeg*dat->axZ));
-								MT_Vector3 axis0 = localCFrame.getColumn(0);
-								MT_Vector3 axis1 = localCFrame.getColumn(1);
-								MT_Vector3 axis2 = localCFrame.getColumn(2);
+							//localConstraintFrameBasis
+							MT_Matrix3x3 localCFrame(MT_Vector3(radsPerDeg*dat->axX,radsPerDeg*dat->axY,radsPerDeg*dat->axZ));
+							MT_Vector3 axis0 = localCFrame.getColumn(0);
+							MT_Vector3 axis1 = localCFrame.getColumn(1);
+							MT_Vector3 axis2 = localCFrame.getColumn(2);
 								
-								int constraintId = kxscene->GetPhysicsEnvironment()->createConstraint(physctrl,physctr2,(PHY_ConstraintType)dat->type,(float)dat->pivX,(float)dat->pivY,(float)dat->pivZ,
+							int constraintId = kxscene->GetPhysicsEnvironment()->createConstraint(physctrl,physctr2,(PHY_ConstraintType)dat->type,(float)dat->pivX,
+								(float)dat->pivY,(float)dat->pivZ,
 								(float)axis0.x(),(float)axis0.y(),(float)axis0.z(),
 								(float)axis1.x(),(float)axis1.y(),(float)axis1.z(),
-								(float)axis2.x(),(float)axis2.y(),(float)axis2.z()
-											);
-								if (constraintId)
+								(float)axis2.x(),(float)axis2.y(),(float)axis2.z());
+							if (constraintId)
+							{
+								//if it is a generic 6DOF constraint, set all the limits accordingly
+								if (dat->type == PHY_GENERIC_6DOF_CONSTRAINT)
 								{
-									//if it is a generic 6DOF constraint, set all the limits accordingly
-									if (dat->type == PHY_GENERIC_6DOF_CONSTRAINT)
+									int dof;
+									int dofbit=1;
+									for (dof=0;dof<6;dof++)
 									{
-										int dof;
-										int dofbit=1;
-										for (dof=0;dof<6;dof++)
+										if (dat->flag & dofbit)
 										{
-											if (dat->flag & dofbit)
-											{
-												kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,dat->minLimit[dof],dat->maxLimit[dof]);
-											} else
-											{
-												//minLimit > maxLimit means free(disabled limit) for this degree of freedom
-												kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,1,-1);
-											}
-											dofbit<<=1;
+											kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,dat->minLimit[dof],dat->maxLimit[dof]);
+										} else
+										{
+											//minLimit > maxLimit means free(disabled limit) for this degree of freedom
+											kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,1,-1);
 										}
+										dofbit<<=1;
 									}
 								}
 							}
-                        }
-                }
-            }
-        }
-
+						}
+					}
+				}
+			}
+		}
 	}
 
 	templist->Release();

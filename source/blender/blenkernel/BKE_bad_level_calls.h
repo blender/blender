@@ -6,15 +6,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,7 +29,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_BAD_LEVEL_CALLS_H
 #define BKE_BAD_LEVEL_CALLS_H
@@ -63,6 +60,12 @@ struct Script;
 struct Text;
 struct IpoDriver; /* DNA_curve_types.h */
 struct Object;
+struct PyObject;
+struct Node_Type;
+struct BPy_Node;
+struct bNode;
+struct bNodeStack;
+struct ShadeInput;
 struct bPythonConstraint;
 struct bConstraintOb;
 struct bConstraintTarget;
@@ -78,8 +81,13 @@ int BPY_button_eval(char *expr, double *value);
 /* pyconstraints */
 void BPY_pyconstraint_eval(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets);
 void BPY_pyconstraint_targets(struct bPythonConstraint *con, struct bConstraintTarget *ct);
-
-
+/* pynodes */
+int EXPP_dict_set_item_str(struct PyObject *dict, char *key, struct PyObject *value);
+void Node_SetStack(struct BPy_Node *self, struct bNodeStack **stack, int type);
+void InitNode(struct BPy_Node *self, struct bNode *node);
+void Node_SetShi(struct BPy_Node *self, struct ShadeInput *shi);
+struct BPy_NodeSockets *Node_CreateSocketLists(struct bNode *node);
+int pytype_is_pynode(struct PyObject *pyob);
 /* writefile.c */
 struct Oops;
 void free_oops(struct Oops *oops);

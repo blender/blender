@@ -2,6 +2,8 @@
 
 #include <math.h>
 
+#include <cstring>
+
 using namespace std;
 
 static string command_path = "";
@@ -124,7 +126,7 @@ static void adjustPath(string &path)
 	// if relative, expand to full path
 	char cpath[MAXPATHLEN];
 	strcpy(cpath, path.c_str());
-	BLI_convertstringcode(cpath, G.sce, 0);
+	BLI_convertstringcode(cpath, G.sce);
 	path = cpath;
 #ifdef WIN32
 	// add drive char if not there
@@ -2015,7 +2017,7 @@ bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 {
 	ostr.str("");
 	if (re->r.mode & R_BORDER) {
-		ostr << command_path << "yafray -c " << re->r.YF_numprocs
+		ostr << command_path << "yafray -c " << re->r.threads
 		     << " -r " << (2.f*re->r.border.xmin - 1.f)
 		     << ":"    << (2.f*re->r.border.xmax - 1.f)
 		     << ":"    << (2.f*re->r.border.ymin - 1.f)
@@ -2023,7 +2025,7 @@ bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 		     << " \"" << xmlpath << "\"";
 	}
 	else
-		ostr << command_path << "yafray -c " << re->r.YF_numprocs << " \"" << xmlpath << "\"";
+		ostr << command_path << "yafray -c " << re->r.threads << " \"" << xmlpath << "\"";
 	
 	string command = ostr.str();
 	cout << "COMMAND: " << command << endl;

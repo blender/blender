@@ -1,15 +1,12 @@
 /*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * The engine ties all game modules together. 
  */
 
@@ -617,7 +614,7 @@ void KX_KetsjiEngine::Render()
 		SetWorldSettings(scene->GetWorldInfo());
 
 		// Avoid drawing the scene with the active camera twice when it's viewport is enabled
-		if(!cam->GetViewport())
+		if(cam && !cam->GetViewport())
 		{
 			if (scene->IsClearingZBuffer())
 				m_rasterizer->ClearDepthBuffer();
@@ -631,10 +628,10 @@ void KX_KetsjiEngine::Render()
 			RenderFrame(scene, cam);
 		}
 		
-		set<class KX_Camera*>* cameras = scene->GetCameras();
+		list<class KX_Camera*>* cameras = scene->GetCameras();
 		
 		// Draw the scene once for each camera with an enabled viewport
-		set<KX_Camera*>::iterator it = cameras->begin();
+		list<KX_Camera*>::iterator it = cameras->begin();
 		while(it != cameras->end())
 		{
 			if((*it)->GetViewport())
@@ -854,6 +851,9 @@ void KX_KetsjiEngine::SetupRenderFrame(KX_Scene *scene, KX_Camera* cam)
 
 	RAS_Rect viewport;
 
+	if (!cam)
+		return;
+
 	if (cam->GetViewport()) {
 		viewport.SetLeft(cam->GetViewportLeft()); 
 		viewport.SetBottom(cam->GetViewportBottom());
@@ -966,12 +966,17 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	scene->CalculateVisibleMeshes(m_rasterizer,cam);
 
 	scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
-
-	m_rendertools->MotionBlur(m_rasterizer);
-
+	
+	PostRenderFrame();
 }
 
-
+void KX_KetsjiEngine::PostRenderFrame()
+{
+	m_rendertools->PushMatrix();
+	m_rendertools->Render2DFilters(m_canvas);
+	m_rendertools->MotionBlur(m_rasterizer);
+	m_rendertools->PopMatrix();
+}
 
 void KX_KetsjiEngine::StopEngine()
 {
@@ -988,7 +993,7 @@ void KX_KetsjiEngine::StopEngine()
 		for (sceneit = m_scenes.begin();sceneit != m_scenes.end() ; sceneit++)
 		{
 			KX_Scene* scene = *sceneit;
-			delete scene;
+			m_sceneconverter->RemoveScene(scene);
 		}	
 		m_scenes.clear();
 
@@ -1042,6 +1047,8 @@ void KX_KetsjiEngine::PostProcessScene(KX_Scene* scene)
 		scene->SetActiveCamera(activecam);
 		scene->GetObjectList()->Add(activecam->AddRef());
 		scene->GetRootParentList()->Add(activecam->AddRef());
+		//done with activecam
+		activecam->Release();
 	}
 	
 	scene->UpdateParents(0.0);
@@ -1210,7 +1217,7 @@ void KX_KetsjiEngine::RemoveScheduledScenes()
 				KX_Scene* scene = *sceneit;
 				if (scene->GetName()==scenename)
 				{
-					delete scene;
+					m_sceneconverter->RemoveScene(scene);
 					m_scenes.erase(sceneit);
 					break;
 				}
@@ -1308,7 +1315,7 @@ void KX_KetsjiEngine::ReplaceScheduledScenes()
 				KX_Scene* scene = *sceneit;
 				if (scene->GetName() == oldscenename)
 				{
-					delete scene;
+					m_sceneconverter->RemoveScene(scene);
 					KX_Scene* tmpscene = CreateScene(newscenename);
 					m_scenes[i]=tmpscene;
 					PostProcessScene(tmpscene);
@@ -1465,5 +1472,6 @@ void KX_KetsjiEngine::GetOverrideFrameColor(float& r, float& g, float& b) const
 	g = m_overrideFrameColorG;
 	b = m_overrideFrameColorB;
 }
+
 
 

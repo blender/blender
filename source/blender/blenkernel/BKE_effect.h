@@ -3,15 +3,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_EFFECT_H
 #define BKE_EFFECT_H
@@ -38,7 +35,6 @@
 
 struct Effect;
 struct ListBase;
-struct PartEff;
 struct Particle;
 struct Group;
 
@@ -54,21 +50,16 @@ typedef struct pEffectorCache {
 	Object obcopy;	/* for restoring transformation data */
 } pEffectorCache;
 
-
-struct Effect *add_effect(int type);
 void free_effect(struct Effect *eff);
 void free_effects(struct ListBase *lb);
 struct Effect *copy_effect(struct Effect *eff);
-void copy_act_effect(struct Object *ob);
 void copy_effects(struct ListBase *lbn, struct ListBase *lb);
 void deselectall_eff(struct Object *ob);
-struct PartEff *give_parteff(struct Object *ob);
-void where_is_particle(struct PartEff *paf, struct Particle *pa, float ctime, float *vec);
-void build_particle_system(struct Object *ob);
 
 /* particle deflector */
 #define PE_WIND_AS_SPEED 0x00000001
 
+struct PartEff *give_parteff(struct Object *ob);
 struct ListBase *pdInitEffectors(struct Object *obsrc, struct Group *group);
 void			pdEndEffectors(struct ListBase *lb);
 void			pdDoEffectors(struct ListBase *lb, float *opco, float *force, float *speed, float cur_time, float loc_time, unsigned int flags);

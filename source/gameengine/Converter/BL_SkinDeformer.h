@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BL_SKINDEFORMER
@@ -72,7 +69,8 @@ public:
 						m_armobj(arma),
 						m_lastUpdate(-1),
 						m_defbase(&bmeshobj->defbase),
-						m_releaseobject(false)
+						m_releaseobject(false),
+						m_restoremat(false)
 	{
 	};
 
@@ -81,15 +79,7 @@ public:
 					struct Object *bmeshobj_new,
 					class BL_SkinMeshObject *mesh,
 					bool release_object,
-					BL_ArmatureObject* arma = NULL)
-					:	//
-						BL_MeshDeformer(bmeshobj_old, mesh),
-						m_armobj(arma),
-						m_lastUpdate(-1),
-						m_defbase(&bmeshobj_old->defbase),
-						m_releaseobject(release_object)
-	{
-	};
+					BL_ArmatureObject* arma = NULL);
 
 	virtual void ProcessReplica();
 	virtual RAS_Deformer *GetReplica();
@@ -102,6 +92,8 @@ protected:
 	float					m_time;
 	double					m_lastUpdate;
 	ListBase*				m_defbase;
+	float					m_obmat[4][4];	// the original object matrice in case of dynamic mesh replacement
+	bool					m_restoremat;		
 	bool					m_releaseobject;
 
 };

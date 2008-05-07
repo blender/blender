@@ -8,7 +8,7 @@ Tooltip: 'Save current renderlayers as a BPython script'
 """
 
 __author__ = "Campbell Barton"
-__url__ = ("blender", "elysiun")
+__url__ = ("blender", "blenderartists.org")
 __version__ = "1.0"
 
 __bpydoc__ = """\

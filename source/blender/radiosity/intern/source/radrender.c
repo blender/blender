@@ -1,14 +1,11 @@
 /* ***************************************
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 /* radrender.c, aug 2003
@@ -99,7 +96,7 @@ static void findshoot_rr(Render *re, VlakRen **shoot_p, RadFace **shootrf_p)
 	for(obr=re->objecttable.first; obr; obr=obr->next) {
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
-			if((radface=RE_vlakren_get_radface(obr, vlr, 0))) {
+			if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
 				rf= *radface;
 				rf->flag &= ~RAD_SHOOT;
 				
@@ -121,6 +118,7 @@ static void findshoot_rr(Render *re, VlakRen **shoot_p, RadFace **shootrf_p)
 		if(maxenergy<RG.convergence) {
 			*shoot_p= NULL;
 			*shootrf_p= NULL;
+			return;
 		}
 		shootrf->flag |= RAD_SHOOT;
 	}
@@ -141,7 +139,7 @@ static void backface_test_rr(Render *re, VlakRen *shoot, RadFace *shootrf)
 	for(obr=re->objecttable.first; obr; obr=obr->next) {
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
-			if(vlr != shoot && (radface=RE_vlakren_get_radface(obr, vlr, 0))) {
+			if(vlr != shoot && (radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
 				rf= *radface;
 				VecSubf(tvec, shootrf->cent, rf->cent);
 				
@@ -164,7 +162,7 @@ static void clear_backface_test_rr(Render *re)
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
 			
-			if((radface=RE_vlakren_get_radface(obr, vlr, 0))) {
+			if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
 				rf= *radface;
 				rf->flag &= ~RAD_BACKFACE;
 			}
@@ -224,7 +222,7 @@ static void makeformfactors_rr(Render *re, VlakRen *shoot, RadFace *shootrf)
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
 			
-			if((radface=RE_vlakren_get_radface(obr, vlr, 0))) {
+			if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
 				rf= *radface;
 				if(*fp!=0.0 && rf->area!=0.0) {
 					*fp *= shootrf->area/rf->area;
@@ -255,7 +253,7 @@ static void applyformfactors_rr(Render *re, VlakRen *shoot, RadFace *shootrf)
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
 			
-			if((radface=RE_vlakren_get_radface(obr, vlr, 0))) {
+			if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
 				rf= *radface;
 				if(*fp!= 0.0) {
 					
@@ -448,7 +446,7 @@ static void make_vertex_rad_values(Render *re)
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
 			
-			if((radface=RE_vlakren_get_radface(obr, vlr, 0))) {
+			if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
 				rf= *radface;
 				
 				/* apply correction */

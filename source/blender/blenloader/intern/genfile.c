@@ -4,15 +4,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +27,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * DNA handling
  */
 
@@ -216,6 +213,12 @@ void dna_freestructDNA(struct SDNA *sdna)
 	MEM_freeN(sdna);
 }
 
+static int ispointer(char *name)
+{
+	/* check if pointer or function pointer */
+	return (name[0]=='*' || (name[0]=='(' && name[1]=='*'));
+}
+
 static int elementsize(struct SDNA *sdna, short type, short name)
 /* call with numbers from struct-array */
 {
@@ -227,7 +230,7 @@ static int elementsize(struct SDNA *sdna, short type, short name)
 	
 	namelen= strlen(cp);
 	/* is it a pointer or function pointer? */
-	if(cp[0]=='*' || cp[1]=='*') {
+	if(ispointer(cp)) {
 		/* has the naam an extra length? (array) */
 		mul= 1;
 		if( cp[namelen-1]==']') mul= arraysize(cp, namelen);
@@ -511,7 +514,7 @@ static void recurs_test_compflags(struct SDNA *sdna, char *compflags, int struct
 			for(b=0; b<elems; b++, sp+=2) {
 				if(sp[0]==typenr) {
 					cp= sdna->names[ sp[1] ];
-					if(cp[0]!= '*') {
+					if(!ispointer(cp)) {
 						compflags[a]= 2;
 						recurs_test_compflags(sdna, compflags, a);
 					}
@@ -582,7 +585,7 @@ char *dna_get_structDNA_compareflags(struct SDNA *sdna, struct SDNA *newsdna)
 						 if(strcmp(str1, str2)!=0) break;
 						 
 						 /* same type and same name, now pointersize */
-						 if(str1[0]=='*') {
+						 if(ispointer(str1)) {
 							 if(sdna->pointerlen!=newsdna->pointerlen) break;
 						 }
 						 
@@ -837,7 +840,7 @@ static void reconstruct_elem(struct SDNA *newsdna, struct SDNA *oldsdna, char *t
 		
 		if( strcmp(name, oname)==0 ) {	/* name equal */
 			
-			if( name[0]=='*') {		/* pointer afhandelen */
+			if(ispointer(name)) {	/* pointer of functionpointer afhandelen */
 				cast_pointer(newsdna->pointerlen, oldsdna->pointerlen, name, curdata, olddata);
 			}
 			else if( strcmp(type, otype)==0 ) {	/* type equal */
@@ -854,11 +857,11 @@ static void reconstruct_elem(struct SDNA *newsdna, struct SDNA *oldsdna, char *t
 				cursize= arraysize(name, strlen(name));
 				oldsize= arraysize(oname, strlen(oname));
 
-				if( name[0]=='*') {		/* handle pointer */
+				if(ispointer(name)) {		/* handle pointer or functionpointer */
 					if(cursize>oldsize) cast_pointer(newsdna->pointerlen, oldsdna->pointerlen, oname, curdata, olddata);
 					else cast_pointer(newsdna->pointerlen, oldsdna->pointerlen, name, curdata, olddata);
 				}
-				else if(name[0]=='*' || strcmp(type, otype)==0 ) {	/* type equal */
+				else if(strcmp(type, otype)==0 ) {	/* type equal */
 					mul= len/oldsize;
 					mul*= MIN2(cursize, oldsize);
 					memcpy(curdata, olddata, mul);
@@ -912,7 +915,7 @@ static void reconstruct_struct(struct SDNA *newsdna, struct SDNA *oldsdna, char 
 		elen= elementsize(newsdna, spc[0], spc[1]);
 
 		/* test: is type a struct? */
-		if(spc[0]>=firststructtypenr  &&  name[0]!='*') {
+		if(spc[0]>=firststructtypenr  &&  !ispointer(name)) {
 		
 			/* where does the old struct data start (and is there an old one?) */
 			cpo= find_elem(oldsdna, type, name, spo, data, &sppo);
@@ -979,7 +982,7 @@ void dna_switch_endian_struct(struct SDNA *oldsdna, int oldSDNAnr, char *data)
 		elen= elementsize(oldsdna, spc[0], spc[1]);
 
 		/* test: is type a struct? */
-		if(spc[0]>=firststructtypenr  &&  name[0]!='*') {
+		if(spc[0]>=firststructtypenr  &&  !ispointer(name)) {
 			/* where does the old data start (is there one?) */
 			cpo= find_elem(oldsdna, type, name, spo, data, 0);
 			if(cpo) {
@@ -996,7 +999,7 @@ void dna_switch_endian_struct(struct SDNA *oldsdna, int oldSDNAnr, char *data)
 		}
 		else {
 			
-			if( name[0]=='*' ) {
+			if(ispointer(name)) {
 				if(oldsdna->pointerlen==8) {
 					
 					mul= arraysize(name, strlen(name));

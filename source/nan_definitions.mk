@@ -1,15 +1,12 @@
 #
 # $Id$
 #
-# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+# ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. The Blender
-# Foundation also sells licenses for use in proprietary software under
-# the Blender License.  See http://www.blender.org/BL/ for information
-# about this.
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
 #
 # Contributor(s): none yet.
 #
-# ***** END GPL/BL DUAL LICENSE BLOCK *****
+# ***** END GPL LICENSE BLOCK *****
 #
 # set some defaults when these are not overruled (?=) by environment variables
 #
@@ -58,6 +55,9 @@ all debug::
     export LCGDIR = $(NAN_LIBDIR)/$(CONFIG_GUESS)
     # Object Config_Guess DIRectory
     export OCGDIR = $(NAN_OBJDIR)/$(CONFIG_GUESS)
+
+    export WITH_GLEXT?=true
+    export WITH_BF_GLEXT?=$(WITH_GLEXT)
 
     # Determines what targets are built
     export WITH_BF_DYNAMICOPENGL ?= true
@@ -138,7 +138,7 @@ endif
 		 	ifeq ($(WITH_OPENEXR), true)
 			NAN_OPENEXR?=$(shell pkg-config --variable=prefix OpenEXR )
 			NAN_OPENEXR_INC?=$(shell pkg-config --cflags OpenEXR )
-			NAN_OPENEXR_LIBS?=$(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs OpenEXR | sed -s "s/-l//g" )))
+			NAN_OPENEXR_LIBS?=$(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs-only-l OpenEXR | sed -s "s/-l//g" )))
 			endif
         else
           ifeq ($(OS), solaris)

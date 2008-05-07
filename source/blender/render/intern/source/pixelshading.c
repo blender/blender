@@ -24,6 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <float.h>
 #include <math.h>
 #include <string.h>
 #include "BLI_arithb.h"
@@ -182,7 +183,7 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 					inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
 					if(inp>0.0) {
 						/* testshadowbuf==0.0 : 100% shadow */
-						shadfac = testshadowbuf(lar->shb, rco, dco, dco, inp, 0.0f);
+						shadfac = testshadowbuf(&R, lar->shb, rco, dco, dco, inp, 0.0f);
 						if( shadfac>0.0 ) {
 							shadfac*= inp*soft*lar->energy;
 							ir -= shadfac;
@@ -219,7 +220,7 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 		if(i> -0.41) {			/* heuristic valua! */
 			shadfac= 1.0;
 			if(lar->shb) {
-				shadfac = testshadowbuf(lar->shb, rco, dco, dco, inp, 0.0f);
+				shadfac = testshadowbuf(&R, lar->shb, rco, dco, dco, inp, 0.0f);
 				if(shadfac==0.0) continue;
 				i*= shadfac;
 			}
@@ -243,8 +244,36 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 }
 
 
+/**
+ * Converts a halo z-buffer value to distance from the camera's near plane
+ * @param z The z-buffer value to convert
+ * @return a distance from the camera's near plane in blender units
+ */
+static float haloZtoDist(int z)
+{
+	float zco = 0;
 
-void shadeHaloFloat(HaloRen *har,  float *col, int zz, 
+	if(z >= 0x7FFFFF)
+		return 10e10;
+	else {
+		zco = (float)z/(float)0x7FFFFF;
+		if(R.r.mode & R_ORTHO)
+			return (R.winmat[3][2] - zco*R.winmat[3][3])/(R.winmat[2][2]);
+		else
+			return (R.winmat[3][2])/(R.winmat[2][2] - R.winmat[2][3]*zco);
+	}
+}
+
+/**
+ * @param col (float[4]) Store the rgb color here (with alpha)
+ * The alpha is used to blend the color to the background 
+ * color_new = (1-alpha)*color_background + color
+ * @param zz The current zbuffer value at the place of this pixel
+ * @param dist Distance of the pixel from the center of the halo squared. Given in pixels
+ * @param xn The x coordinate of the pixel relaticve to the center of the halo. given in pixels
+ * @param yn The y coordinate of the pixel relaticve to the center of the halo. given in pixels
+ */
+int shadeHaloFloat(HaloRen *har,  float *col, int zz, 
 					float dist, float xn,  float yn, short flarec)
 {
 	/* fill in col */
@@ -263,12 +292,40 @@ void shadeHaloFloat(HaloRen *har,  float *col, int zz,
 	}
 	else alpha= har->alfa;
 	
-	if(alpha==0.0) {
-		col[0] = 0.0;
-		col[1] = 0.0;
-		col[2] = 0.0;
-		col[3] = 0.0;
-		return;
+	if(alpha==0.0)
+		return 0;
+
+	/* soften the halo if it intersects geometry */
+	if(har->mat && har->mat->mode & MA_HALO_SOFT) {
+		float segment_length, halo_depth, distance_from_z, visible_depth, soften;
+		
+		/* calculate halo depth */
+		segment_length= har->hasize*sasqrt(1.0f - dist/(har->rad*har->rad));
+		halo_depth= 2.0f*segment_length;
+
+		if(halo_depth < FLT_EPSILON)
+			return 0;
+
+		/* calculate how much of this depth is visible */
+		distance_from_z = haloZtoDist(zz) - haloZtoDist(har->zs);
+		visible_depth = halo_depth;
+		if(distance_from_z < segment_length) {
+			soften= (segment_length + distance_from_z)/halo_depth;
+
+			/* apply softening to alpha */
+			if(soften < 1.0f)
+				alpha *= soften;
+			if(alpha <= 0.0f)
+				return 0;
+		}
+	}
+	else {
+		/* not a soft halo. use the old softening code */
+		/* halo being intersected? */
+		if(har->zs> zz-har->zd) {
+			t= ((float)(zz-har->zs))/(float)har->zd;
+			alpha*= sqrt(sqrt(t));
+		}
 	}
 
 	radist= sqrt(dist);
@@ -366,21 +423,10 @@ void shadeHaloFloat(HaloRen *har,  float *col, int zz,
 			if(ster<1.0) dist*= sqrt(ster);
 		}
 	}
-	
-	/* halo being intersected? */
-	if(har->zs> zz-har->zd) {
-		t= ((float)(zz-har->zs))/(float)har->zd;
-		alpha*= sqrt(sqrt(t));
-	}
 
 	/* disputable optimize... (ton) */
-	if(dist<=0.00001) {
-		col[0] = 0.0;
-		col[1] = 0.0;
-		col[2] = 0.0;
-		col[3] = 0.0;
-		return;
-	}
+	if(dist<=0.00001)
+		return 0;
 	
 	dist*= alpha;
 	ringf*= dist;
@@ -441,6 +487,8 @@ void shadeHaloFloat(HaloRen *har,  float *col, int zz,
 	/* alpha requires clip, gives black dots */
 	if(col[3] > 1.0f)
 		col[3]= 1.0f;
+
+	return 1;
 }
 
 /* ------------------------------------------------------------------------- */

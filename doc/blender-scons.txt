@@ -1,6 +1,8 @@
 $Id$
 
-    Note: The current official release of SCons is 0.97
+    Note: The current official release of SCons is 0.98, but
+    our system still works for 0.97. However, this will be fixed
+    soon.
 
     Blenders SCons build scripts
     ============================
@@ -75,6 +77,11 @@ $Id$
     $BLENDERHOME/user-config.py. This file you can modify to your
     likings. Any value set here will override the ones from the
     (platform)-config.py.
+
+    You can use BF_CONFIG argument to override the default user-config.py
+    check. This is just like the user-config.py, but just with another name:
+
+        % scons BF_CONFIG=myownsettings
 
     If you want to quickly test a new setting, you can give the option
     also on the command-line:

@@ -1,15 +1,12 @@
 /**
  * $Id: BIF_editaction.h 10519 2007-04-13 11:15:08Z aligorith $
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): 2007, Joshua Leung (major Action Editor recode)
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #ifndef BIF_EDITACTION_TYPES_H
@@ -73,7 +70,8 @@ typedef enum ACTFILTER_FLAGS {
 	ACTFILTER_CHANNELS		= (1<<3),	/* do we only care that it is a channel */
 	ACTFILTER_IPOKEYS		= (1<<4),	/* only channels referencing ipo's */
 	ACTFILTER_ONLYICU		= (1<<5),	/* only reference ipo-curves */
-	ACTFILTER_FORDRAWING	= (1<<6)	/* make list for interface drawing */
+	ACTFILTER_FORDRAWING	= (1<<6),	/* make list for interface drawing */
+	ACTFILTER_ACTGROUPED	= (1<<7)	/* belongs to the active group */
 } ACTFILTER_FLAGS;
 
 /* Action Editor - Main Data types */

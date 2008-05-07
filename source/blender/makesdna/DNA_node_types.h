@@ -58,7 +58,7 @@ typedef struct bNodeStack {
 #define NS_OSA_VALUES		2
 
 typedef struct bNodeSocket {
-	struct bNodeSocket *next, *prev;
+	struct bNodeSocket *next, *prev, *new_sock;
 	
 	char name[32];
 	bNodeStack ns;				/* custom data for inputs, only UI writes in this */
@@ -144,6 +144,8 @@ typedef struct bNode {
 #define NODE_GROUP_EDIT		128
 		/* free test flag, undefined */
 #define NODE_TEST			256
+		/* composite: don't do node but pass on buffer(s) */
+#define NODE_MUTED			512
 
 typedef struct bNodeLink {
 	struct bNodeLink *next, *prev;
@@ -160,7 +162,8 @@ typedef struct bNodeTree {
 	
 	ListBase nodes, links;
 	
-	bNodeStack **stack;				/* stack is only while executing, no read/write in file */
+	bNodeStack *stack;				/* stack is only while executing, no read/write in file */
+	struct ListBase *threadstack;	/* same as above */
 	
 	int type, init;					/* set init on fileread */
 	int stacksize;					/* amount of elements in stack */
@@ -238,6 +241,10 @@ typedef struct NodeTwoXYs {
 	short x1, x2, y1, y2;
 } NodeTwoXYs;
 
+typedef struct NodeTwoFloats {
+	float x, y;
+} NodeTwoFloats;
+
 typedef struct NodeGeometry {
 	char uvname[32];
 	char colname[32];
@@ -254,6 +261,10 @@ typedef struct NodeDefocus {
 	float fstop, maxblur, bthresh, scale;
 } NodeDefocus;
 
+typedef struct NodeScriptDict {
+	void *dict; /* for PyObject *dict */
+	void *node; /* for BPy_Node *node */
+} NodeScriptDict;
 
 /* qdn: glare node */
 typedef struct NodeGlare {

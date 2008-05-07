@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 /**
  * @file	GHOST_SystemX11.h
@@ -196,7 +193,26 @@ public:
 		return m_display;
 	}	
 
+		void *
+	prepareNdofInfo(
+		volatile GHOST_TEventNDOFData *current_values
+	);
+		
+	/**
+	 * Returns unsinged char from CUT_BUFFER0
+	 * @param flag		Flag indicates which buffer to return 0 for clipboard 1 for selection
+	 * @return		Returns the Clipboard indicated by Flag
+	 */
+		GHOST_TUns8*
+	getClipboard(int flag) const;
 	
+	/**
+	 * Puts buffer to system clipboard
+	 * @param buffer	The buffer to copy to the clipboard	
+	 * @param flag		Flag indicates which buffer to set ownership of 0 for clipboard 1 for selection
+	 */
+	virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const;
+
 private :
 
 	Display * m_display;

@@ -5,15 +5,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +28,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * */
 
 #ifndef BLI_ARITHB_H
@@ -57,6 +54,7 @@ extern "C" {
 #ifdef WIN32
 	#ifndef FREE_WINDOWS
 		#define isnan(n) _isnan(n)
+		#define finite _finite
 	#endif
 #endif
 
@@ -260,11 +258,14 @@ void Vec2Addf(float *v, float *v1, float *v2);
 void Vec2Subf(float *v, float *v1, float *v2);
 void Vec2Copyf(float *v1, float *v2);
 
-float *vectoquat(float *vec, short axis, short upflag);
+void vectoquat(float *vec, short axis, short upflag, float *q);
 
 float VecAngle2(float *v1, float *v2);
 float VecAngle3(float *v1, float *v2, float *v3);
 float NormalizedVecAngle2(float *v1, float *v2);
+
+float VecAngle3_2D(float *v1, float *v2, float *v3);
+float NormalizedVecAngle2_2D(float *v1, float *v2);
 
 void euler_rot(float *beul, float ang, char axis);
 	
@@ -396,6 +397,16 @@ void DQuatNormalize(DualQuat *dq, float totweight);
 void DQuatMulVecfl(DualQuat *dq, float *co, float mat[][3]);
 void DQuatCpyDQuat(DualQuat *dq1, DualQuat *dq2);
 			  
+/* Tangent stuff */
+typedef struct VertexTangent {
+	float tang[3], uv[2];
+	struct VertexTangent *next;
+} VertexTangent;
+
+void sum_or_add_vertex_tangent(void *arena, VertexTangent **vtang, float *tang, float *uv);
+float *find_vertex_tangent(VertexTangent *vtang, float *uv);
+void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2, float *co3, float *n, float *tang);
+
 #ifdef __cplusplus
 }
 #endif

@@ -33,6 +33,7 @@
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 #include "DNA_view2d_types.h"
+#include "DNA_userdef_types.h"
 
 struct SpaceLink;
 struct Object;
@@ -115,15 +116,22 @@ typedef struct bPose {
  * Even though all Action-Channels live in a big list per Action, each group they are in also
  * holds references to the achans within that list which belong to it. Care must be taken to
  * ensure that action-groups never end up being the sole 'owner' of a channel.
+ *
+ * 
+ * This is also exploited for bone-groups. Bone-Groups are stored per bPose, and are used 
+ * primarily to colour bones in the 3d-view. There are other benefits too, but those are mostly related
+ * to Action-Groups.
  */
 typedef struct bActionGroup {
 	struct bActionGroup *next, *prev;
 	
-	int flag;				/* settings for this action-group */
-	int customCol;			/* index of custom color set to use when used for bones (0=default - used for all old files) */				
-	char name[32];			/* name of the group */
+	ListBase channels;			/* Note: this must not be touched by standard listbase functions */
 	
-	ListBase channels;		/* Note: this must not be touched by standard listbase functions */
+	int flag;					/* settings for this action-group */
+	int customCol;				/* index of custom color set to use when used for bones (0=default - used for all old files, -1=custom set) */				
+	char name[32];				/* name of the group */
+	
+	ThemeWireColor cs;			/* color set to use when customCol == -1 */
 } bActionGroup;
 
 /* Action Channels belong to Actions. They are linked with an IPO block, and can also own 
@@ -212,7 +220,7 @@ typedef enum AGRP_FLAG {
 
 /* SpaceAction flag */
 typedef enum SACTION_FLAG {
-		/* during transform */
+		/* during transform (only set for TimeSlide) */
 	SACTION_MOVING	= (1<<0),	
 		/* show sliders (if relevant) */
 	SACTION_SLIDERS	= (1<<1),	
@@ -221,7 +229,13 @@ typedef enum SACTION_FLAG {
 		/* don't filter action channels according to visibility */
 	SACTION_NOHIDE = (1<<3),
 		/* don't kill overlapping keyframes after transform */
-	SACTION_NOTRANSKEYCULL = (1<<4)
+	SACTION_NOTRANSKEYCULL = (1<<4),
+		/* don't include keyframes that are out of view */
+	SACTION_HORIZOPTIMISEON = (1<<5),
+		/* hack for moving pose-markers (temp flag)  */
+	SACTION_POSEMARKERS_MOVE = (1<<6),
+		/* don't draw action channels using group colours (where applicable) */
+	SACTION_NODRAWGCOLORS = (1<<7)
 } SACTION_FLAG;	
 
 /* SpaceAction AutoSnap Settings (also used by SpaceNLA) */
@@ -246,7 +260,9 @@ typedef enum POSE_FLAG {
 		/* prevents any channel from getting overridden by anim from IPO */
 	POSE_LOCKED	= (1<<1),
 		/* clears the POSE_LOCKED flag for the next time the pose is evaluated */
-	POSE_DO_UNLOCK	= (1<<2)
+	POSE_DO_UNLOCK	= (1<<2),
+		/* pose has constraints which depend on time (used when depsgraph updates for a new frame) */
+	POSE_CONSTRAINTS_TIMEDEPEND = (1<<3)
 } POSE_FLAG;
 
 /* PoseChannel (transform) flags */

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Joshua Leung
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h>
@@ -661,7 +658,7 @@ static void test_constraints (Object *owner, const char substring[])
 	if (owner==NULL) return;
 	
 	/* Check parents */
-	if (strlen (substring)) {
+	if (strlen(substring)) {
 		switch (owner->type) {
 			case OB_ARMATURE:
 				type = CONSTRAINT_OBTYPE_BONE;
@@ -859,12 +856,15 @@ void object_test_constraints (Object *owner)
 void validate_pyconstraint_cb (void *arg1, void *arg2)
 {
 	bPythonConstraint *data = arg1;
-	Text *text;
+	Text *text= NULL;
 	int index = *((int *)arg2);
 	int i;
 	
-	/* innovative use of a for...loop to search */
-	for (text=G.main->text.first, i=1; text && index!=i; i++, text=text->id.next);
+	/* exception for no script */
+	if (index) {
+		/* innovative use of a for...loop to search */
+		for (text=G.main->text.first, i=1; text && index!=i; i++, text=text->id.next);
+	}
 	data->text = text;
 }
 
@@ -878,8 +878,12 @@ char *buildmenu_pyconstraints (Text *con_text, int *pyconindex)
 	int i;
 	
 	/* add title first */
-	sprintf(buf, "Scripts: %%t|");
+	sprintf(buf, "Scripts: %%t|[None]%%x0|");
 	BLI_dynstr_append(pupds, buf);
+	
+	/* init active-index first */
+	if (con_text == NULL)
+		*pyconindex= 0;
 	
 	/* loop through markers, adding them */
 	for (text=G.main->text.first, i=1; text; i++, text=text->id.next) {

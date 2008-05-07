@@ -3,7 +3,7 @@ Import ('env')
 
 sources = Split('BPY_interface.c BPY_menus.c') + env.Glob('api2_2x/*.c')
 
-incs = 'api2_2x ../blenkernel ../blenlib ../blenloader'
+incs = 'api2_2x ../blenkernel ../nodes ../blenlib ../blenloader'
 incs += ' ../render/extern/include ../radiosity/extern/include'
 incs += ' ../makesdna #intern/guardedalloc #intern/bmfont ../imbuf ../include'
 incs += ' ' + env['BF_PYTHON_INC']

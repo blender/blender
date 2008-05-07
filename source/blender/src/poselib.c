@@ -327,7 +327,7 @@ void poselib_add_current_pose (Object *ob, int val)
 		
 		/* get the pose to replace */
 		menustr= poselib_build_poses_menu(act, "Replace PoseLib Pose");
-		val= pupmenu(menustr);
+		val= pupmenu_col(menustr, 20);
 		if (menustr) MEM_freeN(menustr);
 		
 		if (val <= 0) return;
@@ -374,8 +374,9 @@ void poselib_add_current_pose (Object *ob, int val)
 		/* check if available */
 		if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
 			if (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) {
-				/* make action-channel if needed */
+				/* make action-channel if needed (action groups are also created) */
 				achan= verify_action_channel(act, pchan->name);
+				verify_pchan2achan_grouping(act, pose, pchan->name);
 				
 				/* make ipo if needed... */
 				if (achan->ipo == NULL)
@@ -431,7 +432,7 @@ void poselib_remove_pose (Object *ob, TimeMarker *marker)
 	/* get index (and pointer) of pose to remove */
 	if (marker == NULL) {
 		menustr= poselib_build_poses_menu(act, "Remove PoseLib Pose");
-		val= pupmenu(menustr);
+		val= pupmenu_col(menustr, 20);
 		if (menustr) MEM_freeN(menustr);
 		
 		if (val <= 0) return;
@@ -496,7 +497,7 @@ void poselib_rename_pose (Object *ob)
 	
 	/* get index of pose to remove */
 	menustr= poselib_build_poses_menu(act, "Rename PoseLib Pose");
-	val= pupmenu(menustr);
+	val= pupmenu_col(menustr, 20);
 	if (menustr) MEM_freeN(menustr);
 	
 	if (val <= 0) return;
@@ -647,6 +648,7 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 		/* apply this achan? */
 		if (achan->ipo) {
 			/* find a keyframe at this frame - users may not have defined the pose on every channel, so this is necessary */
+			// TODO: this may be bad for user-defined poses...
 			for (icu= achan->ipo->curve.first; icu; icu= icu->next) {
 				BezTriple *bezt;
 				int i;
@@ -666,10 +668,17 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 				pchan= get_pose_channel(pose, achan->name);
 				
 				if (pchan) {	
-					short ok;
+					short ok= 0;
 					
-					ok= (pchan->bone) ? (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) : 0;
-					ok= (ok || pld->selcount) ? 1 : 0; 
+					if (pchan->bone) {
+						if ( (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) &&
+							 (pchan->bone->flag & BONE_HIDDEN_P)==0 )
+							ok = 1;
+						else if (pld->selcount == 0)
+							ok= 1;
+					}
+					else if (pld->selcount == 0)
+						ok= 1;
 					
 					if (ok) {
 						/* Evaluates and sets the internal ipo values	*/
@@ -987,7 +996,7 @@ static void poselib_preview_handle_event (tPoseLib_PreviewData *pld, unsigned sh
 			pld->redraw= PL_PREVIEW_REDRAWALL;
 			break;
 		
-		/* change to previous pose or searching cursor control */
+		/* change to next pose or searching cursor control */
 		case RIGHTARROWKEY:
 			if (pld->searchstr[0]) {
 				/* move text-cursor to the right */
@@ -996,8 +1005,8 @@ static void poselib_preview_handle_event (tPoseLib_PreviewData *pld, unsigned sh
 				pld->redraw= PL_PREVIEW_REDRAWHEADER;
 			}
 			else {
-				/* change to previous pose (cyclic) */
-				poselib_preview_get_next(pld, -1);
+				/* change to next pose (cyclic) */
+				poselib_preview_get_next(pld, 1);
 				pld->redraw= PL_PREVIEW_REDRAWALL;
 			}
 			break;
@@ -1011,8 +1020,8 @@ static void poselib_preview_handle_event (tPoseLib_PreviewData *pld, unsigned sh
 				pld->redraw= PL_PREVIEW_REDRAWHEADER;
 			}
 			else {
-				/* change to next pose (cyclic) */
-				poselib_preview_get_next(pld, 1);
+				/* change to previous pose (cyclic) */
+				poselib_preview_get_next(pld, -1);
 				pld->redraw= PL_PREVIEW_REDRAWALL;
 			}
 			break;
@@ -1136,7 +1145,6 @@ static void poselib_preview_init_data (tPoseLib_PreviewData *pld, Object *ob, sh
 /* After previewing poses */
 static void poselib_preview_cleanup (tPoseLib_PreviewData *pld)
 {
-	Base *base;
 	Object *ob= pld->ob;
 	bPose *pose= pld->pose;
 	bArmature *arm= pld->arm;
@@ -1153,17 +1161,8 @@ static void poselib_preview_cleanup (tPoseLib_PreviewData *pld)
 		/* old optimize trick... this enforces to bypass the depgraph 
 		 *	- note: code copied from transform_generics.c -> recalcData()
 		 */
-		if ((arm->flag & ARM_DELAYDEFORM)==0) {
+		if ((arm->flag & ARM_DELAYDEFORM)==0)
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
-			
-			/* bah, softbody exception... recalcdata doesnt reset */
-			for (base= FIRSTBASE; base; base= base->next) {
-				if (base->object->recalc & OB_RECALC_DATA)
-					if (modifiers_isSoftbodyEnabled(base->object)) {
-						base->object->softflag |= OB_SB_REDO;
-				}
-			}
-		}
 		else
 			where_is_pose(ob);
 		
@@ -1214,7 +1213,6 @@ static void poselib_preview_cleanup (tPoseLib_PreviewData *pld)
 void poselib_preview_poses (Object *ob, short apply_active)
 {
 	tPoseLib_PreviewData pld;
-	Base *base;
 	
 	unsigned short event;
 	short val=0;
@@ -1244,17 +1242,8 @@ void poselib_preview_poses (Object *ob, short apply_active)
 				/* old optimize trick... this enforces to bypass the depgraph 
 				 *	- note: code copied from transform_generics.c -> recalcData()
 				 */
-				if ((pld.arm->flag & ARM_DELAYDEFORM)==0) {
+				if ((pld.arm->flag & ARM_DELAYDEFORM)==0)
 					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
-					
-					/* bah, softbody exception... recalcdata doesnt reset */
-					for (base= FIRSTBASE; base; base= base->next) {
-						if (base->object->recalc & OB_RECALC_DATA)
-							if (modifiers_isSoftbodyEnabled(base->object)) {
-								base->object->softflag |= OB_SB_REDO;
-						}
-					}
-				}
 				else
 					where_is_pose(ob);
 			}

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef HAVE_CONFIG_H
@@ -95,8 +92,10 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
+#include "BKE_bmesh.h"
 
 #include "BIF_editaction.h"
 #include "BIF_editview.h"
@@ -112,6 +111,7 @@
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
 #include "BIF_resources.h"
+#include "BIF_retopo.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
@@ -282,6 +282,7 @@ static void createTransTexspace(TransInfo *t)
 	TransData *td;
 	Object *ob;
 	ID *id;
+	int *texflag;
 	
 	ob= OBACT;
 	
@@ -309,26 +310,8 @@ static void createTransTexspace(TransInfo *t)
 	Mat3Ortho(td->axismtx);
 	Mat3Inv(td->smtx, td->mtx);
 	
-	if( GS(id->name)==ID_ME) {
-		Mesh *me= ob->data;
-		me->texflag &= ~AUTOSPACE;
-		td->loc= me->loc;
-		td->ext->rot= me->rot;
-		td->ext->size= me->size;
-	}
-	else if( GS(id->name)==ID_CU) {
-		Curve *cu= ob->data;
-		cu->texflag &= ~CU_AUTOSPACE;
-		td->loc= cu->loc;
-		td->ext->rot= cu->rot;
-		td->ext->size= cu->size;
-	}
-	else if( GS(id->name)==ID_MB) {
-		MetaBall *mb= ob->data;
-		mb->texflag &= ~MB_AUTOSPACE;
-		td->loc= mb->loc;
-		td->ext->rot= mb->rot;
-		td->ext->size= mb->size;
+	if (give_obdata_texspace(ob, &texflag, &td->loc, &td->ext->size, &td->ext->rot)) {
+		*texflag &= ~AUTOSPACE;
 	}
 	
 	VECCOPY(td->iloc, td->loc);
@@ -386,8 +369,14 @@ static void createTransEdge(TransInfo *t) {
 
 			td->ext = NULL;
 			td->tdi = NULL;
-			td->val = &(eed->crease);
-			td->ival = eed->crease;
+			if (t->mode == TFM_BWEIGHT) {
+				td->val = &(eed->bweight);
+				td->ival = eed->bweight;
+			}
+			else {
+				td->val = &(eed->crease);
+				td->ival = eed->crease;
+			}
 
 			td++;
 		}
@@ -480,6 +469,10 @@ static short apply_targetless_ik(Object *ob)
 						Mat4MulVecfl(parchan->parent->pose_mat, rmat[3]);
 						
 						Mat4MulMat4(tmat, offs_bone, rmat);
+					}
+					else if(parchan->bone->flag & BONE_NO_SCALE) {
+						Mat4MulMat4(tmat, offs_bone, parchan->parent->pose_mat);
+						Mat4Ortho(tmat);
 					}
 					else
 						Mat4MulMat4(tmat, offs_bone, parchan->parent->pose_mat);
@@ -1240,6 +1233,18 @@ static void calc_distanceCurveVerts(TransData *head, TransData *tail) {
 	}
 }
 
+/* Utility function for getting the handle data from bezier's */
+TransDataCurveHandleFlags *initTransDataCurveHandes(TransData *td, struct BezTriple *bezt) {
+	TransDataCurveHandleFlags *hdata;
+	td->flag |= TD_BEZTRIPLE;
+	hdata = td->hdata = MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data");
+	hdata->ih1 = bezt->h1;
+	hdata->h1 = &bezt->h1;
+	hdata->ih2 = bezt->h2; /* incase the second is not selected */
+	hdata->h2 = &bezt->h2;
+	return hdata;
+}
+
 static void createTransCurveVerts(TransInfo *t)
 {
 	TransData *td = NULL;
@@ -1286,7 +1291,7 @@ static void createTransCurveVerts(TransInfo *t)
 
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
-
+	
     td = t->data;
 	for(nu= editNurb.first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
@@ -1294,6 +1299,7 @@ static void createTransCurveVerts(TransInfo *t)
 			head = tail = td;
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
 				if(bezt->hide==0) {
+					TransDataCurveHandleFlags *hdata = NULL;
 					
 					if(		propmode ||
 							((bezt->f2 & SELECT) && (G.f & G_HIDDENHANDLES)) ||
@@ -1312,6 +1318,8 @@ static void createTransCurveVerts(TransInfo *t)
 						td->ext = NULL;
 						td->tdi = NULL;
 						td->val = NULL;
+						
+						hdata = initTransDataCurveHandes(td, bezt);
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -1343,7 +1351,13 @@ static void createTransCurveVerts(TransInfo *t)
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
-
+						
+						if ((bezt->f1&SELECT)==0 && (bezt->f3&SELECT)==0)
+						/* If the middle is selected but the sides arnt, this is needed */
+						if (hdata==NULL) { /* if the handle was not saved by the previous handle */
+							hdata = initTransDataCurveHandes(td, bezt);
+						}
+						
 						td++;
 						count++;
 						tail++;
@@ -1366,6 +1380,10 @@ static void createTransCurveVerts(TransInfo *t)
 						td->tdi = NULL;
 						td->val = NULL;
 
+						if (hdata==NULL) { /* if the handle was not saved by the previous handle */
+							hdata = initTransDataCurveHandes(td, bezt);
+						}
+						
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
 
@@ -1381,6 +1399,8 @@ static void createTransCurveVerts(TransInfo *t)
 			}
 			if (propmode && head != tail)
 				calc_distanceCurveVerts(head, tail-1);
+			
+			testhandlesNurb(nu); /* sets the handles based on their selection, do this after the data is copied to the TransData */
 		}
 		else {
 			TransData *head, *tail;
@@ -1794,7 +1814,11 @@ static void VertsToTransData(TransData *td, EditVert *eve)
 	td->ext = NULL;
 	td->tdi = NULL;
 	td->val = NULL;
-	td->tdmir= NULL;
+	td->tdmir = NULL;
+	if (BIF_GetTransInfo()->mode == TFM_BWEIGHT) {
+		td->val = &(eve->bweight);
+		td->ival = eve->bweight;
+	}
 
 #ifdef WITH_VERSE
 	if(eve->vvert) {
@@ -1947,6 +1971,31 @@ static void set_crazyspace_quats(float *origcos, float *mappedcos, float *quats)
 
 }
 
+void createTransBMeshVerts(TransInfo *t, BME_Mesh *bm, BME_TransData_Head *td) {
+	BME_Vert *v;
+	BME_TransData *vtd;
+	TransData *tob;
+	int i;
+
+	tob = t->data = MEM_callocN(td->len*sizeof(TransData), "TransObData(Bevel tool)");
+
+	for (i=0,v=bm->verts.first;v;v=v->next) {
+		if ( (vtd = BME_get_transdata(td,v)) ) {
+			tob->loc = vtd->loc;
+			tob->val = &vtd->factor;
+			VECCOPY(tob->iloc,vtd->co);
+			VECCOPY(tob->center,vtd->org);
+			VECCOPY(tob->axismtx[0],vtd->vec);
+			tob->axismtx[1][0] = vtd->max ? *vtd->max : 0;
+			tob++;
+			i++;
+		}
+	}
+	/* since td is a memarena, it can hold more transdata than actual elements
+	 * (i.e. we can't depend on td->len to determine the number of actual elements) */
+	t->total = i;
+}
+
 static void createTransEditVerts(TransInfo *t)
 {
 	TransData *tob = NULL;
@@ -1960,7 +2009,7 @@ static void createTransEditVerts(TransInfo *t)
 	int propmode = t->flag & T_PROP_EDIT;
 	int mirror = 0;
 	
-	if ((t->context & CTX_NO_MIRROR) == 0 || (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
+	if ((t->context & CTX_NO_MIRROR) == 0 && (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
 	{
 		mirror = 1;
 	}
@@ -2118,7 +2167,7 @@ static void createTransEditVerts(TransInfo *t)
 				/* Mirror? */
 				if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
 					EditVert *vmir= editmesh_get_x_mirror_vert(G.obedit, tob->iloc);	/* initializes octree on first call */
-					if(vmir!=eve) tob->tdmir= vmir;
+					if(vmir != eve) tob->tdmir = vmir;
 				}
 				tob++;
 			}
@@ -2612,7 +2661,7 @@ static void createTransActionData(TransInfo *t)
 	
 	/* check if we're supposed to be setting minx/maxx for TimeSlide */
 	if (t->mode == TFM_TIME_SLIDE) {
-		float min = 0, max = 0;
+		float min=999999999.0f, max=-999999999.0;
 		int i;
 		
 		td= (t->data + 1);
@@ -3023,6 +3072,10 @@ static void set_trans_object_base_flags(TransInfo *t)
 	 */
 	Base *base;
 	
+	/* don't do it if we're not actually going to recalculate anything */
+	if(t->mode == TFM_DUMMY)
+		return;
+
 	/* makes sure base flags and object flags are identical */
 	copy_baseflags();
 	
@@ -3053,8 +3106,9 @@ static void set_trans_object_base_flags(TransInfo *t)
 			ob->recalc |= OB_RECALC_OB;
 		}
 	}
+
 	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
-	DAG_scene_flush_update(G.scene, -1);
+	DAG_scene_flush_update(G.scene, -1, 0);
 	
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
@@ -3130,14 +3184,15 @@ short autokeyframe_cfra_can_key(Object *ob)
 void autokeyframe_ob_cb_func(Object *ob, int tmode)
 {
 	IpoCurve *icu;
-	char *actname="";
 	
-	if (autokeyframe_cfra_can_key(ob)) {		
+	if (autokeyframe_cfra_can_key(ob)) {
+		char *actname = NULL;
+		
 		if (ob->ipoflag & OB_ACTION_OB)
 			actname= "Object";
 		
 		if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
-			if (ob->ipo || ob->action) {
+			if ((ob->ipo) || (ob->action)) {
 				ID *id= (ID *)(ob);
 				
 				if (ob->ipo) {
@@ -3164,6 +3219,7 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 			}
 		}
 		else if (IS_AUTOKEY_FLAG(INSERTNEEDED)) {
+			ID *id= (ID *)(ob);
 			short doLoc=0, doRot=0, doScale=0;
 			
 			/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
@@ -3194,37 +3250,40 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 			}
 			
 			if (doLoc) {
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_LOC_X);
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_LOC_Y);
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_LOC_Z);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_LOC_X);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_LOC_Y);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_LOC_Z);
 			}
 			if (doRot) {
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_ROT_X);
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_ROT_Y);
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_ROT_Z);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_ROT_X);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_ROT_Y);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_ROT_Z);
 			}
 			if (doScale) {
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_SIZE_X);
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_SIZE_Y);
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_SIZE_Z);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_SIZE_X);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_SIZE_Y);
+				insertkey_smarter(id, ID_OB, actname, NULL, OB_SIZE_Z);
 			}
 		}
 		else {
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_X, 0);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Y, 0);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Z, 0);
+			ID *id= (ID *)(ob);
 			
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_X, 0);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Y, 0);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Z, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_LOC_X, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_LOC_Y, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_LOC_Z, 0);
 			
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_X, 0);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Y, 0);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Z, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_ROT_X, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_ROT_Y, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_ROT_Z, 0);
+			
+			insertkey(id, ID_OB, actname, NULL, OB_SIZE_X, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_SIZE_Y, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_SIZE_Z, 0);
 		}
 		
 		remake_object_ipos(ob);
 		allqueue(REDRAWMARKER, 0);
+		allqueue(REDRAWOOPS, 0);
 	}
 }
 
@@ -3234,6 +3293,7 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
  */
 void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 {
+	ID *id= (ID *)(ob);
 	bArmature *arm= ob->data;
 	bAction	*act;
 	bPose	*pose;
@@ -3257,7 +3317,7 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 					bActionChannel *achan; 
 					
 					for (achan = act->chanbase.first; achan; achan=achan->next) {
-						if (achan->ipo && !strcmp (achan->name, pchan->name)) {
+						if ((achan->ipo) && !strcmp(achan->name, pchan->name)) {
 							for (icu = achan->ipo->curve.first; icu; icu=icu->next) {
 								/* only insert keyframe if needed? */
 								if (IS_AUTOKEY_FLAG(INSERTNEEDED))
@@ -3296,42 +3356,43 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 					}
 					
 					if (doLoc) {
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_LOC_X);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
 					}
 					if (doRot) {
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
 					}
 					if (doScale) {
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_SIZE_X);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
+						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
 					}
 				}
 				/* insert keyframe in any channel that's appropriate */
 				else {
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
 					
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
 					
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
 				}
 			}
 		}
 		
-		remake_action_ipos (act);
+		remake_action_ipos(act);
 		allqueue(REDRAWMARKER, 0);
+		allqueue(REDRAWOOPS, 0);
 		
 		/* locking can be disabled */
 		ob->pose->flag &= ~(POSE_DO_UNLOCK|POSE_LOCKED);
@@ -3368,7 +3429,7 @@ static void recalc_all_ipos(void)
 	}
 }
 
-/* inserting keys, refresh ipo-keys, softbody, redraw events... (ton) */
+/* inserting keys, refresh ipo-keys, pointcache, redraw events... (ton) */
 /* note: transdata has been freed already! */
 void special_aftertrans_update(TransInfo *t)
 {
@@ -3377,9 +3438,17 @@ void special_aftertrans_update(TransInfo *t)
 	short redrawipo=0, resetslowpar=1;
 	int cancelled= (t->state == TRANS_CANCEL);
 	
-	if (t->spacetype==SPACE_VIEW3D)
-		EM_automerge(1);
-	
+	if (t->spacetype==SPACE_VIEW3D) {
+		if (G.obedit) {
+			if (cancelled==0) {
+				EM_automerge(1);
+				/* when snapping, delay retopo until after automerge */
+				if (G.qual & LR_CTRLKEY) {
+					retopo_do_all();
+				}
+			}
+		}
+	}
 	if (t->spacetype == SPACE_ACTION) {
 		void *data;
 		short datatype;
@@ -3400,14 +3469,15 @@ void special_aftertrans_update(TransInfo *t)
 					DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 			}
 			
+			/* Do curve cleanups? */
+			if ( (G.saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
+			     (cancelled == 0) )
+			{
+				posttrans_action_clean((bAction *)data);
+			}
+			
 			/* Do curve updates */
 			remake_action_ipos((bAction *)data);
-			
-			/* Do curve cleanups? */
-			if ((G.saction->flag & SACTION_NOTRANSKEYCULL)==0)
-				posttrans_action_clean((bAction *)data);
-			
-			G.saction->flag &= ~SACTION_MOVING;
 		}
 		else if (datatype == ACTCONT_SHAPEKEY) {
 			/* fix up the Ipocurves and redraw stuff */
@@ -3415,17 +3485,24 @@ void special_aftertrans_update(TransInfo *t)
 			if (key->ipo) {
 				IpoCurve *icu;
 				
+				
+				
+				if ( (G.saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
+				     (cancelled == 0) )
+				{
+					posttrans_ipo_clean(key->ipo);
+				}
+				
 				for (icu = key->ipo->curve.first; icu; icu=icu->next) {
 					sort_time_ipocurve(icu);
 					testhandles_ipocurve(icu);
 				}
-				
-				if ((G.saction->flag & SACTION_NOTRANSKEYCULL)==0)
-					posttrans_ipo_clean(key->ipo);
 			}
 			
 			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 		}
+		
+		G.saction->flag &= ~SACTION_MOVING;
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		synchronize_action_strips();
@@ -3506,15 +3583,13 @@ void special_aftertrans_update(TransInfo *t)
 			
 			ob= base->object;
 			
-			if (modifiers_isSoftbodyEnabled(ob)) ob->softflag |= OB_SB_REDO;
-			else if((ob == OBACT) && modifiers_isClothEnabled(ob)) {
-				ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_RESET;
-			}
-			
-			/* Set autokey if necessary */
-			if ((!cancelled) && (t->mode != TFM_DUMMY) && (base->flag & SELECT)) {
-				autokeyframe_ob_cb_func(ob, t->mode);
+			if(base->flag & SELECT && (t->mode != TFM_DUMMY)) {
+				if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
+					ob->recalc |= OB_RECALC_DATA;
+				
+				/* Set autokey if necessary */
+				if (!cancelled)
+					autokeyframe_ob_cb_func(ob, t->mode);
 			}
 			
 			base= base->next;
@@ -3684,6 +3759,9 @@ void createTransData(TransInfo *t)
 			sort_trans_data_dist(t);
 		}
 	}
+	else if (t->context == CTX_BMESH) {
+		createTransBMeshVerts(t, G.editBMesh->bm, G.editBMesh->td);
+	}
 	else if (t->spacetype == SPACE_IMAGE) {
 		t->flag |= T_POINTS|T_2D_EDIT;
 		createTransUVs(t);
@@ -3787,7 +3865,7 @@ void createTransData(TransInfo *t)
 		t->flag |= T_OBJECT;
 	}
 
-	if((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp>1) {
+	if((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp==V3D_CAMOB) {
 		t->flag |= T_CAMERA;
 	}
 	

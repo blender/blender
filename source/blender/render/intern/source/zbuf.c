@@ -306,8 +306,8 @@ static void zbuffillAc4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 	float x0,y0,z0;
 	float x1,y1,z1,x2,y2,z2,xx1;
 	float *span1, *span2;
-	int *rz, x, y;
-	int sn1, sn2, rectx, *rectzofs, my0, my2, mask;
+	int *rz, *rm, x, y;
+	int sn1, sn2, rectx, *rectzofs, *rectmaskofs, my0, my2, mask;
 	
 	/* init */
 	zbuf_init_span(zspan);
@@ -352,6 +352,7 @@ static void zbuffillAc4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 	/* start-offset in rect */
 	rectx= zspan->rectx;
 	rectzofs= (int *)(zspan->arectz+rectx*(my2));
+	rectmaskofs= (int *)(zspan->rectmask+rectx*(my2));
 	apofs= (zspan->apixbuf+ rectx*(my2));
 	mask= zspan->mask;
 
@@ -378,6 +379,7 @@ static void zbuffillAc4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 		if(sn2>=sn1) {
 			zverg= (double)sn1*zxd + zy0;
 			rz= rectzofs+sn1;
+			rm= rectmaskofs+sn1;
 			ap= apofs+sn1;
 			x= sn2-sn1;
 			
@@ -385,26 +387,29 @@ static void zbuffillAc4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 			
 			while(x>=0) {
 				if( (int)zverg < *rz) {
-//					int i= zvlnr & 3;
-					
-					apn= ap;
-					while(apn) {
-						if(apn->p[0]==0) {apn->obi[0]= obi; apn->p[0]= zvlnr; apn->z[0]= zverg; apn->mask[0]= mask; break; }
-						if(apn->p[0]==zvlnr && apn->obi[0]==obi) {apn->mask[0]|= mask; break; }
-						if(apn->p[1]==0) {apn->obi[1]= obi; apn->p[1]= zvlnr; apn->z[1]= zverg; apn->mask[1]= mask; break; }
-						if(apn->p[1]==zvlnr && apn->obi[1]==obi) {apn->mask[1]|= mask; break; }
-						if(apn->p[2]==0) {apn->obi[2]= obi; apn->p[2]= zvlnr; apn->z[2]= zverg; apn->mask[2]= mask; break; }
-						if(apn->p[2]==zvlnr && apn->obi[2]==obi) {apn->mask[2]|= mask; break; }
-						if(apn->p[3]==0) {apn->obi[3]= obi; apn->p[3]= zvlnr; apn->z[3]= zverg; apn->mask[3]= mask; break; }
-						if(apn->p[3]==zvlnr && apn->obi[3]==obi) {apn->mask[3]|= mask; break; }
-//						if(apn->p[i]==0) {apn->obi[i]= obi; apn->p[i]= zvlnr; apn->z[i]= zverg; apn->mask[i]= mask; break; }
-//						if(apn->p[i]==zvlnr && apn->obi[i]==obi) {apn->mask[i]|= mask; break; }
-						if(apn->next==NULL) apn->next= addpsA(zspan);
-						apn= apn->next;
-					}				
+					if(!zspan->rectmask || (int)zverg > *rm) {
+	//					int i= zvlnr & 3;
+						
+						apn= ap;
+						while(apn) {
+							if(apn->p[0]==0) {apn->obi[0]= obi; apn->p[0]= zvlnr; apn->z[0]= zverg; apn->mask[0]= mask; break; }
+							if(apn->p[0]==zvlnr && apn->obi[0]==obi) {apn->mask[0]|= mask; break; }
+							if(apn->p[1]==0) {apn->obi[1]= obi; apn->p[1]= zvlnr; apn->z[1]= zverg; apn->mask[1]= mask; break; }
+							if(apn->p[1]==zvlnr && apn->obi[1]==obi) {apn->mask[1]|= mask; break; }
+							if(apn->p[2]==0) {apn->obi[2]= obi; apn->p[2]= zvlnr; apn->z[2]= zverg; apn->mask[2]= mask; break; }
+							if(apn->p[2]==zvlnr && apn->obi[2]==obi) {apn->mask[2]|= mask; break; }
+							if(apn->p[3]==0) {apn->obi[3]= obi; apn->p[3]= zvlnr; apn->z[3]= zverg; apn->mask[3]= mask; break; }
+							if(apn->p[3]==zvlnr && apn->obi[3]==obi) {apn->mask[3]|= mask; break; }
+	//						if(apn->p[i]==0) {apn->obi[i]= obi; apn->p[i]= zvlnr; apn->z[i]= zverg; apn->mask[i]= mask; break; }
+	//						if(apn->p[i]==zvlnr && apn->obi[i]==obi) {apn->mask[i]|= mask; break; }
+							if(apn->next==NULL) apn->next= addpsA(zspan);
+							apn= apn->next;
+						}				
+					}
 				}
 				zverg+= zxd;
 				rz++; 
+				rm++;
 				ap++; 
 				x--;
 			}
@@ -412,6 +417,7 @@ static void zbuffillAc4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 		
 		zy0-=zyd;
 		rectzofs-= rectx;
+		rectmaskofs-= rectx;
 		apofs-= rectx;
 	}
 }
@@ -421,7 +427,7 @@ static void zbuffillAc4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec2)
 {
 	APixstr *ap, *apn;
-	int *rectz;
+	int *rectz, *rectmask;
 	int start, end, x, y, oldx, oldy, ofs;
 	int dz, vergz, mask, maxtest=0;
 	float dx, dy;
@@ -458,37 +464,40 @@ static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec
 		if(vergz>0x50000000 && dz>0) maxtest= 1;		// prevent overflow
 		
 		rectz= (int *)(zspan->arectz+zspan->rectx*(oldy) +start);
+		rectmask= (int *)(zspan->rectmask+zspan->rectx*(oldy) +start);
 		ap= (zspan->apixbuf+ zspan->rectx*(oldy) +start);
 
 		if(dy<0) ofs= -zspan->rectx;
 		else ofs= zspan->rectx;
 		
-		for(x= start; x<=end; x++, rectz++, ap++) {
+		for(x= start; x<=end; x++, rectz++, rectmask++, ap++) {
 			
 			y= floor(v1[1]);
 			if(y!=oldy) {
 				oldy= y;
 				rectz+= ofs;
+				rectmask+= ofs;
 				ap+= ofs;
 			}
 			
 			if(x>=0 && y>=0 && y<zspan->recty) {
 				if(vergz<*rectz) {
-				
-					apn= ap;
-					while(apn) {	/* loop unrolled */
-						if(apn->p[0]==0) {apn->obi[0]= obi; apn->p[0]= zvlnr; apn->z[0]= vergz; apn->mask[0]= mask; break; }
-						if(apn->p[0]==zvlnr && apn->obi[0]==obi) {apn->mask[0]|= mask; break; }
-						if(apn->p[1]==0) {apn->obi[1]= obi; apn->p[1]= zvlnr; apn->z[1]= vergz; apn->mask[1]= mask; break; }
-						if(apn->p[1]==zvlnr && apn->obi[1]==obi) {apn->mask[1]|= mask; break; }
-						if(apn->p[2]==0) {apn->obi[2]= obi; apn->p[2]= zvlnr; apn->z[2]= vergz; apn->mask[2]= mask; break; }
-						if(apn->p[2]==zvlnr && apn->obi[2]==obi) {apn->mask[2]|= mask; break; }
-						if(apn->p[3]==0) {apn->obi[3]= obi; apn->p[3]= zvlnr; apn->z[3]= vergz; apn->mask[3]= mask; break; }
-						if(apn->p[3]==zvlnr && apn->obi[3]==obi) {apn->mask[3]|= mask; break; }
-						if(apn->next==0) apn->next= addpsA(zspan);
-						apn= apn->next;
-					}				
+					if(!zspan->rectmask || vergz>*rectmask) {
 					
+						apn= ap;
+						while(apn) {	/* loop unrolled */
+							if(apn->p[0]==0) {apn->obi[0]= obi; apn->p[0]= zvlnr; apn->z[0]= vergz; apn->mask[0]= mask; break; }
+							if(apn->p[0]==zvlnr && apn->obi[0]==obi) {apn->mask[0]|= mask; break; }
+							if(apn->p[1]==0) {apn->obi[1]= obi; apn->p[1]= zvlnr; apn->z[1]= vergz; apn->mask[1]= mask; break; }
+							if(apn->p[1]==zvlnr && apn->obi[1]==obi) {apn->mask[1]|= mask; break; }
+							if(apn->p[2]==0) {apn->obi[2]= obi; apn->p[2]= zvlnr; apn->z[2]= vergz; apn->mask[2]= mask; break; }
+							if(apn->p[2]==zvlnr && apn->obi[2]==obi) {apn->mask[2]|= mask; break; }
+							if(apn->p[3]==0) {apn->obi[3]= obi; apn->p[3]= zvlnr; apn->z[3]= vergz; apn->mask[3]= mask; break; }
+							if(apn->p[3]==zvlnr && apn->obi[3]==obi) {apn->mask[3]|= mask; break; }
+							if(apn->next==0) apn->next= addpsA(zspan);
+							apn= apn->next;
+						}				
+					}
 				}
 			}
 			
@@ -526,37 +535,40 @@ static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec
 		if(vergz>0x50000000 && dz>0) maxtest= 1;		// prevent overflow
 
 		rectz= (int *)( zspan->arectz+ (start)*zspan->rectx+ oldx );
+		rectmask= (int *)( zspan->rectmask+ (start)*zspan->rectx+ oldx );
 		ap= (zspan->apixbuf+ zspan->rectx*(start) +oldx);
 				
 		if(dx<0) ofs= -1;
 		else ofs= 1;
 
-		for(y= start; y<=end; y++, rectz+=zspan->rectx, ap+=zspan->rectx) {
+		for(y= start; y<=end; y++, rectz+=zspan->rectx, rectmask+=zspan->rectx, ap+=zspan->rectx) {
 			
 			x= floor(v1[0]);
 			if(x!=oldx) {
 				oldx= x;
 				rectz+= ofs;
+				rectmask+= ofs;
 				ap+= ofs;
 			}
 			
 			if(x>=0 && y>=0 && x<zspan->rectx) {
 				if(vergz<*rectz) {
-					
-					apn= ap;
-					while(apn) {	/* loop unrolled */
-						if(apn->p[0]==0) {apn->obi[0]= obi; apn->p[0]= zvlnr; apn->z[0]= vergz; apn->mask[0]= mask; break; }
-						if(apn->p[0]==zvlnr) {apn->mask[0]|= mask; break; }
-						if(apn->p[1]==0) {apn->obi[1]= obi; apn->p[1]= zvlnr; apn->z[1]= vergz; apn->mask[1]= mask; break; }
-						if(apn->p[1]==zvlnr) {apn->mask[1]|= mask; break; }
-						if(apn->p[2]==0) {apn->obi[2]= obi; apn->p[2]= zvlnr; apn->z[2]= vergz; apn->mask[2]= mask; break; }
-						if(apn->p[2]==zvlnr) {apn->mask[2]|= mask; break; }
-						if(apn->p[3]==0) {apn->obi[3]= obi; apn->p[3]= zvlnr; apn->z[3]= vergz; apn->mask[3]= mask; break; }
-						if(apn->p[3]==zvlnr) {apn->mask[3]|= mask; break; }
-						if(apn->next==0) apn->next= addpsA(zspan);
-						apn= apn->next;
-					}	
-					
+					if(!zspan->rectmask || vergz>*rectmask) {
+						
+						apn= ap;
+						while(apn) {	/* loop unrolled */
+							if(apn->p[0]==0) {apn->obi[0]= obi; apn->p[0]= zvlnr; apn->z[0]= vergz; apn->mask[0]= mask; break; }
+							if(apn->p[0]==zvlnr) {apn->mask[0]|= mask; break; }
+							if(apn->p[1]==0) {apn->obi[1]= obi; apn->p[1]= zvlnr; apn->z[1]= vergz; apn->mask[1]= mask; break; }
+							if(apn->p[1]==zvlnr) {apn->mask[1]|= mask; break; }
+							if(apn->p[2]==0) {apn->obi[2]= obi; apn->p[2]= zvlnr; apn->z[2]= vergz; apn->mask[2]= mask; break; }
+							if(apn->p[2]==zvlnr) {apn->mask[2]|= mask; break; }
+							if(apn->p[3]==0) {apn->obi[3]= obi; apn->p[3]= zvlnr; apn->z[3]= vergz; apn->mask[3]= mask; break; }
+							if(apn->p[3]==zvlnr) {apn->mask[3]|= mask; break; }
+							if(apn->next==0) apn->next= addpsA(zspan);
+							apn= apn->next;
+						}	
+					}
 				}
 			}
 			
@@ -571,7 +583,7 @@ static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec
 
 static void zbufline(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec2)
 {
-	int *rectz, *rectp, *recto;
+	int *rectz, *rectp, *recto, *rectmask;
 	int start, end, x, y, oldx, oldy, ofs;
 	int dz, vergz, maxtest= 0;
 	float dx, dy;
@@ -607,11 +619,12 @@ static void zbufline(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec2)
 		rectz= zspan->rectz + oldy*zspan->rectx+ start;
 		rectp= zspan->rectp + oldy*zspan->rectx+ start;
 		recto= zspan->recto + oldy*zspan->rectx+ start;
+		rectmask= zspan->rectmask + oldy*zspan->rectx+ start;
 		
 		if(dy<0) ofs= -zspan->rectx;
 		else ofs= zspan->rectx;
 		
-		for(x= start; x<=end; x++, rectz++, rectp++, recto++) {
+		for(x= start; x<=end; x++, rectz++, rectp++, recto++, rectmask++) {
 			
 			y= floor(v1[1]);
 			if(y!=oldy) {
@@ -619,13 +632,16 @@ static void zbufline(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec2)
 				rectz+= ofs;
 				rectp+= ofs;
 				recto+= ofs;
+				rectmask+= ofs;
 			}
 			
 			if(x>=0 && y>=0 && y<zspan->recty) {
 				if(vergz<*rectz) {
-					*recto= obi;
-					*rectz= vergz;
-					*rectp= zvlnr;
+					if(!zspan->rectmask || vergz>*rectmask) {
+						*recto= obi;
+						*rectz= vergz;
+						*rectp= zvlnr;
+					}
 				}
 			}
 			
@@ -662,11 +678,12 @@ static void zbufline(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec2)
 		rectz= zspan->rectz + start*zspan->rectx+ oldx;
 		rectp= zspan->rectp + start*zspan->rectx+ oldx;
 		recto= zspan->recto + start*zspan->rectx+ oldx;
+		rectmask= zspan->rectmask + start*zspan->rectx+ oldx;
 		
 		if(dx<0) ofs= -1;
 		else ofs= 1;
 
-		for(y= start; y<=end; y++, rectz+=zspan->rectx, rectp+=zspan->rectx, recto+=zspan->rectx) {
+		for(y= start; y<=end; y++, rectz+=zspan->rectx, rectp+=zspan->rectx, recto+=zspan->rectx, rectmask+=zspan->rectx) {
 			
 			x= floor(v1[0]);
 			if(x!=oldx) {
@@ -674,13 +691,16 @@ static void zbufline(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec2)
 				rectz+= ofs;
 				rectp+= ofs;
 				recto+= ofs;
+				rectmask+= ofs;
 			}
 			
 			if(x>=0 && y>=0 && x<zspan->rectx) {
 				if(vergz<*rectz) {
-					*rectz= vergz;
-					*rectp= zvlnr;
-					*recto= obi;
+					if(!zspan->rectmask || vergz>*rectmask) {
+						*rectz= vergz;
+						*rectp= zvlnr;
+						*recto= obi;
+					}
 				}
 			}
 			
@@ -1021,6 +1041,7 @@ static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v
 	float *span1, *span2;
 	int *rectoofs, *ro;
 	int *rectpofs, *rp;
+	int *rectmaskofs, *rm;
 	int *rz, x, y;
 	int sn1, sn2, rectx, *rectzofs, my0, my2;
 	
@@ -1071,6 +1092,7 @@ static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v
 	rectzofs= (zspan->rectz+rectx*my2);
 	rectpofs= (zspan->rectp+rectx*my2);
 	rectoofs= (zspan->recto+rectx*my2);
+	rectmaskofs= (zspan->rectmask+rectx*my2);
 	
 	/* correct span */
 	sn1= (my0 + my2)/2;
@@ -1097,18 +1119,22 @@ static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v
 			rz= rectzofs+sn1;
 			rp= rectpofs+sn1;
 			ro= rectoofs+sn1;
+			rm= rectmaskofs+sn1;
 			x= sn2-sn1;
 			
 			while(x>=0) {
 				if( (int)zverg > *rz || *rz==0x7FFFFFFF) {
-					*ro= obi;
-					*rz= (int)zverg;
-					*rp= zvlnr;
+					if(!zspan->rectmask || (int)zverg > *rm) {
+						*ro= obi;
+						*rz= (int)zverg;
+						*rp= zvlnr;
+					}
 				}
 				zverg+= zxd;
 				rz++; 
 				rp++; 
 				ro++;
+				rm++;
 				x--;
 			}
 		}
@@ -1117,6 +1143,7 @@ static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v
 		rectzofs-= rectx;
 		rectpofs-= rectx;
 		rectoofs-= rectx;
+		rectmaskofs-= rectx;
 	}
 }
 
@@ -1130,6 +1157,7 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 	float *span1, *span2;
 	int *rectoofs, *ro;
 	int *rectpofs, *rp;
+	int *rectmaskofs, *rm;
 	int *rz, x, y;
 	int sn1, sn2, rectx, *rectzofs, my0, my2;
 	
@@ -1180,6 +1208,7 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 	rectzofs= (zspan->rectz+rectx*my2);
 	rectpofs= (zspan->rectp+rectx*my2);
 	rectoofs= (zspan->recto+rectx*my2);
+	rectmaskofs= (zspan->rectmask+rectx*my2);
 
 	/* correct span */
 	sn1= (my0 + my2)/2;
@@ -1206,18 +1235,22 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 			rz= rectzofs+sn1;
 			rp= rectpofs+sn1;
 			ro= rectoofs+sn1;
+			rm= rectmaskofs+sn1;
 			x= sn2-sn1;
 			
 			while(x>=0) {
-				if( (int)zverg < *rz) {
-					*rz= (int)zverg;
-					*rp= zvlnr;
-					*ro= obi;
+				if((int)zverg < *rz) {
+					if(!zspan->rectmask || (int)zverg > *rm) {
+						*rz= (int)zverg;
+						*rp= zvlnr;
+						*ro= obi;
+					}
 				}
 				zverg+= zxd;
 				rz++; 
 				rp++; 
 				ro++; 
+				rm++;
 				x--;
 			}
 		}
@@ -1226,6 +1259,7 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 		rectzofs-= rectx;
 		rectpofs-= rectx;
 		rectoofs-= rectx;
+		rectmaskofs-= rectx;
 	}
 }
 
@@ -1926,7 +1960,7 @@ void zbufclip4(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3
 #define EXTEND_PIXEL(a)	if(temprectp[a]) {z+= rectz[a]; tot++;}
 
 /* changes the zbuffer to be ready for z-masking: applies an extend-filter, and then clears */
-static void zmask_rect(int *rectz, int *rectp, int xs, int ys)
+static void zmask_rect(int *rectz, int *rectp, int xs, int ys, int neg)
 {
 	int len=0, x, y;
 	int *temprectp;
@@ -1976,14 +2010,18 @@ static void zmask_rect(int *rectz, int *rectp, int xs, int ys)
 			}
 		}
 	}
+
 	MEM_freeN(temprectp);
 	
-	/* clear not filled z values */
-	for(len= xs*ys -1; len>=0; len--) {
-		if(rectp[len]==0) {
-			rectz[len] = -0x7FFFFFFF;
-			rectp[len]= -1;	/* env code */
-		}	
+	if(neg); /* z values for negative are already correct */
+	else {
+		/* clear not filled z values */
+		for(len= xs*ys -1; len>=0; len--) {
+			if(rectp[len]==0) {
+				rectz[len] = -0x7FFFFFFF;
+				rectp[len]= -1;	/* env code */
+			}	
+		}
 	}
 }
 
@@ -2005,7 +2043,8 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 	unsigned int lay= rl->lay, lay_zmask= rl->lay_zmask;
 	int i, v, zvlnr, zsample, samples, c1, c2, c3, c4=0;
 	short nofill=0, env=0, wire=0, zmaskpass=0;
-	short all_z= rl->layflag & SCE_LAY_ALL_Z;
+	short all_z= (rl->layflag & SCE_LAY_ALL_Z) && !(rl->layflag & SCE_LAY_ZMASK);
+	short neg_zmask= (rl->layflag & SCE_LAY_ZMASK) && (rl->layflag & SCE_LAY_NEG_ZMASK);
 	
 	samples= (R.osa? R.osa: 1);
 	samples= MIN2(4, samples-pa->sample);
@@ -2038,9 +2077,13 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 		
 		/* the buffers */
 		if(zsample == samples-1) {
-			zspan->rectz= pa->rectz;
 			zspan->rectp= pa->rectp;
 			zspan->recto= pa->recto;
+
+			if(neg_zmask)
+				zspan->rectz= pa->rectmask;
+			else
+				zspan->rectz= pa->rectz;
 		}
 		else {
 			zspan->recto= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "recto");
@@ -2051,10 +2094,6 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 		fillrect(zspan->rectz, pa->rectx, pa->recty, 0x7FFFFFFF);
 		fillrect(zspan->rectp, pa->rectx, pa->recty, 0);
 		fillrect(zspan->recto, pa->rectx, pa->recty, 0);
-		
-		/* filling methods */
-		zspan->zbuffunc= zbuffillGL4;
-		zspan->zbuflinefunc= zbufline;
 	}
 
 	/* in case zmask we fill Z for objects in lay_zmask first, then clear Z, and then do normal zbuffering */
@@ -2062,19 +2101,30 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 		zmaskpass= 1;
 	
 	for(; zmaskpass >=0; zmaskpass--) {
+		ma= NULL;
+
+		/* filling methods */
+		for(zsample=0; zsample<samples; zsample++) {
+			zspan= &zspans[zsample];
+
+			if(zmaskpass && neg_zmask)
+				zspan->zbuffunc= zbuffillGLinv4;
+			else
+				zspan->zbuffunc= zbuffillGL4;
+			zspan->zbuflinefunc= zbufline;
+		}
+
 		/* regular zbuffering loop, does all sample buffers */
 		for(i=0, obi=R.instancetable.first; obi; i++, obi=obi->next) {
 			obr= obi->obr;
 
 			/* continue happens in 2 different ways... zmaskpass only does lay_zmask stuff */
 			if(zmaskpass) {
-				if((obr->lay & lay_zmask)==0)
+				if((obi->lay & lay_zmask)==0)
 					continue;
 			}
-			else {
-				if(!all_z && !(obr->lay & lay))
-					continue;
-			}
+			else if(!all_z && !(obi->lay & (lay|lay_zmask)))
+				continue;
 			
 			if(obi->flag & R_TRANSFORMED)
 				zbuf_make_winmat(&R, obi->mat, winmat);
@@ -2091,7 +2141,7 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 				else vlr++;
 
 				/* the cases: visible for render, only z values, zmask, nothing */
-				if(obr->lay & lay) {
+				if(obi->lay & lay) {
 					if(vlr->mat!=ma) {
 						ma= vlr->mat;
 						nofill= ma->mode & (MA_ZTRA|MA_ONLYCAST);
@@ -2099,12 +2149,14 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 						wire= (ma->mode & MA_WIRE);
 						
 						for(zsample=0; zsample<samples; zsample++) {
-							if(ma->mode & MA_ZINV) zspans[zsample].zbuffunc= zbuffillGLinv4;
-							else zspans[zsample].zbuffunc= zbuffillGL4;
+							if(ma->mode & MA_ZINV || (zmaskpass && neg_zmask))
+								zspans[zsample].zbuffunc= zbuffillGLinv4;
+							else
+								zspans[zsample].zbuffunc= zbuffillGL4;
 						}
 					}
 				}
-				else if(all_z || (obr->lay & lay_zmask)) {
+				else if(all_z || (obi->lay & lay_zmask)) {
 					env= 1;
 					nofill= 0;
 					ma= NULL; 
@@ -2161,7 +2213,7 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 								else {
 									zbufclip(zspan, i, zvlnr, ho1, ho2, ho3, c1, c2, c3);
 									if(v4)
-										zbufclip(zspan, i, zvlnr+RE_QUAD_OFFS, ho1, ho3, ho4, c1, c3, c4);
+										zbufclip(zspan, i, (env)? zvlnr: zvlnr+RE_QUAD_OFFS, ho1, ho3, ho4, c1, c3, c4);
 								}
 							}
 						}
@@ -2174,7 +2226,19 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 		if(zmaskpass) {
 			for(zsample=0; zsample<samples; zsample++) {
 				zspan= &zspans[zsample];
-				zmask_rect(zspan->rectz, zspan->rectp, pa->rectx, pa->recty);
+
+				if(neg_zmask) {
+					zspan->rectmask= zspan->rectz;
+					if(zsample == samples-1)
+						zspan->rectz= pa->rectz;
+					else
+						zspan->rectz= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectz");
+					fillrect(zspan->rectz, pa->rectx, pa->recty, 0x7FFFFFFF);
+
+					zmask_rect(zspan->rectmask, zspan->rectp, pa->rectx, pa->recty, 1);
+				}
+				else
+					zmask_rect(zspan->rectz, zspan->rectp, pa->rectx, pa->recty, 0);
 			}
 		}
 	}
@@ -2189,6 +2253,8 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 			MEM_freeN(zspan->rectz);
 			MEM_freeN(zspan->rectp);
 			MEM_freeN(zspan->recto);
+			if(zspan->rectmask)
+				MEM_freeN(zspan->rectmask);
 		}
 
 		zbuf_free_span(zspan);
@@ -2298,7 +2364,7 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem, Re
 			for(a=0; a<obr->totvlak; a++) {
 				if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
 			
-				if((radface=RE_vlakren_get_radface(obr, vlr, 0))) {
+				if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
 					rf= *radface;
 					if( (rf->flag & RAD_SHOOT)==0 ) {    /* no shootelement */
 						
@@ -2370,7 +2436,7 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 
 		if(obr->ob==re->excludeob)
 			continue;
-		else if(!(obr->lay & lay))
+		else if(!(obi->lay & lay))
 			continue;
 
 		if(obi->flag & R_TRANSFORMED)
@@ -2396,7 +2462,7 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 				if((ma->mode & MA_SHADBUF)==0) ok= 0;
 			}
 
-			if(ok && (obr->lay & lay) && !(vlr->flag & R_HIDDEN)) {
+			if(ok && (obi->lay & lay) && !(vlr->flag & R_HIDDEN)) {
 				c1= zbuf_shadow_project(cache, vlr->v1->index, obwinmat, vlr->v1->co, ho1);
 				c2= zbuf_shadow_project(cache, vlr->v2->index, obwinmat, vlr->v2->co, ho2);
 				c3= zbuf_shadow_project(cache, vlr->v3->index, obwinmat, vlr->v3->co, ho3);
@@ -2607,7 +2673,7 @@ void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(vo
 	for(i=0, obi=R.instancetable.first; obi; i++, obi=obi->next) {
 		obr= obi->obr;
 
-		if(!(obr->lay & lay))
+		if(!(obi->lay & lay))
 			continue;
 
 		if(obi->flag & R_TRANSFORMED)
@@ -2626,7 +2692,7 @@ void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(vo
 			
 			if(material_in_material(vlr->mat, sss_ma)) {
 				/* three cases, visible for render, only z values and nothing */
-				if(obr->lay & lay) {
+				if(obi->lay & lay) {
 					if(vlr->mat!=ma) {
 						ma= vlr->mat;
 						nofill= ma->mode & MA_ONLYCAST;
@@ -2917,7 +2983,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	DrawBufPixel *rectdraw, *dr;
 	static float jit[16][2];
 	float v1[3], v2[3], v3[3], v4[3], fx, fy;
-	float *rectvz, *dvz, *dimg, *dvec1, *dvec2, *dz1, *dz2, *rectz, *minvecbufrect= NULL;
+	float *rectvz, *dvz, *dimg, *dvec1, *dvec2, *dz, *dz1, *dz2, *rectz, *minvecbufrect= NULL;
 	float maxspeedsq= (float)nbd->maxspeed*nbd->maxspeed;
 	int y, x, step, maxspeed=nbd->maxspeed, samples= nbd->samples;
 	int tsktsk= 0;
@@ -2979,29 +3045,21 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	}
 	
 	/* make vertex buffer with averaged speed and zvalues */
-	rectvz= MEM_mapallocN(5*sizeof(float)*(xsize+1)*(ysize+1), "vertices");
+	rectvz= MEM_mapallocN(4*sizeof(float)*(xsize+1)*(ysize+1), "vertices");
 	dvz= rectvz;
 	for(y=0; y<=ysize; y++) {
 		
-		if(y==0) {
+		if(y==0)
 			dvec1= vecbufrect + 4*y*xsize;
-			dz1= zbufrect + y*xsize;
-		}
-		else {
+		else
 			dvec1= vecbufrect + 4*(y-1)*xsize;
-			dz1= zbufrect + (y-1)*xsize;
-		}
 		
-		if(y==ysize) {
+		if(y==ysize)
 			dvec2= vecbufrect + 4*(y-1)*xsize;
-			dz2= zbufrect + (y-1)*xsize;
-		}
-		else {
+		else
 			dvec2= vecbufrect + 4*y*xsize;
-			dz2= zbufrect + y*xsize;
-		}
 		
-		for(x=0; x<=xsize; x++, dz1++, dz2++) {
+		for(x=0; x<=xsize; x++) {
 			
 			/* two vectors, so a step loop */
 			for(step=0; step<2; step++, dvec1+=2, dvec2+=2, dvz+=2) {
@@ -3059,30 +3117,21 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 					}
 				}
 			}
-			/* the z coordinate */
-			if(x!=0) {
-				if(x!=xsize)
-					dvz[0]= 0.25f*(dz1[-1] + dz2[-1] + dz1[0] + dz2[0]);
-				else dvz[0]= 0.5f*(dz1[0] + dz2[0]);
-			}
-			else dvz[0]= 0.5f*(dz1[-1] + dz2[-1]);
-			
-			dvz++;
 		}
 	}
 	
 	/* set border speeds to keep border speeds on border */
 	dz1= rectvz;
-	dz2= rectvz+5*(ysize)*(xsize+1);
-	for(x=0; x<=xsize; x++, dz1+=5, dz2+=5) {
+	dz2= rectvz+4*(ysize)*(xsize+1);
+	for(x=0; x<=xsize; x++, dz1+=4, dz2+=4) {
 		dz1[1]= 0.0f;
 		dz2[1]= 0.0f;
 		dz1[3]= 0.0f;
 		dz2[3]= 0.0f;
 	}
 	dz1= rectvz;
-	dz2= rectvz+5*(xsize);
-	for(y=0; y<=ysize; y++, dz1+=5*(xsize+1), dz2+=5*(xsize+1)) {
+	dz2= rectvz+4*(xsize);
+	for(y=0; y<=ysize; y++, dz1+=4*(xsize+1), dz2+=4*(xsize+1)) {
 		dz1[0]= 0.0f;
 		dz2[0]= 0.0f;
 		dz1[2]= 0.0f;
@@ -3109,10 +3158,10 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	samples/= 2;
 	for(step= 1; step<=samples; step++) {
 		float speedfac= 0.5f*nbd->fac*(float)step/(float)(samples+1);
-		float blendfac= 1.0f/(ABS(step)+1), ipodata[4];
-		int side, z= 4;
+		int side;
 		
 		for(side=0; side<2; side++) {
+			float blendfac= 1.0f/((ABS(step)*2+side)+1), ipodata[4];
 			
 			/* clear zbuf, if we draw future we fill in not moving pixels */
 			if(0)
@@ -3130,14 +3179,14 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 			
 			dimg= imgrect;
 			dm= rectmove;
+			dz= zbufrect;
 			dz1= rectvz;
-			dz2= rectvz + 5*(xsize + 1);
+			dz2= rectvz + 4*(xsize + 1);
 			
 			if(side) {
 				if(nbd->curved==0) {
 					dz1+= 2;
 					dz2+= 2;
-					z= 2;
 				}
 				speedfac= -speedfac;
 			}
@@ -3145,46 +3194,46 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 			set_quad_bezier_ipo(0.5f + 0.5f*speedfac, ipodata);
 			
 			for(fy= -0.5f+jit[step & 15][0], y=0; y<ysize; y++, fy+=1.0f) {
-				for(fx= -0.5f+jit[step & 15][1], x=0; x<xsize; x++, fx+=1.0f, dimg+=4, dz1+=5, dz2+=5, dm++) {
+				for(fx= -0.5f+jit[step & 15][1], x=0; x<xsize; x++, fx+=1.0f, dimg+=4, dz1+=4, dz2+=4, dm++, dz++) {
 					if(*dm>1) {
 						DrawBufPixel col;
 						
 						/* make vertices */
 						if(nbd->curved) {	/* curved */
 							quad_bezier_2d(v1, dz1, dz1+2, ipodata);
-							v1[0]+= fx; v1[1]+= fy; v1[2]= dz1[4];
+							v1[0]+= fx; v1[1]+= fy; v1[2]= *dz;
 
-							quad_bezier_2d(v2, dz1+5, dz1+5+2, ipodata);
-							v2[0]+= fx+1.0f; v2[1]+= fy; v2[2]= dz1[4+5];
+							quad_bezier_2d(v2, dz1+4, dz1+4+2, ipodata);
+							v2[0]+= fx+1.0f; v2[1]+= fy; v2[2]= *dz;
 
-							quad_bezier_2d(v3, dz2+5, dz2+5+2, ipodata);
-							v3[0]+= fx+1.0f; v3[1]+= fy+1.0f; v3[2]= dz1[4+5];
+							quad_bezier_2d(v3, dz2+4, dz2+4+2, ipodata);
+							v3[0]+= fx+1.0f; v3[1]+= fy+1.0f; v3[2]= *dz;
 							
 							quad_bezier_2d(v4, dz2, dz2+2, ipodata);
-							v4[0]+= fx; v4[1]+= fy+1.0f; v4[2]= dz2[4];
+							v4[0]+= fx; v4[1]+= fy+1.0f; v4[2]= *dz;
 						}
 						else {
-							v1[0]= speedfac*dz1[0]+fx;			v1[1]= speedfac*dz1[1]+fy;			v1[2]= dz1[z];
-							v2[0]= speedfac*dz1[5]+fx+1.0f;		v2[1]= speedfac*dz1[6]+fy;			v2[2]= dz1[z+5];
-							v3[0]= speedfac*dz2[5]+fx+1.0f;		v3[1]= speedfac*dz2[6]+fy+1.0f;		v3[2]= dz2[z+5];
-							v4[0]= speedfac*dz2[0]+fx;			v4[1]= speedfac*dz2[1]+fy+1.0f;		v4[2]= dz2[z];
+							v1[0]= speedfac*dz1[0]+fx;			v1[1]= speedfac*dz1[1]+fy;			v1[2]= *dz;
+							v2[0]= speedfac*dz1[4]+fx+1.0f;		v2[1]= speedfac*dz1[5]+fy;			v2[2]= *dz;
+							v3[0]= speedfac*dz2[4]+fx+1.0f;		v3[1]= speedfac*dz2[5]+fy+1.0f;		v3[2]= *dz;
+							v4[0]= speedfac*dz2[0]+fx;			v4[1]= speedfac*dz2[1]+fy+1.0f;		v4[2]= *dz;
 						}
 						if(*dm==255) col.alpha= 1.0f;
 						else if(*dm<2) col.alpha= 0.0f;
 						else col.alpha= ((float)*dm)/255.0f;
 						col.colpoin= dimg;
-						
+
 						zbuf_fill_in_rgba(&zspan, &col, v1, v2, v3, v4);
 					}
 				}
-				dz1+=5;
-				dz2+=5;
+				dz1+=4;
+				dz2+=4;
 			}
 			
 			/* accum */
 			for(dr= rectdraw, dz2=newrect, x= xsize*ysize-1; x>=0; x--, dr++, dz2+=4) {
 				if(dr->colpoin) {
-					float bfac= dr->alpha*blendfac;
+					float bfac= dr->alpha*blendfac*dr->colpoin[3];
 					float mf= 1.0f - bfac;
 					
 					dz2[0]= mf*dz2[0] + bfac*dr->colpoin[0];
@@ -3210,18 +3259,21 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
  * Copy results from the solid face z buffering to the transparent
  * buffer.
  */
-static void copyto_abufz(RenderPart *pa, int *arectz, int sample)
+static void copyto_abufz(RenderPart *pa, int *arectz, int *rectmask, int sample)
 {
 	PixStr *ps;
-	int x, y, *rza;
+	int x, y, *rza, *rma;
 	long *rd;
 	
 	if(R.osa==0) {
-		memcpy(arectz, pa->rectz, 4*pa->rectx*pa->recty);
+		memcpy(arectz, pa->rectz, sizeof(int)*pa->rectx*pa->recty);
+		if(rectmask && pa->rectmask)
+			memcpy(rectmask, pa->rectmask, sizeof(int)*pa->rectx*pa->recty);
 		return;
 	}
 	
 	rza= arectz;
+	rma= rectmask;
 	rd= pa->rectdaps;
 
 	sample= (1<<sample);
@@ -3230,17 +3282,19 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int sample)
 		for(x=0; x<pa->rectx; x++) {
 			
 			*rza= 0x7FFFFFFF;
+			if(rectmask) *rma= 0x7FFFFFFF;
 			if(*rd) {	
 				/* when there's a sky pixstruct, fill in sky-Z, otherwise solid Z */
 				for(ps= (PixStr *)(*rd); ps; ps= ps->next) {
 					if(sample & ps->mask) {
 						*rza= ps->z;
+						if(rectmask) *rma= ps->maskz;
 						break;
 					}
 				}
 			}
 			
-			rd++; rza++;
+			rd++; rza++, rma++;
 		}
 	}
 }
@@ -3252,7 +3306,7 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int sample)
  * Do accumulation z buffering.
  */
 
-static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, unsigned int lay)
+static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, RenderLayer *rl, unsigned int lay)
 {
 	ZbufProjectCache cache[ZBUF_PROJECT_CACHE_SIZE];
 	ZSpan zspans[16], *zspan;	/* MAX_OSA */
@@ -3283,11 +3337,14 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, un
 		zspan->apixbuf= APixbuf;
 		zspan->apsmbase= apsmbase;
 		
+		if((rl->layflag & SCE_LAY_ZMASK) && (rl->layflag & SCE_LAY_NEG_ZMASK))
+			zspan->rectmask= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "Arectmask");
+
 		/* filling methods */
 		zspan->zbuffunc= zbuffillAc4;
 		zspan->zbuflinefunc= zbuflineAc;
 
-		copyto_abufz(pa, zspan->arectz, zsample);	/* init zbuffer */
+		copyto_abufz(pa, zspan->arectz, zspan->rectmask, zsample);	/* init zbuffer */
 		zspan->mask= 1<<zsample;
 
 		if(R.osa) {
@@ -3313,7 +3370,7 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, un
 	for(i=0, obi=R.instancetable.first; obi; i++, obi=obi->next) {
 		obr= obi->obr;
 
-		if(!(obr->lay & lay))
+		if(!(obi->lay & lay))
 			continue;
 
 		if(obi->flag & R_TRANSFORMED)
@@ -3337,7 +3394,7 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, un
 			}
 			
 			if(dofill) {
-				if(!(vlr->flag & R_HIDDEN) && (obr->lay & lay)) {
+				if(!(vlr->flag & R_HIDDEN) && (obi->lay & lay)) {
 					unsigned short partclip;
 					
 					v1= vlr->v1;
@@ -3415,6 +3472,8 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, un
 	for(zsample=0; zsample<samples; zsample++) {
 		zspan= &zspans[zsample];
 		MEM_freeN(zspan->arectz);
+		if(zspan->rectmask)
+			MEM_freeN(zspan->rectmask);
 		zbuf_free_span(zspan);
 	}
 	
@@ -3575,6 +3634,11 @@ void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alph
 		int pixsize= 3;
 		
 		switch(rpass->passtype) {
+			case SCE_PASS_Z:
+				fp= rpass->rect + offset;
+				if(shr->z < *fp)
+					*fp= shr->z;
+				break;
 			case SCE_PASS_RGBA:
 				fp= rpass->rect + 4*offset;
 				addAlphaOverFloat(fp, shr->col);
@@ -3714,7 +3778,7 @@ static void shade_tra_samples_fill(ShadeSample *ssamp, int x, int y, int z, int 
 						shi++;
 					}
 					shi->mask= (1<<samp);
-					shi->samplenr= ssamp->samplenr++;
+					shi->samplenr= R.shadowsamplenr[shi->thread]++;
 					shade_input_set_viewco(shi, xs, ys, (float)z);
 					shade_input_set_uv(shi);
 					shade_input_set_normals(shi);
@@ -3734,7 +3798,7 @@ static void shade_tra_samples_fill(ShadeSample *ssamp, int x, int y, int z, int 
 				ys= (float)y + 0.5f;
 			}
 			shi->mask= curmask;
-			shi->samplenr= ssamp->samplenr++;
+			shi->samplenr= R.shadowsamplenr[shi->thread]++;
 			shade_input_set_viewco(shi, xs, ys, (float)z);
 			shade_input_set_uv(shi);
 			shade_input_set_normals(shi);
@@ -3801,6 +3865,8 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 				
 				addAlphaUnderFloat(samp_shr->combined, shr->combined);
 				
+				samp_shr->z= MIN2(samp_shr->z, shr->z);
+
 				if(addpassflag & SCE_PASS_VECTOR) {
 					QUATCOPY(samp_shr->winspeed, shr->winspeed);
 				}
@@ -3883,11 +3949,11 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	ShadeResult samp_shr[16];		/* MAX_OSA */
 	ZTranspRow zrow[MAX_ZROW];
 	StrandShadeCache *sscache= NULL;
-	float sampalpha, *passrect= pass;
+	float sampalpha, alpha, *passrect= pass;
 	long *rdrect;
 	int x, y, crop=0, a, b, totface, totsample, doztra;
-	int addpassflag, offs= 0, od, addzbuf;
-	unsigned short *ztramask= NULL;
+	int addpassflag, offs= 0, od, addzbuf, osa = (R.osa? R.osa: 1);
+	unsigned short *ztramask= NULL, filled;
 
 	/* looks nicer for calling code */
 	if(R.test_break())
@@ -3918,7 +3984,7 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	/* fill the Apixbuf */
 	doztra= 0;
 	if(rl->layflag & SCE_LAY_ZTRA)
-		doztra+= zbuffer_abuf(pa, APixbuf, &apsmbase, rl->lay);
+		doztra+= zbuffer_abuf(pa, APixbuf, &apsmbase, rl, rl->lay);
 	if((rl->layflag & SCE_LAY_STRAND) && APixbufstrand)
 		doztra+= zbuffer_strands_abuf(&R, pa, rl, APixbufstrand, &apsmbase, sscache);
 
@@ -4046,35 +4112,43 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 				if(addpassflag & SCE_PASS_INDEXOB)
 					add_transp_obindex(rl, od, zrow[totface-1].obi);
 				
+				/* for each mask-sample we alpha-under colors. then in end it's added using filter */
+				memset(samp_shr, 0, sizeof(ShadeResult)*osa);
+				for(a=0; a<osa; a++) {
+					samp_shr[a].z= 10e10f;
+					if(addpassflag & SCE_PASS_VECTOR) {
+						samp_shr[a].winspeed[0]= PASS_VECTOR_MAX;
+						samp_shr[a].winspeed[1]= PASS_VECTOR_MAX;
+						samp_shr[a].winspeed[2]= PASS_VECTOR_MAX;
+						samp_shr[a].winspeed[3]= PASS_VECTOR_MAX;
+					}
+				}
+
 				if(R.osa==0) {
 					while(totface>0) {
 						totface--;
 						
 						if(shade_tra_samples(&ssamp, sscache, x, y, &zrow[totface], addpassflag)) {
-							if(addpassflag) 
-								add_transp_passes(rl, od, ssamp.shr, (1.0f-pass[3])*ssamp.shr[0].combined[3]);
-							
+							filled= addtosamp_shr(samp_shr, &ssamp, addpassflag);
 							addAlphaUnderFloat(pass, ssamp.shr[0].combined);
-							if(pass[3]>=0.999) {
+							
+							if(filled == 0) {
 								if(sscache)
 									unref_strand_samples(sscache, zrow, totface);
 								break;
 							}
 						}
 					}
-					if(addpassflag & SCE_PASS_VECTOR)
-						add_transp_speed(rl, od, ssamp.shr[0].winspeed, pass[3], rdrect);
+
+					alpha= samp_shr->combined[3];
+					if(alpha!=0.0f) {
+						add_transp_passes(rl, od, samp_shr, alpha);
+						if(addpassflag & SCE_PASS_VECTOR)
+							add_transp_speed(rl, od, samp_shr->winspeed, alpha, rdrect);
+					}
 				}
 				else {
-					float alpha= 0.0f;
-					short filled, *sp= (short *)(ztramask+od);
-					
-					/* for each mask-sample we alpha-under colors. then in end it's added using filter */
-					memset(samp_shr, 0, sizeof(ShadeResult)*R.osa);
-					
-					/* nice this memset, but speed vectors are not initialized OK then. it is sufficient to only clear 1 (see merge_transp_passes) */
-					if(addpassflag & SCE_PASS_VECTOR)
-						samp_shr->winspeed[0]= samp_shr->winspeed[1]= samp_shr->winspeed[2]= samp_shr->winspeed[3]= PASS_VECTOR_MAX;
+					short *sp= (short *)(ztramask+od);
 					
 					while(totface>0) {
 						totface--;
@@ -4108,7 +4182,8 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 						}
 					}
 					else {
-							
+						alpha= 0.0f;
+
 						/* note; cannot use pass[3] for alpha due to filtermask */
 						for(a=0; a<R.osa; a++) {
 							add_filt_fmask(1<<a, samp_shr[a].combined, pass, rr->rectx);

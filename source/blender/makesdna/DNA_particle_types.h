@@ -3,15 +3,12 @@
  *
  * $Id: DNA_particle_types.h $
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef DNA_PARTICLE_TYPES_H
@@ -206,6 +203,9 @@ typedef struct ParticleSystem{
 
 	/* temporary storage during render */
 	void *renderdata;
+
+	/* point cache */
+	struct PointCache *pointcache;
 }ParticleSystem;
 
 /* general particle maximums */
@@ -221,13 +221,14 @@ typedef struct ParticleSystem{
 #define PART_EMITTER		0
 #define PART_REACTOR		1
 #define PART_HAIR			2
+#define PART_FLUID			3
 
 /* part->flag */
 #define PART_REACT_STA_END	1
 #define PART_REACT_MULTIPLE	2
 
 #define PART_LOOP			4
-#define PART_LOOP_INSTANT	8
+//#define PART_LOOP_INSTANT	8
 
 #define PART_HAIR_GEOMETRY	16
 
@@ -258,6 +259,7 @@ typedef struct ParticleSystem{
 
 #define PART_GRID_INVERT	(1<<26)
 
+#define PART_CHILD_EFFECT	(1<<27)
 #define PART_CHILD_SEAMS	(1<<28)
 #define PART_CHILD_RENDER	(1<<29)
 #define PART_CHILD_GUIDE	(1<<30)
@@ -291,8 +293,6 @@ typedef struct ParticleSystem{
 #define PART_KINK_RADIAL	2
 #define PART_KINK_WAVE		3
 #define PART_KINK_BRAID		4
-#define PART_KINK_ROT		5
-#define PART_KINK_ROLL		6
 
 /* part->draw */
 #define PART_DRAW_VEL		1
@@ -365,7 +365,6 @@ typedef struct ParticleSystem{
 /* part->avemode */
 #define PART_AVE_SPIN		1
 #define PART_AVE_RAND		2
-#define PART_AVE_VEL		3
 
 /* part->reactevent */
 #define PART_EVENT_DEATH	0
@@ -388,7 +387,7 @@ typedef struct ParticleSystem{
 //#define PSYS_BAKING			2
 //#define PSYS_BAKE_UI		4
 #define	PSYS_KEYED_TIME		8
-#define PSYS_ENABLED		16
+#define PSYS_ENABLED		16	/* deprecated */
 #define PSYS_FIRST_KEYED	32
 #define PSYS_DRAWING		64
 //#define PSYS_SOFT_BAKE		128
@@ -396,7 +395,8 @@ typedef struct ParticleSystem{
 #define PSYS_HAIR_DONE		512
 #define PSYS_KEYED			1024
 #define PSYS_EDITED			2048
-#define PSYS_PROTECT_CACHE	4096
+//#define PSYS_PROTECT_CACHE	4096
+#define PSYS_DISABLED		8192
 
 /* pars->flag */
 #define PARS_UNEXIST		1

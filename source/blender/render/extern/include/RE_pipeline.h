@@ -38,6 +38,7 @@ struct Scene;
 struct RenderData;
 struct NodeBlurData;
 struct Object;
+struct bNodeTree;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* this include is what is exposed of render to outside world */
@@ -152,7 +153,7 @@ struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name)
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype);
 
 /* obligatory initialize call, disprect is optional */
-void RE_InitState (struct Render *re, struct RenderData *rd, int winx, int winy, rcti *disprect);
+void RE_InitState (struct Render *re, struct Render *source, struct RenderData *rd, int winx, int winy, rcti *disprect);
 
 /* use this to change disprect of active render */
 void RE_SetDispRect (struct Render *re, rcti *disprect);
@@ -186,6 +187,9 @@ void RE_BlenderAnim(struct Render *re, struct Scene *scene, int sfra, int efra);
 void RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
 void RE_WriteRenderResult(RenderResult *rr, char *filename, int compress);
 struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty);
+
+/* do a full sample buffer compo */
+void RE_MergeFullSample(struct Render *re, struct Scene *sce, struct bNodeTree *ntree);
 
 /* ancient stars function... go away! */
 void RE_make_stars(struct Render *re, void (*initfunc)(void),

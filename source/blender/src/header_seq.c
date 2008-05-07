@@ -6,15 +6,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,7 +29,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -420,7 +417,7 @@ static void do_seq_editmenu(void *arg, int event)
 		seq_snap(event);
 		break;
 	case 13: /* Cut at Current Frame */
-		seq_cut(CFRA);
+		seq_cut(CFRA, 1);
 		break;
 	case 14:
 		reassign_inputs_seq_effect();
@@ -433,6 +430,21 @@ static void do_seq_editmenu(void *arg, int event)
 		break;
 	case 17:
 		reload_sequence();
+		break;
+	case 18:
+		seq_lock_sel(1);
+		break;
+	case 19:
+		seq_lock_sel(0);
+		break;
+	case 20:
+		seq_mute_sel(1);
+		break;
+	case 21:
+		seq_mute_sel(0);
+		break;
+	case 22:
+		seq_cut(CFRA, 0);
 		break;
 	}
 }
@@ -455,7 +467,8 @@ static uiBlock *seq_editmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cut at Current Frame|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cut (hard) at Current Frame|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cut (soft) at Current Frame|Shift-K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 22, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Separate Images to Strips|Y", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -501,6 +514,11 @@ static uiBlock *seq_editmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reload Strip Data...|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 17, "");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lock Strips...|Shift L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 18, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unlock Strips...|Alt-Shift L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 19, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mute Strips...|H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 20, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unmute Strips...|Alt H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 21, "");
 	
 
 	if(curarea->headertype==HEADERTOP) {
@@ -658,22 +676,23 @@ void seq_buttons()
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block,seq_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
 		xco+=xmax;
+		if (sseq->mainb == 0) {
+			xmax= GetButStringLength("Select");
+			uiDefPulldownBut(block,seq_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
+			xco+=xmax;
 
-		xmax= GetButStringLength("Select");
-		uiDefPulldownBut(block,seq_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
-		xco+=xmax;
-
-		xmax= GetButStringLength("Marker");
-		uiDefPulldownBut(block,seq_markermenu, NULL, "Marker", xco, -2, xmax-3, 24, "");
-		xco+=xmax;
+			xmax= GetButStringLength("Marker");
+			uiDefPulldownBut(block,seq_markermenu, NULL, "Marker", xco, -2, xmax-3, 24, "");
+			xco+=xmax;
 		
-		xmax= GetButStringLength("Add");
-		uiDefPulldownBut(block, seq_addmenu, NULL, "Add", xco, -2, xmax-3, 24, "");
-		xco+= xmax;
+			xmax= GetButStringLength("Add");
+			uiDefPulldownBut(block, seq_addmenu, NULL, "Add", xco, -2, xmax-3, 24, "");
+			xco+= xmax;
 
-		xmax= GetButStringLength("Strip");
-		uiDefPulldownBut(block, seq_editmenu, NULL, "Strip", xco, -2, xmax-3, 24, "");
-		xco+= xmax;
+			xmax= GetButStringLength("Strip");
+			uiDefPulldownBut(block, seq_editmenu, NULL, "Strip", xco, -2, xmax-3, 24, "");
+			xco+= xmax;
+		}
 
 		/* end of pull down menus */
 		uiBlockSetEmboss(block, UI_EMBOSS);
@@ -685,42 +704,78 @@ void seq_buttons()
 			  "|Sequence %x0"
 			  "|Image Preview %x1"
 			  "|Luma Waveform %x2"
-			  "|Chroma Vectorscope %x3",
+			  "|Chroma Vectorscope %x3"
+			  "|Histogram %x4",
 			  xco,0,XIC+10,YIC, &sseq->mainb, 0.0, 3.0, 
 			  0, 0, 
 			  "Shows the sequence output image preview");
 	
 	xco+= 8 + XIC+10;
 	
-	/* CHANNEL shown in 3D preview */
 	if(sseq->mainb) {
 		int minchan = 0;
+
+		/* CHANNEL shown in image preview */
 
 		if (G.scene->ed && ((Editing*)G.scene->ed)->metastack.first)
 			minchan = -BLI_countlist(&((Editing*)G.scene->ed)->metastack);
 
 		uiDefButS(block, NUM, B_REDR, "Chan:",
-		xco, 0, 3.5 * XIC,YIC,
-		&sseq->chanshown, minchan, MAXSEQ, 0, 0,
-		"The channel number shown in the image preview. 0 is the result of all strips combined.");
+			  xco, 0, 3.5 * XIC,YIC,
+			  &sseq->chanshown, minchan, MAXSEQ, 0, 0,
+			  "The channel number shown in the image preview. 0 is the result of all strips combined.");
 		
 		xco+= 8 + XIC*3.5;
+
+		if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+			uiDefButS(block, MENU, B_REDR, 
+				  "Show zebra: %t"
+				  "|Z 110 %x110"
+				  "|Z 100 %x100"
+				  "|Z 95  %x95"
+				  "|Z 90  %x90"
+				  "|Z 70  %x70"
+				  "|Z Off %x0", 
+				  xco,0,3.0 * XIC, YIC, &sseq->zebra, 
+				  0,0,0,0, 
+				  "Show overexposed "
+				  "areas with zebra stripes");
+
+			xco+= 8 + XIC*3.0;
+
+			uiDefButBitI(block, TOG, SEQ_DRAW_SAFE_MARGINS, 
+				     B_REDR, "T",
+				     xco,0,XIC,YIC, &sseq->flag, 
+				     0, 0, 0, 0, 
+				     "Draw title safe margins in preview");
+			xco+= 8 + XIC;
+		}
+		
+		if (sseq->mainb == SEQ_DRAW_IMG_WAVEFORM) {
+			uiDefButBitI(block, TOG, SEQ_DRAW_COLOR_SEPERATED, 
+				     B_REDR, "CS",
+				     xco,0,XIC,YIC, &sseq->flag, 
+				     0, 0, 0, 0, 
+				     "Seperate color channels in preview");
+			xco+= 8 + XIC;
+		}
+	} else {
+		/* ZOOM and BORDER */
+		uiDefIconButI(block, TOG, B_VIEW2DZOOM, 
+			      ICON_VIEWZOOM,	
+			      xco,0,XIC,YIC, &viewmovetemp, 
+			      0, 0, 0, 0, 
+			      "Zooms view in and out (Ctrl MiddleMouse)");
+		xco += XIC;
+		uiDefIconBut(block, BUT, B_IPOBORDER, 
+			     ICON_BORDERMOVE,	
+			     xco,0,XIC,YIC, 0, 
+			     0, 0, 0, 0, 
+			     "Zooms view to fit area");
+		xco += 8 + XIC;
 	}
 
-	
-	/* ZOOM and BORDER */
-	xco+= 8;
-	uiBlockBeginAlign(block);
-	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view in and out (Ctrl MiddleMouse)");
-	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to fit area");
-	uiBlockEndAlign(block);
-
-	/* CLEAR MEM */
-	xco+= 8;
-
-	/* CLEAR MEM */
-	xco+= 8;
-	uiDefBut(block, BUT, B_SEQCLEAR, "Refresh",	xco+=XIC,0,3*XIC,YIC, 0, 0, 0, 0, 0, "Clears all buffered images in memory");
+	uiDefBut(block, BUT, B_SEQCLEAR, "Refresh", xco,0,3*XIC,YIC, 0, 0, 0, 0, 0, "Clears all buffered images in memory");
 
 	uiDrawBlock(block);
 }

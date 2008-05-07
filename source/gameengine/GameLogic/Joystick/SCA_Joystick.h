@@ -1,6 +1,6 @@
 /**
 
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
 
  *
 
@@ -10,13 +10,10 @@
 
  * as published by the Free Software Foundation; either version 2
 
- * of the License, or (at your option) any later version. The Blender
+ * of the License, or (at your option) any later version.
 
- * Foundation also sells licenses for use in proprietary software under
 
- * the Blender License.  See http://www.blender.org/BL/ for information
 
- * about this.
 
  *
 
@@ -52,7 +49,7 @@
 
  *
 
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 
  */
 
@@ -71,12 +68,16 @@
 /*
 
  * Basic Joystick class
-
+ * I will make this class a singleton because there should be only one joystick
+ * even if there are more than one scene using it and count how many scene are using it.
+ * The underlying joystick should only be removed when the last scene is removed
  */
 
 class SCA_Joystick
 
 {
+	static SCA_Joystick *m_instance;
+	static int m_refCount;
 
 	class PrivateData;
 
@@ -258,19 +259,21 @@ class SCA_Joystick
 
 	int pGetHat(int direction);
 
-	
-
-public:
-
 	SCA_Joystick();
 
 	~SCA_Joystick();
-
 	
-
 	bool CreateJoystickDevice(void);
 
 	void DestroyJoystickDevice(void);
+
+
+public:
+
+	static SCA_Joystick *GetInstance();
+
+	void ReleaseInstance();
+	
 
 	void HandleEvents();
 

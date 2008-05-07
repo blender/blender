@@ -121,7 +121,7 @@ void enter_posemode(void)
 	}
 
 	if (G.obedit) exit_editmode(EM_FREEDATA|EM_WAITCURSOR);
-	G.f &= ~(G_VERTEXPAINT | G_TEXTUREPAINT | G_WEIGHTPAINT);
+	G.f &= ~(G_VERTEXPAINT | G_TEXTUREPAINT | G_WEIGHTPAINT | G_SCULPTMODE);
 }
 
 void set_pose_keys (Object *ob)
@@ -869,11 +869,11 @@ void paste_posebuf (int flip)
 	/* Update event for pose and deformation children */
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	
-	if ((IS_AUTOKEY_MODE(NORMAL))) {
+	if (IS_AUTOKEY_ON) {
 		remake_action_ipos(ob->action);
-		allqueue (REDRAWIPO, 0);
-		allqueue (REDRAWVIEW3D, 0);
-		allqueue (REDRAWACTION, 0);		
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWACTION, 0);		
 		allqueue(REDRAWNLA, 0);
 	}
 	else {
@@ -986,7 +986,7 @@ char *build_posegroups_menustr (bPose *pose, short for_pupmenu)
 	else
 		BLI_dynstr_append(pupds, "BG: [None]%x0|");
 	
-	/* loop through markers, adding them */
+	/* loop through groups, adding them */
 	for (grp= pose->agroups.first, i=1; grp; grp=grp->next, i++) {
 		if (for_pupmenu == 0)
 			BLI_dynstr_append(pupds, "BG: ");
@@ -1007,7 +1007,7 @@ char *build_posegroups_menustr (bPose *pose, short for_pupmenu)
 }
 
 /* Assign selected pchans to the bone group that the user selects */
-void pose_assign_to_posegroup ()
+void pose_assign_to_posegroup (short active)
 {
 	Object *ob= OBACT;
 	bArmature *arm= (ob) ? ob->data : NULL;
@@ -1022,18 +1022,20 @@ void pose_assign_to_posegroup ()
 		return;
 
 	/* get group to affect */
-	menustr= build_posegroups_menustr(pose, 1);
-	nr= pupmenu(menustr);
-	MEM_freeN(menustr);
-	
-	if (nr < 0) 
-		return;
-	else if (nr == 0) {
-		/* add new - note: this does an undo push and sets active group */
-		pose_add_posegroup();
+	if ((active==0) || (pose->active_group <= 0)) {
+		menustr= build_posegroups_menustr(pose, 1);
+		nr= pupmenu_col(menustr, 20);
+		MEM_freeN(menustr);
+		
+		if (nr < 0) 
+			return;
+		else if (nr == 0) {
+			/* add new - note: this does an undo push and sets active group */
+			pose_add_posegroup();
+		}
+		else
+			pose->active_group= nr;
 	}
-	else
-		pose->active_group= nr;
 	
 	/* add selected bones to group then */
 	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
@@ -1103,16 +1105,19 @@ void pgroup_operation_with_menu (void)
 	
 	/* get mode of action */
 	if (pchan)
-		mode= pupmenu("Bone Groups%t|Add Selected to Group%x1|Add New Group%x2|Remove Selected From Groups%x3|Remove Active Group%x4");
+		mode= pupmenu("Bone Groups%t|Add Selected to Active Group%x1|Add Selected to Group%x2|%|Remove Selected From Groups%x3|Remove Active Group%x4");
 	else
-		mode= pupmenu("Bone Groups%t|Add New Group%x2|Remove Active Group%x4");
+		mode= pupmenu("Bone Groups%t|Add New Group%x5|Remove Active Group%x4");
 		
 	/* handle mode */
 	switch (mode) {
 		case 1:
-			pose_assign_to_posegroup();
+			pose_assign_to_posegroup(1);
 			break;
 		case 2:
+			pose_assign_to_posegroup(0);
+			break;
+		case 5:
 			pose_add_posegroup();
 			break;
 		case 3:
@@ -1122,6 +1127,104 @@ void pgroup_operation_with_menu (void)
 			pose_remove_posegroup();
 			break;
 	}
+}
+
+/* ********************************************** */
+
+static short pose_select_same_group (Object *ob)
+{
+	bPose *pose= (ob)? ob->pose : NULL;
+	bArmature *arm= (ob)? ob->data : NULL;
+	bPoseChannel *pchan, *chan;
+	short changed= 0;
+	
+	if (ELEM3(NULL, ob, pose, arm))
+		return 0;
+	
+	/* loop in loop... bad and slow! */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (arm->layer & pchan->bone->layer) {
+			if (pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+				
+				/* only if group matches (and is not selected or current bone) */
+				for (chan= ob->pose->chanbase.first; chan; chan= chan->next) {
+					if (arm->layer & chan->bone->layer) {
+						if (pchan->agrp_index == chan->agrp_index) {
+							chan->bone->flag |= BONE_SELECTED;
+							changed= 1;
+						}
+					}
+				}
+				
+			}
+		}
+	}
+	
+	return changed;
+}
+
+static short pose_select_same_layer (Object *ob)
+{
+	bPose *pose= (ob)? ob->pose : NULL;
+	bArmature *arm= (ob)? ob->data : NULL;
+	bPoseChannel *pchan;
+	short layers= 0, changed= 0;
+	
+	if (ELEM3(NULL, ob, pose, arm))
+		return 0;
+	
+	/* figure out what bones are selected */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (arm->layer & pchan->bone->layer) {
+			if (pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+				layers |= pchan->bone->layer;
+			}
+		}
+	}
+	if (layers == 0) 
+		return 0;
+		
+	/* select bones that are on same layers as layers flag */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (arm->layer & pchan->bone->layer) {
+			if (layers & pchan->bone->layer) {
+				pchan->bone->flag |= BONE_SELECTED;
+				changed= 1;
+			}
+		}
+	}
+	
+	return changed;
+}
+
+
+void pose_select_grouped (short nr)
+{
+	short changed = 0;
+	
+	if (nr == 1) 		changed= pose_select_same_group(OBACT);
+	else if (nr == 2)	changed= pose_select_same_layer(OBACT);
+	
+	if (changed) {
+		countall();
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+		allspace(REMAKEIPO, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWACTION, 0);
+		BIF_undo_push("Select Grouped");
+	}
+}
+
+/* Shift-G in 3D-View while in PoseMode */
+void pose_select_grouped_menu (void)
+{
+	short nr;
+	
+	/* here we go */
+	nr= pupmenu("Select Grouped%t|In Same Group%x1|In Same Layer%x2");
+	pose_select_grouped(nr);
 }
 
 /* ********************************************** */
@@ -1187,7 +1290,7 @@ void pose_autoside_names(short axis)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
-	allqueue (REDRAWACTION, 0);
+	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWOOPS, 0);
 	BIF_undo_push("Flip names");
 }
@@ -1338,7 +1441,8 @@ static int pose_relax_icu(struct IpoCurve *icu, float framef, float *val, float 
 {
 	if (!icu) {
 		return 0;
-	} else {
+	} 
+	else {
 		BezTriple *bezt = icu->bezt;
 		
 		BezTriple *bezt_prev=NULL, *bezt_next=NULL;
@@ -1418,6 +1522,9 @@ void pose_relax()
 	if (!pose || !act || !arm) return;
 	
 	for (pchan=pose->chanbase.first; pchan; pchan= pchan->next) {
+		
+		pchan->bone->flag &= ~BONE_TRANSFORM;
+		
 		if (pchan->bone->layer & arm->layer) {
 			if (pchan->bone->flag & BONE_SELECTED) {
 				/* do we have an ipo curve? */
@@ -1491,3 +1598,27 @@ void pose_relax()
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	BIF_undo_push("Relax Pose");
 }
+
+/* for use in insertkey, ensure rotation goes other way around */
+void pose_flipquats(void)
+{
+	Object *ob = OBACT;
+	bArmature *arm= ob->data;
+	bPoseChannel *pchan;
+	
+	if(ob->pose==NULL)
+		return;
+	
+	/* find sel bones */
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->bone && (pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) {
+			/* quaternions have 720 degree range */
+			pchan->quat[0]= -pchan->quat[0];
+			pchan->quat[1]= -pchan->quat[1];
+			pchan->quat[2]= -pchan->quat[2];
+			pchan->quat[3]= -pchan->quat[3];
+		}
+	}
+			
+}
+

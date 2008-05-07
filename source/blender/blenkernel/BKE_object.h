@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * General operations, lookup, etc. for blender objects.
  */
 
@@ -51,6 +48,10 @@ void clear_workob(void);
 void copy_baseflags(void);
 void copy_objectflags(void);
 struct SoftBody *copy_softbody(struct SoftBody *sb);
+void copy_object_particlesystems(struct Object *obn, struct Object *ob);
+void copy_object_softbody(struct Object *obn, struct Object *ob);
+void object_free_particlesystems(struct Object *ob);
+void object_free_softbody(struct Object *ob);
 void update_base_layer(struct Object *ob);
 
 void free_object(struct Object *ob);
@@ -111,7 +112,7 @@ void solve_tracking (struct Object *ob, float targetmat[][4]);
 void object_handle_update(struct Object *ob);
 
 float give_timeoffset(struct Object *ob);
-
+int give_obdata_texspace(struct Object *ob, int **texflag, float **loc, float **size, float **rot);
 #ifdef __cplusplus
 }
 #endif

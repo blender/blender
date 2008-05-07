@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "GHOST_WindowX11.h"
@@ -42,6 +39,8 @@
 #include <strings.h>
 #endif
 
+#include <cstring>
+#include <cstdio>
 
 // For obscure full screen mode stuuf
 // lifted verbatim from blut.
@@ -202,7 +201,7 @@ GHOST_WindowX11(
 		KeyPressMask | KeyReleaseMask |
 		EnterWindowMask | LeaveWindowMask |
 		ButtonPressMask | ButtonReleaseMask |
-		PointerMotionMask | FocusChangeMask;
+		PointerMotionMask | FocusChangeMask | PropertyChangeMask;
 
 	// create the window!
 
@@ -764,6 +763,15 @@ validate(
 GHOST_WindowX11::
 ~GHOST_WindowX11(
 ){
+	static Atom Primary_atom, Clipboard_atom;
+	Window p_owner, c_owner;
+	/*Change the owner of the Atoms to None if we are the owner*/
+	Primary_atom = XInternAtom(m_display, "PRIMARY", False);
+	Clipboard_atom = XInternAtom(m_display, "CLIPBOARD", False);
+	
+	p_owner = XGetSelectionOwner(m_display, Primary_atom);
+	c_owner = XGetSelectionOwner(m_display, Clipboard_atom);
+	
 	std::map<unsigned int, Cursor>::iterator it = m_standard_cursors.begin();
 	for (; it != m_standard_cursors.end(); it++) {
 		XFreeCursor(m_display, it->second);
@@ -782,6 +790,14 @@ GHOST_WindowX11::
 		}
 		glXDestroyContext(m_display, m_context);
 	}
+	
+	if (p_owner == m_window) {
+		XSetSelectionOwner(m_display, Primary_atom, None, CurrentTime);
+	}
+	if (c_owner == m_window) {
+		XSetSelectionOwner(m_display, Clipboard_atom, None, CurrentTime);
+	}
+	
 	XDestroyWindow(m_display, m_window);
 	XFree(m_visual);
 }

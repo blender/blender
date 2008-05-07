@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /*
@@ -257,6 +254,21 @@ GHOST_TSuccess GHOST_AddEventConsumer(GHOST_SystemHandle systemhandle, GHOST_Eve
 	GHOST_ISystem* system = (GHOST_ISystem*) systemhandle;
 	
 	return system->addEventConsumer((GHOST_CallbackEventConsumer*)consumerhandle);
+}
+
+int GHOST_OpenNDOF(GHOST_SystemHandle systemhandle, GHOST_WindowHandle windowhandle,
+   GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
+    GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
+    GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen)
+  //original patch only
+  /*  GHOST_NDOFEventHandler_fp setNdofEventHandler)*/
+{
+	GHOST_ISystem* system = (GHOST_ISystem*) systemhandle;
+
+    return system->openNDOF((GHOST_IWindow*) windowhandle,
+        setNdofLibraryInit, setNdofLibraryShutdown, setNdofDeviceOpen);
+//	original patch
+//        setNdofLibraryInit, setNdofLibraryShutdown, setNdofDeviceOpen, setNdofEventHandler);
 }
 
 
@@ -802,3 +814,16 @@ GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
 
 	return result;
 }
+
+GHOST_TUns8* GHOST_getClipboard(int flag)
+{
+	GHOST_ISystem* system = GHOST_ISystem::getSystem();
+	return system->getClipboard(flag);
+}
+
+void GHOST_putClipboard(GHOST_TInt8 *buffer, int flag)
+{
+	GHOST_ISystem* system = GHOST_ISystem::getSystem();
+	system->putClipboard(buffer, flag);
+}
+

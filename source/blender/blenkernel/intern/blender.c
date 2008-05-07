@@ -4,15 +4,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +27,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef WIN32 
@@ -63,6 +60,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_action.h"
 #include "BKE_blender.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
@@ -85,7 +83,6 @@
 #include "BKE_bad_level_calls.h" // for freeAllRad editNurb free_editMesh free_editText free_editArmature
 #include "BKE_utildefines.h" // O_BINARY FALSE
 #include "BIF_mainqueue.h" // mainqenter for onload script
-#include "BIF_toolbox.h"
 #include "mydevice.h"
 #include "nla.h"
 #include "blendef.h"
@@ -333,6 +330,7 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 		extern void lib_link_screen_restore(Main *, Scene *);
 		
 		SWAP(ListBase, G.main->screen, bfd->main->screen);
+		SWAP(ListBase, G.main->script, bfd->main->script);
 		
 		/* we re-use current screen */
 		curscreen= G.curscreen;
@@ -385,7 +383,8 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	/* special cases, override loaded flags: */
 	if (G.f & G_DEBUG) bfd->globalf |= G_DEBUG;
 	else bfd->globalf &= ~G_DEBUG;
-	if (!(G.f & G_DOSCRIPTLINKS)) bfd->globalf &= ~G_DOSCRIPTLINKS;
+
+	if ((U.flag & USER_DONT_DOSCRIPTLINKS)) bfd->globalf &= ~G_DOSCRIPTLINKS;
 
 	G.f= bfd->globalf;
 
@@ -395,6 +394,9 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	
 	/* baseflags, groups, make depsgraph, etc */
 	set_scene_bg(G.scene);
+
+	/* clear BONE_UNKEYED flags, these are not valid anymore for proxies */
+	framechange_poses_clear_unkeyed();
 
 	/* last stage of do_versions actually, that sets recalc flags for recalc poses */
 	for(ob= G.main->object.first; ob; ob= ob->id.next) {
@@ -412,7 +414,7 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	if (G.sce != filename) /* these are the same at times, should never copy to the same location */
 		strcpy(G.sce, filename);
 	
-	strcpy(G.main->name, filename); /* is guaranteed current file */
+	BLI_strncpy(G.main->name, filename, FILE_MAX); /* is guaranteed current file */
 	
 	MEM_freeN(bfd);
 }
@@ -479,7 +481,7 @@ int BKE_read_file_from_memory(char* filebuf, int filelength, void *type_r)
 		if (type_r)
 			*((BlenFileType*)type_r)= bfd->type;
 		
-		setup_app_data(bfd, "<memory>");
+		setup_app_data(bfd, "<memory2>");
 	} else {
 		error("Loading failed: %s", BLO_bre_as_string(bre));
 	}
@@ -501,7 +503,7 @@ int BKE_read_file_from_memfile(MemFile *memfile)
 		
 	bfd= BLO_read_from_memfile(G.sce, memfile, &bre);
 	if (bfd) {
-		setup_app_data(bfd, "<memory>");
+		setup_app_data(bfd, "<memory1>");
 	} else {
 		error("Loading failed: %s", BLO_bre_as_string(bre));
 	}
@@ -602,7 +604,7 @@ void BKE_write_undo(char *name)
 		counter= counter % U.undosteps;	
 	
 		sprintf(numstr, "%d.blend", counter);
-		BLI_make_file_string("/", tstr, U.tempdir, numstr);
+		BLI_make_file_string("/", tstr, btempdir, numstr);
 	
 		success= BLO_write_file(tstr, G.fileflags, &err);
 		
@@ -617,10 +619,6 @@ void BKE_write_undo(char *name)
 		success= BLO_write_file_mem(prevfile, &curundo->memfile, G.fileflags, &err);
 		
 	}
-	
-	/* signals "file needs save" on exit */
-	if(curundo!=NULL && curundo->prev!=NULL)
-		U.uiflag |= USER_UNDOSAVE;
 }
 
 /* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
@@ -698,7 +696,7 @@ char *BKE_undo_menu_string(void)
 	return menu;
 }
 
-/* saves quit.blend */
+	/* saves quit.blend */
 void BKE_undo_save_quit(void)
 {
 	UndoElem *uel;
@@ -717,11 +715,11 @@ void BKE_undo_save_quit(void)
 	/* no undo state to save */
 	if(undobase.first==undobase.last) return;
 		
-	BLI_make_file_string("/", str, U.tempdir, "quit.blend");
+	BLI_make_file_string("/", str, btempdir, "quit.blend");
 
 	file = open(str,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if(file == -1) {
-		printf("Unable to save %s\n", str);
+		error("Unable to save %s, check you have permissions", str);
 		return;
 	}
 
@@ -733,7 +731,7 @@ void BKE_undo_save_quit(void)
 	
 	close(file);
 	
-	if(chunk) printf("Unable to save %s\n", str);
+	if(chunk) error("Unable to save %s, internal error", str);
 	else printf("Saved session recovery to %s\n", str);
 }
 

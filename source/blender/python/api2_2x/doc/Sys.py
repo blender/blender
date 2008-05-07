@@ -153,7 +153,7 @@ def expandpath (path):
   Internally, Blender recognizes two special character sequences in paths:
     - '//' (used at the beginning): means base path -- the current .blend file's
       dir;
-    - '#' (used at the end): means current frame number.
+    - '#' characters in the filename will be replaced by the frame number.
   The expanded string can be passed to generic python functions that don't
   understand Blender's internal relative paths.
   @note: this function is also useful for obtaining the name of the image
@@ -164,4 +164,13 @@ def expandpath (path):
   @param path: a path name.
   @rtype: string
   @return: the expanded (if necessary) path.
+  """
+
+def cleanpath (path):
+  """
+  Clean the given 'path' by removing unneeded components such as "/./" and "/test/../"
+  @type path: string
+  @param path: a path name.
+  @rtype: string
+  @return: the cleaned (if necessary) path.
   """

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -148,7 +145,7 @@ int is_uv_tface_editing_allowed(void)
 
 void get_connected_limit_tface_uv(float *limit)
 {
-	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+	ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 	if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
 		limit[0]= 0.05/(float)ibuf->x;
 		limit[1]= 0.05/(float)ibuf->y;
@@ -218,17 +215,23 @@ void transform_aspect_ratio_tface_uv(float *aspx, float *aspy)
 {
 	int w, h;
 	float xuser_asp, yuser_asp;
-	
-	aspect_sima(G.sima, &xuser_asp, &yuser_asp);
-	
-	transform_width_height_tface_uv(&w, &h);
-	*aspx= (float)w/256.0f * xuser_asp;
-	*aspy= (float)h/256.0f * yuser_asp;
+
+	if(G.sima && G.sima->image) {
+		image_pixel_aspect(G.sima->image, &xuser_asp, &yuser_asp);
+		
+		transform_width_height_tface_uv(&w, &h);
+		*aspx= (float)w/256.0f * xuser_asp;
+		*aspy= (float)h/256.0f * yuser_asp;
+	}
+	else {
+		*aspx= 1.0f;
+		*aspy= 1.0f;
+	}
 }
 
 void transform_width_height_tface_uv(int *width, int *height)
 {
-	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+	ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 
 	if(ibuf) {
 		*width= ibuf->x;
@@ -272,9 +275,30 @@ void weld_align_tface_uv(char tool)
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 	MTFace *tface;
-	float cent[2];
+	float cent[2], min[2], max[2];
 	
 	if( is_uv_tface_editing_allowed()==0 ) return;
+
+	INIT_MINMAX2(min, max);
+
+	if(tool == 'a') {
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (simaFaceDraw_Check(efa, tface)) {
+				if (simaUVSel_Check(efa, tface, 0))
+					DO_MINMAX2(tface->uv[0], min, max)
+				if (simaUVSel_Check(efa, tface, 1))
+					DO_MINMAX2(tface->uv[1], min, max)
+				if (simaUVSel_Check(efa, tface, 2))
+					DO_MINMAX2(tface->uv[2], min, max)
+				if (efa->v4 && simaUVSel_Check(efa, tface, 3))
+					DO_MINMAX2(tface->uv[3], min, max)
+			}
+		}
+
+		tool= (max[0]-min[0] >= max[1]-min[1])? 'y': 'x';
+	}
+
 	cent_tface_uv(cent, 0);
 
 	if(tool == 'x' || tool == 'w') {
@@ -403,15 +427,16 @@ void weld_align_menu_tface_uv(void)
 
 	if( is_uv_tface_editing_allowed()==0 ) return;
 
-	mode= pupmenu("Weld/Align%t|Weld%x1|Align X%x2|Align Y%x3");
+	mode= pupmenu("Weld/Align%t|Weld%x1|Align Auto%x2|Align X%x3|Align Y%x4");
 
 	if(mode==-1) return;
 	if(mode==1) weld_align_tface_uv('w');
-	else if(mode==2) weld_align_tface_uv('x');
-	else if(mode==3) weld_align_tface_uv('y');
+	else if(mode==2) weld_align_tface_uv('a');
+	else if(mode==3) weld_align_tface_uv('x');
+	else if(mode==4) weld_align_tface_uv('y');
 
 	if(mode==1) BIF_undo_push("Weld UV");
-	else if(mode==2 || mode==3) BIF_undo_push("Align UV");
+	else if(ELEM3(mode, 2, 3, 4)) BIF_undo_push("Align UV");
 }
 
 void select_invert_tface_uv(void)
@@ -500,6 +525,49 @@ static int msel_hit(float *limit, unsigned int *hitarray, unsigned int vertexid,
 		}
 	}
 	return 0;
+}
+
+static void find_nearest_uv_edge(MTFace **nearesttf, EditFace **nearestefa, int *nearestedge)
+{
+	EditMesh *em= G.editMesh;
+	MTFace *tf;
+	EditFace *efa;
+	float mvalf[2], v1[2], v2[2];
+	int i, nverts, mindist, dist, uval1[2], uval2[2];
+	short mval[2];
+
+	getmouseco_areawin(mval);
+	mvalf[0]= mval[0];
+	mvalf[1]= mval[1];
+
+	mindist= 0x7FFFFFF;
+	*nearesttf= NULL;
+	*nearestefa= NULL;
+	*nearestedge= 0;
+	
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if(simaFaceDraw_Check(efa, tf)) {
+			nverts= efa->v4? 4: 3;
+			for(i=0; i<nverts; i++) {
+				uvco_to_areaco_noclip(tf->uv[i], uval1);
+				uvco_to_areaco_noclip(tf->uv[(i+1)%nverts], uval2);
+
+				v1[0]= uval1[0];
+				v1[1]= uval1[1];
+				v2[0]= uval2[0];
+				v2[1]= uval2[1];
+
+				dist= PdistVL2Dfl(mvalf, v1, v2);
+				if (dist < mindist) {
+					*nearesttf= tf;
+					*nearestefa= efa;
+					*nearestedge= i;
+					mindist= dist;
+				}
+			}
+		}
+	}
 }
 
 static void find_nearest_tface(MTFace **nearesttf, EditFace **nearestefa)
@@ -626,9 +694,9 @@ void mouse_select_sima(void)
 	EditFace *efa;
 	MTFace *tf, *nearesttf;
 	EditFace *nearestefa=NULL;
-	int a, selectsticky, actface, nearestuv, i;
+	int a, selectsticky, edgeloop, actface, nearestuv, nearestedge, i, shift;
 	char sticky= 0;
-	short flush = 0; /* 0 == dont flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
+	int flush = 0; /* 0 == dont flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
 	unsigned int hitv[4], nearestv;
 	float *hituv[4], limit[2];
 	
@@ -636,18 +704,21 @@ void mouse_select_sima(void)
 
 	get_connected_limit_tface_uv(limit);
 	
+	edgeloop= G.qual & LR_ALTKEY;
+	shift= G.qual & LR_SHIFTKEY;
+
 	if (G.sima->flag & SI_SYNC_UVSEL) {
 		/* copy from mesh */
 		if (G.scene->selectmode == SCE_SELECT_FACE) {
 			actface= 1;
 			sticky= 0;
 		} else {
-			actface= (G.qual & LR_ALTKEY || G.sima->flag & SI_SELACTFACE);
+			actface= G.scene->selectmode & SCE_SELECT_FACE;
 			sticky= 2;
 		}
 	} else {
 		/* normal operation */
-		actface= (G.qual & LR_ALTKEY || G.sima->flag & SI_SELACTFACE);
+		actface= G.sima->flag & SI_SELACTFACE;
 		
 		switch(G.sima->sticky) {
 		case SI_STICKY_LOC:
@@ -666,7 +737,14 @@ void mouse_select_sima(void)
 		}
 	}
 
-	if(actface) {
+	if(edgeloop) {
+		find_nearest_uv_edge(&nearesttf, &nearestefa, &nearestedge);
+		if(nearesttf==NULL)
+			return;
+
+		select_edgeloop_tface_uv(nearestefa, nearestedge, shift, &flush);
+	}
+	else if(actface) {
 		find_nearest_tface(&nearesttf, &nearestefa);
 		if(nearesttf==NULL)
 			return;
@@ -696,7 +774,7 @@ void mouse_select_sima(void)
 		}
 	}
 
-	if(G.qual & LR_SHIFTKEY) {
+	if(!edgeloop && shift) {
 		/* (de)select face */
 		if(actface) {
 			if(simaFaceSel_Check(nearestefa, nearesttf)) {
@@ -767,12 +845,15 @@ void mouse_select_sima(void)
 								simaUVSel_Set(efa, tf, 3);
 					}
 				}
-				EM_set_actFace(nearestefa);
+				
+				if (actface)
+					EM_set_actFace(nearestefa);
+				
 				flush = 1;
 			}			
 		}
 	}
-	else {
+	else if(!edgeloop) {
 		/* select face and deselect other faces */ 
 		if(actface) {
 			for (efa= em->faces.first; efa; efa= efa->next) {
@@ -858,7 +939,7 @@ void borderselect_sima(short whichuvs)
 				efa->tmp.l = 0;
 				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				if (simaFaceDraw_Check(efa, tface)) {
-					tface_center(tface, cent, (void *)efa->v4);
+					uv_center(tface->uv, cent, (void *)efa->v4);
 					if(BLI_in_rctf(&rectf, cent[0], cent[1])) {
 						efa->tmp.l = ok = 1;
 					}
@@ -1197,7 +1278,7 @@ void sel_uvco_inside_radius(short sel, EditFace *efa, MTFace *tface, int index, 
 /** gets image dimensions of the 2D view 'v' */
 static void getSpaceImageDimension(SpaceImage *sima, float *xy)
 {
-	ImBuf *ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+	ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 
 	if (ibuf) {
 		xy[0] = ibuf->x * sima->zoom;
@@ -1314,7 +1395,7 @@ void stitch_limit_uv_tface(void)
 {
 	MTFace *tf;
 	int a, vtot;
-	float newuv[2], limit[2];
+	float newuv[2], limit[2], pixellimit;
 	UvMapVert *vlist, *iterv;
 	EditMesh *em = G.editMesh;
 	EditVert *ev;
@@ -1330,20 +1411,23 @@ void stitch_limit_uv_tface(void)
 		return;
 	}
 	
-	limit[0]= limit[1]= 20.0;
-	add_numbut(0, NUM|FLO, "Limit:", 0.1, 1000.0, &limit[0], NULL);
+	pixellimit= 20.0f;
+	add_numbut(0, NUM|FLO, "Limit:", 0.1, 1000.0, &pixellimit, NULL);
 	if (!do_clever_numbuts("Stitch UVs", 1, REDRAW))
 		return;
 
-	limit[0]= limit[1]= limit[0]/256.0;
 	if(G.sima->image) {
-		ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+		ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 
 		if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
-			limit[1]= limit[0]/(float)ibuf->y;
-			limit[0]= limit[0]/(float)ibuf->x;
+			limit[0]= pixellimit/(float)ibuf->x;
+			limit[1]= pixellimit/(float)ibuf->y;
 		}
+		else
+			limit[0]= limit[1]= pixellimit/256.0;
 	}
+	else
+		limit[0]= limit[1]= pixellimit/256.0;
 
 	/*vmap= make_uv_vert_map(me->mface, tf, me->totface, me->totvert, 1, limit);*/
 	EM_init_index_arrays(0, 0, 1);
@@ -1364,7 +1448,7 @@ void stitch_limit_uv_tface(void)
 				efa = EM_get_face_for_index(iterv->f);
 				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				
-				if (tf[iterv->f].flag & TF_SEL_MASK(iterv->tfindex)) {
+				if (tf->flag & TF_SEL_MASK(iterv->tfindex)) {
 					newuv[0] += tf->uv[iterv->tfindex][0];
 					newuv[1] += tf->uv[iterv->tfindex][1];
 					vtot++;
@@ -1779,6 +1863,208 @@ void select_pinned_tface_uv(void)
 	scrarea_queue_winredraw(curarea);
 }
 
+/* UV edge loop select, follows same rules as editmesh */
+
+static void uv_vertex_loop_flag(UvMapVert *first)
+{
+	UvMapVert *iterv;
+	int count= 0;
+
+	for(iterv=first; iterv; iterv=iterv->next) {
+		if(iterv->separate && iterv!=first)
+			break;
+
+		count++;
+	}
+	
+	if(count < 5)
+		first->flag= 1;
+}
+
+static UvMapVert *uv_vertex_map_get(UvVertMap *vmap, EditFace *efa, int a)
+{
+	UvMapVert *iterv, *first;
+	
+	first= get_uv_map_vert_EM(vmap, (*(&efa->v1 + a))->tmp.l);
+
+	for(iterv=first; iterv; iterv=iterv->next) {
+		if(iterv->separate)
+			first= iterv;
+		if(iterv->f == efa->tmp.l)
+			return first;
+	}
+	
+	return NULL;
+}
+
+static int uv_edge_tag_faces(UvMapVert *first1, UvMapVert *first2, int *totface)
+{
+	UvMapVert *iterv1, *iterv2;
+	EditFace *efa;
+	int tot = 0;
+
+	/* count number of faces this edge has */
+	for(iterv1=first1; iterv1; iterv1=iterv1->next) {
+		if(iterv1->separate && iterv1 != first1)
+			break;
+
+		for(iterv2=first2; iterv2; iterv2=iterv2->next) {
+			if(iterv2->separate && iterv2 != first2)
+				break;
+
+			if(iterv1->f == iterv2->f) {
+				/* if face already tagged, don't do this edge */
+				efa= EM_get_face_for_index(iterv1->f);
+				if(efa->f1)
+					return 0;
+
+				tot++;
+				break;
+			}
+		}
+	}
+
+	if(*totface == 0) /* start edge */
+		*totface= tot;
+	else if(tot != *totface) /* check for same number of faces as start edge */
+		return 0;
+
+	/* tag the faces */
+	for(iterv1=first1; iterv1; iterv1=iterv1->next) {
+		if(iterv1->separate && iterv1 != first1)
+			break;
+
+		for(iterv2=first2; iterv2; iterv2=iterv2->next) {
+			if(iterv2->separate && iterv2 != first2)
+				break;
+
+			if(iterv1->f == iterv2->f) {
+				efa= EM_get_face_for_index(iterv1->f);
+				efa->f1= 1;
+				break;
+			}
+		}
+	}
+
+	return 1;
+}
+
+void select_edgeloop_tface_uv(EditFace *startefa, int starta, int shift, int *flush)
+{
+	EditMesh *em= G.editMesh;
+	EditVert *eve;
+	EditFace *efa;
+	MTFace *tface;
+	UvVertMap *vmap;
+	UvMapVert *iterv1, *iterv2;
+	float limit[2];
+	int a, count, looking, nverts, starttotface, select;
+	
+	if( is_uv_tface_editing_allowed()==0 ) return;
+
+	/* setup */
+	EM_init_index_arrays(0, 0, 1);
+
+	get_connected_limit_tface_uv(limit);
+	vmap= make_uv_vert_map_EM(0, 0, limit);
+
+	for(count=0, eve=em->verts.first; eve; count++, eve= eve->next)
+		eve->tmp.l = count;
+
+	for(count=0, efa= em->faces.first; efa; count++, efa= efa->next) {
+		if(!shift) {
+			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			simaFaceSel_UnSet(efa, tface);
+		}
+
+		efa->tmp.l= count;
+		efa->f1= 0;
+	}
+	
+	/* set flags for first face and verts */
+	nverts= (startefa->v4)? 4: 3;
+	iterv1= uv_vertex_map_get(vmap, startefa, starta);
+	iterv2= uv_vertex_map_get(vmap, startefa, (starta+1)%nverts);
+	uv_vertex_loop_flag(iterv1);
+	uv_vertex_loop_flag(iterv2);
+
+	starttotface= 0;
+	uv_edge_tag_faces(iterv1, iterv2, &starttotface);
+
+	/* sorry, first edge isnt even ok */
+	if(iterv1->flag==0 && iterv2->flag==0) looking= 0;
+	else looking= 1;
+
+	/* iterate */
+	while(looking) {
+		looking= 0;
+
+		/* find correct valence edges which are not tagged yet, but connect to tagged one */
+		for(efa= em->faces.first; efa; efa=efa->next) {
+			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+			if(!efa->f1 && simaFaceDraw_Check(efa, tface)) {
+				nverts= (efa->v4)? 4: 3;
+				for(a=0; a<nverts; a++) {
+					/* check face not hidden and not tagged */
+					iterv1= uv_vertex_map_get(vmap, efa, a);
+					iterv2= uv_vertex_map_get(vmap, efa, (a+1)%nverts);
+
+					/* check if vertex is tagged and has right valence */
+					if(iterv1->flag || iterv2->flag) {
+						if(uv_edge_tag_faces(iterv1, iterv2, &starttotface)) {
+							looking= 1;
+							efa->f1= 1;
+
+							uv_vertex_loop_flag(iterv1);
+							uv_vertex_loop_flag(iterv2);
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/* do the actual select/deselect */
+	nverts= (startefa->v4)? 4: 3;
+	iterv1= uv_vertex_map_get(vmap, startefa, starta);
+	iterv2= uv_vertex_map_get(vmap, startefa, (starta+1)%nverts);
+	iterv1->flag= 1;
+	iterv2->flag= 1;
+
+	if(shift) {
+		tface= CustomData_em_get(&em->fdata, startefa->data, CD_MTFACE);
+		if(simaUVSel_Check(startefa, tface, starta) && simaUVSel_Check(startefa, tface, starta))
+			select= 0;
+		else
+			select= 1;
+	}
+	else
+		select= 1;
+	
+	if(select) *flush= 1;
+	else *flush= -1;
+
+	for(efa= em->faces.first; efa; efa=efa->next) {
+		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+		nverts= (efa->v4)? 4: 3;
+		for(a=0; a<nverts; a++) {
+			iterv1= uv_vertex_map_get(vmap, efa, a);
+
+			if(iterv1->flag) {
+				if(select) simaUVSel_Set(efa, tface, a);
+				else simaUVSel_UnSet(efa, tface, a);
+			}
+		}
+	}
+
+	/* cleanup */
+	free_uv_vert_map_EM(vmap);
+	EM_free_index_arrays();
+}
+
 int minmax_tface_uv(float *min, float *max)
 {
 	EditMesh *em= G.editMesh;
@@ -1794,11 +2080,10 @@ int minmax_tface_uv(float *min, float *max)
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 		if (simaFaceDraw_Check(efa, tf)) {
-			if (simaUVSel_Check(efa, tf, 0))				DO_MINMAX2(tf->uv[0], min, max);
-			if (simaUVSel_Check(efa, tf, 1))				DO_MINMAX2(tf->uv[1], min, max);
-			if (simaUVSel_Check(efa, tf, 2))				DO_MINMAX2(tf->uv[2], min, max);
-			if (efa->v4 && (simaUVSel_Check(efa, tf, 3)))	DO_MINMAX2(tf->uv[3], min, max);
-			sel = 1;
+			if (simaUVSel_Check(efa, tf, 0))				{ DO_MINMAX2(tf->uv[0], min, max); sel = 1; }
+			if (simaUVSel_Check(efa, tf, 1))				{ DO_MINMAX2(tf->uv[1], min, max); sel = 1; }
+			if (simaUVSel_Check(efa, tf, 2))				{ DO_MINMAX2(tf->uv[2], min, max); sel = 1; }
+			if (efa->v4 && (simaUVSel_Check(efa, tf, 3)))	{ DO_MINMAX2(tf->uv[3], min, max); sel = 1; }
 		}
 	}
 	return sel;
@@ -1874,7 +2159,7 @@ static void sima_show_info(int channels, int x, int y, char *cp, float *fp, int 
 
 void sima_sample_color(void)
 {
-	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+	ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 	float fx, fy;
 	short mval[2], mvalo[2], firsttime=1;
 	
@@ -1996,17 +2281,21 @@ static void replace_image_filesel(char *str)		/* called from fileselect */
 static void save_image_doit(char *name)
 {
 	Image *ima= G.sima->image;
-	ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
+	ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 	int len;
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
 	if (ibuf) {
 		BLI_strncpy(str, name, sizeof(str));
 
-		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+		BLI_convertstringcode(str, G.sce);
+		BLI_convertstringframe(str, G.scene->r.cfra);
 		
-		if(G.scene->r.scemode & R_EXTENSION) 
+		
+		if(G.scene->r.scemode & R_EXTENSION)  {
 			BKE_add_image_extension(str, G.sima->imtypenr);
+			BKE_add_image_extension(name, G.sima->imtypenr);
+		}
 		
 		if (saveover(str)) {
 			
@@ -2124,7 +2413,7 @@ static char *filesel_imagetype_string(Image *ima)
 void save_as_image_sima(void)
 {
 	Image *ima = G.sima->image;
-	ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
+	ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 
 	if (ima) {
@@ -2151,7 +2440,7 @@ void save_as_image_sima(void)
 void save_image_sima(void)
 {
 	Image *ima = G.sima->image;
-	ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
+	ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 
 	if (ima) {
@@ -2212,7 +2501,7 @@ void save_image_sequence_sima(void)
 				char name[FILE_MAX];
 				BLI_strncpy(name, ibuf->name, sizeof(name));
 				
-				BLI_convertstringcode(name, G.sce, 0);
+				BLI_convertstringcode(name, G.sce);
 
 				if(0 == IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)) {
 					error("Could not write image", name);
@@ -2284,7 +2573,7 @@ void pack_image_sima()
 				}
 			}
 			else {
-				ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
+				ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 				if (ibuf && (ibuf->userflags & IB_BITMAPDIRTY)) {
 					if(okee("Can't pack painted image. Use Repack as PNG?"))
 						BKE_image_memorypack(ima);
@@ -2350,23 +2639,119 @@ void BIF_image_update_frame(void)
 	}
 }
 
-void aspect_sima(SpaceImage *sima, float *x, float *y)
+extern int EM_texFaceCheck(void); /* from editmesh.c */
+/* called to assign images to UV faces */
+void image_changed(SpaceImage *sima, Image *image)
+{
+	MTFace *tface;
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	ImBuf *ibuf = NULL;
+	short change = 0;
+	
+	if(image==NULL) {
+		sima->flag &= ~SI_DRAWTOOL;
+	} else {
+		ibuf = BKE_image_get_ibuf(image, NULL);
+	}
+	
+	if(sima->mode!=SI_TEXTURE)
+		return;
+	
+	/* skip assigning these procedural images... */
+	if(image && (image->type==IMA_TYPE_R_RESULT || image->type==IMA_TYPE_COMPOSITE)) {
+		return;
+	} else if ((G.obedit) &&
+			(G.obedit->type == OB_MESH) &&
+			(G.editMesh) &&
+			(G.editMesh->faces.first)
+		) {
+		
+		/* Add a UV layer if there is none, editmode only */
+		if ( !CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE) ) {
+			EM_add_data_layer(&em->fdata, CD_MTFACE);
+			CustomData_set_layer_active(&em->fdata, CD_MTFACE, 0); /* always zero because we have no other UV layers */
+			change = 1; /* so we update the object, incase no faces are selected */
+			
+			/* BIF_undo_push("New UV Texture"); - undo should be done by whatever changes the image */
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+		}
+		
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (efa->h==0 && efa->f & SELECT) {
+				if (image) {
+					tface->tpage= image;
+					tface->mode |= TF_TEX;
+					
+					if(image->tpageflag & IMA_TILES) tface->mode |= TF_TILES;
+					else tface->mode &= ~TF_TILES;
+					
+					if(image->id.us==0) id_us_plus(&image->id);
+					else id_lib_extern(&image->id);
+					
+					if (tface->transp==TF_ADD) {} /* they obviously know what they are doing! - leave as is */
+					else if (ibuf && ibuf->depth == 32)	tface->transp = TF_ALPHA;
+					else								tface->transp = TF_SOLID;
+					
+				} else {
+					tface->tpage= NULL;
+					tface->mode &= ~TF_TEX;
+					tface->transp = TF_SOLID;
+				}
+				change = 1;
+			}
+		}
+	}
+	/* change the space image after because simaFaceDraw_Check uses the space image
+	 * to check if the face is displayed in UV-localview */
+	sima->image = image;
+	
+	if (change)
+		object_uvs_changed(OBACT);
+	
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
+void image_pixel_aspect(Image *image, float *x, float *y)
 {
 	*x = *y = 1.0;
 	
-	if(		(sima->image == 0) ||
-			(sima->image->type == IMA_TYPE_R_RESULT) ||
-			(sima->image->type == IMA_TYPE_COMPOSITE) ||
-			(sima->image->tpageflag & IMA_TILES) ||
-			(sima->image->aspx==0.0 || sima->image->aspy==0.0)
+	if(		(image == NULL) ||
+			(image->type == IMA_TYPE_R_RESULT) ||
+			(image->type == IMA_TYPE_COMPOSITE) ||
+			(image->tpageflag & IMA_TILES) ||
+			(image->aspx==0.0 || image->aspy==0.0)
 	) {
 		return;
 	}
 	
 	/* x is always 1 */
-	*y = sima->image->aspy / sima->image->aspx;
+	*y = image->aspy / image->aspx;
 }
 
+void image_final_aspect(Image *image, float *x, float *y)
+{
+	*x = *y = 1.0;
+	
+	if(		(image == NULL) ||
+			(image->type == IMA_TYPE_R_RESULT) ||
+			(image->type == IMA_TYPE_COMPOSITE) ||
+			(image->tpageflag & IMA_TILES) ||
+			(image->aspx==0.0 || image->aspy==0.0)
+	) {
+		return;
+	} else {
+		ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
+		if (ibuf && ibuf->x && ibuf->y)  {
+			*y = (image->aspy * ibuf->y) / (image->aspx * ibuf->x);
+		} else {
+			/* x is always 1 */
+			*y = image->aspy / image->aspx;
+		}
+	}
+}
 
 /* Face selection tests  - Keep these together */
 
@@ -2459,3 +2844,4 @@ void simaUVSel_UnSet( struct EditFace *efa, struct MTFace *tf, int i)
 		tf->flag &= ~TF_SEL_MASK(i);
 	}
 }
+

@@ -5,15 +5,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +28,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * 
  */
 
@@ -41,11 +38,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <math.h> /* for log10 */
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "DNA_listBase.h"
+#include "DNA_userdef_types.h"
+
+#include "BLI_blenlib.h"
 #include "BLI_storage.h"
 #include "BLI_storage_types.h"
 #include "BLI_dynamiclist.h"
@@ -65,6 +65,14 @@
 #endif
 
 #ifdef WIN32
+
+#ifdef _WIN32_IE
+#undef _WIN32_IE
+#endif
+#define _WIN32_IE 0x0501
+#include <windows.h>
+#include <shlobj.h>
+
 #include "BLI_winstuff.h"
 
 /* for duplicate_defgroup */
@@ -850,6 +858,8 @@ int BLI_strcaseeq(char *a, char *b) {
  * take the dir name, make it absolute, and clean it up, replacing
  * excess file entry stuff (like /tmp/../tmp/../)
  * note that dir isn't protected for max string names... 
+ * 
+ * If relbase is NULL then its ignored
  */
 
 void BLI_cleanup_dir(const char *relabase, char *dir)
@@ -866,9 +876,9 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 {
 	short a;
 	char *start, *eind;
-	
-	BLI_convertstringcode(dir, relabase, 0);
-	
+	if (relabase) {
+		BLI_convertstringcode(dir, relabase);
+	}
 #ifdef WIN32
 	if(dir[0]=='.') {	/* happens for example in FILE_MAIN */
 	   get_default_root(dir);
@@ -946,7 +956,7 @@ void BLI_makestringcode(const char *relfile, char *file)
 	char * lslash;
 	char temp[FILE_MAXDIR+FILE_MAXFILE];
 	char res[FILE_MAXDIR+FILE_MAXFILE];
-
+	
 	/* if file is already relative, bail out */
 	if(file[0]=='/' && file[1]=='/') return;
 	
@@ -978,7 +988,11 @@ void BLI_makestringcode(const char *relfile, char *file)
 
 	BLI_char_switch(temp, '\\', '/');
 	BLI_char_switch(file, '\\', '/');
-
+	
+	/* remove /./ which confuse the following slash counting... */
+	BLI_cleanup_file(NULL, file);
+	BLI_cleanup_file(NULL, temp);
+	
 	/* the last slash in the file indicates where the path part ends */
 	lslash = BLI_last_slash(temp);
 
@@ -1023,11 +1037,80 @@ void BLI_makestringcode(const char *relfile, char *file)
 	}
 }
 
-int BLI_convertstringcode(char *path, const char *basepath, int framenum)
+
+int BLI_convertstringframe(char *path, int frame)
 {
-	int len, wasrelative;
-	char tmp[FILE_MAXDIR+FILE_MAXFILE];
-	char base[FILE_MAXDIR];
+	int ch_sta, ch_end, i;
+	/* Insert current frame: file### -> file001 */
+	ch_sta = ch_end = 0;
+	for (i = 0; path[i] != '\0'; i++) {
+		if (path[i] == '\\' || path[i] == '/') {
+			ch_end = 0; /* this is a directory name, dont use any hashes we found */
+		} else if (path[i] == '#') {
+			ch_sta = i;
+			ch_end = ch_sta+1;
+			while (path[ch_end] == '#') {
+				ch_end++;
+			}
+			i = ch_end-1; /* keep searching */
+			
+			/* dont break, there may be a slash after this that invalidates the previous #'s */
+		}
+	}
+	if (ch_end) { /* warning, ch_end is the last # +1 */
+		/* Add the frame number? */
+		short numlen, hashlen;
+		char tmp[FILE_MAX];
+		
+		char format[16]; /* 6 is realistically the maxframe (300000), so 8 should be enough, but 16 to be safe. */
+		if (((ch_end-1)-ch_sta) >= 16) {
+			ch_end = ch_sta+15; /* disallow values longer then 'format' can hold */
+		}
+		
+		strcpy(tmp, path);
+		
+		numlen = 1 + (int)log10((double)frame); /* this is the number of chars in the number */
+		hashlen = ch_end - ch_sta;
+		
+		sprintf(format, "%d", frame);
+		
+		if (numlen==hashlen) { /* simple case */
+			memcpy(tmp+ch_sta, format, numlen);
+		} else if (numlen < hashlen) {
+			memcpy(tmp+ch_sta + (hashlen-numlen), format, numlen); /*dont copy the string terminator */
+			memset(tmp+ch_sta, '0', hashlen-numlen);
+		} else {
+			/* number is longer then number of #'s */
+			if (tmp[ch_end] == '\0') { /* hashes are last, no need to move any string*/
+				/* bad juju - not testing string length here :/ */
+				memcpy(tmp+ch_sta, format, numlen+1); /* add 1 to get the string terminator \0 */
+			} else {
+				/* we need to move the end characters, reuse i */
+				int j;
+				
+				i = strlen(tmp); /* +1 to copy the string terminator */
+				j = i + (numlen-hashlen); /* from/to */
+				
+				while (i >= ch_end) {
+					tmp[j] = tmp[i]; 
+					i--;
+					j--;
+				}
+				memcpy(tmp + ch_sta, format, numlen);
+			}
+		}	
+		strcpy(path, tmp);
+		return 1;
+	}
+	return 0;
+}
+
+
+int BLI_convertstringcode(char *path, const char *basepath)
+{
+	int wasrelative;
+	char tmp[FILE_MAX];
+	char base[FILE_MAX];
 	char vol[3] = {'\0', '\0', '\0'};
 
 	BLI_strncpy(vol, path, 3);
@@ -1048,13 +1131,15 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 		strcat(tmp, p);
 	}
 	else {
-		strcpy(tmp, path);
+		BLI_strncpy(tmp, path, FILE_MAX);
 	}
 #else
-	strcpy(tmp, path);
+	BLI_strncpy(tmp, path, FILE_MAX);
 #endif
 
-	strcpy(base, basepath);
+	BLI_strncpy(base, basepath, FILE_MAX);
+	
+	BLI_cleanup_file(NULL, base);
 	
 	/* push slashes into unix mode - strings entering this part are
 	   potentially messed up: having both back- and forward slashes.
@@ -1080,13 +1165,9 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 		
 		MEM_freeN(filepart);
 	}
-
-	len= strlen(tmp);
-	if(len && tmp[len-1]=='#') {
-		sprintf(tmp+len-1, "%04d", framenum);
-	}
-
+	
 	strcpy(path, tmp);
+	
 #ifdef WIN32
 	/* skip first two chars, which in case of
 	   absolute path will be drive:/blabla and
@@ -1096,11 +1177,11 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 	*/
 	BLI_char_switch(path+2, '/', '\\');
 #endif
-
+	
 	return wasrelative;
 }
 
-/* copy di to fi without directory only */
+/* copy di to fi, filename only */
 void BLI_splitdirstring(char *di, char *fi)
 {
 	char *lslash= BLI_last_slash(di);
@@ -1124,6 +1205,8 @@ char *BLI_gethome(void) {
 	#else /* Windows */
 		char * ret;
 		static char dir[512];
+		static char appdatapath[MAXPATHLEN];
+		HRESULT hResult;
 
 		/* Check for %HOME% env var */
 
@@ -1145,9 +1228,36 @@ char *BLI_gethome(void) {
 
 				
 		/* add user profile support for WIN 2K / NT */
+		hResult = SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appdatapath);
+		
+		if (hResult == S_OK)
+		{
+			if (BLI_exists(appdatapath)) { /* from fop, also below... */
+				sprintf(dir, "%s\\Blender Foundation\\Blender", appdatapath);
+				BLI_recurdir_fileops(dir);
+				if (BLI_exists(dir)) {
+					strcat(dir,"\\.blender");
+					if(BLI_exists(dir)) return(dir);
+				}
+			}
+			hResult = SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, appdatapath);
+			if (hResult == S_OK)
+			{
+				if (BLI_exists(appdatapath)) 
+				{ /* from fop, also below... */
+					sprintf(dir, "%s\\Blender Foundation\\Blender", appdatapath);
+					BLI_recurdir_fileops(dir);
+					if (BLI_exists(dir)) {
+						strcat(dir,"\\.blender");
+						if(BLI_exists(dir)) return(dir);
+					}
+				}
+			}
+		}
+#if 0
 		ret = getenv("USERPROFILE");
 		if (ret) {
-			if (BLI_exists(ret)) { /* from fop, also below... */
+			if (BLI_exists(ret)) { /* from fop, also below...  */
 				sprintf(dir, "%s\\Application Data\\Blender Foundation\\Blender", ret);
 				BLI_recurdir_fileops(dir);
 				if (BLI_exists(dir)) {
@@ -1156,6 +1266,7 @@ char *BLI_gethome(void) {
 				}
 			}
 		}
+#endif
 
 		/* 
 		   Saving in the Windows dir is less than desirable. 
@@ -1345,9 +1456,42 @@ int BLI_testextensie(const char *str, const char *ext)
 	return (retval);
 }
 
+/*
+ * This is a simple version of BLI_split_dirfile that has the following advantages...
+ * 
+ * Converts "/foo/bar.txt" to "/foo/" and "bar.txt"
+ * - wont change 'string'
+ * - wont create any directories
+ * - dosnt use CWD, or deal with relative paths.
+ * - Only fill's in *dir and *file when they are non NULL
+ * */
+void BLI_split_dirfile_basic(const char *string, char *dir, char *file)
+{
+	int lslash=0, i = 0;
+	for (i=0; string[i]!='\0'; i++) {
+		if (string[i]=='\\' || string[i]=='/')
+			lslash = i+1;
+	}
+	if (dir) {
+		if (lslash) {
+			BLI_strncpy( dir, string, lslash+1); /* +1 to include the slash and the last char */
+		} else {
+			dir[0] = '\0';
+		}
+	}
+	
+	if (file) {
+		strcpy( file, string+lslash);
+	}
+}
 
 
-void BLI_split_dirfile(const char *string, char *dir, char *file)
+/* Warning,
+ * - May modify 'string' variable
+ * - May create the directory if it dosnt exist
+ * if this is not needed use BLI_split_dirfile_basic(...)
+ */
+void BLI_split_dirfile(char *string, char *dir, char *file)
 {
 	int a;
 #ifdef WIN32
@@ -1469,12 +1613,20 @@ void BLI_join_dirfile(char *string, const char *dir, const char *file)
 	int sl_dir = strlen(dir);
 	BLI_strncpy(string, dir, FILE_MAX);
 	if (sl_dir > FILE_MAX-1) sl_dir = FILE_MAX-1;
+	
+	/* only add seperator if needed */
 #ifdef WIN32
-	string[sl_dir] = '\\';
+	if (string[sl_dir-1] != '\\') {
+		string[sl_dir] = '\\';
+		sl_dir++;
+	}
 #else
-	string[sl_dir] = '/';
+	if (string[sl_dir-1] != '/') {
+		string[sl_dir] = '/';
+		sl_dir++;
+	}
 #endif
-	sl_dir++;
+	
 	if (sl_dir <FILE_MAX) {
 		BLI_strncpy(string + sl_dir, file, FILE_MAX-sl_dir);
 	}
@@ -1602,6 +1754,47 @@ void BLI_where_am_i(char *fullname, const char *name)
 		printf("Shortname = '%s'\n", fullname);
 #endif
 #endif
+	}
+}
+
+void BLI_where_is_temp(char *fullname, int usertemp)
+{
+	fullname[0] = '\0';
+	
+	if (usertemp && BLI_exists(U.tempdir)) {
+		strcpy(fullname, U.tempdir);
+	}
+	
+	
+#ifdef WIN32
+	if (fullname[0] == '\0') {
+		char *tmp = getenv("TEMP"); /* Windows */
+		if (tmp && BLI_exists(tmp)) {
+			strcpy(fullname, tmp);
+		}
+	}
+#else
+	/* Other OS's - Try TMP and TMPDIR */
+	if (fullname[0] == '\0') {
+		char *tmp = getenv("TMP");
+		if (tmp && BLI_exists(tmp)) {
+			strcpy(fullname, tmp);
+		}
+	}
+	
+	if (fullname[0] == '\0') {
+		char *tmp = getenv("TMPDIR");
+		if (tmp && BLI_exists(tmp)) {
+			strcpy(fullname, tmp);
+		}
+	}
+#endif	
+	
+	if (fullname[0] == '\0') {
+		strcpy(fullname, "/tmp/");
+	} else {
+		/* add a trailing slash if needed */
+		BLI_add_slash(fullname);
 	}
 }
 

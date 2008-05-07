@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef __KX_SCENE_H
 #define __KX_SCENE_H
@@ -39,6 +36,7 @@
 
 #include <vector>
 #include <set>
+#include <list>
 
 #include "GEN_Map.h"
 #include "GEN_HashedPtr.h"
@@ -84,6 +82,8 @@ class RAS_IPolyMaterial;
 class RAS_IRasterizer;
 class RAS_IRenderTools;
 class SCA_JoystickManager;
+class btCollisionShape;
+class KX_BlenderSceneConverter;
 /**
  * The KX_Scene holds all data for an independent scene. It relates
  * KX_Objects to the specific objects in the modules.
@@ -110,6 +110,7 @@ protected:
 	CListValue*			m_objectlist;
 	CListValue*			m_parentlist; // all 'root' parents
 	CListValue*			m_lightlist;
+	CListValue*			m_inactivelist;	// all objects that are not in the active layer
 
 	/**
 	 *  The tree of objects in the scene.
@@ -119,8 +120,12 @@ protected:
 	/**
 	 * The set of cameras for this scene
 	 */
-	set<class KX_Camera*>       m_cameras;
-	
+	list<class KX_Camera*>       m_cameras;
+	/**
+	 * The set of bullet shapes that must be deleted at the end of the scene
+	 * to avoid memory leak (not deleted by bullet because shape are shared between replicas)
+	 */
+	vector<class btCollisionShape*> m_shapes;
 	/**
 	 * Various SCA managers used by the scene
 	 */
@@ -129,10 +134,12 @@ protected:
 	SCA_MouseManager*		m_mousemgr;
 	SCA_TimeEventManager*	m_timemgr;
 
+	// Scene converter where many scene entities are registered
+	// Used to deregister objects that are deleted
+	class KX_BlenderSceneConverter*		m_sceneConverter;
 	/**
 	* physics engine abstraction
 	*/
-
 	//e_PhysicsEngine m_physicsEngine; //who needs this ?
 	class PHY_IPhysicsEnvironment*		m_physicsEnvironment;
 
@@ -276,7 +283,7 @@ public:
 	~KX_Scene();
 
 	RAS_BucketManager* GetBucketManager();
-	RAS_MaterialBucket*	FindBucket(RAS_IPolyMaterial* polymat);
+	RAS_MaterialBucket*	FindBucket(RAS_IPolyMaterial* polymat, bool &bucketCreated);
 	void RenderBuckets(const MT_Transform& cameratransform,
 						RAS_IRasterizer* rasty,
 						RAS_IRenderTools* rendertools);
@@ -296,9 +303,10 @@ public:
 	
 	void DelayedReleaseObject(CValue* gameobj);
 
-	void NewRemoveObject(CValue* gameobj);
+	int NewRemoveObject(CValue* gameobj);
 	void ReplaceMesh(CValue* gameobj,
 					 void* meshobj);
+	void AddShape(class btCollisionShape* shape);
 	/**
 	 * @section Logic stuff
 	 * Initiate an update of the logic system.
@@ -312,6 +320,10 @@ public:
 
 		CListValue*				
 	GetObjectList(
+	);
+
+		CListValue*				
+	GetInactiveList(
 	);
 
 		CListValue*				
@@ -330,7 +342,7 @@ public:
 	GetTimeEventManager(
 	);
 
-		set<class KX_Camera*>*
+		list<class KX_Camera*>*
 	GetCameras(
 	);
  
@@ -365,6 +377,15 @@ public:
 
 		void					
 	SetActiveCamera(
+		class KX_Camera*
+	);
+
+	/**
+	 * Move this camera to the end of the list so that it is rendered last.
+	 * If the camera is not on the list, it will be added
+	 */
+		void
+	SetCameraOnTop(
 		class KX_Camera*
 	);
 
@@ -496,6 +517,8 @@ public:
 	bool IsClearingZBuffer();
 	void EnableZBufferClearing(bool isclearingZbuffer);
 	
+	void SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter);
+
 	class PHY_IPhysicsEnvironment*		GetPhysicsEnvironment()
 	{
 		return m_physicsEnvironment;

@@ -7,15 +7,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -33,7 +30,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_GLOBAL_H
 #define BKE_GLOBAL_H
@@ -62,6 +59,7 @@ struct Object;
 struct bSoundListener;
 struct BMF_Font;
 struct EditMesh;
+struct BME_Glob;
 
 typedef struct Global {
 
@@ -111,6 +109,9 @@ typedef struct Global {
 
 	/* Editmode lists */
 	struct EditMesh *editMesh;
+	
+	/* Used for BMesh transformations */
+	struct BME_Glob *editBMesh;
     
 	float textcurs[4][2];
     
@@ -144,6 +145,9 @@ typedef struct Global {
 	/* Test thingy for Nzc */
 	int compat;      /* toggle compatibility mode for edge rendering */
 	int notonlysolid;/* T-> also edge-render transparent faces       */
+	
+	/* ndof device found ? */
+	int ndofdevice;
 	
 	/* confusing... G.f and G.flags */
 	int flags;
@@ -191,6 +195,7 @@ typedef struct Global {
 
 /* #define G_AUTOMATKEYS	(1 << 30)   also removed */
 #define G_HIDDENHANDLES (1 << 31) /* used for curves only */
+#define G_DRAWBWEIGHTS	(1 << 31)
 
 /* macro for testing face select mode
  * Texture paint could be removed since selected faces are not used

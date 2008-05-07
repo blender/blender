@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /**
@@ -41,7 +38,10 @@
 #include <stdarg.h>
 
 /* mmap exception */
-#if defined(AMIGA) || defined(__BeOS) || defined(WIN32)
+#if defined(AMIGA) || defined(__BeOS)
+#elif defined(WIN32)
+#include <sys/types.h>
+#include "mmap_win.h"
 #else
 #include <sys/types.h>
 #include <sys/mman.h>
@@ -114,8 +114,8 @@ static const char *check_memlist(MemHead *memh);
 volatile int totblock= 0;
 volatile unsigned long mem_in_use= 0, mmap_in_use= 0;
 
-volatile static struct localListBase _membase;
-volatile static struct localListBase *membase = &_membase;
+static volatile struct localListBase _membase;
+static volatile struct localListBase *membase = &_membase;
 static void (*error_callback)(char *) = NULL;
 static void (*thread_lock_callback)(void) = NULL;
 static void (*thread_unlock_callback)(void) = NULL;
@@ -292,7 +292,7 @@ void *MEM_callocN(unsigned int len, const char *str)
 /* note; mmap returns zero'd memory */
 void *MEM_mapallocN(unsigned int len, const char *str)
 {
-#if defined(AMIGA) || defined(__BeOS) || defined(WIN32)
+#if defined(AMIGA) || defined(__BeOS)
 	return MEM_callocN(len, str);
 #else
 	MemHead *memh;
@@ -332,6 +332,91 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 #endif
 }
 
+/* Memory statistics print */
+typedef struct MemPrintBlock {
+	const char *name;
+	unsigned long len;
+	int items;
+} MemPrintBlock;
+
+static int compare_name(const void *p1, const void *p2)
+{
+	const MemPrintBlock *pb1= (const MemPrintBlock*)p1;
+	const MemPrintBlock *pb2= (const MemPrintBlock*)p2;
+
+	return strcmp(pb1->name, pb2->name);
+}
+
+static int compare_len(const void *p1, const void *p2)
+{
+	const MemPrintBlock *pb1= (const MemPrintBlock*)p1;
+	const MemPrintBlock *pb2= (const MemPrintBlock*)p2;
+
+	if(pb1->len < pb2->len)
+		return 1;
+	else if(pb1->len == pb2->len)
+		return 0;
+	else
+		return -1;
+}
+
+void MEM_printmemlist_stats()
+{
+	MemHead *membl;
+	MemPrintBlock *pb, *printblock;
+	int totpb, a, b;
+
+	mem_lock_thread();
+
+	/* put memory blocks into array */
+	printblock= malloc(sizeof(MemPrintBlock)*totblock);
+
+	pb= printblock;
+	totpb= 0;
+
+	membl = membase->first;
+	if (membl) membl = MEMNEXT(membl);
+
+	while(membl) {
+		pb->name= membl->name;
+		pb->len= membl->len;
+		pb->items= 1;
+
+		totpb++;
+		pb++;
+
+		if(membl->next)
+			membl= MEMNEXT(membl->next);
+		else break;
+	}
+
+	/* sort by name and add together blocks with the same name */
+	qsort(printblock, totpb, sizeof(MemPrintBlock), compare_name);
+	for(a=0, b=0; a<totpb; a++) {
+		if(a == b) {
+			continue;
+		}
+		else if(strcmp(printblock[a].name, printblock[b].name) == 0) {
+			printblock[b].len += printblock[a].len;
+			printblock[b].items++;
+		}
+		else {
+			b++;
+			memcpy(&printblock[b], &printblock[a], sizeof(MemPrintBlock));
+		}
+	}
+	totpb= b+1;
+
+	/* sort by length and print */
+	qsort(printblock, totpb, sizeof(MemPrintBlock), compare_len);
+	printf("\ntotal memory len: %.3f MB\n", (double)mem_in_use/(double)(1024*1024));
+	for(a=0, pb=printblock; a<totpb; a++, pb++)
+		printf("%s items: %d, len: %.3f MB\n", pb->name, pb->items, (double)pb->len/(double)(1024*1024));
+
+	free(printblock);
+	
+	mem_unlock_thread();
+}
 
 /* Prints in python syntax for easy */
 static void MEM_printmemlist_internal( int pydict )
@@ -444,8 +529,10 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 	} else{
 		error = -1;
 		name = check_memlist(memh);
-		if (name == 0) MemorY_ErroR("free","pointer not in memlist");
-		else MemorY_ErroR(name,"error in header");
+		if (name == 0)
+			MemorY_ErroR("free","pointer not in memlist");
+		else
+			MemorY_ErroR(name,"error in header");
 	}
 
 	totblock--;
@@ -502,7 +589,7 @@ static void rem_memblock(MemHead *memh)
     totblock--;
     mem_in_use -= memh->len;
    
-#if defined(AMIGA) || defined(__BeOS) || defined(WIN32)
+#if defined(AMIGA) || defined(__BeOS)
     free(memh);
 #else   
    

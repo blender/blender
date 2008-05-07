@@ -10,7 +10,7 @@ Tooltip: 'View and edit available scripts configuration data'
 __author__ = "Willian P. Germano"
 __version__ = "0.1 2005/04/14"
 __email__ = ('scripts', 'Author, wgermano:ig*com*br')
-__url__ = ('blender', 'elysiun')
+__url__ = ('blender', 'blenderartists.org')
 
 __bpydoc__ ="""\
 This script can be used to view and edit configuration data stored

@@ -199,7 +199,7 @@ dumpDpxMainHeader(DpxMainHeader* header) {
 #endif
 }
 
-static int verbose = 0;
+static int verbose = 1;
 void
 dpxSetVerbose(int verbosity) {
 	verbose = verbosity;
@@ -275,8 +275,10 @@ dpxGetRowBytes(DpxFile* dpx, unsigned short* row, int y) {
 
 	/* extract required pixels */
 	for (pixelIndex = 0; pixelIndex < numPixels; ++pixelIndex) {
-		/* row[pixelIndex] = dpx->lut10[dpx->pixelBuffer[pixelIndex]]; */
-		row[pixelIndex] = dpx->pixelBuffer[pixelIndex] << 6;
+		if(dpx->params.doLogarithm)
+			row[pixelIndex] = dpx->lut10_16[dpx->pixelBuffer[pixelIndex]];
+		else
+			row[pixelIndex] = dpx->pixelBuffer[pixelIndex] << 6;
 	}
 
 	/* save remaining pixels */
@@ -316,8 +318,10 @@ dpxSetRowBytes(DpxFile* dpx, const unsigned short* row, int y) {
 
 	/* put new pixels into pixelBuffer */
 	for (pixelIndex = 0; pixelIndex < numPixels; ++pixelIndex) {
-		/* dpx->pixelBuffer[dpx->pixelBufferUsed + pixelIndex] = dpx->lut8[row[pixelIndex]]; */
-		dpx->pixelBuffer[dpx->pixelBufferUsed + pixelIndex] = row[pixelIndex] >> 6;
+		if(dpx->params.doLogarithm)
+			dpx->pixelBuffer[dpx->pixelBufferUsed + pixelIndex] = dpx->lut16_16[row[pixelIndex]];
+		else
+			dpx->pixelBuffer[dpx->pixelBufferUsed + pixelIndex] = row[pixelIndex] >> 6;
 	}
 	dpx->pixelBufferUsed += numPixels;
 

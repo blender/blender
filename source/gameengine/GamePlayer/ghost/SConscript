@@ -27,6 +27,7 @@ incs = ['.',
         '#source/blender',
         '#source/blender/include',
         '#source/blender/makesdna',
+        '#source/gameengine/BlenderRoutines',
         '#source/gameengine/Rasterizer',
         '#source/gameengine/GameLogic',
         '#source/gameengine/Expressions',
@@ -45,5 +46,9 @@ incs += Split(env['BF_SOLID_INC'])
 cflags = []
 if env['OURPLATFORM']=='win32-vc':
     cflags = ['/GR']
+
+if env['WITH_BF_GLEXT'] == 1:
+        env['CPPFLAGS'].append('-DWITH_GLEXT')
+
 
 env.BlenderLib (libname='gp_ghost', sources=source_files, includes = incs, defines = [], libtype='player',priority=0, compileflags=cflags)

@@ -5,14 +5,11 @@
  *
  * Code to create QuickTime Movies with Blender
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  *
  * Contributor(s): Stefan Gartner (sgefant)
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef WITH_QUICKTIME
@@ -311,6 +308,7 @@ static void QT_EndCreateMyVideoTrack(void)
 
 static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, int recty)
 {
+	SCTemporalSettings gTemporalSettings;
 	OSErr err = noErr;
 
 	qtexport->ibuf = IMB_allocImBuf (rectx, recty, 32, IB_rect, 0);
@@ -329,7 +327,18 @@ static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, i
 
 	SCDefaultPixMapSettings (qtdata->theComponent, qtexport->thePixMap, true);
 
-	SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
+	// workaround for crash with H.264, which requires an upgrade to
+	// the new callback based api for proper encoding, but that's not
+	// really compatible with rendering out frames sequentially
+	gTemporalSettings = qtdata->gTemporalSettings;
+	if(qtdata->gSpatialSettings.codecType == kH264CodecType) {
+		if(gTemporalSettings.temporalQuality != codecMinQuality) {
+			fprintf(stderr, "Only minimum quality compression supported for QuickTime H.264.\n");
+			gTemporalSettings.temporalQuality = codecMinQuality;
+		}
+	}
+
+	SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&gTemporalSettings);
 	SCSetInfo(qtdata->theComponent, scSpatialSettingsType,	&qtdata->gSpatialSettings);
 	SCSetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);
 
@@ -419,7 +428,7 @@ void makeqtstring (char *string) {
 	if (string==0) return;
 
 	strcpy(string, G.scene->r.pic);
-	BLI_convertstringcode(string, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(string, G.sce);
 
 	BLI_make_existing_file(string);
 
@@ -573,13 +582,13 @@ static void check_renderbutton_framerate(void) {
 	CheckError( err, "SCSetInfo error" );
 
 	if(qtdata->gTemporalSettings.frameRate == 1571553) {			// 23.98 fps
-		qtdata->kVideoTimeScale = 2400;
+		qtdata->kVideoTimeScale = 24000;
 		qtdata->duration = 1001;
 	} else if (qtdata->gTemporalSettings.frameRate == 1964113) {	// 29.97 fps
-		qtdata->kVideoTimeScale = 3000;
+		qtdata->kVideoTimeScale = 30000;
 		qtdata->duration = 1001;
 	} else if (qtdata->gTemporalSettings.frameRate == 3928227) {	// 59.94 fps
-		qtdata->kVideoTimeScale = 6000;
+		qtdata->kVideoTimeScale = 60000;
 		qtdata->duration = 1001;
 	} else {
 		qtdata->kVideoTimeScale = (qtdata->gTemporalSettings.frameRate >> 16) * 100;
@@ -648,13 +657,13 @@ int get_qtcodec_settings(void)
 		G.scene->r.frs_sec = 24;
 		G.scene->r.frs_sec_base = 1.001;
 	} else if (qtdata->gTemporalSettings.frameRate == 1964113) {	// 29.97 fps
-		qtdata->kVideoTimeScale = 3000;
+		qtdata->kVideoTimeScale = 30000;
 		qtdata->duration = 1001;
 
 		G.scene->r.frs_sec = 30;
 		G.scene->r.frs_sec_base = 1.001;
 	} else if (qtdata->gTemporalSettings.frameRate == 3928227) {	// 59.94 fps
-		qtdata->kVideoTimeScale = 6000;
+		qtdata->kVideoTimeScale = 60000;
 		qtdata->duration = 1001;
 
 		G.scene->r.frs_sec = 60;
@@ -662,7 +671,7 @@ int get_qtcodec_settings(void)
 	} else {
 		double fps = qtdata->gTemporalSettings.frameRate;
 
-		qtdata->kVideoTimeScale = 600;
+		qtdata->kVideoTimeScale = 60000;
 		qtdata->duration = qtdata->kVideoTimeScale / (qtdata->gTemporalSettings.frameRate / 65536);
 
 		if ((qtdata->gTemporalSettings.frameRate & 0xffff) == 0) {

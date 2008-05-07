@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * KX_MouseFocusSensor determines mouse in/out/over events.
  */
 
@@ -77,6 +74,14 @@ bool KX_RayCast::RayTest(KX_IPhysicsController* ignore_controller, PHY_IPhysicsE
 		if (callback.RayHit(info, result_point, result_normal))
 			return true;
 	
+		// There is a bug in the code below: the delta is computed with the wrong
+		// sign on the face opposite to the center, resulting in infinite looping.
+		// In Blender 2.45 this code was never executed because callback.RayHit() always 
+		// returned true, causing the ray sensor to stop on the first object.
+		// To avoid changing the behaviour will simply return false here.
+		// It should be discussed if we want the ray sensor to "see" through objects
+		// that don't have the required property/material (condition to get here)
+		return false;
 	
 		// skip past the object and keep tracing
 		/* We add 0.01 of fudge, so that if the margin && radius == 0., we don't endless loop. */

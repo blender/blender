@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -56,6 +53,7 @@
 #include "BLI_winstuff.h"
 #endif
 
+#include "BMF_Api.h"
 
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -118,7 +116,7 @@ void calc_imasel_rcts(SpaceImaSel *simasel, int winx, int winy)
 	simasel->v2d.vert.ymin += TILE_BORDER_Y + 2;
 	// simasel->v2d.mask.xmax= simasel->v2d.vert.xmin;
 	
-	if (simasel->flag & FILE_BOOKMARKS) {
+	if ((simasel->flag & FILE_BOOKMARKS) && (simasel->type != FILE_MAIN)) {
 		int bmwidth = (simasel->v2d.vert.xmin - simasel->v2d.mask.xmin)/4.0f;
 		if (bmwidth > BOOKMARKWIDTH_MAX) bmwidth = BOOKMARKWIDTH_MAX;
 
@@ -220,17 +218,40 @@ static void draw_file(SpaceImaSel *simasel, short sx, short sy, struct direntry 
 	short soffs;
 	char fname[FILE_MAXFILE];
 	float sw;
+	float x,y;
 
 	BLI_strncpy(fname,file->relname, FILE_MAXFILE);
 	sw = shorten_string(simasel, fname, simasel->prv_w );
 	soffs = (simasel->prv_w + TILE_BORDER_X*4 - sw) / 2;	
-	
-	ui_rasterpos_safe(sx+soffs, sy - simasel->prv_h - TILE_BORDER_Y*2 - U.fontsize, simasel->aspect);
+	x = (float)(sx+soffs);
+	y = (float)(sy - simasel->prv_h - TILE_BORDER_Y*2 - U.fontsize);
+
+	ui_rasterpos_safe(x, y, simasel->aspect);
+	/* handling of international fonts.
+	    TODO: proper support for utf8 in languages different from ja_JP abd zh_CH
+	    needs update of iconv in lib/windows to support getting the system language string
+	*/
+	#ifdef WITH_ICONV
+		{
+			struct LANGMenuEntry *lme;
+       		lme = find_language(U.language);
+
+			if ((lme !=NULL) && (!strcmp(lme->code, "ja_JP") || 
+				!strcmp(lme->code, "zh_CN")))
+			{
+				BIF_RasterPos(x, y);
 #ifdef WIN32
-	BIF_DrawString(simasel->curfont, fname, ((U.transopts & USER_TR_MENUS) | CONVERT_TO_UTF8));
+				BIF_DrawString(simasel->curfont, fname, ((U.transopts & USER_TR_MENUS) | CONVERT_TO_UTF8));
 #else
-	BIF_DrawString(simasel->curfont, fname, (U.transopts & USER_TR_MENUS));
+				BIF_DrawString(simasel->curfont, fname, (U.transopts & USER_TR_MENUS));
 #endif
+			} else {
+				BMF_DrawString(simasel->curfont, fname);
+			}
+		}
+#else
+			BMF_DrawString(simasel->curfont, fname);
+#endif /* WITH_ICONV */
 }
 
 static void draw_imasel_bookmarks(ScrArea *sa, SpaceImaSel *simasel)
@@ -238,7 +259,7 @@ static void draw_imasel_bookmarks(ScrArea *sa, SpaceImaSel *simasel)
 	char bookmark[FILE_MAX];
 	float sw;
 
-	if (simasel->flag & FILE_BOOKMARKS) {
+	if ((simasel->flag & FILE_BOOKMARKS) && (simasel->type != FILE_MAIN)) {
 		int nentries = fsmenu_get_nentries();
 		int i;
 		short sx, sy;
@@ -332,7 +353,7 @@ static void draw_imasel_previews(ScrArea *sa, SpaceImaSel *simasel)
 
 	if (!files) return;
 	/* Reload directory */
-	BLI_strncpy(simasel->dir, BIF_filelist_dir(files), FILE_MAXDIR);	
+	BLI_strncpy(simasel->dir, BIF_filelist_dir(files), FILE_MAX);	
 	
 	type = BIF_filelist_gettype(simasel->files);	
 	
@@ -607,6 +628,8 @@ static void draw_imasel_buttons(ScrArea *sa, SpaceImaSel* simasel)
 	float slen;
 	float parentbut_width = 20;
 	float bookmarkbut_width = 0.0f;
+	float file_start_width = 0.0f;
+
 	int filebuty1, filebuty2;
 
 	float xmin = simasel->v2d.mask.xmin + 10;
@@ -635,11 +658,12 @@ static void draw_imasel_buttons(ScrArea *sa, SpaceImaSel* simasel)
 
 	menu= fsmenu_build_menu();
 
-	if (menu[0]) {
+	if (menu[0]&& (simasel->type != FILE_MAIN)) {
 		bookmarkbut_width = parentbut_width;
+		file_start_width = parentbut_width;
 	}
 
-	uiDefBut(block, TEX, B_FS_FILENAME,"",	xmin+parentbut_width+bookmarkbut_width+2, filebuty1, xmax-xmin-loadbutton-parentbut_width-bookmarkbut_width, 21, simasel->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+	uiDefBut(block, TEX, B_FS_FILENAME,"",	xmin+file_start_width+bookmarkbut_width+2, filebuty1, xmax-xmin-loadbutton-file_start_width-bookmarkbut_width, 21, simasel->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 	uiDefBut(block, TEX, B_FS_DIRNAME,"",	xmin+parentbut_width, filebuty2, xmax-xmin-loadbutton-parentbut_width, 21, simasel->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 
 	if(loadbutton) {
@@ -648,7 +672,9 @@ static void draw_imasel_buttons(ScrArea *sa, SpaceImaSel* simasel)
 		uiDefBut(block, BUT,B_FS_CANCEL, "Cancel",		xmax-loadbutton, filebuty1, loadbutton, 21, simasel->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 	}
 
-	if(menu[0])	{ // happens when no .Bfs is there, and first time browse
+	/* menu[0] = NULL happens when no .Bfs is there, and first time browse
+	   disallow external directory browsing for databrowse */
+	if(menu[0] && (simasel->type != FILE_MAIN))	{ 
 		uiDefButS(block, MENU,B_FS_DIR_MENU, menu, xmin, filebuty1, parentbut_width, 21, &simasel->menu, 0, 0, 0, 0, "");
 		uiDefBut(block, BUT, B_FS_BOOKMARK, "B", xmin+22, filebuty1, bookmarkbut_width, 21, 0, 0, 0, 0, 0, "Bookmark current directory");
 	}

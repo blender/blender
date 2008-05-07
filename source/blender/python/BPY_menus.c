@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Willian P. Germano, Michael Reimpell
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 /* 
@@ -457,6 +454,7 @@ static int bpymenu_CreateFromFile( void )
 {
 	FILE *fp;
 	char line[255], w1[255], w2[255], tooltip[255], *tip;
+	char upythondir[FILE_MAX];
 	char *homedir = NULL;
 	int parsing, version, is_userdir;
 	short group;
@@ -492,15 +490,14 @@ static int bpymenu_CreateFromFile( void )
 	 * current one.  If so, return to force updating from dirs */
 	w1[0] = '\0';
 	fscanf( fp, "# User defined scripts dir: %[^\n]\n", w1 );
-	if( w1 ) {
-		char upythondir[FILE_MAXDIR];
 
-		BLI_strncpy(upythondir, U.pythondir, FILE_MAXDIR);
-		BLI_convertstringcode(upythondir, G.sce, 0);
+		BLI_strncpy(upythondir, U.pythondir, FILE_MAX);
+		BLI_convertstringcode(upythondir, G.sce);
+
 		if( strcmp( w1, upythondir ) != 0 )
 			return -1;
+
 		w1[0] = '\0';
-	}
 
 	while( fgets( line, 255, fp ) ) {	/* parsing file lines */
 
@@ -604,10 +601,10 @@ static void bpymenu_WriteDataFile( void )
 	if (U.pythondir[0] != '\0' &&
 			strcmp(U.pythondir, "/") != 0 && strcmp(U.pythondir, "//") != 0)
 	{
-		char upythondir[FILE_MAXDIR];
+		char upythondir[FILE_MAX];
 
-		BLI_strncpy(upythondir, U.pythondir, FILE_MAXDIR);
-		BLI_convertstringcode(upythondir, G.sce, 0);
+		BLI_strncpy(upythondir, U.pythondir, FILE_MAX);
+		BLI_convertstringcode(upythondir, G.sce);
 		fprintf( fp, "# User defined scripts dir: %s\n", upythondir );
 	}
 
@@ -933,13 +930,25 @@ static int bpymenu_ParseDir(char *dirname, char *parentdir, int is_userdir )
 	return 0;
 }
 
-static int bpymenu_GetStatMTime( char *name, int is_file, time_t * mtime )
+static int bpymenu_GetStatMTime( const char *name, int is_file, time_t * mtime )
 {
 	struct stat st;
 	int result;
 
+#ifdef WIN32
+	if (is_file) {
 	result = stat( name, &st );
-
+	} else {
+		/* needed for win32 only, remove trailing slash */
+		char name_stat[FILE_MAX];
+		BLI_strncpy(name_stat, name, FILE_MAX);
+		BLI_del_slash(name_stat);
+		result = stat( name_stat, &st );
+	}
+#else
+	result = stat( name, &st );
+#endif
+	
 	if( result == -1 )
 		return -1;
 
@@ -964,8 +973,8 @@ static int bpymenu_GetStatMTime( char *name, int is_file, time_t * mtime )
 int BPyMenu_Init( int usedir )
 {
 	char fname[FILE_MAXDIR];
-	char dirname[FILE_MAXDIR];
-	char upythondir[FILE_MAXDIR];
+	char dirname[FILE_MAX];
+	char upythondir[FILE_MAX];
 	char *upydir = U.pythondir, *sdir = NULL;
 	time_t time_dir1 = 0, time_dir2 = 0, time_file = 0;
 	int stat_dir1 = 0, stat_dir2 = 0, stat_file = 0;
@@ -993,14 +1002,14 @@ int BPyMenu_Init( int usedir )
 		upydir = NULL;
 	}
 	else {
-		BLI_strncpy(upythondir, upydir, FILE_MAXDIR);
-		BLI_convertstringcode(upythondir, G.sce, 0);
+		BLI_strncpy(upythondir, upydir, FILE_MAX);
+		BLI_convertstringcode(upythondir, G.sce);
 	}
 
 	sdir = bpy_gethome(1);
 
 	if (sdir) {
-		BLI_strncpy(dirname, sdir, FILE_MAXDIR);
+		BLI_strncpy(dirname, sdir, FILE_MAX);
 		stat_dir1 = bpymenu_GetStatMTime( dirname, 0, &time_dir1 );
 
 		if( stat_dir1 < 0 ) {
@@ -1086,8 +1095,8 @@ the user defined Python scripts dir.\n", dirname );
 				fprintf(stderr, "Default scripts dir does not seem valid.\n\n");
 		}
 		if( stat_dir2 == 0 ) {
-			BLI_strncpy(dirname, U.pythondir, FILE_MAXDIR);
-			BLI_convertstringcode(dirname, G.sce, 0);
+			BLI_strncpy(dirname, U.pythondir, FILE_MAX);
+			BLI_convertstringcode(dirname, G.sce);
 			i = bpymenu_ParseDir( dirname, NULL, 1 );
 			if (i == -1 && DEBUG)
 				fprintf(stderr, "User defined scripts dir does not seem valid.\n\n");

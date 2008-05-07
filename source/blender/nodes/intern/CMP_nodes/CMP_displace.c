@@ -47,7 +47,7 @@ static bNodeSocketType cmp_node_displace_out[]= {
 static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float *veccol, float *xscale, float *yscale)
 {
 	ImBuf *ibuf;
-	int x, y, sx, sy;
+	int x, y, vx, vy, sx, sy;
 	float dx=0.0, dy=0.0;
 	float dspx, dspy;
 	float uv[2];
@@ -72,16 +72,21 @@ static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float
 			/* the x-xrad stuff is a bit weird, but i seem to need it otherwise 
 			 * my returned pixels are offset weirdly */
 			vp = compbuf_get_pixel(vecbuf, veccol, x-vecbuf->xrad, y-vecbuf->yrad, vecbuf->xrad, vecbuf->yrad);
+
+			/* this happens in compbuf_get_pixel, need to make sure the following
+			 * check takes them into account */
+			vx= x-vecbuf->xof;
+			vy= y-vecbuf->yof;
 			
 			/* find the new displaced co-ords, also correcting for translate offset */
-			dspx = x - (*xscale * vp[0]);
-			dspy = y - (*yscale * vp[1]);
+			dspx = vx - (*xscale * vp[0]);
+			dspy = vy - (*yscale * vp[1]);
 
 			/* convert image space to 0.0-1.0 UV space for sampling, correcting for translate offset */
 			uv[0] = dspx / (float)sx;
 			uv[1] = dspy / (float)sy;
-			
-			if(x>0 && x< vecbuf->x-1 && y>0 && y< vecbuf->y-1)  {
+		
+			if(vx>0 && vx< vecbuf->x-1 && vy>0 && vy< vecbuf->y-1)  {
 				vpnext = vp+row;
 				vpprev = vp-row;
 			

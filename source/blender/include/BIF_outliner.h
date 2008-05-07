@@ -1,15 +1,12 @@
 /**
  * $Id: BIF_outliner.h
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BIF_OUTLINER_H
@@ -78,6 +75,8 @@ typedef struct TreeElement {
 #define TSE_LINKED_MAT		22
 		/* NOTE, is used for light group */
 #define TSE_LINKED_LAMP		23
+#define TSE_POSEGRP_BASE	24
+#define TSE_POSEGRP			25
 
 /* outliner search flags */
 #define OL_FIND					0
@@ -97,6 +96,9 @@ extern void outliner_show_hierarchy(struct ScrArea *sa);
 extern void outliner_one_level(struct ScrArea *sa, int add);
 extern void outliner_select(struct ScrArea *sa);
 extern void outliner_toggle_selected(struct ScrArea *sa);
+extern void outliner_toggle_visibility(struct ScrArea *sa);
+extern void outliner_toggle_selectability(struct ScrArea *sa);
+extern void outliner_toggle_renderability(struct ScrArea *sa);
 extern void outliner_del(struct ScrArea *sa);
 extern void outliner_operation_menu(struct ScrArea *sa);
 extern void outliner_page_up_down(struct ScrArea *sa, int up);

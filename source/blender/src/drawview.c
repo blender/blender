@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 //#define NAN_LINEAR_PHYSICS
@@ -1508,25 +1505,25 @@ static void draw_viewport_name(ScrArea *sa)
 	
 	switch(G.vd->view) {
 		case 1:
-			if (G.vd->persp & V3D_PERSP_DO_3D_PERSP)
-				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Persp" : "Front Persp";
-			else
+			if (G.vd->persp == V3D_ORTHO)
 				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Ortho" : "Front Ortho";
+			else
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Persp" : "Front Persp";
 			break;
 		case 3:
-			if (G.vd->persp & V3D_PERSP_DO_3D_PERSP)
-				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Persp" : "Right Persp";
-			else
+			if (G.vd->persp == V3D_ORTHO)
 				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Ortho" : "Right Ortho";
+			else
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Persp" : "Right Persp";
 			break;
 		case 7:
-			if (G.vd->persp & V3D_PERSP_DO_3D_PERSP)
-				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Persp" : "Top Persp";
-			else
+			if (G.vd->persp == V3D_ORTHO)
 				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Ortho" : "Top Ortho";
+			else
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Persp" : "Top Persp";
 			break;
 		default:
-			if (G.vd->persp==V3D_PERSP_USE_THE_CAMERA) {
+			if (G.vd->persp==V3D_CAMOB) {
 				if ((G.vd->camera) && (G.vd->camera->type == OB_CAMERA)) {
 					Camera *cam;
 					cam = G.vd->camera->data;
@@ -1535,7 +1532,7 @@ static void draw_viewport_name(ScrArea *sa)
 					name = "Object as Camera";
 				}
 			} else { 
-				name = (G.vd->persp & V3D_PERSP_DO_3D_PERSP) ? "User Persp" : "User Ortho";
+				name = (G.vd->persp == V3D_ORTHO) ? "User Ortho" : "User Persp";
 			}
 	}
 	
@@ -1580,7 +1577,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	EditEdge *eed;
 	MDeformVert *dvert=NULL;
 	TransformProperties *tfp= G.vd->properties_storage;
-	float median[5];
+	float median[5], ve_median[5];
 	int tot, totw, totweight, totedge;
 	char defstr[320];
 	
@@ -1773,15 +1770,16 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 		
 	}
 	else {	// apply
+		memcpy(ve_median, tfp->ve_median, sizeof(tfp->ve_median));
 		
 		if(G.vd->flag & V3D_GLOBAL_STATS) {
 			Mat4Invert(ob->imat, ob->obmat);
 			Mat4MulVecfl(ob->imat, median);
-			Mat4MulVecfl(ob->imat, tfp->ve_median);
+			Mat4MulVecfl(ob->imat, ve_median);
 		}
-		VecSubf(median, tfp->ve_median, median);
-		median[3]= tfp->ve_median[3]-median[3];
-		median[4]= tfp->ve_median[4]-median[4];
+		VecSubf(median, ve_median, median);
+		median[3]= ve_median[3]-median[3];
+		median[4]= ve_median[4]-median[4];
 		
 		if(ob->type==OB_MESH) {
 			
@@ -1796,8 +1794,8 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			for(eed= em->edges.first; eed; eed= eed->next) {
 				if(eed->f & SELECT) {
 					/* ensure the median can be set to zero or one */
-					if(tfp->ve_median[3]==0.0f) eed->crease= 0.0f;
-					else if(tfp->ve_median[3]==1.0f) eed->crease= 1.0f;
+					if(ve_median[3]==0.0f) eed->crease= 0.0f;
+					else if(ve_median[3]==1.0f) eed->crease= 1.0f;
 					else {
 						eed->crease+= median[3];
 						CLAMP(eed->crease, 0.0, 1.0);
@@ -2665,21 +2663,22 @@ static void view3d_blockhandlers(ScrArea *sa)
 typedef struct View3DAfter {
 	struct View3DAfter *next, *prev;
 	struct Base *base;
-	int type;
+	int type, flag;
 } View3DAfter;
 
 /* temp storage of Objects that need to be drawn as last */
-void add_view3d_after(View3D *v3d, Base *base, int type)
+void add_view3d_after(View3D *v3d, Base *base, int type, int flag)
 {
 	View3DAfter *v3da= MEM_callocN(sizeof(View3DAfter), "View 3d after");
 
 	BLI_addtail(&v3d->afterdraw, v3da);
 	v3da->base= base;
 	v3da->type= type;
+	v3da->flag= flag;
 }
 
 /* clears zbuffer and draws it over */
-static void view3d_draw_xray(View3D *v3d, int flag)
+static void view3d_draw_xray(View3D *v3d)
 {
 	View3DAfter *v3da, *next;
 	int doit= 0;
@@ -2694,7 +2693,7 @@ static void view3d_draw_xray(View3D *v3d, int flag)
 		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
 			next= v3da->next;
 			if(v3da->type==V3D_XRAY) {
-				draw_object(v3da->base, flag);
+				draw_object(v3da->base, v3da->flag);
 				BLI_remlink(&v3d->afterdraw, v3da);
 				MEM_freeN(v3da);
 			}
@@ -2704,7 +2703,7 @@ static void view3d_draw_xray(View3D *v3d, int flag)
 }
 
 /* disables write in zbuffer and draws it over */
-static void view3d_draw_transp(View3D *v3d, int flag)
+static void view3d_draw_transp(View3D *v3d)
 {
 	View3DAfter *v3da, *next;
 
@@ -2714,7 +2713,7 @@ static void view3d_draw_transp(View3D *v3d, int flag)
 	for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
 		next= v3da->next;
 		if(v3da->type==V3D_TRANSP) {
-			draw_object(v3da->base, flag);
+			draw_object(v3da->base, v3da->flag);
 			BLI_remlink(&v3d->afterdraw, v3da);
 			MEM_freeN(v3da);
 		}
@@ -2888,6 +2887,104 @@ static void draw_sculpt_depths(View3D *v3d)
 	}
 }
 
+void draw_depth(ScrArea *sa, void *spacedata)
+{
+	View3D *v3d= spacedata;
+	Base *base;
+	Scene *sce;
+	short zbuf, flag;
+	float glalphaclip;
+	/* temp set drawtype to solid */
+	
+	/* Setting these temporarily is not nice */
+	zbuf = v3d->zbuf;
+	flag = v3d->flag;
+	glalphaclip = U.glalphaclip;
+	
+	U.glalphaclip = 0.5; /* not that nice but means we wont zoom into billboards */
+	v3d->flag &= ~V3D_SELECT_OUTLINE;
+
+	setwinmatrixview3d(sa->winx, sa->winy, NULL);	/* 0= no pick rect */
+	setviewmatrixview3d();	/* note: calls where_is_object for camera... */
+	
+	Mat4MulMat4(v3d->persmat, v3d->viewmat, sa->winmat);
+	Mat4Invert(v3d->persinv, v3d->persmat);
+	Mat4Invert(v3d->viewinv, v3d->viewmat);
+	
+	glClear(GL_DEPTH_BUFFER_BIT);
+	
+	myloadmatrix(v3d->viewmat);
+	persp(PERSP_STORE);  // store correct view for persp(PERSP_VIEW) calls
+	
+	if(v3d->flag & V3D_CLIPPING) {
+		view3d_set_clipping(v3d);
+	}
+	
+	v3d->zbuf= TRUE;
+	glEnable(GL_DEPTH_TEST);
+	
+	/* draw set first */
+	if(G.scene->set) {
+		for(SETLOOPER(G.scene->set, base)) {
+			if(v3d->lay & base->lay) {
+				draw_object(base, 0);
+				if(base->object->transflag & OB_DUPLI) {
+					draw_dupli_objects_color(v3d, base, TH_WIRE);
+				}
+			}
+		}
+	}
+	
+	for(base= G.scene->base.first; base; base= base->next) {
+		if(v3d->lay & base->lay) {
+			
+			/* dupli drawing */
+			if(base->object->transflag & OB_DUPLI) {
+				draw_dupli_objects(v3d, base);
+			}
+			draw_object(base, 0);
+		}
+	}
+	
+	/* this isnt that nice, draw xray objects as if they are normal */
+	if (v3d->afterdraw.first) {
+		View3DAfter *v3da, *next;
+		int num = 0;
+		v3d->xray= TRUE;
+		
+		glDepthFunc(GL_ALWAYS); /* always write into the depth bufer, overwriting front z values */
+		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
+			next= v3da->next;
+			if(v3da->type==V3D_XRAY) {
+				draw_object(v3da->base, 0);
+				num++;
+			}
+			/* dont remove this time */
+		}
+		v3d->xray= FALSE;
+		
+		glDepthFunc(GL_LEQUAL); /* Now write the depth buffer normally */
+		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
+			next= v3da->next;
+			if(v3da->type==V3D_XRAY) {
+				v3d->xray= TRUE; v3d->transp= FALSE;  
+			} else if (v3da->type==V3D_TRANSP) {
+				v3d->xray= FALSE; v3d->transp= TRUE;
+			}
+			
+			draw_object(v3da->base, 0); /* Draw Xray or Transp objects normally */
+			BLI_remlink(&v3d->afterdraw, v3da);
+			MEM_freeN(v3da);
+		}
+		v3d->xray= FALSE;
+		v3d->transp= FALSE;
+	}
+	
+	v3d->zbuf = zbuf;
+	U.glalphaclip = glalphaclip;
+	v3d->flag = flag;
+}
+
 static void draw_viewport_fps(ScrArea *sa);
 
 
@@ -2897,7 +2994,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	Base *base;
 	Object *ob;
 	Scene *sce;
-	char retopo, sculpt;
+	char retopo, sculptparticle;
 	Object *obact = OBACT;
 	
 	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
@@ -2942,7 +3039,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			BIF_GetThemeColor3fv(TH_BACK, col);
 			glClearColor(col[0], col[1], col[2], 0.0); 
 		}
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 		
 		glLoadIdentity();
 	}
@@ -2950,7 +3047,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		float col[3];
 		BIF_GetThemeColor3fv(TH_BACK, col);
 		glClearColor(col[0], col[1], col[2], 0.0);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	}
 	
 	myloadmatrix(v3d->viewmat);
@@ -3006,9 +3103,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			}
 		}
 
-		/* Transp and X-ray afterdraw stuff */
-		view3d_draw_xray(v3d, DRAW_CONSTCOLOR);	// clears zbuffer if it is used!
-		view3d_draw_transp(v3d, DRAW_CONSTCOLOR);
+		/* Transp and X-ray afterdraw stuff for sets is done later */
 	}
 	
 	/* then draw not selected and the duplis, but skip editmode object */
@@ -3026,7 +3121,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	}
 
 	retopo= retopo_mesh_check() || retopo_curve_check();
-	sculpt= (G.f & G_SCULPTMODE) && !G.obedit;
+	sculptparticle= (G.f & (G_SCULPTMODE|G_PARTICLEEDIT)) && !G.obedit;
 	if(retopo)
 		view3d_update_depths(v3d);
 
@@ -3038,8 +3133,9 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		}
 	}
 
-	if(!retopo && sculpt && !(obact && (obact->dtx & OB_DRAWXRAY))) {
-		draw_sculpt_depths(v3d);
+	if(!retopo && sculptparticle && !(obact && (obact->dtx & OB_DRAWXRAY))) {
+		if(G.f & G_SCULPTMODE)
+			draw_sculpt_depths(v3d);
 		view3d_update_depths(v3d);
 	}
 
@@ -3053,11 +3149,12 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 	
 	/* Transp and X-ray afterdraw stuff */
-	view3d_draw_xray(v3d, 0);	// clears zbuffer if it is used!
-	view3d_draw_transp(v3d, 0);
+	view3d_draw_xray(v3d);	// clears zbuffer if it is used!
+	view3d_draw_transp(v3d);
 
-	if(!retopo && sculpt && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
-		draw_sculpt_depths(v3d);
+	if(!retopo && sculptparticle && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
+		if(G.f & G_SCULPTMODE)
+			draw_sculpt_depths(v3d);
 		view3d_update_depths(v3d);
 	}
 	
@@ -3229,9 +3326,7 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4]
 			}
 		}
 		
-		/* Transp and X-ray afterdraw stuff */
-		view3d_draw_xray(v3d, DRAW_CONSTCOLOR);	// clears zbuffer if it is used!
-		view3d_draw_transp(v3d, DRAW_CONSTCOLOR);
+		/* Transp and X-ray afterdraw stuff for sets is done later */
 	}
 
 	/* first not selected and duplis */
@@ -3269,8 +3364,8 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4]
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 
 	/* Transp and X-ray afterdraw stuff */
-	view3d_draw_xray(v3d, 0);	// clears zbuffer if it is used!
-	view3d_draw_transp(v3d, 0);
+	view3d_draw_xray(v3d);	// clears zbuffer if it is used!
+	view3d_draw_transp(v3d);
 	
 	if(v3d->flag & V3D_CLIPPING)
 		view3d_clr_clipping();
@@ -3296,8 +3391,12 @@ static double swaptime;
 static int curmode;
 
 /* used for fps display */
+#define REDRAW_FRAME_AVERAGE 8
 static double redrawtime;
 static double lredrawtime;
+static float redrawtimes_fps[REDRAW_FRAME_AVERAGE];
+static short redrawtime_index;
+
 
 int update_time(void)
 {
@@ -3320,13 +3419,33 @@ static void draw_viewport_fps(ScrArea *sa)
 {
 	float fps;
 	char printable[16];
-
+	int i, tot;
 	
 	if (lredrawtime == redrawtime)
 		return;
 	
 	printable[0] = '\0';
-	fps = (float)(1.0/(lredrawtime-redrawtime));
+	
+#if 0
+	/* this is too simple, better do an average */
+	fps = (float)(1.0/(lredrawtime-redrawtime))
+#else
+	redrawtimes_fps[redrawtime_index] = (float)(1.0/(lredrawtime-redrawtime));
+	
+	for (i=0, tot=0, fps=0.0f ; i < REDRAW_FRAME_AVERAGE ; i++) {
+		if (redrawtimes_fps[i]) {
+			fps += redrawtimes_fps[i];
+			tot++;
+		}
+	}
+	if (tot) {
+		redrawtime_index++;
+		if (redrawtime_index >= REDRAW_FRAME_AVERAGE)
+			redrawtime_index = 0;
+		
+		fps = fps / tot;
+	}
+#endif
 	
 	/* is this more then half a frame behind? */
 	if (fps+0.5 < FPS) {
@@ -3406,34 +3525,28 @@ static int cached_dynamics(int sfra, int efra)
 {
 	Base *base = G.scene->base.first;
 	Object *ob;
-	ModifierData *md;
 	ParticleSystem *psys;
-	int i, stack_index=-1, cached=1;
+	int i, cached=1;
+	PTCacheID pid;
 
 	while(base && cached) {
 		ob = base->object;
 		if(ob->softflag & OB_SB_ENABLE && ob->soft) {
-			for(i=0, md=ob->modifiers.first; md; i++, md=md->next) {
-				if(md->type == eModifierType_Softbody) {
-					stack_index = i;
-					break;
-				}
-			}
+			BKE_ptcache_id_from_softbody(&pid, ob, ob->soft);
+
 			for(i=sfra; i<=efra && cached; i++)
-				cached &= BKE_ptcache_id_exist(&ob->id,i,stack_index);
+				cached &= BKE_ptcache_id_exist(&pid, i);
 		}
 
 		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-			stack_index = modifiers_indexInObject(ob,(ModifierData*)psys_get_modifier(ob,psys));
 			if(psys->part->type==PART_HAIR) {
-				if(psys->softflag & OB_SB_ENABLE && psys->soft);
-				else
-					stack_index = -1;
-			}
+				if(psys->softflag & OB_SB_ENABLE && psys->soft) {
+					BKE_ptcache_id_from_softbody(&pid, ob, psys->soft);
 
-			if(stack_index >= 0)
-				for(i=sfra; i<=efra && cached; i++)
-					cached &= BKE_ptcache_id_exist(&ob->id,i,stack_index);
+					for(i=sfra; i<=efra && cached; i++)
+						cached &= BKE_ptcache_id_exist(&pid, i);
+				}
+			}
 		}
 		
 		base = base->next;
@@ -3457,6 +3570,12 @@ void inner_play_anim_loop(int init, int mode)
 		cached = cached_dynamics(PSFRA,PEFRA);
 		
 		redrawtime = 1.0/FPS;
+		
+		redrawtime_index = REDRAW_FRAME_AVERAGE;
+		while(redrawtime_index--) {
+			redrawtimes_fps[redrawtime_index] = 0.0;
+		}
+		redrawtime_index = 0;
 		lredrawtime = 0.0;
 		return;
 	}

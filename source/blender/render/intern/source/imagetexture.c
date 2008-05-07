@@ -32,6 +32,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <math.h>
+#include <float.h>
 #ifndef WIN32 
 #include <unistd.h>
 #else
@@ -245,7 +246,7 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, TexResult *texre
 	if(tex->flag & TEX_NEGALPHA) texres->ta= 1.0f-texres->ta;
 
 	/* de-premul, this is being premulled in shade_input_do_shade() */
-	if(texres->ta!=1.0f && texres->ta!=0.0f) {
+	if(texres->ta!=1.0f && texres->ta>FLT_EPSILON) {
 		fx= 1.0f/texres->ta;
 		texres->tr*= fx;
 		texres->tg*= fx;
@@ -989,7 +990,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *dxt, f
 	}
 	
 	/* de-premul, this is being premulled in shade_input_do_shade() */
-	if(texres->ta!=1.0f && texres->ta!=0.0f) {
+	if(texres->ta!=1.0f && texres->ta>FLT_EPSILON) {
 		fx= 1.0f/texres->ta;
 		texres->tr*= fx;
 		texres->tg*= fx;

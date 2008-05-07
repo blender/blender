@@ -281,6 +281,9 @@ ECHO Done
 					RelativePath="..\..\intern\GHOST_EventManager.h">
 				</File>
 				<File
+					RelativePath="..\..\intern\GHOST_EventNDOF.h">
+				</File>
+				<File
 					RelativePath="..\..\intern\GHOST_EventPrinter.h">
 				</File>
 				<File
@@ -291,6 +294,9 @@ ECHO Done
 				</File>
 				<File
 					RelativePath="..\..\intern\GHOST_ModifierKeys.h">
+				</File>
+				<File
+					RelativePath="..\..\intern\GHOST_NDOFManager.cpp">
 				</File>
 				<File
 					RelativePath="..\..\intern\GHOST_System.h">
@@ -372,6 +378,9 @@ ECHO Done
 			</File>
 			<File
 				RelativePath="..\..\intern\GHOST_ModifierKeys.cpp">
+			</File>
+			<File
+				RelativePath="..\..\intern\GHOST_NDOFManager.cpp">
 			</File>
 			<File
 				RelativePath="..\..\intern\GHOST_Rect.cpp">

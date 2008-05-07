@@ -5,15 +5,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +28,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_OBJECT_TYPES_H
 #define DNA_OBJECT_TYPES_H
@@ -100,7 +97,7 @@ typedef struct Object {
 	float loc[3], dloc[3], orig[3];
 	float size[3], dsize[3];
 	float rot[3], drot[3];
-	float quat[4], dquat[4];
+	/* float quat[4], dquat[4]; (not used yet) */
 	float obmat[4][4];
 	float parentinv[4][4]; /* inverse result of parent, so that object doesn't 'stick' to parent */
 	float constinv[4][4]; /* inverse result of constraints. doesn't include effect of parent or object local transform */
@@ -151,10 +148,6 @@ typedef struct Object {
 	ListBase sensors;
 	ListBase controllers;
 	ListBase actuators;
-
-	/* now used to store cache particles,
-	 * should be renamed see effect.c (Campbell) */
-    void *sumohandle;		
     
 	float bbsize[3];
 	short index;			/* custom index, for renderpasses */

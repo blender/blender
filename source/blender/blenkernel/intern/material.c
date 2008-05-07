@@ -4,15 +4,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +27,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -633,9 +630,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 	
 	if(ma->flarec==0) ma->flarec= 1;
 
-	/* add all texcoflags from mtex */
-	ma->texco= 0;
-	ma->mapto= 0;
+	/* add all texcoflags from mtex, texco and mapto were cleared in advance */
 	for(a=0; a<MAX_MTEX; a++) {
 		
 		/* separate tex switching */
@@ -730,6 +725,16 @@ void init_render_materials(int r_mode, float *amb)
 {
 	Material *ma;
 	
+	/* clear these flags before going over materials, to make sure they
+	 * are cleared only once, otherwise node materials contained in other
+	 * node materials can go wrong */
+	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
+		if(ma->id.us) {
+			ma->texco= 0;
+			ma->mapto= 0;
+		}
+	}
+
 	/* two steps, first initialize, then or the flags for layers */
 	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
 		/* is_used flag comes back in convertblender.c */

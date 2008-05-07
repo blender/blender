@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * meshlaplacian.c: Algorithms using the mesh laplacian.
  */
 
@@ -380,7 +377,8 @@ float laplacian_system_get_solution(int v)
          Ilya Baran and Jovan Popovic, SIGGRAPH 2007 */
 
 #define C_WEIGHT			1.0f
-#define WEIGHT_LIMIT		0.05f
+#define WEIGHT_LIMIT_START	0.05f
+#define WEIGHT_LIMIT_END	0.025f
 #define DISTANCE_EPSILON	1e-4f
 
 /* Raytracing for vertex to bone visibility */
@@ -601,6 +599,21 @@ static void heat_laplacian_create(LaplacianSystem *sys)
 		heat_set_H(sys, a);
 }
 
+static float heat_limit_weight(float weight)
+{
+	float t;
+
+	if(weight < WEIGHT_LIMIT_END) {
+		return 0.0f;
+	}
+	else if(weight < WEIGHT_LIMIT_START) {
+		t= (weight - WEIGHT_LIMIT_END)/(WEIGHT_LIMIT_START - WEIGHT_LIMIT_END);
+		return t*WEIGHT_LIMIT_START;
+	}
+	else
+		return weight;
+}
+
 void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numbones, bDeformGroup **dgrouplist, bDeformGroup **dgroupflip, float (*root)[3], float (*tip)[3], int *selected)
 {
 	LaplacianSystem *sys;
@@ -673,8 +686,9 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numbones, 
 							WEIGHT_ADD);
 				}
 				else {
-					if(solution > WEIGHT_LIMIT)
-						add_vert_to_defgroup(ob, dgrouplist[j], a, solution,
+					weight= heat_limit_weight(solution);
+					if(weight > 0.0f)
+						add_vert_to_defgroup(ob, dgrouplist[j], a, weight,
 							WEIGHT_REPLACE);
 					else
 						remove_vert_defgroup(ob, dgrouplist[j], a);
@@ -688,9 +702,10 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numbones, 
 								solution, WEIGHT_ADD);
 					}
 					else {
-						if(solution > WEIGHT_LIMIT)
+						weight= heat_limit_weight(solution);
+						if(weight > 0.0f)
 							add_vert_to_defgroup(ob, dgroupflip[j], vertsflipped[a],
-								solution, WEIGHT_REPLACE);
+								weight, WEIGHT_REPLACE);
 						else
 							remove_vert_defgroup(ob, dgroupflip[j], vertsflipped[a]);
 					}
@@ -708,12 +723,14 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numbones, 
 		if(bbone && lastsegment) {
 			for(a=0; a<me->totvert; a++) {
 				weight= get_vert_defgroup(ob, dgrouplist[j], a);
-				if(weight > 0.0f && weight <= WEIGHT_LIMIT)
+				weight= heat_limit_weight(weight);
+				if(weight <= 0.0f)
 					remove_vert_defgroup(ob, dgrouplist[j], a);
 
 				if(vertsflipped && dgroupflip[j] && vertsflipped[a] >= 0) {
 					weight= get_vert_defgroup(ob, dgroupflip[j], vertsflipped[a]);
-					if(weight > 0.0f && weight <= WEIGHT_LIMIT)
+					weight= heat_limit_weight(weight);
+					if(weight <= 0.0f)
 						remove_vert_defgroup(ob, dgroupflip[j], vertsflipped[a]);
 				}
 			}

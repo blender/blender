@@ -721,30 +721,59 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 {
 	PluginTex *pit;
 	int rgbnor=0;
+	float result[ 8 ];
 
 	texres->tin= 0.0;
 
 	pit= tex->plugin;
 	if(pit && pit->doit) {
 		if(texres->nor) {
-			VECCOPY(pit->result+5, texres->nor);
+			if (pit->version < 6) {
+				VECCOPY(pit->result+5, texres->nor);
+			} else {
+				VECCOPY(result+5, texres->nor);
+			}
 		}
-		if(osatex) rgbnor= ((TexDoit)pit->doit)(tex->stype, pit->data, texvec, dxt, dyt);
-		else rgbnor= ((TexDoit)pit->doit)(tex->stype, pit->data, texvec, 0, 0);
+		if (pit->version < 6) {
+			if(osatex) rgbnor= ((TexDoitold)pit->doit)(tex->stype, 
+				pit->data, texvec, dxt, dyt);
+			else rgbnor= ((TexDoitold)pit->doit)(tex->stype, 
+				pit->data, texvec, 0, 0);
+		} else {
+			if(osatex) rgbnor= ((TexDoit)pit->doit)(tex->stype, 
+				pit->data, texvec, dxt, dyt, result);
+			else rgbnor= ((TexDoit)pit->doit)(tex->stype, 
+				pit->data, texvec, 0, 0, result);
+		}
 
-		texres->tin= pit->result[0];
+		if (pit->version < 6) {
+			texres->tin = pit->result[0];
+		} else {
+			texres->tin = result[0];
+		}
 
 		if(rgbnor & TEX_NOR) {
 			if(texres->nor) {
-				VECCOPY(texres->nor, pit->result+5);
+				if (pit->version < 6) {
+					VECCOPY(texres->nor, pit->result+5);
+				} else {
+					VECCOPY(texres->nor, result+5);
+				}
 			}
 		}
 		
 		if(rgbnor & TEX_RGB) {
-			texres->tr= pit->result[1];
-			texres->tg= pit->result[2];
-			texres->tb= pit->result[3];
-			texres->ta= pit->result[4];
+			if (pit->version < 6) {
+				texres->tr = pit->result[1];
+				texres->tg = pit->result[2];
+				texres->tb = pit->result[3];
+				texres->ta = pit->result[4];
+			} else {
+				texres->tr = result[1];
+				texres->tg = result[2];
+				texres->tb = result[3];
+				texres->ta = result[4];
+			}
 
 			BRICONTRGB;
 		}
@@ -1203,6 +1232,8 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	return retval;
 }
 
+/* Warning, if the texres's values are not declared zero, check the return value to be sure
+ * the color values are set before using the r/g/b values, otherwise you may use uninitialized values - Campbell */
 int multitex_ext(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
 {
 	
@@ -1466,6 +1497,9 @@ void do_material_tex(ShadeInput *shi)
 					dx= dxt;
 					dy= dyt;
 					VECCOPY(tempvec, shi->co);
+					if(mtex->texflag & MTEX_OB_DUPLI_ORIG)
+						if(shi->obi && shi->obi->duplitexmat)
+							MTC_Mat4MulVecfl(shi->obi->duplitexmat, tempvec);
 					MTC_Mat4MulVecfl(ob->imat, tempvec);
 					if(shi->osatex) {
 						VECCOPY(dxt, shi->dxco);
@@ -1777,11 +1811,11 @@ void do_material_tex(ShadeInput *shi)
 						if(mtex->normapspace == MTEX_NSPACE_TANGENT) {
 							/* qdn: tangent space */
 							float B[3], tv[3];
-							Crossf(B, shi->vn, shi->tang);	/* bitangent */
+							Crossf(B, shi->vn, shi->nmaptang);	/* bitangent */
 							/* transform norvec from tangent space to object surface in camera space */
-							tv[0] = texres.nor[0]*shi->tang[0] + texres.nor[1]*B[0] + texres.nor[2]*shi->vn[0];
-							tv[1] = texres.nor[0]*shi->tang[1] + texres.nor[1]*B[1] + texres.nor[2]*shi->vn[1];
-							tv[2] = texres.nor[0]*shi->tang[2] + texres.nor[1]*B[2] + texres.nor[2]*shi->vn[2];
+							tv[0] = texres.nor[0]*shi->nmaptang[0] + texres.nor[1]*B[0] + texres.nor[2]*shi->vn[0];
+							tv[1] = texres.nor[0]*shi->nmaptang[1] + texres.nor[1]*B[1] + texres.nor[2]*shi->vn[1];
+							tv[2] = texres.nor[0]*shi->nmaptang[2] + texres.nor[1]*B[2] + texres.nor[2]*shi->vn[2];
 							shi->vn[0]= facm*shi->vn[0] + fact*tv[0];
 							shi->vn[1]= facm*shi->vn[1] + fact*tv[1];
 							shi->vn[2]= facm*shi->vn[2] + fact*tv[2];
@@ -2484,21 +2518,29 @@ int externtex(MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *t
 void render_realtime_texture(ShadeInput *shi, Image *ima)
 {
 	TexResult texr;
-	static Tex tex1, tex2;	// threadsafe
+	static Tex imatex[BLENDER_MAX_THREADS];	// threadsafe
 	static int firsttime= 1;
 	Tex *tex;
 	float texvec[3], dx[2], dy[2];
 	ShadeInputUV *suv= &shi->uv[shi->actuv];
+	int a;
 
 	if(firsttime) {
-		firsttime= 0;
-		default_tex(&tex1);
-		default_tex(&tex2);
-		tex1.type= TEX_IMAGE;
-		tex2.type= TEX_IMAGE;
+		BLI_lock_thread(LOCK_IMAGE);
+		if(firsttime) {
+			for(a=0; a<BLENDER_MAX_THREADS; a++) {
+				memset(&imatex[a], 0, sizeof(Tex));
+				default_tex(&imatex[a]);
+				imatex[a].type= TEX_IMAGE;
+			}
+
+			firsttime= 0;
+		}
+		BLI_unlock_thread(LOCK_IMAGE);
 	}
 	
-	if(shi->ys & 1) tex= &tex1; else tex= &tex2;	// threadsafe
+	tex= &imatex[shi->thread];
+	tex->iuser.ok= ima->ok;
 	
 	texvec[0]= 0.5+0.5*suv->uv[0];
 	texvec[1]= 0.5+0.5*suv->uv[1];
@@ -2514,7 +2556,7 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 	
 	if(shi->osatex) imagewraposa(tex, ima, NULL, texvec, dx, dy, &texr); 
 	else imagewrap(tex, ima, NULL, texvec, &texr); 
-	
+
 	shi->vcol[0]*= texr.tr;
 	shi->vcol[1]*= texr.tg;
 	shi->vcol[2]*= texr.tb;

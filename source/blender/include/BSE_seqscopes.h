@@ -32,7 +32,10 @@
 struct ImBuf;
 
 struct ImBuf *make_waveform_view_from_ibuf(struct ImBuf * ibuf);
+struct ImBuf *make_sep_waveform_view_from_ibuf(struct ImBuf * ibuf);
 struct ImBuf *make_vectorscope_view_from_ibuf(struct ImBuf * ibuf);
+struct ImBuf *make_zebra_view_from_ibuf(struct ImBuf * ibuf, float perc);
+struct ImBuf *make_histogram_view_from_ibuf(struct ImBuf * ibuf);
 
 #endif
 

@@ -10,7 +10,7 @@ Tooltip: 'Import from Quake file format (.md2).'
 __author__ = 'Bob Holcomb'
 __version__ = '0.16'
 __url__ = ["Bob's site, http://bane.servebeer.com",
-     "Support forum, http://scourage.servebeer.com/phpbb/", "blender", "elysiun"]
+     "Support forum, http://scourage.servebeer.com/phpbb/", "blender", "blenderartists.org"]
 __email__ = ["Bob Holcomb, bob_holcomb:hotmail*com", "scripts"]
 __bpydoc__ = """\
 This script imports a Quake 2 file (MD2), textures, 
@@ -448,6 +448,8 @@ def load_md2(md2_filename, texture_filename):
 	
 	w = float(md2.skin_width)
 	h = float(md2.skin_height)
+	if w <= 0.0: w = 1.0
+	if h <= 0.0: h = 1.0
 	#for some reason quake2 texture maps are upside down, flip that
 	uv_list = [Vector(co.u/w, 1-(co.v/h)) for co in md2.tex_coords]
 	del w, h

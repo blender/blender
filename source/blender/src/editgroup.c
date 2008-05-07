@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -112,7 +109,7 @@ void add_selected_to_act_ob_groups(void)
 }
 
 
-void rem_selected_from_group(void)
+void rem_selected_from_all_groups(void)
 {
 	Base *base;
 	Group *group;
@@ -134,6 +131,77 @@ void rem_selected_from_group(void)
 	BIF_undo_push("Remove from Group");
 }
 
+
+void rem_selected_from_group(void)
+{
+	char menutext[30+(22*22)], *menupt;
+	int i=0;
+	short ret;
+	Group *group= NULL;
+	Object *ob;
+	Base *base;
+	Group *group_array[24] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	
+	/* UnSet Tags for Objects and Groups */
+	for(group= G.main->group.first; group; group= group->id.next) {
+		if(group->id.lib==NULL) {
+			group->id.flag &= ~LIB_DOIT;
+		}
+	}
+	for(ob=G.main->object.first; ob; ob= ob->id.next) {
+		ob->id.flag &= ~LIB_DOIT;
+	}
+	
+	/* Not tag selected objects */
+	for(base=FIRSTBASE; base; base= base->next) {
+		if TESTBASELIB(base) {
+			base->object->id.flag |= LIB_DOIT;
+		}
+	}
+	
+	menupt = menutext;
+	/* Build a list of groups that contain selected objects */
+	for(group= G.main->group.first; group && i<24; group= group->id.next) {
+		if(group->id.lib==NULL) {
+			GroupObject *go;
+			for(go= group->gobject.first; go; go= go->next) {
+				if(go->ob->id.flag & LIB_DOIT) {
+					group_array[i] = group;
+					menupt += sprintf(menupt, "|%s", group->id.name+2);
+					i++;
+					break; /* Only want to know if this group should go in the list*/
+				}
+			}
+		}
+	}
+	
+	/* do we have any groups? */
+	if (group_array[0] == NULL) {
+		error("Object selection contains no groups");
+	} else {
+		ret = pupmenu(menutext);
+		if (ret==-1) {
+			return;
+		} else { 
+			group = group_array[ret-1];
+			for(base=FIRSTBASE; base; base= base->next) {
+				if TESTBASELIB(base) {
+					/* if we are removed and are not in any group, set our flag */
+					if(rem_from_group(group, base->object) && find_group(base->object, NULL)==NULL) {
+						base->object->flag &= ~OB_FROMGROUP;
+						base->flag &= ~OB_FROMGROUP;
+					}
+				}
+			}
+		}
+	}
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	DAG_scene_sort(G.scene);
+	BIF_undo_push("Remove from Group");
+}
+
 void group_operation_with_menu(void)
 {
 	Group *group= NULL;
@@ -145,7 +213,7 @@ void group_operation_with_menu(void)
 			break;
 	
 	if(group)
-		mode= pupmenu("Groups %t|Add to Existing Group %x3|Add to Active Objects Groups %x4|Add to New Group %x1|Remove from All Groups %x2");
+		mode= pupmenu("Groups %t|Add to Existing Group %x3|Add to Active Objects Groups %x4|Add to New Group %x1|Remove from Group %x5|Remove from All Groups %x2");
 	else
 		mode= pupmenu("Groups %t|Add to New Group %x1|Remove from All Groups %x2");
 	
@@ -173,7 +241,7 @@ void group_operation(int mode)
 					strp1 += sprintf(strp1, "%s %%x%d|", group->id.name+2, tot);
 				}
 			}
-			tot= pupmenu(strp);
+			tot= pupmenu_col(strp, 20);
 			MEM_freeN(strp);
 			if(tot>0) group= BLI_findlink(&G.main->group, tot-1);
 			else return;
@@ -181,6 +249,7 @@ void group_operation(int mode)
 		
 		if(mode==4) add_selected_to_act_ob_groups();
 		else if(mode==1 || mode==3) add_selected_to_group(group);
-		else if(mode==2) rem_selected_from_group();
+		else if(mode==2) rem_selected_from_all_groups();
+		else if(mode==5) rem_selected_from_group();
 	}
 }

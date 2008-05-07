@@ -2,15 +2,12 @@
  *
  * $Id:
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -56,6 +53,7 @@
 
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_pointcache.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_drawview.h"
@@ -69,6 +67,24 @@
 #include "butspace.h"
 #include "mydevice.h"
 
+static void start_animated_screen(SpaceTime *stime)
+{
+	add_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM, stime->redraws);
+
+	if(stime->redraws & TIME_WITH_SEQ_AUDIO)
+		audiostream_start( CFRA );
+
+	BKE_ptcache_set_continue_physics((stime->redraws & TIME_CONTINUE_PHYSICS));
+}
+
+static void end_animated_screen(SpaceTime *stime)
+{
+	rem_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM);
+
+	audiostream_stop();
+	BKE_ptcache_set_continue_physics(0);
+}
+
 void do_time_buttons(ScrArea *sa, unsigned short event)
 {
 	SpaceTime *stime= sa->spacedata.first;
@@ -80,17 +96,11 @@ void do_time_buttons(ScrArea *sa, unsigned short event)
 		update_for_newframe();
 		break;
 	case B_TL_PLAY:
-		add_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM, stime->redraws);
-		if(stime->redraws & TIME_WITH_SEQ_AUDIO)
-			audiostream_start( CFRA );
-
+		start_animated_screen(stime);
 		break;
 	case B_TL_STOP:
-		rem_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM);
-		if(stime->redraws & TIME_WITH_SEQ_AUDIO)
-			audiostream_stop();
+		end_animated_screen(stime);
 		allqueue(REDRAWALL, 0);
-		
 		break;
 	case B_TL_FF:
 		/* end frame */
@@ -132,7 +142,7 @@ static void do_time_redrawmenu(void *arg, int event)
 		stime->redraws ^= event;
 		/* update handler when it's running */
 		if(has_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM))
-			add_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM, stime->redraws);
+			start_animated_screen(stime);
 	}
 	else {
 		if(event==1001) {
@@ -182,6 +192,12 @@ static uiBlock *time_redrawmenu(void *arg_unused)
 	
 	sprintf(str, "Set Frames/Sec (%d/%f)", G.scene->r.frs_sec, G.scene->r.frs_sec_base);
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, str,	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1001, "");
+
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	if(stime->redraws & TIME_CONTINUE_PHYSICS) icon= ICON_CHECKBOX_HLT;
+	else icon= ICON_CHECKBOX_DEHLT;
+	uiDefIconTextBut(block, BUTM, 1, icon, "Continue Physics",      0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_CONTINUE_PHYSICS, "During playblack, continue physics simulations regardless of the frame number");
 	
 	
 	if(curarea->headertype==HEADERTOP) {
@@ -204,7 +220,8 @@ static void do_time_viewmenu(void *arg, int event)
 	
 	switch(event) {
 		case 2: /* Play Back Animation */
-			add_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM, stime->redraws);
+			if(!has_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM))
+				start_animated_screen(stime);
 			break;
 		case 3: /* View All */
 			first= G.scene->r.sfra;

@@ -1,15 +1,12 @@
 /* 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Willian P. Germano, Campbell Barton, Ken Hughes
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 /* This file is the Blender.Draw part of opy_draw.c, from the old
@@ -52,7 +49,7 @@
 #include "BIF_space.h"
 #include "BIF_interface.h"
 #include "BIF_toolbox.h"
-#include "BPI_script.h"		/* script struct */
+#include "DNA_space_types.h"		/* script struct */
 #include "Image.h"              /* for accessing Blender.Image objects */
 #include "IMB_imbuf_types.h"    /* for the IB_rect define */
 #include "interface.h"
@@ -124,6 +121,7 @@ static PyObject *Method_Text( PyObject * self, PyObject * args );
 static PyObject *Method_Label( PyObject * self, PyObject * args );
 /* by Campbell: */
 static PyObject *Method_PupMenu( PyObject * self, PyObject * args );
+static PyObject *Method_PupTreeMenu( PyObject * self, PyObject * args );
 static PyObject *Method_PupIntInput( PyObject * self, PyObject * args );
 static PyObject *Method_PupFloatInput( PyObject * self, PyObject * args );
 static PyObject *Method_PupStrInput( PyObject * self, PyObject * args );
@@ -283,12 +281,12 @@ new String button\n\n\
 
 static char Method_GetStringWidth_doc[] =
 	"(text, font = 'normal') - Return the width in pixels of the given string\n\
-(font) The font size: 'normal' (default), 'small' or 'tiny'.";
+(font) The font size: 'large','normal' (default), 'normalfix', 'small' or 'tiny'.";
 
 static char Method_Text_doc[] =
 	"(text, font = 'normal') - Draw text onscreen\n\n\
 (text) The text to draw\n\
-(font) The font size: 'normal' (default), 'small' or 'tiny'.\n\n\
+(font) The font size: 'large','normal' (default), 'normalfix', 'small' or 'tiny'.\n\n\
 This function returns the width of the drawn string.";
 
 static char Method_Label_doc[] =
@@ -307,6 +305,9 @@ Valid format codes are\n\
 	%t - The option should be used as the title\n\
 	%xN - The option should set the integer N in the button value.\n\n\
 Ex: Draw.PupMenu('OK?%t|QUIT BLENDER') # should be familiar ...";
+
+static char Method_PupTreeMenu_doc[] =
+"each item in the menu list should be - (str, event), separator - None or submenu - (str, [...]).";
 
 static char Method_PupIntInput_doc[] =
 	"(text, default, min, max) - Display an int pop-up input.\n\
@@ -378,6 +379,7 @@ static struct PyMethodDef Draw_methods[] = {
 	{"Text", (PyCFunction)Method_Text, METH_VARARGS, Method_Text_doc},
 	{"Label", (PyCFunction)Method_Label, METH_VARARGS, Method_Label_doc},
 	{"PupMenu", (PyCFunction)Method_PupMenu, METH_VARARGS, Method_PupMenu_doc},
+	{"PupTreeMenu", (PyCFunction)Method_PupTreeMenu, METH_VARARGS, Method_PupTreeMenu_doc},
 	{"PupIntInput", (PyCFunction)Method_PupIntInput, METH_VARARGS, Method_PupIntInput_doc},
 	{"PupFloatInput", (PyCFunction)Method_PupFloatInput, METH_VARARGS, Method_PupFloatInput_doc},
 	{"PupStrInput", (PyCFunction)Method_PupStrInput, METH_VARARGS, Method_PupStrInput_doc},
@@ -527,10 +529,8 @@ static int Button_setattr( PyObject * self, char *name, PyObject * v )
 				return 0;
 		}
 		else if( but->type == BSTRING_TYPE && PyString_Check(v) ) {
-			char *newstr;
-			unsigned int newlen;
-
-			PyString_AsStringAndSize( v, &newstr, (int *)&newlen );
+			char *newstr = PyString_AsString(v);
+			size_t newlen = strlen(newstr);
 			
 			if (newlen+1> UI_MAX_DRAW_STR)
 				return EXPP_ReturnIntError( PyExc_ValueError, "Error: button string length exceeded max limit (399 chars).");
@@ -612,7 +612,8 @@ static void exit_pydraw( SpaceScript * sc, short err )
 	if( err ) {
 		PyErr_Print(  );
 		script->flags = 0;	/* mark script struct for deletion */
-		error( "Python script error: check console" );
+		SCRIPT_SET_NULL(script);
+		error_pyscript();
 		scrarea_queue_redraw( sc->area );
 	}
 
@@ -667,6 +668,7 @@ void BPY_spacescript_do_pywin_draw( SpaceScript * sc )
 	uiBlock *block;
 	char butblock[20];
 	Script *script = sc->script;
+	PyGILState_STATE gilstate = PyGILState_Ensure();
 
 	sprintf( butblock, "win %d", curarea->win );
 	block = uiNewBlock( &curarea->uiblocks, butblock, UI_EMBOSSX,
@@ -691,6 +693,8 @@ void BPY_spacescript_do_pywin_draw( SpaceScript * sc )
 	uiDrawBlock( block );
 
 	curarea->win_swap = WIN_BACK_OK;
+
+	PyGILState_Release(gilstate);
 }
 
 static void spacescript_do_pywin_buttons( SpaceScript * sc,
@@ -704,6 +708,8 @@ static void spacescript_do_pywin_buttons( SpaceScript * sc,
 void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 	short val, char ascii )
 {
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+
 	if( event == QKEY && G.qual & ( LR_ALTKEY | LR_CTRLKEY ) ) {
 		/* finish script: user pressed ALT+Q or CONTROL+Q */
 		Script *script = sc->script;
@@ -711,6 +717,8 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 		exit_pydraw( sc, 0 );
 
 		script->flags &= ~SCRIPT_GUI;	/* we're done with this script */
+
+		PyGILState_Release(gilstate);
 
 		return;
 	}
@@ -724,6 +732,9 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 			 * read the comment before check_button_event() below to understand */
 			if (val >= EXPP_BUTTON_EVENTS_OFFSET && val < 0x4000)
 				spacescript_do_pywin_buttons(sc, val - EXPP_BUTTON_EVENTS_OFFSET);
+
+			PyGILState_Release(gilstate);
+
 			return;
 		}
 	}
@@ -744,6 +755,8 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 			EXPP_dict_set_item_str(g_blenderdict, "event",
 					PyString_FromString(""));
 	}
+
+	PyGILState_Release(gilstate);
 }
 
 static void exec_but_callback(void *pyobj, void *data)
@@ -820,7 +833,7 @@ static void exec_but_callback(void *pyobj, void *data)
 	if (!result) {
 		Py_DECREF(pyvalue);
 		PyErr_Print(  );
-		error( "Python script error: check console" );
+		error_pyscript(  );
 	}
 	Py_XDECREF( result );
 }
@@ -864,9 +877,16 @@ void BPy_Free_DrawButtonsList(void)
 {
 	/*Clear the list.*/
 	if (M_Button_List) {
+		PyGILState_STATE gilstate = {0};
+		int py_is_on = Py_IsInitialized();
+
+		if (py_is_on) gilstate = PyGILState_Ensure();
+
 		PyList_SetSlice(M_Button_List, 0, PyList_Size(M_Button_List), NULL);
 		Py_DECREF(M_Button_List);
 		M_Button_List = NULL;
+
+		if (py_is_on) PyGILState_Release(gilstate);
 	}
 }
 
@@ -888,6 +908,8 @@ static PyObject *Method_Exit( PyObject * self )
 
 	/* remove our lock to the current namespace */
 	script->flags &= ~SCRIPT_GUI;
+	script->scriptname[0] = '\0';
+	script->scriptarg[0] = '\0';
 
 	Py_RETURN_NONE;
 }
@@ -1083,7 +1105,7 @@ static PyObject *Method_UIBlock( PyObject * self, PyObject * args )
 	
 	if (!result) {
 		PyErr_Print(  );
-		error( "Python script error: check console" );
+		error_pyscript(  );
 	} else {
 		/* copied from do_clever_numbuts in toolbox.c */
 		
@@ -1636,6 +1658,8 @@ static PyObject *Method_GetStringWidth( PyObject * self, PyObject * args )
 
 	if( !strcmp( font_str, "normal" ) )
 		font = ( &G )->font;
+	else if( !strcmp( font_str, "normalfix" ) )
+		font = BMF_GetFont(BMF_kScreen12);
 	else if( !strcmp( font_str, "large" ) )
 		font = BMF_GetFont(BMF_kScreen15);
 	else if( !strcmp( font_str, "small" ) )
@@ -1644,7 +1668,7 @@ static PyObject *Method_GetStringWidth( PyObject * self, PyObject * args )
 		font = ( &G )->fontss;
 	else
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "\"font\" must be: 'large', 'normal' (default), 'small' or 'tiny'." );
+					      "\"font\" must be: 'large','normal' (default), 'normalfix', 'small' or 'tiny'." );
 
 	width = PyInt_FromLong( BMF_GetStringWidth( font, text ) );
 
@@ -1669,6 +1693,8 @@ static PyObject *Method_Text( PyObject * self, PyObject * args )
 		font = ( &G )->font;
 	else if( !strcmp( font_str, "large" ) )
 		font = BMF_GetFont(BMF_kScreen15);
+	else if( !strcmp( font_str, "normalfix" ) )
+		font = BMF_GetFont(BMF_kScreen12);
 	else if( !strcmp( font_str, "normal" ) )
 		font = ( &G )->font;
 	else if( !strcmp( font_str, "small" ) )
@@ -1677,7 +1703,7 @@ static PyObject *Method_Text( PyObject * self, PyObject * args )
 		font = ( &G )->fontss;
 	else
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "\"font\" must be: 'normal' (default), 'large', 'small' or 'tiny'." );
+					      "\"font\" must be: 'large','normal' (default), 'normalfix', 'small' or 'tiny'." );
 
 	BMF_DrawString( font, text );
 
@@ -1721,6 +1747,99 @@ static PyObject *Method_PupMenu( PyObject * self, PyObject * args )
 
 	return EXPP_ReturnPyObjError( PyExc_MemoryError,
 				      "couldn't create a PyInt" );
+}
+
+static int current_menu_ret;
+static void toolbox_event(void *arg, int event)
+{
+	current_menu_ret = event;
+}
+
+static TBitem * menu_from_pylist( PyObject * current_menu, ListBase *storage )
+{
+	TBitem *tbarray, *tbitem;
+	Link *link;
+	PyObject *item, *submenu;
+	int size, i;
+	
+	char *menutext;
+	int event;
+	
+	size = PyList_Size( current_menu );
+	
+	link= MEM_callocN(sizeof(Link) + sizeof(TBitem)*(size+1), "python menu");
+	
+	if (link==NULL) {
+		PyErr_SetString( PyExc_MemoryError, "Could not allocate enough memory for the menu" );
+		BLI_freelistN(storage);
+		return NULL;
+	}
+	
+	BLI_addtail(storage, link);
+	
+	tbarray = tbitem = (TBitem *)(link+1);
+	
+	for (i=0; i<size; i++, tbitem++) {
+		/* need to get these in */
+		item = PyList_GET_ITEM( current_menu, i);
+		
+		if (item == Py_None) {
+			tbitem->name = "SEPR";
+		} else if( PyArg_ParseTuple( item, "si", &menutext, &event ) ) {
+			tbitem->name = menutext;
+			tbitem->retval = event;
+			//current_menu_index
+		} else if( PyArg_ParseTuple( item, "sO!", &menutext, &PyList_Type, &submenu ) ) {
+			PyErr_Clear(); /* from PyArg_ParseTuple above */
+			tbitem->name = menutext;
+			tbitem->poin = menu_from_pylist(submenu, storage);
+			if (tbitem->poin == NULL) {
+				BLI_freelistN(storage);
+				return NULL; /* error should be set */
+			}
+		} else {
+			PyErr_Clear(); /* from PyArg_ParseTuple above */
+			
+			PyErr_SetString( PyExc_TypeError, "Expected a list of name,event tuples, None, or lists for submenus" );
+			BLI_freelistN(storage);
+			return NULL;
+		}
+	}
+	tbitem->icon= -1;	/* end signal */
+	tbitem->name= "";
+	tbitem->retval= 0;
+	tbitem->poin= toolbox_event;
+	
+	return tbarray;
+}
+
+static PyObject *Method_PupTreeMenu( PyObject * self, PyObject * args )
+{
+	PyObject * current_menu;
+	ListBase storage = {NULL, NULL};
+	TBitem *tb;
+	
+	if( !PyArg_ParseTuple( args, "O!", &PyList_Type, &current_menu ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"Expected a list" );
+	
+	mywinset(G.curscreen->mainwin); // we go to screenspace
+	
+	tb = menu_from_pylist(current_menu, &storage);
+	
+	if (!tb) { 
+		/* Error is set */
+		return NULL; 
+	}
+	
+	current_menu_ret = -1;
+	toolbox_generic(tb);
+	
+	/* free all dynamic entries... */
+	BLI_freelistN(&storage);
+	
+	mywinset(curarea->win);
+	return PyInt_FromLong( current_menu_ret ); /* current_menu_ret is set by toolbox_event callback */
 }
 
 static PyObject *Method_PupIntInput( PyObject * self, PyObject * args )

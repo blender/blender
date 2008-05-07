@@ -193,14 +193,17 @@ def LoadConfigData (key = None):
 		if bsys.exists(fname): files.append(fname)
 
 	for p in files:
-		f = file(p, 'r')
-		lines = f.readlines()
-		f.close()
-		if lines: # Lines may be blank
-			mainkey = lines[0].split('=')[0].strip()
-			pysrc = "\n".join(lines)
-			exec(pysrc)
-			exec("Registry.SetKey('%s', %s)" % (str(mainkey), mainkey))
+		try:
+			f = file(p, 'r')
+			lines = f.readlines()
+			f.close()
+			if lines: # Lines may be blank
+				mainkey = lines[0].split('=')[0].strip()
+				pysrc = "\n".join(lines)
+				exec(pysrc)
+				exec("Registry.SetKey('%s', %s)" % (str(mainkey), mainkey))
+		except Exception, e:
+			raise Warning(e) # Resend exception as warning
 
 
 def RemoveConfigData (key = None):
@@ -223,8 +226,11 @@ def RemoveConfigData (key = None):
 
 	import os
 
-	for p in files:
-		os.remove(p) # remove the file(s)
+	try:
+		for p in files:
+			os.remove(p) # remove the file(s)
+	except Exception, e:
+		raise Warning(e) # Resend exception as warning
 
 
 def SaveConfigData (key = None):
@@ -250,9 +256,12 @@ def SaveConfigData (key = None):
 
 		if not cfgdict: continue
 
-		filename = bsys.join(_CFG_DIR, "%s%s" % (mainkey, _EXT))
-		f = file(filename, 'w')
-		output = _dict_to_str(mainkey, _sanitize(cfgdict))
-		if output!='None':
-			f.write(output)
-			f.close()
+		try:
+			filename = bsys.join(_CFG_DIR, "%s%s" % (mainkey, _EXT))
+			f = file(filename, 'w')
+			output = _dict_to_str(mainkey, _sanitize(cfgdict))
+			if output!='None':
+				f.write(output)
+				f.close()
+		except Exception, e:
+			raise Warning(e) # Resend exception as warning

@@ -9,11 +9,12 @@
 #include <OpenGL/glu.h>
 #else
 #include <GL/gl.h>
-#if defined(__sun__) && !defined(__sparc__)
+/* #if defined(__sun__) && !defined(__sparc__)
 #include <mesa/glu.h>
 #else
+*/
 #include <GL/glu.h>
-#endif
+/* #endif */
 #endif
 
 #include <iostream>
@@ -1427,8 +1428,8 @@ KX_PYMETHODDEF_DOC( BL_Shader, setAttrib, "setAttrib(enum)" )
 		bgl::blBindAttribLocationARB(mShader, mAttr, "Tangent");
 		Py_Return;
 	}
-	return NULL;
 #endif
+	return NULL;
 }
 
 

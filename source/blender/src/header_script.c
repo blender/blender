@@ -6,15 +6,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +27,7 @@
  *
  * Contributor(s): Willian P. Germano.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -60,7 +57,6 @@
 #include "BKE_sca.h"
 #include "BSE_filesel.h"
 
-#include "BPI_script.h"
 #include "BPY_extern.h"
 #include "BPY_menus.h"
 
@@ -116,8 +112,9 @@ static void do_script_scriptsmenu(void *arg, int event)
 	/* these are no defines, easier this way, the codes are in the function below */
 	switch(event) {
 	case 0: /* update menus */
-		BPyMenu_RemoveAllEntries();
-		if (BPyMenu_Init(1) == -1) error("Invalid scripts dir: check console");
+		if (BPY_path_update()==0) { 
+			error("Invalid scripts dir: check console");
+		}
 		break;
 	}
 

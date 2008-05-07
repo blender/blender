@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): 2007, Joshua Leung (major rewrite of Action Editor)
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -235,22 +232,36 @@ bActListElem *make_new_actlistelem (void *data, short datatype, void *owner, sho
 			}	
 				break;
 			case ACTTYPE_CONCHAN:
+			case ACTTYPE_CONCHAN2:
 			{
 				bConstraintChannel *conchan= (bConstraintChannel *)data;
 				
 				ale->flag= conchan->flag;
 				
-				if (conchan->ipo && conchan->ipo->curve.first) {
-					/* we assume that constraint ipo blocks only have 1 curve:
-					 * INFLUENCE, so we pretend that a constraint channel is 
-					 * really just a Ipo-Curve channel instead.
-					 */
-					ale->key_data= conchan->ipo->curve.first;
-					ale->datatype= ALE_ICU;
+				if (datatype == ACTTYPE_CONCHAN2) {
+					/* CONCHAN2 is a hack so that constraint-channels keyframes can be edited */
+					if (conchan->ipo) {
+						ale->key_data= conchan->ipo;
+						ale->datatype= ALE_IPO;
+					}
+					else {
+						ale->key_data= NULL;
+						ale->datatype= ALE_NONE;
+					}
 				}
 				else {
-					ale->key_data= NULL;
-					ale->datatype= ALE_NONE;
+					if (conchan->ipo && conchan->ipo->curve.first) {
+						/* we assume that constraint ipo blocks only have 1 curve:
+						 * INFLUENCE, so we pretend that a constraint channel is 
+						 * really just a Ipo-Curve channel instead.
+						 */
+						ale->key_data= conchan->ipo->curve.first;
+						ale->datatype= ALE_ICU;
+					}
+					else {
+						ale->key_data= NULL;
+						ale->datatype= ALE_NONE;
+					}
 				}
 			}
 				break;
@@ -293,7 +304,7 @@ bActListElem *make_new_actlistelem (void *data, short datatype, void *owner, sho
 }
  
 /* ----------------------------------------- */
- 
+
 static void actdata_filter_actionchannel (ListBase *act_data, bActionChannel *achan, int filter_mode)
 {
 	bActListElem *ale;
@@ -313,16 +324,19 @@ static void actdata_filter_actionchannel (ListBase *act_data, bActionChannel *ac
 				}
 			}
 			else {
-				/* only consider selected channels - achan not selected */
+				/* for insert key... this check could be improved */
 				return;
-			}	
+			}
 			
 			/* check if expanded - if not, continue on to next action channel */
-			if (EXPANDED_ACHAN(achan) == 0 && (filter_mode & ACTFILTER_ONLYICU)==0) 
-				return;
+			if (EXPANDED_ACHAN(achan) == 0 && (filter_mode & ACTFILTER_ONLYICU)==0) {
+				/* only exit if we don't need to include constraint channels for group-channel keyframes */
+				if ( !(filter_mode & ACTFILTER_IPOKEYS) || (achan->grp == NULL) || (EXPANDED_AGRP(achan->grp)==0) )
+					return;
+			}
 				
 			/* ipo channels */
-			if (achan->ipo) {
+			if ((achan->ipo) && (filter_mode & ACTFILTER_IPOKEYS)==0) {
 				/* include ipo-expand widget? */
 				if ((filter_mode & ACTFILTER_CHANNELS) && (filter_mode & ACTFILTER_ONLYICU)==0) {
 					ale= make_new_actlistelem(achan, ACTTYPE_FILLIPO, achan, ACTTYPE_ACHAN);
@@ -342,22 +356,28 @@ static void actdata_filter_actionchannel (ListBase *act_data, bActionChannel *ac
 			/* constraint channels */
 			if (achan->constraintChannels.first) {
 				/* include constraint-expand widget? */
-				if ((filter_mode & ACTFILTER_CHANNELS) && (filter_mode & ACTFILTER_ONLYICU)==0) {
+				if ( (filter_mode & ACTFILTER_CHANNELS) && !(filter_mode & ACTFILTER_ONLYICU)
+					 && !(filter_mode & ACTFILTER_IPOKEYS) ) 
+				{
 					ale= make_new_actlistelem(achan, ACTTYPE_FILLCON, achan, ACTTYPE_ACHAN);
 					if (ale) BLI_addtail(act_data, ale);
 				}
 				
-				/* add constaint channels? */
-				if (FILTER_CON_ACHAN(achan)) {
+				/* add constraint channels? */
+				if (FILTER_CON_ACHAN(achan) || (filter_mode & ACTFILTER_IPOKEYS) || (filter_mode & ACTFILTER_ONLYICU)) {
 					/* loop through constraint channels, checking and adding them */
 					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 						/* only work with this channel and its subchannels if it is editable */
 						if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_CONCHAN(conchan)) {
 							/* check if this conchan should only be included if it is selected */
 							if (!(filter_mode & ACTFILTER_SEL) || SEL_CONCHAN(conchan)) {
-								if ((filter_mode & ACTFILTER_ONLYICU)==0) {
+								if (filter_mode & ACTFILTER_IPOKEYS) {
+									ale= make_new_actlistelem(conchan, ACTTYPE_CONCHAN2, achan, ACTTYPE_ACHAN);
+									if (ale) BLI_addtail(act_data, ale);
+								}
+								else {
 									ale= make_new_actlistelem(conchan, ACTTYPE_CONCHAN, achan, ACTTYPE_ACHAN);
-									if (ale) BLI_addtail(act_data, ale); 
+									if (ale) BLI_addtail(act_data, ale);
 								}
 							}
 						}
@@ -378,32 +398,47 @@ static void actdata_filter_action (ListBase *act_data, bAction *act, int filter_
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 		/* add this group as a channel first */
 		if (!(filter_mode & ACTFILTER_ONLYICU) && !(filter_mode & ACTFILTER_IPOKEYS)) {
-			ale= make_new_actlistelem(agrp, ACTTYPE_GROUP, NULL, ACTTYPE_NONE);
-			if (ale) BLI_addtail(act_data, ale);
+			/* check if filtering by selection */
+			if ( !(filter_mode & ACTFILTER_SEL) || SEL_AGRP(agrp) ) {
+				ale= make_new_actlistelem(agrp, ACTTYPE_GROUP, NULL, ACTTYPE_NONE);
+				if (ale) BLI_addtail(act_data, ale);
+			}
 		}
 		
 		/* store reference to last channel of group */
 		if (agrp->channels.last) 
 			lastchan= agrp->channels.last;
 		
-		/* filters here are a bit convulted...
-		 *	- groups show a "summary" of keyframes beside their name which must accessable for tools which handle keyframes
-		 *	- groups can be collapsed (and those tools which are only interested in channels rely on knowing that group is closed)
-		 */
-		if (!(filter_mode & ACTFILTER_VISIBLE) || EXPANDED_AGRP(agrp) || 
-			(filter_mode & (ACTFILTER_IPOKEYS|ACTFILTER_ONLYICU))) 
-		{
-			if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {					
-				for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
-					actdata_filter_actionchannel(act_data, achan, filter_mode);
+		
+		/* there are some situations, where only the channels of the active group should get considered */
+		if (!(filter_mode & ACTFILTER_ACTGROUPED) || (agrp->flag & AGRP_ACTIVE)) {
+			/* filters here are a bit convoulted...
+			 *	- groups show a "summary" of keyframes beside their name which must accessable for tools which handle keyframes
+			 *	- groups can be collapsed (and those tools which are only interested in channels rely on knowing that group is closed)
+			 *
+			 * cases when we should include action-channels and so-forth inside group:
+			 *	- we don't care about visibility
+			 *	- group is expanded
+			 *	- we're interested in keyframes, but not if they appear in selected channels
+			 */
+			if ( (!(filter_mode & ACTFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || 
+				 ( ((filter_mode & ACTFILTER_IPOKEYS) || (filter_mode & ACTFILTER_ONLYICU)) && 
+				  !(filter_mode & ACTFILTER_SEL) ) ) 
+			{
+				if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {					
+					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
+						actdata_filter_actionchannel(act_data, achan, filter_mode);
+					}
 				}
 			}
 		}
 	}
 	
-	/* loop over action channels */
-	for (achan=(lastchan)?lastchan->next:act->chanbase.first; achan; achan=achan->next) {
-		actdata_filter_actionchannel(act_data, achan, filter_mode);
+	/* loop over un-grouped action channels (only if we're not only considering those channels in the active group) */
+	if (!(filter_mode & ACTFILTER_ACTGROUPED))  {
+		for (achan=(lastchan)?lastchan->next:act->chanbase.first; achan; achan=achan->next) {
+			actdata_filter_actionchannel(act_data, achan, filter_mode);
+		}
 	}
 }
 
@@ -525,6 +560,8 @@ Key *get_action_mesh_key(void)
 		key = ((Mesh *)ob->data)->key;
 	else if (ob->type==OB_LATTICE) 
 		key = ((Lattice *)ob->data)->key;
+	else if (ELEM(ob->type, OB_CURVE, OB_SURF))
+		key= ((Curve *)ob->data)->key;
 	else 
 		return NULL;
 
@@ -763,6 +800,36 @@ void *get_action_context (short *datatype)
 	}
 }
 
+/* Quick-tool for preview-range functionality in Action Editor for setting Preview-Range  
+ * bounds to extents of Action, when Ctrl-Alt-P is used. Only available for actions.
+ */
+void action_previewrange_set (bAction *act)
+{
+	float start, end;
+	
+	/* sanity check */
+	if (act == NULL)
+		return;
+		
+	/* calculate range + make sure it is adjusted for nla-scaling */
+	calc_action_range(act, &start, &end, 0);
+	if (NLA_ACTION_SCALED) {
+		start= get_action_frame_inv(OBACT, start);
+		end= get_action_frame_inv(OBACT, end);
+	}
+	
+	/* set preview range */
+	G.scene->r.psfra= start;
+	G.scene->r.pefra= end;
+	
+	BIF_undo_push("Set anim-preview range");
+	allqueue(REDRAWTIME, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWBUTSALL, 0);
+}
+
 /* **************************************************** */
 /* ACTION CHANNEL GROUPS */
 
@@ -880,7 +947,7 @@ static void action_groups_addachan (bAction *act, bActionGroup *agrp, bActionCha
 			}
 			else {
 				BLI_insertlinkafter(&act->chanbase, chan, achan);
-					
+				
 				agrp->channels.first= achan;
 				agrp->channels.last= achan;
 				
@@ -1054,14 +1121,14 @@ void verify_pchan2achan_grouping (bAction *act, bPose *pose, char name[])
 		return;
 	if (name[0] == 0)
 		return;
-		
+	
 	/* try to get the channels */
 	pchan= get_pose_channel(pose, name);
 	if (pchan == NULL) return;
 	achan= verify_action_channel(act, name);
 	
 	/* check if pchan has a group */
-	if ((pchan->agrp_index) && (achan->grp == NULL)) {
+	if ((pchan->agrp_index > 0) && (achan->grp == NULL)) {
 		bActionGroup *agrp, *grp=NULL;
 		
 		/* get group to try to be like */
@@ -1080,7 +1147,38 @@ void verify_pchan2achan_grouping (bAction *act, bPose *pose, char name[])
 			grp= MEM_callocN(sizeof(bActionGroup), "bActionGroup");
 			
 			grp->flag |= (AGRP_ACTIVE|AGRP_SELECTED|AGRP_EXPANDED);
+			
+			/* copy name */
 			sprintf(grp->name, agrp->name);
+			
+			/* deal with group-color copying */
+			if (agrp->customCol) {
+				if (agrp->customCol > 0) {
+					/* copy theme colors on-to group's custom color in case user tries to edit color */
+					bTheme *btheme= U.themes.first;
+					ThemeWireColor *col_set= &btheme->tarm[(agrp->customCol - 1)];
+					
+					memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
+				}
+				else {
+					/* init custom colours with a generic multi-colour rgb set, if not initialised already */
+					if (agrp->cs.solid[0] == 0) {
+						/* define for setting colors in theme below */
+						#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
+						
+						SETCOL(grp->cs.solid, 0xff, 0x00, 0x00, 255);
+						SETCOL(grp->cs.select, 0x81, 0xe6, 0x14, 255);
+						SETCOL(grp->cs.active, 0x18, 0xb6, 0xe0, 255);
+						
+						#undef SETCOL
+					}
+					else {
+						/* just copy color set specified */
+						memcpy(&grp->cs, &agrp->cs, sizeof(ThemeWireColor));
+					}
+				}
+			}
+			grp->customCol= agrp->customCol;
 			
 			BLI_addtail(&act->groups, grp);
 		}
@@ -1091,6 +1189,50 @@ void verify_pchan2achan_grouping (bAction *act, bPose *pose, char name[])
 	}
 }
 
+/* This function is used when the user specifically requests to sync changes of pchans + bone groups
+ * to achans + action groups. All achans are detached from their groups, and all groups are destroyed.
+ * They are then recreated when the achans are reassigned to groups. 
+ *
+ * Note: This doesn't preserve hand-created groups, and will operate on ALL action-channels regardless of
+ *		whether they were selected or active. More specific filtering can be added later. 
+ */
+void sync_pchan2achan_grouping ()
+{
+	void *data;
+	short datatype;
+	bAction *act;
+	bActionChannel *achan, *next, *last;
+	bPose *pose;
+	
+	/* determine what type of data we are operating on */
+	data = get_action_context(&datatype);
+	if ((datatype != ACTCONT_ACTION) || (data==NULL)) return;
+	if ((G.saction->pin) || (OBACT==NULL) || (OBACT->type != OB_ARMATURE)) {
+		error("Action doesn't belong to active armature");
+		return;
+	}
+	
+	/* get data */
+	act= (bAction *)data;
+	pose= OBACT->pose;
+	
+	/* remove achan->group links, then delete all groups */
+	for (achan= act->chanbase.first; achan; achan= achan->next)
+		achan->grp = NULL;
+	BLI_freelistN(&act->groups);
+	
+	/* loop through all achans, reassigning them to groups (colours are resyncronised) */
+	last= act->chanbase.last;
+	for (achan= act->chanbase.first; achan && achan!=last; achan= next) {
+		next= achan->next;
+		verify_pchan2achan_grouping(act, pose, achan->name);
+	}
+	
+	/* undo and redraw */
+	BIF_undo_push("Sync Armature-Data and Action");
+	allqueue(REDRAWACTION, 0);
+}
+
 /* **************************************************** */
 /* TRANSFORM TOOLS */
 
@@ -1099,6 +1241,7 @@ void transform_action_keys (int mode, int dummy)
 {
 	void *data;
 	short datatype;
+	short context = (U.flag & USER_DRAGIMMEDIATE)?CTX_TWEAK:CTX_NONE;
 	
 	/* determine what type of data we are operating on */
 	data = get_action_context(&datatype);
@@ -1107,25 +1250,25 @@ void transform_action_keys (int mode, int dummy)
 	switch (mode) {
 		case 'g':
 		{
-			initTransform(TFM_TIME_TRANSLATE, CTX_NONE);
+			initTransform(TFM_TIME_TRANSLATE, context);
 			Transform();
 		}
 			break;
 		case 's':
 		{
-			initTransform(TFM_TIME_SCALE, CTX_NONE);
+			initTransform(TFM_TIME_SCALE, context);
 			Transform();
 		}
 			break;
 		case 't':
 		{
-			initTransform(TFM_TIME_SLIDE, CTX_NONE);
+			initTransform(TFM_TIME_SLIDE, context);
 			Transform();
 		}
 			break;
 		case 'e':
 		{
-			initTransform(TFM_TIME_EXTEND, CTX_NONE);
+			initTransform(TFM_TIME_EXTEND, context);
 			Transform();
 		}
 		break;
@@ -1212,7 +1355,7 @@ void snap_action_keys(short mode)
 	void *data;
 	short datatype;
 	char str[32];
-		
+	
 	/* get data */
 	data= get_action_context(&datatype);
 	if (data == NULL) return;
@@ -1349,12 +1492,13 @@ void insertkey_action(void)
 		int filter;
 		
 		/* ask user what to keyframe */
-		mode = pupmenu("Insert Key%t|All Channels%x1|Only Selected Channels%x2");
+		mode = pupmenu("Insert Key%t|All Channels%x1|Only Selected Channels%x2|In Active Group%x3");
 		if (mode <= 0) return;
 		
 		/* filter data */
 		filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_ONLYICU );
-		if (mode == 2) filter |= ACTFILTER_SEL;
+		if (mode == 2) 			filter |= ACTFILTER_SEL;
+		else if (mode == 3) 	filter |= ACTFILTER_ACTGROUPED;
 		
 		actdata_filter(&act_data, filter, data, datatype);
 		
@@ -1363,10 +1507,11 @@ void insertkey_action(void)
 			/* verify that this is indeed an ipo curve */
 			if (ale->key_data && ale->owner) {
 				bActionChannel *achan= (bActionChannel *)ale->owner;
+				bConstraintChannel *conchan= (ale->type==ACTTYPE_CONCHAN) ? ale->data : NULL;
 				IpoCurve *icu= (IpoCurve *)ale->key_data;
 				
 				if (ob)
-					insertkey((ID *)ob, icu->blocktype, achan->name, NULL, icu->adrcode, 0);
+					insertkey((ID *)ob, icu->blocktype, achan->name, ((conchan)?(conchan->name):(NULL)), icu->adrcode, 0);
 				else
 					insert_vert_icu(icu, cfra, icu->curval, 0);
 			}
@@ -1395,6 +1540,7 @@ void insertkey_action(void)
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
 /* delete selected keyframes */
@@ -1492,7 +1638,7 @@ void delete_action_channels (void)
 		bConstraintChannel *conchan, *cnext;
 		next= ale->next;
 		
-		/* release reference to ipo users */
+		/* release references to ipo users */
 		if (achan->ipo)
 			achan->ipo->id.us--;
 			
@@ -1503,12 +1649,16 @@ void delete_action_channels (void)
 				conchan->ipo->id.us--;
 		}
 		
+		/* remove action-channel from group(s) */
+		if (achan->grp)
+			action_groups_removeachan(act, achan);
+		
 		/* free memory */
 		BLI_freelistN(&achan->constraintChannels);
 		BLI_freelinkN(&act->chanbase, achan);
 		BLI_freelinkN(&act_data, ale);
 	}
-		
+	
 	remake_action_ipos(data);
 	
 	BIF_undo_push("Delete Action Channels");
@@ -1614,11 +1764,11 @@ void sample_action_keys (void)
 						
 						/* free temp cache */
 						MEM_freeN(value_cache);
+
+						/* as we added keyframes, we need to compensate so that bezt is at the right place */
+						bezt = icu->bezt + i + range - 1;
+						i += (range - 1);
 					}
-					
-					/* as we added keyframes, we need to compensate so that bezt is at the right place */
-					bezt = icu->bezt + i + range - 1;
-					i += (range - 1);
 					
 					/* bezt was selected, so it now marks the start of a whole new chain to search */
 					start= bezt;
@@ -1794,6 +1944,7 @@ void paste_actdata ()
 	
 	short no_name= 0;
 	float offset = CFRA - actcopy_firstframe;
+	char *actname = NULL, *conname = NULL;
 	
 	/* check if buffer is empty */
 	if (ELEM(NULL, actcopybuf.first, actcopybuf.last)) {
@@ -1828,6 +1979,8 @@ void paste_actdata ()
 				
 				/* check if we have a corresponding action channel */
 				if ((no_name) || (strcmp(achan->name, achant->name)==0)) {
+					actname= achan->name;
+					
 					/* check if this is a constraint channel */
 					if (ale->type == ACTTYPE_CONCHAN) {
 						bConstraintChannel *conchant= ale->data;
@@ -1835,6 +1988,7 @@ void paste_actdata ()
 						
 						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 							if (strcmp(conchan->name, conchant->name)==0) {
+								conname= conchan->name;
 								ipo_src= conchan->ipo;
 								break;
 							}
@@ -1850,6 +2004,7 @@ void paste_actdata ()
 			else if (ale->ownertype == ACTTYPE_SHAPEKEY) {
 				/* check if this action channel is "#ACP_ShapeKey" */
 				if ((no_name) || (strcmp(achan->name, "#ACP_ShapeKey")==0)) {
+					actname= achan->name;
 					ipo_src= achan->ipo;
 					break;
 				}
@@ -1861,32 +2016,28 @@ void paste_actdata ()
 			continue;
 		
 		/* loop over curves, pasting keyframes */
-		for (icu= ipo_dst->curve.first; icu; icu= icu->next) {
-			for (ico= ipo_src->curve.first; ico; ico= ico->next) {
-				/* only paste if compatable blocktype + adrcode */
-				if ((ico->blocktype==icu->blocktype) && (ico->adrcode==icu->adrcode)) {
-					/* just start pasting, with the the first keyframe on the current frame, and so on */
-					for (i=0, bezt=ico->bezt; i < ico->totvert; i++, bezt++) {						
-						/* temporarily apply offset to src beztriple while copying */
-						bezt->vec[0][0] += offset;
-						bezt->vec[1][0] += offset;
-						bezt->vec[2][0] += offset;
-						
-						/* insert the keyframe */
-						insert_bezt_icu(icu, bezt);
-						
-						/* un-apply offset from src beztriple after copying */
-						bezt->vec[0][0] -= offset;
-						bezt->vec[1][0] -= offset;
-						bezt->vec[2][0] -= offset;
-					}
+		for (ico= ipo_src->curve.first; ico; ico= ico->next) {
+			icu= verify_ipocurve((ID*)OBACT, ico->blocktype, actname, conname, "", ico->adrcode);
+			
+			if (icu) {
+				/* just start pasting, with the the first keyframe on the current frame, and so on */
+				for (i=0, bezt=ico->bezt; i < ico->totvert; i++, bezt++) {						
+					/* temporarily apply offset to src beztriple while copying */
+					bezt->vec[0][0] += offset;
+					bezt->vec[1][0] += offset;
+					bezt->vec[2][0] += offset;
 					
-					/* recalculate channel's handles? */
-					calchandles_ipocurve(icu);
+					/* insert the keyframe */
+					insert_bezt_icu(icu, bezt);
 					
-					/* done for this channel */
-					break;
+					/* un-apply offset from src beztriple after copying */
+					bezt->vec[0][0] -= offset;
+					bezt->vec[1][0] -= offset;
+					bezt->vec[2][0] -= offset;
 				}
+				
+				/* recalculate channel's handles? */
+				calchandles_ipocurve(icu);
 			}
 		}
 	}
@@ -2225,7 +2376,139 @@ static void numbuts_action ()
 	}
 }
 
-
+/* Set/clear a particular flag (setting) for all selected + visible channels 
+ *	mode: 0 = toggle, 1 = turn on, 2 = turn off
+ */
+void setflag_action_channels (short mode)
+{
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+	char str[32];
+	short val;
+	
+	/* get data */
+	data= get_action_context(&datatype);
+	if (data == NULL) return;
+	
+	/* get setting to affect */
+	if (mode == 2) {
+		val= pupmenu("Disable Setting%t|Protect %x1|Mute%x2");
+		sprintf(str, "Disable Action Setting");
+	}
+	else if (mode == 1) {
+		val= pupmenu("Enable Setting%t|Protect %x1|Mute%x2");
+		sprintf(str, "Enable Action Setting");
+	}
+	else {
+		val= pupmenu("Toggle Setting%t|Protect %x1|Mute%x2");
+		sprintf(str, "Toggle Action Setting");
+	}
+	if (val <= 0) return;
+	
+	/* filter data */
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_CHANNELS | ACTFILTER_SEL);
+	actdata_filter(&act_data, filter, data, datatype);
+	
+	/* affect selected channels */
+	for (ale= act_data.first; ale; ale= ale->next) {
+		switch (ale->type) {
+			case ACTTYPE_GROUP:
+			{
+				bActionGroup *agrp= (bActionGroup *)ale->data;
+				
+				/* only 'protect' is available */
+				if (val == 1) {
+					if (mode == 2)
+						agrp->flag &= ~AGRP_PROTECTED;
+					else if (mode == 1)
+						agrp->flag |= AGRP_PROTECTED;
+					else
+						agrp->flag ^= AGRP_PROTECTED;
+				}
+			}
+				break;
+			case ACTTYPE_ACHAN:
+			{
+				bActionChannel *achan= (bActionChannel *)ale->data;
+				
+				/* 'protect' and 'mute' */
+				if ((val == 2) && (achan->ipo)) {
+					Ipo *ipo= achan->ipo;
+					
+					/* mute */
+					if (mode == 2)
+						ipo->muteipo= 0;
+					else if (mode == 1)
+						ipo->muteipo= 1;
+					else
+						ipo->muteipo= (ipo->muteipo) ? 0 : 1;
+				}
+				else if (val == 1) {
+					/* protected */
+					if (mode == 2)
+						achan->flag &= ~ACHAN_PROTECTED;
+					else if (mode == 1)
+						achan->flag |= ACHAN_PROTECTED;
+					else
+						achan->flag ^= ACHAN_PROTECTED;
+				}
+			}
+				break;
+			case ACTTYPE_CONCHAN:
+			{
+				bConstraintChannel *conchan= (bConstraintChannel *)ale->data;
+				
+				/* 'protect' and 'mute' */
+				if ((val == 2) && (conchan->ipo)) {
+					Ipo *ipo= conchan->ipo;
+					
+					/* mute */
+					if (mode == 2)
+						ipo->muteipo= 0;
+					else if (mode == 1)
+						ipo->muteipo= 1;
+					else
+						ipo->muteipo= (ipo->muteipo) ? 0 : 1;
+				}
+				else if (val == 1) {
+					/* protect */
+					if (mode == 2)
+						conchan->flag &= ~CONSTRAINT_CHANNEL_PROTECTED;
+					else if (mode == 1)
+						conchan->flag |= CONSTRAINT_CHANNEL_PROTECTED;
+					else
+						conchan->flag ^= CONSTRAINT_CHANNEL_PROTECTED;
+				}
+			}
+				break;
+			case ACTTYPE_ICU:
+			{
+				IpoCurve *icu= (IpoCurve *)ale->data;
+				
+				/* mute */
+				if (val == 2) {
+					if (mode == 2)
+						icu->flag &= ~IPO_MUTE;
+					else if (mode == 1)
+						icu->flag |= IPO_MUTE;
+					else
+						icu->flag ^= IPO_MUTE;
+				}
+			}
+				break;
+		}
+	}
+	BLI_freelistN(&act_data);
+	
+	BIF_undo_push(str);
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
+}
 
 /* **************************************************** */
 /* CHANNEL SELECTION */
@@ -2271,28 +2554,28 @@ static void hilight_channel(bAction *act, bActionChannel *achan, short select)
 	}
 }
 
+/* Syncs selection of channels with selection of object elements in posemode */
 /* messy call... */
-static void select_poseelement_by_name(char *name, int select)
+static void select_poseelement_by_name (char *name, int select)
 {
-	/* Syncs selection of channels with selection of object elements in posemode */
 	Object *ob= OBACT;
 	bPoseChannel *pchan;
 	
-	if (!ob || ob->type!=OB_ARMATURE)
+	if ((ob==NULL) || (ob->type!=OB_ARMATURE))
 		return;
 	
-	if(select==2) {
-		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
+	if (select == 2) {
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
 			pchan->bone->flag &= ~(BONE_ACTIVE);
 	}
 	
 	pchan= get_pose_channel(ob->pose, name);
-	if(pchan) {
-		if(select)
+	if (pchan) {
+		if (select)
 			pchan->bone->flag |= (BONE_SELECTED);
 		else 
 			pchan->bone->flag &= ~(BONE_SELECTED);
-		if(select==2)
+		if (select == 2)
 			pchan->bone->flag |= (BONE_ACTIVE);
 	}
 }
@@ -2303,9 +2586,9 @@ void select_actionchannel_by_name (bAction *act, char *name, int select)
 {
 	bActionChannel *achan;
 
-	if (!act)
+	if (act == NULL)
 		return;
-
+	
 	for (achan = act->chanbase.first; achan; achan= achan->next) {
 		if (!strcmp(achan->name, name)) {
 			if (select) {
@@ -2398,8 +2681,10 @@ int select_icu_channel(bAction *act, IpoCurve *icu, int selectmode)
 
 /* ----------------------------------------- */
 
-/* deselects action channels in given action */
-void deselect_actionchannels (bAction *act, short test)
+/* De-selects or inverts the selection of Channels in a given Action 
+ *	mode: 0 = default behaviour (select all), 1 = test if (de)select all, 2 = invert all 
+ */
+void deselect_actionchannels (bAction *act, short mode)
 {
 	ListBase act_data = {NULL, NULL};
 	bActListElem *ale;
@@ -2410,7 +2695,7 @@ void deselect_actionchannels (bAction *act, short test)
 	actdata_filter(&act_data, filter, act, ACTCONT_ACTION);
 	
 	/* See if we should be selecting or deselecting */
-	if (test) {
+	if (mode == 1) {
 		for (ale= act_data.first; ale; ale= ale->next) {
 			if (sel == 0) 
 				break;
@@ -2445,28 +2730,38 @@ void deselect_actionchannels (bAction *act, short test)
 			{
 				bActionGroup *agrp= (bActionGroup *)ale->data;
 				
-				if (sel)
+				if (mode == 2)
+					agrp->flag ^= AGRP_SELECTED;
+				else if (sel)
 					agrp->flag |= AGRP_SELECTED;
 				else
 					agrp->flag &= ~AGRP_SELECTED;
+					
+				agrp->flag &= ~AGRP_ACTIVE;
 			}
 				break;
 			case ACTTYPE_ACHAN:
 			{
 				bActionChannel *achan= (bActionChannel *)ale->data;
 				
-				if (sel)
+				if (mode == 2)
+					achan->flag ^= AGRP_SELECTED;
+				else if (sel)
 					achan->flag |= ACHAN_SELECTED;
 				else
 					achan->flag &= ~ACHAN_SELECTED;
+					
 				select_poseelement_by_name(achan->name, sel);
+				achan->flag &= ~ACHAN_HILIGHTED;
 			}
 				break;
 			case ACTTYPE_CONCHAN:
 			{
 				bConstraintChannel *conchan= (bConstraintChannel *)ale->data;
 				
-				if (sel)
+				if (mode == 2)
+					conchan->flag ^= CONSTRAINT_CHANNEL_SELECT;
+				else if (sel)
 					conchan->flag |= CONSTRAINT_CHANNEL_SELECT;
 				else
 					conchan->flag &= ~CONSTRAINT_CHANNEL_SELECT;
@@ -2476,10 +2771,14 @@ void deselect_actionchannels (bAction *act, short test)
 			{
 				IpoCurve *icu= (IpoCurve *)ale->data;
 				
-				if (sel)
+				if (mode == 2)
+					icu->flag ^= IPO_SELECT;
+				else if (sel)
 					icu->flag |= IPO_SELECT;
 				else
 					icu->flag &= ~IPO_SELECT;
+					
+				icu->flag &= ~IPO_ACTIVE;
 			}
 				break;
 		}
@@ -2490,7 +2789,7 @@ void deselect_actionchannels (bAction *act, short test)
 }
 
 /* deselects channels in the action editor */
-void deselect_action_channels (short test)
+void deselect_action_channels (short mode)
 {
 	void *data;
 	short datatype;
@@ -2501,7 +2800,7 @@ void deselect_action_channels (short test)
 	
 	/* based on type */
 	if (datatype == ACTCONT_ACTION)
-		deselect_actionchannels(data, test);
+		deselect_actionchannels(data, mode);
 	// should shapekey channels be allowed to do this? 
 }
 
@@ -2870,6 +3169,16 @@ void column_select_action_keys (int mode)
 					ce->cfra= get_action_frame(OBACT, ce->cfra);
 			}
 			break;
+		case 3: /* current frame */
+			/* make a single CfraElem */
+			ce= MEM_callocN(sizeof(CfraElem), "cfraElem");
+			BLI_addtail(&elems, ce);
+			
+			/* apply scaled action correction if needed */
+			if (NLA_ACTION_SCALED && datatype==ACTCONT_ACTION)
+				ce->cfra= get_action_frame(OBACT, CFRA);
+			else
+				ce->cfra= CFRA;
 	}
 	
 	/* loop through all of the keys and select additional keyframes
@@ -2898,6 +3207,106 @@ void column_select_action_keys (int mode)
 	BLI_freelistN(&elems);
 }
 
+/* borderselect: for action-channels */
+void borderselect_actionchannels (void)
+{
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+	
+	rcti rect;
+	rctf rectf;
+	int val, selectmode;
+	short mval[2];
+	float ymin, ymax;
+	
+	/* determine what type of data we are operating on */
+	data = get_action_context(&datatype);
+	if (data == NULL) return;
+	if (datatype != ACTCONT_ACTION) return;
+	
+	/* draw and handle the borderselect stuff (ui) and get the select rect */
+	if ( (val = get_border(&rect, 3)) ) {
+		selectmode= ((val==LEFTMOUSE) ? SELECT_ADD : SELECT_SUBTRACT);
+		
+		mval[0]= rect.xmin;
+		mval[1]= rect.ymin+2;
+		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
+		mval[0]= rect.xmax;
+		mval[1]= rect.ymax-2;
+		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
+		
+		ymax = CHANNELHEIGHT/2;
+		
+		/* filter data */
+		filter= (ACTFILTER_VISIBLE | ACTFILTER_CHANNELS);
+		actdata_filter(&act_data, filter, data, datatype);
+		
+		/* loop over data, doing border select */
+		for (ale= act_data.first; ale; ale= ale->next) {
+			ymin=ymax-(CHANNELHEIGHT+CHANNELSKIP);
+			
+			/* if channel is within border-select region, alter it */
+			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
+				/* only the following types can be selected */
+				switch (ale->type) {
+					case ACTTYPE_GROUP: /* action group */
+					{
+						bActionGroup *agrp= (bActionGroup *)ale->data;
+						
+						if (selectmode == SELECT_ADD)
+							agrp->flag |= AGRP_SELECTED;
+						else
+							agrp->flag &= ~AGRP_SELECTED;
+					}
+						break;
+					case ACTTYPE_ACHAN: /* action channel */
+					{
+						bActionChannel *achan= (bActionChannel *)ale->data;
+						
+						if (selectmode == SELECT_ADD)
+							achan->flag |= ACHAN_SELECTED;
+						else
+							achan->flag &= ~ACHAN_SELECTED;
+					}
+						break;
+					case ACTTYPE_CONCHAN: /* constraint channel */
+					{
+						bConstraintChannel *conchan = (bConstraintChannel *)ale->data;
+						
+						if (selectmode == SELECT_ADD)
+							conchan->flag |= CONSTRAINT_CHANNEL_SELECT;
+						else
+							conchan->flag &= ~CONSTRAINT_CHANNEL_SELECT;
+					}
+						break;
+					case ACTTYPE_ICU: /* ipo-curve channel */
+					{
+						IpoCurve *icu = (IpoCurve *)ale->data;
+						
+						if (selectmode == SELECT_ADD)
+							icu->flag |= IPO_SELECT;
+						else
+							icu->flag &= ~IPO_SELECT;
+					}
+						break;
+				}
+			}
+			
+			ymax=ymin;
+		}
+		
+		/* cleanup */
+		BLI_freelistN(&act_data);
+		
+		BIF_undo_push("Border Select Action");
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWNLA, 0);
+	}
+}
 
 /* some quick defines for borderselect modes */
 enum {
@@ -3066,8 +3475,8 @@ static void mouse_action (int selectmode)
 	TimeMarker *marker, *pmarker;
 	
 	void *act_channel;
-	short sel, act_type;
-	float selx;
+	short sel, act_type = 0;
+	float selx = 0.0;
 	
 	/* determine what type of data we are operating on */
 	data = get_action_context(&datatype);
@@ -3226,10 +3635,26 @@ static void mouse_actionchannels (short mval[])
  				}
  				else {
 					/* select/deselect group */
-					if (G.qual & LR_SHIFTKEY) {
+					if (G.qual == LR_SHIFTKEY) {
+						/* inverse selection status of group */
 						select_action_group(act, agrp, SELECT_INVERT);
 					}
+					else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY)) {
+						bActionChannel *achan;
+						
+						/* select all in group (and deselect everthing else) */	
+						deselect_actionchannels(act, 0);
+						
+						for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
+							select_channel(act, achan, SELECT_ADD);
+							
+							/* messy... set active bone */
+							select_poseelement_by_name(achan->name, 1);
+						}
+						select_action_group(act, agrp, SELECT_ADD);
+					}
 					else {
+						/* select group by itself */
 						deselect_actionchannels(act, 0);
 						select_action_group(act, agrp, SELECT_ADD);
 					}
@@ -3317,6 +3742,8 @@ static void mouse_actionchannels (short mval[])
 					/* select/deselect */
 					select_icu_channel(act, icu, SELECT_INVERT);
 				}
+
+				allspace(REMAKEIPO, 0);
 			}
 			break;
 		case ACTTYPE_CONCHAN:
@@ -3645,15 +4072,19 @@ void rearrange_action_channels (short mode)
 /* Expand all channels to show full hierachy */
 void expand_all_action (void)
 {
+	void *data;
+	short datatype;
+	
 	bAction *act;
 	bActionChannel *achan;
 	bActionGroup *agrp;
 	short mode= 1;
 	
 	/* Get the selected action, exit if none are selected */
-	// TODO: really this should be done with the "action editor api" stuff, but this will suffice for now 
-	act = G.saction->action;
-	if (act == NULL) return;
+	data = get_action_context(&datatype);
+	if (data == NULL) return;
+	if (datatype != ACTCONT_ACTION) return;
+	act= (bAction *)data;
 	
 	/* check if expand all, or close all */
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
@@ -3696,40 +4127,85 @@ void expand_all_action (void)
 	allqueue(REDRAWACTION, 0);
 }
 
-/* For visible channels, expand/collapse one level */
-void openclose_level_action (short mode)
+/* Expands those groups which are hiding a selected actionchannel */
+void expand_obscuregroups_action (void)
 {
+	void *data;
+	short datatype;
+	
 	bAction *act;
 	bActionChannel *achan;
 	
 	/* Get the selected action, exit if none are selected */
-	// TODO: really this should be done with the "action editor api" stuff, but this will suffice for now 
-	act = G.saction->action;
-	if (act == NULL) return;
+	data = get_action_context(&datatype);
+	if (data == NULL) return;
+	if (datatype != ACTCONT_ACTION) return;
+	act= (bAction *)data;
+	
+	/* check if expand all, or close all */
+	for (achan= act->chanbase.first; achan; achan= achan->next) {
+		if (VISIBLE_ACHAN(achan) && SEL_ACHAN(achan)) {
+			if (achan->grp)
+				achan->grp->flag |= AGRP_EXPANDED;
+		}
+	}
+	
+	/* Cleanup and do redraws */
+	BIF_undo_push("Show Group-Hidden Channels");
+	allqueue(REDRAWACTION, 0);
+}
+
+/* For visible channels, expand/collapse one level */
+void openclose_level_action (short mode)
+{
+	void *data;
+	short datatype;
+	
+	bAction *act;
+	bActionChannel *achan;
+	bActionGroup *agrp;
+	
+	/* Get the selected action, exit if none are selected */
+	data = get_action_context(&datatype);
+	if (data == NULL) return;
+	if (datatype != ACTCONT_ACTION) return;
+	act= (bAction *)data;
 	
 	/* Abort if no operation required */
 	if (mode == 0) return;
 	
 	/* Only affect selected channels */
-	// FIXME: check for action-groups
 	for (achan= act->chanbase.first; achan; achan= achan->next) {
-		if (VISIBLE_ACHAN(achan) && SEL_ACHAN(achan)) {
-			if (EXPANDED_ACHAN(achan)) {
-				if (FILTER_IPO_ACHAN(achan) || FILTER_CON_ACHAN(achan)) {
-					if (mode < 0)
-						achan->flag &= ~(ACHAN_SHOWIPO|ACHAN_SHOWCONS);
+		/* make sure if there is a group, it isn't about to be collapsed and is open */
+		if ( (achan->grp==NULL) || (EXPANDED_AGRP(achan->grp) && SEL_AGRP(achan->grp)==0) ) {
+			if (VISIBLE_ACHAN(achan) && SEL_ACHAN(achan)) {
+				if (EXPANDED_ACHAN(achan)) {
+					if (FILTER_IPO_ACHAN(achan) || FILTER_CON_ACHAN(achan)) {
+						if (mode < 0)
+							achan->flag &= ~(ACHAN_SHOWIPO|ACHAN_SHOWCONS);
+					}
+					else {
+						if (mode > 0)
+							achan->flag |= (ACHAN_SHOWIPO|ACHAN_SHOWCONS);
+						else
+							achan->flag &= ~ACHAN_EXPANDED;
+					}					
 				}
 				else {
 					if (mode > 0)
-						achan->flag |= (ACHAN_SHOWIPO|ACHAN_SHOWCONS);
-					else
-						achan->flag &= ~ACHAN_EXPANDED;
-				}					
+						achan->flag |= ACHAN_EXPANDED;
+				}
 			}
-			else {
-				if (mode > 0)
-					achan->flag |= ACHAN_EXPANDED;
-			}
+		}
+	}
+	
+	/* Expand/collapse selected groups */
+	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
+		if (SEL_AGRP(agrp)) {
+			if (mode < 0)
+				agrp->flag &= ~AGRP_EXPANDED;
+			else
+				agrp->flag |= AGRP_EXPANDED;
 		}
 	}
 	
@@ -3910,7 +4386,8 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (event == LEFTMOUSE) {
 				event = RIGHTMOUSE;
 				mousebut = L_MOUSE;
-			} else if (event == RIGHTMOUSE) {
+			} 
+			else if (event == RIGHTMOUSE) {
 				event = LEFTMOUSE;
 				mousebut = R_MOUSE;
 			}
@@ -3920,24 +4397,98 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		switch(event) {
 		case UI_BUT_EVENT:
-			do_actionbuts(val); 	// window itself
+			do_actionbuts(val); 	/* window itself */
 			break;
-		
-		case HOMEKEY:
-			do_action_buttons(B_ACTHOME);	// header
+			
+		/* LEFTMOUSE and RIGHTMOUSE event codes can be swapped above,
+		 * based on user preference USER_LMOUSESELECT
+		 */
+		case LEFTMOUSE:
+			if (view2dmove(LEFTMOUSE)) /* only checks for sliders */
+				break;
+			else if ((G.v2d->mask.xmin==0) || (mval[0] > ACTWIDTH)) {
+				/* moving time-marker / current frame */
+				do {
+					getmouseco_areawin(mval);
+					areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
+					
+					cfra= (int)(dx+0.5f);
+					if (cfra < 1) cfra= 1;
+					
+					if (cfra != CFRA) {
+						CFRA= cfra;
+						update_for_newframe();
+						force_draw_all(0);					
+					}
+					else 
+						PIL_sleep_ms(30);
+				} 
+				while(get_mbut() & mousebut);
+				break;
+			}
+			/* passed on as selection */
+		case RIGHTMOUSE:
+			/* Clicking in the channel area */
+			if ((G.v2d->mask.xmin) && (mval[0] < NAMEWIDTH)) {
+				if (datatype == ACTCONT_ACTION) {
+					/* mouse is over action channels */
+					if (G.qual == LR_CTRLKEY)
+						numbuts_action();
+					else 
+						mouse_actionchannels(mval);
+				}
+				else 
+					numbuts_action();
+			}
+			else {
+				short select_mode= (G.qual & LR_SHIFTKEY)? SELECT_INVERT: SELECT_REPLACE;
+				
+				/* Clicking in the vertical scrollbar selects
+				 * all of the keys for that channel at that height
+				 */
+				if (IN_2D_VERT_SCROLL(mval))
+					selectall_action_keys(mval, 0, select_mode);
+				
+				/* Clicking in the horizontal scrollbar selects
+				 * all of the keys within 0.5 of the nearest integer
+				 * frame
+				 */
+				else if (IN_2D_HORIZ_SCROLL(mval))
+					selectall_action_keys(mval, 1, select_mode);
+				
+				/* Clicking in the main area of the action window
+				 * selects keys and markers
+				 */
+				else if (G.qual & LR_ALTKEY) {
+					areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
+					
+					/* sends a 1 for left and 0 for right */
+					selectkeys_leftright((dx < (float)CFRA), select_mode);
+				}
+				else
+					mouse_action(select_mode);
+			}
+			break;
+			
+		case MIDDLEMOUSE:
+		case WHEELUPMOUSE:
+		case WHEELDOWNMOUSE:
+			view2dmove(event);	/* in drawipo.c */
 			break;
 		
 		case AKEY:
-			if (mval[0]<NAMEWIDTH) {
-				deselect_action_channels (1);
+			if (mval[0] < NAMEWIDTH) {
+				deselect_action_channels(1);
+				BIF_undo_push("(De)Select Action Channels");
 				allqueue(REDRAWVIEW3D, 0);
 				allqueue(REDRAWACTION, 0);
 				allqueue(REDRAWNLA, 0);
 				allqueue(REDRAWIPO, 0);
 			}
-			else if (mval[0]>ACTWIDTH) {
+			else if (mval[0] > ACTWIDTH) {
 				if (G.qual == LR_CTRLKEY) {
-					deselect_markers (1, 0);
+					deselect_markers(1, 0);
+					BIF_undo_push("(De)Select Markers");
 					allqueue(REDRAWTIME, 0);
 					allqueue(REDRAWIPO, 0);
 					allqueue(REDRAWACTION, 0);
@@ -3945,7 +4496,8 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					allqueue(REDRAWSOUND, 0);
 				}
 				else {
-					deselect_action_keys (1, 1);
+					deselect_action_keys(1, 1);
+					BIF_undo_push("(De)Select Keys");
 					allqueue(REDRAWACTION, 0);
 					allqueue(REDRAWNLA, 0);
 					allqueue(REDRAWIPO, 0);
@@ -3958,7 +4510,9 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				borderselect_markers();
 			}
 			else {
-				if (mval[0]>ACTWIDTH)
+				if (mval[0] <= ACTWIDTH)
+					borderselect_actionchannels();
+				else
 					borderselect_action();
 			}
 			break;
@@ -3971,7 +4525,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		
 		case DKEY:
-			if (mval[0]>ACTWIDTH) {
+			if (mval[0] > ACTWIDTH) {
 				if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
 					duplicate_marker();
 				else if (G.qual == LR_SHIFTKEY)
@@ -3992,26 +4546,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				action_groups_group(1);
 			else if (G.qual == LR_ALTKEY)
 				action_groups_ungroup();
-				
-			else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY|LR_ALTKEY)) {
-				/* WARNING: this is a debug tool which should be removed once everything is stable... */
-				bAction *act= G.saction->action;
-				bActionGroup *agrp;
-				bActionChannel *achan;
-				
-				printf("Debug Action Grouping: \n");
-				
-				printf("\tGroups: \n");
-				for (agrp= act->groups.first; agrp; agrp= agrp->next) {
-					printf("\t\tGroup \"%s\" : %p... start={%p} end={%p} \n", agrp->name, agrp, agrp->channels.first, agrp->channels.last);
-				}
-				
-				printf("\tAction Channels: \n");
-				for (achan= act->chanbase.first; achan; achan= achan->next) {
-					printf("\t\tAchan \"%s\" : %p... group={%p} \n", achan->name, achan, achan->grp);
-				}	
-			}
-				
+			
 			/* Transforms */
 			else {
 				if (mval[0] >= ACTWIDTH) {
@@ -4033,15 +4568,41 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					sethandles_action_keys(HD_ALIGN);
 			}
 			break;
+			
+		case IKEY: 	
+			if (G.qual & LR_CTRLKEY) {
+				if (mval[0] < ACTWIDTH) {
+					deselect_action_channels(2);
+					BIF_undo_push("Inverse Action Channels");
+					allqueue(REDRAWVIEW3D, 0);
+					allqueue(REDRAWACTION, 0);
+					allqueue(REDRAWNLA, 0);
+					allqueue(REDRAWIPO, 0);
+				}
+				else if (G.qual & LR_SHIFTKEY) {
+					deselect_markers(0, 2);
+					BIF_undo_push("Inverse Markers");
+					allqueue(REDRAWMARKER, 0);
+				}
+				else {
+					deselect_action_keys(0, 2);
+					BIF_undo_push("Inverse Keys");
+					allqueue(REDRAWACTION, 0);
+					allqueue(REDRAWNLA, 0);
+					allqueue(REDRAWIPO, 0);
+				}
+			}
+			break;
 		
 		case KKEY:
-			if (G.qual & LR_CTRLKEY) {
+			if (G.qual == LR_ALTKEY)
 				markers_selectkeys_between();
-			}
-			else {
-				val= (G.qual & LR_SHIFTKEY) ? 2 : 1;
-				column_select_action_keys(val);
-			}
+			else if (G.qual == LR_SHIFTKEY)
+				column_select_action_keys(2);
+			else if (G.qual == LR_CTRLKEY)
+				column_select_action_keys(3);
+			else
+				column_select_action_keys(1);
 			
 			allqueue(REDRAWMARKER, 0);
 			break;
@@ -4055,6 +4616,11 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					action_rename_localmarker(data);
 				else if (G.qual == LR_ALTKEY)
 					action_remove_localmarkers(data);
+				else if (G.qual == LR_CTRLKEY) {
+					G.saction->flag |= SACTION_POSEMARKERS_MOVE;
+					transform_markers('g', 0);
+					G.saction->flag &= ~SACTION_POSEMARKERS_MOVE;
+				}
 			}
 			break;
 			
@@ -4100,7 +4666,9 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case PKEY:
-			if (G.qual & LR_CTRLKEY) /* set preview range */
+			if (G.qual == (LR_CTRLKEY|LR_ALTKEY)) /* set preview range to range of action */
+				action_previewrange_set(G.saction->action);
+			else if (G.qual & LR_CTRLKEY) /* set preview range */
 				anim_previewrange_set();
 			else if (G.qual & LR_ALTKEY) /* clear preview range */
 				anim_previewrange_clear();
@@ -4153,6 +4721,20 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (okee("Set Keys to Vector Handle"))
 				sethandles_action_keys(HD_VECT);
 			break;
+			
+		case WKEY:
+			/* toggle/turn-on\off-based-on-setting */
+			if (G.qual) {
+				if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+					val= 1;
+				else if (G.qual == LR_ALTKEY)
+					val= 2;
+				else
+					val= 0;	
+				
+				setflag_action_channels(val);
+			}
+			break;
 		
 		case PAGEUPKEY:
 			if (datatype == ACTCONT_ACTION) {
@@ -4196,7 +4778,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case DELKEY:
 		case XKEY:
 			if (okee("Erase selected")) {
-				if (mval[0]<NAMEWIDTH)
+				if (mval[0] < NAMEWIDTH)
 					delete_action_channels();
 				else
 					delete_action_keys();
@@ -4208,77 +4790,13 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		
-		/* LEFTMOUSE and RIGHTMOUSE event codes can be swapped above,
-		 * based on user preference USER_LMOUSESELECT
-		 */
-		case LEFTMOUSE:
-			if (view2dmove(LEFTMOUSE)) /* only checks for sliders */
-				break;
-			else if ((G.v2d->mask.xmin==0) || (mval[0]>ACTWIDTH)) {
-				/* moving time-marker / current frame */
-				do {
-					getmouseco_areawin(mval);
-					areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
-					
-					cfra= (int)dx;
-					if (cfra < 1) cfra= 1;
-					
-					if (cfra != CFRA) {
-						CFRA= cfra;
-						update_for_newframe();
-						force_draw_all(0);					
-					}
-					else PIL_sleep_ms(30);
-					
-				} while(get_mbut() & mousebut);
-				break;
-			}
-			/* passed on as selection */
-		case RIGHTMOUSE:
-			/* Clicking in the channel area */
-			if ((G.v2d->mask.xmin) && (mval[0]<NAMEWIDTH)) {
-				if (datatype == ACTCONT_ACTION) {
-					/* mouse is over action channels */
-					if (G.qual & LR_CTRLKEY)
-						numbuts_action();
-					else 
-						mouse_actionchannels(mval);
-				}
-				else numbuts_action();
-			}
-			else {
-				short select_mode= (G.qual & LR_SHIFTKEY)? SELECT_INVERT: SELECT_REPLACE;
-				
-				/* Clicking in the vertical scrollbar selects
-				 * all of the keys for that channel at that height
-				 */
-				if (IN_2D_VERT_SCROLL(mval))
-					selectall_action_keys(mval, 0, select_mode);
-		
-				/* Clicking in the horizontal scrollbar selects
-				 * all of the keys within 0.5 of the nearest integer
-				 * frame
-				 */
-				else if (IN_2D_HORIZ_SCROLL(mval))
-					selectall_action_keys(mval, 1, select_mode);
-				
-				/* Clicking in the main area of the action window
-				 * selects keys and markers
-				 */
-				else if (G.qual & LR_ALTKEY) {
-					areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
-					
-					/* sends a 1 for left and 0 for right */
-					selectkeys_leftright((dx < (float)CFRA), select_mode);
-				}
-				else
-					mouse_action(select_mode);
-			}
-			break;
-		
 		case ACCENTGRAVEKEY:
-			if (datatype == ACTCONT_ACTION)
-				expand_all_action();
+			if (datatype == ACTCONT_ACTION) {
+				if (G.qual == LR_SHIFTKEY)
+					expand_obscuregroups_action();
+				else
+					expand_all_action();
+			}
 			break;
 		
 		case PADPLUSKEY:
@@ -4307,12 +4825,10 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				doredraw= 1;
 			}
 			break;	
-			
-		case MIDDLEMOUSE:
-		case WHEELUPMOUSE:
-		case WHEELDOWNMOUSE:
-			view2dmove(event);	/* in drawipo.c */
-			break;
+		
+		case HOMEKEY:
+			do_action_buttons(B_ACTHOME);	/* header */
+			break;	
 		}
 	}
 

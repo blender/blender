@@ -3,15 +3,12 @@
 //
 // $Id$
 //
-// ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+// ***** BEGIN GPL LICENSE BLOCK *****
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version. The Blender
-// Foundation also sells licenses for use in proprietary software under
-// the Blender License.  See http://www.blender.org/BL/ for information
-// about this.
+// of the License, or (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
 //
 // Contributor(s): none yet.
 //
-// ***** END GPL/BL DUAL LICENSE BLOCK *****
+// ***** END GPL LICENSE BLOCK *****
 
 // todo: not all trackflags / upflags are implemented/tested !
 // m_trackflag is used to determine the forward tracking direction
@@ -73,6 +70,7 @@ KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj,
 	m_parentobj = 0;
 	
 	if (m_object){
+		m_object->RegisterActuator(this);
 		KX_GameObject* curobj = (KX_GameObject*) GetParent();
 
 		m_parentobj = curobj->GetParent(); // check if the object is parented 
@@ -179,11 +177,30 @@ MT_Matrix3x3 matrix3x3_interpol(MT_Matrix3x3 oldmat, MT_Matrix3x3 mat, int m_tim
 
 
 KX_TrackToActuator::~KX_TrackToActuator()
-{ 
-	// there's nothing to be done here, really....
+{
+	if (m_object)
+		m_object->UnregisterActuator(this);
 } /* end of destructor */
 
+void KX_TrackToActuator::ProcessReplica()
+{
+	// the replica is tracking the same object => register it
+	if (m_object)
+		m_object->RegisterActuator(this);
+	SCA_IActuator::ProcessReplica();
+}
 
+
+bool KX_TrackToActuator::UnlinkObject(SCA_IObject* clientobj)
+{
+	if (clientobj == m_object)
+	{
+		// this object is being deleted, we cannot continue to track it.
+		m_object = NULL;
+		return true;
+	}
+	return false;
+}
 
 bool KX_TrackToActuator::Update(double curtime, bool frame)
 {
@@ -433,8 +450,11 @@ PyObject* KX_TrackToActuator::PySetObject(PyObject* self, PyObject* args, PyObje
 	PyObject* gameobj;
 	if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &gameobj))
 	{
+		if (m_object != NULL)
+			m_object->UnregisterActuator(this);
 		m_object = (SCA_IObject*)gameobj;
-
+		if (m_object)
+			m_object->RegisterActuator(this);
 		Py_Return;
 	}
 	PyErr_Clear();
@@ -442,8 +462,11 @@ PyObject* KX_TrackToActuator::PySetObject(PyObject* self, PyObject* args, PyObje
 	char* objectname;
 	if (PyArg_ParseTuple(args, "s", &objectname))
 	{
+		if (m_object != NULL)
+			m_object->UnregisterActuator(this);
 		m_object= static_cast<SCA_IObject*>(SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String(objectname)));
-		
+		if (m_object)
+			m_object->RegisterActuator(this);
 		Py_Return;
 	}
 	

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BIF_EDITARMATURE_H
 #define BIF_EDITARMATURE_H
@@ -93,6 +90,7 @@ void	merge_armature(void);
 void	free_editArmature(void);
 
 int		join_armature(void);
+void 	separate_armature(void);
 void	load_editArmature(void);
 
 void	make_bone_parent(void);
@@ -111,6 +109,7 @@ void	remake_editArmature(void);
 void	selectconnected_armature(void);
 void	selectconnected_posearmature(void);
 void	select_bone_parent(void);
+void	setflag_armature(short mode);
 void    unique_editbone_name (struct ListBase *ebones, char *name);
 
 void	auto_align_armature(short mode);

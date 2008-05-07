@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 struct Mesh;
@@ -35,12 +32,15 @@ struct EditMesh;
 struct SpaceImage;
 struct EditFace;
 struct MTFace;
+struct Image;
 
 /* id can be from 0 to 3 */
 #define TF_PIN_MASK(id) (TF_PIN1 << id)
 #define TF_SEL_MASK(id) (TF_SEL1 << id)
 
 struct Object;
+
+void image_changed(struct SpaceImage *sima, struct Image *image);
 
 void object_uvs_changed(struct Object *ob);
 void object_tface_flags_changed(struct Object *ob, int updateButtons);
@@ -60,7 +60,9 @@ void borderselect_sima(short whichuvs);
 void mouseco_to_curtile(void);
 void mouse_select_sima(void);
 void snap_menu_sima(void);
-void aspect_sima(struct SpaceImage *sima, float *x, float *y);
+void image_pixel_aspect(struct Image *image, float *x, float *y);
+void image_final_aspect(struct Image *image, float *x, float *y);
+
 
 void select_invert_tface_uv(void);
 void select_swap_tface_uv(void);
@@ -77,6 +79,7 @@ void weld_align_menu_tface_uv(void);
 void weld_align_tface_uv(char tool);
 void be_square_tface_uv(struct EditMesh *em);
 void select_pinned_tface_uv(void);
+void select_edgeloop_tface_uv(struct EditFace *efa, int a, int shift, int *flush);
 
 void sima_sample_color(void);
 

@@ -3,15 +3,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 
@@ -70,7 +67,6 @@
 #include "BKE_scene.h"
 #include "BKE_object.h"
 #include "BKE_softbody.h"
-#include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_ipo.h"
 #include "LBM_fluidsim.h"
@@ -151,6 +147,7 @@ typedef struct {
 /* ********************** fluid sim settings struct functions ********************** */
 
 /* allocates and initializes general main data */
+
 FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 {
 	//char blendDir[FILE_MAXDIR], blendFile[FILE_MAXFILE];
@@ -189,7 +186,7 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 
 	/*  elubie: changed this to default to the same dir as the render output
 		to prevent saving to C:\ on Windows */
-	BLI_strncpy(fss->surfdataPath, U.tempdir, FILE_MAX); 
+	BLI_strncpy(fss->surfdataPath, btempdir, FILE_MAX); 
 	fss->orgMesh = (Mesh *)srcob->data;
 	fss->meshSurface = NULL;
 	fss->meshBB = NULL;
@@ -350,6 +347,7 @@ static void fluidsimInitChannel(float **setchannel, int size, float *time,
 	char *cstr = NULL;
 	float *channel = NULL;
 	float aniFrlen = G.scene->r.framelen;
+	int current_frame = G.scene->r.cfra;
 	if((entries<1) || (entries>3)) {
 		printf("fluidsimInitChannel::Error - invalid no. of entries: %d\n",entries);
 		entries = 1;
@@ -368,6 +366,11 @@ static void fluidsimInitChannel(float **setchannel, int size, float *time,
 	for(j=0; j<entries; j++) {
 		if(icus[j]) { 
 			for(i=1; i<=size; i++) {
+				/* Bugfix to make python drivers working
+				// which uses Blender.get("curframe") 
+				*/
+				G.scene->r.cfra = floor(aniFrlen*((float)i));
+				
 				calc_icu(icus[j], aniFrlen*((float)i) );
 				channel[(i-1)*(entries+1) + j] = icus[j]->curval;
 			}
@@ -380,7 +383,7 @@ static void fluidsimInitChannel(float **setchannel, int size, float *time,
 	for(i=1; i<=size; i++) {
 		channel[(i-1)*(entries+1) + entries] = time[i];
 	}
-
+	G.scene->r.cfra = current_frame;
 	*setchannel = channel;
 }
 
@@ -619,7 +622,7 @@ void fluidsimBake(struct Object *ob)
 	// prepare names...
 	strncpy(targetDir, domainSettings->surfdataPath, FILE_MAXDIR);
 	strncpy(newSurfdataPath, domainSettings->surfdataPath, FILE_MAXDIR);
-	BLI_convertstringcode(targetDir, G.sce, 0); // fixed #frame-no 
+	BLI_convertstringcode(targetDir, G.sce); // fixed #frame-no 
 
 	strcpy(targetFile, targetDir);
 	strcat(targetFile, suffixConfig);
@@ -671,7 +674,7 @@ void fluidsimBake(struct Object *ob)
 		if(selection<1) return; // 0 from menu, or -1 aborted
 		strcpy(targetDir, newSurfdataPath);
 		strncpy(domainSettings->surfdataPath, newSurfdataPath, FILE_MAXDIR);
-		BLI_convertstringcode(targetDir, G.sce, 0); // fixed #frame-no 
+		BLI_convertstringcode(targetDir, G.sce); // fixed #frame-no 
 	}
 	
 	// --------------------------------------------------------------------------------------------
@@ -1123,6 +1126,11 @@ void fluidsimBake(struct Object *ob)
 	}
 }
 
+void fluidsimFreeBake(struct Object *ob)
+{
+	/* not implemented yet */
+}
+
 
 #else /* DISABLE_ELBEEM */
 
@@ -1141,6 +1149,9 @@ FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *fss) {
 
 /* only compile dummy functions */
 void fluidsimBake(struct Object *ob) {
+}
+
+void fluidsimFreeBake(struct Object *ob) {
 }
 
 #endif /* DISABLE_ELBEEM */

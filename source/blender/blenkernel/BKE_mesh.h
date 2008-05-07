@@ -3,15 +3,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_MESH_H
 #define BKE_MESH_H
@@ -64,7 +61,7 @@ void boundbox_mesh(struct Mesh *me, float *loc, float *size);
 void tex_space_mesh(struct Mesh *me);
 float *get_mesh_orco_verts(struct Object *ob);
 void transform_mesh_orco_verts(struct Mesh *me, float (*orco)[3], int totvert, int invert);
-void test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex, int nr);
+int test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex, int nr);
 struct Mesh *get_mesh(struct Object *ob);
 void set_mesh(struct Object *ob, struct Mesh *me);
 void mball_to_mesh(struct ListBase *lb, struct Mesh *me);
@@ -96,6 +93,8 @@ float (*mesh_getRefKeyCos(struct Mesh *me, int *numVerts_r))[3];
 
 /* UvVertMap */
 
+#define STD_UV_CONNECT_LIMIT	0.0001f
+
 typedef struct UvVertMap {
 	struct UvMapVert **vert;
 	struct UvMapVert *buf;
@@ -104,7 +103,7 @@ typedef struct UvVertMap {
 typedef struct UvMapVert {
 	struct UvMapVert *next;
 	unsigned int f;
-	unsigned char tfindex, separate;
+	unsigned char tfindex, separate, flag;
 } UvMapVert;
 
 UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned int totface, unsigned int totvert, int selected, float *limit);

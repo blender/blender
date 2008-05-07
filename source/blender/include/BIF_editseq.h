@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BIF_EDITSEQ_H
@@ -63,6 +60,7 @@ void				no_gaps(void);
 void				seq_snap(short event);
 void				seq_snap_menu(void);
 void				seq_mute_sel( int mute );
+void                            seq_lock_sel(int lock);
 void				set_filter_seq(void);
 void				swap_select_seq(void);
 void				touch_seq_files(void);
@@ -70,7 +68,7 @@ void				seq_remap_paths(void);
 void				transform_seq(int mode, int context);
 void				transform_seq_nomarker(int mode, int context);
 void				un_meta(void);
-void				seq_cut(int cutframe);
+void				seq_cut(int cutframe, int hard_cut);
 void				seq_separate_images(void);
 void				reassign_inputs_seq_effect(void);
 void				select_surrounding_handles(struct Sequence *test);

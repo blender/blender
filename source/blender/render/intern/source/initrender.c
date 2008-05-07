@@ -459,11 +459,7 @@ void RE_SetCamera(Render *re, Object *camera)
 		
 		if(cam->type==CAM_ORTHO) re->r.mode |= R_ORTHO;
 		
-		/* solve this too... all time depending stuff is in convertblender.c? */
-		if(cam->ipo) {
-			calc_ipo(cam->ipo, frame_to_float(re->r.cfra));
-			execute_ipo(&cam->id, cam->ipo);
-		}
+		/* updating these values from ipo's/drivers is handeled by the depgraph */
 		lens= cam->lens;
 		shiftx=cam->shiftx;
 		shifty=cam->shifty;
@@ -603,24 +599,20 @@ void initparts(Render *re)
 	/* mininum part size, but for exr tile saving it was checked already */
 	if(!(re->r.scemode & R_EXR_TILE_FILE)) {
 		if(re->r.mode & R_PANORAMA) {
-			if(re->rectx/xparts < 8) 
+			if(ceil(re->rectx/(float)xparts) < 8) 
 				xparts= 1 + re->rectx/8;
 		}
 		else
-			if(re->rectx/xparts < 64) 
+			if(ceil(re->rectx/(float)xparts) < 64) 
 				xparts= 1 + re->rectx/64;
 		
-		if(re->recty/yparts < 64) 
+		if(ceil(re->recty/(float)yparts) < 64) 
 			yparts= 1 + re->recty/64;
 	}
 	
 	/* part size */
-	partx= re->rectx/xparts;
-	party= re->recty/yparts;
-	
-	/* if remainder pixel, add one, then parts are more equal in size for large panoramas */
-	if(re->rectx % partx)
-		partx++;
+	partx= ceil(re->rectx/(float)xparts);
+	party= ceil(re->recty/(float)yparts);
 	
 	re->xparts= xparts;
 	re->yparts= yparts;

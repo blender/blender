@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>
@@ -387,7 +384,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 {
 	DupliObject *dob;
 	struct vertexDupliData *vdd= userData;
-	float vec[3], *q2, mat[3][3], tmat[4][4], obmat[4][4];
+	float vec[3], q2[4], mat[3][3], tmat[4][4], obmat[4][4];
 	
 	VECCOPY(vec, co);
 	Mat4MulVecfl(vdd->pmat, vec);
@@ -405,7 +402,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 			vec[0]= -no_s[0]; vec[1]= -no_s[1]; vec[2]= -no_s[2];
 		}
 		
-		q2= vectoquat(vec, vdd->ob->trackflag, vdd->ob->upflag);
+		vectoquat(vec, vdd->ob->trackflag, vdd->ob->upflag, q2);
 		
 		QuatToMat3(q2, mat);
 		Mat4CpyMat4(tmat, obmat);
@@ -736,8 +733,8 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 	ParticleSystemModifierData *psmd;
 	float ctime, pa_time, scale = 1.0f;
 	float tmat[4][4], mat[4][4], obrotmat[4][4], pamat[4][4], size=0.0;
-	float obmat[4][4], (*obmatlist)[4][4]=0;
-	float xvec[3] = {-1.0, 0.0, 0.0}, *q;
+	float (*obmat)[4];
+	float xvec[3] = {-1.0, 0.0, 0.0}, q[4];
 	int lay, a, b, k, step_nbr = 0, counter, hair = 0;
 	int totpart, totchild, totgroup=0, pa_num;
 
@@ -749,7 +746,11 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 	part=psys->part;
 	psmd= psys_get_modifier(par, psys);
 
-	if(part==0) return;
+	if(part==0)
+		return;
+
+	if(!psys_check_enabled(par, psys))
+		return;
 
 	ctime = bsystem_time(par, (float)G.scene->r.cfra, 0.0);
 
@@ -767,8 +768,13 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 		else
 			step_nbr = 0;
 
-		if(psys->flag & PSYS_HAIR_DONE)
-			hair= (totchild == 0 || psys->childcache) && psys->pathcache;
+		/* if we have a hair particle system, use the path cache */
+		if(part->type == PART_HAIR) {
+			if(psys->flag & PSYS_HAIR_DONE)
+				hair= (totchild == 0 || psys->childcache) && psys->pathcache;
+			if(!hair)
+				return;
+		}
 
 		psys->lattice = psys_get_lattice(par, psys);
 
@@ -782,17 +788,12 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 			}
 
 			oblist= MEM_callocN(totgroup*sizeof(Object *), "dupgroup object list");
-			obmatlist= MEM_callocN(totgroup*sizeof(float)*4*4, "dupgroup obmat list");
 			go= part->dup_group->gobject.first;
-			for(a=0; a<totgroup; a++, go=go->next) {
+			for(a=0; a<totgroup; a++, go=go->next)
 				oblist[a]=go->ob;
-				Mat4CpyMat4(obmatlist[a], go->ob->obmat);
-			}
 		}
-		else {
+		else
 			ob = part->dup_ob;
-			Mat4CpyMat4(obmat, ob->obmat);
-		}
 
 		if(totchild==0 || part->draw & PART_DRAW_PARENT)
 			a=0;
@@ -828,18 +829,20 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 					b= a % totgroup;
 
 				ob = oblist[b];
-				Mat4CpyMat4(obmat, obmatlist[b]);
+				obmat= oblist[b]->obmat;
 			}
+			else
+				obmat= ob->obmat;
 
 			for(k=0; k<=step_nbr; k++, counter++) {
 				if(hair) {
 					if(a < totpart) {
 						cache = psys->pathcache[a];
-						psys_get_dupli_path_transform(par, part, psmd, pa, 0, cache, pamat, &scale);
+						psys_get_dupli_path_transform(par, psys, psmd, pa, 0, cache, pamat, &scale);
 					}
 					else {
 						cache = psys->childcache[a-totpart];
-						psys_get_dupli_path_transform(par, part, psmd, 0, cpa, cache, pamat, &scale);
+						psys_get_dupli_path_transform(par, psys, psmd, 0, cpa, cache, pamat, &scale);
 					}
 
 					VECCOPY(pamat[3], cache->co);
@@ -865,7 +868,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 				if(part->draw_as==PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
 					for(go= part->dup_group->gobject.first, b=0; go; go= go->next, b++) {
 
-						Mat4MulMat4(tmat, obmatlist[b], pamat);
+						Mat4MulMat4(tmat, obmat, pamat);
 						Mat4MulFloat3((float *)tmat, size*scale);
 						if(par_space_mat)
 							Mat4MulMat4(mat, tmat, par_space_mat);
@@ -882,10 +885,9 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 					where_is_object_time(ob, ctime-pa_time);
 					
 					if(!hair) {
-						q = vectoquat(xvec, ob->trackflag, ob->upflag);
+						vectoquat(xvec, ob->trackflag, ob->upflag, q);
 						QuatToMat4(q, obrotmat);
 						obrotmat[3][3]= 1.0f;
-
 						Mat4MulMat4(mat, obrotmat, pamat);
 					}
 					else
@@ -907,8 +909,6 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 	}
 	if(oblist)
 		MEM_freeN(oblist);
-	if(obmatlist)
-		MEM_freeN(obmatlist);
 
 	if(psys->lattice) {
 		end_latt_deform();

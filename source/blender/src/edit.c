@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>
@@ -251,7 +248,7 @@ int get_border(rcti *rect, short flag)
 					BIF_ThemeColor(TH_BACK);
 					glRecti(10, 25, 250, 40);
 	
-					if(G.vd->persp==0) {
+					if(G.vd->persp==V3D_ORTHO) {
 						window_to_3d(dvec, mvalo[0]-x1, mvalo[1]-y1);
 	
 						sprintf(str, "X %.4f  Y %.4f  Z %.4f  Dia %.4f", dvec[0], dvec[1], dvec[2], sqrt(dvec[0]*dvec[0]+dvec[1]*dvec[1]+dvec[2]*dvec[2]));
@@ -262,7 +259,7 @@ int get_border(rcti *rect, short flag)
 						glRasterPos2i(16,  28);
 						BMF_DrawString(G.fonts, str);
 					}
-					else if(G.vd->persp==2) {
+					else if(G.vd->persp==V3D_CAMOB) {
 						rctf vb;
 	
 						calc_viewborder(G.vd, &vb);
@@ -842,6 +839,11 @@ void countall()
 				G.totobj+=tot;
 				count_object(ob, base->flag & SELECT, tot);
 			}
+			else if((ob->transflag & OB_DUPLIGROUP) && ob->dup_group) {
+				int tot= count_duplilist(ob);
+				G.totobj+=tot;
+				count_object(ob, base->flag & SELECT, tot);
+			}
 			else {
 				count_object(ob, base->flag & SELECT, 1);
 				G.totobj++;
@@ -1301,7 +1303,7 @@ void snap_sel_to_grid()
 
 		base= base->next;
 	}
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -1414,7 +1416,7 @@ void snap_sel_to_curs()
 
 		base= base->next;
 	}
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -1819,7 +1821,7 @@ void snap_to_center()
 		
 		base= base->next;
 	}
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -1828,7 +1830,7 @@ void snapmenu()
 {
 	short event;
 
-	event = pupmenu("Snap %t|Selection -> Grid%x1|Selection -> Cursor%x2|Cursor-> Grid%x3|Cursor-> Selection%x4|Selection-> Center%x5|Cursor-> Active%x6");
+	event = pupmenu("Snap %t|Selection -> Grid%x1|Selection -> Cursor%x2|Selection -> Center%x3|%l|Cursor -> Selection%x4|Cursor -> Grid%x5|Cursor -> Active%x6");
 
 	switch (event) {
 		case 1: /*Selection to grid*/
@@ -1838,16 +1840,16 @@ void snapmenu()
 		case 2: /*Selection to cursor*/
 		    snap_sel_to_curs();
 			BIF_undo_push("Snap selection to cursor");
-		    break;	    
-		case 3: /*Cursor to grid*/
-		    snap_curs_to_grid();
+		    break;
+		case 3: /*Selection to center of selection*/
+		    snap_to_center();
+			BIF_undo_push("Snap selection to center");
 		    break;
 		case 4: /*Cursor to selection*/
 		    snap_curs_to_sel();
 		    break;
-		case 5: /*Selection to center of selection*/
-		    snap_to_center();
-			BIF_undo_push("Snap selection to center");
+		case 5: /*Cursor to grid*/
+		    snap_curs_to_grid();
 		    break;
 		case 6: /*Cursor to Active*/
 		    snap_curs_to_active();
@@ -1856,6 +1858,22 @@ void snapmenu()
 	}
 }
 
+void alignmenu()
+{
+	short val;
+	char *str_menu = BIF_menustringTransformOrientation("Align");
+	val= pupmenu(str_menu);
+	MEM_freeN(str_menu);
+
+	if (val >= 0)
+	{
+		short old_val = G.vd->twmode; 
+		G.vd->twmode = val;
+		initTransform(TFM_ALIGN, CTX_NO_PET|CTX_AUTOCONFIRM);
+		Transform();
+		G.vd->twmode = old_val;
+	}
+}
 
 #define MERGELIMIT 0.001
 void mergemenu(void)

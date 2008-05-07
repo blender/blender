@@ -151,7 +151,7 @@ typedef struct ImBuf {
 	int	userflags;			/**< Used to set imbuf to Dirty and other stuff */
 	int	*zbuf;				/**< z buffer data, original zbuffer */
 	float *zbuf_float;		/**< z buffer data, camera coordinates */
-	void *userdata;	
+	void *userdata;			/**< temporary storage, only used by baking at the moment */
 	unsigned char *encodedbuffer;     /**< Compressed image only used with png currently */
 	unsigned int   encodedsize;       /**< Size of data written to encodedbuffer */
 	unsigned int   encodedbuffersize; /**< Size of encodedbuffer */
@@ -161,55 +161,56 @@ typedef struct ImBuf {
 	float dither;			/**< random dither value, for conversion from float -> byte rect */
 	
 	struct MEM_CacheLimiterHandle_s * c_handle; /**< handle for cache limiter */
+	struct ImgInfo * img_info;
 	int refcounter;			/**< Refcounter for multiple users */
 	int index;				/**< reference index for ImBuf lists */
 	
 	struct ImBuf *mipmap[IB_MIPMAP_LEVELS]; /**< MipMap levels, a series of halved images */
 } ImBuf;
 
-LIBEXPORT struct ImBuf *allocImBuf(short,short,uchar,uint,uchar);
-LIBEXPORT struct ImBuf *dupImBuf(struct ImBuf *);
-LIBEXPORT void freeImBuf(struct ImBuf*);
+LIBIMPORT struct ImBuf *allocImBuf(short,short,uchar,uint,uchar);
+LIBIMPORT struct ImBuf *dupImBuf(struct ImBuf *);
+LIBIMPORT void freeImBuf(struct ImBuf*);
 
-LIBEXPORT short converttocmap(struct ImBuf* ibuf);
+LIBIMPORT short converttocmap(struct ImBuf* ibuf);
 
-LIBEXPORT short saveiff(struct ImBuf *,char *,int);
+LIBIMPORT short saveiff(struct ImBuf *,char *,int);
 
-LIBEXPORT struct ImBuf *loadiffmem(int *,int);
-LIBEXPORT struct ImBuf *loadifffile(int,int);
-LIBEXPORT struct ImBuf *loadiffname(char *,int);
-LIBEXPORT struct ImBuf *testiffname(char *,int);
+LIBIMPORT struct ImBuf *loadiffmem(int *,int);
+LIBIMPORT struct ImBuf *loadifffile(int,int);
+LIBIMPORT struct ImBuf *loadiffname(char *,int);
+LIBIMPORT struct ImBuf *testiffname(char *,int);
 
-LIBEXPORT struct ImBuf *onehalf(struct ImBuf *);
-LIBEXPORT struct ImBuf *onethird(struct ImBuf *);
-LIBEXPORT struct ImBuf *halflace(struct ImBuf *);
-LIBEXPORT struct ImBuf *half_x(struct ImBuf *);
-LIBEXPORT struct ImBuf *half_y(struct ImBuf *);
-LIBEXPORT struct ImBuf *double_x(struct ImBuf *);
-LIBEXPORT struct ImBuf *double_y(struct ImBuf *);
-LIBEXPORT struct ImBuf *double_fast_x(struct ImBuf *);
-LIBEXPORT struct ImBuf *double_fast_y(struct ImBuf *);
+LIBIMPORT struct ImBuf *onehalf(struct ImBuf *);
+LIBIMPORT struct ImBuf *onethird(struct ImBuf *);
+LIBIMPORT struct ImBuf *halflace(struct ImBuf *);
+LIBIMPORT struct ImBuf *half_x(struct ImBuf *);
+LIBIMPORT struct ImBuf *half_y(struct ImBuf *);
+LIBIMPORT struct ImBuf *double_x(struct ImBuf *);
+LIBIMPORT struct ImBuf *double_y(struct ImBuf *);
+LIBIMPORT struct ImBuf *double_fast_x(struct ImBuf *);
+LIBIMPORT struct ImBuf *double_fast_y(struct ImBuf *);
 
-LIBEXPORT int ispic(char *);
+LIBIMPORT int ispic(char *);
 
-LIBEXPORT void dit2(struct ImBuf *, short, short);
-LIBEXPORT void dit0(struct ImBuf *, short, short);
+LIBIMPORT void dit2(struct ImBuf *, short, short);
+LIBIMPORT void dit0(struct ImBuf *, short, short);
 
-LIBEXPORT struct ImBuf *scaleImBuf(struct ImBuf *, short, short);
-LIBEXPORT struct ImBuf *scalefastImBuf(struct ImBuf *, short, short);
-LIBEXPORT struct ImBuf *scalefieldImBuf(struct ImBuf *, short, short);
-LIBEXPORT struct ImBuf *scalefastfieldImBuf(struct ImBuf *, short, short);
+LIBIMPORT struct ImBuf *scaleImBuf(struct ImBuf *, short, short);
+LIBIMPORT struct ImBuf *scalefastImBuf(struct ImBuf *, short, short);
+LIBIMPORT struct ImBuf *scalefieldImBuf(struct ImBuf *, short, short);
+LIBIMPORT struct ImBuf *scalefastfieldImBuf(struct ImBuf *, short, short);
 
-LIBEXPORT void de_interlace(struct ImBuf *ib);
-LIBEXPORT void interlace(struct ImBuf *ib);
-LIBEXPORT void gamwarp(struct ImBuf *ibuf, double gamma);
+LIBIMPORT void de_interlace(struct ImBuf *ib);
+LIBIMPORT void interlace(struct ImBuf *ib);
+LIBIMPORT void gamwarp(struct ImBuf *ibuf, double gamma);
 
-LIBEXPORT void IMB_rectcpy(struct ImBuf *dbuf, struct ImBuf *sbuf, 
+LIBIMPORT void IMB_rectcpy(struct ImBuf *dbuf, struct ImBuf *sbuf, 
 	int destx, int desty, int srcx, int srcy, int width, int height);
 
-LIBEXPORT void IMB_rectfill(struct ImBuf *drect, float col[4]);
-LIBEXPORT void IMB_rectfill_area(struct ImBuf *ibuf, float *col, int x1, int y1, int x2, int y2);
-LIBEXPORT void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height, float *col, int x1, int y1, int x2, int y2);
+LIBIMPORT void IMB_rectfill(struct ImBuf *drect, float col[4]);
+LIBIMPORT void IMB_rectfill_area(struct ImBuf *ibuf, float *col, int x1, int y1, int x2, int y2);
+LIBIMPORT void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height, float *col, int x1, int y1, int x2, int y2);
 
 #endif /* IFF_H */
 

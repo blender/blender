@@ -434,6 +434,12 @@ def QHandle (winId):
   @param winId: the window id, see L{GetScreenInfo}.
   @note: see L{QAdd} for how to send events to a particular window.
   """
+def TestBreak ():
+  """
+  Return true if the user has pressed escape
+  @rtype: bool
+  @return: a boolean from a test if the user pressed escape
+  """
 
 def GetMouseCoords ():
   """

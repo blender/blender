@@ -398,7 +398,7 @@ static void bokeh_single_image(bNode *node, CompBuf *new, CompBuf *img, float fa
 			int maxyr= y+rady>imgy-1?imgy-y-1:rady;
 			
 			float *destd= new->rect + pix*( (y + minyr)*imgx + x + minxr);
-			float *dgausd= gausstab + (minyr+rady)*2*radx + minxr+radx;
+			float *dgausd= gausstab + (minyr+rady)*(2*radx+1) + minxr+radx;
 			
 			if(x<=0) src= srcd;
 			else if(x<imgx) src+= pix;
