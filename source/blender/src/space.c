@@ -4163,16 +4163,17 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&(G.f), 0, 0, 0, 0, "Allow any .blend file to run scripts automatically (unsafe with blend files from an untrusted source)");
 		
 		uiDefBut(block, LABEL,0,"Keyboard:",
-			(xpos+edgsp+(3*midsp)+(3*mpref)),y3label,mpref,buth,
+			(xpos+edgsp+(3*midsp)+(3*mpref)),y2label,mpref,buth,
 			0, 0, 0, 0, 0, "");
-
+		/* Not actually used anywhere! */
+		/*
 		uiDefButBitI(block, TOG, USER_NO_CAPSLOCK, B_U_CAPSLOCK, "Disable Caps Lock",
 			(xpos+edgsp+(3*midsp)+(3*mpref)),y1,mpref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Disables the Caps Lock key when entering text");
-
+		*/
 		uiDefButBitI(block, TOG, USER_NONUMPAD, 0, "Emulate Numpad",
-			(xpos+edgsp+(3*midsp)+(3*mpref)),y2,mpref,buth,
+			(xpos+edgsp+(3*midsp)+(3*mpref)),y1,mpref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Causes the 1 to 0 keys to act as the numpad (useful for laptops)");
 

@@ -246,7 +246,8 @@ static PyObject *Blender_Set( PyObject * self, PyObject * args )
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 					"expected an integer" );
 
-		G.scene->r.cfra = (short)PyInt_AsLong( arg ) ;
+		G.scene->r.cfra = (int)PyInt_AsLong( arg ) ;
+		CLAMP(G.scene->r.cfra, 1, MAXFRAME);
 
 		/*	update all objects, so python scripts can export all objects
 		 in a scene without worrying about the view layers */
