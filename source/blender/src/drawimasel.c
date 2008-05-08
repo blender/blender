@@ -308,11 +308,33 @@ static void draw_imasel_bookmarks(ScrArea *sa, SpaceImaSel *simasel)
 					BIF_ThemeColor(TH_TEXT);
 				}
 				ui_rasterpos_safe(sx, sy, simasel->aspect);
+
+				/* handling of international fonts.
+					TODO: proper support for utf8 in languages different from ja_JP abd zh_CH
+					needs update of iconv in lib/windows to support getting the system language string
+				*/
+#ifdef WITH_ICONV
+				{
+					struct LANGMenuEntry *lme;
+       				lme = find_language(U.language);
+
+					if ((lme !=NULL) && (!strcmp(lme->code, "ja_JP") || 
+						!strcmp(lme->code, "zh_CN")))
+					{
+						BIF_RasterPos(sx, sy);
 #ifdef WIN32
-				BIF_DrawString(simasel->curfont, sname, ((U.transopts & USER_TR_MENUS) | CONVERT_TO_UTF8));
+						BIF_DrawString(simasel->curfont, sname, ((U.transopts & USER_TR_MENUS) | CONVERT_TO_UTF8));
 #else
-				BIF_DrawString(simasel->curfont, sname, (U.transopts & USER_TR_MENUS));
+						BIF_DrawString(simasel->curfont, sname, (U.transopts & USER_TR_MENUS));
 #endif
+					} else {
+						BMF_DrawString(simasel->curfont, sname);
+					}
+				}
+#else
+				BMF_DrawString(simasel->curfont, sname);
+#endif /* WITH_ICONV */
+
 				sy -= linestep;
 			} else {
 				cpack(0xB0B0B0);
