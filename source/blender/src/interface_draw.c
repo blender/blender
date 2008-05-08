@@ -846,6 +846,7 @@ static void ui_default_flat(int type, int colorid, float asp, float x1, float y1
 	/* *** EXTRA DRAWING FOR SPECIFIC CONTROL TYPES *** */
 	switch(type) {
 	case NUM:
+	case NUMABS:
 		/* SIDE ARROWS */
 		/* left */
 		if(flag & UI_SELECT) {
@@ -872,11 +873,12 @@ static void ui_default_slider(int colorid, float fac, float aspect, float x1, fl
 	
 	if(flag & UI_SELECT) 
 			BIF_ThemeColorShade(TH_BUT_NUM, -5);
-	else
+	else {
 		if(flag & UI_ACTIVE) 
 			BIF_ThemeColorShade(TH_BUT_NUM, +35); 
 		else
 			BIF_ThemeColorShade(TH_BUT_NUM, +25); 
+	}
 
 	glRectf(x1, ymid-yc, x2, ymid+yc);
 	
@@ -943,6 +945,7 @@ static void ui_draw_default(int type, int colorid, float aspect, float x1, float
 	case TEX:
 	case IDPOIN:
 	case NUM:
+	case NUMABS:
 		ui_default_flat(type, colorid, aspect, x1, y1, x2, y2, flag);
 		break;
 	case ICONROW: 
@@ -1026,6 +1029,7 @@ static void ui_draw_oldskool(int type, int colorid, float asp, float x1, float y
 	/* special type decorations */
 	switch(type) {
 	case NUM:
+	case NUMABS:
 		if(flag & UI_SELECT) BIF_ThemeColorShade(colorid, -60);
 		else BIF_ThemeColorShade(colorid, -30);
 		ui_default_num_arrows(x1, y1, x2, y2);
@@ -1176,6 +1180,7 @@ static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, 
 	/* special type decorations */
 	switch(type) {
 	case NUM:
+	case NUMABS:
 		BIF_ThemeColorShade(colorid, curshade-60);
 		ui_default_num_arrows(x1, y1, x2, y2);
 		break;
@@ -1285,6 +1290,7 @@ static void ui_draw_minimal(int type, int colorid, float asp, float x1, float y1
 	/* special type decorations */
 	switch(type) {
 	case NUM:
+	case NUMABS:
 		if(flag & UI_SELECT) BIF_ThemeColorShade(colorid, -60);
 		else BIF_ThemeColorShade(colorid, -30);
 		ui_default_num_arrows(x1, y1, x2, y2);

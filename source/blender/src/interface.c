@@ -472,7 +472,7 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 	if(mode=='v' && but->lock) return 0;
 	poin= but->poin;
 		
-	if ELEM3(but->type, NUM, NUMSLI, HSVSLI) {
+	if ELEM4(but->type, NUM, NUMABS, NUMSLI, HSVSLI) {
 		
 		if(poin==NULL);
 		else if(mode=='c') {
@@ -2100,7 +2100,8 @@ static int ui_act_as_text_but(uiBut *but)
 	}
 	
 	if(but->pointype!=FLO) value= (int)value;
-
+	
+	if(but->type==NUMABS) value= fabs(value);
 	if(value<min) value= min;
 	if(value>max) value= max;
 
@@ -3934,6 +3935,7 @@ static int ui_do_button(uiBlock *block, uiBut *but, uiEvent *uevent)
 		break;
 
 	case NUM:
+	case NUMABS:
 		if(uevent->val) retval= ui_do_but_NUM(but);
 		break;
 		
@@ -4253,13 +4255,13 @@ static void ui_but_next_edittext(uiBlock *block)
 			but->flag &= ~(UI_ACTIVE|UI_SELECT);
 		
 		for(but= actbut->next; but; but= but->next) {
-			if(ELEM4(but->type, TEX, NUM, NUMSLI, HSVSLI)) {
+			if(ELEM5(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI)) {
 				but->flag |= UI_ACTIVE;
 				return;
 			}
 		}
 		for(but= block->buttons.first; but!=actbut; but= but->next) {
-			if(ELEM4(but->type, TEX, NUM, NUMSLI, HSVSLI)) {
+			if(ELEM5(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI)) {
 				but->flag |= UI_ACTIVE;
 				return;
 			}
@@ -4282,13 +4284,13 @@ static void ui_but_prev_edittext(uiBlock *block)
 			but->flag &= ~(UI_ACTIVE|UI_SELECT);
 		
 		for(but= actbut->prev; but; but= but->prev) {
-			if(ELEM4(but->type, TEX, NUM, NUMSLI, HSVSLI)) {
+			if(ELEM5(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI)) {
 				but->flag |= UI_ACTIVE;
 				return;
 			}
 		}
 		for(but= block->buttons.last; but!=actbut; but= but->prev) {
-			if(ELEM4(but->type, TEX, NUM, NUMSLI, HSVSLI)) {
+			if(ELEM5(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI)) {
 				but->flag |= UI_ACTIVE;
 				return;
 			}
@@ -4643,7 +4645,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent, int movemouse_quit)
 				//Really nasty... to update the num button from the same butblock
 				for(bt= block->buttons.first; bt; bt= bt->next)
 				{
-					if(bt->type == NUM) {
+					if(ELEM(bt->type, NUM, NUMABS)) {
 						ui_check_but(bt);
 						ui_draw_but(bt);
 					}
@@ -4669,7 +4671,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent, int movemouse_quit)
 
 				for(bt= block->buttons.first; bt; bt= bt->next)
 				{
-					if(bt->type == NUM) {
+					if(ELEM(bt->type, NUM, NUMABS)) {
 						ui_check_but(bt);
 						ui_draw_but(bt);
 					}
@@ -5442,8 +5444,15 @@ void ui_check_but(uiBut *but)
 		case HSVSLI:
 			value= ui_get_but_val(but);
 			if(value < but->min) value= but->min;
-				if(value > but->max) value= but->max;
-					ui_set_but_val(but, value);
+			if(value > but->max) value= but->max;
+			ui_set_but_val(but, value);
+			break;
+			
+		case NUMABS:
+			value= fabs( ui_get_but_val(but) );
+			if(value < but->min) value= but->min;
+			if(value > but->max) value= but->max;
+			ui_set_but_val(but, value);
 			break;
 			
 		case ICONTOG: 
@@ -5485,6 +5494,7 @@ void ui_check_but(uiBut *but)
 	case NUM:
 	case NUMSLI:
 	case HSVSLI:
+	case NUMABS:
 
 		value= ui_get_but_val(but);
 
@@ -5574,7 +5584,7 @@ void ui_check_but(uiBut *but)
 		but->ofs= 0;
 		while(but->strwidth > (int)okwidth ) {
 	
-			if ELEM(but->type, NUM, TEX) {	// only these cut off left
+			if ELEM3(but->type, NUM, NUMABS, TEX) {	// only these cut off left
 				but->ofs++;
 				but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, transopts);
 				
@@ -5618,6 +5628,7 @@ static int ui_auto_themecol(uiBut *but)
 	case SLI:
 	case NUM:
 	case NUMSLI:
+	case NUMABS:
 	case HSVSLI:
 		return TH_BUT_NUM;
 	case TEX:
@@ -5894,7 +5905,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	
 	but->pos= -1;	/* cursor invisible */
 
-	if(but->type==NUM) {	/* add a space to name */
+	if(ELEM(but->type, NUM, NUMABS)) {	/* add a space to name */
 		slen= strlen(but->str);
 		if(slen>0 && slen<UI_MAX_NAME_STR-2) {
 			if(but->str[slen-1]!=' ') {
