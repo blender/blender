@@ -246,7 +246,8 @@ static PyObject *Blender_Set( PyObject * self, PyObject * args )
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 					"expected an integer" );
 
-		G.scene->r.cfra = (short)PyInt_AsLong( arg ) ;
+		G.scene->r.cfra = (int)PyInt_AsLong( arg ) ;
+		CLAMP(G.scene->r.cfra, 1, MAXFRAME);
 
 		/*	update all objects, so python scripts can export all objects
 		 in a scene without worrying about the view layers */
@@ -545,8 +546,12 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 	else if(StringEqual( str, "compressfile" ))
 		ret = PyInt_FromLong( (U.flag & USER_FILECOMPRESS) >> 15  );
 	else if(StringEqual( str, "mipmap" ))
-		ret = PyInt_FromLong( (U.gameflags & USER_DISABLE_MIPMAP) == 0  );
-	else
+		ret = PyInt_FromLong( (U.gameflags & USER_DISABLE_MIPMAP)!=0  );
+	else if(StringEqual( str, "add_view_align" ))
+		ret = PyInt_FromLong( ((U.flag & USER_ADD_VIEWALIGNED)!=0)  );
+	else if(StringEqual( str, "add_editmode" ))
+		ret = PyInt_FromLong( ((U.flag & USER_ADD_EDITMODE)!=0)  );
+	else 
 		return EXPP_ReturnPyObjError( PyExc_AttributeError, "unknown attribute" );
 
 	if (ret) return ret;

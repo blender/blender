@@ -2176,70 +2176,71 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	{
 		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
 		struct Object* blenderobject = converter->FindBlenderObject(gameobj);
-		int nummeshes = gameobj->GetMeshCount();
-		RAS_MeshObject* meshobj = 0;
-        ListBase *conlist;
-        bConstraint *curcon;
-        conlist = get_active_constraints2(blenderobject);
-        if (conlist) {
-            for (curcon = (bConstraint *)conlist->first; curcon; curcon=(bConstraint *)curcon->next) {
-                if (curcon->type==CONSTRAINT_TYPE_RIGIDBODYJOINT){
-                    bRigidBodyJointConstraint *dat=(bRigidBodyJointConstraint *)curcon->data;
-                    //if (dat->tar)
-                        if (!dat->child){
-							PHY_IPhysicsController* physctr2 = 0;
-							if (dat->tar)
-							{
-								KX_GameObject *gotar=getGameOb(dat->tar->id.name,sumolist);
-								if (gotar && gotar->GetPhysicsController())
-									physctr2 = (PHY_IPhysicsController*) gotar->GetPhysicsController()->GetUserData();
-							}
+		ListBase *conlist;
+		bConstraint *curcon;
+		conlist = get_active_constraints2(blenderobject);
 
-							if (gameobj->GetPhysicsController())
-							{
-								float radsPerDeg = 6.283185307179586232f / 360.f;
+		if (conlist) {
+			for (curcon = (bConstraint *)conlist->first; curcon; curcon=(bConstraint *)curcon->next) {
+				if (curcon->type==CONSTRAINT_TYPE_RIGIDBODYJOINT){
 
-								PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) gameobj->GetPhysicsController()->GetUserData();
-								//we need to pass a full constraint frame, not just axis
+					bRigidBodyJointConstraint *dat=(bRigidBodyJointConstraint *)curcon->data;
+
+					if (!dat->child){
+
+						PHY_IPhysicsController* physctr2 = 0;
+
+						if (dat->tar)
+						{
+							KX_GameObject *gotar=getGameOb(dat->tar->id.name,sumolist);
+							if (gotar && gotar->GetPhysicsController())
+								physctr2 = (PHY_IPhysicsController*) gotar->GetPhysicsController()->GetUserData();
+						}
+
+						if (gameobj->GetPhysicsController())
+						{
+							float radsPerDeg = 6.283185307179586232f / 360.f;
+
+							PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) gameobj->GetPhysicsController()->GetUserData();
+							//we need to pass a full constraint frame, not just axis
 	                            
-								//localConstraintFrameBasis
-								MT_Matrix3x3 localCFrame(MT_Vector3(radsPerDeg*dat->axX,radsPerDeg*dat->axY,radsPerDeg*dat->axZ));
-								MT_Vector3 axis0 = localCFrame.getColumn(0);
-								MT_Vector3 axis1 = localCFrame.getColumn(1);
-								MT_Vector3 axis2 = localCFrame.getColumn(2);
+							//localConstraintFrameBasis
+							MT_Matrix3x3 localCFrame(MT_Vector3(radsPerDeg*dat->axX,radsPerDeg*dat->axY,radsPerDeg*dat->axZ));
+							MT_Vector3 axis0 = localCFrame.getColumn(0);
+							MT_Vector3 axis1 = localCFrame.getColumn(1);
+							MT_Vector3 axis2 = localCFrame.getColumn(2);
 								
-								int constraintId = kxscene->GetPhysicsEnvironment()->createConstraint(physctrl,physctr2,(PHY_ConstraintType)dat->type,(float)dat->pivX,(float)dat->pivY,(float)dat->pivZ,
+							int constraintId = kxscene->GetPhysicsEnvironment()->createConstraint(physctrl,physctr2,(PHY_ConstraintType)dat->type,(float)dat->pivX,
+								(float)dat->pivY,(float)dat->pivZ,
 								(float)axis0.x(),(float)axis0.y(),(float)axis0.z(),
 								(float)axis1.x(),(float)axis1.y(),(float)axis1.z(),
-								(float)axis2.x(),(float)axis2.y(),(float)axis2.z()
-											);
-								if (constraintId)
+								(float)axis2.x(),(float)axis2.y(),(float)axis2.z());
+							if (constraintId)
+							{
+								//if it is a generic 6DOF constraint, set all the limits accordingly
+								if (dat->type == PHY_GENERIC_6DOF_CONSTRAINT)
 								{
-									//if it is a generic 6DOF constraint, set all the limits accordingly
-									if (dat->type == PHY_GENERIC_6DOF_CONSTRAINT)
+									int dof;
+									int dofbit=1;
+									for (dof=0;dof<6;dof++)
 									{
-										int dof;
-										int dofbit=1;
-										for (dof=0;dof<6;dof++)
+										if (dat->flag & dofbit)
 										{
-											if (dat->flag & dofbit)
-											{
-												kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,dat->minLimit[dof],dat->maxLimit[dof]);
-											} else
-											{
-												//minLimit > maxLimit means free(disabled limit) for this degree of freedom
-												kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,1,-1);
-											}
-											dofbit<<=1;
+											kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,dat->minLimit[dof],dat->maxLimit[dof]);
+										} else
+										{
+											//minLimit > maxLimit means free(disabled limit) for this degree of freedom
+											kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,1,-1);
 										}
+										dofbit<<=1;
 									}
 								}
 							}
-                        }
-                }
-            }
-        }
-
+						}
+					}
+				}
+			}
+		}
 	}
 
 	templist->Release();

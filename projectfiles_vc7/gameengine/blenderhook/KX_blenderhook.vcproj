@@ -75,7 +75,7 @@
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\ketsji;..\..\..\source\gameengine\network;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\Physics\Sumo;..\..\..\source\gameengine\Physics\common;..\..\..\source\gameengine\network\loopbacknetwork;..\..\..\source\gameengine\rasterizer\ras_openglrasterizer;..\..\..\source\gameengine\Physics\Sumo\Fuzzics\include"
-				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;USE_SUMO_SOLID"
+				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;USE_SUMO_SOLID;WITH_GLEXT"
 				StringPooling="TRUE"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="0"

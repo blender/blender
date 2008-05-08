@@ -581,16 +581,27 @@ void KX_GameObject::SetObjectColor(const MT_Vector4& rgbavec)
 
 
 
-MT_Vector3 KX_GameObject::GetLinearVelocity()
+MT_Vector3 KX_GameObject::GetLinearVelocity(bool local)
 {
 	MT_Vector3 velocity(0.0,0.0,0.0);
-	
+	MT_Matrix3x3 ori, locvel;
+	int i, j; 
 	if (m_pPhysicsController1)
 	{
 		velocity = m_pPhysicsController1->GetLinearVelocity();
+		
+		if (local)
+		{
+			ori = GetSGNode()->GetWorldOrientation();
+			
+			for(i=0; i < 3; i++)
+				for(j=0; j < 3; j++)
+					locvel[i][j]= velocity[i]*ori[i][j];
+			for(i=0; i < 3; i++)
+				velocity[i] = locvel[0][i] + locvel[1][i] + locvel[2][i];
+		}
 	}
-	return velocity;
-	
+	return velocity;	
 }
 
 
@@ -948,7 +959,15 @@ PyObject* KX_GameObject::PyGetLinearVelocity(PyObject* self,
 											 PyObject* kwds)
 {
 	// only can get the velocity if we have a physics object connected to us...
-	return PyObjectFrom(GetLinearVelocity());
+	int local = 0;
+	if (PyArg_ParseTuple(args,"|i",&local))
+	{
+		return PyObjectFrom(GetLinearVelocity((local!=0)));
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 

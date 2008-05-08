@@ -58,15 +58,16 @@ class KX_GameObject:
 		@rtype: 3x3 rotation matrix
 		@return: The game object's rotation matrix
 		"""
-	def getLinearVelocity():
+	def getLinearVelocity(local):
 		"""
 		Gets the game object's linear velocity.
 		
 		This method returns the game object's velocity through it's centre of mass,
 		ie no angular velocity component.
 		
-		cf getVelocity()
-		
+		@type local: boolean
+		@param local: - False: you get the "global" velocity ie: relative to world orientation.
+		              - True: you get the "local" velocity ie: relative to object orientation.
 		@rtype: list [vx, vy, vz]
 		@return: the object's linear velocity.
 		"""
@@ -138,6 +139,9 @@ class KX_GameObject:
 	def setParent(parent):
 		"""
 		Sets this object's parent.
+		
+		@type parent: L{KX_GameObject}
+		@param parent: new parent object.
 		"""
 	def removeParent():
 		"""

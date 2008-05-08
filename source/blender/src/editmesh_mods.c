@@ -92,6 +92,7 @@ editmesh_mods.c, UI level access, no geometry changes
 
 #include "BDR_drawobject.h"
 #include "BDR_editobject.h"
+#include "BDR_editface.h"
 
 #include "BSE_drawview.h"
 #include "BSE_edit.h"
@@ -2062,6 +2063,7 @@ void loop_multiselect(int looptype)
 /* ***************** MAIN MOUSE SELECTION ************** */
 
 /* just to have the functions nice together */
+
 static void mouse_mesh_loop(void)
 {
 	EditEdge *eed;
@@ -2070,36 +2072,100 @@ static void mouse_mesh_loop(void)
 	
 	eed= findnearestedge(&dist);
 	if(eed) {
+		if (G.scene->toolsettings->edge_mode == EDGE_MODE_SELECT) {
+			if((G.qual & LR_SHIFTKEY)==0) EM_clear_flag_all(SELECT);
 		
-		if((G.qual & LR_SHIFTKEY)==0) EM_clear_flag_all(SELECT);
-		
-		if((eed->f & SELECT)==0) select=1;
-		else if(G.qual & LR_SHIFTKEY) select=0;
+			if((eed->f & SELECT)==0) select=1;
+			else if(G.qual & LR_SHIFTKEY) select=0;
 
-		if(G.scene->selectmode & SCE_SELECT_FACE) {
-			faceloop_select(eed, select);
-		}
-		else if(G.scene->selectmode & SCE_SELECT_EDGE) {
-            if(G.qual == (LR_CTRLKEY | LR_ALTKEY) || G.qual == (LR_CTRLKEY | LR_ALTKEY |LR_SHIFTKEY))
-    			edgering_select(eed, select);
-            else if(G.qual & LR_ALTKEY)
-    			edgeloop_select(eed, select);
-		}
-        else if(G.scene->selectmode & SCE_SELECT_VERTEX) {
-            if(G.qual == (LR_CTRLKEY | LR_ALTKEY) || G.qual == (LR_CTRLKEY | LR_ALTKEY |LR_SHIFTKEY))
-    			edgering_select(eed, select);
-            else if(G.qual & LR_ALTKEY)
-    			edgeloop_select(eed, select);
-		}
+			if(G.scene->selectmode & SCE_SELECT_FACE) {
+				faceloop_select(eed, select);
+			}
+			else if(G.scene->selectmode & SCE_SELECT_EDGE) {
+		        if(G.qual == (LR_CTRLKEY | LR_ALTKEY) || G.qual == (LR_CTRLKEY | LR_ALTKEY |LR_SHIFTKEY))
+					edgering_select(eed, select);
+		        else if(G.qual & LR_ALTKEY)
+					edgeloop_select(eed, select);
+			}
+		    else if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+		        if(G.qual == (LR_CTRLKEY | LR_ALTKEY) || G.qual == (LR_CTRLKEY | LR_ALTKEY |LR_SHIFTKEY))
+					edgering_select(eed, select);
+		        else if(G.qual & LR_ALTKEY)
+					edgeloop_select(eed, select);
+			}
 
-		/* frontbuffer draw of last selected only */
-		unified_select_draw(NULL, eed, NULL);
+			/* frontbuffer draw of last selected only */
+			unified_select_draw(NULL, eed, NULL);
 		
-		EM_selectmode_flush();
-		countall();
-		allqueue(REDRAWVIEW3D, 0);
-		if (EM_texFaceCheck())
-			allqueue(REDRAWIMAGE, 0);
+			EM_selectmode_flush();
+			countall();
+			allqueue(REDRAWVIEW3D, 0);
+			if (EM_texFaceCheck())
+				allqueue(REDRAWIMAGE, 0);
+		} else { /*(G.scene->toolsettings->edge_mode == EDGE_MODE_TAG_*)*/
+			int act = (edgetag_context_check(eed)==0);
+			int path = 0;
+			
+			if (G.qual == (LR_SHIFTKEY | LR_ALTKEY) && G.editMesh->selected.last) {
+				EditSelection *ese = G.editMesh->selected.last;
+	
+				if(ese && ese->type == EDITEDGE) {
+					EditEdge *eed_act;
+					eed_act = (EditEdge*)ese->data;
+					if (eed_act != eed) {
+						/* If shift is pressed we need to use the last active edge, (if it exists) */
+						if (edgetag_shortest_path(eed_act, eed)) {
+							EM_remove_selection(eed_act, EDITEDGE);
+							EM_select_edge(eed_act, 0);
+							path = 1;
+						}
+					}
+				}
+			}
+			if (path==0) {
+				edgetag_context_set(eed, act); /* switch the edge option */
+			}
+			
+			if (act) {
+				if ((eed->f & SELECT)==0) {
+					EM_select_edge(eed, 1);
+					EM_selectmode_flush();
+					countall();
+				}
+				/* even if this is selected it may not be in the selection list */
+				EM_store_selection(eed, EDITEDGE);
+			} else {
+				if (eed->f & SELECT) {
+					EM_select_edge(eed, 0);
+					/* logic is differnt from above here since if this was selected we dont know if its in the selection list or not */
+					EM_remove_selection(eed, EDITEDGE);
+					
+					EM_selectmode_flush();
+					countall();
+				}
+			}
+			
+			switch (G.scene->toolsettings->edge_mode) {
+			case EDGE_MODE_TAG_SEAM:
+				G.f |= G_DRAWSEAMS;
+				break;
+			case EDGE_MODE_TAG_SHARP:
+				G.f |= G_DRAWSHARP;
+				break;
+			case EDGE_MODE_TAG_CREASE:	
+				G.f |= G_DRAWCREASES;
+				break;
+			case EDGE_MODE_TAG_BEVEL:
+				G.f |= G_DRAWBWEIGHTS;
+				break;
+			}
+			
+			unified_select_draw(NULL, eed, NULL);
+			
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+				
 	}
 }
 

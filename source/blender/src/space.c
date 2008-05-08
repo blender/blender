@@ -1745,25 +1745,42 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if ( (G.obedit) && (G.obedit->type==OB_MESH) )
 						select_faces_by_numverts(5);
 				}
+				
+				else if(G.qual==LR_CTRLKEY) {}
 				else do_layer_buttons(4);
 				break;
 
 			case SIXKEY:
-				do_layer_buttons(5); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(5);
+				break;
 			case SEVENKEY:
-				do_layer_buttons(6); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(6);
+				break;
 			case EIGHTKEY:
-				do_layer_buttons(7); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(7);
+				break;
 			case NINEKEY:
-				do_layer_buttons(8); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(8);
+				break;
 			case ZEROKEY:
-				do_layer_buttons(9); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(9);
+				break;
 			case MINUSKEY:
-				do_layer_buttons(10); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(10);
+				break;
 			case EQUALKEY:
-				do_layer_buttons(11); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(11);
+				break;
 			case ACCENTGRAVEKEY:
-				do_layer_buttons(-1); break;
+				do_layer_buttons(-1);
+				break;
 			
 			case SPACEKEY:
 				if(G.qual == LR_CTRLKEY) {
@@ -4158,21 +4175,22 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(1*midsp)+(1*mpref)),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiDefButBitI(block, TOG, G_DOSCRIPTLINKS, REDRAWBUTSSCRIPT, "Enabled by Default",
+		uiDefButBitI(block, TOGN, USER_DONT_DOSCRIPTLINKS, REDRAWBUTSSCRIPT, "Enabled by Default",
 			(xpos+edgsp+(1*mpref)+(1*midsp)),y5,mpref,buth,
-			&(G.f), 0, 0, 0, 0, "Allow any .blend file to run scripts automatically (unsafe with blend files from an untrusted source)");
+			&(U.flag), 0, 0, 0, 0, "Allow any .blend file to run scripts automatically (unsafe with blend files from an untrusted source)");
 		
 		uiDefBut(block, LABEL,0,"Keyboard:",
-			(xpos+edgsp+(3*midsp)+(3*mpref)),y3label,mpref,buth,
+			(xpos+edgsp+(3*midsp)+(3*mpref)),y2label,mpref,buth,
 			0, 0, 0, 0, 0, "");
-
+		/* Not actually used anywhere! */
+		/*
 		uiDefButBitI(block, TOG, USER_NO_CAPSLOCK, B_U_CAPSLOCK, "Disable Caps Lock",
 			(xpos+edgsp+(3*midsp)+(3*mpref)),y1,mpref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Disables the Caps Lock key when entering text");
-
+		*/
 		uiDefButBitI(block, TOG, USER_NONUMPAD, 0, "Emulate Numpad",
-			(xpos+edgsp+(3*midsp)+(3*mpref)),y2,mpref,buth,
+			(xpos+edgsp+(3*midsp)+(3*mpref)),y1,mpref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Causes the 1 to 0 keys to act as the numpad (useful for laptops)");
 
@@ -5611,6 +5629,7 @@ static void init_imaselspace(ScrArea *sa)
 	simasel->files = BIF_filelist_new();
 }
 
+
 /* ******************** SPACE: OOPS ********************** */
 
 extern void drawoopsspace(ScrArea *sa, void *spacedata);
@@ -6155,39 +6174,7 @@ void newspace(ScrArea *sa, int type)
 		}
 	}
 
-		
-	/* exception: filespace */
-	if(sa->spacetype==SPACE_FILE) {
-		SpaceFile *sfile= sa->spacedata.first;
-		
-		if(sfile->type==FILE_MAIN) {
-			freefilelist(sfile);
-		} else {
-			sfile->type= FILE_UNIX;
-		}
-		
-		sfile->returnfunc= NULL;
-		sfile->title[0]= 0;
-		if(sfile->filelist) test_flags_file(sfile);
-	}
-	/* exception: imasel space */
-	else if(sa->spacetype==SPACE_IMASEL) {
-		SpaceImaSel *simasel= sa->spacedata.first;
-		if(simasel->type==FILE_MAIN) {
-			if (simasel->files) {
-				BIF_filelist_free(simasel->files);
-				BIF_filelist_settype(simasel->files, FILE_MAIN);
-			}
-		} else {
-			if (simasel->files) {
-				simasel->type= FILE_UNIX;
-				BIF_filelist_settype(simasel->files, simasel->type);
-			}
-		}
-		simasel->returnfunc= NULL;
-		simasel->title[0]= 0;
-	}
-	else if(sa->spacetype==SPACE_OOPS) {
+	if(sa->spacetype==SPACE_OOPS) {
 		SpaceOops *so= sa->spacedata.first;
 		if(xtra && so->type!=SO_OUTLINER) {
 			so->type= SO_OUTLINER;

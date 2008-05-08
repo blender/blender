@@ -164,6 +164,7 @@ struct AutoComplete;
 #define BUT_TOGDUAL (33<<9)
 #define ICONTOGN (34<<9)
 #define FTPREVIEW (35<<9)
+#define NUMABS	(36<<9)
 #define BUTTYPE	(63<<9)
 
 

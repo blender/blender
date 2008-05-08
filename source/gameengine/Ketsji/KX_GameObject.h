@@ -252,8 +252,9 @@ public:
 	/** 
 	 * Return the linear velocity of the game object.
 	 */
-		MT_Vector3			
+		MT_Vector3 
 	GetLinearVelocity(
+		bool local=false
 	);
 
 	/** 

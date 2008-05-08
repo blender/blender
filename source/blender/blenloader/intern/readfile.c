@@ -2615,6 +2615,8 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		psys->edit = 0;
 		psys->pathcache = 0;
 		psys->childcache = 0;
+		psys->pathcachebufs.first = psys->pathcachebufs.last = 0;
+		psys->childcachebufs.first = psys->childcachebufs.last = 0;
 		psys->reactevents.first = psys->reactevents.last = 0;
 
 		psys->pointcache= newdataadr(fd, psys->pointcache);

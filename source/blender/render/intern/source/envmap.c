@@ -158,6 +158,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->totinstance= re->totinstance;
 	envre->instancetable= re->instancetable;
 	envre->objectinstance= re->objectinstance;
+	envre->qmcsamplers= re->qmcsamplers;
 	
 	return envre;
 }
@@ -178,6 +179,7 @@ static void envmap_free_render_copy(Render *envre)
 	envre->raytree= NULL;
 	envre->instancetable.first= envre->instancetable.last= NULL;
 	envre->objectinstance= NULL;
+	envre->qmcsamplers= NULL;
 	
 	RE_FreeRender(envre);
 }

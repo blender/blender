@@ -437,7 +437,9 @@ typedef struct ToolSettings {
 	char  skgen_postpro_passes;
 	char  skgen_subdivisions[3];
 	
-	char pad3[5];
+	/* Alt+RMB option */
+	char edge_mode;
+	char pad3[4];
 } ToolSettings;
 
 /* Used by all brushes to store their properties, which can be directly set
@@ -782,6 +784,13 @@ typedef struct Scene {
 /* toolsettings->uvcalc_flag */
 #define UVCALC_FILLHOLES			1
 #define UVCALC_NO_ASPECT_CORRECT	2	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
+
+/* toolsettings->edge_mode */
+#define EDGE_MODE_SELECT				0
+#define EDGE_MODE_TAG_SEAM				1
+#define EDGE_MODE_TAG_SHARP				2
+#define EDGE_MODE_TAG_CREASE			3
+#define EDGE_MODE_TAG_BEVEL				4
 
 /* toolsettings->particle flag */
 #define PE_KEEP_LENGTHS			1

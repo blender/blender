@@ -870,14 +870,14 @@ int minmax_tface(float *min, float *max)
 	return ok;
 }
 
-#define ME_SEAM_DONE ME_SEAM_LAST		/* reuse this flag */
+#define ME_SEAM_DONE 2		/* reuse this flag */
 
-static float seam_cut_cost(Mesh *me, int e1, int e2, int vert)
+static float edgetag_cut_cost(EditMesh *em, int e1, int e2, int vert)
 {
-	MVert *v = me->mvert + vert;
-	MEdge *med1 = me->medge + e1, *med2 = me->medge + e2;
-	MVert *v1 = me->mvert + ((med1->v1 == vert)? med1->v2: med1->v1);
-	MVert *v2 = me->mvert + ((med2->v1 == vert)? med2->v2: med2->v1);
+	EditVert *v = EM_get_vert_for_index(vert);
+	EditEdge *eed1 = EM_get_edge_for_index(e1), *eed2 = EM_get_edge_for_index(e2);
+	EditVert *v1 = EM_get_vert_for_index( (eed1->v1->tmp.l == vert)? eed1->v2->tmp.l: eed1->v1->tmp.l );
+	EditVert *v2 = EM_get_vert_for_index( (eed2->v1->tmp.l == vert)? eed2->v2->tmp.l: eed2->v1->tmp.l );
 	float cost, d1[3], d2[3];
 
 	cost = VecLenf(v1->co, v->co);
@@ -891,19 +891,19 @@ static float seam_cut_cost(Mesh *me, int e1, int e2, int vert)
 	return cost;
 }
 
-static void seam_add_adjacent(Mesh *me, Heap *heap, int mednum, int vertnum, int *nedges, int *edges, int *prevedge, float *cost)
+static void edgetag_add_adjacent(EditMesh *em, Heap *heap, int mednum, int vertnum, int *nedges, int *edges, int *prevedge, float *cost)
 {
 	int startadj, endadj = nedges[vertnum+1];
 
 	for (startadj = nedges[vertnum]; startadj < endadj; startadj++) {
 		int adjnum = edges[startadj];
-		MEdge *medadj = me->medge + adjnum;
+		EditEdge *eedadj = EM_get_edge_for_index(adjnum);
 		float newcost;
 
-		if (medadj->flag & ME_SEAM_DONE)
+		if (eedadj->f2 & ME_SEAM_DONE)
 			continue;
 
-		newcost = cost[mednum] + seam_cut_cost(me, mednum, adjnum, vertnum);
+		newcost = cost[mednum] + edgetag_cut_cost(em, mednum, adjnum, vertnum);
 
 		if (cost[adjnum] > newcost) {
 			cost[adjnum] = newcost;
@@ -913,59 +913,93 @@ static void seam_add_adjacent(Mesh *me, Heap *heap, int mednum, int vertnum, int
 	}
 }
 
-static int seam_shortest_path(Mesh *me, int source, int target)
+void edgetag_context_set(EditEdge *eed, int val)
 {
+	switch (G.scene->toolsettings->edge_mode) {
+	case EDGE_MODE_TAG_SEAM:
+		if (val)		{eed->seam = 255;}
+		else			{eed->seam = 0;}
+		break;
+	case EDGE_MODE_TAG_SHARP:
+		if (val)		{eed->sharp = 1;}
+		else			{eed->sharp = 0;}
+		break;				
+	case EDGE_MODE_TAG_CREASE:	
+		if (val)		{eed->crease = 1.0f;}
+		else			{eed->crease = 0.0f;}
+		break;
+	case EDGE_MODE_TAG_BEVEL:
+		if (val)		{eed->bweight = 1.0f;}
+		else			{eed->bweight = 0.0f;}
+		break;
+	}
+}
+
+int edgetag_context_check(EditEdge *eed)
+{
+	switch (G.scene->toolsettings->edge_mode) {
+	case EDGE_MODE_TAG_SEAM:
+		return eed->seam ? 1 : 0;
+	case EDGE_MODE_TAG_SHARP:
+		return eed->sharp ? 1 : 0;
+	case EDGE_MODE_TAG_CREASE:	
+		return eed->crease ? 1 : 0;
+	case EDGE_MODE_TAG_BEVEL:
+		return eed->bweight ? 1 : 0;
+	}
+	return 0;
+}
+
+
+int edgetag_shortest_path(EditEdge *source, EditEdge *target)
+{
+	EditMesh *em = G.editMesh;
+	EditEdge *eed;
+	EditVert *ev;
+	
 	Heap *heap;
 	EdgeHash *ehash;
 	float *cost;
-	MEdge *med;
-	int a, *nedges, *edges, *prevedge, mednum = -1, nedgeswap = 0;
-	MFace *mf;
+	int a, totvert=0, totedge=0, *nedges, *edges, *prevedge, mednum = -1, nedgeswap = 0;
 
-	/* mark hidden edges as done, so we don't use them */
-	ehash = BLI_edgehash_new();
 
-	for (a=0, mf=me->mface; a<me->totface; a++, mf++) {
-		if (!(mf->flag & ME_HIDE)) {
-			BLI_edgehash_insert(ehash, mf->v1, mf->v2, NULL);
-			BLI_edgehash_insert(ehash, mf->v2, mf->v3, NULL);
-			if (mf->v4) {
-				BLI_edgehash_insert(ehash, mf->v3, mf->v4, NULL);
-				BLI_edgehash_insert(ehash, mf->v4, mf->v1, NULL);
-			}
-			else
-				BLI_edgehash_insert(ehash, mf->v3, mf->v1, NULL);
-		}
+	/* we need the vert */
+	for (ev= em->verts.first, totvert=0; ev; ev= ev->next) {
+		ev->tmp.l = totvert;
+		totvert++;
 	}
 
-	for (a=0, med=me->medge; a<me->totedge; a++, med++)
-		if (!BLI_edgehash_haskey(ehash, med->v1, med->v2))
-			med->flag |= ME_SEAM_DONE;
-
-	BLI_edgehash_free(ehash, NULL);
+	for (eed= em->edges.first; eed; eed = eed->next) {
+		eed->f2 = 0;
+		if (eed->h) {
+			eed->f2 |= ME_SEAM_DONE;
+		}
+		eed->tmp.l = totedge;
+		totedge++;
+	}
 
 	/* alloc */
-	nedges = MEM_callocN(sizeof(*nedges)*me->totvert+1, "SeamPathNEdges");
-	edges = MEM_mallocN(sizeof(*edges)*me->totedge*2, "SeamPathEdges");
-	prevedge = MEM_mallocN(sizeof(*prevedge)*me->totedge, "SeamPathPrevious");
-	cost = MEM_mallocN(sizeof(*cost)*me->totedge, "SeamPathCost");
+	nedges = MEM_callocN(sizeof(*nedges)*totvert+1, "SeamPathNEdges");
+	edges = MEM_mallocN(sizeof(*edges)*totedge*2, "SeamPathEdges");
+	prevedge = MEM_mallocN(sizeof(*prevedge)*totedge, "SeamPathPrevious");
+	cost = MEM_mallocN(sizeof(*cost)*totedge, "SeamPathCost");
 
 	/* count edges, compute adjacent edges offsets and fill adjacent edges */
-	for (a=0, med=me->medge; a<me->totedge; a++, med++) {
-		nedges[med->v1+1]++;
-		nedges[med->v2+1]++;
+	for (eed= em->edges.first; eed; eed = eed->next) {
+		nedges[eed->v1->tmp.l+1]++;
+		nedges[eed->v2->tmp.l+1]++;
 	}
 
-	for (a=1; a<me->totvert; a++) {
+	for (a=1; a<totvert; a++) {
 		int newswap = nedges[a+1];
 		nedges[a+1] = nedgeswap + nedges[a];
 		nedgeswap = newswap;
 	}
 	nedges[0] = nedges[1] = 0;
 
-	for (a=0, med=me->medge; a<me->totedge; a++, med++) {
-		edges[nedges[med->v1+1]++] = a;
-		edges[nedges[med->v2+1]++] = a;
+	for (a=0, eed= em->edges.first; eed; a++, eed = eed->next) {
+		edges[nedges[eed->v1->tmp.l+1]++] = a;
+		edges[nedges[eed->v2->tmp.l+1]++] = a;
 
 		cost[a] = 1e20f;
 		prevedge[a] = -1;
@@ -973,98 +1007,72 @@ static int seam_shortest_path(Mesh *me, int source, int target)
 
 	/* regular dijkstra shortest path, but over edges instead of vertices */
 	heap = BLI_heap_new();
-	BLI_heap_insert(heap, 0.0f, SET_INT_IN_POINTER(source));
-	cost[source] = 0.0f;
+	BLI_heap_insert(heap, 0.0f, SET_INT_IN_POINTER(source->tmp.l));
+	cost[source->tmp.l] = 0.0f;
+
+	EM_init_index_arrays(1, 1, 0);
+
 
 	while (!BLI_heap_empty(heap)) {
 		mednum = GET_INT_FROM_POINTER(BLI_heap_popmin(heap));
-		med = me->medge + mednum;
+		eed = EM_get_edge_for_index( mednum );
 
-		if (mednum == target)
+		if (mednum == target->tmp.l)
 			break;
 
-		if (med->flag & ME_SEAM_DONE)
+		if (eed->f2 & ME_SEAM_DONE)
 			continue;
 
-		med->flag |= ME_SEAM_DONE;
+		eed->f2 |= ME_SEAM_DONE;
 
-		seam_add_adjacent(me, heap, mednum, med->v1, nedges, edges, prevedge, cost);
-		seam_add_adjacent(me, heap, mednum, med->v2, nedges, edges, prevedge, cost);
+		edgetag_add_adjacent(em, heap, mednum, eed->v1->tmp.l, nedges, edges, prevedge, cost);
+		edgetag_add_adjacent(em, heap, mednum, eed->v2->tmp.l, nedges, edges, prevedge, cost);
 	}
+	
 	
 	MEM_freeN(nedges);
 	MEM_freeN(edges);
 	MEM_freeN(cost);
 	BLI_heap_free(heap, NULL);
 
-	for (a=0, med=me->medge; a<me->totedge; a++, med++)
-		med->flag &= ~ME_SEAM_DONE;
+	for (eed= em->edges.first; eed; eed = eed->next) {
+		eed->f2 &= ~ME_SEAM_DONE;
+	}
 
-	if (mednum != target) {
+	if (mednum != target->tmp.l) {
 		MEM_freeN(prevedge);
+		EM_free_index_arrays();
 		return 0;
 	}
 
 	/* follow path back to source and mark as seam */
-	if (mednum == target) {
+	if (mednum == target->tmp.l) {
 		short allseams = 1;
 
-		mednum = target;
+		mednum = target->tmp.l;
 		do {
-			med = me->medge + mednum;
-			if (!(med->flag & ME_SEAM)) {
+			eed = EM_get_edge_for_index( mednum );
+			if (!edgetag_context_check(eed)) {
 				allseams = 0;
 				break;
 			}
 			mednum = prevedge[mednum];
-		} while (mednum != source);
+		} while (mednum != source->tmp.l);
 
-		mednum = target;
+		mednum = target->tmp.l;
 		do {
-			med = me->medge + mednum;
+			eed = EM_get_edge_for_index( mednum );
 			if (allseams)
-				med->flag &= ~ME_SEAM;
+				edgetag_context_set(eed, 0);
 			else
-				med->flag |= ME_SEAM;
+				edgetag_context_set(eed, 1);
 			mednum = prevedge[mednum];
 		} while (mednum != -1);
 	}
 
 	MEM_freeN(prevedge);
+	EM_free_index_arrays();
 	return 1;
-}
-
-static void seam_select(Mesh *me, short *mval, short path)
-{
-	unsigned int index = 0;
-	MEdge *medge, *med;
-	int a, lastindex = -1;
-
-	if (!facesel_edge_pick(me, mval, &index))
-		return;
-
-	for (a=0, med=me->medge; a<me->totedge; a++, med++) {
-		if (med->flag & ME_SEAM_LAST) {
-			lastindex = a;
-			med->flag &= ~ME_SEAM_LAST;
-			break;
-		}
-	}
-
-	medge = me->medge + index;
-	if (!path || (lastindex == -1) || (index == lastindex) ||
-	    !seam_shortest_path(me, lastindex, index))
-		medge->flag ^= ME_SEAM;
-	medge->flag |= ME_SEAM_LAST;
-
-	G.f |= G_DRAWSEAMS;
-
-	if (G.rt == 8)
-		unwrap_lscm(1);
-
-	BIF_undo_push("Mark Seam");
-
-	object_tface_flags_changed(OBACT, 1);
 }
 
 void seam_edgehash_insert_face(EdgeHash *ehash, MFace *mf)
@@ -1153,11 +1161,6 @@ void face_select()
 	}
 	me = get_mesh(ob);
 	getmouseco_areawin(mval);
-
-	if (G.qual & LR_ALTKEY) {
-		seam_select(me, mval, (G.qual & LR_SHIFTKEY) != 0);
-		return;
-	}
 
 	if (!facesel_face_pick(me, mval, &index, 1)) return;
 	

@@ -451,6 +451,7 @@ int main(int argc, char **argv)
 					sizx= atoi(argv[a]);
 					a++;
 					sizy= atoi(argv[a]);
+					G.windowstate = G_WINDOWSTATE_BORDER;
 
 					break;
 				case 'd':

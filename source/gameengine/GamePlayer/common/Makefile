@@ -60,6 +60,7 @@ CPPFLAGS += -I../../../gameengine/Converter
 CPPFLAGS += -I../../../gameengine/Expressions
 CPPFLAGS += -I../../../gameengine/GameLogic
 CPPFLAGS += -I../../../gameengine/Converter
+CPPFLAGS += -I../../../gameengine/BlenderRoutines
 CPPFLAGS += -I../../../gameengine/Ketsji
 CPPFLAGS += -I../../../gameengine/Ketsji/KXNetwork
 CPPFLAGS += -I../../../gameengine/Network

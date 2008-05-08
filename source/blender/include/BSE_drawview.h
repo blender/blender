@@ -46,7 +46,7 @@ void do_viewbuts(unsigned short event);
 /* View3DAfter->type */
 #define V3D_XRAY	1
 #define V3D_TRANSP	2
-void add_view3d_after(struct View3D *v3d, struct Base *base, int type);
+void add_view3d_after(struct View3D *v3d, struct Base *base, int type, int flag);
 
 void backdrawview3d(int test);
 void check_backbuf(void);
