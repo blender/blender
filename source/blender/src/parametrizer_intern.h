@@ -184,6 +184,8 @@ typedef struct PHandle {
 	PChart **charts;
 	int ncharts;
 
+	float aspx, aspy;
+
 	RNG *rng;
 	float blend;
 } PHandle;
