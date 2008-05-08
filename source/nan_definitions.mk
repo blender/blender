@@ -64,7 +64,11 @@ all debug::
     export WITH_BF_STATICOPENGL ?= false
     export WITH_BF_BLENDERGAMEENGINE ?= true
     export WITH_BF_BLENDERPLAYER ?= true
-    export WITH_BF_WEBPLUGIN ?= false
+    ifeq ($(NAN_NO_PLUGIN), true)
+        export WITH_BF_WEBPLUGIN = false
+    else
+        export WITH_BF_WEBPLUGIN ?= false
+    endif
 
     export NAN_MOTO ?= $(LCGDIR)/moto
 ifeq ($(FREE_WINDOWS), true)
