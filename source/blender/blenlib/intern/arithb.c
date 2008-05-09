@@ -4345,3 +4345,8 @@ void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2,
 	if ((ct[0]*n[0] + ct[1]*n[1] + ct[2]*n[2]) < 0.0f)
 		VecMulf(tang, -1.0f);
 }
+
+/* used for zoom values*/
+float power_of_2(float val) {
+	return pow(2, ceil(log(val) / log(2)));
+}

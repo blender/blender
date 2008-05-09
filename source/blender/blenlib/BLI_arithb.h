@@ -96,7 +96,7 @@ float CalcNormFloat4(float *v1, float *v2, float *v3, float *v4, float *n);
 void CalcNormLong(int *v1, int *v2, int *v3, float *n);
 /* CalcNormShort: is ook uitprodukt - (translates as 'is also out/cross product') */
 void CalcNormShort(short *v1, short *v2, short *v3, float *n);
-
+float power_of_2(float val);
 
 /**
  * @section Euler conversion routines

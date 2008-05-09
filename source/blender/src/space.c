@@ -4909,7 +4909,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case HOMEKEY:
 			if((G.qual==0))
-				do_seq_buttons(B_SEQHOME);
+				seq_home();
 			break;
 		case PADPERIOD:	
 			if(last_seq) {
@@ -5073,7 +5073,11 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					del_seq();
 			}
 			break;
-		}
+		case PAD1: case PAD2: case PAD4: case PAD8:
+			seq_viewzoom(event, (G.qual & LR_SHIFTKEY)==0);
+			doredraw= 1;
+			break;
+		}	
 	}
 
 	if(doredraw) scrarea_queue_winredraw(curarea);
