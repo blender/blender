@@ -77,7 +77,11 @@ def copy_vgroups(source_ob, target_ob):
 		for vgroupname in vgroups:
 			target_me.addVertGroup(vgroupname)
 			if len(target_me.verts) == len(source_me.verts):
-				vlist = source_me.getVertsFromGroup(vgroupname, True)
+				try: # in rare cases this can raise an 'no deform groups assigned to mesh' error
+					vlist = source_me.getVertsFromGroup(vgroupname, True)
+				except:
+					vlist = []
+				
 				try:
 					for vpair in vlist:
 						target_me.assignVertsToGroup(vgroupname, [vpair[0]], vpair[1], ADD)
