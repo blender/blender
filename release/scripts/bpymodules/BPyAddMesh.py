@@ -68,11 +68,7 @@ def add_mesh_simple(name, verts, edges, faces):
 		else:
 			# Mesh with no data, unlikely
 			me.edges.extend(edges)
-			me.faces.extend(faces)
-
-		if is_editmode or Blender.Get('add_editmode'):
-			EditMode(1)
-		
+			me.faces.extend(faces)		
 	else:
 		
 		# Object mode add new
@@ -95,9 +91,13 @@ def add_mesh_simple(name, verts, edges, faces):
 			ob_act.setMatrix(mat)
 		
 		ob_act.loc = cursor
-
-		if is_editmode or Blender.Get('add_editmode'):
-			EditMode(1)
+	
+	if is_editmode or Blender.Get('add_editmode'):
+		EditMode(1)
+	else: # adding in object mode means we need to calc normals
+		me.calcNormals()
+		
+			
 
 
 def write_mesh_script(filepath, me):
@@ -112,7 +112,7 @@ def write_mesh_script(filepath, me):
 	file.write('#!BPY\n')
 	file.write('"""\n')
 	file.write('Name: \'%s\'\n' % name)
-	file.write('Blender: 243\n')
+	file.write('Blender: 245\n')
 	file.write('Group: \'AddMesh\'\n')
 	file.write('"""\n\n')
 	file.write('import BPyAddMesh\n')
