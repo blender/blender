@@ -426,11 +426,9 @@ void reload_sequence_new_file(Sequence * seq)
 
 	if (seq->type != SEQ_SCENE && seq->type != SEQ_META &&
 	    seq->type != SEQ_IMAGE) {
-		strncpy(str, seq->strip->dir, FILE_MAXDIR-1);
-		strncat(str, seq->strip->stripdata->name, FILE_MAXFILE-1);
-
+		BLI_join_dirfile(str, seq->strip->dir, seq->strip->stripdata->name);
 		BLI_convertstringcode(str, G.sce);
-		BLI_convertstringframe(str, G.scene->r.cfra); /* TODO - is this needed? */
+		BLI_convertstringframe(str, G.scene->r.cfra);
 		
 	}
 
@@ -1707,9 +1705,7 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 	} else if(seq->type == SEQ_IMAGE) {
 		if(se->ok == STRIPELEM_OK && se->ibuf == 0) {
 			StripElem * s_elem = give_stripelem(seq, cfra);
-			
-			strncpy(name, seq->strip->dir, FILE_MAXDIR-1);
-			strncat(name, s_elem->name, FILE_MAXFILE-1);
+			BLI_join_dirfile(name, seq->strip->dir, s_elem->name);
 			BLI_convertstringcode(name, G.sce);
 			BLI_convertstringframe(name, G.scene->r.cfra);
 			if (!build_proxy_run) {
@@ -1738,8 +1734,7 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 
 			if (se->ibuf == 0) {
 				if(seq->anim==0) {
-					strncpy(name, seq->strip->dir, FILE_MAXDIR-1);
-					strncat(name, seq->strip->stripdata->name, FILE_MAXFILE-1);
+					BLI_join_dirfile(name, seq->strip->dir, seq->strip->stripdata->name);
 					BLI_convertstringcode(name, G.sce);
 					BLI_convertstringframe(name, G.scene->r.cfra);
 				

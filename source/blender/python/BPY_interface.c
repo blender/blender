@@ -435,19 +435,24 @@ void BPY_rebuild_syspath( void )
 	if(U.pythondir[0] != '\0' ) {
 		char modpath[FILE_MAX];
 		int upyslen = strlen(U.pythondir);
-
+		BLI_strncpy(dirpath, U.pythondir, FILE_MAX);
+		
 		/* check if user pydir ends with a slash and, if so, remove the slash
 		 * (for eventual implementations of c library's stat function that might
 		 * not like it) */
-		if (upyslen > 2) { /* avoids doing anything if dir == '//' */
-			BLI_add_slash(U.pythondir);
+#ifdef WIN32
+		if (upyslen > 3) {
+#else if
+		if (upyslen > 1) {
+#endif
+			if (dirpath[upyslen-1] == '\\' || dirpath[upyslen-1] == '/') {
+				dirpath[upyslen-1] = '\0';
+			}
 		}
 
-		BLI_strncpy(dirpath, U.pythondir, FILE_MAX);
 		BLI_convertstringcode(dirpath, G.sce);
 		syspath_append(dirpath);	/* append to module search path */
-
-		BLI_make_file_string("/", modpath, dirpath, "bpymodules");
+		BLI_join_dirfile( modpath, dirpath, "bpymodules" );
 		if (BLI_exists(modpath)) syspath_append(modpath);
 	}
 	

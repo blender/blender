@@ -52,9 +52,7 @@ static void do_hue_sat_fac(bNode *node, float *out, float *in, float *fac)
 		hsv[0]+= (nhs->hue - 0.5f);
 		if(hsv[0]>1.0) hsv[0]-=1.0; else if(hsv[0]<0.0) hsv[0]+= 1.0;
 		hsv[1]*= nhs->sat;
-		if(hsv[1]>1.0) hsv[1]= 1.0; else if(hsv[1]<0.0) hsv[1]= 0.0;
 		hsv[2]*= nhs->val;
-		if(hsv[2]>1.0) hsv[2]= 1.0; else if(hsv[2]<0.0) hsv[2]= 0.0;
 		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
 		
 		out[0]= mfac*in[0] + *fac*col[0];

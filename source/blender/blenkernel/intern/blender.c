@@ -383,7 +383,8 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	/* special cases, override loaded flags: */
 	if (G.f & G_DEBUG) bfd->globalf |= G_DEBUG;
 	else bfd->globalf &= ~G_DEBUG;
-	if (!(G.f & G_DOSCRIPTLINKS)) bfd->globalf &= ~G_DOSCRIPTLINKS;
+
+	if ((U.flag & USER_DONT_DOSCRIPTLINKS)) bfd->globalf &= ~G_DOSCRIPTLINKS;
 
 	G.f= bfd->globalf;
 

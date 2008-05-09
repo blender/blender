@@ -69,6 +69,8 @@ CPPFLAGS += -I../../../blender/imbuf
 CPPFLAGS += -I../../../blender/makesdna
 CPPFLAGS += -I../../../blender/readblenfile
 
+CPPFLAGS += -I../../../gameengine/BlenderRoutines
+
 # kernel? GEN? stuff
 CPPFLAGS += -I../../../kernel/gen_system
 CPPFLAGS += -I../../../kernel/gen_messaging

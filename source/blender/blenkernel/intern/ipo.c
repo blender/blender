@@ -1917,6 +1917,9 @@ void set_icu_vars(IpoCurve *icu)
 			icu->ymin= 0.0;
 			break;
 		case PART_CLUMP:
+			icu->ymin= -1.0;
+			icu->ymax= 1.0;
+			break;
 		case PART_DRAG:
 		case PART_DAMP:
 		case PART_LENGTH:
@@ -1926,6 +1929,7 @@ void set_icu_vars(IpoCurve *icu)
 		case PART_KINK_SHAPE:
 			icu->ymin= -0.999;
 			icu->ymax= 0.999;
+			break;
 		}
 	}
 	else if(icu->blocktype==ID_CO) {

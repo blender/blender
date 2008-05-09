@@ -16,13 +16,17 @@ def add_mesh_simple(name, verts, edges, faces):
 	scn = bpy.data.scenes.active
 	if scn.lib: return
 	ob_act = scn.objects.active
-	
+
+	is_editmode = EditMode()
+
 	cursor = GetCursorPos()
-	try:	quat = Blender.Mathutils.Quaternion(GetViewQuat())
-	except:	quat = None
+	quat = None
+	if is_editmode or Blender.Get('add_view_align'): # Aligning seems odd for editmode, but blender does it, oh well
+		try:	quat = Blender.Mathutils.Quaternion(GetViewQuat())
+		except:	pass
 	
 	# Exist editmode for non mesh types
-	if ob_act and ob_act.type != 'Mesh' and EditMode():
+	if ob_act and ob_act.type != 'Mesh' and is_editmode:
 		EditMode(0)
 	
 	# We are in mesh editmode
@@ -65,8 +69,9 @@ def add_mesh_simple(name, verts, edges, faces):
 			# Mesh with no data, unlikely
 			me.edges.extend(edges)
 			me.faces.extend(faces)
-		
-		EditMode(1)
+
+		if is_editmode or Blender.Get('add_editmode'):
+			EditMode(1)
 		
 	else:
 		
@@ -90,8 +95,9 @@ def add_mesh_simple(name, verts, edges, faces):
 			ob_act.setMatrix(mat)
 		
 		ob_act.loc = cursor
-		
-		EditMode(1)
+
+		if is_editmode or Blender.Get('add_editmode'):
+			EditMode(1)
 
 
 def write_mesh_script(filepath, me):

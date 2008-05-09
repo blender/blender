@@ -65,6 +65,7 @@ CPPFLAGS += -I../Network
 CPPFLAGS += -I../Network/LoopBackNetwork
 CPPFLAGS += -I../Physics/common
 CPPFLAGS += -I../Physics/Sumo
+CPPFLAGS += -I.
 
 ifeq ($(OS),windows)
     CPPFLAGS += -I../../blender

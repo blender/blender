@@ -171,24 +171,24 @@ typedef struct ParticleSettings {
 typedef struct ParticleSystem{
 	struct ParticleSystem *next, *prev;
 
-	ParticleSettings *part;
+	ParticleSettings *part;					/* particle settings */
 
-	ParticleData *particles;
+	ParticleData *particles;				/* (parent) particles */
+	ChildParticle *child;					/* child particles */
 
-	ChildParticle *child;
+	struct ParticleEdit *edit;				/* particle editmode (runtime) */
 
-	struct ParticleEdit *edit;
+	struct ParticleCacheKey **pathcache;	/* path cache (runtime) */
+	struct ParticleCacheKey **childcache;	/* child cache (runtime) */
+	ListBase pathcachebufs, childcachebufs;	/* buffers for the above */
 
-	struct ParticleCacheKey **pathcache;
-	struct ParticleCacheKey **childcache;
-
-	struct SoftBody *soft;
+	struct SoftBody *soft;					/* hair softbody */
 
 	struct Object *target_ob;
 	struct Object *keyed_ob;
 	struct Object *lattice;
 
-	struct ListBase effectors, reactevents;
+	struct ListBase effectors, reactevents;	/* runtime */
 	
 	float imat[4][4];	/* used for duplicators */
 	float cfra;
@@ -196,10 +196,10 @@ typedef struct ParticleSystem{
 	int flag, totpart, totchild, totcached, totchildcache, rt;
 	short recalc, target_psys, keyed_psys, totkeyed, softflag, bakespace;
 
-	char bb_uvname[3][32];
+	char bb_uvname[3][32];					/* billboard uv name */
 
 	/* if you change these remember to update array lengths to PSYS_TOT_VG! */
-	short vgroup[11], vg_neg, rt3[2];
+	short vgroup[11], vg_neg, rt3[2];		/* vertex groups */
 
 	/* temporary storage during render */
 	void *renderdata;

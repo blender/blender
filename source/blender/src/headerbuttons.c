@@ -1434,6 +1434,8 @@ void do_global_buttons(unsigned short event)
 		break;
 	case B_NEWSPACE:
 		newspace(curarea, curarea->butspacetype);
+		reset_filespace(curarea);
+		reset_imaselspace(curarea);
 		break;
 	case B_LOADTEMP:	/* is button from space.c */
 		BIF_read_autosavefile();

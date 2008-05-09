@@ -423,7 +423,6 @@ static float nearest_point_in_tri_surface(const float *point, const float *v0, c
  */
 static void bruteforce_shrinkwrap_calc_nearest_surface_point(DerivedMesh *target, float *co, float *unused)
 {
-	//TODO: this should use raycast code probably existent in blender
 	float minDist = FLT_MAX;
 	float orig_co[3];
 

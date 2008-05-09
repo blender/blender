@@ -305,13 +305,11 @@ static int isffmpeg (char *filename) {
         /* Find the decoder for the video stream */
 	pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
 	if(pCodec==NULL) {
-		avcodec_close(pCodecCtx);
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}
 
 	if(avcodec_open(pCodecCtx, pCodec)<0) {
-		avcodec_close(pCodecCtx);
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}

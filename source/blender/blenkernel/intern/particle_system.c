@@ -4763,6 +4763,9 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 				psys_update_path_cache(ob,psmd,psys,framenr);
 			}
 
+			cache->simframe= framenr;
+			cache->flag |= PTCACHE_SIMULATION_VALID;
+
 			return;
 		}
 		else if(ob->id.lib || (cache->flag & PTCACHE_BAKED)) {

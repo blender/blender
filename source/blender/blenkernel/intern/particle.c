@@ -152,6 +152,49 @@ char *psys_menu_string(Object *ob, int for_sb)
 
 	return str;
 }
+
+/* we allocate path cache memory in chunks instead of a big continguous
+ * chunk, windows' memory allocater fails to find big blocks of memory often */
+
+#define PATH_CACHE_BUF_SIZE 1024
+
+static ParticleCacheKey **psys_alloc_path_cache_buffers(ListBase *bufs, int tot, int steps)
+{
+	LinkData *buf;
+	ParticleCacheKey **cache;
+	int i, totkey, totbufkey;
+
+	tot= MAX2(tot, 1);
+	totkey = 0;
+	cache = MEM_callocN(tot*sizeof(void*), "PathCacheArray");
+
+	while(totkey < tot) {
+		totbufkey= MIN2(tot-totkey, PATH_CACHE_BUF_SIZE);
+		buf= MEM_callocN(sizeof(LinkData), "PathCacheLinkData");
+		buf->data= MEM_callocN(sizeof(ParticleCacheKey)*totbufkey*steps, "ParticleCacheKey");
+
+		for(i=0; i<totbufkey; i++)
+			cache[totkey+i] = ((ParticleCacheKey*)buf->data) + i*steps;
+
+		totkey += totbufkey;
+		BLI_addtail(bufs, buf);
+	}
+
+	return cache;
+}
+
+static void psys_free_path_cache_buffers(ParticleCacheKey **cache, ListBase *bufs)
+{
+	LinkData *buf;
+
+	if(cache)
+		MEM_freeN(cache);
+
+	for(buf= bufs->first; buf; buf=buf->next)
+		MEM_freeN(buf->data);
+	BLI_freelistN(bufs);
+}
+
 /************************************************/
 /*			Getting stuff						*/
 /************************************************/
@@ -250,9 +293,16 @@ int psys_in_edit_mode(ParticleSystem *psys)
 int psys_check_enabled(Object *ob, ParticleSystem *psys)
 {
 	ParticleSystemModifierData *psmd;
+	Mesh *me;
 
 	if(psys->flag & PSYS_DISABLED)
 		return 0;
+
+	if(ob->type == OB_MESH) {
+		me= (Mesh*)ob->data;
+		if(me->mr && me->mr->current != 1)
+			return 0;
+	}
 
 	psmd= psys_get_modifier(ob, psys);
 	if(psys->renderdata) {
@@ -299,27 +349,16 @@ void free_keyed_keys(ParticleSystem *psys)
 }
 void free_child_path_cache(ParticleSystem *psys)
 {
-	if(psys->childcache){
-		if(psys->childcache[0])
-			MEM_freeN(psys->childcache[0]);
-
-		MEM_freeN(psys->childcache);
-
-		psys->childcache = NULL;
-		psys->totchildcache = 0;
-	}
+	psys_free_path_cache_buffers(psys->childcache, &psys->childcachebufs);
+	psys->childcache = NULL;
+	psys->totchildcache = 0;
 }
 void psys_free_path_cache(ParticleSystem *psys)
 {
-	if(psys->pathcache){
-		if(psys->pathcache[0])
-			MEM_freeN(psys->pathcache[0]);
+	psys_free_path_cache_buffers(psys->pathcache, &psys->pathcachebufs);
+	psys->pathcache= NULL;
+	psys->totcached= 0;
 
-		MEM_freeN(psys->pathcache);
-
-		psys->pathcache = NULL;
-		psys->totcached = 0;
-	}
 	free_child_path_cache(psys);
 }
 void psys_free_children(ParticleSystem *psys)
@@ -2250,10 +2289,9 @@ void psys_cache_child_paths(Object *ob, ParticleSystem *psys, float cfra, int ed
 	ParticleSettings *part = psys->part;
 	ParticleThread *pthreads;
 	ParticleThreadContext *ctx;
-	ParticleCacheKey **cache, *tcache;
+	ParticleCacheKey **cache;
 	ListBase threads;
 	int i, totchild, totparent, totthread;
-	unsigned long totchildstep;
 
 	pthreads= psys_threads_create(ob, psys);
 
@@ -2272,13 +2310,7 @@ void psys_cache_child_paths(Object *ob, ParticleSystem *psys, float cfra, int ed
 	else {
 		/* clear out old and create new empty path cache */
 		free_child_path_cache(psys);
-
-		cache = psys->childcache = MEM_callocN(totchild*sizeof(void *), "Child path cache array");
-		totchildstep= totchild*(ctx->steps + 1);
-		tcache = MEM_callocN(totchildstep*sizeof(ParticleCacheKey), "Child path cache");
-		for(i=0; i<totchild; i++)
-			cache[i] = tcache + i * (ctx->steps + 1);
-
+		psys->childcache= psys_alloc_path_cache_buffers(&psys->childcachebufs, totchild, ctx->steps+1);
 		psys->totchildcache = totchild;
 	}
 
@@ -2365,12 +2397,8 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 	else {
 		/* clear out old and create new empty path cache */
 		psys_free_path_cache(psys);
-
-		/* allocate cache array for fast access and set pointers to contiguous mem block */
-		cache = psys->pathcache = MEM_callocN(MAX2(1, totpart) * sizeof(void *), "Path cache array");
-		cache[0] = MEM_callocN(totpart * (steps + 1) * sizeof(ParticleCacheKey), "Path cache");
-		for(i=1; i<totpart; i++)
-			cache[i] = cache[0] + i * (steps + 1);
+		cache= psys_alloc_path_cache_buffers(&psys->pathcachebufs, totpart, steps+1);
+		psys->pathcache= cache;
 	}
 
 	if(edit==NULL && psys->soft && psys->softflag & OB_SB_ENABLE)

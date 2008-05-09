@@ -3072,6 +3072,10 @@ static void set_trans_object_base_flags(TransInfo *t)
 	 */
 	Base *base;
 	
+	/* don't do it if we're not actually going to recalculate anything */
+	if(t->mode == TFM_DUMMY)
+		return;
+
 	/* makes sure base flags and object flags are identical */
 	copy_baseflags();
 	

@@ -849,7 +849,7 @@ static void convert_to_key_alpha(RenderPart *pa, float *rectf)
 }
 
 /* adds only alpha values */
-void edge_enhance_tile(RenderPart *pa, float *rectf)	
+void edge_enhance_tile(RenderPart *pa, float *rectf, int *rectz)
 {
 	/* use zbuffer to define edges, add it to the image */
 	int y, x, col, *rz, *rz1, *rz2, *rz3;
@@ -857,13 +857,13 @@ void edge_enhance_tile(RenderPart *pa, float *rectf)
 	float *rf;
 	
 	/* shift values in zbuffer 4 to the right (anti overflows), for filter we need multiplying with 12 max */
-	rz= pa->rectz;
+	rz= rectz;
 	if(rz==NULL) return;
 	
 	for(y=0; y<pa->recty; y++)
 		for(x=0; x<pa->rectx; x++, rz++) (*rz)>>= 4;
 	
-	rz1= pa->rectz;
+	rz1= rectz;
 	rz2= rz1+pa->rectx;
 	rz3= rz2+pa->rectx;
 	
@@ -903,7 +903,7 @@ void edge_enhance_tile(RenderPart *pa, float *rectf)
 	}
 	
 	/* shift back zbuf values, we might need it still */
-	rz= pa->rectz;
+	rz= rectz;
 	for(y=0; y<pa->recty; y++)
 		for(x=0; x<pa->rectx; x++, rz++) (*rz)<<= 4;
 	
@@ -1012,7 +1012,7 @@ void make_pixelstructs(RenderPart *pa, ZSpan *zspan, int sample, void *data)
 
 	if(sdata->rl->layflag & SCE_LAY_EDGE) 
 		if(R.r.mode & R_EDGE) 
-			edge_enhance_tile(pa, sdata->edgerect);
+			edge_enhance_tile(pa, sdata->edgerect, zspan->rectz);
 }
 
 /* main call for shading Delta Accum, for OSA */
@@ -1189,7 +1189,7 @@ void zbufshade_tile(RenderPart *pa)
 			if(rl->layflag & SCE_LAY_EDGE) {
 				if(R.r.mode & R_EDGE) {
 					edgerect= MEM_callocN(sizeof(float)*pa->rectx*pa->recty, "rectedge");
-					edge_enhance_tile(pa, edgerect);
+					edge_enhance_tile(pa, edgerect, pa->rectz);
 				}
 			}
 			

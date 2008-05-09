@@ -2425,19 +2425,23 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 	if (draw_wire) {
 			/* If drawing wire and drawtype is not OB_WIRE then we are
 				* overlaying the wires.
+				*
+				* UPDATE bug #10290 - With this wire-only objects can draw
+				* behind other objects depending on their order in the scene. 2x if 0's below. undo'ing zr's commit: r4059
 				*/
-
+#if 0
 		if (dt!=OB_WIRE) {
 			bglPolygonOffset(1.0);
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 		}
-
+#endif
 		dm->drawEdges(dm, (dt==OB_WIRE || totface==0));
-
+#if 0
 		if (dt!=OB_WIRE) {
 			glDepthMask(1);
 			bglPolygonOffset(0.0);
 		}
+#endif
 	}
 
 	dm->release(dm);
@@ -2485,7 +2489,7 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 	}
 	
 	/* init_gl_materials did the proper checking if this is needed */
-	if(has_alpha) add_view3d_after(G.vd, base, V3D_TRANSP);
+	if(has_alpha) add_view3d_after(G.vd, base, V3D_TRANSP, flag);
 	
 	return retval;
 }
@@ -4663,7 +4667,7 @@ void draw_object(Base *base, int flag)
 		if(!(G.f & G_PARTICLEEDIT)) {
 			/* xray and transp are set when it is drawing the 2nd/3rd pass */
 			if(!G.vd->xray && !G.vd->transp && (ob->dtx & OB_DRAWXRAY)) {
-				add_view3d_after(G.vd, base, V3D_XRAY);
+				add_view3d_after(G.vd, base, V3D_XRAY, flag);
 				return;
 			}
 		}

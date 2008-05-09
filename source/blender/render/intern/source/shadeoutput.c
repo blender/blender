@@ -477,8 +477,12 @@ static float area_lamp_energy_multisample(LampRen *lar, float *co, float *vn)
 	float *jitlamp= lar->jitter, vec[3];
 	float area[4][3], intens= 0.0f;
 	int a= lar->ray_totsamp;
-	
-	
+
+	/* test if co is behind lamp */
+	VECSUB(vec, co, lar->co);
+	if(INPR(vec, lar->vec) < 0.0f)
+		return 0.0f;
+
 	while(a--) {
 		vec[0]= jitlamp[0];
 		vec[1]= jitlamp[1];

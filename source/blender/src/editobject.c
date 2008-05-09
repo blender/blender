@@ -1887,6 +1887,7 @@ void docenter(int centermode)
 			
 			recalc_editnormals();
 			tot_change++;
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		}
 	}
 	
@@ -3133,9 +3134,15 @@ void flip_subdivison(int level)
 		mode= eModifierMode_Render|eModifierMode_Realtime;
 	
 	if(level == -1) {
-		for(base= G.scene->base.first; base; base= base->next)
-			if(((level==-1) && (TESTBASE(base))) || (TESTBASELIB(base)))
-				object_has_subdivision_particles(base->object, &havesubdiv, &havepart, 0);
+		if (G.obedit) {
+			object_has_subdivision_particles(G.obedit, &havesubdiv, &havepart, 0);			
+		} else {
+			for(base= G.scene->base.first; base; base= base->next) {
+				if(((level==-1) && (TESTBASE(base))) || (TESTBASELIB(base))) {
+					object_has_subdivision_particles(base->object, &havesubdiv, &havepart, 0);
+				}
+			}
+		}
 	}
 	else
 		havesubdiv= 1;
@@ -3149,10 +3156,16 @@ void flip_subdivison(int level)
 	}
 	else if(havepart)
 		particles= 1;
-	
-	for(base= G.scene->base.first; base; base= base->next)
-		if(((level==-1) && (TESTBASE(base))) || (TESTBASELIB(base)))
-			object_flip_subdivison_particles(base->object, &set, level, mode, particles, 0);
+
+	if (G.obedit) {	
+		object_flip_subdivison_particles(G.obedit, &set, level, mode, particles, 0);
+	} else {
+		for(base= G.scene->base.first; base; base= base->next) {
+			if(((level==-1) && (TESTBASE(base))) || (TESTBASELIB(base))) {
+				object_flip_subdivison_particles(base->object, &set, level, mode, particles, 0);
+			}
+		}
+	}
 	
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
