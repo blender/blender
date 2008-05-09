@@ -194,6 +194,10 @@ static void do_seq_selectmenu(void *arg, int event)
 	case 7:
 		select_linked_seq(2);
 		break;
+	case 8:
+		deselect_markers(1, 0);
+		allqueue(REDRAWMARKER, 0);
+		break;
 	}
 }
 
@@ -215,7 +219,9 @@ static uiBlock *seq_selectmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Linked|Ctrl L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All Strips|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All Markers|Ctrl A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+	
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -444,6 +450,9 @@ static void do_seq_editmenu(void *arg, int event)
 		seq_mute_sel(0);
 		break;
 	case 22:
+		seq_mute_sel(-1);
+		break;
+	case 23:
 		seq_cut(CFRA, 0);
 		break;
 	}
@@ -468,7 +477,7 @@ static uiBlock *seq_editmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cut (hard) at Current Frame|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cut (soft) at Current Frame|Shift-K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 22, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cut (soft) at Current Frame|Shift-K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 23, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Separate Images to Strips|Y", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -519,6 +528,7 @@ static uiBlock *seq_editmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unlock Strips...|Alt-Shift L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 19, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mute Strips...|H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 20, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unmute Strips...|Alt H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 21, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mute Deselected Strips...|Shift H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 22, "");
 	
 
 	if(curarea->headertype==HEADERTOP) {
