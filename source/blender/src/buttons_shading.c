@@ -3311,7 +3311,7 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 			uiDefButBitS(block, TOG3, MAP_RAYMIRR, B_MATPRV, "RayMir",	50,160,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the ray-mirror value");
 			uiDefButBitS(block, TOG3, MAP_ALPHA, B_MATPRV, "Alpha",		90,160,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
 			uiDefButBitS(block, TOG3, MAP_EMIT, B_MATPRV, "Emit",		130,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
-			uiDefButBitS(block, TOG3, MAP_TRANSLU, B_MATPRV, "TransLu",		180,160,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the layer blending value");
+			uiDefButBitS(block, TOG3, MAP_TRANSLU, B_MATPRV, "TransLu",		180,160,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the translucency value");
 			if(from_nodes==0)
 				uiDefButBitS(block, TOG3, MAP_DISPLACE, B_MATPRV, "Disp",		220,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
 			uiBlockSetCol(block, TH_BUT_SETTING1);
@@ -3323,7 +3323,7 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 			uiDefButBitS(block, TOG3, MAP_RAYMIRR, B_MATPRV, "RayMir",	60,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the ray-mirror value");
 			uiDefButBitS(block, TOG3, MAP_ALPHA, B_MATPRV, "Alpha",		110,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
 			uiDefButBitS(block, TOG3, MAP_EMIT, B_MATPRV, "Emit",		160,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
-			uiDefButBitS(block, TOG3, MAP_TRANSLU, B_MATPRV, "TransLu",		205,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the layer blending value");
+			uiDefButBitS(block, TOG3, MAP_TRANSLU, B_MATPRV, "TransLu",		205,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the translucency value");
 			if(from_nodes==0)
 				uiDefButBitS(block, TOG3, MAP_DISPLACE, B_MATPRV, "Disp",		265,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
 		}
@@ -3633,7 +3633,7 @@ static void material_panel_tramir(Material *ma)
 	uiDefButF(block, NUMSLI, B_MATPRV, "IOR: ",
 		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->ang), 1.0, 3.0, 100, 2, "Sets angular index of refraction for raytraced refraction");
 	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel: ",
-		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->fresnel_tra), 0.0, 5.0, 10, 2, "Power of Fresnel for mirror reflection");
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->fresnel_tra), 0.0, 5.0, 10, 2, "Power of Fresnel for transparency (Ray or ZTransp)");
 	uiDefButF(block, NUMSLI, B_MATPRV, "Fac: ",
 		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->fresnel_tra_i), 1.0, 5.0, 10, 2, "Blending factor for Fresnel");
 	uiBlockEndAlign(block);
@@ -4164,7 +4164,7 @@ static void material_panel_links(Object *ob, Material *ma)
 	if(ma) uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 	
 	if(ma)
-		uiDefButC(block, TOG, B_MAT_USENODES, "Nodes", xco+5,160,300-xco-5,20, &ma->use_nodes, 0.0f, 0.0f, 0, 0, "");
+		uiDefButC(block, TOG, B_MAT_USENODES, "Nodes", xco+5,160,300-xco-5,20, &ma->use_nodes, 0.0f, 0.0f, 0, 0, "Enables as a Nodes Material");
 				  
 	if(ob->actcol==0) ob->actcol= 1;	/* because of TOG|BIT button */
 	
