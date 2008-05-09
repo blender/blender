@@ -3208,6 +3208,7 @@ static void object_collision__enabletoggle ( void *ob_v, void *arg2 )
 		{
 			md = modifier_new ( eModifierType_Collision );
 			BLI_addtail ( &ob->modifiers, md );
+			DAG_scene_sort(G.scene);
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWVIEW3D, 0);
@@ -3215,8 +3216,10 @@ static void object_collision__enabletoggle ( void *ob_v, void *arg2 )
 	}
 	else
 	{
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		BLI_remlink ( &ob->modifiers, md );
 		modifier_free ( md );
+		DAG_scene_sort(G.scene);
 		allqueue(REDRAWBUTSEDIT, 0);
 	}
 }
