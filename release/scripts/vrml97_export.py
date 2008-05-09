@@ -634,7 +634,7 @@ class VRML2Export:
 			vrmlvert = vertex.co
 			if export_rotate_z_to_y.val:
 				vrmlvert = M_blen2vrml * vrmlvert
-			self.writeUnindented("%.6f %.6f %.6f\n " % (vrmlvert[0], vrmlvert[1], vrmlvert[2]))
+			self.writeUnindented("%s %s %s\n " % (vrmlvert[0], vrmlvert[1], vrmlvert[2]))
 		self.writeIndented("]\n", -1)
 		self.writeIndented("}\n", -1)
 		self.writeIndented("\n")
@@ -1217,7 +1217,7 @@ def select_file(filename):
 #########################################################
 
 export_selection_only = Draw.Create(0)
-export_rotate_z_to_y = Draw.Create(1)
+export_rotate_z_to_y = Draw.Create(0)
 export_compressed = Draw.Create(0)
 
 def save_to_registry():
@@ -1261,7 +1261,7 @@ if show_popup():
 			extension=".wrz"
 			from gzip import *
 		except:
-			print "could not import gzip"
+			print "could not import gzip, file will be exported uncompressed"
 			pass
 	else:
 		extension=".wrl"
