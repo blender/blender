@@ -5875,6 +5875,8 @@ static void explodeModifier_copyData(ModifierData *md, ModifierData *target)
 
 	temd->facepa = 0;
 	temd->flag = emd->flag;
+	temd->protect = emd->protect;
+	temd->vgroup = emd->vgroup;
 }
 static int explodeModifier_dependsOnTime(ModifierData *md) 
 {
