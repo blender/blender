@@ -851,7 +851,7 @@ void EM_free_data_layer(CustomData *data, int type)
 
 static void add_normal_aligned(float *nor, float *add)
 {
-	if( INPR(nor, add) < 0.0 ) 
+	if( INPR(nor, add) < -0.9999f)
 		VecSubf(nor, nor, add);
 	else
 		VecAddf(nor, nor, add);
