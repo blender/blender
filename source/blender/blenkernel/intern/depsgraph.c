@@ -1691,7 +1691,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 		for(itA = node->child; itA; itA= itA->next) {
 			all_layer |= itA->lay;
 			/* the relationship is visible */
-			if(itA->lay & layer) {
+			if((itA->lay & layer) || (itA->node->ob == G.obedit)) {
 				if(itA->node->type==ID_OB) {
 					obc= itA->node->ob;
 					oldflag= obc->recalc;
@@ -1722,7 +1722,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 			}
 		}
 		/* even nicer, we can clear recalc flags...  */
-		if((all_layer & layer)==0) {
+		if((all_layer & layer)==0 && (ob != G.obedit)) {
 			/* but existing displaylists or derivedmesh should be freed */
 			if(ob->recalc & OB_RECALC_DATA)
 				object_free_display(ob);
@@ -1736,7 +1736,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 	/* could merge this in with loop above...? (ton) */
 	for(itA = node->child; itA; itA= itA->next) {
 		/* the relationship is visible */
-		if(itA->lay & layer) {
+		if((itA->lay & layer) || (itA->node->ob == G.obedit)) {
 			if(itA->node->type==ID_OB) {
 				obc= itA->node->ob;
 				/* child moves */
