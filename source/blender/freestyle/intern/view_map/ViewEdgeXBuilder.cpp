@@ -169,7 +169,7 @@ ViewEdge * ViewEdgeXBuilder::BuildSmoothViewEdge(const OWXFaceLayer& iFaceLayer)
   // build FEdges
   FEdge * feprevious = 0;
   FEdge * fefirst = 0;
-  FEdge * fe;
+  FEdge * fe = 0;
   for(list<OWXFaceLayer>::iterator fl = facesChain.begin(), flend=facesChain.end();
   fl!=flend;
   ++fl){
@@ -243,7 +243,7 @@ ViewEdge * ViewEdgeXBuilder::BuildSharpViewEdge(const OWXEdge& iWEdge) {
   // build FEdges
   FEdge * feprevious = 0;
   FEdge * fefirst = 0;
-  FEdge * fe;
+  FEdge * fe = 0;
   for(list<OWXEdge>::iterator we = edgesChain.begin(), weend=edgesChain.end();
   we!=weend;
   ++we){

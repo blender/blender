@@ -1248,7 +1248,7 @@ public:
    */
   inline FEdge* SplitEdgeIn2(FEdge* ioEdge, SVertex * ioNewVertex)
     {
-      SVertex *A = ioEdge->vertexA();
+      //soc unused - SVertex *A = ioEdge->vertexA();
       SVertex *B = ioEdge->vertexB();
 
       

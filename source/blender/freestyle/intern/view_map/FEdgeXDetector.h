@@ -126,7 +126,7 @@ protected:
 
   Vec3r _Viewpoint;
   real _bbox_diagonal; // diagonal of the current processed shape bbox
-  //tmp values
+  //oldtmp values
   bool _computeViewIndependant;
   real _meanK1;
   real _meanKr;

@@ -64,7 +64,7 @@ void WingedEdgeBuilder::visitNodeTransformAfter(NodeTransform&) {
 void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs) {
   unsigned	vsize = ifs.vsize();
   unsigned	nsize = ifs.nsize();
-  unsigned	tsize = ifs.tsize();
+  //soc unused - unsigned	tsize = ifs.tsize();
 
   const real*	vertices = ifs.vertices();
   const real*	normals = ifs.normals();

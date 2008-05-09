@@ -26,8 +26,12 @@
 #include "../geometry/Geom.h"
 using namespace Geometry;
 
-#include <qstring.h>
-#include <qimage.h>
+//soc #include <qstring.h>
+//soc #include <qimage.h>
+#include <sstream>
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+#include "intern/IMB_png.h"
 
 SteerableViewMap::SteerableViewMap(unsigned int nbOrientations){
   _nbOrientations = nbOrientations;
@@ -121,7 +125,7 @@ double * SteerableViewMap::AddFEdge(FEdge *iFEdge){
 
 unsigned SteerableViewMap::getSVMNumber(const Vec2f& orient){
   Vec2f dir(orient);
-  unsigned res = 0;
+  //soc unsigned res = 0;
   real norm = dir.norm();
   if(norm < 1e-6){
     return _nbOrientations+1;
@@ -205,20 +209,37 @@ void SteerableViewMap::saveSteerableViewMap() const {
     }
     int ow = _imagesPyramids[i]->width(0);
     int oh = _imagesPyramids[i]->height(0);
-    QString base("SteerableViewMap");
-    for(unsigned j=0; j<_imagesPyramids[i]->getNumberOfLevels(); ++j){
+
+    //soc QString base("SteerableViewMap");
+	string base("SteerableViewMap");
+	stringstream filename;
+	
+    for(int j=0; j<_imagesPyramids[i]->getNumberOfLevels(); ++j){ //soc
       float coeff = 1;//1/255.f; //100*255;//*pow(2,j);
-	  QImage qtmp(ow, oh, QImage::Format_RGB32);
-      for(unsigned y=0;y<oh;++y){
-        for(unsigned x=0;x<ow;++x){
+	  //soc QImage qtmp(ow, oh, QImage::Format_RGB32);
+	  ImBuf *ibuf = IMB_allocImBuf(ow, oh, 32, IB_rect, 0);
+	  int rowbytes = ow*4;
+	  char *pix;
+      
+	for(int y=0;y<oh;++y){ //soc
+		for(int x=0;x<ow;++x){ //soc
           int c = (int)(coeff*_imagesPyramids[i]->pixel(x,y,j));
           if(c>255)
             c=255;
           //int c = (int)(_imagesPyramids[i]->pixel(x,y,j));
-          qtmp.setPixel(x,y,qRgb(c,c,c));
+          
+		//soc qtmp.setPixel(x,y,qRgb(c,c,c));
+		  pix = (char*)ibuf->rect + y*rowbytes + x*4;
+		pix[0] = pix [1] = pix[2] = c;
         }
       }
-      qtmp.save(base+QString::number(i)+"-"+QString::number(j)+".png", "PNG");
+
+      //soc qtmp.save(base+QString::number(i)+"-"+QString::number(j)+".png", "PNG");
+	filename << base;
+	filename << i << "-" << j << ".png";
+	
+	imb_savepng(ibuf, const_cast<char *>(filename.str().c_str()), 0);
+	
     }
     //    QString base("SteerableViewMap");
     //    for(unsigned j=0; j<_imagesPyramids[i]->getNumberOfLevels(); ++j){

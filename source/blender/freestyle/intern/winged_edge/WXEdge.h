@@ -208,7 +208,7 @@ public:
   WXSmoothEdge * _pSmoothEdge;
   WXNature _Nature;
 
-  //tmp values
+  //oldtmp values
   unsigned _nPosDotP; // count the number of positive dot products for vertices.
                       // if this number is != 0 and !=_DotP.size() -> it is a silhouette fac
 

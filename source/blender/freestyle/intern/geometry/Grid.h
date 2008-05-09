@@ -81,6 +81,7 @@ class LIB_GEOMETRY_EXPORT Cell
 
 class GridVisitor{
 public:
+	virtual ~GridVisitor() {}; //soc
     virtual void discoverCell(Cell *cell) {}
     virtual void examineOccluder(Polygon3r *occ) {}
     virtual void finishCell(Cell *cell) {}
@@ -106,10 +107,21 @@ private:
  * the intersection information are stored and accessible.
  */
 class firstIntersectionGridVisitor : public GridVisitor {
+
+//soc - changed order to remove warnings
+public:
+    double u_, v_, t_;
+private:
+    Polygon3r *occluder_;
+	Vec3r ray_org_, ray_dir_, cell_size_;
+    Cell * current_cell_;
+
 public:
       firstIntersectionGridVisitor(const Vec3r& ray_org, const Vec3r& ray_dir, const Vec3r& cell_size) : 
-      GridVisitor(), ray_org_(ray_org), cell_size_(cell_size),ray_dir_(ray_dir),occluder_(0),
-            u_(0),v_(0),t_(DBL_MAX),current_cell_(0){}
+		 GridVisitor(), u_(0),v_(0),t_(DBL_MAX),
+		 occluder_(0),
+		 ray_org_(ray_org), ray_dir_(ray_dir), cell_size_(cell_size),
+      	 current_cell_(0) {}
       virtual ~firstIntersectionGridVisitor() {}
 
     virtual void discoverCell(Cell *cell) {current_cell_=cell;}
@@ -117,14 +129,6 @@ public:
     virtual bool stop();
 
     Polygon3r * occluder() {return occluder_;}
-    
-public:
-    double u_, v_, t_;
-private:
-    Polygon3r *occluder_;
-    Vec3r ray_org_, ray_dir_;
-    Vec3r cell_size_;
-    Cell * current_cell_;
 };
 
 //

@@ -25,13 +25,18 @@
 #include "../system/TimeStamp.h"
 #include "../system/PseudoNoise.h"
 #include "Canvas.h"
-#include <qimage.h>
-#include <QString>
 #include "../image/Image.h"
 #include "../image/GaussianFilter.h"
 #include "../image/ImagePyramid.h"
 #include "../view_map/SteerableViewMap.h"
 #include "StyleModule.h"
+
+//soc #include <qimage.h>
+//soc #include <QString>
+#include <sstream>	
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+#include "intern/IMB_bmp.h"
 
 using namespace std;
 
@@ -326,20 +331,34 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, unsigned int i
   }else{
     filePath = iFileName;
   }
-  QImage * qimg;
-  QImage newMap(filePath.c_str()); 
-  if(newMap.isNull()){
-    cout << "Could not load image file " << filePath << endl;
-    return;
-  }
-  qimg = &newMap;
-  
+
+  //soc
+  // QImage *qimg;
+  // QImage newMap(filePath.c_str()); 
+  // if(newMap.isNull()){
+  //   cout << "Could not load image file " << filePath << endl;
+  //   return;
+  // }
+  // qimg = &newMap;
+  	ImBuf *qimg = IMB_loadiffname(filePath.c_str(), 0);;
+  	if( qimg == 0 ){
+		cout << "Could not load image file " << filePath << endl;
+    	return;	
+	}
+
+  // soc
   //resize
-  QImage scaledImg;
-  if((newMap.width()!=width()) || (newMap.height()!=height())){
-	  scaledImg = newMap.scaled(width(), height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-    qimg = &scaledImg;
+  // QImage scaledImg;
+  // if((newMap.width()!=width()) || (newMap.height()!=height())){
+  // 	  scaledImg = newMap.scaled(width(), height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+  //   qimg = &scaledImg;
+  // }
+	ImBuf *scaledImg;
+  if( ( qimg->x != width() ) || ( qimg->y != height() ) ){
+	scaledImg = IMB_dupImBuf(qimg);
+	IMB_scaleImBuf(scaledImg, width(), height());
   }
+
 
   // deal with color image 
   //  if(newMap->depth() != 8){
@@ -356,13 +375,17 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, unsigned int i
   //    newMap = tmp;
   //  }
 
-  unsigned x,y;
-  int w = qimg->width();
-  int h = qimg->height();
+  int x,y;
+  int w = qimg->x;
+  int h = qimg->y;
+int rowbytes = w*4;
   GrayImage tmp(w,h);
+  char *pix;
+  
   for(y=0; y<h;++y){
     for(x=0;x<w;++x){
-      float c = qGray(qimg->pixel(x,y));// /255.f;
+		pix = (char*)qimg->rect + y*rowbytes + x*4;
+	  float c = (pix[0]*11 + pix[1]*16 + pix[2]*5)/32;
       tmp.setPixel(x,y,c);
     }
   }
@@ -380,20 +403,30 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, unsigned int i
   GaussianPyramid *pyramid = new GaussianPyramid(tmp, iNbLevels, iSigma);
   int ow = pyramid->width(0);
   int oh = pyramid->height(0);
-  QString base(iMapName);
-  for(unsigned i=0; i<pyramid->getNumberOfLevels(); ++i){
+  string base(iMapName); //soc
+  for(int i=0; i<pyramid->getNumberOfLevels(); ++i){
     // save each image:
     //    w = pyramid.width(i);
     //    h = pyramid.height(i);
-	  QImage qtmp(ow, oh, QImage::Format_RGB32);
-    //int k = (1<<i);
+	
+	//soc  QImage qtmp(ow, oh, QImage::Format_RGB32);
+    ImBuf *qtmp = IMB_allocImBuf(ow, oh, 32, IB_rect, 0);
+
+//int k = (1<<i);
     for(y=0;y<oh;++y){
       for(x=0;x<ow;++x){
         int c = pyramid->pixel(x,y,i);//255*pyramid->pixel(x,y,i);
-        qtmp.setPixel(x,y,qRgb(c,c,c));
+        //soc qtmp.setPixel(x,y,qRgb(c,c,c));
+		pix = (char*)qtmp->rect + y*rowbytes + x*4;
+		pix[0] = pix [1] = pix[2] = c;
       }
     }
-    qtmp.save(base+QString::number(i)+".bmp", "BMP");
+    //soc qtmp.save(base+QString::number(i)+".bmp", "BMP");
+	stringstream filename;
+	filename << base;
+	filename << i << ".bmp";	
+	imb_savebmp(qtmp, const_cast<char *>(filename.str().c_str()), 0);
+	
   }
   //  QImage *qtmp = new QImage(w, h, 32);
   //  for(y=0;y<h;++y){

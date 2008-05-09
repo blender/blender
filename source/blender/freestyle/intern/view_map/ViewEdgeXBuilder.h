@@ -35,12 +35,13 @@
 # include <utility>
 # include <vector>
 
-# if defined(__GNUC__) && (__GNUC__ >= 3)
-//hash_map is not part of the C++ standard anymore; hash_map.h has been kept though for backward compatibility
-#  include <hash_map.h>
-# else
-#  include <hash_map>
-# endif
+// soc
+// # if defined(__GNUC__) && (__GNUC__ >= 3)
+// //hash_map is not part of the C++ standard anymore; hash_map.h has been kept though for backward compatibility
+// #  include <hash_map.h>
+// # else
+// #  include <hash_map>
+// # endif
 
 # include "../system/FreestyleConfig.h"
 # include "../geometry/Geom.h"
@@ -202,7 +203,7 @@ protected:
   /*! instanciate a ViewVertex from a SVertex, if it doesn't exist yet */
   ViewVertex * MakeViewVertex(SVertex *iSVertex);
 
-  //tmp values
+  //oldtmp values
   //  IdHashTable _hashtable;
   //  VVIdHashTable _multivertexHashTable;
   SVertexMap _SVertexMap;

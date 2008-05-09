@@ -19,9 +19,13 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <qfileinfo.h>
+//soc #include <qfileinfo.h>
 #include "FreestyleConfig.h"
 #include "StringUtils.h"
+
+//soc
+#include "BKE_utildefines.h"
+#include "BLI_blenlib.h"
 
 namespace StringUtils {
 
@@ -33,12 +37,18 @@ namespace StringUtils {
 	 pos < size;
 	 pos = sep + 1, sep = path.find(Config::PATH_SEP, pos)) {
       if (sep == (unsigned)string::npos)
-	sep = size;
+		sep = size;
       dir = path.substr(pos, sep - pos);
-      QFileInfo fi(dir.c_str());
-      string res = (const char*)fi.absoluteFilePath().toAscii();
+
+//soc      QFileInfo fi(dir.c_str());
+//soc      string res = (const char*)fi.absoluteFilePath().toAscii();
+	char cleaned[FILE_MAX];
+	BLI_strncpy(cleaned, dir.c_str(), FILE_MAX);
+	BLI_cleanup_file(NULL, cleaned);
+	string res(cleaned);
+	
       if (!base.empty())
-	res += Config::DIR_SEP + base;
+		res += Config::DIR_SEP + base;
       pathnames.push_back(res);
     }
   }

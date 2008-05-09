@@ -463,7 +463,7 @@ void Stroke::SetLength(float iLength)
 
 float Stroke::ComputeSampling(int iNVertices)
 {
-  if(iNVertices <= _Vertices.size())
+  if(iNVertices <= (int)_Vertices.size()) //soc
     return _sampling;
 
   float sampling = _Length/(float)(iNVertices-_Vertices.size()+1);

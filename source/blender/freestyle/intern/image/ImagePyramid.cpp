@@ -58,9 +58,9 @@ float ImagePyramid::pixel(int x, int y, int level){
   if(0 == level){
     return img->pixel(x,y);
   }
-  int i  = 1<<level;
-  int sx = x>>level;
-  int sy = y>>level;
+  uint i  = 1<<level;
+  uint sx = x>>level;
+  uint sy = y>>level;
   if(sx >= img->width())
     sx = img->width()-1;
   if(sy >= img->height())
@@ -135,7 +135,7 @@ void GaussianPyramid::BuildPyramid(GrayImage* level0, unsigned nbLevels){
   unsigned h = pLevel->height();
   if(nbLevels!=0)
   {
-    for(unsigned i=0; i<nbLevels; ++i){
+    for(unsigned i=0; i<nbLevels; ++i){ //soc
       w = pLevel->width()>>1;
       h = pLevel->height()>>1;
       GrayImage *img = new GrayImage(w,h);

@@ -19,7 +19,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "WSEdge.h"
+#include "WEdge.h"
 #include "WSFillGrid.h"
 
 void WSFillGrid::fillGrid() {

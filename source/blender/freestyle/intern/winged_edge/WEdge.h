@@ -117,6 +117,7 @@ public:
 # else
     inline incoming_edge_iterator() : iterator<input_iterator_tag, WOEdge*,ptrdiff_t>() {}
 # endif
+	virtual ~incoming_edge_iterator() {}; //soc
 
   protected:
     friend class WVertex;
@@ -197,6 +198,7 @@ public:
 # else
     inline face_iterator() : iterator<input_iterator_tag, WFace*,ptrdiff_t>() {}
 # endif
+	virtual ~face_iterator() {}; //soc
 
   protected:
     friend class WVertex;
@@ -308,6 +310,7 @@ public:
     _pOwner = NULL;
     userdata = NULL;
   }
+  virtual ~WOEdge() {}; //soc
 
   /*! copy constructor */
   WOEdge(WOEdge& iBrother);

@@ -40,6 +40,8 @@ class LIB_SYSTEM_EXPORT Interpreter
 
   Interpreter() { _language = "Unknown"; }
 
+  virtual ~Interpreter() {}; //soc
+
   virtual int interpretCmd(const string& cmd) = 0;
 
   virtual int interpretFile(const string& filename) = 0;

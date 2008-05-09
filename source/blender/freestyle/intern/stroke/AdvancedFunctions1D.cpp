@@ -89,13 +89,13 @@ namespace Functions1D {
   }  
 
   double GetDirectionalViewMapDensityF1D::operator()(Interface1D& inter) {
-    unsigned size;
+    //soc unsigned size;
     double res =  integrate(_fun, inter.pointsBegin(_sampling), inter.pointsEnd(_sampling), _integration);
     return res;
   } 
   
   double GetCompleteViewMapDensityF1D::operator()(Interface1D& inter) {
-    unsigned size;
+    //soc unsigned size;
     Id id = inter.getId();
     double res =  integrate(_fun, inter.pointsBegin(_sampling), inter.pointsEnd(_sampling), _integration);
     return res;

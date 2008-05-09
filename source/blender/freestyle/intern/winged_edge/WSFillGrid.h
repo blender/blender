@@ -31,8 +31,8 @@
 #ifndef  WS_FILL_GRID_H
 # define WS_FILL_GRID_H
 
-# include "Grid.h" 
-# include "Polygon.h"
+# include "../geometry/Grid.h" 
+# include "../geometry/Polygon.h"
 # include "WEdge.h"
 
 class LIB_WINGED_EDGE_EXPORT WSFillGrid

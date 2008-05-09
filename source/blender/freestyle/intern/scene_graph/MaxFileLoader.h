@@ -32,6 +32,9 @@
 
 # include <string.h>              
 # include <float.h>
+
+//soc - modified to adapt Blender's in
+// lib3ds includes
 # include <lib3ds/file.h>
 # include <lib3ds/node.h>
 # include <lib3ds/camera.h>
@@ -40,6 +43,7 @@
 # include <lib3ds/matrix.h>
 # include <lib3ds/vector.h>
 # include <lib3ds/file.h>
+
 # include "../system/FreestyleConfig.h"
 # include "NodeGroup.h"
 # include "NodeTransform.h"

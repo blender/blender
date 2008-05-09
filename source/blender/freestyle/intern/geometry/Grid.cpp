@@ -46,7 +46,7 @@ void firstIntersectionGridVisitor::examineOccluder(Polygon3r *occ){
     //first let us compute the plane equation.
     Vec3r v1(((occ)->getVertices())[0]);           
     Vec3d normal((occ)->getNormal());
-    double d = -(v1 * normal);
+    //soc unused - double d = -(v1 * normal);
 
     double tmp_u, tmp_v, tmp_t;
     if((occ)->rayIntersect(ray_org_, ray_dir_, tmp_t, tmp_u, tmp_v)){
@@ -106,7 +106,7 @@ void Grid::configure(const Vec3r& orig,
 
   if(grid_vol == 0){
     double min=DBL_MAX;
-    int index;
+    int index=0;
     int nzeros=0;
     for(int i=0;i<3;++i){
         if(size[i] == 0){
@@ -336,7 +336,7 @@ void Grid::initRay (const Vec3r &orig,
 
   for(unsigned i = 0; i < 3; i++) {
     _current_cell[i] = (unsigned)floor((orig[i] - _orig[i]) / _cell_size[i]);
-    unsigned u = _current_cell[i];
+    //soc unused - unsigned u = _current_cell[i];
     _pt[i] = orig[i] - _orig[i] - _current_cell[i] * _cell_size[i];
   }
   //_ray_occluders.clear();
@@ -359,7 +359,7 @@ bool Grid::initInfiniteRay (const Vec3r &orig,
   if(box.inside(orig)){
       for(unsigned i = 0; i < 3; i++) {
           _current_cell[i] = (unsigned)floor((orig[i] - _orig[i]) / _cell_size[i]);
-          unsigned u = _current_cell[i];
+          //soc unused - unsigned u = _current_cell[i];
           _pt[i] = orig[i] - _orig[i] - _current_cell[i] * _cell_size[i];
       }
   }else{
@@ -372,7 +372,7 @@ bool Grid::initInfiniteRay (const Vec3r &orig,
             _current_cell[i] = (unsigned)floor((newOrig[i] - _orig[i]) / _cell_size[i]);
             if(_current_cell[i] == _cells_nb[i])
                 _current_cell[i] = _cells_nb[i] - 1;
-            unsigned u = _current_cell[i];
+            //soc unused - unsigned u = _current_cell[i];
             _pt[i] = newOrig[i] - _orig[i] - _current_cell[i] * _cell_size[i];
         }
 

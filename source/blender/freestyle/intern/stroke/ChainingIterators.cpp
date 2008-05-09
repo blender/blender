@@ -106,7 +106,7 @@ ViewEdge * ChainSilhouetteIterator::traverse(const AdjacencyIterator& ait){
     return 0;
   }
   if(nextVertex->getNature() & Nature::NON_T_VERTEX){
-    NonTVertex * nontvertex = (NonTVertex*)nextVertex;
+    //soc NonTVertex * nontvertex = (NonTVertex*)nextVertex;
     ViewEdge * newEdge(0);
     // we'll try to chain the edges by keeping the same nature...
     // the preseance order is : SILHOUETTE, BORDER, CREASE, SUGGESTIVE, VALLEY, RIDGE

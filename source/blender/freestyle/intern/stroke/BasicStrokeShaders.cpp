@@ -20,7 +20,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <fstream>
-#include <qimage.h>
 #include "BasicStrokeShaders.h"
 #include "../system/PseudoNoise.h"
 #include "../system/RandGen.h"
@@ -32,16 +31,32 @@
 #include "../system/StringUtils.h"
 #include "StrokeRenderer.h"
 #include "StrokeIO.h"
-#include <QString>
+
+//soc #include <qimage.h>
+//soc #include <QString>
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 // Internal function
-void convert(const QImage& iImage, float **oArray, unsigned &oSize) {
-  oSize = iImage.width();
-  *oArray = new float[oSize];
-  for(unsigned i=0; i<oSize; ++i) {
-    QRgb rgb = iImage.pixel(i,0);
-    (*oArray)[i] = ((float)qBlue(rgb))/255.f;
-  }
+
+// soc
+// void convert(const QImage& iImage, float **oArray, unsigned &oSize) {
+//   oSize = iImage.width();
+//   *oArray = new float[oSize];
+//   for(unsigned i=0; i<oSize; ++i) {
+//     QRgb rgb = iImage.pixel(i,0);
+//     (*oArray)[i] = ((float)qBlue(rgb))/255.f;
+//   }
+// }
+void convert(ImBuf *imBuf, float **oArray, unsigned &oSize) {
+	oSize = imBuf->x;
+  	*oArray = new float[oSize];
+
+	char *pix;
+	for(unsigned i=0; i < oSize; ++i) {
+		pix = (char*) imBuf->rect + i*4;
+    	(*oArray)[i] = ((float) pix[2] )/255.f;
+  	}
 }
 
 namespace StrokeShaders {
@@ -137,7 +152,7 @@ namespace StrokeShaders {
   {
     float step = (_maxThickness-_minThickness)/3.f;
     float l = stroke.getLength2D();
-    float thickness;
+    float thickness = 0.0;
     if(l>300.f)
       thickness = _minThickness+3.f*step;
     else if((l< 300.f) && (l>100.f))
@@ -172,7 +187,7 @@ namespace StrokeShaders {
     _stretch = stretch;
     _minThickness = iMinThickness;
     _maxThickness = iMaxThickness;
-    QImage image;
+    ImBuf *image = 0; //soc
     vector<string> pathnames;
     StringUtils::getPathName(TextureManager::Options::getPatternsPath(),
 			     pattern_name,
@@ -180,11 +195,12 @@ namespace StrokeShaders {
     for (vector<string>::const_iterator j = pathnames.begin(); j != pathnames.end(); j++) {
       ifstream ifs(j->c_str());
       if (ifs.is_open()) {
-	image.load(j->c_str());
-	break;
+		//soc image.load(j->c_str());
+		image = IMB_loadiffname(j->c_str(), 0);
+		break;
       }
     }
-    if (image.isNull())
+    if (image == 0) //soc
       cerr << "Error: cannot find pattern \"" << pattern_name
 	   << "\" - check the path in the Options" << endl;
     else
@@ -315,7 +331,7 @@ namespace StrokeShaders {
 							   bool stretch)
     : StrokeShader() {
     _stretch = stretch;
-    QImage image;
+    ImBuf *image = 0; //soc
     vector<string> pathnames;
     StringUtils::getPathName(TextureManager::Options::getPatternsPath(),
 			     pattern_name,
@@ -323,11 +339,11 @@ namespace StrokeShaders {
     for (vector<string>::const_iterator j = pathnames.begin(); j != pathnames.end(); j++) {
       ifstream ifs(j->c_str());
       if (ifs.is_open()) {
-	image.load(j->c_str());
-	break;
+		image = IMB_loadiffname(j->c_str(), 0); //soc
+		break;
       }
     }
-    if (image.isNull())
+    if (image == 0) //soc
       cerr << "Error: cannot find pattern \"" << pattern_name
 	   << "\" - check the path in the Options" << endl;
     else
@@ -558,7 +574,7 @@ namespace StrokeShaders {
 
   void ExternalContourStretcherShader::shade(Stroke& stroke) const
   { 
-    float l=stroke.getLength2D();
+    //float l=stroke.getLength2D();
     Interface0DIterator it=stroke.verticesBegin();
     Functions0D::Normal2DF0D fun;
     StrokeVertex* sv;
@@ -1074,7 +1090,7 @@ namespace StrokeShaders {
     // number of vertices than before
     stroke.Resample(originalSize);
   
-    if(stroke.strokeVerticesSize() != originalSize)
+    if((int)stroke.strokeVerticesSize() != originalSize) //soc
       cerr << "Warning: resampling problem" << endl;
 
     // assign old attributes to new stroke vertices:

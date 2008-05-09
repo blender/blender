@@ -116,8 +116,8 @@ float GaussianFilter::getSmoothedPixel(Map * map, int x, int y)
 {
   float sum = 0.f;  
   float L=0.f;
-  unsigned w=map->width();
-  unsigned h=map->height();
+  int w = (int)map->width(); //soc
+  int h = (int)map->height(); //soc
 
   // Current pixel is x,y
   // Sum surrounding pixels L value:

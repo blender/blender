@@ -937,7 +937,7 @@ namespace ViewMapIO {
     if (!vm)
       return 1;
 
-    unsigned tmp;
+    //soc unused - unsigned tmp;
 
     int err = 0;
 

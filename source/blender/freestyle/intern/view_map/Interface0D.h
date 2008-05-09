@@ -52,6 +52,8 @@ class TVertex;
 class Interface0D
 {
 public:
+ 
+	virtual ~Interface0D() {}; //soc
 
   /*! Returns the string "Interface0D".*/
   virtual string getExactTypeName() const {

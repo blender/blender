@@ -71,7 +71,7 @@ void Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it,
 
   unsigned id = 0;
   ViewEdge* edge;
-  Chain* new_chain;
+  //soc unused - Chain* new_chain;
 
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
        it_edge != _current_view_edges_set.end();
@@ -108,7 +108,7 @@ void Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it,
   Predicates1D::EqualToChainingTimeStampUP1D pred_ts(TimeStamp::instance()->getTimeStamp()+1);
 
   ViewEdge* edge;
-  Chain* new_chain;
+  //soc Chain* new_chain;
 
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
        it_edge != _current_view_edges_set.end();
@@ -232,7 +232,7 @@ void Operators::bidirectionalChain(ChainingIterator& it, UnaryPredicate1D& pred)
   Predicates1D::EqualToChainingTimeStampUP1D pred_ts(TimeStamp::instance()->getTimeStamp()+1);
   
   ViewEdge* edge;
-  Chain* new_chain;
+  //soc unused - Chain* new_chain;
   
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
   it_edge != _current_view_edges_set.end();
@@ -279,7 +279,7 @@ void Operators::bidirectionalChain(ChainingIterator& it) {
   Predicates1D::EqualToChainingTimeStampUP1D pred_ts(TimeStamp::instance()->getTimeStamp()+1);
   
   ViewEdge* edge;
-  Chain* new_chain;
+  //soc unused - Chain* new_chain;
   
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
   it_edge != _current_view_edges_set.end();
@@ -604,7 +604,7 @@ void __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredica
   //real _min                                           = func(it0d);++it;
   real _min                                           = FLT_MAX;++it;
   real mean                                           = 0.f;
-  real variance                                       = 0.f;
+  //soc unused - real variance                                       = 0.f;
   unsigned count                                      = 0;
   CurveInternal::CurvePointIterator next              = it;++next;
   real tmp;
@@ -767,7 +767,7 @@ Stroke* createStroke(Interface1D& inter) {
   Vec3r previous = current;
   SVertex* sv;
   CurvePoint* cp;
-  StrokeVertex* stroke_vertex;  
+  StrokeVertex* stroke_vertex = NULL;  
 
   do {
     cp = dynamic_cast<CurvePoint*>(&(*it));

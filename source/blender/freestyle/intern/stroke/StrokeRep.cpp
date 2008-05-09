@@ -303,7 +303,7 @@ Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
     real dp1 = userDir*orthDir;
     real dp2 = userDir*t;
     real h = (thicknessLast[1]+thicknessLast[0])/dp1;
-    real x = fabs(h*dp2/2.0);
+    //soc unused - real x = fabs(h*dp2/2.0);
     if(dp1>0){
       //i'm in the upper part of the unit circle
       if(dp2>0){
@@ -367,7 +367,7 @@ Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
   if (iStrokeVertices.size()<3)
     _averageThickness=0.5*(thicknessLast[1]+thicknessLast[0]+thickness[0]+thickness[1]);
 
-  if (i!=2*iStrokeVertices.size())
+  if (i != 2*(int)iStrokeVertices.size())
     cerr << "Warning: problem with stripe size\n";
 
   cleanUpSingularities (iStrokeVertices);
@@ -380,7 +380,7 @@ void
 Strip::cleanUpSingularities (const vector<StrokeVertex*>& iStrokeVertices)
 {
   int k;
-  unsigned sizeStrip = _vertices.size();
+  int sizeStrip = _vertices.size();
 
   for (k=0; k<sizeStrip; k++)
     if (notValid(_vertices[k]->point2d()))
@@ -393,7 +393,7 @@ Strip::cleanUpSingularities (const vector<StrokeVertex*>& iStrokeVertices)
   if (iStrokeVertices.size()<2) return;
   int i=0, j;
   vector<StrokeVertex*>::const_iterator v ,vend, v2, vPrev;
-  StrokeVertex *sv, *sv2, *svPrev;
+StrokeVertex *sv, *sv2; //soc unused -  *svPrev;
 	
   bool singu1=false, singu2=false;
   int timeSinceSingu1=0, timeSinceSingu2=0;
@@ -469,7 +469,7 @@ Strip::cleanUpSingularities (const vector<StrokeVertex*>& iStrokeVertices)
     {
       //traverse all the vertices of the singularity and average them
       Vec2r avP(0.0,0.0);
-      for (int j=i-timeSinceSingu1; j<i; j++)
+      for (j=i-timeSinceSingu1; j<i; j++)
 	avP=Vec2r(avP+_vertices[2*j]->point2d());
       avP=Vec2r(1.0/float(timeSinceSingu1)*avP);
       for (j=i-timeSinceSingu1; j<i; j++)
@@ -525,18 +525,18 @@ Strip::computeTexCoord (const vector<StrokeVertex*>& iStrokeVertices)
 void
 Strip::computeTexCoordWithTips (const vector<StrokeVertex*>& iStrokeVertices, bool tipBegin, bool tipEnd)
 {
-  unsigned int sizeStrip = _vertices.size()+8; //for the transition between the tip and the body
+  //soc unused - unsigned int sizeStrip = _vertices.size()+8; //for the transition between the tip and the body
   vector<StrokeVertex*>::const_iterator v ,vend;
-  StrokeVertex *sv;
+  StrokeVertex *sv = 0;
 
   v=iStrokeVertices.begin();
   vend=iStrokeVertices.end();
   float l=(*v)->strokeLength()/_averageThickness;
   int tiles=int(l);
   float fact=(float(tiles)+0.5)/l;
-  float uTip2=float(tiles)+0.25;
+  //soc unused - float uTip2=float(tiles)+0.25;
   float u=0; 
-  float uPrev;
+  float uPrev=0;
   int i=0;
   float t;
   StrokeVertexRep *tvRep1, *tvRep2;
@@ -757,7 +757,7 @@ StrokeRep::StrokeRep(Stroke *iStroke)
 
 StrokeRep::StrokeRep(const StrokeRep& iBrother)
 {
-  int i=0;
+  //soc unused - int i=0;
   _stroke = iBrother._stroke;
   _strokeType=iBrother._strokeType;
   _textureId = iBrother._textureId;

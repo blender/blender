@@ -127,6 +127,7 @@ public:
 
   /*! Default constructor */
   Interface1D() {_timeStamp=0;}
+   virtual ~Interface1D() {}; //soc
 
   /*! Returns the string "Interface1D" .*/
   virtual string getExactTypeName() const {

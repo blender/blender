@@ -4,13 +4,61 @@ Import ('env')
 
 sources = []
 defs = []
+incs = ''
 
-incs = '#/extern/freestyle/lib3ds #/extern/freestyle/swig'
+incs += '../blenkernel ../blenlib ../imbuf ../makesdna'
+# incs += ' #/extern/freestyle/lib3ds #/extern/freestyle/swig'
+incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_LIB3DS_INC']
+incs += ' ' + env['BF_PNG_INC']
 
-# env.BlenderLib (libname="bf_freestyle",
-# 				sources=sources,
-#                 includes=Split(incs),
-#                 defines=defs,
-#                 libtype=['blender'],
-#                 priority = [15] )
+########################################################
+#	folders sources 
+########################################################
+
+#	system
+prefix = 'intern/system'
+system_sources = env.Glob(prefix + '/*.cpp')
+
+#	image
+prefix = 'intern/image'
+image_sources = env.Glob(prefix + '/*.cpp')
+
+#	geometry
+prefix = 'intern/geometry'
+geometry_sources = env.Glob(prefix + '/*.cpp')
+
+#	scene_graph
+prefix = 'intern/scene_graph'
+scene_graph_sources = env.Glob(prefix + '/*.cpp')
+
+#	winged_edge
+prefix = 'intern/winged_edge'
+winged_edge_sources = env.Glob(prefix + '/*.cpp')
+
+#	view_map
+prefix = 'intern/view_map'
+view_map_sources = env.Glob(prefix + '/*.cpp')
+
+#	stroke
+prefix = 'intern/stroke'
+stroke_sources = env.Glob(prefix + '/*.cpp')
+
+#	rendering
+# 	app
+
+sources = 	system_sources + image_sources + geometry_sources + scene_graph_sources + \
+			winged_edge_sources + view_map_sources + stroke_sources
+#print sources
+
+env.BlenderLib (libname="bf_freestyle",
+				sources=sources,
+                includes=Split(incs),
+                defines=defs,
+                libtype=['blender'],
+                priority = [15] )
+
+########################################################
+# SWIG
+########################################################
+#	swig
