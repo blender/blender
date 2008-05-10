@@ -206,7 +206,7 @@ class VRML2Export:
 		if scene != inlines[0]:
 			return
 		else:
-			for i in range(allinlines):
+			for i in xrange(allinlines):
 				nameinline=inlines[i].getName()
 				if (nameinline not in self.namesStandard) and (i > 0):
 					self.writeIndented("DEF %s Inline {\n" % \
@@ -219,7 +219,7 @@ class VRML2Export:
 	def writeScript(self):
 		textEditor = Blender.Text.Get() 
 		alltext = len(textEditor)
-		for i in range(alltext):
+		for i in xrange(alltext):
 			nametext = textEditor[i].getName()
 			nlines = textEditor[i].getNLines()
 			if (self.proto == 1):
@@ -227,14 +227,14 @@ class VRML2Export:
 					nametext == "proto.txt") and (nlines != None):
 					nalllines = len(textEditor[i].asLines())
 					alllines = textEditor[i].asLines()
-					for j in range(nalllines):
+					for j in xrange(nalllines):
 						self.writeIndented(alllines[j] + "\n")
 			elif (self.proto == 0):
 				if (nametext == "route" or nametext == "route.js" or \
 					nametext == "route.txt") and (nlines != None):
 					nalllines = len(textEditor[i].asLines())
 					alllines = textEditor[i].asLines()
-					for j in range(nalllines):
+					for j in xrange(nalllines):
 						self.writeIndented(alllines[j] + "\n")
 		self.writeIndented("\n")
 
@@ -449,8 +449,9 @@ class VRML2Export:
 		# (as a non-face property) and if first material has
 		# vcol paint set, we export the vertex colors
 		if (me.vertexColors):
-			if len(me.materials) > 0:
-				mat = me.materials[0]
+			materials = [m for m in me.materials if m]
+			if len(materials) > 0:
+				mat = materials[0]
 				if mat:
 					if (mat.mode & Blender.Material.Modes['VCOL_PAINT']):
 						self.vcolors = 1
@@ -554,7 +555,7 @@ class VRML2Export:
 		issmooth = 0
 
 		maters = me.materials
-		nummats = self.getNumMaterials(me)
+		nummats = len([m for m in maters if m])
 
 		# Vertex and Face colors trump materials and image textures
 		if (self.facecolors or self.vcolors):
@@ -567,18 +568,18 @@ class VRML2Export:
 				self.writeShape(ob, me, -1, None)
 		# Do meshes with materials, possible with image textures
 		elif nummats > 0:
-			for matnum in range(len(maters)):
-				if maters[matnum]:
-					images = []
-					if me.faceUV:
-						images = self.getImages(me, matnum)
-						if len(images) > 0:
-							for image in images:
-								self.writeShape(ob, me, matnum, image)
-						else:
-							self.writeShape(ob, me, matnum, None)
+			for matnum in xrange(len(maters)):
+				images = []
+				if me.faceUV:
+					images = self.getImages(me, matnum)
+					if len(images) > 0:
+						for image in images:
+							self.writeShape(ob, me, matnum, image)
 					else:
 						self.writeShape(ob, me, matnum, None)
+				else:
+					self.writeShape(ob, me, matnum, None)
+				
 		else:
 			if me.faceUV:
 				images = self.getImages(me, -1)
@@ -596,24 +597,28 @@ class VRML2Export:
 
 	def getImages(self, me, matnum):
 		imageNames = {}
-		images = []
-		for face in me.faces:
-			if (matnum == -1) or (face.mat == matnum):
-				if (face.image):
-					imName = self.cleanStr(face.image.name)
-					if not imageNames.has_key(imName):
-						images.append(face.image)
-						imageNames[imName]=1
+		images = {} # make a dict to avoid dealing with images too often.
+		if matnum == -1:		
+			for face in me.faces:
+				img = face.image
+				if img:
+					images[img] = img # key is a dummy
+		else:
+			for face in me.faces:
+				if face.mat == matnum:
+					img = face.image
+					if img:
+						images[img] = img # key is a dummy
+		
+		images = images.values()
+		
+		for image in images:
+			imName = self.cleanStr(image.name)
+			if not imageNames.has_key(imName):
+				images.append(image)
+				imageNames[imName]=1
+		
 		return images
-
-	def getNumMaterials(self, me):
-		# Oh silly Blender, why do you sometimes have 'None' as
-		# a member of the me.materials array?
-		num = 0
-		for mat in me.materials:
-			if mat:
-				num = num + 1
-		return num
 
 	def writeCoordinates(self, me, meshName):
 		coordName = "coord_%s" % (meshName)
@@ -649,10 +654,11 @@ class VRML2Export:
 		self.writeIndented("appearance Appearance {\n", 1)
 		if (matnum != -1):
 			mater = me.materials[matnum]
-			self.writeMaterial(mater, self.cleanStr(mater.name,''))
-			if (mater.mode & Blender.Material.Modes['TEXFACE']):
-				if image != None:
-					self.writeImageTexture(image.name, image.filename)
+			if mater:
+				self.writeMaterial(mater, self.cleanStr(mater.name,''))
+				if (mater.mode & Blender.Material.Modes['TEXFACE']):
+					if image != None:
+						self.writeImageTexture(image.name, image.filename)
 		else:
 			if image != None:
 				self.writeImageTexture(image.name, image.filename)
@@ -698,11 +704,17 @@ class VRML2Export:
 		for face in me.faces:
 			if (matnum == -1) or (face.mat == matnum):
 				if (image == None) or (face.image == image):
-					cordStr=""
-					for v in face.verts:
-						indx=v.index
-						cordStr = cordStr + "%s " % indx
-					self.writeUnindented(cordStr + "-1, \n")
+					fv = face.v
+				
+					if len(face)==3:
+							self.file.write("%i %i %i -1, " % (fv[0].index, fv[1].index, fv[2].index))
+					else:
+						#if EXPORT_TRI:
+						#	self.file.write("%i %i %i -1, " % (fv[0].index, fv[1].index, fv[2].index))
+						#	self.file.write("%i %i %i -1, " % (fv[0].index, fv[2].index, fv[3].index))
+						#else:
+						self.file.write("%i %i %i %i -1, " % (fv[0].index, fv[1].index, fv[2].index, fv[3].index))
+		
 		self.writeIndented("]\n", -1)
 
 	def writeTextureCoordinates(self, me, meshName, matnum, image):
@@ -718,7 +730,7 @@ class VRML2Export:
 			indexStr = ""
 			if (matnum == -1) or (face.mat == matnum):
 				if (face.image == image):
-					for i in range(len(face.verts)):
+					for i in xrange(len(face.verts)):
 						uv = face.uv[i]
 						indexStr += "%s " % (j)
 						coordStr += "%s %s, " % \
@@ -1217,7 +1229,7 @@ def select_file(filename):
 #########################################################
 
 export_selection_only = Draw.Create(0)
-export_rotate_z_to_y = Draw.Create(0)
+export_rotate_z_to_y = Draw.Create(1)
 export_compressed = Draw.Create(0)
 
 def save_to_registry():
