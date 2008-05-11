@@ -565,7 +565,6 @@ PyObject *M_ParticleSys_Get( PyObject * self, PyObject * args )
 	}else {  /* no arg - return a list of bpy objs all P. systems */
 
 		PyObject *pylist;
-		PyObject *pyobj;
 		int index = 0;
 
 		pylist = PyList_New( BLI_countlist( &G.main->particle ));
@@ -804,7 +803,7 @@ static PyObject *Part_GetLoc( BPy_PartSys * self, PyObject * args ){
 	ParticleSystem *psys = 0L;
 	Object *ob = 0L;
 	PyObject *partlist,*seglist;
-	PyObject* loc;
+	PyObject* loc = 0L;
 	ParticleCacheKey **cache,*path;
 	ParticleKey state;
 	float cfra=bsystem_time(ob,(float)CFRA,0.0);
@@ -952,7 +951,7 @@ static PyObject *Part_GetLoc( BPy_PartSys * self, PyObject * args ){
 static PyObject *Part_GetRot( BPy_PartSys * self, PyObject * args ){
 	ParticleSystem *psys = 0L;
 	Object *ob = 0L;
-	PyObject *partlist;
+	PyObject *partlist = 0L;
 	PyObject* loc = 0L;
 	ParticleKey state;
 	int i;

@@ -151,6 +151,7 @@ int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect)
 	return 1;
 }
 
+#if 0 // not used
 /* returns 0 if not found, otherwise 1 */
 static int facesel_edge_pick(Mesh *me, short *mval, unsigned int *index)
 {
@@ -175,6 +176,7 @@ static int facesel_edge_pick(Mesh *me, short *mval, unsigned int *index)
 	
 	return 1;
 }
+#endif
 
 /* only operates on the edit object - this is all thats needed at the moment */
 static void uv_calc_center_vector(float *result, Object *ob, EditMesh *em)
@@ -958,7 +960,6 @@ int edgetag_shortest_path(EditEdge *source, EditEdge *target)
 	EditVert *ev;
 	
 	Heap *heap;
-	EdgeHash *ehash;
 	float *cost;
 	int a, totvert=0, totedge=0, *nedges, *edges, *prevedge, mednum = -1, nedgeswap = 0;
 
