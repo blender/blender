@@ -2652,7 +2652,7 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 				uiDefButF(block, NUM,B_LAMPREDRAW,"Soft:",		200,40,100,19,	&la->soft,1.0,100.0, 100, 0, "Sets the size of the shadow sample area");
 			}
 			else {	/* LA_SHADBUF_IRREGULAR */
-				uiDefButF(block, NUM,B_LAMPREDRAW,"Bias:",		100,40,100,19,	&la->bias, 0.01, 5.0, 1, 0, "Sets the shadow map sampling bias");
+				uiDefButF(block, NUM,B_LAMPREDRAW,"Bias:",		100,40,100,19,	&la->bias, 0.001, 5.0, 1, 0, "Sets the shadow map sampling bias");
 			}
 			
 			uiBlockBeginAlign(block);
