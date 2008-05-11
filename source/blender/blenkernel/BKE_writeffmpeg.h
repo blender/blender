@@ -58,6 +58,7 @@ extern "C" {
 #define FFMPEG_PRESET_SVCD 2
 #define FFMPEG_PRESET_VCD  3
 #define FFMPEG_PRESET_DV   4
+#define FFMPEG_PRESET_H264 5
 
 struct RenderData;	
 

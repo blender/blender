@@ -1532,6 +1532,9 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			writestruct(wd, DATA, "QuicktimeCodecData", 1, sce->r.qtcodecdata);
 			if (sce->r.qtcodecdata->cdParms) writedata(wd, DATA, sce->r.qtcodecdata->cdSize, sce->r.qtcodecdata->cdParms);
 		}
+		if (sce->r.ffcodecdata.properties) {
+			IDP_WriteProperty(sce->r.ffcodecdata.properties, wd);
+		}
 
 		/* writing dynamic list of TimeMarkers to the blend file */
 		for(marker= sce->markers.first; marker; marker= marker->next)

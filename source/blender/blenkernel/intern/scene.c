@@ -67,6 +67,7 @@
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_ipo.h"
+#include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
@@ -148,6 +149,11 @@ void free_scene(Scene *sce)
 		free_qtcodecdata(sce->r.qtcodecdata);
 		MEM_freeN(sce->r.qtcodecdata);
 		sce->r.qtcodecdata = NULL;
+	}
+	if (sce->r.ffcodecdata.properties) {
+		IDP_FreeProperty(sce->r.ffcodecdata.properties);
+		MEM_freeN(sce->r.ffcodecdata.properties);
+		sce->r.ffcodecdata.properties = NULL;
 	}
 	
 	BLI_freelistN(&sce->markers);
