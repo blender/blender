@@ -2548,6 +2548,10 @@ void hide_mesh(int swap)
 			efa->e2->f1 |= a;
 			efa->e3->f1 |= a;
 			if(efa->e4) efa->e4->f1 |= a;
+			/* When edges are not delt with in their own loop, we need to explicitly re-selct select edges that are joined to unselected faces */
+			if (swap && G.scene->selectmode == SCE_SELECT_FACE & efa->f & SELECT) {
+				EM_select_face(efa, 1);
+			}
 		}
 	}
 	
