@@ -972,11 +972,12 @@ void calculateCenter(TransInfo *t)
 		calculateCenterMedian(t);
 		break;
 	case V3D_ACTIVE:
+		{
 		/* set median, and if if if... do object center */
-		
+		EditSelection ese;
 		/* EDIT MODE ACTIVE EDITMODE ELEMENT */
-		if (G.obedit && G.obedit->type == OB_MESH && G.editMesh->selected.last) {
-			EM_editselection_center(t->center, G.editMesh->selected.last);
+		if (G.obedit && G.obedit->type == OB_MESH && EM_get_actSelection(&ese)) {
+			EM_editselection_center(t->center, &ese);
 			calculateCenter2D(t);
 			break;
 		} /* END EDIT MODE ACTIVE ELEMENT */
@@ -988,6 +989,8 @@ void calculateCenter(TransInfo *t)
 				VECCOPY(t->center, ob->obmat[3]);
 				projectIntView(t, t->center, t->center2d);
 			}
+		}
+		
 		}
 	}
 

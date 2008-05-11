@@ -1530,35 +1530,11 @@ void snap_curs_to_active()
 		if (G.obedit->type == OB_MESH)
 		{
 			/* check active */
-			if (G.editMesh->selected.last) {
-				EditSelection *ese = G.editMesh->selected.last;
-				if ( ese->type == EDITVERT ) {
-					EditVert *eve = (EditVert *)ese->data;
-					VECCOPY(curs, eve->co);
-				}
-				else if ( ese->type == EDITEDGE ) {
-					EditEdge *eed = (EditEdge *)ese->data;
-					VecAddf(curs, eed->v1->co, eed->v2->co);
-					VecMulf(curs, 0.5f);
-				}
-				else if ( ese->type == EDITFACE ) {
-					EditFace *efa = (EditFace *)ese->data;
-					
-					if (efa->v4)
-					{
-						VecAddf(curs, efa->v1->co, efa->v2->co);
-						VecAddf(curs, curs, efa->v3->co);
-						VecAddf(curs, curs, efa->v4->co);
-						VecMulf(curs, 0.25f);
-					}
-					else
-					{
-						VecAddf(curs, efa->v1->co, efa->v2->co);
-						VecAddf(curs, curs, efa->v3->co);
-						VecMulf(curs, 1/3.0f);
-					}
-				}
+			EditSelection ese;
+			if (EM_get_actSelection(&ese)) {
+				EM_editselection_center(curs, &ese);
 			}
+			
 			Mat4MulVecfl(G.obedit->obmat, curs);
 		}
 	}

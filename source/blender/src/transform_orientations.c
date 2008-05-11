@@ -379,16 +379,16 @@ int getTransformOrientation(float normal[3], float plane[3], int activeOnly)
 		{
 			EditMesh *em = G.editMesh;
 			EditVert *eve;
+			EditSelection ese;
 			float vec[3]= {0,0,0};
 			
 			/* USE LAST SELECTED WITH ACTIVE */
-			if (activeOnly && em->selected.last)
+			if (activeOnly && EM_get_actSelection(&ese))
 			{
-				EditSelection *ese = em->selected.last;
-				EM_editselection_normal(normal, ese);
-				EM_editselection_plane(plane, ese);
+				EM_editselection_normal(normal, &ese);
+				EM_editselection_plane(plane, &ese);
 				
-				switch (ese->type)
+				switch (ese.type)
 				{
 					case EDITVERT:
 						result = ORIENTATION_VERT;
