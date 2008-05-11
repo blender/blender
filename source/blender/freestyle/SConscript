@@ -7,7 +7,7 @@ defs = []
 incs = ''
 
 incs += '../blenkernel ../blenlib ../imbuf ../makesdna'
-incs += ' #/extern/freestyle/lib3ds'
+incs += ' #/extern/freestyle/lib3ds' 
 incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_LIB3DS_INC']
 incs += ' ' + env['BF_PNG_INC']
