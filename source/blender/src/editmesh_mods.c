@@ -2755,7 +2755,7 @@ void reveal_tface_uv(void)
 			for (efa= em->faces.first; efa; efa= efa->next) {
 				if (!(efa->h) && !(efa->f & SELECT)) {
 					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					efa->f |= SELECT;
+					EM_select_face(efa, 1);
 					tface->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;
 				}
 			}
