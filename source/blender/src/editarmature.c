@@ -565,7 +565,11 @@ int join_armature(void)
 	/* Get editbones of active armature to add editbones to */
 	ebbase.first=ebbase.last= NULL;
 	make_boneList(&ebbase, &arm->bonebase, NULL);
+	
+	/* get pose of active object and move it out of posemode */
 	pose= ob->pose;
+	ob->flag &= ~OB_POSEMODE;
+	BASACT->flag &= ~OB_POSEMODE;
 	
 	for (base=FIRSTBASE; base; base=nextbase) {
 		nextbase = base->next;
@@ -577,6 +581,8 @@ int join_armature(void)
 				
 				/* Get Pose of current armature */
 				opose= base->object->pose;
+				base->object->flag &= ~OB_POSEMODE;
+				BASACT->flag &= ~OB_POSEMODE;
 				
 				/* Find the difference matrix */
 				Mat4Invert(oimat, ob->obmat);
@@ -837,7 +843,7 @@ void separate_armature (void)
 	arm= G.obedit->data;
 	
 	/* we are going to do this as follows (unlike every other instance of separate):
-	 *	1. exit editmode for active armature/base. Take note of what this is. 
+	 *	1. exit editmode +posemode for active armature/base. Take note of what this is.
 	 *	2. duplicate base - BASACT is the new one now
 	 *	3. for each of the two armatures, enter editmode -> remove appropriate bones -> exit editmode + recalc
 	 *	4. fix constraint links
@@ -856,6 +862,8 @@ void separate_armature (void)
 	/* 1) store starting settings and exit editmode */
 	oldob= G.obedit;
 	oldbase= BASACT;
+	oldob->flag &= ~OB_POSEMODE;
+	oldbase->flag &= ~OB_POSEMODE;
 	
 	load_editArmature();
 	free_editArmature();
@@ -894,6 +902,8 @@ void separate_armature (void)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWOOPS, 0);
+	
+	BIF_undo_push("Separate Armature");
 }
 
 /* **************** END tools on Editmode Armature **************** */
