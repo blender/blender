@@ -549,7 +549,7 @@ int join_armature(void)
 	bPoseChannel *pchan, *pchann;
 	ListBase ebbase, eblist;
 	EditBone *curbone;
-	float	mat[4][4], imat[4][4];
+	float	mat[4][4], oimat[4][4];
 	
 	/*	Ensure we're not in editmode and that the active object is an armature*/
 	/* if(G.obedit) return; */ /* Alredy checked in join_menu() */
@@ -579,8 +579,8 @@ int join_armature(void)
 				opose= base->object->pose;
 				
 				/* Find the difference matrix */
-				Mat4Invert(imat, ob->obmat);
-				Mat4MulMat4(mat, base->object->obmat, imat);
+				Mat4Invert(oimat, ob->obmat);
+				Mat4MulMat4(mat, base->object->obmat, oimat);
 				
 				/* Copy bones and posechannels from the object to the edit armature */
 				for (pchan=opose->chanbase.first; pchan; pchan=pchann) {
@@ -826,8 +826,8 @@ void separate_armature (void)
 	// 31 Mar 08 \ 11 May 08 - Aligorith:
 	// currently, this is still too unstable to be enabled for general consumption.
 	// remove the following two lines to test this tool... you have been warned!
-		okee("Not implemented (WIP)");
-		return;
+	//	okee("Not implemented (WIP)");
+	//	return;
 	
 	if ( G.vd==0 || (G.vd->lay & G.obedit->lay)==0 ) return;
 	if ( okee("Separate")==0 ) return;
