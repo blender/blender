@@ -2548,6 +2548,10 @@ void hide_mesh(int swap)
 			efa->e2->f1 |= a;
 			efa->e3->f1 |= a;
 			if(efa->e4) efa->e4->f1 |= a;
+			/* When edges are not delt with in their own loop, we need to explicitly re-selct select edges that are joined to unselected faces */
+			if (swap && (G.scene->selectmode == SCE_SELECT_FACE) && (efa->f & SELECT)) {
+				EM_select_face(efa, 1);
+			}
 		}
 	}
 	
@@ -2751,7 +2755,7 @@ void reveal_tface_uv(void)
 			for (efa= em->faces.first; efa; efa= efa->next) {
 				if (!(efa->h) && !(efa->f & SELECT)) {
 					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					efa->f |= SELECT;
+					EM_select_face(efa, 1);
 					tface->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;
 				}
 			}

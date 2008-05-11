@@ -45,6 +45,12 @@ prefix = 'intern/stroke'
 stroke_sources = env.Glob(prefix + '/*.cpp')
 
 #	rendering
+prefix = 'intern/rendering'
+stroke_sources = env.Glob(prefix + '/GL*.cpp')
+
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
+	stroke_sources = env.Glob(prefix + '/extgl.cpp')
+
 # 	app
 
 sources = 	system_sources + image_sources + geometry_sources + scene_graph_sources + \

@@ -23,10 +23,6 @@
 #include "FreestyleConfig.h"
 #include "StringUtils.h"
 
-//soc
-#include "BKE_utildefines.h"
-#include "BLI_blenlib.h"
-
 namespace StringUtils {
 
   void getPathName(const string& path, const string& base, vector<string>& pathnames) {
@@ -45,12 +41,30 @@ namespace StringUtils {
 	char cleaned[FILE_MAX];
 	BLI_strncpy(cleaned, dir.c_str(), FILE_MAX);
 	BLI_cleanup_file(NULL, cleaned);
-	string res(cleaned);
+	string res = toAscii( string(cleaned) );
 	
       if (!base.empty())
 		res += Config::DIR_SEP + base;
       pathnames.push_back(res);
     }
   }
+
+	string toAscii( const string &str ){
+		stringstream out("");
+		char s;
+		
+		for(uint i=0; i < str.size() ; i++){
+			s =  ((char)(str.at(i) & 0x7F));
+			out << s;
+		}	
+		
+		return out.str();
+	}
+	
+	const char* toAscii( const char *str ){
+		return toAscii(string(str)).c_str();
+	}
+
+  
 
 } // end of namespace StringUtils

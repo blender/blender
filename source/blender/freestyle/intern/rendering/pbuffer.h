@@ -1,13 +1,12 @@
 #ifndef PBUFFERS_H
 #define PBUFFERS_H
 
-#ifndef WIN32
-#  ifdef __MACH__
+# ifdef __MACH__
 #    include <OpenGL/gl.h>
-#  else
+# else
 #    include <GL/gl.h>
 #    include <GL/glx.h>
-#  endif
+# endif
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Interface of PBuffer
@@ -74,4 +73,3 @@ private:
 };
 
 #endif //PBUFFERS_H
-#endif //WIN32

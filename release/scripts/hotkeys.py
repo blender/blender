@@ -1,5 +1,5 @@
 #!BPY
-
+# coding: utf-8
 """ Registration info for Blender menus:
 Name: 'HotKey and MouseAction Reference'
 Blender: 242

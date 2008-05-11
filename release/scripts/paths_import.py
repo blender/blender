@@ -1,5 +1,5 @@
 #!BPY
-
+# coding: utf-8
 """
 Name: 'Paths (.svg, .ps, .eps, .ai, Gimp)'
 Blender: 233
@@ -93,3 +93,4 @@ elif argv=='Gimp_2_0':
 
 text = 'Import %s' % argv
 Blender.Window.FileSelector (fonctionSELECT, text)
+

@@ -63,6 +63,8 @@ void *glutils_extgl_GetProcAddress(const char *name)
 #ifdef _WIN32
     void *t = wglGetProcAddress(name);
     return t;
+#else
+	return NULL;
 #endif
 }
 

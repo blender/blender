@@ -2726,9 +2726,10 @@ static void createTransNlaData(TransInfo *t)
 		if (base->object->action) {
 			/* exclude if strip is selected too */
 			for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
-				if (strip->flag & ACTSTRIP_SELECT)
+				if (strip->flag & ACTSTRIP_SELECT) {
 					if (strip->act == base->object->action)
 						break;
+				}
 			}
 			if (strip==NULL) {
 				cfra = get_action_frame(base->object, CFRA);
@@ -2790,9 +2791,10 @@ static void createTransNlaData(TransInfo *t)
 		if (base->object->action) {
 			/* exclude if strip that active action belongs to is selected too */
 			for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
-				if (strip->flag & ACTSTRIP_SELECT)
+				if (strip->flag & ACTSTRIP_SELECT) {
 					if (strip->act == base->object->action)
 						break;
+				}
 			}
 			
 			/* can include if no strip found */

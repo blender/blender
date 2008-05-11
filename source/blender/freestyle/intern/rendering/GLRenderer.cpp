@@ -281,7 +281,7 @@ void GLRenderer::visitLineRep( LineRep& iLine)
   }
 
  const vector<Vec3r>& vertices = iLine.vertices();
-  float step=1.f/vertices.size();
+  //soc unused float step=1.f/vertices.size();
   vector<Vec3r>::const_iterator v;
 
   for(v=vertices.begin(); v!=vertices.end(); v++)

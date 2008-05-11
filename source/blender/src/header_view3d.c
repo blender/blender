@@ -3964,7 +3964,7 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Fill Between Joints|F",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete|X",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Separate|Ctrl Shift P",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 22, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Separate|Ctrl Alt P",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 22, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	

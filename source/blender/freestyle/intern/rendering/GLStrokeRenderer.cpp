@@ -19,11 +19,17 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <qimage.h>
-#include <qfileinfo.h>
-#include <qgl.h>
-#include <qfile.h>
 #include "GLStrokeRenderer.h"
+
+//soc
+// #include <qimage.h>
+// #include <qfileinfo.h>
+// #include <qgl.h>
+// #include <qfile.h>
+#include "BLI_blenlib.h"
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+#include "../system/StringUtils.h"
 
 #ifdef WIN32
 # include "extgl.h"
@@ -77,7 +83,7 @@ void GLStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
       // renderNoTexture(iStrokeRep);
       // return;
     // }
-  int i;
+  //soc unused - int i;
   glDisable(GL_CULL_FACE);
   glDisable(GL_LIGHTING);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -150,8 +156,8 @@ void GLStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 void GLStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 {
   glPushAttrib(GL_COLOR_BUFFER_BIT);
-  Stroke::MediumType strokeType = iStrokeRep->getMediumType();
-  int i;
+  //soc unused - Stroke::MediumType strokeType = iStrokeRep->getMediumType();
+  //soc unused - int i;
   glDisable(GL_CULL_FACE);
   glDisable(GL_LIGHTING);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -273,7 +279,7 @@ GLTextureManager::loadPapers ()
   _papertexname = new unsigned[size];
   GLuint *tmp = new GLuint[size];
   glGenTextures(size, tmp);
-  for(int i=0;i<size;++i){
+  for(unsigned i=0;i<size;++i){
     _papertexname[i] = tmp[i];
   }
   delete [] tmp;
@@ -308,13 +314,14 @@ GLTextureManager::loadBrush(string sname, Stroke::MediumType mediumType)
   glGenTextures(1, &texId);
   bool found = false;
   vector<string> pathnames;
-  QString path;
+  string path; //soc
   StringUtils::getPathName(TextureManager::Options::getBrushesPath(),
   sname,
   pathnames);
   for (vector<string>::const_iterator j = pathnames.begin(); j != pathnames.end(); j++) {
     path = j->c_str();
-    if(QFile::exists(path)){
+    //soc if(QFile::exists(path)){
+	if( BLI_exists( const_cast<char *>(path.c_str()) ) ) {
       found = true;
       break;
     }
@@ -325,12 +332,14 @@ GLTextureManager::loadBrush(string sname, Stroke::MediumType mediumType)
   cout << "Loading brush texture..." << endl;
   switch(mediumType){
   case Stroke::DRY_MEDIUM:
-    prepareTextureLuminance((const char*)path.toAscii(), texId);
+    //soc prepareTextureLuminance((const char*)path.toAscii(), texId);
+	prepareTextureLuminance(StringUtils::toAscii(path), texId);
     break;
   case Stroke::HUMID_MEDIUM:
   case Stroke::OPAQUE_MEDIUM:
   default:
-    prepareTextureAlpha((const char*)path.toAscii(), texId);
+    //soc prepareTextureAlpha((const char*)path.toAscii(), texId);
+	prepareTextureAlpha(StringUtils::toAscii(path), texId);
     break;
   }
   cout << "Done." << endl << endl;
@@ -341,18 +350,26 @@ GLTextureManager::loadBrush(string sname, Stroke::MediumType mediumType)
 bool 
 GLTextureManager::prepareTextureAlpha (string sname, GLuint itexname)
 {
-  const char * name = sname.c_str();
-  QImage qim(name);
-  QFileInfo fi(name);
-  QString filename = fi.fileName();
-  if (qim.isNull()) 
+  //soc const char * name = sname.c_str();
+	char * name = (char *) sname.c_str();
+	
+  //soc 
+  // QImage qim(name);
+  // QFileInfo fi(name);
+  // QString filename = fi.fileName();
+	ImBuf *qim = IMB_loadiffname(name, 0);
+	char filename[FILE_MAXFILE];
+	BLI_splitdirstring(name, filename);
+
+//soc  if (qim.isNull()) 
+	if( qim )
     {
       cerr << "  Error: unable to read \"" << name << "\"" << endl;
       return false;
     }
-  if (qim.depth()>8)
+  if( qim->depth > 8) //soc
     {
-      cerr<<"  Error: \""<< name <<"\" has "<<qim.depth()<<" bits/pixel"<<endl;
+      cerr<<"  Error: \""<< name <<"\" has "<< qim->depth <<" bits/pixel"<<endl; //soc
       return false;
     }
   //		qim=QGLWidget::convertToGLFormat( qimOri );
@@ -369,11 +386,12 @@ GLTextureManager::prepareTextureAlpha (string sname, GLuint itexname)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
 		  GL_LINEAR);     
 
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, qim.width(), qim.height(), 0, 
-	       GL_ALPHA, GL_UNSIGNED_BYTE, qim.bits());	
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, qim->x, qim->y, 0, 
+	       GL_ALPHA, GL_UNSIGNED_BYTE, qim->rect);	//soc
 
-  cout << "  \"" << filename.toAscii().data() << "\" loaded with "<< qim.depth() << " bits per pixel" << endl;
-
+  //soc cout << "  \"" << filename.toAscii().data() << "\" loaded with "<< qim.depth() << " bits per pixel" << endl;
+	cout << "  \"" << StringUtils::toAscii(filename) << "\" loaded with "<< qim->depth << " bits per pixel" << endl;
+	
   return true;
 
 }
@@ -381,18 +399,25 @@ GLTextureManager::prepareTextureAlpha (string sname, GLuint itexname)
 bool 
 GLTextureManager::prepareTextureLuminance (string sname, GLuint itexname)
 {
-  const char * name = sname.c_str();
-  QImage qim(name);
-  QFileInfo fi(name);
-  QString filename = fi.fileName();
-  if (qim.isNull()) 
+  //soc const char * name = sname.c_str();
+	char * name = (char *) sname.c_str();
+	
+  //soc
+  // QImage qim(name);
+  // QFileInfo fi(name);
+  // QString filename = fi.fileName();
+	ImBuf *qim = IMB_loadiffname(name, 0);
+	char filename[FILE_MAXFILE];
+	BLI_splitdirstring(name, filename);
+	
+  if (qim) //soc
     {
       cerr << "  Error: unable to read \"" << name << "\"" << endl;
       return false;
     }
-  if (qim.depth() > 8)
+  if (qim->depth > 8) //soc
     {
-      cerr<<"  Error: \""<<name<<"\" has "<<qim.depth()<<" bits/pixel"<<endl;
+      cerr<<"  Error: \""<<name<<"\" has "<<qim->depth <<" bits/pixel"<<endl;//soc
       return false;
     }
 
@@ -408,11 +433,12 @@ GLTextureManager::prepareTextureLuminance (string sname, GLuint itexname)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
 		  GL_LINEAR);     
 
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, qim.width(), qim.height(), 0, 
-	       GL_LUMINANCE, GL_UNSIGNED_BYTE, qim.bits());	
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, qim->x, qim->y, 0, 
+	       GL_LUMINANCE, GL_UNSIGNED_BYTE, qim->rect);	//soc
 
-  cout << "  \"" << filename.toAscii().data() << "\" loaded with "<< qim.depth() << " bits per pixel" << endl;
-
+  //soc cout << "  \"" << filename.toAscii().data() << "\" loaded with "<< qim.depth() << " bits per pixel" << endl;
+	cout << "  \"" << StringUtils::toAscii(filename) << "\" loaded with "<< qim->depth << " bits per pixel" << endl;
+	
   return true;
 
 }
@@ -420,18 +446,25 @@ GLTextureManager::prepareTextureLuminance (string sname, GLuint itexname)
 bool 
 GLTextureManager::prepareTextureLuminanceAndAlpha (string sname, GLuint itexname)
 {
-  const char * name = sname.c_str();
-  QImage qim(name);
-  QFileInfo fi(name);
-  QString filename = fi.fileName();
-  if (qim.isNull()) 
+  //soc const char * name = sname.c_str();
+	char * name = (char *) sname.c_str();
+	
+  //soc
+  // QImage qim(name);
+  // QFileInfo fi(name);
+  // QString filename = fi.fileName();
+	ImBuf *qim = IMB_loadiffname(name, 0);
+	char filename[FILE_MAXFILE];
+	BLI_splitdirstring(name, filename);
+
+  if (qim) //soc
     {
       cerr << "  Error: unable to read \"" << name << "\"" << endl;
       return false;
     }
-  if (qim.depth() > 8)
+  if (qim->depth > 8) //soc
     {
-      cerr<<"  Error: \""<<name<<"\" has "<<qim.depth()<<" bits/pixel"<<endl;
+      cerr<<"  Error: \""<<name<<"\" has "<<qim->depth<<" bits/pixel"<<endl; //soc
       return false;
     }
 					   
@@ -447,12 +480,13 @@ GLTextureManager::prepareTextureLuminanceAndAlpha (string sname, GLuint itexname
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
 		  GL_LINEAR);     
 						     
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, qim.width(), qim.height(), 0, 
-	       GL_LUMINANCE, GL_UNSIGNED_BYTE, qim.bits());	
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, qim.width(), qim.height(), 0, 
-	       GL_ALPHA, GL_UNSIGNED_BYTE, qim.bits());	
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, qim->x, qim->y, 0, 
+	       GL_LUMINANCE, GL_UNSIGNED_BYTE, qim->rect);	//soc
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, qim->x, qim->y, 0, 
+	       GL_ALPHA, GL_UNSIGNED_BYTE, qim->rect);	//soc
 							 
-  cout << "  \"" << filename.toAscii().data() << "\" loaded with "<< qim.depth() << " bits per pixel" << endl;						   
+  //soc cout << "  \"" << filename.toAscii().data() << "\" loaded with "<< qim.depth() << " bits per pixel" << endl;						   
+	cout << "  \"" << StringUtils::toAscii(filename) << "\" loaded with "<< qim->depth << " bits per pixel" << endl;
 
   return true;
 							     
@@ -461,20 +495,25 @@ GLTextureManager::prepareTextureLuminanceAndAlpha (string sname, GLuint itexname
 bool 
 GLTextureManager::preparePaper (const char *name, GLuint itexname)
 {
-  QImage qim(name);
-  QFileInfo fi(name);
-  QString filename = fi.fileName();
-  if (qim.isNull()) 
+  //soc
+  // QImage qim(name);
+  // QFileInfo fi(name);
+  // QString filename = fi.fileName();
+	ImBuf *qim = IMB_loadiffname(name, 0);
+	char filename[FILE_MAXFILE];
+	BLI_splitdirstring((char *)name, filename);
+
+  if (qim) //soc 
     {
       cerr << "  Error: unable to read \"" << name << "\"" << endl;
       return false;
     }
-  if (qim.depth()!=32)
+  if (qim->depth !=32) //soc
     {
-      cerr<<"  Error: \""<<name<<"\" has "<<qim.depth()<<" bits/pixel"<<endl;
+      cerr<<"  Error: \""<<name<<"\" has "<<qim->depth<<" bits/pixel"<<endl; //soc
       return false;
     }
-  QImage qim2=QGLWidget::convertToGLFormat( qim );
+  //soc QImage qim2=QGLWidget::convertToGLFormat( qim );
 
   glBindTexture(GL_TEXTURE_2D, itexname);
 	
@@ -485,11 +524,11 @@ GLTextureManager::preparePaper (const char *name, GLuint itexname)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
 		  GL_LINEAR);     
 
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, qim.width(), qim.height(), 0, 
-	       GL_RGBA, GL_UNSIGNED_BYTE, qim2.bits());	
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, qim->x, qim->y, 0, 
+	       GL_RGBA, GL_UNSIGNED_BYTE, qim->rect);	//soc: here qim->rect, not qim2->rect, used
 
-  cout << "  \"" << filename.toAscii().data() << "\" loaded with "<< qim.depth() << " bits per pixel" << endl;
-
+  //cout << "  \"" << filename.toAscii().data() << "\" loaded with "<< qim.depth() << " bits per pixel" << endl;
+	cout << "  \"" << StringUtils::toAscii(filename) << "\" loaded with "<< qim->depth << " bits per pixel" << endl;
   return true;
 }
 

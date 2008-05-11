@@ -562,13 +562,13 @@ int main(int argc, char** argv)
 				STR_String exitstring = "";
 				GPG_Application app(system, NULL, exitstring);
 				bool firstTimeRunning = true;
+				char *filename = get_filename(argc, argv);
+				char *titlename;
+				char pathname[160];
 				
 				do
 				{
 					// Read the Blender file
-					char *filename = get_filename(argc, argv);
-					char *titlename;
-					char pathname[160];
 					BlendFileData *bfd;
 					
 					// if we got an exitcode 3 (KX_EXIT_REQUEST_START_OTHER_GAME) load a different file
@@ -582,6 +582,17 @@ int main(int argc, char** argv)
 						BLI_convertstringcode(basedpath, pathname);
 						
 						bfd = load_game_data(basedpath);
+
+						if (!bfd)
+						{
+							// just add "//" in front of it
+							char temppath[242];
+							strcpy(temppath, "//");
+							strcat(temppath, basedpath);
+				
+							BLI_convertstringcode(temppath, pathname);
+							bfd = load_game_data(temppath);
+						}
 					}
 					else
 					{
@@ -607,7 +618,6 @@ int main(int argc, char** argv)
 #endif // WIN32
 						Main *maggie = bfd->main;
 						Scene *scene = bfd->curscene;
-						strcpy (pathname, maggie->name);
 						char *startscenename = scene->id.name + 2;
 						G.fileflags  = bfd->fileflags;
 
@@ -651,7 +661,12 @@ int main(int argc, char** argv)
 						if (firstTimeRunning)
 						{
 							firstTimeRunning = false;
-							
+
+							// set the filename only the first time as in KetsjiEmbedded
+							strcpy (pathname, maggie->name);
+							// also copy here (used by GameLogic.getBaseDirectory)
+							strcpy (G.sce, maggie->name);
+
 							if (fullScreen)
 							{
 #ifdef WIN32

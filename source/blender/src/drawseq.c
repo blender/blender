@@ -857,15 +857,18 @@ static void draw_image_seq(ScrArea *sa)
 		zoom = -1.0/sseq->zoom;
 	}
 
-	/* calc location */
-	x1= (sa->winx-zoom*ibuf->x)/2 + sseq->xof;
-	y1= (sa->winy-zoom*ibuf->y)/2 + sseq->yof;
-
 	/* needed for gla draw */
 	glaDefine2DArea(&curarea->winrct);
+	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+		zoomx = zoom * ((float)G.scene->r.xasp / (float)G.scene->r.yasp);
+		zoomy = zoom;
+	} else {
+		zoomx = zoomy = zoom;
+	}
 
-	zoomx = zoom * ((float)G.scene->r.xasp / (float)G.scene->r.yasp);
-	zoomy = zoom;
+	/* calc location */
+	x1= (sa->winx-zoomx*ibuf->x)/2 + sseq->xof;
+	y1= (sa->winy-zoomy*ibuf->y)/2 + sseq->yof;
 	
 	glPixelZoom(zoomx, zoomy);
 	

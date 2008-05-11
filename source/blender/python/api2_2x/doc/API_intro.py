@@ -29,7 +29,7 @@ The Blender Python API Reference
 		- L{Group} (*)
 		- L{Image} (*)
 		- L{Ipo} (*)
-		  - L{IpoCurve} (*)
+		- L{IpoCurve} (*)
 		- L{Key} (*)
 		- L{Lamp}
 		- L{Lattice} (*)
@@ -46,6 +46,7 @@ The Blender Python API Reference
 			- L{Pose} (*)
 			- L{Constraint} (*)
 			- L{ActionStrips<NLA>} (*)
+		- L{Particle}
 		- L{Registry}
 		- L{Scene} (*)
 			- L{Radio}

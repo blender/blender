@@ -27,7 +27,7 @@
  *
  * Contributor(s): Michel Selten, Willian Germano, Jacques Guignot,
  * Joseph Gilbert, Stephen Swaney, Bala Gi, Campbell Barton, Johnny Matthews,
- * Ken Hughes, Alex Mole, Jean-Michel Soler
+ * Ken Hughes, Alex Mole, Jean-Michel Soler, Cedric Paille
  *
  * ***** END GPL LICENSE BLOCK *****
 */
@@ -68,6 +68,8 @@ struct rctf;
 #include "BKE_object.h"
 #include "BKE_key.h" /* for setting the activeShape */
 #include "BKE_displist.h"
+#include "BKE_pointcache.h"
+#include "BKE_particle.h"
 
 #include "BSE_editipo.h"
 #include "BSE_edit.h"
@@ -117,6 +119,7 @@ struct rctf;
 #include "EXPP_interface.h"
 #include "BIF_editkey.h"
 #include "IDProp.h"
+#include "Particle.h"
 
 /* Defines for insertIpoKey */
 
@@ -336,6 +339,9 @@ struct PyMethodDef M_Object_methods[] = {
 static int setupSB(Object* ob); /*Make sure Softbody Pointer is initialized */
 static int setupPI(Object* ob);
 
+static PyObject *Object_getParticleSys( BPy_Object * self );
+/* fixme Object_newParticleSys( self, default-partsys-name ) */
+static PyObject *Object_newParticleSys( BPy_Object * self );
 static PyObject *Object_buildParts( BPy_Object * self );
 static PyObject *Object_clearIpo( BPy_Object * self );
 static PyObject *Object_clrParent( BPy_Object * self, PyObject * args );
@@ -465,6 +471,10 @@ static PyObject *Object_upAxis(BPy_Object * self);
 /*****************************************************************************/
 static PyMethodDef BPy_Object_methods[] = {
 	/* name, method, flags, doc */
+	{"getParticleSystems", ( PyCFunction ) Object_getParticleSys, METH_NOARGS,
+	 "Return a list of particle systems"},
+ 	{"newParticleSystem", ( PyCFunction ) Object_newParticleSys, METH_NOARGS,
+	 "Create and link a new particle system"},
 	{"buildParts", ( PyCFunction ) Object_buildParts, METH_NOARGS,
 	 "Recalcs particle system (if any), (depricated, will always return an empty list in version 2.46)"},
 	{"getIpo", ( PyCFunction ) Object_getIpo, METH_NOARGS,
@@ -1025,6 +1035,79 @@ static PyObject *M_Object_Duplicate( PyObject * self_unused,
 /*****************************************************************************/
 /* Python BPy_Object methods:					*/
 /*****************************************************************************/
+
+PyObject *Object_getParticleSys( BPy_Object * self ){
+	ParticleSystem *blparticlesys = 0;
+	Object *ob = self->object;
+	PyObject *partsyslist,*current;
+
+	blparticlesys = ob->particlesystem.first;
+
+	partsyslist = PyList_New( 0 );
+
+	if (!blparticlesys)
+		return partsyslist;
+
+/* fixme:  for(;;) */
+	current = ParticleSys_CreatePyObject( blparticlesys, ob );
+	PyList_Append(partsyslist,current);
+
+	while((blparticlesys = blparticlesys->next)){
+		current = ParticleSys_CreatePyObject( blparticlesys, ob );
+		PyList_Append(partsyslist,current);
+	}
+
+	return partsyslist;
+}
+
+PyObject *Object_newParticleSys( BPy_Object * self ){
+	ParticleSystem *psys = 0;
+	ParticleSystem *rpsys = 0;
+	ModifierData *md;
+	ParticleSystemModifierData *psmd;
+	Object *ob = self->object;
+/*	char *name = NULL;  optional name param */
+	ID *id;
+	int nr;
+
+	id = (ID *)psys_new_settings("PSys", G.main);
+
+	psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
+	psys->pointcache = BKE_ptcache_add();
+	psys->flag |= PSYS_ENABLED;
+	BLI_addtail(&ob->particlesystem,psys);
+
+	md = modifier_new(eModifierType_ParticleSystem);
+	sprintf(md->name, "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
+	psmd = (ParticleSystemModifierData*) md;
+	psmd->psys=psys;
+	BLI_addtail(&ob->modifiers, md);
+
+	psys->part=(ParticleSettings*)id;
+	psys->totpart=0;
+	psys->flag=PSYS_ENABLED|PSYS_CURRENT;
+	psys->cfra=bsystem_time(ob,(float)G.scene->r.cfra+1,0.0);
+	rpsys = psys;
+
+	/* check need for dupliobjects */
+
+	nr=0;
+	for(psys=ob->particlesystem.first; psys; psys=psys->next){
+		if(ELEM(psys->part->draw_as,PART_DRAW_OB,PART_DRAW_GR))
+			nr++;
+	}
+	if(nr)
+		ob->transflag |= OB_DUPLIPARTS;
+	else
+		ob->transflag &= ~OB_DUPLIPARTS;
+
+	BIF_undo_push("Browse Particle System");
+
+	DAG_scene_sort(G.scene);
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+
+	return ParticleSys_CreatePyObject(rpsys,ob);
+}
 
 static PyObject *Object_buildParts( BPy_Object * self )
 {
