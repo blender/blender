@@ -1,5 +1,5 @@
 #!BPY
-
+# coding: utf-8
 """ Registration info for Blender menus
 Name: 'Bevel Center'
 Blender: 243

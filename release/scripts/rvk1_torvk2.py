@@ -1,5 +1,5 @@
 #!BPY
-
+# coding: utf-8
 """ Registration info for Blender menus: <- these words are ignored
 Name: 'Deformed mesh to Rvk'
 Blender: 243
