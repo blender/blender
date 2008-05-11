@@ -168,7 +168,7 @@ typedef struct ParticleSettings {
 	struct PartDeflect *pd;
 } ParticleSettings;
 
-typedef struct ParticleSystem{
+typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in copy_particlesystem */
 	struct ParticleSystem *next, *prev;
 
 	ParticleSettings *part;					/* particle settings */
