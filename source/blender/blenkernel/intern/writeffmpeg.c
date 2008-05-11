@@ -343,6 +343,7 @@ static void set_ffmpeg_property_option(AVCodecContext* c, IDProperty * prop)
 {
 	char name[128];
 	char * param;
+	const AVOption * rv = NULL;
 
 	fprintf(stderr, "FFMPEG expert option: %s: ", prop->name);
 
@@ -354,7 +355,6 @@ static void set_ffmpeg_property_option(AVCodecContext* c, IDProperty * prop)
 		*param++ = 0;
 	}
 
-	const AVOption * rv = NULL;
 	switch(prop->type) {
 	case IDP_STRING:
 		fprintf(stderr, "%s.\n", IDP_String(prop));
