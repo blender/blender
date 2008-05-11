@@ -68,6 +68,8 @@ struct rctf;
 #include "BKE_object.h"
 #include "BKE_key.h" /* for setting the activeShape */
 #include "BKE_displist.h"
+#include "BKE_pointcache.h"
+#include "BKE_particle.h"
 
 #include "BSE_editipo.h"
 #include "BSE_edit.h"
@@ -1046,10 +1048,11 @@ PyObject *Object_getParticleSys( BPy_Object * self ){
 	if (!blparticlesys)
 		return partsyslist;
 
+/* fixme:  for(;;) */
 	current = ParticleSys_CreatePyObject( blparticlesys, ob );
 	PyList_Append(partsyslist,current);
 
-	while(blparticlesys = blparticlesys->next){
+	while((blparticlesys = blparticlesys->next)){
 		current = ParticleSys_CreatePyObject( blparticlesys, ob );
 		PyList_Append(partsyslist,current);
 	}
@@ -1063,7 +1066,7 @@ PyObject *Object_newParticleSys( BPy_Object * self ){
 	ModifierData *md;
 	ParticleSystemModifierData *psmd;
 	Object *ob = self->object;
-	char *name = NULL;
+/*	char *name = NULL;  optional name param */
 	ID *id;
 	int nr;
 
