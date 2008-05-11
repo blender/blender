@@ -221,3 +221,18 @@ def setPhysicsTicRate(ticrate):
 	@type ticrate: float
 	"""
 
+def expandPath(path):
+	"""
+	Converts a blender internal path into a proper file system path.
+
+	Use / as directory separator in path
+	You can use '//' at the start of the string to define a relative path;
+	Blender replaces that string by the directory of the startup .blend or runtime file
+	to make a full path name (doesn't change during the game, even if you load other .blend).
+	The function also converts the directory separator to the local file system format.
+
+	@param path: The path string to be converted/expanded.
+	@type path: string
+	@return: The converted string
+	@rtype: string
+	"""
