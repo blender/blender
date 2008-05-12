@@ -792,14 +792,13 @@ void mouse_select_seq(void)
 		/* select timeline marker */
 		if (G.qual & LR_SHIFTKEY) {
 			oldflag= marker->flag;
-			deselect_markers(0, 0);
-			
 			if (oldflag & SELECT)
 				marker->flag &= ~SELECT;
 			else
 				marker->flag |= SELECT;
 		}
 		else {
+			deselect_markers(0, 0);
 			marker->flag |= SELECT;				
 		}
 		allqueue(REDRAWMARKER, 0);
@@ -3809,9 +3808,15 @@ void seq_mute_sel(int mute) {
 	if(!ed) return;
 	
 	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
-		if ((seq->flag & SELECT) && (seq->flag & SEQ_LOCK)==0) {
-			if (mute) seq->flag |= SEQ_MUTE;
-			else seq->flag &= ~SEQ_MUTE;
+		if ((seq->flag & SEQ_LOCK)==0) {
+			if (mute==-1) { /* hide unselected */
+				if ((seq->flag & SELECT)==0) {
+					seq->flag |= SEQ_MUTE;
+				}
+			} else if (seq->flag & SELECT) {
+				if (mute) seq->flag |= SEQ_MUTE;
+				else seq->flag &= ~SEQ_MUTE;
+			}
 		}
 	}
 	BIF_undo_push(mute?"Mute Strips, Sequencer":"UnMute Strips, Sequencer");

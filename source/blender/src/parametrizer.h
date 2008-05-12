@@ -26,6 +26,8 @@ typedef enum ParamBool {
 
 ParamHandle *param_construct_begin();
 
+void param_aspect_ratio(ParamHandle *handle, float aspx, float aspy);
+
 void param_face_add(ParamHandle *handle,
                     ParamKey key,
                     int nverts,	

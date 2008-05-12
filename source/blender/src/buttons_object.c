@@ -2755,7 +2755,7 @@ static void object_panel_draw(Object *ob)
 	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	/* LAYERS */
-	xco= 80;
+	xco= 65;
 	dx= 35;
 	dy= 30;
 	
@@ -2777,7 +2777,10 @@ static void object_panel_draw(Object *ob)
 	uiBlockEndAlign(block);
 	
 	/* Object Color */
-	uiDefButF(block, COL, REDRAWVIEW3D, "",	270, 165,30, 30, ob->col, 0, 0, 0, 0, "Object color, used when faces have the ObCol mode enabled");
+	uiBlockBeginAlign(block);
+	uiDefButF(block, COL, REDRAWVIEW3D, "",	250, 180, 50, 15, ob->col, 0, 0, 0, 0, "Object color, used when faces have the ObCol mode enabled");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "A:", 250, 165, 50, 15, &ob->col[3], 0.0f, 1.0f, 10, 2, "Object alpha, used when faces have the ObCol mode enabled");
+	uiBlockEndAlign(block);	
 	
 	uiDefBut(block, LABEL, 0, "Drawtype",						10,120,100,20, NULL, 0, 0, 0, 0, "");
 	
@@ -3233,6 +3236,7 @@ static void object_collision__enabletoggle ( void *ob_v, void *arg2 )
 		{
 			md = modifier_new ( eModifierType_Collision );
 			BLI_addtail ( &ob->modifiers, md );
+			DAG_scene_sort(G.scene);
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWVIEW3D, 0);
@@ -3240,8 +3244,10 @@ static void object_collision__enabletoggle ( void *ob_v, void *arg2 )
 	}
 	else
 	{
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		BLI_remlink ( &ob->modifiers, md );
 		modifier_free ( md );
+		DAG_scene_sort(G.scene);
 		allqueue(REDRAWBUTSEDIT, 0);
 	}
 }
@@ -3447,9 +3453,9 @@ static void object_panel_fields(Object *ob)
 				uiBlockEndAlign(block);
 			}
 			else{
-				uiDefButS(block, MENU, B_FIELD_DEP, "Fall-off%t|Cone%x2|Tube%x1|Sphere%x0",	160,180,140,20, &pd->falloff, 0.0, 0.0, 0, 0, tipstr);
+				uiDefButS(block, MENU, B_FIELD_DEP, "Fall-off%t|Cone%x2|Tube%x1|Sphere%x0",	160,180,140,20, &pd->falloff, 0.0, 0.0, 0, 0, "Fall-off shape");
 				if(pd->falloff==PFIELD_FALL_TUBE)
-					uiDefBut(block, LABEL, 0, "Lognitudinal",		160,160,70,20, NULL, 0.0, 0, 0, 0, "");
+					uiDefBut(block, LABEL, 0, "Longitudinal",		160,160,140,20, NULL, 0.0, 0, 0, 0, "");
 				uiBlockBeginAlign(block);
 				uiDefButBitS(block, TOG, PFIELD_POSZ, B_FIELD_CHANGE, "Pos",	160,140,40,20, &pd->flag, 0.0, 0, 0, 0, "Effect only in direction of positive Z axis");
 				uiDefButF(block, NUM, B_FIELD_CHANGE, "Fall-off: ",	200,140,100,20, &pd->f_power, 0, 10, 10, 0, "Falloff power (real gravitational falloff = 2)");

@@ -1651,6 +1651,12 @@ void modifiers_explodeFacepa(void *arg1, void *arg2)
 	emd->flag |= eExplodeFlag_CalcFaces;
 }
 
+void modifiers_explodeDelVg(void *arg1, void *arg2)
+{
+	ExplodeModifierData *emd=arg1;
+	emd->vgroup = 0;
+}
+
 static int modifier_is_fluid_particles(ModifierData *md) {
 	if(md->type == eModifierType_ParticleSystem) {
 		if(((ParticleSystemModifierData *)md)->psys->part->type == PART_FLUID)
@@ -2421,12 +2427,16 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			char *menustr= get_vertexgroup_menustr(ob);
 			int defCount=BLI_countlist(&ob->defbase);
 			if(defCount==0) emd->vgroup=0;
-
-			but=uiDefButS(block, MENU, B_MODIFIER_RECALC, menustr,	lx, (cy-=19), buttonWidth/2,19, &emd->vgroup, 0, defCount, 0, 0, "Protect this vertex group");
+			uiBlockBeginAlign(block);
+			but=uiDefButS(block, MENU, B_MODIFIER_RECALC, menustr,	lx, (cy-=19), buttonWidth-20,19, &emd->vgroup, 0, defCount, 0, 0, "Protect this vertex group");
 			uiButSetFunc(but,modifiers_explodeFacepa,emd,0);
 			MEM_freeN(menustr);
+			
+			but=uiDefIconBut(block, BUT, B_MODIFIER_RECALC, ICON_X, (lx+buttonWidth)-20, cy, 20,19, 0, 0, 0, 0, 0, "Disable use of vertex group");
+			uiButSetFunc(but, modifiers_explodeDelVg, (void *)emd, (void *)NULL);
+			
 
-			but=uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "",	lx+buttonWidth/2, cy, buttonWidth/2,19, &emd->protect, 0.0f, 1.0f, 0, 0, "Clean vertex group edges");
+			but=uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "",	lx, (cy-=19), buttonWidth,19, &emd->protect, 0.0f, 1.0f, 0, 0, "Clean vertex group edges");
 			uiButSetFunc(but,modifiers_explodeFacepa,emd,0);
 
 			but=uiDefBut(block, BUT, B_MODIFIER_RECALC, "Refresh",	lx, (cy-=19), buttonWidth/2,19, 0, 0, 0, 0, 0, "Recalculate faces assigned to particles");
@@ -2436,6 +2446,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButBitS(block, TOG, eExplodeFlag_Unborn, B_MODIFIER_RECALC, "Unborn",	lx, (cy-=19), buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are unborn");
 			uiDefButBitS(block, TOG, eExplodeFlag_Alive, B_MODIFIER_RECALC, "Alive",	lx+buttonWidth/3, cy, buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are alive");
 			uiDefButBitS(block, TOG, eExplodeFlag_Dead, B_MODIFIER_RECALC, "Dead",	lx+buttonWidth*2/3, cy, buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are dead");
+			uiBlockEndAlign(block);
 		}
 
 		uiBlockEndAlign(block);
@@ -5073,6 +5084,10 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 #endif
 	
 	uiBlockEndAlign(block);
+	
+	uiDefButBitS(block, TOG, B_MESH_X_MIRROR, B_DIFF, "X-axis mirror",1125,0,150,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "While using transforms, mirrors the transformation");
+	
+	uiDefButC(block, MENU, REDRAWBUTSEDIT, "Edge Alt-Select Mode%t|Loop Select%x0|Tag Edges (Seam)%x1|Tag Edges (Sharp)%x2|Tag Edges (Crease)%x3|Tag Edges (Bevel)%x4",1125,88,150,19, &G.scene->toolsettings->edge_mode, 0, 0, 0, 0, "Operation to use when Alt+RMB on edges, Use Alt+Shift+RMB to tag the shortest path from the active edge");
 	
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, G_ALLEDGES, 0, "All Edges",			1125, 22,150,19, &G.f, 0, 0, 0, 0, "Displays all edges in object mode without optimization");

@@ -1,5 +1,5 @@
 #!BPY
-
+# coding: utf-8
 """
 Name: 'BlenderLipSynchro'
 Blender: 242

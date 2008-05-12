@@ -317,12 +317,10 @@ ifeq ($(WITH_BF_BLENDERPLAYER), true)
 endif
 
 ifeq ($(WITH_BF_WEBPLUGIN), true)
-    ifneq ($(NAN_NO_PLUGIN), true)
-        BINTARGETS += plugin
-        ifeq ($(OS),linux)
-            ifeq ($(CPU),i386)
-                 BINTARGETS += xplink
-             endif
+    BINTARGETS += plugin
+    ifeq ($(OS),linux)
+        ifeq ($(CPU),i386)
+             BINTARGETS += xplink
         endif
     endif
 endif

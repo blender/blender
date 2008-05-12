@@ -46,6 +46,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sph_types.h"
 #include "DNA_texture_types.h"
 
 #include "BLI_rand.h"
@@ -74,6 +75,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_scene.h"
+#include "BKE_sph.h"
 
 #include "BSE_headerbuttons.h"
 
@@ -4634,6 +4636,50 @@ static void particles_fluid_step(Object *ob, ParticleSystem *psys, int cfra)
 		snprintf(debugStrBuffer,256,"readFsPartData::done - particles:%d, active:%d, file:%d, mask:%d  \n", psys->totpart,activeParts,fileParts,readMask);
 		elbeemDebugOut(debugStrBuffer);
 	} // fluid sim particles done
+	else
+	{
+		// check for sph modifier
+		SphModifierData *sphmd = (SphModifierData *)modifiers_findByType(ob, eModifierType_Sph);
+		
+		// check for an sph object
+		if(sphmd)
+		{	
+			// check for existing coordinates
+			if(sphmd->sim_parms->co)
+			{
+				int i = 0;
+				ParticleSettings *part = psys->part;
+				ParticleData *pa=0;
+				float null[3] = {0,0,0};
+				
+				if(ob==G.obedit) // off...
+					return;
+				
+				part->totpart= sphmd->sim_parms->numpart;
+				part->sta=part->end = 1.0f;
+				part->lifetime = G.scene->r.efra + 1;
+
+				/* initialize particles */
+				realloc_particles(ob, psys, part->totpart);
+				initialize_all_particles(ob, psys, 0);
+				
+				printf("sphmd->sim_parms->numpart: %ld\n", sphmd->sim_parms->numpart);
+				
+				for(i = 0, pa=psys->particles; i < sphmd->sim_parms->numpart; i++, pa++)
+				{
+					pa->size = 0.01f;
+					VECCOPY(pa->state.co, sphmd->sim_parms->co + i*3);
+					VECCOPY(pa->state.vel, null);
+					
+					pa->state.ave[0] = pa->state.ave[1] = pa->state.ave[2] = 0.0f;
+					pa->state.rot[0] = 1.0;
+					pa->state.rot[1] = pa->state.rot[2] = pa->state.rot[3] = 0.0;
+
+					pa->alive = PARS_ALIVE;
+				}
+			}
+		}
+	}
 	#endif // DISABLE_ELBEEM
 }
 

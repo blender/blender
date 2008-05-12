@@ -86,6 +86,9 @@ void 				BLI_edgehashIterator_getKey		(EdgeHashIterator *ehi, int *v0_r, int *v1
 	/* Retrieve the value from an iterator. */
 void*				BLI_edgehashIterator_getValue	(EdgeHashIterator *ehi);
 
+	/* Set the value for an iterator. */
+void				BLI_edgehashIterator_setValue	(EdgeHashIterator *ehi, void *val);
+
 	/* Steps the iterator to the next index. */
 void				BLI_edgehashIterator_step		(EdgeHashIterator *ehi);
 

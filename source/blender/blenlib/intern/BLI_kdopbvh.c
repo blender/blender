@@ -25,7 +25,7 @@
 *
 * The Original Code is: all of this file.
 *
-* Contributor(s): Daniel Genrich
+* Contributor(s): Daniel Genrich, Jose Pinto
 *
 * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -60,7 +60,6 @@ struct BVHTree
 {
 	BVHNode **nodes;
 	BVHNode *nodearray; /* pre-alloc branch nodes */
-	int	*orig_index; /* mapping for orig_index to node_index */
 	float 	epsilon; /* epslion is used for inflation of the k-dop	   */
 	int 	totleaf; // leafs
 	int 	totbranch;
@@ -253,7 +252,6 @@ void BLI_bvhtree_free(BVHTree *tree)
 	{
 		MEM_freeN(tree->nodes);
 		MEM_freeN(tree->nodearray);
-		MEM_freeN(tree->orig_index);
 		MEM_freeN(tree);
 	}
 }
@@ -289,16 +287,6 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 		{
 			MEM_freeN(tree);
 			MEM_freeN(tree->nodes);
-			return NULL;
-		}
-		
-		tree->orig_index = (int *)MEM_callocN(sizeof(int)*(numbranches+maxsize + tree_type), "BVHIndexArray");
-		
-		if(!tree->orig_index)
-		{
-			MEM_freeN(tree);
-			MEM_freeN(tree->nodes);
-			MEM_freeN(tree->nodearray);
 			return NULL;
 		}
 		
@@ -559,12 +547,6 @@ void BLI_bvhtree_balance(BVHTree *tree)
 	// create + balance tree
 	bvh_div_nodes(tree, tree->nodes[tree->totleaf], 0, tree->totleaf, 0);
 	
-	// put indices into array for O(1) access
-	for(i = 0; i < tree->totleaf; i++)
-	{
-		tree->orig_index[tree->nodes[i]->index] = i;
-	}
-	
 	verify_tree(tree);
 }
 
@@ -741,7 +723,7 @@ int BLI_bvhtree_update_node(BVHTree *tree, int index, float *co, float *co_movin
 	if(index > tree->totleaf)
 		return 0;
 	
-	node = tree->nodes[tree->orig_index[index]];
+	node = tree->nodearray + index;
 	
 	create_kdop_hull(tree, node, co, numpoints, 0);
 	

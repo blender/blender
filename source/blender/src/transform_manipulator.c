@@ -230,11 +230,12 @@ int calc_manipulator_stats(ScrArea *sa)
 		if(G.obedit->type==OB_MESH) {
 			EditMesh *em = G.editMesh;
 			EditVert *eve;
+			EditSelection ese;
 			float vec[3]= {0,0,0};
 			
 			/* USE LAST SELECTE WITH ACTIVE */
-			if (G.vd->around==V3D_ACTIVE && em->selected.last) {
-				EM_editselection_center(vec, em->selected.last);
+			if (G.vd->around==V3D_ACTIVE && EM_get_actSelection(&ese)) {
+				EM_editselection_center(vec, &ese);
 				calc_tw_center(vec);
 				totsel= 1;
 			} else {
@@ -435,10 +436,10 @@ int calc_manipulator_stats(ScrArea *sa)
 			if(G.obedit) {
 				float mat[3][3];
 				int type;
-
+				
 				strcpy(t->spacename, "normal");
-			
-				type = getTransformOrientation(normal, plane, 0);
+				
+				type = getTransformOrientation(normal, plane, (G.vd->around == V3D_ACTIVE));
 				
 				switch (type)
 				{

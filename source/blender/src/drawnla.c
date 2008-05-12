@@ -638,14 +638,14 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	
 	uiBlockBeginAlign(block);
 		// FIXME: repeat and scale are too cramped!
-	uiDefButF(block, NUM, B_NLA_SCALE, "Repeat:", 	160,100,75,19, &strip->repeat, 0.001, 1000.0f, 100, 0, "Number of times the action should repeat");
+	uiDefButF(block, NUMABS, B_NLA_SCALE, "Repeat:", 	160,100,75,19, &strip->repeat, 0.001, 1000.0f, 100, 0, "Number of times the action should repeat");
 	if ((strip->actend - strip->actstart) < 1.0f) {
 		uiBlockSetCol(block, TH_REDALERT);
-		uiDefButF(block, NUM, B_NLA_SCALE, "Scale:", 	235,100,75,19, &strip->scale, 0.001, 1000.0f, 100, 0, "Please run Alt-S to fix up this error");
+		uiDefButF(block, NUMABS, B_NLA_SCALE, "Scale:", 	235,100,75,19, &strip->scale, 0.001, 1000.0f, 100, 0, "Please run Alt-S to fix up this error");
 		uiBlockSetCol(block, TH_AUTO);
 	}
 	else
-		uiDefButF(block, NUM, B_NLA_SCALE, "Scale:", 	235,100,75,19, &strip->scale, 0.001, 1000.0f, 100, 0, "Amount the action should be scaled by");
+		uiDefButF(block, NUMABS, B_NLA_SCALE, "Scale:", 	235,100,75,19, &strip->scale, 0.001, 1000.0f, 100, 0, "Amount the action should be scaled by");
 	but= uiDefButC(block, TEX, B_NLA_PANEL, "OffsBone:", 160,80,150,19, strip->offs_bone, 0, 31.0f, 0, 0, "Name of Bone that defines offset for repeat");
 	uiButSetCompleteFunc(but, autocomplete_bone, (void *)ob);
 	uiDefButBitS(block, TOG, ACTSTRIP_HOLDLASTFRAME, B_NLA_PANEL, "Hold",	160,60,75,19, &strip->flag, 0, 0, 0, 0, "Toggles whether to continue displaying the last frame past the end of the strip");

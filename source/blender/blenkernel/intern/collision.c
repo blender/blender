@@ -183,42 +183,43 @@ Collision modifier code end
  * copied from SOLVE_CUBIC.C --> GSL
  */
 
-/* DG: debug hint! don't forget that all functions were "fabs", "sinf", etc before */
-#define mySWAP(a,b) { float tmp = b ; b = a ; a = tmp ; }
+#define mySWAP(a,b) do { double tmp = b ; b = a ; a = tmp ; } while(0)
 
-int gsl_poly_solve_cubic ( float a, float b, float c, float *x0, float *x1, float *x2 )
+int 
+		gsl_poly_solve_cubic (double a, double b, double c, 
+							  double *x0, double *x1, double *x2)
 {
-	float q = ( a * a - 3 * b );
-	float r = ( 2 * a * a * a - 9 * a * b + 27 * c );
+	double q = (a * a - 3 * b);
+	double r = (2 * a * a * a - 9 * a * b + 27 * c);
 
-	float Q = q / 9;
-	float R = r / 54;
+	double Q = q / 9;
+	double R = r / 54;
 
-	float Q3 = Q * Q * Q;
-	float R2 = R * R;
+	double Q3 = Q * Q * Q;
+	double R2 = R * R;
 
-	float CR2 = 729 * r * r;
-	float CQ3 = 2916 * q * q * q;
+	double CR2 = 729 * r * r;
+	double CQ3 = 2916 * q * q * q;
 
-	if ( R == 0 && Q == 0 )
+	if (R == 0 && Q == 0)
 	{
 		*x0 = - a / 3 ;
 		*x1 = - a / 3 ;
 		*x2 = - a / 3 ;
 		return 3 ;
 	}
-	else if ( CR2 == CQ3 )
+	else if (CR2 == CQ3) 
 	{
-		/* this test is actually R2 == Q3, written in a form suitable
+      /* this test is actually R2 == Q3, written in a form suitable
 		for exact computation with integers */
 
-		/* Due to finite precision some float roots may be missed, and
+      /* Due to finite precision some double roots may be missed, and
 		considered to be a pair of complex roots z = x +/- epsilon i
 		close to the real axis. */
 
-		float sqrtQ = sqrt ( Q );
+		double sqrtQ = sqrt (Q);
 
-		if ( R > 0 )
+		if (R > 0)
 		{
 			*x0 = -2 * sqrtQ  - a / 3;
 			*x1 = sqrtQ - a / 3;
@@ -232,40 +233,41 @@ int gsl_poly_solve_cubic ( float a, float b, float c, float *x0, float *x1, floa
 		}
 		return 3 ;
 	}
-	else if ( CR2 < CQ3 ) /* equivalent to R2 < Q3 */
+	else if (CR2 < CQ3) /* equivalent to R2 < Q3 */
 	{
-		float sqrtQ = sqrt ( Q );
-		float sqrtQ3 = sqrtQ * sqrtQ * sqrtQ;
-		float theta = acos ( R / sqrtQ3 );
-		float norm = -2 * sqrtQ;
-		*x0 = norm * cos ( theta / 3 ) - a / 3;
-		*x1 = norm * cos ( ( theta + 2.0 * M_PI ) / 3 ) - a / 3;
-		*x2 = norm * cos ( ( theta - 2.0 * M_PI ) / 3 ) - a / 3;
-
+		double sqrtQ = sqrt (Q);
+		double sqrtQ3 = sqrtQ * sqrtQ * sqrtQ;
+		double theta = acos (R / sqrtQ3);
+		double norm = -2 * sqrtQ;
+		*x0 = norm * cos (theta / 3) - a / 3;
+		*x1 = norm * cos ((theta + 2.0 * M_PI) / 3) - a / 3;
+		*x2 = norm * cos ((theta - 2.0 * M_PI) / 3) - a / 3;
+      
 		/* Sort *x0, *x1, *x2 into increasing order */
 
-		if ( *x0 > *x1 )
-			mySWAP ( *x0, *x1 ) ;
-
-		if ( *x1 > *x2 )
+		if (*x0 > *x1)
+			mySWAP(*x0, *x1) ;
+      
+		if (*x1 > *x2)
 		{
-			mySWAP ( *x1, *x2 ) ;
-
-			if ( *x0 > *x1 )
-				mySWAP ( *x0, *x1 ) ;
+			mySWAP(*x1, *x2) ;
+          
+			if (*x0 > *x1)
+				mySWAP(*x0, *x1) ;
 		}
-
+      
 		return 3;
 	}
 	else
 	{
-		float sgnR = ( R >= 0 ? 1 : -1 );
-		float A = -sgnR * pow ( ABS ( R ) + sqrt ( R2 - Q3 ), 1.0/3.0 );
-		float B = Q / A ;
+		double sgnR = (R >= 0 ? 1 : -1);
+		double A = -sgnR * pow (fabs (R) + sqrt (R2 - Q3), 1.0/3.0);
+		double B = Q / A ;
 		*x0 = A + B - a / 3;
 		return 1;
 	}
 }
+
 
 
 /**
@@ -273,31 +275,46 @@ int gsl_poly_solve_cubic ( float a, float b, float c, float *x0, float *x1, floa
  *
  * copied from GSL
  */
-int gsl_poly_solve_quadratic ( float a, float b, float c,  float *x0, float *x1 )
+int 
+		gsl_poly_solve_quadratic (double a, double b, double c, 
+								  double *x0, double *x1)
 {
-	float disc = b * b - 4 * a * c;
+	double disc = b * b - 4 * a * c;
 
-	if ( disc > 0 )
+	if (a == 0) /* Handle linear case */
 	{
-		if ( b == 0 )
+		if (b == 0)
 		{
-			float r = ABS ( 0.5 * sqrt ( disc ) / a );
+			return 0;
+		}
+		else
+		{
+			*x0 = -c / b;
+			return 1;
+		};
+	}
+
+	if (disc > 0)
+	{
+		if (b == 0)
+		{
+			double r = fabs (0.5 * sqrt (disc) / a);
 			*x0 = -r;
 			*x1 =  r;
 		}
 		else
 		{
-			float sgnb = ( b > 0 ? 1 : -1 );
-			float temp = -0.5 * ( b + sgnb * sqrt ( disc ) );
-			float r1 = temp / a ;
-			float r2 = c / temp ;
+			double sgnb = (b > 0 ? 1 : -1);
+			double temp = -0.5 * (b + sgnb * sqrt (disc));
+			double r1 = temp / a ;
+			double r2 = c / temp ;
 
-			if ( r1 < r2 )
+			if (r1 < r2) 
 			{
 				*x0 = r1 ;
 				*x1 = r2 ;
-			}
-			else
+			} 
+			else 
 			{
 				*x0 = r2 ;
 				*x1 = r1 ;
@@ -305,7 +322,7 @@ int gsl_poly_solve_quadratic ( float a, float b, float c,  float *x0, float *x1 
 		}
 		return 2;
 	}
-	else if ( disc == 0 )
+	else if (disc == 0) 
 	{
 		*x0 = -0.5 * b / a ;
 		*x1 = -0.5 * b / a ;
@@ -319,79 +336,88 @@ int gsl_poly_solve_quadratic ( float a, float b, float c,  float *x0, float *x1 
 
 
 
+
 /*
  * See Bridson et al. "Robust Treatment of Collision, Contact and Friction for Cloth Animation"
  *     page 4, left column
  */
-
-int cloth_get_collision_time ( float a[3], float b[3], float c[3], float d[3], float e[3], float f[3], float solution[3] )
+int cloth_get_collision_time ( double a[3], double b[3], double c[3], double d[3], double e[3], double f[3], double solution[3] )
 {
 	int num_sols = 0;
 
-	float g = -a[2] * c[1] * e[0] + a[1] * c[2] * e[0] +
-	          a[2] * c[0] * e[1] - a[0] * c[2] * e[1] -
-	          a[1] * c[0] * e[2] + a[0] * c[1] * e[2];
+	// x^0 - checked 
+	double g = 	a[0] * c[1] * e[2] - a[0] * c[2] * e[1] +
+				a[1] * c[2] * e[0] - a[1] * c[0] * e[2] + 
+				a[2] * c[0] * e[1] - a[2] * c[1] * e[0];
+	
+	// x^1
+	double h = -b[2] * c[1] * e[0] + b[1] * c[2] * e[0] - a[2] * d[1] * e[0] +
+			a[1] * d[2] * e[0] + b[2] * c[0] * e[1] - b[0] * c[2] * e[1] +
+			a[2] * d[0] * e[1] - a[0] * d[2] * e[1] - b[1] * c[0] * e[2] +
+			b[0] * c[1] * e[2] - a[1] * d[0] * e[2] + a[0] * d[1] * e[2] -
+			a[2] * c[1] * f[0] + a[1] * c[2] * f[0] + a[2] * c[0] * f[1] -
+			a[0] * c[2] * f[1] - a[1] * c[0] * f[2] + a[0] * c[1] * f[2];
 
-	float h = -b[2] * c[1] * e[0] + b[1] * c[2] * e[0] - a[2] * d[1] * e[0] +
-	          a[1] * d[2] * e[0] + b[2] * c[0] * e[1] - b[0] * c[2] * e[1] +
-	          a[2] * d[0] * e[1] - a[0] * d[2] * e[1] - b[1] * c[0] * e[2] +
-	          b[0] * c[1] * e[2] - a[1] * d[0] * e[2] + a[0] * d[1] * e[2] -
-	          a[2] * c[1] * f[0] + a[1] * c[2] * f[0] + a[2] * c[0] * f[1] -
-	          a[0] * c[2] * f[1] - a[1] * c[0] * f[2] + a[0] * c[1] * f[2];
-
-	float i = -b[2] * d[1] * e[0] + b[1] * d[2] * e[0] +
-	          b[2] * d[0] * e[1] - b[0] * d[2] * e[1] -
-	          b[1] * d[0] * e[2] + b[0] * d[1] * e[2] -
-	          b[2] * c[1] * f[0] + b[1] * c[2] * f[0] -
-	          a[2] * d[1] * f[0] + a[1] * d[2] * f[0] +
-	          b[2] * c[0] * f[1] - b[0] * c[2] * f[1] +
-	          a[2] * d[0] * f[1] - a[0] * d[2] * f[1] -
-	          b[1] * c[0] * f[2] + b[0] * c[1] * f[2] -
-	          a[1] * d[0] * f[2] + a[0] * d[1] * f[2];
-
-	float j = -b[2] * d[1] * f[0] + b[1] * d[2] * f[0] +
-	          b[2] * d[0] * f[1] - b[0] * d[2] * f[1] -
-	          b[1] * d[0] * f[2] + b[0] * d[1] * f[2];
+	// x^2
+	double i = -b[2] * d[1] * e[0] + b[1] * d[2] * e[0] +
+			b[2] * d[0] * e[1] - b[0] * d[2] * e[1] -
+			b[1] * d[0] * e[2] + b[0] * d[1] * e[2] -
+			b[2] * c[1] * f[0] + b[1] * c[2] * f[0] -
+			a[2] * d[1] * f[0] + a[1] * d[2] * f[0] +
+			b[2] * c[0] * f[1] - b[0] * c[2] * f[1] + 
+			a[2] * d[0] * f[1] - a[0] * d[2] * f[1] -
+			b[1] * c[0] * f[2] + b[0] * c[1] * f[2] -
+			a[1] * d[0] * f[2] + a[0] * d[1] * f[2];
+	
+	// x^3 - checked
+	double j = -b[2] * d[1] * f[0] + b[1] * d[2] * f[0] +
+			b[2] * d[0] * f[1] - b[0] * d[2] * f[1] -
+			b[1] * d[0] * f[2] + b[0] * d[1] * f[2];
+	
+	/*
+	printf("r1: %lf\n", a[0] * c[1] * e[2] - a[0] * c[2] * e[1]);
+	printf("r2: %lf\n", a[1] * c[2] * e[0] - a[1] * c[0] * e[2]);
+	printf("r3: %lf\n", a[2] * c[0] * e[1] - a[2] * c[1] * e[0]);
+	
+	printf("x1 x: %f, y: %f, z: %f\n", a[0], a[1], a[2]);
+	printf("x2 x: %f, y: %f, z: %f\n", c[0], c[1], c[2]);
+	printf("x3 x: %f, y: %f, z: %f\n", e[0], e[1], e[2]);
+	
+	printf("v1 x: %f, y: %f, z: %f\n", b[0], b[1], b[2]);
+	printf("v2 x: %f, y: %f, z: %f\n", d[0], d[1], d[2]);
+	printf("v3 x: %f, y: %f, z: %f\n", f[0], f[1], f[2]);
+	
+	printf("t^3: %lf, t^2: %lf, t^1: %lf, t^0: %lf\n", j, i, h, g);
+	*/
 
 	// Solve cubic equation to determine times t1, t2, t3, when the collision will occur.
-	if ( ABS ( j ) > ALMOST_ZERO )
+	if ( ABS ( j ) > DBL_EPSILON )
 	{
 		i /= j;
 		h /= j;
 		g /= j;
-
 		num_sols = gsl_poly_solve_cubic ( i, h, g, &solution[0], &solution[1], &solution[2] );
 	}
-	else if ( ABS ( i ) > ALMOST_ZERO )
+	else
 	{
 		num_sols = gsl_poly_solve_quadratic ( i, h, g, &solution[0], &solution[1] );
 		solution[2] = -1.0;
 	}
-	else if ( ABS ( h ) > ALMOST_ZERO )
-	{
-		solution[0] = -g / h;
-		solution[1] = solution[2] = -1.0;
-		num_sols = 1;
-	}
-	else if ( ABS ( g ) > ALMOST_ZERO )
-	{
-		solution[0] = 0;
-		solution[1] = solution[2] = -1.0;
-		num_sols = 1;
-	}
+
+	// printf("num_sols: %d, sol1: %lf, sol2: %lf, sol3: %lf\n", num_sols, solution[0],  solution[1],  solution[2]);
 
 	// Discard negative solutions
-	if ( ( num_sols >= 1 ) && ( solution[0] < 0 ) )
+	if ( ( num_sols >= 1 ) && ( solution[0] < DBL_EPSILON ) )
 	{
 		--num_sols;
 		solution[0] = solution[num_sols];
 	}
-	if ( ( num_sols >= 2 ) && ( solution[1] < 0 ) )
+	if ( ( num_sols >= 2 ) && ( solution[1] < DBL_EPSILON ) )
 	{
 		--num_sols;
 		solution[1] = solution[num_sols];
 	}
-	if ( ( num_sols == 3 ) && ( solution[2] < 0 ) )
+	if ( ( num_sols == 3 ) && ( solution[2] < DBL_EPSILON ) )
 	{
 		--num_sols;
 	}
@@ -736,21 +762,72 @@ int cloth_are_edges_adjacent ( ClothModifierData *clmd, CollisionModifierData *c
 	return 0;
 }
 
-void cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair )
+int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair )
 {
 	EdgeCollPair edgecollpair;
 	Cloth *cloth1=NULL;
 	ClothVertex *verts1=NULL;
 	unsigned int i = 0, j = 0, k = 0;
 	int numsolutions = 0;
-	float a[3], b[3], c[3], d[3], e[3], f[3], solution[3];
+	double x1[3], v1[3], x2[3], v2[3], x3[3], v3[3];
+	double solution[3];
 	MVert *verts2 = collmd->current_x; // old x
 	MVert *velocity2 = collmd->current_v; // velocity
-	float mintime = 0;
+	float mintime = FLT_MAX;
+	float distance;
+	float triA[3][3], triB[3][3];
+	int result = 0;
 
 	cloth1 = clmd->clothObject;
 	verts1 = cloth1->verts;
+	
+	/*
+	double p[4][3] = {{0,0,0},{0,2,0},{1,1,-1},{1,1,1}};
+	double v[4][3] = {{0,0,0},{1,0,0},{-2,0,0},{-2,0,0}};
+	
+	double pp[2][3] = {{-1,-1,-1}, {2,2,2}};
+	
+	
+	VECSUB ( x1, p[1], p[0] );
+	VECSUB ( v1, v[1], v[0] );
+			
+	VECSUB ( x2, p[2], p[0] );
+	VECSUB ( v2, v[2], v[0] );
+			
+	VECSUB ( x3, p[3], p[0] );
+	VECSUB ( v3, v[3], v[0] );
 
+	printf("x1 x: %f, y: %f, z: %f\n", x1[0], x1[1], x1[2]);
+	printf("x2 x: %f, y: %f, z: %f\n", x2[0], x2[1], x2[2]);
+	printf("x3 x: %f, y: %f, z: %f\n", x3[0], x3[1], x3[2]);
+	
+	printf("v1 x: %f, y: %f, z: %f\n", v1[0], v1[1], v1[2]);
+	printf("v2 x: %f, y: %f, z: %f\n", v2[0], v2[1], v2[2]);
+	printf("v3 x: %f, y: %f, z: %f\n", v3[0], v3[1], v3[2]);
+
+	numsolutions = cloth_get_collision_time ( x1, v1, x2, v2, x3, v3, solution );
+	
+	for ( k = 0; k < numsolutions; k++ )
+		printf("mintime: %f\n", solution[k]);
+	
+	mintime = solution[0];
+	
+	// move triangles to collision point in time
+	VECADDS(triA[0], pp[0], v[0], solution[0]);
+	VECADDS(triA[1], p[0], v[0], solution[0]);
+	VECADDS(triA[2], p[1], v[1], solution[0]);
+		
+	VECADDS(triB[0], pp[1], v[0], solution[0]);
+	VECADDS(triB[1], p[2], v[2], solution[0]);
+	VECADDS(triB[2], p[3], v[3], solution[0]);
+		
+		// check distance there
+	distance = plNearestPoints (triA[0], triA[1], triA[2], triB[0], triB[1], triB[2], collpair->pa,collpair->pb,collpair->vector );
+	
+	printf("mintime: %f, dist: %f\n", mintime, distance);
+	
+	exit(0);
+	*/
 	for(i = 0; i < 9; i++)
 	{
 		// 9 edge - edge possibilities
@@ -831,18 +908,28 @@ void cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDa
 		if ( !cloth_are_edges_adjacent ( clmd, collmd, &edgecollpair ) )
 		{
 			// always put coll points in p21/p22
-			VECSUB ( a, verts1[edgecollpair.p12].txold, verts1[edgecollpair.p11].txold );
-			VECSUB ( b, verts1[edgecollpair.p12].tv, verts1[edgecollpair.p11].tv );
-			VECSUB ( c, verts2[edgecollpair.p21].co, verts1[edgecollpair.p11].txold );
-			VECSUB ( d, velocity2[edgecollpair.p21].co, verts1[edgecollpair.p11].tv );
-			VECSUB ( e, verts2[edgecollpair.p22].co, verts1[edgecollpair.p11].txold );
-			VECSUB ( f, velocity2[edgecollpair.p22].co, verts1[edgecollpair.p11].v );
-	
-			numsolutions = cloth_get_collision_time ( a, b, c, d, e, f, solution );
+			VECSUB ( x1, verts1[edgecollpair.p12].txold, verts1[edgecollpair.p11].txold );
+			VECSUB ( v1, verts1[edgecollpair.p12].tv, verts1[edgecollpair.p11].tv );
+			
+			VECSUB ( x2, verts2[edgecollpair.p21].co, verts1[edgecollpair.p11].txold );
+			VECSUB ( v2, velocity2[edgecollpair.p21].co, verts1[edgecollpair.p11].tv );
+			
+			VECSUB ( x3, verts2[edgecollpair.p22].co, verts1[edgecollpair.p11].txold );
+			VECSUB ( v3, velocity2[edgecollpair.p22].co, verts1[edgecollpair.p11].tv );
+			/*
+			printf("A x: %f, y: %f, z: %f\n", a[0], a[1], a[2]);
+			printf("B x: %f, y: %f, z: %f\n", b[0], b[1], b[2]);
+			printf("C x: %f, y: %f, z: %f\n", c[0], c[1], c[2]);
+			printf("D x: %f, y: %f, z: %f\n", d[0], d[1], d[2]);
+			printf("E x: %f, y: %f, z: %f\n", e[0], e[1], e[2]);
+			printf("F x: %f, y: %f, z: %f\n", f[0], f[1], f[2]);
+			exit(0);
+			*/
+			numsolutions = cloth_get_collision_time ( x1, v1, x2, v2, x3, v3, solution );
 	
 			for ( k = 0; k < numsolutions; k++ )
 			{
-				if ( ( solution[k] >= 0.0 ) && ( solution[k] <= 1.0 ) )
+				if ( ( solution[k] >= DBL_EPSILON ) && ( solution[k] <= 1.0 ) )
 				{
 					//float out_collisionTime = solution[k];
 	
@@ -850,14 +937,35 @@ void cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDa
 	
 					// TODO: put into (edge) collision list
 					
-					mintime = MIN2(mintime, solution[k]);
-	
-					printf("Moving edge found!, mintime: %f\n", mintime);
+					mintime = MIN2(mintime, (float)solution[k]);
+					
+//					printf("mt: %f, %lf, %f\n", mintime, solution[k], (float)solution[k]);
+					
+					result = 1;
 					break;
 				}
 			}
 		}
 	}
+	
+	if(result)
+	{
+		// move triangles to collision point in time
+		VECADDS(triA[0], verts1[collpair->ap1].txold, verts1[collpair->ap1].tv, mintime);
+		VECADDS(triA[1], verts1[collpair->ap2].txold, verts1[collpair->ap2].tv, mintime);
+		VECADDS(triA[2], verts1[collpair->ap3].txold, verts1[collpair->ap3].tv, mintime);
+		
+		VECADDS(triB[0], collmd->current_x[collpair->bp1].co, collmd->current_v[collpair->bp1].co, mintime);
+		VECADDS(triB[1], collmd->current_x[collpair->bp2].co, collmd->current_v[collpair->bp2].co, mintime);
+		VECADDS(triB[2], collmd->current_x[collpair->bp3].co, collmd->current_v[collpair->bp3].co, mintime);
+		
+		// check distance there
+		distance = plNearestPoints (triA[0], triA[1], triA[2], triB[0], triB[1], triB[2], collpair->pa,collpair->pb,collpair->vector );
+		
+		printf("mintime: %f, dist: %f\n", mintime, distance);
+	}
+	
+	return result;
 }
 
 void cloth_collision_moving_tris ( ClothModifierData *clmd, ClothModifierData *coll_clmd, CollisionTree *tree1, CollisionTree *tree2 )
@@ -868,7 +976,8 @@ void cloth_collision_moving_tris ( ClothModifierData *clmd, ClothModifierData *c
 	ClothVertex *verts1=NULL, *verts2=NULL;
 	unsigned int i = 0, j = 0, k = 0;
 	int numsolutions = 0;
-	float a[3], b[3], c[3], d[3], e[3], f[3], solution[3];
+	float a[3], b[3], c[3], d[3], e[3], f[3];
+	double solution[3];
 
 	for ( i = 0; i < 2; i++ )
 	{
@@ -932,7 +1041,7 @@ void cloth_collision_moving_tris ( ClothModifierData *clmd, ClothModifierData *c
 
 				for ( k = 0; k < numsolutions; k++ )
 				{
-					if ( ( solution[k] >= 0.0 ) && ( solution[k] <= 1.0 ) )
+					if ( ( solution[k] >= ALMOST_ZERO ) && ( solution[k] <= 1.0 ) )
 					{
 						//float out_collisionTime = solution[k];
 
@@ -982,6 +1091,8 @@ int cloth_collision_moving ( ClothModifierData *clmd, CollisionModifierData *col
 		
 		cloth_collision_moving_edges ( clmd, collmd, collpair);
 	}
+	
+	return 1;
 }
 
 int cloth_bvh_objcollisions_do ( ClothModifierData * clmd, CollisionModifierData *collmd, float step, float dt )

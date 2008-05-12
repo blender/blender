@@ -1217,7 +1217,7 @@ void snap_menu_sima(void)
 	short event;
 	if( is_uv_tface_editing_allowed()==0 || !G.v2d) return; /* !G.v2d should never happen */
 	
-	event = pupmenu("Snap %t|Selection -> Pixels%x1|Selection -> Cursor%x2|Selection -> Adjacent Unselected%x3|Cursor -> Pixel%x4|Cursor -> Selection%x5");
+	event = pupmenu("Snap %t|Selection -> Pixels%x1|Selection -> Cursor%x2|Selection -> Adjacent Unselected%x3|Cursor -> Selection%x4|Cursor -> Pixel%x5");
 	switch (event) {
 		case 1:
 		    if (snap_uv_sel_to_pixels()) {
@@ -1238,12 +1238,12 @@ void snap_menu_sima(void)
 		    }
 		    break;
 		case 4:
-		    snap_uv_curs_to_pixels();
-		    scrarea_queue_winredraw(curarea);
-		    break;
-		case 5:
 		    if (snap_uv_curs_to_sel())
 		    	allqueue(REDRAWIMAGE, 0);
+		    break;
+		case 5:
+		    snap_uv_curs_to_pixels();
+		    scrarea_queue_winredraw(curarea);
 		    break;
 	}
 }

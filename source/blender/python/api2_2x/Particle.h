@@ -22,43 +22,32 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Jacques Guignot
+ * Contributor(s): Jacques Guignot, Cedric Paille
  *
  * ***** END GPL LICENSE BLOCK *****
- */
+*/
 
-#ifndef EXPP_PARTICLE_H
-#define EXPP_PARTICLE_H
+#ifndef EXPP_PARTICLESYS_H
+#define EXPP_PARTICLESYS_H
 
 #include <Python.h>
-#include "DNA_effect_types.h"
+#include "DNA_particle_types.h"
+#include "DNA_object_types.h"
 
-extern PyTypeObject Particle_Type;
+extern PyTypeObject ParticleSys_Type;
 
-#define BPy_Particle_Check(v) ((v)->ob_type==&Particle_Type)
+#define BPy_ParticleSys_Check(v) \
+    ((v)->ob_type == &ParticleSys_Type)	/* for type checking */
 
-/* Python BPy_Particle structure definition */
+/* Python BPy_Effect structure definition */
 typedef struct {
 	PyObject_HEAD		/* required py macro */
-	Effect * particle;
-} BPy_Particle;
+	ParticleSystem *psys;
+	Object *object;  /* fixeme: if this points back to the parent object,it is wrong */
+} BPy_PartSys;
 
-#include "Effect.h"
-
-/*****************************************************************************/
-/* Python Particle_Type callback function prototypes:                        */
-/*****************************************************************************/
-#if 0
-void ParticleDeAlloc( BPy_Particle * msh );
-//int ParticlePrint (BPy_Particle *msh, FILE *fp, int flags);
-int ParticleSetAttr( BPy_Particle * msh, char *name, PyObject * v );
-PyObject *ParticleGetAttr( BPy_Particle * msh, char *name );
-PyObject *ParticleRepr( void );
-PyObject *ParticleCreatePyObject( struct Effect *particle );
-int ParticleCheckPyObject( PyObject * py_obj );
-struct Particle *ParticleFromPyObject( PyObject * py_obj );
-#endif
+PyObject *ParticleSys_Init( void );
+PyObject *ParticleSys_CreatePyObject( ParticleSystem * psystem, Object *ob );
 
 
-
-#endif				/* EXPP_PARTICLE_H */
+#endif				/* EXPP_EFFECT_H */

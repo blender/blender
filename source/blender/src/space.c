@@ -1194,7 +1194,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if(event==UI_BUT_EVENT) do_butspace(val); /* temporal, view3d deserves own queue? */
 		
 		/* we consider manipulator a button, defaulting to leftmouse */
-		if(event==LEFTMOUSE) if(BIF_do_manipulator(sa)) return;
+		if(event==LEFTMOUSE) {
+			/* run any view3d event handler script links */
+			if (event && sa->scriptlink.totscript)
+				if (BPY_do_spacehandlers(sa, event, SPACEHANDLER_VIEW3D_EVENT))
+					return; /* return if event was processed (swallowed) by handler(s) */
+
+			if(BIF_do_manipulator(sa)) return;
+		}
 		
 		/* swap mouse buttons based on user preference */
 		if (U.flag & USER_LMOUSESELECT) {
@@ -1745,25 +1752,42 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if ( (G.obedit) && (G.obedit->type==OB_MESH) )
 						select_faces_by_numverts(5);
 				}
+				
+				else if(G.qual==LR_CTRLKEY) {}
 				else do_layer_buttons(4);
 				break;
 
 			case SIXKEY:
-				do_layer_buttons(5); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(5);
+				break;
 			case SEVENKEY:
-				do_layer_buttons(6); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(6);
+				break;
 			case EIGHTKEY:
-				do_layer_buttons(7); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(7);
+				break;
 			case NINEKEY:
-				do_layer_buttons(8); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(8);
+				break;
 			case ZEROKEY:
-				do_layer_buttons(9); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(9);
+				break;
 			case MINUSKEY:
-				do_layer_buttons(10); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(10);
+				break;
 			case EQUALKEY:
-				do_layer_buttons(11); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(11);
+				break;
 			case ACCENTGRAVEKEY:
-				do_layer_buttons(-1); break;
+				do_layer_buttons(-1);
+				break;
 			
 			case SPACEKEY:
 				if(G.qual == LR_CTRLKEY) {
@@ -2387,7 +2411,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						clear_bone_parent();
 					else if((G.qual==0) && (G.obedit->type==OB_ARMATURE)) 
 						select_bone_parent();
-					else if((G.qual==(LR_CTRLKEY|LR_SHIFTKEY)) && (G.obedit->type==OB_ARMATURE))
+					else if((G.qual==(LR_CTRLKEY|LR_ALTKEY)) && (G.obedit->type==OB_ARMATURE))
 						separate_armature();
 					else if((G.qual==0) && G.obedit->type==OB_MESH)
 						separatemenu();
@@ -4892,7 +4916,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case HOMEKEY:
 			if((G.qual==0))
-				do_seq_buttons(B_SEQHOME);
+				seq_home();
 			break;
 		case PADPERIOD:	
 			if(last_seq) {
@@ -5042,8 +5066,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case HKEY: /* hide==mute? - not that nice but MKey us used for meta :/ */
 			if((G.qual==0)) {
 				seq_mute_sel(1);
-			} else if((G.qual==LR_ALTKEY)) {
+			} else if(G.qual==LR_ALTKEY) {
 				seq_mute_sel(0);
+			} else if(G.qual==LR_SHIFTKEY) {
+				seq_mute_sel(-1);
 			}
 			break;
 		case XKEY:
@@ -5054,7 +5080,11 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					del_seq();
 			}
 			break;
-		}
+		case PAD1: case PAD2: case PAD4: case PAD8:
+			seq_viewzoom(event, (G.qual & LR_SHIFTKEY)==0);
+			doredraw= 1;
+			break;
+		}	
 	}
 
 	if(doredraw) scrarea_queue_winredraw(curarea);

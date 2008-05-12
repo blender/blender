@@ -21,7 +21,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Daniel (Genscher)
+ * Contributor(s): Daniel Genrich, Jose Pinto
  *
  * ***** END GPL LICENSE BLOCK *****
  */

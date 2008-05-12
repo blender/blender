@@ -1208,7 +1208,7 @@ void image_buttons(void)
 			
 		} else {
 			uiBlockBeginAlign(block);
-			uiDefIconButBitI(block, TOGN, SI_SELACTFACE, B_REDR, ICON_VERTEXSEL, xco,0,XIC,YIC, &G.sima->flag, 1.0, 0.0, 0, 0, "UV Vertex select mode)");
+			uiDefIconButBitI(block, TOGN, SI_SELACTFACE, B_REDR, ICON_VERTEXSEL, xco,0,XIC,YIC, &G.sima->flag, 1.0, 0.0, 0, 0, "UV Vertex select mode");
 			xco+= XIC;
 			uiDefIconButBitI(block, TOG, SI_SELACTFACE, B_REDR, ICON_FACESEL, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "UV Face select mode");
 			xco+= XIC+8;

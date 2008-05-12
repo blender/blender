@@ -389,7 +389,7 @@ static void p_chart_topological_sanity_check(PChart *chart)
 
 /* Loading / Flushing */
 
-static void p_vert_load_pin_select_uvs(PVert *v)
+static void p_vert_load_pin_select_uvs(PHandle *handle, PVert *v)
 {
 	PEdge *e;
 	int nedges = 0, npins = 0;
@@ -404,13 +404,13 @@ static void p_vert_load_pin_select_uvs(PVert *v)
 				v->flag |= PVERT_SELECT;
 
  			if (e->flag & PEDGE_PIN) {
-				pinuv[0] += e->orig_uv[0];
-				pinuv[1] += e->orig_uv[1];
+				pinuv[0] += e->orig_uv[0]*handle->aspx;
+				pinuv[1] += e->orig_uv[1]*handle->aspy;
 				npins++;
 			}
 			else {
-				v->uv[0] += e->orig_uv[0];
-				v->uv[1] += e->orig_uv[1];
+				v->uv[0] += e->orig_uv[0]*handle->aspx;
+				v->uv[1] += e->orig_uv[1]*handle->aspy;
 			}
 
 			nedges++;
@@ -430,27 +430,27 @@ static void p_vert_load_pin_select_uvs(PVert *v)
 	}
 }
 
-static void p_flush_uvs(PChart *chart)
+static void p_flush_uvs(PHandle *handle, PChart *chart)
 {
 	PEdge *e;
 
 	for (e=chart->edges; e; e=e->nextlink) {
 		if (e->orig_uv) {
-			e->orig_uv[0] = e->vert->uv[0];
-			e->orig_uv[1] = e->vert->uv[1];
+			e->orig_uv[0] = e->vert->uv[0]/handle->aspx;
+			e->orig_uv[1] = e->vert->uv[1]/handle->aspy;
 		}
 	}
 }
 
-static void p_flush_uvs_blend(PChart *chart, float blend)
+static void p_flush_uvs_blend(PHandle *handle, PChart *chart, float blend)
 {
 	PEdge *e;
 	float invblend = 1.0f - blend;
 
 	for (e=chart->edges; e; e=e->nextlink) {
 		if (e->orig_uv) {
-			e->orig_uv[0] = blend*e->old_uv[0] + invblend*e->vert->uv[0];
-			e->orig_uv[1] = blend*e->old_uv[1] + invblend*e->vert->uv[1];
+			e->orig_uv[0] = blend*e->old_uv[0] + invblend*e->vert->uv[0]/handle->aspx;
+			e->orig_uv[1] = blend*e->old_uv[1] + invblend*e->vert->uv[1]/handle->aspy;
 		}
 	}
 }
@@ -2813,7 +2813,7 @@ static void p_chart_lscm_begin(PChart *chart, PBool live, PBool abf)
 	}
 }
 
-static PBool p_chart_lscm_solve(PChart *chart)
+static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
 {
 	PVert *v, *pin1 = chart->u.lscm.pin1, *pin2 = chart->u.lscm.pin2;
 	PFace *f;
@@ -2830,7 +2830,7 @@ static PBool p_chart_lscm_solve(PChart *chart)
 
 	for (v=chart->verts; v; v=v->nextlink)
 		if (v->flag & PVERT_PIN)
-			p_vert_load_pin_select_uvs(v); /* reload for live */
+			p_vert_load_pin_select_uvs(handle, v); /* reload for live */
 
 	if (chart->u.lscm.pin1) {
 		nlLockVariable(2*pin1->u.id);
@@ -3860,12 +3860,22 @@ ParamHandle *param_construct_begin()
 	handle->construction_chart = p_chart_new(handle);
 	handle->state = PHANDLE_STATE_ALLOCATED;
 	handle->arena = BLI_memarena_new((1<<16));
+	handle->aspx = 1.0f;
+	handle->aspy = 1.0f;
 
 	handle->hash_verts = phash_new((PHashLink**)&handle->construction_chart->verts, 1);
 	handle->hash_edges = phash_new((PHashLink**)&handle->construction_chart->edges, 1);
 	handle->hash_faces = phash_new((PHashLink**)&handle->construction_chart->faces, 1);
 
 	return (ParamHandle*)handle;
+}
+
+void param_aspect_ratio(ParamHandle *handle, float aspx, float aspy)
+{
+	PHandle *phandle = (PHandle*)handle;
+
+	phandle->aspx = aspx;
+	phandle->aspy = aspy;
 }
 
 void param_delete(ParamHandle *handle)
@@ -3968,7 +3978,7 @@ void param_construct_end(ParamHandle *handle, ParamBool fill, ParamBool impl)
 			p_chart_fill_boundaries(chart, outer);
 
 		for (v=chart->verts; v; v=v->nextlink)
-			p_vert_load_pin_select_uvs(v);
+			p_vert_load_pin_select_uvs(handle, v);
 	}
 
 	phandle->ncharts = j;
@@ -4005,7 +4015,7 @@ void param_lscm_solve(ParamHandle *handle)
 		chart = phandle->charts[i];
 
 		if (chart->u.lscm.context) {
-			result = p_chart_lscm_solve(chart);
+			result = p_chart_lscm_solve(phandle, chart);
 
 			if (result && !(chart->flag & PCHART_NOPACK))
 				p_chart_rotate_minimum_area(chart);
@@ -4128,6 +4138,9 @@ void param_pack(ParamHandle *handle)
 	if (phandle->ncharts == 0)
 		return;
 	
+	if(phandle->aspx != phandle->aspy)
+		param_scale(handle, 1.0f/phandle->aspx, 1.0f/phandle->aspy);
+	
 	/* we may not use all these boxes */
 	boxarray = MEM_mallocN( phandle->ncharts*sizeof(boxPack), "boxPack box");
 	
@@ -4170,8 +4183,10 @@ void param_pack(ParamHandle *handle)
 		p_chart_uv_scale(chart, scale);
 	}
 	MEM_freeN(boxarray);
-}
 
+	if(phandle->aspx != phandle->aspy)
+		param_scale(handle, phandle->aspx, phandle->aspy);
+}
 
 void param_average(ParamHandle *handle)
 {
@@ -4255,9 +4270,9 @@ void param_flush(ParamHandle *handle)
 			continue;
 
 		if (phandle->blend == 0.0f)
-			p_flush_uvs(chart);
+			p_flush_uvs(phandle, chart);
 		else
-			p_flush_uvs_blend(chart, phandle->blend);
+			p_flush_uvs_blend(phandle, chart, phandle->blend);
 	}
 }
 

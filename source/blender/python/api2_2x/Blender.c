@@ -96,6 +96,7 @@ struct ID; /*keep me up here */
 #include "Window.h"
 #include "World.h"
 #include "Types.h"
+#include "Particle.h"
 
 /**********************************************************/
 /* Python API function prototypes for the Blender module.	*/
@@ -1074,6 +1075,7 @@ void M_Blender_Init(void)
 	PyDict_SetItemString(dict, "Node", Node_Init());
 	PyDict_SetItemString(dict, "Noise", Noise_Init());
 	PyDict_SetItemString(dict, "Object", Object_Init());
+	PyDict_SetItemString(dict, "Particle", ParticleSys_Init());
 	PyDict_SetItemString(dict, "Group", Group_Init());
 	PyDict_SetItemString(dict, "Registry", Registry_Init());
 	PyDict_SetItemString(dict, "Scene", Scene_Init());

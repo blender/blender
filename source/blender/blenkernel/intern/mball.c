@@ -1363,8 +1363,9 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 					out_v = mbproc->function(out.x, out.y, out.z);
 
 					/* find "first points" on Implicit Surface of MetaElemnt ml */
-					//converge(&in, &out, in_v, out_v, mbproc->function, &mbproc->start, mb, 0);
-					workp = in;
+					workp.x = in.x;
+					workp.y = in.y;
+					workp.z = in.z;
 					workp_v = in_v;
 					max_len = sqrt((out.x-in.x)*(out.x-in.x) + (out.y-in.y)*(out.y-in.y) + (out.z-in.z)*(out.z-in.z));
 
