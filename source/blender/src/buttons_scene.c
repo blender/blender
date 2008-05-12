@@ -2789,8 +2789,10 @@ static void render_panel_ffmpeg_video(void)
 			  &G.scene->r.ffcodecdata.video_bitrate, 
 			  1, 14000, 0, 0, "Video bitrate(kb/s)");
 	uiDefButI(block, NUM, B_DIFF, "Min Rate", 
-			  xcol1, yofs+22, 110, 20, &G.scene->r.ffcodecdata.rc_min_rate, 
-			  0, 14000, 0, 0, "Rate control: min rate(kb/s)");
+		  xcol1, yofs+22, 110, 20, 
+		  &G.scene->r.ffcodecdata.rc_min_rate, 
+		  0, G.scene->r.ffcodecdata.rc_max_rate, 
+		  0, 0, "Rate control: min rate(kb/s)");
 	uiDefButI(block, NUM, B_DIFF, "Max Rate", 
 			  xcol1, yofs, 110, 20, &G.scene->r.ffcodecdata.rc_max_rate, 
 			  1, 14000, 0, 0, "Rate control: max rate(kb/s)");
@@ -2823,7 +2825,8 @@ static void render_panel_ffmpeg_video(void)
 				 0, 1, 0,0, "Autosplit output at 2GB boundary.");
 	
 	
-	if (ELEM(G.scene->r.ffcodecdata.type, FFMPEG_AVI, FFMPEG_MOV)) {
+	if (ELEM3(G.scene->r.ffcodecdata.type, FFMPEG_AVI, 
+		  FFMPEG_MOV, FFMPEG_MKV)) {
 		uiDefBut(block, LABEL, 0, "Codec", 
 				xcol1, yofs-44, 110, 20, 0, 0, 0, 0, 0, "");
 		uiDefButI(block, MENU,B_REDR, ffmpeg_codec_pup(), 

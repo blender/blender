@@ -226,6 +226,10 @@ static const char** get_file_extensions(int format)
 		static const char * rv[] = { ".flv", NULL };
 		return rv;
 	}
+	case FFMPEG_MKV: {
+		static const char * rv[] = { ".mkv", NULL };
+		return rv;
+	}
 	default:
 		return NULL;
 	}

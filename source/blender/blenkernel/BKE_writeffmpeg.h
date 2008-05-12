@@ -43,6 +43,7 @@ extern "C" {
 #define FFMPEG_H264     6
 #define FFMPEG_XVID     7
 #define FFMPEG_FLV      8
+#define FFMPEG_MKV      9
 
 #define FFMPEG_CODEC_MPEG1 0
 #define FFMPEG_CODEC_MPEG2 1
