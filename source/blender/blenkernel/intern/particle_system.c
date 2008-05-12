@@ -3770,10 +3770,12 @@ static void boid_brain(BoidVecFunc *bvf, ParticleData *pa, Object *ob, ParticleS
 				near=0;
 				for(n=1; n<neighbours; n++){
 					if(ptn[n].dist<2.0f*pa->size){
-						bvf->Subf(dvec,pa->state.co,pars[ptn[n].index].state.co);
-						bvf->Mulf(dvec,(2.0f*pa->size-ptn[n].dist)/ptn[n].dist);
-						bvf->Addf(avoid,avoid,dvec);
-						near++;
+						if(ptn[n].dist!=0.0f) {
+							bvf->Subf(dvec,pa->state.co,pars[ptn[n].index].state.co);
+							bvf->Mulf(dvec,(2.0f*pa->size-ptn[n].dist)/ptn[n].dist);
+							bvf->Addf(avoid,avoid,dvec);
+							near++;
+						}
 					}
 					/* ptn[] is distance ordered so no need to check others */
 					else break;
