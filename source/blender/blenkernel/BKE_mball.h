@@ -91,7 +91,6 @@ typedef struct process {		/* parameters, function, storage */
 	float (*function)(float, float, float);
 	float size, delta;			/* cube size, normal delta */
 	int bounds;					/* cube range within lattice */
-	MB_POINT start;				/* start point on surface */
 	CUBES *cubes;				/* active cubes */
 	VERTICES vertices;			/* surface vertices */
 	CENTERLIST **centers;		/* cube center hash table */
