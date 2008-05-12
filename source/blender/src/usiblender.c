@@ -389,7 +389,7 @@ static void init_userdef_file(void)
 	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 11)) {
 		bTheme *btheme;
 		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* these should all use the same colour */
+			/* these should all use the same color */
 			SETCOL(btheme->tv3d.cframe, 0x60, 0xc0, 0x40, 255);
 			SETCOL(btheme->tipo.cframe, 0x60, 0xc0, 0x40, 255);
 			SETCOL(btheme->tact.cframe, 0x60, 0xc0, 0x40, 255);
@@ -402,7 +402,7 @@ static void init_userdef_file(void)
 	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 13)) {
 		bTheme *btheme;
 		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* action channel groups (recolour anyway) */
+			/* action channel groups (recolor anyway) */
 			SETCOL(btheme->tact.group, 0x39, 0x7d, 0x1b, 255);
 			SETCOL(btheme->tact.group_active, 0x7d, 0xe9, 0x60, 255);
 			

@@ -1161,7 +1161,7 @@ void verify_pchan2achan_grouping (bAction *act, bPose *pose, char name[])
 					memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
 				}
 				else {
-					/* init custom colours with a generic multi-colour rgb set, if not initialised already */
+					/* init custom colors with a generic multi-color rgb set, if not initialised already */
 					if (agrp->cs.solid[0] == 0) {
 						/* define for setting colors in theme below */
 						#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
@@ -1221,7 +1221,7 @@ void sync_pchan2achan_grouping ()
 		achan->grp = NULL;
 	BLI_freelistN(&act->groups);
 	
-	/* loop through all achans, reassigning them to groups (colours are resyncronised) */
+	/* loop through all achans, reassigning them to groups (colors are resyncronised) */
 	last= act->chanbase.last;
 	for (achan= act->chanbase.first; achan && achan!=last; achan= next) {
 		next= achan->next;
