@@ -5997,20 +5997,29 @@ static void explodeModifier_createFacepa(ExplodeModifierData *emd,
 	if(vertpa) MEM_freeN(vertpa);
 	BLI_kdtree_free(tree);
 }
+
+static int edgesplit_get(EdgeHash *edgehash, int v1, int v2)
+{
+	return GET_INT_FROM_POINTER(BLI_edgehash_lookup(edgehash, v1, v2));
+}
+
 static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, DerivedMesh *dm){
 	DerivedMesh *splitdm;
 	MFace *mf=0,*df1=0,*df2=0,*df3=0;
 	MFace *mface=CDDM_get_faces(dm);
 	MVert *dupve, *mv;
+	EdgeHash *edgehash;
+	EdgeHashIterator *ehi;
 	int totvert=dm->getNumVerts(dm);
 	int totface=dm->getNumFaces(dm);
 
-	int *edgesplit = MEM_callocN(sizeof(int)*totvert*totvert,"explode_edgesplit");
-	int *facesplit = MEM_callocN(sizeof(int)*totface,"explode_edgesplit");
+	int *facesplit = MEM_callocN(sizeof(int)*totface,"explode_facesplit");
 	int *vertpa = MEM_callocN(sizeof(int)*totvert,"explode_vertpa2");
 	int *facepa = emd->facepa;
 	int *fs, totesplit=0,totfsplit=0,totin=0,curdupvert=0,curdupface=0,curdupin=0;
-	int i,j,v1,v2,v3,v4;
+	int i,j,v1,v2,v3,v4,esplit;
+
+	edgehash= BLI_edgehash_new();
 
 	/* recreate vertpa from facepa calculation */
 	for (i=0,mf=mface; i<totface; i++,mf++) {
@@ -6030,22 +6039,22 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 			v4=vertpa[mf->v4];
 
 			if(v1!=v2){
-				edgesplit[mf->v1*totvert+mf->v2]=edgesplit[mf->v2*totvert+mf->v1]=1;
+				BLI_edgehash_insert(edgehash, mf->v1, mf->v2, NULL);
 				(*fs)++;
 			}
 
 			if(v2!=v3){
-				edgesplit[mf->v2*totvert+mf->v3]=edgesplit[mf->v3*totvert+mf->v2]=1;
+				BLI_edgehash_insert(edgehash, mf->v2, mf->v3, NULL);
 				(*fs)++;
 			}
 
 			if(v3!=v4){
-				edgesplit[mf->v3*totvert+mf->v4]=edgesplit[mf->v4*totvert+mf->v3]=1;
+				BLI_edgehash_insert(edgehash, mf->v3, mf->v4, NULL);
 				(*fs)++;
 			}
 
 			if(v1!=v4){
-				edgesplit[mf->v1*totvert+mf->v4]=edgesplit[mf->v4*totvert+mf->v1]=1;
+				BLI_edgehash_insert(edgehash, mf->v1, mf->v4, NULL);
 				(*fs)++;
 			}
 
@@ -6054,28 +6063,29 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 					*fs=1;
 				else if(v1!=v2){
 					if(v1!=v4)
-						edgesplit[mf->v2*totvert+mf->v3]=edgesplit[mf->v3*totvert+mf->v2]=1;
+						BLI_edgehash_insert(edgehash, mf->v2, mf->v3, NULL);
 					else
-						edgesplit[mf->v3*totvert+mf->v4]=edgesplit[mf->v4*totvert+mf->v3]=1;
+						BLI_edgehash_insert(edgehash, mf->v3, mf->v4, NULL);
 				}
 				else{ 
 					if(v1!=v4)
-						edgesplit[mf->v1*totvert+mf->v2]=edgesplit[mf->v2*totvert+mf->v1]=1;
+						BLI_edgehash_insert(edgehash, mf->v1, mf->v2, NULL);
 					else
-						edgesplit[mf->v1*totvert+mf->v4]=edgesplit[mf->v4*totvert+mf->v1]=1;
+						BLI_edgehash_insert(edgehash, mf->v1, mf->v4, NULL);
 				}
 			}
 		}
 	}
 
 	/* count splits & reindex */
+	ehi= BLI_edgehashIterator_new(edgehash);
 	totesplit=totvert;
-	for(j=0; j<totvert; j++){
-		for(i=j+1; i<totvert; i++){
-			if(edgesplit[j*totvert+i])
-				edgesplit[j*totvert+i]=edgesplit[i*totvert+j]=totesplit++;
-		}
+	for(; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
+		BLI_edgehashIterator_setValue(ehi, SET_INT_IN_POINTER(totesplit));
+		totesplit++;
 	}
+	BLI_edgehashIterator_free(ehi);
+
 	/* count new faces due to splitting */
 	for(i=0,fs=facesplit; i<totface; i++,fs++){
 		if(*fs==1)
@@ -6123,23 +6133,23 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 
 	/* create new verts */
 	curdupvert=totvert;
-	for(j=0; j<totvert; j++){
-		for(i=j+1; i<totvert; i++){
-			if(edgesplit[j*totvert+i]){
-				mv=CDDM_get_vert(splitdm,j);
-				dupve=CDDM_get_vert(splitdm,edgesplit[j*totvert+i]);
+	ehi= BLI_edgehashIterator_new(edgehash);
+	for(; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
+		BLI_edgehashIterator_getKey(ehi, &i, &j);
+		esplit= GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
+		mv=CDDM_get_vert(splitdm,j);
+		dupve=CDDM_get_vert(splitdm,esplit);
 
-				DM_copy_vert_data(splitdm,splitdm,j,edgesplit[j*totvert+i],1);
+		DM_copy_vert_data(splitdm,splitdm,j,esplit,1);
 
-				*dupve=*mv;
+		*dupve=*mv;
 
-				mv=CDDM_get_vert(splitdm,i);
+		mv=CDDM_get_vert(splitdm,i);
 
-				VECADD(dupve->co,dupve->co,mv->co);
-				VecMulf(dupve->co,0.5);
-			}
-		}
+		VECADD(dupve->co,dupve->co,mv->co);
+		VecMulf(dupve->co,0.5);
 	}
+	BLI_edgehashIterator_free(ehi);
 
 	/* create new faces */
 	curdupface=totface;
@@ -6160,14 +6170,14 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 				curdupface++;
 				
 				if(v1==v2){
-					df1->v1=edgesplit[mf->v1*totvert+mf->v4];
-					df1->v2=edgesplit[mf->v2*totvert+mf->v3];
+					df1->v1=edgesplit_get(edgehash, mf->v1, mf->v4);
+					df1->v2=edgesplit_get(edgehash, mf->v2, mf->v3);
 					mf->v3=df1->v2;
 					mf->v4=df1->v1;
 				}
 				else{
-					df1->v1=edgesplit[mf->v1*totvert+mf->v2];
-					df1->v4=edgesplit[mf->v3*totvert+mf->v4];
+					df1->v1=edgesplit_get(edgehash, mf->v1, mf->v2);
+					df1->v4=edgesplit_get(edgehash, mf->v3, mf->v4);
 					mf->v2=df1->v1;
 					mf->v3=df1->v4;
 				}
@@ -6190,8 +6200,8 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 
 				if(v1!=v2){
 					if(v1!=v4){
-						df1->v1=edgesplit[mf->v1*totvert+mf->v4];
-						df1->v2=edgesplit[mf->v1*totvert+mf->v2];
+						df1->v1=edgesplit_get(edgehash, mf->v1, mf->v4);
+						df1->v2=edgesplit_get(edgehash, mf->v1, mf->v2);
 						df2->v1=df1->v3=mf->v2;
 						df2->v3=df1->v4=mf->v4;
 						df2->v2=mf->v3;
@@ -6204,8 +6214,8 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 						facepa[i]=v1;
 					}
 					else{
-						df1->v2=edgesplit[mf->v1*totvert+mf->v2];
-						df1->v3=edgesplit[mf->v2*totvert+mf->v3];
+						df1->v2=edgesplit_get(edgehash, mf->v1, mf->v2);
+						df1->v3=edgesplit_get(edgehash, mf->v2, mf->v3);
 						df1->v4=mf->v3;
 						df2->v2=mf->v3;
 						df2->v3=mf->v4;
@@ -6221,8 +6231,8 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 				}
 				else{
 					if(v1!=v4){
-						df1->v3=edgesplit[mf->v3*totvert+mf->v4];
-						df1->v4=edgesplit[mf->v1*totvert+mf->v4];
+						df1->v3=edgesplit_get(edgehash, mf->v3, mf->v4);
+						df1->v4=edgesplit_get(edgehash, mf->v1, mf->v4);
 						df1->v2=mf->v3;
 
 						mf->v1=df1->v4;
@@ -6234,8 +6244,8 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 						facepa[i]=v4;
 					}
 					else{
-						df1->v3=edgesplit[mf->v2*totvert+mf->v3];
-						df1->v4=edgesplit[mf->v3*totvert+mf->v4];
+						df1->v3=edgesplit_get(edgehash, mf->v2, mf->v3);
+						df1->v4=edgesplit_get(edgehash, mf->v3, mf->v4);
 						df1->v1=mf->v4;
 						df1->v2=mf->v2;
 						df2->v3=mf->v4;
@@ -6271,9 +6281,9 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 				curdupface++;
 
 				if(v1==v2){
-					df2->v1=df1->v1=edgesplit[mf->v1*totvert+mf->v4];
-					df3->v1=df1->v2=edgesplit[mf->v2*totvert+mf->v3];
-					df3->v3=df2->v2=df1->v3=edgesplit[mf->v3*totvert+mf->v4];
+					df2->v1=df1->v1=edgesplit_get(edgehash, mf->v1, mf->v4);
+					df3->v1=df1->v2=edgesplit_get(edgehash, mf->v2, mf->v3);
+					df3->v3=df2->v2=df1->v3=edgesplit_get(edgehash, mf->v3, mf->v4);
 					df3->v2=mf->v3;
 					df2->v3=mf->v4;
 					df1->v4=df2->v4=df3->v4=0;
@@ -6286,9 +6296,9 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 					facepa[curdupface-2]=v4;
 				}
 				else if(v2==v3){
-					df3->v1=df2->v3=df1->v1=edgesplit[mf->v1*totvert+mf->v4];
-					df2->v2=df1->v2=edgesplit[mf->v1*totvert+mf->v2];
-					df3->v2=df1->v3=edgesplit[mf->v3*totvert+mf->v4];
+					df3->v1=df2->v3=df1->v1=edgesplit_get(edgehash, mf->v1, mf->v4);
+					df2->v2=df1->v2=edgesplit_get(edgehash, mf->v1, mf->v2);
+					df3->v2=df1->v3=edgesplit_get(edgehash, mf->v3, mf->v4);
 
 					df3->v3=mf->v4;
 					df2->v1=mf->v1;
@@ -6302,9 +6312,9 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 					facepa[curdupface-2]=v1;
 				}
 				else if(v3==v4){
-					df3->v2=df2->v1=df1->v1=edgesplit[mf->v1*totvert+mf->v2];
-					df2->v3=df1->v2=edgesplit[mf->v2*totvert+mf->v3];
-					df3->v3=df1->v3=edgesplit[mf->v1*totvert+mf->v4];
+					df3->v2=df2->v1=df1->v1=edgesplit_get(edgehash, mf->v1, mf->v2);
+					df2->v3=df1->v2=edgesplit_get(edgehash, mf->v2, mf->v3);
+					df3->v3=df1->v3=edgesplit_get(edgehash, mf->v1, mf->v4);
 
 					df3->v1=mf->v1;
 					df2->v2=mf->v2;
@@ -6318,9 +6328,9 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 					facepa[curdupface-2]=v2;
 				}
 				else{
-					df3->v1=df1->v1=edgesplit[mf->v1*totvert+mf->v2];
-					df3->v3=df2->v1=df1->v2=edgesplit[mf->v2*totvert+mf->v3];
-					df2->v3=df1->v3=edgesplit[mf->v3*totvert+mf->v4];
+					df3->v1=df1->v1=edgesplit_get(edgehash, mf->v1, mf->v2);
+					df3->v3=df2->v1=df1->v2=edgesplit_get(edgehash, mf->v2, mf->v3);
+					df2->v3=df1->v3=edgesplit_get(edgehash, mf->v3, mf->v4);
 
 					df3->v2=mf->v2;
 					df2->v2=mf->v3;
@@ -6371,11 +6381,11 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 					*df3=*mf;
 					curdupface++;
 
-					df1->v1=edgesplit[mf->v1*totvert+mf->v2];
-					df3->v2=df1->v3=edgesplit[mf->v2*totvert+mf->v3];
+					df1->v1=edgesplit_get(edgehash, mf->v1, mf->v2);
+					df3->v2=df1->v3=edgesplit_get(edgehash, mf->v2, mf->v3);
 
-					df2->v1=edgesplit[mf->v1*totvert+mf->v4];
-					df3->v4=df2->v3=edgesplit[mf->v3*totvert+mf->v4];
+					df2->v1=edgesplit_get(edgehash, mf->v1, mf->v4);
+					df3->v4=df2->v3=edgesplit_get(edgehash, mf->v3, mf->v4);
 
 					df3->v1=df2->v2=df1->v4=curdupin;
 
@@ -6412,11 +6422,11 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 					curdupface++;
 
 					if(v2==v3){
-						df1->v1=edgesplit[mf->v1*totvert+mf->v2];
-						df3->v1=df1->v2=df1->v3=edgesplit[mf->v2*totvert+mf->v3];
-						df2->v1=df1->v4=edgesplit[mf->v1*totvert+mf->v4];
+						df1->v1=edgesplit_get(edgehash, mf->v1, mf->v2);
+						df3->v1=df1->v2=df1->v3=edgesplit_get(edgehash, mf->v2, mf->v3);
+						df2->v1=df1->v4=edgesplit_get(edgehash, mf->v1, mf->v4);
 
-						df3->v3=df2->v3=edgesplit[mf->v3*totvert+mf->v4];
+						df3->v3=df2->v3=edgesplit_get(edgehash, mf->v3, mf->v4);
 
 						df3->v2=mf->v3;
 						df3->v4=0;
@@ -6430,11 +6440,11 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 						facepa[curdupface-1]=v3;
 					}
 					else{
-						df3->v1=df2->v1=df1->v2=edgesplit[mf->v1*totvert+mf->v2];
-						df2->v4=df1->v3=edgesplit[mf->v3*totvert+mf->v4];
-						df1->v4=edgesplit[mf->v1*totvert+mf->v4];
+						df3->v1=df2->v1=df1->v2=edgesplit_get(edgehash, mf->v1, mf->v2);
+						df2->v4=df1->v3=edgesplit_get(edgehash, mf->v3, mf->v4);
+						df1->v4=edgesplit_get(edgehash, mf->v1, mf->v4);
 
-						df3->v3=df2->v2=edgesplit[mf->v2*totvert+mf->v3];
+						df3->v3=df2->v2=edgesplit_get(edgehash, mf->v2, mf->v3);
 
 						df3->v4=0;
 
@@ -6458,7 +6468,7 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 		}
 	}
 
-	MEM_freeN(edgesplit);
+	BLI_edgehash_free(edgehash, NULL);
 	MEM_freeN(facesplit);
 	MEM_freeN(vertpa);
 
