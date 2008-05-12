@@ -661,9 +661,10 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 	Object *ob;
 	bPoseChannel *pchan, *pcha, *pchb;
 	bConstraint *con;
-	ListBase *npchans;
+	ListBase *opchans, *npchans;
 	
-	/* get reference to list of bones in new armature  */
+	/* get reference to list of bones in original and new armatures  */
+	opchans= &origArm->pose->chanbase;
 	npchans= &newArm->pose->chanbase;
 	
 	/* let's go through all objects in database */
@@ -682,8 +683,8 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 						
 						for (ct= targets.first; ct; ct= ct->next) {
 							/* any targets which point to original armature are redirected to the new one only if:
-							 *	- the target isn't the original armature itself
-							 *	- the target is one that can be found in newArm
+							 *	- the target isn't origArm/newArm itself
+							 *	- the target is one that can be found in newArm/origArm
 							 */
 							if ((ct->tar == origArm) && (ct->subtarget[0] != 0)) {
 								for (pcha=npchans->first, pchb=npchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
@@ -692,6 +693,20 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 										 (strcmp(pchb->name, ct->subtarget)==0) )
 									{
 										ct->tar= newArm;
+										break;
+									}
+									
+									/* check if both ends have met (to stop checking) */
+									if (pcha == pchb) break;
+								}								
+							}
+							else if ((ct->tar == newArm) && (ct->subtarget[0] != 0)) {
+								for (pcha=opchans->first, pchb=opchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
+									/* check if either one matches */
+									if ( (strcmp(pcha->name, ct->subtarget)==0) ||
+										 (strcmp(pchb->name, ct->subtarget)==0) )
+									{
+										ct->tar= origArm;
 										break;
 									}
 									
@@ -721,8 +736,8 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 					
 					for (ct= targets.first; ct; ct= ct->next) {
 						/* any targets which point to original armature are redirected to the new one only if:
-						 *	- the target isn't the original armature itself
-						 *	- the target is one of the bones which were moved into newArm
+						 *	- the target isn't origArm/newArm itself
+						 *	- the target is one that can be found in newArm/origArm
 						 */
 						if ((ct->tar == origArm) && (ct->subtarget[0] != 0)) {
 							for (pcha=npchans->first, pchb=npchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
@@ -736,7 +751,21 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 								
 								/* check if both ends have met (to stop checking) */
 								if (pcha == pchb) break;
-							}
+							}								
+						}
+						else if ((ct->tar == newArm) && (ct->subtarget[0] != 0)) {
+							for (pcha=opchans->first, pchb=opchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
+								/* check if either one matches */
+								if ( (strcmp(pcha->name, ct->subtarget)==0) ||
+									 (strcmp(pchb->name, ct->subtarget)==0) )
+								{
+									ct->tar= origArm;
+									break;
+								}
+								
+								/* check if both ends have met (to stop checking) */
+								if (pcha == pchb) break;
+							}								
 						}
 					}
 					
@@ -828,12 +857,6 @@ void separate_armature (void)
 	Object *oldob, *newob;
 	Base *base, *oldbase, *newbase;
 	bArmature *arm;
-	
-	// 31 Mar 08 \ 11 May 08 - Aligorith:
-	// currently, this is still too unstable to be enabled for general consumption.
-	// remove the following two lines to test this tool... you have been warned!
-	//	okee("Not implemented (WIP)");
-	//	return;
 	
 	if ( G.vd==0 || (G.vd->lay & G.obedit->lay)==0 ) return;
 	if ( okee("Separate")==0 ) return;
