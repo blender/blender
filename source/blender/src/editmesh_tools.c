@@ -6758,7 +6758,7 @@ void mesh_mirror_uvs(void)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
-	short change = 0;
+	short change = 0, altaxis;
 	MTFace *tf;
 	float u1, v1;
 	
@@ -6767,32 +6767,64 @@ void mesh_mirror_uvs(void)
 		return;
 	}
 	
+	altaxis = (G.qual == LR_SHIFTKEY);
+	
 	for(efa=em->faces.first; efa; efa=efa->next) {
 		if (efa->f & SELECT) {
 			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			u1= tf->uv[0][0];
-			v1= tf->uv[0][1];
-			if(efa->v4) {
-				tf->uv[0][0]= tf->uv[3][0];
-				tf->uv[0][1]= tf->uv[3][1];
-			
-				tf->uv[3][0]= u1;
-				tf->uv[3][1]= v1;
-
+			if (altaxis) {
 				u1= tf->uv[1][0];
 				v1= tf->uv[1][1];
-
-				tf->uv[1][0]= tf->uv[2][0];
-				tf->uv[1][1]= tf->uv[2][1];
+				if(efa->v4) {
+				
+					tf->uv[1][0]= tf->uv[2][0];
+					tf->uv[1][1]= tf->uv[2][1];
 			
-				tf->uv[2][0]= u1;
-				tf->uv[2][1]= v1;
-			}
-			else {
-				tf->uv[0][0]= tf->uv[2][0];
-				tf->uv[0][1]= tf->uv[2][1];
-				tf->uv[2][0]= u1;
-				tf->uv[2][1]= v1;
+					tf->uv[2][0]= u1;
+					tf->uv[2][1]= v1;
+
+					u1= tf->uv[3][0];
+					v1= tf->uv[3][1];
+
+					tf->uv[3][0]= tf->uv[0][0];
+					tf->uv[3][1]= tf->uv[0][1];
+			
+					tf->uv[0][0]= u1;
+					tf->uv[0][1]= v1;
+				}
+				else {
+					tf->uv[1][0]= tf->uv[2][0];
+					tf->uv[1][1]= tf->uv[2][1];
+					tf->uv[2][0]= u1;
+					tf->uv[2][1]= v1;
+				}
+				
+			} else {
+				u1= tf->uv[0][0];
+				v1= tf->uv[0][1];
+				if(efa->v4) {
+				
+					tf->uv[0][0]= tf->uv[1][0];
+					tf->uv[0][1]= tf->uv[1][1];
+			
+					tf->uv[1][0]= u1;
+					tf->uv[1][1]= v1;
+
+					u1= tf->uv[3][0];
+					v1= tf->uv[3][1];
+
+					tf->uv[3][0]= tf->uv[2][0];
+					tf->uv[3][1]= tf->uv[2][1];
+			
+					tf->uv[2][0]= u1;
+					tf->uv[2][1]= v1;
+				}
+				else {
+					tf->uv[0][0]= tf->uv[1][0];
+					tf->uv[0][1]= tf->uv[1][1];
+					tf->uv[1][0]= u1;
+					tf->uv[1][1]= v1;
+				}
 			}
 			change = 1;
 		}
@@ -6858,27 +6890,38 @@ void mesh_mirror_colors(void)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
-	short change = 0;
+	short change = 0, altaxis;
 	MCol tmpcol, *mcol;
 	if (!EM_vertColorCheck()) {
 		error("mesh has no color layers");
 		return;
 	}
 	
+	altaxis = (G.qual == LR_SHIFTKEY);
+	
 	for(efa=em->faces.first; efa; efa=efa->next) {
 		if (efa->f & SELECT) {
 			mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
-			tmpcol= mcol[0];
-			
-			mcol[0]= mcol[1];
-			mcol[1]= mcol[2];
-
-			if(efa->v4) {
-				mcol[2]= mcol[3];
-				mcol[3]= tmpcol;
-			}
-			else {
+			if (altaxis) {
+				tmpcol= mcol[1];
+				mcol[1]= mcol[2];
 				mcol[2]= tmpcol;
+				
+				if(efa->v4) {
+					tmpcol= mcol[0];
+					mcol[0]= mcol[3];
+					mcol[3]= tmpcol;
+				}
+			} else {
+				tmpcol= mcol[0];
+				mcol[0]= mcol[1];
+				mcol[1]= tmpcol;
+				
+				if(efa->v4) {
+					tmpcol= mcol[2];
+					mcol[2]= mcol[3];
+					mcol[3]= tmpcol;
+				}
 			}
 			change = 1;
 		}
