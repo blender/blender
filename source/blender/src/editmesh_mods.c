@@ -1458,7 +1458,7 @@ void mesh_copy_menu(void)
 		
 		eed_act = (EditEdge*)ese->data;
 		
-		ret= pupmenu("Copy Active Edge to Selected%t|Crease%x1|Length%x2");
+		ret= pupmenu("Copy Active Edge to Selected%t|Crease%x1|Bevel Weight%x2|Length%x3");
 		if (ret<1) return;
 		
 		eed_len_act = VecLenf(eed_act->v1->co, eed_act->v2->co);
@@ -1472,8 +1472,16 @@ void mesh_copy_menu(void)
 				}
 			}
 			break;
+		case 2: /* copy bevel weight */
+			for(eed=em->edges.first; eed; eed=eed->next) {
+				if (eed->f & SELECT && eed != eed_act && eed->bweight != eed_act->bweight) {
+					eed->bweight = eed_act->bweight;
+					change = 1;
+				}
+			}
+			break;
 			
-		case 2: /* copy length */
+		case 3: /* copy length */
 			
 			for(eed=em->edges.first; eed; eed=eed->next) {
 				if (eed->f & SELECT && eed != eed_act) {

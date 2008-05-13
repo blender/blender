@@ -367,7 +367,10 @@ static void drawcursor_sima(float xuser_asp, float yuser_asp)
 	int wi, hi;
 	float w, h;
 	
-	if (!G.obedit || !CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE)) return;
+	if (	!G.obedit ||	/* only draw cursor in editmode */
+			!CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE) || /* must have UV's */
+			(G.sima->image && G.sima->flag & SI_DRAWTOOL) /* cant be painting */
+		)	return;
 	
 	transform_width_height_tface_uv(&wi, &hi);
 	w = (((float)wi)/256.0f)*G.sima->zoom * xuser_asp;
