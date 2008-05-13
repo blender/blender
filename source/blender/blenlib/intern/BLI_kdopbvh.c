@@ -487,7 +487,6 @@ static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, char
 			tree->totbranch++;
 			tnode->parent = node;
 
-			partition_nth_element(tree->nodes, start, end, tend, laxis);
 			refit_kdop_hull(tree, tnode, start, tend);
 			bvh_div_nodes(tree, tnode, start, tend, laxis);
 		}
