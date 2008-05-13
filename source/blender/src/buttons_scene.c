@@ -2372,6 +2372,22 @@ static IDProperty * ffmpeg_property_add(
 	return prop;
 }
 
+/* not all versions of ffmpeg include that, so here we go ... */
+
+static const AVOption *my_av_find_opt(void *v, const char *name, 
+				      const char *unit, int mask, int flags){
+	AVClass *c= *(AVClass**)v; 
+	const AVOption *o= c->option;
+
+	for(;o && o->name; o++){
+		if(!strcmp(o->name, name) && 
+		   (!unit || (o->unit && !strcmp(o->unit, unit))) && 
+		   (o->flags & mask) == flags )
+			return o;
+	}
+	return NULL;
+}
+
 static int ffmpeg_property_add_string(const char * type, const char * str)
 {
 	AVCodecContext c;
@@ -2395,7 +2411,7 @@ static int ffmpeg_property_add_string(const char * type, const char * str)
 		while (*param == ' ') param++;
 	}
 	
-	o = av_find_opt(&c, name, NULL, 0, 0);	
+	o = my_av_find_opt(&c, name, NULL, 0, 0);	
 	if (!o) {
 		return FALSE;
 	}
@@ -2403,7 +2419,7 @@ static int ffmpeg_property_add_string(const char * type, const char * str)
 		return FALSE;
 	}
 	if (param && o->type != FF_OPT_TYPE_CONST && o->unit) {
-		p = av_find_opt(&c, param, o->unit, 0, 0);	
+		p = my_av_find_opt(&c, param, o->unit, 0, 0);	
 		prop = ffmpeg_property_add(
 			(char*) type, p - c.av_class->option, 
 			o - c.av_class->option);
@@ -2598,7 +2614,7 @@ static int render_panel_ffmpeg_property_option(
 
 	avcodec_get_context_defaults(&c);
 
-	o = av_find_opt(&c, param ? param : name, NULL, 0, 0);
+	o = my_av_find_opt(&c, param ? param : name, NULL, 0, 0);
 	if (!o) {
 		return yofs;
 	}
