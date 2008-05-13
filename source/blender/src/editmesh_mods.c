@@ -3187,12 +3187,14 @@ void select_non_manifold(void)
 	}
 
 	/* select isolated verts */
-	eve= em->verts.first;
-	while(eve) {
-		if (eve->f1 == 0) {
-			if (!eve->h) eve->f |= SELECT;
+	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+		eve= em->verts.first;
+		while(eve) {
+			if (eve->f1 == 0) {
+				if (!eve->h) eve->f |= SELECT;
+			}
+			eve= eve->next;
 		}
-		eve= eve->next;
 	}
 
 	countall();
