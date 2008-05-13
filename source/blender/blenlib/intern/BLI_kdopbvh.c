@@ -25,7 +25,7 @@
 *
 * The Original Code is: all of this file.
 *
-* Contributor(s): Daniel Genrich, Jose Pinto
+* Contributor(s): Daniel Genrich, Andre Pinto
 *
 * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -40,6 +40,7 @@
 #include "BKE_utildefines.h"
 
 #include "BLI_kdopbvh.h"
+#include "BLI_arithb.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -101,12 +102,6 @@ static int size_threshold = 16;
 /*
 * Common methods for all algorithms
 */
-static void bvh_exchange(BVHNode **a, int i, int j)
-{
-	BVHNode *t=a[i];
-	a[i]=a[j];
-	a[j]=t;
-}
 static int floor_lg(int a)
 {
 	return (int)(floor(log(a)/log(2)));
@@ -138,11 +133,11 @@ static int bvh_partition(BVHNode **a, int lo, int hi, BVHNode * x, int axis)
 	while (1)
 	{
 		while ((a[i])->bv[axis] < x->bv[axis]) i++;
-		j=j-1;
-		while (x->bv[axis] < (a[j])->bv[axis]) j=j-1;
+		j--;
+		while (x->bv[axis] < (a[j])->bv[axis]) j--;
 		if(!(i < j))
 			return i;
-		bvh_exchange(a, i,j);
+		SWAP( BVHNode* , a[i], a[j]);
 		i++;
 	}
 }
@@ -177,7 +172,7 @@ static void bvh_heapsort(BVHNode **a, int lo, int hi, int axis)
 	}
 	for (i=n; i>1; i=i-1)
 	{
-		bvh_exchange(a, lo,lo+i-1);
+		SWAP(BVHNode*, a[lo],a[lo+i-1]);
 		bvh_downheap(a, 1,i-1,lo, axis);
 	}
 }
@@ -243,6 +238,25 @@ void sort_along_axis(BVHTree *tree, int start, int end, int axis)
 {
 	sort(tree->nodes, start, end, axis);
 }
+
+//after a call to this function you can expect one of:
+//	every node to left of a[n] are smaller than it
+//	every node to the right of a[n-1] are greater than it
+void partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis)
+{
+	int begin = _begin, end = _end;
+	while(begin < n && end >= n)
+	{
+		int mid = bvh_partition(a, begin, end, bvh_medianof3(a, begin, (begin+end-1)/2, end-1, axis), axis );
+
+		if(mid >= n)
+			end = n-1;
+		else
+			begin = n+1;
+	}
+
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -359,10 +373,11 @@ static void create_kdop_hull(BVHTree *tree, BVHNode *node, float *co, int numpoi
 }
 
 // depends on the fact that the BVH's for each face is already build
-static void refit_kdop_hull(BVHTree *tree, int start, int end, float *bv)
+static void refit_kdop_hull(BVHTree *tree, BVHNode *node, int start, int end)
 {
 	float newmin,newmax;
 	int i, j;
+	float *bv = node->bv;
 	
 	for (i = tree->start_axis; i < tree->stop_axis; i++)
 	{
@@ -451,15 +466,13 @@ static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, char
 	
 	// Determine which axis to split along
 	laxis = get_largest_axis(node->bv);
-
-	// Sort along longest axis
-	if(laxis!=lastaxis)
-		sort_along_axis(tree, start, end, laxis);
 	
 	// split nodes along longest axis
 	for (i=0; start < end; start += slice, i++) //i counts the current child
 	{	
 		tend = start + slice;
+		
+		partition_nth_element(tree->nodes, start, end, tend, laxis);
 		
 		if(tend > end) tend = end;
 		
@@ -474,7 +487,7 @@ static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, char
 			tree->totbranch++;
 			tnode->parent = node;
 
-			refit_kdop_hull(tree, start, tend, tnode->bv);
+			partition_nth_element(tree->nodes, start, end, tend, laxis);
 			bvh_div_nodes(tree, tnode, start, tend, laxis);
 		}
 		node->totnode++;
@@ -533,7 +546,6 @@ static void verify_tree(BVHTree *tree)
 void BLI_bvhtree_balance(BVHTree *tree)
 {
 	BVHNode *node;
-	int i;
 	
 	if(tree->totleaf == 0)
 		return;
@@ -543,11 +555,11 @@ void BLI_bvhtree_balance(BVHTree *tree)
 	tree->totbranch++;
 	
 	// refit root bvh node
-	refit_kdop_hull(tree, 0, tree->totleaf, tree->nodes[tree->totleaf]->bv);
+	refit_kdop_hull(tree, tree->nodes[tree->totleaf], 0, tree->totleaf);
 	// create + balance tree
 	bvh_div_nodes(tree, tree->nodes[tree->totleaf], 0, tree->totleaf, 0);
 	
-	verify_tree(tree);
+	// verify_tree(tree);
 }
 
 // overlap - is it possbile for 2 bv's to collide ?
