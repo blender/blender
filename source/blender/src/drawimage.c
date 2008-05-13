@@ -1485,7 +1485,11 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PAINT
 	uiBlock *block;
 	ID *id;
 	int yco, xco, butw;
-
+	
+	if ((G.sima->image && (G.sima->flag & SI_DRAWTOOL))==0) {
+		return;
+	}
+	
 	block= uiNewBlock(&curarea->uiblocks, "image_panel_paint", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(IMAGE_HANDLER_PAINT);  // for close and esc
