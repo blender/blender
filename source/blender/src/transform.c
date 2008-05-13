@@ -243,6 +243,41 @@ float InputVerticalAbsolute(TransInfo *t, short mval[2]) {
 	return Inpf(t->viewinv[1], vec) * 2.0f;
 }
 
+float InputDeltaAngle(TransInfo *t, short mval[2])
+{
+	double dx2 = t->center2d[0] - mval[0];
+	double dy2 = t->center2d[1] - mval[1];
+	double B = sqrt(dx2*dx2+dy2*dy2);
+
+	double dx1 = t->center2d[0] - t->imval[0];
+	double dy1 = t->center2d[1] - t->imval[1];
+	double A = sqrt(dx1*dx1+dy1*dy1);
+
+	double dx3 = mval[0] - t->imval[0];
+	double dy3 = mval[1] - t->imval[1];
+
+	/* use doubles here, to make sure a "1.0" (no rotation) doesnt become 9.999999e-01, which gives 0.02 for acos */
+	double deler = ((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3))
+		/ (2.0 * (A*B?A*B:1.0));
+	/* (A*B?A*B:1.0f) this takes care of potential divide by zero errors */
+
+	float dphi;
+	
+	dphi = saacos((float)deler);
+	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
+	
+	if(t->flag & T_SHIFT_MOD) dphi = dphi/30.0f;
+	
+	/* if no delta angle, don't update initial position */
+	if (dphi != 0)
+	{
+		t->imval[0] = mval[0];
+		t->imval[1] = mval[1];
+	}
+	
+	return dphi;
+}
+
 /* ************************** SPACE DEPENDANT CODE **************************** */
 
 void setTransformViewMatrices(TransInfo *t)
@@ -2584,23 +2619,6 @@ int Rotation(TransInfo *t, short mval[2])
 
 	float final;
 
-	double dx2 = t->center2d[0] - mval[0];
-	double dy2 = t->center2d[1] - mval[1];
-	double B = sqrt(dx2*dx2+dy2*dy2);
-
-	double dx1 = t->center2d[0] - t->imval[0];
-	double dy1 = t->center2d[1] - t->imval[1];
-	double A = sqrt(dx1*dx1+dy1*dy1);
-
-	double dx3 = mval[0] - t->imval[0];
-	double dy3 = mval[1] - t->imval[1];
-		/* use doubles here, to make sure a "1.0" (no rotation) doesnt become 9.999999e-01, which gives 0.02 for acos */
-	double deler= ((double)((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3) ))
-		/ (2.0 * (A*B?A*B:1.0));
-	/* (A*B?A*B:1.0f) this takes care of potential divide by zero errors */
-
-	float dphi;
-
 	float axis[3];
 	float mat[3][3];
 
@@ -2608,28 +2626,13 @@ int Rotation(TransInfo *t, short mval[2])
 	VecMulf(axis, -1.0f);
 	Normalize(axis);
 
-	dphi = saacos((float)deler);
-	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
-
-	if(t->flag & T_SHIFT_MOD) t->fac += dphi/30.0f;
-	else t->fac += dphi;
-
-	/*
-	clamping angle between -2 PI and 2 PI (not sure if useful so commented out - theeth)
-	if (t->fac >= 2 * M_PI)
-		t->fac -= 2 * M_PI;
-	else if (t->fac <= -2 * M_PI)
-		t->fac -= -2 * M_PI;
-	*/
+	t->fac += InputDeltaAngle(t, mval);
 
 	final = t->fac;
 
 	applyNDofInput(&t->ndof, &final);
 	
 	snapGrid(t, &final);
-
-	t->imval[0] = mval[0];
-	t->imval[1] = mval[1];
 
 	if (t->con.applyRot) {
 		t->con.applyRot(t, NULL, axis);
@@ -3097,36 +3100,13 @@ int Tilt(TransInfo *t, short mval[2])
 
 	float final;
 
-	double dx2 = t->center2d[0] - mval[0];
-	double dy2 = t->center2d[1] - mval[1];
-	double B = (float)sqrt(dx2*dx2+dy2*dy2);
-
-	double dx1 = t->center2d[0] - t->imval[0];
-	double dy1 = t->center2d[1] - t->imval[1];
-	double A = (float)sqrt(dx1*dx1+dy1*dy1);
-
-	double dx3 = mval[0] - t->imval[0];
-	double dy3 = mval[1] - t->imval[1];
-
-	double deler= ((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3))
-		/ (2 * A * B);
-
-	float dphi;
-
-	dphi = saacos((float)deler);
-	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
-
-	if(G.qual & LR_SHIFTKEY) t->fac += dphi/30.0f;
-	else t->fac += dphi;
+	t->fac += InputDeltaAngle(t, mval);
 
 	final = t->fac;
 	
 	applyNDofInput(&t->ndof, &final);
 
 	snapGrid(t, &final);
-
-	t->imval[0] = mval[0];
-	t->imval[1] = mval[1];
 
 	if (hasNumInput(&t->num)) {
 		char c[20];
@@ -3899,35 +3879,11 @@ int BoneRoll(TransInfo *t, short mval[2])
 
 	float final;
 
-	double dx2 = t->center2d[0] - mval[0];
-	double dy2 = t->center2d[1] - mval[1];
-	double B = sqrt(dx2*dx2+dy2*dy2);
-
-	double dx1 = t->center2d[0] - t->imval[0];
-	double dy1 = t->center2d[1] - t->imval[1];
-	double A = sqrt(dx1*dx1+dy1*dy1);
-
-	double dx3 = mval[0] - t->imval[0];
-	double dy3 = mval[1] - t->imval[1];
-		/* use doubles here, to make sure a "1.0" (no rotation) doesnt become 9.999999e-01, which gives 0.02 for acos */
-	double deler= ((double)((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3) ))
-		/ (2.0 * (A*B?A*B:1.0));
-	/* (A*B?A*B:1.0f) this takes care of potential divide by zero errors */
-
-	float dphi;
-	
-	dphi = saacos((float)deler);
-	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
-
-	if(G.qual & LR_SHIFTKEY) t->fac += dphi/30.0f;
-	else t->fac += dphi;
+	t->fac += InputDeltaAngle(t, mval);
 
 	final = t->fac;
 
 	snapGrid(t, &final);
-
-	t->imval[0] = mval[0];
-	t->imval[1] = mval[1];
 
 	if (hasNumInput(&t->num)) {
 		char c[20];
