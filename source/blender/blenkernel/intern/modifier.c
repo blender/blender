@@ -5417,7 +5417,7 @@ static void collisionModifier_deformVerts(
 				else
 				{
 					// recalc static bounding boxes
-					bvhtree_update_from_mvert ( collmd->bvhtree, collmd->mfaces, collmd->numfaces, collmd->current_x, NULL, collmd->numverts, 0 );
+					bvhtree_update_from_mvert ( collmd->bvhtree, collmd->mfaces, collmd->numfaces, collmd->current_x, collmd->current_xnew, collmd->numverts, 1 );
 				}
 				
 				collmd->time = current_time;

@@ -47,6 +47,8 @@
 
 #include "BLI_kdopbvh.h"
 
+#include <time.h>
+
 #ifdef _WIN32
 void tstart ( void )
 {}
@@ -77,6 +79,40 @@ double tval()
 	return t2-t1;
 }
 #endif
+
+
+/* Util macros */
+#define TO_STR(a)	#a
+#define JOIN(a,b)	a##b
+
+/* Benchmark macros */
+#if 1
+
+#define BENCH(a)	\
+	do {			\
+		clock_t _clock_init = clock();	\
+		(a);							\
+		printf("%s: %fms\n", #a, (float)(clock()-_clock_init)*1000/CLOCKS_PER_SEC);	\
+} while(0)
+
+#define BENCH_VAR(name)		clock_t JOIN(_bench_step,name) = 0, JOIN(_bench_total,name) = 0
+#define BENCH_BEGIN(name)	JOIN(_bench_step, name) = clock()
+#define BENCH_END(name)		JOIN(_bench_total,name) += clock() - JOIN(_bench_step,name)
+#define BENCH_RESET(name)	JOIN(_bench_total, name) = 0
+#define BENCH_REPORT(name)	printf("%s: %fms\n", TO_STR(name), JOIN(_bench_total,name)*1000.0f/CLOCKS_PER_SEC)
+
+#else
+
+#define BENCH(a)	(a)
+#define BENCH_VAR(name)
+#define BENCH_BEGIN(name)
+#define BENCH_END(name)
+#define BENCH_RESET(name)
+#define BENCH_REPORT(name)
+
+#endif
+
+
 
 /* Our available solvers. */
 // 255 is the magic reserved number, so NEVER try to put 255 solvers in here!
@@ -178,7 +214,7 @@ BVHTree *bvhtree_build_from_cloth (ClothModifierData *clmd, float epsilon)
 		return NULL;
 	
 	// create quadtree with k=26
-	bvhtree = BLI_bvhtree_new(cloth->numfaces, epsilon, 4, 26);
+	bvhtree = BLI_bvhtree_new(cloth->numfaces, epsilon, 8, 6);
 	
 	// fill tree
 	for(i = 0; i < cloth->numfaces; i++, mfaces++)
@@ -866,7 +902,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	if(!first)
 		implicit_set_positions(clmd);
 
-	clmd->clothObject->bvhtree = bvhtree_build_from_cloth ( clmd, clmd->coll_parms->epsilon );
+	BENCH(clmd->clothObject->bvhtree = bvhtree_build_from_cloth ( clmd, clmd->coll_parms->epsilon ));
 	
 	return 1;
 }

@@ -46,6 +46,41 @@
 #include <omp.h>
 #endif
 
+#include <time.h>
+
+/* Util macros */
+#define TO_STR(a)	#a
+#define JOIN(a,b)	a##b
+
+/* Benchmark macros */
+#if 1
+
+#define BENCH(a)	\
+	do {			\
+		clock_t _clock_init = clock();	\
+		(a);							\
+		printf("%s: %fms\n", #a, (float)(clock()-_clock_init)*1000/CLOCKS_PER_SEC);	\
+} while(0)
+
+#define BENCH_VAR(name)		clock_t JOIN(_bench_step,name) = 0, JOIN(_bench_total,name) = 0
+#define BENCH_BEGIN(name)	JOIN(_bench_step, name) = clock()
+#define BENCH_END(name)		JOIN(_bench_total,name) += clock() - JOIN(_bench_step,name)
+#define BENCH_RESET(name)	JOIN(_bench_total, name) = 0
+#define BENCH_REPORT(name)	printf("%s: %fms\n", TO_STR(name), JOIN(_bench_total,name)*1000.0f/CLOCKS_PER_SEC)
+
+#else
+
+#define BENCH(a)	(a)
+#define BENCH_VAR(name)
+#define BENCH_BEGIN(name)
+#define BENCH_END(name)
+#define BENCH_RESET(name)
+#define BENCH_REPORT(name)
+
+#endif
+
+
+
 typedef struct BVHNode
 {
 	struct BVHNode *children[8]; // max 8 children
@@ -61,7 +96,7 @@ struct BVHTree
 {
 	BVHNode **nodes;
 	BVHNode *nodearray; /* pre-alloc branch nodes */
-	float 	epsilon; /* epslion is used for inflation of the k-dop	   */
+	float 	epsilon; /* epsilon is used for inflation of the k-dop	   */
 	int 	totleaf; // leafs
 	int 	totbranch;
 	char 	tree_type; // type of tree (4 => quadtree)
