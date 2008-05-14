@@ -368,7 +368,15 @@ public:
 	{ 
 		return m_bDyna; 
 	}
-	
+
+	/**
+	 * Check if this object has a vertex parent relationship
+	 */
+	bool IsVertexParent( )
+	{
+		return (m_pSGNode && m_pSGNode->GetSGParent() && m_pSGNode->GetSGParent()->IsVertexParent());
+	}
+
 	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
 
 
