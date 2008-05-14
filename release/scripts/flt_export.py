@@ -639,20 +639,37 @@ class FLTNode(Node):
 		#first pass: do open faces
 		for vert in wireverts:
 			if not visited[vert] and vertuse[vert.index][1] == 1:
-				visited[vert] = True
-				loop = [vert]
-				othervert = edge_get_othervert(vert, disk[vert][0])
-				self.vertwalk(othervert, loop, disk, visited)
+				loop = list()
+				done = 0
+				startvert = vert
+				while not done:
+					done = 1
+					visited[startvert] = True
+					loop.append(startvert)
+					for edge in disk[startvert]:
+						othervert = edge_get_othervert(startvert, edge)
+						if not visited[othervert]:
+							done = 0
+							startvert = othervert
+							break
 				if len(loop) > 2: loops.append( ('Open', loop) )
-
 		for vert in wireverts:
 			if not visited[vert]:
-				visited[vert] = True
-				loop = [vert]
-				othervert = edge_get_othervert(vert,disk[vert][0])
-				self.vertwalk(othervert, loop, disk, visited)
+				loop = list()
+				done = 0
+				startvert = vert
+				while not done:
+					done = 1
+					visited[startvert] = True
+					loop.append(startvert)
+					for edge in disk[startvert]:
+						othervert = edge_get_othervert(startvert,edge)
+						if not visited[othervert]:
+							done = 0
+							startvert = othervert
+							break
 				if len(loop) > 2: loops.append( ('closed', loop) )
-				
+		
 		#now go through the loops and append.
 		for l in loops:
 			(ftype, loop) = l
@@ -665,6 +682,8 @@ class FLTNode(Node):
 					face_desc.renderstyle = 3
 				face_desc.color_index = 227
 			self.face_lst.append(face_desc)
+
+
 
 	def sortFLTFaces(self,a,b):
 		aindex = a.getProperty("FLT_ORIGINDEX")
