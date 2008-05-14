@@ -47,6 +47,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_kdtree.h"
+#include "BLI_kdopbvh.h"
 
 #include "RE_raytrace.h"
 #include "MEM_guardedalloc.h"
@@ -785,29 +786,45 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	KDTreeNearest nearest;
 	float tmp_co[3];
 
+	BVHTree *tree	= NULL;
+
 	BENCH_VAR(build);
 	BENCH_VAR(query);
 
 	int	numVerts;
-	MVert *vert = NULL;
+	MVert *vert = NULL, *tvert = NULL;
 	MDeformVert *dvert = NULL;
 
-	//Generate kd-tree with target vertexs
+	numVerts= calc->target->getNumVerts(calc->target);
+	vert = tvert	= calc->target->getVertDataArray(calc->target, CD_MVERT);	
+
+	BENCH_RESET(build);
 	BENCH_BEGIN(build);
 
-	target = BLI_kdtree_new(calc->target->getNumVerts(calc->target));
+	tree = BLI_bvhtree_new(numVerts, 0, 8, 6);
+	if(tree == NULL) return OUT_OF_MEMORY();
+
+	for(i = 0; i < numVerts; i++)
+		BLI_bvhtree_insert(tree, i, vert[i].co, 1);
+	BLI_bvhtree_balance(tree);
+	BENCH_END(build);
+	BENCH_REPORT(build);
+
+
+	//Generate kd-tree with target vertexs
+	BENCH_RESET(build);
+	BENCH_BEGIN(build);
+
+	target = BLI_kdtree_new(numVerts);
 	if(target == NULL) return OUT_OF_MEMORY();
 
-	numVerts= calc->target->getNumVerts(calc->target);
-	vert	= calc->target->getVertDataArray(calc->target, CD_MVERT);	
-
-
-	for( ;numVerts--; vert++)
-		BLI_kdtree_insert(target, 0, vert->co, NULL);
+	for(i = 0; i < numVerts; i++)
+		BLI_kdtree_insert(target, 0, vert[i].co, NULL);
 
 	BLI_kdtree_balance(target);
 
 	BENCH_END(build);
+	BENCH_REPORT(build);
 
 
 	//Find the nearest vertex 
@@ -815,17 +832,27 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	vert	= calc->final->getVertDataArray(calc->final, CD_MVERT);	
 	dvert	= calc->final->getVertDataArray(calc->final, CD_MDEFORMVERT);
 
+	BENCH_BEGIN(query);
 	for(i=0; i<numVerts; i++)
 	{
-		int t;
+		int t, index;
 		float weight = vertexgroup_get_weight(dvert, i, vgroup);
 		if(weight == 0.0f) continue;
 
-		VecMat4MulVecfl(tmp_co, calc->local2target, vert[i].co);
+/*		VecMat4MulVecfl(tmp_co, calc->local2target, vert[i].co);
 
-		BENCH_BEGIN(query);
+		index = BLI_bvhtree_find_nearest(tree, tmp_co);
+		if(index != -1)
+		{
+			float dist;
+			VecMat4MulVecfl(tmp_co, calc->target2local, tvert[index].co);
+			dist = VecLenf(vert[i].co, tmp_co);
+			if(dist > 1e-5) weight *= (dist - calc->keptDist)/dist;
+			VecLerpf(vert[i].co, vert[i].co, nearest.co, weight);	//linear interpolation
+		}
+
+	*/	
 		t = BLI_kdtree_find_nearest(target, tmp_co, 0, &nearest);
-		BENCH_END(query);
 
 		if(t != -1)
 		{
@@ -836,15 +863,13 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 			if(dist > 1e-5) weight *= (dist - calc->keptDist)/dist;
 			VecLerpf(vert[i].co, vert[i].co, nearest.co, weight);	//linear interpolation
 		}
+		
 	}
-
-	BENCH_BEGIN(build);
-	BLI_kdtree_free(target);
-	BENCH_END(build);
-
-
-	BENCH_REPORT(build);
+	BENCH_END(query);
 	BENCH_REPORT(query);
+
+	BLI_kdtree_free(target);
+	BLI_bvhtree_free(tree);
 }
 
 /*
