@@ -128,6 +128,9 @@ static void do_nla_viewmenu(void *arg, int event)
 	case 9: /* Clear Preview Range */
 		anim_previewrange_clear();
 		break;
+	case 10: /* AutoMerge Keyframes */
+		G.snla->flag ^= SNLA_NOTRANSKEYCULL;
+		break;
 	}
 }
 
@@ -148,6 +151,9 @@ static uiBlock *nla_viewmenu(void *arg_unused)
 	} else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Seconds|Ctrl T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	}
+	
+	uiDefIconTextBut(block, BUTM, 1, (G.snla->flag & SNLA_NOTRANSKEYCULL)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
+					 "AutoMerge Keyframes|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 		
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		

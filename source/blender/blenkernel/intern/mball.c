@@ -375,7 +375,7 @@ Object *find_basis_mball(Object *basis)
 #define RTF	7  /* right top far corner     */
 
 /* the LBN corner of cube (i, j, k), corresponds with location
- * (start.x+(i-0.5)*size, start.y+(j-0.5)*size, start.z+(k-0.5)*size) */
+ * (i-0.5)*size, (j-0.5)*size, (k-0.5)*size) */
 
 #define HASHBIT	    (5)
 #define HASHSIZE    (size_t)(1<<(3*HASHBIT))   /*! < hash table size (32768) */
@@ -836,11 +836,11 @@ CORNER *setcorner (PROCESS* p, int i, int j, int k)
 	c = (CORNER *) new_pgn_element(sizeof(CORNER));
 
 	c->i = i; 
-	c->x = p->start.x+((float)i-0.5f)*p->size;
+	c->x = ((float)i-0.5f)*p->size;
 	c->j = j; 
-	c->y = p->start.y+((float)j-0.5f)*p->size;
+	c->y = ((float)j-0.5f)*p->size;
 	c->k = k; 
-	c->z = p->start.z+((float)k-0.5f)*p->size;
+	c->z = ((float)k-0.5f)*p->size;
 	c->value = p->function(c->x, c->y, c->z);
 	
 	c->next = p->corners[index];
@@ -1393,7 +1393,7 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 							c_i= (int)floor(workp.x/mbproc->size);
 							c_j= (int)floor(workp.y/mbproc->size);
 							c_k= (int)floor(workp.z/mbproc->size);
-
+							
 							/* add CUBE (with indexes c_i, c_j, c_k) to the stack,
 							 * this cube includes found point of Implicit Surface */
 							if (ml->flag & MB_NEGATIVE)
@@ -1403,10 +1403,8 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 						}
 						len = sqrt((workp.x-in.x)*(workp.x-in.x) + (workp.y-in.y)*(workp.y-in.y) + (workp.z-in.z)*(workp.z-in.z));
 						workp_v = tmp_v;
+
 					}
-						
-					mbproc->start.x= mbproc->start.y= mbproc->start.z= 0.0;
-					
 				}
 			}
 		}

@@ -96,7 +96,7 @@ static ThemeWireColor *bcolor= NULL;
 /* values of colCode for set_pchan_glcolor */
 enum {
 	PCHAN_COLOR_NORMAL	= 0, 		/* normal drawing */
-	PCHAN_COLOR_SOLID,				/* specific case where "solid" colour is needed */
+	PCHAN_COLOR_SOLID,				/* specific case where "solid" color is needed */
 	PCHAN_COLOR_CONSTS,				/* "constraint" colors (which may/may-not be suppressed) */
 	
 	PCHAN_COLOR_SPHEREBONE_BASE,	/* for the 'stick' of sphere (envelope) bones */
@@ -1186,7 +1186,7 @@ static void draw_b_bone(int dt, int armflag, int boneflag, int constflag, unsign
 		/* wire */
 		if (armflag & ARM_POSEMODE) {
 			if (constflag) {
-				/* set constraint colours */
+				/* set constraint colors */
 				if (set_pchan_glColor(PCHAN_COLOR_CONSTS, armflag, boneflag, constflag)) {
 					glEnable(GL_BLEND);
 					
@@ -1645,7 +1645,7 @@ static void draw_pose_channels(Base *base, int dt)
 							glPushMatrix();
 							glMultMatrixf(pchan->pose_mat);
 							
-							/* prepare colours */
+							/* prepare colors */
 							if (arm->flag & ARM_POSEMODE)	
 								set_pchan_colorset(ob, pchan);
 							else {
@@ -2090,7 +2090,7 @@ static void draw_pose_paths(Object *ob)
 				for (a=0, fp=fp_start; a<len; a++, fp+=3) {
 					float intensity; /* how faint */
 					
-					/* set colour
+					/* set color
 					 * 	- more intense for active/selected bones, less intense for unselected bones
 					 * 	- black for before current frame, green for current frame, blue for after current frame
 					 * 	- intensity decreases as distance from current frame increases
@@ -2131,7 +2131,7 @@ static void draw_pose_paths(Object *ob)
 						BIF_ThemeColorBlendShade(TH_CFRAME, TH_BACK, intensity, 10);
 					}	
 					
-					/* draw a vertex with this colour */ 
+					/* draw a vertex with this color */ 
 					glVertex3fv(fp);
 				}
 				

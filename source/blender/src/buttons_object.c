@@ -3038,15 +3038,35 @@ void do_effects_panels(unsigned short event)
 	case B_PART_INIT_CHILD:
 	case B_PART_RECALC_CHILD:
 		if(psys) {
+			Base *base;
+			Object *bob;
+			ParticleSystem *bpsys;
+			int flush;
+
 			nr=0;
-			for(psys=ob->particlesystem.first; psys; psys=psys->next){
-				if(ELEM(psys->part->draw_as,PART_DRAW_OB,PART_DRAW_GR))
+			for(bpsys=ob->particlesystem.first; bpsys; bpsys=bpsys->next){
+				if(ELEM(bpsys->part->draw_as,PART_DRAW_OB,PART_DRAW_GR))
 					nr++;
 			}
 			if(nr)
 				ob->transflag |= OB_DUPLIPARTS;
 			else
 				ob->transflag &= ~OB_DUPLIPARTS;
+
+			if(psys->part->type==PART_REACTOR)
+				if(psys->target_ob)
+					DAG_object_flush_update(G.scene, psys->target_ob, OB_RECALC_DATA);
+
+			for(base = G.scene->base.first; base; base= base->next) {
+				bob= base->object;
+				flush= 0;
+				for(bpsys=bob->particlesystem.first; bpsys; bpsys=bpsys->next)
+					if(bpsys->part==psys->part)
+						flush= 1;
+
+				if(flush)
+					DAG_object_flush_update(G.scene, bob, OB_RECALC_DATA);
+			}
 
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);

@@ -80,7 +80,7 @@ Example::
 
 @type ExtendModes: readonly dictionary
 @var ExtendModes: Extend, clip, repeat or checker modes for image textures
-		- EXTEND - Extends the colour of the edge
+		- EXTEND - Extends the color of the edge
 		- CLIP - Return alpha 0.0 outside image
 		- CLIPCUBE - Return alpha 0.0 around cube-shaped area around image
 		- REPEAT - Repeat image vertically and horizontally
@@ -209,10 +209,10 @@ Example::
 @type TexCo: readonly dictionary
 
 @var MapTo: Flags for MTex.mapto.
-		- COL - Make the texture affect the basic colour of the material
+		- COL - Make the texture affect the basic color of the material
 		- NOR - Make the texture affect the rendered normal
-		- CSP - Make the texture affect the specularity colour
-		- CMIR - Make the texture affect the mirror colour
+		- CSP - Make the texture affect the specularity color
+		- CMIR - Make the texture affect the mirror color
 		- REF - Make the texture affect the diffuse reflectivity value
 		- SPEC - Make the texture affect the specularity value
 		- HARD - Make the texture affect the hardness value

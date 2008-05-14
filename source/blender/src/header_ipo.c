@@ -751,6 +751,9 @@ static void do_ipo_viewmenu(void *arg, int event)
 	case 14: /* Clear Preview Range */
 		anim_previewrange_clear();
 		break;
+	case 15: /* AutoMerge Keyframes */
+		G.sipo->flag ^= SIPO_NOTRANSKEYCULL;
+		break;
 	}
 }
 
@@ -771,6 +774,9 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Show Keys|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	else
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Show Keys|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, (G.sipo->flag & SIPO_NOTRANSKEYCULL)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
+					 "AutoMerge Keyframes|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 

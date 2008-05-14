@@ -311,6 +311,8 @@ static void renderwin_draw_render_info(RenderWin *rw)
 
 static void renderwin_draw(RenderWin *rw, int just_clear)
 {
+	Image *ima;
+	ImBuf *ibuf;
 	float fullrect[2][2];
 	int set_back_mainwindow;
 	rcti rect;
@@ -340,50 +342,45 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 		glColor3ub(0, 0, 0);
 		glRectfv(fullrect[0], fullrect[1]);
 	} else {
-		RenderResult rres;
 		RenderSpare *rspare= render_spare;
 		
 		if(rspare && rspare->showspare) {
-			if(rspare->ibuf) {
-				rres.rectx= rspare->ibuf->x;
-				rres.recty= rspare->ibuf->y;
-				rres.rect32= (int *)rspare->ibuf->rect;
-				rres.rectf= rspare->ibuf->rect_float;
-				rres.rectz= rspare->ibuf->zbuf_float;
-			}
-			else
-				memset(&rres, 0, sizeof(rres));
+			ibuf= rspare->ibuf;
 		}
-		else
-			RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
+		else {
+			ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
+			ibuf= BKE_image_get_ibuf(ima, NULL);
+		}
 		
-		if(rres.rectf || rres.rect32) {
+		if(ibuf) {
+			if(!ibuf->rect)
+				IMB_rect_from_float(ibuf);
 			
 			glPixelZoom(rw->zoom, rw->zoom);
 			if(rw->flags & RW_FLAGS_ALPHA) {
-				if(rres.rect32) {
+				if(ibuf->rect) {
 					/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
 					if(G.order==B_ENDIAN)
 						glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
-					glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rres.rectx, rres.recty, rres.rectx, GL_LUMINANCE, GL_UNSIGNED_INT, rres.rect32);
+					glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], ibuf->x, ibuf->y, ibuf->x, GL_LUMINANCE, GL_UNSIGNED_INT, ibuf->rect);
 					glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
 				}
 				else {
-					float *trectf= MEM_mallocN(rres.rectx*rres.recty*4, "temp");
+					float *trectf= MEM_mallocN(ibuf->x*ibuf->y*4, "temp");
 					int a, b;
 					
-					for(a= rres.rectx*rres.recty -1, b= 4*a+3; a>=0; a--, b-=4)
-						trectf[a]= rres.rectf[b];
+					for(a= ibuf->x*ibuf->y -1, b= 4*a+3; a>=0; a--, b-=4)
+						trectf[a]= ibuf->rect_float[b];
 					
-					glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rres.rectx, rres.recty, rres.rectx, GL_LUMINANCE, GL_FLOAT, trectf);
+					glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], ibuf->x, ibuf->y, ibuf->x, GL_LUMINANCE, GL_FLOAT, trectf);
 					MEM_freeN(trectf);
 				}
 			}
 			else {
-				if(rres.rect32)
-					glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rres.rectx, rres.recty, rres.rectx, GL_RGBA, GL_UNSIGNED_BYTE, rres.rect32);
-				else if(rres.rectf)
-					glaDrawPixelsSafe_to32(fullrect[0][0], fullrect[0][1], rres.rectx, rres.recty, rres.rectx, rres.rectf);
+				if(ibuf->rect)
+					glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+				else if(ibuf->rect_float)
+					glaDrawPixelsSafe_to32(fullrect[0][0], fullrect[0][1], ibuf->x, ibuf->y, ibuf->x, ibuf->rect_float);
 			}
 			glPixelZoom(1.0, 1.0);
 		}
@@ -431,22 +428,20 @@ static void renderwin_zoom(RenderWin *rw, int ZoomIn) {
 
 static void renderwin_mouse_moved(RenderWin *rw)
 {
-	RenderResult rres;
+	Image *ima;
+	ImBuf *ibuf;
 	RenderSpare *rspare= render_spare;
 		
 	if(rspare && rspare->showspare) {
-		if(rspare->ibuf) {
-			rres.rectx= rspare->ibuf->x;
-			rres.recty= rspare->ibuf->y;
-			rres.rect32= (int *)rspare->ibuf->rect;
-			rres.rectf= rspare->ibuf->rect_float;
-			rres.rectz= rspare->ibuf->zbuf_float;
-		}
-		else
-			memset(&rres, 0, sizeof(rres));
+		ibuf= rspare->ibuf;
 	}
-	else
-		RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
+	else {
+		ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
+		ibuf= BKE_image_get_ibuf(ima, NULL);
+	}
+
+	if(!ibuf)
+		return;
 
 	if (rw->flags & RW_FLAGS_PIXEL_EXAMINING) {
 		int imgco[2], ofs=0;
@@ -455,19 +450,19 @@ static void renderwin_mouse_moved(RenderWin *rw)
 
 		if (renderwin_win_to_image_co(rw, rw->lmouse, imgco)) {
 			ofs= sprintf(buf, "X: %d Y: %d ", imgco[0], imgco[1]);
-			if (rres.rect32) {
-				pxl= (char*) &rres.rect32[rres.rectx*imgco[1] + imgco[0]];
+			if (ibuf->rect) {
+				pxl= (char*) &ibuf->rect[ibuf->x*imgco[1] + imgco[0]];
 				ofs+= sprintf(buf+ofs, " | R: %d G: %d B: %d A: %d", pxl[0], pxl[1], pxl[2], pxl[3]);	
 			}
-			if (rres.rectf) {
-				float *pxlf= rres.rectf + 4*(rres.rectx*imgco[1] + imgco[0]);
-				if(!rres.rect32){
+			if (ibuf->rect_float) {
+				float *pxlf= ibuf->rect_float + 4*(ibuf->x*imgco[1] + imgco[0]);
+				if(!ibuf->rect) {
 					ofs+= sprintf(buf+ofs, " | R: %d G: %d B: %d A: %d", FTOCHAR(pxlf[0]), FTOCHAR(pxlf[1]), FTOCHAR(pxlf[2]), FTOCHAR(pxlf[3]));
 				}
 				ofs+= sprintf(buf+ofs, " | R: %.3f G: %.3f B: %.3f A: %.3f ", pxlf[0], pxlf[1], pxlf[2], pxlf[3]);
 			}
-			if (rres.rectz) {
-				float *pxlz= &rres.rectz[rres.rectx*imgco[1] + imgco[0]];			
+			if (ibuf->zbuf_float) {
+				float *pxlz= &ibuf->zbuf_float[ibuf->x*imgco[1] + imgco[0]];			
 				sprintf(buf+ofs, "| Z: %.3f", *pxlz );
 			}
 
@@ -484,8 +479,8 @@ static void renderwin_mouse_moved(RenderWin *rw)
 	
 		rw->zoomofs[0]= rw->pan_ofs_start[0] - delta_x/rw->zoom;
 		rw->zoomofs[1]= rw->pan_ofs_start[1] - delta_y/rw->zoom;
-		rw->zoomofs[0]= CLAMPIS(rw->zoomofs[0], -rres.rectx/2, rres.rectx/2);
-		rw->zoomofs[1]= CLAMPIS(rw->zoomofs[1], -rres.recty/2, rres.recty/2);
+		rw->zoomofs[0]= CLAMPIS(rw->zoomofs[0], -ibuf->x/2, ibuf->x/2);
+		rw->zoomofs[1]= CLAMPIS(rw->zoomofs[1], -ibuf->y/2, ibuf->y/2);
 
 		renderwin_queue_redraw(rw);
 	} 
@@ -497,8 +492,8 @@ static void renderwin_mouse_moved(RenderWin *rw)
 		h-= RW_HEADERY;
 		renderwin_win_to_ndc(rw, rw->lmouse, ndc);
 
-		rw->zoomofs[0]= -0.5*ndc[0]*(w-rres.rectx*rw->zoom)/rw->zoom;
-		rw->zoomofs[1]= -0.5*ndc[1]*(h-rres.recty*rw->zoom)/rw->zoom;
+		rw->zoomofs[0]= -0.5*ndc[0]*(w-ibuf->x*rw->zoom)/rw->zoom;
+		rw->zoomofs[1]= -0.5*ndc[1]*(h-ibuf->y*rw->zoom)/rw->zoom;
 
 		renderwin_queue_redraw(rw);
 	}
@@ -1186,6 +1181,7 @@ static int render_store_spare(void)
 	RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
 
 	rspare->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, 0, 0);
+	rspare->ibuf->dither= G.scene->r.dither_intensity;
 	
 	if(rres.rect32) {
 		rspare->ibuf->rect= MEM_dupallocN(rres.rect32);
@@ -1291,6 +1287,8 @@ void BIF_do_render(int anim)
 		allqueue(REDRAWNODE, 1);
 		allqueue(REDRAWIMAGE, 1);
 	}
+	if(G.scene->r.dither_intensity != 0.0f)
+		BIF_redraw_render_rect();
 	if (slink_flag) G.f |= G_DOSCRIPTLINKS;
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_POSTRENDER);
 }

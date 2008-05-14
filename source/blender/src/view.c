@@ -2111,7 +2111,7 @@ void smooth_view(View3D *v3d, float *ofs, float *quat, float *dist, float *lens)
 				changed = 1;
 		}
 		
-		/* The new view is different from teh old one
+		/* The new view is different from the old one
 		 * so animate the view */
 		if (changed) {
 			

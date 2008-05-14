@@ -1835,7 +1835,7 @@ static uiBlock *view3d_transformmenu(void *arg_unused)
 	if (!G.obedit) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center New",             0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center Cursor",          0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align to Transform Orientation", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 21, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align to Transform Orientation|Ctrl Alt A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 21, "");
 	}
 	
 	if (BIF_snappingSupported())
@@ -5639,6 +5639,10 @@ void view3d_buttons(void)
 				xco+= XIC;
 			}
 			
+			if (G.vd->twmode > (BIF_countTransformOrientation() - 1) + V3D_MANIP_CUSTOM) {
+				G.vd->twmode = 0;
+			}
+			
 			str_menu = BIF_menustringTransformOrientation("Orientation");
 			uiDefButS(block, MENU, B_MAN_MODE, str_menu,xco,0,70,YIC, &G.vd->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
 			MEM_freeN(str_menu);
@@ -5723,11 +5727,11 @@ void view3d_buttons(void)
 		}
 		else if(G.f & G_PARTICLEEDIT) {
 			uiBlockBeginAlign(block);
-			uiDefIconButBitS(block, TOG, SCE_SELECT_PATH, B_SEL_PATH, ICON_EDGESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Path edit mode (Ctrl Tab 1)");
+			uiDefIconButBitS(block, TOG, SCE_SELECT_PATH, B_SEL_PATH, ICON_EDGESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Path edit mode");
 			xco+= XIC;
-			uiDefIconButBitS(block, TOG, SCE_SELECT_POINT, B_SEL_POINT, ICON_VERTEXSEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Point select mode (Ctrl Tab 2)");
+			uiDefIconButBitS(block, TOG, SCE_SELECT_POINT, B_SEL_POINT, ICON_VERTEXSEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Point select mode");
 			xco+= XIC;
-			uiDefIconButBitS(block, TOG, SCE_SELECT_END, B_SEL_END, ICON_FACESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Tip select mode (Ctrl Tab 3)");
+			uiDefIconButBitS(block, TOG, SCE_SELECT_END, B_SEL_END, ICON_FACESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Tip select mode");
 			xco+= XIC;
 			uiBlockEndAlign(block);
 			if(G.vd->drawtype > OB_WIRE) {

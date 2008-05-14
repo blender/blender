@@ -5337,7 +5337,7 @@ static void editing_panel_links(Object *ob)
 				uiDefBut(block, BUT, B_POSEGRP_ADD, "Add Group",	xco,110,140,20, 0, 21, 0, 0, 0, "Add a new Bone Group for the Pose");
 			uiBlockEndAlign(block);
 			
-			/* colour set for 'active' group */
+			/* color set for 'active' group */
 			if (pose->active_group && grp) {
 				uiBlockBeginAlign(block);
 					menustr= build_colorsets_menustr();
@@ -5354,7 +5354,7 @@ static void editing_panel_links(Object *ob)
 							memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
 						}
 						else {
-							/* init custom colours with a generic multi-colour rgb set, if not initialised already */
+							/* init custom colors with a generic multi-color rgb set, if not initialised already */
 							if (grp->cs.solid[0] == 0) {
 								/* define for setting colors in theme below */
 								#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
