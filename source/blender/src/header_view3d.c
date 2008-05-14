@@ -5639,6 +5639,10 @@ void view3d_buttons(void)
 				xco+= XIC;
 			}
 			
+			if (G.vd->twmode > (BIF_countTransformOrientation() - 1) + V3D_MANIP_CUSTOM) {
+				G.vd->twmode = 0;
+			}
+			
 			str_menu = BIF_menustringTransformOrientation("Orientation");
 			uiDefButS(block, MENU, B_MAN_MODE, str_menu,xco,0,70,YIC, &G.vd->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
 			MEM_freeN(str_menu);
