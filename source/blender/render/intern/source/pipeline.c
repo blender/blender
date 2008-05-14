@@ -2675,3 +2675,12 @@ void RE_set_max_threads(int threads)
 		printf("Error, threads has to be in range 1-%d\n", BLENDER_MAX_THREADS);
 	}
 }
+
+void RE_init_threadcount(Render *re) 
+{
+	if ((re->r.mode & R_FIXED_THREADS)==0 || commandline_threads == 0) { /* Automatic threads */
+		re->r.threads = BLI_system_thread_count();
+	} else if(commandline_threads >= 1 && commandline_threads<=BLENDER_MAX_THREADS) {
+		re->r.threads= commandline_threads;
+	}
+}
