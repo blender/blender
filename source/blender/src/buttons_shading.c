@@ -3288,7 +3288,7 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
 		but=uiDefButBitS(block, TOG3, MAP_PA_KINK, B_MAT_PARTICLE, "Kink",	70,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the kink of child particles");
 			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
-		but=uiDefButBitS(block, TOG3, MAP_PA_LENGTH, B_MAT_PARTICLE, "Length",130,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the length of particles");
+		but=uiDefButBitS(block, TOG3, MAP_PA_LENGTH, B_MAT_PARTICLE, "Length",130,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the length of child particles");
 			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
 		but=uiDefButBitS(block, TOG3, MAP_PA_CLUMP, B_MAT_PARTICLE, "Clump",	190,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the clump of child particles");
 			//uiButSetFunc(but, particle_recalc_material, ma, NULL);

@@ -1056,6 +1056,7 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->effectors.first= psysn->effectors.last= 0;
 	
 	psysn->pathcachebufs.first = psysn->pathcachebufs.last = NULL;
+	psysn->childcachebufs.first = psysn->childcachebufs.last = NULL;
 	psysn->reactevents.first = psysn->reactevents.last = NULL;
 	psysn->renderdata = NULL;
 	

@@ -5727,11 +5727,11 @@ void view3d_buttons(void)
 		}
 		else if(G.f & G_PARTICLEEDIT) {
 			uiBlockBeginAlign(block);
-			uiDefIconButBitS(block, TOG, SCE_SELECT_PATH, B_SEL_PATH, ICON_EDGESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Path edit mode (Ctrl Tab 1)");
+			uiDefIconButBitS(block, TOG, SCE_SELECT_PATH, B_SEL_PATH, ICON_EDGESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Path edit mode");
 			xco+= XIC;
-			uiDefIconButBitS(block, TOG, SCE_SELECT_POINT, B_SEL_POINT, ICON_VERTEXSEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Point select mode (Ctrl Tab 2)");
+			uiDefIconButBitS(block, TOG, SCE_SELECT_POINT, B_SEL_POINT, ICON_VERTEXSEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Point select mode");
 			xco+= XIC;
-			uiDefIconButBitS(block, TOG, SCE_SELECT_END, B_SEL_END, ICON_FACESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Tip select mode (Ctrl Tab 3)");
+			uiDefIconButBitS(block, TOG, SCE_SELECT_END, B_SEL_END, ICON_FACESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Tip select mode");
 			xco+= XIC;
 			uiBlockEndAlign(block);
 			if(G.vd->drawtype > OB_WIRE) {
