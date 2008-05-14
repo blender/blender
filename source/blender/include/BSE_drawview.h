@@ -59,7 +59,7 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4]
 void draw_depth(struct ScrArea *sa, void *spacedata);
 void view3d_update_depths(struct View3D *v3d);
 
-int update_time(void);
+int update_time(int cfra);
 void calc_viewborder(struct View3D *v3d, struct rctf *viewborder_r);
 void view3d_set_1_to_1_viewborder(struct View3D *v3d);
 

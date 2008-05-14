@@ -1458,7 +1458,7 @@ void mesh_copy_menu(void)
 		
 		eed_act = (EditEdge*)ese->data;
 		
-		ret= pupmenu("Copy Active Edge to Selected%t|Crease%x1|Length%x2");
+		ret= pupmenu("Copy Active Edge to Selected%t|Crease%x1|Bevel Weight%x2|Length%x3");
 		if (ret<1) return;
 		
 		eed_len_act = VecLenf(eed_act->v1->co, eed_act->v2->co);
@@ -1472,8 +1472,16 @@ void mesh_copy_menu(void)
 				}
 			}
 			break;
+		case 2: /* copy bevel weight */
+			for(eed=em->edges.first; eed; eed=eed->next) {
+				if (eed->f & SELECT && eed != eed_act && eed->bweight != eed_act->bweight) {
+					eed->bweight = eed_act->bweight;
+					change = 1;
+				}
+			}
+			break;
 			
-		case 2: /* copy length */
+		case 3: /* copy length */
 			
 			for(eed=em->edges.first; eed; eed=eed->next) {
 				if (eed->f & SELECT && eed != eed_act) {
@@ -2548,6 +2556,10 @@ void hide_mesh(int swap)
 			efa->e2->f1 |= a;
 			efa->e3->f1 |= a;
 			if(efa->e4) efa->e4->f1 |= a;
+			/* When edges are not delt with in their own loop, we need to explicitly re-selct select edges that are joined to unselected faces */
+			if (swap && (G.scene->selectmode == SCE_SELECT_FACE) && (efa->f & SELECT)) {
+				EM_select_face(efa, 1);
+			}
 		}
 	}
 	
@@ -2751,7 +2763,7 @@ void reveal_tface_uv(void)
 			for (efa= em->faces.first; efa; efa= efa->next) {
 				if (!(efa->h) && !(efa->f & SELECT)) {
 					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					efa->f |= SELECT;
+					EM_select_face(efa, 1);
 					tface->flag |= TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4;
 				}
 			}
@@ -3183,12 +3195,14 @@ void select_non_manifold(void)
 	}
 
 	/* select isolated verts */
-	eve= em->verts.first;
-	while(eve) {
-		if (eve->f1 == 0) {
-			if (!eve->h) eve->f |= SELECT;
+	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+		eve= em->verts.first;
+		while(eve) {
+			if (eve->f1 == 0) {
+				if (!eve->h) eve->f |= SELECT;
+			}
+			eve= eve->next;
 		}
-		eve= eve->next;
 	}
 
 	countall();

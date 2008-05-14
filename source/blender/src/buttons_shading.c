@@ -2652,7 +2652,7 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 				uiDefButF(block, NUM,B_LAMPREDRAW,"Soft:",		200,40,100,19,	&la->soft,1.0,100.0, 100, 0, "Sets the size of the shadow sample area");
 			}
 			else {	/* LA_SHADBUF_IRREGULAR */
-				uiDefButF(block, NUM,B_LAMPREDRAW,"Bias:",		100,40,100,19,	&la->bias, 0.01, 5.0, 1, 0, "Sets the shadow map sampling bias");
+				uiDefButF(block, NUM,B_LAMPREDRAW,"Bias:",		100,40,100,19,	&la->bias, 0.001, 5.0, 1, 0, "Sets the shadow map sampling bias");
 			}
 			
 			uiBlockBeginAlign(block);
@@ -3288,7 +3288,7 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
 		but=uiDefButBitS(block, TOG3, MAP_PA_KINK, B_MAT_PARTICLE, "Kink",	70,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the kink of child particles");
 			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
-		but=uiDefButBitS(block, TOG3, MAP_PA_LENGTH, B_MAT_PARTICLE, "Length",130,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the length of particles");
+		but=uiDefButBitS(block, TOG3, MAP_PA_LENGTH, B_MAT_PARTICLE, "Length",130,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the length of child particles");
 			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
 		but=uiDefButBitS(block, TOG3, MAP_PA_CLUMP, B_MAT_PARTICLE, "Clump",	190,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the clump of child particles");
 			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
@@ -3298,10 +3298,10 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 		uiBlockSetCol(block, TH_AUTO);
 	}
 	else {
-		uiDefButBitS(block, TOG, MAP_COL, B_MATPRV, "Col",		10,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic colour of the material");
+		uiDefButBitS(block, TOG, MAP_COL, B_MATPRV, "Col",		10,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic color of the material");
 		uiDefButBitS(block, TOG3, MAP_NORM, B_MATPRV, "Nor",		50,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the rendered normal");
-		uiDefButBitS(block, TOG, MAP_COLSPEC, B_MATPRV, "Csp",		90,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the specularity colour");
-		uiDefButBitS(block, TOG, MAP_COLMIR, B_MATPRV, "Cmir",		130,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the mirror colour");
+		uiDefButBitS(block, TOG, MAP_COLSPEC, B_MATPRV, "Csp",		90,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the specularity color");
+		uiDefButBitS(block, TOG, MAP_COLMIR, B_MATPRV, "Cmir",		130,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the mirror color");
 		uiDefButBitS(block, TOG3, MAP_REF, B_MATPRV, "Ref",		180,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of the materials reflectivity");
 		uiDefButBitS(block, TOG3, MAP_SPEC, B_MATPRV, "Spec",		220,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of specularity");
 		uiDefButBitS(block, TOG3, MAP_AMB, B_MATPRV, "Amb",		270,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of ambient");
@@ -3311,7 +3311,7 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 			uiDefButBitS(block, TOG3, MAP_RAYMIRR, B_MATPRV, "RayMir",	50,160,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the ray-mirror value");
 			uiDefButBitS(block, TOG3, MAP_ALPHA, B_MATPRV, "Alpha",		90,160,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
 			uiDefButBitS(block, TOG3, MAP_EMIT, B_MATPRV, "Emit",		130,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
-			uiDefButBitS(block, TOG3, MAP_TRANSLU, B_MATPRV, "TransLu",		180,160,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the layer blending value");
+			uiDefButBitS(block, TOG3, MAP_TRANSLU, B_MATPRV, "TransLu",		180,160,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the translucency value");
 			if(from_nodes==0)
 				uiDefButBitS(block, TOG3, MAP_DISPLACE, B_MATPRV, "Disp",		220,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
 			uiBlockSetCol(block, TH_BUT_SETTING1);
@@ -3323,7 +3323,7 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 			uiDefButBitS(block, TOG3, MAP_RAYMIRR, B_MATPRV, "RayMir",	60,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the ray-mirror value");
 			uiDefButBitS(block, TOG3, MAP_ALPHA, B_MATPRV, "Alpha",		110,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
 			uiDefButBitS(block, TOG3, MAP_EMIT, B_MATPRV, "Emit",		160,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
-			uiDefButBitS(block, TOG3, MAP_TRANSLU, B_MATPRV, "TransLu",		205,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the layer blending value");
+			uiDefButBitS(block, TOG3, MAP_TRANSLU, B_MATPRV, "TransLu",		205,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the translucency value");
 			if(from_nodes==0)
 				uiDefButBitS(block, TOG3, MAP_DISPLACE, B_MATPRV, "Disp",		265,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
 		}
@@ -3633,7 +3633,7 @@ static void material_panel_tramir(Material *ma)
 	uiDefButF(block, NUMSLI, B_MATPRV, "IOR: ",
 		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->ang), 1.0, 3.0, 100, 2, "Sets angular index of refraction for raytraced refraction");
 	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel: ",
-		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->fresnel_tra), 0.0, 5.0, 10, 2, "Power of Fresnel for mirror reflection");
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->fresnel_tra), 0.0, 5.0, 10, 2, "Power of Fresnel for transparency (Ray or ZTransp)");
 	uiDefButF(block, NUMSLI, B_MATPRV, "Fac: ",
 		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->fresnel_tra_i), 1.0, 5.0, 10, 2, "Blending factor for Fresnel");
 	uiBlockEndAlign(block);
@@ -4164,7 +4164,7 @@ static void material_panel_links(Object *ob, Material *ma)
 	if(ma) uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 	
 	if(ma)
-		uiDefButC(block, TOG, B_MAT_USENODES, "Nodes", xco+5,160,300-xco-5,20, &ma->use_nodes, 0.0f, 0.0f, 0, 0, "");
+		uiDefButC(block, TOG, B_MAT_USENODES, "Nodes", xco+5,160,300-xco-5,20, &ma->use_nodes, 0.0f, 0.0f, 0, 0, "Enables as a Nodes Material");
 				  
 	if(ob->actcol==0) ob->actcol= 1;	/* because of TOG|BIT button */
 	

@@ -5417,6 +5417,9 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 
 	/* renderdata setup and exceptions */
 	re->r= scene->r;
+	
+	RE_init_threadcount(re);
+	
 	re->flag |= R_GLOB_NOPUNOFLIP;
 	re->excludeob= actob;
 	if(type == RE_BAKE_LIGHT)

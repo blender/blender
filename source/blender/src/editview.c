@@ -2764,7 +2764,7 @@ void fly(void)
 			
 			do_screenhandlers(G.curscreen); /* advance the next frame */
 			
-			/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera to teh view */
+			/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera to the view */
 			if (G.vd->persp==V3D_CAMOB) {
 				G.vd->persp= V3D_PERSP; /*set this so setviewmatrixview3d uses the ofs and quat instead of the camera */
 				setviewmatrixview3d();

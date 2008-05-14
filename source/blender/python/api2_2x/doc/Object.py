@@ -641,7 +641,16 @@ class Object:
 	@ivar upAxis: Up axis. Return string 'Y' | 'Y' | 'Z' (readonly)
 	@type upAxis: string
 	"""
-
+	def getParticleSystems():
+		"""
+		Return a list of particle systems linked to this object (see Blender.Particle).
+		"""
+		
+	def newParticleSystem():
+		"""
+		Link a new particle system (see Blender.Particle).
+		"""
+		
 	def buildParts():
 		"""
 		Recomputes the particle system. This method only applies to an Object of

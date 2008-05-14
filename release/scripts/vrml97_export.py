@@ -3,6 +3,9 @@
 Name: 'VRML97 (.wrl)...'
 Blender: 241
 Group: 'Export'
+Submenu: 'All Objects...' all
+Submenu: 'All Objects compressed...' comp
+Submenu: 'Selected Objects...' selected
 Tooltip: 'Export to VRML97 file (.wrl)'
 """
 
@@ -52,7 +55,7 @@ want to export only selected or all relevant objects.
 
 import Blender
 from Blender import Object, Mesh, Lamp, Draw, BGL, \
-	 Image, Text, sys, Mathutils, Registry
+	 Image, Text, sys, Mathutils
 from Blender.Scene import Render
 
 import math
@@ -67,9 +70,8 @@ worldmat = Blender.Texture.Get()
 filename = Blender.Get('filename')
 _safeOverwrite = True
 extension = ''
+ARG=''
 
-# Matrices below are used only when export_rotate_z_to_y.val:
-#
 # Blender is Z up, VRML is Y up, both are right hand coordinate
 # systems, so to go from Blender coords to VRML coords we rotate
 # by 90 degrees around the X axis. In matrix notation, we have a
@@ -631,10 +633,12 @@ class VRML2Export:
 		meshVertexList = me.verts
 
 		for vertex in meshVertexList:
-			vrmlvert = vertex.co
-			if export_rotate_z_to_y.val:
-				vrmlvert = M_blen2vrml * vrmlvert
-			self.writeUnindented("%s %s %s\n " % (vrmlvert[0], vrmlvert[1], vrmlvert[2]))
+			blenvert = Mathutils.Vector(vertex.co)
+			vrmlvert = M_blen2vrml * blenvert
+			self.writeUnindented("%s %s %s\n " % \
+								 (vrmlvert[0], \
+								  vrmlvert[1], \
+								  vrmlvert[2]))
 		self.writeIndented("]\n", -1)
 		self.writeIndented("}\n", -1)
 		self.writeIndented("\n")
@@ -1012,10 +1016,7 @@ class VRML2Export:
 			return
 
 		ob_matrix = Mathutils.Matrix(ob.getMatrix('worldspace'))
-		if export_rotate_z_to_y.val:
-			matrix = M_blen2vrml * ob_matrix * M_vrml2blen
-		else:
-			matrix = ob_matrix
+		matrix = M_blen2vrml * ob_matrix * M_vrml2blen
 		e      = matrix.rotationPart().toEuler()
 
 		v = matrix.translationPart()
@@ -1088,7 +1089,7 @@ class VRML2Export:
 		self.writeFog()
 		self.proto = 0
 		allObj = []
-		if export_selection_only.val:
+		if ARG == 'selected':
 			allObj = list(scene.objects.context)
 		else:
 			allObj = list(scene.objects)
@@ -1097,7 +1098,7 @@ class VRML2Export:
 		for thisObj in allObj:
 			self.writeObject(thisObj)
 
-		if not export_selection_only.val:
+		if ARG != 'selected':
 			self.writeScript()
 		self.cleanup()
 
@@ -1212,58 +1213,26 @@ def select_file(filename):
 	wrlexport=VRML2Export(filename)
 	wrlexport.export(scene, world, worldmat)
 
-#########################################################
-# UI and Registry utilities
-#########################################################
-
-export_selection_only = Draw.Create(0)
-export_rotate_z_to_y = Draw.Create(0)
-export_compressed = Draw.Create(0)
-
-def save_to_registry():
-	d = {}
-	d['selection_only'] = export_selection_only.val
-	d['rotate_z_to_y'] = export_rotate_z_to_y.val
-	d['compressed'] = export_compressed.val
-	Registry.SetKey('vrml97_export', d, True)
-
-def load_from_registry():
-	d = Registry.GetKey('vrml97_export', True)
-	if d:
-		try:
-			export_selection_only.val = d['selection_only']
-			export_rotate_z_to_y.val = d['rotate_z_to_y']
-			export_compressed.val = d['compressed']
-		except: save_to_registry() # If data is not valid, rewrite it.
-
-def show_popup():
-	pup_block = [
-		('Selection Only', export_selection_only, 'Only export objects in visible selection. Else export whole scene.'),
-		('Rotate +Z to +Y', export_rotate_z_to_y, 'Rotate such that +Z axis (Blender up) becomes +Y (VRML up).'),
-		('Compress', export_compressed, 'Generate a .wrz file (normal VRML compressed by gzip).')
-		]
-	return Draw.PupBlock('Export VRML 97...', pup_block) 
 
 #########################################################
 # main routine
 #########################################################
 
-load_from_registry()
+try:
+	ARG = __script__['arg'] # user selected argument
+except:
+	print "older version"
 
-# Note that show_popup must be done before Blender.Window.FileSelector,
-# because export_compressed affects the suggested extension of resulting
-# file.
-
-if show_popup():
-	save_to_registry()
-	if export_compressed.val:
-		try:
-			extension=".wrz"
-			from gzip import *
-		except:
-			print "could not import gzip, file will be exported uncompressed"
-			pass
+if Blender.Get('version') < 235:
+	print "Warning: VRML97 export failed, wrong blender version!"
+	print " You aren't running blender version 2.35 or greater"
+	print " download a newer version from http://blender3d.org/"
+else:
+	if ARG == 'comp':
+		extension=".wrz"
+		from gzip import *
 	else:
 		extension=".wrl"
 	Blender.Window.FileSelector(select_file, "Export VRML97", \
 								sys.makename(ext=extension))
+

@@ -50,6 +50,7 @@
 #include "BKE_sound.h"
 #include "BKE_packedFile.h"
 #include "BKE_utildefines.h"
+#include "BKE_idprop.h"
 
 #include "BLI_blenlib.h"
 
@@ -109,6 +110,7 @@
 
 #include <ffmpeg/avcodec.h> /* for PIX_FMT_* and CODEC_ID_* */
 #include <ffmpeg/avformat.h>
+#include <ffmpeg/opt.h>
 
 static int ffmpeg_preset_sel = 0;
 
@@ -1833,13 +1835,14 @@ static char* ffmpeg_preset_pup(void)
 	static char string[2048];
 	char formatstring[2048];
 
-       strcpy(formatstring, "FFMpeg preset: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
+       strcpy(formatstring, "FFMpeg preset: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
        sprintf(string, formatstring,
                "", FFMPEG_PRESET_NONE,
                "DVD", FFMPEG_PRESET_DVD,
                "SVCD", FFMPEG_PRESET_SVCD,
                "VCD", FFMPEG_PRESET_VCD,
-               "DV", FFMPEG_PRESET_DV);
+               "DV", FFMPEG_PRESET_DV,
+	       "H264", FFMPEG_PRESET_H264);
        return string;
 }
 
@@ -2274,6 +2277,422 @@ static void render_panel_anim(void)
 }
 
 #ifdef WITH_FFMPEG
+
+static void ffmpeg_property_del(void *type, void *prop_)
+{
+	struct IDProperty *prop = (struct IDProperty *) prop_;
+	IDProperty * group;
+	
+	if (!G.scene->r.ffcodecdata.properties) {
+		return;
+	}
+
+	group = IDP_GetPropertyFromGroup(
+		G.scene->r.ffcodecdata.properties, (char*) type);
+	if (group && prop) {
+		IDP_RemFromGroup(group, prop);
+		IDP_FreeProperty(prop);
+		MEM_freeN(prop);
+	}
+	allqueue(REDRAWBUTSSCENE, 0);
+}
+
+static IDProperty * ffmpeg_property_add(
+	char * type, int opt_index, int parent_index)
+{
+	AVCodecContext c;
+	const AVOption * o;
+	const AVOption * parent;
+	IDProperty * group;
+	IDProperty * prop;
+	IDPropertyTemplate val;
+	int idp_type;
+	char name[256];
+
+	avcodec_get_context_defaults(&c);
+
+	o = c.av_class->option + opt_index;
+	parent = c.av_class->option + parent_index;
+
+	if (!G.scene->r.ffcodecdata.properties) {
+		IDPropertyTemplate val;
+
+		G.scene->r.ffcodecdata.properties 
+			= IDP_New(IDP_GROUP, val, "ffmpeg"); 
+	}
+
+	group = IDP_GetPropertyFromGroup(
+		G.scene->r.ffcodecdata.properties, (char*) type);
+	
+	if (!group) {
+		IDPropertyTemplate val;
+		
+		group = IDP_New(IDP_GROUP, val, (char*) type); 
+		IDP_AddToGroup(G.scene->r.ffcodecdata.properties, group);
+	}
+
+	if (parent_index) {
+		sprintf(name, "%s:%s", parent->name, o->name);
+	} else {
+		strcpy(name, o->name);
+	}
+
+	fprintf(stderr, "ffmpeg_property_add: %s %d %d %s\n",
+		type, parent_index, opt_index, name);
+
+	prop = IDP_GetPropertyFromGroup(group, name);
+	if (prop) {
+		return prop;
+	}
+
+	switch (o->type) {
+	case FF_OPT_TYPE_INT:
+	case FF_OPT_TYPE_INT64:
+		val.i = o->default_val;
+		idp_type = IDP_INT;
+		break;
+	case FF_OPT_TYPE_DOUBLE:
+	case FF_OPT_TYPE_FLOAT:
+		val.f = o->default_val;
+		idp_type = IDP_FLOAT;
+		break;
+	case FF_OPT_TYPE_STRING:
+		val.str = "                                                                               ";
+		idp_type = IDP_STRING;
+		break;
+	case FF_OPT_TYPE_CONST:
+		val.i = 1;
+		idp_type = IDP_INT;
+		break;
+	default:
+		return NULL;
+	}
+	prop = IDP_New(idp_type, val, name);
+	IDP_AddToGroup(group, prop);
+	return prop;
+}
+
+/* not all versions of ffmpeg include that, so here we go ... */
+
+static const AVOption *my_av_find_opt(void *v, const char *name, 
+				      const char *unit, int mask, int flags){
+	AVClass *c= *(AVClass**)v; 
+	const AVOption *o= c->option;
+
+	for(;o && o->name; o++){
+		if(!strcmp(o->name, name) && 
+		   (!unit || (o->unit && !strcmp(o->unit, unit))) && 
+		   (o->flags & mask) == flags )
+			return o;
+	}
+	return NULL;
+}
+
+static int ffmpeg_property_add_string(const char * type, const char * str)
+{
+	AVCodecContext c;
+	const AVOption * o = 0;
+	const AVOption * p = 0;
+	char name[128];
+	char * param;
+	IDProperty * prop;
+	
+	avcodec_get_context_defaults(&c);
+
+	strncpy(name, str, 128);
+
+	param = strchr(name, ':');
+
+	if (!param) {
+		param = strchr(name, ' ');
+	}
+	if (param) {
+		*param++ = 0;
+		while (*param == ' ') param++;
+	}
+	
+	o = my_av_find_opt(&c, name, NULL, 0, 0);	
+	if (!o) {
+		return FALSE;
+	}
+	if (param && o->type == FF_OPT_TYPE_CONST) {
+		return FALSE;
+	}
+	if (param && o->type != FF_OPT_TYPE_CONST && o->unit) {
+		p = my_av_find_opt(&c, param, o->unit, 0, 0);	
+		prop = ffmpeg_property_add(
+			(char*) type, p - c.av_class->option, 
+			o - c.av_class->option);
+	} else {
+		prop = ffmpeg_property_add(
+			(char*) type, o - c.av_class->option, 0);
+	}
+		
+
+	if (!prop) {
+		return FALSE;
+	}
+
+	if (param && !p) {
+		switch (prop->type) {
+		case IDP_INT:
+			IDP_Int(prop) = atoi(param);
+			break;
+		case IDP_FLOAT:
+			IDP_Float(prop) = atof(param);
+			break;
+		case IDP_STRING:
+			strncpy(IDP_String(prop), param, prop->len);
+			break;
+		}
+	}
+	return TRUE;
+}
+
+static void ffmpeg_property_add_using_menu(void * type, int opt_indices)
+{
+	int opt_index = opt_indices & 65535;
+	int parent_index = opt_indices >> 16;
+
+	ffmpeg_property_add((char*) type, opt_index, parent_index);
+
+	allqueue(REDRAWBUTSSCENE, 0);
+}
+
+static uiBlock *ffmpeg_property_add_submenu(AVOption * parent, char * type) 
+{
+	AVCodecContext c;
+	const AVOption * o;
+	uiBlock *block;
+	int yco = 0;
+	int flags = 0;
+	int parent_index = 0;
+
+	if (strcmp(type, "audio") == 0) {
+		flags = AV_OPT_FLAG_ENCODING_PARAM | AV_OPT_FLAG_AUDIO_PARAM;
+	} else if (strcmp(type, "video") == 0) {
+		flags = AV_OPT_FLAG_ENCODING_PARAM | AV_OPT_FLAG_VIDEO_PARAM;
+	} else {
+		return NULL;
+	}
+
+	block= uiNewBlock(&curarea->uiblocks, "ffmpeg_property_add_submenu",
+                          UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+        uiBlockSetButmFunc(block, ffmpeg_property_add_using_menu, type);
+
+	avcodec_get_context_defaults(&c);
+
+	if (parent) {
+		parent_index = (parent - c.av_class->option);
+	}
+	
+	for(o = c.av_class->option; o && o->name; o++){
+		if (o->help && 
+		    (strstr(o->help, "experimental")
+		     || strstr(o->help, "obsolete")
+		     || strstr(o->help, "useless")
+		     || strstr(o->help, "deprecated"))) {
+			continue;
+		}
+		if((o->flags & flags) == flags) {
+			if((!parent && !o->unit) 
+			   || (o->unit && parent 
+			       && strcmp(o->unit, parent->unit) == 0 
+			       && o->type == FF_OPT_TYPE_CONST)) {
+				uiDefBut(block, BUTM, B_REDR, 
+					 (char*) (o->help && o->help[0] ? 
+						  o->help : o->name),
+					 0, yco, 160, 15, 
+					 NULL, 0, 0, 1, 
+					 (o - c.av_class->option) | 
+					 (parent_index << 16),
+					 "");
+				yco -= 16;
+			}
+		}
+	}
+	
+	uiTextBoundsBlock(block, 50);
+        uiBlockSetDirection(block, UI_RIGHT);
+
+        return block;
+}
+
+static uiBlock *ffmpeg_property_add_submenu_audio(void* opt)
+{
+	return ffmpeg_property_add_submenu((AVOption*) opt, "audio");
+}
+
+static uiBlock *ffmpeg_property_add_submenu_video(void* opt)
+{
+	return ffmpeg_property_add_submenu((AVOption*) opt, "video");
+}
+
+static uiBlock *ffmpeg_property_add_menu(void* type_) 
+{
+	char * type = (char*) type_;
+	AVCodecContext c;
+	const AVOption * o;
+	uiBlock *block;
+	int yco = 0;
+	int flags = 0;
+	uiBlockFuncFP add_submenu = NULL;
+
+	if (strcmp(type, "audio") == 0) {
+		flags = AV_OPT_FLAG_ENCODING_PARAM | AV_OPT_FLAG_AUDIO_PARAM;
+		add_submenu = ffmpeg_property_add_submenu_audio;
+	} else if (strcmp(type, "video") == 0) {
+		flags = AV_OPT_FLAG_ENCODING_PARAM | AV_OPT_FLAG_VIDEO_PARAM;
+		add_submenu = ffmpeg_property_add_submenu_video;
+	} else {
+		return NULL;
+	}
+
+	block= uiNewBlock(&curarea->uiblocks, "ffmpeg_property_add_menu",
+                          UI_EMBOSSP, UI_HELV, curarea->win);
+
+	avcodec_get_context_defaults(&c);
+	
+	for(o = c.av_class->option; o && o->name; o++){
+		if((o->flags & flags) == flags) {
+			if (o->type == FF_OPT_TYPE_CONST) {
+				continue;
+			}
+			if (o->help && 
+			    (strstr(o->help, "experimental")
+			     || strstr(o->help, "obsolete")
+			     || strstr(o->help, "useless")
+			     || strstr(o->help, "deprecated"))) {
+				continue;
+			}
+
+			if (o->unit) {
+	
+				uiDefIconTextBlockBut(
+					block, 
+					add_submenu, 
+					(void*) o, 
+					ICON_RIGHTARROW_THIN,
+					(char*) (o->help ? 
+						 o->help : o->name), 
+					0, yco, 160, 15, "");
+				yco -= 16;
+			} 
+		}
+	}
+
+	uiDefIconTextBlockBut(
+		block, 
+		add_submenu, 
+		NULL, 
+		ICON_RIGHTARROW_THIN,
+		"Value / string options", 
+		0, yco, 160, 15, "");
+	
+	uiTextBoundsBlock(block, 50);
+        uiBlockSetDirection(block, UI_DOWN);
+
+        return block;
+}
+
+static int render_panel_ffmpeg_property_option(
+	uiBlock *block, int xofs, int yofs, IDProperty * curr,
+	const char * type)
+{
+	AVCodecContext c;
+	const AVOption * o;
+        uiBut *but;
+	char name[128];
+	char * param;
+
+	strcpy(name, curr->name);
+	param = strchr(name, ':');
+
+	if (param) {
+		*param++ = 0;
+	}
+
+	avcodec_get_context_defaults(&c);
+
+	o = my_av_find_opt(&c, param ? param : name, NULL, 0, 0);
+	if (!o) {
+		return yofs;
+	}
+
+	switch (curr->type) {
+	case IDP_STRING:
+		uiDefBut(block, TEX, 
+			 B_REDR, curr->name, 
+			 xofs,yofs, 200,19, 
+			 IDP_String(curr), 
+			 0.0, curr->len - 1, 100, 0, 
+			 (char*) o->help);
+		break;
+	case IDP_FLOAT:
+		uiDefButF(block, NUM, B_REDR, curr->name, 
+			  xofs, yofs, 200, 19, 
+			  &IDP_Float(curr), 
+			  o->min, o->max, 0, 0, (char*) o->help);
+		break;
+	case IDP_INT:
+		if (o->type == FF_OPT_TYPE_CONST) {
+			uiDefButBitI(block, TOG, 1, B_REDR,
+				     curr->name,
+				     xofs, yofs, 200, 19, 
+				     &IDP_Int(curr), 
+				     0, 1, 0,0, (char*) o->help);
+		} else {
+			uiDefButI(block, NUM, B_REDR, curr->name, 
+				  xofs, yofs, 200, 19, 
+				  &IDP_Int(curr), 
+				  o->min, o->max, 0, 0, (char*) o->help);
+		}
+		break;
+	}
+
+	but = uiDefIconBut(block, BUT, B_REDR, VICON_X, 
+			   xofs + 220, yofs, 16, 16, NULL, 
+			   0.0, 0.0, 0.0, 0.0, "Delete property");
+
+	uiButSetFunc(but, ffmpeg_property_del, (void*) type, curr);
+
+	yofs -= 25;
+
+	return yofs;
+}
+
+static int render_panel_ffmpeg_properties(uiBlock *block, const char * type,
+					  int xofs, int yofs)
+{
+	yofs -= 5;
+
+	uiDefBlockBut(block, ffmpeg_property_add_menu, (void*) type, 
+		      "Add FFMPEG Expert Option", xofs, yofs, 240, 20, 
+		      "");
+	yofs -= 20;
+
+	if (G.scene->r.ffcodecdata.properties) {
+		IDProperty * prop;
+		void * iter;
+		IDProperty * curr;
+
+		prop = IDP_GetPropertyFromGroup(
+			G.scene->r.ffcodecdata.properties, (char*) type);
+		if (prop) {
+			iter = IDP_GetGroupIterator(prop);
+
+			while ((curr = IDP_GroupIterNext(iter)) != NULL) {
+				yofs = render_panel_ffmpeg_property_option(
+					block, xofs, yofs, curr, type);
+			}
+		}
+	}
+
+	uiNewPanelHeight(block, 204-yofs);
+
+	return yofs;
+}
+
 static void set_ffmpeg_preset(int preset)
 {
 	int isntsc = (G.scene->r.frs_sec != 25);
@@ -2321,6 +2740,32 @@ static void set_ffmpeg_preset(int preset)
 		G.scene->r.xsch = 720;
 		G.scene->r.ysch = isntsc ? 480 : 576;
 		break;
+	case FFMPEG_PRESET_H264:
+		G.scene->r.ffcodecdata.type = FFMPEG_AVI;
+		G.scene->r.ffcodecdata.codec = CODEC_ID_H264;
+		G.scene->r.ffcodecdata.video_bitrate = 6000;
+		G.scene->r.ffcodecdata.gop_size = isntsc ? 18 : 15;
+		G.scene->r.ffcodecdata.rc_max_rate = 9000;
+		G.scene->r.ffcodecdata.rc_min_rate = 0;
+		G.scene->r.ffcodecdata.rc_buffer_size = 224*8;
+		G.scene->r.ffcodecdata.mux_packet_size = 2048;
+		G.scene->r.ffcodecdata.mux_rate = 10080000;
+
+		ffmpeg_property_add_string("video", "coder:vlc");
+		ffmpeg_property_add_string("video", "flags:loop");
+		ffmpeg_property_add_string("video", "cmp:chroma");
+		ffmpeg_property_add_string("video", "partitions:parti4x4");
+		ffmpeg_property_add_string("video", "partitions:partp8x8");
+		ffmpeg_property_add_string("video", "partitions:partb8x8");
+		ffmpeg_property_add_string("video", "me:hex");
+		ffmpeg_property_add_string("video", "subq:5");
+		ffmpeg_property_add_string("video", "me_range:16");
+		ffmpeg_property_add_string("video", "keyint_min:25");
+		ffmpeg_property_add_string("video", "sc_threshold:40");
+		ffmpeg_property_add_string("video", "i_qfactor:0.71");
+		ffmpeg_property_add_string("video", "b_strategy:1");
+
+		break;
 	}
 }
 
@@ -2360,8 +2805,10 @@ static void render_panel_ffmpeg_video(void)
 			  &G.scene->r.ffcodecdata.video_bitrate, 
 			  1, 14000, 0, 0, "Video bitrate(kb/s)");
 	uiDefButI(block, NUM, B_DIFF, "Min Rate", 
-			  xcol1, yofs+22, 110, 20, &G.scene->r.ffcodecdata.rc_min_rate, 
-			  0, 14000, 0, 0, "Rate control: min rate(kb/s)");
+		  xcol1, yofs+22, 110, 20, 
+		  &G.scene->r.ffcodecdata.rc_min_rate, 
+		  0, G.scene->r.ffcodecdata.rc_max_rate, 
+		  0, 0, "Rate control: min rate(kb/s)");
 	uiDefButI(block, NUM, B_DIFF, "Max Rate", 
 			  xcol1, yofs, 110, 20, &G.scene->r.ffcodecdata.rc_max_rate, 
 			  1, 14000, 0, 0, "Rate control: max rate(kb/s)");
@@ -2394,7 +2841,8 @@ static void render_panel_ffmpeg_video(void)
 				 0, 1, 0,0, "Autosplit output at 2GB boundary.");
 	
 	
-	if (ELEM(G.scene->r.ffcodecdata.type, FFMPEG_AVI, FFMPEG_MOV)) {
+	if (ELEM3(G.scene->r.ffcodecdata.type, FFMPEG_AVI, 
+		  FFMPEG_MOV, FFMPEG_MKV)) {
 		uiDefBut(block, LABEL, 0, "Codec", 
 				xcol1, yofs-44, 110, 20, 0, 0, 0, 0, 0, "");
 		uiDefButI(block, MENU,B_REDR, ffmpeg_codec_pup(), 
@@ -2402,6 +2850,8 @@ static void render_panel_ffmpeg_video(void)
 				  &G.scene->r.ffcodecdata.codec, 
 				  0,0,0,0, "FFMpeg codec to use");
 	}
+
+	render_panel_ffmpeg_properties(block, "video", xcol1, yofs-86);
 }
 
 static void render_panel_ffmpeg_audio(void)
@@ -2431,6 +2881,8 @@ static void render_panel_ffmpeg_audio(void)
 			  xcol, yofs-66, 110, 20, 
 			  &G.scene->r.ffcodecdata.audio_bitrate, 
 			  32, 384, 0, 0, "Audio bitrate(kb/s)");
+
+	render_panel_ffmpeg_properties(block, "audio", xcol, yofs-86);
 }
 #endif
 

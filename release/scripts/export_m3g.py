@@ -1,4 +1,5 @@
 #!BPY
+# coding: utf-8
 """ Registration info for Blender menus:
 Name: 'M3G (.m3g, .java)...'
 Blender: 244
@@ -3070,3 +3071,4 @@ def file_callback_m3g(filename):
     
 if __name__ == '__main__':
     gui()
+

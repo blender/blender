@@ -1194,7 +1194,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if(event==UI_BUT_EVENT) do_butspace(val); /* temporal, view3d deserves own queue? */
 		
 		/* we consider manipulator a button, defaulting to leftmouse */
-		if(event==LEFTMOUSE) if(BIF_do_manipulator(sa)) return;
+		if(event==LEFTMOUSE) {
+			/* run any view3d event handler script links */
+			if (event && sa->scriptlink.totscript)
+				if (BPY_do_spacehandlers(sa, event, SPACEHANDLER_VIEW3D_EVENT))
+					return; /* return if event was processed (swallowed) by handler(s) */
+
+			if(BIF_do_manipulator(sa)) return;
+		}
 		
 		/* swap mouse buttons based on user preference */
 		if (U.flag & USER_LMOUSESELECT) {
@@ -2404,7 +2411,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						clear_bone_parent();
 					else if((G.qual==0) && (G.obedit->type==OB_ARMATURE)) 
 						select_bone_parent();
-					else if((G.qual==(LR_CTRLKEY|LR_SHIFTKEY)) && (G.obedit->type==OB_ARMATURE))
+					else if((G.qual==(LR_CTRLKEY|LR_ALTKEY)) && (G.obedit->type==OB_ARMATURE))
 						separate_armature();
 					else if((G.qual==0) && G.obedit->type==OB_MESH)
 						separatemenu();
@@ -4909,7 +4916,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case HOMEKEY:
 			if((G.qual==0))
-				do_seq_buttons(B_SEQHOME);
+				seq_home();
 			break;
 		case PADPERIOD:	
 			if(last_seq) {
@@ -5073,7 +5080,11 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					del_seq();
 			}
 			break;
-		}
+		case PAD1: case PAD2: case PAD4: case PAD8:
+			seq_viewzoom(event, (G.qual & LR_SHIFTKEY)==0);
+			doredraw= 1;
+			break;
+		}	
 	}
 
 	if(doredraw) scrarea_queue_winredraw(curarea);

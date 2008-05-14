@@ -3398,12 +3398,12 @@ static float redrawtimes_fps[REDRAW_FRAME_AVERAGE];
 static short redrawtime_index;
 
 
-int update_time(void)
+int update_time(int cfra)
 {
 	static double ltime;
 	double time;
 
-	if ((audiostream_pos() != CFRA)
+	if ((audiostream_pos() != cfra)
 	    && (G.scene->audio.flag & AUDIO_SYNC)) {
 		return 0;
 	}
@@ -3641,7 +3641,7 @@ void inner_play_anim_loop(int init, int mode)
 
 	/* make sure that swaptime passed by */
 	tottime -= swaptime;
-	while (update_time()) {
+	while (update_time(CFRA)) {
 		PIL_sleep_ms(1);
 	}
 	
@@ -3700,7 +3700,7 @@ int play_anim(int mode)
 
 	inner_play_prefetch_startup(mode);
 
-	update_time();
+	update_time(CFRA);
 	
 	inner_play_anim_loop(1, mode);	/* 1==init */
 
@@ -3731,8 +3731,20 @@ int play_anim(int mode)
 					else if(G.qual & LR_CTRLKEY) viewmove(2);
 					else viewmove(0);
 				}
-			}
-			else if(event==MKEY) {
+			} else if (event==WHEELDOWNMOUSE || (val && event==PADMINUS)) { /* copied from persptoetsen */
+				/* this min and max is also in viewmove() */
+				if(G.vd->persp==V3D_CAMOB) {
+					G.vd->camzoom-= 10;
+					if(G.vd->camzoom<-30) G.vd->camzoom= -30;
+				}
+				else if(G.vd->dist<10.0*G.vd->far) G.vd->dist*=1.2f;
+			} else if (event==WHEELUPMOUSE || (val && event==PADPLUSKEY)) { /* copied from persptoetsen */
+				if(G.vd->persp==V3D_CAMOB) {
+					G.vd->camzoom+= 10;
+					if(G.vd->camzoom>300) G.vd->camzoom= 300;
+				}
+				else if(G.vd->dist> 0.001*G.vd->grid) G.vd->dist*=.83333f;
+			} else if(event==MKEY) {
 				if(val) add_marker(CFRA-1);
 			}
 		}

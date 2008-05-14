@@ -151,31 +151,6 @@ int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect)
 	return 1;
 }
 
-/* returns 0 if not found, otherwise 1 */
-static int facesel_edge_pick(Mesh *me, short *mval, unsigned int *index)
-{
-	int dist;
-	unsigned int min = me->totface + 1;
-	unsigned int max = me->totface + me->totedge + 1;
-
-	if (me->totedge == 0)
-		return 0;
-
-	if (G.vd->flag & V3D_NEEDBACKBUFDRAW) {
-		check_backbuf();
-		persp(PERSP_VIEW);
-	}
-
-	*index = sample_backbuf_rect(mval, 50, min, max, &dist,0,NULL);
-
-	if (*index == 0)
-		return 0;
-
-	(*index)--;
-	
-	return 1;
-}
-
 /* only operates on the edit object - this is all thats needed at the moment */
 static void uv_calc_center_vector(float *result, Object *ob, EditMesh *em)
 {
@@ -958,7 +933,6 @@ int edgetag_shortest_path(EditEdge *source, EditEdge *target)
 	EditVert *ev;
 	
 	Heap *heap;
-	EdgeHash *ehash;
 	float *cost;
 	int a, totvert=0, totedge=0, *nedges, *edges, *prevedge, mednum = -1, nedgeswap = 0;
 

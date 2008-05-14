@@ -283,9 +283,11 @@ GHOST_TSuccess GHOST_System::init()
 	m_eventManager = new GHOST_EventManager ();
     m_ndofManager = new GHOST_NDOFManager();
 
+#if 0
 	if(m_ndofManager)
 		printf("ndof manager \n");
-
+#endif
+	
 #ifdef GHOST_DEBUG
 	if (m_eventManager) {
 		m_eventManager->addConsumer(&m_eventPrinter);

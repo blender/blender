@@ -1054,7 +1054,12 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->childcache= NULL;
 	psysn->edit= NULL;
 	psysn->effectors.first= psysn->effectors.last= 0;
-
+	
+	psysn->pathcachebufs.first = psysn->pathcachebufs.last = NULL;
+	psysn->childcachebufs.first = psysn->childcachebufs.last = NULL;
+	psysn->reactevents.first = psysn->reactevents.last = NULL;
+	psysn->renderdata = NULL;
+	
 	psysn->pointcache= BKE_ptcache_copy(psys->pointcache);
 
 	id_us_plus((ID *)psysn->part);

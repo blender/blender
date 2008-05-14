@@ -517,7 +517,7 @@ def main():
 	
 	if not Draw.PupBlock('Lightmap Pack', [\
 	'Context...',
-	('Active Object', PREF_ACT_ONLY, 'If disabled, use all objects for packing the lightmap.'),\
+	('Active Object', PREF_ACT_ONLY, 'If disabled, include other selected objects for packing the lightmap.'),\
 	('Selected Faces', PREF_SEL_ONLY, 'Use only selected faces from all selected meshes.'),\
 	'Image & UVs...',
 	('Share Tex Space', PREF_PACK_IN_ONE, 'Objects Share texture space, map all objects into 1 uvmap'),\
@@ -538,7 +538,7 @@ def main():
 			return
 		meshes = [ ob.getData(mesh=1) ]
 	else:
-		meshes = dict([ (me.name, me) for ob in scn.objects.context for me in (ob.getData(mesh=1),) if not me.lib])
+		meshes = dict([ (me.name, me) for ob in scn.objects.context for me in (ob.getData(mesh=1),) if not me.lib if len(me.faces)])
 		meshes = meshes.values()
 		if not meshes:
 			Draw.PupMenu('Error%t|No mesh objects selected.')

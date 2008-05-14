@@ -1651,6 +1651,12 @@ void modifiers_explodeFacepa(void *arg1, void *arg2)
 	emd->flag |= eExplodeFlag_CalcFaces;
 }
 
+void modifiers_explodeDelVg(void *arg1, void *arg2)
+{
+	ExplodeModifierData *emd=arg1;
+	emd->vgroup = 0;
+}
+
 static int modifier_is_fluid_particles(ModifierData *md) {
 	if(md->type == eModifierType_ParticleSystem) {
 		if(((ParticleSystemModifierData *)md)->psys->part->type == PART_FLUID)
@@ -2422,12 +2428,16 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			char *menustr= get_vertexgroup_menustr(ob);
 			int defCount=BLI_countlist(&ob->defbase);
 			if(defCount==0) emd->vgroup=0;
-
-			but=uiDefButS(block, MENU, B_MODIFIER_RECALC, menustr,	lx, (cy-=19), buttonWidth/2,19, &emd->vgroup, 0, defCount, 0, 0, "Protect this vertex group");
+			uiBlockBeginAlign(block);
+			but=uiDefButS(block, MENU, B_MODIFIER_RECALC, menustr,	lx, (cy-=19), buttonWidth-20,19, &emd->vgroup, 0, defCount, 0, 0, "Protect this vertex group");
 			uiButSetFunc(but,modifiers_explodeFacepa,emd,0);
 			MEM_freeN(menustr);
+			
+			but=uiDefIconBut(block, BUT, B_MODIFIER_RECALC, ICON_X, (lx+buttonWidth)-20, cy, 20,19, 0, 0, 0, 0, 0, "Disable use of vertex group");
+			uiButSetFunc(but, modifiers_explodeDelVg, (void *)emd, (void *)NULL);
+			
 
-			but=uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "",	lx+buttonWidth/2, cy, buttonWidth/2,19, &emd->protect, 0.0f, 1.0f, 0, 0, "Clean vertex group edges");
+			but=uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "",	lx, (cy-=19), buttonWidth,19, &emd->protect, 0.0f, 1.0f, 0, 0, "Clean vertex group edges");
 			uiButSetFunc(but,modifiers_explodeFacepa,emd,0);
 
 			but=uiDefBut(block, BUT, B_MODIFIER_RECALC, "Refresh",	lx, (cy-=19), buttonWidth/2,19, 0, 0, 0, 0, 0, "Recalculate faces assigned to particles");
@@ -2437,6 +2447,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButBitS(block, TOG, eExplodeFlag_Unborn, B_MODIFIER_RECALC, "Unborn",	lx, (cy-=19), buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are unborn");
 			uiDefButBitS(block, TOG, eExplodeFlag_Alive, B_MODIFIER_RECALC, "Alive",	lx+buttonWidth/3, cy, buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are alive");
 			uiDefButBitS(block, TOG, eExplodeFlag_Dead, B_MODIFIER_RECALC, "Dead",	lx+buttonWidth*2/3, cy, buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are dead");
+			uiBlockEndAlign(block);
 		} else if (md->type==eModifierType_Shrinkwrap) {
 			ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
 
@@ -2454,6 +2465,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 			uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &smd->target, "Target to shrink to");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Offset:",	lx,(cy-=19),buttonWidth,19, &smd->keptDist, 0.0f, 100.0f, 1.0f, 0, "Specify distance to kept from the target");
+			uiBlockEndAlign(block);
 		}
 
 		uiBlockEndAlign(block);
@@ -5344,7 +5356,7 @@ static void editing_panel_links(Object *ob)
 				uiDefBut(block, BUT, B_POSEGRP_ADD, "Add Group",	xco,110,140,20, 0, 21, 0, 0, 0, "Add a new Bone Group for the Pose");
 			uiBlockEndAlign(block);
 			
-			/* colour set for 'active' group */
+			/* color set for 'active' group */
 			if (pose->active_group && grp) {
 				uiBlockBeginAlign(block);
 					menustr= build_colorsets_menustr();
@@ -5361,7 +5373,7 @@ static void editing_panel_links(Object *ob)
 							memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
 						}
 						else {
-							/* init custom colours with a generic multi-colour rgb set, if not initialised already */
+							/* init custom colors with a generic multi-color rgb set, if not initialised already */
 							if (grp->cs.solid[0] == 0) {
 								/* define for setting colors in theme below */
 								#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;

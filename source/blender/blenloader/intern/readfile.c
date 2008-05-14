@@ -3601,7 +3601,16 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	if (sce->r.qtcodecdata) {
 		sce->r.qtcodecdata->cdParms = newdataadr(fd, sce->r.qtcodecdata->cdParms);
 	}
-	
+	if (sce->r.ffcodecdata.properties) {
+		sce->r.ffcodecdata.properties = newdataadr(
+			fd, sce->r.ffcodecdata.properties);
+		if (sce->r.ffcodecdata.properties) { 
+			IDP_DirectLinkProperty(
+				sce->r.ffcodecdata.properties, 
+				(fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		}
+	}
+
 	link_list(fd, &(sce->markers));
 	link_list(fd, &(sce->transform_spaces));
 	link_list(fd, &(sce->r.layers));

@@ -44,18 +44,22 @@ static bNodeSocketType cmp_node_displace_out[]= {
 	{	-1, 0, ""	}
 };
 
+static float *vecbuf_get_pixel(CompBuf *vecbuf, float *veccol, int x, int y)
+{
+	/* the x-xrad stuff is a bit weird, but i seem to need it otherwise 
+	 * my returned pixels are offset weirdly */
+	return compbuf_get_pixel(vecbuf, veccol, x-vecbuf->xrad, y-vecbuf->yrad, vecbuf->xrad, vecbuf->yrad);
+}
+
 static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float *veccol, float *xscale, float *yscale)
 {
 	ImBuf *ibuf;
-	int x, y, vx, vy, sx, sy;
 	float dx=0.0, dy=0.0;
 	float dspx, dspy;
-	float uv[2];
-
-	float *out= stackbuf->rect, *vec=vecbuf->rect, *in= cbuf->rect;
+	float uv[2], col[4], colnext[4], colprev[4];
 	float *vp, *vpnext, *vpprev;
-	
-	int row = 3*vecbuf->x;
+	float *out= stackbuf->rect, *vec=vecbuf->rect, *in= cbuf->rect;
+	int x, y, vx, vy, sx, sy;
 	
 	/* ibuf needed for sampling */
 	ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0, 0);
@@ -65,13 +69,15 @@ static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float
 	
 	sx= stackbuf->x;
 	sy= stackbuf->y;
+
+	QUATCOPY(col, veccol);
+	QUATCOPY(colnext, veccol);
+	QUATCOPY(colprev, veccol);
 	
 	for(y=0; y<sy; y++) {
 		for(x= 0; x< sx; x++, out+=4, in+=4, vec+=3) {
 			
-			/* the x-xrad stuff is a bit weird, but i seem to need it otherwise 
-			 * my returned pixels are offset weirdly */
-			vp = compbuf_get_pixel(vecbuf, veccol, x-vecbuf->xrad, y-vecbuf->yrad, vecbuf->xrad, vecbuf->yrad);
+			vp = vecbuf_get_pixel(vecbuf, col, x, y);
 
 			/* this happens in compbuf_get_pixel, need to make sure the following
 			 * check takes them into account */
@@ -87,20 +93,26 @@ static void do_displace(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *vecbuf, float
 			uv[1] = dspy / (float)sy;
 		
 			if(vx>0 && vx< vecbuf->x-1 && vy>0 && vy< vecbuf->y-1)  {
-				vpnext = vp+row;
-				vpprev = vp-row;
-			
-				/* adaptive sampling, X channel */
-				dx= 0.5f*(fabs(vp[0]-vp[-3]) + fabs(vp[0]-vp[3]));
-				
-				dx+= 0.25f*(fabs(vp[0]-vpprev[-3]) + fabs(vp[0]-vpnext[-3]));
-				dx+= 0.25f*(fabs(vp[0]-vpprev[+3]) + fabs(vp[0]-vpnext[+3]));
-				
-				/* adaptive sampling, Y channel */
-				dy= 0.5f*(fabs(vp[1]-vp[-row+1]) + fabs(vp[1]-vp[row+1]));
-						 
-				dy+= 0.25f*(fabs(vp[1]-vpprev[+1-3]) + fabs(vp[1]-vpnext[+1-3]));
-				dy+= 0.25f*(fabs(vp[1]-vpprev[+1+3]) + fabs(vp[1]-vpnext[+1+3]));
+				/* adaptive sampling, X and Y channel.
+				 * we call vecbuf_get_pixel for every pixel since the input
+				 * might be a procedural, and then we can't use offsets */
+				vpprev = vecbuf_get_pixel(vecbuf, colprev, x-1, y);
+				vpnext = vecbuf_get_pixel(vecbuf, colnext, x+1, y);
+				dx= 0.5f*(fabs(vp[0]-vpprev[0]) + fabs(vp[0]-vpnext[0]));
+
+				vpprev = vecbuf_get_pixel(vecbuf, colprev, x, y-1);
+				vpnext = vecbuf_get_pixel(vecbuf, colnext, x, y+1);
+				dy= 0.5f*(fabs(vp[1]-vpnext[1]) + fabs(vp[1]-vpprev[1]));
+
+				vpprev = vecbuf_get_pixel(vecbuf, colprev, x-1, y-1);
+				vpnext = vecbuf_get_pixel(vecbuf, colnext, x-1, y+1);
+				dx+= 0.25f*(fabs(vp[0]-vpprev[0]) + fabs(vp[0]-vpnext[0]));
+				dy+= 0.25f*(fabs(vp[1]-vpprev[1]) + fabs(vp[1]-vpnext[1]));
+
+				vpprev = vecbuf_get_pixel(vecbuf, colprev, x+1, y-1);
+				vpnext = vecbuf_get_pixel(vecbuf, colnext, x+1, y+1);
+				dx+= 0.25f*(fabs(vp[0]-vpprev[0]) + fabs(vp[0]-vpnext[0]));
+				dy+= 0.25f*(fabs(vp[1]-vpprev[1]) + fabs(vp[1]-vpnext[1]));
 				
 				/* scaled down to prevent blurriness */
 				/* 8: magic number, provides a good level of sharpness without getting too aliased */

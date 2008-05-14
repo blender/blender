@@ -75,13 +75,13 @@ static void do_seq_viewmenu(void *arg, int event)
 	switch(event)
 	{
 	case 1: /* Play Back Animation */
-			play_anim(0);
-			break;
+		play_anim(0);
+		break;
 	case 2: /* Play Back Animation in All */
-			play_anim(1);
-			break;
+		play_anim(1);
+		break;
 	case 3:
-		do_seq_buttons(B_SEQHOME);
+		seq_home();
 		break;
 	case 4:
 		if(last_seq) {
@@ -450,7 +450,7 @@ static void do_seq_editmenu(void *arg, int event)
 		seq_mute_sel(0);
 		break;
 	case 22:
-		seq_mute_sel(-1);
+		seq_mute_sel(0);
 		break;
 	case 23:
 		seq_cut(CFRA, 0);
@@ -620,21 +620,13 @@ static uiBlock *seq_markermenu(void *arg_unused)
 void do_seq_buttons(short event)
 {
 	Editing *ed;
-	SpaceSeq *sseq= curarea->spacedata.first;
 	
 	ed= G.scene->ed;
 	if(ed==0) return;
 	
 	switch(event) {
-	case B_SEQHOME:
-		if(sseq->mainb)
-			seq_reset_imageofs(sseq);
-		else {
-			G.v2d->cur= G.v2d->tot;
-			test_view2d(G.v2d, curarea->winx, curarea->winy);
-			view2d_do_locks(curarea, V2D_LOCK_COPY);
-		}
-		scrarea_queue_winredraw(curarea);
+	case B_HOME:
+		seq_home();
 		break;
 	case B_SEQCLEAR:
 		free_imbuf_seq();

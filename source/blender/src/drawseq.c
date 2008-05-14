@@ -857,15 +857,18 @@ static void draw_image_seq(ScrArea *sa)
 		zoom = -1.0/sseq->zoom;
 	}
 
-	/* calc location */
-	x1= (sa->winx-zoom*ibuf->x)/2 + sseq->xof;
-	y1= (sa->winy-zoom*ibuf->y)/2 + sseq->yof;
-
 	/* needed for gla draw */
 	glaDefine2DArea(&curarea->winrct);
+	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+		zoomx = zoom * ((float)G.scene->r.xasp / (float)G.scene->r.yasp);
+		zoomy = zoom;
+	} else {
+		zoomx = zoomy = zoom;
+	}
 
-	zoomx = zoom * ((float)G.scene->r.xasp / (float)G.scene->r.yasp);
-	zoomy = zoom;
+	/* calc location */
+	x1= (sa->winx-zoomx*ibuf->x)/2 + sseq->xof;
+	y1= (sa->winy-zoomy*ibuf->y)/2 + sseq->yof;
 	
 	glPixelZoom(zoomx, zoomy);
 	
@@ -911,6 +914,64 @@ static void draw_image_seq(ScrArea *sa)
 void seq_reset_imageofs(SpaceSeq *sseq)
 {
 	sseq->xof = sseq->yof = sseq->zoom = 0;
+}
+
+void seq_home(void)
+{
+	SpaceSeq *sseq= curarea->spacedata.first;
+	
+	if (!sseq->mainb) {
+		G.v2d->cur= G.v2d->tot;
+		test_view2d(G.v2d, curarea->winx, curarea->winy);
+		view2d_do_locks(curarea, V2D_LOCK_COPY);
+	} else {
+		float zoomX, zoomY;
+		int width, height, imgwidth, imgheight;	
+		
+		width = curarea->winx;
+		height = curarea->winy;
+		
+		seq_reset_imageofs(sseq);
+		
+		imgwidth= (G.scene->r.size*G.scene->r.xsch)/100;
+		imgheight= (G.scene->r.size*G.scene->r.ysch)/100;
+		
+		/* Apply aspect, dosnt need to be that accurate */
+		imgwidth= (int)(imgwidth * ((float)G.scene->r.xasp / (float)G.scene->r.yasp));
+		
+		if (((imgwidth >= width) || (imgheight >= height)) && 
+			((width > 0) && (height > 0))) {
+			
+			/* Find the zoom value that will fit the image in the image space */
+			zoomX = ((float)width) / ((float)imgwidth);
+			zoomY = ((float)height) / ((float)imgheight);
+			sseq->zoom= (zoomX < zoomY) ? zoomX : zoomY;
+	
+			sseq->zoom = 1.0f / power_of_2(1/ MIN2(zoomX, zoomY) );
+		}
+		else {
+			sseq->zoom= 1.0f;
+		}
+	}
+	scrarea_queue_winredraw(curarea);
+}
+
+void seq_viewzoom(unsigned short event, int invert)
+{
+	SpaceSeq *sseq= curarea->spacedata.first;
+
+	if(event==PAD1)
+		sseq->zoom= 1.0;
+	else if(event==PAD2)
+		sseq->zoom= (invert)? 2.0: 0.5;
+	else if(event==PAD4)
+		sseq->zoom= (invert)? 4.0: 0.25;
+	else if(event==PAD8)
+		sseq->zoom= (invert)? 8.0: 0.125;
+	
+	/* ensure pixel exact locations for draw */
+	sseq->xof= (int)sseq->xof;
+	sseq->yof= (int)sseq->yof;
 }
 
 void seq_viewmove(SpaceSeq *sseq)

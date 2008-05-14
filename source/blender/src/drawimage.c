@@ -367,7 +367,10 @@ static void drawcursor_sima(float xuser_asp, float yuser_asp)
 	int wi, hi;
 	float w, h;
 	
-	if (!G.obedit || !CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE)) return;
+	if (	!G.obedit ||	/* only draw cursor in editmode */
+			!CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE) || /* must have UV's */
+			(G.sima->image && G.sima->flag & SI_DRAWTOOL) /* cant be painting */
+		)	return;
 	
 	transform_width_height_tface_uv(&wi, &hi);
 	w = (((float)wi)/256.0f)*G.sima->zoom * xuser_asp;
@@ -1485,7 +1488,11 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PAINT
 	uiBlock *block;
 	ID *id;
 	int yco, xco, butw;
-
+	
+	if ((G.sima->image && (G.sima->flag & SI_DRAWTOOL))==0) {
+		return;
+	}
+	
 	block= uiNewBlock(&curarea->uiblocks, "image_panel_paint", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(IMAGE_HANDLER_PAINT);  // for close and esc
@@ -2349,17 +2356,6 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	sa->win_swap= WIN_BACK_OK;
 }
 
-static void image_zoom_power_of_two(void)
-{
-	/* Make zoom a power of 2 */
-
-	G.sima->zoom = 1 / G.sima->zoom;
-	G.sima->zoom = log(G.sima->zoom) / log(2);
-	G.sima->zoom = ceil(G.sima->zoom);
-	G.sima->zoom = pow(2, G.sima->zoom);
-	G.sima->zoom = 1 / G.sima->zoom;
-}
-
 static void image_zoom_set_factor(float zoomfac)
 {
 	SpaceImage *sima= curarea->spacedata.first;
@@ -2503,8 +2499,10 @@ void image_home(void)
 		imgheight = 256;
 	}
 	else {
-		imgwidth = ibuf->x;
-		imgheight = ibuf->y;
+		float xuser_asp, yuser_asp;
+		image_pixel_aspect(G.sima->image, &xuser_asp, &yuser_asp);
+		imgwidth = ibuf->x * xuser_asp;
+		imgheight = ibuf->y * yuser_asp;
 	}
 
 	/* Check if the image will fit in the image with zoom==1 */
@@ -2515,9 +2513,7 @@ void image_home(void)
 		/* Find the zoom value that will fit the image in the image space */
 		zoomX = ((float)width) / ((float)imgwidth);
 		zoomY = ((float)height) / ((float)imgheight);
-		G.sima->zoom= MIN2(zoomX, zoomY);
-
-		image_zoom_power_of_two();
+		G.sima->zoom = 1.0f / power_of_2(1/ MIN2(zoomX, zoomY) );
 	}
 	else {
 		G.sima->zoom= 1.0f;

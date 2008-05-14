@@ -33,6 +33,7 @@
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/rational.h>
 #include <ffmpeg/swscale.h>
+#include <ffmpeg/opt.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
@@ -58,6 +59,7 @@
 
 #include "BKE_bad_level_calls.h"
 #include "BKE_global.h"
+#include "BKE_idprop.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -224,6 +226,10 @@ static const char** get_file_extensions(int format)
 		static const char * rv[] = { ".flv", NULL };
 		return rv;
 	}
+	case FFMPEG_MKV: {
+		static const char * rv[] = { ".mkv", NULL };
+		return rv;
+	}
 	default:
 		return NULL;
 	}
@@ -337,6 +343,75 @@ static AVFrame* generate_video_frame(uint8_t* pixels)
 	return current_frame;
 }
 
+static void set_ffmpeg_property_option(AVCodecContext* c, IDProperty * prop)
+{
+	char name[128];
+	char * param;
+	const AVOption * rv = NULL;
+
+	fprintf(stderr, "FFMPEG expert option: %s: ", prop->name);
+
+	strncpy(name, prop->name, 128);
+
+	param = strchr(name, ':');
+
+	if (param) {
+		*param++ = 0;
+	}
+
+	switch(prop->type) {
+	case IDP_STRING:
+		fprintf(stderr, "%s.\n", IDP_String(prop));
+		rv = av_set_string(c, prop->name, IDP_String(prop));
+		break;
+	case IDP_FLOAT:
+		fprintf(stderr, "%g.\n", IDP_Float(prop));
+		rv = av_set_double(c, prop->name, IDP_Float(prop));
+		break;
+	case IDP_INT:
+		fprintf(stderr, "%d.\n", IDP_Int(prop));
+		
+		if (param) {
+			if (IDP_Int(prop)) {
+				rv = av_set_string(c, name, param);
+			} else {
+				return;
+			}
+		} else {
+			rv = av_set_int(c, prop->name, IDP_Int(prop));
+		}
+		break;
+	}
+
+	if (!rv) {
+		fprintf(stderr, "ffmpeg-option not supported: %s! Skipping.\n",
+			prop->name);
+	}
+}
+
+static void set_ffmpeg_properties(AVCodecContext* c, const char * prop_name)
+{
+	IDProperty * prop;
+	void * iter;
+	IDProperty * curr;
+
+	if (!G.scene->r.ffcodecdata.properties) {
+		return;
+	}
+	
+	prop = IDP_GetPropertyFromGroup(
+		G.scene->r.ffcodecdata.properties, (char*) prop_name);
+	if (!prop) {
+		return;
+	}
+
+	iter = IDP_GetGroupIterator(prop);
+
+	while ((curr = IDP_GroupIterNext(iter)) != NULL) {
+		set_ffmpeg_property_option(c, curr);
+	}
+}
+
 /* prepare a video stream for the output file */
 
 static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
@@ -423,13 +498,18 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 	}
 	
 	/* Determine whether we are encoding interlaced material or not */
-	if (G.scene->r.mode & (1 << 6)) {
+	if (G.scene->r.mode & R_FIELDS) {
 		fprintf(stderr, "Encoding interlaced video\n");
 		c->flags |= CODEC_FLAG_INTERLACED_DCT;
 		c->flags |= CODEC_FLAG_INTERLACED_ME;
-	}	
-	c->sample_aspect_ratio.num = G.scene->r.xasp;
-	c->sample_aspect_ratio.den = G.scene->r.yasp;
+	}
+
+	/* xasp & yasp got float lately... */
+
+	c->sample_aspect_ratio = av_d2q(
+		((double) G.scene->r.xasp / (double) G.scene->r.yasp), 255);
+
+	set_ffmpeg_properties(c, "video");
 	
 	if (avcodec_open(c, codec) < 0) {
 		error("Couldn't initialize codec");
@@ -474,6 +554,9 @@ static AVStream* alloc_audio_stream(int codec_id, AVFormatContext* of)
 		error("Couldn't find a valid audio codec");
 		return NULL;
 	}
+
+	set_ffmpeg_properties(c, "audio");
+
 	if (avcodec_open(c, codec) < 0) {
 		error("Couldn't initialize audio codec");
 		return NULL;

@@ -33,11 +33,15 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_cloth_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
@@ -256,6 +260,66 @@ void duplicate_defgroup ( Object *ob )
 	}
 }
 
+static void del_defgroup_update_users(Object *ob, int id)
+{
+	ExplodeModifierData *emd;
+	ModifierData *md;
+	ParticleSystem *psys;
+	ClothModifierData *clmd;
+	ClothSimSettings *clsim;
+	int a;
+
+	/* these cases don't use names to refer to vertex groups, so when
+	 * they get deleted the numbers get out of synce, this corrects that */
+
+	if(ob->soft) {
+		if(ob->soft->vertgroup == id)
+			ob->soft->vertgroup= 0;
+		else if(ob->soft->vertgroup > id)
+			ob->soft->vertgroup--;
+	}
+
+	for(md=ob->modifiers.first; md; md=md->next) {
+		if(md->type == eModifierType_Explode) {
+			emd= (ExplodeModifierData*)md;
+
+			if(emd->vgroup == id)
+				emd->vgroup= 0;
+			else if(emd->vgroup > id)
+				emd->vgroup--;
+		}
+		else if(md->type == eModifierType_Cloth) {
+			clmd= (ClothModifierData*)md;
+			clsim= clmd->sim_parms;
+
+			if(clsim) {
+				if(clsim->vgroup_mass == id)
+					clsim->vgroup_mass= 0;
+				else if(clsim->vgroup_mass > id)
+					clsim->vgroup_mass--;
+
+				if(clsim->vgroup_bend == id)
+					clsim->vgroup_bend= 0;
+				else if(clsim->vgroup_bend > id)
+					clsim->vgroup_bend--;
+
+				if(clsim->vgroup_struct == id)
+					clsim->vgroup_struct= 0;
+				else if(clsim->vgroup_struct > id)
+					clsim->vgroup_struct--;
+			}
+		}
+	}
+
+	for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+		for(a=0; a<PSYS_TOT_VG; a++)
+			if(psys->vgroup[a] == id)
+				psys->vgroup[a]= 0;
+			else if(psys->vgroup[a] > id)
+				psys->vgroup[a]--;
+	}
+}
+
 void del_defgroup_in_object_mode ( Object *ob )
 {
 	bDeformGroup *dg;
@@ -290,6 +354,8 @@ void del_defgroup_in_object_mode ( Object *ob )
 			}
 		}
 	}
+
+	del_defgroup_update_users(ob, ob->actdef);
 
 	/* Update the active deform index if necessary */
 	if (ob->actdef == BLI_countlist(&ob->defbase))
@@ -347,6 +413,8 @@ void del_defgroup (Object *ob)
 			}
 		}
 	}
+
+	del_defgroup_update_users(ob, ob->actdef);
 
 	/* Update the active deform index if necessary */
 	if (ob->actdef==BLI_countlist(&ob->defbase))

@@ -88,6 +88,10 @@
 //#include "BPY_extern.h"
 #endif 
 
+#include "BKE_utildefines.h"
+#include "BKE_global.h"
+#include "BLI_blenlib.h"
+
 static void setSandbox(TPythonSecurityLevel level);
 
 
@@ -137,6 +141,32 @@ static PyObject* gPySetGravity(PyObject*,
 		Py_Return;
 	}
 	
+	return NULL;
+}
+
+static char gPyExpandPath_doc[] =
+"(path) - Converts a blender internal path into a proper file system path.\n\
+path - the string path to convert.\n\n\
+Use / as directory separator in path\n\
+You can use '//' at the start of the string to define a relative path;\n\
+Blender replaces that string by the directory of the startup .blend or runtime\n\
+file to make a full path name (doesn't change during the game, even if you load\n\
+other .blend).\n\
+The function also converts the directory separator to the local file system format.";
+
+static PyObject* gPyExpandPath(PyObject*,
+								PyObject* args, 
+								PyObject*)
+{
+	char expanded[FILE_MAXDIR + FILE_MAXFILE];
+	char* filename;
+	
+	if (PyArg_ParseTuple(args,"s",&filename))
+	{
+		BLI_strncpy(expanded, filename, FILE_MAXDIR + FILE_MAXFILE);
+		BLI_convertstringcode(expanded, G.sce);
+		return PyString_FromString(expanded);
+	}
 	return NULL;
 }
 
@@ -361,6 +391,7 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 
 
 static struct PyMethodDef game_methods[] = {
+	{"expandPath", (PyCFunction)gPyExpandPath, METH_VARARGS, gPyExpandPath_doc},
 	{"getCurrentController",
 	(PyCFunction) SCA_PythonController::sPyGetCurrentController,
 	METH_VARARGS, SCA_PythonController::sPyGetCurrentController__doc__},

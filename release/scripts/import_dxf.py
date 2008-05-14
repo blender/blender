@@ -1,5 +1,5 @@
 #!BPY
-
+# coding: utf-8
 """
 Name: 'Autodesk DXF (.dxf)'
 Blender: 244
@@ -5943,3 +5943,4 @@ if 1:
 
 	print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
 """
+

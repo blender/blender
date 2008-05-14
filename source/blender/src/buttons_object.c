@@ -2730,7 +2730,7 @@ static void object_panel_draw(Object *ob)
 	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	/* LAYERS */
-	xco= 80;
+	xco= 65;
 	dx= 35;
 	dy= 30;
 	
@@ -2752,7 +2752,10 @@ static void object_panel_draw(Object *ob)
 	uiBlockEndAlign(block);
 	
 	/* Object Color */
-	uiDefButF(block, COL, REDRAWVIEW3D, "",	270, 165,30, 30, ob->col, 0, 0, 0, 0, "Object color, used when faces have the ObCol mode enabled");
+	uiBlockBeginAlign(block);
+	uiDefButF(block, COL, REDRAWVIEW3D, "",	250, 180, 50, 15, ob->col, 0, 0, 0, 0, "Object color, used when faces have the ObCol mode enabled");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "A:", 250, 165, 50, 15, &ob->col[3], 0.0f, 1.0f, 10, 2, "Object alpha, used when faces have the ObCol mode enabled");
+	uiBlockEndAlign(block);	
 	
 	uiDefBut(block, LABEL, 0, "Drawtype",						10,120,100,20, NULL, 0, 0, 0, 0, "");
 	
@@ -3010,15 +3013,35 @@ void do_effects_panels(unsigned short event)
 	case B_PART_INIT_CHILD:
 	case B_PART_RECALC_CHILD:
 		if(psys) {
+			Base *base;
+			Object *bob;
+			ParticleSystem *bpsys;
+			int flush;
+
 			nr=0;
-			for(psys=ob->particlesystem.first; psys; psys=psys->next){
-				if(ELEM(psys->part->draw_as,PART_DRAW_OB,PART_DRAW_GR))
+			for(bpsys=ob->particlesystem.first; bpsys; bpsys=bpsys->next){
+				if(ELEM(bpsys->part->draw_as,PART_DRAW_OB,PART_DRAW_GR))
 					nr++;
 			}
 			if(nr)
 				ob->transflag |= OB_DUPLIPARTS;
 			else
 				ob->transflag &= ~OB_DUPLIPARTS;
+
+			if(psys->part->type==PART_REACTOR)
+				if(psys->target_ob)
+					DAG_object_flush_update(G.scene, psys->target_ob, OB_RECALC_DATA);
+
+			for(base = G.scene->base.first; base; base= base->next) {
+				bob= base->object;
+				flush= 0;
+				for(bpsys=bob->particlesystem.first; bpsys; bpsys=bpsys->next)
+					if(bpsys->part==psys->part)
+						flush= 1;
+
+				if(flush)
+					DAG_object_flush_update(G.scene, bob, OB_RECALC_DATA);
+			}
 
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
@@ -3208,6 +3231,7 @@ static void object_collision__enabletoggle ( void *ob_v, void *arg2 )
 		{
 			md = modifier_new ( eModifierType_Collision );
 			BLI_addtail ( &ob->modifiers, md );
+			DAG_scene_sort(G.scene);
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWVIEW3D, 0);
@@ -3215,8 +3239,10 @@ static void object_collision__enabletoggle ( void *ob_v, void *arg2 )
 	}
 	else
 	{
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		BLI_remlink ( &ob->modifiers, md );
 		modifier_free ( md );
+		DAG_scene_sort(G.scene);
 		allqueue(REDRAWBUTSEDIT, 0);
 	}
 }
