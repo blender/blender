@@ -214,7 +214,10 @@ void add_blockhandler(ScrArea *sa, short eventcode, short val)
 			break;
 		}
 	}
-	if(a==SPACE_MAXHANDLER) printf("error; max (4) blockhandlers reached!\n");
+	if(a==SPACE_MAXHANDLER) {
+		error("Only %i floating panels allowed", SPACE_MAXHANDLER-1);
+	}
+		
 }
 
 void rem_blockhandler(ScrArea *sa, short eventcode)
