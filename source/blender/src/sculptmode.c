@@ -438,15 +438,15 @@ void sculpt_axislock(float *co)
 	}
 }
 
-static void add_norm_if(const BrushAction *a, float out[3], float out_flip[3], const short no[3])
+static void add_norm_if(float view_vec[3], float out[3], float out_flip[3], const short no[3])
 {
 	float fno[3] = {no[0], no[1], no[2]};
 
 	Normalize(fno);
 
-	if((Inpf(((BrushAction*)a)->symm.out, fno)) < 0) {
+	if((Inpf(view_vec, fno)) > 0) {
 		VecAddf(out, out, fno);
-	} else if (out[0]==0.0 && out[1]==0.0 && out[2]==0.0) {
+	} else {
 		VecAddf(out_flip, out_flip, fno); /* out_flip is used when out is {0,0,0} */
 	}
 }
@@ -465,11 +465,11 @@ void calc_area_normal(float out[3], const BrushAction *a, const float *outdir, c
 
 	if(sculptmode_brush()->flag & SCULPT_BRUSH_ANCHORED) {
 		for(; node; node = node->next)
-			add_norm_if(a, out, out_flip, a->orig_norms[node->Index]);
+			add_norm_if(((BrushAction*)a)->symm.out, out, out_flip, a->orig_norms[node->Index]);
 	}
 	else {
 		for(; node; node = node->next)
-			add_norm_if(a, out, out_flip, me->mvert[node->Index].no);
+			add_norm_if(((BrushAction*)a)->symm.out, out, out_flip, me->mvert[node->Index].no);
 	}
 
 	if (out[0]==0.0 && out[1]==0.0 && out[2]==0.0) {
