@@ -1248,7 +1248,8 @@ static DerivedMesh *arrayModifier_applyModifier(
 
 	result = arrayModifier_doArray(amd, ob, derivedData, 0);
 
-	CDDM_calc_normals(result);
+	if(result != derivedData)
+		CDDM_calc_normals(result);
 
 	return result;
 }
@@ -2674,7 +2675,8 @@ static DerivedMesh *edgesplitModifier_applyModifier(
 
 	result = edgesplitModifier_do(emd, ob, derivedData);
 
-	CDDM_calc_normals(result);
+	if(result != derivedData)
+		CDDM_calc_normals(result);
 
 	return result;
 }
