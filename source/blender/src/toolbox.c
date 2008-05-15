@@ -314,7 +314,7 @@ short sbutton(char *var, short min, short max, char *str)
 	x1=mval[0]-250; 
 	y1=mval[1]-20; 
 	
-	editvar = MEM_callocN(max, "sbutton");
+	editvar = MEM_callocN(max+1, "sbutton");
 	BLI_strncpy(editvar, var, max);
 	
 	uiDefButC(block, TEX, 32766, str,	x1+5,y1+10,225,20, editvar,(float)min,(float)max, 0, 0, "");
