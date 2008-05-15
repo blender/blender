@@ -55,6 +55,8 @@
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_ipo_types.h"
+#include "DNA_curve_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -3850,7 +3852,7 @@ void unique_bone_name (bArmature *arm, char *name)
 }
 
 #define MAXBONENAME 32
-/* helper call for below */
+/* helper call for armature_bone_rename */
 static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldname, char *newname)
 {
 	bConstraint *curcon;
@@ -3882,6 +3884,7 @@ static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldnam
 void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 {
 	Object *ob;
+	Ipo *ipo;
 	char newname[MAXBONENAME];
 	char oldname[MAXBONENAME];
 	
@@ -3905,7 +3908,7 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			else return;
 		}
 		else {
-			Bone *bone= get_named_bone (arm, oldname);
+			Bone *bone= get_named_bone(arm, oldname);
 			
 			if (bone) {
 				unique_bone_name (arm, newname);
@@ -3914,7 +3917,7 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			else return;
 		}
 		
-		/* do entire dbase */
+		/* do entire dbase - objects */
 		for (ob= G.main->object.first; ob; ob= ob->id.next) {
 			/* we have the object using the armature */
 			if (arm==ob->data) {
@@ -3936,7 +3939,7 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 				if (ob->pose) {
 					bPoseChannel *pchan = get_pose_channel(ob->pose, oldname);
 					if (pchan)
-						BLI_strncpy (pchan->name, newname, MAXBONENAME);
+						BLI_strncpy(pchan->name, newname, MAXBONENAME);
 				}
 				
 				/* check all nla-strips too */
@@ -3981,6 +3984,28 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 					   BLI_strncpy(dg->name, newname, MAXBONENAME);
 				}
 			}
+		}
+		
+		/* do entire db - ipo's for the drivers */
+		for (ipo= G.main->ipo.first; ipo; ipo= ipo->id.next) {
+			IpoCurve *icu;
+			
+			/* check each curve's driver */
+			for (icu= ipo->curve.first; icu; icu= icu->next) {
+				IpoDriver *icd= icu->driver;
+				
+				if ((icd) && (icd->ob)) {
+					ob= icd->ob;
+					
+					if (icu->driver->type == IPO_DRIVER_TYPE_NORMAL) {
+						if (!strcmp(oldname, icd->name))
+							BLI_strncpy(icd->name, newname, MAXBONENAME);
+					}
+					else {
+						/* TODO: pydrivers need to be treated differently */
+					}
+				}
+			}			
 		}
 	}
 }
