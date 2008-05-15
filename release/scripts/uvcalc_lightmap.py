@@ -538,7 +538,7 @@ def main():
 			return
 		meshes = [ ob.getData(mesh=1) ]
 	else:
-		meshes = dict([ (me.name, me) for ob in scn.objects.context for me in (ob.getData(mesh=1),) if not me.lib if len(me.faces)])
+		meshes = dict([ (me.name, me) for ob in scn.objects.context if ob.type == 'Mesh' for me in (ob.getData(mesh=1),) if not me.lib if len(me.faces)])
 		meshes = meshes.values()
 		if not meshes:
 			Draw.PupMenu('Error%t|No mesh objects selected.')
