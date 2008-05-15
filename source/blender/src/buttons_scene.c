@@ -1404,6 +1404,8 @@ void playback_anim(void)
 
 #ifdef WITH_FFMPEG
 static void set_ffmpeg_preset(int preset);
+static int ffmpeg_property_add_string(const char * type, const char * str);
+static char ffmpeg_option_to_add[255] = "";
 #endif
 
 void do_render_panels(unsigned short event)
@@ -1691,6 +1693,20 @@ void do_render_panels(unsigned short event)
 		}
 		allqueue(REDRAWBUTSSCENE, 0);
 		allqueue(REDRAWOOPS, 0);
+#ifdef WITH_FFMPEG
+	case B_ADD_FFMPEG_AUDIO_OPTION:
+		if (ffmpeg_property_add_string("audio", ffmpeg_option_to_add)){
+			*ffmpeg_option_to_add = 0;
+		}
+		allqueue(REDRAWBUTSSCENE, 0);
+		break;
+	case B_ADD_FFMPEG_VIDEO_OPTION:
+		if (ffmpeg_property_add_string("video", ffmpeg_option_to_add)){
+			*ffmpeg_option_to_add = 0;
+		}
+		allqueue(REDRAWBUTSSCENE, 0);
+		break;
+#endif
 	}
 }
 
@@ -2393,13 +2409,17 @@ static int ffmpeg_property_add_string(const char * type, const char * str)
 	AVCodecContext c;
 	const AVOption * o = 0;
 	const AVOption * p = 0;
-	char name[128];
+	char name_[128];
+	char * name;
 	char * param;
 	IDProperty * prop;
 	
 	avcodec_get_context_defaults(&c);
 
-	strncpy(name, str, 128);
+	strncpy(name_, str, 128);
+
+	name = name_;
+	while (*name == ' ') name++;
 
 	param = strchr(name, ':');
 
@@ -2664,11 +2684,27 @@ static int render_panel_ffmpeg_property_option(
 static int render_panel_ffmpeg_properties(uiBlock *block, const char * type,
 					  int xofs, int yofs)
 {
+	short event = B_NOP;
+
 	yofs -= 5;
+	
+	if (strcmp(type, "audio") == 0) {
+		event = B_ADD_FFMPEG_AUDIO_OPTION;
+	} else if (strcmp(type, "video") == 0) {
+		event = B_ADD_FFMPEG_VIDEO_OPTION;
+	}
+		
+	uiDefBut(block, TEX, event, "", xofs, yofs, 
+		 170, 19, ffmpeg_option_to_add, 0.0, 255.0, 100, 0, 
+		 "FFMPEG option to add");
+
+	uiDefBut(block, BUT, event, "Add", xofs+170,yofs,
+		 30, 19, 0, 0, 0, 0, 0, 
+		 "Add FFMPEG option");
 
 	uiDefBlockBut(block, ffmpeg_property_add_menu, (void*) type, 
-		      "Add FFMPEG Expert Option", xofs, yofs, 240, 20, 
-		      "");
+		      "Menu", xofs + 200, yofs, 40, 20, 
+		      "Add FFMPEG option using menu");
 	yofs -= 20;
 
 	if (G.scene->r.ffcodecdata.properties) {

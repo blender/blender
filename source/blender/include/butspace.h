@@ -359,6 +359,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SET_ZBLUR			1644
 #define B_ADD_RENDERLAYER	1645
 #define B_SET_PASS			1646
+#define B_ADD_FFMPEG_VIDEO_OPTION     1647
+#define B_ADD_FFMPEG_AUDIO_OPTION     1648
 
 #define B_SEQ_BUT_PLUGIN	1691
 #define B_SEQ_BUT_RELOAD	1692
