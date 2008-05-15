@@ -44,6 +44,8 @@ from flt_filewalker import FltOut
 from flt_filewalker import FileFinder
 from flt_properties import *
 import shutil
+import trace
+import sys
 
 FF = FileFinder()
 records = process_recordDefs()
@@ -1460,6 +1462,9 @@ FLTXAPPChooser = None
 
 FLTAttrib = None
 
+
+FLTWarn = None
+
 def setshadingangle(ID,val):
 	global options
 	options.state['shading_default'] = val
@@ -1523,6 +1528,8 @@ def but_event(evt):
 
 	global FLTAttrib
 	
+	global FLTWarn
+	
 	#choose base path for export
 	if evt == 4:
 		Blender.Window.FileSelector(setBpath, "DB Root", options.state['basepath'])
@@ -1557,8 +1564,13 @@ def but_event(evt):
 	
 	#Export DB
 	if evt == 1:
-		dbexport()
-	
+		try:
+			dbexport()		
+		except Exception, inst:
+			import traceback
+			FLTWarn = Draw.PupBlock("Export Error", ["See console for output!"])
+			traceback.print_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)
+
 	#exit
 	if evt == 2:
 		Draw.Exit()
