@@ -459,7 +459,14 @@ void RE_SetCamera(Render *re, Object *camera)
 		
 		if(cam->type==CAM_ORTHO) re->r.mode |= R_ORTHO;
 		
-		/* updating these values from ipo's/drivers is handeled by the depgraph */
+		/* solve this too... all time depending stuff is in convertblender.c?
+		 * Need to update the camera early because it's used for projection matrices
+		 * and other stuff BEFORE the animation update loop is done 
+		 * */
+		if(cam->ipo) {
+			calc_ipo(cam->ipo, frame_to_float(re->r.cfra));
+			execute_ipo(&cam->id, cam->ipo);
+		}
 		lens= cam->lens;
 		shiftx=cam->shiftx;
 		shifty=cam->shifty;
