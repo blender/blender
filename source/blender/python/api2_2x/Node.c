@@ -919,6 +919,8 @@ static int sockoutmap_set_attr(bNodeStack **stack, short type, short idx, PyObje
 	int i;
 	short len, wanted_len;
 
+	if (!stack || !stack[idx]) return 0; /* no MaterialNode */
+
 	if (type == SOCK_VALUE) {
 		val = PyNumber_Float(value);
 		if (!val)
