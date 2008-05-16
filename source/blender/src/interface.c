@@ -2114,7 +2114,7 @@ static int ui_act_as_text_but(uiBut *but)
 
 static int ui_do_but_NUM(uiBut *but)
 {
-	double value;
+	double value, butrange;
 	float deler, fstart, f, tempf, pressure;
 	int lvalue, temp, orig_x; /*  , firsttime=1; */
 	short retval=0, qual, sx, mval[2], pos=0;
@@ -2128,7 +2128,8 @@ static int ui_do_but_NUM(uiBut *but)
 	
 	sx= mval[0];
 	orig_x = sx; /* Store so we can scale the rate of change by the dist the mouse is from its original xlocation */
-	fstart= (value - but->min)/(but->max-but->min);
+	butrange= (but->max - but->min);
+	fstart= (butrange == 0.0)? 0.0f: value/butrange;
 	f= fstart;
 	
 	temp= (int)value;
