@@ -245,12 +245,12 @@ float InputVerticalAbsolute(TransInfo *t, short mval[2]) {
 
 float InputDeltaAngle(TransInfo *t, short mval[2])
 {
-	double dx2 = t->center2d[0] - mval[0];
-	double dy2 = t->center2d[1] - mval[1];
+	double dx2 = mval[0] - t->center2d[0];
+	double dy2 = mval[1] - t->center2d[1];
 	double B = sqrt(dx2*dx2+dy2*dy2);
 
-	double dx1 = t->center2d[0] - t->imval[0];
-	double dy1 = t->center2d[1] - t->imval[1];
+	double dx1 = t->imval[0] - t->center2d[0];
+	double dy1 = t->imval[1] - t->center2d[1];
 	double A = sqrt(dx1*dx1+dy1*dy1);
 
 	double dx3 = mval[0] - t->imval[0];
@@ -265,6 +265,28 @@ float InputDeltaAngle(TransInfo *t, short mval[2])
 	
 	dphi = saacos((float)deler);
 	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
+
+	/* If the angle is zero, because of lack of precision close to the 1.0 value in acos
+	 * approximate the angle with the oposite side of the normalized triangle
+	 * This is a good approximation here since the smallest acos value seems to be around
+	 * 0.02 degree and lower values don't even have a 0.01% error compared to the approximation
+	 * */	
+	if (dphi == 0)
+	{
+		double dx, dy;
+		
+		dx2 /= A;
+		dy2 /= A;
+		
+		dx1 /= B;
+		dy1 /= B;
+		
+		dx = dx1 - dx2;
+		dy = dy1 - dy2;
+		
+		dphi = sqrt(dx*dx + dy*dy);
+		if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
+	}
 	
 	if(t->flag & T_SHIFT_MOD) dphi = dphi/30.0f;
 	
