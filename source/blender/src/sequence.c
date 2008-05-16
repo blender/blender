@@ -1957,6 +1957,10 @@ static TStripElem* do_handle_speed_effect(Sequence * seq, int cfra)
 
 	se = give_tstripelem(seq, cfra);
 
+	if (!se) {
+		return se;
+	}
+
 	if (cfra_left == cfra_right || 
 	    (s->flags & SEQ_SPEED_BLEND) == 0) {
 		test_and_auto_discard_ibuf(se);
