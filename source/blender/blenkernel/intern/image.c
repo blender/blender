@@ -990,8 +990,11 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 	}
 
 	if (G.scene->r.stamp & R_STAMP_CAMERA) {
-		if (do_prefix)		sprintf(stamp_data->camera, "Camera %s", ((Camera *) G.scene->camera)->id.name+2);
-		else				sprintf(stamp_data->camera, "%s", ((Camera *) G.scene->camera)->id.name+2);
+		if (G.scene->camera) strcpy(text, ((Camera *) G.scene->camera)->id.name+2);
+		else 		strcpy(text, "<none>");
+		
+		if (do_prefix)		sprintf(stamp_data->camera, "Camera %s", text);
+		else				sprintf(stamp_data->camera, "%s", text);
 	} else {
 		stamp_data->camera[0] = '\0';
 	}
