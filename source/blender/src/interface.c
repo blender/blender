@@ -2129,7 +2129,7 @@ static int ui_do_but_NUM(uiBut *but)
 	sx= mval[0];
 	orig_x = sx; /* Store so we can scale the rate of change by the dist the mouse is from its original xlocation */
 	butrange= (but->max - but->min);
-	fstart= (butrange == 0.0)? 0.0f: value/butrange;
+	fstart= (butrange == 0.0)? 0.0f: (value - but->min)/butrange;
 	f= fstart;
 	
 	temp= (int)value;
