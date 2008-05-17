@@ -783,7 +783,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 			else
 				resolu= nu->resolu;
 			
-			if(nu->pntsu<2);
+			if(nu->pntsu<2 || ((nu->type & 7)==CU_NURBS && nu->pntsu < nu->orderu));
 			else if((nu->type & 7)==CU_BEZIER) {
 				
 				/* count */

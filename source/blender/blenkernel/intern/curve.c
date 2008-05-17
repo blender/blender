@@ -1476,7 +1476,9 @@ void makeBevelList(Object *ob)
 	else nu= cu->nurb.first;
 	
 	while(nu) {
-		if(nu->pntsu<=1) {
+		/* check we are a single point? also check we are not a surface and that the orderu is sane,
+		 * enforced in the UI but can go wrong possibly */
+		if(nu->pntsu<2 || ((nu->type & 7)==CU_NURBS && nu->pntsu < nu->orderu)) {
 			bl= MEM_callocN(sizeof(BevList)+1*sizeof(BevPoint), "makeBevelList");
 			BLI_addtail(&(cu->bev), bl);
 			bl->nr= 0;
