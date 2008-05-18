@@ -741,7 +741,7 @@ void viewmove(int mode)
 	
 		// dist correction from other movement devices
 		
-	if(dz_flag) {
+	if((dz_flag)||G.vd->dist==0) {
 		dz_flag = 0;
 		G.vd->dist = m_dist;
 		upvec[0] = upvec[1] = 0;
