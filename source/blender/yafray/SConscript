@@ -6,4 +6,4 @@ sources = env.Glob('intern/*.cpp')
 incs = '#/intern/guardedalloc ../blenlib ../makesdna ../blenkernel'
 incs += ' ../imbuf ../include ../render/extern/include ../render/intern/include'
 
-env.BlenderLib ( 'bf_yafray', sources, Split(incs), [], libtype=['blender','player'], priority=[5, 190] )
+env.BlenderLib ( 'bf_yafray', sources, Split(incs), [], libtype=['blender','player'], priority=[10, 190] )

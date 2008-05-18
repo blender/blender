@@ -63,8 +63,8 @@ env.BlenderLib (libname="bf_freestyle",
 				sources=sources,
                 includes=Split(incs),
                 defines=defs,
-				libtype=['blender'],
-                priority = [20] )
+				libtype=['player'],
+                priority = [280] )
 
 ########################################################
 # SWIG
