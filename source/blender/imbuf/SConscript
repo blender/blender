@@ -31,4 +31,4 @@ if env['WITH_BF_QUICKTIME']==1:
 	incs += ' ' + env['BF_QUICKTIME_INC']
 	defs.append('WITH_QUICKTIME')
 
-env.BlenderLib ( libname = 'bf_imbuf', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [80, 40] )
+env.BlenderLib ( libname = 'bf_imbuf', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player','blender'], priority = [80, 40, -1] )

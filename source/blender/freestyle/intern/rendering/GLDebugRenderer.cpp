@@ -124,7 +124,7 @@ void GLDebugRenderer::renderBitmapString(real x,
   glScalef(textSize/200.0, textSize/200.0, textSize/200.0);
   for (c=string; *c != '\0'; c++) 
   {
-    glutStrokeCharacter(font, *c);
+    //soc glutStrokeCharacter(font, *c);
   }
   glPopMatrix();
 }

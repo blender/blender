@@ -970,6 +970,8 @@ static int RenderData_setRenderer( BPy_RenderData * self, PyObject * value )
 		self->renderContext->renderer = R_INTERN;
 	else if( type == R_YAFRAY )
 		self->renderContext->renderer = R_YAFRAY;
+	else if( type == R_FREESTYLE )
+		self->renderContext->renderer = R_FREESTYLE;
 	else
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"expected constant INTERNAL or YAFRAY" );
@@ -3835,6 +3837,7 @@ PyObject *Render_Init( void )
 
 	PyModule_AddIntConstant( submodule, "INTERNAL", R_INTERN );
 	PyModule_AddIntConstant( submodule, "YAFRAY", R_YAFRAY );
+	PyModule_AddIntConstant( submodule, "FREESTYLE", R_FREESTYLE );
 	PyModule_AddIntConstant( submodule, "AVIRAW", R_AVIRAW );
 	PyModule_AddIntConstant( submodule, "AVIJPEG", R_AVIJPEG );
 	PyModule_AddIntConstant( submodule, "AVICODEC", R_AVICODEC );

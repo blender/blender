@@ -201,6 +201,7 @@ unsigned int SteerableViewMap::getNumberOfPyramidLevels() const{
     return _imagesPyramids[0]->getNumberOfLevels();
   return 0;
 }
+
 void SteerableViewMap::saveSteerableViewMap() const {
   for(unsigned i=0; i<=_nbOrientations; ++i){
     if(_imagesPyramids[i] == 0){

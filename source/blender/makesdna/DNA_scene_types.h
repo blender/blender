@@ -610,6 +610,7 @@ typedef struct Scene {
 /* yafray: renderer flag (not only exclusive to yafray) */
 #define R_INTERN	0
 #define R_YAFRAY	1
+#define R_FREESTYLE	2
 
 /* scemode (int now) */
 #define R_DOSEQ				0x0001

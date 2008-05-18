@@ -70,6 +70,9 @@
 
 #endif /* disable yafray */
 
+#include "FST_freestyle.h"
+
+
 /* internal */
 #include "render_types.h"
 #include "renderpipeline.h"
@@ -2192,6 +2195,11 @@ static void do_render_composite_fields_blur_3d(Render *re)
 	re->display_draw(re->result, NULL);
 }
 
+static void freestyleRender(Render *re)
+{
+	FRS_execute();
+}
+
 #ifndef DISABLE_YAFRAY
 /* yafray: main yafray render/export call */
 static void yafrayRender(Render *re)
@@ -2286,10 +2294,15 @@ static void do_render_all_options(Render *re)
 #ifndef DISABLE_YAFRAY
 		if(re->r.renderer==R_YAFRAY)
 			yafrayRender(re);
+		else if(re->r.renderer==R_FREESTYLE)
+			freestyleRender(re);
 		else
 			do_render_composite_fields_blur_3d(re);
 #else
-		do_render_composite_fields_blur_3d(re);
+		if(re->r.renderer==R_FREESTYLE)
+			freestyleRender(re);
+		else
+			do_render_composite_fields_blur_3d(re);
 #endif
 	}
 	
@@ -2402,7 +2415,7 @@ static int is_rendering_allowed(Render *re)
 	}
 	
 	/* renderer */
-	if(!ELEM(re->r.renderer, R_INTERN, R_YAFRAY)) {
+	if(!ELEM3(re->r.renderer, R_INTERN, R_YAFRAY, R_FREESTYLE)) {
 		re->error("Unknown render engine set");
 		return 0;
 	}
