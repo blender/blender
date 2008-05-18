@@ -1110,7 +1110,7 @@ static void poselib_preview_init_data (tPoseLib_PreviewData *pld, Object *ob, sh
 		return;
 	}
 	if (pld->marker == NULL) {
-		if ((apply_active==0) || (pld->act->markers.first)) {
+		if ((apply_active==0) && (pld->act->markers.first)) {
 			/* just use first one then... */
 			pld->marker= pld->act->markers.first;
 			printf("PoseLib had no active pose\n");
