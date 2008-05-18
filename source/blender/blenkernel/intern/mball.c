@@ -1374,36 +1374,37 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 					nz = abs((out.z - in.z)/mbproc->size);
 					
 					MAXN = MAX3(nx,ny,nz);
+					if(MAXN!=0.0f) {
+						dx = (out.x - in.x)/MAXN;
+						dy = (out.y - in.y)/MAXN;
+						dz = (out.z - in.z)/MAXN;
 
-					dx = (out.x - in.x)/MAXN;
-					dy = (out.y - in.y)/MAXN;
-					dz = (out.z - in.z)/MAXN;
+						len = 0.0;
+						while(len<=max_len) {
+							workp.x += dx;
+							workp.y += dy;
+							workp.z += dz;
+							/* compute value of implicite function */
+							tmp_v = mbproc->function(workp.x, workp.y, workp.z);
+							/* add cube to the stack, when value of implicite function crosses zero value */
+							if((tmp_v<0.0 && workp_v>=0.0)||(tmp_v>0.0 && workp_v<=0.0)) {
 
-					len = 0.0;
-					while(len<=max_len) {
-						workp.x += dx;
-						workp.y += dy;
-						workp.z += dz;
-						/* compute value of implicite function */
-						tmp_v = mbproc->function(workp.x, workp.y, workp.z);
-						/* add cube to the stack, when value of implicite function crosses zero value */
-						if((tmp_v<0.0 && workp_v>=0.0)||(tmp_v>0.0 && workp_v<=0.0)) {
+								/* indexes of CUBE, which includes "first point" */
+								c_i= (int)floor(workp.x/mbproc->size);
+								c_j= (int)floor(workp.y/mbproc->size);
+								c_k= (int)floor(workp.z/mbproc->size);
+								
+								/* add CUBE (with indexes c_i, c_j, c_k) to the stack,
+								 * this cube includes found point of Implicit Surface */
+								if (ml->flag & MB_NEGATIVE)
+									add_cube(mbproc, c_i, c_j, c_k, 2);
+								else
+									add_cube(mbproc, c_i, c_j, c_k, 1);
+							}
+							len = sqrt((workp.x-in.x)*(workp.x-in.x) + (workp.y-in.y)*(workp.y-in.y) + (workp.z-in.z)*(workp.z-in.z));
+							workp_v = tmp_v;
 
-							/* indexes of CUBE, which includes "first point" */
-							c_i= (int)floor(workp.x/mbproc->size);
-							c_j= (int)floor(workp.y/mbproc->size);
-							c_k= (int)floor(workp.z/mbproc->size);
-							
-							/* add CUBE (with indexes c_i, c_j, c_k) to the stack,
-							 * this cube includes found point of Implicit Surface */
-							if (ml->flag & MB_NEGATIVE)
-								add_cube(mbproc, c_i, c_j, c_k, 2);
-							else
-								add_cube(mbproc, c_i, c_j, c_k, 1);
 						}
-						len = sqrt((workp.x-in.x)*(workp.x-in.x) + (workp.y-in.y)*(workp.y-in.y) + (workp.z-in.z)*(workp.z-in.z));
-						workp_v = tmp_v;
-
 					}
 				}
 			}
