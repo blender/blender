@@ -3310,7 +3310,7 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 
 	if(ob==G.obedit) {
 		nu= lastnu;
-		if(nu==NULL) nu= editNurb.first;
+		if(nu==NULL) nu= lastnu= editNurb.first;
 		if(nu) {
 			if (ob->type==OB_CURVE) {
 				uiDefBut(block, LABEL, 0, "Tilt",
