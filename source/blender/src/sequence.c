@@ -1452,6 +1452,7 @@ static void input_preprocess(Sequence * seq, TStripElem* se, int cfra)
 	if(seq->flag & SEQ_USE_CROP || seq->flag & SEQ_USE_TRANSFORM) {
 		StripCrop c;
 		StripTransform t;
+		int sx,sy,dx,dy;
 
 		memset(&c, 0, sizeof(StripCrop));
 		memset(&t, 0, sizeof(StripTransform));
@@ -1463,22 +1464,22 @@ static void input_preprocess(Sequence * seq, TStripElem* se, int cfra)
 			t = *seq->strip->transform;
 		}
 
+		sx = se->ibuf->x - c.left - c.right;
+		sy = se->ibuf->y - c.top - c.bottom;
+		dx = sx;
+		dy = sy;
+
+		if (seq->flag & SEQ_USE_TRANSFORM) {
+			dx = seqrectx;
+			dy = seqrecty;
+		}
+
 		if (c.top + c.bottom >= se->ibuf->y ||
 		    c.left + c.right >= se->ibuf->x ||
-		    t.xofs >= se->ibuf->x ||
-		    t.yofs >= se->ibuf->y) {
+		    t.xofs >= dx || t.yofs >= dy) {
 			make_black_ibuf(se->ibuf);
 		} else {
 			ImBuf * i;
-			int sx = se->ibuf->x - c.left - c.right;
-			int sy = se->ibuf->y - c.top - c.bottom;
-			int dx = sx;
-			int dy = sy;
-
-			if (seq->flag & SEQ_USE_TRANSFORM) {
-				dx = seqrectx;
-				dy = seqrecty;
-			}
 
 			if (se->ibuf->rect_float) {
 				i = IMB_allocImBuf(dx, dy,32, IB_rectfloat, 0);
