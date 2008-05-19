@@ -4,8 +4,6 @@
 The Blender Python API Reference
 ================================
 
-	An asterisk (*) means the module has been updated.
-
 	for a full list of changes since 2.45 see U{http://wiki.blender.org/index.php/Release_Notes/Notes246/Python_API}
 
 	Top Module:
@@ -48,7 +46,7 @@ The Blender Python API Reference
 			- L{ActionStrips<NLA>}
 		- L{Particle}
 		- L{Registry}
-		- L{Scene} (*)
+		- L{Scene}
 			- L{Radio}
 			- L{Render}
 		- L{Sound}
