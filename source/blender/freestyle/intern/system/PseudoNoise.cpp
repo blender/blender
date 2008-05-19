@@ -36,7 +36,7 @@ PseudoNoise::init (long seed)
 {
   _values = new real[NB_VALUE_NOISE];
   RandGen::srand48(seed);
-  for (uint i=0; i<NB_VALUE_NOISE; i++)
+  for (unsigned int i=0; i<NB_VALUE_NOISE; i++)
     _values[i] = -1.0 + 2.0 * RandGen::drand48();
 }
 

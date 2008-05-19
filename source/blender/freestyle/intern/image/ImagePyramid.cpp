@@ -58,9 +58,9 @@ float ImagePyramid::pixel(int x, int y, int level){
   if(0 == level){
     return img->pixel(x,y);
   }
-  uint i  = 1<<level;
-  uint sx = x>>level;
-  uint sy = y>>level;
+  unsigned int i  = 1<<level;
+  unsigned int sx = x>>level;
+  unsigned int sy = y>>level;
   if(sx >= img->width())
     sx = img->width()-1;
   if(sy >= img->height())

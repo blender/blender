@@ -492,7 +492,7 @@ if env['WITH_BF_PLAYER']:
     Depends(blenderplayer,installtarget)
 
 if not env['WITH_BF_GAMEENGINE']:
-    blendernogame = env.Alias('blendernogame', B.program_list)
+    blendernogame = env.Alias('blendernogame', B.game)
     Depends(blendernogame,installtarget)
 
 Depends(nsiscmd, allinstall)

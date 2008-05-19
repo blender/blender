@@ -53,7 +53,7 @@ namespace StringUtils {
 		stringstream out("");
 		char s;
 		
-		for(uint i=0; i < str.size() ; i++){
+		for(unsigned int i=0; i < str.size() ; i++){
 			s =  ((char)(str.at(i) & 0x7F));
 			out << s;
 		}	
