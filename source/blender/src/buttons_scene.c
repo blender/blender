@@ -1286,6 +1286,10 @@ void do_sequencer_panels(unsigned short event)
 	Sequence *last_seq = get_last_seq();
 	ScrArea * sa;
 
+	if (!last_seq) {
+		return;
+	}
+
 	switch(event) {
 	case B_SEQ_BUT_PLUGIN:
 	case B_SEQ_BUT_EFFECT:
@@ -1323,6 +1327,7 @@ void do_sequencer_panels(unsigned short event)
 		allqueue(REDRAWALL, 0);
 	} else {
 		allqueue(REDRAWSEQ, 0);
+		allqueue(REDRAWBUTSSCENE, 0);
 	}
 }
 

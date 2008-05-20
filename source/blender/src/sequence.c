@@ -1756,6 +1756,7 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 		}
 	} else if(seq->type == SEQ_SCENE) {	// scene can be NULL after deletions
 		int oldcfra = CFRA;
+		Sequence * oldseq = get_last_seq();
 		Scene *sce= seq->scene, *oldsce= G.scene;
 		Render *re;
 		RenderResult rres;
@@ -1834,6 +1835,7 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 			if((G.f & G_PLAYANIM)==0) /* bad, is set on do_render_seq */
 				waitcursor(0);
 			CFRA = oldcfra;
+			set_last_seq(oldseq);
 
 			copy_to_ibuf_still(seq, se);
 
