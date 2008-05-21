@@ -2973,6 +2973,8 @@ void extrude_armature(int forked)
 						newbone->parent = ebone;
 						
 						newbone->flag = ebone->flag & BONE_TIPSEL;	// copies it, in case mirrored bone
+
+						if (newbone->parent) newbone->flag |= BONE_CONNECTED;
 					}
 					else {
 						VECCOPY(newbone->head, ebone->head);
@@ -2980,6 +2982,10 @@ void extrude_armature(int forked)
 						newbone->parent= ebone->parent;
 						
 						newbone->flag= BONE_TIPSEL;
+						
+						if (newbone->parent && ebone->flag & BONE_CONNECTED) {
+							newbone->flag |= BONE_CONNECTED;
+						}
 					}
 					
 					newbone->weight= ebone->weight;
@@ -2992,8 +2998,6 @@ void extrude_armature(int forked)
 					newbone->rad_tail= ebone->rad_tail;
 					newbone->segments= 1;
 					newbone->layer= ebone->layer;
-					
-					if (newbone->parent) newbone->flag |= BONE_CONNECTED;
 					
 					BLI_strncpy (newbone->name, ebone->name, 32);
 					
