@@ -1171,7 +1171,7 @@ static ModifierData *curve_get_tesselate_point(Object *ob, int forRender, int ed
 		if ((md->mode & required_mode) != required_mode) continue;
 		if (mti->isDisabled && mti->isDisabled(md)) continue;
 
-		if (md->type==eModifierType_Hook || md->type==eModifierType_Softbody) {
+		if (ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
 			preTesselatePoint  = md;
 		}
 	}

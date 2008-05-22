@@ -6850,8 +6850,16 @@ static void meshdeformModifier_do(
 	Mat3CpyMat4(icagemat, iobmat);
 
 	/* bind weights if needed */
-	if(!mmd->bindcos)
-		harmonic_coordinates_bind(mmd, vertexCos, numVerts, cagemat);
+	if(!mmd->bindcos) {
+		static int recursive = 0;
+
+		/* progress bar redraw can make this recursive .. */
+		if(!recursive) {
+			recursive = 1;
+			harmonic_coordinates_bind(mmd, vertexCos, numVerts, cagemat);
+			recursive = 0;
+		}
+	}
 
 	/* verify we have compatible weights */
 	totvert= numVerts;
