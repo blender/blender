@@ -46,7 +46,8 @@ static void do_gamma(bNode *node, float *out, float *in, float *fac)
 {
 	int i=0;
 	for(i=0; i<3; i++) {
-		out[i] = pow(in[i],fac[0]);
+		/* check for negative to avoid nan's */
+		out[i] = (in[0] > 0.0f)? pow(in[i],fac[0]): in[0];
 	}
 	out[3] = in[3];
 }
