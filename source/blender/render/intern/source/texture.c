@@ -2525,6 +2525,8 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 	ShadeInputUV *suv= &shi->uv[shi->actuv];
 	int a;
 
+	if(R.r.scemode & R_NO_TEX) return;
+
 	if(firsttime) {
 		BLI_lock_thread(LOCK_IMAGE);
 		if(firsttime) {
