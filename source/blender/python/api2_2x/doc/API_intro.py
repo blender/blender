@@ -4,9 +4,7 @@
 The Blender Python API Reference
 ================================
 
-	An asterisk (*) means the module has been updated.
-
-	for a full list of changes since 2.42 see U{http://mediawiki.blender.org/index.php/Release_Notes/Notes243/Python_API}
+	for a full list of changes since 2.45 see U{http://wiki.blender.org/index.php/Release_Notes/Notes246/Python_API}
 
 	Top Module:
 	-----------
@@ -16,60 +14,52 @@ The Blender Python API Reference
 
 	Submodules:
 	-----------
-		- L{Armature} (*)
+		- L{Armature}
 			- L{NLA}
 			- L{Action<NLA.Action>}
-		- L{BezTriple} (*)
+		- L{BezTriple}
 		- L{BGL}
-		- L{Camera} (*)
-		- L{Curve} (*)
-		- L{Draw} (*)
+		- L{Camera}
+		- L{Curve}
+		- L{Draw}
 		- L{Effect}
-		- L{Geometry} (*)
-		- L{Group} (*)
-		- L{Image} (*)
-		- L{Ipo} (*)
-		- L{IpoCurve} (*)
-		- L{Key} (*)
+		- L{Geometry}
+		- L{Group}
+		- L{Image}
+		- L{Ipo}
+		- L{IpoCurve}
+		- L{Key}
 		- L{Lamp}
-		- L{Lattice} (*)
-		- L{Library} (*)
-		- L{Material} (*)
-		- L{Mathutils} (*)
-		- L{Mesh} (*)
-		  - L{MeshPrimitives} (*)
-		- L{Metaball} (*)
+		- L{Lattice}
+		- L{Library}
+		- L{Material}
+		- L{Mathutils}
+		- L{Mesh}
+		  - L{MeshPrimitives}
+		- L{Metaball}
 		- L{NMesh} (deprecated)
 		- L{Noise}
-		- L{Object} (*)
-			- L{Modifier} (*)
-			- L{Pose} (*)
-			- L{Constraint} (*)
-			- L{ActionStrips<NLA>} (*)
+		- L{Object}
+			- L{Modifier}
+			- L{Pose}
+			- L{Constraint}
+			- L{ActionStrips<NLA>}
 		- L{Particle}
 		- L{Registry}
-		- L{Scene} (*)
+		- L{Scene}
 			- L{Radio}
-			- L{Render} (*)
-		- L{Sound} (*)
+			- L{Render}
+		- L{Sound}
 		- L{Text}
 		- L{Text3d}
 			- L{Font}
-		- L{Texture} (*)
+		- L{Texture}
 		- L{TimeLine}
 		- L{Types}
 		- L{Window}
-			- L{Theme} (*)
+			- L{Theme}
 		- L{World}
 		- L{sys<Sys>}
-
-	Additional information:
-	-----------------------
-
-		- L{Special features<API_related>}:
-		- scripts: registering in menus, documenting, configuring (new);
-		- command line examples (new);
-		- script links (*), space handler script links, Group module (new).
 
 Introduction:
 =============
@@ -226,9 +216,8 @@ A note to newbie script writers:
 	to get an idea of what can be done, you may be surprised.
 
 @author: The Blender Python Team
-@requires: Blender 2.43 or newer.
-@version: 2.43
-@see: U{www.blender3d.org<http://www.blender3d.org>}: main site
+@requires: Blender 2.46 or newer.
+@version: 2.46
 @see: U{www.blender.org<http://www.blender.org>}: documentation and forum
 @see: U{blenderartists.org<http://blenderartists.org>}: user forum
 @see: U{projects.blender.org<http://projects.blender.org>}
@@ -238,9 +227,9 @@ A note to newbie script writers:
 @see: U{Blending into Python<en.wikibooks.org/wiki/Blender_3D:_Blending_Into_Python>}: User contributed documentation, featuring a blender/python cookbook with many examples.
 
 @note: the official version of this reference guide is only updated for each
-	new Blender release.  But you can build the current CVS
+	new Blender release.  But you can build the current SVN
 	version yourself: install epydoc, grab all files in the
-	source/blender/python/api2_2x/doc/ folder of Blender's CVS and use the
+	source/blender/python/api2_2x/doc/ folder of Blender's SVN and use the
 	epy_docgen.sh script also found there to generate the html docs.
 	Naturally you will also need a recent Blender binary to try the new
 	features.  If you prefer not to compile it yourself, there is a testing

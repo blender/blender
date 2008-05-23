@@ -214,7 +214,10 @@ void add_blockhandler(ScrArea *sa, short eventcode, short val)
 			break;
 		}
 	}
-	if(a==SPACE_MAXHANDLER) printf("error; max (4) blockhandlers reached!\n");
+	if(a==SPACE_MAXHANDLER) {
+		error("Only %i floating panels allowed", SPACE_MAXHANDLER-1);
+	}
+		
 }
 
 void rem_blockhandler(ScrArea *sa, short eventcode)
@@ -1077,7 +1080,10 @@ void BIF_undo_menu(void)
 			if(menu) {
 				short event= pupmenu_col(menu, 20);
 				MEM_freeN(menu);
-				if(event>0) BKE_undo_number(event);
+				if(event>0) {
+					BKE_undo_number(event);
+					sound_initialize_sounds();
+				}
 			}
 		}
 	}

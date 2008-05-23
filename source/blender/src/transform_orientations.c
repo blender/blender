@@ -26,6 +26,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 #include "DNA_object_types.h"
@@ -44,6 +45,7 @@
 #include "BLI_editVert.h"
 
 #include "BIF_editmesh.h"
+#include "BIF_editarmature.h"
 #include "BIF_interface.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
@@ -604,6 +606,38 @@ int getTransformOrientation(float normal[3], float plane[3], int activeOnly)
 				
 				result = ORIENTATION_NORMAL;
 			}
+		}
+		else if (G.obedit->type == OB_ARMATURE)
+		{
+			bArmature *arm = G.obedit->data;
+			EditBone *ebone;
+			
+			for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
+				if (arm->layer & ebone->layer)
+				{
+					if (ebone->flag & BONE_SELECTED)
+					{
+						float vec[3];
+						VecSubf(vec, ebone->tail, ebone->head);
+						Normalize(vec);
+						VecAddf(normal, normal, vec);
+					}
+				}
+			}
+			
+			Normalize(normal);
+			Crossf(plane, G.obedit->obmat[0], normal);
+			
+			if (Inpf(plane, plane) < FLT_EPSILON)
+			{
+				Crossf(plane, G.obedit->obmat[1], normal);
+			} 
+
+			if (plane[0] != 0 || plane[1] != 0 || plane[2] != 0)
+			{
+				result = ORIENTATION_EDGE;
+			}
+
 		}
 		
 		Mat4Mul3Vecfl(G.obedit->obmat, plane);

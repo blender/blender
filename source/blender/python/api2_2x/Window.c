@@ -1240,6 +1240,7 @@ static PyObject *M_Window_QHandle( PyObject * self, PyObject * args )
 static PyObject *M_Window_TestBreak( PyObject * self )
 {
 	if (blender_test_break()) {
+		G.afbreek= 0;
 		Py_RETURN_TRUE;
 	} else {
 		Py_RETURN_FALSE;

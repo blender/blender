@@ -3390,8 +3390,9 @@ static void softbody_update_positions(Object *ob, SoftBody *sb, float (*vertexCo
 	int a;
 
 	/* update the vertex locations */
-	if(sb->particles) {
+	if(sb->particles && sb->particles->totpart>0) {
 		psmd= psys_get_modifier(ob,sb->particles);
+
 		pa= sb->particles->particles;
 		key= pa->hair;
 
@@ -3434,7 +3435,7 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 	float hairmat[4][4];
 	int a;
 
-	if(sb->particles) {
+	if(sb->particles && sb->particles->totpart>0) {
 		psmd= psys_get_modifier(ob, sb->particles);
 		pa= sb->particles->particles;
 		key= pa->hair;

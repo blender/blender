@@ -61,6 +61,7 @@ FLTDoXRef = None
 FLTScale = None
 FLTShadeImport = None
 FLTAttrib = None
+FLTWarn = None
 
 Vector= Blender.Mathutils.Vector
 FLOAT_TOLERANCE = 0.01
@@ -890,6 +891,17 @@ class InterNode(Node):
 		return weldmesh 		
 
 	def weldFuseFaces(self,weldmesh):
+
+		#retain original loose vertices
+		looseverts = dict()
+		for vert in self.mesh.verts:
+			looseverts[vert] = 0
+		for edge in self.mesh.edges:
+			looseverts[edge.v1] += 1
+			looseverts[edge.v2] += 1
+
+
+
 		#slight modification here: we need to walk around the mesh as many times as it takes to have no more matches
 		done = 0
 		while not done:
@@ -937,7 +949,7 @@ class InterNode(Node):
 				vertuse[vert] += 1
 		delverts = list()
 		for vert in self.mesh.verts:
-			if not vertuse[vert] and vert.index != 0:
+			if not vertuse[vert] and vert.index != 0 and looseverts[vert]:
 				delverts.append(vert)
 		
 		self.mesh.verts.delete(delverts)	
@@ -2405,6 +2417,10 @@ def setBpath(fname):
 
 def event(evt,val):
 	pass
+
+from Blender.BGL import *
+from Blender import Draw
+
 def but_event(evt):
 	
 	global FLTBaseLabel
@@ -2418,6 +2434,8 @@ def but_event(evt):
 	global FLTShadeImport
 	global FLTAttrib
 	
+	global FLTWarn
+	
 	#Import DB
 	if evt == 1:
 		if global_prefs['verbose'] >= 1:
@@ -2429,7 +2447,14 @@ def but_event(evt):
 			print
 		
 		GRR = GlobalResourceRepository()
-		select_file(global_prefs['fltfile'], GRR)
+		
+		try:
+			select_file(global_prefs['fltfile'], GRR)
+		except:
+			import traceback
+			FLTWarn = Draw.PupBlock("Export Error", ["See console for output!"])
+			traceback.print_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)
+	
 	#choose base path for export
 	if evt == 4:
 		Blender.Window.FileSelector(setBpath, "DB Root", global_prefs['fltfile'])
@@ -2450,10 +2475,7 @@ def but_event(evt):
 	for key in global_prefs:
 		d[key] = global_prefs[key]
 		Blender.Registry.SetKey('flt_import', d, 1) 
-	
 
-from Blender.BGL import *
-from Blender import Draw
 def gui():
 	
 	global FLTBaseLabel

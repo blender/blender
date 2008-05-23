@@ -982,7 +982,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				/* IK Target */
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco, *yco-24, 80, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 				
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
@@ -4172,8 +4172,9 @@ static void object_panel_particle_children(Object *ob)
 		uiDefButF(block, NUM, B_PART_REDRAW, "Rand:",		butx+butw/2,buty,butw/2,buth, &part->childrandsize, 0.0, 1.0, 10, 1, "Random variation to the size of the child particles");
 	}
 	if(part->childtype == PART_CHILD_FACES) {
-		uiDefButF(block, NUM, B_PART_REDRAW, "Spread:",butx,(buty-=buth),butw/2,buth, &part->childspread, -1.0, 1.0, 10, 1, "Spread children from the faces");
-		uiDefButBitI(block, TOG, PART_CHILD_SEAMS, B_PART_DISTR_CHILD, "Use Seams",	 butx+butw/2,buty,butw/2,buth, &part->flag, 0, 0, 0, 0, "Use seams to determine parents");
+		/* only works if children could be emitted from volume, but that option isn't available now */
+		/*uiDefButF(block, NUM, B_PART_REDRAW, "Spread:",butx,(buty-=buth),butw/2,buth, &part->childspread, -1.0, 1.0, 10, 1, "Spread children from the faces");*/
+		uiDefButBitI(block, TOG, PART_CHILD_SEAMS, B_PART_DISTR_CHILD, "Use Seams",	butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Use seams to determine parents");
 	}
 	uiBlockEndAlign(block);
 

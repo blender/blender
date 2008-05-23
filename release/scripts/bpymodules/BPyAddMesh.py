@@ -92,10 +92,11 @@ def add_mesh_simple(name, verts, edges, faces):
 		
 		ob_act.loc = cursor
 	
+	me.calcNormals()
+	
 	if is_editmode or Blender.Get('add_editmode'):
 		EditMode(1)
-	else: # adding in object mode means we need to calc normals
-		me.calcNormals()
+		
 		
 			
 

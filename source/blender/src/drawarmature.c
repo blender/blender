@@ -1618,7 +1618,7 @@ static void draw_pose_channels(Base *base, int dt)
 		}
 		
 		/* very very confusing... but in object mode, solid draw, we cannot do glLoadName yet,
-		 * stick bones and/or wire custom-shpaes are drawn in next loop 
+		 * stick bones and/or wire custom-shapes are drawn in next loop 
 		 */
 		if ((arm->drawtype != ARM_LINE) && (draw_wire == 0)) {
 			/* object tag, for bordersel optim */

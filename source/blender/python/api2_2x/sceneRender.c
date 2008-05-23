@@ -2005,19 +2005,19 @@ static int RenderData_setIValueAttrClamp( BPy_RenderData *self, PyObject *value,
 	case EXPP_RENDER_ATTR_CFRAME:
 		min = 1;
 		max = MAXFRAME;
-	   	size = 'h';
+	   	size = 'i';
 		param = &self->renderContext->cfra;
 		break;
 	case EXPP_RENDER_ATTR_EFRAME:
 		min = 1;
 		max = MAXFRAME;
-		size = 'h';
+		size = 'i';
 		param = &self->renderContext->efra;
 		break;
 	case EXPP_RENDER_ATTR_SFRAME:
 		min = 1;
 	    max = MAXFRAME;
-		size = 'h';
+		size = 'i';
 		param = &self->renderContext->sfra;
 		break;
 	case EXPP_RENDER_ATTR_FPS:

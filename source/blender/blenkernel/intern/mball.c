@@ -1374,36 +1374,37 @@ void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 					nz = abs((out.z - in.z)/mbproc->size);
 					
 					MAXN = MAX3(nx,ny,nz);
+					if(MAXN!=0.0f) {
+						dx = (out.x - in.x)/MAXN;
+						dy = (out.y - in.y)/MAXN;
+						dz = (out.z - in.z)/MAXN;
 
-					dx = (out.x - in.x)/MAXN;
-					dy = (out.y - in.y)/MAXN;
-					dz = (out.z - in.z)/MAXN;
+						len = 0.0;
+						while(len<=max_len) {
+							workp.x += dx;
+							workp.y += dy;
+							workp.z += dz;
+							/* compute value of implicite function */
+							tmp_v = mbproc->function(workp.x, workp.y, workp.z);
+							/* add cube to the stack, when value of implicite function crosses zero value */
+							if((tmp_v<0.0 && workp_v>=0.0)||(tmp_v>0.0 && workp_v<=0.0)) {
 
-					len = 0.0;
-					while(len<=max_len) {
-						workp.x += dx;
-						workp.y += dy;
-						workp.z += dz;
-						/* compute value of implicite function */
-						tmp_v = mbproc->function(workp.x, workp.y, workp.z);
-						/* add cube to the stack, when value of implicite function crosses zero value */
-						if((tmp_v<0.0 && workp_v>=0.0)||(tmp_v>0.0 && workp_v<=0.0)) {
+								/* indexes of CUBE, which includes "first point" */
+								c_i= (int)floor(workp.x/mbproc->size);
+								c_j= (int)floor(workp.y/mbproc->size);
+								c_k= (int)floor(workp.z/mbproc->size);
+								
+								/* add CUBE (with indexes c_i, c_j, c_k) to the stack,
+								 * this cube includes found point of Implicit Surface */
+								if (ml->flag & MB_NEGATIVE)
+									add_cube(mbproc, c_i, c_j, c_k, 2);
+								else
+									add_cube(mbproc, c_i, c_j, c_k, 1);
+							}
+							len = sqrt((workp.x-in.x)*(workp.x-in.x) + (workp.y-in.y)*(workp.y-in.y) + (workp.z-in.z)*(workp.z-in.z));
+							workp_v = tmp_v;
 
-							/* indexes of CUBE, which includes "first point" */
-							c_i= (int)floor(workp.x/mbproc->size);
-							c_j= (int)floor(workp.y/mbproc->size);
-							c_k= (int)floor(workp.z/mbproc->size);
-							
-							/* add CUBE (with indexes c_i, c_j, c_k) to the stack,
-							 * this cube includes found point of Implicit Surface */
-							if (ml->flag & MB_NEGATIVE)
-								add_cube(mbproc, c_i, c_j, c_k, 2);
-							else
-								add_cube(mbproc, c_i, c_j, c_k, 1);
 						}
-						len = sqrt((workp.x-in.x)*(workp.x-in.x) + (workp.y-in.y)*(workp.y-in.y) + (workp.z-in.z)*(workp.z-in.z));
-						workp_v = tmp_v;
-
 					}
 				}
 			}
@@ -1709,14 +1710,12 @@ void fill_metaball_octal_node(octal_node *node, MetaElem *ml, short i)
  *  +------+------+
  *  
  */
-void subdivide_metaball_octal_node(octal_node *node, float *size, short depth)
+void subdivide_metaball_octal_node(octal_node *node, float size_x, float size_y, float size_z, short depth)
 {
 	MetaElem *ml;
 	ml_pointer *ml_p;
 	float x,y,z;
 	int a,i;
-
-	if(depth==0) return;
 
 	/* create new nodes */
 	for(a=0;a<8;a++){
@@ -1731,45 +1730,71 @@ void subdivide_metaball_octal_node(octal_node *node, float *size, short depth)
 		node->nodes[a]->pos= 0;
 	}
 
-	size[0]/=2; size[1]/=2; size[2]/=2;
+	size_x /= 2;
+	size_y /= 2;
+	size_z /= 2;
 	
 	/* center of node */
-	node->x= x= node->x_min + size[0];
-	node->y= y= node->y_min + size[1];
-	node->z= z= node->z_min + size[2];
+	node->x = x = node->x_min + size_x;
+	node->y = y = node->y_min + size_y;
+	node->z = z = node->z_min + size_z;
 
 	/* setting up of border points of new nodes */
-	node->nodes[0]->x_min= node->x_min;
-	node->nodes[0]->y_min= node->y_min;
-	node->nodes[0]->z_min= node->z_min;
+	node->nodes[0]->x_min = node->x_min;
+	node->nodes[0]->y_min = node->y_min;
+	node->nodes[0]->z_min = node->z_min;
+	node->nodes[0]->x = node->nodes[0]->x_min + size_x/2;
+	node->nodes[0]->y = node->nodes[0]->y_min + size_y/2;
+	node->nodes[0]->z = node->nodes[0]->z_min + size_z/2;
 	
-	node->nodes[1]->x_min= x;
-	node->nodes[1]->y_min= node->y_min;
-	node->nodes[1]->z_min= node->z_min;
+	node->nodes[1]->x_min = x;
+	node->nodes[1]->y_min = node->y_min;
+	node->nodes[1]->z_min = node->z_min;
+	node->nodes[1]->x = node->nodes[1]->x_min + size_x/2;
+	node->nodes[1]->y = node->nodes[1]->y_min + size_y/2;
+	node->nodes[1]->z = node->nodes[1]->z_min + size_z/2;
 
-	node->nodes[2]->x_min= x;
-	node->nodes[2]->y_min= y;
-	node->nodes[2]->z_min= node->z_min;
+	node->nodes[2]->x_min = x;
+	node->nodes[2]->y_min = y;
+	node->nodes[2]->z_min = node->z_min;
+	node->nodes[2]->x = node->nodes[2]->x_min + size_x/2;
+	node->nodes[2]->y = node->nodes[2]->y_min + size_y/2;
+	node->nodes[2]->z = node->nodes[2]->z_min + size_z/2;
 
-	node->nodes[3]->x_min= node->x_min;
-	node->nodes[3]->y_min= y;
-	node->nodes[3]->z_min= node->z_min;
+	node->nodes[3]->x_min = node->x_min;
+	node->nodes[3]->y_min = y;
+	node->nodes[3]->z_min = node->z_min;
+	node->nodes[3]->x = node->nodes[3]->x_min + size_x/2;
+	node->nodes[3]->y = node->nodes[3]->y_min + size_y/2;
+	node->nodes[3]->z = node->nodes[3]->z_min + size_z/2;
 
-	node->nodes[4]->x_min= node->x_min;
-	node->nodes[4]->y_min= node->y_min;
-	node->nodes[4]->z_min= z;
+	node->nodes[4]->x_min = node->x_min;
+	node->nodes[4]->y_min = node->y_min;
+	node->nodes[4]->z_min = z;
+	node->nodes[4]->x = node->nodes[4]->x_min + size_x/2;
+	node->nodes[4]->y = node->nodes[4]->y_min + size_y/2;
+	node->nodes[4]->z = node->nodes[4]->z_min + size_z/2;
 	
-	node->nodes[5]->x_min= x;
-	node->nodes[5]->y_min= node->y_min;
-	node->nodes[5]->z_min= z;
+	node->nodes[5]->x_min = x;
+	node->nodes[5]->y_min = node->y_min;
+	node->nodes[5]->z_min = z;
+	node->nodes[5]->x = node->nodes[5]->x_min + size_x/2;
+	node->nodes[5]->y = node->nodes[5]->y_min + size_y/2;
+	node->nodes[5]->z = node->nodes[5]->z_min + size_z/2;
 
-	node->nodes[6]->x_min= x;
-	node->nodes[6]->y_min= y;
-	node->nodes[6]->z_min= z;
+	node->nodes[6]->x_min = x;
+	node->nodes[6]->y_min = y;
+	node->nodes[6]->z_min = z;
+	node->nodes[6]->x = node->nodes[6]->x_min + size_x/2;
+	node->nodes[6]->y = node->nodes[6]->y_min + size_y/2;
+	node->nodes[6]->z = node->nodes[6]->z_min + size_z/2;
 
-	node->nodes[7]->x_min= node->x_min;
-	node->nodes[7]->y_min= y;
-	node->nodes[7]->z_min= z;
+	node->nodes[7]->x_min = node->x_min;
+	node->nodes[7]->y_min = y;
+	node->nodes[7]->z_min = z;
+	node->nodes[7]->x = node->nodes[7]->x_min + size_x/2;
+	node->nodes[7]->y = node->nodes[7]->y_min + size_y/2;
+	node->nodes[7]->z = node->nodes[7]->z_min + size_z/2;
 
 	ml_p= node->elems.first;
 	
@@ -1936,7 +1961,7 @@ void subdivide_metaball_octal_node(octal_node *node, float *size, short depth)
 	if(depth>0){
 		for(a=0;a<8;a++){
 			if(node->nodes[a]->count > 0) /* if node is not empty, then it is subdivided */
-				subdivide_metaball_octal_node(node->nodes[a], size, depth);
+				subdivide_metaball_octal_node(node->nodes[a], size_x, size_y, size_z, depth);
 		}
 	}
 }
@@ -2008,7 +2033,7 @@ void init_metaball_octal_tree(int depth)
 	size[2]= node->z_max - node->z_min;
 
 	/* first node is subdivided recursively */
-	subdivide_metaball_octal_node(node, size, metaball_tree->depth);
+	subdivide_metaball_octal_node(node, size[0], size[1], size[2], metaball_tree->depth);
 }
 
 void metaball_polygonize(Object *ob)

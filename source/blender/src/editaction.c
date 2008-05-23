@@ -2564,7 +2564,7 @@ static void select_poseelement_by_name (char *name, int select)
 	if ((ob==NULL) || (ob->type!=OB_ARMATURE))
 		return;
 	
-	if (select == 2) {
+	if (abs(select) == 2) {
 		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
 			pchan->bone->flag &= ~(BONE_ACTIVE);
 	}
@@ -3263,6 +3263,8 @@ void borderselect_actionchannels (void)
 					}
 						break;
 					case ACTTYPE_ACHAN: /* action channel */
+					case ACTTYPE_FILLIPO: /* expand ipo curves = action channel */
+					case ACTTYPE_FILLCON: /* expand constraint channels = action channel */
 					{
 						bActionChannel *achan= (bActionChannel *)ale->data;
 						
@@ -3270,6 +3272,9 @@ void borderselect_actionchannels (void)
 							achan->flag |= ACHAN_SELECTED;
 						else
 							achan->flag &= ~ACHAN_SELECTED;
+							
+						/* messy... set active bone */
+						select_poseelement_by_name(achan->name, selectmode);
 					}
 						break;
 					case ACTTYPE_CONCHAN: /* constraint channel */
@@ -3293,6 +3298,14 @@ void borderselect_actionchannels (void)
 					}
 						break;
 				}
+				
+				/* select action-channel 'owner' */
+				if ((ale->owner) && (ale->ownertype == ACTTYPE_ACHAN)) {
+					bActionChannel *achano= (bActionChannel *)ale->owner;
+					
+					/* messy... set active bone */
+					select_poseelement_by_name(achano->name, selectmode);
+				}
 			}
 			
 			ymax=ymin;
@@ -3305,6 +3318,7 @@ void borderselect_actionchannels (void)
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWVIEW3D, 0);
 	}
 }
 
