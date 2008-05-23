@@ -328,6 +328,9 @@ PREF_MARGIN_DIV=		512):
 			if curr_len/4 < side_len/PREF_MARGIN_DIV:
 				break
 		
+		if not lengths:
+			lengths.append(curr_len)
+		
 		# convert into ints
 		lengths_to_ints = {}
 		
