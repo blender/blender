@@ -189,6 +189,47 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->goalfrict = 0.0f;
 }
 
+BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float epsilon)
+{
+	int i;
+	BVHTree *bvhtree;
+	Cloth *cloth = clmd->clothObject;
+	ClothVertex *verts;
+	MFace *mfaces;
+	float co[12];
+
+	if(!clmd)
+		return NULL;
+
+	cloth = clmd->clothObject;
+
+	if(!cloth)
+		return NULL;
+	
+	verts = cloth->verts;
+	mfaces = cloth->mfaces;
+	
+	// in the moment, return zero if no faces there
+	if(!cloth->numfaces)
+		return NULL;
+	
+	// create quadtree with k=26
+	bvhtree = BLI_bvhtree_new(cloth->numfaces, epsilon, 4, 6);
+	
+	// fill tree
+	for(i = 0; i < cloth->numverts; i++, verts++)
+	{
+		VECCOPY(&co[0*3], verts->xold);
+		
+		BLI_bvhtree_insert(bvhtree, i, co, 1);
+	}
+	
+	// balance tree
+	BLI_bvhtree_balance(bvhtree);
+	
+	return bvhtree;
+}
+
 BVHTree *bvhtree_build_from_cloth (ClothModifierData *clmd, float epsilon)
 {
 	int i;
@@ -214,7 +255,7 @@ BVHTree *bvhtree_build_from_cloth (ClothModifierData *clmd, float epsilon)
 		return NULL;
 	
 	// create quadtree with k=26
-	bvhtree = BLI_bvhtree_new(cloth->numfaces, epsilon, 8, 6);
+	bvhtree = BLI_bvhtree_new(cloth->numfaces, epsilon, 4, 26);
 	
 	// fill tree
 	for(i = 0; i < cloth->numfaces; i++, mfaces++)
@@ -278,6 +319,50 @@ void bvhtree_update_from_cloth(ClothModifierData *clmd, int moving)
 			else
 			{
 				ret = BLI_bvhtree_update_node(bvhtree, i, co, NULL, (mfaces->v4 ? 4 : 3));
+			}
+			
+			// check if tree is already full
+			if(!ret)
+				break;
+		}
+		
+		BLI_bvhtree_update_tree(bvhtree);
+	}
+}
+
+void bvhselftree_update_from_cloth(ClothModifierData *clmd, int moving)
+{	
+	unsigned int i = 0;
+	Cloth *cloth = clmd->clothObject;
+	BVHTree *bvhtree = cloth->bvhselftree;
+	ClothVertex *verts = cloth->verts;
+	MFace *mfaces;
+	float co[12], co_moving[12];
+	int ret = 0;
+	
+	if(!bvhtree)
+		return;
+	
+	mfaces = cloth->mfaces;
+	
+	// update vertex position in bvh tree
+	if(verts && mfaces)
+	{
+		for(i = 0; i < cloth->numverts; i++, verts++)
+		{
+			VECCOPY(&co[0*3], verts->txold);
+			
+			// copy new locations into array
+			if(moving)
+			{
+				// update moving positions
+				VECCOPY(&co_moving[0*3], verts->tx);
+				
+				ret = BLI_bvhtree_update_node(bvhtree, i, co, co_moving, 1);
+			}
+			else
+			{
+				ret = BLI_bvhtree_update_node(bvhtree, i, co, NULL, 1);
 			}
 			
 			// check if tree is already full
@@ -599,6 +684,9 @@ void cloth_free_modifier ( Object *ob, ClothModifierData *clmd )
 		// free BVH collision tree
 		if ( cloth->bvhtree )
 			BLI_bvhtree_free ( cloth->bvhtree );
+		
+		if ( cloth->bvhselftree )
+			BLI_bvhtree_free ( cloth->bvhselftree );
 
 		// we save our faces for collision objects
 		if ( cloth->mfaces )
@@ -669,6 +757,9 @@ void cloth_free_modifier_extern ( ClothModifierData *clmd )
 		// free BVH collision tree
 		if ( cloth->bvhtree )
 			BLI_bvhtree_free ( cloth->bvhtree );
+		
+		if ( cloth->bvhselftree )
+			BLI_bvhtree_free ( cloth->bvhselftree );
 
 		// we save our faces for collision objects
 		if ( cloth->mfaces )
@@ -807,6 +898,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	ClothVertex *verts = NULL;
 	float tnull[3] = {0,0,0};
 	Cloth *cloth = NULL;
+	float maxdist = 0;
 
 	// If we have a clothObject, free it. 
 	if ( clmd->clothObject != NULL )
@@ -876,7 +968,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	// apply / set vertex groups
 	// has to be happen before springs are build!
 	cloth_apply_vgroup (clmd, dm);
-	
+
 	
 	if ( !cloth_build_springs ( clmd, dm ) )
 	{
@@ -904,6 +996,13 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 
 	BENCH(clmd->clothObject->bvhtree = bvhtree_build_from_cloth ( clmd, clmd->coll_parms->epsilon ));
 	
+	for(i = 0; i < dm->getNumVerts(dm); i++)
+	{
+		maxdist = MAX2(maxdist, clmd->coll_parms->selfepsilon* ( cloth->verts[i].avg_spring_len*2.0));
+	}
+	
+	clmd->clothObject->bvhselftree = bvhselftree_build_from_cloth ( clmd, maxdist );
+
 	return 1;
 }
 

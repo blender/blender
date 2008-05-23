@@ -80,12 +80,11 @@
 #endif
 
 
-
 typedef struct BVHNode
 {
-	struct BVHNode *children[8]; // max 8 children
+	struct BVHNode **children; // max 8 children
 	struct BVHNode *parent; // needed for bottom - top update
-	float bv[26]; // Bounding volume of all nodes, max 13 axis
+	float *bv; // Bounding volume of all nodes, max 13 axis
 	int index; /* face, edge, vertex index */
 	char totnode; // how many nodes are used, used for speedup
 	char traversed;  // how many nodes already traversed until this level?
@@ -96,7 +95,9 @@ struct BVHTree
 {
 	BVHNode **nodes;
 	BVHNode *nodearray; /* pre-alloc branch nodes */
-	float 	epsilon; /* epsilon is used for inflation of the k-dop	   */
+	BVHNode **nodechild;	// pre-alloc childs for nodes
+	float	*nodebv;		// pre-alloc bounding-volumes for nodes
+	float 	epsilon; /* epslion is used for inflation of the k-dop	   */
 	int 	totleaf; // leafs
 	int 	totbranch;
 	char 	tree_type; // type of tree (4 => quadtree)
@@ -301,6 +302,8 @@ void BLI_bvhtree_free(BVHTree *tree)
 	{
 		MEM_freeN(tree->nodes);
 		MEM_freeN(tree->nodearray);
+		MEM_freeN(tree->nodebv);
+		MEM_freeN(tree->nodechild);
 		MEM_freeN(tree);
 	}
 }
@@ -318,27 +321,6 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 	
 	if(tree)
 	{
-		// calculate max number of branches, our bvh kdop is "almost perfect"
-		for(i = 1; i <= (int)ceil((float)((float)log(maxsize)/(float)log(tree_type))); i++)
-			numbranches += (pow(tree_type, i) / tree_type);
-		
-		tree->nodes = (BVHNode **)MEM_callocN(sizeof(BVHNode *)*(numbranches+maxsize + tree_type), "BVHNodes");
-		
-		if(!tree->nodes)
-		{
-			MEM_freeN(tree);
-			return NULL;
-		}
-		
-		tree->nodearray = (BVHNode *)MEM_callocN(sizeof(BVHNode)*(numbranches+maxsize + tree_type), "BVHNodeArray");
-		
-		if(!tree->nodearray)
-		{
-			MEM_freeN(tree);
-			MEM_freeN(tree->nodes);
-			return NULL;
-		}
-		
 		tree->epsilon = epsilon;
 		tree->tree_type = tree_type; 
 		tree->axis = axis;
@@ -370,13 +352,61 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 		}
 		else
 		{
-			BLI_bvhtree_free(tree);
+			MEM_freeN(tree);
 			return NULL;
 		}
+
+
+		// calculate max number of branches, our bvh kdop is "almost perfect"
+		for(i = 1; i <= (int)ceil((float)((float)log(maxsize)/(float)log(tree_type))); i++)
+			numbranches += (pow(tree_type, i) / tree_type);
+		
+		tree->nodes = (BVHNode **)MEM_callocN(sizeof(BVHNode *)*(numbranches+maxsize + tree_type), "BVHNodes");
+		
+		if(!tree->nodes)
+		{
+			MEM_freeN(tree);
+			return NULL;
+		}
+		
+		tree->nodebv = (float*)MEM_callocN(sizeof(float)* axis * (numbranches+maxsize + tree_type), "BVHNodeBV");
+		if(!tree->nodebv)
+		{
+			MEM_freeN(tree->nodes);
+			MEM_freeN(tree);
+		}
+
+		tree->nodechild = (BVHNode**)MEM_callocN(sizeof(BVHNode*) * tree_type * (numbranches+maxsize + tree_type), "BVHNodeBV");
+		if(!tree->nodechild)
+		{
+			MEM_freeN(tree->nodebv);
+			MEM_freeN(tree->nodes);
+			MEM_freeN(tree);
+		}
+
+		tree->nodearray = (BVHNode *)MEM_callocN(sizeof(BVHNode)*(numbranches+maxsize + tree_type), "BVHNodeArray");
+		
+		if(!tree->nodearray)
+		{
+			MEM_freeN(tree->nodechild);
+			MEM_freeN(tree->nodebv);
+			MEM_freeN(tree->nodes);
+			MEM_freeN(tree);
+			return NULL;
+		}
+
+		//link the dynamic bv and child links
+		for(i=0; i< numbranches+maxsize + tree_type; i++)
+		{
+			tree->nodearray[i].bv = tree->nodebv + i * axis;
+			tree->nodearray[i].children = tree->nodechild + i * tree_type;
+		}
+		
 	}
 
 	return tree;
 }
+
 
 static void create_kdop_hull(BVHTree *tree, BVHNode *node, float *co, int numpoints, int moving)
 {
@@ -507,8 +537,6 @@ static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, char
 	{	
 		tend = start + slice;
 		
-		partition_nth_element(tree->nodes, start, end, tend, laxis);
-		
 		if(tend > end) tend = end;
 		
 		if(tend-start == 1)	// ok, we have 1 left for this node
@@ -521,7 +549,8 @@ static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, char
 			tnode = node->children[i] = tree->nodes[tree->totleaf  + tree->totbranch] = &(tree->nodearray[tree->totbranch + tree->totleaf]);
 			tree->totbranch++;
 			tnode->parent = node;
-
+			
+			partition_nth_element(tree->nodes, start, end, tend, laxis);
 			refit_kdop_hull(tree, tnode, start, tend);
 			bvh_div_nodes(tree, tnode, start, tend, laxis);
 		}

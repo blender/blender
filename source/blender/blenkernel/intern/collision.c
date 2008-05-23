@@ -1260,7 +1260,7 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt )
 	Cloth *cloth=NULL;
 	Object *coll_ob=NULL;
 	BVHTree *cloth_bvh=NULL;
-	long i=0, j = 0, numfaces = 0, numverts = 0;
+	long i=0, j = 0, k = 0, numfaces = 0, numverts = 0;
 	unsigned int result = 0, rounds = 0; // result counts applied collisions; ic is for debug output;
 	ClothVertex *verts = NULL;
 	int ret = 0;
@@ -1284,6 +1284,7 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt )
 
 	// update cloth bvh
 	bvhtree_update_from_cloth ( clmd, 1 ); // 0 means STATIC, 1 means MOVING (see later in this function)
+	bvhselftree_update_from_cloth ( clmd, 0 ); // 0 means STATIC, 1 means MOVING (see later in this function)
 
 	do
 	{
@@ -1357,12 +1358,82 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt )
 		if ( clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF )
 		{
 
-			MFace *mface = clmd->clothObject->mfaces;
+			MFace *mface = cloth->mfaces;
+			BVHTreeOverlap *overlap = NULL;
 
 			collisions = 1;
 			verts = cloth->verts; // needed for openMP
 
+			numfaces = clmd->clothObject->numfaces;
+			numverts = clmd->clothObject->numverts;
 
+			verts = cloth->verts;
+
+			if ( cloth->bvhselftree )
+			{
+				/* search for overlapping collision pairs */
+				overlap = BLI_bvhtree_overlap ( cloth->bvhselftree, cloth->bvhselftree, &result );
+
+				for ( k = 0; k < result; k++ )
+				{
+					float temp[3];
+					float length = 0;
+					float mindistance;
+					
+					i = overlap[k].indexA;
+					j = overlap[k].indexB;
+					
+					mindistance = clmd->coll_parms->selfepsilon* ( cloth->verts[i].avg_spring_len + cloth->verts[j].avg_spring_len );
+
+					if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
+					{
+						if ( ( cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED )
+												 && ( cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED ) )
+						{
+							continue;
+						}
+					}
+
+					VECSUB ( temp, verts[i].tx, verts[j].tx );
+
+					if ( ( ABS ( temp[0] ) > mindistance ) || ( ABS ( temp[1] ) > mindistance ) || ( ABS ( temp[2] ) > mindistance ) ) continue;
+
+					// check for adjacent points (i must be smaller j)
+					if ( BLI_edgehash_haskey ( cloth->edgehash, MIN2(i, j), MAX2(i, j) ) )
+					{
+						continue;
+					}
+
+					length = Normalize ( temp );
+
+					if ( length < mindistance )
+					{
+						float correction = mindistance - length;
+
+						if ( cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED )
+						{
+							VecMulf ( temp, -correction );
+							VECADD ( verts[j].tx, verts[j].tx, temp );
+						}
+						else if ( cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED )
+						{
+							VecMulf ( temp, correction );
+							VECADD ( verts[i].tx, verts[i].tx, temp );
+						}
+						else
+						{
+							VecMulf ( temp, -correction*0.5 );
+							VECADD ( verts[j].tx, verts[j].tx, temp );
+
+							VECSUB ( verts[i].tx, verts[i].tx, temp );
+						}
+					}
+				}
+				
+				if ( overlap )
+					MEM_freeN ( overlap );
+				
+			}
 
 			/*
 			for ( count = 0; count < clmd->coll_parms->self_loop_count; count++ )

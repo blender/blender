@@ -106,7 +106,7 @@ typedef struct Cloth
 	unsigned char 		pad2;
 	short 			pad3;
 	struct BVHTree		*bvhtree;			/* collision tree for this cloth object */
-	struct RayTree 		*selftree;			/* collision tree for this cloth object */
+	struct BVHTree 		*bvhselftree;			/* collision tree for this cloth object */
 	struct MFace 		*mfaces;
 	struct Implicit_Data	*implicit; 		/* our implicit solver connects to this pointer */
 	struct Implicit_Data	*implicitEM; 		/* our implicit solver connects to this pointer */
@@ -245,6 +245,7 @@ void cloth_update_normals ( ClothVertex *verts, int nVerts, MFace *face, int tot
 
 // needed for collision.c
 void bvhtree_update_from_cloth ( ClothModifierData *clmd, int moving );
+void bvhselftree_update_from_cloth ( ClothModifierData *clmd, int moving );
 
 // needed for editmesh.c
 void cloth_write_cache ( Object *ob, ClothModifierData *clmd, float framenr );
