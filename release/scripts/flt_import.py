@@ -16,7 +16,7 @@ This script imports OpenFlight files into Blender. OpenFlight is a
 registered trademark of MultiGen-Paradigm, Inc.
 
 Feature overview and more availible at:
-http://wiki.blender.org/index.php/Scripts/Manual/Import/openflight_flt
+http://wiki.blender.org/index.php/Scripts/Manual/Import/openflight_fltss
 
 Note: This file is a grab-bag of old and new code. It needs some cleanup still.
 """
@@ -44,6 +44,7 @@ import BPyMesh
 import BPyImage
 import flt_filewalker 
 import flt_properties
+import sys
 reload(flt_properties)
 from flt_properties import *
 
@@ -1036,8 +1037,9 @@ class InterNode(Node):
 			else: # fgon
 				mesh_face_indicies = [i+vert_index for i in xrange(face_len)]
 				tri_ngons= ngon(self.mesh, mesh_face_indicies)
-				new_faces.extend([ [mesh_face_indicies[t] for t in tri] for tri in tri_ngons])
-				new_faces_props.extend( [ (None, image, (uvs[tri[0]], uvs[tri[1]], uvs[tri[2]]), [flt_face.uverts[tri[0]], flt_face.uverts[tri[1]], flt_face.uverts[tri[2]]], flt_face.uvlayers, flt_face.color_index, flt_face.props,FLT_OrigIndex,1, flt_face.subfacelevel) for tri in tri_ngons ])
+				if len(tri_ngons) != 1:
+					new_faces.extend([ [mesh_face_indicies[t] for t in tri] for tri in tri_ngons])
+					new_faces_props.extend( [ (None, image, (uvs[tri[0]], uvs[tri[1]], uvs[tri[2]]), [flt_face.uverts[tri[0]], flt_face.uverts[tri[1]], flt_face.uverts[tri[2]]], flt_face.uvlayers, flt_face.color_index, flt_face.props,FLT_OrigIndex,1, flt_face.subfacelevel) for tri in tri_ngons ])
 			
 			vert_index+= face_len
 			FLT_OrigIndex+=1
@@ -2296,7 +2298,6 @@ def fixscale(root,childhash):
 		for v in rmesh.verts:
 			v.co = v.co * smat
 	
-	
 def reparent(root,childhash,sce):
 	for child in childhash[root]:
 		reparent(child,childhash,sce)
@@ -2452,7 +2453,7 @@ def but_event(evt):
 			select_file(global_prefs['fltfile'], GRR)
 		except:
 			import traceback
-			FLTWarn = Draw.PupBlock("Export Error", ["See console for output!"])
+			FLTWarn = Draw.PupBlock("Ixport Error", ["See console for output!"])
 			traceback.print_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)
 	
 	#choose base path for export
