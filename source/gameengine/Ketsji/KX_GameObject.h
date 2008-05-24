@@ -665,6 +665,7 @@ public:
 	KX_PYMETHOD(KX_GameObject,RemoveParent);
 	KX_PYMETHOD(KX_GameObject,GetPhysicsId);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCastTo);
+	KX_PYMETHOD_DOC(KX_GameObject,rayCastToEx);
 	KX_PYMETHOD_DOC(KX_GameObject,getDistanceTo);
 private :
 
