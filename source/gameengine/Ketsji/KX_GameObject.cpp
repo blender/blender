@@ -743,7 +743,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_VARARGS},
 	KX_PYMETHODTABLE(KX_GameObject, getDistanceTo),
 	KX_PYMETHODTABLE(KX_GameObject, rayCastTo),
-	KX_PYMETHODTABLE(KX_GameObject, rayCastToEx),
+	KX_PYMETHODTABLE(KX_GameObject, rayCast),
 	{NULL,NULL} //Sentinel
 };
 
@@ -1381,8 +1381,8 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	Py_Return;
 }
 
-KX_PYMETHODDEF_DOC(KX_GameObject, rayCastToEx,
-"rayCastToEx(to,from,dist,prop): cast a ray and return tuple (object,hit,normal) of contact point with object within dist that matches prop or None if no hit\n"
+KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
+"rayCast(to,from,dist,prop): cast a ray and return tuple (object,hit,normal) of contact point with object within dist that matches prop or None if no hit\n"
 " prop = property name that object must have; can be omitted => detect any object\n"
 " dist = max distance to look (can be negative => look behind); 0 or omitted => detect up to to\n"
 " from = 3-tuple or object reference for origin of ray (if object, use center of object)\n"

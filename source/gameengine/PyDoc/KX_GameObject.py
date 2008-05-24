@@ -174,7 +174,7 @@ class KX_GameObject:
 
 		The ray is always casted from the center of the object, ignoring the object itself.
 		The ray is casted towards the center of another object or an explicit [x,y,z] point.
-		Use rayCastToEx() if you need to retrieve the hit point 
+		Use rayCast() if you need to retrieve the hit point 
 
 		@param other: [x,y,z] or object towards which the ray is casted
 		@type other: L{KX_GameObject} or 3-tuple
@@ -185,13 +185,13 @@ class KX_GameObject:
 		@rtype: L{KX_GameObject}
 		@return: the first object hit or None if no object or object does not match prop
 		"""
-	def rayCastToEx(to,from,dist,prop):
+	def rayCast(to,from,dist,prop):
 		"""
 		Look from a point/object to another point/object and find first object hit within dist that matches prop.
-		Returns a 3-tuple with object reference, hit point and hit normal or (None,None,None) if no object hit.
+		Returns a 3-tuple with object reference, hit point and hit normal or (None,None,None) if no hit.
 		Ex:
 			# shoot along the axis gun-gunAim (gunAim should be collision-free)
-			ob,point,normal = gun.rayCastToEx(gunAim,None,50)
+			ob,point,normal = gun.rayCast(gunAim,None,50)
 			if ob:
 				# hit something
 
