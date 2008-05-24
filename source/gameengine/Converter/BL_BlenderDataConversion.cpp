@@ -87,6 +87,7 @@
 #include "DNA_action_types.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
+#include "BKE_object.h"
 #include "BL_SkinMeshObject.h"
 #include "BL_SkinDeformer.h"
 #include "BL_MeshDeformer.h"
@@ -1571,8 +1572,9 @@ static KX_LightObject *gamelight_from_blamp(Lamp *la, unsigned int layerflag, KX
 	return gamelight;
 }
 
-static KX_Camera *gamecamera_from_bcamera(Camera *ca, KX_Scene *kxscene, KX_BlenderSceneConverter *converter) {
-	RAS_CameraData camdata(ca->lens, ca->clipsta, ca->clipend, ca->type == CAM_PERSP);
+static KX_Camera *gamecamera_from_bcamera(Object *ob, KX_Scene *kxscene, KX_BlenderSceneConverter *converter) {
+	Camera* ca = static_cast<Camera*>(ob->data);
+	RAS_CameraData camdata(ca->lens, ca->clipsta, ca->clipend, ca->type == CAM_PERSP, dof_camera(ob));
 	KX_Camera *gamecamera;
 	
 	gamecamera= new KX_Camera(kxscene, KX_Scene::m_callbacks, camdata);
@@ -1607,7 +1609,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 	
 	case OB_CAMERA:
 	{
-		KX_Camera* gamecamera = gamecamera_from_bcamera(static_cast<Camera*>(ob->data), kxscene, converter);
+		KX_Camera* gamecamera = gamecamera_from_bcamera(ob, kxscene, converter);
 		gameobj = gamecamera;
 		
 		//don't add a reference: the camera list in kxscene->m_cameras is not released at the end

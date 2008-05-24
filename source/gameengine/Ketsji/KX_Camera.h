@@ -184,12 +184,14 @@ public:
 	 */
 	const MT_Matrix4x4&		GetModelviewMatrix() const;
 
-	/** Gets the focal length. */
+	/** Gets the aperture. */
 	float				GetLens() const;
 	/** Gets the near clip distance. */
 	float				GetCameraNear() const;
 	/** Gets the far clip distance. */
 	float				GetCameraFar() const;
+	/** Gets the focal length (only used for stereo rendering) */
+	float				GetFocalLength() const;
 	/** Gets all camera data. */
 	RAS_CameraData*		GetCameraData();
 	
