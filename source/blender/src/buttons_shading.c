@@ -2887,8 +2887,8 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	
 	uiBlockBeginAlign(block);
 	if (ELEM(la->type, LA_LOCAL, LA_SPOT) && (la->falloff_type == LA_FALLOFF_SLIDERS)) {
-		uiDefButF(block, NUMSLI,B_LAMPPRV,"Linear ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the linear distance attenuatation for a quad lamp");
-		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the quadratic distance attenuatation for a quad lamp");
+		uiDefButF(block, NUMSLI,B_LAMPPRV,"Linear ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the linear distance attenuation for a Lin/Quad Weighted lamp");
+		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the quadratic distance attenuation for a Lin/Quad Weighted lamp");
 	}
 	else if(la->type==LA_AREA) {
 		if(la->k==0.0) la->k= 1.0;
