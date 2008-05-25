@@ -49,6 +49,38 @@
 #define node_get_bv(tree, node)		((node)->bv)
 #define node_get_child(tree,node,i)	((node)->children[i])
 
+/* Util macros */
+#define TO_STR(a)	#a
+#define JOIN(a,b)	a##b
+
+/* Benchmark macros */
+#if 1
+
+#define BENCH(a)	\
+	do {			\
+		clock_t _clock_init = clock();	\
+		(a);							\
+		printf("%s: %fms\n", #a, (float)(clock()-_clock_init)*1000/CLOCKS_PER_SEC);	\
+} while(0)
+
+#define BENCH_VAR(name)		clock_t JOIN(_bench_step,name) = 0, JOIN(_bench_total,name) = 0
+#define BENCH_BEGIN(name)	JOIN(_bench_step, name) = clock()
+#define BENCH_END(name)		JOIN(_bench_total,name) += clock() - JOIN(_bench_step,name)
+#define BENCH_RESET(name)	JOIN(_bench_total, name) = 0
+#define BENCH_REPORT(name)	printf("%s: %fms\n", TO_STR(name), JOIN(_bench_total,name)*1000.0f/CLOCKS_PER_SEC)
+
+#else
+
+#define BENCH(a)	(a)
+#define BENCH_VAR(name)
+#define BENCH_BEGIN(name)
+#define BENCH_END(name)
+#define BENCH_RESET(name)
+#define BENCH_REPORT(name)
+
+#endif
+
+
 typedef struct BVHNode
 {
 	struct BVHNode **children;// max 8 children
@@ -63,15 +95,15 @@ typedef struct BVHNode
 struct BVHTree
 {
 	BVHNode **nodes;
-	float	*nodebv;		// pre-alloc bounding-volumes for nodes
-	BVHNode **nodechild;	// pre-alloc childs for nodes
 	BVHNode *nodearray;		// pre-alloc branchs
+	BVHNode **nodechild;	// pre-alloc childs for nodes
+	float	*nodebv;		// pre-alloc bounding-volumes for nodes
 	float 	epsilon;		// epslion is used for inflation of the k-dop
 	int 	totleaf;		// leafs
 	int 	totbranch;
 	char 	tree_type;		// type of tree (4 => quadtree)
 	char 	axis;			// kdop type (6 => OBB, 7 => AABB, ...)
-	char 	start_axis, stop_axis; // KDOP_AXES array indices according to axis
+	char 	start_axis, stop_axis; // KDOP_AXES array indices according to axis	char 	start_axis, stop_axis; // KDOP_AXES array indices according to axis
 };
 
 typedef struct BVHOverlapData 
@@ -103,6 +135,34 @@ static float KDOP_AXES[13][3] =
 // http://ralphunden.net/content/tutorials/a-guide-to-introsort/
 // and he derived it from the SUN STL 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
+static int size_threshold = 16;
+/*
+* Common methods for all algorithms
+*/
+static int floor_lg(int a)
+{
+	return (int)(floor(log(a)/log(2)));
+}
+
+/*
+* Insertion sort algorithm
+*/
+static void bvh_insertionsort(BVHNode **a, int lo, int hi, int axis)
+{
+	int i,j;
+	BVHNode *t;
+	for (i=lo; i < hi; i++)
+	{
+		j=i;
+		t = a[i];
+		while((j!=lo) && (t->bv[axis] < (a[j-1])->bv[axis]))
+		{
+			a[j] = a[j-1];
+			j--;
+		}
+		a[j] = t;
+	}
+}
 
 static int bvh_partition(BVHNode **a, int lo, int hi, BVHNode * x, int axis)
 {
@@ -116,6 +176,41 @@ static int bvh_partition(BVHNode **a, int lo, int hi, BVHNode * x, int axis)
 			return i;
 		SWAP( BVHNode* , a[i], a[j]);
 		i++;
+	}
+}
+
+/*
+* Heapsort algorithm
+*/
+static void bvh_downheap(BVHNode **a, int i, int n, int lo, int axis)
+{
+	BVHNode * d = a[lo+i-1];
+	int child;
+	while (i<=n/2)
+	{
+		child = 2*i;
+		if ((child < n) && ((a[lo+child-1])->bv[axis] < (a[lo+child])->bv[axis]))
+		{
+			child++;
+		}
+		if (!(d->bv[axis] < (a[lo+child-1])->bv[axis])) break;
+		a[lo+i-1] = a[lo+child-1];
+		i = child;
+	}
+	a[lo+i-1] = d;
+}
+
+static void bvh_heapsort(BVHNode **a, int lo, int hi, int axis)
+{
+	int n = hi-lo, i;
+	for (i=n/2; i>=1; i=i-1)
+	{
+		bvh_downheap(a, i,n,lo, axis);
+	}
+	for (i=n; i>1; i=i-1)
+	{
+		SWAP(BVHNode*, a[lo],a[lo+i-1]);
+		bvh_downheap(a, 1,i-1,lo, axis);
 	}
 }
 
@@ -146,23 +241,57 @@ static BVHNode *bvh_medianof3(BVHNode **a, int lo, int mid, int hi, int axis) //
 			return a[mid];
 	}
 }
+/*
+* Quicksort algorithm modified for Introsort
+*/
+static void bvh_introsort_loop (BVHNode **a, int lo, int hi, int depth_limit, int axis)
+{
+	int p;
+
+	while (hi-lo > size_threshold)
+	{
+		if (depth_limit == 0)
+		{
+			bvh_heapsort(a, lo, hi, axis);
+			return;
+		}
+		depth_limit=depth_limit-1;
+		p=bvh_partition(a, lo, hi, bvh_medianof3(a, lo, lo+((hi-lo)/2)+1, hi-1, axis), axis);
+		bvh_introsort_loop(a, p, hi, depth_limit, axis);
+		hi=p;
+	}
+}
+
+static void sort(BVHNode **a0, int begin, int end, int axis)
+{
+	if (begin < end)
+	{
+		BVHNode **a=a0;
+		bvh_introsort_loop(a, begin, end, 2*floor_lg(end-begin), axis);
+		bvh_insertionsort(a, begin, end, axis);
+	}
+}
+void sort_along_axis(BVHTree *tree, int start, int end, int axis)
+{
+	sort(tree->nodes, start, end, axis);
+}
 
 //after a call to this function you can expect one of:
-//	every node to left of a[n] are smaller than it
-//	every node to the right of a[n-1] are greater than it
-void partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis)
-{
-	int begin = _begin, end = _end;
-	while(begin < n && end >= n)
-	{
-		int mid = bvh_partition(a, begin, end, bvh_medianof3(a, begin, (begin+end-1)/2, end-1, axis), axis );
+//      every node to left of a[n] are smaller or equal to it
+//      every node to the right of a[n] are greater or equal to it
+int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis){        
+	int begin = _begin, end = _end, cut;        
+	while(end-begin > 3)        
+	{                            
+		cut = bvh_partition(a, begin, end, bvh_medianof3(a, begin, (begin+end)/2, end-1, axis), axis );                 
+		if(cut <= n)                        
+			begin = cut;                
+		else                        
+			end = cut;        
+	}        
+	bvh_insertionsort(a, begin, end, axis);
 
-		if(mid >= n)
-			end = n-1;
-		else
-			begin = n+1;
-	}
-
+	return n;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -277,6 +406,7 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 
 	return tree;
 }
+
 
 static void create_kdop_hull(BVHTree *tree, BVHNode *node, float *co, int numpoints, int moving)
 {
@@ -417,7 +547,6 @@ static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, char
 	{	
 		tend = start + slice;
 		
-		
 		if(tend > end) tend = end;
 		
 		if(tend-start == 1)	// ok, we have 1 left for this node
@@ -432,7 +561,9 @@ static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, char
 			tnode = node->children[i] = tree->nodes[tree->totleaf  + tree->totbranch] = &(tree->nodearray[tree->totbranch + tree->totleaf]);
 			tree->totbranch++;
 			tnode->parent = node;
-
+			
+			if(tend != end)
+				partition_nth_element(tree->nodes, start, end, tend, laxis);
 			refit_kdop_hull(tree, tnode, start, tend);
 			bvh_div_nodes(tree, tnode, start, tend, laxis);
 		}
@@ -592,7 +723,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result)
 {
 	int j, total = 0;
 	BVHTreeOverlap *overlap = NULL, *to = NULL;
-	BVHOverlapData *data[tree1->tree_type];
+	BVHOverlapData **data;
 	
 	// check for compatibility of both trees (can't compare 14-DOP with 18-DOP)
 	if((tree1->axis != tree2->axis) && ((tree1->axis == 14) || tree2->axis == 14))
@@ -601,6 +732,8 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result)
 	// fast check root nodes for collision before doing big splitting + traversal
 	if(!tree_overlap(tree1->nodes[tree1->totleaf], tree2->nodes[tree2->totleaf], MIN2(tree1->start_axis, tree2->start_axis), MIN2(tree1->stop_axis, tree2->stop_axis)))
 		return 0;
+
+	*data = MEM_callocN(sizeof(BVHOverlapData *)* tree1->tree_type, "BVHOverlapData_star");
 	
 	for(j = 0; j < tree1->tree_type; j++)
 	{
@@ -636,6 +769,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result)
 		free(data[j]->overlap);
 		MEM_freeN(data[j]);
 	}
+	MEM_freeN(*data);
 	
 	(*result) = total;
 	return overlap;
