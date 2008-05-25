@@ -75,6 +75,7 @@ protected:
 	
 	bool								m_bSuspendDynamics;
 	bool								m_bUseObjectColor;
+	bool								m_bIsNegativeScaling;
 	MT_Vector4							m_objectColor;
 
 	// Is this object set to be visible? Only useful for the
@@ -598,6 +599,14 @@ public:
 		void
 	);
 		
+	/**
+	 * Get the negative scaling state
+	 */
+		bool
+	IsNegativeScaling(
+		void
+	) { return m_bIsNegativeScaling; }
+
 	/**
 	 * @section Logic bubbling methods.
 	 */

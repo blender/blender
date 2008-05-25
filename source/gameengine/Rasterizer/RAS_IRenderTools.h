@@ -146,6 +146,7 @@ public:
 		int layer
 	)=0;
 
+	virtual
 		void	
 	SetClientObject(
 		void* obj
