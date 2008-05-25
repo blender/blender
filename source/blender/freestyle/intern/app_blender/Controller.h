@@ -36,6 +36,7 @@
 # include "../geometry/HashGrid.h"
 # include "../view_map/ViewMapBuilder.h"
 # include "../system/TimeUtils.h"
+# include "../system/ProgressBar.h"
 # include "../system/Precision.h"
 # include "../system/Interpreter.h"
 # include "../view_map/FEdgeXDetector.h"
@@ -171,6 +172,9 @@ private:
 
   // Chronometer:
   Chronometer _Chrono;
+
+	// Progress Bar
+  ProgressBar *_ProgressBar;
 
   // edges tesselation nature
   int _edgeTesselationNature;

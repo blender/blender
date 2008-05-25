@@ -55,9 +55,14 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
 prefix = 'intern/app_blender'
 app_sources = env.Glob(prefix + '/*.cpp')
 
+# 	swig wrapper
+#prefix = 'intern/swig'
+#swig_sources = env.Glob(prefix + '/*.cpp')
+swig_sources = []
+
 sources = 	system_sources + image_sources + geometry_sources + scene_graph_sources \
 		  +	winged_edge_sources + view_map_sources + stroke_sources + rendering_sources \
-		  + app_sources
+		  + app_sources + swig_sources
 
 env.BlenderLib (libname="bf_freestyle",
 				sources=sources,
@@ -71,3 +76,20 @@ env.BlenderLib (libname="bf_freestyle",
 # SWIG
 ########################################################
 #	swig
+
+# swig -c++ -python -o ModuleWrapper.cpp Freestyle.i
+#
+# g++   -w  -I../geometry -I../image -I../scene_graph -I../stroke -I../system -I../view_map -I../winged_edge -I/usr/include/python2.5 -c ModuleWrapper.cpp -o ModuleWrapper.o
+#
+# install -d ../../build/macosx/release/lib/python
+#
+# g++ -bundle -flat_namespace -undefined suppress  -w  -L/usr/lib/python2.5/config -lpython2.5 -o ../../build/macosx/release/lib/python/_Freestyle.so ModuleWrapper.o
+# 
+# install Freestyle.py ../../build/macosx/release/lib/python
+
+
+#================ MINE
+
+# g++ -w  -I../geometry -I../image -I../scene_graph -I../stroke -I../system -I../view_map -I../winged_edge -I/usr/include/python2.5 -I../../../blenlib -I../../../blenkernel -I../../../imbuf -I../../../makesdna -c ModuleWrapper.cpp -o ModuleWrapper.o
+# 
+# g++ -bundle -flat_namespace -undefined suppress  -w  -L/usr/lib/python2.5/config -lpython2.5 -o ../../python/_Freestyle.so ModuleWrapper.o

@@ -34,9 +34,12 @@
 //soc #include <qimage.h>
 //soc #include <QString>
 #include <sstream>	
+
+extern "C" {
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "intern/IMB_bmp.h"
+}
 
 using namespace std;
 

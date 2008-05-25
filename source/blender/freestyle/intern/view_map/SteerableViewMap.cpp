@@ -29,9 +29,12 @@ using namespace Geometry;
 //soc #include <qstring.h>
 //soc #include <qimage.h>
 #include <sstream>
+
+extern "C" {
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "intern/IMB_png.h"
+}
 
 SteerableViewMap::SteerableViewMap(unsigned int nbOrientations){
   _nbOrientations = nbOrientations;

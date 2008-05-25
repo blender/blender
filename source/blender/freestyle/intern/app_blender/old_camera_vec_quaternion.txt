@@ -47,11 +47,6 @@ using namespace std;
 # include "../rendering/GLDebugRenderer.h"
 //# include <QGLViewer/qglviewer.h>
 
-//soc
-#include "camera.h"
-#include "vec.h"
-#include "quaternion.h"
-
 using namespace Geometry;
 
 typedef enum {SURFACIC, LINE, DEPTHBUFFER} RenderStyle;
@@ -63,9 +58,75 @@ class GLSelectRenderer;
 class GLBBoxRenderer;
 class GLMonoColorRenderer;
 class GLDebugRenderer;
- 
+
+class Vec{
+public:
+	Vec() {};
+	Vec(float _x, float _y, float _z): x(_x), y(_y), z(_z) {};
+	~Vec() {}
+	
+	float operator[] (unsigned i) {
+		switch(i){
+		case 0: return x; break;
+		case 1: return y; break;
+		case 2: return z; break;
+		}
+		return 0.0;
+	}
+		
+	
+	float x,y,z;
+};
+
+class Quaternion{
+public:
+	Quaternion( float _x, float _y, float _z, float _s): x(_x), y(_y), z(_z), s(_s){};
+	~Quaternion() {}
+	
+	float operator[] (unsigned i) {
+		switch(i){
+		case 0: return x; break;
+		case 1: return y; break;
+		case 2: return z; break;
+		case 3: return s; break;
+		}
+		return 0.0;
+	}
+	
+	float x,y,z,s;
+};
+
+class Camera {
+	private:
+		float _position[3];
+		float _orientation[3];
+		
+	public:
+		Camera(){};
+	  	~Camera() {};
+		
+		void setZNearCoefficient(float f) {}
+		void playPath(int i) {}
+
+		void loadProjectionMatrix() {}
+		void loadModelViewMatrix() {}
+		real distanceToSceneCenter() { return 0;}
+		void showEntireScene() {} 
+		real zFar() {return 0;}
+		real zNear() {return 0;}
+		void setPosition(Vec v) {}
+		void setOrientation(Quaternion q) {}
+		float* position() { return _position; }
+		float* orientation()  { return _orientation; }
+		void getWorldCoordinatesOf(float *src, float *vp_tmp) {}
+
+};
+
+
+//class AppGLWidget : public QGLViewer
 class AppGLWidget
 {
+  //Q_OBJECT
 
     
 public:
@@ -75,27 +136,17 @@ public:
   
 public:
 
-	//inherited
-		inline real width() { return _width; }
-		inline real height() { return _height; }
-		void swapBuffers();
-		void updateGL();
-		void makeCurrent();
+	inline void swapBuffers() {}
+  inline void updateGL() {}
+  inline void makeCurrent() {}
+  inline void setSceneBoundingBox(Vec &min_, Vec &max_) {}
+	inline void saveSnapshot(bool b) {}
+	inline real width() { return _width; }
+	inline real height() { return _height; }
+	 void setStateFileName(const string& name) { stateFileName_ = name; };
 	
-	// not-inherited
-		void setSceneBoundingBox(const Vec& min, const Vec& max);
-		void saveSnapshot(bool b);
-		void setStateFileName(const string& name);
 	
-
-		Camera * _camera;
-
-protected:
-	real _width, _height;
-	Vec _min,_max;
-	string stateFileName_;
-
-public:
+Camera * _camera;
 
   // captures a frame animation that was previously registered
   void captureMovie();
@@ -401,8 +452,8 @@ public:
   }
 
   void getCameraState(float* position, float* orientation) const {
-	Vec pos = _camera->position();
-	Quaternion orient = _camera->orientation();
+    float* pos = _camera->position();
+    float* orient = _camera->orientation();
     int i;
     for(i=0;i<3;++i){
       position[i] = pos[i];
@@ -534,7 +585,9 @@ protected:
   bool _record;
 
 
-
+real _width, _height;
+Vec _min,_max;
+string stateFileName_;
 };
 
 #endif // ARTGLWIDGET_H

@@ -31,8 +31,12 @@ namespace Config{
     // get the home directory
     _HomeDir = getEnvVar("HOME");
     // get the root directory
-    setRootDir(getEnvVar("FREESTYLE_DIR"));
-    //setRootDir(QString("."));
+	//soc
+	//setRootDir(getEnvVar("FREESTYLE_BLENDER_DIR"));
+	setRootDir("/Users/mx/Documents/work/GSoC_2008/bf-blender/branches/soc-2008-mxcurioni/source/blender/freestyle");
+	cout << _PythonPath << endl;
+
+//setRootDir(QString("."));
     _pInstance = this;
   }
   void Path::setRootDir(const string& iRootDir){
@@ -59,7 +63,7 @@ namespace Config{
               "python" + 
               string(PATH_SEP.c_str()) +
               _ProjectDir +
-					    string(DIR_SEP.c_str()) +
+				string(DIR_SEP.c_str()) +
               "style_modules" +
               string(DIR_SEP.c_str()) ;
     if (getenv("PYTHONPATH")) {

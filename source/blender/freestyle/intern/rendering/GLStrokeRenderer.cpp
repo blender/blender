@@ -26,9 +26,13 @@
 // #include <qfileinfo.h>
 // #include <qgl.h>
 // #include <qfile.h>
+
+extern "C" {
 #include "BLI_blenlib.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+}
+
 #include "../system/StringUtils.h"
 
 #ifdef WIN32

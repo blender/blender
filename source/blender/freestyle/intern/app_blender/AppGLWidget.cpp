@@ -36,9 +36,12 @@
 #include "AppConfig.h"
 
 #include "../system/StringUtils.h"
+
+extern "C" {
 #include "BLI_blenlib.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+}
 
 // glut.h must be included last to avoid a conflict with stdlib.h on vc .net 2003 and 2005
 #ifdef __MACH__
@@ -54,6 +57,9 @@ bool AppGLWidget::_backBufferFlag = true;
 
 AppGLWidget::AppGLWidget(const char *iName)
 {
+  //soc
+  _camera = new Camera;	
+
   _Fovy        = 30.f;
   //_SceneDepth = 2.f;
   _RenderStyle = LINE;
@@ -145,8 +151,6 @@ AppGLWidget::AppGLWidget(const char *iName)
   //  _frontBufferFlag = false;
   //  _backBufferFlag = true;
   _record = false;
-
-_camera = new Camera;
 
 }
 
@@ -608,4 +612,28 @@ bool AppGLWidget::getBackBufferFlag() {
 //  delete [] zPixels;
 //  delete [] colorPixels;  
 //}
+
+
+//*******************************
+// COPIED FROM LIBQGLVIEWER
+//*******************************
+
+	// inherited 
+	void AppGLWidget::swapBuffers() {}
+	
+	//Updates the display. Do not call draw() directly, use this method instead. 
+	void AppGLWidget::updateGL() {}
+
+	//Makes this widget's rendering context the current OpenGL rendering context. Useful with several viewers
+	void AppGLWidget::makeCurrent() {}
+
+
+	// not-inherited
+
+	//	Convenient way to call setSceneCenter() and setSceneRadius() from a (world axis aligned) bounding box of the scene.
+	void AppGLWidget::setSceneBoundingBox(const Vec& min, const Vec& max) { _camera->setSceneBoundingBox(min,max); }
+		
+	void AppGLWidget::saveSnapshot(bool b) {}
+
+	 void AppGLWidget::setStateFileName(const string& name) { stateFileName_ = name; };
 

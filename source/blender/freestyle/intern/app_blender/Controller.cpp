@@ -67,9 +67,9 @@
 
 Controller::Controller()
 {
+	
   const string sep(Config::DIR_SEP.c_str());
-  const string filename = Config::Path::getInstance()->getHomeDir() + sep +
-    Config::OPTIONS_DIR + sep + Config::OPTIONS_CURRENT_DIRS_FILE;
+  //const string filename = Config::Path::getInstance()->getHomeDir() + sep + Config::OPTIONS_DIR + sep + Config::OPTIONS_CURRENT_DIRS_FILE;
   //_current_dirs = new ConfigIO(filename, Config::APPLICATION_NAME + "CurrentDirs", true);
 
   _RootNode = new NodeGroup;
@@ -88,6 +88,7 @@ Controller::Controller()
 
   _edgeTesselationNature = (Nature::SILHOUETTE | Nature::BORDER | Nature::CREASE);
 
+  _ProgressBar = new ProgressBar;
   _SceneNumFaces = 0;
   _minEdgeSize = DBL_MAX;
   _bboxDiag = 0;
@@ -180,8 +181,11 @@ int Controller::Load3DSFile(const char *iFileName)
   NodeGroup *maxScene = loader3DS.Load();
 
   if (maxScene == NULL) {
+	cout << "Cannot load scene" << endl;
     return 1;
   }
+
+  cout << "Scene loaded\n" << endl;
 
   printf("Mesh cleaning    : %lf\n", _Chrono.stop());
   _SceneNumFaces += loader3DS.numFacesRead();
@@ -199,12 +203,13 @@ int Controller::Load3DSFile(const char *iFileName)
   // DEBUG
 //   ScenePrettyPrinter spp;
 //   maxScene->accept(spp);
-
+	
   _RootNode->AddChild(maxScene);
   _RootNode->UpdateBBox(); // FIXME: Correct that by making a Renderer to compute the bbox
 
   _pView->SetModel(_RootNode);
   _pView->FitBBox();
+
 
   _Chrono.start();
 
