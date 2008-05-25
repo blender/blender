@@ -634,7 +634,7 @@ static void draw_channel_names(void)
 			}
 			else {
 				/* for normal channels 
-				 *	- use 3 shades of color group/standard colour for 3 indention level
+				 *	- use 3 shades of color group/standard color for 3 indention level
 				 *	- only use group colors if allowed to, and if actually feasible
 				 */
 				if ( !(G.saction->flag & SACTION_NODRAWGCOLORS) && 
@@ -1254,7 +1254,7 @@ static void draw_key_but(int x, int y, short w, short h, int sel)
 	int xmax= x+w-1, ymax= y+h-1;
 	int xc= (xmin+xmax)/2, yc= (ymin+ymax)/2;
 	
-	/* interior - hardcoded colours (for selected and unselected only) */
+	/* interior - hardcoded colors (for selected and unselected only) */
 	if (sel) glColor3ub(0xF1, 0xCA, 0x13);
 	else glColor3ub(0xE9, 0xE9, 0xE9);
 	

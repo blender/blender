@@ -103,6 +103,35 @@ EditFace * EM_get_actFace(int sloppy)
 	return NULL;
 }
 
+int EM_get_actSelection(EditSelection *ese)
+{
+	EditSelection *ese_last = G.editMesh->selected.last;
+	EditFace *efa = EM_get_actFace(0);
+
+	ese->next = ese->prev = NULL;
+	
+	if (ese_last) {
+		if (ese_last->type == EDITFACE) { /* if there is an active face, use it over the last selected face */
+			if (efa) {
+				ese->data = (void *)efa;
+			} else {
+				ese->data = ese_last->data;
+			}
+			ese->type = EDITFACE;
+		} else {
+			ese->data = ese_last->data;
+			ese->type = ese_last->type;
+		}
+	} else if (efa) { /* no */
+		ese->data = (void *)efa;
+		ese->type = EDITFACE;
+	} else {
+		ese->data = NULL;
+		return 0;
+	}
+	return 1;
+}
+
 /* ********* Selection History ************ */
 static int EM_check_selection(void *data)
 {

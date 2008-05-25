@@ -4228,6 +4228,7 @@ static void draw_forcefield(Object *ob)
 		drawcircball(GL_LINE_LOOP, vec, size, tmat);
 		vec[2]= 1.5*force_val;
 		drawcircball(GL_LINE_LOOP, vec, size, tmat);
+		vec[2] = 0; /* reset vec for max dist circle */
 		
 	}
 	else if (pd->forcefield == PFIELD_FORCE) {

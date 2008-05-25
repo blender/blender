@@ -55,6 +55,8 @@
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_ipo_types.h"
+#include "DNA_curve_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -661,9 +663,10 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 	Object *ob;
 	bPoseChannel *pchan, *pcha, *pchb;
 	bConstraint *con;
-	ListBase *npchans;
+	ListBase *opchans, *npchans;
 	
-	/* get reference to list of bones in new armature  */
+	/* get reference to list of bones in original and new armatures  */
+	opchans= &origArm->pose->chanbase;
 	npchans= &newArm->pose->chanbase;
 	
 	/* let's go through all objects in database */
@@ -682,8 +685,8 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 						
 						for (ct= targets.first; ct; ct= ct->next) {
 							/* any targets which point to original armature are redirected to the new one only if:
-							 *	- the target isn't the original armature itself
-							 *	- the target is one that can be found in newArm
+							 *	- the target isn't origArm/newArm itself
+							 *	- the target is one that can be found in newArm/origArm
 							 */
 							if ((ct->tar == origArm) && (ct->subtarget[0] != 0)) {
 								for (pcha=npchans->first, pchb=npchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
@@ -692,6 +695,20 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 										 (strcmp(pchb->name, ct->subtarget)==0) )
 									{
 										ct->tar= newArm;
+										break;
+									}
+									
+									/* check if both ends have met (to stop checking) */
+									if (pcha == pchb) break;
+								}								
+							}
+							else if ((ct->tar == newArm) && (ct->subtarget[0] != 0)) {
+								for (pcha=opchans->first, pchb=opchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
+									/* check if either one matches */
+									if ( (strcmp(pcha->name, ct->subtarget)==0) ||
+										 (strcmp(pchb->name, ct->subtarget)==0) )
+									{
+										ct->tar= origArm;
 										break;
 									}
 									
@@ -721,8 +738,8 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 					
 					for (ct= targets.first; ct; ct= ct->next) {
 						/* any targets which point to original armature are redirected to the new one only if:
-						 *	- the target isn't the original armature itself
-						 *	- the target is one of the bones which were moved into newArm
+						 *	- the target isn't origArm/newArm itself
+						 *	- the target is one that can be found in newArm/origArm
 						 */
 						if ((ct->tar == origArm) && (ct->subtarget[0] != 0)) {
 							for (pcha=npchans->first, pchb=npchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
@@ -736,7 +753,21 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 								
 								/* check if both ends have met (to stop checking) */
 								if (pcha == pchb) break;
-							}
+							}								
+						}
+						else if ((ct->tar == newArm) && (ct->subtarget[0] != 0)) {
+							for (pcha=opchans->first, pchb=opchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
+								/* check if either one matches */
+								if ( (strcmp(pcha->name, ct->subtarget)==0) ||
+									 (strcmp(pchb->name, ct->subtarget)==0) )
+								{
+									ct->tar= origArm;
+									break;
+								}
+								
+								/* check if both ends have met (to stop checking) */
+								if (pcha == pchb) break;
+							}								
 						}
 					}
 					
@@ -828,12 +859,6 @@ void separate_armature (void)
 	Object *oldob, *newob;
 	Base *base, *oldbase, *newbase;
 	bArmature *arm;
-	
-	// 31 Mar 08 \ 11 May 08 - Aligorith:
-	// currently, this is still too unstable to be enabled for general consumption.
-	// remove the following two lines to test this tool... you have been warned!
-	//	okee("Not implemented (WIP)");
-	//	return;
 	
 	if ( G.vd==0 || (G.vd->lay & G.obedit->lay)==0 ) return;
 	if ( okee("Separate")==0 ) return;
@@ -2948,6 +2973,8 @@ void extrude_armature(int forked)
 						newbone->parent = ebone;
 						
 						newbone->flag = ebone->flag & BONE_TIPSEL;	// copies it, in case mirrored bone
+
+						if (newbone->parent) newbone->flag |= BONE_CONNECTED;
 					}
 					else {
 						VECCOPY(newbone->head, ebone->head);
@@ -2955,6 +2982,10 @@ void extrude_armature(int forked)
 						newbone->parent= ebone->parent;
 						
 						newbone->flag= BONE_TIPSEL;
+						
+						if (newbone->parent && ebone->flag & BONE_CONNECTED) {
+							newbone->flag |= BONE_CONNECTED;
+						}
 					}
 					
 					newbone->weight= ebone->weight;
@@ -2967,8 +2998,6 @@ void extrude_armature(int forked)
 					newbone->rad_tail= ebone->rad_tail;
 					newbone->segments= 1;
 					newbone->layer= ebone->layer;
-					
-					if (newbone->parent) newbone->flag |= BONE_CONNECTED;
 					
 					BLI_strncpy (newbone->name, ebone->name, 32);
 					
@@ -3827,7 +3856,7 @@ void unique_bone_name (bArmature *arm, char *name)
 }
 
 #define MAXBONENAME 32
-/* helper call for below */
+/* helper call for armature_bone_rename */
 static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldname, char *newname)
 {
 	bConstraint *curcon;
@@ -3859,6 +3888,7 @@ static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldnam
 void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 {
 	Object *ob;
+	Ipo *ipo;
 	char newname[MAXBONENAME];
 	char oldname[MAXBONENAME];
 	
@@ -3882,7 +3912,7 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			else return;
 		}
 		else {
-			Bone *bone= get_named_bone (arm, oldname);
+			Bone *bone= get_named_bone(arm, oldname);
 			
 			if (bone) {
 				unique_bone_name (arm, newname);
@@ -3891,7 +3921,7 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			else return;
 		}
 		
-		/* do entire dbase */
+		/* do entire dbase - objects */
 		for (ob= G.main->object.first; ob; ob= ob->id.next) {
 			/* we have the object using the armature */
 			if (arm==ob->data) {
@@ -3913,7 +3943,7 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 				if (ob->pose) {
 					bPoseChannel *pchan = get_pose_channel(ob->pose, oldname);
 					if (pchan)
-						BLI_strncpy (pchan->name, newname, MAXBONENAME);
+						BLI_strncpy(pchan->name, newname, MAXBONENAME);
 				}
 				
 				/* check all nla-strips too */
@@ -3958,6 +3988,28 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 					   BLI_strncpy(dg->name, newname, MAXBONENAME);
 				}
 			}
+		}
+		
+		/* do entire db - ipo's for the drivers */
+		for (ipo= G.main->ipo.first; ipo; ipo= ipo->id.next) {
+			IpoCurve *icu;
+			
+			/* check each curve's driver */
+			for (icu= ipo->curve.first; icu; icu= icu->next) {
+				IpoDriver *icd= icu->driver;
+				
+				if ((icd) && (icd->ob)) {
+					ob= icd->ob;
+					
+					if (icu->driver->type == IPO_DRIVER_TYPE_NORMAL) {
+						if (!strcmp(oldname, icd->name))
+							BLI_strncpy(icd->name, newname, MAXBONENAME);
+					}
+					else {
+						/* TODO: pydrivers need to be treated differently */
+					}
+				}
+			}			
 		}
 	}
 }

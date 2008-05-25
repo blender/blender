@@ -77,6 +77,7 @@ KX_GameObject::KX_GameObject(
 	m_layer(0),
 	m_bSuspendDynamics(false),
 	m_bUseObjectColor(false),
+	m_bIsNegativeScaling(false),
 	m_bVisible(true),
 	m_pPhysicsController1(NULL),
 	m_pPhysicsEnvironment(NULL),
@@ -335,7 +336,7 @@ double*	KX_GameObject::GetOpenGLMatrix()
 	trans.setBasis(GetSGNode()->GetWorldOrientation());
 	
 	MT_Vector3 scaling = GetSGNode()->GetWorldScaling();
-	
+	m_bIsNegativeScaling = ((scaling[0] < 0.0) ^ (scaling[1] < 0.0) ^ (scaling[2] < 0.0)) ? true : false;
 	trans.scale(scaling[0], scaling[1], scaling[2]);
 	trans.getValue(fl);
 
@@ -743,6 +744,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_VARARGS},
 	KX_PYMETHODTABLE(KX_GameObject, getDistanceTo),
 	KX_PYMETHODTABLE(KX_GameObject, rayCastTo),
+	KX_PYMETHODTABLE(KX_GameObject, rayCast),
 	{NULL,NULL} //Sentinel
 };
 
@@ -1325,7 +1327,7 @@ bool KX_GameObject::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT
 }
 
 KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
-"rayCastTo(other,dist,prop): look towards another point/KX_GameObject and return first object hit within dist that match prop\n"
+"rayCastTo(other,dist,prop): look towards another point/KX_GameObject and return first object hit within dist that matches prop\n"
 " prop = property name that object must have; can be omitted => detect any object\n"
 " dist = max distance to look (can be negative => look behind); 0 or omitted => detect up to other\n"
 " other = 3-tuple or object reference")
@@ -1378,6 +1380,89 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 		return m_pHitObject;
 	}
 	Py_Return;
+}
+
+KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
+"rayCast(to,from,dist,prop): cast a ray and return tuple (object,hit,normal) of contact point with object within dist that matches prop or None if no hit\n"
+" prop = property name that object must have; can be omitted => detect any object\n"
+" dist = max distance to look (can be negative => look behind); 0 or omitted => detect up to to\n"
+" from = 3-tuple or object reference for origin of ray (if object, use center of object)\n"
+"        Can None or omitted => start from self object center\n"
+" to = 3-tuple or object reference for destination of ray (if object, use center of object)\n"
+"Note: the object on which you call this method matters: the ray will ignore it if it goes through it\n")
+{
+	MT_Point3 toPoint;
+	MT_Point3 fromPoint;
+	PyObject* pyto;
+	PyObject* pyfrom = NULL;
+	float dist = 0.0f;
+	char *propName = NULL;
+	KX_GameObject *other;
+
+	if (!PyArg_ParseTuple(args,"O|Ofs", &pyto, &pyfrom, &dist, &propName))
+		return NULL;
+
+	if (!PyVecTo(pyto, toPoint))
+	{
+		PyErr_Clear();
+		if (!PyType_IsSubtype(pyto->ob_type, &KX_GameObject::Type))
+			return NULL;
+		other = static_cast<KX_GameObject*>(pyto);
+		toPoint = other->NodeGetWorldPosition();
+	}
+	if (!pyfrom || pyfrom == Py_None)
+	{
+		fromPoint = NodeGetWorldPosition();
+	}
+	else if (!PyVecTo(pyfrom, fromPoint))
+	{
+		PyErr_Clear();
+		if (!PyType_IsSubtype(pyfrom->ob_type, &KX_GameObject::Type))
+			return NULL;
+		other = static_cast<KX_GameObject*>(pyfrom);
+		fromPoint = other->NodeGetWorldPosition();
+	}
+
+	if (dist != 0.0f)
+	{
+		MT_Vector3 toDir = toPoint-fromPoint;
+		toDir.normalize();
+		toPoint = fromPoint + (dist) * toDir;
+	}
+
+	MT_Point3 resultPoint;
+	MT_Vector3 resultNormal;
+	PHY_IPhysicsEnvironment* pe = GetPhysicsEnvironment();
+	KX_IPhysicsController *spc = GetPhysicsController();
+	KX_GameObject *parent = GetParent();
+	if (!spc && parent)
+		spc = parent->GetPhysicsController();
+	if (parent)
+		parent->Release();
+	
+	m_pHitObject = NULL;
+	if (propName)
+		m_testPropName = propName;
+	else
+		m_testPropName.SetLength(0);
+	KX_RayCast::RayTest(spc, pe, fromPoint, toPoint, resultPoint, resultNormal, KX_RayCast::Callback<KX_GameObject>(this));
+
+    if (m_pHitObject)
+	{
+		PyObject* returnValue = PyTuple_New(3);
+		if (!returnValue)
+			return NULL;
+		PyTuple_SET_ITEM(returnValue, 0, m_pHitObject->AddRef());
+		PyTuple_SET_ITEM(returnValue, 1, PyObjectFrom(resultPoint));
+		PyTuple_SET_ITEM(returnValue, 2, PyObjectFrom(resultNormal));
+		return returnValue;
+		//return Py_BuildValue("(O,(fff),(fff))", 
+		//	m_pHitObject->AddRef(),		// trick: KX_GameObject are not true Python object, they use a difference reference count system
+		//	resultPoint[0], resultPoint[1], resultPoint[2],
+		//	resultNormal[0], resultNormal[1], resultNormal[2]);
+	}
+	return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
+	//Py_Return;
 }
 
 /* --------------------------------------------------------------------- 

@@ -69,13 +69,19 @@ KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj,
 	m_upflag = upflag;
 	m_parentobj = 0;
 	
-	if (m_object){
+	if (m_object)
 		m_object->RegisterActuator(this);
-		KX_GameObject* curobj = (KX_GameObject*) GetParent();
 
-		m_parentobj = curobj->GetParent(); // check if the object is parented 
-		if (m_parentobj) {  // if so, store the initial local rotation
-			m_parentlocalmat = m_parentobj->GetSGNode()->GetLocalOrientation();
+	if (gameobj->isA(&KX_GameObject::Type))
+	{
+		// if the object is vertex parented, don't check parent orientation as the link is broken
+		if (!((KX_GameObject*)gameobj)->IsVertexParent()){
+			m_parentobj = ((KX_GameObject*)gameobj)->GetParent(); // check if the object is parented 
+			if (m_parentobj) {  
+				// if so, store the initial local rotation
+				// this is needed to revert the effect of the parent inverse node (TBC)
+				m_parentlocalmat = m_parentobj->GetSGNode()->GetLocalOrientation();
+			}
 		}
 	}
 
@@ -180,6 +186,8 @@ KX_TrackToActuator::~KX_TrackToActuator()
 {
 	if (m_object)
 		m_object->UnregisterActuator(this);
+	if (m_parentobj)
+		m_parentobj->Release();
 } /* end of destructor */
 
 void KX_TrackToActuator::ProcessReplica()

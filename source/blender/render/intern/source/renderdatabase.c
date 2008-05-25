@@ -501,6 +501,7 @@ void RE_set_customdata_names(ObjectRen *obr, CustomData *data)
 		if (layer->type == CD_MTFACE) {
 			strcpy(obr->mtface[mtfn++], layer->name);
 			obr->actmtface= layer->active_rnd;
+			obr->bakemtface= layer->active;
 		}
 		else if (layer->type == CD_MCOL) {
 			strcpy(obr->mcol[mcn++], layer->name);

@@ -412,7 +412,8 @@ static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3])
 			VECCOPY(vec, t->con.mtx[2]);
 			break;
 		}
-		if (!(mode & CON_NOFLIP)) {
+		/* don't flip axis if asked to or if num input */
+		if (!(mode & CON_NOFLIP) && hasNumInput(&t->num) == 0) {
 			if (Inpf(vec, t->viewinv[2]) > 0.0f) {
 				VecMulf(vec, -1.0f);
 			}

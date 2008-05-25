@@ -130,7 +130,7 @@ static int vertex_sort(const void *p1, const void *p2)
  * 		'box->index' is not used at all, the only reason its there
  * 			is that the box array is sorted by area and programs need to be able
  * 			to have some way of writing the boxes back to the original data.
- * 	len - the number of boxes in teh array.
+ * 	len - the number of boxes in the array.
  *	tot_width and tot_height are set so you can normalize the data.
  *  */
 void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)

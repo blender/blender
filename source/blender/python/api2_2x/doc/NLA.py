@@ -19,7 +19,11 @@ It is a bitmask and settings are ORed together.
 	- ACTIVE: action strip is active in NLA window
 	- LOCK_ACTION: action start/end are automatically mapped to strip duration
 	- MUTE: action strip does not contribute to the NLA solution
-
+	- USEX: Turn off automatic single-axis cycling and use X as an offset axis.  Note that you can use multiple axes at once.
+	- USEY: Turn off automatic single-axis cycling and use Y as an offset axis.  Note that you can use multiple axes at once.
+	- USEZ: Turn off automatic single-axis cycling and use Z as an offset axis.  Note that you can use multiple axes at once.
+	- AUTO_BLEND: Automatic calculation of blend in/out values
+	
 @type StrideAxes: readonly dictionary
 @var StrideAxes: Constant dict used by the L{ActionStrip.strideAxis} attribute.
 Values are STRIDEAXIS_X, STRIDEAXIS_Y, and STRIDEAXIS_Z.

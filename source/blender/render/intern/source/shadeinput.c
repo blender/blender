@@ -434,6 +434,8 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 
 			shi->totuv= 0;
 			shi->totcol= 0;
+			shi->actuv= obr->actmtface;
+			shi->actcol= obr->actmcol;
 
 			if(mode & (MA_VERTEXCOL|MA_VERTEXCOLP)) {
 				for (i=0; (mcol=RE_strandren_get_mcol(obr, strand, i, &name, 0)); i++) {
@@ -449,9 +451,9 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 				}
 
 				if(shi->totcol) {
-					shi->vcol[0]= shi->col[0].col[0];
-					shi->vcol[1]= shi->col[0].col[1];
-					shi->vcol[2]= shi->col[0].col[2];
+					shi->vcol[0]= shi->col[shi->actcol].col[0];
+					shi->vcol[1]= shi->col[shi->actcol].col[1];
+					shi->vcol[2]= shi->col[shi->actcol].col[2];
 				}
 				else {
 					shi->vcol[0]= 0.0f;
@@ -484,7 +486,7 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 					suv->dyuv[1]= 0.0f;
 				}
 
-				if((mode & MA_FACETEXTURE) && i==0) {
+				if((mode & MA_FACETEXTURE) && i==obr->actmtface) {
 					if((mode & (MA_VERTEXCOL|MA_VERTEXCOLP))==0) {
 						shi->vcol[0]= 1.0f;
 						shi->vcol[1]= 1.0f;
@@ -995,9 +997,9 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				}
 
 				if(shi->totcol) {
-					shi->vcol[0]= shi->col[0].col[0];
-					shi->vcol[1]= shi->col[0].col[1];
-					shi->vcol[2]= shi->col[0].col[2];
+					shi->vcol[0]= shi->col[shi->actcol].col[0];
+					shi->vcol[1]= shi->col[shi->actcol].col[1];
+					shi->vcol[2]= shi->col[shi->actcol].col[2];
 					shi->vcol[3]= 1.0f;
 				}
 				else {

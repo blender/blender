@@ -2891,7 +2891,7 @@ void enter_meta(void)
 	ed= G.scene->ed;
 	if(ed==0) return;
 
-	if(last_seq==0 || last_seq->type!=SEQ_META || last_seq->flag==0) {
+	if(last_seq==0 || last_seq->type!=SEQ_META || (last_seq->flag & SELECT)==0) {
 		exit_meta();
 		return;
 	}

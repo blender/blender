@@ -871,12 +871,25 @@ static int EnumPixelFormats(HDC hdc) {
 	for(i=1; i<=n; i++) { /* not the idiom, but it's right */
 		::DescribePixelFormat( hdc, i, sizeof(PIXELFORMATDESCRIPTOR), &pfd );
 		w = WeightPixelFormat(pfd);
-		if(w > weight) {
-			weight = w;
-			iPixelFormat = i;
+		// be strict on stereo
+		if (!((sPreferredFormat.dwFlags ^ pfd.dwFlags) & PFD_STEREO))	{
+			if(w > weight) {
+				weight = w;
+				iPixelFormat = i;
+			}
 		}
 	}
-	
+	if (weight == 0) {
+		// we could find the correct stereo setting, just find any suitable format 
+		for(i=1; i<=n; i++) { /* not the idiom, but it's right */
+			::DescribePixelFormat( hdc, i, sizeof(PIXELFORMATDESCRIPTOR), &pfd );
+			w = WeightPixelFormat(pfd);
+			if(w > weight) {
+				weight = w;
+				iPixelFormat = i;
+			}
+		}
+	}
 	return iPixelFormat;
 }
 

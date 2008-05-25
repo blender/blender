@@ -59,6 +59,27 @@ typedef struct bDeformGroup {
 	char name[32];
 } bDeformGroup;
 
+/**
+ * The following illustrates the orientation of the 
+ * bounding box in local space
+ * 
+ *  
+ * Z  Y
+ * | /
+ * |/
+ * .-----X
+ * 
+ * 
+ *     2----------6
+ *    /|         /|
+ *   / |        / |
+ *  1----------5  |
+ *  |  |       |  |
+ *  |  3-------|--7
+ *  | /        | /
+ *  |/         |/
+ *  0----------4
+ */
 typedef struct BoundBox {
 	float vec[8][3];
 	int flag, pad;

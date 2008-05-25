@@ -105,6 +105,8 @@ public:
 
 	virtual	void Render2DFilters(RAS_ICanvas* canvas);
 
+	virtual void SetClientObject(void* obj);
+
 };
 
 #endif //__KX_BLENDERRENDERTOOLS

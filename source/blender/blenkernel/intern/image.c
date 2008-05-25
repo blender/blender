@@ -989,8 +989,11 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 	}
 
 	if (G.scene->r.stamp & R_STAMP_CAMERA) {
-		if (do_prefix)		sprintf(stamp_data->camera, "Camera %s", ((Camera *) G.scene->camera)->id.name+2);
-		else				sprintf(stamp_data->camera, "%s", ((Camera *) G.scene->camera)->id.name+2);
+		if (G.scene->camera) strcpy(text, ((Camera *) G.scene->camera)->id.name+2);
+		else 		strcpy(text, "<none>");
+		
+		if (do_prefix)		sprintf(stamp_data->camera, "Camera %s", text);
+		else				sprintf(stamp_data->camera, "%s", text);
 	} else {
 		stamp_data->camera[0] = '\0';
 	}
@@ -1721,31 +1724,38 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 {
 	RenderResult *rr= RE_GetResult(RE_GetRender(G.scene->id.name));
 	
-	if(rr && iuser) {
+	if(rr) {
 		RenderResult rres;
 		float *rectf;
 		unsigned int *rect;
-		int channels= 4, layer= iuser->layer;
+		float dither;
+		int channels, layer, pass;
+
+		channels= 4;
+		layer= (iuser)? iuser->layer: 0;
+		pass= (iuser)? iuser->pass: 0;
 		
 		/* this gives active layer, composite or seqence result */
 		RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
 		rect= (unsigned int *)rres.rect32;
 		rectf= rres.rectf;
-		
+		dither= G.scene->r.dither_intensity;
+
 		/* get compo/seq result by default */
 		if(rr->rectf && layer==0);
 		else if(rr->layers.first) {
-			RenderLayer *rl= BLI_findlink(&rr->layers, iuser->layer-(rr->rectf?1:0));
+			RenderLayer *rl= BLI_findlink(&rr->layers, layer-(rr->rectf?1:0));
 			if(rl) {
 				/* there's no combined pass, is in renderlayer itself */
-				if(iuser->pass==0) {
+				if(pass==0) {
 					rectf= rl->rectf;
 				}
 				else {
-					RenderPass *rpass= BLI_findlink(&rl->passes, iuser->pass-1);
+					RenderPass *rpass= BLI_findlink(&rl->passes, pass-1);
 					if(rpass) {
 						channels= rpass->channels;
 						rectf= rpass->rect;
+						dither= 0.0f; /* don't dither passes */
 					}
 				}
 			}
@@ -1772,6 +1782,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 			ibuf->channels= channels;
 			ibuf->zbuf_float= rres.rectz;
 			ibuf->flags |= IB_zbuffloat;
+			ibuf->dither= dither;
 			
 			ima->ok= IMA_OK_LOADED;
 			return ibuf;

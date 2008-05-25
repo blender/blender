@@ -2681,7 +2681,8 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 			uiDefButF(block, NUM,B_LAMPREDRAW,"Soft Size",	100,80,200,19, &la->area_size, 0.01, 100.0, 10, 0, "Area light size, doesn't affect energy amount");
 			
 			uiDefButS(block, NUM,0,"Samples:",	100,60,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp)");
-			uiDefButF(block, NUM,0,"Threshold:",	100,40,200,19,	&la->adapt_thresh, 0.0, 1.0, 100, 0, "Threshold for adaptive sampling, to control what level is considered already in shadow");
+			if (la->ray_samp_method == LA_SAMP_HALTON)
+				uiDefButF(block, NUM,0,"Threshold:",	100,40,200,19,	&la->adapt_thresh, 0.0, 1.0, 100, 0, "Threshold for adaptive sampling, to control what level is considered already in shadow");
 		}
 		else if (la->type == LA_AREA) {
 			uiDefButS(block, MENU, B_REDR, "Adaptive QMC %x1|Constant QMC %x2|Constant Jittered %x0",
@@ -2887,8 +2888,8 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	
 	uiBlockBeginAlign(block);
 	if (ELEM(la->type, LA_LOCAL, LA_SPOT) && (la->falloff_type == LA_FALLOFF_SLIDERS)) {
-		uiDefButF(block, NUMSLI,B_LAMPPRV,"Linear ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the linear distance attenuatation for a quad lamp");
-		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the quadratic distance attenuatation for a quad lamp");
+		uiDefButF(block, NUMSLI,B_LAMPPRV,"Linear ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the linear distance attenuation for a Lin/Quad Weighted lamp");
+		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the quadratic distance attenuation for a Lin/Quad Weighted lamp");
 	}
 	else if(la->type==LA_AREA) {
 		if(la->k==0.0) la->k= 1.0;
@@ -3288,7 +3289,7 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
 		but=uiDefButBitS(block, TOG3, MAP_PA_KINK, B_MAT_PARTICLE, "Kink",	70,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the kink of child particles");
 			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
-		but=uiDefButBitS(block, TOG3, MAP_PA_LENGTH, B_MAT_PARTICLE, "Length",130,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the length of particles");
+		but=uiDefButBitS(block, TOG3, MAP_PA_LENGTH, B_MAT_PARTICLE, "Length",130,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the length of child particles");
 			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
 		but=uiDefButBitS(block, TOG3, MAP_PA_CLUMP, B_MAT_PARTICLE, "Clump",	190,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the clump of child particles");
 			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
@@ -3298,10 +3299,10 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 		uiBlockSetCol(block, TH_AUTO);
 	}
 	else {
-		uiDefButBitS(block, TOG, MAP_COL, B_MATPRV, "Col",		10,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic colour of the material");
+		uiDefButBitS(block, TOG, MAP_COL, B_MATPRV, "Col",		10,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic color of the material");
 		uiDefButBitS(block, TOG3, MAP_NORM, B_MATPRV, "Nor",		50,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the rendered normal");
-		uiDefButBitS(block, TOG, MAP_COLSPEC, B_MATPRV, "Csp",		90,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the specularity colour");
-		uiDefButBitS(block, TOG, MAP_COLMIR, B_MATPRV, "Cmir",		130,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the mirror colour");
+		uiDefButBitS(block, TOG, MAP_COLSPEC, B_MATPRV, "Csp",		90,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the specularity color");
+		uiDefButBitS(block, TOG, MAP_COLMIR, B_MATPRV, "Cmir",		130,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the mirror color");
 		uiDefButBitS(block, TOG3, MAP_REF, B_MATPRV, "Ref",		180,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of the materials reflectivity");
 		uiDefButBitS(block, TOG3, MAP_SPEC, B_MATPRV, "Spec",		220,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of specularity");
 		uiDefButBitS(block, TOG3, MAP_AMB, B_MATPRV, "Amb",		270,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of ambient");

@@ -98,6 +98,7 @@ typedef struct FFMpegCodecData {
 	int rc_buffer_size;
 	int mux_packet_size;
 	int mux_rate;
+	IDProperty *properties;
 } FFMpegCodecData;
 
 

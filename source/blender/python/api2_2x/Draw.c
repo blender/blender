@@ -2063,22 +2063,22 @@ static PyObject *Method_Image( PyObject * self, PyObject * args )
 	/*GLfloat scissorBox[4];*/
 
 	/* parse the arguments passed-in from Python */
-	if( !PyArg_ParseTuple( args, "Off|ffiiii", &pyObjImage, 
+	if( !PyArg_ParseTuple( args, "O!ff|ffiiii", &Image_Type, &pyObjImage, 
 		&originX, &originY, &zoomX, &zoomY, 
 		&clipX, &clipY, &clipW, &clipH ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 			"expected a Blender.Image and 2 floats, and " \
 			"optionally 2 floats and 4 ints as arguments" );
-	/* check that the first PyObject is actually a Blender.Image */
-	if( !BPy_Image_Check( pyObjImage ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-			"expected a Blender.Image and 2 floats, and " \
-			"optionally 2 floats and 4 ints as arguments" );
 	/* check that the zoom factors are valid */
-	if( ( zoomX <= 0.0 ) || ( zoomY <= 0.0 ) )
+	if( ( zoomX < 0.0 ) || ( zoomY < 0.0 ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-			"invalid zoom factors - they must be >= 0.0" );
-
+			"invalid zoom factors - they must be > 0.0" );
+	if ((zoomX == 0.0 ) || ( zoomY == 0.0 )) {
+		/* sometimes python doubles can be converted from small values to a zero float, in this case just dont draw */
+		Py_RETURN_NONE;
+	}
+	
+	
 	/* fetch a C Image pointer from the passed-in Python object */
 	py_img = ( BPy_Image * ) pyObjImage;
 	image = py_img->image;
@@ -2101,9 +2101,9 @@ static PyObject *Method_Image( PyObject * self, PyObject * args )
 	 * the image as they can. */
 	clipX = EXPP_ClampInt( clipX, 0, ibuf->x );
 	clipY = EXPP_ClampInt( clipY, 0, ibuf->y );
-	if( ( clipW < 0 ) || ( clipW > ( ibuf->x - clipW ) ) )
+	if( ( clipW < 0 ) || ( clipX+clipW > ibuf->x ) )
 		clipW = ibuf->x - clipX;
-	if( ( clipH < 0 ) || ( clipH > ( ibuf->y - clipH ) ) )
+	if( ( clipH < 0 ) || ( clipY+clipH > ibuf->y ) )
 		clipH = ibuf->y - clipY;
 
 	/* -- we are "Go" to Draw! -- */
@@ -2165,8 +2165,7 @@ static PyObject *Method_Image( PyObject * self, PyObject * args )
 	glPixelStorei( GL_UNPACK_SKIP_PIXELS, 0 );
 	glPixelStorei( GL_UNPACK_ROW_LENGTH,  0 );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 
 }
 

@@ -325,6 +325,8 @@ void RAS_MaterialBucket::Render(const MT_Transform& cameratrans,
 		while (ActivateMaterial(cameratrans, rasty, rendertools, drawmode))
 			RenderMeshSlot(cameratrans, rasty, rendertools, *it, drawmode);
 	}
+	// to reset the eventual GL_CW mode
+	rendertools->SetClientObject(NULL);
 }
 
 

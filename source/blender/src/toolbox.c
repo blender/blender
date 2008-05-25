@@ -314,7 +314,7 @@ short sbutton(char *var, short min, short max, char *str)
 	x1=mval[0]-250; 
 	y1=mval[1]-20; 
 	
-	editvar = MEM_callocN(max, "sbutton");
+	editvar = MEM_callocN(max+1, "sbutton");
 	BLI_strncpy(editvar, var, max);
 	
 	uiDefButC(block, TEX, 32766, str,	x1+5,y1+10,225,20, editvar,(float)min,(float)max, 0, 0, "");
@@ -2298,16 +2298,21 @@ void toolbox_generic( TBitem *generic_menu )
 	
 	/* Add the menu */
 	for (menu = generic_menu; menu->icon != -1; menu++) {
-		if (menu->poin) {
-			but=uiDefIconTextBlockBut(block, tb_makemenu, menu->poin, ICON_RIGHTARROW_THIN, menu->name, mval[0]+tb_mainx,mval[1]+tb_mainy+ypos+5, dx, 19, "");
-			uiButSetFlag(but, UI_MAKE_RIGHT);
-			
-			uiButSetFunc(but, store_main, (void *)+32, (void *)ypos);
+		if(strcmp(menu->name, "SEPR")==0) {
+			uiDefBut(block, SEPR, 0, "", mval[0]+tb_mainx,mval[1]+tb_mainy+ypos+5, dx, 6, NULL, 0.0, 0.0, 0, 0, "");
+			ypos-=6;
 		} else {
-			/* TODO - add icon support */
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, menu->name, mval[0]+tb_mainx,mval[1]+tb_mainy+ypos+5, dx, 19, NULL, 0.0, 0.0, 0, menu->retval, "");
+			 if (menu->poin) {
+				but=uiDefIconTextBlockBut(block, tb_makemenu, menu->poin, ICON_RIGHTARROW_THIN, menu->name, mval[0]+tb_mainx,mval[1]+tb_mainy+ypos+5, dx, 19, "");
+				uiButSetFlag(but, UI_MAKE_RIGHT);
+			
+				uiButSetFunc(but, store_main, (void *)+32, (void *)ypos);
+			} else {
+				/* TODO - add icon support */
+				uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, menu->name, mval[0]+tb_mainx,mval[1]+tb_mainy+ypos+5, dx, 19, NULL, 0.0, 0.0, 0, menu->retval, "");
+			}
+			ypos-=20;
 		}
-		ypos-=20;
 	}
 	
 	uiBlockSetButmFunc(block, menu->poin, NULL);

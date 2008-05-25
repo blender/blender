@@ -741,7 +741,7 @@ void viewmove(int mode)
 	
 		// dist correction from other movement devices
 		
-	if(dz_flag) {
+	if((dz_flag)||G.vd->dist==0) {
 		dz_flag = 0;
 		G.vd->dist = m_dist;
 		upvec[0] = upvec[1] = 0;
@@ -2111,7 +2111,7 @@ void smooth_view(View3D *v3d, float *ofs, float *quat, float *dist, float *lens)
 				changed = 1;
 		}
 		
-		/* The new view is different from teh old one
+		/* The new view is different from the old one
 		 * so animate the view */
 		if (changed) {
 			

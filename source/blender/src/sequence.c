@@ -1454,6 +1454,7 @@ static void input_preprocess(Sequence * seq, TStripElem* se, int cfra)
 	if(seq->flag & SEQ_USE_CROP || seq->flag & SEQ_USE_TRANSFORM) {
 		StripCrop c;
 		StripTransform t;
+		int sx,sy,dx,dy;
 
 		memset(&c, 0, sizeof(StripCrop));
 		memset(&t, 0, sizeof(StripTransform));
@@ -1465,22 +1466,22 @@ static void input_preprocess(Sequence * seq, TStripElem* se, int cfra)
 			t = *seq->strip->transform;
 		}
 
+		sx = se->ibuf->x - c.left - c.right;
+		sy = se->ibuf->y - c.top - c.bottom;
+		dx = sx;
+		dy = sy;
+
+		if (seq->flag & SEQ_USE_TRANSFORM) {
+			dx = seqrectx;
+			dy = seqrecty;
+		}
+
 		if (c.top + c.bottom >= se->ibuf->y ||
 		    c.left + c.right >= se->ibuf->x ||
-		    t.xofs >= se->ibuf->x ||
-		    t.yofs >= se->ibuf->y) {
+		    t.xofs >= dx || t.yofs >= dy) {
 			make_black_ibuf(se->ibuf);
 		} else {
 			ImBuf * i;
-			int sx = se->ibuf->x - c.left - c.right;
-			int sy = se->ibuf->y - c.top - c.bottom;
-			int dx = sx;
-			int dy = sy;
-
-			if (seq->flag & SEQ_USE_TRANSFORM) {
-				dx = seqrectx;
-				dy = seqrecty;
-			}
 
 			if (se->ibuf->rect_float) {
 				i = IMB_allocImBuf(dx, dy,32, IB_rectfloat, 0);
@@ -1633,6 +1634,36 @@ static void copy_to_ibuf_still(Sequence * seq, TStripElem * se)
 	}
 }
 
+static void free_metastrip_imbufs(ListBase *seqbasep, int cfra, int chanshown)
+{
+	Sequence* seq_arr[MAXSEQ+1];
+	int i;
+	TStripElem* se = 0;
+
+	evaluate_seq_frame_gen(seq_arr, seqbasep, cfra);
+
+	for (i = 0; i < MAXSEQ; i++) {
+		if (!video_seq_is_rendered(seq_arr[i])) {
+			continue;
+		}
+		se = give_tstripelem(seq_arr[i], cfra);
+		if (se) {
+			if (se->ibuf) {
+				IMB_freeImBuf(se->ibuf);
+
+				se->ibuf= 0;
+				se->ok= STRIPELEM_OK;
+			}
+
+			if (se->ibuf_comp) {
+				IMB_freeImBuf(se->ibuf_comp);
+
+				se->ibuf_comp = 0;
+			}
+		}
+	}
+	
+}
 
 static TStripElem* do_build_seq_array_recursively(
 	ListBase *seqbasep, int cfra, int chanshown);
@@ -1682,6 +1713,10 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 
 				use_limiter = TRUE;
 			}
+		}
+		if (meta_se) {
+			free_metastrip_imbufs(
+				&seq->seqbase, seq->start + se->nr, 0);
 		}
 
 		if (use_limiter) {
@@ -1760,6 +1795,7 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 		}
 	} else if(seq->type == SEQ_SCENE) {	// scene can be NULL after deletions
 		int oldcfra = CFRA;
+		Sequence * oldseq = get_last_seq();
 		Scene *sce= seq->scene, *oldsce= G.scene;
 		Render *re;
 		RenderResult rres;
@@ -1838,6 +1874,7 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 			if((G.f & G_PLAYANIM)==0) /* bad, is set on do_render_seq */
 				waitcursor(0);
 			CFRA = oldcfra;
+			set_last_seq(oldseq);
 
 			copy_to_ibuf_still(seq, se);
 
@@ -1961,6 +1998,10 @@ static TStripElem* do_handle_speed_effect(Sequence * seq, int cfra)
 	cfra_right = (int) ceil(f_cfra);
 
 	se = give_tstripelem(seq, cfra);
+
+	if (!se) {
+		return se;
+	}
 
 	if (cfra_left == cfra_right || 
 	    (s->flags & SEQ_SPEED_BLEND) == 0) {

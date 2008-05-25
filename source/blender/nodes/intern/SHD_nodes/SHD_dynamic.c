@@ -239,6 +239,27 @@ static void node_dynamic_reset(bNode *node, int unlink_text)
 	tinfo = node->typeinfo;
 	tinfo_default = node_dynamic_find_typeinfo(&node_all_shaders, NULL);
 
+	if ((tinfo == tinfo_default) && unlink_text) {
+		ID *textID = node->id;
+	/* already at default (empty) state, which happens if this node's
+	 * script failed to parse at the first stage: definition. We're here
+	 * because its text was removed from Blender. */
+		for (ma= G.main->mat.first; ma; ma= ma->id.next) {
+			if (ma->nodetree) {
+				bNode *nd;
+				for (nd= ma->nodetree->nodes.first; nd; nd = nd->next) {
+					if (nd->id == textID) {
+						nd->id = NULL;
+						nd->custom1 = 0;
+						nd->custom1 = BSET(nd->custom1, NODE_DYNAMIC_NEW);
+						BLI_strncpy(nd->name, "Dynamic", 8);
+						return;
+					}
+				}
+			}
+		}
+	}
+
 	node_dynamic_rem_all_links(tinfo);
 	node_dynamic_free_typeinfo_sockets(tinfo);
 

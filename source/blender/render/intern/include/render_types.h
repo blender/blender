@@ -265,7 +265,7 @@ typedef struct ObjectRen {
 
 	char (*mtface)[32];
 	char (*mcol)[32];
-	int  actmtface, actmcol;
+	int  actmtface, actmcol, bakemtface;
 
 	float obmat[4][4];	/* only used in convertblender.c, for instancing */
 } ObjectRen;

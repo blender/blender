@@ -890,7 +890,7 @@ void KX_KetsjiEngine::SetupRenderFrame(KX_Scene *scene, KX_Camera* cam)
 // update graphics
 void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 {
-	float left, right, bottom, top, nearfrust, farfrust;
+	float left, right, bottom, top, nearfrust, farfrust, focallength;
 	const float ortho = 100.0;
 //	KX_Camera* cam = scene->GetActiveCamera();
 	
@@ -913,6 +913,7 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 		float lens = cam->GetLens();
 		nearfrust = cam->GetCameraNear();
 		farfrust = cam->GetCameraFar();
+		focallength = cam->GetFocalLength();
 
 		if (!cam->GetCameraData()->m_perspective)
 		{
@@ -939,7 +940,7 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 		farfrust = frustum.camfar;
 
 		MT_Matrix4x4 projmat = m_rasterizer->GetFrustumMatrix(
-			left, right, bottom, top, nearfrust, farfrust);
+			left, right, bottom, top, nearfrust, farfrust, focallength);
 	
 		cam->SetProjectionMatrix(projmat);
 		

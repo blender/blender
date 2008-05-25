@@ -3658,6 +3658,11 @@ void delNurb()
 					}
 				}
 			}
+			
+			/* Never allow the order to exceed the number of points */
+			if ((nu->type & 7)==CU_NURBS && (nu->pntsu < nu->orderu)) {
+				nu->orderu = nu->pntsu;
+			}
 			nu= next;
 		}
 		/* 2nd loop, delete small pieces: just for curves */
@@ -3669,7 +3674,7 @@ void delNurb()
 				bezt= nu->bezt;
 				for(a=0;a<nu->pntsu;a++) {
 					if( BEZSELECTED_HIDDENHANDLES(bezt) ) {
-						memcpy(bezt, bezt+1, (nu->pntsu-a-1)*sizeof(BezTriple));
+						memmove(bezt, bezt+1, (nu->pntsu-a-1)*sizeof(BezTriple));
 						nu->pntsu--;
 						a--;
 						event= 1;
@@ -3690,7 +3695,7 @@ void delNurb()
 				
 				for(a=0;a<nu->pntsu;a++) {
 					if( bp->f1 & SELECT ) {
-						memcpy(bp, bp+1, (nu->pntsu-a-1)*sizeof(BPoint));
+						memmove(bp, bp+1, (nu->pntsu-a-1)*sizeof(BPoint));
 						nu->pntsu--;
 						a--;
 						event= 1;
@@ -3704,6 +3709,11 @@ void delNurb()
 					memcpy(bp1, nu->bp, (nu->pntsu)*sizeof(BPoint) );
 					MEM_freeN(nu->bp);
 					nu->bp= bp1;
+					
+					/* Never allow the order to exceed the number of points */
+					if ((nu->type & 7)==CU_NURBS && (nu->pntsu < nu->orderu)) {
+						nu->orderu = nu->pntsu;
+					}
 				}
 				makeknots(nu, 1, nu->flagu>>1);
 			}

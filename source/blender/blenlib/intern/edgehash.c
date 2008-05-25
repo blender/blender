@@ -200,6 +200,11 @@ void *BLI_edgehashIterator_getValue(EdgeHashIterator *ehi) {
 	return ehi->curEntry?ehi->curEntry->val:NULL;
 }
 
+void BLI_edgehashIterator_setValue(EdgeHashIterator *ehi, void *val) {
+	if(ehi->curEntry)
+		ehi->curEntry->val= val;
+}
+
 void BLI_edgehashIterator_step(EdgeHashIterator *ehi) {
 	if (ehi->curEntry) {
         ehi->curEntry= ehi->curEntry->next;

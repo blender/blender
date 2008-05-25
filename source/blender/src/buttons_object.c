@@ -978,7 +978,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				/* IK Target */
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco, *yco-24, 80, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 				
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
@@ -3006,15 +3006,35 @@ void do_effects_panels(unsigned short event)
 	case B_PART_INIT_CHILD:
 	case B_PART_RECALC_CHILD:
 		if(psys) {
+			Base *base;
+			Object *bob;
+			ParticleSystem *bpsys;
+			int flush;
+
 			nr=0;
-			for(psys=ob->particlesystem.first; psys; psys=psys->next){
-				if(ELEM(psys->part->draw_as,PART_DRAW_OB,PART_DRAW_GR))
+			for(bpsys=ob->particlesystem.first; bpsys; bpsys=bpsys->next){
+				if(ELEM(bpsys->part->draw_as,PART_DRAW_OB,PART_DRAW_GR))
 					nr++;
 			}
 			if(nr)
 				ob->transflag |= OB_DUPLIPARTS;
 			else
 				ob->transflag &= ~OB_DUPLIPARTS;
+
+			if(psys->part->type==PART_REACTOR)
+				if(psys->target_ob)
+					DAG_object_flush_update(G.scene, psys->target_ob, OB_RECALC_DATA);
+
+			for(base = G.scene->base.first; base; base= base->next) {
+				bob= base->object;
+				flush= 0;
+				for(bpsys=bob->particlesystem.first; bpsys; bpsys=bpsys->next)
+					if(bpsys->part==psys->part)
+						flush= 1;
+
+				if(flush)
+					DAG_object_flush_update(G.scene, bob, OB_RECALC_DATA);
+			}
 
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
@@ -4117,8 +4137,9 @@ static void object_panel_particle_children(Object *ob)
 		uiDefButF(block, NUM, B_PART_REDRAW, "Rand:",		butx+butw/2,buty,butw/2,buth, &part->childrandsize, 0.0, 1.0, 10, 1, "Random variation to the size of the child particles");
 	}
 	if(part->childtype == PART_CHILD_FACES) {
-		uiDefButF(block, NUM, B_PART_REDRAW, "Spread:",butx,(buty-=buth),butw/2,buth, &part->childspread, -1.0, 1.0, 10, 1, "Spread children from the faces");
-		uiDefButBitI(block, TOG, PART_CHILD_SEAMS, B_PART_DISTR_CHILD, "Use Seams",	 butx+butw/2,buty,butw/2,buth, &part->flag, 0, 0, 0, 0, "Use seams to determine parents");
+		/* only works if children could be emitted from volume, but that option isn't available now */
+		/*uiDefButF(block, NUM, B_PART_REDRAW, "Spread:",butx,(buty-=buth),butw/2,buth, &part->childspread, -1.0, 1.0, 10, 1, "Spread children from the faces");*/
+		uiDefButBitI(block, TOG, PART_CHILD_SEAMS, B_PART_DISTR_CHILD, "Use Seams",	butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Use seams to determine parents");
 	}
 	uiBlockEndAlign(block);
 

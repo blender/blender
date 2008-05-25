@@ -152,6 +152,14 @@ public:
 	) ;
 
 
+	/**
+	 * Return vertex parent status.
+	 */
+
+		bool	
+	IsVertexParent(
+	) ;
+
 	/**		
 	 * Update the spatial data of this node. Iterate through
 	 * the children of this node and update their world data.

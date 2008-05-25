@@ -2401,8 +2401,11 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 		psys->pathcache= cache;
 	}
 
-	if(edit==NULL && psys->soft && psys->softflag & OB_SB_ENABLE)
+	if(edit==NULL && psys->soft && psys->softflag & OB_SB_ENABLE) {
 		soft = psys->soft;
+		if(!soft->bpoint)
+			soft= NULL;
+	}
 	
 	psys->lattice = psys_get_lattice(ob, psys);
 	ma= give_current_material(ob, psys->part->omat);

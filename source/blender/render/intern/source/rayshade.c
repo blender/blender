@@ -384,7 +384,7 @@ static float shade_by_transmission(Isect *is, ShadeInput *shi, ShadeResult *shr)
 
 static void ray_fadeout_endcolor(float *col, ShadeInput *origshi, ShadeInput *shi, ShadeResult *shr, Isect *isec, float *vec)
 {
-	/* un-intersected rays get either rendered material colour or sky colour */
+	/* un-intersected rays get either rendered material color or sky color */
 	if (origshi->mat->fadeto_mir == MA_RAYMIR_FADETOMAT) {
 		VECCOPY(col, shr->combined);
 	} else if (origshi->mat->fadeto_mir == MA_RAYMIR_FADETOSKY) {
@@ -397,7 +397,7 @@ static void ray_fadeout_endcolor(float *col, ShadeInput *origshi, ShadeInput *sh
 
 static void ray_fadeout(Isect *is, ShadeInput *shi, float *col, float *blendcol, float dist_mir)
 {
-	/* if fading out, linear blend against fade colour */
+	/* if fading out, linear blend against fade color */
 	float blendfac;
 
 	blendfac = 1.0 - VecLenf(shi->co, is->start)/dist_mir;
@@ -544,8 +544,8 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 			if (dist_mir > 0.0) {
 				float blendcol[3];
 				
-				/* max ray distance set, but found an intersection, so fade this colour
-				 * out towards the sky/material colour for a smooth transition */
+				/* max ray distance set, but found an intersection, so fade this color
+				 * out towards the sky/material color for a smooth transition */
 				ray_fadeout_endcolor(blendcol, origshi, &shi, origshr, &isec, vec);
 				ray_fadeout(&isec, &shi, col, blendcol, dist_mir);
 			}

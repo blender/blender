@@ -344,6 +344,7 @@ public:
 		float top,
 		float frustnear,
 		float frustfar,
+		float focallength = 0.0f,
 		bool perspective = true
 	)=0;
 	/**
