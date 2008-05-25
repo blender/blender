@@ -276,21 +276,22 @@ void sort_along_axis(BVHTree *tree, int start, int end, int axis)
 }
 
 //after a call to this function you can expect one of:
-//	every node to left of a[n] are smaller than it
-//	every node to the right of a[n-1] are greater than it
-void partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis)
-{
-	int begin = _begin, end = _end;
-	while(begin < n && end >= n)
-	{
-		int mid = bvh_partition(a, begin, end, bvh_medianof3(a, begin, (begin+end-1)/2, end-1, axis), axis );
+//      every node to left of a[n] are smaller or equal to it
+//      every node to the right of a[n] are greater or equal to it
+int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis){        
+	int begin = _begin, end = _end, cut;        
+	int i;         
+	while(end-begin > 3)        
+	{                            
+		cut = bvh_partition(a, begin, end, bvh_medianof3(a, begin, (begin+end)/2, end-1, axis), axis );                 
+		if(cut <= n)                        
+			begin = cut;                
+		else                        
+			end = cut;        
+	}        
+	bvh_insertionsort(a, begin, end, axis);
 
-		if(mid >= n)
-			end = n-1;
-		else
-			begin = n+1;
-	}
-
+	return n;
 }
 
 
@@ -550,7 +551,8 @@ static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, char
 			tree->totbranch++;
 			tnode->parent = node;
 			
-			partition_nth_element(tree->nodes, start, end, tend, laxis);
+			if(tend != end)
+				partition_nth_element(tree->nodes, start, end, tend, laxis);
 			refit_kdop_hull(tree, tnode, start, tend);
 			bvh_div_nodes(tree, tnode, start, tend, laxis);
 		}
@@ -707,7 +709,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result)
 {
 	int j, total = 0;
 	BVHTreeOverlap *overlap = NULL, *to = NULL;
-	BVHOverlapData *data[tree1->tree_type];
+	BVHOverlapData **data;
 	
 	// check for compatibility of both trees (can't compare 14-DOP with 18-DOP)
 	if((tree1->axis != tree2->axis) && ((tree1->axis == 14) || tree2->axis == 14))
@@ -716,6 +718,8 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result)
 	// fast check root nodes for collision before doing big splitting + traversal
 	if(!tree_overlap(tree1->nodes[tree1->totleaf]->bv, tree2->nodes[tree2->totleaf]->bv, MIN2(tree1->start_axis, tree2->start_axis), MIN2(tree1->stop_axis, tree2->stop_axis)))
 		return 0;
+
+	*data = MEM_callocN(sizeof(BVHOverlapData *)* tree1->tree_type, "BVHOverlapData_star");
 	
 	for(j = 0; j < tree1->tree_type; j++)
 	{
@@ -751,6 +755,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result)
 		free(data[j]->overlap);
 		MEM_freeN(data[j]);
 	}
+	MEM_freeN(*data);
 	
 	(*result) = total;
 	return overlap;

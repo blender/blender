@@ -210,11 +210,11 @@ BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float epsilon)
 	mfaces = cloth->mfaces;
 	
 	// in the moment, return zero if no faces there
-	if(!cloth->numfaces)
+	if(!cloth->numverts)
 		return NULL;
 	
 	// create quadtree with k=26
-	bvhtree = BLI_bvhtree_new(cloth->numfaces, epsilon, 4, 6);
+	bvhtree = BLI_bvhtree_new(cloth->numverts, epsilon, 4, 6);
 	
 	// fill tree
 	for(i = 0; i < cloth->numverts; i++, verts++)
