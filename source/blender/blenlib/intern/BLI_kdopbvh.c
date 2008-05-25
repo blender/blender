@@ -719,7 +719,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result)
 	if(!tree_overlap(tree1->nodes[tree1->totleaf]->bv, tree2->nodes[tree2->totleaf]->bv, MIN2(tree1->start_axis, tree2->start_axis), MIN2(tree1->stop_axis, tree2->stop_axis)))
 		return 0;
 
-	*data = MEM_callocN(sizeof(BVHOverlapData *)* tree1->tree_type, "BVHOverlapData_star");
+	data = MEM_callocN(sizeof(BVHOverlapData *)* tree1->tree_type, "BVHOverlapData_star");
 	
 	for(j = 0; j < tree1->tree_type; j++)
 	{
@@ -755,7 +755,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result)
 		free(data[j]->overlap);
 		MEM_freeN(data[j]);
 	}
-	MEM_freeN(*data);
+	MEM_freeN(data);
 	
 	(*result) = total;
 	return overlap;
