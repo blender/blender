@@ -2681,7 +2681,8 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 			uiDefButF(block, NUM,B_LAMPREDRAW,"Soft Size",	100,80,200,19, &la->area_size, 0.01, 100.0, 10, 0, "Area light size, doesn't affect energy amount");
 			
 			uiDefButS(block, NUM,0,"Samples:",	100,60,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp)");
-			uiDefButF(block, NUM,0,"Threshold:",	100,40,200,19,	&la->adapt_thresh, 0.0, 1.0, 100, 0, "Threshold for adaptive sampling, to control what level is considered already in shadow");
+			if (la->ray_samp_method == LA_SAMP_HALTON)
+				uiDefButF(block, NUM,0,"Threshold:",	100,40,200,19,	&la->adapt_thresh, 0.0, 1.0, 100, 0, "Threshold for adaptive sampling, to control what level is considered already in shadow");
 		}
 		else if (la->type == LA_AREA) {
 			uiDefButS(block, MENU, B_REDR, "Adaptive QMC %x1|Constant QMC %x2|Constant Jittered %x0",
