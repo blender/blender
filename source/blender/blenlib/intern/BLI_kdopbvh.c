@@ -112,6 +112,14 @@ typedef struct BVHOverlapData
 	BVHTreeOverlap *overlap; 
 	int i, max_overlap; /* i is number of overlaps */
 } BVHOverlapData;
+
+typedef struct BVHNearestData
+{
+	BVHTree *tree;
+	float	*co;
+	float proj[13];			//coordinates projection over axis
+	BVHTreeNearest nearest;
+} BVHNearestData;
 ////////////////////////////////////////
 
 
@@ -340,12 +348,12 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 			tree->start_axis = 0;
 			tree->stop_axis = 7;
 		}
-		else if(axis == 8) // AABB
+		else if(axis == 8)
 		{
 			tree->start_axis = 0;
 			tree->stop_axis = 4;
 		}
-		else if(axis == 6) // OBB
+		else if(axis == 6) // AABB
 		{
 			tree->start_axis = 0;
 			tree->stop_axis = 3;
@@ -855,5 +863,113 @@ void BLI_bvhtree_update_tree(BVHTree *tree)
 float BLI_bvhtree_getepsilon(BVHTree *tree)
 {
 	return tree->epsilon;
+}
+
+
+//Nearest neighbour
+static float squared_dist(const float *a, const float *b)
+{
+	float tmp[3];
+	VECSUB(tmp, a, b);
+	return INPR(tmp, tmp);
+}
+
+static float calc_nearest_point(BVHNearestData *data, BVHNode *node, float *nearest)
+{
+	int i;
+	const float *bv = node_get_bv(data->tree, node);
+
+	//nearest on AABB hull
+	for(i=0; i != 3; i++, bv += 2)
+	{
+		if(bv[0] > data->proj[i])
+			nearest[i] = bv[0];
+		else if(bv[1] < data->proj[i])
+			nearest[i] = bv[1];
+		else
+			nearest[i] = data->proj[i];
+	}
+
+/*
+	//nearest on a general hull
+	VECCOPY(nearest, data->co);
+	for(i = data->tree->start_axis; i != data->tree->stop_axis; i++, bv+=2)
+	{
+		float proj = INPR( nearest, KDOP_AXES[i]);
+		float dl = bv[0] - proj;
+		float du = bv[1] - proj;
+
+		if(dl > 0)
+		{
+			VECADDFAC(nearest, nearest, KDOP_AXES[i], dl);
+		}
+		else if(du < 0)
+		{
+			VECADDFAC(nearest, nearest, KDOP_AXES[i], du);
+		}
+	}
+*/
+	return squared_dist(data->co, nearest);
+}
+
+
+static void dfs_find_nearest(BVHNearestData *data, BVHNode *node)
+{
+	int i;
+	float nearest[3], sdist;
+
+	sdist = calc_nearest_point(data, node, nearest);
+
+	if(sdist >= data->nearest.dist) return;
+
+	if(node->totnode == 0)
+	{
+		data->nearest.dist	= sdist;
+		data->nearest.index	= node->index;
+	}
+	else
+	{
+		for(i=0; i != node->totnode; i++)
+		{
+			dfs_find_nearest(data, node->children[i]);
+		}
+	}
+}
+
+int BLI_bvhtree_find_nearest(BVHTree *tree, float *co, BVHTreeNearest *nearest)
+{
+	int i;
+
+	BVHNearestData data;
+
+	//init data to search
+	data.tree = tree;
+	data.co = co;
+
+	for(i = data.tree->start_axis; i != data.tree->stop_axis; i++)
+	{
+		data.proj[i] = INPR(data.co, KDOP_AXES[i]);
+	}
+
+	if(nearest)
+	{
+		memcpy( &data.nearest , nearest, sizeof(*nearest) );
+	}
+	else
+	{
+		data.nearest.index = -1;
+		data.nearest.dist = FLT_MAX;
+	}
+
+	//dfs search
+	dfs_find_nearest(&data, tree->nodes[tree->totleaf] );
+
+	//copy back results
+	if(nearest)
+	{
+		memcpy(nearest, &data.nearest, sizeof(*nearest));
+	}
+
+	return data.nearest.index;
 }
 
