@@ -1844,24 +1844,24 @@ void do_material_tex(ShadeInput *shi)
 						}
 					}
 					else {
+						float nor[3], dot;
+
 						if(shi->mat->mode & MA_TANGENT_V) {
 							shi->tang[0]+= Tnor*tex->norfac*texres.nor[0];
 							shi->tang[1]+= Tnor*tex->norfac*texres.nor[1];
 							shi->tang[2]+= Tnor*tex->norfac*texres.nor[2];
 						}
-						else {
-							float nor[3], dot;
-							/* prevent bump to become negative normal */
-							nor[0]= Tnor*tex->norfac*texres.nor[0];
-							nor[1]= Tnor*tex->norfac*texres.nor[1];
-							nor[2]= Tnor*tex->norfac*texres.nor[2];
-							
-							dot= 0.5f + 0.5f*INPR(nor, shi->vn);
-							
-							shi->vn[0]+= dot*nor[0];
-							shi->vn[1]+= dot*nor[1];
-							shi->vn[2]+= dot*nor[2];
-						}
+
+						/* prevent bump to become negative normal */
+						nor[0]= Tnor*tex->norfac*texres.nor[0];
+						nor[1]= Tnor*tex->norfac*texres.nor[1];
+						nor[2]= Tnor*tex->norfac*texres.nor[2];
+						
+						dot= 0.5f + 0.5f*INPR(nor, shi->vn);
+						
+						shi->vn[0]+= dot*nor[0];
+						shi->vn[1]+= dot*nor[1];
+						shi->vn[2]+= dot*nor[2];
 					}					
 					Normalize(shi->vn);
 					
@@ -2524,6 +2524,8 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 	float texvec[3], dx[2], dy[2];
 	ShadeInputUV *suv= &shi->uv[shi->actuv];
 	int a;
+
+	if(R.r.scemode & R_NO_TEX) return;
 
 	if(firsttime) {
 		BLI_lock_thread(LOCK_IMAGE);

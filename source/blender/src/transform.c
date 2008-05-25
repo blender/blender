@@ -245,12 +245,12 @@ float InputVerticalAbsolute(TransInfo *t, short mval[2]) {
 
 float InputDeltaAngle(TransInfo *t, short mval[2])
 {
-	double dx2 = t->center2d[0] - mval[0];
-	double dy2 = t->center2d[1] - mval[1];
+	double dx2 = mval[0] - t->center2d[0];
+	double dy2 = mval[1] - t->center2d[1];
 	double B = sqrt(dx2*dx2+dy2*dy2);
 
-	double dx1 = t->center2d[0] - t->imval[0];
-	double dy1 = t->center2d[1] - t->imval[1];
+	double dx1 = t->imval[0] - t->center2d[0];
+	double dy1 = t->imval[1] - t->center2d[1];
 	double A = sqrt(dx1*dx1+dy1*dy1);
 
 	double dx3 = mval[0] - t->imval[0];
@@ -265,6 +265,28 @@ float InputDeltaAngle(TransInfo *t, short mval[2])
 	
 	dphi = saacos((float)deler);
 	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
+
+	/* If the angle is zero, because of lack of precision close to the 1.0 value in acos
+	 * approximate the angle with the oposite side of the normalized triangle
+	 * This is a good approximation here since the smallest acos value seems to be around
+	 * 0.02 degree and lower values don't even have a 0.01% error compared to the approximation
+	 * */	
+	if (dphi == 0)
+	{
+		double dx, dy;
+		
+		dx2 /= A;
+		dy2 /= A;
+		
+		dx1 /= B;
+		dy1 /= B;
+		
+		dx = dx1 - dx2;
+		dy = dy1 - dy2;
+		
+		dphi = sqrt(dx*dx + dy*dy);
+		if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
+	}
 	
 	if(t->flag & T_SHIFT_MOD) dphi = dphi/30.0f;
 	
@@ -3326,8 +3348,17 @@ void initBevel(TransInfo *t)
 {
 	t->mode = TFM_BEVEL;
 	t->flag |= T_NO_CONSTRAINT;
+	t->num.flag |= NUM_NO_NEGATIVE;
 	t->transform = Bevel;
 	t->handleEvent = handleEventBevel;
+
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
+
+	/* DON'T KNOW WHY THIS IS NEEDED */
 	if (G.editBMesh->imval[0] == 0 && G.editBMesh->imval[1] == 0) {
 		/* save the initial mouse co */
 		G.editBMesh->imval[0] = t->imval[0];
@@ -3383,6 +3414,10 @@ int Bevel(TransInfo *t, short mval[2])
 
 	mode = (G.editBMesh->options & BME_BEVEL_VERT) ? "verts only" : "normal";
 	distance = InputHorizontalAbsolute(t, mval)/4; /* 4 just seemed a nice value to me, nothing special */
+	
+	distance = fabs(distance);
+
+	snapGrid(t, &distance);
 
 	applyNumInput(&t->num, &distance);
 
@@ -3392,7 +3427,7 @@ int Bevel(TransInfo *t, short mval[2])
 
 		outputNumInput(&(t->num), c);
 
-		sprintf(str, "Bevel: %s", c);
+		sprintf(str, "Bevel - Dist: %s, Mode: %s (MMB to toggle))", c, mode);
 	}
 	else {
 		/* default header print */

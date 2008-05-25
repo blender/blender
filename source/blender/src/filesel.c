@@ -1588,8 +1588,7 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 		BLI_strncpy(sfile->dir, butname, sizeof(sfile->dir));
 
 		/* strip the trailing slash if its a real dir */
-		if (strlen(butname)!=1)
-			butname[strlen(butname)-1]=0;
+		BLI_del_slash(butname);
 		
 		if(sfile->type & FILE_UNIX) {
 			if (!BLI_exists(butname)) {
@@ -1633,6 +1632,11 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 			BLI_strncpy(sfile->dir, lib->filename, sizeof(sfile->dir));
 			BLI_make_exist(sfile->dir);
 			BLI_cleanup_dir(G.sce, sfile->dir);
+			
+			/* forced re-reading the blend file */
+			if(sfile->libfiledata) BLO_blendhandle_close(sfile->libfiledata);
+			sfile->libfiledata= 0;
+			
 			freefilelist(sfile);
 			sfile->ofs= 0;
 			scrarea_queue_winredraw(curarea);

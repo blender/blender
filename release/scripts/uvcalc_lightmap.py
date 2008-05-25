@@ -328,6 +328,9 @@ PREF_MARGIN_DIV=		512):
 			if curr_len/4 < side_len/PREF_MARGIN_DIV:
 				break
 		
+		if not lengths:
+			lengths.append(curr_len)
+		
 		# convert into ints
 		lengths_to_ints = {}
 		
@@ -538,7 +541,7 @@ def main():
 			return
 		meshes = [ ob.getData(mesh=1) ]
 	else:
-		meshes = dict([ (me.name, me) for ob in scn.objects.context for me in (ob.getData(mesh=1),) if not me.lib if len(me.faces)])
+		meshes = dict([ (me.name, me) for ob in scn.objects.context if ob.type == 'Mesh' for me in (ob.getData(mesh=1),) if not me.lib if len(me.faces)])
 		meshes = meshes.values()
 		if not meshes:
 			Draw.PupMenu('Error%t|No mesh objects selected.')

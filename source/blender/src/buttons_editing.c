@@ -3333,7 +3333,7 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 
 	if(ob==G.obedit) {
 		nu= lastnu;
-		if(nu==NULL) nu= editNurb.first;
+		if(nu==NULL) nu= lastnu= editNurb.first;
 		if(nu) {
 			if (ob->type==OB_CURVE) {
 				uiDefBut(block, LABEL, 0, "Tilt",
@@ -5104,8 +5104,6 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	
 	uiBlockEndAlign(block);
 	
-	uiDefButBitS(block, TOG, B_MESH_X_MIRROR, B_DIFF, "X-axis mirror",1125,0,150,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "While using transforms, mirrors the transformation");
-	
 	uiDefButC(block, MENU, REDRAWBUTSEDIT, "Edge Alt-Select Mode%t|Loop Select%x0|Tag Edges (Seam)%x1|Tag Edges (Sharp)%x2|Tag Edges (Crease)%x3|Tag Edges (Bevel)%x4",1125,88,150,19, &G.scene->toolsettings->edge_mode, 0, 0, 0, 0, "Operation to use when Alt+RMB on edges, Use Alt+Shift+RMB to tag the shortest path from the active edge");
 	
 	uiBlockBeginAlign(block);
@@ -5555,7 +5553,7 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 		uiDefButC(block,ROW,B_NOP,"Sub",cx+89,cy,89,19,&sculptmode_brush()->dir,15.0,2.0,0, 0,"Subtract depth from model [Shift]");
 	}
 	if(sd->brush_type!=GRAB_BRUSH)
-		uiDefButBitC(block, TOG, SCULPT_BRUSH_AIRBRUSH, 0, "Airbrush", cx+178,cy,89,19, &sculptmode_brush()->flag,0,0,0,0, "Brush makes changes without waiting for the mouse to move");
+		uiDefButBitC(block, TOG, SCULPT_BRUSH_AIRBRUSH, B_NOP, "Airbrush", cx+178,cy,89,19, &sculptmode_brush()->flag,0,0,0,0, "Brush makes changes without waiting for the mouse to move");
 	cy-= 20;
 	uiDefButS(block,NUMSLI,B_NOP,"Size: ",cx,cy,268,19,&sculptmode_brush()->size,1.0,200.0,0,0,"Set brush radius in pixels");
 	cy-= 20;
@@ -5568,9 +5566,9 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	uiDefBut( block,LABEL,B_NOP,"Symmetry",cx,cy,90,19,NULL,0,0,0,0,"");
 	cy-= 20;
 	uiBlockBeginAlign(block);
-	uiDefButBitC(block, TOG, SYMM_X, 0, "X", cx,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across X axis");
-	uiDefButBitC(block, TOG, SYMM_Y, 0, "Y", cx+40,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across Y axis");
-	uiDefButBitC(block, TOG, SYMM_Z, 0, "Z", cx+80,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across Z axis");
+	uiDefButBitC(block, TOG, SYMM_X, B_NOP, "X", cx,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across X axis");
+	uiDefButBitC(block, TOG, SYMM_Y, B_NOP, "Y", cx+40,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across Y axis");
+	uiDefButBitC(block, TOG, SYMM_Z, B_NOP, "Z", cx+80,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across Z axis");
 	uiBlockEndAlign(block);
 
 	
@@ -5579,9 +5577,9 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	uiDefBut( block,LABEL,B_NOP,"LockAxis",cx+140,cy,90,19,NULL,0,0,0,0,"");
 	cy-= 20;
 	uiBlockBeginAlign(block);
-	uiDefButBitC(block, TOG, AXISLOCK_X, 0, "X", cx+140,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain X axis");
-	uiDefButBitC(block, TOG, AXISLOCK_Y, 0, "Y", cx+180,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain Y axis");
-	uiDefButBitC(block, TOG, AXISLOCK_Z, 0, "Z", cx+220,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain Z axis");
+	uiDefButBitC(block, TOG, AXISLOCK_X, B_NOP, "X", cx+140,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain X axis");
+	uiDefButBitC(block, TOG, AXISLOCK_Y, B_NOP, "Y", cx+180,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain Y axis");
+	uiDefButBitC(block, TOG, AXISLOCK_Z, B_NOP, "Z", cx+220,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain Z axis");
 	uiBlockEndAlign(block);
 	
 	
@@ -5618,7 +5616,7 @@ void sculptmode_draw_interface_brush(uiBlock *block, unsigned short cx, unsigned
 	if(sd->brush_type == DRAW_BRUSH)
 		uiDefButC(block,NUM,B_NOP, "View", cx,cy,80,19, &sculptmode_brush()->view, 0,10,20,0,"Pulls brush direction towards view");
 	cy-= 20;
-	uiDefButBitC(block, TOG, SCULPT_BRUSH_ANCHORED, 0, "Anchored", cx,cy,80,19, &sculptmode_brush()->flag, 0,0,0,0, "Keep the brush center anchored to the initial location");
+	uiDefButBitC(block, TOG, SCULPT_BRUSH_ANCHORED, B_NOP, "Anchored", cx,cy,80,19, &sculptmode_brush()->flag, 0,0,0,0, "Keep the brush center anchored to the initial location");
 	uiBlockEndAlign(block);
 
 	/* Draw curve */

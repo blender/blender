@@ -129,6 +129,12 @@ public :
 	~KX_VertexParentRelation(
 	);
 
+		bool
+	IsVertexRelation(
+	) { 
+		return true;
+	}
+
 private :
 
 	KX_VertexParentRelation(

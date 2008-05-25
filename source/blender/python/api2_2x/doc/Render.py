@@ -399,6 +399,16 @@ class RenderData:
   @type bakeDist: float
   @ivar bakeBias: The distance in blender units to bias faces further away from the object.
   @type bakeBias: float
+  @ivar halfFloat: When enabled use 16bit floats rather then 32bit for OpenEXR files.
+  @type halfFloat: bool
+  @ivar zbuf: When enabled, save the zbuffer with an OpenEXR file
+  @type zbuf: bool
+  @ivar preview: When enabled, save a preview jpeg with an OpenEXR file
+  @type preview: bool
+  @ivar touch: Create an empty file before rendering it.
+  @type touch: bool
+  @ivar noOverwrite: Skip rendering frames when the file exists.
+  @type noOverwrite: bool
   """
   
   def currentFrame(frame = None):

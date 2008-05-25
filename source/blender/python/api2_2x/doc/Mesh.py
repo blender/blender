@@ -667,6 +667,8 @@ class MFaceSeq:
 		True, the method will return a list representing the new index for each
 		face in the input list.  If faces are removed as duplicates, None is
 		inserted in place of the index.
+		@type smooth: boolean
+		@param smooth: keyword parameter (default is False).  If supplied new faces will have smooth enabled.
 		@warning: Faces using the first vertex at the 3rd or 4th location in the
 		face's vertex list will have their order rotated so that the zero index
 		on in the first or second location in the face. When creating face data

@@ -783,7 +783,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 			else
 				resolu= nu->resolu;
 			
-			if(nu->pntsu<2);
+			if(nu->pntsu<2 || ((nu->type & 7)==CU_NURBS && nu->pntsu < nu->orderu));
 			else if((nu->type & 7)==CU_BEZIER) {
 				
 				/* count */
@@ -1171,7 +1171,7 @@ static ModifierData *curve_get_tesselate_point(Object *ob, int forRender, int ed
 		if ((md->mode & required_mode) != required_mode) continue;
 		if (mti->isDisabled && mti->isDisabled(md)) continue;
 
-		if (md->type==eModifierType_Hook || md->type==eModifierType_Softbody) {
+		if (ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
 			preTesselatePoint  = md;
 		}
 	}

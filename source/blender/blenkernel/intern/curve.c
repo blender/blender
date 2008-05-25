@@ -583,7 +583,7 @@ static void basisNurb(float t, short order, short pnts, float *knots, float *bas
 
 	/* this is for float inaccuracy */
 	if(t < knots[0]) t= knots[0];
-	else if(t > knots[opp2]) t= knots[opp2]; /* Valgrind reports an error here, use a nurbs torus and change u/v res to reproduce a crash TODO*/
+	else if(t > knots[opp2]) t= knots[opp2];
 
 	/* this part is order '1' */
         o2 = order + 1;
@@ -1476,7 +1476,9 @@ void makeBevelList(Object *ob)
 	else nu= cu->nurb.first;
 	
 	while(nu) {
-		if(nu->pntsu<=1) {
+		/* check we are a single point? also check we are not a surface and that the orderu is sane,
+		 * enforced in the UI but can go wrong possibly */
+		if(nu->pntsu<2 || ((nu->type & 7)==CU_NURBS && nu->pntsu < nu->orderu)) {
 			bl= MEM_callocN(sizeof(BevList)+1*sizeof(BevPoint), "makeBevelList");
 			BLI_addtail(&(cu->bev), bl);
 			bl->nr= 0;

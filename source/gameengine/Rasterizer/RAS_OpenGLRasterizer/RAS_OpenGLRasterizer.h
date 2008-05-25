@@ -246,6 +246,7 @@ public:
 							float top,
 							float frustnear,
 							float frustfar,
+							float focallength,
 							bool perspective
 						);
 

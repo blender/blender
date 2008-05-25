@@ -1101,12 +1101,12 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\t\tProperty: "ShadingModel", "KString", "", "%s"' % mat_shader)
 		file.write('\n\t\t\tProperty: "MultiLayer", "bool", "",0')
 		file.write('\n\t\t\tProperty: "EmissiveColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_cold) # emit and diffuse color are he same in blender
-		file.write('\n\t\t\tProperty: "EmissiveFactor", "double", "",%.4f' % mat_dif)
+		file.write('\n\t\t\tProperty: "EmissiveFactor", "double", "",%.4f' % mat_emit)
 		
 		file.write('\n\t\t\tProperty: "AmbientColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_colamb)
 		file.write('\n\t\t\tProperty: "AmbientFactor", "double", "",%.4f' % mat_amb)
 		file.write('\n\t\t\tProperty: "DiffuseColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_cold)
-		file.write('\n\t\t\tProperty: "DiffuseFactor", "double", "",%.4f' % mat_emit)
+		file.write('\n\t\t\tProperty: "DiffuseFactor", "double", "",%.4f' % mat_dif)
 		file.write('\n\t\t\tProperty: "Bump", "Vector3D", "",0,0,0')
 		file.write('\n\t\t\tProperty: "TransparentColor", "ColorRGB", "",1,1,1')
 		file.write('\n\t\t\tProperty: "TransparencyFactor", "double", "",%.4f' % (1.0 - mat_alpha))

@@ -2346,7 +2346,7 @@ static int get_next_bake_face(BakeShade *bs)
 			vlr= RE_findOrAddVlak(obr, v);
 
 			if((bs->actob && bs->actob == obr->ob) || (!bs->actob && (obr->ob->flag & SELECT))) {
-				tface= RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0);
+				tface= RE_vlakren_get_tface(obr, vlr, obr->bakemtface, NULL, 0);
 
 				if(tface && tface->tpage) {
 					Image *ima= tface->tpage;
@@ -2400,7 +2400,7 @@ static void shade_tface(BakeShade *bs)
 	VlakRen *vlr= bs->vlr;
 	ObjectInstanceRen *obi= bs->obi;
 	ObjectRen *obr= obi->obr;
-	MTFace *tface= RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0);
+	MTFace *tface= RE_vlakren_get_tface(obr, vlr, obr->bakemtface, NULL, 0);
 	Image *ima= tface->tpage;
 	float vec[4][2];
 	int a, i1, i2, i3;

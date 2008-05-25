@@ -7386,6 +7386,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				
 				/* needed for proper libdata lookup */
 				oldnewmap_insert(fd->libmap, psys->part, psys->part, 0);
+				part->id.lib= ob->id.lib;
 
 				part->id.us--;
 				part->id.flag |= (ob->id.flag & LIB_NEEDLINK);

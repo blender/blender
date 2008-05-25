@@ -3140,6 +3140,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	ListBase fakecons = {NULL, NULL};
 	float obmtx[3][3];
 	short constinv;
+	short skip_invert = 0;
 
 	/* axismtx has the real orientation */
 	Mat3CpyMat4(td->axismtx, ob->obmat);
@@ -3152,8 +3153,13 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	 * 		inverse correction to stop it from screwing up space conversion
 	 *		matrix later
 	 */
-	constinv= constraints_list_needinv(t, &ob->constraints);
-	if (ob->track || constinv==0) {
+	constinv = constraints_list_needinv(t, &ob->constraints);
+	
+	/* disable constraints inversion for dummy pass */
+	if (t->mode == TFM_DUMMY)
+		skip_invert = 1;
+		
+	if (skip_invert == 0 && (ob->track || constinv==0)) {
 		track= ob->track;
 		ob->track= NULL;
 		

@@ -198,7 +198,7 @@ static int image_detect_file_sequence(int *start_p, int *frames_p, char *str)
 	unsigned short numlen;
 
 	sfile= scrarea_find_space_of_type(curarea, SPACE_FILE);
-	if(sfile==0)
+	if(sfile==NULL || sfile->filelist==NULL)
 		return 0;
 
 	/* find first frame */

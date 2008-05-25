@@ -90,6 +90,15 @@ public :
 	NewCopy(
 	) = 0;
 
+	/**
+	 * Vertex Parent Relation are special: they don't propagate rotation
+	 */
+	virtual
+		bool
+	IsVertexRelation(
+	) { 
+		return false;
+	}
 protected :
 
 	/** 
