@@ -3071,7 +3071,6 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 
 void do_curvebuts(unsigned short event)
 {
-	extern Nurb *lastnu;
 	extern ListBase editNurb;  /* from editcurve */
 	Object *ob;
 	Curve *cu;
@@ -3105,13 +3104,15 @@ void do_curvebuts(unsigned short event)
 				if(isNurbsel(nu)) {
 					if((nu->type & 7)==CU_NURBS) {
 						if(event<B_UNIFV) {
-							nu->flagu &= 1;
-							nu->flagu += ((event-B_UNIFU)<<1);
+							nu->flagu &= CU_CYCLIC; /* disable all flags except for CU_CYCLIC */
+							nu->flagu |= ((event-B_UNIFU)<<1);
+							clamp_nurb_order_u(nu);
 							makeknots(nu, 1, nu->flagu>>1);
 						}
 						else if(nu->pntsv>1) {
-							nu->flagv &= 1;
-							nu->flagv += ((event-B_UNIFV)<<1);
+							nu->flagv &= CU_CYCLIC; /* disable all flags except for CU_CYCLIC */
+							nu->flagv |= ((event-B_UNIFV)<<1);
+							clamp_nurb_order_v(nu);
 							makeknots(nu, 2, nu->flagv>>1);
 						}
 					}
@@ -3147,15 +3148,13 @@ void do_curvebuts(unsigned short event)
 		break;
 	case B_SETORDER:
 		if(G.obedit) {
-			nu= lastnu;
+			nu= get_actNurb();
 			if(nu && (nu->type & 7)==CU_NURBS ) {
-				if(nu->orderu>nu->pntsu) {
-					nu->orderu= nu->pntsu;
+				if(clamp_nurb_order_u(nu)) {
 					scrarea_queue_winredraw(curarea);
 				}
 				makeknots(nu, 1, nu->flagu>>1);
-				if(nu->orderv>nu->pntsv) {
-					nu->orderv= nu->pntsv;
+				if(clamp_nurb_order_v(nu)) {
 					scrarea_queue_winredraw(curarea);
 				}
 				makeknots(nu, 2, nu->flagv>>1);
@@ -3273,7 +3272,6 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 {
 	Nurb *nu;
 	extern ListBase editNurb;  /* from editcurve */
-	extern Nurb *lastnu;
 	uiBlock *block;
 	short *sp;
 
@@ -3309,8 +3307,11 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 	uiBlockEndAlign(block);
 
 	if(ob==G.obedit) {
-		nu= lastnu;
-		if(nu==NULL) nu= lastnu= editNurb.first;
+		nu= get_actNurb();
+		if(nu==NULL && editNurb.first) {
+			nu= editNurb.first;
+			set_actNurb(nu);
+		}
 		if(nu) {
 			if (ob->type==OB_CURVE) {
 				uiDefBut(block, LABEL, 0, "Tilt",

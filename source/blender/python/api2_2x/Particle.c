@@ -828,7 +828,7 @@ static PyObject *Part_GetLoc( BPy_PartSys * self, PyObject * args ){
 		/* little hack to calculate hair steps in render mode */
 		psys->renderdata = (void*)(int)1;
 
-		psys_cache_paths(ob, psys, cfra, 0);
+		psys_cache_paths(ob, psys, cfra, 1);
 
 		psys->renderdata = NULL;
 
