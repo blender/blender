@@ -42,8 +42,9 @@ typedef struct BVHTreeOverlap {
 
 typedef struct BVHTreeNearest
 {
-	int index;		/* the index of the nearest found (untouched if none is found within a dist radius from the given coordinates) */
-	float dist;		/* squared distance to search arround */
+	int index;			/* the index of the nearest found (untouched if none is found within a dist radius from the given coordinates) */
+	float nearest[3];	/* nearest coordinates (untouched it none is found within a dist radius from the given coordinates) */
+	float dist;			/* squared distance to search arround */
 } BVHTreeNearest;
 
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis);

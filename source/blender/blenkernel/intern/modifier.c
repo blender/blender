@@ -7049,7 +7049,7 @@ static void shrinkwrapModifier_updateDepgraph(ModifierData *md, DagForest *fores
 	if (smd->target) {
 		DagNode *curNode = dag_get_node(forest, smd->target);
 
-		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA,
+		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA | DAG_RL_DATA_DATA,
 			"Shrinkwrap Modifier");
 	}
 }

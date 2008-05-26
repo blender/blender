@@ -31,8 +31,6 @@
 #include <math.h>
 #include <stdio.h>
 #include <time.h>
-#include <assert.h>
-//TODO: its late and I don't fill like adding ifs() printfs (I'll remove them on end)
 
 #include "DNA_object_types.h"
 #include "DNA_modifier_types.h"
@@ -109,11 +107,72 @@ static float vertexgroup_get_weight(MDeformVert *dvert, int index, int vgroup)
 }
 
 /*
+ * BVH tree from mesh vertices
+ */
+static BVHTree* bvhtree_from_mesh_verts(DerivedMesh *mesh)
+{
+	int i;
+	int numVerts= mesh->getNumVerts(mesh);
+	MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
+
+	BVHTree *tree = BLI_bvhtree_new(numVerts, 0, 2, 6);
+	if(tree != NULL)
+	{
+		for(i = 0; i < numVerts; i++)
+			BLI_bvhtree_insert(tree, i, vert[i].co, 1);
+
+		BLI_bvhtree_balance(tree);
+	}
+
+	return tree;
+}
+
+static BVHTree* bvhtree_from_mesh_tri(DerivedMesh *mesh)
+{
+	int i;
+	int numFaces= mesh->getNumFaces(mesh), totFaces;
+	MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
+	MFace *face = mesh->getFaceDataArray(mesh, CD_MFACE);
+	BVHTree *tree= NULL;
+
+	/* Count needed faces */
+	for(totFaces=numFaces, i=0; i<numFaces; i++)
+		if(face[i].v4) totFaces++;
+
+	/* Create a bvh-tree of the given target */
+	tree = BLI_bvhtree_new(totFaces, 0, 2, 6);
+	if(tree != NULL)
+	{
+		for(i = 0; i < numFaces; i++)
+		{
+			float co[4][3];
+
+			VECCOPY(co[0], vert[ face[i].v1 ].co);
+			VECCOPY(co[1], vert[ face[i].v2 ].co);
+			VECCOPY(co[2], vert[ face[i].v3 ].co);
+			if(face[i].v4)
+				VECCOPY(co[3], vert[ face[i].v4 ].co);
+
+
+			BLI_bvhtree_insert(tree, 2*i, co[0], 3);
+			if(face[i].v4)
+				BLI_bvhtree_insert(tree, 2*i+1, co[1], 3);
+		}
+
+		BLI_bvhtree_balance(tree);
+	}
+
+	return tree;
+}
+
+
+
+/*
  * Raytree from mesh
  */
 static MVert *raytree_from_mesh_verts = NULL;
 static MFace *raytree_from_mesh_faces = NULL;
-//static float raytree_from_mesh_start[3] = { 0.0f, 0.0f, 0.0f }; 
+
 static int raytree_check_always(Isect *is, int ob, RayFace *face)
 {
 	return TRUE;
@@ -125,17 +184,16 @@ static void raytree_from_mesh_get_coords(RayFace *face, float **v1, float **v2, 
 
 	if(face == (RayFace*)(-1))
 	{
-		*v1 = NULL; //raytree_from_mesh_start;
-		*v2 = NULL; //raytree_from_mesh_start;
-		*v3 = NULL; //raytree_from_mesh_start;
+		*v1 = NULL;
+		*v2 = NULL;
+		*v3 = NULL;
 		*v4 = NULL;
 		return;
 	}
 
 	//Nasty quad splitting
-	if(((int)face) & 1)	//we want the 2 triangle of the quad
+	if(((int)face) & 1)	// we want the 2 triangle of the quad
 	{
-		assert(mface->v4);
 		*v1= raytree_from_mesh_verts[mface->v1].co;
 		*v2= raytree_from_mesh_verts[mface->v4].co;
 		*v3= raytree_from_mesh_verts[mface->v3].co;
@@ -189,8 +247,8 @@ static RayTree* raytree_create_from_mesh(DerivedMesh *mesh)
 	{
 		RE_ray_tree_add_face(tree, 0, (RayFace*)(i*2) );
 
-		//Theres some nasty thing with non-coplanar quads (that I can't find the issue)
-		//so we split quads (an odd numbered face represents the second triangle of the quad)
+		 //Theres some nasty thing with non-coplanar quads (that I can't find the issue)
+		 //so we split quads (an odd numbered face represents the second triangle of the quad)
 		if(face[i-1].v4)
 			RE_ray_tree_add_face(tree, 0, (RayFace*)(i*2+1));
 	}
@@ -213,10 +271,10 @@ static void free_raytree_from_mesh(RayTree *tree)
  */
 static float raytree_cast_ray(RayTree *tree, const float *coord, const float *direction)
 {
-	Isect isec = {};
+	Isect isec;
 
-	//Setup intersection
-	isec.mode		= RE_RAY_MIRROR; //We want closest intersection
+	/* Setup intersection */
+	isec.mode		= RE_RAY_MIRROR; /* We want closest intersection */
 	isec.lay		= -1;
 	isec.face_last	= NULL;
 	isec.faceorig	= (RayFace*)(-1);
@@ -304,7 +362,7 @@ static float choose_nearest(const float v0[2], const float v1[2], const float po
  * returns that tri must be right-handed
  * Returns square distance
  */
-static float closest_point_in_tri2D(const float point[2], const float tri[3][2], float closest[2])
+static float closest_point_in_tri2D(const float point[2], /*const*/ float tri[3][2], float closest[2])
 {
 	float edge_di[2];
 	float v_point[2];
@@ -540,9 +598,7 @@ static void bruteforce_shrinkwrap_calc_nearest_vertex(DerivedMesh *target, float
 
 	for (i = 0; i < numVerts; i++)
 	{
-		float diff[3], sdist;
-		VECSUB(diff, orig_co, vert[i].co);
-		sdist = INPR(diff, diff);
+		float sdist = squared_dist( orig_co, vert[i].co);
 		
 		if(sdist < minDist)
 		{
@@ -707,8 +763,8 @@ static void shrinkwrap_removeUnused(ShrinkwrapCalcData *calc)
 DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
 {
 
-	ShrinkwrapCalcData calc = {};
-
+	ShrinkwrapCalcData calc;
+	memset(&calc, 0, sizeof(calc));
 
 	//Init Shrinkwrap calc data
 	calc.smd = smd;
@@ -752,6 +808,7 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 		switch(smd->shrinkType)
 		{
 			case MOD_SHRINKWRAP_NEAREST_SURFACE:
+//				BENCH(shrinkwrap_calc_nearest_surface_point(&calc));
 				BENCH(shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_nearest_surface_point));
 			break;
 
@@ -791,61 +848,25 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 {
 	int i;
 	int vgroup		= get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
-
-/*
-	KDTree* target = NULL;
-	KDTreeNearest knearest;
-*/
 	float tmp_co[3];
 
 	BVHTree *tree	= NULL;
-	BVHTreeNearest nearest;
+	BVHTreeNearest nearest = {};
 
-	BENCH_VAR(build);
 	BENCH_VAR(query);
 
 	int	numVerts;
-	MVert *vert = NULL, *tvert = NULL;
+	MVert *vert = NULL;
 	MDeformVert *dvert = NULL;
 
-	numVerts= calc->target->getNumVerts(calc->target);
-	vert = tvert	= calc->target->getVertDataArray(calc->target, CD_MVERT);	
 
 
-	BENCH_RESET(build);
-	BENCH_BEGIN(build);
-
-	//Create a bvh-tree of the given target
-	tree = BLI_bvhtree_new(numVerts, 0, 2, 6);
+	BENCH(tree = bvhtree_from_mesh_verts(calc->target));
 	if(tree == NULL) return OUT_OF_MEMORY();
-
-	for(i = 0; i < numVerts; i++)
-		BLI_bvhtree_insert(tree, i, vert[i].co, 1);
-
-	BLI_bvhtree_balance(tree);
 
 	nearest.index = -1;
 	nearest.dist = FLT_MAX;
-	BENCH_END(build);
-	BENCH_REPORT(build);
 
-
-/*
-	//Generate kd-tree with target vertexs
-	BENCH_RESET(build);
-	BENCH_BEGIN(build);
-
-	target = BLI_kdtree_new(numVerts);
-	if(target == NULL) return OUT_OF_MEMORY();
-
-	for(i = 0; i < numVerts; i++)
-		BLI_kdtree_insert(target, 0, vert[i].co, NULL);
-
-	BLI_kdtree_balance(target);
-
-	BENCH_END(build);
-	BENCH_REPORT(build);
-*/
 
 	//Find the nearest vertex 
 	numVerts= calc->final->getNumVerts(calc->final);
@@ -863,47 +884,25 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 
 		if(nearest.index != -1)
 		{
-			nearest.dist = squared_dist(tmp_co, tvert[nearest.index].co);
+			nearest.dist = squared_dist(tmp_co, nearest.nearest);
 		}
 		else nearest.dist = FLT_MAX;
 
 		index = BLI_bvhtree_find_nearest(tree, tmp_co, &nearest);
 
-/*
-		t = BLI_kdtree_find_nearest(target, tmp_co, 0, &knearest);
-
-
-		if(VecLenf(knearest.co, tvert[index].co) > 1e-5)
-		{
-			printf("Nearest failed: {%f,%f,%f} - ", knearest.co[0], knearest.co[1], knearest.co[2]);
-			printf("{%f,%f,%f}\n", tvert[index].co[0], tvert[index].co[1], tvert[index].co[2]);
-		}
-*/
 		if(index != -1)
 		{
 			float dist;
 
-			VecMat4MulVecfl(tmp_co, calc->target2local, tvert[index].co);
+			VecMat4MulVecfl(tmp_co, calc->target2local, nearest.nearest);
 			dist = VecLenf(vert[i].co, tmp_co);
 			if(dist > 1e-5) weight *= (dist - calc->keptDist)/dist;
 			VecLerpf(vert[i].co, vert[i].co, tmp_co, weight);	//linear interpolation
 		}
-
-/*		if(t != -1)
-		{
-			float dist;
-
-			VecMat4MulVecfl(knearest.co, calc->target2local, knearest.co);
-			dist = VecLenf(vert[i].co, knearest.co);
-			if(dist > 1e-5) weight *= (dist - calc->keptDist)/dist;
-			VecLerpf(vert[i].co, vert[i].co, knearest.co, weight);	//linear interpolation
-		}
-*/
 	}
 	BENCH_END(query);
 	BENCH_REPORT(query);
 
-//	BLI_kdtree_free(target);
 	BLI_bvhtree_free(tree);
 }
 
@@ -1000,4 +999,66 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	free_raytree_from_mesh(target);
 }
 
+/*
+ * Shrinkwrap moving vertexs to the nearest surface point on the target
+ *
+ * it builds a BVHTree from the target mesh and then performs a
+ * NN matchs for each vertex
+ */
+void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
+{
+	int i;
+	int vgroup		= get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
+	float tmp_co[3];
+
+	BVHTree *tree	= NULL;
+	BVHTreeNearest nearest = {};
+
+	int	numVerts;
+	MVert *vert = NULL;
+	MDeformVert *dvert = NULL;
+
+
+	//Create a bvh-tree of the given target
+	tree = bvhtree_from_mesh_tri(calc->target);
+	if(tree == NULL) return OUT_OF_MEMORY();
+
+	nearest.index = -1;
+	nearest.dist = FLT_MAX;
+
+
+	//Find the nearest vertex 
+	numVerts= calc->final->getNumVerts(calc->final);
+	vert	= calc->final->getVertDataArray(calc->final, CD_MVERT);	
+	dvert	= calc->final->getVertDataArray(calc->final, CD_MDEFORMVERT);
+
+	for(i=0; i<numVerts; i++)
+	{
+		int index;
+		float weight = vertexgroup_get_weight(dvert, i, vgroup);
+		if(weight == 0.0f) continue;
+
+		VecMat4MulVecfl(tmp_co, calc->local2target, vert[i].co);
+
+		if(nearest.index != -1)
+		{
+			nearest.dist = squared_dist(tmp_co, nearest.nearest);
+		}
+		else nearest.dist = FLT_MAX;
+
+		index = BLI_bvhtree_find_nearest(tree, tmp_co, &nearest);
+
+		if(index != -1)
+		{
+			float dist;
+
+			VecMat4MulVecfl(tmp_co, calc->target2local, nearest.nearest);
+			dist = VecLenf(vert[i].co, tmp_co);
+			if(dist > 1e-5) weight *= (dist - calc->keptDist)/dist;
+			VecLerpf(vert[i].co, vert[i].co, tmp_co, weight);	//linear interpolation
+		}
+	}
+
+	BLI_bvhtree_free(tree);
+}
 

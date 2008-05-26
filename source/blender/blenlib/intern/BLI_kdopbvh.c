@@ -7,7 +7,7 @@
 * modify it under the terms of the GNU General Public License
 * as published by the Free Software Foundation; either version 2
 * of the License, or (at your option) any later version. The Blender
-* Foundation also sells licenses for use in proprietary software under
+* Foundation also sells licenses for usinle in proprietary software under
 * the Blender License.  See http://www.blender.org/BL/ for information
 * about this.
 *
@@ -475,7 +475,7 @@ static void refit_kdop_hull(BVHTree *tree, BVHNode *node, int start, int end)
 	}
 }
 
-static inline void inflate_kdop_hull(BVHTree *tree, BVHNode *node)
+static void inflate_kdop_hull(BVHTree *tree, BVHNode *node)
 {
 	int i;
 	float *bv = node_get_bv(tree, node);
@@ -924,8 +924,9 @@ static void dfs_find_nearest(BVHNearestData *data, BVHNode *node)
 
 	if(node->totnode == 0)
 	{
-		data->nearest.dist	= sdist;
 		data->nearest.index	= node->index;
+		VECCOPY(data->nearest.nearest, nearest);
+		data->nearest.dist	= sdist;
 	}
 	else
 	{
