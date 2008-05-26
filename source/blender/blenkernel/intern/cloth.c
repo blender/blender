@@ -499,15 +499,15 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 		Mat4MulVecfl(ob->obmat, verts->xconst);
 	}
 	
-	tstart();
+	// tstart();
 
 	/* call the solver. */
 	if(solvers [clmd->sim_parms->solver_type].solver)
-		ret = solvers[clmd->sim_parms->solver_type].solver(ob, framenr, clmd, effectors);
+		BENCH(ret = solvers[clmd->sim_parms->solver_type].solver(ob, framenr, clmd, effectors));
 
-	tend();
+	// tend();
 
-	printf ( "Cloth simulation time: %f\n", ( float ) tval() ); 
+	// printf ( "Cloth simulation time: %f\n", ( float ) tval() ); 
 	
 	return ret;
 }
@@ -969,7 +969,6 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	// has to be happen before springs are build!
 	cloth_apply_vgroup (clmd, dm);
 
-	
 	if ( !cloth_build_springs ( clmd, dm ) )
 	{
 		cloth_free_modifier ( ob, clmd );
@@ -994,7 +993,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	if(!first)
 		implicit_set_positions(clmd);
 
-	BENCH(clmd->clothObject->bvhtree = bvhtree_build_from_cloth ( clmd, clmd->coll_parms->epsilon ));
+	clmd->clothObject->bvhtree = bvhtree_build_from_cloth ( clmd, clmd->coll_parms->epsilon );
 	
 	for(i = 0; i < dm->getNumVerts(dm); i++)
 	{

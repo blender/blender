@@ -178,16 +178,16 @@ Collision modifier code end
 ***********************************/
 
 /**
- * gsl_poly_solve_cubic -
- *
- * copied from SOLVE_CUBIC.C --> GSL
- */
+* gsl_poly_solve_cubic -
+*
+* copied from SOLVE_CUBIC.C --> GSL
+*/
 
 #define mySWAP(a,b) do { double tmp = b ; b = a ; a = tmp ; } while(0)
 
 int 
-		gsl_poly_solve_cubic (double a, double b, double c, 
-							  double *x0, double *x1, double *x2)
+gsl_poly_solve_cubic (double a, double b, double c, 
+					  double *x0, double *x1, double *x2)
 {
 	double q = (a * a - 3 * b);
 	double r = (2 * a * a * a - 9 * a * b + 27 * c);
@@ -210,10 +210,10 @@ int
 	}
 	else if (CR2 == CQ3) 
 	{
-      /* this test is actually R2 == Q3, written in a form suitable
+		/* this test is actually R2 == Q3, written in a form suitable
 		for exact computation with integers */
 
-      /* Due to finite precision some double roots may be missed, and
+		/* Due to finite precision some double roots may be missed, and
 		considered to be a pair of complex roots z = x +/- epsilon i
 		close to the real axis. */
 
@@ -242,20 +242,20 @@ int
 		*x0 = norm * cos (theta / 3) - a / 3;
 		*x1 = norm * cos ((theta + 2.0 * M_PI) / 3) - a / 3;
 		*x2 = norm * cos ((theta - 2.0 * M_PI) / 3) - a / 3;
-      
+
 		/* Sort *x0, *x1, *x2 into increasing order */
 
 		if (*x0 > *x1)
 			mySWAP(*x0, *x1) ;
-      
+
 		if (*x1 > *x2)
 		{
 			mySWAP(*x1, *x2) ;
-          
+
 			if (*x0 > *x1)
 				mySWAP(*x0, *x1) ;
 		}
-      
+
 		return 3;
 	}
 	else
@@ -271,13 +271,13 @@ int
 
 
 /**
- * gsl_poly_solve_quadratic
- *
- * copied from GSL
- */
+* gsl_poly_solve_quadratic
+*
+* copied from GSL
+*/
 int 
-		gsl_poly_solve_quadratic (double a, double b, double c, 
-								  double *x0, double *x1)
+gsl_poly_solve_quadratic (double a, double b, double c, 
+						  double *x0, double *x1)
 {
 	double disc = b * b - 4 * a * c;
 
@@ -338,55 +338,55 @@ int
 
 
 /*
- * See Bridson et al. "Robust Treatment of Collision, Contact and Friction for Cloth Animation"
- *     page 4, left column
- */
+* See Bridson et al. "Robust Treatment of Collision, Contact and Friction for Cloth Animation"
+*     page 4, left column
+*/
 int cloth_get_collision_time ( double a[3], double b[3], double c[3], double d[3], double e[3], double f[3], double solution[3] )
 {
 	int num_sols = 0;
 
 	// x^0 - checked 
 	double g = 	a[0] * c[1] * e[2] - a[0] * c[2] * e[1] +
-				a[1] * c[2] * e[0] - a[1] * c[0] * e[2] + 
-				a[2] * c[0] * e[1] - a[2] * c[1] * e[0];
-	
+		a[1] * c[2] * e[0] - a[1] * c[0] * e[2] + 
+		a[2] * c[0] * e[1] - a[2] * c[1] * e[0];
+
 	// x^1
 	double h = -b[2] * c[1] * e[0] + b[1] * c[2] * e[0] - a[2] * d[1] * e[0] +
-			a[1] * d[2] * e[0] + b[2] * c[0] * e[1] - b[0] * c[2] * e[1] +
-			a[2] * d[0] * e[1] - a[0] * d[2] * e[1] - b[1] * c[0] * e[2] +
-			b[0] * c[1] * e[2] - a[1] * d[0] * e[2] + a[0] * d[1] * e[2] -
-			a[2] * c[1] * f[0] + a[1] * c[2] * f[0] + a[2] * c[0] * f[1] -
-			a[0] * c[2] * f[1] - a[1] * c[0] * f[2] + a[0] * c[1] * f[2];
+		a[1] * d[2] * e[0] + b[2] * c[0] * e[1] - b[0] * c[2] * e[1] +
+		a[2] * d[0] * e[1] - a[0] * d[2] * e[1] - b[1] * c[0] * e[2] +
+		b[0] * c[1] * e[2] - a[1] * d[0] * e[2] + a[0] * d[1] * e[2] -
+		a[2] * c[1] * f[0] + a[1] * c[2] * f[0] + a[2] * c[0] * f[1] -
+		a[0] * c[2] * f[1] - a[1] * c[0] * f[2] + a[0] * c[1] * f[2];
 
 	// x^2
 	double i = -b[2] * d[1] * e[0] + b[1] * d[2] * e[0] +
-			b[2] * d[0] * e[1] - b[0] * d[2] * e[1] -
-			b[1] * d[0] * e[2] + b[0] * d[1] * e[2] -
-			b[2] * c[1] * f[0] + b[1] * c[2] * f[0] -
-			a[2] * d[1] * f[0] + a[1] * d[2] * f[0] +
-			b[2] * c[0] * f[1] - b[0] * c[2] * f[1] + 
-			a[2] * d[0] * f[1] - a[0] * d[2] * f[1] -
-			b[1] * c[0] * f[2] + b[0] * c[1] * f[2] -
-			a[1] * d[0] * f[2] + a[0] * d[1] * f[2];
-	
+		b[2] * d[0] * e[1] - b[0] * d[2] * e[1] -
+		b[1] * d[0] * e[2] + b[0] * d[1] * e[2] -
+		b[2] * c[1] * f[0] + b[1] * c[2] * f[0] -
+		a[2] * d[1] * f[0] + a[1] * d[2] * f[0] +
+		b[2] * c[0] * f[1] - b[0] * c[2] * f[1] + 
+		a[2] * d[0] * f[1] - a[0] * d[2] * f[1] -
+		b[1] * c[0] * f[2] + b[0] * c[1] * f[2] -
+		a[1] * d[0] * f[2] + a[0] * d[1] * f[2];
+
 	// x^3 - checked
 	double j = -b[2] * d[1] * f[0] + b[1] * d[2] * f[0] +
-			b[2] * d[0] * f[1] - b[0] * d[2] * f[1] -
-			b[1] * d[0] * f[2] + b[0] * d[1] * f[2];
-	
+		b[2] * d[0] * f[1] - b[0] * d[2] * f[1] -
+		b[1] * d[0] * f[2] + b[0] * d[1] * f[2];
+
 	/*
 	printf("r1: %lf\n", a[0] * c[1] * e[2] - a[0] * c[2] * e[1]);
 	printf("r2: %lf\n", a[1] * c[2] * e[0] - a[1] * c[0] * e[2]);
 	printf("r3: %lf\n", a[2] * c[0] * e[1] - a[2] * c[1] * e[0]);
-	
+
 	printf("x1 x: %f, y: %f, z: %f\n", a[0], a[1], a[2]);
 	printf("x2 x: %f, y: %f, z: %f\n", c[0], c[1], c[2]);
 	printf("x3 x: %f, y: %f, z: %f\n", e[0], e[1], e[2]);
-	
+
 	printf("v1 x: %f, y: %f, z: %f\n", b[0], b[1], b[2]);
 	printf("v2 x: %f, y: %f, z: %f\n", d[0], d[1], d[2]);
 	printf("v3 x: %f, y: %f, z: %f\n", f[0], f[1], f[2]);
-	
+
 	printf("t^3: %lf, t^2: %lf, t^1: %lf, t^0: %lf\n", j, i, h, g);
 	*/
 
@@ -517,17 +517,17 @@ int cloth_collision_response_static ( ClothModifierData *clmd, CollisionModifier
 
 		// compute barycentric coordinates for both collision points
 		collision_compute_barycentric ( collpair->pa,
-		                                cloth1->verts[collpair->ap1].txold,
-		                                cloth1->verts[collpair->ap2].txold,
-		                                cloth1->verts[collpair->ap3].txold,
-		                                &w1, &w2, &w3 );
+			cloth1->verts[collpair->ap1].txold,
+			cloth1->verts[collpair->ap2].txold,
+			cloth1->verts[collpair->ap3].txold,
+			&w1, &w2, &w3 );
 
 		// was: txold
 		collision_compute_barycentric ( collpair->pb,
-		                                collmd->current_x[collpair->bp1].co,
-		                                collmd->current_x[collpair->bp2].co,
-		                                collmd->current_x[collpair->bp3].co,
-		                                &u1, &u2, &u3 );
+			collmd->current_x[collpair->bp1].co,
+			collmd->current_x[collpair->bp2].co,
+			collmd->current_x[collpair->bp3].co,
+			&u1, &u2, &u3 );
 
 		// Calculate relative "velocity".
 		collision_interpolateOnTriangle ( v1, cloth1->verts[collpair->ap1].tv, cloth1->verts[collpair->ap2].tv, cloth1->verts[collpair->ap3].tv, w1, w2, w3 );
@@ -696,7 +696,7 @@ CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap
 #ifdef WITH_BULLET
 		// calc distance + normal
 		distance = plNearestPoints (
-		               verts1[collpair->ap1].txold, verts1[collpair->ap2].txold, verts1[collpair->ap3].txold, collmd->current_x[collpair->bp1].co, collmd->current_x[collpair->bp2].co, collmd->current_x[collpair->bp3].co, collpair->pa,collpair->pb,collpair->vector );
+			verts1[collpair->ap1].txold, verts1[collpair->ap2].txold, verts1[collpair->ap3].txold, collmd->current_x[collpair->bp1].co, collmd->current_x[collpair->bp2].co, collmd->current_x[collpair->bp3].co, collpair->pa,collpair->pb,collpair->vector );
 #else
 		// just be sure that we don't add anything
 		distance = 2.0 * ( epsilon1 + epsilon2 + ALMOST_ZERO );
@@ -745,15 +745,15 @@ int cloth_are_edges_adjacent ( ClothModifierData *clmd, CollisionModifierData *c
 	VECSUB ( temp, verts1[edgecollpair->p12].txold, verts2[edgecollpair->p22].co );
 	if ( ABS ( INPR ( temp, temp ) ) < ALMOST_ZERO )
 		return 1;
-	
+
 	VECSUB ( temp, verts1[edgecollpair->p11].txold, verts1[edgecollpair->p12].txold );
 	if ( ABS ( INPR ( temp, temp ) ) < ALMOST_ZERO )
 		return 1;
-	
+
 	VECSUB ( temp, verts2[edgecollpair->p21].co, verts2[edgecollpair->p22].co );
 	if ( ABS ( INPR ( temp, temp ) ) < ALMOST_ZERO )
 		return 1;
-	
+
 
 	return 0;
 }
@@ -771,23 +771,19 @@ int cloth_collision_response_moving( ClothModifierData *clmd, CollisionModifierD
 
 	for ( ; collpair != collision_end; collpair++ )
 	{
-		// only handle static collisions here
-		if ( collpair->flag & COLLISION_IN_FUTURE )
-			continue;
-
 		// compute barycentric coordinates for both collision points
 		collision_compute_barycentric ( collpair->pa,
-										cloth1->verts[collpair->ap1].txold,
-		  cloth1->verts[collpair->ap2].txold,
-	cloth1->verts[collpair->ap3].txold,
- &w1, &w2, &w3 );
+			cloth1->verts[collpair->ap1].txold,
+			cloth1->verts[collpair->ap2].txold,
+			cloth1->verts[collpair->ap3].txold,
+			&w1, &w2, &w3 );
 
 		// was: txold
 		collision_compute_barycentric ( collpair->pb,
-										collmd->current_x[collpair->bp1].co,
-		  collmd->current_x[collpair->bp2].co,
-	collmd->current_x[collpair->bp3].co,
- &u1, &u2, &u3 );
+			collmd->current_x[collpair->bp1].co,
+			collmd->current_x[collpair->bp2].co,
+			collmd->current_x[collpair->bp3].co,
+			&u1, &u2, &u3 );
 
 		// Calculate relative "velocity".
 		collision_interpolateOnTriangle ( v1, cloth1->verts[collpair->ap1].tv, cloth1->verts[collpair->ap2].tv, cloth1->verts[collpair->ap3].tv, w1, w2, w3 );
@@ -853,23 +849,248 @@ int cloth_collision_response_moving( ClothModifierData *clmd, CollisionModifierD
 			d = clmd->coll_parms->epsilon*8.0/9.0 + epsilon2*8.0/9.0 - collpair->distance;
 			if ( ( magrelVel < 0.1*d*clmd->sim_parms->stepsPerFrame ) && ( d > ALMOST_ZERO ) )
 			{
-				repulse = MIN2 ( d*1.0/clmd->sim_parms->stepsPerFrame, 0.1*d*clmd->sim_parms->stepsPerFrame - magrelVel );
+			repulse = MIN2 ( d*1.0/clmd->sim_parms->stepsPerFrame, 0.1*d*clmd->sim_parms->stepsPerFrame - magrelVel );
 
-				// stay on the safe side and clamp repulse
-				if ( impulse > ALMOST_ZERO )
-					repulse = MIN2 ( repulse, 5.0*impulse );
-				repulse = MAX2 ( impulse, repulse );
+			// stay on the safe side and clamp repulse
+			if ( impulse > ALMOST_ZERO )
+			repulse = MIN2 ( repulse, 5.0*impulse );
+			repulse = MAX2 ( impulse, repulse );
 
-				impulse = repulse / ( 1.0 + w1*w1 + w2*w2 + w3*w3 ); // original 2.0 / 0.25
-				VECADDMUL ( cloth1->verts[collpair->ap1].impulse, collpair->normal,  impulse );
-				VECADDMUL ( cloth1->verts[collpair->ap2].impulse, collpair->normal,  impulse );
-				VECADDMUL ( cloth1->verts[collpair->ap3].impulse, collpair->normal,  impulse );
+			impulse = repulse / ( 1.0 + w1*w1 + w2*w2 + w3*w3 ); // original 2.0 / 0.25
+			VECADDMUL ( cloth1->verts[collpair->ap1].impulse, collpair->normal,  impulse );
+			VECADDMUL ( cloth1->verts[collpair->ap2].impulse, collpair->normal,  impulse );
+			VECADDMUL ( cloth1->verts[collpair->ap3].impulse, collpair->normal,  impulse );
 			}
-*/
+			*/
 			result = 1;
 		}
 	}
 	return result;
+}
+
+static float projectPointOntoLine(float *p, float *a, float *b) 
+{
+   float ba[3], pa[3];
+   VECSUB(ba, b, a);
+   VECSUB(pa, p, a);
+   return INPR(pa, ba) / INPR(ba, ba);
+}
+
+static void calculateEENormal(float *np1, float *np2, float *np3, float *np4,float *out_normal) 
+{
+	float line1[33], line2[3];
+	float length;
+
+	VECSUB(line1, np2, np1);
+	VECSUB(line2, np3, np1);
+
+	Crossf(out_normal, line1, line2);
+	length = Normalize(out_normal);
+	if (length <= FLT_EPSILON)
+	{ // lines are collinear
+		VECSUB(out_normal, np2, np1);
+		Normalize(out_normal);
+	}
+}
+
+static void findClosestPointsEE(float *x1, float *x2, float *x3, float *x4, float *w1, float *w2)
+{
+	float temp[3], temp2[3];
+	
+	double a, b, c, e, f; 
+
+	VECSUB(temp, x2, x1);
+	a = INPR(temp, temp);
+
+	VECSUB(temp2, x4, x3);
+	b = -INPR(temp, temp2);
+
+	c = INPR(temp2, temp2);
+
+	VECSUB(temp2, x3, x1);
+	e = INPR(temp, temp2);
+
+	VECSUB(temp, x4, x3);
+	f = -INPR(temp, temp2);
+
+	*w1 = (e * c - b * f) / (a * c - b * b);
+	*w2 = (f - b * *w1) / c;
+
+}
+
+// calculates the distance of 2 edges
+float edgedge_distance(float np11[3], float np12[3], float np21[3], float np22[3], float *out_a1, float *out_a2, float *out_normal)
+{
+	float line1[3], line2[3], cross[3];
+	float length;
+	float temp[3], temp2[3];
+	float dist_a1, dist_a2;
+	
+	VECSUB(line1, np12, np11);
+	VECSUB(line2, np22, np21);
+
+	Crossf(cross, line1, line2);
+	length = INPR(cross, cross);
+
+	if (length < FLT_EPSILON) 
+	{
+		*out_a2 = projectPointOntoLine(np11, np21, np22);
+		if ((*out_a2 >= -FLT_EPSILON) && (*out_a2 <= 1.0 + FLT_EPSILON)) 
+		{
+			*out_a1 = 0;
+			calculateEENormal(np11, np12, np21, np22, out_normal);
+			VECSUB(temp, np22, np21);
+			VecMulf(temp, *out_a2);
+			VECADD(temp2, temp, np21);
+			VECADD(temp2, temp2, np11);
+			return INPR(temp2, temp2);
+		}
+
+		CLAMP(*out_a2, 0.0, 1.0);
+		if (*out_a2 > .5) 
+		{ // == 1.0
+			*out_a1 = projectPointOntoLine(np22, np11, np12);
+			if ((*out_a1 >= -FLT_EPSILON) && (*out_a1 <= 1.0 + FLT_EPSILON)) 
+			{
+				calculateEENormal(np11, np12, np21, np22, out_normal);
+
+				// return (np22 - (np11 + (np12 - np11) * out_a1)).lengthSquared();
+				VECSUB(temp, np12, np11);
+				VecMulf(temp, *out_a1);
+				VECADD(temp2, temp, np11);
+				VECSUB(temp2, np22, temp2);
+				return INPR(temp2, temp2);
+			}
+		} 
+		else 
+		{ // == 0.0
+			*out_a1 = projectPointOntoLine(np21, np11, np12);
+			if ((*out_a1 >= -FLT_EPSILON) && (*out_a1 <= 1.0 + FLT_EPSILON)) 
+			{
+				calculateEENormal(np11, np11, np21, np22, out_normal);
+
+				// return (np21 - (np11 + (np12 - np11) * out_a1)).lengthSquared();
+				VECSUB(temp, np12, np11);
+				VecMulf(temp, *out_a1);
+				VECADD(temp2, temp, np11);
+				VECSUB(temp2, np21, temp2);
+				return INPR(temp2, temp2);
+			}
+		}
+
+		CLAMP(*out_a1, 0.0, 1.0);
+		calculateEENormal(np11, np12, np21, np22, out_normal);
+		if(*out_a1 > .5)
+		{
+			if(*out_a2 > .5)
+			{
+				VECSUB(temp, np12, np22);
+			}
+			else
+			{
+				VECSUB(temp, np12, np21);
+			}
+		}
+		else
+		{
+			if(*out_a2 > .5)
+			{
+				VECSUB(temp, np11, np22);
+			}
+			else
+			{
+				VECSUB(temp, np11, np21);
+			}
+		}
+
+		return INPR(temp, temp);
+	}
+	else
+	{
+		
+		// If the lines aren't parallel (but coplanar) they have to intersect
+
+		findClosestPointsEE(np11, np12, np21, np22, out_a1, out_a2);
+
+		// If both points are on the finite edges, we're done.
+		if (*out_a1 >= 0.0 && *out_a1 <= 1.0 && *out_a2 >= 0.0 && *out_a2 <= 1.0) 
+		{
+			float p1[3], p2[3];
+			
+			// p1= np11 + (np12 - np11) * out_a1;
+			VECSUB(temp, np12, np11);
+			VecMulf(temp, *out_a1);
+			VECADD(p1, np11, temp);
+			
+			// p2 = np21 + (np22 - np21) * out_a2;
+			VECSUB(temp, np22, np21);
+			VecMulf(temp, *out_a2);
+			VECADD(p2, np21, temp);
+
+			calculateEENormal(np11, np12, np21, np22, out_normal);
+			VECSUB(temp, p1, p2);
+			return INPR(temp, temp);
+		}
+
+		
+		/*
+		* Clamp both points to the finite edges.
+		* The one that moves most during clamping is one part of the solution.
+		*/
+		dist_a1 = *out_a1;
+		CLAMP(dist_a1, 0.0, 1.0);
+		dist_a2 = *out_a2;
+		CLAMP(dist_a2, 0.0, 1.0);
+
+		// Now project the "most clamped" point on the other line.
+		if (dist_a1 > dist_a2) 
+		{ 
+			/* keep out_a1 */
+			float p1[3];
+
+			// p1 = np11 + (np12 - np11) * out_a1;
+			VECSUB(temp, np12, np11);
+			VecMulf(temp, *out_a1);
+			VECADD(p1, np11, temp);
+
+			*out_a2 = projectPointOntoLine(p1, np21, np22);
+			CLAMP(*out_a2, 0.0, 1.0);
+
+			calculateEENormal(np11, np12, np21, np22, out_normal);
+
+			// return (p1 - (np21 + (np22 - np21) * out_a2)).lengthSquared();
+			VECSUB(temp, np22, np21);
+			VecMulf(temp, *out_a2);
+			VECADD(temp, temp, np21);
+			VECSUB(temp, p1, temp);
+			return INPR(temp, temp);
+		} 
+		else 
+		{	
+			/* keep out_a2 */
+			float p2[3];
+			
+			// p2 = np21 + (np22 - np21) * out_a2;
+			VECSUB(temp, np22, np21);
+			VecMulf(temp, *out_a2);
+			VECADD(p2, np21, temp);
+
+			*out_a1 = projectPointOntoLine(p2, np11, np12);
+			CLAMP(*out_a1, 0.0, 1.0);
+
+			calculateEENormal(np11, np12, np21, np22, out_normal);
+			
+			// return ((np11 + (np12 - np11) * out_a1) - p2).lengthSquared();
+			VECSUB(temp, np12, np11);
+			VecMulf(temp, *out_a1);
+			VECADD(temp, temp, np11);
+			VECSUB(temp, temp, p2);
+			return INPR(temp, temp);
+		}
+	}
+	
+	printf("Error in edgedge_distance: end of function\n");
+	return 0;
 }
 
 int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair )
@@ -890,16 +1111,16 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 
 	cloth1 = clmd->clothObject;
 	verts1 = cloth1->verts;
-	
+
 	for(i = 0; i < 9; i++)
 	{
 		// 9 edge - edge possibilities
-		
+
 		if(i == 0) // cloth edge: 1-2; coll edge: 1-2
 		{
 			edgecollpair.p11 = collpair->ap1;
 			edgecollpair.p12 = collpair->ap2;
-			
+
 			edgecollpair.p21 = collpair->bp1;
 			edgecollpair.p22 = collpair->bp2;
 		}
@@ -907,7 +1128,7 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 		{
 			edgecollpair.p11 = collpair->ap1;
 			edgecollpair.p12 = collpair->ap2;
-			
+
 			edgecollpair.p21 = collpair->bp2;
 			edgecollpair.p22 = collpair->bp3;
 		}
@@ -915,7 +1136,7 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 		{
 			edgecollpair.p11 = collpair->ap1;
 			edgecollpair.p12 = collpair->ap2;
-			
+
 			edgecollpair.p21 = collpair->bp1;
 			edgecollpair.p22 = collpair->bp3;
 		}
@@ -923,7 +1144,7 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 		{
 			edgecollpair.p11 = collpair->ap2;
 			edgecollpair.p12 = collpair->ap3;
-			
+
 			edgecollpair.p21 = collpair->bp1;
 			edgecollpair.p22 = collpair->bp2;
 		}
@@ -931,7 +1152,7 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 		{
 			edgecollpair.p11 = collpair->ap2;
 			edgecollpair.p12 = collpair->ap3;
-			
+
 			edgecollpair.p21 = collpair->bp2;
 			edgecollpair.p22 = collpair->bp3;
 		}
@@ -939,7 +1160,7 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 		{
 			edgecollpair.p11 = collpair->ap2;
 			edgecollpair.p12 = collpair->ap3;
-			
+
 			edgecollpair.p21 = collpair->bp1;
 			edgecollpair.p22 = collpair->bp3;
 		}
@@ -947,7 +1168,7 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 		{
 			edgecollpair.p11 = collpair->ap1;
 			edgecollpair.p12 = collpair->ap3;
-			
+
 			edgecollpair.p21 = collpair->bp1;
 			edgecollpair.p22 = collpair->bp2;
 		}
@@ -955,7 +1176,7 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 		{
 			edgecollpair.p11 = collpair->ap1;
 			edgecollpair.p12 = collpair->ap3;
-			
+
 			edgecollpair.p21 = collpair->bp2;
 			edgecollpair.p22 = collpair->bp3;
 		}
@@ -963,171 +1184,144 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 		{
 			edgecollpair.p11 = collpair->ap1;
 			edgecollpair.p12 = collpair->ap3;
-			
+
 			edgecollpair.p21 = collpair->bp1;
 			edgecollpair.p22 = collpair->bp3;
 		}
-		
+
 		if ( !cloth_are_edges_adjacent ( clmd, collmd, &edgecollpair ) )
 		{
 			// always put coll points in p21/p22
 			VECSUB ( x1, verts1[edgecollpair.p12].txold, verts1[edgecollpair.p11].txold );
 			VECSUB ( v1, verts1[edgecollpair.p12].tv, verts1[edgecollpair.p11].tv );
-			
+
 			VECSUB ( x2, verts2[edgecollpair.p21].co, verts1[edgecollpair.p11].txold );
 			VECSUB ( v2, velocity2[edgecollpair.p21].co, verts1[edgecollpair.p11].tv );
-			
+
 			VECSUB ( x3, verts2[edgecollpair.p22].co, verts1[edgecollpair.p11].txold );
 			VECSUB ( v3, velocity2[edgecollpair.p22].co, verts1[edgecollpair.p11].tv );
-			
+
 			numsolutions = cloth_get_collision_time ( x1, v1, x2, v2, x3, v3, solution );
-	
+
 			for ( k = 0; k < numsolutions; k++ )
 			{
 				// printf("sol %d: %lf\n", k, solution[k]);
 				if ( ( solution[k] >= DBL_EPSILON ) && ( solution[k] <= 1.0 ) )
 				{
-					//float out_collisionTime = solution[k];
-	
+					float a,b;
+					float out_normal[3];
+					float distance;
+
+					// move verts
+					VECADDS(triA[0], verts1[edgecollpair.p11].txold, verts1[edgecollpair.p11].tv, mintime);
+					VECADDS(triA[1], verts1[edgecollpair.p12].txold, verts1[edgecollpair.p12].tv, mintime);
+
+					VECADDS(triB[0], collmd->current_x[edgecollpair.p21].co, collmd->current_v[edgecollpair.p21].co, mintime);
+					VECADDS(triB[1], collmd->current_x[edgecollpair.p22].co, collmd->current_v[edgecollpair.p22].co, mintime);
+
 					// TODO: check for collisions
-	
-					// TODO: put into (edge) collision list
+					distance = edgedge_distance(triA[0], triA[1], triB[0], triB[1], &a, &b, out_normal);
 					
+					if ((distance <= clmd->coll_parms->epsilon + BLI_bvhtree_getepsilon ( collmd->bvhtree ) + ALMOST_ZERO) && (INPR(out_normal, out_normal) > 0))
+					{
+						// printf("found edge, dist: %f\n", distance);
+
+						/* Inelastic repulsion impulse. */
+/*
+						// Calculate which normal velocity we need. 
+						float desiredVn = (normalVelocity * (float)solution[k] - (.1 * (clmd->coll_parms->epsilon + BLI_bvhtree_getepsilon ( collmd->bvhtree )) - sqrt(squaredDistance)) - ALMOST_ZERO);
+
+						// Now calculate what impulse we need to reach that velocity. 
+						float m1 = interpolateOnEdge(cloth1.getVertexWeight(v11idx), cloth1.getVertexWeight(v12idx), a1);
+						float m2 = interpolateOnEdge(cloth2.getVertexWeight(v21idx), cloth2.getVertexWeight(v22idx), a2);
+						float I_mag = (normalVelocity - desiredVn) / (1/m1 + 1/m2);
+
+						// Finally apply that impulse. 
+						applyInterpolatedImpulsesEdge(out_impulses1[v11idx], out_impulses1[v12idx], out_impulses2[v21idx], out_impulses2[v22idx],
+						a1, a2, -I_mag, normal);
+						++out_impulseCounter1[v11idx]; ++out_impulseCounter1[v12idx];
+						++out_impulseCounter2[v21idx]; ++out_impulseCounter2[v22idx];
+
+		*/				// return true;
+						result = 1;
+					}
+
 					mintime = MIN2(mintime, (float)solution[k]);
-					
-					result = 1;
+
 					break;
 				}
 			}
 		}
 	}
-	
+/*
 	if(result)
 	{
 		// move triangles to collision point in time
 		VECADDS(triA[0], verts1[collpair->ap1].txold, verts1[collpair->ap1].tv, mintime);
 		VECADDS(triA[1], verts1[collpair->ap2].txold, verts1[collpair->ap2].tv, mintime);
 		VECADDS(triA[2], verts1[collpair->ap3].txold, verts1[collpair->ap3].tv, mintime);
-		
+
 		VECADDS(triB[0], collmd->current_x[collpair->bp1].co, collmd->current_v[collpair->bp1].co, mintime);
 		VECADDS(triB[1], collmd->current_x[collpair->bp2].co, collmd->current_v[collpair->bp2].co, mintime);
 		VECADDS(triB[2], collmd->current_x[collpair->bp3].co, collmd->current_v[collpair->bp3].co, mintime);
-		
+
 		// check distance there
 		distance = plNearestPoints (triA[0], triA[1], triA[2], triB[0], triB[1], triB[2], collpair->pa,collpair->pb,collpair->vector );
-		
+
 		if(distance <= (clmd->coll_parms->epsilon + BLI_bvhtree_getepsilon ( collmd->bvhtree ) + ALMOST_ZERO))
 		{
 			CollPair *next = collpair;
 			next++;
-			
+
 			collpair->distance = clmd->coll_parms->epsilon;
 			collpair->time = mintime;
-			
+
 			VECCOPY ( collpair->normal, collpair->vector );
 			Normalize ( collpair->normal );
-			
-			cloth_collision_response_moving ( clmd, collmd, collpair, next );
+
+			// cloth_collision_response_moving ( clmd, collmd, collpair, next );
+
 		}
 	}
-	
+*/
 	return result;
 }
 
-/*
-void cloth_collision_moving_tris ( ClothModifierData *clmd, ClothModifierData *coll_clmd, CollisionTree *tree1, CollisionTree *tree2 )
+int cloth_collision_moving_tris ( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair )
 {
-	CollPair collpair;
-	Cloth *cloth1=NULL, *cloth2=NULL;
-	MFace *face1=NULL, *face2=NULL;
-	ClothVertex *verts1=NULL, *verts2=NULL;
+	EdgeCollPair edgecollpair;
+	Cloth *cloth1=NULL;
+	ClothVertex *verts1=NULL;
 	unsigned int i = 0, j = 0, k = 0;
 	int numsolutions = 0;
-	float a[3], b[3], c[3], d[3], e[3], f[3];
+	double x1[3], v1[3], x2[3], v2[3], x3[3], v3[3];
 	double solution[3];
+	MVert *verts2 = collmd->current_x; // old x
+	MVert *velocity2 = collmd->current_v; // velocity
+	float mintime = FLT_MAX;
+	float distance;
+	float triA[3][3], triB[3][3];
+	int result = 0;
 
-	for ( i = 0; i < 2; i++ )
+	cloth1 = clmd->clothObject;
+	verts1 = cloth1->verts;
+
+	for(i = 0; i < 9; i++)
 	{
-		cloth1 = clmd->clothObject;
-		cloth2 = coll_clmd->clothObject;
+		// 9 edge - edge possibilities
 
-		verts1 = cloth1->verts;
-		verts2 = cloth2->verts;
-
-		face1 = & ( cloth1->mfaces[tree1->tri_index] );
-		face2 = & ( cloth2->mfaces[tree2->tri_index] );
-
-		// check all possible pairs of triangles
-		if ( i == 0 )
+		if(i == 0) 
 		{
-			collpair.ap1 = face1->v1;
-			collpair.ap2 = face1->v2;
-			collpair.ap3 = face1->v3;
+			edgecollpair.p11 = collpair->ap1;
+			edgecollpair.p12 = collpair->ap2;
 
-			collpair.pointsb[0] = face2->v1;
-			collpair.pointsb[1] = face2->v2;
-			collpair.pointsb[2] = face2->v3;
-			collpair.pointsb[3] = face2->v4;
-		}
-
-		if ( i == 1 )
-		{
-			if ( face1->v4 )
-			{
-				collpair.ap1 = face1->v3;
-				collpair.ap2 = face1->v4;
-				collpair.ap3 = face1->v1;
-
-				collpair.pointsb[0] = face2->v1;
-				collpair.pointsb[1] = face2->v2;
-				collpair.pointsb[2] = face2->v3;
-				collpair.pointsb[3] = face2->v4;
-			}
-			else
-				i++;
-		}
-
-		// calc SIPcode (?)
-
-		if ( i < 2 )
-		{
-			VECSUB ( a, verts1[collpair.ap2].xold, verts1[collpair.ap1].xold );
-			VECSUB ( b, verts1[collpair.ap2].v, verts1[collpair.ap1].v );
-			VECSUB ( c, verts1[collpair.ap3].xold, verts1[collpair.ap1].xold );
-			VECSUB ( d, verts1[collpair.ap3].v, verts1[collpair.ap1].v );
-
-			for ( j = 0; j < 4; j++ )
-			{
-				if ( ( j==3 ) && ! ( face2->v4 ) )
-					break;
-
-				VECSUB ( e, verts2[collpair.pointsb[j]].xold, verts1[collpair.ap1].xold );
-				VECSUB ( f, verts2[collpair.pointsb[j]].v, verts1[collpair.ap1].v );
-
-				numsolutions = cloth_get_collision_time ( a, b, c, d, e, f, solution );
-
-				for ( k = 0; k < numsolutions; k++ )
-				{
-					if ( ( solution[k] >= ALMOST_ZERO ) && ( solution[k] <= 1.0 ) )
-					{
-						//float out_collisionTime = solution[k];
-
-						// TODO: check for collisions
-
-						// TODO: put into (point-face) collision list
-
-						// printf("Moving found!\n");
-
-					}
-				}
-
-				// TODO: check borders for collisions
-			}
-
+			edgecollpair.p21 = collpair->bp1;
+			edgecollpair.p22 = collpair->bp2;
 		}
 	}
+
+	return result;
 }
-*/
 
 int cloth_collision_moving ( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair, CollPair *collision_end )
 {
@@ -1145,10 +1339,11 @@ int cloth_collision_moving ( ClothModifierData *clmd, CollisionModifierData *col
 		// only handle moving collisions here
 		if (!( collpair->flag & COLLISION_IN_FUTURE ))
 			continue;
-		
+
 		cloth_collision_moving_edges ( clmd, collmd, collpair);
+		// cloth_collision_moving_tris ( clmd, collmd, collpair);
 	}
-	
+
 	return 1;
 }
 
@@ -1219,14 +1414,14 @@ int cloth_bvh_objcollisions_do ( ClothModifierData * clmd, CollisionModifierData
 						VECADDMUL ( verts[i].tv, verts[i].impulse, 1.0f / verts[i].impulse_count );
 						VECCOPY ( verts[i].impulse, tnull );
 						verts[i].impulse_count = 0;
-	
+
 						ret++;
 					}
 				}
 			}
-			/*
+/*
 			result += cloth_collision_moving ( clmd, collmd, collisions, collisions_index );
-			
+
 			// apply impulses in parallel
 			if ( result )
 			{
@@ -1238,12 +1433,12 @@ int cloth_bvh_objcollisions_do ( ClothModifierData * clmd, CollisionModifierData
 						VECADDMUL ( verts[i].tv, verts[i].impulse, 1.0f / verts[i].impulse_count );
 						VECCOPY ( verts[i].impulse, tnull );
 						verts[i].impulse_count = 0;
-	
+
 						ret++;
 					}
 				}
 			}
-		*/
+*/
 		}
 	}
 
@@ -1371,24 +1566,25 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt )
 
 			if ( cloth->bvhselftree )
 			{
-				/* search for overlapping collision pairs */
+				// search for overlapping collision pairs 
 				overlap = BLI_bvhtree_overlap ( cloth->bvhselftree, cloth->bvhselftree, &result );
 
+// #pragma omp parallel for private(k, i, j) schedule(static)
 				for ( k = 0; k < result; k++ )
 				{
 					float temp[3];
 					float length = 0;
 					float mindistance;
-					
+
 					i = overlap[k].indexA;
 					j = overlap[k].indexB;
-					
+
 					mindistance = clmd->coll_parms->selfepsilon* ( cloth->verts[i].avg_spring_len + cloth->verts[j].avg_spring_len );
 
 					if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
 					{
 						if ( ( cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED )
-												 && ( cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED ) )
+							&& ( cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED ) )
 						{
 							continue;
 						}
@@ -1427,87 +1623,18 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt )
 
 							VECSUB ( verts[i].tx, verts[i].tx, temp );
 						}
+						ret = 1;
+					}
+					else
+					{
+						// check for approximated time collisions
 					}
 				}
-				
+
 				if ( overlap )
 					MEM_freeN ( overlap );
-				
-			}
 
-			/*
-			for ( count = 0; count < clmd->coll_parms->self_loop_count; count++ )
-			{
-			if ( collisions )
-			{
-			collisions = 0;
-			#pragma omp parallel for private(i,j, collisions) shared(verts, ret)
-			for ( i = 0; i < cloth->numverts; i++ )
-			{
-			for ( j = i + 1; j < cloth->numverts; j++ )
-			{
-			float temp[3];
-			float length = 0;
-			float mindistance = clmd->coll_parms->selfepsilon* ( cloth->verts[i].avg_spring_len + cloth->verts[j].avg_spring_len );
-
-			if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
-			{
-			if ( ( cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED )
-			&& ( cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED ) )
-			{
-			continue;
 			}
-			}
-
-			VECSUB ( temp, verts[i].tx, verts[j].tx );
-
-			if ( ( ABS ( temp[0] ) > mindistance ) || ( ABS ( temp[1] ) > mindistance ) || ( ABS ( temp[2] ) > mindistance ) ) continue;
-
-							// check for adjacent points (i must be smaller j)
-			if ( BLI_edgehash_haskey ( cloth->edgehash, i, j ) )
-			{
-			continue;
-			}
-
-			length = Normalize ( temp );
-
-			if ( length < mindistance )
-			{
-			float correction = mindistance - length;
-
-			if ( cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED )
-			{
-			VecMulf ( temp, -correction );
-			VECADD ( verts[j].tx, verts[j].tx, temp );
-			}
-			else if ( cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED )
-			{
-			VecMulf ( temp, correction );
-			VECADD ( verts[i].tx, verts[i].tx, temp );
-			}
-			else
-			{
-			VecMulf ( temp, -correction*0.5 );
-			VECADD ( verts[j].tx, verts[j].tx, temp );
-
-			VECSUB ( verts[i].tx, verts[i].tx, temp );
-			}
-
-			collisions = 1;
-
-			if ( !ret )
-			{
-			#pragma omp critical
-			{
-			ret = 1;
-			}
-			}
-			}
-			}
-			}
-			}
-			}
-			*/
 			////////////////////////////////////////////////////////////
 
 			////////////////////////////////////////////////////////////
@@ -1517,8 +1644,10 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt )
 			{
 				for ( i = 0; i < cloth->numverts; i++ )
 				{
-					if ( ! ( cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED ) )
+					if ( ! ( verts [i].flags & CLOTH_VERT_FLAG_PINNED ) )
+					{
 						VECSUB ( verts[i].tv, verts[i].tx, verts[i].txold );
+					}
 				}
 			}
 			////////////////////////////////////////////////////////////
@@ -1528,3 +1657,15 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt )
 
 	return MIN2 ( ret, 1 );
 }
+
+
+/*
+if ( verts[i].impulse_count )
+{
+	VECADDMUL ( verts[i].tv, verts[i].impulse, 1.0f / verts[i].impulse_count );
+	VECCOPY ( verts[i].impulse, tnull );
+	verts[i].impulse_count = 0;
+
+	ret++;
+}
+*/
