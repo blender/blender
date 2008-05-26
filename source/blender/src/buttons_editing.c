@@ -3104,14 +3104,14 @@ void do_curvebuts(unsigned short event)
 				if(isNurbsel(nu)) {
 					if((nu->type & 7)==CU_NURBS) {
 						if(event<B_UNIFV) {
-							nu->flagu &= 1;
-							nu->flagu += ((event-B_UNIFU)<<1);
+							nu->flagu &= CU_CYCLIC; /* disable all flags except for CU_CYCLIC */
+							nu->flagu |= ((event-B_UNIFU)<<1);
 							clamp_nurb_order_u(nu);
 							makeknots(nu, 1, nu->flagu>>1);
 						}
 						else if(nu->pntsv>1) {
-							nu->flagv &= 1;
-							nu->flagv += ((event-B_UNIFV)<<1);
+							nu->flagv &= CU_CYCLIC; /* disable all flags except for CU_CYCLIC */
+							nu->flagv |= ((event-B_UNIFV)<<1);
 							clamp_nurb_order_v(nu);
 							makeknots(nu, 2, nu->flagv>>1);
 						}

@@ -906,8 +906,10 @@ void adduplicateflagNurb(short flag)
 						bezt1++;
 					}
 
-					if(nu->flagu & 1) {
-						if(starta!=0 || enda!=nu->pntsu-1) newnu->flagu--;
+					if(nu->flagu & CU_CYCLIC) {
+						if(starta!=0 || enda!=nu->pntsu-1) {
+							newnu->flagu &= ~CU_CYCLIC;
+						}
 					}
 				}
 				bezt++;
@@ -941,8 +943,10 @@ void adduplicateflagNurb(short flag)
 						bp1++;
 					}
 
-					if(nu->flagu & 1) {
-						if(starta!=0 || enda!=nu->pntsu-1) newnu->flagu--;
+					if(nu->flagu & CU_CYCLIC) {
+						if(starta!=0 || enda!=nu->pntsu-1) {
+							newnu->flagu &= ~CU_CYCLIC;
+						}
 					}
 
 					/* knots */
@@ -1583,7 +1587,7 @@ void subdivideNurb()
            newly created. Old points are discarded.
         */
 			/* count */
-			if(nu->flagu & 1) {
+			if(nu->flagu & CU_CYCLIC) {
 				a= nu->pntsu;
 				bezt= nu->bezt;
 				prevbezt= bezt+(a-1);
@@ -1604,7 +1608,7 @@ void subdivideNurb()
 				beztnew =
 					(BezTriple*)MEM_mallocN((amount + nu->pntsu) * sizeof(BezTriple), "subdivNurb");
 				beztn= beztnew;
-				if(nu->flagu & 1) {
+				if(nu->flagu & CU_CYCLIC) {
 					a= nu->pntsu;
 					bezt= nu->bezt;
 					prevbezt= bezt+(a-1);
@@ -1636,7 +1640,7 @@ void subdivideNurb()
 						VecMidf(beztn->vec[1], vec+9, vec+12);
 						VECCOPY(beztn->vec[2], vec+12);
 						/* handle of next bezt */
-						if(a==0 && (nu->flagu & 1)) {VECCOPY(beztnew->vec[0], vec+6);}
+						if(a==0 && (nu->flagu & CU_CYCLIC)) {VECCOPY(beztnew->vec[0], vec+6);}
 						else {VECCOPY(bezt->vec[0], vec+6);}
 						
 						beztn->radius = (prevbezt->radius + bezt->radius)/2.0f;
@@ -1649,7 +1653,7 @@ void subdivideNurb()
 					bezt++;
 				}
 				/* last point */
-				if((nu->flagu & 1)==0) memcpy(beztn, prevbezt, sizeof(BezTriple));
+				if((nu->flagu & CU_CYCLIC)==0) memcpy(beztn, prevbezt, sizeof(BezTriple));
 
 				MEM_freeN(nu->bezt);
 				nu->bezt= beztnew;
@@ -1666,7 +1670,7 @@ void subdivideNurb()
            stable... nzc 30-5-'00
          */
 			/* count */
-			if(nu->flagu & 1) {
+			if(nu->flagu & CU_CYCLIC) {
 				a= nu->pntsu*nu->pntsv;
 				bp= nu->bp;
 				prevbp= bp+(a-1);
@@ -1688,7 +1692,7 @@ void subdivideNurb()
 					(BPoint*)MEM_mallocN((amount + nu->pntsu) * sizeof(BPoint), "subdivNurb2");
 				bpn= bpnew;
 
-				if(nu->flagu & 1) {
+				if(nu->flagu & CU_CYCLIC) {
 					a= nu->pntsu;
 					bp= nu->bp;
 					prevbp= bp+(a-1);
@@ -1715,7 +1719,7 @@ void subdivideNurb()
 					prevbp= bp;
 					bp++;
 				}
-				if((nu->flagu & 1)==0) memcpy(bpn, prevbp, sizeof(BPoint));	/* last point */
+				if((nu->flagu & CU_CYCLIC)==0) memcpy(bpn, prevbp, sizeof(BPoint));	/* last point */
 
 				MEM_freeN(nu->bp);
 				nu->bp= bpnew;
@@ -2089,7 +2093,7 @@ int convertspline(short type, Nurb *nu)
 			nu->type &= ~7;
 			nu->type+= 4;
 			nu->orderu= 4;
-			nu->flagu &= 1;
+			nu->flagu &= CU_CYCLIC; /* disable all flags except for cyclic */
 			nu->flagu += 4;
 			makeknots(nu, 1, nu->flagu>>1);
 			a= nu->pntsu*nu->pntsv;
@@ -2140,10 +2144,10 @@ int convertspline(short type, Nurb *nu)
 			nu->orderv= 1;
 			nu->type &= ~7;
 			nu->type+= type;
-			if(nu->flagu & 1) c= nu->orderu-1; 
+			if(nu->flagu & CU_CYCLIC) c= nu->orderu-1; 
 			else c= 0;
 			if(type== 4) {
-				nu->flagu &= 1;
+				nu->flagu &= CU_CYCLIC; /* disable all flags except for cyclic */
 				nu->flagu += 4;
 				makeknots(nu, 1, nu->flagu>>1);
 			}
@@ -2541,7 +2545,7 @@ void addsegment_nurb()
 	
 	/* find both nurbs and points, nu1 will be put behind nu2 */
 	for(nu= editNurb.first; nu; nu= nu->next) {
-		if((nu->flagu & 1)==0) {    /* not cyclic */
+		if((nu->flagu & CU_CYCLIC)==0) {    /* not cyclic */
 			if( (nu->type & 7)==CU_BEZIER ) {
 				bezt= nu->bezt;
 				if(nu1==0) {
@@ -2822,7 +2826,7 @@ static void spin_nurb(float *dvec, short mode)
 		for(nu= editNurb.first; nu; nu= nu->next) {
 			if(isNurbsel(nu)) {
 				nu->orderv= 4;
-				nu->flagv |= 1;
+				nu->flagv |= CU_CYCLIC;
 				makeknots(nu, 2, nu->flagv>>1);
 			}
 		}
@@ -3020,8 +3024,8 @@ void makecyclicNurb()
 				bp= nu->bp;
 				while(a--) {
 					if( bp->f1 & SELECT ) {
-						if(nu->flagu & CU_CYCLIC) nu->flagu--;
-						else nu->flagu++;
+						if(nu->flagu & CU_CYCLIC) nu->flagu &= ~CU_CYCLIC;
+						else nu->flagu |= CU_CYCLIC;
 						break;
 					}
 					bp++;
@@ -3032,8 +3036,8 @@ void makecyclicNurb()
 				bezt= nu->bezt;
 				while(a--) {
 					if( BEZSELECTED_HIDDENHANDLES(bezt) ) {
-						if(nu->flagu & CU_CYCLIC) nu->flagu--;
-						else nu->flagu++;
+						if(nu->flagu & CU_CYCLIC) nu->flagu &= ~CU_CYCLIC;
+						else nu->flagu |= CU_CYCLIC;
 						break;
 					}
 					bezt++;
@@ -3046,9 +3050,9 @@ void makecyclicNurb()
 					bp= nu->bp;
 					while(a--) {
 						if( bp->f1 & SELECT ) {
-							if(nu->flagu & CU_CYCLIC) nu->flagu--;
+							if(nu->flagu & CU_CYCLIC) nu->flagu &= ~CU_CYCLIC;
 							else {
-								nu->flagu++;
+								nu->flagu |= CU_CYCLIC;
 								nu->flagu &= ~2;	/* endpoint flag, fixme */
 								fp= MEM_mallocN(sizeof(float)*KNOTSU(nu), "makecyclicN");
 								b= (nu->orderu+nu->pntsu);
@@ -3076,9 +3080,9 @@ void makecyclicNurb()
 	
 					if( bp->f1 & SELECT) {
 						if(cyclmode==1 && nu->pntsu>1) {
-							if(nu->flagu & CU_CYCLIC) nu->flagu--;
+							if(nu->flagu & CU_CYCLIC) nu->flagu &= ~CU_CYCLIC;
 							else {
-								nu->flagu++;
+								nu->flagu |= CU_CYCLIC;
 								if (check_valid_nurb_u(nu)) {
 									fp= MEM_mallocN(sizeof(float)*KNOTSU(nu), "makecyclicN");
 									b= (nu->orderu+nu->pntsu);
@@ -3765,10 +3769,10 @@ void delNurb()
 						bezt2= bezt+1;
 						if( (bezt2->f1 & SELECT) || (bezt2->f2 & SELECT) || (bezt2->f3 & SELECT) ) ;
 						else {	/* maybe do not make cyclic */
-							if(a==0 && (nu->flagu & 1) ) {
+							if(a==0 && (nu->flagu & CU_CYCLIC) ) {
 								bezt2= bezt+(nu->pntsu-1);
 								if( (bezt2->f1 & SELECT) || (bezt2->f2 & SELECT) || (bezt2->f3 & SELECT) ) {
-									nu->flagu--;
+									nu->flagu &= ~CU_CYCLIC;
 									DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 									allqueue(REDRAWVIEW3D, 0);
 									allqueue(REDRAWBUTSEDIT, 0);
@@ -3792,10 +3796,10 @@ void delNurb()
 						bp2= bp+1;
 						if( bp2->f1 & 1 ) ;
 						else {	/* maybe do not make cyclic */
-							if(a==0 && (nu->flagu & 1) ) {
+							if(a==0 && (nu->flagu & CU_CYCLIC) ) {
 								bp2= bp+(nu->pntsu-1);
-								if( bp2->f1 & 1 ) {
-									nu->flagu--;
+								if( bp2->f1 & SELECT ) {
+									nu->flagu &= ~CU_CYCLIC;
 									DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 									allqueue(REDRAWVIEW3D, 0);
 									allqueue(REDRAWBUTSEDIT, 0);
@@ -3821,14 +3825,14 @@ void delNurb()
 					BLI_remlink(&editNurb, nu);
 					freeNurb(nu); nu = NULL;
 				}
-				else if(nu1->flagu & 1) {	/* cyclic */
+				else if(nu1->flagu & CU_CYCLIC) {	/* cyclic */
 					bezt =
 						(BezTriple*)MEM_mallocN((cut+1) * sizeof(BezTriple), "delNurb1");
 					memcpy(bezt, nu1->bezt,(cut+1)*sizeof(BezTriple));
 					a= nu1->pntsu-cut-1;
 					memcpy(nu1->bezt, bezt2, a*sizeof(BezTriple));
 					memcpy(nu1->bezt+a, bezt, (cut+1)*sizeof(BezTriple));
-					nu1->flagu--;
+					nu1->flagu &= ~CU_CYCLIC;
 					MEM_freeN(bezt);
 					calchandlesNurb(nu);
 				}
@@ -3863,14 +3867,14 @@ void delNurb()
 					BLI_remlink(&editNurb, nu);
 					freeNurb(nu); nu= NULL;
 				}
-				else if(nu1->flagu & 1) {	/* cyclic */
+				else if(nu1->flagu & CU_CYCLIC) {	/* cyclic */
 					bp =
 						(BPoint*)MEM_mallocN((cut+1) * sizeof(BPoint), "delNurb5");
 					memcpy(bp, nu1->bp,(cut+1)*sizeof(BPoint));
 					a= nu1->pntsu-cut-1;
 					memcpy(nu1->bp, bp2, a*sizeof(BPoint));
 					memcpy(nu1->bp+a, bp, (cut+1)*sizeof(BPoint));
-					nu1->flagu--;
+					nu1->flagu &= ~CU_CYCLIC;
 					MEM_freeN(bp);
 				}
 				else {			/* add new curve */
@@ -4180,7 +4184,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 		if((type & 7)==CU_BEZIER) {
 			nu->pntsu= 4;
 			nu->bezt= callocstructN(BezTriple, 4, "addNurbprim1");
-			nu->flagu= 1;
+			nu->flagu= CU_CYCLIC;
 			bezt= nu->bezt;
 
 			for(a=0;a<3;a++) {
@@ -4229,7 +4233,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			nu->pntsv= 1;
 			nu->orderu= 4;
 			nu->bp= callocstructN(BPoint, 8, "addNurbprim6");
-			nu->flagu= 1;
+			nu->flagu= CU_CYCLIC;
 			bp= nu->bp;
 
 			for(a=0; a<8; a++) {

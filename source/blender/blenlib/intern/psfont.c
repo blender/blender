@@ -2017,7 +2017,7 @@ static VFontData *objfnt_to_vfontdata(objfnt *fnt)
 						nu->type= CU_BEZIER+CU_2D;
 						nu->pntsu = count;
 						nu->resolu= 8;
-						nu->flagu= 1;
+						nu->flagu= CU_CYCLIC;
 						nu->bezt = bezt;
 						stop = 0;
 
