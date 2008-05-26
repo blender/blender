@@ -6,7 +6,7 @@ sources = []
 defs = []
 incs = ''
 
-incs += '../blenkernel ../blenlib ../imbuf ../makesdna'
+incs += '../blenkernel ../blenlib ../imbuf ../makesdna ../python'
 incs += ' #/extern/freestyle/lib3ds' 
 incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_LIB3DS_INC']

@@ -35,6 +35,12 @@
 # include "StringUtils.h"
 # include "Interpreter.h"
 
+//soc
+extern "C" {
+#include "BKE_text.h"
+#include "BPY_extern.h"
+}
+
 class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 {
  public:
@@ -42,12 +48,6 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
   PythonInterpreter() {
     _language = "Python";
     //Py_Initialize();
-
-	cout << "Freestyle Python Init: " << endl;
-	cout << "- is init   : " << Py_IsInitialized() << endl;
-	cout << "- prog path : " << Py_GetProgramFullPath() << endl;
-	cout << "- mod path  : " << Py_GetPath() << endl;
-	cout << "- version   : " << Py_GetVersion() << endl;
   }
 
   virtual ~PythonInterpreter() {
@@ -64,11 +64,22 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 
   int interpretFile(const string& filename) {
     initPath();
-    string cmd("execfile(\"" + filename + "\")");
-    char* c_cmd = strdup(cmd.c_str());
-    int err = PyRun_SimpleString(c_cmd);
-    free(c_cmd);
-    return err;
+
+	char *fn = const_cast<char*>(filename.c_str());
+	struct Text *text = add_text( fn );
+	
+	if (text == NULL) {
+		cout << "\nError in PythonInterpreter::interpretFile:" << endl;
+		cout << "couldn't create Blender text from" << fn << endl;
+	}
+
+	if (BPY_txt_do_python_Text(text) != 1) {
+		cout << "\nError executing Python script from PythonInterpreter::interpretFile:" << endl;
+		cout << fn << " (at line " <<  BPY_Err_getLinenumber() << ")" << endl;
+		return BPY_Err_getLinenumber();
+	}
+
+	return 0;
   }
 
   struct Options
@@ -91,22 +102,20 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 private:
 
   static void initPath() {
-    if (_initialized)
-      return;
-    PyRun_SimpleString("import sys");
-	     vector<string> pathnames;
-	     StringUtils::getPathName(_path, "", pathnames);
-	     string cmd;
-	     char* c_cmd;
-	     for (vector<string>::const_iterator it = pathnames.begin();
-	 it != pathnames.end();
-	 ++it) {
-	       cmd = "sys.path.append(\"" + *it + "\")";
-	       c_cmd = strdup(cmd.c_str());
-	       PyRun_SimpleString(c_cmd);
-	       free(c_cmd);
-	     }
-       PyRun_SimpleString("from Freestyle import *");
+	if (_initialized)
+		return;
+
+	// vector<string> pathnames;
+	// StringUtils::getPathName(_path, "", pathnames);
+	// 
+	// for (vector<string>::const_iterator it = pathnames.begin(); it != pathnames.end();++it) {
+	// 	if ( !it->empty() ) {
+	// 		cout << "Adding Python path: " << *it << endl;
+	// 		syspath_append( const_cast<char*>(it->c_str()) );
+	// 	}
+	// }
+	
+	//PyRun_SimpleString("from Freestyle import *");
     _initialized = true;
   }
 

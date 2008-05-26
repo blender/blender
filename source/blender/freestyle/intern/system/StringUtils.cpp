@@ -27,25 +27,29 @@ namespace StringUtils {
 
   void getPathName(const string& path, const string& base, vector<string>& pathnames) {
     string dir;
-    unsigned size = path.size();
-    pathnames.push_back(base);
-    for (unsigned pos = 0, sep = path.find(Config::PATH_SEP, pos);
-	 pos < size;
-	 pos = sep + 1, sep = path.find(Config::PATH_SEP, pos)) {
-      if (sep == (unsigned)string::npos)
-		sep = size;
-      dir = path.substr(pos, sep - pos);
-
-//soc      QFileInfo fi(dir.c_str());
-//soc      string res = (const char*)fi.absoluteFilePath().toAscii();
+	string res;
 	char cleaned[FILE_MAX];
-	BLI_strncpy(cleaned, dir.c_str(), FILE_MAX);
-	BLI_cleanup_file(NULL, cleaned);
-	string res = toAscii( string(cleaned) );
+    unsigned size = path.size();
+
+    pathnames.push_back(base);
+
+    for (	unsigned pos = 0, sep = path.find(Config::PATH_SEP, pos);
+			pos < size;
+	 		pos = sep + 1, sep = path.find(Config::PATH_SEP, pos)) {
+
+		if (sep == (unsigned)string::npos)
+			sep = size;
+		
+		dir = path.substr(pos, sep - pos);
+
+		BLI_strncpy(cleaned, dir.c_str(), FILE_MAX);
+		BLI_cleanup_file(NULL, cleaned);
+		res = toAscii( string(cleaned) );
 	
-      if (!base.empty())
-		res += Config::DIR_SEP + base;
-      pathnames.push_back(res);
+		if (!base.empty())
+			res += Config::DIR_SEP + base;
+		
+		pathnames.push_back(res);
     }
   }
 

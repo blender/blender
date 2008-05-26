@@ -64,6 +64,7 @@
 
 #include "../system/StringUtils.h"
 
+#include "test_config.h"
 
 Controller::Controller()
 {
@@ -1057,64 +1058,53 @@ void Controller::displayDensityCurves(int x, int y){
 }
 
 void Controller::init_options(){
-// 	//from AppOptionsWindow.cpp
-// 	
-// 	// Directories
-//   ViewMapIO::Options::setModelsPath((const char*)modelsPathLineEdit->text().toAscii().data());
-//   PythonInterpreter::Options::setPythonPath((const char*)pythonPathLineEdit->text().toAscii().data());
-//   TextureManager::Options::setPatternsPath((const char*)patternsPathLineEdit->text().toAscii().data());
-//   TextureManager::Options::setBrushesPath((const char*)brushesPathLineEdit->text().toAscii().data());
-//   //g_pController->setBrowserCmd(browserCmdLineEdit->text());
-//   //g_pController->setHelpIndex(helpIndexPathLineEdit->text());
-// 
-//   // ViewMap Format
-//   if (asFloatCheckBox->isChecked())
-//     ViewMapIO::Options::addFlags(ViewMapIO::Options::FLOAT_VECTORS);
-//   else
-//     ViewMapIO::Options::rmFlags(ViewMapIO::Options::FLOAT_VECTORS);
-//   if (noOccluderListCheckBox->isChecked())
-//     ViewMapIO::Options::addFlags(ViewMapIO::Options::NO_OCCLUDERS);
-//   else
-//     ViewMapIO::Options::rmFlags(ViewMapIO::Options::NO_OCCLUDERS);
-//   g_pController->setComputeSteerableViewMapFlag(steerableViewMapCheckBox->isChecked());
-// 
-//   // Visibility
-//   if (qiCheckBox->isChecked())
-//     g_pController->setQuantitativeInvisibility(true);
-//   else
-//     g_pController->setQuantitativeInvisibility(false);
-// 
-//   // Papers Textures
-//   vector<string> sl;
-//   for (unsigned i = 0; i < paperTexturesList->count(); i++) {
-//     sl.push_back(paperTexturesList->item(i)->text().toAscii().constData());
-//   }
-//   TextureManager::Options::setPaperTextures(sl);
-// 
-//    // Drawing Buffers
-//   if (frontBufferCheckBox->isChecked())
-//     g_pController->setFrontBufferFlag(true);
-//   else
-//     g_pController->setFrontBufferFlag(false);
-//   if (backBufferCheckBox->isChecked())
-//     g_pController->setBackBufferFlag(true);
-//   else
-//     g_pController->setBackBufferFlag(false);
-// 
-//   // Ridges and Valleys
-//   g_pController->setComputeRidgesAndValleysFlag(ridgeValleyCheckBox->isChecked());
-//   // Suggestive Contours
-//   g_pController->setComputeSuggestiveContoursFlag(suggestiveContoursCheckBox->isChecked());
-//   bool ok;
-//   real r = sphereRadiusLineEdit->text().toFloat(&ok);
-//   if(ok)
-//     g_pController->setSphereRadius(r);
-//   else
-//     sphereRadiusLineEdit->setText(QString(QString::number(g_pController->getSphereRadius())));
-//   r = krEpsilonLineEdit->text().toFloat(&ok);
-//   if(ok)
-//     g_pController->setSuggestiveContourKrDerivativeEpsilon(r);
-//   else
-//     krEpsilonLineEdit->setText(QString(QString::number(g_pController->getSuggestiveContourKrDerivativeEpsilon())));
-// }
+// 	from AppOptionsWindow.cpp
+// 	Default init options
+
+	Config::Path * cpath = Config::Path::getInstance();
+
+    // const string& getProjectDir() const {return _ProjectDir;}
+    // const string& getModelsPath() const {return _ModelsPath;}
+    // const string& getPatternsPath() const {return _PatternsPath;}
+    // const string& getBrushesPath() const {return _BrushesPath;}
+    // const string& getPythonPath() const {return _PythonPath;}
+    // const string& getBrowserCmd() const {return _BrowserCmd;}
+    // const string& getHelpIndexpath() const {return _HelpIndexPath;}
+    // const string& getPapersDir() const {return _PapersDir;}
+    // const string& getEnvMapDir() const {return _EnvMapDir;}
+    // const string& getMapsDir() const {return _MapsDir;}
+    // const string& getHomeDir() const {return _HomeDir;}
+
+	// Directories
+	ViewMapIO::Options::setModelsPath( StringUtils::toAscii( cpath->getModelsPath() ) ); 
+	PythonInterpreter::Options::setPythonPath( StringUtils::toAscii( cpath->getPythonPath() ) );
+	TextureManager::Options::setPatternsPath( StringUtils::toAscii( cpath->getPatternsPath() ) );
+	TextureManager::Options::setBrushesPath( StringUtils::toAscii( cpath->getModelsPath() ) );
+
+	// ViewMap Format
+	ViewMapIO::Options::rmFlags(ViewMapIO::Options::FLOAT_VECTORS);
+	ViewMapIO::Options::rmFlags(ViewMapIO::Options::NO_OCCLUDERS);
+	setComputeSteerableViewMapFlag( false );
+
+	// Visibility
+	setQuantitativeInvisibility(true);
+
+	 // Papers Textures
+	vector<string> sl;
+	sl.push_back( StringUtils::toAscii( TEST_TEXTURE_FILE ) );
+	TextureManager::Options::setPaperTextures(sl);
+
+	// Drawing Buffers
+	setFrontBufferFlag(false);
+	setBackBufferFlag(true);
+
+
+	// Ridges and Valleys
+	setComputeRidgesAndValleysFlag( false );
+	
+	// Suggestive Contours
+	setComputeSuggestiveContoursFlag( false );
+	setSphereRadius(1);
+	setSuggestiveContourKrDerivativeEpsilon(0);
+
 }
