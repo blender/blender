@@ -881,8 +881,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 
 				if(part->draw_as==PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
 					for(go= part->dup_group->gobject.first, b=0; go; go= go->next, b++) {
-
-						Mat4MulMat4(tmat, obmat, pamat);
+						Mat4MulMat4(tmat, oblist[b]->obmat, pamat);
 						Mat4MulFloat3((float *)tmat, size*scale);
 						if(par_space_mat)
 							Mat4MulMat4(mat, tmat, par_space_mat);
@@ -890,7 +889,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 							Mat4CpyMat4(mat, tmat);
 
 						dob= new_dupli_object(lb, go->ob, mat, par->lay, counter, OB_DUPLIPARTS, animated);
-						Mat4CpyMat4(dob->omat, oldobmat);
+						Mat4CpyMat4(dob->omat, obcopylist[b].obmat);
 						if(G.rendering)
 							psys_get_dupli_texture(par, part, psmd, pa, cpa, dob->uv, dob->orco);
 					}

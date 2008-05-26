@@ -978,7 +978,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				/* IK Target */
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco, *yco-24, 80, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 				
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);

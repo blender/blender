@@ -1802,6 +1802,7 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 	float top,
 	float frustnear,
 	float frustfar,
+	float focallength,
 	bool
 ){
 	MT_Matrix4x4 result;
@@ -1813,9 +1814,10 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 			float near_div_focallength;
 			// next 2 params should be specified on command line and in Blender publisher
 			if (!m_setfocallength)
-				m_focallength = 1.5 * right;  // derived from example
+				m_focallength = (focallength == 0.f) ? 1.5 * right  // derived from example
+					: focallength; 
 			if (!m_seteyesep)
-				m_eyeseparation = 0.18 * right;  // just a guess...
+				m_eyeseparation = m_focallength/30;  // reasonable value...
 
 			near_div_focallength = frustnear / m_focallength;
 			switch(m_curreye)

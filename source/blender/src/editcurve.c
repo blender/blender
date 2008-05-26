@@ -99,7 +99,7 @@
 
 ListBase editNurb;
 BPoint *lastselbp;
-Nurb *lastnu;		/* for selected */
+int actnu;		/* for selected */
 
 
 /*  void freeNurblist(ListBase *lb); already declared in the kernel */
@@ -108,6 +108,23 @@ float nurbcircle[8][2]= {
 	{0.0, -1.0}, {-1.0, -1.0}, {-1.0, 0.0}, {-1.0,  1.0},
 	{0.0,  1.0}, { 1.0,  1.0}, { 1.0, 0.0}, { 1.0, -1.0}
 };
+
+
+/* this replaces the active flag used in uv/face mode */
+void set_actNurb(Nurb *nu)
+{
+	if (nu==NULL) {
+		actnu = -1;
+	} else {
+		actnu = BLI_findindex(&editNurb, nu);
+	}
+}
+
+Nurb * get_actNurb( void )
+{
+	return BLI_findlink(&editNurb, actnu);
+}
+
 
 /* ******************* SELECTION FUNCTIONS ********************* */
 
@@ -325,7 +342,7 @@ void load_editNurb()
 		
 	}
 	
-	lastnu= NULL;	/* for selected */
+	set_actNurb(NULL);
 }
 
 void make_editNurb()
@@ -361,8 +378,7 @@ void make_editNurb()
 	else G.obedit= NULL;
 	
 	countall();
-	
-	lastnu= NULL;	/* for selected */
+	set_actNurb(NULL);
 }
 
 void remake_editNurb()
@@ -457,8 +473,7 @@ void separate_nurb()
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
-
-	lastnu= NULL;	/* for selected */
+	set_actNurb(NULL);
 }
 
 /* ******************* FLAGS ********************* */
@@ -640,7 +655,7 @@ void deleteflagNurb(short flag)
 		}
 		if(a==0) {
 			BLI_remlink(&editNurb, nu);
-			freeNurb(nu);
+			freeNurb(nu); nu=NULL;
 		}
 		else {
 			/* is nurb in U direction selected */
@@ -878,7 +893,7 @@ void adduplicateflagNurb(short flag)
 					newnu = (Nurb*)MEM_mallocN(sizeof(Nurb), "adduplicateN");  
 					memcpy(newnu, nu, sizeof(Nurb));
 					BLI_addtail(&editNurb, newnu);
-					lastnu= newnu;
+					set_actNurb(newnu);
 					newnu->pntsu= enda-starta+1;
 					newnu->bezt=
 						(BezTriple*)MEM_mallocN((enda - starta + 1) * sizeof(BezTriple), "adduplicateN");  
@@ -913,7 +928,7 @@ void adduplicateflagNurb(short flag)
 				if(enda>=starta) {
 					newnu = (Nurb*)MEM_mallocN(sizeof(Nurb), "adduplicateN3");  
 					memcpy(newnu, nu, sizeof(Nurb));
-					lastnu= newnu;
+					set_actNurb(newnu);
 					BLI_addtail(&editNurb, newnu);
 					newnu->pntsu= enda-starta+1;
 					newnu->bp = (BPoint*)MEM_mallocN((enda-starta+1) * sizeof(BPoint), "adduplicateN4");
@@ -971,7 +986,7 @@ void adduplicateflagNurb(short flag)
 					newnu = (Nurb*)MEM_mallocN(sizeof(Nurb), "adduplicateN5");
 					memcpy(newnu, nu, sizeof(Nurb));
 					BLI_addtail(&editNurb, newnu);
-					lastnu= newnu;
+					set_actNurb(newnu);
 					newnu->pntsu= newu;
 					newnu->pntsv= newv;
 					newnu->bp =
@@ -1015,7 +1030,7 @@ void adduplicateflagNurb(short flag)
 		nu= nu->prev;
 	}
 	
-	/* lastnu changed */
+	/* actnu changed */
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
@@ -2481,7 +2496,7 @@ void merge_nurb()
 	BLI_freelistN(&nsortbase);
 	
 	countall();
-	lastnu= NULL;
+	set_actNurb(NULL);
 
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 
@@ -2594,7 +2609,7 @@ void addsegment_nurb()
 				nu1->bezt= bezt;
 				nu1->pntsu+= nu2->pntsu;
 				BLI_remlink(&editNurb, nu2);
-				freeNurb(nu2);
+				freeNurb(nu2); nu2= NULL;
 				calchandlesNurb(nu1);
 			}
 			else {
@@ -2632,11 +2647,11 @@ void addsegment_nurb()
 						}
 					}
 				}
-				freeNurb(nu2);
+				freeNurb(nu2); nu2= NULL;
 			}
 		}
 		
-		lastnu= NULL;	/* for selected */
+		set_actNurb(NULL);	/* for selected */
 
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 
@@ -2704,8 +2719,8 @@ void mouse_nurb()
 
 	rightmouse_transform();
 	
-	if(nu!=lastnu) {
-		lastnu= nu;
+	if(nu!=get_actNurb()) {
+		set_actNurb(nu);
 		allqueue(REDRAWBUTSEDIT, 0);
 	}
 	
@@ -3638,7 +3653,7 @@ void delNurb()
 					}
 					if(a==0) {
 						BLI_remlink(&editNurb, nu);
-						freeNurb(nu);
+						freeNurb(nu); nu= NULL;
 					}
 				}
 			}
@@ -3654,13 +3669,13 @@ void delNurb()
 					}
 					if(a==0) {
 						BLI_remlink(&editNurb, nu);
-						freeNurb(nu);
+						freeNurb(nu); nu= NULL;
 					}
 				}
 			}
 			
 			/* Never allow the order to exceed the number of points */
-			if ((nu->type & 7)==CU_NURBS && (nu->pntsu < nu->orderu)) {
+			if ((nu!= NULL) && ((nu->type & 7)==CU_NURBS) && (nu->pntsu < nu->orderu)) {
 				nu->orderu = nu->pntsu;
 			}
 			nu= next;
@@ -3790,7 +3805,7 @@ void delNurb()
 			if(bezt1) {
 				if(nu1->pntsu==2) {	/* remove completely */
 					BLI_remlink(&editNurb, nu);
-					freeNurb(nu);
+					freeNurb(nu); nu = NULL;
 				}
 				else if(nu1->flagu & 1) {	/* cyclic */
 					bezt =
@@ -3832,7 +3847,7 @@ void delNurb()
 			else if(bp1) {
 				if(nu1->pntsu==2) {	/* remove completely */
 					BLI_remlink(&editNurb, nu);
-					freeNurb(nu);
+					freeNurb(nu); nu= NULL;
 				}
 				else if(nu1->flagu & 1) {	/* cyclic */
 					bp =
@@ -4592,10 +4607,6 @@ static void undoCurve_to_editCurve(void *lbv)
 {
 	ListBase *lb= lbv;
 	Nurb *nu, *newnu;
-	int nr, lastnunr= 0;
-
-	/* we try to restore lastnu too, for buttons */
-	for(nu= editNurb.first; nu; nu = nu->next, lastnunr++) if(nu==lastnu) break;
 	
 	freeNurblist(&editNurb);
 
@@ -4604,9 +4615,6 @@ static void undoCurve_to_editCurve(void *lbv)
 		newnu= duplicateNurb(nu);
 		BLI_addtail(&editNurb, newnu);
 	}
-	/* restore */
-	for(nr=0, lastnu= editNurb.first; lastnu; lastnu = lastnu->next, nr++) if(nr==lastnunr) break;
-	
 }
 
 static void *editCurve_to_undoCurve(void)

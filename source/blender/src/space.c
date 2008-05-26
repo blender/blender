@@ -1080,7 +1080,10 @@ void BIF_undo_menu(void)
 			if(menu) {
 				short event= pupmenu_col(menu, 20);
 				MEM_freeN(menu);
-				if(event>0) BKE_undo_number(event);
+				if(event>0) {
+					BKE_undo_number(event);
+					sound_initialize_sounds();
+				}
 			}
 		}
 	}

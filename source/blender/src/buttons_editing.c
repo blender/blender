@@ -3071,7 +3071,6 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 
 void do_curvebuts(unsigned short event)
 {
-	extern Nurb *lastnu;
 	extern ListBase editNurb;  /* from editcurve */
 	Object *ob;
 	Curve *cu;
@@ -3147,7 +3146,7 @@ void do_curvebuts(unsigned short event)
 		break;
 	case B_SETORDER:
 		if(G.obedit) {
-			nu= lastnu;
+			nu= get_actNurb();
 			if(nu && (nu->type & 7)==CU_NURBS ) {
 				if(nu->orderu>nu->pntsu) {
 					nu->orderu= nu->pntsu;
@@ -3273,7 +3272,6 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 {
 	Nurb *nu;
 	extern ListBase editNurb;  /* from editcurve */
-	extern Nurb *lastnu;
 	uiBlock *block;
 	short *sp;
 
@@ -3309,8 +3307,11 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 	uiBlockEndAlign(block);
 
 	if(ob==G.obedit) {
-		nu= lastnu;
-		if(nu==NULL) nu= lastnu= editNurb.first;
+		nu= get_actNurb();
+		if(nu==NULL && editNurb.first) {
+			nu= editNurb.first;
+			set_actNurb(nu);
+		}
 		if(nu) {
 			if (ob->type==OB_CURVE) {
 				uiDefBut(block, LABEL, 0, "Tilt",

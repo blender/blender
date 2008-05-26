@@ -245,9 +245,24 @@ void do_image_buttons(unsigned short event)
 		break;
 	}	
 	case B_SIMACLONEBROWSE:
-		if (settings->imapaint.brush)
-			if (brush_clone_image_set_nr(settings->imapaint.brush, G.sima->menunr))
+		if(settings->imapaint.brush) {
+			Brush *brush= settings->imapaint.brush;
+		
+			if(G.sima->menunr== -2) {
+				if(G.qual & LR_CTRLKEY) {
+					activate_databrowse_imasel((ID *)brush->clone.image, ID_IM, 0, B_SIMACLONEBROWSE,
+												&G.sima->menunr, do_image_buttons);
+				} else {
+					activate_databrowse((ID *)brush->clone.image, ID_IM, 0, B_SIMACLONEBROWSE,
+												&G.sima->menunr, do_image_buttons);
+				}
+				break;
+			}
+			if(G.sima->menunr < 0) break;
+
+			if(brush_clone_image_set_nr(brush, G.sima->menunr))
 				allqueue(REDRAWIMAGE, 0);
+		}
 		break;
 		
 	case B_SIMACLONEDELETE:

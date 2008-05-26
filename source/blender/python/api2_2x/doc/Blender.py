@@ -116,6 +116,14 @@ def Get (request):
   @return: The requested data or None if not found.
   """
 
+def GetPaths (absolute=0):
+  """
+  Returns a list of files this blend file uses: (libraries, images, sounds, fonts, sequencer movies).
+  @type absolute: bool
+  @param absolute: When true, the absolute paths of every file will be returned.
+  @return: A list for paths (strings) that this blend file uses.
+  """
+
 def Redraw ():
   """
   Redraw all 3D windows.

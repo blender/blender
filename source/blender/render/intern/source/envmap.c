@@ -225,7 +225,7 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 	ObjectInstanceRen *obi;
 	LampRen *lar = NULL;
 	HaloRen *har = NULL;
-	float imat[3][3], pmat[4][4], smat[4][4], tmat[4][4], cmat[3][3];
+	float imat[3][3], pmat[4][4], smat[4][4], tmat[4][4], cmat[3][3], tmpmat[4][4];
 	int a;
 	
 	if(mode==0) {
@@ -239,8 +239,10 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 
 	for(obi=re->instancetable.first; obi; obi=obi->next) {
 		/* append or set matrix depending on dupli */
-		if(obi->flag & R_DUPLI_TRANSFORMED)
-			Mat4MulMat4(obi->mat, tmat, obi->mat);
+		if(obi->flag & R_DUPLI_TRANSFORMED) {
+			Mat4CpyMat4(tmpmat, obi->mat);
+			Mat4MulMat4(obi->mat, tmat, tmpmat);
+		}
 		else if(mode==1)
 			Mat4CpyMat4(obi->mat, tmat);
 		else

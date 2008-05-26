@@ -2973,6 +2973,8 @@ void extrude_armature(int forked)
 						newbone->parent = ebone;
 						
 						newbone->flag = ebone->flag & BONE_TIPSEL;	// copies it, in case mirrored bone
+
+						if (newbone->parent) newbone->flag |= BONE_CONNECTED;
 					}
 					else {
 						VECCOPY(newbone->head, ebone->head);
@@ -2980,6 +2982,10 @@ void extrude_armature(int forked)
 						newbone->parent= ebone->parent;
 						
 						newbone->flag= BONE_TIPSEL;
+						
+						if (newbone->parent && ebone->flag & BONE_CONNECTED) {
+							newbone->flag |= BONE_CONNECTED;
+						}
 					}
 					
 					newbone->weight= ebone->weight;
@@ -2992,8 +2998,6 @@ void extrude_armature(int forked)
 					newbone->rad_tail= ebone->rad_tail;
 					newbone->segments= 1;
 					newbone->layer= ebone->layer;
-					
-					if (newbone->parent) newbone->flag |= BONE_CONNECTED;
 					
 					BLI_strncpy (newbone->name, ebone->name, 32);
 					
@@ -4093,16 +4097,34 @@ void transform_armature_mirror_update(void)
 			if (eboflip) {
 				/* we assume X-axis flipping for now */
 				if (ebo->flag & BONE_TIPSEL) {
+					EditBone *children;
+					
 					eboflip->tail[0]= -ebo->tail[0];
 					eboflip->tail[1]= ebo->tail[1];
 					eboflip->tail[2]= ebo->tail[2];
 					eboflip->rad_tail= ebo->rad_tail;
+
+					/* Also move connected children, in case children's name aren't mirrored properly */
+					for (children=G.edbo.first; children; children=children->next) {
+						if (children->parent == eboflip && children->flag & BONE_CONNECTED) {
+							VECCOPY(children->head, eboflip->tail);
+							children->rad_head = ebo->rad_tail;
+						}
+					}
 				}
 				if (ebo->flag & BONE_ROOTSEL) {
 					eboflip->head[0]= -ebo->head[0];
 					eboflip->head[1]= ebo->head[1];
 					eboflip->head[2]= ebo->head[2];
 					eboflip->rad_head= ebo->rad_head;
+					
+					/* Also move connected parent, in case parent's name isn't mirrored properly */
+					if (eboflip->parent && eboflip->flag & BONE_CONNECTED)
+					{
+						EditBone *parent = eboflip->parent;
+						VECCOPY(parent->tail, eboflip->head);
+						parent->rad_tail = ebo->rad_head;
+					}
 				}
 				if (ebo->flag & BONE_SELECTED) {
 					eboflip->dist= ebo->dist;
