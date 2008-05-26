@@ -26,8 +26,8 @@
 #ifndef QGLVIEWER_CONSTRAINT_H
 #define QGLVIEWER_CONSTRAINT_H
 
-#include "vec.h"
-#include "quaternion.h"
+#include "AppGLWidget_vec.h"
+#include "AppGLWidget_quaternion.h"
 
 //namespace qglviewer {
   class Frame;

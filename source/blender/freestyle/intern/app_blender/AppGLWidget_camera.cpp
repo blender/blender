@@ -23,7 +23,7 @@
 
 *****************************************************************************/
 
-#include "camera.h"
+#include "AppGLWidget_camera.h"
 //#include "qglviewer.h"
 
 using namespace std;

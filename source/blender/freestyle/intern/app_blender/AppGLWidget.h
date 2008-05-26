@@ -48,9 +48,9 @@ using namespace std;
 //# include <QGLViewer/qglviewer.h>
 
 //soc
-#include "camera.h"
-#include "vec.h"
-#include "quaternion.h"
+#include "AppGLWidget_camera.h"
+#include "AppGLWidget_vec.h"
+#include "AppGLWidget_quaternion.h"
 
 using namespace Geometry;
 

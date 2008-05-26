@@ -26,7 +26,7 @@
 #ifndef QGLVIEWER_MANIPULATED_CAMERA_FRAME_H
 #define QGLVIEWER_MANIPULATED_CAMERA_FRAME_H
 
-#include "manipulatedFrame.h"
+#include "AppGLWidget_manipulatedFrame.h"
 
 //namespace qglviewer {
   /*! \brief The ManipulatedCameraFrame class represents a ManipulatedFrame with Camera specific mouse bindings.

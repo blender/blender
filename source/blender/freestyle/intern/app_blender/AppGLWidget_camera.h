@@ -26,7 +26,7 @@
 #ifndef QGLVIEWER_CAMERA_H
 #define QGLVIEWER_CAMERA_H
 
-#include "manipulatedCameraFrame.h"
+#include "AppGLWidget_manipulatedCameraFrame.h"
 
   /*! \brief A perspective or orthographic camera.
   \class Camera camera.h QGLViewer/camera.h

@@ -26,7 +26,7 @@
 #ifndef QGLVIEWER_VEC_H
 #define QGLVIEWER_VEC_H
 
-#include "config.h"
+#include "AppGLWidget_config.h"
 
 // #include <qapplication.h>
 

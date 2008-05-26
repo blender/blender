@@ -26,7 +26,7 @@
 #ifndef QGLVIEWER_MANIPULATED_FRAME_H
 #define QGLVIEWER_MANIPULATED_FRAME_H
 
-#include "frame.h"
+#include "AppGLWidget_frame.h"
 
 //namespace qglviewer {
   /*! \brief A ManipulatedFrame is a Frame that can be rotated and translated using the mouse.

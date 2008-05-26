@@ -26,8 +26,8 @@
 #ifndef QGLVIEWER_QUATERNION_H
 #define QGLVIEWER_QUATERNION_H
 
-#include "config.h"
-#include "vec.h"
+#include "AppGLWidget_config.h"
+#include "AppGLWidget_vec.h"
 
   /*! \brief The Quaternion class represents 3D rotations and orientations.
   \class Quaternion quaternion.h QGLViewer/quaternion.h

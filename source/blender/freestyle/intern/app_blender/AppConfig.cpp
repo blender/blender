@@ -18,6 +18,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#include "test_config.h"
+
 #include "AppConfig.h"
 #include <iostream>
 
@@ -33,8 +35,7 @@ namespace Config{
     // get the root directory
 	//soc
 	//setRootDir(getEnvVar("FREESTYLE_BLENDER_DIR"));
-	setRootDir("/Users/mx/Documents/work/GSoC_2008/bf-blender/branches/soc-2008-mxcurioni/source/blender/freestyle");
-	cout << _PythonPath << endl;
+	setRootDir( TEST_ROOT_DIR );
 
 //setRootDir(QString("."));
     _pInstance = this;

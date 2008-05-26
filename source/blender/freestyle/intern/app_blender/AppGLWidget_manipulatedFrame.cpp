@@ -23,9 +23,9 @@
 
 *****************************************************************************/
 
-#include "manipulatedFrame.h"
+#include "AppGLWidget_manipulatedFrame.h"
 //#include "qglviewer.h"
-#include "camera.h"
+#include "AppGLWidget_camera.h"
 
 //using namespace qglviewer;
 using namespace std;

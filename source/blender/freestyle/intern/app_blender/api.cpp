@@ -2,6 +2,7 @@
 #include "AppGLWidget.h"
 #include "Controller.h"
 #include "AppConfig.h"
+#include "test_config.h"
 
 #include <iostream>
 
@@ -20,13 +21,13 @@ extern "C" {
 		
 		c->SetView(view);
 	
-		c->Load3DSFile( "/Users/mx/Documents/work/GSoC_2008/bf-blender/branches/soc-2008-mxcurioni/source/blender/freestyle/data/models/teapot.3DS" );
+		c->Load3DSFile( TEST_3DS_FILE );
 		
-		c->InsertStyleModule( 0,  "/Users/mx/Documents/work/GSoC_2008/bf-blender/branches/soc-2008-mxcurioni/source/blender/freestyle/style_modules/contour.py" );
+		c->InsertStyleModule( 0, TEST_STYLE_MODULE_FILE );
 		c->toggleLayer(0, true);
 		c->ComputeViewMap();
 		 
-		//c->DrawStrokes();
+		c->DrawStrokes();
 		
 		cout << "Freestyle end" << endl;
 

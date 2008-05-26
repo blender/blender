@@ -18,7 +18,7 @@
 
 using namespace std;
 
-#include "point.h"
+#include "AppGLWidget_point.h"
 
 # ifdef WIN32
 #  include <windows.h>

@@ -23,8 +23,8 @@
 
 *****************************************************************************/
 
-#include "manipulatedCameraFrame.h"
-#include "camera.h"
+#include "AppGLWidget_manipulatedCameraFrame.h"
+#include "AppGLWidget_camera.h"
 //#include "qglviewer.h"
 
 // #if QT_VERSION >= 0x040000

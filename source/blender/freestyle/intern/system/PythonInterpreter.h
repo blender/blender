@@ -41,11 +41,17 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 
   PythonInterpreter() {
     _language = "Python";
-    Py_Initialize();
+    //Py_Initialize();
+
+	cout << "Freestyle Python Init: " << endl;
+	cout << "- is init   : " << Py_IsInitialized() << endl;
+	cout << "- prog path : " << Py_GetProgramFullPath() << endl;
+	cout << "- mod path  : " << Py_GetPath() << endl;
+	cout << "- version   : " << Py_GetVersion() << endl;
   }
 
   virtual ~PythonInterpreter() {
-    Py_Finalize();
+    //Py_Finalize();
   }
 
   int interpretCmd(const string& cmd) {
@@ -88,19 +94,19 @@ private:
     if (_initialized)
       return;
     PyRun_SimpleString("import sys");
-    vector<string> pathnames;
-    StringUtils::getPathName(_path, "", pathnames);
-    string cmd;
-    char* c_cmd;
-    for (vector<string>::const_iterator it = pathnames.begin();
+	     vector<string> pathnames;
+	     StringUtils::getPathName(_path, "", pathnames);
+	     string cmd;
+	     char* c_cmd;
+	     for (vector<string>::const_iterator it = pathnames.begin();
 	 it != pathnames.end();
 	 ++it) {
-      cmd = "sys.path.append(\"" + *it + "\")";
-      c_cmd = strdup(cmd.c_str());
-      PyRun_SimpleString(c_cmd);
-      free(c_cmd);
-    }
-    //    PyRun_SimpleString("from Freestyle import *");
+	       cmd = "sys.path.append(\"" + *it + "\")";
+	       c_cmd = strdup(cmd.c_str());
+	       PyRun_SimpleString(c_cmd);
+	       free(c_cmd);
+	     }
+       PyRun_SimpleString("from Freestyle import *");
     _initialized = true;
   }
 

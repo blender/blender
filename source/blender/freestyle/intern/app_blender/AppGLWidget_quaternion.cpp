@@ -23,7 +23,7 @@
 
 *****************************************************************************/
 
-#include "quaternion.h"
+#include "AppGLWidget_quaternion.h"
 #include <stdlib.h> // RAND_MAX
 
 // All the methods are declared inline in Quaternion.h

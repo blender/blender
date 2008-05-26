@@ -23,7 +23,7 @@
 
 *****************************************************************************/
 
-#include "vec.h"
+#include "AppGLWidget_vec.h"
 
 // Most of the methods are declared inline in vec.h
 using namespace std;

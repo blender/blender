@@ -23,7 +23,7 @@
 
 *****************************************************************************/
 
-#include "frame.h"
+#include "AppGLWidget_frame.h"
 #include <math.h>
 
 //using namespace qglviewer;
@@ -653,7 +653,7 @@ void Frame::setReferenceFrame(const Frame* const refFrame)
     cout << "Frame::setReferenceFrame would create a loop in Frame hierarchy" << endl;
   else
     {
-      bool identical = (referenceFrame_ == refFrame);
+      //bool identical = (referenceFrame_ == refFrame);
       referenceFrame_ = refFrame;
     }
 }

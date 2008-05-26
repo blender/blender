@@ -59,6 +59,9 @@ public:
   
   void SetView(AppGLWidget *iView);
 
+  //soc
+	void init_options();
+
   int  Load3DSFile(const char *iFileName);
   void CloseFile();
   void LoadViewMapFile(const char *iFileName, bool only_camera = false);

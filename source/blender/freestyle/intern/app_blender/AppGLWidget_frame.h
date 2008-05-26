@@ -26,7 +26,7 @@
 #ifndef QGLVIEWER_FRAME_H
 #define QGLVIEWER_FRAME_H
 
-#include "constraint.h"
+#include "AppGLWidget_constraint.h"
 // #include "GL/gl.h" is now included in config.h for ease of configuration
 
 //namespace qglviewer {

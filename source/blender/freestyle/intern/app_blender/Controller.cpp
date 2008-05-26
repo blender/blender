@@ -108,6 +108,8 @@ Controller::Controller()
   _ComputeSteerableViewMap = false;
   _ComputeSuggestive = true;
   _sphereRadius = 1.0;
+
+	init_options();
 }
 
 Controller::~Controller()
@@ -1052,4 +1054,67 @@ void Controller::displayDensityCurves(int x, int y){
   //   for(i=1; i<=8; ++i)
   //     _pDensityCurvesWindow->SetLevelCurve(i, Vec2d(0,0), Vec2d(nbCurves, 1), curvesDirection[i], "orientation", "density");
   //   _pDensityCurvesWindow->show();
+}
+
+void Controller::init_options(){
+// 	//from AppOptionsWindow.cpp
+// 	
+// 	// Directories
+//   ViewMapIO::Options::setModelsPath((const char*)modelsPathLineEdit->text().toAscii().data());
+//   PythonInterpreter::Options::setPythonPath((const char*)pythonPathLineEdit->text().toAscii().data());
+//   TextureManager::Options::setPatternsPath((const char*)patternsPathLineEdit->text().toAscii().data());
+//   TextureManager::Options::setBrushesPath((const char*)brushesPathLineEdit->text().toAscii().data());
+//   //g_pController->setBrowserCmd(browserCmdLineEdit->text());
+//   //g_pController->setHelpIndex(helpIndexPathLineEdit->text());
+// 
+//   // ViewMap Format
+//   if (asFloatCheckBox->isChecked())
+//     ViewMapIO::Options::addFlags(ViewMapIO::Options::FLOAT_VECTORS);
+//   else
+//     ViewMapIO::Options::rmFlags(ViewMapIO::Options::FLOAT_VECTORS);
+//   if (noOccluderListCheckBox->isChecked())
+//     ViewMapIO::Options::addFlags(ViewMapIO::Options::NO_OCCLUDERS);
+//   else
+//     ViewMapIO::Options::rmFlags(ViewMapIO::Options::NO_OCCLUDERS);
+//   g_pController->setComputeSteerableViewMapFlag(steerableViewMapCheckBox->isChecked());
+// 
+//   // Visibility
+//   if (qiCheckBox->isChecked())
+//     g_pController->setQuantitativeInvisibility(true);
+//   else
+//     g_pController->setQuantitativeInvisibility(false);
+// 
+//   // Papers Textures
+//   vector<string> sl;
+//   for (unsigned i = 0; i < paperTexturesList->count(); i++) {
+//     sl.push_back(paperTexturesList->item(i)->text().toAscii().constData());
+//   }
+//   TextureManager::Options::setPaperTextures(sl);
+// 
+//    // Drawing Buffers
+//   if (frontBufferCheckBox->isChecked())
+//     g_pController->setFrontBufferFlag(true);
+//   else
+//     g_pController->setFrontBufferFlag(false);
+//   if (backBufferCheckBox->isChecked())
+//     g_pController->setBackBufferFlag(true);
+//   else
+//     g_pController->setBackBufferFlag(false);
+// 
+//   // Ridges and Valleys
+//   g_pController->setComputeRidgesAndValleysFlag(ridgeValleyCheckBox->isChecked());
+//   // Suggestive Contours
+//   g_pController->setComputeSuggestiveContoursFlag(suggestiveContoursCheckBox->isChecked());
+//   bool ok;
+//   real r = sphereRadiusLineEdit->text().toFloat(&ok);
+//   if(ok)
+//     g_pController->setSphereRadius(r);
+//   else
+//     sphereRadiusLineEdit->setText(QString(QString::number(g_pController->getSphereRadius())));
+//   r = krEpsilonLineEdit->text().toFloat(&ok);
+//   if(ok)
+//     g_pController->setSuggestiveContourKrDerivativeEpsilon(r);
+//   else
+//     krEpsilonLineEdit->setText(QString(QString::number(g_pController->getSuggestiveContourKrDerivativeEpsilon())));
+// }
 }
