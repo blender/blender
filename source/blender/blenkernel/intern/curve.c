@@ -348,9 +348,9 @@ void freeNurb(Nurb *nu)
 	if(nu->bp) MEM_freeN(nu->bp);
 	nu->bp= 0;
 	if(nu->knotsu) MEM_freeN(nu->knotsu);
-	nu->knotsu= 0;
+	nu->knotsu= NULL;
 	if(nu->knotsv) MEM_freeN(nu->knotsv);
-	nu->knotsv= 0;
+	nu->knotsv= NULL;
 	/* if(nu->trim.first) freeNurblist(&(nu->trim)); */
 
 	MEM_freeN(nu);
@@ -393,7 +393,7 @@ Nurb *duplicateNurb(Nurb *nu)
 			(BPoint*)MEM_mallocN((len)* sizeof(BPoint),"duplicateNurb3");
 		memcpy(newnu->bp, nu->bp, len*sizeof(BPoint));
 		
-		newnu->knotsu=newnu->knotsv= 0;
+		newnu->knotsu= newnu->knotsv= NULL;
 		
 		if(nu->knotsu) {
 			len= KNOTSU(nu);
@@ -506,6 +506,7 @@ static void calcknots(float *knots, short aantal, short order, short type)
 		}
 	}
 	else if(type==2) {
+		/* Warning, the order MUST be 2 or 4, if this is not enforced, the displist will be corrupt */
 		if(order==4) {
 			k= 0.34;
 			for(a=0;a<t;a++) {
@@ -519,6 +520,9 @@ static void calcknots(float *knots, short aantal, short order, short type)
 				if(a>=order && a<=aantal) k+= (0.5);
 				knots[a]= (float)floor(k);
 			}
+		}
+		else {
+			printf("bez nurb curve order is not 3 or 4, should never happen\n");
 		}
 	}
 }
@@ -554,7 +558,7 @@ void makeknots(Nurb *nu, short uv, short type)	/* 0: uniform, 1: endpoints, 2: b
 	if( (nu->type & 7)==CU_NURBS ) {
 		if(uv & 1) {
 			if(nu->knotsu) MEM_freeN(nu->knotsu);
-			if(nu->pntsu>1) {
+			if(check_valid_nurb_u(nu)) {
 				nu->knotsu= MEM_callocN(4+sizeof(float)*KNOTSU(nu), "makeknots");
 				calcknots(nu->knotsu, nu->pntsu, nu->orderu, type);
 				if(nu->flagu & 1) makecyclicknots(nu->knotsu, nu->pntsu, nu->orderu);
@@ -563,7 +567,7 @@ void makeknots(Nurb *nu, short uv, short type)	/* 0: uniform, 1: endpoints, 2: b
 		}
 		if(uv & 2) {
 			if(nu->knotsv) MEM_freeN(nu->knotsv);
-			if(nu->pntsv>1) {
+			if(check_valid_nurb_v(nu)) {
 				nu->knotsv= MEM_callocN(4+sizeof(float)*KNOTSV(nu), "makeknots");
 				calcknots(nu->knotsv, nu->pntsv, nu->orderv, type);
 				if(nu->flagv & 1) makecyclicknots(nu->knotsv, nu->pntsv, nu->orderv);
@@ -645,7 +649,7 @@ void makeNurbfaces(Nurb *nu, float *data, int rowstride)
 	int i, j, iofs, jofs, cycl, len, resolu, resolv;
 	int istart, iend, jsta, jen, *jstart, *jend, ratcomp;
 
-	if(nu->knotsu==0 || nu->knotsv==0) return;
+	if(nu->knotsu==NULL || nu->knotsv==NULL) return;
 	if(nu->orderu>nu->pntsu) return;
 	if(nu->orderv>nu->pntsv) return;
 	if(data==0) return;
@@ -803,7 +807,7 @@ void makeNurbcurve(Nurb *nu, float *data, int resolu, int dim)
 	float *basisu, *sum, *fp,  *in;
 	int i, len, istart, iend, cycl;
 
-	if(nu->knotsu==0) return;
+	if(nu->knotsu==NULL) return;
 	if(nu->orderu>nu->pntsu) return;
 	if(data==0) return;
 
@@ -1478,7 +1482,7 @@ void makeBevelList(Object *ob)
 	while(nu) {
 		/* check we are a single point? also check we are not a surface and that the orderu is sane,
 		 * enforced in the UI but can go wrong possibly */
-		if(nu->pntsu<2 || ((nu->type & 7)==CU_NURBS && nu->pntsu < nu->orderu)) {
+		if(!check_valid_nurb_u(nu)) {
 			bl= MEM_callocN(sizeof(BevList)+1*sizeof(BevPoint), "makeBevelList");
 			BLI_addtail(&(cu->bev), bl);
 			bl->nr= 0;
@@ -2608,3 +2612,63 @@ void curve_applyVertexCos(Curve *cu, ListBase *lb, float (*vertexCos)[3])
 		}
 	}
 }
+
+int check_valid_nurb_u( struct Nurb *nu )
+{
+	if (nu==NULL)						return 0;
+	if (nu->pntsu <= 1)					return 0;
+	if ((nu->type & 7)!=CU_NURBS)		return 1; /* not a nurb, lets assume its valid */
+	
+	if (nu->pntsu < nu->orderu)			return 0;
+	if ((nu->flagu>>1) & 2) { /* Bezier U Endpoints */
+		if (nu->orderu==4) {
+			if (nu->pntsu < 5)			return 0; /* bezier with 4 orderu needs 5 points */
+		} else if (nu->orderu != 3)		return 0; /* order must be 3 or 4 */
+	}
+	return 1;
+}
+int check_valid_nurb_v( struct Nurb *nu)
+{
+	if (nu==NULL)						return 0;
+	if (nu->pntsv <= 1)					return 0;
+	if ((nu->type & 7)!=CU_NURBS)		return 1; /* not a nurb, lets assume its valid */
+	
+	if (nu->pntsv < nu->orderv)			return 0;
+	if ((nu->flagv>>1) & 2) { /* Bezier V Endpoints */
+		if (nu->orderv==4) {
+			if (nu->pntsv < 5)			return 0; /* bezier with 4 orderu needs 5 points */
+		} else if (nu->orderv != 3)		return 0; /* order must be 3 or 4 */
+	}
+	return 1;
+}
+
+int clamp_nurb_order_u( struct Nurb *nu )
+{
+	int change = 0;
+	if(nu->pntsu<nu->orderu) {
+		nu->orderu= nu->pntsu;
+		change= 1;
+	}
+	if((nu->flagu>>1)&2) {
+		CLAMP(nu->orderu, 3,4);
+		change= 1;
+	}
+	return change;
+}
+
+int clamp_nurb_order_v( struct Nurb *nu)
+{
+	int change = 0;
+	if(nu->pntsv<nu->orderv) {
+		nu->orderv= nu->pntsv;
+		change= 1;
+	}
+	if((nu->flagv>>1)&2) {
+		CLAMP(nu->orderv, 3,4);
+		change= 1;
+	}
+	return change;
+}
+
+
+

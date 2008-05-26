@@ -3106,11 +3106,13 @@ void do_curvebuts(unsigned short event)
 						if(event<B_UNIFV) {
 							nu->flagu &= 1;
 							nu->flagu += ((event-B_UNIFU)<<1);
+							clamp_nurb_order_u(nu);
 							makeknots(nu, 1, nu->flagu>>1);
 						}
 						else if(nu->pntsv>1) {
 							nu->flagv &= 1;
 							nu->flagv += ((event-B_UNIFV)<<1);
+							clamp_nurb_order_v(nu);
 							makeknots(nu, 2, nu->flagv>>1);
 						}
 					}
@@ -3148,13 +3150,11 @@ void do_curvebuts(unsigned short event)
 		if(G.obedit) {
 			nu= get_actNurb();
 			if(nu && (nu->type & 7)==CU_NURBS ) {
-				if(nu->orderu>nu->pntsu) {
-					nu->orderu= nu->pntsu;
+				if(clamp_nurb_order_u(nu)) {
 					scrarea_queue_winredraw(curarea);
 				}
 				makeknots(nu, 1, nu->flagu>>1);
-				if(nu->orderv>nu->pntsv) {
-					nu->orderv= nu->pntsv;
+				if(clamp_nurb_order_v(nu)) {
 					scrarea_queue_winredraw(curarea);
 				}
 				makeknots(nu, 2, nu->flagv>>1);

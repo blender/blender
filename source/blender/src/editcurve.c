@@ -335,7 +335,7 @@ void load_editNurb()
 				BLI_addtail(&(cu->nurb), newnu);
 				
 				if((nu->type & 7)==CU_NURBS) {
-					if(nu->pntsu < nu->orderu) nu->orderu= nu->pntsu;
+					clamp_nurb_order_u(nu);
 				}
 			}
 		}
@@ -689,7 +689,7 @@ void deleteflagNurb(short flag)
 				nu->pntsv= newv;
 				MEM_freeN(nu->bp);
 				nu->bp= newbp;
-				if(nu->orderv>nu->pntsv) nu->orderv= nu->pntsv;
+				clamp_nurb_order_v(nu);
 
 				makeknots(nu, 2, nu->flagv>>1);
 			}
@@ -729,13 +729,13 @@ void deleteflagNurb(short flag)
 						nu->pntsu= nu->pntsv;
 						nu->pntsv= 1;
 						SWAP(short, nu->orderu, nu->orderv);
-						if(nu->orderu>nu->pntsu) nu->orderu= nu->pntsu;
+						clamp_nurb_order_u(nu);
 						if(nu->knotsv) MEM_freeN(nu->knotsv);
-						nu->knotsv= 0;
+						nu->knotsv= NULL;
 					}
 					else {
 						nu->pntsu= newu;
-						if(nu->orderu>nu->pntsu) nu->orderu= nu->pntsu;
+						clamp_nurb_order_u(nu);
 					}
 					makeknots(nu, 1, nu->flagu>>1);
 				}
@@ -946,7 +946,7 @@ void adduplicateflagNurb(short flag)
 					}
 
 					/* knots */
-					newnu->knotsu= 0;
+					newnu->knotsu= NULL;
 					makeknots(newnu, 1, newnu->flagu>>1);
 				}
 				bp++;
@@ -991,9 +991,11 @@ void adduplicateflagNurb(short flag)
 					newnu->pntsv= newv;
 					newnu->bp =
 						(BPoint*)MEM_mallocN(newu * newv * sizeof(BPoint), "adduplicateN6");
-					newnu->orderu= MIN2(nu->orderu, newu);
-					newnu->orderv= MIN2(nu->orderv, newv);
-
+					clamp_nurb_order_u(newnu);
+					clamp_nurb_order_v(newnu);
+					
+					newnu->knotsu= newnu->knotsv= NULL;
+					
 					bp= newnu->bp;
 					bp1= nu->bp;
 					for(a=0; a<nu->pntsv; a++) {
@@ -1005,23 +1007,20 @@ void adduplicateflagNurb(short flag)
 							}
 						}
 					}
-					if(nu->pntsu==newnu->pntsu) {
-						newnu->knotsu= MEM_mallocN(sizeof(float)*KNOTSU(nu), "adduplicateN6");
-						memcpy(newnu->knotsu, nu->knotsu, sizeof(float)*KNOTSU(nu));
+					if (check_valid_nurb_u(newnu)) {
+						if(nu->pntsu==newnu->pntsu && nu->knotsu) {
+							newnu->knotsu= MEM_dupallocN( nu->knotsu );
+						} else {
+							makeknots(newnu, 1, newnu->flagu>>1);
+						}
 					}
-					else {
-						newnu->knotsu= 0;
-						makeknots(newnu, 1, newnu->flagu>>1);
+					if (check_valid_nurb_v(newnu)) {
+						if(nu->pntsv==newnu->pntsv && nu->knotsv) {
+							newnu->knotsv= MEM_dupallocN( nu->knotsv );
+						} else {
+							makeknots(newnu, 2, newnu->flagv>>1);
+						}
 					}
-					if(nu->pntsv==newnu->pntsv) {
-						newnu->knotsv= MEM_mallocN(sizeof(float)*KNOTSV(nu), "adduplicateN7");
-						memcpy(newnu->knotsv, nu->knotsv, sizeof(float)*KNOTSV(nu));
-					}
-					else {
-						newnu->knotsv= 0;
-						makeknots(newnu, 2, newnu->flagv>>1);
-					}
-
 				}
 				MEM_freeN(usel);
 			}
@@ -2154,9 +2153,9 @@ int convertspline(short type, Nurb *nu)
 		if(type==0) {			/* to Poly */
 			nu->type &= ~7;
 			if(nu->knotsu) MEM_freeN(nu->knotsu); /* python created nurbs have a knotsu of zero */
-			nu->knotsu= 0;
+			nu->knotsu= NULL;
 			if(nu->knotsv) MEM_freeN(nu->knotsv);
-			nu->knotsv= 0;
+			nu->knotsv= NULL;
 		}
 		else if(type==CU_BEZIER) {		/* to Bezier */
 			nr= nu->pntsu/3;
@@ -2185,7 +2184,7 @@ int convertspline(short type, Nurb *nu)
 				MEM_freeN(nu->bp);
 				nu->bp= 0;
 				MEM_freeN(nu->knotsu);
-				nu->knotsu= 0;
+				nu->knotsu= NULL;
 				nu->pntsu= nr;
 				nu->type &= ~7;
 				nu->type+= 1;
@@ -3042,26 +3041,28 @@ void makecyclicNurb()
 				calchandlesNurb(nu);
 			}
 			else if(nu->pntsv==1 && (nu->type & 7)==CU_NURBS) {
-				a= nu->pntsu;
-				bp= nu->bp;
-				while(a--) {
-					if( bp->f1 & SELECT ) {
-						if(nu->flagu & CU_CYCLIC) nu->flagu--;
-						else {
-							nu->flagu++;
-							nu->flagu &= ~2;	/* endpoint flag, fixme */
-							fp= MEM_mallocN(sizeof(float)*KNOTSU(nu), "makecyclicN");
-							b= (nu->orderu+nu->pntsu);
-							memcpy(fp, nu->knotsu, sizeof(float)*b);
-							MEM_freeN(nu->knotsu);
-							nu->knotsu= fp;
+				if (nu->knotsu) { /* if check_valid_nurb_u fails the knotsu can be NULL */
+					a= nu->pntsu;
+					bp= nu->bp;
+					while(a--) {
+						if( bp->f1 & SELECT ) {
+							if(nu->flagu & CU_CYCLIC) nu->flagu--;
+							else {
+								nu->flagu++;
+								nu->flagu &= ~2;	/* endpoint flag, fixme */
+								fp= MEM_mallocN(sizeof(float)*KNOTSU(nu), "makecyclicN");
+								b= (nu->orderu+nu->pntsu);
+								memcpy(fp, nu->knotsu, sizeof(float)*b);
+								MEM_freeN(nu->knotsu);
+								nu->knotsu= fp;
 							
-							makeknots(nu, 1, 0);	/* 1==u  0==uniform */
+								makeknots(nu, 1, 0);	/* 1==u  0==uniform */
 							
+							}
+							break;
 						}
-						break;
+						bp++;
 					}
-					bp++;
 				}
 			}
 			else if(nu->type==CU_NURBS) {
@@ -3078,26 +3079,34 @@ void makecyclicNurb()
 							if(nu->flagu & CU_CYCLIC) nu->flagu--;
 							else {
 								nu->flagu++;
-								fp= MEM_mallocN(sizeof(float)*KNOTSU(nu), "makecyclicN");
-								b= (nu->orderu+nu->pntsu);
-								memcpy(fp, nu->knotsu, sizeof(float)*b);
-								MEM_freeN(nu->knotsu);
-								nu->knotsu= fp;
+								if (check_valid_nurb_u(nu)) {
+									fp= MEM_mallocN(sizeof(float)*KNOTSU(nu), "makecyclicN");
+									b= (nu->orderu+nu->pntsu);
+									if (nu->knotsu) { /* null if check_valid_nurb_u failed before but is valid now */
+										memcpy(fp, nu->knotsu, sizeof(float)*b);
+										MEM_freeN(nu->knotsu);
+									}
+									nu->knotsu= fp;
 								
-								makeknots(nu, 1, 0);	/* 1==u  0==uniform */
+									makeknots(nu, 1, 0);	/* 1==u  0==uniform */
+								}
 							}
 						}
 						if(cyclmode==2 && nu->pntsv>1) {
 							if(nu->flagv & 1) nu->flagv--;
 							else {
 								nu->flagv++;
-								fp= MEM_mallocN(sizeof(float)*KNOTSV(nu), "makecyclicN");
-								b= (nu->orderv+nu->pntsv);
-								memcpy(fp, nu->knotsv, sizeof(float)*b);
-								MEM_freeN(nu->knotsv);
-								nu->knotsv= fp;
+								if (check_valid_nurb_v(nu)) {
+									fp= MEM_mallocN(sizeof(float)*KNOTSV(nu), "makecyclicN");
+									b= (nu->orderv+nu->pntsv);
+									if (nu->knotsv) { /* null if check_valid_nurb_v failed before but is valid now */
+										memcpy(fp, nu->knotsv, sizeof(float)*b);
+										MEM_freeN(nu->knotsv);
+									}
+									nu->knotsv= fp;
 								
-								makeknots(nu, 2, 0);	/* 2==v  0==uniform */
+									makeknots(nu, 2, 0);	/* 2==v  0==uniform */
+								}
 							}
 						}
 						break;
@@ -3674,10 +3683,13 @@ void delNurb()
 				}
 			}
 			
-			/* Never allow the order to exceed the number of points */
-			if ((nu!= NULL) && ((nu->type & 7)==CU_NURBS) && (nu->pntsu < nu->orderu)) {
-				nu->orderu = nu->pntsu;
+			/* Never allow the order to exceed the number of points
+			- note, this is ok but changes unselected nurbs, disable for now */
+			/*
+			if ((nu!= NULL) && ((nu->type & 7)==CU_NURBS)) {
+				clamp_nurb_order_u(nu);
 			}
+			*/
 			nu= next;
 		}
 		/* 2nd loop, delete small pieces: just for curves */
@@ -3725,10 +3737,12 @@ void delNurb()
 					MEM_freeN(nu->bp);
 					nu->bp= bp1;
 					
-					/* Never allow the order to exceed the number of points */
-					if ((nu->type & 7)==CU_NURBS && (nu->pntsu < nu->orderu)) {
-						nu->orderu = nu->pntsu;
-					}
+					/* Never allow the order to exceed the number of points\
+					- note, this is ok but changes unselected nurbs, disable for now */
+					/*
+					if ((nu->type & 7)==CU_NURBS) {
+						clamp_nurb_order_u(nu);
+					}*/
 				}
 				makeknots(nu, 1, nu->flagu>>1);
 			}
