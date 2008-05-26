@@ -4054,6 +4054,7 @@ void createTransData(TransInfo *t)
 		t->flag |= T_POINTS;
 	}
 	else {
+		t->flag &= ~T_PROP_EDIT; /* no proportional edit in object mode */
 		createTransObject(t);
 		t->flag |= T_OBJECT;
 	}
