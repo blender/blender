@@ -1458,7 +1458,7 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt )
 	long i=0, j = 0, k = 0, numfaces = 0, numverts = 0;
 	unsigned int result = 0, rounds = 0; // result counts applied collisions; ic is for debug output;
 	ClothVertex *verts = NULL;
-	int ret = 0;
+	int ret = 0, ret2 = 0;
 	ClothModifierData *tclmd;
 	int collisions = 0, count = 0;
 
@@ -1484,6 +1484,7 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt )
 	do
 	{
 		result = 0;
+		ret2 = 0;
 
 		// check all collision objects
 		for ( base = G.scene->base.first; base; base = base->next )
@@ -1512,6 +1513,7 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt )
 							continue;
 
 						ret += cloth_bvh_objcollisions_do ( clmd, collmd, step, dt );
+						ret2 += ret;
 					}
 				}
 			}
@@ -1522,6 +1524,7 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt )
 					continue;
 
 				ret += cloth_bvh_objcollisions_do ( clmd, collmd, step, dt );
+				ret2 += ret;
 			}
 		}
 		rounds++;
@@ -1624,6 +1627,7 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt )
 							VECSUB ( verts[i].tx, verts[i].tx, temp );
 						}
 						ret = 1;
+						ret2 += ret;
 					}
 					else
 					{
@@ -1640,7 +1644,7 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt )
 			////////////////////////////////////////////////////////////
 			// SELFCOLLISIONS: update velocities
 			////////////////////////////////////////////////////////////
-			if ( ret )
+			if ( ret2 )
 			{
 				for ( i = 0; i < cloth->numverts; i++ )
 				{
@@ -1653,7 +1657,7 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt )
 			////////////////////////////////////////////////////////////
 		}
 	}
-	while ( result && ( clmd->coll_parms->loop_count>rounds ) );
+	while ( ret2 && ( clmd->coll_parms->loop_count>rounds ) );
 
 	return MIN2 ( ret, 1 );
 }
