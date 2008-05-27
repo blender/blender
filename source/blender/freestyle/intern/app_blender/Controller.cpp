@@ -1098,7 +1098,6 @@ void Controller::init_options(){
 	setFrontBufferFlag(false);
 	setBackBufferFlag(true);
 
-
 	// Ridges and Valleys
 	setComputeRidgesAndValleysFlag( false );
 	
@@ -1107,4 +1106,6 @@ void Controller::init_options(){
 	setSphereRadius(1);
 	setSuggestiveContourKrDerivativeEpsilon(0);
 
+	// soc: initialize canvas
+	_Canvas->init();
 }

@@ -291,8 +291,10 @@ GLTextureManager::loadPapers ()
   // Papers textures
   cout << "Loading papers textures..." << endl;
 
-  for (unsigned i = 0; i < size; i++)
-    preparePaper(_papertextures[i].c_str(), _papertexname[i]);
+  for (unsigned i = 0; i < size; i++){
+	cout << i << ": " << _papertextures[i] << endl;
+	preparePaper(_papertextures[i].c_str(), _papertexname[i]);
+  }
 
   cout << "Done." << endl << endl;
 }
@@ -368,12 +370,12 @@ GLTextureManager::prepareTextureAlpha (string sname, GLuint itexname)
 //soc  if (qim.isNull()) 
 	if( qim )
     {
-      cerr << "  Error: unable to read \"" << name << "\"" << endl;
+      cerr << "  Error: unable to read \"" << filename << "\"" << endl;
       return false;
     }
   if( qim->depth > 8) //soc
     {
-      cerr<<"  Error: \""<< name <<"\" has "<< qim->depth <<" bits/pixel"<<endl; //soc
+      cerr<<"  Error: \""<< filename <<"\" has "<< qim->depth <<" bits/pixel"<<endl; //soc
       return false;
     }
   //		qim=QGLWidget::convertToGLFormat( qimOri );
@@ -414,14 +416,14 @@ GLTextureManager::prepareTextureLuminance (string sname, GLuint itexname)
 	char filename[FILE_MAXFILE];
 	BLI_splitdirstring(name, filename);
 	
-  if (qim) //soc
+  if (!qim) //soc
     {
-      cerr << "  Error: unable to read \"" << name << "\"" << endl;
+      cerr << "  Error: unable to read \"" << filename << "\"" << endl;
       return false;
     }
   if (qim->depth > 8) //soc
     {
-      cerr<<"  Error: \""<<name<<"\" has "<<qim->depth <<" bits/pixel"<<endl;//soc
+      cerr<<"  Error: \""<<filename<<"\" has "<<qim->depth <<" bits/pixel"<<endl;//soc
       return false;
     }
 
@@ -461,14 +463,14 @@ GLTextureManager::prepareTextureLuminanceAndAlpha (string sname, GLuint itexname
 	char filename[FILE_MAXFILE];
 	BLI_splitdirstring(name, filename);
 
-  if (qim) //soc
+  if (!qim) //soc
     {
-      cerr << "  Error: unable to read \"" << name << "\"" << endl;
+      cerr << "  Error: unable to read \"" << filename << "\"" << endl;
       return false;
     }
   if (qim->depth > 8) //soc
     {
-      cerr<<"  Error: \""<<name<<"\" has "<<qim->depth<<" bits/pixel"<<endl; //soc
+      cerr<<"  Error: \""<<filename<<"\" has "<< qim->depth <<" bits/pixel"<<endl; //soc
       return false;
     }
 					   
@@ -507,14 +509,15 @@ GLTextureManager::preparePaper (const char *name, GLuint itexname)
 	char filename[FILE_MAXFILE];
 	BLI_splitdirstring((char *)name, filename);
 
-  if (qim) //soc 
+  if (!qim) //soc 
     {
-      cerr << "  Error: unable to read \"" << name << "\"" << endl;
+      cerr << "  Error: unable to read \"" << filename << "\"" << endl;
       return false;
     }
+
   if (qim->depth !=32) //soc
     {
-      cerr<<"  Error: \""<<name<<"\" has "<<qim->depth<<" bits/pixel"<<endl; //soc
+      cerr<<"  Error: \""<<filename<<"\" has "<<qim->depth<<" bits/pixel"<<endl; //soc
       return false;
     }
   //soc QImage qim2=QGLWidget::convertToGLFormat( qim );

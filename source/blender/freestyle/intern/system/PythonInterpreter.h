@@ -108,7 +108,7 @@ private:
 	vector<string> pathnames;
 	StringUtils::getPathName(_path, "", pathnames);
 	
-	struct Text *text = add_empty_text("initpath_test.txt");
+	struct Text *text = add_empty_text("tmp_initpath.txt");
 	string cmd = "import sys\n";
 	txt_insert_buf(text, const_cast<char*>(cmd.c_str()));
 	
