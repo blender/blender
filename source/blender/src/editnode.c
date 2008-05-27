@@ -166,13 +166,14 @@ static void snode_handle_recalc(SpaceNode *snode)
 			snode->nodetree->test_break= NULL;
 			waitcursor(0);
 			
-			allqueue(REDRAWNODE, 1);
 			allqueue(REDRAWIMAGE, 1);
 			if(G.scene->r.scemode & R_DOCOMP) {
 				BIF_redraw_render_rect();	/* seems to screwup display? */
 				mywinset(curarea->win);
 			}
 		}
+
+		allqueue(REDRAWNODE, 1);
 	}
 }
 
