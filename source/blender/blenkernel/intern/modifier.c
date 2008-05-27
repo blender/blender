@@ -7042,6 +7042,11 @@ static DerivedMesh *shrinkwrapModifier_applyModifier(ModifierData *md, Object *o
 	return shrinkwrapModifier_do((ShrinkwrapModifierData*)md,ob,derivedData,useRenderParams,isFinalCalc);
 }
 
+static DerivedMesh *shrinkwrapModifier_applyModifierEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData)
+{
+	return shrinkwrapModifier_do((ShrinkwrapModifierData*)md,ob,derivedData,0,0);
+}
+
 static void shrinkwrapModifier_updateDepgraph(ModifierData *md, DagForest *forest, Object *ob, DagNode *obNode)
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
@@ -7377,12 +7382,16 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 
 		mti = INIT_TYPE(Shrinkwrap);
 		mti->type = eModifierTypeType_Nonconstructive;
-		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_SupportsEditmode
+				| eModifierTypeFlag_EnableInEditmode;
+
 		mti->initData = shrinkwrapModifier_initData;
 		mti->copyData = shrinkwrapModifier_copyData;
 		mti->requiredDataMask = shrinkwrapModifier_requiredDataMask;
 		mti->foreachObjectLink = shrinkwrapModifier_foreachObjectLink;
 		mti->applyModifier = shrinkwrapModifier_applyModifier;
+		mti->applyModifierEM = shrinkwrapModifier_applyModifierEM;
 		mti->updateDepgraph = shrinkwrapModifier_updateDepgraph;
 
 		typeArrInit = 0;
