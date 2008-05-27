@@ -653,10 +653,10 @@ static void traverse(BVHOverlapData *data, BVHNode *node1, BVHNode *node2)
 	if(tree_overlap(node1->bv, node2->bv, MIN2(data->tree1->start_axis, data->tree2->start_axis), MIN2(data->tree1->stop_axis, data->tree2->stop_axis)))
 	{
 		// check if node1 is a leaf
-		if(node1->index)
+		if(!node1->totnode)
 		{
 			// check if node2 is a leaf
-			if(node2->index)
+			if(!node2->totnode)
 			{
 				
 				if(node1 == node2)
