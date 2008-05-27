@@ -3394,6 +3394,7 @@ static int ui_do_but_HSVCUBE(uiBut *but)
 			/* we redraw the entire block */
 			for (bt= but->block->buttons.first; bt; bt= bt->next) {
 				if(but->poin == bt->poin) VECCOPY(bt->hsv, but->hsv);
+				ui_check_but(bt);
 				ui_draw_but(bt);
 			}
 			ui_block_flush_back(but->block);
