@@ -498,6 +498,7 @@ DO_INLINE void collision_interpolateOnTriangle ( float to[3], float v1[3], float
 	VECADDMUL ( to, v3, w3 );
 }
 
+
 int cloth_collision_response_static ( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair, CollPair *collision_end )
 {
 	int result = 0;
@@ -1189,8 +1190,16 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 			edgecollpair.p22 = collpair->bp3;
 		}
 
+		if((edgecollpair.p11 == 3) && (edgecollpair.p12 == 6))
+			printf("Ahier!\n");
+		if((edgecollpair.p11 == 6) && (edgecollpair.p12 == 3))
+			printf("Ahier!\n");
+
 		if ( !cloth_are_edges_adjacent ( clmd, collmd, &edgecollpair ) )
 		{
+			// printf("Collision between:\n");
+			// printf("p11: %d, p12: %d, p21: %d, p22: %d\n", edgecollpair.p11, edgecollpair.p12, edgecollpair.p21, edgecollpair.p22);
+
 			// always put coll points in p21/p22
 			VECSUB ( x1, verts1[edgecollpair.p12].txold, verts1[edgecollpair.p11].txold );
 			VECSUB ( v1, verts1[edgecollpair.p12].tv, verts1[edgecollpair.p11].tv );
@@ -1206,11 +1215,14 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 			for ( k = 0; k < numsolutions; k++ )
 			{
 				// printf("sol %d: %lf\n", k, solution[k]);
-				if ( ( solution[k] >= DBL_EPSILON ) && ( solution[k] <= 1.0 ) )
+				if ( ( solution[k] >= ALMOST_ZERO ) && ( solution[k] <= 1.0 ) && ( solution[k] >  ALMOST_ZERO))
 				{
 					float a,b;
 					float out_normal[3];
 					float distance;
+					float impulse = 0;
+					float I_mag;
+					float m1, m2;
 
 					// move verts
 					VECADDS(triA[0], verts1[edgecollpair.p11].txold, verts1[edgecollpair.p11].tv, mintime);
@@ -1224,28 +1236,57 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 					
 					if ((distance <= clmd->coll_parms->epsilon + BLI_bvhtree_getepsilon ( collmd->bvhtree ) + ALMOST_ZERO) && (INPR(out_normal, out_normal) > 0))
 					{
-						// printf("found edge, dist: %f\n", distance);
+						float vrel_1_to_2[3], temp[3], temp2[3], out_normalVelocity;
+						float desiredVn;
+
+						VECCOPY(vrel_1_to_2, verts1[edgecollpair.p11].tv);
+						VecMulf(vrel_1_to_2, 1.0 - a);
+						VECCOPY(temp, verts1[edgecollpair.p12].tv);
+						VecMulf(temp, a);
+
+						VECADD(vrel_1_to_2, vrel_1_to_2, temp);
+
+						VECCOPY(temp, verts1[edgecollpair.p21].tv);
+						VecMulf(temp, 1.0 - b);
+						VECCOPY(temp2, verts1[edgecollpair.p22].tv);
+						VecMulf(temp2, b);
+						VECADD(temp, temp, temp2);
+
+						VECSUB(vrel_1_to_2, vrel_1_to_2, temp);
+
+						out_normalVelocity = INPR(vrel_1_to_2, out_normal);
+
+						if(out_normalVelocity < 0.0)
+						{
+							out_normalVelocity*= -1.0;
+							VecMulf(out_normal, -1.0);
+						}
 
 						/* Inelastic repulsion impulse. */
-/*
+
 						// Calculate which normal velocity we need. 
-						float desiredVn = (normalVelocity * (float)solution[k] - (.1 * (clmd->coll_parms->epsilon + BLI_bvhtree_getepsilon ( collmd->bvhtree )) - sqrt(squaredDistance)) - ALMOST_ZERO);
+						desiredVn = (out_normalVelocity * (float)solution[k] - (.1 * (clmd->coll_parms->epsilon + BLI_bvhtree_getepsilon ( collmd->bvhtree )) - sqrt(distance)) - ALMOST_ZERO);
 
 						// Now calculate what impulse we need to reach that velocity. 
-						float m1 = interpolateOnEdge(cloth1.getVertexWeight(v11idx), cloth1.getVertexWeight(v12idx), a1);
-						float m2 = interpolateOnEdge(cloth2.getVertexWeight(v21idx), cloth2.getVertexWeight(v22idx), a2);
-						float I_mag = (normalVelocity - desiredVn) / (1/m1 + 1/m2);
+						I_mag = (out_normalVelocity - desiredVn) / 2.0; // / (1/m1 + 1/m2);
 
 						// Finally apply that impulse. 
-						applyInterpolatedImpulsesEdge(out_impulses1[v11idx], out_impulses1[v12idx], out_impulses2[v21idx], out_impulses2[v22idx],
-						a1, a2, -I_mag, normal);
-						++out_impulseCounter1[v11idx]; ++out_impulseCounter1[v12idx];
-						++out_impulseCounter2[v21idx]; ++out_impulseCounter2[v22idx];
+						impulse = (2.0 * -I_mag) / (a*a + (1.0-a)*(1.0-a) + b*b + (1.0-b)*(1.0-b));
 
-		*/				// return true;
+						VECADDMUL ( verts1[edgecollpair.p11].impulse, out_normal, (1.0-a) * impulse );
+						verts1[edgecollpair.p11].impulse_count++;
+
+						VECADDMUL ( verts1[edgecollpair.p12].impulse, out_normal, a * impulse );
+						verts1[edgecollpair.p12].impulse_count++;
+
+						// return true;
 						result = 1;
+						break;
 					}
-
+					else
+					{
+						// missing from collision.hpp
+					}
 					mintime = MIN2(mintime, (float)solution[k]);
 
 					break;
@@ -1253,37 +1294,6 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 			}
 		}
 	}
-/*
-	if(result)
-	{
-		// move triangles to collision point in time
-		VECADDS(triA[0], verts1[collpair->ap1].txold, verts1[collpair->ap1].tv, mintime);
-		VECADDS(triA[1], verts1[collpair->ap2].txold, verts1[collpair->ap2].tv, mintime);
-		VECADDS(triA[2], verts1[collpair->ap3].txold, verts1[collpair->ap3].tv, mintime);
-
-		VECADDS(triB[0], collmd->current_x[collpair->bp1].co, collmd->current_v[collpair->bp1].co, mintime);
-		VECADDS(triB[1], collmd->current_x[collpair->bp2].co, collmd->current_v[collpair->bp2].co, mintime);
-		VECADDS(triB[2], collmd->current_x[collpair->bp3].co, collmd->current_v[collpair->bp3].co, mintime);
-
-		// check distance there
-		distance = plNearestPoints (triA[0], triA[1], triA[2], triB[0], triB[1], triB[2], collpair->pa,collpair->pb,collpair->vector );
-
-		if(distance <= (clmd->coll_parms->epsilon + BLI_bvhtree_getepsilon ( collmd->bvhtree ) + ALMOST_ZERO))
-		{
-			CollPair *next = collpair;
-			next++;
-
-			collpair->distance = clmd->coll_parms->epsilon;
-			collpair->time = mintime;
-
-			VECCOPY ( collpair->normal, collpair->vector );
-			Normalize ( collpair->normal );
-
-			// cloth_collision_response_moving ( clmd, collmd, collpair, next );
-
-		}
-	}
-*/
 	return result;
 }
 
@@ -1419,7 +1429,7 @@ int cloth_bvh_objcollisions_do ( ClothModifierData * clmd, CollisionModifierData
 					}
 				}
 			}
-/*
+
 			result += cloth_collision_moving ( clmd, collmd, collisions, collisions_index );
 
 			// apply impulses in parallel
@@ -1438,7 +1448,7 @@ int cloth_bvh_objcollisions_do ( ClothModifierData * clmd, CollisionModifierData
 					}
 				}
 			}
-*/
+
 		}
 	}
 
