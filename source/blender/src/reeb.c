@@ -34,6 +34,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_armature_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -41,6 +42,7 @@
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
+#include "BLI_ghash.h"
 
 #include "BDR_editobject.h"
 
@@ -60,6 +62,9 @@
 
 #include "reeb.h"
 
+/* REPLACE WITH NEW ONE IN UTILDEFINES ONCE PATCH IS APPLIED */
+#define FTOCHAR(val) (val<=0.0f)? 0 : ((val>(1.0f-0.5f/255.0f))? 255 : (char)((255.0f*val)+0.5f))
+
 /*
  * Skeleton generation algorithm based on: 
  * "Harmonic Skeleton for Realistic Character Animation"
@@ -72,10 +77,20 @@
  * SIGGRAPH 2007
  * 
  * */
+ 
+#define DEBUG_REEB
+
+typedef enum {
+	MERGE_LOWER,
+	MERGE_HIGHER,
+	MERGE_APPEND
+} MergeDirection;
 
 int mergeArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1);
 int mergeConnectedArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1);
 EditEdge * NextEdgeForVert(EditMesh *em, EditVert *v);
+void mergeArcFaces(ReebGraph *rg, ReebArc *aDst, ReebArc *aSrc);
+void addFacetoArc(ReebArc *arc, EditFace *efa);
 
 /***************************************** BUCKET UTILS **********************************************/
 
@@ -227,11 +242,14 @@ void freeArc(ReebArc *arc)
 	
 	if (arc->buckets)
 		MEM_freeN(arc->buckets);
+		
+	if (arc->faces)
+		BLI_ghash_free(arc->faces, NULL, NULL);
 	
 	MEM_freeN(arc);
 }
 
-void freeGraph(ReebGraph *rg)
+void REEB_freeGraph(ReebGraph *rg)
 {
 	ReebArc *arc;
 	ReebNode *node;
@@ -292,6 +310,7 @@ void repositionNodes(ReebGraph *rg)
 
 void verifyNodeDegree(ReebGraph *rg)
 {
+#ifdef DEBUG_REEB
 	ReebNode *node = NULL;
 	ReebArc *arc = NULL;
 
@@ -310,6 +329,7 @@ void verifyNodeDegree(ReebGraph *rg)
 			printf("degree error in node %i: expected %i got %i\n", node->index, count, node->degree);
 		}
 	}
+#endif
 }
 
 void verifyBuckets(ReebGraph *rg)
@@ -345,9 +365,617 @@ void verifyBuckets(ReebGraph *rg)
 #endif
 }
 
+void verifyFaces(ReebGraph *rg)
+{
+#ifdef DEBUG_REEB
+	int total = 0;
+	ReebArc *arc = NULL;
+	for(arc = rg->arcs.first; arc; arc = arc->next)
+	{
+		total += BLI_ghash_size(arc->faces);
+	}
+	
+#endif
+}
+
+/**************************************** SYMMETRY HANDLING ******************************************/
+
+void markdownSymmetryArc(ReebArc *arc, ReebNode *node, int level);
+
+static void mirrorAlongAxis(float v[3], float center[3], float axis[3])
+{
+	float dv[3], pv[3];
+	
+	VecSubf(dv, v, center);
+	Projf(pv, dv, axis);
+	VecMulf(pv, -2);
+	VecAddf(v, v, pv);
+}
+
+/* Helper structure for radial symmetry */
+typedef struct RadialArc
+{
+	ReebArc *arc; 
+	float n[3]; /* normalized vector joining the nodes of the arc */
+} RadialArc;
+
+void reestablishRadialSymmetry(ReebNode *node, int depth, float axis[3], int reestablish)
+{
+	RadialArc *ring = NULL;
+	RadialArc *unit;
+	float limit = G.scene->toolsettings->skgen_symmetry_limit;
+	int symmetric = 1;
+	int count = 0;
+	int i;
+
+	/* mark topological symmetry */
+	node->symmetry_flag |= SYM_TOPOLOGICAL;
+
+	/* count the number of arcs in the symmetry ring */
+	for (i = 0; node->arcs[i] != NULL; i++)
+	{
+		ReebArc *connectedArc = node->arcs[i];
+		
+		/* depth is store as a negative in flag. symmetry level is positive */
+		if (connectedArc->symmetry_level == -depth)
+		{
+			count++;
+		}
+	}
+
+	ring = MEM_callocN(sizeof(RadialArc) * count, "radial symmetry ring");
+	unit = ring;
+
+	/* fill in the ring */
+	for (unit = ring, i = 0; node->arcs[i] != NULL; i++)
+	{
+		ReebArc *connectedArc = node->arcs[i];
+		
+		/* depth is store as a negative in flag. symmetry level is positive */
+		if (connectedArc->symmetry_level == -depth)
+		{
+			ReebNode *otherNode = OTHER_NODE(connectedArc, node);
+			float vec[3];
+
+			unit->arc = connectedArc;
+
+			/* project the node to node vector on the symmetry plane */
+			VecSubf(unit->n, otherNode->p, node->p);
+			Projf(vec, unit->n, axis);
+			VecSubf(unit->n, unit->n, vec);
+
+			Normalize(unit->n);
+
+			unit++;
+		}
+	}
+
+	/* sort ring */
+	for (i = 0; i < count - 1; i++)
+	{
+		float minAngle = 3; /* arbitrary high value, higher than 2, at least */
+		int minIndex = -1;
+		int j;
+
+		for (j = i + 1; j < count; j++)
+		{
+			float angle = Inpf(ring[i].n, ring[j].n);
+
+			/* map negative values to 1..2 */
+			if (angle < 0)
+			{
+				angle = 1 - angle;
+			}
+
+			if (angle < minAngle)
+			{
+				minIndex = j;
+				minAngle = angle;
+			}
+		}
+
+		/* swap if needed */
+		if (minIndex != i + 1)
+		{
+			RadialArc tmp;
+			tmp = ring[i + 1];
+			ring[i + 1] = ring[minIndex];
+			ring[minIndex] = tmp;
+		}
+	}
+
+	for (i = 0; i < count && symmetric; i++)
+	{
+		ReebNode *node1, *node2;
+		float tangent[3];
+		float normal[3];
+		float p[3];
+		int j = (i + 1) % count; /* next arc in the circular list */
+
+		VecAddf(tangent, ring[i].n, ring[j].n);
+		Crossf(normal, tangent, axis);
+		
+		node1 = OTHER_NODE(ring[i].arc, node);
+		node2 = OTHER_NODE(ring[j].arc, node);
+
+		VECCOPY(p, node2->p);
+		mirrorAlongAxis(p, node->p, normal);
+		
+		/* check if it's within limit before continuing */
+		if (VecLenf(node1->p, p) > limit)
+		{
+			symmetric = 0;
+		}
+
+	}
+
+	if (symmetric)
+	{
+		/* mark node as symmetric physically */
+		VECCOPY(node->symmetry_axis, axis);
+		node->symmetry_flag |= SYM_PHYSICAL;
+		node->symmetry_flag |= SYM_RADIAL;
+		
+		/* reestablish symmetry only if wanted */
+		if (reestablish)
+		{
+			/* first pass, merge incrementally */
+			for (i = 0; i < count - 1; i++)
+			{
+				ReebNode *node1, *node2;
+				float tangent[3];
+				float normal[3];
+				int j = i + 1;
+		
+				VecAddf(tangent, ring[i].n, ring[j].n);
+				Crossf(normal, tangent, axis);
+				
+				node1 = OTHER_NODE(ring[i].arc, node);
+				node2 = OTHER_NODE(ring[j].arc, node);
+		
+				/* mirror first node and mix with the second */
+				mirrorAlongAxis(node1->p, node->p, normal);
+				VecLerpf(node2->p, node2->p, node1->p, 1.0f / (j + 1));
+				
+				/* Merge buckets
+				 * there shouldn't be any null arcs here, but just to be safe 
+				 * */
+				if (ring[i].arc->bcount > 0 && ring[j].arc->bcount > 0)
+				{
+					ReebArcIterator iter1, iter2;
+					EmbedBucket *bucket1 = NULL, *bucket2 = NULL;
+					
+					initArcIterator(&iter1, ring[i].arc, node);
+					initArcIterator(&iter2, ring[j].arc, node);
+					
+					bucket1 = nextBucket(&iter1);
+					bucket2 = nextBucket(&iter2);
+				
+					/* Make sure they both start at the same value */	
+					while(bucket1 && bucket1->val < bucket2->val)
+					{
+						bucket1 = nextBucket(&iter1);
+					}
+					
+					while(bucket2 && bucket2->val < bucket1->val)
+					{
+						bucket2 = nextBucket(&iter2);
+					}
+			
+			
+					for ( ;bucket1 && bucket2; bucket1 = nextBucket(&iter1), bucket2 = nextBucket(&iter2))
+					{
+						bucket2->nv += bucket1->nv; /* add counts */
+						
+						/* mirror on axis */
+						mirrorAlongAxis(bucket1->p, node->p, normal);
+						/* add bucket2 in bucket1 */
+						VecLerpf(bucket2->p, bucket2->p, bucket1->p, (float)bucket1->nv / (float)(bucket2->nv));
+					}
+				}
+			}
+			
+			/* second pass, mirror back on previous arcs */
+			for (i = count - 1; i > 0; i--)
+			{
+				ReebNode *node1, *node2;
+				float tangent[3];
+				float normal[3];
+				int j = i - 1;
+		
+				VecAddf(tangent, ring[i].n, ring[j].n);
+				Crossf(normal, tangent, axis);
+				
+				node1 = OTHER_NODE(ring[i].arc, node);
+				node2 = OTHER_NODE(ring[j].arc, node);
+		
+				/* copy first node than mirror */
+				VECCOPY(node2->p, node1->p);
+				mirrorAlongAxis(node2->p, node->p, normal);
+				
+				/* Copy buckets
+				 * there shouldn't be any null arcs here, but just to be safe 
+				 * */
+				if (ring[i].arc->bcount > 0 && ring[j].arc->bcount > 0)
+				{
+					ReebArcIterator iter1, iter2;
+					EmbedBucket *bucket1 = NULL, *bucket2 = NULL;
+					
+					initArcIterator(&iter1, ring[i].arc, node);
+					initArcIterator(&iter2, ring[j].arc, node);
+					
+					bucket1 = nextBucket(&iter1);
+					bucket2 = nextBucket(&iter2);
+				
+					/* Make sure they both start at the same value */	
+					while(bucket1 && bucket1->val < bucket2->val)
+					{
+						bucket1 = nextBucket(&iter1);
+					}
+					
+					while(bucket2 && bucket2->val < bucket1->val)
+					{
+						bucket2 = nextBucket(&iter2);
+					}
+			
+			
+					for ( ;bucket1 && bucket2; bucket1 = nextBucket(&iter1), bucket2 = nextBucket(&iter2))
+					{
+						/* copy and mirror back to bucket2 */			
+						bucket2->nv = bucket1->nv;
+						VECCOPY(bucket2->p, bucket1->p);
+						mirrorAlongAxis(bucket2->p, node->p, normal);
+					}
+				}
+			}
+		}
+	}
+
+	MEM_freeN(ring);
+}
+
+static void setSideAxialSymmetry(ReebNode *root_node, ReebNode *end_node, ReebArc *arc)
+{
+	float vec[3];
+	
+	VecSubf(vec, end_node->p, root_node->p);
+	
+	if (Inpf(vec, root_node->symmetry_axis) < 0)
+	{
+		arc->symmetry_flag |= SYM_SIDE_NEGATIVE;
+	}
+	else
+	{
+		arc->symmetry_flag |= SYM_SIDE_POSITIVE;
+	}
+}
+
+void reestablishAxialSymmetry(ReebNode *node, int depth, float axis[3], int reestablish)
+{
+	ReebArc *arc1 = NULL;
+	ReebArc *arc2 = NULL;
+	ReebNode *node1 = NULL, *node2 = NULL;
+	float limit = G.scene->toolsettings->skgen_symmetry_limit;
+	float nor[3], vec[3], p[3];
+	int i;
+	
+	/* mark topological symmetry */
+	node->symmetry_flag |= SYM_TOPOLOGICAL;
+
+	for (i = 0; node->arcs[i] != NULL; i++)
+	{
+		ReebArc *connectedArc = node->arcs[i];
+		
+		/* depth is store as a negative in flag. symmetry level is positive */
+		if (connectedArc->symmetry_level == -depth)
+		{
+			if (arc1 == NULL)
+			{
+				arc1 = connectedArc;
+				node1 = OTHER_NODE(arc1, node);
+			}
+			else
+			{
+				arc2 = connectedArc;
+				node2 = OTHER_NODE(arc2, node);
+				break; /* Can stop now, the two arcs have been found */
+			}
+		}
+	}
+	
+	/* shouldn't happen, but just to be sure */
+	if (node1 == NULL || node2 == NULL)
+	{
+		return;
+	}
+	
+	VecSubf(vec, node1->p, node->p);
+	Normalize(vec);
+	VecSubf(p, node->p, node2->p);
+	Normalize(p);
+	VecAddf(p, p, vec);
+	
+	
+	Crossf(vec, p, axis);
+	Crossf(nor, vec, axis);
+
+	printvecf("p", p);
+	printvecf("axis", axis);
+	printvecf("vec", vec);
+	printvecf("nor", nor);
+	
+	/* mirror node2 along axis */
+	VECCOPY(p, node2->p);
+	mirrorAlongAxis(p, node->p, nor);
+	
+	/* check if it's within limit before continuing */
+	if (VecLenf(node1->p, p) <= limit)
+	{
+		/* mark node as symmetric physically */
+		VECCOPY(node->symmetry_axis, nor);
+		node->symmetry_flag |= SYM_PHYSICAL;
+		node->symmetry_flag |= SYM_AXIAL;
+		
+		/* set side on arcs */
+		setSideAxialSymmetry(node, node1, arc1);
+		setSideAxialSymmetry(node, node2, arc2);
+		
+		/* reestablish symmetry only if wanted */
+		if (reestablish)
+		{
+			/* average with node1 */
+			VecAddf(node1->p, node1->p, p);
+			VecMulf(node1->p, 0.5f);
+			
+			/* mirror back on node2 */
+			VECCOPY(node2->p, node1->p);
+			mirrorAlongAxis(node2->p, node->p, nor);
+			
+			/* Merge buckets
+			 * there shouldn't be any null arcs here, but just to be safe 
+			 * */
+			if (arc1->bcount > 0 && arc2->bcount > 0)
+			{
+				ReebArcIterator iter1, iter2;
+				EmbedBucket *bucket1 = NULL, *bucket2 = NULL;
+				
+				initArcIterator(&iter1, arc1, node);
+				initArcIterator(&iter2, arc2, node);
+				
+				bucket1 = nextBucket(&iter1);
+				bucket2 = nextBucket(&iter2);
+			
+				/* Make sure they both start at the same value */	
+				while(bucket1 && bucket1->val < bucket2->val)
+				{
+					bucket1 = nextBucket(&iter1);
+				}
+				
+				while(bucket2 && bucket2->val < bucket1->val)
+				{
+					bucket2 = nextBucket(&iter2);
+				}
+		
+		
+				for ( ;bucket1 && bucket2; bucket1 = nextBucket(&iter1), bucket2 = nextBucket(&iter2))
+				{
+					bucket1->nv += bucket2->nv; /* add counts */
+					
+					/* mirror on axis */
+					mirrorAlongAxis(bucket2->p, node->p, nor);
+					/* add bucket2 in bucket1 */
+					VecLerpf(bucket1->p, bucket1->p, bucket2->p, (float)bucket2->nv / (float)(bucket1->nv));
+		
+					/* copy and mirror back to bucket2 */			
+					bucket2->nv = bucket1->nv;
+					VECCOPY(bucket2->p, bucket1->p);
+					mirrorAlongAxis(bucket2->p, node->p, nor);
+				}
+			}
+		}
+	}
+	else
+	{
+		printf("NOT SYMMETRIC!\n");
+		printf("%f <= %f\n", VecLenf(node1->p, p), limit);
+		printvecf("axis", nor);
+	}
+}
+
+void markdownSecondarySymmetry(ReebNode *node, int depth, int level)
+{
+	float axis[3] = {0, 0, 0};
+	int count = 0;
+	int i;
+	/* Only reestablish spatial symmetry if needed */
+	int reestablish = G.scene->toolsettings->skgen_options & SKGEN_SYMMETRY;
+
+	/* count the number of branches in this symmetry group
+	 * and determinte the axis of symmetry
+	 *  */	
+	for (i = 0; node->arcs[i] != NULL; i++)
+	{
+		ReebArc *connectedArc = node->arcs[i];
+		
+		/* depth is store as a negative in flag. symmetry level is positive */
+		if (connectedArc->symmetry_level == -depth)
+		{
+			count++;
+		}
+		/* If arc is on the axis */
+		else if (connectedArc->symmetry_level == level)
+		{
+			VecAddf(axis, axis, connectedArc->v1->p);
+			VecSubf(axis, axis, connectedArc->v2->p);
+		}
+	}
+
+	Normalize(axis);
+
+	/* Split between axial and radial symmetry */
+	if (count == 2)
+	{
+		reestablishAxialSymmetry(node, depth, axis, reestablish);
+	}
+	else
+	{
+		reestablishRadialSymmetry(node, depth, axis, reestablish);
+	}
+
+	/* markdown secondary symetries */	
+	for (i = 0; node->arcs[i] != NULL; i++)
+	{
+		ReebArc *connectedArc = node->arcs[i];
+		
+		if (connectedArc->symmetry_level == -depth)
+		{
+			/* markdown symmetry for branches corresponding to the depth */
+			markdownSymmetryArc(connectedArc, node, level + 1);
+		}
+	}
+}
+
+void markdownSymmetryArc(ReebArc *arc, ReebNode *node, int level)
+{
+	int i;
+	arc->symmetry_level = level;
+	
+	node = OTHER_NODE(arc, node);
+	
+	for (i = 0; node->arcs[i] != NULL; i++)
+	{
+		ReebArc *connectedArc = node->arcs[i];
+		
+		if (connectedArc != arc)
+		{
+			ReebNode *connectedNode = OTHER_NODE(connectedArc, node);
+			
+			/* symmetry level is positive value, negative values is subtree depth */
+			connectedArc->symmetry_level = -subtreeDepth(connectedNode, connectedArc);
+		}
+	}
+
+	arc = NULL;
+
+	for (i = 0; node->arcs[i] != NULL; i++)
+	{
+		int issymmetryAxis = 0;
+		ReebArc *connectedArc = node->arcs[i];
+		
+		/* only arcs not already marked as symetric */
+		if (connectedArc->symmetry_level < 0)
+		{
+			int j;
+			
+			/* true by default */
+			issymmetryAxis = 1;
+			
+			for (j = 0; node->arcs[j] != NULL && issymmetryAxis == 1; j++)
+			{
+				ReebArc *otherArc = node->arcs[j];
+				
+				/* different arc, same depth */
+				if (otherArc != connectedArc && otherArc->symmetry_level == connectedArc->symmetry_level)
+				{
+					/* not on the symmetry axis */
+					issymmetryAxis = 0;
+				} 
+			}
+		}
+		
+		/* arc could be on the symmetry axis */
+		if (issymmetryAxis == 1)
+		{
+			/* no arc as been marked previously, keep this one */
+			if (arc == NULL)
+			{
+				arc = connectedArc;
+			}
+			else
+			{
+				/* there can't be more than one symmetry arc */
+				arc = NULL;
+				break;
+			}
+		}
+	}
+	
+	/* go down the arc continuing the symmetry axis */
+	if (arc)
+	{
+		markdownSymmetryArc(arc, node, level);
+	}
+
+	
+	/* secondary symmetry */
+	for (i = 0; node->arcs[i] != NULL; i++)
+	{
+		ReebArc *connectedArc = node->arcs[i];
+		
+		/* only arcs not already marked as symetric and is not the next arc on the symmetry axis */
+		if (connectedArc->symmetry_level < 0)
+		{
+			/* subtree depth is store as a negative value in the flag */
+			markdownSecondarySymmetry(node, -connectedArc->symmetry_level, level);
+		}
+	}
+}
+
+void markdownSymmetry(ReebGraph *rg)
+{
+	ReebNode *node;
+	ReebArc *arc;
+	/* only for Acyclic graphs */
+	int cyclic = isGraphCyclic(rg);
+	
+	/* mark down all arcs as non-symetric */
+	for (arc = rg->arcs.first; arc; arc = arc->next)
+	{
+		arc->symmetry_level = 0;
+	}
+	
+	/* mark down all nodes as not on the symmetry axis */
+	for (node = rg->nodes.first; node; node = node->next)
+	{
+		node->symmetry_level = 0;
+	}
+
+	/* node list is sorted, so lowest node is always the head (by design) */
+	node = rg->nodes.first;
+	
+	/* only work on acyclic graphs and if only one arc is incident on the first node */
+	if (cyclic == 0 && countConnectedArcs(rg, node) == 1)
+	{
+		arc = node->arcs[0];
+		
+		markdownSymmetryArc(arc, node, 1);
+
+		/* mark down non-symetric arcs */
+		for (arc = rg->arcs.first; arc; arc = arc->next)
+		{
+			if (arc->symmetry_level < 0)
+			{
+				arc->symmetry_level = 0;
+			}
+			else
+			{
+				/* mark down nodes with the lowest level symmetry axis */
+				if (arc->v1->symmetry_level == 0 || arc->v1->symmetry_level > arc->symmetry_level)
+				{
+					arc->v1->symmetry_level = arc->symmetry_level;
+				}
+				if (arc->v2->symmetry_level == 0 || arc->v2->symmetry_level > arc->symmetry_level)
+				{
+					arc->v2->symmetry_level = arc->symmetry_level;
+				}
+			}
+		}
+	}
+}
+
 /************************************** ADJACENCY LIST *************************************************/
 
-void addArcToNodeAdjacencyList(ReebNode *node, ReebArc *arc)
+static void addArcToNodeAdjacencyList(ReebNode *node, ReebArc *arc)
 {
 	ReebArc **arclist;
 
@@ -590,6 +1218,7 @@ void filterArc(ReebGraph *rg, ReebNode *newNode, ReebNode *removedNode, ReebArc 
 			else
 			{
 				newNode->degree++; // incrementing degree since we're adding an arc
+				mergeArcFaces(rg, arc, srcArc);
 
 				if (merging)
 				{
@@ -762,6 +1391,181 @@ int filterExternalReebGraph(ReebGraph *rg, float threshold)
 	return value;
 }
 
+int filterSmartReebGraph(ReebGraph *rg, float threshold)
+{
+	ReebArc *arc = NULL, *nextArc = NULL;
+	int value = 0;
+	
+	BLI_sortlist(&rg->arcs, compareArcs);
+
+#ifdef DEBUG_REEB
+	{	
+		EditFace *efa;
+		for(efa=G.editMesh->faces.first; efa; efa=efa->next) {
+			efa->tmp.fp = -1;
+		}
+	}
+#endif
+
+	arc = rg->arcs.first;
+	while(arc)
+	{
+		nextArc = arc->next;
+		
+		/* need correct normals and center */
+		recalc_editnormals();
+
+		// Only test terminal arcs
+		if (arc->v1->degree == 1 || arc->v2->degree == 1)
+		{
+			GHashIterator ghi;
+			int merging = 0;
+			int total = BLI_ghash_size(arc->faces);
+			float avg_angle = 0;
+			float avg_vec[3] = {0,0,0};
+			
+			for(BLI_ghashIterator_init(&ghi, arc->faces);
+				!BLI_ghashIterator_isDone(&ghi);
+				BLI_ghashIterator_step(&ghi))
+			{
+				EditFace *efa = BLI_ghashIterator_getValue(&ghi);
+
+#if 0
+				ReebArcIterator iter;
+				EmbedBucket *bucket = NULL;
+				EmbedBucket *previous = NULL;
+				float min_distance = -1;
+				float angle = 0;
+		
+				initArcIterator(&iter, arc, arc->v1);
+		
+				bucket = nextBucket(&iter);
+				
+				while (bucket != NULL)
+				{
+					float *vec0 = NULL;
+					float *vec1 = bucket->p;
+					float midpoint[3], tangent[3];
+					float distance;
+		
+					/* first bucket. Previous is head */
+					if (previous == NULL)
+					{
+						vec0 = arc->v1->p;
+					}
+					/* Previous is a valid bucket */
+					else
+					{
+						vec0 = previous->p;
+					}
+					
+					VECCOPY(midpoint, vec1);
+					
+					distance = VecLenf(midpoint, efa->cent);
+					
+					if (min_distance == -1 || distance < min_distance)
+					{
+						min_distance = distance;
+					
+						VecSubf(tangent, vec1, vec0);
+						Normalize(tangent);
+						
+						angle = Inpf(tangent, efa->n);
+					}
+					
+					previous = bucket;
+					bucket = nextBucket(&iter);
+				}
+				
+				avg_angle += saacos(fabs(angle));
+#ifdef DEBUG_REEB
+				efa->tmp.fp = saacos(fabs(angle));
+#endif
+#else
+				VecAddf(avg_vec, avg_vec, efa->n);		
+#endif
+			}
+
+
+#if 0			
+			avg_angle /= total;
+#else
+			VecMulf(avg_vec, 1.0 / total);
+			avg_angle = Inpf(avg_vec, avg_vec);
+#endif
+			
+			arc->angle = avg_angle;
+			
+#ifdef DEBUG_REEB
+			printf("angle %f total %i\n", avg_angle, total);
+#endif
+			
+			if (avg_angle > threshold)
+				merging = 1;
+			
+			if (merging)
+			{
+				ReebNode *terminalNode = NULL;
+				ReebNode *middleNode = NULL;
+				ReebNode *newNode = NULL;
+				ReebNode *removedNode = NULL;
+				int merging = 0;
+				
+				// Assign terminal and middle nodes
+				if (arc->v1->degree == 1)
+				{
+					terminalNode = arc->v1;
+					middleNode = arc->v2;
+				}
+				else
+				{
+					terminalNode = arc->v2;
+					middleNode = arc->v1;
+				}
+				
+				// If middle node is a normal node, merge to terminal node
+				if (middleNode->degree == 2)
+				{
+					merging = 1;
+					newNode = terminalNode;
+					removedNode = middleNode;
+				}
+				// Otherwise, just plain remove of the arc
+				else
+				{
+					merging = 0;
+					newNode = middleNode;
+					removedNode = terminalNode;
+				}
+				
+				// Merging arc
+				if (merging)
+				{
+					filterArc(rg, newNode, removedNode, arc, 1);
+				}
+				else
+				{
+					// removing arc, so we need to decrease the degree of the remaining node
+					newNode->degree--;
+				}
+	
+				// Reset nextArc, it might have changed
+				nextArc = arc->next;
+				
+				BLI_remlink(&rg->arcs, arc);
+				freeArc(arc);
+				
+				BLI_freelinkN(&rg->nodes, removedNode);
+				value = 1;
+			}
+		}
+		
+		arc = nextArc;
+	}
+	
+	return value;
+}
+
 /************************************** WEIGHT SPREADING ***********************************************/
 
 int compareVerts( const void* a, const void* b )
@@ -858,12 +1662,12 @@ int detectCycle(ReebNode *node, ReebArc *srcArc)
 {
 	int value = 0;
 	
-	if (node->flags == 0)
+	if (node->flag == 0)
 	{
 		ReebArc ** pArc;
 
 		/* mark node as visited */
-		node->flags = 1;
+		node->flag = 1;
 
 		for(pArc = node->arcs; *pArc && value == 0; pArc++)
 		{
@@ -894,14 +1698,14 @@ int	isGraphCyclic(ReebGraph *rg)
 	/* Mark all nodes as not visited */
 	for(node = rg->nodes.first; node; node = node->next)
 	{
-		node->flags = 0;
+		node->flag = 0;
 	}
 
 	/* detectCycles in subgraphs */	
 	for(node = rg->nodes.first; node && value == 0; node = node->next)
 	{
 		/* only for nodes in subgraphs that haven't been visited yet */
-		if (node->flags == 0)
+		if (node->flag == 0)
 		{
 			value = value || detectCycle(node, NULL);
 		}		
@@ -917,9 +1721,8 @@ void exportNode(FILE *f, char *text, ReebNode *node)
 	fprintf(f, "%s i:%i w:%f d:%i %f %f %f\n", text, node->index, node->weight, node->degree, node->p[0], node->p[1], node->p[2]);
 }
 
-void exportGraph(ReebGraph *rg, int count)
+void REEB_exportGraph(ReebGraph *rg, int count)
 {
-#ifdef DEBUG_REEB
 	ReebArc *arc;
 	char filename[128];
 	FILE *f;
@@ -937,6 +1740,7 @@ void exportGraph(ReebGraph *rg, int count)
 	for(arc = rg->arcs.first; arc; arc = arc->next)
 	{
 		int i;
+		float p[3];
 		
 		exportNode(f, "v1", arc->v1);
 		
@@ -945,11 +1749,14 @@ void exportGraph(ReebGraph *rg, int count)
 			fprintf(f, "b nv:%i %f %f %f\n", arc->buckets[i].nv, arc->buckets[i].p[0], arc->buckets[i].p[1], arc->buckets[i].p[2]);
 		}
 		
+		VecAddf(p, arc->v2->p, arc->v1->p);
+		VecMulf(p, 0.5f);
+		
+		fprintf(f, "angle %0.3f %0.3f %0.3f %0.3f %i\n", p[0], p[1], p[2], arc->angle, BLI_ghash_size(arc->faces));
 		exportNode(f, "v2", arc->v2);
 	}	
 	
 	fclose(f);
-#endif
 }
 
 /***************************************** MAIN ALGORITHM **********************************************/
@@ -968,6 +1775,7 @@ ReebArc * findConnectedArc(ReebGraph *rg, ReebArc *arc, ReebNode *v)
 	
 	return nextArc;
 }
+
 
 void removeNormalNodes(ReebGraph *rg)
 {
@@ -1041,11 +1849,23 @@ ReebArc *nextArcMappedToEdge(ReebArc *arc, ReebEdge *e)
 	return result;
 }
 
-typedef enum {
-	MERGE_LOWER,
-	MERGE_HIGHER,
-	MERGE_APPEND
-} MergeDirection;
+void addFacetoArc(ReebArc *arc, EditFace *efa)
+{
+	BLI_ghash_insert(arc->faces, efa, efa);
+}
+
+void mergeArcFaces(ReebGraph *rg, ReebArc *aDst, ReebArc *aSrc)
+{
+	GHashIterator ghi;
+	
+	for(BLI_ghashIterator_init(&ghi, aSrc->faces);
+		!BLI_ghashIterator_isDone(&ghi);
+		BLI_ghashIterator_step(&ghi))
+	{
+		EditFace *efa = BLI_ghashIterator_getValue(&ghi);
+		BLI_ghash_insert(aDst->faces, efa, efa);
+	}
+} 
 
 void mergeArcEdges(ReebGraph *rg, ReebArc *aDst, ReebArc *aSrc, MergeDirection direction)
 {
@@ -1110,6 +1930,7 @@ int mergeConnectedArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1)
 	ReebNode *removedNode = NULL;
 	
 	mergeArcEdges(rg, a0, a1, MERGE_APPEND);
+	mergeArcFaces(rg, a0, a1);
 	
 	// Bring a0 to the combine length of both arcs
 	if (a0->v2 == a1->v1)
@@ -1146,6 +1967,7 @@ int mergeArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1)
 		if (a0->v2->weight == a1->v2->weight) // tails also the same, arcs can be totally merge together
 		{
 			mergeArcEdges(rg, a0, a1, MERGE_APPEND);
+			mergeArcFaces(rg, a0, a1);
 			
 			mergeArcBuckets(a0, a1, a0->v1->weight, a0->v2->weight);
 			
@@ -1162,6 +1984,7 @@ int mergeArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1)
 		else if (a0->v2->weight > a1->v2->weight) // a1->v2->weight is in the middle
 		{
 			mergeArcEdges(rg, a1, a0, MERGE_LOWER);
+			mergeArcFaces(rg, a1, a0);
 
 			// Adjust node degree
 			a0->v1->degree--;
@@ -1174,6 +1997,7 @@ int mergeArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1)
 		else // a0>n2 is in the middle
 		{
 			mergeArcEdges(rg, a0, a1, MERGE_LOWER);
+			mergeArcFaces(rg, a0, a1);
 			
 			// Adjust node degree
 			a1->v1->degree--;
@@ -1190,6 +2014,7 @@ int mergeArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1)
 		if (a0->v1->weight > a1->v1->weight) // a0->v1->weight is in the middle
 		{
 			mergeArcEdges(rg, a0, a1, MERGE_HIGHER);
+			mergeArcFaces(rg, a0, a1);
 			
 			// Adjust node degree
 			a1->v2->degree--;
@@ -1202,6 +2027,7 @@ int mergeArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1)
 		else // a1->v1->weight is in the middle
 		{
 			mergeArcEdges(rg, a1, a0, MERGE_HIGHER);
+			mergeArcFaces(rg, a1, a0);
 
 			// Adjust node degree
 			a0->v2->degree--;
@@ -1258,7 +2084,8 @@ ReebNode * addNode(ReebGraph *rg, EditVert *eve, float weight)
 	
 	node = MEM_callocN(sizeof(ReebNode), "reeb node");
 	
-	node->flags = 0; // clear flags on init
+	node->flag = 0; // clear flag on init
+	node->symmetry_level = 0;
 	node->arcs = NULL;
 	node->degree = 0;
 	node->weight = weight;
@@ -1288,7 +2115,9 @@ ReebEdge * createArc(ReebGraph *rg, ReebNode *node1, ReebNode *node2)
 		arc = MEM_callocN(sizeof(ReebArc), "reeb arc");
 		edge = MEM_callocN(sizeof(ReebEdge), "reeb edge");
 		
-		arc->flags = 0; // clear flags on init
+		arc->flag = 0; // clear flag on init
+		arc->symmetry_level = 0;
+		arc->faces = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
 		
 		if (node1->weight <= node2->weight)
 		{
@@ -1349,7 +2178,7 @@ ReebEdge * createArc(ReebGraph *rg, ReebNode *node1, ReebNode *node2)
 	return edge;
 }
 
-void addTriangleToGraph(ReebGraph *rg, ReebNode * n1, ReebNode * n2, ReebNode * n3)
+void addTriangleToGraph(ReebGraph *rg, ReebNode * n1, ReebNode * n2, ReebNode * n3, EditFace *efa)
 {
 	ReebEdge *re1, *re2, *re3;
 	ReebEdge *e1, *e2, *e3;
@@ -1358,6 +2187,10 @@ void addTriangleToGraph(ReebGraph *rg, ReebNode * n1, ReebNode * n2, ReebNode * 
 	re1 = createArc(rg, n1, n2);
 	re2 = createArc(rg, n2, n3);
 	re3 = createArc(rg, n3, n1);
+	
+	addFacetoArc(re1->arc, efa);
+	addFacetoArc(re2->arc, efa);
+	addFacetoArc(re3->arc, efa);
 	
 	len1 = (float)fabs(n1->weight - n2->weight);
 	len2 = (float)fabs(n2->weight - n3->weight);
@@ -1398,6 +2231,17 @@ void addTriangleToGraph(ReebGraph *rg, ReebNode * n1, ReebNode * n2, ReebNode * 
 	mergePaths(rg, e1, e2, e3);
 }
 
+ReebGraph * newReebGraph()
+{
+	ReebGraph *rg;
+	rg = MEM_callocN(sizeof(ReebGraph), "reeb graph");
+	
+	rg->totnodes = 0;
+	rg->emap = BLI_edgehash_new();
+	
+	return rg;
+}
+
 ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 {
 	ReebGraph *rg;
@@ -1412,10 +2256,7 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 	int countfaces = 0;
 #endif
  	
-	rg = MEM_callocN(sizeof(ReebGraph), "reeb graph");
-	
-	rg->totnodes = 0;
-	rg->emap = BLI_edgehash_new();
+	rg = newReebGraph();
 	
 	totvert = BLI_countlist(&em->verts);
 	totfaces = BLI_countlist(&em->faces);
@@ -1447,12 +2288,12 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 		n2 = (ReebNode*)BLI_dlist_find_link(dlist, efa->v2->hash);
 		n3 = (ReebNode*)BLI_dlist_find_link(dlist, efa->v3->hash);
 		
-		addTriangleToGraph(rg, n1, n2, n3);
+		addTriangleToGraph(rg, n1, n2, n3, efa);
 		
 		if (efa->v4)
 		{
 			ReebNode *n4 = (ReebNode*)efa->v4->tmp.p;
-			addTriangleToGraph(rg, n1, n3, n4);
+			addTriangleToGraph(rg, n1, n3, n4, efa);
 		}
 
 #ifdef DEBUG_REEB
@@ -1460,6 +2301,7 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 		if (countfaces % 100 == 0)
 		{
 			printf("face %i of %i\n", countfaces, totfaces);
+			verifyFaces(rg);
 		}
 #endif
 		
@@ -1728,7 +2570,7 @@ int weightFromDistance(EditMesh *em)
 		return 0;
 	}
 
-	/* Initialize vertice flags and find at least one selected vertex */
+	/* Initialize vertice flag and find at least one selected vertex */
 	for(eve = em->verts.first; eve && vCount == 0; eve = eve->next)
 	{
 		eve->f1 = 0;
@@ -1762,7 +2604,7 @@ int weightFromDistance(EditMesh *em)
 					
 					edges = MEM_callocN(totedge * sizeof(EditEdge*), "Edges");
 					
-					/* Calculate edge weight and initialize edge flags */
+					/* Calculate edge weight and initialize edge flag */
 					for(eed= em->edges.first; eed; eed= eed->next)
 					{
 						eed->tmp.fp = VecLenf(eed->v1->co, eed->v2->co);
@@ -1837,17 +2679,17 @@ int weightFromDistance(EditMesh *em)
 	return 1;
 }
 
-MCol MColFromWeight(EditVert *eve)
+MCol MColFromVal(float val)
 {
 	MCol col;
 	col.a = 255;
-	col.b = (char)(eve->tmp.fp * 255);
+	col.b = (char)(val * 255);
 	col.g = 0;
-	col.r = (char)((1.0f - eve->tmp.fp) * 255);
+	col.r = (char)((1.0f - val) * 255);
 	return col;
 }
 
-void weightToVCol(EditMesh *em)
+void weightToVCol(EditMesh *em, int index)
 {
 	EditFace *efa;
 	MCol *mcol;
@@ -1856,14 +2698,148 @@ void weightToVCol(EditMesh *em)
 	}
 	
 	for(efa=em->faces.first; efa; efa=efa->next) {
+		mcol = CustomData_em_get_n(&em->fdata, efa->data, CD_MCOL, index);
+
+		if (mcol)
+		{				
+			mcol[0] = MColFromVal(efa->v1->tmp.fp);
+			mcol[1] = MColFromVal(efa->v2->tmp.fp);
+			mcol[2] = MColFromVal(efa->v3->tmp.fp);
+	
+			if(efa->v4) {
+				mcol[3] = MColFromVal(efa->v4->tmp.fp);
+			}
+		}
+	}
+}
+
+void angleToVCol(EditMesh *em, int index)
+{
+	EditFace *efa;
+	MCol *mcol;
+
+	if (!EM_vertColorCheck()) {
+		return;
+	}
+	
+	for(efa=em->faces.first; efa; efa=efa->next) {
+		MCol col;
+		if (efa->tmp.fp > 0)
+		{
+			col = MColFromVal(efa->tmp.fp / (M_PI / 2 + 0.1));
+		}
+		else
+		{
+			col.a = 255;
+			col.r = 0;
+			col.g = 255;
+			col.b = 0;
+		}
+
+		mcol = CustomData_em_get_n(&em->fdata, efa->data, CD_MCOL, index);
+				
+		if (mcol)
+		{
+			mcol[0] = col;
+			mcol[1] = col;
+			mcol[2] = col;
+	
+			if(efa->v4) {
+				mcol[3] = col;
+			}
+		}
+	}
+}
+
+void blendColor(MCol *dst, MCol *src)
+{
+#if 1
+	float blend_src = (float)src->a / (float)(src->a + dst->a);
+	float blend_dst = (float)dst->a / (float)(src->a + dst->a);
+	dst->a += src->a;
+	dst->r = (char)(dst->r * blend_dst + src->r * blend_src);
+	dst->g = (char)(dst->g * blend_dst + src->g * blend_src);
+	dst->b = (char)(dst->b * blend_dst + src->b * blend_src);
+#else
+	dst->r = src->r;
+	dst->g = src->g;
+	dst->b = src->b;
+#endif
+}
+
+void arcToVCol(ReebGraph *rg, EditMesh *em, int index)
+{
+	GHashIterator ghi;
+	EditFace *efa;
+	ReebArc *arc;
+	MCol *mcol;
+	MCol col;
+	int total = BLI_countlist(&rg->arcs);
+	int i = 0;
+
+	if (!EM_vertColorCheck()) {
+		return;
+	}
+	
+	col.a = 0;
+	
+	col.r = 0;
+	col.g = 0;
+	col.b = 0;
+
+	for(efa=em->faces.first; efa; efa=efa->next) {
+		mcol = CustomData_em_get_n(&em->fdata, efa->data, CD_MCOL, index);
+		
+		if (mcol)
+		{
+			mcol[0] = col;
+			mcol[1] = col;
+			mcol[2] = col;
+	
+			if(efa->v4) {
+				mcol[3] = col;
+			}
+		}
+	}
+
+	for (arc = rg->arcs.first; arc; arc = arc->next, i++)
+	{
+		float r,g,b;
+		col.a = 1;
+		
+		hsv_to_rgb((float)i / (float)total, 1, 1, &r, &g, &b);
+		
+		col.r = FTOCHAR(r);
+		col.g = FTOCHAR(g);
+		col.b = FTOCHAR(b);
+		
+		for(BLI_ghashIterator_init(&ghi, arc->faces);
+			!BLI_ghashIterator_isDone(&ghi);
+			BLI_ghashIterator_step(&ghi))
+		{
+			efa = BLI_ghashIterator_getValue(&ghi);
+
+			mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+					
+			blendColor(&mcol[0], &col);
+			blendColor(&mcol[1], &col);
+			blendColor(&mcol[2], &col);
+	
+			if(efa->v4) {
+				blendColor(&mcol[3], &col);
+			}
+		}
+	}
+
+	for(efa=em->faces.first; efa; efa=efa->next) {
 		mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
 				
-		mcol[0] = MColFromWeight(efa->v1);
-		mcol[1] = MColFromWeight(efa->v2);
-		mcol[2] = MColFromWeight(efa->v3);
+		mcol[0].a = 255;
+		mcol[1].a = 255;
+		mcol[2].a = 255;
 
 		if(efa->v4) {
-			mcol[3] = MColFromWeight(efa->v4);
+			mcol[3].a = 255;
 		}
 	}
 }
@@ -1888,6 +2864,31 @@ void initArcIterator(ReebArcIterator *iter, ReebArc *arc, ReebNode *head)
 	}
 	
 	iter->index = iter->start - iter->stride;
+}
+
+void initArcIteratorStart(struct ReebArcIterator *iter, struct ReebArc *arc, struct ReebNode *head, int start)
+{
+	iter->arc = arc;
+	
+	if (head == arc->v1)
+	{
+		iter->start = start;
+		iter->end = arc->bcount - 1;
+		iter->stride = 1;
+	}
+	else
+	{
+		iter->start = arc->bcount - 1 - start;
+		iter->end = 0;
+		iter->stride = -1;
+	}
+	
+	iter->index = iter->start - iter->stride;
+	
+	if (start >= arc->bcount)
+	{
+		iter->start = iter->end; /* stop iterator since it's past its end */
+	}
 }
 
 void initArcIterator2(ReebArcIterator *iter, ReebArc *arc, int start, int end)
@@ -1920,4 +2921,154 @@ EmbedBucket * nextBucket(ReebArcIterator *iter)
 	}
 	
 	return result;
+}
+
+EmbedBucket * nextNBucket(ReebArcIterator *iter, int n)
+{
+	EmbedBucket *result = NULL;
+	
+	iter->index += n * iter->stride;
+
+	/* check if passed end */
+	if ((iter->stride == 1 && iter->index < iter->end) ||
+		(iter->stride == -1 && iter->index > iter->end))
+	{
+		result = &(iter->arc->buckets[iter->index]);
+	}
+	else
+	{
+		/* stop iterator if passed end */
+		iter->index = iter->end; 
+	}
+	
+	return result;
+}
+
+EmbedBucket * previousBucket(struct ReebArcIterator *iter)
+{
+	EmbedBucket *result = NULL;
+	
+	if (iter->index != iter->start)
+	{
+		iter->index -= iter->stride;
+		result = &(iter->arc->buckets[iter->index]);
+	}
+	
+	return result;
+}
+
+int iteratorStopped(struct ReebArcIterator *iter)
+{
+	if (iter->index == iter->end)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+struct EmbedBucket * currentBucket(struct ReebArcIterator *iter)
+{
+	EmbedBucket *result = NULL;
+	
+	if (iter->index != iter->end)
+	{
+		result = &(iter->arc->buckets[iter->index]);
+	}
+	
+	return result;
+}
+
+/************************ PUBLIC FUNCTIONS *********************************************/
+
+ReebGraph *BIF_ReebGraphFromEditMesh(void)
+{
+	EditMesh *em = G.editMesh;
+	ReebGraph *rg = NULL;
+	int i;
+	
+	if (em == NULL)
+		return NULL;
+
+	if (weightFromDistance(em) == 0)
+	{
+		error("No selected vertex\n");
+		return NULL;
+	}
+	
+	renormalizeWeight(em, 1.0f);
+
+	if (G.scene->toolsettings->skgen_options & SKGEN_HARMONIC)
+	{
+		weightToHarmonic(em);
+	}
+	
+#ifdef DEBUG_REEB
+	weightToVCol(em, 1);
+#endif
+	
+	rg = generateReebGraph(em, G.scene->toolsettings->skgen_resolution);
+
+	verifyBuckets(rg);
+	
+	verifyFaces(rg);
+
+	/* Remove arcs without embedding */
+	filterNullReebGraph(rg);
+
+	verifyBuckets(rg);
+
+	i = 1;
+	/* filter until there's nothing more to do */
+	while (i == 1)
+	{
+		i = 0; /* no work done yet */
+		
+		if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_EXTERNAL)
+		{
+			i |= filterExternalReebGraph(rg, G.scene->toolsettings->skgen_threshold_external * G.scene->toolsettings->skgen_resolution);
+		}
+	
+		verifyBuckets(rg);
+	
+		if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_INTERNAL)
+		{
+			i |= filterInternalReebGraph(rg, G.scene->toolsettings->skgen_threshold_internal * G.scene->toolsettings->skgen_resolution);
+		}
+	}
+
+	filterSmartReebGraph(rg, 0.5);
+
+#ifdef DEBUG_REEB
+	arcToVCol(rg, em, 0);
+	//angleToVCol(em, 1);
+#endif
+
+	verifyBuckets(rg);
+
+	repositionNodes(rg);
+	
+	verifyBuckets(rg);
+
+	/* Filtering might have created degree 2 nodes, so remove them */
+	removeNormalNodes(rg);
+	
+	verifyBuckets(rg);
+
+	for(i = 0; i <  G.scene->toolsettings->skgen_postpro_passes; i++)
+	{
+		postprocessGraph(rg, G.scene->toolsettings->skgen_postpro);
+	}
+
+	buildAdjacencyList(rg);
+	
+	sortNodes(rg);
+	
+	sortArcs(rg);
+	
+	REEB_exportGraph(rg, -1);
+	
+	return rg;
 }

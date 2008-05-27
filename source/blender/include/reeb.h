@@ -30,6 +30,7 @@
 
 #include "DNA_listBase.h"
 
+struct GHash;
 struct EdgeHash;
 struct ReebArc;
 struct ReebEdge;
@@ -55,7 +56,11 @@ typedef struct ReebNode {
 	int degree;
 	float weight;
 	float p[3];
-	int flags;
+	int flag;
+
+	int symmetry_level;
+	int symmetry_flag;
+	float symmetry_axis[3];
 } ReebNode;
 
 typedef struct ReebEdge {
@@ -63,6 +68,7 @@ typedef struct ReebEdge {
 	struct ReebArc  *arc;
 	struct ReebNode *v1, *v2;
 	struct ReebEdge *nextEdge;
+	int flag;
 } ReebEdge;
 
 typedef struct ReebArc {
@@ -71,7 +77,13 @@ typedef struct ReebArc {
 	struct ReebNode *v1, *v2;
 	struct EmbedBucket *buckets;
 	int	bcount;
-	int flags;
+	int flag;
+
+	int symmetry_level;
+	int symmetry_flag;
+
+	struct GHash *faces;	
+	float angle;
 } ReebArc;
 
 typedef struct ReebArcIterator {
@@ -87,21 +99,28 @@ struct EditMesh;
 int weightToHarmonic(struct EditMesh *em);
 int weightFromDistance(struct EditMesh *em);
 int weightFromLoc(struct EditMesh *me, int axis);
-void weightToVCol(struct EditMesh *em);
+void weightToVCol(struct EditMesh *em, int index);
+void arcToVCol(struct ReebGraph *rg, struct EditMesh *em, int index);
+void angleToVCol(EditMesh *em, int index);
 void renormalizeWeight(struct EditMesh *em, float newmax);
 
 ReebGraph * generateReebGraph(struct EditMesh *me, int subdivisions);
-void freeGraph(ReebGraph *rg);
-void exportGraph(ReebGraph *rg, int count);
+ReebGraph * newReebGraph();
 
 #define OTHER_NODE(arc, node) ((arc->v1 == node) ? arc->v2 : arc->v1)
 
 void initArcIterator(struct ReebArcIterator *iter, struct ReebArc *arc, struct ReebNode *head);
 void initArcIterator2(struct ReebArcIterator *iter, struct ReebArc *arc, int start, int end);
+void initArcIteratorStart(struct ReebArcIterator *iter, struct ReebArc *arc, struct ReebNode *head, int start);
 struct EmbedBucket * nextBucket(struct ReebArcIterator *iter);
+struct EmbedBucket * nextNBucket(ReebArcIterator *iter, int n);
+struct EmbedBucket * currentBucket(struct ReebArcIterator *iter);
+struct EmbedBucket * previousBucket(struct ReebArcIterator *iter);
+int iteratorStopped(struct ReebArcIterator *iter);
 
 /* Filtering */
 void filterNullReebGraph(ReebGraph *rg);
+int filterSmartReebGraph(ReebGraph *rg, float threshold);
 int filterExternalReebGraph(ReebGraph *rg, float threshold);
 int filterInternalReebGraph(ReebGraph *rg, float threshold);
 
@@ -121,7 +140,32 @@ int countConnectedArcs(ReebGraph *rg, ReebNode *node);
 int hasAdjacencyList(ReebGraph *rg); 
 int	isGraphCyclic(ReebGraph *rg);
 
-/* Sanity check */
+/*------------ Symmetry handling ------------*/
+void markdownSymmetry(ReebGraph *rg);
+
+/* ReebNode symmetry flags */
+#define SYM_TOPOLOGICAL	1
+#define SYM_PHYSICAL	2
+
+/* the following two are exclusive */
+#define SYM_AXIAL		4
+#define SYM_RADIAL		8
+
+/* ReebArc symmetry flags
+ * 
+ * axial symetry sides */
+#define SYM_SIDE_POSITIVE		1
+#define SYM_SIDE_NEGATIVE		2
+
+
+
+/*------------ Sanity check ------------*/
 void verifyBuckets(ReebGraph *rg);
+void verifyFaces(ReebGraph *rg);
+
+/*********************** PUBLIC *********************************/
+ReebGraph *BIF_ReebGraphFromEditMesh(void);
+void REEB_freeGraph(ReebGraph *rg);
+void REEB_exportGraph(ReebGraph *rg, int count);
 
 #endif /*REEB_H_*/

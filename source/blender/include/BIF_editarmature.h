@@ -68,6 +68,8 @@ typedef struct EditBone
 
 } EditBone;
 
+void	make_boneList(struct ListBase *list, struct ListBase *bones, EditBone *parent);
+void	editbones_to_armature (struct ListBase *list, struct Object *ob);
 
 void	adduplicate_armature(void);
 void	addvert_armature(void);
@@ -141,6 +143,9 @@ void	show_all_armature_bones(void);
 #define BONESEL_ANY		(BONESEL_TIP|BONESEL_ROOT|BONESEL_BONE)
 
 #define BONESEL_NOSEL	0x80000000	/* Indicates a negative number */
+
+/* from autoarmature */
+void BIF_retargetArmature();
 
 #endif
 

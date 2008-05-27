@@ -433,6 +433,8 @@ typedef struct ToolSettings {
 	float skgen_angle_limit;
 	float skgen_correlation_limit;
 	float skgen_symmetry_limit;
+	float skgen_retarget_angle_weight;
+	float skgen_retarget_length_weight;
 	short skgen_options;
 	char  skgen_postpro;
 	char  skgen_postpro_passes;
@@ -831,6 +833,7 @@ typedef struct Scene {
 #define	SKGEN_CUT_LENGTH		8
 #define	SKGEN_CUT_ANGLE			16
 #define	SKGEN_CUT_CORRELATION	32
+#define	SKGEN_HARMONIC			64
 
 #define	SKGEN_SUB_LENGTH		0
 #define	SKGEN_SUB_ANGLE			1

@@ -444,7 +444,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SETMCOL_RND		2083
 #define B_DRAWBWEIGHTS		2084
 
-#define B_GEN_SKELETON		2090
+#define B_GEN_SKELETON		2085
+#define B_RETARGET_SKELETON	2086
 
 /* *********************** */
 #define B_VGROUPBUTS		2100
