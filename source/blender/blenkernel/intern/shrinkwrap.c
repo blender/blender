@@ -863,7 +863,7 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	float tmp_co[3];
 
 	BVHTree *tree	= NULL;
-	BVHTreeNearest nearest = {};
+	BVHTreeNearest nearest;
 
 	BENCH_VAR(query);
 
@@ -876,6 +876,7 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	BENCH(tree = bvhtree_from_mesh_verts(calc->target));
 	if(tree == NULL) return OUT_OF_MEMORY();
 
+	//Setup nearest
 	nearest.index = -1;
 	nearest.dist = FLT_MAX;
 
@@ -1024,7 +1025,7 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	float tmp_co[3];
 
 	BVHTree *tree	= NULL;
-	BVHTreeNearest nearest = {};
+	BVHTreeNearest nearest;
 
 	int	numVerts;
 	MVert *vert = NULL;
@@ -1035,6 +1036,7 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	tree = bvhtree_from_mesh_tri(calc->target);
 	if(tree == NULL) return OUT_OF_MEMORY();
 
+	//Setup nearest
 	nearest.index = -1;
 	nearest.dist = FLT_MAX;
 
