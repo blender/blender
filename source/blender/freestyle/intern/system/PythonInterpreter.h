@@ -105,15 +105,22 @@ private:
 	if (_initialized)
 		return;
 
-	// vector<string> pathnames;
-	// StringUtils::getPathName(_path, "", pathnames);
-	// 
-	// for (vector<string>::const_iterator it = pathnames.begin(); it != pathnames.end();++it) {
-	// 	if ( !it->empty() ) {
-	// 		cout << "Adding Python path: " << *it << endl;
-	// 		syspath_append( const_cast<char*>(it->c_str()) );
-	// 	}
-	// }
+	vector<string> pathnames;
+	StringUtils::getPathName(_path, "", pathnames);
+	
+	struct Text *text = add_empty_text("initpath_test.txt");
+	string cmd = "import sys\n";
+	txt_insert_buf(text, const_cast<char*>(cmd.c_str()));
+	
+	for (vector<string>::const_iterator it = pathnames.begin(); it != pathnames.end();++it) {
+		if ( !it->empty() ) {
+			cout << "Adding Python path: " << *it << endl;
+			cmd = "sys.path.append(\"" + *it + "\")\n";
+			txt_insert_buf(text, const_cast<char*>(cmd.c_str()));
+		}
+	}
+	
+	BPY_txt_do_python_Text(text);
 	
 	//PyRun_SimpleString("from Freestyle import *");
     _initialized = true;
