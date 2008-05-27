@@ -117,6 +117,8 @@ typedef struct BVHNearestData
 {
 	BVHTree *tree;
 	float	*co;
+	BVHTree_NearestPointCallback callback;
+	void	*userdata;
 	float proj[13];			//coordinates projection over axis
 	BVHTreeNearest nearest;
 } BVHNearestData;
@@ -919,25 +921,32 @@ static void dfs_find_nearest(BVHNearestData *data, BVHNode *node)
 	float nearest[3], sdist;
 
 	sdist = calc_nearest_point(data, node, nearest);
-
 	if(sdist >= data->nearest.dist) return;
 
 	if(node->totnode == 0)
 	{
+		if(data->callback)
+			sdist = data->callback(data->userdata , node->index, data->co, nearest);
+
+		if(sdist >= data->nearest.dist) return;
+
 		data->nearest.index	= node->index;
 		VECCOPY(data->nearest.nearest, nearest);
 		data->nearest.dist	= sdist;
 	}
 	else
 	{
-		for(i=0; i != node->totnode; i++)
+		if(sdist < data->nearest.dist)
 		{
-			dfs_find_nearest(data, node->children[i]);
+			for(i=0; i != node->totnode; i++)
+			{
+				dfs_find_nearest(data, node->children[i]);
+			}
 		}
 	}
 }
 
-int BLI_bvhtree_find_nearest(BVHTree *tree, float *co, BVHTreeNearest *nearest)
+int BLI_bvhtree_find_nearest(BVHTree *tree, float *co, BVHTreeNearest *nearest, BVHTree_NearestPointCallback callback, void *userdata)
 {
 	int i;
 
@@ -946,6 +955,9 @@ int BLI_bvhtree_find_nearest(BVHTree *tree, float *co, BVHTreeNearest *nearest)
 	//init data to search
 	data.tree = tree;
 	data.co = co;
+
+	data.callback = callback;
+	data.userdata = userdata;
 
 	for(i = data.tree->start_axis; i != data.tree->stop_axis; i++)
 	{

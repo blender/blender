@@ -86,6 +86,7 @@
 
 typedef void ( *Shrinkwrap_ForeachVertexCallback) (DerivedMesh *target, float *co, float *normal);
 
+static float nearest_point_in_tri_surface(const float *point, const float *v0, const float *v1, const float *v2, float *nearest);
 
 static void normal_short2float(const short *ns, float *nf)
 {
@@ -145,18 +146,19 @@ static BVHTree* bvhtree_from_mesh_tri(DerivedMesh *mesh)
 	{
 		for(i = 0; i < numFaces; i++)
 		{
-			float co[4][3];
+			float co[3][3];
 
 			VECCOPY(co[0], vert[ face[i].v1 ].co);
 			VECCOPY(co[1], vert[ face[i].v2 ].co);
 			VECCOPY(co[2], vert[ face[i].v3 ].co);
-			if(face[i].v4)
-				VECCOPY(co[3], vert[ face[i].v4 ].co);
-
-
 			BLI_bvhtree_insert(tree, 2*i, co[0], 3);
 			if(face[i].v4)
-				BLI_bvhtree_insert(tree, 2*i+1, co[1], 3);
+			{
+				/* second face is v1,v3,v4 */
+				VECCOPY(co[1], vert[ face[i].v3 ].co);
+				VECCOPY(co[2], vert[ face[i].v4 ].co);
+				BLI_bvhtree_insert(tree, 2*i+1, co[0], 3);
+			}
 		}
 
 		BLI_bvhtree_balance(tree);
@@ -165,7 +167,17 @@ static BVHTree* bvhtree_from_mesh_tri(DerivedMesh *mesh)
 	return tree;
 }
 
+static float mesh_tri_nearest_point(void *userdata, int index, const float *co, float *nearest)
+{
+	DerivedMesh *mesh = (DerivedMesh*)(userdata);
+	MVert *vert	= (MVert*)mesh->getVertDataArray(mesh, CD_MVERT);
+	MFace *face = (MFace*)mesh->getFaceDataArray(mesh, CD_MFACE) + index/2;
 
+	if(index & 1)
+		return nearest_point_in_tri_surface(co, vert[ face->v1 ].co, vert[ face->v3 ].co, vert[ face->v4 ].co, nearest);
+	else
+		return nearest_point_in_tri_surface(co, vert[ face->v1 ].co, vert[ face->v2 ].co, vert[ face->v3 ].co, nearest);
+}
 
 /*
  * Raytree from mesh
@@ -482,7 +494,7 @@ static float nearest_point_in_tri_surface(const float *point, const float *v0, c
 		nearest[2] = du[2]*nearest_2d[0] + dv[2] * nearest_2d[1] + dw[2] * plane_offset;
 	}
 
-	return sasqrt(plane_sdist + normal_dist*normal_dist);
+	return plane_sdist + normal_dist*normal_dist;
 }
 
 
@@ -808,8 +820,8 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 		switch(smd->shrinkType)
 		{
 			case MOD_SHRINKWRAP_NEAREST_SURFACE:
-//				BENCH(shrinkwrap_calc_nearest_surface_point(&calc));
-				BENCH(shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_nearest_surface_point));
+				BENCH(shrinkwrap_calc_nearest_surface_point(&calc));
+//				BENCH(shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_nearest_surface_point));
 			break;
 
 			case MOD_SHRINKWRAP_NORMAL:
@@ -888,7 +900,7 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 		}
 		else nearest.dist = FLT_MAX;
 
-		index = BLI_bvhtree_find_nearest(tree, tmp_co, &nearest);
+		index = BLI_bvhtree_find_nearest(tree, tmp_co, &nearest, NULL, NULL);
 
 		if(index != -1)
 		{
@@ -1046,7 +1058,7 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 		}
 		else nearest.dist = FLT_MAX;
 
-		index = BLI_bvhtree_find_nearest(tree, tmp_co, &nearest);
+		index = BLI_bvhtree_find_nearest(tree, tmp_co, &nearest, mesh_tri_nearest_point, calc->target);
 
 		if(index != -1)
 		{

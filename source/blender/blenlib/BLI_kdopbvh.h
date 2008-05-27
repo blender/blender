@@ -47,6 +47,10 @@ typedef struct BVHTreeNearest
 	float dist;			/* squared distance to search arround */
 } BVHTreeNearest;
 
+/* returns square of the minimum distance from given co to the node, nearest point is stored on nearest */
+typedef float (*BVHTree_NearestPointCallback) (void *userdata, int index, const float *co, float *nearest);
+
+
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis);
 void BLI_bvhtree_free(BVHTree *tree);
 
@@ -64,7 +68,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result)
 float BLI_bvhtree_getepsilon(BVHTree *tree);
 
 /* find nearest node to the given coordinates (if nearest is given it will only search nodes where square distance is smaller than nearest->dist) */
-int BLI_bvhtree_find_nearest(BVHTree *tree, float *co, BVHTreeNearest *nearest);
+int BLI_bvhtree_find_nearest(BVHTree *tree, float *co, BVHTreeNearest *nearest, BVHTree_NearestPointCallback callback, void *userdata);
 
 #endif // BLI_KDOPBVH_H
 
