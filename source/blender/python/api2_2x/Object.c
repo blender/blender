@@ -341,6 +341,7 @@ static int setupPI(Object* ob);
 
 static PyObject *Object_getParticleSys( BPy_Object * self );
 /* fixme Object_newParticleSys( self, default-partsys-name ) */
+static PyObject *Object_addVertexGroupsFromArmature( BPy_Object * self, PyObject * args);
 static PyObject *Object_newParticleSys( BPy_Object * self );
 static PyObject *Object_buildParts( BPy_Object * self );
 static PyObject *Object_clearIpo( BPy_Object * self );
@@ -475,6 +476,8 @@ static PyMethodDef BPy_Object_methods[] = {
 	 "Return a list of particle systems"},
  	{"newParticleSystem", ( PyCFunction ) Object_newParticleSys, METH_NOARGS,
 	 "Create and link a new particle system"},
+	{"addVertexGroupsFromArmature" , ( PyCFunction ) Object_addVertexGroupsFromArmature, METH_VARARGS,
+	 "Add vertex groups from armature using the bone heat method"},
 	{"buildParts", ( PyCFunction ) Object_buildParts, METH_NOARGS,
 	 "Recalcs particle system (if any), (depricated, will always return an empty list in version 2.46)"},
 	{"getIpo", ( PyCFunction ) Object_getIpo, METH_NOARGS,
@@ -1107,6 +1110,42 @@ PyObject *Object_newParticleSys( BPy_Object * self ){
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
 	return ParticleSys_CreatePyObject(rpsys,ob);
+}
+
+/*****************************************************************************/
+/* attribute:           addVertexGroupsFromArmature                          */
+/* Description:         evaluate and add vertex groups to the current object */
+/*                      for each bone of the selected armature               */   
+/* Data:                self Object, Bpy armature                            */
+/* Return:              nothing                                              */
+/*****************************************************************************/
+static PyObject *Object_addVertexGroupsFromArmature( BPy_Object * self, PyObject * args)
+{
+	
+	Object *ob = self->object;
+	BPy_Object *arm;
+
+	if( ob->type != OB_MESH )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"Only useable on Mesh type Objects" );
+	
+	if( G.obedit != NULL)
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"Not useable when inside edit mode" );
+	
+	/* Check if the arguments passed to makeParent are valid. */
+	if( !PyArg_ParseTuple( args, "O!",&Object_Type, &arm ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"An armature object is expected." );
+	
+	if( arm->object->type != OB_ARMATURE ) 
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"An armature object is expected." );
+			
+	add_verts_to_dgroups(ob, arm->object, 1, 0);
+	ob->recalc |= OB_RECALC_OB;  
+	
+	Py_RETURN_NONE;
 }
 
 static PyObject *Object_buildParts( BPy_Object * self )

@@ -462,6 +462,22 @@ int GPC_RenderTools::applyLights(int objectlayer)
 
 }
 
+void GPC_RenderTools::SetClientObject(void* obj)
+{
+	if (m_clientobject != obj)
+	{
+		if (obj == NULL || !((KX_GameObject*)obj)->IsNegativeScaling())
+		{
+			glFrontFace(GL_CCW);
+		} else 
+		{
+			glFrontFace(GL_CW);
+		}
+		m_clientobject = obj;
+		m_modified = true;
+	}
+}
+
 bool GPC_RenderTools::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data)
 {
 	double* const oglmatrix = (double* const) data;

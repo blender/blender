@@ -37,6 +37,9 @@ struct BezTriple;
 struct BPoint;
 struct BezTripleNurb;
 
+void set_actNurb(struct Nurb *nu);
+struct Nurb * get_actNurb( void );
+
 short isNurbsel(struct Nurb *nu);
 int isNurbsel_count(struct Nurb *nu);
 void printknots(void);

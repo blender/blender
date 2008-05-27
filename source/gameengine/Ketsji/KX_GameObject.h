@@ -75,6 +75,7 @@ protected:
 	
 	bool								m_bSuspendDynamics;
 	bool								m_bUseObjectColor;
+	bool								m_bIsNegativeScaling;
 	MT_Vector4							m_objectColor;
 
 	// Is this object set to be visible? Only useful for the
@@ -599,6 +600,14 @@ public:
 	);
 		
 	/**
+	 * Get the negative scaling state
+	 */
+		bool
+	IsNegativeScaling(
+		void
+	) { return m_bIsNegativeScaling; }
+
+	/**
 	 * @section Logic bubbling methods.
 	 */
 
@@ -665,6 +674,7 @@ public:
 	KX_PYMETHOD(KX_GameObject,RemoveParent);
 	KX_PYMETHOD(KX_GameObject,GetPhysicsId);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCastTo);
+	KX_PYMETHOD_DOC(KX_GameObject,rayCast);
 	KX_PYMETHOD_DOC(KX_GameObject,getDistanceTo);
 private :
 

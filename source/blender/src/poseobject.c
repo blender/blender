@@ -659,6 +659,10 @@ void pose_copy_menu(void)
 						free_constraints(&pchan->constraints);
 						copy_constraints(&pchan->constraints, &pchanact->constraints);
 						pchan->constflag = pchanact->constflag;
+						
+						if (ob->pose) {
+							ob->pose->flag |= POSE_RECALC;
+						}
 					}
 						break;
 					case 6: /* Transform Locks */
@@ -741,6 +745,10 @@ void pose_copy_menu(void)
 		}
 		BLI_freelistN(&const_copy);
 		update_pose_constraint_flags(ob->pose); /* we could work out the flags but its simpler to do this */
+		
+		if (ob->pose) {
+			ob->pose->flag |= POSE_RECALC;
+		}
 	}
 	
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);	// and all its relations
