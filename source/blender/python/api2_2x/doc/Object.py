@@ -651,6 +651,13 @@ class Object:
 		Link a new particle system (see Blender.Particle).
 		"""
 		
+	def addVertexGroupsFromArmature(object):
+		"""
+		Add vertex groups from armature using the bone heat method
+		This method can be only used with an Object of the type Mesh when NOT in edit mode.
+		@type object: a bpy armature
+		"""
+
 	def buildParts():
 		"""
 		Recomputes the particle system. This method only applies to an Object of
