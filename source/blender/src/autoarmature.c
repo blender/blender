@@ -1,5 +1,5 @@
 /**
- * $Id: editarmature.c 14848 2008-05-15 08:05:56Z aligorith $
+ * $Id:
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -46,6 +46,7 @@
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
+#include "BLI_graph.h"
 
 #include "BDR_editobject.h"
 
@@ -70,37 +71,47 @@ struct RigArc;
 struct RigEdge;
 
 typedef struct RigGraph {
-	ListBase arcs;
-	ListBase nodes;
-	struct RigNode *head;
+	ListBase	arcs;
+	ListBase	nodes;
 	
+	FreeArc			free_arc;
+	FreeNode		free_node;
+	RadialSymmetry	radial_symmetry;
+	AxialSymmetry	axial_symmetry;
+	/*********************************/
+
+	struct RigNode *head;
 	ReebGraph *link;
 } RigGraph;
 
 typedef struct RigNode {
-	struct RigNode *next, *prev;
+	void *next, *prev;
 	float p[3];
-	int degree;
-	struct RigArc **arcs;
 	int flag;
-	
+
+	int degree;
+	struct BArc **arcs;
+
 	int symmetry_level;
 	int symmetry_flag;
 	float symmetry_axis[3];
+	/*********************************/
 
 	ReebNode *link;
 } RigNode;
 
 typedef struct RigArc {
-	struct RigArc *next, *prev;
+	void *next, *prev;
 	RigNode *head, *tail;
-	ListBase edges;
-	float length;
 	int flag;
+
+	float length;
 
 	int symmetry_level;
 	int symmetry_flag;
+	/*********************************/
 	
+	ListBase edges;
 	int count;
 	ReebArc *link;
 } RigArc;
@@ -116,45 +127,7 @@ typedef struct RigEdge {
 /*******************************************************************************************************/
 
 static void RIG_calculateEdgeAngle(RigEdge *edge_first, RigEdge *edge_second);
-void RIG_markdownSymmetry(RigGraph *rg);
-void RIG_markdownSymmetryArc(RigArc *arc, RigNode *node, int level);
-void RIG_markdownSecondarySymmetry(RigNode *node, int depth, int level);
 
-
-/*******************************************************************************************************/
-static RigNode *RIG_otherNode(RigArc *arc, RigNode *node)
-{
-	if (arc->head == node)
-		return arc->tail;
-	else
-		return arc->head;
-}
-
-static void RIG_flagNodes(RigGraph *rg, int flag)
-{
-	RigNode *node;
-	
-	for(node = rg->nodes.first; node; node = node->next)
-	{
-		node->flag = flag;
-	}
-}
-
-static void RIG_flagArcs(RigGraph *rg, int flag)
-{
-	RigArc *arc;
-	
-	for(arc = rg->arcs.first; arc; arc = arc->next)
-	{
-		arc->flag = flag;
-	}
-}
-
-static void RIG_addArcToNodeAdjacencyList(RigNode *node, RigArc *arc)
-{
-	node->arcs[node->degree] = arc;
-	node->degree++;
-}
 /*********************************** EDITBONE UTILS ****************************************************/
 
 int countEditBoneChildren(ListBase *list, EditBone *parent)
@@ -192,6 +165,34 @@ EditBone* nextEditBoneChild(ListBase *list, EditBone *parent, int n)
 	return NULL;
 }
 
+
+/************************************ DESTRUCTORS ******************************************************/
+
+void RIG_freeRigArc(BArc *arc)
+{
+	BLI_freelistN(&((RigArc*)arc)->edges);
+}
+
+void RIG_freeRigGraph(BGraph *rg)
+{
+	BNode *node;
+	BArc *arc;
+	
+	for (arc = rg->arcs.first; arc; arc = arc->next)
+	{
+		RIG_freeRigArc(arc);
+	}
+	BLI_freelistN(&rg->arcs);
+	
+	for (node = rg->nodes.first; node; node = node->next)
+	{
+		BLI_freeNode((BGraph*)rg, (BNode*)node);
+	}
+	BLI_freelistN(&rg->nodes);
+	
+	MEM_freeN(rg);
+}
+
 /************************************* ALLOCATORS ******************************************************/
 
 static RigGraph *newRigGraph()
@@ -201,6 +202,9 @@ static RigGraph *newRigGraph()
 	
 	rg->head = NULL;
 	
+	rg->free_arc = RIG_freeRigArc;
+	rg->free_node = NULL;
+	
 	return rg;
 }
 
@@ -209,7 +213,6 @@ static RigArc *newRigArc(RigGraph *rg)
 	RigArc *arc;
 	
 	arc = MEM_callocN(sizeof(RigArc), "rig arc");
-	arc->length = 0;
 	arc->count = 0;
 	
 	BLI_addtail(&rg->arcs, arc);
@@ -279,117 +282,12 @@ static void RIG_addEdgeToArc(RigArc *arc, float tail[3], EditBone *bone)
 	edge->length = VecLenf(edge->head, edge->tail);
 	
 	arc->length += edge->length;
+	
 	arc->count += 1;
 }
 
-/************************************ DESTRUCTORS ******************************************************/
-
-static void RIG_freeRigNode(RigNode *node)
-{
-	if (node->arcs)
-	{
-		MEM_freeN(node->arcs);
-	}
-}
-
-static void RIG_freeRigArc(RigArc *arc)
-{
-	BLI_freelistN(&arc->edges);
-}
-
-static void RIG_freeRigGraph(RigGraph *rg)
-{
-	RigNode *node;
-	RigArc *arc;
-	
-	for (arc = rg->arcs.first; arc; arc = arc->next)
-	{
-		RIG_freeRigArc(arc);
-	}
-	BLI_freelistN(&rg->arcs);
-	
-	for (node = rg->nodes.first; node; node = node->next)
-	{
-		RIG_freeRigNode(node);
-	}
-	BLI_freelistN(&rg->nodes);
-	
-	MEM_freeN(rg);
-}
 
 /*******************************************************************************************************/
-
-static void RIG_buildAdjacencyList(RigGraph *rg)
-{
-	RigNode *node;
-	RigArc *arc;
-
-	for(node = rg->nodes.first; node; node = node->next)
-	{
-		if (node->arcs != NULL)
-		{
-			MEM_freeN(node->arcs);
-		}
-		
-		node->arcs = MEM_callocN((node->degree + 1) * sizeof(RigArc*), "adjacency list");
-		
-		/* temporary use to indicate the first index available in the lists */
-		node->degree = 0;
-	}
-
-	for(arc = rg->arcs.first; arc; arc= arc->next)
-	{
-		RIG_addArcToNodeAdjacencyList(arc->head, arc);
-		RIG_addArcToNodeAdjacencyList(arc->tail, arc);
-	}
-}
-
-static void RIG_replaceNode(RigGraph *rg, RigNode *node_src, RigNode *node_replaced)
-{
-	RigArc *arc, *next_arc;
-	
-	for (arc = rg->arcs.first; arc; arc = next_arc)
-	{
-		next_arc = arc->next;
-		
-		if (arc->head == node_replaced)
-		{
-			arc->head = node_src;
-			node_src->degree++;
-		}
-
-		if (arc->tail == node_replaced)
-		{
-			arc->tail = node_src;
-			node_src->degree++;
-		}
-		
-		if (arc->head == arc->tail)
-		{
-			node_src->degree -= 2;
-			
-			RIG_freeRigArc(arc);
-			BLI_freelinkN(&rg->arcs, arc);
-		}
-	}
-}
-
-static void RIG_removeDoubleNodes(RigGraph *rg, float limit)
-{
-	RigNode *node_src, *node_replaced;
-	
-	for(node_src = rg->nodes.first; node_src; node_src = node_src->next)
-	{
-		for(node_replaced = rg->nodes.first; node_replaced; node_replaced = node_replaced->next)
-		{
-			if (node_replaced != node_src && VecLenf(node_replaced->p, node_src->p) <= limit)
-			{
-				RIG_replaceNode(rg, node_src, node_replaced);
-			}
-		}
-	}
-	
-}
 
 static void RIG_calculateEdgeAngle(RigEdge *edge_first, RigEdge *edge_second)
 {
@@ -402,483 +300,6 @@ static void RIG_calculateEdgeAngle(RigEdge *edge_first, RigEdge *edge_second)
 	Normalize(vec_second);
 	
 	edge_first->angle = saacos(Inpf(vec_first, vec_second));
-}
-
-/*********************************** GRAPH AS TREE FUNCTIONS *******************************************/
-
-int RIG_subtreeDepth(RigNode *node, RigArc *rootArc)
-{
-	int depth = 0;
-	
-	/* Base case, no arcs leading away */
-	if (node->arcs == NULL || *(node->arcs) == NULL)
-	{
-		return 0;
-	}
-	else
-	{
-		RigArc ** pArc;
-
-		for(pArc = node->arcs; *pArc; pArc++)
-		{
-			RigArc *arc = *pArc;
-			
-			/* only arcs that go down the tree */
-			if (arc != rootArc)
-			{
-				RigNode *newNode = RIG_otherNode(arc, node);
-				depth = MAX2(depth, RIG_subtreeDepth(newNode, arc));
-			}
-		}
-	}
-	
-	return depth + BLI_countlist(&rootArc->edges);
-}
-
-int RIG_countConnectedArcs(RigGraph *rg, RigNode *node)
-{
-	int count = 0;
-	
-	/* use adjacency list if present */
-	if (node->arcs)
-	{
-		RigArc **arcs;
-	
-		for(arcs = node->arcs; *arcs; arcs++)
-		{
-			count++;
-		}
-	}
-	else
-	{
-		RigArc *arc;
-		for(arc = rg->arcs.first; arc; arc = arc->next)
-		{
-			if (arc->head == node || arc->tail == node)
-			{
-				count++;
-			}
-		}
-	}
-	
-	return count;
-}
-
-/********************************* SYMMETRY DETECTION **************************************************/
-
-static void mirrorAlongAxis(float v[3], float center[3], float axis[3])
-{
-	float dv[3], pv[3];
-	
-	VecSubf(dv, v, center);
-	Projf(pv, dv, axis);
-	VecMulf(pv, -2);
-	VecAddf(v, v, pv);
-}
-
-/* Helper structure for radial symmetry */
-typedef struct RadialArc
-{
-	RigArc *arc; 
-	float n[3]; /* normalized vector joining the nodes of the arc */
-} RadialArc;
-
-void RIG_markRadialSymmetry(RigNode *node, int depth, float axis[3])
-{
-	RadialArc *ring = NULL;
-	RadialArc *unit;
-	float limit = G.scene->toolsettings->skgen_symmetry_limit;
-	int symmetric = 1;
-	int count = 0;
-	int i;
-
-	/* mark topological symmetry */
-	node->symmetry_flag |= SYM_TOPOLOGICAL;
-
-	/* count the number of arcs in the symmetry ring */
-	for (i = 0; node->arcs[i] != NULL; i++)
-	{
-		RigArc *connectedArc = node->arcs[i];
-		
-		/* depth is store as a negative in flag. symmetry level is positive */
-		if (connectedArc->symmetry_level == -depth)
-		{
-			count++;
-		}
-	}
-
-	ring = MEM_callocN(sizeof(RadialArc) * count, "radial symmetry ring");
-	unit = ring;
-
-	/* fill in the ring */
-	for (unit = ring, i = 0; node->arcs[i] != NULL; i++)
-	{
-		RigArc *connectedArc = node->arcs[i];
-		
-		/* depth is store as a negative in flag. symmetry level is positive */
-		if (connectedArc->symmetry_level == -depth)
-		{
-			RigNode *otherNode = RIG_otherNode(connectedArc, node);
-			float vec[3];
-
-			unit->arc = connectedArc;
-
-			/* project the node to node vector on the symmetry plane */
-			VecSubf(unit->n, otherNode->p, node->p);
-			Projf(vec, unit->n, axis);
-			VecSubf(unit->n, unit->n, vec);
-
-			Normalize(unit->n);
-
-			unit++;
-		}
-	}
-
-	/* sort ring */
-	for (i = 0; i < count - 1; i++)
-	{
-		float minAngle = 3; /* arbitrary high value, higher than 2, at least */
-		int minIndex = -1;
-		int j;
-
-		for (j = i + 1; j < count; j++)
-		{
-			float angle = Inpf(ring[i].n, ring[j].n);
-
-			/* map negative values to 1..2 */
-			if (angle < 0)
-			{
-				angle = 1 - angle;
-			}
-
-			if (angle < minAngle)
-			{
-				minIndex = j;
-				minAngle = angle;
-			}
-		}
-
-		/* swap if needed */
-		if (minIndex != i + 1)
-		{
-			RadialArc tmp;
-			tmp = ring[i + 1];
-			ring[i + 1] = ring[minIndex];
-			ring[minIndex] = tmp;
-		}
-	}
-
-	for (i = 0; i < count && symmetric; i++)
-	{
-		RigNode *node1, *node2;
-		float tangent[3];
-		float normal[3];
-		float p[3];
-		int j = (i + 1) % count; /* next arc in the circular list */
-
-		VecAddf(tangent, ring[i].n, ring[j].n);
-		Crossf(normal, tangent, axis);
-		
-		node1 = RIG_otherNode(ring[i].arc, node);
-		node2 = RIG_otherNode(ring[j].arc, node);
-
-		VECCOPY(p, node2->p);
-		mirrorAlongAxis(p, node->p, normal);
-		
-		/* check if it's within limit before continuing */
-		if (VecLenf(node1->p, p) > limit)
-		{
-			symmetric = 0;
-		}
-
-	}
-
-	if (symmetric)
-	{
-		/* mark node as symmetric physically */
-		VECCOPY(node->symmetry_axis, axis);
-		node->symmetry_flag |= SYM_PHYSICAL;
-		node->symmetry_flag |= SYM_RADIAL;
-	}
-
-	MEM_freeN(ring);
-}
-
-static void setSideAxialSymmetry(RigNode *root_node, RigNode *end_node, RigArc *arc)
-{
-	float vec[3];
-	
-	VecSubf(vec, end_node->p, root_node->p);
-	
-	if (Inpf(vec, root_node->symmetry_axis) < 0)
-	{
-		arc->symmetry_flag |= SYM_SIDE_NEGATIVE;
-	}
-	else
-	{
-		arc->symmetry_flag |= SYM_SIDE_POSITIVE;
-	}
-}
-
-void RIG_markAxialSymmetry(RigNode *node, int depth, float axis[3])
-{
-	RigArc *arc1 = NULL;
-	RigArc *arc2 = NULL;
-	RigNode *node1 = NULL, *node2 = NULL;
-	float limit = G.scene->toolsettings->skgen_symmetry_limit;
-	float nor[3], vec[3], p[3];
-	int i;
-	
-	/* mark topological symmetry */
-	node->symmetry_flag |= SYM_TOPOLOGICAL;
-
-	for (i = 0; node->arcs[i] != NULL; i++)
-	{
-		RigArc *connectedArc = node->arcs[i];
-		
-		/* depth is store as a negative in flag. symmetry level is positive */
-		if (connectedArc->symmetry_level == -depth)
-		{
-			if (arc1 == NULL)
-			{
-				arc1 = connectedArc;
-				node1 = RIG_otherNode(arc1, node);
-			}
-			else
-			{
-				arc2 = connectedArc;
-				node2 = RIG_otherNode(arc2, node);
-				break; /* Can stop now, the two arcs have been found */
-			}
-		}
-	}
-	
-	/* shouldn't happen, but just to be sure */
-	if (node1 == NULL || node2 == NULL)
-	{
-		return;
-	}
-	
-	VecSubf(vec, node1->p, node->p);
-	Normalize(vec);
-	VecSubf(p, node->p, node2->p);
-	Normalize(p);
-	VecAddf(p, p, vec);
-
-	Crossf(vec, p, axis);
-	Crossf(nor, vec, axis);
-	
-	/* mirror node2 along axis */
-	VECCOPY(p, node2->p);
-	mirrorAlongAxis(p, node->p, nor);
-	
-	/* check if it's within limit before continuing */
-	if (VecLenf(node1->p, p) <= limit)
-	{
-		/* mark node as symmetric physically */
-		VECCOPY(node->symmetry_axis, nor);
-		node->symmetry_flag |= SYM_PHYSICAL;
-		node->symmetry_flag |= SYM_AXIAL;
-
-		/* set side on arcs */
-		setSideAxialSymmetry(node, node1, arc1);
-		setSideAxialSymmetry(node, node2, arc2);
-		printf("flag: %i <-> %i\n", arc1->symmetry_flag, arc2->symmetry_flag);
-	}
-	else
-	{
-		printf("NOT SYMMETRIC!\n");
-		printf("%f <= %f\n", VecLenf(node1->p, p), limit);
-		printvecf("axis", nor);
-	}
-}
-
-void RIG_markdownSecondarySymmetry(RigNode *node, int depth, int level)
-{
-	float axis[3] = {0, 0, 0};
-	int count = 0;
-	int i;
-
-	/* count the number of branches in this symmetry group
-	 * and determinte the axis of symmetry
-	 *  */	
-	for (i = 0; node->arcs[i] != NULL; i++)
-	{
-		RigArc *connectedArc = node->arcs[i];
-		
-		/* depth is store as a negative in flag. symmetry level is positive */
-		if (connectedArc->symmetry_level == -depth)
-		{
-			count++;
-		}
-		/* If arc is on the axis */
-		else if (connectedArc->symmetry_level == level)
-		{
-			VecAddf(axis, axis, connectedArc->head->p);
-			VecSubf(axis, axis, connectedArc->tail->p);
-		}
-	}
-
-	Normalize(axis);
-
-	/* Split between axial and radial symmetry */
-	if (count == 2)
-	{
-		RIG_markAxialSymmetry(node, depth, axis);
-	}
-	else
-	{
-		RIG_markRadialSymmetry(node, depth, axis);
-	}
-	
-	/* markdown secondary symetries */	
-	for (i = 0; node->arcs[i] != NULL; i++)
-	{
-		RigArc *connectedArc = node->arcs[i];
-		
-		if (connectedArc->symmetry_level == -depth)
-		{
-			/* markdown symmetry for branches corresponding to the depth */
-			RIG_markdownSymmetryArc(connectedArc, node, level + 1);
-		}
-	}
-}
-
-void RIG_markdownSymmetryArc(RigArc *arc, RigNode *node, int level)
-{
-	int i;
-	arc->symmetry_level = level;
-	
-	node = RIG_otherNode(arc, node);
-	
-	for (i = 0; node->arcs[i] != NULL; i++)
-	{
-		RigArc *connectedArc = node->arcs[i];
-		
-		if (connectedArc != arc)
-		{
-			RigNode *connectedNode = RIG_otherNode(connectedArc, node);
-			
-			/* symmetry level is positive value, negative values is subtree depth */
-			connectedArc->symmetry_level = -RIG_subtreeDepth(connectedNode, connectedArc);
-		}
-	}
-
-	arc = NULL;
-
-	for (i = 0; node->arcs[i] != NULL; i++)
-	{
-		int issymmetryAxis = 0;
-		RigArc *connectedArc = node->arcs[i];
-		
-		/* only arcs not already marked as symetric */
-		if (connectedArc->symmetry_level < 0)
-		{
-			int j;
-			
-			/* true by default */
-			issymmetryAxis = 1;
-			
-			for (j = 0; node->arcs[j] != NULL && issymmetryAxis == 1; j++)
-			{
-				RigArc *otherArc = node->arcs[j];
-				
-				/* different arc, same depth */
-				if (otherArc != connectedArc && otherArc->symmetry_level == connectedArc->symmetry_level)
-				{
-					/* not on the symmetry axis */
-					issymmetryAxis = 0;
-				} 
-			}
-		}
-		
-		/* arc could be on the symmetry axis */
-		if (issymmetryAxis == 1)
-		{
-			/* no arc as been marked previously, keep this one */
-			if (arc == NULL)
-			{
-				arc = connectedArc;
-			}
-			else
-			{
-				/* there can't be more than one symmetry arc */
-				arc = NULL;
-				break;
-			}
-		}
-	}
-	
-	/* go down the arc continuing the symmetry axis */
-	if (arc)
-	{
-		RIG_markdownSymmetryArc(arc, node, level);
-	}
-
-	
-	/* secondary symmetry */
-	for (i = 0; node->arcs[i] != NULL; i++)
-	{
-		RigArc *connectedArc = node->arcs[i];
-		
-		/* only arcs not already marked as symetric and is not the next arc on the symmetry axis */
-		if (connectedArc->symmetry_level < 0)
-		{
-			/* subtree depth is store as a negative value in the symmetry */
-			RIG_markdownSecondarySymmetry(node, -connectedArc->symmetry_level, level);
-		}
-	}
-}
-
-void RIG_markdownSymmetry(RigGraph *rg)
-{
-	RigNode *node;
-	RigArc *arc;
-	
-	/* mark down all arcs as non-symetric */
-	RIG_flagArcs(rg, 0);
-	
-	/* mark down all nodes as not on the symmetry axis */
-	RIG_flagNodes(rg, 0);
-
-	if (rg->head)
-	{
-		node = rg->head;
-	}
-	else
-	{
-		/* !TODO! DO SOMETHING SMART HERE */
-		return;
-	}
-	
-	/* only work on acyclic graphs and if only one arc is incident on the first node */
-	if (RIG_countConnectedArcs(rg, node) == 1)
-	{
-		arc = node->arcs[0];
-		
-		RIG_markdownSymmetryArc(arc, node, 1);
-
-		/* mark down non-symetric arcs */
-		for (arc = rg->arcs.first; arc; arc = arc->next)
-		{
-			if (arc->symmetry_level < 0)
-			{
-				arc->symmetry_level = 0;
-			}
-			else
-			{
-				/* mark down nodes with the lowest level symmetry axis */
-				if (arc->head->symmetry_level == 0 || arc->head->symmetry_level > arc->symmetry_level)
-				{
-					arc->head->symmetry_level = arc->symmetry_level;
-				}
-				if (arc->tail->symmetry_level == 0 || arc->tail->symmetry_level > arc->symmetry_level)
-				{
-					arc->tail->symmetry_level = arc->symmetry_level;
-				}
-			}
-		}
-	}
 }
 
 /*******************************************************************************************************/
@@ -942,7 +363,7 @@ static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bo
 
 	if (contain_head)
 	{
-		rg->head = arc->tail;
+		rg->head = (RigNode*)arc->tail;
 	}
 }
 
@@ -955,7 +376,7 @@ static void RIG_findHead(RigGraph *rg)
 		{
 			RigArc *arc = rg->arcs.first;
 			
-			rg->head = arc->head;
+			rg->head = (RigNode*)arc->head;
 		}
 	}
 }
@@ -997,7 +418,7 @@ static void RIG_printArc(RigArc *arc)
 
 	printf("\n");
 
-	RIG_printNode(arc->head, "head");
+	RIG_printNode((RigNode*)arc->head, "head");
 
 	for (edge = arc->edges.first; edge; edge = edge->next)
 	{
@@ -1009,7 +430,7 @@ static void RIG_printArc(RigArc *arc)
 	}	
 	printf("symmetry level: %i\n", arc->symmetry_level);
 
-	RIG_printNode(arc->tail, "tail");
+	RIG_printNode((RigNode*)arc->tail, "tail");
 }
 
 void RIG_printGraph(RigGraph *rg)
@@ -1048,9 +469,9 @@ static RigGraph *armatureToGraph(ListBase *list)
 		}
 	}
 	
-	RIG_removeDoubleNodes(rg, 0);
+	BLI_removeDoubleNodes((BGraph*)rg, 0);
 	
-	RIG_buildAdjacencyList(rg);
+	BLI_buildAdjacencyList((BGraph*)rg);
 	
 	RIG_findHead(rg);
 	
@@ -1151,6 +572,8 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 	int first_pass = 1;
 	int must_move = nb_joints - 1;
 	int i;
+	
+	printf("aggressive\n");
 
 	positions = MEM_callocN(sizeof(int) * nb_joints, "Aggresive positions");
 	best_positions = MEM_callocN(sizeof(int) * nb_joints, "Best Aggresive positions");
@@ -1161,13 +584,13 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 	if (earc->symmetry_level == 1 && iarc->symmetry_level == 1)
 	{
 		symmetry_axis = 1;
-		node_start = earc->v2;
-		node_end = earc->v1;
+		node_start = earc->tail;
+		node_end = earc->head;
 	}
 	else
 	{
-		node_start = earc->v1;
-		node_end = earc->v2;
+		node_start = earc->head;
+		node_end = earc->tail;
 	}
 	
 	/* init with first values */
@@ -1375,13 +798,13 @@ static void retargetArctoArcLength(RigArc *iarc)
 	if (earc->symmetry_level == 1 && iarc->symmetry_level == 1)
 	{
 		symmetry_axis = 1;
-		node_start = earc->v2;
-		node_end = earc->v1;
+		node_start = (ReebNode*)earc->tail;
+		node_end = (ReebNode*)earc->head;
 	}
 	else
 	{
-		node_start = earc->v1;
-		node_end = earc->v2;
+		node_start = (ReebNode*)earc->head;
+		node_end = (ReebNode*)earc->tail;
 	}
 	
 	initArcIterator(&iter, earc, node_start);
@@ -1499,14 +922,14 @@ static void retargetArctoArc(RigArc *iarc)
 		/* symmetry axis */
 		if (earc->symmetry_level == 1 && iarc->symmetry_level == 1)
 		{
-			VECCOPY(bone->head, earc->v2->p);
-			VECCOPY(bone->tail, earc->v1->p);
+			VECCOPY(bone->head, earc->tail->p);
+			VECCOPY(bone->tail, earc->head->p);
 		}
 		/* or not */
 		else
 		{
-			VECCOPY(bone->head, earc->v1->p);
-			VECCOPY(bone->tail, earc->v2->p);
+			VECCOPY(bone->head, earc->head->p);
+			VECCOPY(bone->tail, earc->tail->p);
 		}
 	}
 	else
@@ -1535,8 +958,9 @@ static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc 
 	
 	next_iarc->link = NULL;
 		
-	for(i = 0, next_earc = enode->arcs[i]; next_earc; i++, next_earc = enode->arcs[i])
+	for(i = 0; i < enode->degree; i++)
 	{
+		next_earc = (ReebArc*)enode->arcs[i];
 		if (next_earc->flag == 0 && /* not already taken */
 			next_earc->symmetry_flag == symmetry_flag &&
 			next_earc->symmetry_level == symmetry_level)
@@ -1561,8 +985,9 @@ static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc 
 		printf("flag %i -- symmetry level %i -- symmetry flag %i\n", 0, symmetry_level, symmetry_flag);
 		
 		printf("CANDIDATES\n");
-		for(i = 0, next_earc = enode->arcs[i]; next_earc; i++, next_earc = enode->arcs[i])
+		for(i = 0; i < enode->degree; i++)
 		{
+			next_earc = (ReebArc*)enode->arcs[i];
 			printf("flag %i -- symmetry level %i -- symmetry flag %i\n", next_earc->flag, next_earc->symmetry_level, next_earc->symmetry_flag);
 		}
 	}
@@ -1574,18 +999,19 @@ static void retargetSubgraph(RigGraph *rigg, RigArc *start_arc, RigNode *start_n
 	ReebArc *earc = start_arc->link;
 	RigNode *inode = start_node;
 	ReebNode *enode = start_node->link;
-	RigArc *next_iarc;
 	int i;
 		
 	retargetArctoArc(iarc);
 	
-	enode = OTHER_NODE(earc, enode);
-	inode = RIG_otherNode(iarc, inode);
+	enode = (ReebNode*)BLI_otherNode((BArc*)earc, (BNode*)enode);
+	inode = (RigNode*)BLI_otherNode((BArc*)iarc, (BNode*)inode);
 	
 	inode->link = enode;
 	
-	for(i = 0, next_iarc = inode->arcs[i]; next_iarc; i++, next_iarc = inode->arcs[i])
+	for(i = 0; i < inode->degree; i++)
 	{
+		RigArc *next_iarc = (RigArc*)inode->arcs[i];
+		
 		/* no back tracking */
 		if (next_iarc != iarc)
 		{
@@ -1613,12 +1039,12 @@ static void retargetGraphs(RigGraph *rigg)
 	}
 	
 	earc = reebg->arcs.first;
-	iarc = rigg->head->arcs[0];
+	iarc = (RigArc*)rigg->head->arcs[0];
 	
 	iarc->link = earc;
 	earc->flag = 1;
 	
-	enode = earc->v1;
+	enode = earc->head;
 	inode = iarc->tail;
 
 	inode->link = enode;
@@ -1634,7 +1060,7 @@ void BIF_retargetArmature()
 	
 	reebg = BIF_ReebGraphFromEditMesh();
 	
-	markdownSymmetry(reebg);
+	BLI_markdownSymmetry((BGraph*)reebg, reebg->nodes.first, G.scene->toolsettings->skgen_symmetry_limit);
 	
 	printf("Reeb Graph created\n");
 
@@ -1660,7 +1086,7 @@ void BIF_retargetArmature()
 				
 				printf("Armature graph created\n");
 		
-				RIG_markdownSymmetry(rigg);
+				BLI_markdownSymmetry((BGraph*)rigg, (BNode*)rigg->head, G.scene->toolsettings->skgen_symmetry_limit);
 				
 				RIG_printGraph(rigg);
 				
@@ -1675,7 +1101,7 @@ void BIF_retargetArmature()
 				
 				BLI_freelistN(&list);
 
-				RIG_freeRigGraph(rigg);
+				RIG_freeRigGraph((BGraph*)rigg);
 			}
 		}
 	}

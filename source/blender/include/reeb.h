@@ -30,6 +30,8 @@
 
 #include "DNA_listBase.h"
 
+#include "BLI_graph.h"
+
 struct GHash;
 struct EdgeHash;
 struct ReebArc;
@@ -37,8 +39,15 @@ struct ReebEdge;
 struct ReebNode;
 
 typedef struct ReebGraph {
-	ListBase arcs;
-	ListBase nodes;
+	ListBase	arcs;
+	ListBase	nodes;
+	
+	FreeArc			free_arc;
+	FreeNode		free_node;
+	RadialSymmetry	radial_symmetry;
+	AxialSymmetry	axial_symmetry;
+	/*********************************/
+	
 	int totnodes;
 	struct EdgeHash *emap;
 } ReebGraph;
@@ -50,17 +59,20 @@ typedef struct EmbedBucket {
 } EmbedBucket;
 
 typedef struct ReebNode {
-	struct ReebNode *next, *prev;
-	struct ReebArc **arcs;
-	int index;
-	int degree;
-	float weight;
+	void *next, *prev;
 	float p[3];
 	int flag;
+
+	int degree;
+	struct ReebArc **arcs;
 
 	int symmetry_level;
 	int symmetry_flag;
 	float symmetry_axis[3];
+	/*********************************/
+
+	int index;
+	float weight;
 } ReebNode;
 
 typedef struct ReebEdge {
@@ -72,15 +84,19 @@ typedef struct ReebEdge {
 } ReebEdge;
 
 typedef struct ReebArc {
-	struct ReebArc *next, *prev;
-	ListBase edges;
-	struct ReebNode *v1, *v2;
-	struct EmbedBucket *buckets;
-	int	bcount;
+	void *next, *prev;
+	struct ReebNode *head, *tail;
 	int flag;
+
+	float length;
 
 	int symmetry_level;
 	int symmetry_flag;
+	/*********************************/
+
+	ListBase edges;
+	int bcount;
+	struct EmbedBucket *buckets;
 
 	struct GHash *faces;	
 	float angle;
@@ -107,8 +123,6 @@ void renormalizeWeight(struct EditMesh *em, float newmax);
 ReebGraph * generateReebGraph(struct EditMesh *me, int subdivisions);
 ReebGraph * newReebGraph();
 
-#define OTHER_NODE(arc, node) ((arc->v1 == node) ? arc->v2 : arc->v1)
-
 void initArcIterator(struct ReebArcIterator *iter, struct ReebArc *arc, struct ReebNode *head);
 void initArcIterator2(struct ReebArcIterator *iter, struct ReebArc *arc, int start, int end);
 void initArcIteratorStart(struct ReebArcIterator *iter, struct ReebArc *arc, struct ReebNode *head, int start);
@@ -129,35 +143,8 @@ void repositionNodes(ReebGraph *rg);
 void postprocessGraph(ReebGraph *rg, char mode);
 void removeNormalNodes(ReebGraph *rg);
 
-/* Graph processing */
-void buildAdjacencyList(ReebGraph *rg);
-
 void sortNodes(ReebGraph *rg);
 void sortArcs(ReebGraph *rg);
-
-int subtreeDepth(ReebNode *node, ReebArc *rootArc);
-int countConnectedArcs(ReebGraph *rg, ReebNode *node);
-int hasAdjacencyList(ReebGraph *rg); 
-int	isGraphCyclic(ReebGraph *rg);
-
-/*------------ Symmetry handling ------------*/
-void markdownSymmetry(ReebGraph *rg);
-
-/* ReebNode symmetry flags */
-#define SYM_TOPOLOGICAL	1
-#define SYM_PHYSICAL	2
-
-/* the following two are exclusive */
-#define SYM_AXIAL		4
-#define SYM_RADIAL		8
-
-/* ReebArc symmetry flags
- * 
- * axial symetry sides */
-#define SYM_SIDE_POSITIVE		1
-#define SYM_SIDE_NEGATIVE		2
-
-
 
 /*------------ Sanity check ------------*/
 void verifyBuckets(ReebGraph *rg);

@@ -4324,7 +4324,7 @@ float arcLengthRatio(ReebArc *arc)
 	float embedLength = 0.0f;
 	int i;
 	
-	arcLength = VecLenf(arc->v1->p, arc->v2->p);
+	arcLength = VecLenf(arc->head->p, arc->tail->p);
 	
 	if (arc->bcount > 0)
 	{
@@ -4334,8 +4334,8 @@ float arcLengthRatio(ReebArc *arc)
 			embedLength += VecLenf(arc->buckets[i - 1].p, arc->buckets[i].p);
 		}
 		/* Add head and tail -> embedding vectors */
-		embedLength += VecLenf(arc->v1->p, arc->buckets[0].p);
-		embedLength += VecLenf(arc->v2->p, arc->buckets[arc->bcount - 1].p);
+		embedLength += VecLenf(arc->head->p, arc->buckets[0].p);
+		embedLength += VecLenf(arc->tail->p, arc->buckets[arc->bcount - 1].p);
 	}
 	else
 	{
@@ -4483,7 +4483,7 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 
 	arcBoneMap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
 	
-	markdownSymmetry(rg);
+	BLI_markdownSymmetry((BGraph*)rg, rg->nodes.first, G.scene->toolsettings->skgen_symmetry_limit);
 	
 	for (arc = rg->arcs.first; arc; arc = arc->next) 
 	{
@@ -4501,33 +4501,33 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 		 */
 
 		/* if arc is a symmetry axis, internal bones go up the tree */		
-		if (arc->symmetry_level == 1 && arc->v2->degree != 1)
+		if (arc->symmetry_level == 1 && arc->tail->degree != 1)
 		{
-			head = arc->v2;
-			tail = arc->v1;
+			head = arc->tail;
+			tail = arc->head;
 			
 			arc->flag = -1; /* mark arc direction */
 		}
 		/* Bones point AWAY from the symmetry axis */
-		else if (arc->v1->symmetry_level == 1)
+		else if (arc->head->symmetry_level == 1)
 		{
-			head = arc->v1;
-			tail = arc->v2;
+			head = arc->head;
+			tail = arc->tail;
 			
 			arc->flag = 1; /* mark arc direction */
 		}
-		else if (arc->v2->symmetry_level == 1)
+		else if (arc->tail->symmetry_level == 1)
 		{
-			head = arc->v2;
-			tail = arc->v1;
+			head = arc->tail;
+			tail = arc->head;
 			
 			arc->flag = -1; /* mark arc direction */
 		}
 		/* otherwise, always go from low weight to high weight */
 		else
 		{
-			head = arc->v1;
-			tail = arc->v2;
+			head = arc->head;
+			tail = arc->tail;
 			
 			arc->flag = 1; /* mark arc direction */
 		}
@@ -4571,12 +4571,12 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 		ReebArc *incomingArc = NULL;
 		int i;
 
-		for (i = 0; node->arcs[i] != NULL; i++)
+		for (i = 0; i < node->degree; i++)
 		{
-			arc = node->arcs[i];
+			arc = (ReebArc*)node->arcs[i];
 
 			/* if arc is incoming into the node */
-			if ((arc->v1 == node && arc->flag == -1) || (arc->v2 == node && arc->flag == 1))
+			if ((arc->head == node && arc->flag == -1) || (arc->tail == node && arc->flag == 1))
 			{
 				if (incomingArc == NULL)
 				{
@@ -4597,12 +4597,12 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 			EditBone *parentBone = BLI_ghash_lookup(arcBoneMap, incomingArc);
 
 			/* Look for outgoing arcs and parent their bones */
-			for (i = 0; node->arcs[i] != NULL; i++)
+			for (i = 0; i < node->degree; i++)
 			{
 				arc = node->arcs[i];
 
 				/* if arc is outgoing from the node */
-				if ((arc->v1 == node && arc->flag == 1) || (arc->v2 == node && arc->flag == -1))
+				if ((arc->head == node && arc->flag == 1) || (arc->tail == node && arc->flag == -1))
 				{
 					EditBone *childBone = BLI_ghash_lookup(arcBoneMap, arc);
 
