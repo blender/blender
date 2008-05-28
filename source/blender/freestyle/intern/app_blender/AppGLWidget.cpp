@@ -618,22 +618,13 @@ bool AppGLWidget::getBackBufferFlag() {
 // COPIED FROM LIBQGLVIEWER
 //*******************************
 
-	// inherited 
-	void AppGLWidget::swapBuffers() {}
-	
+	// inherited 	
 	//Updates the display. Do not call draw() directly, use this method instead. 
 	void AppGLWidget::updateGL() {}
 
 	//Makes this widget's rendering context the current OpenGL rendering context. Useful with several viewers
-	void AppGLWidget::makeCurrent() {}
-
+	void AppGLWidget::makeCurrent() { }
 
 	// not-inherited
-
-	//	Convenient way to call setSceneCenter() and setSceneRadius() from a (world axis aligned) bounding box of the scene.
-	void AppGLWidget::setSceneBoundingBox(const Vec& min, const Vec& max) { _camera->setSceneBoundingBox(min,max); }
-		
-	void AppGLWidget::saveSnapshot(bool b) {}
-
 	 void AppGLWidget::setStateFileName(const string& name) { stateFileName_ = name; };
-
+	void AppGLWidget::saveSnapshot(bool b) {}

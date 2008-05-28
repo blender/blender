@@ -20,7 +20,9 @@ extern "C" {
 		AppGLWidget *view = new AppGLWidget;
 		
 		c->SetView(view);
-	
+		view->setWidth(640);
+		view->setHeight(640);
+		
 		c->Load3DSFile( TEST_3DS_FILE );
 		
 		c->InsertStyleModule( 0, TEST_STYLE_MODULE_FILE );

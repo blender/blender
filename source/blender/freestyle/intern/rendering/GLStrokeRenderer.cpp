@@ -368,11 +368,13 @@ GLTextureManager::prepareTextureAlpha (string sname, GLuint itexname)
 	BLI_splitdirstring(name, filename);
 
 //soc  if (qim.isNull()) 
-	if( qim )
+  if (!qim) //soc 
     {
       cerr << "  Error: unable to read \"" << filename << "\"" << endl;
+	IMB_freeImBuf(qim);
       return false;
     }
+
   if( qim->depth > 8) //soc
     {
       cerr<<"  Error: \""<< filename <<"\" has "<< qim->depth <<" bits/pixel"<<endl; //soc
@@ -416,9 +418,10 @@ GLTextureManager::prepareTextureLuminance (string sname, GLuint itexname)
 	char filename[FILE_MAXFILE];
 	BLI_splitdirstring(name, filename);
 	
-  if (!qim) //soc
+  if (!qim) //soc 
     {
       cerr << "  Error: unable to read \"" << filename << "\"" << endl;
+	IMB_freeImBuf(qim);
       return false;
     }
   if (qim->depth > 8) //soc
@@ -463,11 +466,13 @@ GLTextureManager::prepareTextureLuminanceAndAlpha (string sname, GLuint itexname
 	char filename[FILE_MAXFILE];
 	BLI_splitdirstring(name, filename);
 
-  if (!qim) //soc
+  if (!qim) //soc 
     {
       cerr << "  Error: unable to read \"" << filename << "\"" << endl;
+	IMB_freeImBuf(qim);
       return false;
     }
+
   if (qim->depth > 8) //soc
     {
       cerr<<"  Error: \""<<filename<<"\" has "<< qim->depth <<" bits/pixel"<<endl; //soc
@@ -508,19 +513,24 @@ GLTextureManager::preparePaper (const char *name, GLuint itexname)
 	ImBuf *qim = IMB_loadiffname(name, 0);
 	char filename[FILE_MAXFILE];
 	BLI_splitdirstring((char *)name, filename);
+	qim->depth = 32;
 
   if (!qim) //soc 
     {
       cerr << "  Error: unable to read \"" << filename << "\"" << endl;
+	IMB_freeImBuf(qim);
       return false;
     }
 
-  if (qim->depth !=32) //soc
-    {
-      cerr<<"  Error: \""<<filename<<"\" has "<<qim->depth<<" bits/pixel"<<endl; //soc
-      return false;
-    }
-  //soc QImage qim2=QGLWidget::convertToGLFormat( qim );
+	//soc: no test because IMB_loadiffname creates 32 bit image directly
+	//
+	//   if (qim->depth != 32) 
+	//     {
+	//       cerr<<"  Error: \""<<filename<<"\" has "<< qim->depth <<" bits/pixel"<<endl; //soc
+	// IMB_freeImBuf(qim);
+	//       return false;
+	//     }
+	// QImage qim2=QGLWidget::convertToGLFormat( qim );
 
   glBindTexture(GL_TEXTURE_2D, itexname);
 	
@@ -532,10 +542,10 @@ GLTextureManager::preparePaper (const char *name, GLuint itexname)
 		  GL_LINEAR);     
 
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, qim->x, qim->y, 0, 
-	       GL_RGBA, GL_UNSIGNED_BYTE, qim->rect);	//soc: here qim->rect, not qim2->rect, used
+	       GL_RGBA, GL_UNSIGNED_BYTE, qim->rect); // soc: was qim2
 
   //cout << "  \"" << filename.toAscii().data() << "\" loaded with "<< qim.depth() << " bits per pixel" << endl;
-	cout << "  \"" << StringUtils::toAscii(filename) << "\" loaded with "<< qim->depth << " bits per pixel" << endl;
+	cout << "  \"" << StringUtils::toAscii(filename) << "\" loaded with 32 bits per pixel" << endl;
   return true;
 }
 

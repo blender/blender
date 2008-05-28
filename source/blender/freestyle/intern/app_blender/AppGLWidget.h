@@ -47,6 +47,7 @@ using namespace std;
 # include "../rendering/GLDebugRenderer.h"
 //# include <QGLViewer/qglviewer.h>
 
+
 //soc
 #include "AppGLWidget_camera.h"
 #include "AppGLWidget_vec.h"
@@ -76,14 +77,15 @@ public:
 public:
 
 	//inherited
-		inline real width() { return _width; }
-		inline real height() { return _height; }
-		void swapBuffers();
+		inline unsigned int width() { return _width; }
+		inline unsigned int height() { return _height; }
+		inline void setWidth( unsigned int width ) { _width = width; }
+		inline void setHeight( unsigned int height ) { _height = height; }
+		
 		void updateGL();
 		void makeCurrent();
 	
 	// not-inherited
-		void setSceneBoundingBox(const Vec& min, const Vec& max);
 		void saveSnapshot(bool b);
 		void setStateFileName(const string& name);
 	
@@ -91,7 +93,7 @@ public:
 		Camera * _camera;
 
 protected:
-	real _width, _height;
+	unsigned int _width, _height;
 	Vec _min,_max;
 	string stateFileName_;
 
@@ -306,7 +308,7 @@ public:
 	Vec max_(_ModelRootNode->bbox().getMax()[0],
     			_ModelRootNode->bbox().getMax()[1],
     			_ModelRootNode->bbox().getMax()[2]);
-    setSceneBoundingBox(min_, max_);
+    _camera->setSceneBoundingBox(min_, max_);
     _camera->showEntireScene();
   }
   

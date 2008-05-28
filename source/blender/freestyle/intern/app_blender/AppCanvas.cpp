@@ -214,7 +214,7 @@ void AppCanvas::update()
 //  char number[10];
 //
   _pViewer->updateGL();
-  _pViewer->swapBuffers();
+  //_pViewer->swapBuffers();
   //QImage fb = _pViewer->grabFrameBuffer();
   //  sprintf(number, "%3d", counter);
   //  strcat(fileName, number);

@@ -55,14 +55,10 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
 prefix = 'intern/app_blender'
 app_sources = env.Glob(prefix + '/*.cpp')
 
-# 	swig wrapper
-#prefix = 'intern/swig'
-#swig_sources = env.Glob(prefix + '/*.cpp')
-swig_sources = []
 
 sources = 	system_sources + image_sources + geometry_sources + scene_graph_sources \
 		  +	winged_edge_sources + view_map_sources + stroke_sources + rendering_sources \
-		  + app_sources + swig_sources
+		  + app_sources
 
 env.BlenderLib (libname="bf_freestyle",
 				sources=sources,
