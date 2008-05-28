@@ -2885,7 +2885,7 @@ static int drawDispList(Base *base, int dt)
 /* 5. start filling the arrays				*/
 /* 6. draw the arrays						*/
 /* 7. clean up								*/
-static void draw_new_particle_system(Base *base, ParticleSystem *psys)
+static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 {
 	View3D *v3d= G.vd;
 	Object *ob=base->object;
@@ -3334,14 +3334,24 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 				float *cd2=0,*cdata2=0;
 
 				glEnableClientState(GL_VERTEX_ARRAY);
-				glEnableClientState(GL_NORMAL_ARRAY);
-				glEnable(GL_LIGHTING);
 
-				glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-				glEnable(GL_COLOR_MATERIAL);
+				if(dt > OB_WIRE) {
+					glEnableClientState(GL_NORMAL_ARRAY);
 
-				if(part->draw&PART_DRAW_MAT_COL)
-					glEnableClientState(GL_COLOR_ARRAY);
+					if(part->draw&PART_DRAW_MAT_COL)
+						glEnableClientState(GL_COLOR_ARRAY);
+
+					glEnable(GL_LIGHTING);
+					glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+					glEnable(GL_COLOR_MATERIAL);
+				}
+				else {
+					glDisableClientState(GL_NORMAL_ARRAY);
+
+					glDisable(GL_COLOR_MATERIAL);
+					glDisable(GL_LIGHTING);
+					BIF_ThemeColor(TH_WIRE);
+				}
 
 				if(totchild && (part->draw&PART_DRAW_PARENT)==0)
 					totpart=0;
@@ -3350,9 +3360,13 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 				for(a=0, pa=psys->particles; a<totpart; a++, pa++){
 					path=cache[a];
 					glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
-					glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
-					if(part->draw&PART_DRAW_MAT_COL)
-						glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
+
+					if(dt > OB_WIRE) {
+						glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
+						if(part->draw&PART_DRAW_MAT_COL)
+							glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
+					}
+
 					glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
 				}
 				
@@ -3360,15 +3374,21 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 				for(a=0; a<totchild; a++){
 					path=cache[a];
 					glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
-					glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
-					if(part->draw&PART_DRAW_MAT_COL)
-						glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
+
+					if(dt > OB_WIRE) {
+						glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
+						if(part->draw&PART_DRAW_MAT_COL)
+							glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
+					}
+
 					glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
 				}
 
-				if(part->draw&PART_DRAW_MAT_COL)
-					glDisable(GL_COLOR_ARRAY);
-				glDisable(GL_COLOR_MATERIAL);
+				if(dt > OB_WIRE) {
+					if(part->draw&PART_DRAW_MAT_COL)
+						glDisable(GL_COLOR_ARRAY);
+					glDisable(GL_COLOR_MATERIAL);
+				}
 
 				if(cdata2)
 					MEM_freeN(cdata2);
@@ -3389,7 +3409,7 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 				else
 					glDisableClientState(GL_VERTEX_ARRAY);
 
-				if(ndata && MIN2(G.vd->drawtype, ob->dt)>OB_WIRE){
+				if(ndata && dt>OB_WIRE){
 					glEnableClientState(GL_NORMAL_ARRAY);
 					glNormalPointer(GL_FLOAT, 0, ndata);
 					glEnable(GL_LIGHTING);
@@ -3412,7 +3432,7 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 						glDrawArrays(GL_LINES, 0, 2*totpoint);
 						break;
 					case PART_DRAW_BB:
-						if(MIN2(G.vd->drawtype, ob->dt)<=OB_WIRE)
+						if(dt<=OB_WIRE)
 							glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
 
 						glDrawArrays(GL_QUADS, 0, 4*totpoint);
@@ -3466,7 +3486,7 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 	mymultmatrix(ob->obmat);	// bring back local matrix for dtx
 }
 
-static void draw_particle_edit(Object *ob, ParticleSystem *psys)
+static void draw_particle_edit(Object *ob, ParticleSystem *psys, int dt)
 {
 	ParticleEdit *edit = psys->edit;
 	ParticleData *pa;
@@ -3479,6 +3499,7 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 	float nosel_col[3];
 	char val[32];
 
+	/* create path and child path cache if it doesn't exist already */
 	if(psys->pathcache==0){
 		PE_hide_keys_time(psys,CFRA);
 		psys_cache_paths(ob,psys,CFRA,0);
@@ -3493,11 +3514,13 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 	else if(!(pset->flag & PE_SHOW_CHILD) && psys->childcache)
 		free_child_path_cache(psys);
 
+	/* opengl setup */
 	if((G.vd->flag & V3D_ZBUF_SELECT)==0)
 		glDisable(GL_DEPTH_TEST);
 
 	myloadmatrix(G.vd->viewmat);
 
+	/* get selection theme colors */
 	BIF_GetThemeColor3ubv(TH_VERTEX_SELECT, sel);
 	BIF_GetThemeColor3ubv(TH_VERTEX, nosel);
 	sel_col[0]=(float)sel[0]/255.0f;
@@ -3511,41 +3534,61 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 		totchild = psys->totchildcache;
 
 	/* draw paths */
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
 	if(timed)
 		glEnable(GL_BLEND);
 
-	if(pset->brushtype == PE_BRUSH_WEIGHT){
-		glLineWidth(2.0f);
+	glEnableClientState(GL_VERTEX_ARRAY);
+
+	if(dt > OB_WIRE) {
+		/* solid shaded with lighting */
+		glEnableClientState(GL_NORMAL_ARRAY);
 		glEnableClientState(GL_COLOR_ARRAY);
+
+		glEnable(GL_COLOR_MATERIAL);
+		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+	}
+	else {
+		/* flat wire color */
+		glDisableClientState(GL_NORMAL_ARRAY);
 		glDisable(GL_LIGHTING);
+		BIF_ThemeColor(TH_WIRE);
 	}
 
-	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-	glEnable(GL_COLOR_MATERIAL);
+	/* only draw child paths with lighting */
+	if(dt > OB_WIRE)
+		glEnable(GL_LIGHTING);
 
-	for(i=0, pa=psys->particles, path = psys->pathcache; i<totpart; i++, pa++, path++){
-		glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->co);
-		glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), (*path)->vel);
-		glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->col);
-
-		glDrawArrays(GL_LINE_STRIP, 0, (int)(*path)->steps + 1);
-	}
-
-	glEnable(GL_LIGHTING);
 	if(psys->part->draw_as == PART_DRAW_PATH) {
 		for(i=0, path=psys->childcache; i<totchild; i++,path++){
 			glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->co);
-			glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), (*path)->vel);
-			glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->col);
+			if(dt > OB_WIRE) {
+				glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), (*path)->vel);
+				glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->col);
+			}
 
 			glDrawArrays(GL_LINE_STRIP, 0, (int)(*path)->steps + 1);
 		}
 	}
 
-	glDisable(GL_COLOR_MATERIAL);
+	if(dt > OB_WIRE)
+		glDisable(GL_LIGHTING);
+
+	if(pset->brushtype == PE_BRUSH_WEIGHT) {
+		glLineWidth(2.0f);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glDisable(GL_LIGHTING);
+	}
+
+	/* draw parents last without lighting */
+	for(i=0, pa=psys->particles, path = psys->pathcache; i<totpart; i++, pa++, path++){
+		glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->co);
+		if(dt > OB_WIRE)
+			glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), (*path)->vel);
+		if(dt > OB_WIRE || pset->brushtype == PE_BRUSH_WEIGHT)
+			glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->col);
+
+		glDrawArrays(GL_LINE_STRIP, 0, (int)(*path)->steps + 1);
+	}
 
 	/* draw edit vertices */
 	if(G.scene->selectmode!=SCE_SELECT_PATH){
@@ -3619,6 +3662,7 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 
 	glDisable(GL_BLEND);
 	glDisable(GL_LIGHTING);
+	glDisable(GL_COLOR_MATERIAL);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnable(GL_DEPTH_TEST);
@@ -5011,12 +5055,12 @@ void draw_object(Base *base, int flag)
 		glDepthMask(GL_FALSE);
 		
 		for(psys=ob->particlesystem.first; psys; psys=psys->next)
-			draw_new_particle_system(base, psys);
+			draw_new_particle_system(base, psys, dt);
 		
 		if(G.f & G_PARTICLEEDIT && ob==OBACT) {
 			psys= PE_get_current(ob);
 			if(psys && !G.obedit && psys_in_edit_mode(psys))
-				draw_particle_edit(ob, psys);
+				draw_particle_edit(ob, psys, dt);
 		}
 		glDepthMask(GL_TRUE); 
 		if(col) cpack(col);
