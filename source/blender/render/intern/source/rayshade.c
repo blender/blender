@@ -1476,9 +1476,12 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
 	tot= 2*resol*resol;
 
 	if (type & WO_AORNDSMP) {
-		static float sphere[2*3*256];
+		float *sphere;
 		int a;
 		
+		// always returns table
+		sphere= threadsafe_table_sphere(0, thread, xs, ys, tot);
+
 		/* total random sampling. NOT THREADSAFE! (should be removed, is not useful) */
 		vec= sphere;
 		for (a=0; a<tot; a++, vec+=3) {
@@ -1493,7 +1496,8 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
 		float ang, *vec1;
 		int a;
 		
-		sphere= threadsafe_table_sphere(1, thread, xs, ys, tot);	// returns table if xs and ys were equal to last call
+		// returns table if xs and ys were equal to last call
+		sphere= threadsafe_table_sphere(1, thread, xs, ys, tot);
 		if(sphere==NULL) {
 			sphere= threadsafe_table_sphere(0, thread, xs, ys, tot);
 			
