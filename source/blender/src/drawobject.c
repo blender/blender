@@ -3111,7 +3111,7 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 				pa_time=(cfra-pa->time)/pa->lifetime;
 
 				if((part->flag&PART_ABS_TIME)==0){				
-					if(ma->ipo){
+					if(ma && ma->ipo){
 						/* correction for lifetime */
 						calc_ipo(ma->ipo, 100.0f*pa_time);
 						execute_ipo((ID *)ma, ma->ipo);
@@ -3138,7 +3138,7 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 				pa_time=psys_get_child_time(psys,cpa,cfra);
 
 				if((part->flag&PART_ABS_TIME)==0) {
-					if(ma->ipo){
+					if(ma && ma->ipo){
 						/* correction for lifetime */
 						calc_ipo(ma->ipo, 100.0f*pa_time);
 						execute_ipo((ID *)ma, ma->ipo);
