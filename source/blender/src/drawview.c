@@ -3732,18 +3732,22 @@ int play_anim(int mode)
 					else viewmove(0);
 				}
 			} else if (event==WHEELDOWNMOUSE || (val && event==PADMINUS)) { /* copied from persptoetsen */
-				/* this min and max is also in viewmove() */
-				if(G.vd->persp==V3D_CAMOB) {
-					G.vd->camzoom-= 10;
-					if(G.vd->camzoom<-30) G.vd->camzoom= -30;
+				if (G.vd) { /* when using the sequencer this can be NULL */
+					/* this min and max is also in viewmove() */ 
+					if(G.vd->persp==V3D_CAMOB) {
+						G.vd->camzoom-= 10;
+						if(G.vd->camzoom<-30) G.vd->camzoom= -30;
+					}
+					else if(G.vd->dist<10.0*G.vd->far) G.vd->dist*=1.2f;
 				}
-				else if(G.vd->dist<10.0*G.vd->far) G.vd->dist*=1.2f;
 			} else if (event==WHEELUPMOUSE || (val && event==PADPLUSKEY)) { /* copied from persptoetsen */
-				if(G.vd->persp==V3D_CAMOB) {
-					G.vd->camzoom+= 10;
-					if(G.vd->camzoom>300) G.vd->camzoom= 300;
+				if (G.vd) {
+					if(G.vd->persp==V3D_CAMOB) {
+						G.vd->camzoom+= 10;
+						if(G.vd->camzoom>300) G.vd->camzoom= 300;
+					}
+					else if(G.vd->dist> 0.001*G.vd->grid) G.vd->dist*=.83333f;
 				}
-				else if(G.vd->dist> 0.001*G.vd->grid) G.vd->dist*=.83333f;
 			} else if(event==MKEY) {
 				if(val) add_marker(CFRA-1);
 			}
