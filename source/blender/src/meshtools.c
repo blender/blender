@@ -957,6 +957,12 @@ int *mesh_get_x_mirror_faces(Object *ob)
 		mirrormf.v3= mirrorverts[mf->v1];
 		mirrormf.v4= (mf->v4)? mirrorverts[mf->v4]: 0;
 
+		/* make sure v4 is not 0 if a quad */
+		if(mf->v4 && mirrormf.v4==0) {
+			SWAP(int, mirrormf.v1, mirrormf.v3);
+			SWAP(int, mirrormf.v2, mirrormf.v4);
+		}
+
 		hashmf= BLI_ghash_lookup(fhash, &mirrormf);
 		if(hashmf) {
 			mirrorfaces[a*2]= hashmf - mface;
