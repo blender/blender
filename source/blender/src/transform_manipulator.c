@@ -158,7 +158,7 @@ static void protectflag_to_drawflags(short protectflag, short *drawflags)
 }
 
 /* for pose mode */
-static void stats_pose(View3D *v3d, bPoseChannel *pchan, float *normal, float *plane)
+static void stats_pose(View3D *v3d, bPoseChannel *pchan)
 {
 	Bone *bone= pchan->bone;
 	
@@ -166,9 +166,6 @@ static void stats_pose(View3D *v3d, bPoseChannel *pchan, float *normal, float *p
 		if (bone->flag & BONE_TRANSFORM) {
 			calc_tw_center(pchan->pose_head);
 			protectflag_to_drawflags(pchan->protectflag, &v3d->twdrawflag);
-
-			VecAddf(normal, normal, pchan->pose_mat[2]);
-			VecAddf(plane, plane, pchan->pose_mat[1]);
 		}
 	}
 }
@@ -349,26 +346,24 @@ int calc_manipulator_stats(ScrArea *sa)
 		}
 	}
 	else if(ob && (ob->flag & OB_POSEMODE)) {
-		bArmature *arm= ob->data;
+		bArmature *arm = ob->data;
 		bPoseChannel *pchan;
 		int mode;
 		
 		if((ob->lay & G.vd->lay)==0) return 0;
 		
-		mode= Trans.mode;
-		Trans.mode= TFM_ROTATION;	// mislead counting bones... bah
+		mode = Trans.mode;
+		Trans.mode = TFM_ROTATION;	// mislead counting bones... bah
 		
 		/* count total, we use same method as transform will do */
 		Trans.total= 0;
 		count_bone_select(&Trans, arm, &arm->bonebase, 1);
-		totsel= Trans.total;
+		totsel = Trans.total;
 		if(totsel) {
 			/* use channels to get stats */
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-				stats_pose(v3d, pchan, normal, plane);
+				stats_pose(v3d, pchan);
 			}
-			//VecMulf(normal, -1.0);
-			VecMulf(plane, -1.0);
 			
 			VecMulf(G.scene->twcent, 1.0f/(float)totsel);	// centroid!
 			Mat4MulVecfl(ob->obmat, G.scene->twcent);
@@ -376,7 +371,7 @@ int calc_manipulator_stats(ScrArea *sa)
 			Mat4MulVecfl(ob->obmat, G.scene->twmax);
 		}
 		/* restore, mode can be TFM_INIT */
-		Trans.mode= mode;
+		Trans.mode = mode;
 	}
 	else if(G.f & (G_VERTEXPAINT + G_TEXTUREPAINT + G_WEIGHTPAINT + G_SCULPTMODE)) {
 		;
@@ -433,7 +428,7 @@ int calc_manipulator_stats(ScrArea *sa)
 			break;
 			
 		case V3D_MANIP_NORMAL:
-			if(G.obedit) {
+			if(G.obedit || ob->flag & OB_POSEMODE) {
 				float mat[3][3];
 				int type;
 				
@@ -478,34 +473,6 @@ int calc_manipulator_stats(ScrArea *sa)
 					Mat4CpyMat3(v3d->twmat, mat);
 				}
 				break;
-			}
-			/* pose mode is a bit weird, so keep it separated */
-			else if (ob->flag & OB_POSEMODE)
-			{
-				strcpy(t->spacename, "normal");
-				if(normal[0]!=0.0 || normal[1]!=0.0 || normal[2]!=0.0) {
-					float imat[3][3], mat[3][3];
-					
-					/* we need the transpose of the inverse for a normal... */
-					Mat3CpyMat4(imat, ob->obmat);
-					
-					Mat3Inv(mat, imat);
-					Mat3Transp(mat);
-					Mat3MulVecfl(mat, normal);
-					Mat3MulVecfl(mat, plane);
-
-					Normalize(normal);
-					if(0.0==Normalize(plane)) VECCOPY(plane, mat[1]);
-					
-					VECCOPY(mat[2], normal);
-					Crossf(mat[0], normal, plane);
-					Crossf(mat[1], mat[2], mat[0]);
-					
-					Mat4CpyMat3(v3d->twmat, mat);
-					Mat4Ortho(v3d->twmat);
-
-					break;
-				}
 			}
 			/* no break we define 'normal' as 'local' in Object mode */
 		case V3D_MANIP_LOCAL:
