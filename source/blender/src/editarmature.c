@@ -2443,11 +2443,11 @@ void fill_bones_armature(void)
 		}
 		
 		/* assign head/tail combinations */
-		if (headtail == 1) {
+		if (headtail == 2) {
 			VECCOPY(head, ebp->vec);
 			VECCOPY(tail, ebp2->vec);
 		}
-		else if (headtail == 2) {
+		else if (headtail == 1) {
 			VECCOPY(head, ebp2->vec);
 			VECCOPY(tail, ebp->vec);
 		}
@@ -2457,7 +2457,7 @@ void fill_bones_armature(void)
 			newbone= add_points_bone(head, tail);
 			
 			/* do parenting (will need to set connected flag too) */
-			if (headtail == 1) {
+			if (headtail == 2) {
 				/* ebp tail or head - tail gets priority */
 				if (ebp->tail_owner)
 					newbone->parent= ebp->tail_owner;
