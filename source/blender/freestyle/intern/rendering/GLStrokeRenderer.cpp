@@ -513,7 +513,6 @@ GLTextureManager::preparePaper (const char *name, GLuint itexname)
 	ImBuf *qim = IMB_loadiffname(name, 0);
 	char filename[FILE_MAXFILE];
 	BLI_splitdirstring((char *)name, filename);
-	qim->depth = 32;
 
   if (!qim) //soc 
     {

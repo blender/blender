@@ -5,7 +5,7 @@
 extern "C" {
 #endif	
 	
-	void FRS_execute();
+	void FRS_execute(Render* re);
 
 #ifdef __cplusplus
 }

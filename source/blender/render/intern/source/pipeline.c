@@ -2193,7 +2193,15 @@ static void do_render_composite_fields_blur_3d(Render *re)
 
 static void freestyleRender(Render *re)
 {
-	FRS_execute();
+	RE_FreeRenderResult(re->result);
+	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
+	
+	RE_SetCamera(re, re->scene->camera);
+	
+	FRS_execute(re);
+	
+	re->stats_draw(&re->i);
+	RE_Database_Free(re);
 }
 
 #ifndef DISABLE_YAFRAY
