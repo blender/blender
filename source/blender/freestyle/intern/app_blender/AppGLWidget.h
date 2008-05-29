@@ -329,6 +329,7 @@ public:
 
   /*! glReadPixels */
   typedef enum{
+	RGBA,
     RGB,
     DEPTH
   } PixelFormat;
@@ -345,6 +346,9 @@ public:
     GLenum glformat;
     switch(format)
     {
+	    case RGBA:
+	      glformat = GL_RGBA;
+	      break;
     case RGB:
       glformat = GL_RGB;
       break;

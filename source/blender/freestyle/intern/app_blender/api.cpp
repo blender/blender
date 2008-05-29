@@ -48,21 +48,25 @@ extern "C" {
 
 		RenderResult rres;
 		RE_GetResultImage(re, &rres);
-		float *rgb = new float[3*width*height];
-		view->readPixels(0,0,width,height,AppGLWidget::RGB, rgb);
+		view->readPixels(0,0,width,height,AppGLWidget::RGBA, rres.rectf );
 		
-		for (unsigned short y=0; y<height; y++) {
-			float* bpt = (float*)rres.rectf + ((y*width) << 2);			
-			for (unsigned short x=0; x<width; x++) {
-				float *pos = rgb + 3 * ( y*width + x );
-				
-				bpt[0] = pos[0]; // r
-				bpt[1] = pos[1]; // g
-				bpt[2] = pos[2]; // b
-				bpt[3] = 1.0; // a
-				bpt += 4;
-			}
-		}
+		// float *rgb = new float[3*width*height];
+		// view->readPixels(0,0,width,height,AppGLWidget::RGB, rgb);
+		// 
+		// for (unsigned short y=0; y<height; y++) {
+		// 	float* bpt = (float*)rres.rectf + ((y*width) << 2);			
+		// 	for (unsigned short x=0; x<width; x++) {
+		// 		float *pos = rgb + 3 * ( y*width + x );
+		// 		
+		// 		bpt[0] = pos[0]; // r
+		// 		bpt[1] = pos[1]; // g
+		// 		bpt[2] = pos[2]; // b
+		// 		bpt[3] = 1.0; // a
+		// 		bpt += 4;
+		// 	}
+		// }
+		// 
+		
 		
 		re->result->renlay = render_get_active_layer(re, re->result);
 		re->display_draw(re->result, NULL);
