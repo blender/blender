@@ -1063,18 +1063,6 @@ void Controller::init_options(){
 
 	Config::Path * cpath = Config::Path::getInstance();
 
-    // const string& getProjectDir() const {return _ProjectDir;}
-    // const string& getModelsPath() const {return _ModelsPath;}
-    // const string& getPatternsPath() const {return _PatternsPath;}
-    // const string& getBrushesPath() const {return _BrushesPath;}
-    // const string& getPythonPath() const {return _PythonPath;}
-    // const string& getBrowserCmd() const {return _BrowserCmd;}
-    // const string& getHelpIndexpath() const {return _HelpIndexPath;}
-    // const string& getPapersDir() const {return _PapersDir;}
-    // const string& getEnvMapDir() const {return _EnvMapDir;}
-    // const string& getMapsDir() const {return _MapsDir;}
-    // const string& getHomeDir() const {return _HomeDir;}
-
 	// Directories
 	ViewMapIO::Options::setModelsPath( StringUtils::toAscii( cpath->getModelsPath() ) ); 
 	PythonInterpreter::Options::setPythonPath( StringUtils::toAscii( cpath->getPythonPath() ) );

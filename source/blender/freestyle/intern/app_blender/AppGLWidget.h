@@ -435,9 +435,11 @@ public:
   static void setBackBufferFlag(bool iBool);
   static bool getBackBufferFlag();
 
+public:
+  virtual void    draw();
+
 protected:
   virtual void	  init();
-  virtual void    draw();
 
   /*! Loads an envmap */
   void LoadEnvMap(const char *filename);

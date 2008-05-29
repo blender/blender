@@ -306,6 +306,7 @@ void AppCanvas::Render(const StrokeRenderer *iRenderer)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
   
   glEnable(GL_TEXTURE_2D);
+
   Canvas::Render(iRenderer);
   //  
   glPushAttrib(GL_COLOR_BUFFER_BIT);
