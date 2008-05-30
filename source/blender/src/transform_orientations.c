@@ -27,6 +27,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_action_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 #include "DNA_object_types.h"
@@ -68,11 +69,17 @@ void BIF_clearTransformOrientation(void)
 }
  
 void BIF_manageTransformOrientation(int confirm, int set) {
+	Object *ob = OBACT;
 	int index = -1; 
 	
 	if (G.obedit) {
 		if (G.obedit->type == OB_MESH)
 			index = manageMeshSpace(confirm, set);
+		else if (G.obedit->type == OB_ARMATURE)
+			index = manageBoneSpace(confirm, set);
+	}
+	else if (ob && (ob->flag & OB_POSEMODE)) {
+			index = manageBoneSpace(confirm, set);
 	}
 	else {
 		index = manageObjectSpace(confirm, set);
@@ -122,6 +129,31 @@ int confirmSpace(int set, char text[])
 	}
 }
 
+int manageBoneSpace(int confirm, int set) {
+	float mat[3][3];
+	float normal[3], plane[3];
+	char name[36] = "";
+	int index;
+
+	getTransformOrientation(normal, plane, 0);
+	
+	if (confirm == 0 && confirmSpace(set, "Bone") == 0) {
+		return -1;
+	}
+
+	if (createSpaceNormalTangent(mat, normal, plane) == 0) {
+		error("Cannot use zero-length bone");
+		return -1;
+	}
+
+	strcpy(name, "Bone");
+
+	/* Input name */
+	sbutton(name, 1, 35, "name: ");
+
+	index = addMatrixSpace(mat, name);
+	return index;
+}
 
 int manageMeshSpace(int confirm, int set) {
 	float mat[3][3];
@@ -363,6 +395,29 @@ void applyTransformOrientation() {
   	}
 }
 
+static int count_bone_select(bArmature *arm, ListBase *lb, int do_it) 
+{
+	Bone *bone;
+	int do_next;
+	int total = 0;
+	
+	for(bone= lb->first; bone; bone= bone->next) {
+		bone->flag &= ~BONE_TRANSFORM;
+		do_next = do_it;
+		if(do_it) {
+			if(bone->layer & arm->layer) {
+				if (bone->flag & BONE_SELECTED) {
+					bone->flag |= BONE_TRANSFORM;
+					total++;
+					do_next= 0;	// no transform on children if one parent bone is selected
+				}
+			}
+		}
+		total += count_bone_select(arm, &bone->childbase, do_next);
+	}
+	
+	return total;
+}
 
 int getTransformOrientation(float normal[3], float plane[3], int activeOnly)
 {
@@ -375,6 +430,14 @@ int getTransformOrientation(float normal[3], float plane[3], int activeOnly)
 
 	if(G.obedit)
 	{
+		float imat[3][3], mat[3][3];
+		
+		/* we need the transpose of the inverse for a normal... */
+		Mat3CpyMat4(imat, ob->obmat);
+		
+		Mat3Inv(mat, imat);
+		Mat3Transp(mat);
+
 		ob= G.obedit;
 
 		if(G.obedit->type==OB_MESH)
@@ -639,12 +702,48 @@ int getTransformOrientation(float normal[3], float plane[3], int activeOnly)
 			}
 
 		}
-		
-		Mat4Mul3Vecfl(G.obedit->obmat, plane);
-		Mat4Mul3Vecfl(G.obedit->obmat, normal);
+
+		/* Vectors from edges don't need the special transpose inverse multiplication */
+		if (result == ORIENTATION_EDGE)
+		{
+			Mat4Mul3Vecfl(ob->obmat, normal);
+			Mat4Mul3Vecfl(ob->obmat, plane);
+		}
+		else
+		{
+			Mat3MulVecfl(mat, normal);
+			Mat3MulVecfl(mat, plane);
+		}
 	}
 	else if(ob && (ob->flag & OB_POSEMODE))
 	{
+		bArmature *arm= ob->data;
+		bPoseChannel *pchan;
+		int totsel;
+		
+		totsel = count_bone_select(arm, &arm->bonebase, 1);
+		if(totsel) {
+			float imat[3][3], mat[3][3];
+
+			/* use channels to get stats */
+			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+				if (pchan->bone && pchan->bone->flag & BONE_TRANSFORM) {
+					VecAddf(normal, normal, pchan->pose_mat[2]);
+					VecAddf(plane, plane, pchan->pose_mat[1]);
+				}
+			}
+			VecMulf(plane, -1.0);
+			
+			/* we need the transpose of the inverse for a normal... */
+			Mat3CpyMat4(imat, ob->obmat);
+			
+			Mat3Inv(mat, imat);
+			Mat3Transp(mat);
+			Mat3MulVecfl(mat, normal);
+			Mat3MulVecfl(mat, plane);
+			
+			result = ORIENTATION_EDGE;
+		}
 	}
 	else if(G.f & (G_VERTEXPAINT + G_TEXTUREPAINT + G_WEIGHTPAINT + G_SCULPTMODE))
 	{

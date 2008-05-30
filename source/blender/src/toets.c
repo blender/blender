@@ -228,8 +228,8 @@ void persptoetsen(unsigned short event)
 	}
 	else {
 		/* Indicate that this view is not inverted.
-		 * Don't do this for PADMINUS/PADPLUSKEY, though. (jobbe)*/
-		if (event != PADMINUS && event != PADPLUSKEY)
+		 * Don't do this for PADMINUS/PADPLUSKEY/PAD5, though. (jobbe)*/
+		if (! ELEM3(event, PADMINUS, PADPLUSKEY, PAD5) )
 			G.vd->flag2 &= ~V3D_OPP_DIRECTION_NAME;
 		
 

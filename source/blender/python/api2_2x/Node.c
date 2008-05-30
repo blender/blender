@@ -848,7 +848,7 @@ static int Sockoutmap_assign_subscript(BPy_SockMap *self, PyObject *pyidx, PyObj
 
 	if (PyInt_Check(pyidx)) {
 		idx = (int)PyInt_AsLong(pyidx);
-		if (idx < 0 || idx >= Sockinmap_len(self))
+		if (idx < 0 || idx >= Sockoutmap_len(self))
 			return EXPP_ReturnIntError(PyExc_IndexError, "index out of range");
 	}
 	else if (PyString_Check(pyidx)) {

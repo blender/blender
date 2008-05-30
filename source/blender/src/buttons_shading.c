@@ -2681,7 +2681,8 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 			uiDefButF(block, NUM,B_LAMPREDRAW,"Soft Size",	100,80,200,19, &la->area_size, 0.01, 100.0, 10, 0, "Area light size, doesn't affect energy amount");
 			
 			uiDefButS(block, NUM,0,"Samples:",	100,60,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp)");
-			uiDefButF(block, NUM,0,"Threshold:",	100,40,200,19,	&la->adapt_thresh, 0.0, 1.0, 100, 0, "Threshold for adaptive sampling, to control what level is considered already in shadow");
+			if (la->ray_samp_method == LA_SAMP_HALTON)
+				uiDefButF(block, NUM,0,"Threshold:",	100,40,200,19,	&la->adapt_thresh, 0.0, 1.0, 100, 0, "Threshold for adaptive sampling, to control what level is considered already in shadow");
 		}
 		else if (la->type == LA_AREA) {
 			uiDefButS(block, MENU, B_REDR, "Adaptive QMC %x1|Constant QMC %x2|Constant Jittered %x0",
@@ -2887,8 +2888,8 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	
 	uiBlockBeginAlign(block);
 	if (ELEM(la->type, LA_LOCAL, LA_SPOT) && (la->falloff_type == LA_FALLOFF_SLIDERS)) {
-		uiDefButF(block, NUMSLI,B_LAMPPRV,"Linear ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the linear distance attenuatation for a quad lamp");
-		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the quadratic distance attenuatation for a quad lamp");
+		uiDefButF(block, NUMSLI,B_LAMPPRV,"Linear ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the linear distance attenuation for a Lin/Quad Weighted lamp");
+		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the quadratic distance attenuation for a Lin/Quad Weighted lamp");
 	}
 	else if(la->type==LA_AREA) {
 		if(la->k==0.0) la->k= 1.0;

@@ -77,6 +77,7 @@ KX_GameObject::KX_GameObject(
 	m_layer(0),
 	m_bSuspendDynamics(false),
 	m_bUseObjectColor(false),
+	m_bIsNegativeScaling(false),
 	m_bVisible(true),
 	m_pPhysicsController1(NULL),
 	m_pPhysicsEnvironment(NULL),
@@ -335,7 +336,7 @@ double*	KX_GameObject::GetOpenGLMatrix()
 	trans.setBasis(GetSGNode()->GetWorldOrientation());
 	
 	MT_Vector3 scaling = GetSGNode()->GetWorldScaling();
-	
+	m_bIsNegativeScaling = ((scaling[0] < 0.0) ^ (scaling[1] < 0.0) ^ (scaling[2] < 0.0)) ? true : false;
 	trans.scale(scaling[0], scaling[1], scaling[2]);
 	trans.getValue(fl);
 

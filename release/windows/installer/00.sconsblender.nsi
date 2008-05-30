@@ -32,7 +32,7 @@ Name "Blender VERSION"
     
 !insertmacro MUI_PAGE_DIRECTORY
 Page custom DataLocation DataLocationOnLeave
-Page custom AppDataChoice AppDataChoiceOnLeave
+;Page custom AppDataChoice AppDataChoiceOnLeave
 Page custom PreMigrateUserSettings MigrateUserSettings
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
@@ -271,7 +271,9 @@ Function DataLocationOnLeave
 	StrCpy $SETUSERCONTEXT "false"
 	${NSD_GetState} $HWND_APPDATA $R0
 	${If} $R0 == "1"
-	  StrCpy $SETUSERCONTEXT "true"
+	  ; FIXME: disabled 'all users' until fully multi-user compatible
+	  ;StrCpy $SETUSERCONTEXT "true"
+	  Call SetWinXPPathCurrentUser
 	${Else}
 	  ${NSD_GetState} $HWND_INSTDIR $R0
 	  ${If} $R0 == "1"

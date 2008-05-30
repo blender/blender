@@ -153,6 +153,8 @@ public:
 
 	virtual	void Render2DFilters(RAS_ICanvas* canvas);
 
+	virtual void SetClientObject(void* obj);
+
 protected:
 	/** 
 	 * Copied from KX_BlenderGL.cpp in KX_blenderhook

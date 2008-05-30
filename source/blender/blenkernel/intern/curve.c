@@ -348,9 +348,9 @@ void freeNurb(Nurb *nu)
 	if(nu->bp) MEM_freeN(nu->bp);
 	nu->bp= 0;
 	if(nu->knotsu) MEM_freeN(nu->knotsu);
-	nu->knotsu= 0;
+	nu->knotsu= NULL;
 	if(nu->knotsv) MEM_freeN(nu->knotsv);
-	nu->knotsv= 0;
+	nu->knotsv= NULL;
 	/* if(nu->trim.first) freeNurblist(&(nu->trim)); */
 
 	MEM_freeN(nu);
@@ -393,7 +393,7 @@ Nurb *duplicateNurb(Nurb *nu)
 			(BPoint*)MEM_mallocN((len)* sizeof(BPoint),"duplicateNurb3");
 		memcpy(newnu->bp, nu->bp, len*sizeof(BPoint));
 		
-		newnu->knotsu=newnu->knotsv= 0;
+		newnu->knotsu= newnu->knotsv= NULL;
 		
 		if(nu->knotsu) {
 			len= KNOTSU(nu);
@@ -506,6 +506,7 @@ static void calcknots(float *knots, short aantal, short order, short type)
 		}
 	}
 	else if(type==2) {
+		/* Warning, the order MUST be 2 or 4, if this is not enforced, the displist will be corrupt */
 		if(order==4) {
 			k= 0.34;
 			for(a=0;a<t;a++) {
@@ -520,6 +521,9 @@ static void calcknots(float *knots, short aantal, short order, short type)
 				knots[a]= (float)floor(k);
 			}
 		}
+		else {
+			printf("bez nurb curve order is not 3 or 4, should never happen\n");
+		}
 	}
 }
 
@@ -529,7 +533,8 @@ static void makecyclicknots(float *knots, short pnts, short order)
 	int a, b, order2, c;
 
 	if(knots==0) return;
-        order2=order-1;
+
+	order2=order-1;
 
 	/* do first long rows (order -1), remove identical knots at endpoints */
 	if(order>2) {
@@ -549,26 +554,35 @@ static void makecyclicknots(float *knots, short pnts, short order)
 }
 
 
-void makeknots(Nurb *nu, short uv, short type)	/* 0: uniform, 1: endpoints, 2: bezier */
+/* type - 0: uniform, 1: endpoints, 2: bezier, note, cyclic nurbs are always uniform */
+void makeknots(Nurb *nu, short uv, short type)
 {
 	if( (nu->type & 7)==CU_NURBS ) {
-		if(uv & 1) {
+		if(uv == 1) {
 			if(nu->knotsu) MEM_freeN(nu->knotsu);
-			if(nu->pntsu>1) {
+			if(check_valid_nurb_u(nu)) {
 				nu->knotsu= MEM_callocN(4+sizeof(float)*KNOTSU(nu), "makeknots");
-				calcknots(nu->knotsu, nu->pntsu, nu->orderu, type);
-				if(nu->flagu & 1) makecyclicknots(nu->knotsu, nu->pntsu, nu->orderu);
+				if(nu->flagu & CU_CYCLIC) {
+					calcknots(nu->knotsu, nu->pntsu, nu->orderu, 0);  /* cyclic should be uniform */
+					makecyclicknots(nu->knotsu, nu->pntsu, nu->orderu);
+				} else {
+					calcknots(nu->knotsu, nu->pntsu, nu->orderu, type);
+				}
 			}
-			else nu->knotsu= 0;
-		}
-		if(uv & 2) {
+			else nu->knotsu= NULL;
+		
+		} else if(uv == 2) {
 			if(nu->knotsv) MEM_freeN(nu->knotsv);
-			if(nu->pntsv>1) {
+			if(check_valid_nurb_v(nu)) {
 				nu->knotsv= MEM_callocN(4+sizeof(float)*KNOTSV(nu), "makeknots");
-				calcknots(nu->knotsv, nu->pntsv, nu->orderv, type);
-				if(nu->flagv & 1) makecyclicknots(nu->knotsv, nu->pntsv, nu->orderv);
+				if(nu->flagv & CU_CYCLIC) {
+					calcknots(nu->knotsv, nu->pntsv, nu->orderv, 0);  /* cyclic should be uniform */
+					makecyclicknots(nu->knotsv, nu->pntsv, nu->orderv);
+				} else {
+					calcknots(nu->knotsv, nu->pntsv, nu->orderv, type);
+				}
 			}
-			else nu->knotsv= 0;
+			else nu->knotsv= NULL;
 		}
 	}
 }
@@ -645,7 +659,7 @@ void makeNurbfaces(Nurb *nu, float *data, int rowstride)
 	int i, j, iofs, jofs, cycl, len, resolu, resolv;
 	int istart, iend, jsta, jen, *jstart, *jend, ratcomp;
 
-	if(nu->knotsu==0 || nu->knotsv==0) return;
+	if(nu->knotsu==NULL || nu->knotsv==NULL) return;
 	if(nu->orderu>nu->pntsu) return;
 	if(nu->orderv>nu->pntsv) return;
 	if(data==0) return;
@@ -679,24 +693,24 @@ void makeNurbfaces(Nurb *nu, float *data, int rowstride)
 
 	fp= nu->knotsu;
 	ustart= fp[nu->orderu-1];
-	if(nu->flagu & 1) uend= fp[nu->pntsu+nu->orderu-1];
+	if(nu->flagu & CU_CYCLIC) uend= fp[nu->pntsu+nu->orderu-1];
 	else uend= fp[nu->pntsu];
-	ustep= (uend-ustart)/(resolu-1+(nu->flagu & 1));
+	ustep= (uend-ustart)/(resolu-1+(nu->flagu & CU_CYCLIC));
 	basisu= (float *)MEM_mallocN(sizeof(float)*KNOTSU(nu), "makeNurbfaces3");
 
 	fp= nu->knotsv;
 	vstart= fp[nu->orderv-1];
 	
-	if(nu->flagv & 1) vend= fp[nu->pntsv+nu->orderv-1];
+	if(nu->flagv & CU_CYCLIC) vend= fp[nu->pntsv+nu->orderv-1];
 	else vend= fp[nu->pntsv];
-	vstep= (vend-vstart)/(resolv-1+(nu->flagv & 1));
+	vstep= (vend-vstart)/(resolv-1+(nu->flagv & CU_CYCLIC));
 	len= KNOTSV(nu);
 	basisv= (float *)MEM_mallocN(sizeof(float)*len*resolv, "makeNurbfaces3");
 	jstart= (int *)MEM_mallocN(sizeof(float)*resolv, "makeNurbfaces4");
 	jend= (int *)MEM_mallocN(sizeof(float)*resolv, "makeNurbfaces5");
 
 	/* precalculation of basisv and jstart,jend */
-	if(nu->flagv & 1) cycl= nu->orderv-1; 
+	if(nu->flagv & CU_CYCLIC) cycl= nu->orderv-1; 
 	else cycl= 0;
 	v= vstart;
 	basis= basisv;
@@ -706,7 +720,7 @@ void makeNurbfaces(Nurb *nu, float *data, int rowstride)
 		v+= vstep;
 	}
 
-	if(nu->flagu & 1) cycl= nu->orderu-1; 
+	if(nu->flagu & CU_CYCLIC) cycl= nu->orderu-1; 
 	else cycl= 0;
 	in= data;
 	u= ustart;
@@ -803,7 +817,7 @@ void makeNurbcurve(Nurb *nu, float *data, int resolu, int dim)
 	float *basisu, *sum, *fp,  *in;
 	int i, len, istart, iend, cycl;
 
-	if(nu->knotsu==0) return;
+	if(nu->knotsu==NULL) return;
 	if(nu->orderu>nu->pntsu) return;
 	if(data==0) return;
 
@@ -820,12 +834,12 @@ void makeNurbcurve(Nurb *nu, float *data, int resolu, int dim)
 
 	fp= nu->knotsu;
 	ustart= fp[nu->orderu-1];
-	if(nu->flagu & 1) uend= fp[nu->pntsu+nu->orderu-1];
+	if(nu->flagu & CU_CYCLIC) uend= fp[nu->pntsu+nu->orderu-1];
 	else uend= fp[nu->pntsu];
-	ustep= (uend-ustart)/(resolu-1+(nu->flagu & 1));
+	ustep= (uend-ustart)/(resolu-1+(nu->flagu & CU_CYCLIC));
 	basisu= (float *)MEM_mallocN(sizeof(float)*KNOTSU(nu), "makeNurbcurve3");
 
-	if(nu->flagu & 1) cycl= nu->orderu-1; 
+	if(nu->flagu & CU_CYCLIC) cycl= nu->orderu-1; 
 	else cycl= 0;
 
 	in= data;
@@ -1425,14 +1439,14 @@ static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *
 	
 	/* returns a point */
 	if(prevbezt==nu->bezt) {
-		if(nu->flagu & 1) pprev= last;
+		if(nu->flagu & CU_CYCLIC) pprev= last;
 		else pprev= prevbezt;
 	}
 	else pprev= prevbezt-1;
 	
 	/* next point */
 	if(bezt==last) {
-		if(nu->flagu & 1) next= nu->bezt;
+		if(nu->flagu & CU_CYCLIC) next= nu->bezt;
 		else next= bezt;
 	}
 	else next= bezt+1;
@@ -1478,7 +1492,7 @@ void makeBevelList(Object *ob)
 	while(nu) {
 		/* check we are a single point? also check we are not a surface and that the orderu is sane,
 		 * enforced in the UI but can go wrong possibly */
-		if(nu->pntsu<2 || ((nu->type & 7)==CU_NURBS && nu->pntsu < nu->orderu)) {
+		if(!check_valid_nurb_u(nu)) {
 			bl= MEM_callocN(sizeof(BevList)+1*sizeof(BevPoint), "makeBevelList");
 			BLI_addtail(&(cu->bev), bl);
 			bl->nr= 0;
@@ -1493,7 +1507,7 @@ void makeBevelList(Object *ob)
 				bl= MEM_callocN(sizeof(BevList)+len*sizeof(BevPoint), "makeBevelList");
 				BLI_addtail(&(cu->bev), bl);
 	
-				if(nu->flagu & 1) bl->poly= 0;
+				if(nu->flagu & CU_CYCLIC) bl->poly= 0;
 				else bl->poly= -1;
 				bl->nr= len;
 				bl->flag= 0;
@@ -1512,17 +1526,17 @@ void makeBevelList(Object *ob)
 			}
 			else if((nu->type & 7)==CU_BEZIER) {
 	
-				len= resolu*(nu->pntsu+ (nu->flagu & 1) -1)+1;	/* in case last point is not cyclic */
+				len= resolu*(nu->pntsu+ (nu->flagu & CU_CYCLIC) -1)+1;	/* in case last point is not cyclic */
 				bl= MEM_callocN(sizeof(BevList)+len*sizeof(BevPoint), "makeBevelList");
 				BLI_addtail(&(cu->bev), bl);
 	
-				if(nu->flagu & 1) bl->poly= 0;
+				if(nu->flagu & CU_CYCLIC) bl->poly= 0;
 				else bl->poly= -1;
 				bevp= (BevPoint *)(bl+1);
 	
 				a= nu->pntsu-1;
 				bezt= nu->bezt;
-				if(nu->flagu & 1) {
+				if(nu->flagu & CU_CYCLIC) {
 					a++;
 					prevbezt= nu->bezt+(nu->pntsu-1);
 				}
@@ -1595,7 +1609,7 @@ void makeBevelList(Object *ob)
 				MEM_freeN(data);
 				MEM_freeN(data_a);
 				
-				if((nu->flagu & 1)==0) {	    /* not cyclic: endpoint */
+				if((nu->flagu & CU_CYCLIC)==0) {	    /* not cyclic: endpoint */
 					bevp->x= prevbezt->vec[1][0];
 					bevp->y= prevbezt->vec[1][1];
 					bevp->z= prevbezt->vec[1][2];
@@ -1611,7 +1625,7 @@ void makeBevelList(Object *ob)
 					BLI_addtail(&(cu->bev), bl);
 					bl->nr= len;
 					bl->flag= 0;
-					if(nu->flagu & 1) bl->poly= 0;
+					if(nu->flagu & CU_CYCLIC) bl->poly= 0;
 					else bl->poly= -1;
 					bevp= (BevPoint *)(bl+1);
 	
@@ -2209,7 +2223,7 @@ void calchandlesNurb(Nurb *nu) /* first, if needed, set handle flags */
 	
 	a= nu->pntsu;
 	bezt= nu->bezt;
-	if(nu->flagu & 1) prev= bezt+(a-1);
+	if(nu->flagu & CU_CYCLIC) prev= bezt+(a-1);
 	else prev= 0;
 	next= bezt+1;
 
@@ -2217,7 +2231,7 @@ void calchandlesNurb(Nurb *nu) /* first, if needed, set handle flags */
 		calchandleNurb(bezt, prev, next, 0);
 		prev= bezt;
 		if(a==1) {
-			if(nu->flagu & 1) next= nu->bezt;
+			if(nu->flagu & CU_CYCLIC) next= nu->bezt;
 			else next= 0;
 		}
 		else next++;
@@ -2608,3 +2622,63 @@ void curve_applyVertexCos(Curve *cu, ListBase *lb, float (*vertexCos)[3])
 		}
 	}
 }
+
+int check_valid_nurb_u( struct Nurb *nu )
+{
+	if (nu==NULL)						return 0;
+	if (nu->pntsu <= 1)					return 0;
+	if ((nu->type & 7)!=CU_NURBS)		return 1; /* not a nurb, lets assume its valid */
+	
+	if (nu->pntsu < nu->orderu)			return 0;
+	if (((nu->flag & CU_CYCLIC)==0) && ((nu->flagu>>1) & 2)) { /* Bezier U Endpoints */
+		if (nu->orderu==4) {
+			if (nu->pntsu < 5)			return 0; /* bezier with 4 orderu needs 5 points */
+		} else if (nu->orderu != 3)		return 0; /* order must be 3 or 4 */
+	}
+	return 1;
+}
+int check_valid_nurb_v( struct Nurb *nu)
+{
+	if (nu==NULL)						return 0;
+	if (nu->pntsv <= 1)					return 0;
+	if ((nu->type & 7)!=CU_NURBS)		return 1; /* not a nurb, lets assume its valid */
+	
+	if (nu->pntsv < nu->orderv)			return 0;
+	if (((nu->flag & CU_CYCLIC)==0) && ((nu->flagv>>1) & 2)) { /* Bezier V Endpoints */
+		if (nu->orderv==4) {
+			if (nu->pntsv < 5)			return 0; /* bezier with 4 orderu needs 5 points */
+		} else if (nu->orderv != 3)		return 0; /* order must be 3 or 4 */
+	}
+	return 1;
+}
+
+int clamp_nurb_order_u( struct Nurb *nu )
+{
+	int change = 0;
+	if(nu->pntsu<nu->orderu) {
+		nu->orderu= nu->pntsu;
+		change= 1;
+	}
+	if(((nu->flag & CU_CYCLIC)==0) && (nu->flagu>>1)&2) {
+		CLAMP(nu->orderu, 3,4);
+		change= 1;
+	}
+	return change;
+}
+
+int clamp_nurb_order_v( struct Nurb *nu)
+{
+	int change = 0;
+	if(nu->pntsv<nu->orderv) {
+		nu->orderv= nu->pntsv;
+		change= 1;
+	}
+	if(((nu->flag & CU_CYCLIC)==0) && (nu->flagv>>1)&2) {
+		CLAMP(nu->orderv, 3,4);
+		change= 1;
+	}
+	return change;
+}
+
+
+

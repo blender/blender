@@ -1632,6 +1632,36 @@ static void copy_to_ibuf_still(Sequence * seq, TStripElem * se)
 	}
 }
 
+static void free_metastrip_imbufs(ListBase *seqbasep, int cfra, int chanshown)
+{
+	Sequence* seq_arr[MAXSEQ+1];
+	int i;
+	TStripElem* se = 0;
+
+	evaluate_seq_frame_gen(seq_arr, seqbasep, cfra);
+
+	for (i = 0; i < MAXSEQ; i++) {
+		if (!video_seq_is_rendered(seq_arr[i])) {
+			continue;
+		}
+		se = give_tstripelem(seq_arr[i], cfra);
+		if (se) {
+			if (se->ibuf) {
+				IMB_freeImBuf(se->ibuf);
+
+				se->ibuf= 0;
+				se->ok= STRIPELEM_OK;
+			}
+
+			if (se->ibuf_comp) {
+				IMB_freeImBuf(se->ibuf_comp);
+
+				se->ibuf_comp = 0;
+			}
+		}
+	}
+	
+}
 
 static TStripElem* do_build_seq_array_recursively(
 	ListBase *seqbasep, int cfra, int chanshown);
@@ -1681,6 +1711,10 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 
 				use_limiter = TRUE;
 			}
+		}
+		if (meta_se) {
+			free_metastrip_imbufs(
+				&seq->seqbase, seq->start + se->nr, 0);
 		}
 
 		if (use_limiter) {

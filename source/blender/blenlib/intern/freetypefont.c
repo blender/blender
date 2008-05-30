@@ -150,7 +150,7 @@ void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 			nu->type= CU_BEZIER+CU_2D;
 			nu->pntsu = onpoints[j];
 			nu->resolu= 8;
-			nu->flagu= 1;
+			nu->flagu= CU_CYCLIC;
 			nu->bezt = bezt;
 
 			//individual curve loop, start-end
