@@ -214,6 +214,44 @@ void resizeArcBuckets(ReebArc *arc)
 		MEM_freeN(oldBuckets);
 	}
 }
+
+void calculateArcLength(ReebArc *arc)
+{
+	ReebArcIterator iter;
+	EmbedBucket *bucket = NULL;
+	float *vec0, *vec1;
+
+	arc->length = 0;
+	
+	initArcIterator(&iter, arc, arc->head);
+
+	bucket = nextBucket(&iter);
+	
+	vec0 = arc->head->p;
+	
+	while (bucket != NULL)
+	{
+		vec1 = bucket->p;
+		
+		arc->length += VecLenf(vec0, vec1);
+		
+		vec0 = vec1;
+		bucket = nextBucket(&iter);
+	}
+	
+	arc->length += VecLenf(arc->tail->p, vec1);	
+}
+
+void calculateGraphLength(ReebGraph *rg)
+{
+	ReebArc *arc;
+	
+	for (arc = rg->arcs.first; arc; arc = arc->next)
+	{
+		calculateArcLength(arc);
+	}
+}
+
 /***************************************** UTILS **********************************************/
 
 ReebEdge * copyEdge(ReebEdge *edge)
@@ -2538,6 +2576,8 @@ ReebGraph *BIF_ReebGraphFromEditMesh(void)
 	sortArcs(rg);
 	
 	REEB_exportGraph(rg, -1);
+	
+	calculateGraphLength(rg);
 	
 	return rg;
 }

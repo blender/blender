@@ -52,6 +52,7 @@ typedef struct BArc {
 	float length;
 
 	int symmetry_level;
+	int symmetry_group;
 	int symmetry_flag;
 } BArc;
 
@@ -98,5 +99,6 @@ void BLI_mirrorAlongAxis(float v[3], float center[3], float axis[3]);
  * axial symetry sides */
 #define SYM_SIDE_POSITIVE		1
 #define SYM_SIDE_NEGATIVE		2
+/* Anything higher is the order in radial symmetry */
 
 #endif /*BLI_GRAPH_H_*/

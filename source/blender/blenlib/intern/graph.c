@@ -23,6 +23,9 @@
  * graph.c: Common graph interface and methods
  */
 
+#include <float.h> 
+#include <math.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_graph.h"
@@ -30,6 +33,12 @@
 #include "BLI_arithb.h"
 
 #include "BKE_utildefines.h"
+
+static void testRadialSymmetry(BGraph *graph, BNode* root_node, RadialArc* ring, int total, float axis[3], float limit, int group);
+
+static void handleAxialSymmetry(BGraph *graph, BNode *root_node, int depth, float axis[3], float limit);
+static void testAxialSymmetry(BGraph *graph, BNode* root_node, BNode* node1, BNode* node2, BArc* arc1, BArc* arc2, float axis[3], float limit, int group);
+static void flagAxialSymmetry(BNode *root_node, BNode *end_node, BArc *arc, int group);
 
 void BLI_freeNode(BGraph *graph, BNode *node)
 {
@@ -280,64 +289,19 @@ void BLI_mirrorAlongAxis(float v[3], float center[3], float axis[3])
 	VecAddf(v, v, pv);
 }
 
-static void markRadialSymmetry(BGraph *graph, BNode *node, int depth, float axis[3], float limit)
+static void testRadialSymmetry(BGraph *graph, BNode* root_node, RadialArc* ring, int total, float axis[3], float limit, int group)
 {
-	RadialArc *ring = NULL;
-	RadialArc *unit;
 	int symmetric = 1;
-	int count = 0;
 	int i;
-
-	/* mark topological symmetry */
-	node->symmetry_flag |= SYM_TOPOLOGICAL;
-
-	/* count the number of arcs in the symmetry ring */
-	for (i = 0; i < node->degree; i++)
+	
+	/* sort ring by angle */
+	for (i = 0; i < total - 1; i++)
 	{
-		BArc *connectedArc = node->arcs[i];
-		
-		/* depth is store as a negative in flag. symmetry level is positive */
-		if (connectedArc->symmetry_level == -depth)
-		{
-			count++;
-		}
-	}
-
-	ring = MEM_callocN(sizeof(RadialArc) * count, "radial symmetry ring");
-	unit = ring;
-
-	/* fill in the ring */
-	for (unit = ring, i = 0; i < node->degree; i++)
-	{
-		BArc *connectedArc = node->arcs[i];
-		
-		/* depth is store as a negative in flag. symmetry level is positive */
-		if (connectedArc->symmetry_level == -depth)
-		{
-			BNode *otherNode = BLI_otherNode(connectedArc, node);
-			float vec[3];
-
-			unit->arc = connectedArc;
-
-			/* project the node to node vector on the symmetry plane */
-			VecSubf(unit->n, otherNode->p, node->p);
-			Projf(vec, unit->n, axis);
-			VecSubf(unit->n, unit->n, vec);
-
-			Normalize(unit->n);
-
-			unit++;
-		}
-	}
-
-	/* sort ring */
-	for (i = 0; i < count - 1; i++)
-	{
-		float minAngle = 3; /* arbitrary high value, higher than 2, at least */
+		float minAngle = FLT_MAX;
 		int minIndex = -1;
 		int j;
 
-		for (j = i + 1; j < count; j++)
+		for (j = i + 1; j < total; j++)
 		{
 			float angle = Inpf(ring[i].n, ring[j].n);
 
@@ -364,22 +328,22 @@ static void markRadialSymmetry(BGraph *graph, BNode *node, int depth, float axis
 		}
 	}
 
-	for (i = 0; i < count && symmetric; i++)
+	for (i = 0; i < total && symmetric; i++)
 	{
 		BNode *node1, *node2;
 		float tangent[3];
 		float normal[3];
 		float p[3];
-		int j = (i + 1) % count; /* next arc in the circular list */
+		int j = (i + 1) % total; /* next arc in the circular list */
 
 		VecAddf(tangent, ring[i].n, ring[j].n);
 		Crossf(normal, tangent, axis);
 		
-		node1 = BLI_otherNode(ring[i].arc, node);
-		node2 = BLI_otherNode(ring[j].arc, node);
+		node1 = BLI_otherNode(ring[i].arc, root_node);
+		node2 = BLI_otherNode(ring[j].arc, root_node);
 
 		VECCOPY(p, node2->p);
-		BLI_mirrorAlongAxis(p, node->p, normal);
+		BLI_mirrorAlongAxis(p, root_node->p, normal);
 		
 		/* check if it's within limit before continuing */
 		if (VecLenf(node1->p, p) > limit)
@@ -392,22 +356,191 @@ static void markRadialSymmetry(BGraph *graph, BNode *node, int depth, float axis
 	if (symmetric)
 	{
 		/* mark node as symmetric physically */
-		VECCOPY(node->symmetry_axis, axis);
-		node->symmetry_flag |= SYM_PHYSICAL;
-		node->symmetry_flag |= SYM_RADIAL;
+		VECCOPY(root_node->symmetry_axis, axis);
+		root_node->symmetry_flag |= SYM_PHYSICAL;
+		root_node->symmetry_flag |= SYM_RADIAL;
 		
+		/* FLAG SYMMETRY GROUP */
+		for (i = 0; i < total; i++)
+		{
+			ring[i].arc->symmetry_group = group;
+			ring[i].arc->symmetry_flag = i;
+		}
+
 		if (graph->radial_symmetry)
 		{
-			graph->radial_symmetry(node, ring, count);
+			graph->radial_symmetry(root_node, ring, total);
 		}
 	}
+}
+
+static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, float axis[3], float limit)
+{
+	RadialArc *ring = NULL;
+	RadialArc *unit;
+	int total = 0;
+	int group;
+	int first;
+	int i;
+
+	/* mark topological symmetry */
+	root_node->symmetry_flag |= SYM_TOPOLOGICAL;
+
+	/* total the number of arcs in the symmetry ring */
+	for (i = 0; i < root_node->degree; i++)
+	{
+		BArc *connectedArc = root_node->arcs[i];
+		
+		/* depth is store as a negative in flag. symmetry level is positive */
+		if (connectedArc->symmetry_level == -depth)
+		{
+			total++;
+		}
+	}
+
+	ring = MEM_callocN(sizeof(RadialArc) * total, "radial symmetry ring");
+	unit = ring;
+
+	/* fill in the ring */
+	for (unit = ring, i = 0; i < root_node->degree; i++)
+	{
+		BArc *connectedArc = root_node->arcs[i];
+		
+		/* depth is store as a negative in flag. symmetry level is positive */
+		if (connectedArc->symmetry_level == -depth)
+		{
+			BNode *otherNode = BLI_otherNode(connectedArc, root_node);
+			float vec[3];
+
+			unit->arc = connectedArc;
+
+			/* project the node to node vector on the symmetry plane */
+			VecSubf(unit->n, otherNode->p, root_node->p);
+			Projf(vec, unit->n, axis);
+			VecSubf(unit->n, unit->n, vec);
+
+			Normalize(unit->n);
+
+			unit++;
+		}
+	}
+
+	/* sort ring by arc length
+	 * using a rather bogus insertion sort
+	 * butrings will never get too big to matter
+	 * */
+	for (i = 0; i < total; i++)
+	{
+		int j;
+
+		for (j = i - 1; j >= 0; j--)
+		{
+			BArc *arc1, *arc2;
+			
+			arc1 = ring[j].arc;
+			arc2 = ring[j + 1].arc;
+			
+			if (arc1->length > arc2->length)
+			{
+				/* swap with smaller */
+				RadialArc tmp;
+				tmp = ring[j + 1];
+				ring[j + 1] = ring[j];
+				ring[j] = tmp;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
+	/* Dispatch to specific symmetry tests */
+	first = 0;
+	group = 0;
+	
+	for (i = 1; i < total; i++)
+	{
+		int dispatch = 0;
+		int last = i - 1;
+		
+		if (fabs(ring[first].arc->length - ring[i].arc->length) > limit)
+		{
+			dispatch = 1;
+		}
+
+		/* if not dispatching already and on last arc
+		 * Dispatch using current arc as last
+		 * */		
+		if (dispatch == 0 && i == total - 1)
+		{
+			last = i;
+			dispatch = 1;
+		} 
+		
+		if (dispatch)
+		{
+			int sub_total = last - first + 1; 
+
+			group += 1;
+
+			if (sub_total == 1)
+			{
+				printf("no dispatch\n");
+				/* NOTHING TO DO */
+			}
+			else if (sub_total == 2)
+			{
+				BArc *arc1, *arc2;
+				BNode *node1, *node2;
+				
+				printf("dispatch axial\n");
+
+				arc1 = ring[first].arc;
+				arc2 = ring[last].arc;
+				
+				node1 = BLI_otherNode(arc1, root_node);
+				node2 = BLI_otherNode(arc2, root_node);
+				
+				testAxialSymmetry(graph, root_node, node1, node2, arc1, arc2, axis, limit, group);
+			}
+			else if (sub_total != total) /* allocate a new sub ring if needed */
+			{
+				RadialArc *sub_ring = MEM_callocN(sizeof(RadialArc) * sub_total, "radial symmetry ring");
+				int sub_i;
+				
+				printf("dispatch radial sub ring\n");
+
+				/* fill in the sub ring */
+				for (sub_i = 0; sub_i < sub_total; sub_i++)
+				{
+					sub_ring[sub_i] = ring[first + sub_i];
+				}
+				
+				testRadialSymmetry(graph, root_node, sub_ring, sub_total, axis, limit, group);
+			
+				MEM_freeN(sub_ring);
+			}
+			else if (sub_total == total)
+			{
+				printf("dispatch radial full ring\n");
+
+				testRadialSymmetry(graph, root_node, ring, total, axis, limit, group);
+			}
+			
+			first = i;
+		}
+	}
+
 
 	MEM_freeN(ring);
 }
 
-static void setSideAxialSymmetry(BNode *root_node, BNode *end_node, BArc *arc)
+static void flagAxialSymmetry(BNode *root_node, BNode *end_node, BArc *arc, int group)
 {
 	float vec[3];
+	
+	arc->symmetry_group = group;
 	
 	VecSubf(vec, end_node->p, root_node->p);
 	
@@ -421,20 +554,54 @@ static void setSideAxialSymmetry(BNode *root_node, BNode *end_node, BArc *arc)
 	}
 }
 
-static void markAxialSymmetry(BGraph *graph, BNode *node, int depth, float axis[3], float limit)
+static void testAxialSymmetry(BGraph *graph, BNode* root_node, BNode* node1, BNode* node2, BArc* arc1, BArc* arc2, float axis[3], float limit, int group)
 {
-	BArc *arc1 = NULL;
-	BArc *arc2 = NULL;
-	BNode *node1 = NULL, *node2 = NULL;
 	float nor[3], vec[3], p[3];
+
+	VecSubf(vec, node1->p, root_node->p);
+	Normalize(vec);
+	VecSubf(p, root_node->p, node2->p);
+	Normalize(p);
+	VecAddf(p, p, vec);
+
+	Crossf(vec, p, axis);
+	Crossf(nor, vec, axis);
+	
+	/* mirror node2 along axis */
+	VECCOPY(p, node2->p);
+	BLI_mirrorAlongAxis(p, root_node->p, nor);
+	
+	/* check if it's within limit before continuing */
+	if (VecLenf(node1->p, p) <= limit)
+	{
+		/* mark node as symmetric physically */
+		VECCOPY(root_node->symmetry_axis, nor);
+		root_node->symmetry_flag |= SYM_PHYSICAL;
+		root_node->symmetry_flag |= SYM_AXIAL;
+
+		/* flag side on arcs */
+		flagAxialSymmetry(root_node, node1, arc1, group);
+		flagAxialSymmetry(root_node, node2, arc2, group);
+		
+		if (graph->axial_symmetry)
+		{
+			graph->axial_symmetry(root_node, node1, node2, arc1, arc2);
+		}
+	}
+}
+
+static void handleAxialSymmetry(BGraph *graph, BNode *root_node, int depth, float axis[3], float limit)
+{
+	BArc *arc1 = NULL, *arc2 = NULL;
+	BNode *node1 = NULL, *node2 = NULL;
 	int i;
 	
 	/* mark topological symmetry */
-	node->symmetry_flag |= SYM_TOPOLOGICAL;
+	root_node->symmetry_flag |= SYM_TOPOLOGICAL;
 
-	for (i = 0; i < node->degree; i++)
+	for (i = 0; i < root_node->degree; i++)
 	{
-		BArc *connectedArc = node->arcs[i];
+		BArc *connectedArc = root_node->arcs[i];
 		
 		/* depth is store as a negative in flag. symmetry level is positive */
 		if (connectedArc->symmetry_level == -depth)
@@ -442,12 +609,12 @@ static void markAxialSymmetry(BGraph *graph, BNode *node, int depth, float axis[
 			if (arc1 == NULL)
 			{
 				arc1 = connectedArc;
-				node1 = BLI_otherNode(arc1, node);
+				node1 = BLI_otherNode(arc1, root_node);
 			}
 			else
 			{
 				arc2 = connectedArc;
-				node2 = BLI_otherNode(arc2, node);
+				node2 = BLI_otherNode(arc2, root_node);
 				break; /* Can stop now, the two arcs have been found */
 			}
 		}
@@ -459,36 +626,9 @@ static void markAxialSymmetry(BGraph *graph, BNode *node, int depth, float axis[
 		return;
 	}
 	
-	VecSubf(vec, node1->p, node->p);
-	Normalize(vec);
-	VecSubf(p, node->p, node2->p);
-	Normalize(p);
-	VecAddf(p, p, vec);
-
-	Crossf(vec, p, axis);
-	Crossf(nor, vec, axis);
+	printf("symmetry length %f <> %f\n", arc1->length, arc2->length);
 	
-	/* mirror node2 along axis */
-	VECCOPY(p, node2->p);
-	BLI_mirrorAlongAxis(p, node->p, nor);
-	
-	/* check if it's within limit before continuing */
-	if (VecLenf(node1->p, p) <= limit)
-	{
-		/* mark node as symmetric physically */
-		VECCOPY(node->symmetry_axis, nor);
-		node->symmetry_flag |= SYM_PHYSICAL;
-		node->symmetry_flag |= SYM_AXIAL;
-
-		/* set side on arcs */
-		setSideAxialSymmetry(node, node1, arc1);
-		setSideAxialSymmetry(node, node2, arc2);
-		
-		if (graph->axial_symmetry)
-		{
-			graph->axial_symmetry(node, node1, node2, arc1, arc2);
-		}
-	}
+	testAxialSymmetry(graph, root_node, node1, node2, arc1, arc2, axis, limit, 1);
 }
 
 static void markdownSecondarySymmetry(BGraph *graph, BNode *node, int depth, int level, float limit)
@@ -522,11 +662,11 @@ static void markdownSecondarySymmetry(BGraph *graph, BNode *node, int depth, int
 	/* Split between axial and radial symmetry */
 	if (count == 2)
 	{
-		markAxialSymmetry(graph, node, depth, axis, limit);
+		handleAxialSymmetry(graph, node, depth, axis, limit);
 	}
 	else
 	{
-		markRadialSymmetry(graph, node, depth, axis, limit);
+		handleRadialSymmetry(graph, node, depth, axis, limit);
 	}
 	
 	/* markdown secondary symetries */	

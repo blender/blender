@@ -91,6 +91,7 @@ typedef struct ReebArc {
 	float length;
 
 	int symmetry_level;
+	int symmetry_group;
 	int symmetry_flag;
 	/*********************************/
 

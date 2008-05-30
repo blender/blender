@@ -108,6 +108,7 @@ typedef struct RigArc {
 	float length;
 
 	int symmetry_level;
+	int symmetry_group;
 	int symmetry_flag;
 	/*********************************/
 	
@@ -383,7 +384,7 @@ static void RIG_findHead(RigGraph *rg)
 
 /*******************************************************************************************************/
 
-static void RIG_printNode(RigNode *node, char name[])
+void RIG_printNode(RigNode *node, char name[])
 {
 	printf("%s %p %i <%0.3f, %0.3f, %0.3f>\n", name, node, node->degree, node->p[0], node->p[1], node->p[2]);
 	
@@ -398,7 +399,7 @@ static void RIG_printNode(RigNode *node, char name[])
 	}
 }
 
-static void RIG_printArcBones(RigArc *arc)
+void RIG_printArcBones(RigArc *arc)
 {
 	RigEdge *edge;
 
@@ -412,7 +413,7 @@ static void RIG_printArcBones(RigArc *arc)
 	printf("\n");
 }
 
-static void RIG_printArc(RigArc *arc)
+void RIG_printArc(RigArc *arc)
 {
 	RigEdge *edge;
 
@@ -938,7 +939,6 @@ static void retargetArctoArc(RigArc *iarc)
 		
 		if (mode == RETARGET_AGGRESSIVE)
 		{
-			printf("aggresive\n");
 			retargetArctoArcAggresive(iarc);
 		}
 		else
@@ -953,6 +953,7 @@ static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc 
 	ReebNode *enode = start_node->link;
 	ReebArc *next_earc;
 	int symmetry_level = next_iarc->symmetry_level;
+	int symmetry_group = next_iarc->symmetry_group;
 	int symmetry_flag = next_iarc->symmetry_flag;
 	int i;
 	
@@ -963,18 +964,22 @@ static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc 
 		next_earc = (ReebArc*)enode->arcs[i];
 		if (next_earc->flag == 0 && /* not already taken */
 			next_earc->symmetry_flag == symmetry_flag &&
+			next_earc->symmetry_group == symmetry_group &&
 			next_earc->symmetry_level == symmetry_level)
 		{
+/*
 			printf("-----------------------\n");
 			printf("CORRESPONDING ARC FOUND\n");
 			RIG_printArcBones(next_iarc);
-
+			printf("flag %i -- symmetry level %i -- symmetry flag %i\n", next_earc->flag, next_earc->symmetry_level, next_earc->symmetry_flag);
+*/
 			next_earc->flag = 1; // mark as taken
 			next_iarc->link = next_earc;
 			break;
 		}
 	}
 	
+/*
 	if (next_iarc->link == NULL)
 	{
 		printf("--------------------------\n");
@@ -991,6 +996,7 @@ static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc 
 			printf("flag %i -- symmetry level %i -- symmetry flag %i\n", next_earc->flag, next_earc->symmetry_level, next_earc->symmetry_flag);
 		}
 	}
+*/
 }
 
 static void retargetSubgraph(RigGraph *rigg, RigArc *start_arc, RigNode *start_node)
