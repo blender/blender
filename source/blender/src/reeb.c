@@ -1082,10 +1082,6 @@ int filterSmartReebGraph(ReebGraph *rg, float threshold)
 			
 			arc->angle = avg_angle;
 			
-#ifdef DEBUG_REEB
-			printf("angle %f total %i\n", avg_angle, total);
-#endif
-			
 			if (avg_angle > threshold)
 				merging = 1;
 			

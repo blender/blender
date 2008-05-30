@@ -444,6 +444,7 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 			{
 				/* swap with smaller */
 				RadialArc tmp;
+				
 				tmp = ring[j + 1];
 				ring[j + 1] = ring[j];
 				ring[j] = tmp;
@@ -453,6 +454,11 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 				break;
 			}
 		}
+	}
+	
+	for (i = 0; i < total; i++)
+	{
+		printf("length %f\n", ring[i].arc->length);
 	}
 
 	/* Dispatch to specific symmetry tests */
@@ -587,6 +593,10 @@ static void testAxialSymmetry(BGraph *graph, BNode* root_node, BNode* node1, BNo
 		{
 			graph->axial_symmetry(root_node, node1, node2, arc1, arc2);
 		}
+	}
+	else
+	{
+		printf("not symmetric\n");
 	}
 }
 

@@ -470,7 +470,7 @@ static RigGraph *armatureToGraph(ListBase *list)
 		}
 	}
 	
-	BLI_removeDoubleNodes((BGraph*)rg, 0);
+	BLI_removeDoubleNodes((BGraph*)rg, 0.001);
 	
 	BLI_buildAdjacencyList((BGraph*)rg);
 	
@@ -967,19 +967,19 @@ static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc 
 			next_earc->symmetry_group == symmetry_group &&
 			next_earc->symmetry_level == symmetry_level)
 		{
-/*
+
 			printf("-----------------------\n");
 			printf("CORRESPONDING ARC FOUND\n");
 			RIG_printArcBones(next_iarc);
 			printf("flag %i -- symmetry level %i -- symmetry flag %i\n", next_earc->flag, next_earc->symmetry_level, next_earc->symmetry_flag);
-*/
+
 			next_earc->flag = 1; // mark as taken
 			next_iarc->link = next_earc;
 			break;
 		}
 	}
 	
-/*
+
 	if (next_iarc->link == NULL)
 	{
 		printf("--------------------------\n");
@@ -996,7 +996,7 @@ static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc 
 			printf("flag %i -- symmetry level %i -- symmetry flag %i\n", next_earc->flag, next_earc->symmetry_level, next_earc->symmetry_flag);
 		}
 	}
-*/
+
 }
 
 static void retargetSubgraph(RigGraph *rigg, RigArc *start_arc, RigNode *start_node)
@@ -1090,10 +1090,10 @@ void BIF_retargetArmature()
 			
 				rigg = armatureToGraph(&list);
 				
-				printf("Armature graph created\n");
-		
 				BLI_markdownSymmetry((BGraph*)rigg, (BNode*)rigg->head, G.scene->toolsettings->skgen_symmetry_limit);
 				
+				printf("Armature graph created\n");
+		
 				RIG_printGraph(rigg);
 				
 				rigg->link = reebg;
