@@ -373,6 +373,14 @@ int getTransformOrientation(float normal[3], float plane[3], int activeOnly)
 
 	if(G.obedit)
 	{
+		float imat[3][3], mat[3][3];
+
+		/* we need the transpose of the inverse for a normal... */
+		Mat3CpyMat4(imat, ob->obmat);
+
+		Mat3Inv(mat, imat);
+		Mat3Transp(mat);
+
 		ob= G.obedit;
 
 		if(G.obedit->type==OB_MESH)
@@ -606,8 +614,17 @@ int getTransformOrientation(float normal[3], float plane[3], int activeOnly)
 			}
 		}
 		
-		Mat4Mul3Vecfl(G.obedit->obmat, plane);
-		Mat4Mul3Vecfl(G.obedit->obmat, normal);
+		/* Vectors from edges don't need the special transpose inverse multiplication */
+		if (result == ORIENTATION_EDGE)
+		{
+			Mat4Mul3Vecfl(ob->obmat, normal);
+			Mat4Mul3Vecfl(ob->obmat, plane);
+		}
+		else
+		{
+			Mat3MulVecfl(mat, normal);
+			Mat3MulVecfl(mat, plane);
+		}
 	}
 	else if(ob && (ob->flag & OB_POSEMODE))
 	{
