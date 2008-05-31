@@ -1166,6 +1166,7 @@ int BLI_convertstringcode(char *path, const char *basepath)
 		MEM_freeN(filepart);
 	}
 	
+	BLI_cleanup_file(NULL, tmp);
 	strcpy(path, tmp);
 	
 #ifdef WIN32

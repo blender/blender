@@ -478,9 +478,11 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 	}
 
 	else { /* background mode (blender -b file.blend -P script) */
-		Render *re= RE_NewRender("Render");
+		Render *re= RE_NewRender(G.scene->id.name);
 
-		int end_frame = G.scene->r.efra; /* is of type short currently */
+
+
+		int end_frame = G.scene->r.efra;
 
 		if (G.scene != self->scene)
 			return EXPP_ReturnPyObjError (PyExc_RuntimeError,
@@ -490,7 +492,7 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 
 		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
 
-		G.scene->r.efra = (short)end_frame;
+		G.scene->r.efra = end_frame;
 	}
 
 	Py_RETURN_NONE;
@@ -571,7 +573,7 @@ PyObject *RenderData_RenderAnim( BPy_RenderData * self )
 		set_scene( oldsce );
 	}
 	else { /* background mode (blender -b file.blend -P script) */
-		Render *re= RE_NewRender("Render");
+		Render *re= RE_NewRender(G.scene->id.name);
 		
 		if (G.scene != self->scene)
 			return EXPP_ReturnPyObjError (PyExc_RuntimeError,

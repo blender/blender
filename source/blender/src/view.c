@@ -1448,6 +1448,8 @@ void obmat_to_viewmat(Object *ob, short smooth)
 	float bmat[4][4];
 	float tmat[3][3];
 
+	G.vd->view= 0; /* dont show the grid */
+
 	Mat4CpyMat4(bmat, ob->obmat);
 	Mat4Ortho(bmat);
 	Mat4Invert(G.vd->viewmat, bmat);

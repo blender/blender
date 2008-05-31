@@ -1473,14 +1473,15 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
 	int tot;
 	float *vec;
 	
-	if(resol>16) resol= 16;
-	
 	tot= 2*resol*resol;
 
 	if (type & WO_AORNDSMP) {
-		static float sphere[2*3*256];
+		float *sphere;
 		int a;
 		
+		// always returns table
+		sphere= threadsafe_table_sphere(0, thread, xs, ys, tot);
+
 		/* total random sampling. NOT THREADSAFE! (should be removed, is not useful) */
 		vec= sphere;
 		for (a=0; a<tot; a++, vec+=3) {
@@ -1495,7 +1496,8 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
 		float ang, *vec1;
 		int a;
 		
-		sphere= threadsafe_table_sphere(1, thread, xs, ys, tot);	// returns table if xs and ys were equal to last call
+		// returns table if xs and ys were equal to last call
+		sphere= threadsafe_table_sphere(1, thread, xs, ys, tot);
 		if(sphere==NULL) {
 			sphere= threadsafe_table_sphere(0, thread, xs, ys, tot);
 			
@@ -1663,7 +1665,7 @@ void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 	float *vec, *nrm, div, bias, sh=0.0f;
 	float maxdist = R.wrld.aodist;
 	float dxyview[3];
-	int j= -1, tot, actual=0, skyadded=0, aocolor;
+	int j= -1, tot, actual=0, skyadded=0, aocolor, resol= R.wrld.aosamp;
 	
 	isec.faceorig= (RayFace*)shi->vlr;
 	isec.oborig= RAY_OBJECT_SET(&R, shi->obi);
@@ -1690,14 +1692,16 @@ void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 	if(shi->mat->mode & MA_ONLYSHADOW)
 		aocolor= WO_AOPLAIN;
 	
-	vec= sphere_sampler(R.wrld.aomode, R.wrld.aosamp, shi->thread, shi->xs, shi->ys);
+	if(resol>32) resol= 32;
+	
+	vec= sphere_sampler(R.wrld.aomode, resol, shi->thread, shi->xs, shi->ys);
 	
 	// warning: since we use full sphere now, and dotproduct is below, we do twice as much
-	tot= 2*R.wrld.aosamp*R.wrld.aosamp;
+	tot= 2*resol*resol;
 
 	if(aocolor == WO_AOSKYTEX) {
-		dxyview[0]= 1.0f/(float)R.wrld.aosamp;
-		dxyview[1]= 1.0f/(float)R.wrld.aosamp;
+		dxyview[0]= 1.0f/(float)resol;
+		dxyview[1]= 1.0f/(float)resol;
 		dxyview[2]= 0.0f;
 	}
 	

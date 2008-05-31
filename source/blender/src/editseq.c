@@ -184,13 +184,24 @@ int seq_tx_get_end(Sequence *seq)
 	return seq->start+seq->len;
 }
 
-int seq_tx_get_final_left(Sequence *seq)
+int seq_tx_get_final_left(Sequence *seq, int metaclip)
 {
-	return (seq->start - seq->startstill) + seq->startofs;
+	if (metaclip && seq->tmp) {
+		/* return the range clipped by the parents range */
+		return MAX2( seq_tx_get_final_left(seq, 0), seq_tx_get_final_left((Sequence *)seq->tmp, 1) );
+	} else {
+		return (seq->start - seq->startstill) + seq->startofs;
+	}
+	
 }
-int  seq_tx_get_final_right(Sequence *seq)
+int seq_tx_get_final_right(Sequence *seq, int metaclip)
 {
-	return ((seq->start+seq->len) + seq->endstill) - seq->endofs;
+	if (metaclip && seq->tmp) {
+		/* return the range clipped by the parents range */
+		return MIN2( seq_tx_get_final_right(seq, 0), seq_tx_get_final_right((Sequence *)seq->tmp, 1) );
+	} else {
+		return ((seq->start+seq->len) + seq->endstill) - seq->endofs;	
+	}
 }
 
 void seq_tx_set_final_left(Sequence *seq, int val)
@@ -260,12 +271,12 @@ static void fix_single_image_seq(Sequence *seq)
 	
 	/* make sure the image is always at the start since there is only one,
 	   adjusting its start should be ok */
-	left = seq_tx_get_final_left(seq);
+	left = seq_tx_get_final_left(seq, 0);
 	start = seq->start;
 	if (start != left) {
 		offset = left - start;
-		seq_tx_set_final_left( seq, seq_tx_get_final_left(seq) - offset );
-		seq_tx_set_final_right( seq, seq_tx_get_final_right(seq) - offset );
+		seq_tx_set_final_left( seq, seq_tx_get_final_left(seq, 0) - offset );
+		seq_tx_set_final_right( seq, seq_tx_get_final_right(seq, 0) - offset );
 		seq->start += offset;
 	}
 }
@@ -2927,34 +2938,34 @@ static int seq_get_snaplimit(void)
 static void transform_grab_xlimits(Sequence *seq, int leftflag, int rightflag)
 {
 	if(leftflag) {
-		if (seq_tx_get_final_left(seq) >= seq_tx_get_final_right(seq)) {
-			seq_tx_set_final_left(seq, seq_tx_get_final_right(seq)-1);
+		if (seq_tx_get_final_left(seq, 0) >= seq_tx_get_final_right(seq, 0)) {
+			seq_tx_set_final_left(seq, seq_tx_get_final_right(seq, 0)-1);
 		}
 		
 		if (check_single_seq(seq)==0) {
-			if (seq_tx_get_final_left(seq) >= seq_tx_get_end(seq)) {
+			if (seq_tx_get_final_left(seq, 0) >= seq_tx_get_end(seq)) {
 				seq_tx_set_final_left(seq, seq_tx_get_end(seq)-1);
 			}
 			
 			/* dosnt work now - TODO */
 			/*
-			if (seq_tx_get_start(seq) >= seq_tx_get_final_right(seq)) {
+			if (seq_tx_get_start(seq) >= seq_tx_get_final_right(seq, 0)) {
 				int ofs;
-				ofs = seq_tx_get_start(seq) - seq_tx_get_final_right(seq);
+				ofs = seq_tx_get_start(seq) - seq_tx_get_final_right(seq, 0);
 				seq->start -= ofs;
-				seq_tx_set_final_left(seq, seq_tx_get_final_left(seq) + ofs );
+				seq_tx_set_final_left(seq, seq_tx_get_final_left(seq, 0) + ofs );
 			}*/
 			
 		}
 	}
 	
 	if(rightflag) {
-		if (seq_tx_get_final_right(seq) <=  seq_tx_get_final_left(seq)) {
-			seq_tx_set_final_right(seq, seq_tx_get_final_left(seq)+1);
+		if (seq_tx_get_final_right(seq, 0) <=  seq_tx_get_final_left(seq, 0)) {
+			seq_tx_set_final_right(seq, seq_tx_get_final_left(seq, 0)+1);
 		}
 									
 		if (check_single_seq(seq)==0) {
-			if (seq_tx_get_final_right(seq) <= seq_tx_get_start(seq)) {
+			if (seq_tx_get_final_right(seq, 0) <= seq_tx_get_start(seq)) {
 				seq_tx_set_final_right(seq, seq_tx_get_start(seq)+1);
 			}
 		}
@@ -3033,8 +3044,23 @@ void transform_seq(int mode, int context)
 		for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
 			if((seq->flag & SELECT) && !(seq->depth==0 && seq->flag & SEQ_LOCK)) 
 				totstrip++;
+			/* only needed for extend but can set here anyway since were alredy looping */
+			seq->tmp= NULL;
 		}
 	}
+	
+	/* for extending we need the metastrip clipped left/right values, set the metastrips as parents in seq->tmp */
+	if (mode=='e') {
+		Sequence *meta_seq;
+		for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
+			if (seq->type == SEQ_META) {
+				for (meta_seq = seq->seqbase.first; meta_seq; meta_seq= meta_seq->next){
+					meta_seq->tmp= (void *)seq;
+				}
+			}
+		}
+	}
+	
 	
 	if (sseq->flag & SEQ_MARKER_TRANS) {
 		for(marker= G.scene->markers.first; marker; marker= marker->next) {
@@ -3064,8 +3090,8 @@ void transform_seq(int mode, int context)
 			
 			/* for extend only */
 			if (mode=='e') {
-				ts->final_left = seq_tx_get_final_left(seq);
-				ts->final_right = seq_tx_get_final_right(seq);
+				ts->final_left = seq_tx_get_final_left(seq, 1);
+				ts->final_right = seq_tx_get_final_right(seq, 1);
 			}
 			ts++;
 		}
@@ -3151,9 +3177,9 @@ void transform_seq(int mode, int context)
 				snap_point_num=0;
 				if (last_seq && (last_seq->flag & SELECT)) { /* active seq bounds */
 					if(seq_tx_check_left(last_seq))
-						snap_points[snap_point_num++] = seq_tx_get_final_left(last_seq);
+						snap_points[snap_point_num++] = seq_tx_get_final_left(last_seq, 0);
 					if(seq_tx_check_right(last_seq))
-						snap_points[snap_point_num++] = seq_tx_get_final_right(last_seq);
+						snap_points[snap_point_num++] = seq_tx_get_final_right(last_seq, 0);
 					
 				}
 				if (totstrip > 1) { /* selection bounds */
@@ -3163,9 +3189,9 @@ void transform_seq(int mode, int context)
 					for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
 						if(seq->flag & SELECT) {
 							if(seq_tx_check_left(seq))
-								bounds_left		= MIN2(bounds_left,	seq_tx_get_final_left(seq));
+								bounds_left		= MIN2(bounds_left,	seq_tx_get_final_left(seq, 0));
 							if(seq_tx_check_right(seq))
-								bounds_right	= MAX2(bounds_right,seq_tx_get_final_right(seq));
+								bounds_right	= MAX2(bounds_right,seq_tx_get_final_right(seq, 0));
 						}
 					}
 					
@@ -3214,13 +3240,13 @@ void transform_seq(int mode, int context)
 				if (snap_dist && last_seq && seq_tx_check_left(last_seq)) {
 					seq = find_next_prev_sequence(last_seq, 1, 0); /* left */
 					if(seq && !seq_tx_check_right(seq))
-						TESTSNAP(seq_tx_get_final_right(seq));
+						TESTSNAP(seq_tx_get_final_right(seq, 0));
 				}
 				
 				if (snap_dist && last_seq && seq_tx_check_right(last_seq)) {
 					seq = find_next_prev_sequence(last_seq, 2, 0); /* right */
 					if(seq && !seq_tx_check_left(seq))
-						TESTSNAP(seq_tx_get_final_left(seq));
+						TESTSNAP(seq_tx_get_final_left(seq, 0));
 				}
 
 #undef TESTSNAP
@@ -3242,20 +3268,23 @@ void transform_seq(int mode, int context)
 				for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
 					if(seq->flag & SELECT && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
 						int myofs;
+						/* flag, ignores lefsel/rightsel for nested strips */
+						int sel_flag = (seq->depth==0) ? seq->flag : seq->flag & ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
+						
 						// SEQ_DEBUG_INFO(seq);
 						
 						/* X Transformation */
-						if(seq->flag & SEQ_LEFTSEL) {
+						if((seq->depth==0) && (sel_flag & SEQ_LEFTSEL)) {
 							myofs = (ts->startofs - ts->startstill);
 							seq_tx_set_final_left(seq, ts->start + (myofs + ix));
 						}
-						if(seq->flag & SEQ_RIGHTSEL) {
+						if((seq->depth==0) && (sel_flag & SEQ_RIGHTSEL)) {
 							myofs = (ts->endstill - ts->endofs);
 							seq_tx_set_final_right(seq, ts->start + seq->len + (myofs + ix));
 						}
-						transform_grab_xlimits(seq, seq->flag & SEQ_LEFTSEL, seq->flag & SEQ_RIGHTSEL);
+						transform_grab_xlimits(seq, sel_flag & SEQ_LEFTSEL, sel_flag & SEQ_RIGHTSEL);
 						
-						if( (seq->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0 ) {
+						if( (sel_flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0 ) {
 							if(sequence_is_free_transformable(seq)) seq->start= ts->start+ ix;
 
 							/* Y Transformation */
@@ -3300,8 +3329,8 @@ void transform_seq(int mode, int context)
 							
 							//SEQ_DEBUG_INFO(seq);
 							
-							final_left =	seq_tx_get_final_left(seq);
-							final_right =	seq_tx_get_final_right(seq);
+							final_left =	seq_tx_get_final_left(seq, 1);
+							final_right =	seq_tx_get_final_right(seq, 1);
 							
 							/* Only X Axis moving */
 							
@@ -3591,8 +3620,8 @@ void seq_separate_images(void)
 			BLI_remlink(ed->seqbasep, seq); 
 			if(seq->ipo) seq->ipo->id.us--;
 			
-			start_ofs = cfra = seq_tx_get_final_left(seq);
-			frame_end = seq_tx_get_final_right(seq);
+			start_ofs = cfra = seq_tx_get_final_left(seq, 0);
+			frame_end = seq_tx_get_final_right(seq, 0);
 			
 			while (cfra < frame_end) {
 				/* new seq */
