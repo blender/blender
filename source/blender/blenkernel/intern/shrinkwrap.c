@@ -207,8 +207,8 @@ static void raytree_from_mesh_get_coords(RayFace *face, float **v1, float **v2, 
 	if(((int)face) & 1)	// we want the 2 triangle of the quad
 	{
 		*v1= raytree_from_mesh_verts[mface->v1].co;
-		*v2= raytree_from_mesh_verts[mface->v4].co;
-		*v3= raytree_from_mesh_verts[mface->v3].co;
+		*v2= raytree_from_mesh_verts[mface->v3].co;
+		*v3= raytree_from_mesh_verts[mface->v4].co;
 		*v4= NULL;
 	}
 	else
@@ -280,10 +280,12 @@ static void free_raytree_from_mesh(RayTree *tree)
  * Cast a ray on the specified direction
  * Returns the distance the ray must travel until intersect something
  * Returns FLT_MAX in case of nothing intersection
+ * if facenormal is given, it will be overwritted with the normal of the face the ray collided with
  */
-static float raytree_cast_ray(RayTree *tree, const float *coord, const float *direction)
+static float raytree_cast_ray(RayTree *tree, const float *coord, const float *direction, float *facenormal)
 {
 	Isect isec;
+	float *v1, *v2, *v3, *v4;
 
 	/* Setup intersection */
 	isec.mode		= RE_RAY_MIRROR; /* We want closest intersection */
@@ -298,6 +300,12 @@ static float raytree_cast_ray(RayTree *tree, const float *coord, const float *di
 
 	if(!RE_ray_tree_intersect(tree, &isec))
 		return FLT_MAX;
+
+	if(facenormal)
+	{
+		raytree_from_mesh_get_coords( isec.face, &v1, &v2, &v3, &v4);
+		CalcNormFloat(v1, v2, v3, facenormal);
+	}
 
 	isec.labda = ABS(isec.labda);
 	VECADDFAC(isec.end, isec.start, isec.vec, isec.labda);
@@ -958,6 +966,7 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	{
 		float dist = FLT_MAX;
 		float weight = vertexgroup_get_weight(dvert, i, vgroup);
+		float face_normal[3];
 		if(weight == 0.0f) continue;
 
 		//Transform coordinates local->target
@@ -970,7 +979,12 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 		if(use_normal & MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL)
 		{
-			dist = raytree_cast_ray(target, tmp_co, tmp_no);
+			dist = raytree_cast_ray(target, tmp_co, tmp_no, face_normal);
+
+			if((calc->smd->shrinkOpts & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && INPR(tmp_no, face_normal) < 0)
+				dist = FLT_MAX;
+			if((calc->smd->shrinkOpts & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) && INPR(tmp_no, face_normal) > 0)
+				dist = FLT_MAX;
 		}
 
 		normal_short2float(vert[i].no, tmp_no);
@@ -986,7 +1000,12 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 			inv[1] = -tmp_no[1];
 			inv[2] = -tmp_no[2];
 
-			tdist = raytree_cast_ray(target, tmp_co, inv);
+			tdist = raytree_cast_ray(target, tmp_co, inv, 0);
+
+			if((calc->smd->shrinkOpts & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && INPR(tmp_no, face_normal) < 0)
+				tdist = FLT_MAX;
+			if((calc->smd->shrinkOpts & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) && INPR(tmp_no, face_normal) > 0)
+				tdist = FLT_MAX;
 
 			if(ABS(tdist) < ABS(dist))
 				dist = -tdist;
