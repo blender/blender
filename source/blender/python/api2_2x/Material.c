@@ -1196,7 +1196,7 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	 (getter)Material_getSssTexScatter, (setter)Material_setSssTexScatter,
 	 "Texture scattering factor",
 	 NULL},
-	{"sssFont",
+	{"sssFront",
 	 (getter)Material_getSssFront, (setter)Material_setSssFront,
 	 "Front scattering weight",
 	 NULL},
