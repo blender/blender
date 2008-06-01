@@ -39,10 +39,6 @@
 
 #include "BKE_bmesh.h"
 
-/*MEMORY MANAGMENT*/
-struct BME_mempool;
-typedef struct BME_mempool BME_mempool;
-
 struct BME_mempool *BME_mempool_create(int esize, int tote, int pchunk);
 void BME_mempool_destroy(struct BME_mempool *pool);
 void *BME_mempool_alloc(struct BME_mempool *pool);

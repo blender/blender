@@ -41,18 +41,79 @@
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
 #include "DNA_customdata_types.h"
+#include "DNA_image_types.h"
 #include "BLI_editVert.h"
 #include "BKE_DerivedMesh.h"
 #include "transform.h"
 
+/*forward declerations*/
 struct BME_Vert;
 struct BME_Edge;
 struct BME_Poly;
 struct BME_Loop;
 
+
 struct BME_mempool;
 typedef struct BME_mempool BME_mempool;
 
+/*Custom Data Types and defines
+	Eventual plan is to move almost everything to custom data and let caller
+	decide when making the mesh what layers they want to store in the mesh
+
+	This stuff should probably go in a seperate file....
+*/
+typedef struct BME_CustomDataLayer {
+	int type;       				/* type of data in layer */
+	int offset;     				/* offset of layer in block */
+	int active;     				/* offset of active layer*/
+	char name[32];  				/* layer name */
+} BME_CustomDataLayer;
+
+typedef struct BME_CustomData {
+	BME_CustomDataLayer *layers;	/*Custom Data Layers*/
+	BME_mempool *pool;				/*pool for alloc of blocks*/
+	int totlayer, totsize;         	/*total layers and total size in bytes of each block*/
+} BME_CustomData;
+
+#define BME_CD_FACETEX		1		/*Image texture/texface*/
+#define BME_CD_LOOPTEX		2		/*UV coordinates*/
+#define BME_CD_LOOPCOL		3		/*Vcolors*/
+#define BME_CD_DEFORMVERT	4		/*Vertex Group/Weights*/
+#define BME_CD_NUMTYPES		5
+
+typedef struct BME_DeformWeight {
+	int				def_nr;
+	float			weight;
+} BME_DeformWeight;
+
+typedef struct BME_DeformVert {
+	struct BME_DeformWeight *dw;
+	int totweight;
+} BME_DeformVert;
+
+typedef struct BME_facetex{
+	struct Image *tpage;
+	char flag, transp;
+	short mode, tile, unwrap;
+}BME_facetex;
+
+typedef struct BME_looptex{
+	float u, v;
+}BME_looptex;
+
+typedef struct BME_loopcol{
+	char r, g, b, a;
+}BME_loopcol;
+
+/*Notes on further structure Cleanup:
+	-Remove the tflags, they belong in custom data layers
+	-Remove the eflags completely, they are mostly not used
+	-Remove the selection/vis/bevel weight flag/values ect and move them to custom data
+	-Remove EID member and move to custom data
+	-Add a radial cycle length, disk cycle length and loop cycle lenght attributes to custom data and have eulers maintain/use them if present.
+	-Move data such as vertex coordinates/normals to custom data and leave pointers in structures to active layer data.
+	-Remove BME_CycleNode structure?
+*/
 typedef struct BME_CycleNode{
 	struct BME_CycleNode *next, *prev;
 	void *data;
@@ -72,9 +133,9 @@ typedef struct BME_Mesh
 	struct BME_Loop **lpar;
 	struct BME_Poly **plar;
 	int vtarlen, edarlen, lparlen, plarlen;
-	int totvert, totedge, totpoly, totloop;			/*record keeping*/
-	int nextv, nexte, nextp, nextl;					/*Next element ID for verts/edges/faces/loops. Never reused*/
-	//struct CustomData vdata, edata, pdata, ldata;	/*Custom Data Layer information*/
+	int totvert, totedge, totpoly, totloop;				/*record keeping*/
+	int nextv, nexte, nextp, nextl;						/*Next element ID for verts/edges/faces/loops. Never reused*/
+	struct BME_CustomData vdata, edata, pdata, ldata;	/*Custom Data Layer information*/
 } BME_Mesh;
 
 typedef struct BME_Vert

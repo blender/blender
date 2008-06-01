@@ -62,8 +62,7 @@
  *  Allocates a new BME_Mesh structure
 */
 
-
-
+//BME_Mesh *BME_make_mesh(int valloc, int ealloc, int lalloc, int palloc, int vdata[BME_CD_NUMTYPES], int edata[BME_CD_NUMTYPES], int ldata[BME_CD_NUMTYPES], int pdata[BME_CD_NUMTYPES])
 BME_Mesh *BME_make_mesh(int valloc, int ealloc, int lalloc, int palloc){
 	/*allocate the structure*/
 	BME_Mesh *bm = MEM_callocN(sizeof(BME_Mesh),"BMesh");
@@ -72,11 +71,17 @@ BME_Mesh *BME_make_mesh(int valloc, int ealloc, int lalloc, int palloc){
 	bm->epool = BME_mempool_create(sizeof(BME_Edge), ealloc, ealloc);
 	bm->ppool = BME_mempool_create(sizeof(BME_Poly), palloc, palloc);
 	bm->lpool = BME_mempool_create(sizeof(BME_Loop), lalloc, lalloc);
-	/*allocate the customdata pools*/
+
+	/*Setup Custom data structs and layers*/
+	/*	
+		BME_CD_Create(bm, &bm->vdata, vdata);
+		BME_CD_Create(bm, &bm->edata, edata);
+		BME_CD_Create(bm, &bm->ldata, ldata);
+		BME_CD_Create(bm, &bm->pdata, pdata);
+
+	*/
 	return bm;
 }
-
-
 /*	
  *	BME FREE MESH
  *
@@ -90,8 +95,12 @@ void BME_free_mesh(BME_Mesh *bm)
 	BME_mempool_destroy(bm->epool);
 	BME_mempool_destroy(bm->ppool);
 	BME_mempool_destroy(bm->lpool);
-	/*destroy custom data pools*/
-
+	/*
+		BME_CD_Free(bm, &bm->vdata);
+		BME_CD_Free(bm, &bm->edata);
+		BME_CD_Free(bm, &bm->ldata);
+		BME_CD_Free(bm, &bm->pdata);
+	*/
 	MEM_freeN(bm);	
 }
 
@@ -155,6 +164,13 @@ void BME_model_end(BME_Mesh *bm){
 		BME_error();
 	}
 }
+
+/*note, this needs to be turned on for debugging only.
+	We need two levels of debugging,
+	1: Mesh level
+	2: Euler level
+	Both need to be turned off in production builds (they really slow things down)
+*/
 
 /*	
  *	BME VALIDATE MESH
