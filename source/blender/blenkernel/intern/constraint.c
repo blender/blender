@@ -1882,7 +1882,7 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 {
 	bPythonConstraint *data= con->data;
 	
-	if (VALID_CONS_TARGET(ct)) {
+	if ((G.f & G_DOSCRIPTLINKS) && VALID_CONS_TARGET(ct)) {
 		/* special exception for curves - depsgraph issues */
 		if (ct->tar->type == OB_CURVE) {
 			Curve *cu= ct->tar->data;
@@ -1905,6 +1905,8 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 static void pycon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
 {
 	bPythonConstraint *data= con->data;
+	
+	if ((G.f & G_DOSCRIPTLINKS)==0)  return;
 	
 /* currently removed, until I this can be re-implemented for multiple targets */
 #if 0

@@ -219,7 +219,7 @@ static void print_help(void)
 	printf ("  -d\t\tTurn debugging on\n");
 	printf ("  -noaudio\tDisable audio on systems that support audio\n");
 	printf ("  -h\t\tPrint this help text\n");
-	printf ("  -y\t\tDisable script links, use -Y to find out why its -y\n");
+	printf ("  -y\t\tDisable automatic python script execution (scriptlinks, pydrivers, pyconstraints, pynodes)\n");
 	printf ("  -P <filename>\tRun the given Python script (filename or Blender Text)\n");
 #ifdef WIN32
 	printf ("  -R\t\tRegister .blend extension\n");
