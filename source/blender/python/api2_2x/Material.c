@@ -1179,7 +1179,7 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	{"sssRadiusBlue",
 	 (getter)Material_getSssRadius, (setter)Material_setSssRadius,
 	 "Mean red scattering path length",
-	 (void *) 0},
+	 (void *) 2},
 	{"sssIOR",
 	 (getter)Material_getSssIOR, (setter)Material_setSssIOR,
 	 "index of refraction",
