@@ -1591,7 +1591,7 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 		BLI_del_slash(butname);
 		
 		if(sfile->type & FILE_UNIX) {
-			if (!BLI_exists(butname)) {
+			if (butname[0] != '\0' && !BLI_exists(butname)) {
 				if (okee("Makedir")) {
 					BLI_recurdir_fileops(butname);
 					if (!BLI_exists(butname)) parent(sfile);

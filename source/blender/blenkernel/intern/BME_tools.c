@@ -811,7 +811,18 @@ static float BME_bevel_get_angle(BME_Mesh *bm, BME_Edge *e, BME_Vert *v) {
 
 	return Inpf(vec3,vec4);
 }
-
+static int BME_face_sharededges(BME_Poly *f1, BME_Poly *f2){
+	BME_Loop *l;
+	int count = 0;
+	
+	l = f1->loopbase;
+	do{
+		if(BME_radial_find_face(l->e,f2)) count++;
+		l = l->next;
+	}while(l != f1->loopbase);
+	
+	return count;
+}
 /**
  *			BME_bevel_initialize
  *
@@ -990,6 +1001,17 @@ static BME_Mesh *BME_bevel_initialize(BME_Mesh *bm, int options, int defgrp_inde
 	/* face pass */
 	for (f=bm->polys.first; f; f=f->next) f->tflag1 = BME_BEVEL_ORIG;
 
+	/*clean up edges with 2 faces that share more than one edge*/
+	for (e=bm->edges.first; e; e=e->next){
+		if(e->tflag1 & BME_BEVEL_BEVEL){
+			int count = 0;
+			count = BME_face_sharededges(e->loop->f, ((BME_Loop*)e->loop->radial.next->data)->f);
+			if(count > 1){
+				e->tflag1 &= ~BME_BEVEL_BEVEL;
+			}	
+		}
+	}
+
 	return bm;
 }
 
@@ -1075,7 +1097,7 @@ static BME_Mesh *BME_bevel_mesh(BME_Mesh *bm, float value, int res, int options,
 			v = BME_bevel_wire(bm, v, value, res, options, td);
 		}
 		else if (res && ((v->tflag1 & BME_BEVEL_BEVEL) && (v->tflag1 & BME_BEVEL_ORIG))) {
-			
+			int count = 0;
 			/* first, make sure we're not sitting on an edge to be removed */
 			oe = v->edge;
 			e = BME_disk_nextedge(oe,v);
@@ -1089,12 +1111,16 @@ static BME_Mesh *BME_bevel_mesh(BME_Mesh *bm, float value, int res, int options,
 			/* look for original edges, and remove them */
 			oe = e;
 			while ( (e = BME_disk_next_edgeflag(oe, v, 0, BME_BEVEL_ORIG | BME_BEVEL_BEVEL)) ) {
+				count++;
 				/* join the faces (we'll split them later) */
 				f = BME_JFKE_safe(bm,e->loop->f,((BME_Loop*)e->loop->radial.next->data)->f,e);
 				if (!f){
 					//printf("Non-manifold geometry not getting tagged right?\n");
 				}
 			}
+
+			/*need to do double check *before* you bevel to make sure that manifold edges are for two faces that share only *one* edge to make sure it doesnt hang here!*/
+
 
 			/* all original edges marked to be beveled have been removed;
 			 * now we need to link up the edges for this "corner" */
