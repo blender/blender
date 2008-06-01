@@ -57,12 +57,6 @@ typedef struct BME_freenode{
 	struct BME_freenode *next;
 }BME_freenode;
 
-typedef struct BME_mempool{
-	struct ListBase chunks;
-	int esize, csize, pchunk;		/*size of elements and chunks in bytes and number of elements per chunk*/
-	struct BME_freenode	*free;		/*free element list. Interleaved into chunk datas.*/
-}BME_mempool;
-
 BME_mempool *BME_mempool_create(int esize, int tote, int pchunk)
 {	BME_mempool  *pool = NULL;
 	BME_freenode *lasttail = NULL, *curnode = NULL;

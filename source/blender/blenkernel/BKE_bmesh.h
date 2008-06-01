@@ -53,8 +53,12 @@ struct BME_Poly;
 struct BME_Loop;
 
 
-struct BME_mempool;
-typedef struct BME_mempool BME_mempool;
+/*structure for fast memory allocation/frees*/
+typedef struct BME_mempool{
+	struct ListBase chunks;
+	int esize, csize, pchunk;		/*size of elements and chunks in bytes and number of elements per chunk*/
+	struct BME_freenode	*free;		/*free element list. Interleaved into chunk datas.*/
+}BME_mempool;
 
 /*Custom Data Types and defines
 	Eventual plan is to move almost everything to custom data and let caller
