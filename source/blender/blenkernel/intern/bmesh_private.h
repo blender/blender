@@ -39,6 +39,15 @@
 
 #include "BKE_bmesh.h"
 
+/*MEMORY MANAGMENT*/
+struct BME_mempool;
+typedef struct BME_mempool BME_mempool;
+
+struct BME_mempool *BME_mempool_create(int esize, int tote, int pchunk);
+void BME_mempool_destroy(struct BME_mempool *pool);
+void *BME_mempool_alloc(struct BME_mempool *pool);
+void BME_mempool_free(struct BME_mempool *pool, void *address);
+
 /*ALLOCATION/DEALLOCATION*/
 struct BME_Vert *BME_addvertlist(struct BME_Mesh *bm, struct BME_Vert *example);
 struct BME_Edge *BME_addedgelist(struct BME_Mesh *bm, struct BME_Vert *v1, struct BME_Vert *v2, struct BME_Edge *example);
@@ -49,7 +58,7 @@ void BME_free_vert(struct BME_Mesh *bm, struct BME_Vert *v);
 void BME_free_edge(struct BME_Mesh *bm, struct BME_Edge *e);
 void BME_free_poly(struct BME_Mesh *bm, struct BME_Poly *f);
 void BME_free_loop(struct BME_Mesh *bm, struct BME_Loop *l);
-void BME_delete_loop(struct BME_Mesh *bm, struct BME_Loop *l);
+//void BME_delete_loop(struct BME_Mesh *bm, struct BME_Loop *l);
 
 /*DOUBLE CIRCULAR LINKED LIST FUNCTIONS*/
 void BME_cycle_append(void *h, void *nt);

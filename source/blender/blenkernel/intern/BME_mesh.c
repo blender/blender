@@ -62,10 +62,20 @@
  *  Allocates a new BME_Mesh structure
 */
 
-BME_Mesh *BME_make_mesh(void){
+
+
+BME_Mesh *BME_make_mesh(int valloc, int ealloc, int lalloc, int palloc){
+	/*allocate the structure*/
 	BME_Mesh *bm = MEM_callocN(sizeof(BME_Mesh),"BMesh");
+	/*allocate the memory pools for the mesh elements*/
+	bm->vpool = BME_mempool_create(sizeof(BME_Vert), valloc, valloc);
+	bm->epool = BME_mempool_create(sizeof(BME_Edge), ealloc, ealloc);
+	bm->ppool = BME_mempool_create(sizeof(BME_Poly), palloc, palloc);
+	bm->lpool = BME_mempool_create(sizeof(BME_Loop), lalloc, lalloc);
+	/*allocate the customdata pools*/
 	return bm;
 }
+
 
 /*	
  *	BME FREE MESH
@@ -75,45 +85,13 @@ BME_Mesh *BME_make_mesh(void){
 
 void BME_free_mesh(BME_Mesh *bm)
 {
-	BME_Poly *bf, *nextf;
-	BME_Edge *be, *nexte;
-	BME_Vert *bv, *nextv;
-	BME_CycleNode *loopref;
-	
-	/*destroy polygon data*/
-	bf = bm->polys.first;
-	while(bf){
-		nextf = bf->next;
-		BLI_remlink(&(bm->polys), bf);
-		BME_free_poly(bm, bf);
-		
-		bf = nextf;
-	}
-	/*destroy edge data*/
-	be = bm->edges.first;
-	while(be){
-		nexte = be->next;
-		BLI_remlink(&(bm->edges), be);
-		BME_free_edge(bm, be);
-		be = nexte;
-	}
-	/*destroy vert data*/
-	bv = bm->verts.first;
-	while(bv){
-		nextv = bv->next;
-		BLI_remlink(&(bm->verts), bv);
-		BME_free_vert(bm, bv);
-		bv = nextv; 
-	}
-	
-	for(loopref=bm->loops.first;loopref;loopref=loopref->next) BME_delete_loop(bm,loopref->data);
-	BLI_freelistN(&(bm->loops));
-	
-	//CustomData_free(&bm->vdata, 0);
-	//CustomData_free(&bm->edata, 0);
-	//CustomData_free(&bm->ldata, 0);
-	//CustomData_free(&bm->pdata, 0);
-	
+	/*destroy element pools*/
+	BME_mempool_destroy(bm->vpool);
+	BME_mempool_destroy(bm->epool);
+	BME_mempool_destroy(bm->ppool);
+	BME_mempool_destroy(bm->lpool);
+	/*destroy custom data pools*/
+
 	MEM_freeN(bm);	
 }
 
@@ -156,8 +134,7 @@ void BME_model_end(BME_Mesh *bm){
 	totvert = BLI_countlist(&(bm->verts));
 	totedge = BLI_countlist(&(bm->edges));
 	totpoly = BLI_countlist(&(bm->polys));
-	totloop = BLI_countlist(&(bm->loops));
-	
+
 	if(bm->vtar) MEM_freeN(bm->vtar);
 	if(bm->edar) MEM_freeN(bm->edar);
 	if(bm->lpar) MEM_freeN(bm->lpar);
@@ -167,10 +144,10 @@ void BME_model_end(BME_Mesh *bm){
 	bm->edar = NULL;
 	bm->lpar = NULL;
 	bm->plar = NULL;
-	bm->vtarlen = bm->edarlen = bm->lparlen = bm->plarlen = 1024;
+	bm->vtarlen = bm->edarlen = bm->lparlen = bm->plarlen = 0;
 	
 	
-	if(bm->totvert!=totvert || bm->totedge!=totedge || bm->totpoly!=totpoly || bm->totloop!=totloop)
+	if(bm->totvert!=totvert || bm->totedge!=totedge || bm->totpoly!=totpoly)
 		BME_error();
 	
 	meshok = BME_validate_mesh(bm, 1);
