@@ -51,6 +51,18 @@ class KX_GameObject:
 		@type orn: 3x3 rotation matrix, or Quaternion.
 		@param orn: a rotation matrix specifying the new rotation.
 		"""
+	def alignAxisToVect(vect, axis):
+		"""
+		Aligns any of the game object's axis along the given vector.
+		
+		@type vect: 3d vector.
+		@param vect: a vector to align the axis.
+		@type axis: integer.
+		@param axis:The axis you want to align
+					- 0: X axis
+					- 1: Y axis
+					- 2: Z axis (default) 
+		"""
 	def getOrientation():
 		"""
 		Gets the game object's orientation.
@@ -213,4 +225,5 @@ class KX_GameObject:
 		@rtype: 3-tuple (L{KX_GameObject}, 3-tuple (x,y,z), 3-tuple (nx,ny,nz))
 		@return: (object,hitpoint,hitnormal) or (None,None,None)
 		"""
-	
+
+
