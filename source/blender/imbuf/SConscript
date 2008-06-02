@@ -27,6 +27,14 @@ if env['WITH_BF_FFMPEG'] == 1:
     defs.append('WITH_FFMPEG')
     incs += ' ' + env['BF_FFMPEG_INC']
 
+if env['WITH_BF_OPENJPEG'] == 1:
+    defs.append('WITH_OPENJPEG')
+    incs += ' ' + env['BF_OPENJPEG_INC']
+
+if env['WITH_BF_REDCODE'] == 1:
+    defs.append('WITH_REDCODE')
+    incs += ' ' + env['BF_REDCODE_INC']
+
 if env['WITH_BF_QUICKTIME']==1:
 	incs += ' ' + env['BF_QUICKTIME_INC']
 	defs.append('WITH_QUICKTIME')
