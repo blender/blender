@@ -2103,7 +2103,7 @@ int BPY_button_eval(char *expr, double *value)
 	if (!bpy_pydriver_Dict) {
 		if (bpy_pydriver_create_dict() != 0) {
 			fprintf(stderr,
-				"Button Python Eval error: couldn't create Python dictionary");
+				"Button Python Eval error: couldn't create Python dictionary \n");
 			PyGILState_Release(gilstate);
 			return -1;
 		}
