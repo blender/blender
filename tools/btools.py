@@ -192,13 +192,13 @@ def read_opts(cfg, args):
         ('BF_JPEG_LIB', 'JPEG library', ''),
         ('BF_JPEG_LIBPATH', 'JPEG library path', ''),
 
-        (BoolOption('WITH_BF_OPENJPEG', 'Use OPENJPEG if true', 'true')),
+        (BoolOption('WITH_BF_OPENJPEG', 'Use OPENJPEG if true', 'false')),
         ('BF_OPENJPEG', 'OPENJPEG base path', ''),
         ('BF_OPENJPEG_INC', 'OPENJPEG include path', ''),
         ('BF_OPENJPEG_LIB', 'OPENJPEG library', ''),
         ('BF_OPENJPEG_LIBPATH', 'OPENJPEG library path', ''),
 
-        (BoolOption('WITH_BF_REDCODE', 'Use REDCODE if true', 'true')),
+        (BoolOption('WITH_BF_REDCODE', 'Use REDCODE if true', 'false')),
         ('BF_REDCODE', 'REDCODE base path', ''),
         ('BF_REDCODE_INC', 'REDCODE include path', ''),
         ('BF_REDCODE_LIB', 'REDCODE library', ''),
