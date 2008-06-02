@@ -312,6 +312,9 @@ void IMB_free_anim_ibuf(struct anim * anim) {
 #ifdef WITH_FFMPEG
 static void free_anim_ffmpeg(struct anim * anim);
 #endif
+#ifdef WITH_REDCODE
+static void free_anim_redcode(struct anim * anim);
+#endif
 
 void IMB_free_anim(struct anim * anim) {
 	if (anim == NULL) {
@@ -329,6 +332,9 @@ void IMB_free_anim(struct anim * anim) {
 #endif
 #ifdef WITH_FFMPEG
 	free_anim_ffmpeg(anim);
+#endif
+#ifdef WITH_REDCODE
+	free_anim_redcode(anim);
 #endif
 
 	free(anim);
