@@ -138,7 +138,7 @@ int BME_model_begin(BME_Mesh *bm){
 }
 
 void BME_model_end(BME_Mesh *bm){
-	int meshok, totvert, totedge, totpoly, totloop;
+	int meshok, totvert, totedge, totpoly;
 
 	totvert = BLI_countlist(&(bm->verts));
 	totedge = BLI_countlist(&(bm->edges));
