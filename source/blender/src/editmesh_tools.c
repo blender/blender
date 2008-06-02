@@ -4480,6 +4480,11 @@ static void bevel_mesh_recurs(float bsize, short recurs, int allfaces)
 }
 
 void bevel_menu() {
+	int vlayers[BME_CD_NUMTYPES] = {0,0,0,0};
+	int elayers[BME_CD_NUMTYPES] = {0,0,0,0};
+	int llayers[BME_CD_NUMTYPES] = {0,0,0,0};
+	int players[BME_CD_NUMTYPES] = {0,0,0,0};
+
 	BME_Mesh *bm;
 	BME_TransData_Head *td;
 	TransInfo *t;
@@ -4497,8 +4502,7 @@ void bevel_menu() {
 	while(G.editBMesh->options & BME_BEVEL_RUNNING) {
 		options = G.editBMesh->options;
 		res = G.editBMesh->res;
-		bm = BME_make_mesh(512,512,2048,512);
-		bm = BME_editmesh_to_bmesh(G.editMesh, bm);
+		bm = BME_editmesh_to_bmesh(G.editMesh);
 		BIF_undo_push("Pre-Bevel");
 		free_editMesh(G.editMesh);
 		BME_bevel(bm,0.1f,res,options,0,0,&td);

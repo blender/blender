@@ -193,12 +193,12 @@ BME_Vert *BME_addvertlist(BME_Mesh *bm, BME_Vert *example){
 	bm->nextv++;
 	bm->totvert++;
 
-	if(example)
+	if(example){
 		VECCOPY(v->co,example->co);
-	//if(example)
-	//	CustomData_em_copy_data(&bm->vdata, &bm->vdata, example->data, &v->data);
-	//else
-	//	CustomData_em_set_default(&bm->vdata, &v->data);
+		BME_CD_copy_data(&bm->vdata, &bm->vdata, example->data, &v->data);
+	}
+	else
+		BME_CD_set_default(&bm->vdata, &v->data);
 
 	return v;
 }
@@ -221,16 +221,15 @@ BME_Edge *BME_addedgelist(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge *ex
 	bm->totedge++;
 	BLI_addtail(&(bm->edges), e);
 	
-	//if(example)
-	//	CustomData_em_copy_data(&bm->edata, &bm->edata, example->data, &e->data);
-	//else
-	//	CustomData_em_set_default(&bm->edata, &e->data);
+	if(example)
+		BME_CD_copy_data(&bm->edata, &bm->edata, example->data, &e->data);
+	else
+		BME_CD_set_default(&bm->edata, &e->data);
 
 
 	return e;
 }
 BME_Loop *BME_create_loop(BME_Mesh *bm, BME_Vert *v, BME_Edge *e, BME_Poly *f, BME_Loop *example){
-	/*allocate a BME_Loop and add it to the loophash*/
 	BME_Loop *l=NULL;
 	l = BME_mempool_alloc(bm->lpool);
 	l->next = l->prev = NULL;
@@ -246,12 +245,11 @@ BME_Loop *BME_create_loop(BME_Mesh *bm, BME_Vert *v, BME_Edge *e, BME_Poly *f, B
 	bm->nextl++;
 	bm->totloop++;
 	
-
-/*	if(example)
-		BME_CustomData_copy_data(&bm->ldata, &bm->ldata, example->data, &l->data);
+	if(example)
+		BME_CD_copy_data(&bm->ldata, &bm->ldata, example->data, &l->data);
 	else
-		BME_CustomData_set_default(&bm->ldata, &l->data);
-*/
+		BME_CD_set_default(&bm->ldata, &l->data);
+
 	return l;
 }
 
@@ -269,10 +267,10 @@ BME_Poly *BME_addpolylist(BME_Mesh *bm, BME_Poly *example){
 	bm->nextp++;
 	bm->totpoly++;
 
-	//if(example)
-	//	CustomData_em_copy_data(&bm->pdata, &bm->pdata, example->data, &f->data);
-	//else
-	//	CustomData_em_set_default(&bm->pdata, &f->data);
+	if(example)
+		BME_CD_copy_data(&bm->pdata, &bm->pdata, example->data, &f->data);
+	else
+		BME_CD_set_default(&bm->pdata, &f->data);
 
 
 	return f;
@@ -283,22 +281,22 @@ BME_Poly *BME_addpolylist(BME_Mesh *bm, BME_Poly *example){
 */
 void BME_free_vert(BME_Mesh *bm, BME_Vert *v){
 	bm->totvert--;
-	//CustomData_em_free_block(&bm->vdata, &v->data);
+	BME_CD_free_block(&bm->vdata, &v->data);
 	BME_mempool_free(bm->vpool, v);
 }
 void BME_free_edge(BME_Mesh *bm, BME_Edge *e){
 	bm->totedge--;
-	//CustomData_em_free_block(&bm->edata, &e->data);
+	BME_CD_free_block(&bm->edata, &e->data);
 	BME_mempool_free(bm->epool, e);
 }
 void BME_free_poly(BME_Mesh *bm, BME_Poly *f){
 	bm->totpoly--;
-	//CustomData_em_free_block(&bm->pdata, &f->data);
+	BME_CD_free_block(&bm->pdata, &f->data);
 	BME_mempool_free(bm->ppool, f);
 }
 void BME_free_loop(BME_Mesh *bm, BME_Loop *l){
 	bm->totloop--;
-	//CustomData_em_free_block(&bm->ldata, &l->data);
+	BME_CD_free_block(&bm->ldata, &l->data);
 	BME_mempool_free(bm->lpool, l);
 }
 /**

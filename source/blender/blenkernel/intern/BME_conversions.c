@@ -55,7 +55,10 @@
 
 #include "BSE_edit.h"
 
-BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em, BME_Mesh *bm) {
+BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
+	BME_Mesh *bm;
+	int allocsize[4] = {512,512,2048,512};
+	BME_CustomDataInit *init = MEM_callocN(sizeof(BME_CustomDataInit) * 4, "Bmesh custom data init");
 	BME_Vert *v1, *v2;
 	BME_Edge *e, *edar[4];
 	BME_Poly *f;
@@ -65,7 +68,7 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em, BME_Mesh *bm) {
 	EditFace *efa;
 
 	int len;
-
+	bm = BME_make_mesh(allocsize,init);
 	BME_model_begin(bm);
 	
 	/*add verts*/
@@ -134,6 +137,7 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em, BME_Mesh *bm) {
 		efa = efa->next;
 	}
 	BME_model_end(bm);
+	MEM_freeN(init);
 	return bm;
 }
 
@@ -224,21 +228,24 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 }
 
 /* Adds the geometry found in dm to bm
- * NOTE: it does not allocate a new BME_Mesh!
- */
-BME_Mesh *BME_derivedmesh_to_bmesh(DerivedMesh *dm, BME_Mesh *bm)
+  */
+BME_Mesh *BME_derivedmesh_to_bmesh(DerivedMesh *dm)
 {
+	
+	BME_Mesh *bm;
+	int allocsize[4] = {512,512,2048,512};
+	BME_CustomDataInit *init = MEM_callocN(sizeof(BME_CustomDataInit) * 4, "Bmesh custom data init");
 	MVert *mvert, *mv;
 	MEdge *medge, *me;
 	MFace *mface, *mf;
 	int totface,totedge,totvert,i,len;
-
 	BME_Vert *v1=NULL,*v2=NULL, **vert_array;
 	BME_Edge *e=NULL;
 	BME_Poly *f=NULL;
 	
 	EdgeHash *edge_hash = BLI_edgehash_new();
-	
+
+	bm = BME_make_mesh(allocsize,init);
 	totvert = dm->getNumVerts(dm);
 	totedge = dm->getNumEdges(dm);
 	totface = dm->getNumFaces(dm);
@@ -293,6 +300,7 @@ BME_Mesh *BME_derivedmesh_to_bmesh(DerivedMesh *dm, BME_Mesh *bm)
 	BME_model_end(bm);
 	BLI_edgehash_free(edge_hash, NULL);
 	MEM_freeN(vert_array);
+	MEM_freeN(init);
 	return bm;
 }
 

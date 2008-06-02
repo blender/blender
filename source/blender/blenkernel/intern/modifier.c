@@ -2736,6 +2736,7 @@ static DerivedMesh *bevelModifier_applyModifier(
 {
 	DerivedMesh *result;
 	BME_Mesh *bm;
+
 	/*bDeformGroup *def;*/
 	int /*i,*/ options, defgrp_index = -1;
 	BevelModifierData *bmd = (BevelModifierData*) md;
@@ -2754,8 +2755,7 @@ static DerivedMesh *bevelModifier_applyModifier(
 		//~ }
 	//~ }
 
-	bm = BME_make_mesh(512,512,2048,512);
-	bm = BME_derivedmesh_to_bmesh(derivedData, bm);
+	bm = BME_derivedmesh_to_bmesh(derivedData);
 	BME_bevel(bm,bmd->value,bmd->res,options,defgrp_index,bmd->bevel_angle,NULL);
 	result = BME_bmesh_to_derivedmesh(bm,derivedData);
 	BME_free_mesh(bm);

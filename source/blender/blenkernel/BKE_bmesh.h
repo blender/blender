@@ -40,11 +40,11 @@
 #include "DNA_listBase.h"
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
-#include "DNA_customdata_types.h"
 #include "DNA_image_types.h"
 #include "BLI_editVert.h"
 #include "BKE_DerivedMesh.h"
 #include "transform.h"
+#include "BKE_bmeshCustomData.h"
 
 /*forward declerations*/
 struct BME_Vert;
@@ -59,55 +59,6 @@ typedef struct BME_mempool{
 	int esize, csize, pchunk;		/*size of elements and chunks in bytes and number of elements per chunk*/
 	struct BME_freenode	*free;		/*free element list. Interleaved into chunk datas.*/
 }BME_mempool;
-
-/*Custom Data Types and defines
-	Eventual plan is to move almost everything to custom data and let caller
-	decide when making the mesh what layers they want to store in the mesh
-
-	This stuff should probably go in a seperate file....
-*/
-typedef struct BME_CustomDataLayer {
-	int type;       				/* type of data in layer */
-	int offset;     				/* offset of layer in block */
-	int active;     				/* offset of active layer*/
-	char name[32];  				/* layer name */
-} BME_CustomDataLayer;
-
-typedef struct BME_CustomData {
-	BME_CustomDataLayer *layers;	/*Custom Data Layers*/
-	BME_mempool *pool;				/*pool for alloc of blocks*/
-	int totlayer, totsize;         	/*total layers and total size in bytes of each block*/
-} BME_CustomData;
-
-#define BME_CD_FACETEX		1		/*Image texture/texface*/
-#define BME_CD_LOOPTEX		2		/*UV coordinates*/
-#define BME_CD_LOOPCOL		3		/*Vcolors*/
-#define BME_CD_DEFORMVERT	4		/*Vertex Group/Weights*/
-#define BME_CD_NUMTYPES		5
-
-typedef struct BME_DeformWeight {
-	int				def_nr;
-	float			weight;
-} BME_DeformWeight;
-
-typedef struct BME_DeformVert {
-	struct BME_DeformWeight *dw;
-	int totweight;
-} BME_DeformVert;
-
-typedef struct BME_facetex{
-	struct Image *tpage;
-	char flag, transp;
-	short mode, tile, unwrap;
-}BME_facetex;
-
-typedef struct BME_looptex{
-	float u, v;
-}BME_looptex;
-
-typedef struct BME_loopcol{
-	char r, g, b, a;
-}BME_loopcol;
 
 /*Notes on further structure Cleanup:
 	-Remove the tflags, they belong in custom data layers
@@ -196,7 +147,7 @@ typedef struct BME_Poly
 	unsigned short flag, h, mat_nr;
 } BME_Poly;
 
-//*EDGE UTILITIES*/
+/*EDGE UTILITIES*/
 int BME_verts_in_edge(struct BME_Vert *v1, struct BME_Vert *v2, struct BME_Edge *e);
 int BME_vert_in_edge(struct BME_Edge *e, BME_Vert *v);
 struct BME_Vert *BME_edge_getothervert(struct BME_Edge *e, struct BME_Vert *v);
@@ -218,7 +169,7 @@ int BME_radial_find_face(struct BME_Edge *e,struct BME_Poly *f);
 struct BME_Loop *BME_loop_find_loop(struct BME_Poly *f, struct BME_Vert *v);
 
 /*MESH CREATION/DESTRUCTION*/
-struct BME_Mesh *BME_make_mesh(int valloc, int ealloc, int lalloc, int palloc);
+struct BME_Mesh *BME_make_mesh(int allocsize[4], struct BME_CustomDataInit init[4]);
 void BME_free_mesh(struct BME_Mesh *bm);
 /*FULL MESH VALIDATION*/
 int BME_validate_mesh(struct BME_Mesh *bm, int halt);
@@ -302,8 +253,8 @@ float *BME_bevel_calc_polynormal(struct BME_Poly *f, struct BME_TransData_Head *
 struct BME_Mesh *BME_bevel(struct BME_Mesh *bm, float value, int res, int options, int defgrp_index, float angle, BME_TransData_Head **rtd);
 
 /*CONVERSION FUNCTIONS*/
-struct BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em, struct BME_Mesh *bm);
+struct BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em);
 struct EditMesh *BME_bmesh_to_editmesh(struct BME_Mesh *bm, BME_TransData_Head *td);
-struct BME_Mesh *BME_derivedmesh_to_bmesh(struct DerivedMesh *dm, struct BME_Mesh *bm);
+struct BME_Mesh *BME_derivedmesh_to_bmesh(struct DerivedMesh *dm);
 struct DerivedMesh *BME_bmesh_to_derivedmesh(struct BME_Mesh *bm, struct DerivedMesh *dm);
 #endif
