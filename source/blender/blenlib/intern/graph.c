@@ -167,7 +167,7 @@ void BLI_removeDoubleNodes(BGraph *graph, float limit)
 				BLI_replaceNode(graph, node_src, node_replaced);
 				
 				BLI_freeNode(graph, node_replaced);
-				BLI_remlink(&graph->nodes, node_replaced);
+				BLI_freelinkN(&graph->nodes, node_replaced);
 			}
 		}
 	}
