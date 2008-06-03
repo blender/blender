@@ -45,6 +45,8 @@
 
 #include "BKE_pointcache.h"
 
+#include "BLI_kdopbvh.h"
+
 #ifdef _WIN32
 void tstart ( void )
 {}
@@ -151,13 +153,14 @@ void cloth_init ( ClothModifierData *clmd )
 	clmd->sim_parms->goalfrict = 0.0f;
 }
 
-
-BVH *bvh_build_from_cloth (ClothModifierData *clmd, float epsilon)
+BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float epsilon)
 {
-	unsigned int i = 0;
-	BVH	*bvh=NULL;
+	int i;
+	BVHTree *bvhtree;
 	Cloth *cloth = clmd->clothObject;
-	ClothVertex *verts = NULL;
+	ClothVertex *verts;
+	MFace *mfaces;
+	float co[12];
 
 	if(!clmd)
 		return NULL;
@@ -168,69 +171,171 @@ BVH *bvh_build_from_cloth (ClothModifierData *clmd, float epsilon)
 		return NULL;
 	
 	verts = cloth->verts;
+	mfaces = cloth->mfaces;
+	
+	// in the moment, return zero if no faces there
+	if(!cloth->numverts)
+		return NULL;
+	
+	// create quadtree with k=26
+	bvhtree = BLI_bvhtree_new(cloth->numverts, epsilon, 4, 6);
+	
+	// fill tree
+	for(i = 0; i < cloth->numverts; i++, verts++)
+	{
+		VECCOPY(&co[0*3], verts->xold);
+		
+		BLI_bvhtree_insert(bvhtree, i, co, 1);
+	}
+	
+	// balance tree
+	BLI_bvhtree_balance(bvhtree);
+	
+	return bvhtree;
+}
+
+BVHTree *bvhtree_build_from_cloth (ClothModifierData *clmd, float epsilon)
+{
+	int i;
+	BVHTree *bvhtree;
+	Cloth *cloth = clmd->clothObject;
+	ClothVertex *verts;
+	MFace *mfaces;
+	float co[12];
+
+	if(!clmd)
+		return NULL;
+
+	cloth = clmd->clothObject;
+
+	if(!cloth)
+		return NULL;
+	
+	verts = cloth->verts;
+	mfaces = cloth->mfaces;
 	
 	// in the moment, return zero if no faces there
 	if(!cloth->numfaces)
 		return NULL;
 	
-	bvh = MEM_callocN(sizeof(BVH), "BVH");
-	if (bvh == NULL) 
+	// create quadtree with k=26
+	bvhtree = BLI_bvhtree_new(cloth->numfaces, epsilon, 4, 26);
+	
+	// fill tree
+	for(i = 0; i < cloth->numfaces; i++, mfaces++)
 	{
-		printf("bvh: Out of memory.\n");
-		return NULL;
+		VECCOPY(&co[0*3], verts[mfaces->v1].xold);
+		VECCOPY(&co[1*3], verts[mfaces->v2].xold);
+		VECCOPY(&co[2*3], verts[mfaces->v3].xold);
+		
+		if(mfaces->v4)
+			VECCOPY(&co[3*3], verts[mfaces->v4].xold);
+		
+		BLI_bvhtree_insert(bvhtree, i, co, (mfaces->v4 ? 4 : 3));
 	}
 	
-	// springs = cloth->springs;
-	// numsprings = cloth->numsprings;
-
-	bvh->epsilon = epsilon;
-	bvh->numfaces = cloth->numfaces;
-	bvh->mfaces = cloth->mfaces;
-
-	bvh->numverts = cloth->numverts;
+	// balance tree
+	BLI_bvhtree_balance(bvhtree);
 	
-	bvh->current_x = MEM_callocN ( sizeof ( MVert ) * bvh->numverts, "bvh->current_x" );
-	
-	if (bvh->current_x == NULL) 
-	{
-		printf("bvh: Out of memory.\n");
-		MEM_freeN(bvh);
-		return NULL;
-	}
-	
-	for(i = 0; i < bvh->numverts; i++)
-	{
-		VECCOPY(bvh->current_x[i].co, verts[i].tx);
-	}
-	
-	bvh_build (bvh);
-	
-	return bvh;
+	return bvhtree;
 }
 
-void bvh_update_from_cloth(ClothModifierData *clmd, int moving)
-{
+void bvhtree_update_from_cloth(ClothModifierData *clmd, int moving)
+{	
 	unsigned int i = 0;
 	Cloth *cloth = clmd->clothObject;
-	BVH *bvh = cloth->tree;
+	BVHTree *bvhtree = cloth->bvhtree;
 	ClothVertex *verts = cloth->verts;
+	MFace *mfaces;
+	float co[12], co_moving[12];
+	int ret = 0;
 	
-	if(!bvh)
+	if(!bvhtree)
 		return;
 	
-	if(cloth->numverts!=bvh->numverts)
-		return;
+	mfaces = cloth->mfaces;
 	
-	if(cloth->verts)
+	// update vertex position in bvh tree
+	if(verts && mfaces)
 	{
-		for(i = 0; i < bvh->numverts; i++)
+		for(i = 0; i < cloth->numfaces; i++, mfaces++)
 		{
-			VECCOPY(bvh->current_x[i].co, verts[i].tx);
-			VECCOPY(bvh->current_xold[i].co, verts[i].txold);
+			VECCOPY(&co[0*3], verts[mfaces->v1].txold);
+			VECCOPY(&co[1*3], verts[mfaces->v2].txold);
+			VECCOPY(&co[2*3], verts[mfaces->v3].txold);
+			
+			if(mfaces->v4)
+				VECCOPY(&co[3*3], verts[mfaces->v4].txold);
+		
+			// copy new locations into array
+			if(moving)
+			{
+				// update moving positions
+				VECCOPY(&co_moving[0*3], verts[mfaces->v1].tx);
+				VECCOPY(&co_moving[1*3], verts[mfaces->v2].tx);
+				VECCOPY(&co_moving[2*3], verts[mfaces->v3].tx);
+				
+				if(mfaces->v4)
+					VECCOPY(&co_moving[3*3], verts[mfaces->v4].tx);
+				
+				ret = BLI_bvhtree_update_node(bvhtree, i, co, co_moving, (mfaces->v4 ? 4 : 3));
+			}
+			else
+			{
+				ret = BLI_bvhtree_update_node(bvhtree, i, co, NULL, (mfaces->v4 ? 4 : 3));
+			}
+			
+			// check if tree is already full
+			if(!ret)
+				break;
 		}
+		
+		BLI_bvhtree_update_tree(bvhtree);
 	}
+}
+
+void bvhselftree_update_from_cloth(ClothModifierData *clmd, int moving)
+{	
+	unsigned int i = 0;
+	Cloth *cloth = clmd->clothObject;
+	BVHTree *bvhtree = cloth->bvhselftree;
+	ClothVertex *verts = cloth->verts;
+	MFace *mfaces;
+	float co[12], co_moving[12];
+	int ret = 0;
 	
-	bvh_update(bvh, moving);
+	if(!bvhtree)
+		return;
+	
+	mfaces = cloth->mfaces;
+	
+	// update vertex position in bvh tree
+	if(verts && mfaces)
+	{
+		for(i = 0; i < cloth->numverts; i++, verts++)
+		{
+			VECCOPY(&co[0*3], verts->txold);
+			
+			// copy new locations into array
+			if(moving)
+			{
+				// update moving positions
+				VECCOPY(&co_moving[0*3], verts->tx);
+				
+				ret = BLI_bvhtree_update_node(bvhtree, i, co, co_moving, 1);
+			}
+			else
+			{
+				ret = BLI_bvhtree_update_node(bvhtree, i, co, NULL, 1);
+			}
+			
+			// check if tree is already full
+			if(!ret)
+				break;
+		}
+		
+		BLI_bvhtree_update_tree(bvhtree);
+	}
 }
 
 int modifiers_indexInObject(Object *ob, ModifierData *md_seek);
@@ -541,8 +646,11 @@ void cloth_free_modifier ( Object *ob, ClothModifierData *clmd )
 		cloth->numsprings = 0;
 
 		// free BVH collision tree
-		if ( cloth->tree )
-			bvh_free ( ( BVH * ) cloth->tree );
+		if ( cloth->bvhtree )
+			BLI_bvhtree_free ( cloth->bvhtree );
+		
+		if ( cloth->bvhselftree )
+			BLI_bvhtree_free ( cloth->bvhselftree );
 
 		// we save our faces for collision objects
 		if ( cloth->mfaces )
@@ -611,8 +719,11 @@ void cloth_free_modifier_extern ( ClothModifierData *clmd )
 		cloth->numsprings = 0;
 
 		// free BVH collision tree
-		if ( cloth->tree )
-			bvh_free ( ( BVH * ) cloth->tree );
+		if ( cloth->bvhtree )
+			BLI_bvhtree_free ( cloth->bvhtree );
+		
+		if ( cloth->bvhselftree )
+			BLI_bvhtree_free ( cloth->bvhselftree );
 
 		// we save our faces for collision objects
 		if ( cloth->mfaces )
@@ -751,6 +862,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	ClothVertex *verts = NULL;
 	float tnull[3] = {0,0,0};
 	Cloth *cloth = NULL;
+	float maxdist = 0;
 
 	// If we have a clothObject, free it. 
 	if ( clmd->clothObject != NULL )
@@ -810,6 +922,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		VECCOPY ( verts->xold, verts->x );
 		VECCOPY ( verts->xconst, verts->x );
 		VECCOPY ( verts->txold, verts->x );
+		VECCOPY ( verts->tx, verts->x );
 		VecMulf ( verts->v, 0.0f );
 
 		verts->impulse_count = 0;
@@ -819,8 +932,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	// apply / set vertex groups
 	// has to be happen before springs are build!
 	cloth_apply_vgroup (clmd, dm);
-	
-	
+
 	if ( !cloth_build_springs ( clmd, dm ) )
 	{
 		cloth_free_modifier ( ob, clmd );
@@ -845,11 +957,17 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	if(!first)
 		implicit_set_positions(clmd);
 
-	clmd->clothObject->tree = bvh_build_from_cloth ( clmd, clmd->coll_parms->epsilon );
+	clmd->clothObject->bvhtree = bvhtree_build_from_cloth ( clmd, clmd->coll_parms->epsilon );
+	
+	for(i = 0; i < dm->getNumVerts(dm); i++)
+	{
+		maxdist = MAX2(maxdist, clmd->coll_parms->selfepsilon* ( cloth->verts[i].avg_spring_len*2.0));
+	}
+	
+	clmd->clothObject->bvhselftree = bvhselftree_build_from_cloth ( clmd, maxdist );
 
 	return 1;
 }
-
 
 static void cloth_from_mesh ( Object *ob, ClothModifierData *clmd, DerivedMesh *dm )
 {
