@@ -4480,11 +4480,6 @@ static void bevel_mesh_recurs(float bsize, short recurs, int allfaces)
 }
 
 void bevel_menu() {
-	int vlayers[BME_CD_NUMTYPES] = {0,0,0,0};
-	int elayers[BME_CD_NUMTYPES] = {0,0,0,0};
-	int llayers[BME_CD_NUMTYPES] = {0,0,0,0};
-	int players[BME_CD_NUMTYPES] = {0,0,0,0};
-
 	BME_Mesh *bm;
 	BME_TransData_Head *td;
 	TransInfo *t;

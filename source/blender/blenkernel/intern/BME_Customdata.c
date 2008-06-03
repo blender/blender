@@ -39,6 +39,7 @@
 #include "BKE_bmeshCustomData.h"
 #include "bmesh_private.h"
 #include <string.h>
+#include "MEM_guardedalloc.h"
 
 /********************* Layer type information **********************/
 typedef struct BME_LayerTypeInfo {
@@ -88,7 +89,7 @@ void BME_CD_Create(BME_CustomData *data, BME_CustomDataInit *init, int initalloc
 			if(init->layout[i]){
 				info = BME_layerType_getInfo(i);
 				for(j=0; j < init->layout[i]; j++){
-					if(j=0) data->layers[j+i].active = init->active[i];
+					if(j==0) data->layers[j+i].active = init->active[i];
 					data->layers[j+i].type = i;
 					data->layers[j+i].offset = offset;	
 					strcpy(data->layers[j+i].name, &(init->nametemplate[j+i]));
