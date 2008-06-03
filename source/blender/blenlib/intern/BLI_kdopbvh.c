@@ -73,6 +73,16 @@ typedef struct BVHOverlapData
 	BVHTreeOverlap *overlap; 
 	int i, max_overlap; /* i is number of overlaps */
 } BVHOverlapData;
+
+typedef struct BVHNearestData
+{
+	BVHTree *tree;
+	float	*co;
+	BVHTree_NearestPointCallback callback;
+	void	*userdata;
+	float proj[13];			//coordinates projection over axis
+	BVHTreeNearest nearest;
+} BVHNearestData;
 ////////////////////////////////////////
 
 
@@ -242,7 +252,6 @@ void sort_along_axis(BVHTree *tree, int start, int end, int axis)
 //      every node to the right of a[n] are greater or equal to it
 int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis){        
 	int begin = _begin, end = _end, cut;        
-	int i;         
 	while(end-begin > 3)        
 	{                            
 		cut = bvh_partition(a, begin, end, bvh_medianof3(a, begin, (begin+end)/2, end-1, axis), axis );                 
@@ -255,7 +264,6 @@ int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis){
 
 	return n;
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -374,6 +382,7 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 static void create_kdop_hull(BVHTree *tree, BVHNode *node, float *co, int numpoints, int moving)
 {
 	float newminmax;
+	float *bv = node->bv;
 	int i, k;
 	
 	// don't init boudings for the moving case
@@ -381,8 +390,8 @@ static void create_kdop_hull(BVHTree *tree, BVHNode *node, float *co, int numpoi
 	{
 		for (i = tree->start_axis; i < tree->stop_axis; i++)
 		{
-			node->bv[2*i] = FLT_MAX;
-			node->bv[2*i + 1] = -FLT_MAX;
+			bv[2*i] = FLT_MAX;
+			bv[2*i + 1] = -FLT_MAX;
 		}
 	}
 	
@@ -392,10 +401,10 @@ static void create_kdop_hull(BVHTree *tree, BVHNode *node, float *co, int numpoi
 		for (i = tree->start_axis; i < tree->stop_axis; i++)
 		{
 			newminmax = INPR(&co[k * 3], KDOP_AXES[i]);
-			if (newminmax < node->bv[2 * i])
-				node->bv[2 * i] = newminmax;
-			if (newminmax > node->bv[(2 * i) + 1])
-				node->bv[(2 * i) + 1] = newminmax;
+			if (newminmax < bv[2 * i])
+				bv[2 * i] = newminmax;
+			if (newminmax > bv[(2 * i) + 1])
+				bv[(2 * i) + 1] = newminmax;
 		}
 	}
 }
@@ -591,8 +600,11 @@ void BLI_bvhtree_balance(BVHTree *tree)
 }
 
 // overlap - is it possbile for 2 bv's to collide ?
-static int tree_overlap(float *bv1, float *bv2, int start_axis, int stop_axis)
+static int tree_overlap(BVHNode *node1, BVHNode *node2, int start_axis, int stop_axis)
 {
+	float *bv1 = node1->bv;
+	float *bv2 = node2->bv;
+
 	float *bv1_end = bv1 + (stop_axis<<1);
 		
 	bv1 += start_axis<<1;
@@ -612,7 +624,7 @@ static void traverse(BVHOverlapData *data, BVHNode *node1, BVHNode *node2)
 {
 	int j;
 	
-	if(tree_overlap(node1->bv, node2->bv, MIN2(data->tree1->start_axis, data->tree2->start_axis), MIN2(data->tree1->stop_axis, data->tree2->stop_axis)))
+	if(tree_overlap(node1, node2, MIN2(data->tree1->start_axis, data->tree2->start_axis), MIN2(data->tree1->stop_axis, data->tree2->stop_axis)))
 	{
 		// check if node1 is a leaf
 		if(!node1->totnode)
@@ -678,7 +690,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result)
 		return 0;
 	
 	// fast check root nodes for collision before doing big splitting + traversal
-	if(!tree_overlap(tree1->nodes[tree1->totleaf]->bv, tree2->nodes[tree2->totleaf]->bv, MIN2(tree1->start_axis, tree2->start_axis), MIN2(tree1->stop_axis, tree2->stop_axis)))
+	if(!tree_overlap(tree1->nodes[tree1->totleaf], tree2->nodes[tree2->totleaf], MIN2(tree1->start_axis, tree2->start_axis), MIN2(tree1->stop_axis, tree2->stop_axis)))
 		return 0;
 
 	data = MEM_callocN(sizeof(BVHOverlapData *)* tree1->tree_type, "BVHOverlapData_star");
@@ -809,3 +821,123 @@ float BLI_bvhtree_getepsilon(BVHTree *tree)
 {
 	return tree->epsilon;
 }
+
+
+//Nearest neighbour
+static float squared_dist(const float *a, const float *b)
+{
+	float tmp[3];
+	VECSUB(tmp, a, b);
+	return INPR(tmp, tmp);
+}
+
+static float calc_nearest_point(BVHNearestData *data, BVHNode *node, float *nearest)
+{
+	int i;
+	const float *bv = node->bv;
+
+	//nearest on AABB hull
+	for(i=0; i != 3; i++, bv += 2)
+	{
+		if(bv[0] > data->proj[i])
+			nearest[i] = bv[0];
+		else if(bv[1] < data->proj[i])
+			nearest[i] = bv[1];
+		else
+			nearest[i] = data->proj[i];
+	}
+
+/*
+	//nearest on a general hull
+	VECCOPY(nearest, data->co);
+	for(i = data->tree->start_axis; i != data->tree->stop_axis; i++, bv+=2)
+	{
+		float proj = INPR( nearest, KDOP_AXES[i]);
+		float dl = bv[0] - proj;
+		float du = bv[1] - proj;
+
+		if(dl > 0)
+		{
+			VECADDFAC(nearest, nearest, KDOP_AXES[i], dl);
+		}
+		else if(du < 0)
+		{
+			VECADDFAC(nearest, nearest, KDOP_AXES[i], du);
+		}
+	}
+*/
+	return squared_dist(data->co, nearest);
+}
+
+
+static void dfs_find_nearest(BVHNearestData *data, BVHNode *node)
+{
+	int i;
+	float nearest[3], sdist;
+
+	sdist = calc_nearest_point(data, node, nearest);
+	if(sdist >= data->nearest.dist) return;
+
+	if(node->totnode == 0)
+	{
+		if(data->callback)
+			sdist = data->callback(data->userdata , node->index, data->co, nearest);
+
+		if(sdist >= data->nearest.dist) return;
+
+		data->nearest.index	= node->index;
+		VECCOPY(data->nearest.nearest, nearest);
+		data->nearest.dist	= sdist;
+	}
+	else
+	{
+		if(sdist < data->nearest.dist)
+		{
+			for(i=0; i != node->totnode; i++)
+			{
+				dfs_find_nearest(data, node->children[i]);
+			}
+		}
+	}
+}
+
+int BLI_bvhtree_find_nearest(BVHTree *tree, float *co, BVHTreeNearest *nearest, BVHTree_NearestPointCallback callback, void *userdata)
+{
+	int i;
+
+	BVHNearestData data;
+
+	//init data to search
+	data.tree = tree;
+	data.co = co;
+
+	data.callback = callback;
+	data.userdata = userdata;
+
+	for(i = data.tree->start_axis; i != data.tree->stop_axis; i++)
+	{
+		data.proj[i] = INPR(data.co, KDOP_AXES[i]);
+	}
+
+	if(nearest)
+	{
+		memcpy( &data.nearest , nearest, sizeof(*nearest) );
+	}
+	else
+	{
+		data.nearest.index = -1;
+		data.nearest.dist = FLT_MAX;
+	}
+
+	//dfs search
+	dfs_find_nearest(&data, tree->nodes[tree->totleaf] );
+
+	//copy back results
+	if(nearest)
+	{
+		memcpy(nearest, &data.nearest, sizeof(*nearest));
+	}
+
+	return data.nearest.index;
+}
+
