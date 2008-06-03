@@ -51,34 +51,6 @@
 #include "BLI_kdopbvh.h"
 #include "BKE_collision.h"
 
-#ifdef _WIN32
-static void start ( void )
-{}
-static void end ( void )
-{
-}
-static double val()
-{
-	return 0;
-}
-#else
-#include <sys/time.h>
-static void mystart ( struct timeval *start, struct timezone *z )
-{
-	gettimeofday ( start, z );
-}
-static void myend ( struct timeval *end, struct timezone *z )
-{
-	gettimeofday ( end,z );
-}
-static double myval ( struct timeval *start, struct timeval *end )
-{
-	double t1, t2;
-	t1 = ( double ) start->tv_sec + ( double ) start->tv_usec/ ( 1000*1000 );
-	t2 = ( double ) end->tv_sec + ( double ) end->tv_usec/ ( 1000*1000 );
-	return t2-t1;
-}
-#endif
 
 /***********************************
 Collision modifier code start
@@ -758,7 +730,6 @@ int cloth_collision_response_moving( ClothModifierData *clmd, CollisionModifierD
 	float w1, w2, w3, u1, u2, u3;
 	float v1[3], v2[3], relativeVelocity[3];
 	float magrelVel;
-	float epsilon2 = BLI_bvhtree_getepsilon ( collmd->bvhtree );
 
 	cloth1 = clmd->clothObject;
 
@@ -797,7 +768,7 @@ int cloth_collision_response_moving( ClothModifierData *clmd, CollisionModifierD
 		if ( magrelVel > ALMOST_ZERO )
 		{
 			// Calculate Impulse magnitude to stop all motion in normal direction.
-			float magtangent = 0, repulse = 0, d = 0;
+			float magtangent = 0;
 			double impulse = 0.0;
 			float vrel_t_pre[3];
 			float temp[3];
@@ -1096,13 +1067,13 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 	EdgeCollPair edgecollpair;
 	Cloth *cloth1=NULL;
 	ClothVertex *verts1=NULL;
-	unsigned int i = 0, j = 0, k = 0;
+	unsigned int i = 0, k = 0;
 	int numsolutions = 0;
 	double x1[3], v1[3], x2[3], v2[3], x3[3], v3[3];
 	double solution[3], solution2[3];
 	MVert *verts2 = collmd->current_x; // old x
 	MVert *velocity2 = collmd->current_v; // velocity
-	float distance;
+	float distance = 0;
 	float triA[3][3], triB[3][3];
 	int result = 0;
 
@@ -1226,7 +1197,6 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 					float distance;
 					float impulse = 0;
 					float I_mag;
-					float m1, m2;
 
 					// move verts
 					VECADDS(triA[0], verts1[edgecollpair.p11].txold, verts1[edgecollpair.p11].tv, solution[k]);
@@ -1302,51 +1272,9 @@ int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierDat
 	return result;
 }
 
-int cloth_collision_moving_tris ( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair )
-{
-	EdgeCollPair edgecollpair;
-	Cloth *cloth1=NULL;
-	ClothVertex *verts1=NULL;
-	unsigned int i = 0, j = 0, k = 0;
-	int numsolutions = 0;
-	double x1[3], v1[3], x2[3], v2[3], x3[3], v3[3];
-	double solution[3];
-	MVert *verts2 = collmd->current_x; // old x
-	MVert *velocity2 = collmd->current_v; // velocity
-	float mintime = FLT_MAX;
-	float distance;
-	float triA[3][3], triB[3][3];
-	int result = 0;
-
-	cloth1 = clmd->clothObject;
-	verts1 = cloth1->verts;
-
-	for(i = 0; i < 9; i++)
-	{
-		// 9 edge - edge possibilities
-
-		if(i == 0) 
-		{
-			edgecollpair.p11 = collpair->ap1;
-			edgecollpair.p12 = collpair->ap2;
-
-			edgecollpair.p21 = collpair->bp1;
-			edgecollpair.p22 = collpair->bp2;
-		}
-	}
-
-	return result;
-}
-
 int cloth_collision_moving ( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair, CollPair *collision_end )
 {
-	int result = 0;
 	Cloth *cloth1;
-	float w1, w2, w3, u1, u2, u3;
-	float v1[3], v2[3], relativeVelocity[3];
-	float magrelVel;
-	float epsilon2 = BLI_bvhtree_getepsilon ( collmd->bvhtree );
-
 	cloth1 = clmd->clothObject;
 
 	for ( ; collpair != collision_end; collpair++ )
@@ -1471,11 +1399,11 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt )
 	Object *coll_ob=NULL;
 	BVHTree *cloth_bvh=NULL;
 	long i=0, j = 0, k = 0, numfaces = 0, numverts = 0;
-	unsigned int result = 0, rounds = 0; // result counts applied collisions; ic is for debug output;
+	int result = 0, rounds = 0; // result counts applied collisions; ic is for debug output;
 	ClothVertex *verts = NULL;
 	int ret = 0, ret2 = 0;
 	ClothModifierData *tclmd;
-	int collisions = 0, count = 0;
+	int collisions = 0;
 
 	if ( ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ ) || ! ( ( ( Cloth * ) clmd->clothObject )->bvhtree ) )
 	{
@@ -1570,8 +1498,7 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt )
 		////////////////////////////////////////////////////////////
 		if ( clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF )
 		{
-
-			MFace *mface = cloth->mfaces;
+			// TODO: add coll quality rounds again
 			BVHTreeOverlap *overlap = NULL;
 
 			collisions = 1;
@@ -1676,15 +1603,3 @@ int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt )
 
 	return MIN2 ( ret, 1 );
 }
-
-
-/*
-if ( verts[i].impulse_count )
-{
-	VECADDMUL ( verts[i].tv, verts[i].impulse, 1.0f / verts[i].impulse_count );
-	VECCOPY ( verts[i].impulse, tnull );
-	verts[i].impulse_count = 0;
-
-	ret++;
-}
-*/

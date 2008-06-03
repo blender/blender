@@ -77,6 +77,7 @@
 #include "BKE_anim.h"
 #include "BKE_bad_level_calls.h"
 #include "BKE_cloth.h"
+#include "BKE_collision.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"

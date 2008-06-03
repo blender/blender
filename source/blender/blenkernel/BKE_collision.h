@@ -116,6 +116,13 @@ FaceCollPair;
 // forward declarations
 /////////////////////////////////////////////////
 
+/////////////////////////////////////////////////
+// used in modifier.c from collision.c
+/////////////////////////////////////////////////
+BVHTree *bvhtree_build_from_mvert ( MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int numverts, float epsilon );
+void bvhtree_update_from_mvert ( BVHTree * bvhtree, MFace *faces, int numfaces, MVert *x, MVert *xnew, int numverts, int moving );
+/////////////////////////////////////////////////
+
 LinkNode *BLI_linklist_append_fast ( LinkNode **listp, void *ptr );
 
 // move Collision modifier object inter-frame with step = [0,1]
