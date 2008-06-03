@@ -960,8 +960,8 @@ static struct ImBuf * anim_getnew(struct anim * anim) {
 		if (startredcode(anim)) return (0);
 		ibuf = IMB_allocImBuf (8, 8, 32, 0, 0);
 		break;
-	}
 #endif
+	}
 	return(ibuf);
 }
 
