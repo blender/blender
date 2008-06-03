@@ -24,14 +24,14 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Daniel Genrich
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_CLOTH_H
 #define BKE_CLOTH_H
 
-#include "float.h"
+#include <float.h>
 
 #include "BLI_linklist.h"
 #include "BKE_customdata.h"
@@ -102,7 +102,8 @@ typedef struct Cloth
 	unsigned char 		old_solver_type;	/* unused, only 1 solver here */
 	unsigned char 		pad2;
 	short 			pad3;
-	struct BVH		*tree;			/* collision tree for this cloth object */
+	struct BVHTree		*bvhtree;			/* collision tree for this cloth object */
+	struct BVHTree 		*bvhselftree;			/* collision tree for this cloth object */
 	struct MFace 		*mfaces;
 	struct Implicit_Data	*implicit; 		/* our implicit solver connects to this pointer */
 	struct Implicit_Data	*implicitEM; 		/* our implicit solver connects to this pointer */
@@ -171,17 +172,10 @@ ClothSpring;
 /* These are the bits used in SimSettings.flags. */
 typedef enum
 {
-	//CLOTH_SIMSETTINGS_FLAG_RESET = ( 1 << 1 ),	// The CM object requires a reinitializaiton.
 	CLOTH_SIMSETTINGS_FLAG_COLLOBJ = ( 1 << 2 ),// object is only collision object, no cloth simulation is done
 	CLOTH_SIMSETTINGS_FLAG_GOAL = ( 1 << 3 ), 	// we have goals enabled
 	CLOTH_SIMSETTINGS_FLAG_TEARING = ( 1 << 4 ),// true if tearing is enabled
-	//CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT = ( 1 << 5 ), // true if tearing is enabled
-	//CLOTH_SIMSETTINGS_FLAG_EDITMODE = ( 1 << 6 ), // are we in editmode? -several things disabled
-	//CLOTH_SIMSETTINGS_FLAG_CCACHE_FFREE = ( 1 << 7 ), /* force cache freeing */
 	CLOTH_SIMSETTINGS_FLAG_SCALING = ( 1 << 8 ), /* is advanced scaling active? */
-	//CLOTH_SIMSETTINGS_FLAG_LOADED = ( 1 << 9 ), /* did we just got load? */
-	//CLOTH_SIMSETTINGS_FLAG_AUTOPROTECT = ( 1 << 10 ), /* is autoprotect enabled? */
-	//CLOTH_SIMSETTINGS_FLAG_CCACHE_OUTDATED = (1 << 11),	/* while protected, did cache get outdated? */
 	CLOTH_SIMSETTINGS_FLAG_CCACHE_EDIT = (1 << 12)	/* edit cache in editmode */
 } CLOTH_SIMSETTINGS_FLAGS;
 
@@ -207,6 +201,7 @@ typedef enum
 	CLOTH_SPRING_FLAG_DEACTIVATE = ( 1 << 1 ),
 	CLOTH_SPRING_FLAG_NEEDED = ( 1 << 2 ), // springs has values to be applied
 } CLOTH_SPRINGS_FLAGS;
+
 
 /////////////////////////////////////////////////
 // collision.c
@@ -246,7 +241,8 @@ DerivedMesh *clothModifier_do ( ClothModifierData *clmd,Object *ob, DerivedMesh 
 void cloth_update_normals ( ClothVertex *verts, int nVerts, MFace *face, int totface );
 
 // needed for collision.c
-void bvh_update_from_cloth ( ClothModifierData *clmd, int moving );
+void bvhtree_update_from_cloth ( ClothModifierData *clmd, int moving );
+void bvhselftree_update_from_cloth ( ClothModifierData *clmd, int moving );
 
 // needed for editmesh.c
 void cloth_write_cache ( Object *ob, ClothModifierData *clmd, float framenr );
@@ -259,11 +255,6 @@ void cloth_clear_cache ( Object *ob, ClothModifierData *clmd, float framenr );
 int cloth_add_spring ( ClothModifierData *clmd, unsigned int indexA, unsigned int indexB, float restlength, int spring_type);
 
 ////////////////////////////////////////////////
-
-
-/* Typedefs for function pointers we need for solvers and collision detection. */
-typedef void ( *CM_COLLISION_SELF ) ( ClothModifierData *clmd, int step );
-typedef void ( *CM_COLLISION_OBJ ) ( ClothModifierData *clmd, int step, CM_COLLISION_RESPONSE collision_response );
 
 
 /* This enum provides the IDs for our solvers. */
@@ -286,15 +277,6 @@ typedef struct
 }
 CM_SOLVER_DEF;
 
-/* used for caching in implicit.c */
-typedef struct Frame
-{
-	ClothVertex *verts;
-	ClothSpring *springs;
-	unsigned int numverts, numsprings;
-	float time; /* we need float since we want to support sub-frames */
-}
-Frame;
 
 #endif
 

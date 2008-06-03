@@ -691,7 +691,7 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq, int outli
 	
 	/* draw the main strip body */
 	if (is_single_image) /* single image */
-		draw_shadedstrip(seq, col, seq_tx_get_final_left(seq), y1, seq_tx_get_final_right(seq), y2);
+		draw_shadedstrip(seq, col, seq_tx_get_final_left(seq, 0), y1, seq_tx_get_final_right(seq, 0), y2);
 	else /* normal operation */
 		draw_shadedstrip(seq, col, x1, y1, x2, y2);
 	

@@ -613,6 +613,8 @@ static void exit_pydraw( SpaceScript * sc, short err )
 		PyErr_Print(  );
 		script->flags = 0;	/* mark script struct for deletion */
 		SCRIPT_SET_NULL(script);
+		script->scriptname[0] = '\0';
+		script->scriptarg[0] = '\0';
 		error_pyscript();
 		scrarea_queue_redraw( sc->area );
 	}

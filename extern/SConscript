@@ -21,5 +21,11 @@ if env['WITH_BF_FFMPEG'] and env['BF_FFMPEG_LIB'] == '':
     SConscript(['xvidcore/SConscript'])
     SConscript(['ffmpeg/SConscript'])
 
+if env['WITH_BF_OPENJPEG'] and env['BF_OPENJPEG_LIB'] == '':
+    SConscript(['libopenjpeg/SConscript'])
+
+if env['WITH_BF_REDCODE'] and env['BF_REDCODE_LIB'] == '':
+    SConscript(['libredcode/SConscript'])
+
 if env['OURPLATFORM'] == 'linux2':
     SConscript(['binreloc/SConscript']);

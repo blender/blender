@@ -1222,7 +1222,7 @@ static int bpy_pydriver_create_dict(void)
 {
 	PyObject *d, *mod;
 
-	if (bpy_pydriver_Dict) return -1;
+	if (bpy_pydriver_Dict || (G.f&G_DOSCRIPTLINKS)==0) return -1;
 
 	d = PyDict_New();
 	if (!d) return -1;
@@ -1998,7 +1998,7 @@ float BPY_pydriver_eval(IpoDriver *driver)
 	int setitem_retval;
 	PyGILState_STATE gilstate;
 
-	if (!driver) return result;
+	if (!driver || 	(G.f&G_DOSCRIPTLINKS)==0) return result;
 
 	expr = driver->name; /* the py expression to be evaluated */
 	if (!expr || expr[0]=='\0') return result;
@@ -2103,7 +2103,7 @@ int BPY_button_eval(char *expr, double *value)
 	if (!bpy_pydriver_Dict) {
 		if (bpy_pydriver_create_dict() != 0) {
 			fprintf(stderr,
-				"Button Python Eval error: couldn't create Python dictionary");
+				"Button Python Eval error: couldn't create Python dictionary \n");
 			PyGILState_Release(gilstate);
 			return -1;
 		}

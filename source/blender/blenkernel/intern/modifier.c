@@ -43,6 +43,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_kdopbvh.h"
 #include "BLI_kdtree.h"
 #include "BLI_linklist.h"
 #include "BLI_rand.h"
@@ -76,6 +77,7 @@
 #include "BKE_anim.h"
 #include "BKE_bad_level_calls.h"
 #include "BKE_cloth.h"
+#include "BKE_collision.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
@@ -2737,6 +2739,7 @@ static DerivedMesh *bevelModifier_applyModifier(
 {
 	DerivedMesh *result;
 	BME_Mesh *bm;
+
 	/*bDeformGroup *def;*/
 	int /*i,*/ options, defgrp_index = -1;
 	BevelModifierData *bmd = (BevelModifierData*) md;
@@ -2755,8 +2758,7 @@ static DerivedMesh *bevelModifier_applyModifier(
 		//~ }
 	//~ }
 
-	bm = BME_make_mesh();
-	bm = BME_derivedmesh_to_bmesh(derivedData, bm);
+	bm = BME_derivedmesh_to_bmesh(derivedData);
 	BME_bevel(bm,bmd->value,bmd->res,options,defgrp_index,bmd->bevel_angle,NULL);
 	result = BME_bmesh_to_derivedmesh(bm,derivedData);
 	BME_free_mesh(bm);
@@ -5194,7 +5196,7 @@ static void collisionModifier_initData(ModifierData *md)
 	collmd->current_v = NULL;
 	collmd->time = -1;
 	collmd->numverts = 0;
-	collmd->bvh = NULL;
+	collmd->bvhtree = NULL;
 }
 
 static void collisionModifier_freeData(ModifierData *md)
@@ -5203,8 +5205,8 @@ static void collisionModifier_freeData(ModifierData *md)
 	
 	if (collmd) 
 	{
-		if(collmd->bvh)
-			bvh_free(collmd->bvh);
+		if(collmd->bvhtree)
+			BLI_bvhtree_free(collmd->bvhtree);
 		if(collmd->x)
 			MEM_freeN(collmd->x);
 		if(collmd->xnew)
@@ -5215,7 +5217,6 @@ static void collisionModifier_freeData(ModifierData *md)
 			MEM_freeN(collmd->current_xnew);
 		if(collmd->current_v)
 			MEM_freeN(collmd->current_v);
-		
 		if(collmd->mfaces)
 			MEM_freeN(collmd->mfaces);
 		
@@ -5226,7 +5227,7 @@ static void collisionModifier_freeData(ModifierData *md)
 		collmd->current_v = NULL;
 		collmd->time = -1;
 		collmd->numverts = 0;
-		collmd->bvh = NULL;
+		collmd->bvhtree = NULL;
 		collmd->mfaces = NULL;
 	}
 }
@@ -5294,9 +5295,8 @@ static void collisionModifier_deformVerts(
 				collmd->mfaces = dm->dupFaceArray(dm);
 				collmd->numfaces = dm->getNumFaces(dm);
 				
-				// TODO: epsilon
 				// create bounding box hierarchy
-				collmd->bvh = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sboft);
+				collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sboft);
 				
 				collmd->time = current_time;
 			}
@@ -5319,25 +5319,25 @@ static void collisionModifier_deformVerts(
 				memcpy(collmd->current_x, collmd->x, numverts*sizeof(MVert));
 				
 				/* check if GUI setting has changed for bvh */
-				if(collmd->bvh)
+				if(collmd->bvhtree) 
 				{
-					if(ob->pd->pdef_sboft != collmd->bvh->epsilon)
+					if(ob->pd->pdef_sboft != BLI_bvhtree_getepsilon(collmd->bvhtree))
 					{
-						bvh_free(collmd->bvh);
-						collmd->bvh = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
+						BLI_bvhtree_free(collmd->bvhtree);
+						collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
 					}
 			
 				}
 				
-				/* happens on file load (ONLY when i decomment changes in readfile.c */
-				if(!collmd->bvh)
+				/* happens on file load (ONLY when i decomment changes in readfile.c) */
+				if(!collmd->bvhtree)
 				{
-					collmd->bvh = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
+					collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
 				}
 				else
 				{
 					// recalc static bounding boxes
-					bvh_update_from_mvert(collmd->bvh, collmd->current_x, numverts, NULL, 0);
+					bvhtree_update_from_mvert ( collmd->bvhtree, collmd->mfaces, collmd->numfaces, collmd->current_x, collmd->current_xnew, collmd->numverts, 1 );
 				}
 				
 				collmd->time = current_time;
