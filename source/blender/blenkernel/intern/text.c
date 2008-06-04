@@ -117,6 +117,7 @@ static void txt_pop_last(Text *text);
 static void txt_undo_add_op(Text *text, int op);
 static void txt_undo_add_block(Text *text, int op, char *buf);
 static void txt_delete_line(Text *text, TextLine *line);
+static int txt_word_boundary(char ch);
 
 /***/
 
@@ -553,6 +554,17 @@ static void txt_make_dirty (Text *text)
 	if (text->compiled) BPY_free_compiled_text(text);
 }
 
+static int txt_word_boundary (char ch)
+{
+	if (ch < '0') return TRUE;
+	if (ch <= '9') return FALSE;
+	if (ch < 'A') return TRUE;
+	if (ch <= 'Z') return FALSE;
+	if (ch < 'a') return TRUE;
+	if (ch <= 'z') return FALSE;
+	return TRUE;
+}
+
 /****************************/
 /* Cursor utility functions */
 /****************************/
@@ -687,6 +699,32 @@ void txt_move_right(Text *text, short sel)
 	if(!undoing) txt_undo_add_op(text, sel?UNDO_SRIGHT:UNDO_CRIGHT);
 
 	if(!sel) txt_pop_sel(text);
+}
+
+void txt_jump_left(Text *text, short sel)
+{
+	TextLine *l;
+	int c;
+	if (!text) return;
+	if (!text->curl) return;
+	do {
+		txt_move_left(text, sel);
+		l= sel ? text->sell : text->curl;
+		c= sel ? text->selc : text->curc;
+	} while (c>0 && c<l->len && !txt_word_boundary(l->line[c-1]));
+}
+
+void txt_jump_right(Text *text, short sel)
+{
+	TextLine *l;
+	int c;
+	if (!text) return;
+	if (!text->curl) return;
+	do {
+		txt_move_right(text, sel);
+		l= sel ? text->sell : text->curl;
+		c= sel ? text->selc : text->curc;
+	} while (c>0 && c<l->len && !txt_word_boundary(l->line[c-1]));
 }
 
 void txt_move_bol (Text *text, short sel) 
@@ -2063,6 +2101,20 @@ void txt_delete_char (Text *text)
 	if(!undoing) txt_undo_add_charop(text, UNDO_DEL, c);
 }
 
+void txt_delete_word (Text *text) 
+{
+	int i;
+	char ch;
+	if (!text) return;
+	if (!text->curl) return;
+	i= text->curc;
+	do {
+		ch= text->curl->line[i];
+		txt_delete_char(text);
+		i= text->curc;
+	} while (i<text->curl->len && !txt_word_boundary(ch));
+}
+
 void txt_backspace_char (Text *text) 
 {
 	char c='\n';
@@ -2101,6 +2153,18 @@ void txt_backspace_char (Text *text)
 	txt_clean_text(text);
 	
 	if(!undoing) txt_undo_add_charop(text, UNDO_BS, c);
+}
+
+void txt_backspace_word (Text *text) 
+{
+	int i;
+	if (!text) return;
+	if (!text->curl) return;
+	i= text->curc;
+	do {
+		txt_backspace_char(text);
+		i= text->curc;
+	} while (i>0 && !txt_word_boundary(text->curl->line[i-1]));
 }
 
 int txt_add_char (Text *text, char add) 

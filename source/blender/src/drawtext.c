@@ -1892,14 +1892,22 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			pop_space_text(st);
 			break;
 		case BACKSPACEKEY:
-			txt_backspace_char(text);
+			if (G.qual & (LR_ALTKEY | LR_CTRLKEY)) {
+				txt_backspace_word(text);
+			} else {
+				txt_backspace_char(text);
+			}
 			set_tabs(text);
 			if (st->showsyntax) get_format_string(st);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
 		case DELKEY:
-			txt_delete_char(text);
+			if (G.qual & (LR_ALTKEY | LR_CTRLKEY)) {
+				txt_delete_word(text);
+			} else {
+				txt_delete_char(text);
+			}
 			if (st->showsyntax) get_format_string(st);
 			do_draw= 1;
 			pop_space_text(st);
@@ -1918,6 +1926,8 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case LEFTARROWKEY:
 			if (G.qual & LR_COMMANDKEY)
 				txt_move_bol(text, G.qual & LR_SHIFTKEY);
+			else if (G.qual & LR_ALTKEY)
+				txt_jump_left(text, G.qual & LR_SHIFTKEY);
 			else
 				txt_move_left(text, G.qual & LR_SHIFTKEY);
 			set_tabs(text);
@@ -1927,6 +1937,8 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case RIGHTARROWKEY:
 			if (G.qual & LR_COMMANDKEY)
 				txt_move_eol(text, G.qual & LR_SHIFTKEY);
+			else if (G.qual & LR_ALTKEY)
+				txt_jump_right(text, G.qual & LR_SHIFTKEY);
 			else
 				txt_move_right(text, G.qual & LR_SHIFTKEY);
 			set_tabs(text);
