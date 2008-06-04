@@ -360,6 +360,8 @@ static PyObject *Object_getMatrix( BPy_Object * self, PyObject * args );
 static PyObject *Object_getParent( BPy_Object * self );
 static PyObject *Object_getParentBoneName( BPy_Object * self );
 static int Object_setParentBoneName( BPy_Object * self, PyObject * value );
+static PyObject *Object_getParentVertexIndex( BPy_Object * self );
+static int Object_setParentVertexIndex( BPy_Object * self, PyObject * value );
 static PyObject *Object_getSize( BPy_Object * self, PyObject * args );
 static PyObject *Object_getTimeOffset( BPy_Object * self );
 static PyObject *Object_getTracked( BPy_Object * self );
@@ -1490,6 +1492,92 @@ static int Object_setParentBoneName( BPy_Object * self, PyObject *value )
 	DAG_scene_sort( G.scene );
 	return 0;
 }
+
+static PyObject *Object_getParentVertexIndex( BPy_Object * self )
+{
+	PyObject *pyls = NULL;
+	
+	if( self->object->parent) {
+		if (self->object->partype==PARVERT1) {
+			pyls = PyList_New(1);
+			PyList_SET_ITEM( pyls, 0, PyInt_FromLong( self->object->par1 ));
+			return pyls;
+		} else if (self->object->partype==PARVERT3) {
+			pyls = PyList_New(3);
+			PyList_SET_ITEM( pyls, 0, PyInt_FromLong( self->object->par1 ));
+			PyList_SET_ITEM( pyls, 1, PyInt_FromLong( self->object->par2 ));
+			PyList_SET_ITEM( pyls, 2, PyInt_FromLong( self->object->par3 ));
+			return pyls;
+		}
+	}
+	return PyList_New(0);
+}
+
+static int Object_setParentVertexIndex( BPy_Object * self, PyObject *value )
+{
+	PyObject *item;
+	int val[3] = {0,0,0};
+	if( !self->object->parent) {
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			"This object has no vertex parent, cant set the vertex parent indicies" );
+	}
+	if (self->object->partype==PARVERT1) {
+		if (PySequence_Length(value) != 1)
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"Vertex parented to 1 vertex, can only assign a sequence with 1 vertex parent index" );
+		item = PySequence_GetItem(value, 0);
+		if (item) {
+			val[0] = PyInt_AsLong(item);
+			Py_DECREF(item);
+		}
+	} else if (self->object->partype==PARVERT3) {
+		int i;
+		if (PySequence_Length(value) != 3)
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"Vertex parented to 3 verts, can only assign a sequence with 3 verts parent index" );
+		
+		for (i=0; i<3; i++) {
+			item = PySequence_GetItem(value, i);
+			if (item) {
+				val[i] = PyInt_AsLong(item);
+				Py_DECREF(item);
+			}
+		}
+	} else {
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			"This object has no vertex parent, cant set the vertex parent indicies" );
+	}
+	
+	if (PyErr_Occurred()) {
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			"This object has no vertex parent, cant set the vertex parent indicies" );
+	} else {
+		if (self->object->partype==PARVERT1) {
+			if (val[0] < 0) {
+				return EXPP_ReturnIntError( PyExc_RuntimeError,
+					"vertex index less then zero" );
+			}
+			
+			self->object->par1 = val[0];
+		} else if (self->object->partype==PARVERT3) {
+			if (val[0]==val[1] || val[0]==val[2] || val[1]==val[2]) {
+				return EXPP_ReturnIntError( PyExc_RuntimeError,
+					"duplicate indicies in vertex parent assignment" );
+			}
+			if (val[0] < 0 || val[1] < 0 || val[2] < 0) {
+				return EXPP_ReturnIntError( PyExc_RuntimeError,
+					"vertex index less then zero" );
+			}
+		
+			self->object->par1 = val[0];
+			self->object->par2 = val[1];
+			self->object->par3 = val[2];
+		}
+	}
+
+	return 0;
+}
+
 
 static PyObject *Object_getSize( BPy_Object * self, PyObject * args )
 {
@@ -4915,6 +5003,10 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	{"parentbonename",
 	 (getter)Object_getParentBoneName, (setter)Object_setParentBoneName,
 	 "The object's parent object's sub name",
+	 NULL},
+	{"parentVertexIndex",
+	 (getter)Object_getParentVertexIndex, (setter)Object_setParentVertexIndex,
+	 "Indicies used for vertex parents",
 	 NULL},
 	{"track",
 	 (getter)Object_getTracked, (setter)Object_setTracked,
