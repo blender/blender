@@ -2075,13 +2075,13 @@ void txt_backspace_char (Text *text)
 	  return;
 	}
 	else if (text->curc==0) { /* Appending two lines */
-	    if (text->curl->prev) {
-	      text->curl= text->curl->prev;
-	      text->curc= text->curl->len;
-			
-	      txt_combine_lines(text, text->curl, text->curl->next);
-	      txt_pop_sel(text);
-	    }
+		if (!text->curl->prev) return;
+		
+		text->curl= text->curl->prev;
+		text->curc= text->curl->len;
+		
+		txt_combine_lines(text, text->curl, text->curl->next);
+		txt_pop_sel(text);
 	} 
 	else { /* Just backspacing a char */
 	  int i= text->curc-1;
