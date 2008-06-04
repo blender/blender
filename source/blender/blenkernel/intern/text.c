@@ -2140,6 +2140,34 @@ int txt_add_char (Text *text, char add)
 	return 1;
 }
 
+int txt_replace_char (Text *text, char add)
+{
+	char del;
+	
+	if (!text) return 0;
+	if (!text->curl) return 0;
+
+	/* If text is selected or we're at the end of the line just use txt_add_char */
+	if (text->curc==text->curl->len || text->sell!=text->curl || text->selc!=text->curc || add=='\n') {
+		return txt_add_char(text, add);
+	}
+	
+	del= text->curl->line[text->curc];
+	text->curl->line[text->curc]= (unsigned char) add;
+	text->curc++;
+	txt_pop_sel(text);
+	
+	txt_make_dirty(text);
+	txt_clean_text(text);
+
+	/* Should probably create a new op for this */
+	if(!undoing) {
+		txt_undo_add_charop(text, UNDO_DEL, del);
+		txt_undo_add_charop(text, UNDO_INSERT, add);
+	}
+	return 1;
+}
+
 void indent(Text *text)
 {
 	int len, num;

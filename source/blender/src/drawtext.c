@@ -634,10 +634,11 @@ static void set_cursor_to_pos (SpaceText *st, int x, int y, int sel)
 }
 
 static void draw_cursor(SpaceText *st) {
-	int h, x, i;
+	int h, x, i, w;
 	Text *text= st->text;
 	TextLine *linef, *linel;
 	int charf, charl;
+	char ch[2];
 	
 	if (text->curl==text->sell && text->curc==text->selc) {
 		x= text_draw(st, text->curl->line, st->left, text->curc, 0, 0, 0, NULL);
@@ -645,9 +646,19 @@ static void draw_cursor(SpaceText *st) {
 		if (x) {
 			h= txt_get_span(text->lines.first, text->curl) - st->top;
 
-			BIF_ThemeColor(TH_HILITE);
-			
-			glRecti(x-1, curarea->winy-st->lheight*(h)-2, x+1, curarea->winy-st->lheight*(h+1)-2);
+			if (st->overwrite) {
+				ch[0]= (unsigned char) text->curl->line[text->curc];
+				if (ch[0]=='\0') ch[0]=' ';
+				ch[1]= '\0';
+				w= BMF_GetStringWidth(spacetext_get_font(st), ch);
+				BIF_ThemeColor(TH_SHADE2);
+				glRecti(x, curarea->winy-st->lheight*(h)-2, x+w, curarea->winy-st->lheight*(h+1)-2);
+				BIF_ThemeColor(TH_HILITE);
+				glRecti(x, curarea->winy-st->lheight*(h+1)-3, x+w, curarea->winy-st->lheight*(h+1)-1);
+			} else {
+				BIF_ThemeColor(TH_HILITE);
+				glRecti(x-1, curarea->winy-st->lheight*(h)-2, x+1, curarea->winy-st->lheight*(h+1)-2);
+			}
 		}
 	} else {
 		int span= txt_get_span(text->curl, text->sell);
@@ -1594,7 +1605,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 		}
 	} else if (ascii) {
-		if (txt_add_char(text, ascii)) {
+		if ((st->overwrite && txt_replace_char(text, ascii)) || txt_add_char(text, ascii)) {
 			if (st->showsyntax) get_format_string(st);
 			pop_space_text(st);
 			do_draw= 1;
@@ -1893,6 +1904,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			do_draw= 1;
 			pop_space_text(st);
 			st->currtab_set = setcurr_tab(text);
+			break;
+		case INSERTKEY:
+			st->overwrite= !st->overwrite;
+			do_draw= 1;
 			break;
 		case DOWNARROWKEY:
 			txt_move_down(text, G.qual & LR_SHIFTKEY);

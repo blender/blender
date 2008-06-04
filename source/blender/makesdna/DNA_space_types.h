@@ -281,7 +281,7 @@ typedef struct SpaceText {
 	int tabnumber;
 	int currtab_set; 
 	int showsyntax;
-	int unused_padd;
+	int overwrite;
 	
 	float pix_per_line;
 
