@@ -683,7 +683,8 @@ CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap
 
 			collpair->distance = distance;
 			collpair->flag = 0;
-		}
+			collpair++;
+		}/*
 		else
 		{
 			float w1, w2, w3, u1, u2, u3;
@@ -716,9 +717,9 @@ CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap
 			{
 				// check for collision in the future
 				collpair->flag |= COLLISION_IN_FUTURE;
+				collpair++;
 			}
-		}
-		collpair++;
+		}*/
 	}
 	return collpair;
 }
