@@ -5419,6 +5419,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
    RE_BAKE_AO:     for baking, no lamps, but all objects
    RE_BAKE_TEXTURE:for baking, no lamps, only selected objects
    RE_BAKE_DISPLACEMENT:for baking, no lamps, only selected objects
+   RE_BAKE_SHADOW: for baking, only shadows, but all objects
 */
 void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 {
@@ -5447,6 +5448,10 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 	if(!actob && ELEM4(type, RE_BAKE_LIGHT, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT)) {
 		re->r.mode &= ~R_SHADOW;
 		re->r.mode &= ~R_RAYTRACE;
+	}
+	
+	if(!actob && (type==RE_BAKE_SHADOW)) {
+		re->r.mode |= R_SHADOW;
 	}
 	
 	/* setup render stuff */
@@ -5486,7 +5491,7 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 	set_node_shader_lamp_loop(shade_material_loop);
 
 	/* MAKE RENDER DATA */
-	nolamps= !ELEM(type, RE_BAKE_LIGHT, RE_BAKE_ALL);
+	nolamps= !ELEM3(type, RE_BAKE_LIGHT, RE_BAKE_ALL, RE_BAKE_SHADOW);
 	onlyselected= ELEM3(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT);
 
 	database_init_objects(re, lay, nolamps, onlyselected, actob, 0);
