@@ -53,9 +53,9 @@
 #elif defined(__APPLE__)
 #  include "mac_compat_glext.h"
 #  include <OpenGL/glext.h>
-# else
+#else
 #  include <GL/glext.h>
-# endif
+#endif
 #endif
 
 #ifdef __sgi
