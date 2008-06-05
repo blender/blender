@@ -952,7 +952,7 @@ static PyObject *Blender_GetPaths( PyObject * self, PyObject *args, PyObject *ke
 		if (absolute) {
 			BLI_bpathIterator_getPathExpanded( &bpi, filepath_expanded );
 		} else {
-			BLI_bpathIterator_getPathExpanded( &bpi, filepath_expanded );
+			BLI_bpathIterator_getPath( &bpi, filepath_expanded );
 		}
 		st = PyString_FromString(filepath_expanded);
 		
