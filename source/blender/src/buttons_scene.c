@@ -2150,6 +2150,10 @@ static void render_panel_bake(void)
 				 "Normalized displacement value to fit the 'Dist' range"
 		);
 	}
+	
+	uiDefButS(block, MENU, B_NOP, "Quad Split Order%t|Quad Split Auto%x0|Quad Split A (0,1,2) (0,2,3)%x1|Quad Split B (1,2,3) (1,3,0)%x2", 
+		10,30,190,20, &G.scene->r.bake_quad_split, 0, 0, 0, 0, "Method to divide quads (use A or B for external applications that use a fixed order)");
+	
 #if 0	
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, R_BAKE_OSA, B_DIFF, "OSA",		10,120,190,20, &G.scene->r.bake_flag, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
