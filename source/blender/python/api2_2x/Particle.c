@@ -854,7 +854,7 @@ static PyObject *Part_GetLoc( BPy_PartSys * self, PyObject * args ){
 					return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 							"Couldn't append item to PyList" );
 				}
-
+				Py_DECREF(loc); /* PyList_Append increfs */
 				path++;
 			}
 
@@ -864,6 +864,7 @@ static PyObject *Part_GetLoc( BPy_PartSys * self, PyObject * args ){
 				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						"Couldn't append item to PyList" );		
 			}
+			Py_DECREF(seglist); /* PyList_Append increfs */
 		}
 
 		cache=psys->childcache;
@@ -885,7 +886,7 @@ static PyObject *Part_GetLoc( BPy_PartSys * self, PyObject * args ){
 					return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 							"Couldn't append item to PyList" );
 				}
-
+				Py_DECREF(loc);/* PyList_Append increfs */
 				path++;
 			}
 
@@ -895,6 +896,7 @@ static PyObject *Part_GetLoc( BPy_PartSys * self, PyObject * args ){
 				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						"Couldn't append item to PyList" );	
 			}
+			Py_DECREF(seglist); /* PyList_Append increfs */
 		}
 		
 	} else {
@@ -933,6 +935,7 @@ static PyObject *Part_GetLoc( BPy_PartSys * self, PyObject * args ){
 					return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 								"Couldn't append item to PyList" );
 				}
+				Py_DECREF(loc);/* PyList_Append increfs */
 			}
 			else {
 				if ( all ){
@@ -941,6 +944,7 @@ static PyObject *Part_GetLoc( BPy_PartSys * self, PyObject * args ){
 						return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 									"Couldn't append item to PyList" );
 					}
+					Py_DECREF(Py_None); /* PyList_Append increfs */
 				}
 			}
 		}
@@ -985,6 +989,7 @@ static PyObject *Part_GetRot( BPy_PartSys * self, PyObject * args ){
 			if(psys_get_particle_state(ob,psys,i,&state,0)==0){
 				if ( all ){
 					PyList_Append(partlist,Py_None);
+					Py_DECREF(Py_None); /* PyList_Append increfs */
 					continue;
 				} else {
 					continue;
@@ -1001,6 +1006,7 @@ static PyObject *Part_GetRot( BPy_PartSys * self, PyObject * args ){
 			if (id)
 				PyTuple_SetItem(loc,4,PyInt_FromLong(i));
 			PyList_Append(partlist,loc);
+			Py_DECREF(loc); /* PyList_Append increfs */
 		}
 	}
 	return partlist;
@@ -1060,9 +1066,11 @@ static PyObject *Part_GetSize( BPy_PartSys * self, PyObject * args ){
 				PyTuple_SetItem(tuple,0,PyFloat_FromDouble((double)size));
 				PyTuple_SetItem(tuple,1,PyInt_FromLong(i));
 				PyList_Append(partlist,tuple);
+				Py_DECREF(tuple);
 			} else {
 				siz = PyFloat_FromDouble((double)size);
 				PyList_Append(partlist,siz);
+				Py_DECREF(siz);
 			}
 		}
 	}
@@ -1125,9 +1133,11 @@ static PyObject *Part_GetAge( BPy_PartSys * self, PyObject * args ){
 				PyTuple_SetItem(tuple,0,PyFloat_FromDouble((double)life));
 				PyTuple_SetItem(tuple,1,PyInt_FromLong(i));
 				PyList_Append(partlist,tuple);
+				Py_DECREF(tuple);
 			} else {
 				lif = PyFloat_FromDouble((double)life);
 				PyList_Append(partlist,lif);
+				Py_DECREF(lif);
 			}
 		}
 	}
