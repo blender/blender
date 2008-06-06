@@ -166,7 +166,8 @@ void RAS_2DFilterManager::StartShaderProgram(unsigned int shaderprogram)
 	GLint uniformLoc;
 	bgl::blUseProgramObjectARB(shaderprogram);
 	uniformLoc = bgl::blGetUniformLocationARB(shaderprogram, "bgl_RenderedTexture");
-	glActiveTexture(GL_TEXTURE0);
+	bgl::blActiveTextureARB(GL_TEXTURE0);
+	//glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texname);
 
     if (uniformLoc != -1)
