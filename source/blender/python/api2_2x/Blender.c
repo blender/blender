@@ -936,6 +936,7 @@ static PyObject *Blender_GetPaths( PyObject * self, PyObject *args, PyObject *ke
 	PyObject *list = PyList_New(0), *st; /* stupidly big string to be safe */
 	/* be sure there is low chance of the path being too short */
 	char filepath_expanded[FILE_MAXDIR*2]; 
+	char *lib;
 	
 	int absolute = 0;
 	static char *kwlist[] = {"absolute", NULL};
@@ -952,7 +953,12 @@ static PyObject *Blender_GetPaths( PyObject * self, PyObject *args, PyObject *ke
 		if (absolute) {
 			BLI_bpathIterator_getPathExpanded( &bpi, filepath_expanded );
 		} else {
-			BLI_bpathIterator_getPath( &bpi, filepath_expanded );
+			lib = BLI_bpathIterator_getLib( &bpi );
+			if ( lib && ( strcmp(lib, G.sce) ) ) { /* relative path to the library is NOT the same as our blendfile path, return an absolute path */
+				BLI_bpathIterator_getPathExpanded( &bpi, filepath_expanded );
+			} else {
+				BLI_bpathIterator_getPath( &bpi, filepath_expanded );
+			}
 		}
 		st = PyString_FromString(filepath_expanded);
 		
