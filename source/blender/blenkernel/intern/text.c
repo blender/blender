@@ -243,7 +243,7 @@ int reopen_text(Text *text)
 	text->undo_len= TXT_INIT_UNDO;
 	text->undo_buf= MEM_mallocN(text->undo_len, "undo buf");
 	
-	text->flags= TXT_ISDIRTY | TXT_ISTMP; 
+	text->flags= TXT_ISTMP; 
 	
 	fseek(fp, 0L, SEEK_END);
 	len= ftell(fp);

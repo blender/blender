@@ -52,6 +52,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_action_types.h"
 
+#include "BIF_gl.h" /* for glRasterPos2i */
 #include "BIF_drawtext.h"
 #include "BIF_interface.h"
 #include "BIF_resources.h"
@@ -715,13 +716,15 @@ static uiBlock *text_filemenu(void *arg_unused)
 }
 
 /* header */
+#define PATH_MAX	260
 void text_buttons(void)
 {
 	uiBlock *block;
 	SpaceText *st= curarea->spacedata.first;
 	Text *text;
 	short xco, xmax;
-	char naam[256];
+	char naam[256], fname[PATH_MAX], headtxt[PATH_MAX+17];
+	int len;
 	
 	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 	
@@ -804,9 +807,30 @@ void text_buttons(void)
 	uiDefButI(block, MENU, B_TEXTFONT, "Screen 12 %x0|Screen 15%x1", xco,0,100,YIC, &st->font_id, 0, 0, 0, 0, "Displays available fonts");
 	xco+=110;
 	
-	uiDefButI(block, NUM, B_TAB_NUMBERS, "Tab:",		xco, 0, XIC+50, YIC, &st->tabnumber, 2, 8, 0, 0, "Set spacing of Tab");
+	uiDefButI(block, NUM, B_TAB_NUMBERS, "Tab:", xco, 0, XIC+50, YIC, &st->tabnumber, 2, 8, 0, 0, "Set spacing of Tab");
 	xco+= XIC+50;
-	
+
+	/* File info */
+	if (text) {
+		if (text->name) {
+			len = strlen(text->name);
+			if (len > PATH_MAX-1)
+				len = PATH_MAX-1;
+			strncpy(fname, text->name, len);
+			fname[len]='\0';
+		} else {
+			strcpy(fname, "Internal");
+		}
+		BIF_ThemeColor(TH_MENU_TEXT);
+		if (text->flags & TXT_ISDIRTY)
+			sprintf(headtxt, "File: *%s (unsaved)", fname);
+		else
+			sprintf(headtxt, "File: %s", fname);
+		glRasterPos2i(xco+=XIC, 5);
+		BMF_DrawString(G.font, headtxt);
+		xco += BMF_GetStringWidth(G.font, headtxt);
+	}
+
 	/* always as last  */
 	curarea->headbutlen= xco+2*XIC;
 
