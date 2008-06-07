@@ -3935,7 +3935,58 @@ static void set_fullsample_flag(Render *re, ObjectRen *obr)
 	}
 }
 
-static void check_non_flat_quads(ObjectRen *obr, int quad_flip)
+/* split quads for pradictable baking
+ * dir 1 == (0,1,2) (0,2,3),  2 == (1,3,0) (1,2,3) 
+ */
+static void split_quads(ObjectRen *obr, int dir) 
+{
+	VlakRen *vlr, *vlr1;
+	int a;
+
+	for(a=obr->totvlak-1; a>=0; a--) {
+		vlr= RE_findOrAddVlak(obr, a);
+		
+		/* test if rendering as a quad or triangle, skip wire */
+		if(vlr->v4 && (vlr->flag & R_STRAND)==0 && (vlr->mat->mode & MA_WIRE)==0) {
+			
+			if(vlr->v4) {
+
+				vlr1= RE_vlakren_copy(obr, vlr);
+				vlr1->flag |= R_FACE_SPLIT;
+				
+				if( dir==2 ) vlr->flag |= R_DIVIDE_24;
+				else vlr->flag &= ~R_DIVIDE_24;
+
+				/* new vertex pointers */
+				if (vlr->flag & R_DIVIDE_24) {
+					vlr1->v1= vlr->v2;
+					vlr1->v2= vlr->v3;
+					vlr1->v3= vlr->v4;
+
+					vlr->v3 = vlr->v4;
+					
+					vlr1->flag |= R_DIVIDE_24;
+				}
+				else {
+					vlr1->v1= vlr->v1;
+					vlr1->v2= vlr->v3;
+					vlr1->v3= vlr->v4;
+					
+					vlr1->flag &= ~R_DIVIDE_24;
+				}
+				vlr->v4 = vlr1->v4 = NULL;
+				
+				/* new normals */
+				CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+				CalcNormFloat(vlr1->v3->co, vlr1->v2->co, vlr1->v1->co, vlr1->n);
+			}
+			/* clear the flag when not divided */
+			else vlr->flag &= ~R_DIVIDE_24;
+		}
+	}
+}
+
+static void check_non_flat_quads(ObjectRen *obr)
 {
 	VlakRen *vlr, *vlr1;
 	VertRen *v1, *v2, *v3, *v4;
@@ -4003,22 +4054,16 @@ static void check_non_flat_quads(ObjectRen *obr, int quad_flip)
 					vlr1= RE_vlakren_copy(obr, vlr);
 					vlr1->flag |= R_FACE_SPLIT;
 					
-					if (quad_flip==0) { /* nonzero quad_flip is used to force dividing one way */
-						/* split direction based on vnorms */
-						CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, nor);
-						d1= nor[0]*vlr->v1->n[0] + nor[1]*vlr->v1->n[1] + nor[2]*vlr->v1->n[2];
+					/* split direction based on vnorms */
+					CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, nor);
+					d1= nor[0]*vlr->v1->n[0] + nor[1]*vlr->v1->n[1] + nor[2]*vlr->v1->n[2];
 
-						CalcNormFloat(vlr->v2->co, vlr->v3->co, vlr->v4->co, nor);
-						d2= nor[0]*vlr->v2->n[0] + nor[1]*vlr->v2->n[1] + nor[2]*vlr->v2->n[2];
-					
-						if( fabs(d1) < fabs(d2) ) vlr->flag |= R_DIVIDE_24;
-						else vlr->flag &= ~R_DIVIDE_24;
-					} else if (quad_flip==1) {
-						vlr->flag &= ~R_DIVIDE_24;
-					} else { /* quad_flip == 3 */
-						vlr->flag |= R_DIVIDE_24;
-					}
-					
+					CalcNormFloat(vlr->v2->co, vlr->v3->co, vlr->v4->co, nor);
+					d2= nor[0]*vlr->v2->n[0] + nor[1]*vlr->v2->n[1] + nor[2]*vlr->v2->n[2];
+				
+					if( fabs(d1) < fabs(d2) ) vlr->flag |= R_DIVIDE_24;
+					else vlr->flag &= ~R_DIVIDE_24;
+
 					/* new vertex pointers */
 					if (vlr->flag & R_DIVIDE_24) {
 						vlr1->v1= vlr->v2;
@@ -4072,11 +4117,11 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 			if((re->r.mode & R_RAYTRACE) && (re->r.mode & R_SHADOW)) 
 				set_phong_threshold(obr);
 			
-			if (re->flag & R_BAKING) {
+			if (re->flag & R_BAKING && re->r.bake_quad_split != 0) {
 				/* Baking lets us define a quad split order */
-				check_non_flat_quads(obr, re->r.bake_quad_split);
+				split_quads(obr, re->r.bake_quad_split);
 			} else {
-				check_non_flat_quads(obr, 0);
+				check_non_flat_quads(obr);
 			}
 			
 			set_fullsample_flag(re, obr);
