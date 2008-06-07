@@ -2382,14 +2382,14 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			else {
 				
-				if(G.qual &  LR_CTRLKEY) {
-					gesture();
-				} else {
-					if(node_add_link(snode)==0)
-						if(node_mouse_groupheader(snode)==0)
-							if(node_mouse_select(snode, event)==0)
-								node_border_link_delete(snode);
-				}
+				if(G.qual & LR_CTRLKEY)
+					if(gesture())
+						break;
+					
+				if(node_add_link(snode)==0)
+					if(node_mouse_groupheader(snode)==0)
+						if(node_mouse_select(snode, event)==0)
+							node_border_link_delete(snode);
 			}
 			break;
 			
