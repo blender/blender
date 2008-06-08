@@ -166,13 +166,14 @@ static void snode_handle_recalc(SpaceNode *snode)
 			snode->nodetree->test_break= NULL;
 			waitcursor(0);
 			
-			allqueue(REDRAWNODE, 1);
 			allqueue(REDRAWIMAGE, 1);
 			if(G.scene->r.scemode & R_DOCOMP) {
 				BIF_redraw_render_rect();	/* seems to screwup display? */
 				mywinset(curarea->win);
 			}
 		}
+
+		allqueue(REDRAWNODE, 1);
 	}
 }
 
@@ -2381,14 +2382,14 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			else {
 				
-				if(G.qual &  LR_CTRLKEY) {
-					gesture();
-				} else {
-					if(node_add_link(snode)==0)
-						if(node_mouse_groupheader(snode)==0)
-							if(node_mouse_select(snode, event)==0)
-								node_border_link_delete(snode);
-				}
+				if(G.qual & LR_CTRLKEY)
+					if(gesture())
+						break;
+					
+				if(node_add_link(snode)==0)
+					if(node_mouse_groupheader(snode)==0)
+						if(node_mouse_select(snode, event)==0)
+							node_border_link_delete(snode);
 			}
 			break;
 			

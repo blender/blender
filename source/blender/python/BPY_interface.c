@@ -1242,15 +1242,16 @@ static int bpy_pydriver_create_dict(void)
 
 	/* If there's a Blender text called pydrivers.py, import it.
 	 * Users can add their own functions to this module. */
-	mod = importText("pydrivers"); /* can also use PyImport_Import() */
-	if (mod) {
-		PyDict_SetItemString(d, "pydrivers", mod);
-		PyDict_SetItemString(d, "p", mod);
-		Py_DECREF(mod);
+	if (G.f&G_DOSCRIPTLINKS) {
+		mod = importText("pydrivers"); /* can also use PyImport_Import() */
+		if (mod) {
+			PyDict_SetItemString(d, "pydrivers", mod);
+			PyDict_SetItemString(d, "p", mod);
+			Py_DECREF(mod);
+		} else {
+			PyErr_Clear();
+		}
 	}
-	else
-		PyErr_Clear();
-
 	/* short aliases for some Get() functions: */
 
 	/* ob(obname) == Blender.Object.Get(obname) */
@@ -1981,7 +1982,7 @@ float BPY_pydriver_eval(IpoDriver *driver)
 	int setitem_retval;
 	PyGILState_STATE gilstate;
 
-	if (!driver) return result;
+	if (!driver || 	(G.f&G_DOSCRIPTLINKS)==0) return result;
 
 	expr = driver->name; /* the py expression to be evaluated */
 	if (!expr || expr[0]=='\0') return result;
@@ -2086,7 +2087,7 @@ int BPY_button_eval(char *expr, double *value)
 	if (!bpy_pydriver_Dict) {
 		if (bpy_pydriver_create_dict() != 0) {
 			fprintf(stderr,
-				"Button Python Eval error: couldn't create Python dictionary");
+				"Button Python Eval error: couldn't create Python dictionary \n");
 			PyGILState_Release(gilstate);
 			return -1;
 		}

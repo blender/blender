@@ -1278,7 +1278,7 @@ void *CustomData_em_get_n(const CustomData *data, void *block, int type, int n)
 	int layer_index;
 	
 	/* get the layer index of the first layer of type */
-	layer_index = CustomData_get_active_layer_index(data, type);
+	layer_index = CustomData_get_layer_index(data, type);
 	if(layer_index < 0) return NULL;
 
 	return (char *)block + data->layers[layer_index+n].offset;

@@ -4497,8 +4497,7 @@ void bevel_menu() {
 	while(G.editBMesh->options & BME_BEVEL_RUNNING) {
 		options = G.editBMesh->options;
 		res = G.editBMesh->res;
-		bm = BME_make_mesh();
-		bm = BME_editmesh_to_bmesh(G.editMesh, bm);
+		bm = BME_editmesh_to_bmesh(G.editMesh);
 		BIF_undo_push("Pre-Bevel");
 		free_editMesh(G.editMesh);
 		BME_bevel(bm,0.1f,res,options,0,0,&td);

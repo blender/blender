@@ -41,6 +41,12 @@ import BPyMesh
 
 from math import sqrt
 
+def AngleBetweenVecs(a1,a2):
+	try:
+		return Mathutils.AngleBetweenVecs(a1,a2)
+	except:
+		return 180.0
+
 class prettyface(object):
 	__slots__ = 'uv', 'width', 'height', 'children', 'xoff', 'yoff', 'has_parent', 'rot'
 	def __init__(self, data):
@@ -148,9 +154,9 @@ class prettyface(object):
 		if len(uv) == 2:
 			# match the order of angle sizes of the 3d verts with the UV angles and rotate.
 			def get_tri_angles(v1,v2,v3):
-				a1= Mathutils.AngleBetweenVecs(v2-v1,v3-v1)
-				a2= Mathutils.AngleBetweenVecs(v1-v2,v3-v2)
-				a3 = 180 - (a1+a2) #a3= Mathutils.AngleBetweenVecs(v2-v3,v1-v3)
+				a1= AngleBetweenVecs(v2-v1,v3-v1)
+				a2= AngleBetweenVecs(v1-v2,v3-v2)
+				a3 = 180 - (a1+a2) #a3= AngleBetweenVecs(v2-v3,v1-v3)
 				
 				
 				return [(a1,0),(a2,1),(a3,2)]
@@ -237,8 +243,17 @@ PREF_MARGIN_DIV=		512):
 			face_groups.append(faces)
 		
 		if PREF_NEW_UVLAYER:
-			me.addUVLayer('lightmap')
-			me.activeUVLayer = 'lightmap'
+			uvname_org = uvname = 'lightmap'
+			uvnames = me.getUVLayerNames()
+			i = 1
+			while uvname in uvnames:
+				uvname = '%s.%03d' % (uvname_org, i)
+				i+=1
+			
+			me.addUVLayer(uvname)
+			me.activeUVLayer = uvname
+			
+			del uvnames, uvname_org, uvname
 	
 	for face_sel in face_groups:
 		print "\nStarting unwrap"
@@ -402,11 +417,14 @@ PREF_MARGIN_DIV=		512):
 		# ...limiting this is needed or you end up with bug unused texture spaces
 		# ...however if its too high, boxpacking is way too slow for high poly meshes.
 		float_to_int_factor = lengths_to_ints[0][0]
-		max_int_dimension = int(((side_len / float_to_int_factor)) / PREF_BOX_DIV)
-		
+		if float_to_int_factor > 0:
+			max_int_dimension = int(((side_len / float_to_int_factor)) / PREF_BOX_DIV)
+			ok = True
+		else:
+			max_int_dimension = 0.0 # wont be used
+			ok = False
 		
 		# RECURSIVE prettyface grouping
-		ok = True
 		while ok:
 			ok = False
 			

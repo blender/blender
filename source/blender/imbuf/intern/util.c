@@ -321,6 +321,19 @@ static int isffmpeg (char *filename) {
 }
 #endif
 
+#ifdef WITH_REDCODE
+static int isredcode(char * filename)
+{
+	struct redcode_handle * h = redcode_open(filename);
+	if (!h) {
+		return 0;
+	}
+	redcode_close(h);
+	return 1;
+}
+
+#endif
+
 int imb_get_anim_type(char * name) {
 	int type;
 	struct stat st;
@@ -355,6 +368,9 @@ int imb_get_anim_type(char * name) {
 	if (isffmpeg(name)) return (ANIM_FFMPEG);
 #	endif
 #endif
+#ifdef WITH_REDCODE
+	if (isredcode(name)) return (ANIM_REDCODE);
+#endif
 	type = IMB_ispic(name);
 	if (type == ANIM) return (ANIM_ANIM5);
 	if (type) return(ANIM_SEQUENCE);
@@ -369,6 +385,7 @@ int IMB_isanim(char *filename) {
 			if(		BLI_testextensie(filename, ".avi")
 				||	BLI_testextensie(filename, ".flc")
 				||	BLI_testextensie(filename, ".dv")
+				||	BLI_testextensie(filename, ".r3d")
 				||	BLI_testextensie(filename, ".mov")
 				||	BLI_testextensie(filename, ".movie")
 				||	BLI_testextensie(filename, ".mv")) {
@@ -379,6 +396,7 @@ int IMB_isanim(char *filename) {
 		} else { // no quicktime
 			if(		BLI_testextensie(filename, ".avi")
 				||	BLI_testextensie(filename, ".dv")
+				||	BLI_testextensie(filename, ".r3d")
 				||	BLI_testextensie(filename, ".mv")) {
 				type = imb_get_anim_type(filename);
 			}

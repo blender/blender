@@ -1712,7 +1712,7 @@ static void boundbox_ipo_curves(SpaceIpo *si)
 /* is used for both read and write... */
 static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float max)
 {
-	Object *ob= OBACT;
+	Object *ob;
 	EditIpo *ei;
 	BezTriple *bezt;
 	float median[3];
@@ -1720,6 +1720,12 @@ static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float m
 	
 	median[0]= median[1]= median[2]= 0.0;
 	tot= 0;
+	
+	/* use G.sipo->from (which should be an object) so that pinning ipo's will still work ok */
+	if((G.sipo->from) && (GS(G.sipo->from->name) == ID_OB))
+		ob= (Object *)(G.sipo->from);
+	else
+		ob= OBACT;
 	
 	ei= G.sipo->editipo;
 	for(a=0; a<G.sipo->totipo; a++, ei++) {

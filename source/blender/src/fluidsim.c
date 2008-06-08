@@ -481,6 +481,7 @@ void fluidsimBake(struct Object *ob)
 	struct Object *fsDomain = NULL;
 	FluidsimSettings *domainSettings;
 	struct Object *obit = NULL; /* object iterator */
+	Base *base;
 	int origFrame = G.scene->r.cfra;
 	char debugStrBuffer[256];
 	int dirExist = 0;
@@ -522,7 +523,7 @@ void fluidsimBake(struct Object *ob)
 	float *channelObjMove[256][3]; // object movments , 0=trans, 1=rot, 2=scale
 	float *channelObjInivel[256];    // initial velocities
 	float *channelObjActive[256];    // obj active channel
-
+	
 	if(getenv(strEnvName)) {
 		int dlevel = atoi(getenv(strEnvName));
 		elbeemSetDebugLevel(dlevel);
@@ -545,7 +546,6 @@ void fluidsimBake(struct Object *ob)
 
 	/* no object pointer, find in selected ones.. */
 	if(!ob) {
-		Base *base;
 		for(base=G.scene->base.first; base; base= base->next) {
 			if ( ((base)->flag & SELECT) 
 					// ignore layer setting for now? && ((base)->lay & G.vd->lay) 
@@ -561,8 +561,26 @@ void fluidsimBake(struct Object *ob)
 		if(!ob) return;
 	}
 
+	channelObjCount = 0;
+	for(base=G.scene->base.first; base; base= base->next) {
+		obit = base->object;
+		//{ snprintf(debugStrBuffer,256,"DEBUG object name=%s, type=%d ...\n", obit->id.name, obit->type); elbeemDebugOut(debugStrBuffer); } // DEBUG
+		if( (obit->fluidsimFlag & OB_FLUIDSIM_ENABLE) && 
+				(obit->type==OB_MESH) &&
+				(obit->fluidsimSettings->type != OB_FLUIDSIM_DOMAIN) &&  // if has to match 3 places! // CHECKMATCH
+				(obit->fluidsimSettings->type != OB_FLUIDSIM_PARTICLE) ) {
+			channelObjCount++;
+		}
+	}
+	
+	if (channelObjCount>=255) {
+		pupmenu("Fluidsim Bake Error%t|Cannot bake with more then 256 objects");
+		return;
+	}
+
 	/* check if there's another domain... */
-	for(obit= G.main->object.first; obit; obit= obit->id.next) {
+	for(base=G.scene->base.first; base; base= base->next) {
+		obit = base->object;
 		if((obit->fluidsimFlag & OB_FLUIDSIM_ENABLE)&&(obit->type==OB_MESH)) {
 			if(obit->fluidsimSettings->type == OB_FLUIDSIM_DOMAIN) {
 				if(obit != ob) {
@@ -605,7 +623,8 @@ void fluidsimBake(struct Object *ob)
 	
 	// check if theres any fluid
 	// abort baking if not...
-	for(obit= G.main->object.first; obit; obit= obit->id.next) {
+	for(base=G.scene->base.first; base; base= base->next) {
+		obit = base->object;
 		if( (obit->fluidsimFlag & OB_FLUIDSIM_ENABLE) && 
 				(obit->type==OB_MESH) && (
 			  (obit->fluidsimSettings->type == OB_FLUIDSIM_FLUID) ||
@@ -749,7 +768,8 @@ void fluidsimBake(struct Object *ob)
 	
 	// init obj movement channels
 	channelObjCount=0;
-	for(obit= G.main->object.first; obit; obit= obit->id.next) {
+	for(base=G.scene->base.first; base; base= base->next) {
+		obit = base->object;
 		//{ snprintf(debugStrBuffer,256,"DEBUG object name=%s, type=%d ...\n", obit->id.name, obit->type); elbeemDebugOut(debugStrBuffer); } // DEBUG
 		if( (obit->fluidsimFlag & OB_FLUIDSIM_ENABLE) && 
 				(obit->type==OB_MESH) &&
@@ -952,7 +972,8 @@ void fluidsimBake(struct Object *ob)
 		
 		// init objects
 		channelObjCount = 0;
-		for(obit= G.main->object.first; obit; obit= obit->id.next) {
+		for(base=G.scene->base.first; base; base= base->next) {
+			obit = base->object;
 			//{ snprintf(debugStrBuffer,256,"DEBUG object name=%s, type=%d ...\n", obit->id.name, obit->type); elbeemDebugOut(debugStrBuffer); } // DEBUG
 			if( (obit->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&  // if has to match 3 places! // CHECKMATCH
 					(obit->type==OB_MESH) &&

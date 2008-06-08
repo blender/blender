@@ -341,6 +341,7 @@ static int setupPI(Object* ob);
 
 static PyObject *Object_getParticleSys( BPy_Object * self );
 /* fixme Object_newParticleSys( self, default-partsys-name ) */
+static PyObject *Object_addVertexGroupsFromArmature( BPy_Object * self, PyObject * args);
 static PyObject *Object_newParticleSys( BPy_Object * self );
 static PyObject *Object_buildParts( BPy_Object * self );
 static PyObject *Object_clearIpo( BPy_Object * self );
@@ -359,6 +360,8 @@ static PyObject *Object_getMatrix( BPy_Object * self, PyObject * args );
 static PyObject *Object_getParent( BPy_Object * self );
 static PyObject *Object_getParentBoneName( BPy_Object * self );
 static int Object_setParentBoneName( BPy_Object * self, PyObject * value );
+static PyObject *Object_getParentVertexIndex( BPy_Object * self );
+static int Object_setParentVertexIndex( BPy_Object * self, PyObject * value );
 static PyObject *Object_getSize( BPy_Object * self, PyObject * args );
 static PyObject *Object_getTimeOffset( BPy_Object * self );
 static PyObject *Object_getTracked( BPy_Object * self );
@@ -475,6 +478,8 @@ static PyMethodDef BPy_Object_methods[] = {
 	 "Return a list of particle systems"},
  	{"newParticleSystem", ( PyCFunction ) Object_newParticleSys, METH_NOARGS,
 	 "Create and link a new particle system"},
+	{"addVertexGroupsFromArmature" , ( PyCFunction ) Object_addVertexGroupsFromArmature, METH_VARARGS,
+	 "Add vertex groups from armature using the bone heat method"},
 	{"buildParts", ( PyCFunction ) Object_buildParts, METH_NOARGS,
 	 "Recalcs particle system (if any), (depricated, will always return an empty list in version 2.46)"},
 	{"getIpo", ( PyCFunction ) Object_getIpo, METH_NOARGS,
@@ -1051,10 +1056,12 @@ PyObject *Object_getParticleSys( BPy_Object * self ){
 /* fixme:  for(;;) */
 	current = ParticleSys_CreatePyObject( blparticlesys, ob );
 	PyList_Append(partsyslist,current);
+	Py_DECREF(current);
 
 	while((blparticlesys = blparticlesys->next)){
 		current = ParticleSys_CreatePyObject( blparticlesys, ob );
 		PyList_Append(partsyslist,current);
+		Py_DECREF(current);
 	}
 
 	return partsyslist;
@@ -1107,6 +1114,42 @@ PyObject *Object_newParticleSys( BPy_Object * self ){
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
 	return ParticleSys_CreatePyObject(rpsys,ob);
+}
+
+/*****************************************************************************/
+/* attribute:           addVertexGroupsFromArmature                          */
+/* Description:         evaluate and add vertex groups to the current object */
+/*                      for each bone of the selected armature               */   
+/* Data:                self Object, Bpy armature                            */
+/* Return:              nothing                                              */
+/*****************************************************************************/
+static PyObject *Object_addVertexGroupsFromArmature( BPy_Object * self, PyObject * args)
+{
+	
+	Object *ob = self->object;
+	BPy_Object *arm;
+
+	if( ob->type != OB_MESH )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"Only useable on Mesh type Objects" );
+	
+	if( G.obedit != NULL)
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"Not useable when inside edit mode" );
+	
+	/* Check if the arguments passed to makeParent are valid. */
+	if( !PyArg_ParseTuple( args, "O!",&Object_Type, &arm ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"An armature object is expected." );
+	
+	if( arm->object->type != OB_ARMATURE ) 
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"An armature object is expected." );
+			
+	add_verts_to_dgroups(ob, arm->object, 1, 0);
+	ob->recalc |= OB_RECALC_OB;  
+	
+	Py_RETURN_NONE;
 }
 
 static PyObject *Object_buildParts( BPy_Object * self )
@@ -1451,6 +1494,92 @@ static int Object_setParentBoneName( BPy_Object * self, PyObject *value )
 	DAG_scene_sort( G.scene );
 	return 0;
 }
+
+static PyObject *Object_getParentVertexIndex( BPy_Object * self )
+{
+	PyObject *pyls = NULL;
+	
+	if( self->object->parent) {
+		if (self->object->partype==PARVERT1) {
+			pyls = PyList_New(1);
+			PyList_SET_ITEM( pyls, 0, PyInt_FromLong( self->object->par1 ));
+			return pyls;
+		} else if (self->object->partype==PARVERT3) {
+			pyls = PyList_New(3);
+			PyList_SET_ITEM( pyls, 0, PyInt_FromLong( self->object->par1 ));
+			PyList_SET_ITEM( pyls, 1, PyInt_FromLong( self->object->par2 ));
+			PyList_SET_ITEM( pyls, 2, PyInt_FromLong( self->object->par3 ));
+			return pyls;
+		}
+	}
+	return PyList_New(0);
+}
+
+static int Object_setParentVertexIndex( BPy_Object * self, PyObject *value )
+{
+	PyObject *item;
+	int val[3] = {0,0,0};
+	if( !self->object->parent) {
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			"This object has no vertex parent, cant set the vertex parent indicies" );
+	}
+	if (self->object->partype==PARVERT1) {
+		if (PySequence_Length(value) != 1)
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"Vertex parented to 1 vertex, can only assign a sequence with 1 vertex parent index" );
+		item = PySequence_GetItem(value, 0);
+		if (item) {
+			val[0] = PyInt_AsLong(item);
+			Py_DECREF(item);
+		}
+	} else if (self->object->partype==PARVERT3) {
+		int i;
+		if (PySequence_Length(value) != 3)
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"Vertex parented to 3 verts, can only assign a sequence with 3 verts parent index" );
+		
+		for (i=0; i<3; i++) {
+			item = PySequence_GetItem(value, i);
+			if (item) {
+				val[i] = PyInt_AsLong(item);
+				Py_DECREF(item);
+			}
+		}
+	} else {
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			"This object has no vertex parent, cant set the vertex parent indicies" );
+	}
+	
+	if (PyErr_Occurred()) {
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			"This object has no vertex parent, cant set the vertex parent indicies" );
+	} else {
+		if (self->object->partype==PARVERT1) {
+			if (val[0] < 0) {
+				return EXPP_ReturnIntError( PyExc_RuntimeError,
+					"vertex index less then zero" );
+			}
+			
+			self->object->par1 = val[0];
+		} else if (self->object->partype==PARVERT3) {
+			if (val[0]==val[1] || val[0]==val[2] || val[1]==val[2]) {
+				return EXPP_ReturnIntError( PyExc_RuntimeError,
+					"duplicate indicies in vertex parent assignment" );
+			}
+			if (val[0] < 0 || val[1] < 0 || val[2] < 0) {
+				return EXPP_ReturnIntError( PyExc_RuntimeError,
+					"vertex index less then zero" );
+			}
+		
+			self->object->par1 = val[0];
+			self->object->par2 = val[1];
+			self->object->par3 = val[2];
+		}
+	}
+
+	return 0;
+}
+
 
 static PyObject *Object_getSize( BPy_Object * self, PyObject * args )
 {
@@ -4876,6 +5005,10 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	{"parentbonename",
 	 (getter)Object_getParentBoneName, (setter)Object_setParentBoneName,
 	 "The object's parent object's sub name",
+	 NULL},
+	{"parentVertexIndex",
+	 (getter)Object_getParentVertexIndex, (setter)Object_setParentVertexIndex,
+	 "Indicies used for vertex parents",
 	 NULL},
 	{"track",
 	 (getter)Object_getTracked, (setter)Object_setTracked,

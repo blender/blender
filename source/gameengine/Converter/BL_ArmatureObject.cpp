@@ -153,9 +153,12 @@ void BL_ArmatureObject::GetPose(bPose **pose)
 		int copy_constraint_channels_hack = 1;
 		copy_pose(pose, m_pose, copy_constraint_channels_hack);
 	}
-	else
+	else {
+		if (*pose == m_pose)
+			// no need to copy if the pointers are the same
+			return;
 		extract_pose_from_pose(*pose, m_pose);
-
+	}
 }
 
 void BL_ArmatureObject::GetMRDPose(bPose **pose)
@@ -169,7 +172,11 @@ void BL_ArmatureObject::GetMRDPose(bPose **pose)
 	//}
 
 	if (!*pose)
-		copy_pose(pose, m_objArma->pose, 0);
+		// must duplicate the constraints too otherwise we have corruption in free_pose_channels()
+		// because it will free the blender constraints. 
+		// Ideally, blender should rememeber that the constraints were not copied so that
+		// free_pose_channels() would not free them.
+		copy_pose(pose, m_objArma->pose, 1);
 	else
 		extract_pose_from_pose(*pose, m_objArma->pose);
 

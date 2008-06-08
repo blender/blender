@@ -29,6 +29,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "KX_RayCast.h"
 

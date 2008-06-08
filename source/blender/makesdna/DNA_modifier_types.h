@@ -390,7 +390,7 @@ typedef struct CollisionModifierData {
 	unsigned int numfaces;
 	int pad;
 	float time;		/* cfra time of modifier */
-	struct BVH *bvh;	/* bounding volume hierarchy for this cloth object */
+	struct BVHTree *bvhtree; /* bounding volume hierarchy for this cloth object */
 } CollisionModifierData;
 
 typedef enum {

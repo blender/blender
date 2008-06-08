@@ -70,7 +70,7 @@ typedef struct Isect {
 	int ob_last;
 
 	short isect;			/* which half of quad */
-	short mode;				/* RE_RAYSHADOW, RE_RAYMIRROR, RE_RAYSHADOW_TRA */
+	short mode;				/* RE_RAY_SHADOW, RE_RAY_MIRROR, RE_RAY_SHADOW_TRA */
 	int lay;				/* -1 default, set for layer lamps */
 
 	/* only used externally */

@@ -1612,7 +1612,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 			
 			for(eve= em->verts.first; eve; eve= eve->next) {
 				if(eve->keyindex==nr) {
-					memcpy(vec, eve->co, 12);
+					memcpy(vec, eve->co, sizeof(float)*3);
 					break;
 				}
 			}
@@ -1650,18 +1650,20 @@ static void give_parvert(Object *par, int nr, float *vec)
 		Curve *cu;
 		BPoint *bp;
 		BezTriple *bezt;
+		int found= 0;
 		
 		cu= par->data;
 		nu= cu->nurb.first;
 		if(par==G.obedit) nu= editNurb.first;
 		
 		count= 0;
-		while(nu) {
+		while(nu && !found) {
 			if((nu->type & 7)==CU_BEZIER) {
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
 					if(count==nr) {
+						found= 1;
 						VECCOPY(vec, bezt->vec[1]);
 						break;
 					}
@@ -1674,7 +1676,8 @@ static void give_parvert(Object *par, int nr, float *vec)
 				a= nu->pntsu*nu->pntsv;
 				while(a--) {
 					if(count==nr) {
-						memcpy(vec, bp->vec, 12);
+						found= 1;
+						memcpy(vec, bp->vec, sizeof(float)*3);
 						break;
 					}
 					count++;
