@@ -1605,7 +1605,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 		}
 	} else if (ascii) {
-		if ((st->overwrite && txt_replace_char(text, ascii)) || txt_add_char(text, ascii)) {
+		if (text && text->id.lib) {
+			error_libdata();
+
+		} else if ((st->overwrite && txt_replace_char(text, ascii)) || txt_add_char(text, ascii)) {
 			if (st->showsyntax) get_format_string(st);
 			pop_space_text(st);
 			do_draw= 1;
@@ -1633,6 +1636,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break; /* BREAK C */
 		case DKEY:
+			if (text && text->id.lib) {
+				error_libdata();
+				break;
+			}
 			if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY)) {
 				//uncommenting
 				txt_order_cursors(text);
@@ -1651,6 +1658,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (G.qual == (LR_ALTKEY|LR_SHIFTKEY)) {
 				switch(pupmenu("Edit %t|Cut %x0|Copy %x1|Paste %x2|Print Cut Buffer %x3")) {
 				case 0:
+					if (text && text->id.lib) {
+						error_libdata();
+						break;
+					}
 					txt_copy_clipboard(text); //First copy to clipboard
 					txt_cut_sel(text);
 					do_draw= 1;
@@ -1661,6 +1672,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					do_draw= 1;
 					break;
 				case 2:
+					if (text && text->id.lib) {
+						error_libdata();
+						break;
+					}
 					//txt_paste(text);
 					txt_paste_clipboard(text);
 					if (st->showsyntax) get_format_string(st);
@@ -1824,6 +1839,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			/* Support for both Alt-V and Ctrl-V for Paste, for backward compatibility reasons */
 			else if (G.qual & LR_ALTKEY || G.qual & LR_CTRLKEY) {
+				if (text && text->id.lib) {
+					error_libdata();
+					break;
+				}
 				/* Throwing in the Shift modifier Paste from the OS clipboard */
 				if (G.qual & LR_SHIFTKEY)
 					txt_paste_clipboard(text);
@@ -1836,6 +1855,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break; /* BREAK V */
 		case XKEY:
 			if (G.qual == LR_ALTKEY || G.qual == LR_CTRLKEY) {
+				if (text && text->id.lib) {
+					error_libdata();
+					break;
+				}
 				txt_cut_sel(text);
 				if (st->showsyntax) get_format_string(st);
 				do_draw= 1;	
@@ -1854,6 +1877,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case TABKEY:
+			if (text && text->id.lib) {
+				error_libdata();
+				break;
+			}
 			if (G.qual & LR_SHIFTKEY) {
 				if (txt_has_sel(text)) {
 					txt_order_cursors(text);
@@ -1874,6 +1901,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			st->currtab_set = setcurr_tab(text);
 			break;
 		case RETKEY:
+			if (text && text->id.lib) {
+				error_libdata();
+				break;
+			}
 			//double check tabs before splitting the line
 			st->currtab_set = setcurr_tab(text);
 			txt_split_curline(text);
@@ -1892,6 +1923,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			pop_space_text(st);
 			break;
 		case BACKSPACEKEY:
+			if (text && text->id.lib) {
+				error_libdata();
+				break;
+			}
 			if (G.qual & (LR_ALTKEY | LR_CTRLKEY)) {
 				txt_backspace_word(text);
 			} else {
@@ -1903,6 +1938,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			pop_space_text(st);
 			break;
 		case DELKEY:
+			if (text && text->id.lib) {
+				error_libdata();
+				break;
+			}
 			if (G.qual & (LR_ALTKEY | LR_CTRLKEY)) {
 				txt_delete_word(text);
 			} else {

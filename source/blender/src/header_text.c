@@ -346,6 +346,10 @@ static void do_text_editmenu(void *arg, int event)
 		txt_do_redo(text);
 		break;
 	case 3:
+		if (text && text->id.lib) {
+			error_libdata();
+			break;
+		}
 		txt_copy_clipboard(text);
 		txt_cut_sel(text);
 		pop_space_text(st);
@@ -355,6 +359,10 @@ static void do_text_editmenu(void *arg, int event)
 		txt_copy_clipboard(text);
 		break;
 	case 5:
+		if (text && text->id.lib) {
+			error_libdata();
+			break;
+		}
 		txt_paste_clipboard(text);
 		if (st->showsyntax) get_format_string(st);
 		break;
@@ -457,6 +465,10 @@ static void do_text_formatmenu(void *arg, int event)
 	
 	switch(event) {
 	case 3:
+		if (text && text->id.lib) {
+			error_libdata();
+			break;
+		}
 		if (txt_has_sel(text)) {
 			txt_order_cursors(text);
 			indent(text);
@@ -467,6 +479,10 @@ static void do_text_formatmenu(void *arg, int event)
 			break;
 		}
 	case 4:
+		if (text && text->id.lib) {
+			error_libdata();
+			break;
+		}
 		if ( txt_has_sel(text)) {
 			txt_order_cursors(text);
 			unindent(text);
@@ -474,6 +490,10 @@ static void do_text_formatmenu(void *arg, int event)
 		}
 		break;
 	case 5:
+		if (text && text->id.lib) {
+			error_libdata();
+			break;
+		}
 		if ( txt_has_sel(text)) {
 			txt_order_cursors(text);
 			comment(text);
@@ -482,6 +502,10 @@ static void do_text_formatmenu(void *arg, int event)
 		}
 		break;
 	case 6:
+		if (text && text->id.lib) {
+			error_libdata();
+			break;
+		}
 		if ( txt_has_sel(text)) {
 			txt_order_cursors(text);
 			uncomment(text);
@@ -818,14 +842,14 @@ void text_buttons(void)
 				len = PATH_MAX-1;
 			strncpy(fname, text->name, len);
 			fname[len]='\0';
+			if (text->flags & TXT_ISDIRTY)
+				sprintf(headtxt, "File: *%s (unsaved)", fname);
+			else
+				sprintf(headtxt, "File: %s", fname);
 		} else {
-			strcpy(fname, "Internal");
+			sprintf(headtxt, text->id.lib?"Text: External":"Text: Internal");
 		}
 		BIF_ThemeColor(TH_MENU_TEXT);
-		if (text->flags & TXT_ISDIRTY)
-			sprintf(headtxt, "File: *%s (unsaved)", fname);
-		else
-			sprintf(headtxt, "File: %s", fname);
 		glRasterPos2i(xco+=XIC, 5);
 		BMF_DrawString(G.font, headtxt);
 		xco += BMF_GetStringWidth(G.font, headtxt);
