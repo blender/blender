@@ -74,12 +74,20 @@ env.BlenderLib (libname="bf_freestyle",
 ########################################################
 #	swig
 #
-# 	1] Run the following two commands in the source/blender/freestyle/intern/swig directory.
+# 	1] Run the following three commands in the source/blender/freestyle/intern/swig directory.
 #
 #	2] Replace /Users/mx/Documents/work/GSoC_2008/bf-blender/branches/build/darwin/lib to the path
 #	of your library directory (used to locate libbf_freestyle.a)
 #
 #   3] Replace the python directories to suit your config
+
+# export SWIG_LIB=/Users/mx/Documents/work/GSoC_2008/bf-blender/branches/soc-2008-mxcurioni/extern/freestyle/swig/Lib
+
+# cd /Users/mx/Documents/work/GSoC_2008/bf-blender/branches/soc-2008-mxcurioni/source/blender/freestyle/intern/swig
+
+# /Users/mx/Documents/work/GSoC_2008/bf-blender/branches/build/darwin/bin/swig -c++ -python -o ModuleWrapper.cpp Freestyle.i
+
+# mv ./Freestyle.py ../../python/
 
 # g++ -w  -I../geometry -I../image -I../scene_graph -I../stroke -I../system -I../view_map -I../winged_edge -I/usr/include/python2.5 -I../../../blenlib -I../../../blenkernel -I../../../imbuf -I../../../makesdna -c ModuleWrapper.cpp -o ModuleWrapper.o
 
