@@ -2530,7 +2530,14 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 				/* are there ipo keys? */
 				if(td->tdi) {
 					TransDataIpokey *tdi= td->tdi;
+					float current_rot[3];
 					float rot[3];
+					
+					/* current IPO value for compatible euler */
+					current_rot[0] = tdi->rotx[0];
+					current_rot[1] = tdi->roty[0];
+					current_rot[2] = tdi->rotz[0];
+					VecMulf(current_rot, (float)(M_PI_2 / 9.0));
 					
 					/* calculate the total rotatation in eulers */
 					VecAddf(eul, td->ext->irot, td->ext->drot);
@@ -2538,7 +2545,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 					/* mat = transform, obmat = object rotation */
 					Mat3MulMat3(fmat, mat, obmat);
 					
-					Mat3ToCompatibleEul(fmat, eul, td->ext->irot);
+					Mat3ToCompatibleEul(fmat, eul, current_rot);
 					
 					/* correct back for delta rot */
 					if(tdi->flag & TOB_IPODROT) {
@@ -2567,7 +2574,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 					/* mat = transform, obmat = object rotation */
 					Mat3MulMat3(fmat, smat, obmat);
 					
-					Mat3ToCompatibleEul(fmat, eul, td->ext->irot);
+					Mat3ToCompatibleEul(fmat, eul, td->ext->rot);
 					
 					/* correct back for delta rot */
 					VecSubf(eul, eul, td->ext->drot);
