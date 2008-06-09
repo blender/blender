@@ -2974,8 +2974,11 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				do_ipo_selectbuttons();
 				doredraw= 1;
 			}
+			else if(G.qual == LR_CTRLKEY) {
+				if (sipo->showkey==0)
+					add_vert_ipo();
+			}
 			else if(view2dmove(LEFTMOUSE));	/* only checks for sliders */
-			else if((G.qual & LR_CTRLKEY) && (sipo->showkey==0)) add_vert_ipo();
 			else {
 				do {
 					getmouseco_areawin(mval);
