@@ -154,15 +154,22 @@ int set_tpage(MTFace *tface)
 		fAlphamode= tface->transp;
 
 		if(fAlphamode) {
-			glEnable(GL_BLEND);
-			
 			if(fAlphamode==TF_ADD) {
+				glEnable(GL_BLEND);
 				glBlendFunc(GL_ONE, GL_ONE);
+				glDisable ( GL_ALPHA_TEST );
 			/* 	glBlendEquationEXT(GL_FUNC_ADD_EXT); */
 			}
 			else if(fAlphamode==TF_ALPHA) {
+				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glDisable ( GL_ALPHA_TEST );
 			/* 	glBlendEquationEXT(GL_FUNC_ADD_EXT); */
+			}
+			else if (alphamode==TF_CLIP){		
+				glDisable(GL_BLEND); 
+				glEnable ( GL_ALPHA_TEST );
+				glAlphaFunc(GL_GREATER, 0.5f);
 			}
 			/* else { */
 			/* 	glBlendFunc(GL_ONE, GL_ONE); */
