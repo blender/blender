@@ -166,7 +166,7 @@ int set_tpage(MTFace *tface)
 				glDisable ( GL_ALPHA_TEST );
 			/* 	glBlendEquationEXT(GL_FUNC_ADD_EXT); */
 			}
-			else if (alphamode==TF_CLIP){		
+			else if (fAlphamode==TF_CLIP){		
 				glDisable(GL_BLEND); 
 				glEnable ( GL_ALPHA_TEST );
 				glAlphaFunc(GL_GREATER, 0.5f);
