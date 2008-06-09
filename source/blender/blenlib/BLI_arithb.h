@@ -258,6 +258,7 @@ void Vec2Addf(float *v, float *v1, float *v2);
 void Vec2Subf(float *v, float *v1, float *v2);
 void Vec2Copyf(float *v1, float *v2);
 
+void AxisAngleToQuat(float *q, float *axis, float angle);
 void vectoquat(float *vec, short axis, short upflag, float *q);
 
 float VecAngle2(float *v1, float *v2);
@@ -269,6 +270,8 @@ float NormalizedVecAngle2_2D(float *v1, float *v2);
 
 void euler_rot(float *beul, float ang, char axis);
 	
+void NormalShortToFloat(float *out, short *in);
+void NormalFloatToShort(short *out, float *in);
 
 float DistVL2Dfl(float *v1, float *v2, float *v3);
 float PdistVL2Dfl(float *v1, float *v2, float *v3);
@@ -372,6 +375,7 @@ void tubemap(float x, float y, float z, float *u, float *v);
 void spheremap(float x, float y, float z, float *u, float *v);
 
 int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv);
+int RayIntersectsTriangle(float p1[3], float d[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv);
 int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, float v0[3], float v1[3], float v2[3], float *lambda, float *ipoint);
 int AxialLineIntersectsTriangle(int axis, float co1[3], float co2[3], float v0[3], float v1[3], float v2[3], float *lambda);
 int AabbIntersectAabb(float min1[3], float max1[3], float min2[3], float max2[3]);
