@@ -2312,4 +2312,7 @@ void convert_tabs (struct SpaceText *st, int tab)
 			tmp = tmp->next;
 		}
 	}
+
+	if (st->showsyntax)
+		get_format_string(st);
 }
