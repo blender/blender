@@ -732,6 +732,10 @@ DerivedMesh *CDDM_new(int numVerts, int numEdges, int numFaces)
 
 	DM_init(dm, numVerts, numEdges, numFaces);
 
+	CustomData_add_layer(&dm->vertData, CD_ORIGINDEX, CD_CALLOC, NULL, numVerts);
+	CustomData_add_layer(&dm->edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
+	CustomData_add_layer(&dm->faceData, CD_ORIGINDEX, CD_CALLOC, NULL, numFaces);
+
 	CustomData_add_layer(&dm->vertData, CD_MVERT, CD_CALLOC, NULL, numVerts);
 	CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
 	CustomData_add_layer(&dm->faceData, CD_MFACE, CD_CALLOC, NULL, numFaces);
@@ -753,6 +757,11 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	 * with an exception for fluidsim */
 
 	DM_init(dm, mesh->totvert, mesh->totedge, mesh->totface);
+
+	CustomData_add_layer(&dm->vertData, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totvert);
+	CustomData_add_layer(&dm->edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totedge);
+	CustomData_add_layer(&dm->faceData, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totface);
+
 	dm->deformedOnly = 1;
 
 	if(ob && ob->fluidsimSettings && ob->fluidsimSettings->meshSurface)

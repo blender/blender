@@ -3104,13 +3104,15 @@ void do_curvebuts(unsigned short event)
 				if(isNurbsel(nu)) {
 					if((nu->type & 7)==CU_NURBS) {
 						if(event<B_UNIFV) {
-							nu->flagu &= 1;
-							nu->flagu += ((event-B_UNIFU)<<1);
+							nu->flagu &= CU_CYCLIC; /* disable all flags except for CU_CYCLIC */
+							nu->flagu |= ((event-B_UNIFU)<<1);
+							clamp_nurb_order_u(nu);
 							makeknots(nu, 1, nu->flagu>>1);
 						}
 						else if(nu->pntsv>1) {
-							nu->flagv &= 1;
-							nu->flagv += ((event-B_UNIFV)<<1);
+							nu->flagv &= CU_CYCLIC; /* disable all flags except for CU_CYCLIC */
+							nu->flagv |= ((event-B_UNIFV)<<1);
+							clamp_nurb_order_v(nu);
 							makeknots(nu, 2, nu->flagv>>1);
 						}
 					}
@@ -3148,13 +3150,11 @@ void do_curvebuts(unsigned short event)
 		if(G.obedit) {
 			nu= get_actNurb();
 			if(nu && (nu->type & 7)==CU_NURBS ) {
-				if(nu->orderu>nu->pntsu) {
-					nu->orderu= nu->pntsu;
+				if(clamp_nurb_order_u(nu)) {
 					scrarea_queue_winredraw(curarea);
 				}
 				makeknots(nu, 1, nu->flagu>>1);
-				if(nu->orderv>nu->pntsv) {
-					nu->orderv= nu->pntsv;
+				if(clamp_nurb_order_v(nu)) {
 					scrarea_queue_winredraw(curarea);
 				}
 				makeknots(nu, 2, nu->flagv>>1);
@@ -4369,7 +4369,7 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			
 			/* bone types */
 			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge",		-10,by-38,80,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
-			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",		70,by-38,20,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
+			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",		70,by-38,20,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit scale from parent Bone");
 			uiDefButBitI(block, TOGN, BONE_NO_DEFORM, B_ARM_RECALCDATA, "Deform",	90, by-38, 80, 18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
 			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult", 170,by-38,80,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
 			uiDefButBitI(block, TOG, BONE_HIDDEN_A, REDRAWVIEW3D, "Hide",	250,by-38,80,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in Edit Mode");

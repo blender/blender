@@ -1051,10 +1051,12 @@ PyObject *Object_getParticleSys( BPy_Object * self ){
 /* fixme:  for(;;) */
 	current = ParticleSys_CreatePyObject( blparticlesys, ob );
 	PyList_Append(partsyslist,current);
+	Py_DECREF(current);
 
 	while((blparticlesys = blparticlesys->next)){
 		current = ParticleSys_CreatePyObject( blparticlesys, ob );
 		PyList_Append(partsyslist,current);
+		Py_DECREF(current);
 	}
 
 	return partsyslist;

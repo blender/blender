@@ -135,24 +135,23 @@ static void helpline(TransInfo *t, float *vec)
 	
 	getmouseco_areawin(mval);
 	projectFloatView(t, vecrot, cent);	// no overflow in extreme cases
-	if(cent[0]!=IS_CLIPPED) {
-		persp(PERSP_WIN);
-		
-		glDrawBuffer(GL_FRONT);
-		
-		BIF_ThemeColor(TH_WIRE);
-		
-		setlinestyle(3);
-		glBegin(GL_LINE_STRIP); 
-		glVertex2sv(mval); 
-		glVertex2fv(cent); 
-		glEnd();
-		setlinestyle(0);
-		
-		persp(PERSP_VIEW);
-		bglFlush(); // flush display for frontbuffer
-		glDrawBuffer(GL_BACK);
-	}
+
+	persp(PERSP_WIN);
+	
+	glDrawBuffer(GL_FRONT);
+	
+	BIF_ThemeColor(TH_WIRE);
+	
+	setlinestyle(3);
+	glBegin(GL_LINE_STRIP); 
+	glVertex2sv(mval); 
+	glVertex2fv(cent); 
+	glEnd();
+	setlinestyle(0);
+	
+	persp(PERSP_VIEW);
+	bglFlush(); // flush display for frontbuffer
+	glDrawBuffer(GL_BACK);
 }
 
 
@@ -354,8 +353,9 @@ void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 
 void projectIntView(TransInfo *t, float *vec, int *adr)
 {
-	if (t->spacetype==SPACE_VIEW3D)
-		project_int(vec, adr);
+	if (t->spacetype==SPACE_VIEW3D) {
+		project_int_noclip(vec, adr);
+	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		float aspx, aspy, v[2];
 		
@@ -376,8 +376,9 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 
 void projectFloatView(TransInfo *t, float *vec, float *adr)
 {
-	if (t->spacetype==SPACE_VIEW3D)
-		project_float(vec, adr);
+	if (t->spacetype==SPACE_VIEW3D) {
+		project_float_noclip(vec, adr);
+	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		int a[2];
 		
