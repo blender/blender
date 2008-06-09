@@ -4832,7 +4832,7 @@ static void object_panel_particle_system(Object *ob)
 		uiDefButS(block, NUM, B_PART_RECALC, "Segments:",	butx,(buty-=buth),butw,buth, &part->hair_step, 2.0, 50.0, 0, 0, "Amount of hair segments");
 	}
 	else {
-		uiDefButF(block, NUM, B_PART_INIT, "Sta:",		butx,(buty-=buth),butw,buth, &part->sta, 1.0, part->end, 100, 1, "Frame # to start emitting particles");
+		uiDefButF(block, NUM, B_PART_INIT, "Sta:",		butx,(buty-=buth),butw,buth, &part->sta, -MAXFRAMEF, part->end, 100, 1, "Frame # to start emitting particles");
 		uiDefButF(block, NUM, B_PART_INIT, "End:",		butx,(buty-=buth),butw,buth, &part->end, part->sta, MAXFRAMEF, 100, 1, "Frame # to stop emitting particles");
 	}
 

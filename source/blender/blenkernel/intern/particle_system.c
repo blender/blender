@@ -4814,9 +4814,20 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 			pa->flag &= ~PARS_NO_DISP;
 	}
 
-	/* ok now we're all set so let's go */
-	if(psys->totpart)
-		dynamics_step(ob,psys,psmd,cfra,vg_vel,vg_tan,vg_rot,vg_size);
+	if(psys->totpart) {
+		int dframe, totframesback = 0;
+
+		/* handle negative frame start at the first frame by doing
+		 * all the steps before the first frame */
+		if(framenr == startframe && part->sta < startframe)
+			totframesback = (startframe - (int)part->sta);
+
+		for(dframe=-totframesback; dframe<=0; dframe++) {
+			/* ok now we're all set so let's go */
+			dynamics_step(ob,psys,psmd,cfra+dframe,vg_vel,vg_tan,vg_rot,vg_size);
+			psys->cfra = cfra+dframe;
+		}
+	}
 	
 	cache->simframe= framenr;
 	cache->flag |= PTCACHE_SIMULATION_VALID;
