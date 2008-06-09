@@ -2412,18 +2412,19 @@ void initRotation(TransInfo *t)
 		t->flag |= T_NO_CONSTRAINT;
 }
 
-static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
+static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short around) {
 	float vec[3], totmat[3][3], smat[3][3];
 	float eul[3], fmat[3][3], quat[4];
 	float *center = t->center;
 	
 	/* local constraint shouldn't alter center */
-	if (t->around == V3D_LOCAL) {
+	if (around == V3D_LOCAL) {
 		if (t->flag & (T_OBJECT|T_POSE)) {
 			center = td->center;
 		}
 		else {
-			if(G.vd->around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE)) {
+			/* !TODO! Make this if not rely on G */
+			if(around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE)) {
 				center = td->center;
 			}
 		}
@@ -2627,7 +2628,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 			VecRotToMat3(axis, angle * td->factor, mat);
 		}
 
-		ElementRotation(t, td, mat);
+		ElementRotation(t, td, mat, t->around);
 	}
 }
 
@@ -2746,7 +2747,7 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 			Mat3MulMat3(mat, smat, totmat);
 		}
 		
-		ElementRotation(t, td, mat);
+		ElementRotation(t, td, mat, t->around);
 	}
 }
 
@@ -2921,6 +2922,36 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 		if (td->flag & TD_SKIP)
 			continue;
 		
+		/* handle snapping rotation before doing the translation */
+		if (usingSnappingNormal(t))
+		{
+			if (validSnappingNormal(t))
+			{
+				float *original_normal = td->axismtx[2];
+				float axis[3];
+				float quat[4];
+				float mat[3][3];
+				float angle;
+				
+				Crossf(axis, original_normal, t->tsnap.snapNormal);
+				angle = saacos(Inpf(original_normal, t->tsnap.snapNormal));
+				
+				AxisAngleToQuat(quat, axis, angle);
+	
+				QuatToMat3(quat, mat);
+				
+				ElementRotation(t, td, mat, V3D_LOCAL);
+			}
+			else
+			{
+				float mat[3][3];
+				
+				Mat3One(mat);
+				
+				ElementRotation(t, td, mat, V3D_LOCAL);
+			}
+		}
+
 		if (t->con.applyVec) {
 			float pvec[3];
 			t->con.applyVec(t, td, vec, tvec, pvec);
@@ -4135,7 +4166,7 @@ int Align(TransInfo *t, short mval[2])
 		
 		Mat3MulMat3(mat, t->spacemtx, invmat);	
 
-		ElementRotation(t, td, mat);
+		ElementRotation(t, td, mat, t->around);
 	}
 
 	/* restoring original center */
