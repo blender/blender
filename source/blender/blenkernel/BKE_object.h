@@ -108,6 +108,7 @@ void object_boundbox_flag(struct Object *ob, int flag, int set);
 void minmax_object(struct Object *ob, float *min, float *max);
 void minmax_object_duplis(struct Object *ob, float *min, float *max);
 void solve_tracking (struct Object *ob, float targetmat[][4]);
+int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3]);
 
 void object_handle_update(struct Object *ob);
 
