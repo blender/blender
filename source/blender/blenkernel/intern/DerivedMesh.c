@@ -186,10 +186,6 @@ void DM_init_funcs(DerivedMesh *dm)
 void DM_init(DerivedMesh *dm,
              int numVerts, int numEdges, int numFaces)
 {
-	CustomData_add_layer(&dm->vertData, CD_ORIGINDEX, CD_CALLOC, NULL, numVerts);
-	CustomData_add_layer(&dm->edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
-	CustomData_add_layer(&dm->faceData, CD_ORIGINDEX, CD_CALLOC, NULL, numFaces);
-
 	dm->numVertData = numVerts;
 	dm->numEdgeData = numEdges;
 	dm->numFaceData = numFaces;
