@@ -515,6 +515,7 @@ int handleNDofInput(NDofInput *n, unsigned short event, short val);
 
 int manageObjectSpace(int confirm, int set);
 int manageMeshSpace(int confirm, int set);
+int manageBoneSpace(int confirm, int set);
 
 /* Those two fill in mat and return non-zero on success */
 int createSpaceNormal(float mat[3][3], float normal[3]);

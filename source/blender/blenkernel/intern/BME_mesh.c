@@ -59,14 +59,39 @@
 /*	
  *	BME MAKE MESH
  *
- *  Allocates a new BME_Mesh structure
+ *  Allocates a new BME_Mesh structure.
+ *	The arguments are two arrays, one of type int
+ *  and another of type BME_CustomDataInit. The first array
+ *  contains the allocation size for each element pool in 
+ *  the mesh. For instance allocsize[0] contains the number
+ *  of vertices to allocate at a time for the vertex pool.
+ *
+ *  The second array contains structures describing the layout
+ *  of custom data for each element type in the mesh. So init[0]
+ *  contains the custom data layout information for vertices, init[1]
+ *  the layout information for edges and so on.
+ *
+ *  Returns -
+ *  Pointer to a Bmesh
+ *
 */
 
-BME_Mesh *BME_make_mesh(void){
+BME_Mesh *BME_make_mesh(int allocsize[4], BME_CustomDataInit init[4])
+{
+	/*allocate the structure*/
 	BME_Mesh *bm = MEM_callocN(sizeof(BME_Mesh),"BMesh");
+	/*allocate the memory pools for the mesh elements*/
+	bm->vpool = BME_mempool_create(sizeof(BME_Vert), allocsize[0], allocsize[0]);
+	bm->epool = BME_mempool_create(sizeof(BME_Edge), allocsize[1], allocsize[1]);
+	bm->lpool = BME_mempool_create(sizeof(BME_Loop), allocsize[2], allocsize[2]);
+	bm->ppool = BME_mempool_create(sizeof(BME_Poly), allocsize[3], allocsize[3]);
+	/*Setup custom data layers*/
+	BME_CD_Create(&bm->vdata, &init[0], allocsize[0]);
+	BME_CD_Create(&bm->edata, &init[1], allocsize[1]);
+	BME_CD_Create(&bm->ldata, &init[2], allocsize[2]);
+	BME_CD_Create(&bm->pdata, &init[3], allocsize[3]);
 	return bm;
 }
-
 /*	
  *	BME FREE MESH
  *
@@ -75,45 +100,31 @@ BME_Mesh *BME_make_mesh(void){
 
 void BME_free_mesh(BME_Mesh *bm)
 {
-	BME_Poly *bf, *nextf;
-	BME_Edge *be, *nexte;
-	BME_Vert *bv, *nextv;
-	BME_CycleNode *loopref;
-	
-	/*destroy polygon data*/
-	bf = bm->polys.first;
-	while(bf){
-		nextf = bf->next;
-		BLI_remlink(&(bm->polys), bf);
-		BME_free_poly(bm, bf);
-		
-		bf = nextf;
+	BME_Vert *v;
+	BME_Edge *e;
+	BME_Loop *l;
+	BME_Poly *f;
+
+	for(v=bm->verts.first; v; v=v->next) BME_CD_free_block(&bm->vdata, &v->data);
+	for(e=bm->edges.first; e; e=e->next) BME_CD_free_block(&bm->edata, &e->data);
+	for(f=bm->polys.first; f; f=f->next){
+		BME_CD_free_block(&bm->pdata, &f->data);
+		l = f->loopbase;
+		do{
+			BME_CD_free_block(&bm->ldata, &l->data);
+			l = l->next;
+		}while(l!=f->loopbase);
 	}
-	/*destroy edge data*/
-	be = bm->edges.first;
-	while(be){
-		nexte = be->next;
-		BLI_remlink(&(bm->edges), be);
-		BME_free_edge(bm, be);
-		be = nexte;
-	}
-	/*destroy vert data*/
-	bv = bm->verts.first;
-	while(bv){
-		nextv = bv->next;
-		BLI_remlink(&(bm->verts), bv);
-		BME_free_vert(bm, bv);
-		bv = nextv; 
-	}
-	
-	for(loopref=bm->loops.first;loopref;loopref=loopref->next) BME_delete_loop(bm,loopref->data);
-	BLI_freelistN(&(bm->loops));
-	
-	//CustomData_free(&bm->vdata, 0);
-	//CustomData_free(&bm->edata, 0);
-	//CustomData_free(&bm->ldata, 0);
-	//CustomData_free(&bm->pdata, 0);
-	
+	/*destroy element pools*/
+	BME_mempool_destroy(bm->vpool);
+	BME_mempool_destroy(bm->epool);
+	BME_mempool_destroy(bm->ppool);
+	BME_mempool_destroy(bm->lpool);
+	/*free custom data pools*/
+	BME_CD_Free(&bm->vdata);
+	BME_CD_Free(&bm->edata);
+	BME_CD_Free(&bm->ldata);
+	BME_CD_Free(&bm->pdata);
 	MEM_freeN(bm);	
 }
 
@@ -124,17 +135,12 @@ void BME_free_mesh(BME_Mesh *bm)
  *	must begin with a call to BME_model_end() and finish with a call to BME_model_end().
  *	No modification of mesh data is allowed except in between these two calls.
  *
- *	TODO 
- *		FOR BME_MODEL_BEGIN:
- *		-integrate euler undo system.
- *		-make full copy of structure to safely recover from errors.
- *		-accept a toolname string.
- *		-accept param to turn off full copy if just selection tool. (perhaps check for this in eulers...)
+ *  The purpose of these calls is allow for housekeeping tasks to be performed,
+ *  such as allocating/freeing scratch arrays or performing debug validation of 
+ *  the mesh structure.
  *
- *		BME_MODEL_END:
- *		-full mesh validation if debugging turned on
- *		-free structure copy or use it to restore.
- *		-do euler undo push.
+ *  Returns -
+ *  Nothing
  *
 */
 
@@ -151,13 +157,12 @@ int BME_model_begin(BME_Mesh *bm){
 }
 
 void BME_model_end(BME_Mesh *bm){
-	int meshok, totvert, totedge, totpoly, totloop;
+	int meshok, totvert, totedge, totpoly;
 
 	totvert = BLI_countlist(&(bm->verts));
 	totedge = BLI_countlist(&(bm->edges));
 	totpoly = BLI_countlist(&(bm->polys));
-	totloop = BLI_countlist(&(bm->loops));
-	
+
 	if(bm->vtar) MEM_freeN(bm->vtar);
 	if(bm->edar) MEM_freeN(bm->edar);
 	if(bm->lpar) MEM_freeN(bm->lpar);
@@ -167,10 +172,10 @@ void BME_model_end(BME_Mesh *bm){
 	bm->edar = NULL;
 	bm->lpar = NULL;
 	bm->plar = NULL;
-	bm->vtarlen = bm->edarlen = bm->lparlen = bm->plarlen = 1024;
+	bm->vtarlen = bm->edarlen = bm->lparlen = bm->plarlen = 0;
 	
 	
-	if(bm->totvert!=totvert || bm->totedge!=totedge || bm->totpoly!=totpoly || bm->totloop!=totloop)
+	if(bm->totvert!=totvert || bm->totedge!=totedge || bm->totpoly!=totpoly)
 		BME_error();
 	
 	meshok = BME_validate_mesh(bm, 1);
@@ -194,7 +199,7 @@ void BME_model_end(BME_Mesh *bm){
  *
  *	TODO 
  *	
- *	-Write a full mesh validation function for debugging purposes.
+ *	-Make this only part of debug builds
  */
 
 #define VHALT(halt) {BME_error(); if(halt) return 0;}

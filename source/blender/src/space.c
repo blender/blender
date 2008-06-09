@@ -2974,8 +2974,11 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				do_ipo_selectbuttons();
 				doredraw= 1;
 			}
+			else if(G.qual == LR_CTRLKEY) {
+				if (sipo->showkey==0)
+					add_vert_ipo();
+			}
 			else if(view2dmove(LEFTMOUSE));	/* only checks for sliders */
-			else if((G.qual & LR_CTRLKEY) && (sipo->showkey==0)) add_vert_ipo();
 			else {
 				do {
 					getmouseco_areawin(mval);
@@ -5121,7 +5124,7 @@ static void init_seqspace(ScrArea *sa)
 	sseq->v2d.min[0]= 10.0;
 	sseq->v2d.min[1]= 4.0;
 
-	sseq->v2d.max[0]= 32000.0;
+	sseq->v2d.max[0]= MAXFRAMEF;
 	sseq->v2d.max[1]= MAXSEQ;
 	
 	sseq->v2d.minzoom= 0.1f;

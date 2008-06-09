@@ -259,6 +259,15 @@ public:
 	);
 
 	/** 
+	 * Align the object to a given normal.
+	 */
+		void 
+	AlignAxisToVect(
+		const MT_Vector3& vect,
+		int axis = 2 
+	);
+
+	/** 
 	 * Quick'n'dirty obcolor ipo stuff
 	 */
 
@@ -662,6 +671,7 @@ public:
 	KX_PYMETHOD(KX_GameObject,GetOrientation);
 	KX_PYMETHOD(KX_GameObject,SetOrientation);
 	KX_PYMETHOD(KX_GameObject,SetVisible);
+	KX_PYMETHOD(KX_GameObject,AlignAxisToVect);
 	KX_PYMETHOD(KX_GameObject,SuspendDynamics);
 	KX_PYMETHOD(KX_GameObject,RestoreDynamics);
 	KX_PYMETHOD(KX_GameObject,EnableRigidBody);

@@ -200,7 +200,6 @@ static void mmap_remlink(volatile mmapListBase *listbase, void *vlink)
 
 static void *mmap_findlink(volatile mmapListBase *listbase, void *ptr)
 {
-	MemMap *mmap_ptr = (MemMap*)ptr;
 	MemMap *mm;
 
 	if (ptr == 0) return NULL;

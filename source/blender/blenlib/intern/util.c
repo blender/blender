@@ -865,11 +865,8 @@ int BLI_strcaseeq(char *a, char *b) {
 void BLI_cleanup_dir(const char *relabase, char *dir)
 {
 	BLI_cleanup_file(relabase, dir);
-#ifdef WIN32
-	strcat(dir, "\\");
-#else
-	strcat(dir, "/");
-#endif
+	BLI_add_slash(dir);
+
 }
 
 void BLI_cleanup_file(const char *relabase, char *dir)
@@ -878,6 +875,13 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 	char *start, *eind;
 	if (relabase) {
 		BLI_convertstringcode(dir, relabase);
+	} else {
+		if (dir[0]=='/' && dir[1]=='/') {
+			if (dir[2]== '\0') {
+				return; /* path is "//" - cant clean it */
+			}
+			dir = dir+2; /* skip the first // */
+		}
 	}
 #ifdef WIN32
 	if(dir[0]=='.') {	/* happens for example in FILE_MAIN */
@@ -1150,23 +1154,32 @@ int BLI_convertstringcode(char *path, const char *basepath)
 	BLI_char_switch(tmp, '\\', '/');
 	BLI_char_switch(base, '\\', '/');	
 
+	/* Paths starting with // will get the blend file as their base,
+	 * this isnt standard in any os but is uesed in blender all over the place */
 	if (tmp[0] == '/' && tmp[1] == '/') {
-		char *filepart= BLI_strdup(tmp+2); /* skip code */
 		char *lslash= BLI_last_slash(base);
-
 		if (lslash) {
 			int baselen= (int) (lslash-base) + 1;
-
+			/* use path for for temp storage here, we copy back over it right away */
+			BLI_strncpy(path, tmp+2, FILE_MAX);
+			
 			memcpy(tmp, base, baselen);
-			strcpy(tmp+baselen, filepart);
+			strcpy(tmp+baselen, path);
+			strcpy(path, tmp);
 		} else {
-			strcpy(tmp, filepart);
+			strcpy(path, tmp+2);
 		}
-		
-		MEM_freeN(filepart);
+	} else {
+		strcpy(path, tmp);
 	}
 	
-	strcpy(path, tmp);
+	if (path[0]!='\0') {
+		if ( path[strlen(path)-1]=='/') {
+			BLI_cleanup_dir(NULL, path);
+		} else {
+			BLI_cleanup_file(NULL, path);
+		}
+	}
 	
 #ifdef WIN32
 	/* skip first two chars, which in case of

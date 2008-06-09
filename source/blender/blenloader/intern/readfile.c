@@ -3108,7 +3108,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->current_v = NULL;
 			collmd->time = -1;
 			collmd->numverts = 0;
-			collmd->bvh = NULL;
+			collmd->bvhtree = NULL;
 			collmd->mfaces = NULL;
 			
 		}

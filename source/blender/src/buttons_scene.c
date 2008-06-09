@@ -2150,6 +2150,10 @@ static void render_panel_bake(void)
 				 "Normalized displacement value to fit the 'Dist' range"
 		);
 	}
+	
+	uiDefButS(block, MENU, B_NOP, "Quad Split Order%t|Quad Split Auto%x0|Quad Split A (0,1,2) (0,2,3)%x1|Quad Split B (1,2,3) (1,3,0)%x2", 
+		10,10,190,20, &G.scene->r.bake_quad_split, 0, 0, 0, 0, "Method to divide quads (use A or B for external applications that use a fixed order)");
+	
 #if 0	
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, R_BAKE_OSA, B_DIFF, "OSA",		10,120,190,20, &G.scene->r.bake_flag, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
@@ -2161,14 +2165,15 @@ static void render_panel_bake(void)
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW,B_REDR,"Full Render",		210,170,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_ALL, 0, 0, "");
 	uiDefButS(block, ROW,B_REDR,"Ambient Occlusion",210,150,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_AO, 0, 0, "");
-	uiDefButS(block, ROW,B_REDR,"Normals",		210,130,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_NORMALS, 0, 0, "");
-	uiDefButS(block, ROW,B_REDR,"Textures",		210,110,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_TEXTURE, 0, 0, "");
-	uiDefButS(block, ROW,B_REDR,"Displacement",		210,90,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_DISPLACEMENT, 0, 0, "");
+	uiDefButS(block, ROW,B_REDR,"Shadow",			210,130,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_SHADOW, 0, 0, "");
+	uiDefButS(block, ROW,B_REDR,"Normals",			210,110,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_NORMALS, 0, 0, "");
+	uiDefButS(block, ROW,B_REDR,"Textures",			210,90,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_TEXTURE, 0, 0, "");
+	uiDefButS(block, ROW,B_REDR,"Displacement",		210,70,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_DISPLACEMENT, 0, 0, "");
 	uiBlockEndAlign(block);
 	
-	uiDefButBitS(block, TOG, R_BAKE_CLEAR, B_DIFF, "Clear",		210,60,120,20,&G.scene->r.bake_flag, 0.0, 0, 0, 0, "Clear Images before baking");
+	uiDefButBitS(block, TOG, R_BAKE_CLEAR, B_DIFF, "Clear",		210,40,120,20,&G.scene->r.bake_flag, 0.0, 0, 0, 0, "Clear Images before baking");
 	
-	uiDefButS(block, NUM, B_DIFF,"Margin:",				210,30,120,20,&G.scene->r.bake_filter, 0.0, 32.0, 0, 0, "Amount of pixels to extend the baked result with, as post process filter");
+	uiDefButS(block, NUM, B_DIFF,"Margin:",				210,10,120,20,&G.scene->r.bake_filter, 0.0, 32.0, 0, 0, "Amount of pixels to extend the baked result with, as post process filter");
 }
 
 static void render_panel_simplify(void)

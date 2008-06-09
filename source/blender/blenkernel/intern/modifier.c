@@ -43,6 +43,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_kdopbvh.h"
 #include "BLI_kdtree.h"
 #include "BLI_linklist.h"
 #include "BLI_rand.h"
@@ -76,6 +77,7 @@
 #include "BKE_anim.h"
 #include "BKE_bad_level_calls.h"
 #include "BKE_cloth.h"
+#include "BKE_collision.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
@@ -2736,6 +2738,7 @@ static DerivedMesh *bevelModifier_applyModifier(
 {
 	DerivedMesh *result;
 	BME_Mesh *bm;
+
 	/*bDeformGroup *def;*/
 	int /*i,*/ options, defgrp_index = -1;
 	BevelModifierData *bmd = (BevelModifierData*) md;
@@ -2754,8 +2757,7 @@ static DerivedMesh *bevelModifier_applyModifier(
 		//~ }
 	//~ }
 
-	bm = BME_make_mesh();
-	bm = BME_derivedmesh_to_bmesh(derivedData, bm);
+	bm = BME_derivedmesh_to_bmesh(derivedData);
 	BME_bevel(bm,bmd->value,bmd->res,options,defgrp_index,bmd->bevel_angle,NULL);
 	result = BME_bmesh_to_derivedmesh(bm,derivedData);
 	BME_free_mesh(bm);
@@ -5193,7 +5195,7 @@ static void collisionModifier_initData(ModifierData *md)
 	collmd->current_v = NULL;
 	collmd->time = -1;
 	collmd->numverts = 0;
-	collmd->bvh = NULL;
+	collmd->bvhtree = NULL;
 }
 
 static void collisionModifier_freeData(ModifierData *md)
@@ -5202,8 +5204,8 @@ static void collisionModifier_freeData(ModifierData *md)
 	
 	if (collmd) 
 	{
-		if(collmd->bvh)
-			bvh_free(collmd->bvh);
+		if(collmd->bvhtree)
+			BLI_bvhtree_free(collmd->bvhtree);
 		if(collmd->x)
 			MEM_freeN(collmd->x);
 		if(collmd->xnew)
@@ -5214,7 +5216,6 @@ static void collisionModifier_freeData(ModifierData *md)
 			MEM_freeN(collmd->current_xnew);
 		if(collmd->current_v)
 			MEM_freeN(collmd->current_v);
-		
 		if(collmd->mfaces)
 			MEM_freeN(collmd->mfaces);
 		
@@ -5225,7 +5226,7 @@ static void collisionModifier_freeData(ModifierData *md)
 		collmd->current_v = NULL;
 		collmd->time = -1;
 		collmd->numverts = 0;
-		collmd->bvh = NULL;
+		collmd->bvhtree = NULL;
 		collmd->mfaces = NULL;
 	}
 }
@@ -5293,9 +5294,8 @@ static void collisionModifier_deformVerts(
 				collmd->mfaces = dm->dupFaceArray(dm);
 				collmd->numfaces = dm->getNumFaces(dm);
 				
-				// TODO: epsilon
 				// create bounding box hierarchy
-				collmd->bvh = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sboft);
+				collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sboft);
 				
 				collmd->time = current_time;
 			}
@@ -5318,25 +5318,25 @@ static void collisionModifier_deformVerts(
 				memcpy(collmd->current_x, collmd->x, numverts*sizeof(MVert));
 				
 				/* check if GUI setting has changed for bvh */
-				if(collmd->bvh)
+				if(collmd->bvhtree) 
 				{
-					if(ob->pd->pdef_sboft != collmd->bvh->epsilon)
+					if(ob->pd->pdef_sboft != BLI_bvhtree_getepsilon(collmd->bvhtree))
 					{
-						bvh_free(collmd->bvh);
-						collmd->bvh = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
+						BLI_bvhtree_free(collmd->bvhtree);
+						collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
 					}
 			
 				}
 				
-				/* happens on file load (ONLY when i decomment changes in readfile.c */
-				if(!collmd->bvh)
+				/* happens on file load (ONLY when i decomment changes in readfile.c) */
+				if(!collmd->bvhtree)
 				{
-					collmd->bvh = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
+					collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
 				}
 				else
 				{
 					// recalc static bounding boxes
-					bvh_update_from_mvert(collmd->bvh, collmd->current_x, numverts, NULL, 0);
+					bvhtree_update_from_mvert ( collmd->bvhtree, collmd->mfaces, collmd->numfaces, collmd->current_x, collmd->current_xnew, collmd->numverts, 1 );
 				}
 				
 				collmd->time = current_time;
@@ -6485,12 +6485,14 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 	MFace *mf=0;
 	MVert *dupvert=0;
 	ParticleSettings *part=psmd->psys->part;
-	ParticleData *pa, *pars=psmd->psys->particles;
+	ParticleData *pa=NULL, *pars=psmd->psys->particles;
 	ParticleKey state;
+	EdgeHash *vertpahash;
+	EdgeHashIterator *ehi;
 	float *vertco=0, imat[4][4];
 	float loc0[3], nor[3];
 	float timestep, cfra;
-	int *facepa=emd->facepa, *vertpa=0;
+	int *facepa=emd->facepa;
 	int totdup=0,totvert=0,totface=0,totpart=0;
 	int i, j, v, mindex=0;
 
@@ -6505,34 +6507,36 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 	else
 		cfra=bsystem_time(ob,(float)G.scene->r.cfra,0.0);
 
-	/* table for vertice <-> particle relations (row totpart+1 is for yet unexploded verts) */
-	vertpa = MEM_callocN(sizeof(int)*(totpart+1)*totvert, "explode_vertpatab");
-	for(i=0; i<(totpart+1)*totvert; i++)
-		vertpa[i] = -1;
+	/* hash table for vertice <-> particle relations */
+	vertpahash= BLI_edgehash_new();
 
 	for (i=0; i<totface; i++) {
+		/* do mindex + totvert to ensure the vertex index to be the first
+		 * with BLI_edgehashIterator_getKey */
 		if(facepa[i]==totpart || cfra <= (pars+facepa[i])->time)
-			mindex = totpart*totvert;
+			mindex = totvert+totpart;
 		else 
-			mindex = facepa[i]*totvert;
+			mindex = totvert+facepa[i];
 
 		mf=CDDM_get_face(dm,i);
 
-		/*set face vertices to exist in particle group*/
-		vertpa[mindex+mf->v1] = 1;
-		vertpa[mindex+mf->v2] = 1;
-		vertpa[mindex+mf->v3] = 1;
+		/* set face vertices to exist in particle group */
+		BLI_edgehash_insert(vertpahash, mf->v1, mindex, NULL);
+		BLI_edgehash_insert(vertpahash, mf->v2, mindex, NULL);
+		BLI_edgehash_insert(vertpahash, mf->v3, mindex, NULL);
 		if(mf->v4)
-			vertpa[mindex+mf->v4] = 1;
+			BLI_edgehash_insert(vertpahash, mf->v4, mindex, NULL);
 	}
 
-	/*make new vertice indexes & count total vertices after duplication*/
-	for(i=0; i<(totpart+1)*totvert; i++){
-		if(vertpa[i] != -1)
-			vertpa[i] = totdup++;
+	/* make new vertice indexes & count total vertices after duplication */
+	ehi= BLI_edgehashIterator_new(vertpahash);
+	for(; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
+		BLI_edgehashIterator_setValue(ehi, SET_INT_IN_POINTER(totdup));
+		totdup++;
 	}
+	BLI_edgehashIterator_free(ehi);
 
-	/*the final duplicated vertices*/
+	/* the final duplicated vertices */
 	explode= CDDM_from_template(dm, totdup, 0,totface);
 	dupvert= CDDM_get_verts(explode);
 
@@ -6541,45 +6545,49 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 
 	psmd->psys->lattice = psys_get_lattice(ob, psmd->psys);
 
-	/*duplicate & displace vertices*/
-	for(i=0, pa=pars; i<=totpart; i++, pa++){
-		if(i!=totpart){
+	/* duplicate & displace vertices */
+	ehi= BLI_edgehashIterator_new(vertpahash);
+	for(; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
+		MVert source;
+		MVert *dest;
+
+		/* get particle + vertex from hash */
+		BLI_edgehashIterator_getKey(ehi, &j, &i);
+		i -= totvert;
+		v= GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
+
+		dm->getVert(dm, j, &source);
+		dest = CDDM_get_vert(explode,v);
+
+		DM_copy_vert_data(dm,explode,j,v,1);
+		*dest = source;
+
+		if(i!=totpart) {
+			/* get particle */
+			pa= pars+i;
+
+			/* get particle state */
 			psys_particle_on_emitter(ob, psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,loc0,nor,0,0,0,0);
 			Mat4MulVecfl(ob->obmat,loc0);
 
 			state.time=cfra;
 			psys_get_particle_state(ob,psmd->psys,i,&state,1);
-		}
 
-		for(j=0; j<totvert; j++){
-			v=vertpa[i*totvert+j];
-			if(v != -1) {
-				MVert source;
-				MVert *dest;
+			vertco=CDDM_get_vert(explode,v)->co;
+			
+			Mat4MulVecfl(ob->obmat,vertco);
 
-				dm->getVert(dm, j, &source);
-				dest = CDDM_get_vert(explode,v);
+			VECSUB(vertco,vertco,loc0);
 
-				DM_copy_vert_data(dm,explode,j,v,1);
-				*dest = source;
+			/* apply rotation, size & location */
+			QuatMulVecf(state.rot,vertco);
+			VecMulf(vertco,pa->size);
+			VECADD(vertco,vertco,state.co);
 
-				if(i!=totpart){
-					vertco=CDDM_get_vert(explode,v)->co;
-					
-					Mat4MulVecfl(ob->obmat,vertco);
-
-					VECSUB(vertco,vertco,loc0);
-
-					/* apply rotation, size & location */
-					QuatMulVecf(state.rot,vertco);
-					VecMulf(vertco,pa->size);
-					VECADD(vertco,vertco,state.co);
-
-					Mat4MulVecfl(imat,vertco);
-				}
-			}
+			Mat4MulVecfl(imat,vertco);
 		}
 	}
+	BLI_edgehashIterator_free(ehi);
 
 	/*map new vertices to faces*/
 	for (i=0; i<totface; i++) {
@@ -6601,15 +6609,15 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 		orig_v4 = source.v4;
 
 		if(facepa[i]!=totpart && cfra <= pa->time)
-			mindex = totpart*totvert;
+			mindex = totvert+totpart;
 		else 
-			mindex = facepa[i]*totvert;
+			mindex = totvert+facepa[i];
 
-		source.v1 = vertpa[mindex+source.v1];
-		source.v2 = vertpa[mindex+source.v2];
-		source.v3 = vertpa[mindex+source.v3];
+		source.v1 = edgesplit_get(vertpahash, source.v1, mindex);
+		source.v2 = edgesplit_get(vertpahash, source.v2, mindex);
+		source.v3 = edgesplit_get(vertpahash, source.v3, mindex);
 		if(source.v4)
-			source.v4 = vertpa[mindex+source.v4];
+			source.v4 = edgesplit_get(vertpahash, source.v4, mindex);
 
 		DM_copy_face_data(dm,explode,i,i,1);
 
@@ -6618,9 +6626,10 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 		test_index_face(mf, &explode->faceData, i, (mf->v4 ? 4 : 3));
 	}
 
+	MEM_printmemlist_stats();
 
 	/* cleanup */
-	if(vertpa) MEM_freeN(vertpa);
+	BLI_edgehash_free(vertpahash, NULL);
 
 	/* finalization */
 	CDDM_calc_edges(explode);

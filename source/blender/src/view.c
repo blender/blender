@@ -228,6 +228,29 @@ void project_int(float *vec, int *adr)
 	}
 }
 
+void project_int_noclip(float *vec, int *adr)
+{
+	float fx, fy, vec4[4];
+
+	VECCOPY(vec4, vec);
+	vec4[3]= 1.0;
+	
+	Mat4MulVec4fl(G.vd->persmat, vec4);
+
+	if( fabs(vec4[3]) > BL_NEAR_CLIP ) {
+		fx = (curarea->winx/2)*(1 + vec4[0]/vec4[3]);
+		fy = (curarea->winy/2)*(1 + vec4[1]/vec4[3]);
+			
+		adr[0] = floor(fx); 
+		adr[1] = floor(fy);
+	}
+	else
+	{
+		adr[0] = curarea->winx / 2;
+		adr[1] = curarea->winy / 2;
+	}
+}
+
 void project_short_noclip(float *vec, short *adr)
 {
 	float fx, fy, vec4[4];
@@ -264,8 +287,28 @@ void project_float(float *vec, float *adr)
 	Mat4MulVec4fl(G.vd->persmat, vec4);
 
 	if( vec4[3]>BL_NEAR_CLIP ) {
-		adr[0]= (curarea->winx/2.0)+(curarea->winx/2.0)*vec4[0]/vec4[3];	
-		adr[1]= (curarea->winy/2.0)+(curarea->winy/2.0)*vec4[1]/vec4[3];
+		adr[0] = (curarea->winx/2.0)+(curarea->winx/2.0)*vec4[0]/vec4[3];	
+		adr[1] = (curarea->winy/2.0)+(curarea->winy/2.0)*vec4[1]/vec4[3];
+	}
+}
+
+void project_float_noclip(float *vec, float *adr)
+{
+	float vec4[4];
+
+	VECCOPY(vec4, vec);
+	vec4[3]= 1.0;
+	
+	Mat4MulVec4fl(G.vd->persmat, vec4);
+
+	if( fabs(vec4[3]) > BL_NEAR_CLIP ) {
+		adr[0] = (curarea->winx/2.0)+(curarea->winx/2.0)*vec4[0]/vec4[3];	
+		adr[1] = (curarea->winy/2.0)+(curarea->winy/2.0)*vec4[1]/vec4[3];
+	}
+	else
+	{
+		adr[0] = curarea->winx / 2.0f;
+		adr[1] = curarea->winy / 2.0f;
 	}
 }
 
@@ -1447,6 +1490,8 @@ void obmat_to_viewmat(Object *ob, short smooth)
 {
 	float bmat[4][4];
 	float tmat[3][3];
+
+	G.vd->view= 0; /* dont show the grid */
 
 	Mat4CpyMat4(bmat, ob->obmat);
 	Mat4Ortho(bmat);

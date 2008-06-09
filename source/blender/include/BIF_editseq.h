@@ -92,8 +92,8 @@ start and end are from the start and fixed length of the sequence.
 int seq_tx_get_start(struct Sequence *seq);
 int seq_tx_get_end(struct Sequence *seq);
 
-int seq_tx_get_final_left(struct Sequence *seq);
-int seq_tx_get_final_right(struct Sequence *seq);
+int seq_tx_get_final_left(struct Sequence *seq, int metaclip);
+int seq_tx_get_final_right(struct Sequence *seq, int metaclip);
 
 void seq_tx_set_final_left(struct Sequence *seq, int i);
 void seq_tx_set_final_right(struct Sequence *seq, int i);

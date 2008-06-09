@@ -867,7 +867,7 @@ void end_ffmpeg(void)
 	
 	fprintf(stderr, "Closing ffmpeg...\n");
 
-	if (audio_stream) {
+	if (audio_stream && video_stream) {
 		write_audio_frames();
 	}
 	

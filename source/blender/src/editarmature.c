@@ -2396,6 +2396,7 @@ void fill_bones_armature(void)
 	else if (count == 2) {
 		EditBonePoint *ebp, *ebp2;
 		float head[3], tail[3];
+		short headtail = 0;
 		
 		/* check that the points don't belong to the same bone */
 		ebp= (EditBonePoint *)points.first;
@@ -2420,7 +2421,7 @@ void fill_bones_armature(void)
 			float distA, distB;
 			
 			/* get cursor location */
-			VECCOPY (curs, give_cursor());	
+			VECCOPY(curs, give_cursor());	
 			
 			Mat4Invert(G.obedit->imat, G.obedit->obmat);
 			Mat4MulVecfl(G.obedit->imat, curs);
@@ -2432,26 +2433,47 @@ void fill_bones_armature(void)
 			distB= VecLength(vecB);
 			
 			/* compare distances - closer one therefore acts as direction for bone to go */
-			if (distA < distB) {
-				VECCOPY(head, ebp2->vec);
-				VECCOPY(tail, ebp->vec);
-			}
-			else {
-				VECCOPY(head, ebp->vec);
-				VECCOPY(tail, ebp2->vec);
-			}
+			headtail= (distA < distB) ? 2 : 1;
 		}
 		else if (ebp->head_owner) {
+			headtail = 1;
+		}
+		else if (ebp2->head_owner) {
+			headtail = 2;
+		}
+		
+		/* assign head/tail combinations */
+		if (headtail == 2) {
 			VECCOPY(head, ebp->vec);
 			VECCOPY(tail, ebp2->vec);
 		}
-		else if (ebp2->head_owner) {
+		else if (headtail == 1) {
 			VECCOPY(head, ebp2->vec);
 			VECCOPY(tail, ebp->vec);
 		}
 		
-		/* add new bone */
-		newbone= add_points_bone(head, tail);
+		/* add new bone and parent it to the appropriate end */
+		if (headtail) {
+			newbone= add_points_bone(head, tail);
+			
+			/* do parenting (will need to set connected flag too) */
+			if (headtail == 2) {
+				/* ebp tail or head - tail gets priority */
+				if (ebp->tail_owner)
+					newbone->parent= ebp->tail_owner;
+				else
+					newbone->parent= ebp->head_owner;
+			}
+			else {
+				/* ebp2 tail or head - tail gets priority */
+				if (ebp2->tail_owner)
+					newbone->parent= ebp2->tail_owner;
+				else
+					newbone->parent= ebp2->head_owner;
+			}
+			
+			newbone->flag |= BONE_CONNECTED;
+		}
 	}
 	else {
 		// FIXME.. figure out a method for multiple bones
