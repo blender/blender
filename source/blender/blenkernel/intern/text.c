@@ -703,28 +703,58 @@ void txt_move_right(Text *text, short sel)
 
 void txt_jump_left(Text *text, short sel)
 {
-	TextLine *l;
-	int c;
+	TextLine **linep, *oldl;
+	int *charp, oldc, count=-1;
+	unsigned char oldu;
+
 	if (!text) return;
-	if (!text->curl) return;
+	if(sel) txt_curs_sel(text, &linep, &charp);
+	else { txt_pop_first(text); txt_curs_cur(text, &linep, &charp); }
+	if (!*linep) return;
+
+	oldl= *linep;
+	oldc= *charp;
+	oldu= undoing;
+	undoing= 1; /* Don't push individual moves to undo stack */
+
 	do {
 		txt_move_left(text, sel);
-		l= sel ? text->sell : text->curl;
-		c= sel ? text->selc : text->curc;
-	} while (c>0 && c<l->len && !txt_word_boundary(l->line[c-1]));
+		count++;
+	} while (*charp>0 && *charp<(*linep)->len && txt_word_boundary((*linep)->line[*charp-1]));
+	if (!count) {
+		while (*charp>0 && *charp<(*linep)->len && !txt_word_boundary((*linep)->line[*charp-1]))
+			txt_move_left(text, sel);
+	}
+
+	undoing= oldu;
+	if(!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
 }
 
 void txt_jump_right(Text *text, short sel)
 {
-	TextLine *l;
-	int c;
+	TextLine **linep, *oldl;
+	int *charp, oldc;
+	unsigned char oldu;
+
 	if (!text) return;
-	if (!text->curl) return;
+	if(sel) txt_curs_sel(text, &linep, &charp);
+	else { txt_pop_last(text); txt_curs_cur(text, &linep, &charp); }
+	if (!*linep) return;
+
+	oldl= *linep;
+	oldc= *charp;
+	oldu= undoing;
+	undoing= 1; /* Don't push individual moves to undo stack */
+
 	do {
 		txt_move_right(text, sel);
-		l= sel ? text->sell : text->curl;
-		c= sel ? text->selc : text->curc;
-	} while (c>0 && c<l->len && !txt_word_boundary(l->line[c-1]));
+	} while (*charp>0 && *charp<(*linep)->len && !txt_word_boundary((*linep)->line[*charp]));
+	while (*charp>0 && *charp<(*linep)->len && txt_word_boundary((*linep)->line[*charp])) {
+		txt_move_right(text, sel);
+	}
+
+	undoing= oldu;
+	if(!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
 }
 
 void txt_move_bol (Text *text, short sel) 
@@ -2103,16 +2133,8 @@ void txt_delete_char (Text *text)
 
 void txt_delete_word (Text *text) 
 {
-	int i;
-	char ch;
-	if (!text) return;
-	if (!text->curl) return;
-	i= text->curc;
-	do {
-		ch= text->curl->line[i];
-		txt_delete_char(text);
-		i= text->curc;
-	} while (i<text->curl->len && !txt_word_boundary(ch));
+	txt_jump_right(text, 1);
+	txt_delete_sel(text);
 }
 
 void txt_backspace_char (Text *text) 
@@ -2157,14 +2179,8 @@ void txt_backspace_char (Text *text)
 
 void txt_backspace_word (Text *text) 
 {
-	int i;
-	if (!text) return;
-	if (!text->curl) return;
-	i= text->curc;
-	do {
-		txt_backspace_char(text);
-		i= text->curc;
-	} while (i>0 && !txt_word_boundary(text->curl->line[i-1]));
+	txt_jump_left(text, 1);
+	txt_delete_sel(text);
 }
 
 int txt_add_char (Text *text, char add) 
