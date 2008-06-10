@@ -4207,9 +4207,7 @@ EditBone * subdivideByAngle(ReebArc *arc, ReebNode *head, ReebNode *tail)
 	return lastBone;
 }
 
-#if 1
-
-float calcCorrelation(ReebArc *arc, int start, int end, float v0[3], float n[3])
+float calcVariance(ReebArc *arc, int start, int end, float v0[3], float n[3])
 {
 	int len = 2 + abs(end - start);
 	
@@ -4257,134 +4255,47 @@ float calcCorrelation(ReebArc *arc, int start, int end, float v0[3], float n[3])
 		/* adding start(0) and end(1) values to s_t */
 		s_t += (avg_t * avg_t) + (1 - avg_t) * (1 - avg_t);
 		
-		return 1.0f - s_xyz / s_t; 
+		return s_xyz / s_t; 
 	}
 	else
 	{
-		return 1.0f;
+		return 0;
 	}
+}
+
+float calcDistance(ReebArc *arc, int start, int end, float head[3], float tail[3])
+{
+	ReebArcIterator iter;
+	EmbedBucket *bucket = NULL;
+	float max_dist = 0;
+	
+	/* calculate maximum distance */
+	for (initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter);
+		bucket;
+		bucket = nextBucket(&iter))
+	{
+		float v1[3], v2[3], c[3];
+		float dist;
+		
+		VecSubf(v1, head, tail);
+		VecSubf(v2, bucket->p, tail);
+
+		Crossf(c, v1, v2);
+		
+		dist = Inpf(c, c) / Inpf(v1, v1);
+		
+		max_dist = dist > max_dist ? dist : max_dist;
+	}
+	
+	
+	return max_dist; 
 }
 
 EditBone * subdivideByCorrelation(ReebArc *arc, ReebNode *head, ReebNode *tail)
 {
 	ReebArcIterator iter;
 	float n[3];
-	float CORRELATION_THRESHOLD = G.scene->toolsettings->skgen_correlation_limit;
-	EditBone *lastBone = NULL;
-	
-	/* init iterator to get start and end from head */
-	initArcIterator(&iter, arc, head);
-	
-	/* Calculate overall */
-	VecSubf(n, arc->buckets[iter.end].p, head->p);
-	
-	if (G.scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION && 
-		calcCorrelation(arc, iter.start, iter.end, head->p, n) < CORRELATION_THRESHOLD)
-	{
-		EmbedBucket *bucket = NULL;
-		EmbedBucket *previous = NULL;
-		EditBone *child = NULL;
-		EditBone *parent = NULL;
-		int boneStart = iter.start;
-
-		parent = add_editbone("Bone");
-		parent->flag = BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
-		VECCOPY(parent->head, head->p);
-		
-		for (previous = nextBucket(&iter), bucket = nextBucket(&iter);
-			bucket;
-			previous = bucket, bucket = nextBucket(&iter))
-		{
-			/* Calculate normal */
-			VecSubf(n, bucket->p, parent->head);
-
-			if (calcCorrelation(arc, boneStart, iter.index, parent->head, n) < CORRELATION_THRESHOLD)
-			{
-				VECCOPY(parent->tail, previous->p);
-
-				child = add_editbone("Bone");
-				VECCOPY(child->head, parent->tail);
-				child->parent = parent;
-				child->flag |= BONE_CONNECTED|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
-				
-				parent = child; // new child is next parent
-				boneStart = iter.index; // start from end
-			}
-		}
-
-		VECCOPY(parent->tail, tail->p);
-		
-		lastBone = parent; /* set last bone in the chain */
-	}
-	
-	return lastBone;
-}
-
-#else
-
-float calcCorrelation(ReebArc *arc, int start, int end, float v0[3], float n[3])
-{
-	int len = 2 + abs(end - start);
-	
-	if (len > 2)
-	{
-		ReebArcIterator iter;
-		EmbedBucket *bucket = NULL;
-		float avg_t = 0.0f;
-		float s_t = 0.0f;
-		float s_xyz = 0.0f;
-		
-		/* First pass, calculate average */
-		for (initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter);
-			bucket;
-			bucket = nextBucket(&iter))
-		{
-			float v[3];
-			
-			VecSubf(v, bucket->p, v0);
-			Normalize(v);
-			avg_t += Inpf(v, n);
-		}
-		
-		avg_t /= Inpf(n, n);
-		avg_t += 1.0f; /* adding start (0) and end (1) values */
-		avg_t /= len;
-		
-		/* Second pass, calculate s_xyz and s_t */
-		for (initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter);
-			bucket;
-			bucket = nextBucket(&iter))
-		{
-			float v[3], d[3];
-			float dt;
-			
-			VecSubf(v, bucket->p, v0);
-			Normalize(v);
-			Projf(d, v, n);
-			VecSubf(v, v, d);
-			
-			dt = VecLength(d) - avg_t;
-			
-			s_t += dt * dt;
-			s_xyz += Inpf(v, v);
-		}
-		
-		/* adding start(0) and end(1) values to s_t */
-		s_t += (avg_t * avg_t) + (1 - avg_t) * (1 - avg_t);
-		
-		return 1.0f - s_xyz / s_t; 
-	}
-	else
-	{
-		return 1.0f;
-	}
-}
-
-EditBone * subdivideByCorrelation(ReebArc *arc, ReebNode *head, ReebNode *tail)
-{
-	ReebArcIterator iter;
-	float n[3];
-	float CORRELATION_THRESHOLD = G.scene->toolsettings->skgen_correlation_limit;
+	float ADAPTIVE_THRESHOLD = G.scene->toolsettings->skgen_correlation_limit;
 	EditBone *lastBone = NULL;
 	
 	/* init iterator to get start and end from head */
@@ -4412,22 +4323,46 @@ EditBone * subdivideByCorrelation(ReebArc *arc, ReebNode *head, ReebNode *tail)
 			bucket;
 			previous = bucket, bucket = nextBucket(&iter))
 		{
-			float length;
-			
-			/* Calculate normal */
-			VecSubf(n, bucket->p, parent->head);
-			length = Normalize(n);
-			
-			total += 1;
-			VecAddf(normal, normal, n);
-			VECCOPY(avg_normal, normal);
-			VecMulf(avg_normal, 1.0f / total); 
+			float btail[3];
+			float value = 0;
 
-			if (calcCorrelation(arc, boneStart, iter.index, parent->head, avg_normal) < CORRELATION_THRESHOLD)
+			if (G.scene->toolsettings->skgen_options & SKGEN_STICK_TO_EMBEDDING)
 			{
-				VECCOPY(parent->tail, avg_normal);
-				VecMulf(parent->tail, length);
-				VecAddf(parent->tail, parent->tail, parent->head);
+				VECCOPY(btail, bucket->p);
+			}
+			else
+			{
+				float length;
+				
+				/* Calculate normal */
+				VecSubf(n, bucket->p, parent->head);
+				length = Normalize(n);
+				
+				total += 1;
+				VecAddf(normal, normal, n);
+				VECCOPY(avg_normal, normal);
+				VecMulf(avg_normal, 1.0f / total);
+				 
+				VECCOPY(btail, avg_normal);
+				VecMulf(btail, length);
+				VecAddf(btail, btail, parent->head);
+			}
+
+			if (G.scene->toolsettings->skgen_options & SKGEN_ADAPTIVE_DISTANCE)
+			{
+				value = calcDistance(arc, boneStart, iter.index, parent->head, btail);
+			}
+			else
+			{
+				float n[3];
+				
+				VecSubf(n, btail, parent->head);
+				value = calcVariance(arc, boneStart, iter.index, parent->head, n);
+			}
+
+			if (value > ADAPTIVE_THRESHOLD)
+			{
+				VECCOPY(parent->tail, btail);
 
 				child = add_editbone("Bone");
 				VECCOPY(child->head, parent->tail);
@@ -4449,7 +4384,6 @@ EditBone * subdivideByCorrelation(ReebArc *arc, ReebNode *head, ReebNode *tail)
 	
 	return lastBone;
 }
-#endif
 
 float arcLengthRatio(ReebArc *arc)
 {

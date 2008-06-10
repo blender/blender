@@ -5063,8 +5063,10 @@ static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
 				uiDefButF(block, NUM, B_DIFF, 							"T:",			1111, y,164,19, &G.scene->toolsettings->skgen_angle_limit,0.0, 90.0, 10, 0,			"Specify the threshold angle in degrees for subdivision");
 				break;
 			case SKGEN_SUB_CORRELATION:
-				uiDefButBitS(block, TOG, SKGEN_CUT_CORRELATION, B_DIFF, "Correlation",	1041, y, 67,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on correlation");
-				uiDefButF(block, NUM, B_DIFF, 							"T:",			1111, y,164,19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Specify the threshold correlation for subdivision");
+				uiDefButBitS(block, TOG, SKGEN_CUT_CORRELATION, B_DIFF, "Adaptative",	1041, y, 67,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs adaptatively");
+				uiDefButF(block, NUM, B_DIFF, 							"T:",			1111, y,114,19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Specify the adaptive threshold for subdivision");
+				uiDefButBitS(block, TOG, SKGEN_STICK_TO_EMBEDDING, B_DIFF,		"E",			1225, y, 25,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Stick endpoint to embedding");
+				uiDefButBitS(block, TOG, SKGEN_ADAPTIVE_DISTANCE, B_DIFF, 		"D",			1250, y, 25,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Adaptive distance (on) or variance(off)");
 				break;
 		}
 	}
