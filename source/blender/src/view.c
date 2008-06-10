@@ -156,7 +156,7 @@ void viewray(short mval[2], float ray_start[3], float ray_normal[3])
 /* create intersection coordinates in view Z direction at mouse coordinates */
 void viewline(short mval[2], float ray_start[3], float ray_end[3])
 {
-	float vec[3];
+	float vec[4];
 	
 	if(G.vd->persp != V3D_ORTHO){
 		vec[0]= 2.0f * mval[0] / curarea->winx - 1;
