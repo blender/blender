@@ -2077,7 +2077,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							vgroup_operation_with_menu();
 					}
 				}
-				else if((G.qual==LR_SHIFTKEY))
+				else if((G.qual==LR_SHIFTKEY)) {
 					if(G.obedit) {
 						if(G.obedit->type==OB_MESH)
 							select_mesh_group_menu();
@@ -2086,6 +2086,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						pose_select_grouped_menu();
 					else if (ob)
 						select_object_grouped_menu();
+				}
 				else if((G.obedit==0) && G.qual==LR_ALTKEY) {
 					if(okee("Clear location")) {
 						clear_object('g');
