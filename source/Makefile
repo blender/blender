@@ -225,8 +225,9 @@ PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
 PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
 PULIB += $(OCGDIR)/blender/ed_datafiles/libed_datafiles.a
 PULIB += $(OCGDIR)/blender/ed_screen/libed_screen.a
-PULIB += $(OCGDIR)/blender/ed_interface/libed_interface.a
+PULIB += $(OCGDIR)/blender/ed_time/libed_time.a
 PULIB += $(OCGDIR)/blender/ed_view3d/libed_view3d.a
+PULIB += $(OCGDIR)/blender/ed_interface/libed_interface.a
 PULIB += $(OCGDIR)/blender/windowmanager/libwindowmanager.a
 PULIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 
