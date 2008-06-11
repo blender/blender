@@ -1,11 +1,14 @@
 import os
 import os.path
 import SCons.Options
-import SCons.Options.BoolOption
+try:
+    import SCons.Options.BoolOption
+except ImportError:
+    pass
 try:
     import subprocess
 except ImportError:
-	pass
+    pass
 import string
 import glob
 import shutil
