@@ -883,6 +883,15 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 			dir = dir+2; /* skip the first // */
 		}
 	}
+	
+	/* Note
+	 *   memmove( start, eind, strlen(eind)+1 );
+	 * is the same as
+	 *   strcpy( start, eind ); 
+	 * except strcpy should not be used because there is overlap,
+	  * so use memmove's slightly more obscure syntax - Campbell
+	 */
+	
 #ifdef WIN32
 	if(dir[0]=='.') {	/* happens for example in FILE_MAIN */
 	   get_default_root(dir);
@@ -896,17 +905,18 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 			if (dir[a] == '\\') break;
 			a--;
 		}
-		strcpy(dir+a,eind);
+		memmove( dir+a, eind, strlen(eind)+1 );
+		
 	}
 
 	while ( (start = strstr(dir,"\\.\\")) ){
 		eind = start + strlen("\\.\\") - 1;
-		strcpy(start,eind);
+		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	while ( (start = strstr(dir,"\\\\" )) ){
 		eind = start + strlen("\\\\") - 1;
-		strcpy(start,eind);
+		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	if((a = strlen(dir))){				/* remove the '\\' at the end */
@@ -929,17 +939,17 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 			if (dir[a] == '/') break;
 			a--;
 		}
-		strcpy(dir+a,eind);
+		memmove( dir+a, eind, strlen(eind)+1 );
 	}
 
 	while ( (start = strstr(dir,"/./")) ){
 		eind = start + strlen("/./") - 1;
-		strcpy(start,eind);
+		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	while ( (start = strstr(dir,"//" )) ){
 		eind = start + strlen("//") - 1;
-		strcpy(start,eind);
+		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	if( (a = strlen(dir)) ){				/* remove all '/' at the end */
