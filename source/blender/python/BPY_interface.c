@@ -1154,13 +1154,17 @@ static void unlink_script( Script * script )
 				if( sl->spacetype == SPACE_SCRIPT ) {
 					SpaceScript *sc = ( SpaceScript * ) sl;
 
-					if( sc->script == script ) {
+					if( sc->script == script ) {					
 						sc->script = NULL;
 
-						if( sc ==
-						    area->spacedata.first ) {
-							scrarea_queue_redraw
-								( area );
+						if( sc == area->spacedata.first ) {
+							scrarea_queue_redraw( area );
+						}
+						
+						if (sc->but_refs) {
+							BPy_Set_DrawButtonsList(sc->but_refs);
+							BPy_Free_DrawButtonsList();
+							sc->but_refs = NULL;
 						}
 					}
 				}

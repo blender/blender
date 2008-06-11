@@ -6334,7 +6334,10 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 			SpaceNode *snode= (SpaceNode *)sl;
 			snode->nodetree= NULL;
 		}
-
+		else if(sl->spacetype==SPACE_SCRIPT) {
+			SpaceScript *sc = ( SpaceScript * ) sl;
+			sc->but_refs = NULL;
+		}
 		sl= sl->next;
 	}
 	
