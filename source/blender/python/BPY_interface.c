@@ -1154,13 +1154,17 @@ static void unlink_script( Script * script )
 				if( sl->spacetype == SPACE_SCRIPT ) {
 					SpaceScript *sc = ( SpaceScript * ) sl;
 
-					if( sc->script == script ) {
+					if( sc->script == script ) {					
 						sc->script = NULL;
 
-						if( sc ==
-						    area->spacedata.first ) {
-							scrarea_queue_redraw
-								( area );
+						if( sc == area->spacedata.first ) {
+							scrarea_queue_redraw( area );
+						}
+						
+						if (sc->but_refs) {
+							BPy_Set_DrawButtonsList(sc->but_refs);
+							BPy_Free_DrawButtonsList();
+							sc->but_refs = NULL;
 						}
 					}
 				}
@@ -1222,7 +1226,7 @@ static int bpy_pydriver_create_dict(void)
 {
 	PyObject *d, *mod;
 
-	if (bpy_pydriver_Dict || (G.f&G_DOSCRIPTLINKS)==0) return -1;
+	if (bpy_pydriver_Dict) return -1;
 
 	d = PyDict_New();
 	if (!d) return -1;
@@ -1259,15 +1263,16 @@ static int bpy_pydriver_create_dict(void)
 
 	/* If there's a Blender text called pydrivers.py, import it.
 	 * Users can add their own functions to this module. */
-	mod = importText("pydrivers"); /* can also use PyImport_Import() */
-	if (mod) {
-		PyDict_SetItemString(d, "pydrivers", mod);
-		PyDict_SetItemString(d, "p", mod);
-		Py_DECREF(mod);
+	if (G.f&G_DOSCRIPTLINKS) {
+		mod = importText("pydrivers"); /* can also use PyImport_Import() */
+		if (mod) {
+			PyDict_SetItemString(d, "pydrivers", mod);
+			PyDict_SetItemString(d, "p", mod);
+			Py_DECREF(mod);
+		} else {
+			PyErr_Clear();
+		}
 	}
-	else
-		PyErr_Clear();
-
 	/* short aliases for some Get() functions: */
 
 	/* ob(obname) == Blender.Object.Get(obname) */

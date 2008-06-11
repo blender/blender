@@ -2048,7 +2048,7 @@ static int RenderData_setIValueAttrClamp( BPy_RenderData *self, PyObject *value,
 		break;
 	case EXPP_RENDER_ATTR_BAKEMODE:
 		min = RE_BAKE_LIGHT;
-		max = RE_BAKE_DISPLACEMENT;
+		max = RE_BAKE_SHADOW;
 		size = 'h';
 		param = &self->renderContext->bake_mode;
 		break;
@@ -3781,6 +3781,7 @@ static PyObject *M_Render_BakeModesDict( void )
 		PyConstant_Insert( d, "NORMALS", PyInt_FromLong( RE_BAKE_NORMALS ) );
 		PyConstant_Insert( d, "TEXTURE", PyInt_FromLong( RE_BAKE_TEXTURE ) );
 		PyConstant_Insert( d, "DISPLACEMENT", PyInt_FromLong( RE_BAKE_DISPLACEMENT ) );
+		PyConstant_Insert( d, "SHADOW", PyInt_FromLong( RE_BAKE_SHADOW ) );
 	}
 	return M;
 }

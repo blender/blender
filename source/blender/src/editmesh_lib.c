@@ -2199,18 +2199,25 @@ UvVertMap *make_uv_vert_map_EM(int selected, int do_face_idx_array, float *limit
 		if(!selected || ((!efa->h) && (efa->f & SELECT)))
 			totuv += (efa->v4)? 4: 3;
 		
-	if(totuv==0)
+	if(totuv==0) {
+		if (do_face_idx_array)
+			EM_free_index_arrays();
 		return NULL;
-	
+	}
 	vmap= (UvVertMap*)MEM_callocN(sizeof(*vmap), "UvVertMap");
-	if (!vmap)
+	if (!vmap) {
+		if (do_face_idx_array)
+			EM_free_index_arrays();
 		return NULL;
+	}
 
 	vmap->vert= (UvMapVert**)MEM_callocN(sizeof(*vmap->vert)*totverts, "UvMapVert*");
 	buf= vmap->buf= (UvMapVert*)MEM_callocN(sizeof(*vmap->buf)*totuv, "UvMapVert");
 
 	if (!vmap->vert || !vmap->buf) {
 		free_uv_vert_map(vmap);
+		if (do_face_idx_array)
+			EM_free_index_arrays();
 		return NULL;
 	}
 

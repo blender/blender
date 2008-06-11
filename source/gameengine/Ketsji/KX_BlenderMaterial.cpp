@@ -478,16 +478,23 @@ bool KX_BlenderMaterial::setDefaultBlending()
 	if( mMaterial->transp &TF_ADD) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE, GL_ONE);
+		glDisable ( GL_ALPHA_TEST );
 		return true;
 	}
 	
 	if( mMaterial->transp & TF_ALPHA ) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDisable ( GL_ALPHA_TEST );
 		return true;
 	}
 	
-	glDisable(GL_BLEND);
+	if( mMaterial->transp & TF_CLIP ) {
+		glDisable(GL_BLEND); 
+		glEnable ( GL_ALPHA_TEST );
+		glAlphaFunc(GL_GREATER, 0.5f);
+		return true;
+	}
 	return false;
 }
 

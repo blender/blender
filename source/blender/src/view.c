@@ -144,6 +144,48 @@ void persp(int a)
 	}
 }
 
+/* create intersection ray in view Z direction at mouse coordinates */
+void viewray(short mval[2], float ray_start[3], float ray_normal[3])
+{
+	float ray_end[3];
+	viewline(mval, ray_start, ray_end);
+	VecSubf(ray_normal, ray_end, ray_start);
+	Normalize(ray_normal);
+}
+
+/* create intersection coordinates in view Z direction at mouse coordinates */
+void viewline(short mval[2], float ray_start[3], float ray_end[3])
+{
+	float vec[4];
+	
+	if(G.vd->persp != V3D_ORTHO){
+		vec[0]= 2.0f * mval[0] / curarea->winx - 1;
+		vec[1]= 2.0f * mval[1] / curarea->winy - 1;
+		vec[2]= -1.0f;
+		vec[3]= 1.0f;
+
+		Mat4MulVec4fl(G.vd->persinv, vec);
+		VecMulf(vec, 1.0f / vec[3]);
+
+		VECCOPY(ray_start, G.vd->viewinv[3]);
+		VECSUB(vec, vec, ray_start);
+		Normalize(vec);
+
+		VECADDFAC(ray_start, G.vd->viewinv[3], vec, G.vd->near);
+		VECADDFAC(ray_end, G.vd->viewinv[3], vec, G.vd->far);
+	}
+	else {
+		vec[0] = 2.0f * mval[0] / curarea->winx - 1;
+		vec[1] = 2.0f * mval[1] / curarea->winy - 1;
+		vec[2] = 0.0f;
+		vec[3] = 1.0f;
+
+		Mat4MulVec4fl(G.vd->persinv, vec);
+
+		VECADDFAC(ray_start, vec, G.vd->viewinv[2],  1000.0f);
+		VECADDFAC(ray_end, vec, G.vd->viewinv[2], -1000.0f);
+	}
+}
 
 void initgrabz(float x, float y, float z)
 {
@@ -228,6 +270,29 @@ void project_int(float *vec, int *adr)
 	}
 }
 
+void project_int_noclip(float *vec, int *adr)
+{
+	float fx, fy, vec4[4];
+
+	VECCOPY(vec4, vec);
+	vec4[3]= 1.0;
+	
+	Mat4MulVec4fl(G.vd->persmat, vec4);
+
+	if( fabs(vec4[3]) > BL_NEAR_CLIP ) {
+		fx = (curarea->winx/2)*(1 + vec4[0]/vec4[3]);
+		fy = (curarea->winy/2)*(1 + vec4[1]/vec4[3]);
+			
+		adr[0] = floor(fx); 
+		adr[1] = floor(fy);
+	}
+	else
+	{
+		adr[0] = curarea->winx / 2;
+		adr[1] = curarea->winy / 2;
+	}
+}
+
 void project_short_noclip(float *vec, short *adr)
 {
 	float fx, fy, vec4[4];
@@ -264,8 +329,28 @@ void project_float(float *vec, float *adr)
 	Mat4MulVec4fl(G.vd->persmat, vec4);
 
 	if( vec4[3]>BL_NEAR_CLIP ) {
-		adr[0]= (curarea->winx/2.0)+(curarea->winx/2.0)*vec4[0]/vec4[3];	
-		adr[1]= (curarea->winy/2.0)+(curarea->winy/2.0)*vec4[1]/vec4[3];
+		adr[0] = (curarea->winx/2.0)+(curarea->winx/2.0)*vec4[0]/vec4[3];	
+		adr[1] = (curarea->winy/2.0)+(curarea->winy/2.0)*vec4[1]/vec4[3];
+	}
+}
+
+void project_float_noclip(float *vec, float *adr)
+{
+	float vec4[4];
+
+	VECCOPY(vec4, vec);
+	vec4[3]= 1.0;
+	
+	Mat4MulVec4fl(G.vd->persmat, vec4);
+
+	if( fabs(vec4[3]) > BL_NEAR_CLIP ) {
+		adr[0] = (curarea->winx/2.0)+(curarea->winx/2.0)*vec4[0]/vec4[3];	
+		adr[1] = (curarea->winy/2.0)+(curarea->winy/2.0)*vec4[1]/vec4[3];
+	}
+	else
+	{
+		adr[0] = curarea->winx / 2.0f;
+		adr[1] = curarea->winy / 2.0f;
 	}
 }
 

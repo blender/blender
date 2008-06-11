@@ -4395,7 +4395,7 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			
 			/* bone types */
 			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge",		-10,by-38,80,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
-			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",		70,by-38,20,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
+			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",		70,by-38,20,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit scale from parent Bone");
 			uiDefButBitI(block, TOGN, BONE_NO_DEFORM, B_ARM_RECALCDATA, "Deform",	90, by-38, 80, 18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
 			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult", 170,by-38,80,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
 			uiDefButBitI(block, TOG, BONE_HIDDEN_A, REDRAWVIEW3D, "Hide",	250,by-38,80,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in Edit Mode");
@@ -6261,6 +6261,7 @@ static void editing_panel_mesh_texface(void)
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Opaque",	600,80,60,19, &tf->transp, 2.0, (float)TF_SOLID,0, 0, "Render color of textured face as color");
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Add",		660,80,60,19, &tf->transp, 2.0, (float)TF_ADD,	0, 0, "Render face transparent and add color of face");
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",	720,80,60,19, &tf->transp, 2.0, (float)TF_ALPHA,0, 0, "Render polygon transparent, depending on alpha channel of the texture");
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Clip Alpha",	780,80,80,19, &tf->transp, 2.0, (float)TF_CLIP,0, 0, "Use the images alpha values clipped with no blending (binary alpha)");
 	}
 	else
 		uiDefBut(block,LABEL,B_NOP, "(No Active Face)", 10,200,150,19,0,0,0,0,0,"");

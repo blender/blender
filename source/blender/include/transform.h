@@ -75,6 +75,8 @@ typedef struct TransSnap {
 	int  	status;
 	float	snapPoint[3];
 	float	snapTarget[3];
+	float	snapNormal[3];
+	float	snapTangent[3];
 	float	dist; // Distance from snapPoint to snapTarget
 	double	last;
 	void  (*applySnap)(struct TransInfo *, float *);
@@ -457,6 +459,8 @@ void applySnapping(TransInfo *t, float *vec);
 void resetSnapping(TransInfo *t);
 int  handleSnapping(TransInfo *t, int event);
 void drawSnapping(TransInfo *t);
+int usingSnappingNormal(TransInfo *t);
+int validSnappingNormal(TransInfo *t);
 
 /*********************** Generics ********************************/
 
@@ -487,6 +491,7 @@ void calculateCenterCursor2D(TransInfo *t);
 void calculatePropRatio(TransInfo *t);
 
 void getViewVector(float coord[3], float vec[3]);
+void getViewRay(short mval[2], float p[3], float d[3]);
 
 TransInfo * BIF_GetTransInfo(void);
 

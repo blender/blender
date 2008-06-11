@@ -4044,7 +4044,7 @@ static void object_softbodies(Object *ob)
 				uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Aero:",     30,10,60,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");
 			    uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Plas:", 90,10,60,20, &sb->plastic, 0.0,  100.0, 10, 0, "Permanent deform");
 				if(ob->type==OB_MESH) {
-					uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Be:", 150,10,80,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Bendig Stiffness");
+					uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Be:", 150,10,80,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Bending Stiffness");
 					if (*softflag & OB_SB_QUADS){ 
 					uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Sh:", 230,10,80,20, &sb->shearstiff, 0.0,  1.0, 10, 0, "Shear Stiffness");
 					}
@@ -4832,7 +4832,7 @@ static void object_panel_particle_system(Object *ob)
 		uiDefButS(block, NUM, B_PART_RECALC, "Segments:",	butx,(buty-=buth),butw,buth, &part->hair_step, 2.0, 50.0, 0, 0, "Amount of hair segments");
 	}
 	else {
-		uiDefButF(block, NUM, B_PART_INIT, "Sta:",		butx,(buty-=buth),butw,buth, &part->sta, 1.0, part->end, 100, 1, "Frame # to start emitting particles");
+		uiDefButF(block, NUM, B_PART_INIT, "Sta:",		butx,(buty-=buth),butw,buth, &part->sta, -MAXFRAMEF, part->end, 100, 1, "Frame # to start emitting particles");
 		uiDefButF(block, NUM, B_PART_INIT, "End:",		butx,(buty-=buth),butw,buth, &part->end, part->sta, MAXFRAMEF, 100, 1, "Frame # to stop emitting particles");
 	}
 

@@ -2154,6 +2154,7 @@ void do_viewbuts(unsigned short event)
 			}
 			allqueue(REDRAWVIEW3D, 1);
 			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWOOPS, 0);
 		}
 		break;
 		

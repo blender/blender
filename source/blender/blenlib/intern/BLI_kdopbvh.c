@@ -250,16 +250,16 @@ void sort_along_axis(BVHTree *tree, int start, int end, int axis)
 //after a call to this function you can expect one of:
 //      every node to left of a[n] are smaller or equal to it
 //      every node to the right of a[n] are greater or equal to it
-int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis){        
-	int begin = _begin, end = _end, cut;        
-	while(end-begin > 3)        
-	{                            
-		cut = bvh_partition(a, begin, end, bvh_medianof3(a, begin, (begin+end)/2, end-1, axis), axis );                 
-		if(cut <= n)                        
-			begin = cut;                
-		else                        
-			end = cut;        
-	}        
+int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis){
+	int begin = _begin, end = _end, cut;
+	while(end-begin > 3)
+	{
+		cut = bvh_partition(a, begin, end, bvh_medianof3(a, begin, (begin+end)/2, end-1, axis), axis );
+		if(cut <= n)
+			begin = cut;
+		else
+			end = cut;
+	}
 	bvh_insertionsort(a, begin, end, axis);
 
 	return n;
@@ -424,7 +424,7 @@ static void refit_kdop_hull(BVHTree *tree, BVHNode *node, int start, int end)
 
 	for (j = start; j < end; j++)
 	{
-                // for all Axes.
+// for all Axes.
 		for (i = tree->start_axis; i < tree->stop_axis; i++)
 		{
 			newmin = tree->nodes[j]->bv[(2 * i)];   
@@ -708,7 +708,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result)
 	}
 
 #pragma omp parallel for private(j) schedule(static)
-	for(j = 0; j < tree1->tree_type; j++)
+	for(j = 0; j < MIN2(tree1->tree_type, tree1->nodes[tree1->totleaf]->totnode); j++)
 	{
 		traverse(data[j], tree1->nodes[tree1->totleaf]->children[j], tree2->nodes[tree2->totleaf]);
 	}

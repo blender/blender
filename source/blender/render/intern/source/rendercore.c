@@ -2017,9 +2017,12 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 			ambient_occlusion_to_diffuse(shi, shr.combined);
 	}
 	else {
+		if (bs->type==RE_BAKE_SHADOW) /* Why do shadows set the color anyhow?, ignore material color for baking */
+			shi->r = shi->g = shi->b = 1.0f;
+	
 		shade_input_set_shade_texco(shi);
 		
-		if(!ELEM(bs->type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE))
+		if(!ELEM3(bs->type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_SHADOW))
 			shade_samples_do_AO(ssamp);
 		
 		if(shi->mat->nodetree && shi->mat->use_nodes) {
@@ -2068,6 +2071,10 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 			shr.combined[0]= shi->r;
 			shr.combined[1]= shi->g;
 			shr.combined[2]= shi->b;
+			shr.alpha = shi->alpha;
+		}
+		else if(bs->type==RE_BAKE_SHADOW) {
+			VECCOPY(shr.combined, shr.shad);
 			shr.alpha = shi->alpha;
 		}
 	}
@@ -2505,7 +2512,12 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob)
 		memset(&handles[a], 0, sizeof(BakeShade));
 		
 		handles[a].ssamp.shi[0].lay= re->scene->lay;
-		handles[a].ssamp.shi[0].passflag= SCE_PASS_COMBINED;
+		
+		if (type==RE_BAKE_SHADOW) {
+			handles[a].ssamp.shi[0].passflag= SCE_PASS_SHADOW;
+		} else {
+			handles[a].ssamp.shi[0].passflag= SCE_PASS_COMBINED;
+		}
 		handles[a].ssamp.shi[0].combinedflag= ~(SCE_PASS_SPEC);
 		handles[a].ssamp.shi[0].thread= a;
 		handles[a].ssamp.tot= 1;

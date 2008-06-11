@@ -2077,15 +2077,16 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							vgroup_operation_with_menu();
 					}
 				}
-				else if((G.qual==LR_SHIFTKEY))
+				else if((G.qual==LR_SHIFTKEY)) {
 					if(G.obedit) {
 						if(G.obedit->type==OB_MESH)
 							select_mesh_group_menu();
 					} 
 					else if(ob && (ob->flag & OB_POSEMODE))
 						pose_select_grouped_menu();
-					else
+					else if (ob)
 						select_object_grouped_menu();
+				}
 				else if((G.obedit==0) && G.qual==LR_ALTKEY) {
 					if(okee("Clear location")) {
 						clear_object('g');
@@ -2974,8 +2975,11 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				do_ipo_selectbuttons();
 				doredraw= 1;
 			}
+			else if(G.qual == LR_CTRLKEY) {
+				if (sipo->showkey==0)
+					add_vert_ipo();
+			}
 			else if(view2dmove(LEFTMOUSE));	/* only checks for sliders */
-			else if((G.qual & LR_CTRLKEY) && (sipo->showkey==0)) add_vert_ipo();
 			else {
 				do {
 					getmouseco_areawin(mval);
@@ -3213,7 +3217,7 @@ void initipo(ScrArea *sa)
 	sipo->v2d.min[0]= 0.01f;
 	sipo->v2d.min[1]= 0.01f;
 
-	sipo->v2d.max[0]= 15000.0f;
+	sipo->v2d.max[0]= MAXFRAMEF;
 	sipo->v2d.max[1]= 10000.0f;
 	
 	sipo->v2d.scroll= L_SCROLL+B_SCROLL;
@@ -5172,7 +5176,7 @@ static void init_actionspace(ScrArea *sa)
 	saction->v2d.min[0]= 0.0;
 	saction->v2d.min[1]= 0.0;
 
-	saction->v2d.max[0]= 32000.0;
+	saction->v2d.max[0]= MAXFRAMEF;
 	saction->v2d.max[1]= 1000.0;
 	
 	saction->v2d.minzoom= 0.01;
@@ -5244,7 +5248,7 @@ static void init_soundspace(ScrArea *sa)
 	ssound->v2d.min[0]= 1.0;
 	ssound->v2d.min[1]= 259.0;
 
-	ssound->v2d.max[0]= 32000.0;
+	ssound->v2d.max[0]= MAXFRAMEF;
 	ssound->v2d.max[1]= 259;
 	
 	ssound->v2d.minzoom= 0.1f;
@@ -5974,7 +5978,7 @@ static void init_nlaspace(ScrArea *sa)
 	snla->v2d.min[0]= 0.0;
 	snla->v2d.min[1]= 0.0;
 	
-	snla->v2d.max[0]= 1000.0;
+	snla->v2d.max[0]= MAXFRAMEF;
 	snla->v2d.max[1]= 1000.0;
 	
 	snla->v2d.minzoom= 0.1F;
@@ -6062,7 +6066,7 @@ static void init_timespace(ScrArea *sa)
 	stime->v2d.min[0]= 1.0;
 	stime->v2d.min[1]= (float)sa->winy;
 	
-	stime->v2d.max[0]= 32000.0;
+	stime->v2d.max[0]= MAXFRAMEF;
 	stime->v2d.max[1]= (float)sa->winy;
 	
 	stime->v2d.minzoom= 0.1f;
@@ -6331,7 +6335,10 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 			SpaceNode *snode= (SpaceNode *)sl;
 			snode->nodetree= NULL;
 		}
-
+		else if(sl->spacetype==SPACE_SCRIPT) {
+			SpaceScript *sc = ( SpaceScript * ) sl;
+			sc->but_refs = NULL;
+		}
 		sl= sl->next;
 	}
 	
