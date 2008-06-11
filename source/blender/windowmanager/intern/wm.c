@@ -47,24 +47,28 @@
 #include "ED_screen.h"
 
 /* ****************************************************** */
+
 #define MAX_OP_REGISTERED	32
+
+void wm_operator_free(wmOperator *op)
+{
+	OP_free_property(op);
+	MEM_freeN(op);
+}
 
 /* all operations get registered in the windowmanager here */
 /* called on event handling by event_system.c */
 void wm_operator_register(wmWindowManager *wm, wmOperator *op)
 {
-	wmOperator *opc= MEM_callocN(sizeof(wmOperator), "operator registry");
 	int tot;
 	
-	*opc= *op;
-	BLI_addtail(&wm->operators, opc);
-	
+	BLI_addtail(&wm->operators, op);
 	tot= BLI_countlist(&wm->operators);
 	
 	while(tot>MAX_OP_REGISTERED) {
 		wmOperator *opt= wm->operators.first;
 		BLI_remlink(&wm->operators, opt);
-		MEM_freeN(opt);
+		wm_operator_free(opt);
 		tot--;
 	}
 }
@@ -95,15 +99,11 @@ void wm_check(bContext *C)
 	/* case: no open windows at all, for old file reads */
 	wm_window_add_ghostwindows(C->wm);
 	
-	if(C->window==NULL) {
-		wm_window_make_drawable(C, C->wm->windrawable); 
-	}
-	
 	/* case: fileread */
 	if(C->wm->initialized==0) {
 		
 		wm_window_keymap(C->wm);
-		ed_screen_keymap(C->wm);
+		ED_spacetypes_keymap(C->wm);
 		
 		ED_screens_initialize(C->wm);
 		C->wm->initialized= 1;
@@ -119,7 +119,7 @@ void wm_add_default(bContext *C)
 	C->wm= wm;
 	
 	win= wm_window_new(C, C->screen);
-	wm->windrawable= win;
+	wm->winactive= win;
 	wm_window_make_drawable(C, win); 
 }
 
@@ -128,14 +128,19 @@ void wm_add_default(bContext *C)
 void wm_close_and_free(bContext *C, wmWindowManager *wm)
 {
 	wmWindow *win;
+	wmOperator *op;
 	
 	while((win= wm->windows.first)) {
 		BLI_remlink(&wm->windows, win);
 		wm_window_free(C, win);
 	}
 	
-	BLI_freelistN(&wm->operators);
-	
+	while((op= wm->operators.first)) {
+		BLI_remlink(&wm->operators, op);
+		wm_operator_free(op);
+	}
+
+	BLI_freelistN(&wm->timekeymap);
 	BLI_freelistN(&wm->windowkeymap);
 	BLI_freelistN(&wm->screenkeymap);
 	

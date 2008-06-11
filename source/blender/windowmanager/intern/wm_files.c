@@ -370,7 +370,7 @@ return;
 	/* we take apart the used screens from non-active window */
 	for(win= wm->windows.first; win; win= win->next) {
 		BLI_strncpy(win->screenname, win->screen->id.name, MAX_ID_NAME);
-		if(win!=C->window) {
+		if(win!=C->wm->winactive) {
 			BLI_remlink(&G.main->screen, win->screen);
 			//BLI_addtail(screenbase, win->screen);
 		}

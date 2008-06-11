@@ -62,9 +62,13 @@ wmOperatorType *WM_operatortype_find(const char *idname)
 }
 
 /* all ops in 1 list (for time being... needs evaluation later) */
-void WM_operatortypelist_append(ListBase *lb)
+void WM_operatortype_append(void (*opfunc)(wmOperatorType*))
 {
-	addlisttolist(&global_ops, lb);
+	wmOperatorType *ot;
+	
+	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype");
+	opfunc(ot);
+	BLI_addtail(&global_ops, ot);
 }
 
 /* ************ default ops, exported *********** */
@@ -133,44 +137,35 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
  */
 static int border_select_init(bContext *C, wmOperator *op)
 {
-	OP_set_int(op, "start_x", op->veci.x);
-	OP_set_int(op, "start_y", op->veci.y);
+	int x, y;
+
+	if(!(OP_get_int(op, "start_x", &x) && OP_get_int(op, "start_y", &y)))
+		return 0;
+
 	WM_gesture_init(C, GESTURE_RECT);
 	return 1;
 }
 
-static int border_select_exec(bContext *C, wmOperator *op)
+static int border_select_apply(bContext *C, wmOperator *op)
 {
 	wmGestureRect rect;
-	int x, y;
+	int x, y, endx, endy;
 
 	OP_get_int(op, "start_x", &x);
 	OP_get_int(op, "start_y", &y);
+	OP_get_int(op, "end_x", &endx);
+	OP_get_int(op, "end_y", &endy);
 
 	rect.gesture.next= rect.gesture.prev= NULL;
 	rect.gesture.type= GESTURE_RECT;
 	rect.x1= x;
 	rect.y1= y;
-	rect.x2= op->veci.x;
-	rect.y2= op->veci.y;
+	rect.x2= endx;
+	rect.y2= endy;
 	WM_gesture_update(C, (wmGesture *) &rect);
 	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_GESTURE_CHANGED, GESTURE_RECT, NULL);
+
 	return 1;
-}
-
-static int border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	/* operator arguments and storage. */
-	op->properties= NULL;
-	op->veci.x= event->x;
-	op->veci.y= event->y;
-
-	if(0==border_select_init(C, op))
-		return 1;
-
-	/* add temp handler */
-	WM_event_add_modal_handler(&C->window->handlers, op);
-	return 0;
 }
 
 static int border_select_exit(bContext *C, wmOperator *op)
@@ -180,42 +175,61 @@ static int border_select_exit(bContext *C, wmOperator *op)
 	return 1;
 }
 
+static int border_select_exec(bContext *C, wmOperator *op)
+{
+	if(!border_select_init(C, op))
+		return OPERATOR_CANCELLED;
+	
+	border_select_apply(C, op);
+	border_select_exit(C, op);
+
+	return OPERATOR_FINISHED;
+}
+
+static int border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	/* operator arguments and storage. */
+	OP_verify_int(op, "start_x", event->x, NULL);
+	OP_verify_int(op, "start_y", event->y, NULL);
+
+	if(!border_select_init(C, op))
+		return OPERATOR_CANCELLED;
+
+	/* add temp handler */
+	WM_event_add_modal_handler(&C->window->handlers, op);
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int border_select_cancel(bContext *C, wmOperator *op)
+{
+	WM_event_remove_modal_handler(&C->window->handlers, op);
+	border_select_exit(C, op);
+	return OPERATOR_CANCELLED;
+}
+
 static int border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	switch(event->type) {
 		case MOUSEMOVE:
-			op->veci.x= event->x;
-			op->veci.y= event->y;
-			border_select_exec(C, op);
+			OP_set_int(op, "end_x", event->x);
+			OP_set_int(op, "end_y", event->y);
+			border_select_apply(C, op);
+			WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_GESTURE_CHANGED, GESTURE_RECT, NULL);
 			WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 			break;
 		case LEFTMOUSE:
 			if(event->val==0) {
-				wmGestureRect rect;
-				int x, y;
-
-				OP_get_int(op, "start_x", &x);
-				OP_get_int(op, "start_y", &y);
-
-				rect.gesture.next= rect.gesture.prev= NULL;
-				rect.gesture.type= GESTURE_RECT;
-				rect.x1= x;
-				rect.y1= y;
-				rect.x2= op->veci.x;
-				rect.y2= op->veci.y;
-				WM_gesture_update(C, (wmGesture*)&rect);
+				border_select_apply(C, op);
 				WM_gesture_end(C, GESTURE_RECT);
-
 				border_select_exit(C, op);
 				WM_event_remove_modal_handler(&C->window->handlers, op);
+				return OPERATOR_FINISHED;
 			}
 			break;
 		case ESCKEY:
-			WM_event_remove_modal_handler(&C->window->handlers, op);
-			border_select_exit(C, op);
-			break;
+			return border_select_cancel(C, op);
 	}
-	return 1;
+	return OPERATOR_RUNNING_MODAL;
 }
 
 void WM_OT_border_select(wmOperatorType *ot)
@@ -224,20 +238,14 @@ void WM_OT_border_select(wmOperatorType *ot)
 	ot->name= "Border select";
 	ot->idname= "WM_OT_border_select";
 
-	ot->init= border_select_init;
-	ot->invoke= border_select_invoke;
-	ot->modal= border_select_modal;
 	ot->exec= border_select_exec;
-	ot->exit= border_select_exit;
+	ot->invoke= border_select_invoke;
+	ot->cancel= border_select_cancel;
+	ot->modal= border_select_modal;
 
 	ot->poll= WM_operator_winactive;
 }
  
-#define ADD_OPTYPE(opfunc)	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype"); \
-							opfunc(ot);  \
-							BLI_addtail(&global_ops, ot)
-
-
 /* called on initialize WM_exit() */
 void wm_operatortype_free(void)
 {
@@ -247,20 +255,23 @@ void wm_operatortype_free(void)
 /* called on initialize WM_init() */
 void wm_operatortype_init(void)
 {
-	wmOperatorType *ot;
-	
-	ADD_OPTYPE(WM_OT_window_duplicate);
-	ADD_OPTYPE(WM_OT_save_homefile);
-	ADD_OPTYPE(WM_OT_window_fullscreen_toggle);
-	ADD_OPTYPE(WM_OT_exit_blender);
-	ADD_OPTYPE(WM_OT_border_select);
+	WM_operatortype_append(WM_OT_window_duplicate);
+	WM_operatortype_append(WM_OT_save_homefile);
+	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
+	WM_operatortype_append(WM_OT_exit_blender);
+	WM_operatortype_append(WM_OT_border_select);
 }
 
 /* wrapped to get property from a operator. */
 IDProperty *op_get_property(wmOperator *op, char *name)
 {
-	IDProperty *prop= IDP_GetPropertyFromGroup(op->properties, name);
-	return(prop);
+	IDProperty *prop;
+	
+	if(!op->properties)
+		return NULL;
+
+	prop= IDP_GetPropertyFromGroup(op->properties, name);
+	return prop;
 }
 
 /*
@@ -279,13 +290,15 @@ void op_init_property(wmOperator *op)
 /* ***** Property API, exported ***** */
 void OP_free_property(wmOperator *op)
 {
-	IDP_FreeProperty(op->properties);
-	/*
-	 * This need change, when the idprop code only
-	 * need call IDP_FreeProperty. (check BKE_idprop.h)
-	 */
-	MEM_freeN(op->properties);
-	op->properties= NULL;
+	if(op->properties) {
+		IDP_FreeProperty(op->properties);
+		/*
+		 * This need change, when the idprop code only
+		 * need call IDP_FreeProperty. (check BKE_idprop.h)
+		 */
+		MEM_freeN(op->properties);
+		op->properties= NULL;
+	}
 }
 
 void OP_set_int(wmOperator *op, char *name, int value)
@@ -370,11 +383,11 @@ void OP_set_string(wmOperator *op, char *name, char *str)
 int OP_get_int(wmOperator *op, char *name, int *value)
 {
 	IDProperty *prop= op_get_property(op, name);
-	int status= 1;
+	int status= 0;
 
 	if ((prop) && (prop->type == IDP_INT)) {
 		(*value)= prop->data.val;
-		status= 0;
+		status= 1;
 	}
 	return (status);
 }
@@ -382,11 +395,11 @@ int OP_get_int(wmOperator *op, char *name, int *value)
 int OP_get_float(wmOperator *op, char *name, float *value)
 {
 	IDProperty *prop= op_get_property(op, name);
-	int status= 1;
+	int status= 0;
 
 	if ((prop) && (prop->type == IDP_FLOAT)) {
 		(*value)= *(float*)&prop->data.val;
-		status= 0;
+		status= 1;
 	}
 	return (status);
 }
@@ -395,7 +408,7 @@ int OP_get_int_array(wmOperator *op, char *name, int *array, short *len)
 {
 	IDProperty *prop= op_get_property(op, name);
 	short i;
-	int status= 1;
+	int status= 0;
 	int *pointer;
 
 	if ((prop) && (prop->type == IDP_ARRAY)) {
@@ -405,7 +418,7 @@ int OP_get_int_array(wmOperator *op, char *name, int *array, short *len)
 			array[i]= pointer[i];
 
 		(*len)= i;
-		status= 0;
+		status= 1;
 	}
 	return (status);
 }
@@ -415,7 +428,7 @@ int OP_get_float_array(wmOperator *op, char *name, float *array, short *len)
 	IDProperty *prop= op_get_property(op, name);
 	short i;
 	float *pointer;
-	int status= 1;
+	int status= 0;
 
 	if ((prop) && (prop->type == IDP_ARRAY)) {
 		pointer= (float *) prop->data.pointer;
@@ -424,7 +437,7 @@ int OP_get_float_array(wmOperator *op, char *name, float *array, short *len)
 			array[i]= pointer[i];
 
 		(*len)= i;
-		status= 0;
+		status= 1;
 	}
 	return (status);
 }
@@ -436,3 +449,76 @@ char *OP_get_string(wmOperator *op, char *name)
 		return ((char *) prop->data.pointer);
 	return (NULL);
 }
+
+void OP_verify_int(wmOperator *op, char *name, int value, int *result)
+{
+	int rvalue;
+
+	if(OP_get_int(op, name, &rvalue))
+		value= rvalue;
+	else
+		OP_set_int(op, name, value);
+
+	if(result)
+		*result= value;
+}
+
+void OP_verify_float(wmOperator *op, char *name, float value, int *result)
+{
+	float rvalue;
+
+	if(OP_get_float(op, name, &rvalue))
+		value= rvalue;
+	else
+		OP_set_float(op, name, value);
+	
+	if(result)
+		*result= value;
+}
+
+char *OP_verify_string(wmOperator *op, char *name, char *str)
+{
+	char *result= OP_get_string(op, name);
+
+	if(!result) {
+		OP_set_string(op, name, str);
+		result= OP_get_string(op, name);
+	}
+
+	return result;
+}
+
+void OP_verify_int_array(wmOperator *op, char *name, int *array, short len, int *resultarray, short *resultlen)
+{
+	int rarray[1];
+	short rlen= 1;
+
+	if(resultarray && resultlen) {
+		if(!OP_get_int_array(op, name, resultarray, &rlen)) {
+			OP_set_int_array(op, name, array, len);
+			OP_get_int_array(op, name, resultarray, resultlen);
+		}
+	}
+	else {
+		if(!OP_get_int_array(op, name, rarray, &rlen))
+			OP_set_int_array(op, name, array, len);
+	}
+}
+
+void OP_verify_float_array(wmOperator *op, char *name, float *array, short len, float *resultarray, short *resultlen)
+{
+	float rarray[1];
+	short rlen= 1;
+
+	if(resultarray && resultlen) {
+		if(!OP_get_float_array(op, name, resultarray, &rlen)) {
+			OP_set_float_array(op, name, array, len);
+			OP_get_float_array(op, name, resultarray, resultlen);
+		}
+	}
+	else {
+		if(!OP_get_float_array(op, name, rarray, &rlen))
+			OP_set_float_array(op, name, array, len);
+	}
+}
+

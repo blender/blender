@@ -264,7 +264,6 @@ static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 void area_azone_initialize(ScrArea *sa) {
 	AZone *az;
 	if(sa->actionzones.first==NULL) {
-		printf("area_azone_initialize\n");
 		/* set action zones - should these actually be ARegions? With these we can easier check area hotzones */
 		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 		BLI_addtail(&(sa->actionzones), az);
@@ -367,7 +366,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	
 	/* regiontype callback, it should create/verify the amount of subregions with minsizes etc */
 	if(sa->type->init)
-		sa->type->init(sa);
+		sa->type->init(wm, sa);
 	
 	/* region rect sizes */
 	rect= sa->totrct;

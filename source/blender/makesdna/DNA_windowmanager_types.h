@@ -65,6 +65,7 @@ typedef struct wmWindowManager {
 	/* custom keymaps */
 	ListBase windowkeymap;
 	ListBase screenkeymap;
+	ListBase timekeymap;
 	
 	
 } wmWindowManager;
@@ -108,18 +109,26 @@ typedef struct wmOperatorType {
 	char *name;		/* text for ui, undo */
 	char *idname;	/* unique identifier */
 	
-	/* this callback alters UI, adds handlers, or uses cb's below */
-	int (*invoke)(struct bContext *, struct wmOperator *, struct wmEvent *event);
-	/* this callback is for modal temporary ops, initialize was called */
-	int (*modal)(struct bContext *, struct wmOperator *, struct wmEvent *event);
-	
-	int (*init)(struct bContext *, struct wmOperator *);
+	/* this callback executes the operator without any interactive input,
+	 * parameters may be provided through operator properties. cannot use
+	 * any interface code or input device state.
+	 * - see defines below for return values */
 	int (*exec)(struct bContext *, struct wmOperator *);
-	int (*exit)(struct bContext *, struct wmOperator *);
-	
+
+	/* for modal temporary operators, initially invoke is called. then
+	 * any further events are handled in modal. if the operation is
+	 * cancelled due to some external reason, cancel is called
+	 * - see defines below for return values */
+	int (*invoke)(struct bContext *, struct wmOperator *, struct wmEvent *);
+	int (*cancel)(struct bContext *, struct wmOperator *);
+	int (*modal)(struct bContext *, struct wmOperator *, struct wmEvent *);
+
+	/* verify if the operator can be executed in the current context, note
+	 * that the operator might still fail to execute even if this return true */
 	int (*poll)(struct bContext *);
 	
-	void *(*uiBlock)(struct wmOperator *);	/* panel for redo or repeat */
+	/* panel for redo and repeat */
+	void *(*uiBlock)(struct wmOperator *);
 	
 	char *customname;	/* dna name */
 	void *customdata;	/* defaults */
@@ -153,21 +162,18 @@ typedef struct wmOperator {
 	wmOperatorType *type;
 	char idname[64];		/* used to retrieve type pointer */
 	
-	/* default storage (lazy?) */
-	void *argv1, *argv2;
-	vec4f	vecf;
-	vec4i	veci;
-	float fac, deltaf;
-	int value, delta;
-	
 	/* custom storage, dna pointer */
 	void *customdata; 
 	/* or IDproperty list */
 	IDProperty *properties;
 
-	
 } wmOperator;
 
+/* operator type exec(), invoke() modal(), cancel() return values */
+#define OPERATOR_PASS_THROUGH	0
+#define OPERATOR_RUNNING_MODAL	1
+#define OPERATOR_CANCELLED		2
+#define OPERATOR_FINISHED		3
 
 #endif /* DNA_WINDOWMANAGER_TYPES_H */
 

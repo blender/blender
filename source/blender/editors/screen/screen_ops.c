@@ -42,8 +42,6 @@
 
 #include "screen_intern.h"	/* own module include */
 
-static ListBase local_ops;
-
 /* ************** Poll tests ********************** */
 
 int ED_operator_screenactive(bContext *C)
@@ -69,40 +67,24 @@ static void ED_SCR_OT_cursor_type(wmOperatorType *ot)
     ot->idname= "ED_SCR_OT_cursor_type";
 	
     ot->invoke= screen_cursor_test;
-    ot->exec= NULL;
     ot->poll= ED_operator_screenactive;
 }
 
-#define ADD_OPTYPE(opfunc)	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype"); \
-							opfunc(ot);  \
-							BLI_addtail(&local_ops, ot)
-
-
-
-/* called via wm_init_exit.c ED_spacetypes_init() */
+/* called in spacetypes.c */
 void ED_operatortypes_screen(void)
 {
-	wmOperatorType *ot;
-	
-	ADD_OPTYPE( ED_SCR_OT_move_areas );
-	ADD_OPTYPE( ED_SCR_OT_cursor_type );
-	ADD_OPTYPE( ED_SCR_OT_split_area );
-	ADD_OPTYPE( ED_SCR_OT_join_areas );
-	
-	WM_operatortypelist_append(&local_ops);
+	WM_operatortype_append(ED_SCR_OT_move_areas);
+	WM_operatortype_append(ED_SCR_OT_cursor_type);
+	WM_operatortype_append(ED_SCR_OT_split_area);
+	WM_operatortype_append(ED_SCR_OT_join_areas);
 }
 
-/* called in wm.c */
-void ed_screen_keymap(wmWindowManager *wm)
+/* called in spacetypes.c */
+void ED_keymap_screen(wmWindowManager *wm)
 {
 	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_cursor_type", MOUSEMOVE, 0, 0, 0);
 	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_move_areas", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_split_area", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_join_areas", RIGHTMOUSE, KM_PRESS, KM_ALT, 0); 
 }
-
-
-
-
-
 

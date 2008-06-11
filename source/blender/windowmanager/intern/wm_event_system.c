@@ -121,23 +121,37 @@ void wm_event_do_notifiers(bContext *C)
 		
 		for(win= C->wm->windows.first; win; win= win->next) {
 			ScrArea *sa;
+
+			C->window= win;
+			C->screen= win->screen;
 			
 			if(note->window && note->window!=win)
 				continue;
 			if(win->screen==NULL)
 				continue;
+
 			printf("notifier win %d screen %s\n", win->winid, win->screen->id.name+2);
 			ED_screen_do_listen(win, note);
 			
 			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 				ARegion *ar= sa->regionbase.first;
 				
+				C->area= sa;
+
 				for(; ar; ar= ar->next) {
 					if(note->swinid && note->swinid!=ar->swinid)
 						continue;
+
+					C->region= ar;
 					ED_region_do_listen(ar, note);
+					C->region= NULL;
 				}
+
+				C->area= NULL;
 			}
+
+			C->window= NULL;
+			C->screen= NULL;
 		}
 		if(note->data)
 			MEM_freeN(note->data);
@@ -178,6 +192,9 @@ void wm_draw_update(bContext *C)
 	for(win= C->wm->windows.first; win; win= win->next) {
 		if(wm_draw_update_test_window(win)) {
 			ScrArea *sa;
+
+			C->window= win;
+			C->screen= win->screen;
 			
 			/* sets context window+screen */
 			wm_window_make_drawable(C, win);
@@ -189,9 +206,13 @@ void wm_draw_update(bContext *C)
 			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 				ARegion *ar= sa->regionbase.first;
 				int hasdrawn= 0;
+
+				C->area= sa;
 				
 				for(; ar; ar= ar->next) {
 					hasdrawn |= ar->do_draw;
+
+					C->region= ar;
 					
 					/* cached notifiers */
 					if(ar->do_refresh)
@@ -199,7 +220,11 @@ void wm_draw_update(bContext *C)
 					
 					if(ar->swinid && ar->do_draw)
 						ED_region_do_draw(C, ar);
+
+					C->region= NULL;
 				}
+
+				C->area = NULL;
 			}
 			
 			/* move this here so we can do area 'overlay' drawing */
@@ -210,6 +235,9 @@ void wm_draw_update(bContext *C)
 				ED_screen_gesture(win);
 
 			wm_window_swap_buffers(win);
+
+			C->window= NULL;
+			C->screen= NULL;
 		}
 	}
 }
@@ -219,8 +247,6 @@ void wm_draw_update(bContext *C)
 /* not handler itself */
 static void wm_event_free_handler(wmEventHandler *handler)
 {
-	if(handler->op)
-		MEM_freeN(handler->op);
 }
 
 void wm_event_free_handlers(ListBase *lb)
@@ -252,57 +278,77 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *km)
 	return 1;
 }
 
+/* note: this might free the handler from the operator */
 static int wm_handler_operator_call(bContext *C, wmEventHandler *handler, wmEvent *event)
 {
-	int retval= 0;
+	int retval= OPERATOR_PASS_THROUGH;
 	
 	/* derived, modal or blocking operator */
 	if(handler->op) {
-		if(handler->op->type->modal)
-			retval= handler->op->type->modal(C, handler->op, event);
+		wmOperator *op= handler->op;
+		wmOperatorType *ot= op->type;
+
+		if(ot->modal) {
+
+			retval= ot->modal(C, op, event);
+
+			if(retval == OPERATOR_FINISHED && (ot->flag & OPTYPE_REGISTER))
+				wm_operator_register(C->wm, op);
+			else if(retval == OPERATOR_CANCELLED || retval == OPERATOR_FINISHED)
+				wm_operator_free(op);
+		}
 		else
 			printf("wm_handler_operator_call error\n");
 	}
 	else {
 		wmOperatorType *ot= WM_operatortype_find(event->keymap_idname);
+
 		if(ot) {
 			if(ot->poll==NULL || ot->poll(C)) {
-				/* operator on stack, register or new modal handle malloc-copies */
-				wmOperator op;
-				
-				memset(&op, 0, sizeof(wmOperator));
-				op.type= ot;
+				wmOperator *op= MEM_callocN(sizeof(wmOperator), "wmOperator");
 
-				if(op.type->invoke)
-					retval= (*op.type->invoke)(C, &op, event);
-				else if(&op.type->exec)
-					retval= op.type->exec(C, &op);
-				
-				if( ot->flag & OPTYPE_REGISTER)
-					wm_operator_register(C->wm, &op);
+				op->type= ot;
+
+				if(op->type->invoke)
+					retval= (*op->type->invoke)(C, op, event);
+				else if(op->type->exec)
+					retval= op->type->exec(C, op);
+
+				if(retval == OPERATOR_FINISHED && (ot->flag & OPTYPE_REGISTER))
+					wm_operator_register(C->wm, op);
+				else if(retval != OPERATOR_RUNNING_MODAL)
+					wm_operator_free(op);
 			}
 		}
 	}
-	if(retval)
-		return WM_HANDLER_BREAK;
-	
-	return WM_HANDLER_CONTINUE;
+
+	if(retval == OPERATOR_PASS_THROUGH)
+		return WM_HANDLER_CONTINUE;
+
+	return WM_HANDLER_BREAK;
 }
 
 static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
-	wmEventHandler *handler;
+	wmEventHandler *handler, *nexthandler;
 	int action= WM_HANDLER_CONTINUE;
 	
 	if(handlers==NULL) return action;
 	
-	for(handler= handlers->first; handler; handler= handler->next) {
+	/* in this loop, the handler might be freed in wm_handler_operator_call,
+	 * and new handler might be added to the head of the list */
+	for(handler= handlers->first; handler; handler= nexthandler) {
+		nexthandler= handler->next;
+
+		/* modal+blocking handler */
+		if(handler->flag & WM_HANDLER_BLOCKING)
+			action= WM_HANDLER_BREAK;
+
 		if(handler->keymap) {
 			wmKeymapItem *km;
 			
 			for(km= handler->keymap->first; km; km= km->next) {
 				if(wm_eventmatch(event, km)) {
-					
 					if(event->type!=MOUSEMOVE)
 						printf("handle evt %d win %d op %s\n", event->type, C->window->winid, km->idname);
 					
@@ -318,10 +364,6 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			/* modal, swallows all */
 			action= wm_handler_operator_call(C, handler, event);
 		}
-
-		/* modal+blocking handler */
-		if(handler->flag & WM_HANDLER_BLOCKING)
-			action= WM_HANDLER_BREAK;
 
 		if(action==WM_HANDLER_BREAK)
 			break;
@@ -341,7 +383,7 @@ static int wm_event_inside_i(wmEvent *event, rcti *rect)
 void wm_event_do_handlers(bContext *C)
 {
 	wmWindow *win;
-	
+
 	for(win= C->wm->windows.first; win; win= win->next) {
 		wmEvent *event;
 		
@@ -350,12 +392,11 @@ void wm_event_do_handlers(bContext *C)
 		
 		while( (event=wm_event_next(win)) ) {
 			int action;
-			
-			if(event->type==BORDERSELECT)
-				printf("BORDERSELECT Event!!\n");
+
+			C->window= win;
+			C->screen= win->screen;
 
 			/* MVC demands to not draw in event handlers... for now we leave it */
-			/* it also updates context (win, screen) */
 			wm_window_make_drawable(C, win);
 			
 			action= wm_handlers_do(C, event, &win->handlers);
@@ -366,7 +407,7 @@ void wm_event_do_handlers(bContext *C)
 				for(; sa; sa= sa->next) {
 					if(wm_event_inside_i(event, &sa->totrct)) {
 						
-						C->curarea= sa;
+						C->area= sa;
 						action= wm_handlers_do(C, event, &sa->handlers);
 						if(action==WM_HANDLER_CONTINUE) {
 							ARegion *ar= sa->regionbase.first;
@@ -375,17 +416,22 @@ void wm_event_do_handlers(bContext *C)
 								if(wm_event_inside_i(event, &ar->winrct)) {
 									C->region= ar;
 									action= wm_handlers_do(C, event, &ar->handlers);
+									C->region= NULL;
 									if(action==WM_HANDLER_BREAK)
 										break;
 								}
 							}
 						}
+						C->area= NULL;
 						if(action==WM_HANDLER_BREAK)
 							break;
 					}
 				}
 			}
 			wm_event_free(event);
+
+			C->window= NULL;
+			C->screen= NULL;
 		}
 	}
 }
@@ -404,11 +450,8 @@ wmEventHandler *WM_event_add_modal_handler(ListBase *handlers, wmOperator *op)
 	}
 	else {
 		wmEventHandler *handler= MEM_callocN(sizeof(wmEventHandler), "event handler");
-		wmOperator *opc= MEM_mallocN(sizeof(wmOperator), "operator modal");
-		
+		handler->op= op;
 		BLI_addhead(handlers, handler);
-		*opc= *op;
-		handler->op= opc;
 		
 		return handler;
 	}
@@ -431,14 +474,33 @@ void WM_event_remove_modal_handler(ListBase *handlers, wmOperator *op)
 
 wmEventHandler *WM_event_add_keymap_handler(ListBase *keymap, ListBase *handlers)
 {
-	wmEventHandler *handler= MEM_callocN(sizeof(wmEventHandler), "event handler");
+	wmEventHandler *handler;
 	
+	/* only allow same keymap once */
+	for(handler= handlers->first; handler; handler= handler->next)
+		if(handler->keymap==keymap)
+			return;
+
+	handler= MEM_callocN(sizeof(wmEventHandler), "event handler");
 	BLI_addtail(handlers, handler);
 	handler->keymap= keymap;
 	
 	return handler;
 }
 
+void WM_event_remove_keymap_handler(ListBase *keymap, ListBase *handlers)
+{
+	wmEventHandler *handler;
+	
+	for(handler= handlers->first; handler; handler= handler->next) {
+		if(handler->keymap==keymap) {
+			BLI_remlink(handlers, handler);
+			wm_event_free_handler(handler);
+			MEM_freeN(handler);
+			break;
+		}
+	}
+}
 
 /* ********************* ghost stuff *************** */
 

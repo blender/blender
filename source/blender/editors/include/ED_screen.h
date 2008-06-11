@@ -44,6 +44,7 @@ void	ED_region_do_refresh(struct bContext *C, ARegion *ar);
 
 /* spaces */
 void	ED_spacetypes_init(void);
+void	ED_spacetypes_keymap(struct wmWindowManager *wm);
 
 /* areas */
 void	ED_area_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct ScrArea *sa);
@@ -57,7 +58,8 @@ void	ED_screen_do_listen(struct wmWindow *win, struct wmNotifier *note);
 bScreen *ED_screen_duplicate(struct wmWindow *win, bScreen *sc);
 void	ED_screen_set_subwinactive(struct wmWindow *win);
 
-void	ed_screen_keymap(struct wmWindowManager *wm);
+void	ED_operatortypes_screen(void);
+void	ED_keymap_screen(struct wmWindowManager *wm);
 
 /* operators; context poll callbacks */
 int		ED_operator_screenactive(bContext *C);

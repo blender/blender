@@ -1,0 +1,9 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('*.c')
+
+incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
+incs += '../../windowmanager #/intern/guardedalloc'
+
+env.BlenderLib ( 'bf_editors_space_time', sources, Split(incs), [], libtype=['core','intern'], priority=[35, 40] )

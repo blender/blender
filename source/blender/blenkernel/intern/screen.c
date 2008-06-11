@@ -51,6 +51,11 @@ SpaceType *BKE_spacetype_from_id(int spaceid)
 	return NULL;
 }
 
+const ListBase *BKE_spacetypes_list()
+{
+	return &spacetypes;
+}
+
 void BKE_spacetype_register(SpaceType *st)
 {
 	BLI_addtail(&spacetypes, st);

@@ -69,19 +69,8 @@ typedef struct bContext {
 	struct wmWindowManager *wm;
 	struct wmWindow *window;
 	struct bScreen *screen;
-	struct ScrArea *curarea;
+	struct ScrArea *area;
 	struct ARegion *region;
-	
-	/* fast spacedata lookups */
-	struct View3D *vd;
-	struct View2D *v2d;
-	struct SpaceIpo *sipo;
-	struct SpaceButs *buts;
-	struct SpaceImage *sima;
-	struct SpaceOops *soops;
-	struct SpaceSound *ssound;
-	struct SpaceAction *saction;
-	struct SpaceNla *snla;
 	
 	/* data context */
 	struct Scene *scene;
@@ -90,10 +79,9 @@ typedef struct bContext {
 	
 	/* edit data context */
 	struct EditMesh *editMesh;
-	struct	ListBase edbo;			/* Armature Editmode bones */
+	struct ListBase edbo;			/* Armature Editmode bones */
 	
 } bContext;
-
 
 typedef struct Global {
 

@@ -6,6 +6,7 @@ SConscript(['datafiles/SConscript',
 			'interface/SConscript',
 			'mesh/SConscript',
 			'object/SConscript',
+			'space_time/SConscript',
 			'space_view3d/SConscript',
 			'transform/SConscript',
 			'screen/SConscript'])

@@ -103,7 +103,6 @@ void WM_gesture_update(bContext *C, wmGesture *from)
 	if(!to)
 		return;
 
-	printf("found gesture!!\n");
 	if(to->type==GESTURE_RECT)
 		wm_gesture_rect_copy((wmGestureRect*)to, (wmGestureRect*)from);
 }

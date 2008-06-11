@@ -8,11 +8,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
-<<<<<<< .mine
- * of the License, or (at your option) any later version.
-=======
  * of the License, or (at your option) any later version. 
->>>>>>> .r13159
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -40,6 +36,8 @@ struct ScrArea;
 struct bScreen;
 struct ARegion;
 struct wmNotifier;
+struct wmWindowManager;
+struct ListBase;
 
 /* spacetype has everything stored to get an editor working, it gets initialized via 
 spacetypes_init() in editors/area/spacetypes.c   */
@@ -52,14 +50,25 @@ typedef struct SpaceType {
 	int				spaceid;					/* unique space identifier */
 	int				iconid;						/* icon lookup for menus */
 	
-	struct SpaceLink	*(*new)(void);							/* calls init too */
-	void		(*free)(struct SpaceLink *sl);					/* not free sl itself */
+	/* calls init too */
+	struct SpaceLink	*(*new)(void);
+	/* not free spacelink itself */
+	void		(*free)(struct SpaceLink *);
 	
-	void		(*init)(struct ScrArea *);						/* init is to cope with internal contextual changes, adds handlers, sets screarea regions */
-	void		(*refresh)(struct bContext *, struct ScrArea *);	/* refresh is for external bContext changes */
+	/* init is to cope with internal contextual changes, adds handlers,
+	 * sets screarea regions */
+	void		(*init)(struct wmWindowManager *, struct ScrArea *);
+	/* refresh is for external bContext changes */
+	void		(*refresh)(struct bContext *, struct ScrArea *);
 	
-	struct SpaceLink	*(*duplicate)(struct SpaceLink *sl);		/* after a spacedata copy, an init should result in exact same situation */
-	
+	/* after a spacedata copy, an init should result in exact same situation */
+	struct SpaceLink	*(*duplicate)(struct SpaceLink *);
+
+	/* register operator types on startup */
+	void		(*operatortypes)(void);
+	/* add default items to keymap */
+	void		(*keymap)(struct wmWindowManager *);
+
 	/* read and write... */
 	
 } SpaceType;
@@ -80,6 +89,7 @@ void BKE_screen_area_free(struct ScrArea *sa);
 void free_screen(struct bScreen *sc); 
 
 struct SpaceType *BKE_spacetype_from_id(int spaceid);
+const struct ListBase *BKE_spacetypes_list(void);
 void BKE_spacetype_register(struct SpaceType *st);
 void BKE_spacedata_freelist(ListBase *lb);
 void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2);

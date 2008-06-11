@@ -44,17 +44,35 @@
 /* only call once on startup, storage is static data (no malloc!) in kernel listbase */
 void ED_spacetypes_init(void)
 {
+	const ListBase *spacetypes;
+	SpaceType *type;
+
+	/* create space types */
+	ED_spacetype_time();
 	ED_spacetype_view3d();
 //	ED_spacetype_ipo();
 //	...
 	
-	
+	/* register operator types for screen and all spaces */
 	ED_operatortypes_screen();
-//	ED_operatortypes_view3d();
-//	...
-	
+
+	spacetypes = BKE_spacetypes_list();
+	for(type=spacetypes->first; type; type=type->next)
+		type->operatortypes();
 }
 
+/* called in wm.c */
+void ED_spacetypes_keymap(wmWindowManager *wm)
+{
+	const ListBase *spacetypes;
+	SpaceType *type;
+
+	ED_keymap_screen(wm);
+
+	spacetypes = BKE_spacetypes_list();
+	for(type=spacetypes->first; type; type=type->next)
+		type->keymap(wm);
+}
 
 /* ****************************** space template *********************** */
 
@@ -71,7 +89,7 @@ static void xxx_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback for usage, should be redoable */
-static void xxx_init(ScrArea *sa)
+static void xxx_init(wmWindowManager *wm, ScrArea *sa)
 {
 	
 	/* link area to SpaceXXX struct */
@@ -93,6 +111,16 @@ static SpaceLink *xxx_duplicate(SpaceLink *sl)
 	return NULL;
 }
 
+static void xxx_operatortypes(void)
+{
+	/* register operator types for this space */
+}
+
+static void xxx_keymap(wmWindowManager *wm)
+{
+	/* add default items to keymap */
+}
+
 /* only called once, from screen/spacetypes.c */
 void ED_spacetype_xxx(void)
 {
@@ -105,6 +133,8 @@ void ED_spacetype_xxx(void)
 	st.init= xxx_init;
 	st.refresh= xxx_refresh;
 	st.duplicate= xxx_duplicate;
+	st.operatortypes= xxx_operatortypes;
+	st.keymap= xxx_keymap;
 	
 	BKE_spacetype_register(&st);
 }

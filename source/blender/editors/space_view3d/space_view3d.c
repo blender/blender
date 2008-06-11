@@ -118,7 +118,7 @@ static void view3d_free(SpaceLink *sl)
 
 
 /* spacetype; init callback */
-static void view3d_init(ScrArea *sa)
+static void view3d_init(struct wmWindowManager *wm, ScrArea *sa)
 {
 	ARegion *ar;
 	
@@ -174,6 +174,14 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	return (SpaceLink *)v3dn;
 }
 
+void view3d_operatortypes(void)
+{
+}
+
+void view3d_keymap(struct wmWindowManager *wm)
+{
+}
+
 /* only called once, from screen/spacetypes.c */
 void ED_spacetype_view3d(void)
 {
@@ -186,11 +194,9 @@ void ED_spacetype_view3d(void)
 	st.init= view3d_init;
 	st.refresh= view3d_refresh;
 	st.duplicate= view3d_duplicate;
+	st.operatortypes= view3d_operatortypes;
+	st.keymap= view3d_keymap;
 	
 	BKE_spacetype_register(&st);
-	
-	
 }
-
-
 

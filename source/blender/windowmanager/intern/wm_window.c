@@ -161,11 +161,10 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 /* operator callback */
 int wm_window_duplicate_op(bContext *C, wmOperator *op)
 {
-	
 	wm_window_copy(C, C->window);
 	wm_check(C);
 	
-	return 1;
+	return OPERATOR_FINISHED;
 }
 
 /* fullscreen operator callback */
@@ -177,7 +176,7 @@ int wm_window_fullscreen_toggle_op(bContext *C, wmOperator *op)
 	else
 		GHOST_SetWindowState(C->window->ghostwin, GHOST_kWindowStateNormal);
 
-	return 1;
+	return OPERATOR_FINISHED;
 	
 }
 
@@ -186,7 +185,7 @@ static void wm_window_close(bContext *C, wmWindow *win)
 {
 	BLI_remlink(&C->wm->windows, win);
 	wm_window_free(C, win);
-	
+
 	if(C->wm->windows.first==NULL)
 		WM_exit(C);
 }
@@ -200,7 +199,7 @@ int wm_exit_blender_op(bContext *C, wmOperator *op)
 		win= win->next;
 	}
 
-	return 1;
+	return OPERATOR_FINISHED;
 }
 
 static void wm_window_open(wmWindowManager *wm, char *title, wmWindow *win)
@@ -316,13 +315,11 @@ static int query_qual(char qual)
 
 void wm_window_make_drawable(bContext *C, wmWindow *win) 
 {
-	if (win != C->window && win->ghostwin) {
+	if (win != C->wm->windrawable && win->ghostwin) {
 //		win->lmbut= 0;	/* keeps hanging when mousepressed while other window opened */
 		
 		C->wm->windrawable= win;
-		C->window= win;
-		C->screen= win->screen;
-		printf("set drawable %d\n", win->winid);
+		if(G.f & G_DEBUG) printf("set drawable %d\n", win->winid);
 		GHOST_ActivateWindowDrawingContext(win->ghostwin);
 	}
 }
@@ -363,7 +360,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				GHOST_TEventKeyData kdata;
 				int cx, cy, wx, wy;
 				
-				C->wm->winactive= win; /* no context change! c->window is drawable, or for area queues */
+				C->wm->winactive= win; /* no context change! c->wm->windrawable is drawable, or for area queues */
 				
 				win->active= 1;
 //				window_handle(win, INPUTCHANGE, win->active);
@@ -404,7 +401,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				break;
 			}
 			case GHOST_kEventWindowUpdate: {
-				printf("ghost redraw\n");
+				if(G.f & G_DEBUG) printf("ghost redraw\n");
 				
 				wm_window_make_drawable(C, win);
 				WM_event_add_notifier(C->wm, win, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
@@ -432,17 +429,22 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 					GHOST_TWindowState state;
 					state = GHOST_GetWindowState(win->ghostwin);
 
-					if(state==GHOST_kWindowStateNormal)
-						printf("window state: normal\n");
-					else if(state==GHOST_kWindowStateMinimized)
-						printf("window state: minimized\n");
-					else if(state==GHOST_kWindowStateMaximized)
-						printf("window state: maximized\n");
-					else if(state==GHOST_kWindowStateFullScreen)
-						printf("window state: fullscreen\n");
+					if(state==GHOST_kWindowStateNormal) {
+						if(G.f & G_DEBUG) printf("window state: normal\n");
+					}
+					else if(state==GHOST_kWindowStateMinimized) {
+						if(G.f & G_DEBUG) printf("window state: minimized\n");
+					}
+					else if(state==GHOST_kWindowStateMaximized) {
+						if(G.f & G_DEBUG) printf("window state: maximized\n");
+					}
+					else if(state==GHOST_kWindowStateFullScreen) {
+						if(G.f & G_DEBUG) printf("window state: fullscreen\n");
+					}
 					
-					if(type!=GHOST_kEventWindowSize)
-						printf("win move event pos %d %d size %d %d\n", win->posx, win->posy, win->sizex, win->sizey);
+					if(type!=GHOST_kEventWindowSize) {
+						if(G.f & G_DEBUG) printf("win move event pos %d %d size %d %d\n", win->posx, win->posy, win->sizex, win->sizey);
+					}
 					
 				}
 				
