@@ -2084,7 +2084,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					} 
 					else if(ob && (ob->flag & OB_POSEMODE))
 						pose_select_grouped_menu();
-					else
+					else if (ob)
 						select_object_grouped_menu();
 				else if((G.obedit==0) && G.qual==LR_ALTKEY) {
 					if(okee("Clear location")) {
