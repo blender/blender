@@ -1767,7 +1767,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Build) {
 			height = 86;
 		} else if (md->type==eModifierType_Mirror) {
-			height = 86;
+			height = 105;
 		} else if (md->type==eModifierType_Bevel) {
 			BevelModifierData *bmd = (BevelModifierData*) md;
 			height = 105; /* height = 124; */
@@ -1899,6 +1899,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButBitS(block, TOG, MOD_MIR_AXIS_Y, B_MODIFIER_RECALC, "Y",	lx+20,cy,20,19,    &mmd->flag, 0, 0, 0, 0, "Enable Y axis mirror");
 			uiDefButBitS(block, TOG, MOD_MIR_AXIS_Z, B_MODIFIER_RECALC, "Z",	lx+40,cy,20,19,    &mmd->flag, 0, 0, 0, 0, "Enable Z axis mirror");
 			uiDefButBitS(block, TOG, MOD_MIR_CLIPPING, B_MODIFIER_RECALC, "Do Clipping",	lx+60, cy, buttonWidth-60,19, &mmd->flag, 1, 2, 0, 0, "Prevents during Transform vertices to go through Mirror");
+			uiDefButBitS(block, TOG, MOD_MIR_VGROUP, B_MODIFIER_RECALC, "Mirror Vgroups",	lx, (cy-=19), buttonWidth,19, &mmd->flag, 1, 2, 0, 0, "Mirror vertex groups (e.g. .R->.L)");
 			uiDefButBitS(block, TOG, MOD_MIR_MIRROR_U, B_MODIFIER_RECALC,
 			             "Mirror U",
 			             lx, (cy-=19), buttonWidth/2, 19,

@@ -40,6 +40,7 @@
 #include "stdarg.h"
 #include "math.h"
 #include "float.h"
+#include "ctype.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -1269,7 +1270,7 @@ static void mirrorModifier_initData(ModifierData *md)
 {
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
 
-	mmd->flag |= MOD_MIR_AXIS_X;
+	mmd->flag |= (MOD_MIR_AXIS_X | MOD_MIR_VGROUP);
 	mmd->tolerance = 0.001;
 	mmd->mirror_ob = NULL;
 }
@@ -1308,6 +1309,118 @@ static void mirrorModifier_updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 }
 
+/* finds the best possible flipped name. For renaming; check for unique names afterwards */
+/* if strip_number: removes number extensions */
+void vertgroup_flip_name (char *name, int strip_number)
+{
+	int     len;
+	char    prefix[128]={""};   /* The part before the facing */
+	char    suffix[128]={""};   /* The part after the facing */
+	char    replace[128]={""};  /* The replacement string */
+	char    number[128]={""};   /* The number extension string */
+	char    *index=NULL;
+
+	len= strlen(name);
+	if(len<3) return; // we don't do names like .R or .L
+
+	/* We first check the case with a .### extension, let's find the last period */
+	if(isdigit(name[len-1])) {
+		index= strrchr(name, '.'); // last occurrance
+		if (index && isdigit(index[1]) ) { // doesnt handle case bone.1abc2 correct..., whatever!
+			if(strip_number==0) 
+				strcpy(number, index);
+			*index= 0;
+			len= strlen(name);
+		}
+	}
+
+	strcpy (prefix, name);
+
+#define IS_SEPARATOR(a) ((a)=='.' || (a)==' ' || (a)=='-' || (a)=='_')
+
+	/* first case; separator . - _ with extensions r R l L  */
+	if( IS_SEPARATOR(name[len-2]) ) {
+		switch(name[len-1]) {
+			case 'l':
+				prefix[len-1]= 0;
+				strcpy(replace, "r");
+				break;
+			case 'r':
+				prefix[len-1]= 0;
+				strcpy(replace, "l");
+				break;
+			case 'L':
+				prefix[len-1]= 0;
+				strcpy(replace, "R");
+				break;
+			case 'R':
+				prefix[len-1]= 0;
+				strcpy(replace, "L");
+				break;
+		}
+	}
+	/* case; beginning with r R l L , with separator after it */
+	else if( IS_SEPARATOR(name[1]) ) {
+		switch(name[0]) {
+			case 'l':
+				strcpy(replace, "r");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+			case 'r':
+				strcpy(replace, "l");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+			case 'L':
+				strcpy(replace, "R");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+			case 'R':
+				strcpy(replace, "L");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+		}
+	}
+	else if(len > 5) {
+		/* hrms, why test for a separator? lets do the rule 'ultimate left or right' */
+		index = BLI_strcasestr(prefix, "right");
+		if (index==prefix || index==prefix+len-5) {
+			if(index[0]=='r') 
+				strcpy (replace, "left");
+			else {
+				if(index[1]=='I') 
+					strcpy (replace, "LEFT");
+				else
+					strcpy (replace, "Left");
+			}
+			*index= 0;
+			strcpy (suffix, index+5);
+		}
+		else {
+			index = BLI_strcasestr(prefix, "left");
+			if (index==prefix || index==prefix+len-4) {
+				if(index[0]=='l') 
+					strcpy (replace, "right");
+				else {
+					if(index[1]=='E') 
+						strcpy (replace, "RIGHT");
+					else
+						strcpy (replace, "Right");
+				}
+				*index= 0;
+				strcpy (suffix, index+4);
+			}
+		}
+	}
+
+#undef IS_SEPARATOR
+
+	sprintf (name, "%s%s%s%s", prefix, replace, suffix, number);
+}
+
 static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 				   Object *ob,
        DerivedMesh *dm,
@@ -1321,6 +1434,9 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	int maxVerts = dm->getNumVerts(dm);
 	int maxEdges = dm->getNumEdges(dm);
 	int maxFaces = dm->getNumFaces(dm);
+	int vector_size, j, a, b;
+	bDeformGroup *def, *defb;
+	bDeformGroup **vector_def = NULL;
 	int (*indexMap)[2];
 	float mtx[4][4], imtx[4][4];
 
@@ -1329,6 +1445,21 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	indexMap = MEM_mallocN(sizeof(*indexMap) * maxVerts, "indexmap");
 
 	result = CDDM_from_template(dm, maxVerts * 2, maxEdges * 2, maxFaces * 2);
+
+
+	if (mmd->flag & MOD_MIR_VGROUP) {
+		/* calculate the number of deformedGroups */
+		for(vector_size = 0, def = ob->defbase.first; def;
+		    def = def->next, vector_size++);
+
+		/* load the deformedGroups for fast access */
+		vector_def =
+		    (bDeformGroup **)MEM_mallocN(sizeof(bDeformGroup*) * vector_size,
+		                                 "group_index");
+		for(a = 0, def = ob->defbase.first; def; def = def->next, a++) {
+			vector_def[a] = def;
+		}
+	}
 
 	if (mmd->mirror_ob) {
 		float obinv[4][4];
@@ -1374,16 +1505,48 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			mv->flag |= ME_VERT_MERGED;
 		} else {
 			MVert *mv2 = CDDM_get_vert(result, numVerts);
+			MDeformVert *dvert = NULL;
 
 			DM_copy_vert_data(dm, result, i, numVerts, 1);
 			*mv2 = *mv;
-			numVerts++;
 
 			co[axis] = -co[axis];
 			if (mmd->mirror_ob) {
 				VecMat4MulVecfl(co, imtx, co);
 			}
 			VecCopyf(mv2->co, co);
+
+			if (mmd->flag & MOD_MIR_VGROUP){
+				dvert = DM_get_vert_data(result, numVerts, CD_MDEFORMVERT);
+
+				if (dvert)
+				{
+					for(j = 0; j < dvert[0].totweight; ++j)
+					{
+						char tmpname[32];
+
+						if(dvert->dw[j].def_nr < 0 ||
+						   dvert->dw[j].def_nr >= vector_size)
+							continue;
+
+						def = vector_def[dvert->dw[j].def_nr];
+						strcpy(tmpname, def->name);
+						vertgroup_flip_name(tmpname,0);
+
+						for(b = 0, defb = ob->defbase.first; defb;
+						    defb = defb->next, b++)
+						{
+							if(!strcmp(defb->name, tmpname))
+							{
+								dvert->dw[j].def_nr = b;
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			numVerts++;
 		}
 	}
 
@@ -1466,6 +1629,8 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			numFaces++;
 				 }
 	}
+
+	if (vector_def) MEM_freeN(vector_def);
 
 	MEM_freeN(indexMap);
 
