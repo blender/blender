@@ -2077,15 +2077,16 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							vgroup_operation_with_menu();
 					}
 				}
-				else if((G.qual==LR_SHIFTKEY))
+				else if((G.qual==LR_SHIFTKEY)) {
 					if(G.obedit) {
 						if(G.obedit->type==OB_MESH)
 							select_mesh_group_menu();
 					} 
 					else if(ob && (ob->flag & OB_POSEMODE))
 						pose_select_grouped_menu();
-					else
+					else if (ob)
 						select_object_grouped_menu();
+				}
 				else if((G.obedit==0) && G.qual==LR_ALTKEY) {
 					if(okee("Clear location")) {
 						clear_object('g');
@@ -6331,7 +6332,10 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 			SpaceNode *snode= (SpaceNode *)sl;
 			snode->nodetree= NULL;
 		}
-
+		else if(sl->spacetype==SPACE_SCRIPT) {
+			SpaceScript *sc = ( SpaceScript * ) sl;
+			sc->but_refs = NULL;
+		}
 		sl= sl->next;
 	}
 	
