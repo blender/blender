@@ -228,6 +228,7 @@ void calculateArcLength(ReebArc *arc)
 	bucket = nextBucket(&iter);
 	
 	vec0 = arc->head->p;
+	vec1 = arc->head->p; /* in case there's no embedding */
 	
 	while (bucket != NULL)
 	{
@@ -2431,8 +2432,8 @@ EmbedBucket * nextNBucket(ReebArcIterator *iter, int n)
 	iter->index += n * iter->stride;
 
 	/* check if passed end */
-	if ((iter->stride == 1 && iter->index < iter->end) ||
-		(iter->stride == -1 && iter->index > iter->end))
+	if ((iter->stride == 1 && iter->index <= iter->end) ||
+		(iter->stride == -1 && iter->index >= iter->end))
 	{
 		result = &(iter->arc->buckets[iter->index]);
 	}
@@ -2440,6 +2441,21 @@ EmbedBucket * nextNBucket(ReebArcIterator *iter, int n)
 	{
 		/* stop iterator if passed end */
 		iter->index = iter->end; 
+	}
+	
+	return result;
+}
+
+EmbedBucket * peekBucket(ReebArcIterator *iter, int n)
+{
+	EmbedBucket *result = NULL;
+	int index = iter->index + n * iter->stride;
+
+	/* check if passed end */
+	if ((iter->stride == 1 && index <= iter->end && index >= iter->start) ||
+		(iter->stride == -1 && index >= iter->end && index <= iter->start))
+	{
+		result = &(iter->arc->buckets[index]);
 	}
 	
 	return result;

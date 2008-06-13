@@ -129,6 +129,7 @@ void initArcIterator2(struct ReebArcIterator *iter, struct ReebArc *arc, int sta
 void initArcIteratorStart(struct ReebArcIterator *iter, struct ReebArc *arc, struct ReebNode *head, int start);
 struct EmbedBucket * nextBucket(struct ReebArcIterator *iter);
 struct EmbedBucket * nextNBucket(ReebArcIterator *iter, int n);
+struct EmbedBucket * peekBucket(ReebArcIterator *iter, int n);
 struct EmbedBucket * currentBucket(struct ReebArcIterator *iter);
 struct EmbedBucket * previousBucket(struct ReebArcIterator *iter);
 int iteratorStopped(struct ReebArcIterator *iter);
