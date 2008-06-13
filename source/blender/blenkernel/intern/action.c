@@ -290,6 +290,12 @@ void copy_pose(bPose **dst, bPose *src, int copycon)
 		return;
 	}
 	
+	if (*dst==src) {
+		printf("copy_pose source and target are the same\n");
+		*dst=NULL;
+		return;
+	}
+	
 	outPose= MEM_callocN(sizeof(bPose), "pose");
 	
 	duplicatelist(&outPose->chanbase, &src->chanbase);
@@ -740,6 +746,11 @@ void extract_pose_from_pose(bPose *pose, const bPose *src)
 	const bPoseChannel *schan;
 	bPoseChannel *pchan= pose->chanbase.first;
 
+	if (pose==src) {
+		printf("extract_pose_from_pose source and target are the same\n");
+		return;
+	}
+
 	for (schan=src->chanbase.first; schan; schan=schan->next, pchan= pchan->next) {
 		copy_pose_channel_data(pchan, schan);
 	}
@@ -816,6 +827,12 @@ void copy_pose_result(bPose *to, bPose *from)
 		printf("pose result copy error\n"); // debug temp
 		return;
 	}
+
+	if (to==from) {
+		printf("copy_pose_result source and target are the same\n");
+		return;
+	}
+
 
 	for(pchanfrom= from->chanbase.first; pchanfrom; pchanfrom= pchanfrom->next) {
 		pchanto= get_pose_channel(to, pchanfrom->name);

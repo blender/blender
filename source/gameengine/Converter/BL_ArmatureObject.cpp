@@ -92,9 +92,10 @@ BL_ArmatureObject::~BL_ArmatureObject()
 /* there is only 1 unique Pose per Armature */
 void BL_ArmatureObject::ApplyPose()
 {
-	if (m_pose){
+	if (m_pose) {
 		// copy to armature object
-		extract_pose_from_pose(m_objArma->pose, m_pose);
+		if (m_objArma->pose != m_pose)/* This should never happen but it does - Campbell */
+			extract_pose_from_pose(m_objArma->pose, m_pose);
 		
 		// is this needed anymore?
 		//if (!m_mrdPose)
