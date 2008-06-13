@@ -18,8 +18,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "test_config.h"
-
 #include "AppConfig.h"
 #include <iostream>
 
@@ -34,10 +32,8 @@ namespace Config{
     _HomeDir = getEnvVar("HOME");
     // get the root directory
 	//soc
-	//setRootDir(getEnvVar("FREESTYLE_BLENDER_DIR"));
-	setRootDir( TEST_ROOT_DIR );
+	setRootDir(getEnvVar("FREESTYLE_BLENDER_DIR"));
 
-//setRootDir(QString("."));
     _pInstance = this;
   }
   void Path::setRootDir(const string& iRootDir){

@@ -2,7 +2,6 @@
 #include "AppGLWidget.h"
 #include "Controller.h"
 #include "AppConfig.h"
-#include "test_config.h"
 
 #include <iostream>
 
@@ -28,9 +27,8 @@ extern "C" {
 
 	static Controller *controller = NULL;
 	static AppGLWidget *view = NULL;
-
+	
 	void FRS_initialize(){
-		Config::Path pathconfig;
 		
 		if( controller == NULL )
 			controller = new Controller;
@@ -40,7 +38,8 @@ extern "C" {
 	}
 
 	void FRS_execute(Render* re) {
-			
+		
+		Config::Path pathconfig;
 		FRS_initialize();
 		
 		controller->SetView(view);
@@ -51,12 +50,15 @@ extern "C" {
 		view->_camera->setScreenWidthAndHeight(width, height);
 		//view->setCameraState(const float* position, const float* orientation) 
 		
-		BPY_run_python_script( TEST_3DS_EXPORT );
+		string script_3ds_export = 	pathconfig.getProjectDir() + 
+									Config::DIR_SEP + "python" + 
+									Config::DIR_SEP + "3ds_export.py";
+		BPY_run_python_script( const_cast<char *>(script_3ds_export.c_str()) );
 		
 		char btempdir[255];
 		BLI_where_is_temp(btempdir,1);
 		string exported_3ds_file =  btempdir;
-		exported_3ds_file += "/tmp_scene_freestyle.3ds";
+		exported_3ds_file += Config::DIR_SEP + "tmp_scene_freestyle.3ds";
 		if( BLI_exists( const_cast<char *>(exported_3ds_file.c_str()) ) ) {
 			controller->Load3DSFile( exported_3ds_file.c_str() );
 		}
@@ -65,7 +67,10 @@ extern "C" {
 			return;
 		}
 		
-		controller->InsertStyleModule( 0, TEST_STYLE_MODULE_FILE );
+		string style_module = pathconfig.getProjectDir() + 
+								Config::DIR_SEP + "style_modules" + 
+								Config::DIR_SEP + "contour.py";
+		controller->InsertStyleModule( 0, const_cast<char *>(style_module.c_str()) 	 );
 		controller->toggleLayer(0, true);
 		controller->ComputeViewMap();
 		

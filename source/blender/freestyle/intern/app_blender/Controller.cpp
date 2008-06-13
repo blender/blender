@@ -64,8 +64,6 @@
 
 #include "../system/StringUtils.h"
 
-#include "test_config.h"
-
 Controller::Controller()
 {
 	
@@ -1062,7 +1060,7 @@ void Controller::init_options(){
 // 	Default init options
 
 	Config::Path * cpath = Config::Path::getInstance();
-
+	
 	// Directories
 	ViewMapIO::Options::setModelsPath( StringUtils::toAscii( cpath->getModelsPath() ) ); 
 	PythonInterpreter::Options::setPythonPath( StringUtils::toAscii( cpath->getPythonPath() ) );
@@ -1079,8 +1077,8 @@ void Controller::init_options(){
 
 	 // Papers Textures
 	vector<string> sl;
-	sl.push_back( StringUtils::toAscii( TEST_TEXTURE_FILE ) );
-	TextureManager::Options::setPaperTextures(sl);
+	sl.push_back( StringUtils::toAscii( cpath->getPapersDir() + Config::DEFAULT_PAPER_TEXTURE ) );
+	TextureManager::Options::setPaperTextures( sl );
 
 	// Drawing Buffers
 	setFrontBufferFlag(false);
