@@ -159,6 +159,17 @@ IsVertexParent()
 	return false;
 }
 
+	bool
+SG_Node::
+IsSlowParent()
+{
+	if (m_parent_relation)
+	{
+		return m_parent_relation->IsSlowRelation();
+	}
+	return false;
+}
+
 	void 
 SG_Node::
 DisconnectFromParent(

@@ -22,6 +22,8 @@ class KX_GameObject:
 	@type orientation: 3x3 Matrix [[float]]
 	@ivar scaling: The object's scaling factor. list [sx, sy, sz]
 	@type scaling: list [sx, sy, sz]
+	@ivar timeOffset: adjust the slowparent delay at runtime.
+	@type timeOffset: float
 	"""
 	
 	def setVisible(visible):

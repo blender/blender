@@ -911,6 +911,14 @@ PyObject* KX_GameObject::_getattr(const STR_String& attr)
 		
 	if (attr == "name")
 		return PyString_FromString(m_name.ReadPtr());
+	if (attr == "timeOffset") {
+		if (m_pSGNode->GetSGParent()->IsSlowParent()) {
+			return PyFloat_FromDouble(static_cast<KX_SlowParentRelation *>(m_pSGNode->GetSGParent()->GetParentRelation())->GetTimeOffset());
+		} else {
+			return PyFloat_FromDouble(0.0);
+		}
+	}
+	
 	
 	_getattr_up(SCA_IObject);
 }
@@ -930,6 +938,19 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 		{
 			SetVisible(val != 0);
 			return 0;
+		}
+	}
+
+	if (PyFloat_Check(value))
+	{
+		MT_Scalar val = PyFloat_AsDouble(value);
+		if (attr == "timeOffset") {
+			if (m_pSGNode->GetSGParent()->IsSlowParent()) {
+				static_cast<KX_SlowParentRelation *>(m_pSGNode->GetSGParent()->GetParentRelation())->SetTimeOffset(val);
+				return 0;
+			} else {
+				return 0;
+			}		
 		}
 	}
 	
