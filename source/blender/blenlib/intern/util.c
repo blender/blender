@@ -905,8 +905,11 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 			if (dir[a] == '\\') break;
 			a--;
 		}
-		memmove( dir+a, eind, strlen(eind)+1 );
-		
+		if (a<0) {
+			break;
+		} else {
+			memmove( dir+a, eind, strlen(eind)+1 );
+		}
 	}
 
 	while ( (start = strstr(dir,"\\.\\")) ){
@@ -939,7 +942,11 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 			if (dir[a] == '/') break;
 			a--;
 		}
-		memmove( dir+a, eind, strlen(eind)+1 );
+		if (a<0) {
+			break;
+		} else {
+			memmove( dir+a, eind, strlen(eind)+1 );
+		}
 	}
 
 	while ( (start = strstr(dir,"/./")) ){
@@ -1128,8 +1135,8 @@ int BLI_convertstringcode(char *path, const char *basepath)
 	char vol[3] = {'\0', '\0', '\0'};
 
 	BLI_strncpy(vol, path, 3);
-	wasrelative= (strncmp(vol, "//", 2)==0);
-
+	wasrelative= (vol[0]=='/' && vol[1]=='/');
+	
 #ifdef WIN32
 	/* we are checking here if we have an absolute path that is not in the current
 	   blend file as a lib main - we are basically checking for the case that a 
@@ -1166,7 +1173,7 @@ int BLI_convertstringcode(char *path, const char *basepath)
 
 	/* Paths starting with // will get the blend file as their base,
 	 * this isnt standard in any os but is uesed in blender all over the place */
-	if (tmp[0] == '/' && tmp[1] == '/') {
+	if (wasrelative) {
 		char *lslash= BLI_last_slash(base);
 		if (lslash) {
 			int baselen= (int) (lslash-base) + 1;
