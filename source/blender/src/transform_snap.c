@@ -739,9 +739,10 @@ void TargetSnapClosest(TransInfo *t)
 
 
 /* find snapping point on face, return 1 on success */
-int snapFace(MFace *face, MVert *verts, float *intersect, float *loc, float *no)
+int snapFace(MFace *face, EditFace *efa, MVert *verts, float *intersect, float *loc, float *no)
 {
 	MVert *v[4];
+	EditVert *eve[4];
 	int totvert;
 	int result = 0;
 	
@@ -760,6 +761,14 @@ int snapFace(MFace *face, MVert *verts, float *intersect, float *loc, float *no)
 		totvert = 3;
 	}
 	
+	if (efa)
+	{
+		eve[0] = efa->v1;
+		eve[1] = efa->v2;
+		eve[2] = efa->v3;
+		eve[3] = efa->v4;
+	}
+	
 	switch(G.scene->snap_mode)
 	{
 		case SCE_SNAP_MODE_VERTEX:
@@ -769,16 +778,20 @@ int snapFace(MFace *face, MVert *verts, float *intersect, float *loc, float *no)
 				
 				for(i = 0; i < totvert; i++)
 				{
-					float vert_dist = VecLenf(v[i]->co, intersect);
 					
-					if (vert_dist < min_dist)
+					if (efa == NULL || (eve[i]->f1 & SELECT) == 0)
 					{
-						result = 1;
+						float vert_dist = VecLenf(v[i]->co, intersect);
 						
-						min_dist = vert_dist;
-
-						VECCOPY(loc, v[i]->co);
-						NormalShortToFloat(no, v[i]->no);						
+						if (vert_dist < min_dist)
+						{
+							result = 1;
+							
+							min_dist = vert_dist;
+	
+							VECCOPY(loc, v[i]->co);
+							NormalShortToFloat(no, v[i]->no);						
+						}
 					}
 				}
 				break;
@@ -791,51 +804,62 @@ int snapFace(MFace *face, MVert *verts, float *intersect, float *loc, float *no)
 				for(i = 0; i < totvert; i++)
 				{
 					MVert *v1, *v2;
-					float edge_loc[3];
-					float vec[3];
-					float mul;
-					float edge_dist;
+					EditVert *eve1, *eve2;
 					
 					v1 = v[i];
 					v2 = v[(i + 1) % totvert];
 					
-					VecSubf(edge_loc, v2->co, v1->co);
-					VecSubf(vec, intersect, v1->co);
+					eve1 = eve[i];
+					eve2 = eve[(i + 1) % totvert];
 					
-					mul = Inpf(vec, edge_loc) / Inpf(edge_loc, edge_loc);
-					
-					VecMulf(edge_loc, mul);
-					VecAddf(edge_loc, edge_loc, v1->co);
-					
-					edge_dist = VecLenf(edge_loc, intersect);
-					
-					if (edge_dist < min_dist)
+					if (efa == NULL || ((eve1->f1 & SELECT) == 0 && (eve2->f1 & SELECT) == 0))
 					{
-						float n1[3], n2[3];
-						result = 1;
+						float edge_loc[3];
+						float vec[3];
+						float mul;
+						float edge_dist;
 						
-						min_dist = edge_dist;
-
-						VECCOPY(loc, edge_loc);
+						VecSubf(edge_loc, v2->co, v1->co);
+						VecSubf(vec, intersect, v1->co);
 						
-						NormalShortToFloat(n1, v1->no);						
-						NormalShortToFloat(n2, v2->no);
-						VecLerpf(no, n1, n2, mul);
-						Normalize(no);						
+						mul = Inpf(vec, edge_loc) / Inpf(edge_loc, edge_loc);
+						
+						VecMulf(edge_loc, mul);
+						VecAddf(edge_loc, edge_loc, v1->co);
+						
+						edge_dist = VecLenf(edge_loc, intersect);
+						
+						if (edge_dist < min_dist)
+						{
+							float n1[3], n2[3];
+							result = 1;
+							
+							min_dist = edge_dist;
+	
+							VECCOPY(loc, edge_loc);
+							
+							NormalShortToFloat(n1, v1->no);						
+							NormalShortToFloat(n2, v2->no);
+							VecLerpf(no, n1, n2, mul);
+							Normalize(no);						
+						}
 					}
 				}
 				break;
 			}
 		case SCE_SNAP_MODE_FACE:
 			{
-				result = 1;
-
-				VECCOPY(loc, intersect);
-				
-				if (totvert == 4)
-					CalcNormFloat4(v[0]->co, v[1]->co, v[2]->co, v[3]->co, no);
-				else
-					CalcNormFloat(v[0]->co, v[1]->co, v[2]->co, no);
+				if (efa == NULL || ((efa->f1 & SELECT) == 0))
+				{
+					result = 1;
+	
+					VECCOPY(loc, intersect);
+					
+					if (totvert == 4)
+						CalcNormFloat4(v[0]->co, v[1]->co, v[2]->co, v[3]->co, no);
+					else
+						CalcNormFloat(v[0]->co, v[1]->co, v[2]->co, no);
+				}
 				break;
 			}
 	}
@@ -845,7 +869,6 @@ int snapFace(MFace *face, MVert *verts, float *intersect, float *loc, float *no)
 
 int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_start[3], float ray_normal[3], short mval[2], float *loc, float *no, int *dist, float *depth, short EditMesh)
 {
-	float object_depth = FLT_MAX;
 	int retval = 0;
 	int totvert = dm->getNumVerts(dm);
 	int totface = dm->getNumFaces(dm);
@@ -883,8 +906,6 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 			int index = 0;
 			int i;
 			
-			test = 1;
-			
 			if (EditMesh)
 			{
 				index_array = dm->getFaceDataArray(dm, CD_ORIGINDEX);
@@ -892,14 +913,15 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 			}
 			
 			for( i = 0; i < totface; i++) {
+				EditFace *efa = NULL;
 				MFace *f = faces + i;
 				float lambda;
 				int result;
 				
+				test = 1; /* reset for every face */
+			
 				if (EditMesh)
 				{
-					EditFace *efa = NULL;
-					
 					if (index_array)
 					{
 						index = index_array[i];
@@ -917,12 +939,9 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 					{
 						efa = EM_get_face_for_index(index);
 						
-						if (efa)
+						if (efa && efa->f1 & SELECT)
 						{
-							if (efa->v1->f1 & SELECT || efa->v2->f1 & SELECT || efa->v3->f1 & SELECT || (efa->v4 && efa->v4->f1 & SELECT))
-							{
-								test = 0;
-							}
+							test = 0;
 						}
 					}
 				}
@@ -932,7 +951,7 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 				{
 					result = RayIntersectsTriangle(ray_start_local, ray_normal_local, verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, &lambda, NULL);
 					
-					if (result && lambda < object_depth) {
+					if (result) {
 						float location[3], normal[3];
 						float intersect[3];
 						
@@ -940,18 +959,21 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 						VecMulf(intersect, lambda);
 						VecAddf(intersect, intersect, ray_start_local);
 						
-						if (snapFace(f, verts, intersect, location, normal))
+						if (snapFace(f, efa, verts, intersect, location, normal))
 						{ 
 							float new_depth;
 							int screen_loc[2];
+							int new_dist;
 							
 							Mat4MulVecfl(obmat, location);
 							
 							new_depth = VecLenf(location, ray_start);					
 							
-							if (new_depth < *depth)
+							project_int(location, screen_loc);
+							new_dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
+							
+							if (new_dist <= *dist && new_depth < *depth)
 							{
-								object_depth = lambda;
 								*depth = new_depth;
 								retval = 1;
 								
@@ -963,7 +985,7 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 				
 								project_int(loc, screen_loc);
 								
-								*dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
+								*dist = new_dist;
 							} 
 						}
 					}
@@ -972,7 +994,7 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 					{
 						result = RayIntersectsTriangle(ray_start_local, ray_normal_local, verts[f->v3].co, verts[f->v4].co, verts[f->v1].co, &lambda, NULL);
 						
-						if (result && lambda < object_depth) {
+						if (result) {
 							float location[3], normal[3];
 							float intersect[3];
 							
@@ -980,18 +1002,21 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 							VecMulf(intersect, lambda);
 							VecAddf(intersect, intersect, ray_start_local);
 				
-							if (snapFace(f, verts, intersect, location, normal))
+							if (snapFace(f, efa, verts, intersect, location, normal))
 							{ 
 								float new_depth;
 								int screen_loc[2];
+								int new_dist;
 								
 								Mat4MulVecfl(obmat, location);
 								
-								new_depth = VecLenf(location, ray_start);					
+								new_depth = VecLenf(location, ray_start);
 								
-								if (new_depth < *depth)
+								project_int(location, screen_loc);
+								new_dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
+								
+								if (new_dist <= *dist && new_depth < *depth)
 								{
-									object_depth = lambda;
 									*depth = new_depth;
 									retval = 1;
 									
@@ -1001,9 +1026,7 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 									Mat3MulVecfl(timat, no);
 									Normalize(no);
 					
-									project_int(loc, screen_loc);
-									
-									*dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
+									*dist = new_dist;
 								} 
 							}
 						}
