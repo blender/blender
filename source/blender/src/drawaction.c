@@ -730,7 +730,7 @@ void check_action_context(SpaceAction *saction)
 		
 		for (achan=saction->action->chanbase.first; achan; achan=achan->next) {
 			pchan= get_pose_channel(ob->pose, achan->name);
-			if (pchan) {
+			if (pchan && pchan->bone) {
 				if ((pchan->bone->layer & arm->layer)==0)
 					achan->flag |= ACHAN_HIDDEN;
 				else if (pchan->bone->flag & BONE_HIDDEN_P)
