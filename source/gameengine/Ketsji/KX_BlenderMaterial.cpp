@@ -493,7 +493,7 @@ bool KX_BlenderMaterial::setDefaultBlending()
 		glDisable(GL_BLEND); 
 		glEnable ( GL_ALPHA_TEST );
 		glAlphaFunc(GL_GREATER, 0.5f);
-		return true;
+		return false;
 	}
 	return false;
 }

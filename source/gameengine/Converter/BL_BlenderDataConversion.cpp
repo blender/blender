@@ -542,7 +542,7 @@ BL_Material* ConvertMaterial(
 		material->amb			= mat->amb;
 
 		// set alpha testing without z-sorting
-		if( ( validface && (!tface->transp)) && mat->mode & MA_ZTRA) {
+		if( ( validface && (!(tface->transp &~ TF_CLIP))) && mat->mode & MA_ZTRA) {
 			// sets the RAS_IPolyMaterial::m_flag |RAS_FORCEALPHA
 			// this is so we don't have the overhead of the z-sorting code
 			material->ras_mode|=ALPHA_TEST;
@@ -598,7 +598,7 @@ BL_Material* ConvertMaterial(
 		material->ras_mode |= ( (tface->mode & TF_DYNAMIC)!= 0 )?COLLIDER:0;
 		material->transp = tface->transp;
 		
-		if(tface->transp)
+		if(tface->transp&~TF_CLIP)
 			material->ras_mode |= TRANSP;
 
 		material->tile	= tface->tile;
@@ -947,7 +947,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 						// Use texface colors if available
 						//TF_DYNAMIC means the polygon is a collision face
 						collider = ((tface->mode & TF_DYNAMIC) != 0);
-						transp = tface->transp;
+						transp = tface->transp &~ TF_CLIP;
 						tile = tface->tile;
 						mode = tface->mode;
 						
