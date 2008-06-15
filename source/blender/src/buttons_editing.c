@@ -2403,7 +2403,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				but= uiDefBut(block, BUT, B_MODIFIER_RECALC, "Bind", lx,(cy-=24), buttonWidth,19, 0, 0, 0, 0, 0, "Bind mesh to cage");
 				uiButSetFunc(but,modifiers_bindMeshDeform,ob,md);
 				uiDefButS(block, NUM, B_NOP, "Precision:", lx,(cy-19), buttonWidth/2 + 20,19, &mmd->gridsize, 2, 10, 0.5, 0, "The grid size for binding");
-				uiDefButBitS(block, TOG, MOD_MDEF_DYNAMIC_BIND, B_MODIFIER_RECALC, "Dynamic", lx+(buttonWidth+1)/2 + 20, (cy-=19), buttonWidth/2 - 20,19, &mmd->flag, 0.0, 31.0, 0, 0, "Invert vertex group influence");
+				uiDefButBitS(block, TOG, MOD_MDEF_DYNAMIC_BIND, B_MODIFIER_RECALC, "Dynamic", lx+(buttonWidth+1)/2 + 20, (cy-=19), buttonWidth/2 - 20,19, &mmd->flag, 0.0, 31.0, 0, 0, "Recompute binding dynamically on top of other deformers like Shape Keys (slower and more memory consuming!)");
 			}
 			uiBlockEndAlign(block);
 		} else if (md->type==eModifierType_ParticleSystem) {
