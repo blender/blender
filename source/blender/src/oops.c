@@ -48,6 +48,9 @@
 #include "DNA_texture_types.h"
 #include "DNA_key_types.h"
 #include "DNA_group_types.h"
+#include "DNA_camera_types.h"
+#include "DNA_lattice_types.h"
+#include "DNA_armature_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
@@ -661,7 +664,6 @@ void add_material_oopslinks(Material *ma, Oops *oops, short flag)
 		add_oopslink("group", oops, ID_GR, &(ma->group), OOPSX, (float)(0.5*OOPSY));
 }
 
-
 void add_group_oopslinks(Group *gp, Oops *oops, short flag)
 {
 	GroupObject *gob;
@@ -671,7 +673,6 @@ void add_group_oopslinks(Group *gp, Oops *oops, short flag)
 		}
 	}
 }
-
 
 void add_object_oopslinks(Object *ob, Oops *oops, short flag)
 {
@@ -697,6 +698,12 @@ void add_object_oopslinks(Object *ob, Oops *oops, short flag)
 			break;
 		case ID_LA:
 			if(flag & OOPS_LA) add_oopslink("data", oops, ID_LA, &ob->data, (float)(.5*OOPSX), (float)OOPSY);
+			break;
+ 		case ID_CA:
+			if(flag & OOPS_CA) add_oopslink("data", oops, ID_CA, &ob->data, (float)(.5*OOPSX), (float)OOPSY);
+			break;
+ 		case ID_AR:
+			if(flag & OOPS_AR) add_oopslink("data", oops, ID_AR, &ob->data, (float)(.5*OOPSX), (float)OOPSY);
 			break;
 		}
 	}
@@ -748,7 +755,6 @@ void add_curve_oopslinks(Curve *cu, Oops *oops, short flag)
 		add_oopslink("speed", oops, ID_IP, &cu->ipo, OOPSX, (float)(0.5*OOPSY));
 		if(cu->key) add_oopslink("ipo", oops, ID_IP, &cu->key->ipo, OOPSX, (float)(0.5*OOPSY));
 	}
-	
 }
 
 void add_mball_oopslinks(MetaBall *mb, Oops *oops, short flag)
@@ -775,15 +781,36 @@ void add_lamp_oopslinks(Lamp *la, Oops *oops, short flag)
 			}
 		}
 	}
+	if(flag & OOPS_IP) {
+		add_oopslink("ipo", oops, ID_IP, &la->ipo, OOPSX, (float)(0.5*OOPSY));
+	}
 }
 
+void add_camera_oopslinks(Camera *ca, Oops *oops, short flag)
+{
+	if(flag & OOPS_IP) {
+		add_oopslink("ipo", oops, ID_IP, &ca->ipo, OOPSX, (float)(0.5*OOPSY));
+	}
+}
+
+void add_texture_oopslinks(Tex *tex, Oops *oops, short flag)
+{
+	if(flag & OOPS_IM)  {
+		add_oopslink("image", oops, ID_IM, &tex->ima, OOPSX, (float)(0.5*OOPSY));
+	}
+}
+
+void add_lattice_oopslinks(Lattice *lt, Oops *oops, short flag)
+{
+	if(flag & OOPS_IP) {
+		if(lt->key) add_oopslink("ipo", oops, ID_IP, &lt->key->ipo, OOPSX, (float)(0.5*OOPSY));
+	}
+}
 
 Oops *add_test_oops(void *id)	/* incl links */
 {
 	Oops *oops;
 	Object *ob;
-	Lamp *la;
-	Tex *tex;
 	
 	if(id==0) return NULL;
 	
@@ -821,9 +848,10 @@ Oops *add_test_oops(void *id)	/* incl links */
 		add_mball_oopslinks((MetaBall *)id, oops, G.soops->visiflag);
 		break;
 	case ID_LA:
-		la= (Lamp *)id;
-		add_lamp_oopslinks(la, oops, G.soops->visiflag);
-		if(la->ipo) if(G.soops->visiflag & OOPS_IP) add_oopslink("ipo", oops, ID_IP, &la->ipo, OOPSX, (float)(0.3*OOPSY));
+		add_lamp_oopslinks((Lamp *)id, oops, G.soops->visiflag);
+		break;	 
+	case ID_CA:
+		add_camera_oopslinks((Camera *)id, oops, G.soops->visiflag);
 		break;	 
 	case ID_IP:
 
@@ -835,8 +863,14 @@ Oops *add_test_oops(void *id)	/* incl links */
 		add_group_oopslinks((Group *)id, oops, G.soops->visiflag);
 		break;
 	case ID_TE:
-		tex= (Tex *)id;
-		if(tex->ima) if(G.soops->visiflag & OOPS_IM) add_oopslink("image", oops, ID_IM, &tex->ima, OOPSX, (float)(0.3*OOPSY));
+		add_texture_oopslinks((Tex *)id, oops, G.soops->visiflag);
+		break;
+	case ID_LT:
+		add_lattice_oopslinks((Lattice *)id, oops, G.soops->visiflag);
+		break;
+	case ID_AR:
+	
+		break;
 	}
 	
 	return oops;
@@ -897,7 +931,7 @@ void build_oops()
 		while(sce) {
 		
 			oops= add_test_oops(sce);
-
+		
 			if(G.soops->visiflag & OOPS_OB) {
 				base= sce->base.first;
 				while(base) {
@@ -912,12 +946,13 @@ void build_oops()
 		
 		if(G.soops->visiflag & OOPS_OB) {
 			Object *ob= G.main->object.first;
-
+		
 			while(ob) {
 				oops= add_test_oops(ob);
 				ob= ob->id.next;
 			}
 		}
+		
 		if(G.soops->visiflag & OOPS_ME) {
 			Mesh *me= G.main->mesh.first;
 			while(me) {
@@ -925,7 +960,7 @@ void build_oops()
 				me= me->id.next;
 			}
 		}
-	
+		
 		if(G.soops->visiflag & OOPS_CU) {
 			Curve *cu= G.main->curve.first;
 			while(cu) {
@@ -933,7 +968,7 @@ void build_oops()
 				cu= cu->id.next;
 			}
 		}
-
+		
 		if(G.soops->visiflag & OOPS_MB) {
 			MetaBall *mb= G.main->mball.first;
 			while(mb) {
@@ -941,12 +976,20 @@ void build_oops()
 				mb= mb->id.next;
 			}
 		}
-	
+		
 		if(G.soops->visiflag & OOPS_LA) {
 			Lamp *la= G.main->lamp.first;
 			while(la) {
 				oops= add_test_oops(la);
 				la= la->id.next;
+			}
+		}
+		
+		if(G.soops->visiflag & OOPS_CA) {
+			Camera *ca= G.main->camera.first;
+			while(ca) {
+				oops= add_test_oops(ca);
+				ca= ca->id.next;
 			}
 		}
 		
@@ -972,6 +1015,7 @@ void build_oops()
 				tex= tex->id.next;
 			}
 		}
+		
 		if(G.soops->visiflag & OOPS_IM) {
 			Image *ima= G.main->image.first;
 			while(ima) {
@@ -979,6 +1023,7 @@ void build_oops()
 				ima= ima->id.next;
 			}
 		}
+		
 		if(G.soops->visiflag & OOPS_GR) {
 			Group *gp= G.main->group.first;
 			while(gp) {
@@ -986,6 +1031,23 @@ void build_oops()
 				gp= gp->id.next;
 			}
 		}
+		
+		if(G.soops->visiflag & OOPS_LT) {
+			Lattice *lt= G.main->latt.first;
+			while(lt) {
+				oops= add_test_oops(lt);
+				lt= lt->id.next;
+			}
+		}
+		
+		if(G.soops->visiflag & OOPS_AR) {
+			bArmature *ar= G.main->armature.first;
+			while(ar) {
+				oops= add_test_oops(ar);
+				ar= ar->id.next;
+			}
+		}
+		
 	}
 	else {
 		
@@ -1068,6 +1130,7 @@ void build_oops()
 					else if(type==ID_LA && G.soops->visiflag & OOPS_LA) {
 						Lamp *la= ob->data;
 						oops= add_test_oops(ob->data);
+						
 						if(G.soops->visiflag & OOPS_IP) add_test_oops(la->ipo);
 						if(G.soops->visiflag & OOPS_TE) {
 							for(a=0; a<MAX_MTEX; a++) {
@@ -1075,14 +1138,29 @@ void build_oops()
 							}
 						}
 					}
+					else if(type==ID_CA && G.soops->visiflag & OOPS_CA) {
+						Camera *ca= ob->data;
+						oops= add_test_oops(ob->data);
+						
+						if(G.soops->visiflag & OOPS_IP) add_test_oops(ca->ipo);
+					}
+					else if(type==ID_LT && G.soops->visiflag & OOPS_LT) {
+						Lattice *lt= ob->data;
+						oops= add_test_oops(ob->data);
+						
+						if(G.soops->visiflag & OOPS_IP) {
+							if(lt->key) oops= add_test_oops(lt->key->ipo);
+						}
+					}
+					else if(type==ID_AR && G.soops->visiflag & OOPS_AR) {
+						bArmature *ar= ob->data;
+						oops= add_test_oops(ob->data);
+					}
 				}
 			}
 			base= base->next;
 		}
 	}
-	
-	
-
 
 	/* test links */
 	oops= G.soops->oops.first;
