@@ -1056,14 +1056,13 @@ int snapObjects(int *dist, float *loc, float *no, int mode) {
 
 	if (mode == NOT_ACTIVE)
 	{
-		DerivedMesh *dm, *dm_cage;
+		DerivedMesh *dm;
 		Object *ob = G.obedit;
 		
-		dm_cage = editmesh_get_derived_cage_and_final(&dm, CD_MASK_BAREMESH);
+		dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
 		
 		retval = snapDerivedMesh(ob, dm, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth, 1);
 		
-		dm_cage->release(dm_cage);
 		dm->release(dm);
 	}
 	
