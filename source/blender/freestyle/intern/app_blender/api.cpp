@@ -35,26 +35,41 @@ extern "C" {
 		
 		if( view == NULL )
 			view = new AppGLWidget;
+		
+		controller->SetView(view);
 	}
 
 	void FRS_execute(Render* re) {
 		
+		// instanciation
 		Config::Path pathconfig;
 		FRS_initialize();
 		
-		controller->SetView(view);
+		// initialize view dimensions
 		unsigned int width = re->winx;
 		unsigned int height = re->winy;
 		view->setWidth(width);
 		view->setHeight(height);
 		view->_camera->setScreenWidthAndHeight(width, height);
-		//view->setCameraState(const float* position, const float* orientation) 
 		
+		// initialize camera
+		Object* maincam_obj = re->scene->camera;
+		Vec camPosition(maincam_obj->obmat[3][0], maincam_obj->obmat[3][1], maincam_obj->obmat[3][2]);
+		Vec camUp( re->viewmat[0][1], re->viewmat[1][1], re->viewmat[2][1]);
+		Vec camDirection( -re->viewmat[0][2], -re->viewmat[1][2], - re->viewmat[2][2]);
+		
+		view->_camera->setType(Camera::PERSPECTIVE);
+		view->_camera->setPosition(camPosition);
+		view->_camera->setUpVector(camUp);	
+		view->_camera->setViewDirection(camDirection);	
+		
+		// export scene to 3ds format
 		string script_3ds_export = 	pathconfig.getProjectDir() + 
 									Config::DIR_SEP + "python" + 
 									Config::DIR_SEP + "3ds_export.py";
 		BPY_run_python_script( const_cast<char *>(script_3ds_export.c_str()) );
 		
+		// load 3ds scene
 		char btempdir[255];
 		BLI_where_is_temp(btempdir,1);
 		string exported_3ds_file =  btempdir;
@@ -67,22 +82,30 @@ extern "C" {
 			return;
 		}
 		
+		// add style module
 		string style_module = pathconfig.getProjectDir() + 
 								Config::DIR_SEP + "style_modules" + 
 								Config::DIR_SEP + "contour.py";
 		controller->InsertStyleModule( 0, const_cast<char *>(style_module.c_str()) 	 );
 		controller->toggleLayer(0, true);
+		
+		// compute view map
 		controller->ComputeViewMap();
 		
-		controller->DrawStrokes(); // build strokes
-		view->draw(); // render final result
+		// build strokes
+		controller->DrawStrokes(); 
 		
+		// render final result
+		view->draw(); 
+		
+		// copy result into render window
 		RenderResult rres;
 		RE_GetResultImage(re, &rres);
 		view->readPixels(0,0,width,height,AppGLWidget::RGBA, rres.rectf );		
 		re->result->renlay = render_get_active_layer(re, re->result);
 		re->display_draw(re->result, NULL);
-
+		
+		controller->CloseFile();
 	}
 	
 #ifdef __cplusplus

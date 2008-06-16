@@ -130,7 +130,7 @@ AppGLWidget::AppGLWidget(const char *iName)
   _debug = false;
   _selection_mode = false;
   _Draw2DScene = true;
-  _Draw3DScene = true;
+  _Draw3DScene = false;
   _drawEnvMap = false;
   _currentEnvMap = 1;
   _maxId = 0;

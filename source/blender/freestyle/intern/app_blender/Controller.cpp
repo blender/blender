@@ -209,7 +209,7 @@ int Controller::Load3DSFile(const char *iFileName)
   _RootNode->UpdateBBox(); // FIXME: Correct that by making a Renderer to compute the bbox
 
   _pView->SetModel(_RootNode);
-  _pView->FitBBox();
+  //_pView->FitBBox();
 
 
   _Chrono.start();
@@ -399,149 +399,149 @@ void Controller::SaveViewMapFile(const char *oFileName)
   cout << "ViewMap saving   : " << d << endl;
 }
 
-void Controller::LoadViewMapFile(const char *iFileName, bool only_camera)
-{
-  ifstream ifs(iFileName, ios::binary);
-  if (!ifs.is_open()) {
-    cerr << "Error: Cannot load this file" << endl;
-    return;
-  }
-//    char buffer[buffer_size];
-//  #if defined(__GNUC__) && (__GNUC__ < 3)
-//    ifs.rdbuf()->setbuf(buffer, buffer_size);
-//  # else
-//    ifs.rdbuf()->pubsetbuf(buffer, buffer_size);
-//  #endif
-
-  // Test File Magic and version
-  char tmp_buffer[256];
-  string test;
-  
-  ifs.getline(tmp_buffer, 255);
-  test = tmp_buffer;
-  if (test != Config::VIEWMAP_MAGIC) {
-    cerr << "Error: This is not a valid ." << Config::VIEWMAP_EXTENSION << " file" << endl;
-    return;
-  }
-  ifs.getline(tmp_buffer, 255);
-  test = tmp_buffer;
-  if (test != Config::VIEWMAP_VERSION && !only_camera) {
-    cerr << "Error: This version of the ." << Config::VIEWMAP_EXTENSION << " file format is no longer supported" << endl;
-    return;
-  }
-
-  // Read the models filenames and open them (if not already done)
-  string tmp;
-  vector<string> tmp_vec;
-  unsigned models_nb, i;
-
-  ifs.getline(tmp_buffer, 255);
-  models_nb = atoi(tmp_buffer);
-  for (i = 0; i < models_nb; i++) {
-    ifs.getline(tmp_buffer, 255);
-    tmp = tmp_buffer;
-    tmp_vec.push_back(tmp);
-  }
-  if (_ListOfModels != tmp_vec && !only_camera) {
-    CloseFile();
-    vector<string> pathnames;
-    int err = 0;
-    for (vector<string>::const_iterator i = tmp_vec.begin(); i != tmp_vec.end(); i++)
-      {
-	pathnames.clear();
-	StringUtils::getPathName(ViewMapIO::Options::getModelsPath(), *i, pathnames);
-	for (vector<string>::const_iterator j = pathnames.begin(); j != pathnames.end(); j++)
-	  if (!(err = Load3DSFile(j->c_str())))
-	    break;
-	if (err) {
-	  cerr << "Error: cannot find model \"" << *i << "\" - check the path in the Options" << endl;
-	  return;
-	}
-      }
-  }
-
-  // Set the camera position
-  float position[3];
-  float orientation[4];
-  ifs.read((char*)position, 3 * sizeof(*position));
-  ifs.read((char*)orientation, 4 * sizeof(*orientation));
-  _pView->setCameraState(position, orientation);
-  _pView->saveCameraState();
-
-  if (only_camera) {
-    return;
-  }
-
-  // Reset ViewMap
-  if(NULL != _ViewMap)
-    {
-      delete _ViewMap;
-      _ViewMap = 0;
-    }
-  _pView->DetachSilhouette();
-  if (NULL != _SilhouetteNode)
-    {
-      int ref = _SilhouetteNode->destroy();
-      if(0 == ref)
-	delete _SilhouetteNode;
-    }
-  //  if(NULL != _ProjectedSilhouette)
-  //    {
-  //      int ref = _ProjectedSilhouette->destroy();
-  //      if(0 == ref)
-  //	delete _ProjectedSilhouette;
-  //    }
-  //  if(NULL != _VisibleProjectedSilhouette)
-  //    {
-  //      int ref = _VisibleProjectedSilhouette->destroy();
-  //      if(0 == ref)
-  //	{
-  //	  delete _VisibleProjectedSilhouette;
-  //	  _VisibleProjectedSilhouette = 0;
-  //	}
-   // }
-  _ViewMap = new ViewMap();
-
-  // Read ViewMap
-  _Chrono.start();
-  if (ViewMapIO::load(ifs, _ViewMap, 0)) {
-    _Chrono.stop();
-
-    cerr << "Error: This is not a valid ." << Config::VIEWMAP_EXTENSION << " file" << endl;
-    return;
-  }
-
-  // Update display
-  ViewMapTesselator3D sTesselator3d;
-  //ViewMapTesselator2D sTesselator2d;
-  //sTesselator2d.SetNature(_edgeTesselationNature);
-  sTesselator3d.SetNature(_edgeTesselationNature);
-  
-  // Tesselate the 3D edges:
-  _SilhouetteNode = sTesselator3d.Tesselate(_ViewMap);
-  _SilhouetteNode->addRef();
-  
-  // Tesselate 2D edges
-  //  _ProjectedSilhouette = sTesselator2d.Tesselate(_ViewMap);
-  //  _ProjectedSilhouette->addRef();
-  //  
-  _pView->AddSilhouette(_SilhouetteNode);
-  //_pView->Add2DSilhouette(_ProjectedSilhouette);
-
-  // Update options window
-  //_pOptionsWindow->updateViewMapFormat();
-
-  real d = _Chrono.stop();
-  cout << "ViewMap loading  : " << d << endl;
-
-  // Compute the Directional ViewMap:
-  if(_ComputeSteerableViewMap){
-    ComputeSteerableViewMap();
-  }
-
-  // Reset Style modules modification flags
-  resetModified(true);
-}
+// void Controller::LoadViewMapFile(const char *iFileName, bool only_camera)
+// {
+//   ifstream ifs(iFileName, ios::binary);
+//   if (!ifs.is_open()) {
+//     cerr << "Error: Cannot load this file" << endl;
+//     return;
+//   }
+// //    char buffer[buffer_size];
+// //  #if defined(__GNUC__) && (__GNUC__ < 3)
+// //    ifs.rdbuf()->setbuf(buffer, buffer_size);
+// //  # else
+// //    ifs.rdbuf()->pubsetbuf(buffer, buffer_size);
+// //  #endif
+// 
+//   // Test File Magic and version
+//   char tmp_buffer[256];
+//   string test;
+//   
+//   ifs.getline(tmp_buffer, 255);
+//   test = tmp_buffer;
+//   if (test != Config::VIEWMAP_MAGIC) {
+//     cerr << "Error: This is not a valid ." << Config::VIEWMAP_EXTENSION << " file" << endl;
+//     return;
+//   }
+//   ifs.getline(tmp_buffer, 255);
+//   test = tmp_buffer;
+//   if (test != Config::VIEWMAP_VERSION && !only_camera) {
+//     cerr << "Error: This version of the ." << Config::VIEWMAP_EXTENSION << " file format is no longer supported" << endl;
+//     return;
+//   }
+// 
+//   // Read the models filenames and open them (if not already done)
+//   string tmp;
+//   vector<string> tmp_vec;
+//   unsigned models_nb, i;
+// 
+//   ifs.getline(tmp_buffer, 255);
+//   models_nb = atoi(tmp_buffer);
+//   for (i = 0; i < models_nb; i++) {
+//     ifs.getline(tmp_buffer, 255);
+//     tmp = tmp_buffer;
+//     tmp_vec.push_back(tmp);
+//   }
+//   if (_ListOfModels != tmp_vec && !only_camera) {
+//     CloseFile();
+//     vector<string> pathnames;
+//     int err = 0;
+//     for (vector<string>::const_iterator i = tmp_vec.begin(); i != tmp_vec.end(); i++)
+//       {
+// 	pathnames.clear();
+// 	StringUtils::getPathName(ViewMapIO::Options::getModelsPath(), *i, pathnames);
+// 	for (vector<string>::const_iterator j = pathnames.begin(); j != pathnames.end(); j++)
+// 	  if (!(err = Load3DSFile(j->c_str())))
+// 	    break;
+// 	if (err) {
+// 	  cerr << "Error: cannot find model \"" << *i << "\" - check the path in the Options" << endl;
+// 	  return;
+// 	}
+//       }
+//   }
+// 
+//   // Set the camera position
+//   float position[3];
+//   float orientation[4];
+//   ifs.read((char*)position, 3 * sizeof(*position));
+//   ifs.read((char*)orientation, 4 * sizeof(*orientation));
+//   _pView->setCameraState(position, orientation);
+//   _pView->saveCameraState();
+// 
+//   if (only_camera) {
+//     return;
+//   }
+// 
+//   // Reset ViewMap
+//   if(NULL != _ViewMap)
+//     {
+//       delete _ViewMap;
+//       _ViewMap = 0;
+//     }
+//   _pView->DetachSilhouette();
+//   if (NULL != _SilhouetteNode)
+//     {
+//       int ref = _SilhouetteNode->destroy();
+//       if(0 == ref)
+// 	delete _SilhouetteNode;
+//     }
+//   //  if(NULL != _ProjectedSilhouette)
+//   //    {
+//   //      int ref = _ProjectedSilhouette->destroy();
+//   //      if(0 == ref)
+//   //	delete _ProjectedSilhouette;
+//   //    }
+//   //  if(NULL != _VisibleProjectedSilhouette)
+//   //    {
+//   //      int ref = _VisibleProjectedSilhouette->destroy();
+//   //      if(0 == ref)
+//   //	{
+//   //	  delete _VisibleProjectedSilhouette;
+//   //	  _VisibleProjectedSilhouette = 0;
+//   //	}
+//    // }
+//   _ViewMap = new ViewMap();
+// 
+//   // Read ViewMap
+//   _Chrono.start();
+//   if (ViewMapIO::load(ifs, _ViewMap, 0)) {
+//     _Chrono.stop();
+// 
+//     cerr << "Error: This is not a valid ." << Config::VIEWMAP_EXTENSION << " file" << endl;
+//     return;
+//   }
+// 
+//   // Update display
+//   ViewMapTesselator3D sTesselator3d;
+//   //ViewMapTesselator2D sTesselator2d;
+//   //sTesselator2d.SetNature(_edgeTesselationNature);
+//   sTesselator3d.SetNature(_edgeTesselationNature);
+//   
+//   // Tesselate the 3D edges:
+//   _SilhouetteNode = sTesselator3d.Tesselate(_ViewMap);
+//   _SilhouetteNode->addRef();
+//   
+//   // Tesselate 2D edges
+//   //  _ProjectedSilhouette = sTesselator2d.Tesselate(_ViewMap);
+//   //  _ProjectedSilhouette->addRef();
+//   //  
+//   _pView->AddSilhouette(_SilhouetteNode);
+//   //_pView->Add2DSilhouette(_ProjectedSilhouette);
+// 
+//   // Update options window
+//   //_pOptionsWindow->updateViewMapFormat();
+// 
+//   real d = _Chrono.stop();
+//   cout << "ViewMap loading  : " << d << endl;
+// 
+//   // Compute the Directional ViewMap:
+//   if(_ComputeSteerableViewMap){
+//     ComputeSteerableViewMap();
+//   }
+// 
+//   // Reset Style modules modification flags
+//   resetModified(true);
+// }
 
 void Controller::ComputeViewMap()
 {

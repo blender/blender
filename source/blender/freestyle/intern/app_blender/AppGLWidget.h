@@ -401,9 +401,9 @@ public:
 
   inline bool getRecordFlag() const {return _record;}
 
-  void setCameraState(const float* position, const float* orientation) {
-    _camera->setPosition(Vec(position[0], position[1], position[2]));
-    _camera->setOrientation(Quaternion(orientation[0], orientation[1], orientation[2], orientation[3]));
+  void setCameraState(const Vec& position, const Quaternion& orientation) {
+    _camera->setPosition(position);
+    _camera->setOrientation(orientation);
   }
 
   void getCameraState(float* position, float* orientation) const {
