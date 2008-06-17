@@ -103,6 +103,7 @@ private:
 	double				m_remainingTime;
 
 	static double			m_ticrate;
+	static double			m_anim_framerate; /* for animation playback only - ipo and action */
 
 	static double			m_suspendedtime;
 	static double			m_suspendeddelta;
@@ -259,6 +260,15 @@ public:
 	 * Sets the number of logic updates per second.
 	 */
 	static void SetTicRate(double ticrate);
+
+	/**
+	 * Gets the framerate for playing animations. (actions and ipos)
+	 */
+	static double GetAnimFrameRate();
+	/**
+	 * Sets the framerate for playing animations. (actions and ipos)
+	 */
+	static void SetAnimFrameRate(double framerate);
 
 	/**
 	 * Activates or deactivates timing information display.

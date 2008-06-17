@@ -45,9 +45,8 @@
 #include "GEN_Map.h"
 #include "GEN_HashedPtr.h"
 #include "KX_Scene.h"
+#include "KX_KetsjiEngine.h" /* for m_anim_framerate */
 
-#define KX_FIXED_FRAME_PER_SEC 25.0f
-#define KX_FIXED_SEC_PER_FRAME (1.0f / KX_FIXED_FRAME_PER_SEC)
 #define KX_OB_DYNAMIC 1
 
 
