@@ -39,6 +39,8 @@ typedef char* BitSet;
 
 #define bitset_get(set,index)	((set)[(index)>>3] & (1 << ((index)&0x7)))
 #define bitset_set(set,index)	((set)[(index)>>3] |= (1 << ((index)&0x7)))
+#define bitset_unset(set,index)	((set)[(index)>>3] &= ~(1 << ((index)&0x7)))
+
 
 
 struct Object;

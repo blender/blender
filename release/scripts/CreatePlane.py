@@ -45,23 +45,22 @@ import Blender, bpy
 def matrix(dima, dimb):
 	return [[0 for b in range(dimb)] for a in range(dima)]
 
-def makelist(a):
-	res = []
-	for i in a:
-		res.append(i)
-	return res
-
 def dotProduct(a):
-	sum = 0.0
-	for i in a:
-		sum += i*i
-	return sum
+	return reduce(lambda x, y: x + y*y, a) 
+
+def manhattanDistance(a, b):
+	return reduce(lambda x, y: x + abs(y[0]-y[1]), zip(a, b), 0)
+
+def xrange_tuple(low, upper):
+	for i in xrange( low[0], upper[0]):
+		for j in xrange( low[1], upper[1]):
+			yield (i,j)
+
 
 # For now simply decompose in a triangle fan
 def DecomposePolygon(poly):
-	for i in range(2, len(poly), 1):
+	for i in xrange(2, len(poly), 1):
 		yield [ poly[0], poly[i-1], poly[i] ]
-
 
 def Expand3dCoordsFrom2d(coords):
 	for c in coords:
@@ -76,34 +75,41 @@ def ExtractSections(image):
 	mdim = max( image.size )
 	dx = float(image.size[0]) / x_samples
 	dy = float(image.size[1]) / y_samples
-	ox = -float(x_samples)*0.5
-	oy = -float(y_samples)*0.5
+
+	offset = [ -0.5*i for i in image.size]
 
 	def scale(a):
-		return ( (a[0] + ox)*dx , (a[1] + oy)*dy )
-			
-	used = matrix(x_samples, y_samples)
-	for a in range(x_samples):
-		for b in range(y_samples):
-			if dotProduct(image.getPixelHDR( (int)(a*dx), (int)(b*dy))) <= 1:
-				used[a][b] = 1
+		return (a[0] + offset[0] , a[1] + offset[1])
+	
+	sx = 0
+#(int) (float(image.size[0]) / (x_samples))
+	sy = 0
+#(int) (float(image.size[1]) / (y_samples))
 
-	for a in range(x_samples-1):
-		for b in range(y_samples-1):
-			sum = used[a][b] + used[a+1][b] + used[a][b+1] + used[a+1][b+1]
-			
-			if sum == 4:
-				yield map( scale, [ (a,b) , (a+1,b), (a+1,b+1), (a,b+1) ] )
-			elif sum == 3:
-				if not used[a][b]:
-					yield map( scale, [ (a+1,b), (a+1,b+1) , (a,b+1) ] )
-				if not used[a+1][b]:
-					yield map( scale, [ (a,b), (a+1,b+1) , (a,b+1) ] )
-				if not used[a][b+1]:
-					yield map( scale, [ (a,b), (a+1,b) , (a+1,b+1) ] )
-				if not used[a+1][b+1]:
-					yield map( scale, [ (a,b), (a+1,b) , (a,b+1) ] )
-					
+	def get( center ):
+		best = None
+		for pos in xrange_tuple( (max(0, center[0]-sx),max(0, center[1]-sy)) , (min(image.size[0], center[0]+sx)+1, min(image.size[1], center[1]+sy)+1 )):
+				if dotProduct(image.getPixelHDR(pos[0],pos[1])) <= 1:
+					if best == None or manhattanDistance(center, pos) < manhattanDistance(center, best):
+						best = pos
+		return best
+
+
+	pos = matrix(x_samples, y_samples)
+	sdx = dx
+	sdy = dy
+	for a in xrange(x_samples):
+		for b in xrange(y_samples):
+			pos[a][b] = get(((int)(a*sdx),(int)(b*sdy)))
+
+	for a in xrange(x_samples-1):
+		for b in xrange(y_samples-1):
+			arround = [ (a,b) , (a+1,b), (a+1,b+1), (a,b+1) ]
+
+			valid = [ pos[c[0]][c[1]] for c in arround if pos[c[0]][c[1]] != None]
+			if len(valid) >= 3:
+				yield map( scale, valid )
+				
 
 def ImportPlaneFromImage(image, mesh):
 
@@ -134,8 +140,6 @@ def ImportPlaneFromImage(image, mesh):
 
 
 
-#use the current image on the image editor? or ask the user what image to load
-#image = Blender.Image.GetCurrent()
 
 def load_image(filename):
 	print "Loading ",filename
@@ -144,11 +148,13 @@ def load_image(filename):
 	Blender.Scene.GetCurrent().objects.new(mesh)
 
 	image = Blender.Image.Load(filename)
-	print image
 	ImportPlaneFromImage(image, mesh)
 	Blender.Redraw()
 	
 
-image = Blender.Window.FileSelector(load_image, "Load Image")
+Blender.Window.FileSelector(load_image, "Load Image")
+#use the current image on the image editor? or ask the user what image to load
+#image = Blender.Image.GetCurrent()
+#load_image("/home/darkaj/develop/blender/shrinkwrap/road.png")
 
 

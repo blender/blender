@@ -29,6 +29,7 @@
 #include <string.h>
 #include <float.h>
 #include <math.h>
+#include <memory.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -58,7 +59,7 @@
 #define OUT_OF_MEMORY()	((void)printf("Shrinkwrap: Out of memory\n"))
 
 /* Benchmark macros */
-#if 1
+#if 0
 
 #define BENCH(a)	\
 	do {			\
@@ -321,6 +322,82 @@ static float squared_dist(const float *a, const float *b)
 	VECSUB(tmp, a, b);
 	return INPR(tmp, tmp);
 }
+
+/*
+ *
+ */
+static void derivedmesh_mergeNearestPoints(DerivedMesh *dm, float mdist, BitSet skipVert)
+{
+	if(mdist > 0.0f)
+	{
+		int i, j, merged;
+		int	numVerts = dm->getNumVerts(dm);
+		int *translate_vert = MEM_mallocN( sizeof(int)*numVerts, "merge points array");
+
+		MVert *vert = dm->getVertDataArray(dm, CD_MVERT);
+
+		if(!translate_vert) return;
+
+		merged = 0;
+		for(i=0; i<numVerts; i++)
+		{
+			translate_vert[i] = i;
+
+			if(skipVert && bitset_get(skipVert, i)) continue;
+
+			for(j = 0; j<i; j++)
+			{
+				if(skipVert && bitset_get(skipVert, j)) continue;
+				if(squared_dist(vert[i].co, vert[j].co) < mdist)
+				{
+					translate_vert[i] = j;
+					merged++;
+					break;
+				}
+			}
+		}
+
+		//some vertexs were merged.. recalculate structure (edges and faces)
+		if(merged > 0)
+		{
+			int	numFaces = dm->getNumFaces(dm);
+			int freeVert;
+			MFace *face = dm->getFaceDataArray(dm, CD_MFACE);
+
+
+			//Adjust vertexs using the translation_table.. only translations to back indexs are allowed
+			//which means t[i] <= i must always verify
+			for(i=0, freeVert = 0; i<numVerts; i++)
+			{
+				if(translate_vert[i] == i)
+				{
+					memcpy(&vert[freeVert], &vert[i], sizeof(*vert));
+					translate_vert[i] = freeVert++;
+				}
+				else translate_vert[i] = translate_vert[ translate_vert[i] ];
+			}
+
+			CDDM_lower_num_verts(dm, numVerts - merged);
+
+			for(i=0; i<numFaces; i++)
+			{
+				MFace *f = face+i;
+				f->v1 = translate_vert[f->v1];
+				f->v2 = translate_vert[f->v2];
+				f->v3 = translate_vert[f->v3];
+				//TODO be carefull with vertexs v4 being translated to 0
+				f->v4 = translate_vert[f->v4];
+			}
+
+			//TODO: maybe update edges could be done outside this function
+			CDDM_calc_edges(dm);
+			//CDDM_calc_normals(dm);
+		}
+
+		if(translate_vert) MEM_freeN( translate_vert );
+	}
+}
+
 
 /*
  * This calculates the distance (in dir units) that the ray must travel to intersect plane
@@ -703,25 +780,57 @@ static void shrinkwrap_removeUnused(ShrinkwrapCalcData *calc)
 	BitSet used_faces = bitset_new(numFaces, "shrinkwrap used faces");
 	int numUsedFaces = 0;
 
+
+	//calculate which vertexs need to be used
+	//even unmoved vertices might need to be used if theres a face that needs it
 	//calc real number of faces, and vertices
 	//Count used faces
 	for(i=0; i<numFaces; i++)
 	{
-		char res = bitset_get(moved_verts, face[i].v1)
-				 | bitset_get(moved_verts, face[i].v2)
-				 | bitset_get(moved_verts, face[i].v3)
-				 | (face[i].v4 ? bitset_get(moved_verts, face[i].v4) : 0);
+		char res = 0;
+		if(bitset_get(moved_verts, face[i].v1)) res++;
+		if(bitset_get(moved_verts, face[i].v2)) res++;
+		if(bitset_get(moved_verts, face[i].v3)) res++;
+		if(face[i].v4 && bitset_get(moved_verts, face[i].v4)) res++;
 
-		if(res)
+		//Ignore a face were not a single vertice moved
+		if(res == 0) continue;
+
+		//Only 1 vertice moved.. (if its a quad.. remove the vertice oposite to it)
+		if(res == 1 && face[i].v4)
 		{
-			bitset_set(used_faces, i);	//Mark face to maintain
-			numUsedFaces++;
+			if(bitset_get(moved_verts, face[i].v1))
+			{
+				//remove vertex 3
+				face[i].v3 = face[i].v4;
+			}
+			else if(bitset_get(moved_verts, face[i].v2))
+			{
+				//remove vertex 4
+			}
+			else if(bitset_get(moved_verts, face[i].v3))
+			{
+				//remove vertex 1
+				face[i].v1 = face[i].v4;
+			}
+			else if(bitset_get(moved_verts, face[i].v4))
+			{
+				//remove vertex 2
+				face[i].v2 = face[i].v3;
+				face[i].v3 = face[i].v4;
+			}
 
-			vert_index[face[i].v1] = 1;
-			vert_index[face[i].v2] = 1;
-			vert_index[face[i].v3] = 1;
-			if(face[i].v4) vert_index[face[i].v4] = 1;
+			face[i].v4 = 0;	//this quad turned on a tri
 		}
+
+		bitset_set(used_faces, i);	//Mark face to maintain
+		numUsedFaces++;
+
+		//Mark vertices are needed
+		vert_index[face[i].v1] = 1;
+		vert_index[face[i].v2] = 1;
+		vert_index[face[i].v3] = 1;
+		if(face[i].v4) vert_index[face[i].v4] = 1;
 	}
 
 	//DP: Accumulate vertexs indexs.. (will calculate the new vertex index with a 1 offset)
@@ -736,10 +845,16 @@ static void shrinkwrap_removeUnused(ShrinkwrapCalcData *calc)
 	new_vert  = new->getVertDataArray(new, CD_MVERT);
 	for(i=0, t=0; i<numVerts; i++)
 	{
+		
 		if(vert_index[i] != t)
 		{
 			t = vert_index[i];
 			memcpy(new_vert++, vert+i, sizeof(MVert));
+
+			if(bitset_get(moved_verts, i))
+				bitset_set(moved_verts, t-1);
+			else
+				bitset_unset(moved_verts, t-1);
 		}
 	}
 
@@ -778,6 +893,7 @@ static void shrinkwrap_removeUnused(ShrinkwrapCalcData *calc)
 
 	calc->final = new;
 }
+
 
 /* Main shrinkwrap function */
 DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
@@ -820,10 +936,12 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 	//Projecting target defined - lets work!
 	if(calc.target)
 	{
+/*
 		printf("Shrinkwrap (%s)%d over (%s)%d\n",
 			calc.ob->id.name,			calc.final->getNumVerts(calc.final),
 			calc.smd->target->id.name,	calc.target->getNumVerts(calc.target)
 		);
+*/
 
 		switch(smd->shrinkType)
 		{
@@ -845,14 +963,21 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 
 	}
 
-	//Destroy faces, edges and stuff
 	if(calc.moved)
 	{
+		//Destroy faces, edges and stuff
 		shrinkwrap_removeUnused(&calc);
-		bitset_free(calc.moved);
+
+		if(calc.moved)
+			derivedmesh_mergeNearestPoints(calc.final, calc.smd->mergeDist, calc.moved);
 	}
 
-	CDDM_calc_normals(calc.final);	
+	CDDM_calc_normals(calc.final);
+
+	//clean memory
+	if(calc.moved)
+		bitset_free(calc.moved);
+
 
 	return calc.final;
 }
@@ -873,12 +998,11 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	BVHTree *tree	= NULL;
 	BVHTreeNearest nearest;
 
-	BENCH_VAR(query);
-
 	int	numVerts;
 	MVert *vert = NULL;
 	MDeformVert *dvert = NULL;
 
+	BENCH_VAR(query);
 
 
 	BENCH(tree = bvhtree_from_mesh_verts(calc->target));
