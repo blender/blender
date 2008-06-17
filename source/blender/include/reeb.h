@@ -109,6 +109,7 @@ typedef struct ReebArcIterator {
 	int start;
 	int end;
 	int stride;
+	int length;
 } ReebArcIterator;
 
 struct EditMesh;

@@ -555,15 +555,49 @@ static void printPositions(int *positions, int nb_positions)
 	printf("\n");
 }
 
-static float calcCost(ReebArc *earc, RigEdge *e1, RigEdge *e2, float *vec0, float *vec1, float *vec2, int i0, int i1, int i2)
+static float calcMaximumDistance(ReebArcIterator *iter, float *vec0, float *vec1, int i0, int i1)
 {
-	ReebArcIterator iter2;
 	EmbedBucket *bucket = NULL;
-	float max_dist;
+	float max_dist = 0;
+	float v1[3], v2[3], c[3];
+	float v1_inpf;
+
+	VecSubf(v1, vec0, vec1);
 	
+	v1_inpf = Inpf(v1, v1);
+	
+	if (v1_inpf > 0)
+	{
+		int j;
+		for (j = i0; j < i1; j++)
+		{
+			float dist;
+			
+			bucket = peekBucket(iter, j);
+
+			VecSubf(v2, bucket->p, vec1);
+	
+			Crossf(c, v1, v2);
+			
+			dist = Inpf(c, c) / v1_inpf;
+			
+			max_dist = dist > max_dist ? dist : max_dist;
+		}
+		
+		return max_dist;
+	}
+	else
+	{
+		return FLT_MAX;
+	}
+}
+
+static float calcCost(ReebArcIterator *iter, RigEdge *e1, RigEdge *e2, float *vec0, float *vec1, float *vec2, int i0, int i1, int i2)
+{
 	float vec_second[3], vec_first[3];
 	float angle = e1->angle;
 	float test_angle, length1, length2;
+	float max_dist;
 	float new_cost = 0;
 
 	VecSubf(vec_second, vec2, vec1);
@@ -588,45 +622,11 @@ static float calcCost(ReebArc *earc, RigEdge *e1, RigEdge *e2, float *vec0, floa
 	new_cost += G.scene->toolsettings->skgen_retarget_length_weight * fabs((length2 - e2->length) / e2->length);
 
 	/* calculate maximum distance */
-//	max_dist = 0;
-//	for (initArcIterator2(&iter2, earc, i0, i1), bucket = nextBucket(&iter2);
-//		bucket;
-//		bucket = nextBucket(&iter2))
-//	{
-//		float v1[3], v2[3], c[3];
-//		float dist;
-//		
-//		VecSubf(v1, vec0, vec1);
-//		VecSubf(v2, bucket->p, vec1);
-//
-//		Crossf(c, v1, v2);
-//		
-//		dist = Inpf(c, c) / Inpf(v1, v1);
-//		
-//		max_dist = dist > max_dist ? dist : max_dist;
-//	}
-//	
-//	new_cost += G.scene->toolsettings->skgen_retarget_length_weight * max_dist;
-//	
-//	max_dist = 0;
-//	for (initArcIterator2(&iter2, earc, i1, i2), bucket = nextBucket(&iter2);
-//		bucket;
-//		bucket = nextBucket(&iter2))
-//	{
-//		float v1[3], v2[3], c[3];
-//		float dist;
-//		
-//		VecSubf(v1, vec1, vec2);
-//		VecSubf(v2, bucket->p, vec2);
-//
-//		Crossf(c, v1, v2);
-//		
-//		dist = Inpf(c, c) / Inpf(v1, v1);
-//		
-//		max_dist = dist > max_dist ? dist : max_dist;
-//	}
-//	
-//	new_cost += G.scene->toolsettings->skgen_retarget_length_weight * max_dist;
+	max_dist = calcMaximumDistance(iter, vec0, vec1, i0, i1);
+	new_cost += G.scene->toolsettings->skgen_retarget_distance_weight * max_dist;
+	
+	max_dist = calcMaximumDistance(iter, vec1, vec2, i1, i2);
+	new_cost += G.scene->toolsettings->skgen_retarget_distance_weight * max_dist;
 
 	return new_cost;
 }
@@ -664,7 +664,7 @@ static void calcGradient(RigEdge *e1, RigEdge *e2, ReebArcIterator *iter, int in
 	}
 
 
-	current_cost = calcCost(iter->arc, e1, e2, vec0, vec1, vec2, i0, i1, i2);
+	current_cost = calcCost(iter, e1, e2, vec0, vec1, vec2, i0, i1, i2);
 	cost_cube[index * 3 + 1] = current_cost;
 	
 	next_position = positions[index] + 1;
@@ -685,7 +685,7 @@ static void calcGradient(RigEdge *e1, RigEdge *e2, ReebArcIterator *iter, int in
 		{
 			vec1 = bucket->p;
 			
-			cost_cube[index * 3 + 2] = calcCost(iter->arc, e1, e2, vec0, vec1, vec2, i0, next_position, i2) - current_cost;
+			cost_cube[index * 3 + 2] = calcCost(iter, e1, e2, vec0, vec1, vec2, i0, next_position, i2) - current_cost;
 		}
 	}
 
@@ -707,7 +707,7 @@ static void calcGradient(RigEdge *e1, RigEdge *e2, ReebArcIterator *iter, int in
 		{
 			vec1 = bucket->p;
 			
-			cost_cube[index * 3] = calcCost(iter->arc, e1, e2, vec0, vec1, vec2, i0, next_position, i2) - current_cost;
+			cost_cube[index * 3] = calcCost(iter, e1, e2, vec0, vec1, vec2, i0, next_position, i2) - current_cost;
 		}
 	}
 }
@@ -788,6 +788,7 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 			
 			positions[i] += 1;
 			need_calc = i;
+			
 			if (positions[i] + remaining_joints < earc->bcount)
 			{
 				break;
@@ -827,17 +828,31 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 			{ 
 				float vec_first[3], vec_second[3];
 				float length1, length2;
+				float max_dist;
+				float length_ratio;
 				float new_cost = 0;
+				int i1, i2;
 				
 				if (i < nb_joints)
 				{
-					bucket = nextNBucket(&iter, positions[i] - last_index);
+					i2 = positions[i];
+					bucket = peekBucket(&iter, positions[i]);
 					vec2 = bucket->p;
 					vec_cache[i + 1] = vec2; /* update cache for updated position */
 				}
 				else
 				{
+					i2 = iter.length;
 					vec2 = node_end->p;
+				}
+				
+				if (i > 0)
+				{
+					i1 = positions[i - 1];
+				}
+				else
+				{
+					i1 = 1;
 				}
 				
 				vec1 = vec_cache[i];
@@ -847,7 +862,7 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 				length2 = Normalize(vec_second);
 	
 				/* check angle */
-				if (i != 0)
+				if (i != 0 && G.scene->toolsettings->skgen_retarget_angle_weight > 0)
 				{
 					RigEdge *previous = edge->prev;
 					float angle = previous->angle;
@@ -865,15 +880,25 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 					}
 					else
 					{
-						new_cost += M_PI;
+						new_cost += G.scene->toolsettings->skgen_retarget_angle_weight;
 					}
 				}
 	
 				/* LENGTH COST HERE */
-				new_cost += G.scene->toolsettings->skgen_retarget_length_weight * fabs((length2 - edge->length) / edge->length);
-				cost_cache[i] = new_cost;
+				if (G.scene->toolsettings->skgen_retarget_length_weight > 0)
+				{
+					length_ratio = fabs((length2 - edge->length) / edge->length);
+					new_cost += G.scene->toolsettings->skgen_retarget_length_weight * length_ratio * length_ratio;
+				}
 				
-				last_index =  positions[i];
+				/* DISTANCE COST HERE */
+				if (G.scene->toolsettings->skgen_retarget_distance_weight > 0)
+				{
+					max_dist = calcMaximumDistance(&iter, vec1, vec2, i1, i2);
+					new_cost += G.scene->toolsettings->skgen_retarget_distance_weight * max_dist;
+				}
+				
+				cost_cache[i] = new_cost;
 			}
 			
 			cost += cost_cache[i];
@@ -985,6 +1010,7 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 	initArcIterator(&iter, earc, node_start);
 	
 	printPositions(best_positions, nb_joints);
+	printf("min_cost %f\n", min_cost);
 	printf("buckets: %i\n", earc->bcount);
 
 	/* set joints to best position */
@@ -996,7 +1022,7 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 		
 		if (i < nb_joints)
 		{
-			bucket = nextNBucket(&iter, best_positions[i] - last_index);
+			bucket = peekBucket(&iter, best_positions[i]);
 			vec1 = bucket->p;
 		}
 		else
@@ -1017,7 +1043,6 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 		}
 		
 		vec0 = vec1;
-		last_index =  best_positions[i];
 	}
 	
 	MEM_freeN(positions);

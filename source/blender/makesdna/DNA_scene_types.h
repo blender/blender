@@ -435,6 +435,7 @@ typedef struct ToolSettings {
 	float skgen_symmetry_limit;
 	float skgen_retarget_angle_weight;
 	float skgen_retarget_length_weight;
+	float skgen_retarget_distance_weight;
 	short skgen_options;
 	char  skgen_postpro;
 	char  skgen_postpro_passes;
@@ -442,7 +443,6 @@ typedef struct ToolSettings {
 	
 	/* Alt+RMB option */
 	char edge_mode;
-	char pad3[4];
 } ToolSettings;
 
 /* Used by all brushes to store their properties, which can be directly set

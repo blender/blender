@@ -5011,8 +5011,9 @@ static void editing_panel_mesh_skgen_retarget(Object *ob, Mesh *me)
 	uiDefButF(block, NUM, B_DIFF, 							"T:",			1111,110,164,19, &G.scene->toolsettings->skgen_threshold_external,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering external arcs");
 	uiBlockEndAlign(block);
 
-	uiDefButF(block, NUM, B_DIFF, 							"Angle:",			1025, 60, 125,19, &G.scene->toolsettings->skgen_retarget_angle_weight, 0, 10, 1, 0,		"Angle Weight");
-	uiDefButF(block, NUM, B_DIFF, 							"Length:",			1150, 60, 125,19, &G.scene->toolsettings->skgen_retarget_length_weight, 0, 10, 1, 0,		"Length Weight");
+	uiDefButF(block, NUM, B_DIFF, 							"Ang:",			1025, 60, 83,19, &G.scene->toolsettings->skgen_retarget_angle_weight, 0, 10, 1, 0,		"Angle Weight");
+	uiDefButF(block, NUM, B_DIFF, 							"Len:",			1108, 60, 83,19, &G.scene->toolsettings->skgen_retarget_length_weight, 0, 10, 1, 0,		"Length Weight");
+	uiDefButF(block, NUM, B_DIFF, 							"Dist:",		1191, 60, 84,19, &G.scene->toolsettings->skgen_retarget_distance_weight, 0, 10, 1, 0,		"Distance Weight");
 
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, SKGEN_SYMMETRY, B_DIFF, 		"Symmetry",		1025, 30,125,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Restore symmetries based on topology");

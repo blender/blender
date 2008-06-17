@@ -2365,6 +2365,8 @@ void initArcIterator(ReebArcIterator *iter, ReebArc *arc, ReebNode *head)
 		iter->stride = -1;
 	}
 	
+	iter->length = arc->bcount;
+	
 	iter->index = iter->start - iter->stride;
 }
 
@@ -2387,6 +2389,8 @@ void initArcIteratorStart(struct ReebArcIterator *iter, struct ReebArc *arc, str
 	
 	iter->index = iter->start - iter->stride;
 	
+	iter->length = arc->bcount - start;
+
 	if (start >= arc->bcount)
 	{
 		iter->start = iter->end; /* stop iterator since it's past its end */
@@ -2410,6 +2414,8 @@ void initArcIterator2(ReebArcIterator *iter, ReebArc *arc, int start, int end)
 	}
 
 	iter->index = iter->start - iter->stride;
+
+	iter->length = abs(iter->end - iter->start) + 1;
 }
 
 EmbedBucket * nextBucket(ReebArcIterator *iter)
