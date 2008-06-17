@@ -66,6 +66,7 @@ void	txt_move_eof		(struct Text *text, short sel);
 void	txt_move_bol		(struct Text *text, short sel);
 void	txt_move_eol		(struct Text *text, short sel);
 void	txt_move_toline		(struct Text *text, unsigned int line, short sel);
+void	txt_move_to			(struct Text *text, unsigned int line, unsigned int ch, short sel);
 void	txt_pop_sel			(struct Text *text);
 void	txt_delete_char		(struct Text *text);
 void	txt_delete_word		(struct Text *text);

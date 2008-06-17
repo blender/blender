@@ -91,8 +91,11 @@ static PyObject *Text_getFilename( BPy_Text * self );
 static PyObject *Text_getNLines( BPy_Text * self );
 static PyObject *Text_clear( BPy_Text * self );
 static PyObject *Text_write( BPy_Text * self, PyObject * value );
+static PyObject *Text_insert( BPy_Text * self, PyObject * value );
 static PyObject *Text_set( BPy_Text * self, PyObject * args );
 static PyObject *Text_asLines( BPy_Text * self );
+static PyObject *Text_getCursorPos( BPy_Text * self );
+static PyObject *Text_setCursorPos( BPy_Text * self, PyObject * args );
 
 /*****************************************************************************/
 /* Python BPy_Text methods table:                                            */
@@ -111,10 +114,16 @@ static PyMethodDef BPy_Text_methods[] = {
 	 "() - Clear Text buffer"},
 	{"write", ( PyCFunction ) Text_write, METH_O,
 	 "(line) - Append string 'str' to Text buffer"},
+	{"insert", ( PyCFunction ) Text_insert, METH_O,
+	 "(line) - Insert string 'str' to Text buffer at cursor location"},
 	{"set", ( PyCFunction ) Text_set, METH_VARARGS,
 	 "(name, val) - Set attribute 'name' to value 'val'"},
 	{"asLines", ( PyCFunction ) Text_asLines, METH_NOARGS,
 	 "() - Return text buffer as a list of lines"},
+	{"getCursorPos", ( PyCFunction ) Text_getCursorPos, METH_NOARGS,
+	 "() - Return cursor position as (row, col) tuple"},
+	{"setCursorPos", ( PyCFunction ) Text_setCursorPos, METH_VARARGS,
+	 "(row, col) - Set the cursor position to (row, col)"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -416,6 +425,26 @@ static PyObject *Text_write( BPy_Text * self, PyObject * value )
 	Py_RETURN_NONE;
 }
 
+static PyObject *Text_insert( BPy_Text * self, PyObject * value )
+{
+	char *str = PyString_AsString(value);
+	int oldstate;
+
+	if( !self->text )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "This object isn't linked to a Blender Text Object" );
+
+	if( !str )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected string argument" );
+
+	oldstate = txt_get_undostate(  );
+	txt_insert_buf( self->text, str );
+	txt_set_undostate( oldstate );
+
+	Py_RETURN_NONE;
+}
+
 static PyObject *Text_asLines( BPy_Text * self )
 {
 	TextLine *line;
@@ -440,6 +469,46 @@ static PyObject *Text_asLines( BPy_Text * self )
 	}
 
 	return list;
+}
+
+static PyObject *Text_getCursorPos( BPy_Text * self )
+{
+	Text *text;
+	TextLine *linep;
+	int row, col;
+
+	text = self->text;
+	if( !text )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "This object isn't linked to a Blender Text Object" );
+
+	for (row=0,linep=text->lines.first; linep!=text->curl; linep=linep->next)
+		row++;
+	col= text->curc;
+
+	return Py_BuildValue( "ii", row, col );
+}
+
+static PyObject *Text_setCursorPos( BPy_Text * self, PyObject * args )
+{
+	int row, col;
+	int oldstate;
+
+	if(!self->text)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+					      "This object isn't linked to a Blender Text Object");
+
+	if (!PyArg_ParseTuple(args, "ii", &row, &col))
+		return EXPP_ReturnPyObjError(PyExc_TypeError,
+					      "expected two ints as arguments.");
+	if (col<0) col=0;
+	if (col>self->text->curl->len) col=self->text->curl->len;
+
+	oldstate = txt_get_undostate();
+	txt_move_to(self->text, row, col, 0);
+	txt_set_undostate(oldstate);
+
+	Py_RETURN_NONE;
 }
 
 /*****************************************************************************/

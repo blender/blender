@@ -118,11 +118,36 @@ class Text:
 		@param data:  The string to append to the text buffer.
 		"""
 
+	def insert(data):
+		"""
+		Inserts a string into this Text buffer at the cursor.
+		@type data: string
+		@param data:  The string to insert into the text buffer.
+		"""
+
 	def asLines():
 		"""
 		Retrieve the contents of this Text buffer as a list of strings.
 		@rtype: list of strings
 		@return:  A list of strings, one for each line in the buffer
+		"""
+
+	def getCursorPos():
+		"""
+		Retrieve the position of the cursor in this Text buffer.
+		@rtype: (int, int)
+		@return:  A pair (row, col) indexing the line and character of the
+			cursor.
+		"""
+
+	def setCursorPos(row, col):
+		"""
+		Set the position of the cursor in this Text buffer.
+		@type row: int
+		@param row:  The index of the line in which to position the cursor.
+		@type col: int
+		@param col:  The index of the character within the line to position the
+			cursor.
 		"""
 
 import id_generics

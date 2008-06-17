@@ -829,6 +829,11 @@ void txt_move_eof (Text *text, short sel)
 
 void txt_move_toline (Text *text, unsigned int line, short sel)
 {
+	txt_move_to(text, line, 0, sel);
+}
+
+void txt_move_to (Text *text, unsigned int line, unsigned int ch, short sel)
+{
 	TextLine **linep, *oldl;
 	int *charp, oldc;
 	unsigned int i;
@@ -845,10 +850,12 @@ void txt_move_toline (Text *text, unsigned int line, short sel)
 		if ((*linep)->next) *linep= (*linep)->next;
 		else break;
 	}
-	*charp= 0;
+	if (ch>(*linep)->len)
+		ch= (*linep)->len;
+	*charp= ch;
 	
 	if(!sel) txt_pop_sel(text);
-	if(!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);	
+	if(!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
 }
 
 /****************************/
