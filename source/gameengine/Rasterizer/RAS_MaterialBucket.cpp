@@ -177,7 +177,6 @@ bool RAS_MaterialBucket::ActivateMaterial(const MT_Transform& cameratrans, RAS_I
 	bool dolights = false;
 	const unsigned int flag = m_material->GetFlag();
 
-
 	if( flag & RAS_BLENDERMAT)
 		dolights = (flag &RAS_MULTILIGHT)!=0;
 	else
@@ -237,11 +236,10 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 				rendertools, // needed for textprinting on polys
 				ms.m_bObjectColor,
 				ms.m_RGBAcolor);
-
 	}
 
 	// for using glMultiTexCoord
-	else if(m_material->GetFlag() & RAS_MULTITEX )
+	else if((m_material->GetFlag() & RAS_MULTITEX))
 	{
 		rasty->IndexPrimitivesMulti(
 				ms.m_mesh->GetVertexCache(m_material), 
@@ -251,37 +249,10 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 				rendertools,
 				ms.m_bObjectColor,
 				ms.m_RGBAcolor,
-				&ms.m_DisplayList
+				(ms.m_pDeformer)? 0: &ms.m_DisplayList
 				);
 	}
 
-	// for using glMultiTexCoord on deformer
-	else if(m_material->GetFlag() & RAS_DEFMULTI )
-	{
-		rasty->IndexPrimitivesMulti_Ex(
-				ms.m_mesh->GetVertexCache(m_material), 
-				ms.m_mesh->GetIndexCache(m_material), 
-				drawmode,
-				m_material,
-				rendertools,
-				ms.m_bObjectColor,
-				ms.m_RGBAcolor
-				);
-	}
-
-	// Use the (slower) IndexPrimitives_Ex which can recalc face normals & such
-	//	for deformed objects - eventually should be extended to recalc ALL normals
-	else if (ms.m_pDeformer){
-		rasty->IndexPrimitives_Ex(
-				ms.m_mesh->GetVertexCache(m_material), 
-				ms.m_mesh->GetIndexCache(m_material), 
-				drawmode,
-				m_material,
-				rendertools, // needed for textprinting on polys
-				ms.m_bObjectColor,
-				ms.m_RGBAcolor
-				);
-	}
 	// Use the normal IndexPrimitives
 	else
 	{
@@ -293,7 +264,7 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 				rendertools, // needed for textprinting on polys
 				ms.m_bObjectColor,
 				ms.m_RGBAcolor,
-				&ms.m_DisplayList
+				(ms.m_pDeformer)? 0: &ms.m_DisplayList
 				);
 	}
 
@@ -316,14 +287,14 @@ void RAS_MaterialBucket::Render(const MT_Transform& cameratrans,
 
 	//rasty->SetMaterial(*m_material);
 	
-	
 	int drawmode;
 	for (T_MeshSlotList::const_iterator it = m_meshSlots.begin();
 	! (it == m_meshSlots.end()); ++it)
 	{
 		rendertools->SetClientObject((*it).m_clientObj);
-		while (ActivateMaterial(cameratrans, rasty, rendertools, drawmode))
+		while (ActivateMaterial(cameratrans, rasty, rendertools, drawmode)) {
 			RenderMeshSlot(cameratrans, rasty, rendertools, *it, drawmode);
+		}
 	}
 	// to reset the eventual GL_CW mode
 	rendertools->SetClientObject(NULL);

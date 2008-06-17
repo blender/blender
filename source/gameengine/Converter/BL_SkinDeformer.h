@@ -69,8 +69,8 @@ public:
 						m_armobj(arma),
 						m_lastUpdate(-1),
 						m_defbase(&bmeshobj->defbase),
-						m_releaseobject(false),
-						m_restoremat(false)
+						m_restoremat(false),
+						m_releaseobject(false)
 	{
 	};
 

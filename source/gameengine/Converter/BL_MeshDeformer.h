@@ -48,9 +48,9 @@ public:
 	BL_MeshDeformer(struct Object* obj, class BL_SkinMeshObject *meshobj ):
 		m_pMeshObject(meshobj),
 		m_bmesh((struct Mesh*)(obj->data)),
+		m_transverts(0),
+		m_transnors(0),
 		m_objMesh(obj),
-		m_transnors(NULL),
-		m_transverts(NULL),
 		m_tvtot(0)
 	{};
 	virtual ~BL_MeshDeformer();
@@ -62,12 +62,11 @@ public:
 protected:
 	class BL_SkinMeshObject*	m_pMeshObject;
 	struct Mesh*				m_bmesh;
-	MT_Point3*					m_transnors;
 	
-	//MT_Point3*				m_transverts;
 	// this is so m_transverts doesn't need to be converted
 	// before deformation
 	float						(*m_transverts)[3];
+	MT_Vector3*					m_transnors;
 	struct Object*				m_objMesh; 
 	// --
 	int							m_tvtot;

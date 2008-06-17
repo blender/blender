@@ -31,23 +31,7 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include <windows.h>
-#endif // WIN32
-#ifdef __APPLE__
-#define GL_GLEXT_LEGACY 1
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#include <GL/gl.h>
-#if defined(__sun__) && !defined(__sparc__)
-#include <mesa/glu.h>
-#else
-#include <GL/glu.h>
-#endif
-#endif
-
-
+#include "GL/glew.h"
 
 #include "GPC_PolygonMaterial.h"
 #include "MT_Vector3.h"
@@ -88,7 +72,6 @@ static int fDoMipMap = 1;
 static int fLinearMipMap=1;
 static int fAlphamode= -1;
 
-using namespace bgl;
 	/* (n&(n-1)) zeros the least significant bit of n */
 static int is_pow2(int num) {
 	return ((num)&(num-1))==0;

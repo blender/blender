@@ -57,7 +57,6 @@ extern "C"{
 #define __NLA_DEFNORMALS
 //#undef __NLA_DEFNORMALS
 
-
 BL_SkinDeformer::BL_SkinDeformer(
 	struct Object *bmeshobj_old,	// Blender object that owns the new mesh
 	struct Object *bmeshobj_new,	// Blender object that owns the original mesh
@@ -87,25 +86,15 @@ BL_SkinDeformer::~BL_SkinDeformer()
 		Mat4CpyMat4(m_objMesh->obmat, m_obmat);
 }
 
-/* XXX note, this __NLA_OLDDEFORM define seems to be obsolete */
-
 bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
 {
 	size_t			i, j, index;
 	vecVertexArray	array;
-#ifdef __NLA_OLDDEFORM
-	vecMVertArray	mvarray;
-#else
 	vecIndexArrays	mvarray;
-#endif
 	vecMDVertArray	dvarray;
 	vecIndexArrays	diarray;
 
 	RAS_TexVert *tv;
-#ifdef __NLA_OLDDEFORM
-	MVert	*mvert;
-	MDeformVert	*dvert;
-#endif
 	MT_Point3 pt;
 //	float co[3];
 
@@ -115,48 +104,24 @@ bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
 	Update();
 
 	array = m_pMeshObject->GetVertexCache(mat);
-#ifdef __NLA_OLDDEFORM
-	dvarray = m_pMeshObject->GetDVertCache(mat);
-#endif
 	mvarray = m_pMeshObject->GetMVertCache(mat);
 	diarray = m_pMeshObject->GetDIndexCache(mat);
 	
-
 	// For each array
-	for (i=0; i<array.size(); i++){
+	for (i=0; i<array.size(); i++) {
 		//	For each vertex
-		for (j=0; j<array[i]->size(); j++){
+		for (j=0; j<array[i]->size(); j++) {
 
 			tv = &((*array[i])[j]);
 			
 			index = ((*diarray[i])[j]);
-#ifdef __NLA_OLDDEFORM
-			pt = tv->xyz();
-			mvert = ((*mvarray[i])[index]);
-			dvert = ((*dvarray[i])[index]);
-#endif
 			
 			//	Copy the untransformed data from the original mvert
-#ifdef __NLA_OLDDEFORM
-			co[0]=mvert->co[0];
-			co[1]=mvert->co[1];
-			co[2]=mvert->co[2];
-
-			//	Do the deformation
-/* XXX note, doesnt exist anymore */
-//			GB_calc_armature_deform(co, dvert);
-			tv->SetXYZ(co);
-#else
 			//	Set the data
 			tv->SetXYZ(m_transverts[((*mvarray[i])[index])]);
-#ifdef __NLA_DEFNORMALS
-
-			tv->SetNormal(m_transnors[((*mvarray[i])[index])]);
-#endif
-#endif
 		}
 	}
-	
+
 	return true;
 }
 
@@ -197,7 +162,9 @@ void BL_SkinDeformer::Update(void)
 			VECCOPY(m_transverts[v], m_bmesh->mvert[v].co);
 
 		armature_deform_verts( par_arma, m_objMesh, NULL, m_transverts, NULL, m_bmesh->totvert, ARM_DEF_VGROUP, NULL, NULL );
+#ifdef __NLA_DEFNORMALS
 		RecalcNormals();
+#endif
 
 		/* Update the current frame */
 		m_lastUpdate=m_armobj->GetLastFrame();

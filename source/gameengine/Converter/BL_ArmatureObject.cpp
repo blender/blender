@@ -144,7 +144,7 @@ void BL_ArmatureObject::GetPose(bPose **pose)
 {
 	/* If the caller supplies a null pose, create a new one. */
 	/* Otherwise, copy the armature's pose channels into the caller-supplied pose */
-
+		
 	if (!*pose) {
 		/*	probably not to good of an idea to
 			duplicate everying, but it clears up 

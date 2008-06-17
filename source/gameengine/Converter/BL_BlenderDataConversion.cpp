@@ -510,6 +510,7 @@ BL_Material* ConvertMaterial(
 				}
 			}
 		}
+
 		// above one tex the switches here
 		// are not used
 		switch(valid_index) {
@@ -587,6 +588,9 @@ BL_Material* ConvertMaterial(
 	}
 	MT_Point2 uv[4];
 	MT_Point2 uv2[4];
+
+	uv[0]= uv[1]= uv[2]= uv[3]= MT_Point2(0.0f, 0.0f);
+	uv2[0]= uv2[1]= uv2[2]= uv2[3]= MT_Point2(0.0f, 0.0f);
 
 	if( validface ) {
 
@@ -731,14 +735,14 @@ static MT_Vector4*  BL_ComputeMeshTangentSpace(Mesh* mesh)
 	MT_Vector3 *tan1 = new MT_Vector3[mesh->totvert];
 	MT_Vector3 *tan2 = new MT_Vector3[mesh->totvert];
 	
-	unsigned int v;
+	int v;
 	for (v = 0; v < mesh->totvert; v++)
 	{
 		tan1[v] = MT_Vector3(0.0, 0.0, 0.0);
 		tan2[v] = MT_Vector3(0.0, 0.0, 0.0);
 	}
 	
-	for (unsigned int p = 0; p < mesh->totface; p++, mface++, tface++)
+	for (int p = 0; p < mesh->totface; p++, mface++, tface++)
 	{
 		MT_Vector3 	v1(mesh->mvert[mface->v1].co),
 				v2(mesh->mvert[mface->v2].co),
@@ -830,9 +834,10 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 		}
 	}
 
-
 	meshobj->SetName(mesh->id.name);
 	meshobj->m_xyz_index_to_vertex_index_mapping.resize(mesh->totvert);
+	if(skinMesh)
+		((BL_SkinMeshObject*)meshobj)->m_mvert_to_dvert_mapping.resize(mesh->totvert);
 	for (int f=0;f<mesh->totface;f++,mface++)
 	{
 		
@@ -882,7 +887,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				Material* ma = 0;
 				bool polyvisible = true;
 				RAS_IPolyMaterial* polymat = NULL;
-				BL_Material *bl_mat;
+				BL_Material *bl_mat = NULL;
 
 				if(converter->GetMaterials()) 
 				{	
@@ -892,6 +897,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 						ma = give_current_material(blenderobj, 1);
 
 					bl_mat = ConvertMaterial(mesh, ma, tface, mface, mmcol, lightlayer, blenderobj, layers);
+					bl_mat->glslmat = converter->GetGLSLMaterials();
 					// set the index were dealing with
 					bl_mat->material_index =  (int)mface->mat_nr;
 
@@ -1066,19 +1072,19 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					d3=((BL_SkinMeshObject*)meshobj)->FindOrAddDeform(vtxarray, mface->v3, &mesh->dvert[mface->v3], polymat);
 					if (nverts==4)
 						d4=((BL_SkinMeshObject*)meshobj)->FindOrAddDeform(vtxarray, mface->v4, &mesh->dvert[mface->v4], polymat);
-					poly->SetVertex(0,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt0,uv0,uv20,tan0,rgb0,no0,d1,flat, polymat));
-					poly->SetVertex(1,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt1,uv1,uv21,tan1,rgb1,no1,d2,flat, polymat));
-					poly->SetVertex(2,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt2,uv2,uv22,tan2,rgb2,no2,d3,flat, polymat));
+					poly->SetVertex(0,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt0,uv0,uv20,tan0,rgb0,no0,d1,flat,polymat,mface->v1));
+					poly->SetVertex(1,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt1,uv1,uv21,tan1,rgb1,no1,d2,flat,polymat,mface->v2));
+					poly->SetVertex(2,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt2,uv2,uv22,tan2,rgb2,no2,d3,flat,polymat,mface->v3));
 					if (nverts==4)
-						poly->SetVertex(3,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt3,uv3,uv23,tan3,rgb3,no3,d4, flat,polymat));
+						poly->SetVertex(3,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt3,uv3,uv23,tan3,rgb3,no3,d4,flat,polymat,mface->v4));
 				}
 				else
 				{
-					poly->SetVertex(0,meshobj->FindOrAddVertex(vtxarray,pt0,uv0,uv20,tan0,rgb0,no0,polymat,mface->v1));
-					poly->SetVertex(1,meshobj->FindOrAddVertex(vtxarray,pt1,uv1,uv21,tan1,rgb1,no1,polymat,mface->v2));
-					poly->SetVertex(2,meshobj->FindOrAddVertex(vtxarray,pt2,uv2,uv22,tan2,rgb2,no2,polymat,mface->v3));
+					poly->SetVertex(0,meshobj->FindOrAddVertex(vtxarray,pt0,uv0,uv20,tan0,rgb0,no0,false,polymat,mface->v1));
+					poly->SetVertex(1,meshobj->FindOrAddVertex(vtxarray,pt1,uv1,uv21,tan1,rgb1,no1,false,polymat,mface->v2));
+					poly->SetVertex(2,meshobj->FindOrAddVertex(vtxarray,pt2,uv2,uv22,tan2,rgb2,no2,false,polymat,mface->v3));
 					if (nverts==4)
-						poly->SetVertex(3,meshobj->FindOrAddVertex(vtxarray,pt3,uv3,uv23,tan3,rgb3,no3,polymat,mface->v4));
+						poly->SetVertex(3,meshobj->FindOrAddVertex(vtxarray,pt3,uv3,uv23,tan3,rgb3,no3,false,polymat,mface->v4));
 				}
 				meshobj->AddPolygon(poly);
 				if (poly->IsCollider())
@@ -1116,6 +1122,9 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 			layer.face++;
 		}
 	}
+	meshobj->m_xyz_index_to_vertex_index_mapping.clear();
+	if(skinMesh)
+		((BL_SkinMeshObject*)meshobj)->m_mvert_to_dvert_mapping.clear();
 	meshobj->UpdateMaterialList();
 
 	// pre calculate texture generation

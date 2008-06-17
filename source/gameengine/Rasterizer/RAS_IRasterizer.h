@@ -213,17 +213,7 @@ public:
 							bool useObjectColor,
 							const MT_Vector4& rgbacolor,
 							class KX_ListSlot** slot)=0;
-	/**
-	 * @copydoc IndexPrimitives
-	 * IndexPrimitivesEx will renormalize faces if @param vertexarrays[i].getFlag() & TV_CALCFACENORMAL
-	 */
-	virtual void	IndexPrimitives_Ex( const vecVertexArray& vertexarrays,
-							const vecIndexArrays & indexarrays,
-							int mode,
-							class RAS_IPolyMaterial* polymat,
-							class RAS_IRenderTools* rendertools,
-							bool useObjectColor,
-							const MT_Vector4& rgbacolor)=0;
+
 	/**
 	 * IndexPrimitives_3DText will render text into the polygons.
 	 * The text to be rendered is from @param rendertools client object's text property.
@@ -245,16 +235,6 @@ public:
 						bool useObjectColor,
 						const MT_Vector4& rgbacolor,
 						class KX_ListSlot** slot)=0;
-
-	virtual void IndexPrimitivesMulti_Ex( 
-						const vecVertexArray& vertexarrays,
-						const vecIndexArrays & indexarrays,
-						int mode,
-						class RAS_IPolyMaterial* polymat,
-						class RAS_IRenderTools* rendertools,
-						bool useObjectColor,
-						const MT_Vector4& rgbacolor)=0;
-
 
 	virtual void	SetProjectionMatrix(MT_CmMatrix4x4 & mat)=0;
 	/* This one should become our final version, methinks. */
@@ -389,8 +369,11 @@ public:
 	
 	virtual	void	DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)=0;
 
-	virtual void	SetTexCoords(TexCoGen coords, int unit) = 0;
-	virtual void	SetAttrib(int type) = 0;
+
+	virtual void	SetTexCoordNum(int num) = 0;
+	virtual void	SetAttribNum(int num) = 0;
+	virtual void	SetTexCoord(TexCoGen coords, int unit) = 0;
+	virtual void	SetAttrib(TexCoGen coords, int unit) = 0;
 	virtual void	GetViewMatrix(MT_Matrix4x4 &mat) const = 0;
 
 	virtual bool	QueryLists(){return false;}

@@ -106,6 +106,9 @@ class BL_SkinMeshObject : public RAS_MeshObject
 
 protected:
 public:
+	struct BL_MDVertMap { RAS_IPolyMaterial *mat; int index; };
+	vector<vector<BL_MDVertMap> >	m_mvert_to_dvert_mapping;
+
 	void Bucketize(double* oglmatrix,void* clientobj,bool useObjectColor,const MT_Vector4& rgbavec);
 //	void Bucketize(double* oglmatrix,void* clientobj,bool useObjectColor,const MT_Vector4& rgbavec,class RAS_BucketManager* bucketmgr);
 
@@ -139,37 +142,17 @@ public:
 		const MT_Point2& uv2,
 		const MT_Vector4& tangent,
 		const unsigned int rgbacolor,
-		const MT_Vector3& normal, int defnr, bool flat, RAS_IPolyMaterial* mat)
+		const MT_Vector3& normal, int defnr, bool flat, RAS_IPolyMaterial* mat, int origindex)
 	{
-		RAS_TexVert tempvert(xyz,uv,uv2, tangent,rgbacolor,normal,flat ? TV_CALCFACENORMAL : 0);
-		
-		//		KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
-		BL_SkinArrayOptimizer* ao = (BL_SkinArrayOptimizer*)GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
-		
-		int numverts = ao->m_VertexArrayCache1[vtxarray]->size();//m_VertexArrayCount[vtxarray];
-		
-		int index=-1;
-		
-		for (int i=0;i<numverts;i++)
-		{
-			const RAS_TexVert&  vtx = (*ao->m_VertexArrayCache1[vtxarray])[i];
-			if (tempvert.closeTo(&vtx))
-			{
-				index = i;
-				break;
-			}
-			
-		}
-		if (index >= 0)
-			return index;
-		
-		// no vertex found, add one
-		ao->m_VertexArrayCache1[vtxarray]->push_back(tempvert);
-		ao->m_DIndexArrayCache1[vtxarray]->push_back(defnr);
-		
-		return numverts;
-		
-		
+		BL_SkinArrayOptimizer* ao = (BL_SkinArrayOptimizer*)GetArrayOptimizer(mat);
+		int numverts = ao->m_VertexArrayCache1[vtxarray]->size();
+		int index = RAS_MeshObject::FindOrAddVertex(vtxarray, xyz, uv, uv2, tangent, rgbacolor, normal, flat, mat, origindex);
+
+		/* this means a new vertex was added, so we add the defnr too */
+		if(index == numverts)
+			ao->m_DIndexArrayCache1[vtxarray]->push_back(defnr);
+
+		return index;
 	}
 
 };

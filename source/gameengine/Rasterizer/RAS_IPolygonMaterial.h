@@ -77,7 +77,6 @@ protected:
 
 	// will move...
 	unsigned int			m_flag;//MaterialProps
-	unsigned int			m_enabled;// enabled for this mat 
 	int						m_multimode; // sum of values
 public:
 
@@ -141,7 +140,6 @@ public:
 	const STR_String&	GetMaterialName() const;
 	const STR_String&	GetTextureName() const;
 	const unsigned int	GetFlag() const;
-	const unsigned int	GetEnabled() const;
 	
 	/*
 	 * PreCalculate texture gen

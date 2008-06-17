@@ -81,8 +81,8 @@ KX_GameObject::KX_GameObject(
 	m_bVisible(true),
 	m_pPhysicsController1(NULL),
 	m_pPhysicsEnvironment(NULL),
-	m_isDeformable(false),
-	m_pHitObject(NULL)
+	m_pHitObject(NULL),
+	m_isDeformable(false)
 {
 	m_ignore_activity_culling = false;
 	m_pClient_info = new KX_ClientObjectInfo(this, KX_ClientObjectInfo::ACTOR);

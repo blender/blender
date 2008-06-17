@@ -1038,6 +1038,7 @@ void BIF_init(void)
 	BIF_filelist_init_icons();
 
 	init_gl_stuff();	/* drawview.c, after homefile */
+	glewInit();
 	readBlog();
 	BLI_strncpy(G.lib, G.sce, FILE_MAX);
 }

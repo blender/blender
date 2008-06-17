@@ -1,19 +1,6 @@
 // ------------------------------------
-#ifdef WIN32
-#include <windows.h>
-#endif // WIN32
-#ifdef __APPLE__
-#define GL_GLEXT_LEGACY 1
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#include <GL/gl.h>
-/* #if defined(__sun__) && !defined(__sparc__)
-#include <mesa/glu.h>
-#else */
-#include <GL/glu.h>
-/* #endif */
-#endif
+
+#include "GL/glew.h"
 
 #include <iostream>
 #include <map>
@@ -30,14 +17,10 @@
 #include "BLI_blenlib.h"
 
 #include "RAS_OpenGLRasterizer/RAS_GLExtensionManager.h"
-#include "RAS_OpenGLRasterizer/ARB_multitexture.h"
 #include "RAS_ICanvas.h"
 #include "RAS_Rect.h"
 
 #include "KX_GameObject.h"
-
-
-using namespace bgl;
 
 #define spit(x) std::cout << x << std::endl;
 
@@ -220,9 +203,7 @@ void BL_Texture::InitNonPow2Tex(unsigned int *pix,int x,int y,bool mipmap)
 
 bool BL_Texture::InitCubeMap(int unit,  EnvMap *cubemap)
 {
-#ifdef GL_ARB_texture_cube_map
-
-	if (!RAS_EXT_support._ARB_texture_cube_map)
+	if (!GLEW_ARB_texture_cube_map)
 	{
 		spit("cubemaps not supported");
 		mOk = false;
@@ -312,9 +293,8 @@ bool BL_Texture::InitCubeMap(int unit,  EnvMap *cubemap)
 	glTexParameteri( GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_S,	 GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_T,	 GL_CLAMP_TO_EDGE );
-	#ifdef GL_VERSION_1_2
-	glTexParameteri( GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_R,	 GL_CLAMP_TO_EDGE );
-	#endif
+	if(GLEW_VERSION_1_2)
+		glTexParameteri( GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_R,	 GL_CLAMP_TO_EDGE );
 
 	if (needs_split)
 		my_free_envmapdata(cubemap);
@@ -326,13 +306,6 @@ bool BL_Texture::InitCubeMap(int unit,  EnvMap *cubemap)
 
 	mOk = IsValid();
 	return mOk;
-
-#else
-
-	mOk = false;
-	return mOk;
-
-#endif//GL_ARB_texture_cube_map
 }
 
 bool BL_Texture::IsValid()
@@ -362,58 +335,40 @@ int BL_Texture::GetMaxUnits()
 {
 	GLint unit=0;
 
-#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
-	if (!getenv("WITHOUT_GLEXT")) {
-		if(RAS_EXT_support._ARB_multitexture) {
-			glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &unit);
-			return (MAXTEX>=unit?unit:MAXTEX);
-		}
+	if(GLEW_ARB_multitexture) {
+		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &unit);
+		return (MAXTEX>=unit?unit:MAXTEX);
 	}
-#endif
+
 	return 0;
 }
 
 void BL_Texture::ActivateFirst()
 {
-#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
-	if (!getenv("WITHOUT_GLEXT")) {
-		if(RAS_EXT_support._ARB_multitexture)
-			bgl::blActiveTextureARB(GL_TEXTURE0_ARB);
-	}
-#endif
+	if(GLEW_ARB_multitexture)
+		glActiveTextureARB(GL_TEXTURE0_ARB);
 }
 
 void BL_Texture::ActivateUnit(int unit)
 {
-#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
-	if (!getenv("WITHOUT_GLEXT")) {
-		if(RAS_EXT_support._ARB_multitexture)
-			if(unit <= MAXTEX)
-				bgl::blActiveTextureARB(GL_TEXTURE0_ARB+unit);
-	}
-#endif
+	if(GLEW_ARB_multitexture)
+		if(unit <= MAXTEX)
+			glActiveTextureARB(GL_TEXTURE0_ARB+unit);
 }
 
 
 void BL_Texture::DisableUnit()
 {
-#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
-	if (!getenv("WITHOUT_GLEXT")) {
-		if(RAS_EXT_support._ARB_multitexture)
-			bgl::blActiveTextureARB(GL_TEXTURE0_ARB+mUnit);
-	}
-#endif
-
+	if(GLEW_ARB_multitexture)
+		glActiveTextureARB(GL_TEXTURE0_ARB+mUnit);
 
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 
-	#ifdef GL_ARB_texture_cube_map
-	if(RAS_EXT_support._ARB_texture_cube_map && glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
+	if(GLEW_ARB_texture_cube_map && glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
 		glDisable(GL_TEXTURE_CUBE_MAP_ARB);
 	else
-	#endif
 	{
 		if (glIsEnabled(GL_TEXTURE_2D))
 			glDisable(GL_TEXTURE_2D);
@@ -429,56 +384,45 @@ void BL_Texture::DisableUnit()
 
 void BL_Texture::DisableAllTextures()
 {
-#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
-	if (!getenv("WITHOUT_GLEXT")) {
-		glDisable(GL_BLEND);
-		for(int i=0; i<MAXTEX; i++) {
-			if(RAS_EXT_support._ARB_multitexture)
-				bgl::blActiveTextureARB(GL_TEXTURE0_ARB+i);
+	glDisable(GL_BLEND);
 
-			glMatrixMode(GL_TEXTURE);
-			glLoadIdentity();
-			glMatrixMode(GL_MODELVIEW);
-			glDisable(GL_TEXTURE_2D);	
-			glDisable(GL_TEXTURE_GEN_S);
-			glDisable(GL_TEXTURE_GEN_T);
-			glDisable(GL_TEXTURE_GEN_R);
-			glDisable(GL_TEXTURE_GEN_Q);
-			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
-		}
-		if(RAS_EXT_support._ARB_multitexture)
-			bgl::blActiveTextureARB(GL_TEXTURE0_ARB);
+	for(int i=0; i<MAXTEX; i++) {
+		if(GLEW_ARB_multitexture)
+			glActiveTextureARB(GL_TEXTURE0_ARB+i);
+
+		glMatrixMode(GL_TEXTURE);
+		glLoadIdentity();
+		glMatrixMode(GL_MODELVIEW);
+		glDisable(GL_TEXTURE_2D);	
+		glDisable(GL_TEXTURE_GEN_S);
+		glDisable(GL_TEXTURE_GEN_T);
+		glDisable(GL_TEXTURE_GEN_R);
+		glDisable(GL_TEXTURE_GEN_Q);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 	}
-#endif
+
+	if(GLEW_ARB_multitexture)
+		glActiveTextureARB(GL_TEXTURE0_ARB);
 }
 
 
 void BL_Texture::ActivateTexture()
 {
-#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
-	if (!getenv("WITHOUT_GLEXT")) {
-		if(RAS_EXT_support._ARB_multitexture)
-			bgl::blActiveTextureARB(GL_TEXTURE0_ARB+mUnit);
+	if(GLEW_ARB_multitexture)
+		glActiveTextureARB(GL_TEXTURE0_ARB+mUnit);
 
-#ifdef GL_ARB_texture_cube_map
-		if (mType == GL_TEXTURE_CUBE_MAP_ARB && RAS_EXT_support._ARB_texture_cube_map)
-		{
-			glBindTexture( GL_TEXTURE_CUBE_MAP_ARB, mTexture );	
-			glEnable(GL_TEXTURE_CUBE_MAP_ARB);
-		} else
-#endif
-		{
-
-			#ifdef GL_ARB_texture_cube_map
-			if(RAS_EXT_support._ARB_texture_cube_map )
-				glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-			#endif
-
-			glBindTexture( GL_TEXTURE_2D, mTexture );	
-			glEnable(GL_TEXTURE_2D);
-		}
+	if (mType == GL_TEXTURE_CUBE_MAP_ARB && GLEW_ARB_texture_cube_map)
+	{
+		glBindTexture( GL_TEXTURE_CUBE_MAP_ARB, mTexture );	
+		glEnable(GL_TEXTURE_CUBE_MAP_ARB);
 	}
-#endif
+	else {
+		if(GLEW_ARB_texture_cube_map )
+			glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+
+		glBindTexture( GL_TEXTURE_2D, mTexture );	
+		glEnable(GL_TEXTURE_2D);
+	}
 }
 
 void BL_Texture::SetMapping(int mode)
@@ -492,9 +436,8 @@ void BL_Texture::SetMapping(int mode)
 		return;
 	}
 
-#ifdef GL_ARB_texture_cube_map
 	if( mType == GL_TEXTURE_CUBE_MAP_ARB && 
-		RAS_EXT_support._ARB_texture_cube_map &&
+		GLEW_ARB_texture_cube_map &&
 		mode &USEREFL) 
 	{
 		glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB );
@@ -508,7 +451,6 @@ void BL_Texture::SetMapping(int mode)
 		return;
 	}
 	else
-#endif
 	{
 		glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP );
 		glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP );
@@ -523,11 +465,7 @@ void BL_Texture::SetMapping(int mode)
 
 void BL_Texture::setTexEnv(BL_Material *mat, bool modulate)
 {
-#ifndef GL_ARB_texture_env_combine
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
-	return;
-#else
-	if(modulate || !RAS_EXT_support._ARB_texture_env_combine){
+	if(modulate || !GLEW_ARB_texture_env_combine){
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 		return;
 	}
@@ -661,7 +599,6 @@ void BL_Texture::setTexEnv(BL_Material *mat, bool modulate)
 	glTexEnvf(	GL_TEXTURE_ENV, GL_RGB_SCALE_ARB,	1.0);
 
 	glEndList();
-#endif //!GL_ARB_texture_env_combine
 }
 
 int BL_Texture::GetPow2(int n)

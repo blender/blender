@@ -238,6 +238,7 @@ public:
 							const MT_Vector4& tangent,
 							const unsigned int rgbacolor,
 							const MT_Vector3& normal,
+							bool flat,
 							RAS_IPolyMaterial* mat,
 							int orgindex
 						);
