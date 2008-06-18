@@ -150,7 +150,7 @@ void BL_SkinMeshObject::Bucketize(double* oglmatrix,void* clientobj,bool useObje
 
 }
 
-static get_def_index(Object* ob, const char* vgroup)
+static int get_def_index(Object* ob, const char* vgroup)
 {
 	bDeformGroup *curdef;
 	int index = 0;
