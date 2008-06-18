@@ -134,14 +134,14 @@ void BL_ActionActuator::SetStartTime(float curtime)
 	float direction = m_startframe < m_endframe ? 1.0 : -1.0;
 	
 	if (!(m_flag & ACT_FLAG_REVERSE))
-		m_starttime = curtime - direction*(m_localtime - m_startframe)/KX_FIXED_FRAME_PER_SEC;
+		m_starttime = curtime - direction*(m_localtime - m_startframe)/KX_KetsjiEngine::GetAnimFrameRate();
 	else
-		m_starttime = curtime - direction*(m_endframe - m_localtime)/KX_FIXED_FRAME_PER_SEC;
+		m_starttime = curtime - direction*(m_endframe - m_localtime)/KX_KetsjiEngine::GetAnimFrameRate();
 }
 
 void BL_ActionActuator::SetLocalTime(float curtime)
 {
-	float delta_time = (curtime - m_starttime)*KX_FIXED_FRAME_PER_SEC;
+	float delta_time = (curtime - m_starttime)*KX_KetsjiEngine::GetAnimFrameRate();
 	
 	if (m_endframe < m_startframe)
 		delta_time = -delta_time;
@@ -385,7 +385,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 				blend_poses(m_pose, m_blendpose, 1.0 - newweight, ACTSTRIPMODE_BLEND);
 
 				/* Increment current blending percentage */
-				m_blendframe = (curtime - m_blendstart)*KX_FIXED_FRAME_PER_SEC;
+				m_blendframe = (curtime - m_blendstart)*KX_KetsjiEngine::GetAnimFrameRate();
 				if (m_blendframe>m_blendin)
 					m_blendframe = m_blendin;
 				

@@ -133,7 +133,12 @@ void BL_RenderText(int mode,const char* textstr,int textlen,struct MTFace* tface
 				characters = 0;
 			}
 
-			if(!col) glColor3f(1.0f, 1.0f, 1.0f);
+			/* When OBCOL flag is on the color is set in IndexPrimitives_3DText */			
+			if (tface->mode & TF_OBCOL) { /* Color has been set */
+				col= NULL;
+			} else {
+				if(!col) glColor3f(1.0f, 1.0f, 1.0f);			
+			}
 
 			glPushMatrix();
 			for (index = 0; index < characters; index++) {
