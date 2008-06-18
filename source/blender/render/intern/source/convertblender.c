@@ -4434,7 +4434,7 @@ void RE_Database_Free(Render *re)
 	LampRen *lar;
 	
 	/* statistics for debugging render memory usage */
-	if(G.f & G_DEBUG) {
+	if((G.f & G_DEBUG) && (G.rendering)) {
 		if((re->r.scemode & R_PREVIEWBUTS)==0) {
 			BKE_image_print_memlist();
 			MEM_printmemlist_stats();

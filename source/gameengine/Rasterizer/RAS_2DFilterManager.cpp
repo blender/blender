@@ -54,11 +54,13 @@
 
 
 RAS_2DFilterManager::RAS_2DFilterManager():
-texturewidth(-1), textureheight(-1),
+texname(-1), texturewidth(-1), textureheight(-1),
 canvaswidth(-1), canvasheight(-1),
-numberoffilters(0),texname(-1)
+numberoffilters(0)
 {
-	isshadersupported = GLEW_VERSION_2_0;
+	isshadersupported = GLEW_ARB_shader_objects &&
+		GLEW_ARB_fragment_shader && GLEW_ARB_multitexture;
+
 	if(!isshadersupported)
 	{
 		std::cout<<"shaders not supported!" << std::endl;
@@ -81,7 +83,6 @@ RAS_2DFilterManager::~RAS_2DFilterManager()
 unsigned int RAS_2DFilterManager::CreateShaderProgram(char* shadersource)
 {
 		GLuint program = 0;	
-#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
 		GLuint fShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER);
         GLint success;
 
@@ -117,7 +118,7 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(char* shadersource)
 			std::cout << "2dFilters - Shader program validation error" << std::endl;
 			return 0;
 		}
-#endif
+
 		return program;
 }
 
@@ -151,7 +152,6 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(int filtermode)
 
 void RAS_2DFilterManager::StartShaderProgram(unsigned int shaderprogram)
 {
-#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
 	GLint uniformLoc;
 	glUseProgramObjectARB(shaderprogram);
 	uniformLoc = glGetUniformLocationARB(shaderprogram, "bgl_RenderedTexture");
@@ -178,14 +178,11 @@ void RAS_2DFilterManager::StartShaderProgram(unsigned int shaderprogram)
     {
 		glUniform1fARB(uniformLoc,textureheight);
     }
-#endif
 }
 
 void RAS_2DFilterManager::EndShaderProgram()
 {
-#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
 	glUseProgramObjectARB(0);
-#endif
 }
 
 void RAS_2DFilterManager::SetupTexture()
@@ -295,7 +292,6 @@ void RAS_2DFilterManager::EnableFilter(RAS_2DFILTER_MODE mode, int pass, STR_Str
 {
 	if(!isshadersupported)
 		return;
-#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
 	if(pass<0 || pass>=MAX_RENDER_PASS)
 		return;
 
@@ -336,5 +332,4 @@ void RAS_2DFilterManager::EnableFilter(RAS_2DFILTER_MODE mode, int pass, STR_Str
 		m_filters[pass] = CreateShaderProgram(mode);
 		m_enabled[pass] = 1;
 	}
-#endif
 }
