@@ -454,6 +454,8 @@ class VRML2Export:
 				if mat:
 					if (mat.mode & Blender.Material.Modes['VCOL_PAINT']):
 						self.vcolors = 1
+		else:
+			self.vcolors = 0
 			
 		# check if object is wireframe only
 		if ob.drawType == Blender.Object.DrawTypes.WIRE:
