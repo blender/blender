@@ -646,8 +646,8 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
 
 MT_Vector3 KX_GameObject::GetLinearVelocity(bool local)
 {
-	MT_Vector3 velocity(0.0,0.0,0.0);
-	MT_Matrix3x3 ori, locvel;
+	MT_Vector3 velocity(0.0,0.0,0.0), locvel;
+	MT_Matrix3x3 ori;
 	int i, j; 
 	if (m_pPhysicsController1)
 	{
@@ -657,11 +657,8 @@ MT_Vector3 KX_GameObject::GetLinearVelocity(bool local)
 		{
 			ori = GetSGNode()->GetWorldOrientation();
 			
-			for(i=0; i < 3; i++)
-				for(j=0; j < 3; j++)
-					locvel[i][j]= velocity[i]*ori[i][j];
-			for(i=0; i < 3; i++)
-				velocity[i] = locvel[0][i] + locvel[1][i] + locvel[2][i];
+			locvel = velocity * ori;
+			return locvel;
 		}
 	}
 	return velocity;	
