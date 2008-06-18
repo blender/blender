@@ -731,8 +731,8 @@ class VRML2Export:
 									 round(uv[1], self.tp))
 						j=j+1
 					indexStr += "-1"
-			texIndexList.append(indexStr)
-			texCoordList.append(coordStr)
+					texIndexList.append(indexStr)
+					texCoordList.append(coordStr)
 
 		self.writeIndented("texCoord TextureCoordinate {\n", 1)
 		self.writeIndented("point [\n", 1)
