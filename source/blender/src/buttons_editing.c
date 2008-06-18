@@ -1792,7 +1792,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 143;
 		} else if (md->type==eModifierType_Wave) {
 			WaveModifierData *wmd = (WaveModifierData *)md;
-			height = 294;
+			height = 315;
 			if(wmd->texmapping == MOD_WAV_MAP_OBJECT ||
 			   wmd->texmapping == MOD_WAV_MAP_UV)
 				height += 19;
@@ -2154,6 +2154,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Time end:",	lx,(cy-=19),buttonWidth,19, &wmd->timeoffs, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify ending frame of the wave");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Lifetime:",	lx,(cy-=19),buttonWidth,19, &wmd->lifetime,  -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify the lifespan of the wave");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Damptime:",	lx,(cy-=19),buttonWidth,19, &wmd->damp,  -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify the dampingtime of the wave");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Falloff:",	lx,(cy-=19),buttonWidth,19, &wmd->falloff,  0, 100, 100, 0, "Specify the falloff radius of the waves");
+
 			cy -= 9;
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Sta x:",		lx,(cy-=19),113,19, &wmd->startx, -100.0, 100.0, 100, 0, "Starting position for the X axis");
@@ -2190,7 +2192,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				               &wmd->map_object,
 				               "Object to get texture coordinates from");
 			}
-            cy -= 9;
+			cy -= 9;
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Speed:",	lx,(cy-=19),220,19, &wmd->speed, -2.0, 2.0, 0, 0, "Specify the wave speed");
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Height:",	lx,(cy-=19),220,19, &wmd->height, -2.0, 2.0, 0, 0, "Specify the amplitude of the wave");

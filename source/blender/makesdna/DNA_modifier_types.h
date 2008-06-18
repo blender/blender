@@ -329,13 +329,14 @@ typedef struct WaveModifierData {
 	short flag, pad;
 
 	float startx, starty, height, width;
-	float narrow, speed, damp;
+	float narrow, speed, damp, falloff;
 
 	int texmapping, uvlayer_tmp;
 
 	char uvlayer_name[32];
-	
+
 	float timeoffs, lifetime;
+	float pad1;
 } WaveModifierData;
 
 typedef struct ArmatureModifierData {

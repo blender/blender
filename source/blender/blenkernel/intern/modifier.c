@@ -4525,13 +4525,13 @@ static void castModifier_deformVertsEM(
 
 /* Wave */
 
-static void waveModifier_initData(ModifierData *md) 
+static void waveModifier_initData(ModifierData *md)
 {
 	WaveModifierData *wmd = (WaveModifierData*) md; // whadya know, moved here from Iraq
-		
+
 	wmd->flag |= (MOD_WAVE_X | MOD_WAVE_Y | MOD_WAVE_CYCL
 			| MOD_WAVE_NORM_X | MOD_WAVE_NORM_Y | MOD_WAVE_NORM_Z);
-	
+
 	wmd->objectcenter = NULL;
 	wmd->texture = NULL;
 	wmd->map_object = NULL;
@@ -4541,6 +4541,7 @@ static void waveModifier_initData(ModifierData *md)
 	wmd->narrow= 1.5f;
 	wmd->lifetime= 0.0f;
 	wmd->damp= 10.0f;
+	wmd->falloff= 0.0f;
 	wmd->texmapping = MOD_WAV_MAP_LOCAL;
 	wmd->defgrp_name[0] = 0;
 }
@@ -4560,6 +4561,7 @@ static void waveModifier_copyData(ModifierData *md, ModifierData *target)
 	twmd->starty = wmd->starty;
 	twmd->timeoffs = wmd->timeoffs;
 	twmd->width = wmd->width;
+	twmd->falloff = wmd->falloff;
 	twmd->objectcenter = wmd->objectcenter;
 	twmd->texture = wmd->texture;
 	twmd->map_object = wmd->map_object;
@@ -4770,7 +4772,7 @@ static void waveModifier_do(
 
 		if(x > wmd->lifetime) {
 			lifefac = x - wmd->lifetime;
-			
+
 			if(lifefac > wmd->damp) lifefac = 0.0;
 			else lifefac =
 				(float)(wmd->height * (1.0 - sqrt(lifefac / wmd->damp)));
@@ -4791,6 +4793,8 @@ static void waveModifier_do(
 			float x = co[0] - wmd->startx;
 			float y = co[1] - wmd->starty;
 			float amplit= 0.0f;
+			float dist = 0.0f;
+			float falloff_fac = 0.0f;
 			TexResult texres;
 			MDeformWeight *def_weight = NULL;
 
@@ -4813,14 +4817,29 @@ static void waveModifier_do(
 				get_texture_value(wmd->texture, tex_co[i], &texres);
 			}
 
+			/*get dist*/
+			if(wmd->flag & MOD_WAVE_X) {
+				if(wmd->flag & MOD_WAVE_Y){
+					dist = (float)sqrt(x*x + y*y);
+				}
+				else{
+					dist = fabs(x);
+				}
+			}
+			else if(wmd->flag & MOD_WAVE_Y) {
+				dist = fabs(y);
+			}
+
+			falloff_fac = (1.0-(dist / wmd->falloff));
+			CLAMP(falloff_fac,0,1);
 
 			if(wmd->flag & MOD_WAVE_X) {
 				if(wmd->flag & MOD_WAVE_Y) amplit = (float)sqrt(x*x + y*y);
 				else amplit = x;
 			}
-			else if(wmd->flag & MOD_WAVE_Y) 
+			else if(wmd->flag & MOD_WAVE_Y)
 				amplit= y;
-			
+
 			/* this way it makes nice circles */
 			amplit -= (ctime - wmd->timeoffs) * wmd->speed;
 
@@ -4833,11 +4852,18 @@ static void waveModifier_do(
 			if(amplit > -wmd->width && amplit < wmd->width) {
 				amplit = amplit * wmd->narrow;
 				amplit = (float)(1.0 / exp(amplit * amplit) - minfac);
+
+				/*apply texture*/
 				if(wmd->texture)
 					amplit = amplit * texres.tin;
 
+				/*apply weight*/
 				if(def_weight)
 					amplit = amplit * def_weight->weight;
+
+				/*apply falloff*/
+				if (wmd->falloff > 0)
+					amplit = amplit * falloff_fac;
 
 				if(mvert) {
 					/* move along normals */
