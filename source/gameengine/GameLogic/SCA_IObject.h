@@ -120,7 +120,7 @@ public:
 	virtual int GetGameObjectType() {return -1;}
 	
 	typedef enum ObjectTypes {
-		OBJ_ARMATURE=0
+		OBJ_ARMATURE=0,
 	}ObjectTypes;
 
 };

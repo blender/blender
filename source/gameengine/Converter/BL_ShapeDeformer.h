@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: BL_SkinDeformer.h 14444 2008-04-16 22:40:48Z hos $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -27,71 +27,65 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BL_SKINDEFORMER
-#define BL_SKINDEFORMER
+#ifndef BL_SHAPEDEFORMER
+#define BL_SHAPEDEFORMER
 
 #ifdef WIN32
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
 #endif //WIN32
 
-#include "GEN_HashedPtr.h"
-#include "BL_MeshDeformer.h"
-#include "BL_ArmatureObject.h"
-
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
-#include "BKE_armature.h"
-
-#include "RAS_Deformer.h"
+#include "BL_SkinDeformer.h"
+#include "BL_DeformableGameObject.h"
+#include <vector>
 
 
-class BL_SkinDeformer : public BL_MeshDeformer  
+class BL_ShapeDeformer : public BL_SkinDeformer  
 {
 public:
-//	void SetArmatureController (BL_ArmatureController *cont);
 	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
 	{
-		if (m_armobj){
-			void **h_obj = (*map)[m_armobj];
-			if (h_obj){
-				SetArmature( (BL_ArmatureObject*)(*h_obj) );
-			}
-			else
-				m_armobj=NULL;
+		void **h_obj = (*map)[m_gameobj];
+		if (h_obj){
+			m_gameobj = (BL_DeformableGameObject*)(*h_obj);
 		}
-	}
-	void SetArmature (class BL_ArmatureObject *armobj);
-
-	BL_SkinDeformer(struct Object *bmeshobj, 
-					class BL_SkinMeshObject *mesh,
-					BL_ArmatureObject* arma = NULL);
+		else
+			m_gameobj=NULL;
+		// relink the underlying skin deformer
+		BL_SkinDeformer::Relink(map);
+	};
+	BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
+                     Object *bmeshobj,
+                     BL_SkinMeshObject *mesh)
+					:	
+						BL_SkinDeformer(bmeshobj, mesh),
+						m_lastShapeUpdate(-1),
+						m_gameobj(gameobj)
+	{
+	};
 
 	/* this second constructor is needed for making a mesh deformable on the fly. */
-	BL_SkinDeformer(struct Object *bmeshobj_old,
+	BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
+					struct Object *bmeshobj_old,
 					struct Object *bmeshobj_new,
 					class BL_SkinMeshObject *mesh,
 					bool release_object,
-					BL_ArmatureObject* arma = NULL);
+					BL_ArmatureObject* arma = NULL)
+					:
+						BL_SkinDeformer(bmeshobj_old, bmeshobj_new, mesh, release_object, arma),
+						m_lastShapeUpdate(-1),
+						m_gameobj(gameobj)
+	{
+	};
 
 	virtual void ProcessReplica();
 	virtual RAS_Deformer *GetReplica();
-	virtual ~BL_SkinDeformer();
-	bool Update (void);
-	bool Apply (class RAS_IPolyMaterial *polymat);
+	virtual ~BL_ShapeDeformer();
 
-	void ForceUpdate()
-	{
-		m_lastArmaUpdate = -1.0;
-	};
+	bool Update (void);
 
 protected:
-	BL_ArmatureObject*		m_armobj;	//	Our parent object
-	float					m_time;
-	double					m_lastArmaUpdate;
-	ListBase*				m_defbase;
-	float					m_obmat[4][4];	// the reference matrix for skeleton deform
-	bool					m_releaseobject;
+	double					 m_lastShapeUpdate;
+	BL_DeformableGameObject* m_gameobj;
 
 };
 

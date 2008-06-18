@@ -33,7 +33,7 @@
 #ifdef WIN32
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
 #endif //WIN32
-
+#include "MEM_guardedalloc.h"
 #include "RAS_MeshObject.h"
 #include "RAS_Deformer.h"
 #include "RAS_IPolygonMaterial.h"
@@ -41,6 +41,7 @@
 #include "BL_MeshDeformer.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_key_types.h"
 #include "DNA_meshdata_types.h"
 
 typedef vector<struct MVert*> BL_MVertArray;
@@ -105,6 +106,8 @@ class BL_SkinMeshObject : public RAS_MeshObject
 	}
 
 protected:
+	vector<int>				 m_cacheWeightIndex;
+
 public:
 	struct BL_MDVertMap { RAS_IPolyMaterial *mat; int index; };
 	vector<vector<BL_MDVertMap> >	m_mvert_to_dvert_mapping;
@@ -113,10 +116,33 @@ public:
 //	void Bucketize(double* oglmatrix,void* clientobj,bool useObjectColor,const MT_Vector4& rgbavec,class RAS_BucketManager* bucketmgr);
 
 	int FindVertexArray(int numverts,RAS_IPolyMaterial* polymat);
-	BL_SkinMeshObject(int lightlayer) : RAS_MeshObject (lightlayer)
-	{ m_class = 1;};
+	BL_SkinMeshObject(Mesh* mesh, int lightlayer) : RAS_MeshObject (mesh, lightlayer)
+	{ 
+		m_class = 1;
+		if (m_mesh && m_mesh->key)
+		{
+			KeyBlock *kb;
+			int count=0;
+			// initialize weight cache for shape objects
+			// count how many keys in this mesh
+			for(kb= (KeyBlock*)m_mesh->key->block.first; kb; kb= (KeyBlock*)kb->next)
+				count++;
+			m_cacheWeightIndex.resize(count,-1);
+		}
+	};
 
-	virtual ~BL_SkinMeshObject(){
+	virtual ~BL_SkinMeshObject()
+	{
+		if (m_mesh && m_mesh->key) 
+		{
+			KeyBlock *kb;
+			// remove the weight cache to avoid memory leak 
+			for(kb= (KeyBlock*)m_mesh->key->block.first; kb; kb= (KeyBlock*)kb->next) {
+				if(kb->weights) 
+					MEM_freeN(kb->weights);
+				kb->weights= NULL;
+			}
+		}
 	};
 
 	const vecIndexArrays& GetDIndexCache (RAS_IPolyMaterial* mat)
@@ -154,6 +180,8 @@ public:
 
 		return index;
 	}
+	// for shape keys, 
+	void CheckWeightCache(struct Object* obj);
 
 };
 

@@ -63,12 +63,13 @@ KX_ArrayOptimizer::~KX_ArrayOptimizer()
 
 
 
-RAS_MeshObject::RAS_MeshObject(int lightlayer)
+RAS_MeshObject::RAS_MeshObject(Mesh* mesh, int lightlayer)
 	: m_bModified(true),
 	m_lightlayer(lightlayer),
 	m_zsort(false),
 	m_MeshMod(true),
-	m_class(0)
+	m_class(0),
+	m_mesh(mesh)
 {
 }
 

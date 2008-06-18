@@ -860,7 +860,7 @@ typedef struct NlaIpoChannel {
 	int type;
 } NlaIpoChannel;
 
-static void extract_ipochannels_from_action(ListBase *lb, ID *id, bAction *act, char *name, float ctime)
+void extract_ipochannels_from_action(ListBase *lb, ID *id, bAction *act, char *name, float ctime)
 {
 	bActionChannel *achan= get_action_channel(act, name);
 	IpoCurve *icu;
@@ -953,15 +953,18 @@ static void blend_ipochannels(ListBase *dst, ListBase *src, float srcweight, int
 	}
 }
 
-static void execute_ipochannels(ListBase *lb)
+int execute_ipochannels(ListBase *lb)
 {
 	NlaIpoChannel *nic;
+	int count = 0;
 	
 	for(nic= lb->first; nic; nic= nic->next) {
 		if(nic->poin) {
 			write_ipo_poin(nic->poin, nic->type, nic->val);
+			count++;
 		}
 	}
+	return count;
 }
 
 /* nla timing */

@@ -55,7 +55,7 @@ struct KX_ClientObjectInfo;
 class RAS_MeshObject;
 class KX_IPhysicsController;
 class PHY_IPhysicsEnvironment;
-
+struct Object;
 
 /**
  * KX_GameObject is the main class for dynamic objects.
@@ -71,6 +71,7 @@ protected:
 	STR_String							m_text;
 	int									m_layer;
 	std::vector<RAS_MeshObject*>		m_meshes;
+	struct Object*						m_pBlenderObject;
 	
 	bool								m_bSuspendDynamics;
 	bool								m_bUseObjectColor;
@@ -359,6 +360,20 @@ public:
 		return m_pSGNode;
 	}
 
+	/**
+	 * @section blender object accessor functions.
+	 */
+
+	struct Object* GetBlenderObject( )
+	{
+		return m_pBlenderObject;
+	}
+
+	void SetBlenderObject( struct Object* obj)
+	{
+		m_pBlenderObject = obj;
+	}
+	
 	/**
 	 * Set the Scene graph node for this game object.
 	 * warning - it is your responsibility to make sure

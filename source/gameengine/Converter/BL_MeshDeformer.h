@@ -32,6 +32,7 @@
 
 #include "RAS_Deformer.h"
 #include "DNA_object_types.h"
+#include "DNA_key_types.h"
 #include "MT_Point3.h"
 #include <stdlib.h>
 
@@ -56,8 +57,9 @@ public:
 	virtual ~BL_MeshDeformer();
 	virtual void SetSimulatedTime(double time){};
 	virtual bool Apply(class RAS_IPolyMaterial *mat);
-	virtual void Update(void){};
+	virtual bool Update(void){ return false; };
 	virtual	RAS_Deformer*	GetReplica(){return NULL;};
+	struct Mesh* GetMesh() { return m_bmesh; };
 	//	virtual void InitDeform(double time){};
 protected:
 	class BL_SkinMeshObject*	m_pMeshObject;

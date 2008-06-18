@@ -677,6 +677,8 @@ static char *controller_pup(void)
 static char *actuator_name(int type)
 {
 	switch (type) {
+	case ACT_SHAPEACTION:
+		return "Shape Action";
 	case ACT_ACTION:
 		return "Action";
 	case ACT_OBJECT:
@@ -732,6 +734,14 @@ static char *actuator_pup(Object *owner)
 			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
 			"|Visibility %x18|2D Filter %x19|Parent %x20";
 		break;
+
+	case OB_MESH:
+		return "Actuators  %t|Shape Action %x21|Motion %x0|Constraint %x9|Ipo %x1"
+			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
+			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
+			"|Visibility %x18|2D Filter %x19|Parent %x20";
+		break;
+
 	default:
 		return "Actuators  %t|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
@@ -1433,6 +1443,7 @@ static int get_col_actuator(int type)
 {
 	switch(type) {
 	case ACT_ACTION:		return TH_BUT_ACTION;
+	case ACT_SHAPEACTION:	return TH_BUT_ACTION;
 	case ACT_OBJECT:		return TH_BUT_NEUTRAL;
 	case ACT_IPO:			return TH_BUT_SETTING;
 	case ACT_PROPERTY:		return TH_BUT_SETTING1;
@@ -1541,6 +1552,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 			break;
 		}
 	case ACT_ACTION:
+	case ACT_SHAPEACTION:
 		{
 			/* DrawAct */
 #ifdef __NLA_ACTION_BY_MOTION_ACTUATOR

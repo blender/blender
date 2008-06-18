@@ -78,6 +78,7 @@ KX_GameObject::KX_GameObject(
 	m_bSuspendDynamics(false),
 	m_bUseObjectColor(false),
 	m_bIsNegativeScaling(false),
+	m_pBlenderObject(NULL),
 	m_bVisible(true),
 	m_pPhysicsController1(NULL),
 	m_pPhysicsEnvironment(NULL),

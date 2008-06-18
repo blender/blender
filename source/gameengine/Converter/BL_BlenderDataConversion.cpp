@@ -90,6 +90,7 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BL_SkinMeshObject.h"
+#include "BL_ShapeDeformer.h"
 #include "BL_SkinDeformer.h"
 #include "BL_MeshDeformer.h"
 //#include "BL_ArmatureController.h"
@@ -223,15 +224,16 @@ static unsigned int KX_Mcol2uint_new(MCol col)
 static void SetDefaultFaceType(Scene* scene)
 {
 	default_face_mode = TF_DYNAMIC;
-	Base *base = static_cast<Base*>(scene->base.first);
-	while(base)
+	Scene *sce;
+	Base *base;
+
+	for(SETLOOPER(scene,base))
 	{
 		if (base->object->type == OB_LAMP)
 		{
 			default_face_mode = TF_DYNAMIC|TF_LIGHT;
 			return;
 		}
-		base = base->next;
 	}
 }
 
@@ -800,12 +802,12 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 
 
 	// Determine if we need to make a skinned mesh
-	if (mesh->dvert){
-		meshobj = new BL_SkinMeshObject(lightlayer);
+	if (mesh->dvert || mesh->key){
+		meshobj = new BL_SkinMeshObject(mesh, lightlayer);
 		skinMesh = true;
 	}
 	else {
-		meshobj = new RAS_MeshObject(lightlayer);
+		meshobj = new RAS_MeshObject(mesh, lightlayer);
 	}
 	MT_Vector4 *tangent = 0;
 	if (tface)
@@ -1644,7 +1646,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		// needed for python scripting
 		kxscene->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);
 	
-		gameobj = new BL_DeformableGameObject(kxscene,KX_Scene::m_callbacks);
+		gameobj = new BL_DeformableGameObject(ob,kxscene,KX_Scene::m_callbacks);
 	
 		// set transformation
 		gameobj->AddMesh(meshobj);
@@ -1655,12 +1657,24 @@ static KX_GameObject *gameobject_from_blenderobject(
 			((ob->gameflag2 & OB_NEVER_DO_ACTIVITY_CULLING)!=0);
 		gameobj->SetIgnoreActivityCulling(ignoreActivityCulling);
 	
-		//	If this is a skin object, make Skin Controller
-		if (ob->parent && ob->parent->type == OB_ARMATURE && ob->partype==PARSKEL && ((Mesh*)ob->data)->dvert){
+		// two options exists for deform: shape keys and armature
+		// only support relative shape key
+		bool bHasShapeKey = mesh->key != NULL && mesh->key->type==KEY_RELATIVE;
+		bool bHasDvert = mesh->dvert != NULL;
+		bool bHasArmature = (ob->parent && ob->parent->type == OB_ARMATURE && ob->partype==PARSKEL && bHasDvert);
+
+		if (bHasShapeKey) {
+			// not that we can have shape keys without dvert! 
+			BL_ShapeDeformer *dcont = new BL_ShapeDeformer((BL_DeformableGameObject*)gameobj, 
+															ob, (BL_SkinMeshObject*)meshobj);
+			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
+		} else if (bHasArmature) {
 			BL_SkinDeformer *dcont = new BL_SkinDeformer(ob, (BL_SkinMeshObject*)meshobj );				
 			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
-		}
-		else if (((Mesh*)ob->data)->dvert){
+		} else if (bHasDvert) {
+			// this case correspond to a mesh that can potentially deform but not with the
+			// object to which it is attached for the moment. A skin mesh was created in
+			// BL_ConvertMesh() so must create a deformer too!
 			BL_MeshDeformer *dcont = new BL_MeshDeformer(ob, (BL_SkinMeshObject*)meshobj );
 			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
 		}
@@ -1696,6 +1710,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 	{
 		gameobj->SetPhysicsEnvironment(kxscene->GetPhysicsEnvironment());
 		gameobj->SetLayer(ob->lay);
+		gameobj->SetBlenderObject(ob);
 	}
 	return gameobj;
 }

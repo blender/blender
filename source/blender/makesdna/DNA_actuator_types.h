@@ -278,6 +278,7 @@ typedef struct FreeCamera {
 #define ACT_VISIBILITY          18
 #define ACT_2DFILTER	19
 #define ACT_PARENT      20
+#define ACT_SHAPEACTION 21
 
 /* actuator flag */
 #define ACT_SHOW		1

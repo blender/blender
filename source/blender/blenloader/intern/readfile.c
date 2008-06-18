@@ -2991,6 +2991,10 @@ static void lib_link_object(FileData *fd, Main *main)
 					bActionActuator *aa= act->data;
 					aa->act= newlibadr(fd, ob->id.lib, aa->act);
 				}
+				else if(act->type==ACT_SHAPEACTION) {
+					bActionActuator *aa= act->data;
+					aa->act= newlibadr(fd, ob->id.lib, aa->act);
+				}
 				else if(act->type==ACT_PROPERTY) {
 					bPropertyActuator *pa= act->data;
 					pa->ob= newlibadr(fd, ob->id.lib, pa->ob);
@@ -8396,6 +8400,10 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 			expand_doit(fd, mainvar, sa->scene);
 		}
 		else if(act->type==ACT_ACTION) {
+			bActionActuator *aa= act->data;
+			expand_doit(fd, mainvar, aa->act);
+		}
+		else if(act->type==ACT_SHAPEACTION) {
 			bActionActuator *aa= act->data;
 			expand_doit(fd, mainvar, aa->act);
 		}

@@ -150,5 +150,63 @@ void BL_SkinMeshObject::Bucketize(double* oglmatrix,void* clientobj,bool useObje
 
 }
 
+static get_def_index(Object* ob, const char* vgroup)
+{
+	bDeformGroup *curdef;
+	int index = 0;
+
+	for (curdef = (bDeformGroup*)ob->defbase.first; curdef; curdef=(bDeformGroup*)curdef->next, index++)
+		if (!strcmp(curdef->name, vgroup))
+			return index;
+	return -1;
+}
+
+void BL_SkinMeshObject::CheckWeightCache(Object* obj)
+{
+	KeyBlock *kb;
+	int kbindex, defindex;
+	MDeformVert *dvert= NULL;
+	int totvert, i, j;
+	float *weights;
+
+	if (!m_mesh->key)
+		return;
+
+	for(kbindex=0, kb= (KeyBlock*)m_mesh->key->block.first; kb; kb= (KeyBlock*)kb->next, kbindex++)
+	{
+		// first check the cases where the weight must be cleared
+		if (kb->vgroup[0] == 0 ||
+			m_mesh->dvert == NULL ||
+			(defindex = get_def_index(obj, kb->vgroup)) == -1) {
+			if (kb->weights) {
+				MEM_freeN(kb->weights);
+				kb->weights = NULL;
+			}
+			m_cacheWeightIndex[kbindex] = -1;
+		} else if (m_cacheWeightIndex[kbindex] != defindex) {
+			// a weight array is required but the cache is not matching
+			if (kb->weights) {
+				MEM_freeN(kb->weights);
+				kb->weights = NULL;
+			}
+
+			dvert= m_mesh->dvert;
+			totvert= m_mesh->totvert;
+		
+			weights= (float*)MEM_callocN(totvert*sizeof(float), "weights");
+		
+			for (i=0; i < totvert; i++, dvert++) {
+				for(j=0; j<dvert->totweight; j++) {
+					if (dvert->dw[j].def_nr == defindex) {
+						weights[i]= dvert->dw[j].weight;
+						break;
+					}
+				}
+			}
+			kb->weights = weights;
+			m_cacheWeightIndex[kbindex] = defindex;
+		}
+	}
+}
 
 

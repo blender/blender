@@ -43,6 +43,7 @@
 
 #include "GEN_HashedPtr.h"
 
+struct Mesh;
 /**
  * This class holds an array of vertices and indicies.
  */
@@ -144,9 +145,10 @@ protected:
 	GEN_Map<class RAS_IPolyMaterial,KX_ArrayOptimizer*> m_matVertexArrayS;
 	
 	RAS_MaterialBucket::Set			m_materials;
+	Mesh*							m_mesh;
 public:
 	// for now, meshes need to be in a certain layer (to avoid sorting on lights in realtime)
-	RAS_MeshObject(int lightlayer);
+	RAS_MeshObject(Mesh* mesh, int lightlayer);
 	virtual ~RAS_MeshObject();
 
 	vector<RAS_IPolyMaterial*>				m_sortedMaterials;
@@ -258,6 +260,7 @@ public:
 
 	bool				MeshModified();
 	void				SetMeshModified(bool v){m_MeshMod = v;}
+	Mesh*				GetMesh() { return m_mesh; }
 
 };
 
