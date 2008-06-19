@@ -108,9 +108,7 @@ bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
 	MT_Point3 pt;
 //	float co[3];
 
-	if (!Update())
-		// no need to update the cache
-		return false;
+	Update();
 
 	array = m_pMeshObject->GetVertexCache(mat);
 	mvarray = m_pMeshObject->GetMVertCache(mat);

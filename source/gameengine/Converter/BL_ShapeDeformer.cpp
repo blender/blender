@@ -118,7 +118,9 @@ bool BL_ShapeDeformer::Update(void)
 		for (int v =0; v<m_bmesh->totvert; v++)
 			VECCOPY(m_transverts[v], m_bmesh->mvert[v].co);
 
+#ifdef __NLA_DEFNORMALS
 		RecalcNormals();
+#endif
 		bSkinUpdate = true;
 	}
 	return bSkinUpdate;
