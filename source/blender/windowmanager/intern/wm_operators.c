@@ -98,6 +98,16 @@ static void WM_OT_window_duplicate(wmOperatorType *ot)
 	ot->poll= WM_operator_winactive;
 }
 
+static void WM_OT_window_rip(wmOperatorType *ot)
+{
+	ot->name= "Rip Area into New Window";
+	ot->idname= "WM_OT_window_rip";
+	
+	ot->invoke= wm_window_rip_op; //WM_operator_confirm;
+	ot->exec= NULL;
+	ot->poll= WM_operator_winactive;
+}
+
 static void WM_OT_save_homefile(wmOperatorType *ot)
 {
 	ot->name= "Save User Settings";
@@ -256,6 +266,7 @@ void wm_operatortype_free(void)
 void wm_operatortype_init(void)
 {
 	WM_operatortype_append(WM_OT_window_duplicate);
+	WM_operatortype_append(WM_OT_window_rip);
 	WM_operatortype_append(WM_OT_save_homefile);
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_exit_blender);
@@ -291,13 +302,13 @@ void op_init_property(wmOperator *op)
 void OP_free_property(wmOperator *op)
 {
 	if(op->properties) {
-		IDP_FreeProperty(op->properties);
-		/*
-		 * This need change, when the idprop code only
-		 * need call IDP_FreeProperty. (check BKE_idprop.h)
-		 */
-		MEM_freeN(op->properties);
-		op->properties= NULL;
+	IDP_FreeProperty(op->properties);
+	/*
+	 * This need change, when the idprop code only
+	 * need call IDP_FreeProperty. (check BKE_idprop.h)
+	 */
+	MEM_freeN(op->properties);
+	op->properties= NULL;
 	}
 }
 

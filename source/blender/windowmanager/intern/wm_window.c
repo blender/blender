@@ -167,6 +167,45 @@ int wm_window_duplicate_op(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+wmWindow *wm_window_rip(bContext *C, wmWindow *winorig)
+{
+	wmWindow *win= wm_window_new(C, winorig->screen);
+	
+	win->posx= winorig->posx+10;
+	win->posy= winorig->posy;
+	win->sizex= C->area->winx;
+	win->sizey= C->area->winy;
+	
+	win->screen= ED_screen_riparea(win, win->screen, C->area);
+	C->area = NULL; /* is removed */
+	win->screen->do_refresh= 1;
+	win->screen->do_draw= 1;
+	
+	return win;
+}
+/* operator callback */
+int wm_window_rip_op(bContext *C, wmOperator *op, wmEvent *event)
+{
+	/* need to make sure area is set in the current context */
+	if (!C->area) {
+		ScrArea *sa= C->window->screen->areabase.first;
+		for(; sa; sa= sa->next) {
+			if(BLI_in_rcti(&sa->totrct, event->x, event->y)) {
+				C->area = sa;
+				break;
+			}
+		}
+		if(C->area==NULL)
+			return OPERATOR_CANCELLED;
+	}
+
+	wm_window_rip(C, C->window);
+	wm_check(C);
+	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	return OPERATOR_FINISHED;
+}
+
+
 /* fullscreen operator callback */
 int wm_window_fullscreen_toggle_op(bContext *C, wmOperator *op)
 {

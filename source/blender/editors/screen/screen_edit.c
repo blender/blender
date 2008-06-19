@@ -410,7 +410,12 @@ static void screen_delarea(bScreen *sc, ScrArea *sa)
 	MEM_freeN(sa);
 }
 
-bScreen *addscreen(wmWindow *win, char *name)
+/* Helper function to join 2 areas, it has a return value, 0=failed 1=success
+ * 	used by the split, join and rip operators
+ */
+int screen_join_areas(bScreen *scr, ScrArea *sa1, ScrArea *sa2);
+
+static bScreen *addscreen_area(wmWindow *win, char *name, short headertype, short spacetype)
 {
 	bScreen *sc;
 	ScrVert *sv1, *sv2, *sv3, *sv4;
@@ -429,11 +434,15 @@ bScreen *addscreen(wmWindow *win, char *name)
 	screen_addedge(sc, sv3, sv4);
 	screen_addedge(sc, sv4, sv1);
 	
-	screen_addarea(sc, sv1, sv2, sv3, sv4, HEADERDOWN, SPACE_INFO);
+	screen_addarea(sc, sv1, sv2, sv3, sv4, headertype, spacetype);
 		
 	return sc;
 }
 
+static bScreen *addscreen(wmWindow *win, char *name) 
+{
+	return addscreen_area(win, name, HEADERDOWN, SPACE_INFO);
+}
 
 static void screen_copy(bScreen *to, bScreen *from)
 {
@@ -480,6 +489,34 @@ static void screen_copy(bScreen *to, bScreen *from)
 	for(s1= from->vertbase.first; s1; s1= s1->next)
 		s1->newv= NULL;
 
+}
+
+bScreen *ED_screen_riparea(struct wmWindow *win, bScreen *sc, struct ScrArea *sa)
+{
+	bScreen *newsc=NULL;
+	ScrArea *newa;
+	ScrArea *tsa;
+
+	if(sc->full != SCREENNORMAL) return NULL; /* XXX handle this case! */
+	
+	/* make new screen: */
+	newsc= addscreen_area(win, sc->id.name+2, sa->headertype, sa->spacetype);
+
+	/* new area is first (and only area) added to new win */
+	newa = (ScrArea *)newsc->areabase.first;
+	area_copy_data(newa, sa, 0);
+
+	/*remove the original area if possible*/
+	for(tsa= sc->areabase.first; tsa; tsa= tsa->next) {
+		if (screen_join_areas(sc,tsa,sa)) 
+			break;
+	}
+
+	removedouble_scredges(sc);
+	removenotused_scredges(sc);
+	removenotused_scrverts(sc);
+
+	return newsc;
 }
 
 bScreen *ED_screen_duplicate(wmWindow *win, bScreen *sc)
@@ -664,6 +701,55 @@ static ScrArea* splitarea(wmWindow *win, bScreen *sc, ScrArea *sa, char dir, flo
 	return newa;
 }
 
+
+/* Helper function to join 2 areas, it has a return value, 0=failed 1=success
+ * 	used by the split, join and rip operators
+ */
+int screen_join_areas(bScreen* scr, ScrArea *sa1, ScrArea *sa2) 
+{
+	int dir;
+	
+	dir = area_getorientation(scr, sa1, sa2);
+	/*printf("dir is : %i \n", dir);*/
+	
+	if (dir < 0)
+	{
+		if (sa1 ) sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
+		if (sa2 ) sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
+		return 0;
+	}
+	
+	if(dir == 0) {
+		sa1->v1= sa2->v1;
+		sa1->v2= sa2->v2;
+		screen_addedge(scr, sa1->v2, sa1->v3);
+		screen_addedge(scr, sa1->v1, sa1->v4);
+	}
+	else if(dir == 1) {
+		sa1->v2= sa2->v2;
+		sa1->v3= sa2->v3;
+		screen_addedge(scr, sa1->v1, sa1->v2);
+		screen_addedge(scr, sa1->v3, sa1->v4);
+	}
+	else if(dir == 2) {
+		sa1->v3= sa2->v3;
+		sa1->v4= sa2->v4;
+		screen_addedge(scr, sa1->v2, sa1->v3);
+		screen_addedge(scr, sa1->v1, sa1->v4);
+	}
+	else if(dir == 3) {
+		sa1->v1= sa2->v1;
+		sa1->v4= sa2->v4;
+		screen_addedge(scr, sa1->v1, sa1->v2);
+		screen_addedge(scr, sa1->v3, sa1->v4);
+	}
+	
+	screen_delarea(scr, sa2);
+	removedouble_scrverts(scr);
+	sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
+	
+	return 1;
+}
 
 /* *************************************************************** */
 
@@ -1508,46 +1594,6 @@ static int split_area_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-/* join areas */
-static void split_joincurrent(bContext *C, sAreaSplitData *sd)
-{
-	int orientation= area_getorientation(C->window->screen, sd->sarea, sd->narea);
-	if(orientation>-1) {
-		if(orientation==0) {
-			sd->sarea->v1= sd->narea->v1;
-			sd->sarea->v2= sd->narea->v2;
-			screen_addedge(C->screen, sd->sarea->v2, sd->sarea->v3);
-			screen_addedge(C->screen, sd->sarea->v1, sd->sarea->v4);
-		}
-		else if(orientation==1) {
-			sd->sarea->v2= sd->narea->v2;
-			sd->sarea->v3= sd->narea->v3;
-			screen_addedge(C->screen, sd->sarea->v1, sd->sarea->v2);
-			screen_addedge(C->screen, sd->sarea->v3, sd->sarea->v4);
-		}
-		else if(orientation==2) {
-			sd->sarea->v3= sd->narea->v3;
-			sd->sarea->v4= sd->narea->v4;
-			screen_addedge(C->screen, sd->sarea->v2,sd-> sarea->v3);
-			screen_addedge(C->screen, sd->sarea->v1, sd->sarea->v4);
-		}
-		else if(orientation==3) {
-			sd->sarea->v1= sd->narea->v1;
-			sd->sarea->v4= sd->narea->v4;
-			screen_addedge(C->screen, sd->sarea->v1, sd->sarea->v2);
-			screen_addedge(C->screen, sd->sarea->v3, sd->sarea->v4);
-		}
-
-		if (C->area == sd->narea) {
-			C->area = NULL;
-		}
-		screen_delarea(C->screen, sd->narea);
-		sd->narea = NULL;
-		removedouble_scrverts(C->screen);
-		removedouble_scredges(C->screen);
-	}
-}
-
 static int split_area_cancel(bContext *C, wmOperator *op)
 {
 	sAreaSplitData *sd= (sAreaSplitData *)op->customdata;
@@ -1555,7 +1601,12 @@ static int split_area_cancel(bContext *C, wmOperator *op)
 	WM_event_remove_modal_handler(&C->window->handlers, op);
 
 	OP_set_int(op, "delta", 0);
-	split_joincurrent(C, sd);
+	if (screen_join_areas(C->screen,sd->sarea, sd->narea)) {
+		if (C->area == sd->narea) {
+			C->area = NULL;
+		}
+		sd->narea = NULL;
+	}
 	split_area_exit(C, op);
 
 	return OPERATOR_CANCELLED;
@@ -1602,7 +1653,12 @@ static int split_area_modal(bContext *C, wmOperator *op, wmEvent *event)
 				/* area containing cursor has changed */
 				if(sa && sd->sarea!=sa && sd->narea!=sa) {
 					sold= sd->sarea;
-					split_joincurrent(C, sd);
+					if (screen_join_areas(C->screen,sd->sarea, sd->narea)) {
+						if (C->area == sd->narea) {
+							C->area = NULL;
+						}
+						sd->narea = NULL;
+					}
 
 					/* now find aedge with same orientation as sd->dir (inverted) */
 					if(dir=='v') {
@@ -1734,47 +1790,12 @@ static int join_areas_apply(bContext *C, wmOperator *op)
 	sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
 	if (!jd) return 0;
 
-	jd->dir = area_getorientation(C->screen, jd->sa1, jd->sa2);
-	printf("dir is : %i \n", jd->dir);
-	if (jd->dir < 0)
-	{
-		if (jd->sa1 ) jd->sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
-		if (jd->sa2 ) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
+	if(!screen_join_areas(C->screen,jd->sa1,jd->sa2)){
 		return 0;
 	}
-	
-	if(jd->dir == 0) {
-		jd->sa1->v1= jd->sa2->v1;
-		jd->sa1->v2= jd->sa2->v2;
-		screen_addedge(C->screen, jd->sa1->v2, jd->sa1->v3);
-		screen_addedge(C->screen, jd->sa1->v1, jd->sa1->v4);
-	}
-	else if(jd->dir == 1) {
-		jd->sa1->v2= jd->sa2->v2;
-		jd->sa1->v3= jd->sa2->v3;
-		screen_addedge(C->screen, jd->sa1->v1, jd->sa1->v2);
-		screen_addedge(C->screen, jd->sa1->v3, jd->sa1->v4);
-	}
-	else if(jd->dir == 2) {
-		jd->sa1->v3= jd->sa2->v3;
-		jd->sa1->v4= jd->sa2->v4;
-		screen_addedge(C->screen, jd->sa1->v2,jd-> sa1->v3);
-		screen_addedge(C->screen, jd->sa1->v1, jd->sa1->v4);
-	}
-	else if(jd->dir == 3) {
-		jd->sa1->v1= jd->sa2->v1;
-		jd->sa1->v4= jd->sa2->v4;
-		screen_addedge(C->screen, jd->sa1->v1, jd->sa1->v2);
-		screen_addedge(C->screen, jd->sa1->v3, jd->sa1->v4);
-	}
-
 	if (C->area == jd->sa2) {
 		C->area = NULL;
 	}
-	screen_delarea(C->screen, jd->sa2);
-	jd->sa2 = NULL;
-
-	jd->sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
 
 	return 1;
 }

@@ -80,6 +80,7 @@ static void wm_window_keymap(wmWindowManager *wm)
 {
 	/* note, this doesn't replace existing keymap items */
 	WM_keymap_verify_item(&wm->windowkeymap, "WM_OT_window_duplicate", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(&wm->windowkeymap, "WM_OT_window_rip", RKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_verify_item(&wm->windowkeymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(&wm->windowkeymap, "WM_OT_window_fullscreen_toggle", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(&wm->windowkeymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);

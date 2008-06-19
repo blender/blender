@@ -479,7 +479,7 @@ wmEventHandler *WM_event_add_keymap_handler(ListBase *keymap, ListBase *handlers
 	/* only allow same keymap once */
 	for(handler= handlers->first; handler; handler= handler->next)
 		if(handler->keymap==keymap)
-			return;
+			return handler;
 
 	handler= MEM_callocN(sizeof(wmEventHandler), "event handler");
 	BLI_addtail(handlers, handler);
