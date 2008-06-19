@@ -902,7 +902,7 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 		if (test == 1) {
 			MVert *verts = dm->getVertArray(dm);
 			MFace *faces = dm->getFaceArray(dm);
-			int *index_array;
+			int *index_array = NULL;
 			int index = 0;
 			int i;
 			
