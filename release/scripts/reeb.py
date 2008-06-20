@@ -15,6 +15,20 @@ def name(count):
 		return "%05" % count
 
 def importGraph(count):
+	bNode = Blender.Draw.Create(1)
+	bSize = Blender.Draw.Create(0.01)
+
+	Block = []
+	
+	Block.append(("Size: ", bSize, 0.01, 10.0, "Size of the nodes"))
+	Block.append(("Nodes", bNode, "Import nodes as tetras"))
+	
+	retval = Blender.Draw.PupBlock("Reeb Graph Import", Block)
+	
+	if not retval:
+		return
+
+
 	me = Blender.Mesh.New("graph%s" % name(count))
 	scn = Blender.Scene.GetCurrent()
 	
@@ -27,8 +41,8 @@ def importGraph(count):
 	i = 0
 	first = False
 	
-	SIZE = 0.3
-	WITH_NODE = True
+	SIZE = float(bSize.val)
+	WITH_NODE = bool(bNode.val)
 	
 	def addNode(v, s, verts, faces):
 		if WITH_NODE:
