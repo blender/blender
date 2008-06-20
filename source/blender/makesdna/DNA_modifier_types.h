@@ -493,6 +493,7 @@ typedef struct ShrinkwrapModifierData {
 	ModifierData modifier;
 
 	struct Object *target;	/* shrink target */
+	struct Object *cutPlane;/* shrink target */
 	char vgroup_name[32];	/* optional vertexgroup name */
 	float keptDist;			/* distance offset from mesh/projection point */
 	float mergeDist;		/* distance to merge vertexs */

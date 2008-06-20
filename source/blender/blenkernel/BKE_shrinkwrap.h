@@ -54,7 +54,7 @@ typedef struct ShrinkwrapCalcData
 	ShrinkwrapModifierData *smd;	//shrinkwrap modifier data
 
 	struct Object *ob;				//object we are applying shrinkwrap to
-	struct DerivedMesh *original;	//mesh before shrinkwrap
+	struct DerivedMesh *original;	//mesh before shrinkwrap (TODO clean this variable.. we don't really need it)
 	struct DerivedMesh *final;		//initially a copy of original mesh.. mesh thats going to be shrinkwrapped
 
 	struct DerivedMesh *target;		//mesh we are shrinking to

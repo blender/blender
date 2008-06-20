@@ -7022,6 +7022,9 @@ static void shrinkwrapModifier_initData(ModifierData *md)
 	smd->shrinkOpts = MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL;
 	smd->keptDist	= 0.0f;
 	smd->mergeDist	= 0.0f;
+
+	smd->target = 0;
+	smd->cutPlane = 0;
 }
 
 static void shrinkwrapModifier_copyData(ModifierData *md, ModifierData *target)
@@ -7045,6 +7048,7 @@ static void shrinkwrapModifier_foreachObjectLink(ModifierData *md, Object *ob, O
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
 
 	walk(userData, ob, &smd->target);
+	walk(userData, ob, &smd->cutPlane);
 }
 
 static DerivedMesh *shrinkwrapModifier_applyModifier(ModifierData *md, Object *ob, DerivedMesh *derivedData, int useRenderParams, int isFinalCalc)
@@ -7061,12 +7065,11 @@ static void shrinkwrapModifier_updateDepgraph(ModifierData *md, DagForest *fores
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
 
-	if (smd->target) {
-		DagNode *curNode = dag_get_node(forest, smd->target);
+	if (smd->target)
+		dag_add_relation(forest, dag_get_node(forest, smd->target),   obNode, DAG_RL_OB_DATA | DAG_RL_DATA_DATA, "Shrinkwrap Modifier");
 
-		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA | DAG_RL_DATA_DATA,
-			"Shrinkwrap Modifier");
-	}
+	if (smd->cutPlane)
+		dag_add_relation(forest, dag_get_node(forest, smd->cutPlane), obNode, DAG_RL_OB_DATA | DAG_RL_DATA_DATA, "Shrinkwrap Modifier");
 }
 
 

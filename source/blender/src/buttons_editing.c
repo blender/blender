@@ -1830,7 +1830,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
 			height = 86;
 			if (smd->shrinkType == MOD_SHRINKWRAP_NORMAL)
-				height += 19*6;
+				height += 19*7;
 		}
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 40, ""); 
@@ -2462,6 +2462,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE, B_MODIFIER_RECALC, "Cull frontfaces",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Controls whether a vertex can be projected to a front face on target");
 				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_CULL_TARGET_BACKFACE,  B_MODIFIER_RECALC, "Cull backfaces",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Controls whether a vertex can be projected to a back face on target");
 				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Merge Dist:",	lx,(cy-=19),buttonWidth,19, &smd->mergeDist, 0.0f, 0.01f, 0.01f, 0.01f, "Specify merge distance");
+				uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Cut: ",	lx, (cy-=19), buttonWidth,19, &smd->cutPlane, "Target to project points that didn't got projected over target");
 			}
 
 			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->vgroup_name, 0, 31, 0, 0, "Vertex Group name");

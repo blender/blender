@@ -894,6 +894,73 @@ static void shrinkwrap_removeUnused(ShrinkwrapCalcData *calc)
 	calc->final = new;
 }
 
+void shrinkwrap_projectToCutPlane(ShrinkwrapCalcData *calc_data)
+{
+	if(calc_data->smd->cutPlane && calc_data->moved)
+	{
+		int i;
+		int unmoved = 0;
+		int numVerts= 0;
+		MVert *vert = NULL;
+		MVert *vert_unmoved = NULL;
+
+		ShrinkwrapCalcData calc;
+		memcpy(&calc, calc_data, sizeof(calc));
+
+		calc.moved = 0;
+
+		if(calc.smd->cutPlane)
+		{
+			calc.target = (DerivedMesh *)calc.smd->cutPlane->derivedFinal;
+
+			if(!calc.target)
+			{
+				return;
+			}
+
+			Mat4Invert (calc.smd->cutPlane->imat, calc.smd->cutPlane->obmat);	//inverse is outdated
+			Mat4MulSerie(calc.local2target, calc.smd->cutPlane->imat, calc.ob->obmat, 0, 0, 0, 0, 0, 0);
+			Mat4Invert(calc.target2local, calc.local2target);
+	
+			calc.keptDist = 0;
+		}
+
+
+		//Make a mesh with the points we want to project
+		numVerts = calc_data->final->getNumVerts(calc_data->final);
+
+		unmoved = 0;
+		for(i=0; i<numVerts; i++)
+			if(!bitset_get(calc_data->moved, i))
+				unmoved++;
+
+		calc.final = CDDM_new(unmoved, 0, 0);
+		if(!calc.final) return;
+
+
+		vert = calc_data->final->getVertDataArray(calc_data->final, CD_MVERT);
+		vert_unmoved = calc.final->getVertDataArray(calc.final, CD_MVERT);
+
+		for(i=0; i<numVerts; i++)
+			if(!bitset_get(calc_data->moved, i))
+				memcpy(vert_unmoved++, vert+i, sizeof(*vert_unmoved));
+
+		//use shrinkwrap projection
+		shrinkwrap_calc_normal_projection(&calc);
+
+		//Copy the points back to the mesh
+		vert = calc_data->final->getVertDataArray(calc_data->final, CD_MVERT);
+		vert_unmoved = calc.final->getVertDataArray(calc.final, CD_MVERT);
+		for(i=0; i<numVerts; i++)
+			if(!bitset_get(calc_data->moved, i))
+				memcpy(vert+i, vert_unmoved++, sizeof(*vert_unmoved) );
+
+		//free memory
+		calc.final->release(calc.final);
+	}	
+
+}
+
 
 /* Main shrinkwrap function */
 DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
@@ -951,11 +1018,29 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 			break;
 
 			case MOD_SHRINKWRAP_NORMAL:
+
+				if(calc.smd->shrinkOpts & MOD_SHRINKWRAP_REMOVE_UNPROJECTED_FACES)
+					calc.moved = bitset_new( calc.final->getNumVerts(calc.final), "shrinkwrap bitset data");
+
 				BENCH(shrinkwrap_calc_normal_projection(&calc));
 //				BENCH(shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_normal_projection));
+
+				if(calc.moved)
+				{
+					//Adjust vertxs that didn't moved (project to cut plane)
+					shrinkwrap_projectToCutPlane(&calc);
+
+					//Destroy faces, edges and stuff
+					shrinkwrap_removeUnused(&calc);
+
+					//Merge points that didn't moved
+					derivedmesh_mergeNearestPoints(calc.final, calc.smd->mergeDist, calc.moved);
+					bitset_free(calc.moved);
+				}
 			break;
 
 			case MOD_SHRINKWRAP_NEAREST_VERTEX:
+
 				BENCH(shrinkwrap_calc_nearest_vertex(&calc));
 //				BENCH(shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_nearest_vertex));
 			break;
@@ -963,21 +1048,7 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 
 	}
 
-	if(calc.moved)
-	{
-		//Destroy faces, edges and stuff
-		shrinkwrap_removeUnused(&calc);
-
-		if(calc.moved)
-			derivedmesh_mergeNearestPoints(calc.final, calc.smd->mergeDist, calc.moved);
-	}
-
 	CDDM_calc_normals(calc.final);
-
-	//clean memory
-	if(calc.moved)
-		bitset_free(calc.moved);
-
 
 	return calc.final;
 }
@@ -1082,9 +1153,6 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	numVerts= calc->final->getNumVerts(calc->final);
 	vert	= calc->final->getVertDataArray(calc->final, CD_MVERT);	
 	dvert	= calc->final->getVertDataArray(calc->final, CD_MDEFORMVERT);
-
-	if(calc->smd->shrinkOpts & MOD_SHRINKWRAP_REMOVE_UNPROJECTED_FACES)
-		calc->moved = bitset_new(numVerts, "shrinkwrap bitset data");
 
 	for(i=0; i<numVerts; i++)
 	{
