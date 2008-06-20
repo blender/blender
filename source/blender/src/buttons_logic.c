@@ -2149,7 +2149,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 		uiDefBut(block, TEX, 1, "To: ",
 			(xco+10), (yco-(myline++*24)), (width-20), 19,
 			&ma->toPropName, 0, 31, 0, 0,
-			"Optional send message to objects with this name only"
+			"Optional send message to objects with this name only (Prefix name with OB)"
 			", or empty to broadcast");
 
 #endif
