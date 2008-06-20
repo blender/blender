@@ -22,6 +22,8 @@ class KX_GameObject:
 	@type orientation: 3x3 Matrix [[float]]
 	@ivar scaling: The object's scaling factor. list [sx, sy, sz]
 	@type scaling: list [sx, sy, sz]
+	@ivar timeOffset: adjust the slowparent delay at runtime.
+	@type timeOffset: float
 	"""
 	
 	def setVisible(visible):
@@ -48,7 +50,7 @@ class KX_GameObject:
 		"""
 		Sets the game object's orientation.
 		
-		@type orn: 3x3 rotation matrix, or Quaternion.
+		@type orn: 3x3 inverted rotation matrix, or Quaternion.
 		@param orn: a rotation matrix specifying the new rotation.
 		"""
 	def alignAxisToVect(vect, axis):
@@ -67,7 +69,7 @@ class KX_GameObject:
 		"""
 		Gets the game object's orientation.
 		
-		@rtype: 3x3 rotation matrix
+		@rtype: 3x3 inverted rotation matrix
 		@return: The game object's rotation matrix
 		"""
 	def getLinearVelocity(local):

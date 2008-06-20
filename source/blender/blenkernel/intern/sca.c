@@ -411,6 +411,7 @@ void init_actuator(bActuator *act)
 	switch(act->type) {
 #ifdef __NLA
 	case ACT_ACTION:
+	case ACT_SHAPEACTION:
 		act->data= MEM_callocN(sizeof(bActionActuator), "actionact");
 		break;
 #endif

@@ -229,6 +229,8 @@ void draw_icon_oops(float *co, short type)
 	case ID_LI:	icon= ICON_LIBRARY_HLT; break;
 	case ID_IM:	icon= ICON_IMAGE_HLT; break;
 	case ID_GR:	icon= ICON_CIRCLE_DEHLT; break;
+	case ID_CA:	icon= ICON_CAMERA_DEHLT; break;
+	case ID_AR:	icon= ICON_ARMATURE; break;
 	}
 
 	glEnable(GL_BLEND);
@@ -282,6 +284,12 @@ unsigned int give_oops_color(short type, short sel, unsigned int *border)
 		body= 0x35659F; break;
 	case ID_GR:
 		body= 0x507050; break;
+	case ID_CA:
+		body= 0x7570A0; break;
+	case ID_LT:
+		body= 0xA08090; break;
+	case ID_AR:
+		body= 0x70B0C0; break;
 	default:
 		body= 0x606070; break;
 	}
@@ -513,6 +521,7 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 	
 	curarea->win_swap= WIN_BACK_OK;
 }
+
 
 
 

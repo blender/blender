@@ -53,23 +53,27 @@ void BL_SkinMeshObject::AddPolygon(RAS_Polygon* poly)
 	RAS_MeshObject::AddPolygon(poly);
 }
 
-#ifdef __NLA_OLDDEFORM
-int BL_SkinMeshObject::FindOrAddDeform(int vtxarray, struct MVert *mv, struct MDeformVert *dv, RAS_IPolyMaterial* mat)
-#else
 int BL_SkinMeshObject::FindOrAddDeform(unsigned int vtxarray, unsigned int mv, struct MDeformVert *dv, RAS_IPolyMaterial* mat)
-#endif
 {
 	BL_SkinArrayOptimizer* ao = (BL_SkinArrayOptimizer*)GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
 	int numvert = ao->m_MvertArrayCache1[vtxarray]->size();
-	
+
 	/* Check to see if this has already been pushed */
-	for (unsigned int i=0; i<ao->m_MvertArrayCache1[vtxarray]->size(); i++){
-		if (mv == (*ao->m_MvertArrayCache1[vtxarray])[i])
-			return i;
+	for (vector<BL_MDVertMap>::iterator it = m_mvert_to_dvert_mapping[mv].begin();
+	     it != m_mvert_to_dvert_mapping[mv].end();
+	     it++)
+	{
+		if(it->mat == mat)
+			return it->index;
 	}
 
 	ao->m_MvertArrayCache1[vtxarray]->push_back(mv);
 	ao->m_DvertArrayCache1[vtxarray]->push_back(dv);
+
+	BL_MDVertMap mdmap;
+	mdmap.mat = mat;
+	mdmap.index = numvert;
+	m_mvert_to_dvert_mapping[mv].push_back(mdmap);
 	
 	return numvert;
 };
@@ -105,11 +109,7 @@ int	BL_SkinMeshObject::FindVertexArray(int numverts,RAS_IPolyMaterial* polymat)
 		KX_IndexArray *ia = new KX_IndexArray();
 		ao->m_IndexArrayCache1.push_back(ia);
 
-#ifdef __NLA_OLDDEFORM
-		BL_MVertArray *bva = new BL_MVertArray();
-#else
 		KX_IndexArray *bva = new KX_IndexArray();
-#endif
 		ao->m_MvertArrayCache1.push_back(bva);
 
 		BL_DeformVertArray *dva = new BL_DeformVertArray();
@@ -150,5 +150,63 @@ void BL_SkinMeshObject::Bucketize(double* oglmatrix,void* clientobj,bool useObje
 
 }
 
+static int get_def_index(Object* ob, const char* vgroup)
+{
+	bDeformGroup *curdef;
+	int index = 0;
+
+	for (curdef = (bDeformGroup*)ob->defbase.first; curdef; curdef=(bDeformGroup*)curdef->next, index++)
+		if (!strcmp(curdef->name, vgroup))
+			return index;
+	return -1;
+}
+
+void BL_SkinMeshObject::CheckWeightCache(Object* obj)
+{
+	KeyBlock *kb;
+	int kbindex, defindex;
+	MDeformVert *dvert= NULL;
+	int totvert, i, j;
+	float *weights;
+
+	if (!m_mesh->key)
+		return;
+
+	for(kbindex=0, kb= (KeyBlock*)m_mesh->key->block.first; kb; kb= (KeyBlock*)kb->next, kbindex++)
+	{
+		// first check the cases where the weight must be cleared
+		if (kb->vgroup[0] == 0 ||
+			m_mesh->dvert == NULL ||
+			(defindex = get_def_index(obj, kb->vgroup)) == -1) {
+			if (kb->weights) {
+				MEM_freeN(kb->weights);
+				kb->weights = NULL;
+			}
+			m_cacheWeightIndex[kbindex] = -1;
+		} else if (m_cacheWeightIndex[kbindex] != defindex) {
+			// a weight array is required but the cache is not matching
+			if (kb->weights) {
+				MEM_freeN(kb->weights);
+				kb->weights = NULL;
+			}
+
+			dvert= m_mesh->dvert;
+			totvert= m_mesh->totvert;
+		
+			weights= (float*)MEM_callocN(totvert*sizeof(float), "weights");
+		
+			for (i=0; i < totvert; i++, dvert++) {
+				for(j=0; j<dvert->totweight; j++) {
+					if (dvert->dw[j].def_nr == defindex) {
+						weights[i]= dvert->dw[j].weight;
+						break;
+					}
+				}
+			}
+			kb->weights = weights;
+			m_cacheWeightIndex[kbindex] = defindex;
+		}
+	}
+}
 
 

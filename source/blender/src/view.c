@@ -753,10 +753,11 @@ void viewmoveNDOFfly(int mode)
 
 
 	// Apply rotation
-
-	rvec[0] = -dval[3];
-	rvec[1] = -dval[4];
-	rvec[2] = dval[5];
+	// Rotations feel relatively faster than translations only in fly mode, so
+	// we have no choice but to fix that here (not in the plugins)
+	rvec[0] = -0.5 * dval[3];
+	rvec[1] = -0.5 * dval[4];
+	rvec[2] = -0.5 * dval[5];
 
 	// rotate device x and y by view z
 
@@ -824,8 +825,7 @@ void viewmove(int mode)
 		return;
 	}
 	
-		// dist correction from other movement devices
-		
+	// dist correction from other movement devices	
 	if((dz_flag)||G.vd->dist==0) {
 		dz_flag = 0;
 		G.vd->dist = m_dist;
@@ -1166,6 +1166,8 @@ void viewmoveNDOF(int mode)
     float reverse;
     float diff[4];
     float d, curareaX, curareaY;
+    float mat[3][3];
+    float upvec[3];
 
     /* Sensitivity will control how fast the view rotates.  The value was
      * obtained experimentally by tweaking until the author didn't get dizzy watching.
@@ -1184,6 +1186,16 @@ void viewmoveNDOF(int mode)
 //
 	if (G.obedit==NULL && ob && !(ob->flag & OB_POSEMODE)) {
 		use_sel = 1;
+	}
+
+    if((dz_flag)||G.vd->dist==0) {
+		dz_flag = 0;
+		G.vd->dist = m_dist;
+		upvec[0] = upvec[1] = 0;
+		upvec[2] = G.vd->dist;
+		Mat3CpyMat4(mat, G.vd->viewinv);
+		Mat3MulVecfl(mat, upvec);
+		VecAddf(G.vd->ofs, G.vd->ofs, upvec);
 	}
 
     /*----------------------------------------------------
@@ -1212,25 +1224,25 @@ void viewmoveNDOF(int mode)
 				filterNDOFvalues(fval);
 	
 	
-	// put scaling back here, was previously in ghostwinlay
-            fval[0] = fval[0]  * (1.0f/800.0f);
-            fval[1] = fval[1]  * (1.0f/800.0f);
-            fval[2] = fval[2] * (1.0f/800.0f);
-            fval[3] = fval[3]  * 0.00005f;
-            fval[4] = fval[4]  * 0.00005f;
-            fval[5] = fval[5] * 0.00005f;
-            fval[6] = fval[6]  / 1000000.0f;
+    // put scaling back here, was previously in ghostwinlay
+    fval[0] = fval[0] * (1.0f/1200.0f);
+    fval[1] = fval[1] * (1.0f/1200.0f);
+    fval[2] = fval[2] * (1.0f/1200.0f);
+    fval[3] = fval[3] * 0.00005f;
+    fval[4] =-fval[4] * 0.00005f;
+    fval[5] = fval[5] * 0.00005f;
+    fval[6] = fval[6] / 1000000.0f;
 			
-	// scale more if not in perspective mode
-			if (G.vd->persp == V3D_ORTHO) {
-				fval[0] = fval[0] * 0.05f;
-				fval[1] = fval[1] * 0.05f;
-				fval[2] = fval[2] * 0.05f;
-				fval[3] = fval[3] * 0.9f;
-				fval[4] = fval[4] * 0.9f;
-				fval[5] = fval[5] * 0.9f;
-				zsens *= 8;
-			}
+    // scale more if not in perspective mode
+    if (G.vd->persp == V3D_ORTHO) {
+        fval[0] = fval[0] * 0.05f;
+        fval[1] = fval[1] * 0.05f;
+        fval[2] = fval[2] * 0.05f;
+        fval[3] = fval[3] * 0.9f;
+        fval[4] = fval[4] * 0.9f;
+        fval[5] = fval[5] * 0.9f;
+        zsens *= 8;
+    }
 			
 	
     /* set object offset */

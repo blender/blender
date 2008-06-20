@@ -441,10 +441,15 @@ intern_dpxOpen(int mode, const char* bytestuff, int bufsize) {
 		default: break;
 		}
 	}
-	dpx->bitsPerPixel = 10;
-	/* dpx->bitsPerPixel = header.imageInfo.channel[0].bits_per_pixel; */
-	dpx->imageOffset = ntohl(header.fileInfo.offset);
+	/* dpx->bitsPerPixel = 10; */
+	dpx->bitsPerPixel = header.imageInfo.channel[0].bits_per_pixel;
+	if (dpx->bitsPerPixel != 10) {
+		if (verbose) d_printf("Don't support depth: %d\n", dpx->bitsPerPixel);
+		dpxClose(dpx);
+		return 0;
+	}
 
+	dpx->imageOffset = ntohl(header.fileInfo.offset);
 	dpx->lineBufferLength = pixelsToLongs(dpx->width * dpx->depth);
 	dpx->lineBuffer = malloc(dpx->lineBufferLength * 4);
 	if (dpx->lineBuffer == 0) {
@@ -471,6 +476,26 @@ intern_dpxOpen(int mode, const char* bytestuff, int bufsize) {
 	dpx->fileYPos = 0;
 
 	logImageGetByteConversionDefaults(&dpx->params);
+	/* The SMPTE define this code:
+	 *  2 - Linear
+	 *  3 - Logarithmic
+	 *
+	 * Note that transfer_characteristics is U8, don't need
+	 * check the byte order.
+	 */
+	switch (header.imageInfo.channel[0].transfer_characteristics) {
+		case 2:
+			dpx->params.doLogarithm= 0;
+			break;
+		case 3:
+			dpx->params.doLogarithm= 1;
+			break;
+		default:
+			if (verbose) d_printf("Un-supported Transfer Characteristics: %d\n", header.imageInfo.channel[0].transfer_characteristics);
+			dpxClose(dpx);
+			return 0;
+			break;
+	}
 	setupLut(dpx);
 
 	dpx->getRow = &dpxGetRowBytes;
@@ -563,6 +588,18 @@ dpxCreate(const char* filename, int width, int height, int depth) {
 		++shortFilename;
 	}
 	initDpxMainHeader(dpx, &header, shortFilename);
+	logImageGetByteConversionDefaults(&dpx->params);
+	/* Need set the file type before write the header!
+	 *  2 - Linear
+	 *  3 - Logarithmic
+	 *
+	 * Note that transfer characteristics is U8, don't need
+	 * check the byte order.
+	 */
+	if (dpx->params.doLogarithm == 0)
+		header.imageInfo.channel[0].transfer_characteristics= 2;
+	else
+		header.imageInfo.channel[0].transfer_characteristics= 3;
 
 	if (fwrite(&header, sizeof(header), 1, dpx->file) == 0) {
 		if (verbose) d_printf("Couldn't write image header\n");
@@ -570,8 +607,6 @@ dpxCreate(const char* filename, int width, int height, int depth) {
 		return 0;
 	}
 	dpx->fileYPos = 0;
-
-	logImageGetByteConversionDefaults(&dpx->params);
 	setupLut(dpx);
 
 	dpx->getRow = 0;

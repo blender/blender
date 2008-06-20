@@ -98,6 +98,7 @@ endif
     export NAN_OPENNL ?= $(LCGDIR)/opennl
     export NAN_ELBEEM ?= $(LCGDIR)/elbeem
     export NAN_SUPERLU ?= $(LCGDIR)/superlu
+    export NAN_GLEW ?= $(LCGDIR)/glew
     ifeq ($(FREE_WINDOWS), true)
       export NAN_FTGL ?= $(LCGDIR)/gcc/ftgl
       export NAN_FFMPEG ?= $(LCGDIR)/gcc/ffmpeg

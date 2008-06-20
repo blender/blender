@@ -8,6 +8,7 @@
 #include "BL_Material.h"
 #include "BL_Texture.h"
 #include "BL_Shader.h"
+#include "BL_BlenderShader.h"
 
 #include "PyObjectPlus.h"
 
@@ -60,6 +61,10 @@ public:
 		TCachingInfo& cachingInfo
 	)const;
 
+	void ActivateBlenderShaders(
+		RAS_IRasterizer* rasty, 
+		TCachingInfo& cachingInfo
+	)const;
 
 	MTFace* GetMTFace(void) const;
 	unsigned int* GetMCol(void) const;
@@ -86,8 +91,9 @@ public:
 	// pre calculate to avoid pops/lag at startup
 	virtual void OnConstruction( );
 private:
-	BL_Material*	mMaterial;
-	BL_Shader*		mShader;
+	BL_Material*		mMaterial;
+	BL_Shader*			mShader;
+	BL_BlenderShader*	mBlenderShader;
 	KX_Scene*		mScene;
 	BL_Texture		mTextures[MAXTEX];		// texture array
 	bool			mUserDefBlend;
@@ -95,12 +101,15 @@ private:
 	bool			mModified;
 	bool			mConstructed;			// if false, don't clean on exit
 
+	void SetBlenderGLSLShader();
+
 	void ActivatGLMaterials( RAS_IRasterizer* rasty )const;
 	void ActivateTexGen( RAS_IRasterizer *ras ) const;
 
 
 	// message centers
 	void	setTexData( bool enable,RAS_IRasterizer *ras);
+	void	setBlenderShaderData( bool enable, RAS_IRasterizer *ras);
 	void	setShaderData( bool enable, RAS_IRasterizer *ras);
 
 	bool	setDefaultBlending();

@@ -348,6 +348,12 @@
 				RelativePath="..\..\..\source\gameengine\Converter\BL_MeshDeformer.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\Converter\BL_ShapeActionActuator.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Converter\BL_ShapeDeformer.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\Converter\BL_SkinDeformer.cpp">
 			</File>
 			<File
@@ -395,6 +401,12 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Converter\BL_MeshDeformer.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Converter\BL_ShapeActionActuator.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Converter\BL_ShapeDeformer.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Converter\BL_SkinDeformer.h">

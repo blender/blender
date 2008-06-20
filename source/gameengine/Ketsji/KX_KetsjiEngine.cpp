@@ -71,6 +71,7 @@
 #include "KX_TimeCategoryLogger.h"
 
 #include "RAS_FramingManager.h"
+#include "stdio.h"
 
 // If define: little test for Nzc: guarded drawing. If the canvas is
 // not valid, skip rendering this frame.
@@ -91,7 +92,7 @@ const char KX_KetsjiEngine::m_profileLabels[tc_numCategories][15] = {
 };
 
 double KX_KetsjiEngine::m_ticrate = DEFAULT_LOGIC_TIC_RATE;
-
+double KX_KetsjiEngine::m_anim_framerate = 25.0;
 double KX_KetsjiEngine::m_suspendedtime = 0.0;
 double KX_KetsjiEngine::m_suspendeddelta = 0.0;
 
@@ -1381,6 +1382,16 @@ double KX_KetsjiEngine::GetTicRate()
 void KX_KetsjiEngine::SetTicRate(double ticrate)
 {
 	m_ticrate = ticrate;
+}
+
+double KX_KetsjiEngine::GetAnimFrameRate()
+{
+	return m_anim_framerate;
+}
+
+void KX_KetsjiEngine::SetAnimFrameRate(double framerate)
+{
+	m_anim_framerate = framerate;
 }
 
 void KX_KetsjiEngine::SetTimingDisplay(bool frameRate, bool profile, bool properties)

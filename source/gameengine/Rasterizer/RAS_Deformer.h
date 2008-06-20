@@ -43,7 +43,7 @@ public:
 	virtual ~RAS_Deformer(){};
 	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map)=0;
 	virtual bool Apply(class RAS_IPolyMaterial *polymat)=0;
-	virtual void Update(void)=0;
+	virtual bool Update(void)=0;
 	virtual RAS_Deformer *GetReplica()=0;
 protected:
 	class RAS_MeshObject	*m_pMesh;

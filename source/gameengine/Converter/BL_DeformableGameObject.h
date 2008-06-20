@@ -34,15 +34,28 @@
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
 #endif //WIN32
 
+#include "DNA_mesh_types.h"
 #include "KX_GameObject.h"
-#include "RAS_Deformer.h"
+#include "BL_MeshDeformer.h"
+#include <vector>
+
+class BL_ShapeActionActuator;
+struct Key;
 
 class BL_DeformableGameObject : public KX_GameObject  
 {
 public:
 
-	RAS_Deformer		*m_pDeformer;	
 	CValue*		GetReplica();
+
+	double GetLastFrame ()
+	{
+		return m_lastframe;
+	}
+	Object* GetBlendObject()
+	{
+		return m_blendobj;
+	}
 	virtual void Relink(GEN_Map<GEN_HashedPtr, void*>*map)
 	{
 		if (m_pDeformer)
@@ -50,13 +63,32 @@ public:
 	};
 	void ProcessReplica(KX_GameObject* replica);
 
-	BL_DeformableGameObject(void* sgReplicationInfo, SG_Callbacks callbacks) :
+	BL_DeformableGameObject(Object* blendobj, void* sgReplicationInfo, SG_Callbacks callbacks) :
 		KX_GameObject(sgReplicationInfo,callbacks),
-		m_pDeformer(NULL)
+		m_pDeformer(NULL),
+		m_activeAct(NULL),
+		m_lastframe(0.),
+		m_blendobj(blendobj),
+		m_activePriority(9999)
 	{
 		m_isDeformable = true;
 	};
 	virtual ~BL_DeformableGameObject();
+	bool SetActiveAction(class BL_ShapeActionActuator *act, short priority, double curtime);
+
+	bool GetShape(vector<float> &shape);
+	Key* GetKey()
+	{
+		return (m_pDeformer) ? ((BL_MeshDeformer*)m_pDeformer)->GetMesh()->key : NULL;
+	}
+	
+public:
+	RAS_Deformer		*m_pDeformer;	
+protected:	
+	class BL_ShapeActionActuator *m_activeAct;
+	double		m_lastframe;
+	Object*		m_blendobj;
+	short		m_activePriority;
 
 };
 

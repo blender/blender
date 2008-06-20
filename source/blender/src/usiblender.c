@@ -925,7 +925,7 @@ void BIF_write_file(char *target)
 
 		writeBlog();
 	} else {
-		error("%s", err);
+		error("failed to write blend file: %s", err);
 	}
 
 	waitcursor(0);
@@ -940,7 +940,10 @@ void BIF_write_homefile(void)
 		
 	/*  force save as regular blend file */
 	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
-	BLO_write_file(tstr, write_flags, &err);
+	
+	if (!BLO_write_file(tstr, write_flags, &err)) {
+		error("failed writing defaults: %s", err);
+	}
 }
 
 void BIF_write_autosave(void)
@@ -952,7 +955,9 @@ void BIF_write_autosave(void)
 
 		/*  force save as regular blend file */
 	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
-	BLO_write_file(tstr, write_flags, &err);
+	if (!BLO_write_file(tstr, write_flags, &err)) {
+		fprintf(stderr, "failed to write autosave: %s\n", err); /* using error(...) is too annoying here */
+	}
 }
 
 /* remove temp files assosiated with this blend file when quitting, loading or saving in a new path */
@@ -1033,6 +1038,7 @@ void BIF_init(void)
 	BIF_filelist_init_icons();
 
 	init_gl_stuff();	/* drawview.c, after homefile */
+	glewInit();
 	readBlog();
 	BLI_strncpy(G.lib, G.sce, FILE_MAX);
 }

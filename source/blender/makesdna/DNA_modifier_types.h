@@ -177,6 +177,7 @@ typedef struct MirrorModifierData {
 #define MOD_MIR_AXIS_X		1<<3
 #define MOD_MIR_AXIS_Y		1<<4
 #define MOD_MIR_AXIS_Z		1<<5
+#define MOD_MIR_VGROUP		1<<6
 
 typedef struct EdgeSplitModifierData {
 	ModifierData modifier;
@@ -329,13 +330,14 @@ typedef struct WaveModifierData {
 	short flag, pad;
 
 	float startx, starty, height, width;
-	float narrow, speed, damp;
+	float narrow, speed, damp, falloff;
 
 	int texmapping, uvlayer_tmp;
 
 	char uvlayer_name[32];
-	
+
 	float timeoffs, lifetime;
+	float pad1;
 } WaveModifierData;
 
 typedef struct ArmatureModifierData {

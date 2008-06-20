@@ -37,18 +37,7 @@
 	#include <windows.h>
 #endif
 
-#ifdef __APPLE__
-#define GL_GLEXT_LEGACY 1
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#include <GL/gl.h>
-#if defined(__sun__) && !defined(__sparc__)
-#include <mesa/glu.h>
-#else
-#include <GL/glu.h>
-#endif
-#endif
+#include "GL/glew.h"
 
 #include "GPG_Application.h"
 
@@ -134,7 +123,8 @@ GPG_Application::GPG_Application(GHOST_ISystem* system, struct Main* maggie, STR
 	  m_sceneconverter(0),
 	  m_networkdevice(0), 
 	  m_audiodevice(0),
-	  m_blendermat(0)
+	  m_blendermat(0),
+	  m_blenderglslmat(0)
 {
 	fSystem = system;
 }
@@ -487,7 +477,8 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 {
 	if (!m_engineInitialized)
 	{
-		bgl::InitExtensions(1);
+		glewInit();
+		bgl::InitExtensions(true);
 
 		// get and set the preferences
 		SYS_SystemHandle syshandle = SYS_GetSystem();
@@ -508,26 +499,10 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		bool useVertexArrays = SYS_GetCommandLineInt(syshandle,"vertexarrays",1) != 0;
 		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", G.fileflags & G_FILE_DIAPLAY_LISTS) != 0);
 
-#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
-		if (!getenv("WITHOUT_GLEXT")) {
+		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1) {
 			int gameflag =(G.fileflags & G_FILE_GAME_MAT);
-
-			if(bgl::RAS_EXT_support._ARB_multitexture && bgl::QueryVersion(1, 1)) {
-				m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", gameflag) != 0);
-				int unitmax=0;
-				glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&unitmax);
-				bgl::max_texture_units = MAXTEX>unitmax?unitmax:MAXTEX;
-				//std::cout << "using(" << bgl::max_texture_units << ") of(" << unitmax << ") texture units." << std::endl;
-			} else {
-				bgl::max_texture_units = 0;
-			}
-		} else {
-			m_blendermat=0;
+			m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", gameflag) != 0);
 		}
-#else
-			m_blendermat=0;
-#endif//GL_ARB_multitexture
-		// ----------------------------------
 	
 		// create the canvas, rasterizer and rendertools
 		m_canvas = new GPG_Canvas(window);
@@ -545,7 +520,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 			} else {
 				m_rasterizer = new RAS_ListRasterizer(m_canvas);
 			}
-		else if (useVertexArrays && bgl::QueryVersion(1, 1))
+		else if (useVertexArrays && GLEW_VERSION_1_1)
 			m_rasterizer = new RAS_VAOpenGLRasterizer(m_canvas);
 		else
 			m_rasterizer = new RAS_OpenGLRasterizer(m_canvas);
@@ -655,6 +630,8 @@ bool GPG_Application::startEngine(void)
 		//		sceneconverter->SetAlwaysUseExpandFraming(true);
 		if(m_blendermat)
 			m_sceneconverter->SetMaterials(true);
+		if(m_blenderglslmat)
+			m_sceneconverter->SetGLSLMaterials(true);
 
 		KX_Scene* startscene = new KX_Scene(m_keyboard,
 			m_mouse,

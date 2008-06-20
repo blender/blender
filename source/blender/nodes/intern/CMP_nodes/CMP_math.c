@@ -131,7 +131,23 @@ static void do_math(bNode *node, float *out, float *in, float *in2)
 		{
 				out[0]= (int)(in[0] + 0.5f);
 		}
-		break; 
+		break;
+	case 15: /* Less Than */
+		{
+			if( in[0] < in2[0] )
+				out[0]= 1.0f;
+			else
+				out[0]= 0.0f;
+		}
+		break;
+	case 16: /* Greater Than */
+		{
+			if( in[0] > in2[0] )
+				out[0]= 1.0f;
+			else
+				out[0]= 0.0f;
+		}
+		break;
 	}
 }
 

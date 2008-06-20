@@ -725,28 +725,33 @@ PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 		vec->vec[0] /= norm;
 		vec->vec[1] /= norm;
 		vec->vec[2] /= norm;
-
-		//create matrix
-		cosAngle = (float) cos(angle);
-		sinAngle = (float) sin(angle);
-		mat[0] = ((vec->vec[0] * vec->vec[0]) * (1 - cosAngle)) +
-			cosAngle;
-		mat[1] = ((vec->vec[0] * vec->vec[1]) * (1 - cosAngle)) +
-			(vec->vec[2] * sinAngle);
-		mat[2] = ((vec->vec[0] * vec->vec[2]) * (1 - cosAngle)) -
-			(vec->vec[1] * sinAngle);
-		mat[3] = ((vec->vec[0] * vec->vec[1]) * (1 - cosAngle)) -
-			(vec->vec[2] * sinAngle);
-		mat[4] = ((vec->vec[1] * vec->vec[1]) * (1 - cosAngle)) +
-			cosAngle;
-		mat[5] = ((vec->vec[1] * vec->vec[2]) * (1 - cosAngle)) +
-			(vec->vec[0] * sinAngle);
-		mat[6] = ((vec->vec[0] * vec->vec[2]) * (1 - cosAngle)) +
-			(vec->vec[1] * sinAngle);
-		mat[7] = ((vec->vec[1] * vec->vec[2]) * (1 - cosAngle)) -
-			(vec->vec[0] * sinAngle);
-		mat[8] = ((vec->vec[2] * vec->vec[2]) * (1 - cosAngle)) +
-			cosAngle;
+		
+		if (isnan(vec->vec[0]) || isnan(vec->vec[1]) || isnan(vec->vec[2])) {
+			/* zero length vector, return an identity matrix, could also return an error */
+			mat[0]= mat[4] = mat[8] = 1.0f;
+		} else {	
+			/* create matrix */
+			cosAngle = (float) cos(angle);
+			sinAngle = (float) sin(angle);
+			mat[0] = ((vec->vec[0] * vec->vec[0]) * (1 - cosAngle)) +
+				cosAngle;
+			mat[1] = ((vec->vec[0] * vec->vec[1]) * (1 - cosAngle)) +
+				(vec->vec[2] * sinAngle);
+			mat[2] = ((vec->vec[0] * vec->vec[2]) * (1 - cosAngle)) -
+				(vec->vec[1] * sinAngle);
+			mat[3] = ((vec->vec[0] * vec->vec[1]) * (1 - cosAngle)) -
+				(vec->vec[2] * sinAngle);
+			mat[4] = ((vec->vec[1] * vec->vec[1]) * (1 - cosAngle)) +
+				cosAngle;
+			mat[5] = ((vec->vec[1] * vec->vec[2]) * (1 - cosAngle)) +
+				(vec->vec[0] * sinAngle);
+			mat[6] = ((vec->vec[0] * vec->vec[2]) * (1 - cosAngle)) +
+				(vec->vec[1] * sinAngle);
+			mat[7] = ((vec->vec[1] * vec->vec[2]) * (1 - cosAngle)) -
+				(vec->vec[0] * sinAngle);
+			mat[8] = ((vec->vec[2] * vec->vec[2]) * (1 - cosAngle)) +
+				cosAngle;
+		}
 	} else {
 		return EXPP_ReturnPyObjError(PyExc_AttributeError,
 			"Mathutils.RotationMatrix(): unrecognizable axis of rotation type - expected x,y,z or r\n");

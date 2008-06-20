@@ -1100,6 +1100,8 @@ static void copy_object_pose(Object *obn, Object *ob)
 {
 	bPoseChannel *chan;
 	
+	/* note: need to clear obn->pose pointer first, so that copy_pose works (otherwise there's a crash) */
+	obn->pose= NULL;
 	copy_pose(&obn->pose, ob->pose, 1);	/* 1 = copy constraints */
 
 	for (chan = obn->pose->chanbase.first; chan; chan=chan->next){

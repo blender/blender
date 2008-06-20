@@ -664,6 +664,7 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 
 		switch(act->type) {
 		case ACT_ACTION:
+		case ACT_SHAPEACTION:
 			writestruct(wd, DATA, "bActionActuator", 1, act->data);
 			break;
 		case ACT_SOUND:

@@ -33,8 +33,13 @@
 
 class RAS_VAOpenGLRasterizer : public RAS_OpenGLRasterizer
 {
-	void TexCoordPtr(const RAS_TexVert *tv, int unit);
+	void TexCoordPtr(const RAS_TexVert *tv);
 	bool m_Lock;
+
+	TexCoGen		m_last_texco[RAS_MAX_TEXCO];
+	TexCoGen		m_last_attrib[RAS_MAX_ATTRIB];
+	int				m_last_texco_num;
+	int				m_last_attrib_num;
 
 public:
 	RAS_VAOpenGLRasterizer(RAS_ICanvas* canvas, bool lock=false);

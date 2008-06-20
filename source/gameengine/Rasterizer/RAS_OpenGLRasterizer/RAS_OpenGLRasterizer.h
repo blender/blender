@@ -41,7 +41,8 @@ using namespace std;
 #include "RAS_MaterialBucket.h"
 #include "RAS_ICanvas.h"
 
-#define RAS_MAX 3// match in BL_Material
+#define RAS_MAX_TEXCO	3	// match in BL_Material
+#define RAS_MAX_ATTRIB	16	// match in BL_BlenderShader
 
 struct	OglDebugLine
 {
@@ -94,8 +95,10 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 
 protected:
 	int				m_drawingmode;
-	TexCoGen		m_texco[RAS_MAX];
-	bool			m_useTang;
+	TexCoGen		m_texco[RAS_MAX_TEXCO];
+	TexCoGen		m_attrib[RAS_MAX_ATTRIB];
+	int				m_texco_num;
+	int				m_attrib_num;
 
 	/** Stores the caching information for the last material activated. */
 	RAS_IPolyMaterial::TCachingInfo m_materialCachingInfo;
@@ -153,16 +156,6 @@ public:
 						class KX_ListSlot** slot
 					);
 
-	virtual void	IndexPrimitives_Ex(
-						const vecVertexArray& vertexarrays,
-						const vecIndexArrays & indexarrays,
-						int mode,
-						class RAS_IPolyMaterial* polymat,
-						class RAS_IRenderTools* rendertools,
-						bool useObjectColor,
-						const MT_Vector4& rgbacolor
-					);
-
 	virtual void	IndexPrimitives_3DText(
 						const vecVertexArray& vertexarrays,
 						const vecIndexArrays & indexarrays,
@@ -182,15 +175,6 @@ public:
 						bool useObjectColor,
 						const MT_Vector4& rgbacolor,
 						class KX_ListSlot** slot);
-
-	virtual void IndexPrimitivesMulti_Ex( 
-						const vecVertexArray& vertexarrays,
-						const vecIndexArrays & indexarrays,
-						int mode,
-						class RAS_IPolyMaterial* polymat,
-						class RAS_IRenderTools* rendertools,
-						bool useObjectColor,
-						const MT_Vector4& rgbacolor);
 
 
 	virtual void	SetProjectionMatrix(MT_CmMatrix4x4 & mat);
@@ -286,9 +270,12 @@ public:
 
 	std::vector <OglDebugLine>	m_debugLines;
 
-	virtual void	SetTexCoords(TexCoGen coords,int enabled);
-	virtual void	SetAttrib(int type);
-	void			TexCoord(const RAS_TexVert &tv, int unit);
+	virtual void SetTexCoordNum(int num);
+	virtual void SetAttribNum(int num);
+	virtual void SetTexCoord(TexCoGen coords, int unit);
+	virtual void SetAttrib(TexCoGen coords, int unit);
+
+	void			TexCoord(const RAS_TexVert &tv);
 	virtual void	GetViewMatrix(MT_Matrix4x4 &mat) const;
 
 	void	Tangent(const RAS_TexVert& v1,

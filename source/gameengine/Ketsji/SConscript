@@ -18,7 +18,7 @@ incs += ' #source/gameengine/SceneGraph #source/gameengine/Physics/common #sourc
 incs += ' #source/gameengine/Physics/BlOde #source/gameengine/Physics/Dummy'
 incs += ' #source/gameengine/Physics/Sumo #source/gameengine/Physics/Sumo/include'
 incs += ' #source/gameengine/Physics/Sumo/Fuzzics/include #source/gameengine/Network/LoopBackNetwork'
-incs += ' #source/blender/misc #source/blender/blenloader'
+incs += ' #source/blender/misc #source/blender/blenloader #extern/glew/include'
 
 cflags = []
 if env['OURPLATFORM'] == 'win32-vc':

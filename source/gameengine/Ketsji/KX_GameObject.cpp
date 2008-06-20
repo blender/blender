@@ -78,11 +78,12 @@ KX_GameObject::KX_GameObject(
 	m_bSuspendDynamics(false),
 	m_bUseObjectColor(false),
 	m_bIsNegativeScaling(false),
+	m_pBlenderObject(NULL),
 	m_bVisible(true),
 	m_pPhysicsController1(NULL),
 	m_pPhysicsEnvironment(NULL),
-	m_isDeformable(false),
-	m_pHitObject(NULL)
+	m_pHitObject(NULL),
+	m_isDeformable(false)
 {
 	m_ignore_activity_culling = false;
 	m_pClient_info = new KX_ClientObjectInfo(this, KX_ClientObjectInfo::ACTOR);
@@ -645,8 +646,8 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
 
 MT_Vector3 KX_GameObject::GetLinearVelocity(bool local)
 {
-	MT_Vector3 velocity(0.0,0.0,0.0);
-	MT_Matrix3x3 ori, locvel;
+	MT_Vector3 velocity(0.0,0.0,0.0), locvel;
+	MT_Matrix3x3 ori;
 	int i, j; 
 	if (m_pPhysicsController1)
 	{
@@ -656,11 +657,8 @@ MT_Vector3 KX_GameObject::GetLinearVelocity(bool local)
 		{
 			ori = GetSGNode()->GetWorldOrientation();
 			
-			for(i=0; i < 3; i++)
-				for(j=0; j < 3; j++)
-					locvel[i][j]= velocity[i]*ori[i][j];
-			for(i=0; i < 3; i++)
-				velocity[i] = locvel[0][i] + locvel[1][i] + locvel[2][i];
+			locvel = velocity * ori;
+			return locvel;
 		}
 	}
 	return velocity;	
@@ -911,6 +909,14 @@ PyObject* KX_GameObject::_getattr(const STR_String& attr)
 		
 	if (attr == "name")
 		return PyString_FromString(m_name.ReadPtr());
+	if (attr == "timeOffset") {
+		if (m_pSGNode->GetSGParent()->IsSlowParent()) {
+			return PyFloat_FromDouble(static_cast<KX_SlowParentRelation *>(m_pSGNode->GetSGParent()->GetParentRelation())->GetTimeOffset());
+		} else {
+			return PyFloat_FromDouble(0.0);
+		}
+	}
+	
 	
 	_getattr_up(SCA_IObject);
 }
@@ -930,6 +936,19 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 		{
 			SetVisible(val != 0);
 			return 0;
+		}
+	}
+
+	if (PyFloat_Check(value))
+	{
+		MT_Scalar val = PyFloat_AsDouble(value);
+		if (attr == "timeOffset") {
+			if (m_pSGNode->GetSGParent()->IsSlowParent()) {
+				static_cast<KX_SlowParentRelation *>(m_pSGNode->GetSGParent()->GetParentRelation())->SetTimeOffset(val);
+				return 0;
+			} else {
+				return 0;
+			}		
 		}
 	}
 	
