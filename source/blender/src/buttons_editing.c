@@ -180,6 +180,8 @@
 #include "butspace.h" // own module
 #include "multires.h"
 
+#include "reeb.h"
+
 static float editbutweight= 1.0;
 float editbutvweight= 1;
 static int actmcol= 0, acttface= 0, acttface_rnd = 0, actmcol_rnd = 0;
@@ -4992,6 +4994,16 @@ static void skgen_reorder(void *option, void *arg2)
 	}
 }
 
+static void skgen_graphgen(void *arg1, void *arg2)
+{
+	BIF_GlobalReebGraphFromEditMesh();
+}
+
+static void skgen_graphfree(void *arg1, void *arg2)
+{
+	BIF_GlobalReebFree();
+}
+
 static void editing_panel_mesh_skgen_retarget(Object *ob, Mesh *me)
 {
 	uiBlock *block;
@@ -5035,10 +5047,14 @@ static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
 	uiNewPanelTabbed("Mesh Tools More", "Editing");
 	if(uiNewPanel(curarea, block, "Skeleton Generator", "Editing", 960, 0, 318, 204)==0) return;
 	
-	uiDefBut(block, BUT, B_GEN_SKELETON, "Generate Skeleton",			1025,170,250,19, 0, 0, 0, 0, 0, "Generate Skeleton from Mesh");
+	uiDefBut(block, BUT, B_GEN_SKELETON, "Generate Skeleton",			1025,170,125,19, 0, 0, 0, 0, 0, "Generate Skeleton from Mesh");
+	but = uiDefBut(block, BUT, B_DIFF, "Generate",				1150,170,65,19, 0, 0, 0, 0, 0, "Generate Graph from Mesh");
+	uiButSetFunc(but, skgen_graphgen, NULL, NULL);
+	but = uiDefBut(block, BUT, B_DIFF, "Free",					1215,170,60,19, 0, 0, 0, 0, 0, "Free Graph from Mesh");
+	uiButSetFunc(but, skgen_graphfree, NULL, NULL);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_DIFF, "Resolution:",							1025,150,225,19, &G.scene->toolsettings->skgen_resolution,10.0,1000.0, 0, 0,		"Specifies the resolution of the graph's embedding");
+	uiDefButS(block, NUM, B_DIFF, "Resolution:",							1025,150,225,19, &G.scene->toolsettings->skgen_resolution,2.0,1000.0, 0, 0,		"Specifies the resolution of the graph's embedding");
 	uiDefButBitS(block, TOG, SKGEN_HARMONIC, B_DIFF, 		"H",			1250,150, 25,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Apply harmonic smoothing to the weighting");
 	uiDefButBitS(block, TOG, SKGEN_FILTER_INTERNAL, B_DIFF, "Filter In",	1025,130, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter internal small arcs from graph");
 	uiDefButF(block, NUM, B_DIFF, 							"T:",			1111,130,164,19, &G.scene->toolsettings->skgen_threshold_internal,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering internal arcs");

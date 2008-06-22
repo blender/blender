@@ -119,7 +119,7 @@ int weightFromDistance(struct EditMesh *em);
 int weightFromLoc(struct EditMesh *me, int axis);
 void weightToVCol(struct EditMesh *em, int index);
 void arcToVCol(struct ReebGraph *rg, struct EditMesh *em, int index);
-void angleToVCol(EditMesh *em, int index);
+void angleToVCol(struct EditMesh *em, int index);
 void renormalizeWeight(struct EditMesh *em, float newmax);
 
 ReebGraph * generateReebGraph(struct EditMesh *me, int subdivisions);
@@ -155,7 +155,13 @@ void verifyFaces(ReebGraph *rg);
 
 /*********************** PUBLIC *********************************/
 ReebGraph *BIF_ReebGraphFromEditMesh(void);
+
+void BIF_GlobalReebGraphFromEditMesh(void);
+void BIF_GlobalReebFree(void);
+
 void REEB_freeGraph(ReebGraph *rg);
 void REEB_exportGraph(ReebGraph *rg, int count);
+void REEB_draw();
+
 
 #endif /*REEB_H_*/

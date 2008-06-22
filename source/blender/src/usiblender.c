@@ -145,6 +145,8 @@
 
 #include "PIL_time.h"
 
+#include "reeb.h"
+
 /***/
 
 /* define for setting colors in theme below */
@@ -1047,6 +1049,8 @@ void exit_usiblender(void)
 	struct TmpFont *tf;
 	
 	BIF_clear_tempfiles();
+	
+	BIF_GlobalReebFree();
 	
 	tf= G.ttfdata.first;
 	while(tf)
