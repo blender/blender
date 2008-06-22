@@ -36,6 +36,7 @@ class SCA_IController : public SCA_ILogicBrick
 protected:
 	std::vector<class SCA_ISensor*>		m_linkedsensors;
 	std::vector<class SCA_IActuator*>	m_linkedactuators;
+	unsigned int						m_statemask;
 public:
 	SCA_IController(SCA_IObject* gameobj,PyTypeObject* T);
 	virtual ~SCA_IController();
@@ -47,6 +48,9 @@ public:
 	void	UnlinkAllSensors();
 	void	UnlinkAllActuators();
 	void	UnlinkActuator(class SCA_IActuator* actua);
+	void	UnlinkSensor(class SCA_ISensor* sensor);
+	void    SetState(unsigned int state) { m_statemask = state; }
+	void    ApplyState(unsigned int state);
 
 
 };

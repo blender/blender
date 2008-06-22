@@ -68,6 +68,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	 * @attention Overrides default evaluate. 
 	 */
 	virtual bool Evaluate(CValue* event);
+	virtual void Init();
 
 	virtual bool IsPositiveTrigger() {
 		bool result = m_positive_event;

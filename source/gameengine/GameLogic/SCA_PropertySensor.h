@@ -77,6 +77,7 @@ public:
 	virtual void Delete();
 	virtual ~SCA_PropertySensor();
 	virtual CValue* GetReplica();
+	virtual void Init();
 	void	PrecalculateRangeExpression();
 	bool	CheckPropertyCondition();
 

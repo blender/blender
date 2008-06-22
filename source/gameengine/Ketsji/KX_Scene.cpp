@@ -754,8 +754,6 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	for (SCA_ControllerList::iterator itc = controllers.begin();
 		 !(itc==controllers.end());itc++)
 	{
-		(*itc)->UnlinkAllSensors();
-		(*itc)->UnlinkAllActuators();
 		m_logicmgr->RemoveController(*itc);
 	}
 

@@ -64,6 +64,9 @@ class SCA_ISensor : public SCA_ILogicBrick
 	/** Sensor must ignore updates? */
 	bool m_suspended;
 
+	/** number of connections to controller */
+	int m_links;
+
 	/** Pass the activation on to the logic manager.*/
 	void SignalActivation(class SCA_LogicManager* logicmgr);
 	
@@ -81,6 +84,7 @@ public:
 	void Activate(class SCA_LogicManager* logicmgr,CValue* event);
 	virtual bool Evaluate(CValue* event) = 0;
 	virtual bool IsPositiveTrigger();
+	virtual void Init();
 	
 	virtual PyObject* _getattr(const STR_String& attr);
 	virtual CValue* GetReplica()=0;
@@ -113,6 +117,12 @@ public:
 	
 	/** Resume sensing. */
 	void Resume();
+
+	void IncLink()
+		{ m_links++; }
+	void DecLink();
+	bool IsNoLink() const 
+		{ return !m_links; }
 
 	/* Python functions: */
 	KX_PYMETHOD_DOC(SCA_ISensor,IsPositive);

@@ -77,18 +77,14 @@ KX_TouchSensor::KX_TouchSensor(SCA_EventManager* eventmgr,KX_GameObject* gameobj
 :SCA_ISensor(gameobj,eventmgr,T),
 m_touchedpropname(touchedpropname),
 m_bFindMaterial(bFindMaterial),
-m_eventmgr(eventmgr),
+m_eventmgr(eventmgr)
 /*m_sumoObj(sumoObj),*/
-m_bCollision(false),
-m_bTriggered(false),
-m_bLastTriggered(false)
 {
 //	KX_TouchEventManager* touchmgr = (KX_TouchEventManager*) eventmgr;
 //	m_resptable = touchmgr->GetResponseTable();
 	
 //	m_solidHandle = m_sumoObj->getObjectHandle();
 
-	m_hitObject =  NULL;
 	m_colliders = new CListValue();
 	
 	KX_ClientObjectInfo *client_info = gameobj->getClientInfo();
@@ -98,8 +94,16 @@ m_bLastTriggered(false)
 	
 	m_physCtrl = dynamic_cast<PHY_IPhysicsController*>(gameobj->GetPhysicsController());
 	MT_assert( !gameobj->GetPhysicsController() || m_physCtrl );
+	Init();
 }
 
+void KX_TouchSensor::Init()
+{
+	m_bCollision = false;
+	m_bTriggered = false;
+	m_bLastTriggered = false;
+	m_hitObject =  NULL;
+}
 
 KX_TouchSensor::~KX_TouchSensor()
 {

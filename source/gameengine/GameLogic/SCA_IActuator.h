@@ -34,8 +34,11 @@
 
 class SCA_IActuator : public SCA_ILogicBrick
 {
+	friend class SCA_LogicManager;
 protected:
 	std::vector<CValue*> m_events;
+	int					 m_links;	// number of active links to controllers
+									// when 0, the actuator is automatically stopped
 	void RemoveAllEvents();
 
 public:
@@ -83,6 +86,10 @@ public:
 	 */
 	bool IsNegativeEvent() const;
 	virtual ~SCA_IActuator();
+
+	void IncLink() { m_links++; }
+	void DecLink();
+	bool IsNoLink() const { return !m_links; }
 };
 
 #endif //__KX_IACTUATOR

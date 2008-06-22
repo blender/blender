@@ -67,7 +67,12 @@ protected:
 	 * Ignore updates?
 	 */
 	bool m_suspended;
-	
+
+	/**
+	 * current state = bit mask of state that are active
+	 */
+	unsigned int			m_state;
+
 public:
 	
 	SCA_IObject(PyTypeObject* T=&Type);
@@ -111,7 +116,17 @@ public:
 	 * Resume progress
 	 */
 	void Resume(void);
-	
+
+	/**
+	 * Set the object state
+	 */
+	void SetState(unsigned int state);
+
+	/**
+	 * Get the object state
+	 */
+	unsigned int GetState(void)	{ return m_state; }
+
 //	const class MT_Point3&	ConvertPythonPylist(PyObject* pylist);
 	
 	// here come the python forwarded methods

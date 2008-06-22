@@ -69,11 +69,14 @@ KX_MouseFocusSensor::KX_MouseFocusSensor(SCA_MouseManager* eventmgr,
 	  m_gp_canvas(canvas),
 	  m_kxscene(kxscene)
 {
+	Init();
+}
 
+void KX_MouseFocusSensor::Init()
+{
 	m_mouse_over_in_previous_frame = false;
 	m_positive_event = false;
 	m_hitObject = 0;
-
 }
 
 bool KX_MouseFocusSensor::Evaluate(CValue* event)

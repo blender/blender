@@ -475,6 +475,9 @@
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_SoundActuator.cpp">
 				</File>
 				<File
+					RelativePath="..\..\..\source\gameengine\Ketsji\KX_StateActuator.cpp">
+				</File>
+				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_TrackToActuator.cpp">
 				</File>
 				<File
@@ -694,6 +697,9 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_SoundActuator.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\gameengine\Ketsji\KX_StateActuator.h">
 				</File>
 				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_TrackToActuator.h">

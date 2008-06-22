@@ -62,7 +62,7 @@ SCA_KeyboardSensor::SCA_KeyboardSensor(SCA_KeyboardManager* keybdmgr,
 	if (hotkey == SCA_IInputDevice::KX_ESCKEY)
 		keybdmgr->GetInputDevice()->HookEscape();
 //	SetDrawColor(0xff0000ff);
-	m_val=0;
+	Init();
 }
 
 
@@ -71,7 +71,14 @@ SCA_KeyboardSensor::~SCA_KeyboardSensor()
 {
 }
 
-
+void SCA_KeyboardSensor::Init()
+{
+	// this function is used when the sensor is disconnected from all controllers
+	// by the state engine. It reinitializes the sensor as if it was just created.
+	// However, if the target key is pressed when the sensor is reactivated, it
+	// will not generated an event (see remark in Evaluate()).
+	m_val = 0;
+}
 
 CValue* SCA_KeyboardSensor::GetReplica()
 {

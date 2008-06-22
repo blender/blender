@@ -71,7 +71,6 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 	//sumoObj->setClientObject(&m_client_info);
 }
 			
-
 KX_RadarSensor::~KX_RadarSensor()
 {
 	

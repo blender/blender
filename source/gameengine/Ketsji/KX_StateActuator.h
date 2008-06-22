@@ -1,6 +1,4 @@
-/**
- * SCA_AlwaysSensor.h
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -27,35 +25,59 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ * Actuator to toggle visibility/invisibility of objects
  */
 
-#ifndef __KX_ALWAYSSENSOR
-#define __KX_ALWAYSSENSOR
-#include "SCA_ISensor.h"
+#ifndef __KX_STATEACTUATOR
+#define __KX_STATEACTUATOR
 
-class SCA_AlwaysSensor : public SCA_ISensor
+#include "SCA_IActuator.h"
+
+class KX_StateActuator : public SCA_IActuator
 {
 	Py_Header;
-	bool			m_alwaysresult;
-public:
-	SCA_AlwaysSensor(class SCA_EventManager* eventmgr,
-					SCA_IObject* gameobj,
-					PyTypeObject* T =&Type);
-	virtual ~SCA_AlwaysSensor();
-	virtual CValue* GetReplica();
-	virtual bool Evaluate(CValue* event);
-	virtual bool IsPositiveTrigger();
-	virtual void Init();
 
+	/** Make visible? */
+	enum {
+		OP_CPY = 0,
+		OP_SET,
+		OP_CLR,
+		OP_NEG
+	};
+	int				m_operation;
+	unsigned int	m_mask;
+
+ public:
+	
+	KX_StateActuator(
+		SCA_IObject* gameobj,
+		int operation,
+		unsigned int mask,
+		PyTypeObject* T=&Type
+		);
+
+	virtual
+		~KX_StateActuator(
+			void
+			);
+
+	virtual CValue*
+		GetReplica(
+			void
+			);
+
+	virtual bool
+		Update();
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	
-	virtual PyObject* _getattr(const STR_String& attr);
 
-	
+	virtual PyObject* _getattr(const STR_String& attr);
+	//KX_PYMETHOD_DOC
+	KX_PYMETHOD_DOC(KX_StateActuator,SetOperation);
+	KX_PYMETHOD_DOC(KX_StateActuator,SetMask);
 };
 
-#endif //__KX_ALWAYSSENSOR
+#endif
 

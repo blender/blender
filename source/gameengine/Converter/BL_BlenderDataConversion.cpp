@@ -2324,6 +2324,14 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		bool isInActiveLayer = (blenderobj->lay & activeLayerBitInfo)!=0;
 		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,keydev,executePriority,activeLayerBitInfo,isInActiveLayer,canvas,converter);
 	}
+	// apply the initial state to controllers
+	for ( i=0;i<logicbrick_conversionlist->GetCount();i++)
+	{
+		KX_GameObject* gameobj = static_cast<KX_GameObject*>(logicbrick_conversionlist->GetValue(i));
+		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
+		gameobj->SetState(blenderobj->state);
+	}
+
 #endif //CONVERT_LOGIC
 
 	logicbrick_conversionlist->Release();

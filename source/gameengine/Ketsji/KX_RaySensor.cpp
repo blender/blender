@@ -60,17 +60,19 @@ KX_RaySensor::KX_RaySensor(class SCA_EventManager* eventmgr,
 					m_bFindMaterial(bFindMaterial),
 					m_distance(distance),
 					m_scene(ketsjiScene),
-					m_bTriggered(false),
-					m_axis(axis),
-					m_rayHit(false),
-					m_hitObject(NULL)
+					m_axis(axis)
 
 				
 {
-
+	Init();
 }
 
-
+void KX_RaySensor::Init()
+{
+	m_bTriggered = false;
+	m_rayHit = false;
+	m_hitObject = NULL;
+}
 
 KX_RaySensor::~KX_RaySensor() 
 {
