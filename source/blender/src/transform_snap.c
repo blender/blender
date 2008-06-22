@@ -412,7 +412,7 @@ float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 	if (t->con.applyRot != NULL && (t->con.mode & CON_APPLY)) {
 		float axis[3], tmp[3];
 		
-		t->con.applyRot(t, NULL, axis);
+		t->con.applyRot(t, NULL, axis, NULL);
 
 		Projf(tmp, end, axis);
 		VecSubf(end, end, tmp);

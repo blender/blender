@@ -102,9 +102,9 @@ typedef struct TransCon {
                          /* Apply function pointer for linear vectorial transformation                */
                          /* The last three parameters are pointers to the in/out/printable vectors    */
     void  (*applySize)(struct TransInfo *, struct TransData *, float [3][3]);
-                         /* Apply function pointer for rotation transformation (prototype will change */
-    void  (*applyRot)(struct TransInfo *, struct TransData *, float [3]);
-                         /* Apply function pointer for rotation transformation (prototype will change */
+                         /* Apply function pointer for size transformation */
+    void  (*applyRot)(struct TransInfo *, struct TransData *, float [3], float *);
+                         /* Apply function pointer for rotation transformation */
 } TransCon;
 
 typedef struct TransDataIpokey {
