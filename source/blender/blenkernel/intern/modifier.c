@@ -1422,10 +1422,10 @@ void vertgroup_flip_name (char *name, int strip_number)
 }
 
 static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
-				   Object *ob,
-       DerivedMesh *dm,
-       int initFlags,
-       int axis)
+		Object *ob,
+		DerivedMesh *dm,
+		int initFlags,
+		int axis)
 {
 	int i;
 	float tolerance = mmd->tolerance;
@@ -1434,7 +1434,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	int maxVerts = dm->getNumVerts(dm);
 	int maxEdges = dm->getNumEdges(dm);
 	int maxFaces = dm->getNumFaces(dm);
-	int vector_size, j, a, b;
+	int vector_size=0, j, a, b;
 	bDeformGroup *def, *defb;
 	bDeformGroup **vector_def = NULL;
 	int (*indexMap)[2];
@@ -1463,7 +1463,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
 	if (mmd->mirror_ob) {
 		float obinv[4][4];
-
+		
 		Mat4Invert(obinv, mmd->mirror_ob->obmat);
 		Mat4MulMat4(mtx, ob->obmat, obinv);
 		Mat4Invert(imtx, mtx);
@@ -1474,16 +1474,16 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		MVert *mv = CDDM_get_vert(result, numVerts);
 		int isShared;
 		float co[3];
-
+		
 		dm->getVert(dm, i, &inMV);
-
+		
 		VecCopyf(co, inMV.co);
-
+		
 		if (mmd->mirror_ob) {
 			VecMat4MulVecfl(co, mtx, co);
 		}
 		isShared = ABS(co[axis])<=tolerance;
-
+		
 		/* Because the topology result (# of vertices) must be the same if
 		* the mesh data is overridden by vertex cos, have to calc sharedness
 		* based on original coordinates. This is why we test before copy.
@@ -1491,10 +1491,10 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		DM_copy_vert_data(dm, result, i, numVerts, 1);
 		*mv = inMV;
 		numVerts++;
-
+		
 		indexMap[i][0] = numVerts - 1;
 		indexMap[i][1] = !isShared;
-
+		
 		if(isShared) {
 			co[axis] = 0;
 			if (mmd->mirror_ob) {
@@ -1506,33 +1506,33 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		} else {
 			MVert *mv2 = CDDM_get_vert(result, numVerts);
 			MDeformVert *dvert = NULL;
-
+			
 			DM_copy_vert_data(dm, result, i, numVerts, 1);
 			*mv2 = *mv;
-
+			
 			co[axis] = -co[axis];
 			if (mmd->mirror_ob) {
 				VecMat4MulVecfl(co, imtx, co);
 			}
 			VecCopyf(mv2->co, co);
-
+			
 			if (mmd->flag & MOD_MIR_VGROUP){
 				dvert = DM_get_vert_data(result, numVerts, CD_MDEFORMVERT);
-
+				
 				if (dvert)
 				{
 					for(j = 0; j < dvert[0].totweight; ++j)
 					{
 						char tmpname[32];
-
+						
 						if(dvert->dw[j].def_nr < 0 ||
 						   dvert->dw[j].def_nr >= vector_size)
 							continue;
-
+						
 						def = vector_def[dvert->dw[j].def_nr];
 						strcpy(tmpname, def->name);
 						vertgroup_flip_name(tmpname,0);
-
+						
 						for(b = 0, defb = ob->defbase.first; defb;
 						    defb = defb->next, b++)
 						{
@@ -1545,7 +1545,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 					}
 				}
 			}
-
+			
 			numVerts++;
 		}
 	}
@@ -1553,25 +1553,25 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	for(i = 0; i < maxEdges; i++) {
 		MEdge inMED;
 		MEdge *med = CDDM_get_edge(result, numEdges);
-
+		
 		dm->getEdge(dm, i, &inMED);
-
+		
 		DM_copy_edge_data(dm, result, i, numEdges, 1);
 		*med = inMED;
 		numEdges++;
-
+		
 		med->v1 = indexMap[inMED.v1][0];
 		med->v2 = indexMap[inMED.v2][0];
 		if(initFlags)
 			med->flag |= ME_EDGEDRAW | ME_EDGERENDER;
-
+		
 		if(indexMap[inMED.v1][1] || indexMap[inMED.v2][1]) {
 			MEdge *med2 = CDDM_get_edge(result, numEdges);
-
+			
 			DM_copy_edge_data(dm, result, i, numEdges, 1);
 			*med2 = *med;
 			numEdges++;
-
+			
 			med2->v1 += indexMap[inMED.v1][1];
 			med2->v2 += indexMap[inMED.v2][1];
 		}
@@ -1580,13 +1580,13 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	for(i = 0; i < maxFaces; i++) {
 		MFace inMF;
 		MFace *mf = CDDM_get_face(result, numFaces);
-
+		
 		dm->getFace(dm, i, &inMF);
-
+		
 		DM_copy_face_data(dm, result, i, numFaces, 1);
 		*mf = inMF;
 		numFaces++;
-
+		
 		mf->v1 = indexMap[inMF.v1][0];
 		mf->v2 = indexMap[inMF.v2][0];
 		mf->v3 = indexMap[inMF.v3][0];
@@ -1598,15 +1598,15 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 				 || (mf->v4 && indexMap[inMF.v4][1])) {
 			MFace *mf2 = CDDM_get_face(result, numFaces);
 			static int corner_indices[4] = {2, 1, 0, 3};
-
+			
 			DM_copy_face_data(dm, result, i, numFaces, 1);
 			*mf2 = *mf;
-
+			
 			mf2->v1 += indexMap[inMF.v1][1];
 			mf2->v2 += indexMap[inMF.v2][1];
 			mf2->v3 += indexMap[inMF.v3][1];
 			if(inMF.v4) mf2->v4 += indexMap[inMF.v4][1];
-
+			
 			/* mirror UVs if enabled */
 			if(mmd->flag & (MOD_MIR_MIRROR_U | MOD_MIR_MIRROR_V)) {
 				MTFace *tf = result->getFaceData(result, numFaces, CD_MTFACE);
@@ -1620,14 +1620,14 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 					}
 				}
 			}
-
+			
 			/* Flip face normal */
 			SWAP(int, mf2->v1, mf2->v3);
 			DM_swap_face_data(result, numFaces, corner_indices);
-
+			
 			test_index_face(mf2, &result->faceData, numFaces, inMF.v4?4:3);
 			numFaces++;
-				 }
+		}
 	}
 
 	if (vector_def) MEM_freeN(vector_def);
@@ -1642,8 +1642,8 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 }
 
 static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
-					     Object *ob, DerivedMesh *dm,
-	  int initFlags)
+					    Object *ob, DerivedMesh *dm,
+						int initFlags)
 {
 	DerivedMesh *result = dm;
 

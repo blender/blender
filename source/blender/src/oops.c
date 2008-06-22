@@ -1153,7 +1153,6 @@ void build_oops()
 						}
 					}
 					else if(type==ID_AR && G.soops->visiflag & OOPS_AR) {
-						bArmature *ar= ob->data;
 						oops= add_test_oops(ob->data);
 					}
 				}
