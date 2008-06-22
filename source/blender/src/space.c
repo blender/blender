@@ -4976,21 +4976,19 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case DKEY:
-			if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+			if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY)) {
 				duplicate_marker();
-			else if ((G.qual==LR_SHIFTKEY)) {
+			} else if ((G.qual==LR_SHIFTKEY)) {
 				if(sseq->mainb) break;
 				add_duplicate_seq();
+			} else if (G.qual == 0) {
+				set_filter_seq();
 			}
 			break;
 		case EKEY:
 			if(sseq->mainb) break;
 			if((G.qual==0))
 				transform_seq('e', 0);
-			break;
-		case FKEY:
-			if((G.qual==0))
-				set_filter_seq();
 			break;
 		case GKEY:
 			if (G.qual & LR_CTRLKEY)
