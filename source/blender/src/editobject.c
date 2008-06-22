@@ -5942,7 +5942,7 @@ void hide_objects(int select)
 	Base *base;
 	short changed = 0, changed_act = 0;
 	for(base = FIRSTBASE; base; base=base->next){
-		if(TESTBASELIB(base)==select){
+		if ((base->lay & G.vd->lay) && (TESTBASELIB(base)==select)) {
 			base->flag &= ~SELECT;
 			base->object->flag = base->flag;
 			base->object->restrictflag |= OB_RESTRICT_VIEW;
