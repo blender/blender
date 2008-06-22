@@ -638,6 +638,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 	AVPacket packet;
 	int64_t pts_to_search = 0;
 	int pos_found = 1;
+	int filter_y = 0;
 
 	if (anim == 0) return (0);
 
@@ -722,6 +723,18 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 			} 
 
 			if(frameFinished && pos_found == 1) {
+				if (anim->ib_flags & IB_animdeinterlace) {
+					if (avpicture_deinterlace(
+						    anim->pFrame,
+						    anim->pFrame,
+						    anim->pCodecCtx->pix_fmt,
+						    anim->pCodecCtx->width,
+						    anim->pCodecCtx->height)
+					    < 0) {
+						filter_y = 1;
+					}
+				}
+
 				if (G.order == B_ENDIAN) {
 					int * dstStride 
 						= anim->pFrameRGB->linesize;
@@ -821,6 +834,10 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 		}
 
 		av_free_packet(&packet);
+	}
+
+	if (filter_y && ibuf) {
+		IMB_filtery(ibuf);
 	}
 
 	return(ibuf);
@@ -983,6 +1000,7 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 	char head[256], tail[256];
 	unsigned short digits;
 	int pic;
+	int filter_y = (anim->ib_flags & IB_animdeinterlace);
 
 	if (anim == NULL) return(0);
 
@@ -1040,6 +1058,7 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 	case ANIM_FFMPEG:
 		ibuf = ffmpeg_fetchibuf(anim, position);
 		if (ibuf) anim->curposition = position;
+		filter_y = 0; /* done internally */
 		break;
 #endif
 #ifdef WITH_REDCODE
@@ -1052,6 +1071,7 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 
 	if (ibuf) {
 		if (anim->ib_flags & IB_ttob) IMB_flipy(ibuf);
+		if (filter_y) IMB_filtery(ibuf);
 		sprintf(ibuf->name, "%s.%04d", anim->name, anim->curposition + 1);
 		
 	}
