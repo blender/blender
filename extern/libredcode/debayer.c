@@ -9,8 +9,6 @@ void redcode_ycbcr2rgb_fullscale(
 	int x,y;
 	int pix_max = 4096;
 	int mask = pix_max - 1;
-	float Kb = 0.0722;
-	float Kr = 0.2126;
 	float *o;
 
 	for (y = 0; y < height; y++) {
@@ -25,9 +23,9 @@ void redcode_ycbcr2rgb_fullscale(
 			float y2  = (planes[3][i] & mask);
 			float y2p = (planes[3][i_p] & mask);
 
-			float b_ = cb * (1.0 - Kb)/(pix_max/2);
-			float r_ = cr * (1.0 - Kr)/(pix_max/2);
-			float g_ = (- Kr * r_ - Kb * b_)/(1.0 - Kr - Kb);
+			float b_ = cb /(pix_max/2);
+			float r_ = cr /(pix_max/2);
+			float g_ = 0.0;
 		
 			float y_[4] = {y1 / pix_max, 
 				       (y2 + y2p)/2 / pix_max, 
@@ -68,8 +66,6 @@ void redcode_ycbcr2rgb_halfscale(
 	int x,y;
 	int pix_max = 4096;
 	int mask = pix_max - 1;
-	float Kb = 0.0722;
-	float Kr = 0.2126;
 
 	for (y = 0; y < height; y++) {
 		float *o = out + width * (height - y - 1);
@@ -80,9 +76,9 @@ void redcode_ycbcr2rgb_halfscale(
 			float cr  = (planes[2][i] & mask)  - pix_max/2;
 			float y2  = (planes[3][i] & mask);
 
-			float b_ = cb * (1.0 - Kb)/(pix_max/2);
-			float r_ = cr * (1.0 - Kr)/(pix_max/2);
-			float g_ = (- Kr * r_ - Kb * b_)/(1.0 - Kr - Kb);
+			float b_ = cb /(pix_max/2);
+			float r_ = cr /(pix_max/2);
+			float g_ = 0.0;
 			
 			float y = (y1 + y2)/2 / pix_max;
 
@@ -101,8 +97,6 @@ void redcode_ycbcr2rgb_quarterscale(
 	int x,y;
 	int pix_max = 4096;
 	int mask = pix_max - 1;
-	float Kb = 0.0722;
-	float Kr = 0.2126;
 
 	for (y = 0; y < height; y += 2) {
 		float *o = out + (width/2) * (height/2 - y/2 - 1);
@@ -113,9 +107,9 @@ void redcode_ycbcr2rgb_quarterscale(
 			float cr  = (planes[2][i] & mask)  - pix_max/2;
 			float y2  = planes[3][i] & mask;
 
-			float b_ = cb * (1.0 - Kb)/(pix_max/2);
-			float r_ = cr * (1.0 - Kr)/(pix_max/2);
-			float g_ = (- Kr * r_ - Kb * b_)/(1.0 - Kr - Kb);
+			float b_ = cb /(pix_max/2);
+			float r_ = cr /(pix_max/2);
+			float g_ = 0.0;
 			
 			float y = (y1 + y2)/2 / pix_max;
 			
