@@ -695,9 +695,14 @@ static void markdownSecondarySymmetry(BGraph *graph, BNode *node, int depth, int
 void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level, float limit)
 {
 	int i;
-	arc->symmetry_level = level;
-	
-	node = BLI_otherNode(arc, node);
+
+	/* if arc is null, we start straight from a node */	
+	if (arc)
+	{
+		arc->symmetry_level = level;
+		
+		node = BLI_otherNode(arc, node);
+	}
 	
 	for (i = 0; i < node->degree; i++)
 	{
@@ -727,7 +732,7 @@ void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level, float
 			/* true by default */
 			issymmetryAxis = 1;
 			
-			for (j = 0; j < node->degree && issymmetryAxis == 1; j++)
+			for (j = 0; j < node->degree; j++)
 			{
 				BArc *otherArc = node->arcs[j];
 				
@@ -736,6 +741,7 @@ void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level, float
 				{
 					/* not on the symmetry axis */
 					issymmetryAxis = 0;
+					break;
 				} 
 			}
 		}
@@ -748,11 +754,10 @@ void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level, float
 			{
 				arc = connectedArc;
 			}
-			else
+			else if (connectedArc->symmetry_level < arc->symmetry_level)
 			{
-				/* there can't be more than one symmetry arc */
-				arc = NULL;
-				break;
+				/* go with more complex subtree as symmetry arc */
+				arc = connectedArc;
 			}
 		}
 	}
@@ -796,12 +801,21 @@ void BLI_markdownSymmetry(BGraph *graph, BNode *root_node, float limit)
 
 	node = root_node;
 	
-	/* only work on acyclic graphs and if only one arc is incident on the first node */
-	if (node->degree == 1)
+	/* sanity check REMOVE ME */
+	if (node->degree > 0)
 	{
 		arc = node->arcs[0];
 		
-		markdownSymmetryArc(graph, arc, node, 1, limit);
+		if (node->degree == 1)
+		{
+			markdownSymmetryArc(graph, arc, node, 1, limit);
+		}
+		else
+		{
+			markdownSymmetryArc(graph, NULL, node, 1, limit);
+		}
+		
+
 
 		/* mark down non-symetric arcs */
 		for (arc = graph->arcs.first; arc; arc = arc->next)

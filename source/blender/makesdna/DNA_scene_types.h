@@ -841,6 +841,7 @@ typedef struct Scene {
 #define	SKGEN_HARMONIC			64
 #define	SKGEN_STICK_TO_EMBEDDING	128
 #define	SKGEN_ADAPTIVE_DISTANCE		512
+#define SKGEN_FILTER_SMART		1024
 
 #define	SKGEN_SUB_LENGTH		0
 #define	SKGEN_SUB_ANGLE			1
