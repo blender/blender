@@ -7220,7 +7220,9 @@ static void shrinkwrapModifier_initData(ModifierData *md)
 
 static void shrinkwrapModifier_copyData(ModifierData *md, ModifierData *target)
 {
-	memcpy(target, md, sizeof(MeshDeformModifierData));
+	char *dest = (char*)target;
+	char *src  = (char*)md;
+	memcpy(dest + sizeof( ModifierData ), src + sizeof(ModifierData), sizeof(ShrinkwrapModifierData) - sizeof(ModifierData) );
 }
 
 CustomDataMask shrinkwrapModifier_requiredDataMask(ModifierData *md)
