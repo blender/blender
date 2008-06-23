@@ -69,7 +69,7 @@ std::cout << " hat flag "	<< m_hatf		<< std::endl;
 
 void SCA_JoystickSensor::Init()
 {
-	m_istrig=0;
+	m_istrig=(m_invert)?1:0;
 }
 
 SCA_JoystickSensor::~SCA_JoystickSensor()

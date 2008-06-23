@@ -69,7 +69,7 @@ KX_RaySensor::KX_RaySensor(class SCA_EventManager* eventmgr,
 
 void KX_RaySensor::Init()
 {
-	m_bTriggered = false;
+	m_bTriggered = (m_invert)?true:false;
 	m_rayHit = false;
 	m_hitObject = NULL;
 }

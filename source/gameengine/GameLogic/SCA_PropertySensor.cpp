@@ -54,7 +54,6 @@ SCA_PropertySensor::SCA_PropertySensor(SCA_EventManager* eventmgr,
 	  m_checkpropval(propval),
 	  m_checkpropmaxval(propmaxval),
 	  m_checkpropname(propname),
-	  m_lastresult(false),
 	  m_range_expr(NULL)
 {
 	//CParser pars;
@@ -78,6 +77,7 @@ SCA_PropertySensor::SCA_PropertySensor(SCA_EventManager* eventmgr,
 void SCA_PropertySensor::Init()
 {
 	m_recentresult = false;
+	m_lastresult = m_invert?true:false;
 }
 
 void SCA_PropertySensor::PrecalculateRangeExpression()

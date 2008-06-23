@@ -144,7 +144,7 @@ typedef struct bSensor {
 
 	/* just add here, to avoid align errors... */
 	short invert; /* Whether or not to invert the output. */
-	short freq2;  /* The negative pulsing frequency? Not used anymore... */
+	short level;  /* Whether the sensor is level base (edge by default) */
 	int pad;
 } bSensor;
 

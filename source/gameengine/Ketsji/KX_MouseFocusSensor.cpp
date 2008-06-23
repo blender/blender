@@ -74,7 +74,7 @@ KX_MouseFocusSensor::KX_MouseFocusSensor(SCA_MouseManager* eventmgr,
 
 void KX_MouseFocusSensor::Init()
 {
-	m_mouse_over_in_previous_frame = false;
+	m_mouse_over_in_previous_frame = (m_invert)?true:false;
 	m_positive_event = false;
 	m_hitObject = 0;
 }
@@ -92,13 +92,13 @@ bool KX_MouseFocusSensor::Evaluate(CValue* event)
 		obHasFocus = ParentObjectHasFocus();
 		
 		if (!obHasFocus) {
+			m_positive_event = false;
 			if (m_mouse_over_in_previous_frame) {
-					m_positive_event = false;
-					result = true;
+				result = true;
 			} 
 		} else {
+			m_positive_event = true;
 			if (!m_mouse_over_in_previous_frame) {
-				m_positive_event = true;
 				result = true;
 			} 
 		} 

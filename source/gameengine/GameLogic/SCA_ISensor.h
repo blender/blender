@@ -61,6 +61,9 @@ class SCA_ISensor : public SCA_ILogicBrick
 	/** invert the output signal*/
 	bool m_invert;
 
+	/** detect level instead of edge*/
+	bool m_level;
+
 	/** Sensor must ignore updates? */
 	bool m_suspended;
 
@@ -105,6 +108,8 @@ public:
 	virtual void Delete() { Release(); }
 	/** Set inversion of pulses on or off. */
 	void SetInvert(bool inv);
+	/** set the level detection on or off */
+	void SetLevel(bool lvl);
 
 	void RegisterToManager();
 	virtual float GetNumber();
@@ -134,6 +139,8 @@ public:
 	KX_PYMETHOD_DOC(SCA_ISensor,SetUseNegPulseMode);
 	KX_PYMETHOD_DOC(SCA_ISensor,GetInvert);
 	KX_PYMETHOD_DOC(SCA_ISensor,SetInvert);
+	KX_PYMETHOD_DOC(SCA_ISensor,GetLevel);
+	KX_PYMETHOD_DOC(SCA_ISensor,SetLevel);
 
 };
 
