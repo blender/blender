@@ -7220,9 +7220,16 @@ static void shrinkwrapModifier_initData(ModifierData *md)
 
 static void shrinkwrapModifier_copyData(ModifierData *md, ModifierData *target)
 {
-	char *dest = (char*)target;
-	char *src  = (char*)md;
-	memcpy(dest + sizeof( ModifierData ), src + sizeof(ModifierData), sizeof(ShrinkwrapModifierData) - sizeof(ModifierData) );
+	ShrinkwrapModifierData *smd  = (ShrinkwrapModifierData*)md;
+	ShrinkwrapModifierData *tsmd = (ShrinkwrapModifierData*)target;
+
+	tsmd->target = smd->target;
+	tsmd->cutPlane = smd->cutPlane;
+	strcpy(tsmd->vgroup_name, smd->vgroup_name);
+	tsmd->keptDist = smd->keptDist;
+	tsmd->mergeDist = smd->mergeDist;
+	tsmd->shrinkType = smd->shrinkType;
+	tsmd->shrinkOpts = smd->shrinkOpts;
 }
 
 CustomDataMask shrinkwrapModifier_requiredDataMask(ModifierData *md)
