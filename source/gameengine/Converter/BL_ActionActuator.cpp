@@ -49,6 +49,7 @@
 #include "BLI_arithb.h"
 #include "MT_Matrix4x4.h"
 #include "BKE_utildefines.h"
+#include "FloatValue.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -348,6 +349,18 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		break;
 	}
 	
+	/* Set the property if its defined */
+	if (m_framepropname) {
+		CValue* propowner = GetParent();
+		CValue* oldprop = propowner->GetProperty(m_framepropname);
+		CValue* newval = new CFloatValue(m_localtime);
+		if (oldprop) {
+			oldprop->SetValue(newval);
+		} else {
+			propowner->SetProperty(m_framepropname, newval);
+		}
+		newval->Release();
+	}
 	
 	if (bNegativeEvent)
 		m_blendframe=0.0;
@@ -446,6 +459,7 @@ PyMethodDef BL_ActionActuator::Methods[] = {
 	{"setPriority", (PyCFunction) BL_ActionActuator::sPySetPriority, METH_VARARGS, SetPriority_doc},
 	{"setFrame", (PyCFunction) BL_ActionActuator::sPySetFrame, METH_VARARGS, SetFrame_doc},
 	{"setProperty", (PyCFunction) BL_ActionActuator::sPySetProperty, METH_VARARGS, SetProperty_doc},
+	{"setFrameProperty", (PyCFunction) BL_ActionActuator::sPySetFrameProperty, METH_VARARGS, SetFrameProperty_doc},
 	{"setBlendtime", (PyCFunction) BL_ActionActuator::sPySetBlendtime, METH_VARARGS, SetBlendtime_doc},
 
 	{"getAction", (PyCFunction) BL_ActionActuator::sPyGetAction, METH_VARARGS, GetAction_doc},
@@ -455,6 +469,7 @@ PyMethodDef BL_ActionActuator::Methods[] = {
 	{"getPriority", (PyCFunction) BL_ActionActuator::sPyGetPriority, METH_VARARGS, GetPriority_doc},
 	{"getFrame", (PyCFunction) BL_ActionActuator::sPyGetFrame, METH_VARARGS, GetFrame_doc},
 	{"getProperty", (PyCFunction) BL_ActionActuator::sPyGetProperty, METH_VARARGS, GetProperty_doc},
+	{"getFrameProperty", (PyCFunction) BL_ActionActuator::sPyGetFrameProperty, METH_VARARGS, GetFrameProperty_doc},
 	{"setChannel", (PyCFunction) BL_ActionActuator::sPySetChannel, METH_VARARGS, SetChannel_doc},
 //	{"getChannel", (PyCFunction) BL_ActionActuator::sPyGetChannel, METH_VARARGS},
 	{"getType", (PyCFunction) BL_ActionActuator::sPyGetType, METH_VARARGS, GetType_doc},	
@@ -498,6 +513,21 @@ PyObject* BL_ActionActuator::PyGetProperty(PyObject* self,
 	PyObject *result;
 	
 	result = Py_BuildValue("s", (const char *)m_propname);
+	
+	return result;
+}
+
+/*     getProperty                                                             */
+char BL_ActionActuator::GetFrameProperty_doc[] = 
+"getFrameProperty()\n"
+"\tReturns the name of the property, that is set to the current frame number.\n";
+
+PyObject* BL_ActionActuator::PyGetFrameProperty(PyObject* self, 
+										   PyObject* args, 
+										   PyObject* kwds) {
+	PyObject *result;
+	
+	result = Py_BuildValue("s", (const char *)m_framepropname);
 	
 	return result;
 }
@@ -757,6 +787,25 @@ PyObject* BL_ActionActuator::PySetProperty(PyObject* self,
 	if (PyArg_ParseTuple(args,"s",&string))
 	{
 		m_propname = string;
+	}
+	
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+/*     setFrameProperty                                                          */
+char BL_ActionActuator::SetFrameProperty_doc[] = 
+"setFrameProperty(prop)\n"
+"\t - prop      : A string specifying the property of the frame set up update.\n";
+
+PyObject* BL_ActionActuator::PySetFrameProperty(PyObject* self, 
+										   PyObject* args, 
+										   PyObject* kwds) {
+	char *string;
+	
+	if (PyArg_ParseTuple(args,"s",&string))
+	{
+		m_framepropname = string;
 	}
 	
 	Py_INCREF(Py_None);
