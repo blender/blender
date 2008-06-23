@@ -66,6 +66,10 @@ typedef struct bController {
 #define CONT_LOGIC_OR	1
 #define CONT_EXPRESSION	2
 #define CONT_PYTHON		3
+#define CONT_LOGIC_NAND	4
+#define CONT_LOGIC_NOR	5
+#define CONT_LOGIC_XOR	6
+#define CONT_LOGIC_XNOR	7
 
 /* controller->flag */
 #define CONT_SHOW		1

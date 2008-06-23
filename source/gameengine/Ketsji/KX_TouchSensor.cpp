@@ -101,7 +101,7 @@ void KX_TouchSensor::Init()
 {
 	m_bCollision = false;
 	m_bTriggered = false;
-	m_bLastTriggered = false;
+	m_bLastTriggered = (m_invert)?true:false;
 	m_hitObject =  NULL;
 }
 

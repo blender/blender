@@ -740,6 +740,14 @@ static char *controller_name(int type)
 		return "AND";
 	case CONT_LOGIC_OR:
 		return "OR";
+	case CONT_LOGIC_NAND:
+		return "NAND";
+	case CONT_LOGIC_NOR:
+		return "NOR";
+	case CONT_LOGIC_XOR:
+		return "XOR";
+	case CONT_LOGIC_XNOR:
+		return "XNOR";
 	case CONT_EXPRESSION:
 		return "Expression";
 	case CONT_PYTHON:
@@ -750,7 +758,7 @@ static char *controller_name(int type)
 
 static char *controller_pup(void)
 {
-	return "Controllers   %t|AND %x0|OR %x1|Expression %x2|Python %x3";
+	return "Controllers   %t|AND %x0|OR %x1|XOR %x6|NAND %x4|NOR %x5|XNOR %x7|Expression %x2|Python %x3";
 }
 
 static char *actuator_name(int type)
@@ -1066,6 +1074,10 @@ static void draw_default_sensor_header(bSensor *sens,
 			 (short)(x + 10 + 0.85 * (w-20)), (short)(y - 19), (short)(0.15 * (w-20)), 19,
 			 &sens->invert, 0.0, 0.0, 0, 0,
 			 "Invert the level (output) of this sensor");
+	uiDefButS(block, TOG, 1, "Lvl",
+			 (short)(x + 10 + 0.70 * (w-20)), (short)(y - 19), (short)(0.15 * (w-20)), 19,
+			 &sens->level, 0.0, 0.0, 0, 0,
+			 "Level detector versus edge detector (only applicable in case of logic state transition)");
 }
 
 static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short yco, short width,char* objectname)
