@@ -195,7 +195,7 @@ static void print_help(void)
 	printf ("    (formats that can be compiled into blender, not available on all systems)\n");
 	printf ("    \tHDR TIFF EXR MULTILAYER MPEG AVICODEC QUICKTIME CINEON DPX DDS\n");
 	printf ("    -x <bool>\tSet option to add the file extension to the end of the file.\n");
-	printf ("    -t <threads>\tUse amount of <threads> for rendering.\n");
+	printf ("    -t <threads>\tUse amount of <threads> for rendering (background mode only).\n");
 	printf ("      [1-8], 0 for systems processor count.\n");
 	printf ("\nAnimation playback options:\n");
 	printf ("  -a <file(s)>\tPlayback <file(s)>, only operates this way when -b is not used.\n");
@@ -723,6 +723,8 @@ int main(int argc, char **argv)
 				a++;
 				if(G.background) {
 					RE_set_max_threads(atoi(argv[a]));
+				} else {
+					printf("Warning: threads can only be set in background mode\n");
 				}
 				break;
 			case 'x': /* extension */
