@@ -7234,6 +7234,13 @@ CustomDataMask shrinkwrapModifier_requiredDataMask(ModifierData *md)
 	return dataMask;
 }
 
+static int shrinkwrapModifier_isDisabled(ModifierData *md)
+{
+	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
+	return !smd->target;
+}
+
+
 static void shrinkwrapModifier_foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
@@ -7593,6 +7600,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->initData = shrinkwrapModifier_initData;
 		mti->copyData = shrinkwrapModifier_copyData;
 		mti->requiredDataMask = shrinkwrapModifier_requiredDataMask;
+		mti->isDisabled = shrinkwrapModifier_isDisabled;
 		mti->foreachObjectLink = shrinkwrapModifier_foreachObjectLink;
 		mti->applyModifier = shrinkwrapModifier_applyModifier;
 		mti->applyModifierEM = shrinkwrapModifier_applyModifierEM;
