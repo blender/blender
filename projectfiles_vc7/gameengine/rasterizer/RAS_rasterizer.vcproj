@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\source\kernel\gen_system"
 				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_GLEXT"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -73,7 +73,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\source\kernel\gen_system"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -125,7 +125,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\source\kernel\gen_system"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_GLEXT"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -177,7 +177,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\source\kernel\gen_system"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -229,7 +229,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\source\kernel\gen_system"
 				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_GLEXT"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -281,7 +281,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\source\kernel\gen_system"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_GLEXT"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"

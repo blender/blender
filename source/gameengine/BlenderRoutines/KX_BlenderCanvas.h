@@ -32,12 +32,8 @@
 #ifdef WIN32
 #include <windows.h>
 #endif 
-#ifdef __APPLE__
-#  define GL_GLEXT_LEGACY 1
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+
+#include "GL/glew.h"
 
 #include "RAS_ICanvas.h"
 #include "RAS_Rect.h"

@@ -177,8 +177,23 @@ public :
 	NewCopy(
 	);
 
+		MT_Scalar
+	GetTimeOffset(
+	) { return m_relax; }
+	
+		void
+	SetTimeOffset(
+		MT_Scalar relaxation
+	) { m_relax = relaxation; }
+
 	~KX_SlowParentRelation(
 	);
+	
+		bool
+	IsSlowRelation(
+	) { 
+		return true;
+	}
 
 private :
 

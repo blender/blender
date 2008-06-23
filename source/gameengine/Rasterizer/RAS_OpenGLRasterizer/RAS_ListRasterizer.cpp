@@ -6,15 +6,10 @@
 #ifdef WIN32
 #include <windows.h>
 #endif // WIN32
-#ifdef __APPLE__
-#define GL_GLEXT_LEGACY 1
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+
+#include "GL/glew.h"
 
 #include "RAS_TexVert.h"
-#include "RAS_GLExtensionManager.h"
 #include "MT_assert.h"
 
 //#ifndef NDEBUG
@@ -27,8 +22,8 @@
 
 RAS_ListSlot::RAS_ListSlot(RAS_ListRasterizer* rasty)
 :	KX_ListSlot(),
-	m_flag(LIST_MODIFY|LIST_CREATE),
 	m_list(0),
+	m_flag(LIST_MODIFY|LIST_CREATE),
 	m_rasty(rasty)
 {
 }
@@ -176,7 +171,7 @@ void RAS_ListRasterizer::IndexPrimitives(
 	RAS_ListSlot* localSlot =0;
 
 	// useObjectColor(are we updating every frame?)
-	if(!useObjectColor) {
+	if(!useObjectColor && slot) {
 		localSlot = FindOrAdd(vertexarrays, slot);
 		localSlot->DrawList();
 		if(localSlot->End()) {
@@ -203,7 +198,7 @@ void RAS_ListRasterizer::IndexPrimitives(
 		);
 	}
 
-	if(!useObjectColor) {
+	if(!useObjectColor && slot) {
 		localSlot->EndList();
 		*slot = localSlot;
 	}
@@ -223,7 +218,7 @@ void RAS_ListRasterizer::IndexPrimitivesMulti(
 	RAS_ListSlot* localSlot =0;
 
 	// useObjectColor(are we updating every frame?)
-	if(!useObjectColor) {
+	if(!useObjectColor && slot) {
 		localSlot = FindOrAdd(vertexarrays, slot);
 		localSlot->DrawList();
 
@@ -251,7 +246,7 @@ void RAS_ListRasterizer::IndexPrimitivesMulti(
 		);
 	}
 
-	if(!useObjectColor) {
+	if(!useObjectColor && slot) {
 		localSlot->EndList();
 		*slot = localSlot;
 	}

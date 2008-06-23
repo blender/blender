@@ -345,6 +345,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\BME_conversions.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\BME_Customdata.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\BME_eulers.c">
 			</File>
 			<File
@@ -424,9 +427,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\ipo.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenkernel\intern\kdop.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\key.c">
@@ -557,6 +557,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_bmesh.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_bmeshCustomData.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_bmfont.h">

@@ -1485,7 +1485,7 @@ void insertkey_action(void)
 	data= get_action_context(&datatype);
 	if (data == NULL) return;
 	cfra = frame_to_float(CFRA);
-		
+	
 	if (datatype == ACTCONT_ACTION) {
 		ListBase act_data = {NULL, NULL};
 		bActListElem *ale;
@@ -1941,6 +1941,7 @@ void paste_actdata ()
 	int filter;
 	void *data;
 	short datatype;
+	Object *ob= OBACT;
 	
 	short no_name= 0;
 	float offset = CFRA - actcopy_firstframe;
@@ -2017,7 +2018,7 @@ void paste_actdata ()
 		
 		/* loop over curves, pasting keyframes */
 		for (ico= ipo_src->curve.first; ico; ico= ico->next) {
-			icu= verify_ipocurve((ID*)OBACT, ico->blocktype, actname, conname, "", ico->adrcode);
+			icu= verify_ipocurve((ID*)ob, ico->blocktype, actname, conname, "", ico->adrcode);
 			
 			if (icu) {
 				/* just start pasting, with the the first keyframe on the current frame, and so on */
@@ -2044,6 +2045,14 @@ void paste_actdata ()
 	
 	/* free temp memory */
 	BLI_freelistN(&act_data);
+	
+	/* do depsgraph updates (for 3d-view)? */
+	if ((ob) && (G.saction->pin==0)) {
+		if (ob->type == OB_ARMATURE)
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
+		else
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+	}
 	
 	/* undo and redraw stuff */
 	allqueue(REDRAWVIEW3D, 0);

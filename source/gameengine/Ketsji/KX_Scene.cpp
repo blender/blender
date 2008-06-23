@@ -74,7 +74,7 @@
 #include "KX_IPhysicsController.h"
 #include "KX_BlenderSceneConverter.h"
 
-#include "BL_SkinDeformer.h"
+#include "BL_ShapeDeformer.h"
 #include "BL_DeformableGameObject.h"
 
 // to get USE_BULLET!
@@ -754,8 +754,6 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	for (SCA_ControllerList::iterator itc = controllers.begin();
 		 !(itc==controllers.end());itc++)
 	{
-		(*itc)->UnlinkAllSensors();
-		(*itc)->UnlinkAllActuators();
 		m_logicmgr->RemoveController(*itc);
 	}
 
@@ -809,67 +807,80 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 
 
 
-void KX_Scene::ReplaceMesh(class CValue* gameobj,void* meshobj)
+void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 {
-	KX_GameObject* newobj = static_cast<KX_GameObject*>(gameobj);
+	KX_GameObject* gameobj = static_cast<KX_GameObject*>(obj);
 	RAS_MeshObject* mesh = static_cast<RAS_MeshObject*>(meshobj);
 
-	const STR_String origMeshName = newobj->GetMesh(0)->GetName();
-
-	if( !newobj || !mesh ) 
+	if(!gameobj || !mesh)
 	{
 		std::cout << "warning: invalid object, mesh will not be replaced" << std::endl;
 		return;
 	}
 
-	newobj->RemoveMeshes();
-	newobj->AddMesh(mesh);
-
-	bool isDeformer = (newobj->m_isDeformable && mesh->m_class == 1);
-	if(isDeformer)
-	{
-		/* FindBlendObjByGameObj() can return 0... 
-			In the case of 0 here,
-			the replicated object that is calling this function
-			is some how not in the map. (which is strange because it's added)
-			So we will search the map by the first mesh name
-			to try to locate it there. If its still not found 
-			spit some message rather than crash 
-		*/
-		Object* blendobj = static_cast<struct Object*>(m_logicmgr->FindBlendObjByGameObj(newobj));
-		Object* oldblendobj = static_cast<struct Object*>(m_logicmgr->FindBlendObjByGameMeshName(mesh->GetName()));
+	gameobj->RemoveMeshes();
+	gameobj->AddMesh(mesh);
 	
-		bool parSkin = blendobj && blendobj->parent && blendobj->parent->type == OB_ARMATURE && blendobj->partype==PARSKEL;
-		bool releaseParent = true;
-		KX_GameObject* parentobj = newobj->GetParent();
-
-
-		// lookup by mesh name if blendobj is 0 
-		if( !blendobj &&  parentobj )
+	if (gameobj->m_isDeformable)
+	{
+		BL_DeformableGameObject* newobj = static_cast<BL_DeformableGameObject*>( gameobj );
+		
+		if (newobj->m_pDeformer)
 		{
-			blendobj = static_cast<struct Object*>(m_logicmgr->FindBlendObjByGameMeshName(origMeshName));
-
-			// replace the mesh on the parent armature 
-			if( blendobj )
-				parSkin = parentobj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE;
-
-			// can't do it 
-			else 
-				std::cout << "warning: child object for " << parentobj->GetName().ReadPtr() 
-					<< " not found, and can't create!" << std::endl;
+			delete newobj->m_pDeformer;
+			newobj->m_pDeformer = NULL;
 		}
 
-		if( blendobj && oldblendobj )
+		if (mesh->m_class == 1) 
 		{
-			isDeformer = (static_cast<Mesh*>(blendobj->data)->dvert != 0);
-			BL_DeformableGameObject* deformIter =0;
+			// we must create a new deformer but which one?
+			KX_GameObject* parentobj = newobj->GetParent();
+			// this always return the original game object (also for replicate)
+			Object* blendobj = newobj->GetBlenderObject();
+			// object that owns the new mesh
+			Object* oldblendobj = static_cast<struct Object*>(m_logicmgr->FindBlendObjByGameMeshName(mesh->GetName()));
+			Mesh* blendmesh = mesh->GetMesh();
 
-			// armature parent
-			if( parSkin && isDeformer )
+			bool bHasShapeKey = blendmesh->key != NULL && blendmesh->key->type==KEY_RELATIVE;
+			bool bHasDvert = blendmesh->dvert != NULL;
+			bool bHasArmature = 
+				parentobj &&								// current parent is armature
+				parentobj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE &&
+				oldblendobj &&								// needed for mesh deform
+				blendobj->parent &&							// original object had armature (not sure this test is needed)
+				blendobj->parent->type == OB_ARMATURE && 
+				blendobj->partype==PARSKEL && 
+				blendmesh->dvert!=NULL;						// mesh has vertex group
+			bool releaseParent = true;
+
+			if (bHasShapeKey)
 			{
-				deformIter = static_cast<BL_DeformableGameObject*>( newobj );
-				delete deformIter->m_pDeformer;
-
+				BL_ShapeDeformer* shapeDeformer;
+				if (bHasArmature) 
+				{
+					shapeDeformer = new BL_ShapeDeformer(
+						newobj,
+						oldblendobj, blendobj,
+						static_cast<BL_SkinMeshObject*>(mesh),
+						true,
+						static_cast<BL_ArmatureObject*>( parentobj )
+					);
+					releaseParent= false;
+				}
+				else
+				{
+					shapeDeformer = new BL_ShapeDeformer(
+						newobj,
+						oldblendobj, blendobj,
+						static_cast<BL_SkinMeshObject*>(mesh),
+						false,
+						NULL
+					);
+				}
+				newobj->m_pDeformer = shapeDeformer;
+			}
+			else if (bHasArmature) 
+			{
 				BL_SkinDeformer* skinDeformer = new BL_SkinDeformer(
 					oldblendobj, blendobj,
 					static_cast<BL_SkinMeshObject*>(mesh),
@@ -877,27 +888,22 @@ void KX_Scene::ReplaceMesh(class CValue* gameobj,void* meshobj)
 					static_cast<BL_ArmatureObject*>( parentobj )
 				);
 				releaseParent= false;
-				deformIter->m_pDeformer = skinDeformer;
+				newobj->m_pDeformer = skinDeformer;
 			}
-
-			// normal deformer
-			if( !parSkin && isDeformer)
+			else if (bHasDvert)
 			{
-				deformIter = static_cast<BL_DeformableGameObject*>( newobj );
-				delete deformIter->m_pDeformer;
-
 				BL_MeshDeformer* meshdeformer = new BL_MeshDeformer(
 					oldblendobj, static_cast<BL_SkinMeshObject*>(mesh)
 				);
-
-				deformIter->m_pDeformer = meshdeformer;
+				newobj->m_pDeformer = meshdeformer;
 			}
+
+			// release parent reference if its not being used 
+			if( releaseParent && parentobj)
+				parentobj->Release();
 		}
-		// release parent reference if its not being used 
-		if( releaseParent && parentobj)
-			parentobj->Release();
 	}
-	newobj->Bucketize();
+	gameobj->Bucketize();
 }
 
 

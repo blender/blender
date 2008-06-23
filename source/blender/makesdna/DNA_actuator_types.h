@@ -50,6 +50,7 @@ typedef struct bActionActuator {
 	short	type, flag;		/* Playback type */					
 	int	sta, end;		/* Start & End frames */			
 	char	name[32];		/* For property-driven playback */	
+	char	frameProp[32];	/* Set this property to the actions current frame */
 	int	blendin;		/* Number of frames of blending */	
 	short	priority;		/* Execution priority */			
 	short	strideaxis;		/* Displacement axis */
@@ -208,6 +209,11 @@ typedef struct bParentActuator {
 	struct Object *ob;
 } bParentActuator;
 
+typedef struct bStateActuator {
+	int type;			/* 0=Set, 1=Add, 2=Rem, 3=Chg */
+	unsigned int mask;	/* the bits to change */
+} bStateActuator;
+
 typedef struct bActuator {
 	struct bActuator *next, *prev, *mynew;
 	short type;
@@ -278,11 +284,15 @@ typedef struct FreeCamera {
 #define ACT_VISIBILITY          18
 #define ACT_2DFILTER	19
 #define ACT_PARENT      20
+#define ACT_SHAPEACTION 21
+#define ACT_STATE		22
 
 /* actuator flag */
 #define ACT_SHOW		1
 #define ACT_DEL			2
 #define ACT_NEW			4
+#define ACT_LINKED		8	
+#define ACT_VISIBLE		16	
 
 /* link codes */
 #define LINK_SENSOR		0

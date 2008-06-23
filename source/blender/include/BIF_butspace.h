@@ -99,6 +99,8 @@ extern void validate_editbonebutton_cb(void *bonev, void *namev);
 #define BUTS_ACT_SEL		64
 #define BUTS_ACT_ACT		128
 #define BUTS_ACT_LINK		256
+#define BUTS_SENS_STATE		512
+#define BUTS_ACT_STATE		1024
 
 
 /* buttons grid */

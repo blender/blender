@@ -161,6 +161,7 @@ void BL_ConvertControllers(
 		if (gamecontroller)
 		{
 			gamecontroller->SetExecutePriority(executePriority++);
+			gamecontroller->SetState(bcontr->state_mask);
 			STR_String uniquename = bcontr->name;
 			uniquename += "#CONTR#";
 			uniqueint++;

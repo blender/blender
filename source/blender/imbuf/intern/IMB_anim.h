@@ -81,6 +81,10 @@
 #include <ffmpeg/swscale.h>
 #endif
 
+#ifdef WITH_REDCODE
+#include <redcode/format.h>
+#endif
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -116,6 +120,7 @@
 #define ANIM_AVI		(1 << 6)
 #define ANIM_QTIME		(1 << 7)
 #define ANIM_FFMPEG             (1 << 8)
+#define ANIM_REDCODE            (1 << 9)
 
 #define ANIM5_MMAP		0
 #define ANIM5_MALLOC		1
@@ -184,6 +189,9 @@ struct anim {
 	int videoStream;
 #endif
 
+#ifdef WITH_REDCODE
+	struct redcode_handle * redcodeCtx;
+#endif
 };
 
 #endif

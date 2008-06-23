@@ -159,6 +159,14 @@ public:
 		bool	
 	IsVertexParent(
 	) ;
+	
+	/**
+	 * Return slow parent status.
+	 */
+
+		bool	
+	IsSlowParent(
+	) ;
 
 	/**		
 	 * Update the spatial data of this node. Iterate through

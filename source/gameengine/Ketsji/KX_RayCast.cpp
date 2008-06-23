@@ -29,6 +29,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "KX_RayCast.h"
 
@@ -48,7 +49,7 @@ bool KX_RayCast::RayTest(KX_IPhysicsController* ignore_controller, PHY_IPhysicsE
 	//
 	// returns true if an object was found, false if not.
 	MT_Point3 frompoint(_frompoint);
-	const MT_Vector3 todir( (topoint - frompoint).normalized() );
+	const MT_Vector3 todir( (topoint - frompoint).safe_normalized() );
 	
 	PHY_IPhysicsController* hit_controller;
 	PHY__Vector3 phy_pos;

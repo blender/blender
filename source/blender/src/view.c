@@ -144,6 +144,48 @@ void persp(int a)
 	}
 }
 
+/* create intersection ray in view Z direction at mouse coordinates */
+void viewray(short mval[2], float ray_start[3], float ray_normal[3])
+{
+	float ray_end[3];
+	viewline(mval, ray_start, ray_end);
+	VecSubf(ray_normal, ray_end, ray_start);
+	Normalize(ray_normal);
+}
+
+/* create intersection coordinates in view Z direction at mouse coordinates */
+void viewline(short mval[2], float ray_start[3], float ray_end[3])
+{
+	float vec[4];
+	
+	if(G.vd->persp != V3D_ORTHO){
+		vec[0]= 2.0f * mval[0] / curarea->winx - 1;
+		vec[1]= 2.0f * mval[1] / curarea->winy - 1;
+		vec[2]= -1.0f;
+		vec[3]= 1.0f;
+
+		Mat4MulVec4fl(G.vd->persinv, vec);
+		VecMulf(vec, 1.0f / vec[3]);
+
+		VECCOPY(ray_start, G.vd->viewinv[3]);
+		VECSUB(vec, vec, ray_start);
+		Normalize(vec);
+
+		VECADDFAC(ray_start, G.vd->viewinv[3], vec, G.vd->near);
+		VECADDFAC(ray_end, G.vd->viewinv[3], vec, G.vd->far);
+	}
+	else {
+		vec[0] = 2.0f * mval[0] / curarea->winx - 1;
+		vec[1] = 2.0f * mval[1] / curarea->winy - 1;
+		vec[2] = 0.0f;
+		vec[3] = 1.0f;
+
+		Mat4MulVec4fl(G.vd->persinv, vec);
+
+		VECADDFAC(ray_start, vec, G.vd->viewinv[2],  1000.0f);
+		VECADDFAC(ray_end, vec, G.vd->viewinv[2], -1000.0f);
+	}
+}
 
 void initgrabz(float x, float y, float z)
 {
@@ -228,6 +270,29 @@ void project_int(float *vec, int *adr)
 	}
 }
 
+void project_int_noclip(float *vec, int *adr)
+{
+	float fx, fy, vec4[4];
+
+	VECCOPY(vec4, vec);
+	vec4[3]= 1.0;
+	
+	Mat4MulVec4fl(G.vd->persmat, vec4);
+
+	if( fabs(vec4[3]) > BL_NEAR_CLIP ) {
+		fx = (curarea->winx/2)*(1 + vec4[0]/vec4[3]);
+		fy = (curarea->winy/2)*(1 + vec4[1]/vec4[3]);
+			
+		adr[0] = floor(fx); 
+		adr[1] = floor(fy);
+	}
+	else
+	{
+		adr[0] = curarea->winx / 2;
+		adr[1] = curarea->winy / 2;
+	}
+}
+
 void project_short_noclip(float *vec, short *adr)
 {
 	float fx, fy, vec4[4];
@@ -264,8 +329,28 @@ void project_float(float *vec, float *adr)
 	Mat4MulVec4fl(G.vd->persmat, vec4);
 
 	if( vec4[3]>BL_NEAR_CLIP ) {
-		adr[0]= (curarea->winx/2.0)+(curarea->winx/2.0)*vec4[0]/vec4[3];	
-		adr[1]= (curarea->winy/2.0)+(curarea->winy/2.0)*vec4[1]/vec4[3];
+		adr[0] = (curarea->winx/2.0)+(curarea->winx/2.0)*vec4[0]/vec4[3];	
+		adr[1] = (curarea->winy/2.0)+(curarea->winy/2.0)*vec4[1]/vec4[3];
+	}
+}
+
+void project_float_noclip(float *vec, float *adr)
+{
+	float vec4[4];
+
+	VECCOPY(vec4, vec);
+	vec4[3]= 1.0;
+	
+	Mat4MulVec4fl(G.vd->persmat, vec4);
+
+	if( fabs(vec4[3]) > BL_NEAR_CLIP ) {
+		adr[0] = (curarea->winx/2.0)+(curarea->winx/2.0)*vec4[0]/vec4[3];	
+		adr[1] = (curarea->winy/2.0)+(curarea->winy/2.0)*vec4[1]/vec4[3];
+	}
+	else
+	{
+		adr[0] = curarea->winx / 2.0f;
+		adr[1] = curarea->winy / 2.0f;
 	}
 }
 
@@ -668,10 +753,11 @@ void viewmoveNDOFfly(int mode)
 
 
 	// Apply rotation
-
-	rvec[0] = -dval[3];
-	rvec[1] = -dval[4];
-	rvec[2] = dval[5];
+	// Rotations feel relatively faster than translations only in fly mode, so
+	// we have no choice but to fix that here (not in the plugins)
+	rvec[0] = -0.5 * dval[3];
+	rvec[1] = -0.5 * dval[4];
+	rvec[2] = -0.5 * dval[5];
 
 	// rotate device x and y by view z
 
@@ -739,8 +825,7 @@ void viewmove(int mode)
 		return;
 	}
 	
-		// dist correction from other movement devices
-		
+	// dist correction from other movement devices	
 	if((dz_flag)||G.vd->dist==0) {
 		dz_flag = 0;
 		G.vd->dist = m_dist;
@@ -1081,6 +1166,8 @@ void viewmoveNDOF(int mode)
     float reverse;
     float diff[4];
     float d, curareaX, curareaY;
+    float mat[3][3];
+    float upvec[3];
 
     /* Sensitivity will control how fast the view rotates.  The value was
      * obtained experimentally by tweaking until the author didn't get dizzy watching.
@@ -1099,6 +1186,16 @@ void viewmoveNDOF(int mode)
 //
 	if (G.obedit==NULL && ob && !(ob->flag & OB_POSEMODE)) {
 		use_sel = 1;
+	}
+
+    if((dz_flag)||G.vd->dist==0) {
+		dz_flag = 0;
+		G.vd->dist = m_dist;
+		upvec[0] = upvec[1] = 0;
+		upvec[2] = G.vd->dist;
+		Mat3CpyMat4(mat, G.vd->viewinv);
+		Mat3MulVecfl(mat, upvec);
+		VecAddf(G.vd->ofs, G.vd->ofs, upvec);
 	}
 
     /*----------------------------------------------------
@@ -1127,25 +1224,25 @@ void viewmoveNDOF(int mode)
 				filterNDOFvalues(fval);
 	
 	
-	// put scaling back here, was previously in ghostwinlay
-            fval[0] = fval[0]  * (1.0f/800.0f);
-            fval[1] = fval[1]  * (1.0f/800.0f);
-            fval[2] = fval[2] * (1.0f/800.0f);
-            fval[3] = fval[3]  * 0.00005f;
-            fval[4] = fval[4]  * 0.00005f;
-            fval[5] = fval[5] * 0.00005f;
-            fval[6] = fval[6]  / 1000000.0f;
+    // put scaling back here, was previously in ghostwinlay
+    fval[0] = fval[0] * (1.0f/1200.0f);
+    fval[1] = fval[1] * (1.0f/1200.0f);
+    fval[2] = fval[2] * (1.0f/1200.0f);
+    fval[3] = fval[3] * 0.00005f;
+    fval[4] =-fval[4] * 0.00005f;
+    fval[5] = fval[5] * 0.00005f;
+    fval[6] = fval[6] / 1000000.0f;
 			
-	// scale more if not in perspective mode
-			if (G.vd->persp == V3D_ORTHO) {
-				fval[0] = fval[0] * 0.05f;
-				fval[1] = fval[1] * 0.05f;
-				fval[2] = fval[2] * 0.05f;
-				fval[3] = fval[3] * 0.9f;
-				fval[4] = fval[4] * 0.9f;
-				fval[5] = fval[5] * 0.9f;
-				zsens *= 8;
-			}
+    // scale more if not in perspective mode
+    if (G.vd->persp == V3D_ORTHO) {
+        fval[0] = fval[0] * 0.05f;
+        fval[1] = fval[1] * 0.05f;
+        fval[2] = fval[2] * 0.05f;
+        fval[3] = fval[3] * 0.9f;
+        fval[4] = fval[4] * 0.9f;
+        fval[5] = fval[5] * 0.9f;
+        zsens *= 8;
+    }
 			
 	
     /* set object offset */
@@ -1447,6 +1544,8 @@ void obmat_to_viewmat(Object *ob, short smooth)
 {
 	float bmat[4][4];
 	float tmat[3][3];
+
+	G.vd->view= 0; /* dont show the grid */
 
 	Mat4CpyMat4(bmat, ob->obmat);
 	Mat4Ortho(bmat);

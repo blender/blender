@@ -488,12 +488,12 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					data.changed = 1;
 					data.delta = xcme.data.s[8] - data.time;
 					data.time = xcme.data.s[8];
-					data.tx = xcme.data.s[2];
-					data.ty = xcme.data.s[3];
-					data.tz = xcme.data.s[4];
+					data.tx = xcme.data.s[2] >> 2;
+					data.ty = xcme.data.s[3] >> 2;
+					data.tz = xcme.data.s[4] >> 2;
 					data.rx = xcme.data.s[5];
 					data.ry = xcme.data.s[6];
-					data.rz = xcme.data.s[7];
+					data.rz =-xcme.data.s[7];
 					g_event = new GHOST_EventNDOF(getMilliSeconds(),
 					                              GHOST_kEventNDOFMotion,
 					                              window, data);

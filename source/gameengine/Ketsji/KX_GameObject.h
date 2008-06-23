@@ -45,9 +45,8 @@
 #include "GEN_Map.h"
 #include "GEN_HashedPtr.h"
 #include "KX_Scene.h"
+#include "KX_KetsjiEngine.h" /* for m_anim_framerate */
 
-#define KX_FIXED_FRAME_PER_SEC 25.0f
-#define KX_FIXED_SEC_PER_FRAME (1.0f / KX_FIXED_FRAME_PER_SEC)
 #define KX_OB_DYNAMIC 1
 
 
@@ -56,7 +55,7 @@ struct KX_ClientObjectInfo;
 class RAS_MeshObject;
 class KX_IPhysicsController;
 class PHY_IPhysicsEnvironment;
-
+struct Object;
 
 /**
  * KX_GameObject is the main class for dynamic objects.
@@ -72,6 +71,7 @@ protected:
 	STR_String							m_text;
 	int									m_layer;
 	std::vector<RAS_MeshObject*>		m_meshes;
+	struct Object*						m_pBlenderObject;
 	
 	bool								m_bSuspendDynamics;
 	bool								m_bUseObjectColor;
@@ -259,6 +259,15 @@ public:
 	);
 
 	/** 
+	 * Align the object to a given normal.
+	 */
+		void 
+	AlignAxisToVect(
+		const MT_Vector3& vect,
+		int axis = 2 
+	);
+
+	/** 
 	 * Quick'n'dirty obcolor ipo stuff
 	 */
 
@@ -351,6 +360,20 @@ public:
 		return m_pSGNode;
 	}
 
+	/**
+	 * @section blender object accessor functions.
+	 */
+
+	struct Object* GetBlenderObject( )
+	{
+		return m_pBlenderObject;
+	}
+
+	void SetBlenderObject( struct Object* obj)
+	{
+		m_pBlenderObject = obj;
+	}
+	
 	/**
 	 * Set the Scene graph node for this game object.
 	 * warning - it is your responsibility to make sure
@@ -662,6 +685,7 @@ public:
 	KX_PYMETHOD(KX_GameObject,GetOrientation);
 	KX_PYMETHOD(KX_GameObject,SetOrientation);
 	KX_PYMETHOD(KX_GameObject,SetVisible);
+	KX_PYMETHOD(KX_GameObject,AlignAxisToVect);
 	KX_PYMETHOD(KX_GameObject,SuspendDynamics);
 	KX_PYMETHOD(KX_GameObject,RestoreDynamics);
 	KX_PYMETHOD(KX_GameObject,EnableRigidBody);

@@ -22,7 +22,7 @@ Import('env')
 
 #ftgl_env.Append (CPPDEFINES = defines)
 
-incs = 'include src ' + env['BF_FREETYPE_INC']
+incs = 'include src ' + env['BF_FREETYPE_INC'] + ' ' + env['BF_OPENGL_INC']
 defs = ''
 
 sources = env.Glob('src/*.cpp')

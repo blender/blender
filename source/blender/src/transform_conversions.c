@@ -1365,7 +1365,7 @@ static void createTransCurveVerts(TransInfo *t)
 						tail++;
 					}
 					if(		propmode ||
-							((bezt->f1 & SELECT) && (G.f & G_HIDDENHANDLES)) ||
+							((bezt->f2 & SELECT) && (G.f & G_HIDDENHANDLES)) ||
 							((bezt->f3 & SELECT) && (G.f & G_HIDDENHANDLES)==0)
 					  ) {
 						VECCOPY(td->iloc, bezt->vec[2]);

@@ -64,9 +64,13 @@ std::cout << " button flag "<< m_buttonf	<< std::endl;
 std::cout << " hat "		<< m_hat		<< std::endl;
 std::cout << " hat flag "	<< m_hatf		<< std::endl;
 */
-	m_istrig=0;
+	Init();
 }
 
+void SCA_JoystickSensor::Init()
+{
+	m_istrig=0;
+}
 
 SCA_JoystickSensor::~SCA_JoystickSensor()
 {

@@ -78,11 +78,12 @@ KX_GameObject::KX_GameObject(
 	m_bSuspendDynamics(false),
 	m_bUseObjectColor(false),
 	m_bIsNegativeScaling(false),
+	m_pBlenderObject(NULL),
 	m_bVisible(true),
 	m_pPhysicsController1(NULL),
 	m_pPhysicsEnvironment(NULL),
-	m_isDeformable(false),
-	m_pHitObject(NULL)
+	m_pHitObject(NULL),
+	m_isDeformable(false)
 {
 	m_ignore_activity_culling = false;
 	m_pClient_info = new KX_ClientObjectInfo(this, KX_ClientObjectInfo::ACTOR);
@@ -580,12 +581,73 @@ void KX_GameObject::SetObjectColor(const MT_Vector4& rgbavec)
 	m_objectColor = rgbavec;
 }
 
+void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
+{
+	MT_Matrix3x3 orimat;
+	MT_Vector3 vect,ori,z,x,y;
+	MT_Scalar len;
 
+	vect = dir;
+	len = vect.length();
+	if (MT_fuzzyZero(len))
+	{
+		cout << "alignAxisToVect() Error: Null vector!\n";
+		return;
+	}
+	// normalize
+	vect /= len;
+	orimat = GetSGNode()->GetWorldOrientation();
+	switch (axis)
+	{	
+		case 0: //x axis
+			ori = MT_Vector3(orimat[0][2], orimat[1][2], orimat[2][2]); //pivot axis
+			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON) //is the vector paralell to the pivot?
+				ori = MT_Vector3(orimat[0][1], orimat[1][1], orimat[2][1]); //change the pivot!
+			x = vect; 
+			y = ori.cross(x);
+			z = x.cross(y);
+			break;
+		case 1: //y axis
+			ori = MT_Vector3(orimat[0][0], orimat[1][0], orimat[2][0]);
+			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON)
+				ori = MT_Vector3(orimat[0][2], orimat[1][2], orimat[2][2]);
+			y = vect;
+			z = ori.cross(y);
+			x = y.cross(z);
+			break;
+		case 2: //z axis
+			ori = MT_Vector3(orimat[0][1], orimat[1][1], orimat[2][1]);
+			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON)
+				ori = MT_Vector3(orimat[0][0], orimat[1][0], orimat[2][0]);
+			z = vect;
+			x = ori.cross(z);
+			y = z.cross(x);
+			break;
+		default: //wrong input?
+			cout << "alignAxisToVect(): Wrong axis '" << axis <<"'\n";
+			return;
+	}
+	x.normalize(); //normalize the vectors
+	y.normalize();
+	z.normalize();
+	orimat = MT_Matrix3x3(	x[0],y[0],z[0],
+							x[1],y[1],z[1],
+							x[2],y[2],z[2]);
+	if (GetSGNode()->GetSGParent() != NULL)
+	{
+		// the object is a child, adapt its local orientation so that 
+		// the global orientation is aligned as we want.
+		MT_Matrix3x3 invori = GetSGNode()->GetSGParent()->GetWorldOrientation().inverse();
+		NodeSetLocalOrientation(invori*orimat);
+	}
+	else
+		NodeSetLocalOrientation(orimat);
+}
 
 MT_Vector3 KX_GameObject::GetLinearVelocity(bool local)
 {
-	MT_Vector3 velocity(0.0,0.0,0.0);
-	MT_Matrix3x3 ori, locvel;
+	MT_Vector3 velocity(0.0,0.0,0.0), locvel;
+	MT_Matrix3x3 ori;
 	int i, j; 
 	if (m_pPhysicsController1)
 	{
@@ -595,11 +657,8 @@ MT_Vector3 KX_GameObject::GetLinearVelocity(bool local)
 		{
 			ori = GetSGNode()->GetWorldOrientation();
 			
-			for(i=0; i < 3; i++)
-				for(j=0; j < 3; j++)
-					locvel[i][j]= velocity[i]*ori[i][j];
-			for(i=0; i < 3; i++)
-				velocity[i] = locvel[0][i] + locvel[1][i] + locvel[2][i];
+			locvel = velocity * ori;
+			return locvel;
 		}
 	}
 	return velocity;	
@@ -723,6 +782,7 @@ void KX_GameObject::Suspend(void)
 
 PyMethodDef KX_GameObject::Methods[] = {
 	{"setVisible",(PyCFunction) KX_GameObject::sPySetVisible, METH_VARARGS},  
+	{"alignAxisToVect",(PyCFunction) KX_GameObject::sPyAlignAxisToVect, METH_VARARGS},
 	{"setPosition", (PyCFunction) KX_GameObject::sPySetPosition, METH_VARARGS},
 	{"getPosition", (PyCFunction) KX_GameObject::sPyGetPosition, METH_VARARGS},
 	{"getOrientation", (PyCFunction) KX_GameObject::sPyGetOrientation, METH_VARARGS},
@@ -849,6 +909,14 @@ PyObject* KX_GameObject::_getattr(const STR_String& attr)
 		
 	if (attr == "name")
 		return PyString_FromString(m_name.ReadPtr());
+	if (attr == "timeOffset") {
+		if (m_pSGNode->GetSGParent()->IsSlowParent()) {
+			return PyFloat_FromDouble(static_cast<KX_SlowParentRelation *>(m_pSGNode->GetSGParent()->GetParentRelation())->GetTimeOffset());
+		} else {
+			return PyFloat_FromDouble(0.0);
+		}
+	}
+	
 	
 	_getattr_up(SCA_IObject);
 }
@@ -868,6 +936,19 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 		{
 			SetVisible(val != 0);
 			return 0;
+		}
+	}
+
+	if (PyFloat_Check(value))
+	{
+		MT_Scalar val = PyFloat_AsDouble(value);
+		if (attr == "timeOffset") {
+			if (m_pSGNode->GetSGParent()->IsSlowParent()) {
+				static_cast<KX_SlowParentRelation *>(m_pSGNode->GetSGParent()->GetParentRelation())->SetTimeOffset(val);
+				return 0;
+			} else {
+				return 0;
+			}		
 		}
 	}
 	
@@ -1255,7 +1336,24 @@ PyObject* KX_GameObject::PySetOrientation(PyObject* self,
 	return NULL;
 }
 
-
+PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* self, 
+										  PyObject* args, 
+										  PyObject* kwds)
+{
+	PyObject* pyvect;
+	int axis = 2; //z axis is the default
+	
+	if (PyArg_ParseTuple(args,"O|i",&pyvect,&axis))
+	{
+		MT_Vector3 vect;
+		if (PyVecTo(pyvect, vect))
+		{
+			AlignAxisToVect(vect,axis);				
+			Py_Return;
+		}
+	}
+	return NULL;
+}
 
 PyObject* KX_GameObject::PySetPosition(PyObject* self, 
 									   PyObject* args, 

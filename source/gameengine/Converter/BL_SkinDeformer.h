@@ -52,27 +52,20 @@ public:
 //	void SetArmatureController (BL_ArmatureController *cont);
 	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
 	{
-		void **h_obj = (*map)[m_armobj];
-		if (h_obj){
-			SetArmature( (BL_ArmatureObject*)(*h_obj) );
+		if (m_armobj){
+			void **h_obj = (*map)[m_armobj];
+			if (h_obj){
+				SetArmature( (BL_ArmatureObject*)(*h_obj) );
+			}
+			else
+				m_armobj=NULL;
 		}
-		else
-			m_armobj=NULL;
 	}
 	void SetArmature (class BL_ArmatureObject *armobj);
 
 	BL_SkinDeformer(struct Object *bmeshobj, 
 					class BL_SkinMeshObject *mesh,
-					BL_ArmatureObject* arma = NULL)
-					:	//
-						BL_MeshDeformer(bmeshobj, mesh),
-						m_armobj(arma),
-						m_lastUpdate(-1),
-						m_defbase(&bmeshobj->defbase),
-						m_releaseobject(false),
-						m_restoremat(false)
-	{
-	};
+					BL_ArmatureObject* arma = NULL);
 
 	/* this second constructor is needed for making a mesh deformable on the fly. */
 	BL_SkinDeformer(struct Object *bmeshobj_old,
@@ -84,16 +77,20 @@ public:
 	virtual void ProcessReplica();
 	virtual RAS_Deformer *GetReplica();
 	virtual ~BL_SkinDeformer();
-	void Update (void);
+	bool Update (void);
 	bool Apply (class RAS_IPolyMaterial *polymat);
+
+	void ForceUpdate()
+	{
+		m_lastArmaUpdate = -1.0;
+	};
 
 protected:
 	BL_ArmatureObject*		m_armobj;	//	Our parent object
 	float					m_time;
-	double					m_lastUpdate;
+	double					m_lastArmaUpdate;
 	ListBase*				m_defbase;
-	float					m_obmat[4][4];	// the original object matrice in case of dynamic mesh replacement
-	bool					m_restoremat;		
+	float					m_obmat[4][4];	// the reference matrix for skeleton deform
 	bool					m_releaseobject;
 
 };

@@ -33,6 +33,7 @@ SET(INC
   ../../../source/blender/blenloader
   ../../../extern/bullet2/src
   ../../../extern/solid
+  ../../../extern/glew/include
   ${PYTHON_INC}
 )
 

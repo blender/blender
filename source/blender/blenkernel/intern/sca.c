@@ -411,6 +411,7 @@ void init_actuator(bActuator *act)
 	switch(act->type) {
 #ifdef __NLA
 	case ACT_ACTION:
+	case ACT_SHAPEACTION:
 		act->data= MEM_callocN(sizeof(bActionActuator), "actionact");
 		break;
 #endif
@@ -463,6 +464,9 @@ void init_actuator(bActuator *act)
         break;
     case ACT_PARENT:
         act->data = MEM_callocN(sizeof( bParentActuator ), "parent act");
+        break;
+	case ACT_STATE:
+        act->data = MEM_callocN(sizeof( bStateActuator ), "state act");
         break;
 	default:
 		; /* this is very severe... I cannot make any memory for this        */

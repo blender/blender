@@ -993,6 +993,7 @@ RenderStats *RE_GetStats(Render *re)
 	return &re->i;
 }
 
+/* Note, when rendering from a scene, ALWAYS use G.scene->id.name, else compositing wont work */
 Render *RE_NewRender(const char *name)
 {
 	Render *re;

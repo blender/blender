@@ -52,6 +52,7 @@ SCA_ISensor::SCA_ISensor(SCA_IObject* gameobj,
 	SCA_ILogicBrick(gameobj,T),
 	m_triggered(false)
 {
+	m_links = 0;
 	m_suspended = false;
 	m_invert = false;
 	m_pos_ticks = 0;
@@ -109,6 +110,25 @@ bool SCA_ISensor::IsSuspended() {
 
 void SCA_ISensor::Resume() {
 	m_suspended = false;
+}
+
+void SCA_ISensor::Init() {
+	printf("Sensor %s has no init function, please report this bug to Blender.org\n", m_name);
+}
+
+void SCA_ISensor::DecLink() {
+	m_links--;
+	if (m_links < 0) 
+	{
+		printf("Warning: sensor %s has negative m_links: %d\n", m_name.Ptr(), m_links);
+		m_links = 0;
+	}
+	if (!m_links)
+	{
+		// sensor is detached from all controllers, initialize it so that it
+		// is fresh as at startup when it is reattached again.
+		Init();
+	}
 }
 
 /* python integration */
@@ -177,7 +197,8 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr,	  CValue* event)
 {
 	
 	// calculate if a __triggering__ is wanted
-	if (!m_suspended) {
+	// don't evaluate a sensor that is not connected to any controller
+	if (m_links && !m_suspended) {
 		bool result = this->Evaluate(event);
 		if (result) {
 			logicmgr->AddActivatedSensor(this);	

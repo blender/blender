@@ -40,16 +40,35 @@
 #include "DNA_listBase.h"
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
-#include "DNA_customdata_types.h"
+#include "DNA_image_types.h"
 #include "BLI_editVert.h"
 #include "BKE_DerivedMesh.h"
 #include "transform.h"
+#include "BKE_bmeshCustomData.h"
 
+/*forward declerations*/
 struct BME_Vert;
 struct BME_Edge;
 struct BME_Poly;
 struct BME_Loop;
 
+
+/*structure for fast memory allocation/frees*/
+typedef struct BME_mempool{
+	struct ListBase chunks;
+	int esize, csize, pchunk;		/*size of elements and chunks in bytes and number of elements per chunk*/
+	struct BME_freenode	*free;		/*free element list. Interleaved into chunk datas.*/
+}BME_mempool;
+
+/*Notes on further structure Cleanup:
+	-Remove the tflags, they belong in custom data layers
+	-Remove the eflags completely, they are mostly not used
+	-Remove the selection/vis/bevel weight flag/values ect and move them to custom data
+	-Remove EID member and move to custom data
+	-Add a radial cycle length, disk cycle length and loop cycle lenght attributes to custom data and have eulers maintain/use them if present.
+	-Move data such as vertex coordinates/normals to custom data and leave pointers in structures to active layer data.
+	-Remove BME_CycleNode structure?
+*/
 typedef struct BME_CycleNode{
 	struct BME_CycleNode *next, *prev;
 	void *data;
@@ -57,16 +76,21 @@ typedef struct BME_CycleNode{
 
 typedef struct BME_Mesh
 {
-	ListBase verts, edges, polys, loops;
-	int totvert, totedge, totpoly, totloop;			/*record keeping*/
-	int nextv, nexte, nextp, nextl;					/*Next element ID for verts/edges/faces/loops. Never reused*/
-	struct CustomData vdata, edata, pdata, ldata;	/*Custom Data Layer information*/
+	ListBase verts, edges, polys;
+	/*memory pools used for storing mesh elements*/
+	struct BME_mempool *vpool;
+	struct BME_mempool *epool;
+	struct BME_mempool *ppool;
+	struct BME_mempool *lpool;
 	/*some scratch arrays used by eulers*/
 	struct BME_Vert **vtar;
 	struct BME_Edge **edar;
 	struct BME_Loop **lpar;
 	struct BME_Poly **plar;
 	int vtarlen, edarlen, lparlen, plarlen;
+	int totvert, totedge, totpoly, totloop;				/*record keeping*/
+	int nextv, nexte, nextp, nextl;						/*Next element ID for verts/edges/faces/loops. Never reused*/
+	struct BME_CustomData vdata, edata, pdata, ldata;	/*Custom Data Layer information*/
 } BME_Mesh;
 
 typedef struct BME_Vert
@@ -102,7 +126,6 @@ typedef struct BME_Loop
 	struct BME_Loop *next, *prev;					/*circularly linked list around face*/
 	int EID;
 	struct BME_CycleNode radial;					/*circularly linked list used to find faces around an edge*/
-	struct BME_CycleNode *gref;						/*pointer to loop ref. Nasty.*/
 	struct BME_Vert *v;								/*vertex that this loop starts at.*/
 	struct BME_Edge *e;								/*edge this loop belongs to*/
 	struct BME_Poly *f;								/*face this loop belongs to*/	
@@ -124,7 +147,7 @@ typedef struct BME_Poly
 	unsigned short flag, h, mat_nr;
 } BME_Poly;
 
-//*EDGE UTILITIES*/
+/*EDGE UTILITIES*/
 int BME_verts_in_edge(struct BME_Vert *v1, struct BME_Vert *v2, struct BME_Edge *e);
 int BME_vert_in_edge(struct BME_Edge *e, BME_Vert *v);
 struct BME_Vert *BME_edge_getothervert(struct BME_Edge *e, struct BME_Vert *v);
@@ -146,7 +169,7 @@ int BME_radial_find_face(struct BME_Edge *e,struct BME_Poly *f);
 struct BME_Loop *BME_loop_find_loop(struct BME_Poly *f, struct BME_Vert *v);
 
 /*MESH CREATION/DESTRUCTION*/
-struct BME_Mesh *BME_make_mesh(void);
+struct BME_Mesh *BME_make_mesh(int allocsize[4], struct BME_CustomDataInit init[4]);
 void BME_free_mesh(struct BME_Mesh *bm);
 /*FULL MESH VALIDATION*/
 int BME_validate_mesh(struct BME_Mesh *bm, int halt);
@@ -230,8 +253,8 @@ float *BME_bevel_calc_polynormal(struct BME_Poly *f, struct BME_TransData_Head *
 struct BME_Mesh *BME_bevel(struct BME_Mesh *bm, float value, int res, int options, int defgrp_index, float angle, BME_TransData_Head **rtd);
 
 /*CONVERSION FUNCTIONS*/
-struct BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em, struct BME_Mesh *bm);
+struct BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em);
 struct EditMesh *BME_bmesh_to_editmesh(struct BME_Mesh *bm, BME_TransData_Head *td);
-struct BME_Mesh *BME_derivedmesh_to_bmesh(struct DerivedMesh *dm, struct BME_Mesh *bm);
+struct BME_Mesh *BME_derivedmesh_to_bmesh(struct DerivedMesh *dm);
 struct DerivedMesh *BME_bmesh_to_derivedmesh(struct BME_Mesh *bm, struct DerivedMesh *dm);
 #endif

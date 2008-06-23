@@ -29,6 +29,7 @@
 #include "SCA_IController.h"
 #include "SCA_LogicManager.h"
 #include "SCA_IActuator.h"
+#include "SCA_ISensor.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -37,6 +38,7 @@
 SCA_IController::SCA_IController(SCA_IObject* gameobj,
 								 PyTypeObject* T)
 	:
+	m_statemask(0),
 	SCA_ILogicBrick(gameobj,T)
 {
 }
@@ -45,6 +47,7 @@ SCA_IController::SCA_IController(SCA_IObject* gameobj,
 	
 SCA_IController::~SCA_IController()
 {
+	UnlinkAllActuators();
 }
 
 
@@ -65,6 +68,14 @@ const std::vector<class SCA_IActuator*>& SCA_IController::GetLinkedActuators()
 
 void SCA_IController::UnlinkAllSensors()
 {
+	if (IsActive()) 
+	{
+		std::vector<class SCA_ISensor*>::iterator sensit;
+		for (sensit = m_linkedsensors.begin();!(sensit==m_linkedsensors.end());++sensit)
+		{
+			(*sensit)->DecLink();
+		}
+	}
 	m_linkedsensors.clear();
 }
 
@@ -72,6 +83,14 @@ void SCA_IController::UnlinkAllSensors()
 
 void SCA_IController::UnlinkAllActuators()
 {
+	if (IsActive()) 
+	{
+		std::vector<class SCA_IActuator*>::iterator actit;
+		for (actit = m_linkedactuators.begin();!(actit==m_linkedactuators.end());++actit)
+		{
+			(*actit)->DecLink();
+		}
+	}
 	m_linkedactuators.clear();
 }
 
@@ -95,26 +114,94 @@ void SCA_IController::Trigger(SCA_LogicManager* logicmgr)
 void SCA_IController::LinkToActuator(SCA_IActuator* actua)
 {
 	m_linkedactuators.push_back(actua);
+	if (IsActive())
+	{
+		actua->IncLink();
+	}
 }
 
 void	SCA_IController::UnlinkActuator(class SCA_IActuator* actua)
 {
 	std::vector<class SCA_IActuator*>::iterator actit;
-	std::vector<class SCA_IActuator*>::iterator actfound = m_linkedactuators.end();
 	for (actit = m_linkedactuators.begin();!(actit==m_linkedactuators.end());++actit)
 	{
 		if ((*actit) == actua)
-			actfound = actit;
+		{
+			break;
+		}
 		
 	}
-	if (!(actfound==m_linkedactuators.end()))
+	if (!(actit==m_linkedactuators.end()))
 	{
-		m_linkedactuators.erase(actfound);
+		m_linkedactuators.erase(actit);
+		if (IsActive())
+		{
+			(*actit)->DecLink();
+		}
 	}
-	
 }
 
 void SCA_IController::LinkToSensor(SCA_ISensor* sensor)
 {
 	m_linkedsensors.push_back(sensor);
+	if (IsActive())
+	{
+		sensor->IncLink();
+	}
 }
+
+void SCA_IController::UnlinkSensor(class SCA_ISensor* sensor)
+{
+	std::vector<class SCA_ISensor*>::iterator sensit;
+	for (sensit = m_linkedsensors.begin();!(sensit==m_linkedsensors.end());++sensit)
+	{
+		if ((*sensit) == sensor)
+		{
+			break;
+		}
+		
+	}
+	if (!(sensit==m_linkedsensors.end()))
+	{
+		m_linkedsensors.erase(sensit);
+		if (IsActive())
+		{
+			(*sensit)->DecLink();
+		}
+	}
+}
+
+void SCA_IController::ApplyState(unsigned int state)
+{
+	std::vector<class SCA_IActuator*>::iterator actit;
+	std::vector<class SCA_ISensor*>::iterator sensit;
+
+	if (m_statemask & state) 
+	{
+		if (!IsActive()) 
+		{
+			// reactive the controller, all the links to actuator are valid again
+			for (actit = m_linkedactuators.begin();!(actit==m_linkedactuators.end());++actit)
+			{
+				(*actit)->IncLink();
+			}
+			for (sensit = m_linkedsensors.begin();!(sensit==m_linkedsensors.end());++sensit)
+			{
+				(*sensit)->IncLink();
+			}
+			SetActive(true);
+		}
+	} else if (IsActive())
+	{
+		for (actit = m_linkedactuators.begin();!(actit==m_linkedactuators.end());++actit)
+		{
+			(*actit)->DecLink();
+		}
+		for (sensit = m_linkedsensors.begin();!(sensit==m_linkedsensors.end());++sensit)
+		{
+			(*sensit)->DecLink();
+		}
+		SetActive(false);
+	}
+}
+

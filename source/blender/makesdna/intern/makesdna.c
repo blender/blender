@@ -688,18 +688,18 @@ static int calculate_structlens(int firststruct)
 						/* 4-8 aligned/ */
 						if(sizeof(void *) == 4) {
 							if (len % 4) {
-								printf("Align pointer error in struct: %s %s\n", types[structtype], cp);
+								printf("Align pointer error in struct (len4): %s %s\n", types[structtype], cp);
 								dna_error = 1;
 							}
 						} else {
 							if (len % 8) {
-								printf("Align pointer error in struct: %s %s\n", types[structtype], cp);
+								printf("Align pointer error in struct (len8): %s %s\n", types[structtype], cp);
 								dna_error = 1;
 							}
 						}
 
 						if (alphalen % 8) {
-							printf("Align pointer error in struct: %s %s\n", types[structtype],cp);
+							printf("Align pointer error in struct (alphalen8): %s %s\n", types[structtype],cp);
 							dna_error = 1;
 						}
 
@@ -748,13 +748,13 @@ static int calculate_structlens(int firststruct)
 					// has_pointer is set or alphalen != len
 					if (has_pointer || alphalen != len) {
 						if (alphalen % 8) {
-							printf("Sizeerror in struct: %s (add %d bytes)\n", types[structtype], alphalen%8);
+							printf("Sizeerror 8 in struct: %s (add %d bytes)\n", types[structtype], alphalen%8);
 							dna_error = 1;
 						}
 					}
 					
 					if(len % 4) {
-						printf("Sizeerror in struct: %s (add %d bytes)\n", types[structtype], len%4);
+						printf("Sizeerror 4 in struct: %s (add %d bytes)\n", types[structtype], len%4);
 						dna_error = 1;
 					}
 					

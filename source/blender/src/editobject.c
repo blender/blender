@@ -2735,7 +2735,7 @@ void special_editmenu(void)
 	}
 	else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 
-		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2|Set Goal Weight %x3|Set Radius %x4|Smooth Radius %x5");
+		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2|Set Goal Weight%x3|Set Radius%x4|Smooth%x5|Smooth Radius%x6");
 		
 		switch(nr) {
 		case 1:
@@ -2751,6 +2751,9 @@ void special_editmenu(void)
 			setradiusNurb();
 			break;
 		case 5:
+			smoothNurb();
+			break;
+		case 6:
 			smoothradiusNurb();
 			break;
 		}
@@ -5939,7 +5942,7 @@ void hide_objects(int select)
 	Base *base;
 	short changed = 0, changed_act = 0;
 	for(base = FIRSTBASE; base; base=base->next){
-		if(TESTBASELIB(base)==select){
+		if ((base->lay & G.vd->lay) && (TESTBASELIB(base)==select)) {
 			base->flag &= ~SELECT;
 			base->object->flag = base->flag;
 			base->object->restrictflag |= OB_RESTRICT_VIEW;

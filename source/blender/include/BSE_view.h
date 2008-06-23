@@ -63,7 +63,11 @@ void window_to_3d(float *vec, short mx, short my);
 void project_short(float *vec, short *adr);
 void project_short_noclip(float *vec, short *adr);
 void project_int(float *vec, int *adr);
+void project_int_noclip(float *vec, int *adr);
 void project_float(float *vec, float *adr);
+void project_float_noclip(float *vec, float *adr);
+void viewray(short mval[2], float ray_start[3], float ray_normal[3]);
+void viewline(short mval[2], float ray_start[3], float ray_end[3]);
 
 int boundbox_clip(float obmat[][4], struct BoundBox *bb);
 void fdrawline(float x1, float y1, float x2, float y2);

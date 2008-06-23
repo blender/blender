@@ -57,7 +57,7 @@ typedef struct bController {
 
 	struct bSensor **slinks;
 	short val, valo;
-	int pad5;
+	unsigned int state_mask;
 	
 } bController;
 
@@ -71,6 +71,7 @@ typedef struct bController {
 #define CONT_SHOW		1
 #define CONT_DEL		2
 #define CONT_NEW		4
+#define CONT_MASK		8
 
 #endif
 

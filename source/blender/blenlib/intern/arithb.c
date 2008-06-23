@@ -1335,6 +1335,22 @@ void NormalQuat(float *q)
 	}
 }
 
+void AxisAngleToQuat(float *q, float *axis, float angle)
+{
+	float nor[3];
+	float si;
+	
+	VecCopyf(nor, axis);
+	Normalize(nor);
+	
+	angle /= 2;
+	si = (float)sin(angle);
+	q[0] = (float)cos(angle);
+	q[1] = nor[0] * si;
+	q[2] = nor[1] * si;
+	q[3] = nor[2] * si;	
+}
+
 void vectoquat(float *vec, short axis, short upflag, float *q)
 {
 	float q2[4], nor[3], *fp, mat[3][3], angle, si, co, x2, y2, z2, len1;
@@ -2256,6 +2272,20 @@ double Sqrt3d(double d)
 	if(d==0.0) return 0;
 	if(d<0) return -exp(log(-d)/3);
 	else return exp(log(d)/3);
+}
+
+void NormalShortToFloat(float *out, short *in)
+{
+	out[0] = in[0] / 32767.0;
+	out[1] = in[1] / 32767.0;
+	out[2] = in[2] / 32767.0;
+}
+
+void NormalFloatToShort(short *out, float *in)
+{
+	out[0] = (short)(in[0] * 32767.0);
+	out[1] = (short)(in[1] * 32767.0);
+	out[2] = (short)(in[2] * 32767.0);
 }
 
 /* distance v1 to line v2-v3 */
@@ -3671,6 +3701,43 @@ int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], f
 	return 1;
 }
 
+/* moved from effect.c
+   test if the ray starting at p1 going in d direction intersects the triangle v0..v2
+   return non zero if it does 
+*/
+int RayIntersectsTriangle(float p1[3], float d[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv)
+{
+	float p[3], s[3], e1[3], e2[3], q[3];
+	float a, f, u, v;
+	
+	VecSubf(e1, v1, v0);
+	VecSubf(e2, v2, v0);
+	
+	Crossf(p, d, e2);
+	a = Inpf(e1, p);
+	if ((a > -0.000001) && (a < 0.000001)) return 0;
+	f = 1.0f/a;
+	
+	VecSubf(s, p1, v0);
+	
+	Crossf(q, s, e1);
+	*lambda = f * Inpf(e2, q);
+	if ((*lambda < 0.0)) return 0;
+	
+	u = f * Inpf(s, p);
+	if ((u < 0.0)||(u > 1.0)) return 0;
+	
+	v = f * Inpf(d, q);
+	if ((v < 0.0)||((u + v) > 1.0)) return 0;
+
+	if(uv) {
+		uv[0]= u;
+		uv[1]= v;
+	}
+	
+	return 1;
+}
+
 /* Adapted from the paper by Kasper Fauerby */
 /* "Improved Collision detection and Response" */
 int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, float v0[3], float v1[3], float v2[3], float *lambda, float *ipoint)
@@ -3964,6 +4031,74 @@ int AxialLineIntersectsTriangle(int axis, float p1[3], float p2[3], float v0[3],
 
 	return 1;
 }
+
+/* Returns the number of point of interests
+ * 0 - lines are colinear
+ * 1 - lines are coplanar, i1 is set to intersection
+ * 2 - i1 and i2 are the nearest points on line 1 (v1, v2) and line 2 (v3, v4) respectively 
+ * */
+int LineIntersectLine(float v1[3], float v2[3], float v3[3], float v4[3], float i1[3], float i2[3])
+{
+	float a[3], b[3], c[3], ab[3], cb[3], dir1[3], dir2[3];
+	float d;
+	
+	VecSubf(c, v3, v1);
+	VecSubf(a, v2, v1);
+	VecSubf(b, v4, v3);
+
+	VecCopyf(dir1, a);
+	Normalize(dir1);
+	VecCopyf(dir2, b);
+	Normalize(dir2);
+	d = Inpf(dir1, dir2);
+	if (d == 1.0f || d == -1.0f) {
+		/* colinear */
+		return 0;
+	}
+
+	Crossf(ab, a, b);
+	d = Inpf(c, ab);
+
+	/* test if the two lines are coplanar */
+	if (d > -0.000001f && d < 0.000001f) {
+		Crossf(cb, c, b);
+
+		VecMulf(a, Inpf(cb, ab) / Inpf(ab, ab));
+		VecAddf(i1, v1, a);
+		VecCopyf(i2, i1);
+		
+		return 1; /* one intersection only */
+	}
+	/* if not */
+	else {
+		float n[3], t[3];
+		float v3t[3], v4t[3];
+		VecSubf(t, v1, v3);
+
+		/* offset between both plane where the lines lies */
+		Crossf(n, a, b);
+		Projf(t, t, n);
+
+		/* for the first line, offset the second line until it is coplanar */
+		VecAddf(v3t, v3, t);
+		VecAddf(v4t, v4, t);
+		
+		VecSubf(c, v3t, v1);
+		VecSubf(a, v2, v1);
+		VecSubf(b, v4t, v3);
+
+		Crossf(ab, a, b);
+		Crossf(cb, c, b);
+
+		VecMulf(a, Inpf(cb, ab) / Inpf(ab, ab));
+		VecAddf(i1, v1, a);
+
+		/* for the second line, just substract the offset from the first intersection point */
+		VecSubf(i2, i1, t);
+		
+		return 2; /* two nearest points */
+	}
+} 
 
 int AabbIntersectAabb(float min1[3], float max1[3], float min2[3], float max2[3])
 {

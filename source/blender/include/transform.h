@@ -75,6 +75,8 @@ typedef struct TransSnap {
 	int  	status;
 	float	snapPoint[3];
 	float	snapTarget[3];
+	float	snapNormal[3];
+	float	snapTangent[3];
 	float	dist; // Distance from snapPoint to snapTarget
 	double	last;
 	void  (*applySnap)(struct TransInfo *, float *);
@@ -100,9 +102,9 @@ typedef struct TransCon {
                          /* Apply function pointer for linear vectorial transformation                */
                          /* The last three parameters are pointers to the in/out/printable vectors    */
     void  (*applySize)(struct TransInfo *, struct TransData *, float [3][3]);
-                         /* Apply function pointer for rotation transformation (prototype will change */
-    void  (*applyRot)(struct TransInfo *, struct TransData *, float [3]);
-                         /* Apply function pointer for rotation transformation (prototype will change */
+                         /* Apply function pointer for size transformation */
+    void  (*applyRot)(struct TransInfo *, struct TransData *, float [3], float *);
+                         /* Apply function pointer for rotation transformation */
 } TransCon;
 
 typedef struct TransDataIpokey {
@@ -457,6 +459,8 @@ void applySnapping(TransInfo *t, float *vec);
 void resetSnapping(TransInfo *t);
 int  handleSnapping(TransInfo *t, int event);
 void drawSnapping(TransInfo *t);
+int usingSnappingNormal(TransInfo *t);
+int validSnappingNormal(TransInfo *t);
 
 /*********************** Generics ********************************/
 
@@ -487,6 +491,7 @@ void calculateCenterCursor2D(TransInfo *t);
 void calculatePropRatio(TransInfo *t);
 
 void getViewVector(float coord[3], float vec[3]);
+void getViewRay(short mval[2], float p[3], float d[3]);
 
 TransInfo * BIF_GetTransInfo(void);
 
@@ -515,6 +520,7 @@ int handleNDofInput(NDofInput *n, unsigned short event, short val);
 
 int manageObjectSpace(int confirm, int set);
 int manageMeshSpace(int confirm, int set);
+int manageBoneSpace(int confirm, int set);
 
 /* Those two fill in mat and return non-zero on success */
 int createSpaceNormal(float mat[3][3], float normal[3]);

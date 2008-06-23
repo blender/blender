@@ -957,6 +957,12 @@ int *mesh_get_x_mirror_faces(Object *ob)
 		mirrormf.v3= mirrorverts[mf->v1];
 		mirrormf.v4= (mf->v4)? mirrorverts[mf->v4]: 0;
 
+		/* make sure v4 is not 0 if a quad */
+		if(mf->v4 && mirrormf.v4==0) {
+			SWAP(int, mirrormf.v1, mirrormf.v3);
+			SWAP(int, mirrormf.v2, mirrormf.v4);
+		}
+
 		hashmf= BLI_ghash_lookup(fhash, &mirrormf);
 		if(hashmf) {
 			mirrorfaces[a*2]= hashmf - mface;
@@ -1020,7 +1026,7 @@ void objects_bake_render_menu(void)
 {
 	short event;
 
-	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4|Displacement %x5");
+	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4|Displacement %x5|Shadow %x6");
 	if (event < 1) return;
 	objects_bake_render_ui(event);
 }
@@ -1056,7 +1062,8 @@ void objects_bake_render(short event, char **error_msg)
 		else if(event==2) event= RE_BAKE_AO;
 		else if(event==3) event= RE_BAKE_NORMALS;
 		else if(event==4) event= RE_BAKE_TEXTURE;
-		else event= RE_BAKE_DISPLACEMENT;
+		else if(event==5) event= RE_BAKE_DISPLACEMENT;
+		else event= RE_BAKE_SHADOW;
 
 		if(event==RE_BAKE_AO) {
 			if(G.scene->world==NULL) {
