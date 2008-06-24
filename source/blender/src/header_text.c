@@ -240,6 +240,37 @@ static uiBlock *text_template_scriptsmenu (void *args_unused)
 	return block;
 }
 
+static void do_text_plugin_scriptsmenu(void *arg, int event)
+{
+	BPY_menu_do_python(PYMENU_TEXTPLUGIN, event);
+	
+	allqueue(REDRAWIMAGE, 0);
+}
+
+static uiBlock *text_plugin_scriptsmenu (void *args_unused)
+{
+	uiBlock *block;
+	BPyMenu *pym;
+	int i= 0;
+	short yco = 20, menuwidth = 120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "text_plugin_scriptsmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_text_plugin_scriptsmenu, NULL);
+	
+	/* note that we acount for the N previous entries with i+20: */
+	for (pym = BPyMenuTable[PYMENU_TEXTPLUGIN]; pym; pym = pym->next, i++) {
+		
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, 
+						 NULL, 0.0, 0.0, 1, i, 
+						 pym->tooltip?pym->tooltip:pym->filename);
+	}
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+
 /* action executed after clicking in File menu */
 static void do_text_filemenu(void *arg, int event)
 {
@@ -726,6 +757,7 @@ static uiBlock *text_filemenu(void *arg_unused)
 	}
 	
 	uiDefIconTextBlockBut(block, text_template_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Script Templates", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, text_plugin_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Text Plugins", 0, yco-=20, 120, 19, "");
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

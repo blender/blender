@@ -60,6 +60,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_suggestions.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -999,6 +1000,19 @@ static void do_selection(SpaceText *st, int selecting)
 		txt_undo_add_toop(st->text, UNDO_STO, sell, selc, linep2, charp2);
 }
 
+void draw_suggestion_list(SpaceText *st) {
+	SuggItem *item, *last;
+	
+	if (!is_suggest_active(st->text)) return;
+
+	for (item=suggest_first(), last=suggest_last(); item; item=item->next) {
+		/* Useful for testing but soon to be replaced by UI list */
+		printf("Suggest: %c %s\n", item->type, item->name);
+		if (item == last)
+			break;
+	}
+}
+
 void drawtextspace(ScrArea *sa, void *spacedata)
 {
 	SpaceText *st= curarea->spacedata.first;
@@ -1072,6 +1086,7 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	}
 
 	draw_textscroll(st);
+	draw_suggestion_list(st);
 
 	curarea->win_swap= WIN_BACK_OK;
 }

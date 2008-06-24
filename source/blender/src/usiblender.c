@@ -67,6 +67,7 @@
 #include "DNA_sound_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_text_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_curve.h"
@@ -79,6 +80,7 @@
 #include "BKE_mball.h"
 #include "BKE_node.h"
 #include "BKE_packedFile.h"
+#include "BKE_suggestions.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_pointcache.h"
@@ -1091,6 +1093,7 @@ void exit_usiblender(void)
 	free_actcopybuf();
 	free_vertexpaint();
 	free_imagepaint();
+	free_suggestions();
 	
 	/* editnurb can remain to exist outside editmode */
 	freeNurblist(&editNurb);

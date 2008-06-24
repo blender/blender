@@ -106,6 +106,8 @@ static int bpymenu_group_atoi( char *str )
 		return PYMENU_ARMATURE;
 	else if( !strcmp( str, "ScriptTemplate" ) )
 		return PYMENU_SCRIPTTEMPLATE;
+	else if( !strcmp( str, "TextPlugin" ) )
+		return PYMENU_TEXTPLUGIN;
 	else if( !strcmp( str, "MeshFaceKey" ) )
 		return PYMENU_MESHFACEKEY;
 	else if( !strcmp( str, "AddMesh" ) )
@@ -183,6 +185,9 @@ char *BPyMenu_group_itoa( short menugroup )
 		break;
 	case PYMENU_SCRIPTTEMPLATE:
 		return "ScriptTemplate";
+		break;
+	case PYMENU_TEXTPLUGIN:
+		return "TextPlugin";
 		break;
 	case PYMENU_MESHFACEKEY:
 		return "MeshFaceKey";

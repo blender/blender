@@ -34,8 +34,11 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BIF_drawtext.h"
+#include "BIF_screen.h"
 #include "BKE_text.h"
+#include "BKE_suggestions.h"
 #include "BLI_blenlib.h"
+#include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "gen_utils.h"
 #include "gen_library.h"
@@ -96,6 +99,7 @@ static PyObject *Text_set( BPy_Text * self, PyObject * args );
 static PyObject *Text_asLines( BPy_Text * self );
 static PyObject *Text_getCursorPos( BPy_Text * self );
 static PyObject *Text_setCursorPos( BPy_Text * self, PyObject * args );
+static PyObject *Text_suggest( BPy_Text * self, PyObject * args );
 
 /*****************************************************************************/
 /* Python BPy_Text methods table:                                            */
@@ -124,6 +128,8 @@ static PyMethodDef BPy_Text_methods[] = {
 	 "() - Return cursor position as (row, col) tuple"},
 	{"setCursorPos", ( PyCFunction ) Text_setCursorPos, METH_VARARGS,
 	 "(row, col) - Set the cursor position to (row, col)"},
+	{"suggest", ( PyCFunction ) Text_suggest, METH_VARARGS,
+	 "(list) - List of tuples of the form (name, type) where type is one of 'm', 'v', 'f' for module, variable and function respectively"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -507,6 +513,57 @@ static PyObject *Text_setCursorPos( BPy_Text * self, PyObject * args )
 	oldstate = txt_get_undostate();
 	txt_move_to(self->text, row, col, 0);
 	txt_set_undostate(oldstate);
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *Text_suggest( BPy_Text * self, PyObject * args )
+{
+	PyObject *item = NULL;
+	PyObject *list = NULL, *resl = NULL;
+	int list_len, i;
+	char *prefix, *name, type;
+	SpaceText *st;
+
+	if(!self->text)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+				"This object isn't linked to a Blender Text Object");
+
+	/* Parse args for a list of tuples */
+	if(!PyArg_ParseTuple(args, "O!s", &PyList_Type, &list, &prefix))
+		return EXPP_ReturnPyObjError(PyExc_TypeError,
+				"expected list of tuples followed by a string");
+
+	if (curarea->spacetype != SPACE_TEXT)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+				"Active space type is not text");
+	
+	st = curarea->spacedata.first;
+	if (!st || !st->text)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+				"Active text area has no Text object");
+	
+	list_len = PyList_Size(list);
+	clear_suggest_text();
+	
+	for (i = 0; i < list_len; i++) {
+		item = PyList_GetItem(list, i);
+		if (!PyTuple_Check(item) || PyTuple_GET_SIZE(item) != 2)
+			return EXPP_ReturnPyObjError(PyExc_AttributeError,
+					"list must contain only tuples of size 2" );
+
+		name = PyString_AsString(PyTuple_GetItem(item, 0));
+		type = PyString_AsString(PyTuple_GetItem(item, 1))[0];
+
+		if (!strlen(name) || (type!='m' && type!='v' && type!='f'))
+			return EXPP_ReturnPyObjError(PyExc_AttributeError,
+					"layer values must be in the range [1, 20]" );
+
+		add_suggestion(name, type);
+	}
+	update_suggestions(prefix);
+	set_suggest_text(st->text);
+	scrarea_queue_redraw(curarea);
 
 	Py_RETURN_NONE;
 }

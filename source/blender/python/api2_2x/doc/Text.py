@@ -150,5 +150,15 @@ class Text:
 			cursor.
 		"""
 
+	def suggest(list):
+		"""
+		Set the suggestion list to the given list of tuples. This list *must* be
+		sorted by its first element, name.
+		@type list: list of tuples
+		@param list:  List of pair-tuples of the form (name, type) where name is
+			the suggested name and type is one of 'm' (module or class), 'f'
+			(function or method), 'v' (variable).
+		"""
+
 import id_generics
 Text.__doc__ += id_generics.attributes
