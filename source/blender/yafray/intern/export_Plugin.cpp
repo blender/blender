@@ -1,6 +1,7 @@
 #include "export_Plugin.h"
 
 #include <math.h>
+#include <cstring>
 using namespace std;
 
 

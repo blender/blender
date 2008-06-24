@@ -1,6 +1,7 @@
 #include "export_File.h"
 
 #include <math.h>
+#include <cstring>
 
 using namespace std;
 

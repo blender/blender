@@ -7,6 +7,7 @@
 #include "yafray_Render.h"
 
 #include <math.h>
+#include <cstring>
 
 using namespace std;
 
