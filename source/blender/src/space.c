@@ -437,9 +437,6 @@ static void SaveState(void)
 	if(G.f & G_TEXTUREPAINT)
 		texpaint_enable_mipmap();
 
-	if(G.scene->camera==0 || G.scene->camera->type!=OB_CAMERA)
-		error("no (correct) camera");
-
 	waitcursor(1);
 }
 
