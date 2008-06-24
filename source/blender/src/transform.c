@@ -2620,7 +2620,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 		}
 		
 		if (t->con.applyRot) {
-			t->con.applyRot(t, td, axis);
+			t->con.applyRot(t, td, axis, NULL);
 			VecRotToMat3(axis, angle * td->factor, mat);
 		}
 		else if (t->flag & T_PROP_EDIT) {
@@ -2658,7 +2658,7 @@ int Rotation(TransInfo *t, short mval[2])
 	snapGrid(t, &final);
 
 	if (t->con.applyRot) {
-		t->con.applyRot(t, NULL, axis);
+		t->con.applyRot(t, NULL, axis, &final);
 	}
 	
 	applySnapping(t, &final);
@@ -3305,7 +3305,7 @@ int PushPull(TransInfo *t, short mval[2])
 	}
 	
 	if (t->con.applyRot && t->con.mode & CON_APPLY) {
-		t->con.applyRot(t, NULL, axis);
+		t->con.applyRot(t, NULL, axis, NULL);
 	}
 	
 	for(i = 0 ; i < t->total; i++, td++) {
@@ -3317,7 +3317,7 @@ int PushPull(TransInfo *t, short mval[2])
 
 		VecSubf(vec, t->center, td->center);
 		if (t->con.applyRot && t->con.mode & CON_APPLY) {
-			t->con.applyRot(t, td, axis);
+			t->con.applyRot(t, td, axis, NULL);
 			if (isLockConstraint(t)) {
 				float dvec[3];
 				Projf(dvec, vec, axis);
