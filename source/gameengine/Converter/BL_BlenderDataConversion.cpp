@@ -1668,8 +1668,6 @@ static KX_GameObject *gameobject_from_blenderobject(
 			BL_ShapeDeformer *dcont = new BL_ShapeDeformer((BL_DeformableGameObject*)gameobj, 
 															ob, (BL_SkinMeshObject*)meshobj);
 			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
-			if (bHasArmature)
-				dcont->LoadShapeDrivers(ob->parent);
 		} else if (bHasArmature) {
 			BL_SkinDeformer *dcont = new BL_SkinDeformer(ob, (BL_SkinMeshObject*)meshobj );				
 			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
