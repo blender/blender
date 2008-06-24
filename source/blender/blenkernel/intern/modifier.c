@@ -7279,6 +7279,50 @@ static void shrinkwrapModifier_updateDepgraph(ModifierData *md, DagForest *fores
 		dag_add_relation(forest, dag_get_node(forest, smd->cutPlane), obNode, DAG_RL_OB_DATA | DAG_RL_DATA_DATA, "Shrinkwrap Modifier");
 }
 
+/* SimpleDeform */
+static void simpledeformModifier_initData(ModifierData *md)
+{
+	SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
+
+	smd->mode = 0;
+	smd->origin = 0;
+	smd->factor[0] = 1.0;
+}
+
+static void simpledeformModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	SimpleDeformModifierData *smd  = (SimpleDeformModifierData*)md;
+	SimpleDeformModifierData *tsmd = (SimpleDeformModifierData*)target;
+
+	tsmd->mode	= smd->mode;
+	tsmd->origin= smd->origin;
+	memcpy(tsmd->factor, smd->factor, sizeof(tsmd->factor));
+}
+
+static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	SimpleDeformModifier_do((SimpleDeformModifierData*)md, vertexCos, numVerts);
+}
+
+static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	SimpleDeformModifier_do((SimpleDeformModifierData*)md, vertexCos, numVerts);
+}
+
+static void simpledeformModifier_foreachObjectLink(ModifierData *md, Object *ob, void (*walk)(void *userData, Object *ob, Object **obpoin), void *userData)
+{
+	SimpleDeformModifierData *smd  = (SimpleDeformModifierData*)md;
+	walk(userData, ob, &smd->origin);
+}
+
+static void simpledeformModifier_updateDepgraph(ModifierData *md, DagForest *forest, Object *ob, DagNode *obNode)
+{
+	SimpleDeformModifierData *smd  = (SimpleDeformModifierData*)md;
+
+	if (smd->origin)
+		dag_add_relation(forest, dag_get_node(forest, smd->origin), obNode, DAG_RL_OB_DATA, "SimpleDeform Modifier");
+}
+
 
 /***/
 
@@ -7614,6 +7658,19 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->applyModifier = shrinkwrapModifier_applyModifier;
 		mti->applyModifierEM = shrinkwrapModifier_applyModifierEM;
 		mti->updateDepgraph = shrinkwrapModifier_updateDepgraph;
+
+		mti = INIT_TYPE(SimpleDeform);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_SupportsEditmode
+				| eModifierTypeFlag_EnableInEditmode;
+		mti->initData = simpledeformModifier_initData;
+		mti->copyData = simpledeformModifier_copyData;
+		mti->deformVerts = simpledeformModifier_deformVerts;
+		mti->deformVertsEM = simpledeformModifier_deformVertsEM;
+		mti->foreachObjectLink = simpledeformModifier_foreachObjectLink;
+		mti->updateDepgraph = simpledeformModifier_updateDepgraph;
+
 
 		typeArrInit = 0;
 #undef INIT_TYPE

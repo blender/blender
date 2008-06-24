@@ -36,6 +36,7 @@ typedef enum ModifierType {
 	eModifierType_Collision,
 	eModifierType_Bevel,
 	eModifierType_Shrinkwrap,
+	eModifierType_SimpleDeform,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -517,5 +518,15 @@ typedef struct ShrinkwrapModifierData {
 
 #define MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE	(1<<3)
 #define MOD_SHRINKWRAP_CULL_TARGET_BACKFACE		(1<<4)
+
+typedef struct SimpleDeformModifierData {
+	ModifierData modifier;
+
+	struct Object *origin;	/* object to control the origin of modifier space coordinates */
+	float factor[4];		/* factors to control simple deforms */
+	char mode;
+	char pad[7];
+
+} SimpleDeformModifierData;
 
 #endif

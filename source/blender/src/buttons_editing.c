@@ -1831,6 +1831,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 86;
 			if (smd->shrinkType == MOD_SHRINKWRAP_NORMAL)
 				height += 19*7;
+		} else if (md->type==eModifierType_SimpleDeform) {
+				height += 19*2;
 		}
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 40, ""); 
@@ -2474,7 +2476,15 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &smd->target, "Target to shrink to");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Offset:",	lx,(cy-=19),buttonWidth,19, &smd->keptDist, 0.0f, 100.0f, 1.0f, 0, "Specify distance to kept from the target");
 			uiBlockEndAlign(block);
+		} else if (md->type==eModifierType_SimpleDeform) {
+			SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
+			char simpledeform_typemenu[]="Deform type%t|Taper %x0|Twist %x1|Bend %x2|Shear %x3";
+
+			uiDefButS(block, MENU, B_MODIFIER_RECALC, simpledeform_typemenu, lx,(cy-=19),buttonWidth,19, &smd->mode, 0, 0, 0, 0, "Selects type of deform");
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &smd->origin, "Origin of modifier space coordinates");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Factor:",	lx,(cy-=19),buttonWidth,19, &smd->factor[0], -1000.0f, 1000.0f, 1.0f, 0, "Deform Factor");
 		}
+
 
 		uiBlockEndAlign(block);
 
