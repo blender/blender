@@ -137,6 +137,7 @@ void BL_ConvertActuators(char* maggiename,
 				MT_Vector3 angvelvec ( KX_BLENDERTRUNC(obact->angularvelocity[0]),
 					KX_BLENDERTRUNC(obact->angularvelocity[1]),
 					KX_BLENDERTRUNC(obact->angularvelocity[2]));
+				short damping = obact->damping;
 				
 				drotvec /=		BLENDER_HACK_DTIME;
 				//drotvec /=		BLENDER_HACK_DTIME;
@@ -157,7 +158,7 @@ void BL_ConvertActuators(char* maggiename,
 				bitLocalFlag.DRot = bool((obact->flag & ACT_DROT_LOCAL)!=0);
 				bitLocalFlag.LinearVelocity = bool((obact->flag & ACT_LIN_VEL_LOCAL)!=0);
 				bitLocalFlag.AngularVelocity = bool((obact->flag & ACT_ANG_VEL_LOCAL)!=0);
-				
+				bitLocalFlag.ClampVelocity = bool((obact->flag & ACT_CLAMP_VEL)!=0);
 				bitLocalFlag.AddOrSetLinV = bool((obact->flag & ACT_ADD_LIN_VEL)!=0);
 				
 				
@@ -168,6 +169,7 @@ void BL_ConvertActuators(char* maggiename,
 					drotvec.getValue(),
 					linvelvec.getValue(),
 					angvelvec.getValue(),
+					damping,
 					bitLocalFlag
 					);
 				baseact = tmpbaseact;

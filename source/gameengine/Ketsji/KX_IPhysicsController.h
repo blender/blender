@@ -64,6 +64,7 @@ public:
 	virtual void	ApplyTorque(const MT_Vector3& torque,bool local)=0;
 	virtual void	ApplyForce(const MT_Vector3& force,bool local)=0;
 	virtual MT_Vector3 GetLinearVelocity()=0;
+	virtual MT_Vector3 GetAngularVelocity()=0;
 	virtual MT_Vector3 GetVelocity(const MT_Point3& pos)=0;
 	virtual void	SetAngularVelocity(const MT_Vector3& ang_vel,bool local)=0;
 	virtual void	SetLinearVelocity(const MT_Vector3& lin_vel,bool local)=0;

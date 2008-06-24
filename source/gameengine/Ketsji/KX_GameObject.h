@@ -259,6 +259,14 @@ public:
 	);
 
 	/** 
+	 * Return the angular velocity of the game object.
+	 */
+		MT_Vector3 
+	GetAngularVelocity(
+		bool local=false
+	);
+
+	/** 
 	 * Align the object to a given normal.
 	 */
 		void 

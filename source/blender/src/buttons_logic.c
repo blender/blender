@@ -1613,7 +1613,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 	{
 	case ACT_OBJECT:
 		{
-			ysize= 129;
+			ysize= 152;
 			
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
@@ -1651,6 +1651,10 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-125, wval, 19, oa->angularvelocity+1, -10000.0, 10000.0, 10, 0, "");
 			uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-125, wval, 19, oa->angularvelocity+2, -10000.0, 10000.0, 10, 0, "");
 			
+			uiDefBut(block, LABEL, 0, "damp",	xco, yco-148, 45, 19, NULL, 0, 0, 0, 0, "Number of frames to reach the target velocity");
+			uiDefButI(block, NUM, 0, "",		xco+45, yco-148, wval, 19, &oa->damping, 0.0, 1000.0, 100, 0, "");
+			uiDefButBitI(block, TOG, ACT_CLAMP_VEL, 0, "clamp",xco+45+wval, yco-148, wval, 19, &oa->flag, 0.0, 0.0, 0, 0, "Toggles between SET and CLAMP Velocity");
+
 			uiDefButBitI(block, TOG, ACT_FORCE_LOCAL, 0, "L",		xco+45+3*wval, yco-22, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
 			uiDefButBitI(block, TOG, ACT_TORQUE_LOCAL, 0, "L",		xco+45+3*wval, yco-41, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
 			uiDefButBitI(block, TOG, ACT_DLOC_LOCAL, 0, "L",		xco+45+3*wval, yco-64, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
