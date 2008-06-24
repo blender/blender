@@ -44,9 +44,12 @@
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_ipo_types.h"
+#include "DNA_curve_types.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_key.h"
+#include "BKE_ipo.h"
 #include "MT_Point3.h"
 
 extern "C"{
@@ -78,10 +81,54 @@ void BL_ShapeDeformer::ProcessReplica()
 {
 }
 
+bool BL_ShapeDeformer::LoadShapeDrivers(Object* arma)
+{
+	IpoCurve *icu;
+
+	m_shapeDrivers.clear();
+	// check if this mesh has armature driven shape keys
+	if (m_bmesh->key->ipo) {
+		for(icu= (IpoCurve*)m_bmesh->key->ipo->curve.first; icu; icu= (IpoCurve*)icu->next) {
+			if(icu->driver && 
+				(icu->flag & IPO_MUTE) == 0 &&
+				icu->driver->type == IPO_DRIVER_TYPE_NORMAL &&
+				icu->driver->ob == arma &&
+				icu->driver->blocktype == ID_AR) {
+				// this shape key ipo curve has a driver on the parent armature
+				// record this curve in the shape deformer so that the corresponding
+				m_shapeDrivers.push_back(icu);
+			}
+		}
+	}
+	return !m_shapeDrivers.empty();
+}
+
+bool BL_ShapeDeformer::ExecuteShapeDrivers(void)
+{
+	if (!m_shapeDrivers.empty() && PoseUpdated()) {
+		vector<IpoCurve*>::iterator it;
+		void *poin;
+		int type;
+		for (it=m_shapeDrivers.begin(); it!=m_shapeDrivers.end(); it++) {
+			// no need to set a specific time: this curve has a driver
+			IpoCurve *icu = *it;
+			calc_icu(icu, 1.0f);
+			poin = get_ipo_poin((ID*)m_bmesh->key, icu, &type);
+			if (poin) 
+				write_ipo_poin(poin, type, icu->curval);
+		}
+		ForceUpdate();
+		return true;
+	}
+	return false;
+}
+
 bool BL_ShapeDeformer::Update(void)
 {
 	bool bShapeUpdate = false;
 	bool bSkinUpdate = false;
+
+	ExecuteShapeDrivers();
 
 	/* See if the object shape has changed */
 	if (m_lastShapeUpdate != m_gameobj->GetLastFrame()) {

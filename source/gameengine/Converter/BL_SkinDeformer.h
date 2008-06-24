@@ -79,6 +79,14 @@ public:
 	virtual ~BL_SkinDeformer();
 	bool Update (void);
 	bool Apply (class RAS_IPolyMaterial *polymat);
+	bool PoseUpdated(void)
+		{ 
+			if (m_armobj && m_lastArmaUpdate!=m_armobj->GetLastFrame()) {
+				m_armobj->ApplyPose();
+				return true;
+			}
+			return false;
+		}
 
 	void ForceUpdate()
 	{

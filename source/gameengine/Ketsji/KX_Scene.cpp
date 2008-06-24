@@ -866,6 +866,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 						static_cast<BL_ArmatureObject*>( parentobj )
 					);
 					releaseParent= false;
+					shapeDeformer->LoadShapeDrivers(blendobj->parent);
 				}
 				else
 				{
