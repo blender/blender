@@ -99,6 +99,10 @@ static int check_delim(char *string);
 static int check_numbers(char *string);
 static int check_builtinfuncs(char *string);
 static int check_specialvars(char *string);
+static int check_identifier(char ch);
+
+static void get_suggest_prefix(Text *text);
+static void confirm_suggestion(Text *text);
 
 static void *last_txt_find_string= NULL;
 
@@ -1000,16 +1004,63 @@ static void do_selection(SpaceText *st, int selecting)
 		txt_undo_add_toop(st->text, UNDO_STO, sell, selc, linep2, charp2);
 }
 
-void draw_suggestion_list(SpaceText *st) {
-	SuggItem *item, *last;
-	
-	if (!is_suggest_active(st->text)) return;
+#define SUGG_LIST_SIZE 7
+#define SUGG_LIST_WIDTH 20
 
-	for (item=suggest_first(), last=suggest_last(); item; item=item->next) {
-		/* Useful for testing but soon to be replaced by UI list */
-		printf("Suggest: %c %s\n", item->type, item->name);
-		if (item == last)
-			break;
+void draw_suggestion_list(SpaceText *st) {
+	SuggItem *item, *first, *last, *sel;
+	TextLine *tmp;
+	char str[SUGG_LIST_WIDTH+1];
+	int w, boxw=0, boxh, i, l, x, y, b;
+	
+	if (!st || !st->text) return;
+	if (!suggest_is_active(st->text)) return;
+
+	first = suggest_first();
+	last = suggest_last();
+	sel = suggest_get_selected();
+	//if (!first || !last || !sel) return;
+
+	for (tmp=st->text->curl, l=-st->top; tmp; tmp=tmp->prev, l++);
+	boxw = SUGG_LIST_WIDTH*spacetext_get_fontwidth(st) + 20;
+	boxh = SUGG_LIST_SIZE*st->lheight + 8;
+	x = spacetext_get_fontwidth(st)*st->text->curc + 50; // TODO: Replace + 50
+	y = curarea->winy - st->lheight*l - 2;
+	
+	BIF_ThemeColor(TH_SHADE1);
+	glRecti(x-1, y+1, x+boxw+1, y-boxh-1);
+	BIF_ThemeColor(TH_BACK);
+	glRecti(x, y, x+boxw, y-boxh);
+
+	for (i=0, item=sel; i<3 && item && item!=first; i++, item=item->prev);
+
+	for (i=0; i<SUGG_LIST_SIZE && item; i++, item=item->next) {
+
+		y -= st->lheight;
+
+		strncpy(str, item->name, SUGG_LIST_WIDTH);
+		str[SUGG_LIST_WIDTH] = '\0';
+
+		w = BMF_GetStringWidth(spacetext_get_font(st), str);
+		
+		if (item == sel) {
+			BIF_ThemeColor(TH_SHADE2);
+			glRecti(x+16, y-3, x+16+w, y+st->lheight-3);
+		}
+		b=1; /* b=1 colour block, text is default. b=0 no block, colour text */
+		switch (item->type) {
+			case 'k': BIF_ThemeColor(TH_SYNTAX_B); b=0; break;
+			case 'm': BIF_ThemeColor(TH_TEXT); break;
+			case 'f': BIF_ThemeColor(TH_SYNTAX_L); break;
+			case 'v': BIF_ThemeColor(TH_SYNTAX_N); break;
+		}
+		if (b) {
+			glRecti(x+8, y+2, x+11, y+5);
+			BIF_ThemeColor(TH_TEXT);
+		}
+		text_draw(st, str, 0, 0, 1, x+16, y-1, NULL);
+
+		if (item == last) break;
 	}
 }
 
@@ -1484,6 +1535,48 @@ static void set_tabs(Text *text)
 	st->currtab_set = setcurr_tab(text);
 }
 
+static void get_suggest_prefix(Text *text) {
+	int i, len;
+	char *line, tmp[256];
+
+	if (!text) return;
+	if (!suggest_is_active(text)) return;
+
+	line= text->curl->line;
+	for (i=text->curc-1; i>=0; i--)
+		if (!check_identifier(line[i]))
+			break;
+	i++;
+	len= text->curc-i;
+	if (len > 255) {
+		printf("Suggestion prefix too long\n");
+		return;
+	}
+	strncpy(tmp, line+i, len);
+	tmp[len]= '\0';
+	suggest_prefix(tmp);
+}
+
+static void confirm_suggestion(Text *text) {
+	int i, len;
+	char *line;
+	SuggItem *sel;
+
+	if (!text) return;
+	if (!suggest_is_active(text)) return;
+
+	sel = suggest_get_selected();
+	if (!sel) return;
+
+	line= text->curl->line;
+	for (i=text->curc-1; i>=0; i--)
+		if (!check_identifier(line[i]))
+			break;
+	i++;
+	len= text->curc-i;
+	txt_insert_buf(text, sel->name+len);
+}
+
 void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
@@ -1492,6 +1585,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	SpaceText *st= curarea->spacedata.first;
 	Text *text;
 	int do_draw=0, p;
+	int suggesting=0, do_suggest=0; /* 0:just redraw, -1:clear, 1:update prefix */
 	
 	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 	
@@ -1554,6 +1648,8 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 		return;
 	}
+
+	suggesting = suggest_is_active(text);
 	
 	if (event==LEFTMOUSE) {
 		if (val) {
@@ -1573,6 +1669,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				do_draw= 1;
 			}
+			do_suggest= -1;
 		}
 	} else if (event==MIDDLEMOUSE) {
 		if (val) {
@@ -1586,6 +1683,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			{
 				do_textscroll(st, 1);
 			}
+			do_suggest= -1;
 		}
 	} else if (event==RIGHTMOUSE) {
 		if (val) {
@@ -1618,6 +1716,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				default:
 					break;
 			}
+			do_suggest= -1;
 		}
 	} else if (ascii) {
 		if (text && text->id.lib) {
@@ -1627,8 +1726,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (st->showsyntax) get_format_string(st);
 			pop_space_text(st);
 			do_draw= 1;
+			do_suggest= 1;
 		}
 	} else if (val) {
+		do_suggest= -1;
 		switch (event) {
 		case AKEY:
 			if (G.qual & LR_ALTKEY) {
@@ -1891,6 +1992,9 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				do_draw= 1;
 			}
 			break;
+		case ESCKEY:
+			do_suggest= -1;
+			break;
 		case TABKEY:
 			if (text && text->id.lib) {
 				error_libdata();
@@ -1918,6 +2022,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case RETKEY:
 			if (text && text->id.lib) {
 				error_libdata();
+				break;
+			}
+			if (suggesting) {
+				confirm_suggestion(text);
+				if (st->showsyntax) get_format_string(st);
 				break;
 			}
 			//double check tabs before splitting the line
@@ -1951,6 +2060,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (st->showsyntax) get_format_string(st);
 			do_draw= 1;
 			pop_space_text(st);
+			do_suggest= 1;
 			break;
 		case DELKEY:
 			if (text && text->id.lib) {
@@ -1970,8 +2080,16 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case INSERTKEY:
 			st->overwrite= !st->overwrite;
 			do_draw= 1;
+			do_suggest= 0;
 			break;
 		case DOWNARROWKEY:
+			if (suggesting) {
+				SuggItem *sel = suggest_get_selected();
+				if (sel && sel!=suggest_last() && sel->next)
+					suggest_set_selected(sel->next);
+				do_suggest= 0;
+				break;
+			}
 			txt_move_down(text, G.qual & LR_SHIFTKEY);
 			set_tabs(text);
 			do_draw= 1;
@@ -2000,17 +2118,42 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			pop_space_text(st);
 			break;
 		case UPARROWKEY:
+			if (suggesting) {
+				SuggItem *sel = suggest_get_selected();
+				if (sel && sel!=suggest_first() && sel->prev)
+					suggest_set_selected(sel->prev);
+				do_suggest= 0;
+				break;
+			}
 			txt_move_up(text, G.qual & LR_SHIFTKEY);
 			set_tabs(text);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
 		case PAGEDOWNKEY:
-			screen_skip(st, st->viewlines);
+			if (suggesting) {
+				int i;
+				SuggItem *sel = suggest_get_selected();
+				for (i=0; i<SUGG_LIST_SIZE-1 && sel && sel!=suggest_last() && sel->next; i++, sel=sel->next)
+					suggest_set_selected(sel->next);
+				do_suggest= 0;
+				break;
+			} else {
+				screen_skip(st, st->viewlines);
+			}
 			do_draw= 1;
 			break;
 		case PAGEUPKEY:
-			screen_skip(st, -st->viewlines);
+			if (suggesting) {
+				int i;
+				SuggItem *sel = suggest_get_selected();
+				for (i=0; i<SUGG_LIST_SIZE-1 && sel && sel!=suggest_first() && sel->prev; i++, sel=sel->prev)
+					suggest_set_selected(sel->prev);
+				do_suggest= 0;
+				break;
+			} else {
+				screen_skip(st, -st->viewlines);
+			}
 			do_draw= 1;
 			break;
 		case HOMEKEY:
@@ -2024,14 +2167,39 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			pop_space_text(st);
 			break;
 		case WHEELUPMOUSE:
-			screen_skip(st, -U.wheellinescroll);
+			if (suggesting) {
+				SuggItem *sel = suggest_get_selected();
+				if (sel && sel!=suggest_first() && sel->prev)
+					suggest_set_selected(sel->prev);
+				do_suggest= 0;
+			} else {
+				screen_skip(st, -U.wheellinescroll);
+			}
 			do_draw= 1;
 			break;
 		case WHEELDOWNMOUSE:
-			screen_skip(st, U.wheellinescroll);
+			if (suggesting) {
+				SuggItem *sel = suggest_get_selected();
+				if (sel && sel!=suggest_last() && sel->next)
+					suggest_set_selected(sel->next);
+				do_suggest= 0;
+			} else {
+				screen_skip(st, U.wheellinescroll);
+			}
 			do_draw= 1;
 			break;
+		default:
+			do_suggest= 0;
 		}
+	}
+
+	if (suggesting) {
+		if (do_suggest == -1) {
+			suggest_clear_text();
+		} else if (do_suggest == 1) {
+			get_suggest_prefix(text);
+		}
+		do_draw= 1;
 	}
 
 	if (do_draw) {
@@ -2220,6 +2388,16 @@ static int check_numbers(char *string)
 		if(!strcmp(other[a], string))
 			return 1;
 	}
+	return 0;
+}
+
+static int check_identifier(char ch) {
+	if (ch < '0') return 0;
+	if (ch <= '9') return 1;
+	if (ch < 'A') return 0;
+	if (ch <= 'Z' || ch == '_') return 1;
+	if (ch < 'a') return 0;
+	if (ch <= 'z') return 1;
 	return 0;
 }
 

@@ -40,14 +40,17 @@ static SuggList suggestions= {NULL, NULL, NULL, NULL};
 static Text *suggText = NULL;
 
 void free_suggestions() {
-	SuggItem *item;
-	for (item = suggestions.last; item; item=item->prev)
+	SuggItem *item, *prev;
+	for (item = suggestions.last; item; item=prev) {
+		prev = item->prev;
 		MEM_freeN(item);
+	}
 	suggestions.first = suggestions.last = NULL;
 	suggestions.firstmatch = suggestions.lastmatch = NULL;
+	suggestions.selected = NULL;
 }
 
-void add_suggestion(const char *name, char type) {
+void suggest_add(const char *name, char type) {
 	SuggItem *newitem;
 
 	newitem = MEM_mallocN(sizeof(SuggItem) + strlen(name) + 1, "SuggestionItem");
@@ -63,6 +66,7 @@ void add_suggestion(const char *name, char type) {
 
 	if (!suggestions.first) {
 		suggestions.first = suggestions.last = newitem;
+		suggestions.selected = newitem;
 	} else {
 		newitem->prev = suggestions.last;
 		suggestions.last->next = newitem;
@@ -70,13 +74,13 @@ void add_suggestion(const char *name, char type) {
 	}
 }
 
-void update_suggestions(const char *prefix) {
+void suggest_prefix(const char *prefix) {
 	SuggItem *match, *first, *last;
 	int cmp, len = strlen(prefix);
 
 	if (!suggestions.first) return;
 	if (len==0) {
-		suggestions.firstmatch = suggestions.first;
+		suggestions.selected = suggestions.firstmatch = suggestions.first;
 		suggestions.lastmatch = suggestions.last;
 		return;
 	}
@@ -96,10 +100,10 @@ void update_suggestions(const char *prefix) {
 	}
 	if (first) {
 		if (!last) last = suggestions.last;
-		suggestions.firstmatch = first;
+		suggestions.selected = suggestions.firstmatch = first;
 		suggestions.lastmatch = last;
 	} else {
-		suggestions.firstmatch = suggestions.lastmatch = NULL;
+		suggestions.selected = suggestions.firstmatch = suggestions.lastmatch = NULL;
 	}
 }
 
@@ -111,15 +115,23 @@ SuggItem *suggest_last() {
 	return suggestions.lastmatch;
 }
 
-void set_suggest_text(Text *text) {
+void suggest_set_text(Text *text) {
 	suggText = text;
 }
 
-void clear_suggest_text() {
+void suggest_clear_text() {
 	free_suggestions();
 	suggText = NULL;
 }
 
-short is_suggest_active(Text *text) {
+short suggest_is_active(Text *text) {
 	return suggText==text ? 1 : 0;
+}
+
+void suggest_set_selected(SuggItem *sel) {
+	suggestions.selected = sel;
+}
+
+SuggItem *suggest_get_selected() {
+	return suggestions.selected;
 }

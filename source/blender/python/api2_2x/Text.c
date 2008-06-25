@@ -129,7 +129,7 @@ static PyMethodDef BPy_Text_methods[] = {
 	{"setCursorPos", ( PyCFunction ) Text_setCursorPos, METH_VARARGS,
 	 "(row, col) - Set the cursor position to (row, col)"},
 	{"suggest", ( PyCFunction ) Text_suggest, METH_VARARGS,
-	 "(list) - List of tuples of the form (name, type) where type is one of 'm', 'v', 'f' for module, variable and function respectively"},
+	 "(list) - List of tuples of the form (name, type) where type is one of 'm', 'v', 'f', 'k' for module, variable, function and keyword respectively"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -544,7 +544,7 @@ static PyObject *Text_suggest( BPy_Text * self, PyObject * args )
 				"Active text area has no Text object");
 	
 	list_len = PyList_Size(list);
-	clear_suggest_text();
+	suggest_clear_text();
 	
 	for (i = 0; i < list_len; i++) {
 		item = PyList_GetItem(list, i);
@@ -555,14 +555,14 @@ static PyObject *Text_suggest( BPy_Text * self, PyObject * args )
 		name = PyString_AsString(PyTuple_GetItem(item, 0));
 		type = PyString_AsString(PyTuple_GetItem(item, 1))[0];
 
-		if (!strlen(name) || (type!='m' && type!='v' && type!='f'))
+		if (!strlen(name) || (type!='m' && type!='v' && type!='f' && type!='k'))
 			return EXPP_ReturnPyObjError(PyExc_AttributeError,
-					"layer values must be in the range [1, 20]" );
+					"names must be non-empty and types in ['m', 'v', 'f', 'k']" );
 
-		add_suggestion(name, type);
+		suggest_add(name, type);
 	}
-	update_suggestions(prefix);
-	set_suggest_text(st->text);
+	suggest_prefix(prefix);
+	suggest_set_text(st->text);
 	scrarea_queue_redraw(curarea);
 
 	Py_RETURN_NONE;

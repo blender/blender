@@ -57,18 +57,22 @@ typedef struct SuggItem {
 typedef struct SuggList {
 	SuggItem *first, *last;
 	SuggItem *firstmatch, *lastmatch;
+	SuggItem *selected;
 } SuggList;
 
 void free_suggestions();
 
-void add_suggestion(const char *name, char type);
-void update_suggestions(const char *prefix);
+void suggest_add(const char *name, char type);
+void suggest_prefix(const char *prefix);
 SuggItem *suggest_first();
 SuggItem *suggest_last();
 
-void set_suggest_text(Text *text);
-void clear_suggest_text();
-short is_suggest_active(Text *text);
+void suggest_set_text(Text *text);
+void suggest_clear_text();
+short suggest_is_active(Text *text);
+
+void suggest_set_selected(SuggItem *sel);
+SuggItem *suggest_get_selected();
 
 #ifdef __cplusplus
 }
