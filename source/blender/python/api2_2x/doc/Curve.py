@@ -535,6 +535,8 @@ class CurNurb:
 	@type flagU: int
 	@ivar flagV: The CurNurb knot flag V.  See L{setFlagU} for description.
 	@type flagV: int
+	@ivar orderU: The CurNurb knot order U, for nurbs curves only, this is clamped by the number of points, so the orderU will never be greater.
+	@type orderU: int
 	@ivar type: The type of the curve (Poly: 0, Bezier: 1, NURBS: 4)
 	@type type: int
 	@ivar knotsU: The knot vector in the U direction. The tuple will be empty
