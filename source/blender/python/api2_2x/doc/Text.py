@@ -100,6 +100,18 @@ class Text:
 		Clear this Text object: its buffer becomes empty.
 		"""
 
+	def reset():
+		"""
+		Reset the read IO pointer to the start of the buffer.
+		"""
+
+	def readline():
+		"""
+		Reads a line of text from the buffer from the current IO pointer
+		position to the end of the line.
+		@rtype: string
+		"""
+
 	def set(attribute, value):
 		"""
 		Set this Text's attributes.

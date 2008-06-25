@@ -40,6 +40,7 @@
 #include "BLI_blenlib.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "MEM_guardedalloc.h"
 #include "gen_utils.h"
 #include "gen_library.h"
 #include "../BPY_extern.h"
@@ -93,6 +94,8 @@ struct PyMethodDef M_Text_methods[] = {
 static PyObject *Text_getFilename( BPy_Text * self );
 static PyObject *Text_getNLines( BPy_Text * self );
 static PyObject *Text_clear( BPy_Text * self );
+static PyObject *Text_reset( BPy_Text * self );
+static PyObject *Text_readline( BPy_Text * self );
 static PyObject *Text_write( BPy_Text * self, PyObject * value );
 static PyObject *Text_insert( BPy_Text * self, PyObject * value );
 static PyObject *Text_set( BPy_Text * self, PyObject * args );
@@ -116,6 +119,10 @@ static PyMethodDef BPy_Text_methods[] = {
 	 "(str) - Change Text Object name"},
 	{"clear", ( PyCFunction ) Text_clear, METH_NOARGS,
 	 "() - Clear Text buffer"},
+	{"reset", ( PyCFunction ) Text_reset, METH_NOARGS,
+	 "() - Moves the IO pointer back to the start of the Text buffer for reading"},
+	{"readline", ( PyCFunction ) Text_readline, METH_NOARGS,
+	 "() - Reads a line of text from the buffer and returns it incrementing the internal IO pointer."},
 	{"write", ( PyCFunction ) Text_write, METH_O,
 	 "(line) - Append string 'str' to Text buffer"},
 	{"insert", ( PyCFunction ) Text_insert, METH_O,
@@ -342,6 +349,8 @@ PyObject *Text_CreatePyObject( Text * txt )
 					      "couldn't create BPy_Text PyObject" );
 
 	pytxt->text = txt;
+	pytxt->iol = 0;
+	pytxt->ioc = 0;
 
 	return ( PyObject * ) pytxt;
 }
@@ -391,23 +400,43 @@ static PyObject *Text_clear( BPy_Text * self)
 	Py_RETURN_NONE;
 }
 
-static PyObject *Text_set( BPy_Text * self, PyObject * args )
+static PyObject *Text_reset( BPy_Text * self )
 {
-	int ival;
-	char *attr;
-
-	if( !PyArg_ParseTuple( args, "si", &attr, &ival ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected a string and an int as arguments" );
-
-	if( strcmp( "follow_cursor", attr ) == 0 ) {
-		if( ival )
-			self->text->flags |= EXPP_TEXT_MODE_FOLLOW;
-		else
-			self->text->flags &= EXPP_TEXT_MODE_FOLLOW;
-	}
+	self->iol = 0;
+	self->ioc = 0;
 
 	Py_RETURN_NONE;
+}
+
+static PyObject *Text_readline( BPy_Text * self )
+{
+	PyObject *tmpstr;
+	TextLine *line;
+	int i;
+	
+	if( !self->text )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "This object isn't linked to a Blender Text Object" );
+
+	for (i=0, line=self->text->lines.first; i<self->iol && line; i++, line=line->next);
+
+	if (!line) {
+		PyErr_SetString( PyExc_StopIteration, "End of buffer reached" );
+		return PyString_FromString( "" );
+	}
+
+	if (self->ioc > line->len)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						  "Line length exceeded, text may have changed while reading" );
+
+	tmpstr = PyString_FromString( line->line + self->ioc );
+	if (line->next)
+		PyString_ConcatAndDel( &tmpstr, PyString_FromString("\n") );
+
+	self->iol++;
+	self->ioc = 0;
+
+	return tmpstr;
 }
 
 static PyObject *Text_write( BPy_Text * self, PyObject * value )
@@ -447,6 +476,25 @@ static PyObject *Text_insert( BPy_Text * self, PyObject * value )
 	oldstate = txt_get_undostate(  );
 	txt_insert_buf( self->text, str );
 	txt_set_undostate( oldstate );
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *Text_set( BPy_Text * self, PyObject * args )
+{
+	int ival;
+	char *attr;
+
+	if( !PyArg_ParseTuple( args, "si", &attr, &ival ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected a string and an int as arguments" );
+
+	if( strcmp( "follow_cursor", attr ) == 0 ) {
+		if( ival )
+			self->text->flags |= EXPP_TEXT_MODE_FOLLOW;
+		else
+			self->text->flags &= EXPP_TEXT_MODE_FOLLOW;
+	}
 
 	Py_RETURN_NONE;
 }

@@ -33,7 +33,7 @@ def getBuiltins():
 	builtins = []
 	bi = dir(__builtin__)
 	for k in bi:
-		v = eval(k)
+		v = getattr(__builtin__, k)
 		if ismodule(v): t='m'
 		elif callable(v): t='f'
 		else: t='v'
@@ -47,10 +47,8 @@ def getKeywords():
 
 
 def getTokens(txt):
-	lines = txt.asLines()
-	str = '\n'.join(lines)
-	readline = StringIO(str).readline
-	g = generate_tokens(readline)
+	txt.reset()
+	g = generate_tokens(txt.readline)
 	tokens = []
 	for t in g: tokens.append(t)
 	return tokens
