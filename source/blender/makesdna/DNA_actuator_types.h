@@ -81,7 +81,7 @@ typedef struct bEditObjectActuator {
 	char name[32];
 	float linVelocity[3]; /* initial lin. velocity on creation */
 	short localflag; /* flag for the lin. vel: apply locally   */
-	short pad;
+	short dyn_operation;
 } bEditObjectActuator;
 
 typedef struct bSceneActuator {
@@ -360,10 +360,11 @@ typedef struct FreeCamera {
 /* editObjectActuator->type */
 #define ACT_EDOB_ADD_OBJECT		0
 #define ACT_EDOB_END_OBJECT		1
-#define ACT_EDOB_REPLACE_MESH	2
+#define ACT_EDOB_REPLACE_MESH		2
 #define ACT_EDOB_TRACK_TO		3
-#define ACT_EDOB_MAKE_CHILD		4
-#define ACT_EDOB_END_CHILD		5
+#define ACT_EDOB_DYNAMICS		4
+
+
 
 /* editObjectActuator->flag */
 #define ACT_TRACK_3D			1

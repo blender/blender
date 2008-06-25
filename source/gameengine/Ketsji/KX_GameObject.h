@@ -46,7 +46,7 @@
 #include "GEN_HashedPtr.h"
 #include "KX_Scene.h"
 #include "KX_KetsjiEngine.h" /* for m_anim_framerate */
-
+#include "KX_IPhysicsController.h" /* for suspend/resume */
 #define KX_OB_DYNAMIC 1
 
 
@@ -651,6 +651,32 @@ public:
 	 * Resume making progress
 	 */
 	void Resume(void);
+	
+	void SuspendDynamics(void) {
+		if (m_bSuspendDynamics)
+		{
+			return;
+		}
+	
+		if (m_pPhysicsController1)
+		{
+			m_pPhysicsController1->SuspendDynamics();
+		}
+		m_bSuspendDynamics = true;
+	}
+	
+	void RestoreDynamics(void) {	
+		if (!m_bSuspendDynamics)
+		{
+			return;
+		}
+	
+		if (m_pPhysicsController1)
+		{
+			m_pPhysicsController1->RestoreDynamics();
+		}
+		m_bSuspendDynamics = false;
+	}
 	
 	KX_ClientObjectInfo* getClientInfo() { return m_pClient_info; }
 	/**

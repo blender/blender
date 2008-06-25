@@ -1283,17 +1283,7 @@ PyObject* KX_GameObject::PySuspendDynamics(PyObject* self,
 										   PyObject* args, 
 										   PyObject* kwds)
 {
-	if (m_bSuspendDynamics)
-	{
-		Py_Return;
-	}
-	
-	if (m_pPhysicsController1)
-	{
-		m_pPhysicsController1->SuspendDynamics();
-	}
-	m_bSuspendDynamics = true;
-	
+	SuspendDynamics();
 	Py_Return;
 }
 
@@ -1303,18 +1293,7 @@ PyObject* KX_GameObject::PyRestoreDynamics(PyObject* self,
 										   PyObject* args, 
 										   PyObject* kwds)
 {
-	
-	if (!m_bSuspendDynamics)
-	{
-		Py_Return;
-	}
-	
-	if (m_pPhysicsController1)
-	{
-		m_pPhysicsController1->RestoreDynamics();
-	}
-	m_bSuspendDynamics = false;
-	
+	RestoreDynamics();
 	Py_Return;
 }
 

@@ -62,6 +62,7 @@
 #include "KX_SCA_EndObjectActuator.h"
 #include "KX_SCA_ReplaceMeshActuator.h"
 #include "KX_ParentActuator.h"
+#include "KX_SCA_DynamicActuator.h"
 
 #include "KX_Scene.h"
 #include "KX_KetsjiEngine.h"
@@ -602,6 +603,15 @@ void BL_ConvertActuators(char* maggiename,
 								blenderobject->upflag
 								);
 							baseact = tmptrackact;
+						break;
+					}
+				case ACT_EDOB_DYNAMICS:
+					{
+						KX_SCA_DynamicActuator* tmpdynact 
+							= new KX_SCA_DynamicActuator(gameobj, 
+								editobact->dyn_operation
+								);
+							baseact = tmpdynact;
 					}
 				}
 				break;
