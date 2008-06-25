@@ -2690,15 +2690,17 @@ void image_changed(SpaceImage *sima, Image *image)
 					
 					if(image->id.us==0) id_us_plus(&image->id);
 					else id_lib_extern(&image->id);
-					
+#if 0				/* GE People dont like us messing with their face modes */
 					if (tface->transp==TF_ADD) {} /* they obviously know what they are doing! - leave as is */
 					else if (ibuf && ibuf->depth == 32)	tface->transp = TF_ALPHA;
 					else								tface->transp = TF_SOLID;
-					
+#endif
 				} else {
 					tface->tpage= NULL;
 					tface->mode &= ~TF_TEX;
+#if 0
 					tface->transp = TF_SOLID;
+#endif
 				}
 				change = 1;
 			}

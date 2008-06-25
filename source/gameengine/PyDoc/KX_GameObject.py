@@ -50,8 +50,9 @@ class KX_GameObject:
 		"""
 		Sets the game object's orientation.
 		
-		@type orn: 3x3 inverted rotation matrix, or Quaternion.
+		@type orn: 3x3 rotation matrix, or Quaternion.
 		@param orn: a rotation matrix specifying the new rotation.
+		@note: When using this matrix with Blender.Mathutils.Matrix() types, it will need to be transposed.
 		"""
 	def alignAxisToVect(vect, axis):
 		"""
@@ -71,6 +72,7 @@ class KX_GameObject:
 		
 		@rtype: 3x3 inverted rotation matrix
 		@return: The game object's rotation matrix
+		@note: When using this matrix with Blender.Mathutils.Matrix() types, it will need to be transposed.
 		"""
 	def getLinearVelocity(local):
 		"""
