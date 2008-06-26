@@ -57,7 +57,7 @@ static void do_math(bNode *node, float *out, float *in, float *in2)
 		break; 
 	case 3: /* Divide */
 		{
-			if(in[1]==0)	/* We don't want to divide by zero. */
+			if(in2[0]==0)	/* We don't want to divide by zero. */
 				out[0]= 0.0;
 			else
 				out[0]= in[0] / in2[0];
