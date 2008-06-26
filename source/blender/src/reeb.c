@@ -779,14 +779,17 @@ void filterArc(ReebGraph *rg, ReebNode *newNode, ReebNode *removedNode, ReebArc 
 {
 	ReebArc *arc = NULL, *nextArc = NULL;
 
-	/* first pass, merge buckets for arcs that spawned the two nodes into the source arc*/
-	for(arc = rg->arcs.first; arc; arc = arc->next)
+	if (merging)
 	{
-		if (arc->head == srcArc->head && arc->tail == srcArc->tail && arc != srcArc)
+		/* first pass, merge buckets for arcs that spawned the two nodes into the source arc*/
+		for(arc = rg->arcs.first; arc; arc = arc->next)
 		{
-			ReebNode *head = (ReebNode*)srcArc->head;
-			ReebNode *tail = (ReebNode*)srcArc->tail;
-			mergeArcBuckets(srcArc, arc, head->weight, tail->weight);
+			if (arc->head == srcArc->head && arc->tail == srcArc->tail && arc != srcArc)
+			{
+				ReebNode *head = (ReebNode*)srcArc->head;
+				ReebNode *tail = (ReebNode*)srcArc->tail;
+				mergeArcBuckets(srcArc, arc, head->weight, tail->weight);
+			}
 		}
 	}
 
@@ -814,13 +817,14 @@ void filterArc(ReebGraph *rg, ReebNode *newNode, ReebNode *removedNode, ReebArc 
 				NodeDegreeDecrement(rg, newNode);
 				//newNode->degree--;
 				
-				// If it's safeArc, it'll be removed later, so keep it for now
+				// If it's srcArc, it'll be removed later, so keep it for now
 				if (arc != srcArc)
 				{
 					BLI_remlink(&rg->arcs, arc);
 					REEB_freeArc((BArc*)arc);
 				}
 			}
+#if 0
 			// Remove flipped arcs
 			else if (((ReebNode*)arc->head)->weight > ((ReebNode*)arc->tail)->weight)
 			{
@@ -831,6 +835,7 @@ void filterArc(ReebGraph *rg, ReebNode *newNode, ReebNode *removedNode, ReebArc 
 				BLI_remlink(&rg->arcs, arc);
 				REEB_freeArc((BArc*)arc);
 			}
+#endif
 			else
 			{
 				//newNode->degree++; // incrementing degree since we're adding an arc
@@ -1929,6 +1934,35 @@ static float cotan_weight(float *v1, float *v2, float *v3)
 	return Inpf(a, b)/clen;
 }
 
+void addTriangle(EditVert *v1, EditVert *v2, EditVert *v3, long e1, long e2, long e3)
+{
+	/* Angle opposite e1 */
+	float t1= cotan_weight(v1->co, v2->co, v3->co) / e2;
+	
+	/* Angle opposite e2 */
+	float t2 = cotan_weight(v2->co, v3->co, v1->co) / e3;
+
+	/* Angle opposite e3 */
+	float t3 = cotan_weight(v3->co, v1->co, v2->co) / e1;
+	
+	int i1 = v1->hash;
+	int i2 = v2->hash;
+	int i3 = v3->hash;
+	
+	nlMatrixAdd(i1, i1, t2+t3);
+	nlMatrixAdd(i2, i2, t1+t3);
+	nlMatrixAdd(i3, i3, t1+t2);
+
+	nlMatrixAdd(i1, i2, -t3);
+	nlMatrixAdd(i2, i1, -t3);
+
+	nlMatrixAdd(i2, i3, -t1);
+	nlMatrixAdd(i3, i2, -t1);
+
+	nlMatrixAdd(i3, i1, -t2);
+	nlMatrixAdd(i1, i3, -t2);
+}
+
 int weightToHarmonic(EditMesh *em)
 {
 	NLboolean success;
@@ -1956,48 +1990,54 @@ int weightToHarmonic(EditMesh *em)
 	/* Find local extrema */
 	for(index = 0, eve = em->verts.first; eve; index++, eve = eve->next)
 	{
-		EditEdge *eed;
-		int maximum = 1;
-		int minimum = 1;
-		
-		eve->hash = index; /* Assign index to vertex */
-		
-		NextEdgeForVert(NULL, NULL); /* Reset next edge */
-		for(eed = NextEdgeForVert(em, eve); eed && (maximum || minimum); eed = NextEdgeForVert(em, eve))
+		if (eve->h == 0)
 		{
-			EditVert *eve2;
+			EditEdge *eed;
+			int maximum = 1;
+			int minimum = 1;
 			
-			if (eed->v1 == eve)
+			eve->hash = index; /* Assign index to vertex */
+			
+			NextEdgeForVert(NULL, NULL); /* Reset next edge */
+			for(eed = NextEdgeForVert(em, eve); eed && (maximum || minimum); eed = NextEdgeForVert(em, eve))
 			{
-				eve2 = eed->v2;
+				EditVert *eve2;
+				
+				if (eed->v1 == eve)
+				{
+					eve2 = eed->v2;
+				}
+				else
+				{
+					eve2 = eed->v1;
+				}
+				
+				if (eve2->h == 0)
+				{
+					/* Adjacent vertex is bigger, not a local maximum */
+					if (eve2->tmp.fp > eve->tmp.fp)
+					{
+						maximum = 0;
+					}
+					/* Adjacent vertex is smaller, not a local minimum */
+					else if (eve2->tmp.fp < eve->tmp.fp)
+					{
+						minimum = 0;
+					}
+				}
+			}
+			
+			if (maximum || minimum)
+			{
+				float w = eve->tmp.fp;
+				eve->f1 = 0;
+				nlSetVariable(0, index, w);
+				nlLockVariable(index);
 			}
 			else
 			{
-				eve2 = eed->v1;
+				eve->f1 = 1;
 			}
-			
-			/* Adjacent vertex is bigger, not a local maximum */
-			if (eve2->tmp.fp > eve->tmp.fp)
-			{
-				maximum = 0;
-			}
-			/* Adjacent vertex is smaller, not a local minimum */
-			else if (eve2->tmp.fp < eve->tmp.fp)
-			{
-				minimum = 0;
-			}
-		}
-		
-		if (maximum || minimum)
-		{
-			float w = eve->tmp.fp;
-			eve->f1 = 0;
-			nlSetVariable(0, index, w);
-			nlLockVariable(index);
-		}
-		else
-		{
-			eve->f1 = 1;
 		}
 	}
 	
@@ -2012,39 +2052,34 @@ int weightToHarmonic(EditMesh *em)
 	/* Add faces count to the edge weight */
 	for(efa = em->faces.first; efa; efa = efa->next)
 	{
-		efa->e1->tmp.l++;
-		efa->e2->tmp.l++;
-		efa->e3->tmp.l++;
+		if (efa->h == 0)
+		{
+			efa->e1->tmp.l++;
+			efa->e2->tmp.l++;
+			efa->e3->tmp.l++;
+			
+			if (efa->e4)
+			{
+				efa->e4->tmp.l++;
+			}
+		}
 	}
 
 	/* Add faces angle to the edge weight */
 	for(efa = em->faces.first; efa; efa = efa->next)
 	{
-		/* Angle opposite e1 */
-		float t1= cotan_weight(efa->v1->co, efa->v2->co, efa->v3->co) / efa->e2->tmp.l;
-		
-		/* Angle opposite e2 */
-		float t2 = cotan_weight(efa->v2->co, efa->v3->co, efa->v1->co) / efa->e3->tmp.l;
-
-		/* Angle opposite e3 */
-		float t3 = cotan_weight(efa->v3->co, efa->v1->co, efa->v2->co) / efa->e1->tmp.l;
-		
-		int i1 = efa->v1->hash;
-		int i2 = efa->v2->hash;
-		int i3 = efa->v3->hash;
-		
-		nlMatrixAdd(i1, i1, t2+t3);
-		nlMatrixAdd(i2, i2, t1+t3);
-		nlMatrixAdd(i3, i3, t1+t2);
-	
-		nlMatrixAdd(i1, i2, -t3);
-		nlMatrixAdd(i2, i1, -t3);
-	
-		nlMatrixAdd(i2, i3, -t1);
-		nlMatrixAdd(i3, i2, -t1);
-	
-		nlMatrixAdd(i3, i1, -t2);
-		nlMatrixAdd(i1, i3, -t2);
+		if (efa->h == 0)
+		{
+			if (efa->v4 == NULL)
+			{
+				addTriangle(efa->v1, efa->v2, efa->v3, efa->e1->tmp.l, efa->e2->tmp.l, efa->e3->tmp.l);
+			}
+			else
+			{
+				addTriangle(efa->v1, efa->v2, efa->v3, efa->e1->tmp.l, efa->e2->tmp.l, 2);
+				addTriangle(efa->v3, efa->v4, efa->v1, efa->e3->tmp.l, efa->e4->tmp.l, 2);
+			}
+		}
 	}
 	
 	nlEnd(NL_MATRIX);
@@ -2714,8 +2749,18 @@ void BIF_GlobalReebGraphFromEditMesh(void)
 	
 	verifyFaces(GLOBAL_RG);
 
+	printf("GENERATED\n");
+	printf("%i subgraphs\n", BLI_FlagSubgraphs((BGraph*)GLOBAL_RG));
+
 	/* Remove arcs without embedding */
 	filterNullReebGraph(GLOBAL_RG);
+
+	verifyNodeDegree(GLOBAL_RG);
+	
+	BLI_freeAdjacencyList((BGraph*)GLOBAL_RG);
+
+	printf("NULL FILTERED\n");
+	printf("%i subgraphs\n", BLI_FlagSubgraphs((BGraph*)GLOBAL_RG));
 
 	verifyBuckets(GLOBAL_RG);
 
@@ -2775,6 +2820,9 @@ void BIF_GlobalReebGraphFromEditMesh(void)
 	calculateGraphLength(GLOBAL_RG);
 
 	BLI_markdownSymmetry((BGraph*)GLOBAL_RG, GLOBAL_RG->nodes.first, G.scene->toolsettings->skgen_symmetry_limit);
+	
+	printf("DONE\n");
+	printf("%i subgraphs\n", BLI_FlagSubgraphs((BGraph*)GLOBAL_RG));
 }
 
 void REEB_draw()

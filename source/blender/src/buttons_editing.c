@@ -5000,11 +5000,13 @@ static void skgen_reorder(void *option, void *arg2)
 static void skgen_graphgen(void *arg1, void *arg2)
 {
 	BIF_GlobalReebGraphFromEditMesh();
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 static void skgen_graphfree(void *arg1, void *arg2)
 {
 	BIF_GlobalReebFree();
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 static void editing_panel_mesh_skgen_retarget(Object *ob, Mesh *me)

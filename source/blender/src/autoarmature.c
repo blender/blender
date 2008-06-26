@@ -364,7 +364,7 @@ static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bo
 
 	if (contain_head)
 	{
-		rg->head = (RigNode*)arc->tail;
+		rg->head = arc->tail;
 	}
 }
 
@@ -378,6 +378,26 @@ static void RIG_findHead(RigGraph *rg)
 			RigArc *arc = rg->arcs.first;
 			
 			rg->head = (RigNode*)arc->head;
+		}
+		else
+		{
+			RigArc *arc;
+			
+			for (arc = rg->arcs.first; arc; arc = arc->next)
+			{
+				RigEdge *edge = arc->edges.last;
+				
+				if (edge->bone->flag & BONESEL_ANY)
+				{
+					rg->head = arc->tail;
+					break;
+				}
+			}
+		}
+		
+		if (rg->head == NULL)
+		{
+			rg->head = rg->nodes.first;
 		}
 	}
 }

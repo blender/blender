@@ -80,8 +80,8 @@ void BLI_flagArcs(BGraph *graph, int flag)
 
 static void addArcToNodeAdjacencyList(BNode *node, BArc *arc)
 {
-	node->arcs[node->degree] = arc;
-	node->degree++;
+	node->arcs[node->flag] = arc;
+	node->flag++;
 }
 
 void BLI_buildAdjacencyList(BGraph *rg)
@@ -99,13 +99,35 @@ void BLI_buildAdjacencyList(BGraph *rg)
 		node->arcs = MEM_callocN((node->degree) * sizeof(BArc*), "adjacency list");
 		
 		/* temporary use to indicate the first index available in the lists */
-		node->degree = 0;
+		node->flag = 0;
 	}
 
 	for(arc = rg->arcs.first; arc; arc= arc->next)
 	{
 		addArcToNodeAdjacencyList(arc->head, arc);
 		addArcToNodeAdjacencyList(arc->tail, arc);
+	}
+
+	for(node = rg->nodes.first; node; node = node->next)
+	{
+		if (node->degree != node->flag)
+		{
+			printf("error in node [%p]. Added only %i arcs out of %i\n", node, node->flag, node->degree);
+		}
+	}
+}
+
+void BLI_freeAdjacencyList(BGraph *rg)
+{
+	BNode *node;
+
+	for(node = rg->nodes.first; node; node = node->next)
+	{
+		if (node->arcs != NULL)
+		{
+			MEM_freeN(node->arcs);
+			node->arcs = NULL;
+		}
 	}
 }
 
@@ -172,6 +194,48 @@ void BLI_removeDoubleNodes(BGraph *graph, float limit)
 		}
 	}
 	
+}
+/************************************* SUBGRAPH DETECTION **********************************************/
+
+void flagSubgraph(BNode *node, int subgraph)
+{
+	if (node->flag == 0)
+	{
+		BArc *arc;
+		int i;
+		
+		node->flag = subgraph;
+		
+		for(i = 0; i < node->degree; i++)
+		{
+			arc = node->arcs[i];
+			flagSubgraph(BLI_otherNode(arc, node), subgraph);
+		}
+	}
+} 
+
+int BLI_FlagSubgraphs(BGraph *graph)
+{
+	BNode *node;
+	int subgraph = 0;
+
+	if (BLI_hasAdjacencyList(graph) == 0)
+	{
+		BLI_buildAdjacencyList(graph);
+	}
+	
+	BLI_flagNodes(graph, 0);
+	
+	for (node = graph->nodes.first; node; node = node->next)
+	{
+		if (node->flag == 0)
+		{
+			subgraph++;
+			flagSubgraph(node, subgraph);
+		}
+	}
+	
+	return subgraph;
 }
 
 /*************************************** CYCLE DETECTION ***********************************************/
@@ -790,6 +854,7 @@ void BLI_markdownSymmetry(BGraph *graph, BNode *root_node, float limit)
 	
 	if (BLI_isGraphCyclic(graph))
 	{
+		printf("cyclic\n");
 		return;
 	}
 	

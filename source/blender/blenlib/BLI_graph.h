@@ -72,6 +72,9 @@ void BLI_flagArcs(BGraph *graph, int flag);
 
 int BLI_hasAdjacencyList(BGraph *rg);
 void BLI_buildAdjacencyList(BGraph *rg);
+void BLI_freeAdjacencyList(BGraph *rg);
+
+int BLI_FlagSubgraphs(BGraph *graph);
 
 void BLI_replaceNode(BGraph *graph, BNode *node_src, BNode *node_replaced);
 void BLI_removeDoubleNodes(BGraph *graph, float limit);
