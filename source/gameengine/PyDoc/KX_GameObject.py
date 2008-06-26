@@ -25,7 +25,12 @@ class KX_GameObject:
 	@ivar timeOffset: adjust the slowparent delay at runtime.
 	@type timeOffset: float
 	"""
-	
+	def getVisible(visible):
+		"""
+		Gets the game object's visible flag.
+		
+		@type visible: boolean
+		"""	
 	def setVisible(visible):
 		"""
 		Sets the game object's visible flag.
@@ -176,6 +181,12 @@ class KX_GameObject:
 		"""
 		Returns the user data object associated with this game object's physics controller.
 		"""
+	def getPropertyNames():
+		"""
+		Gets a list of all property names.
+		@rtype: list
+		@return: All property names for this object.
+		"""
 	def getDistanceTo(other):
 		"""
 		Returns the distance to another object or point.
@@ -216,7 +227,7 @@ class KX_GameObject:
 		If is casted from/to object center or explicit [x,y,z] points.
 		The ray does not have X-Ray capability: the first object hit (other than self object) stops the ray
 		If a property was specified and the first object hit does not have that property, there is no hit
-		The	ray ignores collision-free objects
+		The	ray ignores collision-free objects and faces that dont have the collision flag enabled, you can however use ghost objects.
 
 		@param to: [x,y,z] or object to which the ray is casted
 		@type to: L{KX_GameObject} or 3-tuple

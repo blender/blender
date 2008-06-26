@@ -718,6 +718,7 @@ public:
 	KX_PYMETHOD(KX_GameObject,GetReactionForce);
 	KX_PYMETHOD(KX_GameObject,GetOrientation);
 	KX_PYMETHOD(KX_GameObject,SetOrientation);
+	KX_PYMETHOD(KX_GameObject,GetVisible);
 	KX_PYMETHOD(KX_GameObject,SetVisible);
 	KX_PYMETHOD(KX_GameObject,AlignAxisToVect);
 	KX_PYMETHOD(KX_GameObject,SuspendDynamics);
@@ -731,9 +732,11 @@ public:
 	KX_PYMETHOD(KX_GameObject,SetParent);
 	KX_PYMETHOD(KX_GameObject,RemoveParent);
 	KX_PYMETHOD(KX_GameObject,GetPhysicsId);
+	KX_PYMETHOD(KX_GameObject,GetPropertyNames);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCastTo);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCast);
 	KX_PYMETHOD_DOC(KX_GameObject,getDistanceTo);
+	
 private :
 
 	/**	

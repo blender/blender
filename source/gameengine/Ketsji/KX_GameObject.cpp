@@ -803,6 +803,7 @@ void KX_GameObject::Suspend(void)
 
 PyMethodDef KX_GameObject::Methods[] = {
 	{"setVisible",(PyCFunction) KX_GameObject::sPySetVisible, METH_VARARGS},  
+	{"getVisible",(PyCFunction) KX_GameObject::sPyGetVisible, METH_VARARGS},  
 	{"alignAxisToVect",(PyCFunction) KX_GameObject::sPyAlignAxisToVect, METH_VARARGS},
 	{"setPosition", (PyCFunction) KX_GameObject::sPySetPosition, METH_VARARGS},
 	{"getPosition", (PyCFunction) KX_GameObject::sPyGetPosition, METH_VARARGS},
@@ -823,6 +824,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"removeParent", (PyCFunction)KX_GameObject::sPyRemoveParent,METH_VARARGS},
 	{"getMesh", (PyCFunction)KX_GameObject::sPyGetMesh,METH_VARARGS},
 	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_VARARGS},
+	{"getPropertyNames", (PyCFunction)KX_GameObject::sPyGetPropertyNames,METH_VARARGS},
 	KX_PYMETHODTABLE(KX_GameObject, getDistanceTo),
 	KX_PYMETHODTABLE(KX_GameObject, rayCastTo),
 	KX_PYMETHODTABLE(KX_GameObject, rayCast),
@@ -1095,6 +1097,12 @@ PyObject* KX_GameObject::PySetVisible(PyObject* self,
 	
 }
 
+PyObject* KX_GameObject::PyGetVisible(PyObject* self,
+									  PyObject* args,
+									  PyObject* kwds)
+{
+	return PyInt_FromLong(m_bVisible);	
+}
 
 
 PyObject* KX_GameObject::PyGetVelocity(PyObject* self, 
@@ -1381,6 +1389,13 @@ PyObject* KX_GameObject::PyGetPhysicsId(PyObject* self,
 		physid= (uint_ptr)ctrl->GetUserData();
 	}
 	return PyInt_FromLong((long)physid);
+}
+
+PyObject* KX_GameObject::PyGetPropertyNames(PyObject* self,
+											   PyObject* args,
+											   PyObject* kwds)
+{
+	return ConvertKeysToPython();
 }
 
 KX_PYMETHODDEF_DOC(KX_GameObject, getDistanceTo,

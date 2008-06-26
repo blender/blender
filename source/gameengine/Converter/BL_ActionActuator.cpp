@@ -350,7 +350,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	}
 	
 	/* Set the property if its defined */
-	if (m_framepropname) {
+	if (m_framepropname[0] != '\0') {
 		CValue* propowner = GetParent();
 		CValue* oldprop = propowner->GetProperty(m_framepropname);
 		CValue* newval = new CFloatValue(m_localtime);
