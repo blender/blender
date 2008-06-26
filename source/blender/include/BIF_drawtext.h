@@ -38,6 +38,7 @@ void unlink_text(struct Text *text);
 
 void free_textspace(struct SpaceText *st);
 
+int txt_file_modified(struct Text *text);
 void txt_write_file(struct Text *text);
 void add_text_fs(char *file);
 

@@ -31,6 +31,8 @@
 #include <math.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -105,6 +107,7 @@ static void get_suggest_prefix(Text *text);
 static void confirm_suggestion(Text *text);
 
 static void *last_txt_find_string= NULL;
+static double last_check_time= 0;
 
 static BMF_Font *spacetext_get_font(SpaceText *st) {
 	static BMF_Font *scr12= NULL;
@@ -1192,6 +1195,36 @@ void free_textspace(SpaceText *st)
 	st->text= NULL;
 }
 
+/* returns 0 if file on disk is the same or Text is in memory only
+   returns 1 if file has been modified on disk since last local edit
+   returns 2 if file on disk has been deleted
+   -1 is returned if an error occurs
+*/
+int txt_file_modified(Text *text)
+{
+	struct stat st;
+	int result;
+
+	if (!text || !text->name)
+		return 0;
+
+	if (!BLI_exists(text->name))
+		return 2;
+
+	result = stat(text->name, &st);
+	
+	if(result == -1)
+		return -1;
+
+	if((st.st_mode & S_IFMT) != S_IFREG)
+		return -1;
+
+	if (st.st_mtime > text->mtime)
+		return 1;
+
+	return 0;
+}
+
 static void save_mem_text(char *str)
 {
 	SpaceText *st= curarea->spacedata.first;
@@ -1218,6 +1251,8 @@ void txt_write_file(Text *text)
 {
 	FILE *fp;
 	TextLine *tmp;
+	int res;
+	struct stat fst;
 	
 	/* Do we need to get a filename? */
 	if (text->flags & TXT_ISMEM) {
@@ -1225,7 +1260,7 @@ void txt_write_file(Text *text)
 			activate_fileselect(FILE_SPECIAL, "SAVE TEXT FILE", text->name, save_mem_text);
 		else
 			activate_fileselect(FILE_SPECIAL, "SAVE TEXT FILE", text->id.name+2, save_mem_text);
-		return;	
+		return;
 	}
 	
 	/* Should we ask to save over? */
@@ -1252,6 +1287,9 @@ void txt_write_file(Text *text)
 	}
 	
 	fclose (fp);
+
+	res= stat(text->name, &fst);
+	text->mtime= fst.st_mtime;
 	
 	if (text->flags & TXT_ISDIRTY) text->flags ^= TXT_ISDIRTY;
 }
@@ -2190,6 +2228,59 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		default:
 			do_suggest= 0;
+		}
+	}
+
+	if (last_check_time < PIL_check_seconds_timer() - 1.0) {
+		switch (txt_file_modified(text)) {
+		case 1:
+			/* Modified locally and externally, ahhh. Offer more possibilites. */
+			if (text->flags & TXT_ISDIRTY) {
+				switch (pupmenu("External File Modified with Local Changes %t|Load external changes (overwrite local) %x0|Save local changes (overwrite external) %x1|Make text internal %x2")) {
+				case 0:
+					reopen_text(text);
+					if (st->showsyntax) get_format_string(st);
+					do_draw= 1;
+					break;
+				case 1:
+					txt_write_file(text);
+					do_draw= 1;
+					break;
+				case 2:
+					text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
+					MEM_freeN(text->name);
+					text->name= NULL;
+					do_draw= 1;
+					break;
+				}
+			} else {
+				switch (pupmenu("External File Modified %t|Reload from disk %x0|Make text internal %x1")) {
+				case 0:
+					reopen_text(text);
+					if (st->showsyntax) get_format_string(st);
+					do_draw= 1;
+					break;
+				case 1:
+					text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
+					MEM_freeN(text->name);
+					text->name= NULL;
+					do_draw= 1;
+					break;
+				}
+			}
+			break;
+		case 2:
+			switch (pupmenu("External File Deleted %t|Make text internal %x0")) {
+			case 0:
+				text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
+				MEM_freeN(text->name);
+				text->name= NULL;
+				do_draw= 1;
+				break;
+			}
+			break;
+		default:
+			last_check_time = PIL_check_seconds_timer();
 		}
 	}
 

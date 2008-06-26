@@ -30,6 +30,8 @@
  */
 
 #include <string.h> /* strstr */
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -210,11 +212,12 @@ static void cleanup_textline(TextLine * tl)
 int reopen_text(Text *text)
 {
 	FILE *fp;
-	int i, llen, len;
+	int i, llen, len, res;
 	unsigned char *buffer;
 	TextLine *tmp;
 	char sfile[FILE_MAXFILE];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
+	struct stat fst;
 
 	if (!text || !text->name) return 0;
 	
@@ -250,6 +253,9 @@ int reopen_text(Text *text)
 	fseek(fp, 0L, SEEK_SET);	
 
 	text->undo_pos= -1;
+
+	res= fstat(fp->_file, &fst);
+	text->mtime= fst.st_mtime;
 	
 	buffer= MEM_mallocN(len, "text_buffer");
 	// under windows fread can return less then len bytes because
@@ -308,12 +314,13 @@ int reopen_text(Text *text)
 Text *add_text(char *file) 
 {
 	FILE *fp;
-	int i, llen, len;
+	int i, llen, len, res;
 	unsigned char *buffer;
 	TextLine *tmp;
 	Text *ta;
 	char sfile[FILE_MAXFILE];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
+	struct stat fst;
 
 	BLI_strncpy(str, file, FILE_MAXDIR+FILE_MAXFILE);
 	if (G.scene) /* can be NULL (bg mode) */
@@ -338,6 +345,9 @@ Text *add_text(char *file)
 
 	ta->name= MEM_mallocN(strlen(file)+1, "text_name");
 	strcpy(ta->name, file);
+
+	res= fstat(fp->_file, &fst);
+	ta->mtime= fst.st_mtime;
 
 	ta->undo_pos= -1;
 	ta->undo_len= TXT_INIT_UNDO;
