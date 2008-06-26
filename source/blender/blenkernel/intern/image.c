@@ -857,8 +857,8 @@ void BKE_add_image_extension(char *string, int imtype)
 			extension= ".bmp";
 	}
 	else if(G.have_libtiff && (imtype==R_TIFF)) {
-		if(!BLI_testextensie(string, ".tif"))
-			extension= ".tif";
+		if(!BLI_testextensie(string, ".tif") && 
+			!BLI_testextensie(string, ".tiff")) extension= ".tif";
 	}
 #ifdef WITH_OPENEXR
 	else if( ELEM(imtype, R_OPENEXR, R_MULTILAYER)) {
