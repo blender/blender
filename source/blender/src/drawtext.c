@@ -88,6 +88,9 @@
 
 #define TEXTXLOC	38
 
+#define SUGG_LIST_SIZE 7
+#define SUGG_LIST_WIDTH 20
+
 /* forward declarations */
 
 void drawtextspace(ScrArea *sa, void *spacedata);
@@ -1007,8 +1010,62 @@ static void do_selection(SpaceText *st, int selecting)
 		txt_undo_add_toop(st->text, UNDO_STO, sell, selc, linep2, charp2);
 }
 
-#define SUGG_LIST_SIZE 7
-#define SUGG_LIST_WIDTH 20
+static int do_suggest_select(SpaceText *st)
+{
+	SuggItem *item, *first, *last, *sel;
+	short mval[2];
+	TextLine *tmp;
+	int l, x, y, w, h, i;
+	int seli, tgti;
+	
+	if (!st || !st->text) return 0;
+	if (!suggest_is_active(st->text)) return 0;
+
+	first = suggest_first();
+	last = suggest_last();
+	sel = suggest_get_selected();
+
+	if (!sel || !last || !first)
+		return 0;
+
+	/* Count the visible lines to the cursor */
+	for (tmp=st->text->curl, l=-st->top; tmp; tmp=tmp->prev, l++);
+	if (l<0) return 0;
+	
+	if(st->showlinenrs) {
+		x = spacetext_get_fontwidth(st)*(st->text->curc-st->left) + TXT_OFFSET + TEXTXLOC - 4;
+	} else {
+		x = spacetext_get_fontwidth(st)*(st->text->curc-st->left) + TXT_OFFSET - 4;
+	}
+	y = curarea->winy - st->lheight*l - 2;
+
+	w = SUGG_LIST_WIDTH*spacetext_get_fontwidth(st) + 20;
+	h = SUGG_LIST_SIZE*st->lheight + 8;
+
+	getmouseco_areawin(mval);
+
+	if (mval[0]<x || x+w<mval[0] || mval[1]<y-h || y<mval[1])
+		return 0;
+
+	/* Work out which of the visible SUGG_LIST_SIZE items is selected */
+	for (seli=0, item=sel; seli<3 && item && item!=first; seli++, item=item->prev);
+
+	/* Work out the target item index in the visible list */
+	tgti = (y-mval[1]-4) / st->lheight;
+	if (tgti<0 || tgti>SUGG_LIST_SIZE)
+		return 1;
+
+	if (seli<tgti) {
+		for (i=seli; i<tgti && sel && sel!=last; i++, sel=sel->next);
+		if (sel)
+			suggest_set_selected(sel);
+	} else {
+		for (i=seli; i>tgti && sel && sel!=first; i--, sel=sel->prev);
+		if (sel)
+			suggest_set_selected(sel);
+	}
+	return 1;
+}
 
 void draw_suggestion_list(SpaceText *st) {
 	SuggItem *item, *first, *last, *sel;
@@ -1022,13 +1079,20 @@ void draw_suggestion_list(SpaceText *st) {
 	first = suggest_first();
 	last = suggest_last();
 	sel = suggest_get_selected();
-	//if (!first || !last || !sel) return;
 
+	/* Count the visible lines to the cursor */
 	for (tmp=st->text->curl, l=-st->top; tmp; tmp=tmp->prev, l++);
+	if (l<0) return;
+	
+	if(st->showlinenrs) {
+		x = spacetext_get_fontwidth(st)*(st->text->curc-st->left) + TXT_OFFSET + TEXTXLOC - 4;
+	} else {
+		x = spacetext_get_fontwidth(st)*(st->text->curc-st->left) + TXT_OFFSET - 4;
+	}
+	y = curarea->winy - st->lheight*l - 2;
+
 	boxw = SUGG_LIST_WIDTH*spacetext_get_fontwidth(st) + 20;
 	boxh = SUGG_LIST_SIZE*st->lheight + 8;
-	x = spacetext_get_fontwidth(st)*st->text->curc + 50; // TODO: Replace + 50
-	y = curarea->winy - st->lheight*l - 2;
 	
 	BIF_ThemeColor(TH_SHADE1);
 	glRecti(x-1, y+1, x+boxw+1, y-boxh-1);
@@ -1698,6 +1762,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 			if (mval[0]>2 && mval[0]<20 && mval[1]>2 && mval[1]<curarea->winy-2) {
 				do_textscroll(st, 2);
+				do_suggest= -1;
+			} else if (do_suggest_select(st)) {
+				do_draw= 1;
+				do_suggest= 0;
 			} else {
 				do_selection(st, G.qual&LR_SHIFTKEY);
 				if (txt_has_sel(text)) {
@@ -1706,19 +1774,20 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					MEM_freeN(buffer);
 				}
 				do_draw= 1;
+				do_suggest= -1;
 			}
-			do_suggest= -1;
 		}
 	} else if (event==MIDDLEMOUSE) {
 		if (val) {
-			if (U.uiflag & USER_MMB_PASTE)
-			{
+			if (do_suggest_select(st)) {
+				confirm_suggestion(text);
+				do_draw= 1;
+				do_suggest= 0;
+			} else if (U.uiflag & USER_MMB_PASTE) {
 				do_selection(st, G.qual&LR_SHIFTKEY);
 				get_selection_buffer(text);
 				do_draw= 1;
-			}
-			else
-			{
+			} else {
 				do_textscroll(st, 1);
 			}
 			do_suggest= -1;
