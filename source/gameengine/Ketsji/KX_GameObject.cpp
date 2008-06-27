@@ -825,6 +825,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getMesh", (PyCFunction)KX_GameObject::sPyGetMesh,METH_VARARGS},
 	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_VARARGS},
 	{"getPropertyNames", (PyCFunction)KX_GameObject::sPyGetPropertyNames,METH_VARARGS},
+	{"endObject",(PyCFunction) KX_GameObject::sPyEndObject, METH_VARARGS},
 	KX_PYMETHODTABLE(KX_GameObject, getDistanceTo),
 	KX_PYMETHODTABLE(KX_GameObject, rayCastTo),
 	KX_PYMETHODTABLE(KX_GameObject, rayCast),
@@ -857,6 +858,18 @@ PyObject* KX_GameObject::sPySetPosition(PyObject* self,
 	return ((KX_GameObject*) self)->PySetPosition(self, args, kwds);
 }
 	
+
+PyObject* KX_GameObject::PyEndObject(PyObject* self,
+									 PyObject* args, 
+									 PyObject* kwds)
+{
+
+	KX_Scene *scene = PHY_GetActiveScene();
+	scene->DelayedRemoveObject(this);
+	
+	return Py_None;
+
+}
 
 
 PyObject* KX_GameObject::PyGetPosition(PyObject* self,

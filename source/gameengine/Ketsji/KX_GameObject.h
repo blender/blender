@@ -710,7 +710,7 @@ public:
 		PyObject* args,
 		PyObject* kwds
 	);
-	
+
 	KX_PYMETHOD(KX_GameObject,GetPosition);
 	KX_PYMETHOD(KX_GameObject,GetLinearVelocity);
 	KX_PYMETHOD(KX_GameObject,GetVelocity);
@@ -733,6 +733,7 @@ public:
 	KX_PYMETHOD(KX_GameObject,RemoveParent);
 	KX_PYMETHOD(KX_GameObject,GetPhysicsId);
 	KX_PYMETHOD(KX_GameObject,GetPropertyNames);
+	KX_PYMETHOD(KX_GameObject,EndObject);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCastTo);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCast);
 	KX_PYMETHOD_DOC(KX_GameObject,getDistanceTo);

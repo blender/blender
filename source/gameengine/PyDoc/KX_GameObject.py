@@ -25,6 +25,11 @@ class KX_GameObject:
 	@ivar timeOffset: adjust the slowparent delay at runtime.
 	@type timeOffset: float
 	"""
+	def endObject(visible):
+		"""
+		Delete this object, can be used inpace of the EndObject Actuator.
+		The actual removal of the object from the scene is delayed.
+		"""	
 	def getVisible(visible):
 		"""
 		Gets the game object's visible flag.
