@@ -33,8 +33,7 @@ struct Object;
 struct DerivedMesh;
 struct SimpleDeformModifierData;
 
-/* struct DerivedMesh *simpledeformModifier_do(struct SimpleDeformModifierData *smd, struct Object *ob, struct DerivedMesh *dm, int useRenderParams, int isFinalCalc); */
-void SimpleDeformModifier_do(SimpleDeformModifierData *smd, float (*vertexCos)[3], int numVerts);
+void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, float (*vertexCos)[3], int numVerts);
 
 #endif
 

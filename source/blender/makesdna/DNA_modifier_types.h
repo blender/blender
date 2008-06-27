@@ -529,4 +529,9 @@ typedef struct SimpleDeformModifierData {
 
 } SimpleDeformModifierData;
 
+#define MOD_SIMPLEDEFORM_MODE_TWIST		1
+#define MOD_SIMPLEDEFORM_MODE_BEND		2
+#define MOD_SIMPLEDEFORM_MODE_TAPER_X	3
+#define MOD_SIMPLEDEFORM_MODE_TAPER_XY	4
+
 #endif

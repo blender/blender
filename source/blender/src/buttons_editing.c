@@ -1664,6 +1664,33 @@ static int modifier_is_fluid_particles(ModifierData *md) {
 	}
 	return 0;
 }
+
+static void modifier_link_new_empty(void *pp_empty, void *p_parent)
+{
+	Object **empty = (Object**)pp_empty;
+	Object *parent = (Object*) p_parent;
+
+	/* Add object but witouth chaing layers and or changing active object */
+	Base *base= BASACT, *newbase;
+
+	(*empty) = add_object(OB_EMPTY);
+
+	newbase= BASACT;
+	newbase->lay= base->lay;
+	(*empty)->lay= newbase->lay;
+
+	/* restore, add_object sets active */
+	BASACT= base;
+
+	/* Makes parent relation and positions empty on center of object */
+	(*empty)->partype= PAROBJECT;
+	(*empty)->parent = parent;
+	Mat4CpyMat4( (*empty)->obmat, parent->obmat );
+	Mat4Invert(  (*empty)->parentinv, parent->obmat);
+	apply_obmat( (*empty) );
+	DAG_scene_sort(G.scene);
+}
+
 static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco, int *yco, int index, int cageIndex, int lastCageIndex)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -1830,8 +1857,11 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
 			height = 86;
 			if (smd->shrinkType == MOD_SHRINKWRAP_NORMAL)
-				height += 19*7;
+				height += 19*5;
 		} else if (md->type==eModifierType_SimpleDeform) {
+			SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
+			height += 19*3;
+			if(smd->mode == MOD_SIMPLEDEFORM_MODE_BEND)
 				height += 19*2;
 		}
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
@@ -2460,12 +2490,15 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButS(block, MENU, B_MODIFIER_RECALC, shrinktypemenu, lx,(cy-=19),buttonWidth,19, &smd->shrinkType, 0, 0, 0, 0, "Selects type of shrinkwrap algorithm for target position.");
 
 			if (smd->shrinkType == MOD_SHRINKWRAP_NORMAL){
-				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL, B_MODIFIER_RECALC, "Default normal",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Allows vertices to move in the normal direction");
-				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_ALLOW_INVERTED_NORMAL, B_MODIFIER_RECALC, "Invert normal",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Allows vertices to move in the inverse direction of their normal");
+
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL, B_MODIFIER_RECALC, "Default normal",	lx,(cy-=19),buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Allows vertices to move in the normal direction");
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_ALLOW_INVERTED_NORMAL, B_MODIFIER_RECALC, "Invert normal",	lx + buttonWidth/2,cy,buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Allows vertices to move in the inverse direction of their normal");
+
 				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_REMOVE_UNPROJECTED_FACES, B_MODIFIER_RECALC, "Remove faces",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Remove faces where all vertices haven't been projected");
 
-				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE, B_MODIFIER_RECALC, "Cull frontfaces",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Controls whether a vertex can be projected to a front face on target");
-				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_CULL_TARGET_BACKFACE,  B_MODIFIER_RECALC, "Cull backfaces",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Controls whether a vertex can be projected to a back face on target");
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE, B_MODIFIER_RECALC, "Cull frontfaces",lx,(cy-=19),buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Controls whether a vertex can be projected to a front face on target");
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_CULL_TARGET_BACKFACE,  B_MODIFIER_RECALC, "Cull backfaces",	lx+buttonWidth/2,cy,buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Controls whether a vertex can be projected to a back face on target");
+
 				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Merge Dist:",	lx,(cy-=19),buttonWidth,19, &smd->mergeDist, 0.0f, 0.01f, 0.01f, 0.01f, "Specify merge distance");
 				uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Cut: ",	lx, (cy-=19), buttonWidth,19, &smd->cutPlane, "Target to project points that didn't got projected over target");
 			}
@@ -2478,11 +2511,32 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiBlockEndAlign(block);
 		} else if (md->type==eModifierType_SimpleDeform) {
 			SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
-			char simpledeform_typemenu[]="Deform type%t|Taper %x0|Twist %x1|Bend %x2|Shear %x3";
+			char simpledeform_typemenu[]="Deform type%t|Twist %x1|Bend %x2|Taper %x3|TaperXY %x4";
 
-			uiDefButS(block, MENU, B_MODIFIER_RECALC, simpledeform_typemenu, lx,(cy-=19),buttonWidth,19, &smd->mode, 0, 0, 0, 0, "Selects type of deform");
-			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &smd->origin, "Origin of modifier space coordinates");
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Factor:",	lx,(cy-=19),buttonWidth,19, &smd->factor[0], -1000.0f, 1000.0f, 1.0f, 0, "Deform Factor");
+			uiDefButC(block, MENU, B_MODIFIER_RECALC, simpledeform_typemenu, lx,(cy-=19),buttonWidth,19, &smd->mode, 0, 0, 0, 0, "Selects type of deform");
+
+
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth-17,19, &smd->origin, "Origin of modifier space coordinates");
+
+			if(smd->origin)
+			{
+				uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_VIEW, REDRAWALL, ICON_RESTRICT_VIEW_OFF,
+								lx + buttonWidth-17, cy, 17, 19,
+								&(smd->origin->restrictflag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+			}
+			else
+			{
+				uiBut *bt;
+				bt= uiDefIconBut(block, BUT, B_CHANGEDEP, ICON_ZOOMIN, lx+buttonWidth-17, cy, 17, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Creates a new empty");
+				uiButSetFunc(bt, modifier_link_new_empty, &smd->origin, ob);
+			}
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Factor:",	lx,(cy-=19),buttonWidth,19, &smd->factor[0], -3000.0f, 3000.0f, 1.0f, 0, "Deform Factor");
+
+			if(smd->mode == MOD_SIMPLEDEFORM_MODE_BEND)
+			{
+				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Upper Limit:",	lx,(cy-=19),buttonWidth,19, &smd->factor[2], -3000.0f, 3000.0f, 1.0f, 0, "Upper Limit Bend on X");
+				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Lower Limit:",	lx,(cy-=19),buttonWidth,19, &smd->factor[1], -3000.0f, 3000.0f, 1.0f, 0, "Lower Limit Bend on X");
+			}
 		}
 
 

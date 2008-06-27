@@ -38,7 +38,18 @@
 #include <math.h>
 
 
-static void simpleDeform_tapper(const float factor, float *co)
+
+
+static void simpleDeform_tapperXY(const float factor, float *co)
+{
+	float x = co[0], y = co[1], z = co[2];
+
+	co[0] = x*(1.0f + z*factor);
+	co[1] = y*(1.0f + z*factor);
+	co[2] = z;
+}
+
+static void simpleDeform_tapperX(const float factor, float *co)
 {
 	float x = co[0], y = co[1], z = co[2];
 
@@ -46,7 +57,6 @@ static void simpleDeform_tapper(const float factor, float *co)
 	co[1] = y;
 	co[2] = z;
 }
-
 
 static void simpleDeform_twist(const float factor, float *co)
 {
@@ -59,41 +69,51 @@ static void simpleDeform_twist(const float factor, float *co)
 	co[0] = x*cost - y*sint;
 	co[1] = x*sint + y*cost;
 	co[2] = z;
+
 }
 
-static void simpleDeform_bend(const float factor, float *co)
+static void simpleDeform_bend(const float factor, const float axis_limit[2], float *co)
 {
 	float x = co[0], y = co[1], z = co[2];
 
 	float x0 = 0.0f;
-	float theta = (x - x0)*factor;
-	float sint = sin(theta);
-	float cost = cos(theta);
+	float theta = x*factor, sint, cost;
 
-	co[0] = -sint*(y-1.0f/factor) + x0;
-	co[1] =  cost*(y-1.0f/factor) + 1.0f/factor;
+	if(x > axis_limit[1])
+	{
+		x0 = axis_limit[1] - x;
+		x = axis_limit[1];
+	}
+	else if(x < axis_limit[0])
+	{
+		x0 = axis_limit[0] - x;
+		x = axis_limit[0];
+	}
+
+	theta = x*factor;
+	sint = sin(theta);
+	cost = cos(theta);
+
+	co[0] = -y*sint - cost*x0;
+	co[1] =  y*cost - sint*x0;
 	co[2] =  z;
 }
 
-static void simpleDeform_shear(const float factor, float *co)
-{
-	float x = co[0], y = co[1], z = co[2];
-
-	co[0] = x + factor;
-	co[1] = y;
-	co[2] = z;
-}
-
 /* simple deform modifier */
-void SimpleDeformModifier_do(SimpleDeformModifierData *smd, float (*vertexCos)[3], int numVerts)
+void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, float (*vertexCos)[3], int numVerts)
 {
 	float (*ob2mod)[4] = NULL, (*mod2ob)[4] = NULL;
+	float tmp[2][4][4];
+
 	if(smd->origin)
 	{
-		Mat4Invert(smd->origin->imat, smd->origin->obmat);	//inverse is outdated
+		//inverse is outdated
+		Mat4Invert(smd->origin->imat, smd->origin->obmat);
 
-		ob2mod = smd->origin->imat;
-		mod2ob = smd->origin->obmat;
+		ob2mod = tmp[0];
+		mod2ob = tmp[1];
+		Mat4MulSerie(ob2mod, smd->origin->imat, ob->obmat, 0, 0, 0, 0, 0, 0);
+		Mat4Invert(mod2ob, ob2mod);
 	}
 
 
@@ -104,10 +124,10 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, float (*vertexCos)[3
 
 		switch(smd->mode)
 		{
-			case 0: simpleDeform_tapper	(smd->factor[0], *vertexCos); break;
-			case 1: simpleDeform_twist	(smd->factor[0], *vertexCos); break;
-			case 2: simpleDeform_bend	(smd->factor[0], *vertexCos); break;
-			case 3: simpleDeform_shear	(smd->factor[0], *vertexCos); break;
+			case MOD_SIMPLEDEFORM_MODE_TWIST:		simpleDeform_twist(smd->factor[0], *vertexCos); break;
+			case MOD_SIMPLEDEFORM_MODE_BEND:		simpleDeform_bend(smd->factor[0], smd->factor+1, *vertexCos); break;
+			case MOD_SIMPLEDEFORM_MODE_TAPER_X:		simpleDeform_tapperX (smd->factor[0], *vertexCos); break;
+			case MOD_SIMPLEDEFORM_MODE_TAPER_XY:	simpleDeform_tapperXY(smd->factor[0], *vertexCos); break;
 		}
 
 		if(mod2ob)

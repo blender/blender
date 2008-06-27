@@ -101,6 +101,7 @@
 #include "depsgraph_private.h"
 #include "BKE_bmesh.h"
 #include "BKE_shrinkwrap.h"
+#include "BKE_simple_deform.h"
 
 #include "LOD_DependKludge.h"
 #include "LOD_decimation.h"
@@ -7284,9 +7285,11 @@ static void simpledeformModifier_initData(ModifierData *md)
 {
 	SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
 
-	smd->mode = 0;
+	smd->mode = MOD_SIMPLEDEFORM_MODE_TWIST;
 	smd->origin = 0;
-	smd->factor[0] = 1.0;
+	smd->factor[0] = 0.35;
+	smd->factor[1] = -1000.0;
+	smd->factor[2] =  1000.0;
 }
 
 static void simpledeformModifier_copyData(ModifierData *md, ModifierData *target)
@@ -7301,12 +7304,12 @@ static void simpledeformModifier_copyData(ModifierData *md, ModifierData *target
 
 static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	SimpleDeformModifier_do((SimpleDeformModifierData*)md, vertexCos, numVerts);
+	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, vertexCos, numVerts);
 }
 
 static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	SimpleDeformModifier_do((SimpleDeformModifierData*)md, vertexCos, numVerts);
+	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, vertexCos, numVerts);
 }
 
 static void simpledeformModifier_foreachObjectLink(ModifierData *md, Object *ob, void (*walk)(void *userData, Object *ob, Object **obpoin), void *userData)
