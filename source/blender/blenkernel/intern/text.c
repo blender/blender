@@ -217,7 +217,7 @@ int reopen_text(Text *text)
 	TextLine *tmp;
 	char sfile[FILE_MAXFILE];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
-	struct stat fst;
+	struct stat st;
 
 	if (!text || !text->name) return 0;
 	
@@ -253,9 +253,6 @@ int reopen_text(Text *text)
 	fseek(fp, 0L, SEEK_SET);	
 
 	text->undo_pos= -1;
-
-	res= fstat(fp->_file, &fst);
-	text->mtime= fst.st_mtime;
 	
 	buffer= MEM_mallocN(len, "text_buffer");
 	// under windows fread can return less then len bytes because
@@ -263,6 +260,9 @@ int reopen_text(Text *text)
 	len = fread(buffer, 1, len, fp);
 
 	fclose(fp);
+
+	res= stat(str, &st);
+	text->mtime= st.st_mtime;
 	
 	text->nlines=0;
 	i=0;
@@ -320,7 +320,7 @@ Text *add_text(char *file)
 	Text *ta;
 	char sfile[FILE_MAXFILE];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
-	struct stat fst;
+	struct stat st;
 
 	BLI_strncpy(str, file, FILE_MAXDIR+FILE_MAXFILE);
 	if (G.scene) /* can be NULL (bg mode) */
@@ -346,9 +346,6 @@ Text *add_text(char *file)
 	ta->name= MEM_mallocN(strlen(file)+1, "text_name");
 	strcpy(ta->name, file);
 
-	res= fstat(fp->_file, &fst);
-	ta->mtime= fst.st_mtime;
-
 	ta->undo_pos= -1;
 	ta->undo_len= TXT_INIT_UNDO;
 	ta->undo_buf= MEM_mallocN(ta->undo_len, "undo buf");
@@ -359,6 +356,9 @@ Text *add_text(char *file)
 	len = fread(buffer, 1, len, fp);
 
 	fclose(fp);
+
+	res= stat(str, &st);
+	ta->mtime= st.st_mtime;
 	
 	ta->nlines=0;
 	i=0;

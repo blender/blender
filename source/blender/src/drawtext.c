@@ -1316,7 +1316,7 @@ void txt_write_file(Text *text)
 	FILE *fp;
 	TextLine *tmp;
 	int res;
-	struct stat fst;
+	struct stat st;
 	
 	/* Do we need to get a filename? */
 	if (text->flags & TXT_ISMEM) {
@@ -1352,8 +1352,8 @@ void txt_write_file(Text *text)
 	
 	fclose (fp);
 
-	res= stat(text->name, &fst);
-	text->mtime= fst.st_mtime;
+	res= stat(text->name, &st);
+	text->mtime= st.st_mtime;
 	
 	if (text->flags & TXT_ISDIRTY) text->flags ^= TXT_ISDIRTY;
 }
