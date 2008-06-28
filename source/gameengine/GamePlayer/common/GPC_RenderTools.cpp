@@ -602,9 +602,9 @@ void GPC_RenderTools::MotionBlur(RAS_IRasterizer* rasterizer)
 	}
 }
 
-void GPC_RenderTools::Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)
+void GPC_RenderTools::Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text, short texture_flag)
 {
-	m_filtermanager.EnableFilter(filtermode, pass, text);
+	m_filtermanager.EnableFilter(filtermode, pass, text, texture_flag);
 }
 
 void GPC_RenderTools::Render2DFilters(RAS_ICanvas* canvas)
