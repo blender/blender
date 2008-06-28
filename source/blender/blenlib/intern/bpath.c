@@ -456,13 +456,10 @@ void checkMissingFiles( char *txtname ) {
 	
 	/* be sure there is low chance of the path being too short */
 	char filepath_expanded[FILE_MAXDIR*2]; 
-	char *libpath;
 	int files_missing = 0;
 	
 	BLI_bpathIterator_init(&bpi);
 	while (!BLI_bpathIterator_isDone(&bpi)) {
-		libpath = BLI_bpathIterator_getLib(&bpi);
-		
 		BLI_bpathIterator_getPathExpanded( &bpi, filepath_expanded );
 		
 		if (!BLI_exists(filepath_expanded)) {

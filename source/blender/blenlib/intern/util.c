@@ -865,11 +865,8 @@ int BLI_strcaseeq(char *a, char *b) {
 void BLI_cleanup_dir(const char *relabase, char *dir)
 {
 	BLI_cleanup_file(relabase, dir);
-#ifdef WIN32
-	strcat(dir, "\\");
-#else
-	strcat(dir, "/");
-#endif
+	BLI_add_slash(dir);
+
 }
 
 void BLI_cleanup_file(const char *relabase, char *dir)
@@ -878,6 +875,13 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 	char *start, *eind;
 	if (relabase) {
 		BLI_convertstringcode(dir, relabase);
+	} else {
+		if (dir[0]=='/' && dir[1]=='/') {
+			if (dir[2]== '\0') {
+				return; /* path is "//" - cant clean it */
+			}
+			dir = dir+2; /* skip the first // */
+		}
 	}
 	
 	/* Note
@@ -901,8 +905,11 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 			if (dir[a] == '\\') break;
 			a--;
 		}
-		memmove( dir+a, eind, strlen(eind)+1 );
-		
+		if (a<0) {
+			break;
+		} else {
+			memmove( dir+a, eind, strlen(eind)+1 );
+		}
 	}
 
 	while ( (start = strstr(dir,"\\.\\")) ){
@@ -935,7 +942,11 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 			if (dir[a] == '/') break;
 			a--;
 		}
-		memmove( dir+a, eind, strlen(eind)+1 );
+		if (a<0) {
+			break;
+		} else {
+			memmove( dir+a, eind, strlen(eind)+1 );
+		}
 	}
 
 	while ( (start = strstr(dir,"/./")) ){
@@ -1124,8 +1135,8 @@ int BLI_convertstringcode(char *path, const char *basepath)
 	char vol[3] = {'\0', '\0', '\0'};
 
 	BLI_strncpy(vol, path, 3);
-	wasrelative= (strncmp(vol, "//", 2)==0);
-
+	wasrelative= (vol[0]=='/' && vol[1]=='/');
+	
 #ifdef WIN32
 	/* we are checking here if we have an absolute path that is not in the current
 	   blend file as a lib main - we are basically checking for the case that a 
@@ -1160,24 +1171,32 @@ int BLI_convertstringcode(char *path, const char *basepath)
 	BLI_char_switch(tmp, '\\', '/');
 	BLI_char_switch(base, '\\', '/');	
 
-	if (tmp[0] == '/' && tmp[1] == '/') {
-		char *filepart= BLI_strdup(tmp+2); /* skip code */
+	/* Paths starting with // will get the blend file as their base,
+	 * this isnt standard in any os but is uesed in blender all over the place */
+	if (wasrelative) {
 		char *lslash= BLI_last_slash(base);
-
 		if (lslash) {
 			int baselen= (int) (lslash-base) + 1;
-
+			/* use path for for temp storage here, we copy back over it right away */
+			BLI_strncpy(path, tmp+2, FILE_MAX);
+			
 			memcpy(tmp, base, baselen);
-			strcpy(tmp+baselen, filepart);
+			strcpy(tmp+baselen, path);
+			strcpy(path, tmp);
 		} else {
-			strcpy(tmp, filepart);
+			strcpy(path, tmp+2);
 		}
-		
-		MEM_freeN(filepart);
+	} else {
+		strcpy(path, tmp);
 	}
 	
-	BLI_cleanup_file(NULL, tmp);
-	strcpy(path, tmp);
+	if (path[0]!='\0') {
+		if ( path[strlen(path)-1]=='/') {
+			BLI_cleanup_dir(NULL, path);
+		} else {
+			BLI_cleanup_file(NULL, path);
+		}
+	}
 	
 #ifdef WIN32
 	/* skip first two chars, which in case of

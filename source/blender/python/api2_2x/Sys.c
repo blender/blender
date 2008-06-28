@@ -406,11 +406,12 @@ static PyObject *M_sys_cleanpath( PyObject * self, PyObject * value )
 {
 	char *path = PyString_AsString(value);
 	char cleaned[FILE_MAXDIR + FILE_MAXFILE];
-	int trailing_slash = 0;
+	int trailing_slash = 0, last;
 	if (!path)
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 			"expected string argument" );
-	if (strstr(path, "/") || strstr(path, "\\")) {
+	last = strlen(path)-1;
+	if ((last >= 0) && ((path[last]=='/') || (path[last]=='\\'))) {
 		trailing_slash = 1;
 	}
 	BLI_strncpy(cleaned, path, FILE_MAXDIR + FILE_MAXFILE);
