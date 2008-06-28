@@ -192,11 +192,13 @@ typedef struct bVisibilityActuator {
 } bVisibilityActuator;
 
 typedef struct bTwoDFilterActuator{
-	char pad[4];
-	/* Tells what type of 2D Filter*/
+	char pad[2];
+	/* bitwise flag for enabling or disabling depth(bit 0) and luminance(bit 1) */
+	short texture_flag;
+	/* Tells what type of 2D Filter */
 	short type;
 	/* (flag == 0) means 2D filter is activate and
-	   (flag != 0) means 2D filter is inactive*/
+	   (flag != 0) means 2D filter is inactive */
 	short flag;
 	int   int_arg;
 	/* a float argument */
