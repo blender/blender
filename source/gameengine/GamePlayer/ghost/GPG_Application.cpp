@@ -496,7 +496,6 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 
 		bool fixed_framerate= (SYS_GetCommandLineInt(syshandle, "fixed_framerate", fixedFr) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
-		bool useVertexArrays = SYS_GetCommandLineInt(syshandle,"vertexarrays",1) != 0;
 		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", G.fileflags & G_FILE_DIAPLAY_LISTS) != 0);
 
 		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1) {
@@ -514,16 +513,17 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		if (!m_rendertools)
 			goto initFailed;
 		
-		if(useLists)
-			if (useVertexArrays) {
+		if(useLists) {
+			if(GLEW_VERSION_1_1)
 				m_rasterizer = new RAS_ListRasterizer(m_canvas, true);
-			} else {
+			else
 				m_rasterizer = new RAS_ListRasterizer(m_canvas);
-			}
-		else if (useVertexArrays && GLEW_VERSION_1_1)
+		}
+		else if (GLEW_VERSION_1_1)
 			m_rasterizer = new RAS_VAOpenGLRasterizer(m_canvas);
 		else
 			m_rasterizer = new RAS_OpenGLRasterizer(m_canvas);
+
 		m_rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) stereoMode);
 		if (!m_rasterizer)
 			goto initFailed;
