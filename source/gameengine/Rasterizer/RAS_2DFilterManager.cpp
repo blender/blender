@@ -214,9 +214,9 @@ void RAS_2DFilterManager::SetupTexture()
 {
 	if(texname[0]!=-1 || texname[1]!=-1)
 	{
-		glDeleteTextures(2, texname);
+		glDeleteTextures(2, (GLuint*)texname);
 	}
-	glGenTextures(3, texname);
+	glGenTextures(3, (GLuint*)texname);
 
 	glBindTexture(GL_TEXTURE_2D, texname[0]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texturewidth, textureheight, 0, GL_RGB,
