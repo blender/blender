@@ -390,7 +390,7 @@ static void actdata_filter_actionchannel (ListBase *act_data, bActionChannel *ac
 
 static void actdata_filter_action (ListBase *act_data, bAction *act, int filter_mode)
 {
-	bActListElem *ale;
+	bActListElem *ale=NULL;
 	bActionGroup *agrp;
 	bActionChannel *achan, *lastchan=NULL;
 	
@@ -428,6 +428,15 @@ static void actdata_filter_action (ListBase *act_data, bAction *act, int filter_
 				if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {					
 					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
 						actdata_filter_actionchannel(act_data, achan, filter_mode);
+					}
+					
+					/* remove group from filtered list if last element is group 
+					 * (i.e. only if group had channels, which were all hidden)
+					 */
+					if ( (ale) && (act_data->last == ale) && 
+						 (ale->data == agrp) && (agrp->channels.first) ) 
+					{
+						BLI_freelinkN(act_data, ale);
 					}
 				}
 			}
@@ -3648,7 +3657,7 @@ static void mouse_actionchannels (short mval[])
 			{
 				bActionGroup *agrp= (bActionGroup *)act_channel;
 				
-				if (mval[0] < 16) {
+				if ((mval[0] < 16) && (agrp->channels.first)) {
 					/* toggle expand */
 					agrp->flag ^= AGRP_EXPANDED;
 				}
