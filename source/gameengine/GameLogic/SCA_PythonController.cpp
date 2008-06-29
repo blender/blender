@@ -232,6 +232,7 @@ PyMethodDef SCA_PythonController::Methods[] = {
 	METH_VARARGS, SCA_PythonController::GetSensor_doc},
 	{"getScript", (PyCFunction) SCA_PythonController::sPyGetScript, METH_VARARGS},
 	{"setScript", (PyCFunction) SCA_PythonController::sPySetScript, METH_VARARGS},
+	{"getState", (PyCFunction) SCA_PythonController::sPyGetState, METH_VARARGS},
 	{NULL,NULL} //Sentinel
 };
 
@@ -440,6 +441,14 @@ PyObject* SCA_PythonController::PySetScript(PyObject* self,
 	this->SetScriptText(scriptArg);
 	
 	Py_Return;
+}
+
+/* 1. getScript */
+PyObject* SCA_PythonController::PyGetState(PyObject* self, 
+										   PyObject* args, 
+										   PyObject* kwds)
+{
+	return PyInt_FromLong(m_statemask);
 }
 
 /* eof */

@@ -1703,7 +1703,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			}
 						
 			uiDefButI(block, NUM, 0, "Blendin: ", xco+30, yco-64, (width-60)/2, 19, &aa->blendin, 0.0, MAXFRAMEF, 0.0, 0.0, "Number of frames of motion blending");
-			uiDefButS(block, NUM, 0, "Priority: ", xco+30+(width-60)/2, yco-64, (width-60)/2, 19, &aa->priority, 0.0, 100.0, 0.0, 0.0, "Execution priority - lower numbers will override actions with higher numbers");
+			uiDefButS(block, NUM, 0, "Priority: ", xco+30+(width-60)/2, yco-64, (width-60)/2, 19, &aa->priority, 0.0, 100.0, 0.0, 0.0, "Execution priority - lower numbers will override actions with higher numbers, With 2 or more actions at once, the overriding clannels must be lower in the stack");
 			
 			uiDefBut(block, TEX, 0, "FrameProp: ",xco+30, yco-84, width-60, 19, aa->frameProp, 0.0, 31.0, 0, 0, "Assign this property this actions current frame number");			
 

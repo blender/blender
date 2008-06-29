@@ -42,6 +42,20 @@ class KX_GameObject:
 		
 		@type visible: boolean
 		"""
+	def getState():
+		"""
+		Gets the game object's state bitmask.
+		
+		@rtype: int
+		@return: the objects state.
+		"""	
+	def setState():
+		"""
+		Sets the game object's visible flag.
+		The bitmasks for states from 1 to 30 can be set with (1<<0, 1<<1, 1<<2 ... 1<<29)
+		
+		@type visible: boolean
+		"""
 	def setPosition(pos):
 		"""
 		Sets the game object's position.

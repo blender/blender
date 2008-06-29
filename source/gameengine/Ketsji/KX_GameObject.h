@@ -720,6 +720,8 @@ public:
 	KX_PYMETHOD(KX_GameObject,SetOrientation);
 	KX_PYMETHOD(KX_GameObject,GetVisible);
 	KX_PYMETHOD(KX_GameObject,SetVisible);
+	KX_PYMETHOD(KX_GameObject,GetState);
+	KX_PYMETHOD(KX_GameObject,SetState);
 	KX_PYMETHOD(KX_GameObject,AlignAxisToVect);
 	KX_PYMETHOD(KX_GameObject,SuspendDynamics);
 	KX_PYMETHOD(KX_GameObject,RestoreDynamics);
