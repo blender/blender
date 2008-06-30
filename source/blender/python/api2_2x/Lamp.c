@@ -1525,7 +1525,11 @@ static PyObject *Lamp_oldsetType( BPy_Lamp * self, PyObject * value )
 	if( !value )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument" ) );
-
+	
+	if( !type ) 
+		return EXPP_ReturnPyObjError ( PyExc_AttributeError,
+					       "expected string argument" );
+	
 	/* check for valid arguments, set type accordingly */
 
 	if( !strcmp( type, "Lamp" ) )
