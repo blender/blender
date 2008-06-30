@@ -378,9 +378,6 @@ void space_set_commmandline_options(void) {
 		
 	if ( (syshandle = SYS_GetSystem()) ) {
 		/* User defined settings */
-		a= (U.gameflags & USER_VERTEX_ARRAYS);
-		SYS_WriteCommandLineInt(syshandle, "vertexarrays", a);
-
 		a= (U.gameflags & USER_DISABLE_SOUND);
 		SYS_WriteCommandLineInt(syshandle, "noaudio", a);
 
@@ -436,9 +433,6 @@ static void SaveState(void)
 
 	if(G.f & G_TEXTUREPAINT)
 		texpaint_enable_mipmap();
-
-	if(G.scene->camera==0 || G.scene->camera->type!=OB_CAMERA)
-		error("no (correct) camera");
 
 	waitcursor(1);
 }
@@ -4258,15 +4252,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButS(block, MENU, B_GLRESLIMITCHANGED, "GL Texture Clamp Off%x0|%l|GL Texture Clamp 8192%x8192|GL Texture Clamp 4096%x4096|GL Texture Clamp 2048%x2048|GL Texture Clamp 1024%x1024|GL Texture Clamp 512%x512|GL Texture Clamp 256%x256|GL Texture Clamp 128%x128",
 													(xpos+edgsp+(5*mpref)+(5*midsp)),y4,mpref,buth, &(U.glreslimit), 0, 0, 0, 0, "Limit the texture size to save graphics memory");
 		
-		uiDefButBitI(block, TOG, USER_VERTEX_ARRAYS, 0, "Vertex Arrays",
-			(xpos+edgsp+(5*mpref)+(5*midsp)),y3,mpref,buth,
-			&(U.gameflags), 0, 0, 0, 0, "Toggles between vertex arrays on (less reliable) and off (more reliable)");
-
 		uiDefButI(block, NUM, 0, "Time Out ",
-			(xpos+edgsp+(5*mpref)+(5*midsp)), y2, mpref, buth, 
+			(xpos+edgsp+(5*mpref)+(5*midsp)), y3, mpref, buth, 
 			&U.textimeout, 0.0, 3600.0, 30, 2, "Time since last access of a GL texture in seconds after which it is freed. (Set to 0 to keep textures allocated)");
 		uiDefButI(block, NUM, 0, "Collect Rate ",
-			(xpos+edgsp+(5*mpref)+(5*midsp)), y1, mpref, buth, 
+			(xpos+edgsp+(5*mpref)+(5*midsp)), y2, mpref, buth, 
 			&U.texcollectrate, 1.0, 3600.0, 30, 2, "Number of seconds between each run of the GL texture garbage collector.");
 
 		/* *** */
@@ -4976,21 +4966,19 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case DKEY:
-			if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+			if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY)) {
 				duplicate_marker();
-			else if ((G.qual==LR_SHIFTKEY)) {
+			} else if ((G.qual==LR_SHIFTKEY)) {
 				if(sseq->mainb) break;
 				add_duplicate_seq();
+			} else if (G.qual == 0) {
+				set_filter_seq();
 			}
 			break;
 		case EKEY:
 			if(sseq->mainb) break;
 			if((G.qual==0))
 				transform_seq('e', 0);
-			break;
-		case FKEY:
-			if((G.qual==0))
-				set_filter_seq();
 			break;
 		case GKEY:
 			if (G.qual & LR_CTRLKEY)

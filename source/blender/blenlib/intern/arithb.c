@@ -4032,6 +4032,74 @@ int AxialLineIntersectsTriangle(int axis, float p1[3], float p2[3], float v0[3],
 	return 1;
 }
 
+/* Returns the number of point of interests
+ * 0 - lines are colinear
+ * 1 - lines are coplanar, i1 is set to intersection
+ * 2 - i1 and i2 are the nearest points on line 1 (v1, v2) and line 2 (v3, v4) respectively 
+ * */
+int LineIntersectLine(float v1[3], float v2[3], float v3[3], float v4[3], float i1[3], float i2[3])
+{
+	float a[3], b[3], c[3], ab[3], cb[3], dir1[3], dir2[3];
+	float d;
+	
+	VecSubf(c, v3, v1);
+	VecSubf(a, v2, v1);
+	VecSubf(b, v4, v3);
+
+	VecCopyf(dir1, a);
+	Normalize(dir1);
+	VecCopyf(dir2, b);
+	Normalize(dir2);
+	d = Inpf(dir1, dir2);
+	if (d == 1.0f || d == -1.0f) {
+		/* colinear */
+		return 0;
+	}
+
+	Crossf(ab, a, b);
+	d = Inpf(c, ab);
+
+	/* test if the two lines are coplanar */
+	if (d > -0.000001f && d < 0.000001f) {
+		Crossf(cb, c, b);
+
+		VecMulf(a, Inpf(cb, ab) / Inpf(ab, ab));
+		VecAddf(i1, v1, a);
+		VecCopyf(i2, i1);
+		
+		return 1; /* one intersection only */
+	}
+	/* if not */
+	else {
+		float n[3], t[3];
+		float v3t[3], v4t[3];
+		VecSubf(t, v1, v3);
+
+		/* offset between both plane where the lines lies */
+		Crossf(n, a, b);
+		Projf(t, t, n);
+
+		/* for the first line, offset the second line until it is coplanar */
+		VecAddf(v3t, v3, t);
+		VecAddf(v4t, v4, t);
+		
+		VecSubf(c, v3t, v1);
+		VecSubf(a, v2, v1);
+		VecSubf(b, v4t, v3);
+
+		Crossf(ab, a, b);
+		Crossf(cb, c, b);
+
+		VecMulf(a, Inpf(cb, ab) / Inpf(ab, ab));
+		VecAddf(i1, v1, a);
+
+		/* for the second line, just substract the offset from the first intersection point */
+		VecSubf(i2, i1, t);
+		
+		return 2; /* two nearest points */
+	}
+} 
+
 int AabbIntersectAabb(float min1[3], float max1[3], float min2[3], float max2[3])
 {
 	return (min1[0]<max2[0] && min1[1]<max2[1] && min1[2]<max2[2] &&

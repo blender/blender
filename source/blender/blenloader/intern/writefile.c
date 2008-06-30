@@ -715,6 +715,9 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 		case ACT_PARENT:
 			writestruct(wd, DATA, "bParentActuator", 1, act->data);
 			break;
+		case ACT_STATE:
+			writestruct(wd, DATA, "bStateActuator", 1, act->data);
+			break;
 		default:
 			; /* error: don't know how to write this file */
 		}

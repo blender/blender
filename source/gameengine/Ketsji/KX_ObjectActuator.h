@@ -46,7 +46,13 @@ struct KX_LocalFlags {
 		DLoc(false),
 		LinearVelocity(false),
 		AngularVelocity(false),
-		AddOrSetLinV(false)
+		AddOrSetLinV(false),
+		ClampVelocity(false),
+		ZeroForce(false),
+		ZeroDRot(false),
+		ZeroDLoc(false),
+		ZeroLinearVelocity(false),
+		ZeroAngularVelocity(false)
 	{
 	}
 
@@ -57,6 +63,13 @@ struct KX_LocalFlags {
 	unsigned short LinearVelocity : 1;
 	unsigned short AngularVelocity : 1;
 	unsigned short AddOrSetLinV : 1;
+	unsigned short ClampVelocity : 1;
+	unsigned short ZeroForce : 1;
+	unsigned short ZeroTorque : 1;
+	unsigned short ZeroDRot : 1;
+	unsigned short ZeroDLoc : 1;
+	unsigned short ZeroLinearVelocity : 1;
+	unsigned short ZeroAngularVelocity : 1;
 };
 
 class KX_ObjectActuator : public SCA_IActuator
@@ -69,6 +82,11 @@ class KX_ObjectActuator : public SCA_IActuator
 	MT_Vector3		m_drot;
 	MT_Vector3		m_linear_velocity;
 	MT_Vector3		m_angular_velocity;	
+	MT_Scalar		m_linear_length2;
+	MT_Scalar		m_angular_length2;
+	MT_Scalar		m_current_linear_factor;
+	MT_Scalar		m_current_angular_factor;
+	short			m_damping;
   	KX_LocalFlags	m_bitLocalFlag;
 
 	// A hack bool -- oh no sorry everyone
@@ -77,6 +95,8 @@ class KX_ObjectActuator : public SCA_IActuator
 	// setting linear velocity.
 
 	bool m_active_combined_velocity;
+	bool m_linear_damping_active;
+	bool m_angular_damping_active;
 	
 public:
 	enum KX_OBJECT_ACT_VEC_TYPE {
@@ -103,6 +123,7 @@ public:
 		const MT_Vector3& drot,
 		const MT_Vector3& linV,
 		const MT_Vector3& angV,
+		const short damping,
 		const KX_LocalFlags& flag,
 		PyTypeObject* T=&Type
 	);
@@ -110,6 +131,17 @@ public:
 	CValue* GetReplica();
 
 	void SetForceLoc(const double force[3])	{ /*m_force=force;*/ }
+	void UpdateFuzzyFlags()
+		{ 
+			m_bitLocalFlag.ZeroForce = MT_fuzzyZero(m_force);
+			m_bitLocalFlag.ZeroTorque = MT_fuzzyZero(m_torque);
+			m_bitLocalFlag.ZeroDLoc = MT_fuzzyZero(m_dloc);
+			m_bitLocalFlag.ZeroDRot = MT_fuzzyZero(m_drot);
+			m_bitLocalFlag.ZeroLinearVelocity = MT_fuzzyZero(m_linear_velocity);
+			m_linear_length2 = (m_bitLocalFlag.ZeroLinearVelocity) ? 0.0 : m_linear_velocity.length2();
+			m_bitLocalFlag.ZeroAngularVelocity = MT_fuzzyZero(m_angular_velocity);
+			m_angular_length2 = (m_bitLocalFlag.ZeroAngularVelocity) ? 0.0 : m_angular_velocity.length2();
+		}
 	virtual bool Update();
 
 
@@ -132,6 +164,8 @@ public:
 	KX_PYMETHOD(KX_ObjectActuator,SetLinearVelocity);
 	KX_PYMETHOD(KX_ObjectActuator,GetAngularVelocity);
 	KX_PYMETHOD(KX_ObjectActuator,SetAngularVelocity);
+	KX_PYMETHOD(KX_ObjectActuator,SetVelocityDamping);
+	KX_PYMETHOD(KX_ObjectActuator,GetVelocityDamping);
 };
 
 #endif //__KX_OBJECTACTUATOR

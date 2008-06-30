@@ -6,9 +6,9 @@
 # Group: 'Export'
 # Tooltip: 'Export to DirectX text file format format for XNA Animation Component Library.'
 """
-__author__ = "minahito (original:Arben (Ben) Omari)"
-__url__ = ("blender", "blenderartists.org", "Adjuster's site http://sunday-lab.blogspot.com/, Author's site http://www.omariben.too.it")
-__version__ = "3.0"
+__author__ = "vertex color exporting feature is added by mnemoto (original:minahito (original:Arben (Ben) Omari))"
+__url__ = ("blender", "elysiun", "Adjuster's site http://sunday-lab.blogspot.com/, Author's site http://www.omariben.too.it","Adjuster's site http://ex.homeunix.net/")
+__version__ = "3.1"
 
 __bpydoc__ = """\
 This script exports a Blender mesh with armature to DirectX 8's text file
@@ -444,6 +444,7 @@ class xExport:
 		self.writeMeshMaterialList(obj, mesh, tex)
 		self.writeMeshNormals(obj, mesh)
 		self.writeMeshTextureCoords(obj, mesh)
+		self.writeMeshVertexColors(obj, mesh)
 		self.file.write("  }  // End of the Mesh %s \n" % (obj.name))
 		
 					
@@ -464,6 +465,7 @@ class xExport:
 				self.writeMeshMaterialList(obj, mesh, tex)
 				self.writeMeshNormals(obj, mesh)
 				self.writeMeshTextureCoords(obj, mesh)
+				self.writeMeshVertexColors(obj, mesh)
 				self.file.write(" }\n")
 				self.file.write("}\n")
 				ind = objs.index(obj)
@@ -1047,6 +1049,32 @@ template SkinWeights {\n\
 						self.file.write(",\n")
 
 			self.file.write("}  //End of MeshTextureCoords\n")
+
+	#***********************************************
+	#MESH VORTEX COLORS
+	#***********************************************
+	def writeMeshVertexColors(self, name, mesh):
+		if mesh.hasVertexColours():
+			self.file.write("MeshVertexColors {\n")
+			#VERTICES NUMBER
+			numvert = reduce( lambda i,f: len(f)+i, mesh.faces, 0)
+			self.file.write("%d;\n" % (numvert))
+			#VERTEX COLORS
+			
+			vcounter =0
+			for f in mesh.faces:
+				col = f.col
+				for i,c in enumerate(col):
+					# Note vcol alpha has no meaning
+					self.file.write("%d;%f;%f;%f;%f;" % (vcounter,c.r/255.0, c.g/255.0, c.b/255.0, 1.0)) # c.a/255.0))
+					vcounter+=1
+					if vcounter == numvert :
+						self.file.write(";\n")
+					else :
+						self.file.write(",\n")
+
+			self.file.write("}  //End of MeshVertexColors\n")
+
 #***********************************************#***********************************************#***********************************************
 	#***********************************************
 	#FRAMES

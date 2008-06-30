@@ -50,6 +50,7 @@ typedef struct bActionActuator {
 	short	type, flag;		/* Playback type */					
 	int	sta, end;		/* Start & End frames */			
 	char	name[32];		/* For property-driven playback */	
+	char	frameProp[32];	/* Set this property to the actions current frame */
 	int	blendin;		/* Number of frames of blending */	
 	short	priority;		/* Execution priority */			
 	short	strideaxis;		/* Displacement axis */
@@ -80,7 +81,7 @@ typedef struct bEditObjectActuator {
 	char name[32];
 	float linVelocity[3]; /* initial lin. velocity on creation */
 	short localflag; /* flag for the lin. vel: apply locally   */
-	short pad;
+	short dyn_operation;
 } bEditObjectActuator;
 
 typedef struct bSceneActuator {
@@ -97,7 +98,8 @@ typedef struct bPropertyActuator {
 } bPropertyActuator;
 
 typedef struct bObjectActuator {
-	int flag, type;
+	short flag, type;
+	int   damping;
 	float forceloc[3], forcerot[3];
 	float loc[3], rot[3];
 	float dloc[3], drot[3];
@@ -190,11 +192,13 @@ typedef struct bVisibilityActuator {
 } bVisibilityActuator;
 
 typedef struct bTwoDFilterActuator{
-	char pad[4];
-	/* Tells what type of 2D Filter*/
+	char pad[2];
+	/* bitwise flag for enabling or disabling depth(bit 0) and luminance(bit 1) */
+	short texture_flag;
+	/* Tells what type of 2D Filter */
 	short type;
 	/* (flag == 0) means 2D filter is activate and
-	   (flag != 0) means 2D filter is inactive*/
+	   (flag != 0) means 2D filter is inactive */
 	short flag;
 	int   int_arg;
 	/* a float argument */
@@ -207,6 +211,11 @@ typedef struct bParentActuator {
 	int type;
 	struct Object *ob;
 } bParentActuator;
+
+typedef struct bStateActuator {
+	int type;			/* 0=Set, 1=Add, 2=Rem, 3=Chg */
+	unsigned int mask;	/* the bits to change */
+} bStateActuator;
 
 typedef struct bActuator {
 	struct bActuator *next, *prev, *mynew;
@@ -246,6 +255,7 @@ typedef struct FreeCamera {
 #define ACT_ANG_VEL_LOCAL		32
 //#define ACT_ADD_LIN_VEL_LOCAL	64
 #define ACT_ADD_LIN_VEL			64
+#define ACT_CLAMP_VEL			128
 
 #define ACT_OBJECT_FORCE	0
 #define ACT_OBJECT_TORQUE	1
@@ -279,11 +289,14 @@ typedef struct FreeCamera {
 #define ACT_2DFILTER	19
 #define ACT_PARENT      20
 #define ACT_SHAPEACTION 21
+#define ACT_STATE		22
 
 /* actuator flag */
 #define ACT_SHOW		1
 #define ACT_DEL			2
 #define ACT_NEW			4
+#define ACT_LINKED		8	
+#define ACT_VISIBLE		16	
 
 /* link codes */
 #define LINK_SENSOR		0
@@ -349,10 +362,11 @@ typedef struct FreeCamera {
 /* editObjectActuator->type */
 #define ACT_EDOB_ADD_OBJECT		0
 #define ACT_EDOB_END_OBJECT		1
-#define ACT_EDOB_REPLACE_MESH	2
+#define ACT_EDOB_REPLACE_MESH		2
 #define ACT_EDOB_TRACK_TO		3
-#define ACT_EDOB_MAKE_CHILD		4
-#define ACT_EDOB_END_CHILD		5
+#define ACT_EDOB_DYNAMICS		4
+
+
 
 /* editObjectActuator->flag */
 #define ACT_TRACK_3D			1

@@ -463,6 +463,9 @@
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_SCA_AddObjectActuator.cpp">
 				</File>
 				<File
+					RelativePath="..\..\..\source\gameengine\Ketsji\KX_SCA_DynamicActuator.cpp">
+				</File>
+				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_SCA_EndObjectActuator.cpp">
 				</File>
 				<File
@@ -473,6 +476,9 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_SoundActuator.cpp">
+				</File>
+				<File
+					RelativePath="..\..\..\source\gameengine\Ketsji\KX_StateActuator.cpp">
 				</File>
 				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_TrackToActuator.cpp">
@@ -684,6 +690,9 @@
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_SCA_AddObjectActuator.h">
 				</File>
 				<File
+					RelativePath="..\..\..\source\gameengine\Ketsji\KX_SCA_DynamicActuator.h">
+				</File>
+				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_SCA_EndObjectActuator.h">
 				</File>
 				<File
@@ -694,6 +703,9 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_SoundActuator.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\gameengine\Ketsji\KX_StateActuator.h">
 				</File>
 				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_TrackToActuator.h">

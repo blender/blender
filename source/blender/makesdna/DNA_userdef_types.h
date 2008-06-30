@@ -310,7 +310,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define	USER_DUP_ACT			(1 << 10)
 
 /* gameflags */
-#define USER_VERTEX_ARRAYS		1
+#define USER_DEPRECATED_FLAG	1
 #define USER_DISABLE_SOUND		2
 #define USER_DISABLE_MIPMAP		4
 

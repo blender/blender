@@ -50,6 +50,7 @@ KX_ObjectActuator(
 	const MT_Vector3& drot,
 	const MT_Vector3& linV,
 	const MT_Vector3& angV,
+	const short damping,
 	const KX_LocalFlags& flag,
 	PyTypeObject* T
 ) : 
@@ -60,9 +61,16 @@ KX_ObjectActuator(
 	m_drot(drot),
 	m_linear_velocity(linV),
 	m_angular_velocity(angV),
+	m_linear_length2(0.0),
+	m_current_linear_factor(0.0),
+	m_current_angular_factor(0.0),
+	m_damping(damping),
 	m_bitLocalFlag (flag),
-	m_active_combined_velocity (false)
+	m_active_combined_velocity (false),
+	m_linear_damping_active(false),
+	m_angular_damping_active(false)
 {
+	UpdateFuzzyFlags();
 }
 
 bool KX_ObjectActuator::Update()
@@ -87,42 +95,98 @@ bool KX_ObjectActuator::Update()
 				);
 			m_active_combined_velocity = false;
 		} 
+		m_linear_damping_active = false;
 		return false; 
 
 	} else 
 	if (parent)
 	{
-		/* Probably better to use some flags, so these MT_zero tests can be  */
-		/* skipped.                                                          */
-		if (!MT_fuzzyZero(m_force))
+		if (!m_bitLocalFlag.ZeroForce)
 		{
-			parent->ApplyForce(m_force,(m_bitLocalFlag.Force) != 0);
+			if (m_bitLocalFlag.ClampVelocity && !m_bitLocalFlag.ZeroLinearVelocity)
+			{
+				// The user is requesting not to exceed the velocity set in m_linear_velocity
+				// The verification is done by projecting the actual speed along the linV direction
+				// and comparing it with the linV vector length
+				MT_Vector3 linV;
+				linV = parent->GetLinearVelocity(m_bitLocalFlag.LinearVelocity);
+				if (linV.dot(m_linear_velocity) < m_linear_length2)
+					parent->ApplyForce(m_force,(m_bitLocalFlag.Force) != 0);
+			} else 
+			{
+				parent->ApplyForce(m_force,(m_bitLocalFlag.Force) != 0);
+			}
 		}
-		if (!MT_fuzzyZero(m_torque))
+		if (!m_bitLocalFlag.ZeroTorque)
 		{
-			parent->ApplyTorque(m_torque,(m_bitLocalFlag.Torque) != 0);
+			if (m_bitLocalFlag.ClampVelocity && !m_bitLocalFlag.ZeroAngularVelocity)
+			{
+				// The user is requesting not to exceed the velocity set in m_angular_velocity
+				// The verification is done by projecting the actual speed in the 
+				MT_Vector3 angV;
+				angV = parent->GetAngularVelocity(m_bitLocalFlag.AngularVelocity);
+				if (angV.dot(m_angular_velocity) < m_angular_velocity.length2())
+					parent->ApplyTorque(m_torque,(m_bitLocalFlag.Torque) != 0);
+			} else
+			{
+				parent->ApplyTorque(m_torque,(m_bitLocalFlag.Torque) != 0);
+			}
 		}
-		if (!MT_fuzzyZero(m_dloc))
+		if (!m_bitLocalFlag.ZeroDLoc)
 		{
 			parent->ApplyMovement(m_dloc,(m_bitLocalFlag.DLoc) != 0);
 		}
-		if (!MT_fuzzyZero(m_drot))
+		if (!m_bitLocalFlag.ZeroDRot)
 		{
 			parent->ApplyRotation(m_drot,(m_bitLocalFlag.DRot) != 0);
 		}
-		if (!MT_fuzzyZero(m_linear_velocity))
+		if (!m_bitLocalFlag.ZeroLinearVelocity && !m_bitLocalFlag.ClampVelocity)
 		{
 			if (m_bitLocalFlag.AddOrSetLinV) {
 				parent->addLinearVelocity(m_linear_velocity,(m_bitLocalFlag.LinearVelocity) != 0);
 			} else {
 				m_active_combined_velocity = true;
- 				parent->setLinearVelocity(m_linear_velocity,(m_bitLocalFlag.LinearVelocity) != 0);
+				if (m_damping > 0) {
+					MT_Vector3 linV;
+					if (!m_linear_damping_active) {
+						// delta and the start speed (depends on the existing speed in that direction)
+						linV = parent->GetLinearVelocity(m_bitLocalFlag.LinearVelocity);
+						// keep only the projection along the desired direction
+						m_current_linear_factor = linV.dot(m_linear_velocity)/m_linear_length2;
+						m_linear_damping_active = true;
+					}
+					if (m_current_linear_factor < 1.0)
+						m_current_linear_factor += 1.0/m_damping;
+					if (m_current_linear_factor > 1.0)
+						m_current_linear_factor = 1.0;
+					linV = m_current_linear_factor * m_linear_velocity;
+	 				parent->setLinearVelocity(linV,(m_bitLocalFlag.LinearVelocity) != 0);
+				} else {
+	 				parent->setLinearVelocity(m_linear_velocity,(m_bitLocalFlag.LinearVelocity) != 0);
+				}
 			}
 		}
-		if (!MT_fuzzyZero(m_angular_velocity))
+		if (!m_bitLocalFlag.ZeroAngularVelocity && !m_bitLocalFlag.ClampVelocity)
 		{
-			parent->setAngularVelocity(m_angular_velocity,(m_bitLocalFlag.AngularVelocity) != 0);
 			m_active_combined_velocity = true;
+			if (m_damping > 0) {
+				MT_Vector3 angV;
+				if (!m_angular_damping_active) {
+					// delta and the start speed (depends on the existing speed in that direction)
+					angV = parent->GetAngularVelocity(m_bitLocalFlag.AngularVelocity);
+					// keep only the projection along the desired direction
+					m_current_angular_factor = angV.dot(m_angular_velocity)/m_angular_length2;
+					m_angular_damping_active = true;
+				}
+				if (m_current_angular_factor < 1.0)
+					m_current_angular_factor += 1.0/m_damping;
+				if (m_current_angular_factor > 1.0)
+					m_current_angular_factor = 1.0;
+				angV = m_current_angular_factor * m_angular_velocity;
+	 			parent->setAngularVelocity(angV,(m_bitLocalFlag.AngularVelocity) != 0);
+			} else {
+				parent->setAngularVelocity(m_angular_velocity,(m_bitLocalFlag.AngularVelocity) != 0);
+			}
 		}
 		
 	}
@@ -199,6 +263,8 @@ PyMethodDef KX_ObjectActuator::Methods[] = {
 	{"setLinearVelocity", (PyCFunction) KX_ObjectActuator::sPySetLinearVelocity, METH_VARARGS},
 	{"getAngularVelocity", (PyCFunction) KX_ObjectActuator::sPyGetAngularVelocity, METH_VARARGS},
 	{"setAngularVelocity", (PyCFunction) KX_ObjectActuator::sPySetAngularVelocity, METH_VARARGS},
+	{"setVelocityDamping", (PyCFunction) KX_ObjectActuator::sPySetVelocityDamping, METH_VARARGS},
+	{"getVelocityDamping", (PyCFunction) KX_ObjectActuator::sPyGetVelocityDamping, METH_VARARGS},
 
 
 	{NULL,NULL} //Sentinel
@@ -238,6 +304,7 @@ PyObject* KX_ObjectActuator::PySetForce(PyObject* self,
 	}
 	m_force.setValue(vecArg);
 	m_bitLocalFlag.Force = PyArgToBool(bToggle);
+	UpdateFuzzyFlags();
 	Py_Return;
 }
 
@@ -268,6 +335,7 @@ PyObject* KX_ObjectActuator::PySetTorque(PyObject* self,
 	}
 	m_torque.setValue(vecArg);
 	m_bitLocalFlag.Torque = PyArgToBool(bToggle);
+	UpdateFuzzyFlags();
 	Py_Return;
 }
 
@@ -298,6 +366,7 @@ PyObject* KX_ObjectActuator::PySetDLoc(PyObject* self,
 	}
 	m_dloc.setValue(vecArg);
 	m_bitLocalFlag.DLoc = PyArgToBool(bToggle);
+	UpdateFuzzyFlags();
 	Py_Return;
 }
 
@@ -328,6 +397,7 @@ PyObject* KX_ObjectActuator::PySetDRot(PyObject* self,
 	}
 	m_drot.setValue(vecArg);
 	m_bitLocalFlag.DRot = PyArgToBool(bToggle);
+	UpdateFuzzyFlags();
 	Py_Return;
 }
 
@@ -341,6 +411,7 @@ PyObject* KX_ObjectActuator::PyGetLinearVelocity(PyObject* self,
 	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_linear_velocity[1]));
 	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_linear_velocity[2]));
 	PyList_SetItem(retVal, 3, BoolToPyArg(m_bitLocalFlag.LinearVelocity));
+	PyList_SetItem(retVal, 4, BoolToPyArg(m_bitLocalFlag.ClampVelocity));
 	
 	return retVal;
 }
@@ -351,12 +422,15 @@ PyObject* KX_ObjectActuator::PySetLinearVelocity(PyObject* self,
 												 PyObject* kwds) {
 	float vecArg[3];
 	int bToggle = 0;
-	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
-						  &vecArg[2], &bToggle)) {
+	int bClamp = 0;
+	if (!PyArg_ParseTuple(args, "fffi|i", &vecArg[0], &vecArg[1], 
+						  &vecArg[2], &bToggle, &bClamp)) {
 		return NULL;
 	}
 	m_linear_velocity.setValue(vecArg);
 	m_bitLocalFlag.LinearVelocity = PyArgToBool(bToggle);
+	m_bitLocalFlag.ClampVelocity = PyArgToBool(bClamp);
+	UpdateFuzzyFlags();
 	Py_Return;
 }
 
@@ -371,6 +445,7 @@ PyObject* KX_ObjectActuator::PyGetAngularVelocity(PyObject* self,
 	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_angular_velocity[1]));
 	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_angular_velocity[2]));
 	PyList_SetItem(retVal, 3, BoolToPyArg(m_bitLocalFlag.AngularVelocity));
+	PyList_SetItem(retVal, 4, BoolToPyArg(m_bitLocalFlag.ClampVelocity));
 	
 	return retVal;
 }
@@ -380,13 +455,35 @@ PyObject* KX_ObjectActuator::PySetAngularVelocity(PyObject* self,
 												  PyObject* kwds) {
 	float vecArg[3];
 	int bToggle = 0;
-	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
-						  &vecArg[2], &bToggle)) {
+	int bClamp = 0;
+	if (!PyArg_ParseTuple(args, "fffi|i", &vecArg[0], &vecArg[1], 
+						  &vecArg[2], &bToggle, &bClamp)) {
 		return NULL;
 	}
 	m_angular_velocity.setValue(vecArg);
 	m_bitLocalFlag.AngularVelocity = PyArgToBool(bToggle);
+	m_bitLocalFlag.ClampVelocity = PyArgToBool(bClamp);
+	UpdateFuzzyFlags();
 	Py_Return;
+}
+
+/* 13. setVelocityDamping                                                */
+PyObject* KX_ObjectActuator::PySetVelocityDamping(PyObject* self, 
+												  PyObject* args, 
+												  PyObject* kwds) {
+	int damping = 0;
+	if (!PyArg_ParseTuple(args, "i", &damping) || damping < 0 || damping > 1000) {
+		return NULL;
+	}
+	m_damping = damping;
+	Py_Return;
+}
+
+/* 13. getVelocityDamping                                                */
+PyObject* KX_ObjectActuator::PyGetVelocityDamping(PyObject* self, 
+												  PyObject* args, 
+												  PyObject* kwds) {
+	return Py_BuildValue("i",m_damping);
 }
 
 

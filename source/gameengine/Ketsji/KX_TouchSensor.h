@@ -72,6 +72,7 @@ public:
 	virtual CValue* GetReplica();
 	virtual void SynchronizeTransform();
 	virtual bool Evaluate(CValue* event);
+	virtual void Init();
 	virtual void ReParent(SCA_IObject* parent);
 	
 	virtual void RegisterSumo(KX_TouchEventManager* touchman);

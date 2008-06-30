@@ -165,20 +165,14 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
 		RAS_IRasterizer* rasterizer = NULL;
 		
-		// let's see if we want to use vertexarrays or not
-		int usevta = SYS_GetCommandLineInt(syshandle,"vertexarrays",1);
-		bool useVertexArrays = (usevta > 0);
-		
-		bool lock_arrays = (displaylists && useVertexArrays);
-
-		if(displaylists){
-			if (useVertexArrays)
-				rasterizer = new RAS_ListRasterizer(canvas, true, lock_arrays);
+		if(displaylists) {
+			if (GLEW_VERSION_1_1)
+				rasterizer = new RAS_ListRasterizer(canvas, true, true);
 			else
 				rasterizer = new RAS_ListRasterizer(canvas);
 		}
-		else if (useVertexArrays && GLEW_VERSION_1_1)
-			rasterizer = new RAS_VAOpenGLRasterizer(canvas, lock_arrays);
+		else if (GLEW_VERSION_1_1)
+			rasterizer = new RAS_VAOpenGLRasterizer(canvas, false);
 		else
 			rasterizer = new RAS_OpenGLRasterizer(canvas);
 		
@@ -513,16 +507,14 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
 		RAS_IRasterizer* rasterizer = NULL;
 
-		// let's see if we want to use vertexarrays or not
-		int usevta = SYS_GetCommandLineInt(syshandle,"vertexarrays",1);
-		bool useVertexArrays = (usevta > 0);
-
-		bool lock_arrays = (displaylists && useVertexArrays);
-
-		if(displaylists && !useVertexArrays)
-			rasterizer = new RAS_ListRasterizer(canvas);
-		else if (useVertexArrays && GLEW_VERSION_1_1)
-			rasterizer = new RAS_VAOpenGLRasterizer(canvas, lock_arrays);
+		if(displaylists) {
+			if (GLEW_VERSION_1_1)
+				rasterizer = new RAS_ListRasterizer(canvas, true, true);
+			else
+				rasterizer = new RAS_ListRasterizer(canvas);
+		}
+		else if (GLEW_VERSION_1_1)
+			rasterizer = new RAS_VAOpenGLRasterizer(canvas, false);
 		else
 			rasterizer = new RAS_OpenGLRasterizer(canvas);
 

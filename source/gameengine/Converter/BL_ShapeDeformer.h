@@ -38,6 +38,7 @@
 #include "BL_DeformableGameObject.h"
 #include <vector>
 
+struct IpoCurve;
 
 class BL_ShapeDeformer : public BL_SkinDeformer  
 {
@@ -82,8 +83,16 @@ public:
 	virtual ~BL_ShapeDeformer();
 
 	bool Update (void);
+	bool LoadShapeDrivers(Object* arma);
+	bool ExecuteShapeDrivers(void);
+
+	void ForceUpdate()
+	{
+		m_lastShapeUpdate = -1.0;
+	};
 
 protected:
+	vector<IpoCurve*>		 m_shapeDrivers;
 	double					 m_lastShapeUpdate;
 	BL_DeformableGameObject* m_gameobj;
 

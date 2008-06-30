@@ -520,11 +520,6 @@ void CValue::CloneProperties(CValue *replica)
 	
 }
 
-
-
-
-
-
 double*		CValue::GetVector3(bool bGetTransformedVec)
 {
 	assertd(false); // don;t get vector from me
@@ -775,6 +770,25 @@ int	CValue::_setattr(const STR_String& attr,PyObject* pyobj)
 	//PyObjectPlus::_setattr(attr,value);
 	return 0;
 };
+
+PyObject*	CValue::ConvertKeysToPython( void )
+{
+	PyObject *pylist = PyList_New( 0 );
+	PyObject *pystr;
+	
+	if (m_pNamedPropertyArray)
+	{
+		for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
+		!(it == m_pNamedPropertyArray->end());it++)
+		{
+			pystr = PyString_FromString( (*it).first );
+			PyList_Append(pylist, pystr);
+			Py_DECREF( pystr );
+		}
+	}
+	return pylist;
+}
+
 /*
 PyObject*	CValue::PyMake(PyObject* ignored,PyObject* args)
 {

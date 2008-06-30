@@ -754,8 +754,6 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	for (SCA_ControllerList::iterator itc = controllers.begin();
 		 !(itc==controllers.end());itc++)
 	{
-		(*itc)->UnlinkAllSensors();
-		(*itc)->UnlinkAllActuators();
 		m_logicmgr->RemoveController(*itc);
 	}
 
@@ -868,6 +866,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 						static_cast<BL_ArmatureObject*>( parentobj )
 					);
 					releaseParent= false;
+					shapeDeformer->LoadShapeDrivers(blendobj->parent);
 				}
 				else
 				{

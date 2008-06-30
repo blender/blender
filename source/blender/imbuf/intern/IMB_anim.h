@@ -183,8 +183,9 @@ struct anim {
 	AVFormatContext *pFormatCtx;
 	AVCodecContext *pCodecCtx;
 	AVCodec *pCodec;
-	AVFrame *pFrameRGB;
 	AVFrame *pFrame;
+	AVFrame *pFrameRGB;
+	AVFrame *pFrameDeinterlaced;
 	struct SwsContext *img_convert_ctx;
 	int videoStream;
 #endif

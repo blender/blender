@@ -56,11 +56,13 @@
 #include "KX_ConstraintActuator.h"
 #include "KX_CameraActuator.h"
 #include "KX_GameActuator.h"
+#include "KX_StateActuator.h"
 #include "KX_VisibilityActuator.h"
 #include "KX_SCA_AddObjectActuator.h"
 #include "KX_SCA_EndObjectActuator.h"
 #include "KX_SCA_ReplaceMeshActuator.h"
 #include "KX_ParentActuator.h"
+#include "KX_SCA_DynamicActuator.h"
 
 #include "KX_Scene.h"
 #include "KX_KetsjiEngine.h"
@@ -136,6 +138,7 @@ void BL_ConvertActuators(char* maggiename,
 				MT_Vector3 angvelvec ( KX_BLENDERTRUNC(obact->angularvelocity[0]),
 					KX_BLENDERTRUNC(obact->angularvelocity[1]),
 					KX_BLENDERTRUNC(obact->angularvelocity[2]));
+				short damping = obact->damping;
 				
 				drotvec /=		BLENDER_HACK_DTIME;
 				//drotvec /=		BLENDER_HACK_DTIME;
@@ -156,7 +159,7 @@ void BL_ConvertActuators(char* maggiename,
 				bitLocalFlag.DRot = bool((obact->flag & ACT_DROT_LOCAL)!=0);
 				bitLocalFlag.LinearVelocity = bool((obact->flag & ACT_LIN_VEL_LOCAL)!=0);
 				bitLocalFlag.AngularVelocity = bool((obact->flag & ACT_ANG_VEL_LOCAL)!=0);
-				
+				bitLocalFlag.ClampVelocity = bool((obact->flag & ACT_CLAMP_VEL)!=0);
 				bitLocalFlag.AddOrSetLinV = bool((obact->flag & ACT_ADD_LIN_VEL)!=0);
 				
 				
@@ -167,6 +170,7 @@ void BL_ConvertActuators(char* maggiename,
 					drotvec.getValue(),
 					linvelvec.getValue(),
 					angvelvec.getValue(),
+					damping,
 					bitLocalFlag
 					);
 				baseact = tmpbaseact;
@@ -177,10 +181,12 @@ void BL_ConvertActuators(char* maggiename,
 				if (blenderobject->type==OB_ARMATURE){
 					bActionActuator* actact = (bActionActuator*) bact->data;
 					STR_String propname = (actact->name ? actact->name : "");
+					STR_String propframe = (actact->frameProp ? actact->frameProp : "");
 					
 					BL_ActionActuator* tmpbaseact = new BL_ActionActuator(
 						gameobj,
 						propname,
+						propframe,
 						actact->sta,
 						actact->end,
 						actact->act,
@@ -597,6 +603,15 @@ void BL_ConvertActuators(char* maggiename,
 								blenderobject->upflag
 								);
 							baseact = tmptrackact;
+						break;
+					}
+				case ACT_EDOB_DYNAMICS:
+					{
+						KX_SCA_DynamicActuator* tmpdynact 
+							= new KX_SCA_DynamicActuator(gameobj, 
+								editobact->dyn_operation
+								);
+							baseact = tmpdynact;
 					}
 				}
 				break;
@@ -857,7 +872,19 @@ void BL_ConvertActuators(char* maggiename,
 			baseact = tmp_vis_act;
 		}
 		break;
-		
+
+		case ACT_STATE:
+		{
+			bStateActuator *sta_act = (bStateActuator *) bact->data;
+			KX_StateActuator * tmp_sta_act = NULL;
+
+			tmp_sta_act = 
+				new KX_StateActuator(gameobj, sta_act->type, sta_act->mask);
+			
+			baseact = tmp_sta_act;
+		}
+		break;
+
 		case ACT_2DFILTER:
 		{
 			bTwoDFilterActuator *_2dfilter = (bTwoDFilterActuator*) bact->data;
@@ -917,7 +944,7 @@ void BL_ConvertActuators(char* maggiename,
 			}
             
 			tmp = new SCA_2DFilterActuator(gameobj, filtermode, _2dfilter->flag,
-				_2dfilter->float_arg,_2dfilter->int_arg,ketsjiEngine->GetRasterizer(),rendertools);
+				_2dfilter->float_arg,_2dfilter->int_arg,_2dfilter->texture_flag,ketsjiEngine->GetRasterizer(),rendertools);
 
 			if (_2dfilter->text)
 			{

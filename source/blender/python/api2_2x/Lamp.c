@@ -1520,12 +1520,11 @@ static PyObject *Lamp_oldsetType( BPy_Lamp * self, PyObject * value )
 	char *type = PyString_AsString(value);
 	PyObject *arg, *error;
 
-	/* parse string argument */
-
-	if( !value )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected string argument" ) );
-
+	/* parse string argument */	
+	if( !type ) 
+		return EXPP_ReturnPyObjError ( PyExc_TypeError,
+					       "expected string argument" );
+	
 	/* check for valid arguments, set type accordingly */
 
 	if( !strcmp( type, "Lamp" ) )
@@ -1546,7 +1545,7 @@ static PyObject *Lamp_oldsetType( BPy_Lamp * self, PyObject * value )
 
 	/* build tuple, call wrapper */
 
-	arg = Py_BuildValue( "(i)", type );
+	arg = Py_BuildValue( "(i)", self->lamp->type );
 	error = EXPP_setterWrapper ( (void *)self, arg, (setter)Lamp_setType );
 	Py_DECREF ( arg );
 	return error;

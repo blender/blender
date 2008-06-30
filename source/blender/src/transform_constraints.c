@@ -393,7 +393,7 @@ static void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3]
  * (ie: not doing counterclockwise rotations when the mouse moves clockwise).
  */
 
-static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3])
+static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3], float *angle)
 {
 	if (!td && t->con.mode & CON_APPLY) {
 		int mode = t->con.mode & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
@@ -413,9 +413,9 @@ static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3])
 			break;
 		}
 		/* don't flip axis if asked to or if num input */
-		if (!(mode & CON_NOFLIP) && hasNumInput(&t->num) == 0) {
+		if (angle && (mode & CON_NOFLIP) == 0 && hasNumInput(&t->num) == 0) {
 			if (Inpf(vec, t->viewinv[2]) > 0.0f) {
-				VecMulf(vec, -1.0f);
+				*angle = -(*angle);
 			}
 		}
 	}
@@ -435,10 +435,15 @@ static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3])
  * (ie: not doing counterclockwise rotations when the mouse moves clockwise).
  */
 
-static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3])
+static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3], float *angle)
 {
-	if (td && t->con.mode & CON_APPLY) {
+	if (t->con.mode & CON_APPLY) {
 		int mode = t->con.mode & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
+		
+		/* on setup call, use first object */
+		if (td == NULL) {
+			td= t->data;
+		}
 
 		switch(mode) {
 		case CON_AXIS0:
@@ -454,9 +459,9 @@ static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3])
 			VECCOPY(vec, td->axismtx[2]);
 			break;
 		}
-		if (!(mode & CON_NOFLIP)) {
+		if (angle && (mode & CON_NOFLIP) == 0 && hasNumInput(&t->num) == 0) {
 			if (Inpf(vec, t->viewinv[2]) > 0.0f) {
-				VecMulf(vec, -1.0f);
+				*angle = -(*angle);
 			}
 		}
 	}

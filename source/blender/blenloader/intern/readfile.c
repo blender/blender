@@ -3011,6 +3011,9 @@ static void lib_link_object(FileData *fd, Main *main)
 					bParentActuator *parenta = act->data; 
 					parenta->ob = newlibadr(fd, ob->id.lib, parenta->ob);
 				}
+				else if(act->type==ACT_STATE) {
+					/* bStateActuator *statea = act->data; */
+				}
 				act= act->next;
 			}
 
@@ -3307,11 +3310,19 @@ static void direct_link_object(FileData *fd, Object *ob)
 	direct_link_constraints(fd, &ob->constraints);
 
 	link_glob_list(fd, &ob->controllers);
+	if (ob->init_state) {
+		/* if a known first state is specified, set it so that the game will start ok */
+		ob->state = ob->init_state;
+	} else if (!ob->state) {
+		ob->state = 1;
+	}
 	cont= ob->controllers.first;
 	while(cont) {
 		cont->data= newdataadr(fd, cont->data);
 		cont->links= newdataadr(fd, cont->links);
 		test_pointer_array(fd, (void **)&cont->links);
+		if (cont->state_mask == 0)
+			cont->state_mask = 1;
 		cont= cont->next;
 	}
 
@@ -7634,6 +7645,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

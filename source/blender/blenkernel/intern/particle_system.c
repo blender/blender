@@ -2596,6 +2596,7 @@ static void precalc_effectors(Object *ob, ParticleSystem *psys, ParticleSystemMo
 	
 	for(ec= lb->first; ec; ec= ec->next) {
 		PartDeflect *pd= ec->ob->pd;
+		co = NULL;
 		
 		if(ec->type==PSYS_EC_EFFECTOR && pd->forcefield==PFIELD_GUIDE && ec->ob->type==OB_CURVE 
 			&& part->phystype!=PART_PHYS_BOIDS) {

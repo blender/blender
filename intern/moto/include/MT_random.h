@@ -31,10 +31,10 @@
 
 #include <limits.h>
 
-#define MT_RAND_MAX ULONG_MAX
+#define MT_RAND_MAX UINT_MAX
 
-extern void          MT_srand(unsigned long);
-extern unsigned long MT_rand();
+extern void          MT_srand(unsigned int);
+extern unsigned int  MT_rand();
 
 #endif
 

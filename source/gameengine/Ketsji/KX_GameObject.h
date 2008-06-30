@@ -46,7 +46,7 @@
 #include "GEN_HashedPtr.h"
 #include "KX_Scene.h"
 #include "KX_KetsjiEngine.h" /* for m_anim_framerate */
-
+#include "KX_IPhysicsController.h" /* for suspend/resume */
 #define KX_OB_DYNAMIC 1
 
 
@@ -255,6 +255,14 @@ public:
 	 */
 		MT_Vector3 
 	GetLinearVelocity(
+		bool local=false
+	);
+
+	/** 
+	 * Return the angular velocity of the game object.
+	 */
+		MT_Vector3 
+	GetAngularVelocity(
 		bool local=false
 	);
 
@@ -644,6 +652,32 @@ public:
 	 */
 	void Resume(void);
 	
+	void SuspendDynamics(void) {
+		if (m_bSuspendDynamics)
+		{
+			return;
+		}
+	
+		if (m_pPhysicsController1)
+		{
+			m_pPhysicsController1->SuspendDynamics();
+		}
+		m_bSuspendDynamics = true;
+	}
+	
+	void RestoreDynamics(void) {	
+		if (!m_bSuspendDynamics)
+		{
+			return;
+		}
+	
+		if (m_pPhysicsController1)
+		{
+			m_pPhysicsController1->RestoreDynamics();
+		}
+		m_bSuspendDynamics = false;
+	}
+	
 	KX_ClientObjectInfo* getClientInfo() { return m_pClient_info; }
 	/**
 	 * @section Python interface functions.
@@ -676,7 +710,7 @@ public:
 		PyObject* args,
 		PyObject* kwds
 	);
-	
+
 	KX_PYMETHOD(KX_GameObject,GetPosition);
 	KX_PYMETHOD(KX_GameObject,GetLinearVelocity);
 	KX_PYMETHOD(KX_GameObject,GetVelocity);
@@ -684,7 +718,10 @@ public:
 	KX_PYMETHOD(KX_GameObject,GetReactionForce);
 	KX_PYMETHOD(KX_GameObject,GetOrientation);
 	KX_PYMETHOD(KX_GameObject,SetOrientation);
+	KX_PYMETHOD(KX_GameObject,GetVisible);
 	KX_PYMETHOD(KX_GameObject,SetVisible);
+	KX_PYMETHOD(KX_GameObject,GetState);
+	KX_PYMETHOD(KX_GameObject,SetState);
 	KX_PYMETHOD(KX_GameObject,AlignAxisToVect);
 	KX_PYMETHOD(KX_GameObject,SuspendDynamics);
 	KX_PYMETHOD(KX_GameObject,RestoreDynamics);
@@ -697,9 +734,12 @@ public:
 	KX_PYMETHOD(KX_GameObject,SetParent);
 	KX_PYMETHOD(KX_GameObject,RemoveParent);
 	KX_PYMETHOD(KX_GameObject,GetPhysicsId);
+	KX_PYMETHOD(KX_GameObject,GetPropertyNames);
+	KX_PYMETHOD(KX_GameObject,EndObject);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCastTo);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCast);
 	KX_PYMETHOD_DOC(KX_GameObject,getDistanceTo);
+	
 private :
 
 	/**	

@@ -149,11 +149,8 @@ void BL_SkinDeformer::ProcessReplica()
 bool BL_SkinDeformer::Update(void)
 {
 	/* See if the armature has been updated for this frame */
-	if (m_armobj && m_lastArmaUpdate!=m_armobj->GetLastFrame()){	
+	if (PoseUpdated()){	
 		float obmat[4][4];	// the original object matrice 
-		
-		/* Do all of the posing necessary */
-		m_armobj->ApplyPose();
 		
 		/* XXX note: where_is_pose() (from BKE_armature.h) calculates all matrices needed to start deforming */
 		/* but it requires the blender object pointer... */

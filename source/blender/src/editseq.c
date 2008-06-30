@@ -2634,12 +2634,13 @@ void set_filter_seq(void)
 	ed= G.scene->ed;
 	if(ed==0) return;
 
-	if(okee("Set FilterY")==0) return;
+	if(okee("Set Deinterlace")==0) return;
 
 	WHILE_SEQ(ed->seqbasep) {
 		if(seq->flag & SELECT) {
 			if(seq->type==SEQ_MOVIE) {
 				seq->flag |= SEQ_FILTERY;
+				reload_sequence_new_file(seq);
 			}
 
 		}

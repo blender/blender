@@ -664,6 +664,27 @@ MT_Vector3 KX_GameObject::GetLinearVelocity(bool local)
 	return velocity;	
 }
 
+MT_Vector3 KX_GameObject::GetAngularVelocity(bool local)
+{
+	MT_Vector3 velocity(0.0,0.0,0.0), locvel;
+	MT_Matrix3x3 ori;
+	int i, j; 
+	if (m_pPhysicsController1)
+	{
+		velocity = m_pPhysicsController1->GetAngularVelocity();
+		
+		if (local)
+		{
+			ori = GetSGNode()->GetWorldOrientation();
+			
+			locvel = velocity * ori;
+			return locvel;
+		}
+	}
+	return velocity;	
+}
+
+
 
 // scenegraph node stuff
 
@@ -782,6 +803,9 @@ void KX_GameObject::Suspend(void)
 
 PyMethodDef KX_GameObject::Methods[] = {
 	{"setVisible",(PyCFunction) KX_GameObject::sPySetVisible, METH_VARARGS},  
+	{"getVisible",(PyCFunction) KX_GameObject::sPyGetVisible, METH_VARARGS},  
+	{"setState",(PyCFunction) KX_GameObject::sPySetState, METH_VARARGS},
+	{"getState",(PyCFunction) KX_GameObject::sPyGetState, METH_VARARGS},
 	{"alignAxisToVect",(PyCFunction) KX_GameObject::sPyAlignAxisToVect, METH_VARARGS},
 	{"setPosition", (PyCFunction) KX_GameObject::sPySetPosition, METH_VARARGS},
 	{"getPosition", (PyCFunction) KX_GameObject::sPyGetPosition, METH_VARARGS},
@@ -802,6 +826,8 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"removeParent", (PyCFunction)KX_GameObject::sPyRemoveParent,METH_VARARGS},
 	{"getMesh", (PyCFunction)KX_GameObject::sPyGetMesh,METH_VARARGS},
 	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_VARARGS},
+	{"getPropertyNames", (PyCFunction)KX_GameObject::sPyGetPropertyNames,METH_VARARGS},
+	{"endObject",(PyCFunction) KX_GameObject::sPyEndObject, METH_VARARGS},
 	KX_PYMETHODTABLE(KX_GameObject, getDistanceTo),
 	KX_PYMETHODTABLE(KX_GameObject, rayCastTo),
 	KX_PYMETHODTABLE(KX_GameObject, rayCast),
@@ -834,6 +860,18 @@ PyObject* KX_GameObject::sPySetPosition(PyObject* self,
 	return ((KX_GameObject*) self)->PySetPosition(self, args, kwds);
 }
 	
+
+PyObject* KX_GameObject::PyEndObject(PyObject* self,
+									 PyObject* args, 
+									 PyObject* kwds)
+{
+
+	KX_Scene *scene = PHY_GetActiveScene();
+	scene->DelayedRemoveObject(this);
+	
+	return Py_None;
+
+}
 
 
 PyObject* KX_GameObject::PyGetPosition(PyObject* self,
@@ -1074,6 +1112,45 @@ PyObject* KX_GameObject::PySetVisible(PyObject* self,
 	
 }
 
+PyObject* KX_GameObject::PyGetVisible(PyObject* self,
+									  PyObject* args,
+									  PyObject* kwds)
+{
+	return PyInt_FromLong(m_bVisible);	
+}
+
+PyObject* KX_GameObject::PyGetState(PyObject* self,
+									  PyObject* args,
+									  PyObject* kwds)
+{
+	int state = 0;
+	state |= GetState();
+	return PyInt_FromLong(state);
+}
+
+PyObject* KX_GameObject::PySetState(PyObject* self,
+									  PyObject* args,
+									  PyObject* kwds)
+{
+	int state_i;
+	unsigned int state = 0;
+	
+	if (PyArg_ParseTuple(args,"i",&state_i))
+	{
+		state |= state_i;
+		if ((state & ((1<<30)-1)) == 0) {
+			PyErr_SetString(PyExc_AttributeError, "The state bitfield was not between 0 and 30 (1<<0 and 1<<29)");
+			return NULL;
+		}
+		SetState(state);
+	}
+	else
+	{
+		return NULL;	     
+	}
+	Py_Return;
+}
+
 
 
 PyObject* KX_GameObject::PyGetVelocity(PyObject* self, 
@@ -1262,17 +1339,7 @@ PyObject* KX_GameObject::PySuspendDynamics(PyObject* self,
 										   PyObject* args, 
 										   PyObject* kwds)
 {
-	if (m_bSuspendDynamics)
-	{
-		Py_Return;
-	}
-	
-	if (m_pPhysicsController1)
-	{
-		m_pPhysicsController1->SuspendDynamics();
-	}
-	m_bSuspendDynamics = true;
-	
+	SuspendDynamics();
 	Py_Return;
 }
 
@@ -1282,18 +1349,7 @@ PyObject* KX_GameObject::PyRestoreDynamics(PyObject* self,
 										   PyObject* args, 
 										   PyObject* kwds)
 {
-	
-	if (!m_bSuspendDynamics)
-	{
-		Py_Return;
-	}
-	
-	if (m_pPhysicsController1)
-	{
-		m_pPhysicsController1->RestoreDynamics();
-	}
-	m_bSuspendDynamics = false;
-	
+	RestoreDynamics();
 	Py_Return;
 }
 
@@ -1381,6 +1437,13 @@ PyObject* KX_GameObject::PyGetPhysicsId(PyObject* self,
 		physid= (uint_ptr)ctrl->GetUserData();
 	}
 	return PyInt_FromLong((long)physid);
+}
+
+PyObject* KX_GameObject::PyGetPropertyNames(PyObject* self,
+											   PyObject* args,
+											   PyObject* kwds)
+{
+	return ConvertKeysToPython();
 }
 
 KX_PYMETHODDEF_DOC(KX_GameObject, getDistanceTo,

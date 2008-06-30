@@ -43,6 +43,8 @@ struct Camera;
 struct Texture;
 struct Lattice;
 struct bArmature;
+struct Tex;
+
 void add_curve_oopslinks(struct Curve *cu, struct Oops *oops, short flag);
 void add_from_link(struct Oops *from, struct Oops *oops);
 void add_material_oopslinks(struct Material *ma, struct Oops *oops, short flag);

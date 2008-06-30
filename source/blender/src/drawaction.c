@@ -474,10 +474,13 @@ static void draw_channel_names(void)
 					indent= 0;
 					special= -1;
 					
-					if (EXPANDED_AGRP(agrp))
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
+					/* only show expand if there are any channels */
+					if (agrp->channels.first) {
+						if (EXPANDED_AGRP(agrp))
+							expand = ICON_TRIA_DOWN;
+						else
+							expand = ICON_TRIA_RIGHT;
+					}
 						
 					if (EDITABLE_AGRP(agrp))
 						protect = ICON_UNLOCKED;

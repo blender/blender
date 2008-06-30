@@ -40,7 +40,7 @@
 
 MT_Point3 SCA_IObject::m_sDummy=MT_Point3(0,0,0);
 
-SCA_IObject::SCA_IObject(PyTypeObject* T): CValue(T)
+SCA_IObject::SCA_IObject(PyTypeObject* T): m_state(0), CValue(T)
 {
 	m_suspended = false;
 }
@@ -326,6 +326,17 @@ void SCA_IObject::Resume(void)
 			(*i)->Resume();
 			i++;
 		}
+	}
+}
+
+void SCA_IObject::SetState(unsigned int state)
+{
+	m_state = state;
+	// update the status of the controllers
+	SCA_ControllerList::iterator contit;
+	for (contit = m_controllers.begin(); contit != m_controllers.end(); contit++)
+	{
+		(*contit)->ApplyState(m_state);
 	}
 }
 
