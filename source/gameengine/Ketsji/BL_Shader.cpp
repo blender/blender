@@ -812,7 +812,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setSource," setSource(vertexProgram, fragmentProg
 		mUse = 0;
 		Py_Return;
 	}
-	Py_Return;
+	return NULL;
 }
 
 

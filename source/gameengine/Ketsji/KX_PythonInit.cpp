@@ -425,7 +425,7 @@ static PyObject* gPyEnableVisibility(PyObject*,
 	}
 	else
 	{
-	  Py_Return;	     
+		return NULL;
 	}
    Py_Return;
 }
@@ -449,6 +449,9 @@ static PyObject* gPyShowMouse(PyObject*,
 				gp_Canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
 		}
 	}
+	else {
+		return NULL;
+	}
 	
    Py_Return;
 }
@@ -464,6 +467,9 @@ static PyObject* gPySetMousePosition(PyObject*,
 	{
 	    if (gp_Canvas)
 			gp_Canvas->SetMousePosition(x,y);
+	}
+	else {
+		return NULL;
 	}
 	
    Py_Return;
@@ -568,6 +574,9 @@ static PyObject* gPySetMistStart(PyObject*,
 			gp_Rasterizer->SetFogStart(miststart);
 		}
 	}
+	else {
+		return NULL;
+	}
    Py_Return;
 }
 
@@ -585,6 +594,9 @@ static PyObject* gPySetMistEnd(PyObject*,
 		{
 			gp_Rasterizer->SetFogEnd(mistend);
 		}
+	}
+	else {
+		return NULL;
 	}
    Py_Return;
 }
@@ -623,6 +635,9 @@ static PyObject* gPyMakeScreenshot(PyObject*,
 			gp_Canvas->MakeScreenShot(filename);
 		}
 	}
+	else {
+		return NULL;
+	}
 	Py_Return;
 }
 
@@ -637,6 +652,9 @@ static PyObject* gPyEnableMotionBlur(PyObject*,
 		{
 			gp_Rasterizer->EnableMotionBlur(motionblurvalue);
 		}
+	}
+	else {
+		return NULL;
 	}
 	Py_Return;
 }

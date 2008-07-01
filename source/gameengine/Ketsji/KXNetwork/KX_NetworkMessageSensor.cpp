@@ -233,6 +233,9 @@ PyObject* KX_NetworkMessageSensor::PySetSubjectFilterText(
 	{
 	     m_subject = Subject;
 	}
+	else {
+		return NULL;
+	}
 
 	Py_Return;
 }
