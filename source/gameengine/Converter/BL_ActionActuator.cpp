@@ -641,6 +641,9 @@ PyObject* BL_ActionActuator::PySetAction(PyObject* self,
 				m_blendframe = 0;
 		}
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -659,6 +662,9 @@ PyObject* BL_ActionActuator::PySetStart(PyObject* self,
 	if (PyArg_ParseTuple(args,"f",&start))
 	{
 		m_startframe = start;
+	}
+	else {
+		return NULL;
 	}
 	
 	Py_INCREF(Py_None);
@@ -679,6 +685,9 @@ PyObject* BL_ActionActuator::PySetEnd(PyObject* self,
 	{
 		m_endframe = end;
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -698,6 +707,9 @@ PyObject* BL_ActionActuator::PySetBlendin(PyObject* self,
 	if (PyArg_ParseTuple(args,"f",&blendin))
 	{
 		m_blendin = blendin;
+	}
+	else {
+		return NULL;
 	}
 	
 	Py_INCREF(Py_None);
@@ -724,6 +736,9 @@ PyObject* BL_ActionActuator::PySetBlendtime(PyObject* self,
 		if (m_blendframe>m_blendin)
 			m_blendframe = m_blendin;
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -744,6 +759,9 @@ PyObject* BL_ActionActuator::PySetPriority(PyObject* self,
 	if (PyArg_ParseTuple(args,"i",&priority))
 	{
 		m_priority = priority;
+	}
+	else {
+		return NULL;
 	}
 	
 	Py_INCREF(Py_None);
@@ -768,6 +786,9 @@ PyObject* BL_ActionActuator::PySetFrame(PyObject* self,
 		else if (m_localtime>m_endframe)
 			m_localtime=m_endframe;
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -788,6 +809,9 @@ PyObject* BL_ActionActuator::PySetProperty(PyObject* self,
 	{
 		m_propname = string;
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -807,6 +831,9 @@ PyObject* BL_ActionActuator::PySetFrameProperty(PyObject* self,
 	{
 		m_framepropname = string;
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -821,6 +848,9 @@ PyObject* BL_ActionActuator::PyGetChannel(PyObject* self,
 	if (PyArg_ParseTuple(args,"s",&string))
 	{
 		m_propname = string;
+	}
+	else {
+		return NULL;
 	}
 	
 	Py_INCREF(Py_None);
@@ -846,7 +876,8 @@ PyObject* BL_ActionActuator::PySetChannel(PyObject* self,
 	int row,col;
 	int	mode = 0;	/* 0 for bone space, 1 for armature/world space */
 	
-	PyArg_ParseTuple(args,"sO|i", &string, &pylist, &mode);
+	if (!PyArg_ParseTuple(args,"sO|i", &string, &pylist, &mode))
+		return NULL;
 	
 	if (pylist->ob_type == &CListValue::Type)
 	{
