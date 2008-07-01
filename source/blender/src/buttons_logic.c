@@ -387,7 +387,6 @@ void do_logic_buts(unsigned short event)
 	bSensor *sens;
 	bController *cont;
 	bActuator *act;
-	Base *base;
 	Object *ob;
 	int didit, bit;
 	
@@ -443,16 +442,14 @@ void do_logic_buts(unsigned short event)
 		break;
 	
 	case B_ADD_SENS:
-		base= FIRSTBASE;
-		while(base) {
-			if(base->object->scaflag & OB_ADDSENS) {
-				base->object->scaflag &= ~OB_ADDSENS;
+		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+			if(ob->scaflag & OB_ADDSENS) {
+				ob->scaflag &= ~OB_ADDSENS;
 				sens= new_sensor(SENS_ALWAYS);
-				BLI_addtail(&(base->object->sensors), sens);
+				BLI_addtail(&(ob->sensors), sens);
 				make_unique_prop_names(sens->name);
-				base->object->scaflag |= OB_SHOWSENS;
+				ob->scaflag |= OB_SHOWSENS;
 			}
-			base= base->next;
 		}
 		
 		BIF_undo_push("Add sensor");
@@ -460,9 +457,8 @@ void do_logic_buts(unsigned short event)
 		break;
 
 	case B_CHANGE_SENS:
-		base= FIRSTBASE;
-		while(base) {
-			sens= base->object->sensors.first;
+		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+			sens= ob->sensors.first;
 			while(sens) {
 				if(sens->type != sens->otype) {
 					init_sensor(sens);
@@ -471,43 +467,39 @@ void do_logic_buts(unsigned short event)
 				}
 				sens= sens->next;
 			}
-			base= base->next;
 		}
 		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 	
 	case B_DEL_SENS:
-		base= FIRSTBASE;
-		while(base) {
-			sens= base->object->sensors.first;
+		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+			sens= ob->sensors.first;
 			while(sens) {
 				if(sens->flag & SENS_DEL) {
-					BLI_remlink(&(base->object->sensors), sens);
+					BLI_remlink(&(ob->sensors), sens);
 					free_sensor(sens);
 					break;
 				}
 				sens= sens->next;
 			}
-			base= base->next;
 		}
 		BIF_undo_push("Delete sensor");
 		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 	
 	case B_ADD_CONT:
-		base= FIRSTBASE;
-		while(base) {
-			if(base->object->scaflag & OB_ADDCONT) {
-				base->object->scaflag &= ~OB_ADDCONT;
+		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+			if(ob->scaflag & OB_ADDCONT) {
+				ob->scaflag &= ~OB_ADDCONT;
 				cont= new_controller(CONT_LOGIC_AND);
 				make_unique_prop_names(cont->name);
-				base->object->scaflag |= OB_SHOWCONT;
-				BLI_addtail(&(base->object->controllers), cont);
+				ob->scaflag |= OB_SHOWCONT;
+				BLI_addtail(&(ob->controllers), cont);
 				/* set the controller state mask from the current object state.
 				   A controller is always in a single state, so select the lowest bit set
 				   from the object state */
 				for (bit=0; bit<32; bit++) {
-					if (base->object->state & (1<<bit))
+					if (ob->state & (1<<bit))
 						break;
 				}
 				cont->state_mask = (1<<bit);
@@ -516,42 +508,36 @@ void do_logic_buts(unsigned short event)
 					cont->state_mask = 1;
 				}
 			}
-			base= base->next;
 		}
 		BIF_undo_push("Add controller");
 		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 
 	case B_SET_STATE_BIT:
-		base= FIRSTBASE;
-		while(base) {
-			if(base->object->scaflag & OB_SETSTBIT) {
-				base->object->scaflag &= ~OB_SETSTBIT;
-				base->object->state = 0x3FFFFFFF;
+		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+			if(ob->scaflag & OB_SETSTBIT) {
+				ob->scaflag &= ~OB_SETSTBIT;
+				ob->state = 0x3FFFFFFF;
 			}
-			base= base->next;
 		}
 		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 
 	case B_INIT_STATE_BIT:
-		base= FIRSTBASE;
-		while(base) {
-			if(base->object->scaflag & OB_INITSTBIT) {
-				base->object->scaflag &= ~OB_INITSTBIT;
-				base->object->state = base->object->init_state;
-				if (!base->object->state)
-					base->object->state = 1;
+		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+			if(ob->scaflag & OB_INITSTBIT) {
+				ob->scaflag &= ~OB_INITSTBIT;
+				ob->state = ob->init_state;
+				if (!ob->state)
+					ob->state = 1;
 			}
-			base= base->next;
 		}
 		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 
 	case B_CHANGE_CONT:
-		base= FIRSTBASE;
-		while(base) {
-			cont= base->object->controllers.first;
+		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+			cont= ob->controllers.first;
 			while(cont) {
 				if(cont->type != cont->otype) {
 					init_controller(cont);
@@ -560,51 +546,45 @@ void do_logic_buts(unsigned short event)
 				}
 				cont= cont->next;
 			}
-			base= base->next;
 		}
 		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 	
 
 	case B_DEL_CONT:
-		base= FIRSTBASE;
-		while(base) {
-			cont= base->object->controllers.first;
+		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+			cont= ob->controllers.first;
 			while(cont) {
 				if(cont->flag & CONT_DEL) {
-					BLI_remlink(&(base->object->controllers), cont);
+					BLI_remlink(&(ob->controllers), cont);
 					unlink_controller(cont);
 					free_controller(cont);
 					break;
 				}
 				cont= cont->next;
 			}
-			base= base->next;
 		}
 		BIF_undo_push("Delete controller");
 		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 
 	case B_ADD_ACT:
-		base= FIRSTBASE;
-		while(base) {
-			if(base->object->scaflag & OB_ADDACT) {
-				base->object->scaflag &= ~OB_ADDACT;
+		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+			if(ob->scaflag & OB_ADDACT) {
+				ob->scaflag &= ~OB_ADDACT;
 				act= new_actuator(ACT_OBJECT);
 				make_unique_prop_names(act->name);
-				BLI_addtail(&(base->object->actuators), act);
-				base->object->scaflag |= OB_SHOWACT;
+				BLI_addtail(&(ob->actuators), act);
+				ob->scaflag |= OB_SHOWACT;
 			}
-			base= base->next;
 		}
 		BIF_undo_push("Add actuator");
 		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 
 	case B_CHANGE_ACT:
-		base= FIRSTBASE;
-		while(base) {
-			act= base->object->actuators.first;
+		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+			act= ob->actuators.first;
 			while(act) {
 				if(act->type != act->otype) {
 					init_actuator(act);
@@ -613,25 +593,22 @@ void do_logic_buts(unsigned short event)
 				}
 				act= act->next;
 			}
-			base= base->next;
 		}
 		allqueue(REDRAWBUTSLOGIC, 0);
 		break;
 
 	case B_DEL_ACT:
-		base= FIRSTBASE;
-		while(base) {
-			act= base->object->actuators.first;
+		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+			act= ob->actuators.first;
 			while(act) {
 				if(act->flag & ACT_DEL) {
-					BLI_remlink(&(base->object->actuators), act);
+					BLI_remlink(&(ob->actuators), act);
 					unlink_actuator(act);
 					free_actuator(act);
 					break;
 				}
 				act= act->next;
 			}
-			base= base->next;
 		}
 		BIF_undo_push("Delete actuator");
 		allqueue(REDRAWBUTSLOGIC, 0);
@@ -640,10 +617,8 @@ void do_logic_buts(unsigned short event)
 	case B_SOUNDACT_BROWSE:
 		/* since we don't know which... */
 		didit= 0;
-		base= FIRSTBASE;
-		while(base)
-		{
-			act= base->object->actuators.first;
+		for(ob=G.main->object.first; ob; ob=ob->id.next) {
+			act= ob->actuators.first;
 			while(act)
 			{
 				if(act->type==ACT_SOUND)
@@ -684,7 +659,6 @@ void do_logic_buts(unsigned short event)
 			}
 			if(didit)
 				break;
-			base= base->next;
 		}
 		allqueue(REDRAWBUTSLOGIC, 0);
 		allqueue(REDRAWSOUND, 0);
